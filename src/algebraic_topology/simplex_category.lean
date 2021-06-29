@@ -441,26 +441,22 @@ begin
     -- The proof is by contradiction: assume f is not surjective,
     -- then introduce two non-equal auxiliary functions equalizing f, and get a contradiction.
     -- First we define the two auxiliary functions.
-    set chi_1 : m ⟶ [1] := hom.mk
-    ⟨λ u, if u ≤ x then 0 else 1,
-     by { intros a b a_leq_b,
-          by_cases h : a ≤ x,
-          { simp [h, fin.zero_le] },
-          { have b_ge_x : ¬(b ≤ x),
-            { contrapose! h,
-              exact a_leq_b.trans h },
-            simp [h, b_ge_x] }}⟩ with def_chi_1,
-    set chi_2 : m ⟶ [1] := hom.mk
-    ⟨λ u, if u < x then 0 else 1,
-     by { intros a b a_leq_b,
-          obtain rfl|a_lt_b := a_leq_b.eq_or_lt,
-          { refl },
-          by_cases h : a < x,
-          { simp [h, fin.zero_le] },
-          { have b_geq_x : ¬(b < x),
-            { contrapose! h,
-              exact a_lt_b.trans h },
-            simp [h, b_geq_x] }}⟩ with def_chi_2,
+    set chi_1 : m ⟶ [1] := hom.mk ⟨λ u, if u ≤ x then 0 else 1, begin
+      intros a b h,
+      dsimp only [],
+      split_ifs with h1 h2 h3,
+      any_goals { exact le_refl _ },
+      { exact bot_le },
+      { exact false.elim (h1 (le_trans h h3)) }
+    end ⟩,
+    set chi_2 : m ⟶ [1] := hom.mk ⟨λ u, if u < x then 0 else 1, begin
+      intros a b h,
+      dsimp only [],
+      split_ifs with h1 h2 h3,
+      any_goals { exact le_refl _ },
+      { exact bot_le },
+      { exact false.elim (h1 (lt_of_le_of_lt h h3)) }
+    end ⟩,
     -- The two auxiliary functions equalize f
     have f_comp_chi_i : f ≫ chi_1 = f ≫ chi_2,
     { dsimp,
@@ -468,14 +464,9 @@ begin
       simp [le_iff_lt_or_eq, h_ab x_1] },
     -- We now just have to show the two auxiliary functions are not equal.
     rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
-    apply_fun hom.to_preorder_hom at eq_chi_i,
-    apply_fun preorder_hom.to_fun at eq_chi_i,
-    replace eq_chi_i := congr_fun eq_chi_i x,
-    dsimp at eq_chi_i,
-    have chi_1_x : (hom.to_preorder_hom chi_1) x = 0, { simp },
-    have chi_2_x : (hom.to_preorder_hom chi_2) x = 1, { simp },
-    rw [chi_1_x, chi_2_x] at eq_chi_i,
-    exact nat.zero_ne_one (fin.veq_of_eq eq_chi_i) },
+    apply_fun (λ e, e.to_preorder_hom x) at eq_chi_i,
+    suffices : (0 : fin 2) = 1, by exact bot_ne_top this,
+    simpa using eq_chi_i },
   { exact concrete_category.epi_of_surjective f }
 end
 

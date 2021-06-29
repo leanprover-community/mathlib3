@@ -810,8 +810,7 @@ lemma tendsto_to_L1_iff_tendsto_lintegral_zero {ι} {l : filter ι} (F : ι → 
 begin
   convert Lp.tendsto_Lp_iff_tendsto_ℒp' _ _,
   ext1 n,
-  simp only [snorm_eq_snorm' one_ne_zero one_ne_top, snorm', one_to_real, one_div, rpow_one,
-    _root_.inv_one],
+  rw snorm_one_eq_lintegral_nnnorm,
   apply lintegral_congr_ae,
   filter_upwards [((hF n).sub hf).coe_fn_to_L1, Lp.coe_fn_sub ((hF n).to_L1 (F n)) (hf.to_L1 f)],
   intros x hx₁ hx₂,

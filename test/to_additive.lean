@@ -20,7 +20,7 @@ attribute [to_additive my_has_scalar.smul] my_has_pow.pow
 @[priority 10000]
 local infix ` ^ `:80 := my_has_pow.pow
 
-@[to_additive? bar1]
+@[to_additive bar1]
 def foo1 {α} [my_has_pow α ℕ] (x : α) (n : ℕ) : α := @my_has_pow.pow α ℕ _ x n
 
 instance dummy : my_has_pow ℕ $ plift ℤ := ⟨λ _ _, 0⟩
@@ -29,10 +29,10 @@ set_option pp.universes true
 @[to_additive bar2]
 def foo2 {α} [my_has_pow α ℕ] (x : α) (n : ℕ) (m : plift ℤ) : α := x ^ (n ^ m)
 
-@[to_additive? bar3]
+@[to_additive bar3]
 def foo3 {α} [my_has_pow α ℕ] (x : α) : ℕ → α := @my_has_pow.pow α ℕ _ x
 
-@[to_additive? bar4]
+@[to_additive bar4]
 def {a b} foo4 {α : Type a} : Type b → Type (max a b) := @my_has_pow α
 
 @[to_additive bar4_test]
@@ -41,10 +41,10 @@ lemma foo4_test {α β : Type*} : @foo4 α β = @my_has_pow α β := rfl
 @[to_additive bar5]
 def foo5 {α} [my_has_pow α ℕ] [my_has_pow ℕ ℤ] : true := trivial
 
-@[to_additive? bar6]
+@[to_additive bar6]
 def foo6 {α} [my_has_pow α ℕ] : α → ℕ → α := @my_has_pow.pow α ℕ _
 
-@[to_additive? bar7]
+@[to_additive bar7]
 def foo7 := @my_has_pow.pow
 
 open tactic

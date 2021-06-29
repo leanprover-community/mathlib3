@@ -49,9 +49,18 @@ begin
 end
 lemma Ioc_ℤ_finite (l u : ℤ) : set.finite (Ioc l u) := Icc_ℤ_finite (l + 1) u
 
-instance (a b : ℤ) : fintype (Icc a b) := nonempty.some (Icc_ℤ_finite a b)
-instance (a b : ℤ) : fintype (Ioc a b) := nonempty.some (Ioc_ℤ_finite a b)
-instance (a b : ℤ) : fintype (Ioo a b) := nonempty.some (Ioo_ℤ_finite a b)
+instance (l u : ℤ) : fintype (Ioo l u) :=
+fintype.of_finset (finset.Ico_ℤ (l+1) u) $ λ n,
+  by simp only [mem_Ioo, finset.Ico_ℤ.mem, int.add_one_le_iff, iff_self, implies_true_iff]
+
+instance (l u : ℤ) : fintype (Icc l u) :=
+fintype.of_finset (finset.Ico_ℤ l (u+1)) $ λ n,
+  by simp only [mem_Icc, finset.Ico_ℤ.mem, int.lt_add_one_iff, iff_self, implies_true_iff]
+
+instance (l u : ℤ) : fintype (Ioc l u) :=
+fintype.of_finset (finset.Ico_ℤ (l+1) (u+1)) $ λ n,
+  by simp only [mem_Ioc, finset.Ico_ℤ.mem, int.add_one_le_iff, int.lt_add_one_iff,
+    iff_self, implies_true_iff]
 
 -- TODO other useful instances: fin n, zmod?
 

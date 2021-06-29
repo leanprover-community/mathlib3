@@ -1083,5 +1083,13 @@ add_tactic_doc
   decl_names := [`tactic.interactive.generalize'],
   tags       := ["context management"] }
 
+/--
+Like `tactic.interactive.subst`, but fails with a nicer error message if the substituted variable is
+a local definition. It is trickier to fix this in core, since `tactic.is_local_def` is in mathlib.
+-/
+meta def subst' (q : parse texpr) : tactic unit := do
+i_to_expr q >>= tactic.subst' >> try (tactic.reflexivity reducible)
+
+
 end interactive
 end tactic

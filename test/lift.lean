@@ -35,6 +35,14 @@ begin
   exact int.coe_nat_nonneg _
 end
 
+-- fail gracefully when the lifted variable is a local definition
+example : let n : ℤ := 3 in n = n :=
+begin
+  intro n,
+  success_if_fail_with_msg { lift n to ℕ }
+    "Cannot substitute variable n, it is a local definition. Hint: use `clear_value`.",
+end
+
 instance can_lift_unit : can_lift unit unit :=
 ⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
 

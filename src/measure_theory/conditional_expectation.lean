@@ -35,8 +35,7 @@ namespace ae_measurable'
 variables {α β 𝕜 : Type*} {m m0 : measurable_space α} {μ : measure α}
   [measurable_space β] [measurable_space 𝕜] {f g : α → β}
 
-lemma congr (hf : ae_measurable' m f μ) (hfg : f =ᵐ[μ] g) :
-  ae_measurable' m g μ :=
+lemma congr (hf : ae_measurable' m f μ) (hfg : f =ᵐ[μ] g) : ae_measurable' m g μ :=
 by { obtain ⟨f', hf'_meas, hff'⟩ := hf, exact ⟨f', hf'_meas, hfg.symm.trans hff'⟩, }
 
 lemma add [has_add β] [has_measurable_add₂ β] (hf : ae_measurable' m f μ)
@@ -45,8 +44,7 @@ lemma add [has_add β] [has_measurable_add₂ β] (hf : ae_measurable' m f μ)
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
   rcases hg with ⟨g', h_g'_meas, hgg'⟩,
-  refine ⟨f' + g', @measurable.add α m _ _ _ _ f' g' h_f'_meas h_g'_meas, _⟩,
-  exact hff'.add hgg',
+  exact ⟨f' + g', @measurable.add α m _ _ _ _ f' g' h_f'_meas h_g'_meas, hff'.add hgg'⟩,
 end
 
 lemma const_smul [has_scalar 𝕜 β] [has_measurable_smul 𝕜 β] (c : 𝕜) (hf : ae_measurable' m f μ) :
@@ -78,7 +76,7 @@ variables {α β γ E E' F F' G G' H 𝕜 𝕂 : Type*} {p : ℝ≥0∞}
   -- H for measurable space and normed group (hypotheses of mem_ℒp)
   [measurable_space H] [normed_group H]
 
-section Lp_sub
+section Lp_meas
 
 variables (F 𝕂)
 /-- `Lp_meas F 𝕂 m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
@@ -241,6 +239,6 @@ is_closed.complete_space_coe (is_closed_ae_measurable' hm.elim)
 
 end complete_subspace
 
-end Lp_sub
+end Lp_meas
 
 end measure_theory

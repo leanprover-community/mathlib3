@@ -117,9 +117,7 @@ lemma ae_measurable'_of_tendsto'_aux_mem_Lp (hm : m ≤ m0) (f : ι → Lp G p �
   @mem_ℒp α G m _ _ (g n) p (μ.trim hm) :=
 begin
   refine ⟨@measurable.ae_measurable α _ m _ _ _ (hg n), _⟩,
-  have h_snorm_fg : @snorm α _ m _ (g n) p (μ.trim hm) = snorm (f n) p μ,
-    by { rw snorm_trim hm (hg n), exact snorm_congr_ae (hfg n).symm, },
-  rw h_snorm_fg,
+  rw [snorm_trim hm (hg n), snorm_congr_ae (hfg n).symm],
   exact Lp.snorm_lt_top (f n),
 end
 

@@ -1703,11 +1703,7 @@ begin
   exact_mod_cast hc a (by exact_mod_cast ha),
 end
 
-<<<<<<< HEAD
-lemma continuous_at_rpow_const  {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
-=======
 private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
->>>>>>> origin/master
   continuous_at (λ a : ennreal, a ^ y) x :=
 begin
   by_cases hx : x = ⊤,

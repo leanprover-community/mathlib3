@@ -12,8 +12,6 @@ import topology.connected
 This file defines the predicate `separated`, and common separation axioms
 (under the Kolmogorov classification).
 
-NOTE TO REVIEWERS: not sure how to deal with the last few lemmata after line 1033
-
 ## Main definitions
 
 * `separated`: Two `set`s are separated if they are contained in disjoint open sets.
@@ -60,6 +58,8 @@ NOTE TO REVIEWERS: not sure how to deal with the last few lemmata after line 103
 * `locally_compact_of_compact_nhds`: If every point has a compact neighbourhood,
   then the space is locally compact.
 * `tot_sep_of_zero_dim`: If `α` has a clopen basis, it is a `totally_separated_space`.
+* `loc_compact_t2_tot_disc_iff_tot_sep`: A locally compact T₂ space is totally disconnected iff
+  it is totally separated.
 
 If the space is also compact:
 
@@ -68,6 +68,7 @@ If the space is also compact:
   is the intersection of all its clopen neighbourhoods.
 * `compact_t2_tot_disc_iff_tot_sep`: Being a `totally_disconnected_space`
   is equivalent to being a `totally_separated_space`.
+* `connected_components.t2`: `connected_components α` is T₂ for `α` T₂ and compact.
 
 ### T₃ spaces
 

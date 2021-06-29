@@ -180,19 +180,23 @@ begin
   exact_mod_cast this
 end
 
-lemma nnnorm_approx_on_zero_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
-  {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (x : β) (n : ℕ) :
-  ∥approx_on f hf s 0 h₀ n x∥₊ ≤ ∥f x∥₊ + ∥f x∥₊ :=
+lemma nnnorm_approx_on_y0_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
+  {s : set E} {y₀ : E}  (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
+  ∥approx_on f hf s y₀ h₀ n x - y₀∥₊ ≤ ∥f x - y₀∥₊ + ∥f x - y₀∥₊ :=
 begin
   have := edist_approx_on_y0_le hf h₀ x n,
-  simp [edist_comm (0 : E), edist_eq_coe_nnnorm] at this,
+  repeat { rw [edist_comm y₀, edist_eq_coe_nnnorm_sub] at this },
   exact_mod_cast this,
 end
 
 lemma norm_approx_on_zero_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (x : β) (n : ℕ) :
   ∥approx_on f hf s 0 h₀ n x∥ ≤ ∥f x∥ + ∥f x∥ :=
-by exact_mod_cast nnnorm_approx_on_zero_le hf h₀ x n
+begin
+  have := edist_approx_on_y0_le hf h₀ x n,
+  simp [edist_comm (0 : E), edist_eq_coe_nnnorm] at this,
+  exact_mod_cast this,
+end
 
 lemma tendsto_approx_on_Lp_nnnorm  [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (hp : 0 < p)
@@ -235,30 +239,54 @@ begin
   simpa using tendsto_lintegral_of_dominated_convergence _ hF_meas h_bound h_fin h_lim,
 end
 
+-- to avoid assuming `[second_countable_space E]`, we do not make use of the various `mem_ℒp.*`
+-- lemmas
 lemma snorm'_lt_top_approx_on [borel_space E]
   {f : β → E} (hp : 0 < p) {μ : measure β} (fmeas : measurable f) (hf : snorm' f p μ < ⊤)
-  {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (n : ℕ) :
-  snorm' (approx_on f fmeas s 0 h₀ n) p μ < ⊤ :=
+  {s : set E} {y₀ : E} (h₀ : y₀ ∈ s)
+  [separable_space s] (hi₀ : snorm' (λ x, y₀) p μ < ∞) (n : ℕ) :
+  snorm' (approx_on f fmeas s y₀ h₀ n) p μ < ⊤ :=
 begin
+  -- haveI : has_measurable_sub₂ E := has_continuous_sub.has_measurable_sub₂,
+  have approx_meas' : ae_measurable (λ x, approx_on f fmeas s y₀ h₀ n x - y₀) μ,
+  { exact (approx_on f fmeas s y₀ h₀ n - const β y₀).ae_measurable },
+  have approx_meas : measurable (λ x, (∥approx_on f fmeas s y₀ h₀ n x - y₀∥₊ ^ p : ℝ≥0∞)),
+  { simp only [← edist_eq_coe_nnnorm_sub],
+    convert (measurable_edist_left.comp (approx_on f fmeas s y₀ h₀ n).measurable).pow_const p },
+  -- have hp' : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  suffices : snorm' (λ x, approx_on f fmeas s y₀ h₀ n x - y₀) p μ < ⊤,
+  { have hfp : mem_ℒp (λ x, y₀) (ennreal.of_real p) μ := ⟨ae_measurable_const, sorry⟩,
+    have hafp : mem_ℒp (λ x, approx_on f fmeas s y₀ h₀ n x - y₀) (ennreal.of_real p) μ :=
+      ⟨approx_meas', sorry⟩,
+    convert snorm_add_lt_top hfp hafp using 1,
+    rw snorm_eq_snorm',
+    congr' 1,
+    ext x,
+    simp,
+    sorry },
+  have hf' : snorm' (λ x, f x - y₀) p μ < ⊤,
+  { sorry },
   rw lintegral_rpow_nnnorm_lt_top_iff_snorm'_lt_top hp,
   have h_two : (2 : ℝ≥0∞) = ↑(2 : ℝ≥0) := by norm_num,
-  have h_meas : measurable (λ x, (∥f x∥₊ : ℝ≥0∞) ^ p) :=
-    (measurable_ennnorm.comp fmeas).pow_const p,
-  have h_le' : ∀ x, ∥approx_on f fmeas s 0 h₀ n x∥₊ ^ p ≤ 2 ^ p * ∥f x∥₊ ^ p,
+  have h_meas : measurable (λ x, (∥f x - y₀∥₊ : ℝ≥0∞) ^ p),
+  { simp only [← edist_eq_coe_nnnorm_sub],
+    exact (measurable_edist_left.comp fmeas).pow_const p },
+    -- (measurable_ennnorm.comp (fmeas.sub measurable_const)).pow_const p,
+  have h_le' : ∀ x, ∥approx_on f fmeas s y₀ h₀ n x - y₀∥₊ ^ p ≤ 2 ^ p * ∥f x - y₀∥₊ ^ p,
   { intros x,
-    calc ∥approx_on f fmeas s 0 h₀ n x∥₊ ^ p ≤ (∥f x∥₊ + ∥f x∥₊) ^ p :
-      nnreal.rpow_le_rpow (nnnorm_approx_on_zero_le fmeas h₀ x n) hp.le
-    ... = (2 * ∥f x∥₊) ^ p : by { congr' 1, ring }
-    ... = 2 ^ p * ∥f x∥₊ ^ p : nnreal.mul_rpow },
-  have h_le : ∀ x, (∥approx_on f fmeas s 0 h₀ n x∥₊ : ℝ≥0∞) ^ p ≤ 2 ^ p * ∥f x∥₊ ^ p,
+    calc ∥approx_on f fmeas s y₀ h₀ n x - y₀∥₊ ^ p ≤ (∥f x - y₀∥₊ + ∥f x - y₀∥₊) ^ p :
+      nnreal.rpow_le_rpow (nnnorm_approx_on_y0_le fmeas h₀ x n) hp.le
+    ... = (2 * ∥f x - y₀∥₊) ^ p : by { congr' 1, ring }
+    ... = 2 ^ p * ∥f x - y₀∥₊ ^ p : nnreal.mul_rpow },
+  have h_le : ∀ x, (∥approx_on f fmeas s y₀ h₀ n x - y₀∥₊ : ℝ≥0∞) ^ p ≤ 2 ^ p * ∥f x - y₀∥₊ ^ p,
   { intros x,
     simpa only [h_two, ennreal.coe_rpow_of_nonneg _ hp.le, ennreal.coe_mul]
       using coe_mono (h_le' x) },
   calc
-  ∫⁻ x, ∥approx_on f fmeas s 0 h₀ n x∥₊ ^ p ∂μ ≤ ∫⁻ x, 2 ^ p * ∥f x∥₊ ^ p ∂μ :
+  ∫⁻ x, ∥approx_on f fmeas s y₀ h₀ n x - y₀∥₊ ^ p ∂μ ≤ ∫⁻ x, 2 ^ p * ∥f x - y₀∥₊ ^ p ∂μ :
     measure_theory.lintegral_mono h_le
-  ... = 2 ^ p * ∫⁻ x, ∥f x∥₊ ^ p ∂μ : lintegral_const_mul _ h_meas
-  ... < ∞ : ennreal.mul_lt_top _ (lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hp hf),
+  ... = 2 ^ p * ∫⁻ x, ∥f x - y₀∥₊ ^ p ∂μ : lintegral_const_mul _ h_meas
+  ... < ∞ : ennreal.mul_lt_top _ (lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hp hf'),
   exact rpow_lt_top_of_nonneg hp.le two_ne_top,
 end
 
@@ -270,7 +298,7 @@ tendsto_approx_on_Lp_nnnorm fmeas trivial hp (by simp) hf
 lemma snorm'_lt_top_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} (hp : 0 < p) {μ : measure β} (fmeas : measurable f) (hf : snorm' f p μ < ⊤) (n : ℕ) :
   snorm' (approx_on f fmeas univ 0 trivial n) p μ < ⊤ :=
-snorm'_lt_top_approx_on hp fmeas hf _ n
+snorm'_lt_top_approx_on hp fmeas hf _ (integrable_zero _ _ μ) n
 
 end Lp
 
@@ -289,13 +317,14 @@ by simpa [snorm'] using
 
 lemma integrable_approx_on [borel_space E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ)
-  {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (n : ℕ) :
-  integrable (approx_on f fmeas s 0 h₀ n) μ :=
+  {s : set E} {y₀ : E} (h₀ : y₀ ∈ s)
+  [separable_space s] (hi₀ : integrable (λ x, y₀) μ) (n : ℕ) :
+  integrable (approx_on f fmeas s y₀ h₀ n) μ :=
 begin
-  refine ⟨(approx_on f fmeas s 0 h₀ n).ae_measurable, _⟩,
+  refine ⟨(approx_on f fmeas s y₀ h₀ n).ae_measurable, _⟩,
   have : snorm' f 1 μ < ⊤,
   { simpa [snorm', has_finite_integral] using hf.2 },
-  simpa [snorm', has_finite_integral] using snorm'_lt_top_approx_on zero_lt_one fmeas this h₀ n
+  simpa [snorm', has_finite_integral] using snorm'_lt_top_approx_on zero_lt_one fmeas this h₀ hi₀ n
 end
 
 lemma tendsto_approx_on_univ_L1_nnnorm [opens_measurable_space E] [second_countable_topology E]
@@ -306,7 +335,7 @@ tendsto_approx_on_L1_nnnorm fmeas trivial (by simp) hf.2
 lemma integrable_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) (n : ℕ) :
   integrable (approx_on f fmeas univ 0 trivial n) μ :=
-integrable_approx_on fmeas hf _ n
+integrable_approx_on fmeas hf _ (integrable_zero _ _ μ) n
 
 lemma tendsto_approx_on_univ_L1 [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :

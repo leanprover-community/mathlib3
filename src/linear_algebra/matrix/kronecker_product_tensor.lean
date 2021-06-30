@@ -24,9 +24,7 @@ For both products, we prove that it is associative (in theorems `kronecker_prodâ
 I (FAE) wonder if this file should be in `linear_algebra/matrix` or rather in `data/matrix`.
 -/
 
--- universes u v u'
-
-namespace tensor_matrix
+universes u v u'
 
 open tensor_product matrix function
 open_locale tensor_product
@@ -37,6 +35,10 @@ variables {l m n p l' m' n' p' : Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
+namespace tensor_matrix
+
+
+-- include l m n
 -- for mathlib
 -- add also the equiv tra tipi?
 

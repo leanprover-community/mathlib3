@@ -2125,7 +2125,7 @@ end
 lemma saturated_iff_nsmul {H : add_subgroup A} :
   saturated H ↔ (∀ (n : ℕ) (g : A), n • g ∈ H → n = 0 ∨ g ∈ H) := iff.rfl
 
-lemma saturated_iff_gpow {H : add_subgroup A} :
+lemma saturated_iff_gsmul {H : add_subgroup A} :
   saturated H ↔ (∀ (n : ℤ) (g : A), n • g ∈ H → n = 0 ∨ g ∈ H) :=
 begin
   split,
@@ -2142,5 +2142,8 @@ begin
 end
 
 end add_subgroup
+
+attribute [to_additive saturated_iff_nsmul] saturated_iff_npow
+attribute [to_additive saturated_iff_gsmul] saturated_iff_gpow
 
 end saturated

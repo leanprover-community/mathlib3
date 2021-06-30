@@ -1675,7 +1675,7 @@ open algebra
 
 /-- If the field `L` is an algebraic extension of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
-def is_fraction_ring_of_algebraic [algebra A L] (alg : is_algebraic A L)
+lemma is_fraction_ring_of_algebraic [algebra A L] (alg : is_algebraic A L)
   (inj : ∀ x, algebra_map A L x = 0 → x = 0) :
   is_fraction_ring (integral_closure A L) L :=
 ⟨(λ ⟨⟨y, integral⟩, nonzero⟩,
@@ -1687,11 +1687,11 @@ def is_fraction_ring_of_algebraic [algebra A L] (alg : is_algebraic A L)
           λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
             (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩)⟩
 
-variables {K} (L)
+variables (K L)
 
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
-instance is_fraction_ring_of_finite_extension [algebra A L] [algebra K L]
+lemma is_fraction_ring_of_finite_extension [algebra A L] [algebra K L]
   [is_scalar_tower A K L] [finite_dimensional K L] :
   is_fraction_ring (integral_closure A L) L :=
 is_fraction_ring_of_algebraic

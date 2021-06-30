@@ -24,25 +24,26 @@ For both products, we prove that it is associative (in theorems `kronecker_prod�
 I (FAE) wonder if this file should be in `linear_algebra/matrix` or rather in `data/matrix`.
 -/
 
--- universes u v v' u'
+universes u v v' u'
 
 namespace matrix_bialgebra
 
 open tensor_product matrix function
 open_locale tensor_product
 
-variables {α : Type*}
-variables {R : Type*}
-variables {S : Type*}
-variables [comm_semiring α] [comm_semiring R] [comm_semiring S]
-variables [algebra α R] [algebra α S]
-variables (β : Type*) [comm_semiring β] [algebra α β] [algebra R β] [algebra S β]
+variables {α : Type u}
+variables {R : Type u}
+variables {S : Type u}
+variables {β : Type u}
+variables [comm_semiring α] [comm_semiring R] [comm_semiring S] [comm_semiring β]
+variables [algebra α R] [algebra α S] [algebra α β] [algebra R β] [algebra S β]
 variables [is_scalar_tower α R β] [is_scalar_tower α S β]
-variables {l m n p l' m' n' p' : Type*}
+variables {l m n p l' m' n' p' : Type v}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
 include α
+include β
 
 def matrix_bialgebra_map : (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) β :=
 { to_fun :=
@@ -65,17 +66,33 @@ def matrix_bialgebra_map : (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] m
 -- section general_kronecker_product
 
 /-- For the special case where α=R=S, see kronecker_prod.prod. -/
-def kronecker_prod₂ (A : matrix l m R) (B : matrix n p S) : matrix (l × n) (m × p) β :=
-  by {apply matrix_bialgebra_map β A B, assumption'}
+-- def kronecker_prod₂ (A : matrix l m R) (B : matrix n p S) : matrix (l × n) (m × p) β :=
+  -- by {apply matrix_bialgebra_map A B}
 
 -- #check kronecker_prod₂ β
 
 -- localized "infix ` ⊗₂  `:100 := kronecker_prod₂ β _" in matrix_bialgebra
 -- localized "notation x ` ⊗₂[`:100 β `] `:0 y:100 := (kronecker_prod₂ β) x y" in matrix_bialgebra
 
-lemma kronecker_prod₂_reindex_left --[semiring R] [semiring S] [algebra α R] [algebra α S]
+
+
+constants A B : matrix l m R
+
+-- end useful
+
+ --(B : matrix n p S) :
+
+#check matrix_bialgebra_map A B
+
+lemma kronecker_prod₂_reindex_left
+-- [comm_semiring α] [comm_semiring R] [comm_semiring S] [comm_semiring β]
+-- [algebra α R] [algebra α S] [algebra α β] [algebra R β] [algebra S β]
+-- [is_scalar_tower α R β] [is_scalar_tower α S β]
+-- [fintype l] [fintype m] [fintype n] [fintype p]
+-- [fintype l'] [fintype m'] [fintype n'] [fintype p']
   (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R) (B : matrix n p S) :
-  (kronecker_prod₂ β (reindex_linear_equiv eₗ eₘ A) B) = (0 : matrix (l' × n) (m' × p) β) :=
+  ((matrix_bialgebra_map A B) : matrix (l × n) (m × p) β)
+   = (0 : matrix (l × n) (m × p) β) :=
   --    (reindex_linear_equiv (eₗ.prod_congr (equiv.refl _)) (eₘ.prod_congr (equiv.refl _))
   -- (kronecker_prod₂ β A B)) : matrix (l × n) (m × p) β) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 

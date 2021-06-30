@@ -120,6 +120,11 @@ is_kernel.iso_kernel _ _ (is_limit_image f g) (image_iso_image f).symm $ is_imag
 lemma exact_cokernel : exact f (cokernel.π f) :=
 by { rw exact_iff, tidy }
 
+instance [exact f g] : mono (cokernel.desc f g (by simp)) :=
+begin
+  sorry,
+end
+
 section
 variables (Z)
 

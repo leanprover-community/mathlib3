@@ -482,6 +482,20 @@ begin
     ... = 0 : has_zero_morphisms.comp_zero _ _
 end
 
+lemma epi_snd_of_is_limit [epi f] {s : pullback_cone f g} (hs : is_limit s) : epi s.snd :=
+begin
+  convert epi_of_epi_fac (is_limit.cone_point_unique_up_to_iso_hom_comp (limit.is_limit _) hs _),
+  { refl },
+  { exact abelian.epi_pullback_of_epi_f _ _ }
+end
+
+lemma epi_fst_of_is_limit [epi g] {s : pullback_cone f g} (hs : is_limit s) : epi s.fst :=
+begin
+  convert epi_of_epi_fac (is_limit.cone_point_unique_up_to_iso_hom_comp (limit.is_limit _) hs _),
+  { refl },
+  { exact abelian.epi_pullback_of_epi_g _ _ }
+end
+
 end epi_pullback
 
 section mono_pushout
@@ -531,6 +545,20 @@ begin
     ... = (0 ≫ biprod.lift f (-g)) ≫ biprod.fst : by rw this
     ... = 0 ≫ biprod.lift f (-g) ≫ biprod.fst : by rw category.assoc
     ... = 0 : zero_comp
+end
+
+lemma mono_inr_of_is_colimit [mono f] {s : pushout_cocone f g} (hs : is_colimit s) : mono s.inr :=
+begin
+  convert mono_of_mono_fac (is_colimit.comp_cocone_point_unique_up_to_iso_hom hs (colimit.is_colimit _) _),
+  { refl },
+  { exact abelian.mono_pushout_of_mono_f _ _ }
+end
+
+lemma mono_inl_of_is_colimit [mono g] {s : pushout_cocone f g} (hs : is_colimit s) : mono s.inl :=
+begin
+  convert mono_of_mono_fac (is_colimit.comp_cocone_point_unique_up_to_iso_hom hs (colimit.is_colimit _) _),
+  { refl },
+  { exact abelian.mono_pushout_of_mono_g _ _ }
 end
 
 end mono_pushout

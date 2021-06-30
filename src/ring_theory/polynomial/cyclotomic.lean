@@ -424,8 +424,9 @@ open_locale arithmetic_function
 
 /-- `cyclotomic n R` can be expressed as a product in a fraction field of `polynomial R`
   using Möbius inversion. -/
-lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n) (R : Type*) [comm_ring R]
-  [nontrivial R] {K : Type*} [field K] [algebra (polynomial R) K] [is_fraction_ring (polynomial R) K] :
+lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n)
+  (R : Type*) [comm_ring R] [nontrivial R]
+  {K : Type*} [field K] [algebra (polynomial R) K] [is_fraction_ring (polynomial R) K] :
   algebra_map _ K (cyclotomic n R) =
     ∏ i in n.divisors_antidiagonal, (algebra_map (polynomial R) K (X ^ i.snd - 1)) ^ μ i.fst :=
 begin

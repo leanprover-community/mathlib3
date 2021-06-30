@@ -737,11 +737,10 @@ begin
     intro y'_eq_zero,
     have : algebra_map R₁ K aJ * y = 0,
     { rw [← algebra.smul_def, ←hy', y'_eq_zero, ring_hom.map_zero] },
-    obtain aJ_zero | y_zero := mul_eq_zero.mp this,
-    { have : aJ = 0 := (algebra_map R₁ K).injective_iff.1 (is_fraction_ring.injective _ _) _ aJ_zero,
-      have : aJ ≠ 0 := mem_non_zero_divisors_iff_ne_zero.mp haJ,
-      contradiction },
-    { exact not_mem_zero ((mem_zero_iff R₁⁰).mpr y_zero) } },
+    have y_zero := (mul_eq_zero.mp this).resolve_left
+      (mt ((algebra_map R₁ K).injective_iff.1 (is_fraction_ring.injective _ _) _)
+          (mem_non_zero_divisors_iff_ne_zero.mp haJ)),
+    exact not_mem_zero ((mem_zero_iff R₁⁰).mpr y_zero) },
   intros b hb,
   convert hI _ (hb _ (submodule.smul_mem _ aJ mem_J)) using 1,
   rw [← hy', mul_comm b, ← algebra.smul_def, mul_smul]

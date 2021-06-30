@@ -444,7 +444,8 @@ is_localization.lift (is_unit_to_stalk R x)
   localization_to_stalk R x (algebra_map _ (localization _) f) = to_stalk R x f :=
 is_localization.lift_eq _ f
 
-@[simp] lemma localization_to_stalk_mk' (x : prime_spectrum.Top R) (f : R) (s : (as_ideal x).prime_compl) :
+@[simp] lemma localization_to_stalk_mk' (x : prime_spectrum.Top R) (f : R)
+  (s : (as_ideal x).prime_compl) :
   localization_to_stalk R x (is_localization.mk' _ f s : localization _) =
   (structure_sheaf R).presheaf.germ (⟨x, s.2⟩ : basic_open (s : R))
     (const R f s (basic_open s) (λ _, id)) :=
@@ -549,8 +550,9 @@ by rw [to_open_eq_const, to_open_eq_const, const_mul_cancel']
 ring_hom.ext $ λ g,
 by rw [to_basic_open, is_localization.away.lift, ring_hom.comp_apply, is_localization.lift_eq]
 
-@[simp] lemma to_basic_open_to_map (s f : R) : to_basic_open R s (algebra_map R (localization.away s) f) =
-  const R f 1 (basic_open s) (λ _ _, submonoid.one_mem _) :=
+@[simp] lemma to_basic_open_to_map (s f : R) :
+  to_basic_open R s (algebra_map R (localization.away s) f) =
+    const R f 1 (basic_open s) (λ _ _, submonoid.one_mem _) :=
 (is_localization.lift_eq _ _).trans $ to_open_eq_const _ _ _
 
 -- The proof here follows the argument in Hartshorne's Algebraic Geometry, Proposition II.2.2.

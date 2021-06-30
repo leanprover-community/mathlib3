@@ -66,6 +66,7 @@ def subtype.val (p : α → Prop) : subtype p →ₘ α :=
 ⟨subtype.val, λ x y h, h⟩
 
 -- TODO[gh-6025]: make this a global instance once safe to do so
+/-- There is a unique monotone map from a subsingleton to itself. -/
 local attribute [instance]
 def unique [subsingleton α] : unique (α →ₘ α) :=
 { default := preorder_hom.id, uniq := λ a, ext _ _ (subsingleton.elim _ _) }

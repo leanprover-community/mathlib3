@@ -104,14 +104,14 @@ hI.hom_ext _ _
 
 variable [has_initial C]
 
-instance initial_is_iso_to {A : C} (f : A ⟶ ⊥_C) : is_iso f :=
+instance initial_is_iso_to {A : C} (f : A ⟶ ⊥_ C) : is_iso f :=
 initial_is_initial.is_iso_to _
 
-lemma initial_subsingleton_to {A : C} (f g : A ⟶ ⊥_C) :
+lemma initial_subsingleton_to {A : C} (f g : A ⟶ ⊥_ C) :
   f = g :=
 initial_is_initial.subsingleton_to _ _
 
-instance initial_mono_from {A : C} (f : ⊥_C ⟶ A) : mono f :=
+instance initial_mono_from {A : C} (f : ⊥_ C ⟶ A) : mono f :=
 initial_is_initial.mono_from _
 
 instance initial_to_mono {A : C} : mono (initial.to A) :=
@@ -123,11 +123,11 @@ initial.
 This is the generalisation of the fact that `X × empty ≃ empty` for types (or `n * 0 = 0`).
 -/
 @[simps hom]
-noncomputable def mul_initial (X : C) [has_binary_product X ⊥_C] :
-  X ⨯ ⊥_C ≅ ⊥_C :=
+noncomputable def mul_initial (X : C) [has_binary_product X ⊥_ C] :
+  X ⨯ ⊥_ C ≅ ⊥_ C :=
 mul_is_initial _ initial_is_initial
 
-@[simp] lemma mul_initial_inv (X : C) [has_binary_product X ⊥_C] :
+@[simp] lemma mul_initial_inv (X : C) [has_binary_product X ⊥_ C] :
   (mul_initial X).inv = initial.to _ :=
 subsingleton.elim _ _
 
@@ -137,11 +137,11 @@ initial.
 This is the generalisation of the fact that `empty × X ≃ empty` for types (or `0 * n = 0`).
 -/
 @[simps hom]
-noncomputable def initial_mul (X : C) [has_binary_product (⊥_C) X] :
-  ⊥_C ⨯ X ≅ ⊥_C :=
+noncomputable def initial_mul (X : C) [has_binary_product (⊥_ C) X] :
+  ⊥_ C ⨯ X ≅ ⊥_ C :=
 is_initial_mul _ initial_is_initial
 
-@[simp] lemma initial_mul_inv (X : C) [has_binary_product (⊥_C) X] :
+@[simp] lemma initial_mul_inv (X : C) [has_binary_product (⊥_ C) X] :
   (initial_mul X).inv = initial.to _ :=
 subsingleton.elim _ _
 end
@@ -149,12 +149,12 @@ end
 /-- If `C` has an initial object such that every morphism *to* it is an isomorphism, then `C`
 has strict initial objects. -/
 lemma has_strict_initial_object_of_initial_is_strict [has_initial C]
-  (h : ∀ A (f : A ⟶ ⊥_C), is_iso f) :
+  (h : ∀ A (f : A ⟶ ⊥_ C), is_iso f) :
   has_strict_initial_object C :=
 { out := λ I A f hI,
   begin
     haveI := h A (f ≫ hI.to _),
-    exact ⟨⟨hI.to _ ≫ inv (f ≫ hI.to ⊥_C), by rw [←assoc, is_iso.hom_inv_id], hI.hom_ext _ _⟩⟩,
+    exact ⟨⟨hI.to _ ≫ inv (f ≫ hI.to ⊥_ C), by rw [←assoc, is_iso.hom_inv_id], hI.hom_ext _ _⟩⟩,
   end }
 
 end limits

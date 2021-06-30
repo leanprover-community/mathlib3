@@ -13,6 +13,9 @@ Given a semiring `R` and a type `X`, we construct the free non-unital, non-assoc
 `X` with coefficients in `R`, together with its universal property. The construction is valuable
 because it can be used to build free algebras with more structure, e.g., free Lie algebras.
 
+Note that elsewhere we have a construction of the free unital, associative algebra. This is called
+`free_algebra`.
+
 ## Main definitions
 
   * `free_non_unital_non_assoc_algebra`

@@ -28,24 +28,21 @@ universes u v v' u'
 
 namespace matrix_bialgebra
 
-open tensor_product matrix function
-open_locale tensor_product
+open algebra matrix function
+open_locale matrix big_operators
 
-variables {α : Type u}
-variables {R : Type u}
-variables {S : Type u}
-variables {β : Type u}
+variables {α : Type*}
+variables {R : Type*}
+variables {S : Type*}
+variables {β : Type*}
 variables [comm_semiring α] [comm_semiring R] [comm_semiring S] [comm_semiring β]
 variables [algebra α R] [algebra α S] [algebra α β] [algebra R β] [algebra S β]
-variables [is_scalar_tower α R β] [is_scalar_tower α S β]
-variables {l m n p l' m' n' p' : Type v}
+variables {l m n p l' m' n' p' : Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
-include α
-include β
-
-def matrix_bialgebra_map : (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) β :=
+def kronecker_biprod (h_Rβ : is_scalar_tower α R β) (h_Sβ : is_scalar_tower α S β) :
+  (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) β :=
 { to_fun :=
   begin
     intro A,
@@ -53,70 +50,58 @@ def matrix_bialgebra_map : (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] m
     all_goals {intros x y, ext},
     { simp only [pi.add_apply, mul_add, ring_hom.map_add, dmatrix.add_apply] },
     { simp only [pi.smul_apply],
-      rw [← is_scalar_tower.algebra_map_smul S x, algebra.id.smul_eq_mul, ring_hom.map_mul,
-        algebra.smul_def, (is_scalar_tower.algebra_map_apply α S β x).symm],
+      rw [← is_scalar_tower.algebra_map_smul S x, id.smul_eq_mul, ring_hom.map_mul,
+        smul_def, (is_scalar_tower.algebra_map_apply α S β x).symm],
       ring,
       all_goals {exact is_scalar_tower.right} },
   end,
   map_add' := λ _ _, by {simp only [add_mul, ring_hom.map_add, dmatrix.add_apply], refl},
-  map_smul' := λ _ _, by {simp_rw [pi.smul_apply, ← algebra.smul_def, is_scalar_tower.smul_assoc],
+  map_smul' := λ _ _, by {simp_rw [pi.smul_apply, ← smul_def, is_scalar_tower.smul_assoc],
     refl},
   }
 
--- section general_kronecker_product
+variables (h_Rβ : is_scalar_tower α R β) (h_Sβ : is_scalar_tower α S β)
 
-/-- For the special case where α=R=S, see kronecker_prod.prod. -/
--- def kronecker_prod₂ (A : matrix l m R) (B : matrix n p S) : matrix (l × n) (m × p) β :=
-  -- by {apply matrix_bialgebra_map A B}
+lemma kronecker_biprod_reindex_left (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R)
+  (B : matrix n p S) : kronecker_biprod h_Rβ h_Sβ (reindex_linear_equiv eₗ eₘ A) B =
+  reindex_linear_equiv (eₗ.prod_congr (equiv.refl _)) (eₘ.prod_congr (equiv.refl _))
+  (kronecker_biprod h_Rβ h_Sβ A B) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
--- #check kronecker_prod₂ β
-
--- localized "infix ` ⊗₂  `:100 := kronecker_prod₂ β _" in matrix_bialgebra
--- localized "notation x ` ⊗₂[`:100 β `] `:0 y:100 := (kronecker_prod₂ β) x y" in matrix_bialgebra
-
-
-
-constants A B : matrix l m R
-
--- end useful
-
- --(B : matrix n p S) :
-
-#check matrix_bialgebra_map A B
-
-lemma kronecker_prod₂_reindex_left
--- [comm_semiring α] [comm_semiring R] [comm_semiring S] [comm_semiring β]
--- [algebra α R] [algebra α S] [algebra α β] [algebra R β] [algebra S β]
--- [is_scalar_tower α R β] [is_scalar_tower α S β]
--- [fintype l] [fintype m] [fintype n] [fintype p]
--- [fintype l'] [fintype m'] [fintype n'] [fintype p']
-  (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R) (B : matrix n p S) :
-  ((matrix_bialgebra_map A B) : matrix (l × n) (m × p) β)
-   = (0 : matrix (l × n) (m × p) β) :=
-  --    (reindex_linear_equiv (eₗ.prod_congr (equiv.refl _)) (eₘ.prod_congr (equiv.refl _))
-  -- (kronecker_prod₂ β A B)) : matrix (l × n) (m × p) β) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
-
-lemma kronecker_prod₂_reindex_right [semiring R] [semiring S] [algebra α R] [algebra α S]
-  (eₙ : n ≃ n') (eₚ : p ≃ p') (A : matrix l m R) (B : matrix n p S) :
-  (A ⊗₂[α] (reindex_linear_equiv eₙ eₚ B) : matrix (l × n') (m × p') (R ⊗[α] S)) =
+lemma kronecker_biprod_reindex_right (eₙ : n ≃ n') (eₚ : p ≃ p') (A : matrix l m R)
+  (B : matrix n p S) : kronecker_biprod h_Rβ h_Sβ A (reindex_linear_equiv eₙ eₚ B) =
   reindex_linear_equiv ((equiv.refl _).prod_congr eₙ) ((equiv.refl _).prod_congr eₚ)
-  ((A ⊗₂[α] B) : matrix (l × n) (m × p) (R ⊗[α] S)) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
+  (kronecker_biprod h_Rβ h_Sβ A B) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
-lemma kronecker_prod₂_one_one [semiring R] [semiring S] [algebra α R] [algebra α S]
-  [decidable_eq m] [decidable_eq n] : (1 : matrix m m R) ⊗₂[α] (1 : matrix n n S) =
-    (1 : matrix (m × n) (m × n) (R ⊗[α] S)) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, simp [kronecker_prod₂,
-      boole_mul, matrix_tensor_bil, one_apply, ite_tmul, tmul_ite, ite_and,
-      algebra.tensor_product.one_def, prod.mk.inj_iff, eq_self_iff_true, linear_map.coe_mk] }
+lemma kronecker_biprod_one_one [decidable_eq m] [decidable_eq n] :
+  kronecker_biprod h_Rβ h_Sβ (1 : matrix m m R) (1 : matrix n n S) =
+    (1 : matrix (m × n) (m × n) β) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, simp [kronecker_biprod, one_apply,
+    algebra_map_eq_smul_one, ite_smul, ite_and] }
 
-theorem kronecker_prod₂_mul [comm_semiring R] [comm_semiring S] [algebra α R] [algebra α S]
-  (A : matrix l m R) (B : matrix m n R) (A' : matrix l' m' S) (B' : matrix m' n' S) :
-  (A.mul B) ⊗₂[α] (A'.mul B') =
-   ((A ⊗₂[α] A').mul (B ⊗₂[α] B') : matrix (l × l') (n × n') (R ⊗[α] S)) :=
+lemma foo [A : finset R] [B : finset S] (f : R → α) (g : S → α) :
+  ∑ a in A, (λ a, ∑ b in B,  (f a + g b)) = ∑ c in B, (λ C, ∑ d in A,  (f d + g c)) :=
+  begin
+    squeeze_simp,
+  end
+
+theorem kronecker_biprod_mul (A : matrix l m R) (B : matrix m n R) (A' : matrix l' m' S)
+  (B' : matrix m' n' S) : kronecker_biprod h_Rβ h_Sβ (A ⬝ B) (A' ⬝ B') =
+   (kronecker_biprod h_Rβ h_Sβ A A') ⬝ (kronecker_biprod h_Rβ h_Sβ B B') :=
 begin
   ext ⟨i, i'⟩ ⟨j, j'⟩,
-  dsimp [mul_apply, kronecker_prod₂, matrix_tensor_bil],
-  simp only [sum_tmul, tmul_sum],
-  rw [← finset.univ_product_univ, finset.sum_product, finset.sum_comm],
+  simp only [mul_apply, kronecker_biprod, algebra_map_eq_smul_one, mul_one, algebra.mul_smul_comm,
+    linear_map.coe_mk, algebra.smul_mul_assoc, ← finset.univ_product_univ, finset.sum_product],
+  simp_rw [finset.sum_smul, finset.smul_sum, ← smul_eq_mul],
+  repeat {apply finset.sum_congr, refl, intros _ _,},
+  rw is_scalar_tower.smul_assoc,
+  -- rw is_scalar_tower.smul_assoc,
+  rw [id.smul_eq_mul (A' i' x_1) (B' x_1 j')],
+  rw ← algebra_map_eq_smul_one,
+  rw ← algebra_map_eq_smul_one,
+  rw [smul_def (B x j) _],
+  rw [smul_def (B x j) _],
+  rw [smul_def (A' i' x_1) _],
+  simp only [ring_hom.map_mul],
+  ring,
 end
 
 theorem kronecker_prod₂_assoc {T : Type*} [comm_semiring T] [algebra α T] [semiring R] [semiring S]
@@ -124,14 +109,11 @@ theorem kronecker_prod₂_assoc {T : Type*} [comm_semiring T] [algebra α T] [se
   tensor_matrix.assoc ((A ⊗₂[α] B : matrix (m × n) (m' × n') (R ⊗[α] S)) ⊗₂[α] C) =
     (A ⊗₂[α] (B ⊗₂[α] C)) := rfl
 
-end general_kronecker_product
-
-
 end tensor_matrix
 
 namespace kronecker_product
 
-open tensor_product matrix tensor_matrix --algebra.tensor_product
+open tensor_product matrix tensor_matrix --togliere tensor_product e mettere algebra (pure su)
 open_locale tensor_product
 
 variables {R : Type*} [comm_semiring R]

@@ -557,7 +557,7 @@ def lift_nc_alg_hom (f : A →ₐ[k] B) (g : G →* B) (h_comm : ∀ x y, commut
 values on the functions `single a 1`. -/
 lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
-alg_hom.to_linear_map_inj $ finsupp.lhom_ext' $ λ a, linear_map.ext_ring (h a)
+alg_hom.to_linear_map_injective $ finsupp.lhom_ext' $ λ a, linear_map.ext_ring (h a)
 
 /-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma alg_hom_ext' ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄

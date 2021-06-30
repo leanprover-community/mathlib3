@@ -226,7 +226,7 @@ if h : n ≤ 1
     let m := n / 2 in
     have h₀ : m ≤ k, from this.le.trans hn,
     have h₃ : 0 < m,
-      by { rw [lt_iff_add_one_le, zero_add, nat.le_div_iff_mul_le, one_mul],
+      by { rw [nat.lt_iff_add_one_le, zero_add, nat.le_div_iff_mul_le, one_mul],
         { exact lt_of_not_ge h },
         norm_num },
     have h₁ : k - m < k,

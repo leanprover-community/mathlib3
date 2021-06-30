@@ -75,7 +75,7 @@ then used a type synonym `f.codomain` for `f : localization_map M S` to instanti
 defined on `S`. By making `is_localization` a predicate on the `algebra_map R S`,
 we can ensure the localization map commutes nicely with other `algebra_map`s.
 
-o prove most lemmas about a localization map `algebra_map R S` in this file we invoke the
+To prove most lemmas about a localization map `algebra_map R S` in this file we invoke the
 corresponding proof for the underlying `comm_monoid` localization map
 `is_localization.to_localization_map M S`, which can be found in `group_theory.monoid_localization`
 and the namespace `submonoid.localization_map`.

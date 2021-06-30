@@ -18,7 +18,7 @@ This structure supports `O(1)` `append` and `concat` operations on lists, making
 useful for append-heavy uses such as logging and pretty printing.
 -/
 
-/-- Concatenates a list of difference lists to form a singledifference list. Similar to
+/-- Concatenates a list of difference lists to form a single difference list. Similar to
 `list.join`. -/
 def dlist.join {α : Type*} : list (dlist α) → dlist α
  | [] := dlist.empty

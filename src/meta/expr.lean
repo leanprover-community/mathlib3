@@ -841,7 +841,8 @@ meta def head_eta_expand (n : ℕ) (e t : expr) : expr :=
 ((e.lift_vars 0 n).mk_app $ (list.range n).reverse.map var).head_eta_expand_aux n t
 
 /-- `e.eta_expand env dict` eta-expands all expressions that have as head a constant `n` in
-`dict` -/
+`dict`. They are expanded until they are applied to one more argument than the maximum in
+`dict.find n`. -/
 protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) : expr → expr
 | e := e.replace $ λ e _,
   let (e0, es) := e.get_app_fn_args in
@@ -1022,8 +1023,8 @@ open tactic
 
 /--
 `declaration.update_with_fun f test tgt decl`
-sets the name of the given `decl : declaration` to `tgt`, and applies `apply_replacement_fun f test`
-to the value and type of `decl`.
+sets the name of the given `decl : declaration` to `tgt`, and applies both `expr.eta_expand` and
+`expr.apply_replacement_fun` to the value and type of `decl`.
 -/
 protected meta def update_with_fun (env : environment) (f : name → name) (test : expr → bool)
   (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=

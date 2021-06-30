@@ -58,8 +58,6 @@ end performance_hack
 
 section extra_attributes
 
-setup_tactic_parser
-
 /--
 An attribute that tells `@[to_additive]` that certain arguments of this definition are not
 involved when using `@[to_additive]`.
@@ -123,8 +121,12 @@ do let n := src.mk_string "_to_additive",
    aux_attr.set n tgt tt
 
 /-- `value_type` is the type of the arguments that can be provided to `to_additive`.
-`to_additive.parser` parses the provided arguments into `name` for the target and an
-optional doc string. -/
+`to_additive.parser` parses the provided arguments:
+* `replace_all`: replace all multiplicative declarations, do not use the heuristic.
+* `trace`: output the generated additive declaration.
+* `tgt : name`: the name of the target (the additive declaration).
+* `doc`: an optional doc string.
+-/
 @[derive has_reflect, derive inhabited]
 structure value_type : Type :=
 (replace_all : bool)
@@ -192,7 +194,7 @@ meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
 Give the desired additive name explicitly using `@[to_additive additive_name]`. ")
   else pure res)
 
-/-- the parser for the arguments to `to_additive` -/
+/-- the parser for the arguments to `to_additive`. -/
 meta def parser : lean.parser value_type :=
 do
   bang ← option.is_some <$> (tk "!")?,

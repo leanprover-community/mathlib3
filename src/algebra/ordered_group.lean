@@ -75,11 +75,6 @@ instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group 
   .. units.partial_order,
   .. (infer_instance : comm_group (units α)) }
 
--- is this instance needed?
-instance units.covariant_class [ordered_comm_monoid α] :
-  covariant_class (units α) (units α) (*) (≤) :=
-by apply_instance
-
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] :

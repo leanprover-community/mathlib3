@@ -116,10 +116,14 @@ lemma smooth_on.mul {f : M → G} {g : M → G} {s : set M}
 
 variables (I) (g h : G)
 
-/-- Left multiplication by `g`. It is meant to mimic the usual notation in Lie groups. -/
+/-- Left multiplication by `g`. It is meant to mimic the usual notation in Lie groups.
+Lemmas involving `smooth_left_mul` with the notation `𝑳` usually use `L` instead of `𝑳` in the
+names. -/
 def smooth_left_mul : C^∞⟮I, G; I, G⟯ := ⟨(left_mul g), smooth_mul_left⟩
 
-/-- Right multiplication by `g`. It is meant to mimic the usual notation in Lie groups. -/
+/-- Right multiplication by `g`. It is meant to mimic the usual notation in Lie groups.
+Lemmas involving `smooth_right_mul` with the notation `𝑹` usually use `R` instead of `𝑹` in the
+names. -/
 def smooth_right_mul : C^∞⟮I, G; I, G⟯ := ⟨(right_mul g), smooth_mul_right⟩
 
 /- Left multiplication. The abbreviation is `MIL`. -/

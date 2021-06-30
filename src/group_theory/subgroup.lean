@@ -2143,7 +2143,7 @@ end
 
 end add_subgroup
 
-attribute [to_additive saturated_iff_nsmul] saturated_iff_npow
-attribute [to_additive saturated_iff_gsmul] saturated_iff_gpow
+attribute [to_additive saturated_iff_nsmul] subgroup.saturated_iff_npow
+attribute [to_additive saturated_iff_gsmul] subgroup.saturated_iff_gpow
 
 end saturated

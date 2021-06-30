@@ -692,7 +692,7 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
-@[simp] lemma int.units_univ : (finset.univ : finset (units ℤ)) = {1, -1} := rfl
+@[simp] lemma units_int.univ : (finset.univ : finset (units ℤ)) = {1, -1} := rfl
 
 instance additive.fintype : Π [fintype α], fintype (additive α) := id
 

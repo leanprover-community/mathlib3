@@ -887,7 +887,7 @@ by { ext, refl }
 /-- If an algebra morphism has an inverse, it is a algebra isomorphism. -/
 def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂)
   (h₂ : g.comp f = alg_hom.id R A₁) : A₁ ≃ₐ[R] A₂ :=
-{ to_fun := f,
+{ to_fun    := f,
   inv_fun   := g,
   left_inv  := alg_hom.ext_iff.1 h₂,
   right_inv := alg_hom.ext_iff.1 h₁,

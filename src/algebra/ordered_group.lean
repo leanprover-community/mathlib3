@@ -444,12 +444,12 @@ def function.injective.ordered_comm_group {β : Type*}
   ..hf.ordered_comm_monoid f one mul,
   ..hf.comm_group f one mul inv div }
 
-/-- `equiv.mul_left` as an order_iso. TODO: add this for all the other equivs too. -/
+/-- `equiv.mul_left` as an order_iso. -/
 @[simps {simp_rhs := tt}]
 def order_iso.mul_left (a : α) : α ≃o α :=
 { map_rel_iff' := λ _ _, mul_le_mul_iff_left a, ..equiv.mul_left a }
 
-/-- `equiv.mul_right` as an order_iso. TODO: add this for all the other equivs too. -/
+/-- `equiv.mul_right` as an order_iso. -/
 @[simps {simp_rhs := tt}]
 def order_iso.mul_right (a : α) : α ≃o α :=
 { map_rel_iff' := λ _ _, mul_le_mul_iff_right a, ..equiv.mul_right a }

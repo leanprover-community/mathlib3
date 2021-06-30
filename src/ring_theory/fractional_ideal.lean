@@ -48,9 +48,11 @@ Exceptions to this rule are defining `(+) := (⊔)` and `⊥ := 0`,
 in order to re-use their respective proof terms.
 We can still use `simp` to show `I.1 + J.1 = (I + J).1` and `⊥.1 = 0.1`.
 
-We don't assume that the localization is a field until we need it to define ideal quotients.
-When this assumption is needed, we replace `S` with `R⁰`, making the localization
-a field.
+Many results in fact do not need that `P` is a localization, only that `P` is an
+`R`-algebra. We omit the `is_localization` parameter whenever this is practical.
+Similarly, we don't assume that the localization is a field until we need it to
+define ideal quotients. When this assumption is needed, we replace `S` with `R⁰`,
+making the localization a field.
 
 ## References
 
@@ -70,7 +72,7 @@ namespace ring
 section defs
 
 variables {R : Type*} [comm_ring R] {S : submonoid R} {P : Type*} [comm_ring P]
-variables [algebra R P] [is_localization S P]
+variables [algebra R P]
 
 variables (S)
 
@@ -97,7 +99,7 @@ open set
 open submodule
 
 variables {R : Type*} [comm_ring R] {S : submonoid R} {P : Type*} [comm_ring P]
-variables [algebra R P] [is_localization S P]
+variables [algebra R P] [loc : is_localization S P]
 
 instance : has_coe (fractional_ideal S P) (submodule R P) := ⟨λ I, I.val⟩
 
@@ -173,7 +175,9 @@ submodule.ext $ λ _, mem_zero_iff S
 @[simp, norm_cast] lemma coe_to_fractional_ideal_bot : ((⊥ : ideal R) : fractional_ideal S P) = 0 :=
 rfl
 
-variables (P)
+variables  (P)
+
+include loc
 
 @[simp] lemma exists_mem_to_map_eq {x : R} {I : ideal R} (h : S ≤ non_zero_divisors R) :
   (∃ x', x' ∈ I ∧ algebra_map R P x' = algebra_map R P x) ↔ x ∈ I :=
@@ -197,6 +201,8 @@ lemma coe_to_fractional_ideal_eq_zero {I : ideal R} (hS : S ≤ non_zero_divisor
 lemma coe_to_fractional_ideal_ne_zero {I : ideal R} (hS : S ≤ non_zero_divisors R) :
   (I : fractional_ideal S P) ≠ 0 ↔ I ≠ (⊥ : ideal R) :=
 not_iff_not.mpr (coe_to_fractional_ideal_eq_zero hS)
+
+omit loc
 
 lemma coe_to_submodule_eq_bot {I : fractional_ideal S P} :
   (I : submodule R P) = ⊥ ↔ I = 0 :=
@@ -502,8 +508,8 @@ end
 
 end order
 
-variables {P' : Type*} [comm_ring P'] [algebra R P'] [is_localization S P']
-variables {P'' : Type*} [comm_ring P''] [algebra R P''] [is_localization S P'']
+variables {P' : Type*} [comm_ring P'] [algebra R P'] [loc' : is_localization S P']
+variables {P'' : Type*} [comm_ring P''] [algebra R P''] [loc'' : is_localization S P'']
 
 lemma fractional_map (g : P →ₐ[R] P') (I : fractional_ideal S P) :
   is_fractional S (submodule.map g.to_linear_map I.1) :=
@@ -605,6 +611,8 @@ lemma is_fractional_span_iff {s : set P} :
    (λ x y hx hy, by { rw smul_add, exact is_integer_add hx hy })
    (λ s x hx, by { rw smul_comm, exact is_integer_smul hx })⟩⟩
 
+include loc
+
 lemma is_fractional_of_fg {I : submodule R P} (hI : I.fg) :
   is_fractional S I :=
 begin
@@ -615,6 +623,8 @@ begin
 end
 
 variables (S P P')
+
+include loc'
 
 /-- `canonical_equiv f f'` is the canonical equivalence between the fractional
 ideals in `P` and in `P'` -/
@@ -704,13 +714,15 @@ is a field because `R` is a domain.
 open_locale classical
 
 variables {R₁ : Type*} [integral_domain R₁] {K : Type*} [field K]
-variables [algebra R₁ K] [is_fraction_ring R₁ K]
+variables [algebra R₁ K] [frac : is_fraction_ring R₁ K]
 
 instance : nontrivial (fractional_ideal R₁⁰ K) :=
 ⟨⟨0, 1, λ h,
   have this : (1 : K) ∈ (0 : fractional_ideal R₁⁰ K) :=
     by { rw ← (algebra_map R₁ K).map_one, simpa only [h] using coe_mem_one R₁⁰ 1 },
   one_ne_zero ((mem_zero_iff _).mp this)⟩⟩
+
+include frac
 
 lemma fractional_div_of_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0) :
   is_fractional R₁⁰ (I.1 / J.1) :=
@@ -807,9 +819,12 @@ begin
     exact (algebra.smul_def _ _).symm }
 end
 
+omit frac
+
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) : I ≠ 0 :=
 λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simp [hI], })
 
+include frac
 
 theorem eq_one_div_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
   J = 1 / I :=
@@ -860,6 +875,8 @@ variables [algebra R₁ K] [is_fraction_ring R₁ K]
 open_locale classical
 
 open submodule submodule.is_principal
+
+include loc
 
 lemma is_fractional_span_singleton (x : P) : is_fractional S (span R {x} : submodule R P) :=
 let ⟨a, ha⟩ := exists_integer_multiple S x in
@@ -981,6 +998,8 @@ begin
     exact mul_mem_mul ((mem_span_singleton S).mpr ⟨1, one_smul _ _⟩) hy' }
 end
 
+omit loc
+
 lemma one_div_span_singleton (x : K) :
   1 / span_singleton R₁⁰ x = span_singleton R₁⁰ (x⁻¹) :=
 if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one _ _ (by simp [h])).symm
@@ -1043,7 +1062,7 @@ end
 end principal_ideal_ring
 
 variables {R₁ : Type*} [integral_domain R₁]
-variables {K : Type*} [field K] [algebra R₁ K] [is_fraction_ring R₁ K]
+variables {K : Type*} [field K] [algebra R₁ K] [frac : is_fraction_ring R₁ K]
 
 local attribute [instance] classical.prop_decidable
 
@@ -1063,6 +1082,8 @@ begin
   obtain ⟨J, rfl⟩ := le_one_iff_exists_coe_ideal.mp (le_trans hJ coe_ideal_le_one),
   exact fg_map (is_noetherian.noetherian J),
 end
+
+include frac
 
 lemma is_noetherian_span_singleton_inv_to_map_mul (x : R₁) {I : fractional_ideal R₁⁰ K}
   (hI : is_noetherian R₁ I) :

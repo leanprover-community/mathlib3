@@ -21,11 +21,12 @@ This file defines a typeclass to state that a type is finite.
 * `fintype α`:  Typeclass saying that a type is finite. It takes as fields a `finset` and a proof
   that all terms of type `α` are in it.
 * `finset.univ`: The finset of all elements of a fintype.
-* `fintype.card α`: Cardinality of a fintype. Also `univ.card`.
+* `fintype.card α`: Cardinality of a fintype. Equal to `finset.univ.card`.
 * `perms_of_finset s`: The finset of permutations of the finset `s`.
-* `fintype.trunc_equiv_of_card_eq` `fintype.equiv_of_card_eq`
 * `fintype.trunc_equiv_fin`: A fintype `α` is computably equivalent to `fin (card α)`. The
   `trunc`-free, noncomputable version is `fintype.equiv_fin`.
+* `fintype.trunc_equiv_of_card_eq` `fintype.equiv_of_card_eq`: Two fintypes of same cardinality are
+  equivalent. See above.
 * `fin.equiv_iff_eq`: `fin m ≃ fin n` iff `m = n`.
 * `infinite α`: Typeclass saying that a type is infinite. Defined as `fintype α → false`.
 * `not_fintype`: No `fintype` is infinite.
@@ -38,7 +39,8 @@ We also provide the following versions of the pigeonholes principle.
   Weak formulation.
 * `fintype.exists_infinite_fiber`: Infinitely many pigeons in finitely many pigeonholes. Strong
   formulation.
-Some more is to be found in `data.fintype.card_embedding`.
+
+Some more pigeonhole-like statements can be found in `data.fintype.card_embedding`.
 
 ## Instances
 
@@ -48,14 +50,16 @@ Among others, we provide `fintype` instances for
 * The product of two fintypes.
 * The sum of two fintypes.
 * `Prop`.
-* Types which have a surjection from/an injection to a fintype. See `fintype.of_injective` and
-  `fintype.of_surjective`.
 
 and `infinite` instances for
 * `ℕ`
 * `ℤ`
-* Types which have an injection from/a surjection to an `infinite` type. See
-  `infinite.of_injective` and `infinite.of_surjective`.
+
+along with some machinery
+* Types which have a surjection from/an injection to a `fintype` are themselves fintypes. See
+  `fintype.of_injective` and `fintype.of_surjective`.
+* Types which have an injection from/a surjection to an `infinite` type are themselves `infinite`.
+  See `infinite.of_injective` and `infinite.of_surjective`.
 -/
 
 open_locale nat
@@ -143,7 +147,7 @@ by simp [eq_univ_iff_forall, finset.nonempty]
   s ∩ univ = s :=
 by rw [inter_comm, univ_inter]
 
-@[simp] lemma piecewise_univ [∀ i : α, decidable (i ∈ (univ : finset α))]
+@[simp] lemma piecewise_univ [Π i : α, decidable (i ∈ (univ : finset α))]
   {δ : α → Sort*} (f g : Π i, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
 

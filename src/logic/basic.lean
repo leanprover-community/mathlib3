@@ -71,7 +71,7 @@ lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀
 ⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : subsingleton (subtype p) :=
+lemma subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : subsingleton (subtype p) :=
 ⟨λ x y, subtype.eq $ subsingleton.elim _ _⟩
 
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because

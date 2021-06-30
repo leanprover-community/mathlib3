@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.adjunction.basic
 import category_theory.conj
 import category_theory.yoneda
+import tactic
 
 open category_theory
 
@@ -63,11 +64,99 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
     simp,
   end⟩⟩⟩
 
--- TODO also prove the converses?
--- def L_full_of_unit_is_iso [is_iso (adjunction.unit h)] : full L := sorry
--- def L_faithful_of_unit_is_iso [is_iso (adjunction.unit h)] : faithful L := sorry
--- def R_full_of_counit_is_iso [is_iso (adjunction.counit h)] : full R := sorry
--- def R_faithful_of_counit_is_iso [is_iso (adjunction.counit h)] : faithful R := sorry
+/-- If the unit of an adjunction is an isomorphism, then its inverse on the image of L is given
+by L whiskered with the counit. -/
+def iso_of_L_counit [is_iso (adjunction.unit h)] : (L ⋙ R ⋙ L) ≅ L :=
+⟨ ⟨(whisker_left L h.counit).app, (whisker_left L h.counit).naturality⟩,
+  ⟨(whisker_right h.unit L).app, (whisker_right h.unit L).naturality⟩,
+  begin
+    ext x, dsimp,
+    rw [comp_hom_eq_id, ←hom_comp_eq_id],
+    simpa [adjunction.right_triangle, functor.id_obj],
+  end, begin
+    ext x, dsimp,
+    simp [adjunction.right_triangle, functor.id_obj],
+  end⟩
+
+/-- If the counit of an adjunction is an isomorphism, then its inverse on the image of R is given
+by R whiskered with the unit. -/
+def iso_of_R_unit [is_iso (adjunction.counit h)] : R ≅ (R ⋙ L ⋙ R) :=
+⟨ ⟨(whisker_left R h.unit).app, (whisker_left R h.unit).naturality⟩,
+  ⟨(whisker_right h.counit R).app, (whisker_right h.counit R).naturality⟩,
+  begin
+      ext x, dsimp,
+      simp [adjunction.left_triangle, functor.id_obj],
+  end, begin
+      ext x, dsimp,
+      rw [hom_comp_eq_id, ←comp_hom_eq_id],
+      simpa [adjunction.right_triangle, functor.id_obj],
+  end⟩
+
+@[simp]
+lemma iso_of_L_counit_hom_app [is_iso (adjunction.unit h)] {X : C} :
+  ((iso_of_L_counit h).hom.app X) = (whisker_left L h.counit).app X := by {refl}
+
+@[simp]
+lemma iso_of_L_counit_inv_app [is_iso (adjunction.unit h)] {X : C} :
+  ((iso_of_L_counit h).inv.app X) = (whisker_right h.unit L).app X := by {refl}
+
+@[simp]
+lemma iso_of_R_unit_hom_app [is_iso (adjunction.counit h)] {X : D} :
+  ((iso_of_R_unit h).hom.app X) = (whisker_left R h.unit).app X := by {refl}
+
+@[simp]
+lemma iso_of_R_unit_inv_app [is_iso (adjunction.counit h)] {X : D} :
+  ((iso_of_R_unit h).inv.app X) = (whisker_right h.counit R).app X := by {refl}
+
+/-- If the unit is an isomorphism, then the left adjoint is full-/
+noncomputable
+def L_full_of_unit_is_iso [is_iso (adjunction.unit h)] : full L :=
+⟨ λ X Y f, ((h.hom_equiv X (L.obj Y)) f) ≫ (inv (adjunction.unit h)).app Y,
+  λ X Y f,
+  begin
+    simp, symmetry,
+    suffices H : f ≫ L.map (h.unit.app Y) ≫ ((iso_of_L_counit h).hom.app Y)
+      = L.map (h.unit.app X) ≫ L.map (R.map f) ≫ ((iso_of_L_counit h).hom.app Y),
+    { rw [←assoc, ←assoc] at H,
+      rw [(nat_iso.cancel_nat_iso_hom_right (iso_of_L_counit h) (f ≫ L.map (h.unit.app Y))
+        (L.map (h.unit.app X) ≫ L.map (R.map f)))] at H,
+      rw [←assoc, is_iso.eq_comp_inv],
+      exact H},
+    { simp }
+  end⟩
+
+/-- If the unit is an isomorphism, then the left adjoint is faithful-/
+def L_faithful_of_unit_is_iso [is_iso (adjunction.unit h)] : faithful L :=
+⟨ λ X Y,
+  begin
+    intros f g H,
+    apply_fun (λ k, ((h.hom_equiv X (L.obj Y)) k) ≫ (inv (adjunction.unit h)).app Y) at H,
+    simpa using H,
+  end⟩
+
+/-- If the counit is an isomorphism, then the right adjoint is full-/
+noncomputable
+def R_full_of_counit_is_iso [is_iso (adjunction.counit h)] : full R :=
+⟨ λ X Y f, ((inv (adjunction.counit h)).app X) ≫ (h.hom_equiv (R.obj X) Y).symm f,
+  λ X Y f,
+  begin
+    simp,
+    suffices H : ((iso_of_R_unit h).hom.app X) ≫ R.map (L.map f) ≫ R.map (h.counit.app Y)
+      = ((iso_of_R_unit h).hom.app X) ≫ R.map (h.counit.app X) ≫ f,
+    { rw [nat_iso.cancel_nat_iso_hom_left (iso_of_R_unit h)
+      (R.map (L.map f) ≫ R.map (h.counit.app Y)) (R.map (h.counit.app X) ≫ f)] at H,
+      exact H },
+    { simp }
+  end⟩
+
+/-- If the counit is an isomorphism, then the right adjoint is faithful-/
+def R_faithful_of_counit_is_iso [is_iso (adjunction.counit h)] : faithful R :=
+⟨ λ X Y,
+  begin
+    intros f g H,
+    apply_fun (λ k, ((inv (adjunction.counit h)).app X) ≫ (h.hom_equiv (R.obj X) Y).symm k) at H,
+    simpa using H,
+  end⟩
 
 -- TODO also do the statements from Riehl 4.5.13 for full and faithful separately?
 

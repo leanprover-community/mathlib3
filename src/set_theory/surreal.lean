@@ -433,7 +433,7 @@ instance : has_lt surreal   := ⟨lt⟩
 instance : has_add surreal  := ⟨add⟩
 instance : has_neg surreal  := ⟨neg⟩
 
-instance : ordered_add_comm_group surreal :=
+instance : add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
@@ -441,14 +441,17 @@ instance : ordered_add_comm_group surreal :=
   add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) },
   neg               := has_neg.neg,
   add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv },
-  add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
-  le                := (≤),
+  add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv }, }
+
+instance : ordered_add_comm_group surreal :=
+{ le                := (≤),
   lt                := (<),
   le_refl           := by { rintros ⟨_⟩, refl },
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact pgame.le_trans },
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
-  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
+  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx },
+  .. surreal.add_comm_group }
 
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total     := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical;

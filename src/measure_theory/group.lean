@@ -194,7 +194,7 @@ by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty h3μ hs]
 
 /-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
   `f` is 0 iff `f` is 0. -/
--- @[to_additive] (fails for now)
+@[to_additive]
 lemma lintegral_eq_zero_of_is_mul_left_invariant [regular μ]
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ℝ≥0∞} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=

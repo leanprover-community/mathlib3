@@ -65,6 +65,9 @@ by { ext, refl }
 def subtype.val (p : α → Prop) : subtype p →ₘ α :=
 ⟨subtype.val, λ x y h, h⟩
 
+@[simp] lemma preorder_hom_eq_id [subsingleton α] (g : α →ₘ α) : g = preorder_hom.id :=
+by { ext1, exact subsingleton.elim _ _ }
+
 /-- The preorder structure of `α →ₘ β` is pointwise inequality: `f ≤ g ↔ ∀ a, f a ≤ g a`. -/
 instance : preorder (α →ₘ β) :=
 preorder.lift preorder_hom.to_fun

@@ -48,6 +48,7 @@ def foo6 {α} [my_has_pow α ℕ] : α → ℕ → α := @my_has_pow.pow α ℕ 
 def foo7 := @my_has_pow.pow
 
 open tactic
+/- test the eta-expansion applied on `foo6`. -/
 run_cmd do
 env ← get_env,
 reorder ← to_additive.reorder_attr.get_cache,

@@ -1044,6 +1044,18 @@ lemma transpose_reindex (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
 rfl
 
+variables {m₁ n₁ o₁ : Type*} [fintype m₁] [fintype n₁] [fintype o₁]
+
+protected
+def index_assoc : matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ matrix (m × n × o) (m₁ × n₁ × o₁) R :=
+{ to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
+  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
+  left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+    equiv.symm_comp_self],
+  right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+    equiv.self_comp_symm],
+  }
+
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]
 def sub_left {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin l) α :=

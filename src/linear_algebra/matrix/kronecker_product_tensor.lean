@@ -2,7 +2,7 @@
 Copyright (c) 2021 Filippo A. E. Nuccio. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio
--/
+
 
 import linear_algebra.matrix
 import ring_theory.tensor_product
@@ -436,3 +436,4 @@ theorem prod_assoc (A : matrix m m' R) (B : matrix n n' R) (C : matrix p p' R) :
 
 
 end kronecker_product
+-/

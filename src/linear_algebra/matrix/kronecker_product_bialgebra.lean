@@ -37,15 +37,15 @@ variables {l m n p l' m' n' p' : Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
-protected --state also the more general version without assuming `[module α γ]`?
-def index_assoc : matrix ((m × n) × p) ((m' × n') × p') γ ≃ matrix (m × n × p) (m' × n' × p') γ :=
-{ to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
-  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
-  left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
-    equiv.symm_comp_self],
-  right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
-    equiv.self_comp_symm],
-  }
+-- protected
+-- def index_assoc : matrix ((m × n) × p) ((m' × n') × p') γ ≃ matrix (m × n × p) (m' × n' × p') γ :=
+-- { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
+--   inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
+--   left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+--     equiv.symm_comp_self],
+--   right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+--     equiv.self_comp_symm],
+--   }
 
 
 protected

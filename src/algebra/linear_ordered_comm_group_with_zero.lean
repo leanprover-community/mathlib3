@@ -58,7 +58,7 @@ variables [monoid α] [preorder α]
 
 section left
 variable [covariant_class α α (*) (≤)]
-lemma left.pow_le_one_of_le : ∀  {n : ℕ} {x : α}, x ≤ 1 → x^n ≤ 1
+lemma left.pow_le_one_of_le : ∀ {n : ℕ} {x : α}, x ≤ 1 → x^n ≤ 1
 | 0       x _ := (pow_zero x).le
 | (n + 1) x H := calc x ^ n.succ = x * x ^ n : pow_succ x n
                              ... ≤ x * 1     : mul_le_mul_left' (left.pow_le_one_of_le H) x
@@ -67,7 +67,7 @@ lemma left.pow_le_one_of_le : ∀  {n : ℕ} {x : α}, x ≤ 1 → x^n ≤ 1
 
 alias left.pow_le_one_of_le ← pow_le_one_of_le_one
 
-lemma left.one_le_pow_of_le :  ∀ {n : ℕ} {x : α}, 1 ≤ x → 1 ≤ x^n
+lemma left.one_le_pow_of_le : ∀ {n : ℕ} {x : α}, 1 ≤ x → 1 ≤ x^n
 | 0       x _ := (pow_zero x).symm.le
 | (n + 1) x H := calc 1 ≤ x          : H
                     ... = x * 1      : (mul_one x).symm
@@ -122,9 +122,9 @@ lemma pow_le_pow_of_le [covariant_class α α (*) (≤)] [covariant_class α α 
   ∀ {n : ℕ} , x^n ≤ y^n
 | 0       := (pow_zero _).le.trans (pow_zero _).symm.le
 | (n + 1) := calc  x ^ n.succ = x * x ^ n  : pow_succ x n
-                 ... ≤ y * x ^ n           : mul_le_mul_right' H (x ^ n)
-                 ... ≤ y * y ^ n           : mul_le_mul_left' pow_le_pow_of_le y
-                 ... = y ^ n.succ          : (pow_succ y n).symm
+                          ... ≤ y * x ^ n  : mul_le_mul_right' H (x ^ n)
+                          ... ≤ y * y ^ n  : mul_le_mul_left' pow_le_pow_of_le y
+                          ... = y ^ n.succ : (pow_succ y n).symm
 
 @[elab_as_eliminator]
 lemma induction_from_zero_lt {p : ℕ → Prop} {n : ℕ} (n0 : 0 < n)

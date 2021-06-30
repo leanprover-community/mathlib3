@@ -30,10 +30,6 @@ lemma ext_cauchy_iff : ∀ {x y : real}, x = y ↔ x.cauchy = y.cauchy
 lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
 ext_cauchy_iff.2
 
-/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
-def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
-⟨real.cauchy, real.of_cauchy, λ ⟨_⟩, rfl, λ _, rfl⟩
-
 -- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
 @[irreducible] private def zero : ℝ := ⟨0⟩
 @[irreducible] private def one : ℝ := ⟨1⟩
@@ -46,30 +42,43 @@ instance : has_one ℝ := ⟨one⟩
 instance : has_add ℝ := ⟨add⟩
 instance : has_neg ℝ := ⟨neg⟩
 instance : has_mul ℝ := ⟨mul⟩
+/-- Note: since `add` is irreducible anyway, we don't care about definition equality between
+subtraction of `real.cauchy` and subtraction of `real`. Instead, we choose to make
+`sub_eq_add_neg` true by definition, which is often convenient. -/
+instance : has_sub ℝ := ⟨λ a b, add a (-b)⟩
 
-lemma zero_cauchy : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
-lemma one_cauchy : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
-lemma add_cauchy {a b} : (⟨a⟩ + ⟨b⟩ : ℝ) = ⟨a + b⟩ := show add _ _ = _, by rw add
-lemma neg_cauchy {a} : (-⟨a⟩ : ℝ) = ⟨-a⟩ := show neg _ = _, by rw neg
-lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
+lemma of_cauchy_zero : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
+lemma of_cauchy_one : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
+lemma of_cauchy_add (a b) : (⟨a + b⟩ : ℝ) = ⟨a⟩ + ⟨b⟩ := show _ = add _ _, by rw add
+lemma of_cauchy_neg (a) : (⟨-a⟩ : ℝ) = -⟨a⟩ := show _ = neg _, by rw neg
+lemma of_cauchy_mul (a b) : (⟨a * b⟩ : ℝ) = ⟨a⟩ * ⟨b⟩ := show _ = mul _ _, by rw mul
+lemma of_cauchy_sub (a b) : (⟨a - b⟩ : ℝ) = ⟨a⟩ - ⟨b⟩ :=
+by { rw [sub_eq_add_neg, of_cauchy_add, of_cauchy_neg], refl }
+
+lemma cauchy_zero : (0 : ℝ).cauchy = 0 := show zero.cauchy = 0, by rw zero
+lemma cauchy_one : (1 : ℝ).cauchy = 1 := show one.cauchy = 1, by rw one
+lemma cauchy_add : ∀ a b, (a + b : ℝ).cauchy = a.cauchy + b.cauchy
+| ⟨a⟩ ⟨b⟩ := show (add _ _).cauchy = _, by rw add
+lemma cauchy_neg : ∀ a, (-a : ℝ).cauchy = -a.cauchy
+| ⟨a⟩ := show (neg _).cauchy = _, by rw neg
+lemma cauchy_sub : ∀ a b, (a - b : ℝ).cauchy = a.cauchy - b.cauchy
+| ⟨a⟩ ⟨b⟩ := by { rw [sub_eq_add_neg, ←cauchy_neg, ←cauchy_add], refl }
+lemma cauchy_mul : ∀ a b, (a * b : ℝ).cauchy = a.cauchy * b.cauchy
+| ⟨a⟩ ⟨b⟩ := show (mul _ _).cauchy = _, by rw mul
 
 instance : comm_ring ℝ :=
-begin
-  refine_struct { zero  := 0,
-                  one   := 1,
-                  mul   := (*),
-                  add   := (+),
-                  neg   := @has_neg.neg ℝ _,
-                  sub   := λ a b, a + (-b),
-                  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-                  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
-  repeat { rintro ⟨_⟩, };
-  try { refl };
-  simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
-  apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
-    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
-end
+function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
+  of_cauchy_zero of_cauchy_one of_cauchy_add of_cauchy_mul of_cauchy_neg of_cauchy_sub
+
+/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
+@[simps]
+def equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
+{ to_fun := real.cauchy,
+  inv_fun := real.of_cauchy,
+  left_inv := λ ⟨_⟩, rfl,
+  right_inv := λ _, rfl,
+  map_mul' := cauchy_mul,
+  map_add' := cauchy_add }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : ring ℝ               := by apply_instance
@@ -87,7 +96,6 @@ instance : comm_monoid ℝ        := by apply_instance
 instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
-instance : has_sub ℝ            := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/

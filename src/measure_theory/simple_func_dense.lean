@@ -206,41 +206,40 @@ end
 
 lemma tendsto_approx_on_Lp_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
-  (hq : 0 < q) {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s)
-  (hi : snorm' (λ x, f x - y₀) q μ < ∞) :
-  tendsto (λ n, snorm' (approx_on f hf s y₀ h₀ n - f) q μ) at_top (𝓝 0) :=
+  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ⊤) {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s)
+  (hi : snorm (λ x, f x - y₀) p μ < ∞) :
+  tendsto (λ n, snorm (approx_on f hf s y₀ h₀ n - f) p μ) at_top (𝓝 0) :=
 begin
-  suffices : tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ^ q ∂μ) at_top (𝓝 0),
-  { simp only [snorm'],
+  have hp : 0 < p.to_real := to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_ne_zero, hp_ne_top⟩,
+  suffices : tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ^ p.to_real ∂μ) at_top (𝓝 0),
+  { simp only [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top],
     convert continuous_rpow_const.continuous_at.tendsto.comp this;
-    simp [_root_.inv_pos.mpr hq] },
+    simp [_root_.inv_pos.mpr hp] },
   -- We simply check the conditions of the Dominated Convergence Theorem:
-  -- (1) The function "`q`-th power of distance between `f` and the approximation" is measurable
-  have hF_meas : ∀ n, measurable (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ q),
+  -- (1) The function "`p`-th power of distance between `f` and the approximation" is measurable
+  have hF_meas : ∀ n, measurable (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ p.to_real),
   { simpa only [← edist_eq_coe_nnnorm_sub] using
-      λ n, (approx_on f hf s y₀ h₀ n).measurable_bind (λ y x, (edist y (f x)) ^ q)
-      (λ y, (measurable_edist_right.comp hf).pow_const q) },
-  -- (2) The functions "`q`-th power of distance between `f` and the approximation" are uniformly
-  -- bounded, at any given point, by `λ x, ∥f x - y₀∥ ^ q`
-  have h_bound : ∀ n,
-    (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ q) ≤ᵐ[μ] (λ x, ∥f x - y₀∥₊ ^ q),
+      λ n, (approx_on f hf s y₀ h₀ n).measurable_bind (λ y x, (edist y (f x)) ^ p.to_real)
+      (λ y, (measurable_edist_right.comp hf).pow_const p.to_real) },
+  -- (2) The functions "`p`-th power of distance between `f` and the approximation" are uniformly
+  -- bounded, at any given point, by `λ x, ∥f x - y₀∥ ^ p.to_real`
+  have h_bound : ∀ n, (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ p.to_real)
+      ≤ᵐ[μ] (λ x, ∥f x - y₀∥₊ ^ p.to_real),
   { exact λ n, eventually_of_forall
-      (λ x, rpow_le_rpow (coe_mono (nnnorm_approx_on_le hf h₀ x n)) hq.le) },
-  -- (3) The bounding function `λ x, ∥f x - y₀∥ ^ q` has finite integral
-  have h_fin :  ∫⁻ (a : β), ∥f a - y₀∥₊ ^ q ∂μ < ⊤,
-  { exact lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hq hi },
-  -- (4) The functions "`q`-th power of distance between `f` and the approximation" tend pointwise
+      (λ x, rpow_le_rpow (coe_mono (nnnorm_approx_on_le hf h₀ x n)) to_real_nonneg) },
+  -- (3) The bounding function `λ x, ∥f x - y₀∥ ^ p.to_real` has finite integral
+  have h_fin :  ∫⁻ (a : β), ∥f a - y₀∥₊ ^ p.to_real ∂μ < ⊤,
+  { exact lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_ne_zero hp_ne_top hi },
+  -- (4) The functions "`p`-th power of distance between `f` and the approximation" tend pointwise
   -- to zero
   have h_lim : ∀ᵐ (a : β) ∂μ,
-    tendsto (λ n, (∥approx_on f hf s y₀ h₀ n a - f a∥₊ : ℝ≥0∞) ^ q) at_top (𝓝 0),
+    tendsto (λ n, (∥approx_on f hf s y₀ h₀ n a - f a∥₊ : ℝ≥0∞) ^ p.to_real) at_top (𝓝 0),
   { filter_upwards [hμ],
     intros a ha,
     have : tendsto (λ n, (approx_on f hf s y₀ h₀ n) a - f a) at_top (𝓝 (f a - f a)),
     { exact (tendsto_approx_on hf h₀ ha).sub tendsto_const_nhds },
-    convert ennreal.tendsto_coe.mpr (this.nnnorm.nnrpow tendsto_const_nhds (or.inr hq)),
-    { ext1 x,
-      rw [ennreal.coe_rpow_of_nonneg _ hq.le] },
-    simp [nnreal.zero_rpow hq.ne'] },
+    convert continuous_rpow_const.continuous_at.tendsto.comp (tendsto_coe.mpr this.nnnorm),
+    simp [zero_rpow_of_pos hp] },
   -- Then we apply the Dominated Convergence Theorem
   simpa using tendsto_lintegral_of_dominated_convergence _ hF_meas h_bound h_fin h_lim,
 end
@@ -281,9 +280,10 @@ begin
 end
 
 lemma tendsto_approx_on_univ_Lp_nnnorm [opens_measurable_space E] [second_countable_topology E]
-  {f : β → E} (hq : 0 < q) {μ : measure β} (fmeas : measurable f) (hf : snorm' f q μ < ∞) :
-  tendsto (λ n, snorm' (approx_on f fmeas univ 0 trivial n - f) q μ) at_top (𝓝 0) :=
-tendsto_approx_on_Lp_nnnorm fmeas trivial hq (by simp) (by simpa using hf)
+  {f : β → E} (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ⊤) {μ : measure β} (fmeas : measurable f)
+  (hf : snorm f p μ < ∞) :
+  tendsto (λ n, snorm (approx_on f fmeas univ 0 trivial n - f) p μ) at_top (𝓝 0) :=
+tendsto_approx_on_Lp_nnnorm fmeas trivial hp_ne_zero hp_ne_top (by simp) (by simpa using hf)
 
 lemma mem_ℒp_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : mem_ℒp f p μ) (n : ℕ) :
@@ -302,9 +302,8 @@ lemma tendsto_approx_on_L1_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
   tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
-by simpa [snorm'] using
-  tendsto_approx_on_Lp_nnnorm hf h₀ zero_lt_one hμ
-    (by simpa [snorm', has_finite_integral] using hi)
+by simpa [snorm_one_eq_lintegral_nnnorm] using tendsto_approx_on_Lp_nnnorm hf h₀ one_ne_zero
+  one_ne_top hμ (by simpa [snorm_one_eq_lintegral_nnnorm] using hi)
 
 lemma integrable_approx_on [borel_space E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ)
@@ -328,8 +327,8 @@ integrable_approx_on fmeas hf _ (integrable_zero _ _ _) n
 
 lemma tendsto_approx_on_univ_L1 [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
-  tendsto (λ n, (integrable_approx_on_univ fmeas hf n).to_L1 (approx_on f fmeas univ 0 trivial n))
-    at_top (𝓝 $ hf.to_L1 f) :=
+  tendsto (λ n, integrable.to_L1 (approx_on f fmeas univ 0 trivial n)
+    (integrable_approx_on_univ fmeas hf n)) at_top (𝓝 $ hf.to_L1 f) :=
 begin
   rw integrable.tendsto_to_L1_iff_tendsto_lintegral_zero,
   convert tendsto_approx_on_univ_L1_nnnorm fmeas hf

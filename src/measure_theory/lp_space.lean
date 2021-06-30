@@ -166,13 +166,26 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hq0_lt) (ne_of_lt hfq),
 end
 
-lemma snorm'_lt_top_iff_lintegral_rpow_nnnorm_lt_top {f : α → F} (hq0_lt : 0 < q) :
-  snorm' f q μ < ∞ ↔ ∫⁻ a, (nnnorm (f a)) ^ q ∂μ < ∞ :=
-⟨lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hq0_lt, begin
-  intros h,
-  have : 0 < 1 / q := div_pos zero_lt_one hq0_lt,
-  exact ennreal.rpow_lt_top_of_nonneg (le_of_lt this) (ne_of_lt h)
-end⟩
+lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → F} (hp_ne_zero : p ≠ 0)
+  (hp_ne_top : p ≠ ∞) (hfp : snorm f p μ < ∞) :
+  ∫⁻ a, (nnnorm (f a)) ^ p.to_real ∂μ < ∞ :=
+begin
+  apply lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top,
+  { exact ennreal.to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_ne_zero, hp_ne_top⟩ },
+  { simpa [snorm_eq_snorm' hp_ne_zero hp_ne_top] using hfp }
+end
+
+lemma snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top {f : α → F}  (hp_ne_zero : p ≠ 0)
+  (hp_ne_top : p ≠ ∞) :
+  snorm f p μ < ∞ ↔ ∫⁻ a, (nnnorm (f a)) ^ p.to_real ∂μ < ∞ :=
+⟨lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_ne_zero hp_ne_top,
+  begin
+    intros h,
+    have hp' := ennreal.to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_ne_zero, hp_ne_top⟩,
+    have : 0 < 1 / p.to_real := div_pos zero_lt_one hp',
+    simpa [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top] using
+      ennreal.rpow_lt_top_of_nonneg (le_of_lt this) (ne_of_lt h)
+  end⟩
 
 end top
 

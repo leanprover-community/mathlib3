@@ -388,8 +388,7 @@ lemma gauge_le_of_mem (x : E) {θ : ℝ} (hθ : 0 < θ) (hx : x ∈ θ • K) :
   gauge K x ≤ θ :=
 cInf_le gauge_set_bdd_below ⟨hθ, hx⟩
 
-lemma interior_subset_gauge_lt_one [topological_space E] [has_continuous_smul ℝ E]
-  (hK : convex K) (zero_mem : (0:E) ∈ K) :
+lemma interior_subset_gauge_lt_one [topological_space E] [has_continuous_smul ℝ E] :
   interior K ⊆ {x | gauge K x < 1} :=
 begin
   intros x hx,
@@ -425,8 +424,8 @@ lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul �
 begin
   apply set.subset.antisymm,
   { apply gauge_lt_one_subset_self hK ‹_› (absorbent_nhds_zero (hK₂.mem_nhds zero_mem)) },
-  convert interior_subset_gauge_lt_one hK zero_mem,
-  rw hK₂.interior_eq,
+  refine set.subset.trans _ interior_subset_gauge_lt_one,
+  rw hK₂.interior_eq
 end
 
 lemma gauge_lt_one_of_mem_of_open [topological_space E] [has_continuous_smul ℝ E]

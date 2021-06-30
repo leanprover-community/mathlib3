@@ -605,6 +605,13 @@ variables (S : subalgebra R A)
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
 ⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
 
+/--
+For performance reasons this is not an instance. If you need this instance, add
+```
+local attribute [instance] alg_hom.subsingleton subalgebra.subsingleton_of_subsingleton
+```
+in the section that needs it.
+-/
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma _root_.alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
 ⟨λ f g, alg_hom.ext $ λ a,

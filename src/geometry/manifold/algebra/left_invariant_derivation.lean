@@ -39,8 +39,8 @@ A global derivation is left-invariant if it is equal to its pullback along left 
 an arbitrary element of `G`.
 -/
 structure left_invariant_derivation extends derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯ :=
-(left_invariant'' : ∀ f : C^∞⟮I, G; 𝕜⟯, ∀ g, 𝒅(𝑳 I g) 1 (derivation.eval_at 1 to_derivation) f =
-  derivation.eval_at g to_derivation f)
+(left_invariant'' : ∀ g, 𝒅ₕ(smooth_left_mul_1 I g) (derivation.eval_at 1 to_derivation) =
+  derivation.eval_at g to_derivation)
 
 variables {I G}
 
@@ -77,8 +77,8 @@ lemma coe_derivation_injective : function.injective
 
 /-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
 lemma left_invariant' :
-  (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f = derivation.eval_at g ↑X f :=
-by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
+  𝒅ₕ(smooth_left_mul_1 I g) (derivation.eval_at (1 : G) ↑X) = derivation.eval_at g ↑X :=
+by rw [←to_derivation_eq_coe]; exact left_invariant'' X g
 
 @[simp] lemma map_add : X (f + f') = X f + X f' := derivation.map_add X f f'
 @[simp] lemma map_zero : X 0 = 0 := derivation.map_zero X
@@ -88,20 +88,20 @@ by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
 @[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 
 instance : has_zero (left_invariant_derivation I G) :=
-⟨⟨0, λ f g, by simp only [linear_map.map_zero, derivation.coe_zero]⟩⟩
+⟨⟨0, λ g, by simp only [linear_map.map_zero, derivation.coe_zero]⟩⟩
 
 instance : inhabited (left_invariant_derivation I G) := ⟨0⟩
 
 instance : has_add (left_invariant_derivation I G) :=
-{ add := λ X Y, ⟨X + Y, λ f g, by simp only [linear_map.map_add, derivation.coe_add,
+{ add := λ X Y, ⟨X + Y, λ g, by simp only [linear_map.map_add, derivation.coe_add,
     left_invariant', pi.add_apply]⟩ }
 
 instance : has_neg (left_invariant_derivation I G) :=
-{ neg := λ X, ⟨-X, λ f g, by simp only [linear_map.map_neg, derivation.coe_neg, left_invariant',
+{ neg := λ X, ⟨-X, λ g, by simp only [linear_map.map_neg, derivation.coe_neg, left_invariant',
     pi.neg_apply]⟩ }
 
 instance : has_sub (left_invariant_derivation I G) :=
-{ sub := λ X Y, ⟨X - Y, λ f g, by simp only [linear_map.map_sub, derivation.coe_sub,
+{ sub := λ X Y, ⟨X - Y, λ g, by simp only [linear_map.map_sub, derivation.coe_sub,
     left_invariant', pi.sub_apply]⟩ }
 
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
@@ -117,8 +117,8 @@ instance : add_comm_group (left_invariant_derivation I G) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
 instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
-{ smul := λ r X, ⟨r • X, λ f g, by { simp only [derivation.Rsmul_apply, algebra.id.smul_eq_mul,
-            mul_eq_mul_left_iff, linear_map.map_smul, left_invariant'], left, refl }⟩ }
+{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.Rsmul_apply, algebra.id.smul_eq_mul,
+            mul_eq_mul_left_iff, linear_map.map_smul, left_invariant']⟩ }
 
 variables (r X)
 
@@ -148,22 +148,24 @@ lemma eval_at_apply : eval_at g X f = (X f) g := rfl
 
 @[simp] lemma eval_at_coe : derivation.eval_at g ↑X = eval_at g X := rfl
 
-lemma left_invariant : (𝒅(𝑳 I g)) (1 : G) (eval_at (1 : G) X) f = eval_at g X f :=
-(X.left_invariant'' f g)
+lemma left_invariant : 𝒅ₕ(smooth_left_mul_1 I g) (eval_at (1 : G) X) = eval_at g X :=
+(X.left_invariant'' g)
 
-lemma eval_at_mul : eval_at (g * h) X f = (𝒅(𝑳 I g)) h (eval_at h X) f :=
-by rw [←left_invariant, L_mul, fdifferential_comp, apply_fdifferential, linear_map.comp_apply,
-  apply_fdifferential, left_invariant]
+lemma eval_at_mul : eval_at (g * h) X = 𝒅ₕ(L_apply I g h) (eval_at h X) :=
+by { ext f, rw [←left_invariant, apply_hfdifferential, apply_hfdifferential, L_mul,
+  fdifferential_comp, apply_fdifferential, linear_map.comp_apply, apply_fdifferential,
+  ←apply_hfdifferential, left_invariant] }
 
 lemma comp_L : (X f).comp (𝑳 I g) = X (f.comp (𝑳 I g)) :=
 by ext h; rw [times_cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_at_mul,
-  apply_fdifferential, eval_at_apply]
+  apply_hfdifferential, apply_fdifferential, eval_at_apply]
 
 instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivation I G) :=
-{ bracket := λ X Y, ⟨⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆, λ f g, begin
-    have hX := left_invariant' g X (Y f),
-    have hY := left_invariant' g Y (X f),
-    rw [apply_fdifferential, derivation.eval_at_apply] at hX hY ⊢,
+{ bracket := λ X Y, ⟨⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆, λ g, begin
+    ext f,
+    have hX := derivation.congr_der (left_invariant' g X) (Y f),
+    have hY := derivation.congr_der (left_invariant' g Y) (X f),
+    rw [apply_hfdifferential, apply_fdifferential, derivation.eval_at_apply] at hX hY ⊢,
     rw comp_L at hX hY,
     rw [derivation.commutator_apply, smooth_map.coe_sub, pi.sub_apply, coe_derivation],
     rw coe_derivation at hX hY ⊢,

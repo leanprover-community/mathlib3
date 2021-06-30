@@ -42,12 +42,11 @@ namespace measure_theory
 open measure
 
 variables {G : Type*} [topological_space G] [measurable_space G] [second_countable_topology G]
-  [borel_space G] [group G] [topological_group G]
+variables [borel_space G] [group G] [topological_group G]
 variables {μ ν : measure G} [sigma_finite ν] [sigma_finite μ]
 
 /-- This condition is part of the definition of a measurable group in [Halmos, §59].
-  There, the map in this @[to_additive?]
-lemma is called `S`. -/
+  There, the map in this lemma is called `S`. -/
 @[to_additive map_prod_sum_eq]
 lemma map_prod_mul_eq (hν : is_mul_left_invariant ν) :
   map (λ z : G × G, (z.1, z.1 * z.2)) (μ.prod ν) = μ.prod ν :=
@@ -170,8 +169,7 @@ lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null hμ hE y)).mpr h2E
 
-/-- A technical @[to_additive?]
-lemma relating two different measures. This is basically [Halmos, §60 Th. A].
+/-- A technical lemma relating two different measures. This is basically [Halmos, §60 Th. A].
   Note that if `f` is the characteristic function of a measurable set `F` this states that
   `μ F = c * μ E` for a constant `c` that does not depend on `μ`.
   There seems to be a gap in the last step of the proof in [Halmos].
@@ -180,7 +178,7 @@ lemma relating two different measures. This is basically [Halmos, §60 Th. A].
   inequality. For this reason, we use a compact `E` instead of a measurable `E` as in [Halmos], and
   additionally assume that `ν` is a regular measure (we only need that it is finite on compact
   sets). -/
-@[to_additive?]
+@[to_additive]
 lemma measure_lintegral_div_measure [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) [regular ν] {E : set G} (hE : is_compact E) (h2E : ν E ≠ 0)
   (f : G → ℝ≥0∞) (hf : measurable f) :
@@ -200,7 +198,7 @@ begin
   λ x, measurable_const.indicator (measurable_mul_const _ Em),
   have : ∀ x y, E.indicator (λ (z : G), (1 : ℝ≥0∞)) (y * x) =
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
-  { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, simp },
+  { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, refl },
   have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
   λ y, ennreal.lt_top_iff_ne_top.mp (regular.lt_top_of_is_compact $
     (homeomorph.mul_right _).compact_preimage.mpr hE),
@@ -212,7 +210,7 @@ end
 /-- This is roughly the uniqueness (up to a scalar) of left invariant Borel measures on a second
   countable locally compact group. The uniqueness of Haar measure is proven from this in
   `measure_theory.measure.haar_measure_unique` -/
-@[to_additive?]
+@[to_additive]
 lemma measure_mul_measure_eq [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) [regular ν] {E F : set G}
   (hE : is_compact E) (hF : measurable_set F) (h2E : ν E ≠ 0) : μ E * ν F = ν E * μ F :=

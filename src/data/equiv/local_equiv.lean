@@ -370,7 +370,7 @@ set.ext $ λ x, and.congr_right_iff.2 $ λ hx, by simp only [mem_preimage, e.lef
 
 lemma source_inter_preimage_target_inter (s : set β) :
   e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
-ext_iff.mpr $ λ x, ⟨λ hx, ⟨hx.1, hx.2.2⟩, λ hx, ⟨hx.1, e.map_source hx.1, hx.2⟩⟩
+ext $ λ x, ⟨λ hx, ⟨hx.1, hx.2.2⟩, λ hx, ⟨hx.1, e.map_source hx.1, hx.2⟩⟩
 
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=

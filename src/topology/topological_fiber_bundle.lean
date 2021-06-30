@@ -736,6 +736,10 @@ instance [inhabited B] [inhabited (E (default B))] :
 @[simp, mfld_simps] def proj : total_space E → B :=
 λ (y : total_space E), y.1
 
+/-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
+@[simp, mfld_simps, reducible] def total_space_mk (E : B → Type*) (b : B) (a : E b) :
+  bundle.total_space E := ⟨b, a⟩
+
 instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
 
 @[simp, mfld_simps] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
@@ -1101,12 +1105,14 @@ by { rw [local_triv_at_ext, local_triv_ext_apply, coord_change_self], exact Z.me
   b ∈ (Z.local_triv_at_ext b).base_set :=
 by { rw [local_triv_at_ext, ←base_set_at], exact Z.mem_base_set_at b, }
 
+open bundle
+
 /-- The inclusion of a fiber into the total space is a continuous map. -/
-lemma continuous_sigma_mk (b : B) : continuous (λ a, Z.to_total_space b a) :=
+lemma continuous_total_space_mk (b : B) : continuous (λ a, total_space_mk Z.fiber b a) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],
   apply le_induced_generate_from,
-  simp only [to_total_space, mem_Union, mem_singleton_iff, local_triv'_source, local_triv'_coe],
+  simp only [total_space_mk, mem_Union, mem_singleton_iff, local_triv'_source, local_triv'_coe],
   rintros s ⟨i, t, ht, rfl⟩,
   rw [←(local_homeomorph.source_inter_preimage_target_inter (Z.local_triv i) t),
     preimage_inter, ←preimage_comp, local_triv_source, bundle_trivialization.source_eq],

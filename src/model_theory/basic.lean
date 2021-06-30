@@ -217,7 +217,7 @@ lemma ext_iff {f g : M ↪[L] N} : f = g ↔ ∀ x, f x = g x :=
 lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.injective
 
 /-- In an algebraic language, any injective homomorphism is an embedding. -/
-def of_injective [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) : M ↪[L] N :=
+@[simps] def of_injective [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) : M ↪[L] N :=
 { inj' := hf,
   map_rel' := λ n r, (is_algebraic.empty_relations n r).elim,
   .. f }
@@ -563,7 +563,7 @@ lemma closure_Union {ι} (s : ι → set M) : closure L (⋃ i, s i) = ⨆ i, cl
 -/
 
 /-- The preimage of a substructure along a homomorphism is a substructure. -/
-def comap (φ : M →[L] N) (S : L.substructure N) : L.substructure M :=
+@[simps] def comap (φ : M →[L] N) (S : L.substructure N) : L.substructure M :=
 { carrier := (φ ⁻¹' S),
   fun_mem := λ n f x hx, begin
     rw [mem_preimage, φ.map_fun],
@@ -571,11 +571,7 @@ def comap (φ : M →[L] N) (S : L.substructure N) : L.substructure M :=
   end }
 
 @[simp]
-lemma coe_comap (S : L.substructure N) (f : M →[L] N) : (S.comap f : set M) = f ⁻¹' S := rfl
-
-@[simp]
 lemma mem_comap {S : L.substructure N} {f : M →[L] N} {x : M} : x ∈ S.comap f ↔ f x ∈ S := iff.rfl
-
 
 lemma comap_comap (S : L.substructure P) (g : N →[L] P) (f : M →[L] N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
@@ -586,7 +582,7 @@ lemma comap_id (S : L.substructure P) : S.comap (hom.id _ _) = S :=
 ext (by simp)
 
 /-- The image of a substructure along a homomorphism is a substructure. -/
-def map (φ : M →[L] N) (S : L.substructure M) : L.substructure N :=
+@[simps] def map (φ : M →[L] N) (S : L.substructure M) : L.substructure N :=
 { carrier := (φ '' S),
   fun_mem := λ n f x hx, (mem_image _ _ _).1 ⟨fun_map f (λ i, classical.some (hx i)),
       S.fun_mem f _ (λ i, (classical.some_spec (hx i)).1), begin
@@ -595,55 +591,40 @@ def map (φ : M →[L] N) (S : L.substructure M) : L.substructure N :=
   end⟩ }
 
 @[simp]
-lemma coe_map (f : M →[L] N) (S : L.substructure M) :
-  (S.map f : set N) = f '' S := rfl
-
-@[simp]
 lemma mem_map {f : M →[L] N} {S : L.substructure M} {y : N} :
   y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
 mem_image_iff_bex
 
-
 lemma mem_map_of_mem (f : M →[L] N) {S : L.substructure M} {x : M} (hx : x ∈ S) : f x ∈ S.map f :=
 mem_image_of_mem f hx
-
 
 lemma apply_coe_mem_map (f : M →[L] N) (S : L.substructure M) (x : S) : f x ∈ S.map f :=
 mem_map_of_mem f x.prop
 
-
 lemma map_map (g : N →[L] P) (f : M →[L] N) : (S.map f).map g = S.map (g.comp f) :=
 set_like.coe_injective $ image_image _ _ _
-
 
 lemma map_le_iff_le_comap {f : M →[L] N} {S : L.substructure M} {T : L.substructure N} :
   S.map f ≤ T ↔ S ≤ T.comap f :=
 image_subset_iff
 
-
 lemma gc_map_comap (f : M →[L] N) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
-
 
 lemma map_le_of_le_comap {T : L.substructure N} {f : M →[L] N} : S ≤ T.comap f → S.map f ≤ T :=
 (gc_map_comap f).l_le
 
-
 lemma le_comap_of_map_le {T : L.substructure N} {f : M →[L] N} : S.map f ≤ T → S ≤ T.comap f :=
 (gc_map_comap f).le_u
-
 
 lemma le_comap_map {f : M →[L] N} : S ≤ (S.map f).comap f :=
 (gc_map_comap f).le_u_l _
 
-
 lemma map_comap_le {S : L.substructure N} {f : M →[L] N} : (S.comap f).map f ≤ S :=
 (gc_map_comap f).l_u_le _
 
-
 lemma monotone_map {f : M →[L] N} : monotone (map f) :=
 (gc_map_comap f).monotone_l
-
 
 lemma monotone_comap {f : M →[L] N} : monotone (comap f) :=
 (gc_map_comap f).monotone_u
@@ -657,19 +638,15 @@ lemma comap_map_comap {S : L.substructure N} {f : M →[L] N} :
   ((S.comap f).map f).comap f = S.comap f :=
 congr_fun ((gc_map_comap f).u_l_u_eq_u) _
 
-
 lemma map_sup (S T : L.substructure M) (f : M →[L] N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
 (gc_map_comap f).l_sup
-
 
 lemma map_supr {ι : Sort*} (f : M →[L] N) (s : ι → L.substructure M) :
   (supr s).map f = ⨆ i, (s i).map f :=
 (gc_map_comap f).l_supr
 
-
 lemma comap_inf (S T : L.substructure N) (f : M →[L] N) : (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
 (gc_map_comap f).u_inf
-
 
 lemma comap_infi {ι : Sort*} (f : M →[L] N) (s : ι → L.substructure N) :
   (infi s).comap f = ⨅ i, (s i).comap f :=

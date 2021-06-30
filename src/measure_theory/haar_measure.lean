@@ -557,7 +557,7 @@ section unique
 variables [locally_compact_space G] [second_countable_topology G] {μ : measure G} [sigma_finite μ]
 /-- The Haar measure is unique up to scaling. More precisely: every σ-finite left invariant measure
   is a scalar multiple of the Haar measure. -/
-@[to_additive? add_haar_measure_unique]
+@[to_additive add_haar_measure_unique]
 theorem haar_measure_unique (hμ : is_mul_left_invariant μ)
   (K₀ : positive_compacts G) : μ = μ K₀.1 • haar_measure K₀ :=
 begin

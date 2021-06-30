@@ -207,7 +207,7 @@ calc _ ≃ (A ⨯ B ⟶ i.obj X) :
      begin
        apply iso.hom_congr _ (iso.refl _),
        haveI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
-       exact (preserves_pair.iso _ _ _).symm,
+       exact (preserves_limit_pair.iso _ _ _).symm,
      end
    ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :
               (equiv_of_fully_faithful _).symm
@@ -221,7 +221,7 @@ begin
       uncurry_natural_left, uncurry_curry, prod.lift_map_assoc, comp_id, prod.lift_map_assoc,
       comp_id, prod.comp_lift_assoc, prod.lift_snd, prod.lift_fst_assoc,
       prod.lift_fst_comp_snd_comp, ←adjunction.eq_hom_equiv_apply, adjunction.hom_equiv_unit,
-      iso.comp_inv_eq, assoc, preserves_pair.iso_hom],
+      iso.comp_inv_eq, assoc, preserves_limit_pair.iso_hom],
   apply prod.hom_ext,
   { rw [limits.prod.map_fst, assoc, assoc, prod_comparison_fst, ←i.map_comp, prod_comparison_fst],
     apply (adjunction.of_right_adjoint i).unit.naturality },
@@ -263,7 +263,7 @@ noncomputable def preserves_binary_products_of_exponential_ideal :
 { preserves_limit := λ K,
   begin
     apply limits.preserves_limit_of_iso_diagram _ (diagram_iso_pair K).symm,
-    apply preserves_pair.of_iso_comparison,
+    apply preserves_limit_pair.of_iso_comparison,
   end }
 
 /--

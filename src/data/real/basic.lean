@@ -9,7 +9,7 @@ import algebra.archimedean
 import algebra.star.basic
 
 /-!
-# Real numbers from cauchy sequences
+# Real numbers from Cauchy sequences
 
 This file defines `ℝ` as the type of equivalence classes of Cauchy sequences of rational numbers.
 This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply

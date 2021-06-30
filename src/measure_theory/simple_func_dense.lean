@@ -340,14 +340,13 @@ lemma integrable_approx_on_univ [borel_space E] [second_countable_topology E]
   integrable (approx_on f fmeas univ 0 trivial n) μ :=
 integrable_approx_on fmeas hf _ (integrable_zero _ _ _) n
 
+local attribute [instance] fact_one_le_one_ennreal
+
 lemma tendsto_approx_on_univ_L1 [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
   tendsto (λ n, integrable.to_L1 (approx_on f fmeas univ 0 trivial n)
     (integrable_approx_on_univ fmeas hf n)) at_top (𝓝 $ hf.to_L1 f) :=
-begin
-  rw integrable.tendsto_to_L1_iff_tendsto_lintegral_zero,
-  convert tendsto_approx_on_univ_L1_nnnorm fmeas hf
-end
+tendsto_approx_on_univ_Lp one_ne_top fmeas _
 
 end integrable
 

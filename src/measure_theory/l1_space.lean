@@ -803,15 +803,6 @@ by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
   edist (hf.to_L1 f) 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
 by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
-lemma tendsto_to_L1_iff_tendsto_lintegral_zero {ι} {l : filter ι} (F : ι → α → β)
-  (hF : ∀ n, integrable (F n) μ) (f : α → β) (hf : integrable f μ) :
-  tendsto (λ n, (hF n).to_L1 (F n)) l (𝓝 (hf.to_L1 f))
-    ↔ tendsto (λ n, ∫⁻ x, ∥F n x - f x∥₊ ∂μ) l (𝓝 0) :=
-begin
-  haveI := fact_one_le_one_ennreal,
-  simpa only [← snorm_one_eq_lintegral_nnnorm] using Lp.tendsto_Lp_iff_tendsto_ℒp'' _ _ _ _
-end
-
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
 

@@ -339,12 +339,6 @@ begin
   { exact monic_map _ (monic hx) }
 end
 
-/-- The minimal polynomial over `ℤ` is the same as the minimal polynomial over `ℚ`. -/
-lemma over_int_eq_over_rat {A : Type*} [integral_domain A] {x : A} [hℚA : algebra ℚ A]
-  (hx : is_integral ℤ x) :
-  minpoly ℚ x = map (int.cast_ring_hom ℚ) (minpoly ℤ x) :=
-gcd_domain_eq_field_fractions ℚ hx
-
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
 lemma gcd_domain_dvd {A R : Type*} (K : Type*)
@@ -360,13 +354,6 @@ begin
   refine dvd _ _ _,
   rwa ← is_scalar_tower.aeval_apply
 end
-
-/-- The minimal polynomial over `ℤ` divides any primitive polynomial that has the integral element
-as root. -/
-lemma integer_dvd {A : Type*} [integral_domain A] [algebra ℚ A] {x : A} (hx : is_integral ℤ x)
-  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
-  minpoly ℤ x ∣ P :=
-gcd_domain_dvd ℚ hx hprim hroot
 
 end gcd_domain
 

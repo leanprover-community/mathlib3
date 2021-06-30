@@ -70,7 +70,7 @@ namespace haar
 /-- The index or Haar covering number or ratio of `K` w.r.t. `V`, denoted `(K : V)`:
   it is the smallest number of (left) translates of `V` that is necessary to cover `K`.
   It is defined to be 0 if no finite number of translates cover `K`. -/
-@[to_additive add_index]
+@[to_additive add_index "additive version of `measure_theory.measure.haar.index`"]
 def index (K V : set G) : ℕ :=
 Inf $ finset.card '' {t : finset G | K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V }
 
@@ -88,7 +88,7 @@ variables [topological_space G]
   and `K` is any compact set.
   The argument `K` is a (bundled) compact set, so that we can consider `prehaar K₀ U` as an
   element of `haar_product` (below). -/
-@[to_additive add_prehaar]
+@[to_additive add_prehaar "additive version of `measure_theory.measure.haar.prehaar`"]
 def prehaar (K₀ U : set G) (K : compacts G) : ℝ := (index K.1 U : ℝ) / index K₀ U
 
 @[to_additive add_prehaar_empty]
@@ -102,7 +102,7 @@ by apply div_nonneg; norm_cast; apply zero_le
 
 /-- `haar_product K₀` is the product of intervals `[0, (K : K₀)]`, for all compact sets `K`.
   For all `U`, we can show that `prehaar K₀ U ∈ haar_product K₀`. -/
-@[to_additive add_haar_product]
+@[to_additive add_haar_product "additive version of `measure_theory.measure.haar.haar_product`"]
 def haar_product (K₀ : set G) : set (compacts G → ℝ) :=
 pi univ (λ K, Icc 0 $ index K.1 K₀)
 
@@ -116,7 +116,7 @@ by simp only [haar_product, pi, forall_prop_of_true, mem_univ, mem_set_of_eq]
   `compacts G → ℝ`, with the topology of pointwise convergence.
   We show that the intersection of all these sets is nonempty, and the Haar measure
   on compact sets is defined to be an element in the closure of this intersection. -/
-@[to_additive cl_add_prehaar]
+@[to_additive cl_add_prehaar "additive version of `measure_theory.measure.haar.cl_prehaar`"]
 def cl_prehaar (K₀ : set G) (V : open_nhds_of (1 : G)) : set (compacts G → ℝ) :=
 closure $ prehaar K₀ '' { U : set G | U ⊆ V.1 ∧ is_open U ∧ (1 : G) ∈ U }
 
@@ -328,7 +328,7 @@ end
   This is roughly equal to the Haar measure on compact sets,
   but it can differ slightly. We do know that
   `haar_measure K₀ (interior K.1) ≤ chaar K₀ K ≤ haar_measure K₀ K.1`. -/
-@[to_additive add_chaar]
+@[to_additive add_chaar "additive version of `measure_theory.measure.haar.chaar`"]
 def chaar (K₀ : positive_compacts G) (K : compacts G) : ℝ :=
 classical.some (nonempty_Inter_cl_prehaar K₀) K
 
@@ -450,7 +450,7 @@ end
 variable [t2_space G]
 
 /-- The function `chaar` interpreted in `ℝ≥0`, as a content -/
-@[to_additive add_haar_content]
+@[to_additive add_haar_content "additive version of `measure_theory.measure.haar.haar_content`"]
 def haar_content (K₀ : positive_compacts G) : content G :=
 { to_fun        := λ K, ⟨chaar K₀ K, chaar_nonneg _ _⟩,
   mono'         := λ K₁ K₂ h, by simp only [←nnreal.coe_le_coe, subtype.coe_mk, chaar_mono, h],
@@ -500,8 +500,9 @@ open haar
 variables [topological_space G] [t2_space G] [topological_group G] [measurable_space G]
   [borel_space G]
 
-/-- the Haar measure on `G`, scaled so that `haar_measure K₀ K₀ = 1`. -/
-@[to_additive add_haar_measure]
+/-- The Haar measure on the locally compact group `G`, scaled so that `haar_measure K₀ K₀ = 1`. -/
+@[to_additive add_haar_measure "The Haar measure on the locally compact additive group `G`,
+scaled so that `add_haar_measure K₀ K₀ = 1`."]
 def haar_measure (K₀ : positive_compacts G) : measure G :=
 ((haar_content K₀).outer_measure K₀.1)⁻¹ • (haar_content K₀).measure
 

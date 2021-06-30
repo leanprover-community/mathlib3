@@ -12,22 +12,42 @@ import data.equiv.fin
 
 We prove the Hales-Jewett theorem and deduce Van der Waerden's theorem as a corollary.
 
-We consistently work with finite types instead of natural numbers. That is, we write `α, ι, κ` for
-(finite) types where one might traditionally use natural numbers `n, H, c`. This allows us to
-work directly with `α`, `option α`, `(ι → α) → κ`, and `ι ⊕ ι'` instead of `fin n`, `fin (n+1)`,
-`fin (c^(n^H))`, and `fin (H + H')`.
+The Hales-Jewett theorem is a result in Ramsey theory dealing with *combinatorial lines*. Given
+a ground type `α` and `a b : α`, an example of a combinatorial line in `α^5` is
+`{ (a, x, x, b, x) | x : α }`. See `combinatorics.line` for a precise general definition. The
+Hales-Jewett theorem states that for any fixed finite types `α` and `κ`, there exists a (potentially
+huge) finite type `ι` such that whenever `fin n → α` is `κ`-colored (i.e. for any coloring
+`C : (fin n → α) → κ`), there exists a monochromatic line. We prove the Hales-Jewett theorem using
+the idea of *color focusing* and a *product argument*. See the proof of
+`combinatorics.line.exists_mono_in_high_dimension` for details.
 
-We do not prove the finitary version of Van der Waerden's theorem (which is equivalent to the
-infinite one by compactness), although it follows from the same proof.
-
-In principle our proof should give explicit upper bounds on the numbers `HJ(α, κ)`, but this would
-require rewriting the proof and the upper bounds are enormous anyway.
+The version of Van der Waerden's theorem in this file states that whenever a commutative monoid `M`
+is finitely colored and `S` is a finite subset, there exists a monochromatic homothetic copy of `S`.
+This follows from the Hales-Jewett theorem by considering the map `(ι → S) → M` sending `v`
+to `∑ i : ι, v i`, which sends a combinatorial line to a homothetic copy of `S`.
 
 ## Main results
 
-- `combinatorics.line.exists_mono_in_high_dimension α κ`: the Hales-Jewett theorem.
-- `combinatorics.exists_mono_homothetic_copy M S f κ C`: a generalization of Van der Waerden's
-theorem to an arbitrary commutative monoid. The proof is a simple application of Hales-Jewett.
+- `combinatorics.line.exists_mono_in_high_dimension`: the Hales-Jewett theorem.
+- `combinatorics.exists_mono_homothetic_copy`: a generalization of Van der Waerden's theorem.
+
+## Implementation details
+
+For convenience, we work directly with finite types instead of natural numbers. That is, we write
+`α, ι, κ` for (finite) types where one might traditionally use natural numbers `n, H, c`. This
+allows us to work directly with `α`, `option α`, `(ι → α) → κ`, and `ι ⊕ ι'` instead of `fin n`,
+`fin (n+1)`, `fin (c^(n^H))`, and `fin (H + H')`.
+
+## Todo
+
+- Prove a finitary version of Van der Waerden's theorem (either by compactness or by modifying the
+current proof).
+
+- Make the Hales-Jewett theorem universe-polymorphic, and maybe return `n : ℕ` instead of
+`ι : Type`?
+
+- One could reformulate the proof of Hales-Jewett to give explicit upper bounds on the number of
+coordinates needed.
 
 ## Tags
 
@@ -37,30 +57,28 @@ combinatorial line, Ramsey theory, arithmetic progession
 
 * https://en.wikipedia.org/wiki/Hales%E2%80%93Jewett_theorem
 
-Note that this file does not use the same notation as Wikipedia.
-
 -/
 
 open_locale classical
 open_locale big_operators
 
+namespace combinatorics
+
 /-- An induction principle for finite types. It effectively says that any finite type is equivalent
 to either `empty`, `unit`, or `option α` where `α` is nonempty. -/
-lemma fintype_induction {P : Type → Prop} (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
+lemma fintype_induction {P : Type → Prop} (h_congr : ∀ {α β}, α ≃ β → P α → P β)
   (h_empty : P empty) (h_unit : P unit)
   (h_option : ∀ {α} [fintype α] [nonempty α], P α → P (option α))
   (α) [fintype α] : P α :=
 begin
   suffices : ∀ ι : nat, P (fin ι),
-  { refine of_equiv (fintype.equiv_fin α).symm (this _), },
+  { refine h_congr (fintype.equiv_fin α).symm (this _), },
   rintro (_ | ι),
-  { apply of_equiv fin_zero_equiv.symm h_empty },
+  { apply h_congr fin_zero_equiv.symm h_empty },
   induction ι with ι ih,
-  { apply of_equiv fin_one_equiv.symm h_unit },
-  { apply of_equiv (fin_succ_equiv _).symm (h_option ih), }
+  { apply h_congr fin_one_equiv.symm h_unit },
+  { apply h_congr (fin_succ_equiv _).symm (h_option ih), }
 end
-
-namespace combinatorics
 
 /-- The type of combinatorial lines. A line `l : line α ι` in the hypercube `ι → α` defines a
 function `α → (ι → α)` to the hypercube, such that for each coordinate `i : ι`, the function
@@ -81,26 +99,9 @@ namespace line
 instance (α ι) : has_coe_to_fun (line α ι) :=
 ⟨λ _, α → ι → α, λ l x i, (l.idx_fun i).get_or_else x⟩
 
-/-- The type of lines that are only one color except possibly at their endpoints. -/
-@[nolint has_inhabited_instance]
-structure almost_mono {α ι κ : Type*} (C : (ι → option α) → κ) :=
-(line : line (option α) ι)
-(color : κ)
-(has_color : ∀ x : α, C (line (some x)) = color)
-
-/-- The type of families of lines such that
-- each line is only one color except possibly at its endpoint
-- the lines all have the same endpoint
-- the colors of the lines are distinct.
-Used in the proof `exists_mono_in_high_dimension`. -/
-structure color_focused {α ι κ : Type*} (C : (ι → option α) → κ) :=
-(lines : multiset (almost_mono C))
-(focus : ι → option α)
-(is_focused : ∀ p : almost_mono C, p ∈ lines → p.line none = focus)
-(distinct_colors : (lines.map almost_mono.color).nodup)
-
-instance {α ι κ} (C : (ι → option α) → κ) : inhabited (color_focused C) :=
-⟨⟨0, λ _, none, λ _, false.elim, multiset.nodup_zero⟩⟩
+/-- A line is monochromatic if all its points are the same color. -/
+def is_mono {α ι κ} (C : (ι → α) → κ) (l : line α ι) : Prop :=
+∃ c, ∀ x, C (l x) = c
 
 /-- The diagonal line. It is the identity at every coordinate. -/
 def diagonal (α ι) [nonempty ι] : line α ι :=
@@ -109,11 +110,33 @@ def diagonal (α ι) [nonempty ι] : line α ι :=
 
 instance (α ι) [nonempty ι] : inhabited (line α ι) := ⟨diagonal α ι⟩
 
-/-- A line is monochromatic if all its points are the same color. -/
-def is_mono {α ι κ} (C : (ι → α) → κ) (l : line α ι) : Prop :=
-∃ c, ∀ x, C (l x) = c
+/-- The type of lines that are only one color except possibly at their endpoints. -/
+structure almost_mono {α ι κ : Type*} (C : (ι → option α) → κ) :=
+(line : line (option α) ι)
+(color : κ)
+(has_color : ∀ x : α, C (line (some x)) = color)
 
-/-- A function `α → α'` determines a function `line α ι → line α' ι`. For a coordinate `i`,
+instance {α ι κ : Type*} [nonempty ι] [inhabited κ] :
+  inhabited (almost_mono (λ v : ι → option α, default κ)) :=
+⟨{ line      := default _,
+   color     := default κ,
+   has_color := λ _, rfl }⟩
+
+/-- The type of collections of lines such that
+- each line is only one color except possibly at its endpoint
+- the lines all have the same endpoint
+- the colors of the lines are distinct.
+Used in the proof `exists_mono_in_high_dimension`. -/
+structure color_focused {α ι κ : Type*} (C : (ι → option α) → κ) :=
+(lines : multiset (almost_mono C))
+(focus : ι → option α)
+(is_focused : ∀ p ∈ lines, almost_mono.line p none = focus)
+(distinct_colors : (lines.map almost_mono.color).nodup)
+
+instance {α ι κ} (C : (ι → option α) → κ) : inhabited (color_focused C) :=
+⟨⟨0, λ _, none, λ _, false.elim, multiset.nodup_zero⟩⟩
+
+/-- A function `f : α → α'` determines a function `line α ι → line α' ι`. For a coordinate `i`,
 `l.map f` is the identity at `i` if `l` is, and constantly `f y` if `l` is constantly `y` at `i`. -/
 def map {α α' ι} (f : α → α') (l : line α ι) : line α' ι :=
 { idx_fun := λ i, (l.idx_fun i).map f,
@@ -136,12 +159,11 @@ def prod {α ι ι'} (l : line α ι) (l' : line α ι') : line α (ι ⊕ ι') 
 
 lemma apply {α ι} (l : line α ι) (x : α) : l x = λ i, (l.idx_fun i).get_or_else x := rfl
 
-@[simp] lemma apply_none {α ι} (l : line α ι) (x : α) (i : ι)
-  (h : l.idx_fun i = none) : l x i = x :=
+lemma apply_none {α ι} (l : line α ι) (x : α) (i : ι) (h : l.idx_fun i = none) : l x i = x :=
 by simp only [option.get_or_else_none, h, l.apply]
 
-@[simp] lemma apply_of_ne_none {α ι} (l : line α ι) (x : α) (i : ι)
-  (h : l.idx_fun i ≠ none) : some (l x i) = l.idx_fun i :=
+lemma apply_of_ne_none {α ι} (l : line α ι) (x : α) (i : ι) (h : l.idx_fun i ≠ none) :
+  some (l x i) = l.idx_fun i :=
 by rw [l.apply, option.get_or_else_of_ne_none h]
 
 @[simp] lemma map_apply {α α' ι} (f : α → α') (l : line α ι) (x : α) :
@@ -164,9 +186,8 @@ by { funext i, cases i; refl }
   line.diagonal α ι x = λ i, x :=
 by simp_rw [line.apply, line.diagonal, option.get_or_else_none]
 
-/-- The Hales-Jewett theorem: for any finite types `α` and `κ` with `α` nonempty, there exists
-another finite type `ι` such that whenever the hypercube `ι → α` is `κ`-colored, there is
-a monochromatic combinatorial line. -/
+/-- The Hales-Jewett theorem: for any finite types `α` and `κ`, there exists a finite type `ι` such
+that whenever the hypercube `ι → α` is `κ`-colored, there is a monochromatic combinatorial line. -/
 theorem exists_mono_in_high_dimension : ∀ (α : Type) [fintype α] (κ : Type) [fintype κ],
   ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 -- The proof proceeds by induction on `α`.
@@ -213,7 +234,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
 -- We claim that `ι ⊕ ι'` works for `unit α`.
   refine ⟨ι ⊕ ι', infer_instance, _⟩,
   intro C,
--- A `κ`-coloring of `ι ⊕ ι' → α` induces a `(ι → α) → κ`-coloring of `ι' → α`.
+-- A `κ`-coloring of `ι ⊕ ι' → option α` induces an `(ι → option α) → κ`-coloring of `ι' → α`.
   specialize hι' (λ v' v, C (sum.elim v (some ∘ v'))),
 -- By choice of `ι'` this coloring has a monochromatic line `l'` with color class `C'`, where
 -- `C'` is a `κ`-coloring of `ι → α`.
@@ -223,7 +244,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   { rintro ⟨l, c, hl⟩,
     refine ⟨l.horizontal (some ∘ l' (classical.arbitrary α)), c, λ x, _⟩,
     rw [line.horizontal_apply, ←hl, ←hl'], },
--- By choice of `ι`, `C'` either has `r` color focused lines or a monochromatic line.
+-- By choice of `ι`, `C'` either has `r` color-focused lines or a monochromatic line.
   specialize hι C',
   rcases hι with ⟨s, sr⟩ | _,
 -- By above, we are done if `C'` has a monochromatic line.
@@ -259,27 +280,21 @@ end
 end line
 
 /-- A generalization of Van der Waerden's theorem: if `M` is a finitely colored commutative
-monoid, and `S` is a finite subset, then there exists a monochromatic homothetic copy of `S`.
-Formally, instead of taking `S` to be a subset we take it to be a finite type with a function
-`S → M`.
-
-This theorem is equivalent to Gallai's higher-dimensional version of Van der Waerden for the
-monoids `ℕ^d`.
--/
-theorem exists_mono_homothetic_copy (M) (S : Type) (f : S → M) [fintype S] [add_comm_monoid M]
+monoid, and `S` is a finite subset, then there exists a monochromatic homothetic copy of `S`. -/
+theorem exists_mono_homothetic_copy (M : Type) [add_comm_monoid M] (S : finset M)
   (κ : Type) [fintype κ] (C : M → κ) :
-  ∃ (a > 0) (b : M) (c : κ), ∀ s, C (a • (f s) + b) = c :=
+  ∃ (a > 0) (b : M) (c : κ), ∀ s ∈ S, C (a • s + b) = c :=
 begin
   obtain ⟨ι, _inst, hι⟩ := line.exists_mono_in_high_dimension S κ,
   resetI,
-  specialize hι (λ v, C $ ∑ i, f (v i)),
+  specialize hι (λ v, C $ ∑ i, v i),
   obtain ⟨l, c, hl⟩ := hι,
   set s : finset ι := { i ∈ finset.univ | l.idx_fun i = none } with hs,
   refine ⟨s.card, finset.card_pos.mpr ⟨l.proper.some, _⟩,
-    ∑ i in sᶜ, ((l.idx_fun i).map f).get_or_else 0, c, _⟩,
+    ∑ i in sᶜ, ((l.idx_fun i).map coe).get_or_else 0, c, _⟩,
   { rw [hs, finset.sep_def, finset.mem_filter], exact ⟨finset.mem_univ _, l.proper.some_spec⟩, },
-  intro x,
-  rw ←hl x,
+  intros x xs,
+  rw ←hl ⟨x, xs⟩,
   clear hl, dsimp, congr,
   rw ←finset.sum_add_sum_compl s,
   congr' 1,
@@ -287,7 +302,7 @@ begin
     apply finset.sum_congr rfl,
     intros i hi,
     rw [hs, finset.sep_def, finset.mem_filter] at hi,
-    rw l.apply_none _ _ hi.right, },
+    rw [l.apply_none _ _ hi.right, subtype.coe_mk], },
   { apply finset.sum_congr rfl,
     intros i hi,
     rw [hs, finset.sep_def, finset.compl_filter, finset.mem_filter] at hi,

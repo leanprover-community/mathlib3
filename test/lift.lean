@@ -41,6 +41,7 @@ begin
   intro n,
   success_if_fail_with_msg { lift n to ℕ }
     "Cannot substitute variable n, it is a local definition. Hint: use `clear_value`.",
+  refl
 end
 
 instance can_lift_unit : can_lift unit unit :=

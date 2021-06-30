@@ -74,9 +74,6 @@ def localizations (P : prime_spectrum.Top R) : Type u := localization.at_prime P
 instance (P : prime_spectrum.Top R) : inhabited (localizations R P) :=
 ⟨1⟩
 
-instance (P : prime_spectrum.Top R) : is_localization.at_prime (localizations R P) P.as_ideal :=
-localization.is_localization
-
 instance (U : opens (prime_spectrum.Top R)) (x : U) :
   algebra R (localizations R x) :=
 localization.algebra

@@ -48,10 +48,12 @@ instance : conditionally_complete_linear_order ℤ :=
 
 namespace int
 
+@[simp]
 lemma cSup_empty : Sup (∅ : set ℤ) = 0 := dif_neg (by simp)
 
 lemma cSup_of_not_bdd_above {s : set ℤ} (h : ¬ bdd_above s) : Sup s = 0 := dif_neg (by simp [h])
 
+@[simp]
 lemma cInf_empty : Inf (∅ : set ℤ) = 0 := dif_neg (by simp)
 
 lemma cInf_of_not_bdd_below {s : set ℤ} (h : ¬ bdd_below s) : Inf s = 0 := dif_neg (by simp [h])

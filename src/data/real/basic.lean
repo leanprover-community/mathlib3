@@ -104,9 +104,7 @@ instance : star_ring ℝ          := star_ring_of_comm
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
 def of_rat : ℚ →+* ℝ :=
-by refine_struct { to_fun := of_cauchy ∘ of_rat };
-  simp [of_rat_one, of_rat_zero, of_rat_mul, of_rat_add,
-    one_cauchy, zero_cauchy, ← mul_cauchy, ← add_cauchy]
+equiv_Cauchy.symm.to_ring_hom.comp of_rat_ring_hom
 
 lemma of_rat_apply (x : ℚ) : of_rat x = of_cauchy (cau_seq.completion.of_rat x) := rfl
 
@@ -130,11 +128,11 @@ lemma lt_cauchy {f g} : (⟨⟦f⟧⟩ : ℝ) < ⟨⟦g⟧⟩ ↔ f < g := show 
 @[simp] theorem mk_lt {f g : cau_seq ℚ abs} : mk f < mk g ↔ f < g :=
 lt_cauchy
 
-lemma mk_zero : mk 0 = 0 := by rw ← zero_cauchy; refl
-lemma mk_one : mk 1 = 1 := by rw ← one_cauchy; refl
-lemma mk_add {f g : cau_seq ℚ abs} : mk (f + g) = mk f + mk g := by simp [mk, add_cauchy]
-lemma mk_mul {f g : cau_seq ℚ abs} : mk (f * g) = mk f * mk g := by simp [mk, mul_cauchy]
-lemma mk_neg {f : cau_seq ℚ abs} : mk (-f) = -mk f := by simp [mk, neg_cauchy]
+lemma mk_zero : mk 0 = 0 := of_cauchy_zero
+lemma mk_one : mk 1 = 1 := of_cauchy_one
+lemma mk_add {f g : cau_seq ℚ abs} : mk (f + g) = mk f + mk g := by simp [mk, ←of_cauchy_add]
+lemma mk_mul {f g : cau_seq ℚ abs} : mk (f * g) = mk f * mk g := by simp [mk, ←of_cauchy_mul]
+lemma mk_neg {f : cau_seq ℚ abs} : mk (-f) = -mk f := by simp [mk, ←of_cauchy_neg]
 
 @[simp] theorem mk_pos {f : cau_seq ℚ abs} : 0 < mk f ↔ pos f :=
 by rw [← mk_zero, mk_lt]; exact iff_of_eq (congr_arg pos (sub_zero f))
@@ -238,17 +236,17 @@ instance : star_ordered_ring ℝ :=
 
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
-lemma inv_cauchy {f} : (⟨f⟩ : ℝ)⁻¹ = ⟨f⁻¹⟩ := show inv' _ = _, by rw inv'
+lemma of_cauchy_inv {f} : (⟨f⁻¹⟩ : ℝ) = ⟨f⟩⁻¹ := show _ = inv' _, by rw inv'
 
 noncomputable instance : linear_ordered_field ℝ :=
 { inv := has_inv.inv,
   mul_inv_cancel := begin
     rintros ⟨a⟩ h,
     rw mul_comm,
-    simp only [inv_cauchy, mul_cauchy, ← one_cauchy, ← zero_cauchy, ne.def] at *,
+    simp only [←of_cauchy_inv, ←of_cauchy_mul, ←of_cauchy_one, ←of_cauchy_zero, ne.def] at *,
     exact cau_seq.completion.inv_mul_cancel h,
   end,
-  inv_zero := by simp [← zero_cauchy, inv_cauchy],
+  inv_zero := by simp [←of_cauchy_zero, ←of_cauchy_inv],
   ..real.linear_ordered_comm_ring,
   ..real.domain }
 

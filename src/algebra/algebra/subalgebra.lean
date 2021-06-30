@@ -613,7 +613,8 @@ lemma _root_.alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton
   hx ▸ (f.commutes _).trans (g.commutes _).symm⟩
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma _root_.alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] B) :=
+lemma _root_.alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] :
+  subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (A →ₐ[R] B) := alg_hom.subsingleton,
   exact ⟨λ f g, alg_equiv.ext
@@ -621,7 +622,8 @@ begin
 end
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma _root_.alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
+lemma _root_.alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] :
+  subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
   exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm

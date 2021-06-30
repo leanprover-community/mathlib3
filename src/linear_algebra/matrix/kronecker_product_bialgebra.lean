@@ -27,41 +27,30 @@ I (FAE) wonder if this file should be in `linear_algebra/matrix` or rather in `d
 
 universes u v v' u'
 
-namespace matrix
+-- namespace matrix
 
-open matrix
+-- open matrix
 
-variables {α : Type*} [comm_semiring α]
-variables {γ : Type*} --[add_comm_monoid γ] [module α γ]
-variables {l m n p l' m' n' p' : Type*}
-variables [fintype l] [fintype m] [fintype n] [fintype p]
-variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
+-- variables {α : Type*} [comm_semiring α]
+-- variables {γ : Type*} --[add_comm_monoid γ] [module α γ]
+-- variables {l m n p l' m' n' p' : Type*}
+-- variables [fintype l] [fintype m] [fintype n] [fintype p]
+-- variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
--- protected
--- def index_assoc : matrix ((m × n) × p) ((m' × n') × p') γ ≃ matrix (m × n × p) (m' × n' × p') γ :=
--- { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
---   inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
---   left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
---     equiv.symm_comp_self],
---   right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
---     equiv.self_comp_symm],
---   }
+-- -- protected
+-- -- def linear_equiv_index_assoc [add_comm_monoid γ] [module α γ] :
+-- --   matrix ((m × n) × p) ((m' × n') × p') γ ≃ₗ[α] matrix (m × n × p) (m' × n' × p') γ :=
+-- -- { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
+-- --   map_add' := λ _ _, by simp only [reindex_apply, minor_add, pi.add_apply],
+-- --   map_smul' := λ _ _, by simp only [reindex_apply, minor_smul, pi.smul_apply],
+-- --   inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
+-- --   left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+-- --     equiv.symm_comp_self],
+-- --   right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+-- --     equiv.self_comp_symm],
+-- --   }
 
-
-protected
-def linear_equiv_index_assoc [add_comm_monoid γ] [module α γ] :
-  matrix ((m × n) × p) ((m' × n') × p') γ ≃ₗ[α] matrix (m × n × p) (m' × n' × p') γ :=
-{ to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
-  map_add' := λ _ _, by simp only [reindex_apply, minor_add, pi.add_apply],
-  map_smul' := λ _ _, by simp only [reindex_apply, minor_smul, pi.smul_apply],
-  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
-  left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
-    equiv.symm_comp_self],
-  right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
-    equiv.self_comp_symm],
-  }
-
-end matrix
+-- end matrix
 
 --end mathlib
 

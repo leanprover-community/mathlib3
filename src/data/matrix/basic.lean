@@ -1056,6 +1056,19 @@ def index_assoc : matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ matrix (
     equiv.self_comp_symm],
   }
 
+protected
+def linear_equiv_index_assoc [comm_ring α] [add_comm_monoid R] [module α R] :
+  matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ₗ[α] matrix (m × n × o) (m₁ × n₁ × o₁) R :=
+{ to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
+  map_add' := λ _ _, by simp only [reindex_apply, minor_add, pi.add_apply],
+  map_smul' := λ _ _, by simp only [reindex_apply, minor_smul, pi.smul_apply],
+  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
+  left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+    equiv.symm_comp_self],
+  right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+    equiv.self_comp_symm],
+  }
+
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]
 def sub_left {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin l) α :=

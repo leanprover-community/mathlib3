@@ -302,7 +302,7 @@ lemma tendsto_approx_on_univ_Lp [borel_space E] [second_countable_topology E]
 begin
   rw Lp.tendsto_Lp_iff_tendsto_ℒp'',
   have hp_ne_zero : p ≠ 0 := (lt_of_lt_of_le ennreal.zero_lt_one hp.elim).ne',
-  convert tendsto_approx_on_univ_Lp_nnnorm hp_ne_zero hp_ne_top fmeas hf.2
+  exact tendsto_approx_on_univ_Lp_nnnorm hp_ne_zero hp_ne_top fmeas hf.2
 end
 
 end Lp

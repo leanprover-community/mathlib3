@@ -289,6 +289,12 @@ def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
 
 @[simp] lemma adjoin_simple.algebra_map_gen : algebra_map F⟮α⟯ E (adjoin_simple.gen F α) = α := rfl
 
+@[simp] lemma adjoin_simple.is_integral_gen :
+  is_integral F (adjoin_simple.gen F α) ↔ is_integral F α :=
+by { conv_rhs { rw ← adjoin_simple.algebra_map_gen F α },
+     rw is_integral_algebra_map_iff (algebra_map F⟮α⟯ E).injective,
+     apply_instance }
+
 lemma adjoin_simple_adjoin_simple (β : E) : ↑F⟮α⟯⟮β⟯ = F⟮α, β⟯ :=
 adjoin_adjoin_left _ _ _
 

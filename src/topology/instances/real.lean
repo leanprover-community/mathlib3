@@ -109,7 +109,7 @@ instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 instance : proper_space ℝ :=
-{ compact_ball := λx r, by { rw closed_ball_Icc, apply compact_Icc } }
+{ compact_ball := λx r, by { rw closed_ball_Icc, apply is_compact_Icc } }
 
 instance : second_countable_topology ℝ := second_countable_of_proper
 
@@ -277,7 +277,7 @@ end⟩
 lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
   f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
-  (compact_Icc.image_of_continuous_on h)
+  (is_compact_Icc.image_of_continuous_on h)
 
 end
 
@@ -292,7 +292,7 @@ begin
   push_neg at H',
   intros x,
   suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
-    by simpa only [real.mem_closure_iff, abs_sub],
+    by simpa only [real.mem_closure_iff, abs_sub_comm],
   intros ε ε_pos,
   obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G ∧ 0 < g₁,
   { cases lt_or_gt_of_ne g₀_ne with Hg₀ Hg₀,

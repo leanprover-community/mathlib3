@@ -921,6 +921,11 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   ..with_top.has_Sup,
   ..with_top.with_bot.bounded_lattice }
 
+noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
+  [conditionally_complete_linear_order α] : complete_linear_order (with_top (with_bot α)) :=
+{ .. with_top.with_bot.complete_lattice,
+  .. with_top.linear_order }
+
 end with_top_bot
 
 section subtype

@@ -767,6 +767,14 @@ le_of_tendsto_of_tendsto' hf hg $ assume s, sum_le_sum $ assume b _, h b
 @[mono] lemma has_sum_mono (hf : has_sum f a₁) (hg : has_sum g a₂) (h : f ≤ g) : a₁ ≤ a₂ :=
 has_sum_le h hf hg
 
+lemma has_sum_le_of_sum_le (hf : has_sum f a) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
+  a ≤ a₂ :=
+le_of_tendsto' hf h
+
+lemma le_has_sum_of_le_sum (hf : has_sum f a) (h : ∀ s : finset β, a₂ ≤ ∑ b in s, f b) :
+  a₂ ≤ a :=
+ge_of_tendsto' hf h
+
 lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 have has_sum (λc, (partial_inv i c).cases_on' 0 f) a₁,
@@ -796,17 +804,21 @@ lemma tsum_le_tsum_of_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs
   (h : ∀b, f b ≤ g (i b)) (hf : summable f) (hg : summable g) : tsum f ≤ tsum g :=
 has_sum_le_inj i hi hs h hf.has_sum hg.has_sum
 
-lemma sum_le_has_sum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
+lemma sum_le_has_sum (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
   ∑ b in s, f b ≤ a :=
 ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
   sum_le_sum_of_subset_of_nonneg hst $ λ b hbt hbs, hs b hbs⟩)
+
+lemma is_lub_has_sum (h : ∀ b, 0 ≤ f b) (hf : has_sum f a) :
+  is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
+is_lub_of_tendsto (finset.sum_mono_set_of_nonneg h) hf
 
 lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
 calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
 ... ≤ a : sum_le_has_sum _ (by { convert hb, simp }) hf
 
 lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
-  ∑ b in s, f b ≤ tsum f :=
+  ∑ b in s, f b ≤ ∑' b, f b :=
 sum_le_has_sum s hs hf.has_sum
 
 lemma le_tsum (hf : summable f) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ ∑' b, f b :=
@@ -818,6 +830,19 @@ has_sum_le h hf.has_sum hg.has_sum
 @[mono] lemma tsum_mono (hf : summable f) (hg : summable g) (h : f ≤ g) :
   ∑' n, f n ≤ ∑' n, g n :=
 tsum_le_tsum h hf hg
+
+lemma tsum_le_of_sum_le (hf : summable f) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
+  ∑' b, f b ≤ a₂ :=
+has_sum_le_of_sum_le hf.has_sum h
+
+lemma tsum_le_of_sum_le' (ha₂ : 0 ≤ a₂) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
+  ∑' b, f b ≤ a₂ :=
+begin
+  by_cases hf : summable f,
+  { exact tsum_le_of_sum_le hf h },
+  { rw tsum_eq_zero_of_not_summable hf,
+    exact ha₂ }
+end
 
 lemma has_sum.nonneg (h : ∀ b, 0 ≤ g b) (ha : has_sum g a) : 0 ≤ a :=
 has_sum_le h has_sum_zero ha
@@ -896,6 +921,9 @@ by rw [←has_sum_zero_iff, hf.has_sum_iff]
 lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 0 :=
 by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
 
+lemma is_lub_has_sum' (hf : has_sum f a) : is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
+is_lub_of_tendsto (finset.sum_mono_set f) hf
+
 end canonically_ordered
 
 section uniform_group
@@ -920,7 +948,7 @@ begin
     rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,
     use [s₁ ∪ s₂],
     assume t ht,
-    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_left_of_le le_sup_right⟩,
+    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_of_le_left le_sup_right⟩,
     simpa only [finset.sum_union ht.symm, add_sub_cancel'] using h },
   { assume h e he,
     rcases exists_nhds_half_neg he with ⟨d, hd, hde⟩,
@@ -1048,6 +1076,27 @@ by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
 
 end topological_group
 
+section linear_order
+
+/-! For infinite sums taking values in a linearly ordered monoid, the existence of a least upper
+bound for the finite sums is a criterion for summability.
+
+This criterion is useful when applied in a linearly ordered monoid which is also a complete or
+conditionally complete linear order, such as `ℝ`, `ℝ≥0`, `ℝ≥0∞`, because it is then easy to check
+the existence of a least upper bound.
+-/
+
+lemma has_sum_of_is_lub_of_nonneg [linear_ordered_add_comm_monoid β] [topological_space β]
+  [order_topology β] {f : α → β} (b : β) (h : ∀ b, 0 ≤ f b)
+  (hf : is_lub (set.range (λ s, ∑ a in s, f a)) b) :
+  has_sum f b :=
+tendsto_at_top_is_lub (finset.sum_mono_set_of_nonneg h) hf
+
+lemma has_sum_of_is_lub [canonically_linear_ordered_add_monoid β] [topological_space β]
+   [order_topology β] {f : α → β} (b : β) (hf : is_lub (set.range (λ s, ∑ a in s, f a)) b) :
+  has_sum f b :=
+tendsto_at_top_is_lub (finset.sum_mono_set f) hf
+
 lemma summable_abs_iff [linear_ordered_add_comm_group β] [uniform_space β]
   [uniform_add_group β] [complete_space β] {f : α → β} :
   summable (λ x, abs (f x)) ↔ summable f :=
@@ -1061,6 +1110,8 @@ calc summable (λ x, abs (f x)) ↔
 ... ↔ _ : by simp only [summable_neg_iff, summable_subtype_and_compl]
 
 alias summable_abs_iff ↔ summable.of_abs summable.abs
+
+end linear_order
 
 section cauchy_seq
 open finset.Ico filter

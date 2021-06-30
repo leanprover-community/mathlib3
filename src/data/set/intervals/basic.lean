@@ -1159,6 +1159,9 @@ by rw [inter_comm, Ioc_inter_Ioo_of_right_le h, max_comm]
 lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioc (max a₁ a₂) b₂ :=
 by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
+lemma Iic_inter_Ioc_of_le (h : a₂ ≤ a) : Iic a₂ ∩ Ioc a₁ a = Ioc a₁ a₂ :=
+ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
+
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
 ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 
@@ -1179,8 +1182,8 @@ by { rw max_comm, apply Ioc_union_Ioc; rw max_comm; exact min_le_max }
 begin
   rw [Ioc_union_Ioc, Ioc_union_Ioc],
   ac_refl,
-  all_goals { solve_by_elim [min_le_left_of_le, min_le_right_of_le, le_max_left_of_le,
-    le_max_right_of_le, le_refl] { max_depth := 5 }}
+  all_goals { solve_by_elim [min_le_of_left_le, min_le_of_right_le, le_max_of_le_left,
+    le_max_of_le_right, le_refl] { max_depth := 5 }}
 end
 
 end linear_order
@@ -1193,13 +1196,13 @@ variables {α : Type*} [ordered_comm_group α] {a b c d : α}
 
 /-! `inv_mem_Ixx_iff`, `sub_mem_Ixx_iff` -/
 @[to_additive] lemma inv_mem_Icc_iff : a⁻¹ ∈ set.Icc c d ↔ a ∈ set.Icc (d⁻¹) (c⁻¹) :=
-(and_comm _ _).trans $ (and_congr inv_le' le_inv')
+(and_comm _ _).trans $ and_congr inv_le' le_inv'
 @[to_additive] lemma inv_mem_Ico_iff : a⁻¹ ∈ set.Ico c d ↔ a ∈ set.Ioc (d⁻¹) (c⁻¹) :=
-(and_comm _ _).trans $ (and_congr inv_lt' le_inv')
+(and_comm _ _).trans $ and_congr inv_lt' le_inv'
 @[to_additive] lemma inv_mem_Ioc_iff : a⁻¹ ∈ set.Ioc c d ↔ a ∈ set.Ico (d⁻¹) (c⁻¹) :=
-(and_comm _ _).trans $ (and_congr inv_le' lt_inv')
+(and_comm _ _).trans $ and_congr inv_le' lt_inv'
 @[to_additive] lemma inv_mem_Ioo_iff : a⁻¹ ∈ set.Ioo c d ↔ a ∈ set.Ioo (d⁻¹) (c⁻¹) :=
-(and_comm _ _).trans $ (and_congr inv_lt' lt_inv')
+(and_comm _ _).trans $ and_congr inv_lt' lt_inv'
 
 end ordered_comm_group
 
@@ -1229,23 +1232,23 @@ lemma add_mem_Ioo_iff_right : a + b ∈ set.Ioo c d ↔ b ∈ set.Ioo (c - a) (d
 
 /-! `sub_mem_Ixx_iff_left` -/
 lemma sub_mem_Icc_iff_left : a - b ∈ set.Icc c d ↔ a ∈ set.Icc (c + b) (d + b) :=
-(and_congr le_sub_iff_add_le sub_le_iff_le_add)
+and_congr le_sub_iff_add_le sub_le_iff_le_add
 lemma sub_mem_Ico_iff_left : a - b ∈ set.Ico c d ↔ a ∈ set.Ico (c + b) (d + b) :=
-(and_congr le_sub_iff_add_le sub_lt_iff_lt_add)
+and_congr le_sub_iff_add_le sub_lt_iff_lt_add
 lemma sub_mem_Ioc_iff_left : a - b ∈ set.Ioc c d ↔ a ∈ set.Ioc (c + b) (d + b) :=
-(and_congr lt_sub_iff_add_lt sub_le_iff_le_add)
+and_congr lt_sub_iff_add_lt sub_le_iff_le_add
 lemma sub_mem_Ioo_iff_left : a - b ∈ set.Ioo c d ↔ a ∈ set.Ioo (c + b) (d + b) :=
-(and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add)
+and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add
 
 /-! `sub_mem_Ixx_iff_right` -/
 lemma sub_mem_Icc_iff_right : a - b ∈ set.Icc c d ↔ b ∈ set.Icc (a - d) (a - c) :=
-(and_comm _ _).trans $ (and_congr sub_le le_sub)
+(and_comm _ _).trans $ and_congr sub_le le_sub
 lemma sub_mem_Ico_iff_right : a - b ∈ set.Ico c d ↔ b ∈ set.Ioc (a - d) (a - c) :=
-(and_comm _ _).trans $ (and_congr sub_lt le_sub)
+(and_comm _ _).trans $ and_congr sub_lt le_sub
 lemma sub_mem_Ioc_iff_right : a - b ∈ set.Ioc c d ↔ b ∈ set.Ico (a - d) (a - c) :=
-(and_comm _ _).trans $ (and_congr sub_le lt_sub)
+(and_comm _ _).trans $ and_congr sub_le lt_sub
 lemma sub_mem_Ioo_iff_right : a - b ∈ set.Ioo c d ↔ b ∈ set.Ioo (a - d) (a - c) :=
-(and_comm _ _).trans $ (and_congr sub_lt lt_sub)
+(and_comm _ _).trans $ and_congr sub_lt lt_sub
 
 -- I think that symmetric intervals deserve attention and API: they arise all the time,
 -- for instance when considering metric balls in `ℝ`.

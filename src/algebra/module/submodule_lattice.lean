@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.module.submodule
+import algebra.punit_instances
+import algebra.module.prod
 
 /-!
 # The lattice structure on `submodule`s
@@ -62,8 +64,24 @@ protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0
 ⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
   λ h, eq_bot_iff.mpr (λ x hx, (mem_bot R).mpr (h x hx)) ⟩
 
+@[ext] protected lemma bot_ext (x y : (⊥ : submodule R M)) : x = y :=
+begin
+  rcases x with ⟨x, xm⟩, rcases y with ⟨y, ym⟩, congr,
+  rw (submodule.eq_bot_iff _).mp rfl x xm,
+  rw (submodule.eq_bot_iff _).mp rfl y ym,
+end
+
 protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
 by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
+
+/-- The bottom submodule is linearly equivalent to punit as an `R`-module. -/
+@[simps] def bot_equiv_punit : (⊥ : submodule R M) ≃ₗ[R] punit :=
+{ to_fun := λ x, punit.star,
+  inv_fun := λ x, 0,
+  map_add' := by { intros, ext, },
+  map_smul' := by { intros, ext, },
+  left_inv := by { intro x, ext, },
+  right_inv := by { intro x, ext, }, }
 
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
@@ -82,6 +100,15 @@ instance : order_top (submodule R M) :=
 
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
+
+/-- The top submodule is linearly equivalent to the module. -/
+@[simps] def top_equiv_self : (⊤ : submodule R M) ≃ₗ[R] M :=
+{ to_fun := λ x, x,
+  inv_fun := λ x, ⟨x, by simp⟩,
+  map_add' := by { intros, refl, },
+  map_smul' := by { intros, refl, },
+  left_inv := by { intro x, ext, refl, },
+  right_inv := by { intro x, refl, }, }
 
 instance : has_Inf (submodule R M) :=
 ⟨λ S, {

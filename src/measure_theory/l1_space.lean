@@ -808,15 +808,8 @@ lemma tendsto_to_L1_iff_tendsto_lintegral_zero {ι} {l : filter ι} (F : ι → 
   tendsto (λ n, (hF n).to_L1 (F n)) l (𝓝 (hf.to_L1 f))
     ↔ tendsto (λ n, ∫⁻ x, ∥F n x - f x∥₊ ∂μ) l (𝓝 0) :=
 begin
-  convert Lp.tendsto_Lp_iff_tendsto_ℒp' _ _,
-  ext1 n,
-  rw snorm_one_eq_lintegral_nnnorm,
-  apply lintegral_congr_ae,
-  filter_upwards [((hF n).sub hf).coe_fn_to_L1, Lp.coe_fn_sub ((hF n).to_L1 (F n)) (hf.to_L1 f)],
-  intros x hx₁ hx₂,
-  congr' 2,
-  rw ← hx₂,
-  exact hx₁.symm,
+  haveI := fact_one_le_one_ennreal,
+  simpa only [← snorm_one_eq_lintegral_nnnorm] using Lp.tendsto_Lp_iff_tendsto_ℒp'' _ _ _ _
 end
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]

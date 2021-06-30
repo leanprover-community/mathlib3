@@ -24,12 +24,16 @@ both pointwise and in `Lᵖ` norm, by a sequence of simple functions.
 * `tendsto_approx_on` (pointwise convergence): If `f x ∈ s`, then the sequence of simple
   approximations `measure_theory.simple_func.approx_on f hf s y₀ h₀ n`, evaluated at `x`,
   tends to `f x` as `n` tends to `∞`.
-* `tendsto_approx_on_univ_Lp_nnnorm` (Lᵖ convergence): If `E` is a `normed_group` and `f` is
-  measurable and satisfies `mem_ℒp f p μ`, then each of the simple approximations
-  `simple_func.approx_on f hf s 0 h₀ n` is also in Lᵖ, and they tend in Lᵖ to `f`.
+* `tendsto_approx_on_univ_Lp` (Lᵖ convergence): If `E` is a `normed_group` and `f` is measurable
+  and `mem_ℒp` (for `p < ∞`), then the simple functions `simple_func.approx_on f hf s 0 h₀ n` may
+  be considered as elements of `Lp E p μ`, and they tend in Lᵖ to `f`.
 * `tendsto_approx_on_univ_L1` (L¹ convergence): If `E` is a `normed_group` and `f` is measurable
   and integrable, then the simple functions `simple_func.approx_on f hf s 0 h₀ n` may be considered
-  as elements of `Lp E 1 μ1`, and they tend in L¹ to `f`.
+  as elements of `Lp E 1 μ`, and they tend in L¹ to `f`.
+
+## TODO
+
+Simple functions are also dense in L^∞ -- prove this.
 
 ## Notations
 
@@ -37,7 +41,7 @@ both pointwise and in `Lᵖ` norm, by a sequence of simple functions.
 -/
 
 open set filter topological_space
-open_locale classical topological_space nnreal ennreal
+open_locale classical topological_space ennreal
 variables {α β ι E : Type*}
 
 namespace measure_theory
@@ -289,6 +293,17 @@ lemma mem_ℒp_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : mem_ℒp f p μ) (n : ℕ) :
   mem_ℒp (approx_on f fmeas univ 0 trivial n) p μ :=
 mem_ℒp_approx_on fmeas hf (mem_univ _) zero_mem_ℒp n
+
+lemma tendsto_approx_on_univ_Lp [borel_space E] [second_countable_topology E]
+  {f : β → E} [hp : fact (1 ≤ p)] (hp_ne_top : p ≠ ⊤) {μ : measure β} (fmeas : measurable f)
+  (hf : mem_ℒp f p μ) :
+  tendsto (λ n, (mem_ℒp_approx_on_univ fmeas hf n).to_Lp (approx_on f fmeas univ 0 trivial n))
+    at_top (𝓝 (hf.to_Lp f)) :=
+begin
+  rw Lp.tendsto_Lp_iff_tendsto_ℒp'',
+  have hp_ne_zero : p ≠ 0 := (lt_of_lt_of_le ennreal.zero_lt_one hp.elim).ne',
+  convert tendsto_approx_on_univ_Lp_nnnorm hp_ne_zero hp_ne_top fmeas hf.2
+end
 
 end Lp
 

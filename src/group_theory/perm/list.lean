@@ -185,8 +185,8 @@ begin
   cases xs with x xs,
   { simp },
   { have : n ≤ xs.length,
-      { refine nat.le_of_lt_succ _,
-        simpa using hn },
+    { refine nat.le_of_lt_succ _,
+      simpa using hn },
     rcases this.eq_or_lt with rfl|hn',
     { simp },
     { simp [form_perm_apply_lt, h, nat.mod_eq_of_lt, nat.succ_lt_succ hn'] } }

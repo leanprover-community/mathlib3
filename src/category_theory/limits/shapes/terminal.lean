@@ -222,7 +222,7 @@ begin
   apply zero_le_category.is_initial_mono_from,
 end
 
-instance initial.mono_from [has_initial C] [zero_le_category C] (X : C) (f : ⊥_C ⟶ X) : mono f :=
+instance initial.mono_from [has_initial C] [zero_le_category C] (X : C) (f : ⊥_ C ⟶ X) : mono f :=
 initial_is_initial.mono_from f
 
 section comparison

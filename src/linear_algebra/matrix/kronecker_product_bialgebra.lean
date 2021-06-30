@@ -125,7 +125,7 @@ variables (A : matrix m m' R) (B : matrix n n' S) (C : matrix p p' T)
 theorem kronecker_biprod_assoc {T : Type*} [comm_semiring T] [algebra α T] [algebra T β]
   (h_Tβ : is_scalar_tower α T β) (h_ββ : is_scalar_tower α β β) (A : matrix m m' R)
   (B : matrix n n' S) (C : matrix p p' T) :
-  @matrix.linear_equiv_index_assoc α _ β m n p m' n' p' _ _ _ _ _ _ _ _
+  @matrix.linear_equiv_index_assoc m n p _ _ _ β α m' n' p' _ _ _ _ _ _
   (kronecker_biprod h_ββ h_Tβ (kronecker_biprod h_Rβ h_Sβ A B) C) =
     kronecker_biprod h_Rβ h_ββ A (kronecker_biprod h_Sβ h_Tβ B C) :=
 begin

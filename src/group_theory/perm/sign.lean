@@ -272,7 +272,7 @@ def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
 @[simp] lemma sign_aux_one (n : ℕ) : sign_aux (1 : perm (fin n)) = 1 :=
 begin
   unfold sign_aux,
-  conv { to_rhs, rw ← @finset.prod_const_one _ (units ℤ)
+  conv { to_rhs, rw ← @finset.prod_const_one (units ℤ) _
     (fin_pairs_lt n) },
   exact finset.prod_congr rfl (λ a ha, if_neg (mem_fin_pairs_lt.1 ha).not_le)
 end

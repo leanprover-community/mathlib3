@@ -50,13 +50,6 @@ attribute [to_additive] ordered_comm_monoid
 
 section ordered_instances
 
-@[to_additive covariant_class_add_comm_semigroup.to_covariant_class_right]
-instance covariant_class_comm_semigroup.to_covariant_class_right (M : Type*) [comm_semigroup M]
-  [has_le M] [covariant_class M M (*) (≤)] :
-  covariant_class M M (function.swap (*)) (≤) :=
-{ elim := λ a b c bc, by { show b * a ≤ c * a,
-    simp [mul_comm _ a, mul_le_mul_left' bc a] } }
-
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (*) (≤) :=

@@ -264,10 +264,10 @@ structure topological_vector_bundle_core (ι : Type*) :=
 (index_at          : B → ι)
 (mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
 (coord_change      : ι → ι → B → (F →ₗ[R] F))
-(coord_change_self : ∀i, ∀ x ∈ base_set i, ∀v, coord_change i i x v = v)
-(coord_change_continuous : ∀i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
+(coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
+(coord_change_continuous : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
                                                (set.prod ((base_set i) ∩ (base_set j)) univ))
-(coord_change_comp : ∀i j k, ∀x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀v,
+(coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
 attribute [simp, mfld_simps] topological_vector_bundle_core.mem_base_set_at

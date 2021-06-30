@@ -110,13 +110,6 @@ e.proj_to_fun x ex
 
 end topological_vector_bundle
 
-@[simp, mfld_simps] lemma trivialization.coe_fst
-  (e : trivialization R F E) {x : total_space E} (ex : x ∈ e.source) :
-  (e x).1 = (proj E) x :=
-e.proj_to_fun x ex
-
-end topological_vector_bundle
-
 variables [∀ x, topological_space (E x)]
 
 /-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector

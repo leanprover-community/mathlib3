@@ -825,10 +825,6 @@ different name for typeclass inference. -/
 @[nolint unused_arguments, reducible]
 def total_space := bundle.total_space Z.fiber
 
-/-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
-@[simp, mfld_simps, reducible] def to_total_space (b : B) (a : Z.fiber b) :
-  bundle.total_space Z.fiber := ⟨b, a⟩
-
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : Z.total_space → B := bundle.proj Z.fiber
 

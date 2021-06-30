@@ -13,7 +13,7 @@ import data.equiv.fin
 We prove the Hales-Jewett theorem and deduce Van der Waerden's theorem as a corollary.
 
 The Hales-Jewett theorem is a result in Ramsey theory dealing with *combinatorial lines*. Given
-a ground type `α` and `a b : α`, an example of a combinatorial line in `α^5` is
+an 'alphabet' `α : Type*` and `a b : α`, an example of a combinatorial line in `α^5` is
 `{ (a, x, x, b, x) | x : α }`. See `combinatorics.line` for a precise general definition. The
 Hales-Jewett theorem states that for any fixed finite types `α` and `κ`, there exists a (potentially
 huge) finite type `ι` such that whenever `fin n → α` is `κ`-colored (i.e. for any coloring
@@ -231,7 +231,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   specialize ihα ((ι → option α) → κ),
   obtain ⟨ι', _inst, hι'⟩ := ihα,
   resetI,
--- We claim that `ι ⊕ ι'` works for `unit α`.
+-- We claim that `ι ⊕ ι'` works for `option α` and `κ`-coloring.
   refine ⟨ι ⊕ ι', infer_instance, _⟩,
   intro C,
 -- A `κ`-coloring of `ι ⊕ ι' → option α` induces an `(ι → option α) → κ`-coloring of `ι' → α`.

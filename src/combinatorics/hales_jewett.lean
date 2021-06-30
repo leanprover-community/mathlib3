@@ -16,8 +16,8 @@ The Hales-Jewett theorem is a result in Ramsey theory dealing with *combinatoria
 an 'alphabet' `α : Type*` and `a b : α`, an example of a combinatorial line in `α^5` is
 `{ (a, x, x, b, x) | x : α }`. See `combinatorics.line` for a precise general definition. The
 Hales-Jewett theorem states that for any fixed finite types `α` and `κ`, there exists a (potentially
-huge) finite type `ι` such that whenever `fin n → α` is `κ`-colored (i.e. for any coloring
-`C : (fin n → α) → κ`), there exists a monochromatic line. We prove the Hales-Jewett theorem using
+huge) finite type `ι` such that whenever `ι → α` is `κ`-colored (i.e. for any coloring
+`C : (ι → α) → κ`), there exists a monochromatic line. We prove the Hales-Jewett theorem using
 the idea of *color focusing* and a *product argument*. See the proof of
 `combinatorics.line.exists_mono_in_high_dimension` for details.
 

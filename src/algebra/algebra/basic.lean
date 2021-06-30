@@ -590,6 +590,31 @@ ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
 @[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
+@[simp] lemma to_linear_map_id : to_linear_map (alg_hom.id R A) = linear_map.id :=
+linear_map.ext $ λ _, rfl
+
+/-- Promote a `linear_map` to an `alg_hom` by supplying proofs about the behavior on `1` and `*`. -/
+@[simps]
+def of_linear_map (f : A →ₗ[R] B) (map_one : f 1 = 1) (map_mul : ∀ x y, f (x * y) = f x * f y) :
+  A →ₐ[R] B :=
+{ to_fun := f,
+  map_one' := map_one,
+  map_mul' := map_mul,
+  commutes' := λ c, by simp only [algebra.algebra_map_eq_smul_one, f.map_smul, map_one],
+  .. f.to_add_monoid_hom }
+
+@[simp] lemma of_linear_map_to_linear_map (map_one) (map_mul) :
+  of_linear_map φ.to_linear_map map_one map_mul = φ :=
+by { ext, refl }
+
+@[simp] lemma to_linear_map_of_linear_map (f : A →ₗ[R] B) (map_one) (map_mul) :
+  to_linear_map (of_linear_map f map_one map_mul) = f :=
+by { ext, refl }
+
+@[simp] lemma of_linear_map_id (map_one) (map_mul) :
+  of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
+ext $ λ _, rfl
+
 lemma map_list_prod (s : list A) :
   φ s.prod = (s.map φ).prod :=
 φ.to_ring_hom.map_list_prod s

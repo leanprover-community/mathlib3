@@ -1054,9 +1054,6 @@ end
 @[simp, mfld_simps] lemma local_triv_apply (p : Z.total_space) :
   (Z.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
 
-@[simp, mfld_simps] lemma local_triv_symm_apply (p : B × F) :
-  (Z.local_triv_as_local_equiv i).symm p = ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
-
 @[simp, mfld_simps] lemma mem_local_triv_source (p : Z.total_space) :
   p ∈ (Z.local_triv i).source ↔ p.1 ∈ (Z.local_triv i).base_set := iff.rfl
 

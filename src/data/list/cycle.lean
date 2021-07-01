@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import data.list.rotate
-import data.finset.basic
+import data.finset.sort
 
 /-!
 # Cycles of a list
@@ -553,12 +553,34 @@ The `s : cycle α` as a `multiset α`.
 def to_multiset (s : cycle α) : multiset α :=
 quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
 
+/--
+The lift of `list.map`.
+-/
+def map {β : Type*} (f : α → β) (s : cycle α) : cycle β :=
+quot.lift_on s (λ l : list α, (l.map f : cycle β))
+  (λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.map _)
+
 section decidable
 
 variable [decidable_eq α]
 
 instance {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
+
+/--
+The `finset` of lists that can make the cycle.
+-/
+def lists (s : cycle α) : finset (list α) :=
+quotient.lift_on' s (λ l, (l.permutations.filter (λ (l' : list α), (l' : cycle α) = s)).to_finset) $
+  λ l₁ l₂ (h : l₁ ~r l₂),
+  begin
+    induction s using quotient.induction_on',
+    ext,
+    simp only [mem_filter, coe_eq_coe, mk'_eq_coe, and.congr_left_iff, mem_permutations,
+               mem_to_finset],
+    intro,
+    exact ⟨λ H, H.trans h.perm, λ H, H.trans h.perm.symm⟩
+  end
 
 /--
 The `s : cycle α` as a `finset α`.
@@ -605,5 +627,8 @@ lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
 by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
 
 end decidable
+
+instance [has_repr α] : has_repr (cycle α) :=
+⟨λ s, "{" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "}"⟩
 
 end cycle

@@ -344,6 +344,7 @@ lemma disjoint_range {i₁ i₂ : fin c.length} (h : i₁ ≠ i₂) :
 begin
   classical,
   wlog h' : i₁ ≤ i₂ using i₁ i₂,
+  swap, exact (this h.symm).symm,
   by_contradiction d,
   obtain ⟨x, hx₁, hx₂⟩ :
     ∃ x : fin n, (x ∈ set.range (c.embedding i₁) ∧ x ∈ set.range (c.embedding i₂)) :=
@@ -353,8 +354,7 @@ begin
   apply lt_irrefl (x : ℕ),
   calc (x : ℕ) < c.size_up_to (i₁ : ℕ).succ : (c.mem_range_embedding_iff.1 hx₁).2
   ... ≤ c.size_up_to (i₂ : ℕ) : monotone_sum_take _ A
-  ... ≤ x : (c.mem_range_embedding_iff.1 hx₂).1,
-  exact (this h.symm).symm
+  ... ≤ x : (c.mem_range_embedding_iff.1 hx₂).1
 end
 
 lemma mem_range_embedding (j : fin n) :

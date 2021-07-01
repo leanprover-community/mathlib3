@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 
 Monad encapsulating continuation passing programming style, similar to
 Haskell's `Cont`, `ContT` and `MonadCont`:
@@ -77,7 +77,10 @@ instance [monad m] : has_monad_lift m (cont_t r m) :=
 
 lemma monad_lift_bind [monad m] [is_lawful_monad m] {α β} (x : m α) (f : α → m β) :
   (monad_lift (x >>= f) : cont_t r m β) = monad_lift x >>= monad_lift ∘ f :=
-by { ext, simp only [monad_lift,has_monad_lift.monad_lift,(∘),(>>=),bind_assoc,id.def,run,cont_t.monad_lift] }
+begin
+  ext,
+  simp only [monad_lift,has_monad_lift.monad_lift,(∘),(>>=),bind_assoc,id.def,run,cont_t.monad_lift]
+end
 
 instance : monad_cont (cont_t r m) :=
 { call_cc := λ α β f g, f ⟨λ x h, g x⟩ g }
@@ -104,7 +107,9 @@ def except_t.mk_label {α β ε} : label (except.{u u} ε α) m β → label α 
 lemma except_t.goto_mk_label {α β ε : Type*} (x : label (except.{u u} ε α) m β) (i : α) :
   goto (except_t.mk_label x) i = ⟨ except.ok <$> goto x (except.ok i) ⟩ := by cases x; refl
 
-def except_t.call_cc {ε} [monad_cont m] {α β : Type*} (f : label α (except_t ε m) β → except_t ε m α) : except_t ε m α :=
+def except_t.call_cc
+  {ε} [monad_cont m] {α β : Type*} (f : label α (except_t ε m) β → except_t ε m α) :
+  except_t ε m α :=
 except_t.mk (call_cc $ λ x : label _ m β, except_t.run $ f (except_t.mk_label x) : m (except ε α))
 
 instance {ε} [monad_cont m] : monad_cont (except_t ε m) :=

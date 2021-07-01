@@ -11,18 +11,20 @@ import tactic.lint.basic
 This file defines several linters checking the correct usage of type classes
 and the appropriate definition of instances:
 
- * `instance_priority` ensures that blanket instances have low priority
- * `has_inhabited_instances` checks that every type has an `inhabited` instance
- * `impossible_instance` checks that there are no instances which can never apply
+ * `instance_priority` ensures that blanket instances have low priority.
+ * `has_inhabited_instances` checks that every type has an `inhabited` instance.
+ * `impossible_instance` checks that there are no instances which can never apply.
  * `incorrect_type_class_argument` checks that only type classes are used in
-   instance-implicit arguments
- * `dangerous_instance` checks for instances that generate subproblems with metavariables
- * `fails_quickly` checks that type class resolution finishes quickly
- * `has_coe_variable` checks that there is no instance of type `has_coe α t`
+   instance-implicit arguments.
+ * `dangerous_instance` checks for instances that generate subproblems with metavariables.
+ * `fails_quickly` checks that type class resolution finishes quickly.
+ * `class_structure` checks that every `class` is a structure, i.e. `@[class] def` is forbidden.
+ * `has_coe_variable` checks that there is no instance of type `has_coe α t`.
  * `inhabited_nonempty` checks whether `[inhabited α]` arguments could be generalized
-   to `[nonempty α]`
+   to `[nonempty α]`.
  * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
    in the statement, and could thus be removed by using `classical` in the proof.
+ * `linter.has_coe_to_fun` checks whether necessary `has_coe_to_fun` instances are declared.
 -/
 
 open tactic
@@ -44,7 +46,9 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   (is_persistent, prio) ← has_attribute `instance nm,
   /- return `none` if `d` is has low priority -/
   if prio < 1000 then return none else do
-  let (fn, args) := d.type.pi_codomain.get_app_fn_args,
+  (_, tp) ← open_pis d.type,
+  tp ← whnf tp transparency.none,
+  let (fn, args) := tp.get_app_fn_args,
   cls ← get_decl fn.const_name,
   let (pi_args, _) := cls.type.pi_binders,
   guard (args.length = pi_args.length),
@@ -54,7 +58,7 @@ private meta def instance_priority (d : declaration) : tactic (option string) :=
   let relevant_args := (args.zip pi_args).filter_map $ λ⟨e, ⟨_, info, tp⟩⟩,
     if info = binder_info.inst_implicit ∨ tp.get_app_fn.is_constant_of `out_param
     then none else some e,
-  let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
+  let always_applies := relevant_args.all expr.is_local_constant ∧ relevant_args.nodup,
   if always_applies then return $ some "set priority below 1000" else return none
 
 /--
@@ -91,7 +95,7 @@ library_note "lower instance priority"
 This is in the default linter set. -/
 @[linter] meta def linter.instance_priority : linter :=
 { test := instance_priority,
-  no_errors_found := "All instance priorities are good",
+  no_errors_found := "All instance priorities are good.",
   errors_found := "DANGEROUS INSTANCE PRIORITIES.
 The following instances always apply, and therefore should have a priority < 1000.
 If you don't know what priority to choose, use priority 100.
@@ -122,8 +126,8 @@ else
 meta def linter.has_inhabited_instance : linter :=
 { test := has_inhabited_instance,
   auto_decls := ff,
-  no_errors_found := "No types have missing inhabited instances",
-  errors_found := "TYPES ARE MISSING INHABITED INSTANCES",
+  no_errors_found := "No types have missing inhabited instances.",
+  errors_found := "TYPES ARE MISSING INHABITED INSTANCES:",
   is_fast := ff }
 
 attribute [nolint has_inhabited_instance] pempty
@@ -140,9 +144,11 @@ private meta def impossible_instance (d : declaration) : tactic (option string) 
 @[linter] meta def linter.impossible_instance : linter :=
 { test := impossible_instance,
   auto_decls := tt,
-  no_errors_found := "All instances are applicable",
+  no_errors_found := "All instances are applicable.",
   errors_found := "IMPOSSIBLE INSTANCES FOUND.
-These instances have an argument that cannot be found during type-class resolution, and therefore can never succeed. Either mark the arguments with square brackets (if it is a class), or don't make it an instance" }
+These instances have an argument that cannot be found during type-class resolution, and " ++
+"therefore can never succeed. Either mark the arguments with square brackets (if it is a " ++
+"class), or don't make it an instance." }
 
 /-- Checks whether an instance can never be applied. -/
 private meta def incorrect_type_class_argument (d : declaration) : tactic (option string) := do
@@ -163,9 +169,9 @@ private meta def incorrect_type_class_argument (d : declaration) : tactic (optio
 @[linter] meta def linter.incorrect_type_class_argument : linter :=
 { test := incorrect_type_class_argument,
   auto_decls := tt,
-  no_errors_found := "All declarations have correct type-class arguments",
+  no_errors_found := "All declarations have correct type-class arguments.",
   errors_found := "INCORRECT TYPE-CLASS ARGUMENTS.
-Some declarations have non-classes between [square brackets]" }
+Some declarations have non-classes between [square brackets]:" }
 
 /-- Checks whether an instance is dangerous: it creates a new type-class problem with metavariable
 arguments. -/
@@ -180,16 +186,19 @@ private meta def dangerous_instance (d : declaration) : tactic (option string) :
       instance_arguments.any (λ nb, nb.2.local_type.has_local_constant x),
   let bad_arguments : list (ℕ × binder) := bad_arguments.map $ λ ⟨n, e⟩, ⟨n, e.to_binder⟩,
   _ :: _ ← return bad_arguments | return none,
-  (λ s, some $ "The following arguments become metavariables. " ++ s) <$> print_arguments bad_arguments
+  (λ s, some $ "The following arguments become metavariables. " ++ s) <$>
+    print_arguments bad_arguments
 
 /-- A linter object for `dangerous_instance`. -/
 @[linter] meta def linter.dangerous_instance : linter :=
 { test := dangerous_instance,
-  no_errors_found := "No dangerous instances",
-  errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new type-class problem which will have metavariables.
-  Possible solution: remove the instance attribute or make it a local instance instead.
+  no_errors_found := "No dangerous instances.",
+  errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new " ++
+"type-class problem which will have metavariables.
+Possible solution: remove the instance attribute or make it a local instance instead.
 
-  Currently this linter does not check whether the metavariables only occur in arguments marked with `out_param`, in which case this linter gives a false positive.",
+Currently this linter does not check whether the metavariables only occur in arguments marked " ++
+"with `out_param`, in which case this linter gives a false positive.",
   auto_decls := tt }
 
 /-- Applies expression `e` to local constants, but lifts all the arguments that are `Sort`-valued to
@@ -226,10 +235,27 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
 @[linter] meta def linter.fails_quickly : linter :=
 { test := fails_quickly 3000,
   auto_decls := tt,
-  no_errors_found := "No type-class searches timed out",
+  no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
 For the following classes, there is an instance that causes a loop, or an excessively long search.",
   is_fast := ff }
+
+/-- Checks that all uses of the `@[class]` attribute apply to structures or inductive types.
+  This is future-proofing for lean 4, which no longer supports `@[class] def`. -/
+private meta def class_structure (n : name) : tactic (option string) := do
+  is_class ← has_attribute' `class n,
+  if is_class then do
+    env ← get_env,
+    pure $ if env.is_inductive n then none else
+      "is a non-structure or inductive type marked @[class]"
+  else pure none
+
+/-- A linter object for `class_structure`. -/
+@[linter] meta def linter.class_structure : linter :=
+{ test := λ d, class_structure d.to_name,
+  auto_decls := tt,
+  no_errors_found := "All classes are structures.",
+  errors_found := "USE OF @[class] def IS DISALLOWED:" }
 
 /--
 Tests whether there is no instance of type `has_coe α t` where `α` is a variable,
@@ -250,7 +276,7 @@ else
 @[linter] meta def linter.has_coe_variable : linter :=
 { test := has_coe_variable,
   auto_decls := tt,
-  no_errors_found := "No invalid `has_coe` instances",
+  no_errors_found := "No invalid `has_coe` instances.",
   errors_found := "INVALID `has_coe` INSTANCES.
 Make the following declarations instances of the class `has_coe_t` instead of `has_coe`." }
 
@@ -268,11 +294,12 @@ do tt ← is_prop d.type | return none,
 @[linter] meta def linter.inhabited_nonempty : linter :=
 { test := inhabited_nonempty,
   auto_decls := ff,
-  no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
+  no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`.",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
-/-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _` hypothesis that is unused
-elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof.
+/-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _`
+hypothesis that is unused lsewhere in the type.
+In this case, that hypothesis can be replaced with `classical` in the proof.
 Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
@@ -290,16 +317,17 @@ do tt ← is_prop d.type | return none,
 @[linter] meta def linter.decidable_classical : linter :=
 { test := decidable_classical,
   auto_decls := ff,
-  no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`",
+  no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`.",
   errors_found := "USES OF `decidable` SHOULD BE REPLACED WITH `classical` IN THE PROOF." }
 
 /- The file `logic/basic.lean` emphasizes the differences between what holds under classical
 and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
 to the list of lemmas which are not checked by the linter `decidable_classical`. -/
-attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
+attribute [nolint decidable_classical] dec_em dec_em' not.decidable_imp_symm
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do
+tt ← return d.is_trusted | pure none,
 mk_meta_var d.type >>= set_goals ∘ pure,
 args ← unfreezing intros,
 expr.sort _ ← target | pure none,
@@ -325,4 +353,4 @@ pure $ format.to_string $
   no_errors_found := "has_coe_to_fun is used correctly",
   errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
 You should add a `has_coe_to_fun` instance for the following types.
-See Note function coercions]." }
+See Note [function coercion]." }

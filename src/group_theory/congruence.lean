@@ -282,7 +282,7 @@ lemma coe_mul (x y : M) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
     that is constant on `c`'s equivalence classes. -/
 @[simp, to_additive "Definition of the function on the quotient by an additive congruence
 relation `c` induced by a function that is constant on `c`'s equivalence classes."]
-protected lemma lift_on_beta {β} (c : con M) (f : M → β)
+protected lemma lift_on_coe {β} (c : con M) (f : M → β)
   (h : ∀ a b, c a b → f a = f b) (x : M) :
   con.lift_on (x : c.quotient) f h = f x := rfl
 
@@ -535,37 +535,26 @@ def correspondence : {d // c ≤ d} ≃o (con c.quotient) :=
       λ x y h, show d _ _, by rw mul_ker_mk_eq at h; exact c.eq.2 h ▸ d.refl _ in
     ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       con.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
-    λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
-      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy⟩ }
+  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
+      t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy,
+      λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end
 
 end
 
--- Monoids
+section mul_one_class
 
-variables {M} [monoid M] [monoid N] [monoid P] (c : con M)
+variables {M} [mul_one_class M] [mul_one_class N] [mul_one_class P] (c : con M)
 
 /-- The quotient of a monoid by a congruence relation is a monoid. -/
 @[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
-instance monoid : monoid c.quotient :=
+instance mul_one_class : mul_one_class c.quotient :=
 { one := ((1 : M) : c.quotient),
   mul := (*),
-  mul_assoc := λ x y z, quotient.induction_on₃' x y z
-               $ λ _ _ _, congr_arg coe $ mul_assoc _ _ _,
   mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ mul_one _,
   one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ one_mul _ }
-
-
-/-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
-@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
-relation is an `add_comm_monoid`."]
-instance comm_monoid {α : Type*} [comm_monoid α] (c : con α) :
-  comm_monoid c.quotient :=
-{ mul_comm := λ x y, con.induction_on₂ x y $ λ w z, by rw [←coe_mul, ←coe_mul, mul_comm],
-  ..c.monoid}
 
 variables {c}
 
@@ -738,10 +727,7 @@ lift_funext g (c.lift f H) $ λ x, by rw [lift_coe H, ←comp_mk'_apply, Hg]
 constant on `c`'s equivalence classes, `f` has the same image as the homomorphism that `f` induces
 on the quotient."]
 theorem lift_range (H : c ≤ ker f) : (c.lift f H).mrange = f.mrange :=
-submonoid.ext $ λ x,
-  ⟨λ ⟨y, hy⟩, by revert hy; rcases y; exact
-     λ hy, ⟨y, hy.1, by rw [hy.2.symm, ←lift_coe H]; refl⟩,
-   λ ⟨y, hy⟩, ⟨↑y, hy.1, by rw ←hy.2; refl⟩⟩
+submonoid.ext $ λ x, ⟨by rintros ⟨⟨y⟩, hy⟩; exact ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨↑y, hy⟩⟩
 
 /-- Surjective monoid homomorphisms constant on a congruence relation `c`'s equivalence classes
     induce a surjective homomorphism on `c`'s quotient. -/
@@ -821,16 +807,32 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
         ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
-         λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
+         λ ⟨w, z, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
-/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
+/-- The first isomorphism theorem for monoids in the case of a homomorphism with right inverse. -/
+@[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a homomorphism
+with right inverse.", simps]
+def quotient_ker_equiv_of_right_inverse (f : M →* P) (g : P → M)
+  (hf : function.right_inverse g f) :
+  (ker f).quotient ≃* P :=
+{ to_fun := ker_lift f,
+  inv_fun := coe ∘ g,
+  left_inv := λ x, ker_lift_injective _ (by rw [function.comp_app, ker_lift_mk, hf]),
+  right_inv := hf,
+  .. ker_lift f }
+
+/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism.
+
+For a `computable` version, see `con.quotient_ker_equiv_of_right_inverse`.
+-/
 @[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a surjective
-homomorphism."]
+homomorphism.
+
+For a `computable` version, see `add_con.quotient_ker_equiv_of_right_inverse`.
+"]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
   (ker f).quotient ≃* P :=
-{ map_mul' := monoid_hom.map_mul _,
-  ..equiv.of_bijective (ker_lift f)
-      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+quotient_ker_equiv_of_right_inverse _ _ hf.has_right_inverse.some_spec
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]
@@ -845,5 +847,57 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
 { map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
     show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
   ..quotient_quotient_equiv_quotient c.to_setoid d.to_setoid h }
+
+end mul_one_class
+
+section monoids
+
+/-- The quotient of a monoid by a congruence relation is a monoid. -/
+@[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
+an `add_monoid`."]
+instance monoid {M : Type*} [monoid M] (c : con M): monoid c.quotient :=
+{ one := ((1 : M) : c.quotient),
+  mul := (*),
+  mul_assoc := λ x y z, quotient.induction_on₃' x y z
+               $ λ _ _ _, congr_arg coe $ mul_assoc _ _ _,
+  .. c.mul_one_class }
+
+/-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
+@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
+relation is an `add_comm_monoid`."]
+instance comm_monoid {M : Type*} [comm_monoid M] (c : con M) :
+  comm_monoid c.quotient :=
+{ mul_comm := λ x y, con.induction_on₂ x y $ λ w z, by rw [←coe_mul, ←coe_mul, mul_comm],
+  ..c.monoid}
+
+end monoids
+
+section groups
+
+variables {M} [group M] [group N] [group P] (c : con M)
+
+/-- Multiplicative congruence relations preserve inversion. -/
+@[to_additive "Additive congruence relations preserve negation."]
+protected lemma inv : ∀ {w x}, c w x → c w⁻¹ x⁻¹ :=
+λ x y h, by simpa using c.symm (c.mul (c.mul (c.refl x⁻¹) h) (c.refl y⁻¹))
+
+/-- The inversion induced on the quotient by a congruence relation on a type with a
+    inversion. -/
+@[to_additive "The negation induced on the quotient by an additive congruence relation on a type
+with an negation."]
+instance has_inv : has_inv c.quotient :=
+⟨λ x, quotient.lift_on' x (λ w, ((w⁻¹ : M) : c.quotient))
+     $ λ x y h, c.eq.2 $ c.inv h⟩
+
+/-- The quotient of a group by a congruence relation is a group. -/
+@[to_additive "The quotient of an `add_group` by an additive congruence relation is
+an `add_group`."]
+instance group : group c.quotient :=
+{ inv := λ x, x⁻¹,
+  mul_left_inv := λ x, show x⁻¹ * x = 1,
+    from quotient.induction_on' x $ λ _, congr_arg coe $ mul_left_inv _,
+  .. con.monoid c}
+
+end groups
 
 end con

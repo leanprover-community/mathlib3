@@ -9,34 +9,15 @@ import tactic.core
 # Localized notation
 
 This consists of two user-commands which allow you to declare notation and commands localized to a
-namespace.
+locale.
 
-* Declare notation which is localized to a namespace using:
-```lean
-localized "infix ` ⊹ `:60 := my_add" in my.add
-```
-* After this command it will be available in the same section/namespace/file, just as if you wrote
-  `local infix ` ⊹ `:60 := my_add`
-* You can open it in other places. The following command will declare the notation again as local
-  notation in that section/namespace/files:
-```lean
-open_locale my.add
-```
-* More generally, the following will declare all localized notation in the specified namespaces.
-```lean
-open_locale namespace1 namespace2 ...
-```
-* You can also declare other localized commands, like local attributes
-```lean
-localized "attribute [simp] le_refl" in le
-```
+See the tactic doc entry below for more information.
+
 The code is inspired by code from Gabriel Ebner from the
 [hott3 repository](https://github.com/gebner/hott3).
 -/
 
 open lean lean.parser interactive tactic native
-
-reserve notation `localized`
 
 @[user_attribute]
 meta def localized_attr : user_attribute (rb_lmap name string) unit := {
@@ -46,7 +27,7 @@ meta def localized_attr : user_attribute (rb_lmap name string) unit := {
                           return $ rb_lmap.of_list dcls), []⟩
 }
 
-/-- Get all commands in the given notation namespace and return them as a list of strings -/
+/-- Get all commands in the given locale and return them as a list of strings -/
 meta def get_localized (ns : list name) : tactic (list string) :=
 do m ← localized_attr.get_cache,
    ns.mfoldl (λ l nm, match m.find nm with
@@ -54,13 +35,13 @@ do m ← localized_attr.get_cache,
    | new_l := return $ l.append new_l
    end) []
 
-/-- Execute all commands in the given notation namespace -/
+/-- Execute all commands in the given locale -/
 @[user_command] meta def open_locale_cmd (_ : parse $ tk "open_locale") : parser unit :=
 do ns ← many ident,
    cmds ← get_localized ns,
    cmds.mmap' emit_code_here
 
-/-- Add a new command to a notation namespace and execute it right now.
+/-- Add a new command to a locale and execute it right now.
   The new command is added as a declaration to the environment with name `_localized_decl.<number>`.
   This declaration has attribute `_localized` and as value a name-string pair. -/
 @[user_command] meta def localized_cmd (_ : parse $ tk "localized") : parser unit :=
@@ -78,9 +59,9 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
 
 /--
 This consists of two user-commands which allow you to declare notation and commands localized to a
-namespace.
+locale.
 
-* Declare notation which is localized to a namespace using:
+* Declare notation which is localized to a locale using:
 ```lean
 localized "infix ` ⊹ `:60 := my_add" in my.add
 ```
@@ -89,14 +70,14 @@ localized "infix ` ⊹ `:60 := my_add" in my.add
   `local infix ` ⊹ `:60 := my_add`
 
 * You can open it in other places. The following command will declare the notation again as local
-  notation in that section/namespace/files:
+  notation in that section/namespace/file:
 ```lean
 open_locale my.add
 ```
 
-* More generally, the following will declare all localized notation in the specified namespaces.
+* More generally, the following will declare all localized notation in the specified locales.
 ```lean
-open_locale namespace1 namespace2 ...
+open_locale locale1 locale2 ...
 ```
 
 * You can also declare other localized commands, like local attributes
@@ -104,24 +85,20 @@ open_locale namespace1 namespace2 ...
 localized "attribute [simp] le_refl" in le
 ```
 
-* To see all localized commands in a given namespace, run:
+* To see all localized commands in a given locale, run:
 ```lean
 run_cmd print_localized_commands [`my.add].
 ```
 
-* To see a list of all namespaces with localized commands, run:
+* To see a list of all locales with localized commands, run:
 ```lean
 run_cmd do
   m ← localized_attr.get_cache,
-  tactic.trace m.keys -- change to `tactic.trace m.to_list`
-  -- to list all the commands in each namespace
+  tactic.trace m.keys -- change to `tactic.trace m.to_list` to list all the commands in each locale
 ```
 
-* Warning 1: as a limitation on user commands, you cannot put `open_locale` directly after your
-  imports. You have to write another command first (e.g. `open`, `namespace`, `universe variables`,
-  `noncomputable theory`, `run_cmd tactic.skip`, ...).
-* Warning 2: You have to fully specify the names used in localized notation, so that the localized
-  notation also works when the appropriate namespaces are not opened.
+* Warning: You have to give full names of all declarations used in localized notation,
+  so that the localized notation also works when the appropriate namespaces are not opened.
 -/
 add_tactic_doc
 { name                     := "localized notation",
@@ -129,7 +106,7 @@ add_tactic_doc
   decl_names               := [`localized_cmd, `open_locale_cmd],
   tags                     := ["notation", "type classes"] }
 
-/-- Print all commands in a given notation namespace -/
+/-- Print all commands in a given locale -/
 meta def print_localized_commands (ns : list name) : tactic unit :=
 do cmds ← get_localized ns, cmds.mmap' trace
 

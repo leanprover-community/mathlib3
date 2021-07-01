@@ -3,7 +3,7 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add
+import data.equiv.mul_add_aut
 import logic.function.basic
 import group_theory.subgroup
 
@@ -49,7 +49,8 @@ variables {N G} {φ : G →* mul_aut N}
 private def one_aux : N ⋊[φ] G := ⟨1, 1⟩
 private def mul_aux (a b : N ⋊[φ] G) : N ⋊[φ] G := ⟨a.1 * φ a.2 b.1, a.right * b.right⟩
 private def inv_aux (a : N ⋊[φ] G) : N ⋊[φ] G := let i := a.2⁻¹ in ⟨φ i a.1⁻¹, i⟩
-private lemma mul_assoc_aux (a b c : N ⋊[φ] G) : mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
+private lemma mul_assoc_aux (a b c : N ⋊[φ] G) :
+  mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
 by simp [mul_aux, mul_assoc, mul_equiv.map_mul]
 private lemma mul_one_aux (a : N ⋊[φ] G) : mul_aux a one_aux = a :=
 by cases a; simp [mul_aux, one_aux]
@@ -159,7 +160,7 @@ def lift (f₁ : N →* H) (f₂ : G →* H)
   map_one' := by simp,
   map_mul' := λ a b, begin
     have := λ n g, monoid_hom.ext_iff.1 (h n) g,
-    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.to_monoid_hom_apply] at this,
+    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom] at this,
     simp [this, mul_assoc]
   end }
 

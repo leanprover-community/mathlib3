@@ -5,6 +5,8 @@ Authors: Kenny Lau
 
 -/
 import data.dfinsupp
+import group_theory.submonoid.operations
+import group_theory.subgroup
 
 /-!
 # Direct sum
@@ -92,10 +94,26 @@ begin
   solve_by_elim
 end
 
-variables {γ : Type u₁} [add_comm_monoid γ]
-variables (φ : Π i, β i →+ γ)
+/-- If two additive homomorphisms from `⨁ i, β i` are equal on each `of β i y`,
+then they are equal. -/
+lemma add_hom_ext {γ : Type*} [add_monoid γ] ⦃f g : (⨁ i, β i) →+ γ⦄
+  (H : ∀ (i : ι) (y : β i), f (of _ i y) = g (of _ i y)) : f = g :=
+dfinsupp.add_hom_ext H
 
-variables (φ)
+/-- If two additive homomorphisms from `⨁ i, β i` are equal on each `of β i y`,
+then they are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[ext] lemma add_hom_ext' {γ : Type*} [add_monoid γ] ⦃f g : (⨁ i, β i) →+ γ⦄
+  (H : ∀ (i : ι), f.comp (of _ i) = g.comp (of _ i)) : f = g :=
+add_hom_ext $ λ i, add_monoid_hom.congr_fun $ H i
+
+variables {γ : Type u₁} [add_comm_monoid γ]
+
+section to_add_monoid
+
+variables (φ : Π i, β i →+ γ) (ψ : (⨁ i, β i) →+ γ)
+
 /-- `to_add_monoid φ` is the natural homomorphism from `⨁ i, β i` to `γ`
 induced by a family `φ` of homomorphisms `β i → γ`. -/
 def to_add_monoid : (⨁ i, β i) →+ γ :=
@@ -104,11 +122,30 @@ def to_add_monoid : (⨁ i, β i) →+ γ :=
 @[simp] lemma to_add_monoid_of (i) (x : β i) : to_add_monoid φ (of β i x) = φ i x :=
 dfinsupp.lift_add_hom_apply_single φ i x
 
-variables (ψ : (⨁ i, β i) →+ γ)
-
 theorem to_add_monoid.unique (f : ⨁ i, β i) :
   ψ f = to_add_monoid (λ i, ψ.comp (of β i)) f :=
 by {congr, ext, simp [to_add_monoid, of]}
+
+end to_add_monoid
+
+section from_add_monoid
+
+/-- `from_add_monoid φ` is the natural homomorphism from `γ` to `⨁ i, β i`
+induced by a family `φ` of homomorphisms `γ → β i`.
+
+Note that this is not an isomorphism. Not every homomorphism `γ →+ ⨁ i, β i` arises in this way. -/
+def from_add_monoid : (⨁ i, γ →+ β i) →+ (γ →+ ⨁ i, β i) :=
+to_add_monoid $ λ i, add_monoid_hom.comp_hom (of β i)
+
+@[simp] lemma from_add_monoid_of (i : ι) (f : γ →+ β i) :
+  from_add_monoid (of _ i f) = (of _ i).comp f :=
+by { rw [from_add_monoid, to_add_monoid_of], refl }
+
+lemma from_add_monoid_of_apply (i : ι) (f : γ →+ β i) (x : γ) :
+  from_add_monoid (of _ i f) x = of _ i (f x) :=
+by rw [from_add_monoid_of, add_monoid_hom.coe_comp]
+
+end from_add_monoid
 
 variables (β)
 /-- `set_to_set β S T h` is the natural homomorphism `⨁ (i : S), β i → ⨁ (i : T), β i`,
@@ -132,5 +169,27 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
     (λ x y ihx ihy, by rw [add_monoid_hom.map_add, add_monoid_hom.map_add, ihx, ihy]),
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
+
+/-- The `direct_sum` formed by a collection of `add_submonoid`s of `M` is said to be internal if the
+canonical map `(⨁ i, A i) →+ M` is bijective.
+
+See `direct_sum.add_subgroup_is_internal` for the same statement about `add_subgroup`s. -/
+def add_submonoid_is_internal {M : Type*} [decidable_eq ι] [add_comm_monoid M]
+  (A : ι → add_submonoid M) : Prop :=
+function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
+
+/-- The `direct_sum` formed by a collection of `add_subgroup`s of `M` is said to be internal if the
+canonical map `(⨁ i, A i) →+ M` is bijective.
+
+See `direct_sum.submodule_is_internal` for the same statement about `submodules`s. -/
+def add_subgroup_is_internal {M : Type*} [decidable_eq ι] [add_comm_group M]
+  (A : ι → add_subgroup M) : Prop :=
+function.bijective (direct_sum.to_add_monoid (λ i, (A i).subtype) : (⨁ i, A i) →+ M)
+
+lemma add_subgroup_is_internal.to_add_submonoid
+  {M : Type*} [decidable_eq ι] [add_comm_group M] (A : ι → add_subgroup M) :
+  add_subgroup_is_internal A ↔
+    add_submonoid_is_internal (λ i, (A i).to_add_submonoid) :=
+iff.rfl
 
 end direct_sum

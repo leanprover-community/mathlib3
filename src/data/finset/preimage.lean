@@ -28,11 +28,35 @@ noncomputable def preimage (s : finset β) (f : α → β)
 
 @[simp] lemma mem_preimage {f : α → β} {s : finset β} {hf : set.inj_on f (f ⁻¹' ↑s)} {x : α} :
   x ∈ preimage s f hf ↔ f x ∈ s :=
-set.finite.mem_to_finset
+set.finite.mem_to_finset _
 
 @[simp, norm_cast] lemma coe_preimage {f : α → β} (s : finset β)
   (hf : set.inj_on f (f ⁻¹' ↑s)) : (↑(preimage s f hf) : set α) = f ⁻¹' ↑s :=
 set.finite.coe_to_finset _
+
+@[simp] lemma preimage_empty {f : α → β} : preimage ∅ f (by simp [inj_on]) = ∅ :=
+finset.coe_injective (by simp)
+
+@[simp] lemma preimage_univ {f : α → β} [fintype α] [fintype β] (hf) :
+  preimage univ f hf = univ :=
+finset.coe_injective (by simp)
+
+@[simp] lemma preimage_inter [decidable_eq α] [decidable_eq β] {f : α → β} {s t : finset β}
+  (hs : set.inj_on f (f ⁻¹' ↑s)) (ht : set.inj_on f (f ⁻¹' ↑t)) :
+  preimage (s ∩ t) f (λ x₁ hx₁ x₂ hx₂, hs (mem_of_mem_inter_left hx₁) (mem_of_mem_inter_left hx₂))
+    = preimage s f hs ∩ preimage t f ht :=
+finset.coe_injective (by simp)
+
+@[simp] lemma preimage_union [decidable_eq α] [decidable_eq β] {f : α → β} {s t : finset β} (hst) :
+  preimage (s ∪ t) f hst
+    = preimage s f (λ x₁ hx₁ x₂ hx₂, hst (mem_union_left _ hx₁) (mem_union_left _ hx₂))
+    ∪ preimage t f (λ x₁ hx₁ x₂ hx₂, hst (mem_union_right _ hx₁) (mem_union_right _ hx₂)) :=
+finset.coe_injective (by simp)
+
+@[simp] lemma preimage_compl [decidable_eq α] [decidable_eq β] [fintype α] [fintype β]
+  {f : α → β} (s : finset β) (hf : function.injective f) :
+  preimage sᶜ f (hf.inj_on _) = (preimage s f (hf.inj_on _))ᶜ :=
+finset.coe_injective (by simp)
 
 lemma monotone_preimage {f : α → β} (h : injective f) :
   monotone (λ s, preimage s f (h.inj_on _)) :=

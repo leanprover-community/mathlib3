@@ -28,11 +28,12 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 ### Definitions
 
+* `add_val R : add_valuation R enat` : the additive valuation on a DVR.
+
 ## Implementation notes
 
 It's a theorem that an element of a DVR is a uniformizer if and only if it's irreducible.
 We do not hence define `uniformizer` at all, because we can use `irreducible` instead.
-
 
 ## Tags
 
@@ -94,6 +95,10 @@ variable (R)
 theorem exists_irreducible : ∃ ϖ : R, irreducible ϖ :=
 by {simp_rw [irreducible_iff_uniformizer],
     exact (is_principal_ideal_ring.principal $ maximal_ideal R).principal}
+
+/-- Uniformisers exist in a DVR -/
+theorem exists_prime : ∃ ϖ : R, prime ϖ :=
+(exists_irreducible R).imp (λ _, principal_ideal_ring.irreducible_iff_prime.1)
 
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
 theorem iff_pid_with_one_nonzero_prime (R : Type u) [integral_domain R] :
@@ -164,7 +169,7 @@ begin
   { simpa only [pow_one] using hn.symm, },
   { obtain ⟨n, rfl⟩ : ∃ k, n = 1 + k + 1 := nat.exists_eq_add_of_lt H,
     rw pow_succ at this,
-    rcases this.2 _ _ rfl with H0|H0,
+    rcases this.is_unit_or_is_unit rfl with H0|H0,
     { exact (hϖ.not_unit H0).elim, },
     { rw [add_comm, pow_succ] at H0,
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
@@ -190,12 +195,13 @@ begin
     by_cases hb : b = 0,
     { rw hb, simp only [or_true, dvd_zero], },
     obtain ⟨m, u, rfl⟩ := spec.2 ha,
-    rw [mul_assoc, mul_left_comm, is_unit.dvd_mul_left _ _ _ (is_unit_unit _)] at h,
-    rw is_unit.dvd_mul_right (is_unit_unit _),
+    rw [mul_assoc, mul_left_comm, is_unit.dvd_mul_left _ _ _ (units.is_unit _)] at h,
+    rw is_unit.dvd_mul_right (units.is_unit _),
     by_cases hm : m = 0,
     { simp only [hm, one_mul, pow_zero] at h ⊢, right, exact h },
     left,
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
+    rw pow_succ,
     apply dvd_mul_of_dvd_left (dvd_refl _) _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
@@ -242,7 +248,7 @@ begin
   have ex : ∃ n : ℕ, p ^ n ∈ I,
   { obtain ⟨n, u, rfl⟩ := H hx0,
     refine ⟨n, _⟩,
-    simpa only [units.mul_inv_cancel_right] using @ideal.mul_mem_right _ _ I _ ↑u⁻¹ hxI, },
+    simpa only [units.mul_inv_cancel_right] using I.mul_mem_right ↑u⁻¹ hxI, },
   constructor,
   use p ^ (nat.find ex),
   show I = ideal.span _,
@@ -251,10 +257,10 @@ begin
     by_cases hr0 : r = 0,
     { simp only [hr0, submodule.zero_mem], },
     obtain ⟨n, u, rfl⟩ := H hr0,
-    simp only [mem_span_singleton, is_unit_unit, is_unit.dvd_mul_right],
+    simp only [mem_span_singleton, units.is_unit, is_unit.dvd_mul_right],
     apply pow_dvd_pow,
     apply nat.find_min',
-    simpa only [units.mul_inv_cancel_right] using @ideal.mul_mem_right _ _ I _ ↑u⁻¹ hr, },
+    simpa only [units.mul_inv_cancel_right] using I.mul_mem_right ↑u⁻¹ hr, },
   { erw submodule.span_singleton_le_iff_mem,
     exact nat.find_spec ex, },
 end
@@ -326,6 +332,15 @@ begin
   assumption
 end
 
+lemma eq_unit_mul_pow_irreducible {x : R} (hx : x ≠ 0) {ϖ : R} (hirr : irreducible ϖ) :
+  ∃ (n : ℕ) (u : units R), x = u * ϖ ^ n :=
+begin
+  obtain ⟨n, hn⟩ := associated_pow_irreducible hx hirr,
+  obtain ⟨u, rfl⟩ := hn.symm,
+  use [n, u],
+  apply mul_comm,
+end
+
 open submodule.is_principal
 
 lemma ideal_eq_span_pow_irreducible {s : ideal R} (hs : s ≠ ⊥) {ϖ : R} (hirr : irreducible ϖ) :
@@ -367,6 +382,79 @@ begin
   { rw sub_eq_zero at h, exact_mod_cast h },
   { apply (hirr.ne_zero (pow_eq_zero h)).elim, }
 end
+
+/-!
+## The additive valuation on a DVR
+-/
+
+open multiplicity
+
+/-- The `enat`-valued additive valuation on a DVR -/
+noncomputable def add_val (R : Type u) [integral_domain R] [discrete_valuation_ring R] :
+  add_valuation R enat :=
+add_valuation (classical.some_spec (exists_prime R))
+
+lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
+  add_val R r = n :=
+by rw [add_val, add_valuation_apply, hr,
+    eq_of_associated_left (associated_of_irreducible R hϖ
+      (irreducible_of_prime (classical.some_spec (exists_prime R)))),
+    eq_of_associated_right (associated.symm ⟨u, mul_comm _ _⟩),
+    multiplicity_pow_self_of_prime (principal_ideal_ring.irreducible_iff_prime.1 hϖ)]
+
+lemma add_val_def' (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) :
+  add_val R ((u : R) * ϖ ^ n) = n :=
+add_val_def _ u hϖ n rfl
+
+@[simp] lemma add_val_zero : add_val R 0 = ⊤ :=
+(add_val R).map_zero
+
+@[simp] lemma add_val_one : add_val R 1 = 0 :=
+(add_val R).map_one
+
+@[simp] lemma add_val_uniformizer {ϖ : R} (hϖ : irreducible ϖ) : add_val R ϖ = 1 :=
+add_val_def ϖ 1 hϖ 1 (by simp)
+
+@[simp] lemma add_val_mul {a b : R} :
+  add_val R (a * b) = add_val R a + add_val R b :=
+(add_val R).map_mul _ _
+
+lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n • add_val R a :=
+(add_val R).map_pow _ _
+
+lemma add_val_eq_top_iff {a : R} : add_val R a = ⊤ ↔ a = 0 :=
+begin
+  have hi := (irreducible_of_prime (classical.some_spec (exists_prime R))),
+  split,
+  { contrapose,
+    intro h,
+    obtain ⟨n, ha⟩ := associated_pow_irreducible h hi,
+    obtain ⟨u, rfl⟩ := ha.symm,
+    rw [mul_comm, add_val_def' u hi n],
+    exact enat.coe_ne_top _ },
+  { rintro rfl,
+    exact add_val_zero }
+end
+
+lemma add_val_le_iff_dvd {a b : R} : add_val R a ≤ add_val R b ↔ a ∣ b :=
+begin
+  have hp := classical.some_spec (exists_prime R),
+  split; intro h,
+  { by_cases ha0 : a = 0,
+    { rw [ha0, add_val_zero, top_le_iff, add_val_eq_top_iff] at h,
+      rw h,
+      apply dvd_zero },
+    obtain ⟨n, ha⟩ := associated_pow_irreducible ha0 (irreducible_of_prime hp),
+    rw [add_val, add_valuation_apply, add_valuation_apply,
+      multiplicity_le_multiplicity_iff] at h,
+    exact dvd.trans (dvd_of_associated ha) (h n (dvd_of_associated ha.symm)), },
+  { rw [add_val, add_valuation_apply, add_valuation_apply],
+    exact multiplicity_le_multiplicity_of_dvd_right h }
+end
+
+lemma add_val_add {a b : R} :
+  min (add_val R a) (add_val R b) ≤ add_val R (a + b) :=
+(add_val R).map_add _ _
 
 end
 

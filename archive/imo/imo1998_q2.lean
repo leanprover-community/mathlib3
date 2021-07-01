@@ -142,7 +142,7 @@ begin
   have h' : (x + y) * (x + y) = 4*z*z + 4*z + 1, { rw h, ring, },
   rw [← add_sq_add_sq_sub, h', add_le_add_iff_left],
   suffices : 0 < (x - y) * (x - y), { apply int.add_one_le_of_lt this, },
-  apply mul_self_pos, rw sub_ne_zero, apply int.ne_of_odd_sum ⟨z, h⟩,
+  apply mul_self_pos, rw sub_ne_zero, apply int.ne_of_odd_add ⟨z, h⟩,
 end
 
 section
@@ -175,7 +175,7 @@ begin
   have hst' : (s \ t).card = 2*z + 1, { rw [hst, finset.diag_card, ← hJ], refl, },
   rw [finset.filter_and, ← finset.sdiff_sdiff_self_left s t, finset.card_sdiff],
   { rw hst', rw add_assoc at hs, apply nat.le_sub_right_of_add_le hs, },
-  { apply finset.sdiff_subset_self, },
+  { apply finset.sdiff_subset, },
 end
 
 lemma A_card_lower_bound [fintype C] {z : ℕ} (hJ : fintype.card J = 2*z + 1) :
@@ -194,12 +194,7 @@ local notation x `/` y := (x : ℚ) / y
 
 lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (b - 1) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
-begin
-  rw div_le_div_iff,
-  { convert nat.cast_le; finish, },
-  { simp only [hb, zero_lt_mul_right, zero_lt_bit0, nat.cast_pos, zero_lt_one], },
-  { simp only [ha, nat.cast_pos], },
-end
+by rw div_le_div_iff; norm_cast; simp [ha, hb]
 
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)

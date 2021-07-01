@@ -24,6 +24,8 @@ variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
 namespace order_dual
 
+instance [nontrivial α] : nontrivial (order_dual α) := by delta order_dual; assumption
+
 /-- `to_dual` is the identity function to the `order_dual` of a linear order.  -/
 def to_dual : α ≃ order_dual α := ⟨id, id, λ h, rfl, λ h, rfl⟩
 

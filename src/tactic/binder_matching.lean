@@ -20,7 +20,7 @@ implemented by `tactic.open_binders` and `tactic.open_n_binders`.
 Based on these general tactics, we define many variations of this recipe:
 
 - `open_pis` opens all leading Π binders and replaces them with
-  fresh local constants. This is core's `open_pis`.
+  fresh local constants. This is defined in core.
 - `open_lambdas` opens leading λ binders instead. Example:
 
   ```
@@ -322,5 +322,47 @@ Fails if `e` does not start with `n` λ binders (after normalisation). This is
 meta def open_n_lambdas_metas_whnf (e : expr) (n : ℕ) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
 open_n_binders (some (md, unfold_ginductive)) ff ff e n
+
+/-!
+## Special-purpose tactics
+
+The following tactics are variations of the 'opening binders' theme that do not
+quite fit in the above scheme.
+-/
+
+/--
+`open_pis_whnf_dep e` instantiates all leading Π binders of `e` with fresh local
+constants (like `tactic.open_pis`). It returns the remainder of the expression
+and, for each binder, the corresponding local constant and whether the binder
+was dependent.
+-/
+meta def open_pis_whnf_dep :
+  expr → tactic (list (expr × bool) × expr) := λ e, do
+  e' ← whnf e,
+  match e' with
+  | (pi n bi t rest) := do
+    c ← mk_local' n bi t,
+    let dep := rest.has_var,
+    (cs, rest) ← open_pis_whnf_dep $ rest.instantiate_var c,
+    pure ((c, dep) :: cs, rest)
+  | _ := pure ([], e)
+  end
+
+/--
+`open_n_pis_metas' e n` instantiates the first `n` leading Π binders of `e` with
+fresh metavariables. It returns the remainder of the expression and, for each
+binder, the corresponding metavariable, the name of the bound variable and the
+binder's `binder_info`. Fails if `e` does not have at least `n` leading Π
+binders.
+-/
+meta def open_n_pis_metas' :
+  expr → ℕ → tactic (list (expr × name × binder_info) × expr)
+| e 0 := pure ([], e)
+| (pi nam bi t rest) (n + 1) := do
+  m ← mk_meta_var t,
+  (ms, rest) ← open_n_pis_metas' (rest.instantiate_var m) n,
+  pure ((m, nam, bi) :: ms, rest)
+| e (n + 1) := fail $
+  to_fmt "expected an expression starting with a Π, but got: " ++ to_fmt e
 
 end tactic

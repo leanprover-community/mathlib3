@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.list.basic
 import data.stream
@@ -129,8 +129,7 @@ begin
   dsimp [destruct],
   induction f0 : nth s 0 with a'; intro h,
   { contradiction },
-  { unfold functor.map at h,
-    cases s with f al,
+  { cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],
     rw h1 at f0, rw ←f0,
@@ -210,7 +209,7 @@ end
 begin
   dsimp [corec, destruct, nth],
   change stream.corec' (corec.F f) (some b) 0 with (corec.F f (some b)).1,
-  unfold functor.map, dsimp [corec.F],
+  dsimp [corec.F],
   induction h : f b with s, { refl },
   cases s with a b', dsimp [corec.F],
   apply congr_arg (λ b', some (a, b')),

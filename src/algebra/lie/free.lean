@@ -142,8 +142,6 @@ def of : X → free_lie_algebra R X := λ x, quot.mk _ (lib.of R x)
 variables {L : Type w} [lie_ring L] [lie_algebra R L]
 
 local attribute [instance] lie_ring.to_non_unital_non_assoc_semiring
-local attribute [instance] lie_algebra.is_scalar_tower
-local attribute [instance] lie_algebra.smul_comm_class
 
 /-- An auxiliary definition used to construct the equivalence `lift` below. -/
 def lift_aux (f : X → L) := lib.lift R f

@@ -15,7 +15,7 @@ import data.fin
 
 ## Implementation details
 
-In this file, `x ∈+ l` notation is shorthand fot `list.duplicate x l`.
+In this file, `x ∈+ l` notation is shorthand for `list.duplicate x l`.
 
 -/
 

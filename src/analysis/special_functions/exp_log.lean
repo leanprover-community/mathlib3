@@ -5,7 +5,6 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import data.complex.exponential
 import analysis.calculus.inverse
-import measure_theory.borel_space
 import analysis.complex.real_deriv
 
 /-!
@@ -34,12 +33,6 @@ open finset filter metric asymptotics set function
 open_locale classical topological_space
 
 namespace complex
-
-lemma measurable_re : measurable re := continuous_re.measurable
-
-lemma measurable_im : measurable im := continuous_im.measurable
-
-lemma measurable_of_real : measurable (coe : ℝ → ℂ) := continuous_of_real.measurable
 
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
@@ -92,8 +85,6 @@ times_cont_diff_exp.times_cont_diff_at.has_strict_deriv_at' (has_deriv_at_exp x)
 lemma is_open_map_exp : is_open_map exp :=
 open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 
-lemma measurable_exp : measurable exp := continuous_exp.measurable
-
 end complex
 
 section
@@ -126,10 +117,6 @@ section
 
 variables {E : Type*} [normed_group E] [normed_space ℂ E] {f : E → ℂ} {f' : E →L[ℂ] ℂ}
   {x : E} {s : set E}
-
-lemma measurable.cexp {α : Type*} [measurable_space α] {f : α → ℂ} (hf : measurable f) :
-  measurable (λ x, complex.exp (f x)) :=
-complex.measurable_exp.comp hf
 
 lemma has_strict_fderiv_at.cexp (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (λ x, complex.exp (f x)) (complex.exp (f x) • f') x :=
@@ -209,8 +196,6 @@ differentiable_exp.continuous
 lemma continuous_on_exp {s : set ℝ} : continuous_on exp s :=
 continuous_exp.continuous_on
 
-lemma measurable_exp : measurable exp := continuous_exp.measurable
-
 end real
 
 
@@ -249,10 +234,6 @@ function, for standalone use and use with `simp`. -/
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
   {x : E} {s : set E}
-
-lemma measurable.exp {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, real.exp (f x)) :=
-real.measurable_exp.comp hf
 
 lemma times_cont_diff.exp {n} (hf : times_cont_diff ℝ n f) :
   times_cont_diff ℝ n (λ x, real.exp (f x)) :=
@@ -571,10 +552,6 @@ else (has_deriv_at_log hx).deriv
 
 @[simp] lemma deriv_log' : deriv log = has_inv.inv := funext deriv_log
 
-lemma measurable_log : measurable log :=
-measurable_of_measurable_on_compl_singleton 0 $ continuous.measurable $
-  continuous_on_iff_continuous_restrict.1 continuous_on_log
-
 lemma times_cont_diff_on_log {n : with_top ℕ} : times_cont_diff_on ℝ n log {0}ᶜ :=
 begin
   suffices : times_cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top,
@@ -622,10 +599,6 @@ end continuity
 section deriv
 
 variables {f : ℝ → ℝ} {x f' : ℝ} {s : set ℝ}
-
-lemma measurable.log {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, log (f x)) :=
-measurable_log.comp hf
 
 lemma has_deriv_within_at.log (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
   has_deriv_within_at (λ y, log (f y)) (f' / (f x)) s x :=

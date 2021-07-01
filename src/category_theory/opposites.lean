@@ -24,8 +24,8 @@ lemma quiver.hom.unop_inj {X Y : Cᵒᵖ} :
   function.injective (quiver.hom.unop : (X ⟶ Y) → (unop Y ⟶ unop X)) :=
 λ _ _ H, congr_arg quiver.hom.op H
 
-@[simp] lemma quiver.hom.unop_op {X Y : C} {f : X ⟶ Y} : f.op.unop = f := rfl
-@[simp] lemma quiver.hom.op_unop {X Y : Cᵒᵖ} {f : X ⟶ Y} : f.unop.op = f := rfl
+@[simp] lemma quiver.hom.unop_op {X Y : C} (f : X ⟶ Y) : f.op.unop = f := rfl
+@[simp] lemma quiver.hom.op_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) : f.unop.op = f := rfl
 
 end quiver
 

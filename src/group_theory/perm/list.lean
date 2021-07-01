@@ -73,7 +73,7 @@ begin
       simp [form_perm_apply_of_not_mem _ _ hx, ←h] } }
 end
 
-@[simp] lemma form_perm_apply_last_concat (x y : α) (xs : list α) :
+@[simp] lemma form_perm_cons_concat_apply_last (x y : α) (xs : list α) :
   form_perm (x :: (xs ++ [y])) y = x :=
 begin
   induction xs with z xs IH generalizing x y,
@@ -172,15 +172,9 @@ begin
         simpa [nth_le_mem _ _ _] using h } } }
 end
 
--- useful for rewrites
-lemma form_perm_apply_lt' (xs : list α) (h : nodup xs) (x : α) (n : ℕ) (hn : n + 1 < xs.length)
-  (hx : x = (xs.nth_le n ((nat.lt_succ_self n).trans hn))) :
-  (form_perm xs) x = xs.nth_le (n + 1) hn :=
-by { rw hx, exact form_perm_apply_lt _ h _ _ }
-
 lemma form_perm_apply_nth_le (xs : list α) (h : nodup xs) (n : ℕ) (hn : n < xs.length) :
   form_perm xs (xs.nth_le n hn) = xs.nth_le ((n + 1) % xs.length)
-    (by { cases xs, { simpa using hn }, { refine nat.mod_lt _ _, simp }}) :=
+    (nat.mod_lt _ (n.zero_le.trans_lt hn)) :=
 begin
   cases xs with x xs,
   { simp },
@@ -191,13 +185,6 @@ begin
     { simp },
     { simp [form_perm_apply_lt, h, nat.mod_eq_of_lt, nat.succ_lt_succ hn'] } }
 end
-
--- useful for rewrites
-lemma form_perm_apply_nth_le' (xs : list α) (h : nodup xs) (x : α) (n : ℕ) (hn : n < xs.length)
-  (hx : x = xs.nth_le n hn) :
-  form_perm xs x = xs.nth_le ((n + 1) % xs.length)
-    (by { cases xs, { simpa using hn }, { refine nat.mod_lt _ _, simp }}) :=
-by { simp_rw hx, exact form_perm_apply_nth_le _ h _ _ }
 
 lemma support_form_perm_of_nodup' (l : list α) (h : nodup l) (h' : ∀ (x : α), l ≠ [x]) :
   {x | form_perm l x ≠ x} = l.to_finset :=
@@ -239,13 +226,9 @@ begin
     ext x,
     by_cases hx : x ∈ l.rotate 1,
     { obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
-      rw form_perm_apply_nth_le' _ h' _ k hk rfl,
-      simp_rw nth_le_rotate l,
-      rw form_perm_apply_nth_le' _ h,
-      { simp },
-      { cases l,
-        { simpa using hk },
-        { simpa using nat.mod_lt _ nat.succ_pos' } } },
+      rw [form_perm_apply_nth_le _ h', nth_le_rotate l, nth_le_rotate l,
+        form_perm_apply_nth_le _ h],
+      simp },
     { rw [form_perm_apply_of_not_mem _ _ hx, form_perm_apply_of_not_mem],
       simpa using hx } },
   { push_neg at hl,
@@ -302,7 +285,7 @@ end
 
 lemma form_perm_pow_apply_nth_le (l : list α) (h : nodup l) (n k : ℕ) (hk : k < l.length) :
   (form_perm l ^ n) (l.nth_le k hk) = l.nth_le ((k + n) % l.length)
-    (by { cases l, { simpa using hk }, { refine nat.mod_lt _ _, simp }}) :=
+    (nat.mod_lt _ (k.zero_le.trans_lt hk)) :=
 begin
   induction n with n hn,
   { simp [nat.mod_eq_of_lt hk] },

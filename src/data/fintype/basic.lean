@@ -1636,3 +1636,25 @@ variables [fintype α] [decidable_eq α]
 count_eq_one_of_mem finset.univ.nodup (finset.mem_univ _)
 
 end multiset
+
+namespace fintype
+
+/-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
+that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
+noncomputable def induction_empty_option {P : Type u → Sort v}
+  (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
+  (h_empty : P pempty)
+  (h_option : ∀ {α}, P α → P (option α))
+  (α : Type u) [fintype α] : P α :=
+begin
+  suffices : ∀ n : ℕ, P (ulift $ fin n),
+  { exact of_equiv (equiv.ulift.trans (equiv_fin α).symm) (this (fintype.card α)), },
+  intro n,
+  induction n with n ih,
+  { refine of_equiv (equiv_of_card_eq _) h_empty,
+    simp only [card_fin, card_pempty, card_ulift], },
+  { refine of_equiv (equiv_of_card_eq _) (h_option ih),
+    simp only [card_fin, card_option, card_ulift], },
+end
+
+end fintype

@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta, Adam Topaz
 -/
 import category_theory.functor_category
 import category_theory.fully_faithful
+import category_theory.reflects_isomorphisms
 
 namespace category_theory
 open category
@@ -154,9 +155,8 @@ rfl
     ((f.to_nat_trans : _ ⟶ (T₂ : C ⥤ C)) ≫ g.to_nat_trans : (T₁ : C ⥤ C) ⟶ T₃) :=
 rfl
 
-def monad_iso.mk {M N : monad C} (f : (M : C ⥤ C) ≅ N)
-  (f_η : ∀ X, M.η.app X ≫ f.hom.app X = N.η.app X)
-  (f_μ : ∀ X, M.μ.app X ≫ f.hom.app X = ((M : C ⥤ C).map (f.hom.app _) ≫ f.hom.app _) ≫ N.μ.app _):
+@[simps]
+def monad_iso.mk {M N : monad C} (f : (M : C ⥤ C) ≅ N) (f_η f_μ) :
   M ≅ N :=
 { hom := { to_nat_trans := f.hom, app_η' := f_η, app_μ' := f_μ },
   inv :=
@@ -168,6 +168,21 @@ def monad_iso.mk {M N : monad C} (f : (M : C ⥤ C) ≅ N)
       simp only [nat_trans.naturality, iso.inv_hom_id_app, assoc, comp_id, f_μ,
         nat_trans.naturality_assoc, iso.inv_hom_id_app_assoc, ←functor.map_comp_assoc],
       simp,
+    end } }
+
+@[simps]
+def comonad_iso.mk {M N : comonad C} (f : (M : C ⥤ C) ≅ N) (f_ε f_δ) :
+  M ≅ N :=
+{ hom := { to_nat_trans := f.hom, app_ε' := f_ε, app_δ' := f_δ },
+  inv :=
+  { to_nat_trans := f.inv,
+    app_ε' := λ X, by simp [←f_ε],
+    app_δ' := λ X,
+    begin
+      rw ←nat_iso.cancel_nat_iso_hom_left f,
+      simp only [reassoc_of (f_δ X), iso.hom_inv_id_app_assoc, nat_trans.naturality_assoc],
+      rw [←functor.map_comp, iso.hom_inv_id_app, functor.map_id],
+      apply (comp_id _).symm
     end } }
 
 variable (C)
@@ -182,6 +197,19 @@ def monad_to_functor : monad C ⥤ (C ⥤ C) :=
 
 instance : faithful (monad_to_functor C) := {}.
 
+@[simp]
+lemma monad_to_functor_map_iso_monad_iso_mk {M N : monad C} (f : (M : C ⥤ C) ≅ N) (f_η f_μ) :
+  (monad_to_functor _).map_iso (monad_iso.mk f f_η f_μ) = f :=
+by { ext, refl }
+
+instance : reflects_isomorphisms (monad_to_functor C) :=
+{ reflects := λ M N f i,
+  begin
+    resetI,
+    convert is_iso.of_iso (monad_iso.mk (as_iso ((monad_to_functor C).map f)) f.app_η f.app_μ),
+    ext; refl,
+  end }
+
 /--
 The forgetful functor from the category of comonads to the category of endofunctors.
 -/
@@ -191,6 +219,19 @@ def comonad_to_functor : comonad C ⥤ (C ⥤ C) :=
   map := λ M N f, f.to_nat_trans }
 
 instance : faithful (comonad_to_functor C) := {}.
+
+@[simp]
+lemma comonad_to_functor_map_iso_comonad_iso_mk {M N : comonad C} (f : (M : C ⥤ C) ≅ N) (f_ε f_δ) :
+  (comonad_to_functor _).map_iso (comonad_iso.mk f f_ε f_δ) = f :=
+by { ext, refl }
+
+instance : reflects_isomorphisms (comonad_to_functor C) :=
+{ reflects := λ M N f i,
+  begin
+    resetI,
+    convert is_iso.of_iso (comonad_iso.mk (as_iso ((comonad_to_functor C).map f)) f.app_ε f.app_δ),
+    ext; refl,
+  end }
 
 variable {C}
 

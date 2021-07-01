@@ -122,7 +122,7 @@ instance [inhabited C] : inhabited (algebra T) :=
   a monad. cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
-@[simps unit {rhs_md := semireducible}]
+@[simps unit counit]
 def adj : T.free ⊣ T.forget :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
@@ -138,13 +138,6 @@ adjunction.mk_of_hom_equiv
       apply category.comp_id,
     end }}
 
-@[simp] lemma adj_counit (Y : T.algebra) : (T.adj.counit.app Y).f = Y.a :=
-begin
-  change T.map (𝟙 _) ≫ _ = _,
-  rw [functor.map_id],
-  apply id_comp
-end
-
 /--
 Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism.
 -/
@@ -152,10 +145,14 @@ lemma algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f
 ⟨⟨{ f := inv f.f,
     h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } }, by tidy⟩⟩
 
-instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
+instance forget_reflects_iso : reflects_isomorphisms T.forget :=
 { reflects := λ A B, algebra_iso_of_iso T }
 
-instance forget_faithful : faithful (forget T) := {}
+instance forget_faithful : faithful T.forget := {}
+
+instance : is_right_adjoint T.forget := ⟨T.free, T.adj⟩
+@[simp] lemma left_adjoint_forget : left_adjoint T.forget = T.free := rfl
+@[simp] lemma of_right_adjoint_forget : adjunction.of_right_adjoint T.forget = T.adj := rfl
 
 /--
 Given a monad morphism from `T₂` to `T₁`, we get a functor from the algebras of `T₁` to algebras of
@@ -306,16 +303,6 @@ structure. -/
 { obj := λ A, A.A,
   map := λ A B f, f.f }
 
-/--
-Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
--/
-lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
-⟨⟨{ f := inv f.f,
-    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩⟩
-
-instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
-{ reflects := λ A B, coalgebra_iso_of_iso G }
-
 /-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any
 object. -/
 @[simps] def cofree : C ⥤ coalgebra G :=
@@ -334,7 +321,7 @@ for a comonad.
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
 @[simps unit counit]
-def adj : forget G ⊣ cofree G :=
+def adj : G.forget ⊣ G.cofree :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   { to_fun := λ f,
@@ -350,7 +337,21 @@ adjunction.mk_of_hom_equiv
       apply comp_id,
     end }}
 
+/--
+Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
+-/
+lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
+⟨⟨{ f := inv f.f,
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩⟩
+
+instance forget_reflects_iso : reflects_isomorphisms G.forget :=
+{ reflects := λ A B, coalgebra_iso_of_iso G }
+
 instance forget_faithful : faithful (forget G) := {}
+
+instance : is_left_adjoint G.forget := ⟨_, G.adj⟩
+@[simp] lemma right_adjoint_forget : right_adjoint G.forget = G.cofree := rfl
+@[simp] lemma of_left_adjoint_forget : adjunction.of_left_adjoint G.forget = G.adj := rfl
 
 end comonad
 

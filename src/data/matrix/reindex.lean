@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2021 Filippo Nuccio. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Filippo Nuccio
+Authors: Filippo Nuccio
 -/
 import data.matrix.basic
+import linear_algebra.matrix.reindex
 
 /-!
 # Matrices
@@ -25,15 +26,15 @@ matrix.reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
 
 def linear_equiv_index_assoc [comm_semiring α] [add_comm_monoid R] [module α R] :
   matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ₗ[α] matrix (m × n × o) (m₁ × n₁ × o₁) R :=
-{ to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
-  map_add' := λ _ _, by simp only [reindex_apply, minor_add, pi.add_apply],
-  map_smul' := λ _ _, by simp only [reindex_apply, minor_smul, pi.smul_apply],
-  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
-  left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
-    equiv.symm_comp_self],
-  right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
-    equiv.self_comp_symm],
-  }
--- matrix.reindex_linear_equiv (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
+-- { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
+--   map_add' := λ _ _, by simp only [reindex_apply, minor_add, pi.add_apply],
+--   map_smul' := λ _ _, by simp only [reindex_apply, minor_smul, pi.smul_apply],
+--   inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
+--   left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+--     equiv.symm_comp_self],
+--   right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
+--     equiv.self_comp_symm],
+--   }
+matrix.reindex_linear_equiv (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
 
 end matrix

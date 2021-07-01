@@ -59,9 +59,6 @@ end
 lemma matrix.special_linear_group.im_smul_int (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (bottom g z)) :=
 by simpa using matrix.special_linear_group.im_smul g z
---lemma im_smul_SL'' (g : SL(2, ℤ)) (z : ℍ) :
---(g • z).val.im = z.val.im / (complex.norm_sq (bottom g z)) :=
---im_smul_mat_complex
 
 lemma bottom_ne_zero_int (g : SL(2, ℤ)) (z : ℍ) : bottom g z ≠ 0 :=
 bottom_ne_zero g z
@@ -105,9 +102,6 @@ end
 ⟨λ h, by { rw h; split; refl }, λ h, ext h.1 h.2⟩
 
 
--- lemma coe_injective : function.injective (coe : coprime_ints → (ℤ × ℤ)) :=
--- λ p q, ((coprime_ints.ext_iff _ _).mpr ∘ prod.mk.inj_iff.mp)
-
 lemma ne_zero (p : coprime_ints) : p.c ≠ 0 ∨ p.d ≠ 0 :=
 begin
   rw ← not_and_distrib,
@@ -139,28 +133,26 @@ end
 def bottom_row : SL(2, ℤ) → coprime_ints := λ g, ⟨g 1 0, g 1 1, bottom_row_coprime g⟩
 
 lemma bottom_row_c (g g' : SL(2,ℤ)) (h : bottom_row g = bottom_row g') : g 1 0 = g' 1 0 :=
- ((coprime_ints.ext_iff _ _).mp h).1
+(coprime_ints.ext_iff.mp h).1
 
 lemma bottom_row_d (g g' : SL(2,ℤ)) (h : bottom_row g = bottom_row g') : g 1 1 = g' 1 1 :=
- ((coprime_ints.ext_iff _ _).mp h).2
+(coprime_ints.ext_iff.mp h).2
+
+--set_option trace.simplify.rewrite true
 
 lemma bottom_row_surj : function.surjective bottom_row :=
 begin
   intros cd,
   obtain ⟨b₀, a, gcd_eqn⟩ := cd.is_coprime,
-  let A := ![![a ,-b₀ ], ![cd.c, cd.d]],
+  let A := ![![a, -b₀], ![cd.c, cd.d]],
   have det_A_1 : det A = 1,
-  {
+  { convert gcd_eqn,
 
-    sorry,
-  },
-  use ⟨ A, det_A_1⟩ ,
-  rw bottom_row,
-  simp [A],
-  ext,
-  simp, -- classic explicit-matrix-in-SL casting problem
-  repeat {sorry},
-  -- ext,
+    simp [A, matrix.det_succ_row_zero, fin.sum_univ_succ,
+      (by ring : a * cd.d + b₀ * cd.c = b₀ * cd.c + a * cd.d)] },
+  use ⟨A, det_A_1⟩,
+  simp only [bottom_row, A, cons_apply_one, cons_val_one, cons_val_zero, head_cons],
+  ext; refl,
 end
 
 lemma bottom_eq_of_bottom_row_eq {g h : SL(2,ℤ)} (z : ℍ) (bot_eq : bottom_row g = bottom_row h) :
@@ -172,9 +164,6 @@ begin
     exact congr_arg  (coe : ℤ → ℝ) (bottom_row_c g h bot_eq) },
   { exact congr_arg  (coe : ℤ → ℝ) (bottom_row_d g h bot_eq) }
 end
-
-
-
 
 section finite_pairs
 
@@ -267,19 +256,31 @@ def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((fi
 ((useful_matrix cd).mul_vec_lin.comp (linear_map.proj 0 : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] _)).prod (linear_map.proj 1)
   --((acbd cd).prod ((cd.d : ℝ) • matrix.coord 0 0 - (cd.c : ℝ) • matrix.coord 0 1)).prod (linear_map.proj 1)
 
+/-
+Need: acbd = entry of line_map
+-/
+
+
 lemma lin_indep_acbd (cd : coprime_ints) : (line_map cd).ker = ⊥ :=
 begin
   rw linear_map.ker_eq_bot,
 --  apply function.left_inverse.injective,
   -- let g : (ℝ × ℝ) → ℝ := λ
-  let g : matrix (fin 2) (fin 2) ℝ := ((cd.c)^2+(cd.d)^2:ℝ)⁻¹ • ![![-cd.c, -cd.d],![-cd.d,cd.c]],
+  have nonZ : ((cd.c)^2+(cd.d)^2:ℝ) ≠ 0 := sorry,
+  let F : matrix (fin 2) (fin 2) ℝ := ((cd.c)^2+(cd.d)^2:ℝ)⁻¹ • ![![-cd.c, -cd.d],![-cd.d,cd.c]],
 
-  let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := g.mul_vec_lin,
+  let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := F.mul_vec_lin,
   --(ℝ × ℝ) → (fin 2 → ℝ) := sorry,
   -- λ ⟨ x,y⟩,
-  let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨ x , cd⟩  , λ i, ite (i=0) (f₁ x) (cd),
+  let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨ x , cd⟩, ![f₁ x, cd],
   have : function.left_inverse f (line_map cd),
   {
+    intros g,
+    simp [line_map, f, f₁, F, useful_matrix, vec_head, vec_tail],
+    ext i j,
+    fin_cases i,
+    fin_cases j,--Alex homework
+    simp,
     sorry,
   },
   exact this.injective,
@@ -289,9 +290,13 @@ end
 theorem big_thm (cd : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {cd}, acbd cd ↑g) cofinite (cocompact ℝ) :=
 begin
-  let cd' : fin 2 → ℤ :=  λ i, if i = 0 then cd.c else cd.d,
-  let mB : ℝ → ((fin 2 → ℝ) × (fin 2 → ℝ)) := λ t, ((t, 1), coe ∘ cd'),
-  have hmB : continuous mB := (continuous_id.prod_mk continuous_const).prod_mk continuous_const,
+  let mB : ℝ → ((fin 2 → ℝ) × (fin 2 → ℝ)) := λ t, (![t, 1], ![(cd.c:ℝ), cd.d]),
+  have hmB : continuous mB,
+  { refine continuous.prod_mk (continuous_pi _) continuous_const,
+    intros i,
+    fin_cases i,
+    { exact continuous_id },
+    { simpa using continuous_const } },
   convert filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
@@ -300,17 +305,23 @@ begin
   convert hf₂.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   funext g,
   obtain ⟨g, hg⟩ := g,
-  simp [mB, f₁, cd', line_map, matrix.coord],
+  simp [mB, f₁, line_map, matrix.coord],
   simp [bottom_row] at hg,
   split,
-  { norm_cast,
-    rw ← g.det_coe_matrix,
-    sorry }, -- both of these are just algebra: ALEX HOMEWORK
   { ext i,
     fin_cases i,
-    simp [←hg],
-    simp [hg],
-  sorry }
+    { simp [acbd, useful_matrix, matrix.coord, vec_head, vec_tail], },
+    { simp [acbd, useful_matrix, matrix.coord, vec_head, vec_tail],
+      rw ← hg,
+      symmetry,
+      norm_cast,
+      convert g.det_coe_matrix using 1,
+      simp only [add_left_inj, eq_self_iff_true, fin.coe_succ, fin.coe_zero, fin.default_eq_zero, fin.succ_above_zero, fin.succ_succ_above_zero, fin.succ_zero_eq_one, fin.sum_univ_succ, finset.sum_neg_distrib, finset.sum_singleton, matrix.cons_val', matrix.cons_val_fin_one, matrix.cons_val_one, matrix.cons_val_succ, matrix.cons_val_zero, matrix.det_fin_zero, matrix.det_succ_row_zero, matrix.head_cons, matrix.minor_apply, matrix.minor_empty, mul_eq_mul_left_iff, mul_neg_eq_neg_mul_symm, mul_one, neg_mul_eq_neg_mul_symm, neg_neg, one_mul, pow_one, pow_zero, true_or, univ_unique, zero_add],
+      change g 1 1 * _ + -(g 1 0 * _) = _,
+      ring } },
+  { rw ← hg,
+    ext i,
+    fin_cases i; refl }
 end
 
 
@@ -380,31 +391,13 @@ lemma exists_g_with_given_cd_and_min_re (z:ℍ) (cd : coprime_ints) :
   ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ), bottom_row g = bottom_row g' →
   _root_.abs ((g • z).re) ≤ _root_.abs ((g' • z).re)) :=
 begin
-  haveI cdNonEmpt :  (bottom_row ⁻¹' {cd}).nonempty :=
-  begin
-    convert set.nonempty.preimage _ bottom_row_surj,
-    exact set.singleton_nonempty cd,
-  end,
-  haveI cdNonEmpt2 : nonempty (bottom_row ⁻¹' {cd}) :=
-  begin
---    have :=  nonempty.map _ cdNonEmpt,
-    convert cdNonEmpt,
-    simp,
---    library_search,
---    split,
- --   intros,
-    sorry, -- COME ON!!! -- HEATHER HELP
-  end,
+  haveI : nonempty (bottom_row ⁻¹' {cd}) := let ⟨x, hx⟩ := bottom_row_surj cd in ⟨⟨x, hx⟩⟩,
   obtain ⟨g, hg⟩  := filter.tendsto.exists_forall_le (something' z cd),
-  use g,
-  split,
-  { exact g.2 },
+  refine ⟨g, g.2, _⟩,
   { intros g1 hg1,
     have : g1 ∈ (bottom_row ⁻¹' {cd}),
-    {
-      rw [set.mem_preimage, set.mem_singleton_iff],
-      exact eq.trans hg1.symm (set.mem_singleton_iff.mp (set.mem_preimage.mp g.2)),
-    },
+    { rw [set.mem_preimage, set.mem_singleton_iff],
+      exact eq.trans hg1.symm (set.mem_singleton_iff.mp (set.mem_preimage.mp g.2)) },
     exact hg ⟨g1, this⟩ },
 end
 
@@ -419,6 +412,7 @@ begin
   convert hp (bottom_row g'),
   { simp [bottom_row] at hg,
     simp [bottom, ← hg],
+
     sorry, -- HEATHER HELP
   },
   simp [bottom_row, bottom], -- HEATHER HELP
@@ -488,9 +482,11 @@ end
 lemma abs_cases (a : ℝ) : (|a| = a ∧ a ≥ 0) ∨ (|a| = -a ∧ a < 0) :=
 begin
   by_cases (a≥ 0),
-  left,
-  split,
-  repeat {sorry}, -- ALEX homework + PR
+  { left,
+    exact ⟨abs_eq_self.mpr h, h⟩ },
+  { right,
+    push_neg at h,
+    exact ⟨abs_eq_neg_self.mpr (le_of_lt h), h⟩ }
 end
 
 lemma fun_dom_lemma₁ (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=

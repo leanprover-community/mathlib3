@@ -135,7 +135,7 @@ begin
     (λ _ _, mem_univ _)
     (λ σ _, mul_swap_involutive i j σ)
 end
-set_option profiler true
+
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
 calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
   by simp only [det_apply', mul_apply, prod_univ_sum, mul_sum,
@@ -492,7 +492,8 @@ begin
     simp only [prod_congr_left_apply] },
   { intros σ _,
     rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
-    simp only [sign_prod_congr_left, units.coe_prod, int.coe_prod, block_diagonal_apply_eq, prod_congr_left_apply] },
+    simp only [sign_prod_congr_left, units.coe_prod, int.coe_prod, block_diagonal_apply_eq,
+      prod_congr_left_apply] },
   { intros σ σ' _ _ eq,
     ext x hx k,
     simp only at eq,

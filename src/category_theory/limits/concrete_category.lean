@@ -41,9 +41,8 @@ begin
     suffices : T.inv (T.hom a) = T.inv (T.hom b), by simpa,
     rw h },
   suffices : function.injective (λ (x : G.X) j, G.π.app j x),
-    by exact function.injective.comp this h,
-  intros a b hh,
-  exact subtype.ext hh,
+    by exact this.comp h,
+  apply subtype.ext,
 end
 
 lemma concrete.is_limit_ext {D : cone F} (hD : is_limit D) (x y : D.X) :

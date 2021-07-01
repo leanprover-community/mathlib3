@@ -1641,7 +1641,7 @@ namespace fintype
 
 /-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
 that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
-noncomputable def induction_empty_option {P : Type u → Sort v}
+lemma induction_empty_option {P : Type u → Prop}
   (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
   (h_empty : P pempty)
   (h_option : ∀ {α}, P α → P (option α))

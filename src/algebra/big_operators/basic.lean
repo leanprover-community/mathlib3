@@ -377,9 +377,9 @@ begin
 end
 
 @[to_additive]
-lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} (g : β → γ) [is_monoid_hom g] :
+lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} {g : β → γ} (hg : is_monoid_hom g) :
   (∏ x in s, g (f x)) = g (∏ x in s, f x) :=
-((monoid_hom.of g).map_prod f s).symm
+((monoid_hom.of hg).map_prod f s).symm
 
 @[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
@@ -1199,7 +1199,7 @@ variables [comm_group β]
 
 @[simp, to_additive]
 lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
-s.prod_hom has_inv.inv
+s.prod_hom $ is_monoid_hom.inv $ is_monoid_hom.id
 
 end comm_group
 
@@ -1235,7 +1235,8 @@ card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
 
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=
-(s.sum_hom (gsmul z)).symm
+--(s.sum_hom (gsmul z)).symm
+(s.sum_hom (_)).symm
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
@@ -1435,4 +1436,3 @@ begin
     simp only [his, finset.sum_insert, not_false_iff],
     exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
 end
-

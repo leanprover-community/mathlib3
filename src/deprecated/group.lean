@@ -65,7 +65,6 @@ variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
 lemma id : is_mul_hom (id : α → α) := {map_mul := λ _ _, rfl}
 
 /-- The composition of maps which preserve multiplication, also preserves multiplication. -/
--- see Note [no instance on morphisms]
 @[to_additive "The composition of addition preserving maps also preserves addition"]
 lemma comp {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom g) : is_mul_hom (g ∘ f) :=
 { map_mul := λ x y, by simp only [function.comp, hf.map_mul, hg.map_mul] }
@@ -99,10 +98,6 @@ structure is_monoid_hom [mul_one_class α] [mul_one_class β] (f : α → β) ex
 
 namespace monoid_hom
 
-/-!
-Throughout this section, some `mul_one_class` arguments are specified with `{}` instead of `[]`.
-See note [implicit instance arguments].
--/
 variables {M : Type*} {N : Type*} [mM : mul_one_class M] [mN : mul_one_class N]
 
 include mM mN
@@ -150,6 +145,17 @@ variables [mul_one_class α] [mul_one_class β] {f : α → β} (hf : is_monoid_
 lemma map_mul (x y) : f (x * y) = f x * f y :=
 hf.map_mul x y
 
+/-- The inverse of a map which preserves multiplication,
+preserves multiplication when the target is commutative. -/
+@[to_additive]
+lemma inv {α β} [mul_one_class α] [comm_group β] {f : α → β} (hf : is_monoid_hom f) :
+  is_monoid_hom (λ a, (f a)⁻¹) :=
+{ map_one := hf.map_one.symm ▸ one_inv,
+  map_mul := λ a b, (hf.map_mul a b).symm ▸ mul_inv _ _ }
+
+--@[to_additive]
+--lemma gpow (z : ℤ) [comm_group β] : is_monoid_hom (gpow z : β → β) := sorry (do we ever need this?)
+
 end is_monoid_hom
 
 --TODO -- delete this and replace with is_mul_hom.is_monoid_hom
@@ -174,7 +180,7 @@ variables [mul_one_class α] [mul_one_class β] {f : α → β}
 lemma id : is_monoid_hom (@id α) := { map_one := rfl, map_mul := λ _ _, rfl }
 
 /-- The composite of two monoid homomorphisms is a monoid homomorphism. -/
-@[to_additive] -- see Note [no instance on morphisms]
+@[to_additive]
 lemma comp (hf : is_monoid_hom f) {γ} [mul_one_class γ] {g : β → γ} (hg : is_monoid_hom g) :
   is_monoid_hom (g ∘ f) :=
 { map_one := show g _ = 1, by rw [hf.map_one, hg.map_one],
@@ -244,7 +250,7 @@ eq_inv_of_mul_eq_one $ by rw [← hf.map_mul, inv_mul_self, hf.map_one]
 lemma id : is_group_hom (@id α) := { map_mul := λ _ _, rfl}
 
 /-- The composition of two group homomorphisms is a group homomorphism. -/
-@[to_additive] -- see Note [no instance on morphisms]
+@[to_additive]
 lemma comp (hf : is_group_hom f) {γ} [group γ] {g : β → γ} (hg : is_group_hom g) :
   is_group_hom (g ∘ f) :=
 { ..is_mul_hom.comp hf.to_is_mul_hom hg.to_is_mul_hom }

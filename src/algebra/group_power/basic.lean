@@ -207,13 +207,13 @@ theorem nsmul_add_comm : ∀ (a : A) (m n : ℕ), m • a + n • a = n • a + 
 @[simp] theorem add_monoid_hom.map_nsmul (f : A →+ B) (a : A) (n : ℕ) : f (n • a) = n • f a :=
 f.to_multiplicative.map_pow a n
 
-theorem is_monoid_hom.map_pow (f : M → N) [is_monoid_hom f] (a : M) :
+theorem is_monoid_hom.map_pow {f : M → N} (hf : is_monoid_hom f) (a : M) :
   ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
-(monoid_hom.of f).map_pow a
+(monoid_hom.of hf).map_pow a
 
-theorem is_add_monoid_hom.map_nsmul (f : A → B) [is_add_monoid_hom f] (a : A) (n : ℕ) :
+theorem is_add_monoid_hom.map_nsmul {f : A → B} (hf : is_add_monoid_hom f) (a : A) (n : ℕ) :
   f (n • a) = n • f a :=
-(add_monoid_hom.of f).map_nsmul a n
+(add_monoid_hom.of hf).map_nsmul a n
 
 lemma commute.mul_pow {a b : M} (h : commute a b) (n : ℕ) : (a * b) ^ n = a ^ n * b ^ n :=
 nat.rec_on n (by simp) $ λ n ihn,
@@ -255,10 +255,10 @@ theorem mul_pow (a b : M) (n : ℕ) : (a * b)^n = a^n * b^n :=
 theorem nsmul_add : ∀ (a b : A) (n : ℕ), n • (a + b) = n • a + n • b :=
 @mul_pow (multiplicative A) _
 
-instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : M → M) :=
+lemma pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : M → M) :=
 { map_mul := λ _ _, mul_pow _ _ _, map_one := one_pow _ }
 
-instance nsmul.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (nsmul n : A → A) :=
+lemma nsmul.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (nsmul n : A → A) :=
 { map_add := λ _ _, nsmul_add _ _ _, map_zero := nsmul_zero _ }
 
 lemma dvd_pow {x y : M} :
@@ -393,10 +393,10 @@ theorem gsmul_add : ∀ (a b : A) (n : ℤ), n • (a + b) = n • a + n • b :
 theorem gsmul_sub (a b : A) (n : ℤ) : n • (a - b) = n • a - n • b :=
 by simp only [gsmul_add, gsmul_neg, sub_eq_add_neg]
 
-instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : G → G) :=
+lemma gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : G → G) :=
 { map_mul := λ _ _, mul_gpow _ _ n }
 
-instance gsmul.is_add_group_hom (n : ℤ) : is_add_group_hom (gsmul n : A → A) :=
+lemma gsmul.is_add_group_hom (n : ℤ) : is_add_group_hom (gsmul n : A → A) :=
 { map_add := λ _ _, gsmul_add _ _ n }
 
 end comm_group

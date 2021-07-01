@@ -32,64 +32,64 @@ variables {M : Type*} [monoid M] {s : set M}
 variables {A : Type*} [add_monoid A] {t : set A}
 
 /-- `s` is an additive submonoid: a set containing 0 and closed under addition. -/
-class is_add_submonoid (s : set A) : Prop :=
+structure is_add_submonoid (s : set A) : Prop :=
 (zero_mem : (0:A) ∈ s)
 (add_mem {a b} : a ∈ s → b ∈ s → a + b ∈ s)
 
 /-- `s` is a submonoid: a set containing 1 and closed under multiplication. -/
 @[to_additive]
-class is_submonoid (s : set M) : Prop :=
+structure is_submonoid (s : set M) : Prop :=
 (one_mem : (1:M) ∈ s)
 (mul_mem {a b} : a ∈ s → b ∈ s → a * b ∈ s)
 
 lemma additive.is_add_submonoid
-  (s : set M) : ∀ [is_submonoid s], @is_add_submonoid (additive M) _ s
+  {s : set M} : ∀ (is : is_submonoid s), @is_add_submonoid (additive M) _ s
 | ⟨h₁, h₂⟩ := ⟨h₁, @h₂⟩
 
 theorem additive.is_add_submonoid_iff
   {s : set M} : @is_add_submonoid (additive M) _ s ↔ is_submonoid s :=
-⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by exactI additive.is_add_submonoid _⟩
+⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, additive.is_add_submonoid⟩
 
 lemma multiplicative.is_submonoid
-  (s : set A) : ∀ [is_add_submonoid s], @is_submonoid (multiplicative A) _ s
+  {s : set A} : ∀ (is : is_add_submonoid s), @is_submonoid (multiplicative A) _ s
 | ⟨h₁, h₂⟩ := ⟨h₁, @h₂⟩
 
 theorem multiplicative.is_submonoid_iff
   {s : set A} : @is_submonoid (multiplicative A) _ s ↔ is_add_submonoid s :=
-⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by exactI multiplicative.is_submonoid _⟩
+⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, multiplicative.is_submonoid⟩
 
 /-- The intersection of two submonoids of a monoid `M` is a submonoid of `M`. -/
 @[to_additive "The intersection of two `add_submonoid`s of an `add_monoid` `M` is
 an `add_submonoid` of M."]
-instance is_submonoid.inter (s₁ s₂ : set M) [is_submonoid s₁] [is_submonoid s₂] :
+lemma is_submonoid.inter {s₁ s₂ : set M} (is₁ : is_submonoid s₁) (is₂ : is_submonoid s₂) :
   is_submonoid (s₁ ∩ s₂) :=
-{ one_mem := ⟨is_submonoid.one_mem, is_submonoid.one_mem⟩,
+{ one_mem := ⟨is₁.one_mem, is₂.one_mem⟩,
   mul_mem := λ x y hx hy,
-    ⟨is_submonoid.mul_mem hx.1 hy.1, is_submonoid.mul_mem hx.2 hy.2⟩ }
+    ⟨is₁.mul_mem hx.1 hy.1, is₂.mul_mem hx.2 hy.2⟩ }
 
 /-- The intersection of an indexed set of submonoids of a monoid `M` is a submonoid of `M`. -/
 @[to_additive "The intersection of an indexed set of `add_submonoid`s of an `add_monoid` `M` is
 an `add_submonoid` of `M`."]
-instance is_submonoid.Inter {ι : Sort*} (s : ι → set M) [h : ∀ y : ι, is_submonoid (s y)] :
+lemma is_submonoid.Inter {ι : Sort*} (s : ι → set M) (h : ∀ y : ι, is_submonoid (s y)) :
   is_submonoid (set.Inter s) :=
-{ one_mem := set.mem_Inter.2 $ λ y, is_submonoid.one_mem,
+{ one_mem := set.mem_Inter.2 $ λ y, (h y).one_mem,
   mul_mem := λ x₁ x₂ h₁ h₂, set.mem_Inter.2 $
-    λ y, is_submonoid.mul_mem (set.mem_Inter.1 h₁ y) (set.mem_Inter.1 h₂ y) }
+    λ y, (h y).mul_mem (set.mem_Inter.1 h₁ y) (set.mem_Inter.1 h₂ y) }
 
 /-- The union of an indexed, directed, nonempty set of submonoids of a monoid `M` is a submonoid
     of `M`. -/
 @[to_additive "The union of an indexed, directed, nonempty set
 of `add_submonoid`s of an `add_monoid` `M` is an `add_submonoid` of `M`. "]
 lemma is_submonoid_Union_of_directed {ι : Type*} [hι : nonempty ι]
-  (s : ι → set M) [∀ i, is_submonoid (s i)]
+  {s : ι → set M} (hs : ∀ i, is_submonoid (s i))
   (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
   is_submonoid (⋃i, s i) :=
-{ one_mem := let ⟨i⟩ := hι in set.mem_Union.2 ⟨i, is_submonoid.one_mem⟩,
+{ one_mem := let ⟨i⟩ := hι in set.mem_Union.2 ⟨i, (hs i).one_mem⟩,
   mul_mem := λ a b ha hb,
     let ⟨i, hi⟩ := set.mem_Union.1 ha in
     let ⟨j, hj⟩ := set.mem_Union.1 hb in
     let ⟨k, hk⟩ := directed i j in
-    set.mem_Union.2 ⟨k, is_submonoid.mul_mem (hk.1 hi) (hk.2 hj)⟩ }
+    set.mem_Union.2 ⟨k, (hs k).mul_mem (hk.1 hi) (hk.2 hj)⟩ }
 
 section powers
 
@@ -127,13 +127,13 @@ attribute [to_additive] powers.mul_mem
 /-- The set of natural number powers of an element of a monoid `M` is a submonoid of `M`. -/
 @[to_additive "The set of natural number multiples of an element of
 an `add_monoid` `M` is an `add_submonoid` of `M`."]
-instance powers.is_submonoid (x : M) : is_submonoid (powers x) :=
+def powers.is_submonoid (x : M) : is_submonoid (powers x) :=
 { one_mem := powers.one_mem,
   mul_mem := λ y z, powers.mul_mem }
 
 /-- A monoid is a submonoid of itself. -/
 @[to_additive "An `add_monoid` is an `add_submonoid` of itself."]
-instance univ.is_submonoid : is_submonoid (@set.univ M) := by split; simp
+def univ.is_submonoid : is_submonoid (@set.univ M) := by split; simp
 
 /-- The preimage of a submonoid under a monoid hom is a submonoid of the domain. -/
 @[to_additive "The preimage of an `add_submonoid` under an `add_monoid` hom is

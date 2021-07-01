@@ -101,7 +101,7 @@ instance : add_comm_monoid (free_lie_algebra R X) :=
   add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, }, }
 
 instance : module R (free_lie_algebra R X) :=
-{ smul   := λ t a, quot.lift_on a (λ x, quot.mk _ (t • x)) (λ a b h, quot.sound (rel.smul t a b h)),
+{ smul   := λ t, quot.map ((•) t) (rel.smul t),
   one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
   mul_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw mul_smul, },
   add_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw add_smul, },

@@ -72,8 +72,8 @@ def to_non_unital_alg_hom (f : L →ₗ⁅R⁆ L₂) : non_unital_alg_hom R L L�
   map_mul'  := f.map_lie,
   ..f }
 
-lemma to_non_unital_alg_hom_injective {f g : L →ₗ⁅R⁆ L₂}
-  (h : f.to_non_unital_alg_hom = g.to_non_unital_alg_hom) : f = g :=
-by { ext x, exact non_unital_alg_hom.congr_fun h x, }
+lemma to_non_unital_alg_hom_injective :
+  function.injective (to_non_unital_alg_hom : (L →ₗ⁅R⁆ L₂) → non_unital_alg_hom R L L₂) :=
+λ f g h, by { ext x, exact non_unital_alg_hom.congr_fun h x, }
 
 end lie_hom

@@ -116,16 +116,6 @@ coe_fn_coe_base f
 
 section complete_subspace
 
-lemma ae_eq_trim_of_measurable {m m0 : measurable_space α} {μ : measure α}
-  [add_group β] [measurable_singleton_class β] [has_measurable_sub₂ β]
-  (hm : m ≤ m0) {f g : α → β} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
-  (hfg : f =ᵐ[μ] g) :
-  f =ᶠ[@measure.ae α m (μ.trim hm)] g :=
-begin
-  rwa [eventually_eq, ae_iff, trim_measurable_set_eq hm _],
-  exact (@measurable_set.compl α _ m (@measurable_set_eq_fun α m β _ _ _ _ _ _ hf hg)),
-end
-
 variables {ι : Type*} {m m0 : measurable_space α} {μ : measure α}
 
 lemma mem_ℒp_trim_of_mem_Lp_meas (hm : m ≤ m0) (f : Lp F p μ) (hf_meas : f ∈ Lp_meas F 𝕂 m p μ) :
@@ -140,20 +130,6 @@ begin
     by { rw snorm_trim hm hg, exact snorm_congr_ae hfg.symm, },
   rw h_snorm_fg,
   exact Lp.snorm_lt_top f,
-end
-
-lemma mem_ℒp_of_mem_ℒp_trim [opens_measurable_space H] (hm : m ≤ m0) {f : α → H}
-  (hf : @mem_ℒp α H m _ _ f p (μ.trim hm)) :
-  mem_ℒp f p μ :=
-begin
-  refine ⟨ae_measurable_of_ae_measurable_trim hm hf.1, _⟩,
-  have hf_snorm := hf.2,
-  let g := @ae_measurable.mk _ _ m _ _ _ hf.1,
-  have hg_meas : @measurable _ _ m _ g, from @ae_measurable.measurable_mk _ _ m _ _ _ hf.1,
-  have hfg := @ae_measurable.ae_eq_mk _ _ m _ _ _ hf.1,
-  rw @snorm_congr_ae _ _ m _ _ _ _ _ hfg at hf_snorm,
-  rw snorm_congr_ae (ae_eq_of_ae_eq_trim hfg),
-  rwa snorm_trim hm hg_meas at hf_snorm,
 end
 
 lemma mem_Lp_meas_to_Lp_of_trim (hm : m ≤ m0) (f : @Lp α F m _ _ _ _ p (μ.trim hm)) :
@@ -266,11 +242,6 @@ def Lp_meas_to_Lp_trim_lie [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
   right_inv := Lp_meas_to_Lp_trim_right_inv hm,
   norm_map' := Lp_meas_to_Lp_trim_norm_map hm, }
 variables {F 𝕂 p μ}
-
-lemma linear_isometry_equiv.range_eq_univ {R E F : Type*} [semiring R] [semi_normed_group E]
-  [semi_normed_group F] [module R E] [module R F] (e : E ≃ₗᵢ[R] F) :
-  set.range e = set.univ :=
-by { rw ← linear_isometry_equiv.coe_to_isometric, exact isometric.range_eq_univ _, }
 
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas F 𝕂 m p μ) :=

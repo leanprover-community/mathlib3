@@ -279,7 +279,7 @@ begin
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
 end
 
-lemma ae_eq_trim_of_measurable {E} {m m0 : measurable_space α} {μ : measure α}
+lemma ae_eq_trim_of_measurable {α E} {m m0 : measurable_space α} {μ : measure α}
   [measurable_space E] [add_group E] [measurable_singleton_class E] [has_measurable_sub₂ E]
   (hm : m ≤ m0) {f g : α → E} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
   (hfg : f =ᵐ[μ] g) :

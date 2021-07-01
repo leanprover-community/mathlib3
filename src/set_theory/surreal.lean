@@ -469,24 +469,21 @@ end
 
 lemma pos_of_nsmul_pos {m : ℕ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
 begin
-    induction m with m _,
-    { exfalso,
-      exact nat.lt_asymm hm hm },
-    { rw [succ_nsmul x m],
-      exact lt_add_of_pos_of_le hx (nonneg_of_nsmul_pos _ hx) }
+  induction m with m _,
+  { exfalso,
+    exact nat.lt_asymm hm hm },
+  { rw [succ_nsmul x m],
+    exact lt_add_of_pos_of_le hx (nonneg_of_nsmul_pos _ hx) }
 end
 
 lemma lt_of_nsmul_pos_lt {m : ℕ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
 begin
   rw ← sub_pos at *,
-  have : m • y - m • x = m • (y - x),
-    by { have := (nsmul_add y (-x) m).symm,
-         rwa [neg_nsmul x m] at this },
-  rw this,
+  rw ← smul_sub,
   exact pos_of_nsmul_pos hm hxy,
 end
 
-lemma lt_of_gsmul_pos_lt {m : ℤ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
+lemma gsmul_lt_of_pos_of_lt {m : ℤ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
 begin
   cases m with m m,
   { simp only [int.coe_nat_pos, int.of_nat_eq_coe, gsmul_coe_nat] at *,
@@ -495,14 +492,14 @@ begin
     rwa [← int.neg_succ_not_pos m] }
 end
 
-lemma gmul_cancel_of_pos {m : ℤ} {x y : surreal} (hm : 0 < m) (hmxy : m • x  = m • y) : x = y :=
+lemma gsmul_cancel_of_pos {m : ℤ} {x y : surreal} (hm : 0 < m) (hmxy : m • x = m • y) : x = y :=
 begin
-    contrapose hmxy,
-    cases ne_iff_lt_or_gt.mp hmxy with hmxy' hmxy',
-    { apply ne_of_lt,
-      exact lt_of_gsmul_pos_lt hm hmxy' },
-    { apply ne_of_gt,
-      exact lt_of_gsmul_pos_lt hm hmxy' }
+  contrapose hmxy,
+  cases ne_iff_lt_or_gt.mp hmxy with hmxy' hmxy',
+  { apply ne_of_lt,
+    exact gsmul_lt_of_pos_of_lt hm hmxy' },
+  { apply ne_of_gt,
+    exact gsmul_lt_of_pos_of_lt hm hmxy' }
 end
 
 /-- The surreal number `half`. -/
@@ -540,7 +537,7 @@ begin
                surreal.pow_half_zero] },
   { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k,
         smul_algebra_smul_comm] at hk,
-    exact @gmul_cancel_of_pos 2 _ _ (by norm_num) hk }
+    exact @gsmul_cancel_of_pos 2 _ _ (by norm_num) hk }
 end
 
 lemma nsmul_int_pow_two_pow_half (m : ℤ) (n k : ℕ) :
@@ -571,26 +568,24 @@ begin
 end
 
 /-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
-def dyadic_map : localization (submonoid.powers (2 : ℤ)) → surreal :=
+def dyadic_map (x : localization (submonoid.powers (2 : ℤ))) : surreal :=
+quotient.lift_on' x (λ x : _ × _, x.1 • pow_half (submonoid.log x.2)) $
 begin
-  apply quotient.lift,
-  swap,
-  { rintro ⟨m, n⟩,
-    exact m • pow_half (submonoid.log n) },
-  { rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
-    obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
-    simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
-    cases h₂,
-    { simp only,
-      obtain ⟨a₁, ha₁⟩ := classical.indefinite_description _ n₁.prop,
-      obtain ⟨a₂, ha₂⟩ := classical.indefinite_description _ n₂.prop,
-      have hn₁ : n₁ = submonoid.pow 2 a₁, by { ext, exact ha₁.symm },
-      have hn₂ : n₂ = submonoid.pow 2 a₂, by { ext, exact ha₂.symm },
-      have h₂ : 2 ≤ (2 : ℤ).nat_abs, from rfl.ge,
-      rw [hn₁, hn₂, submonoid.int.log_pow_eq_self h₂, dyadic_aux, submonoid.int.log_pow_eq_self h₂],
-      rwa [ha₁, ha₂] },
-    { have := nat.one_le_pow y₃ 2 nat.succ_pos',
-      linarith } }
+  rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
+  obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
+  simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
+  cases h₂,
+  { simp only,
+    obtain ⟨a₁, ha₁⟩ := n₁.prop,
+    obtain ⟨a₂, ha₂⟩ := n₂.prop,
+    have hn₁ : n₁ = submonoid.pow 2 a₁, by { ext, exact ha₁.symm },
+    have hn₂ : n₂ = submonoid.pow 2 a₂, by { ext, exact ha₂.symm },
+    have h₂ : 2 ≤ (2 : ℤ).nat_abs, from rfl.ge,
+    rw [hn₁, hn₂, submonoid.int.log_pow_eq_self h₂, submonoid.int.log_pow_eq_self h₂],
+    apply dyadic_aux,
+    rwa [ha₁, ha₂] },
+  { have := nat.one_le_pow y₃ 2 nat.succ_pos',
+    linarith }
 end
 
 /-- We define dyadic surreals as the range of the map `dyadic_map`. -/

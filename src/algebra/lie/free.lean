@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.of_associative
+import algebra.lie.non_unital_non_assoc_algebra
 import algebra.free_non_unital_non_assoc_algebra
 
 /-!
@@ -176,6 +177,14 @@ begin
   { simp only [lift_aux_map_mul, h₂], },
 end
 
+/-- The quotient map as a `non_unital_alg_hom`. -/
+def mk : non_unital_alg_hom R (lib R X) (free_lie_algebra R X) :=
+{ to_fun    := quot.mk (rel R X),
+  map_smul' := λ t a, rfl,
+  map_zero' := rfl,
+  map_add'  := λ a b, rfl,
+  map_mul'  := λ a b, rfl, }
+
 /-- The functor `X ↦ free_lie_algebra R X` from the category of types to the category of Lie
 algebras over `R` is adjoint to the forgetful functor in the other direction. -/
 def lift : (X → L) ≃ (free_lie_algebra R X →ₗ⁅R⁆ L) :=
@@ -189,13 +198,8 @@ def lift : (X → L) ≃ (free_lie_algebra R X →ₗ⁅R⁆ L) :=
     function.comp_app, lib.lift_of_apply], },
   right_inv := λ F,
     begin
-      let F' : non_unital_alg_hom R (lib R X) L :=
-      { to_fun    := F ∘ (quot.mk (rel R X)),
-        map_zero' := F.map_zero,
-        map_add'  := λ x y, by simpa only [function.comp_app, ← F.map_add],
-        map_smul' := λ t x, by simpa only [function.comp_app, ← F.map_smul],
-        map_mul'  := λ x y, show _ = ⁅_, _⁆, by simpa only [function.comp_app, ← F.map_lie], },
       ext ⟨a⟩,
+      let F' := F.to_non_unital_alg_hom.comp (mk R),
       exact non_unital_alg_hom.congr_fun (lib.lift_comp_of R F') a,
     end, }
 

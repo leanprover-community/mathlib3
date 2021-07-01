@@ -24,7 +24,7 @@ is a monadic right adjoint.
 
 noncomputable theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 open category limits
@@ -64,6 +64,7 @@ def over_to_coalgebra :
   map := λ f₁ f₂ g, { f := g.left } }
 
 /-- The equivalence from coalgebras for the product comonad to the over category. -/
+@[simps]
 def coalgebra_equiv_over :
   coalgebra (prod_comonad X) ≌ over X :=
 { functor := coalgebra_to_over X,

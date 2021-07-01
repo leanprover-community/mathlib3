@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import data.stream.basic
-import tactic
 import data.nat.gcd
+import tactic.ring
+
 /-!
 # The Fibonacci Sequence
 
@@ -82,6 +83,10 @@ lemma fib_le_fib_succ {n : ℕ} : fib n ≤ fib (n + 1) := by { cases n; simp [f
 @[mono] lemma fib_mono : monotone fib :=
 monotone_of_monotone_nat $ λ _, fib_le_fib_succ
 
+/-- `fib (n + 2)` is strictly monotone. -/
+lemma fib_add_two_strict_mono : strict_mono (λ n, fib (n + 2)) :=
+strict_mono.nat $ λ n, lt_add_of_pos_left _ $ fib_pos succ_pos'
+
 lemma le_fib_self {n : ℕ} (five_le_n : 5 ≤ n) : n ≤ fib n :=
 begin
   induction five_le_n with n five_le_n IH,
@@ -130,7 +135,7 @@ begin
   replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
   calc gcd (fib m) (fib (n.pred + 1 + m))
         = gcd (fib m) (fib (n.pred) * (fib m) + fib (n.pred + 1) * fib (m + 1)) :
-    by { rw fib_add n.pred _, ring }
+    by { rw fib_add n.pred _, ring_nf }
     ... = gcd (fib m) (fib (n.pred + 1) * fib (m + 1)) :
     by rw [add_comm, gcd_add_mul_self (fib m) _ (fib (n.pred))]
     ... = gcd (fib m) (fib (n.pred + 1)) :
@@ -152,8 +157,8 @@ begin
     { simp },
     intros m n mpos h,
     rw ← gcd_rec m n at h,
-    conv_rhs { rw ← mod_add_div n m },
-    rwa [mul_comm, gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
+    conv_rhs { rw ← mod_add_div' n m },
+    rwa [gcd_fib_add_mul_self m (n % m) (n / m), gcd_comm (fib m) _] },
   rwa [gcd_comm, gcd_comm (fib m)]
 end
 

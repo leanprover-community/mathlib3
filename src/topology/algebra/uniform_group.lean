@@ -132,6 +132,12 @@ begin
   exact tendsto.comp h tendsto_comap
 end
 
+lemma add_monoid_hom.uniform_continuous_of_continuous_at_zero
+  [uniform_space β] [add_group β] [uniform_add_group β]
+  (f : α →+ β) (hf : continuous_at f 0) :
+  uniform_continuous f :=
+uniform_continuous_of_tendsto_zero (by simpa using hf.tendsto)
+
 lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [uniform_add_group β]
   {f : α → β} [is_add_group_hom f] (h : continuous f) :
   uniform_continuous f :=
@@ -252,9 +258,8 @@ instance is_Z_bilin.comp_swap : is_Z_bilin (f ∘ prod.swap) :=
 lemma is_Z_bilin.zero_left : ∀ b, f (0, b) = 0 :=
 begin
   intro b,
-  apply add_self_iff_eq_zero.1,
-  rw ←is_Z_bilin.add_left f,
-  simp
+  apply add_right_eq_self.1,
+  rw [ ←is_Z_bilin.add_left f, zero_add]
 end
 
 lemma is_Z_bilin.zero_right : ∀ a, f (a, 0) = 0 :=

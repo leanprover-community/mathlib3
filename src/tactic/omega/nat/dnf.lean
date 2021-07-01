@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
 -/
 
 /-
@@ -73,7 +73,8 @@ def bools.or : list bool → list bool → list bool
 | bs1       []        := bs1
 | (b1::bs1) (b2::bs2) := (b1 || b2)::(bools.or bs1 bs2)
 
-/-- Return a list of bools that encodes which variables have nonzero coefficients in any one of the input terms -/
+/-- Return a list of bools that encodes which variables have nonzero coefficients in any one of the
+input terms. -/
 def terms.vars : list term → list bool
 | []      := []
 | (t::ts) := bools.or (term.vars t) (terms.vars ts)

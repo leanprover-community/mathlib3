@@ -558,7 +558,8 @@ match e with
   get_local `this
 end
 
-/-- `exact_mod_cast e` runs `norm_cast` on the goal and `e`, and tries to use `e` to close the goal. -/
+/-- `exact_mod_cast e` runs `norm_cast` on the goal and `e`, and tries to use `e` to close the
+goal. -/
 meta def exact_mod_cast (e : expr) : tactic unit :=
 decorate_error "exact_mod_cast failed:" $ do
   new_e ← aux_mod_cast e,
@@ -663,6 +664,11 @@ end conv.interactive
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
 
+@[norm_cast] lemma dite_cast {α β} [has_lift_t α β]
+  {c : Prop} [decidable c] {a : c → α} {b : ¬ c → α} :
+  ↑(dite c a b) = dite c (λ h, (↑(a h) : β)) (λ h, (↑(b h) : β)) :=
+by by_cases h : c; simp [h]
+
 add_hint_tactic "norm_cast at *"
 
 /--
@@ -749,8 +755,8 @@ Examples:
 @[norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1
 ```
 
-Lemmas tagged with `@[norm_cast]` are classified into three categories: `move`, `elim`, and `squash`.
-They are classified roughly as follows:
+Lemmas tagged with `@[norm_cast]` are classified into three categories: `move`, `elim`, and
+`squash`. They are classified roughly as follows:
 
 * elim lemma:   LHS has 0 head coes and ≥ 1 internal coe
 * move lemma:   LHS has 1 head coe and 0 internal coes,    RHS has 0 head coes and ≥ 1 internal coes

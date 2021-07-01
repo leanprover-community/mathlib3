@@ -24,7 +24,7 @@ cofree functors, respectively from and to the original category.
 namespace category_theory
 open category
 
-universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C]
 
@@ -118,8 +118,8 @@ variables (T : monad C)
 instance [inhabited C] : inhabited (algebra T) :=
 ⟨(free T).obj (default C)⟩
 
-/-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
-    cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
+/-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for
+  a monad. cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
 @[simps unit counit {rhs_md := semireducible}]
@@ -141,10 +141,9 @@ adjunction.mk_of_hom_equiv
 /--
 Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism.
 -/
-def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
-{ inv :=
-  { f := inv f.f,
-    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } } }
+lemma algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
+⟨⟨{ f := inv f.f,
+    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }
@@ -294,7 +293,8 @@ end coalgebra
 
 variables (G : comonad C)
 
-/-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic structure. -/
+/-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic
+structure. -/
 @[simps] def forget : coalgebra G ⥤ C :=
 { obj := λ A, A.A,
   map := λ A B f, f.f }
@@ -302,15 +302,15 @@ variables (G : comonad C)
 /--
 Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
 -/
-def coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
-{ inv :=
-  { f := inv f.f,
-    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } } }
+lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
+⟨⟨{ f := inv f.f,
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
 { reflects := λ A B, coalgebra_iso_of_iso G }
 
-/-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any object. -/
+/-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any
+object. -/
 @[simps] def cofree : C ⥤ coalgebra G :=
 { obj := λ X,
   { A := G.obj X,

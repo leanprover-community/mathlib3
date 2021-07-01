@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Gabriel Ebner.
+Authors: Gabriel Ebner
 
 Tactic to split if-then-else-expressions.
 -/
@@ -15,8 +15,8 @@ open interactive
 meta def find_if_cond : expr → option expr | e :=
 e.fold none $ λ e _ acc, acc <|> do
 c ← match e with
-| `(@ite %%c %%_ _ _ _) := some c
-| `(@dite %%c %%_ _ _ _) := some c
+| `(@ite _ %%c %%_ _ _) := some c
+| `(@dite _ %%c %%_ _ _) := some c
 | _ := none
 end,
 guard ¬c.has_var,

@@ -50,13 +50,13 @@ lemma mem_non_zero_divisors_iff_ne_zero {x : A} : x ∈ non_zero_divisors A ↔ 
 λ hnx z, eq_zero_of_ne_zero_of_mul_right_eq_zero hnx⟩
 
 lemma map_ne_zero_of_mem_non_zero_divisors [nontrivial R] {B : Type*} [ring B] {g : R →+* B}
-  (hg : function.injective g) {x : non_zero_divisors R} : g x ≠ 0 :=
-λ h0, one_ne_zero (x.2 1 ((one_mul x.1).symm ▸ (hg (trans h0 g.map_zero.symm))))
+  (hg : function.injective g) {x : R} (h : x ∈ non_zero_divisors R) : g x ≠ 0 :=
+λ h0, one_ne_zero (h 1 ((one_mul x).symm ▸ (hg (trans h0 g.map_zero.symm))))
 
 lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
-  (hg : function.injective g) {x : non_zero_divisors A} : g x ∈ non_zero_divisors B :=
+  (hg : function.injective g) {x : A} (h : x ∈ non_zero_divisors A) : g x ∈ non_zero_divisors B :=
 λ z hz, eq_zero_of_ne_zero_of_mul_right_eq_zero
-  (map_ne_zero_of_mem_non_zero_divisors hg) hz
+  (map_ne_zero_of_mem_non_zero_divisors hg h) hz
 
 lemma le_non_zero_divisors_of_domain {M : submonoid A}
   (hM : ↑0 ∉ M) : M ≤ non_zero_divisors A :=
@@ -72,5 +72,25 @@ lemma map_le_non_zero_divisors_of_injective {B : Type*} [integral_domain B]
   {M : submonoid A} (hM : M ≤ non_zero_divisors A) : M.map ↑f ≤ non_zero_divisors B :=
 le_non_zero_divisors_of_domain (λ h, let ⟨x, hx, hx0⟩ := h in
   zero_ne_one (hM (hf (trans hx0 (f.map_zero.symm)) ▸ hx : 0 ∈ M) 1 (mul_zero 1)).symm)
+
+lemma prod_zero_iff_exists_zero {R : Type*} [comm_semiring R] [no_zero_divisors R] [nontrivial R]
+  {s : multiset R} : s.prod = 0 ↔ ∃ (r : R) (hr : r ∈ s), r = 0 :=
+begin
+  split, swap,
+  { rintros ⟨r, hrs, rfl⟩,
+    exact multiset.prod_eq_zero hrs, },
+  refine multiset.induction _ (λ a s ih, _) s,
+  { intro habs,
+    simpa using habs, },
+  { rw multiset.prod_cons,
+    intro hprod,
+    replace hprod := eq_zero_or_eq_zero_of_mul_eq_zero hprod,
+    cases hprod with ha,
+    { exact ⟨a, multiset.mem_cons_self a s, ha⟩ },
+    { apply (ih hprod).imp _,
+      rintros b ⟨hb₁, hb₂⟩,
+      exact ⟨multiset.mem_cons_of_mem hb₁, hb₂⟩, }, },
+end
+
 
 end non_zero_divisors

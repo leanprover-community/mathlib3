@@ -1,9 +1,13 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
+-/
 
-Supplementary theorems about the `char` type.
+/-!
+# More `char` instances
+
+This file provides a `linear_order` instance on `char`. `char` is the type of Unicode scalar values.
 -/
 
 instance : linear_order char :=
@@ -17,3 +21,11 @@ instance : linear_order char :=
   decidable_eq := char.decidable_eq,
   decidable_lt := char.decidable_lt,
   ..char.has_le, ..char.has_lt }
+
+lemma char.of_nat_to_nat {c : char} (h : is_valid_char c.to_nat) :
+  char.of_nat c.to_nat = c :=
+begin
+  rw [char.of_nat, dif_pos h],
+  cases c,
+  simp [char.to_nat]
+end

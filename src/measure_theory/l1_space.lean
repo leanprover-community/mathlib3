@@ -526,9 +526,7 @@ lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ]
                  ... ≤ ∥(∥f x∥ + ∥g x∥)∥ : le_abs_self _⟩
 
 lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
-by simp_rw [integrable, has_finite_integral, mem_ℒp,
-    snorm_eq_snorm' one_ne_zero ennreal.one_ne_top, ennreal.one_to_real, snorm', one_div_one,
-    ennreal.rpow_one]
+by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
 
 lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [finite_measure μ]
   (hfq : mem_ℒp f q μ) : integrable f μ :=
@@ -598,7 +596,34 @@ begin
 end
 end normed_space_over_complete_field
 
+section trim
 
+variables {H α' : Type*} [normed_group H] [measurable_space H]
+  {m m0 : measurable_space α'} {μ' : measure α'}
+
+lemma integrable.trim (hm : m ≤ m0) [opens_measurable_space H] {f : α' → H}
+  (hf_int : integrable f μ') (hf : @measurable _ _ m _ f) :
+  @integrable _ _ m _ _ f (μ'.trim hm) :=
+begin
+  refine ⟨@measurable.ae_measurable α' _ m _ f (μ'.trim hm) hf, _⟩,
+  rw [has_finite_integral, lintegral_trim hm _],
+  { exact hf_int.2, },
+  { exact @measurable.coe_nnreal_ennreal α' m _ (@measurable.nnnorm _ α' _ _ _ m _ hf), },
+end
+
+lemma integrable_of_integrable_trim (hm : m ≤ m0) [opens_measurable_space H]
+  {f : α' → H} (hf_int : @integrable α' H m _ _ f (μ'.trim hm)) :
+  integrable f μ' :=
+begin
+  obtain ⟨hf_meas_ae, hf⟩ := hf_int,
+  refine ⟨ae_measurable_of_ae_measurable_trim hm hf_meas_ae, _⟩,
+  rw has_finite_integral at hf ⊢,
+  rwa lintegral_trim_ae hm _ at hf,
+  exact @ae_measurable.coe_nnreal_ennreal α' m _ _
+    (@ae_measurable.nnnorm H α' _ _ _ m _ _ hf_meas_ae),
+end
+
+end trim
 
 /-! ### The predicate `integrable` on measurable functions modulo a.e.-equality -/
 
@@ -805,3 +830,12 @@ lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[
   (φ_int : integrable φ μ) (v : H) : integrable (λ a, φ a v) μ :=
 (φ_int.norm.mul_const ∥v∥).mono' (φ_int.ae_measurable.apply_continuous_linear_map v)
   (eventually_of_forall $ λ a, (φ a).le_op_norm v)
+
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
+  {G : Type*} [normed_group G] [normed_space 𝕜 G] [measurable_space G] [borel_space G]
+  {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [opens_measurable_space F]
+
+lemma continuous_linear_map.integrable_comp {φ : α → F} (L : F →L[𝕜] G)
+  (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
+((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp_ae_measurable φ_int.ae_measurable)
+  (eventually_of_forall $ λ a, L.le_op_norm (φ a))

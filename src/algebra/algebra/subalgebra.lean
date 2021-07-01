@@ -8,7 +8,7 @@ import algebra.algebra.operations
 /-!
 # Subalgebras over Commutative Semiring
 
-In this file we define `subalgebra`s and the usual operations on them (`map`, `comap`).
+In this file we define `subalgebra`s and the usual operations on them (`map`, `comap'`).
 
 More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 -/
@@ -294,13 +294,6 @@ end
 we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
-
-/-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `comap R S A`. -/
-def comap {R : Type u} {S : Type v} {A : Type w}
-  [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
-  (iSB : subalgebra S A) : subalgebra R (algebra.comap R S A) :=
-{ algebra_map_mem' := λ r, iSB.algebra_map_mem (algebra_map R S r),
-  .. iSB }
 
 /-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
 then `T` is an `R`-subalgebra of `A`. -/
@@ -612,15 +605,23 @@ variables (S : subalgebra R A)
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
 ⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
 
+/--
+For performance reasons this is not an instance. If you need this instance, add
+```
+local attribute [instance] alg_hom.subsingleton subalgebra.subsingleton_of_subsingleton
+```
+in the section that needs it.
+-/
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
+lemma _root_.alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
 ⟨λ f g, alg_hom.ext $ λ a,
   have a ∈ (⊥ : subalgebra R A) := subsingleton.elim (⊤ : subalgebra R A) ⊥ ▸ mem_top,
   let ⟨x, hx⟩ := set.mem_range.mp (mem_bot.mp this) in
   hx ▸ (f.commutes _).trans (g.commutes _).symm⟩
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] B) :=
+lemma _root_.alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] :
+  subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (A →ₐ[R] B) := alg_hom.subsingleton,
   exact ⟨λ f g, alg_equiv.ext
@@ -628,7 +629,8 @@ begin
 end
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
+lemma _root_.alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] :
+  subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
   exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm

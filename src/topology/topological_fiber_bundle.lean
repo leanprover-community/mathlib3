@@ -778,8 +778,12 @@ typeclass inference -/
 @[nolint unused_arguments has_inhabited_instance]
 def fiber (x : B) := F
 
-instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
-by { dsimp [fiber], apply_instance }
+section fiber_instances
+local attribute [reducible] fiber
+
+instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := by apply_instance
+
+end fiber_instances
 
 /-- The total space of the topological fiber bundle, as a convenience function for dot notation.
 It is by definition equal to `bundle.total_space Z.fiber`, a.k.a. `Σ x, Z.fiber x` but with a

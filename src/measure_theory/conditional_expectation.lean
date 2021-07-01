@@ -26,8 +26,7 @@ namespace measure_theory
 function. This is similar to `ae_measurable`, but the `measurable_space` structures used for the
 measurability statement and for the measure are different. -/
 def ae_measurable' {α β} [measurable_space β] (m : measurable_space α) {m0 : measurable_space α}
-  (f : α → β) (μ : measure α) :
-  Prop :=
+  (f : α → β) (μ : measure α) : Prop :=
 ∃ g : α → β, @measurable α β m _ g ∧ f =ᵐ[μ] g
 
 namespace ae_measurable'
@@ -116,6 +115,12 @@ coe_fn_coe_base f
 
 section complete_subspace
 
+/-! ## The subspace `Lp_meas` is complete.
+
+We define a `linear_isometry_equiv` between `Lp_meas` and the `Lp` space corresponding to the
+measure `μ.trim hm`. As a consequence, the completeness of `Lp` implies completeness of
+`Lp_meas`. -/
+
 variables {ι : Type*} {m m0 : measurable_space α} {μ : measure α}
 
 lemma mem_ℒp_trim_of_mem_Lp_meas (hm : m ≤ m0) (f : Lp F p μ) (hf_meas : f ∈ Lp_meas F 𝕂 m p μ) :
@@ -166,6 +171,7 @@ lemma Lp_trim_to_Lp_meas_ae_eq (hm : m ≤ m0) (f : @Lp α F m _ _ _ _ p (μ.tri
   Lp_trim_to_Lp_meas F 𝕂 p μ hm f =ᵐ[μ] f :=
 mem_ℒp.coe_fn_to_Lp _
 
+/-- `Lp_trim_to_Lp_meas` is a right inverse of `Lp_meas_to_Lp_trim`. -/
 lemma Lp_meas_to_Lp_trim_right_inv (hm : m ≤ m0) :
   function.right_inverse (Lp_trim_to_Lp_meas F 𝕂 p μ hm) (Lp_meas_to_Lp_trim F 𝕂 p μ hm) :=
 begin
@@ -177,6 +183,7 @@ begin
   { exact (Lp_meas_to_Lp_trim_ae_eq hm _).trans (Lp_trim_to_Lp_meas_ae_eq hm _), },
 end
 
+/-- `Lp_trim_to_Lp_meas` is a left inverse of `Lp_meas_to_Lp_trim`. -/
 lemma Lp_meas_to_Lp_trim_left_inv (hm : m ≤ m0) :
   function.left_inverse (Lp_trim_to_Lp_meas F 𝕂 p μ hm) (Lp_meas_to_Lp_trim F 𝕂 p μ hm) :=
 begin
@@ -221,6 +228,7 @@ begin
   refl,
 end
 
+/-- `Lp_meas_to_Lp_trim` preserves the norm. -/
 lemma Lp_meas_to_Lp_trim_norm_map [hp : fact (1 ≤ p)] (hm : m ≤ m0) (f : Lp_meas F 𝕂 m p μ) :
   ∥Lp_meas_to_Lp_trim F 𝕂 p μ hm f∥ = ∥f∥ :=
 begin

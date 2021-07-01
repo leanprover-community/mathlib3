@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2019 Oliver Nash. All rights reserved.
+Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
@@ -47,21 +47,33 @@ def lie_ring.to_non_unital_non_assoc_semiring : non_unital_non_assoc_semiring L 
 
 local attribute [instance] lie_ring.to_non_unital_non_assoc_semiring
 
+namespace lie_algebra
+
 /-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
 reinterpret the `smul_lie` law as an `is_scalar_tower`. -/
-instance lie_algebra.is_scalar_tower : is_scalar_tower R L L := ⟨smul_lie⟩
+instance is_scalar_tower : is_scalar_tower R L L := ⟨smul_lie⟩
 
 /-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
 reinterpret the `lie_smul` law as an `smul_comm_class`. -/
-instance lie_algebra.smul_comm_class : smul_comm_class R L L := ⟨λ t x y, (lie_smul t x y).symm⟩
+instance smul_comm_class : smul_comm_class R L L := ⟨λ t x y, (lie_smul t x y).symm⟩
+
+end lie_algebra
+
+namespace lie_hom
 
 variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]
 
 /-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
 regard a `lie_hom` as a `non_unital_alg_hom`. -/
 @[simps]
-def lie_hom.to_non_unital_alg_hom (f : L →ₗ⁅R⁆ L₂) : non_unital_alg_hom R L L₂ :=
+def to_non_unital_alg_hom (f : L →ₗ⁅R⁆ L₂) : non_unital_alg_hom R L L₂ :=
 { to_fun := f,
   map_zero' := f.map_zero,
   map_mul'  := f.map_lie,
   ..f }
+
+lemma to_non_unital_alg_hom_injective :
+  function.injective (to_non_unital_alg_hom : _ → non_unital_alg_hom R L L₂) :=
+λ f g h, ext $ non_unital_alg_hom.congr_fun h
+
+end lie_hom

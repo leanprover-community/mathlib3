@@ -84,6 +84,9 @@ variables {R X}
 lemma rel.add_left (a b c : lib R X) (h : rel R X b c) : rel R X (a + b) (a + c) :=
 by { rw [add_comm _ b, add_comm _ c], exact rel.add_right _ _ _ h, }
 
+lemma rel.neg (a b : lib R X) (h : rel R X a b) : rel R X (-a) (-b) :=
+h.smul (-1) _ _
+
 end free_lie_algebra
 
 /-- The free Lie algebra on the type `X` with coefficients in the commutative ring `R`. -/
@@ -92,43 +95,33 @@ def free_lie_algebra := quot (free_lie_algebra.rel R X)
 
 namespace free_lie_algebra
 
-instance : has_scalar R (free_lie_algebra R X) :=
-{ smul := λ t a, quot.lift_on a (λ x, quot.mk _ (t • x)) (λ a b h, quot.sound (rel.smul t a b h)), }
-
-instance : has_add (free_lie_algebra R X) :=
-{ add := quot.map₂ (+) rel.add_left rel.add_right, }
-
 instance : add_comm_group (free_lie_algebra R X) :=
-{ add_comm       := by { rintros ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw add_comm, },
+{ add            := quot.map₂ (+) rel.add_left rel.add_right,
+  add_comm       := by { rintros ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw add_comm, },
   add_assoc      := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_assoc, },
   zero           := quot.mk _ 0,
   zero_add       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw zero_add, },
   add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, },
-  neg            := λ x, (-1 : R) • x,
-  sub            := λ x y, x + ((-1 : R) • y),
-  sub_eq_add_neg := λ x y, rfl,
-  add_left_neg   :=
-    by { rintros ⟨a⟩, change quot.mk _ _ = _, erw [neg_smul, one_smul, add_left_neg], refl, },
-  ..(infer_instance : has_add _)}
-
-/-- Note that here we turn the `has_mul` coming from the `non_unital_non_assoc_semiring` structure
-on `lib R X` into a `has_bracket` on `free_lie_algebra`. -/
-instance : has_bracket (free_lie_algebra R X) (free_lie_algebra R X) :=
-{ bracket := quot.map₂ (*) (λ a b c, rel.mul_left a b c) (λ a b c, rel.mul_right a b c), }
-
-instance : lie_ring (free_lie_algebra R X) :=
-{ add_lie     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_mul, },
-  lie_add     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw mul_add, },
-  lie_self    := by { rintros ⟨a⟩, exact quot.sound (rel.lie_self a), },
-  leibniz_lie := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, exact quot.sound (rel.leibniz_lie a b c), }, }
+  neg            := quot.map has_neg.neg rel.neg,
+  add_left_neg   := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _ , rw add_left_neg, } }
 
 instance : module R (free_lie_algebra R X) :=
-{ one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
+{ smul      := λ t, quot.map ((•) t) (rel.smul t),
+  one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
   mul_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw mul_smul, },
   add_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw add_smul, },
   smul_add  := by { rintros t ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw smul_add, },
   zero_smul := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw zero_smul, },
   smul_zero := λ t, by { change quot.mk _ _ = quot.mk _ _, rw smul_zero, }, }
+
+/-- Note that here we turn the `has_mul` coming from the `non_unital_non_assoc_semiring` structure
+on `lib R X` into a `has_bracket` on `free_lie_algebra`. -/
+instance : lie_ring (free_lie_algebra R X) :=
+{ bracket     := quot.map₂ (*) rel.mul_left rel.mul_right,
+  add_lie     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_mul, },
+  lie_add     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw mul_add, },
+  lie_self    := by { rintros ⟨a⟩, exact quot.sound (rel.lie_self a), },
+  leibniz_lie := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, exact quot.sound (rel.leibniz_lie a b c), }, }
 
 instance : lie_algebra R (free_lie_algebra R X) :=
 { lie_smul :=
@@ -227,9 +220,9 @@ by rw [← function.comp_app (lift R f) (of R) x, of_comp_lift]
 @[simp] lemma lift_comp_of (F : free_lie_algebra R X →ₗ⁅R⁆ L) : lift R (F ∘ (of R)) = F :=
 by { rw ← lift_symm_apply, exact (lift R).apply_symm_apply F, }
 
-/-- See note [partially-applied ext lemmas]. -/
-@[ext] lemma hom_ext {F₁ F₂ : free_lie_algebra R X →ₗ⁅R⁆ L} (h : F₁ ∘ (of R) = F₂ ∘ (of R)) :
+@[ext] lemma hom_ext {F₁ F₂ : free_lie_algebra R X →ₗ⁅R⁆ L} (h : ∀ x, F₁ (of R x) = F₂ (of R x)) :
   F₁ = F₂ :=
-by { rw [← lift_symm_apply, ← lift_symm_apply] at h, exact (lift R).symm.injective h, }
+have h' : (lift R).symm F₁ = (lift R).symm F₂, { ext, simp [h], },
+(lift R).symm.injective h'
 
 end free_lie_algebra

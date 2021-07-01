@@ -238,6 +238,9 @@ begin
   try {refl}; [skip, rw add_comm a b]; apply this
 end
 
+lemma nat_abs_sub_le (a b : ℤ) : nat_abs (a - b) ≤ nat_abs a + nat_abs b :=
+by { rw [sub_eq_add_neg, ← int.nat_abs_neg b], apply nat_abs_add_le }
+
 theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
 

@@ -1048,13 +1048,7 @@ variables {m₁ n₁ o₁ : Type*} [fintype m₁] [fintype n₁] [fintype o₁]
 /-- equivalences between matrix ((m × n) × o) ((m₁ × n₁) × o₁) R and
  matrix (m × n × o) (m₁ × n₁ × o₁) R -/
 def index_assoc : matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ matrix (m × n × o) (m₁ × n₁ × o₁) R :=
-{ to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
-  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
-  left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
-    equiv.symm_comp_self],
-  right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
-    equiv.self_comp_symm],
-  }
+matrix.reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
 
 def linear_equiv_index_assoc [comm_semiring α] [add_comm_monoid R] [module α R] :
   matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ₗ[α] matrix (m × n × o) (m₁ × n₁ × o₁) R :=

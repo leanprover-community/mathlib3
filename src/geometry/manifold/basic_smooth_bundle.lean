@@ -168,12 +168,12 @@ def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M)
   end }
 
 @[simp, mfld_simps] lemma base_set (i : atlas H M) :
-  (Z.to_topological_fiber_bundle_core.local_triv_ext i).base_set = i.1.source := rfl
+  (Z.to_topological_fiber_bundle_core.local_triv i).base_set = i.1.source := rfl
 
 /-- Local chart for the total space of a basic smooth bundle -/
 def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
   local_homeomorph (Z.to_topological_fiber_bundle_core.total_space) (model_prod H F) :=
-(Z.to_topological_fiber_bundle_core.local_triv ⟨e, he⟩).trans
+(Z.to_topological_fiber_bundle_core.local_triv ⟨e, he⟩).to_local_homeomorph.trans
   (local_homeomorph.prod e (local_homeomorph.refl F))
 
 @[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :

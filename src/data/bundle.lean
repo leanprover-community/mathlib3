@@ -39,7 +39,13 @@ instance [inhabited B] [inhabited (E (default B))] :
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
 @[simp] def proj : total_space E → B := sigma.fst
 
-instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
+/-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
+@[simp, reducible] def total_space_mk (E : B → Type*) (b : B) (a : E b) :
+  bundle.total_space E := ⟨b, a⟩
+
+instance {x : B} : has_coe_t (E x) (total_space E) := ⟨sigma.mk x⟩
+
+@[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
 
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 
@@ -51,7 +57,21 @@ instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
 
-section
+section fiber_structures
+
+variable [∀ x, add_comm_monoid (E x)]
+
+@[simp] lemma coe_snd_map_apply (x : B) (v w : E x) :
+  (↑(v + w) : total_space E).snd = (v : total_space E).snd + (w : total_space E).snd := rfl
+
+variables (R : Type*) [semiring R] [∀ x, module R (E x)]
+
+@[simp] lemma coe_snd_map_smul (x : B) (r : R) (v : E x) :
+  (↑(r • v) : total_space E).snd = r • (v : total_space E).snd := rfl
+
+end fiber_structures
+
+section trivial_instances
 local attribute [reducible] bundle.trivial
 
 variables {F : Type*} {R : Type*} [semiring R] (b : B)
@@ -60,6 +80,6 @@ instance [add_comm_monoid F] : add_comm_monoid (bundle.trivial B F b) := ‹add_
 instance [add_comm_group F] : add_comm_group (bundle.trivial B F b) := ‹add_comm_group F›
 instance [add_comm_monoid F] [module R F] : module R (bundle.trivial B F b) := ‹module R F›
 
-end
+end trivial_instances
 
 end bundle

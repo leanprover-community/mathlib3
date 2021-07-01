@@ -1046,7 +1046,6 @@ rfl
 
 variables {m₁ n₁ o₁ : Type*} [fintype m₁] [fintype n₁] [fintype o₁]
 
-protected
 def index_assoc : matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ matrix (m × n × o) (m₁ × n₁ × o₁) R :=
 { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
   inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
@@ -1056,7 +1055,6 @@ def index_assoc : matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ matrix (
     equiv.self_comp_symm],
   }
 
-protected
 def linear_equiv_index_assoc [comm_semiring α] [add_comm_monoid R] [module α R] :
   matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ₗ[α] matrix (m × n × o) (m₁ × n₁ × o₁) R :=
 { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,

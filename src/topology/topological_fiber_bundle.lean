@@ -74,10 +74,11 @@ Let `Z : topological_fiber_bundle_core ι B F`. Then we define
   twisted topology coming from the fiber bundle structure. It is (reducibly) the same as
   `bundle.total_space Z.fiber`.
 * `Z.proj`        : projection from `Z.total_space` to `B`. It is continuous.
-* `Z.local_triv_as_local_equiv i`: for `i : ι`, a local homeomorphism from `Z.total_space` to `B × F`, that
-  realizes a trivialization above the set `Z.base_set i`, which is an open set in `B`.
+* `Z.local_triv i`: for `i : ι`, bundle trivialization above the set `Z.base_set i`, which is an
+                    open set in `B`.
 
-* `prebundle_trivialization F proj` : trivialization as a local equivalence.
+* `prebundle_trivialization F proj` : trivialization as a local equivalence, mainly used when the
+                                      topology on the total space has not yet been defined.
 * `topological_fiber_prebundle F proj` : structure registering a cover of prebundle trivializations
   and requiring that the relative transition maps are local homeomorphisms.
 * `topological_fiber_prebundle.total_space_topology a` : natural topology of the total space, making
@@ -144,7 +145,7 @@ Or for the pullback of a `topological_fiber_bundle_core`, the indexing type will
 for the initial bundle.
 
 ## Tags
-Fiber bundle, topological bundle, vector bundle, local trivialization, structure group
+Fiber bundle, topological bundle, local trivialization, structure group
 -/
 
 variables {ι : Type*} {B : Type*} {F : Type*}

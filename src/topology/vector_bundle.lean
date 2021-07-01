@@ -49,6 +49,9 @@ with a topology and a topological vector bundle structure.
 Similar constructions can be done for tensor products of topological vector bundles, exterior
 algebras, and so on, where the topology can be defined using a norm on the fiber model if this
 helps.
+
+## Tags
+Vector bundle
 -/
 
 noncomputable theory

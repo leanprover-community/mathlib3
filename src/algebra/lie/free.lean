@@ -163,19 +163,19 @@ non_unital_alg_hom.map_mul _ a b
 lemma lift_aux_spec (f : X → L) (a b : lib R X) (h : free_lie_algebra.rel R X a b) :
   lift_aux R f a = lift_aux R f b :=
 begin
-  induction h with c a' b' c' t a' b' h₁ h₂ a' b' c' h₁ h₂ a' b' c' h₁ h₂ a' b' c' h₁ h₂,
-  { -- rel.lie_self
-    simp only [lift_aux_map_mul, non_unital_alg_hom.map_zero, lie_self], },
-  { -- rel.leibniz_lie
-    simp only [lift_aux_map_mul, lift_aux_map_add, sub_add_cancel, lie_lie], },
-  { -- rel.smul
-    simp only [lift_aux_map_smul, h₂], },
-  { -- rel.add
-    simp only [lift_aux_map_add, h₂], },
-  { -- rel.mul_left
-    simp only [lift_aux_map_mul, h₂], },
-  { -- rel.mul_right
-    simp only [lift_aux_map_mul, h₂], },
+  induction h,
+  case rel.lie_self : a'
+  { simp only [lift_aux_map_mul, non_unital_alg_hom.map_zero, lie_self], },
+  case rel.leibniz_lie : a' b' c'
+  { simp only [lift_aux_map_mul, lift_aux_map_add, sub_add_cancel, lie_lie], },
+  case rel.smul : t a' b' h₁ h₂
+  { simp only [lift_aux_map_smul, h₂], },
+  case rel.add : a' b' c' h₁ h₂
+  { simp only [lift_aux_map_add, h₂], },
+  case rel.mul_left : a' b' c' h₁ h₂
+  { simp only [lift_aux_map_mul, h₂], },
+  case rel.mul_right : a' b' c' h₁ h₂
+  { simp only [lift_aux_map_mul, h₂], },
 end
 
 /-- The functor `X ↦ free_lie_algebra R X` from the category of types to the category of Lie

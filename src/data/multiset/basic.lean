@@ -2304,6 +2304,20 @@ by simp [disjoint, or_imp_distrib, forall_and_distrib]
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 by simp [disjoint, or_imp_distrib, forall_and_distrib]
 
+lemma add_eq_union_iff_disjoint [decidable_eq α] {s t : multiset α} :
+  s + t = s ∪ t ↔ disjoint s t :=
+begin
+  simp_rw [ext, count_add, count_union, nat.add_eq_max_iff, count_eq_zero],
+  split,
+  { intros h x hs ht,
+    cases h x with h h,
+    { exact h hs },
+    { exact h ht } },
+  { intros h x,
+    refine not_or_of_imp _,
+    exact λ hs, h hs }
+end
+
 lemma disjoint_map_map {f : α → γ} {g : β → γ} {s : multiset α} {t : multiset β} :
   disjoint (s.map f) (t.map g) ↔ (∀a∈s, ∀b∈t, f a ≠ g b) :=
 by { simp [disjoint, @eq_comm _ (f _) (g _)], refl }

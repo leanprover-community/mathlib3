@@ -564,7 +564,8 @@ begin
   simpa only [snorm_eq_snorm' h0 h_top] using snorm'_trim hm hf,
 end
 
-lemma mem_ℒp_of_mem_ℒp_trim (hm : m ≤ m0) {f : α → E} (hf : @mem_ℒp α E m _ _ f p (μ.trim hm)) :
+lemma mem_ℒp_of_mem_ℒp_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  {f : α → E} (hf : @mem_ℒp α E m _ _ f p (μ.trim hm)) :
   mem_ℒp f p μ :=
 begin
   refine ⟨ae_measurable_of_ae_measurable_trim hm hf.1, _⟩,

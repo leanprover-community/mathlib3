@@ -175,7 +175,7 @@ begin
   { simpa [snorm_eq_snorm' hp_ne_zero hp_ne_top] using hfp }
 end
 
-lemma snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top {f : α → F}  (hp_ne_zero : p ≠ 0)
+lemma snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top {f : α → F} (hp_ne_zero : p ≠ 0)
   (hp_ne_top : p ≠ ∞) :
   snorm f p μ < ∞ ↔ ∫⁻ a, (nnnorm (f a)) ^ p.to_real ∂μ < ∞ :=
 ⟨lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_ne_zero hp_ne_top,

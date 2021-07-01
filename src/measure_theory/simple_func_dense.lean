@@ -208,7 +208,7 @@ begin
   exact_mod_cast this,
 end
 
-lemma tendsto_approx_on_Lp_nnnorm [opens_measurable_space E]
+lemma tendsto_approx_on_Lp_snorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ⊤) {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s)
   (hi : snorm (λ x, f x - y₀) p μ < ∞) :
@@ -283,7 +283,7 @@ begin
   ... < ⊤ : snorm_add_lt_top hf' hf',
 end
 
-lemma tendsto_approx_on_univ_Lp_nnnorm [opens_measurable_space E] [second_countable_topology E]
+lemma tendsto_approx_on_univ_Lp_snorm [opens_measurable_space E] [second_countable_topology E]
   {f : β → E} (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ⊤) {μ : measure β} (fmeas : measurable f)
   (hf : snorm f p μ < ∞) :
   tendsto (λ n, snorm (approx_on f fmeas univ 0 trivial n - f) p μ) at_top (𝓝 0) :=

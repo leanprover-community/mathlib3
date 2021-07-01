@@ -119,7 +119,7 @@ end
 lemma concrete.is_colimit_exists_rep {D : cocone F} (hD : is_colimit D) (x : D.X) :
   ∃ (j : J) (y : F.obj j), D.ι.app j y = x :=
 begin
-  obtain ⟨a,rfl⟩ := concrete.from_union_surjective_of_is_colimit F hD x,
+  obtain ⟨a, rfl⟩ := concrete.from_union_surjective_of_is_colimit F hD x,
   exact ⟨a.1, a.2, rfl⟩,
 end
 
@@ -136,8 +136,7 @@ lemma concrete.wide_pushout_exists_rep {B : C} {α : Type*} {X : α → C} (f : 
   [has_wide_pushout B X f] [preserves_colimit (wide_span B X f) (forget C)]
   (x : wide_pushout B X f) : (∃ y : B, head f y = x) ∨ (∃ (i : α) (y : X i), ι f i y = x) :=
 begin
-  obtain ⟨j,y,rfl⟩ := concrete.colimit_exists_rep _ x,
-  cases j,
+  obtain ⟨_ | j, y, rfl⟩ := concrete.colimit_exists_rep _ x,
   { use y },
   { right,
     use [j,y] }
@@ -148,7 +147,7 @@ lemma concrete.wide_pushout_exists_rep' {B : C} {α : Type*} [nonempty α] {X : 
   [preserves_colimit (wide_span B X f) (forget C)] (x : wide_pushout B X f) :
   ∃ (i : α) (y : X i), ι f i y = x :=
 begin
-  rcases concrete.wide_pushout_exists_rep f x with ⟨y,rfl⟩|⟨i,y,rfl⟩,
+  rcases concrete.wide_pushout_exists_rep f x with ⟨y, rfl⟩ | ⟨i, y, rfl⟩,
   { inhabit α,
     use [arbitrary _, f _ y],
     simp only [← arrow_ι _ (arbitrary α), comp_apply] },

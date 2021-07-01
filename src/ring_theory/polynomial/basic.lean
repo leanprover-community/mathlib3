@@ -779,7 +779,7 @@ lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_d
 ring_equiv.is_integral_domain R hR
   ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans (mv_polynomial.pempty_ring_equiv R))
 
-/-- Auxilliary lemma:
+/-- Auxiliary lemma:
 Multivariate polynomials over an integral domain
 with variables indexed by `fin n` form an integral domain.
 This fact is proven inductively,
@@ -800,7 +800,7 @@ lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [finty
   (mv_polynomial.is_integral_domain_fin _ hR _)
   (rename_equiv R (fintype.equiv_fin σ)).to_ring_equiv
 
-/-- Auxilliary definition:
+/-- Auxiliary definition:
 Multivariate polynomials in finitely many variables over an integral domain form an integral domain.
 This fact is proven by transport of structure from the `mv_polynomial.integral_domain_fin`,
 and then used to prove the general case without finiteness hypotheses.
@@ -867,7 +867,7 @@ begin
   intros m hm,
   rw [← mul_one (coeff m p), ← C_mul_monomial],
   suffices : C (coeff m p) ∈ I,
-  { exact ideal.mul_mem_right I (monomial m 1) this },
+  { exact I.mul_mem_right (monomial m 1) this },
   simpa [ideal.mem_comap] using hcoe m
 end
 

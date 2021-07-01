@@ -131,6 +131,9 @@ continuous_snd.continuous_at
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
 continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
 
+@[continuity] lemma continuous.prod.mk (a : α) : continuous (prod.mk a : β → α × β) :=
+continuous_const.prod_mk continuous_id'
+
 lemma continuous.prod_map {f : γ → α} {g : δ → β} (hf : continuous f) (hg : continuous g) :
   continuous (λ x : γ × δ, (f x.1, g x.2)) :=
 (hf.comp continuous_fst).prod_mk (hg.comp continuous_snd)
@@ -173,6 +176,19 @@ by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced
 lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
   s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), set.prod u v ⊆ s :=
 by rw [nhds_prod_eq, mem_prod_iff]
+
+lemma mem_nhds_prod_iff' {a : α} {b : β} {s : set (α × β)} :
+  s ∈ 𝓝 (a, b) ↔ ∃ u v, is_open u ∧ a ∈ u ∧ is_open v ∧ b ∈ v ∧ set.prod u v ⊆ s :=
+begin
+  rw mem_nhds_prod_iff,
+  split,
+  { rintros ⟨u, Hu, v, Hv, h⟩,
+    rcases mem_nhds_iff.1 Hu with ⟨u', u'u, u'_open, Hu'⟩,
+    rcases mem_nhds_iff.1 Hv with ⟨v', v'v, v'_open, Hv'⟩,
+    exact ⟨u', v', u'_open, Hu', v'_open, Hv', (set.prod_mono u'u v'v).trans h⟩ },
+  { rintros ⟨u, v, u_open, au, v_open, bv, huv⟩,
+    exact ⟨u, u_open.mem_nhds au, v, v_open.mem_nhds bv, huv⟩ }
+end
 
 lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
   {sa : ιa → set α} {sb : ιb → set β} {a : α} {b : β} (ha : (𝓝 a).has_basis pa sa)
@@ -750,6 +766,21 @@ begin
       by_cases a ∈ i; simp [*, pi] at * },
     { have : f ∈ pi {a | a ∉ i} c, { simp [*, pi] at * },
       simpa [pi_if, hf] } }
+end
+
+/-- Suppose `π i` is a family of topological spaces indexed by `i : ι`, and `X` is a type
+endowed with a family of maps `f i : X → π i` for every `i : ι`, hence inducing a
+map `g : X → Π i, π i`. This lemma shows that infimum of the topologies on `X` induced by
+the `f i` as `i : ι` varies is simply the topology on `X` induced by `g : X → Π i, π i`
+where `Π i, π i` is endowed with the usual product topology. -/
+lemma inducing_infi_to_pi {X : Type*} [∀ i, topological_space (π i)] (f : Π i, X → π i) :
+  @inducing X (Π i, π i) (⨅ i, induced (f i) infer_instance) _ (λ x i, f i x) :=
+begin
+  constructor,
+  erw induced_infi,
+  congr' 1,
+  funext,
+  erw induced_compose,
 end
 
 variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]

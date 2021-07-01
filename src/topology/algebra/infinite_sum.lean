@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.intervals
 import topology.instances.real
 import topology.algebra.module
-import data.indicator_function
+import algebra.indicator_function
 import data.equiv.encodable.lattice
 import data.nat.parity
 import order.filter.at_top_bot
@@ -441,32 +441,32 @@ variable [encodable γ]
 
 /-- You can compute a sum over an encodably type by summing over the natural numbers and
   taking a supremum. This is useful for outer measures. -/
-theorem tsum_supr_decode2 [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
-  (s : γ → β) : ∑' i : ℕ, m (⨆ b ∈ decode2 γ i, s b) = ∑' b : γ, m (s b) :=
+theorem tsum_supr_decode₂ [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
+  (s : γ → β) : ∑' i : ℕ, m (⨆ b ∈ decode₂ γ i, s b) = ∑' b : γ, m (s b) :=
 begin
-  have H : ∀ n, m (⨆ b ∈ decode2 γ n, s b) ≠ 0 → (decode2 γ n).is_some,
+  have H : ∀ n, m (⨆ b ∈ decode₂ γ n, s b) ≠ 0 → (decode₂ γ n).is_some,
   { intros n h,
-    cases decode2 γ n with b,
+    cases decode₂ γ n with b,
     { refine (h $ by simp [m0]).elim },
     { exact rfl } },
   symmetry, refine tsum_eq_tsum_of_ne_zero_bij (λ a, option.get (H a.1 a.2)) _ _ _,
   { rintros ⟨m, hm⟩ ⟨n, hn⟩ e,
-    have := mem_decode2.1 (option.get_mem (H n hn)),
-    rwa [← e, mem_decode2.1 (option.get_mem (H m hm))] at this },
+    have := mem_decode₂.1 (option.get_mem (H n hn)),
+    rwa [← e, mem_decode₂.1 (option.get_mem (H m hm))] at this },
   { intros b h,
     refine ⟨⟨encode b, _⟩, _⟩,
-    { simp only [mem_support, encodek2] at h ⊢, convert h, simp [set.ext_iff, encodek2] },
-    { exact option.get_of_mem _ (encodek2 _) } },
+    { simp only [mem_support, encodek₂] at h ⊢, convert h, simp [set.ext_iff, encodek₂] },
+    { exact option.get_of_mem _ (encodek₂ _) } },
   { rintros ⟨n, h⟩, dsimp only [subtype.coe_mk],
     transitivity, swap,
-    rw [show decode2 γ n = _, from option.get_mem (H n h)],
+    rw [show decode₂ γ n = _, from option.get_mem (H n h)],
     congr, simp [ext_iff, -option.some_get] }
 end
 
-/-- `tsum_supr_decode2` specialized to the complete lattice of sets. -/
-theorem tsum_Union_decode2 (m : set β → α) (m0 : m ∅ = 0)
-  (s : γ → set β) : ∑' i, m (⋃ b ∈ decode2 γ i, s b) = ∑' b, m (s b) :=
-tsum_supr_decode2 m m0 s
+/-- `tsum_supr_decode₂` specialized to the complete lattice of sets. -/
+theorem tsum_Union_decode₂ (m : set β → α) (m0 : m ∅ = 0)
+  (s : γ → set β) : ∑' i, m (⋃ b ∈ decode₂ γ i, s b) = ∑' b, m (s b) :=
+tsum_supr_decode₂ m m0 s
 
 /-! Some properties about measure-like functions.
   These could also be functions defined on complete sublattices of sets, with the property
@@ -478,7 +478,7 @@ tsum_supr_decode2 m m0 s
 theorem rel_supr_tsum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ∑' i, m (s i))
   (s : γ → β) : R (m (⨆ b : γ, s b)) ∑' b : γ, m (s b) :=
-by { rw [← supr_decode2, ← tsum_supr_decode2 _ m0 s], exact m_supr _ }
+by { rw [← supr_decode₂, ← tsum_supr_decode₂ _ m0 s], exact m_supr _ }
 
 /-- If a function is countably sub-additive then it is sub-additive on finite sets -/
 theorem rel_supr_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
@@ -524,10 +524,10 @@ variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ 
 
 lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
   has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
-by simp [has_sum, tendsto_pi]
+by simp only [has_sum, tendsto_pi, sum_apply]
 
 lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
-by simp [summable, pi.has_sum, classical.skolem]
+by simp only [summable, pi.has_sum, skolem]
 
 lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
   (∑' i, f i) x = ∑' i, f i x :=
@@ -553,7 +553,7 @@ lemma summable_neg_iff : summable (λ b, - f b) ↔ summable f :=
 ⟨summable.of_neg, summable.neg⟩
 
 lemma has_sum.sub (hf : has_sum f a₁) (hg : has_sum g a₂) : has_sum (λb, f b - g b) (a₁ - a₂) :=
-by { simp [sub_eq_add_neg], exact hf.add hg.neg }
+by { simp only [sub_eq_add_neg], exact hf.add hg.neg }
 
 lemma summable.sub (hf : summable f) (hg : summable g) : summable (λb, f b - g b) :=
 (hf.has_sum.sub hg.has_sum).summable
@@ -564,8 +564,9 @@ begin
   convert ((has_sum_ite_eq b _).add hf),
   ext b',
   by_cases h : b' = b,
-  { rw h, simp, },
-  { simp [h] },
+  { rw [h, update_same],
+    simp only [eq_self_iff_true, if_true, sub_add_cancel] },
+  simp only [h, update_noteq, if_false, ne.def, zero_add, not_false_iff],
 end
 
 lemma summable.update (hf : summable f) (b : β) [decidable_eq β] (a : α) :
@@ -606,6 +607,14 @@ lemma set.finite.summable_compl_iff {s : set β} (hs : s.finite) :
   summable (f ∘ coe : sᶜ → α) ↔ summable f :=
 (hs.summable f).summable_compl_iff
 
+lemma has_sum_ite_eq_extract [decidable_eq β] (hf : has_sum f a) (b : β) :
+  has_sum (λ n, ite (n = b) 0 (f n)) (a - f b) :=
+begin
+  convert hf.update b 0 using 1,
+  { ext n, rw function.update_apply, },
+  { rw [sub_add_eq_add_sub, zero_add], },
+end
+
 section tsum
 variables [t2_space α]
 
@@ -618,6 +627,16 @@ lemma tsum_sub (hf : summable f) (hg : summable g) : ∑'b, (f b - g b) = ∑'b,
 lemma sum_add_tsum_compl {s : finset β} (hf : summable f) :
   (∑ x in s, f x) + (∑' x : (↑s : set β)ᶜ, f x) = ∑' x, f x :=
 ((s.has_sum f).add_compl (s.summable_compl_iff.2 hf).has_sum).tsum_eq.symm
+
+/-- Let `f : β → α` be a sequence with summable series and let `b ∈ β` be an index.
+Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f b` plus the series of the
+remaining terms. -/
+lemma tsum_ite_eq_extract [decidable_eq β] (hf : summable f) (b : β) :
+  ∑' n, f n = f b + ∑' n, ite (n = b) 0 (f n) :=
+begin
+  rw (has_sum_ite_eq_extract hf.has_sum b).tsum_eq,
+  exact (add_sub_cancel'_right _ _).symm,
+end
 
 end tsum
 
@@ -648,7 +667,7 @@ by simp [has_sum_nat_add_iff]
 
 lemma sum_add_tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
   (∑ i in range k, f i) + (∑' i, f (i + k)) = ∑' i, f i :=
-by simpa [add_comm] using
+by simpa only [add_comm] using
   ((has_sum_nat_add_iff k).1 ((summable_nat_add_iff k).2 h).has_sum).unique h.has_sum
 
 lemma tsum_eq_zero_add [t2_space α] {f : ℕ → α} (hf : summable f) :
@@ -766,6 +785,14 @@ le_of_tendsto_of_tendsto' hf hg $ assume s, sum_le_sum $ assume b _, h b
 @[mono] lemma has_sum_mono (hf : has_sum f a₁) (hg : has_sum g a₂) (h : f ≤ g) : a₁ ≤ a₂ :=
 has_sum_le h hf hg
 
+lemma has_sum_le_of_sum_le (hf : has_sum f a) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
+  a ≤ a₂ :=
+le_of_tendsto' hf h
+
+lemma le_has_sum_of_le_sum (hf : has_sum f a) (h : ∀ s : finset β, a₂ ≤ ∑ b in s, f b) :
+  a₂ ≤ a :=
+ge_of_tendsto' hf h
+
 lemma has_sum_le_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs : ∀c∉set.range i, 0 ≤ g c)
   (h : ∀b, f b ≤ g (i b)) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
 have has_sum (λc, (partial_inv i c).cases_on' 0 f) a₁,
@@ -795,17 +822,21 @@ lemma tsum_le_tsum_of_inj {g : γ → α} (i : β → γ) (hi : injective i) (hs
   (h : ∀b, f b ≤ g (i b)) (hf : summable f) (hg : summable g) : tsum f ≤ tsum g :=
 has_sum_le_inj i hi hs h hf.has_sum hg.has_sum
 
-lemma sum_le_has_sum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
+lemma sum_le_has_sum (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
   ∑ b in s, f b ≤ a :=
 ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
   sum_le_sum_of_subset_of_nonneg hst $ λ b hbt hbs, hs b hbs⟩)
+
+lemma is_lub_has_sum (h : ∀ b, 0 ≤ f b) (hf : has_sum f a) :
+  is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
+is_lub_of_tendsto (finset.sum_mono_set_of_nonneg h) hf
 
 lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
 calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
 ... ≤ a : sum_le_has_sum _ (by { convert hb, simp }) hf
 
 lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
-  ∑ b in s, f b ≤ tsum f :=
+  ∑ b in s, f b ≤ ∑' b, f b :=
 sum_le_has_sum s hs hf.has_sum
 
 lemma le_tsum (hf : summable f) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ ∑' b, f b :=
@@ -817,6 +848,19 @@ has_sum_le h hf.has_sum hg.has_sum
 @[mono] lemma tsum_mono (hf : summable f) (hg : summable g) (h : f ≤ g) :
   ∑' n, f n ≤ ∑' n, g n :=
 tsum_le_tsum h hf hg
+
+lemma tsum_le_of_sum_le (hf : summable f) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
+  ∑' b, f b ≤ a₂ :=
+has_sum_le_of_sum_le hf.has_sum h
+
+lemma tsum_le_of_sum_le' (ha₂ : 0 ≤ a₂) (h : ∀ s : finset β, ∑ b in s, f b ≤ a₂) :
+  ∑' b, f b ≤ a₂ :=
+begin
+  by_cases hf : summable f,
+  { exact tsum_le_of_sum_le hf h },
+  { rw tsum_eq_zero_of_not_summable hf,
+    exact ha₂ }
+end
 
 lemma has_sum.nonneg (h : ∀ b, 0 ≤ g b) (ha : has_sum g a) : 0 ≤ a :=
 has_sum_le h has_sum_zero ha
@@ -864,6 +908,10 @@ has_sum_lt h hi hf.has_sum hg.has_sum
   ∑' n, f n < ∑' n, g n :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hf hg
 
+lemma tsum_pos (hsum : summable g) (hg : ∀ b, 0 ≤ g b) (i : β) (hi : 0 < g i) :
+  0 < ∑' b, g b :=
+by { rw ← tsum_zero, exact tsum_lt_tsum hg hi summable_zero hsum }
+
 end ordered_topological_group
 
 section canonically_ordered
@@ -891,6 +939,9 @@ by rw [←has_sum_zero_iff, hf.has_sum_iff]
 lemma tsum_ne_zero_iff (hf : summable f) : ∑' i, f i ≠ 0 ↔ ∃ x, f x ≠ 0 :=
 by rw [ne.def, tsum_eq_zero_iff hf, not_forall]
 
+lemma is_lub_has_sum' (hf : has_sum f a) : is_lub (set.range (λ s : finset β, ∑ b in s, f b)) a :=
+is_lub_of_tendsto (finset.sum_mono_set f) hf
+
 end canonically_ordered
 
 section uniform_group
@@ -915,7 +966,7 @@ begin
     rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,
     use [s₁ ∪ s₂],
     assume t ht,
-    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_left_of_le le_sup_right⟩,
+    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_of_le_left le_sup_right⟩,
     simpa only [finset.sum_union ht.symm, add_sub_cancel'] using h },
   { assume h e he,
     rcases exists_nhds_half_neg he with ⟨d, hd, hde⟩,
@@ -997,20 +1048,6 @@ lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (functio
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
-/-- Let `f : ℕ → ℝ` be a sequence with summable series and let `i ∈ ℕ` be an index.
-Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
-remaining terms.
-
-TODO: generalize this to `f : β → α` with appropriate typeclass assumptions
--/
-lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
-  ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
-begin
-  refine ((tsum_congr _).trans $ tsum_add (hf.summable_of_eq_zero_or_self _) $
-    hf.summable_of_eq_zero_or_self _).trans (add_right_cancel_iff.mpr (tsum_ite_eq i (f i)));
-  exact λ j, by { by_cases ji : j = i; simp [ji] }
-end
-
 end uniform_group
 
 section topological_group
@@ -1043,6 +1080,27 @@ by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
 
 end topological_group
 
+section linear_order
+
+/-! For infinite sums taking values in a linearly ordered monoid, the existence of a least upper
+bound for the finite sums is a criterion for summability.
+
+This criterion is useful when applied in a linearly ordered monoid which is also a complete or
+conditionally complete linear order, such as `ℝ`, `ℝ≥0`, `ℝ≥0∞`, because it is then easy to check
+the existence of a least upper bound.
+-/
+
+lemma has_sum_of_is_lub_of_nonneg [linear_ordered_add_comm_monoid β] [topological_space β]
+  [order_topology β] {f : α → β} (b : β) (h : ∀ b, 0 ≤ f b)
+  (hf : is_lub (set.range (λ s, ∑ a in s, f a)) b) :
+  has_sum f b :=
+tendsto_at_top_is_lub (finset.sum_mono_set_of_nonneg h) hf
+
+lemma has_sum_of_is_lub [canonically_linear_ordered_add_monoid β] [topological_space β]
+   [order_topology β] {f : α → β} (b : β) (hf : is_lub (set.range (λ s, ∑ a in s, f a)) b) :
+  has_sum f b :=
+tendsto_at_top_is_lub (finset.sum_mono_set f) hf
+
 lemma summable_abs_iff [linear_ordered_add_comm_group β] [uniform_space β]
   [uniform_add_group β] [complete_space β] {f : α → β} :
   summable (λ x, abs (f x)) ↔ summable f :=
@@ -1056,6 +1114,8 @@ calc summable (λ x, abs (f x)) ↔
 ... ↔ _ : by simp only [summable_neg_iff, summable_subtype_and_compl]
 
 alias summable_abs_iff ↔ summable.of_abs summable.abs
+
+end linear_order
 
 section cauchy_seq
 open finset.Ico filter

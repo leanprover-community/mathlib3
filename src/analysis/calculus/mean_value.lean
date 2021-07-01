@@ -517,12 +517,12 @@ end
 `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_has_fderiv_within_le
   (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
-  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+  (hs : convex s) : lipschitz_on_with (real.to_nnreal C) f s :=
 begin
   rw lipschitz_on_with_iff_norm_sub_le,
   intros x x_in y y_in,
   convert hs.norm_image_sub_le_of_norm_has_fderiv_within_le hf bound y_in x_in,
-  exact nnreal.coe_of_real C ((norm_nonneg $ f' x).trans $ bound x x_in)
+  exact real.coe_to_nnreal C ((norm_nonneg $ f' x).trans $ bound x x_in)
 end
 
 /-- The mean value theorem on a convex set: if the derivative of a function within this set is
@@ -538,7 +538,7 @@ bound xs ys
 `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_fderiv_within_le
   (hf : differentiable_on 𝕜 f s) (bound : ∀x∈s, ∥fderiv_within 𝕜 f s x∥ ≤ C)
-  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s:=
+  (hs : convex s) : lipschitz_on_with (real.to_nnreal C) f s:=
 hs.lipschitz_on_with_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at) bound
 
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C`,
@@ -553,7 +553,7 @@ hs.norm_image_sub_le_of_norm_has_fderiv_within_le
 `s`, then the function is `C`-Lipschitz on `s`. Version with `fderiv` and `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_fderiv_le
   (hf : ∀ x ∈ s, differentiable_at 𝕜 f x) (bound : ∀x∈s, ∥fderiv 𝕜 f x∥ ≤ C)
-  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+  (hs : convex s) : lipschitz_on_with (real.to_nnreal C) f s :=
 hs.lipschitz_on_with_of_norm_has_fderiv_within_le
 (λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound
 
@@ -623,7 +623,7 @@ Version with `has_deriv_within` and `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_has_deriv_within_le
   {f f' : ℝ → F} {C : ℝ} {s : set ℝ} (hs : convex s)
   (hf : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C) :
-  lipschitz_on_with (nnreal.of_real C) f s :=
+  lipschitz_on_with (real.to_nnreal C) f s :=
 convex.lipschitz_on_with_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
 (λ x hx, le_trans (by simp) (bound x hx)) hs
 
@@ -642,7 +642,7 @@ Version with `deriv_within` and `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_deriv_within_le
   {f : ℝ → F} {C : ℝ} {s : set ℝ} (hs : convex s)
   (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥deriv_within f s x∥ ≤ C) :
-  lipschitz_on_with (nnreal.of_real C) f s :=
+  lipschitz_on_with (real.to_nnreal C) f s :=
 hs.lipschitz_on_with_of_norm_has_deriv_within_le (λ x hx, (hf x hx).has_deriv_within_at) bound
 
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
@@ -658,7 +658,7 @@ bounded by `C` on `s`, then the function is `C`-Lipschitz on `s`.
 Version with `deriv` and `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_deriv_le {f : ℝ → F} {C : ℝ} {s : set ℝ}
   (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥deriv f x∥ ≤ C)
-  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+  (hs : convex s) : lipschitz_on_with (real.to_nnreal C) f s :=
 hs.lipschitz_on_with_of_norm_has_deriv_within_le
 (λ x hx, (hf x hx).has_deriv_at.has_deriv_within_at) bound
 

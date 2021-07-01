@@ -122,6 +122,12 @@ end
 section
 variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
 
+lemma neg_eq_self_iff {a : R} : -a = a ↔ a = 0 :=
+neg_eq_iff_add_eq_zero.trans add_self_eq_zero
+
+lemma eq_neg_self_iff {a : R} : a = -a ↔ a = 0 :=
+eq_neg_iff_add_eq_zero.trans add_self_eq_zero
+
 lemma nat_mul_inj {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) : n = 0 ∨ a = b :=
 begin
   rw [←sub_eq_zero, ←mul_sub, mul_eq_zero, sub_eq_zero] at h,

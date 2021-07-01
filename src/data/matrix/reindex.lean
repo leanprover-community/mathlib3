@@ -24,8 +24,8 @@ namespace matrix
 def index_assoc : matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ matrix (m × n × o) (m₁ × n₁ × o₁) R :=
 matrix.reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
 
-def linear_equiv_index_assoc [comm_semiring α] [add_comm_monoid R] [module α R] :
-  matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ₗ[α] matrix (m × n × o) (m₁ × n₁ × o₁) R :=
+def linear_equiv_index_assoc :
+  matrix ((m × n) × o) ((m₁ × n₁) × o₁) R ≃ₗ[R] matrix (m × n × o) (m₁ × n₁ × o₁) R :=
 -- { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
 --   map_add' := λ _ _, by simp only [reindex_apply, minor_add, pi.add_apply],
 --   map_smul' := λ _ _, by simp only [reindex_apply, minor_smul, pi.smul_apply],

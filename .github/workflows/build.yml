@@ -33,15 +33,9 @@ jobs:
 
   style_lint:
     name: Lint style
-    runs-on: ubuntu-latest
+    runs-on: pr
     steps:
       - uses: actions/checkout@v2
-
-      - name: install Python
-        if: ${{ ! 0 }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
 
       - name: lint
         run: |
@@ -49,7 +43,7 @@ jobs:
 
   build:
     name: Build mathlib
-    runs-on: ubuntu-latest
+    runs-on: pr
     env:
       # number of commits to check for olean cache
       GIT_HISTORY_DEPTH: 20
@@ -67,12 +61,6 @@ jobs:
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
           echo "short_lean_version=$(~/.elan/bin/lean --run scripts/lean_version.lean)" >> $GITHUB_ENV
-
-      - name: install Python
-        if: ${{ ! 0 }}
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
 
       - name: try to find olean cache
         run: ./scripts/fetch_olean_cache.sh
@@ -112,7 +100,7 @@ jobs:
 
   lint:
     name: Lint mathlib
-    runs-on: ubuntu-latest
+    runs-on: pr
     needs: build
 
     # skip on master branch
@@ -141,7 +129,7 @@ jobs:
 
   tests:
     name: Run tests
-    runs-on: ubuntu-latest
+    runs-on: pr
     needs: build
 
     # skip on master branch
@@ -163,26 +151,10 @@ jobs:
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
-      - name: install Python
-        if: ${{ ! 0 }}
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-
-      - name: install Python dependencies
-        if: ${{ ! 0 }}
-        run: python -m pip install --upgrade pip pyyaml
-
       - name: tests
         run: |
           set -o pipefail
           lean --json -T100000 --make docs archive roadmap test counterexamples | python scripts/detect_errors.py
-
-      - uses: actions/setup-java@v2
-        if: ${{ ! 0 }}
-        with:
-          distribution: 'adopt'
-          java-version: '16'
 
       - name: install trepplein
         run: |

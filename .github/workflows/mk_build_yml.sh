@@ -28,7 +28,7 @@ on:
       # ignore staging branch used by bors, this is handled by bors.yml
       - 'staging'
 EOF
-  include 0 ubuntu-latest
+  include pr
 }
 
 bors_yml() {
@@ -39,13 +39,12 @@ on:
     branches:
       - staging
 EOF
-  include 1 self-hosted
+  include self-hosted
 }
 
 include() {
   sed "
-    s/IS_SELF_HOSTED/$1/g;
-    s/RUNS_ON/$2/g;
+    s/RUNS_ON/$1/g;
   " build.yml.in
 }
 

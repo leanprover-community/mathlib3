@@ -59,7 +59,9 @@ variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]
 
 /-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
 regard a `lie_hom` as a `non_unital_alg_hom`. -/
+@[simps]
 def lie_hom.to_non_unital_alg_hom (f : L →ₗ⁅R⁆ L₂) : non_unital_alg_hom R L L₂ :=
-{ map_zero' := f.map_zero,
+{ to_fun := f,
+  map_zero' := f.map_zero,
   map_mul'  := f.map_lie,
   ..f }

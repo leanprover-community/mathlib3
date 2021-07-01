@@ -53,6 +53,8 @@ lemma concrete.limit_ext [has_limit F] (x y : limit F) :
   (∀ j, limit.π F j x = limit.π F j y) → x = y :=
 concrete.is_limit_ext F (limit.is_limit _) _ _
 
+section wide_pullback
+
 open wide_pullback
 open wide_pullback_shape
 
@@ -77,6 +79,86 @@ begin
   simp only [← π_arrow f (arbitrary _), comp_apply, h],
 end
 
+end wide_pullback
+
+-- TODO: Add analogous lemmas about products and equalizers.
+
 end limits
+
+section colimits
+
+variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
+  {J : Type v} [small_category J] (F : J ⥤ C) [preserves_colimit F (forget C)]
+
+lemma concrete.from_union_surjective_of_is_colimit {D : cocone F} (hD : is_colimit D) :
+  let ff : (Σ (j : J), F.obj j) → D.X := λ a, D.ι.app a.1 a.2 in function.surjective ff :=
+begin
+  intro ff,
+  let E := (forget C).map_cocone D,
+  let hE : is_colimit E := is_colimit_of_preserves _ hD,
+  let G := types.colimit_cocone (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let T : E ≅ G := hE.unique_up_to_iso hG,
+  let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
+  suffices : function.surjective (TX.hom ∘ ff),
+  { intro a,
+    obtain ⟨b, hb⟩ := this (TX.hom a),
+    refine ⟨b, _⟩,
+    apply_fun TX.inv at hb,
+    change (TX.hom ≫ TX.inv) (ff b) = (TX.hom ≫ TX.inv) _ at hb,
+    simpa only [TX.hom_inv_id] using hb },
+  have : TX.hom ∘ ff = λ a, G.ι.app a.1 a.2,
+  { ext a,
+    change (E.ι.app a.1 ≫ hE.desc G) a.2 = _,
+    rw hE.fac },
+  rw this,
+  rintro ⟨⟨j,a⟩⟩,
+  exact ⟨⟨j,a⟩,rfl⟩,
+end
+
+lemma concrete.is_colimit_exists_rep {D : cocone F} (hD : is_colimit D) (x : D.X) :
+  ∃ (j : J) (y : F.obj j), D.ι.app j y = x :=
+begin
+  obtain ⟨a,rfl⟩ := concrete.from_union_surjective_of_is_colimit F hD x,
+  exact ⟨a.1, a.2, rfl⟩,
+end
+
+lemma concrete.colimit_exists_rep [has_colimit F] (x : colimit F) :
+  ∃ (j : J) (y : F.obj j), colimit.ι F j y = x :=
+concrete.is_colimit_exists_rep F (colimit.is_colimit _) x
+
+section wide_pushout
+
+open wide_pushout
+open wide_pushout_shape
+
+lemma concrete.wide_pushout_exists_rep {B : C} {α : Type*} {X : α → C} (f : Π j : α, B ⟶ X j)
+  [has_wide_pushout B X f] [preserves_colimit (wide_span B X f) (forget C)]
+  (x : wide_pushout B X f) : (∃ y : B, head f y = x) ∨ (∃ (i : α) (y : X i), ι f i y = x) :=
+begin
+  obtain ⟨j,y,rfl⟩ := concrete.colimit_exists_rep _ x,
+  cases j,
+  { use y },
+  { right,
+    use [j,y] }
+end
+
+lemma concrete.wide_pushout_exists_rep' {B : C} {α : Type*} [nonempty α] {X : α → C}
+  (f : Π j : α, B ⟶ X j) [has_wide_pushout B X f]
+  [preserves_colimit (wide_span B X f) (forget C)] (x : wide_pushout B X f) :
+  ∃ (i : α) (y : X i), ι f i y = x :=
+begin
+  rcases concrete.wide_pushout_exists_rep f x with ⟨y,rfl⟩|⟨i,y,rfl⟩,
+  { inhabit α,
+    use [arbitrary _, f _ y],
+    simp only [← arrow_ι _ (arbitrary α), comp_apply] },
+  { use [i,y] }
+end
+
+end wide_pushout
+
+-- TODO: Add analogous lemmas about coproducts and coequalizers.
+
+end colimits
 
 end category_theory.limits

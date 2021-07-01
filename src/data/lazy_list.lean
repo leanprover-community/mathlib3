@@ -5,8 +5,6 @@ Authors: Leonardo de Moura
 -/
 import tactic.lint
 
-universes u v w
-
 /-!
 # Lazy lists
 
@@ -16,6 +14,8 @@ where all elements after the first are computed on-demand.
 (This is only useful for execution in the VM,
 logically we can prove that `lazy_list α` is isomorphic to `list α`.)
 -/
+
+universes u v w
 
 /--
 Lazy list.

@@ -287,7 +287,7 @@ lemma tendsto_approx_on_univ_Lp_snorm [opens_measurable_space E] [second_countab
   {f : β → E} (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ⊤) {μ : measure β} (fmeas : measurable f)
   (hf : snorm f p μ < ∞) :
   tendsto (λ n, snorm (approx_on f fmeas univ 0 trivial n - f) p μ) at_top (𝓝 0) :=
-tendsto_approx_on_Lp_nnnorm fmeas trivial hp_ne_zero hp_ne_top (by simp) (by simpa using hf)
+tendsto_approx_on_Lp_snorm fmeas trivial hp_ne_zero hp_ne_top (by simp) (by simpa using hf)
 
 lemma mem_ℒp_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : mem_ℒp f p μ) (n : ℕ) :
@@ -302,7 +302,7 @@ lemma tendsto_approx_on_univ_Lp [borel_space E] [second_countable_topology E]
 begin
   rw Lp.tendsto_Lp_iff_tendsto_ℒp'',
   have hp_ne_zero : p ≠ 0 := (lt_of_lt_of_le ennreal.zero_lt_one hp.elim).ne',
-  exact tendsto_approx_on_univ_Lp_nnnorm hp_ne_zero hp_ne_top fmeas hf.2
+  exact tendsto_approx_on_univ_Lp_snorm hp_ne_zero hp_ne_top fmeas hf.2
 end
 
 end Lp
@@ -317,7 +317,7 @@ lemma tendsto_approx_on_L1_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
   tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
-by simpa [snorm_one_eq_lintegral_nnnorm] using tendsto_approx_on_Lp_nnnorm hf h₀ one_ne_zero
+by simpa [snorm_one_eq_lintegral_nnnorm] using tendsto_approx_on_Lp_snorm hf h₀ one_ne_zero
   one_ne_top hμ (by simpa [snorm_one_eq_lintegral_nnnorm] using hi)
 
 lemma integrable_approx_on [borel_space E]

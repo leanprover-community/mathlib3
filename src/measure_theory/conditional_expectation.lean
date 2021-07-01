@@ -167,10 +167,12 @@ begin
 end
 
 variables (F 𝕂 p μ)
+/-- Map from `Lp_meas` to `Lp F p (μ.trim hm)`. -/
 def Lp_meas_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas F 𝕂 m p μ) : @Lp α F m _ _ _ _ p (μ.trim hm) :=
 @mem_ℒp.to_Lp _ _ m p (μ.trim hm) _ _ _ _ (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some
   (mem_ℒp_trim_of_mem_Lp_meas hm f f.mem)
 
+/-- Map from `Lp F p (μ.trim hm)` to `Lp_meas`, inverse of `Lp_meas_to_Lp_trim`. -/
 def Lp_trim_to_Lp_meas (hm : m ≤ m0) (f : @Lp α F m _ _ _ _ p (μ.trim hm)) :
   Lp_meas F 𝕂 m p μ :=
 ⟨(mem_ℒp_of_mem_ℒp_trim hm (@Lp.mem_ℒp _ _ m _ _ _ _ _ _ f)).to_Lp f,
@@ -253,6 +255,7 @@ begin
 end
 
 variables (F 𝕂 p μ)
+/-- A linear isometry equivalence between `Lp_meas` and `Lp F p (μ.trim hm)`. -/
 def Lp_meas_to_Lp_trim_lie [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
   Lp_meas F 𝕂 m p μ ≃ₗᵢ[𝕂] @Lp α F m _ _ _ _ p (μ.trim hm) :=
 { to_fun    := Lp_meas_to_Lp_trim F 𝕂 p μ hm,

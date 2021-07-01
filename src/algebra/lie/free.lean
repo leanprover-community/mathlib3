@@ -98,18 +98,24 @@ instance : has_scalar R (free_lie_algebra R X) :=
 instance : has_add (free_lie_algebra R X) :=
 { add := quot.map₂ (+) rel.add_left rel.add_right, }
 
-instance : add_comm_group (free_lie_algebra R X) :=
+instance : add_comm_monoid (free_lie_algebra R X) :=
 { add_comm       := by { rintros ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw add_comm, },
   add_assoc      := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_assoc, },
   zero           := quot.mk _ 0,
   zero_add       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw zero_add, },
   add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, },
-  neg            := λ x, (-1 : R) • x,
-  sub            := λ x y, x + ((-1 : R) • y),
-  sub_eq_add_neg := λ x y, rfl,
-  add_left_neg   :=
-    by { rintros ⟨a⟩, change quot.mk _ _ = _, erw [neg_smul, one_smul, add_left_neg], refl, },
-  ..(infer_instance : has_add _)}
+  .. (infer_instance : has_add _), }
+
+instance : module R (free_lie_algebra R X) :=
+{ one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
+  mul_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw mul_smul, },
+  add_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw add_smul, },
+  smul_add  := by { rintros t ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw smul_add, },
+  zero_smul := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw zero_smul, },
+  smul_zero := λ t, by { change quot.mk _ _ = quot.mk _ _, rw smul_zero, }, }
+
+instance : add_comm_group (free_lie_algebra R X) :=
+module.add_comm_monoid_to_add_comm_group R
 
 /-- Note that here we turn the `has_mul` coming from the `non_unital_non_assoc_semiring` structure
 on `lib R X` into a `has_bracket` on `free_lie_algebra`. -/
@@ -121,14 +127,6 @@ instance : lie_ring (free_lie_algebra R X) :=
   lie_add     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw mul_add, },
   lie_self    := by { rintros ⟨a⟩, exact quot.sound (rel.lie_self a), },
   leibniz_lie := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, exact quot.sound (rel.leibniz_lie a b c), }, }
-
-instance : module R (free_lie_algebra R X) :=
-{ one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
-  mul_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw mul_smul, },
-  add_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw add_smul, },
-  smul_add  := by { rintros t ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw smul_add, },
-  zero_smul := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw zero_smul, },
-  smul_zero := λ t, by { change quot.mk _ _ = quot.mk _ _, rw smul_zero, }, }
 
 instance : lie_algebra R (free_lie_algebra R X) :=
 { lie_smul :=

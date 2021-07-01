@@ -105,14 +105,14 @@ G.right_counit' X
 /-- A morphism of monads is a natural transformation compatible with η and μ. -/
 @[ext]
 structure monad_hom (T₁ T₂ : monad C) extends nat_trans (T₁ : C ⥤ C) T₂ :=
-(app_η' : ∀ {X}, T₁.η.app X ≫ app X = T₂.η.app X . obviously)
-(app_μ' : ∀ {X}, T₁.μ.app X ≫ app X = ((T₁ : C ⥤ C).map (app X) ≫ app _) ≫ T₂.μ.app X . obviously)
+(app_η' : ∀ X, T₁.η.app X ≫ app X = T₂.η.app X . obviously)
+(app_μ' : ∀ X, T₁.μ.app X ≫ app X = ((T₁ : C ⥤ C).map (app X) ≫ app _) ≫ T₂.μ.app X . obviously)
 
 /-- A morphism of comonads is a natural transformation compatible with ε and δ. -/
 @[ext]
 structure comonad_hom (M N : comonad C) extends nat_trans (M : C ⥤ C) N :=
-(app_ε' : ∀ {X}, app X ≫ N.ε.app X = M.ε.app X . obviously)
-(app_δ' : ∀ {X}, app X ≫ N.δ.app X = M.δ.app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
+(app_ε' : ∀ X, app X ≫ N.ε.app X = M.ε.app X . obviously)
+(app_δ' : ∀ X, app X ≫ N.δ.app X = M.δ.app X ≫ app _ ≫ (N : C ⥤ C).map (app X) . obviously)
 
 restate_axiom monad_hom.app_η'
 restate_axiom monad_hom.app_μ'
@@ -153,6 +153,22 @@ rfl
   (f ≫ g).to_nat_trans =
     ((f.to_nat_trans : _ ⟶ (T₂ : C ⥤ C)) ≫ g.to_nat_trans : (T₁ : C ⥤ C) ⟶ T₃) :=
 rfl
+
+def monad_iso.mk {M N : monad C} (f : (M : C ⥤ C) ≅ N)
+  (f_η : ∀ X, M.η.app X ≫ f.hom.app X = N.η.app X)
+  (f_μ : ∀ X, M.μ.app X ≫ f.hom.app X = ((M : C ⥤ C).map (f.hom.app _) ≫ f.hom.app _) ≫ N.μ.app _):
+  M ≅ N :=
+{ hom := { to_nat_trans := f.hom, app_η' := f_η, app_μ' := f_μ },
+  inv :=
+  { to_nat_trans := f.inv,
+    app_η' := λ X, by simp [←f_η],
+    app_μ' := λ X,
+    begin
+      rw ←nat_iso.cancel_nat_iso_hom_right f,
+      simp only [nat_trans.naturality, iso.inv_hom_id_app, assoc, comp_id, f_μ,
+        nat_trans.naturality_assoc, iso.inv_hom_id_app_assoc, ←functor.map_comp_assoc],
+      simp,
+    end } }
 
 variable (C)
 

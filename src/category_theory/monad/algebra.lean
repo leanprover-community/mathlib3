@@ -122,7 +122,7 @@ instance [inhabited C] : inhabited (algebra T) :=
   a monad. cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 -- The other two `simps` projection lemmas can be derived from these two, so `simp_nf` complains if
 -- those are added too
-@[simps unit counit {rhs_md := semireducible}]
+@[simps unit {rhs_md := semireducible}]
 def adj : T.free ⊣ T.forget :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
@@ -137,6 +137,13 @@ adjunction.mk_of_hom_equiv
       rw [←T.η.naturality_assoc, Y.unit],
       apply category.comp_id,
     end }}
+
+@[simp] lemma adj_counit (Y : T.algebra) : (T.adj.counit.app Y).f = Y.a :=
+begin
+  change T.map (𝟙 _) ≫ _ = _,
+  rw [functor.map_id],
+  apply id_comp
+end
 
 /--
 Given an algebra morphism whose carrier part is an isomorphism, we get an algebra isomorphism.

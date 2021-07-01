@@ -106,6 +106,37 @@ from `C` to the category of Eilenberg-Moore algebras for the adjunction is an eq
 class comonadic_left_adjoint (L : C ⥤ D) extends is_left_adjoint L :=
 (eqv : is_equivalence (comonad.comparison (adjunction.of_left_adjoint L)))
 
+instance comparison_faithful [faithful R] [is_right_adjoint R] :
+  faithful (monad.comparison (adjunction.of_right_adjoint R)) :=
+{ map_injective' := λ X Y f g w,
+    by { have w' := congr_arg monad.algebra.hom.f w, exact R.map_injective w' } }
+
+instance (T : monad C) : is_right_adjoint T.forget := ⟨T.free, T.adj⟩
+@[simp] lemma left_adjoint_forget (T : monad C) : left_adjoint T.forget = T.free := rfl
+@[simp] lemma of_right_adjoint_forget (T : monad C) :
+  adjunction.of_right_adjoint T.forget = T.adj := rfl
+
+def iso_monad (T : monad C) : (adjunction.of_right_adjoint T.forget).to_monad ≅ T :=
+monad_iso.mk (nat_iso.of_components (λ X, iso.refl _) (by tidy))
+  (λ X, by { dsimp, simp })
+  (λ X, by { dsimp, simp })
+
+instance (T : monad C) : full (monad.comparison (adjunction.of_right_adjoint T.forget)) :=
+{ preimage := λ X Y f, ⟨f.f, by simpa using f.h⟩ }
+
+instance (T : monad C) : ess_surj (monad.comparison (adjunction.of_right_adjoint T.forget)) :=
+{ mem_ess_image := λ X,
+  begin
+    refine ⟨{ A := X.A, a := X.a, unit' := _, assoc' := by simpa using X.assoc }, ⟨_⟩⟩,
+    { have := X.unit,
+      dsimp at this,
+      simpa using this },
+    exact monad.algebra.iso_mk (iso.refl _) (by simp),
+  end }
+
+noncomputable instance (T : monad C) : monadic_right_adjoint T.forget :=
+{ eqv := equivalence.equivalence_of_fully_faithfully_ess_surj _ }
+
 -- TODO: This holds more generally for idempotent adjunctions, not just reflective adjunctions.
 instance μ_iso_of_reflective [reflective R] : is_iso (adjunction.of_right_adjoint R).to_monad.μ :=
 by { dsimp, apply_instance }
@@ -143,10 +174,6 @@ end
 instance comparison_full [full R] [is_right_adjoint R] :
   full (monad.comparison (adjunction.of_right_adjoint R)) :=
 { preimage := λ X Y f, R.preimage f.f }
-instance comparison_faithful [faithful R] [is_right_adjoint R] :
-  faithful (monad.comparison (adjunction.of_right_adjoint R)) :=
-{ map_injective' := λ X Y f g w,
-    by { have w' := congr_arg monad.algebra.hom.f w, exact R.map_injective w' } }
 
 end reflective
 

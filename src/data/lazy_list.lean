@@ -30,12 +30,6 @@ variables {α : Type u} {β : Type v} {δ : Type w}
 
 instance : inhabited (lazy_list α) := ⟨nil⟩
 
-instance [has_repr α] : has_repr (lazy_list α) :=
-⟨λ l, match l with
-  | nil := "[]"
-  | cons x _ := "[" ++ repr x ++ ", ...]"
-  end⟩
-
 /-- The singleton lazy list.  -/
 def singleton : α → lazy_list α
 | a := cons a nil

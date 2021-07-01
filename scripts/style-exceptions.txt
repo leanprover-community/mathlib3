@@ -42,8 +42,6 @@ src/data/analysis/topology.lean : line 10 : ERR_MOD : Module docstring missing, 
 src/data/array/lemmas.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/data/char.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/dlist/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/dlist/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/basic.lean : line 16 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/sort.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -68,8 +66,6 @@ src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too lat
 src/data/seq/wseq.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/set/lattice.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/data/sigma/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/string/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/data/string/defs.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/subtype.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/ulift.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subfield.lean : line 9 : ERR_MOD : Module docstring missing, or too late

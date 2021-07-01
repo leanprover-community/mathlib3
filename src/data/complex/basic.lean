@@ -139,6 +139,10 @@ by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has
   gsmul := @gsmul_rec _ ⟨(0)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
+/-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
+instance. -/
+instance : ring ℂ := by apply_instance
+
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
 { map_add := complex.add_re }
 

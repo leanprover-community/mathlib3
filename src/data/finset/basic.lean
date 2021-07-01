@@ -1036,6 +1036,8 @@ lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
 instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le (sub_le_self _ _) s₁.2⟩⟩
 
+@[simp] lemma sdiff_val (s₁ s₂ : finset α) : (s₁ \ s₂).val = s₁.val - s₂.val := rfl
+
 @[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
   a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
 
@@ -1742,6 +1744,18 @@ end
 @[simp] lemma to_finset_reverse {l : list α} :
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
+
+lemma disjoint_to_finset_iff_disjoint {l l' : list α} :
+  _root_.disjoint l.to_finset l'.to_finset ↔ l.disjoint l' :=
+begin
+  split,
+  { intros h x hx hx',
+    rw ←mem_to_finset at hx hx',
+    exact h (finset.mem_inter_of_mem hx hx') },
+  { intros h x hx,
+    rw [finset.inf_eq_inter, finset.mem_inter, mem_to_finset, mem_to_finset] at hx,
+    exact h hx.left hx.right }
+end
 
 end list
 

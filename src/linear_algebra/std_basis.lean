@@ -158,10 +158,9 @@ variables {R : Type*}
 
 section module
 variables {η : Type*} {ιs : η → Type*} {Ms : η → Type*}
-variables [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
 
-lemma linear_independent_std_basis [decidable_eq η]
-  (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
+lemma linear_independent_std_basis [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
+  [decidable_eq η] (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
   linear_independent R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (v ji.1 ji.2)) :=
 begin
   have hs' : ∀j : η, linear_independent R (λ i : ιs j, std_basis R Ms j (v j i)),
@@ -187,60 +186,69 @@ begin
     exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
 end
 
+variables [semiring R] [∀i, add_comm_monoid (Ms i)] [∀i, module R (Ms i)]
+
 variable [fintype η]
 
-lemma is_basis_std_basis [decidable_eq η] (s : Πj, ιs j → (Ms j)) (hs : ∀j, is_basis R (s j)) :
-  is_basis R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (s ji.1 ji.2)) :=
+section
+
+open linear_equiv
+
+/-- `pi.basis (s : ∀ j, basis (ιs j) R (Ms j))` is the `Σ j, ιs j`-indexed basis on `Π j, Ms j`
+given by `s j` on each component. -/
+protected noncomputable def basis (s : ∀ j, basis (ιs j) R (Ms j)) :
+  basis (Σ j, ιs j) R (Π j, Ms j) :=
+-- The `add_comm_monoid (Π j, Ms j)` instance was hard to find.
+-- Defining this in tactic mode seems to shake up instance search enough that it works by itself.
+by { refine basis.of_repr (linear_equiv.trans _ (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm),
+     exact linear_equiv.Pi_congr_right (λ j, (s j).repr) }
+
+@[simp] lemma basis_repr_std_basis [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (j i) :
+  (pi.basis s).repr (std_basis R _ j (s j i)) = finsupp.single ⟨j, i⟩ 1 :=
 begin
-  split,
-  { apply linear_independent_std_basis _ (assume i, (hs i).1) },
-  have h₁ : Union (λ j, set.range (std_basis R Ms j ∘ s j))
-    ⊆ range (λ (ji : Σ (j : η), ιs j), (std_basis R Ms (ji.fst)) (s (ji.fst) (ji.snd))),
-  { apply Union_subset, intro i,
-    apply range_comp_subset_range (λ x : ιs i, (⟨i, x⟩ : Σ (j : η), ιs j))
-        (λ (ji : Σ (j : η), ιs j), std_basis R Ms (ji.fst) (s (ji.fst) (ji.snd))) },
-  have h₂ : ∀ i, span R (range (std_basis R Ms i ∘ s i)) = range (std_basis R Ms i),
-  { intro i,
-    rw [set.range_comp, submodule.span_image, (assume i, (hs i).2), submodule.map_top] },
-  apply eq_top_mono,
-  apply span_mono h₁,
-  rw span_Union,
-  simp only [h₂],
-  apply supr_range_std_basis
+  ext ⟨j', i'⟩,
+  by_cases hj : j = j',
+  { subst hj,
+    simp only [pi.basis, linear_equiv.trans_apply, basis.repr_self, std_basis_same,
+        linear_equiv.Pi_congr_right_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply],
+    symmetry,
+    exact basis.finsupp.single_apply_left
+      (λ i i' (h : (⟨j, i⟩ : Σ j, ιs j) = ⟨j, i'⟩), eq_of_heq (sigma.mk.inj h).2) _ _ _ },
+  simp only [pi.basis, linear_equiv.trans_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply,
+      linear_equiv.Pi_congr_right_apply],
+  dsimp,
+  rw [std_basis_ne _ _ _ _ (ne.symm hj), linear_equiv.map_zero, finsupp.zero_apply,
+      finsupp.single_eq_of_ne],
+  rintros ⟨⟩,
+  contradiction
+end
+
+@[simp] lemma basis_apply [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (ji) :
+  pi.basis s ji = std_basis R _ ji.1 (s ji.1 ji.2) :=
+basis.apply_eq_iff.mpr (by simp)
+
+@[simp] lemma basis_repr (s : ∀ j, basis (ιs j) R (Ms j)) (x) (ji) :
+  (pi.basis s).repr x ji = (s ji.1).repr (x ji.1) ji.2 :=
+rfl
+
 end
 
 section
 variables (R η)
 
-lemma is_basis_fun₀ [decidable_eq η] : is_basis R
-    (λ (ji : Σ (j : η), unit),
-       (std_basis R (λ (i : η), R) (ji.fst)) 1) :=
-@is_basis_std_basis R η (λi:η, unit) (λi:η, R) _ _ _ _ _ (λ _ _, (1 : R))
-  (assume i, @is_basis_singleton_one _ _ _ _)
+/-- The basis on `η → R` where the `i`th basis vector is `function.update 0 i 1`. -/
+noncomputable def basis_fun : basis η R (Π (j : η), R) :=
+basis.of_equiv_fun (linear_equiv.refl _ _)
 
-lemma is_basis_fun [decidable_eq η] : is_basis R (λ i, std_basis R (λi:η, R) i 1) :=
-begin
-  apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
-  apply bijective_iff_has_inverse.2,
-  use sigma.fst,
-  simp [function.left_inverse, function.right_inverse]
-end
+@[simp] lemma basis_fun_apply [decidable_eq η] (i) :
+  basis_fun R η i = std_basis R (λ (i : η), R) i 1 :=
+by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
+                linear_equiv.refl_apply, std_basis_apply],
+     congr /- Get rid of a `decidable_eq` mismatch. -/ }
 
-@[simp] lemma is_basis_fun_repr [decidable_eq η] (x : η → R) (i : η) :
-  (pi.is_basis_fun R η).repr x i = x i :=
-begin
-  conv_rhs { rw ← (pi.is_basis_fun R η).total_repr x },
-  rw [finsupp.total_apply, finsupp.sum_fintype],
-  show (pi.is_basis_fun R η).repr x i =
-    (∑ j, λ i, (pi.is_basis_fun R η).repr x j • std_basis R (λ _, R) j 1 i) i,
-  rw [finset.sum_apply, finset.sum_eq_single i],
-  { simp only [pi.smul_apply, smul_eq_mul, std_basis_same, mul_one] },
-  { rintros b - hb, simp only [std_basis_ne _ _ _ _ hb.symm, smul_zero] },
-  { intro,
-    have := finset.mem_univ i,
-    contradiction },
-  { intros, apply zero_smul },
-end
+@[simp] lemma basis_fun_repr (x : η → R) (i : η) :
+  (pi.basis_fun R η).repr x i = x i :=
+by simp [basis_fun]
 
 end
 

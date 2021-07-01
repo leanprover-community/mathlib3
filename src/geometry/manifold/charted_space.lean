@@ -382,7 +382,7 @@ def id_restr_groupoid : structure_groupoid H :=
 { members := {e | ∃ {s : set H} (h : is_open s), e ≈ local_homeomorph.of_set s h},
   trans' := begin
     rintros e e' ⟨s, hs, hse⟩ ⟨s', hs', hse'⟩,
-    refine ⟨s ∩ s', is_open_inter hs hs', _⟩,
+    refine ⟨s ∩ s', is_open.inter hs hs', _⟩,
     have := local_homeomorph.eq_on_source.trans' hse hse',
     rwa local_homeomorph.of_set_trans_of_set at this,
   end,
@@ -417,7 +417,7 @@ instance closed_under_restriction_id_restr_groupoid :
   closed_under_restriction (@id_restr_groupoid H _) :=
 ⟨ begin
     rintros e ⟨s', hs', he⟩ s hs,
-    use [s' ∩ s, is_open_inter hs' hs],
+    use [s' ∩ s, is_open.inter hs' hs],
     refine setoid.trans (local_homeomorph.eq_on_source.restr he s) _,
     exact ⟨by simp only [hs.interior_eq] with mfld_simps, by simp only with mfld_simps⟩,
   end ⟩
@@ -510,7 +510,7 @@ begin
   { intro x,
     rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
     exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
-      (mem_nhds_sets (chart_at H x).open_target (mem_chart_target H x))).map _ },
+      (is_open.mem_nhds (chart_at H x).open_target (mem_chart_target H x))).map _ },
   refine locally_compact_space_of_has_basis this _,
   rintro x s ⟨h₁, h₂, h₃⟩,
   exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
@@ -536,7 +536,7 @@ lemma charted_space.second_countable_of_sigma_compact [second_countable_topology
 begin
   obtain ⟨s, hsc, hsU⟩ : ∃ s, countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
     countable_cover_nhds_of_sigma_compact
-      (λ x : M, mem_nhds_sets (chart_at H x).open_source (mem_chart_source H x)),
+      (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
   exact charted_space.second_countable_of_countable_cover H hsU hsc
 end
 

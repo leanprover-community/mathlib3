@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
 import data.option.defs
@@ -62,7 +62,7 @@ meta def get_nth_prefix : name → ℕ → name
 | nm 0 := nm
 | nm (n + 1) := get_nth_prefix nm.get_prefix n
 
-/-- Auxilliary definition for `pop_nth_prefix` -/
+/-- Auxiliary definition for `pop_nth_prefix` -/
 private meta def pop_nth_prefix_aux : name → ℕ → name × ℕ
 | anonymous n := (anonymous, 1)
 | nm n := let (pfx, height) := pop_nth_prefix_aux nm.get_prefix n in
@@ -77,7 +77,7 @@ prod.fst $ pop_nth_prefix_aux nm n
 meta def pop_prefix (n : name) : name :=
 pop_nth_prefix n 1
 
-/-- Auxilliary definition for `from_components` -/
+/-- Auxiliary definition for `from_components` -/
 private def from_components_aux : name → list string → name
 | n [] := n
 | n (s :: rest) := from_components_aux (name.mk_string s n) rest
@@ -95,10 +95,21 @@ meta def sanitize_name : name → name
 | (name.mk_string s p) := name.mk_string s $ sanitize_name p
 | (name.mk_numeral s p) := name.mk_string sformat!"n{s}" $ sanitize_name p
 
-/-- Append a string to the last component of a name -/
+/-- Append a string to the last component of a name. -/
 def append_suffix : name → string → name
 | (mk_string s n) s' := mk_string (s ++ s') n
 | n _ := n
+
+/-- Update the last component of a name. -/
+def update_last (f : string → string) : name → name
+| (mk_string s n) := mk_string (f s) n
+| n := n
+
+/-- `append_to_last nm s is_prefix` adds `s` to the last component of `nm`,
+  either as prefix or as suffix (specified by `is_prefix`), separated by `_`.
+  Used by `simps_add_projections`. -/
+def append_to_last (nm : name) (s : string) (is_prefix : bool) : name :=
+nm.update_last $ λ s', if is_prefix then s ++ "_" ++ s' else s' ++ "_" ++ s
 
 /-- The first component of a name, turning a number to a string -/
 meta def head : name → string
@@ -328,6 +339,14 @@ protected meta def to_int : expr → option ℤ
 | e                  := coe <$> e.to_nat
 
 /--
+Turns an expression into a list, assuming it is only built up from `list.nil` and `list.cons`.
+-/
+protected meta def to_list {α} (f : expr → option α) : expr → option (list α)
+| `(list.nil)          := some []
+| `(list.cons %%x %%l) := list.cons <$> f x <*> l.to_list
+| _                    := none
+
+/--
 `is_num_eq n1 n2` returns true if `n1` and `n2` are both numerals with the same numeral structure,
 ignoring differences in type and type class arguments.
 -/
@@ -365,10 +384,17 @@ e.replace (λ e n,
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
 
-/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
-protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
-e.replace $ λ e d,
+/--
+`e.apply_replacement_fun f test` applies `f` to each identifier
+(inductive type, defined function etc) in an expression, unless
+ * The identifier occurs in an application with first argument `arg`; and
+ * `test arg` is false.
+-/
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool) : expr → expr
+| e := e.replace $ λ e _,
   match e with
+  | expr.app (expr.const n ls) arg :=
+    some $ expr.const (if test arg then f n else n) ls $ apply_replacement_fun arg
   | expr.const n ls := some $ expr.const (f n) ls
   | _ := none
   end
@@ -387,6 +413,8 @@ meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (o
     Ra ← mreplace_aux a n,
     Rb ← mreplace_aux b n,
     return $ elet nm Rty Ra Rb)
+| (macro c es) n := option.mget_or_else (R (macro c es) n) $
+    macro c <$> es.mmap (λ e, mreplace_aux e n)
 | e n := option.mget_or_else (R e n) (return e)
 
 /--
@@ -398,6 +426,10 @@ If `R s n` fails, the whole replacement fails.
 If `R s n` returns `some t`, `s` is replaced with `t` (and `mreplace` does not visit
 its subexpressions).
 If `R s n` return `none`, then `mreplace` continues visiting subexpressions of `s`.
+
+WARNING: This function performs exponentially worse on large terms than `expr.replace`,
+if a subexpression occurs more than once in an expression, `expr.replace` visits them only once,
+but this function will visit every occurence of it. Do not use this on large expressions.
 -/
 meta def mreplace {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) (e : expr) :
   m expr :=
@@ -660,7 +692,7 @@ meta def lambda_body : expr → expr
 | (lam n bi d b) := lambda_body b
 | e             := e
 
-/-- Auxilliary defintion for `pi_binders`.
+/-- Auxiliary defintion for `pi_binders`.
   See note [open expressions]. -/
 meta def pi_binders_aux : list binder → expr → list binder × expr
 | es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
@@ -674,7 +706,7 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 meta def pi_binders (e : expr) : list binder × expr :=
 let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
-/-- Auxilliary defintion for `get_app_fn_args`. -/
+/-- Auxiliary defintion for `get_app_fn_args`. -/
 meta def get_app_fn_args_aux : list expr → expr → expr × list expr
 | r (app f a) := get_app_fn_args_aux (a::r) f
 | r e         := (e, r)
@@ -938,15 +970,15 @@ namespace declaration
 open tactic
 
 /--
-`declaration.update_with_fun f tgt decl`
-sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
-of all `expr.const`s which appear in the value or type of `decl`.
+`declaration.update_with_fun f test tgt decl`
+sets the name of the given `decl : declaration` to `tgt`, and applies `apply_replacement_fun f test`
+to the value and type of `decl`.
 -/
-protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
-  declaration :=
+protected meta def update_with_fun (f : name → name) (test : expr → bool) (tgt : name)
+  (decl : declaration) : declaration :=
 let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun f in
-decl.update_value $ decl.value.apply_replacement_fun f
+let decl := decl.update_type $ decl.type.apply_replacement_fun f test in
+decl.update_value $ decl.value.apply_replacement_fun f test
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

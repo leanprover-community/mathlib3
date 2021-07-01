@@ -5,6 +5,8 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.bilinear_form
+import linear_algebra.char_poly.coeff
+import linear_algebra.trace
 import ring_theory.power_basis
 
 /-!
@@ -46,7 +48,7 @@ open_locale matrix
 
 namespace algebra
 
-variables {b : ι → S} (hb : is_basis R b)
+variables (b : basis ι R S)
 
 variables (R S)
 
@@ -59,29 +61,29 @@ noncomputable def trace : S →ₗ[R] R :=
 variables {S}
 
 lemma trace_eq_zero_of_not_exists_basis
-  (h : ¬ ∃ s : finset S, is_basis R (λ x, x : (↑s : set S) → S)) : trace R S = 0 :=
+  (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) : trace R S = 0 :=
 by { ext s, simp [linear_map.trace, h] }
 
-include hb
+include b
 
 variables {R}
 
 -- Can't be a `simp` lemma because it depends on a choice of basis
-lemma trace_eq_matrix_trace [decidable_eq ι] (hb : is_basis R b) (s : S) :
-  trace R S s = matrix.trace _ R _ (algebra.left_mul_matrix hb s) :=
-by rw [trace_apply, linear_map.trace_eq_matrix_trace _ hb, to_matrix_lmul_eq]
+lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
+  trace R S s = matrix.trace _ R _ (algebra.left_mul_matrix b s) :=
+by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
 lemma trace_algebra_map_of_basis (x : R) :
   trace R S (algebra_map R S x) = fintype.card ι • x :=
 begin
   haveI := classical.dec_eq ι,
-  rw [trace_apply, linear_map.trace_eq_matrix_trace R hb, trace_diag],
+  rw [trace_apply, linear_map.trace_eq_matrix_trace R b, trace_diag],
   convert finset.sum_const _,
   ext i,
   simp,
 end
-omit hb
+omit b
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`.
 
@@ -90,9 +92,9 @@ omit hb
 @[simp]
 lemma trace_algebra_map (x : K) : trace K L (algebra_map K L x) = finrank K L • x :=
 begin
-  by_cases H : ∃ s : finset L, is_basis K (λ x, x : (↑s : set L) → L),
-  { rw [trace_algebra_map_of_basis H.some_spec, finrank_eq_card_basis H.some_spec] },
-  { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis H] },
+  by_cases H : ∃ (s : finset L), nonempty (basis s K L),
+  { rw [trace_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
+  { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
 
 section trace_form
@@ -113,13 +115,47 @@ lemma trace_form_is_sym : sym_bilin_form.is_sym (trace_form R S) :=
 λ x y, congr_arg (trace R S) (mul_comm _ _)
 
 lemma trace_form_to_matrix [decidable_eq ι] (i j) :
-  bilin_form.to_matrix hb (trace_form R S) i j = trace R S (b i * b j) :=
+  bilin_form.to_matrix b (trace_form R S) i j = trace R S (b i * b j) :=
 by rw [bilin_form.to_matrix_apply, trace_form_apply]
 
 lemma trace_form_to_matrix_power_basis (h : power_basis R S) :
-  bilin_form.to_matrix h.is_basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
-by { ext, rw [trace_form_to_matrix, pow_add] }
+  bilin_form.to_matrix h.basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
+by { ext, rw [trace_form_to_matrix, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
 
 end trace_form
+
+section eq_prod_roots
+
+open polynomial
+
+variables {F : Type*} [field F]
+variables [algebra K S] [algebra K F]
+
+lemma trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
+  (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
+  algebra_map K F (trace K S pb.gen) =
+    ((minpoly K pb.gen).map (algebra_map K F)).roots.sum :=
+begin
+  have d_pos : 0 < pb.dim := power_basis.dim_pos pb,
+  have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
+  haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
+  -- Write the LHS as the `d-1`'th coefficient of `minpoly K pb.gen`
+  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_char_poly_coeff, char_poly_left_mul_matrix,
+      ring_hom.map_neg, ← pb.nat_degree_minpoly, fintype.card_fin,
+      ← next_coeff_of_pos_nat_degree _ d_pos',
+      ← next_coeff_map (algebra_map K F).injective],
+  -- Rewrite `minpoly K pb.gen` as a product over the roots.
+  conv_lhs { rw eq_prod_roots_of_splits hf },
+  rw [monic.next_coeff_mul, next_coeff_C_eq_zero, zero_add, monic.next_coeff_multiset_prod],
+  -- And conclude both sides are the same.
+  simp_rw [next_coeff_X_sub_C, multiset.sum_map_neg, neg_neg],
+  -- Now we deal with the side conditions.
+  { intros, apply monic_X_sub_C },
+  { convert monic_one, simp [(minpoly.monic pb.is_integral_gen).leading_coeff] },
+  { apply monic_multiset_prod_of_monic,
+    intros, apply monic_X_sub_C },
+end
+
+end eq_prod_roots
 
 end algebra

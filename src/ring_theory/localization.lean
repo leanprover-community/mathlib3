@@ -82,6 +82,7 @@ variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
           {P : Type*} [comm_ring P]
 
 open function
+open_locale big_operators
 
 set_option old_structure_cmd true
 
@@ -484,6 +485,10 @@ g.to_monoid_hom _ hy _ _ k.to_localization_map _ _
   f.map (λ y, show ring_hom.id R y ∈ M, from y.2) f z = z :=
 f.lift_id _
 
+lemma map_unique {j : S →+* Q}
+  (hj : ∀ x : R, j (f.to_map x) = k.to_map (g x)) : f.map hy k = j :=
+f.lift_unique (λ y, k.map_units ⟨g y, hy y⟩) hj
+
 /-- If `comm_ring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
 of the induced maps equals the map of localizations induced by `l ∘ g`. -/
 lemma map_comp_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
@@ -819,7 +824,7 @@ begin
     use ⟨⟨⟨y, hy.left⟩, 1⟩, by simp [hy.right]⟩ },
   { rintros ⟨⟨a, s⟩, h⟩,
     rw [← ideal.unit_mul_mem_iff_mem _ (map_units f s), mul_comm],
-    exact h.symm ▸ ideal.mem_map_of_mem a.2 }
+    exact h.symm ▸ ideal.mem_map_of_mem _ a.2 }
 end
 
 theorem map_comap (J : ideal S) :
@@ -828,7 +833,7 @@ le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x hJ,
 begin
   obtain ⟨r, s, hx⟩ := f.mk'_surjective x,
   rw ←hx at ⊢ hJ,
-  exact ideal.mul_mem_right _ _ (ideal.mem_map_of_mem (show f.to_map r ∈ J, from
+  exact ideal.mul_mem_right _ _ (ideal.mem_map_of_mem _ (show f.to_map r ∈ J, from
     f.mk'_spec r s ▸ J.mul_mem_right (f.to_map s) hJ)),
 end
 
@@ -1035,7 +1040,7 @@ section integer_normalization
 
 variables {f : localization_map M S}
 
-open finsupp polynomial
+open polynomial
 open_locale classical
 
 /-- `coeff_integer_normalization p` gives the coefficients of the polynomial
@@ -1048,6 +1053,11 @@ then classical.some (classical.some_spec
       (finset.mem_image.mpr ⟨i, hi, rfl⟩))
 else 0
 
+lemma coeff_integer_normalization_of_not_mem_support (p : polynomial f.codomain) (i : ℕ)
+  (h : coeff p i = 0) : coeff_integer_normalization p i = 0 :=
+by simp only [coeff_integer_normalization, h, mem_support_iff, eq_self_iff_true, not_true,
+  ne.def, dif_neg, not_false_iff]
+
 lemma coeff_integer_normalization_mem_support (p : polynomial f.codomain) (i : ℕ)
   (h : coeff_integer_normalization p i ≠ 0) : i ∈ p.support :=
 begin
@@ -1057,13 +1067,15 @@ end
 
 /-- `integer_normalization g` normalizes `g` to have integer coefficients
 by clearing the denominators -/
-noncomputable def integer_normalization (f : localization_map M S) :
-  polynomial f.codomain → polynomial R :=
-λ p, on_finset p.support (coeff_integer_normalization p) (coeff_integer_normalization_mem_support p)
+noncomputable def integer_normalization (f : localization_map M S) (p : polynomial f.codomain) :
+  polynomial R :=
+∑ i in p.support, monomial i (coeff_integer_normalization p i)
 
 @[simp]
 lemma integer_normalization_coeff (p : polynomial f.codomain) (i : ℕ) :
-  (f.integer_normalization p).coeff i = coeff_integer_normalization p i := rfl
+  (f.integer_normalization p).coeff i = coeff_integer_normalization p i :=
+by simp [integer_normalization, coeff_monomial, coeff_integer_normalization_of_not_mem_support]
+  {contextual := tt}
 
 lemma integer_normalization_spec (p : polynomial f.codomain) :
   ∃ (b : M), ∀ i, f.to_map ((f.integer_normalization p).coeff i) = f.to_map b * p.coeff i :=
@@ -1078,13 +1090,13 @@ begin
       (finset.mem_image.mpr ⟨i, hi, rfl⟩)) },
   { convert (_root_.mul_zero (f.to_map _)).symm,
     { exact f.to_ring_hom.map_zero },
-    { exact finsupp.not_mem_support_iff.mp hi } }
+    { exact not_mem_support_iff.mp hi } }
 end
 
 lemma integer_normalization_map_to_map (p : polynomial f.codomain) :
   ∃ (b : M), (f.integer_normalization p).map f.to_map = f.to_map b • p :=
 let ⟨b, hb⟩ := integer_normalization_spec p in
-⟨b, polynomial.ext (λ i, by { rw coeff_map, exact hb i })⟩
+⟨b, polynomial.ext (λ i, by { rw [coeff_map, coeff_smul], exact hb i })⟩
 
 variables {R' : Type*} [comm_ring R']
 
@@ -1126,8 +1138,8 @@ begin
 end
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R] (f : localization_map M S)
-  (hM : M ≤ non_zero_divisors R) (x : non_zero_divisors R) : f.to_map x ≠ 0 :=
-map_ne_zero_of_mem_non_zero_divisors (f.injective hM)
+  (hM : M ≤ non_zero_divisors R) {x : R} (hx : x ∈ non_zero_divisors R) : f.to_map x ≠ 0 :=
+map_ne_zero_of_mem_non_zero_divisors (f.injective hM) hx
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain. -/
@@ -1163,45 +1175,117 @@ integral_domain_localization (le_non_zero_divisors_of_domain (by simpa only [] u
 end localization_map
 
 section at_prime
+
+namespace localization_map
+
+variables (I : ideal R) [hI : I.is_prime] (f : at_prime S I)
+include hI
+
+lemma at_prime.is_unit_to_map_iff (x : R) :
+  is_unit (f.to_map x) ↔ x ∈ I.prime_compl :=
+⟨λ h hx, (f.is_prime_of_is_prime_disjoint I hI disjoint_compl_left).ne_top $
+  (ideal.map f.to_map I).eq_top_of_is_unit_mem (ideal.mem_map_of_mem _ hx) h,
+λ h, f.map_units ⟨x, h⟩⟩
+
+lemma at_prime.to_map_mem_maximal_iff (x : R) :
+  f.to_map x ∈ local_ring.maximal_ideal (f.codomain) ↔ x ∈ I :=
+not_iff_not.mp $ by
+simpa only [@local_ring.mem_maximal_ideal (f.codomain), mem_nonunits_iff, not_not]
+  using f.is_unit_to_map_iff I x
+
+lemma at_prime.is_unit_mk'_iff (x : R) (y : I.prime_compl) :
+  is_unit (f.mk' x y) ↔ x ∈ I.prime_compl :=
+⟨λ h hx, (mk'_mem_iff f).mpr ((f.to_map_mem_maximal_iff I x).mpr hx) h,
+λ h, is_unit_iff_exists_inv.mpr ⟨f.mk' y ⟨x, h⟩, f.mk'_mul_mk'_eq_one ⟨x, h⟩ y⟩⟩
+
+lemma at_prime.mk'_mem_maximal_iff (x : R) (y : I.prime_compl) :
+  f.mk' x y ∈ local_ring.maximal_ideal (f.codomain) ↔ x ∈ I :=
+not_iff_not.mp $ by
+simpa only [@local_ring.mem_maximal_ideal (f.codomain), mem_nonunits_iff, not_not]
+  using f.is_unit_mk'_iff I x y
+
+end localization_map
+
 namespace localization
+open localization_map
 
 local attribute [instance] classical.prop_decidable
 
-/-- The image of `P` in the localization at `P.prime_compl` is a maximal ideal, and in particular
+variables (I : ideal R) [hI : I.is_prime]
+include hI
+
+variables {I}
+/-- The unique maximal ideal of the localization at `I.prime_compl` lies over the ideal `I`. -/
+lemma at_prime.comap_maximal_ideal :
+  ideal.comap (localization.of I.prime_compl).to_map
+  (local_ring.maximal_ideal (localization I.prime_compl)) = I :=
+ideal.ext $ λ x, by
+simpa only [ideal.mem_comap] using at_prime.to_map_mem_maximal_iff I _ x
+
+/-- The image of `I` in the localization at `I.prime_compl` is a maximal ideal, and in particular
 it is the unique maximal ideal given by the local ring structure `at_prime.local_ring` -/
-lemma at_prime.map_eq_maximal_ideal {P : ideal R} [hP : ideal.is_prime P] :
-  ideal.map (localization.of P.prime_compl).to_map P =
-    (local_ring.maximal_ideal (localization P.prime_compl)) :=
+lemma at_prime.map_eq_maximal_ideal :
+  ideal.map (localization.of I.prime_compl).to_map I =
+    (local_ring.maximal_ideal (localization I.prime_compl)) :=
 begin
-  let f := localization.of P.prime_compl,
-  ext x,
-  split; simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff]; intro hx,
-  { exact λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
-      disjoint_compl_left).ne_top (ideal.eq_top_of_is_unit_mem _ hx h) },
-  { obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
-    contrapose! hx,
-    rw is_unit_iff_exists_inv,
-    rw localization_map.mem_map_to_map_iff at hx,
-    obtain ⟨a', ha'⟩ := is_unit_iff_exists_inv.1
-      (localization_map.map_units f ⟨a, λ ha, hx ⟨⟨⟨a, ha⟩, b⟩, hab⟩⟩),
-    exact ⟨f.to_map b * a', by rwa [← mul_assoc, hab]⟩ }
+  convert congr_arg (ideal.map (localization.of _).to_map) at_prime.comap_maximal_ideal.symm,
+  rw map_comap,
 end
 
-/-- The unique maximal ideal of the localization at `P.prime_compl` lies over the ideal `P`. -/
-lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
-  ideal.comap (localization.of P.prime_compl).to_map
-  (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
+variables (I)
+
+/--
+For a ring hom `f : R →+* S` and a prime ideal `J` in `S`, the induced ring hom from the
+localization of `R` at `J.comap f` to the localization of `S` at `J`.
+
+To make this definition more flexible, we allow any ideal `I` of `R` as input, together with a proof
+that `I = J.comap f`. This can be useful when `I` is not definitionally equal to `J.comap f`.
+ -/
+noncomputable def local_ring_hom (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : I = J.comap f) :
+  at_prime I →+* at_prime J :=
+(localization.of _).map
+  (λ x, show f x ∈ J.prime_compl, from λ hfxJ, x.2 ((set_like.ext_iff.mp hIJ x.1).mpr hfxJ))
+  (localization.of _)
+
+lemma local_ring_hom_to_map (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : I = J.comap f) (x : R) :
+  local_ring_hom I J f hIJ ((localization.of _).to_map x) = (localization.of _).to_map (f x) :=
+map_eq _ _ _
+
+lemma local_ring_hom_mk' (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : I = J.comap f) (x : R) (y : I.prime_compl) :
+  local_ring_hom I J f hIJ ((localization.of _).mk' x y) =
+  (localization.of _).mk' (f x) ⟨f y, λ hfyJ, y.2 ((set_like.ext_iff.mp hIJ y.1).mpr hfyJ)⟩ :=
+map_mk' _ _ _ _
+
+instance is_local_ring_hom_local_ring_hom (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : I = J.comap f) :
+  is_local_ring_hom (local_ring_hom I J f hIJ) :=
+is_local_ring_hom.mk $ λ x hx,
 begin
-  let Pₚ := local_ring.maximal_ideal (localization P.prime_compl),
-  refine le_antisymm (λ x hx, _)
-    (le_trans ideal.le_comap_map (ideal.comap_mono (le_of_eq at_prime.map_eq_maximal_ideal))),
-  by_cases h0 : x = 0,
-  { exact h0.symm ▸ P.zero_mem },
-  { have : Pₚ.is_prime := ideal.is_maximal.is_prime (local_ring.maximal_ideal.is_maximal _),
-    rw localization_map.is_prime_iff_is_prime_disjoint (localization.of P.prime_compl) at this,
-    contrapose! h0 with hx',
-    simpa using this.2 ⟨hx', hx⟩ }
+  rcases (localization.of _).mk'_surjective x with ⟨r, s, rfl⟩,
+  rw local_ring_hom_mk' at hx,
+  rw at_prime.is_unit_mk'_iff at hx ⊢,
+  exact λ hr, hx ((set_like.ext_iff.mp hIJ r).mp hr),
 end
+
+lemma local_ring_hom_unique (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : I = J.comap f) {j : at_prime I →+* at_prime J}
+  (hj : ∀ x : R, j ((localization.of _).to_map x) = (localization.of _).to_map (f x)) :
+  local_ring_hom I J f hIJ = j :=
+map_unique _ _ hj
+
+@[simp] lemma local_ring_hom_id :
+  local_ring_hom I I (ring_hom.id R) (ideal.comap_id I).symm = ring_hom.id (at_prime I) :=
+local_ring_hom_unique _ _ _ _ (λ x, rfl)
+
+@[simp] lemma local_ring_hom_comp (J : ideal S) [hJ : J.is_prime] (K : ideal P) [hK : K.is_prime]
+  (f : R →+* S) (hIJ : I = J.comap f)  (g : S →+* P) (hJK : J = K.comap g) :
+  local_ring_hom I K (g.comp f) (by rw [hIJ, hJK, ideal.comap_comap f g]) =
+  (local_ring_hom J K g hJK).comp (local_ring_hom I J f hIJ) :=
+local_ring_hom_unique _ _ _ _
+  (λ r, by simp only [function.comp_app, ring_hom.coe_comp, local_ring_hom_to_map])
 
 end localization
 end at_prime
@@ -1237,8 +1321,8 @@ protected theorem injective [comm_ring K] (φ : fraction_map R K) :
 φ.injective (le_of_eq rfl)
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R] [comm_ring K]
-  (φ : fraction_map R K) (x : non_zero_divisors R) : φ.to_map x ≠ 0 :=
-φ.to_map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) x
+  (φ : fraction_map R K) {x : R} (hx : x ∈ non_zero_divisors R) : φ.to_map x ≠ 0 :=
+φ.to_map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) hx
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
 integral domain. -/
@@ -1272,18 +1356,18 @@ variables {B : Type*} [integral_domain B] [field K] {L : Type*} [field L]
 
 lemma mk'_eq_div {r s} : f.mk' r s = f.to_map r / f.to_map s :=
 f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _
-    (f.to_map_ne_zero_of_mem_non_zero_divisors _)).symm
+    (f.to_map_ne_zero_of_mem_non_zero_divisors s.2)).symm
 
 lemma is_unit_map_of_injective (hg : function.injective g)
-  (y : non_zero_divisors A) : is_unit (g y) :=
-is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg
+  {y : A} (hy : y ∈ non_zero_divisors A) : is_unit (g y) :=
+is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg hy
 
 /-- Given an integral domain `A`, a localization map to its fields of fractions
 `f : A →+* K`, and an injective ring hom `g : A →+* L` where `L` is a field, we get a
 field hom sending `z : K` to `g x * (g y)⁻¹`, where `(x, y) : A × (non_zero_divisors A)` are
 such that `z = f x * (f y)⁻¹`. -/
 noncomputable def lift (hg : injective g) : K →+* L :=
-f.lift $ is_unit_map_of_injective hg
+f.lift $ λ y, is_unit_map_of_injective hg y.2
 
 /-- Given an integral domain `A`, a localization map to its fields of fractions
 `f : A →+* K`, and an injective ring hom `g : A →+* L` where `L` is a field,
@@ -1292,11 +1376,11 @@ field hom induced from `K` to `L` maps `f x / f y` to `g x / g y` for all
 @[simp] lemma lift_mk' (hg : injective g) (x y) :
   f.lift hg (f.mk' x y) = g x / g y :=
 begin
-  erw f.lift_mk' (is_unit_map_of_injective hg),
+  erw f.lift_mk' (λ y, is_unit_map_of_injective hg y.2),
   erw submonoid.localization_map.mul_inv_left
   (λ y : non_zero_divisors A, show is_unit (g.to_monoid_hom y), from
-    is_unit_map_of_injective hg y),
-  exact (mul_div_cancel' _ (map_ne_zero_of_mem_non_zero_divisors hg)).symm,
+    is_unit_map_of_injective hg y.2),
+  exact (mul_div_cancel' _ (map_ne_zero_of_mem_non_zero_divisors hg y.2)).symm,
 end
 
 /-- Given integral domains `A, B` and localization maps to their fields of fractions
@@ -1306,7 +1390,7 @@ such that `z = f x * (f y)⁻¹`. -/
 noncomputable def map (g : fraction_map B L) {j : A →+* B} (hj : injective j) :
   K →+* L :=
 f.map (λ y, mem_non_zero_divisors_iff_ne_zero.2 $
-  map_ne_zero_of_mem_non_zero_divisors hj) g
+  map_ne_zero_of_mem_non_zero_divisors hj y.2) g
 
 /-- Given integral domains `A, B` and localization maps to their fields of fractions
 `f : A →+* K, g : B →+* L`, an isomorphism `j : A ≃+* B` induces an isomorphism of
@@ -1393,7 +1477,7 @@ begin
       (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
   obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
-  apply mul_left_cancel' (φ.to_map_ne_zero_of_mem_non_zero_divisors ⟨c' * b', b_nonzero⟩),
+  apply mul_left_cancel' (φ.to_map_ne_zero_of_mem_non_zero_divisors b_nonzero),
   simp only [subtype.coe_mk, φ.to_map.map_mul] at *,
   erw [←hab, mul_assoc, φ.mk'_spec' a' ⟨b', b'_nonzero⟩],
 end
@@ -1435,7 +1519,7 @@ lemma is_integer_of_is_unit_denom {x : φ.codomain} (h : is_unit (φ.denom x : A
 begin
   cases h with d hd,
   have d_ne_zero : φ.to_map (φ.denom x) ≠ 0 :=
-    φ.to_map_ne_zero_of_mem_non_zero_divisors (φ.denom x),
+    φ.to_map_ne_zero_of_mem_non_zero_divisors (φ.denom x).2,
   use ↑d⁻¹ * φ.num x,
   refine trans _ (φ.mk'_num_denom x),
   rw [φ.to_map.map_mul, φ.to_map.map_units_inv, hd],
@@ -1477,7 +1561,7 @@ lemma map_injective_of_injective {R S : Type*} [comm_ring R] [comm_ring S]
   (ϕ : R →+* S) (hϕ : function.injective ϕ) (M : submonoid R)
   (f : localization_map M Rₘ) (g : localization_map (M.map ϕ : submonoid S) Sₘ)
   (hM : (M.map ϕ : submonoid S) ≤ non_zero_divisors S) :
-  function.injective (f.map (M.mem_map_of_mem (ϕ : R →* S)) g) :=
+  function.injective (f.map (M.apply_coe_mem_map (ϕ : R →* S)) g) :=
 begin
   rintros x y hxy,
   obtain ⟨a, b, rfl⟩ := localization_map.mk'_surjective f x,
@@ -1501,7 +1585,7 @@ lemma ring_hom.is_integral_elem_localization_at_leading_coeff
   (x : S) (p : polynomial R) (hf : p.eval₂ f x = 0) (M : submonoid R)
   (hM : p.leading_coeff ∈ M) {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
   (ϕ : localization_map M Rₘ) (ϕ' : localization_map (M.map ↑f : submonoid S) Sₘ) :
-  (ϕ.map (M.mem_map_of_mem (f : R →* S)) ϕ').is_integral_elem (ϕ'.to_map x) :=
+  (ϕ.map (M.apply_coe_mem_map (f : R →* S)) ϕ').is_integral_elem (ϕ'.to_map x) :=
 begin
   by_cases triv : (1 : Rₘ) = 0,
   { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
@@ -1553,7 +1637,7 @@ end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
   {f : R →+* S} (hf : f.is_integral) (M : submonoid R) :
-  ((localization.of M).map (M.mem_map_of_mem (f : R →* S))
+  ((localization.of M).map (M.apply_coe_mem_map (f : R →* S))
   (localization.of (M.map ↑f))).is_integral :=
 @is_integral_localization R _ M S _ _ _ _ _ f.to_algebra _ _ hf
 

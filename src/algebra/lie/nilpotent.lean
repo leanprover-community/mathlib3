@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.solvable
 import linear_algebra.eigenspace
+import ring_theory.nilpotent
 
 /-!
 # Nilpotent Lie algebras
@@ -134,6 +135,7 @@ lemma lie_algebra.nilpotent_ad_of_nilpotent_algebra [is_nilpotent R L] :
   ∃ (k : ℕ), ∀ (x : L), (ad R L x)^k = 0 :=
 lie_module.nilpotent_endo_of_nilpotent_module R L L
 
+/-- See also `lie_algebra.zero_root_space_eq_top_of_nilpotent`. -/
 lemma lie_algebra.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L] :
   (⨅ (x : L), (ad R L x).maximal_generalized_eigenspace 0) = ⊤ :=
 lie_module.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent R L L
@@ -186,7 +188,7 @@ lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f 
     simp only [lie_ideal.map_eq_bot_iff, bot_le],
   end, }
 
-lemma lie_algebra.nilpotent_iff_equiv_nilpotent (e : L ≃ₗ⁅R⁆ L') :
+lemma lie_equiv.nilpotent_iff_equiv_nilpotent (e : L ≃ₗ⁅R⁆ L') :
   is_nilpotent R L ↔ is_nilpotent R L' :=
 begin
   split; introsI h,
@@ -194,4 +196,37 @@ begin
   { exact e.injective.lie_algebra_is_nilpotent, },
 end
 
+instance [h : lie_algebra.is_nilpotent R L] : lie_algebra.is_nilpotent R (⊤ : lie_subalgebra R L) :=
+lie_subalgebra.top_equiv_self.nilpotent_iff_equiv_nilpotent.mpr h
+
 end nilpotent_algebras
+
+section of_associative
+
+variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
+
+lemma lie_algebra.ad_nilpotent_of_nilpotent {a : A} (h : is_nilpotent a) :
+  is_nilpotent (lie_algebra.ad R A a) :=
+begin
+  rw lie_algebra.ad_eq_lmul_left_sub_lmul_right,
+  have hl : is_nilpotent (algebra.lmul_left R a), { rwa algebra.is_nilpotent_lmul_left_iff, },
+  have hr : is_nilpotent (algebra.lmul_right R a), { rwa algebra.is_nilpotent_lmul_right_iff, },
+  exact (algebra.commute_lmul_left_right R a a).is_nilpotent_sub hl hr,
+end
+
+variables {R}
+
+lemma lie_subalgebra.is_nilpotent_ad_of_is_nilpotent_ad {L : Type v} [lie_ring L] [lie_algebra R L]
+  (K : lie_subalgebra R L) {x : K} (h : is_nilpotent (lie_algebra.ad R L ↑x)) :
+  is_nilpotent (lie_algebra.ad R K x) :=
+begin
+  obtain ⟨n, hn⟩ := h,
+  use n,
+  exact linear_map.submodule_pow_eq_zero_of_pow_eq_zero (K.ad_comp_incl_eq x) hn,
+end
+
+lemma lie_algebra.is_nilpotent_ad_of_is_nilpotent {L : lie_subalgebra R A} {x : L}
+  (h : is_nilpotent (x : A)) : is_nilpotent (lie_algebra.ad R L x) :=
+L.is_nilpotent_ad_of_is_nilpotent_ad $ lie_algebra.ad_nilpotent_of_nilpotent R h
+
+end of_associative

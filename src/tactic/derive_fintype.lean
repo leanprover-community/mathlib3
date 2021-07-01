@@ -248,10 +248,9 @@ constructors), `k`, the index of the current variant, and `cs`, the list of cons
 This uses `finset_above.cons` for basic variants and `finset_above.union` for variants with
 arguments, using the auxiliary functions `mk_sigma`, `mk_sigma_elim`, `mk_sigma_elim_inj`,
 `mk_sigma_elim_eq` to close subgoals. -/
-meta def mk_finset (args : list expr) : ℕ → list name → tactic unit
+meta def mk_finset (ls : list level) (args : list expr) : ℕ → list name → tactic unit
 | k (c::cs) := do
-  e ← mk_const c,
-  let e := e.mk_app args,
+  let e := (expr.const c ls).mk_app args,
   t ← infer_type e,
   if is_pi t then do
     to_expr ``(finset_above.union %%(reflect k)) tt ff >>=
@@ -314,7 +313,7 @@ do
   applyc ``mk_fintype {new_goals := new_goals.all},
   intro1 >>= cases >>= (λ gs,
     gs.enum.mmap' $ λ ⟨i, _⟩, exact (reflect i)),
-  mk_finset args 0 cs,
+  mk_finset ls args 0 cs,
   intro1 >>= cases >>= mk_finset_total skip
 
 /--

@@ -140,4 +140,8 @@ lemma nat_trans.congr {F G : C ⥤ D} (α : F ⟶ G) {X Y : C} (h : X = Y) :
   α.app X = F.map (eq_to_hom h) ≫ α.app Y ≫ G.map (eq_to_hom h.symm) :=
 by { rw [α.naturality_assoc], simp }
 
+lemma eq_conj_eq_to_hom {X Y : C} (f : X ⟶ Y) :
+  f = eq_to_hom rfl ≫ f ≫ eq_to_hom rfl :=
+by simp only [category.id_comp, eq_to_hom_refl, category.comp_id]
+
 end category_theory

@@ -84,6 +84,9 @@ variables {R X}
 lemma rel.add_left (a b c : lib R X) (h : rel R X b c) : rel R X (a + b) (a + c) :=
 by { rw [add_comm _ b, add_comm _ c], exact rel.add_right _ _ _ h, }
 
+lemma rel.neg (a b : lib R X) (h : rel R X a b) : rel R X (-a) (-b) :=
+h.smul (-1) _ _
+
 end free_lie_algebra
 
 /-- The free Lie algebra on the type `X` with coefficients in the commutative ring `R`. -/
@@ -92,13 +95,15 @@ def free_lie_algebra := quot (free_lie_algebra.rel R X)
 
 namespace free_lie_algebra
 
-instance : add_comm_monoid (free_lie_algebra R X) :=
+instance : add_comm_group (free_lie_algebra R X) :=
 { add            := quot.map₂ (+) rel.add_left rel.add_right,
   add_comm       := by { rintros ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw add_comm, },
   add_assoc      := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_assoc, },
   zero           := quot.mk _ 0,
   zero_add       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw zero_add, },
-  add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, }, }
+  add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, },
+  neg            := quot.map has_neg.neg rel.neg,
+  add_left_neg   := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _ , rw add_left_neg, } }
 
 instance : module R (free_lie_algebra R X) :=
 { smul      := λ t, quot.map ((•) t) (rel.smul t),
@@ -108,9 +113,6 @@ instance : module R (free_lie_algebra R X) :=
   smul_add  := by { rintros t ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw smul_add, },
   zero_smul := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw zero_smul, },
   smul_zero := λ t, by { change quot.mk _ _ = quot.mk _ _, rw smul_zero, }, }
-
-instance : add_comm_group (free_lie_algebra R X) :=
-module.add_comm_monoid_to_add_comm_group R
 
 /-- Note that here we turn the `has_mul` coming from the `non_unital_non_assoc_semiring` structure
 on `lib R X` into a `has_bracket` on `free_lie_algebra`. -/

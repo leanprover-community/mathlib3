@@ -59,8 +59,8 @@ noncomputable theory
 
 variables (R : Type u) (X : Type v) [comm_ring R]
 
-/-- We save characters by using Bourbaki's name `lib` (as in "libre") for `free_non_unital_non_assoc_algebra` in
-this file. -/
+/-- We save characters by using Bourbaki's name `lib` (as in «libre») for
+`free_non_unital_non_assoc_algebra` in this file. -/
 local notation `lib` := free_non_unital_non_assoc_algebra
 local notation `lib.lift` := free_non_unital_non_assoc_algebra.lift
 local notation `lib.of` := free_non_unital_non_assoc_algebra.of

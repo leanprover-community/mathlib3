@@ -1035,6 +1035,10 @@ lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
 
+theorem mk_range_le_lift {α : Type u} {β : Type v} {f : α → β} :
+  lift.{v u} (mk (range f)) ≤ lift.{u v} (mk α) :=
+lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
+
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.of_injective f h).symm⟩
 

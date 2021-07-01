@@ -184,4 +184,16 @@ begin
     exact induction_on_adjoin P base ih ⊤ },
 end
 
+/-- Alternative phrasing of primitive element theorem:
+a finite separable field extension has a basis `1, α, α^2, ..., α^n`.
+
+See also `exists_primitive_element`. -/
+noncomputable def power_basis_of_finite_of_separable
+  [finite_dimensional F E] (F_sep : is_separable F E) :
+  power_basis F E :=
+let α := (exists_primitive_element F_sep).some,
+    pb := (adjoin.power_basis (F_sep.is_integral α)) in
+have e : F⟮α⟯ = ⊤ := (exists_primitive_element F_sep).some_spec,
+pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
+
 end field

@@ -93,6 +93,14 @@ embedding_coe.continuous_iff.symm
 lemma nhds_coe {r : ℝ≥0} : 𝓝 (r : ℝ≥0∞) = (𝓝 r).map coe :=
 (open_embedding_coe.map_nhds_eq r).symm
 
+lemma tendsto_nhds_coe_iff {α : Type*} {l : filter α} {x : ℝ≥0} {f : ℝ≥0∞ → α} :
+  tendsto f (𝓝 ↑x) l ↔ tendsto (f ∘ coe : ℝ≥0 → α) (𝓝 x) l :=
+show _ ≤ _ ↔ _ ≤ _, by rw [nhds_coe, filter.map_map]
+
+lemma continuous_at_coe_iff {α : Type*} [topological_space α] {x : ℝ≥0} {f : ℝ≥0∞ → α} :
+  continuous_at f (↑x) ↔ continuous_at (f ∘ coe : ℝ≥0 → α) x :=
+tendsto_nhds_coe_iff
+
 lemma nhds_coe_coe {r p : ℝ≥0} :
   𝓝 ((r : ℝ≥0∞), (p : ℝ≥0∞)) = (𝓝 (r, p)).map (λp:ℝ≥0×ℝ≥0, (p.1, p.2)) :=
 ((open_embedding_coe.prod open_embedding_coe).map_nhds_eq (r, p)).symm
@@ -643,6 +651,17 @@ begin
 end
 
 end tsum
+
+lemma tendsto_to_real_iff {ι} {fi : filter ι} {f : ι → ℝ≥0∞} (hf : ∀ i, f i ≠ ∞) {x : ℝ≥0∞}
+  (hx : x ≠ ∞) :
+  fi.tendsto (λ n, (f n).to_real) (𝓝 x.to_real) ↔ fi.tendsto f (𝓝 x) :=
+begin
+  refine ⟨λ h, _, λ h, tendsto.comp (ennreal.tendsto_to_real hx) h⟩,
+  have h_eq : f = (λ n, ennreal.of_real (f n).to_real),
+    by { ext1 n, rw ennreal.of_real_to_real (hf n), },
+  rw [h_eq, ← ennreal.of_real_to_real hx],
+  exact ennreal.tendsto_of_real h,
+end
 
 end ennreal
 

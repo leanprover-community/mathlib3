@@ -9,16 +9,17 @@ import linear_algebra.matrix
 /-!
 # Kronecker product of matrices, see https://en.wikipedia.org/wiki/Kronecker_product
 Two main definitions:
-* Given a commutative semiring α and two α algebras we define kronecker_prod₂, denoted ⊗₂[α], as
+* Given a commutative semiring α and three α algebras R S β such that β is both a R- and a S-algebra
+  and there are two instances of scalar towers `is_scalar_tower α R β` and `is_scalar_tower α S β`,
+  we define `kronecker_biprod` as
   the bilinear Kronecker product
-⊗₂[α] : matrix (l n R) →ₗ[α] (matrix m p S) →ₗ[α] (matrix (l × m) (n × p) (R ⊗[α] S).
-* In the special case when α=R=S, we compose ⊗₂[α] with the canoical equivalence α ⊗[α] α ≃ α to
-  define kronecker_prod, denoted by ⊗ₖ as the α-linear map
-  ⊗ₖ  : matrix (l n α) →ₗ[α] (matrix m p α) →ₗ[α] (matrix (l × m) (n × p) (α).
+  kronecker_biprod : matrix (l n R) →ₗ[α] (matrix m p S) →ₗ[α] (matrix (l × m) (n × p) (β).
+* In the special case when R=α=S=β, we define kronecker_prod, denoted by ⊗ₖ as the R-linear map
+  ⊗ₖ  : matrix (l n R) →ₗ[R] (matrix m p R) →ₗ[R] (matrix (l × m) (n × p) R).
 
-For both products, we prove that it is associative (in theorems `kronecker_prod₂_assoc` and
-`prod_assoc`, respectively) as well as the so-called `mixed-product property (in theorems
-`kronecker_prod₂_mul` and `prod_mul`, respectively).
+For both products, we prove that it is associative (in theorems `kronecker_biprod_assoc` and
+`kronecker_prod_assoc`, respectively) as well as the so-called `mixed-product property (in theorems
+`kronecker_biprod_mul` and `kronecker_prod_mul`, respectively).
 
 I (FAE) wonder if this file should be in `linear_algebra/matrix` or rather in `data/matrix`.
 -/
@@ -26,33 +27,6 @@ I (FAE) wonder if this file should be in `linear_algebra/matrix` or rather in `d
 -- For mathlib
 
 universes u v v' u'
-
--- namespace matrix
-
--- open matrix
-
--- variables {α : Type*} [comm_semiring α]
--- variables {γ : Type*} --[add_comm_monoid γ] [module α γ]
--- variables {l m n p l' m' n' p' : Type*}
--- variables [fintype l] [fintype m] [fintype n] [fintype p]
--- variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
-
--- -- protected
--- -- def linear_equiv_index_assoc [add_comm_monoid γ] [module α γ] :
--- --   matrix ((m × n) × p) ((m' × n') × p') γ ≃ₗ[α] matrix (m × n × p) (m' × n' × p') γ :=
--- -- { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _) A,
--- --   map_add' := λ _ _, by simp only [reindex_apply, minor_add, pi.add_apply],
--- --   map_smul' := λ _ _, by simp only [reindex_apply, minor_smul, pi.smul_apply],
--- --   inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm A,
--- --   left_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
--- --     equiv.symm_comp_self],
--- --   right_inv := λ _, by simp only [equiv.symm_symm, reindex_apply, minor_minor, minor_id_id,
--- --     equiv.self_comp_symm],
--- --   }
-
--- end matrix
-
---end mathlib
 
 namespace matrix_bialgebra
 

@@ -63,6 +63,9 @@ instance (R : Type u) [comm_semiring R] : smul_comm_class R
   (free_non_unital_non_assoc_algebra R X) (free_non_unital_non_assoc_algebra R X) :=
 monoid_algebra.smul_comm_class_self R
 
+instance (R : Type u) [ring R] : add_comm_group (free_non_unital_non_assoc_algebra R X) :=
+module.add_comm_monoid_to_add_comm_group R
+
 variables {A : Type w} [non_unital_non_assoc_semiring A]
 variables [module R A] [is_scalar_tower R A A] [smul_comm_class R A A]
 

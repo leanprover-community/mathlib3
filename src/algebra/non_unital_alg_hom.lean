@@ -81,6 +81,8 @@ coe_injective $ funext h
 lemma ext_iff {f g : non_unital_alg_hom R A B} : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
 
+lemma congr_fun {f g : non_unital_alg_hom R A B} (h : f = g) (x : A) : f x = g x := h ▸ rfl
+
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : non_unital_alg_hom R A B) : A → B) = f :=
 rfl

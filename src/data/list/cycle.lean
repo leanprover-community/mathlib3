@@ -604,6 +604,20 @@ lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.prev hs x hx ∈ s :=
 by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
 
+@[simp] lemma prev_next (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.prev hs (s.next hs x hx) (next_mem s hs x hx) = x :=
+begin
+  induction s using quotient.induction_on',
+  simpa using list.prev_next s hs _ _
+end
+
+@[simp] lemma next_prev (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.next hs (s.prev hs x hx) (prev_mem s hs x hx) = x :=
+begin
+  induction s using quotient.induction_on',
+  simpa using list.next_prev s hs _ _
+end
+
 end decidable
 
 end cycle

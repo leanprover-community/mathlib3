@@ -93,7 +93,6 @@ by rw [← function.comp_app (lift R f) (of R) x, of_comp_lift]
   lift R (F ∘ (of R)) = F :=
 by rw [← lift_symm_apply, equiv.apply_symm_apply]
 
-/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma hom_ext {F₁ F₂ : non_unital_alg_hom R (free_non_unital_non_assoc_algebra R X) A}
   (h : F₁ ∘ (of R) = F₂ ∘ (of R)) : F₁ = F₂ :=
 begin

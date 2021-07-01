@@ -114,7 +114,7 @@ instance : add_comm_group (free_lie_algebra R X) :=
 /-- Note that here we turn the `has_mul` coming from the `non_unital_non_assoc_semiring` structure
 on `lib R X` into a `has_bracket` on `free_lie_algebra`. -/
 instance : has_bracket (free_lie_algebra R X) (free_lie_algebra R X) :=
-{ bracket := quot.map₂ (*) (λ a b c, rel.mul_left a b c) (λ a b c, rel.mul_right a b c), }
+{ bracket := quot.map₂ (*) rel.mul_left rel.mul_right, }
 
 instance : lie_ring (free_lie_algebra R X) :=
 { add_lie     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_mul, },
@@ -227,7 +227,6 @@ by rw [← function.comp_app (lift R f) (of R) x, of_comp_lift]
 @[simp] lemma lift_comp_of (F : free_lie_algebra R X →ₗ⁅R⁆ L) : lift R (F ∘ (of R)) = F :=
 by { rw ← lift_symm_apply, exact (lift R).apply_symm_apply F, }
 
-/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma hom_ext {F₁ F₂ : free_lie_algebra R X →ₗ⁅R⁆ L} (h : F₁ ∘ (of R) = F₂ ∘ (of R)) :
   F₁ = F₂ :=
 by { rw [← lift_symm_apply, ← lift_symm_apply] at h, exact (lift R).symm.injective h, }

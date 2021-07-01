@@ -157,7 +157,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
         by { rw ← σ⁻¹.prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
-          by { rw [mul_comm, sign_mul (τ * σ⁻¹)], simp }
+          by { rw [mul_comm, sign_mul (τ * σ⁻¹)], simp only [int.cast_mul, units.coe_mul] }
         ... = ε τ : by simp only [inv_mul_cancel_right],
       by { simp_rw [equiv.coe_mul_right, h], simp only [this] }))
 ... = det M * det N : by simp only [det_apply', finset.mul_sum, mul_comm, mul_left_comm]
@@ -552,7 +552,7 @@ begin
     simp only [],
     erw [set.mem_to_finset, monoid_hom.mem_range],
     use σ₁₂,
-    simp },
+    simp only [sum_congr_hom_apply] },
   { simp only [forall_prop_of_true, prod.forall, mem_univ],
     intros σ₁ σ₂,
     rw fintype.prod_sum_type,
@@ -561,8 +561,7 @@ begin
     have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
     rw hr,
     congr,
-    norm_cast,
-    rw sign_sum_congr },
+    rw [sign_sum_congr, units.coe_mul, int.cast_mul] },
   { intros σ₁ σ₂ h₁ h₂,
     dsimp only [],
     intro h,

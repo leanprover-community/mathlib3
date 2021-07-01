@@ -92,22 +92,17 @@ def free_lie_algebra := quot (free_lie_algebra.rel R X)
 
 namespace free_lie_algebra
 
-instance : has_scalar R (free_lie_algebra R X) :=
-{ smul := λ t a, quot.lift_on a (λ x, quot.mk _ (t • x)) (λ a b h, quot.sound (rel.smul t a b h)), }
-
-instance : has_add (free_lie_algebra R X) :=
-{ add := quot.map₂ (+) rel.add_left rel.add_right, }
-
 instance : add_comm_monoid (free_lie_algebra R X) :=
-{ add_comm       := by { rintros ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw add_comm, },
+{ add            := quot.map₂ (+) rel.add_left rel.add_right,
+  add_comm       := by { rintros ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw add_comm, },
   add_assoc      := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_assoc, },
   zero           := quot.mk _ 0,
   zero_add       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw zero_add, },
-  add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, },
-  .. (infer_instance : has_add _), }
+  add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, }, }
 
 instance : module R (free_lie_algebra R X) :=
-{ one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
+{ smul   := λ t a, quot.lift_on a (λ x, quot.mk _ (t • x)) (λ a b h, quot.sound (rel.smul t a b h)),
+  one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
   mul_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw mul_smul, },
   add_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw add_smul, },
   smul_add  := by { rintros t ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw smul_add, },
@@ -119,11 +114,9 @@ module.add_comm_monoid_to_add_comm_group R
 
 /-- Note that here we turn the `has_mul` coming from the `non_unital_non_assoc_semiring` structure
 on `lib R X` into a `has_bracket` on `free_lie_algebra`. -/
-instance : has_bracket (free_lie_algebra R X) (free_lie_algebra R X) :=
-{ bracket := quot.map₂ (*) rel.mul_left rel.mul_right, }
-
 instance : lie_ring (free_lie_algebra R X) :=
-{ add_lie     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_mul, },
+{ bracket     := quot.map₂ (*) rel.mul_left rel.mul_right,
+  add_lie     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_mul, },
   lie_add     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw mul_add, },
   lie_self    := by { rintros ⟨a⟩, exact quot.sound (rel.lie_self a), },
   leibniz_lie := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, exact quot.sound (rel.leibniz_lie a b c), }, }

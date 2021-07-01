@@ -75,9 +75,14 @@ inductive rel : lib R X → lib R X → Prop
 | lie_self (a : lib R X) : rel (a * a) 0
 | leibniz_lie (a b c : lib R X) : rel (a * (b * c)) (((a * b) * c) + (b * (a * c)))
 | smul (t : R) (a b : lib R X) : rel a b → rel (t • a) (t • b)
-| add (a b c : lib R X) : rel a b → rel (a + c) (b + c)
+| add_right (a b c : lib R X) : rel a b → rel (a + c) (b + c)
 | mul_left (a b c : lib R X) : rel b c → rel (a * b) (a * c)
 | mul_right (a b c : lib R X) : rel a b → rel (a * c) (b * c)
+
+variables {R X}
+
+lemma rel.add_left (a b c : lib R X) (h : rel R X b c) : rel R X (a + b) (a + c) :=
+by { rw [add_comm _ b, add_comm _ c], exact rel.add_right _ _ _ h, }
 
 end free_lie_algebra
 
@@ -91,8 +96,7 @@ instance : has_scalar R (free_lie_algebra R X) :=
 { smul := λ t a, quot.lift_on a (λ x, quot.mk _ (t • x)) (λ a b h, quot.sound (rel.smul t a b h)), }
 
 instance : has_add (free_lie_algebra R X) :=
-{ add            := quot.map₂ (+)
-  (λ a b c, by { rw [add_comm _ b, add_comm _ c], exact rel.add b c a }) (λ a b c, rel.add a b c), }
+{ add := quot.map₂ (+) rel.add_left rel.add_right, }
 
 instance : add_comm_group (free_lie_algebra R X) :=
 { add_comm       := by { rintros ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw add_comm, },
@@ -169,7 +173,7 @@ begin
   { simp only [lift_aux_map_mul, lift_aux_map_add, sub_add_cancel, lie_lie], },
   case rel.smul : t a' b' h₁ h₂
   { simp only [lift_aux_map_smul, h₂], },
-  case rel.add : a' b' c' h₁ h₂
+  case rel.add_right : a' b' c' h₁ h₂
   { simp only [lift_aux_map_add, h₂], },
   case rel.mul_left : a' b' c' h₁ h₂
   { simp only [lift_aux_map_mul, h₂], },

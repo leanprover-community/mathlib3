@@ -101,7 +101,7 @@ instance : add_comm_monoid (free_lie_algebra R X) :=
   add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, }, }
 
 instance : module R (free_lie_algebra R X) :=
-{ smul   := λ t, quot.map ((•) t) (rel.smul t),
+{ smul      := λ t, quot.map ((•) t) (rel.smul t),
   one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
   mul_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw mul_smul, },
   add_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw add_smul, },
@@ -218,8 +218,9 @@ by rw [← function.comp_app (lift R f) (of R) x, of_comp_lift]
 @[simp] lemma lift_comp_of (F : free_lie_algebra R X →ₗ⁅R⁆ L) : lift R (F ∘ (of R)) = F :=
 by { rw ← lift_symm_apply, exact (lift R).apply_symm_apply F, }
 
-@[ext] lemma hom_ext {F₁ F₂ : free_lie_algebra R X →ₗ⁅R⁆ L} (h : F₁ ∘ (of R) = F₂ ∘ (of R)) :
+@[ext] lemma hom_ext {F₁ F₂ : free_lie_algebra R X →ₗ⁅R⁆ L} (h : ∀ x, F₁ (of R x) = F₂ (of R x)) :
   F₁ = F₂ :=
-by { rw [← lift_symm_apply, ← lift_symm_apply] at h, exact (lift R).symm.injective h, }
+have h' : (lift R).symm F₁ = (lift R).symm F₂, { ext, simp [h], },
+(lift R).symm.injective h'
 
 end free_lie_algebra

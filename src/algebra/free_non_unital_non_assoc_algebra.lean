@@ -94,10 +94,8 @@ by rw [← function.comp_app (lift R f) (of R) x, of_comp_lift]
 by rw [← lift_symm_apply, equiv.apply_symm_apply]
 
 @[ext] lemma hom_ext {F₁ F₂ : non_unital_alg_hom R (free_non_unital_non_assoc_algebra R X) A}
-  (h : F₁ ∘ (of R) = F₂ ∘ (of R)) : F₁ = F₂ :=
-begin
-  rw [← lift_symm_apply, ← lift_symm_apply] at h,
-  exact (lift R).symm.injective h,
-end
+  (h : ∀ x, F₁ (of R x) = F₂ (of R x)) : F₁ = F₂ :=
+have h' : (lift R).symm F₁ = (lift R).symm F₂, { ext, simp [h], },
+(lift R).symm.injective h'
 
 end free_non_unital_non_assoc_algebra

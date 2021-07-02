@@ -226,4 +226,20 @@ begin
   { simp [ha, IH] }
 end
 
+@[to_additive] lemma noncomm_prod_union_of_disjoint [decidable_eq α] {s t : finset α}
+  (h : disjoint s t) (f : α → β)
+  (comm : ∀ (x ∈ s ∪ t) (y ∈ s ∪ t), commute (f x) (f y))
+  (scomm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y) :=
+    λ _ hx _ hy, comm _ (mem_union_left _ hx) _ (mem_union_left _ hy))
+  (tcomm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y) :=
+    λ _ hx _ hy, comm _ (mem_union_right _ hx) _ (mem_union_right _ hy)) :
+  noncomm_prod (s ∪ t) f comm = noncomm_prod s f scomm * noncomm_prod t f tcomm :=
+begin
+  obtain ⟨sl, sl', rfl⟩ := exists_list_nodup_eq s,
+  obtain ⟨tl, tl', rfl⟩ := exists_list_nodup_eq t,
+  rw list.disjoint_to_finset_iff_disjoint at h,
+  simp [sl', tl', noncomm_prod_to_finset, ←list.prod_append, ←list.to_finset_append,
+        list.nodup_append_of_nodup sl' tl' h]
+end
+
 end finset

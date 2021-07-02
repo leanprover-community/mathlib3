@@ -66,18 +66,18 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
 
 /-- If the unit of an adjunction is an isomorphism, then its inverse on the image of L is given
 by L whiskered with the counit. -/
-@[reducible]
-def whisker_left_L_counit_iso_of_is_iso_unit [is_iso (adjunction.unit h)] : (L ⋙ R ⋙ L) ≅ L :=
-⟨ ⟨(whisker_left L h.counit).app, (whisker_left L h.counit).naturality⟩,
-  ⟨(whisker_right h.unit L).app, (whisker_right h.unit L).naturality⟩,
-  begin
-    ext x, dsimp,
-    rw [comp_hom_eq_id, ←hom_comp_eq_id],
-    simpa [adjunction.right_triangle, functor.id_obj],
-  end, begin
-    ext x, dsimp,
-    simp [adjunction.right_triangle, functor.id_obj],
-  end⟩
+@[simp]
+lemma inv_map_unit {X : C} [is_iso (h.unit.app X)] :
+  inv (L.map (h.unit.app X)) = h.counit.app (L.obj X) :=
+is_iso.inv_eq_of_hom_inv_id (h.left_triangle_components)
+
+/-- If the unit of an adjunction is an isomorphism, then its inverse on the image of L is given
+by L whiskered with the counit. -/
+@[simps]
+noncomputable def whisker_left_L_counit_iso_of_is_iso_unit [is_iso (adjunction.unit h)] :
+  L ⋙ R ⋙ L ≅ L :=
+(functor.associator _ _ _).symm ≪≫
+  iso_whisker_right (as_iso (adjunction.unit h)).symm L ≪≫ functor.left_unitor _
 
 /-- If the counit of an adjunction is an isomorphism, then its inverse on the image of R is given
 by R whiskered with the unit. -/

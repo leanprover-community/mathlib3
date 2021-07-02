@@ -193,7 +193,8 @@ calc n • a = n • a + 0 : (add_zero _).symm
   ... < n • a + (m - n) • a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
   ... = m • a : by { rw [← add_gsmul], simp }
 
-lemma gsmul_lt_gsmul_of_lt_right_of_pos {a b : A} {m : ℤ} (hab : a < b) (hm : 0 < m) : m • a < m • b :=
+lemma gsmul_lt_gsmul_of_lt_right_of_pos {a b : A} {m : ℤ} (hab : a < b) (hm : 0 < m) :
+  m • a < m • b :=
 begin
   rw ← sub_pos at hab,
   rw [← sub_pos, ← gsmul_sub],

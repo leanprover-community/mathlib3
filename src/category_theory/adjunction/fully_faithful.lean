@@ -67,7 +67,7 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
 /-- If the unit of an adjunction is an isomorphism, then its inverse on the image of L is given
 by L whiskered with the counit. -/
 @[reducible]
-def iso_of_L_counit [is_iso (adjunction.unit h)] : (L ⋙ R ⋙ L) ≅ L :=
+def whisker_left_L_counit_iso_of_is_iso_unit [is_iso (adjunction.unit h)] : (L ⋙ R ⋙ L) ≅ L :=
 ⟨ ⟨(whisker_left L h.counit).app, (whisker_left L h.counit).naturality⟩,
   ⟨(whisker_right h.unit L).app, (whisker_right h.unit L).naturality⟩,
   begin
@@ -82,7 +82,7 @@ def iso_of_L_counit [is_iso (adjunction.unit h)] : (L ⋙ R ⋙ L) ≅ L :=
 /-- If the counit of an adjunction is an isomorphism, then its inverse on the image of R is given
 by R whiskered with the unit. -/
 @[reducible]
-def iso_of_R_unit [is_iso (adjunction.counit h)] : R ≅ (R ⋙ L ⋙ R) :=
+def whisker_left_R_unit_iso_of_is_iso_counit [is_iso (adjunction.counit h)] : R ≅ (R ⋙ L ⋙ R) :=
 ⟨ ⟨(whisker_left R h.unit).app, (whisker_left R h.unit).naturality⟩,
   ⟨(whisker_right h.counit R).app, (whisker_right h.counit R).naturality⟩,
   begin
@@ -101,11 +101,12 @@ def L_full_of_unit_is_iso [is_iso (adjunction.unit h)] : full L :=
   λ X Y f,
   begin
     simp, symmetry,
-    suffices H : f ≫ L.map (h.unit.app Y) ≫ ((iso_of_L_counit h).hom.app Y)
-      = L.map (h.unit.app X) ≫ L.map (R.map f) ≫ ((iso_of_L_counit h).hom.app Y),
+    suffices H : f ≫ L.map (h.unit.app Y) ≫ ((whisker_left_L_counit_iso_of_is_iso_unit h).hom.app Y)
+      = L.map (h.unit.app X) ≫ L.map (R.map f)
+        ≫ ((whisker_left_L_counit_iso_of_is_iso_unit h).hom.app Y),
     { rw [←assoc, ←assoc] at H,
-      rw [(nat_iso.cancel_nat_iso_hom_right (iso_of_L_counit h) (f ≫ L.map (h.unit.app Y))
-        (L.map (h.unit.app X) ≫ L.map (R.map f)))] at H,
+      rw [(nat_iso.cancel_nat_iso_hom_right (whisker_left_L_counit_iso_of_is_iso_unit h)
+      (f ≫ L.map (h.unit.app Y)) (L.map (h.unit.app X) ≫ L.map (R.map f)))] at H,
       rw [←assoc, is_iso.eq_comp_inv],
       exact H},
     { simp }
@@ -127,9 +128,10 @@ def R_full_of_counit_is_iso [is_iso (adjunction.counit h)] : full R :=
   λ X Y f,
   begin
     simp,
-    suffices H : ((iso_of_R_unit h).hom.app X) ≫ R.map (L.map f) ≫ R.map (h.counit.app Y)
-      = ((iso_of_R_unit h).hom.app X) ≫ R.map (h.counit.app X) ≫ f,
-    { rw [nat_iso.cancel_nat_iso_hom_left (iso_of_R_unit h)
+    suffices H : ((whisker_left_R_unit_iso_of_is_iso_counit h).hom.app X) ≫
+      R.map (L.map f) ≫ R.map (h.counit.app Y)
+      = ((whisker_left_R_unit_iso_of_is_iso_counit h).hom.app X) ≫ R.map (h.counit.app X) ≫ f,
+    { rw [nat_iso.cancel_nat_iso_hom_left (whisker_left_R_unit_iso_of_is_iso_counit h)
       (R.map (L.map f) ≫ R.map (h.counit.app Y)) (R.map (h.counit.app X) ≫ f)] at H,
       exact H },
     { simp }

@@ -107,7 +107,7 @@ lemma L_faithful_of_unit_is_iso [is_iso h.unit] : faithful L :=
 /-- If the counit is an isomorphism, then the right adjoint is full-/
 noncomputable
 def R_full_of_counit_is_iso [is_iso h.counit] : full R :=
-{ preimage := λ X Y f, ((inv h.counit).app X) ≫ (h.hom_equiv (R.obj X) Y).symm f }
+{ preimage := λ X Y f, inv (h.counit.app X) ≫ (h.hom_equiv (R.obj X) Y).symm f }
 
 
 /-- If the counit is an isomorphism, then the right adjoint is faithful-/
@@ -115,7 +115,7 @@ lemma R_faithful_of_counit_is_iso [is_iso h.counit] : faithful R :=
 { map_injective' := λ X Y f g H,
   begin
     rw ←(h.hom_equiv (R.obj X) Y).symm.apply_eq_iff_eq at H,
-    simpa using (inv h.counit).app X ≫= H,
+    simpa using inv (h.counit.app X) ≫= H,
   end }
 
 -- TODO also do the statements from Riehl 4.5.13 for full and faithful separately?

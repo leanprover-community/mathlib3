@@ -76,7 +76,7 @@ by L whiskered with the counit. -/
 noncomputable def whisker_left_L_counit_iso_of_is_iso_unit [is_iso h.unit] :
   L ⋙ R ⋙ L ≅ L :=
 (functor.associator _ _ _).symm ≪≫
-  iso_whisker_right (as_iso (adjunction.unit h)).symm L ≪≫ functor.left_unitor _
+  iso_whisker_right (as_iso h.unit).symm L ≪≫ functor.left_unitor _
 
 /-- If the counit of an adjunction is an isomorphism, then its inverse on the image of R is given
 by R whiskered with the unit. -/
@@ -86,10 +86,10 @@ lemma inv_counit_map {X : D} [is_iso (h.counit.app X)] :
 is_iso.inv_eq_of_inv_hom_id h.right_triangle_components
 
 @[simps]
-noncomputable def whisker_left_R_unit_iso_of_is_iso_counit [is_iso (h.counit)] :
-  R ≅ (R ⋙ L ⋙ R) :=
-(functor.left_unitor _).symm ≪≫
-  (iso_whisker_right (as_iso (h.counit)).symm R) ≪≫  (functor.associator _ _ _)
+noncomputable def whisker_left_R_unit_iso_of_is_iso_counit [is_iso h.counit] :
+  (R ⋙ L ⋙ R) ≅ R :=
+(functor.associator _ _ _ ).symm ≪≫
+  (iso_whisker_right (as_iso h.counit) R) ≪≫ functor.left_unitor _
 
 /-- If the unit is an isomorphism, then the left adjoint is full-/
 noncomputable
@@ -111,7 +111,7 @@ def R_full_of_counit_is_iso [is_iso h.counit] : full R :=
 
 
 /-- If the counit is an isomorphism, then the right adjoint is faithful-/
-lemma R_faithful_of_counit_is_iso [is_iso (h.counit)] : faithful R :=
+lemma R_faithful_of_counit_is_iso [is_iso h.counit] : faithful R :=
 { map_injective' := λ X Y f g H,
   begin
     rw ←(h.hom_equiv (R.obj X) Y).symm.apply_eq_iff_eq at H,

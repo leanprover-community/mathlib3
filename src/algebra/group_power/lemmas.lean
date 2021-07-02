@@ -294,6 +294,17 @@ begin
     exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm }
 end
 
+lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : 0 < m) : m • a = m • b ↔ a = b :=
+⟨begin
+   contrapose,
+   intro hab,
+   obtain hab' | hab' := ne_iff_lt_or_gt.mp hab,
+   { apply ne_of_lt,
+     exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm },
+   { apply ne_of_gt,
+     exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm }
+ end, congr_arg _⟩
+
 end linear_ordered_add_comm_group
 
 @[simp] lemma with_bot.coe_nsmul [add_monoid A] (a : A) (n : ℕ) :

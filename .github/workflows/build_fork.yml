@@ -123,15 +123,17 @@ jobs:
     if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/master'
 
     steps:
+      - name: clean build directory
+        if: ${{ 0 }}
+        run: rm -rf ./* ./.??*
+
       - name: retrieve build
         uses: actions/download-artifact@v2
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
       - name: untar build
-        run: |
-          rm -rf *
-          tar -xf workspace.tar
+        run: tar -xf workspace.tar
 
       - name: install elan
         run: |
@@ -154,15 +156,17 @@ jobs:
     if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/master'
 
     steps:
+      - name: clean build directory
+        if: ${{ 0 }}
+        run: rm -rf ./* ./.??*
+
       - name: retrieve build
         uses: actions/download-artifact@v2
         with:
           name: ${{ needs.build.outputs.artifact_name }}
 
       - name: untar build
-        run: |
-          rm -rf *
-          tar -xf workspace.tar
+        run: tar -xf workspace.tar
 
       - name: install elan
         run: |

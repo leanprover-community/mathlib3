@@ -456,33 +456,42 @@ f.continuous_at_iff_continuous_within_at (trivialization_at R F E b)
 
 variables {E}
 
+section
+
+include R F
+
+lemma continuous.add_section [has_continuous_add F] {g h : right_inv (proj E)} (hg : continuous g)
+  (hh : continuous h) : continuous ((g + h : right_inv (proj E)) : B → total_space E) :=
+continuous_iff_continuous_at.mpr (λ b, ((g + h).continuous_at_iff_continuous_within_at_triv_at
+  R F E b).mpr ((continuous_add.continuous_within_at.comp_univ
+  (((g.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hg.continuous_at).prod
+  ((h.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hh.continuous_at))).congr
+  trivialization.snd_map_add (trivialization.snd_map_add b
+  (mem_base_set_trivialization_at R F E b))))
+
+lemma continuous.zero_section : continuous ((0 : right_inv (proj E)) : B → total_space E) :=
+continuous_iff_continuous_at.mpr (λ b,
+  ((0 : right_inv (proj E)).continuous_at_iff_continuous_within_at_triv_at R F E b).mpr
+  (continuous_within_at_const.congr trivialization.snd_map_zero (trivialization.snd_map_zero b
+  (mem_base_set_trivialization_at R F E b))))
+
+variables {R} [topological_space R] [has_continuous_smul R F]
+
+lemma continuous.smul_section {g : right_inv (proj E)} (hg : continuous g) (r : R) :
+  continuous ((r • g : right_inv (proj E)) : B → total_space E) :=
+continuous_iff_continuous_at.2 (λ b, ((r • g).continuous_at_iff_continuous_within_at_triv_at
+  R F E b).mpr ((((right_inv.continuous_at_iff_continuous_within_at_triv_at R F E g b).mp
+  hg.continuous_at).const_smul r).congr trivialization.snd_map_smul (trivialization.snd_map_smul b
+  (mem_base_set_trivialization_at R F E b))))
+
+end
+
 instance [has_continuous_add F] : has_add (bundle_section R F E) :=
-⟨λ g h, { continuous_to_fun := by begin
-  refine continuous_iff_continuous_at.2 (λ b, _),
-  rw [right_inv.to_fun_eq_coe,
-    (((g : right_inv (proj E)) + h).continuous_at_iff_continuous_within_at_triv_at R F E b)],
-  refine continuous_within_at.congr _ trivialization.snd_map_add
-        (trivialization.snd_map_add b (mem_base_set_trivialization_at R F E b)),
-  have hg : continuous_at g.to_fun b := g.continuous_to_fun.continuous_at,
-  have hh : continuous_at h.to_fun b := h.continuous_to_fun.continuous_at,
-  rw [continuous_section.to_fun_eq_coe, ←continuous_section.coe_fn_coe] at hg hh,
-  rw right_inv.continuous_at_iff_continuous_within_at_triv_at R F E ↑g b at hg,
-  rw right_inv.continuous_at_iff_continuous_within_at_triv_at R F E ↑h b at hh,
-  simp only [continuous_section.coe_fn_coe] at *,
-  exact continuous_add.continuous_within_at.comp_univ (hg.prod hh),
-  end,
+⟨λ g h, { continuous_to_fun := continuous.add_section R F g.continuous_to_fun h.continuous_to_fun,
 ..((g : right_inv (proj E)) + h) } ⟩
 
 instance : has_zero (bundle_section R F E) :=
-⟨ { continuous_to_fun := begin
-  refine continuous_iff_continuous_at.2 (λ b, _),
-  rw [right_inv.to_fun_eq_coe,
-    ((0 : right_inv (proj E)).continuous_at_iff_continuous_within_at_triv_at R F E b)],
-  refine continuous_within_at.congr _ trivialization.snd_map_zero
-    (trivialization.snd_map_zero b (mem_base_set_trivialization_at R F E b)),
-  exact continuous_within_at_const
-end,
-  ..(0 : right_inv (proj E))} ⟩
+⟨ { continuous_to_fun := continuous.zero_section R F, ..(0 : right_inv (proj E)) } ⟩
 
 instance : inhabited (bundle_section R F E) := ⟨0⟩
 
@@ -497,19 +506,8 @@ instance [has_continuous_add F] : add_comm_monoid (bundle_section R F E) :=
 variables [topological_space R] [has_continuous_smul R F]
 
 instance : has_scalar R (bundle_section R F E) :=
-⟨λ r g, { continuous_to_fun := by begin
-  refine continuous_iff_continuous_at.2 (λ b, _),
-  rw [right_inv.to_fun_eq_coe,
-    ((r • (g : right_inv (proj E))).continuous_at_iff_continuous_within_at_triv_at R F E b)],
-  refine continuous_within_at.congr _ trivialization.snd_map_smul
-    (trivialization.snd_map_smul b (mem_base_set_trivialization_at R F E b)),
-  have hg : continuous_at g.to_fun b := g.continuous_to_fun.continuous_at,
-  rw [continuous_section.to_fun_eq_coe, ←continuous_section.coe_fn_coe] at hg,
-  rw right_inv.continuous_at_iff_continuous_within_at_triv_at R F E ↑g b at hg,
-  simp only [continuous_section.coe_fn_coe] at *,
-  exact continuous_within_at.const_smul hg r,
-  end,
-..(r • (g : right_inv (proj E))) } ⟩
+⟨λ r g, { continuous_to_fun := continuous.smul_section F g.continuous_to_fun r,
+  ..(r • (g : right_inv (proj E))) } ⟩
 
 instance [has_continuous_add F] : module R (bundle_section R F E) :=
 { zero_smul := λ f, by { apply continuous_section.ext_right_inv, exact zero_smul R _ },
@@ -550,20 +548,22 @@ end
 
 variables (R F) [topological_add_group F]
 
+section
+
+include R F
+
+lemma continuous.neg_section {g : right_inv (proj E)} (hg : continuous g) :
+  continuous ((- g : right_inv (proj E)) : B → total_space E) :=
+continuous_iff_continuous_at.2 (λ b, ((- g).continuous_at_iff_continuous_within_at_triv_at
+  R F E b).mpr ((((right_inv.continuous_at_iff_continuous_within_at_triv_at R F E g b).mp
+  hg.continuous_at).neg).congr trivialization.map_neg (trivialization.map_neg b
+  (mem_base_set_trivialization_at R F E b))))
+
+end
+
 instance : has_neg (bundle_section R F E) :=
-⟨λ g, { continuous_to_fun := by begin
-  refine continuous_iff_continuous_at.2 (λ b, _),
-  rw [right_inv.to_fun_eq_coe,
-    ((-(g : right_inv (proj E))).continuous_at_iff_continuous_within_at_triv_at R F E b)],
-    refine continuous_within_at.congr _ trivialization.map_neg
-    (trivialization.map_neg b (mem_base_set_trivialization_at R F E b)),
-  have hg : continuous_at g.to_fun b := g.continuous_to_fun.continuous_at,
-  rw [continuous_section.to_fun_eq_coe, ←continuous_section.coe_fn_coe] at hg,
-  rw right_inv.continuous_at_iff_continuous_within_at_triv_at R F E ↑g b at hg,
-  simp only [continuous_section.coe_fn_coe] at *,
-  exact continuous_within_at.neg hg,
-  end,
-..(-(g : right_inv (proj E))) } ⟩
+⟨λ g, { continuous_to_fun := continuous.neg_section R F g.continuous_to_fun,
+  ..(-(g : right_inv (proj E))) } ⟩
 
 instance : add_comm_group (bundle_section R F E) :=
 { add_left_neg :=  λ f, by { apply continuous_section.ext_right_inv,

@@ -3,8 +3,6 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
-import data.equiv.basic
-import data.equiv.option
 import group_theory.perm.option
 
 import tactic.equiv_rw

@@ -556,9 +556,8 @@ quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), 
 /--
 The lift of `list.map`.
 -/
-def map {β : Type*} (f : α → β) (s : cycle α) : cycle β :=
-quot.lift_on s (λ l : list α, (l.map f : cycle β))
-  (λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.map _)
+def map {β : Type*} (f : α → β) : cycle α → cycle β :=
+quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
 
 section decidable
 
@@ -629,6 +628,6 @@ by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
 end decidable
 
 instance [has_repr α] : has_repr (cycle α) :=
-⟨λ s, "{" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "}"⟩
+⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
 
 end cycle

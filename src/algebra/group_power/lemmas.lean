@@ -193,25 +193,6 @@ calc n • a = n • a + 0 : (add_zero _).symm
   ... < n • a + (m - n) • a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
   ... = m • a : by { rw [← add_gsmul], simp }
 
-lemma gsmul_lt_of_lt_right {a b : A} {m : ℤ} (hab : a < b) (hm : 0 < m) : m • a < m • b :=
-begin
-  cases m with m m,
-  { simp only [int.coe_nat_pos, int.of_nat_eq_coe, gsmul_coe_nat] at *,
-    exact nsmul_lt_of_lt_right hab hm },
-  { exfalso,
-    rwa [← int.neg_succ_not_pos m] }
-end
-
-lemma gsmul_cancel {a b : A} {m : ℤ} (hmab : m • a = m • b) (hm : 0 < m) : a = b :=
-begin
-  contrapose hmab,
-  cases ne_iff_lt_or_gt.mp hmab with hmab' hmab',
-  { apply ne_of_lt,
-    exact gsmul_lt_of_lt_right hmab' hm },
-  { apply ne_of_gt,
-    exact gsmul_lt_of_lt_right hmab' hm }
-end
-
 lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
   abs (n • a) = n • abs a :=
 begin

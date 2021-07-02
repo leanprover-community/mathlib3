@@ -456,6 +456,49 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   .. surreal.ordered_add_comm_group }
 
+lemma nonneg_of_nsmul_pos (m : ℕ) {x : surreal} (hx : 0 < x) : 0 ≤ m • x :=
+begin
+  induction m with m hm,
+  { simp only [le_refl, zero_smul] },
+  { rw [succ_nsmul x m],
+    exact add_nonneg (le_of_lt hx) hm }
+end
+
+lemma pos_of_nsmul_pos {m : ℕ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
+begin
+  induction m with m _,
+  { exfalso,
+    exact nat.lt_asymm hm hm },
+  { rw [succ_nsmul x m],
+    exact lt_add_of_pos_of_le hx (nonneg_of_nsmul_pos _ hx) }
+end
+
+lemma lt_of_nsmul_pos_lt {m : ℕ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
+begin
+  rw ← sub_pos at *,
+  rw ← smul_sub,
+  exact pos_of_nsmul_pos hm hxy,
+end
+
+lemma gsmul_lt_of_pos_of_lt {m : ℤ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
+begin
+  cases m with m m,
+  { simp only [int.coe_nat_pos, int.of_nat_eq_coe, gsmul_coe_nat] at *,
+    exact lt_of_nsmul_pos_lt hm hxy },
+  { exfalso,
+    rwa [← int.neg_succ_not_pos m] }
+end
+
+lemma gsmul_cancel_of_pos {m : ℤ} {x y : surreal} (hm : 0 < m) (hmxy : m • x = m • y) : x = y :=
+begin
+  contrapose hmxy,
+  cases ne_iff_lt_or_gt.mp hmxy with hmxy' hmxy',
+  { apply ne_of_lt,
+    exact gsmul_lt_of_pos_of_lt hm hmxy' },
+  { apply ne_of_gt,
+    exact gsmul_lt_of_pos_of_lt hm hmxy' }
+end
+
 /-- The surreal number `half`. -/
 def half : surreal := ⟦⟨pgame.half, pgame.numeric_half⟩⟧
 
@@ -491,7 +534,7 @@ begin
                surreal.pow_half_zero] },
   { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k,
         smul_algebra_smul_comm] at hk,
-    exact @gsmul_cancel _ _ _ _ 2 hk (by norm_num) }
+    exact @gsmul_cancel_of_pos 2 _ _ (by norm_num) hk }
 end
 
 lemma nsmul_int_pow_two_pow_half (m : ℤ) (n k : ℕ) :

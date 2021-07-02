@@ -150,17 +150,6 @@ lemma det_aux_comp (b : trunc $ basis ι A M) (f g : M →ₗ[A] M) :
   linear_map.det_aux b (f.comp g) = linear_map.det_aux b f * linear_map.det_aux b g :=
 (linear_map.det_aux b).map_mul f g
 
-/-- Given a ring homorphism `f` from `S` to `R`, the induced ring homomorphism `f.map_matrix` from
-matrices over `S` to matrices over `R` preserves the property of having determinant 1. -/
-lemma ring_hom.map_det_one {M : matrix n n R} (f : R →+* S) (h : det M = 1) :
-  (f.map_matrix M).det = 1 :=
-by rw ← matrix.ring_hom.map_det; simp [h]
-
-lemma alg_hom.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
-  {M : matrix n n S} {f : S →ₐ[R] T} :
-  f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
-by rw [← alg_hom.coe_to_ring_hom, ring_hom.map_det]
-
 section
 open_locale classical
 

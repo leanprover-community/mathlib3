@@ -117,7 +117,7 @@ lemma R_faithful_of_counit_is_iso [is_iso (h.counit)] : faithful R :=
   begin
     rw ←(h.hom_equiv (R.obj X) Y).symm.apply_eq_iff_eq at H,
     simpa using ((inv h.counit).app X) ≫= H,
-  end}
+  end }
 
 -- TODO also do the statements from Riehl 4.5.13 for full and faithful separately?
 

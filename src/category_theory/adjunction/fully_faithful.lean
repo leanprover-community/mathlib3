@@ -68,12 +68,12 @@ by L whiskered with the counit. -/
 @[simp]
 lemma inv_map_unit {X : C} [is_iso (h.unit.app X)] :
   inv (L.map (h.unit.app X)) = h.counit.app (L.obj X) :=
-is_iso.inv_eq_of_hom_inv_id (h.left_triangle_components)
+is_iso.inv_eq_of_hom_inv_id h.left_triangle_components
 
 /-- If the unit of an adjunction is an isomorphism, then its inverse on the image of L is given
 by L whiskered with the counit. -/
 @[simps]
-noncomputable def whisker_left_L_counit_iso_of_is_iso_unit [is_iso (adjunction.unit h)] :
+noncomputable def whisker_left_L_counit_iso_of_is_iso_unit [is_iso h.unit] :
   L ⋙ R ⋙ L ≅ L :=
 (functor.associator _ _ _).symm ≪≫
   iso_whisker_right (as_iso (adjunction.unit h)).symm L ≪≫ functor.left_unitor _
@@ -82,8 +82,8 @@ noncomputable def whisker_left_L_counit_iso_of_is_iso_unit [is_iso (adjunction.u
 by R whiskered with the unit. -/
 @[simp]
 lemma inv_counit_map {X : D} [is_iso (h.counit.app X)] :
-  inv (R.map (h.counit.app X)) = (h.unit.app (R.obj X)) :=
-is_iso.inv_eq_of_inv_hom_id (h.right_triangle_components)
+  inv (R.map (h.counit.app X)) = h.unit.app (R.obj X) :=
+is_iso.inv_eq_of_inv_hom_id h.right_triangle_components
 
 @[simps]
 noncomputable def whisker_left_R_unit_iso_of_is_iso_counit [is_iso (h.counit)] :
@@ -93,11 +93,11 @@ noncomputable def whisker_left_R_unit_iso_of_is_iso_counit [is_iso (h.counit)] :
 
 /-- If the unit is an isomorphism, then the left adjoint is full-/
 noncomputable
-def L_full_of_unit_is_iso [is_iso (h.unit)] : full L :=
-{ preimage := λ X Y f, ((h.hom_equiv X (L.obj Y)) f) ≫ inv ((h.unit).app Y) }
+def L_full_of_unit_is_iso [is_iso h.unit] : full L :=
+{ preimage := λ X Y f, (h.hom_equiv X (L.obj Y) f) ≫ inv (h.unit.app Y) }
 
 /-- If the unit is an isomorphism, then the left adjoint is faithful-/
-lemma L_faithful_of_unit_is_iso [is_iso (adjunction.unit h)] : faithful L :=
+lemma L_faithful_of_unit_is_iso [is_iso h.unit] : faithful L :=
 { map_injective' := λ X Y f g H,
   begin
     rw ←(h.hom_equiv X (L.obj Y)).apply_eq_iff_eq at H,
@@ -106,8 +106,8 @@ lemma L_faithful_of_unit_is_iso [is_iso (adjunction.unit h)] : faithful L :=
 
 /-- If the counit is an isomorphism, then the right adjoint is full-/
 noncomputable
-def R_full_of_counit_is_iso [is_iso (h.counit)] : full R :=
-{ preimage := λ X Y f, ((inv (adjunction.counit h)).app X) ≫ (h.hom_equiv (R.obj X) Y).symm f }
+def R_full_of_counit_is_iso [is_iso h.counit] : full R :=
+{ preimage := λ X Y f, ((inv h.counit).app X) ≫ (h.hom_equiv (R.obj X) Y).symm f }
 
 
 /-- If the counit is an isomorphism, then the right adjoint is faithful-/
@@ -115,7 +115,7 @@ lemma R_faithful_of_counit_is_iso [is_iso (h.counit)] : faithful R :=
 { map_injective' := λ X Y f g H,
   begin
     rw ←(h.hom_equiv (R.obj X) Y).symm.apply_eq_iff_eq at H,
-    simpa using ((inv h.counit).app X) ≫= H,
+    simpa using (inv h.counit).app X ≫= H,
   end }
 
 -- TODO also do the statements from Riehl 4.5.13 for full and faithful separately?

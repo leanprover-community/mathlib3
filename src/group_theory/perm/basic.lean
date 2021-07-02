@@ -262,7 +262,7 @@ dif_pos hx
 @[simp] lemma of_subtype_apply_coe {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : subtype p)  :
   of_subtype f x = f x :=
-by simpa using of_subtype_apply_of_mem f x.prop
+subtype.cases_on x $ λ _, of_subtype_apply_of_mem f
 
 lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) {x : α} (hx : ¬ p x) :

@@ -119,10 +119,6 @@ by rw [← mul_le_mul_iff_left b, mul_inv_cancel_left]
 lemma inv_le_iff_one_le_mul' : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
 (mul_le_mul_iff_left a).symm.trans $ by rw mul_inv_self
 
-@[simp, to_additive]
-lemma le_inv_mul_iff_mul_le : c ≤ b⁻¹ * a ↔ b * c ≤ a :=
-(mul_le_mul_iff_left b).symm.trans $ by rw mul_inv_cancel_left
-
 @[to_additive]
 lemma le_inv_iff_mul_le_one_left : a ≤ b⁻¹ ↔ b * a ≤ 1 :=
 (mul_le_mul_iff_left b).symm.trans $ by rw mul_inv_self

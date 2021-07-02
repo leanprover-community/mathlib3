@@ -354,7 +354,7 @@ begin
                                                 (λ he, h2 (vsub_eq_zero_iff_eq.1 he))
 end
 
-/-- Stewart's Theorem. -/
+/-- **Stewart's Theorem**. -/
 theorem dist_sq_mul_dist_add_dist_sq_mul_dist (a b c p : P) (h : ∠ b p c = π) :
   dist a b ^ 2 * dist c p + dist a c ^ 2 * dist b p =
   dist b c * (dist a p ^ 2 + dist b p * dist c p) :=
@@ -365,7 +365,7 @@ begin
   ring,
 end
 
-/-- Apollonius's Theorem. -/
+/-- **Apollonius's Theorem**. -/
 theorem dist_sq_add_dist_sq_eq_two_mul_dist_midpoint_sq_add_half_dist_sq (a b c : P) :
   dist a b ^ 2 + dist a c ^ 2 = 2 * (dist a (midpoint ℝ b c) ^ 2 + (dist b c / 2) ^ 2) :=
 begin

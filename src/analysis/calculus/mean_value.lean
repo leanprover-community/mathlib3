@@ -674,7 +674,7 @@ variables (f f' : ℝ → ℝ) {a b : ℝ} (hab : a < b) (hfc : continuous_on f 
 
 include hab hfc hff' hgc hgg'
 
-/-- Cauchy's Mean Value Theorem, `has_deriv_at` version. -/
+/-- Cauchy's **Mean Value Theorem**, `has_deriv_at` version. -/
 lemma exists_ratio_has_deriv_at_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * f' c = (f b - f a) * g' c :=
 begin
@@ -692,7 +692,7 @@ end
 
 omit hfc hgc
 
-/-- Cauchy's Mean Value Theorem, extended `has_deriv_at` version. -/
+/-- Cauchy's **Mean Value Theorem**, extended `has_deriv_at` version. -/
 lemma exists_ratio_has_deriv_at_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
   (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))

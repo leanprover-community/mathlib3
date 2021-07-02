@@ -30,6 +30,8 @@ on:
       - 'lean-3.*'
       # ignore staging branch used by bors, this is handled by bors.yml
       - 'staging'
+
+name: continuous integration
 EOF
   include 1 pr ==
 }
@@ -43,6 +45,8 @@ on:
   push:
     branches:
       - staging
+
+name: continuous integration (staging)
 EOF
   include 1 self-hosted ==
 }
@@ -62,6 +66,8 @@ on:
       - 'nolints'
       # do not build lean-x.y.z branch used by leanpkg
       - 'lean-3.*'
+
+name: continuous integration (mathlib forks)
 EOF
   include 0 ubuntu-latest !=
 }

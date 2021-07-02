@@ -1,6 +1,4 @@
 
-name: continuous integration
-
 jobs:
 
   # Cancels previous runs of jobs in this file

@@ -17,7 +17,7 @@ on:
       # do not build lean-x.y.z branch used by leanpkg
       - 'lean-3.*'
 
-name: continuous integration
+name: continuous integration (mathlib forks)
 
 jobs:
 

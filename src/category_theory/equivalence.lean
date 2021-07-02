@@ -526,7 +526,7 @@ A functor which is full, faithful, and essentially surjective is an equivalence.
 
 See https://stacks.math.columbia.edu/tag/02C3.
 -/
-noncomputable def equivalence_of_fully_faithfully_ess_surj
+noncomputable def of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components

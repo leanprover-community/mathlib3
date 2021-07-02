@@ -245,13 +245,14 @@ alg_hom.of_linear_map
     by rw [ring_hom.map_one, zero_smul, add_zero])
   (λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, show algebra_map ℝ A (x₁ * x₂ - y₁ * y₂) + (x₁ * y₂ + y₁ * x₂) • I'
                           = (algebra_map ℝ A x₁ + y₁ • I') * (algebra_map ℝ A x₂ + y₂ • I'),
-    by {
+    begin
       rw [add_mul, mul_add, mul_add, add_comm _ (y₁ • I' * y₂ • I'), add_add_add_comm],
       congr' 1, -- equate "real" and "imaginary" parts
       { rw [smul_mul_smul, hf, smul_neg, ←algebra.algebra_map_eq_smul_one, ←sub_eq_add_neg,
           ←ring_hom.map_mul, ←ring_hom.map_sub], },
       { rw [algebra.smul_def, algebra.smul_def, algebra.smul_def, ←algebra.right_comm _ x₂,
-          ←mul_assoc, ←add_mul, ←ring_hom.map_mul, ←ring_hom.map_mul, ←ring_hom.map_add], } } )
+          ←mul_assoc, ←add_mul, ←ring_hom.map_mul, ←ring_hom.map_mul, ←ring_hom.map_add] }
+    end)
 
 @[simp]
 lemma lift_aux_apply (I' : A) (hI') (z : ℂ) :

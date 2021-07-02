@@ -222,6 +222,18 @@ theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 
+lemma add_eq_max_iff {n m : ℕ} :
+  n + m = max n m ↔ n = 0 ∨ m = 0 :=
+begin
+  split,
+  { intro h,
+    cases le_total n m with H H,
+    { simpa [H] using or.inl h },
+    { simpa [H] using or.inr h } },
+  { rintro (rfl|rfl);
+    simp }
+end
+
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 lt_of_le_of_lt (nat.zero_le _) h
 

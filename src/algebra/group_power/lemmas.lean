@@ -285,16 +285,6 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
 end
 
-lemma eq_of_gsmul_eq_gsmul_of_pos {a b : A} {m : ℤ} (hab : m • a = m • b) (hm : 0 < m) : a = b :=
-begin
-  contrapose hab,
-  obtain hab' | hab' := ne_iff_lt_or_gt.mp hab,
-  { apply ne_of_lt,
-    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm },
-  { apply ne_of_gt,
-    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm }
-end
-
 lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : 0 < m) : m • a = m • b ↔ a = b :=
 ⟨begin
    contrapose,

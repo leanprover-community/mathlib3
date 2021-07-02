@@ -88,7 +88,7 @@ end
 /--
 First case of the inductive step: assuming that
 `∀ (s : finset ι), s.nonempty → s ≠ univ → s.card < (s.bUnion t).card`
-and that the statement of Hall's Marriage Theorem is true for all
+and that the statement of **Hall's Marriage Theorem** is true for all
 `ι'` of cardinality ≤ `n`, then it is true for `ι` of cardinality `n + 1`.
 -/
 lemma hall_hard_inductive_step_A {n : ℕ} (hn : fintype.card ι = n + 1)

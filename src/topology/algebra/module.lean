@@ -122,6 +122,11 @@ lemma submodule.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
+  s.topological_closure ≤ t.topological_closure :=
+s.topological_closure_minimal (h.trans t.submodule_topological_closure)
+  t.is_closed_topological_closure
+
 end closure
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
@@ -169,6 +174,9 @@ variables
 
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
+
+-- make the coercion the preferred form
+@[simp] lemma to_linear_map_eq_coe (f : M →L[R] M₂) : f.to_linear_map = f := rfl
 
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
@@ -233,6 +241,14 @@ lemma ext_on [t2_space M₂] {s : set M} (hs : dense (submodule.span R s : set M
   (h : set.eq_on f g s) :
   f = g :=
 ext $ λ x, eq_on_closure_span h (hs x)
+
+/-- Under a continuous linear map, the image of the `topological_closure` of a submodule is
+contained in the `topological_closure` of its image. -/
+lemma _root_.submodule.topological_closure_map [topological_space R] [has_continuous_smul R M]
+  [has_continuous_add M] [has_continuous_smul R M₂] [has_continuous_add M₂] (f : M →L[R] M₂)
+  (s : submodule R M) :
+  (s.topological_closure.map f.to_linear_map) ≤ (s.map f.to_linear_map).topological_closure :=
+image_closure_subset_closure_image f.continuous
 
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_zero⟩⟩

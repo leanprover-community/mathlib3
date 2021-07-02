@@ -114,11 +114,13 @@ lemma map_smul [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
   (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 by { ext, simp, }
 
-lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, contrapose! hm, use i }⟩
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim i }⟩
 
-lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, contrapose! hn, use j }⟩
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
 end matrix
 
@@ -934,6 +936,9 @@ lemma minor_zero [has_zero α] :
 lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α] (r : R)
   (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
+
+lemma minor_map (f : α → β) (e₁ : l → m) (e₂ : o → n) (A : matrix m n α) :
+  (A.map f).minor e₁ e₂ = (A.minor e₁ e₂).map f := rfl
 
 /-- Given a `(m × m)` diagonal matrix defined by a map `d : m → α`, if the reindexing map `e` is
   injective, then the resulting matrix is again diagonal. -/

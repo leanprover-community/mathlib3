@@ -90,19 +90,8 @@ le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
 /-- Out of three reals, two must have the same sign. -/
 lemma mul_nonneg_of_three (x y z : ℝ) :
   0 ≤ x * y ∨ 0 ≤ y * z ∨ 0 ≤ z * x :=
-begin
-  cases le_total 0 x with hx hx,
-  { cases le_total 0 y with hy hy,
-    { left, exact mul_nonneg hx hy },
-    cases le_total 0 z with hz hz,
-    { right, right, exact mul_nonneg hz hx },
-    { right, left, exact mul_nonneg_of_nonpos_of_nonpos hy hz } },
-  { cases le_total 0 y with hy hy,
-    cases le_total 0 z with hz hz,
-    { right, left, exact mul_nonneg hy hz },
-    { right, right, exact mul_nonneg_of_nonpos_of_nonpos hz hx },
-    { left, exact mul_nonneg_of_nonpos_of_nonpos hx hy } }
-end
+by iterate 3 { rw mul_nonneg_iff };
+  have := le_total 0 x; have := le_total 0 y; have := le_total 0 z; itauto
 
 /-- Proof that `M = 9 * sqrt 2 / 32` works with the substitution. -/
 theorem subst_proof₁ (x y z s : ℝ) (hxyz : x + y + z = 0) :

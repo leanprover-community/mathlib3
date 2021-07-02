@@ -4,7 +4,7 @@
 # Edit build.yml.in instead and run mk_build_yml.sh to update.
 
 # Forks of mathlib and other projects should be able to use build_fork.yml directly
-# The jobs in this file run on self-hosted workers and will not be run from external forks
+# The jobs in this file run on GitHub-hosted workers and will only be run from external forks
 
 on:
   push:
@@ -16,8 +16,6 @@ on:
       - 'nolints'
       # do not build lean-x.y.z branch used by leanpkg
       - 'lean-3.*'
-      # ignore staging branch used by bors, this is handled by bors.yml
-      - 'staging'
 
 name: continuous integration
 
@@ -25,7 +23,7 @@ jobs:
 
   # Cancels previous runs of jobs in this file
   cancel:
-    if: github.repository == 'leanprover-community/mathlib'
+    if: github.repository != 'leanprover-community/mathlib'
     name: 'Cancel Previous Runs (CI)'
     runs-on: ubuntu-latest
     # timeout-minutes: 3
@@ -36,14 +34,14 @@ jobs:
           access_token: ${{ github.token }}
 
   style_lint:
-    if: github.repository == 'leanprover-community/mathlib'
+    if: github.repository != 'leanprover-community/mathlib'
     name: Lint style
-    runs-on: pr
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: install Python
-        if: ${{ ! 1 }}
+        if: ${{ ! 0 }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
@@ -53,9 +51,9 @@ jobs:
           ./scripts/lint-style.sh
 
   build:
-    if: github.repository == 'leanprover-community/mathlib'
+    if: github.repository != 'leanprover-community/mathlib'
     name: Build mathlib
-    runs-on: pr
+    runs-on: ubuntu-latest
     env:
       # number of commits to check for olean cache
       GIT_HISTORY_DEPTH: 20
@@ -75,7 +73,7 @@ jobs:
           echo "short_lean_version=$(~/.elan/bin/lean --run scripts/lean_version.lean)" >> $GITHUB_ENV
 
       - name: install Python
-        if: ${{ ! 1 }}
+        if: ${{ ! 0 }}
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
@@ -118,7 +116,7 @@ jobs:
 
   lint:
     name: Lint mathlib
-    runs-on: pr
+    runs-on: ubuntu-latest
     needs: build
 
     # skip on master branch
@@ -147,7 +145,7 @@ jobs:
 
   tests:
     name: Run tests
-    runs-on: pr
+    runs-on: ubuntu-latest
     needs: build
 
     # skip on master branch
@@ -170,13 +168,13 @@ jobs:
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: install Python
-        if: ${{ ! 1 }}
+        if: ${{ ! 0 }}
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
 
       - name: install Python dependencies
-        if: ${{ ! 1 }}
+        if: ${{ ! 0 }}
         run: python -m pip install --upgrade pip pyyaml
 
       - name: tests
@@ -185,7 +183,7 @@ jobs:
           lean --json -T100000 --make docs archive roadmap test counterexamples | python scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
-        if: ${{ ! 1 }}
+        if: ${{ ! 0 }}
         with:
           distribution: 'adopt'
           java-version: '16'

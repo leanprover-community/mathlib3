@@ -42,7 +42,7 @@ lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i • 
 | 0 := by simp [zero_nsmul]
 | (k+1) := by { rw [succ_nsmul, succ_nsmul], exact add_le_add hab (nsmul_le_nsmul_of_le_right _) }
 
-lemma nsmul_lt_of_lt_right {a b : A} {i : ℕ} (hab : a < b) (hi : 0 < i) : i • x < i • y :=
+lemma nsmul_lt_of_lt_right {a b : A} {i : ℕ} (hab : a < b) (hi : 0 < i) : i • a < i • b :=
 begin
   rw ← sub_pos at *,
   rw ← smul_sub,

@@ -75,8 +75,7 @@ by L whiskered with the counit. -/
 @[simps]
 noncomputable def whisker_left_L_counit_iso_of_is_iso_unit [is_iso h.unit] :
   L ⋙ R ⋙ L ≅ L :=
-(functor.associator _ _ _).symm ≪≫
-  iso_whisker_right (as_iso h.unit).symm L ≪≫ functor.left_unitor _
+(L.associator R L).symm ≪≫ iso_whisker_right (as_iso h.unit).symm L ≪≫ functor.left_unitor _
 
 /-- If the counit of an adjunction is an isomorphism, then its inverse on the image of R is given
 by R whiskered with the unit. -/
@@ -88,8 +87,7 @@ is_iso.inv_eq_of_inv_hom_id h.right_triangle_components
 @[simps]
 noncomputable def whisker_left_R_unit_iso_of_is_iso_counit [is_iso h.counit] :
   (R ⋙ L ⋙ R) ≅ R :=
-(functor.associator _ _ _ ).symm ≪≫
-  (iso_whisker_right (as_iso h.counit) R) ≪≫ functor.left_unitor _
+(R.associator L R).symm ≪≫ iso_whisker_right (as_iso h.counit) R ≪≫ functor.left_unitor _
 
 /-- If the unit is an isomorphism, then the left adjoint is full-/
 noncomputable

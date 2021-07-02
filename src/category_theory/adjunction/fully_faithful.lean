@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import category_theory.adjunction.basic
 import category_theory.conj
 import category_theory.yoneda
-import tactic.apply_fun
 
 open category_theory
 

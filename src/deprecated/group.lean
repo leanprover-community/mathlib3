@@ -93,7 +93,8 @@ structure is_add_monoid_hom [add_zero_class α] [add_zero_class β] (f : α → 
 
 /-- Predicate for monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 @[to_additive]
-structure is_monoid_hom [mul_one_class α] [mul_one_class β] (f : α → β) extends is_mul_hom f : Prop :=
+structure is_monoid_hom [mul_one_class α] [mul_one_class β] (f : α → β)
+  extends is_mul_hom f : Prop :=
 (map_one [] : f 1 = 1)
 
 namespace monoid_hom
@@ -153,8 +154,9 @@ lemma inv {α β} [mul_one_class α] [comm_group β] {f : α → β} (hf : is_mo
 { map_one := hf.map_one.symm ▸ one_inv,
   map_mul := λ a b, (hf.map_mul a b).symm ▸ mul_inv _ _ }
 
+-- do we ever need this? It's a pain to prove here because we have no `int.induction_on` yet
 --@[to_additive]
---lemma gpow (z : ℤ) [comm_group β] : is_monoid_hom (gpow z : β → β) := sorry (do we ever need this?)
+--lemma gpow (z : ℤ) [comm_group β] : is_monoid_hom (gpow z : β → β) := sorry
 
 end is_monoid_hom
 
@@ -383,6 +385,6 @@ lemma additive.is_add_group_hom [group α] [group β] {f : α → β} (hf : is_g
   @is_add_group_hom (additive α) (additive β) _ _ f :=
 { map_add := hf.to_is_mul_hom.map_mul }
 
-lemma multiplicative.is_group_hom [add_group α] [add_group β] {f : α → β} (hf : is_add_group_hom f) :
-  @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
+lemma multiplicative.is_group_hom [add_group α] [add_group β] {f : α → β}
+  (hf : is_add_group_hom f) : @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
 { map_mul := hf.to_is_add_hom.map_add }

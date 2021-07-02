@@ -246,6 +246,14 @@ cokernel.π_desc _ _ _
 instance : mono (coimages.factor_thru_coimage f) :=
 show mono (non_preadditive_abelian.factor_thru_coimage f), by apply_instance
 
+section
+variables {f}
+
+lemma comp_coimage_π_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : f ≫ coimages.coimage.π g = 0 :=
+zero_of_comp_mono (coimages.factor_thru_coimage g) $ by simp [h]
+
+end
+
 instance epi_factor_thru_coimage [epi f] : epi (coimages.factor_thru_coimage f) :=
 epi_of_epi_fac $ coimage.fac f
 

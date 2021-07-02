@@ -415,6 +415,10 @@ lemma image_ι_comp_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f
   [epi (factor_thru_image f)] (h : f ≫ g = 0) : image.ι f ≫ g = 0 :=
 zero_of_epi_comp (factor_thru_image f) $ by simp [h]
 
+lemma comp_factor_thru_image_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image g]
+  (h : f ≫ g = 0) : f ≫ factor_thru_image g = 0 :=
+zero_of_comp_mono (image.ι g) $ by simp [h]
+
 variables [has_zero_object C]
 open_locale zero_object
 

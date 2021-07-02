@@ -70,8 +70,7 @@ lemma inv_map_unit {X : C} [is_iso (h.unit.app X)] :
   inv (L.map (h.unit.app X)) = h.counit.app (L.obj X) :=
 is_iso.inv_eq_of_hom_inv_id h.left_triangle_components
 
-/-- If the unit of an adjunction is an isomorphism, then its inverse on the image of L is given
-by L whiskered with the counit. -/
+/-- If the unit is an isomorphism, bundle one has an isomorphism `L ⋙ R ⋙ L ≅ L`. -/
 @[simps]
 noncomputable def whisker_left_L_counit_iso_of_is_iso_unit [is_iso h.unit] :
   L ⋙ R ⋙ L ≅ L :=
@@ -84,8 +83,7 @@ lemma inv_counit_map {X : D} [is_iso (h.counit.app X)] :
   inv (R.map (h.counit.app X)) = h.unit.app (R.obj X) :=
 is_iso.inv_eq_of_inv_hom_id h.right_triangle_components
 
-/-- If the counit of an adjunction is an isomorphism, then its inverse on the image of R is given
-by R whiskered with the unit. -/
+/-- If the counit of an is an isomorphism, one has an isomorphism `(R ⋙ L ⋙ R) ≅ R`. -/
 @[simps]
 noncomputable def whisker_left_R_unit_iso_of_is_iso_counit [is_iso h.counit] :
   (R ⋙ L ⋙ R) ≅ R :=

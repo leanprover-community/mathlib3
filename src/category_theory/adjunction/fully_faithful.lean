@@ -98,13 +98,12 @@ def L_full_of_unit_is_iso [is_iso (h.unit)] : full L :=
 { preimage := λ X Y f, ((h.hom_equiv X (L.obj Y)) f) ≫ inv ((h.unit).app Y) }
 
 /-- If the unit is an isomorphism, then the left adjoint is faithful-/
-def L_faithful_of_unit_is_iso [is_iso (adjunction.unit h)] : faithful L :=
-⟨ λ X Y,
+lemma L_faithful_of_unit_is_iso [is_iso (adjunction.unit h)] : faithful L :=
+{ map_injective' := λ X Y f g H,
   begin
-    intros f g H,
-    apply_fun (λ k, ((h.hom_equiv X (L.obj Y)) k) ≫ (inv (adjunction.unit h)).app Y) at H,
-    simpa using H,
-  end⟩
+    rw ←(h.hom_equiv X (L.obj Y)).apply_eq_iff_eq at H,
+    simpa using H =≫ inv (h.unit.app Y),
+  end }
 
 /-- If the counit is an isomorphism, then the right adjoint is full-/
 noncomputable

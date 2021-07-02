@@ -33,7 +33,7 @@ on:
 
 name: continuous integration
 EOF
-  include 1 pr ==
+  include 1 pr == ""
 }
 
 bors_yml() {
@@ -48,7 +48,7 @@ on:
 
 name: continuous integration (staging)
 EOF
-  include 1 self-hosted ==
+  include 1 self-hosted == ""
 }
 
 build_fork_yml() {
@@ -69,7 +69,7 @@ on:
 
 name: continuous integration (mathlib forks)
 EOF
-  include 0 ubuntu-latest !=
+  include 0 ubuntu-latest != " (fork)"
 }
 
 include() {
@@ -77,6 +77,7 @@ include() {
     s/IS_SELF_HOSTED/$1/g;
     s/RUNS_ON/$2/g;
     s/MAIN_OR_FORK/$3/g;
+    s/JOB_NAME/$4/g;
   " build.yml.in
 }
 

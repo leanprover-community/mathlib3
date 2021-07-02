@@ -15,7 +15,7 @@ jobs:
 
   style_lint:
     if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
-    name: Lint style
+    name: Lint styleJOB_NAME
     runs-on: RUNS_ON
     steps:
       - uses: actions/checkout@v2
@@ -32,7 +32,7 @@ jobs:
 
   build:
     if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
-    name: Build mathlib
+    name: Build mathlibJOB_NAME
     runs-on: RUNS_ON
     env:
       # number of commits to check for olean cache
@@ -95,7 +95,7 @@ jobs:
           path: workspace.tar
 
   lint:
-    name: Lint mathlib
+    name: Lint mathlibJOB_NAME
     runs-on: RUNS_ON
     needs: build
 
@@ -128,7 +128,7 @@ jobs:
           lean --run scripts/lint_mathlib.lean
 
   tests:
-    name: Run tests
+    name: Run testsJOB_NAME
     runs-on: RUNS_ON
     needs: build
 

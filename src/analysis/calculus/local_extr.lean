@@ -301,7 +301,7 @@ lemma exists_local_extr_Ioo (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI
 let ⟨c, cmem, hc⟩ := exists_Ioo_extr_on_Icc f hab hfc hfI
 in ⟨c, cmem, hc.is_local_extr $ Icc_mem_nhds cmem.1 cmem.2⟩
 
-/-- Rolle's Theorem `has_deriv_at` version -/
+/-- **Rolle's Theorem** `has_deriv_at` version -/
 lemma exists_has_deriv_at_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b)
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
   ∃ c ∈ Ioo a b, f' c = 0 :=

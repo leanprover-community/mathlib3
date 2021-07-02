@@ -82,7 +82,7 @@ end
 def id : C(α, α) := ⟨id⟩
 
 @[simp] lemma id_coe : (id : α → α) = id := rfl
-@[simp] lemma id_apply (a : α) : id a = a := rfl
+lemma id_apply (a : α) : id a = a := rfl
 
 /-- The composition of continuous maps, as a continuous map. -/
 def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) := ⟨f ∘ g⟩

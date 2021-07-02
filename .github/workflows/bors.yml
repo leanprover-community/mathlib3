@@ -123,7 +123,9 @@ jobs:
           name: ${{ needs.build.outputs.artifact_name }}
 
       - name: untar build
-        run: tar -xf workspace.tar
+        run: |
+          rm -rf *
+          tar -xf workspace.tar
 
       - name: install elan
         run: |
@@ -152,7 +154,9 @@ jobs:
           name: ${{ needs.build.outputs.artifact_name }}
 
       - name: untar build
-        run: tar -xf workspace.tar
+        run: |
+          rm -rf *
+          tar -xf workspace.tar
 
       - name: install elan
         run: |

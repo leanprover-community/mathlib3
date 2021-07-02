@@ -18,7 +18,7 @@ In this file, we define edge density, equipartitions, and prove Szemerédi's Reg
 universe u
 
 open_locale big_operators
-open finset fintype function.commute
+open finset fintype function
 
 /-! ### Things that belong to mathlib -/
 
@@ -1434,7 +1434,11 @@ private lemma card_aux₁ :
 by rw [mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
   ((nat.le_succ _).trans card_aux₀), mul_comm]
 
-private lemma card_aux₂ (hP : P.is_equipartition) {U : finset V} (hU : U ∈ P.parts)
+private lemma card_aux₂ {U : finset V} (hUcard : U.card = m * 4^P.size + a) :
+  (4^P.size - a) * m + a * (m + 1) = U.card :=
+by rw [hUcard, card_aux₁]
+
+private lemma card_aux₃ (hP : P.is_equipartition) {U : finset V} (hU : U ∈ P.parts)
   (hUcard : ¬U.card = m * 4^P.size + a) :
   (4^P.size - (a + 1)) * m + (a + 1) * (m + 1) = U.card :=
 begin
@@ -1461,12 +1465,9 @@ noncomputable def finpartition_on.is_equipartition.increment (hP : P.is_equipart
 begin
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
-  refine P.bind (λ U hU, _),
-  apply dite (U.card = m * 4^P.size + a),
-  { intro hUcard,
-    rw card_aux₁ at hUcard,
-    exact classical.some (mk_equitable hUcard.symm (R U hU)) },
-  exact λ hUcard, classical.some (mk_equitable (card_aux₂ hP hU hUcard) (R U hU)),
+  exact P.bind (λ U hU, dite (U.card = m * 4^P.size + a)
+    (λ hUcard, classical.some (mk_equitable (card_aux₂ hUcard) (R U hU)))
+    (λ hUcard, classical.some (mk_equitable (card_aux₃ hP hU hUcard) (R U hU)))),
 end
 
 open finpartition_on.is_equipartition
@@ -1483,6 +1484,8 @@ begin
   rw [increment, bind_size],
   simp_rw [apply_dite finpartition_on.size],
   rw sum_dite,
+  have : ∀ x ∈ P.parts.attach.filter (λ (U : {x // x ∈ P.parts}), U.val.card = m * 4^P.size + a),
+    (classical.some (mk_equitable (card_aux₂ hUcard) (R U hU))).size
   sorry
 end
 
@@ -1497,10 +1500,9 @@ begin
   obtain ⟨U, hU, hA⟩ := hA,
   by_cases hUcard : U.card = m * 4^P.size + a,
   { rw dif_pos hUcard at hA,
-    rw card_aux₁ at hUcard,
-    exact (classical.some_spec (mk_equitable hUcard.symm (R U hU))).1 _ hA },
+    exact (classical.some_spec (mk_equitable (card_aux₂ hUcard) (R U hU))).1 _ hA },
   rw dif_neg hUcard at hA,
-  exact (classical.some_spec (mk_equitable (card_aux₂ hP hU hUcard) (R U hU))).1 _ hA,
+  exact (classical.some_spec (mk_equitable (card_aux₃ hP hU hUcard) (R U hU))).1 _ hA,
 end
 
 protected lemma index (hP : P.is_equipartition)

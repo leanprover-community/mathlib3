@@ -1580,7 +1580,7 @@ begin
   convert nhds_basis_Ioo_pos a,
   { ext ε,
     change abs (x - a) < ε ↔ a - ε < x ∧ x < a + ε,
-    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a] },
+    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a, add_comm x ε] }
 end
 
 variable (α)

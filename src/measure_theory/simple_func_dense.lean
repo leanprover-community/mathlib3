@@ -33,7 +33,7 @@ both pointwise and in `Lᵖ` norm, by a sequence of simple functions.
 
 ## TODO
 
-Simple functions are also dense in L^∞ -- prove this.
+For `E` finite-dimensional, simple functions `α →ₛ E` are dense in L^∞ -- prove this.
 
 ## Notations
 
@@ -210,13 +210,15 @@ end
 
 lemma tendsto_approx_on_Lp_snorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
-  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ⊤) {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s)
+  (hp_ne_top : p ≠ ∞) {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s)
   (hi : snorm (λ x, f x - y₀) p μ < ∞) :
   tendsto (λ n, snorm (approx_on f hf s y₀ h₀ n - f) p μ) at_top (𝓝 0) :=
 begin
-  have hp : 0 < p.to_real := to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_ne_zero, hp_ne_top⟩,
+  by_cases hp_zero : p = 0,
+  { simpa only [hp_zero, snorm_exponent_zero] using tendsto_const_nhds },
+  have hp : 0 < p.to_real := to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_zero, hp_ne_top⟩,
   suffices : tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ^ p.to_real ∂μ) at_top (𝓝 0),
-  { simp only [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top],
+  { simp only [snorm_eq_lintegral_rpow_nnnorm hp_zero hp_ne_top],
     convert continuous_rpow_const.continuous_at.tendsto.comp this;
     simp [_root_.inv_pos.mpr hp] },
   -- We simply check the conditions of the Dominated Convergence Theorem:
@@ -233,7 +235,7 @@ begin
       (λ x, rpow_le_rpow (coe_mono (nnnorm_approx_on_le hf h₀ x n)) to_real_nonneg) },
   -- (3) The bounding function `λ x, ∥f x - y₀∥ ^ p.to_real` has finite integral
   have h_fin :  ∫⁻ (a : β), ∥f a - y₀∥₊ ^ p.to_real ∂μ < ⊤,
-  { exact lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_ne_zero hp_ne_top hi },
+  { exact lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_zero hp_ne_top hi },
   -- (4) The functions "`p`-th power of distance between `f` and the approximation" tend pointwise
   -- to zero
   have h_lim : ∀ᵐ (a : β) ∂μ,
@@ -249,9 +251,8 @@ begin
 end
 
 lemma mem_ℒp_approx_on [borel_space E]
-  {f : β → E} {μ : measure β} (fmeas : measurable f)
-  (hf : mem_ℒp f p μ) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
-  (hi₀ : mem_ℒp (λ x, y₀) p μ) (n : ℕ) :
+  {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : mem_ℒp f p μ) {s : set E} {y₀ : E}
+  (h₀ : y₀ ∈ s) [separable_space s] (hi₀ : mem_ℒp (λ x, y₀) p μ) (n : ℕ) :
   mem_ℒp (approx_on f fmeas s y₀ h₀ n) p μ :=
 begin
   refine ⟨(approx_on f fmeas s y₀ h₀ n).ae_measurable, _⟩,
@@ -284,10 +285,9 @@ begin
 end
 
 lemma tendsto_approx_on_univ_Lp_snorm [opens_measurable_space E] [second_countable_topology E]
-  {f : β → E} (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ⊤) {μ : measure β} (fmeas : measurable f)
-  (hf : snorm f p μ < ∞) :
+  {f : β → E} (hp_ne_top : p ≠ ∞) {μ : measure β} (fmeas : measurable f) (hf : snorm f p μ < ∞) :
   tendsto (λ n, snorm (approx_on f fmeas univ 0 trivial n - f) p μ) at_top (𝓝 0) :=
-tendsto_approx_on_Lp_snorm fmeas trivial hp_ne_zero hp_ne_top (by simp) (by simpa using hf)
+tendsto_approx_on_Lp_snorm fmeas trivial hp_ne_top (by simp) (by simpa using hf)
 
 lemma mem_ℒp_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : mem_ℒp f p μ) (n : ℕ) :
@@ -295,15 +295,11 @@ lemma mem_ℒp_approx_on_univ [borel_space E] [second_countable_topology E]
 mem_ℒp_approx_on fmeas hf (mem_univ _) zero_mem_ℒp n
 
 lemma tendsto_approx_on_univ_Lp [borel_space E] [second_countable_topology E]
-  {f : β → E} [hp : fact (1 ≤ p)] (hp_ne_top : p ≠ ⊤) {μ : measure β} (fmeas : measurable f)
+  {f : β → E} [hp : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) {μ : measure β} (fmeas : measurable f)
   (hf : mem_ℒp f p μ) :
   tendsto (λ n, (mem_ℒp_approx_on_univ fmeas hf n).to_Lp (approx_on f fmeas univ 0 trivial n))
     at_top (𝓝 (hf.to_Lp f)) :=
-begin
-  rw Lp.tendsto_Lp_iff_tendsto_ℒp'',
-  have hp_ne_zero : p ≠ 0 := (lt_of_lt_of_le ennreal.zero_lt_one hp.elim).ne',
-  exact tendsto_approx_on_univ_Lp_snorm hp_ne_zero hp_ne_top fmeas hf.2
-end
+by simp [Lp.tendsto_Lp_iff_tendsto_ℒp'', tendsto_approx_on_univ_Lp_snorm hp_ne_top fmeas hf.2]
 
 end Lp
 
@@ -317,8 +313,8 @@ lemma tendsto_approx_on_L1_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
   tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
-by simpa [snorm_one_eq_lintegral_nnnorm] using tendsto_approx_on_Lp_snorm hf h₀ one_ne_zero
-  one_ne_top hμ (by simpa [snorm_one_eq_lintegral_nnnorm] using hi)
+by simpa [snorm_one_eq_lintegral_nnnorm] using tendsto_approx_on_Lp_snorm hf h₀ one_ne_top hμ
+  (by simpa [snorm_one_eq_lintegral_nnnorm] using hi)
 
 lemma integrable_approx_on [borel_space E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ)

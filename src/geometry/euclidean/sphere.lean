@@ -133,7 +133,7 @@ begin
   all_goals { simp },
 end
 
-/-- Intersecting Chords Theorem. -/
+/-- **Intersecting Chords Theorem**. -/
 theorem mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
   (hapb : ∠ a p b = π) (hcpd : ∠ c p d = π) :
@@ -158,7 +158,7 @@ begin
   exacts [hab (vsub_left_cancel hab₁).symm, hcd (vsub_left_cancel hcd₁).symm],
 end
 
-/-- Ptolemy’s Theorem. -/
+/-- **Ptolemy’s Theorem**. -/
 theorem mul_dist_add_mul_dist_eq_mul_dist_of_cospherical {a b c d p : P}
   (h : cospherical ({a, b, c, d} : set P))
   (hapc : ∠ a p c = π) (hbpd : ∠ b p d = π) :

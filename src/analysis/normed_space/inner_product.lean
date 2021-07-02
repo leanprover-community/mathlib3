@@ -233,7 +233,7 @@ lemma inner_sub_sub_self {x y : F} : ⟪x - y, x - y⟫ = ⟪x, x⟫ - ⟪x, y�
 by simp only [inner_sub_left, inner_sub_right]; ring
 
 /--
-Cauchy–Schwarz inequality. This proof follows "Proof 2" on Wikipedia.
+**Cauchy–Schwarz inequality**. This proof follows "Proof 2" on Wikipedia.
 We need this for the `core` structure to prove the triangle inequality below when
 showing the core is a normed group.
 -/

@@ -364,7 +364,7 @@ begin
           lhopital_zero_nhds_right hff'.2 hgg'.2 hg'.2 hfa.2 hga.2 hdiv.2⟩
 end
 
-/-- L'Hôpital's rule for approaching a real, `has_deriv_at` version -/
+/-- **L'Hôpital's rule** for approaching a real, `has_deriv_at` version -/
 theorem lhopital_zero_nhds
   (hff' : ∀ᶠ x in 𝓝 a, has_deriv_at f (f' x) x)
   (hgg' : ∀ᶠ x in 𝓝 a, has_deriv_at g (g' x) x)

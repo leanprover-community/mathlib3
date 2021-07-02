@@ -890,7 +890,7 @@ by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, cos_of_real_re] }
 lemma exp_im : (exp x).im = real.exp x.re * real.sin x.im :=
 by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, sin_of_real_re] }
 
-/-- De Moivre's formula -/
+/-- **De Moivre's formula** -/
 theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
   (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
 begin

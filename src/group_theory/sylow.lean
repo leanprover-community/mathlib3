@@ -223,7 +223,7 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
   (by intros; refl)
 
-/-- The first of the Sylow theorems. -/
+/-- The first of the *Sylow theorems**. -/
 theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ n ∣ card G), ∃ H : subgroup G, fintype.card H = p ^ n
 | 0 := λ _ _, ⟨(⊥ : subgroup G), by convert card_bot⟩

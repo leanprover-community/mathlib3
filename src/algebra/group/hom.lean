@@ -259,6 +259,29 @@ instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
 instance [monoid_hom_class F M N] : has_coe_t F (M →* N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
 
+@[to_additive]
+lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) :
+  f a * f b = 1 :=
+by rw [← map_mul, h, map_one]
+
+/-- Group homomorphisms preserve inverse. -/
+@[simp, to_additive]
+theorem map_inv [group G] [group H] [monoid_hom_class F G H]
+  (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
+eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
+
+/-- Group homomorphisms preserve division. -/
+@[simp, to_additive]
+theorem map_div [group G] [group H] (f : G →* H) (g h : G) :
+  f (g / h) = f g / f h :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul, map_inv]
+
+/-- Group homomorphisms preserve division. -/
+@[simp, to_additive]
+theorem map_mul_inv [group G] [group H] (f : G →* H) (g h : G) :
+  f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
+by rw [map_mul, map_inv]
+
 end mul_one
 
 section mul_zero_one
@@ -493,29 +516,26 @@ monoid_with_zero_hom.ext $ λ _, rfl
 
 end coes
 
-@[simp, to_additive]
+@[to_additive]
 lemma one_hom.map_one [has_one M] [has_one N] (f : one_hom M N) : f 1 = 1 := f.map_one'
 /-- If `f` is a monoid homomorphism then `f 1 = 1`. -/
-@[simp, to_additive]
+@[to_additive]
 lemma monoid_hom.map_one [mul_one_class M] [mul_one_class N] (f : M →* N) : f 1 = 1 := f.map_one'
-@[simp]
 lemma monoid_with_zero_hom.map_one [mul_zero_one_class M] [mul_zero_one_class N]
   (f : monoid_with_zero_hom M N) : f 1 = 1 := f.map_one'
 
 /-- If `f` is an additive monoid homomorphism then `f 0 = 0`. -/
 add_decl_doc add_monoid_hom.map_zero
-@[simp]
 lemma monoid_with_zero_hom.map_zero [mul_zero_one_class M] [mul_zero_one_class N]
   (f : monoid_with_zero_hom M N) : f 0 = 0 := f.map_zero'
 
-@[simp, to_additive]
+@[to_additive]
 lemma mul_hom.map_mul [has_mul M] [has_mul N]
   (f : mul_hom M N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 /-- If `f` is a monoid homomorphism then `f (a * b) = f a * f b`. -/
-@[simp, to_additive]
+@[to_additive]
 lemma monoid_hom.map_mul [mul_one_class M] [mul_one_class N]
   (f : M →* N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
-@[simp]
 lemma monoid_with_zero_hom.map_mul [mul_zero_one_class M] [mul_zero_one_class N]
   (f :  monoid_with_zero_hom M N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 
@@ -530,7 +550,7 @@ include mM mN
 
 @[to_additive]
 lemma map_mul_eq_one (f : M →* N) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
-by rw [← f.map_mul, h, f.map_one]
+map_mul_eq_one f h
 
 /-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a right inverse,
 then `f x` has a right inverse too. For elements invertible on both sides see `is_unit.map`. -/
@@ -879,18 +899,25 @@ by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 then they are equal at `-x`." ]
 lemma eq_on_inv {G} [group G] [monoid M] {f g : G →* M} {x : G} (h : f x = g x) :
   f x⁻¹ = g x⁻¹ :=
-left_inv_eq_right_inv (f.map_mul_eq_one $ inv_mul_self x) $
+left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
   h.symm ▸ g.map_mul_eq_one $ mul_inv_self x
 
 /-- Group homomorphisms preserve inverse. -/
-@[simp, to_additive]
+@[to_additive]
 theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
-eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
+map_inv f g
 
 /-- Group homomorphisms preserve division. -/
-@[simp, to_additive]
+@[to_additive]
+theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
+  f (g / h) = f g / f h :=
+map_div f g h
+
+/-- Group homomorphisms preserve division. -/
+@[to_additive]
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
-  f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
+f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
+map_mul_inv f g h
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive /-" Additive group homomorphisms preserve subtraction. "-/]

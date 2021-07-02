@@ -67,7 +67,8 @@ namespace algebra
 
 theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] (s : set S) :
-  adjoin R (algebra_map S (comap R S A) '' s) = subalgebra.map (adjoin R s) (to_comap R S A) :=
+  adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
+  ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
@@ -103,7 +104,7 @@ lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semirin
   (algebra.adjoin D (algebra_map E F '' T)).res C :=
 by { rw [adjoin_res, adjoin_res, ←hS, ←hT, ←algebra.adjoin_image, ←algebra.adjoin_image,
   ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom, is_scalar_tower.coe_to_alg_hom,
-  is_scalar_tower.coe_to_alg_hom, ←algebra.adjoin_union, ←algebra.adjoin_union, set.union_comm] }
+  is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under, ←adjoin_union_eq_under, set.union_comm] }
 
 end algebra
 
@@ -114,8 +115,9 @@ lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A
   (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
   (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
-by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union, algebra.adjoin_algebra_map, hs,
-    algebra.map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
+by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
+  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.range_under_adjoin, ht,
+  subalgebra.res_top]⟩
 end
 
 section ring

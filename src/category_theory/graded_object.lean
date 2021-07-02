@@ -55,7 +55,10 @@ variables {C : Type u} [category.{v} C]
 instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
 category_theory.pi (λ _, C)
 
-
+/-- The projection of a graded object to its `i`-th component. -/
+@[simps] def eval {β : Type w} (b : β) : graded_object β C ⥤ C :=
+{ obj := λ X, X b,
+  map := λ X Y f, f b, }
 
 section
 variable (C)

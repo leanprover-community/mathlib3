@@ -25,8 +25,15 @@ matrix, reindex
 
 namespace matrix
 
+open equiv
+
+open_locale matrix
+
+
+
 variables {l m n : Type*} [fintype l] [fintype m] [fintype n]
 variables {l' m' n' : Type*} [fintype l'] [fintype m'] [fintype n']
+variables {m'' n'' : Type*} [fintype m''] [fintype n'']
 variables {R : Type*}
 
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types,
@@ -50,12 +57,48 @@ rfl
   reindex_linear_equiv (equiv.refl m) (equiv.refl n) = linear_equiv.refl R _ :=
 linear_equiv.ext $ λ _, rfl
 
-/-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
-types, `matrix.reindex`, is an equivalence of algebras. -/
+lemma reindex_linear_equiv_trans [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')
+  (e₂' : n' ≃ n'') : (reindex_linear_equiv e₁ e₂).trans (reindex_linear_equiv e₁' e₂') =
+   (reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') : _ ≃ₗ[R] _) :=
+by { ext, refl }
+
+lemma reindex_linear_equiv_comp [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')
+  (e₂' : n' ≃ n'') :
+  (reindex_linear_equiv e₁' e₂' : _ ≃ₗ[R] _) ∘ (reindex_linear_equiv e₁ e₂ : _ ≃ₗ[R] _)
+  = reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') :=
+by { rw [← reindex_linear_equiv_trans], refl }
+
+lemma reindex_linear_equiv_comp_apply [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')
+  (e₂' : n' ≃ n'') (M : matrix m n R) :
+  (reindex_linear_equiv e₁' e₂') (reindex_linear_equiv e₁ e₂ M) =
+    reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') M :=
+minor_minor _ _ _ _ _
+
+lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m']
+  (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 :=
+minor_one_equiv e.symm
+
+variables {o o' : Type*} [fintype o] [fintype o']
+
+lemma reindex_linear_equiv_mul [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (eₒ : o ≃ o') (M : matrix m n R) (N : matrix n o R) :
+  reindex_linear_equiv eₘ eₒ (M ⬝ N) =
+    reindex_linear_equiv eₘ eₙ M ⬝ reindex_linear_equiv eₙ eₒ N :=
+minor_mul_equiv M N _ _ _
+
+lemma mul_reindex_linear_equiv_one [semiring R] [decidable_eq o] (e₁ : o ≃ n) (e₂ : o ≃ n')
+  (M : matrix m n R) : M.mul (reindex_linear_equiv e₁ e₂ 1) =
+    reindex_linear_equiv (equiv.refl m) (e₁.symm.trans e₂) M :=
+mul_minor_one _ _ _
+
+/--
+For square matrices with coefficients in commutative semirings, the natural map that reindexes
+a matrix's rows and columns with equivalent types, `matrix.reindex`, is an equivalence of algebras.
+-/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,
-  map_mul'  := λ M N, minor_mul_equiv M N e.symm e.symm e.symm,
+  map_mul'  := reindex_linear_equiv_mul e e e,
   commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, minor_smul],
   ..(reindex_linear_equiv e e) }
 
@@ -72,6 +115,11 @@ rfl
 @[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m] :
   reindex_alg_equiv (equiv.refl m) = (alg_equiv.refl : _ ≃ₐ[R] _) :=
 alg_equiv.ext $ λ _, rfl
+
+lemma reindex_alg_equiv_mul [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix m m R) (N : matrix m m R) :
+  reindex_alg_equiv e (M ⬝ N) = reindex_alg_equiv e M ⬝ reindex_alg_equiv e N :=
+(reindex_alg_equiv e).map_mul M N
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
 
@@ -92,4 +140,3 @@ lemma det_reindex_alg_equiv [decidable_eq m] [decidable_eq n] [comm_ring R]
 det_reindex_self e A
 
 end matrix
-

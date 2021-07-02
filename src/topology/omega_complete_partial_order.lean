@@ -40,7 +40,7 @@ theorem is_open_univ : is_open α set.univ :=
 ⟨λ x y h, by simp only [set.mem_univ]; refl',
   by convert @complete_lattice.top_continuous α Prop _ _; ext; simp ⟩
 
-theorem is_open_inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
+theorem is_open.inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
 begin
   simp only [is_open, exists_imp_distrib, continuous'],
   intros h₀ h₁ h₂ h₃,
@@ -86,7 +86,7 @@ instance Scott.topological_space (α : Type u) [omega_complete_partial_order α]
   topological_space (Scott α) :=
 { is_open := Scott.is_open α,
   is_open_univ := Scott.is_open_univ α,
-  is_open_inter := Scott.is_open_inter α,
+  is_open_inter := Scott.is_open.inter α,
   is_open_sUnion := Scott.is_open_sUnion α }
 
 section not_below
@@ -106,7 +106,7 @@ begin
   apply eq_of_forall_ge_iff, intro z,
   rw ωSup_le_iff,
   simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_Prop_eq, preorder_hom.coe_fun_mk,
-             chain.map_to_fun, function.comp_app, exists_imp_distrib, not_forall],
+             chain.map_coe, function.comp_app, exists_imp_distrib, not_forall],
 end
 
 end not_below
@@ -141,7 +141,7 @@ begin
   simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq] at hf_h,
   rw [← not_iff_not],
   simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, complete_semilattice_Sup.Sup,
-    exists_prop, set.mem_range, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app,
+    exists_prop, set.mem_range, preorder_hom.coe_fun_mk, chain.map_coe, function.comp_app,
     eq_iff_iff, not_forall],
   tauto,
 end

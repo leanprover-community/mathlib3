@@ -198,8 +198,8 @@ lemma total_dual_basis [fintype ι] (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.dual_basis f (b i) = f i :=
 begin
   rw [finsupp.total_apply, finsupp.sum_fintype, linear_map.sum_apply],
-  { simp_rw [smul_apply, smul_eq_mul, dual_basis_apply_self, mul_boole,
-             finset.sum_ite_eq, if_pos (finset.mem_univ i)] },
+  { simp_rw [linear_map.smul_apply, smul_eq_mul, dual_basis_apply_self, mul_boole,
+      finset.sum_ite_eq, if_pos (finset.mem_univ i)] },
   { intro, rw zero_smul },
 end
 
@@ -388,7 +388,7 @@ lemma mem_of_mem_span {H : set ι} {x : M} (hmem : x ∈ submodule.span R (e '' 
   ∀ i : ι, ε i x ≠ 0 → i ∈ H :=
 begin
   intros i hi,
-  rcases (finsupp.mem_span_iff_total _).mp hmem with ⟨l, supp_l, rfl⟩,
+  rcases (finsupp.mem_span_image_iff_total _).mp hmem with ⟨l, supp_l, rfl⟩,
   apply not_imp_comm.mp ((finsupp.mem_supported' _ _).mp supp_l i),
   rwa [← lc_def, h.dual_lc] at hi
 end

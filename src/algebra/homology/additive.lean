@@ -52,9 +52,17 @@ function.injective.add_comm_group hom.f
 
 instance : preadditive (homological_complex V c) := {}
 
+/-- The `i`-th component of a chain map, as an additive map from chain maps to morphisms. -/
+@[simps]
+def hom.f_add_monoid_hom {C₁ C₂ : homological_complex V c} (i : ι) :
+  (C₁ ⟶ C₂) →+ (C₁.X i ⟶ C₂.X i) :=
+add_monoid_hom.mk' (λ f, hom.f f i) (λ _ _, rfl)
+
 end homological_complex
 
 namespace homological_complex
+
+instance eval_additive (i : ι) : (eval V c i).additive := {}
 
 variables [has_zero_object V]
 
@@ -101,10 +109,10 @@ def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shap
   { X := λ i, F.obj (C.X i),
     d := λ i j, F.map (C.d i j),
     shape' := λ i j w, by rw [C.shape _ _ w, F.map_zero],
-    d_comp_d' := λ i j k, by rw [←F.map_comp, C.d_comp_d, F.map_zero], },
+    d_comp_d' := λ i j k _ _, by rw [←F.map_comp, C.d_comp_d, F.map_zero], },
   map := λ C D f,
   { f := λ i, F.map (f.f i),
-    comm' := λ i j, by { dsimp,  rw [←F.map_comp, ←F.map_comp, f.comm], }, }, }.
+    comm' := λ i j h, by { dsimp,  rw [←F.map_comp, ←F.map_comp, f.comm], }, }, }.
 
 instance functor.map_homogical_complex_additive
   (F : V ⥤ W) [F.additive] (c : complex_shape ι) : (F.map_homological_complex c).additive := {}

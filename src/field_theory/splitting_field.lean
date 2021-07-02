@@ -482,7 +482,7 @@ begin
     exact ⟨(algebra.of_id F L).comp (algebra.bot_equiv F K)⟩ },
   rw forall_mem_insert at H, rcases H with ⟨⟨H1, H2⟩, H3⟩, cases ih H3 with f,
   choose H3 H4 using H3,
-  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union],
+  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union_eq_under],
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
     (submodule.fg_iff_finite_dimensional _).1
@@ -578,7 +578,7 @@ instance inhabited {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n) :
 instance algebra (n : ℕ) : Π {K : Type u} [field K], by exactI
   Π {f : polynomial K} (hfn : f.nat_degree = n), algebra K (splitting_field_aux n f hfn) :=
 nat.rec_on n (λ K _ _ _, by exactI algebra.id K) $ λ n ih K _ f hfn,
-by exactI @@algebra.comap.algebra _ _ _ _ _ _ _ (ih _)
+by exactI @@restrict_scalars.algebra _ _ _ _ _ (ih _) _ _
 
 instance algebra' {n : ℕ} {f : polynomial K} (hfn : f.nat_degree = n + 1) :
   algebra (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
@@ -648,7 +648,8 @@ have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := ma
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,
     multiset.to_finset_cons, multiset.to_finset_zero, insert_emptyc_eq, finset.coe_singleton,
-    algebra.adjoin_union, ← set.image_singleton, algebra.adjoin_algebra_map K (adjoin_root f.factor)
+    algebra.adjoin_union_eq_under, ← set.image_singleton,
+    algebra.adjoin_algebra_map K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
     is_scalar_tower.range_under_adjoin K (adjoin_root f.factor)
@@ -735,7 +736,7 @@ theorem mul (f g : polynomial F) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_fie
   (splits_comp_of_splits _ _ (splits K f))
   ((splits_map_iff _ _).1 (splits L $ g.map $ algebra_map F K)),
  by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
-        (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union, algebra.adjoin_union,
+        (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union, algebra.adjoin_union_eq_under,
       is_scalar_tower.algebra_map_eq F K L, ← map_map,
       roots_map (algebra_map K L) ((splits_id_iff_splits $ algebra_map F K).2 $ splits K f),
       multiset.to_finset_map, finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots,
@@ -759,12 +760,12 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
   algebra.to_top
 
 theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finite_dimensional K L :=
-finite_dimensional.iff_fg.2 $ @algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
+is_noetherian.iff_fg.2 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
   else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
-    (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)
+    (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
 
 instance (f : polynomial K) : _root_.finite_dimensional K f.splitting_field :=
 finite_dimensional f.splitting_field f

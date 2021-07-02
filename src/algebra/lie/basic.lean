@@ -50,8 +50,8 @@ universes u v w w₁ w₂
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. -/
 @[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L L :=
-(add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
-(lie_add : ∀ (x y z : L), ⁅x, y + z⁆ = ⁅x, y⁆ + ⁅x, z⁆)
+(add_lie  : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
+(lie_add  : ∀ (x y z : L), ⁅x, y + z⁆ = ⁅x, y⁆ + ⁅x, z⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
 (leibniz_lie : ∀ (x y z : L), ⁅x, ⁅y, z⁆⁆ = ⁅⁅x, y⁆, z⁆ + ⁅y, ⁅x, z⁆⁆)
 
@@ -66,8 +66,8 @@ Lie ring on this group, such that the Lie bracket acts as the commutator of endo
 (For representations of Lie *algebras* see `lie_module`.) -/
 @[protect_proj] class lie_ring_module (L : Type v) (M : Type w)
   [lie_ring L] [add_comm_group M] extends has_bracket L M :=
-(add_lie : ∀ (x y : L) (m : M), ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆)
-(lie_add : ∀ (x : L) (m n : M), ⁅x, m + n⁆ = ⁅x, m⁆ + ⁅x, n⁆)
+(add_lie     : ∀ (x y : L) (m : M), ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆)
+(lie_add     : ∀ (x : L) (m n : M), ⁅x, m + n⁆ = ⁅x, m⁆ + ⁅x, n⁆)
 (leibniz_lie : ∀ (x y : L) (m : M), ⁅x, ⁅y, m⁆⁆ = ⁅⁅x, y⁆, m⁆ + ⁅y, ⁅x, m⁆⁆)
 
 /-- A Lie module is a module over a commutative ring, together with a linear action of a Lie
@@ -143,6 +143,9 @@ by rw [leibniz_lie, add_sub_cancel]
 
 lemma lie_jacobi : ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
 by { rw [← neg_neg ⁅x, y⁆, lie_neg z, lie_skew y x, ← lie_skew, lie_lie], abel, }
+
+instance lie_ring.int_lie_algebra : lie_algebra ℤ L :=
+{ lie_smul := λ n x y, lie_gsmul x y n, }
 
 instance : lie_ring_module L (M →ₗ[R] N) :=
 { bracket     := λ x f,

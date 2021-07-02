@@ -1745,18 +1745,6 @@ end
   to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
-lemma disjoint_to_finset_iff_disjoint {l l' : list α} :
-  _root_.disjoint l.to_finset l'.to_finset ↔ l.disjoint l' :=
-begin
-  split,
-  { intros h x hx hx',
-    rw ←mem_to_finset at hx hx',
-    exact h (finset.mem_inter_of_mem hx hx') },
-  { intros h x hx,
-    rw [finset.inf_eq_inter, finset.mem_inter, mem_to_finset, mem_to_finset] at hx,
-    exact h hx.left hx.right }
-end
-
 end list
 
 namespace finset
@@ -2927,6 +2915,18 @@ variable [decidable_eq α]
 
 theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card = l.length :=
 congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
+
+lemma disjoint_to_finset_iff_disjoint {l l' : list α} :
+  _root_.disjoint l.to_finset l'.to_finset ↔ l.disjoint l' :=
+begin
+  split,
+  { intros h x hx hx',
+    rw ←mem_to_finset at hx hx',
+    exact h (finset.mem_inter_of_mem hx hx') },
+  { intros h x hx,
+    rw [finset.inf_eq_inter, finset.mem_inter, mem_to_finset, mem_to_finset] at hx,
+    exact h hx.left hx.right }
+end
 
 end list
 

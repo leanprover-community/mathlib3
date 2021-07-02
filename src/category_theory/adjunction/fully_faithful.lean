@@ -84,6 +84,8 @@ lemma inv_counit_map {X : D} [is_iso (h.counit.app X)] :
   inv (R.map (h.counit.app X)) = h.unit.app (R.obj X) :=
 is_iso.inv_eq_of_inv_hom_id h.right_triangle_components
 
+/-- If the counit of an adjunction is an isomorphism, then its inverse on the image of R is given
+by R whiskered with the unit. -/
 @[simps]
 noncomputable def whisker_left_R_unit_iso_of_is_iso_counit [is_iso h.counit] :
   (R ⋙ L ⋙ R) ≅ R :=

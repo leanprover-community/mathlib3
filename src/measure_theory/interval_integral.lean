@@ -320,7 +320,7 @@ begin
     exact Ioc_subset_Icc_self },
   { apply interval_integrable.symm,
     rw interval_integrable_iff_integrable_Ioc_of_le hab,
-    have := (interval_integrable_iff_integrable_Ioc_of_le hab).1 (hf.symm),
+    have := (interval_integrable_iff_integrable_Ioc_of_le hab).1 hf.symm,
     apply this.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval,
     rw interval_of_ge hab,
     exact Ioc_subset_Icc_self },
@@ -672,7 +672,7 @@ lemma integrable_on_Icc_iff_integrable_on_Ioc'
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
 begin
   cases le_or_lt a b with hab hab,
-  { have : Icc a b = Icc a a ∪ Ioc a b := (Icc_union_Ioc_eq_Icc (le_refl _) hab).symm,
+  { have : Icc a b = Icc a a ∪ Ioc a b := (Icc_union_Ioc_eq_Icc le_rfl hab).symm,
     rw [this, integrable_on_union],
     simp [lt_top_iff_ne_top.2 ha] },
   { simp [hab, hab.le] },
@@ -1968,7 +1968,7 @@ begin
     have I2 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ (u - t) * y,
     { have g'_lt_y : g' t < y := ereal.coe_lt_coe_iff.1 g'_lt_y',
       filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
-        (not_mem_Ioi.2 (le_refl _)) g'_lt_y, self_mem_nhds_within],
+        (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within],
       assume u hu t_lt_u,
       have := hu.le,
       rwa [← div_eq_inv_mul, div_le_iff'] at this,
@@ -1995,7 +1995,7 @@ begin
       apply integral_add_adjacent_intervals,
       { rw interval_integrable_iff_integrable_Ioc_of_le ht.2.1,
         exact integrable_on.mono_set G'int
-          (Ioc_subset_Icc_self.trans (Icc_subset_Icc (le_refl _) ht.2.2.le)) },
+          (Ioc_subset_Icc_self.trans (Icc_subset_Icc le_rfl ht.2.2.le)) },
       { rw interval_integrable_iff_integrable_Ioc_of_le h'x.1.le,
         apply integrable_on.mono_set G'int,
         refine Ioc_subset_Icc_self.trans (Icc_subset_Icc ht.2.1 (h'x.2.trans (min_le_right _ _))) }
@@ -2043,8 +2043,7 @@ private lemma integral_eq_sub_of_has_deriv_right_of_le_real' (hab : a ≤ b)
   (g'int : integrable_on g' (Icc a b)) :
   (∫ y in a..b, g' y) = g b - g a :=
 begin
-  by_cases h : a = b, { simp [h] },
-  have a_lt_b : a < b := lt_iff_le_and_ne.2 ⟨hab, h⟩,
+  obtain rfl|a_lt_b := hab.eq_or_lt, { simp },
   set s := {t | (∫ u in t..b, g' u) = g b - g t} ∩ Icc a b,
   have s_closed : is_closed s,
   { have : continuous_on (λ t, ((∫ u in t..b, (g' u)), g b - g t)) (Icc a b),

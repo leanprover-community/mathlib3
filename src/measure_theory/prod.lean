@@ -656,15 +656,15 @@ lemma lintegral_prod_symm [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
 lintegral_prod_symm' f hf
 
-/-- The reversed version of **Tonelli's Theorem**. In this version `f` is in curried form, which makes
-  it easier for the elaborator to figure out `f` automatically. -/
+/-- The reversed version of **Tonelli's Theorem**. In this version `f` is in curried form, which
+makes it easier for the elaborator to figure out `f` automatically. -/
 lemma lintegral_lintegral ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.1 z.2 ∂(μ.prod ν) :=
 (lintegral_prod _ hf).symm
 
-/-- The reversed version of **Tonelli's Theorem** (symmetric version). In this version `f` is in curried
-  form, which makes it easier for the elaborator to figure out `f` automatically. -/
+/-- The reversed version of **Tonelli's Theorem** (symmetric version). In this version `f` is in
+curried form, which makes it easier for the elaborator to figure out `f` automatically. -/
 lemma lintegral_lintegral_symm [sigma_finite μ] ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.2 z.1 ∂(ν.prod μ) :=

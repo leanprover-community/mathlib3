@@ -131,6 +131,9 @@ continuous_snd.continuous_at
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
 continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
 
+@[continuity] lemma continuous.prod.mk (a : α) : continuous (prod.mk a : β → α × β) :=
+continuous_const.prod_mk continuous_id'
+
 lemma continuous.prod_map {f : γ → α} {g : δ → β} (hf : continuous f) (hg : continuous g) :
   continuous (λ x : γ × δ, (f x.1, g x.2)) :=
 (hf.comp continuous_fst).prod_mk (hg.comp continuous_snd)
@@ -763,6 +766,21 @@ begin
       by_cases a ∈ i; simp [*, pi] at * },
     { have : f ∈ pi {a | a ∉ i} c, { simp [*, pi] at * },
       simpa [pi_if, hf] } }
+end
+
+/-- Suppose `π i` is a family of topological spaces indexed by `i : ι`, and `X` is a type
+endowed with a family of maps `f i : X → π i` for every `i : ι`, hence inducing a
+map `g : X → Π i, π i`. This lemma shows that infimum of the topologies on `X` induced by
+the `f i` as `i : ι` varies is simply the topology on `X` induced by `g : X → Π i, π i`
+where `Π i, π i` is endowed with the usual product topology. -/
+lemma inducing_infi_to_pi {X : Type*} [∀ i, topological_space (π i)] (f : Π i, X → π i) :
+  @inducing X (Π i, π i) (⨅ i, induced (f i) infer_instance) _ (λ x i, f i x) :=
+begin
+  constructor,
+  erw induced_infi,
+  congr' 1,
+  funext,
+  erw induced_compose,
 end
 
 variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]

@@ -411,6 +411,10 @@ begin
   { rw [zero_pow (nat.pos_of_ne_zero h)] },
 end
 
+lemma pow_eq_zero_of_le [monoid_with_zero M] {x : M} {n m : ℕ}
+  (hn : n ≤ m) (hx : x^n = 0) : x^m = 0 :=
+by rw [← nat.sub_add_cancel hn, pow_add, hx, mul_zero]
+
 namespace ring_hom
 
 variables [semiring R] [semiring S]

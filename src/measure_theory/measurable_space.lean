@@ -81,7 +81,7 @@ measurable_space.ext $ assume s, iff.rfl
 @[simp] lemma map_comp {f : α → β} {g : β → γ} : (m.map f).map g = m.map (g ∘ f) :=
 measurable_space.ext $ assume s, iff.rfl
 
-/-- The reverse image of a measure space under a function. `comap f m` contains the sets `s : set α`
+/-- The reverse image of a measurable space under a function. `comap f m` contains the sets `s : set α`
   such that `s` is the `f`-preimage of a measurable set in `β`. -/
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
 { measurable_set'      := λ s, ∃s', m.measurable_set' s' ∧ f ⁻¹' s' = s,

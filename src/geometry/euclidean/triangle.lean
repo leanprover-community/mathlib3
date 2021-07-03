@@ -318,7 +318,7 @@ end
 
 alias dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle ← law_cos
 
-/-- Pons asinorum, angle-at-point form. -/
+/-- **Isosceles Triangle Theorem**: Pons asinorum, angle-at-point form. -/
 lemma angle_eq_angle_of_dist_eq {p1 p2 p3 : P} (h : dist p1 p2 = dist p1 p3) :
   ∠ p1 p2 p3 = ∠ p1 p3 p2 :=
 begin
@@ -340,7 +340,7 @@ begin
   exact norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi h hpi
 end
 
-/-- The sum of the angles of a possibly degenerate triangle (where the
+/-- The **sum of the angles of a triangle** (possibly degenerate, where the
 given vertex is distinct from the others), angle-at-point. -/
 lemma angle_add_angle_add_angle_eq_pi {p1 p2 p3 : P} (h2 : p2 ≠ p1) (h3 : p3 ≠ p1) :
   ∠ p1 p2 p3 + ∠ p2 p3 p1 + ∠ p3 p1 p2 = π :=

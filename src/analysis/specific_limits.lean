@@ -350,6 +350,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 lemma tsum_geometric_two' (a : ℝ) : ∑' n:ℕ, (a / 2) / 2^n = a :=
 (has_sum_geometric_two' a).tsum_eq
 
+/-- **Sum of a Geometric Series** -/
 lemma nnreal.has_sum_geometric {r : ℝ≥0} (hr : r < 1) :
   has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
 begin

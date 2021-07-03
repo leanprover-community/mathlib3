@@ -28,7 +28,7 @@ open function finset
 open_locale classical
 
 /--
-Given a sequence of more than `r * s` distinct values, there is an increasing sequence of length
+**Erdős–Szekeres Theorem**: Given a sequence of more than `r * s` distinct values, there is an increasing sequence of length
 longer than `r` or a decreasing sequence of length longer than `s`.
 
 Proof idea:

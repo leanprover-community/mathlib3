@@ -159,7 +159,7 @@ open filter set
 open_locale classical big_operators topological_space
 local notation `|`x`|` := abs x
 
-/-- This theorem establishes Leibniz's series for `π`: The alternating sum of the reciprocals of the
+/-- This theorem establishes **Leibniz's series for `π`**: The alternating sum of the reciprocals of the
   odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent series.
   The main tool that this proof uses is the Mean Value Theorem (specifically avoiding the
   Fundamental Theorem of Calculus).

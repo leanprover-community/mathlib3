@@ -322,7 +322,7 @@ end
 
 end friendship
 
-/-- We wish to show that a friendship graph has a politician (a vertex adjacent to all others).
+/-- **Friendship theorem**: We wish to show that a friendship graph has a politician (a vertex adjacent to all others).
   We proceed by contradiction, and assume the graph has no politician.
   We have already proven that a friendship graph with no politician is `d`-regular for some `d`,
   and now we do casework on `d`.

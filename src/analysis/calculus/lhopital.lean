@@ -22,6 +22,10 @@ allowing it to be any filter on `ℝ`.
 Each statement is available in a `has_deriv_at` form and a `deriv` form, which
 is denoted by each statement being in either the `has_deriv_at` or the `deriv`
 namespace.
+
+## Tags
+
+L'Hôpital's rule, L'Hopital's rule
 -/
 
 open filter set

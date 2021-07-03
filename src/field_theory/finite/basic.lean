@@ -274,12 +274,12 @@ end char_p
 open_locale nat
 open zmod
 
-/-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
+/-- The **Fermat-Euler totient theorem**. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
 @[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : units (zmod n)) : x ^ φ n = 1 :=
 by rw [← card_units_eq_totient, pow_card_eq_one]
 
-/-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
+/-- The **Fermat-Euler totient theorem**. `zmod.pow_totient` is an alternative statement
   of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin

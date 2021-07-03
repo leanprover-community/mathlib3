@@ -151,7 +151,7 @@ theorem step.diamond : ∀ {L₁ L₂ L₃ L₄ : list (α × bool)},
 lemma step.to_red : step L₁ L₂ → red L₁ L₂ :=
 refl_trans_gen.single
 
-/-- Church-Rosser theorem for word reduction: If `w1 w2 w3` are words such that `w1` reduces to `w2`
+/-- **Church-Rosser theorem** for word reduction: If `w1 w2 w3` are words such that `w1` reduces to `w2`
 and `w3` respectively, then there is a word `w4` such that `w2` and `w3` reduce to `w4`
 respectively. This is also known as Newman's diamond lemma. -/
 theorem church_rosser : red L₁ L₂ → red L₁ L₃ → join red L₂ L₃ :=

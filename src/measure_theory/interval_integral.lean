@@ -1496,7 +1496,7 @@ lemma integral_has_strict_fderiv_at
 integral_has_strict_fderiv_at_of_tendsto_ae hf hmeas_a hmeas_b
   (ha.mono_left inf_le_left) (hb.mono_left inf_le_left)
 
-/-- Fundamental theorem of calculus-1: if `f : ℝ → E` is integrable on `a..b` and `f x` has a finite
+/-- **First Fundamental Theorem of Calculus**: if `f : ℝ → E` is integrable on `a..b` and `f x` has a finite
 limit `c` almost surely at `b`, then `u ↦ ∫ x in a..u, f x` has derivative `c` at `b` in the sense
 of strict differentiability. -/
 lemma integral_has_strict_deriv_at_of_tendsto_ae_right
@@ -1822,7 +1822,7 @@ theorem continuous_on_integral_of_continuous {s : set ℝ}
   continuous_on (λ u, ∫ x in a..u, f x) s :=
 (differentiable_on_integral_of_continuous hintg hcont).continuous_on
 
-/-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
+/-- **Second Fundamental Theorem of Calculus**: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
   has a right derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]`, then
   `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on f (Icc a b))

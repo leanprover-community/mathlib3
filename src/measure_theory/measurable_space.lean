@@ -67,7 +67,7 @@ namespace measurable_space
 section functors
 variables {m m₁ m₂ : measurable_space α} {m' : measurable_space β} {f : α → β} {g : β → α}
 
-/-- The forward image of a measure space under a function. `map f m` contains the sets `s : set β`
+/-- The forward image of a measurable space under a function. `map f m` contains the sets `s : set β`
   whose preimage under `f` is measurable. -/
 protected def map (f : α → β) (m : measurable_space α) : measurable_space β :=
 { measurable_set'      := λ s, m.measurable_set' $ f ⁻¹' s,

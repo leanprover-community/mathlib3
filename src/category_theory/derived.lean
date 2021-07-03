@@ -55,47 +55,37 @@ variables [preadditive C] [has_zero_object C] [has_equalizers C]
 variables [preadditive D] [has_zero_object D] [has_equalizers D] [has_cokernels D]
   [has_images D] [has_image_maps D]
 
-/-- The left derived functor of an additive functor. -/
-def functor.left_derived (F : C ⥤ D) [F.additive] : C ⥤ homotopy_category D _ :=
-projective_resolutions C ⋙ F.map_homotopy_category _
-
 /-- The left derived functors of an additive functor. -/
-def functor.left_derived' (F : C ⥤ D) [F.additive] (n : ℕ) : C ⥤ D :=
-F.left_derived ⋙ homotopy_category.homology_functor D _ n
+def functor.left_derived (F : C ⥤ D) [F.additive] (n : ℕ) : C ⥤ D :=
+projective_resolutions C ⋙ F.map_homotopy_category _ ⋙ homotopy_category.homology_functor D _ n
 
 -- TODO the left derived functors are additive (and linear when `F` is linear)
 
 /-- We can compute a left derived functor using a chosen projective resolution. -/
-def functor.left_derived_obj_iso (F : C ⥤ D) [F.additive]
+def functor.left_derived_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
   {X : C} (P : ProjectiveResolution X) :
-  (F.left_derived).obj X ≅
-    (homotopy_category.quotient _ _).obj ((F.map_homological_complex _).obj P.complex) :=
-homotopy_category.iso_of_homotopy_equiv
-  (F.map_homotopy_equiv (ProjectiveResolution.homotopy_equiv _ P))
-
-/-- We can compute a left derived functor using a chosen projective resolution. -/
-def functor.left_derived'_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
-  {X : C} (P : ProjectiveResolution X) :
-  (F.left_derived' n).obj X ≅
+  (F.left_derived n).obj X ≅
     (homology_functor D _ n).obj ((F.map_homological_complex _).obj P.complex) :=
 (homotopy_category.homology_functor D _ n).map_iso
-  (F.left_derived_obj_iso P) ≪≫ (homotopy_category.homology_factors D _ n).app _
+  (homotopy_category.iso_of_homotopy_equiv
+    (F.map_homotopy_equiv (ProjectiveResolution.homotopy_equiv _ P)))
+  ≪≫ (homotopy_category.homology_factors D _ n).app _
 
 /-- The 0-th derived functor on a projective object `X` is just `X`. -/
-def functor.left_derived'_obj_projective_zero (F : C ⥤ D) [F.additive]
+def functor.left_derived_obj_projective_zero (F : C ⥤ D) [F.additive]
   (X : C) [projective X] :
-  (F.left_derived' 0).obj X ≅ F.obj X :=
-F.left_derived'_obj_iso 0 (ProjectiveResolution.self X) ≪≫
+  (F.left_derived 0).obj X ≅ F.obj X :=
+F.left_derived_obj_iso 0 (ProjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((chain_complex.single₀_map_homological_complex F).app X) ≪≫
   (chain_complex.homology_functor_0_single₀ D).app (F.obj X)
 
-open_locale zero_object
+local attribute [instance] has_zero_object.has_zero
 
 /-- The higher derived functors vanish on projective objects. -/
-def functor.left_derived'_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
+def functor.left_derived_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
   (X : C) [projective X] :
-  (F.left_derived' (n+1)).obj X ≅ 0 :=
-F.left_derived'_obj_iso (n+1) (ProjectiveResolution.self X) ≪≫
+  (F.left_derived (n+1)).obj X ≅ 0 :=
+F.left_derived_obj_iso (n+1) (ProjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((chain_complex.single₀_map_homological_complex F).app X) ≪≫
   (chain_complex.homology_functor_succ_single₀ D n).app (F.obj X)
 
@@ -103,16 +93,15 @@ F.left_derived'_obj_iso (n+1) (ProjectiveResolution.self X) ≪≫
 We can compute a left derived functor on a morphism using a lift of that morphism
 to a chain map between chosen projective resolutions.
 -/
-lemma functor.left_derived'_map_eq (F : C ⥤ D) [F.additive] (n : ℕ) {X Y : C} (f : X ⟶ Y)
+lemma functor.left_derived_map_eq (F : C ⥤ D) [F.additive] (n : ℕ) {X Y : C} (f : X ⟶ Y)
   {P : ProjectiveResolution X} {Q : ProjectiveResolution Y} (g : P.complex ⟶ Q.complex)
   (w : g ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f) :
-  (F.left_derived' n).map f =
-  (F.left_derived'_obj_iso n P).hom ≫
+  (F.left_derived n).map f =
+  (F.left_derived_obj_iso n P).hom ≫
     (homology_functor D _ n).map ((F.map_homological_complex _).map g) ≫
-    (F.left_derived'_obj_iso n Q).inv :=
+    (F.left_derived_obj_iso n Q).inv :=
 begin
-  dsimp only [functor.left_derived', functor.left_derived,
-    functor.left_derived'_obj_iso, functor.left_derived_obj_iso],
+  dsimp only [functor.left_derived, functor.left_derived_obj_iso],
   dsimp, simp only [category.comp_id, category.id_comp],
   rw [←homology_functor_map, homotopy_category.homology_functor_map_factors],
   simp only [←functor.map_comp],
@@ -127,53 +116,36 @@ begin
 end
 
 /-- The natural transformation between left-derived functors induced by a natural transformation. -/
-def nat_trans.left_derived {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) :
-  F.left_derived ⟶ G.left_derived :=
-whisker_left (projective_resolutions C) (nat_trans.map_homotopy_category α _)
-
-/-- The natural transformation between left-derived functors induced by a natural transformation. -/
-def nat_trans.left_derived' {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) (n : ℕ) :
-  F.left_derived' n ⟶ G.left_derived' n :=
+def nat_trans.left_derived {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) (n : ℕ) :
+  F.left_derived n ⟶ G.left_derived n :=
 whisker_left (projective_resolutions C)
   (whisker_right (nat_trans.map_homotopy_category α _)
     (homotopy_category.homology_functor D _ n))
 
-@[simp] lemma nat_trans.left_derived_id (F : C ⥤ D) [F.additive] :
-  nat_trans.left_derived (𝟙 F) = 𝟙 (F.left_derived) :=
+@[simp] lemma nat_trans.left_derived_id (F : C ⥤ D) [F.additive] (n : ℕ) :
+  nat_trans.left_derived (𝟙 F) n = 𝟙 (F.left_derived n) :=
 by { simp [nat_trans.left_derived], refl, }
-
-@[simp] lemma nat_trans.left_derived'_id (F : C ⥤ D) [F.additive] (n : ℕ) :
-  nat_trans.left_derived' (𝟙 F) n = 𝟙 (F.left_derived' n) :=
-by { simp [nat_trans.left_derived'], refl, }
 
 -- The `simp_nf` linter times out here, so we disable it.
 @[simp, nolint simp_nf] lemma nat_trans.left_derived_comp
   {F G H : C ⥤ D} [F.additive] [G.additive] [H.additive]
-  (α : F ⟶ G) (β : G ⟶ H) :
-  nat_trans.left_derived (α ≫ β) = nat_trans.left_derived α ≫ nat_trans.left_derived β :=
-by simp [nat_trans.left_derived]
-
--- The `simp_nf` linter times out here, so we disable it.
-@[simp, nolint simp_nf] lemma nat_trans.left_derived'_comp
-  {F G H : C ⥤ D} [F.additive] [G.additive] [H.additive]
   (α : F ⟶ G) (β : G ⟶ H) (n : ℕ) :
-  nat_trans.left_derived' (α ≫ β) n = nat_trans.left_derived' α n ≫ nat_trans.left_derived' β n :=
-by simp [nat_trans.left_derived']
+  nat_trans.left_derived (α ≫ β) n = nat_trans.left_derived α n ≫ nat_trans.left_derived β n :=
+by simp [nat_trans.left_derived]
 
 /--
 A component of the natural transformation between left-derived functors can be computed
 using a chosen projective resolution.
 -/
-lemma nat_trans.left_derived'_eq {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) (n : ℕ)
+lemma nat_trans.left_derived_eq {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) (n : ℕ)
   {X : C} (P : ProjectiveResolution X) :
-  (nat_trans.left_derived' α n).app X =
-    (F.left_derived'_obj_iso n P).hom ≫
+  (nat_trans.left_derived α n).app X =
+    (F.left_derived_obj_iso n P).hom ≫
       (homology_functor D _ n).map ((nat_trans.map_homological_complex α _).app P.complex) ≫
-        (G.left_derived'_obj_iso n P).inv :=
+        (G.left_derived_obj_iso n P).inv :=
 begin
   symmetry,
-  dsimp [nat_trans.left_derived', functor.left_derived'_obj_iso,
-    nat_trans.left_derived, functor.left_derived_obj_iso],
+  dsimp [nat_trans.left_derived, functor.left_derived_obj_iso],
   simp only [category.comp_id, category.id_comp],
   rw [←homology_functor_map, homotopy_category.homology_functor_map_factors],
   simp only [←functor.map_comp],

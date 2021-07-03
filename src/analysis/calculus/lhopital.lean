@@ -430,7 +430,7 @@ end has_deriv_at
 
 namespace deriv
 
-/-- L'Hôpital's rule for approaching a real from the right, `deriv` version -/
+/-- **L'Hôpital's rule** for approaching a real from the right, `deriv` version -/
 theorem lhopital_zero_nhds_right
   (hdf : ∀ᶠ x in 𝓝[Ioi a] a, differentiable_at ℝ f x)
   (hg' : ∀ᶠ x in 𝓝[Ioi a] a, deriv g x ≠ 0)
@@ -448,7 +448,7 @@ begin
   exact has_deriv_at.lhopital_zero_nhds_right hdf' hdg' hg' hfa hga hdiv
 end
 
-/-- L'Hôpital's rule for approaching a real from the left, `deriv` version -/
+/-- **L'Hôpital's rule** for approaching a real from the left, `deriv` version -/
 theorem lhopital_zero_nhds_left
   (hdf : ∀ᶠ x in 𝓝[Iio a] a, differentiable_at ℝ f x)
   (hg' : ∀ᶠ x in 𝓝[Iio a] a, deriv g x ≠ 0)
@@ -466,7 +466,7 @@ begin
   exact has_deriv_at.lhopital_zero_nhds_left hdf' hdg' hg' hfa hga hdiv
 end
 
-/-- L'Hôpital's rule for approaching a real, `deriv` version. This
+/-- **L'Hôpital's rule** for approaching a real, `deriv` version. This
   does not require anything about the situation at `a` -/
 theorem lhopital_zero_nhds'
   (hdf : ∀ᶠ x in 𝓝[univ \ {a}] a, differentiable_at ℝ f x)
@@ -482,7 +482,7 @@ begin
           lhopital_zero_nhds_right hdf.2 hg'.2 hfa.2 hga.2 hdiv.2⟩,
 end
 
-/-- L'Hôpital's rule for approaching a real, `deriv` version -/
+/-- **L'Hôpital's rule** for approaching a real, `deriv` version -/
 theorem lhopital_zero_nhds
   (hdf : ∀ᶠ x in 𝓝 a, differentiable_at ℝ f x)
   (hg' : ∀ᶠ x in 𝓝 a, deriv g x ≠ 0)
@@ -495,7 +495,7 @@ begin
   assumption
 end
 
-/-- L'Hôpital's rule for approaching +∞, `deriv` version -/
+/-- **L'Hôpital's rule** for approaching +∞, `deriv` version -/
 theorem lhopital_zero_at_top
   (hdf : ∀ᶠ (x : ℝ) in at_top, differentiable_at ℝ f x)
   (hg' : ∀ᶠ (x : ℝ) in at_top, deriv g x ≠ 0)
@@ -513,7 +513,7 @@ begin
   exact has_deriv_at.lhopital_zero_at_top hdf' hdg' hg' hftop hgtop hdiv
 end
 
-/-- L'Hôpital's rule for approaching -∞, `deriv` version -/
+/-- **L'Hôpital's rule** for approaching -∞, `deriv` version -/
 theorem lhopital_zero_at_bot
   (hdf : ∀ᶠ (x : ℝ) in at_bot, differentiable_at ℝ f x)
   (hg' : ∀ᶠ (x : ℝ) in at_bot, deriv g x ≠ 0)
@@ -532,3 +532,4 @@ begin
 end
 
 end deriv
+#lint

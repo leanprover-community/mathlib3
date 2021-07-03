@@ -290,12 +290,12 @@ lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e�
 
 @[simp] lemma apply_inv_self (e : α ≃ᵢ α) (x: α) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
-lemma complete (e : α ≃ᵢ β) (hF : complete_space β) : complete_space α :=
+protected lemma complete_space (e : α ≃ᵢ β) (hF : complete_space β) : complete_space α :=
 complete_space_of_is_complete_univ $ is_complete_of_complete_image e.isometry.uniform_inducing $
   by rwa [set.image_univ, isometric.range_eq_univ, ← complete_space_iff_is_complete_univ]
 
-lemma complete_iff (e : α ≃ᵢ β) : complete_space α ↔ complete_space β :=
-⟨λ h, e.symm.complete h, λ h, e.complete h⟩
+lemma complete_space_iff (e : α ≃ᵢ β) : complete_space α ↔ complete_space β :=
+⟨λ h, e.symm.complete_space h, λ h, e.complete_space h⟩
 
 end pseudo_emetric_space
 

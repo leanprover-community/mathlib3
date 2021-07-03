@@ -2485,7 +2485,13 @@ end piecewise
 
 section indicator_function
 
-variables [measurable_space α] [has_zero β] {μ : measure α} {s : set α} {f : α → β}
+variables [measurable_space α] {μ : measure α} {s : set α} {f : α → β}
+
+lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
+  ae_measurable f (μ.restrict s) :=
+⟨ae_measurable.mk f hfm, hfm.measurable_mk, ae_restrict_of_ae hfm.ae_eq_mk⟩
+
+variables [has_zero β]
 
 lemma indicator_ae_eq_restrict (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict s] f :=
 piecewise_ae_eq_restrict hs
@@ -2495,7 +2501,7 @@ piecewise_ae_eq_restrict_compl hs
 
 variables [measurable_space β]
 
-lemma ae_measurable_indicator_iff [has_zero β] {s} (hs : measurable_set s) :
+lemma ae_measurable_indicator_iff {s} (hs : measurable_set s) :
   ae_measurable (indicator s f) μ ↔ ae_measurable f (μ.restrict s)  :=
 begin
   split,
@@ -2512,11 +2518,7 @@ begin
     simpa only [hs, measure.restrict_add_restrict_compl] using this },
 end
 
-lemma ae_measurable.restrict (hfm : ae_measurable f μ) {s} :
-  ae_measurable f (μ.restrict s) :=
-⟨ae_measurable.mk f hfm, hfm.measurable_mk, ae_restrict_of_ae hfm.ae_eq_mk⟩
-
-lemma ae_measurable.indicator [has_zero β] (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
+lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
   ae_measurable (s.indicator f) μ :=
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
 

@@ -1300,44 +1300,37 @@ end
 lemma snorm_ess_sup_indicator_const_le (s : set α) (c : G) :
   snorm_ess_sup (s.indicator (λ x : α , c)) μ ≤ (∥c∥₊ : ℝ≥0∞) :=
 begin
-  refine (snorm_ess_sup_indicator_le s (λ x, c)).trans _,
   by_cases hμ0 : μ = 0,
   { simp [hμ0], },
-  rw snorm_ess_sup_const c hμ0,
-  exact le_rfl,
+  { exact (snorm_ess_sup_indicator_le s (λ x, c)).trans (snorm_ess_sup_const c hμ0).le, },
 end
 
 lemma snorm_ess_sup_indicator_const_eq (s : set α) (c : G) (hμs : 0 < μ s) :
   snorm_ess_sup (s.indicator (λ x : α , c)) μ = (∥c∥₊ : ℝ≥0∞) :=
 begin
   refine le_antisymm (snorm_ess_sup_indicator_const_le s c) _,
-  rw snorm_ess_sup,
   by_contra h,
   push_neg at h,
-  rw lt_iff_not_ge' at hμs,
-  refine hμs (le_of_eq _),
-  have hs_ss : s ⊆ {x | (∥c∥₊ : ℝ≥0∞) ≤ (∥s.indicator (λ x : α , c) x∥₊ : ℝ≥0∞)},
-  { intros x hx_mem,
-    simp [hx_mem], },
-  refine measure_mono_null hs_ss _,
   have h' := ae_iff.mp (ae_lt_of_ess_sup_lt h),
   push_neg at h',
-  exact h',
+  refine hμs.ne.symm (measure_mono_null (λ x hx_mem, _) h'),
+  rw [set.mem_set_of_eq, set.indicator_of_mem hx_mem],
+  exact le_rfl,
 end
 
 lemma snorm_indicator_const {c : G} (hs : measurable_set s) (hp : 0 < p) (hp_top : p ≠ ∞) :
   snorm (s.indicator (λ x, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=
 begin
   have hp_pos : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp, hp_top⟩,
-  rw snorm_eq_snorm' hp.ne.symm hp_top,
-  rw snorm',
+  rw snorm_eq_lintegral_rpow_nnnorm hp.ne.symm hp_top,
   simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
   have h_indicator_pow : (λ a : α, s.indicator (λ (x : α), (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
     = s.indicator (λ (x : α), ↑∥c∥₊ ^ p.to_real),
-  { rw indicator_const_comp (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _, simp [hp_pos], },
+  { rw indicator_const_comp (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _,
+    simp [hp_pos], },
   rw [h_indicator_pow, lintegral_indicator _ hs, set_lintegral_const, ennreal.mul_rpow_of_nonneg],
-  swap, { simp [hp_pos.le], },
-  rw [← ennreal.rpow_mul, mul_one_div_cancel hp_pos.ne.symm, ennreal.rpow_one],
+  { rw [← ennreal.rpow_mul, mul_one_div_cancel hp_pos.ne.symm, ennreal.rpow_one], },
+  { simp [hp_pos.le], },
 end
 
 lemma snorm_indicator_const' {c : G} (hs : measurable_set s) (hμs : 0 < μ s) (hp : 0 < p) :
@@ -1345,7 +1338,7 @@ lemma snorm_indicator_const' {c : G} (hs : measurable_set s) (hμs : 0 < μ s) (
 begin
   by_cases hp_top : p = ∞,
   { simp [hp_top, snorm_ess_sup_indicator_const_eq s c hμs], },
-  exact snorm_indicator_const hs hp hp_top,
+  { exact snorm_indicator_const hs hp hp_top, },
 end
 
 lemma mem_ℒp_indicator_const (p : ℝ≥0∞) (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s < ∞) :
@@ -1369,8 +1362,7 @@ begin
     exact (snorm_ess_sup_indicator_const_le s c).trans_lt ennreal.coe_lt_top, },
   have hp_pos : 0 < p.to_real,
     from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
-  rw snorm_eq_snorm' hp0 hp_top,
-  simp_rw snorm',
+  rw snorm_eq_lintegral_rpow_nnnorm hp0 hp_top,
   refine ennreal.rpow_lt_top_of_nonneg _ _,
   { simp only [hp_pos.le, one_div, inv_nonneg], },
   simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],

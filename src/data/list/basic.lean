@@ -178,7 +178,7 @@ lemma bind_map {g : α → list β} {f : β → γ} :
 | (a::l) := by simp only [cons_bind, map_append, bind_map l]
 
 lemma map_bind (g : β → list γ) (f : α → β) :
-  ∀(l : list α), (list.map f l).bind g = l.bind (λa, g (f a))
+  ∀ l : list α, (list.map f l).bind g = l.bind (λ a, g (f a))
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_cons, map_bind l]
 

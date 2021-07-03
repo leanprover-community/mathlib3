@@ -547,7 +547,7 @@ instance ess_surj_induced_functor {C' : Type*} (e : C' ≃ D) : ess_surj (induce
 
 noncomputable
 instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
-equivalence_of_fully_faithfully_ess_surj _
+equivalence.of_fully_faithfully_ess_surj _
 
 end equivalence
 

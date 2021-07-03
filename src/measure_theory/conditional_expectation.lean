@@ -122,6 +122,8 @@ measure `μ.trim hm`. As a consequence, the completeness of `Lp` implies complet
 
 variables {ι : Type*} {m m0 : measurable_space α} {μ : measure α}
 
+/-- If `f` belongs to `Lp_meas F 𝕜 m p μ`, then the measurable function it is almost everywhere
+equal to (given by `ae_measurable.mk`) belongs to `ℒp` for the measure `μ.trim hm`. -/
 lemma mem_ℒp_trim_of_mem_Lp_meas (hm : m ≤ m0) (f : Lp F p μ) (hf_meas : f ∈ Lp_meas F 𝕜 m p μ) :
   @mem_ℒp α F m _ _ (mem_Lp_meas_iff_ae_measurable'.mp hf_meas).some p (μ.trim hm) :=
 begin
@@ -136,6 +138,8 @@ begin
   exact Lp.snorm_lt_top f,
 end
 
+/-- If `f` belongs to `Lp` for the measure `μ.trim hm`, then it belongs to the subspace
+`Lp_meas F 𝕜 m p μ`. -/
 lemma mem_Lp_meas_to_Lp_of_trim (hm : m ≤ m0) (f : @Lp α F m _ _ _ _ p (μ.trim hm)) :
   (mem_ℒp_of_mem_ℒp_trim hm (@Lp.mem_ℒp _ _ m _ _ _ _ _ _ f)).to_Lp f ∈ Lp_meas F 𝕜 m p μ :=
 begin

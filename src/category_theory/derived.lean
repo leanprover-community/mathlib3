@@ -72,7 +72,7 @@ def functor.left_derived_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
     (F.map_homotopy_equiv (ProjectiveResolution.homotopy_equiv _ P)))
   ≪≫ (homotopy_category.homology_factors D _ n).app _
 
-/-- The 0-th derived functor on a projective object `X` is just `X`. -/
+/-- The 0-th derived functor of `F` on a projective object `X` is just `F.obj X`. -/
 @[simps]
 def functor.left_derived_obj_projective_zero (F : C ⥤ D) [F.additive]
   (X : C) [projective X] :

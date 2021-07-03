@@ -13,12 +13,8 @@ import category_theory.abelian.projective
 /-!
 # Ext
 
-TODO: Fix this docstring
-
-We define `Ext R C n : Cᵒᵖ ⥤ C ⥤ Module R`
-for any `R`-linear abelian category `C`
-by left-deriving in the second argument of
-the `linear_yoneda` bifunctor `(X, Y) ↦ Module.of R (unop X ⟶ Y)`
+We define `Ext R C n : Cᵒᵖ ⥤ C ⥤ Module R` for any `R`-linear abelian category `C`
+by deriving in the first argument of the bifunctor `(X, Y) ↦ Module.of R (unop X ⟶ Y)`.
 
 ## Implementation
 It's not actually necessary here to assume `C` is abelian,
@@ -31,11 +27,11 @@ noncomputable theory
 open category_theory
 
 variables (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
-  [enough_projectives C] -- When we have injective resolutions, just `[enough_injectives C]`
+  [enough_projectives C]
 
 /--
-TODO: Fix this docstring
-`Ext R C n` is defined by left-deriving in the second argument of the `linear_yoneda` bifunctor.
+`Ext R C n` is defined by deriving in the frst argument of `(X, Y) ↦ Module.of R (unop X ⟶ Y)`
+(which is the second argument of `linear_yoneda`).
 -/
 @[simps]
 def Ext (n : ℕ) : Cᵒᵖ ⥤ C ⥤ Module R :=
@@ -47,20 +43,12 @@ functor.flip
     ext Y : 2,
     dsimp only [nat_trans.id_app, nat_trans.left_op_app,
       nat_trans.right_op_app, functor.left_op_obj, functor.right_op_obj],
-    rw [(linear_yoneda R C).map_id, ← unop_id],
-    -- TODO: Make the following a separate lemma
-    have : nat_trans.right_op (𝟙 ((linear_yoneda R C).obj X)) = 𝟙 _, refl,
-    rw [this, nat_trans.left_derived_id],
+    rw [(linear_yoneda R C).map_id, ← unop_id, nat_trans.right_op_id, nat_trans.left_derived_id],
     refl,
   end,
   map_comp' := begin
     intros X Y Z f g,
-    rw (linear_yoneda R C).map_comp,
-    -- TODO: Make the following a separate lemma
-    have : nat_trans.right_op ((linear_yoneda R C).map f ≫ (linear_yoneda R C).map g) =
-      ((linear_yoneda R C).map g).right_op ≫ ((linear_yoneda R C).map f).right_op,
-      by refl,
-    rw [this, nat_trans.left_derived_comp],
+    rw [(linear_yoneda R C).map_comp, nat_trans.right_op_comp, nat_trans.left_derived_comp],
     refl,
   end }
 

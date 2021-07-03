@@ -258,5 +258,3 @@ open irrational
 ⟨of_inv, irrational.inv⟩
 
 end
-
-#lint

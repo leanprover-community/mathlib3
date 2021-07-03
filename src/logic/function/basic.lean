@@ -174,7 +174,8 @@ theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | 
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
 
-/-- **Cantor's diagonal argument** implies that there are no injective functions from `set α` to `α`. -/
+/-- **Cantor's diagonal argument** implies that there are no injective functions from `set α`
+to `α`. -/
 theorem cantor_injective {α : Type*} (f : (set α) → α) :
   ¬ function.injective f | i :=
 cantor_surjective (λ a b, ∀ U, a = f U → U b) $

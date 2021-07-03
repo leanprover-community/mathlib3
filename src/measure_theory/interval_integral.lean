@@ -1496,9 +1496,9 @@ lemma integral_has_strict_fderiv_at
 integral_has_strict_fderiv_at_of_tendsto_ae hf hmeas_a hmeas_b
   (ha.mono_left inf_le_left) (hb.mono_left inf_le_left)
 
-/-- **First Fundamental Theorem of Calculus**: if `f : ℝ → E` is integrable on `a..b` and `f x` has a finite
-limit `c` almost surely at `b`, then `u ↦ ∫ x in a..u, f x` has derivative `c` at `b` in the sense
-of strict differentiability. -/
+/-- **First Fundamental Theorem of Calculus**: if `f : ℝ → E` is integrable on `a..b` and `f x` has
+a finite limit `c` almost surely at `b`, then `u ↦ ∫ x in a..u, f x` has derivative `c` at `b` in
+the sense of strict differentiability. -/
 lemma integral_has_strict_deriv_at_of_tendsto_ae_right
   (hf : interval_integrable f volume a b) (hmeas : measurable_at_filter f (𝓝 b))
   (hb : tendsto f (𝓝 b ⊓ volume.ae) (𝓝 c)) : has_strict_deriv_at (λ u, ∫ x in a..u, f x) c b :=

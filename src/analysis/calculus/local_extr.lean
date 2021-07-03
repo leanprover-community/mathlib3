@@ -336,9 +336,9 @@ begin
   exact ⟨Ioo a b, Ioo_mem_nhds hc.1 hc.2, extend_from_extends this⟩
 end
 
-/-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has the same limit `l` at
-`𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version does not
-require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
+/-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has the same limit
+`l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version
+does not require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
 differentiable at `c`. -/
 lemma exists_deriv_eq_zero' (hab : a < b)
   (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l)) :

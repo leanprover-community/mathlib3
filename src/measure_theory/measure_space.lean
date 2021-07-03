@@ -1447,8 +1447,7 @@ end
 lemma prob_le_one [probability_measure μ] : μ s ≤ 1 :=
 begin
   have h₁ : μ s ≤ μ set.univ := measure_mono (set.subset_univ _),
-    rw measure_univ at h₁,
-  exact h₁,
+  rwa measure_univ at h₁,
 end
 
 end finite_measure

@@ -166,6 +166,27 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hq0_lt) (ne_of_lt hfq),
 end
 
+lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → F} (hp_ne_zero : p ≠ 0)
+  (hp_ne_top : p ≠ ∞) (hfp : snorm f p μ < ∞) :
+  ∫⁻ a, (nnnorm (f a)) ^ p.to_real ∂μ < ∞ :=
+begin
+  apply lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top,
+  { exact ennreal.to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_ne_zero, hp_ne_top⟩ },
+  { simpa [snorm_eq_snorm' hp_ne_zero hp_ne_top] using hfp }
+end
+
+lemma snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top {f : α → F} (hp_ne_zero : p ≠ 0)
+  (hp_ne_top : p ≠ ∞) :
+  snorm f p μ < ∞ ↔ ∫⁻ a, (nnnorm (f a)) ^ p.to_real ∂μ < ∞ :=
+⟨lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_ne_zero hp_ne_top,
+  begin
+    intros h,
+    have hp' := ennreal.to_real_pos_iff.mpr ⟨bot_lt_iff_ne_bot.mpr hp_ne_zero, hp_ne_top⟩,
+    have : 0 < 1 / p.to_real := div_pos zero_lt_one hp',
+    simpa [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top] using
+      ennreal.rpow_lt_top_of_nonneg (le_of_lt this) (ne_of_lt h)
+  end⟩
+
 end top
 
 section zero
@@ -1544,7 +1565,7 @@ end
 
 /-! ### `Lp` is complete iff Cauchy sequences of `ℒp` have limits in `ℒp` -/
 
-lemma tendsto_Lp_iff_tendsto_ℒp' {ι} {fi : filter ι} [hp : fact (1 ≤ p)]
+lemma tendsto_Lp_iff_tendsto_ℒp' {ι} {fi : filter ι} [fact (1 ≤ p)]
   (f : ι → Lp E p μ) (f_lim : Lp E p μ) :
   fi.tendsto f (𝓝 f_lim) ↔ fi.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
@@ -1555,7 +1576,7 @@ begin
   exact Lp.snorm_ne_top _,
 end
 
-lemma tendsto_Lp_iff_tendsto_ℒp {ι} {fi : filter ι} [hp : fact (1 ≤ p)]
+lemma tendsto_Lp_iff_tendsto_ℒp {ι} {fi : filter ι} [fact (1 ≤ p)]
   (f : ι → Lp E p μ) (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ) :
   fi.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) ↔ fi.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
@@ -1564,6 +1585,21 @@ begin
       = (λ n, snorm (f n - f_lim) p μ),
     by rw h_eq,
   exact funext (λ n, snorm_congr_ae (eventually_eq.rfl.sub (mem_ℒp.coe_fn_to_Lp f_lim_ℒp))),
+end
+
+lemma tendsto_Lp_iff_tendsto_ℒp'' {ι} {fi : filter ι} [fact (1 ≤ p)]
+  (f : ι → α → E) (f_ℒp : ∀ n, mem_ℒp (f n) p μ) (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ) :
+  fi.tendsto (λ n, (f_ℒp n).to_Lp (f n)) (𝓝 (f_lim_ℒp.to_Lp f_lim))
+    ↔ fi.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
+begin
+  convert Lp.tendsto_Lp_iff_tendsto_ℒp' _ _,
+  ext1 n,
+  apply snorm_congr_ae,
+  filter_upwards [((f_ℒp n).sub f_lim_ℒp).coe_fn_to_Lp,
+    Lp.coe_fn_sub ((f_ℒp n).to_Lp (f n)) (f_lim_ℒp.to_Lp f_lim)],
+  intros x hx₁ hx₂,
+  rw ← hx₂,
+  exact hx₁.symm
 end
 
 lemma tendsto_Lp_of_tendsto_ℒp {ι} {fi : filter ι} [hp : fact (1 ≤ p)]

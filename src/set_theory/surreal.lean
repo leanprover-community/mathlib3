@@ -506,19 +506,15 @@ end
 lemma dyadic_aux {m₁ m₂ : ℤ} {y₁ y₂ : ℕ} (h₂ : m₁ * (2 ^ y₁) = m₂ * (2 ^ y₂)) :
   m₁ • pow_half y₂ = m₂ • pow_half y₁ :=
 begin
-  obtain h | h := le_or_lt y₁ y₂,
-  { obtain ⟨c, hc⟩ := le_iff_exists_add.mp h,
-    rw [hc, add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
-    cases h₂,
-    { rw [h₂, hc, add_comm, nsmul_int_pow_two_pow_half m₂ c y₁] },
-    { have := nat.one_le_pow y₁ 2 nat.succ_pos',
-      linarith } },
-  { obtain ⟨c, hc⟩ := le_iff_exists_add.mp (le_of_lt h),
-    rw [hc, add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
-    cases h₂,
-    { rw [← h₂, hc, add_comm, nsmul_int_pow_two_pow_half m₁ c y₂] },
-    { have := nat.one_le_pow y₂ 2 nat.succ_pos',
-      linarith } }
+  revert m₁ m₂,
+  wlog h : y₁ ≤ y₂,
+  intros m₁ m₂ h₂,
+  obtain ⟨c, rfl⟩ := le_iff_exists_add.mp h,
+  rw [add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
+  cases h₂,
+  { rw [h₂, add_comm, nsmul_int_pow_two_pow_half m₂ c y₁] },
+  { have := nat.one_le_pow y₁ 2 nat.succ_pos',
+    linarith },
 end
 
 /-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/

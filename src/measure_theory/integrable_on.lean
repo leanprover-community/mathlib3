@@ -182,8 +182,8 @@ lemma integrable_indicator_Lp {E} [normed_group E] [measurable_space E] [borel_s
   (c : E) :
   integrable (indicator_Lp p hs hμs c) μ :=
 begin
-  rw [integrable_congr (indicator_Lp_coe_fn p hs hμs c), integrable_indicator_iff hs,
-    integrable_on, integrable_const_iff],
+  rw [integrable_congr indicator_Lp_coe_fn, integrable_indicator_iff hs, integrable_on,
+    integrable_const_iff],
   right,
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
 end

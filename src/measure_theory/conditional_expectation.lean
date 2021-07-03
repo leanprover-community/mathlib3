@@ -256,7 +256,7 @@ variables {F 𝕜 p μ}
 
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas F 𝕜 m p μ) :=
-by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_iff, apply_instance, }
+by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_space_iff, apply_instance, }
 
 end complete_subspace
 

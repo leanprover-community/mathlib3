@@ -252,13 +252,7 @@ variables {F 𝕜 p μ}
 
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
   complete_space (Lp_meas F 𝕜 m p μ) :=
-begin
-  refine complete_space_of_is_complete_univ _,
-  refine is_complete_of_complete_image
-    (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).isometry.uniform_inducing _,
-  rw [set.image_univ, linear_isometry_equiv.range_eq_univ, ← complete_space_iff_is_complete_univ],
-  apply_instance,
-end
+by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_iff, apply_instance, }
 
 end complete_subspace
 

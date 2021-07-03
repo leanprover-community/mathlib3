@@ -62,6 +62,7 @@ projective_resolutions C ⋙ F.map_homotopy_category _ ⋙ homotopy_category.hom
 -- TODO the left derived functors are additive (and linear when `F` is linear)
 
 /-- We can compute a left derived functor using a chosen projective resolution. -/
+@[simps]
 def functor.left_derived_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
   {X : C} (P : ProjectiveResolution X) :
   (F.left_derived n).obj X ≅
@@ -71,7 +72,8 @@ def functor.left_derived_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
     (F.map_homotopy_equiv (ProjectiveResolution.homotopy_equiv _ P)))
   ≪≫ (homotopy_category.homology_factors D _ n).app _
 
-/-- The 0-th derived functor on a projective object `X` is just `X`. -/
+/-- The 0-th derived functor of `F` on a projective object `X` is just `F.obj X`. -/
+@[simps]
 def functor.left_derived_obj_projective_zero (F : C ⥤ D) [F.additive]
   (X : C) [projective X] :
   (F.left_derived 0).obj X ≅ F.obj X :=
@@ -79,9 +81,10 @@ F.left_derived_obj_iso 0 (ProjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((chain_complex.single₀_map_homological_complex F).app X) ≪≫
   (chain_complex.homology_functor_0_single₀ D).app (F.obj X)
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- The higher derived functors vanish on projective objects. -/
+@[simps]
 def functor.left_derived_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
   (X : C) [projective X] :
   (F.left_derived (n+1)).obj X ≅ 0 :=
@@ -116,6 +119,7 @@ begin
 end
 
 /-- The natural transformation between left-derived functors induced by a natural transformation. -/
+@[simps]
 def nat_trans.left_derived {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) (n : ℕ) :
   F.left_derived n ⟶ G.left_derived n :=
 whisker_left (projective_resolutions C)

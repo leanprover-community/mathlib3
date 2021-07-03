@@ -105,6 +105,9 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : n
   ..subtype.linear_order s,
   ..lattice_of_linear_order }
 
+theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
+rfl
+
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 
@@ -1058,6 +1061,18 @@ by rw [← mod_add_mod, ← mod_add_mod k, H]
 theorem add_mod_eq_add_mod_left {m n k : ℕ} (i : ℕ) (H : m % n = k % n) :
   (i + m) % n = (i + k) % n :=
 by rw [add_comm, add_mod_eq_add_mod_right _ H, add_comm]
+
+lemma add_mod_eq_ite {a b n : ℕ} :
+  (a + b) % n = if n ≤ a % n + b % n then a % n + b % n - n else a % n + b % n :=
+begin
+  cases n, { simp },
+  rw nat.add_mod,
+  split_ifs with h,
+  { rw [nat.mod_eq_sub_mod h, nat.mod_eq_of_lt],
+    exact (nat.sub_lt_right_iff_lt_add h).mpr
+        (nat.add_lt_add (a.mod_lt n.zero_lt_succ) (b.mod_lt n.zero_lt_succ)) },
+  { exact nat.mod_eq_of_lt (lt_of_not_ge h) }
+end
 
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin

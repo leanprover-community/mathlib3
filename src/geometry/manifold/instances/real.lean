@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import geometry.manifold.algebra.smooth_functions
 import linear_algebra.finite_dimensional
-import analysis.normed_space.inner_product
+import analysis.normed_space.pi_Lp
 
 /-!
 # Constructing examples of manifolds over ℝ

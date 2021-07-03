@@ -32,8 +32,10 @@ The Bochner integral is defined following these steps:
 
 3. Define the Bochner integral on L1 functions by extending the integral on integrable simple
   functions `α →₁ₛ[μ] E` using `continuous_linear_map.extend` and the fact that the embedding of
-  `α →₁ₛ[μ] E` into `α →₁[μ] E` is dense. Define the Bochner integral on functions as the Bochner
-  integral of its equivalence class in L1 space.
+  `α →₁ₛ[μ] E` into `α →₁[μ] E` is dense.
+
+4. Define the Bochner integral on functions as the Bochner integral of its equivalence class in L1
+  space, if it is in L1, and 0 otherwise.
 
 ## Main statements
 

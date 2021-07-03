@@ -140,9 +140,9 @@ open set filter topological_space ennreal emetric
 
 namespace measure_theory
 
-local infixr ` →ₛ `:25 := simple_func
-
 variables {α E F 𝕜 : Type*} [measurable_space α]
+
+local infixr ` →ₛ `:25 := simple_func
 
 namespace simple_func
 

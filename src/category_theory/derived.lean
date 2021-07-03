@@ -79,7 +79,7 @@ F.left_derived_obj_iso 0 (ProjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((chain_complex.single₀_map_homological_complex F).app X) ≪≫
   (chain_complex.homology_functor_0_single₀ D).app (F.obj X)
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- The higher derived functors vanish on projective objects. -/
 def functor.left_derived_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ)

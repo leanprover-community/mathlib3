@@ -1295,12 +1295,10 @@ lemma indicator_const_comp {β γ δ} [has_zero γ] [has_zero δ] {s : set β} (
 /-! ### Indicator of a set as an element of Lᵖ
 
 For a set `s` with `(hs : measurable_set s)` and `(hμs : μ s < ∞)`, we build
-* `indicator_const_ae μ hs c`, the equivalence class of the indicator under the relation of being
-  almost everywhere equal,
-* `indicator_Lp p hs hμs c`, the element of `Lp` corresponding to `s.indicator (λ x, c)`.
+`indicator_Lp p hs hμs c`, the element of `Lp` corresponding to `s.indicator (λ x, c)`.
 -/
 
-section indicator_const_ae
+section indicator_ae
 
 variables {s : set α} {hs : measurable_set s} {c : E} {f : α → E} {hf : ae_measurable f μ}
 
@@ -1319,15 +1317,8 @@ begin
   exact set.indicator_le_self s _ x,
 end
 
-/-- Indicator of a set as an ` α →ₘ[μ] E`. -/
-def indicator_const_ae (μ : measure α) (hs : measurable_set s) (c : E) : α →ₘ[μ] E :=
-indicator_ae (λ _, c) hs ae_measurable_const
-
-lemma indicator_const_ae_coe : ⇑(indicator_const_ae μ hs c) =ᵐ[μ] s.indicator (λ _, c) :=
-indicator_ae_coe
-
 lemma snorm_ess_sup_indicator_const_le (s : set α) (c : G) :
-  snorm_ess_sup (s.indicator (λ x : α , c)) μ ≤ (∥c∥₊ : ℝ≥0∞) :=
+  snorm_ess_sup (s.indicator (λ x : α , c)) μ ≤ ∥c∥₊ :=
 begin
   by_cases hμ0 : μ = 0,
   { simp [hμ0], },
@@ -1335,7 +1326,7 @@ begin
 end
 
 lemma snorm_ess_sup_indicator_const_eq (s : set α) (c : G) (hμs : 0 < μ s) :
-  snorm_ess_sup (s.indicator (λ x : α , c)) μ = (∥c∥₊ : ℝ≥0∞) :=
+  snorm_ess_sup (s.indicator (λ x : α , c)) μ = ∥c∥₊ :=
 begin
   refine le_antisymm (snorm_ess_sup_indicator_const_le s c) _,
   by_contra h,
@@ -1395,11 +1386,11 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg hp_pos.le ennreal.coe_ne_top,
 end
 
-lemma mem_ℒp_indicator_const_ae (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s < ∞) :
-  mem_ℒp (indicator_const_ae μ hs c) p μ :=
-(mem_ℒp_congr_ae indicator_const_ae_coe).mpr (mem_ℒp_indicator_const p hs c hμsc)
+lemma mem_ℒp_indicator_ae_const (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s < ∞) :
+  mem_ℒp (indicator_ae (λ _, c) hs (@ae_measurable_const _ _ _ _ μ _)) p μ :=
+(mem_ℒp_congr_ae indicator_ae_coe).mpr (mem_ℒp_indicator_const p hs c hμsc)
 
-end indicator_const_ae
+end indicator_ae
 
 section indicator_Lp
 variables {s : set α} {hs : measurable_set s} {hμs : μ s < ∞} {c : E}
@@ -1407,13 +1398,15 @@ variables {s : set α} {hs : measurable_set s} {hμs : μ s < ∞} {c : E}
 
 /-- Indicator of a set as an element of `Lp`. -/
 def indicator_Lp (p : ℝ≥0∞) (hs : measurable_set s) (hμs : μ s < ∞) (c : E) : Lp E p μ :=
-mem_ℒp.to_Lp (indicator_const_ae μ hs c) (mem_ℒp_indicator_const_ae hs c (or.inr hμs))
+mem_ℒp.to_Lp (indicator_ae (λ _, c) hs ae_measurable_const)
+  (mem_ℒp_indicator_ae_const hs c (or.inr hμs))
 
-lemma indicator_Lp_coe : ⇑(indicator_Lp p hs hμs c) =ᵐ[μ] indicator_const_ae μ hs c :=
-mem_ℒp.coe_fn_to_Lp (mem_ℒp_indicator_const_ae hs c (or.inr hμs))
+lemma indicator_Lp_coe :
+  ⇑(indicator_Lp p hs hμs c) =ᵐ[μ] indicator_ae (λ _, c) hs (@ae_measurable_const _ _ _ _ μ _) :=
+mem_ℒp.coe_fn_to_Lp (mem_ℒp_indicator_ae_const hs c (or.inr hμs))
 
 lemma indicator_Lp_coe_fn : ⇑(indicator_Lp p hs hμs c) =ᵐ[μ] s.indicator (λ _, c) :=
-indicator_Lp_coe.trans indicator_const_ae_coe
+indicator_Lp_coe.trans indicator_ae_coe
 
 lemma indicator_Lp_coe_fn_mem : ∀ᵐ (x : α) ∂μ, x ∈ s → (indicator_Lp p hs hμs c x) = c :=
 indicator_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_mem hxs _))

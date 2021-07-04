@@ -1314,7 +1314,8 @@ lemma snorm_ess_sup_indicator_const_le (s : set α) (c : G) :
   snorm_ess_sup (s.indicator (λ x : α , c)) μ ≤ ∥c∥₊ :=
 begin
   by_cases hμ0 : μ = 0,
-  { simp [hμ0], },
+  { rw [hμ0, snorm_ess_sup_measure_zero, ennreal.coe_nonneg],
+    exact zero_le', },
   { exact (snorm_ess_sup_indicator_le s (λ x, c)).trans (snorm_ess_sup_const c hμ0).le, },
 end
 
@@ -1419,6 +1420,7 @@ begin
   { exact norm_indicator_const_Lp hp_pos hp_top, },
 end
 
+/-- The indicator of a disjoint union of two sets is the sum of the indicators of the sets. -/
 lemma indicator_const_Lp_disjoint_union {s t : set α} (hs : measurable_set s)
   (ht : measurable_set t) (hμs : μ s < ∞) (hμt : μ t < ∞) (hst : s ∩ t = ∅) (c : E) :
   (indicator_const_Lp 2 (hs.union ht)

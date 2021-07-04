@@ -116,8 +116,13 @@ eq_nil_of_length_eq_zero p.length_eq
 theorem perm.nil_eq {l : list α} (p : [] ~ l) : [] = l :=
 p.symm.eq_nil.symm
 
+@[simp]
 theorem perm_nil {l₁ : list α} : l₁ ~ [] ↔ l₁ = [] :=
 ⟨λ p, p.eq_nil, λ e, e ▸ perm.refl _⟩
+
+@[simp]
+theorem nil_perm {l₁ : list α} : [] ~ l₁ ↔ l₁ = [] :=
+perm_comm.trans perm_nil
 
 theorem not_perm_nil_cons (x : α) (l : list α) : ¬ [] ~ x::l
 | p := by injection p.symm.eq_nil

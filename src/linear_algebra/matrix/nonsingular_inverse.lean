@@ -395,7 +395,7 @@ variables {A} {B}
 
 /-- Matrix A is invertible implies `det A` is a unit. -/
 noncomputable
-lemma invertible_of_is_unit_det  (h: is_unit A.det) : invertible A :=
+lemma invertible_of_is_unit_det  (h : is_unit A.det) : invertible A :=
 ⟨A⁻¹, nonsing_inv_mul A h, mul_nonsing_inv A h⟩
 
 /-- If matrix A is left invertible, then its inverse equals its left inverse. -/

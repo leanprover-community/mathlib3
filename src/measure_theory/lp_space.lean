@@ -1426,7 +1426,6 @@ begin
   refine indicator_const_Lp_coe_fn.trans (eventually_eq.trans _ (Lp.coe_fn_add _ _).symm),
   refine eventually_eq.trans _
     (eventually_eq.add indicator_const_Lp_coe_fn.symm indicator_const_Lp_coe_fn.symm),
-  refine eventually_of_forall (λ x, _),
   rw set.indicator_union_of_disjoint (set.disjoint_iff_inter_eq_empty.mpr hst) _,
 end
 

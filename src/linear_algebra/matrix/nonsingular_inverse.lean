@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Tim Baanen
+Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
 import linear_algebra.matrix.determinant
@@ -280,7 +280,7 @@ Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.
 -/
 
-variables (A : matrix n n α)
+variables (A : matrix n n α) (B : matrix n n α)
 
 open_locale classical
 
@@ -350,21 +350,21 @@ begin
     exact (A.nonsing_inv_unit h).is_unit, },
 end
 
-lemma is_unit_det_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : is_unit A.det :=
+lemma is_unit_det_of_left_inverse (h : B ⬝ A = 1) : is_unit A.det :=
 ⟨{ val     := A.det,
     inv     := B.det,
     val_inv := by rw [mul_comm, ← det_mul, h, det_one],
     inv_val := by rw [← det_mul, h, det_one],
 }, rfl⟩
 
-lemma is_unit_det_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : is_unit A.det :=
+lemma is_unit_det_of_right_inverse (h : A ⬝ B = 1) : is_unit A.det :=
 ⟨{ val     := A.det,
     inv     := B.det,
     val_inv := by rw [← det_mul, h, det_one],
     inv_val := by rw [mul_comm, ← det_mul, h, det_one],
 }, rfl⟩
 
-lemma nonsing_inv_left_right (B : matrix n n α) (h : A ⬝ B = 1) : B ⬝ A = 1 :=
+lemma nonsing_inv_left_right (h : A ⬝ B = 1) : B ⬝ A = 1 :=
 begin
   have h' : is_unit B.det := B.is_unit_det_of_left_inverse A h,
   calc B ⬝ A = (B ⬝ A) ⬝ (B ⬝ B⁻¹) : by simp only [h', matrix.mul_one, mul_nonsing_inv]
@@ -373,8 +373,80 @@ begin
         ... = 1 : mul_nonsing_inv B h',
 end
 
-lemma nonsing_inv_right_left (B : matrix n n α) (h : B ⬝ A = 1) : A ⬝ B = 1 :=
+lemma nonsing_inv_right_left (h : B ⬝ A = 1) : A ⬝ B = 1 :=
 B.nonsing_inv_left_right A h
+
+/-- `det A` is a unit implies A is invertible -/
+lemma is_unit_det_of_invertible [invertible A] : is_unit A.det :=
+by apply is_unit_det_of_left_inverse A (invertible.inv_of A) (inv_of_mul_self A)
+
+@[simp,norm]
+lemma inv_eq_nonsing_inv_of_invertible [invertible A] : ⅟ A = A⁻¹ :=
+begin
+  have ha:= is_unit_det_of_invertible A,
+  have ha':= (is_unit_iff_is_unit_det A).2 ha,
+  have h:= inv_of_mul_self A,
+  have h':= nonsing_inv_mul A ha,
+  rw ←h' at h,
+  apply (is_unit.mul_left_inj ha').1 h,
+end
+
+variables {A} {B}
+
+/-- Matrix A is invertible implies `det A` is a unit. -/
+noncomputable
+lemma invertible_of_is_unit_det  (h: is_unit A.det) : invertible A :=
+⟨A⁻¹, nonsing_inv_mul A h, mul_nonsing_inv A h⟩
+
+/-- If matrix A is left invertible, then its inverse equals its left inverse. -/
+lemma inv_eq_left_inv (h : B ⬝ A = 1) : A⁻¹ = B :=
+begin
+  have h1 :=  (is_unit_det_of_left_inverse A B h),
+  have h2 := invertible_of_is_unit_det h1,
+  have := @inv_of_eq_left_inv (matrix n n α) (infer_instance) A B h2 h,
+  simp* at *,
+end
+
+/-- If matrix A is right invertible, then its inverse equals its right inverse. -/
+lemma inv_eq_right_inv (h : A ⬝ B = 1) : A⁻¹ = B :=
+begin
+  have h1 :=  (is_unit_det_of_right_inverse A B h),
+  have h2 := invertible_of_is_unit_det h1,
+  have := @inv_of_eq_right_inv (matrix n n α) (infer_instance) A B h2 h,
+  simp* at *,
+end
+
+/-- If matrix A is left invertible, then A is invertible. -/
+noncomputable
+lemma invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
+invertible_of_is_unit_det (is_unit_det_of_left_inverse A B h)
+
+/-- If matrix A is right invertible, then A is invertible. -/
+noncomputable
+lemma invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
+invertible_of_is_unit_det (is_unit_det_of_right_inverse A B h)
+
+variables {C: matrix n n α}
+
+/-- The left inverse of matrix A is unique when existing. -/
+lemma left_inv_eq_left_inv (h: B ⬝ A = 1) (g: C ⬝ A = 1) : B = C :=
+by rw [←(inv_eq_left_inv h), ←(inv_eq_left_inv g)]
+
+/-- The right inverse of matrix A is unique when existing. -/
+lemma right_inv_eq_right_inv (h: A ⬝ B = 1) (g: A ⬝ C = 1) : B = C :=
+by rw [←(inv_eq_right_inv h), ←(inv_eq_right_inv g)]
+
+/-- The right inverse of matrix A equals the left inverse of A when they exist. -/
+lemma right_inv_eq_left_inv (h: A ⬝ B = 1) (g: C ⬝ A = 1) : B = C :=
+by rw [←(inv_eq_right_inv h), ←(inv_eq_left_inv g)]
+
+variable (A)
+
+@[simp] lemma mul_inv_of_invertible [invertible A] : A ⬝ A⁻¹ = 1 :=
+mul_nonsing_inv A (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
+nonsing_inv_mul A (is_unit_det_of_invertible A)
 
 end inv
 

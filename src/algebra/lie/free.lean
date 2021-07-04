@@ -19,7 +19,7 @@ coefficients in `R` together with its universal property.
   * `free_lie_algebra`
   * `free_lie_algebra.lift`
   * `free_lie_algebra.of`
-  * `free_lie_algebra.universal_enveloping.equiv_free_algebra`
+  * `free_lie_algebra.universal_enveloping_equiv_free_algebra`
 
 ## Implementation details
 
@@ -220,40 +220,18 @@ by { rw ← lift_symm_apply, exact (lift R).apply_symm_apply F, }
 have h' : (lift R).symm F₁ = (lift R).symm F₂, { ext, simp [h], },
 (lift R).symm.injective h'
 
-namespace universal_enveloping
-
 variables (R X)
-
-local notation `U` := universal_enveloping_algebra R (free_lie_algebra R X)
-local notation `A` := free_algebra R X
-
-/-- The natural map from the universal enveloping algebra of the free Lie algebra, to the free
-unital associative algebra. -/
-private def U_to_A : U →ₐ[R] A :=
-universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R
-
-/-- The natural map from the free unital associative algebra to the universal enveloping algebra of
-the free Lie algebra. -/
-private def A_to_U : A →ₐ[R] U :=
-free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R)
 
 /-- The universal enveloping algebra of the free Lie algebra is just the free unital associative
 algebra. -/
-def equiv_free_algebra :
+def universal_enveloping_equiv_free_algebra :
   universal_enveloping_algebra R (free_lie_algebra R X) ≃ₐ[R] free_algebra R X :=
-{ inv_fun   := A_to_U R X,
-  left_inv  :=
-    begin
-      suffices : (A_to_U R X).comp (U_to_A R X) = alg_hom.id R U, { exact alg_hom.congr_fun this, },
-      ext, simp [A_to_U, U_to_A],
-    end,
-  right_inv :=
-    begin
-      suffices : (U_to_A R X).comp (A_to_U R X) = alg_hom.id R _, { exact alg_hom.congr_fun this, },
-      ext, simp [A_to_U, U_to_A],
-    end,
-  .. U_to_A R X }
-
-end universal_enveloping
+{ to_fun    := universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R,
+  inv_fun   := free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R),
+  left_inv  := show ∀ x, _ = alg_hom.id R _ x,
+    by { simp only [← alg_hom.comp_apply, ← alg_hom.ext_iff], ext, simp, },
+  right_inv := show ∀ x, _ = alg_hom.id R _ x,
+    by { simp only [← alg_hom.comp_apply, ← alg_hom.ext_iff], ext, simp, },
+  .. universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R }
 
 end free_lie_algebra

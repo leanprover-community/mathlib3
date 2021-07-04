@@ -180,9 +180,9 @@ h.integrable_on.indicator hs
 lemma integrable_indicator_Lp {E} [normed_group E] [measurable_space E] [borel_space E]
   [second_countable_topology E] {p : ℝ≥0∞} {s : set α} (hs : measurable_set s) (hμs : μ s < ∞)
   (c : E) :
-  integrable (indicator_Lp p hs hμs c) μ :=
+  integrable (indicator_const_Lp p hs hμs c) μ :=
 begin
-  rw [integrable_congr indicator_Lp_coe_fn, integrable_indicator_iff hs, integrable_on,
+  rw [integrable_congr indicator_const_Lp_coe_fn, integrable_indicator_iff hs, integrable_on,
     integrable_const_iff],
   right,
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,

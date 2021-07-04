@@ -223,7 +223,7 @@ linear_map.map_neg (f : L₁ →ₗ[R] L₂) x
 
 /-- The identity map is a morphism of Lie algebras. -/
 def id : L₁ →ₗ⁅R⁆ L₁ :=
-{ map_lie' := by simp,
+{ map_lie' := λ x y, rfl,
   .. (linear_map.id : L₁ →ₗ[R] L₁) }
 
 @[simp] lemma coe_id : ((id : L₁ →ₗ⁅R⁆ L₁) : L₁ → L₁) = _root_.id := rfl
@@ -287,10 +287,10 @@ lemma coe_linear_map_comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ 
 rfl
 
 @[simp] lemma comp_id (f : L₁ →ₗ⁅R⁆ L₂) : f.comp (id : L₁ →ₗ⁅R⁆ L₁) = f :=
-by { ext, simp, }
+by { ext, refl, }
 
 @[simp] lemma id_comp (f : L₁ →ₗ⁅R⁆ L₂) : (id : L₂ →ₗ⁅R⁆ L₂).comp f = f :=
-by { ext, simp, }
+by { ext, refl, }
 
 /-- The inverse of a bijective morphism is a morphism. -/
 def inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)

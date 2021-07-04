@@ -56,7 +56,6 @@
 16:
   title  : Insolvability of General Higher Degree Equations (Abel-Ruffini Theorem)
   author: Thomas Browning
-  decls  : solvable_by_rad.is_solvable'
   links :
     mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/16_abel_ruffini.lean
 17:

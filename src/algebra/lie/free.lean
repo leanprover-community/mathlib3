@@ -224,7 +224,7 @@ variables (R X)
 
 /-- The universal enveloping algebra of the free Lie algebra is just the free unital associative
 algebra. -/
-def universal_enveloping_equiv_free_algebra :
+@[simps] def universal_enveloping_equiv_free_algebra :
   universal_enveloping_algebra R (free_lie_algebra R X) ≃ₐ[R] free_algebra R X :=
 { to_fun    := universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R,
   inv_fun   := free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R),

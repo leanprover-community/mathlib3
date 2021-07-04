@@ -1420,7 +1420,7 @@ end
 lemma indicator_const_Lp_disjoint_union {s t : set α} (hs : measurable_set s)
   (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (c : E) :
   (indicator_const_Lp p (hs.union ht) ((measure_union_le s t).trans_lt
-      (ennreal.add_lt_top.mpr ⟨lt_top_iff_ne_top.mpr hμs, lt_top_iff_ne_top.mpr hμt⟩)).ne c)
+      (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hμs, hμt⟩))).ne c)
     = indicator_const_Lp p hs hμs c + indicator_const_Lp p ht hμt c :=
 begin
   ext1,

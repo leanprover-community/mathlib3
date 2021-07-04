@@ -234,6 +234,5 @@ alg_equiv.of_alg_hom
   (free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R) : A →ₐ[R] U)
   (by { ext, simp, })
   (by { ext, simp, })
-  .. universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R }
 
 end free_lie_algebra

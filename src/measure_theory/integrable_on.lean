@@ -177,7 +177,7 @@ lemma integrable.indicator (h : integrable f μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
 h.integrable_on.indicator hs
 
-lemma integrable_indicator_Lp {E} [normed_group E] [measurable_space E] [borel_space E]
+lemma integrable_indicator_const_Lp {E} [normed_group E] [measurable_space E] [borel_space E]
   [second_countable_topology E] {p : ℝ≥0∞} {s : set α} (hs : measurable_set s) (hμs : μ s < ∞)
   (c : E) :
   integrable (indicator_const_Lp p hs hμs c) μ :=

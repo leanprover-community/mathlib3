@@ -262,7 +262,7 @@ begin
       simp_rw [simple_func.mem_range], rintro ⟨z, rfl⟩, exact ⟨(x, z), rfl⟩ },
     simp only [simple_func.integral_eq_sum_of_subset (this _)],
     refine finset.measurable_sum _ (λ x _, _),
-    refine (measurable.to_real _).smul_const _,
+    refine (measurable.ennreal_to_real _).smul_const _,
     simp only [simple_func.coe_comp, preimage_comp] {single_pass := tt},
     apply measurable_measure_prod_mk_left,
     exact (s n).measurable_set_fiber x },
@@ -368,7 +368,7 @@ lemma integrable_measure_prod_mk_left {s : set (α × β)}
   (hs : measurable_set s) (h2s : (μ.prod ν) s < ∞) :
   integrable (λ x, (ν (prod.mk x ⁻¹' s)).to_real) μ :=
 begin
-  refine ⟨(measurable_measure_prod_mk_left hs).to_real.ae_measurable, _⟩,
+  refine ⟨(measurable_measure_prod_mk_left hs).ennreal_to_real.ae_measurable, _⟩,
   simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
   convert h2s using 1, simp_rw [prod_apply hs], apply lintegral_congr_ae,
   refine (ae_measure_lt_top hs h2s).mp _, apply eventually_of_forall, intros x hx,
@@ -863,8 +863,7 @@ begin
   rw [continuous_iff_continuous_at], intro g,
   refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_prod_left
     (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_prod_left) _,
-  simp_rw [edist_eq_coe_nnnorm_sub,
-    ← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
+  simp_rw [← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
     (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,
   { exact λ i, ∫⁻ x, ∫⁻ y, nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ },

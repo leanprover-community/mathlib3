@@ -192,6 +192,11 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
+
+lemma conj_sub (z z': ℂ) : conj (z - z') = conj z - conj z' := conj.map_sub z z'
+
+lemma conj_one : conj 1 = 1 := by rw conj.map_one
+
 lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
@@ -462,7 +467,7 @@ _root_.abs_of_nonneg (abs_nonneg _)
 
 @[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
 @[simp] lemma abs_neg : ∀ z, abs (-z) = abs z := abv_neg abs
-lemma abs_sub : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
+lemma abs_sub_comm : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
 lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
 @[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs
@@ -531,7 +536,7 @@ begin
   fsplit,
   { rintro ⟨⟨x, l, rfl⟩, h⟩,
     by_cases hx : x = 0,
-    { simp [hx] at h, exfalso, exact h (le_refl _), },
+    { simpa [hx] using h },
     { replace l : 0 < x := l.lt_of_ne (ne.symm hx),
       exact ⟨x, l, rfl⟩, } },
   { rintro ⟨x, l, rfl⟩,

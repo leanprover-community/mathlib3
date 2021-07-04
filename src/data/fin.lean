@@ -359,6 +359,11 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+lemma coe_add_eq_ite {n : ℕ} (a b : fin n) :
+  (↑(a + b) : ℕ) = if n ≤ a + b then a + b - n else a + b :=
+by rw [fin.coe_add, nat.add_mod_eq_ite,
+       nat.mod_eq_of_lt (show ↑a < n, from a.2), nat.mod_eq_of_lt (show ↑b < n, from b.2)]
+
 lemma coe_bit0 {n : ℕ} (k : fin n) : ((bit0 k : fin n) : ℕ) = bit0 (k : ℕ) % n :=
 by { cases k, refl }
 
@@ -649,6 +654,12 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
 by simpa [lt_iff_coe_lt_coe] using h
 
+@[simp] lemma cast_succ_eq_zero_iff (a : fin (n + 1)) : a.cast_succ = 0 ↔ a = 0 :=
+subtype.ext_iff.trans $ (subtype.ext_iff.trans $ by exact iff.rfl).symm
+
+lemma cast_succ_ne_zero_iff (a : fin (n + 1)) : a.cast_succ ≠ 0 ↔ a ≠ 0 :=
+not_iff_not.mpr $ cast_succ_eq_zero_iff a
+
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by simp [fin.ext_iff]
@@ -901,6 +912,21 @@ embeds `i` by `cast_succ` when the resulting `i.cast_succ < p`. -/
 lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.cast_succ < p) :
   p.succ_above i = i.cast_succ :=
 by { rw [succ_above], exact if_pos h }
+
+@[simp] lemma succ_above_ne_zero_zero {a : fin (n + 2)} (ha : a ≠ 0) : a.succ_above 0 = 0 :=
+begin
+  rw fin.succ_above_below,
+  { refl },
+  { exact bot_lt_iff_ne_bot.mpr ha }
+end
+
+lemma succ_above_eq_zero_iff {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) :
+  a.succ_above b = 0 ↔ b = 0 :=
+by simp only [←succ_above_ne_zero_zero ha, order_embedding.eq_iff_eq]
+
+lemma succ_above_ne_zero {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0) :
+  a.succ_above b ≠ 0 :=
+mt (succ_above_eq_zero_iff ha).mp hb
 
 /-- Embedding `fin n` into `fin (n + 1)` with a hole around zero embeds by `succ`. -/
 @[simp] lemma succ_above_zero : ⇑(succ_above (0 : fin (n + 1))) = fin.succ := rfl
@@ -1172,6 +1198,25 @@ begin
       exact lt_succ_iff.mpr (not_lt.mp h), }, },
 end
 
+lemma cast_succ_pred_eq_pred_cast_succ  {a : fin (n + 1)} (ha : a ≠ 0)
+  (ha' := a.cast_succ_ne_zero_iff.mpr ha) : (a.pred ha).cast_succ = a.cast_succ.pred ha' :=
+by { cases a, refl }
+
+/-- `pred` commutes with `succ_above`. -/
+lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hk := succ_above_ne_zero ha hb) :
+  (a.pred ha).succ_above (b.pred hb) = (a.succ_above b).pred hk :=
+begin
+  obtain hbelow | habove := lt_or_le b.cast_succ a, -- `rwa` uses them
+  { rw fin.succ_above_below,
+    { rwa [cast_succ_pred_eq_pred_cast_succ , fin.pred_inj, fin.succ_above_below] },
+    { rwa [cast_succ_pred_eq_pred_cast_succ , pred_lt_pred_iff] } },
+  { rw fin.succ_above_above,
+    have : (b.pred hb).succ = b.succ.pred (fin.succ_ne_zero _), by rw [succ_pred, pred_succ],
+    { rwa [this, fin.pred_inj, fin.succ_above_above] },
+    { rwa [cast_succ_pred_eq_pred_cast_succ , fin.pred_le_pred_iff] } }
+end
+
 @[simp] theorem cast_pred_cast_succ (i : fin (n + 1)) :
   cast_pred i.cast_succ = i :=
 by simp [cast_pred, pred_above, le_last]
@@ -1246,8 +1291,8 @@ operations, first about adding or removing elements at the beginning of a tuple.
 -/
 
 /-- There is exactly one tuple of size zero. -/
-instance tuple0_unique (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
-pi.unique_of_empty fin.elim0 α
+example (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
+by apply_instance
 
 @[simp] lemma tuple0_le {α : Π i : fin 0, Type*} [Π i, preorder (α i)] (f g : Π i, α i) : f ≤ g :=
 fin_zero_elim

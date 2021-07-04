@@ -69,16 +69,16 @@ def of_clopen {A : set X} (h : is_clopen A) : discrete_quotient X :=
   clopen := begin
     intros x,
     by_cases hx : x ∈ A,
-    { apply is_clopen_union,
+    { apply is_clopen.union,
       { convert h,
         ext,
         exact ⟨λ i, i.2, λ i, ⟨hx,i⟩⟩ },
       { convert is_clopen_empty,
         tidy } },
-    { apply is_clopen_union,
+    { apply is_clopen.union,
       { convert is_clopen_empty,
         tidy },
-      { convert is_clopen_compl h,
+      { convert is_clopen.compl h,
         ext,
         exact ⟨λ i, i.2, λ i, ⟨hx, i⟩⟩ } },
   end }
@@ -133,7 +133,7 @@ instance : semilattice_inf_top (discrete_quotient X) :=
   { rel := λ x y, A.rel x y ∧ B.rel x y,
     equiv := ⟨λ a, ⟨A.refl _,B.refl _⟩, λ a b h, ⟨A.symm _ _ h.1, B.symm _ _ h.2⟩,
       λ a b c h1 h2, ⟨A.trans _ _ _ h1.1 h2.1, B.trans _ _ _ h1.2 h2.2⟩⟩,
-    clopen := λ x, is_clopen_inter (A.clopen _) (B.clopen _) },
+    clopen := λ x, is_clopen.inter (A.clopen _) (B.clopen _) },
   le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
   le_refl := λ a, by tauto,
   le_trans := λ a b c h1 h2, by tauto,
@@ -203,7 +203,7 @@ section map
 variables {Y : Type*} [topological_space Y] {f : Y → X}
   (cont : continuous f) (A : discrete_quotient Y) (B : discrete_quotient X)
 
-/-- 
+/--
 Given `cont : continuous f`, `le_comap cont A B` is defined as `A ≤ B.comap f`.
 Mathematically this means that `f` descends to a morphism `A → B`.
 -/
@@ -284,7 +284,7 @@ lemma exists_of_compat [compact_space X] (Qs : Π (Q : discrete_quotient X), Q)
 begin
   obtain ⟨x,hx⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
     (λ (Q : discrete_quotient X), Q.proj ⁻¹' {Qs _}) (λ A B, _) (λ i, _)
-    (λ i, is_closed.compact (fiber_closed _ _)) (λ i, fiber_closed _ _),
+    (λ i,  (fiber_closed _ _).is_compact) (λ i, fiber_closed _ _),
   { refine ⟨x, λ Q, _⟩,
     specialize hx _ ⟨Q,rfl⟩,
     dsimp at hx,
@@ -309,7 +309,7 @@ end
 noncomputable instance [compact_space X] : fintype S :=
 begin
   have cond : is_compact (⊤ : set X) := compact_univ,
-  rw compact_iff_finite_subcover at cond,
+  rw is_compact_iff_finite_subcover at cond,
   have h := @cond S (λ s, S.proj ⁻¹' {s}) (λ s, fiber_open _ _)
     (λ x hx, ⟨S.proj ⁻¹' {S.proj x}, ⟨S.proj x, rfl⟩, rfl⟩),
   let T := classical.some h,
@@ -326,3 +326,30 @@ begin
 end
 
 end discrete_quotient
+
+namespace locally_constant
+
+variables {X} {α : Type*} (f : locally_constant X α)
+
+/-- Any locally constant function induces a discrete quotient. -/
+def discrete_quotient : discrete_quotient X :=
+{ rel := λ a b, f b = f a,
+  equiv := ⟨by tauto, by tauto, λ a b c h1 h2, by rw [h2, h1]⟩,
+  clopen := λ x, f.is_locally_constant.is_clopen_fiber _ }
+
+/-- The function from the discrete quotient associated to a locally constant function. -/
+def lift : f.discrete_quotient → α := λ a, quotient.lift_on' a f (λ a b h, h.symm)
+
+lemma lift_is_locally_constant : _root_.is_locally_constant f.lift := λ A, trivial
+
+/-- A locally constant version of `locally_constant.lift`. -/
+def locally_constant_lift : locally_constant f.discrete_quotient α :=
+⟨f.lift, f.lift_is_locally_constant⟩
+
+@[simp]
+lemma lift_eq_coe : f.lift = f.locally_constant_lift := rfl
+
+@[simp]
+lemma factors : f.locally_constant_lift ∘ f.discrete_quotient.proj = f := by { ext, refl }
+
+end locally_constant

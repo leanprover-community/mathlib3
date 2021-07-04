@@ -11,7 +11,8 @@ import data.polynomial.eval
 
 We define and prove some basic relations about
 `pochhammer S n : polynomial S = X * (X+1) * ... * (X + n - 1)`
-which is also known as the rising factorial.
+which is also known as the rising factorial. A version of this definition
+that is focused on `nat` can be found in `data.nat.factorial` as `asc_factorial`.
 
 ## Implementation
 
@@ -22,7 +23,6 @@ we define the polynomial with coefficients in any `[semiring S]`.
 
 There is lots more in this direction:
 * q-factorials, q-binomials, q-Pochhammer.
-* Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
 
 universes u v
@@ -42,8 +42,9 @@ noncomputable def pochhammer : ℕ → polynomial S
 
 @[simp] lemma pochhammer_zero : pochhammer S 0 = 1 := rfl
 @[simp] lemma pochhammer_one : pochhammer S 1 = X := by simp [pochhammer]
+
 lemma pochhammer_succ_left (n : ℕ) : pochhammer S (n+1) = X * (pochhammer S n).comp (X+1) :=
-by { dsimp [pochhammer], refl, }
+by rw pochhammer
 
 section
 variables {S} {T : Type v} [semiring T]
@@ -102,6 +103,15 @@ begin
       nat.succ_eq_add_one, ←add_assoc, pochhammer_succ_right, nat.cast_add, add_assoc], }
 end
 
+lemma pochhammer_nat_eq_asc_factorial (n : ℕ) :
+  ∀ k, (pochhammer ℕ k).eval (n + 1) = n.asc_factorial k
+| 0 := by erw [eval_one]; refl
+| (t + 1) := begin
+  rw [pochhammer_succ_right, eval_mul, pochhammer_nat_eq_asc_factorial t],
+  suffices : n.asc_factorial t * (n + 1 + t) = n.asc_factorial (t + 1), by simpa,
+  rw [nat.asc_factorial_succ, add_right_comm, mul_comm]
+end
+
 end
 
 section
@@ -123,49 +133,28 @@ section factorial
 
 open_locale nat
 
-/-- Preliminary version of `pochhammer_eval_one` specialized to `S = ℕ`. -/
-lemma pochhammer_eval_one' (n : ℕ) : (pochhammer ℕ n).eval 1 = n! :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih, mul_comm, nat.succ_eq_add_one, add_comm, pochhammer_succ_right], },
-end
+variables (S : Type*) [semiring S] (r n : ℕ)
 
 @[simp]
 lemma pochhammer_eval_one (S : Type*) [semiring S] (n : ℕ) :
   (pochhammer S n).eval (1 : S) = (n! : S) :=
-by simpa using congr_arg (algebra_map ℕ S) (pochhammer_eval_one' n)
-
-/-- Preliminary version of `factorial_mul_pochhammer` specialized to `S = ℕ`. -/
-lemma factorial_mul_pochhammer' (r n : ℕ) :
-  r! * (pochhammer ℕ n).eval (r+1) = (r + n)! :=
-by simpa [add_comm 1 r, pochhammer_eval_one'] using congr_arg (eval 1) (pochhammer_mul ℕ r n)
+by rw_mod_cast [pochhammer_nat_eq_asc_factorial, nat.zero_asc_factorial]
 
 lemma factorial_mul_pochhammer (S : Type*) [semiring S] (r n : ℕ) :
-  (r! : S) * (pochhammer S n).eval (r+1) = (r + n)! :=
-by simpa using congr_arg (algebra_map ℕ S) (factorial_mul_pochhammer' r n)
+  (r! : S) * (pochhammer S n).eval (r + 1) = (r + n)! :=
+by rw_mod_cast [pochhammer_nat_eq_asc_factorial, nat.factorial_mul_asc_factorial]
 
-lemma pochhammer_eval_eq_factorial_div_factorial {r n : ℕ} :
-  (pochhammer ℕ n).eval (r+1) = (r + n)! / r! :=
-(nat.div_eq_of_eq_mul_right (nat.factorial_pos _) (factorial_mul_pochhammer' r n).symm).symm
-
-lemma pochhammer_eval_eq_choose_mul_factorial {r n : ℕ} :
-  (pochhammer ℕ n).eval (r+1) = (r + n).choose n * n! :=
-begin
-  rw pochhammer_eval_eq_factorial_div_factorial,
-  -- TODO we need a `clear_denominators` tactic!
-  apply nat.div_eq_of_eq_mul_right (nat.factorial_pos _),
-  rw [mul_comm],
-  convert (nat.choose_mul_factorial_mul_factorial (nat.le_add_left n r)).symm,
-  simp,
+lemma pochhammer_nat_eval_succ (r : ℕ) :
+  ∀ n : ℕ, n * (pochhammer ℕ r).eval (n + 1) = (n + r) * (pochhammer ℕ r).eval n
+| 0 := begin
+  by_cases h : r = 0,
+  { simp only [h, zero_mul, zero_add], },
+  { simp only [pochhammer_eval_zero, zero_mul, if_neg h, mul_zero], }
 end
+| (k + 1) := by simp only [pochhammer_nat_eq_asc_factorial, nat.succ_asc_factorial, add_right_comm]
 
-lemma choose_eq_pochhammer_eval_div_factorial {r n : ℕ} :
-  (r + n).choose n = (pochhammer ℕ n).eval (r+1) / n! :=
-begin
-  symmetry,
-  apply nat.div_eq_of_eq_mul_right (nat.factorial_pos _),
-  rw [mul_comm, pochhammer_eval_eq_choose_mul_factorial],
-end
+lemma pochhammer_eval_succ (r n : ℕ) :
+  (n : S) * (pochhammer S r).eval (n + 1 : S) = (n + r) * (pochhammer S r).eval n :=
+by exact_mod_cast congr_arg nat.cast (pochhammer_nat_eval_succ r n)
 
 end factorial

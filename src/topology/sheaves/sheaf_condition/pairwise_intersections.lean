@@ -232,13 +232,11 @@ def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → ope
     end },
   hom_inv_id' := begin
     ext,
-    simp only [category.comp_id, limits.cone.category_to_category_struct_comp_hom,
-      limits.cone.category_to_category_struct_id_hom],
+    simp only [category.comp_id, limits.cone.category_comp_hom, limits.cone.category_id_hom],
   end,
   inv_hom_id' := begin
     ext,
-    simp only [category.comp_id, limits.cone.category_to_category_struct_comp_hom,
-      limits.cone.category_to_category_struct_id_hom],
+    simp only [category.comp_id, limits.cone.category_comp_hom, limits.cone.category_id_hom],
   end, }
 
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/

@@ -219,24 +219,11 @@ theorem irreducible_iff_nat_prime : ∀(a : ℕ), irreducible a ↔ nat.prime a
       rw [← hab, mul_one] }
   end
 
-lemma nat.prime_iff_prime {p : ℕ} : p.prime ↔ _root_.prime (p : ℕ) :=
-⟨λ hp, ⟨pos_iff_ne_zero.1 hp.pos, mt is_unit_iff_dvd_one.1 hp.not_dvd_one,
-    λ a b, hp.dvd_mul.1⟩,
-  λ hp, ⟨nat.one_lt_iff_ne_zero_and_ne_one.2 ⟨hp.1, λ h1, hp.2.1 $ h1.symm ▸ is_unit_one⟩,
-    λ a h, let ⟨b, hab⟩ := h in
-      (hp.2.2 a b (hab ▸ dvd_refl _)).elim
-        (λ ha, or.inr (nat.dvd_antisymm h ha))
-        (λ hb, or.inl (have hpb : p = b, from nat.dvd_antisymm hb
-            (hab.symm ▸ dvd_mul_left _ _),
-          (nat.mul_right_inj (show 0 < p, from
-              nat.pos_of_ne_zero hp.1)).1 $
-            by rw [hpb, mul_comm, ← hab, hpb, mul_one]))⟩⟩
-
 lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
 ⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt int.is_unit_iff_nat_abs_eq.1 hp.ne_one,
   λ a b h, by rw [← int.dvd_nat_abs, int.coe_nat_dvd, int.nat_abs_mul, hp.dvd_mul] at h;
     rwa [← int.dvd_nat_abs, int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd]⟩,
-  λ hp, nat.prime_iff_prime.2 ⟨int.coe_nat_ne_zero.1 hp.1,
+  λ hp, nat.prime_iff.2 ⟨int.coe_nat_ne_zero.1 hp.1,
       mt nat.is_unit_iff.1 $ λ h, by simpa [h, not_prime_one] using hp,
     λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
 
@@ -293,9 +280,6 @@ begin
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 
-instance nat.unique_units : unique (units ℕ) :=
-{ default := 1, uniq := nat.units_eq_one }
-
 open unique_factorization_monoid
 
 theorem nat.factors_eq {n : ℕ} : factors n = n.factors :=
@@ -347,7 +331,7 @@ begin
     rw nat.is_unit_iff.1 h,
     exact h₁, },
   { intros a p _ hp ha,
-    exact h p a (nat.prime_iff_prime.2 hp) ha, },
+    exact h p a (nat.prime_iff.2 hp) ha, },
 end
 
 lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=
@@ -371,3 +355,16 @@ begin
   rw int.associated_iff_nat_abs,
   exact int.nat_abs_eq_nat_abs_iff,
 end
+
+namespace int
+
+lemma gmultiples_nat_abs (a : ℤ) :
+  add_subgroup.gmultiples (a.nat_abs : ℤ) = add_subgroup.gmultiples a :=
+le_antisymm
+  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (dvd_nat_abs.mpr (dvd_refl a))))
+  (add_subgroup.gmultiples_subset (mem_gmultiples_iff.mpr (nat_abs_dvd.mpr (dvd_refl a))))
+
+lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
+by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }
+
+end int

@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.apply_fun
 import ring_theory.matrix_algebra
 import ring_theory.polynomial_algebra
-import linear_algebra.nonsingular_inverse
+import linear_algebra.matrix.nonsingular_inverse
 import tactic.squeeze
 
 /-!

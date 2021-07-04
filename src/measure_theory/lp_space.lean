@@ -1427,15 +1427,7 @@ begin
   refine eventually_eq.trans _
     (eventually_eq.add indicator_const_Lp_coe_fn.symm indicator_const_Lp_coe_fn.symm),
   refine eventually_of_forall (λ x, _),
-  simp_rw set.indicator_apply,
-  by_cases hxs : x ∈ s,
-  { simp only [hxs, if_true, true_or, ite_eq_right_iff, self_eq_add_right, one_ne_zero,
-      set.mem_union_eq],
-    intro hxt,
-    have h_nmem_inter : x ∉ s ∩ t, by {rw [hst, set.mem_empty_eq], trivial, },
-    exact absurd (set.mem_inter hxs hxt) h_nmem_inter, },
-  { simp only [hxs, false_or, if_false, zero_add, set.mem_union_eq],
-    congr, },
+  rw set.indicator_union_of_disjoint (set.disjoint_iff_inter_eq_empty.mpr hst) _,
 end
 
 end indicator_const_Lp

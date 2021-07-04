@@ -222,16 +222,13 @@ have h' : (lift R).symm F₁ = (lift R).symm F₂, { ext, simp [h], },
 
 variables (R X)
 
-local notation `U` := universal_enveloping_algebra R (free_lie_algebra R X)
-local notation `A` := free_algebra R X
-
 /-- The universal enveloping algebra of the free Lie algebra is just the free unital associative
 algebra. -/
 @[simps] def universal_enveloping_equiv_free_algebra :
   universal_enveloping_algebra R (free_lie_algebra R X) ≃ₐ[R] free_algebra R X :=
 alg_equiv.of_alg_hom
-  (universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R   : U →ₐ A)
-  (free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R) : A →ₐ U)
+  (universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R)
+  (free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R))
   (by { ext, simp, })
   (by { ext, simp, })
 

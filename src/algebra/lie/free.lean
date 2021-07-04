@@ -230,8 +230,8 @@ algebra. -/
 @[simps] def universal_enveloping_equiv_free_algebra :
   universal_enveloping_algebra R (free_lie_algebra R X) ≃ₐ[R] free_algebra R X :=
 alg_equiv.of_alg_hom
-  (universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R : U →ₐ[R] A)
-  (free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R) : A →ₐ[R] U)
+  (universal_enveloping_algebra.lift R $ free_lie_algebra.lift R $ free_algebra.ι R   : U →ₐ A)
+  (free_algebra.lift R $ (universal_enveloping_algebra.ι R) ∘ (free_lie_algebra.of R) : A →ₐ U)
   (by { ext, simp, })
   (by { ext, simp, })
 

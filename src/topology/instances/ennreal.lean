@@ -677,7 +677,7 @@ begin
   exact not_congr tsum_coe_ne_top_iff_summable_coe
 end
 
-lemma tsum_to_real_eq_of_summable {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞)
+private lemma tsum_to_real_eq_of_summable {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞)
   (h : summable (ennreal.to_real ∘ f)) :
   (∑' a, f a).to_real = ∑' a, (f a).to_real :=
 begin
@@ -705,23 +705,23 @@ begin
   { exact ennreal.of_real_ne_top }
 end
 
-lemma tsum_to_real_eq_of_not_summable {f : ℕ → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞)
+private lemma tsum_to_real_eq_of_not_summable {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞)
   (h : ¬ summable (ennreal.to_real ∘ f)) :
   (∑' a, f a).to_real = ∑' a, (f a).to_real :=
 begin
-  lift f to ℕ → ℝ≥0 using hf,
+  lift f to α → ℝ≥0 using hf,
   change ¬ summable (λ i, (f i : ℝ≥0∞).to_real) at h,
   simp_rw [coe_to_real] at h ⊢,
   rw [tsum_eq_zero_of_not_summable h,
       tsum_coe_eq_top_iff_not_summable_coe.2 h, top_to_real],
 end
 
-lemma tsum_to_real_eq {f : ℕ → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+lemma tsum_to_real_eq {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
   (∑' a, f a).to_real = ∑' a, (f a).to_real :=
 begin
   by_cases summable (ennreal.to_real ∘ f),
-  exact tsum_to_real_eq_of_summable hf h,
-  exact tsum_to_real_eq_of_not_summable hf h,
+  { exact tsum_to_real_eq_of_summable hf h },
+  { exact tsum_to_real_eq_of_not_summable hf h },
 end
 
 end ennreal

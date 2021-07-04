@@ -1343,7 +1343,7 @@ begin
 end
 
 lemma snorm_indicator_const' {c : G} (hs : measurable_set s) (hμs : 0 < μ s) (hp : 0 < p) :
-  snorm (s.indicator (λ x, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=
+  snorm (s.indicator (λ _, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=
 begin
   by_cases hp_top : p = ∞,
   { simp [hp_top, snorm_ess_sup_indicator_const_eq s c hμs], },
@@ -1351,7 +1351,7 @@ begin
 end
 
 lemma mem_ℒp_indicator_const (p : ℝ≥0∞) (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s < ∞) :
-  mem_ℒp (s.indicator (λ x : α , c)) p μ :=
+  mem_ℒp (s.indicator (λ _, c)) p μ :=
 begin
   cases hμsc with hc hμs,
   { simp only [hc, set.indicator_zero],
@@ -1366,8 +1366,8 @@ begin
     from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) (ne.symm hp0), hp_top⟩,
   rw snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top hp0 hp_top,
   simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
-  have h_indicator_pow : (λ a : α, s.indicator (λ (x : α), (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
-    = s.indicator (λ (x : α), ↑∥c∥₊ ^ p.to_real),
+  have h_indicator_pow : (λ a : α, s.indicator (λ _, (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
+    = s.indicator (λ _, ↑∥c∥₊ ^ p.to_real),
   { rw set.indicator_const_comp (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _, simp [hp_pos], },
   rw [h_indicator_pow, lintegral_indicator _ hs, set_lintegral_const],
   refine ennreal.mul_lt_top _ hμs,
@@ -1418,9 +1418,9 @@ end
 /-- The indicator of a disjoint union of two sets is the sum of the indicators of the sets. -/
 lemma indicator_const_Lp_disjoint_union {s t : set α} (hs : measurable_set s)
   (ht : measurable_set t) (hμs : μ s < ∞) (hμt : μ t < ∞) (hst : s ∩ t = ∅) (c : E) :
-  (indicator_const_Lp 2 (hs.union ht)
+  (indicator_const_Lp p (hs.union ht)
       ((measure_union_le s t).trans_lt (ennreal.add_lt_top.mpr ⟨hμs, hμt⟩)) c)
-    = indicator_const_Lp 2 hs hμs c + indicator_const_Lp 2 ht hμt c :=
+    = indicator_const_Lp p hs hμs c + indicator_const_Lp p ht hμt c :=
 begin
   ext1,
   refine indicator_const_Lp_coe_fn.trans (eventually_eq.trans _ (Lp.coe_fn_add _ _).symm),

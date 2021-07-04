@@ -1295,21 +1295,14 @@ lemma indicator_const_comp {β γ δ} [has_zero γ] [has_zero δ] {s : set β} (
 /-! ### Indicator of a set as an element of Lᵖ
 
 For a set `s` with `(hs : measurable_set s)` and `(hμs : μ s < ∞)`, we build
-`indicator_Lp p hs hμs c`, the element of `Lp` corresponding to `s.indicator (λ x, c)`.
+`indicator_const_Lp p hs hμs c`, the element of `Lp` corresponding to `s.indicator (λ x, c)`.
 -/
 
-section indicator_ae
+section indicator
 
 variables {s : set α} {hs : measurable_set s} {c : E} {f : α → E} {hf : ae_measurable f μ}
 
-/-- Indicator of a function on a set as an ` α →ₘ[μ] E`. -/
-def indicator_ae (f : α → E) (hs : measurable_set s) (hf : ae_measurable f μ) : α →ₘ[μ] E :=
-ae_eq_fun.mk (s.indicator f) (hf.indicator hs)
-
-lemma indicator_ae_coe : ⇑(indicator_ae f hs hf) =ᵐ[μ] s.indicator f :=
-ae_eq_fun.coe_fn_mk (s.indicator f) (hf.indicator hs)
-
-lemma snorm_ess_sup_indicator_ae_le (s : set α) (f : α → G) :
+lemma snorm_ess_sup_indicator_le (s : set α) (f : α → G) :
   snorm_ess_sup (s.indicator f) μ ≤ snorm_ess_sup f μ :=
 begin
   refine ess_sup_mono_ae (eventually_of_forall (λ x, _)),
@@ -1322,7 +1315,7 @@ lemma snorm_ess_sup_indicator_const_le (s : set α) (c : G) :
 begin
   by_cases hμ0 : μ = 0,
   { simp [hμ0], },
-  { exact (snorm_ess_sup_indicator_ae_le s (λ x, c)).trans (snorm_ess_sup_const c hμ0).le, },
+  { exact (snorm_ess_sup_indicator_le s (λ x, c)).trans (snorm_ess_sup_const c hμ0).le, },
 end
 
 lemma snorm_ess_sup_indicator_const_eq (s : set α) (c : G) (hμs : 0 < μ s) :
@@ -1386,65 +1379,58 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg hp_pos.le ennreal.coe_ne_top,
 end
 
-lemma mem_ℒp_indicator_ae_const (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s < ∞) :
-  mem_ℒp (indicator_ae (λ _, c) hs (@ae_measurable_const _ _ _ _ μ _)) p μ :=
-(mem_ℒp_congr_ae indicator_ae_coe).mpr (mem_ℒp_indicator_const p hs c hμsc)
+end indicator
 
-end indicator_ae
-
-section indicator_Lp
+section indicator_const_Lp
 variables {s : set α} {hs : measurable_set s} {hμs : μ s < ∞} {c : E}
   [borel_space E] [second_countable_topology E]
 
 /-- Indicator of a set as an element of `Lp`. -/
-def indicator_Lp (p : ℝ≥0∞) (hs : measurable_set s) (hμs : μ s < ∞) (c : E) : Lp E p μ :=
-mem_ℒp.to_Lp (indicator_ae (λ _, c) hs ae_measurable_const)
-  (mem_ℒp_indicator_ae_const hs c (or.inr hμs))
+def indicator_const_Lp (p : ℝ≥0∞) (hs : measurable_set s) (hμs : μ s < ∞) (c : E) : Lp E p μ :=
+mem_ℒp.to_Lp (s.indicator (λ _, c)) (mem_ℒp_indicator_const p hs c (or.inr hμs))
 
-lemma indicator_Lp_coe :
-  ⇑(indicator_Lp p hs hμs c) =ᵐ[μ] indicator_ae (λ _, c) hs (@ae_measurable_const _ _ _ _ μ _) :=
-mem_ℒp.coe_fn_to_Lp (mem_ℒp_indicator_ae_const hs c (or.inr hμs))
+lemma indicator_const_Lp_coe_fn : ⇑(indicator_const_Lp p hs hμs c) =ᵐ[μ] s.indicator (λ _, c) :=
+mem_ℒp.coe_fn_to_Lp (mem_ℒp_indicator_const p hs c (or.inr hμs))
 
-lemma indicator_Lp_coe_fn : ⇑(indicator_Lp p hs hμs c) =ᵐ[μ] s.indicator (λ _, c) :=
-indicator_Lp_coe.trans indicator_ae_coe
+lemma indicator_const_Lp_coe_fn_mem :
+  ∀ᵐ (x : α) ∂μ, x ∈ s → (indicator_const_Lp p hs hμs c x) = c :=
+indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_mem hxs _))
 
-lemma indicator_Lp_coe_fn_mem : ∀ᵐ (x : α) ∂μ, x ∈ s → (indicator_Lp p hs hμs c x) = c :=
-indicator_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_mem hxs _))
+lemma indicator_const_Lp_coe_fn_nmem :
+  ∀ᵐ (x : α) ∂μ, x ∉ s → (indicator_const_Lp p hs hμs c x) = 0 :=
+indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_not_mem hxs _))
 
-lemma indicator_Lp_coe_fn_nmem : ∀ᵐ (x : α) ∂μ, x ∉ s → (indicator_Lp p hs hμs c x) = 0 :=
-indicator_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_not_mem hxs _))
-
-lemma norm_indicator_Lp (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
-  ∥indicator_Lp p hs hμs c∥ = ∥c∥ * (μ s).to_real ^ (1 / p.to_real) :=
-by rw [Lp.norm_def, snorm_congr_ae indicator_Lp_coe_fn,
+lemma norm_indicator_const_Lp (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+  ∥indicator_const_Lp p hs hμs c∥ = ∥c∥ * (μ s).to_real ^ (1 / p.to_real) :=
+by rw [Lp.norm_def, snorm_congr_ae indicator_const_Lp_coe_fn,
     snorm_indicator_const hs hp_pos hp_ne_top, ennreal.to_real_mul, ennreal.to_real_rpow,
     ennreal.coe_to_real, coe_nnnorm]
 
-lemma norm_indicator_Lp_top (hμs_pos : 0 < μ s) : ∥indicator_Lp ∞ hs hμs c∥ = ∥c∥ :=
-by rw [Lp.norm_def, snorm_congr_ae indicator_Lp_coe_fn,
+lemma norm_indicator_const_Lp_top (hμs_pos : 0 < μ s) : ∥indicator_const_Lp ∞ hs hμs c∥ = ∥c∥ :=
+by rw [Lp.norm_def, snorm_congr_ae indicator_const_Lp_coe_fn,
     snorm_indicator_const' hs hμs_pos ennreal.coe_lt_top, ennreal.top_to_real, div_zero,
     ennreal.rpow_zero, mul_one, ennreal.coe_to_real, coe_nnnorm]
 
-lemma norm_indicator_Lp' (hp_pos : 0 < p) (hμs_pos : 0 < μ s) :
-  ∥indicator_Lp p hs hμs c∥ = ∥c∥ * (μ s).to_real ^ (1 / p.to_real) :=
+lemma norm_indicator_const_Lp' (hp_pos : 0 < p) (hμs_pos : 0 < μ s) :
+  ∥indicator_const_Lp p hs hμs c∥ = ∥c∥ * (μ s).to_real ^ (1 / p.to_real) :=
 begin
   by_cases hp_top : p = ∞,
   { simp only [hp_top, div_zero, mul_one, ennreal.top_to_real, real.rpow_zero],
     rw hp_top,
-    exact norm_indicator_Lp_top hμs_pos, },
-  { exact norm_indicator_Lp hp_pos hp_top, },
+    exact norm_indicator_const_Lp_top hμs_pos, },
+  { exact norm_indicator_const_Lp hp_pos hp_top, },
 end
 
-lemma indicator_Lp_disjoint_union (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
-  (hμs : μ s < ∞) (hμt : μ t < ∞) (hst : s ∩ t = ∅) (c : E) :
-  (indicator_Lp 2 (hs.union ht)
+lemma indicator_const_Lp_disjoint_union (s t : set α) (hs : measurable_set s)
+  (ht : measurable_set t) (hμs : μ s < ∞) (hμt : μ t < ∞) (hst : s ∩ t = ∅) (c : E) :
+  (indicator_const_Lp 2 (hs.union ht)
       ((measure_union_le s t).trans_lt (ennreal.add_lt_top.mpr ⟨hμs, hμt⟩)) c)
-    = indicator_Lp 2 hs hμs c + indicator_Lp 2 ht hμt c :=
+    = indicator_const_Lp 2 hs hμs c + indicator_const_Lp 2 ht hμt c :=
 begin
   ext1,
-  refine indicator_Lp_coe_fn.trans (eventually_eq.trans _ (Lp.coe_fn_add _ _).symm),
+  refine indicator_const_Lp_coe_fn.trans (eventually_eq.trans _ (Lp.coe_fn_add _ _).symm),
   refine eventually_eq.trans _
-    (eventually_eq.add indicator_Lp_coe_fn.symm indicator_Lp_coe_fn.symm),
+    (eventually_eq.add indicator_const_Lp_coe_fn.symm indicator_const_Lp_coe_fn.symm),
   refine eventually_of_forall (λ x, _),
   simp_rw set.indicator_apply,
   by_cases hxs : x ∈ s,
@@ -1457,7 +1443,7 @@ begin
     congr, },
 end
 
-end indicator_Lp
+end indicator_const_Lp
 
 end measure_theory
 

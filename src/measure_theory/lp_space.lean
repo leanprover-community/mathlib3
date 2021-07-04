@@ -1393,11 +1393,11 @@ lemma indicator_const_Lp_coe_fn : ⇑(indicator_const_Lp p hs hμs c) =ᵐ[μ] s
 mem_ℒp.coe_fn_to_Lp (mem_ℒp_indicator_const p hs c (or.inr hμs))
 
 lemma indicator_const_Lp_coe_fn_mem :
-  ∀ᵐ (x : α) ∂μ, x ∈ s → (indicator_const_Lp p hs hμs c x) = c :=
+  ∀ᵐ (x : α) ∂μ, x ∈ s → indicator_const_Lp p hs hμs c x = c :=
 indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_mem hxs _))
 
 lemma indicator_const_Lp_coe_fn_nmem :
-  ∀ᵐ (x : α) ∂μ, x ∉ s → (indicator_const_Lp p hs hμs c x) = 0 :=
+  ∀ᵐ (x : α) ∂μ, x ∉ s → indicator_const_Lp p hs hμs c x = 0 :=
 indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_not_mem hxs _))
 
 lemma norm_indicator_const_Lp (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :

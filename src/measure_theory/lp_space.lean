@@ -1335,7 +1335,7 @@ begin
   simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
   have h_indicator_pow : (λ a : α, s.indicator (λ (x : α), (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
     = s.indicator (λ (x : α), ↑∥c∥₊ ^ p.to_real),
-  { rw indicator_const_comp (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _,
+  { rw set.indicator_const_comp (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _,
     simp [hp_pos], },
   rw [h_indicator_pow, lintegral_indicator _ hs, set_lintegral_const, ennreal.mul_rpow_of_nonneg],
   { rw [← ennreal.rpow_mul, mul_one_div_cancel hp_pos.ne.symm, ennreal.rpow_one], },
@@ -1368,7 +1368,7 @@ begin
   simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
   have h_indicator_pow : (λ a : α, s.indicator (λ (x : α), (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
     = s.indicator (λ (x : α), ↑∥c∥₊ ^ p.to_real),
-  { rw indicator_const_comp (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _, simp [hp_pos], },
+  { rw set.indicator_const_comp (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _, simp [hp_pos], },
   rw [h_indicator_pow, lintegral_indicator _ hs, set_lintegral_const],
   refine ennreal.mul_lt_top _ hμs,
   exact ennreal.rpow_lt_top_of_nonneg hp_pos.le ennreal.coe_ne_top,

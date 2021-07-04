@@ -1363,17 +1363,16 @@ begin
   refine ⟨(ae_measurable_indicator_iff hs).mpr ae_measurable_const, _⟩,
   by_cases hp0 : p = 0,
   { simp only [hp0, snorm_exponent_zero, with_top.zero_lt_top], },
-  rw ← ne.def at hp0,
   by_cases hp_top : p = ∞,
   { rw [hp_top, snorm_exponent_top],
     exact (snorm_ess_sup_indicator_const_le s c).trans_lt ennreal.coe_lt_top, },
   have hp_pos : 0 < p.to_real,
-    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
+    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) (ne.symm hp0), hp_top⟩,
   rw snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top hp0 hp_top,
   simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
-  have h_indicator_pow : (λ a : α, s.indicator (λ (x : α), (nnnorm c : ℝ≥0∞)) a ^ p.to_real)
-    = s.indicator (λ (x : α), ↑(nnnorm c) ^ p.to_real),
-  { rw indicator_const_comp (nnnorm c : ℝ≥0∞) (λ x, x ^ p.to_real) _, simp [hp_pos], },
+  have h_indicator_pow : (λ a : α, s.indicator (λ (x : α), (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
+    = s.indicator (λ (x : α), ↑∥c∥₊ ^ p.to_real),
+  { rw indicator_const_comp (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _, simp [hp_pos], },
   rw [h_indicator_pow, lintegral_indicator _ hs, set_lintegral_const],
   refine ennreal.mul_lt_top _ hμs,
   exact ennreal.rpow_lt_top_of_nonneg hp_pos.le ennreal.coe_ne_top,
@@ -1415,13 +1414,12 @@ lemma norm_indicator_const_Lp' (hp_pos : 0 < p) (hμs_pos : 0 < μ s) :
   ∥indicator_const_Lp p hs hμs c∥ = ∥c∥ * (μ s).to_real ^ (1 / p.to_real) :=
 begin
   by_cases hp_top : p = ∞,
-  { simp only [hp_top, div_zero, mul_one, ennreal.top_to_real, real.rpow_zero],
-    rw hp_top,
+  { rw [hp_top, ennreal.top_to_real, div_zero, real.rpow_zero, mul_one],
     exact norm_indicator_const_Lp_top hμs_pos, },
   { exact norm_indicator_const_Lp hp_pos hp_top, },
 end
 
-lemma indicator_const_Lp_disjoint_union (s t : set α) (hs : measurable_set s)
+lemma indicator_const_Lp_disjoint_union {s t : set α} (hs : measurable_set s)
   (ht : measurable_set t) (hμs : μ s < ∞) (hμt : μ t < ∞) (hst : s ∩ t = ∅) (c : E) :
   (indicator_const_Lp 2 (hs.union ht)
       ((measure_union_le s t).trans_lt (ennreal.add_lt_top.mpr ⟨hμs, hμt⟩)) c)

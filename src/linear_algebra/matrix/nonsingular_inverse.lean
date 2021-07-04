@@ -383,10 +383,10 @@ by apply is_unit_det_of_left_inverse A (invertible.inv_of A) (inv_of_mul_self A)
 @[simp,norm]
 lemma inv_eq_nonsing_inv_of_invertible [invertible A] : ⅟ A = A⁻¹ :=
 begin
-  have ha:= is_unit_det_of_invertible A,
+  have ha := is_unit_det_of_invertible A,
   have ha':= (is_unit_iff_is_unit_det A).2 ha,
-  have h:= inv_of_mul_self A,
-  have h':= nonsing_inv_mul A ha,
+  have h := inv_of_mul_self A,
+  have h' := nonsing_inv_mul A ha,
   rw ←h' at h,
   apply (is_unit.mul_left_inj ha').1 h,
 end
@@ -418,26 +418,26 @@ end
 
 /-- If matrix A is left invertible, then A is invertible. -/
 noncomputable
-lemma invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
+lemma invertible_of_left_inverse (h : B ⬝ A = 1) : invertible A :=
 invertible_of_is_unit_det (is_unit_det_of_left_inverse A B h)
 
 /-- If matrix A is right invertible, then A is invertible. -/
 noncomputable
-lemma invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
+lemma invertible_of_right_inverse (h : A ⬝ B = 1) : invertible A :=
 invertible_of_is_unit_det (is_unit_det_of_right_inverse A B h)
 
-variables {C: matrix n n α}
+variables {C : matrix n n α}
 
 /-- The left inverse of matrix A is unique when existing. -/
-lemma left_inv_eq_left_inv (h: B ⬝ A = 1) (g: C ⬝ A = 1) : B = C :=
+lemma left_inv_eq_left_inv (h : B ⬝ A = 1) (g : C ⬝ A = 1) : B = C :=
 by rw [←(inv_eq_left_inv h), ←(inv_eq_left_inv g)]
 
 /-- The right inverse of matrix A is unique when existing. -/
-lemma right_inv_eq_right_inv (h: A ⬝ B = 1) (g: A ⬝ C = 1) : B = C :=
+lemma right_inv_eq_right_inv (h : A ⬝ B = 1) (g : A ⬝ C = 1) : B = C :=
 by rw [←(inv_eq_right_inv h), ←(inv_eq_right_inv g)]
 
 /-- The right inverse of matrix A equals the left inverse of A when they exist. -/
-lemma right_inv_eq_left_inv (h: A ⬝ B = 1) (g: C ⬝ A = 1) : B = C :=
+lemma right_inv_eq_left_inv (h : A ⬝ B = 1) (g : C ⬝ A = 1) : B = C :=
 by rw [←(inv_eq_right_inv h), ←(inv_eq_left_inv g)]
 
 variable (A)

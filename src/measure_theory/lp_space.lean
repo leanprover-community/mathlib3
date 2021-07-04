@@ -1287,11 +1287,6 @@ lemma to_Lp_const_smul {f : α → E} (c : 𝕜) (hf : mem_ℒp f p μ) :
 
 end mem_ℒp
 
-lemma indicator_const_comp {β γ δ} [has_zero γ] [has_zero δ] {s : set β} (c : γ) (f : γ → δ)
-  (hf : f 0 = 0) :
-  (λ x, f (s.indicator (λ x, c) x)) = s.indicator (λ x, f c) :=
-(set.indicator_comp_of_zero hf).symm
-
 /-! ### Indicator of a set as an element of Lᵖ
 
 For a set `s` with `(hs : measurable_set s)` and `(hμs : μ s < ∞)`, we build

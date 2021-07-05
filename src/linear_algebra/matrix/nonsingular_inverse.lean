@@ -376,33 +376,31 @@ end
 lemma nonsing_inv_right_left (h : B ⬝ A = 1) : A ⬝ B = 1 :=
 B.nonsing_inv_left_right A h
 
-/-- `det A` is a unit implies A is invertible -/
+/-- Matrix A is invertible implies `det A` is a unit. -/
 lemma is_unit_det_of_invertible [invertible A] : is_unit A.det :=
-by apply is_unit_det_of_left_inverse A (invertible.inv_of A) (inv_of_mul_self A)
+is_unit_det_of_left_inverse A (invertible.inv_of A) (inv_of_mul_self A)
 
 @[simp,norm]
 lemma inv_eq_nonsing_inv_of_invertible [invertible A] : ⅟ A = A⁻¹ :=
 begin
-  have ha := is_unit_det_of_invertible A,
-  have ha':= (is_unit_iff_is_unit_det A).2 ha,
-  have h := inv_of_mul_self A,
-  have h' := nonsing_inv_mul A ha,
-  rw ←h' at h,
-  apply (is_unit.mul_left_inj ha').1 h,
+  suffices : is_unit A,
+  { rw [←this.mul_left_inj, inv_of_mul_self, matrix.mul_eq_mul, nonsing_inv_mul],
+    rwa ←is_unit_iff_is_unit_det },
+  exact is_unit_of_invertible _
 end
 
 variables {A} {B}
 
-/-- Matrix A is invertible implies `det A` is a unit. -/
+/-- We can construct an instance of invertible A if `det A` is a unit. -/
 noncomputable
-lemma invertible_of_is_unit_det  (h : is_unit A.det) : invertible A :=
+instance invertible_of_is_unit_det  (h: is_unit A.det) : invertible A :=
 ⟨A⁻¹, nonsing_inv_mul A h, mul_nonsing_inv A h⟩
 
 /-- If matrix A is left invertible, then its inverse equals its left inverse. -/
 lemma inv_eq_left_inv (h : B ⬝ A = 1) : A⁻¹ = B :=
 begin
   have h1 :=  (is_unit_det_of_left_inverse A B h),
-  have h2 := invertible_of_is_unit_det h1,
+  have h2 := matrix.invertible_of_is_unit_det h1,
   have := @inv_of_eq_left_inv (matrix n n α) (infer_instance) A B h2 h,
   simp* at *,
 end
@@ -411,33 +409,33 @@ end
 lemma inv_eq_right_inv (h : A ⬝ B = 1) : A⁻¹ = B :=
 begin
   have h1 :=  (is_unit_det_of_right_inverse A B h),
-  have h2 := invertible_of_is_unit_det h1,
+  have h2 := matrix.invertible_of_is_unit_det h1,
   have := @inv_of_eq_right_inv (matrix n n α) (infer_instance) A B h2 h,
   simp* at *,
 end
 
-/-- If matrix A is left invertible, then A is invertible. -/
+/-- We can construct an instance of invertible A if A has a left inverse. -/
 noncomputable
-lemma invertible_of_left_inverse (h : B ⬝ A = 1) : invertible A :=
-invertible_of_is_unit_det (is_unit_det_of_left_inverse A B h)
+instance invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
+matrix.invertible_of_is_unit_det (is_unit_det_of_left_inverse A B h)
 
-/-- If matrix A is right invertible, then A is invertible. -/
+/-- We can construct an instance of invertible A if A has a right inverse. -/
 noncomputable
-lemma invertible_of_right_inverse (h : A ⬝ B = 1) : invertible A :=
-invertible_of_is_unit_det (is_unit_det_of_right_inverse A B h)
+instance invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
+matrix.invertible_of_is_unit_det (is_unit_det_of_right_inverse A B h)
 
-variables {C : matrix n n α}
+variables {C: matrix n n α}
 
 /-- The left inverse of matrix A is unique when existing. -/
-lemma left_inv_eq_left_inv (h : B ⬝ A = 1) (g : C ⬝ A = 1) : B = C :=
+lemma left_inv_eq_left_inv (h: B ⬝ A = 1) (g: C ⬝ A = 1) : B = C :=
 by rw [←(inv_eq_left_inv h), ←(inv_eq_left_inv g)]
 
 /-- The right inverse of matrix A is unique when existing. -/
-lemma right_inv_eq_right_inv (h : A ⬝ B = 1) (g : A ⬝ C = 1) : B = C :=
+lemma right_inv_eq_right_inv (h: A ⬝ B = 1) (g: A ⬝ C = 1) : B = C :=
 by rw [←(inv_eq_right_inv h), ←(inv_eq_right_inv g)]
 
 /-- The right inverse of matrix A equals the left inverse of A when they exist. -/
-lemma right_inv_eq_left_inv (h : A ⬝ B = 1) (g : C ⬝ A = 1) : B = C :=
+lemma right_inv_eq_left_inv (h: A ⬝ B = 1) (g: C ⬝ A = 1) : B = C :=
 by rw [←(inv_eq_right_inv h), ←(inv_eq_left_inv g)]
 
 variable (A)

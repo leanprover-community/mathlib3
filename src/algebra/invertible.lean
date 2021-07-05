@@ -89,17 +89,12 @@ instance [monoid α] (a : α) : subsingleton (invertible a) :=
 ⟨ λ ⟨b, hba, hab⟩ ⟨c, hca, hac⟩, by { congr, exact left_inv_eq_right_inv hba hac } ⟩
 
 /-- An `invertible` element is a unit. -/
+@[simps]
 def unit_of_invertible [monoid α] (a : α) [invertible a] : units α :=
 { val     := a,
   inv     := ⅟a,
   val_inv := by simp,
   inv_val := by simp, }
-
-@[simp] lemma unit_of_invertible_val [monoid α] (a : α) [invertible a] :
-  (unit_of_invertible a : α) = a := rfl
-
-@[simp] lemma unit_of_invertible_inv [monoid α] (a : α) [invertible a] :
-  (↑(unit_of_invertible a)⁻¹ : α) = ⅟a := rfl
 
 lemma is_unit_of_invertible [monoid α] (a : α) [invertible a] : is_unit a :=
 ⟨unit_of_invertible a, rfl⟩

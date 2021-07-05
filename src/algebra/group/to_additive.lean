@@ -321,7 +321,8 @@ There are two exceptions in this heuristic:
 
 If `@[to_additive]` fails because the additive declaration raises a type mismatch, there are
 various things you can try.
-The first thing to figure out by looking at the type mismatch error what `@[to_additive]` did wrong.
+The first thing to do is to figure out what `@[to_additive]` did wrong by looking at the type 
+mismatch error.
 
 * Option 1: It additivized a declaration `d` that should remain multiplicative. Solutions:
   * Make sure the first argument of `d` is a type with a multiplicative structure. If not, can you

@@ -620,6 +620,10 @@ lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
 
+@[continuity] lemma continuous.restrict_codom {f : α → β} {s : set β} (hf : continuous f)
+  (hs : maps_to f univ s) : continuous hs.restrict_codom :=
+continuous_subtype_mk (λ a, hs (mem_univ a)) hf
+
 end subtype
 
 section quotient

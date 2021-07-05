@@ -178,7 +178,7 @@ lemma exists_integer_multiple (a : S) :
   ∃ (b : M), is_integer R ((b : R) • a) :=
 by { simp_rw [algebra.smul_def, mul_comm _ a], apply exists_integer_multiple' }
 
-/-- Given `z : S`, `is_localization.sec z` is defined to be a pair `(x, y) : R × M` such
+/-- Given `z : S`, `(to_localization_map M S).sec z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x` (so this lemma is true by definition). -/
 lemma sec_spec (z : S) :
   z * algebra_map R S ((to_localization_map M S).sec z).2 =

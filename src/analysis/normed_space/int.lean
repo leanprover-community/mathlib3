@@ -9,7 +9,12 @@ import analysis.normed_space.basic
 /-!
 # The integers as normed ring
 
-This file contains basic facts about the integers as normed ring
+This file contains basic facts about the integers as normed ring.
+
+Recall that `∥n∥` denotes the norm of `n` as real number.
+This norm is always nonnegative, so we can bundle the norm together with this fact,
+to obtain a term of type `nnreal` (the nonnegative real numbers).
+The resulting nonnegative real number is denoted by `∥n∥₊`.
 -/
 
 open_locale big_operators

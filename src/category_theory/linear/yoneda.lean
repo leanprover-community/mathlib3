@@ -14,6 +14,9 @@ import category_theory.preadditive.opposite
 The Yoneda embedding for `R`-linear categories `C`,
 sends an object `X : C` to the `Module R`-valued presheaf on `C`,
 with value on `Y : Cᵒᵖ` given by `Module.of R (unop Y ⟶ X)`.
+
+TODO: `linear_yoneda R C` is `R`-linear.
+TODO: In fact, `linear_yoneda` itself is additive and `R`-linear.
 -/
 
 namespace category_theory
@@ -35,7 +38,5 @@ def linear_yoneda : C ⥤ Cᵒᵖ ⥤ Module R :=
   map := λ X X' f, { app := λ Y, linear.right_comp R _ f } }.
 
 instance linear_yoneda_obj_additive (X : C) : ((linear_yoneda R C).obj X).additive := {}
--- TODO, in fact, it's `R`-linear as well
--- TODO, in fact, `linear_yoneda` itself is additive and `R`-linear.
 
 end category_theory

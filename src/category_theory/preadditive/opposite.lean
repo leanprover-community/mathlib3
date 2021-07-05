@@ -34,13 +34,13 @@ instance functor.op_additive (F : C ⥤ D) [F.additive] : F.op.additive := {}
 
 instance functor.right_op_additive (F : Cᵒᵖ ⥤ D) [F.additive] : F.right_op.additive :=
 { map_zero' := λ X Y, begin
-    change (F.map 0).op = 0,
-    rw functor.map_zero,
+    dsimp only [functor.right_op],
+    erw F.map_zero,
     refl,
   end,
   map_add' := λ X Y f g, begin
-    change (F.map (f.op + g.op)).op = _,
-    rw functor.map_add,
+    dsimp only [functor.right_op],
+    erw (F.map_add : F.map (f.op + g.op) = _),
     refl,
   end }
 
@@ -48,13 +48,13 @@ instance functor.left_op_additive (F : C ⥤ Dᵒᵖ) [F.additive] : F.left_op.a
 
 instance functor.unop_additive (F : Cᵒᵖ ⥤ Dᵒᵖ) [F.additive] : F.unop.additive :=
 { map_zero' := λ X Y, begin
-    change (F.map 0).unop = 0,
-    rw functor.map_zero,
+    dsimp only [functor.unop],
+    erw functor.map_zero,
     refl,
   end,
   map_add' := λ X Y f g, begin
-    change (F.map (f.op + g.op)).unop = _,
-    rw F.map_add,
+    dsimp only [functor.unop],
+    erw (F.map_add : F.map (f.op + g.op) = _),
     refl,
   end }
 

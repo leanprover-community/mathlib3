@@ -75,7 +75,7 @@ lemma extremally_disconnected_of_projective [compact_space X] [t2_space X]
   (h : compact_t2.projective X) :
   extremally_disconnected X :=
 begin
-  constructor, intros U hU,
+  refine { open_closure := λ U hU, _ },
   let Z₁ : set (X × bool) := (Uᶜ).prod {tt},
   let Z₂ : set (X × bool) := (closure U).prod {ff},
   let Z : set (X × bool) := Z₁ ∪ Z₂,
@@ -112,7 +112,7 @@ begin
       simp [hx, hfstφ] at this, exact this.2 } },
   apply set.subset.antisymm,
   { apply closure_minimal _ (continuous_iff_is_closed.mp hφ Z₂ hZ₂),
-    intros x hx, simp [key, hx], exact subset_closure hx },
+    intros x hx, simp [key _ hx], exact subset_closure hx },
   { intros x hx, rw [set.mem_preimage, set.mem_prod] at hx,
     replace hfstφ := congr_fun hfstφ x, rw comp_apply at hfstφ,
     rw hfstφ at hx, exact hx.1 }

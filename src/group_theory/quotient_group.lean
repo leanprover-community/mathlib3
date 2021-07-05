@@ -229,16 +229,30 @@ end
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃* range φ :=
 mul_equiv.of_bijective (range_ker_lift φ) ⟨range_ker_lift_injective φ, range_ker_lift_surjective φ⟩
 
-/-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`. -/
+/-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a homomorphism `φ : G →* H`
+with a right inverse `ψ : H → G`. -/
+@[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse "The canonical isomorphism
+`G/(ker φ) ≃+ H` induced by a homomorphism `φ : G →+ H` with a right inverse `ψ : H → G`.",
+  simps]
+def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inverse ψ φ) :
+  quotient (ker φ) ≃* H :=
+{ to_fun := ker_lift φ,
+  inv_fun := mk ∘ ψ,
+  left_inv := λ x, ker_lift_injective φ (by rw [function.comp_app, ker_lift_mk', hφ]),
+  right_inv := hφ,
+  .. ker_lift φ }
+
+/-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`.
+
+For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inverse`.
+-/
 @[to_additive quotient_add_group.quotient_ker_equiv_of_surjective "The canonical isomorphism
-`G/(ker φ) ≃+ H` induced by a surjection `φ : G →+ H`."]
+`G/(ker φ) ≃+ H` induced by a surjection `φ : G →+ H`.
+
+For a `computable` version, see `quotient_add_group.quotient_ker_equiv_of_right_inverse`."]
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
-  (quotient (ker φ)) ≃* H :=
-mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, λ h, begin
-  rcases hφ h with ⟨g, rfl⟩,
-  use mk g,
-  refl
-end⟩
+  quotient (ker φ) ≃* H :=
+quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec
 
 /-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
 isomorphic. -/

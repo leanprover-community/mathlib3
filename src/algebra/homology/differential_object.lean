@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.homology.homological_complex
 import category_theory.differential_object
-import category_theory.graded_object
 
 /-!
 # Homological complexes are differential graded objects.
@@ -39,22 +38,18 @@ def dgo_to_homological_complex :
   { X := λ i, X.X i,
     d := λ i j, if h : i + b = j then X.d i ≫ eq_to_hom (congr_arg X.X h) else 0,
     shape' := λ i j w, by { dsimp at w, rw dif_neg w, },
-    d_comp_d' := λ i j k, begin
-      split_ifs with h h',
-      { substs h h',
-        simp only [category.comp_id, eq_to_hom_refl],
-        exact congr_fun (X.d_squared) i, },
-      all_goals { simp, },
+    d_comp_d' := λ i j k hij hjk, begin
+      dsimp at hij hjk, substs hij hjk,
+      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl],
+      exact congr_fun (X.d_squared) i,
     end },
   map := λ X Y f,
   { f := f.f,
-    comm' := λ i j, begin
-      dsimp,
-      split_ifs with h,
-      { subst h,
-        simp only [category.comp_id, eq_to_hom_refl],
-        exact (congr_fun f.comm i).symm, },
-      { simp, },
+    comm' := λ i j h, begin
+      dsimp at h ⊢,
+      subst h,
+      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl],
+      exact (congr_fun f.comm i).symm
     end, } }
 
 /--
@@ -93,19 +88,15 @@ def dgo_equiv_homological_complex_counit_iso :
 nat_iso.of_components (λ X,
   { hom :=
     { f := λ i, 𝟙 (X.X i),
-      comm' := λ i j, begin
-        dsimp, simp only [category.comp_id, category.id_comp],
-        split_ifs,
-        { subst h, simp, },
-        { exact X.shape _ _ h, }
+      comm' := λ i j h, begin
+        dsimp at h ⊢, subst h,
+        simp only [category.comp_id, category.id_comp, dif_pos rfl, eq_to_hom_refl],
       end },
     inv :=
     { f := λ i, 𝟙 (X.X i),
-      comm' := λ i j, begin
-        dsimp, simp only [category.comp_id, category.id_comp],
-        split_ifs,
-        { subst h, simp, },
-        { exact (X.shape _ _ h).symm, }
+      comm' := λ i j h, begin
+        dsimp at h ⊢, subst h,
+        simp only [category.comp_id, category.id_comp, dif_pos rfl, eq_to_hom_refl],
       end }, }) (by tidy)
 
 /--

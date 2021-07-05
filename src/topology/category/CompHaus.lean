@@ -68,7 +68,7 @@ def of : CompHaus :=
 
 /-- Any continuous function on compact Hausdorff spaces is a closed map. -/
 lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
-λ C hC, (hC.compact.image f.continuous).is_closed
+λ C hC, (hC.is_compact.image f.continuous).is_closed
 
 /-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
 lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
@@ -170,8 +170,8 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
   { to_Top := (Top.limit_cone (F ⋙ CompHaus_to_Top)).X,
     is_compact := begin
       dsimp [Top.limit_cone],
-      rw ← compact_iff_compact_space,
-      apply is_closed.compact,
+      rw ← is_compact_iff_compact_space,
+      apply is_closed.is_compact,
       have : {u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} =
         ⋂ (i j : J) (f : i ⟶ j), {u | F.map f (u i) = u j}, by tidy,
       rw this,

@@ -6,6 +6,12 @@ Authors: Chris Hughes
 import data.rat
 import set_theory.cardinal
 
+/-!
+# Denumerability of ℚ
+
+This file proves that ℚ is infinite, denumerable, and deduces that it has cardinality `omega`.
+-/
+
 namespace rat
 open denumerable
 

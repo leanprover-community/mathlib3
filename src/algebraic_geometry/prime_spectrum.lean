@@ -472,7 +472,7 @@ begin
 end
 
 lemma is_compact_basic_open (f : R) : is_compact (basic_open f : set (prime_spectrum R)) :=
-compact_of_finite_subfamily_closed $ λ ι Z hZc hZ,
+is_compact_of_finite_subfamily_closed $ λ ι Z hZc hZ,
 begin
   let I : ι → ideal R := λ i, vanishing_ideal (Z i),
   have hI : ∀ i, Z i = zero_locus (I i) := λ i,

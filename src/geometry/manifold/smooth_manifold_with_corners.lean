@@ -687,7 +687,7 @@ lemma ext_chart_at_to_inv :
 
 lemma ext_chart_at_source_mem_nhds' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
   (ext_chart_at I x).source ∈ 𝓝 x' :=
-mem_nhds_sets (ext_chart_at_open_source I x) h
+is_open.mem_nhds (ext_chart_at_open_source I x) h
 
 lemma ext_chart_at_source_mem_nhds : (ext_chart_at I x).source ∈ 𝓝 x :=
 ext_chart_at_source_mem_nhds' I x (mem_ext_chart_source I x)

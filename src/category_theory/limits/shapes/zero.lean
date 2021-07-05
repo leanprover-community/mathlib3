@@ -177,9 +177,9 @@ This can not be a global instance as it will trigger for every `has_zero C` type
 protected def has_zero : has_zero C :=
 { zero := has_zero_object.zero }
 
-localized "attribute [instance] has_zero_object.has_zero" in zero_object
-localized "attribute [instance] has_zero_object.unique_to" in zero_object
-localized "attribute [instance] has_zero_object.unique_from" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.has_zero" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.unique_to" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.unique_from" in zero_object
 
 @[ext]
 lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=

@@ -245,9 +245,17 @@ theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
   (a b : M) (h : a * b = 1) : is_unit a :=
 ⟨units.mk_of_mul_eq_one a b h, rfl⟩
 
+@[to_additive is_add_unit.exists_neg] theorem is_unit.exists_right_inv [monoid M]
+  {a : M} (h : is_unit a) : ∃ b, a * b = 1 :=
+by { rcases h with ⟨⟨a, b, hab, _⟩, rfl⟩, exact ⟨b, hab⟩ }
+
+@[to_additive is_add_unit.exists_neg'] theorem is_unit.exists_left_inv [monoid M]
+  {a : M} (h : is_unit a) : ∃ b, b * a = 1 :=
+by { rcases h with ⟨⟨a, b, _, hba⟩, rfl⟩, exact ⟨b, hba⟩ }
+
 @[to_additive is_add_unit_iff_exists_neg] theorem is_unit_iff_exists_inv [comm_monoid M]
   {a : M} : is_unit a ↔ ∃ b, a * b = 1 :=
-⟨by rintro ⟨⟨a, b, hab, _⟩, rfl⟩; exact ⟨b, hab⟩,
+⟨λ h, h.exists_right_inv,
  λ ⟨b, hab⟩, is_unit_of_mul_eq_one _ b hab⟩
 
 @[to_additive is_add_unit_iff_exists_neg'] theorem is_unit_iff_exists_inv' [comm_monoid M]

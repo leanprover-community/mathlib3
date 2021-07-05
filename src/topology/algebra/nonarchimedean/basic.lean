@@ -120,7 +120,7 @@ lemma left_mul_subset (U : open_add_subgroup R) (r : R) :
 /-- An open subgroup of a nonarchimedean ring contains the square of another one. -/
 lemma mul_subset (U : open_add_subgroup R) :
   ∃ V : open_add_subgroup R, (V : set R) * V ⊆ U :=
-let ⟨V, H⟩ := prod_self_subset (mem_nhds_sets (is_open.preimage continuous_mul U.is_open)
+let ⟨V, H⟩ := prod_self_subset (is_open.mem_nhds (is_open.preimage continuous_mul U.is_open)
   begin
     simpa only [set.mem_preimage, open_add_subgroup.mem_coe, prod.snd_zero, mul_zero]
       using U.zero_mem,

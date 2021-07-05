@@ -89,7 +89,7 @@ class generalized_boolean_algebra (α : Type u) extends semilattice_sup_bot α, 
 (sup_inf_sdiff : ∀a b:α, (a ⊓ b) ⊔ (a \ b) = a)
 (inf_inf_sdiff : ∀a b:α, (a ⊓ b) ⊓ (a \ b) = ⊥)
 
--- We might want a `is_compl_of` predicate generalizing `is_compl`,
+-- We might want a `is_compl_of` predicate (for relative complements) generalizing `is_compl`,
 -- however we'd need another type class for lattices with bot, and all the API for that.
 
 section generalized_boolean_algebra
@@ -192,7 +192,11 @@ calc x ⊓ (y \ x) = ((x ⊓ y) ⊔ (x \ y)) ⊓ (y \ x)         : by rw sup_inf
              ... = ⊥         : by rw [@inf_comm _ _ x y, inf_inf_sdiff, sdiff_inf_sdiff, bot_sup_eq]
 @[simp] theorem inf_sdiff_self_left : (y \ x) ⊓ x = ⊥ := by rw [inf_comm, inf_sdiff_self_right]
 
-theorem disjoint_sdiff : disjoint x (y \ x) := inf_sdiff_self_right.le
+theorem disjoint_sdiff_self_left : disjoint (y \ x) x := inf_sdiff_self_left.le
+theorem disjoint_sdiff_self_right : disjoint x (y \ x) := inf_sdiff_self_right.le
+
+lemma disjoint.disjoint_sdiff_left (h : disjoint x y) : disjoint (x \ z) y := h.mono_left sdiff_le
+lemma disjoint.disjoint_sdiff_right (h : disjoint x y) : disjoint x (y \ z) := h.mono_right sdiff_le
 
 /- TODO: if we had a typeclass for distributive lattices with `⊥`, we could make an alternative
 constructor for `generalized_boolean_algebra` using `disjoint x (y \ x)` and `x ⊔ (y \ x) = y` as
@@ -225,7 +229,7 @@ lemma disjoint_sdiff_iff_le (hz : z ≤ y) (hx : x ≤ y) : disjoint z (y \ x) �
       refine le_trans (sup_le_sup_left sdiff_le z) _,
       rw sup_eq_right.2 hz,
     end),
- λ H, disjoint_sdiff.mono_left H⟩
+ λ H, disjoint_sdiff_self_right.mono_left H⟩
 
 -- cf. `is_compl.le_left_iff` and `is_compl.le_right_iff`
 lemma le_iff_disjoint_sdiff (hz : z ≤ y) (hx : x ≤ y) : z ≤ x ↔ disjoint z (y \ x) :=
@@ -432,6 +436,8 @@ by rw [sdiff_sdiff_left, sup_comm, sdiff_sdiff_left]
 
 @[simp] lemma sdiff_idem : x \ y \ y = x \ y := by rw [sdiff_sdiff_left, sup_idem]
 
+@[simp] lemma sdiff_sdiff_self : x \ y \ x = ⊥ := by rw [sdiff_sdiff_comm, sdiff_self, bot_sdiff]
+
 lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = z ⊓ (z \ x ⊔ y) ⊓ (z \ y ⊔ x) :=
 calc z \ (x \ y ⊔ y \ x) = (z \ x ⊔ z ⊓ x ⊓ y) ⊓ (z \ y ⊔ z ⊓ y ⊓ x) :
                                              by rw [sdiff_sup, sdiff_sdiff_right, sdiff_sdiff_right]
@@ -549,6 +555,12 @@ h.left_unique is_compl_compl.symm
 
 theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 (h.right_unique is_compl_compl).symm
+
+theorem eq_compl_iff_is_compl : x = yᶜ ↔ is_compl x y :=
+⟨λ h, by { rw h, exact is_compl_compl.symm }, is_compl.eq_compl⟩
+
+theorem compl_eq_iff_is_compl : xᶜ = y ↔ is_compl x y :=
+⟨λ h, by { rw ←h, exact is_compl_compl }, is_compl.compl_eq⟩
 
 theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
 theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm

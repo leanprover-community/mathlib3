@@ -13,7 +13,11 @@ import set_theory.cardinal_ordinal
 ## Main definitions
 
 * The rank of a module is defined as `module.rank : cardinal`.
-  This is currently only defined for vector spaces, i.e., when the base semiring is a field.
+  This is defined as the supremum of the cardinalities of linearly independent subsets.
+
+Although this definition works for any module over a (semi)ring,
+for now we quickly specialize to division rings and then to fields.
+There's lots of generalization still to be done.
 
 ## Main statements
 
@@ -40,34 +44,36 @@ variables {ι : Type w} {ι' : Type w'} {η : Type u₁'} {φ : η → Type*}
 
 open_locale classical big_operators
 
-open basis
+open basis submodule function set
 
 section module
-variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+
+section
+variables [semiring K] [add_comm_monoid V] [module K V]
 include K
-open submodule function set
 
 variables (K V)
 
 /-- The rank of a module, defined as a term of type `cardinal`.
 
-In a vector space, this is the same as the dimension of the space.
+We define this as the supremum of the cardinalities of linearly independent subsets.
 
-TODO: this is currently only defined for vector spaces, as the cardinality of
-the basis set. It should be generalized to modules in general.
+In a vector space, this is the same as the dimension of the space
+(i.e. the cardinality of any basis).
 
 The definition is marked as protected to avoid conflicts with `_root_.rank`,
 the rank of a linear map.
 -/
 protected def module.rank : cardinal :=
-cardinal.min
-  (nonempty_subtype.2 (exists_basis K V))
-  (λ ι, cardinal.mk ι.1)
+cardinal.sup.{v v}
+  (λ ι : {s : set V // linear_independent K (coe : s → V)}, cardinal.mk ι.1)
+
+end
+
+section division_ring
+variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables {K V}
 
-variables {K V}
-
-section
 theorem basis.le_span {J : set V} (v : basis ι K V)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
@@ -97,10 +103,9 @@ begin
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
   { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
       (cardinal.lt_omega_iff_finite.1 oJ) v.linear_independent.to_subtype_range _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_to_finset,
-        cardinal.finset_card, set.finite.coe_to_finset] at hi, },
+    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_sort_to_finset,
+           cardinal.finset_card, set.finite.coe_sort_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
-end
 end
 
 /-- The dimension theorem: if `v` and `v'` are two bases, their index types
@@ -130,11 +135,18 @@ cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
 theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι K V) :
   cardinal.mk ι = module.rank K V :=
 begin
-  obtain ⟨⟨ι, ⟨v'⟩⟩, e : module.rank K V = _⟩ :=
-    cardinal.min_eq (nonempty_subtype.2 (exists_basis K V)) _,
-  rw [e, ← cardinal.mk_range_eq _ v.injective],
-  exact mk_eq_mk_of_basis' v.reindex_range v'
+  apply le_antisymm,
+  { transitivity,
+    swap,
+    apply cardinal.le_sup,
+    exact ⟨set.range v, by { convert v.reindex_range.linear_independent, ext, simp }⟩,
+    exact (cardinal.eq_congr (equiv.of_injective v v.injective)).le, },
+  { exact cardinal.sup_le.mpr (λ i,
+      (cardinal.mk_le_mk_of_subset (basis.subset_extend i.2)).trans
+        (mk_eq_mk_of_basis' (basis.extend i.2) v).le), },
 end
+
+attribute [irreducible] module.rank
 
 theorem basis.mk_range_eq_dim (v : basis ι K V) :
   cardinal.mk (range v) = module.rank K V :=
@@ -149,12 +161,44 @@ theorem {m} basis.mk_eq_dim' (v : basis ι K V) :
 by simpa using v.mk_eq_dim
 
 theorem dim_le {n : ℕ}
-  (H : ∀ s : finset V, linear_independent K (λ i : (↑s : set V), (i : V)) → s.card ≤ n) :
+  (H : ∀ s : finset V, linear_independent K (λ i : s, (i : V)) → s.card ≤ n) :
   module.rank K V ≤ n :=
-(basis.of_vector_space K V).mk_eq_dim'' ▸
-cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype.val_injective⟩ s ▸
-H _ (by { refine (of_vector_space_index.linear_independent K V).mono (λ y h, _),
-          rw [finset.mem_coe, finset.mem_map] at h, rcases h with ⟨x, hx, rfl⟩, exact x.2 }))
+begin
+  rw ← (basis.of_vector_space K V).mk_eq_dim'',
+  refine cardinal.card_le_of (λ s, _),
+  rw ← finset.card_map ⟨_, subtype.val_injective⟩,
+  apply H,
+  refine (of_vector_space_index.linear_independent K V).mono (λ y (h : y ∈ (s.map _).1), _),
+  rw [← finset.mem_def, finset.mem_map] at h,
+  rcases h with ⟨x, hx, rfl⟩,
+  exact x.2
+end
+
+/-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
+lemma basis.nonempty_fintype_index_of_dim_lt_omega {ι : Type*}
+  (b : basis ι K V) (h : module.rank K V < cardinal.omega) :
+  nonempty (fintype ι) :=
+by rwa [← cardinal.lift_lt, ← b.mk_eq_dim,
+        -- ensure `omega` has the correct universe
+        cardinal.lift_omega, ← cardinal.lift_omega.{u_1 v},
+        cardinal.lift_lt, cardinal.lt_omega_iff_fintype] at h
+
+/-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
+noncomputable def basis.fintype_index_of_dim_lt_omega {ι : Type*}
+  (b : basis ι K V) (h : module.rank K V < cardinal.omega) :
+  fintype ι :=
+classical.choice (b.nonempty_fintype_index_of_dim_lt_omega h)
+
+/-- If a vector space has a finite dimension, all bases are indexed by a finite set. -/
+lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
+  (b : basis s K V) (h : module.rank K V < cardinal.omega) :
+  s.finite :=
+b.nonempty_fintype_index_of_dim_lt_omega h
+
+/-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
+lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < cardinal.omega) :
+  (basis.of_vector_space_index K V).finite :=
+(basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
 
 variables [add_comm_group V'] [module K V']
 
@@ -217,9 +261,12 @@ theorem linear_equiv.nonempty_equiv_iff_dim_eq :
 ⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
 
 @[simp] lemma dim_bot : module.rank K (⊥ : submodule K V) = 0 :=
-by letI := classical.dec_eq V;
-  rw [← cardinal.lift_inj, ← (basis.empty (⊥ : submodule K V) not_nonempty_pempty).mk_eq_dim,
-    cardinal.mk_pempty]
+begin
+  letI := classical.dec_eq V,
+  rw [← cardinal.lift_inj, ← (basis.empty (⊥ : submodule K V)).mk_eq_dim,
+    cardinal.mk_pempty],
+  apply_instance,
+end
 
 @[simp] lemma dim_top : module.rank K (⊤ : submodule K V) = module.rank K V :=
 linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
@@ -272,7 +319,7 @@ end
 lemma dim_span_of_finset (s : finset V) :
   module.rank K (span K (↑s : set V)) < cardinal.omega :=
 calc module.rank K (span K (↑s : set V)) ≤ cardinal.mk (↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw ←cardinal.finset_card
+                             ... = s.card : by rw [cardinal.finset_card, finset.coe_sort_coe]
                              ... < cardinal.omega : cardinal.nat_lt_omega _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
@@ -288,6 +335,13 @@ begin
   exact cardinal.lift_inj.1 (cardinal.lift_mk_eq.2
       ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm ⟩),
 end
+
+end division_ring
+
+section field
+variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V'] [module K V']
+variables {K V}
 
 theorem dim_quotient_add_dim (p : submodule K V) :
   module.rank K p.quotient + module.rank K p = module.rank K V :=
@@ -466,32 +520,6 @@ lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
 
-/-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
-lemma basis.nonempty_fintype_index_of_dim_lt_omega {ι : Type*}
-  (b : basis ι K V) (h : module.rank K V < cardinal.omega) :
-  nonempty (fintype ι) :=
-by rwa [← cardinal.lift_lt, ← b.mk_eq_dim,
-        -- ensure `omega` has the correct universe
-        cardinal.lift_omega, ← cardinal.lift_omega.{u_1 v},
-        cardinal.lift_lt, cardinal.lt_omega_iff_fintype] at h
-
-/-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
-noncomputable def basis.fintype_index_of_dim_lt_omega {ι : Type*}
-  (b : basis ι K V) (h : module.rank K V < cardinal.omega) :
-  fintype ι :=
-classical.choice (b.nonempty_fintype_index_of_dim_lt_omega h)
-
-/-- If a vector space has a finite dimension, all bases are indexed by a finite set. -/
-lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
-  (b : basis s K V) (h : module.rank K V < cardinal.omega) :
-  s.finite :=
-b.nonempty_fintype_index_of_dim_lt_omega h
-
-/-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
-lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < cardinal.omega) :
-  (basis.of_vector_space_index K V).finite :=
-(basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
-
 section rank
 
 /-- `rank f` is the rank of a `linear_map f`, defined as the dimension of `f.range`. -/
@@ -555,31 +583,20 @@ dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 
 /-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
 
-See also `basis.of_dim_eq_zero'` and `finite_dimensional.fin_basis`.
+See also `finite_dimensional.fin_basis`.
 -/
-def basis.of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι) (hV : module.rank K V = 0) :
+def basis.of_dim_eq_zero {ι : Type*} [is_empty ι] (hV : module.rank K V = 0) :
   basis ι K V :=
 begin
   haveI : subsingleton V := dim_zero_iff.1 hV,
-  exact basis.empty _ h
+  exact basis.empty _
 end
 
-@[simp] lemma basis.of_dim_eq_zero_apply {ι : Type*} (h : ¬ nonempty ι)
-  (hV : module.rank K V = 0) (i) :
-  basis.of_dim_eq_zero h hV i = 0 :=
+@[simp] lemma basis.of_dim_eq_zero_apply {ι : Type*} [is_empty ι]
+  (hV : module.rank K V = 0) (i : ι) :
+  basis.of_dim_eq_zero hV i = 0 :=
 rfl
 
-/-- The `fin 0` indexed basis on `V`, where `V` is zero-dimensional.
-
-See also `basis.of_dim_eq_zero` and `finite_dimensional.fin_basis`.
--/
-def basis.of_dim_eq_zero' (hV : module.rank K V = 0) :
-  basis (fin 0) K V :=
-basis.of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
-
-@[simp] lemma basis.of_dim_eq_zero'_apply (hV : module.rank K V = 0) (i) :
-  basis.of_dim_eq_zero' hV i = 0 :=
-rfl
 
 lemma dim_pos_iff_exists_ne_zero : 0 < module.rank K V ↔ ∃ x : V, x ≠ 0 :=
 begin
@@ -724,12 +741,14 @@ begin
       simp [hw] } }
 end
 
+end field
+
 end module
 
 section unconstrained_universes
 
 variables {E : Type v'}
-variables [field K] [add_comm_group V] [module K V]
+variables [division_ring K] [add_comm_group V] [module K V]
           [add_comm_group E] [module K E]
 open module
 

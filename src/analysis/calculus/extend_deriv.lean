@@ -69,9 +69,9 @@ begin
     have bound : ∀ z ∈ (B ∩ s), ∥fderiv_within ℝ f (B ∩ s) z - f'∥ ≤ ε,
     { intros z z_in,
       convert le_of_lt (hδ _ z_in.2 z_in.1),
-      have op : is_open (B ∩ s) := is_open_inter is_open_ball s_open,
+      have op : is_open (B ∩ s) := is_open_ball.inter s_open,
       rw differentiable_at.fderiv_within _ (op.unique_diff_on z z_in),
-      exact (diff z z_in).differentiable_at (mem_nhds_sets op z_in) },
+      exact (diff z z_in).differentiable_at (is_open.mem_nhds op z_in) },
     simpa using conv.norm_image_sub_le_of_norm_fderiv_within_le' diff bound u_in v_in },
   rintros ⟨u, v⟩ uv_in,
   refine continuous_within_at.closure_le uv_in _ _ key,
@@ -85,11 +85,11 @@ begin
     apply continuous_within_at.mono _ this,
     simp only [continuous_within_at] },
   rw nhds_within_prod_eq,
-  { have : f v - f u - (f' v - f' u) = f v - f' v - (f u - f' u) := by abel,
-    rw this,
-    convert tendsto.comp continuous_norm.continuous_at
-      ((tendsto.comp (f_cont' v v_in) tendsto_snd).sub $ tendsto.comp (f_cont' u u_in) tendsto_fst),
-    intros, simp, abel },
+  { have : ∀ u v, f v - f u - (f' v - f' u) = f v - f' v - (f u - f' u) := by { intros, abel },
+    simp only [this],
+    exact tendsto.comp continuous_norm.continuous_at
+      ((tendsto.comp (f_cont' v v_in) tendsto_snd).sub $
+        tendsto.comp (f_cont' u u_in) tendsto_fst) },
   { apply tendsto_nhds_within_of_tendsto_nhds,
     rw nhds_prod_eq,
     exact tendsto_const_nhds.mul

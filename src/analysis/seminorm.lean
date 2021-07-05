@@ -117,7 +117,7 @@ variables [topological_space E] [has_continuous_smul 𝕜 E]
 lemma absorbent_nhds_zero (hA : A ∈ 𝓝 (0 : E)) : absorbent 𝕜 A :=
 begin
   intro x,
-  rcases mem_nhds_sets_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
+  rcases mem_nhds_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
   have hc : continuous (λ t : 𝕜, t • x), from continuous_id.smul continuous_const,
   rcases metric.is_open_iff.mp (hw₂.preimage hc) 0 (by rwa [mem_preimage, zero_smul])
     with ⟨r, hr₁, hr₂⟩,

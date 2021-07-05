@@ -707,7 +707,7 @@ instance : has_add pgame := ⟨add⟩
 def add_zero_relabelling : Π (x : pgame.{u}), relabelling (x + 0) x
 | (mk xl xr xL xR) :=
 begin
-  refine ⟨equiv.sum_pempty xl, equiv.sum_pempty xr, _, _⟩,
+  refine ⟨equiv.sum_empty xl pempty, equiv.sum_empty xr pempty, _, _⟩,
   { rintro (⟨i⟩|⟨⟨⟩⟩),
     apply add_zero_relabelling, },
   { rintro j,
@@ -722,7 +722,7 @@ lemma add_zero_equiv (x : pgame.{u}) : x + 0 ≈ x :=
 def zero_add_relabelling : Π (x : pgame.{u}), relabelling (0 + x) x
 | (mk xl xr xL xR) :=
 begin
-  refine ⟨equiv.pempty_sum xl, equiv.pempty_sum xr, _, _⟩,
+  refine ⟨equiv.empty_sum pempty xl, equiv.empty_sum pempty xr, _, _⟩,
   { rintro (⟨⟨⟩⟩|⟨i⟩),
     apply zero_add_relabelling, },
   { rintro j,

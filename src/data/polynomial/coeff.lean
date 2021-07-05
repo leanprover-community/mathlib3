@@ -34,11 +34,11 @@ coeff_monomial
 lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
 by { rcases p, rcases q, simp [coeff, add_to_finsupp] }
 
-@[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
-  coeff (r • p) n = r * coeff p n :=
+@[simp] lemma coeff_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) (n : ℕ) :
+  coeff (r • p) n = r • coeff p n :=
 by { rcases p, simp [coeff, smul_to_finsupp] }
 
-lemma support_smul (p : polynomial R) (r : R) :
+lemma support_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) :
   support (r • p) ⊆ support p :=
 begin
   assume i hi,
@@ -52,7 +52,7 @@ variable (R)
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
 { to_fun := λ p, coeff p n,
   map_add' := λ p q, coeff_add p q n,
-  map_smul' := λ r p, coeff_smul p r n }
+  map_smul' := λ r p, coeff_smul r p n }
 
 variable {R}
 
@@ -95,7 +95,7 @@ by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.co
   coeff, add_monoid_algebra.single_zero_mul_apply p a n] }
 
 lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
-by { ext, rw [coeff_C_mul, coeff_smul] }
+by { ext, rw [coeff_C_mul, coeff_smul, smul_eq_mul] }
 
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
@@ -140,7 +140,7 @@ theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
-by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul] }
+by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul, smul_eq_mul] }
 
 lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
 by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
@@ -166,6 +166,14 @@ begin
     { rw hc },
     { rw [not_not] at hi, rwa mul_zero } },
 end
+
+lemma coeff_bit0_mul (P Q : polynomial R) (n : ℕ) :
+  coeff (bit0 P * Q) n = 2 * coeff (P * Q) n :=
+by simp [bit0, add_mul]
+
+lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
+  coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
+by simp [bit1, add_mul, coeff_bit0_mul]
 
 end coeff
 

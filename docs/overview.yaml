@@ -104,7 +104,7 @@ General algebra:
     algebraically closed field: 'is_alg_closed'
     existence of algebraic closure of a field: 'algebraic_closure'
     $\C$ is algebraically closed: 'complex.exists_root'
-    field of fractions of an integral domain: 'fraction_map'
+    field of fractions of an integral domain: 'is_fraction_ring'
     algebraic extension: 'algebra.is_algebraic'
     rupture field: 'adjoin_root'
     splitting field: 'polynomial.splitting_field'
@@ -128,6 +128,8 @@ General algebra:
     "Hensel's lemma (for $\\mathbb{Z}_p$)": 'hensels_lemma'
     ring of Witt vectors: 'witt_vector'
     perfection of a ring: 'ring.perfection'
+  Transcendental numbers:
+    Liouville's theorem on existence of transcendental numbers: liouville.is_transcendental
 
 Linear algebra:
   Fundamentals:
@@ -189,7 +191,7 @@ Topology:
     sequential space: 'sequential_space'
     extension by continuity: 'dense_inducing.extend'
     compactness in terms of filters: 'is_compact'
-    compactness in terms of open covers (Borel-Lebesgue): 'compact_iff_finite_subcover'
+    compactness in terms of open covers (Borel-Lebesgue): 'is_compact_iff_finite_subcover'
     connectedness: 'connected_space'
     compact open topology: 'continuous_map.compact_open'
     Stone-Cech compactification: 'stone_cech'

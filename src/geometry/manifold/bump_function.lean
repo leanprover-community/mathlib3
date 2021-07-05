@@ -125,7 +125,7 @@ eq_on_indicator
 
 lemma eventually_eq_of_mem_source (hx : x ∈ (chart_at H c).source) :
   f =ᶠ[𝓝 x] f.to_times_cont_diff_bump ∘ ext_chart_at I c :=
-f.eq_on_source.eventually_eq_of_mem $ mem_nhds_sets (chart_at H c).open_source hx
+f.eq_on_source.eventually_eq_of_mem $ is_open.mem_nhds (chart_at H c).open_source hx
 
 lemma one_of_dist_le (hs : x ∈ (chart_at H c).source)
   (hd : eudist (ext_chart_at I c x) (ext_chart_at I c c) ≤ f.r) :
@@ -187,7 +187,7 @@ lemma eventually_eq_one_of_dist_lt (hs : x ∈ (chart_at H c).source)
   (hd : eudist (ext_chart_at I c x) (ext_chart_at I c c) < f.r) :
   f =ᶠ[𝓝 x] 1 :=
 begin
-  filter_upwards [mem_nhds_sets (ext_chart_preimage_open_of_open I c is_open_ball) ⟨hs, hd⟩],
+  filter_upwards [is_open.mem_nhds (ext_chart_preimage_open_of_open I c is_open_ball) ⟨hs, hd⟩],
   rintro z ⟨hzs, hzd : _ < _⟩,
   exact f.one_of_dist_le hzs hzd.le
 end
@@ -204,7 +204,7 @@ f.eventually_eq_one.mono $ λ x hx, by { rw hx, exact one_ne_zero }
 lemma closure_support_mem_nhds : closure (support f) ∈ 𝓝 c :=
 mem_sets_of_superset f.support_mem_nhds subset_closure
 
-lemma c_mem_support : c ∈ support f := mem_of_nhds f.support_mem_nhds
+lemma c_mem_support : c ∈ support f := mem_of_mem_nhds f.support_mem_nhds
 
 lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 
@@ -234,7 +234,7 @@ begin
   rw f.image_eq_inter_preimage_of_subset_support hs,
   refine continuous_on.preimage_closed_of_closed
     ((ext_chart_continuous_on_symm _ _).mono f.closed_ball_subset) _ hsc,
-  exact is_closed_inter is_closed_closed_ball I.closed_range
+  exact is_closed.inter is_closed_closed_ball I.closed_range
 end
 
 /-- If `f` is a smooth bump function and `s` closed subset of the support of `f` (i.e., of the open
@@ -334,7 +334,7 @@ begin
   refine times_cont_mdiff_of_support (λ x hx, _),
   have : x ∈ (chart_at H c).source := f.closure_support_subset_chart_at_source hx,
   refine times_cont_mdiff_at.congr_of_eventually_eq _
-    (f.eq_on_source.eventually_eq_of_mem $ mem_nhds_sets (chart_at _ _).open_source this),
+    (f.eq_on_source.eventually_eq_of_mem $ is_open.mem_nhds (chart_at _ _).open_source this),
   exact f.to_times_cont_diff_bump.times_cont_diff_at.times_cont_mdiff_at.comp _
     (times_cont_mdiff_at_ext_chart_at' this)
 end
@@ -353,7 +353,7 @@ begin
      ... ⊆ closure (support f) : closure_mono (support_smul_subset_left _ _)
      ... ⊆ (chart_at _ c).source : f.closure_support_subset_chart_at_source,
   exact f.smooth_at.smul ((hg _ this).times_cont_mdiff_at $
-    mem_nhds_sets (chart_at _ _).open_source this)
+    is_open.mem_nhds (chart_at _ _).open_source this)
 end
 
 end smooth_bump_function
@@ -406,7 +406,7 @@ instance : has_coe_to_fun (smooth_bump_covering I s) := ⟨_, to_fun⟩
   (h₁ h₂ h₃) : ⇑(mk ι c to_fun h₁ h₂ h₃ : smooth_bump_covering I s) = to_fun :=
 rfl
 
-/-- 
+/--
 We say that `f : smooth_bump_covering I s` is *subordinate* to a map `U : M → set M` if for each
 index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`

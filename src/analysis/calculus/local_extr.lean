@@ -275,9 +275,9 @@ begin
   have ne : (Icc a b).nonempty, from nonempty_Icc.2 (le_of_lt hab),
   -- Consider absolute min and max points
   obtain ⟨c, cmem, cle⟩ : ∃ c ∈ Icc a b, ∀ x ∈ Icc a b, f c ≤ f x,
-    from compact_Icc.exists_forall_le ne hfc,
+    from is_compact_Icc.exists_forall_le ne hfc,
   obtain ⟨C, Cmem, Cge⟩ : ∃ C ∈ Icc a b, ∀ x ∈ Icc a b, f x ≤ f C,
-    from compact_Icc.exists_forall_ge ne hfc,
+    from is_compact_Icc.exists_forall_ge ne hfc,
   by_cases hc : f c = f a,
   { by_cases hC : f C = f a,
     { have : ∀ x ∈ Icc a b, f x = f a,
@@ -365,7 +365,7 @@ begin
   by_cases hp' : p.derivative = 0,
   { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
     simp_rw [root_set_C, set.empty_card', zero_le] },
-  simp_rw [root_set_def, fintype.card_coe],
+  simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
   refine finset.card_le_of_interleaved (λ x y hx hy hxy, _),
   rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
   obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, aeval x p) hxy

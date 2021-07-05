@@ -563,9 +563,8 @@ def equivalence.to_order_iso (e : α ≌ β) : α ≃o β :=
   left_inv := λ a, (e.unit_iso.app a).to_eq.symm,
   right_inv := λ b, (e.counit_iso.app b).to_eq,
   map_rel_iff' := λ a a',
-    ⟨λ h, le_of_hom
-      ((equivalence.unit e).app a ≫ e.inverse.map (hom_of_le h) ≫ (equivalence.unit_inv e).app a'),
-     λ (h : a ≤ a'), le_of_hom (e.functor.map (hom_of_le h))⟩, }
+    ⟨λ h, ((equivalence.unit e).app a ≫ e.inverse.map h.hom ≫ (equivalence.unit_inv e).app a').le,
+     λ (h : a ≤ a'), (e.functor.map h.hom).le⟩, }
 
 -- `@[simps]` on `equivalence.to_order_iso` produces lemmas that fail the `simp_nf` linter,
 -- so we provide them by hand:

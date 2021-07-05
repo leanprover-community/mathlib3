@@ -156,7 +156,8 @@ by { rw [to_splitting_field, eval_X_self, ← alg_hom.coe_to_ring_hom, hom_eval�
 
 theorem span_eval_ne_top : span_eval k ≠ ⊤ :=
 begin
-  rw [ideal.ne_top_iff_one, span_eval, ideal.span, ← set.image_univ, finsupp.mem_span_iff_total],
+  rw [ideal.ne_top_iff_one, span_eval, ideal.span, ← set.image_univ,
+    finsupp.mem_span_image_iff_total],
   rintros ⟨v, _, hv⟩,
   replace hv := congr_arg (to_splitting_field k v.support) hv,
   rw [alg_hom.map_one, finsupp.total_apply, finsupp.sum, alg_hom.map_sum, finset.sum_eq_zero] at hv,

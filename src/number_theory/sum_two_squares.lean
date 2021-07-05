@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.zsqrtd.gaussian_int
+import number_theory.zsqrtd.gaussian_int
 /-!
 # Sums of two squares
 

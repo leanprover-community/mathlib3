@@ -69,7 +69,7 @@ def distrib_mul_action.to_add_monoid_hom [distrib_mul_action M A] (x : M) : A �
 /-- Each element of the group defines an additive monoid isomorphism. -/
 def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A :=
 { .. distrib_mul_action.to_add_monoid_hom G A x,
-  .. mul_action.to_perm G A x }
+  .. mul_action.to_perm_hom G A x }
 
 /-- Each element of the group defines an additive monoid homomorphism. -/
 def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_monoid.End A :=

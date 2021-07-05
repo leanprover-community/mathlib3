@@ -82,7 +82,7 @@ begin
 end
 
 protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
-mem_nhds_sets units.is_open x.is_unit
+is_open.mem_nhds units.is_open x.is_unit
 
 end units
 
@@ -98,7 +98,7 @@ lemma inverse_add (x : units R) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t) = inverse (1 + ↑x⁻¹ * t) * ↑x⁻¹ :=
 begin
   nontriviality R,
-  rw [eventually_iff, mem_nhds_iff],
+  rw [eventually_iff, metric.mem_nhds_iff],
   have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹, by cancel_denoms,
   use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
   intros t ht,
@@ -118,7 +118,7 @@ end
 lemma inverse_one_sub_nth_order (n : ℕ) :
   ∀ᶠ t in (𝓝 0), inverse ((1:R) - t) = (∑ i in range n, t ^ i) + (t ^ n) * inverse (1 - t) :=
 begin
-  simp only [eventually_iff, mem_nhds_iff],
+  simp only [eventually_iff, metric.mem_nhds_iff],
   use [1, by norm_num],
   intros t ht,
   simp only [mem_ball, dist_zero_right] at ht,
@@ -159,7 +159,7 @@ end
 
 lemma inverse_one_sub_norm : is_O (λ t, inverse ((1:R) - t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
-  simp only [is_O, is_O_with, eventually_iff, mem_nhds_iff],
+  simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
   refine ⟨∥(1:R)∥ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
   intros t ht,
   simp only [ball, dist_zero_right, set.mem_set_of_eq] at ht,

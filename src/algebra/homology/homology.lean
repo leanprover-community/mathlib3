@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.image_to_kernel
-import category_theory.subobject.lattice
+import algebra.homology.homological_complex
 import category_theory.graded_object
 
 /-!
@@ -208,7 +208,8 @@ variables (V c)
   naturality' := λ C₁ C₂ f, boundaries_to_cycles_naturality f i, }
 
 /-- The `i`-th homology, as a functor to `V`. -/
-@[simps] def homology_functor [has_cokernels V] (i : ι) :
+@[simps]
+def homology_functor [has_cokernels V] (i : ι) :
   homological_complex V c ⥤ V :=
 -- It would be nice if we could just write
 -- `cokernel (boundaries_to_cycles_nat_trans V c i)`

@@ -135,6 +135,11 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
   matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
 by { ext, simp }
 
+/-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
+lemma matrix.to_lin'_mul_apply [decidable_eq m] (M : matrix l m R) (N : matrix m n R) (x) :
+  matrix.to_lin' (M ⬝ N) x = (matrix.to_lin' M (matrix.to_lin' N x)) :=
+by rw [matrix.to_lin'_mul, linear_map.comp_apply]
+
 lemma linear_map.to_matrix'_comp [decidable_eq l]
   (f : (n → R) →ₗ[R] (m → R)) (g : (l → R) →ₗ[R] (n → R)) :
   (f.comp g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
@@ -146,6 +151,19 @@ lemma linear_map.to_matrix'_mul [decidable_eq m]
   (f g : (m → R) →ₗ[R] (m → R)) :
   (f * g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
 linear_map.to_matrix'_comp f g
+
+/-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
+and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
+@[simps]
+def matrix.to_lin'_of_inv [decidable_eq m]
+  {M : matrix m n R} {M' : matrix n m R}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  (m → R) ≃ₗ[R] (n → R) :=
+{ to_fun := matrix.to_lin' M',
+  inv_fun := M.to_lin',
+  left_inv := λ x, by rw [← matrix.to_lin'_mul_apply, hMM', matrix.to_lin'_one, id_apply],
+  right_inv := λ x, by rw [← matrix.to_lin'_mul_apply, hM'M, matrix.to_lin'_one, id_apply],
+  .. matrix.to_lin' M' }
 
 /-- Linear maps `(n → R) →ₗ[R] (n → R)` are algebra equivalent to `matrix n n R`. -/
 def linear_map.to_matrix_alg_equiv' : ((n → R) →ₗ[R] (n → R)) ≃ₐ[R] matrix n n R :=
@@ -307,7 +325,7 @@ linear_map.to_matrix_id v₁
 lemma matrix.to_lin_one : matrix.to_lin v₁ v₁ 1 = id :=
 by rw [← linear_map.to_matrix_id v₁, matrix.to_lin_to_matrix]
 
-theorem linear_map.to_matrix_reindex_range [nontrivial R] [decidable_eq M₁] [decidable_eq M₂]
+theorem linear_map.to_matrix_reindex_range [decidable_eq M₁] [decidable_eq M₂]
   (f : M₁ →ₗ[R] M₂) (k : m) (i : n) :
   linear_map.to_matrix v₁.reindex_range v₂.reindex_range f
       ⟨v₂ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
@@ -345,6 +363,26 @@ begin
   rw linear_map.to_matrix_comp v₁ v₂ v₃,
   repeat { rw linear_map.to_matrix_to_lin },
 end
+
+/-- Shortcut lemma for `matrix.to_lin_mul` and `linear_map.comp_apply`. -/
+lemma matrix.to_lin_mul_apply [decidable_eq m]
+  (A : matrix l m R) (B : matrix m n R) (x) :
+  matrix.to_lin v₁ v₃ (A ⬝ B) x =
+    (matrix.to_lin v₂ v₃ A) (matrix.to_lin v₁ v₂ B x) :=
+by rw [matrix.to_lin_mul v₁ v₂, linear_map.comp_apply]
+
+/-- If `M` and `M` are each other's inverse matrices, `matrix.to_lin M` and `matrix.to_lin M'`
+form a linear equivalence. -/
+@[simps]
+def matrix.to_lin_of_inv [decidable_eq m]
+  {M : matrix m n R} {M' : matrix n m R}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  M₁ ≃ₗ[R] M₂ :=
+{ to_fun := matrix.to_lin v₁ v₂ M,
+  inv_fun := matrix.to_lin v₂ v₁ M',
+  left_inv := λ x, by rw [← matrix.to_lin_mul_apply, hM'M, matrix.to_lin_one, id_apply],
+  right_inv := λ x, by rw [← matrix.to_lin_mul_apply, hMM', matrix.to_lin_one, id_apply],
+  .. matrix.to_lin v₁ v₂ M }
 
 /-- Given a basis of a module `M₁` over a commutative ring `R`, we get an algebra
 equivalence between linear maps `M₁ →ₗ M₁` and square matrices over `R` indexed by the basis. -/
@@ -407,7 +445,7 @@ by simp_rw [linear_map.to_matrix_alg_equiv, alg_equiv.of_linear_equiv_apply,
 lemma matrix.to_lin_alg_equiv_one : matrix.to_lin_alg_equiv v₁ 1 = id :=
 by rw [← linear_map.to_matrix_alg_equiv_id v₁, matrix.to_lin_alg_equiv_to_matrix_alg_equiv]
 
-theorem linear_map.to_matrix_alg_equiv_reindex_range [nontrivial R] [decidable_eq M₁]
+theorem linear_map.to_matrix_alg_equiv_reindex_range [decidable_eq M₁]
   (f : M₁ →ₗ[R] M₁) (k i : n) :
   linear_map.to_matrix_alg_equiv v₁.reindex_range f
       ⟨v₁ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =

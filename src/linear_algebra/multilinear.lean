@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
 import algebra.algebra.basic
+import algebra.big_operators.order
 import data.fintype.sort
 
 /-!

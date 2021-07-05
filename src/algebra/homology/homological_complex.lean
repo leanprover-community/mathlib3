@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import algebra.homology.complex_shape
 import category_theory.subobject.limits
+import category_theory.graded_object
 
 /-!
 # Homological complexes.
@@ -54,26 +55,39 @@ structure homological_complex (c : complex_shape ι) :=
 (X : ι → V)
 (d : Π i j, X i ⟶ X j)
 (shape' : ∀ i j, ¬ c.rel i j → d i j = 0 . obviously)
-(d_comp_d' : ∀ i j k, d i j ≫ d j k = 0 . obviously)
+(d_comp_d' : ∀ i j k, c.rel i j → c.rel j k → d i j ≫ d j k = 0 . obviously)
 
-restate_axiom homological_complex.shape'
-restate_axiom homological_complex.d_comp_d'
+namespace homological_complex
 
-attribute [simp] homological_complex.shape
-attribute [simp, reassoc] homological_complex.d_comp_d
+restate_axiom shape'
+attribute [simp] shape
+
+variables {V} {c : complex_shape ι}
+
+@[simp, reassoc] lemma d_comp_d (C : homological_complex V c) (i j k : ι) :
+  C.d i j ≫ C.d j k = 0 :=
+begin
+  by_cases hij : c.rel i j,
+  { by_cases hjk : c.rel j k,
+    { exact C.d_comp_d' i j k hij hjk },
+    { rw [C.shape j k hjk, comp_zero] } },
+  { rw [C.shape i j hij, zero_comp] }
+end
+
+end homological_complex
 
 /--
 An `α`-indexed chain complex is a `homological_complex`
 in which `d i j ≠ 0` only if `j + 1 = i`.
 -/
-abbreviation chain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
+abbreviation chain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] : Type* :=
 homological_complex V (complex_shape.down α)
 
 /--
 An `α`-indexed cochain complex is a `homological_complex`
 in which `d i j ≠ 0` only if `i + 1 = j`.
 -/
-abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
+abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] : Type* :=
 homological_complex V (complex_shape.up α)
 
 namespace chain_complex
@@ -88,7 +102,7 @@ option.choice_eq _
 
 @[simp] lemma next_nat_zero :
   (complex_shape.down ℕ).next 0 = none :=
-option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
+@option.choice_eq_none _ ⟨by rintro ⟨j, ⟨⟩⟩⟩
 
 @[simp] lemma next_nat_succ (i : ℕ) :
   (complex_shape.down ℕ).next (i+1) = some ⟨i, rfl⟩ :=
@@ -108,7 +122,7 @@ option.choice_eq _
 
 @[simp] lemma prev_nat_zero :
   (complex_shape.up ℕ).prev 0 = none :=
-option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
+@option.choice_eq_none _ ⟨by rintro ⟨j, ⟨⟩⟩⟩
 
 @[simp] lemma prev_nat_succ (i : ℕ) :
   (complex_shape.up ℕ).prev (i+1) = some ⟨i, rfl⟩ :=
@@ -125,10 +139,16 @@ commuting with the differentials.
 -/
 @[ext] structure hom (A B : homological_complex V c) :=
 (f : ∀ i, A.X i ⟶ B.X i)
-(comm' : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j . obviously)
+(comm' : ∀ i j, c.rel i j → f i ≫ B.d i j = A.d i j ≫ f j . obviously)
 
-restate_axiom hom.comm'
-attribute [simp, reassoc] hom.comm
+@[simp, reassoc]
+lemma hom.comm {A B : homological_complex V c} (f : A.hom B) (i j : ι) :
+  f.f i ≫ B.d i j = A.d i j ≫ f.f j :=
+begin
+  by_cases hij : c.rel i j,
+  { exact f.comm' i j hij },
+  rw [A.shape i j hij, B.shape i j hij, comp_zero, zero_comp],
+end
 
 instance (A B : homological_complex V c) : inhabited (hom A B) :=
 ⟨{ f := λ i, 0 }⟩
@@ -181,12 +201,25 @@ instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨0⟩
 lemma congr_hom {C D : homological_complex V c} {f g : C ⟶ D} (w : f = g) (i : ι) : f.f i = g.f i :=
 congr_fun (congr_arg hom.f w) i
 
-/--
-Picking out the `i`-th object, as a functor.
--/
-def eval_at (i : ι) : homological_complex V c ⥤ V :=
+section
+variables (V c)
+
+/-- The functor picking out the `i`-th object of a complex. -/
+@[simps] def eval (i : ι) : homological_complex V c ⥤ V :=
 { obj := λ C, C.X i,
-  map := λ C D f, f.f i }
+  map := λ C D f, f.f i, }
+
+/-- The functor forgetting the differential in a complex, obtaining a graded object. -/
+@[simps] def forget : homological_complex V c ⥤ graded_object ι V :=
+{ obj := λ C, C.X,
+  map := λ _ _ f, f.f }
+
+/-- Forgetting the differentials than picking out the `i`-th object is the same as
+just picking out the `i`-th object. -/
+@[simps] def forget_eval (i : ι) : forget V c ⋙ graded_object.eval i ≅ eval V c i :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
+
+end
 
 open_locale classical
 noncomputable theory
@@ -382,6 +415,34 @@ end
 namespace hom
 
 variables {C₁ C₂ C₃ : homological_complex V c}
+
+/-- The `i`-th component of an isomorphism of chain complexes. -/
+@[simps]
+def iso_app (f : C₁ ≅ C₂) (i : ι) : C₁.X i ≅ C₂.X i :=
+(eval V c i).map_iso f
+
+/-- Construct an isomorphism of chain complexes from isomorphism of the objects
+which commute with the differentials. -/
+@[simps]
+def iso_of_components (f : Π i, C₁.X i ≅ C₂.X i)
+  (hf : ∀ i j, c.rel i j → (f i).hom ≫ C₂.d i j = C₁.d i j ≫ (f j).hom) :
+  C₁ ≅ C₂ :=
+{ hom := { f := λ i, (f i).hom, comm' := hf },
+  inv :=
+  { f := λ i, (f i).inv,
+    comm' := λ i j hij,
+    calc (f i).inv ≫ C₁.d i j
+        = (f i).inv ≫ (C₁.d i j ≫ (f j).hom) ≫ (f j).inv : by simp
+    ... = (f i).inv ≫ ((f i).hom ≫ C₂.d i j) ≫ (f j).inv : by rw hf i j hij
+    ... =  C₂.d i j ≫ (f j).inv : by simp },
+  hom_inv_id' := by { ext i, exact (f i).hom_inv_id },
+  inv_hom_id' := by { ext i, exact (f i).inv_hom_id } }
+
+@[simp] lemma iso_of_components_app (f : Π i, C₁.X i ≅ C₂.X i)
+  (hf : ∀ i j, c.rel i j → (f i).hom ≫ C₂.d i j = C₁.d i j ≫ (f j).hom) (i : ι) :
+  iso_app (iso_of_components f hf) i = f i :=
+by { ext, simp, }
+
 variables [has_zero_object V]
 open_locale zero_object
 
@@ -486,8 +547,6 @@ end homological_complex
 
 namespace chain_complex
 
-/- TODO: dualize to `cochain_complex` -/
-
 section of
 variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
 
@@ -501,13 +560,11 @@ def of (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n =
   else
     0,
   shape' := λ i j w, by rw dif_neg (ne.symm w),
-  d_comp_d' := λ i j k,
+  d_comp_d' := λ i j k hij hjk,
   begin
-    split_ifs with h h' h',
-    { substs h h',
-      simp only [category.id_comp, eq_to_hom_refl],
-      exact sq k },
-    all_goals { simp },
+    dsimp at hij hjk, substs hij hjk,
+    simp only [category.id_comp, dif_pos rfl, eq_to_hom_refl],
+    exact sq k,
   end }
 
 variables (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0)
@@ -660,10 +717,8 @@ def mk_hom : P ⟶ Q :=
 { f := λ n, (mk_hom_aux P Q zero one one_zero_comm succ n).1,
   comm' := λ n m,
   begin
-    by_cases h : m + 1 = n,
-    { subst h,
-      exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2 },
-    { rw [P.shape n m h, Q.shape n m h], simp }
+    rintro (rfl : m + 1 = n),
+    exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2,
   end }
 
 @[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl
@@ -681,3 +736,196 @@ end
 end mk_hom
 
 end chain_complex
+
+namespace cochain_complex
+
+section of
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+/--
+Construct an `α`-indexed cochain complex from a dependently-typed differential.
+-/
+def of (X : α → V) (d : Π n, X n ⟶ X (n+1)) (sq : ∀ n, d n ≫ d (n+1) = 0) : cochain_complex V α :=
+{ X := X,
+  d := λ i j, if h : i + 1 = j then
+    d _ ≫ eq_to_hom (by subst h)
+  else
+    0,
+  shape' := λ i j w, by {rw dif_neg, exact w},
+  d_comp_d' := λ i j k,
+  begin
+    split_ifs with h h' h',
+    { substs h h',
+      simp [sq] },
+    all_goals { simp },
+  end }
+
+variables (X : α → V) (d : Π n, X n ⟶ X (n+1)) (sq : ∀ n, d n ≫ d (n+1) = 0)
+
+@[simp] lemma of_X (n : α) : (of X d sq).X n = X n := rfl
+@[simp] lemma of_d (j : α) : (of X d sq).d j (j+1) = d j :=
+by { dsimp [of], rw [if_pos rfl, category.comp_id] }
+lemma of_d_ne {i j : α} (h : i + 1 ≠ j) : (of X d sq).d i j = 0 :=
+by { dsimp [of], rw [dif_neg h] }
+
+end of
+
+section of_hom
+
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+variables (X : α → V) (d_X : Π n, X n ⟶ X (n+1)) (sq_X : ∀ n, d_X n ≫ d_X (n+1) = 0)
+  (Y : α → V) (d_Y : Π n, Y n ⟶ Y (n+1)) (sq_Y : ∀ n, d_Y n ≫ d_Y (n+1) = 0)
+
+/--
+A constructor for chain maps between `α`-indexed cochain complexes built using `cochain_complex.of`,
+from a dependently typed collection of morphisms.
+-/
+@[simps] def of_hom (f : Π i : α, X i ⟶ Y i) (comm : ∀ i : α, f i ≫ d_Y i = d_X i ≫ f (i+1)) :
+  of X d_X sq_X ⟶ of Y d_Y sq_Y :=
+{ f := f,
+  comm' := λ n m,
+  begin
+    by_cases h : n + 1 = m,
+    { subst h,
+      simpa using comm n },
+    { rw [of_d_ne X _ _ h, of_d_ne Y _ _ h], simp }
+  end }
+
+end of_hom
+
+section mk
+
+/--
+Auxiliary structure for setting up the recursion in `mk`.
+This is purely an implementation detail: for some reason just using the dependent 6-tuple directly
+results in `mk_aux` taking much longer (well over the `-T100000` limit) to elaborate.
+-/
+@[nolint has_inhabited_instance]
+structure mk_struct :=
+(X₀ X₁ X₂ : V)
+(d₀ : X₀ ⟶ X₁)
+(d₁ : X₁ ⟶ X₂)
+(s : d₀ ≫ d₁ = 0)
+
+variables {V}
+
+/-- Flatten to a tuple. -/
+def mk_struct.flat (t : mk_struct V) :
+  Σ' (X₀ X₁ X₂ : V) (d₀ : X₀ ⟶ X₁) (d₁ : X₁ ⟶ X₂), d₀ ≫ d₁ = 0 :=
+⟨t.X₀, t.X₁, t.X₂, t.d₀, t.d₁, t.s⟩
+
+variables (X₀ X₁ X₂ : V) (d₀ : X₀ ⟶ X₁) (d₁ : X₁ ⟶ X₂) (s : d₀ ≫ d₁ = 0)
+  (succ : Π (t : Σ' (X₀ X₁ X₂ : V) (d₀ : X₀ ⟶ X₁) (d₁ : X₁ ⟶ X₂), d₀ ≫ d₁ = 0),
+    Σ' (X₃ : V) (d₂ : t.2.2.1 ⟶ X₃), t.2.2.2.2.1 ≫ d₂ = 0)
+
+/-- Auxiliary definition for `mk`. -/
+def mk_aux :
+  Π n : ℕ, mk_struct V
+| 0 := ⟨X₀, X₁, X₂, d₀, d₁, s⟩
+| (n+1) :=
+  let p := mk_aux n in
+  ⟨p.X₁, p.X₂, (succ p.flat).1, p.d₁, (succ p.flat).2.1, (succ p.flat).2.2⟩
+
+/--
+A inductive constructor for `ℕ`-indexed cochain complexes.
+
+You provide explicitly the first two differentials,
+then a function which takes two differentials and the fact they compose to zero,
+and returns the next object, its differential, and the fact it composes appropiately to zero.
+
+See also `mk'`, which only sees the previous differential in the inductive step.
+-/
+def mk : cochain_complex V ℕ :=
+of (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).X₀) (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).d₀)
+  (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).s)
+
+@[simp] lemma mk_X_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 0 = X₀ := rfl
+@[simp] lemma mk_X_1 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 1 = X₁ := rfl
+@[simp] lemma mk_X_2 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 2 = X₂ := rfl
+@[simp] lemma mk_d_1_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 0 1 = d₀ :=
+by { change ite (1 = 0 + 1) (d₀ ≫ 𝟙 X₁) 0 = d₀, rw [if_pos rfl, category.comp_id] }
+@[simp] lemma mk_d_2_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 1 2 = d₁ :=
+by { change ite (2 = 1 + 1) (d₁ ≫ 𝟙 X₂) 0 = d₁, rw [if_pos rfl, category.comp_id] }
+-- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+
+/--
+A simpler inductive constructor for `ℕ`-indexed cochain complexes.
+
+You provide explicitly the first differential,
+then a function which takes a differential,
+and returns the next object, its differential, and the fact it composes appropriately to zero.
+-/
+def mk' (X₀ X₁ : V) (d : X₀ ⟶ X₁)
+  (succ' : Π (t : Σ (X₀ X₁ : V), X₀ ⟶ X₁), Σ' (X₂ : V) (d : t.2.1 ⟶ X₂), t.2.2 ≫ d = 0) :
+  cochain_complex V ℕ :=
+mk X₀ X₁ (succ' ⟨X₀, X₁, d⟩).1 d (succ' ⟨X₀, X₁, d⟩).2.1 (succ' ⟨X₀, X₁, d⟩).2.2
+  (λ t, succ' ⟨t.2.1, t.2.2.1, t.2.2.2.2.1⟩)
+
+variables (succ' : Π (t : Σ (X₀ X₁ : V), X₀ ⟶ X₁), Σ' (X₂ : V) (d : t.2.1 ⟶ X₂), t.2.2 ≫ d = 0)
+
+@[simp] lemma mk'_X_0 : (mk' X₀ X₁ d₀ succ').X 0 = X₀ := rfl
+@[simp] lemma mk'_X_1 : (mk' X₀ X₁ d₀ succ').X 1 = X₁ := rfl
+@[simp] lemma mk'_d_1_0 : (mk' X₀ X₁ d₀ succ').d 0 1 = d₀ :=
+by { change ite (1 = 0 + 1) (d₀ ≫ 𝟙 X₁) 0 = d₀, rw [if_pos rfl, category.comp_id] }
+-- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+
+end mk
+
+section mk_hom
+
+variables {V} (P Q : cochain_complex V ℕ)
+  (zero : P.X 0 ⟶ Q.X 0)
+  (one : P.X 1 ⟶ Q.X 1)
+  (one_zero_comm : zero ≫ Q.d 0 1 = P.d 0 1 ≫ one)
+  (succ : ∀ (n : ℕ)
+    (p : Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f ≫ Q.d n (n+1) = P.d n (n+1) ≫ f'),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), p.2.1 ≫ Q.d (n+1) (n+2) = P.d (n+1) (n+2) ≫ f'')
+
+/--
+An auxiliary construction for `mk_hom`.
+
+Here we build by induction a family of commutative squares,
+but don't require at the type level that these successive commutative squares actually agree.
+They do in fact agree, and we then capture that at the type level (i.e. by constructing a chain map)
+in `mk_hom`.
+-/
+def mk_hom_aux :
+  Π n, Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f ≫ Q.d n (n+1) = P.d n (n+1) ≫ f'
+| 0 := ⟨zero, one, one_zero_comm⟩
+| (n+1) := ⟨(mk_hom_aux n).2.1,
+    (succ n (mk_hom_aux n)).1, (succ n (mk_hom_aux n)).2⟩
+
+/--
+A constructor for chain maps between `ℕ`-indexed cochain complexes,
+working by induction on commutative squares.
+
+You need to provide the components of the chain map in degrees 0 and 1,
+show that these form a commutative square,
+and then give a construction of each component,
+and the fact that it forms a commutative square with the previous component,
+using as an inductive hypothesis the data (and commutativity) of the previous two components.
+-/
+def mk_hom : P ⟶ Q :=
+{ f := λ n, (mk_hom_aux P Q zero one one_zero_comm succ n).1,
+  comm' := λ n m,
+  begin
+    rintro (rfl : n + 1 = m),
+    exact (mk_hom_aux P Q zero one one_zero_comm succ n).2.2,
+  end }
+
+@[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl
+@[simp] lemma mk_hom_f_1 : (mk_hom P Q zero one one_zero_comm succ).f 1 = one := rfl
+@[simp] lemma mk_hom_f_succ_succ (n : ℕ) :
+  (mk_hom P Q zero one one_zero_comm succ).f (n+2) =
+    (succ n ⟨(mk_hom P Q zero one one_zero_comm succ).f n,
+      (mk_hom P Q zero one one_zero_comm succ).f (n+1),
+        (mk_hom P Q zero one one_zero_comm succ).comm n (n+1)⟩).1 :=
+begin
+  dsimp [mk_hom, mk_hom_aux],
+  induction n; congr,
+end
+
+end mk_hom
+
+end cochain_complex

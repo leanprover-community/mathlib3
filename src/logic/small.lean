@@ -3,8 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.equiv.encodable.basic
-import data.fintype.basic
+import data.equiv.basic
 
 /-!
 # Small types
@@ -77,13 +76,6 @@ begin
   apply_instance,
 end
 
-@[priority 100]
-instance small_of_fintype (α : Type v) [fintype α] : small.{w} α :=
-begin
-  rw small_congr (fintype.equiv_fin α),
-  apply_instance,
-end
-
 theorem small_of_injective {α : Type*} {β : Type*} [small.{w} β]
   (f : α → β) (hf : function.injective f) : small.{w} α :=
 begin
@@ -92,8 +84,18 @@ begin
 end
 
 @[priority 100]
-instance small_of_encodable (α : Type v) [encodable α] : small.{w} α :=
-small_of_injective _ (encodable.encode_injective)
+instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
+begin
+  rcases is_empty_or_nonempty α; resetI,
+  { rw small_congr (equiv.equiv_pempty α), apply small_self, },
+  { rw small_congr equiv.punit_of_nonempty_of_subsingleton,
+    apply small_self, assumption, assumption, },
+end
+
+/-!
+We don't define `small_of_fintype` or `small_of_encodable` in this file,
+to keep imports to `logic` to a minimum.
+-/
 
 instance small_Pi {α} (β : α → Type*) [small.{w} α] [∀ a, small.{w} (β a)] :
   small.{w} (Π a, β a) :=

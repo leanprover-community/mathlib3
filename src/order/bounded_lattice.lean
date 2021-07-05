@@ -2,15 +2,35 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Defines bounded lattice type class hierarchy.
-
-Includes the Prop and fun instances.
 -/
 import order.lattice
 import data.option.basic
 import tactic.pi_instances
 import logic.nontrivial
+
+/-!
+# ⊤ and ⊥, bounded lattices and variants
+
+This file defines top and bottom elements (greatest and least elements) of a type, the bounded
+variants of different kinds of lattices, sets up the typeclass hierarchy between them and provides
+instances for `Prop` and `fun`.
+
+## Main declarations
+
+* `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
+* `order_<top/bot> α`: Order with a top/bottom element.
+* `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
+* `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
+  combinations). Typical examples include `ℕ`.
+* `bounded_lattice α`: Lattice with a top and bottom element.
+* `bounded_distrib_lattice α`: Bounded and distributive lattice. Typical examples include `Prop` and
+  `set α`.
+* `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
+  non distributive lattice, an element can have several complements.
+* `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
+-/
+
+/-! ### Top, bottom element -/
 
 set_option old_structure_cmd true
 
@@ -25,6 +45,9 @@ class has_bot (α : Type u) := (bot : α)
 
 notation `⊤` := has_top.top
 notation `⊥` := has_bot.bot
+
+@[priority 100] instance has_top_nonempty (α : Type u) [has_top α] : nonempty α := ⟨⊤⟩
+@[priority 100] instance has_bot_nonempty (α : Type u) [has_bot α] : nonempty α := ⟨⊥⟩
 
 attribute [pattern] has_bot.bot has_top.top
 
@@ -41,17 +64,17 @@ variables [order_top α] {a b : α}
 order_top.le_top a
 
 theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
-le_antisymm le_top h
+le_top.antisymm h
 
 -- TODO: delete in favor of the next?
 theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
-⟨assume eq, eq.symm ▸ le_refl ⊤, top_unique⟩
+⟨λ eq, eq.symm ▸ le_refl ⊤, top_unique⟩
 
 @[simp] theorem top_le_iff : ⊤ ≤ a ↔ a = ⊤ :=
 ⟨top_unique, λ h, h.symm ▸ le_refl ⊤⟩
 
 @[simp] theorem not_top_lt : ¬ ⊤ < a :=
-assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
+λ h, lt_irrefl a (lt_of_le_of_lt le_top h)
 
 theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
 top_le_iff.1 $ h₂ ▸ h
@@ -62,7 +85,7 @@ lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 
 theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
-assume ha, hb $ top_unique $ ha ▸ hab
+λ ha, hb $ top_unique $ ha ▸ hab
 
 lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
 or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
@@ -100,20 +123,20 @@ variables [order_bot α] {a b : α}
 @[simp] theorem bot_le : ⊥ ≤ a := order_bot.bot_le a
 
 theorem bot_unique (h : a ≤ ⊥) : a = ⊥ :=
-le_antisymm h bot_le
+h.antisymm bot_le
 
 -- TODO: delete?
 theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
-⟨assume eq, eq.symm ▸ le_refl ⊥, bot_unique⟩
+⟨λ eq, eq.symm ▸ le_refl ⊥, bot_unique⟩
 
 @[simp] theorem le_bot_iff : a ≤ ⊥ ↔ a = ⊥ :=
-⟨bot_unique, assume h, h.symm ▸ le_refl ⊥⟩
+⟨bot_unique, λ h, h.symm ▸ le_refl ⊥⟩
 
 @[simp] theorem not_lt_bot : ¬ a < ⊥ :=
-assume h, lt_irrefl a (lt_of_lt_of_le h bot_le)
+λ h, lt_irrefl a (lt_of_lt_of_le h bot_le)
 
 theorem ne_bot_of_le_ne_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
-assume ha, hb $ bot_unique $ ha ▸ hab
+λ ha, hb $ bot_unique $ ha ▸ hab
 
 theorem eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ :=
 le_bot_iff.1 $ h₂ ▸ h
@@ -122,7 +145,7 @@ lemma bot_lt_iff_ne_bot : ⊥ < a ↔ a ≠ ⊥ :=
 begin
   haveI := classical.dec_eq α,
   haveI : decidable (a ≤ ⊥) := decidable_of_iff' _ le_bot_iff,
-  simp [-le_bot_iff, lt_iff_le_not_le, not_iff_not.2 (@le_bot_iff _ _ a)]
+  simp only [lt_iff_le_not_le, not_iff_not.mpr le_bot_iff, true_and, bot_le],
 end
 
 lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
@@ -217,7 +240,7 @@ inf_of_le_right bot_le
 
 end semilattice_inf_bot
 
-/- Bounded lattices -/
+/-! ### Bounded lattice -/
 
 /-- A bounded lattice is a lattice with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
@@ -227,22 +250,22 @@ class bounded_lattice (α : Type u) extends lattice α, order_top α, order_bot 
 @[priority 100] -- see Note [lower instance priority]
 instance semilattice_inf_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] :
   semilattice_inf_top α :=
-{ le_top := assume x, @le_top α _ x, ..bl }
+{ le_top := λ x, @le_top α _ x, ..bl }
 
 @[priority 100] -- see Note [lower instance priority]
 instance semilattice_inf_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] :
   semilattice_inf_bot α :=
-{ bot_le := assume x, @bot_le α _ x, ..bl }
+{ bot_le := λ x, @bot_le α _ x, ..bl }
 
 @[priority 100] -- see Note [lower instance priority]
 instance semilattice_sup_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] :
   semilattice_sup_top α :=
-{ le_top := assume x, @le_top α _ x, ..bl }
+{ le_top := λ x, @le_top α _ x, ..bl }
 
 @[priority 100] -- see Note [lower instance priority]
 instance semilattice_sup_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] :
   semilattice_sup_bot α :=
-{ bot_le := assume x, @bot_le α _ x, ..bl }
+{ bot_le := λ x, @bot_le α _ x, ..bl }
 
 theorem bounded_lattice.ext {α} {A B : bounded_lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -262,36 +285,36 @@ class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
 
 lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c : α}
   (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
-⟨assume : a ⊓ b = ⊥,
+⟨λ h,
   calc a ≤ a ⊓ (b ⊔ c) : by simp [h₁]
     ... = (a ⊓ b) ⊔ (a ⊓ c) : by simp [inf_sup_left]
-    ... ≤ c : by simp [this, inf_le_right],
-  assume : a ≤ c,
+    ... ≤ c : by simp [h, inf_le_right],
+  λ h,
   bot_unique $
-    calc a ⊓ b ≤ b ⊓ c : by { rw [inf_comm], exact inf_le_inf_left _ this }
+    calc a ⊓ b ≤ b ⊓ c : by { rw inf_comm, exact inf_le_inf_left _ h }
       ... = ⊥ : h₂⟩
 
 /-- Propositions form a bounded distributive lattice. -/
 instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
-{ le           := λa b, a → b,
-  le_refl      := assume _, id,
-  le_trans     := assume a b c f g, g ∘ f,
-  le_antisymm  := assume a b Hab Hba, propext ⟨Hab, Hba⟩,
+{ le           := λ a b, a → b,
+  le_refl      := λ _, id,
+  le_trans     := λ a b c f g, g ∘ f,
+  le_antisymm  := λ a b Hab Hba, propext ⟨Hab, Hba⟩,
 
   sup          := or,
   le_sup_left  := @or.inl,
   le_sup_right := @or.inr,
-  sup_le       := assume a b c, or.rec,
+  sup_le       := λ a b c, or.rec,
 
   inf          := and,
   inf_le_left  := @and.left,
   inf_le_right := @and.right,
-  le_inf       := assume a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
-  le_sup_inf   := assume a b c H, or_iff_not_imp_left.2 $
+  le_inf       := λ a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
+  le_sup_inf   := λ a b c H, or_iff_not_imp_left.2 $
     λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
 
   top          := true,
-  le_top       := assume a Ha, true.intro,
+  le_top       := λ a Ha, true.intro,
 
   bot          := false,
   bot_le       := @false.elim }
@@ -309,13 +332,13 @@ section logic
 variable [preorder α]
 
 theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
-  monotone (λx, p x ∧ q x) :=
-assume a b h, and.imp (m_p h) (m_q h)
+  monotone (λ x, p x ∧ q x) :=
+λ a b h, and.imp (m_p h) (m_q h)
 -- Note: by finish [monotone] doesn't work
 
 theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
-  monotone (λx, p x ∨ q x) :=
-assume a b h, or.imp (m_p h) (m_q h)
+  monotone (λ x, p x ∨ q x) :=
+λ a b h, or.imp (m_p h) (m_q h)
 end logic
 
 instance pi.order_bot {α : Type*} {β : α → Type*} [∀ a, order_bot $ β a]  : order_bot (Π a, β a) :=
@@ -323,7 +346,7 @@ instance pi.order_bot {α : Type*} {β : α → Type*} [∀ a, order_bot $ β a]
   bot_le := λ x a, bot_le,
   .. pi.partial_order }
 
-/- Function lattices -/
+/-! ### Function lattices -/
 
 instance pi.has_sup {ι : Type*} {α : ι → Type*} [Π i, has_sup (α i)] : has_sup (Π i, α i) :=
 ⟨λ f g i, f i ⊔ g i⟩
@@ -404,6 +427,8 @@ lemma subsingleton_iff_bot_eq_top {α : Type*} [bounded_lattice α] :
   (⊥ : α) = (⊤ : α) ↔ subsingleton α :=
 ⟨subsingleton_of_bot_eq_top, λ h, by exactI subsingleton.elim ⊥ ⊤⟩
 
+/-! ### `with_bot`, `with_top` -/
+
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 
@@ -446,6 +471,11 @@ lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
 
 lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
+
+instance : can_lift (with_bot α) α :=
+{ coe := coe,
+  cond := λ r, r ≠ ⊥,
+  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
 
 instance [preorder α] : preorder (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
@@ -612,11 +642,11 @@ have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
 
 instance densely_ordered [partial_order α] [densely_ordered α] [no_bot_order α] :
   densely_ordered (with_bot α) :=
-⟨ assume a b,
+⟨ λ a b,
   match a, b with
-  | a,      none   := assume h : a < ⊥, (not_lt_bot h).elim
-  | none,   some b := assume h, let ⟨a, ha⟩ := no_bot b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
-  | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
+  | a,      none   := λ h : a < ⊥, (not_lt_bot h).elim
+  | none,   some b := λ h, let ⟨a, ha⟩ := no_bot b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
+  | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
@@ -743,7 +773,7 @@ theorem coe_lt_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a < x 
 | none     := by simp [none_eq_top, coe_lt_top]
 
 lemma not_top_le_coe [partial_order α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
-assume h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
+λ h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
 
 instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
 λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
@@ -848,11 +878,11 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
 
 instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order α] :
   densely_ordered (with_top α) :=
-⟨ assume a b,
+⟨ λ a b,
   match a, b with
-  | none,   a   := assume h : ⊤ < a, (not_top_lt h).elim
-  | some a, none := assume h, let ⟨b, hb⟩ := no_top a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
-  | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
+  | none,   a   := λ h : ⊤ < a, (not_top_lt h).elim
+  | some a, none := λ h, let ⟨b, hb⟩ := no_top a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
+  | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
@@ -863,6 +893,8 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 end with_top
+
+/-! ### Subtype, order dual, product lattices -/
 
 namespace subtype
 
@@ -879,6 +911,13 @@ protected def semilattice_inf_bot [semilattice_inf_bot α] {P : α → Prop}
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_inf Pinf }
+
+/-- A subtype forms a `⊔`-`⊤`-semilattice if `⊤` and `⊔` preserve the property. -/
+protected def semilattice_sup_top [semilattice_sup_top α] {P : α → Prop}
+  (Ptop : P ⊤) (Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)) : semilattice_sup_top {x : α // P x} :=
+{ top := ⟨⊤, Ptop⟩,
+  le_top := λ x, @le_top α _ x,
+  ..subtype.semilattice_sup Psup }
 
 /-- A subtype forms a `⊓`-`⊤`-semilattice if `⊤` and `⊓` preserve the property. -/
 protected def semilattice_inf_top [semilattice_inf_top α] {P : α → Prop}
@@ -930,11 +969,11 @@ instance [has_top α] [has_top β] : has_top (α × β) := ⟨⟨⊤, ⊤⟩⟩
 instance [has_bot α] [has_bot β] : has_bot (α × β) := ⟨⟨⊥, ⊥⟩⟩
 
 instance [order_top α] [order_top β] : order_top (α × β) :=
-{ le_top := assume a, ⟨le_top, le_top⟩,
+{ le_top := λ a, ⟨le_top, le_top⟩,
   .. prod.partial_order α β, .. prod.has_top α β }
 
 instance [order_bot α] [order_bot β] : order_bot (α × β) :=
-{ bot_le := assume a, ⟨bot_le, bot_le⟩,
+{ bot_le := λ a, ⟨bot_le, bot_le⟩,
   .. prod.partial_order α β, .. prod.has_bot α β }
 
 instance [semilattice_sup_top α] [semilattice_sup_top β] : semilattice_sup_top (α × β) :=
@@ -958,10 +997,10 @@ instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
 
 end prod
 
+/-! ### Disjointness and complements -/
+
 section disjoint
-
 section semilattice_inf_bot
-
 variable [semilattice_inf_bot α]
 
 /-- Two elements of a lattice are disjoint if their inf is the bottom element.
@@ -998,6 +1037,15 @@ by simp [disjoint]
 lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
+lemma disjoint.eq_bot_of_le {a b : α} (hab : disjoint a b) (h : a ≤ b) : a = ⊥ :=
+eq_bot_iff.2 (by rwa ←inf_eq_left.2 h)
+
+lemma disjoint.of_disjoint_inf_of_le {a b c : α} (h : disjoint (a ⊓ b) c) (hle : a ≤ c) :
+  disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_left.trans hle)]
+
+lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (hle : b ≤ c) :
+  disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_right.trans hle)]
+
 end semilattice_inf_bot
 
 section bounded_lattice
@@ -1007,10 +1055,21 @@ variables [bounded_lattice α] {a : α}
 @[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
 @[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
 
+lemma eq_bot_of_disjoint_absorbs
+  {a b : α} (w : disjoint a b) (h : a ⊔ b = a) : b = ⊥ :=
+begin
+  rw disjoint_iff at w,
+  rw [←w, right_eq_inf],
+  rwa sup_eq_left at h,
+end
+
 end bounded_lattice
 
 section bounded_distrib_lattice
-
+/-
+TODO: these lemmas don't require the existence of `⊤` and should be generalized to
+distrib_lattice_with_bot (which doesn't exist yet).
+-/
 variables [bounded_distrib_lattice α] {a b c : α}
 
 @[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=
@@ -1038,12 +1097,7 @@ end disjoint
 
 section is_compl
 
-/-!
-### `is_compl` predicate
--/
-
-/-- Two elements `x` and `y` are complements of each other if
-`x ⊔ y = ⊤` and `x ⊓ y = ⊥`. -/
+/-- Two elements `x` and `y` are complements of each other if `x ⊔ y = ⊤` and `x ⊓ y = ⊥`. -/
 structure is_compl [bounded_lattice α] (x y : α) : Prop :=
 (inf_le_bot : x ⊓ y ≤ ⊥)
 (top_le_sup : ⊤ ≤ x ⊔ y)
@@ -1079,7 +1133,7 @@ lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
 h.symm.inf_left_eq_bot_iff
 
 lemma disjoint_left_iff (h : is_compl y z) : disjoint x y ↔ x ≤ z :=
-by { rw [disjoint_iff], exact h.inf_left_eq_bot_iff }
+by { rw disjoint_iff, exact h.inf_left_eq_bot_iff }
 
 lemma disjoint_right_iff (h : is_compl y z) : disjoint x z ↔ x ≤ y :=
 h.symm.disjoint_left_iff
@@ -1145,8 +1199,8 @@ eq_top_of_bot_is_compl h.to_order_dual
 
 end
 
-/-- A complemented bounded lattice is one where every element has a
-  (not necessarily unique) complement. -/
+/-- A complemented bounded lattice is one where every element has a (not necessarily unique)
+complement. -/
 class is_complemented (α) [bounded_lattice α] : Prop :=
 (exists_is_compl : ∀ (a : α), ∃ (b : α), is_compl a b)
 
@@ -1156,8 +1210,7 @@ namespace is_complemented
 variables [bounded_lattice α] [is_complemented α]
 
 instance : is_complemented (order_dual α) :=
-⟨λ a, ⟨classical.some (@exists_is_compl α _ _ a),
-  (classical.some_spec (@exists_is_compl α _ _ a)).to_order_dual⟩⟩
+⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.to_order_dual⟩⟩
 
 end is_complemented
 
@@ -1176,6 +1229,7 @@ end nontrivial
 
 namespace bool
 
+-- Could be generalised to `bounded_distrib_lattice` and `is_complemented`
 instance : bounded_lattice bool :=
 { top := tt,
   le_top := λ x, le_tt,

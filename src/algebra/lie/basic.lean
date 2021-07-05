@@ -50,8 +50,8 @@ universes u v w w₁ w₂
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. -/
 @[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L L :=
-(add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
-(lie_add : ∀ (x y z : L), ⁅x, y + z⁆ = ⁅x, y⁆ + ⁅x, z⁆)
+(add_lie  : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
+(lie_add  : ∀ (x y z : L), ⁅x, y + z⁆ = ⁅x, y⁆ + ⁅x, z⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
 (leibniz_lie : ∀ (x y z : L), ⁅x, ⁅y, z⁆⁆ = ⁅⁅x, y⁆, z⁆ + ⁅y, ⁅x, z⁆⁆)
 
@@ -66,8 +66,8 @@ Lie ring on this group, such that the Lie bracket acts as the commutator of endo
 (For representations of Lie *algebras* see `lie_module`.) -/
 @[protect_proj] class lie_ring_module (L : Type v) (M : Type w)
   [lie_ring L] [add_comm_group M] extends has_bracket L M :=
-(add_lie : ∀ (x y : L) (m : M), ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆)
-(lie_add : ∀ (x : L) (m n : M), ⁅x, m + n⁆ = ⁅x, m⁆ + ⁅x, n⁆)
+(add_lie     : ∀ (x y : L) (m : M), ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆)
+(lie_add     : ∀ (x : L) (m n : M), ⁅x, m + n⁆ = ⁅x, m⁆ + ⁅x, n⁆)
 (leibniz_lie : ∀ (x y : L) (m : M), ⁅x, ⁅y, m⁆⁆ = ⁅⁅x, y⁆, m⁆ + ⁅y, ⁅x, m⁆⁆)
 
 /-- A Lie module is a module over a commutative ring, together with a linear action of a Lie
@@ -144,6 +144,9 @@ by rw [leibniz_lie, add_sub_cancel]
 lemma lie_jacobi : ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
 by { rw [← neg_neg ⁅x, y⁆, lie_neg z, lie_skew y x, ← lie_skew, lie_lie], abel, }
 
+instance lie_ring.int_lie_algebra : lie_algebra ℤ L :=
+{ lie_smul := λ n x y, lie_gsmul x y n, }
+
 instance : lie_ring_module L (M →ₗ[R] N) :=
 { bracket     := λ x f,
   { to_fun    := λ m, ⁅x, f m⁆ - f ⁅x, m⁆,
@@ -200,6 +203,8 @@ initialize_simps_projections lie_hom (to_fun → apply)
 @[simp, norm_cast] lemma coe_to_linear_map (f : L₁ →ₗ⁅R⁆ L₂) : ((f : L₁ →ₗ[R] L₂) : L₁ → L₂) = f :=
 rfl
 
+@[simp] lemma to_fun_eq_coe (f : L₁ →ₗ⁅R⁆ L₂) : f.to_fun = ⇑f := rfl
+
 @[simp] lemma map_smul (f : L₁ →ₗ⁅R⁆ L₂) (c : R) (x : L₁) : f (c • x) = c • f x :=
 linear_map.map_smul (f : L₁ →ₗ[R] L₂) c x
 
@@ -216,6 +221,15 @@ linear_map.map_neg (f : L₁ →ₗ[R] L₂) x
 
 @[simp] lemma map_zero (f : L₁ →ₗ⁅R⁆ L₂) : f 0 = 0 := (f : L₁ →ₗ[R] L₂).map_zero
 
+/-- The identity map is a morphism of Lie algebras. -/
+def id : L₁ →ₗ⁅R⁆ L₁ :=
+{ map_lie' := λ x y, rfl,
+  .. (linear_map.id : L₁ →ₗ[R] L₁) }
+
+@[simp] lemma coe_id : ((id : L₁ →ₗ⁅R⁆ L₁) : L₁ → L₁) = _root_.id := rfl
+
+lemma id_apply (x : L₁) : (id : L₁ →ₗ⁅R⁆ L₁) x = x := rfl
+
 /-- The constant 0 map is a Lie algebra morphism. -/
 instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie' := by simp, ..(0 : L₁ →ₗ[R] L₂)}⟩
 
@@ -224,7 +238,11 @@ instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie' := by simp, ..(0 
 lemma zero_apply (x : L₁) : (0 : L₁ →ₗ⁅R⁆ L₂) x = 0 := rfl
 
 /-- The identity map is a Lie algebra morphism. -/
-instance : has_one (L₁ →ₗ⁅R⁆ L₁) := ⟨{ map_lie' := by simp, ..(1 : L₁ →ₗ[R] L₁)}⟩
+instance : has_one (L₁ →ₗ⁅R⁆ L₁) := ⟨id⟩
+
+@[simp] lemma coe_one : ((1 : (L₁ →ₗ⁅R⁆ L₁)) : L₁ → L₁) = _root_.id := rfl
+
+lemma one_apply (x : L₁) : (1 : (L₁ →ₗ⁅R⁆ L₁)) x = x := rfl
 
 instance : inhabited (L₁ →ₗ⁅R⁆ L₂) := ⟨0⟩
 
@@ -236,6 +254,8 @@ coe_injective $ funext h
 
 lemma ext_iff {f g : L₁ →ₗ⁅R⁆ L₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
+
+lemma congr_fun {f g : L₁ →ₗ⁅R⁆ L₂} (h : f = g) (x : L₁) : f x = g x := h ▸ rfl
 
 @[simp] lemma mk_coe (f : L₁ →ₗ⁅R⁆ L₂) (h₁ h₂ h₃) :
   (⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) = f :=
@@ -265,6 +285,12 @@ rfl
 lemma coe_linear_map_comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
   (f.comp g : L₁ →ₗ[R] L₃) = (f : L₂ →ₗ[R] L₃).comp (g : L₁ →ₗ[R] L₂) :=
 rfl
+
+@[simp] lemma comp_id (f : L₁ →ₗ⁅R⁆ L₂) : f.comp (id : L₁ →ₗ⁅R⁆ L₁) = f :=
+by { ext, refl, }
+
+@[simp] lemma id_comp (f : L₁ →ₗ⁅R⁆ L₂) : (id : L₂ →ₗ⁅R⁆ L₂).comp f = f :=
+by { ext, refl, }
 
 /-- The inverse of a bijective morphism is a morphism. -/
 def inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)

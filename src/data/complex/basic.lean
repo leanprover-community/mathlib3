@@ -175,6 +175,10 @@ end
 @[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
 ext_iff.2 $ by simp
 
+@[simp] lemma conj_ite {p : Prop} {z₁ z₂ : ℂ} [decidable p] :
+conj (ite p z₁ z₂) = ite p (conj z₁) (conj z₂) :=
+apply_ite ⇑conj p z₁ z₂
+
 lemma conj_involutive : function.involutive conj := conj_conj
 
 lemma conj_bijective : function.bijective conj := conj_involutive.bijective

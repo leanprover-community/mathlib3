@@ -150,8 +150,8 @@ section
 variables {G' : Type*} [monoid G'] [topological_space G'] [charted_space H G']
   [has_smooth_mul I G'] (g' : G')
 
-lemma smooth_left_mul_1 : (𝑳 I g') 1 = g' := mul_one g'
-lemma smooth_right_mul_1 : (𝑹 I g') 1 = g' := one_mul g'
+lemma smooth_left_mul_one : (𝑳 I g') 1 = g' := mul_one g'
+lemma smooth_right_mul_one : (𝑹 I g') 1 = g' := one_mul g'
 
 end
 

@@ -114,7 +114,7 @@ def hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y) 
 /-- The homogeneous differential as a linear map. -/
 def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) :
   point_derivation I x →ₗ[𝕜] point_derivation I' (f x) :=
-let h : f x = f x := rfl in hfdifferential h
+hfdifferential (rfl : f x = f x)
 
 /- Standard notation for the differential. The abbreviation is `MId`. -/
 localized "notation `𝒅` := fdifferential" in manifold

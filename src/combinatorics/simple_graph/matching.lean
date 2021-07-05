@@ -28,7 +28,7 @@ TODO:
   - consider expressing `matching_verts` as union:
     https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532906131
 
-TODO: Tutte and Hall requires a definition of subgraphs.
+TODO: Tutte and Hall require a definition of subgraphs.
 -/
 open finset
 universe u

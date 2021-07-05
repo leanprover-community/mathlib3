@@ -281,13 +281,13 @@ map _ _ (subgroup.inclusion h) $
 If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic. -/
 @[to_additive "Let `A', A, B', B` be subgroups of `G`.
 If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic."]
-def equiv_quotient_of_subgroup_of_eq {A' A B' B : subgroup G}
+def equiv_quotient_subgroup_of_of_eq {A' A B' B : subgroup G}
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
   (h' : A' = B') (h : A = B) :
   quotient (A'.subgroup_of A) ≃* quotient (B'.subgroup_of B) :=
 by apply monoid_hom.to_mul_equiv
-  (quotient_map_of_subgroup_of_le h'.le h.le) (quotient_map_of_subgroup_of_le h'.ge h.ge);
-  { ext ⟨x⟩, simp [quotient_map_of_subgroup_of_le, map, lift, mk', subgroup.inclusion], refl }
+  (quotient_map_subgroup_of_of_le h'.le h.le) (quotient_map_subgroup_of_of_le h'.ge h.ge);
+  { ext ⟨x⟩, simp [quotient_map_subgroup_of_of_le, map, lift, mk', subgroup.inclusion], refl }
 
 section snd_isomorphism_thm
 

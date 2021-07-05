@@ -65,8 +65,9 @@ by { obtain ⟨g, hg_meas, hfg⟩ := hf, exact ⟨g, hg_meas, ae_eq_of_ae_eq_tri
 variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
   [is_R_or_C 𝕜] [measurable_space 𝕜] -- 𝕜 for ℝ or ℂ, together with a measurable_space
   [measurable_space β] -- β for a generic measurable space
-  -- E and E' will be used for inner product spaces, when they are needed.
+  -- E for an inner product space
   [inner_product_space 𝕜 E] [measurable_space E] [borel_space E] [second_countable_topology E]
+  -- E' for an inner product space on which we compute integrals
   [inner_product_space 𝕜 E'] [measurable_space E'] [borel_space E'] [second_countable_topology E']
   [complete_space E'] [normed_space ℝ E']
   -- F for a Lp submodule
@@ -114,6 +115,13 @@ mem_Lp_meas_iff_ae_measurable'.mpr (Lp.ae_measurable f)
 lemma Lp_meas_coe {m m0 : measurable_space α} {μ : measure α} {f : Lp_meas F 𝕜 m p μ} :
   ⇑f = (f : Lp F p μ) :=
 coe_fn_coe_base f
+
+lemma mem_Lp_meas_indicator_const_Lp {m m0 : measurable_space α} (hm : m ≤ m0)
+  {μ : measure α} {s : set α} (hs : @measurable_set α m s) {hμs : μ s ≠ ∞} {c : F} :
+  indicator_const_Lp p (hm s hs) hμs c ∈ Lp_meas F 𝕜 m p μ :=
+⟨s.indicator (λ x : α, c),
+  @measurable.indicator α _ m _ _ s (λ x, c) (@measurable_const _ α _ m _) hs,
+  indicator_const_Lp_coe_fn⟩
 
 section complete_subspace
 
@@ -273,7 +281,7 @@ section condexp_L2_clm
 variables [borel_space 𝕜] {m m0 : measurable_space α} {μ : measure α}
 
 lemma mem_ℒp.mem_ℒp_restrict_of_le_of_measure_finite {p q : ℝ≥0∞} (hpq : p ≤ q) {f : α → G}
-  (hf : mem_ℒp f q μ) {s : set α} (hμs : μ s < ∞) :
+  (hf : mem_ℒp f q μ) {s : set α} (hμs : μ s ≠ ∞) :
   mem_ℒp f p (μ.restrict s) :=
 begin
   have hf_meas_restrict : ae_measurable f (μ.restrict s), from (hf.restrict s).ae_measurable,
@@ -295,10 +303,10 @@ begin
     { exact ennreal.to_real_pos_iff.mpr ⟨(zero_le _).lt_of_ne (ne.symm hq_zero), hq_top⟩, },
     { exact ennreal.to_real_pos_iff.mpr ⟨(zero_le _).lt_of_ne (ne.symm hp_zero), hp_top⟩, }, },
   { simp only [set.univ_inter, measurable_set.univ, ne.def, measure.restrict_apply],
-    exact hμs.ne, },
+    exact hμs, },
 end
 
-lemma integrable_on_Lp_of_measure_finite (f : Lp G p μ) (hp : 1 ≤ p) {s : set α} (hμs : μ s < ∞) :
+lemma integrable_on_Lp_of_measure_finite (f : Lp G p μ) (hp : 1 ≤ p) {s : set α} (hμs : μ s ≠ ∞) :
   integrable_on f s μ :=
 mem_ℒp_one_iff_integrable.mp $ mem_ℒp.mem_ℒp_restrict_of_le_of_measure_finite hp (Lp.mem_ℒp _) hμs
 
@@ -319,16 +327,89 @@ begin
   exact inner_orthogonal_projection_left_eq_right _ f g,
 end
 
+lemma norm_condexp_L2_le_one (hm : m ≤ m0) :
+  ∥@condexp_L2_clm α E' 𝕜 _ _ _ _ _ _ _ _ _ μ _ hm∥ ≤ 1 :=
+begin
+  haveI : fact (m ≤ m0) := ⟨hm⟩,
+  haveI : fact ((1 : ℝ≥0∞) ≤ 2) := ⟨ennreal.one_le_two⟩,
+  exact orthogonal_projection_norm_le _,
+end
+
+lemma norm_condexp_L2_apply_le (hm : m ≤ m0) (f : Lp E' 2 μ) : ∥condexp_L2_clm 𝕜 hm f∥ ≤ ∥f∥ :=
+begin
+  refine ((@condexp_L2_clm α E' 𝕜 _ _ _ _ _ _ _ _ _ μ _ hm).le_op_norm _).trans _,
+  nth_rewrite 1 ← one_mul (∥f∥),
+  exact mul_le_mul (norm_condexp_L2_le_one hm) le_rfl (norm_nonneg _) zero_le_one,
+end
+
+lemma snorm_condexp_L2_le (hm : m ≤ m0) (f : Lp E' 2 μ) :
+  snorm (condexp_L2_clm 𝕜 hm f) 2 μ ≤ snorm f 2 μ :=
+begin
+  rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _), ← norm_def,
+    ← norm_def, submodule.norm_coe],
+  exact norm_condexp_L2_apply_le hm f,
+end
+
+lemma norm_condexp_L2_coe_le (hm : m ≤ m0) (f : Lp E' 2 μ) :
+  ∥(condexp_L2_clm 𝕜 hm f : Lp E' 2 μ)∥ ≤ ∥f∥ :=
+begin
+  rw [norm_def, norm_def, ← Lp_meas_coe],
+  refine (ennreal.to_real_le_to_real _ (Lp.snorm_ne_top _)).mpr (snorm_condexp_L2_le hm f),
+  exact Lp.snorm_ne_top _,
+end
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+local notation `⟪`x`, `y`⟫'` := @inner 𝕜 E' _ x y
+
+lemma integral_inner [is_scalar_tower ℝ 𝕜 E'] {f : α → E'} (hf : integrable f μ) (c : E') :
+  ∫ x, ⟪c, f x⟫' ∂μ = ⟪c, ∫ x, f x ∂μ⟫' :=
+((@inner_right 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
+
+lemma integral_zero_of_forall_integral_inner_zero [is_scalar_tower ℝ 𝕜 E'] (f : α → E')
+  (hf : integrable f μ) (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫' ∂μ = 0) :
+  ∫ x, f x ∂μ = 0 :=
+by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
+
+lemma inner_indicator_const_Lp (f : Lp E 2 μ) {s : set α} (hs : measurable_set s) (c : E)
+  (hμs : μ s ≠ ∞) :
+  inner (indicator_const_Lp 2 hs hμs c) f = ∫ x in s, ⟪c, f x⟫ ∂μ :=
+begin
+  simp_rw L2.inner_def,
+  rw ← integral_add_compl hs (L2.integrable_inner _ f),
+  have h_left : ∫ x in s, ⟪(indicator_const_Lp 2 hs hμs c) x, f x⟫ ∂μ = ∫ x in s, ⟪c, f x⟫ ∂μ,
+  { suffices h_ae_eq : ∀ᵐ x ∂μ, x ∈ s → ⟪indicator_const_Lp 2 hs hμs c x, f x⟫ = ⟪c, f x⟫,
+      from set_integral_congr_ae hs h_ae_eq,
+    have h_indicator : ∀ᵐ (x : α) ∂μ, x ∈ s → (indicator_const_Lp 2 hs hμs c x) = c,
+      from indicator_const_Lp_coe_fn_mem,
+    refine h_indicator.mono (λ x hx hxs, _),
+    congr,
+    exact hx hxs, },
+  have h_right : ∫ x in sᶜ, ⟪(indicator_const_Lp 2 hs hμs c) x, f x⟫ ∂μ = 0,
+  { suffices h_ae_eq : ∀ᵐ x ∂μ, x ∉ s → ⟪indicator_const_Lp 2 hs hμs c x, f x⟫ = 0,
+    { simp_rw ← set.mem_compl_iff at h_ae_eq,
+      suffices h_int_zero : ∫ x in sᶜ, inner (indicator_const_Lp 2 hs hμs c x) (f x) ∂μ
+        = ∫ x in sᶜ, (0 : 𝕜) ∂μ,
+      { rw h_int_zero,
+        simp, },
+      exact set_integral_congr_ae hs.compl h_ae_eq, },
+    have h_indicator : ∀ᵐ (x : α) ∂μ, x ∉ s → (indicator_const_Lp 2 hs hμs c x) = 0,
+      from indicator_const_Lp_coe_fn_nmem,
+    refine h_indicator.mono (λ x hx hxs, _),
+    rw hx hxs,
+    exact inner_zero_left, },
+  rw [h_left, h_right, add_zero],
+end
+
 variables (𝕜)
-lemma inner_set_integral_eq_inner_indicator (hm : m ≤ m0) {s : set α} (hs : @measurable_set α m s)
-  (hμs : μ s < ∞) (c : E') (f : Lp E' 2 μ) :
-  @inner 𝕜 _ _ c (∫ x in s, f x ∂μ) = inner (indicator_const_Lp 2 (hm s hs) hμs c) f :=
+lemma inner_set_integral_eq_inner_indicator [is_scalar_tower ℝ 𝕜 E'] {s : set α}
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E') (f : Lp E' 2 μ) :
+  @inner 𝕜 _ _ c (∫ x in s, f x ∂μ) = inner (indicator_const_Lp 2 hs hμs c) f :=
 begin
   rw ← integral_inner (integrable_on_Lp_of_measure_finite f ennreal.one_le_two hμs),
   simp_rw inner,
-  rw ← integral_indicator (hm s hs),
+  rw ← integral_indicator hs,
   refine integral_congr_ae _,
-  refine (indicator_const_Lp_coe_fn 2 (hm s hs) c (or.inr hμs)).mono (λ x hx, _),
+  refine (@indicator_const_Lp_coe_fn _ _ _ 2 _ _ _ s hs hμs c _ _).mono (λ x hx, _),
   dsimp only,
   rw hx,
   simp_rw set.indicator_apply,
@@ -337,10 +418,10 @@ end
 variables {𝕜}
 
 lemma set_integral_eq_inner_indicator (hm : m ≤ m0) {s : set α} (hs : @measurable_set α m s)
-  (hμs : μ s < ∞) (f : Lp ℝ 2 μ) :
-  ∫ x in s, f x ∂μ = inner (indicator_const_Lp 2 (hm s hs) (1 : ℝ) (or.inr hμs)) f :=
+  (hμs : μ s ≠ ∞) (f : Lp ℝ 2 μ) :
+  ∫ x in s, f x ∂μ = inner (indicator_const_Lp 2 (hm s hs) hμs (1 : ℝ)) f :=
 begin
-  rw ← inner_set_integral_eq_inner_indicator ℝ hm hs hμs (1 : ℝ) f,
+  rw ← inner_set_integral_eq_inner_indicator ℝ (hm s hs) hμs (1 : ℝ) f,
   simp only [is_R_or_C.inner_apply, is_R_or_C.conj_to_real, one_mul],
 end
 
@@ -348,37 +429,16 @@ section fin_meas_sets
 
 variables (hm : m ≤ m0) {s t : set α} {f : Lp ℝ 2 μ}
 
-lemma norm_condexp_L2_le_one : ∥@condexp_L2_clm α E' 𝕜 _ _ _ _ _ _ _ _ _ μ _ hm∥ ≤ 1 :=
-begin
-  haveI : fact (m ≤ m0) := ⟨hm⟩,
-  haveI : fact ((1 : ℝ≥0∞) ≤ 2) := ⟨ennreal.one_le_two⟩,
-  exact orthogonal_projection_norm_le _,
-end
-
-lemma norm_condexp_L2_apply_le (f : Lp E' 2 μ) : ∥condexp_L2_clm 𝕜 hm f∥ ≤ ∥f∥ :=
-begin
-  refine ((@condexp_L2_clm α E' 𝕜 _ _ _ _ _ _ _ _ _ μ _ hm).le_op_norm _).trans _,
-  nth_rewrite 1 ← one_mul (∥f∥),
-  exact mul_le_mul (norm_condexp_L2_le_one hm) le_rfl (norm_nonneg _) zero_le_one,
-end
-
-lemma snorm_condexp_L2_le (f : Lp E' 2 μ) : snorm (condexp_L2_clm 𝕜 hm f) 2 μ ≤ snorm f 2 μ :=
-begin
-  rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _), ← norm_def,
-    ← norm_def, submodule.norm_coe],
-  exact norm_condexp_L2_apply_le hm f,
-end
-
-lemma condexp_L2_indicator_of_measurable (hs : @measurable_set _ m s) (hμs : μ s < ∞) (c : E') :
-  (condexp_L2_clm 𝕜 hm (indicator_const_Lp 2 (hm s hs) c (or.inr hμs)) : Lp E' 2 μ)
-    = indicator_const_Lp 2 (hm s hs) c (or.inr hμs) :=
+lemma condexp_L2_indicator_of_measurable (hs : @measurable_set _ m s) (hμs : μ s ≠ ∞) (c : E') :
+  (condexp_L2_clm 𝕜 hm (indicator_const_Lp 2 (hm s hs) hμs c) : Lp E' 2 μ)
+    = indicator_const_Lp 2 (hm s hs) hμs c :=
 begin
   rw condexp_L2_clm,
   haveI : fact(m ≤ m0) := ⟨hm⟩,
-  have h_mem : indicator_const_Lp 2 (hm s hs) c (or.inr hμs) ∈ Lp_meas E' 𝕜 m 2 μ,
+  have h_mem : indicator_const_Lp 2 (hm s hs) hμs c ∈ Lp_meas E' 𝕜 m 2 μ,
     from mem_Lp_meas_indicator_const_Lp hm hs,
-  let ind := (⟨indicator_const_Lp 2 (hm s hs) c (or.inr hμs), h_mem⟩ : Lp_meas E' 𝕜 m 2 μ),
-  have h_coe_ind : (ind : Lp E' 2 μ) = indicator_const_Lp 2 (hm s hs) c (or.inr hμs), by refl,
+  let ind := (⟨indicator_const_Lp 2 (hm s hs) hμs c, h_mem⟩ : Lp_meas E' 𝕜 m 2 μ),
+  have h_coe_ind : (ind : Lp E' 2 μ) = indicator_const_Lp 2 (hm s hs) hμs c, by refl,
   have h_orth_mem := orthogonal_projection_mem_subspace_eq_self ind,
   rw [← h_coe_ind, h_orth_mem],
 end
@@ -391,254 +451,16 @@ begin
   simp only [mem_Lp_meas_iff_ae_measurable'.mpr hg, orthogonal_projection_inner_eq_zero],
 end
 
-lemma integral_eq_on_fin_meas_condexp_L2 (f : Lp ℝ 2 μ) :
-  integral_eq_on_fin_meas m (condexp_L2_clm ℝ hm f) f μ :=
-begin
-  intros s hs hμs,
-  rw set_integral_eq_inner_indicator hm hs hμs,
-  have h_eq_inner : ∫ x in s, condexp_L2_clm ℝ hm f x ∂μ
-    = inner (indicator_const_Lp 2 (hm s hs) (1 : ℝ) (or.inr hμs)) (condexp_L2_clm ℝ hm f),
-  { rw ← set_integral_eq_inner_indicator hm hs hμs,
-    congr, },
-  rw [h_eq_inner, ← inner_condexp_L2_left_eq_right, condexp_L2_indicator_of_measurable hm hs hμs],
-  all_goals { apply_instance, },
-end
-
-lemma integrable_on_condexp_L2_of_measure_finite (hμs : μ s < ∞) (f : Lp E' 2 μ) :
+lemma integrable_on_condexp_L2_of_measure_finite (hμs : μ s ≠ ∞) (f : Lp E' 2 μ) :
   integrable_on (condexp_L2_clm 𝕜 hm f) s μ :=
 integrable_on_Lp_of_measure_finite ((condexp_L2_clm 𝕜 hm f) : Lp E' 2 μ) ennreal.one_le_two hμs
 
 lemma integrable_condexp_L2_of_finite_measure [finite_measure μ] {f : Lp E' 2 μ} :
   integrable (condexp_L2_clm 𝕜 hm f) μ :=
-integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_finite hm (measure_lt_top _ _) f
-
-lemma set_lintegral_compl {s : set α} (hs : measurable_set s) {f : α → ℝ≥0∞} :
-  ∫⁻ x in s, f x ∂μ + ∫⁻ x in sᶜ, f x ∂μ = ∫⁻ x, f x ∂μ :=
-by rw [← lintegral_add_measure, measure.restrict_add_restrict_compl hs]
-
-lemma set_integral_compl {s : set α} (hs : measurable_set s) {f : α → F'} (hfi : integrable f μ) :
-  ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [← integral_add_measure (hfi.restrict s) (hfi.restrict sᶜ),
-  measure.restrict_add_restrict_compl hs]
-
-lemma set_lintegral_congr_fun {s : set α} (hs : measurable_set s) {f g : α → ℝ≥0∞}
-  (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
-  ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
-by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
-
-lemma lintegral_nnnorm_eq_pos_sub_neg (f : α → ℝ) (hf : measurable f) :
-  ∫⁻ x, nnnorm (f x) ∂μ = ∫⁻ x in {x | 0 ≤ f x}, ennreal.of_real (f x) ∂μ
-    + ∫⁻ x in {x | 0 ≤ f x}ᶜ, ennreal.of_real (- f x) ∂μ :=
-have h_meas : measurable_set {x | 0 ≤ f x},
-  from measurable_set_le measurable_const hf,
-calc ∫⁻ x, nnnorm (f x) ∂μ = ∫⁻ x, ennreal.of_real (∥f x∥) ∂μ :
-  by simp_rw of_real_norm_eq_coe_nnnorm
-... = ∫⁻ x in {x | 0 ≤ f x}, ennreal.of_real (∥f x∥) ∂μ
-      + ∫⁻ x in {x | 0 ≤ f x}ᶜ, ennreal.of_real (∥f x∥) ∂μ :
-  by rw ← set_lintegral_compl h_meas
-... = ∫⁻ x in {x | 0 ≤ f x}, ennreal.of_real (f x) ∂μ
-      + ∫⁻ x in {x | 0 ≤ f x}ᶜ, ennreal.of_real (∥f x∥) ∂μ :
-begin
-  congr' 1,
-  refine set_lintegral_congr_fun h_meas (eventually_of_forall (λ x hx, _)),
-  congr,
-  rw [real.norm_eq_abs, abs_eq_self.mpr _],
-  exact hx,
-end
-... = ∫⁻ x in {x | 0 ≤ f x}, ennreal.of_real (f x) ∂μ
-      + ∫⁻ x in {x | 0 ≤ f x}ᶜ, ennreal.of_real (- f x) ∂μ :
-begin
-  congr' 1,
-  refine set_lintegral_congr_fun (measurable_set.compl h_meas)
-    (eventually_of_forall (λ x hx, _)),
-  congr,
-  rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
-  rw [set.mem_compl_iff, set.nmem_set_of_eq] at hx,
-  linarith,
-end
-
-lemma integral_norm_eq_pos_sub_neg {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ) :
-  ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | 0 ≤ f x}ᶜ, f x ∂μ :=
-have h_meas : measurable_set {x | 0 ≤ f x}, from measurable_set_le measurable_const hf,
-calc ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, ∥f x∥ ∂μ
-      + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
-  by rw ← set_integral_compl h_meas hfi.norm
-... = ∫ x in {x | 0 ≤ f x}, f x ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
-begin
-  congr' 1,
-  refine set_integral_congr h_meas (λ x hx, _),
-  dsimp only,
-  rw [real.norm_eq_abs, abs_eq_self.mpr _],
-  exact hx,
-end
-... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | 0 ≤ f x}ᶜ, f x ∂μ :
-begin
-  congr' 1,
-  rw ← integral_neg,
-  refine set_integral_congr h_meas.compl (λ x hx, _),
-  dsimp only,
-  rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
-  rw [set.mem_compl_iff, set.nmem_set_of_eq] at hx,
-  linarith,
-end
-
-lemma lintegral_nnnorm_eq_integral_norm {f : α → G} (hf : integrable f μ) :
-  ∫⁻ x, nnnorm (f x) ∂μ = ennreal.of_real ∫ x, ∥f x∥ ∂μ :=
-begin
-  rw integral_eq_lintegral_of_nonneg_ae _ hf.1.norm,
-  swap, { refine ae_of_all _ _, simp, },
-  simp_rw of_real_norm_eq_coe_nnnorm,
-  rw ennreal.of_real_to_real _,
-  exact lt_top_iff_ne_top.mp hf.2,
-end
-
-lemma set_integral_le_nonneg {s : set α} (hs : measurable_set s) {f : α → ℝ} (hf : measurable f)
-  (hfi : integrable f μ) :
-  ∫ x in s, f x ∂μ ≤ ∫ x in {y | 0 ≤ f y}, f x ∂μ :=
-begin
-  rw ← integral_indicator hs,
-  rw ← integral_indicator (measurable_set_le measurable_const hf),
-  refine integral_mono (hfi.indicator hs) (hfi.indicator (measurable_set_le measurable_const hf)) _,
-  intro x,
-  simp [set.indicator_apply],
-  split_ifs,
-  { exact le_rfl, },
-  { exact (not_le.mp h_1).le, },
-  { exact h_1, },
-  { exact le_rfl, },
-end
-
-lemma set_integral_ge_nonpos {s : set α} (hs : measurable_set s) {f : α → ℝ} (hf : measurable f)
-  (hfi : integrable f μ) :
-  ∫ x in {y | f y ≤ 0}, f x ∂μ ≤ ∫ x in s, f x ∂μ :=
-begin
-  have h := set_integral_le_nonneg hs hf.neg hfi.neg,
-  dsimp only at h,
-  rw [integral_neg, integral_neg, neg_le_neg_iff] at h,
-  refine (le_of_eq _).trans h,
-  congr,
-  ext1 x,
-  rw neg_nonneg,
-end
-
-lemma set_integral_neg_eq_set_integral_nonpos {f : α → ℝ} (hf : measurable f)
-  (hfi : integrable f μ) :
-  ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
-begin
-  have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
-  { ext,
-    simp_rw [set.mem_union_eq, set.mem_set_of_eq],
-    exact le_iff_lt_or_eq, },
-  rw h_union,
-  rw integral_union _ (measurable_set_lt hf measurable_const)
-    (measurable_set_eq_fun hf measurable_const) hfi.integrable_on hfi.integrable_on,
-  { rw ← add_zero (∫ (x : α) in {x : α | f x < 0}, f x ∂μ),
-    congr,
-    { rw add_zero, },
-    { refine (integral_eq_zero_of_ae _).symm,
-      rw [eventually_eq, ae_restrict_iff],
-      { refine eventually_of_forall (λ x hx, _), simpa using hx, },
-      { simp_rw pi.zero_apply,
-        exact measurable_set_eq_fun hf measurable_const, }, }, },
-  { intros x hx,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, set.inf_eq_inter] at hx,
-    exact absurd hx.2 hx.1.ne, },
-end
-
-lemma integral_norm_le_on (hm : m ≤ m0) {f g : α → ℝ} (hf : measurable f)
-  (hfi : integrable_on f s μ) (hg : @measurable _ _ m _ g) (hgi : integrable_on g s μ)
-  (hgf : integral_eq_on_fin_meas m g f μ) (hs : @measurable_set _ m s) (hμs : μ s < ∞) :
-  ∫ (x : α) in s, ∥g x∥ ∂μ ≤ ∫ (x : α) in s, ∥f x∥ ∂μ :=
-begin
-  rw integral_norm_eq_pos_sub_neg (hg.mono hm le_rfl) hgi,
-  rw integral_norm_eq_pos_sub_neg hf hfi,
-  have h_meas_nonneg_g : @measurable_set α m {x | 0 ≤ g x},
-    from @measurable_set_le _ α _ _ _ m _ _ _ _ g (@measurable_const _ α _ m _) hg,
-  have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},
-    from measurable_set_le measurable_const hf,
-  have h_meas_nonpos_g : @measurable_set α m {x | g x ≤ 0},
-    from @measurable_set_le _ α _ _ _ m _ _ _ g _ hg (@measurable_const _ α _ m _),
-  have h_meas_nonpos_f : measurable_set {x | f x ≤ 0},
-    from measurable_set_le hf measurable_const,
-  refine sub_le_sub _ _,
-  { rw [measure.restrict_restrict (hm _ h_meas_nonneg_g),
-      measure.restrict_restrict h_meas_nonneg_f,
-      hgf _ (@measurable_set.inter α m _ _ h_meas_nonneg_g hs)
-        ((measure_mono (set.inter_subset_right _ _)).trans_lt hμs),
-      ← measure.restrict_restrict (hm _ h_meas_nonneg_g),
-      ← measure.restrict_restrict h_meas_nonneg_f],
-    exact set_integral_le_nonneg (hm _ h_meas_nonneg_g) hf hfi, },
-  { have h_set_f_eq : {x : α | 0 ≤ f x}ᶜ = {x | f x < 0}, by { ext, simp, },
-    have h_set_g_eq : {x : α | 0 ≤ g x}ᶜ = {x | g x < 0}, by { ext, simp, },
-    simp_rw [h_set_f_eq, h_set_g_eq],
-    rw set_integral_neg_eq_set_integral_nonpos hf hfi,
-    rw set_integral_neg_eq_set_integral_nonpos (hg.mono hm le_rfl) hgi,
-    rw [measure.restrict_restrict (hm _ h_meas_nonpos_g),
-      measure.restrict_restrict h_meas_nonpos_f,
-      hgf _ (@measurable_set.inter α m _ _ h_meas_nonpos_g hs)
-        ((measure_mono (set.inter_subset_right _ _)).trans_lt hμs),
-      ← measure.restrict_restrict (hm _ h_meas_nonpos_g),
-      ← measure.restrict_restrict h_meas_nonpos_f],
-    exact set_integral_ge_nonpos (hm _ h_meas_nonpos_g) hf hfi, },
-end
-
-lemma lintegral_nnnorm_le_on (hm : m ≤ m0) {f g : α → ℝ} (hf : measurable f)
-  (hfi : integrable_on f s μ) (hg : @measurable _ _ m _ g) (hgi : integrable_on g s μ)
-  (hgf : integral_eq_on_fin_meas m g f μ) (hs : @measurable_set _ m s) (hμs : μ s < ∞) :
-  ∫⁻ x in s, nnnorm (g x) ∂μ ≤ ∫⁻ x in s, nnnorm (f x) ∂μ :=
-begin
-  rw [lintegral_nnnorm_eq_integral_norm hfi, lintegral_nnnorm_eq_integral_norm hgi,
-    ennreal.of_real_le_of_real_iff],
-  { exact integral_norm_le_on hm hf hfi hg hgi hgf hs hμs, },
-  { exact integral_nonneg (λ x, norm_nonneg _), },
-end
-
-lemma lintegral_nnnorm_condexp_L2_le_on (hm : m ≤ m0) (hs : @measurable_set _ m s) (hμs : μ s < ∞)
-  (f : Lp ℝ 2 μ) :
-  ∫⁻ x in s, nnnorm (condexp_L2_clm ℝ hm f x) ∂μ ≤ ∫⁻ x in s, nnnorm (f x) ∂μ :=
-begin
-  let h_meas := Lp_meas.ae_measurable' (condexp_L2_clm ℝ hm f),
-  let g := h_meas.some,
-  have hg_meas : @measurable _ _ m _ g, from h_meas.some_spec.1,
-  have hg_eq : g =ᵐ[μ] condexp_L2_clm ℝ hm f, from h_meas.some_spec.2.symm,
-  have hg_eq_restrict : g =ᵐ[μ.restrict s] condexp_L2_clm ℝ hm f, from ae_restrict_of_ae hg_eq,
-  have hg_nnnorm_eq : (λ x, (nnnorm (g x) : ℝ≥0∞))
-    =ᵐ[μ.restrict s] (λ x, (nnnorm (condexp_L2_clm ℝ hm f x) : ℝ≥0∞)),
-  { refine hg_eq_restrict.mono (λ x hx, _),
-    dsimp only,
-    rw hx, },
-  rw lintegral_congr_ae hg_nnnorm_eq.symm,
-  refine lintegral_nnnorm_le_on hm (Lp.measurable f) _ _ _ _ hs hμs,
-  { exact integrable_on_Lp_of_measure_finite f ennreal.one_le_two hμs, },
-  { exact hg_meas, },
-  { rw [integrable_on, integrable_congr hg_eq_restrict],
-    exact integrable_on_condexp_L2_of_measure_finite hm hμs f, },
-  { exact integral_eq_on_fin_meas.congr_ae_left' hg_eq.symm (integral_eq_on_fin_meas_condexp_L2 hm f), },
-end
-
-lemma condexp_L2_zero_on (hs : @measurable_set _ m s) (hμs : μ s < ∞) {f : Lp ℝ 2 μ}
-  (hf : f =ᵐ[μ.restrict s] 0) :
-  condexp_L2_clm ℝ hm f =ᵐ[μ.restrict s] 0 :=
-begin
-  suffices h_nnnorm_eq_zero : ∫⁻ x in s, nnnorm (condexp_L2_clm ℝ hm f x) ∂μ = 0,
-  { rw lintegral_eq_zero_iff at h_nnnorm_eq_zero,
-    refine h_nnnorm_eq_zero.mono (λ x hx, _),
-    dsimp only at hx,
-    rw pi.zero_apply at hx ⊢,
-    { rwa [ennreal.coe_eq_zero, nnnorm_eq_zero] at hx, },
-    { refine measurable.ennreal_coe (measurable.nnnorm _),
-      rw Lp_meas_coe,
-      exact Lp.measurable _, }, },
-  refine le_antisymm _ (zero_le _),
-  refine (lintegral_nnnorm_condexp_L2_le_on hm hs hμs f).trans (le_of_eq _),
-  rw lintegral_eq_zero_iff,
-  { refine hf.mono (λ x hx, _),
-    dsimp only,
-    rw hx,
-    simp, },
-  { exact (Lp.measurable _).nnnorm.ennreal_coe, },
-end
+integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_finite hm (measure_ne_top _ _) f
 
 end fin_meas_sets
+
+end condexp_L2_clm
 
 end measure_theory

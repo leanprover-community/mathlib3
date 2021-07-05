@@ -14,7 +14,8 @@ Such spaces are also called Stonean spaces.
 They are the projective objects in the category of compact Hausdorff spaces;
 this fact is proven in `TODO`.
 ## References
-Gleason, Andrew M. (1958), "Projective topological spaces", Illinois Journal of Mathematics, 2 (4A): 482–489,
+Gleason, Andrew M. (1958), "Projective topological spaces",
+Illinois Journal of Mathematics, 2 (4A): 482–489,
 doi:10.1215/ijm/1255454110, MR 0121775
 -/
 

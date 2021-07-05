@@ -152,7 +152,7 @@ begin
   split_ifs; simp [*]
 end
 
-@[to_additive] lemma mul_indicator_const_comp (c : M) (f : M → N) (hf : f 1 = 1) :
+@[to_additive] lemma comp_mul_indicator_const (c : M) (f : M → N) (hf : f 1 = 1) :
   (λ x, f (s.mul_indicator (λ x, c) x)) = s.mul_indicator (λ x, f c) :=
 (mul_indicator_comp_of_one hf).symm
 

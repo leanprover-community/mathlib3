@@ -31,10 +31,8 @@ begin
   let c : set ℝ := d '' {s | measurable_set s },
   let γ : ℝ := Sup c,
 
-  have hμ : ∀s, μ s < ∞ :=
-    λ s, lt_of_le_of_lt (measure_mono $ subset_univ _) (measure_lt_top μ _),
-  have hν : ∀s, ν s < ∞ :=
-    λ s, lt_of_le_of_lt (measure_mono $ subset_univ _) (measure_lt_top ν _),
+  have hμ : ∀s, μ s < ∞ := measure_lt_top μ,
+  have hν : ∀s, ν s < ∞ := measure_lt_top ν,
   have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ℝ≥0∞) = μ s :=
     (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hμ _),
   have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ℝ≥0∞) = ν s :=

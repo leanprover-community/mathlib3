@@ -219,6 +219,10 @@ lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥h - g∥ < r :=
 by rw [mem_ball, dist_eq_norm]
 
+lemma add_mem_ball_iff_norm {g h : α} {r : ℝ} :
+  g + h ∈ ball g r ↔ ∥h∥ < r :=
+by rw [mem_ball_iff_norm, add_sub_cancel']
+
 lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
@@ -229,6 +233,10 @@ by rw [mem_ball, dist_zero_right]
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
+
+lemma add_mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
+  g + h ∈ closed_ball g r ↔ ∥h∥ ≤ r :=
+by rw [mem_closed_ball_iff_norm, add_sub_cancel']
 
 lemma mem_closed_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥g - h∥ ≤ r :=

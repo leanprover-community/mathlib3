@@ -2436,16 +2436,18 @@ begin
   exact ⟨f', measurable.mono hf'_meas hm le_rfl, hff'.symm⟩,
 end
 
-lemma ae_measurable_restrict_of_measurable_subtype [h : nonempty β] {s : set α}
+lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
   (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
 begin
-  refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
-            (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
-  intros t ht,
-  rw piecewise_preimage,
-  refine measurable_set.union _ ((measurable_const ht).diff hs),
-  rw [← subtype.image_preimage_coe, ← preimage_comp],
-  exact hs.subtype_image (hf ht),
+  by_cases h : nonempty β,
+  { refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
+              (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
+    intros t ht,
+    rw piecewise_preimage,
+    refine measurable_set.union _ ((measurable_const ht).diff hs),
+    rw [← subtype.image_preimage_coe, ← preimage_comp],
+    exact hs.subtype_image (hf ht) },
+  { exact (measurable_of_not_nonempty (mt (nonempty.map f) h) f).ae_measurable }
 end
 
 end

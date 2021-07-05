@@ -1,11 +1,13 @@
+/-
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Bhavik Mehta
+-/
+import analysis.convex.basic
+import combinatorics.simplicial_complex.to_move.default
 import data.finset.sort
 import data.matrix.notation
-import linear_algebra.basis
-import linear_algebra.affine_space.basic
-import linear_algebra.affine_space.combination
 import linear_algebra.affine_space.independent
-import analysis.convex.basic
-import combinatorics.simplicial_complex.to_move
 
 open_locale affine big_operators classical
 open finset

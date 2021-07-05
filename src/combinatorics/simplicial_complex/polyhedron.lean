@@ -1,5 +1,10 @@
-import combinatorics.simplicial_complex.exposed
+/-
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Bhavik Mehta
+-/
 import combinatorics.simplicial_complex.convex_join
+import combinatorics.simplicial_complex.exposed
 
 open set
 open_locale classical big_operators

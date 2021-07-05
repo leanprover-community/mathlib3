@@ -1,14 +1,9 @@
-import tactic
-import data.real.basic
-import linear_algebra.affine_space.independent
-import linear_algebra.std_basis
-import linear_algebra.affine_space.finite_dimensional
-import linear_algebra.affine_space.combination
-import linear_algebra.finite_dimensional
-import analysis.convex.topology
-import combinatorics.simplicial_complex.dump
+/-
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Bhavik Mehta
+-/
 import combinatorics.simplicial_complex.simplex
-import combinatorics.simplicial_complex.to_move.default
 -- import data.nat.parity
 
 open_locale classical affine big_operators

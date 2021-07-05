@@ -1,13 +1,11 @@
-import analysis.convex.topology
+/-
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Bhavik Mehta
+-/
 import analysis.specific_limits
 import combinatorics.simplicial_complex.basic
-import data.real.basic
-import linear_algebra.affine_space.independent
-import linear_algebra.std_basis
-import linear_algebra.affine_space.finite_dimensional
-import linear_algebra.affine_space.combination
 import set_theory.fincard
-import tactic
 
 open affine set
 

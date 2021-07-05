@@ -217,7 +217,7 @@ section
     (int.coe_nat_le_coe_nat_of_le $ le_of_lt $ n_lt_xn _ _) (int.coe_zero_le _)
 
   /-- Every solution to **Pell's equation** is recursively obtained from the initial solution
-  `(1,0)` using the recursion `pell`-/
+  `(1,0)` using the recursion `pell`. -/
   theorem eq_pell {x y : ℕ} (hp : x*x - d*y*y = 1) : ∃n, x = xn n ∧ y = yn n :=
   have (1:ℤ√d) ≤ ⟨x, y⟩, from match x, hp with
   | 0,    (hp : 0 - _ = 1) := by rw nat.zero_sub at hp; contradiction

@@ -73,7 +73,7 @@ lemma coe_injective : @function.injective (derivation R A M) (A → M) coe_fn :=
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
 coe_injective $ funext H
 
-lemma congr_der (h : D1 = D2) (a : A) : D1 a = D2 a := congr_fun (congr_arg coe_fn h) a
+lemma congr_fun (h : D1 = D2) (a : A) : D1 a = D2 a := congr_fun (congr_arg coe_fn h) a
 
 @[simp] lemma map_add : D (a + b) = D a + D b := is_add_hom.map_add D a b
 @[simp] lemma map_zero : D 0 = 0 := is_add_monoid_hom.map_zero D

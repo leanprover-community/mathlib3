@@ -44,11 +44,12 @@ functor.flip
 
 section sanity_check
 
--- `Ext_Y Y n` is the functor sending X to Ext^n(X,Y).
+/- `Ext_Y Y n` is the functor sending X to Ext^n(X,Y). -/
 def Ext_Y (Y : C) (n : ℕ) : Cᵒᵖ ⥤ Module R :=
 (Ext R C n).flip.obj Y
 
-theorem this_is_bad (X : Cᵒᵖ) [projective X] (Y : C) (n : ℕ) :
+/- This shows that the above definition of `Ext` is flawed. -/
+def this_is_bad (X : Cᵒᵖ) [projective X] (Y : C) (n : ℕ) :
   (Ext_Y R C Y (n+1)).obj X ≅ 0 :=
 ((linear_yoneda R C).obj Y).left_derived_obj_projective_succ _ _
 

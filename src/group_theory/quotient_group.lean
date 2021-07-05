@@ -270,7 +270,7 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
 then there is a map `A / (A' ⊓ A) →* B / (B' ⊓ B)` induced by the inclusions. -/
 @[to_additive "Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
 then there is a map `A / (A' ⊓ A) →+ B / (B' ⊓ B)` induced by the inclusions."]
-def quotient_map_of_subgroup_of_le {A' A B' B : subgroup G}
+def quotient_map_subgroup_of_of_le {A' A B' B : subgroup G}
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
   (h' : A' ≤ B') (h : A ≤ B) :
   quotient (A'.subgroup_of A) →* quotient (B'.subgroup_of B) :=

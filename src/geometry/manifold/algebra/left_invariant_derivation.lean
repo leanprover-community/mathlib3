@@ -163,8 +163,8 @@ by ext h; rw [times_cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_a
 instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivation I G) :=
 { bracket := λ X Y, ⟨⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆, λ g, begin
     ext f,
-    have hX := derivation.congr_der (left_invariant' g X) (Y f),
-    have hY := derivation.congr_der (left_invariant' g Y) (X f),
+    have hX := derivation.congr_fun (left_invariant' g X) (Y f),
+    have hY := derivation.congr_fun (left_invariant' g Y) (X f),
     rw [apply_hfdifferential, apply_fdifferential, derivation.eval_at_apply] at hX hY ⊢,
     rw comp_L at hX hY,
     rw [derivation.commutator_apply, smooth_map.coe_sub, pi.sub_apply, coe_derivation],

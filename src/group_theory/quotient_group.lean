@@ -28,14 +28,12 @@ proves Noether's first and second isomorphism theorems.
 * `quotient_inf_equiv_prod_normal_quotient`: Noether's second isomorphism theorem, an explicit
   isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
   group `G`.
+* `quotient_group.quotient_quotient_equiv_quotient`: Noether's third isomorphism theorem,
+  the canonical isomorphism between `(G / M) / (M / N)` and `G / N`, where `N ≤ M`.
 
 ## Tags
 
 isomorphism theorems, quotient groups
-
-## TODO
-
-Noether's third isomorphism theorem
 -/
 
 universes u v

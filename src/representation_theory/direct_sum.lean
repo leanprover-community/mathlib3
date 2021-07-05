@@ -1,6 +1,9 @@
-
-import representation_theory.basic
-import representation_theory.repre_hom
+/-
+Copyright (c) 2021 Winston Yin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Winston Yin
+-/
+import representation_theory.repre_hom_basic
 import algebra.direct_sum
 import linear_algebra.direct_sum_module
 
@@ -8,26 +11,24 @@ open_locale direct_sum
 
 namespace direct_sum_repre
 
+/- Need to specify k because Lean cannot otherwise infer it. -/
 def smul
-  {ι : Type*}
-  (k : Type*) [semiring k]
-  {G : Type*} [monoid G]
-  {M : ι → Type*} [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
+  {ι : Type*} (k : Type*) {G : Type*} {M : ι → Type*}
+  [semiring k] [monoid G]
+  [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
   [Π i : ι, repre k G (M i)] : G → (⨁ i : ι, M i) →ₗ[k] ⨁ i : ι, M i :=
 λ g, dfinsupp.map_range.linear_map (λ i : ι, (linear_map_of_smul k G (M i) g : M i →ₗ[k] M i))
 
 instance has_scalar
-  {ι : Type*}
-  (k : Type*) [semiring k]
-  {G : Type*} [monoid G]
-  {M : ι → Type*} [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
-  [Π i : ι, repre k G (M i)]: has_scalar G (Π₀ i : ι, M i) := ⟨λ g x, smul k g x⟩
+  {ι : Type*} (k : Type*) {G : Type*} {M : ι → Type*}
+  [semiring k] [monoid G]
+  [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
+  [Π i : ι, repre k G (M i)] : has_scalar G (Π₀ i : ι, M i) := ⟨λ g x, smul k g x⟩
 
 lemma smul_apply
-  {ι : Type*}
-  {k : Type*} [semiring k]
-  {G : Type*} [monoid G]
-  {M : ι → Type*} [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
+  {ι : Type*} {k : Type*} {G : Type*} {M : ι → Type*}
+  [semiring k] [monoid G]
+  [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
   [Π i : ι, repre k G (M i)] (i : ι) :
   ∀ (g : G) (x : Π₀ i : ι, M i), (g • x) i = g • (x i) := by {intros, simp}
 
@@ -37,10 +38,9 @@ end direct_sum_repre
 A collection of representations has a natural representation structure from the G-action on individual `module k (M i)`.
 -/
 instance direct_sum_repre
-  {ι : Type*}
-  {k : Type*} [semiring k]
-  {G : Type*} [monoid G]
-  (M : ι → Type*) [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
+  {ι : Type*} {k : Type*} {G : Type*} {M : ι → Type*}
+  [semiring k] [monoid G]
+  [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
   [Π i : ι, repre k G (M i)] : repre k G (Π₀ i : ι, M i) :=
 { to_distrib_mul_action :=
   { to_mul_action :=
@@ -61,10 +61,9 @@ namespace direct_sum_repre
 Inclusion map of the i-th component of a direct_sum as a repre_hom.
 -/
 def lof
-  {ι : Type*} [decidable_eq ι]
-  (k : Type*) [semiring k]
-  {G : Type*} [monoid G]
-  (M : ι → Type*) [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
+  {ι : Type*} (k : Type*) {G : Type*} (M : ι → Type*)
+  [decidable_eq ι] [semiring k] [monoid G]
+  [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
   [Π i : ι, repre k G (M i)] (i : ι) : M i →ᵣ[k;G] Π₀ i : ι, M i :=
 repre_hom.of_linear_map (direct_sum.lof k ι M i)
 begin
@@ -79,10 +78,9 @@ begin
 end
 
 lemma smul_single
-  {ι : Type*} [decidable_eq ι]
-  {k : Type*} [semiring k]
-  {G : Type*} [monoid G]
-  {M : ι → Type*} [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
+  {ι : Type*} {k : Type*} {G : Type*} {M : ι → Type*}
+  [decidable_eq ι] [semiring k] [monoid G]
+  [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
   [Π i : ι, repre k G (M i)]
   (g : G) (i : ι) (x : M i) : g • dfinsupp.single i x = dfinsupp.single i (g • x) :=
 begin
@@ -99,13 +97,12 @@ end
 
 /-- Given a collection of repre_hom from individual factors, construct a repre_hom from the direct sum representation. -/
 def to_repre
-  (k : Type*) [semiring k]
-  (G : Type*) [monoid G]
-  (ι : Type*) [decidable_eq ι]
-  {M : ι → Type*} [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
+  (k : Type*) (G : Type*) (ι : Type*) {M : ι → Type*} (N : Type*)
+  [decidable_eq ι] [semiring k] [monoid G]
+  [Π i : ι, add_comm_monoid (M i)] [Π i : ι, module k (M i)]
   [Π i : ι, repre k G (M i)]
-  (N : Type*) [add_comm_monoid N] [module k N]
-  [repre k G N] (φ : Π i, M i →ᵣ[k;G] N) : (Π₀ i, M i) →ᵣ[k;G] N :=
+  [add_comm_monoid N] [module k N] [repre k G N]
+  (φ : Π i, M i →ᵣ[k;G] N) : (Π₀ i, M i) →ᵣ[k;G] N :=
 begin
   apply repre_hom.of_linear_map,
   show (⨁ (i : ι), M i) →ₗ[k] N,
@@ -130,18 +127,15 @@ end
 
 /-- The `direct_sum_repre` formed by a collection of `subrepre`s of `M` is said to be internal if the canonical map `(⨁ i, A i) →ᵣ[k;G] M` is bijective. -/
 def subrepre_is_internal
-  {ι : Type*} [decidable_eq ι]
-  {k : Type*} [semiring k]
-  {G : Type*} [monoid G]
-  {M : Type*}
-  [semiring k] [add_comm_monoid M] [module k M] [repre k G M]
+  {ι : Type*} {k : Type*} {G : Type*} {M : Type*}
+  [decidable_eq ι] [semiring k] [monoid G]
+  [add_comm_monoid M] [module k M] [repre k G M]
   (p : ι → subrepre k G M) : Prop :=
 function.bijective (to_repre k G ι M (λ i, (p i).subtype))
 
 structure decomposition
-  (k : Type*) [semiring k]
-  (G : Type*) [monoid G]
-  (M : Type*) [nontrivial M]
+  (k : Type*) (G : Type*) (M : Type*)
+  [semiring k] [monoid G] [nontrivial M]
   [add_comm_monoid M] [module k M] [repre k G M] :=
 (ι : Type*)
 [dec_ι : decidable_eq ι]
@@ -156,9 +150,8 @@ attribute [instance] decomposition.nontriv
 
 /-- A nontrivial representation is decomposable if it is the internal direct sum of more than 1 nontrivial subrepresentations. (Is this def actually correct?) -/
 def is_decomposable
-  (k : Type*) [semiring k]
-  (G : Type*) [monoid G]
-  (M : Type*) [nontrivial M]
+  (k : Type*) (G : Type*) (M : Type*)
+  [semiring k] [monoid G] [nontrivial M]
   [add_comm_monoid M] [module k M] [repre k G M] :=
 nonempty (decomposition k G M)
 
@@ -223,6 +216,5 @@ begin
   have := hinjtop h_eq,
   exact absurd this hneq
 end
-
 
 end direct_sum_repre

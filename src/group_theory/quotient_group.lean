@@ -343,7 +343,8 @@ def quotient_quotient_equiv_quotient :
   quotient_group.quotient (M.map (quotient_group.mk' N)) ≃* quotient_group.quotient M :=
 { to_fun := quotient_quotient_equiv_quotient_aux N M h,
   inv_fun := quotient_group.map _ _ (quotient_group.mk' N) (subgroup.le_comap_map _ _),
-  left_inv := λ x, quotient_group.induction_on' x $ λ x, quotient_group.induction_on' x $ λ x, by simp,
+  left_inv := λ x, quotient_group.induction_on' x $ λ x, quotient_group.induction_on' x $
+    λ x, by simp,
   right_inv := λ x, quotient_group.induction_on' x $ λ x, by simp,
   map_mul' := monoid_hom.map_mul _ }
 

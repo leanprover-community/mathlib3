@@ -658,10 +658,11 @@ lemma continuous_within_at.comp' {g : β → γ} {f : α → β} {s : set α} {t
   continuous_within_at (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
-lemma continuous_within_at.comp_univ {g : β → γ} {f : α → β} {s : set α} {x : α}
-  (hg : continuous_within_at g univ (f x)) (hf : continuous_within_at f s x) :
+lemma continuous_at.comp_continuous_within_at {g : β → γ} {f : α → β} {s : set α} {x : α}
+  (hg : continuous_at g (f x)) (hf : continuous_within_at f s x) :
   continuous_within_at (g ∘ f) s x :=
-by { let h : s ⊆ f ⁻¹' univ := by simp only [preimage_univ, subset_univ], exact hg.comp hf h }
+by { let h : s ⊆ f ⁻¹' univ := by simp only [preimage_univ, subset_univ],
+  exact hg.continuous_within_at.comp hf h }
 
 lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) (h : s ⊆ f ⁻¹' t) :
@@ -1012,17 +1013,11 @@ continuous_snd.continuous_within_at
 
 lemma continuous_within_at.fst {f : α → β × γ} {s : set α} {a : α}
   (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).fst) s a :=
-begin
-  have : s ⊆ f ⁻¹' univ := by simp only [preimage_univ, subset_univ],
-  exact continuous_within_at_fst.comp h this
-end
+continuous_at_fst.comp_continuous_within_at h
 
 lemma continuous_within_at.snd {f : α → β × γ} {s : set α} {a : α}
   (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).snd) s a :=
-begin
-  have : s ⊆ f ⁻¹' univ := by simp only [preimage_univ, subset_univ],
-  exact continuous_within_at_snd.comp h this
-end
+continuous_at_snd.comp_continuous_within_at h
 
 lemma continuous_within_at_prod_iff {f : α → β × γ} {s : set α} {x : α} :
   continuous_within_at f s x ↔ continuous_within_at (prod.fst ∘ f) s x ∧

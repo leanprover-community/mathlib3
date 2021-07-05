@@ -37,6 +37,11 @@ namespace function
 @[simp] def periodic [has_add α] (f : α → β) (c : α) : Prop :=
 ∀ x : α, f (x + c) = f x
 
+lemma periodic.funext [has_add α]
+  (h : periodic f c) :
+  (λ x, f (x + c)) = f :=
+funext h
+
 lemma periodic.comp [has_add α]
   (h : periodic f c) (g : β → γ) :
   periodic (g ∘ f) c :=
@@ -182,8 +187,9 @@ lemma periodic.gsmul [add_group α]
   (h : periodic f c) (n : ℤ) :
   periodic f (n • c) :=
 begin
-  cases n, { simpa only [int.of_nat_eq_coe, gsmul_coe_nat] using h.nsmul n },
-  simpa only [gsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg,
+  cases n,
+  { simpa only [int.of_nat_eq_coe, gsmul_coe_nat] using h.nsmul n },
+  { simpa only [gsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg },
 end
 
 lemma periodic.int_mul [ring α]
@@ -260,6 +266,16 @@ lemma periodic_with_period_zero [add_zero_class α]
   `f (x + c) = -f x`. -/
 @[simp] def antiperiodic [has_add α] [has_neg β] (f : α → β) (c : α) : Prop :=
 ∀ x : α, f (x + c) = -f x
+
+lemma antiperiodic.funext [has_add α] [has_neg β]
+  (h : antiperiodic f c) :
+  (λ x, f (x + c)) = -f :=
+funext h
+
+lemma antiperiodic.funext' [has_add α] [add_group β]
+  (h : antiperiodic f c) :
+  (λ x, -f (x + c)) = f :=
+(eq_neg_iff_eq_neg.mp h.funext).symm
 
 /-- If a function is `antiperiodic` with antiperiod `c`, then it is also `periodic` with period
   `2 * c`. -/

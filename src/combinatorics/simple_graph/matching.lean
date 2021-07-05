@@ -21,13 +21,14 @@ import combinatorics.simple_graph.basic
 TODO:
   - Lemma stating that the existence of a perfect matching on `G` implies that
     the cardinality of `V` is even (assuming it's finite)
+  - Hall's Marriage Theorem
   - Tutte's Theorem
   - consider coercions instead of type definition for `matching`:
     https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532935457
   - consider expressing `matching_verts` as union:
     https://github.com/leanprover-community/mathlib/pull/5156#discussion_r532906131
 
-TODO: Tutte requires a definition of subgraphs.
+TODO: Tutte and Hall requires a definition of subgraphs.
 -/
 open finset
 universe u

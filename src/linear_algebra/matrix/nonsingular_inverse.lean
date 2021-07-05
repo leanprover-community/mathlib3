@@ -332,37 +332,62 @@ calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
                                          (A⁻¹).mul_nonsing_inv (A.is_unit_nonsing_inv_det h),
                                          matrix.mul_one], }
 
-/-- A matrix whose determinant is a unit is itself a unit. -/
+/-- If `A.det` has a constructive inverse, produce one for `A`. -/
+def invertible_of_det_invertible [invertible A.det] : invertible A :=
+{ inv_of := ⅟A.det • A.adjugate,
+  mul_inv_of_self :=
+    by rw [mul_smul_comm, matrix.mul_eq_mul, mul_adjugate, smul_smul, inv_of_mul_self, one_smul],
+  inv_of_mul_self :=
+    by rw [smul_mul_assoc, matrix.mul_eq_mul, adjugate_mul, smul_smul, inv_of_mul_self, one_smul] }
+
+/-- `A.det` is invertible if `A` has a left inverse. -/
+def det_invertible_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : invertible A.det :=
+{ inv_of := B.det,
+  mul_inv_of_self := by rw [mul_comm, ← det_mul, h, det_one],
+  inv_of_mul_self := by rw [← det_mul, h, det_one] }
+
+/-- `A.det` is invertible if `A` has a right inverse. -/
+def det_invertible_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : invertible A.det :=
+{ inv_of := B.det,
+  mul_inv_of_self := by rw [← det_mul, h, det_one],
+  inv_of_mul_self := by rw [mul_comm, ← det_mul, h, det_one] }
+
+/-- If `A` has a constructive inverse, produce one for `A.det`. -/
+def det_invertible_of_invertible [invertible A] : invertible A.det :=
+det_invertible_of_left_inverse A (⅟A) (inv_of_mul_self _)
+
+/-- Given a proof that `A.det` has a constructive inverse, lift `A` to `units (matrix n n α)`-/
+def unit_of_det_invertible [invertible A.det] : units (matrix n n α) :=
+@unit_of_invertible _ _ A (invertible_of_det_invertible A)
+
+/-- A matrix whose determinant is a unit is itself a unit. This is a noncomputable version of
+`matrix.units_of_det_invertible`, with the inverse defeq to `matrix.nonsing_inv`. -/
 noncomputable def nonsing_inv_unit (h : is_unit A.det) : units (matrix n n α) :=
 { val     := A,
   inv     := A⁻¹,
   val_inv := by { rw matrix.mul_eq_mul, apply A.mul_nonsing_inv h, },
   inv_val := by { rw matrix.mul_eq_mul, apply A.nonsing_inv_mul h, } }
 
+lemma unit_of_det_invertible_eq_nonsing_inv_unit [invertible A.det] :
+  unit_of_det_invertible A = nonsing_inv_unit A (is_unit_of_invertible _) :=
+by { ext, refl }
+
+/-- When lowered to a prop, `matrix.det_invertible_of_invertible` and
+`matrix.invertible_of_det_invertible` form an `iff`. -/
 lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
 begin
-  split; intros h,
-  { -- is_unit A → is_unit A.det
-    suffices : ∃ (B : matrix n n α), A ⬝ B = 1,
-    { rcases this with ⟨B, hB⟩, apply is_unit_of_mul_eq_one _ B.det, rw [←det_mul, hB, det_one], },
-    refine ⟨↑h.unit⁻¹, _⟩, conv_lhs { congr, rw ←h.unit_spec, }, exact h.unit.mul_inv, },
-  { -- is_unit A.det → is_unit A
-    exact (A.nonsing_inv_unit h).is_unit, },
+  split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
+  { haveI : invertible A := hx.rec x.invertible,
+    apply det_invertible_of_invertible, },
+  { haveI : invertible A.det := hx.rec x.invertible,
+    apply invertible_of_det_invertible, },
 end
 
 lemma is_unit_det_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : is_unit A.det :=
-⟨{ val     := A.det,
-    inv     := B.det,
-    val_inv := by rw [mul_comm, ← det_mul, h, det_one],
-    inv_val := by rw [← det_mul, h, det_one],
-}, rfl⟩
+@is_unit_of_invertible _ _ _ (det_invertible_of_left_inverse _ _ h)
 
 lemma is_unit_det_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : is_unit A.det :=
-⟨{ val     := A.det,
-    inv     := B.det,
-    val_inv := by rw [← det_mul, h, det_one],
-    inv_val := by rw [mul_comm, ← det_mul, h, det_one],
-}, rfl⟩
+@is_unit_of_invertible _ _ _ (det_invertible_of_right_inverse _ _ h)
 
 lemma nonsing_inv_left_right (B : matrix n n α) (h : A ⬝ B = 1) : B ⬝ A = 1 :=
 begin

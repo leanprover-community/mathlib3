@@ -140,10 +140,14 @@ instance : has_zero cardinal.{u} := ⟨⟦pempty⟧⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
+@[simp]
+lemma eq_zero_of_is_empty {α : Type u} [is_empty α] : mk α = 0 :=
+quotient.sound ⟨equiv.equiv_pempty α⟩
+
 lemma eq_zero_iff_is_empty {α : Type u} : mk α = 0 ↔ is_empty α :=
 ⟨λ e, let ⟨h⟩ := quotient.exact e in
   equiv.equiv_empty_equiv α $ h.trans equiv.empty_equiv_pempty.symm,
-  λ h, by exactI quotient.sound ⟨equiv.equiv_pempty α⟩⟩
+  @eq_zero_of_is_empty _⟩
 
 theorem ne_zero_iff_nonempty {α : Type u} : mk α ≠ 0 ↔ nonempty α :=
 (not_iff_not.2 eq_zero_iff_is_empty).trans not_is_empty_iff
@@ -280,7 +284,7 @@ section order_properties
 open sum
 
 protected theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
-by rintro ⟨α⟩; exact ⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim⟩
+by rintro ⟨α⟩; exact ⟨embedding.of_is_empty⟩
 
 protected theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩

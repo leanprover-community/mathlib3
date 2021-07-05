@@ -77,6 +77,9 @@ by simp [mul_assoc]
 lemma inv_of_eq_right_inv [monoid α] {a b : α} [invertible a] (hac : a * b = 1) : ⅟a = b :=
 left_inv_eq_right_inv (inv_of_mul_self _) hac
 
+lemma inv_of_eq_left_inv [monoid α] {a b : α} [invertible a] (hac : b * a = 1) : ⅟a = b :=
+(left_inv_eq_right_inv hac (mul_inv_of_self _)).symm
+
 lemma invertible_unique {α : Type u} [monoid α] (a b : α) (h : a = b)
   [invertible a] [invertible b] :
   ⅟a = ⅟b :=
@@ -101,6 +104,13 @@ def unit_of_invertible [monoid α] (a : α) [invertible a] : units α :=
 lemma is_unit_of_invertible [monoid α] (a : α) [invertible a] : is_unit a :=
 ⟨unit_of_invertible a, rfl⟩
 
+/-- Units are invertible in their associated monoid. -/
+def units.invertible [monoid α] (u : units α) : invertible (u : α) :=
+{ inv_of := ↑(u⁻¹), inv_of_mul_self := u.inv_mul, mul_inv_of_self := u.mul_inv }
+
+@[simp] lemma inv_of_units [monoid α] (u : units α) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
+inv_of_eq_right_inv u.mul_inv
+
 /-- Each element of a group is invertible. -/
 def invertible_of_group [group α] (a : α) : invertible a :=
 ⟨a⁻¹, inv_mul_self a, mul_inv_self a⟩
@@ -110,7 +120,7 @@ inv_of_eq_right_inv (mul_inv_self a)
 
 /-- `1` is the inverse of itself -/
 def invertible_one [monoid α] : invertible (1 : α) :=
-⟨ 1, mul_one _, one_mul _ ⟩
+⟨1, mul_one _, one_mul _⟩
 
 @[simp] lemma inv_of_one [monoid α] [invertible (1 : α)] : ⅟(1 : α) = 1 :=
 inv_of_eq_right_inv (mul_one _)

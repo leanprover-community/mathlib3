@@ -1417,3 +1417,15 @@ end multiset
 @[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M]
   (f : α → units M) (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
 (units.coe_hom M).map_prod _ _
+
+lemma nat_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℤ) :
+  (∑ i in s, f i).nat_abs ≤ ∑ i in s, (f i).nat_abs :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { simp only [finset.sum_empty, int.nat_abs_zero] },
+  { intros i s his IH,
+    simp only [his, finset.sum_insert, not_false_iff],
+    exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
+end
+

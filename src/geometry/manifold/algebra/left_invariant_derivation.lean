@@ -39,7 +39,7 @@ A global derivation is left-invariant if it is equal to its pullback along left 
 an arbitrary element of `G`.
 -/
 structure left_invariant_derivation extends derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯ :=
-(left_invariant'' : ∀ g, 𝒅ₕ(smooth_left_mul_1 I g) (derivation.eval_at 1 to_derivation) =
+(left_invariant'' : ∀ g, 𝒅ₕ(smooth_left_mul_one I g) (derivation.eval_at 1 to_derivation) =
   derivation.eval_at g to_derivation)
 
 variables {I G}
@@ -77,7 +77,7 @@ lemma coe_derivation_injective : function.injective
 
 /-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
 lemma left_invariant' :
-  𝒅ₕ(smooth_left_mul_1 I g) (derivation.eval_at (1 : G) ↑X) = derivation.eval_at g ↑X :=
+  𝒅ₕ(smooth_left_mul_one I g) (derivation.eval_at (1 : G) ↑X) = derivation.eval_at g ↑X :=
 by rw [←to_derivation_eq_coe]; exact left_invariant'' X g
 
 @[simp] lemma map_add : X (f + f') = X f + X f' := derivation.map_add X f f'
@@ -148,7 +148,7 @@ lemma eval_at_apply : eval_at g X f = (X f) g := rfl
 
 @[simp] lemma eval_at_coe : derivation.eval_at g ↑X = eval_at g X := rfl
 
-lemma left_invariant : 𝒅ₕ(smooth_left_mul_1 I g) (eval_at (1 : G) X) = eval_at g X :=
+lemma left_invariant : 𝒅ₕ(smooth_left_mul_one I g) (eval_at (1 : G) X) = eval_at g X :=
 (X.left_invariant'' g)
 
 lemma eval_at_mul : eval_at (g * h) X = 𝒅ₕ(L_apply I g h) (eval_at h X) :=

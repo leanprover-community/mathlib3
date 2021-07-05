@@ -62,7 +62,7 @@ functor.flip
 open_locale zero_object
 
 /-- If `X : C` is projective and `n : ℕ`, then `Ext^(n + 1) X Y ≅ 0` for any `Y`. -/
-def ext_projective_succ (X Y : C) [projective X] (n : ℕ) :
+def Ext_succ_of_projective (X Y : C) [projective X] (n : ℕ) :
   ((Ext R C (n+1)).obj (opposite.op X)).obj Y ≅ 0 :=
 let E := (((linear_yoneda R C).obj Y).right_op.left_derived_obj_projective_succ n X).unop.symm in
 E ≪≫

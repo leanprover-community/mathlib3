@@ -5,8 +5,6 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.topology
 import combinatorics.simplicial_complex.extreme
-import combinatorics.simplicial_complex.to_move.default
-import linear_algebra.affine_space.finite_dimensional
 import order.filter.archimedean
 
 /-!

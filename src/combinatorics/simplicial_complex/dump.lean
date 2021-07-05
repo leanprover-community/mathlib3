@@ -7,7 +7,6 @@ import analysis.convex.topology
 import combinatorics.simplicial_complex.to_move.default
 import data.real.basic
 import linear_algebra.affine_space.finite_dimensional
-import tactic
 -- import data.nat.parity
 
 open_locale classical affine big_operators

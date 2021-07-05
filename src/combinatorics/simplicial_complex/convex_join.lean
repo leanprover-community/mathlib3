@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Bhavik Mehta
+-/
 import analysis.convex.basic
 import linear_algebra.affine_space.affine_subspace
 import combinatorics.simplicial_complex.to_move.default

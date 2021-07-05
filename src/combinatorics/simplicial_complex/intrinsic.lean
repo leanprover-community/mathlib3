@@ -3,11 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import algebra.module.linear_map
-import combinatorics.simplicial_complex.convex_independence
 import combinatorics.simplicial_complex.extreme
-import combinatorics.simplicial_complex.to_move.default
-import linear_algebra.affine_space.finite_dimensional
 
 open_locale classical affine big_operators
 open set

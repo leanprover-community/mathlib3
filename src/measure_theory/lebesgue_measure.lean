@@ -247,8 +247,6 @@ variables {ι : Type*} [fintype ι]
 
 open_locale topological_space
 
-theorem volume_val (s) : volume s = lebesgue_outer s := rfl
-
 instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
 ⟨lebesgue_outer_singleton⟩
 
@@ -380,6 +378,23 @@ by simpa only [mul_comm] using real.map_volume_mul_left h
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
   by simp [show measure.map has_neg.neg volume (Ioo (p : ℝ) q) = _,
     from measure.map_apply measurable_neg measurable_set_Ioo]
+
+instance : regular (volume : measure ℝ) :=
+{ lt_top_of_is_compact := _,
+  outer_regular := _,
+  inner_regular := _ }
+
+lemma is_add_left_invariant_volume : is_add_left_invariant ⇑(volume : measure ℝ) :=
+by simp [← map_add_left_eq_self, map_volume_add_left]
+
+lemma volume_eq_add_haar_measure :
+  (volume : measure ℝ) = add_haar_measure ⟨Icc 0 1, is_compact_Icc, ⟨1 / 2, by norm_num⟩⟩ :=
+begin
+  convert add_haar_measure_unique is_add_left_invariant_volume _,
+  convert (one_smul _ _).symm,
+  simp
+end
+
 
 end real
 

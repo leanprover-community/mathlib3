@@ -393,7 +393,7 @@ variables {A} {B}
 
 /-- We can construct an instance of invertible A if `det A` is a unit. -/
 noncomputable
-instance invertible_of_is_unit_det  (h: is_unit A.det) : invertible A :=
+def invertible_of_is_unit_det  (h: is_unit A.det) : invertible A :=
 ⟨A⁻¹, nonsing_inv_mul A h, mul_nonsing_inv A h⟩
 
 /-- If matrix A is left invertible, then its inverse equals its left inverse. -/
@@ -416,12 +416,12 @@ end
 
 /-- We can construct an instance of invertible A if A has a left inverse. -/
 noncomputable
-instance invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
+def invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
 matrix.invertible_of_is_unit_det (is_unit_det_of_left_inverse A B h)
 
 /-- We can construct an instance of invertible A if A has a right inverse. -/
 noncomputable
-instance invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
+def invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
 matrix.invertible_of_is_unit_det (is_unit_det_of_right_inverse A B h)
 
 variables {C: matrix n n α}

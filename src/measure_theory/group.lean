@@ -155,7 +155,7 @@ section group
 variables [group G] [topological_group G]
 
 /-! Properties of regular left invariant measures -/
-@[to_additive measure_theory.measure.is_add_left_invariant.null_iff_empty]
+@[to_additive]
 lemma is_mul_left_invariant.null_iff_empty [regular μ] (h2μ : is_mul_left_invariant μ)
   (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ :=
 begin
@@ -177,7 +177,7 @@ begin
     rwa [inv_mul_cancel_right] }
 end
 
-@[to_additive measure_theory.measure.is_add_left_invariant.null_iff]
+@[to_additive]
 lemma is_mul_left_invariant.null_iff [regular μ] (h2μ : is_mul_left_invariant μ)
   {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
 begin
@@ -186,7 +186,7 @@ begin
   exact h2μ.null_iff_empty h3μ hs,
 end
 
-@[to_additive measure_theory.measure.is_add_left_invariant.measure_ne_zero_iff_nonempty]
+@[to_additive]
 lemma is_mul_left_invariant.measure_ne_zero_iff_nonempty [regular μ]
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
   μ s ≠ 0 ↔ s.nonempty :=

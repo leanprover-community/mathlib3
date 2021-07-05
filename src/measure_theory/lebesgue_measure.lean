@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.pi
+import measure_theory.haar_measure
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
 -/
 
 noncomputable theory
-open classical set filter
+open classical set filter measure_theory.measure
 open ennreal (of_real)
 open_locale big_operators ennreal
 

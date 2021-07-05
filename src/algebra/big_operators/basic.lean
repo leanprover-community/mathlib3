@@ -201,12 +201,9 @@ lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   (∏ x in ({a, b} : finset α), f x) = f a * f b :=
 by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
-@[simp, priority 1100] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
+@[simp, priority 1100, to_additive]
+lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
-@[simp, priority 1100] lemma sum_const_zero {β α} {s : finset α} [add_comm_monoid β] :
-  (∑ x in s, (0 : β)) = 0 :=
-@prod_const_one (multiplicative β) _ _ _
-attribute [to_additive] prod_const_one
 
 @[simp, to_additive]
 lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
@@ -820,14 +817,10 @@ lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
 @prod_multiset_map_count _ _ _ (multiplicative M) _ f
 attribute [to_additive] prod_multiset_map_count
 
+@[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
-
-lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
-  s.sum = ∑ m in s.to_finset, s.count m • m :=
-@prod_multiset_count (multiplicative α) _ _ s
-attribute [to_additive] prod_multiset_count
 
 /--
 To prove a property of a product, it suffices to prove that

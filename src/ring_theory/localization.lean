@@ -128,6 +128,13 @@ def to_localization_map : submonoid.localization_map M S :=
   eq_iff_exists' := λ _ _, is_localization.eq_iff_exists _ _,
   .. algebra_map R S }
 
+@[simp]
+lemma to_localization_map_to_map :
+  (to_localization_map M S).to_map = (algebra_map R S : R →* S) := rfl
+
+lemma to_localization_map_to_map_apply (x) :
+  (to_localization_map M S).to_map x = algebra_map R S x := rfl
+
 end
 
 section
@@ -178,18 +185,25 @@ lemma exists_integer_multiple (a : S) :
   ∃ (b : M), is_integer R ((b : R) • a) :=
 by { simp_rw [algebra.smul_def, mul_comm _ a], apply exists_integer_multiple' }
 
-/-- Given `z : S`, `(to_localization_map M S).sec z` is defined to be a pair `(x, y) : R × M` such
+/-- Given a localization map `f : M →* N`, a section function sending `z : N` to some
+`(x, y) : M × S` such that `f x * (f y)⁻¹ = z`. -/
+noncomputable def sec (z : S) : R × M :=
+classical.some $ is_localization.surj _ z
+
+@[simp] lemma to_localization_map_sec : (to_localization_map M S).sec = sec M := rfl
+
+/-- Given `z : S`, `is_localization.sec M z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x` (so this lemma is true by definition). -/
 lemma sec_spec (z : S) :
-  z * algebra_map R S ((to_localization_map M S).sec z).2 =
-    algebra_map R S ((to_localization_map M S).sec z).1 :=
+  z * algebra_map R S (is_localization.sec M z).2 =
+    algebra_map R S (is_localization.sec M z).1 :=
 classical.some_spec $ is_localization.surj _ z
 
-/-- Given `z : S`, `(to_localization_map M S).sec z` is defined to be a pair `(x, y) : R × M` such
+/-- Given `z : S`, `is_localization.sec M z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x`, so this lemma is just an application of `S`'s commutativity. -/
 lemma sec_spec' (z : S) :
-  algebra_map R S ((to_localization_map M S).sec z).1 =
-    algebra_map R S ((to_localization_map M S).sec z).2 * z :=
+  algebra_map R S (is_localization.sec M z).1 =
+    algebra_map R S (is_localization.sec M z).2 * z :=
 by rw [mul_comm, sec_spec]
 
 open_locale big_operators
@@ -199,9 +213,9 @@ lemma exist_integer_multiples_of_finset (s : finset S) :
   ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
 begin
   haveI := classical.prop_decidable,
-  use ∏ a in s, ((to_localization_map M S).sec a).2,
+  use ∏ a in s, (is_localization.sec M a).2,
   intros a ha,
-  use (∏ x in s.erase a, ((to_localization_map M S).sec x).2) * ((to_localization_map M S).sec a).1,
+  use (∏ x in s.erase a, (is_localization.sec M x).2) * (is_localization.sec M a).1,
   rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←(algebra_map R S).map_mul, ← algebra.smul_def],
   congr' 2,
   refine trans _ ((submonoid.subtype M).map_prod _ _).symm,
@@ -232,7 +246,7 @@ noncomputable def mk' (x : R) (y : M) : S :=
 (to_localization_map M S).mk' x y
 
 @[simp] lemma mk'_sec (z : S) :
-  mk' S ((to_localization_map M S).sec z).1 ((to_localization_map M S).sec z).2 = z :=
+  mk' S (is_localization.sec M z).1 (is_localization.sec M z).2 = z :=
 (to_localization_map M S).mk'_sec _
 
 lemma mk'_mul (x₁ x₂ : R) (y₁ y₂ : M) :
@@ -384,12 +398,11 @@ begin
       (to_localization_map M S).lift_spec_mul, mul_comm _ (_ - _), sub_mul, eq_sub_iff_add_eq',
       ←eq_sub_iff_add_eq, mul_assoc, (to_localization_map M S).lift_spec_mul],
   show g _ * (g _ * g _) = g _ * (g _ * g _ - g _ * g _),
-  repeat {rw ←g.map_mul},
-  rw [←g.map_sub, ←g.map_mul],
+  simp only [← g.map_sub, ← g.map_mul, to_localization_map_sec],
   apply eq_of_eq hg,
-  erw [(algebra_map R S).map_mul, sec_spec', mul_sub, (algebra_map R S).map_sub],
-  simp only [(algebra_map R S).map_mul, sec_spec'],
-  ring_exp,
+  rw [(algebra_map R S).map_mul, sec_spec', mul_sub, (algebra_map R S).map_sub],
+  simp only [ring_hom.map_mul, sec_spec'],
+  ring,
   assumption
 end
 
@@ -1372,16 +1385,16 @@ local attribute [instance] classical.dec_eq
 /-- The inverse of an element in the field of fractions of an integral domain. -/
 protected noncomputable def inv (z : K) : K :=
 if h : z = 0 then 0 else
-mk' K ↑((to_localization_map (non_zero_divisors A) K).sec z).2
-  ⟨((to_localization_map _ K).sec z).1,
+mk' K ↑(sec (non_zero_divisors A) z).2
+  ⟨(sec _ z).1,
    mem_non_zero_divisors_iff_ne_zero.2 $ λ h0, h $
     eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) z) h0⟩
 
 protected lemma mul_inv_cancel (x : K) (hx : x ≠ 0) :
   x * is_fraction_ring.inv A x = 1 :=
 show x * dite _ _ _ = 1, by rw [dif_neg hx,
-  ←is_unit.mul_left_inj (map_units K ⟨((to_localization_map (non_zero_divisors A) K).sec x).1,
-    mem_non_zero_divisors_iff_ne_zero.2 $ λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec _ x) h0⟩),
+  ←is_unit.mul_left_inj (map_units K ⟨(sec _ x).1, mem_non_zero_divisors_iff_ne_zero.2 $
+    λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
   one_mul, mul_assoc, mk'_spec, ←eq_mk'_iff_mul_eq]; exact (mk'_sec _ x).symm
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is a

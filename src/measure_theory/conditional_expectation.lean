@@ -273,7 +273,6 @@ end complete_subspace
 
 end Lp_meas
 
-
 lemma ennreal.one_le_two : (1 : ℝ≥0∞) ≤ 2 := ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)
 
 section condexp_L2_clm

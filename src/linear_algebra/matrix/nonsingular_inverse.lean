@@ -335,10 +335,10 @@ calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
 /-- If `A.det` has a constructive inverse, produce one for `A`. -/
 def invertible_of_det_invertible [invertible A.det] : invertible A :=
 { inv_of := ⅟A.det • A.adjugate,
-  mul_inv_of_self := by rw [
-    mul_smul_comm, matrix.mul_eq_mul, mul_adjugate, smul_smul, inv_of_mul_self, one_smul],
-  inv_of_mul_self := by rw [
-    smul_mul_assoc, matrix.mul_eq_mul, adjugate_mul, smul_smul, inv_of_mul_self, one_smul] }
+  mul_inv_of_self :=
+    by rw [mul_smul_comm, matrix.mul_eq_mul, mul_adjugate, smul_smul, inv_of_mul_self, one_smul],
+  inv_of_mul_self :=
+    by rw [smul_mul_assoc, matrix.mul_eq_mul, adjugate_mul, smul_smul, inv_of_mul_self, one_smul] }
 
 /-- `A.det` is invertible if `A` has a left inverse. -/
 def det_invertible_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : invertible A.det :=
@@ -361,7 +361,7 @@ def unit_of_det_invertible [invertible A.det] : units (matrix n n α) :=
 @unit_of_invertible _ _ A (invertible_of_det_invertible A)
 
 /-- A matrix whose determinant is a unit is itself a unit. This is a noncomputable version of
-`matrix.units_of_det_invertible`, with the inverse defeq to `matrix.nonsing_inv`.. -/
+`matrix.units_of_det_invertible`, with the inverse defeq to `matrix.nonsing_inv`. -/
 noncomputable def nonsing_inv_unit (h : is_unit A.det) : units (matrix n n α) :=
 { val     := A,
   inv     := A⁻¹,

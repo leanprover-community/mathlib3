@@ -43,6 +43,9 @@ class extremally_disconnected : Prop :=
 section
 
 include X
+/--  The assertion `compact_t2.projective` states that given continuous maps
+`f : X → Z` and `g : Y → Z` with `g` surjective between `t_2`, compact topological spaces,
+there exists a continuous lift `h : X → Y`, such that `f = g ∘ f`. -/
 def compact_t2.projective : Prop :=
   Π {Y Z : Type u} [topological_space Y] [topological_space Z],
   by exactI Π [compact_space Y] [t2_space Y] [compact_space Z] [t2_space Z],
@@ -54,9 +57,16 @@ end
 
 variable {X}
 
+lemma stone_cech_unit_dense {X : Type u} [topological_space X] :
+  closure (set.range (stone_cech_unit : X → stone_cech X)) = set.univ :=
+dense.closure_eq dense_range_stone_cech_unit
+
 lemma stone_cech.projective [discrete_topology X] : compact_t2.projective (stone_cech X) :=
 begin
   introsI Y Z _tsY _tsZ _csY _t2Y _csZ _csZ f g hf hg g_sur,
+  have H : dense_range (stone_cech_unit : X → stone_cech X),
+  { rw dense_range_iff_closure_range, exact dense.closure_eq dense_range_stone_cech_unit },
+  --extract lemma `stone_cech_unit_dense` to prove this with `exact stone_cech_unit_dense`?
   let s : Z → Y := λ z, classical.some $ g_sur z,
   have hs : g ∘ s = id := funext (λ z, classical.some_spec (g_sur z)),
   let t := s ∘ f ∘ stone_cech_unit,
@@ -64,9 +74,6 @@ begin
   let h : stone_cech X → Y := stone_cech_extend ht,
   have hh : continuous h := continuous_stone_cech_extend ht,
   use [h, hh],
-  have H : dense_range (stone_cech_unit : X → stone_cech X),
-  { rw dense_range_iff_closure_range, exact dense.closure_eq dense_range_stone_cech_unit },
-  --extract lemma `stone_cech_unit_dense` to prove this with `exact stone_cech_unit_dense`?
   apply H.equalizer (hg.comp hh) hf,
   rw [comp.assoc, stone_cech_extend_extends ht, ← comp.assoc, hs, comp.left_id],
 end

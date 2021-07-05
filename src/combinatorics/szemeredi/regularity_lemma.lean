@@ -5,9 +5,9 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.special_functions.exp_log
 import analysis.special_functions.pow
+import combinatorics.choose.bounds
 import combinatorics.simple_graph.basic
 import order.iterate
-import tactic.slim_check
 
 /-!
 # Szemerédi's Regularity Lemma
@@ -222,7 +222,7 @@ begin
   apply hf ha₁ ha₂
 end
 
-lemma equitable_iff_almost_eq_constant {α : Type*} (s : set α) (f : α → ℕ) :
+lemma equitable_on_iff_almost_eq_constant {α : Type*} (s : set α) (f : α → ℕ) :
   equitable_on s f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
 begin
   classical,
@@ -253,7 +253,7 @@ lemma equitable_on_finset_iff_eq_average {α : Type*} (s : finset α) (f : α �
   equitable_on (s : set α) f ↔
     ∀ a ∈ s, f a = (∑ i in s, f i) / s.card ∨ f a = (∑ i in s, f i) / s.card + 1 :=
 begin
-  rw equitable_iff_almost_eq_constant,
+  rw equitable_on_iff_almost_eq_constant,
   refine ⟨_, λ h, ⟨_, h⟩ ⟩,
   rintro ⟨b, hb⟩,
   by_cases h : ∀ a ∈ s, f a = b+1,
@@ -782,20 +782,6 @@ lemma index_nonneg (P : finpartition_on s) :
   0 ≤ P.index G :=
 div_nonneg (finset.sum_nonneg (λ _ _, sq_nonneg _)) (sq_nonneg _)
 
--- TODO: change for `choose_le_pow` once PR has landed
-lemma nat.choose_le_pow (n k : ℕ) : (n.choose k : ℝ) ≤ n^k / (k.factorial) :=
-begin
-  sorry
-  /-rw le_div_iff (show 0 < (2:ℝ), by norm_num),
-  norm_cast,
-  induction n with n ih,
-  { simp },
-  { rw [nat.choose_succ_succ, nat.choose_one_right, add_mul],
-    apply le_trans (add_le_add_left ih _) _,
-    rw [nat.succ_eq_one_add, add_sq, one_pow, add_assoc, mul_one, mul_comm 2 n],
-    apply nat.le_add_left, }-/
-end
-
 lemma index_le_half (P : finpartition_on s) :
   P.index G ≤ 1/2 :=
 begin
@@ -868,7 +854,7 @@ namespace discrete_finpartition_on
 variables {V : Type u} [decidable_eq V] (s : finset V) (G : simple_graph V)
 
 lemma is_equipartition : (discrete_finpartition_on s).is_equipartition :=
-(equitable_iff_almost_eq_constant _ _).2 ⟨1, by simp⟩
+(equitable_on_iff_almost_eq_constant _ _).2 ⟨1, by simp⟩
 
 protected lemma size : (discrete_finpartition_on s).size = s.card :=
 begin
@@ -955,7 +941,7 @@ begin
     rwa singleton_inj at t }
 end
 
-lemma mk_equitable_aux (m a b : ℕ) (hs : a*m + b*(m+1) = s.card) (A : finset (finset α))
+lemma mk_equitable_aux {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset (finset α))
   (all : ∀ x ∈ s, ∃ y ∈ A, x ∈ y)
   (disj : ∀ (x₁ x₂ ∈ A) i, i ∈ x₁ → i ∈ x₂ → x₁ = x₂)
   (subs : ∀ i ∈ A, i ⊆ s) :
@@ -997,7 +983,7 @@ begin
     have : p'.nonempty,
     { rwa [←card_pos, hp'₂] },
     obtain ⟨P', hP'₁, hP'₂, hP'₃, hP'₄, hP'₅, hP'₆⟩ :=
-      ih (s \ p')
+      @ih (s \ p')
       (sdiff_ssubset (finset.subset.trans hp'₁ (subs _ hp₁)) ‹p'.nonempty›)
       (insert (p \ p') (A.erase p))
       (if 0 < a then a-1 else a)
@@ -1085,7 +1071,7 @@ begin
   have : s'.nonempty,
   { rwa [←card_pos, hs'₂] },
   obtain ⟨P', hP'₁, hP'₂, hP'₃, hP'₄, hP'₅, hP'₆⟩ :=
-    ih (s \ s')
+    @ih (s \ s')
     (sdiff_ssubset hs'₁ ‹s'.nonempty›)
     (A.image (λ t, t \ s'))
     (if 0 < a then a-1 else a)
@@ -1145,6 +1131,8 @@ begin
   exact (mem_sdiff.1 (hP'₅ _ t hi)).2 hi,
 end.
 
+namespace finpartition_on
+
 /--
 Given a partition `Q` of `s`, as well as a proof that `a*m + b*(m+1) = s.card`, build a new
 partition `P` of `s` where each part has size `m` or `m+1`, every part of `Q` is the union of
@@ -1153,77 +1141,97 @@ parts of `P` plus at most `m` extra elements, there are `b` parts of size `m+1` 
 The `m > 0` condition is required since there may be zero or one parts of size `0`, while `a` could
 be arbitrary.
 -/
-lemma mk_equitable {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (Q : finpartition_on s) :
-  ∃ (P : finpartition_on s),
-    (∀ (x : finset α), x ∈ P.parts → x.card = m ∨ x.card = m+1) ∧
-    P.is_equipartition ∧
-    (∀ x ∈ Q.parts, (x \ finset.bUnion (P.parts.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
-    ((P.parts.filter (λ i, finset.card i = m+1)).card = b) ∧
-    (0 < m → (P.parts.filter (λ i, finset.card i = m)).card = a ∧ P.size = a+b) :=
+noncomputable def mk_equitable (Q : finpartition_on s) {m a b : ℕ}
+  (h : a*m + b*(m+1) = s.card) :
+  finpartition_on s :=
 begin
-  obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅, hP₆⟩ :=
-    mk_equitable_aux m a b hs Q.parts Q.covering Q.disjoint Q.subset,
-  have hP₄' : ∀ (a₁ a₂ ∈ P.erase ∅) (x : α), x ∈ a₁ → x ∈ a₂ → a₁ = a₂,
-  { intros a₁ a₂ ha₁ ha₂ x hx₁ hx₂,
-    apply hP₄ a₁ a₂ (erase_subset _ _ ha₁) (erase_subset _ _ ha₂) x hx₁ hx₂ },
-  have hP₃' : ∀ u ∈ s, (∃ (a ∈ P.erase ∅), u ∈ a),
-  { intros u hu,
-    obtain ⟨a, ha₁, ha₂⟩ := hP₃ u hu,
-    refine ⟨a, _, ha₂⟩,
-    simp only [mem_erase, ha₁, and_true, ←nonempty_iff_ne_empty],
-    exact ⟨_, ha₂⟩ },
-  have hP₅' : ∀ u ∈ P.erase ∅, u ⊆ s,
-  { intros u hu,
-    apply hP₅ _ (erase_subset _ _ hu) },
-  let P' : finpartition_on s := ⟨P.erase ∅, hP₄', hP₃', hP₅', not_mem_erase _ _⟩,
-  have hP₆' : (P'.parts.filter (λ (i : finset α), i.card = m + 1)).card = b,
-  { convert hP₆ using 2,
-    ext i,
-    simp only [mem_filter, and_iff_right_iff_imp, mem_erase, and.congr_left_iff,
-      ←nonempty_iff_ne_empty, ←card_pos],
-    rintro t -,
-    rw t,
-    simp },
-  have h₂ :
-    P'.parts.filter (λ i, i.card = m) ∪ P'.parts.filter (λ i, i.card = m+1) = P'.parts,
-  { rw [←filter_or, filter_true_of_mem (λ x hx, hP₁ x (erase_subset _ _ hx))] },
-  have h₃ : disjoint (P'.parts.filter (λ i, i.card = m)) (P'.parts.filter (λ i, i.card = m+1)),
-  { simp only [disjoint_left, and_imp, mem_filter, not_and],
-    intros x hx₁ hx₂ hx₃,
-    rw hx₂,
-    simp },
-  have h₄ :
-    ∑ i in P'.parts.filter (λ i, finset.card i = m), i.card +
-      ∑ i in P'.parts.filter (λ i, finset.card i = m+1), i.card =
-        s.card,
-  { rw [←sum_union h₃, h₂, ←P'.sum_card_parts, finset.sum_erase],
-    simp },
-  have hm : ∀ (x : finset α), x ∈ filter (λ (i : finset α), i.card = m) P'.parts → x.card = m,
-  { simp },
-  have hm' : ∀ (x : finset α), x ∈ filter (λ (i : finset α), i.card = m+1) P'.parts → x.card = m+1,
-  { simp },
-  rw [sum_const_nat hm, sum_const_nat hm', hP₆', ←hs] at h₄, --, hP₆, ←hs] at h₄,
-  simp only [add_left_inj, mul_eq_mul_right_iff] at h₄,
-  refine ⟨P', _, _, _, hP₆', _⟩,
-  { intros x hx,
-    exact hP₁ x (erase_subset _ _ hx) },
-  { change equitable_on _ _,
-    rw equitable_iff_almost_eq_constant,
-    exact ⟨m, λ x hx, hP₁ x (erase_subset _ _ hx)⟩ },
-  { intros x hx,
-    apply le_trans (card_le_of_subset _) (hP₂ x hx),
-    intros i,
-    simp only [not_exists, mem_bUnion, and_imp, mem_filter, mem_sdiff, id.def, mem_erase, ne.def],
-    intros hi ih,
-    refine ⟨hi, λ a ha₁ ha₂, _⟩,
-    rcases eq_or_ne a ∅ with rfl | ha,
-    { simp },
-    apply ih _ ha ha₁ ha₂ },
-  intro h,
-  refine ⟨h₄.resolve_right h.ne', _⟩,
-  change P'.parts.card = _,
-  rw [←h₂, card_disjoint_union h₃, h₄.resolve_right h.ne', hP₆'],
+  let P := classical.some (mk_equitable_aux h Q.parts Q.covering Q.disjoint Q.subset),
+  have hP := classical.some_spec (mk_equitable_aux h Q.parts Q.covering Q.disjoint Q.subset),
+  refine ⟨P.erase ∅,
+    λ a b ha hb x hxa hxb, hP.2.2.2.1 a b (erase_subset _ _ ha) (erase_subset _ _ hb) x hxa hxb,
+    λ u hu, _, λ u hu, hP.2.2.2.2.1 _ (erase_subset _ _ hu), not_mem_erase _ _⟩,
+  obtain ⟨a, ha, hua⟩ := hP.2.2.1 u hu,
+  exact ⟨a, mem_erase.2 ⟨nonempty_iff_ne_empty.1 ⟨u, hua⟩, ha⟩, hua⟩,
 end
+
+lemma card_eq_of_mem_parts_mk_equitable {Q : finpartition_on s} {m a b : ℕ}
+  (h : a*m + b*(m+1) = s.card) {u : finset α} (hu : u ∈ (Q.mk_equitable h).parts) :
+  u.card = m ∨ u.card = m + 1 :=
+(classical.some_spec (mk_equitable_aux h Q.parts Q.covering Q.disjoint Q.subset)).1
+  u (mem_of_mem_erase hu)
+
+lemma mk_equitable.is_equipartition (Q : finpartition_on s) {m a b : ℕ}
+  (h : a*m + b*(m+1) = s.card) :
+  (Q.mk_equitable h).is_equipartition :=
+begin
+  rw [is_equipartition, equitable_on_iff_almost_eq_constant],
+  exact ⟨m, λ u hu, card_eq_of_mem_parts_mk_equitable h hu⟩,
+end
+
+lemma card_filter_mk_equitable_big (Q : finpartition_on s) {m a b : ℕ}
+  (h : a*m + b*(m+1) = s.card) :
+  ((Q.mk_equitable h).parts.filter (λ u : finset α, u.card = m + 1)).card = b :=
+begin
+  convert (classical.some_spec (mk_equitable_aux h Q.parts Q.covering Q.disjoint
+    Q.subset)).2.2.2.2.2 using 2,
+  ext u,
+  rw [mem_filter, mem_filter, finpartition_on.mk_equitable, mem_erase, and_assoc,
+    and_iff_right_iff_imp],
+  rintro hu rfl,
+  rw finset.card_empty at hu,
+  exact nat.succ_ne_zero _ hu.2.symm,
+end
+
+lemma card_filter_mk_equitable_small (Q : finpartition_on s) {m a b : ℕ} (hm : 0 < m)
+  (h : a*m + b*(m+1) = s.card) :
+  ((Q.mk_equitable h).parts.filter (λ u : finset α, u.card = m)).card = a :=
+begin
+  refine (mul_eq_mul_right_iff.1 $ (add_left_inj $ b * (m + 1)).1 _).resolve_right hm.ne.symm,
+  rw [h, ←(Q.mk_equitable h).sum_card_parts],
+  have hunion : (Q.mk_equitable h).parts = (Q.mk_equitable h).parts.filter (λ u, u.card = m) ∪
+    (Q.mk_equitable h).parts.filter (λ u, u.card = m + 1),
+  { rw [←filter_or, filter_true_of_mem],
+    exact λ x hx, card_eq_of_mem_parts_mk_equitable h hx },
+  nth_rewrite 1 hunion,
+  rw [sum_union, sum_const_nat (λ x hx, (mem_filter.1 hx).2),
+    sum_const_nat (λ x hx, (mem_filter.1 hx).2), Q.card_filter_mk_equitable_big],
+  refine λ x hx, nat.succ_ne_self m _,
+  rw [inf_eq_inter, mem_inter, mem_filter, mem_filter] at hx,
+  rw [nat.succ_eq_add_one, ←hx.2.2, hx.1.2],
+end
+
+lemma mk_equitable.size {Q : finpartition_on s} {m a b : ℕ} (hm : 0 < m)
+  (h : a * m + b * (m + 1) = s.card) :
+  (Q.mk_equitable h).size = a + b :=
+begin
+  have hunion : (Q.mk_equitable h).parts = (Q.mk_equitable h).parts.filter (λ u, u.card = m) ∪
+    (Q.mk_equitable h).parts.filter (λ u, u.card = m + 1),
+  { rw [←filter_or, filter_true_of_mem],
+    exact λ x hx, card_eq_of_mem_parts_mk_equitable h hx },
+  rw [finpartition_on.size, hunion, card_union_eq, Q.card_filter_mk_equitable_small hm,
+    Q.card_filter_mk_equitable_big],
+  refine λ x hx, nat.succ_ne_self m _,
+  rw [inf_eq_inter, mem_inter, mem_filter, mem_filter] at hx,
+  rw [nat.succ_eq_add_one, ←hx.2.2, hx.1.2],
+end
+
+lemma almost_in_atoms_of_mem_parts_mk_equitable {Q : finpartition_on s} {m a b : ℕ}
+  (h : a * m + b * (m + 1) = s.card) {u : finset α} (hu : u ∈ Q.parts) :
+  (u \ finset.bUnion ((Q.mk_equitable h).parts.filter (λ x, x ⊆ u)) id).card ≤ m :=
+begin
+  have := (classical.some_spec (mk_equitable_aux h Q.parts Q.covering Q.disjoint
+    Q.subset)).2.1,
+  refine (card_le_of_subset _).trans ((classical.some_spec (mk_equitable_aux h Q.parts Q.covering
+    Q.disjoint Q.subset)).2.1 u hu),
+  intros x,
+  simp only [not_exists, mem_bUnion, and_imp, mem_filter, mem_sdiff, id.def, ne.def],
+  refine λ hxu hx, ⟨hxu, λ a ha hau, _⟩,
+  obtain rfl | hanemp := eq_or_ne a ∅,
+  { exact not_mem_empty _ },
+  exact hx _ (mem_erase.2 ⟨hanemp, ha⟩) hau,
+end
+
+end finpartition_on
 
 end
 
@@ -1494,7 +1502,7 @@ protected lemma is_equipartition (hP : P.is_equipartition) (G : simple_graph V) 
 begin
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
-  rw [is_equipartition, equitable_iff_almost_eq_constant],
+  rw [is_equipartition, equitable_on_iff_almost_eq_constant],
   refine ⟨m, λ A hA, _⟩,
   rw [mem_coe, increment, mem_bind_parts] at hA,
   obtain ⟨U, hU, hA⟩ := hA,

@@ -57,8 +57,6 @@ src/data/qpf/multivariate/basic.lean : line 73 : ERR_LIN : Line has more than 10
 src/data/qpf/multivariate/constructions/cofix.lean : line 38 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/multivariate/constructions/fix.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/univariate/basic.lean : line 35 : ERR_LIN : Line has more than 100 characters
-src/data/real/basic.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/data/real/cau_seq_completion.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/rel.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late

@@ -545,46 +545,43 @@ end
 
 section trim
 
-lemma snorm'_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
-  (hf : @measurable _ _ m _ f) :
-  @snorm' α E m _ f q (μ.trim hm) = snorm' f q μ :=
+variables {β : Type*} {m m0 : measurable_space β} {ν : measure β}
+
+lemma snorm'_trim (hm : m ≤ m0) {f : β → E} (hf : @measurable _ _ m _ f) :
+  @snorm' β E m _ f q (ν.trim hm) = snorm' f q ν :=
 begin
   simp_rw snorm',
   congr' 1,
   refine lintegral_trim hm _,
-  refine @measurable.pow_const α m _ _ _ _ _ _ _ (@measurable.coe_nnreal_ennreal α m _ _) _,
-  exact @measurable.nnnorm E α _ _ _ m _ hf,
+  refine @measurable.pow_const _ m _ _ _ _ _ _ _ (@measurable.coe_nnreal_ennreal _ m _ _) _,
+  exact @measurable.nnnorm E _ _ _ _ m _ hf,
 end
 
-lemma limsup_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
-  {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
-  (@measure.ae α m (μ.trim hm)).limsup f = μ.ae.limsup f :=
+lemma limsup_trim (hm : m ≤ m0) {f : β → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
+  (@measure.ae _ m (ν.trim hm)).limsup f = ν.ae.limsup f :=
 begin
   simp_rw limsup_eq,
-  suffices h_set_eq : {a : ℝ≥0∞ | filter.eventually (λ n, f n ≤ a) (@measure.ae α m (μ.trim hm))}
-      = {a : ℝ≥0∞ | ∀ᵐ (n : α) ∂μ, f n ≤ a},
+  suffices h_set_eq : {a : ℝ≥0∞ | filter.eventually (λ n, f n ≤ a) (@measure.ae _ m (ν.trim hm))}
+      = {a : ℝ≥0∞ | ∀ᵐ n ∂ν, f n ≤ a},
     by rw h_set_eq,
   ext1 a,
-  suffices h_meas_eq : μ {x | ¬ f x ≤ a} = μ.trim hm {x | ¬ f x ≤ a},
+  suffices h_meas_eq : ν {x | ¬ f x ≤ a} = ν.trim hm {x | ¬ f x ≤ a},
     by simp_rw [set.mem_set_of_eq, ae_iff, h_meas_eq],
   refine (trim_measurable_set_eq hm _).symm,
-  refine @measurable_set.compl α _ m (@measurable_set_le ℝ≥0∞ α _ _ _ m _ _ _ _ _ hf _),
-  exact @measurable_const _ α _ m _,
+  refine @measurable_set.compl _ _ m (@measurable_set_le ℝ≥0∞ _ _ _ _ m _ _ _ _ _ hf _),
+  exact @measurable_const _ _ _ m _,
 end
 
-lemma ess_sup_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
-  {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
-  @ess_sup α _ m _ f (μ.trim hm) = ess_sup f μ :=
+lemma ess_sup_trim (hm : m ≤ m0) {f : β → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
+  @ess_sup _ _ m _ f (ν.trim hm) = ess_sup f ν :=
 by { simp_rw ess_sup, exact limsup_trim hm hf, }
 
-lemma snorm_ess_sup_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
-  {f : α → E} (hf : @measurable _ _ m _ f) :
-  @snorm_ess_sup α E m _ f (μ.trim hm) = snorm_ess_sup f μ :=
-ess_sup_trim hm (@measurable.coe_nnreal_ennreal α m _ (@measurable.nnnorm E α _ _ _ m _ hf))
+lemma snorm_ess_sup_trim (hm : m ≤ m0) {f : β → E} (hf : @measurable _ _ m _ f) :
+  @snorm_ess_sup _ E m _ f (ν.trim hm) = snorm_ess_sup f ν :=
+ess_sup_trim hm (@measurable.coe_nnreal_ennreal _ m _ (@measurable.nnnorm E _ _ _ _ m _ hf))
 
-lemma snorm_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
-  (hf : @measurable _ _ m _ f) :
-  @snorm α E m _ f p (μ.trim hm) = snorm f p μ :=
+lemma snorm_trim (hm : m ≤ m0) {f : β → E} (hf : @measurable _ _ m _ f) :
+  @snorm _ E m _ f p (ν.trim hm) = snorm f p ν :=
 begin
   by_cases h0 : p = 0,
   { simp [h0], },
@@ -592,6 +589,21 @@ begin
   { simpa only [h_top, snorm_exponent_top] using snorm_ess_sup_trim hm hf, },
   simpa only [snorm_eq_snorm' h0 h_top] using snorm'_trim hm hf,
 end
+
+lemma snorm_trim_ae (hm : m ≤ m0) {f : β → E} (hf : @ae_measurable _ _ m _ f (ν.trim hm)) :
+  @snorm _ E m _ f p (ν.trim hm) = snorm f p ν :=
+begin
+  let g := @ae_measurable.mk _ _ m _ _ _ hf,
+  have hg_meas : @measurable _ _ m _ g, from @ae_measurable.measurable_mk _ _ m _ _ _ hf,
+  have hfg := @ae_measurable.ae_eq_mk _ _ m _ _ _ hf,
+  rw @snorm_congr_ae _ _ m _ _ _ _ _ hfg,
+  rw snorm_congr_ae (ae_eq_of_ae_eq_trim hfg),
+  exact snorm_trim hm hg_meas,
+end
+
+lemma mem_ℒp_of_mem_ℒp_trim (hm : m ≤ m0) {f : β → E} (hf : @mem_ℒp _ E m _ _ f p (ν.trim hm)) :
+  mem_ℒp f p ν :=
+⟨ae_measurable_of_ae_measurable_trim hm hf.1, (le_of_eq (snorm_trim_ae hm hf.1).symm).trans_lt hf.2⟩
 
 end trim
 

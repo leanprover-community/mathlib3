@@ -554,8 +554,8 @@ begin
   simp_rw snorm',
   congr' 1,
   refine lintegral_trim hm _,
-  refine @measurable.pow_const _ _ α _ _ _ _ m _ (@measurable.coe_nnreal_ennreal _ m _ _) _,
-  exact @measurable.nnnorm E α _ _ _ m _ hf,
+  refine @measurable.pow_const _ _ _ _ _ _ _ m _ (@measurable.coe_nnreal_ennreal _ m _ _) _,
+  exact @measurable.nnnorm E _ _ _ _ m _ hf,
 end
 
 lemma limsup_trim (hm : m ≤ m0) {f : β → ℝ≥0∞} (hf : @measurable _ _ m _ f) :

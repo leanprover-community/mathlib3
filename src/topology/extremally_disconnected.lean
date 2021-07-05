@@ -65,8 +65,7 @@ lemma stone_cech.projective [discrete_topology X] : compact_t2.projective (stone
 begin
   introsI Y Z _tsY _tsZ _csY _t2Y _csZ _csZ f g hf hg g_sur,
   have H : dense_range (stone_cech_unit : X → stone_cech X),
-  { rw dense_range_iff_closure_range, exact dense.closure_eq dense_range_stone_cech_unit },
-  --extract lemma `stone_cech_unit_dense` to prove this with `exact stone_cech_unit_dense`?
+  { rw dense_range_iff_closure_range, exact stone_cech_unit_dense },
   let s : Z → Y := λ z, classical.some $ g_sur z,
   have hs : g ∘ s = id := funext (λ z, classical.some_spec (g_sur z)),
   let t := s ∘ f ∘ stone_cech_unit,

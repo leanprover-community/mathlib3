@@ -354,7 +354,7 @@ def det_invertible_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : inve
 
 /-- If `A` has a constructive inverse, produce one for `A.det`. -/
 def det_invertible_of_invertible [invertible A] : invertible A.det :=
-det_invertible_of_left_inverse A (⅟A) $ by rw [←matrix.mul_eq_mul, inv_of_mul_self]
+det_invertible_of_left_inverse A (⅟A) (inv_of_mul_self _)
 
 /-- Given a proof that `A.det` has a constructive inverse, lift `A` to `units (matrix n n α)`-/
 def unit_of_det_invertible [invertible A.det] : units (matrix n n α) :=

@@ -45,7 +45,7 @@ section
 include X
 /--  The assertion `compact_t2.projective` states that given continuous maps
 `f : X → Z` and `g : Y → Z` with `g` surjective between `t_2`, compact topological spaces,
-there exists a continuous lift `h : X → Y`, such that `f = g ∘ f`. -/
+there exists a continuous lift `h : X → Y`, such that `f = g ∘ h`. -/
 def compact_t2.projective : Prop :=
   Π {Y Z : Type u} [topological_space Y] [topological_space Z],
   by exactI Π [compact_space Y] [t2_space Y] [compact_space Z] [t2_space Z],

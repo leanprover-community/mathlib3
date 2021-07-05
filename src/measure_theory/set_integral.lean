@@ -539,18 +539,18 @@ variables [borel_space E] [second_countable_topology E] [complete_space E] [norm
   [measurable_space 𝕜] [borel_space 𝕜]
 
 @[norm_cast] lemma integral_of_real {f : α → ℝ} : ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm (@is_R_or_C.of_real_li 𝕜 _) f
+(@is_R_or_C.of_real_li 𝕜 _).integral_comp_comm f
 
 lemma integral_re {f : α → 𝕜} (hf : integrable f μ) :
   ∫ a, is_R_or_C.re (f a) ∂μ = is_R_or_C.re ∫ a, f a ∂μ :=
-continuous_linear_map.integral_comp_comm (@is_R_or_C.re_clm 𝕜 _) hf
+(@is_R_or_C.re_clm 𝕜 _).integral_comp_comm hf
 
 lemma integral_im {f : α → 𝕜} (hf : integrable f μ) :
   ∫ a, is_R_or_C.im (f a) ∂μ = is_R_or_C.im ∫ a, f a ∂μ :=
-continuous_linear_map.integral_comp_comm (@is_R_or_C.im_clm 𝕜 _) hf
+(@is_R_or_C.im_clm 𝕜 _).integral_comp_comm hf
 
 lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm (@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry f
+(@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

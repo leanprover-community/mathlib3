@@ -128,14 +128,9 @@ end from_cartan_matrix
 
 Note that it is defined for any matrix of integers. Its value for non-Cartan matrices should be
 regarded as junk. -/
+@[derive [lie_ring, lie_algebra R]] 
 def from_cartan_matrix :=
 (from_cartan_matrix.relations.to_ideal R cartan_matrix).quotient
-
-instance : lie_ring (from_cartan_matrix R cartan_matrix) :=
-lie_submodule.quotient.lie_quotient_lie_ring
-
-instance : lie_algebra R (from_cartan_matrix R cartan_matrix) :=
-lie_submodule.quotient.lie_quotient_lie_algebra
 
 instance (A : matrix B B ℤ) : inhabited (lie_algebra.from_cartan_matrix R A) := ⟨0⟩
 

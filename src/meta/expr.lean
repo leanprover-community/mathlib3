@@ -703,7 +703,7 @@ get_app_fn_args_aux []
 
 /-- `drop_pis es e` instantiates the pis in `e` with the expressions from `es`. -/
 meta def drop_pis : list expr → expr → tactic expr
-| (list.cons v vs) (pi n bi d b) := do
+| (v :: vs) (pi n bi d b) := do
   t ← infer_type v,
   guard (t =ₐ d),
   drop_pis vs (b.instantiate_var v)
@@ -713,7 +713,7 @@ meta def drop_pis : list expr → expr → tactic expr
 /-- `instantiate_pis es e` instantiates the pis in `e` with the expressions from `es`.
   Does not check whether the result remains type-correct. -/
 meta def instantiate_pis : list expr → expr → expr
-| (list.cons v vs) (pi n bi d b) := instantiate_pis vs (b.instantiate_var v)
+| (v :: vs) (pi n bi d b) := instantiate_pis vs (b.instantiate_var v)
 | _ e := e
 
 /-- `mk_op_lst op empty [x1, x2, ...]` is defined as `op x1 (op x2 ...)`.
@@ -832,7 +832,7 @@ return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip
 /-- Auxilliary function for `head_eta_expand`. -/
 meta def head_eta_expand_aux : ℕ → expr → expr → expr
 | (n+1) e (pi x bi d b) :=
-lam x bi d $ head_eta_expand_aux n e b
+  lam x bi d $ head_eta_expand_aux n e b
 | _ e _ := e
 
 /-- `head_eta_expand n e t` eta-expands `e` `n` times, with the binders info and domains obtained
@@ -844,23 +844,24 @@ meta def head_eta_expand (n : ℕ) (e t : expr) : expr :=
 `dict`. They are expanded until they are applied to one more argument than the maximum in
 `dict.find n`. -/
 protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) : expr → expr
-| e := e.replace $ λ e _,
-  let (e0, es) := e.get_app_fn_args in
-  let ns := (dict.find e0.const_name).iget in
-  if ns = [] then none else
-  let e' := e0.mk_app $ es.map eta_expand in
-  let needed_n := ns.foldr max 0 + 1 in
-  if needed_n ≤ es.length then
-  some e' else do
-  e'_type ← (e'.simple_infer_type env).to_option,
-  some $ head_eta_expand (needed_n - es.length) e' e'_type
+| e := e.replace $ λ e _, do
+  let (e0, es) := e.get_app_fn_args,
+  let ns := (dict.find e0.const_name).iget,
+  guard (bnot ns.empty),
+  let e' := e0.mk_app $ es.map eta_expand,
+  let needed_n := ns.foldr max 0 + 1,
+  if needed_n ≤ es.length then some e'
+  else do
+    e'_type ← (e'.simple_infer_type env).to_option,
+    some $ head_eta_expand (needed_n - es.length) e' e'_type
 
 /--
 `e.apply_replacement_fun f test` applies `f` to each identifier
 (inductive type, defined function etc) in an expression, unless
 * The identifier occurs in an application with first argument `arg`; and
 * `test arg` is false.
-* Reorder contains the information about what arguments to reorder.
+* Reorder contains the information about what arguments to reorder:
+  e.g. `g x₁ x₂ x₃ ... xₙ` becomes `g x₂ x₁ x₃ ... xₙ` if `reorder.find g = some [1]`.
   We assume that all functions where we want to reorder arguments are fully applied.
   This can be done by applying `expr.eta_expand` first.
 -/
@@ -869,7 +870,6 @@ protected meta def apply_replacement_fun (f : name → name) (test : expr → bo
 | e := e.replace $ λ e _,
   match e with
   | const n ls := some $ const (f n) $
-      -- hack:
       -- if the first two arguments are reordered, we also reorder the first two universe parameters
       if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
   | app g x :=

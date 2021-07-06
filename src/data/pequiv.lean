@@ -158,13 +158,27 @@ variables (s : set α) [decidable_pred (∈ s)]
 def of_set (s : set α) [decidable_pred (∈ s)] : α ≃. α :=
 { to_fun := λ a, if a ∈ s then some a else none,
   inv_fun := λ a, if a ∈ s then some a else none,
-  inv := λ a b, by split_ifs; finish [eq_comm] }
+  inv := λ a b, by {
+    split_ifs with hb ha ha,
+    { simp [eq_comm] },
+    { simp [ne_of_mem_of_not_mem hb ha] },
+    { simp [ne_of_mem_of_not_mem ha hb] },
+    { simp } } }
 
 lemma mem_of_set_self_iff {s : set α} [decidable_pred (∈ s)] {a : α} : a ∈ of_set s a ↔ a ∈ s :=
 by dsimp [of_set]; split_ifs; simp *
 
 lemma mem_of_set_iff {s : set α} [decidable_pred (∈ s)] {a b : α} : a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
-by dsimp [of_set]; split_ifs; split; finish
+begin
+  dsimp [of_set],
+  split_ifs,
+  { simp only [iff_self_and, option.mem_def, eq_comm],
+    rintro rfl,
+    exact h, },
+  { simp only [false_iff, not_and, option.not_mem_none],
+    rintro rfl,
+    exact h, }
+end
 
 @[simp] lemma of_set_eq_some_iff {s : set α} {h : decidable_pred (∈ s)} {a b : α} :
   of_set s b = some a ↔ a = b ∧ a ∈ s := mem_of_set_iff

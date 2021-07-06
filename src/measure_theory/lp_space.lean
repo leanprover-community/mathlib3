@@ -7,6 +7,7 @@ import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import measure_theory.mean_inequalities
 import topology.continuous_function.compact
+import analysis.normed_space.indicator_function
 
 /-!
 # ℒp space and Lp space
@@ -1297,6 +1298,151 @@ lemma to_Lp_const_smul {f : α → E} (c : 𝕜) (hf : mem_ℒp f p μ) :
   (hf.const_smul c).to_Lp (c • f) = c • hf.to_Lp f := rfl
 
 end mem_ℒp
+
+/-! ### Indicator of a set as an element of Lᵖ
+
+For a set `s` with `(hs : measurable_set s)` and `(hμs : μ s < ∞)`, we build
+`indicator_const_Lp p hs hμs c`, the element of `Lp` corresponding to `s.indicator (λ x, c)`.
+-/
+
+section indicator
+
+variables {s : set α} {hs : measurable_set s} {c : E} {f : α → E} {hf : ae_measurable f μ}
+
+lemma snorm_ess_sup_indicator_le (s : set α) (f : α → G) :
+  snorm_ess_sup (s.indicator f) μ ≤ snorm_ess_sup f μ :=
+begin
+  refine ess_sup_mono_ae (eventually_of_forall (λ x, _)),
+  rw [ennreal.coe_le_coe, nnnorm_indicator_eq_indicator_nnnorm],
+  exact set.indicator_le_self s _ x,
+end
+
+lemma snorm_ess_sup_indicator_const_le (s : set α) (c : G) :
+  snorm_ess_sup (s.indicator (λ x : α , c)) μ ≤ ∥c∥₊ :=
+begin
+  by_cases hμ0 : μ = 0,
+  { rw [hμ0, snorm_ess_sup_measure_zero, ennreal.coe_nonneg],
+    exact zero_le', },
+  { exact (snorm_ess_sup_indicator_le s (λ x, c)).trans (snorm_ess_sup_const c hμ0).le, },
+end
+
+lemma snorm_ess_sup_indicator_const_eq (s : set α) (c : G) (hμs : μ s ≠ 0) :
+  snorm_ess_sup (s.indicator (λ x : α , c)) μ = ∥c∥₊ :=
+begin
+  refine le_antisymm (snorm_ess_sup_indicator_const_le s c) _,
+  by_contra h,
+  push_neg at h,
+  have h' := ae_iff.mp (ae_lt_of_ess_sup_lt h),
+  push_neg at h',
+  refine hμs (measure_mono_null (λ x hx_mem, _) h'),
+  rw [set.mem_set_of_eq, set.indicator_of_mem hx_mem],
+  exact le_rfl,
+end
+
+lemma snorm_indicator_const {c : G} (hs : measurable_set s) (hp : p ≠ 0) (hp_top : p ≠ ∞) :
+  snorm (s.indicator (λ x, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=
+begin
+  have hp_pos : 0 < p.to_real,
+    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp.symm, hp_top⟩,
+  rw snorm_eq_lintegral_rpow_nnnorm hp hp_top,
+  simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
+  have h_indicator_pow : (λ a : α, s.indicator (λ (x : α), (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
+    = s.indicator (λ (x : α), ↑∥c∥₊ ^ p.to_real),
+  { rw set.comp_indicator_const (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _,
+    simp [hp_pos], },
+  rw [h_indicator_pow, lintegral_indicator _ hs, set_lintegral_const, ennreal.mul_rpow_of_nonneg],
+  { rw [← ennreal.rpow_mul, mul_one_div_cancel hp_pos.ne.symm, ennreal.rpow_one], },
+  { simp [hp_pos.le], },
+end
+
+lemma snorm_indicator_const' {c : G} (hs : measurable_set s) (hμs : μ s ≠ 0) (hp : p ≠ 0) :
+  snorm (s.indicator (λ _, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=
+begin
+  by_cases hp_top : p = ∞,
+  { simp [hp_top, snorm_ess_sup_indicator_const_eq s c hμs], },
+  { exact snorm_indicator_const hs hp hp_top, },
+end
+
+lemma mem_ℒp_indicator_const (p : ℝ≥0∞) (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s ≠ ∞) :
+  mem_ℒp (s.indicator (λ _, c)) p μ :=
+begin
+  cases hμsc with hc hμs,
+  { simp only [hc, set.indicator_zero],
+    exact zero_mem_ℒp, },
+  refine ⟨(ae_measurable_indicator_iff hs).mpr ae_measurable_const, _⟩,
+  by_cases hp0 : p = 0,
+  { simp only [hp0, snorm_exponent_zero, with_top.zero_lt_top], },
+  by_cases hp_top : p = ∞,
+  { rw [hp_top, snorm_exponent_top],
+    exact (snorm_ess_sup_indicator_const_le s c).trans_lt ennreal.coe_lt_top, },
+  have hp_pos : 0 < p.to_real,
+    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) (ne.symm hp0), hp_top⟩,
+  rw snorm_lt_top_iff_lintegral_rpow_nnnorm_lt_top hp0 hp_top,
+  simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
+  have h_indicator_pow : (λ a : α, s.indicator (λ _, (∥c∥₊ : ℝ≥0∞)) a ^ p.to_real)
+    = s.indicator (λ _, ↑∥c∥₊ ^ p.to_real),
+  { rw set.comp_indicator_const (∥c∥₊ : ℝ≥0∞) (λ x, x ^ p.to_real) _, simp [hp_pos], },
+  rw [h_indicator_pow, lintegral_indicator _ hs, set_lintegral_const],
+  refine ennreal.mul_lt_top _ (lt_top_iff_ne_top.mpr hμs),
+  exact ennreal.rpow_lt_top_of_nonneg hp_pos.le ennreal.coe_ne_top,
+end
+
+end indicator
+
+section indicator_const_Lp
+variables {s : set α} {hs : measurable_set s} {hμs : μ s ≠ ∞} {c : E}
+  [borel_space E] [second_countable_topology E]
+
+/-- Indicator of a set as an element of `Lp`. -/
+def indicator_const_Lp (p : ℝ≥0∞) (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) : Lp E p μ :=
+mem_ℒp.to_Lp (s.indicator (λ _, c)) (mem_ℒp_indicator_const p hs c (or.inr hμs))
+
+lemma indicator_const_Lp_coe_fn : ⇑(indicator_const_Lp p hs hμs c) =ᵐ[μ] s.indicator (λ _, c) :=
+mem_ℒp.coe_fn_to_Lp (mem_ℒp_indicator_const p hs c (or.inr hμs))
+
+lemma indicator_const_Lp_coe_fn_mem :
+  ∀ᵐ (x : α) ∂μ, x ∈ s → indicator_const_Lp p hs hμs c x = c :=
+indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_mem hxs _))
+
+lemma indicator_const_Lp_coe_fn_nmem :
+  ∀ᵐ (x : α) ∂μ, x ∉ s → indicator_const_Lp p hs hμs c x = 0 :=
+indicator_const_Lp_coe_fn.mono (λ x hx hxs, hx.trans (set.indicator_of_not_mem hxs _))
+
+lemma norm_indicator_const_Lp (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+  ∥indicator_const_Lp p hs hμs c∥ = ∥c∥ * (μ s).to_real ^ (1 / p.to_real) :=
+by rw [Lp.norm_def, snorm_congr_ae indicator_const_Lp_coe_fn,
+    snorm_indicator_const hs hp_ne_zero hp_ne_top, ennreal.to_real_mul, ennreal.to_real_rpow,
+    ennreal.coe_to_real, coe_nnnorm]
+
+lemma norm_indicator_const_Lp_top (hμs_ne_zero : μ s ≠ 0) : ∥indicator_const_Lp ∞ hs hμs c∥ = ∥c∥ :=
+by rw [Lp.norm_def, snorm_congr_ae indicator_const_Lp_coe_fn,
+    snorm_indicator_const' hs hμs_ne_zero ennreal.top_ne_zero, ennreal.top_to_real, div_zero,
+    ennreal.rpow_zero, mul_one, ennreal.coe_to_real, coe_nnnorm]
+
+lemma norm_indicator_const_Lp' (hp_pos : p ≠ 0) (hμs_pos : μ s ≠ 0) :
+  ∥indicator_const_Lp p hs hμs c∥ = ∥c∥ * (μ s).to_real ^ (1 / p.to_real) :=
+begin
+  by_cases hp_top : p = ∞,
+  { rw [hp_top, ennreal.top_to_real, div_zero, real.rpow_zero, mul_one],
+    exact norm_indicator_const_Lp_top hμs_pos, },
+  { exact norm_indicator_const_Lp hp_pos hp_top, },
+end
+
+/-- The indicator of a disjoint union of two sets is the sum of the indicators of the sets. -/
+lemma indicator_const_Lp_disjoint_union {s t : set α} (hs : measurable_set s)
+  (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (c : E) :
+  (indicator_const_Lp p (hs.union ht) ((measure_union_le s t).trans_lt
+      (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hμs, hμt⟩))).ne c)
+    = indicator_const_Lp p hs hμs c + indicator_const_Lp p ht hμt c :=
+begin
+  ext1,
+  refine indicator_const_Lp_coe_fn.trans (eventually_eq.trans _ (Lp.coe_fn_add _ _).symm),
+  refine eventually_eq.trans _
+    (eventually_eq.add indicator_const_Lp_coe_fn.symm indicator_const_Lp_coe_fn.symm),
+  rw set.indicator_union_of_disjoint (set.disjoint_iff_inter_eq_empty.mpr hst) _,
+end
+
+end indicator_const_Lp
 
 end measure_theory
 

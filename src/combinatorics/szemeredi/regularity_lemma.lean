@@ -165,6 +165,76 @@ begin
   exact nat.lt_succ_self _,
 end
 
+namespace finset
+variables {α : Type*}
+  [decidable_pred (λ (ab : α × α), well_ordering_rel ab.fst ab.snd)]
+
+/-- Pairs of parts. We exclude the diagonal, as these do not make sense nor
+behave well in the context of Szemerédi's Regularity Lemma. -/
+def distinct_pairs (s : finset α) :
+  finset (α × α) :=
+(s.product s).filter (λ ab, well_ordering_rel ab.1 ab.2)
+
+variable {s : finset α}
+
+lemma mem_distinct_pairs (a b : α) :
+  (a, b) ∈ s.distinct_pairs ↔ a ∈ s ∧ b ∈ s ∧ well_ordering_rel a b :=
+by rw [distinct_pairs, mem_filter, mem_product, and_assoc]
+
+lemma distinct_pairs_card [decidable_eq α] :
+  s.distinct_pairs.card = s.card.choose 2 :=
+begin
+  let ordered_pairs : finset (α × α) := (s.product s).filter (λ (x : α × α), ¬(x.1 = x.2)),
+  have : ordered_pairs.card = s.card * (s.card - 1),
+  { rw [nat.mul_sub_left_distrib, mul_one],
+    change finset.card (finset.filter _ _) = _,
+    rw [finset.filter_not, card_sdiff (filter_subset _ _), finset.card_product],
+    congr' 1,
+    refine finset.card_congr (λ (x : _ × _) _, x.1) _ _ _,
+    { rintro ⟨x, y⟩ h,
+      simp only [mem_filter, mem_product] at h,
+      apply h.1.1 },
+    { simp only [true_and, prod.forall, mem_filter, mem_product],
+      rintro a b ⟨x, y⟩ ⟨⟨_, _⟩, rfl⟩ ⟨_, rfl : x = y⟩ (rfl : a = x),
+      refl },
+    { simp only [exists_prop, mem_filter, imp_self, exists_and_distrib_right, implies_true_iff,
+        exists_eq_right, exists_eq_right', and_self, prod.exists, mem_product] } },
+  rw [nat.choose_two_right, ←this],
+  symmetry,
+  apply nat.div_eq_of_eq_mul_right (show 0 < 2, by norm_num),
+  have : ∀ x ∈ ordered_pairs,
+    quotient.mk x ∈ ((s.product s).image quotient.mk).filter (λ (a : sym2 α), ¬a.is_diag),
+  { rintro ⟨x, y⟩ hx,
+    simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,
+      prod.exists, mem_product],
+    simp only [mem_filter, mem_product] at hx,
+    refine ⟨⟨_, _, hx.1, or.inl ⟨rfl, rfl⟩⟩, hx.2⟩ },
+  sorry
+  /-
+  rw [card_eq_sum_card_fiberwise, finset.sum_const_nat, mul_comm],
+  rintro ⟨x, y⟩ hxy,
+  simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,
+    prod.exists, mem_product] at hxy,
+  have : x ∈ s ∧ y ∈ s,
+  { rcases hxy with ⟨⟨x, y, ⟨_, _⟩, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩⟩, _⟩;
+    refine ⟨‹_›, ‹_›⟩ },
+  have : filter (λ (z : α × α), ⟦z⟧ = ⟦(x, y)⟧) ordered_pairs = ({(x,y), (y,x)} : finset _),
+  { ext ⟨x₁, y₁⟩,
+    simp only [true_and, mem_filter, mem_insert, mem_product, mem_singleton, sym2.eq_iff,
+      and_iff_right_iff_imp, prod.mk.inj_iff],
+    rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
+    { refine ⟨‹_›, hxy.2⟩, },
+    refine ⟨⟨this.2, this.1⟩, ne.symm hxy.2⟩ },
+  rw [this, card_insert_of_not_mem, card_singleton],
+  simp only [not_and, prod.mk.inj_iff, mem_singleton],
+  rintro rfl,
+  exact hxy.2-/
+end
+
+end finset
+
+open finset
+
 /-! ### Prerequisites for SRL -/.
 
 lemma lemmaB {α : Type*} {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {a b : ℝ}
@@ -511,38 +581,25 @@ variables {V : Type u} [decidable_eq V] (G : simple_graph V) [decidable_rel G.ad
 /- Remnants of what's now under `relation`. The only point for keeping it is to sometimes avoid
 writing `G.adj` and `G.sym` sometimes. -/
 /-- Edge density between two finsets of vertices -/
-noncomputable def density_pair : finset V → finset V → ℝ :=
+noncomputable def edge_density : finset V → finset V → ℝ :=
 pairs_density G.adj
 
-lemma density_pair_comm (U W : finset V) : G.density_pair U W = G.density_pair W U :=
+lemma edge_density_comm (U W : finset V) : G.edge_density U W = G.edge_density W U :=
 pairs_density_comm G.sym U W
 
-lemma density_pair_nonneg (U W : finset V) :
-  0 ≤ G.density_pair U W :=
+lemma edge_density_nonneg (U W : finset V) :
+  0 ≤ G.edge_density U W :=
 pairs_density_nonneg _ U W
 
-lemma density_pair_le_one (U W : finset V) :
-  G.density_pair U W ≤ 1 :=
+lemma edge_density_le_one (U W : finset V) :
+  G.edge_density U W ≤ 1 :=
 pairs_density_le_one _ U W
-
-/-- Edge density between a pair of finsets of vertices. `sym2` variant of `density_pair`. -/
-noncomputable def density_sym2 : sym2 (finset V) → ℝ :=
-quotient.lift (function.uncurry (density_pair G))
-  (by { rintros _ _ ⟨_, _⟩, { refl }, apply density_pair_comm })
-
-lemma density_sym2_nonneg (s : sym2 (finset V)) :
-  0 ≤ G.density_sym2 s :=
-quotient.induction_on s (λ xy, density_pair_nonneg _ _ _)
-
-lemma density_sym2_le_one (s : sym2 (finset V)) :
-  G.density_sym2 s ≤ 1 :=
-quotient.induction_on s (λ xy, density_pair_le_one _ _ _)
 
 /-- A pair of finsets of vertices is ε-uniform iff their edge density is close to the density of any
 big enough pair of subsets. Intuitively, the edges between them are random-like. -/
 def is_uniform (ε : ℝ) (U W : finset V) : Prop :=
 ∀ U', U' ⊆ U → ∀ W', W' ⊆ W → ε * U.card ≤ U'.card → ε * W.card ≤ W'.card →
-abs (density_pair G U' W' - density_pair G U W) < ε
+abs (edge_density G U' W' - edge_density G U W) < ε
 
 /-- If the pair `(U, W)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
 lemma is_uniform_mono {ε ε' : ℝ} {U W : finset V} (h : ε ≤ ε') (hε : is_uniform G ε U W) :
@@ -556,36 +613,20 @@ end
 lemma is_uniform_symmetric (ε : ℝ) : symmetric (is_uniform G ε) :=
 begin
   intros U W h W' hW' U' hU' hW hU,
-  rw density_pair_comm _ W',
-  rw density_pair_comm _ W,
+  rw edge_density_comm _ W',
+  rw edge_density_comm _ W,
   apply h _ hU' _ hW' hU hW,
-end
-
-/-- `sym2` variant of `is_uniform` -/
-def is_uniform_sym2 (ε : ℝ) : sym2 (finset V) → Prop :=
-sym2.from_rel (is_uniform_symmetric G ε)
-
-lemma not_is_uniform_sym2_iff (ε : ℝ) (U W : finset V) :
-  ¬is_uniform_sym2 G ε ⟦(U, W)⟧ ↔ ∃ U' W', U' ⊆ U ∧ W' ⊆ W ∧ ε * U.card ≤ U'.card ∧
-  ε * W.card ≤ W'.card ∧ ε ≤ abs (density_pair G U' W' - density_pair G U W) :=
-begin
-  rw [is_uniform_sym2, sym2.from_rel],
-  simp,
-  rw is_uniform,
-  push_neg,
-  refl,
 end
 
 open_locale classical
 
-/- Extracts a witness of the non-uniformity of `(U, W)`. It uses -/
+/- Extracts a witness of the non-uniformity of `(U, W)`. It uses an arbitrary ordering of
+`finset V` -/
 noncomputable def witness_aux (ε : ℝ) (U W : finset V) : finset V × finset V :=
 dite (U = W ∨ G.is_uniform ε U W) (λ _, (U, W)) (λ h, begin
     unfold is_uniform at h,
     push_neg at h,
-    let U' := classical.some h.2,
-    let W' := classical.some (classical.some_spec h.2).2,
-    exact (U', W'),
+    exact (classical.some h.2, classical.some (classical.some_spec h.2).2),
   end)
 
 /- Extracts a witness of the non-uniformity of `(U, W)`. It uses an arbitrary ordering of
@@ -600,12 +641,10 @@ lemma witness_comm (ε : ℝ) (U W : finset V) :
 begin
   unfold witness,
   obtain h | rfl | h := trichotomous_of well_ordering_rel U W,
-  { rw [if_pos h, if_neg, prod.swap_swap],
-    exact asymm h },
+  { rw [if_pos h, if_neg (asymm h), prod.swap_swap] },
   { rw [witness_aux, if_neg, dif_pos (or.intro_left _ rfl), prod.swap],
     exact _root_.irrefl _ },
-  rw [if_pos h, if_neg],
-  exact asymm h,
+  rw [if_pos h, if_neg (asymm h)],
 end
 
 end simple_graph
@@ -724,7 +763,7 @@ begin
     (finpartition_on.subset _ hcB hx),
 end
 
-/-- An equipartition is a partition whose parts are all the same size, up to a difference of 1. -/
+/-- An equipartition is a partition whose parts are all the same size, up to a difference of `1`. -/
 def is_equipartition : Prop :=
 equitable_on (P.parts : set (finset V)) card
 
@@ -737,58 +776,35 @@ begin
   refl,
 end
 
-/-- `sym2` variant of `equipartition.parts`. We exclude the diagonal, as these do not make sense nor
-behave well in the context of Szemerédi's Regularity Lemma. -/
-def distinct_unordered_parts_sym2 :
-  finset (sym2 (finset V)) :=
-((P.parts.product P.parts).image quotient.mk).filter (λ (a : sym2 _), ¬a.is_diag)
-
-lemma mem_distinct_unordered_parts_sym2 (U W : finset V) :
-  ⟦(U, W)⟧ ∈ P.distinct_unordered_parts_sym2 ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W :=
-begin
-  rw [finpartition_on.distinct_unordered_parts_sym2, finset.mem_filter],
-  simp only [mem_image, exists_prop, sym2.is_diag_iff_proj_eq, sym2.eq_iff, prod.exists,
-    mem_product],
-  split,
-  { rintro ⟨⟨U, W, ⟨_, _⟩, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩⟩, _⟩;
-    exact ⟨‹_›, ‹_›, ‹_›⟩ },
-  rintro ⟨h₁, h₂, h₃⟩,
-  exact ⟨⟨_, _, ⟨h₁, h₂⟩, or.inl ⟨rfl, rfl⟩⟩, h₃⟩,
-end
-
-lemma distinct_unordered_parts_sym2_size :
-  P.distinct_unordered_parts_sym2.card = P.size.choose 2 :=
-by rw [distinct_unordered_parts_sym2, finpartition_on.size, prod_quotient_sym2_not_diag]
-
 variables (G : simple_graph V)
 open_locale classical
 
-noncomputable def non_uniform_parts (ε : ℝ) :
-  finset (sym2 (finset V)) :=
-P.distinct_unordered_parts_sym2.filter (λ a, ¬G.is_uniform_sym2 ε a)
+noncomputable def non_uniform_pairs (ε : ℝ) :
+  finset (finset V × finset V) :=
+(P.parts.product P.parts).filter (λ UW, well_ordering_rel UW.1 UW.2 ∧ ¬G.is_uniform ε UW.1 UW.2)
 
-lemma mem_non_uniform_parts (U W : finset V) (ε : ℝ) :
-  ⟦(U, W)⟧ ∈ P.non_uniform_parts G ε ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W ∧
-  ¬G.is_uniform_sym2 ε ⟦(U, W)⟧ :=
-by rw [non_uniform_parts, mem_filter, mem_distinct_unordered_parts_sym2, and_assoc, and_assoc]
+lemma mem_non_uniform_pairs (U W : finset V) (ε : ℝ) :
+  (U, W) ∈ P.non_uniform_pairs G ε ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ well_ordering_rel U W ∧
+  ¬G.is_uniform ε U W :=
+by rw [non_uniform_pairs, mem_filter, mem_product, and_assoc]
 
 /-- An finpartition is `ε-uniform` iff at most a proportion of `ε` of its pairs of parts are not
 `ε-uniform`. -/
 def is_uniform (ε : ℝ) : Prop :=
-((P.non_uniform_parts G ε).card : ℝ) ≤ ε * P.size.choose 2
+((P.non_uniform_pairs G ε).card : ℝ) ≤ ε * P.size.choose 2
 
 lemma empty_is_uniform {P : finpartition_on s} (hP : P.parts = ∅) (G : simple_graph V) (ε : ℝ) :
   P.is_uniform G ε :=
-begin
-  sorry
-end
+by rw [finpartition_on.is_uniform, finpartition_on.non_uniform_pairs, finpartition_on.size, hP,
+  empty_product, filter_empty, finset.card_empty, finset.card_empty, nat.choose_zero_succ,
+  nat.cast_zero, mul_zero]
 
 /-- The index is the auxiliary quantity that drives the induction process in the proof of
 Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a suitable equipartition,
 we will find a new one that has an index greater than the previous one plus some fixed constant.
 Then `index_le_half` ensures this process only happens finitely many times. -/
 noncomputable def index (P : finpartition_on s) : ℝ :=
-(∑ x in P.distinct_unordered_parts_sym2, G.density_sym2 x^2)/P.size^2
+(∑ UW in P.parts.distinct_pairs, G.edge_density UW.1 UW.2^2)/P.size^2
 
 lemma index_nonneg (P : finpartition_on s) :
   0 ≤ P.index G :=
@@ -800,17 +816,16 @@ begin
   rw finpartition_on.index,
   apply div_le_of_nonneg_of_le_mul (sq_nonneg _),
   { norm_num },
-  suffices h : (∑ (x : sym2 (finset V)) in P.distinct_unordered_parts_sym2, G.density_sym2 x ^ 2) ≤
-    P.distinct_unordered_parts_sym2.card,
+  suffices h : (∑ UW in P.parts.distinct_pairs, G.edge_density UW.1 UW.2^2) ≤
+    P.parts.distinct_pairs.card,
   { apply h.trans,
-    rw [distinct_unordered_parts_sym2_size, div_mul_eq_mul_div, one_mul],
+    rw [distinct_pairs_card, div_mul_eq_mul_div, one_mul],
     convert choose_le_pow 2 _,
     norm_num },
   rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
-  apply finset.sum_le_sum,
-  rintro s _,
-  rw [sq, ←abs_le_one_iff_mul_self_le_one, abs_eq_self.2 (G.density_sym2_nonneg _)],
-  exact G.density_sym2_le_one _,
+  refine finset.sum_le_sum (λ s _, _),
+  rw [sq, ←abs_le_one_iff_mul_self_le_one, abs_eq_self.2 (G.edge_density_nonneg _ _)],
+  exact G.edge_density_le_one _ _,
 end
 
 end finpartition_on
@@ -876,14 +891,12 @@ begin
   rwa singleton_inj at k,
 end
 
-lemma non_uniform_parts {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition_on s).non_uniform_parts G ε = ∅ :=
+lemma non_uniform_pairs {ε : ℝ} (hε : 0 < ε) :
+  (discrete_finpartition_on s).non_uniform_pairs G ε = ∅ :=
 begin
   rw eq_empty_iff_forall_not_mem,
-  intro z,
-  apply quotient.induction_on z,
   rintro ⟨U, W⟩,
-  simp only [finpartition_on.mem_non_uniform_parts, discrete_finpartition_on_parts, mem_image,
+  simp only [finpartition_on.mem_non_uniform_pairs, discrete_finpartition_on_parts, mem_image,
     and_imp, exists_prop, not_and, not_not, ne.def, exists_imp_distrib],
   rintro x hx rfl y hy rfl h U' hU' W' hW' hU hW,
   rw [card_singleton, nat.cast_one, mul_one] at hU hW,
@@ -899,7 +912,7 @@ end
 lemma is_uniform {ε : ℝ} (hε : 0 < ε) :
   (discrete_finpartition_on s).is_uniform G ε :=
 begin
-  rw [finpartition_on.is_uniform, discrete_finpartition_on.size, non_uniform_parts _ _ hε,
+  rw [finpartition_on.is_uniform, discrete_finpartition_on.size, non_uniform_pairs _ _ hε,
     finset.card_empty, nat.cast_zero],
   exact mul_nonneg hε.le (nat.cast_nonneg _),
 end

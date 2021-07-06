@@ -38,7 +38,7 @@ namespace forget_creates_limits
 
 variables (D : J ⥤ algebra T) (c : cone (D ⋙ T.forget)) (t : is_limit c)
 
--- /-- (Impl) The natural transformation used to define the new cone -/
+/-- (Impl) The natural transformation used to define the new cone -/
 @[simps] def γ : (D ⋙ T.forget ⋙ ↑T) ⟶ D ⋙ T.forget := { app := λ j, (D.obj j).a }
 
 /-- (Impl) This new cone is used to construct the algebra structure -/

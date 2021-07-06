@@ -203,6 +203,6 @@ end reflective
     cf Prop 5.3.3 of [Riehl][riehl2017] -/
 @[priority 100] -- see Note [lower instance priority]
 noncomputable instance monadic_of_reflective [reflective R] : monadic_right_adjoint R :=
-{ eqv := equivalence.equivalence_of_fully_faithfully_ess_surj _ }
+{ eqv := equivalence.of_fully_faithfully_ess_surj _ }
 
 end category_theory

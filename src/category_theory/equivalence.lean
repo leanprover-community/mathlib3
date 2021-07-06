@@ -44,7 +44,7 @@ if it is full, faithful and essentially surjective.
 ## Main results
 
 * `equivalence.mk`: upgrade an equivalence to a (half-)adjoint equivalence
-* `equivalence_of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
+* `equivalence.of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
   equivalence.
 
 ## Notations

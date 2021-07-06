@@ -1275,7 +1275,7 @@ measurable_coe_ennreal_ereal.comp_ae_measurable hf
 
 section normed_group
 
-variables [normed_group α] [opens_measurable_space α] [measurable_space β]
+variables [semi_normed_group α] [opens_measurable_space α] [measurable_space β]
 
 @[measurability]
 lemma measurable_norm : measurable (norm : α → ℝ) :=

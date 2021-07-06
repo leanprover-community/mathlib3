@@ -159,6 +159,9 @@ class comonadic_left_adjoint (L : C ⥤ D) extends is_left_adjoint L :=
 noncomputable instance (T : monad C) : monadic_right_adjoint T.forget :=
 ⟨(equivalence.of_fully_faithfully_ess_surj _ : is_equivalence (monad.comparison T.adj))⟩
 
+noncomputable instance (G : comonad C) : comonadic_left_adjoint G.forget :=
+⟨(equivalence.of_fully_faithfully_ess_surj _ : is_equivalence (comonad.comparison G.adj))⟩
+
 -- TODO: This holds more generally for idempotent adjunctions, not just reflective adjunctions.
 instance μ_iso_of_reflective [reflective R] : is_iso (adjunction.of_right_adjoint R).to_monad.μ :=
 by { dsimp, apply_instance }

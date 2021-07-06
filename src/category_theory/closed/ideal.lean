@@ -263,7 +263,7 @@ noncomputable def preserves_binary_products_of_exponential_ideal :
 { preserves_limit := λ K,
   begin
     apply limits.preserves_limit_of_iso_diagram _ (diagram_iso_pair K).symm,
-    apply preserves_limit_pair.of_iso_comparison,
+    apply preserves_limit_pair.of_iso_prod_comparison,
   end }
 
 /--

@@ -617,8 +617,8 @@ open simple_graph
 structure finpartition_on {V : Type u} (s : finset V) :=
 (parts : finset (finset V))
 (disjoint : ∀ (a₁ a₂ ∈ parts) x, x ∈ a₁ → x ∈ a₂ → a₁ = a₂)
-(covering : ∀ u ∈ s, ∃ (a ∈ parts), u ∈ a)
-(subset : ∀ u ∈ parts, u ⊆ s)
+(cover : ∀ ⦃x⦄, x ∈ s → ∃ (a ∈ parts), x ∈ a)
+(subset : ∀ ⦃a⦄, a ∈ parts → a ⊆ s)
 (not_empty_mem : ∅ ∉ parts)
 
 /-- A `finpartition V` is a partition of the entire finite type `V` -/
@@ -646,14 +646,20 @@ begin
   exact P.not_empty_mem ha,
 end
 
-lemma bUnion_eq : P.parts.bUnion id = s :=
+lemma nonempty_parts_iff : P.parts.nonempty ↔ s.nonempty :=
 begin
-  apply subset.antisymm,
-  { refine bUnion_subset_of_forall_subset _ _ (λ i, P.subset _) },
-  intros x hx,
-  rw mem_bUnion,
-  exact P.covering _ hx,
+  refine ⟨λ ⟨a, ha⟩, (P.nonempty_of_mem_parts ha).mono (P.subset ha), _⟩,
+  rintro ⟨x, hx⟩,
+  obtain ⟨a, ha, -⟩ := P.cover hx,
+  exact ⟨a, ha⟩,
 end
+
+lemma empty_parts_iff : P.parts = ∅ ↔ s = ∅ :=
+by rw [←not_iff_not, ←ne.def, ←nonempty_iff_ne_empty, nonempty_parts_iff, nonempty_iff_ne_empty]
+
+lemma bUnion_eq : P.parts.bUnion id = s :=
+(bUnion_subset_of_forall_subset _ _ (λ a ha, P.subset ha)).antisymm (λ x hx, mem_bUnion.2
+  (P.cover hx))
 
 lemma sum_card_parts : ∑ i in P.parts, i.card = s.card :=
 begin
@@ -669,14 +675,14 @@ def bind (Q : Π i ∈ P.parts, finpartition_on i) : finpartition_on s :=
     obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
     obtain ⟨⟨B, hB⟩, -, hb⟩ := hb,
     refine (Q A hA).disjoint a b ha _ x hxa hxb,
-    have := P.disjoint A B hA hB x ((Q A hA).subset a ha hxa) ((Q B hB).subset b hb hxb),
+    have := P.disjoint A B hA hB x ((Q A hA).subset ha hxa) ((Q B hB).subset hb hxb),
     subst this,
     exact hb,
   end,
-  covering := begin
+  cover := begin
     rintro x hx,
-    obtain ⟨A, hA, hxA⟩ := P.covering x hx,
-    obtain ⟨a, ha, hxa⟩ := (Q A hA).covering x hxA,
+    obtain ⟨A, hA, hxA⟩ := P.cover hx,
+    obtain ⟨a, ha, hxa⟩ := (Q A hA).cover hxA,
     refine ⟨a, _, hxa⟩,
     rw finset.mem_bUnion,
     exact ⟨⟨A, hA⟩, P.parts.mem_attach _, ha⟩,
@@ -685,7 +691,7 @@ def bind (Q : Π i ∈ P.parts, finpartition_on i) : finpartition_on s :=
     rintro a ha,
     rw finset.mem_bUnion at ha,
     obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
-    exact ((Q A hA).subset a ha).trans (P.subset A hA),
+    exact ((Q A hA).subset ha).trans (P.subset hA),
   end,
   not_empty_mem := λ h, begin
     rw finset.mem_bUnion at h,
@@ -714,8 +720,8 @@ begin
   apply hAB,
   rw subtype.mk_eq_mk,
   obtain ⟨x, hx⟩ := nonempty_of_mem_parts _ hcA,
-  exact P.disjoint _ _ hA hB x (finpartition_on.subset _ _ hcA hx)
-    (finpartition_on.subset _ _ hcB hx),
+  exact P.disjoint _ _ hA hB x (finpartition_on.subset _ hcA hx)
+    (finpartition_on.subset _ hcB hx),
 end
 
 /-- An equipartition is a partition whose parts are all the same size, up to a difference of 1. -/
@@ -766,10 +772,16 @@ lemma mem_non_uniform_parts (U W : finset V) (ε : ℝ) :
   ¬G.is_uniform_sym2 ε ⟦(U, W)⟧ :=
 by rw [non_uniform_parts, mem_filter, mem_distinct_unordered_parts_sym2, and_assoc, and_assoc]
 
-/-- An equipartition is ε-uniform iff at most a proportion of ε of its pairs of parts are
-not ε-uniform. -/
+/-- An finpartition is `ε-uniform` iff at most a proportion of `ε` of its pairs of parts are not
+`ε-uniform`. -/
 def is_uniform (ε : ℝ) : Prop :=
 ((P.non_uniform_parts G ε).card : ℝ) ≤ ε * P.size.choose 2
+
+lemma empty_is_uniform {P : finpartition_on s} (hP : P.parts = ∅) (G : simple_graph V) (ε : ℝ) :
+  P.is_uniform G ε :=
+begin
+  sorry
+end
 
 /-- The index is the auxiliary quantity that drives the induction process in the proof of
 Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a suitable equipartition,
@@ -792,7 +804,7 @@ begin
     P.distinct_unordered_parts_sym2.card,
   { apply h.trans,
     rw [distinct_unordered_parts_sym2_size, div_mul_eq_mul_div, one_mul],
-    convert nat.choose_le_pow _ 2,
+    convert choose_le_pow 2 _,
     norm_num },
   rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
   apply finset.sum_le_sum,
@@ -829,7 +841,7 @@ def discrete_finpartition_on {V : Type*} [decidable_eq V] (s : finset V) : finpa
     rintro rfl rfl,
     refl
   end,
-  covering := λ v hv, ⟨{v}, mem_image.2 ⟨v, hv, rfl⟩, finset.mem_singleton_self v⟩,
+  cover := λ v hv, ⟨{v}, mem_image.2 ⟨v, hv, rfl⟩, finset.mem_singleton_self v⟩,
   subset := by simp,
   not_empty_mem := λ h, begin
     obtain ⟨x, _, hx⟩ := mem_image.1 h,
@@ -846,7 +858,7 @@ def indiscrete_finpartition_on {V : Type*} [decidable_eq V] {s : finset V} (hs :
     rintro _ _ rfl rfl _ _ _,
     refl
   end,
-  covering := λ u hu, ⟨s, mem_singleton_self _, hu⟩,
+  cover := λ u hu, ⟨s, mem_singleton_self _, hu⟩,
   subset := by simp,
   not_empty_mem := λ h, hs.ne_empty (mem_singleton.1 h).symm }
 
@@ -1145,8 +1157,8 @@ noncomputable def mk_equitable (Q : finpartition_on s) {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) :
   finpartition_on s :=
 begin
-  let P := classical.some (mk_equitable_aux h Q.parts Q.covering Q.disjoint Q.subset),
-  have hP := classical.some_spec (mk_equitable_aux h Q.parts Q.covering Q.disjoint Q.subset),
+  let P := classical.some (mk_equitable_aux h Q.parts Q.cover Q.disjoint Q.subset),
+  have hP := classical.some_spec (mk_equitable_aux h Q.parts Q.cover Q.disjoint Q.subset),
   refine ⟨P.erase ∅,
     λ a b ha hb x hxa hxb, hP.2.2.2.1 a b (erase_subset _ _ ha) (erase_subset _ _ hb) x hxa hxb,
     λ u hu, _, λ u hu, hP.2.2.2.2.1 _ (erase_subset _ _ hu), not_mem_erase _ _⟩,
@@ -1157,7 +1169,7 @@ end
 lemma card_eq_of_mem_parts_mk_equitable {Q : finpartition_on s} {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) {u : finset α} (hu : u ∈ (Q.mk_equitable h).parts) :
   u.card = m ∨ u.card = m + 1 :=
-(classical.some_spec (mk_equitable_aux h Q.parts Q.covering Q.disjoint Q.subset)).1
+(classical.some_spec (mk_equitable_aux h Q.parts Q.cover Q.disjoint Q.subset)).1
   u (mem_of_mem_erase hu)
 
 lemma mk_equitable.is_equipartition (Q : finpartition_on s) {m a b : ℕ}
@@ -1172,7 +1184,7 @@ lemma card_filter_mk_equitable_big (Q : finpartition_on s) {m a b : ℕ}
   (h : a*m + b*(m+1) = s.card) :
   ((Q.mk_equitable h).parts.filter (λ u : finset α, u.card = m + 1)).card = b :=
 begin
-  convert (classical.some_spec (mk_equitable_aux h Q.parts Q.covering Q.disjoint
+  convert (classical.some_spec (mk_equitable_aux h Q.parts Q.cover Q.disjoint
     Q.subset)).2.2.2.2.2 using 2,
   ext u,
   rw [mem_filter, mem_filter, finpartition_on.mk_equitable, mem_erase, and_assoc,
@@ -1219,9 +1231,9 @@ lemma almost_in_atoms_of_mem_parts_mk_equitable {Q : finpartition_on s} {m a b :
   (h : a * m + b * (m + 1) = s.card) {u : finset α} (hu : u ∈ Q.parts) :
   (u \ finset.bUnion ((Q.mk_equitable h).parts.filter (λ x, x ⊆ u)) id).card ≤ m :=
 begin
-  have := (classical.some_spec (mk_equitable_aux h Q.parts Q.covering Q.disjoint
+  have := (classical.some_spec (mk_equitable_aux h Q.parts Q.cover Q.disjoint
     Q.subset)).2.1,
-  refine (card_le_of_subset _).trans ((classical.some_spec (mk_equitable_aux h Q.parts Q.covering
+  refine (card_le_of_subset _).trans ((classical.some_spec (mk_equitable_aux h Q.parts Q.cover
     Q.disjoint Q.subset)).2.1 u hu),
   intros x,
   simp only [not_exists, mem_bUnion, and_imp, mem_filter, mem_sdiff, id.def, ne.def],
@@ -1255,7 +1267,7 @@ def atomise (s : finset α) (Q : finset (finset α)) :
     { rwa [hi₂.2 _ (hP hj), ←hi₁.2 _ (hP hj)] },
     rwa [hi₁.2 _ (hP' hj), ←hi₂.2 _ (hP' hj)],
   end,
-  covering := begin
+  cover := begin
     rintro x hx,
     simp only [mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc],
     rw exists_exists_and_eq_and,
@@ -1307,7 +1319,7 @@ end
 
 lemma atomise_covers {s : finset α} (Q : finset (finset α)) {x : α} (hx : x ∈ s) :
   ∃ Y ∈ (atomise s Q).parts, x ∈ Y :=
-(atomise s Q).covering x hx
+(atomise s Q).cover hx
 
 lemma atomise_unique_covers {s : finset α} {Q : finset (finset α)} {x : α} (hx : x ∈ s) :
   ∃! Y ∈ (atomise s Q).parts, x ∈ Y :=
@@ -1401,10 +1413,10 @@ begin
   { rw [nat.mul_sub_right_distrib, mul_add, ←add_assoc, nat.sub_add_cancel, mul_one, add_comm,
       nat.mod_add_div],
     exact nat.mul_le_mul_right _ ((nat.mod_lt _ ht).le) },
-  obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅⟩ := mk_equitable this (indiscrete_finpartition_on
-    (finset.card_pos.1 (ht.trans_le hs))),
-  refine ⟨P, hP₂, _⟩,
-  rw [(hP₅ (nat.div_pos hs ht)).2, nat.sub_add_cancel (nat.mod_lt _ ht).le],
+  refine ⟨(indiscrete_finpartition_on $ finset.card_pos.1 (ht.trans_le hs)).mk_equitable this,
+    finpartition_on.mk_equitable.is_equipartition _ _, _⟩,
+  rw [finpartition_on.mk_equitable.size (nat.div_pos hs ht), nat.sub_add_cancel
+    (nat.mod_lt _ ht).le],
 end
 
 /-! ### The actual proof -/
@@ -1420,6 +1432,9 @@ lemma le_exp_bound :
 lemma exp_bound_mono :
   monotone exp_bound :=
 λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
+
+lemma exp_bound_pos {n : ℕ} (hn : 0 < n) : 0 < exp_bound n :=
+hn.trans_le (le_exp_bound n)
 
 open_locale classical
 variables {V : Type u} [fintype V] {G : simple_graph V} {P : finpartition V} {ε : ℝ}
@@ -1471,11 +1486,11 @@ noncomputable def finpartition_on.is_equipartition.increment (hP : P.is_equipart
   (G : simple_graph V) (ε : ℝ) :
   finpartition V :=
 begin
-  let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
+  let R : ∀ U, finpartition_on U := λ U, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   exact P.bind (λ U hU, dite (U.card = m * 4^P.size + a)
-    (λ hUcard, classical.some (mk_equitable (card_aux₂ hUcard) (R U hU)))
-    (λ hUcard, classical.some (mk_equitable (card_aux₃ hP hU hUcard) (R U hU)))),
+    (λ hUcard, (R U).mk_equitable $ card_aux₂ hUcard)
+    (λ hUcard, (R U).mk_equitable $ card_aux₃ hP hU hUcard)),
 end
 
 open finpartition_on.is_equipartition
@@ -1486,21 +1501,28 @@ protected lemma size (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
   (hP.increment G ε).size = exp_bound P.size :=
 begin
-  let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
+  let R : ∀ U, finpartition_on U := λ U, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
+  have hPV' : exp_bound P.size ≤ card V :=
+    (nat.mul_le_mul_of_nonneg_left $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPV,
+  have hPpos : 0 < exp_bound P.size := exp_bound_pos ((nat.eq_zero_or_pos _).resolve_left $ λ h,
+    hPG $ finpartition_on.empty_is_uniform (by rw [←finset.card_eq_zero, ←finpartition_on.size, h])
+    _ _),
   rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
   rw [increment, bind_size],
   simp_rw [apply_dite finpartition_on.size],
-  rw sum_dite,
-  have : ∀ x ∈ P.parts.attach.filter (λ (U : {x // x ∈ P.parts}), U.val.card = m * 4^P.size + a),
-    (classical.some (mk_equitable (card_aux₂ hUcard) (R U hU))).size
-  sorry
+  rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
+  exact λ x hx, finpartition_on.mk_equitable.size (nat.div_pos hPV' hPpos) _,
+  exact λ x hx, finpartition_on.mk_equitable.size (nat.div_pos hPV' hPpos) _,
+  rw [nat.sub_add_cancel card_aux₀, nat.sub_add_cancel ((nat.le_succ _).trans card_aux₀), ←add_mul],
+  congr,
+  rw [filter_card_add_filter_neg_card_eq_card, card_attach, finpartition_on.size],
 end
 
 protected lemma is_equipartition (hP : P.is_equipartition) (G : simple_graph V) (ε : ℝ) :
   (hP.increment G ε).is_equipartition :=
 begin
-  let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
+  let R : ∀ U, finpartition_on U := λ U, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   rw [is_equipartition, equitable_on_iff_almost_eq_constant],
   refine ⟨m, λ A hA, _⟩,
@@ -1508,16 +1530,16 @@ begin
   obtain ⟨U, hU, hA⟩ := hA,
   by_cases hUcard : U.card = m * 4^P.size + a,
   { rw dif_pos hUcard at hA,
-    exact (classical.some_spec (mk_equitable (card_aux₂ hUcard) (R U hU))).1 _ hA },
+    exact finpartition_on.card_eq_of_mem_parts_mk_equitable _ hA },
   rw dif_neg hUcard at hA,
-  exact (classical.some_spec (mk_equitable (card_aux₃ hP hU hUcard) (R U hU))).1 _ hA,
+  exact finpartition_on.card_eq_of_mem_parts_mk_equitable _ hA,
 end
 
 protected lemma index (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
   P.index G + ε^5 / 8 ≤ (hP.increment G ε).index G :=
 begin
-  let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
+  let R : ∀ U, finpartition_on U := λ U, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   sorry
 end

@@ -328,8 +328,9 @@ begin
 end
 
 lemma to_list_map (f : α → β) (xs : t α) :
-  to_list (f <$> xs) = f <$> to_list xs :=
-by simp only [to_list_spec,free.map_eq_map,fold_map_hom (free.map.is_monoid_hom f), fold_map_map]; refl
+  to_list (f <$> xs) = f <$> to_list xs := by
+{ simp only [to_list_spec,free.map_eq_map,fold_map_hom (free.map.is_monoid_hom f), fold_map_map];
+  refl }
 
 @[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : t β) :
   foldl f a (g <$> l) = foldl (λ x y, f x (g y)) a l :=

@@ -1339,9 +1339,9 @@ begin
   exact le_rfl,
 end
 
-variables (hs f)
+variables (hs)
 
-lemma snorm_indicator_le :
+lemma snorm_indicator_le {E : Type*} [normed_group E] (f : α → E) :
   snorm (s.indicator f) p μ ≤ snorm f p μ :=
 begin
   refine snorm_mono_ae (eventually_of_forall (λ x, _)),
@@ -1351,7 +1351,7 @@ begin
   exact s.indicator_le_self _ x,
 end
 
-variables {hs f}
+variables {hs}
 
 lemma snorm_indicator_const {c : G} (hs : measurable_set s) (hp : p ≠ 0) (hp_top : p ≠ ∞) :
   snorm (s.indicator (λ x, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=

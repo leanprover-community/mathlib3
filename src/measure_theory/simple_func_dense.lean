@@ -46,6 +46,7 @@ For `E` finite-dimensional, simple functions `α →ₛ E` are dense in L^∞ --
 ## Notations
 
 * `α →ₛ β` (local notation): the type of simple functions `α → β`.
+* `α →₁ₛ[μ] E`: the type of `L1` simple functions `α → β`.
 -/
 
 open set function filter topological_space ennreal emetric finset
@@ -481,7 +482,7 @@ variables
   [measurable_space α]
   [normed_group E] [second_countable_topology E] [measurable_space E] [borel_space E]
   [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
-  (p : ℝ≥0∞) [fact (1 ≤ p)] {μ : measure α}
+  (p : ℝ≥0∞) {μ : measure α}
 
 variables (E p μ)
 
@@ -495,14 +496,14 @@ def simple_func : add_subgroup (Lp E p μ) :=
   neg_mem' := λ f ⟨s, hs⟩, ⟨-s,
       by simp only [←hs, neg_mk, simple_func.coe_neg, mk_eq_mk, add_subgroup.coe_neg]⟩ }
 
-variables {α E p μ}
+variables {α E p μ} [fact (1 ≤ p)]
 
 namespace simple_func
 
 section instances
 /-! Simple functions in Lp space form a `normed_space`. -/
 
-@[simp, norm_cast] lemma coe_coe (f : Lp.simple_func E p μ) : ⇑(f : Lp E p μ) = f := rfl
+@[norm_cast] lemma coe_coe (f : Lp.simple_func E p μ) : ⇑(f : Lp E p μ) = f := rfl
 
 protected lemma eq {f g : Lp.simple_func E p μ} :
   (f : Lp E p μ) = (g : Lp E p μ) → f = g :=
@@ -793,7 +794,7 @@ section integrable
 
 local attribute [instance] fact_one_le_one_ennreal
 
-notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ _ _ _ 1 _ μ
+notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ _ _ _ 1 μ
 
 lemma L1.simple_func.to_Lp_one_eq_to_L1 (f : α →ₛ E) (hf : integrable f μ) :
   (Lp.simple_func.to_Lp f (mem_ℒp_one_iff_integrable.2 hf) : α →₁[μ] E) = hf.to_L1 f :=

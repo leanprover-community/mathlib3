@@ -88,6 +88,12 @@ by { apply inv_of_eq_right_inv, rw [h, mul_inv_of_self], }
 instance [monoid α] (a : α) : subsingleton (invertible a) :=
 ⟨ λ ⟨b, hba, hab⟩ ⟨c, hca, hac⟩, by { congr, exact left_inv_eq_right_inv hba hac } ⟩
 
+/-- If `r` is invertible and `s = r`, then `s` is invertible. -/
+def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = r) : invertible s :=
+{ inv_of := ⅟r,
+  inv_of_mul_self := by rw [hs, inv_of_mul_self],
+  mul_inv_of_self := by rw [hs, mul_inv_of_self] }
+
 /-- An `invertible` element is a unit. -/
 def unit_of_invertible [monoid α] (a : α) [invertible a] : units α :=
 { val     := a,
@@ -110,6 +116,20 @@ def units.invertible [monoid α] (u : units α) : invertible (u : α) :=
 
 @[simp] lemma inv_of_units [monoid α] (u : units α) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
 inv_of_eq_right_inv u.mul_inv
+
+lemma is_unit.nonempty_invertible [monoid α] {a : α} (h : is_unit a) : nonempty (invertible a) :=
+let ⟨x, hx⟩ := h in ⟨x.invertible.copy _ hx.symm⟩
+
+/-- Convert `is_unit` to `invertible` using `classical.choice`.
+
+Prefer `casesI h.nonempty_invertible` over `letI := h.invertible` if you want to avoid choice. -/
+noncomputable def is_unit.invertible [monoid α] {a : α} (h : is_unit a) : invertible a :=
+classical.choice h.nonempty_invertible
+
+@[simp]
+lemma nonempty_invertible_iff_is_unit [monoid α] (a : α) :
+  nonempty (invertible a) ↔ is_unit a :=
+⟨nonempty.rec $ @is_unit_of_invertible _ _ _, is_unit.nonempty_invertible⟩
 
 /-- Each element of a group is invertible. -/
 def invertible_of_group [group α] (a : α) : invertible a :=
@@ -152,14 +172,6 @@ def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invert
 lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
-
-/--
-If `r` is invertible and `s = r`, then `s` is invertible.
--/
-def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = r) : invertible s :=
-{ inv_of := ⅟r,
-  inv_of_mul_self := by rw [hs, inv_of_mul_self],
-  mul_inv_of_self := by rw [hs, mul_inv_of_self] }
 
 theorem commute.inv_of_right [monoid α] {a b : α} [invertible b] (h : commute a b) :
   commute a (⅟b) :=

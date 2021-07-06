@@ -2067,7 +2067,7 @@ end
 
 /-! ### `Lp` is complete for `1 ≤ p` -/
 
-instance [complete_space E'] [hp : fact (1 ≤ p)] : complete_space (Lp E' p μ) :=
+instance [complete_space E] [hp : fact (1 ≤ p)] : complete_space (Lp E p μ) :=
 complete_space_Lp_of_cauchy_complete_ℒp (λ f hf B hB h_cau, cauchy_complete_ℒp hp.elim hf hB h_cau)
 
 end Lp

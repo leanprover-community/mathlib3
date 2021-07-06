@@ -282,12 +282,11 @@ section condexp_L2_clm
 
 local attribute [instance] fact_one_le_two_ennreal
 
-variables [borel_space 𝕜] {m m0 : measurable_space α} {μ : measure α} {s t : set α}
+variables [complete_space E] [borel_space 𝕜] {m m0 : measurable_space α} {μ : measure α}
+  {s t : set α}
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 local notation `⟪`x`, `y`⟫'` := @inner 𝕜 E' _ x y
-
-variables [complete_space E]
 
 variables (𝕜)
 /-- Conditional expectation of a function in L2 with respect to a sigma-algebra -/
@@ -306,13 +305,13 @@ lemma integrable_condexp_L2_of_finite_measure (hm : m ≤ m0) [finite_measure μ
 integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_ne_top hm (measure_ne_top _ _) f
 
 lemma norm_condexp_L2_le_one (hm : m ≤ m0) :
-  ∥@condexp_L2_clm α E 𝕜 _ _ _ _ _ _ _ _ _ μ _ hm∥ ≤ 1 :=
+  ∥@condexp_L2_clm α E 𝕜 _ _ _ _ _ _ _ _ _ _ μ hm∥ ≤ 1 :=
 by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact orthogonal_projection_norm_le _, }
 
 lemma norm_condexp_L2_apply_le (hm : m ≤ m0) (f : Lp E 2 μ) :
   ∥condexp_L2_clm 𝕜 hm f∥ ≤ ∥f∥ :=
 begin
-  refine ((@condexp_L2_clm α E 𝕜 _ _ _ _ _ _ _ _ _ μ _ hm).le_op_norm _).trans _,
+  refine ((@condexp_L2_clm α E 𝕜 _ _ _ _ _ _ _ _ _ _ μ hm).le_op_norm _).trans _,
   nth_rewrite 1 ← one_mul (∥f∥),
   exact mul_le_mul (norm_condexp_L2_le_one hm) le_rfl (norm_nonneg _) zero_le_one,
 end

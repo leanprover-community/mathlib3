@@ -338,27 +338,6 @@ lemma inner_condexp_L2_left_eq_right (hm : m ≤ m0) {f g : Lp E 2 μ} :
     = inner f (condexp_L2_clm 𝕜 hm g : Lp E 2 μ) :=
 by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact inner_orthogonal_projection_left_eq_right _ f g, }
 
-lemma integral_zero_of_forall_integral_inner_zero [is_scalar_tower ℝ 𝕜 E'] (f : α → E')
-  (hf : integrable f μ) (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫' ∂μ = 0) :
-  ∫ x, f x ∂μ = 0 :=
-by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
-
-variables (𝕜)
-lemma inner_indicator_const_Lp_eq_inner_set_integral [is_scalar_tower ℝ 𝕜 E']
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E') (f : Lp E' 2 μ) :
-  inner (indicator_const_Lp 2 hs hμs c) f = ⟪c, ∫ x in s, f x ∂μ⟫' :=
-by rw [← integral_inner (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs),
-    L2.inner_indicator_const_Lp_eq_set_integral_inner]
-variables {𝕜}
-
-lemma inner_indicator_const_Lp_one (hm : m ≤ m0)
-  (hs : @measurable_set α m s) (hμs : μ s ≠ ∞) (f : Lp ℝ 2 μ) :
-  inner (indicator_const_Lp 2 (hm s hs) hμs (1 : ℝ)) f = ∫ x in s, f x ∂μ :=
-begin
-  rw inner_indicator_const_Lp_eq_inner_set_integral ℝ (hm s hs) hμs (1 : ℝ) f,
-  simp only [is_R_or_C.inner_apply, is_R_or_C.conj_to_real, one_mul],
-end
-
 lemma condexp_L2_indicator_of_measurable (hm : m ≤ m0)
   (hs : @measurable_set _ m s) (hμs : μ s ≠ ∞) (c : E) :
   (condexp_L2_clm 𝕜 hm (indicator_const_Lp 2 (hm s hs) hμs c) : Lp E 2 μ)

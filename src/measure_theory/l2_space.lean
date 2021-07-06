@@ -167,6 +167,23 @@ begin
   rw [h_left, h_right, add_zero],
 end
 
+variables (𝕜)
+lemma inner_indicator_const_Lp_eq_inner_set_integral [complete_space E] [normed_space ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E)
+  (f : Lp E 2 μ) :
+  inner (indicator_const_Lp 2 hs hμs c) f = ⟪c, ∫ x in s, f x ∂μ⟫ :=
+by rw [← integral_inner (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs),
+    L2.inner_indicator_const_Lp_eq_set_integral_inner]
+variables {𝕜}
+
+lemma inner_indicator_const_Lp_one {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (f : Lp ℝ 2 μ) :
+  inner (indicator_const_Lp 2 hs hμs (1 : ℝ)) f = ∫ x in s, f x ∂μ :=
+begin
+  rw L2.inner_indicator_const_Lp_eq_inner_set_integral ℝ hs hμs (1 : ℝ) f,
+  simp only [is_R_or_C.inner_apply, is_R_or_C.conj_to_real, one_mul],
+end
+
 end
 
 end L2

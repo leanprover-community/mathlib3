@@ -168,7 +168,8 @@ def of_set (s : set α) [decidable_pred (∈ s)] : α ≃. α :=
 lemma mem_of_set_self_iff {s : set α} [decidable_pred (∈ s)] {a : α} : a ∈ of_set s a ↔ a ∈ s :=
 by dsimp [of_set]; split_ifs; simp *
 
-lemma mem_of_set_iff {s : set α} [decidable_pred (∈ s)] {a b : α} : a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
+lemma mem_of_set_iff {s : set α} [decidable_pred (∈ s)] {a b : α} :
+  a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
 begin
   dsimp [of_set],
   split_ifs,

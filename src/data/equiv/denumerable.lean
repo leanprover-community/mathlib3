@@ -227,10 +227,10 @@ lemma of_nat_surjective : surjective (of_nat s) :=
 λ ⟨x, hx⟩, of_nat_surjective_aux hx
 
 private def to_fun_aux (x : s) : ℕ :=
-(list.range x).countp s
+(list.range x).countp (∈ s)
 
 private lemma to_fun_aux_eq (x : s) :
-  to_fun_aux x = ((finset.range x).filter s).card :=
+  to_fun_aux x = ((finset.range x).filter (∈ s)).card :=
 by rw [to_fun_aux, list.countp_eq_length_filter]; refl
 
 open finset
@@ -243,14 +243,14 @@ private lemma right_inverse_aux : ∀ n, to_fun_aux (of_nat s n) = n
   exact bot_le.not_lt (show (⟨n, hn.2⟩ : s) < ⊥, from hn.1),
 end
 | (n+1) := have ih : to_fun_aux (of_nat s n) = n, from right_inverse_aux n,
-have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter s, by simp,
-have h₂ : (range (succ (of_nat s n))).filter s =
-  insert (of_nat s n) ((range (of_nat s n)).filter s),
+have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter (∈ s), by simp,
+have h₂ : (range (succ (of_nat s n))).filter (∈ s) =
+  insert (of_nat s n) ((range (of_nat s n)).filter (∈ s)),
   begin
     simp only [finset.ext_iff, mem_insert, mem_range, mem_filter],
     exact λ m, ⟨λ h, by simp only [h.2, and_true]; exact or.symm
         (lt_or_eq_of_le ((@lt_succ_iff_le _ _ _ ⟨m, h.2⟩ _).1 h.1)),
-      λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, subtype.property _⟩)
+      λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, (of_nat s n).prop⟩)
         (λ h, ⟨h.1.trans (lt_succ_self _), h.2⟩)⟩,
   end,
 begin

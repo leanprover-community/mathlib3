@@ -1540,7 +1540,7 @@ lemma continuous_comp_Lp [fact (1 ≤ p)] (hg : lipschitz_with c g) (g0 : g 0 = 
 end lipschitz_with
 
 namespace continuous_linear_map
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
 
 /-- Composing `f : Lp ` with `L : E →L[ℝ] F`. -/
 def comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) : Lp F p μ :=

@@ -8,8 +8,8 @@ import measure_theory.l1_space
 /-!
 # Density of simple functions
 
-Show that each Borel measurable function can be approximated,
-both pointwise and in `Lᵖ` norm, by a sequence of simple functions.
+Show that each Borel measurable function can be approximated pointwise, and each `Lᵖ` Borel
+measurable function can be approximated in `Lᵖ` norm, by a sequence of simple functions.
 
 ## Main definitions
 
@@ -29,9 +29,6 @@ both pointwise and in `Lᵖ` norm, by a sequence of simple functions.
 * `tendsto_approx_on_univ_Lp` (Lᵖ convergence): If `E` is a `normed_group` and `f` is measurable
   and `mem_ℒp` (for `p < ∞`), then the simple functions `simple_func.approx_on f hf s 0 h₀ n` may
   be considered as elements of `Lp E p μ`, and they tend in Lᵖ to `f`.
-* `tendsto_approx_on_univ_L1` (L¹ convergence): If `E` is a `normed_group` and `f` is measurable
-  and integrable, then the simple functions `simple_func.approx_on f hf s 0 h₀ n` may be considered
-  as elements of `Lp E 1 μ`, and they tend in L¹ to `f`.
 * `Lp.simple_func.dense_embedding`: the embedding `coe_to_Lp` of the `Lp` simple functions into
   `Lp` is dense.
 * `mem_ℒp.induction`: to prove a predicate for all elements of `Lp`, it suffices to check that

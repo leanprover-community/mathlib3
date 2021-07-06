@@ -108,6 +108,30 @@ option.choice_eq _
   (complex_shape.down ℕ).next (i+1) = some ⟨i, rfl⟩ :=
 option.choice_eq _
 
+variable {V}
+
+def op {α : Type*} [add_right_cancel_semigroup α] [has_one α]
+  (E : chain_complex V α) : cochain_complex Vᵒᵖ α :=
+{ X := λ n, opposite.op $ E.X n,
+  d := λ i j, (E.d j i).op,
+  shape' := λ i j h, congr_arg _ (E.shape j i h),
+  d_comp_d' := begin
+    intros i j k h1 h2,
+    rw [← op_comp, E.d_comp_d],
+    refl,
+  end }
+
+def unop {α : Type*} [add_right_cancel_semigroup α] [has_one α]
+  (E : chain_complex Vᵒᵖ α) : cochain_complex V α :=
+{ X := λ n, (E.X n).unop,
+  d := λ i j, (E.d j i).unop,
+  shape' := λ i j h, congr_arg _ (E.shape j i h),
+  d_comp_d' := begin
+    intros i j k h1 h2,
+    rw [← unop_comp, E.d_comp_d],
+    refl,
+  end }
+
 end chain_complex
 
 namespace cochain_complex
@@ -127,6 +151,30 @@ option.choice_eq _
 @[simp] lemma prev_nat_succ (i : ℕ) :
   (complex_shape.up ℕ).prev (i+1) = some ⟨i, rfl⟩ :=
 option.choice_eq _
+
+variable {V}
+
+def op {α : Type*} [add_right_cancel_semigroup α] [has_one α]
+  (E : cochain_complex V α) : chain_complex Vᵒᵖ α :=
+{ X := λ n, opposite.op $ E.X n,
+  d := λ i j, (E.d j i).op,
+  shape' := λ i j h, congr_arg _ (E.shape j i h),
+  d_comp_d' := begin
+    intros i j k h1 h2,
+    rw [← op_comp, E.d_comp_d],
+    refl,
+  end }
+
+def unop {α : Type*} [add_right_cancel_semigroup α] [has_one α]
+  (E : cochain_complex Vᵒᵖ α) : chain_complex V α :=
+{ X := λ n, (E.X n).unop,
+  d := λ i j, (E.d j i).unop,
+  shape' := λ i j h, congr_arg _ (E.shape j i h),
+  d_comp_d' := begin
+    intros i j k h1 h2,
+    rw [← unop_comp, E.d_comp_d],
+    refl,
+  end }
 
 end cochain_complex
 
@@ -601,6 +649,18 @@ from a dependently typed collection of morphisms.
 
 end of_hom
 
+section op
+
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+def unop_op (E : chain_complex V α) : E.op.unop ≅ E :=
+homological_complex.hom.iso_of_components (λ i, eq_to_iso rfl) (by tidy)
+
+def op_unop (E : chain_complex Vᵒᵖ α) : E.unop.op ≅ E :=
+homological_complex.hom.iso_of_components (λ i, eq_to_iso rfl) (by tidy)
+
+end op
+
 section mk
 
 /--
@@ -793,6 +853,18 @@ from a dependently typed collection of morphisms.
   end }
 
 end of_hom
+
+section op
+
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+def unop_op (E : cochain_complex V α) : E.op.unop ≅ E :=
+homological_complex.hom.iso_of_components (λ i, eq_to_iso rfl) (by tidy)
+
+def op_unop (E : cochain_complex Vᵒᵖ α) : E.unop.op ≅ E :=
+homological_complex.hom.iso_of_components (λ i, eq_to_iso rfl) (by tidy)
+
+end op
 
 section mk
 

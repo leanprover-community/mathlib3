@@ -59,9 +59,12 @@ has codomain `↥s` instead of `subtype s`. -/
 def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
 λ x, ⟨f x, h x⟩
 
-@[simp] lemma coe_cod_restrict_apply (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) (x : α) :
+@[simp] lemma coe_cod_restrict_apply {f : α → β} {s : set β} (h : ∀ x, f x ∈ s) (x : α) :
   (cod_restrict f s h x : β) = f x :=
 rfl
+
+lemma factor_comp_cod_restrict {f : α → β} {g : β → γ} {b : set β}
+  (h : ∀ x, f x ∈ b) : g ∘ f = (b.restrict g) ∘ (b.cod_restrict f h) := rfl
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}
@@ -110,14 +113,6 @@ and the codomain to `t`. Same as `subtype.map`. -/
 def maps_to.restrict (f : α → β) (s : set α) (t : set β) (h : maps_to f s t) :
   s → t :=
 subtype.map f h
-
-/-- Given a map `f` sending `univ : set α` into `t : set β`, restrict the codomain to `t`.
-Same as `subtype.coind`.-/
-def maps_to.restrict_codom {f : α → β} {t : set β} (h : maps_to f univ t) :
-  α → t := subtype.coind f (λ a, h (mem_univ a))
-
-lemma factor_comp_restrict_codom {f : α → β} {g : β → γ} {b : set β}
-  (hb : maps_to f univ b) : g ∘ f = (b.restrict g) ∘ hb.restrict_codom := rfl
 
 @[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
   (h.restrict f s t x : β) = f x := rfl

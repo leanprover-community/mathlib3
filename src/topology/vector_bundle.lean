@@ -485,13 +485,11 @@ lemma inducing_total_space_mk_of_inducing_comp (b : B)
   @inducing _ _ _ a.total_space_topology (total_space_mk E b) :=
 begin
   letI := a.total_space_topology,
-  have hb : maps_to (total_space_mk E b) univ (a.trivialization_at b).source :=
-    λ x _, a.mem_trivialization_at_source b _,
-  rw factor_comp_restrict_codom hb at h,
-  apply inducing_of_inducing_restrict_codom hb,
+  rw factor_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
+  apply inducing_of_inducing_cod_restrict (a.mem_trivialization_at_source b),
   refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
     (a.vector_bundle_trivialization_at b).continuous_to_fun) h,
-  exact (a.continuous_total_space_mk b).restrict_codom hb,
+  exact (a.continuous_total_space_mk b).cod_restrict (a.mem_trivialization_at_source b),
 end
 
 lemma to_topological_vector_bundle :

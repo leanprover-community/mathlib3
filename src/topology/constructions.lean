@@ -525,8 +525,8 @@ variables [topological_space α] [topological_space β] [topological_space γ] {
 
 lemma inducing_coe {b : set β} : inducing (coe : b → β) := ⟨rfl⟩
 
-lemma inducing_of_inducing_restrict_codom {f : α → β} {b : set β} (hb : maps_to f univ b)
-  (h : inducing hb.restrict_codom) : inducing f := inducing_coe.comp h
+lemma inducing_of_inducing_cod_restrict {f : α → β} {b : set β} (hb : ∀ a, f a ∈ b)
+  (h : inducing (b.cod_restrict f hb)) : inducing f := inducing_coe.comp h
 
 lemma embedding_subtype_coe : embedding (coe : subtype p → α) :=
 ⟨⟨rfl⟩, subtype.coe_injective⟩
@@ -625,9 +625,8 @@ lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
 
-@[continuity] lemma continuous.restrict_codom {f : α → β} {s : set β} (hf : continuous f)
-  (hs : maps_to f univ s) : continuous hs.restrict_codom :=
-continuous_subtype_mk (λ a, hs (mem_univ a)) hf
+@[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
+  (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
 
 end subtype
 

@@ -476,10 +476,7 @@ integral_congr_ae $ coe_fn_comp_Lp _ _
 
 lemma continuous_integral_comp_L1 [measurable_space 𝕜] [opens_measurable_space 𝕜] (L : E →L[𝕜] F) :
   continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=
-begin
-  rw ← funext L.integral_comp_Lp,
-  exact continuous_integral.comp (L.comp_LpL 1 μ).continuous,
-end
+by { rw ← funext L.integral_comp_Lp, exact continuous_integral.comp (L.comp_LpL 1 μ).continuous, }
 
 variables [complete_space E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
   [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [is_scalar_tower ℝ 𝕜 F]
@@ -504,6 +501,11 @@ begin
     { rw integral_congr_ae hfg.symm } },
   all_goals { assumption }
 end
+
+lemma integral_apply {H : Type*} [normed_group H] [normed_space ℝ H]
+  [second_countable_topology $ H →L[ℝ] E] {φ : α → H →L[ℝ] E} (φ_int : integrable φ μ) (v : H) :
+  (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
+((continuous_linear_map.apply ℝ E v).integral_comp_comm φ_int).symm
 
 lemma integral_comp_comm' (L : E →L[𝕜] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=

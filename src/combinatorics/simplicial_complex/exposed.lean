@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.exposed
+import combinatorics.simplicial_complex.extreme
 
 open_locale classical affine big_operators
 open set
@@ -12,56 +13,6 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set
   {X : finset E} {l : E →L[ℝ] ℝ}
 
 namespace is_exposed
-
-lemma is_exposed_empty : is_exposed A ∅ :=
-λ ⟨x, hx⟩, by { exfalso, exact hx }
-
-lemma mono (hC : is_exposed A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
-  is_exposed B C :=
-begin
-  rintro ⟨w, hw⟩,
-  obtain ⟨l, rfl⟩ := hC ⟨w, hw⟩,
-  refine ⟨l, subset.antisymm _ _⟩,
-  rintro x hx,
-  exact ⟨hCB hx, λ y hy, hx.2 y (hBA hy)⟩,
-  rintro x hx,
-  exact ⟨hBA hx.1, λ y hy, (hw.2 y hy).trans (hx.2 w (hCB hw))⟩,
-end
-
-/-
-instance : bounded_lattice (set_of (is_exposed A)) :=
-{ sup := λ ⟨B, hB⟩ ⟨C, hC⟩, ⟨(⋂ (D : set E) (hD : is_exposed A D) (hDB : B ⊆ D) (hCB : C ⊆ D), D),
-    begin
-      apply Inter,
-      sorry
-    end⟩,
-  le := λ ⟨B, hB⟩ ⟨C, hC⟩, is_exposed C B,
-  le_refl := λ ⟨B, hB⟩, refl B,
-  le_trans := λ ⟨B, hB⟩ ⟨C, hC⟩ ⟨D, hD⟩ (hBC : is_exposed _ _) (hCD : is_exposed _ _), hCD.trans hBC,
-  le_antisymm := λ ⟨B, hB⟩ ⟨C, hC⟩ (hCB : is_exposed _ _) hBC, hBC.antisymm hCB,
-  le_sup_left := _,
-  le_sup_right := _,
-  sup_le := _,
-  inf := λ ⟨B, hB⟩ ⟨C, hC⟩, ⟨B ∩ C, hB.inter hC⟩,
-  inf_le_left := begin -- λ ⟨B, hB⟩ ⟨C, hC⟩, (refl B).inter
-    rintro ⟨B, hB⟩ ⟨C, hC⟩,
-    rintro ⟨x, hxB, hxC⟩,
-    obtain ⟨l, rfl⟩ := hC ⟨x, hxC⟩,
-    refine ⟨l, subset.antisymm _ _⟩,
-    rintro y ⟨hyB, ⟨_, hy⟩⟩,
-    exact ⟨hyB, λ z hz, hy z (hB.subset hz)⟩,
-    rintro y ⟨hyB, hy⟩,
-    exact ⟨hyB, (hB.subset hyB), λ z hz, (hxC.2 z hz).trans (hy x hxB)⟩,
-  end,
-  inf_le_right := λ ⟨B, hB⟩ ⟨C, hC⟩, begin
-    simp *,
-  end,
-  le_inf := λ ⟨B, hB⟩ ⟨C, hC⟩ ⟨D, hD⟩ (hBC : is_exposed _ _) (hBD : is_exposed _ _), hBC.inter_left
-    hBD.subset,
-  top := ⟨A, refl A⟩,
-  le_top := λ ⟨B, hB⟩, hB,
-  bot := ⟨∅, is_exposed_empty⟩,
-  bot_le := λ ⟨B, hB⟩, is_exposed_empty }-/
 
 lemma subset_frontier (hAB : is_exposed A B) (hBA : ¬ A ⊆ B) :
   B ⊆ frontier A :=

@@ -3,9 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import algebra.module.linear_map
 import analysis.convex.extreme
-import analysis.normed_space.operator_norm
 import combinatorics.simplicial_complex.convex_independence
 import linear_algebra.affine_space.finite_dimensional
 
@@ -16,12 +14,12 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set
   {X : finset E}
 
 --provable from the above by induction on C
-lemma diff_subset_convex_hull_diff_of_finite (hBA : B ⊆ convex_hull A) (hCB : C ⊆ convex_hull B)
-  (hC : finite C) :
-  B \ C ⊆ convex_hull (A \ C) :=
+lemma erase_subset_convex_hull_erase (hBA : B ⊆ convex_hull A) (hxB : x ∈ convex_hull B) :
+  B \ {x} ⊆ convex_hull (A \ {x}) :=
 begin
-  rintro x ⟨hxB, hxC⟩,
-  have := hBA hxB,
+  rintro y ⟨hyB, hxy⟩,
+  rw mem_singleton_iff at hxy,
+  have := hBA hyB,
   sorry
 end
 
@@ -46,11 +44,177 @@ begin
   by_contra h,
   push_neg at h,
   obtain ⟨x₁, x₂, hx₁, hx₂, hx⟩ := h,
-  apply hA _ hxA,
   suffices h : x₁ ∈ convex_hull (A \ {x}) ∧ x₂ ∈ convex_hull (A \ {x}),
-  { exact convex_iff_open_segment_subset.1 (convex_convex_hull _) h.1 h.2 hx.1 },
-  sorry --use diff_subset_convex_hull_diff_of_convex or _of_finite on A = A, B = {x₁, x₂}, C = {x}
+  { exact hA _ hxA (convex_iff_open_segment_subset.1 (convex_convex_hull _) h.1 h.2 hx.1) },
+  have hx₁₂ : segment x₁ x₂ ⊆ convex_hull A := (convex_convex_hull _).segment_subset hx₁ hx₂,
+  refine ⟨erase_subset_convex_hull_erase hx₁₂ (subset_convex_hull _ $ open_segment_subset_segment
+    _ _ hx.1) _, erase_subset_convex_hull_erase hx₁₂ (subset_convex_hull _ $
+    open_segment_subset_segment _ _ hx.1) _⟩,
+  { rw [mem_diff, mem_singleton_iff],
+    refine ⟨left_mem_segment _ _, λ h, hx.2 h _⟩,
+    rw [h, left_mem_open_segment_iff] at hx,
+    exact hx.1.symm },
+  rw [mem_diff, mem_singleton_iff],
+  refine ⟨right_mem_segment _ _, λ h, hx.2 _ h⟩,
+  rw [h, right_mem_open_segment_iff] at hx,
+  exact hx.1,
 end
+
+-- beurk
+lemma inter_frontier_self_inter_convex_hull_extreme :
+  is_extreme (closure A) (closure A ∩ frontier (convex_hull A)) :=
+begin
+  refine ⟨inter_subset_left _ _, λ x₁ x₂ hx₁A hx₂A x hxA hx, ⟨⟨hx₁A, _⟩, hx₂A, _⟩⟩,
+  sorry,
+  sorry
+end
+
+-- beurk
+lemma frontier_extreme (hA₁ : convex A) (hA₂ : is_closed A) :
+  is_extreme A (frontier A) :=
+begin
+  convert (inter_frontier_self_inter_convex_hull_extreme : is_extreme (closure A)
+    (closure A ∩ frontier (convex_hull A))),
+  { exact (is_closed.closure_eq hA₂).symm },
+  rw [convex.convex_hull_eq hA₁, inter_eq_self_of_subset_right frontier_subset_closure],
+end
+
+-- interesting
+lemma convex.frontier_extreme_to_closure (hAconv : convex A) :
+  is_extreme (closure A) (frontier A) :=
+begin
+  use frontier_subset_closure,
+  sorry
+end
+
+--can be generalized is_extreme.subset_intrinsic_frontier
+lemma is_extreme.subset_frontier (hAB : is_extreme A B) (hBA : ¬ A ⊆ B) :
+  B ⊆ frontier A :=
+begin
+  rintro x hxB,
+  obtain ⟨y, hyA, hyB⟩ := nonempty_of_ssubset ⟨hAB.1, hBA⟩,
+  rw frontier_eq_closure_inter_closure,
+  use subset_closure (hAB.1 hxB),
+  rw mem_closure_iff_seq_limit,
+  let z : ℕ → E := λ n, (1 + 1/n.succ : ℝ) • x - (1/n.succ : ℝ) • y,
+  use z,
+  /-
+  split,
+  { rintro n hzn,
+    --have := hAB.2 y (f n) hyA hfn x hxB,
+    refine hyB (hAB.2 y (z n) hyA hzn x hxB ⟨1/(↑n + 1)/(1/(↑n + 1) + 1), 1/(1/(↑n + 1) + 1),
+      _, _, _, _⟩).1,
+    { exact le_of_lt (div_pos nat.one_div_pos_of_nat (add_pos nat.one_div_pos_of_nat (by linarith))),
+    },
+    {
+      exact le_of_lt (one_div_pos.2 (add_pos nat.one_div_pos_of_nat (by linarith))),
+    },
+    {
+      rw [←add_div, div_self],
+      exact (ne_of_gt (add_pos nat.one_div_pos_of_nat (by linarith))),
+    },
+    {
+      sorry,
+    },
+    {
+      rintro rfl,
+      exact hyB hxB,
+    },
+    {
+      rintro h,
+      apply hyB,
+      suffices h : x = y,
+      { rw ←h, exact hxB },
+      suffices h : (1/n.succ : ℝ) • x = (1/n.succ : ℝ) • y,
+      { exact smul_injective (ne_of_gt nat.one_div_pos_of_nat) h },
+      calc
+        (1/n.succ : ℝ) • x
+            = -(1 • x) + ((1 • x + (1/n.succ : ℝ) • x) - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y : sorry
+        ... = -(1 • x) + ((1 + 1/n.succ : ℝ) • x - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y : sorry
+        ... = -(1 • x) + z n + (1/n.succ : ℝ) • y : by refl
+        ... = -(1 • x) + x + (1/n.succ : ℝ) • y : by rw h
+        ... = (1/n.succ : ℝ) • y : by simp,
+    },
+  },
+  rw ←sub_zero x,
+  apply filter.tendsto.sub,
+  {
+    nth_rewrite 0 ←one_smul _ x,
+    apply filter.tendsto.smul_const,
+    nth_rewrite 0 ←add_zero (1 : ℝ), --weirdly skips the first two `1`. Might break in the future
+    apply filter.tendsto.const_add,
+    sorry
+  },
+  rw ←zero_smul _ y,
+  apply filter.tendsto.smul_const,-/
+  sorry
+end
+
+lemma convex.is_extreme_iff_open_segment_subset_diff (hAconv : convex A) :
+  is_extreme A B ↔ B ⊆ A ∧ ∀ ⦃x y⦄, x ∈ A → y ∈ A \ B → open_segment x y ⊆ A \ B :=
+begin
+  refine ⟨λ h, ⟨h.1, λ x y hx hy z hz, ⟨hAconv.open_segment_subset hx hy.1 hz, λ hzB, hy.2
+    (h.2 x y hx hy.1 z hzB hz).2⟩⟩, λ h, ⟨h.1, λ x y hx hy z hzB hz, ⟨_, _⟩⟩⟩,
+  { by_contra hxB,
+    rw open_segment_symm at hz,
+    exact (h.2 hy ⟨hx, hxB⟩ hz).2 hzB },
+  by_contra hyB,
+  exact (h.2 hx ⟨hy, hyB⟩ hz).2 hzB,
+end
+
+/-{E : Type*} [add_comm_group E] [module ℝ E] [topological_space E]
+  [sequential_space E] [topological_add_group E] [has_continuous_smul ℝ E]-/
+
+lemma closure_eq_closure_interior  {A : set E}
+  (hAconv : convex A) (hAnemp : (interior A).nonempty) :
+  closure A = closure (interior A) :=
+begin
+  refine subset.antisymm (λ x hx, _) (closure_mono interior_subset),
+  obtain ⟨y, hy⟩ := hAnemp,
+  rw mem_closure_iff_seq_limit at ⊢ hx,
+  obtain ⟨z, hzA, hzx⟩ := hx,
+  use λ n, (1 - 1/(n + 2) : ℝ) • z n + (1/(n + 2) : ℝ) • y,
+  split,
+  { rintro n,
+    rw interior_eq_closure_diff_frontier at ⊢ hy,
+    have h₁ : (1 : ℝ) < ↑n + 2 := by { norm_cast, norm_num },
+    have h₀ := zero_lt_one.trans h₁,
+    exact (hAconv.closure.is_extreme_iff_open_segment_subset_diff.1
+      hAconv.frontier_extreme_to_closure).2 (subset_closure (hzA n)) hy
+      ⟨1 - 1/(n + 2), 1/(n + 2), sub_pos.2 $ (div_lt_one h₀).2 h₁, div_pos zero_lt_one h₀,
+      sub_add_cancel _ _, rfl⟩ },
+  have h : filter.tendsto (λ (n : ℕ), 1 / ((n : ℝ) + 2)) filter.at_top (nhds (0 : ℝ)),
+  {
+    sorry
+  },
+  rw [←add_zero x, ←one_smul ℝ x, ←zero_smul _ y],
+  nth_rewrite 0 ←sub_zero (1 : ℝ),
+  refine filter.tendsto.add (filter.tendsto.smul _ hzx) (filter.tendsto.smul_const h _),
+  apply filter.tendsto.const_add,
+  exact filter.tendsto.neg h,
+end
+
+
+
+lemma subset_of_convex_hull_eq_convex_hull_of_convex_independent {X Y : finset E}
+  (hX : convex_independent (λ p, p : (X : set E) → E))
+  (h : convex_hull ↑X = convex_hull (Y : set E)) :
+  X ⊆ Y :=
+begin
+  rintro x hx,
+  have hxextreme := (eq_extreme_points_convex_hull_iff_convex_independent.2 hX).subset hx,
+  rw h at hxextreme,
+  exact_mod_cast extreme_points_convex_hull_subset hxextreme,
+end
+
+lemma eq_of_convex_hull_eq_convex_hull_of_convex_independent
+  {X Y : finset E}
+  (hX : convex_independent (λ p, p : (X : set E) → E))
+  (hY : convex_independent (λ p, p : (Y : set E) → E))
+  (h : convex_hull (X : set E) = convex_hull (Y : set E)) :
+  X = Y :=
+(subset_of_convex_hull_eq_convex_hull_of_convex_independent hX h).antisymm
+  (subset_of_convex_hull_eq_convex_hull_of_convex_independent hY h.symm)
 
 /- deprecated because generalised by `eq_extreme_points_convex_hull_iff_convex_independent`
 lemma extreme_to_convex_hull_of_affine_independent {s : finset E} (hx : x ∈ s)
@@ -136,143 +300,3 @@ begin
   exact hs ⟨q, hq⟩,
 end
 -/
-
-lemma inter_frontier_self_inter_convex_hull_extreme :
-  is_extreme (closure A) (closure A ∩ frontier (convex_hull A)) :=
-begin
-  refine ⟨inter_subset_left _ _, λ x₁ x₂ hx₁A hx₂A x hxA hx, ⟨⟨hx₁A, _⟩, hx₂A, _⟩⟩,
-  sorry,
-  sorry
-end
-
-lemma frontier_extreme (hA₁ : convex A) (hA₂ : is_closed A) :
-  is_extreme A (frontier A) :=
-begin
-  convert (inter_frontier_self_inter_convex_hull_extreme : is_extreme (closure A)
-    (closure A ∩ frontier (convex_hull A))),
-  { exact (is_closed.closure_eq hA₂).symm },
-  rw [convex.convex_hull_eq hA₁, inter_eq_self_of_subset_right frontier_subset_closure],
-end
-
-lemma frontier_extreme_to_closure (hA₁ : convex A) :
-  is_extreme (closure A) (frontier A) :=
-begin
-  convert (inter_frontier_self_inter_convex_hull_extreme : is_extreme (closure A)
-    (closure A ∩ frontier (convex_hull A))),
-  { exact (is_closed.closure_eq hA₂).symm },
-  rw [convex.convex_hull_eq hA₁, inter_eq_self_of_subset_right frontier_subset_closure],
-end
-
---can be generalized is_extreme.subset_intrinsic_frontier
-lemma is_extreme.subset_frontier (hAB : is_extreme A B) (hBA : ¬ A ⊆ B) :
-  B ⊆ frontier A :=
-begin
-  rintro x hxB,
-  obtain ⟨y, hyA, hyB⟩ := nonempty_of_ssubset ⟨hAB.1, hBA⟩,
-  rw frontier_eq_closure_inter_closure,
-  use subset_closure (hAB.1 hxB),
-  rw mem_closure_iff_seq_limit,
-  let z : ℕ → E := λ n, (1 + 1/n.succ : ℝ) • x - (1/n.succ : ℝ) • y,
-  use z,
-  /-
-  split,
-  { rintro n hzn,
-    --have := hAB.2 y (f n) hyA hfn x hxB,
-    refine hyB (hAB.2 y (z n) hyA hzn x hxB ⟨1/(↑n + 1)/(1/(↑n + 1) + 1), 1/(1/(↑n + 1) + 1),
-      _, _, _, _⟩).1,
-    { exact le_of_lt (div_pos nat.one_div_pos_of_nat (add_pos nat.one_div_pos_of_nat (by linarith))),
-    },
-    {
-      exact le_of_lt (one_div_pos.2 (add_pos nat.one_div_pos_of_nat (by linarith))),
-    },
-    {
-      rw [←add_div, div_self],
-      exact (ne_of_gt (add_pos nat.one_div_pos_of_nat (by linarith))),
-    },
-    {
-      sorry,
-    },
-    {
-      rintro rfl,
-      exact hyB hxB,
-    },
-    {
-      rintro h,
-      apply hyB,
-      suffices h : x = y,
-      { rw ←h, exact hxB },
-      suffices h : (1/n.succ : ℝ) • x = (1/n.succ : ℝ) • y,
-      { exact smul_injective (ne_of_gt nat.one_div_pos_of_nat) h },
-      calc
-        (1/n.succ : ℝ) • x
-            = -(1 • x) + ((1 • x + (1/n.succ : ℝ) • x) - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y : sorry
-        ... = -(1 • x) + ((1 + 1/n.succ : ℝ) • x - (1/n.succ : ℝ) • y) + (1/n.succ : ℝ) • y : sorry
-        ... = -(1 • x) + z n + (1/n.succ : ℝ) • y : by refl
-        ... = -(1 • x) + x + (1/n.succ : ℝ) • y : by rw h
-        ... = (1/n.succ : ℝ) • y : by simp,
-    },
-  },
-  rw ←sub_zero x,
-  apply filter.tendsto.sub,
-  {
-    nth_rewrite 0 ←one_smul _ x,
-    apply filter.tendsto.smul_const,
-    nth_rewrite 0 ←add_zero (1 : ℝ), --weirdly skips the first two `1`. Might break in the future
-    apply filter.tendsto.const_add,
-    sorry
-  },
-  rw ←zero_smul _ y,
-  apply filter.tendsto.smul_const,-/
-  sorry
-end
-
-lemma closure_eq_closure_interior {E : Type _} [add_comm_group E] [module ℝ E] [topological_space E]
-  [sequential_space E] [topological_add_group E] [has_continuous_smul ℝ E] {A : set E}
-  (hAconv : convex A) (hAnemp : (interior A).nonempty) :
-  closure A = closure (interior A) :=
-begin
-  --have := hAconv.interior,
-  refine set.subset.antisymm (λ x hx, _) (closure_mono interior_subset),
-  obtain ⟨y, hy⟩ := hAnemp,
-  rw mem_closure_iff_seq_limit at ⊢ hx,
-  obtain ⟨z, hzA, hzx⟩ := hx,
-  use λ n, (1/n.succ : ℝ) • y + (1 - 1/n.succ : ℝ) • z n,
-  split,
-  {
-    rintro n,
-    have := (frontier_extreme_to_closure hAconv).2 y (z n) (interior_subset hy) (hzA n),
-    sorry
-  },
-  rw ←zero_add x,
-  apply filter.tendsto.add,
-  {
-    sorry
-  },
-  rw ←one_smul _ x,
-  refine filter.tendsto.smul _ hzx,
-  rw ←zero_sub x,
-  sorry
-end
-
-
-
-lemma subset_of_convex_hull_eq_convex_hull_of_convex_independent {X Y : finset E}
-  (hX : convex_independent (λ p, p : (X : set E) → E))
-  (h : convex_hull ↑X = convex_hull (Y : set E)) :
-  X ⊆ Y :=
-begin
-  rintro x hx,
-  have hxextreme := (eq_extreme_points_convex_hull_iff_convex_independent.2 hX).subset hx,
-  rw h at hxextreme,
-  exact_mod_cast extreme_points_convex_hull_subset hxextreme,
-end
-
-lemma eq_of_convex_hull_eq_convex_hull_of_convex_independent
-  {X Y : finset E}
-  (hX : convex_independent (λ p, p : (X : set E) → E))
-  (hY : convex_independent (λ p, p : (Y : set E) → E))
-  (h : convex_hull (X : set E) = convex_hull (Y : set E)) :
-  X = Y :=
-finset.subset.antisymm
-  (subset_of_convex_hull_eq_convex_hull_of_convex_independent hX h)
-  (subset_of_convex_hull_eq_convex_hull_of_convex_independent hY h.symm)

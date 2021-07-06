@@ -44,5 +44,8 @@ begin
   refl,
 end
 
+lemma convex_hull_pair {a b : E} :
+  convex_hull {a, b} = (segment a b) := sorry
+
 --TODO: Generalise to LCTVS
 variables [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}

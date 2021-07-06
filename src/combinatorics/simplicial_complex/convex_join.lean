@@ -137,14 +137,12 @@ begin
   ext x,
   simp only [mem_convex_join_iff, mem_Union],
   split,
-  {
-    rintro ((hx | hx) | ⟨a, b, ha, hb, hx⟩),
+  { rintro ((hx | hx) | ⟨a, b, ha, hb, hx⟩),
     { obtain ⟨b, hb⟩ := hB,
       exact ⟨x, b, hx, hb, left_mem_segment x b⟩ },
     { obtain ⟨a, ha⟩ := hA,
       exact ⟨a, x, ha, hx, right_mem_segment a x⟩ },
-    exact ⟨a, b, ha, hb, open_segment_subset_segment a b hx⟩,
-  },
+    exact ⟨a, b, ha, hb, open_segment_subset_segment a b hx⟩ },
   rintro ⟨a, b, ha, hb, hx⟩,
   obtain rfl | (rfl | hx) := eq_left_or_right_or_mem_open_segment_of_mem_segment hx,
   { left,
@@ -165,8 +163,7 @@ begin
   ext x,
   simp only [mem_Union],
   split,
-  {
-    rintro ⟨y, z, ⟨ya, yb, hya, hyb, hyab, hy⟩, ⟨zc, zd, hzc, hzd, hzcd, hz⟩,
+  { rintro ⟨y, z, ⟨ya, yb, hya, hyb, hyab, hy⟩, ⟨zc, zd, hzc, hzd, hzcd, hz⟩,
       ⟨xy, xz, hxy, hxz, hxyz, hx⟩⟩,
     sorry
   },

@@ -9,16 +9,20 @@ import order.basic
 
 /-!
 # Ordered monoids
+
 This file develops the basics of ordered monoids.
 
 ## Implementation details
+
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
 
 ## Remark
+
 No monoid is actually present in this file: all assumptions have been generalized to `has_mul` or
 `mul_one_class`.
+
 -/
 
 -- TODO: If possible, uniformize lemma names, taking special care of `'`,
@@ -325,7 +329,7 @@ calc  a * b < 1 * b : mul_lt_mul_right' ha b
         ... < c     : hb
 
 /-- Assumes right covariance. -/
-@[to_additive left.add_nonneg]
+@[to_additive right.add_nonneg]
 lemma right.one_le_mul [covariant_class α α (function.swap (*)) (≤)]
   {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
 calc  1 ≤ b     : hb
@@ -333,7 +337,7 @@ calc  1 ≤ b     : hb
     ... ≤ a * b : mul_le_mul_right' ha b
 
 /-- Assumes right covariance. -/
-@[to_additive right.pos_add]
+@[to_additive right.add_pos]
 lemma right.one_lt_mul [covariant_class α α (function.swap (*)) (<)]
   {b : α} (hb : 1 < b) {a: α} (ha : 1 < a) : 1 < a * b :=
 calc  1 < b     : hb

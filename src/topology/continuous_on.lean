@@ -770,6 +770,13 @@ lemma continuous_on.preimage_open_of_open {f : α → β} {s : set α} {t : set 
   (hf : continuous_on f s) (hs : is_open s) (ht : is_open t) : is_open (s ∩ f⁻¹' t) :=
 (continuous_on_open_iff hs).1 hf t ht
 
+lemma continuous_on.is_open_preimage {f : α → β} {s : set α} {t : set β} (h : continuous_on f s)
+  (hs : is_open s) (hp : f ⁻¹' t ⊆ s) (ht : is_open t) : is_open (f ⁻¹' t) :=
+begin
+  convert (continuous_on_open_iff hs).mp h t ht,
+  rw [inter_comm, inter_eq_self_of_subset_left hp],
+end
+
 lemma continuous_on.preimage_closed_of_closed {f : α → β} {s : set α} {t : set β}
   (hf : continuous_on f s) (hs : is_closed s) (ht : is_closed t) : is_closed (s ∩ f⁻¹' t) :=
 begin

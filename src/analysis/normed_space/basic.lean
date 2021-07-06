@@ -219,6 +219,10 @@ lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥h - g∥ < r :=
 by rw [mem_ball, dist_eq_norm]
 
+lemma add_mem_ball_iff_norm {g h : α} {r : ℝ} :
+  g + h ∈ ball g r ↔ ∥h∥ < r :=
+by rw [mem_ball_iff_norm, add_sub_cancel']
+
 lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
@@ -229,6 +233,10 @@ by rw [mem_ball, dist_zero_right]
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
+
+lemma add_mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
+  g + h ∈ closed_ball g r ↔ ∥h∥ ≤ r :=
+by rw [mem_closed_ball_iff_norm, add_sub_cancel']
 
 lemma mem_closed_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥g - h∥ ≤ r :=
@@ -1304,6 +1312,8 @@ instance : normed_comm_ring ℤ :=
   mul_comm := mul_comm }
 
 @[norm_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
+
+lemma int.norm_eq_abs (n : ℤ) : ∥n∥ = abs n := rfl
 
 lemma nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ∥n∥₊ :=
 nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)

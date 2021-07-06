@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alexander Bentkamp, Sébastien Gouëzel
+Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
 import data.complex.basic
 import algebra.algebra.ordered
@@ -28,6 +28,9 @@ part, the embedding of `ℝ` in `ℂ`, and the complex conjugate):
 * `complex.im_lm` (`ℝ`-linear map);
 * `complex.of_real_am` (`ℝ`-algebra (homo)morphism);
 * `complex.conj_ae` (`ℝ`-algebra equivalence).
+
+It also provides a universal property of the complex numbers `complex.lift`, which constructs a
+`ℂ →ₐ[ℝ] A` into any `ℝ`-algebra `A` given a square root of `-1`.
 
 -/
 noncomputable theory
@@ -78,6 +81,28 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
+/-- Note that when applied the RHS is further simplified by `complex.of_real_eq_coe`. -/
+@[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
+
+section
+variables {A : Type*} [semiring A] [algebra ℝ A]
+
+/-- We need this lemma since `complex.coe_algebra_map` diverts the simp-normal form away from
+`alg_hom.commutes`. -/
+@[simp] lemma _root_.alg_hom.map_coe_real_complex (f : ℂ →ₐ[ℝ] A) (x : ℝ) :
+  f x = algebra_map ℝ A x :=
+f.commutes x
+
+/-- Two `ℝ`-algebra homomorphisms from ℂ are equal if they agree on `complex.I`. -/
+@[ext]
+lemma alg_hom_ext ⦃f g : ℂ →ₐ[ℝ] A⦄ (h : f I = g I) : f = g :=
+begin
+  ext ⟨x, y⟩,
+  simp only [mk_eq_add_mul_I, alg_hom.map_add, alg_hom.map_coe_real_complex, alg_hom.map_mul, h]
+end
+
+end
+
 section
 open_locale complex_order
 
@@ -109,8 +134,6 @@ localized "attribute [instance] complex_ordered_module" in complex_order
 
 end
 
-
-@[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
 
 open submodule finite_dimensional
 
@@ -207,5 +230,59 @@ def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
   .. conj }
 
 @[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
+
+section lift
+
+variables {A : Type*} [ring A] [algebra ℝ A]
+
+/-- There is an alg_hom from `ℂ` to any `ℝ`-algebra with an element that squares to `-1`.
+
+See `complex.lift` for this as an equiv. -/
+def lift_aux (I' : A) (hf : I' * I' = -1) : ℂ →ₐ[ℝ] A :=
+alg_hom.of_linear_map
+  ((algebra.of_id ℝ A).to_linear_map.comp re_lm + (linear_map.to_span_singleton _ _ I').comp im_lm)
+  (show algebra_map ℝ A 1 + (0 : ℝ) • I' = 1,
+    by rw [ring_hom.map_one, zero_smul, add_zero])
+  (λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, show algebra_map ℝ A (x₁ * x₂ - y₁ * y₂) + (x₁ * y₂ + y₁ * x₂) • I'
+                          = (algebra_map ℝ A x₁ + y₁ • I') * (algebra_map ℝ A x₂ + y₂ • I'),
+    begin
+      rw [add_mul, mul_add, mul_add, add_comm _ (y₁ • I' * y₂ • I'), add_add_add_comm],
+      congr' 1, -- equate "real" and "imaginary" parts
+      { rw [smul_mul_smul, hf, smul_neg, ←algebra.algebra_map_eq_smul_one, ←sub_eq_add_neg,
+          ←ring_hom.map_mul, ←ring_hom.map_sub], },
+      { rw [algebra.smul_def, algebra.smul_def, algebra.smul_def, ←algebra.right_comm _ x₂,
+          ←mul_assoc, ←add_mul, ←ring_hom.map_mul, ←ring_hom.map_mul, ←ring_hom.map_add] }
+    end)
+
+@[simp]
+lemma lift_aux_apply (I' : A) (hI') (z : ℂ) :
+ lift_aux I' hI' z = algebra_map ℝ A z.re + z.im • I' := rfl
+
+lemma lift_aux_apply_I (I' : A) (hI') : lift_aux I' hI' I = I' := by simp
+
+/-- A universal property of the complex numbers, providing a unique `ℂ →ₐ[ℝ] A` for every element
+of `A` which squares to `-1`.
+
+This can be used to embed the complex numbers in the `quaternion`s.
+
+This isomorphism is named to match the very similar `zsqrtd.lift`. -/
+@[simps {simp_rhs := tt}]
+noncomputable def lift : {I' : A // I' * I' = -1} ≃ (ℂ →ₐ[ℝ] A) :=
+{ to_fun := λ I', lift_aux I' I'.prop,
+  inv_fun := λ F, ⟨F I, by rw [←F.map_mul, I_mul_I, alg_hom.map_neg, alg_hom.map_one]⟩,
+  left_inv := λ I', subtype.ext $ lift_aux_apply_I I' I'.prop,
+  right_inv := λ F, alg_hom_ext $ lift_aux_apply_I _ _, }
+
+/- When applied to `complex.I` itself, `lift` is the identity. -/
+@[simp]
+lemma lift_aux_I : lift_aux I I_mul_I = alg_hom.id ℝ ℂ :=
+alg_hom_ext $ lift_aux_apply_I _ _
+
+/- When applied to `-complex.I`, `lift` is conjugation, `conj`. -/
+@[simp]
+lemma lift_aux_neg_I : lift_aux (-I) ((neg_mul_neg _ _).trans I_mul_I) = conj_ae :=
+alg_hom_ext $ (lift_aux_apply_I _ _).trans conj_I.symm
+
+end lift
 
 end complex

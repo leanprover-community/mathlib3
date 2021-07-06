@@ -71,10 +71,15 @@ initialize_simps_projections add_units (val → coe as_prefix, neg → coe_neg a
 ext rfl
 
 /-- Copy a unit, adjusting definition equalities. -/
-@[to_additive /-"Copy an `add_unit`, adjusting definitional equalities."-/, simps?]
+@[to_additive /-"Copy an `add_unit`, adjusting definitional equalities."-/, simps]
 def copy (u : units α) (val : α) (hv : val = u) (inv : α) (hi : inv = ↑(u⁻¹)) : units α :=
 { val := val, inv := inv,
   inv_val := hv.symm ▸ hi.symm ▸ u.inv_val, val_inv := hv.symm ▸ hi.symm ▸ u.val_inv }
+
+@[to_additive]
+lemma copy_eq (u : units α) (val hv inv hi) :
+  u.copy val hv inv hi = u :=
+ext hv
 
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=

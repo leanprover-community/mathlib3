@@ -76,7 +76,7 @@ lemma card_sym2_not_diag {α : Type u} [decidable_eq α] [fintype α] :
   (univ.filter (λ (a : sym2 α), ¬a.is_diag)).card = (card α).choose 2 :=
 prod_quotient_sym2_not_diag (univ : finset α)
 
-lemma sym2.injective {α : Type u} : function.injective (sym2.diag : α → sym2 α) :=
+lemma sym2.diag.injective {α : Type u} : function.injective (sym2.diag : α → sym2 α) :=
 begin
   rintro x y (h : ⟦_⟧ = ⟦_⟧),
   rw sym2.eq_iff at h,
@@ -90,7 +90,7 @@ begin
   { ext,
     simp [sym2.is_diag] },
   rw [←finset.card_univ, ←filter_union_filter_neg_eq sym2.is_diag (univ : finset (sym2 α)),
-    card_disjoint_union, this, card_image_of_injective _ sym2.injective, card_sym2_not_diag,
+    card_disjoint_union, this, card_image_of_injective _ sym2.diag.injective, card_sym2_not_diag,
     nat.choose_two_right, finset.card_univ, add_comm, ←nat.triangle_succ, nat.succ_sub_one,
     mul_comm],
   rw disjoint_iff_inter_eq_empty,
@@ -950,7 +950,7 @@ lemma mk_equitable_aux {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset (
   (disj : ∀ (x₁ x₂ ∈ A) i, i ∈ x₁ → i ∈ x₂ → x₁ = x₂)
   (subs : ∀ i ∈ A, i ⊆ s) :
   ∃ (P : finset (finset α)),
-    (∀ (x : finset α), x ∈ P → x.card = m ∨ x.card = m+1) ∧
+    (∀ (x : finset α), x ∈ P → x.card = m ∨ x.card = m + 1) ∧
     (∀ x, x ∈ A → (x \ finset.bUnion (P.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
     (∀ x ∈ s, ∃ y ∈ P, x ∈ y) ∧
     (∀ (x₁ x₂ ∈ P) i, i ∈ x₁ → i ∈ x₂ → x₁ = x₂) ∧
@@ -1470,6 +1470,48 @@ begin
   exact nat.le_add_right _ _,
 end
 
+/-- The part of `increment` that partitions `U`. -/
+noncomputable def finpartition_on.is_equipartition.chunk_increment (hP : P.is_equipartition)
+  (G : simple_graph V) (ε : ℝ) {U : finset V} (hU : U ∈ P.parts) :
+  finpartition_on U :=
+begin
+  let R := atomise U (finset.image (λ W, (G.witness ε U W).1) (P.parts.filter (λ W,
+    ¬G.is_uniform ε U W))),
+  exact dite (U.card = m * 4^P.size + a)
+    (λ hUcard, R.mk_equitable $ card_aux₂ hUcard)
+    (λ hUcard, R.mk_equitable $ card_aux₃ hP hU hUcard),
+end
+
+lemma card_eq_of_mem_parts_chunk_increment {hP : P.is_equipartition} {U : finset V}
+  {hU : U ∈ P.parts} {A : finset V} (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
+  A.card = card V / exp_bound P.size ∨ A.card = card V / exp_bound P.size + 1 :=
+begin
+  simp [finpartition_on.is_equipartition.chunk_increment] at hA,
+  by_cases hUcard : U.card = m * 4^P.size + a,
+  { rw dif_pos hUcard at hA,
+    exact finpartition_on.card_eq_of_mem_parts_mk_equitable _ hA },
+  rw dif_neg hUcard at hA,
+  exact finpartition_on.card_eq_of_mem_parts_mk_equitable _ hA,
+end
+
+lemma stuff_le {hP : P.is_equipartition} {U W : finset V} {hU : U ∈ P.parts} {hW : W ∈ P.parts}
+  {A B : finset (finset V)} (hA : A ⊆ (hP.chunk_increment G ε hU).parts)
+  (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
+  G.edge_density (A.bUnion id) (B.bUnion id) - ε^5/50 ≤
+  (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) :=
+begin
+
+end
+
+lemma le_stuff {hP : P.is_equipartition} {U W : finset V} {hU : U ∈ P.parts} {hW : W ∈ P.parts}
+  {A B : finset (finset V)} (hA : A ⊆ (hP.chunk_increment G ε hU).parts)
+  (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
+  (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) ≤
+  G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49 :=
+begin
+
+end
+
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
 index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
@@ -1477,13 +1519,7 @@ yields a not-too-big uniform equipartition. -/
 noncomputable def finpartition_on.is_equipartition.increment (hP : P.is_equipartition)
   (G : simple_graph V) (ε : ℝ) :
   finpartition V :=
-begin
-  let R : ∀ U, finpartition_on U := λ U, atomise U (finset.image
-    (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
-  exact P.bind (λ U hU, dite (U.card = m * 4^P.size + a)
-    (λ hUcard, (R U).mk_equitable $ card_aux₂ hUcard)
-    (λ hUcard, (R U).mk_equitable $ card_aux₃ hP hU hUcard)),
-end
+ P.bind (λ U hU, hP.chunk_increment G ε hU)
 
 open finpartition_on.is_equipartition
 
@@ -1493,8 +1529,6 @@ protected lemma size (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
   (hP.increment G ε).size = exp_bound P.size :=
 begin
-  let R : ∀ U, finpartition_on U := λ U, atomise U (finset.image
-    (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   have hPV' : exp_bound P.size ≤ card V :=
     (nat.mul_le_mul_of_nonneg_left $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPV,
   have hPpos : 0 < exp_bound P.size := exp_bound_pos ((nat.eq_zero_or_pos _).resolve_left $ λ h,
@@ -1502,7 +1536,7 @@ begin
     _ _),
   rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
   rw [increment, bind_size],
-  simp_rw [apply_dite finpartition_on.size],
+  simp_rw [finpartition_on.is_equipartition.chunk_increment, apply_dite finpartition_on.size],
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
   exact λ x hx, finpartition_on.mk_equitable.size (nat.div_pos hPV' hPpos) _,
   exact λ x hx, finpartition_on.mk_equitable.size (nat.div_pos hPV' hPpos) _,
@@ -1514,26 +1548,21 @@ end
 protected lemma is_equipartition (hP : P.is_equipartition) (G : simple_graph V) (ε : ℝ) :
   (hP.increment G ε).is_equipartition :=
 begin
-  let R : ∀ U, finpartition_on U := λ U, atomise U (finset.image
-    (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   rw [is_equipartition, equitable_on_iff_almost_eq_constant],
   refine ⟨m, λ A hA, _⟩,
   rw [mem_coe, increment, mem_bind_parts] at hA,
   obtain ⟨U, hU, hA⟩ := hA,
-  by_cases hUcard : U.card = m * 4^P.size + a,
-  { rw dif_pos hUcard at hA,
-    exact finpartition_on.card_eq_of_mem_parts_mk_equitable _ hA },
-  rw dif_neg hUcard at hA,
-  exact finpartition_on.card_eq_of_mem_parts_mk_equitable _ hA,
+  exact card_eq_of_mem_parts_chunk_increment hA,
 end
 
 protected lemma index (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
   P.index G + ε^5 / 8 ≤ (hP.increment G ε).index G :=
 begin
-  let R : ∀ U, finpartition_on U := λ U, atomise U (finset.image
-    (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
-  sorry
+  calc
+    index G P + ε^5/8
+        ≤ index G P - ε^5/25 + 1/P.size^2 * ε * (P.size.choose 2) * ε^4/3 : sorry
+    ... ≤ index G (hP.increment G ε) : sorry,
 end
 
 end increment

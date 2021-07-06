@@ -152,31 +152,31 @@ lemma injective_of_forall_is_some {f : α ≃. β}
   (λ hn x, (hn ⟨x⟩).elim)
 
 section of_set
-variables (s : set α) [decidable_pred s]
+variables (s : set α) [decidable_pred (∈ s)]
 
 /-- Creates a `pequiv` that is the identity on `s`, and `none` outside of it. -/
-def of_set (s : set α) [decidable_pred s] : α ≃. α :=
+def of_set (s : set α) [decidable_pred (∈ s)] : α ≃. α :=
 { to_fun := λ a, if a ∈ s then some a else none,
   inv_fun := λ a, if a ∈ s then some a else none,
   inv := λ a b, by split_ifs; finish [eq_comm] }
 
-lemma mem_of_set_self_iff {s : set α} [decidable_pred s] {a : α} : a ∈ of_set s a ↔ a ∈ s :=
+lemma mem_of_set_self_iff {s : set α} [decidable_pred (∈ s)] {a : α} : a ∈ of_set s a ↔ a ∈ s :=
 by dsimp [of_set]; split_ifs; simp *
 
-lemma mem_of_set_iff {s : set α} [decidable_pred s] {a b : α} : a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
+lemma mem_of_set_iff {s : set α} [decidable_pred (∈ s)] {a b : α} : a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
 by dsimp [of_set]; split_ifs; split; finish
 
-@[simp] lemma of_set_eq_some_iff {s : set α} {h : decidable_pred s} {a b : α} :
+@[simp] lemma of_set_eq_some_iff {s : set α} {h : decidable_pred (∈ s)} {a b : α} :
   of_set s b = some a ↔ a = b ∧ a ∈ s := mem_of_set_iff
 
-@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
+@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred (∈ s)} {a : α} :
   of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
 
 @[simp] lemma of_set_symm : (of_set s).symm = of_set s := rfl
 
 @[simp] lemma of_set_univ : of_set set.univ = pequiv.refl α := rfl
 
-@[simp] lemma of_set_eq_refl {s : set α} [decidable_pred s] :
+@[simp] lemma of_set_eq_refl {s : set α} [decidable_pred (∈ s)] :
   of_set s = pequiv.refl α ↔ s = set.univ :=
 ⟨λ h, begin
   rw [set.eq_univ_iff_forall],

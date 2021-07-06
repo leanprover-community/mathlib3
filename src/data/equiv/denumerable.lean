@@ -168,7 +168,7 @@ fintype.false
 
 end classical
 
-variable [decidable_pred s]
+variable [decidable_pred (∈ s)]
 
 /-- Returns the next natural in a set, according to the usual ordering of `ℕ`. -/
 def succ (x : s) : s :=
@@ -199,7 +199,7 @@ lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=
   λ h, lt_of_le_of_lt h (lt_succ_self _)⟩
 
 /-- Returns the `n`-th element of a set, according to the usual ordering of `ℕ`. -/
-def of_nat (s : set ℕ) [decidable_pred s] [infinite s] : ℕ → s
+def of_nat (s : set ℕ) [decidable_pred (∈ s)] [infinite s] : ℕ → s
 | 0     := ⊥
 | (n+1) := succ (of_nat n)
 
@@ -259,7 +259,7 @@ begin
 end
 
 /-- Any infinite set of naturals is denumerable. -/
-def denumerable (s : set ℕ) [decidable_pred s] [infinite s] : denumerable s :=
+def denumerable (s : set ℕ) [decidable_pred (∈ s)] [infinite s] : denumerable s :=
 denumerable.of_equiv ℕ
 { to_fun := to_fun_aux,
   inv_fun := of_nat s,

@@ -40,7 +40,8 @@ example : let n : ℤ := 3 in n = n :=
 begin
   intro n,
   success_if_fail_with_msg { lift n to ℕ }
-    "Cannot substitute variable n, it is a local definition. Hint: use `clear_value`.",
+    ("Cannot substitute variable n, it is a local definition. " ++
+    "If you really want to do this, use `clear_value` first."),
   refl
 end
 

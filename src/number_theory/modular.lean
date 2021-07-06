@@ -264,25 +264,27 @@ Need: acbd = entry of line_map
 lemma lin_indep_acbd (cd : coprime_ints) : (line_map cd).ker = ⊥ :=
 begin
   rw linear_map.ker_eq_bot,
---  apply function.left_inverse.injective,
-  -- let g : (ℝ × ℝ) → ℝ := λ
-  have nonZ : ((cd.c)^2+(cd.d)^2:ℝ) ≠ 0 := sorry,
-  let F : matrix (fin 2) (fin 2) ℝ := ((cd.c)^2+(cd.d)^2:ℝ)⁻¹ • ![![-cd.c, -cd.d],![-cd.d,cd.c]],
-
+  have nonZ : ((cd.c)^2+(cd.d)^2:ℝ) ≠ 0,
+  { norm_cast,
+    exact cd.sum_sq_ne_zero },
+  let F : matrix (fin 2) (fin 2) ℝ := ((cd.c)^2+(cd.d)^2:ℝ)⁻¹ • ![![cd.c, cd.d], ![cd.d, -cd.c]],
   let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := F.mul_vec_lin,
-  --(ℝ × ℝ) → (fin 2 → ℝ) := sorry,
-  -- λ ⟨ x,y⟩,
   let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨ x , cd⟩, ![f₁ x, cd],
   have : function.left_inverse f (line_map cd),
-  {
-    intros g,
+  { intros g,
     simp [line_map, f, f₁, F, useful_matrix, vec_head, vec_tail],
     ext i j,
     fin_cases i,
-    fin_cases j,--Alex homework
-    simp,
-    sorry,
-  },
+    { fin_cases j,
+      { change (↑(cd.c) ^ 2 + ↑(cd.d) ^ 2)⁻¹ * ↑(cd.c) * (↑(cd.c) * g 0 0 + ↑(cd.d) * g 0 1) +
+          (↑(cd.c) ^ 2 + ↑(cd.d) ^ 2)⁻¹ * ↑(cd.d) * (↑(cd.d) * g 0 0 + -(↑(cd.c) * g 0 1)) = _,
+        field_simp,
+        ring },
+      { change (↑(cd.c) ^ 2 + ↑(cd.d) ^ 2)⁻¹ * ↑(cd.d) * (↑(cd.c) * g 0 0 + ↑(cd.d) * g 0 1) +
+          -((↑(cd.c) ^ 2 + ↑(cd.d) ^ 2)⁻¹ * ↑(cd.c) * (↑(cd.d) * g 0 0 + -(↑(cd.c) * g 0 1))) = _,
+        field_simp,
+        ring } },
+    { fin_cases j; refl } },
   exact this.injective,
 end
 
@@ -324,6 +326,11 @@ begin
     fin_cases i; refl }
 end
 
+lemma junk (x y:ℝ)  (h: 0≤ x) : y≤ x+y :=
+begin
+exact le_add_of_nonneg_left h,
+
+end
 
 lemma something2 (p : coprime_ints) (z : ℍ) :
   ∃ (w : ℂ), ∀ g : bottom_row ⁻¹' {p},
@@ -331,8 +338,31 @@ lemma something2 (p : coprime_ints) (z : ℍ) :
 begin
   use (((p.d:ℂ )* z - p.c)*(p.c * (z:ℂ).conj + p.d) ) /
     ((p.c ^ 2 + p.d ^ 2) * (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))),
-  have nonZ1 : (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))  ≠ 0 := sorry,
-  have nonZ2 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0 := sorry,
+  have nonZ1 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0,
+  { norm_cast,
+    exact p.sum_sq_ne_zero },
+  have nonZ2 : (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))  ≠ 0,
+  { rw (_ : (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))=((p.c:ℝ)*(z.re)+p.d)^2+(p.c*z.im)^2),
+    { by_cases (p.c:ℝ)=0,
+      { norm_cast at h,
+        rw h,
+        simp only [nat.succ_pos', nat.one_ne_zero, int.cast_eq_zero, add_zero, int.cast_zero,
+         of_real_zero, zero_mul, ne.def, zero_add, not_false_iff, bit0_eq_zero, zero_pow',
+         pow_eq_zero_iff],
+        by_contra h1,
+        rw [h, h1] at nonZ1,
+        simp at nonZ1,
+        exact nonZ1 },
+      { norm_cast,
+        have : 0 < ((p.c:ℝ) * z.re + p.d) ^ 2 + (p.c * z.im) ^ 2,
+        { calc 0 < ((p.c:ℝ) * z.im) ^ 2 : pow_bit0_pos (mul_ne_zero h (ne_of_gt z.im_pos)) 1
+            ... ≤ ((p.c:ℝ) * z.re + p.d) ^ 2 + (p.c * z.im) ^ 2 :
+            le_add_of_nonneg_left (sq_nonneg ((p.c:ℝ) * z.re + p.d)) },
+        exact ne_of_gt this } },
+    ext,
+    ring,
+    sorry, -- COME ON! :(
+  },
   intro g,
   field_simp [nonZ1,nonZ2],
   simp [acbd, smul_aux, smul_aux'],
@@ -541,7 +571,20 @@ begin
   either c=0 in which case, translation, in which case translation by 0
   or im (y) > Sqrt(3)/2 -> c=±1 and compute...
 -/
-  sorry, -- ALEX homework
+  by_cases (g 0 1 = 0),
+  {
+
+    -- want to argue that g=± (1 n),(0,1), so gz=z+n, and n=0
+    have := g.2,
+
+    sorry,
+  },
+  {
+    -- want to argue first that c=± 1
+    -- then show this is impossible
+    sorry,
+  },
+ -- ALEX homework
 end
 
 

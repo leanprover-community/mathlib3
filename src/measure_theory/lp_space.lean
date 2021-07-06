@@ -267,7 +267,7 @@ begin
   rw [one_div, mul_inv_cancel (ne_of_lt hq_pos).symm],
 end
 
-lemma snorm'_const' [finite_measure μ] (c : F) (hc_ne_zero : c ≠ 0) (hq_pos : 0 < q) :
+lemma snorm'_const' [finite_measure μ] (c : F) (hq_pos : 0 < q) :
   snorm' (λ x : α , c) q μ = (nnnorm c : ℝ≥0∞) * (μ set.univ) ^ (1/q) :=
 begin
   rw [snorm', lintegral_const, ennreal.mul_rpow_of_ne_top _ (measure_ne_top μ set.univ)],

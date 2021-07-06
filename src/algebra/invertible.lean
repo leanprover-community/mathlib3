@@ -88,9 +88,7 @@ by { apply inv_of_eq_right_inv, rw [h, mul_inv_of_self], }
 instance [monoid α] (a : α) : subsingleton (invertible a) :=
 ⟨ λ ⟨b, hba, hab⟩ ⟨c, hca, hac⟩, by { congr, exact left_inv_eq_right_inv hba hac } ⟩
 
-/--
-If `r` is invertible and `s = r`, then `s` is invertible.
--/
+/-- If `r` is invertible and `s = r`, then `s` is invertible. -/
 def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = r) : invertible s :=
 { inv_of := ⅟r,
   inv_of_mul_self := by rw [hs, inv_of_mul_self],

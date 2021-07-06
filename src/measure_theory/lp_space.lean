@@ -1344,9 +1344,7 @@ variables (hs f)
 lemma snorm_indicator_le :
   snorm (s.indicator f) p μ ≤ snorm f p μ :=
 begin
-  refine snorm_mono_ae _,
-  refine eventually_of_forall _,
-  intros x,
+  refine snorm_mono_ae (eventually_of_forall (λ x, _)),
   suffices : ∥s.indicator f x∥₊ ≤ ∥f x∥₊,
   { exact nnreal.coe_mono this },
   rw nnnorm_indicator_eq_indicator_nnnorm,

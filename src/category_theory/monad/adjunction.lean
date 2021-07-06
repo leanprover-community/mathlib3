@@ -41,12 +41,14 @@ def to_comonad (h : L ⊣ R) : comonad D :=
   right_counit' := λ X, by { dsimp, rw ← L.map_comp, simp } }
 
 /-- The monad induced by the Eilenberg-Moore adjunction is the original monad.  -/
+@[simps]
 def adj_to_monad_iso (T : monad C) : T.adj.to_monad ≅ T :=
 monad_iso.mk (nat_iso.of_components (λ X, iso.refl _) (by tidy))
   (λ X, by { dsimp, simp })
   (λ X, by { dsimp, simp })
 
 /-- The comonad induced by the Eilenberg-Moore adjunction is the original comonad. -/
+@[simps]
 def adj_to_comonad_iso (G : comonad C) : G.adj.to_comonad ≅ G :=
 comonad_iso.mk (nat_iso.of_components (λ X, iso.refl _) (by tidy))
   (λ X, by { dsimp, simp })

@@ -384,7 +384,7 @@ begin
 end
 
 /- `is_unit_of_invertible A`
-   converts the "stronger" condition `invertible A` to proposition `is_unit A.det`. -/
+   converts the "stronger" condition `invertible A` to proposition `is_unit A`. -/
 
 /- `matrix.is_unit_det_of_invertible` converts `invertible A` to `is_unit A.det`. -/
 lemma is_unit_det_of_invertible [invertible A] : is_unit A.det :=
@@ -477,6 +477,7 @@ mul_nonsing_inv A (is_unit_det_of_invertible A)
 
 @[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
 nonsing_inv_mul A (is_unit_det_of_invertible A)
+#check is_unit_det_of_left_inverse
 
 end inv
 

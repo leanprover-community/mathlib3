@@ -2160,31 +2160,32 @@ variables (𝕜 : Type*) [measurable_space 𝕜] (p μ) [fact (1 ≤ p)]
 space `α` as an element of `Lp`.  By definition, the norm on `C(α, E)` is the sup-norm, transferred
 from the space `α →ᵇ E` of bounded continuous functions, so this construction is just a matter of
 transferring the structure from `bounded_continuous_function.to_Lp` along the isometry. -/
-def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E'] :
-  C(α, E') →L[𝕜] (Lp E' p μ) :=
+def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [semi_normed_space 𝕜 E] :
+  C(α, E) →L[𝕜] (Lp E p μ) :=
 (bounded_continuous_function.to_Lp p μ 𝕜).comp
-  (linear_isometry_bounded_of_compact α E' 𝕜).to_linear_isometry.to_continuous_linear_map
+  (linear_isometry_bounded_of_compact α E 𝕜).to_linear_isometry.to_continuous_linear_map
 
 variables {p 𝕜}
 
-lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E'] (f : C(α,  E')) :
+lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [semi_normed_space 𝕜 E]
+  (f : C(α,  E)) :
   to_Lp p μ 𝕜 f =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk f _
 
-lemma to_Lp_def [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E'] (f : C(α, E')) :
+lemma to_Lp_def [normed_field 𝕜] [opens_measurable_space 𝕜] [semi_normed_space 𝕜 E] (f : C(α, E)) :
   to_Lp p μ 𝕜 f
-  = bounded_continuous_function.to_Lp p μ 𝕜 (linear_isometry_bounded_of_compact α E' 𝕜 f) :=
+  = bounded_continuous_function.to_Lp p μ 𝕜 (linear_isometry_bounded_of_compact α E 𝕜 f) :=
 rfl
 
 @[simp] lemma to_Lp_comp_forget_boundedness [normed_field 𝕜] [opens_measurable_space 𝕜]
-  [normed_space 𝕜 E'] (f : α →ᵇ E') :
-  to_Lp p μ 𝕜 (bounded_continuous_function.forget_boundedness α E' f)
+  [semi_normed_space 𝕜 E] (f : α →ᵇ E) :
+  to_Lp p μ 𝕜 (bounded_continuous_function.forget_boundedness α E f)
   = bounded_continuous_function.to_Lp p μ 𝕜 f :=
 rfl
 
-@[simp] lemma coe_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E']
-  (f : C(α, E')) :
-  (to_Lp p μ 𝕜 f : α →ₘ[μ] E') = f.to_ae_eq_fun μ :=
+@[simp] lemma coe_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [semi_normed_space 𝕜 E]
+  (f : C(α, E)) :
+  (to_Lp p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
 rfl
 
 variables [nondiscrete_normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E']

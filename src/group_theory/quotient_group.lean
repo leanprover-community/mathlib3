@@ -336,9 +336,9 @@ lemma quotient_quotient_equiv_quotient_aux_coe_coe (x : G) :
     x :=
 quotient_group.lift_mk' _ _ x
 
-/-- Third isomorphism theorem for groups: `(G / N) / (M / N) ≃ G / M`. -/
+/-- **Noether's third isomorphism theorem** for groups: `(G / N) / (M / N) ≃ G / M`. -/
 @[to_additive quotient_add_group.quotient_quotient_equiv_quotient
-"Third isomorphism theorem for additive groups: `(A / N) / (M / N) ≃ A / M`."]
+"**Noether's third isomorphism theorem** for additive groups: `(A / N) / (M / N) ≃ A / M`."]
 def quotient_quotient_equiv_quotient :
   quotient_group.quotient (M.map (quotient_group.mk' N)) ≃* quotient_group.quotient M :=
 { to_fun := quotient_quotient_equiv_quotient_aux N M h,

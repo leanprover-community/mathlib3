@@ -2852,7 +2852,7 @@ liftq_apply _ _ _
   quotient_quotient_equiv_quotient_aux S T h (quotient.mk (quotient.mk x)) = quotient.mk x :=
 by rw [quotient_quotient_equiv_quotient_aux_mk, mapq_apply, linear_map.id_apply]
 
-/-- Third isomorphism theorem for modules: `(M / S) / (T / S) ≃ M / T`. -/
+/-- **Noether's third isomorphism theorem** for modules: `(M / S) / (T / S) ≃ M / T`. -/
 def quotient_quotient_equiv_quotient :
   quotient (T.map S.mkq) ≃ₗ[R] quotient T :=
 { to_fun := quotient_quotient_equiv_quotient_aux S T h,

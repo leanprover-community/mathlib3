@@ -181,54 +181,34 @@ lemma mem_distinct_pairs (a b : α) :
   (a, b) ∈ s.distinct_pairs ↔ a ∈ s ∧ b ∈ s ∧ well_ordering_rel a b :=
 by rw [distinct_pairs, mem_filter, mem_product, and_assoc]
 
+#check irrefl
 lemma distinct_pairs_card [decidable_eq α] :
   s.distinct_pairs.card = s.card.choose 2 :=
 begin
-  let ordered_pairs : finset (α × α) := (s.product s).filter (λ (x : α × α), ¬(x.1 = x.2)),
-  have : ordered_pairs.card = s.card * (s.card - 1),
-  { rw [nat.mul_sub_left_distrib, mul_one],
-    change finset.card (finset.filter _ _) = _,
-    rw [finset.filter_not, card_sdiff (filter_subset _ _), finset.card_product],
-    congr' 1,
-    refine finset.card_congr (λ (x : _ × _) _, x.1) _ _ _,
-    { rintro ⟨x, y⟩ h,
-      simp only [mem_filter, mem_product] at h,
-      apply h.1.1 },
-    { simp only [true_and, prod.forall, mem_filter, mem_product],
-      rintro a b ⟨x, y⟩ ⟨⟨_, _⟩, rfl⟩ ⟨_, rfl : x = y⟩ (rfl : a = x),
-      refl },
-    { simp only [exists_prop, mem_filter, imp_self, exists_and_distrib_right, implies_true_iff,
-        exists_eq_right, exists_eq_right', and_self, prod.exists, mem_product] } },
-  rw [nat.choose_two_right, ←this],
-  symmetry,
-  apply nat.div_eq_of_eq_mul_right (show 0 < 2, by norm_num),
-  have : ∀ x ∈ ordered_pairs,
-    quotient.mk x ∈ ((s.product s).image quotient.mk).filter (λ (a : sym2 α), ¬a.is_diag),
-  { rintro ⟨x, y⟩ hx,
-    simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,
-      prod.exists, mem_product],
-    simp only [mem_filter, mem_product] at hx,
-    refine ⟨⟨_, _, hx.1, or.inl ⟨rfl, rfl⟩⟩, hx.2⟩ },
-  sorry
-  /-
-  rw [card_eq_sum_card_fiberwise, finset.sum_const_nat, mul_comm],
-  rintro ⟨x, y⟩ hxy,
-  simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,
-    prod.exists, mem_product] at hxy,
-  have : x ∈ s ∧ y ∈ s,
-  { rcases hxy with ⟨⟨x, y, ⟨_, _⟩, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩⟩, _⟩;
-    refine ⟨‹_›, ‹_›⟩ },
-  have : filter (λ (z : α × α), ⟦z⟧ = ⟦(x, y)⟧) ordered_pairs = ({(x,y), (y,x)} : finset _),
-  { ext ⟨x₁, y₁⟩,
-    simp only [true_and, mem_filter, mem_insert, mem_product, mem_singleton, sym2.eq_iff,
-      and_iff_right_iff_imp, prod.mk.inj_iff],
-    rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
-    { refine ⟨‹_›, hxy.2⟩, },
-    refine ⟨⟨this.2, this.1⟩, ne.symm hxy.2⟩ },
-  rw [this, card_insert_of_not_mem, card_singleton],
-  simp only [not_and, prod.mk.inj_iff, mem_singleton],
-  rintro rfl,
-  exact hxy.2-/
+  rw ←prod_quotient_sym2_not_diag,
+  refine card_congr (λ a ha, ⟦a⟧) _ _ _,
+  { rintro ⟨a₁, a₂⟩ ha,
+    rw [mem_distinct_pairs] at ha,
+    simp only [mem_filter, sym2.is_diag_iff_proj_eq],
+    refine ⟨mem_image_of_mem _ (by simp [ha.1, ha.2]), _⟩,
+    apply ne_of_irrefl ha.2.2 },
+  { rintro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
+    simp only [mem_distinct_pairs, and_imp, prod.mk.inj_iff, sym2.eq_iff],
+    rintro - - ha₁₂ hb₁ hb₂ hb₁₂ (i | ⟨rfl, rfl⟩),
+    { exact i },
+    { apply (asymm ha₁₂ hb₁₂).elim } },
+  { refine quotient.ind _,
+    simp only [prod.forall, mem_filter, sym2.is_diag_iff_proj_eq, exists_prop, and_imp,
+      prod.exists, mem_distinct_pairs, and_assoc],
+    intros a b h dif,
+    obtain ⟨_, _⟩ : a ∈ s ∧ b ∈ s,
+    { simp only [sym2.eq_iff, mem_image, exists_prop, mem_product, prod.exists, and_assoc] at h,
+      rcases h with ⟨a, b, ha, hb, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩⟩;
+      exact ⟨‹_›, ‹_›⟩ },
+    rcases trichotomous_of well_ordering_rel a b with lt | rfl | gt,
+    { exact ⟨_, _, ‹a ∈ s›, ‹b ∈ s›, lt, rfl⟩ },
+    { exact (dif rfl).elim },
+    { exact ⟨_, _, ‹b ∈ s›, ‹a ∈ s›, gt, sym2.eq_swap⟩, } }
 end
 
 end finset

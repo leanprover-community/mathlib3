@@ -45,28 +45,25 @@ def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
+@[simps coe]
 def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
-x * (units.one_sub (-(↑x⁻¹ * t))
-begin
-  nontriviality R using [zero_lt_one],
-  have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
-  calc ∥-(↑x⁻¹ * t)∥
-      = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
-  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
-  ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
-  ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
-end)
-
-@[simp] lemma add_coe (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
-  ((x.add t h) : R) = x + t := by { unfold units.add, simp [mul_add] }
+units.copy  -- to make `coe_add` true definitionally, for convenience
+  (x * (units.one_sub (-(↑x⁻¹ * t)) begin
+      nontriviality R using [zero_lt_one],
+      have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
+      calc ∥-(↑x⁻¹ * t)∥
+          = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
+      ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
+      ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
+      ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
+    end))
+  (x + t) (by simp [mul_add]) _ rfl
 
 /-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
+@[simps coe]
 def unit_of_nearby (x : units R) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
-x.add ((y : R) - x) h
-
-@[simp] lemma unit_of_nearby_coe (x : units R) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
-  ↑(x.unit_of_nearby y h) = y := by { unfold units.unit_of_nearby, simp }
+units.copy (x.add (y - x : R) h) y (by simp) _ rfl
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
 protected lemma is_open : is_open {x : R | is_unit x} :=
@@ -77,7 +74,7 @@ begin
   refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
   rw [metric.mem_ball, dist_eq_norm] at hy,
-  exact ⟨x.unit_of_nearby y hy, unit_of_nearby_coe _ _ _⟩
+  exact (x.unit_of_nearby y hy).is_unit
 end
 
 protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
@@ -110,7 +107,7 @@ begin
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
   simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
-  simp only [units.add_coe] at hleft,
+  simp only [units.coe_add] at hleft,
   simp [hleft, hright, units.add]
 end
 

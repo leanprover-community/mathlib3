@@ -63,7 +63,7 @@ section normed_group
 variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} {μ ν : measure α}
   {l l' : filter α} [borel_space E] [second_countable_topology E]
 
-variables [complete_space E] [normed_space ℝ E]
+variables [complete_space E] [semi_normed_space ℝ E]
 
 
 lemma set_integral_congr_ae (hs : measurable_set s) (h : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
@@ -252,7 +252,7 @@ We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s,
 variables [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜]
   [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]
-  [normed_space 𝕜 F]
+  [semi_normed_space 𝕜 F]
   {p : ℝ≥0∞} {μ : measure α}
 
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
@@ -316,7 +316,7 @@ mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).restrict s)
 variables {𝕜}
 
 @[continuity]
-lemma continuous_set_integral [normed_space ℝ E] [complete_space E] (s : set α) :
+lemma continuous_set_integral [semi_normed_space ℝ E] [complete_space E] (s : set α) :
   continuous (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ) :=
 begin
   haveI : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩,
@@ -347,7 +347,7 @@ Often there is a good formula for `(μ (s i)).to_real`, so the formalization can
 argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
 arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma filter.tendsto.integral_sub_linear_is_o_ae
-  [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
+  [semi_normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} {l : filter α} [l.is_measurably_generated]
   {f : α → E} {b : E} (h : tendsto f (l ⊓ μ.ae) (𝓝 b))
   (hfm : measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
@@ -382,7 +382,7 @@ argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[
 arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_within_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
-  [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
+  [semi_normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (ha : continuous_within_at f t a) (ht : measurable_set t)
   (hfm : measurable_at_filter f (𝓝[t] a) μ)
@@ -405,7 +405,7 @@ argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[
 arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
-  [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
+  [semi_normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : measurable_at_filter f (𝓝 a) μ)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝 a).lift' powerset))
@@ -438,7 +438,7 @@ argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[
 arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_on.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
-  [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
+  [semi_normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (hft : continuous_on f t) (ha : a ∈ t) (ht : measurable_set t)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
@@ -457,8 +457,8 @@ the composition, as we are dealing with classes of functions, but it has already
 as `continuous_linear_map.comp_Lp`. We take advantage of this construction here.
 -/
 
-variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
-  [normed_group F] [normed_space 𝕜 F]
+variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [semi_normed_space 𝕜 E]
+  [normed_group F] [semi_normed_space 𝕜 F]
   {p : ennreal}
 
 local attribute [instance] fact_one_le_one_ennreal
@@ -468,7 +468,7 @@ namespace continuous_linear_map
 variables [measurable_space F] [borel_space F]
 
 variables [second_countable_topology F] [complete_space F]
-  [borel_space E] [second_countable_topology E] [normed_space ℝ F]
+  [borel_space E] [second_countable_topology E] [semi_normed_space ℝ F]
 
 lemma integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) :
   ∫ a, (L.comp_Lp φ) a ∂μ = ∫ a, L (φ a) ∂μ :=
@@ -479,7 +479,7 @@ lemma continuous_integral_comp_L1 [measurable_space 𝕜] [opens_measurable_spac
 by { rw ← funext L.integral_comp_Lp, exact continuous_integral.comp (L.comp_LpL 1 μ).continuous, }
 
 variables [complete_space E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [is_scalar_tower ℝ 𝕜 F]
+  [semi_normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [is_scalar_tower ℝ 𝕜 F]
 
 lemma integral_comp_comm (L : E →L[𝕜] F) {φ : α → E} (φ_int : integrable φ μ) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
@@ -502,7 +502,7 @@ begin
   all_goals { assumption }
 end
 
-lemma integral_apply {H : Type*} [normed_group H] [normed_space ℝ H]
+lemma integral_apply {H : Type*} [normed_group H] [semi_normed_space ℝ H]
   [second_countable_topology $ H →L[ℝ] E] {φ : α → H →L[ℝ] E} (φ_int : integrable φ μ) (v : H) :
   (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
 ((continuous_linear_map.apply ℝ E v).integral_comp_comm φ_int).symm
@@ -525,8 +525,8 @@ end continuous_linear_map
 namespace linear_isometry
 
 variables [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
-  [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
-  [borel_space E] [second_countable_topology E] [complete_space E] [normed_space ℝ E]
+  [semi_normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
+  [borel_space E] [second_countable_topology E] [complete_space E] [semi_normed_space ℝ E]
   [is_scalar_tower ℝ 𝕜 E]
   [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
@@ -535,9 +535,9 @@ L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
 
 end linear_isometry
 
-variables [borel_space E] [second_countable_topology E] [complete_space E] [normed_space ℝ E]
+variables [borel_space E] [second_countable_topology E] [complete_space E] [semi_normed_space ℝ E]
   [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
-  [normed_space ℝ F]
+  [semi_normed_space ℝ F]
   [measurable_space 𝕜] [borel_space 𝕜]
 
 @[norm_cast] lemma integral_of_real {f : α → ℝ} : ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=

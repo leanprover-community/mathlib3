@@ -1233,10 +1233,13 @@ theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α)
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
 card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
 
-lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
+lemma gsmul_sum (α β : Type) [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=
+(s.sum_hom
+  ((gsmul.is_add_group_hom z).to_is_add_monoid_hom : is_add_monoid_hom (gsmul z : β → β))).symm
+
 --(s.sum_hom (gsmul z)).symm
-(s.sum_hom (_)).symm
+--by convert (s.sum_hom (gsmul.is_add_group_hom z).to_is_add_monoid_hom).symm
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=

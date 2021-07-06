@@ -26,7 +26,7 @@ The combinatorial frontier of a simplex as a subspace.
 -/
 def combi_frontier (X : finset E) :
   set E :=
-⋃ Y ⊂ X, convex_hull Y
+⋃ Y ⊂ X, convex_hull ↑Y
 
 lemma mem_combi_frontier_iff :
   x ∈ combi_frontier X ↔ ∃ Y, Y ⊂ X ∧ x ∈ convex_hull (Y : set E) :=
@@ -101,7 +101,7 @@ interior of the underlying space.
 -/
 def combi_interior (X : finset E) :
   set E :=
-convex_hull X \ combi_frontier X
+convex_hull ↑X \ combi_frontier X
 
 lemma combi_interior_singleton :
   combi_interior ({x} : finset E) = {x} :=
@@ -160,7 +160,7 @@ lemma nonempty_combi_interior_of_nonempty (hX : affine_independent ℝ (λ p, p 
 ⟨X.centroid ℝ id, centroid_mem_combi_interior hX hXnonempty⟩
 
 lemma combi_interior_subset_convex_hull :
-  combi_interior X ⊆ convex_hull X :=
+  combi_interior X ⊆ convex_hull ↑X :=
 diff_subset _ _
 
 lemma combi_interior.inj (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
@@ -269,7 +269,7 @@ begin
 end
 
 lemma combi_frontier_subset_convex_hull :
-  combi_frontier X ⊆ convex_hull X :=
+  combi_frontier X ⊆ convex_hull ↑X :=
 bUnion_subset (λ Y hY, convex_hull_mono hY.1)
 
 lemma convex_hull_eq_interior_union_combi_frontier :
@@ -309,7 +309,7 @@ end
 lemma interiors_agree_of_full_dimensional [finite_dimensional ℝ E]
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
   (hXcard : X.card = finite_dimensional.finrank ℝ E + 1) :
-  combi_interior X = interior (convex_hull X) :=
+  combi_interior X = interior (convex_hull ↑X) :=
 begin
   --rw ← closure_combi_interior_eq_convex_hull,
   unfold combi_interior,
@@ -318,7 +318,7 @@ end
 
 lemma frontiers_agree_of_full_dimensional [finite_dimensional ℝ E]
   (hXcard : X.card = finite_dimensional.finrank ℝ E + 1) :
-  combi_frontier X = frontier (convex_hull X) :=
+  combi_frontier X = frontier (convex_hull ↑X) :=
 begin
   ext x,
   split,

@@ -7,7 +7,6 @@ import algebra.module.linear_map
 import analysis.convex.extreme
 import analysis.normed_space.operator_norm
 import combinatorics.simplicial_complex.convex_independence
-import combinatorics.simplicial_complex.to_move.default
 import linear_algebra.affine_space.finite_dimensional
 
 open_locale classical affine big_operators
@@ -30,7 +29,7 @@ lemma convex.extreme_points_convex_independent (hA : convex A) :
   convex_independent (λ p, p : A.extreme_points → E) :=
 (convex_independent_set_iff' _).2 $ λ x hxA hx, (extreme_points_convex_hull_subset
   (inter_extreme_points_subset_extreme_points_of_subset (convex_hull_min
-  (subset.trans (diff_subset _ _) extreme_points_subset) hA) ⟨hx, hxA⟩)).2 (mem_singleton _)
+  ((diff_subset _ _).trans extreme_points_subset) hA) ⟨hx, hxA⟩)).2 (mem_singleton _)
 
 lemma eq_extreme_points_convex_hull_iff_convex_independent :
   A = (convex_hull A).extreme_points ↔ convex_independent (λ p, p : A → E) :=
@@ -135,9 +134,9 @@ begin
     apply hw''₂ },
   rintro q hq,
   exact hs ⟨q, hq⟩,
-end-/
+end
+-/
 
-/- deprecated
 lemma inter_frontier_self_inter_convex_hull_extreme :
   is_extreme (closure A) (closure A ∩ frontier (convex_hull A)) :=
 begin
@@ -146,14 +145,23 @@ begin
   sorry
 end
 
-lemma frontier_extreme_to_closure (hA₁ : convex A) (hA₂ : is_closed A) :
+lemma frontier_extreme (hA₁ : convex A) (hA₂ : is_closed A) :
   is_extreme A (frontier A) :=
 begin
   convert (inter_frontier_self_inter_convex_hull_extreme : is_extreme (closure A)
     (closure A ∩ frontier (convex_hull A))),
   { exact (is_closed.closure_eq hA₂).symm },
   rw [convex.convex_hull_eq hA₁, inter_eq_self_of_subset_right frontier_subset_closure],
-end-/
+end
+
+lemma frontier_extreme_to_closure (hA₁ : convex A) :
+  is_extreme (closure A) (frontier A) :=
+begin
+  convert (inter_frontier_self_inter_convex_hull_extreme : is_extreme (closure A)
+    (closure A ∩ frontier (convex_hull A))),
+  { exact (is_closed.closure_eq hA₂).symm },
+  rw [convex.convex_hull_eq hA₁, inter_eq_self_of_subset_right frontier_subset_closure],
+end
 
 --can be generalized is_extreme.subset_intrinsic_frontier
 lemma is_extreme.subset_frontier (hAB : is_extreme A B) (hBA : ¬ A ⊆ B) :

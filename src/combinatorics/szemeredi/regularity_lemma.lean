@@ -181,7 +181,6 @@ lemma mem_distinct_pairs (a b : α) :
   (a, b) ∈ s.distinct_pairs ↔ a ∈ s ∧ b ∈ s ∧ well_ordering_rel a b :=
 by rw [distinct_pairs, mem_filter, mem_product, and_assoc]
 
-#check irrefl
 lemma distinct_pairs_card [decidable_eq α] :
   s.distinct_pairs.card = s.card.choose 2 :=
 begin

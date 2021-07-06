@@ -401,14 +401,11 @@ end
 
 variables {A} {B}
 
+/-- `is_unit.invertible` lifts the proposition `is_unit A` to a constructive inverse of `A`. -/
+
 /-- "Lift" the proposition `is_unit A.det` to a constructive inverse of `A`. -/
 noncomputable def invertible_of_is_unit_det  (h : is_unit A.det) : invertible A :=
 ⟨A⁻¹, nonsing_inv_mul A h, mul_nonsing_inv A h⟩
-
-/-- "Lift" the proposition `is_unit A` to a constructive inverse of `A`. -/
-noncomputable def invertible_of_is_unit  (h' : is_unit A) : invertible A :=
-by have h := (is_unit_iff_is_unit_det A).1 h';
-exact ⟨A⁻¹, nonsing_inv_mul A h, mul_nonsing_inv A h⟩
 
 lemma is_unit_det_of_left_inverse (h : B ⬝ A = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_left_inverse _ _ h)

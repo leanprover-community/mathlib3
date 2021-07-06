@@ -68,40 +68,42 @@ variables {B}
 
 namespace relations
 
+open function
+
 local notation `H` := free_lie_algebra.of R ∘ generators.H
 local notation `E` := free_lie_algebra.of R ∘ generators.E
 local notation `F` := free_lie_algebra.of R ∘ generators.F
 local notation `ad` := lie_algebra.ad R (free_lie_algebra R (generators B))
 
 /-- The terms correpsonding to the `⁅H, H⁆`-relations. -/
-def HH : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
-⁅H i, H j⁆
+def HH : B × B → free_lie_algebra R (generators B) :=
+uncurry $ λ i j, ⁅H i, H j⁆
 
 /-- The terms correpsonding to the `⁅E, F⁆`-relations. -/
-def EF : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
-if i = j then ⁅E i, F i⁆ - H i else ⁅E i, F j⁆
+def EF : B × B → free_lie_algebra R (generators B) :=
+uncurry $ λ i j, if i = j then ⁅E i, F i⁆ - H i else ⁅E i, F j⁆
 
 /-- The terms correpsonding to the `⁅H, E⁆`-relations. -/
-def HE : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
-⁅H i, E j⁆ - (A i j) • E j
+def HE : B × B → free_lie_algebra R (generators B) :=
+uncurry $ λ i j, ⁅H i, E j⁆ - (A i j) • E j
 
 /-- The terms correpsonding to the `⁅H, F⁆`-relations. -/
-def HF : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
-⁅H i, F j⁆ + (A i j) • F j
+def HF : B × B → free_lie_algebra R (generators B) :=
+uncurry $ λ i j, ⁅H i, F j⁆ + (A i j) • F j
 
 /-- The terms correpsonding to the `ad E`-relations.
 
 Note that we use `int.to_nat` so that we can take the power and that we do not bother
 restricting to the case `i ≠ j` since these relations are zero anyway. We also defensively
 ensure this with `ad_E_of_eq_eq_zero`. -/
-def ad_E : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
-(ad (E i))^(-A i j).to_nat $ ⁅E i, E j⁆
+def ad_E : B × B → free_lie_algebra R (generators B) :=
+uncurry $ λ i j, (ad (E i))^(-A i j).to_nat $ ⁅E i, E j⁆
 
 /-- The terms correpsonding to the `ad F`-relations.
 
 See also `ad_E` docstring. -/
-def ad_F : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
-(ad (F i))^(-A i j).to_nat $ ⁅F i, F j⁆
+def ad_F : B × B → free_lie_algebra R (generators B) :=
+uncurry $ λ i j, (ad (F i))^(-A i j).to_nat $ ⁅F i, F j⁆
 
 private lemma ad_E_of_eq_eq_zero (i : B) (h : A i i = 2) : ad_E R A ⟨i, i⟩ = 0 :=
 have h' : (-2 : ℤ).to_nat = 0, { refl, },

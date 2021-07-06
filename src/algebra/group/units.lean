@@ -41,9 +41,12 @@ variables [monoid α]
 
 @[to_additive] instance : has_inv (units α) := ⟨λ u, ⟨u.2, u.1, u.4, u.3⟩⟩
 
-@[to_additive]
+/-- See Note [custom simps projection] -/
+@[to_additive /-" See Note [custom simps projection] "-/]
 def simps.coe (u : units α) : α := u
-@[to_additive]
+
+/-- See Note [custom simps projection] -/
+@[to_additive /-" See Note [custom simps projection] "-/]
 def simps.coe_inv (u : units α) : α := ↑(u⁻¹)
 
 initialize_simps_projections units (val → coe as_prefix, inv → coe_inv as_prefix)

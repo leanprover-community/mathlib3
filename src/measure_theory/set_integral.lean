@@ -468,7 +468,7 @@ namespace continuous_linear_map
 variables [measurable_space F] [borel_space F]
 
 variables [second_countable_topology F] [complete_space F]
-[borel_space E] [second_countable_topology E] [normed_space ℝ F]
+  [borel_space E] [second_countable_topology E] [normed_space ℝ F]
 
 lemma integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) :
   ∫ a, (L.comp_Lp φ) a ∂μ = ∫ a, L (φ a) ∂μ :=

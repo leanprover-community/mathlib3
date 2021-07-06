@@ -1719,6 +1719,20 @@ begin
   exact ennreal.mul_lt_top hc (measure_lt_top μ set.univ),
 end
 
+instance [finite_measure μ] [finite_measure ν] : finite_measure (μ + ν) :=
+{ measure_univ_lt_top :=
+  begin
+    rw [measure.coe_add, pi.add_apply, ennreal.add_lt_top],
+    exact ⟨measure_lt_top _ _, measure_lt_top _ _⟩,
+  end }
+
+instance [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
+{ measure_univ_lt_top :=
+  begin
+    erw [measure.coe_smul, pi.smul_apply, algebra.id.smul_eq_mul, ennreal.coe_of_nnreal_hom],
+    exact ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _),
+  end }
+
 lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure α)
   [locally_finite_measure μ] (x : α) :
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=

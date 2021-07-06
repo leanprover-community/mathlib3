@@ -42,8 +42,6 @@ src/data/analysis/topology.lean : line 10 : ERR_MOD : Module docstring missing, 
 src/data/array/lemmas.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/data/char.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/dlist/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/dlist/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/basic.lean : line 16 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/sort.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -59,8 +57,6 @@ src/data/qpf/multivariate/basic.lean : line 73 : ERR_LIN : Line has more than 10
 src/data/qpf/multivariate/constructions/cofix.lean : line 38 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/multivariate/constructions/fix.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/univariate/basic.lean : line 35 : ERR_LIN : Line has more than 100 characters
-src/data/real/basic.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/data/real/cau_seq_completion.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/rel.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
@@ -68,8 +64,6 @@ src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too lat
 src/data/seq/wseq.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/set/lattice.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/data/sigma/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/string/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/data/string/defs.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/subtype.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/ulift.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subfield.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -203,7 +197,7 @@ src/tactic/transfer.lean : line 112 : ERR_LIN : Line has more than 100 character
 src/tactic/transfer.lean : line 113 : ERR_LIN : Line has more than 100 characters
 src/tactic/transfer.lean : line 6 : ERR_MOD : Module docstring missing, or too late
 src/tactic/transform_decl.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/transform_decl.lean : line 83 : ERR_LIN : Line has more than 100 characters
+src/tactic/transform_decl.lean : line 87 : ERR_LIN : Line has more than 100 characters
 src/tactic/transport.lean : line 45 : ERR_LIN : Line has more than 100 characters
 src/tactic/trunc_cases.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/wlog.lean : line 10 : ERR_MOD : Module docstring missing, or too late

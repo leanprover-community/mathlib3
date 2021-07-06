@@ -205,6 +205,9 @@ def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
 @[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
 
+lemma range_eq_univ (e : E ≃ₗᵢ[R] F) : set.range e = set.univ :=
+by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+
 /-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
 def to_homeomorph : E ≃ₜ F := e.to_isometric.to_homeomorph
 

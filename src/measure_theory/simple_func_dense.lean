@@ -471,9 +471,9 @@ variables
   [measurable_space α]
   [normed_group E] [second_countable_topology E] [measurable_space E] [borel_space E]
   [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
-  (p : ℝ≥0∞) {μ : measure α}
+  (p : ℝ≥0∞) (μ : measure α)
 
-variables (E p μ)
+variables (E)
 
 /-- `Lp.simple_func` is a subspace of Lp consisting of equivalence classes of an integrable simple
     function. -/
@@ -485,7 +485,7 @@ def simple_func : add_subgroup (Lp E p μ) :=
   neg_mem' := λ f ⟨s, hs⟩, ⟨-s,
       by simp only [←hs, neg_mk, simple_func.coe_neg, mk_eq_mk, add_subgroup.coe_neg]⟩ }
 
-variables {α E p μ}
+variables {E p μ}
 
 namespace simple_func
 
@@ -506,7 +506,7 @@ i.e. has no scalar action). -/
 variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_scalar`. Not declared as an
-instance as it is (as of writing) used in the construction of the Bochner integral. -/
+instance as it is (as of writing) used only in the construction of the Bochner integral. -/
 protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λk f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
@@ -516,20 +516,20 @@ begin
   refl,
 end ⟩⟩
 
-local attribute [instance, priority 10000] simple_func.has_scalar
+local attribute [instance] simple_func.has_scalar
 
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a module. Not declared as an
-instance as it is (as of writing) used in the construction of the Bochner integral. -/
+instance as it is (as of writing) used only in the construction of the Bochner integral. -/
 protected def module : module 𝕜 (Lp.simple_func E p μ) :=
-{ one_smul  := λf, subtype.coe_injective (by { simp only [coe_smul], exact one_smul _ _ }),
-  mul_smul  := λx y f, subtype.coe_injective (by { simp only [coe_smul], exact mul_smul _ _ _ }),
-  smul_add  := λx f g, subtype.coe_injective (by { simp only [coe_smul], exact smul_add _ _ _ }),
-  smul_zero := λx, subtype.coe_injective (by { simp only [coe_smul], exact smul_zero _ }),
-  add_smul  := λx y f, subtype.coe_injective (by { simp only [coe_smul], exact add_smul _ _ _ }),
-  zero_smul := λf, subtype.coe_injective (by { simp only [coe_smul], exact zero_smul _ _ }) }
+{ one_smul  := λf, by { ext1, exact one_smul _ _ },
+  mul_smul  := λx y f, by { ext1, exact mul_smul _ _ _ },
+  smul_add  := λx f g, by { ext1, exact smul_add _ _ _ },
+  smul_zero := λx, by { ext1, exact smul_zero _ },
+  add_smul  := λx y f, by { ext1, exact add_smul _ _ _ },
+  zero_smul := λf, by { ext1, exact zero_smul _ _ } }
 
 local attribute [instance] simple_func.module
 

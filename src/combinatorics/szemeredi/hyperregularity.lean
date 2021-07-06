@@ -1,5 +1,16 @@
+/-
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Bhavik Mehta
+-/
 import data.finset.basic
 import data.real.basic
+
+/-!
+# Szemerédi's Theorem, the hypergraph way
+
+In this file, we prove Szemerédi's theorem following Tim Gowers' hypergraph proof.
+-/
 
 variables {V : Type*} {G : finset V → Prop} {k n r : ℕ}
 

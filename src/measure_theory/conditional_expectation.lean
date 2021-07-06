@@ -273,46 +273,25 @@ end complete_subspace
 
 end Lp_meas
 
-lemma ennreal.one_le_two : (1 : ℝ≥0∞) ≤ 2 := ennreal.coe_le_coe.2 (show (1 : ℝ≥0) ≤ 2, by norm_num)
-
 section condexp_L2_clm
+
+local attribute [instance] fact_one_le_two_ennreal
 
 variables [borel_space 𝕜] {m m0 : measurable_space α} {μ : measure α}
 
-lemma mem_ℒp.mem_ℒp_restrict_of_le_of_measure_finite {p q : ℝ≥0∞} (hpq : p ≤ q) {f : α → G}
-  (hf : mem_ℒp f q μ) {s : set α} (hμs : μ s ≠ ∞) :
-  mem_ℒp f p (μ.restrict s) :=
-begin
-  have hf_meas_restrict : ae_measurable f (μ.restrict s), from (hf.restrict s).ae_measurable,
-  by_cases hp_zero : p = 0,
-  { rwa [hp_zero, mem_ℒp_zero_iff_ae_measurable], },
-  by_cases hq_zero : q = 0,
-  { rw hq_zero at hpq,
-    exact absurd (le_antisymm hpq (zero_le _)) hp_zero, },
-  refine ⟨hf_meas_restrict, _⟩,
-  refine (snorm_le_snorm_mul_rpow_measure_univ hpq hf_meas_restrict).trans_lt _,
-  refine ennreal.mul_lt_top (hf.restrict s).snorm_lt_top (ennreal.rpow_lt_top_of_nonneg _ _),
-  { by_cases hq_top : q = ∞,
-    { simp [hq_top], },
-    by_cases hp_top : p = ∞,
-    { rw hp_top at hpq,
-      exact absurd (le_antisymm le_top hpq) hq_top, },
-    rw [sub_nonneg, one_div_le_one_div],
-    { rwa ennreal.to_real_le_to_real hp_top hq_top, },
-    { exact ennreal.to_real_pos_iff.mpr ⟨(zero_le _).lt_of_ne (ne.symm hq_zero), hq_top⟩, },
-    { exact ennreal.to_real_pos_iff.mpr ⟨(zero_le _).lt_of_ne (ne.symm hp_zero), hp_top⟩, }, },
-  { simp only [set.univ_inter, measurable_set.univ, ne.def, measure.restrict_apply],
-    exact hμs, },
-end
-
-lemma integrable_on_Lp_of_measure_finite (f : Lp G p μ) (hp : 1 ≤ p) {s : set α} (hμs : μ s ≠ ∞) :
+lemma integrable_on_Lp_of_measure_ne_top (f : Lp G p μ) (hp : 1 ≤ p) {s : set α} (hμs : μ s ≠ ∞) :
   integrable_on f s μ :=
-mem_ℒp_one_iff_integrable.mp $ mem_ℒp.mem_ℒp_restrict_of_le_of_measure_finite hp (Lp.mem_ℒp _) hμs
+begin
+  refine mem_ℒp_one_iff_integrable.mp _,
+  have hμ_restrict_univ : (μ.restrict s) set.univ < ∞,
+    by simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply, lt_top_iff_ne_top],
+  haveI hμ_finite : finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
+  exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
+end
 
 variables (𝕜)
 /-- Conditional expectation of a function in L2 with respect to a sigma-algebra -/
-def condexp_L2_clm [complete_space E] (hm : m ≤ m0) :
-  (α →₂[μ] E) →L[𝕜] (Lp_meas E 𝕜 m 2 μ) :=
+def condexp_L2_clm [complete_space E] (hm : m ≤ m0) : (α →₂[μ] E) →L[𝕜] (Lp_meas E 𝕜 m 2 μ) :=
 @orthogonal_projection 𝕜 (α →₂[μ] E) _ _ (Lp_meas E 𝕜 m 2 μ)
   (by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact infer_instance, })
 variables {𝕜}
@@ -322,7 +301,6 @@ lemma inner_condexp_L2_left_eq_right (hm : m ≤ m0) {f g : Lp E' 2 μ} :
     = inner f (condexp_L2_clm 𝕜 hm g : Lp E' 2 μ) :=
 begin
   haveI : fact (m ≤ m0) := ⟨hm⟩,
-  haveI : fact ((1 : ℝ≥0∞) ≤ 2) := ⟨ennreal.one_le_two⟩,
   exact inner_orthogonal_projection_left_eq_right _ f g,
 end
 
@@ -330,7 +308,6 @@ lemma norm_condexp_L2_le_one (hm : m ≤ m0) :
   ∥@condexp_L2_clm α E' 𝕜 _ _ _ _ _ _ _ _ _ μ _ hm∥ ≤ 1 :=
 begin
   haveI : fact (m ≤ m0) := ⟨hm⟩,
-  haveI : fact ((1 : ℝ≥0∞) ≤ 2) := ⟨ennreal.one_le_two⟩,
   exact orthogonal_projection_norm_le _,
 end
 
@@ -404,15 +381,8 @@ lemma inner_set_integral_eq_inner_indicator [is_scalar_tower ℝ 𝕜 E'] {s : s
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E') (f : Lp E' 2 μ) :
   @inner 𝕜 _ _ c (∫ x in s, f x ∂μ) = inner (indicator_const_Lp 2 hs hμs c) f :=
 begin
-  rw ← integral_inner (integrable_on_Lp_of_measure_finite f ennreal.one_le_two hμs),
-  simp_rw inner,
-  rw ← integral_indicator hs,
-  refine integral_congr_ae _,
-  refine (@indicator_const_Lp_coe_fn _ _ _ 2 _ _ _ s hs hμs c _ _).mono (λ x hx, _),
-  dsimp only,
-  rw hx,
-  simp_rw set.indicator_apply,
-  by_cases hx_mem : x ∈ s; simp [hx_mem],
+  rw ← integral_inner (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs),
+  rw inner_indicator_const_Lp,
 end
 variables {𝕜}
 
@@ -450,13 +420,14 @@ begin
   simp only [mem_Lp_meas_iff_ae_measurable'.mpr hg, orthogonal_projection_inner_eq_zero],
 end
 
-lemma integrable_on_condexp_L2_of_measure_finite (hμs : μ s ≠ ∞) (f : Lp E' 2 μ) :
+lemma integrable_on_condexp_L2_of_measure_ne_top (hμs : μ s ≠ ∞) (f : Lp E' 2 μ) :
   integrable_on (condexp_L2_clm 𝕜 hm f) s μ :=
-integrable_on_Lp_of_measure_finite ((condexp_L2_clm 𝕜 hm f) : Lp E' 2 μ) ennreal.one_le_two hμs
+integrable_on_Lp_of_measure_ne_top ((condexp_L2_clm 𝕜 hm f) : Lp E' 2 μ)
+  fact_one_le_two_ennreal.elim hμs
 
 lemma integrable_condexp_L2_of_finite_measure [finite_measure μ] {f : Lp E' 2 μ} :
   integrable (condexp_L2_clm 𝕜 hm f) μ :=
-integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_finite hm (measure_ne_top _ _) f
+integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_ne_top hm (measure_ne_top _ _) f
 
 end fin_meas_sets
 

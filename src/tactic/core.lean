@@ -698,13 +698,18 @@ meta def context_upto_hyp_has_local_def (h : expr) : tactic bool := do
   ctx.many (succeeds ∘ local_def_value)
 
 /--
-Like `tactic.subst`, but fails with a nicer error message if the substituted variable is a
+If the expression `h` is a local variable with type `x = t` or `t = x`, where `x` is a local
+constant, `tactic.subst' h` substitutes `x` by `t` everywhere in the main goal and then clears `h`.
+If `h` is another local variable, then we find a local constant with type `h = t` or `t = h` and
+substitute `t` for `h`.
+
+This is like `tactic.subst`, but fails with a nicer error message if the substituted variable is a
 local definition. It is trickier to fix this in core, since `tactic.is_local_def` is in mathlib.
 -/
 meta def subst' (h : expr) : tactic unit := do
   e ← do { -- we first find the variable being substituted away
     t ← infer_type h,
-    (f, args) ← return t.get_app_fn_args,
+    let (f, args) := t.get_app_fn_args,
     if (f.const_name = `eq ∨ f.const_name = `heq) then do {
       let lhs := args.inth 1,
       let rhs := args.ilast,

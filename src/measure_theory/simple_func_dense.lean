@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
-import measure_theory.integrable_on
+import measure_theory.l1_space
 
 /-!
 # Density of simple functions
@@ -18,7 +18,7 @@ both pointwise and in `Lᵖ` norm, by a sequence of simple functions.
 * `measure_theory.simple_func.approx_on (f : β → α) (hf : measurable f) (s : set α) (y₀ : α)
   (h₀ : y₀ ∈ s) [separable_space s] (n : ℕ) : β →ₛ α` : a simple function that takes values in `s`
   and approximates `f`.
-* `measure_theory.Lp.simple_func`, the type of `Lp` simple functions (notation: `α →₁ₛ[μ] E`)
+* `measure_theory.Lp.simple_func`, the type of `Lp` simple functions
 * `coe_to_Lp`, the embedding of `Lp.simple_func E p μ` into `Lp E p μ`
 
 ## Main results
@@ -34,7 +34,7 @@ both pointwise and in `Lᵖ` norm, by a sequence of simple functions.
   as elements of `Lp E 1 μ`, and they tend in L¹ to `f`.
 * `Lp.simple_func.dense_embedding`: the embedding `coe_to_Lp` of the `Lp` simple functions into
   `Lp` is dense.
-* `integrable.induction`: to prove a predicate for all elements of `Lp`, it suffices to check that
+* `mem_ℒp.induction`: to prove a predicate for all elements of `Lp`, it suffices to check that
   it behaves correctly on simple functions in `Lp`.
 
 ## TODO
@@ -44,7 +44,6 @@ For `E` finite-dimensional, simple functions `α →ₛ E` are dense in L^∞ --
 ## Notations
 
 * `α →ₛ β` (local notation): the type of simple functions `α → β`.
-* `α →₁ₛ[μ] E`: the type of `L1` simple functions `α → β`.
 -/
 
 open set function filter topological_space ennreal emetric finset
@@ -667,7 +666,8 @@ begin
   iterate 4 { assume h, rw h }
 end
 
-lemma neg_to_simple_func (f : Lp.simple_func E p μ) : to_simple_func (-f) =ᵐ[μ] - to_simple_func f :=
+lemma neg_to_simple_func (f : Lp.simple_func E p μ) :
+  to_simple_func (-f) =ᵐ[μ] - to_simple_func f :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
     Lp.coe_fn_neg (f : Lp E p μ)],
@@ -714,34 +714,20 @@ end
 --   { exact lintegral_edist_to_simple_func_lt_top _ _ }
 -- end
 
--- lemma norm_to_simple_func (f : Lp.simple_func E p μ) :
---   ∥f∥ = ennreal.to_real (∫⁻ (a : α), nnnorm ((to_simple_func f) a) ∂μ) :=
--- calc ∥f∥ =
---   ennreal.to_real (∫⁻x, edist ((to_simple_func f) x) (to_simple_func (0 : Lp.simple_func E p μ) x) ∂μ) :
--- begin
---   rw [← dist_zero_right, dist_to_simple_func]
--- end
--- ... = ennreal.to_real (∫⁻ (x : α), (coe ∘ nnnorm) ((to_simple_func f) x) ∂μ) :
--- begin
---   rw lintegral_nnnorm_eq_lintegral_edist,
---   have : ∫⁻ x, edist ((to_simple_func f) x) ((to_simple_func (0 : Lp.simple_func E p μ)) x) ∂μ =
---     ∫⁻ x, edist ((to_simple_func f) x) 0 ∂μ,
---   { refine lintegral_congr_ae ((zero_to_simple_func E μ).mono (λ a h, _)),
---     rw [h, pi.zero_apply] },
---   rw [ennreal.to_real_eq_to_real],
---   { exact this },
---   { exact lintegral_edist_to_simple_func_lt_top _ _ },
---   { rw ← this, exact lintegral_edist_to_simple_func_lt_top _ _ }
--- end
+lemma norm_to_simple_func (f : Lp.simple_func E p μ) :
+  ∥f∥ = ennreal.to_real (snorm (to_simple_func f) p μ) :=
+by simpa [to_Lp_to_simple_func] using norm_to_Lp (to_simple_func f) (simple_func.mem_ℒp f)
 
 end to_simple_func
 
 section coe_to_Lp
 
-protected lemma uniform_continuous : uniform_continuous (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
+protected lemma uniform_continuous :
+  uniform_continuous (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
 uniform_continuous_comap
 
-protected lemma uniform_embedding : uniform_embedding (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
+protected lemma uniform_embedding :
+  uniform_embedding (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
 uniform_embedding_comap subtype.val_injective
 
 protected lemma uniform_inducing : uniform_inducing (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
@@ -787,9 +773,20 @@ end simple_func
 
 end Lp
 
-variables [measurable_space α] [normed_group E] [measurable_space E] {f g : α → E} {s t : set α}
-  {p : ℝ≥0∞} [_i : fact (1 ≤ p)]
-  {μ ν : measure α} {l l' : filter α} [borel_space E] [second_countable_topology E]
+variables [measurable_space α] [normed_group E] [measurable_space E] [borel_space E]
+  [second_countable_topology E] {f : α → E} {p : ℝ≥0∞} [_i : fact (1 ≤ p)] {μ : measure α}
+
+local attribute [instance] fact_one_le_one_ennreal
+
+notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ _ _ _ 1 _ μ
+
+lemma L1.simple_func.to_Lp_one_eq_to_L1 (f : α →ₛ E) (hf : integrable f μ) :
+  (Lp.simple_func.to_Lp f (mem_ℒp_one_iff_integrable.2 hf) : α →₁[μ] E) = hf.to_L1 f :=
+rfl
+
+protected lemma L1.simple_func.integrable (f : α →₁ₛ[μ] E) :
+  integrable (Lp.simple_func.to_simple_func f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable, exact (Lp.simple_func.mem_ℒp f) }
 
 include _i
 
@@ -806,7 +803,7 @@ a simple function with a multiple of a characteristic function and that the inte
 of their images is a subset of `{0}`).
 -/
 @[elab_as_eliminator]
-lemma integrable.induction (hp_ne_top : p ≠ ∞) (P : (α → E) → Prop)
+lemma mem_ℒp.induction (hp_ne_top : p ≠ ∞) (P : (α → E) → Prop)
   (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
   (h_add : ∀ ⦃f g : α → E⦄, disjoint (support f) (support g) → mem_ℒp f p μ → mem_ℒp g p μ →
     P f → P g → P (f + g))
@@ -829,11 +826,8 @@ begin
         simple_func.coe_piecewise, const_apply, hc],
       exact not_not.symm },
     { intros f g hfg hf hg int_fg,
-      refine h_add hfg _ _ (hf _) (hg _),
-      have := integrable_add,
-      sorry } },
-      -- rw [simple_func.coe_add, integrable_add hfg f.measurable g.measurable] at int_fg,
-      -- refine h_add hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
+      rw [simple_func.coe_add, mem_ℒp_add hfg f.measurable g.measurable] at int_fg,
+      refine h_add hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
   have : ∀ (f : Lp.simple_func E p μ), P f,
   { intro f,
     exact h_ae (Lp.simple_func.to_simple_func_eq_to_fun f) (Lp.simple_func.mem_ℒp f)

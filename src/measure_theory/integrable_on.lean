@@ -262,7 +262,7 @@ alias measure.finite_at_filter.integrable_at_filter_of_tendsto ← filter.tendst
 
 variables [borel_space E] [second_countable_topology E]
 
-lemma integrable_add [opens_measurable_space E] {f g : α → E}
+lemma integrable_add {f g : α → E}
   (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
   integrable (f + g) μ ↔ integrable f μ ∧ integrable g μ :=
 begin

@@ -140,6 +140,8 @@ noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
 
+local attribute [instance] fact_one_le_one_ennreal
+
 namespace measure_theory
 
 variables {α E F 𝕜 : Type*} [measurable_space α]
@@ -381,10 +383,13 @@ variables {α E μ}
 
 namespace simple_func
 
-lemma norm_eq_integral (f : α →₁ₛ[μ] E) : ∥f∥ = ((to_simple_func f).map norm).integral μ :=
+open Lp.simple_func
+
+lemma norm_eq_integral (f : α →₁ₛ[μ] E) :
+  ∥f∥ = ((Lp.simple_func.to_simple_func f).map norm).integral μ :=
 begin
   rw [norm_to_simple_func, simple_func.integral_eq_lintegral],
-  { simp only [simple_func.map_apply, of_real_norm_eq_coe_nnnorm] },
+  { simp only [simple_func.map_apply, of_real_norm_eq_coe_nnnorm, snorm_one_eq_lintegral_nnnorm] },
   { exact (simple_func.integrable f).norm },
   { exact eventually_of_forall (λ x, norm_nonneg _) }
 end
@@ -420,7 +425,7 @@ and prove basic properties of this integral. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
 
-local attribute [instance] simple_func.normed_group simple_func.normed_space
+local attribute [instance] Lp.simple_func.normed_group Lp.simple_func.normed_space
 
 /-- The Bochner integral over simple functions in L1 space. -/
 def integral (f : α →₁ₛ[μ] E) : E := ((to_simple_func f)).integral μ
@@ -429,11 +434,11 @@ lemma integral_eq_integral (f : α →₁ₛ[μ] E) : integral f = ((to_simple_f
 
 lemma integral_eq_lintegral {f : α →₁ₛ[μ] ℝ} (h_pos : 0 ≤ᵐ[μ] (to_simple_func f)) :
   integral f = ennreal.to_real (∫⁻ a, ennreal.of_real ((to_simple_func f) a) ∂μ) :=
-by rw [integral, simple_func.integral_eq_lintegral (simple_func.integrable f) h_pos]
+by rw [integral, simple_func.integral_eq_lintegral (L1.simple_func.integrable f) h_pos]
 
 lemma integral_congr {f g : α →₁ₛ[μ] E} (h : to_simple_func f =ᵐ[μ] to_simple_func g) :
   integral f = integral g :=
-simple_func.integral_congr (simple_func.integrable f) h
+simple_func.integral_congr (L1.simple_func.integrable f) h
 
 lemma integral_add (f g : α →₁ₛ[μ] E) : integral (f + g) = integral f + integral g :=
 begin
@@ -487,7 +492,7 @@ begin
   { filter_upwards [to_simple_func_eq_to_fun (pos_part f), Lp.coe_fn_pos_part (f : α →₁[μ] ℝ),
       to_simple_func_eq_to_fun f],
     assume a h₁ h₂ h₃,
-    rw [h₁, ← coe_coe, coe_pos_part, h₂, coe_coe, ← h₃] },
+    convert h₂ },
   refine ae_eq.mono (assume a h, _),
   rw [h, eq]
 end
@@ -554,8 +559,8 @@ variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space �
 
 section integration_in_L1
 
-local notation `to_L1` := coe_to_L1 α E ℝ
-local attribute [instance] simple_func.normed_group simple_func.normed_space
+local notation `to_L1` := Lp.simple_func.coe_to_Lp α E ℝ
+local attribute [instance] Lp.simple_func.normed_group Lp.simple_func.normed_space
 
 open continuous_linear_map
 
@@ -563,7 +568,8 @@ variables (𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
 (integral_clm' α E 𝕜 μ).extend
-  (coe_to_L1 α E 𝕜) simple_func.dense_range simple_func.uniform_inducing
+  (Lp.simple_func.coe_to_Lp α E 𝕜) (Lp.simple_func.dense_range one_ne_top)
+  Lp.simple_func.uniform_inducing
 
 variables {𝕜}
 
@@ -577,7 +583,7 @@ lemma integral_eq (f : α →₁[μ] E) : integral f = integral_clm f := rfl
 
 @[norm_cast] lemma simple_func.integral_L1_eq_integral (f : α →₁ₛ[μ] E) :
   integral (f : α →₁[μ] E) = (simple_func.integral f) :=
-uniformly_extend_of_ind simple_func.uniform_inducing simple_func.dense_range
+uniformly_extend_of_ind Lp.simple_func.uniform_inducing (Lp.simple_func.dense_range one_ne_top)
   (simple_func.integral_clm α E μ).uniform_continuous _
 
 variables (α E)
@@ -626,15 +632,15 @@ begin
   -- Use `is_closed_property` and `is_closed_eq`
   refine @is_closed_property _ _ _ (coe : (α →₁ₛ[μ] ℝ) → (α →₁[μ] ℝ))
     (λ f : α →₁[μ] ℝ, integral f = ∥Lp.pos_part f∥ - ∥Lp.neg_part f∥)
-    L1.simple_func.dense_range (is_closed_eq _ _) _ f,
+    (Lp.simple_func.dense_range one_ne_top) (is_closed_eq _ _) _ f,
   { exact cont _ },
   { refine continuous.sub (continuous_norm.comp Lp.continuous_pos_part)
       (continuous_norm.comp Lp.continuous_neg_part) },
   -- Show that the property holds for all simple functions in the `L¹` space.
   { assume s,
     norm_cast,
-    rw [← simple_func.norm_eq, ← simple_func.norm_eq],
-    exact simple_func.integral_eq_norm_pos_part_sub _}
+    rw [← Lp.simple_func.norm_eq, ← Lp.simple_func.norm_eq],
+    exact simple_func.integral_eq_norm_pos_part_sub _ }
 end
 
 end pos_part
@@ -1107,9 +1113,9 @@ end
 lemma simple_func.integral_eq_integral (f : α →ₛ E) (hfi : integrable f μ) :
   f.integral μ = ∫ x, f x ∂μ :=
 begin
-  rw [integral_eq f hfi, ← L1.simple_func.to_L1_eq_to_L1,
+  rw [integral_eq f hfi, ← L1.simple_func.to_Lp_one_eq_to_L1,
     L1.simple_func.integral_L1_eq_integral, L1.simple_func.integral_eq_integral],
-  exact simple_func.integral_congr hfi (L1.simple_func.to_simple_func_to_L1 _ _).symm
+  exact simple_func.integral_congr hfi (Lp.simple_func.to_simple_func_to_Lp _ _).symm
 end
 
 lemma simple_func.integral_eq_sum (f : α →ₛ E) (hfi : integrable f μ) :

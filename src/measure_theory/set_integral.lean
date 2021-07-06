@@ -577,6 +577,12 @@ begin
     simp_rw [integrable_smul_const hc, hf, not_false_iff] }
 end
 
+lemma integral_inner {E' : Type*} [inner_product_space 𝕜 E'] [measurable_space E'] [borel_space E']
+  [second_countable_topology E'] [complete_space E'] [normed_space ℝ E'] [is_scalar_tower ℝ 𝕜 E']
+  {f : α → E'} (hf : integrable f μ) (c : E') :
+  ∫ x, inner c (f x) ∂μ = @inner 𝕜 _ _ c (∫ x, f x ∂μ) :=
+((@inner_right 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
+
 end
 
 /-

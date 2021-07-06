@@ -907,7 +907,7 @@ instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
 
 section metric_space
 
-variables [metric_space α] [measurable_space α] [opens_measurable_space α]
+variables [pseudo_metric_space α] [measurable_space α] [opens_measurable_space α]
 variables [measurable_space β] {x : α} {ε : ℝ}
 
 open metric
@@ -1321,7 +1321,7 @@ end normed_group
 
 section limits
 
-variables [measurable_space β] [metric_space β] [borel_space β]
+variables [measurable_space β] [pseudo_metric_space β] [borel_space β]
 
 open metric
 

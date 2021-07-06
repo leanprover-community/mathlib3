@@ -1934,10 +1934,10 @@ begin
     @ennreal.top_rpow_of_pos (1/p) (by simp [hp_pos])] at hx,
 end
 
-lemma ae_tendsto_of_cauchy_snorm' [complete_space E'] {f : ℕ → α → E'} {p : ℝ}
+lemma ae_tendsto_of_cauchy_snorm' [complete_space E] {f : ℕ → α → E} {p : ℝ}
   (hf : ∀ n, ae_measurable (f n) μ) (hp1 : 1 ≤ p) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm' (f n - f m) p μ < B N) :
-  ∀ᵐ x ∂μ, ∃ l : E', at_top.tendsto (λ n, f n x) (𝓝 l) :=
+  ∀ᵐ x ∂μ, ∃ l : E, at_top.tendsto (λ n, f n x) (𝓝 l) :=
 begin
   have h_summable : ∀ᵐ x ∂μ, summable (λ (i : ℕ), f (i + 1) x - f i x),
   { have h1 : ∀ n, snorm' (λ x, ∑ i in finset.range (n + 1), norm (f (i + 1) x - f i x)) p μ
@@ -1952,10 +1952,10 @@ begin
       from tsum_nnnorm_sub_ae_lt_top hf hp1 hB h3,
     exact h4.mono (λ x hx, summable_of_summable_nnnorm
       (ennreal.tsum_coe_ne_top_iff_summable.mp (lt_top_iff_ne_top.mp hx))), },
-  have h : ∀ᵐ x ∂μ, ∃ l : E',
+  have h : ∀ᵐ x ∂μ, ∃ l : E,
     at_top.tendsto (λ n, ∑ i in finset.range n, (f (i + 1) x - f i x)) (𝓝 l),
   { refine h_summable.mono (λ x hx, _),
-    let hx_sum := (summable.has_sum_iff_tendsto_nat hx).mp hx.has_sum,
+    let hx_sum := has_sum.tendsto_sum_nat hx.has_sum,
     exact ⟨∑' i, (f (i + 1) x - f i x), hx_sum⟩, },
   refine h.mono (λ x hx, _),
   cases hx with l hx,
@@ -1969,10 +1969,10 @@ begin
   exact ⟨l + f 0 x, tendsto.add_const _ hx⟩,
 end
 
-lemma ae_tendsto_of_cauchy_snorm [complete_space E'] {f : ℕ → α → E'}
+lemma ae_tendsto_of_cauchy_snorm [complete_space E] {f : ℕ → α → E}
   (hf : ∀ n, ae_measurable (f n) μ) (hp : 1 ≤ p) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N) :
-  ∀ᵐ x ∂μ, ∃ l : E', at_top.tendsto (λ n, f n x) (𝓝 l) :=
+  ∀ᵐ x ∂μ, ∃ l : E, at_top.tendsto (λ n, f n x) (𝓝 l) :=
 begin
   by_cases hp_top : p = ∞,
   { simp_rw [hp_top] at *,
@@ -2048,13 +2048,13 @@ begin
   { exact (hf N).2, },
 end
 
-lemma cauchy_complete_ℒp [complete_space E'] (hp : 1 ≤ p)
-  {f : ℕ → α → E'} (hf : ∀ n, mem_ℒp (f n) p μ) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
+lemma cauchy_complete_ℒp [complete_space E] (hp : 1 ≤ p)
+  {f : ℕ → α → E} (hf : ∀ n, mem_ℒp (f n) p μ) {B : ℕ → ℝ≥0∞} (hB : ∑' i, B i < ∞)
   (h_cau : ∀ (N n m : ℕ), N ≤ n → N ≤ m → snorm (f n - f m) p μ < B N) :
-  ∃ (f_lim : α → E') (hf_lim_meas : mem_ℒp f_lim p μ),
+  ∃ (f_lim : α → E) (hf_lim_meas : mem_ℒp f_lim p μ),
     at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
-  obtain ⟨f_lim, h_f_lim_meas, h_lim⟩ : ∃ (f_lim : α → E') (hf_lim_meas : measurable f_lim),
+  obtain ⟨f_lim, h_f_lim_meas, h_lim⟩ : ∃ (f_lim : α → E) (hf_lim_meas : measurable f_lim),
       ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (nhds (f_lim x)),
     from measurable_limit_of_tendsto_metric_ae (λ n, (hf n).1)
       (ae_tendsto_of_cauchy_snorm (λ n, (hf n).1) hp hB h_cau),

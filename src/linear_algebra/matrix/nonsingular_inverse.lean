@@ -403,7 +403,7 @@ B.nonsing_inv_left_right A h
 
 end inv
 
-/- One form of Cramer's rule. -/
+/-- One form of Cramer's rule -/
 @[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
   A.det • A⁻¹.mul_vec b = cramer A b :=
 begin
@@ -412,8 +412,8 @@ begin
   rw [←units.smul_def, smul_inv_smul],
 end
 
-/- A stronger form of Cramer's rule that allows us to solve some instances of `A ⬝ x = b` even if
-the determinant is not a unit. A sufficient (but still not necessary) condition is that `A.det`
+/-- A stronger form of **Cramer's rule** that allows us to solve some instances of `A ⬝ x = b` even
+if the determinant is not a unit. A sufficient (but still not necessary) condition is that `A.det`
 divides `b`. -/
 @[simp] lemma mul_vec_cramer (A : matrix n n α) (b : n → α) :
   A.mul_vec (cramer A b) = A.det • b :=

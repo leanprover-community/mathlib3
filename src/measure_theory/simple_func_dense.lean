@@ -508,9 +508,17 @@ section instances
 protected lemma eq' {f g : Lp.simple_func E p μ} : (f : α →ₘ[μ] E) = (g : α →ₘ[μ] E) → f = g :=
 subtype.eq ∘ subtype.eq
 
+/-! Implementation note:  If `Lp.simple_func E p μ` were defined as a `𝕜`-submodule of `Lp E p μ`,
+then the next few lemmas, putting a normed `𝕜`-group structure on `Lp.simple_func E p μ`, would be
+unnecessary.  But instead, `Lp.simple_func E p μ` is defined as an `add_subgroup` of `Lp E p μ`,
+which does not permit this (but has the advantage of working when `E` itself is a normed group,
+i.e. has no scalar action). -/
+
 variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
-instance : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λk f, ⟨k • f,
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_scalar`. Not declared as an
+instance as it is (as of writing) used in the construction of the Bochner integral. -/
+protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λk f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
   use k • s,
@@ -519,10 +527,14 @@ begin
   refl,
 end ⟩⟩
 
+local attribute [instance, priority 10000] simple_func.has_scalar
+
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
 
-instance : module 𝕜 (Lp.simple_func E p μ) :=
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a module. Not declared as an
+instance as it is (as of writing) used in the construction of the Bochner integral. -/
+protected def module : module 𝕜 (Lp.simple_func E p μ) :=
 { one_smul  := λf, subtype.coe_injective (by { simp only [coe_smul], exact one_smul _ _ }),
   mul_smul  := λx y f, subtype.coe_injective (by { simp only [coe_smul], exact mul_smul _ _ _ }),
   smul_add  := λx f g, subtype.coe_injective (by { simp only [coe_smul], exact smul_add _ _ _ }),
@@ -530,14 +542,16 @@ instance : module 𝕜 (Lp.simple_func E p μ) :=
   add_smul  := λx y f, subtype.coe_injective (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, subtype.coe_injective (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
+local attribute [instance] simple_func.module
+
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
-instance as it is mainly useful in the construction of the Bochner integral. -/
+instance as it is (as of writing) used only in the construction of the Bochner integral. -/
 protected def normed_space [fact (1 ≤ p)] : normed_space 𝕜 (Lp.simple_func E p μ) :=
 ⟨ λc f, by { rw [coe_norm_subgroup, coe_norm_subgroup, coe_smul, norm_smul] } ⟩
 
 end instances
 
-local attribute [instance] simple_func.normed_space
+local attribute [instance] simple_func.module simple_func.normed_space
 
 section to_Lp
 

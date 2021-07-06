@@ -496,7 +496,7 @@ def simple_func : add_subgroup (Lp E p μ) :=
   neg_mem' := λ f ⟨s, hs⟩, ⟨-s,
       by simp only [←hs, neg_mk, simple_func.coe_neg, mk_eq_mk, add_subgroup.coe_neg]⟩ }
 
-variables {α E p μ} [fact (1 ≤ p)]
+variables {α E p μ}
 
 namespace simple_func
 
@@ -505,29 +505,8 @@ section instances
 
 @[norm_cast] lemma coe_coe (f : Lp.simple_func E p μ) : ⇑(f : Lp E p μ) = f := rfl
 
-protected lemma eq {f g : Lp.simple_func E p μ} :
-  (f : Lp E p μ) = (g : Lp E p μ) → f = g :=
-subtype.eq
-
 protected lemma eq' {f g : Lp.simple_func E p μ} : (f : α →ₘ[μ] E) = (g : α →ₘ[μ] E) → f = g :=
 subtype.eq ∘ subtype.eq
-
-@[norm_cast] protected lemma eq_iff {f g : Lp.simple_func E p μ} : (f : Lp E p μ) = g ↔ f = g :=
-subtype.ext_iff.symm
-
-@[norm_cast] protected lemma eq_iff' {f g : Lp.simple_func E p μ} : (f : α →ₘ[μ] E) = g ↔ f = g :=
-iff.intro (simple_func.eq') (congr_arg _)
-
-@[simp, norm_cast]
-lemma coe_zero : ((0 : Lp.simple_func E p μ) : Lp E p μ) = 0 := rfl
-@[simp, norm_cast] lemma coe_add (f g : Lp.simple_func E p μ) :
-  ((f + g : Lp.simple_func E p μ) : Lp E p μ) = f + g := rfl
-@[simp, norm_cast]
-lemma coe_neg (f : Lp.simple_func E p μ) : ((-f : Lp.simple_func E p μ) : Lp E p μ) = -f := rfl
-@[simp, norm_cast] lemma coe_sub (f g : Lp.simple_func E p μ) :
-  ((f - g : Lp.simple_func E p μ) : Lp E p μ) = f - g := rfl
-
-lemma norm_eq (f : Lp.simple_func E p μ) : ∥f∥ = ∥(f : Lp E p μ)∥ := rfl
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
@@ -544,17 +523,17 @@ end ⟩⟩
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
 
 instance : module 𝕜 (Lp.simple_func E p μ) :=
-{ one_smul  := λf, simple_func.eq (by { simp only [coe_smul], exact one_smul _ _ }),
-  mul_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
-  smul_add  := λx f g, simple_func.eq (by { simp only [coe_smul], exact smul_add _ _ _ }),
-  smul_zero := λx, simple_func.eq (by { simp only [coe_smul], exact smul_zero _ }),
-  add_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
-  zero_smul := λf, simple_func.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
+{ one_smul  := λf, subtype.coe_injective (by { simp only [coe_smul], exact one_smul _ _ }),
+  mul_smul  := λx y f, subtype.coe_injective (by { simp only [coe_smul], exact mul_smul _ _ _ }),
+  smul_add  := λx f g, subtype.coe_injective (by { simp only [coe_smul], exact smul_add _ _ _ }),
+  smul_zero := λx, subtype.coe_injective (by { simp only [coe_smul], exact smul_zero _ }),
+  add_smul  := λx y f, subtype.coe_injective (by { simp only [coe_smul], exact add_smul _ _ _ }),
+  zero_smul := λf, subtype.coe_injective (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-/-- Not declared as an instance as `Lp.simple_func E p μ` will only be useful in the construction
-of the Bochner integral. -/
-protected def normed_space : normed_space 𝕜 (Lp.simple_func E p μ) :=
-⟨ λc f, by { rw [norm_eq, norm_eq, coe_smul, norm_smul] } ⟩
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a normed space. Not declared as an
+instance as it is mainly useful in the construction of the Bochner integral. -/
+protected def normed_space [fact (1 ≤ p)] : normed_space 𝕜 (Lp.simple_func E p μ) :=
+⟨ λc f, by { rw [coe_norm_subgroup, coe_norm_subgroup, coe_smul, norm_smul] } ⟩
 
 end instances
 
@@ -589,7 +568,8 @@ variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [ope
 lemma to_Lp_smul (f : α →ₛ E) (hf : mem_ℒp f p μ) (c : 𝕜) :
   to_Lp (c • f) (hf.const_smul c) = c • to_Lp f hf := rfl
 
-lemma norm_to_Lp (f : α →ₛ E) (hf : mem_ℒp f p μ) : ∥to_Lp f hf∥ = ennreal.to_real (snorm f p μ) :=
+lemma norm_to_Lp [fact (1 ≤ p)] (f : α →ₛ E) (hf : mem_ℒp f p μ) :
+  ∥to_Lp f hf∥ = ennreal.to_real (snorm f p μ) :=
 norm_to_Lp f hf
 
 end to_Lp
@@ -621,7 +601,7 @@ mem_ℒp.ae_eq (to_simple_func_eq_to_fun f).symm $ mem_Lp_iff_mem_ℒp.mp (f : L
 
 lemma to_Lp_to_simple_func (f : Lp.simple_func E p μ) :
   to_Lp (to_simple_func f) (simple_func.mem_ℒp f) = f :=
-by { rw ← simple_func.eq_iff', exact classical.some_spec f.2 }
+simple_func.eq' (classical.some_spec f.2)
 
 lemma to_simple_func_to_Lp (f : α →ₛ E) (hfi : mem_ℒp f p μ) :
   to_simple_func (to_Lp f hfi) =ᵐ[μ] f :=
@@ -642,7 +622,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, Lp.coe_fn_add (f :  Lp E p μ) g],
   assume a,
-  simp only [← coe_coe, coe_add, pi.add_apply],
+  simp only [← coe_coe, add_subgroup.coe_add, pi.add_apply],
   iterate 4 { assume h, rw h }
 end
 
@@ -652,7 +632,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
     Lp.coe_fn_neg (f : Lp E p μ)],
   assume a,
-  simp only [pi.neg_apply, coe_neg, ← coe_coe],
+  simp only [pi.neg_apply, add_subgroup.coe_neg, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -662,7 +642,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, Lp.coe_fn_sub (f : Lp E p μ) g],
   assume a,
-  simp only [coe_sub, pi.sub_apply, ← coe_coe],
+  simp only [add_subgroup.coe_sub, pi.sub_apply, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -678,13 +658,15 @@ begin
   repeat { assume h, rw h }
 end
 
-lemma norm_to_simple_func (f : Lp.simple_func E p μ) :
+lemma norm_to_simple_func [fact (1 ≤ p)] (f : Lp.simple_func E p μ) :
   ∥f∥ = ennreal.to_real (snorm (to_simple_func f) p μ) :=
 by simpa [to_Lp_to_simple_func] using norm_to_Lp (to_simple_func f) (simple_func.mem_ℒp f)
 
 end to_simple_func
 
 section coe_to_Lp
+
+variables [fact (1 ≤ p)]
 
 protected lemma uniform_continuous :
   uniform_continuous (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=

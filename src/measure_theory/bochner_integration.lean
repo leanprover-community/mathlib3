@@ -640,7 +640,7 @@ begin
   -- Show that the property holds for all simple functions in the `L¹` space.
   { assume s,
     norm_cast,
-    rw [← Lp.simple_func.norm_eq, ← Lp.simple_func.norm_eq],
+    rw [← coe_norm_subgroup, ← coe_norm_subgroup],
     exact simple_func.integral_eq_norm_pos_part_sub _ }
 end
 

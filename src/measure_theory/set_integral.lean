@@ -252,7 +252,7 @@ We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s,
 variables [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜]
   [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]
-  [semi_normed_space 𝕜 F]
+  [normed_space 𝕜 F]
   {p : ℝ≥0∞} {μ : measure α}
 
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
@@ -576,6 +576,24 @@ begin
     rw [integral_undef hf, integral_undef, zero_smul],
     simp_rw [integrable_smul_const hc, hf, not_false_iff] }
 end
+
+section inner
+
+variables {E' : Type*} [inner_product_space 𝕜 E'] [measurable_space E'] [borel_space E']
+  [second_countable_topology E'] [complete_space E'] [normed_space ℝ E'] [is_scalar_tower ℝ 𝕜 E']
+
+local notation `⟪`x`, `y`⟫'` := @inner 𝕜 E' _ x y
+
+lemma integral_inner {f : α → E'} (hf : integrable f μ) (c : E') :
+  ∫ x, inner c (f x) ∂μ = @inner 𝕜 _ _ c (∫ x, f x ∂μ) :=
+((@inner_right 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
+
+lemma integral_zero_of_forall_integral_inner_zero (f : α → E') (hf : integrable f μ)
+  (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫' ∂μ = 0) :
+  ∫ x, f x ∂μ = 0 :=
+by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
+
+end inner
 
 end
 

@@ -425,7 +425,7 @@ and prove basic properties of this integral. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
 
-local attribute [instance] Lp.simple_func.normed_group Lp.simple_func.normed_space
+local attribute [instance] Lp.simple_func.normed_space
 
 /-- The Bochner integral over simple functions in L1 space. -/
 def integral (f : α →₁ₛ[μ] E) : E := ((to_simple_func f)).integral μ
@@ -560,7 +560,8 @@ variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space �
 section integration_in_L1
 
 local notation `to_L1` := Lp.simple_func.coe_to_Lp α E ℝ
-local attribute [instance] Lp.simple_func.normed_group Lp.simple_func.normed_space
+
+local attribute [instance] Lp.simple_func.normed_space
 
 open continuous_linear_map
 

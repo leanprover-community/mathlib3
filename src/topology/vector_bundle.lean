@@ -465,7 +465,9 @@ lemma total_space_mk_preimage_soure (b : B) :
   (total_space_mk E b) ⁻¹' (a.trivialization_at b).source = univ :=
 begin
   apply eq_univ_of_univ_subset,
-  rw [(a.trivialization_at b).source_eq, ←preimage_comp, function.comp, preimage_const_of_mem _],
+  rw [(a.trivialization_at b).source_eq, ←preimage_comp, function.comp],
+  simp only [proj],
+  rw preimage_const_of_mem _,
   exact a.mem_base_trivialization_at b,
 end
 

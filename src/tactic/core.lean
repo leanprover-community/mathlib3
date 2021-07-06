@@ -719,7 +719,7 @@ meta def subst' (h : expr) : tactic unit := do
     else return h },
   success_if_fail (is_local_def e) <|>
     fail format!("Cannot substitute variable {e.local_pp_name}, " ++
-      "it is a local definition. Hint: use `clear_value`."),
+      "it is a local definition. If you really want to do this, use `clear_value` first."),
   subst h
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,

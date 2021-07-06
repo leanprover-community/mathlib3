@@ -447,14 +447,12 @@ begin
 end
 
 /-- We can construct an instance of invertible A if A has a left inverse. -/
-noncomputable
 def invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
-matrix.invertible_of_is_unit_det (is_unit_det_of_left_inverse h)
+⟨B, h, nonsing_inv_right_left h⟩
 
 /-- We can construct an instance of invertible A if A has a right inverse. -/
-noncomputable
 def invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
-matrix.invertible_of_is_unit_det (is_unit_det_of_right_inverse h)
+⟨B, nonsing_inv_left_right h, h⟩
 
 variables {C: matrix n n α}
 
@@ -477,7 +475,6 @@ mul_nonsing_inv A (is_unit_det_of_invertible A)
 
 @[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
 nonsing_inv_mul A (is_unit_det_of_invertible A)
-#check is_unit_det_of_left_inverse
 
 end inv
 

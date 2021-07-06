@@ -722,9 +722,7 @@ end simple_func
 end Lp
 
 variables [measurable_space α] [normed_group E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] {f : α → E} {p : ℝ≥0∞} [_i : fact (1 ≤ p)] {μ : measure α}
-
-include _i
+  [second_countable_topology E] {f : α → E} {p : ℝ≥0∞} {μ : measure α}
 
 /-- To prove something for an arbitrary `mem_ℒp` function in a second countable
 Borel normed group, it suffices to show that
@@ -739,7 +737,7 @@ a simple function with a multiple of a characteristic function and that the inte
 of their images is a subset of `{0}`).
 -/
 @[elab_as_eliminator]
-lemma mem_ℒp.induction (hp_ne_top : p ≠ ∞) (P : (α → E) → Prop)
+lemma mem_ℒp.induction [_i : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) (P : (α → E) → Prop)
   (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
   (h_add : ∀ ⦃f g : α → E⦄, disjoint (support f) (support g) → mem_ℒp f p μ → mem_ℒp g p μ →
     P f → P g → P (f + g))
@@ -772,8 +770,6 @@ begin
     λ f, (Lp.simple_func.dense_range hp_ne_top).induction_on f h_closed this,
   exact λ f hf, h_ae hf.coe_fn_to_Lp (Lp.mem_ℒp _) (this (hf.to_Lp f)),
 end
-
-omit _i
 
 section integrable
 

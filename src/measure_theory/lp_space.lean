@@ -880,7 +880,7 @@ end borel_space
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
 
 lemma snorm'_const_smul {f : α → F} (c : 𝕜) (hq0_lt : 0 < q) :
   snorm' (c • f) q μ = (nnnorm c : ℝ≥0∞) * snorm' f q μ :=
@@ -1246,7 +1246,7 @@ instance normed_group_Ltop : normed_group (Lp E ∞ μ) := by apply_instance
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜]
+variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 E] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
 
 lemma mem_Lp_const_smul (c : 𝕜) (f : Lp E p μ) : c • ↑f ∈ Lp E p μ :=
@@ -1290,9 +1290,9 @@ end Lp
 
 namespace mem_ℒp
 
-variables
-  [borel_space E] [second_countable_topology E]
-  {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+variables [borel_space E] [second_countable_topology E]
+  {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 E] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
 
 lemma to_Lp_const_smul {f : α → E} (c : 𝕜) (hf : mem_ℒp f p μ) :
   (hf.const_smul c).to_Lp (c • f) = c • hf.to_Lp f := rfl
@@ -1540,7 +1540,7 @@ lemma continuous_comp_Lp [fact (1 ≤ p)] (hg : lipschitz_with c g) (g0 : g 0 = 
 end lipschitz_with
 
 namespace continuous_linear_map
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
 
 /-- Composing `f : Lp ` with `L : E →L[𝕜] F`. -/
 def comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) : Lp F p μ :=

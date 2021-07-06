@@ -434,11 +434,11 @@ lemma integral_eq_integral (f : α →₁ₛ[μ] E) : integral f = ((to_simple_f
 
 lemma integral_eq_lintegral {f : α →₁ₛ[μ] ℝ} (h_pos : 0 ≤ᵐ[μ] (to_simple_func f)) :
   integral f = ennreal.to_real (∫⁻ a, ennreal.of_real ((to_simple_func f) a) ∂μ) :=
-by rw [integral, simple_func.integral_eq_lintegral (L1.simple_func.integrable f) h_pos]
+by rw [integral, simple_func.integral_eq_lintegral (simple_func.integrable f) h_pos]
 
 lemma integral_congr {f g : α →₁ₛ[μ] E} (h : to_simple_func f =ᵐ[μ] to_simple_func g) :
   integral f = integral g :=
-simple_func.integral_congr (L1.simple_func.integrable f) h
+simple_func.integral_congr (simple_func.integrable f) h
 
 lemma integral_add (f g : α →₁ₛ[μ] E) : integral (f + g) = integral f + integral g :=
 begin

@@ -67,23 +67,23 @@ local notation `E` := free_lie_algebra.of R ∘ generators.E
 local notation `F` := free_lie_algebra.of R ∘ generators.F
 local notation `ad` := lie_algebra.ad R (free_lie_algebra R (generators B))
 
-/-- The `⁅H, H⁆`-relation. -/
+/-- The terms correpsonding to the `⁅H, H⁆`-relations. -/
 def HH : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
 ⁅H i, H j⁆
 
-/-- The `⁅E, F⁆`-relation. -/
+/-- The terms correpsonding to the `⁅E, F⁆`-relations. -/
 def EF : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
 if i = j then ⁅E i, F i⁆ - H i else ⁅E i, F j⁆
 
-/-- The `⁅H, E⁆`-relation. -/
+/-- The terms correpsonding to the `⁅H, E⁆`-relations. -/
 def HE : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
 ⁅H i, E j⁆ - (cartan_matrix i j) • E j
 
-/-- The `⁅H, F⁆`-relation. -/
+/-- The terms correpsonding to the `⁅H, F⁆`-relations. -/
 def HF : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
 ⁅H i, F j⁆ + (cartan_matrix i j) • F j
 
-/-- The `ad E`-relation.
+/-- The terms correpsonding to the `ad E`-relations.
 
 Note that we use `int.to_nat` so that we can take the power and that we do not bother
 restricting to the case `i ≠ j` since these relations are zero anyway. We also defensively
@@ -91,7 +91,7 @@ ensure this with `ad_E_of_eq_eq_zero`. -/
 def ad_E : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
 (ad (E i))^(-cartan_matrix i j).to_nat $ ⁅E i, E j⁆
 
-/-- The `ad F`-relation.
+/-- The terms correpsonding to the `ad F`-relations.
 
 See also `ad_E` docstring. -/
 def ad_F : B × B → free_lie_algebra R (generators B) := function.uncurry $ λ i j,
@@ -124,11 +124,11 @@ end relations
 
 end from_cartan_matrix
 
-/-- The Lie algebra correpsonding to a Cartan matrix.
+/-- The Lie algebra corresponding to a Cartan matrix.
 
 Note that it is defined for any matrix of integers. Its value for non-Cartan matrices should be
 regarded as junk. -/
-@[derive [lie_ring, lie_algebra R]] 
+@[derive [lie_ring, lie_algebra R]]
 def from_cartan_matrix :=
 (from_cartan_matrix.relations.to_ideal R cartan_matrix).quotient
 

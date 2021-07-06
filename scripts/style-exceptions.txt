@@ -57,8 +57,6 @@ src/data/qpf/multivariate/basic.lean : line 73 : ERR_LIN : Line has more than 10
 src/data/qpf/multivariate/constructions/cofix.lean : line 38 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/multivariate/constructions/fix.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/univariate/basic.lean : line 35 : ERR_LIN : Line has more than 100 characters
-src/data/real/basic.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/data/real/cau_seq_completion.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/rel.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
@@ -199,7 +197,7 @@ src/tactic/transfer.lean : line 112 : ERR_LIN : Line has more than 100 character
 src/tactic/transfer.lean : line 113 : ERR_LIN : Line has more than 100 characters
 src/tactic/transfer.lean : line 6 : ERR_MOD : Module docstring missing, or too late
 src/tactic/transform_decl.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/transform_decl.lean : line 83 : ERR_LIN : Line has more than 100 characters
+src/tactic/transform_decl.lean : line 87 : ERR_LIN : Line has more than 100 characters
 src/tactic/transport.lean : line 45 : ERR_LIN : Line has more than 100 characters
 src/tactic/trunc_cases.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/wlog.lean : line 10 : ERR_MOD : Module docstring missing, or too late

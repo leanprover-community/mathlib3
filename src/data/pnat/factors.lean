@@ -66,8 +66,8 @@ def to_nat_multiset : prime_multiset → multiset ℕ :=
 
 instance coe_nat : has_coe prime_multiset (multiset ℕ) := ⟨to_nat_multiset⟩
 
-instance coe_nat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ) :=
-by { unfold_coes, dsimp [to_nat_multiset], apply_instance }
+lemma coe_nat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ) :=
+by { exact multiset.map_is_add_monoid_hom coe }
 
 theorem coe_nat_injective : function.injective (coe : prime_multiset → multiset ℕ) :=
 multiset.map_injective nat.primes.coe_nat_inj

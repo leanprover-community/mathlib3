@@ -471,6 +471,8 @@ protected def gi : galois_insertion (lie_span R L : set L → lie_subalgebra R L
 @[simp] lemma span_univ : lie_span R L (set.univ : set L) = ⊤ :=
 eq_top_iff.2 $ set_like.le_def.2 $ subset_lie_span
 
+variables {L}
+
 lemma span_union (s t : set L) : lie_span R L (s ∪ t) = lie_span R L s ⊔ lie_span R L t :=
 (lie_subalgebra.gi R L).gc.l_sup
 

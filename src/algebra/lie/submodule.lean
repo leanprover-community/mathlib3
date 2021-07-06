@@ -446,6 +446,8 @@ protected def gi : galois_insertion (lie_span R L : set M → lie_submodule R L 
 @[simp] lemma span_univ : lie_span R L (set.univ : set M) = ⊤ :=
 eq_top_iff.2 $ set_like.le_def.2 $ subset_lie_span
 
+variables {M}
+
 lemma span_union (s t : set M) : lie_span R L (s ∪ t) = lie_span R L s ⊔ lie_span R L t :=
 (lie_submodule.gi R L M).gc.l_sup
 

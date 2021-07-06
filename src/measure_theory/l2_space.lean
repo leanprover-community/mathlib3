@@ -134,7 +134,7 @@ instance inner_product_space : inner_product_space 𝕜 (α →₂[μ] E) :=
 
 end inner_product_space
 
-section
+section indicator_const_Lp
 
 variables [measurable_space 𝕜] [borel_space 𝕜]
 
@@ -184,7 +184,7 @@ begin
   simp only [is_R_or_C.inner_apply, is_R_or_C.conj_to_real, one_mul],
 end
 
-end
+end indicator_const_Lp
 
 end L2
 

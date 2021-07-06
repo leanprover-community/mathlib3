@@ -287,6 +287,7 @@ variables [complete_space E] [borel_space 𝕜] {m m0 : measurable_space α} {μ
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 local notation `⟪`x`, `y`⟫'` := @inner 𝕜 E' _ x y
+local notation `⟪`x`, `y`⟫₂` := @inner 𝕜 (α→₂[μ] E) _ x y
 
 variables (𝕜)
 /-- Conditional expectation of a function in L2 with respect to a sigma-algebra -/
@@ -333,8 +334,7 @@ begin
 end
 
 lemma inner_condexp_L2_left_eq_right (hm : m ≤ m0) {f g : Lp E 2 μ} :
-  @inner 𝕜 _ _ (condexp_L2_clm 𝕜 hm f : Lp E 2 μ) g
-    = inner f (condexp_L2_clm 𝕜 hm g : Lp E 2 μ) :=
+  ⟪(condexp_L2_clm 𝕜 hm f : Lp E 2 μ), g⟫₂ = ⟪f, (condexp_L2_clm 𝕜 hm g : Lp E 2 μ)⟫₂ :=
 by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact inner_orthogonal_projection_left_eq_right _ f g, }
 
 lemma condexp_L2_indicator_of_measurable (hm : m ≤ m0)
@@ -353,7 +353,7 @@ begin
 end
 
 lemma inner_condexp_L2_eq_inner_fun (hm : m ≤ m0) (f g : Lp E 2 μ) (hg : ae_measurable' m g μ) :
-  @inner 𝕜 _ _ (↑(condexp_L2_clm 𝕜 hm f) : Lp E 2 μ) g = inner f g :=
+  ⟪(condexp_L2_clm 𝕜 hm f : Lp E 2 μ), g⟫₂ = ⟪f, g⟫₂ :=
 begin
   symmetry,
   rw [← sub_eq_zero, ← inner_sub_left, condexp_L2_clm],

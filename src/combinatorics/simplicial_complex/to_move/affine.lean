@@ -1,12 +1,10 @@
-import tactic
-import data.real.basic
-import linear_algebra.affine_space.independent
-import linear_algebra.std_basis
-import linear_algebra.affine_space.finite_dimensional
-import linear_algebra.affine_space.combination
-import linear_algebra.finite_dimensional
-import analysis.convex.topology
+/-
+Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Bhavik Mehta
+-/
 import combinatorics.simplicial_complex.to_move.convex
+import linear_algebra.affine_space.finite_dimensional
 
 variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
 open_locale big_operators

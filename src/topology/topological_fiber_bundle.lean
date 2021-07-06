@@ -733,7 +733,7 @@ instance [inhabited B] [inhabited (E (default B))] :
   inhabited (total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
 
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
-@[simp, mfld_simps] def proj : total_space E → B :=
+@[simp, mfld_simps, reducible] def proj : total_space E → B :=
 λ (y : total_space E), y.1
 
 /-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
@@ -1104,6 +1104,7 @@ by { rw [local_triv_at_ext, ←base_set_at], exact Z.mem_base_set_at b, }
 open bundle
 
 /-- The inclusion of a fiber into the total space is a continuous map. -/
+@[continuity]
 lemma continuous_total_space_mk (b : B) : continuous (λ a, total_space_mk Z.fiber b a) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],

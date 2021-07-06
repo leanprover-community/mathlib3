@@ -523,6 +523,11 @@ end sum
 section subtype
 variables [topological_space α] [topological_space β] [topological_space γ] {p : α → Prop}
 
+lemma inducing_coe {b : set β} : inducing (coe : b → β) := ⟨rfl⟩
+
+lemma inducing_of_inducing_restrict_codom {f : α → β} {b : set β} (hb : maps_to f univ b)
+  (h : inducing hb.restrict_codom) : inducing f := inducing_coe.comp h
+
 lemma embedding_subtype_coe : embedding (coe : subtype p → α) :=
 ⟨⟨rfl⟩, subtype.coe_injective⟩
 

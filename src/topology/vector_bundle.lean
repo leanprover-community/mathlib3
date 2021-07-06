@@ -409,6 +409,8 @@ end
 
 section
 
+/-! ### Topological vector prebundle -/
+
 variable [∀ x, topological_space (E x)]
 
 open topological_space
@@ -424,9 +426,7 @@ structure topological_vector_prebundle :=
 (continuous_triv_change : ∀ x y : B, continuous_on ((trivialization_at x) ∘
   (trivialization_at y).to_local_equiv.symm) ((trivialization_at y).target ∩
   ((trivialization_at y).to_local_equiv.symm ⁻¹' (trivialization_at x).source)))
-(total_space_mk_inducing : ∀ (b : B), @inducing _ _ _ (⨆ x : B,
-  coinduced (trivialization_at x).to_prebundle_trivialization.set_symm (subtype.topological_space))
-  (total_space_mk E b))
+(total_space_mk_inducing : ∀ (b : B), inducing ((trivialization_at b) ∘ (total_space_mk E b)))
 
 namespace topological_vector_prebundle
 
@@ -454,17 +454,6 @@ end
 
 variable (a : topological_vector_prebundle R F E)
 
-section
-
-variables {α : Type*} {β : Type*} {γ : Type*}
-
-variables [topological_space α] [topological_space β]
-
-lemma inducing_of_inducing_restrict_codom {f : α → β} {b : set β} (hb : maps_to f univ b)
-  (h : inducing hb.restrict_codom) : inducing f := sorry
-
-end
-
 lemma mem_trivialization_at_source (b : B) (x : E b) :
   total_space_mk E b x ∈ (a.trivialization_at b).source :=
 begin
@@ -472,25 +461,41 @@ begin
   exact a.mem_base_trivialization_at b,
 end
 
-lemma la_svaggia (b : B) (h : inducing ((a.trivialization_at b) ∘ (total_space_mk E b))) :
-  @inducing _ _ _ (⨆ x : B, coinduced
-    (a.trivialization_at x).to_prebundle_trivialization.set_symm (subtype.topological_space))
-    (total_space_mk E b) :=
+lemma total_space_mk_preimage_soure (b : B) :
+  (total_space_mk E b) ⁻¹' (a.trivialization_at b).source = univ :=
 begin
-  letI := (⨆ x : B, coinduced
-    (a.trivialization_at x).to_prebundle_trivialization.set_symm (subtype.topological_space)),
+  apply eq_univ_of_univ_subset,
+  rw [(a.trivialization_at b).source_eq, ←preimage_comp, function.comp, preimage_const_of_mem _],
+  exact a.mem_base_trivialization_at b,
+end
+
+@[continuity] lemma continuous_total_space_mk (b : B) :
+  @continuous _ _ _ a.total_space_topology (total_space_mk E b) :=
+begin
+  letI := a.total_space_topology,
+  rw (a.vector_bundle_trivialization_at b).to_local_homeomorph.continuous_iff_continuous_comp_left
+    (univ_subset_iff.mpr (a.total_space_mk_preimage_soure b)),
+  exact continuous_iff_le_induced.mpr (le_antisymm_iff.mp (a.total_space_mk_inducing b).induced).1,
+end
+
+lemma inducing_total_space_mk_of_inducing_comp (b : B)
+  (h : inducing ((a.trivialization_at b) ∘ (total_space_mk E b))) :
+  @inducing _ _ _ a.total_space_topology (total_space_mk E b) :=
+begin
+  letI := a.total_space_topology,
   have hb : maps_to (total_space_mk E b) univ (a.trivialization_at b).source :=
     λ x _, a.mem_trivialization_at_source b _,
   rw factor_comp_restrict_codom hb at h,
   apply inducing_of_inducing_restrict_codom hb,
   refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
     (a.vector_bundle_trivialization_at b).continuous_to_fun) h,
-
+  exact (a.continuous_total_space_mk b).restrict_codom hb,
 end
 
 lemma to_topological_vector_bundle :
   @topological_vector_bundle R _ F E _ _ _ _ _ _ _ a.total_space_topology _ :=
-{ total_space_mk_inducing := a.total_space_mk_inducing,
+{ total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
+    (a.total_space_mk_inducing b),
   locally_trivial := λ b, ⟨a.vector_bundle_trivialization_at b, a.mem_base_trivialization_at b⟩ }
 
 end topological_vector_prebundle

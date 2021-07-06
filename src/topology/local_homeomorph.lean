@@ -870,6 +870,15 @@ lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h 
 forall_congr $ λ x, forall_congr $ λ hx, e.continuous_within_at_iff_continuous_within_at_comp_left
   (h hx) (mem_sets_of_superset self_mem_nhds_within h)
 
+/-- A function is continuous if and only if its composition with a local homeomorphism
+on the left is continuous and its image is contained in the source. -/
+lemma continuous_iff_continuous_comp_left {f : γ → α} (h : univ ⊆ f ⁻¹' e.source) :
+  continuous f ↔ continuous (e ∘ f) :=
+begin
+  simp only [continuous_iff_continuous_on_univ],
+  exact e.continuous_on_iff_continuous_on_comp_left h,
+end
+
 end continuity
 
 /-- A local homeomrphism defines a homeomorphism between its source and target. -/
@@ -922,29 +931,6 @@ begin
   { intros U hU,
     simpa only [h, subset_univ] with mfld_simps using e.image_open_of_open hU}
 end
-
-lemma _root_.set.inj_on.comp_injective {f : α → β} {g : γ → α} {s : set α} (hf : inj_on f s) (hg : injective g)
-  (hs : maps_to g univ s) : injective (f ∘ g) :=
-begin
-  rw injective_iff_inj_on_univ at ⊢ hg, --ameliorate
-  refine inj_on.comp hf hg hs,
-end
-
-lemma inducing_subtype (s : set α) (hs : s ⊆ e.source) : inducing (e ∘ (coe : s → α)) :=
-⟨begin
-  refine le_antisymm (continuous_iff_le_induced.mp (continuous_iff_continuous_at.mpr (λ x : s,
-    (e.continuous_at (hs (subtype.mem x))).comp continuous_induced_dom.continuous_at))) (λ t h, _),
-  rw is_open_induced_iff',
-  use e ∘ coe '' t,
-
-  split,
-  {
-
-  },
-  {
-    exact preimage_image_eq t (e.inj_on.comp_injective subtype.val_injective (λ a _, hs a.mem)),
-  }
-end⟩
 
 end local_homeomorph
 

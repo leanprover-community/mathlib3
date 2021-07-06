@@ -776,32 +776,8 @@ end Lp
 variables [measurable_space α] [normed_group E] [measurable_space E] [borel_space E]
   [second_countable_topology E] {f : α → E} {p : ℝ≥0∞} [_i : fact (1 ≤ p)] {μ : measure α}
 
-local attribute [instance] fact_one_le_one_ennreal
-
-notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ _ _ _ 1 _ μ
-
-lemma L1.simple_func.to_Lp_one_eq_to_L1 (f : α →ₛ E) (hf : integrable f μ) :
-  (Lp.simple_func.to_Lp f (mem_ℒp_one_iff_integrable.2 hf) : α →₁[μ] E) = hf.to_L1 f :=
-rfl
-
-protected lemma L1.simple_func.integrable (f : α →₁ₛ[μ] E) :
-  integrable (Lp.simple_func.to_simple_func f) μ :=
-by { rw ← mem_ℒp_one_iff_integrable, exact (Lp.simple_func.mem_ℒp f) }
-
 include _i
 
-/-- To prove something for an arbitrary integrable function in a second countable
-Borel normed group, it suffices to show that
-* the property holds for (multiples of) characteristic functions;
-* is closed under addition;
-* the set of functions in the `L¹` space for which the property holds is closed.
-* the property is closed under the almost-everywhere equal relation.
-
-It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
-can be added once we need them (for example in `h_add` it is only necessary to consider the sum of
-a simple function with a multiple of a characteristic function and that the intersection
-of their images is a subset of `{0}`).
--/
 @[elab_as_eliminator]
 lemma mem_ℒp.induction (hp_ne_top : p ≠ ∞) (P : (α → E) → Prop)
   (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
@@ -836,5 +812,48 @@ begin
     λ f, (Lp.simple_func.dense_range hp_ne_top).induction_on f h_closed this,
   exact λ f hf, h_ae hf.coe_fn_to_Lp (Lp.mem_ℒp _) (this (hf.to_Lp f)),
 end
+
+omit _i
+
+section integrable
+
+local attribute [instance] fact_one_le_one_ennreal
+
+notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ _ _ _ 1 _ μ
+
+lemma L1.simple_func.to_Lp_one_eq_to_L1 (f : α →ₛ E) (hf : integrable f μ) :
+  (Lp.simple_func.to_Lp f (mem_ℒp_one_iff_integrable.2 hf) : α →₁[μ] E) = hf.to_L1 f :=
+rfl
+
+protected lemma L1.simple_func.integrable (f : α →₁ₛ[μ] E) :
+  integrable (Lp.simple_func.to_simple_func f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable, exact (Lp.simple_func.mem_ℒp f) }
+
+/-- To prove something for an arbitrary integrable function in a second countable
+Borel normed group, it suffices to show that
+* the property holds for (multiples of) characteristic functions;
+* is closed under addition;
+* the set of functions in the `L¹` space for which the property holds is closed.
+* the property is closed under the almost-everywhere equal relation.
+
+It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
+can be added once we need them (for example in `h_add` it is only necessary to consider the sum of
+a simple function with a multiple of a characteristic function and that the intersection
+of their images is a subset of `{0}`).
+-/
+@[elab_as_eliminator]
+lemma integrable.induction (P : (α → E) → Prop)
+  (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
+  (h_add : ∀ ⦃f g : α → E⦄, disjoint (support f) (support g) → integrable f μ → integrable g μ →
+    P f → P g → P (f + g))
+  (h_closed : is_closed {f : α →₁[μ] E | P f} )
+  (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → integrable f μ → P f → P g) :
+  ∀ ⦃f : α → E⦄ (hf : integrable f μ), P f :=
+begin
+  simp only [← mem_ℒp_one_iff_integrable] at *,
+  exact mem_ℒp.induction one_ne_top P h_ind h_add h_closed h_ae
+end
+
+end integrable
 
 end measure_theory

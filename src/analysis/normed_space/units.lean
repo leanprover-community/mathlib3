@@ -36,13 +36,12 @@ namespace units
 
 /-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
 from `1` is a unit.  Here we construct its `units` structure.  -/
+@[simps coe]
 def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 { val := 1 - t,
   inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
   inv_val := geom_series_mul_neg t h }
-
-@[simp] lemma one_sub_coe (t : R) (h : ∥t∥ < 1) : ↑(one_sub t h) = 1 - t := rfl
 
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
@@ -91,7 +90,7 @@ open_locale classical big_operators
 open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
-by rw [← inverse_unit (units.one_sub t h), units.one_sub_coe]
+by rw [← inverse_unit (units.one_sub t h), units.coe_one_sub]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
 lemma inverse_add (x : units R) :
@@ -124,14 +123,14 @@ begin
   simp only [mem_ball, dist_zero_right] at ht,
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
-  { simp only [units.one_sub_coe],
+  { simp only [units.coe_one_sub],
     rw [← geom_sum, geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
-  { simp only [units.one_sub_coe],
+  { simp only [units.coe_one_sub],
     rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
     simp }
 end
@@ -246,9 +245,8 @@ begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
   simp only [range_succ, range_one, sum_insert, mem_singleton, sum_singleton, not_false_iff,
-    one_ne_zero, pow_zero, add_mul],
-  abel,
-  simp
+    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul_eq_neg_mul_symm,
+    sub_add_eq_sub_sub_swap, sub_neg_eq_add],
 end
 
 /-- The function `inverse` is continuous at each unit of `R`. -/

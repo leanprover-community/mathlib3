@@ -435,6 +435,9 @@ instance : module ℝ≥0∞ (measure α) :=
 injective.module ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
 
+@[simp, norm_cast] theorem coe_nnreal_smul (c : ℝ≥0) (μ : measure α) : ⇑(c • μ) = c • μ :=
+rfl
+
 /-! ### The complete lattice of measures -/
 
 instance : partial_order (measure α) :=
@@ -1427,6 +1430,16 @@ def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
 ennreal.coe_to_nnreal (measure_ne_top μ univ)
 
 instance finite_measure_zero : finite_measure (0 : measure α) := ⟨by simp⟩
+
+instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_measure (μ + ν) :=
+{ measure_univ_lt_top :=
+  begin
+    rw [measure.coe_add, pi.add_apply, ennreal.add_lt_top],
+    exact ⟨measure_lt_top _ _, measure_lt_top _ _⟩,
+  end }
+
+instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
+{ measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
 @[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl
 

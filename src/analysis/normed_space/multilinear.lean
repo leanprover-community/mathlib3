@@ -450,13 +450,12 @@ def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', norme
   @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
     (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
       (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
-{ to_fun := pi,
-  map_add' := λ f g, rfl,
-  map_smul' := λ c f, rfl,
-  inv_fun := λ f i,
-    (@continuous_linear_map.proj 𝕜 _ _ E' _ _ _ i).comp_continuous_multilinear_map f,
-  left_inv := λ f, by { ext, refl },
-  right_inv := λ f, by { ext, refl },
+{ to_linear_equiv :=
+  -- note: `pi_linear_equiv` does not unify correctly here, presumably due to issues with dependent
+  -- typeclass arguments.
+  { map_add' := λ f g, rfl,
+    map_smul' := λ c f, rfl,
+    .. pi_equiv, },
   norm_map' := norm_pi }
 
 end

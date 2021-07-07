@@ -375,6 +375,14 @@ theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ := subset_
 theorem eq_empty_of_not_nonempty (h : ¬nonempty α) (s : set α) : s = ∅ :=
 eq_empty_of_subset_empty $ λ x hx, h ⟨x⟩
 
+theorem eq_empty_of_is_empty [is_empty α] (s : set α) : s = ∅ :=
+eq_empty_of_subset_empty $ λ x hx, is_empty_elim x
+
+/-- There is exactly one set of a type that is empty. -/
+-- TODO[gh-6025]: make this an instance once safe to do so
+def unique_empty [is_empty α] : unique (set α) :=
+{ default := ∅, uniq := eq_empty_of_is_empty }
+
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 

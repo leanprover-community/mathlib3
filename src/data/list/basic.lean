@@ -2258,18 +2258,13 @@ theorem prod_cons : (a::l).prod = a * l.prod :=
 calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, one_mul, mul_one]
   ... = _ : foldl_assoc
 
-@[simp, priority 500]
+@[simp, priority 500, to_additive]
 theorem prod_repeat (a : α) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
 begin
   induction n with n ih,
   { rw pow_zero, refl },
   { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
 end
-
-@[simp, priority 500]
-theorem sum_repeat {α : Type*} [add_monoid α] :
-  ∀ (a : α) (n : ℕ), (list.repeat a n).sum = n • a :=
-@list.prod_repeat (multiplicative α) _
 
 @[simp, to_additive]
 theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=

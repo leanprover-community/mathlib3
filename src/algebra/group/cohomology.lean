@@ -231,12 +231,6 @@ end group_cohomology
 
 namespace finsupp
 
--- def P_pred (i : ℕ) := free_abelian_group (fin i → G)
-
-#check finsupp.map_domain
-#print finsupp.comap_domain
-#check finsupp.emb_domain
-
 @[simp] lemma emb_domain_refl {α M : Type*} [has_zero M] (f : α →₀ M) :
   emb_domain (function.embedding.refl α) f = f :=
 begin
@@ -274,8 +268,6 @@ noncomputable def equiv_congr {α β M : Type*} [has_zero M] (e : α ≃ β) : (
 theorem equiv_congr_apply {α β M : Type*} [has_zero M] (e : α ≃ β) (g : β →₀ M) (a : α) :
   equiv_congr e g a = g (e a)  :=
 begin
-  --unfold equiv_congr,
-  --dsimp,
   convert emb_domain_apply _ _ _,
   simp,
 end
@@ -291,7 +283,7 @@ def equiv_fun {X Y : Sort*} (A : Sort*) (e : X ≃ Y) : (A → X) ≃ (A → Y) 
   right_inv := λ h, by simp }
 
 -- Cassels-Froehlich `P i` is our instance below but with `i.succ`
--- for some reasin
+-- for some reason
 -- introducing the notation at all
 noncomputable instance {G : Type*} [group G] (i : ℕ) :
   distrib_mul_action G ((fin i → G) →₀ ℤ) :=

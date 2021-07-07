@@ -55,11 +55,19 @@ universes v u u₂
 variables {J : Type v}
 
 /-- The type of objects for the diagram indexing a wide (co)equalizer. -/
-@[derive [decidable_eq, inhabited]] inductive walking_parallel_family (J : Type v) : Type v
+inductive walking_parallel_family (J : Type v) : Type v
 | zero : walking_parallel_family
 | one : walking_parallel_family
 
 open walking_parallel_family
+
+instance : decidable_eq (walking_parallel_family J)
+| zero zero := is_true rfl
+| zero one := is_false (λ t, walking_parallel_family.no_confusion t)
+| one zero := is_false (λ t, walking_parallel_family.no_confusion t)
+| one one := is_true rfl
+
+instance : inhabited (walking_parallel_family J) := ⟨zero⟩
 
 /-- The type family of morphisms for the diagram indexing a wide (co)equalizer. -/
 @[derive decidable_eq] inductive walking_parallel_family.hom (J : Type v) :

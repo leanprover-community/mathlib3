@@ -15,7 +15,7 @@ A product is the categorical generalization of the object `Π i, f i` where `f :
 limit cone over the diagram formed by `f`, implemented by converting `f` into a functor
 `discrete ι ⥤ C`.
 
-A coequalizer is the dual concept.
+A coproduct is the dual concept.
 
 ## Main definitions
 

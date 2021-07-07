@@ -112,20 +112,11 @@ lemma bottom_eq_of_bottom_row_eq {g h : SL(2,ℤ)} (z : ℍ) (bot_eq : bottom_ro
   bottom g z = bottom h z :=
 by simp [← bottom_row_c, ← bottom_row_d, bot_eq]
 
-section finite_pairs
+
+section tendsto_lemmas
+/-! This is an attempt to do the maximin argument using more abstract existence theory. -/
 
 open filter continuous_linear_map
-
--- where should this lemma live?
-/-- The `norm_sq` function on `ℂ` is proper. -/
-lemma tendsto_at_top_norm_sq : tendsto norm_sq (cocompact ℂ) at_top :=
-begin
-  convert tendsto_norm_cocompact_at_top.at_top_mul_at_top tendsto_norm_cocompact_at_top,
-  { simp [mul_self_abs] },
-  { apply_instance },
-  { apply_instance }
-end
-
 
 lemma finite_pairs (z : ℍ) :
   filter.tendsto (λ p : coprime_ints , ((p.c : ℂ) * z + p.d).norm_sq)
@@ -147,28 +138,11 @@ begin
   have h₂ : tendsto (λ p : ℤ × ℤ, ((p.1 : ℝ), (p.2 : ℝ))) cofinite (cocompact _),
   { convert int.tendsto_coe_cofinite.prod_map_coprod int.tendsto_coe_cofinite;
     simp [coprod_cocompact, coprod_cofinite] },
-  convert tendsto_at_top_norm_sq.comp
+  convert tendsto_norm_sq_cocompact_at_top.comp
     (h₁.comp (h₂.comp coprime_ints.coe_injective.tendsto_cofinite)),
   ext,
   simp [f],
 end
-
-end finite_pairs
-
-
-
-/-! This is an attempt to do the maximin argument using more abstract existence theory. -/
-
-open filter
-
-instance {α : Type*} [normed_ring α] {n m : Type*} [fintype n] [fintype m] :
-  normed_group (matrix n m α) :=
-pi.normed_group
-
-instance {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
-  normed_space α (matrix n m α) :=
-pi.normed_space
-
 
 /- Non-crap lemma but put it elsewhere ?  Maybe cocompact in discrete is cofinite -/
 lemma cocompact_ℝ_to_cofinite_ℤ (ι : Type*) [fintype ι] :
@@ -227,7 +201,6 @@ begin
     { fin_cases j; refl } },
   exact this.injective,
 end
-
 
 /-- Big filter theorem -/
 theorem big_thm (cd : coprime_ints) :
@@ -332,20 +305,6 @@ begin
   exact_mod_cast this,
 end
 
-
-
-/-- Add simp lemma to topology.algebra.group -/
-@[simp] lemma homeomorph.add_right_apply {G : Type*} [topological_space G] [add_group G]
-[has_continuous_add G] (a : G) (g : G) :
---⇑(homeomorph.add_right g h) = λ (x : α), x * c
-homeomorph.add_right a g = g + a := rfl
-
-/-- Add to topology.homeomorph -/
-@[simp] theorem homeomorph.trans_apply {α : Type*} {β : Type*} {γ : Type*} [topological_space α]
-[topological_space β] [topological_space γ] (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) (a : α) :
-h₁.trans h₂ a = h₂ (h₁ a) := rfl
-
-
 /- final filter lemma, deduce from previous two results -/
 lemma something' (z:ℍ) (p : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {p}, _root_.abs (((g : SL(2, ℤ)) • z).re)) cofinite at_top :=
@@ -363,20 +322,9 @@ begin
   convert hw g,
 end
 
-/- the upshot of all the filter stuff -/
-lemma exists_g_with_given_cd_and_min_re (z:ℍ) (cd : coprime_ints) :
-  ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ), bottom_row g = bottom_row g' →
-  _root_.abs ((g • z).re) ≤ _root_.abs ((g' • z).re)) :=
-begin
-  haveI : nonempty (bottom_row ⁻¹' {cd}) := let ⟨x, hx⟩ := bottom_row_surj cd in ⟨⟨x, hx⟩⟩,
-  obtain ⟨g, hg⟩  := filter.tendsto.exists_forall_le (something' z cd),
-  refine ⟨g, g.2, _⟩,
-  { intros g1 hg1,
-    have : g1 ∈ (bottom_row ⁻¹' {cd}),
-    { rw [set.mem_preimage, set.mem_singleton_iff],
-      exact eq.trans hg1.symm (set.mem_singleton_iff.mp (set.mem_preimage.mp g.2)) },
-    exact hg ⟨g1, this⟩ },
-end
+end tendsto_lemmas
+
+/- the upshot of all the filter stuff is the following two lemmas -/
 
 lemma exists_g_with_max_Im (z : ℍ) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (g' • z).im ≤ (g • z).im :=
@@ -391,6 +339,21 @@ begin
   { exact normsq_bottom_pos g' z },
   { exact normsq_bottom_pos g z },
 end
+
+lemma exists_g_with_given_cd_and_min_re (z:ℍ) (cd : coprime_ints) :
+  ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ), bottom_row g = bottom_row g' →
+  _root_.abs ((g • z).re) ≤ _root_.abs ((g' • z).re)) :=
+begin
+  haveI : nonempty (bottom_row ⁻¹' {cd}) := let ⟨x, hx⟩ := bottom_row_surj cd in ⟨⟨x, hx⟩⟩,
+  obtain ⟨g, hg⟩  := filter.tendsto.exists_forall_le (something' z cd),
+  refine ⟨g, g.2, _⟩,
+  { intros g1 hg1,
+    have : g1 ∈ (bottom_row ⁻¹' {cd}),
+    { rw [set.mem_preimage, set.mem_singleton_iff],
+      exact eq.trans hg1.symm (set.mem_singleton_iff.mp (set.mem_preimage.mp g.2)) },
+    exact hg ⟨g1, this⟩ },
+end
+
 
 def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property :=
 by simp [matrix.det_succ_row_zero, fin.sum_univ_succ] }

@@ -77,6 +77,9 @@ protected def homeomorph.mul_right (a : G) :
   continuous_inv_fun := continuous_id.mul continuous_const,
   .. equiv.mul_right a }
 
+@[simp, to_additive]
+lemma homeomorph.coe_mul_right (a : G) : ⇑(homeomorph.mul_right a) = λ g, g * a := rfl
+
 @[to_additive]
 lemma is_open_map_mul_right (a : G) : is_open_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_open_map

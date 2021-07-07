@@ -100,6 +100,16 @@ by haveI := t.split_mono_from f; apply_instance
 lemma is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
 by haveI := t.split_epi_to f; apply_instance
 
+@[simps]
+def is_terminal.unique_up_to_iso {T T' : C} (hT : is_terminal T) (hT' : is_terminal T') : T ≅ T' :=
+{ hom := hT'.from _,
+  inv := hT.from _ }
+
+@[simps]
+def is_initial.unique_up_to_iso {I I' : C} (hI : is_initial I) (hI' : is_initial I') : I ≅ I' :=
+{ hom := hI.to _,
+  inv := hI'.to _ }
+
 variable (C)
 
 /--
@@ -224,6 +234,39 @@ end
 
 instance initial.mono_from [has_initial C] [zero_le_category C] (X : C) (f : ⊥_ C ⟶ X) : mono f :=
 initial_is_initial.mono_from f
+
+/-- To show a category is a `zero_le_category` it suffices to give an initial object such that
+every morphism out of it is a monomorphism. -/
+lemma zero_le_category.of_is_initial {I : C} (hI : is_initial I) (h : ∀ X, mono (hI.to X)) :
+  zero_le_category C :=
+{ is_initial_mono_from := λ I' X hI',
+  begin
+    rw hI'.hom_ext (hI'.to X) ((hI'.unique_up_to_iso hI).hom ≫ hI.to X),
+    apply mono_comp,
+  end }
+
+/-- To show a category is a `zero_le_category` it suffices to show every morphism out of the
+initial object is a monomorphism. -/
+lemma zero_le_category.of_initial [has_initial C] (h : ∀ X : C, mono (initial.to X)) :
+  zero_le_category C :=
+zero_le_category.of_is_initial initial_is_initial h
+
+/-- To show a category is a `zero_le_category` it suffices to show the unique morphism from an
+initial object to a terminal object is a monomorphism. -/
+lemma zero_le_category.of_is_terminal {I T : C} (hI : is_initial I) (hT : is_terminal T)
+  (f : mono (hI.to T)) :
+  zero_le_category C :=
+begin
+  apply zero_le_category.of_is_initial hI,
+  intros X,
+  apply mono_of_mono_fac (hI.hom_ext (hI.to X ≫ hT.from X) (hI.to T)),
+end
+
+/-- To show a category is a `zero_le_category` it suffices to show the unique morphism from the
+initial object to a terminal object is a monomorphism. -/
+lemma zero_le_category.of_terminal [has_initial C] [has_terminal C] (h : mono (initial.to (⊤_ C))) :
+  zero_le_category C :=
+zero_le_category.of_is_terminal initial_is_initial terminal_is_terminal h
 
 section comparison
 variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)

@@ -430,7 +430,8 @@ def trident.ext [nonempty J] {s t : trident f} (i : s.X ≅ t.X) (w : i.hom ≫ 
 Helper function for constructing morphisms between coequalizer cotridents.
 -/
 @[simps]
-def cotrident.mk_hom [nonempty J] {s t : cotrident f} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) : s ⟶ t :=
+def cotrident.mk_hom [nonempty J] {s t : cotrident f} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) :
+  s ⟶ t :=
 { hom := k,
   w' :=
   begin
@@ -444,7 +445,8 @@ To construct an isomorphism between cotridents,
 it suffices to give an isomorphism between the cocone points
 and check that it commutes with the `π` morphisms.
 -/
-def cotrident.ext [nonempty J] {s t : cotrident f} (i : s.X ≅ t.X) (w : s.π ≫ i.hom = t.π) : s ≅ t :=
+def cotrident.ext [nonempty J] {s t : cotrident f} (i : s.X ≅ t.X) (w : s.π ≫ i.hom = t.π) :
+  s ≅ t :=
 { hom := cotrident.mk_hom i.hom w,
   inv := cotrident.mk_hom i.inv (by rw [iso.comp_inv_eq, w]) }
 

@@ -12,7 +12,7 @@ import measure_theory.measurable_space
 The definition of a measure and a measure space are in `measure_theory.measure_space_def`, with
 only a few basic properties. This file provides many more properties of these objects.
 This separation allows the measurability tactic to import only the file `measure_space_def`, and to
-be available in `measure_space` (through `measurable_space`). 
+be available in `measure_space` (through `measurable_space`).
 
 Given a measurable space `α`, a measure on `α` is a function that sends measurable sets to the
 extended nonnegative reals that satisfies the following conditions:
@@ -302,8 +302,8 @@ begin
   exact tendsto_at_top_infi (assume n m hnm, measure_mono $ hm hnm),
 end
 
-/-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that
-  ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
+/-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of measurable sets such
+that ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, measurable_set (s i))
   (hs' : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
 begin
@@ -434,6 +434,9 @@ rfl
 instance : module ℝ≥0∞ (measure α) :=
 injective.module ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
+
+@[simp, norm_cast] theorem coe_nnreal_smul (c : ℝ≥0) (μ : measure α) : ⇑(c • μ) = c • μ :=
+rfl
 
 /-! ### The complete lattice of measures -/
 
@@ -700,6 +703,10 @@ end
 
 @[simp] lemma restrict_eq_zero : μ.restrict s = 0 ↔ μ s = 0 :=
 by rw [← measure_univ_eq_zero, restrict_apply_univ]
+
+lemma restrict_zero_set {s : set α} (h : μ s = 0) :
+  μ.restrict s = 0 :=
+by simp only [measure.restrict_eq_zero, h]
 
 @[simp] lemma restrict_empty : μ.restrict ∅ = 0 := ext $ λ s hs, by simp [hs]
 
@@ -1278,12 +1285,16 @@ begin
   simpa [set_of_and, inter_comm] using measure_inter_eq_zero_of_restrict h
 end
 
-lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hp : measurable_set s) :
+lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hs : measurable_set s) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
-  simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hp],
+  simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hs],
   congr' with x, simp [and_comm]
 end
+
+lemma ae_restrict_mem {s : set α} (hs : measurable_set s) :
+  ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
+(ae_restrict_iff' hs).2 (filter.eventually_of_forall (λ x, id))
 
 lemma ae_restrict_of_ae {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) :
   (∀ᵐ x ∂(μ.restrict s), p x) :=
@@ -1382,8 +1393,6 @@ class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 
 instance measure.dirac.probability_measure {x : α} : probability_measure (dirac x) :=
 ⟨dirac_apply_of_mem $ mem_univ x⟩
 
-section finite_measure
-
 /-- A measure `μ` is called finite if `μ univ < ∞`. -/
 class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
 
@@ -1391,7 +1400,21 @@ instance restrict.finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
   finite_measure (μ.restrict s) :=
 ⟨by simp [hs.elim]⟩
 
-export probability_measure (measure_univ)
+/-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
+
+NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
+there exists a measurable `t ⊆ s` such that `0 < μ t < μ s`. While this implies `μ {x} = 0`,
+the converse is not true. -/
+class has_no_atoms (μ : measure α) : Prop :=
+(measure_singleton : ∀ x, μ {x} = 0)
+
+export probability_measure (measure_univ) has_no_atoms (measure_singleton)
+
+attribute [simp] measure_singleton
+
+@[simp] lemma measure.restrict_singleton' [has_no_atoms μ] {a : α} :
+  μ.restrict {a} = 0 :=
+by simp only [measure_singleton, measure.restrict_eq_zero]
 
 lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s < ∞ :=
 (measure_mono (subset_univ s)).trans_lt finite_measure.measure_univ_lt_top
@@ -1407,6 +1430,16 @@ def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
 ennreal.coe_to_nnreal (measure_ne_top μ univ)
 
 instance finite_measure_zero : finite_measure (0 : measure α) := ⟨by simp⟩
+
+instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_measure (μ + ν) :=
+{ measure_univ_lt_top :=
+  begin
+    rw [measure.coe_add, pi.add_apply, ennreal.add_lt_top],
+    exact ⟨measure_lt_top _ _, measure_lt_top _ _⟩,
+  end }
+
+instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
+{ measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
 @[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl
 
@@ -1446,21 +1479,7 @@ begin
   rwa measure_univ at h₁,
 end
 
-end finite_measure
-
 section no_atoms
-
-/-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
-
-NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
-there exists a measurable `t ⊆ s` such that `0 < μ t < μ s`. While this implies `μ {x} = 0`,
-the converse is not true. -/
-class has_no_atoms (μ : measure α) : Prop :=
-(measure_singleton : ∀ x, μ {x} = 0)
-
-export has_no_atoms (measure_singleton)
-
-attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
 
@@ -2234,6 +2253,72 @@ end
 
 end is_complete
 
+namespace measure_theory
+
+lemma outer_measure.to_measure_zero [measurable_space α] : (0 : outer_measure α).to_measure
+  ((le_top).trans outer_measure.zero_caratheodory.symm.le) = 0 :=
+by rw [← measure.measure_univ_eq_zero, to_measure_apply _ _ measurable_set.univ,
+  outer_measure.coe_zero, pi.zero_apply]
+
+section trim
+
+/-- Restriction of a measure to a sub-sigma algebra.
+It is common to see a measure `μ` on a measurable space structure `m0` as being also a measure on
+any `m ≤ m0`. Since measures in mathlib have to be trimmed to the measurable space, `μ` itself
+cannot be a measure on `m`, hence the definition of `μ.trim hm`.
+
+This notion is related to `outer_measure.trim`, see the lemma
+`to_outer_measure_trim_eq_trim_to_outer_measure`. -/
+def measure.trim {m m0 : measurable_space α} (μ : @measure α m0) (hm : m ≤ m0) : @measure α m :=
+@outer_measure.to_measure α m μ.to_outer_measure (hm.trans (le_to_outer_measure_caratheodory μ))
+
+@[simp] lemma trim_eq_self [measurable_space α] {μ : measure α} : μ.trim le_rfl = μ :=
+by simp [measure.trim]
+
+variables {m m0 : measurable_space α} {μ : measure α} {s : set α}
+
+lemma to_outer_measure_trim_eq_trim_to_outer_measure (μ : measure α) (hm : m ≤ m0) :
+  @measure.to_outer_measure _ m (μ.trim hm) = @outer_measure.trim _ m μ.to_outer_measure :=
+by rw [measure.trim, to_measure_to_outer_measure]
+
+@[simp] lemma zero_trim (hm : m ≤ m0) : (0 : measure α).trim hm = (0 : @measure α m) :=
+by simp [measure.trim, outer_measure.to_measure_zero]
+
+lemma trim_measurable_set_eq (hm : m ≤ m0) (hs : @measurable_set α m s) : μ.trim hm s = μ s :=
+by simp [measure.trim, hs]
+
+lemma le_trim (hm : m ≤ m0) : μ s ≤ μ.trim hm s :=
+by { simp_rw [measure.trim], exact (@le_to_measure_apply _ m _ _ _), }
+
+lemma measure_eq_zero_of_trim_eq_zero (hm : m ≤ m0) (h : μ.trim hm s = 0) : μ s = 0 :=
+le_antisymm ((le_trim hm).trans (le_of_eq h)) (zero_le _)
+
+lemma measure_trim_to_measurable_eq_zero {hm : m ≤ m0} (hs : μ.trim hm s = 0) :
+  μ (@to_measurable α m (μ.trim hm) s) = 0 :=
+measure_eq_zero_of_trim_eq_zero hm (by rwa measure_to_measurable)
+
+lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
+  (h12 : f₁ =ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
+  f₁ =ᵐ[μ] f₂ :=
+measure_eq_zero_of_trim_eq_zero hm h12
+
+lemma restrict_trim (hm : m ≤ m0) (μ : measure α) (hs : @measurable_set α m s) :
+  @measure.restrict α m (μ.trim hm) s = (μ.restrict s).trim hm :=
+begin
+  ext1 t ht,
+  rw [@measure.restrict_apply α m _ _ _ ht, trim_measurable_set_eq hm ht,
+    measure.restrict_apply (hm t ht),
+    trim_measurable_set_eq hm (@measurable_set.inter α m t s ht hs)],
+end
+
+instance finite_measure_trim (hm : m ≤ m0) [finite_measure μ] : @finite_measure α m (μ.trim hm) :=
+{ measure_univ_lt_top :=
+    by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
+
+end trim
+
+end measure_theory
+
 /-!
 # Almost everywhere measurable functions
 
@@ -2362,6 +2447,32 @@ measurable_one.ae_measurable
 ⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
   λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).2 h.ae_eq_mk⟩⟩
 
+lemma ae_measurable_of_ae_measurable_trim {α} {m m0 : measurable_space α}
+  {μ : measure α} (hm : m ≤ m0) {f : α → β} (hf : @ae_measurable _ _ m _ f (μ.trim hm)) :
+  ae_measurable f μ :=
+begin
+  let f' := @ae_measurable.mk _ _ m _ _ _ hf,
+  have hf'_meas : @measurable _ _ m _ f', from @ae_measurable.measurable_mk _ _ m _ _ _ hf,
+  have hff'_m : f' =ᶠ[@measure.ae  _ m (μ.trim hm)] f,
+    from (@ae_measurable.ae_eq_mk _ _ m _ _ _ hf).symm,
+  have hff' : f' =ᵐ[μ] f, from ae_eq_of_ae_eq_trim hff'_m,
+  exact ⟨f', measurable.mono hf'_meas hm le_rfl, hff'.symm⟩,
+end
+
+lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
+  (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
+begin
+  by_cases h : nonempty β,
+  { refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
+              (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
+    intros t ht,
+    rw piecewise_preimage,
+    refine measurable_set.union _ ((measurable_const ht).diff hs),
+    rw [← subtype.image_preimage_coe, ← preimage_comp],
+    exact hs.subtype_image (hf ht) },
+  { exact (measurable_of_not_nonempty (mt (nonempty.map f) h) f).ae_measurable }
+end
+
 end
 
 namespace is_compact
@@ -2388,3 +2499,64 @@ lemma metric.bounded.finite_measure [metric_space α] [proper_space α]
   μ s < ∞ :=
 (measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
   ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).finite_measure
+
+
+section piecewise
+
+variables [measurable_space α] {μ : measure α} {s : set α} {f g : α → β}
+
+lemma piecewise_ae_eq_restrict (hs : measurable_set s) : piecewise s f g =ᵐ[μ.restrict s] f :=
+begin
+  rw [ae_restrict_eq hs],
+  exact (piecewise_eq_on s f g).eventually_eq.filter_mono inf_le_right
+end
+
+lemma piecewise_ae_eq_restrict_compl (hs : measurable_set s) :
+  piecewise s f g =ᵐ[μ.restrict sᶜ] g :=
+begin
+  rw [ae_restrict_eq hs.compl],
+  exact (piecewise_eq_on_compl s f g).eventually_eq.filter_mono inf_le_right
+end
+
+end piecewise
+
+section indicator_function
+
+variables [measurable_space α] {μ : measure α} {s : set α} {f : α → β}
+
+lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
+  ae_measurable f (μ.restrict s) :=
+⟨ae_measurable.mk f hfm, hfm.measurable_mk, ae_restrict_of_ae hfm.ae_eq_mk⟩
+
+variables [has_zero β]
+
+lemma indicator_ae_eq_restrict (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict s] f :=
+piecewise_ae_eq_restrict hs
+
+lemma indicator_ae_eq_restrict_compl (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
+piecewise_ae_eq_restrict_compl hs
+
+variables [measurable_space β]
+
+lemma ae_measurable_indicator_iff {s} (hs : measurable_set s) :
+  ae_measurable (indicator s f) μ ↔ ae_measurable f (μ.restrict s)  :=
+begin
+  split,
+  { assume h,
+    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) },
+  { assume h,
+    refine ⟨indicator s (h.mk f), h.measurable_mk.indicator hs, _⟩,
+    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
+      (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
+    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
+      (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
+    have : s.indicator f =ᵐ[μ.restrict s + μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
+      ae_add_measure_iff.2 ⟨A, B⟩,
+    simpa only [hs, measure.restrict_add_restrict_compl] using this },
+end
+
+lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
+  ae_measurable (s.indicator f) μ :=
+(ae_measurable_indicator_iff hs).mpr hfm.restrict
+
+end indicator_function

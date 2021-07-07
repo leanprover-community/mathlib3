@@ -8,15 +8,16 @@ import linear_algebra.matrix
 import linear_algebra.direct_sum_module
 import algebra.direct_sum
 
+/-!
+# Decompositions of Modules
+This file talks about decompositions of modules.
+-/
+
 universes u v w
 
 open_locale direct_sum classical big_operators
 open classical linear_map
 noncomputable theory
-/-!
-# Decompositions of Modules
-This file talks about decompositions of modules.
--/
 
 section setup
 variables (ι : Type u) (R : Type v) (M : Type w)
@@ -39,8 +40,9 @@ structure decomposition : Type (max u v w) :=
 variables {ι R M}
 
 /--
--/
+bruh
 
+-/
 def terrible_map (p : ι → submodule R M) :
   (⨁ i, p i) →ₗ[R] (supr p : submodule R M) :=
 (direct_sum.to_module R ι _ (λ i, submodule.of_le (le_supr p i : p i ≤ supr p)))
@@ -95,11 +97,13 @@ begin
   simp only [submodule.coe_zero, subtype.val_eq_coe, ← neg_eq_iff_add_eq_zero] at hx,
   simp only [← hx, pi.zero_apply, submodule.coe_zero] at hj,
   have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h j) (x j) (x j).2,
-  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase j, ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k,
+  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase j,
+    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k,
   { apply submodule.sum_mem_bsupr,
     intros c hc,
     exact (x c).2, },
-  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k : submodule R M) ≤ ⨆ (k : ι) (H : k ≠ j), p k,
+  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k : submodule R M) ≤
+    ⨆ (k : ι) (H : k ≠ j), p k,
     { refine bsupr_le_bsupr' (λ i hi, finset.ne_of_mem_erase hi), },
   have h4 := h3 h2,
   rw ← submodule.neg_mem_iff at h4,
@@ -131,6 +135,10 @@ begin
   exact set_like.coe_mk _ _,
 end
 
+/--
+blah
+
+-/
 def submodule.direct_sum_equiv_of_independent
   (p : ι → submodule R M) (h : complete_lattice.independent p) :
   (⨁ i, p i) ≃ₗ[R] (supr p : submodule R M) :=
@@ -151,6 +159,10 @@ rfl
 
 variables {R M}
 
+/--
+blah
+
+-/
 def is_decomposition.equiv (D : decomposition ι R M) : (⨁ i, D.factors i) ≃ₗ[R] M :=
 ((submodule.direct_sum_equiv_of_independent D.factors D.factors_ind).trans
   (linear_equiv.of_eq _ _ D.factors_supr)).trans (submodule.top_equiv_self)
@@ -178,7 +190,8 @@ begin
     rw ← submodule.coe_eq_zero,
     exact h,  },
   rw dfinsupp.support_single_ne_zero,
-  simp only [dite_eq_ite, if_true, dfinsupp.single_eq_same, submodule.coe_mk, eq_self_iff_true, finset.sum_singleton],
+  simp only [dite_eq_ite, if_true, dfinsupp.single_eq_same, submodule.coe_mk, eq_self_iff_true,
+    finset.sum_singleton],
   rw ← ne.def at h,
   rw ← submodule.coe_mk x hx at h,
   exact_mod_cast h,

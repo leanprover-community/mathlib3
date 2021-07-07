@@ -995,7 +995,7 @@ lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodul
 sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
 
 -- this is weirdly hard to prove
-lemma sum_erase_mem_bsupr {ι : Type*} [fintype ι]
+lemma sum_erase_mem_bsupr {ι : Type*} [fintype ι] [decidable_eq ι]
   (x : ι → M) {p : ι → submodule R M} (j : ι) (hx : ∀ i, x i ∈ p i) :
   ∑ (i : ι) in finset.univ.erase j, (x i) ∈ ⨆ (k : ι) (H : k ≠ j), p k :=
 begin

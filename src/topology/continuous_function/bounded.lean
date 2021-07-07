@@ -435,7 +435,7 @@ section normed_group
 continuous functions from α to β inherits a normed group structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [topological_space α] [semi_normed_group β]
+variables [topological_space α] [normed_group β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
 instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
@@ -505,12 +505,12 @@ le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 
 /-- Constructing a bounded continuous function from a uniformly bounded continuous
 function taking values in a normed group. -/
-def of_normed_group {α : Type u} {β : Type v} [topological_space α] [semi_normed_group β]
+def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
   (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
 ⟨⟨λn, f n, Hf⟩, ⟨_, dist_le_two_norm' H⟩⟩
 
 @[simp] lemma coe_of_normed_group
-  {α : Type u} {β : Type v} [topological_space α] [semi_normed_group β]
+  {α : Type u} {β : Type v} [topological_space α] [normed_group β]
   (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
   (of_normed_group f Hf C H : α → β) = f := rfl
 
@@ -521,12 +521,12 @@ lemma norm_of_normed_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC
 /-- Constructing a bounded continuous function from a uniformly bounded
 function on a discrete space, taking values in a normed group -/
 def of_normed_group_discrete {α : Type u} {β : Type v}
-  [topological_space α] [discrete_topology α] [semi_normed_group β]
+  [topological_space α] [discrete_topology α] [normed_group β]
   (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) : α →ᵇ β :=
 of_normed_group f continuous_of_discrete_topology C H
 
 @[simp] lemma coe_of_normed_group_discrete
-  {α : Type u} {β : Type v} [topological_space α] [discrete_topology α] [semi_normed_group β]
+  {α : Type u} {β : Type v} [topological_space α] [discrete_topology α] [normed_group β]
   (f : α → β) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
   (of_normed_group_discrete f C H : α → β) = f := rfl
 
@@ -584,10 +584,7 @@ lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α
   (∑ i in s, f i) a = (∑ i in s, f i a) :=
 by simp
 
-instance : semi_normed_group (α →ᵇ β) :=
-{ dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
-
-instance {β : Type*} [normed_group β] : normed_group (α →ᵇ β) :=
+instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
 
 lemma abs_diff_coe_le_dist : ∥f x - g x∥ ≤ dist f g :=
@@ -618,11 +615,11 @@ continuous functions from `α` to `β` inherits a normed space structure, by usi
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
 variables {𝕜 : Type*}
-variables [topological_space α] [semi_normed_group β]
+variables [topological_space α] [normed_group β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 section normed_field
-variables [normed_field 𝕜] [semi_normed_space 𝕜 β]
+variables [normed_field 𝕜] [normed_space 𝕜 β]
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
 ⟨λ c f, of_normed_group (c • f) (f.continuous.const_smul c) (∥c∥ * ∥f∥) $ λ x,
@@ -640,10 +637,7 @@ module.of_core $
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
   one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
-instance : semi_normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
-  (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
-
-instance {β : Type*} [normed_group β] [normed_space 𝕜 β] : normed_space 𝕜 (α →ᵇ β) :=
+instance : normed_space 𝕜 (α →ᵇ β) :=
 ⟨λ c f, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
 variables (𝕜)
@@ -667,8 +661,8 @@ def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
 
 end normed_field
 
-variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 β]
-variables [semi_normed_group γ] [semi_normed_space 𝕜 γ]
+variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
+variables [normed_group γ] [normed_space 𝕜 γ]
 
 variables (α)
 /--

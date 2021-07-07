@@ -31,7 +31,7 @@ open bounded_continuous_function
 
 namespace continuous_map
 
-variables (α : Type*) (β : Type*) [topological_space α] [compact_space α] [semi_normed_group β]
+variables (α : Type*) (β : Type*) [topological_space α] [compact_space α] [normed_group β]
 
 /--
 When `α` is compact, the bounded continuous maps `α →ᵇ 𝕜` are
@@ -120,19 +120,7 @@ def isometric_bounded_of_compact :
 instance : has_norm C(α,β) :=
 { norm := λ x, dist x 0 }
 
-instance : semi_normed_group C(α,β) :=
-{ dist_eq := λ x y,
-  begin
-    change dist x y = dist (x-y) 0,
-     -- it would be nice if `equiv_rw` could rewrite in multiple places at once
-    equiv_rw (equiv_bounded_of_compact α β) at x,
-    equiv_rw (equiv_bounded_of_compact α β) at y,
-    have p : dist x y = dist (x-y) 0, { rw dist_eq_norm, rw dist_zero_right, },
-    convert p,
-    exact ((add_equiv_bounded_of_compact α β).symm.map_sub _ _).symm,
-  end, }
-
-instance {β : Type*} [normed_group β] : normed_group C(α,β) :=
+instance : normed_group C(α,β) :=
 { dist_eq := λ x y,
   begin
     change dist x y = dist (x-y) 0,
@@ -197,17 +185,14 @@ instance : normed_ring C(α,R) :=
 end
 
 section
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-instance : semi_normed_space 𝕜 C(α,β) :=
+instance : normed_space 𝕜 C(α,β) :=
 { norm_smul_le := λ c f,
   begin
     equiv_rw (equiv_bounded_of_compact α β) at f,
     exact le_of_eq (norm_smul c f),
   end }
-
-instance {β : Type*} [normed_group β] [normed_space 𝕜 β] : normed_space 𝕜 C(α,β) :=
-{ norm_smul_le := λ c f, by rw norm_smul c f, }
 
 variables (α 𝕜)
 

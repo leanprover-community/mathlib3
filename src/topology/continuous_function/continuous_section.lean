@@ -5,7 +5,7 @@ Authors: Nicolò Cavalleri
 -/
 
 import topology.continuous_function.basic
-import data.right_inv
+import data.bundle
 
 /-!
 # Continuous sections
@@ -13,6 +13,8 @@ import data.right_inv
 In this file we define bundled continuous sections of a map.
 
 -/
+
+section
 
 set_option old_structure_cmd true
 
@@ -51,3 +53,46 @@ lemma ext_right_inv (g h : continuous_section f) (H : (g : right_inv f) = h) :
   ⇑(g : right_inv f) = g := rfl
 
 end continuous_section
+
+end
+
+section bundle
+
+open bundle
+
+variables {B : Type*} [topological_space B] {E : B → Type*} [topological_space (total_space E)]
+
+/-- A continuous section of a bundle `E` is an element of `Π x, E x` that is continuous when
+coerced to the total space.
+Note that the `nolint has_inhabited_instance` here has a true matematical meaning: the universal
+cover of a circle is a map that does not admit continuous sections. -/
+@[nolint has_inhabited_instance]
+structure continuous_pi_section (E : B → Type*) [topological_space (total_space E)] :=
+(to_fun : Π x, E x)
+(continuous_to_fun : continuous to_fun)
+
+namespace continuous_pi_section
+
+variables (s t : continuous_pi_section E)
+
+instance : has_coe_to_fun (continuous_pi_section E) := ⟨λ s, Π x, E x, continuous_pi_section.to_fun⟩
+
+/-- Natural identification as a `continuous_section`. -/
+def to_continuous_section (s : continuous_pi_section E) : continuous_section (proj E) :=
+{ ..pi_right_inv s, ..s }
+
+instance : has_coe (continuous_pi_section E) (continuous_section (proj E)) :=
+⟨to_continuous_section⟩
+
+lemma coe_injective : @function.injective (continuous_pi_section E) (Π x, E x) coe_fn :=
+λ X Y h, by { cases X, cases Y, congr' }
+
+@[ext] theorem ext (h : ∀ x, s x = t x) : s = t := coe_injective $ funext h
+
+@[simp] lemma to_fun_eq_coe : s.to_fun = s := rfl
+
+@[continuity] lemma continuous : continuous (s : B → total_space E) := s.continuous_to_fun
+
+end continuous_pi_section
+
+end bundle

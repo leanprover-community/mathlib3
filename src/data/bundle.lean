@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import tactic.basic
 import algebra.module.basic
+import data.right_inv
+import data.pi
 
 /-!
 # Bundle
@@ -83,3 +84,36 @@ instance [add_comm_monoid F] [module R F] : module R (bundle.trivial B F b) := �
 end trivial_instances
 
 end bundle
+
+section bundle_sections
+
+/-! ## Section of bundles -/
+
+open bundle
+
+variables {B : Type*} {E : B → Type*}
+
+@[simp] lemma right_inv.fst_eq_id (f : right_inv (proj E)) (b : B) : (f b).fst = b :=
+congr_fun f.right_inv_def b
+
+/-- Equivalence between Pi functions and righ inverses. -/
+def pi_right_inv : equiv (Π x, E x) (right_inv (proj E)) :=
+{ to_fun := λ g, ⟨λ x, ⟨x, g x⟩, λ x, rfl⟩,
+  inv_fun := λ g, (λ x, cast (congr_arg E (g.right_inverse x)) (g x).2),
+  left_inv := λ g, rfl,
+  right_inv := λ g, by { ext a, exacts [(g.right_inv' a).symm, cast_heq _ _] }, }
+
+variable (x : B)
+
+@[simp] lemma right_inv.pi_right_inv_symm_apply (g : right_inv (proj E)) :
+  pi_right_inv.symm g x == (g x).2 := cast_heq _ (g x).snd
+
+@[simp] lemma pi.pi_right_inv_apply (g : Π x, E x) : (pi_right_inv g) x = ⟨x, g x⟩ := rfl
+
+@[simp] lemma right_inv.snd_eq_to_pi_fst (g : right_inv (proj E)) :
+  pi_right_inv.symm g (g x).fst = (g x).snd :=
+eq_of_heq ((cast_heq _ _).trans (congr_arg_heq sigma.snd (congr_arg g (g.fst_eq_id x))))
+
+instance pi_to_right_inv : has_coe (Π x, E x) (right_inv (proj E)) := ⟨pi_right_inv⟩
+
+end bundle_sections

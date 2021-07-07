@@ -409,12 +409,6 @@ variables [comm_group α]
 section has_le
 variables [has_le α] [covariant_class α α (*) (≤)] {a b c d : α}
 
-section comm_group
-variables [comm_group α]
-
-section has_le
-variables [has_le α] [covariant_class α α (*) (≤)] {a b c d : α}
-
 @[simp, to_additive]
 lemma inv_mul_le_iff_le_mul' : c⁻¹ * a ≤ b ↔ a ≤ b * c :=
 by rw [inv_mul_le_iff_le_mul, mul_comm]

@@ -16,7 +16,7 @@ we prove that `equiv.perm.support (form_perm l) = l.to_finset`, and that
 `form_perm l` is rotationally invariant, in `form_perm_rotate`.
 
 When there are duplicate elements in `l`, how and in what arrangement with respect to the other
-elemenets they appear in the list determines the formed permutation.
+elements they appear in the list determines the formed permutation.
 This is because `list.form_perm` is implemented as a product of `equiv.swap`s.
 That means that presence of a sublist of two adjacent duplicates like `[..., x, x, ...]`
 will produce the same permutation as if the adjacent duplicates were not present.

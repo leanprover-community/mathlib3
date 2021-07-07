@@ -252,7 +252,7 @@ We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s,
 variables [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜]
   [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]
-  [semi_normed_space 𝕜 F]
+  [normed_space 𝕜 F]
   {p : ℝ≥0∞} {μ : measure α}
 
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by

@@ -1,6 +1,3 @@
-import linear_algebra.matrix.nonsingular_inverse
-import linear_algebra.matrix.to_lin
-import data.matrix.notation
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -8,10 +5,9 @@ Authors: Anne Baanen
 
 The Special Linear group $SL(n, R)$
 -/
--- import linear_algebra.matrix
--- import linear_algebra.nonsingular_inverse
--- import data.matrix.notation
--- import data.nat.parity
+import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.to_lin
+import data.matrix.notation
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -71,6 +67,10 @@ instance coe_matrix : has_coe (special_linear_group n R) (matrix n n R) :=
 instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
 { F   := λ _, n → n → R,
   coe := λ A, A.val }
+
+@[simp] lemma coe_matrix_apply (g : special_linear_group n R) (i : n) :
+  @coe _ (matrix n n R) _ g i = (g : n → n → R) i :=
+rfl
 
 /--
   `to_lin' A` is matrix multiplication of vectors by `A`, as a linear map.
@@ -177,15 +177,19 @@ variables {S : Type*} [comm_ring S]
 
 /-- A ring homomorphism from `R` to `S` induces a group homomorphism from
 `special_linear_group n R` to `special_linear_group n S`. -/
-def SL_n_insertion (f : R →+* S) :
-monoid_hom (special_linear_group n R) (special_linear_group n S) :=
+def map (f : R →+* S) : monoid_hom (special_linear_group n R) (special_linear_group n S) :=
 { to_fun := λ g, ⟨f.map_matrix g, ring_hom.map_det_one f g.2⟩,
   map_one' := by simpa,
   map_mul' := λ x y, by simpa }
 
-@[simp] lemma SL_n_insertion_apply (f : R →+* S) (g : special_linear_group n R) :
-  SL_n_insertion f g = ⟨f.map_matrix g, ring_hom.map_det_one f (det_coe_matrix g)⟩ :=
+@[simp] lemma coe_matrix_map (f : R →+* S) (g : special_linear_group n R) :
+  @coe _ (matrix n n S) _ (map f g) = f.map_matrix g :=
 rfl
+
+@[simp] lemma coe_fun_map (f : R →+* S) (g : special_linear_group n R) :
+  ⇑(map f g) = f.map_matrix g :=
+rfl
+ --, ring_hom.map_det_one f (det_coe_matrix g)⟩ :=
 
 section matrix_notation
 
@@ -209,15 +213,18 @@ end matrix_notation
 section cast
 
 /-- Coercion of SL `n` `ℤ` to SL `n` `R` for a commutative ring `R`. -/
-instance has_coe_SL :
-  has_coe (special_linear_group n ℤ) (special_linear_group n R) :=
-⟨λ x, SL_n_insertion (int.cast_ring_hom R) x⟩
+instance : has_coe (special_linear_group n ℤ) (special_linear_group n R) :=
+⟨λ x, map (int.cast_ring_hom R) x⟩
 
-@[simp] lemma has_coe_SL_apply (g : special_linear_group n ℤ) :
-  @coe _ (special_linear_group n R) _ g
-  = ⟨map (@coe _ (matrix n n ℤ) _ g) (int.cast_ring_hom R),
-    ring_hom.map_det_one (int.cast_ring_hom R) (det_coe_matrix g)⟩ :=
-SL_n_insertion_apply (int.cast_ring_hom R) g
+@[simp] lemma coe_matrix_coe (g : special_linear_group n ℤ) :
+  @coe _ (matrix n n R) _ (@coe _ (special_linear_group n R) _ g)
+  = (@coe _ (matrix n n ℤ) _ g).map (int.cast_ring_hom R) :=
+coe_matrix_map (int.cast_ring_hom R) g
+
+@[simp] lemma coe_fun_coe (g : special_linear_group n ℤ) :
+  ⇑(@coe _ (special_linear_group n R) _ g)
+  = (@coe _ (matrix n n ℤ) _ g).map (int.cast_ring_hom R) :=
+coe_fun_map (int.cast_ring_hom R) g
 
 end cast
 

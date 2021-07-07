@@ -1,13 +1,4 @@
 import analysis.complex.automorphisms_half_plane
-import analysis.complex.basic
-import data.matrix.notation
---import data.int.basic
-import data.int.parity
---import data.nat.gcd
-import algebra.ordered_ring
---import ring_theory.int.basic
-import data.real.sqrt
-import linear_algebra.affine_space.affine_subspace
 
 open complex
 open matrix
@@ -25,61 +16,44 @@ open upper_half_plane
 
 -- special linear group over ℤ
 
-/-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
-instance SL2Z_action : mul_action SL(2, ℤ) ℍ :=
-mul_action.comp_hom ℍ (SL_n_insertion (int.cast_ring_hom ℝ))
+namespace upper_half_plane
 
-@[simp]
-lemma smul_def_int (g : SL(2,ℤ)) (z : ℍ) : g • z = smul_aux g z :=
-begin
-  refl,
-end
+/-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
+instance : mul_action SL(2, ℤ) ℍ :=
+mul_action.comp_hom ℍ (map (int.cast_ring_hom ℝ))
+
+@[simp] lemma coe_smul (g : SL(2,ℤ)) (z : ℍ) : ↑(g • z) = top g z / bottom g z := rfl
+@[simp] lemma re_smul (g : SL(2,ℤ)) (z : ℍ) : (g • z).re = (top g z / bottom g z).re := rfl
+@[simp] lemma im_smul (g : SL(2,ℤ)) (z : ℍ) : (g • z).im = (top g z / bottom g z).im := rfl
+@[simp] lemma smul_coe {g : SL(2,ℤ)} {z : ℍ} : (g : SL(2,ℝ)) • z = g • z := rfl
+
 
 lemma smul_neg_SL2_int (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
-by simpa [← special_linear_group.has_neg_cast g] using smul_neg_SL2 ↑g z
+sorry
+-- by simpa [← special_linear_group.has_neg_cast g] using smul_neg_SL2 ↑g z
 
 @[simp] lemma bottom_def_int {g : SL(2,ℤ)} {z : ℍ} : bottom g z = g 1 0 * z + g 1 1 :=
-begin
-  simp [bottom],
-  congr' 1,
-  { congr' 1,
-    norm_cast },
-  { norm_cast },
-end
+by simp [bottom]
+@[simp] lemma top_def_int {g : SL(2,ℤ)} {z : ℍ} : top g z = g 0 0 * z + g 0 1 := by simp [top]
 
-@[simp] lemma top_def_int {g : SL(2,ℤ)} {z : ℍ} : top g z = g.1 0 0 * z + g.1 0 1 :=
-begin
-  simp [top],
-  congr' 1,
-  { congr' 1,
-    norm_cast },
-  { norm_cast },
-end
-
-lemma matrix.special_linear_group.im_smul_int (g : SL(2, ℤ)) (z : ℍ) :
+lemma im_smul_int (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (bottom g z)) :=
 by simpa using matrix.special_linear_group.im_smul g z
 
 lemma bottom_ne_zero_int (g : SL(2, ℤ)) (z : ℍ) : bottom g z ≠ 0 :=
 bottom_ne_zero g z
 
-@[simp] lemma smul_coe {g : SL(2,ℤ)} {z : ℍ} : (g : SL(2,ℝ)) • z = g • z := rfl
-
+end upper_half_plane
 
 /-! It is useful to develop basic theory for an object `coprime_ints`, consisting of two integers
 and a proof that they satisfy `is_coprime`. -/
 
-class coprime_ints :=
-(c' : ℤ)
-(d' : ℤ)
-(is_coprime' : is_coprime c' d')
+@[ext] structure coprime_ints :=
+(c : ℤ)
+(d : ℤ)
+(is_coprime : is_coprime c d)
 
 namespace coprime_ints
-
-def c (p : coprime_ints) : ℤ := p.c'
-def d (p : coprime_ints) : ℤ := p.d'
-
-lemma is_coprime (p : coprime_ints) : is_coprime p.c p.d  := p.is_coprime'
 
 instance : has_coe coprime_ints (ℤ × ℤ) := ⟨λ p, (p.c, p.d)⟩
 
@@ -88,19 +62,8 @@ instance : nonempty coprime_ints := ⟨⟨1, 1, is_coprime_one_left⟩⟩
 @[simp] lemma fst_coe (p : coprime_ints) : (p : ℤ × ℤ).1 = p.c := rfl
 @[simp] lemma snd_coe (p : coprime_ints) : (p : ℤ × ℤ).2 = p.d := rfl
 
-@[ext] lemma ext {p q : coprime_ints} (h : p.c = q.c) (h' : p.d = q.d) : p = q :=
-begin
-  tactic.unfreeze_local_instances,
-  cases p,
-  cases q,
-  cases h,
-  cases h',
-  refl,
-end
-
-@[ext] lemma ext_iff {p q : coprime_ints} : p = q ↔ p.c = q.c ∧ p.d = q.d :=
-⟨λ h, by { rw h; split; refl }, λ h, ext h.1 h.2⟩
-
+lemma coe_injective : function.injective (coe : coprime_ints → ℤ × ℤ) :=
+λ p q hpq, ext p q (by simpa using congr_arg prod.fst hpq) (by simpa using congr_arg prod.snd hpq)
 
 lemma ne_zero (p : coprime_ints) : p.c ≠ 0 ∨ p.d ≠ 0 :=
 begin
@@ -119,26 +82,17 @@ end
 
 end coprime_ints
 
-
-lemma bottom_row_coprime (g : SL(2, ℤ)) : is_coprime (g 1 0) (g 1 1) :=
-begin
-  rw is_coprime,
-  use [( - g 0 1), (g 0 0)],
-  calc _ = matrix.det g : _
-  ... = 1 : by rw g.det_coe_fun,
-  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
-  ring,
-end
-
-def bottom_row : SL(2, ℤ) → coprime_ints := λ g, ⟨g 1 0, g 1 1, bottom_row_coprime g⟩
-
-lemma bottom_row_c (g g' : SL(2,ℤ)) (h : bottom_row g = bottom_row g') : g 1 0 = g' 1 0 :=
-(coprime_ints.ext_iff.mp h).1
-
-lemma bottom_row_d (g g' : SL(2,ℤ)) (h : bottom_row g = bottom_row g') : g 1 1 = g' 1 1 :=
-(coprime_ints.ext_iff.mp h).2
-
---set_option trace.simplify.rewrite true
+@[simps] def bottom_row (g : SL(2, ℤ)) : coprime_ints :=
+{ c := g 1 0,
+  d := g 1 1,
+  is_coprime := begin
+    rw is_coprime,
+    use [( - g 0 1), (g 0 0)],
+    calc _ = matrix.det g : _
+    ... = 1 : by rw g.det_coe_fun,
+    simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+    ring,
+  end }
 
 lemma bottom_row_surj : function.surjective bottom_row :=
 begin
@@ -147,7 +101,6 @@ begin
   let A := ![![a, -b₀], ![cd.c, cd.d]],
   have det_A_1 : det A = 1,
   { convert gcd_eqn,
-
     simp [A, matrix.det_succ_row_zero, fin.sum_univ_succ,
       (by ring : a * cd.d + b₀ * cd.c = b₀ * cd.c + a * cd.d)] },
   use ⟨A, det_A_1⟩,
@@ -157,13 +110,7 @@ end
 
 lemma bottom_eq_of_bottom_row_eq {g h : SL(2,ℤ)} (z : ℍ) (bot_eq : bottom_row g = bottom_row h) :
   bottom g z = bottom h z :=
-begin
-  rw bottom,
-  congr' 2,
-  { norm_cast,
-    exact congr_arg  (coe : ℤ → ℝ) (bottom_row_c g h bot_eq) },
-  { exact congr_arg  (coe : ℤ → ℝ) (bottom_row_d g h bot_eq) }
-end
+by simp [← bottom_row_c, ← bottom_row_d, bot_eq]
 
 section finite_pairs
 
@@ -200,9 +147,8 @@ begin
   have h₂ : tendsto (λ p : ℤ × ℤ, ((p.1 : ℝ), (p.2 : ℝ))) cofinite (cocompact _),
   { convert int.tendsto_coe_cofinite.prod_map_coprod int.tendsto_coe_cofinite;
     simp [coprod_cocompact, coprod_cofinite] },
-  have h₃ : function.injective (coe : coprime_ints → ℤ × ℤ) :=
-    λ p q, (coprime_ints.ext_iff.mpr ∘ prod.mk.inj_iff.mp),
-  convert tendsto_at_top_norm_sq.comp (h₁.comp (h₂.comp h₃.tendsto_cofinite)),
+  convert tendsto_at_top_norm_sq.comp
+    (h₁.comp (h₂.comp coprime_ints.coe_injective.tendsto_cofinite)),
   ext,
   simp [f],
 end
@@ -211,7 +157,6 @@ end finite_pairs
 
 
 
-section
 /-! This is an attempt to do the maximin argument using more abstract existence theory. -/
 
 open filter
@@ -249,17 +194,12 @@ def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 def acbd (p : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 p.c • matrix.coord 0 0 + p.d • matrix.coord 0 1
 
-def useful_matrix (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) := ![![(cd.c:ℝ), cd.d],![cd.d,-cd.c]]
-
-/-- map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)` -/
-def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((fin 2 → ℝ) × (fin 2 → ℝ)) :=
-((useful_matrix cd).mul_vec_lin.comp (linear_map.proj 0 : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] _)).prod (linear_map.proj 1)
-  --((acbd cd).prod ((cd.d : ℝ) • matrix.coord 0 0 - (cd.c : ℝ) • matrix.coord 0 1)).prod (linear_map.proj 1)
-
-/-
-Need: acbd = entry of line_map
+/-- Map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)`.
 -/
-
+def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((fin 2 → ℝ) × (fin 2 → ℝ)) :=
+((matrix.mul_vec_lin ![![(cd.c:ℝ), cd.d], ![cd.d,-cd.c]]).comp
+  (linear_map.proj 0 : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] _)).prod
+  (linear_map.proj 1)
 
 lemma lin_indep_acbd (cd : coprime_ints) : (line_map cd).ker = ⊥ :=
 begin
@@ -269,10 +209,10 @@ begin
     exact cd.sum_sq_ne_zero },
   let F : matrix (fin 2) (fin 2) ℝ := ((cd.c)^2+(cd.d)^2:ℝ)⁻¹ • ![![cd.c, cd.d], ![cd.d, -cd.c]],
   let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := F.mul_vec_lin,
-  let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨ x , cd⟩, ![f₁ x, cd],
+  let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨x , cd⟩, ![f₁ x, cd],
   have : function.left_inverse f (line_map cd),
   { intros g,
-    simp [line_map, f, f₁, F, useful_matrix, vec_head, vec_tail],
+    simp [line_map, f, f₁, F, vec_head, vec_tail],
     ext i j,
     fin_cases i,
     { fin_cases j,
@@ -288,6 +228,7 @@ begin
   exact this.injective,
 end
 
+
 /-- Big filter theorem -/
 theorem big_thm (cd : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {cd}, acbd cd ↑g) cofinite (cocompact ℝ) :=
@@ -300,7 +241,8 @@ begin
     { exact continuous_id },
     { simpa using continuous_const } },
   convert filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
-  let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
+  let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
+    λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
   have hf₂ := (linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd)).tendsto_cocompact,
@@ -312,24 +254,28 @@ begin
   split,
   { ext i,
     fin_cases i,
-    { simp [acbd, useful_matrix, matrix.coord, vec_head, vec_tail], },
-    { simp [acbd, useful_matrix, matrix.coord, vec_head, vec_tail],
-      rw ← hg,
-      symmetry,
+    { simp only [add_left_inj, add_zero, eq_self_iff_true, fin.succ_zero_eq_one,
+        function.comp_app, function.eval_apply, gsmul_eq_mul, int.cast_eq_zero, int.cast_inj,
+        linear_map.add_apply, linear_map.coe_comp, linear_map.coe_proj, linear_map.smul_apply,
+        matrix.cons_dot_product, matrix.cons_mul_vec, matrix.cons_val_zero,
+        matrix.dot_product_empty, matrix.empty_mul_vec, matrix.map_apply, mul_eq_mul_left_iff,
+        neg_mul_eq_neg_mul_symm, true_or, acbd, matrix.coord, matrix.vec_head,
+        matrix.vec_tail] },
+    { simp only [← hg, vec_head, vec_tail, add_zero, function.comp_app, gsmul_eq_mul,
+        linear_map.add_apply, linear_map.smul_apply, matrix.cons_dot_product, matrix.cons_mul_vec,
+        matrix.cons_val_fin_one, matrix.cons_val_one, matrix.dot_product_empty,
+        matrix.empty_mul_vec, matrix.map_apply, acbd],
       norm_cast,
-      convert g.det_coe_matrix using 1,
-      simp only [add_left_inj, eq_self_iff_true, fin.coe_succ, fin.coe_zero, fin.default_eq_zero, fin.succ_above_zero, fin.succ_succ_above_zero, fin.succ_zero_eq_one, fin.sum_univ_succ, finset.sum_neg_distrib, finset.sum_singleton, matrix.cons_val', matrix.cons_val_fin_one, matrix.cons_val_one, matrix.cons_val_succ, matrix.cons_val_zero, matrix.det_fin_zero, matrix.det_succ_row_zero, matrix.head_cons, matrix.minor_apply, matrix.minor_empty, mul_eq_mul_left_iff, mul_neg_eq_neg_mul_symm, mul_one, neg_mul_eq_neg_mul_symm, neg_neg, one_mul, pow_one, pow_zero, true_or, univ_unique, zero_add],
-      change g 1 1 * _ + -(g 1 0 * _) = _,
+      convert g.det_coe_matrix.symm using 1,
+      simp only [fin.coe_succ, fin.coe_zero, fin.default_eq_zero, fin.succ_succ_above_zero,
+        fin.succ_zero_eq_one, fin.sum_univ_succ, fin.zero_succ_above, finset.sum_singleton,
+        matrix.det_fin_zero, matrix.det_succ_row_zero, matrix.minor_apply, matrix.minor_empty,
+        matrix.special_linear_group.coe_matrix_apply, mul_one, ne.def, neg_mul_eq_neg_mul_symm,
+        one_mul, pow_one, pow_zero, univ_unique, zero_add],
       ring } },
   { rw ← hg,
     ext i,
     fin_cases i; refl }
-end
-
-lemma junk (x y:ℝ)  (h: 0≤ x) : y≤ x+y :=
-begin
-exact le_add_of_nonneg_left h,
-
 end
 
 lemma something2 (p : coprime_ints) (z : ℍ) :
@@ -362,13 +308,14 @@ begin
     ext,
     ring,
     sorry, -- COME ON! :(
+    sorry
   },
   intro g,
-  field_simp [nonZ1,nonZ2],
-  simp [acbd, smul_aux, smul_aux'],
-  change ((top _ _) / (bottom _ _) * _) = _,
-  field_simp [bottom_ne_zero],
-  simp [top, bottom, matrix.coord],
+  field_simp [nonZ1,nonZ2, bottom_ne_zero, -upper_half_plane.bottom_def_int],
+  -- simp [acbd, smul_aux, smul_aux'],
+  -- change ((top _ _) / (bottom _ _) * _) = _,
+  simp [acbd, matrix.coord],
+  ring,
   -- Heather homework :)
   sorry,
 end
@@ -431,41 +378,19 @@ begin
     exact hg ⟨g1, this⟩ },
 end
 
-
-lemma exists_g_with_min_bottom (z : ℍ) :
-  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
+lemma exists_g_with_max_Im (z : ℍ) :
+  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (g' • z).im ≤ (g • z).im :=
 begin
   obtain ⟨p, hp⟩ := (finite_pairs z).exists_forall_le,
   obtain ⟨g, hg⟩ := bottom_row_surj p,
   use g,
   intros g',
-  convert hp (bottom_row g'),
-  { simp [bottom_row] at hg,
-    simp [bottom, ← hg],
-
-    sorry, -- HEATHER HELP
-  },
-  simp [bottom_row, bottom], -- HEATHER HELP
-  sorry,-- classic explicit-matrix-in-SL casting problem
-end
-
-lemma exists_g_with_max_Im (z : ℍ) :
-  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (g' • z).im ≤ (g • z).im :=
-begin
-  obtain ⟨g, hg⟩ := exists_g_with_min_bottom z,
-  use g,
-  intros g',
-  rw [matrix.special_linear_group.im_smul_int, matrix.special_linear_group.im_smul_int,
-    div_le_div_left],
-  { exact hg g' },
+  rw [upper_half_plane.im_smul_int, upper_half_plane.im_smul_int, div_le_div_left],
+  { simpa [← hg] using hp (bottom_row g') },
   { exact z.im_pos },
   { exact normsq_bottom_pos g' z },
   { exact normsq_bottom_pos g z },
 end
-
-
-
--- T and S
 
 def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property :=
 by simp [matrix.det_succ_row_zero, fin.sum_univ_succ] }
@@ -498,7 +423,7 @@ begin
     apply (lt_div_iff z.norm_sq_pos).mpr,
     nlinarith },
   convert this,
-  rw matrix.special_linear_group.im_smul_int,
+  simp only [upper_half_plane.im_smul_int],
   field_simp [normsq_bottom_ne_zero, norm_sq_nonzero, S, bottom, map_cons, comp_cons,
     cons_apply_one, cons_apply_zero],
 end
@@ -513,7 +438,7 @@ begin
   -- `g` has same max im property as `g₀`
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   { have hg'' : (g • z).im = (g₀ • z).im,
-    { rw [matrix.special_linear_group.im_smul_int, matrix.special_linear_group.im_smul_int,
+    { rw [upper_half_plane.im_smul_int, upper_half_plane.im_smul_int,
         bottom_eq_of_bottom_row_eq _ hg] },
     simpa only [hg''] using hg₀ },
   split,
@@ -527,42 +452,47 @@ begin
     split,
     { contrapose! hg',
       refine ⟨T * g, _, _⟩,
-      { -- `bottom_row (T • g) = bottom_row T`.  Prove by a big (slow) `simp`
-        rw bottom_row,
-        simp only [T, vec_head, vec_tail, special_linear_group.mul_apply, mul_apply',
+      { -- `bottom_row (T * g) = bottom_row g`.  Prove by a big (slow) `simp`
+        simp only [bottom_row, T, vec_head, vec_tail, special_linear_group.mul_apply, mul_apply',
         cons_apply_one, cons_val_fin_one, cons_dot_product, dot_product_empty, function.comp_app,
-        fin.succ_zero_eq_one, zero_mul, one_mul, add_zero, zero_add], },
+        fin.succ_zero_eq_one, zero_mul, one_mul, add_zero, zero_add, eq_self_iff_true, and_self] },
       rw mul_action.mul_smul,
       change (g • z).re < _ at hg',
       have : |(g • z).re + 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
       convert this,
       -- `(T • g • z).re = (g • z).re + 1`.  Prove by a big (slow) `simp`
-      simp only [T, smul_def_int, smul_aux, smul_aux', top, bottom, subtype.coe_mk,
-        int.coe_cast_ring_hom, int.cast_one, int.cast_zero, complex.of_real_one,
-        complex.of_real_zero, has_coe_SL_apply, cons_apply_zero, cons_apply_one, map_cons,
-        comp_cons, cons_val_zero, cons_val_one, head_cons, one_mul, cons_val_fin_one, zero_mul,
-        zero_add, one_mul, div_one],
-      refl },
+      simp only [T, top, bottom, add_left_inj, comp_cons, complex.add_re, complex.of_real_int_cast,
+        complex.of_real_one,  complex.of_real_zero, complex.one_re, cons_apply_one,
+        cons_apply_zero, cons_val_fin_one, cons_val_one, cons_val_zero, div_one, eq_self_iff_true,
+        head_cons, int.cast_one, int.cast_zero, int.coe_cast_ring_hom, map_cons, matrix.cons_val',
+        matrix.map_apply, matrix.special_linear_group.coe_fun_coe,
+        matrix.special_linear_group.coe_matrix_apply, one_mul, subtype.coe_mk,
+        upper_half_plane.bottom_def_int, upper_half_plane.coe_smul, upper_half_plane.re_smul,
+        upper_half_plane.top_def_int, zero_add, zero_mul], },
     { contrapose! hg',
       refine ⟨T' * g, _, _⟩,
-      { -- `bottom_row (T' • g) = bottom_row T'`.  Prove by a big (slow) `simp`
-        rw bottom_row,
-        simp only [T', vec_head, vec_tail, special_linear_group.mul_apply, mul_apply',
+      { -- `bottom_row (T' * g) = bottom_row g`.  Prove by a big (slow) `simp`
+        -- rw bottom_row,
+        simp only [bottom_row, T', vec_head, vec_tail, special_linear_group.mul_apply, mul_apply',
         cons_apply_one, cons_val_fin_one, cons_dot_product, dot_product_empty, function.comp_app,
-        fin.succ_zero_eq_one, zero_mul, one_mul, add_zero, zero_add], },
+        fin.succ_zero_eq_one, zero_mul, one_mul, add_zero, zero_add, eq_self_iff_true, and_self] },
       rw mul_action.mul_smul,
       change _ < (g • z).re at hg',
       have : |(g • z).re - 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,
       convert this,
       -- `(T' • g • z).re = (g • z).re - 1`.  Prove by a big (slow) `simp`
-      simp only [T', smul_def_int, smul_aux, smul_aux', top, bottom, subtype.coe_mk,
-        int.coe_cast_ring_hom, int.cast_one, int.cast_zero, int.cast_neg, complex.of_real_one,
-        complex.of_real_zero, complex.of_real_neg, has_coe_SL_apply, cons_apply_zero,
-        cons_apply_one, map_cons, comp_cons, cons_val_zero, cons_val_one, head_cons, one_mul,
-        cons_val_fin_one, zero_mul, zero_add, div_one],
-      refl } },
+      simp only [T', top, bottom, add_left_inj, comp_cons, complex.add_re,
+        complex.of_real_int_cast, complex.of_real_neg, complex.of_real_one, complex.of_real_zero,
+        complex.neg_re, complex.one_re, cons_apply_one, cons_apply_zero, cons_val_fin_one,
+        cons_val_one, cons_val_zero, div_one, eq_self_iff_true, head_cons, int.cast_neg,
+        int.cast_one, int.cast_zero, int.coe_cast_ring_hom, map_cons, matrix.cons_val',
+        matrix.map_apply, matrix.special_linear_group.coe_fun_coe,
+        matrix.special_linear_group.coe_matrix_apply, nat.cast_one, nat.cast_zero, one_mul,
+        subtype.coe_mk, upper_half_plane.bottom_def_int, upper_half_plane.coe_smul,
+        upper_half_plane.re_smul,  upper_half_plane.top_def_int, zero_add, zero_mul,
+        sub_eq_add_neg] } },
 end
 
 lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=

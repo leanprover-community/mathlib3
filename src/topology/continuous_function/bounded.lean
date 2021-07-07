@@ -24,7 +24,8 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
 structure bounded_continuous_function
-  (α : Type u) (β : Type v) [topological_space α] [metric_space β] extends continuous_map α β :
+  (α : Type u) (β : Type v) [topological_space α] [pseudo_metric_space β]
+    extends continuous_map α β :
   Type (max u v) :=
 (bounded' : ∃C, ∀x y:α, dist (to_fun x) (to_fun y) ≤ C)
 
@@ -32,7 +33,7 @@ localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_conti
 
 namespace bounded_continuous_function
 section basics
-variables [topological_space α] [metric_space β] [metric_space γ]
+variables [topological_space α] [pseudo_metric_space β] [pseudo_metric_space γ]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, λ f, f.to_fun⟩
@@ -67,13 +68,12 @@ rfl
 
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
-def mk_of_discrete [discrete_topology α] (f : α → β)
-  (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
+def mk_of_discrete [discrete_topology α] (f : α → β) (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) :
+  α →ᵇ β :=
 ⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
 
-@[simp] lemma mk_of_discrete_apply
-  [discrete_topology α] (f : α → β) (C) (h) (a : α) :
-  mk_of_discrete f C h a = f a :=
+@[simp] lemma mk_of_discrete_apply [discrete_topology α] (f : α → β) (C) (h) (a : α) :
+  @mk_of_discrete _ β _ _ _ f C h a = f a :=  -- why is the explicit `β` necessary here?
 rfl
 
 section
@@ -161,8 +161,17 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 lemma dist_zero_of_empty (e : ¬ nonempty α) : dist f g = 0 :=
 le_antisymm ((dist_le (le_refl _)).2 $ λ x, e.elim ⟨x⟩) dist_nonneg'
 
+/-- The type of bounded continuous functions, with the uniform distance, is a
+pseudo-metric space. -/
+instance : pseudo_metric_space (α →ᵇ β) :=
+{ dist_self := λ f, le_antisymm ((dist_le (le_refl _)).2 $ λ x, by simp) dist_nonneg',
+  dist_comm := λ f g, by simp [dist_eq, dist_comm],
+  dist_triangle := λ f g h,
+    (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
+      le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
+
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
-instance : metric_space (α →ᵇ β) :=
+instance {β' : Type*} [metric_space β'] : metric_space (α →ᵇ β') :=
 { dist_self := λ f, le_antisymm ((dist_le (le_refl _)).2 $ λ x, by simp) dist_nonneg',
   eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
     eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
@@ -271,7 +280,7 @@ def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →�
 end basics
 
 section arzela_ascoli
-variables [topological_space α] [compact_space α] [metric_space β]
+variables [topological_space α] [compact_space α] [pseudo_metric_space β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 /- Arzela-Ascoli theorem asserts that, on a compact space, a set of functions sharing
@@ -369,7 +378,7 @@ end
 
 /-- Third (main) version, with pointwise equicontinuity and range in a compact subset, but
 without closedness. The closure is then compact -/
-theorem arzela_ascoli
+theorem arzela_ascoli {β : Type*} [metric_space β]
   (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
@@ -426,7 +435,7 @@ section normed_group
 continuous functions from α to β inherits a normed group structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [topological_space α] [normed_group β]
+variables [topological_space α] [semi_normed_group β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
 instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
@@ -496,12 +505,12 @@ le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 
 /-- Constructing a bounded continuous function from a uniformly bounded continuous
 function taking values in a normed group. -/
-def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
+def of_normed_group {α : Type u} {β : Type v} [topological_space α] [semi_normed_group β]
   (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
 ⟨⟨λn, f n, Hf⟩, ⟨_, dist_le_two_norm' H⟩⟩
 
 @[simp] lemma coe_of_normed_group
-  {α : Type u} {β : Type v} [topological_space α] [normed_group β]
+  {α : Type u} {β : Type v} [topological_space α] [semi_normed_group β]
   (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
   (of_normed_group f Hf C H : α → β) = f := rfl
 
@@ -512,12 +521,12 @@ lemma norm_of_normed_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC
 /-- Constructing a bounded continuous function from a uniformly bounded
 function on a discrete space, taking values in a normed group -/
 def of_normed_group_discrete {α : Type u} {β : Type v}
-  [topological_space α] [discrete_topology α] [normed_group β]
+  [topological_space α] [discrete_topology α] [semi_normed_group β]
   (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) : α →ᵇ β :=
 of_normed_group f continuous_of_discrete_topology C H
 
 @[simp] lemma coe_of_normed_group_discrete
-  {α : Type u} {β : Type v} [topological_space α] [discrete_topology α] [normed_group β]
+  {α : Type u} {β : Type v} [topological_space α] [discrete_topology α] [semi_normed_group β]
   (f : α → β) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
   (of_normed_group_discrete f C H : α → β) = f := rfl
 
@@ -575,7 +584,10 @@ lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α
   (∑ i in s, f i) a = (∑ i in s, f i a) :=
 by simp
 
-instance : normed_group (α →ᵇ β) :=
+instance : semi_normed_group (α →ᵇ β) :=
+{ dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
+
+instance {β : Type*} [normed_group β] : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
 
 lemma abs_diff_coe_le_dist : ∥f x - g x∥ ≤ dist f g :=
@@ -606,11 +618,11 @@ continuous functions from `α` to `β` inherits a normed space structure, by usi
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
 variables {𝕜 : Type*}
-variables [topological_space α] [normed_group β]
+variables [topological_space α] [semi_normed_group β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 section normed_field
-variables [normed_field 𝕜] [normed_space 𝕜 β]
+variables [normed_field 𝕜] [semi_normed_space 𝕜 β]
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
 ⟨λ c f, of_normed_group (c • f) (f.continuous.const_smul c) (∥c∥ * ∥f∥) $ λ x,
@@ -628,8 +640,11 @@ module.of_core $
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
   one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
-instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
+instance : semi_normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
   (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
+
+instance {β : Type*} [normed_group β] [normed_space 𝕜 β] : normed_space 𝕜 (α →ᵇ β) :=
+⟨λ c f, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/
@@ -652,8 +667,8 @@ def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
 
 end normed_field
 
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
-variables [normed_group γ] [normed_space 𝕜 γ]
+variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 β]
+variables [semi_normed_group γ] [semi_normed_space 𝕜 γ]
 
 variables (α)
 /--

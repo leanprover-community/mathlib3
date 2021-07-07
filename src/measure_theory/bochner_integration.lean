@@ -188,10 +188,10 @@ and prove basic property of this integral.
 open finset
 
 variables [normed_group E] [measurable_space E]
-variables [normed_group F] [normed_space ℝ F]
+variables [normed_group F] [semi_normed_space ℝ F]
 variables {μ : measure α}
 
-/-- Bochner integral of simple functions whose codomain is a real `normed_space`. -/
+/-- Bochner integral of simple functions whose codomain is a real `semi_normed_space`. -/
 def integral (μ : measure α) (f : α →ₛ F) : F :=
 ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • x
 
@@ -237,7 +237,7 @@ begin
 end
 
 /-- `simple_func.integral` and `simple_func.lintegral` agree when the integrand has type
-    `α →ₛ ℝ≥0∞`. But since `ℝ≥0∞` is not a `normed_space`, we need some form of coercion.
+    `α →ₛ ℝ≥0∞`. But since `ℝ≥0∞` is not a `semi_normed_space`, we need some form of coercion.
     See `integral_eq_lintegral` for a simpler version. -/
 lemma integral_eq_lintegral' {f : α →ₛ E} {g : E → ℝ≥0∞} (hf : integrable f μ) (hg0 : g 0 = 0)
   (hgt : ∀b, g b < ∞):
@@ -255,7 +255,7 @@ begin
   { simp [hg0] }
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E]
+variables [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space ℝ E]
   [smul_comm_class ℝ 𝕜 E]
 
 lemma integral_congr {f g : α →ₛ E} (hf : integrable f μ) (h : f =ᵐ[μ] g):
@@ -277,7 +277,7 @@ begin
 end
 
 /-- `simple_func.bintegral` and `simple_func.integral` agree when the integrand has type
-    `α →ₛ ℝ≥0∞`. But since `ℝ≥0∞` is not a `normed_space`, we need some form of coercion. -/
+    `α →ₛ ℝ≥0∞`. But since `ℝ≥0∞` is not a `semi_normed_space`, we need some form of coercion. -/
 lemma integral_eq_lintegral {f : α →ₛ ℝ} (hf : integrable f μ) (h_pos : 0 ≤ᵐ[μ] f) :
   f.integral μ = ennreal.to_real (∫⁻ a, ennreal.of_real (f a) ∂μ) :=
 begin
@@ -418,7 +418,7 @@ section simple_func_integral
 Define the Bochner integral on `α →₁ₛ[μ] E` by extension from the simple functions `α →₁ₛ[μ] E`,
 and prove basic properties of this integral. -/
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
+variables [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
 
 local attribute [instance] simple_func.normed_group simple_func.normed_space
 

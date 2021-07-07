@@ -230,6 +230,7 @@ begin
   refine ⟨hF'_int, _⟩,
   simp_rw has_deriv_at_iff_has_fderiv_at at h_diff ⊢,
   rwa continuous_linear_map.integral_comp_comm _ hF'_int at key,
+  all_goals { apply_instance, },
 end
 
 /-- Derivative under integral of `x ↦ ∫ F x a` at a given point `x₀ : ℝ`, assuming

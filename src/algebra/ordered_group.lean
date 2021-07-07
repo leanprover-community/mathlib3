@@ -527,16 +527,6 @@ def function.injective.ordered_comm_group [ordered_comm_group α] {β : Type*}
   ..hf.ordered_comm_monoid f one mul,
   ..hf.comm_group f one mul inv div }
 
-/-- `equiv.mul_left` as an order_iso. -/
-@[simps {simp_rhs := tt}]
-def order_iso.mul_left [ordered_comm_group α] (a : α) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_iff_left a, ..equiv.mul_left a }
-
-/-- `equiv.mul_right` as an order_iso. -/
-@[simps {simp_rhs := tt}]
-def order_iso.mul_right [ordered_comm_group α] (a : α) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_iff_right a, ..equiv.mul_right a }
-
 /-  Most of the lemmas that are primed in this section appear in ordered_field. -/
 /-  I (DT) did not try to minimise the assumptions. -/
 section group
@@ -575,6 +565,11 @@ alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
+/-- `equiv.mul_right` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_right (a : α) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_iff_right a, ..equiv.mul_right a }
+
 end right
 
 section left
@@ -588,6 +583,11 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, ← mul_le_mul_iff_left a⁻¹, inv_mul_c
 @[to_additive sub_le_sub_left]
 lemma div_le_div_left' (h : a ≤ b) (c : α) : c / b ≤ c / a :=
 (div_le_div_iff_left c).2 h
+
+/-- `equiv.mul_left` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_left (a : α) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_iff_left a, ..equiv.mul_left a }
 
 end left
 

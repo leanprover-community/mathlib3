@@ -67,24 +67,25 @@ coerced to the total space.
 Note that the `nolint has_inhabited_instance` here has a true matematical meaning: the universal
 cover of a circle is a map that does not admit continuous sections. -/
 @[nolint has_inhabited_instance]
-structure continuous_pi_section (E : B → Type*) [topological_space (total_space E)] :=
-(to_fun : Π x, E x)
+structure continuous_bundle_section (E : B → Type*) [topological_space (total_space E)] :=
+(to_fun : bundle_section E)
 (continuous_to_fun : continuous to_fun)
 
-namespace continuous_pi_section
+namespace continuous_bundle_section
 
-variables (s t : continuous_pi_section E)
+variables (s t : continuous_bundle_section E)
 
-instance : has_coe_to_fun (continuous_pi_section E) := ⟨λ s, Π x, E x, continuous_pi_section.to_fun⟩
+instance : has_coe_to_fun (continuous_bundle_section E) :=
+⟨λ s, Π x, E x, continuous_bundle_section.to_fun⟩
 
 /-- Natural identification as a `continuous_section`. -/
-def to_continuous_section (s : continuous_pi_section E) : continuous_section (proj E) :=
-{ ..pi_right_inv s, ..s }
+def to_continuous_section (s : continuous_bundle_section E) : continuous_section (proj E) :=
+{ ..bundle_section_right_inv s, ..s }
 
-instance : has_coe (continuous_pi_section E) (continuous_section (proj E)) :=
+instance : has_coe (continuous_bundle_section E) (continuous_section (proj E)) :=
 ⟨to_continuous_section⟩
 
-lemma coe_injective : @function.injective (continuous_pi_section E) (Π x, E x) coe_fn :=
+lemma coe_injective : @function.injective (continuous_bundle_section E) (Π x, E x) coe_fn :=
 λ X Y h, by { cases X, cases Y, congr' }
 
 @[ext] theorem ext (h : ∀ x, s x = t x) : s = t := coe_injective $ funext h
@@ -93,6 +94,6 @@ lemma coe_injective : @function.injective (continuous_pi_section E) (Π x, E x) 
 
 @[continuity] lemma continuous : continuous (s : B → total_space E) := s.continuous_to_fun
 
-end continuous_pi_section
+end continuous_bundle_section
 
 end bundle

@@ -206,13 +206,13 @@ def trivialization.continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   e.continuous_linear_equiv_at (proj E x) (e.mem_source.1 hx) x.2 = (e x).2 :=
 by { cases x, refl }
 
-@[simp] lemma continuous_linear_equiv_apply {g : Π x, E x} {b : B}
+@[simp] lemma continuous_linear_equiv_apply {g : bundle_section E} {b : B}
   {e : trivialization R F E} (hb : b ∈ e.base_set) :
   e.continuous_linear_equiv_at b (right_inv.mem_base_set_right_inv_fst ↑g hb) (g b) =
   (e ↑(g b)).snd :=
 by { simp only [trivialization.continuous_linear_equiv_at_apply, sigma.eta], refl, }
 
-lemma trivialization.snd_map_add {g h : Π x, E x} {e : trivialization R F E} (b : B)
+lemma trivialization.snd_map_add {g h : bundle_section E} {e : trivialization R F E} (b : B)
   (hb : b ∈ e.base_set) : (e ((g + h) b)).snd = (e (g b)).snd + (e (h b)).snd :=
 begin
   rw [(continuous_linear_equiv_apply hb).symm, pi.add_apply, continuous_linear_equiv.map_add],
@@ -220,10 +220,10 @@ begin
 end
 
 lemma trivialization.snd_map_zero {e : trivialization R F E} (b : B) (hb : b ∈ e.base_set) :
-  (e ((0 : Π x, E x) b)).snd = 0 :=
+  (e ((0 : bundle_section E) b)).snd = 0 :=
 by rw [(continuous_linear_equiv_apply hb).symm, pi.zero_apply, continuous_linear_equiv.map_zero]
 
-lemma trivialization.snd_map_smul {g : Π x, E x} {e : trivialization R F E} {r : R}
+lemma trivialization.snd_map_smul {g : bundle_section E} {e : trivialization R F E} {r : R}
   (b : B) (hb : b ∈ e.base_set) :
   (e ((r • g) b)).snd = r • (e (g b)).snd :=
 begin
@@ -418,9 +418,9 @@ section sections
 /-- Type synonim to allow to declare instances that depend on implicit parameters containing `R`
 and `F`. -/
 @[reducible, nolint unused_arguments]
-def topological_vector_bundle.bundle_section (R : Type*) {B : Type*} (F : Type*)
+def topological_vector_bundle.vector_bundle_section (R : Type*) {B : Type*} (F : Type*)
   (E : B → Type*) [topological_space F] [topological_space (total_space E)] [topological_space B] :=
-continuous_pi_section E
+continuous_bundle_section E
 
 open topological_vector_bundle
 
@@ -432,7 +432,7 @@ f.mem_base_set_image_mem_source (mem_base_set_trivialization_at R F E b)
 
 variables (R F E)
 
-lemma pi.continuous_at_iff_continuous_within_at_triv_at (f : Π x, E x) (b : B) :
+lemma bundle_section.continuous_at_iff_continuous_within_at_triv_at (f : bundle_section E) (b : B) :
   continuous_at f b ↔ continuous_within_at (λ x, ((trivialization_at R F E b) (f x)).snd)
   (trivialization_at R F E b).base_set b :=
 (f : right_inv (proj E)).continuous_at_iff_continuous_within_at (trivialization_at R F E b)
@@ -444,64 +444,67 @@ section
 
 include R F
 
-lemma continuous.add_section [has_continuous_add F] {g h : Π x, E x} (hg : continuous g)
-  (hh : continuous h) : continuous ((g + h : Π x, E x) : B → total_space E) :=
-continuous_iff_continuous_at.mpr (λ b, (pi.continuous_at_iff_continuous_within_at_triv_at R F E
-  (g + h) b).mpr (continuous_within_at.congr (continuous_add.continuous_within_at.comp_univ
-  (((pi.continuous_at_iff_continuous_within_at_triv_at R F E g b).mp hg.continuous_at).prod
-  ((pi.continuous_at_iff_continuous_within_at_triv_at R F E h b).mp hh.continuous_at)))
+lemma continuous.add_section [has_continuous_add F] {g h : bundle_section E} (hg : continuous g)
+  (hh : continuous h) : continuous ((g + h : bundle_section E) : B → total_space E) :=
+continuous_iff_continuous_at.mpr (λ b, ((g + h).continuous_at_iff_continuous_within_at_triv_at R F E
+  b).mpr (continuous_within_at.congr (continuous_add.continuous_within_at.comp_univ
+  (((g.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hg.continuous_at).prod
+  ((h.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hh.continuous_at)))
   trivialization.snd_map_add (trivialization.snd_map_add b
   (mem_base_set_trivialization_at R F E b))))
 
-lemma continuous.zero_section : continuous ((0 : Π x, E x) : B → total_space E) :=
-continuous_iff_continuous_at.mpr (λ b, (pi.continuous_at_iff_continuous_within_at_triv_at R F E
-  (0 : Π x, E x) b).mpr (continuous_within_at_const.congr trivialization.snd_map_zero
-  (trivialization.snd_map_zero b (mem_base_set_trivialization_at R F E b))))
+lemma continuous.zero_section : continuous ((0 : bundle_section E) : B → total_space E) :=
+continuous_iff_continuous_at.mpr (λ b,
+  ((0 : bundle_section E).continuous_at_iff_continuous_within_at_triv_at R F E b).mpr
+  (continuous_within_at_const.congr trivialization.snd_map_zero (trivialization.snd_map_zero b
+  (mem_base_set_trivialization_at R F E b))))
 
 variables {R} [topological_space R] [has_continuous_smul R F]
 
-lemma continuous.smul_section {g : Π x, E x} (hg : continuous g) (r : R) :
-  continuous ((r • g : Π x, E x) : B → total_space E) :=
-continuous_iff_continuous_at.2 (λ b, (pi.continuous_at_iff_continuous_within_at_triv_at R F E
-  (r • g) b).mpr ((((pi.continuous_at_iff_continuous_within_at_triv_at R F E g b).mp
+lemma continuous.smul_section {g : bundle_section E} (hg : continuous g) (r : R) :
+  continuous ((r • g : bundle_section E) : B → total_space E) :=
+continuous_iff_continuous_at.2 (λ b, ((r • g).continuous_at_iff_continuous_within_at_triv_at R F E
+  b).mpr ((((g.continuous_at_iff_continuous_within_at_triv_at R F E b).mp
   hg.continuous_at).const_smul r).congr trivialization.snd_map_smul (trivialization.snd_map_smul b
   (mem_base_set_trivialization_at R F E b))))
 
 end
 
-instance [has_continuous_add F] : has_add (bundle_section R F E) :=
+instance [has_continuous_add F] : has_add (vector_bundle_section R F E) :=
 ⟨λ g h, { to_fun := g + h, continuous_to_fun := g.continuous.add_section R F h.continuous }⟩
 
-instance : has_zero (bundle_section R F E) :=
+instance : has_zero (vector_bundle_section R F E) :=
 ⟨ { to_fun := 0, continuous_to_fun := continuous.zero_section R F }⟩
 
-instance : inhabited (bundle_section R F E) := ⟨0⟩
+instance : inhabited (vector_bundle_section R F E) := ⟨0⟩
 
-variables {R F}
+variables (E) {R F}
 
-@[simp] lemma coe_add [has_continuous_add F] (f g : bundle_section R F E) : ⇑(f + g) = f + g := rfl
-@[simp] lemma coe_zero : ⇑(0 : bundle_section R F E) = 0 := rfl
+@[simp] lemma coe_add [has_continuous_add F] (f g : vector_bundle_section R F E) :
+  ⇑(f + g) = f + g := rfl
 
-variables (R F)
+@[simp] lemma coe_zero : ⇑(0 : vector_bundle_section R F E) = 0 := rfl
 
-instance [has_continuous_add F] : add_comm_monoid (bundle_section R F E) :=
-continuous_pi_section.coe_injective.add_comm_monoid _ coe_zero coe_add
+variables {E} (R F)
+
+instance [has_continuous_add F] : add_comm_monoid (vector_bundle_section R F E) :=
+continuous_bundle_section.coe_injective.add_comm_monoid _ (coe_zero E) (coe_add E)
 
 variable (E)
 
 /-- The coercion to function is a monoid homomorphism. -/
 @[simps] def coe_fn_add_monoid_hom [has_continuous_add F] :
-  bundle_section R F E →+ Π x, E x := ⟨coe_fn, coe_zero, coe_add⟩
+  vector_bundle_section R F E →+ bundle_section E := ⟨coe_fn, coe_zero E, coe_add E⟩
 
 variables {R F E} [topological_space R] [has_continuous_smul R F]
 
-instance : has_scalar R (bundle_section R F E) :=
+instance : has_scalar R (vector_bundle_section R F E) :=
 ⟨λ r g, { to_fun := r • g, continuous_to_fun := g.continuous_to_fun.smul_section F r }⟩
 
-@[simp] lemma coe_smul (r : R) (f : bundle_section R F E) : ⇑(r • f) = r • f := rfl
+@[simp] lemma coe_smul (r : R) (f : vector_bundle_section R F E) : ⇑(r • f) = r • f := rfl
 
-instance [has_continuous_add F] : module R (bundle_section R F E) :=
-continuous_pi_section.coe_injective.module _ (coe_fn_add_monoid_hom R F E) coe_smul
+instance [has_continuous_add F] : module R (vector_bundle_section R F E) :=
+continuous_bundle_section.coe_injective.module _ (coe_fn_add_monoid_hom R F E) coe_smul
 
 end sections
 
@@ -514,15 +517,15 @@ open topological_vector_bundle
 variables {E R F} [ring R] [∀ x, add_comm_group (E x)] [∀ x, module R (E x)]
   [add_comm_group F] [module R F] [∀ x, topological_space (E x)] [topological_vector_bundle R F E]
 
-lemma trivialization.map_neg {g : Π x, E x}
+lemma trivialization.map_neg {g : bundle_section E}
   {e : trivialization R F E} (b : B) (hb : b ∈ e.base_set) :
-  (e ((- (g : Π x, E x)) b)).snd = - (e ((g : right_inv (proj E)) b)).snd :=
+  (e ((- (g : bundle_section E)) b)).snd = - (e ((g : right_inv (proj E)) b)).snd :=
 begin
   rw [(continuous_linear_equiv_apply hb).symm, pi.neg_apply, continuous_linear_equiv.map_neg],
   refl,
 end
 
-lemma trivialization.snd_map_sub {g h : Π x, E x} {e : trivialization R F E} (b : B)
+lemma trivialization.snd_map_sub {g h : bundle_section E} {e : trivialization R F E} (b : B)
   (hb : b ∈ e.base_set) : (e ((g - h) b)).snd = (e (g b)).snd - (e (h b)).snd :=
 begin
   rw [(continuous_linear_equiv_apply hb).symm, pi.sub_apply, continuous_linear_equiv.map_sub],
@@ -535,40 +538,40 @@ section
 
 include R F
 
-lemma continuous.neg_section {g : Π x, E x} (hg : continuous g) :
-  continuous ((- g : Π x, E x) : B → total_space E) :=
-continuous_iff_continuous_at.2 (λ b, (pi.continuous_at_iff_continuous_within_at_triv_at
-  R F E (- g) b).mpr ((((pi.continuous_at_iff_continuous_within_at_triv_at R F E g b).mp
+lemma continuous.neg_section {g : bundle_section E} (hg : continuous g) :
+  continuous ((- g : bundle_section E) : B → total_space E) :=
+continuous_iff_continuous_at.2 (λ b, ((- g).continuous_at_iff_continuous_within_at_triv_at
+  R F E b).mpr ((((g.continuous_at_iff_continuous_within_at_triv_at R F E b).mp
   hg.continuous_at).neg).congr trivialization.map_neg (trivialization.map_neg b
   (mem_base_set_trivialization_at R F E b))))
 
 end
 
-instance : has_neg (bundle_section R F E) :=
+instance : has_neg (vector_bundle_section R F E) :=
 ⟨λ g, { to_fun := - g, continuous_to_fun := g.continuous.neg_section R F }⟩
 
-lemma continuous.sub_section {g h : Π x, E x} (hg : continuous g)
-  (hh : continuous h) : continuous ((g - h : Π x, E x) : B → total_space E) :=
-continuous_iff_continuous_at.mpr (λ b, (pi.continuous_at_iff_continuous_within_at_triv_at R F E
-  (g - h) b).mpr (continuous_within_at.congr (continuous_sub.continuous_within_at.comp_univ
-  (((pi.continuous_at_iff_continuous_within_at_triv_at R F E g b).mp hg.continuous_at).prod
-  ((pi.continuous_at_iff_continuous_within_at_triv_at R F E h b).mp hh.continuous_at)))
+lemma continuous.sub_section {g h : bundle_section E} (hg : continuous g)
+  (hh : continuous h) : continuous ((g - h : bundle_section E) : B → total_space E) :=
+continuous_iff_continuous_at.mpr (λ b, ((g - h).continuous_at_iff_continuous_within_at_triv_at
+  R F E b).mpr (continuous_within_at.congr (continuous_sub.continuous_within_at.comp_univ
+  (((g.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hg.continuous_at).prod
+  ((h.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hh.continuous_at)))
   trivialization.snd_map_sub (trivialization.snd_map_sub b
   (mem_base_set_trivialization_at R F E b))))
 
-instance : has_sub (bundle_section R F E) :=
+instance : has_sub (vector_bundle_section R F E) :=
 ⟨λ g h, { to_fun := g - h, continuous_to_fun := g.continuous.sub_section R F h.continuous }⟩
 
-variables (f g : bundle_section R F E)
+variables {R F} (f g : vector_bundle_section R F E)
 
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 @[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 
-instance : add_comm_group (bundle_section R F E) :=
--- continuous_pi_section.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+instance : add_comm_group (vector_bundle_section R F E) :=
+-- continuous_bundle_section.coe_injective.add_comm_group _ (coe_zero E) (coe_add E) coe_neg coe_sub
 --  ↑    ↑    ↑    ↑    ↑    ↑    ↑    ↑    does not work... Why!?
 { add_left_neg :=  λ f, by { ext, simp only [coe_zero, add_left_neg, coe_neg, coe_add], },
-  ..topological_vector_bundle.bundle_section.has_neg R F,
-  ..bundle_section.add_comm_monoid R F, }
+  ..topological_vector_bundle.vector_bundle_section.has_neg R F,
+  ..vector_bundle_section.add_comm_monoid R F, }
 
 end group

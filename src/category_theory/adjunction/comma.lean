@@ -10,21 +10,6 @@ import category_theory.limits.creates
 import category_theory.limits.comma
 import category_theory.punit
 
-/-!
-# Adjoint functor theorem
-
-This file proves the (general) adjoint functor theorem, in the form:
-* If `G : D ⥤ C` preserves limits and `D` has limits, and satisfies the solution set condition,
-  then it has a left adjoint.
-
-We show that the converse holds, i.e. that if `G` has a left adjoint then it satisfies the solution
-set condition (`category_theory/adjunction/limits` already shows it preserves limits).
-
-We define the solution set condition for the functor `G : D ⥤ C` to mean, for every object `A : C`,
-there is a set-indexed family ${f_i : A ⟶ G (B_i)}$ such that any morphism `A ⟶ G X` factors
-through one of the `f_i`.
-
--/
 universes v u₁ u₂
 
 noncomputable theory
@@ -41,8 +26,12 @@ variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D] (G :
 section of_initials
 variables [∀ A, has_initial (structured_arrow A G)]
 
+/--
+Implementation: If each structured arrow category on `G` has an initial object, an equivalence
+which is helpful for constructing a left adjoint to `G`.
+-/
 @[simps]
-def initials_equivalence (A : C) (B : D) :
+def left_adjoint_of_structured_arrow_initials_aux (A : C) (B : D) :
   ((⊥_ (structured_arrow A G)).right ⟶ B) ≃ (A ⟶ G.obj B) :=
 { to_fun := λ g, (⊥_ (structured_arrow A G)).hom ≫ G.map g,
   inv_fun := λ f, comma_morphism.right (initial.to (structured_arrow.mk f)),
@@ -63,20 +52,36 @@ def initials_equivalence (A : C) (B : D) :
     apply (comma_morphism.w (initial.to B')).symm.trans (category.id_comp _),
   end }
 
+/--
+If each structured arrow category on `G` has an initial object, construct a left adjoint to `G`. It
+is shown that it is a left adjoint in `adjunction_of_structured_arrow_initials`.
+-/
 def left_adjoint_of_structured_arrow_initials : C ⥤ D :=
-adjunction.left_adjoint_of_equiv (initials_equivalence G) (λ _ _, by simp)
+adjunction.left_adjoint_of_equiv (left_adjoint_of_structured_arrow_initials_aux G) (λ _ _, by simp)
 
+/--
+If each structured arrow category on `G` has an initial object, we have a constructed left adjoint
+to `G`.
+-/
+def adjunction_of_structured_arrow_initials :
+  left_adjoint_of_structured_arrow_initials G ⊣ G :=
+adjunction.adjunction_of_equiv_left _ _
+
+/-- If each structured arrow category on `G` has an initial object, `G` is a right adjoint. -/
 def is_right_adjoint_of_structured_arrow_initials : is_right_adjoint G :=
-{ left := left_adjoint_of_structured_arrow_initials G,
-  adj := adjunction.adjunction_of_equiv_left _ _ }
+{ left := _, adj := adjunction_of_structured_arrow_initials G }
 
 end of_initials
 
 section of_terminals
 variables [∀ A, has_terminal (costructured_arrow G A)]
 
+/--
+Implementation: If each costructured arrow category on `G` has a terminal object, an equivalence
+which is helpful for constructing a right adjoint to `G`.
+-/
 @[simps]
-def terminals_equivalence (B : D) (A : C) :
+def right_adjoint_of_costructured_arrow_terminals_aux (B : D) (A : C) :
   (G.obj B ⟶ A) ≃ (B ⟶ (⊤_ (costructured_arrow G A)).left) :=
 { to_fun := λ g, comma_morphism.left (terminal.from (costructured_arrow.mk g)),
   inv_fun := λ g, G.map g ≫ (⊤_ (costructured_arrow G A)).hom,
@@ -93,10 +98,23 @@ def terminals_equivalence (B : D) (A : C) :
     refl
   end }
 
+/--
+If each costructured arrow category on `G` has a terminal object, construct a right adjoint to `G`.
+It is shown that it is a right adjoint in `adjunction_of_structured_arrow_initials`.
+-/
 def right_adjoint_of_costructured_arrow_terminals : C ⥤ D :=
-adjunction.right_adjoint_of_equiv (terminals_equivalence G)
+adjunction.right_adjoint_of_equiv (right_adjoint_of_costructured_arrow_terminals_aux G)
   (λ B₁ B₂ A f g, by { rw ←equiv.eq_symm_apply, simp })
 
+/--
+If each costructured arrow category on `G` has a terminal object, we have a constructed right
+adjoint to `G`.
+-/
+def adjunction_of_costructured_arrow_terminals :
+  G ⊣ right_adjoint_of_costructured_arrow_terminals G :=
+adjunction.adjunction_of_equiv_right _ _
+
+/-- If each costructured arrow category on `G` has an terminal object, `G` is a left adjoint. -/
 def is_right_adjoint_of_costructured_arrow_terminals : is_left_adjoint G :=
 { right := right_adjoint_of_costructured_arrow_terminals G,
   adj := adjunction.adjunction_of_equiv_right _ _ }
@@ -106,16 +124,30 @@ end of_terminals
 section
 variables {F : C ⥤ D}
 
+/-- Given a left adjoint to `G`, we can construct an initial object in each structured arrow
+category on `G`. -/
 def mk_initial (h : F ⊣ G) (A : C) :
   is_initial (structured_arrow.mk (h.unit.app A) : structured_arrow A G) :=
-{ desc := λ B, structured_arrow.hom_mk ((h.hom_equiv _ _).symm B.X.hom)
-                 (by { dsimp, rw ←h.hom_equiv_unit, simp }),
+{ desc := λ B, structured_arrow.hom_mk ((h.hom_equiv _ _).symm B.X.hom) (by tidy),
   uniq' := λ s m w,
   begin
     ext,
     dsimp,
     rw [equiv.eq_symm_apply, adjunction.hom_equiv_unit],
     apply structured_arrow.w m,
+  end }
+
+/-- Given a right adjoint to `F`, we can construct a terminal object in each costructured arrow
+category on `F`. -/
+def mk_terminal (h : F ⊣ G) (A : D) :
+  is_terminal (costructured_arrow.mk (h.counit.app A) : costructured_arrow F A) :=
+{ lift := λ B, costructured_arrow.hom_mk (h.hom_equiv _ _ B.X.hom) (by tidy),
+  uniq' := λ s m w,
+  begin
+    ext,
+    dsimp,
+    rw [h.eq_hom_equiv_apply, adjunction.hom_equiv_counit],
+    exact costructured_arrow.w m,
   end }
 
 end

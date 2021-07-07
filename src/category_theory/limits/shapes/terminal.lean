@@ -100,11 +100,13 @@ by haveI := t.split_mono_from f; apply_instance
 lemma is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
 by haveI := t.split_epi_to f; apply_instance
 
+/-- If `T` and `T'` are terminal, they are isomorphic. -/
 @[simps]
 def is_terminal.unique_up_to_iso {T T' : C} (hT : is_terminal T) (hT' : is_terminal T') : T ≅ T' :=
 { hom := hT'.from _,
   inv := hT.from _ }
 
+/-- If `I` and `I'` are initial, they are isomorphic. -/
 @[simps]
 def is_initial.unique_up_to_iso {I I' : C} (hI : is_initial I) (hI' : is_initial I') : I ≅ I' :=
 { hom := hI.to _,

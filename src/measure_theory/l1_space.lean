@@ -334,7 +334,7 @@ hf.mono $ eventually_of_forall $ λ x,
 end pos_part
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma has_finite_integral.smul (c : 𝕜) {f : α → β} : has_finite_integral f μ →
   has_finite_integral (c • f) μ :=
@@ -561,7 +561,7 @@ lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (
 end pos_part
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 β] [measurable_space 𝕜]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
 
 lemma integrable.smul [borel_space β] (c : 𝕜) {f : α → β}
@@ -678,7 +678,7 @@ lemma integrable.sub {f g : α →ₘ[μ] β} (hf : integrable f) (hg : integrab
 end
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 β] [measurable_space 𝕜]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
 
 lemma integrable.smul {c : 𝕜} {f : α →ₘ[μ] β} : integrable f → integrable (c • f) :=
@@ -803,7 +803,7 @@ by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
   edist (hf.to_L1 f) 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
 by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 β] [measurable_space 𝕜]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
 
 lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :

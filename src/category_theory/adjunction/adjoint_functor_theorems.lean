@@ -67,7 +67,7 @@ noncomputable def is_right_adjoint_of_preserves_limits_of_solution_set_condition
   [preserves_limits G] (hG : solution_set_condition G) :
   is_right_adjoint G :=
 begin
-  apply is_right_adjoint_of_initials _,
+  apply is_right_adjoint_of_structured_arrow_initials _,
   intro A,
   specialize hG A,
   choose ι B f g using hG,

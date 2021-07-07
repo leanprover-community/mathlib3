@@ -249,6 +249,32 @@ begin
   exact mul_le_mul' (hbA hxa) (hbB hxb),
 end
 
+open_locale big_operators
+
+/-- The n-ary version of `set.mem_mul`. -/
+@[to_additive /-" The n-ary version of `set.mem_add`. "-/]
+lemma mem_finset_prod {α ι : Type*} (t : finset ι) (f : ι → set α) [comm_monoid α] (a : α) :
+  a ∈ ∏ i in t, f i ↔ ∃ (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i), ∏ i in t, g i = a :=
+begin
+  classical,
+  induction t using finset.induction_on with i is hi ih generalizing a,
+  { simp_rw [finset.prod_empty, set.mem_one],
+    exact ⟨λ h, ⟨λ i, a, λ i, false.elim, h.symm⟩, λ ⟨f, _, hf⟩, hf.symm⟩ },
+  rw [finset.prod_insert hi, set.mem_mul],
+  simp_rw [finset.prod_insert hi],
+  simp_rw ih,
+  split,
+  { rintros ⟨x, y, hx, ⟨g, hg, rfl⟩, rfl⟩,
+    refine ⟨function.update g i x, λ j hj, _, _⟩,
+    obtain rfl | hj := finset.mem_insert.mp hj,
+    { rw function.update_same, exact hx },
+    { rw update_noteq (ne_of_mem_of_not_mem hj hi), exact hg j hj, },
+    rw [finset.prod_update_of_not_mem hi, function.update_same], },
+  { rintros ⟨g, hg, rfl⟩,
+    exact ⟨g i, is.prod g, hg _ (is.mem_insert_self _),
+      ⟨g, λ i hi, hg i (finset.mem_insert_of_mem hi), rfl⟩, rfl⟩ },
+end
+
 /-! ### Properties about inversion -/
 @[to_additive set.has_neg]
 instance [has_inv α] : has_inv (set α) :=

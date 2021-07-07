@@ -1044,6 +1044,13 @@ by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
 lemma mem_sup' : x ∈ p ⊔ p' ↔ ∃ (y : p) (z : p'), (y:M) + z = x :=
 mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
+lemma coe_sup : ↑(p ⊔ p') = (p + p' : set M) :=
+begin
+  ext,
+  rw [set_like.mem_coe, mem_sup, set.mem_add],
+  simp,
+end
+
 end
 
 /- This is the character `∙`, with escape sequence `\.`, and is thus different from the scalar

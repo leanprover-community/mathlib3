@@ -4,15 +4,13 @@ import group_theory.group_action.defs
 
 noncomputable theory
 
-open matrix
-open matrix.special_linear_group
+open matrix matrix.special_linear_group
 
-open_locale classical
-open_locale big_operators
+open_locale classical big_operators
 
 local attribute [instance] fintype.card_fin_even
 
-class upper_half_plane :=
+@[ext] structure upper_half_plane :=
 (point : ℂ)
 (im_pos' : 0 < point.im)
 
@@ -35,15 +33,15 @@ def re (z : ℍ) := z.point.re
 
 @[simp] lemma coe_re (z : ℍ) : (z:ℂ).re = z.re := rfl
 
-@[ext] lemma ext {z w : ℍ} (h : (z:ℂ) = (w:ℂ)) : z = w :=
-begin
-  tactic.unfreeze_local_instances,
-  cases z,
-  cases w,
-  congr'
-end
+-- @[ext] lemma ext {z w : ℍ} (h : (z:ℂ) = (w:ℂ)) : z = w :=
+-- begin
+--   tactic.unfreeze_local_instances,
+--   cases z,
+--   cases w,
+--   congr'
+-- end
 
-@[ext] lemma ext_iff (z w : ℍ) : z = w ↔ (z:ℂ)=(w:ℂ) := ⟨λ h, by rw h, ext⟩
+-- @[ext] lemma ext_iff (z w : ℍ) : z = w ↔ (z:ℂ)=(w:ℂ) := ⟨λ h, by rw h, ext⟩
 
 lemma im_pos (z : ℍ) : 0 < z.im := z.im_pos'
 
@@ -64,8 +62,6 @@ end
 
 lemma norm_sq_nonzero (z: ℍ) : complex.norm_sq (z:ℂ) ≠ 0 := ne_of_gt (norm_sq_pos z)
 
-end upper_half_plane
-
 local notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
 def top (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
@@ -73,12 +69,12 @@ def top (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
 def bottom (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 1 0) * z + (g 1 1)
 
 -- move this to special linear group file
-lemma matrix.special_linear_group.det_ne_zero {n : ℕ} (g : SL(n, ℝ)) :
+lemma _root_.matrix.special_linear_group.det_ne_zero {n : ℕ} (g : SL(n, ℝ)) :
   det g ≠ 0 :=
 by { rw g.det_coe_fun, norm_num }
 
 -- move this to special linear group file
-lemma matrix.special_linear_group.row_nonzero {n : ℕ} (g : SL(n, ℝ)) (i : fin n):
+lemma _root_.matrix.special_linear_group.row_nonzero {n : ℕ} (g : SL(n, ℝ)) (i : fin n):
   g i ≠ 0 :=
 λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simp [h]
 
@@ -104,7 +100,7 @@ lemma normsq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (bottom
 
 def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z
 
-lemma matrix.special_linear_group.im_smul' (g : SL(2, ℝ)) (z : ℍ) :
+lemma im_smul_eq_div_norm_sq' (g : SL(2, ℝ)) (z : ℍ) :
   (smul_aux' g z).im = z.im / (bottom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
@@ -120,7 +116,7 @@ end
 def smul_aux (g : SL(2,ℝ)) (z : ℍ) : ℍ :=
 { point := smul_aux' g z,
   im_pos' := begin
-    rw matrix.special_linear_group.im_smul',
+    rw im_smul_eq_div_norm_sq',
     exact div_pos z.im_pos (complex.norm_sq_pos.mpr (bottom_ne_zero g z)),
   end }
 
@@ -145,24 +141,30 @@ begin
 end
 
 /-- The action of `SL(2, ℝ)` on the upper half-plane by fractional linear transformations. -/
-instance SL2R_action : mul_action SL(2, ℝ) ℍ :=
+instance : mul_action SL(2, ℝ) ℍ :=
 { smul := smul_aux,
   one_smul := λ z, by { ext1, change _ / _ = _, simp [top, bottom] },
   mul_smul := mul_smul' }
 
-lemma matrix.special_linear_group.im_smul (g : SL(2, ℝ)) (z : ℍ) :
-  (g • z).im = z.im / (complex.norm_sq (g 1 0 * z + g 1 1)) :=
-matrix.special_linear_group.im_smul' g z
+@[simp] lemma bottom_def (g : SL(2, ℝ)) (z : ℍ) : bottom g z = g 1 0 * z + g 1 1 := rfl
+@[simp] lemma top_def (g : SL(2, ℝ)) (z : ℍ) : top g z = g 0 0 * z + g 0 1 := rfl
+@[simp] lemma coe_smul (g : SL(2, ℝ)) (z : ℍ) : ↑(g • z) = top g z / bottom g z := rfl
+@[simp] lemma re_smul (g : SL(2, ℝ)) (z : ℍ) : (g • z).re = (top g z / bottom g z).re := rfl
+@[simp] lemma smul_coe {g : SL(2, ℝ)} {z : ℍ} : (g : SL(2,ℝ)) • z = g • z := rfl
 
-lemma smul_neg_SL2 (g : SL(2,ℝ)) (z : ℍ) : -g • z = g • z :=
+lemma im_smul (g : SL(2, ℝ)) (z : ℍ) : (g • z).im = (top g z / bottom g z).im := rfl
+
+lemma im_smul_eq_div_norm_sq (g : SL(2, ℝ)) (z : ℍ) :
+  (g • z).im = z.im / (complex.norm_sq (bottom g z)) :=
+im_smul_eq_div_norm_sq' g z
+
+@[simp] lemma smul_neg (g : SL(2,ℝ)) (z : ℍ) : -g • z = g • z :=
 begin
   ext1,
   change _ / _ = _ / _,
-  field_simp [bottom_ne_zero],
-  simp [top, bottom],
+  field_simp [bottom_ne_zero, -bottom_def],
+  simp,
   ring,
 end
 
-@[simp] lemma coe_smul (g : SL(2,ℝ)) (z : ℍ) :
-  (↑(g • z) : ℂ) = (g 0 0 * z + g 0 1) / (g 1 0 * z + g 1 1) :=
-rfl
+end upper_half_plane

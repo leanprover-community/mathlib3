@@ -22,7 +22,6 @@ src/category_theory/limits/shapes/products.lean : line 9 : ERR_MOD : Module docs
 src/category_theory/limits/types.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/monad/adjunction.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/monad/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/monad/limits.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/natural_transformation.lean : line 16 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/opposites.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/products/bifunctor.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -71,7 +70,7 @@ src/deprecated/subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or 
 src/deprecated/subring.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/logic/relation.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/measure_theory/decomposition.lean : line 14 : ERR_MOD : Module docstring missing, or too late
+src/measure_theory/decomposition.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late

@@ -344,7 +344,7 @@ Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalge
 -/
 lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 ⟨⟨{ f := inv f.f,
-    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩⟩
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], simp } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms G.forget :=
 { reflects := λ A B, coalgebra_iso_of_iso G }

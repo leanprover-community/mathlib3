@@ -1269,7 +1269,8 @@ begin
     refine ⟨λ i, submodule.smul_mem _ _ (hv i), _⟩,
     rw [← hvs, finset.smul_sum],
     simp only [finsupp.smul_apply],
-    refine finset.sum_subset finsupp.support_smul (λ a ha han, finsupp.not_mem_support_iff.mp han) },
+    refine finset.sum_subset finsupp.support_smul
+      (λ a ha han, finsupp.not_mem_support_iff.mp han) },
   rcases h with ⟨v, hv, hvs⟩,
   have := submodule.sum_mem (supr p) (λ i _, (le_supr p i : p i ≤ supr p) (hv i)),
   rw ← submodule.supr_eq_span,

@@ -155,6 +155,8 @@ rfl
     ((f.to_nat_trans : _ ⟶ (T₂ : C ⥤ C)) ≫ g.to_nat_trans : (T₁ : C ⥤ C) ⟶ T₃) :=
 rfl
 
+/-- Construct a monad isomorphism from a natural isomorphism of functors where the forward
+direction is a monad morphism. -/
 @[simps]
 def monad_iso.mk {M N : monad C} (f : (M : C ⥤ C) ≅ N) (f_η f_μ) :
   M ≅ N :=
@@ -170,6 +172,8 @@ def monad_iso.mk {M N : monad C} (f : (M : C ⥤ C) ≅ N) (f_η f_μ) :
       simp,
     end } }
 
+/-- Construct a comonad isomorphism from a natural isomorphism of functors where the forward
+direction is a comonad morphism. -/
 @[simps]
 def comonad_iso.mk {M N : comonad C} (f : (M : C ⥤ C) ≅ N) (f_ε f_δ) :
   M ≅ N :=

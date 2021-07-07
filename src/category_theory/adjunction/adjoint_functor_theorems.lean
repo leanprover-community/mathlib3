@@ -51,14 +51,25 @@ variables {D : Type u} [category.{v} D]
 
 section gaft
 
-variables (G : D ⥤ C) [has_limits D]
+variables (G : D ⥤ C)
+
+/-- If `G : D ⥤ C` is a right adjoint it satisfies the solution set condition.  -/
+lemma solution_set_condition_of_is_right_adjoint [is_right_adjoint G] :
+  solution_set_condition G :=
+begin
+  intros A,
+  refine ⟨punit, λ _, (left_adjoint G).obj A, λ _, (adjunction.of_right_adjoint G).unit.app A, _⟩,
+  intros B h,
+  refine ⟨punit.star, ((adjunction.of_right_adjoint G).hom_equiv _ _).symm h, _⟩,
+  rw [←adjunction.hom_equiv_unit, equiv.apply_symm_apply],
+end
 
 /--
 The general adjoint functor theorem says that if `G : D ⥤ C` preserves limits and `D` has them,
 then `G` is a right adjoint.
 -/
 noncomputable def is_right_adjoint_of_preserves_limits_of_solution_set_condition
-  [preserves_limits G] (hG : solution_set_condition G) :
+  [has_limits D] [preserves_limits G] (hG : solution_set_condition G) :
   is_right_adjoint G :=
 begin
   apply is_right_adjoint_of_structured_arrow_initials _,
@@ -74,16 +85,7 @@ begin
   apply has_initial_of_weakly_initial_and_has_wide_equalizers hT,
 end
 
-/-- If `G : D ⥤ C` is a right adjoint it satisfies the solution set condition.  -/
-lemma solution_set_condition_of_is_right_adjoint [is_right_adjoint G] :
-  solution_set_condition G :=
-begin
-  intros A,
-  refine ⟨punit, λ _, (left_adjoint G).obj A, λ _, (adjunction.of_right_adjoint G).unit.app A, _⟩,
-  intros B h,
-  refine ⟨punit.star, ((adjunction.of_right_adjoint G).hom_equiv _ _).symm h, _⟩,
-  rw [←adjunction.hom_equiv_unit, equiv.apply_symm_apply],
-end
+
 
 end gaft
 

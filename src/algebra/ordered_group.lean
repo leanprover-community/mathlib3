@@ -1057,6 +1057,9 @@ lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
 
 lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
 
+/--
+The **triangle inequality** in `linear_ordered_add_comm_group`s.
+-/
 lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b :=
 abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),

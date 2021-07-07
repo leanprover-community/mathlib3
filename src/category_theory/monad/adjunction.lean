@@ -86,19 +86,15 @@ lemma monad.left_comparison (h : L ⊣ R) : L ⋙ monad.comparison h = h.to_mona
 
 instance [faithful R] (h : L ⊣ R) :
   faithful (monad.comparison h) :=
-{ map_injective' := λ X Y f g w,
-    by { have w' := congr_arg monad.algebra.hom.f w, exact R.map_injective w' } }
+{ map_injective' := λ X Y f g w, R.map_injective (congr_arg monad.algebra.hom.f w : _) }
 
 instance (T : monad C) : full (monad.comparison T.adj) :=
 { preimage := λ X Y f, ⟨f.f, by simpa using f.h⟩ }
 
 instance (T : monad C) : ess_surj (monad.comparison T.adj) :=
 { mem_ess_image := λ X,
-  begin
-    refine ⟨{ A := X.A, a := X.a, unit' := by simpa using X.unit,
-              assoc' := by simpa using X.assoc }, ⟨_⟩⟩,
-    exact monad.algebra.iso_mk (iso.refl _) (by simp),
-  end }
+  ⟨{ A := X.A, a := X.a, unit' := by simpa using X.unit, assoc' := by simpa using X.assoc },
+    ⟨monad.algebra.iso_mk (iso.refl _) (by simp)⟩⟩ }
 
 /--
 Gven any adjunction `L ⊣ R`, there is a comparison functor `category_theory.comonad.comparison L`
@@ -128,19 +124,15 @@ lemma comonad.left_comparison (h : L ⊣ R) : R ⋙ comonad.comparison h = h.to_
 
 instance comonad.comparison_faithful_of_faithful [faithful L] (h : L ⊣ R) :
   faithful (comonad.comparison h) :=
-{ map_injective' := λ X Y f g w,
-    by { have w' := congr_arg comonad.coalgebra.hom.f w, exact L.map_injective w' } }
+{ map_injective' := λ X Y f g w, L.map_injective (congr_arg comonad.coalgebra.hom.f w : _) }
 
 instance (G : comonad C) : full (comonad.comparison G.adj) :=
 { preimage := λ X Y f, ⟨f.f, by simpa using f.h⟩ }
 
 instance (G : comonad C) : ess_surj (comonad.comparison G.adj) :=
 { mem_ess_image := λ X,
-  begin
-    refine ⟨{ A := X.A, a := X.a, counit' := _, coassoc' := by simpa using X.coassoc }, ⟨_⟩⟩,
-    { simpa using X.counit },
-    exact comonad.coalgebra.iso_mk (iso.refl _) (by simp),
-  end }
+  ⟨{ A := X.A, a := X.a, counit' := by simpa using X.counit, coassoc' := by simpa using X.coassoc },
+    ⟨comonad.coalgebra.iso_mk (iso.refl _) (by simp)⟩⟩ }
 
 /--
 A right adjoint functor `R : D ⥤ C` is *monadic* if the comparison functor `monad.comparison R`

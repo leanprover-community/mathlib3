@@ -62,15 +62,10 @@ lemma add_equiv_bounded_of_compact_to_equiv :
   (add_equiv_bounded_of_compact α β).to_equiv = equiv_bounded_of_compact α β :=
 rfl
 
-instance {β : Type*} [normed_group β] : metric_space C(α,β) :=
+instance : metric_space C(α,β) :=
 metric_space.induced
   (equiv_bounded_of_compact α β)
   (equiv_bounded_of_compact α β).injective
-  (by apply_instance)
-
-instance : pseudo_metric_space C(α,β) :=
-pseudo_metric_space.induced
-  (equiv_bounded_of_compact α β)
   (by apply_instance)
 
 section

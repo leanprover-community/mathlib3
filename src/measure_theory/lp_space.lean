@@ -281,6 +281,7 @@ begin
       rwa [ennreal.coe_eq_zero, nnnorm_eq_zero], },
     { exact or.inl ennreal.coe_ne_top, }, },
 end
+
 lemma snorm_ess_sup_const (c : F) (hμ : μ ≠ 0) :
   snorm_ess_sup (λ x : α, c) μ = (nnnorm c : ℝ≥0∞) :=
 by rw [snorm_ess_sup, ess_sup_const _ hμ]
@@ -492,7 +493,7 @@ lemma mem_ℒp.restrict (s : set α) {f : α → E} (hf : mem_ℒp f p μ) :
 hf.mono_measure measure.restrict_le_self
 
 section opens_measurable_space
-variables [opens_measurable_space E]
+variable [opens_measurable_space E]
 
 lemma mem_ℒp.norm {f : α → E} (h : mem_ℒp f p μ) : mem_ℒp (λ x, ∥f x∥) p μ :=
 h.of_le h.ae_measurable.norm (eventually_of_forall (λ x, by simp))
@@ -1195,7 +1196,7 @@ begin
 end
 
 lemma mem_Lp_of_ae_le_mul [second_countable_topology F] [measurable_space F] [borel_space F]
-  {c : ℝ} {f : α →ₘ[μ] E'} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) : f ∈ Lp E' p μ :=
+  {c : ℝ} {f : α →ₘ[μ] E} {g : Lp F p μ} (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ c * ∥g x∥) : f ∈ Lp E p μ :=
 mem_Lp_iff_mem_ℒp.2 $ mem_ℒp.of_le_mul (Lp.mem_ℒp g) f.ae_measurable h
 
 lemma mem_Lp_of_ae_le [second_countable_topology F] [measurable_space F] [borel_space F]
@@ -1278,7 +1279,6 @@ by rw [norm_def, snorm_congr_ae (coe_fn_smul _ _), snorm_const_smul c,
 
 instance [fact (1 ≤ p)] : normed_space 𝕜 (Lp E p μ) :=
 { norm_smul_le := λ _ _, by simp [norm_const_smul] }
-
 
 instance normed_space_L1 : normed_space 𝕜 (Lp E 1 μ) := by apply_instance
 instance normed_space_L2 : normed_space 𝕜 (Lp E 2 μ) := by apply_instance
@@ -2132,8 +2132,7 @@ def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E
 
 variables {p 𝕜}
 
-lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E]
-  (f : C(α,  E)) :
+lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] (f : C(α,  E)) :
   to_Lp p μ 𝕜 f =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk f _
 

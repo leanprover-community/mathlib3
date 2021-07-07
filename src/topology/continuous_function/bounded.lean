@@ -24,7 +24,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- The type of bounded continuous functions from a topological space to a metric space -/
 structure bounded_continuous_function
-  (α : Type u) (β : Type v) [topological_space α] [pseudo_metric_space β]
+  (α : Type u) (β : Type v) [topological_space α] [metric_space β]
     extends continuous_map α β :
   Type (max u v) :=
 (bounded' : ∃C, ∀x y:α, dist (to_fun x) (to_fun y) ≤ C)
@@ -33,7 +33,7 @@ localized "infixr ` →ᵇ `:25 := bounded_continuous_function" in bounded_conti
 
 namespace bounded_continuous_function
 section basics
-variables [topological_space α] [pseudo_metric_space β] [pseudo_metric_space γ]
+variables [topological_space α] [metric_space β] [metric_space γ]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 instance : has_coe_to_fun (α →ᵇ β) :=  ⟨_, λ f, f.to_fun⟩
@@ -68,11 +68,13 @@ rfl
 
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
-def mk_of_discrete [discrete_topology α] (f : α → β) (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) :
+def mk_of_discrete [discrete_topology α] (f : α → β)
+  (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) :
   α →ᵇ β :=
 ⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
 
-@[simp] lemma mk_of_discrete_apply [discrete_topology α] (f : α → β) (C) (h) (a : α) :
+@[simp] lemma mk_of_discrete_apply
+  [discrete_topology α] (f : α → β) (C) (h) (a : α) :
   @mk_of_discrete _ β _ _ _ f C h a = f a :=  -- why is the explicit `β` necessary here?
 rfl
 
@@ -161,17 +163,8 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 lemma dist_zero_of_empty (e : ¬ nonempty α) : dist f g = 0 :=
 le_antisymm ((dist_le (le_refl _)).2 $ λ x, e.elim ⟨x⟩) dist_nonneg'
 
-/-- The type of bounded continuous functions, with the uniform distance, is a
-pseudo-metric space. -/
-instance : pseudo_metric_space (α →ᵇ β) :=
-{ dist_self := λ f, le_antisymm ((dist_le (le_refl _)).2 $ λ x, by simp) dist_nonneg',
-  dist_comm := λ f g, by simp [dist_eq, dist_comm],
-  dist_triangle := λ f g h,
-    (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
-      le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
-
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
-instance {β' : Type*} [metric_space β'] : metric_space (α →ᵇ β') :=
+instance : metric_space (α →ᵇ β') :=
 { dist_self := λ f, le_antisymm ((dist_le (le_refl _)).2 $ λ x, by simp) dist_nonneg',
   eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
     eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
@@ -280,7 +273,7 @@ def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →�
 end basics
 
 section arzela_ascoli
-variables [topological_space α] [compact_space α] [pseudo_metric_space β]
+variables [topological_space α] [compact_space α] [metric_space β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
 /- Arzela-Ascoli theorem asserts that, on a compact space, a set of functions sharing
@@ -378,7 +371,7 @@ end
 
 /-- Third (main) version, with pointwise equicontinuity and range in a compact subset, but
 without closedness. The closure is then compact -/
-theorem arzela_ascoli {β : Type*} [metric_space β]
+theorem arzela_ascoli
   (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
@@ -637,8 +630,8 @@ module.of_core $
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
   one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
-instance : normed_space 𝕜 (α →ᵇ β) :=
-⟨λ c f, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
+instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
+  (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/

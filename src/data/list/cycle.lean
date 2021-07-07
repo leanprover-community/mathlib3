@@ -584,10 +584,7 @@ def prev : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 
 @[simp] lemma prev_reverse_eq_next (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.reverse.prev (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.next hs x hx :=
-begin
-  induction s using quot.induction_on,
-  exact prev_reverse_eq_next _ hs _ _
-end
+(quotient.induction_on' s prev_reverse_eq_next) hs x hx
 
 @[simp] lemma next_reverse_eq_prev (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.reverse.next (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.prev hs x hx :=
@@ -603,6 +600,14 @@ end
 lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.prev hs x hx ∈ s :=
 by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
+
+@[simp] lemma prev_next (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.prev hs (s.next hs x hx) (next_mem s hs x hx) = x :=
+(quotient.induction_on' s prev_next) hs x hx
+
+@[simp] lemma next_prev (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.next hs (s.prev hs x hx) (prev_mem s hs x hx) = x :=
+(quotient.induction_on' s next_prev) hs x hx
 
 end decidable
 

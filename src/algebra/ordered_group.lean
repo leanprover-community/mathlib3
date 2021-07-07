@@ -820,6 +820,9 @@ end
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
 by { rw abs_sub_comm, exact max_sub_min_eq_abs' _ _ }
 
+/--
+The **triangle inequality** in `linear_ordered_add_comm_group`s.
+-/
 lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b :=
 abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),

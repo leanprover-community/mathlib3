@@ -10,6 +10,18 @@ import category_theory.limits.creates
 import category_theory.limits.comma
 import category_theory.punit
 
+/-!
+# Properties of comma categories relating to adjunctions
+
+This file shows that for a functor `G : D ⥤ C` the data of an initial object in each
+`structured_arrow` category on `G` is equivalent to a left adjoint to `G`, as well as the dual.
+
+Specifically, `adjunction_of_structured_arrow_initials` gives the left adjoint assuming the
+appropriate initial objects exist, and `mk_initial_of_left_adjoint` constructs the initial objects
+provided a left adjoint.
+
+The duals are also shown.
+-/
 universes v u₁ u₂
 
 noncomputable theory
@@ -18,10 +30,6 @@ namespace category_theory
 open limits
 
 variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D] (G : D ⥤ C)
-
--- TODO: consider showing the converse
--- This section proves that if each comma category (A ↓ G) has an initial object then `G` has a
--- left adjoint
 
 section of_initials
 variables [∀ A, has_initial (structured_arrow A G)]
@@ -126,7 +134,7 @@ variables {F : C ⥤ D}
 
 /-- Given a left adjoint to `G`, we can construct an initial object in each structured arrow
 category on `G`. -/
-def mk_initial (h : F ⊣ G) (A : C) :
+def mk_initial_of_left_adjoint (h : F ⊣ G) (A : C) :
   is_initial (structured_arrow.mk (h.unit.app A) : structured_arrow A G) :=
 { desc := λ B, structured_arrow.hom_mk ((h.hom_equiv _ _).symm B.X.hom) (by tidy),
   uniq' := λ s m w,
@@ -139,7 +147,7 @@ def mk_initial (h : F ⊣ G) (A : C) :
 
 /-- Given a right adjoint to `F`, we can construct a terminal object in each costructured arrow
 category on `F`. -/
-def mk_terminal (h : F ⊣ G) (A : D) :
+def mk_terminal_of_right_adjoint (h : F ⊣ G) (A : D) :
   is_terminal (costructured_arrow.mk (h.counit.app A) : costructured_arrow F A) :=
 { lift := λ B, costructured_arrow.hom_mk (h.hom_equiv _ _ B.X.hom) (by tidy),
   uniq' := λ s m w,

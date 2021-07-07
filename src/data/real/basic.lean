@@ -74,8 +74,8 @@ end
 /-! Extra instances to short-circuit type class resolution.
 
  These short-circuits have an additional property of ensuring that a computable path is found; if
- `field ℝ` is found first, then decaying it to these typeclasses would result in a `noncomputable` version
- of them. -/
+ `field ℝ` is found first, then decaying it to these typeclasses would result in a `noncomputable`
+ version of them. -/
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
 instance : semiring ℝ           := by apply_instance

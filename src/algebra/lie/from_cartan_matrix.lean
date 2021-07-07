@@ -16,11 +16,12 @@ subject to the following relations:
 $$
 \begin{align}
   [H_i, H_j] &= 0\\
-  [E_i, F_i] &= H_i \quad\mbox{ and }\quad [E_i, F_j] = 0 \quad\mbox{if $i ≠ j$}\\
+  [E_i, F_i] &= H_i\\
+  [E_i, F_j] &= 0 \quad\text{if $i \ne j$}\\
   [H_i, E_j] &= A_{ij}E_j\\
   [H_i, F_j] &= -A_{ij}F_j\\
-  ad(E_i)^{1 - A_{ij}}(E_j) &= 0 \quad\mbox{if $i \ne j$}\\
-  ad(F_i)^{1 - A_{ij}}(F_j) &= 0 \quad\mbox{if $i \ne j$}\\
+  ad(E_i)^{1 - A_{ij}}(E_j) &= 0 \quad\text{if $i \ne j$}\\
+  ad(F_i)^{1 - A_{ij}}(F_j) &= 0 \quad\text{if $i \ne j$}\\
 \end{align}
 $$
 

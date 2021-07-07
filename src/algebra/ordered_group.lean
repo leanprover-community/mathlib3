@@ -1140,12 +1140,12 @@ variable [linear_ordered_add_comm_group α]
 
 instance with_top.linear_ordered_add_comm_group_with_top :
   linear_ordered_add_comm_group_with_top (with_top α) :=
-{ neg := option.map (λ a : α, -a),
-  neg_top := @option.map_none _ _ (λ a : α, -a),
+{ neg            := option.map (λ a : α, -a),
+  neg_top        := @option.map_none _ _ (λ a : α, -a),
   add_neg_cancel := begin
     rintro (a | a) ha,
     { exact (ha rfl).elim },
-    exact with_top.coe_add.symm.trans (with_top.coe_eq_coe.2 (add_neg_self a)),
+    { exact with_top.coe_add.symm.trans (with_top.coe_eq_coe.2 (add_neg_self a)) }
   end,
   .. with_top.linear_ordered_add_comm_monoid_with_top,
   .. option.nontrivial }
@@ -1155,11 +1155,11 @@ end linear_ordered_add_comm_group
 /-- This is not so much a new structure as a construction mechanism
   for ordered groups, by specifying only the "positive cone" of the group. -/
 class nonneg_add_comm_group (α : Type*) extends add_comm_group α :=
-(nonneg : α → Prop)
-(pos : α → Prop := λ a, nonneg a ∧ ¬ nonneg (neg a))
-(pos_iff : ∀ a, pos a ↔ nonneg a ∧ ¬ nonneg (-a) . order_laws_tac)
-(zero_nonneg : nonneg 0)
-(add_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
+(nonneg          : α → Prop)
+(pos             : α → Prop := λ a, nonneg a ∧ ¬ nonneg (neg a))
+(pos_iff         : ∀ a, pos a ↔ nonneg a ∧ ¬ nonneg (-a) . order_laws_tac)
+(zero_nonneg     : nonneg 0)
+(add_nonneg      : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
 (nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 0)
 
 namespace nonneg_add_comm_group
@@ -1168,15 +1168,15 @@ include s
 
 @[reducible, priority 100] -- see Note [lower instance priority]
 instance to_ordered_add_comm_group : ordered_add_comm_group α :=
-{ le := λ a b, nonneg (b - a),
-  lt := λ a b, pos (b - a),
+{ le               := λ a b, nonneg (b - a),
+  lt               := λ a b, pos (b - a),
   lt_iff_le_not_le := λ a b, by simp; rw [pos_iff]; simp,
-  le_refl := λ a, by simp [zero_nonneg],
-  le_trans := λ a b c nab nbc, by simp [-sub_eq_add_neg];
+  le_refl          := λ a, by simp [zero_nonneg],
+  le_trans         := λ a b c nab nbc, by simp [-sub_eq_add_neg];
     rw ← sub_add_sub_cancel; exact add_nonneg nbc nab,
-  le_antisymm := λ a b nab nba, eq_of_sub_eq_zero $
+  le_antisymm      := λ a b nab nba, eq_of_sub_eq_zero $
     nonneg_antisymm nba (by rw neg_sub; exact nab),
-  add_le_add_left := λ a b nab c, by simpa [(≤), preorder.le] using nab,
+  add_le_add_left  := λ a b nab c, by simpa [(≤), preorder.le] using nab,
   ..s }
 
 theorem nonneg_def {a : α} : nonneg a ↔ 0 ≤ a :=

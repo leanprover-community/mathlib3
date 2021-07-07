@@ -31,6 +31,7 @@ Note: Why not say `set (submodule R M)`? Then one could get rid of explicitly
 identifying `ι`. But I think it's better to follow the `basis` design,
 which was phased out of exactly the `set` design because of problems with it.
 -/
+@[nolint has_inhabited_instance]
 structure decomposition : Type (max u v w) :=
 (factors : ι → submodule R M)
 (factors_ind : complete_lattice.independent factors)

@@ -23,9 +23,6 @@ Future work:
   `(1, 1)` (port from the `lean-ga` project).
 -/
 
--- this makes the reals computable!
-instance : module ℝ ℝ := semiring.to_module
-
 open clifford_algebra
 
 namespace clifford_algebra_ring
@@ -58,7 +55,7 @@ lemma Q_apply (r : ℝ) : Q r = - (r * r) := rfl
 
 /-- Intermediate result for `clifford_algebra_complex.equiv`: clifford algebras over
 `clifford_algebra_complex.Q` above can be converted to `ℂ`. -/
-noncomputable def to_complex : clifford_algebra Q →ₐ[ℝ] ℂ :=
+def to_complex : clifford_algebra Q →ₐ[ℝ] ℂ :=
 clifford_algebra.lift Q ⟨linear_map.to_span_singleton _ _ complex.I, λ r, begin
   dsimp [linear_map.to_span_singleton, linear_map.id],
   rw smul_mul_smul,
@@ -72,7 +69,7 @@ clifford_algebra.lift_ι_apply _ _ r
 /-- The clifford algebras over `clifford_algebra_complex.Q` is isomorphic as an `ℝ`-algebra to
 `ℂ`. -/
 @[simps]
-noncomputable def equiv : clifford_algebra Q ≃ₐ[ℝ] ℂ :=
+def equiv : clifford_algebra Q ≃ₐ[ℝ] ℂ :=
 alg_equiv.of_alg_hom to_complex
   (complex.lift ⟨clifford_algebra.ι Q 1, begin
     rw [clifford_algebra.ι_sq_scalar, Q_apply, one_mul, ring_hom.map_neg, ring_hom.map_one],

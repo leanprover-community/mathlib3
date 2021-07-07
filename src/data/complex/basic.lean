@@ -445,6 +445,9 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
 
+/--
+The **triangle inequality** for complex numbers.
+-/
 lemma abs_add (z w : ℂ) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)
   (add_nonneg (abs_nonneg _) (abs_nonneg _))).2 $

@@ -302,8 +302,8 @@ begin
   exact tendsto_at_top_infi (assume n m hnm, measure_mono $ hm hnm),
 end
 
-/-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that
-  ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
+/-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of measurable sets such
+that ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, measurable_set (s i))
   (hs' : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
 begin
@@ -434,6 +434,9 @@ rfl
 instance : module ℝ≥0∞ (measure α) :=
 injective.module ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
+
+@[simp, norm_cast] theorem coe_nnreal_smul (c : ℝ≥0) (μ : measure α) : ⇑(c • μ) = c • μ :=
+rfl
 
 /-! ### The complete lattice of measures -/
 
@@ -1427,6 +1430,16 @@ def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
 ennreal.coe_to_nnreal (measure_ne_top μ univ)
 
 instance finite_measure_zero : finite_measure (0 : measure α) := ⟨by simp⟩
+
+instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_measure (μ + ν) :=
+{ measure_univ_lt_top :=
+  begin
+    rw [measure.coe_add, pi.add_apply, ennreal.add_lt_top],
+    exact ⟨measure_lt_top _ _, measure_lt_top _ _⟩,
+  end }
+
+instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
+{ measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
 @[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl
 
@@ -2436,6 +2449,20 @@ begin
   exact ⟨f', measurable.mono hf'_meas hm le_rfl, hff'.symm⟩,
 end
 
+lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
+  (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
+begin
+  by_cases h : nonempty β,
+  { refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
+              (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
+    intros t ht,
+    rw piecewise_preimage,
+    refine measurable_set.union _ ((measurable_const ht).diff hs),
+    rw [← subtype.image_preimage_coe, ← preimage_comp],
+    exact hs.subtype_image (hf ht) },
+  { exact (measurable_of_not_nonempty (mt (nonempty.map f) h) f).ae_measurable }
+end
+
 end
 
 namespace is_compact
@@ -2462,3 +2489,64 @@ lemma metric.bounded.finite_measure [metric_space α] [proper_space α]
   μ s < ∞ :=
 (measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
   ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).finite_measure
+
+
+section piecewise
+
+variables [measurable_space α] {μ : measure α} {s : set α} {f g : α → β}
+
+lemma piecewise_ae_eq_restrict (hs : measurable_set s) : piecewise s f g =ᵐ[μ.restrict s] f :=
+begin
+  rw [ae_restrict_eq hs],
+  exact (piecewise_eq_on s f g).eventually_eq.filter_mono inf_le_right
+end
+
+lemma piecewise_ae_eq_restrict_compl (hs : measurable_set s) :
+  piecewise s f g =ᵐ[μ.restrict sᶜ] g :=
+begin
+  rw [ae_restrict_eq hs.compl],
+  exact (piecewise_eq_on_compl s f g).eventually_eq.filter_mono inf_le_right
+end
+
+end piecewise
+
+section indicator_function
+
+variables [measurable_space α] {μ : measure α} {s : set α} {f : α → β}
+
+lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
+  ae_measurable f (μ.restrict s) :=
+⟨ae_measurable.mk f hfm, hfm.measurable_mk, ae_restrict_of_ae hfm.ae_eq_mk⟩
+
+variables [has_zero β]
+
+lemma indicator_ae_eq_restrict (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict s] f :=
+piecewise_ae_eq_restrict hs
+
+lemma indicator_ae_eq_restrict_compl (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
+piecewise_ae_eq_restrict_compl hs
+
+variables [measurable_space β]
+
+lemma ae_measurable_indicator_iff {s} (hs : measurable_set s) :
+  ae_measurable (indicator s f) μ ↔ ae_measurable f (μ.restrict s)  :=
+begin
+  split,
+  { assume h,
+    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) },
+  { assume h,
+    refine ⟨indicator s (h.mk f), h.measurable_mk.indicator hs, _⟩,
+    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
+      (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
+    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
+      (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
+    have : s.indicator f =ᵐ[μ.restrict s + μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
+      ae_add_measure_iff.2 ⟨A, B⟩,
+    simpa only [hs, measure.restrict_add_restrict_compl] using this },
+end
+
+lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
+  ae_measurable (s.indicator f) μ :=
+(ae_measurable_indicator_iff hs).mpr hfm.restrict
+
+end indicator_function

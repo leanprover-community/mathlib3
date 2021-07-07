@@ -1494,7 +1494,7 @@ local notation `|` x `|` := abs x
 lemma nhds_eq_infi_abs_sub (a : α) : 𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r}) :=
 begin
   simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
-    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ a, @sub_lt _ _ a, set_of_and],
+    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt _ _ _ _ a, set_of_and],
   refine ⟨_, _, _⟩,
   { intros ε ε0,
     exact inter_mem_inf_sets
@@ -1580,7 +1580,7 @@ begin
   convert nhds_basis_Ioo_pos a,
   { ext ε,
     change abs (x - a) < ε ↔ a - ε < x ∧ x < a + ε,
-    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a] },
+    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a, add_comm x ε] }
 end
 
 variable (α)

@@ -33,16 +33,6 @@ def re (z : ℍ) := z.point.re
 
 @[simp] lemma coe_re (z : ℍ) : (z:ℂ).re = z.re := rfl
 
--- @[ext] lemma ext {z w : ℍ} (h : (z:ℂ) = (w:ℂ)) : z = w :=
--- begin
---   tactic.unfreeze_local_instances,
---   cases z,
---   cases w,
---   congr'
--- end
-
--- @[ext] lemma ext_iff (z w : ℍ) : z = w ↔ (z:ℂ)=(w:ℂ) := ⟨λ h, by rw h, ext⟩
-
 lemma im_pos (z : ℍ) : 0 < z.im := z.im_pos'
 
 lemma im_nonzero (z : ℍ) : z.im ≠ 0 := z.im_pos.ne'

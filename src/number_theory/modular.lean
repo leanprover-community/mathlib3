@@ -107,7 +107,7 @@ section tendsto_lemmas
 open filter continuous_linear_map
 
 lemma finite_pairs (z : ℍ) :
-  filter.tendsto (λ p : coprime_ints , ((p.c : ℂ) * z + p.d).norm_sq)
+  filter.tendsto (λ p : coprime_ints, ((p.c : ℂ) * z + p.d).norm_sq)
   cofinite at_top :=
 begin
   let f : ℝ × ℝ →ₗ[ℝ] ℂ := (linear_map.fst ℝ ℝ ℝ).smul_right (z:ℂ)

@@ -12,7 +12,7 @@ import measure_theory.measurable_space
 The definition of a measure and a measure space are in `measure_theory.measure_space_def`, with
 only a few basic properties. This file provides many more properties of these objects.
 This separation allows the measurability tactic to import only the file `measure_space_def`, and to
-be available in `measure_space` (through `measurable_space`). 
+be available in `measure_space` (through `measurable_space`).
 
 Given a measurable space `α`, a measure on `α` is a function that sends measurable sets to the
 extended nonnegative reals that satisfies the following conditions:
@@ -1393,8 +1393,6 @@ class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 
 instance measure.dirac.probability_measure {x : α} : probability_measure (dirac x) :=
 ⟨dirac_apply_of_mem $ mem_univ x⟩
 
-section finite_measure
-
 /-- A measure `μ` is called finite if `μ univ < ∞`. -/
 class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
 
@@ -1402,7 +1400,17 @@ instance restrict.finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
   finite_measure (μ.restrict s) :=
 ⟨by simp [hs.elim]⟩
 
-export probability_measure (measure_univ)
+/-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
+
+NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
+there exists a measurable `t ⊆ s` such that `0 < μ t < μ s`. While this implies `μ {x} = 0`,
+the converse is not true. -/
+class has_no_atoms (μ : measure α) : Prop :=
+(measure_singleton : ∀ x, μ {x} = 0)
+
+export probability_measure (measure_univ) has_no_atoms (measure_singleton)
+
+attribute [simp] measure_singleton
 
 @[simp] lemma measure.restrict_singleton' [has_no_atoms μ] {a : α} :
   μ.restrict {a} = 0 :=
@@ -1471,21 +1479,7 @@ begin
   rwa measure_univ at h₁,
 end
 
-end finite_measure
-
 section no_atoms
-
-/-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
-
-NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
-there exists a measurable `t ⊆ s` such that `0 < μ t < μ s`. While this implies `μ {x} = 0`,
-the converse is not true. -/
-class has_no_atoms (μ : measure α) : Prop :=
-(measure_singleton : ∀ x, μ {x} = 0)
-
-export has_no_atoms (measure_singleton)
-
-attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
 

@@ -727,7 +727,7 @@ end
 
 lemma bilin_form.to_matrix'_comp_left (B : bilin_form R₃ (n → R₃)) (f : (n → R₃) →ₗ[R₃] (n → R₃)) :
   (B.comp_left f).to_matrix' = f.to_matrix'ᵀ ⬝ B.to_matrix' :=
-by simp only [comp_left, bilin_form.to_matrix'_comp, to_matrix'_id, matrix.mul_one]
+by simp only [bilin_form.comp_left, bilin_form.to_matrix'_comp, to_matrix'_id, matrix.mul_one]
 
 lemma bilin_form.to_matrix'_comp_right (B : bilin_form R₃ (n → R₃)) (f : (n → R₃) →ₗ[R₃] (n → R₃)) :
   (B.comp_right f).to_matrix' = B.to_matrix' ⬝ f.to_matrix' :=

@@ -169,6 +169,23 @@ lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
 @[simp, to_additive]
 lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 
+lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
+by rw [←nat.sub_add_cancel (nat.pos_of_ne_zero hn), pow_succ, empty_mul]
+
+instance decidable_mem_mul [monoid α] [fintype α] [decidable_eq α]
+  [decidable_pred (∈ s)] [decidable_pred (∈ t)] :
+  decidable_pred (∈ s * t) :=
+λ _, decidable_of_iff _ mem_mul.symm
+
+instance decidable_mem_pow [monoid α] [fintype α] [decidable_eq α]
+  [decidable_pred (∈ s)] (n : ℕ) :
+  decidable_pred (∈ (s ^ n)) :=
+begin
+  induction n with n ih,
+  { simp_rw [pow_zero, mem_one], apply_instance },
+  { letI := ih, rw pow_succ, apply_instance }
+end
+
 @[to_additive]
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂
@@ -527,3 +544,55 @@ le_antisymm
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
 end submonoid
+
+namespace group
+
+lemma card_pow_eq_card_pow_card_univ_aux {f : ℕ → ℕ} (h1 : monotone f)
+  {B : ℕ} (h2 : ∀ n, f n ≤ B) (h3 : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
+  ∀ k, B ≤ k → f k = f B :=
+begin
+  have key : ∃ n : ℕ, n ≤ B ∧ f n = f (n + 1),
+  { contrapose! h2,
+    suffices : ∀ n : ℕ, n ≤ B + 1 → n ≤ f n,
+    { exact ⟨B + 1, this (B + 1) (le_refl (B + 1))⟩ },
+    exact λ n, nat.rec (λ h, nat.zero_le (f 0)) (λ n ih h, lt_of_le_of_lt (ih (n.le_succ.trans h))
+      (lt_of_le_of_ne (h1 n.le_succ) (h2 n (nat.succ_le_succ_iff.mp h)))) n },
+  { obtain ⟨n, hn1, hn2⟩ := key,
+    replace key : ∀ k : ℕ, f (n + k) = f (n + k + 1) ∧ f (n + k) = f n :=
+    λ k, nat.rec ⟨hn2, rfl⟩ (λ k ih, ⟨h3 _ ih.1, ih.1.symm.trans ih.2⟩) k,
+    replace key : ∀ k : ℕ, n ≤ k → f k = f n :=
+    λ k hk, (congr_arg f (nat.add_sub_cancel' hk)).symm.trans (key (k - n)).2,
+    exact λ k hk, (key k (hn1.trans hk)).trans (key B hn1).symm },
+end
+
+variables {G : Type*} [group G] [fintype G] (S : set G)
+
+lemma card_pow_eq_card_pow_card_univ [∀ (k : ℕ), decidable_pred (∈ (S ^ k))] :
+  ∀ k, fintype.card G ≤ k → fintype.card ↥(S ^ k) = fintype.card ↥(S ^ (fintype.card G)) :=
+begin
+  have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr ⟨1⟩,
+  by_cases hS : S = ∅,
+  { intros k hk,
+    congr' 2,
+    rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
+  obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
+  classical,
+  have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
+  { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
+    rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
+    exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
+  have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
+  monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
+  convert card_pow_eq_card_pow_card_univ_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
+    (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
+  { simp only [finset.filter_congr_decidable, fintype.card_of_finset] },
+  replace h : {a} * S ^ n = S ^ (n + 1),
+  { refine set.eq_of_subset_of_card_le _ (le_trans (ge_of_eq h) _),
+    { exact mul_subset_mul (set.singleton_subset_iff.mpr ha) set.subset.rfl },
+    { convert key a (S ^ n) ({a} * S ^ n) (λ b hb, set.mul_mem_mul (set.mem_singleton a) hb) } },
+  rw [pow_succ', ←h, mul_assoc, ←pow_succ', h],
+  rintros _ ⟨b, c, hb, hc, rfl⟩,
+  rwa [set.mem_singleton_iff.mp hb, inv_mul_cancel_left],
+end
+
+end group

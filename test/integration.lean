@@ -92,3 +92,13 @@ begin                                                    -- let g := exp x, f :=
   { exact continuous_exp },                              -- show that g is continuous
   { simpa using has_deriv_at_pow 2 x },                  -- show that f' = derivative of f on [0, 2]
 end
+
+/- alternatively, `interval_integral.integral_deriv_comp_mul_deriv` can be used to compute integrals
+  of this same form, provided that you also know that `g` is the derivative of some function -/
+example : ∫ x : ℝ in 0..1, exp (x ^ 2) * (2 * x) = exp 1 - 1 :=
+begin
+  rw integral_deriv_comp_mul_deriv (λ x hx, _) (λ x hx, has_deriv_at_exp (x^2)) _ continuous_exp,
+  { simp },
+  { simpa using has_deriv_at_pow 2 x },
+  { exact continuous_on_const.mul continuous_on_id },
+end

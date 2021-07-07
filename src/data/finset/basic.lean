@@ -1036,6 +1036,8 @@ lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
 instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le (sub_le_self _ _) s₁.2⟩⟩
 
+@[simp] lemma sdiff_val (s₁ s₂ : finset α) : (s₁ \ s₂).val = s₁.val - s₂.val := rfl
+
 @[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
   a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
 
@@ -2908,33 +2910,13 @@ by { ext, simp [-finset.mem_map, -equiv.trans_to_embedding] }
 
 end equiv
 
-namespace list
-variable [decidable_eq α]
-
-theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card = l.length :=
-congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
-
-lemma disjoint_to_finset_iff_disjoint {l l' : list α} :
-  _root_.disjoint l.to_finset l'.to_finset ↔ l.disjoint l' :=
-begin
-  split,
-  { intros h x hx hx',
-    rw ←mem_to_finset at hx hx',
-    exact h (finset.mem_inter_of_mem hx hx') },
-  { intros h x hx,
-    rw [finset.inf_eq_inter, finset.mem_inter, mem_to_finset, mem_to_finset] at hx,
-    exact h hx.left hx.right }
-end
-
-end list
-
 namespace multiset
 variable [decidable_eq α]
 
 theorem to_finset_card_of_nodup {l : multiset α} (h : l.nodup) : l.to_finset.card = l.card :=
-congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
+congr_arg card $ multiset.erase_dup_eq_self.mpr h
 
-lemma disjoint_to_finset (m1 m2 : multiset α) :
+lemma disjoint_to_finset {m1 m2 : multiset α} :
   _root_.disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
 begin
   rw finset.disjoint_iff_ne,
@@ -2949,3 +2931,15 @@ begin
 end
 
 end multiset
+
+namespace list
+variable [decidable_eq α]
+
+theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card = l.length :=
+multiset.to_finset_card_of_nodup h
+
+lemma disjoint_to_finset_iff_disjoint {l l' : list α} :
+  _root_.disjoint l.to_finset l'.to_finset ↔ l.disjoint l' :=
+multiset.disjoint_to_finset
+
+end list

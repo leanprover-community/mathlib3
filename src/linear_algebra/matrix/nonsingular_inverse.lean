@@ -386,7 +386,7 @@ end
 /- `is_unit_of_invertible A`
    converts the "stronger" condition `invertible A` to proposition `is_unit A`. -/
 
-/- `matrix.is_unit_det_of_invertible` converts `invertible A` to `is_unit A.det`. -/
+/-- `matrix.is_unit_det_of_invertible` converts `invertible A` to `is_unit A.det`. -/
 lemma is_unit_det_of_invertible [invertible A] : is_unit A.det :=
 @is_unit_of_invertible _ _ _(det_invertible_of_invertible A)
 
@@ -403,7 +403,7 @@ variables {A} {B}
 
 /- `is_unit.invertible` lifts the proposition `is_unit A` to a constructive inverse of `A`. -/
 
-/- "Lift" the proposition `is_unit A.det` to a constructive inverse of `A`. -/
+/-- "Lift" the proposition `is_unit A.det` to a constructive inverse of `A`. -/
 noncomputable def invertible_of_is_unit_det  (h : is_unit A.det) : invertible A :=
 ⟨A⁻¹, nonsing_inv_mul A h, mul_nonsing_inv A h⟩
 

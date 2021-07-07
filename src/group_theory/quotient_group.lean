@@ -222,7 +222,7 @@ begin
   refl,
 end
 
-/-- The first isomorphism theorem (a definition): the canonical isomorphism between
+/-- **Noether's first isomorphism theorem** (a definition): the canonical isomorphism between
 `G/(ker φ)` to `range φ`. -/
 @[to_additive quotient_add_group.quotient_ker_equiv_range "The first isomorphism theorem
 (a definition): the canonical isomorphism between `G/(ker φ)` to `range φ`."]
@@ -270,8 +270,8 @@ section snd_isomorphism_thm
 
 open subgroup
 
-/-- The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`, where `N`
-is normal, defines an isomorphism between `H/(H ∩ N)` and `(HN)/N`. -/
+/-- **Noether's second isomorphism theorem**: given two subgroups `H` and `N` of a group `G`, where
+`N` is normal, defines an isomorphism between `H/(H ∩ N)` and `(HN)/N`. -/
 @[to_additive "The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`,
 where `N` is normal, defines an isomorphism between `H/(H ∩ N)` and `(H + N)/N`"]
 noncomputable def quotient_inf_equiv_prod_normal_quotient (H N : subgroup G) [N.normal] :

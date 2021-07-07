@@ -1639,24 +1639,6 @@ end multiset
 
 namespace fintype
 
-/-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
-that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
-lemma induction_empty_option {P : Type u → Prop}
-  (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
-  (h_empty : P pempty)
-  (h_option : ∀ {α} [fintype α], P α → P (option α))
-  (α : Type u) [fintype α] : P α :=
-begin
-  suffices : ∀ n : ℕ, P (ulift $ fin n),
-  { exact of_equiv (equiv.ulift.trans (equiv_fin α).symm) (this (fintype.card α)), },
-  intro n,
-  induction n with n ih,
-  { refine of_equiv (equiv_of_card_eq _) h_empty,
-    simp only [card_fin, card_pempty, card_ulift], },
-  { refine of_equiv (equiv_of_card_eq _) (h_option ih),
-    simp only [card_fin, card_option, card_ulift], },
-end
-
 /-- A recursor principle for finite types, analogous to `nat.rec`. It effectively says
 that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
 def trunc_rec_empty_option {P : Type u → Sort v}
@@ -1686,6 +1668,19 @@ begin
     apply trunc.map _ ih,
     intro ih,
     refine of_equiv e (h_option ih), },
+end
+
+/-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
+that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
+lemma induction_empty_option {P : Type u → Prop}
+  (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
+  (h_empty : P pempty)
+  (h_option : ∀ {α} [fintype α], P α → P (option α))
+  (α : Type u) [fintype α] : P α :=
+begin
+  haveI := classical.dec_eq α,
+  obtain ⟨p⟩ := trunc_rec_empty_option @of_equiv h_empty (λ _ _ _, by exactI h_option) α,
+  exact p,
 end
 
 end fintype

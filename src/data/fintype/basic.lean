@@ -1636,3 +1636,12 @@ variables [fintype α] [decidable_eq α]
 count_eq_one_of_mem finset.univ.nodup (finset.mem_univ _)
 
 end multiset
+
+namespace fintype
+variables [fintype α] [complete_lattice β]
+
+lemma sup_eq_supr (f : α → β) : finset.univ.sup f = supr f :=
+le_antisymm (finset.sup_le (λ a ha, le_supr f a))
+  (supr_le (λ a, finset.le_sup (finset.mem_univ a)))
+
+end fintype

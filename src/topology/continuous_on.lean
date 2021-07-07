@@ -658,6 +658,14 @@ lemma continuous_within_at.comp' {g : β → γ} {f : α → β} {s : set α} {t
   continuous_within_at (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
+lemma continous_at.comp_continuous_within_at {g : β → γ} {f : α → β} {s : set α} {x : α}
+  (hg : continuous_at g (f x)) (hf : continuous_within_at f s x) :
+  continuous_within_at (g ∘ f) s x :=
+begin
+  rw ← continuous_within_at_univ at hg,
+  exact hg.comp hf subset_preimage_univ,
+end
+
 lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) (h : s ⊆ f ⁻¹' t) :
   continuous_on (g ∘ f) s :=

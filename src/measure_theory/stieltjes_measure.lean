@@ -37,10 +37,10 @@ lemma right_continuous (x : ℝ) : continuous_within_at f (Ici x) x := f.right_c
   measures all intervals. -/
 def length (s : set ℝ) : ℝ≥0∞ := ⨅a b (h : s ⊆ Ioc a b), of_real (f b - f a)
 
-@[simp] lemma f.length_empty : f.length ∅ = 0 :=
+@[simp] lemma length_empty : f.length ∅ = 0 :=
 nonpos_iff_eq_zero.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
 
-@[simp] lemma f.length_Ioc (a b : ℝ) :
+@[simp] lemma length_Ioc (a b : ℝ) :
   f.length (Ioc a b) = of_real (f b - f a) :=
 begin
   refine le_antisymm (infi_le_of_le a $ binfi_le b (subset.refl _))
@@ -48,13 +48,14 @@ begin
   cases le_or_lt b a with ab ab,
   { rw real.to_nnreal_of_nonpos (sub_nonpos.2 (f.mono ab)), apply zero_le, },
   cases (Ioc_subset_Ioc_iff ab).1 h with h₁ h₂,
-  exact real.to_nnreal_le_to_nnreal (sub_le_sub h₂ h₁)
+  exact real.to_nnreal_le_to_nnreal (sub_le_sub (f.mono h₁) (f.mono h₂))
 end
 
-lemma f.length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
+lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
   f.length s₁ ≤ f.length s₂ :=
 infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_refl _⟩
 
+/-
 lemma f.length_eq_infi_Ioo (s) :
   f.length s = ⨅a b (h : s ⊆ Ioo a b), of_real (b - a) :=
 begin
@@ -107,33 +108,35 @@ begin
   exact infi_le_of_le a (infi_le_of_le b $ infi_le_of_le (by refl) (by simp [le_refl]))
 end
 
+-/
 open measure_theory
 
 /-- The stieltjes outer measure, as an outer measure of ℝ. -/
-def stieltjes_outer : outer_measure ℝ :=
+def to_outer : outer_measure ℝ :=
 outer_measure.of_function f.length f.length_empty
 
-lemma stieltjes_outer_le_length (s : set ℝ) : f.stieltjes_outer s ≤ f.length s :=
+lemma to_outer_le_length (s : set ℝ) : f.to_outer s ≤ f.length s :=
 outer_measure.of_function_le _
 
-lemma f.length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
+lemma length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
   (ss : Icc a b ⊆ ⋃i, Ioo (c i) (d i)) :
-  (of_real (b - a) : ℝ≥0∞) ≤ ∑' i, of_real (d i - c i) :=
+  (of_real (f b - f a) : ℝ≥0∞) ≤ ∑' i, of_real (f (d i) - f (c i)) :=
 begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),
-    (of_real (b - a) : ℝ≥0∞) ≤ ∑ i in s, of_real (d i - c i),
+    (of_real (f b - f a) : ℝ≥0∞) ≤ ∑ i in s, of_real (f (d i) - f (c i)),
   { rcases is_compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
       @is_open_Ioo _ _ _ _ (c i) (d i)) (by simpa using ss) with ⟨s, su, hf, hs⟩,
-    have e : (⋃ i ∈ (↑hf.to_finset:set ℕ),
-      Ioo (c i) (d i)) = (⋃ i ∈ s, Ioo (c i) (d i)), {simp [set.ext_iff]},
+    have e : (⋃ i ∈ (↑hf.to_finset:set ℕ), Ioo (c i) (d i)) = (⋃ i ∈ s, Ioo (c i) (d i)),
+      by simp only [ext_iff, exists_prop, finset.set_bUnion_coe, mem_Union, forall_const, iff_self,
+                    finite.mem_to_finset],
     rw ennreal.tsum_eq_supr_sum,
     refine le_trans _ (le_supr _ hf.to_finset),
-    exact this hf.to_finset _ (by simpa [e]) },
+    exact this hf.to_finset _ (by simpa only [e]) },
   clear ss b,
   refine λ s, finset.strong_induction_on s (λ s IH b cv, _),
   cases le_total b a with ab ab,
-  { rw ennreal.of_real_eq_zero.2 (sub_nonpos.2 ab), exact zero_le _ },
+  { rw ennreal.of_real_eq_zero.2 (sub_nonpos.2 (f.mono ab)), exact zero_le _, },
   have := cv ⟨ab, le_refl _⟩, simp at this,
   rcases this with ⟨i, is, cb, bd⟩,
   rw [← finset.insert_erase is] at cv ⊢,
@@ -142,35 +145,46 @@ begin
   refine le_trans _ (add_le_add_left (IH _ (finset.erase_ssubset is) (c i) _) _),
   { refine le_trans (ennreal.of_real_le_of_real _) ennreal.of_real_add_le,
     rw sub_add_sub_cancel,
-    exact sub_le_sub_right (le_of_lt bd) _ },
+    exact sub_le_sub_right (f.mono bd.le) _ },
   { rintro x ⟨h₁, h₂⟩,
     refine (cv ⟨h₁, le_trans h₂ (le_of_lt cb)⟩).resolve_left
       (mt and.left (not_lt_of_le h₂)) }
 end
 
-/-
 @[simp] lemma stieltjes_outer_Icc (a b : ℝ) :
-  f.stieltjes_outer (Ioc a b) = of_real (f b - f a) :=
+  f.to_outer (Ioc a b) = of_real (f b - f a) :=
 begin
-  refine le_antisymm (by rw ← f.length_Icc; apply stieltjes_outer_le_length)
-    (le_binfi $ λ f hf, ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
+  refine le_antisymm (by { rw ← f.length_Ioc, apply to_outer_le_length })
+    (le_binfi $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
-  choose g hg using show
-    ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ℝ≥0∞) <
-      f.length (f i) + ε' i,
+  have : ∀ i, ∃ p:ℝ×ℝ, s i ⊆ Ioo p.1 p.2 ∧
+                        (of_real (f p.2 - f p.1) : ℝ≥0∞) < f.length (s i) + ε' i,
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
-    conv at this {to_lhs, rw f.length_eq_infi_Ioo},
-    simpa [infi_lt_iff] },
+    conv at this { to_lhs, rw length },
+    simp only [infi_lt_iff, exists_prop] at this,
+    rcases this with ⟨p, q', spq, hq'⟩,
+    have : continuous_within_at (λ r, of_real (f r - f p)) (Ioi q') q',
+    { apply continuous_at.comp_continuous_within_at,
+
+    },
+    rcases (((tendsto_order.1 this).2 _ hq').and self_mem_nhds_within).exists with ⟨q, hq, q'q⟩,
+    exact ⟨⟨p, q⟩, spq.trans (Ioc_subset_Ioo_right q'q), hq⟩ },
+  choose g hg using this,
+end
+
+#exit
+
   refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hg i).2),
   exact f.length_subadditive (subset.trans hf $
     Union_subset_Union $ λ i, (hg i).1)
 end
--/
+
+#exit
 
 @[simp] lemma stieltjes_outer_singleton (a : ℝ) : stieltjes_outer {a} = 0 :=
 by simpa using stieltjes_outer_Icc a a

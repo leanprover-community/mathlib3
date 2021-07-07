@@ -953,7 +953,7 @@ begin
     glue_space (Y n).isom (isometry_optimal_GH_injl (X n) (X n.succ)) = (Y n.succ).space :=
     λ n, by { simp [Y, aux_gluing], refl },
   let c := λ n, cast (E n),
-  have ic : ∀ n, isometry (c n) := λ n x y, by { simp only [c, cast_eq], },
+  have ic : ∀ n, isometry (c n) := λ n x y, rfl,
   -- there is a canonical embedding of `Y n` in `Y (n+1)`, by construction
   let f : Πn, (Y n).space → (Y n.succ).space :=
     λ n, (c n) ∘ (to_glue_l (aux_gluing X n).isom (isometry_optimal_GH_injl (X n) (X n.succ))),

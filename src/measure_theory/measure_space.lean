@@ -1474,10 +1474,7 @@ lemma prob_add_prob_compl [probability_measure μ]
 by rw [measure_add_measure_compl h, measure_univ]
 
 lemma prob_le_one [probability_measure μ] : μ s ≤ 1 :=
-begin
-  have h₁ : μ s ≤ μ set.univ := measure_mono (set.subset_univ _),
-  rwa measure_univ at h₁,
-end
+(measure_mono $ set.subset_univ _).trans_eq measure_univ
 
 section no_atoms
 

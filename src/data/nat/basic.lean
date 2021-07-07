@@ -222,6 +222,46 @@ theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 
+@[simp] lemma min_eq_zero_iff {m n : ℕ} : min m n = 0 ↔ m = 0 ∨ n = 0 :=
+begin
+  split,
+  { intro h,
+    cases le_total n m with H H,
+    { simpa [H] using or.inr h },
+    { simpa [H] using or.inl h } },
+  { rintro (rfl|rfl);
+    simp }
+end
+
+@[simp] lemma max_eq_zero_iff {m n : ℕ} : max m n = 0 ↔ m = 0 ∧ n = 0 :=
+begin
+  split,
+  { intro h,
+    cases le_total n m with H H,
+    { simp only [H, max_eq_left] at h,
+      exact ⟨h, le_antisymm (H.trans h.le) (zero_le _)⟩ },
+    { simp only [H, max_eq_right] at h,
+      exact ⟨le_antisymm (H.trans h.le) (zero_le _), h⟩ } },
+  { rintro ⟨rfl, rfl⟩,
+    simp }
+end
+
+lemma add_eq_max_iff {n m : ℕ} :
+  n + m = max n m ↔ n = 0 ∨ m = 0 :=
+begin
+  rw ←min_eq_zero_iff,
+  cases le_total n m with H H;
+  simp [H]
+end
+
+lemma add_eq_min_iff {n m : ℕ} :
+  n + m = min n m ↔ n = 0 ∧ m = 0 :=
+begin
+  rw ←max_eq_zero_iff,
+  cases le_total n m with H H;
+  simp [H]
+end
+
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 lt_of_le_of_lt (nat.zero_le _) h
 

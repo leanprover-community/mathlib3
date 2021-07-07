@@ -285,9 +285,6 @@ apply_nolint tactic.op_induction doc_blame
 apply_nolint tactic.op_induction' doc_blame
 
 -- data/option/defs.lean
-apply_nolint option.lift_or_get doc_blame
-apply_nolint option.rel doc_blame
-apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
 
 -- data/pequiv.lean
@@ -381,9 +378,6 @@ apply_nolint wseq.lift_rel_o doc_blame
 apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
-
--- data/string/basic.lean
-apply_nolint string.ltb doc_blame
 
 -- data/vector2.lean
 apply_nolint vector.insert_nth doc_blame

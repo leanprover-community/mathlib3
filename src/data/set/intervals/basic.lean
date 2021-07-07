@@ -589,6 +589,10 @@ lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
   ⟨this.1, le_of_not_lt $ λ h', lt_irrefl b₂ (h ⟨this.2.le, h'⟩).2⟩,
  λ ⟨h₁, h₂⟩, Ico_subset_Ico h₁ h₂⟩
 
+lemma Ioc_subset_Ioc_iff (h₁ : a₁ < b₁) :
+  Ioc a₁ b₁ ⊆ Ioc a₂ b₂ ↔ b₁ ≤ b₂ ∧ a₂ ≤ a₁ :=
+by { convert @Ico_subset_Ico_iff (order_dual α) _ b₁ b₂ a₁ a₂ h₁; exact (@dual_Ico α _ _ _).symm }
+
 lemma Ioo_subset_Ioo_iff [densely_ordered α] (h₁ : a₁ < b₁) :
   Ioo a₁ b₁ ⊆ Ioo a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
 ⟨λ h, begin

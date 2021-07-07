@@ -35,28 +35,28 @@ lemma right_continuous (x : ℝ) : continuous_within_at f (Ici x) x := f.right_c
 
 /-- Length of an interval. This is the largest monotonic function which correctly
   measures all intervals. -/
-def stieltjes_length (s : set ℝ) : ℝ≥0∞ := ⨅a b (h : s ⊆ Ioc a b), of_real (f b - f a)
+def length (s : set ℝ) : ℝ≥0∞ := ⨅a b (h : s ⊆ Ioc a b), of_real (f b - f a)
 
-@[simp] lemma stieltjes_length_empty : f.stieltjes_length ∅ = 0 :=
+@[simp] lemma f.length_empty : f.length ∅ = 0 :=
 nonpos_iff_eq_zero.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
 
-@[simp] lemma stieltjes_length_Ioc (a b : ℝ) :
-  f.stieltjes_length (Ioc a b) = of_real (f b - f a) :=
+@[simp] lemma f.length_Ioc (a b : ℝ) :
+  f.length (Ioc a b) = of_real (f b - f a) :=
 begin
   refine le_antisymm (infi_le_of_le a $ binfi_le b (subset.refl _))
     (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, ennreal.coe_le_coe.2 _),
   cases le_or_lt b a with ab ab,
-  { rw real.to_nnreal_of_nonpos (sub_nonpos.2 ab), apply zero_le },
-  cases (Ico_subset_Ico_iff ab).1 h with h₁ h₂,
+  { rw real.to_nnreal_of_nonpos (sub_nonpos.2 (f.mono ab)), apply zero_le, },
+  cases (Ioc_subset_Ioc_iff ab).1 h with h₁ h₂,
   exact real.to_nnreal_le_to_nnreal (sub_le_sub h₂ h₁)
 end
 
-lemma stieltjes_length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
-  f.stieltjes_length s₁ ≤ f.stieltjes_length s₂ :=
+lemma f.length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
+  f.length s₁ ≤ f.length s₂ :=
 infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_refl _⟩
 
-lemma stieltjes_length_eq_infi_Ioo (s) :
-  f.stieltjes_length s = ⨅a b (h : s ⊆ Ioo a b), of_real (b - a) :=
+lemma f.length_eq_infi_Ioo (s) :
+  f.length s = ⨅a b (h : s ⊆ Ioo a b), of_real (b - a) :=
 begin
   refine le_antisymm
     (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
@@ -70,21 +70,21 @@ begin
   simp only [ennreal.of_real_coe_nnreal, le_refl]
 end
 
-@[simp] lemma stieltjes_length_Ioo (a b : ℝ) :
-  f.stieltjes_length (Ioo a b) = of_real (b - a) :=
+@[simp] lemma f.length_Ioo (a b : ℝ) :
+  f.length (Ioo a b) = of_real (b - a) :=
 begin
-  rw ← stieltjes_length_Ico,
-  refine le_antisymm (stieltjes_length_mono Ioo_subset_Ico_self) _,
-  rw stieltjes_length_eq_infi_Ioo (Ioo a b),
+  rw ← f.length_Ico,
+  refine le_antisymm (f.length_mono Ioo_subset_Ico_self) _,
+  rw f.length_eq_infi_Ioo (Ioo a b),
   refine (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, _),
   cases le_or_lt b a with ab ab, {simp [ab]},
   cases (Ioo_subset_Ioo_iff ab).1 h with h₁ h₂,
-  rw [stieltjes_length_Ico],
+  rw [f.length_Ico],
   exact ennreal.of_real_le_of_real (sub_le_sub h₂ h₁)
 end
 
-lemma stieltjes_length_eq_infi_Icc (s) :
-  f.stieltjes_length s = ⨅a b (h : s ⊆ Icc a b), of_real (b - a) :=
+lemma f.length_eq_infi_Icc (s) :
+  f.length s = ⨅a b (h : s ⊆ Icc a b), of_real (b - a) :=
 begin
   refine le_antisymm _
     (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
@@ -98,12 +98,12 @@ begin
   simp only [ennreal.of_real_coe_nnreal, le_refl]
 end
 
-@[simp] lemma stieltjes_length_Icc (a b : ℝ) :
-  f.stieltjes_length (Icc a b) = of_real (b - a) :=
+@[simp] lemma f.length_Icc (a b : ℝ) :
+  f.length (Icc a b) = of_real (b - a) :=
 begin
-  rw ← stieltjes_length_Ico,
-  refine le_antisymm _ (stieltjes_length_mono Ico_subset_Icc_self),
-  rw stieltjes_length_eq_infi_Icc (Icc a b),
+  rw ← f.length_Ico,
+  refine le_antisymm _ (f.length_mono Ico_subset_Icc_self),
+  rw f.length_eq_infi_Icc (Icc a b),
   exact infi_le_of_le a (infi_le_of_le b $ infi_le_of_le (by refl) (by simp [le_refl]))
 end
 
@@ -111,12 +111,12 @@ open measure_theory
 
 /-- The stieltjes outer measure, as an outer measure of ℝ. -/
 def stieltjes_outer : outer_measure ℝ :=
-outer_measure.of_function f.stieltjes_length f.stieltjes_length_empty
+outer_measure.of_function f.length f.length_empty
 
-lemma stieltjes_outer_le_length (s : set ℝ) : f.stieltjes_outer s ≤ f.stieltjes_length s :=
+lemma stieltjes_outer_le_length (s : set ℝ) : f.stieltjes_outer s ≤ f.length s :=
 outer_measure.of_function_le _
 
-lemma stieltjes_length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
+lemma f.length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
   (ss : Icc a b ⊆ ⋃i, Ioo (c i) (d i)) :
   (of_real (b - a) : ℝ≥0∞) ≤ ∑' i, of_real (d i - c i) :=
 begin
@@ -152,7 +152,7 @@ end
 @[simp] lemma stieltjes_outer_Icc (a b : ℝ) :
   f.stieltjes_outer (Ioc a b) = of_real (f b - f a) :=
 begin
-  refine le_antisymm (by rw ← stieltjes_length_Icc; apply stieltjes_outer_le_length)
+  refine le_antisymm (by rw ← f.length_Icc; apply stieltjes_outer_le_length)
     (le_binfi $ λ f hf, ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
@@ -160,14 +160,14 @@ begin
   rw ← ennreal.tsum_add,
   choose g hg using show
     ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ℝ≥0∞) <
-      stieltjes_length (f i) + ε' i,
+      f.length (f i) + ε' i,
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
-    conv at this {to_lhs, rw stieltjes_length_eq_infi_Ioo},
+    conv at this {to_lhs, rw f.length_eq_infi_Ioo},
     simpa [infi_lt_iff] },
   refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hg i).2),
-  exact stieltjes_length_subadditive (subset.trans hf $
+  exact f.length_subadditive (subset.trans hf $
     Union_subset_Union $ λ i, (hg i).1)
 end
 -/
@@ -194,26 +194,21 @@ begin
   apply outer_measure.of_function_caratheodory (λ t, _),
   refine le_infi (λ a, le_infi (λ b, le_infi (λ h, _))),
   refine le_trans (add_le_add
-    (f.stieltjes_length_mono $ inter_subset_inter_left _ h)
-    (f.stieltjes_length_mono $ diff_subset_diff_left h)) _,
-  cases le_total a c with hac hca; cases le_total b c with hbc hcb,
-  simp [Ioc_inter_Ioi, stieltjes_length_Ioc, hac, sup_eq_max],
+    (f.length_mono $ inter_subset_inter_left _ h)
+    (f.length_mono $ diff_subset_diff_left h)) _,
+  cases le_total a c with hac hac; cases le_total b c with hbc hbc,
+  { simp only [Ioc_inter_Ioi, f.length_Ioc, hac, sup_eq_max, hbc, le_refl,
+      Ioc_eq_empty, max_eq_right, min_eq_left, Ioc_diff_Ioi, f.length_empty, zero_add] },
+  { simp only [hac, hbc, Ioc_inter_Ioi, Ioc_diff_Ioi, f.length_Ioc, min_eq_right,
+      sup_eq_max, ←ennreal.of_real_add, f.mono hac, f.mono hbc, sub_nonneg, sub_add_sub_cancel,
+      le_refl, max_eq_right] },
+  { simp only [hbc, le_refl, Ioc_eq_empty, Ioc_inter_Ioi, min_eq_left, Ioc_diff_Ioi,
+      f.length_empty, zero_add, or_true, le_sup_iff, f.length_Ioc] },
+  { simp only [hac, hbc, Ioc_inter_Ioi, Ioc_diff_Ioi, f.length_Ioc, min_eq_right,
+      sup_eq_max, le_refl, Ioc_eq_empty, add_zero, max_eq_left, f.length_empty] }
 end
 
 #exit
-
-Ioc a b \ Ioi c
-
-outer_measure.of_function_caratheodory $ λ t,
-le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
-  refine le_trans (add_le_add
-    (f.stieltjes_length_mono $ inter_subset_inter_left _ h)
-    (f.stieltjes_length_mono $ diff_subset_diff_left h)) _,
-  cases le_total a c with hac hca; cases le_total b c with hbc hcb,
-    simp [*, -sub_eq_add_neg, sub_add_sub_cancel', le_refl],
-  { simp [*, ← ennreal.of_real_add, -sub_eq_add_neg, sub_add_sub_cancel', le_refl] },
-  { simp only [ennreal.of_real_eq_zero.2 (sub_nonpos.2 (le_trans hbc hca)), zero_add, le_refl] }
-end
 
 theorem stieltjes_outer_trim : stieltjes_outer.trim = stieltjes_outer :=
 begin
@@ -227,11 +222,11 @@ begin
   rw ← ennreal.tsum_add,
   choose g hg using show
     ∀ i, ∃ s, f i ⊆ s ∧ measurable_set s ∧
-      stieltjes_outer s ≤ stieltjes_length (f i) + of_real (ε' i),
+      stieltjes_outer s ≤ f.length (f i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
-    conv at this {to_lhs, rw stieltjes_length},
+    conv at this {to_lhs, rw f.length},
     simp only [infi_lt_iff] at this,
     rcases this with ⟨a, b, h₁, h₂⟩,
     rw ← stieltjes_outer_Ico at h₂,

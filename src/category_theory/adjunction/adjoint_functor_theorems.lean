@@ -49,12 +49,6 @@ def solution_set_condition {D : Type u} [category.{v} D] (G : D ⥤ C) : Prop :=
 
 variables {D : Type u} [category.{v} D]
 
--- TODO: move this section somewhere.
--- TODO: consider showing the converse
--- TODO: dualise
--- This section proves that if each comma category (A ↓ G) has an initial object then `G` has a
--- left adjoint
-
 section gaft
 
 variables (G : D ⥤ C) [has_limits D]

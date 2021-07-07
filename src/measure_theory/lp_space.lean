@@ -1576,7 +1576,12 @@ def comp_Lpₗ (L : E →L[𝕜] F) : (Lp E p μ) →ₗ[𝕜] (Lp F p μ) :=
   end }
 
 /-- Composing `f : Lp E p μ` with `L : E →L[𝕜] F`, seen as a continuous `𝕜`-linear map on
-`Lp E p μ`. -/
+`Lp E p μ`. See also the similar
+* `linear_map.comp_left` for functions,
+* `continuous_linear_map.comp_left_continuous` for continuous functions,
+* `continuous_linear_map.comp_left_continuous_bounded` for bounded continuous functions,
+* `continuous_linear_map.comp_left_continuous_compact` for continuous functions on compact spaces.
+-/
 def comp_LpL [fact (1 ≤ p)] (L : E →L[𝕜] F) : (Lp E p μ) →L[𝕜] (Lp F p μ) :=
 linear_map.mk_continuous (L.comp_Lpₗ p μ) ∥L∥ L.norm_comp_Lp_le
 

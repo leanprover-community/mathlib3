@@ -233,40 +233,32 @@ lemma something2 (p : coprime_ints) (z : ℍ) :
   ∃ (w : ℂ), ∀ g : bottom_row ⁻¹' {p},
   ↑((g : SL(2, ℤ)) • z) = ((acbd p ↑g) : ℂ ) / (p.c ^ 2 + p.d ^ 2) + w :=
 begin
-  use (((p.d:ℂ )* z - p.c)*(p.c * (z:ℂ).conj + p.d) ) /
-    ((p.c ^ 2 + p.d ^ 2) * (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))),
-  have nonZ1 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0,
-  { norm_cast,
-    exact p.sum_sq_ne_zero },
-  have nonZ2 : (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))  ≠ 0,
-  { rw (_ : (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))=((p.c:ℝ)*(z.re)+p.d)^2+(p.c*z.im)^2),
-    { by_cases (p.c:ℝ)=0,
-      { norm_cast at h,
-        rw h,
-        simp only [nat.succ_pos', nat.one_ne_zero, int.cast_eq_zero, add_zero, int.cast_zero,
-         of_real_zero, zero_mul, ne.def, zero_add, not_false_iff, bit0_eq_zero, zero_pow',
-         pow_eq_zero_iff],
-        by_contra h1,
-        rw [h, h1] at nonZ1,
-        simp at nonZ1,
-        exact nonZ1 },
-      { norm_cast,
-        have : 0 < ((p.c:ℝ) * z.re + p.d) ^ 2 + (p.c * z.im) ^ 2,
-        { calc 0 < ((p.c:ℝ) * z.im) ^ 2 : pow_bit0_pos (mul_ne_zero h (ne_of_gt z.im_pos)) 1
-            ... ≤ ((p.c:ℝ) * z.re + p.d) ^ 2 + (p.c * z.im) ^ 2 :
-            le_add_of_nonneg_left (sq_nonneg ((p.c:ℝ) * z.re + p.d)) },
-        exact ne_of_gt this } },
-    ext,
-    ring,
-    sorry, -- COME ON! :(
-    sorry
-  },
+  obtain ⟨pg, hpg⟩ := bottom_row_surj p,
+  use ((p.d:ℂ )* z - p.c) /
+    ((p.c ^ 2 + p.d ^ 2) * (bottom pg z)),
+  have nonZ1 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0 := by exact_mod_cast p.sum_sq_ne_zero,
+  --have nonZ2 : norm_sq (bottom pg z)  ≠ 0 := normsq_bottom_ne_zero pg z,
   intro g,
-  field_simp [nonZ1,nonZ2, bottom_ne_zero, -upper_half_plane.bottom_def],
+  let acbdg := acbd p,
+--  let acbdg := (acbd p) (((g : SL(2,ℤ)) : matrix (fin 2) (fin 2) ℝ).map coe),
+  field_simp [nonZ1, bottom_ne_zero, -upper_half_plane.bottom_def],
+  rw (_ : bottom (g:SL(2,ℤ)) z =  bottom pg z),
+  rw (_ : (p.d:ℂ)*z - p.c = (g 0 0)*(p.d)^2*z - (g 0 1)*(p.c)^2*z + (g 0 1)*(p.c)^2 - (g 0 0)*(p.d)*(p.c)),
+--  simp [acbd, matrix.coord],
+  sorry,
+  {
+
+    sorry,
+  },
+  {
+    rw bottom,
+    sorry,
+  },
+--  rw (_ : (((acbd p) ((g:matrix (fin 2) (fin 2) ℤ).map coe)):ℂ) = (p.c:ℂ)* g 0 0 + p.d * g 0 1 ),
   -- simp [acbd, smul_aux, smul_aux'],
   -- change ((top _ _) / (bottom _ _) * _) = _,
-  simp [acbd, matrix.coord],
-  ring,
+--  simp [acbd, matrix.coord],
+--  ring,
   -- Heather homework :)
   sorry,
 end

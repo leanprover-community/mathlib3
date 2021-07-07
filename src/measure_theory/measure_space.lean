@@ -1471,7 +1471,7 @@ mt measure_univ_eq_zero.2 $ by simp [measure_univ]
 
 lemma prob_add_prob_compl [probability_measure μ]
   (h : measurable_set s) : μ s + μ sᶜ = 1 :=
-by rw [measure_add_measure_compl h, measure_univ]
+(measure_add_measure_compl h).trans measure_univ
 
 lemma prob_le_one [probability_measure μ] : μ s ≤ 1 :=
 (measure_mono $ set.subset_univ _).trans_eq measure_univ

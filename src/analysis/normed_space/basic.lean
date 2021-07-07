@@ -140,7 +140,7 @@ by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
 @[simp] lemma dist_sub_right (g₁ g₂ h : α) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using dist_add_right _ _ _
 
-/-- Triangle inequality for the norm. -/
+/-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : α) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 (-h)
 
@@ -219,6 +219,10 @@ lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥h - g∥ < r :=
 by rw [mem_ball, dist_eq_norm]
 
+lemma add_mem_ball_iff_norm {g h : α} {r : ℝ} :
+  g + h ∈ ball g r ↔ ∥h∥ < r :=
+by rw [mem_ball_iff_norm, add_sub_cancel']
+
 lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
@@ -229,6 +233,10 @@ by rw [mem_ball, dist_zero_right]
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
+
+lemma add_mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
+  g + h ∈ closed_ball g r ↔ ∥h∥ ≤ r :=
+by rw [mem_closed_ball_iff_norm, add_sub_cancel']
 
 lemma mem_closed_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥g - h∥ ≤ r :=

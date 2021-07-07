@@ -19,7 +19,6 @@ open_locale direct_sum classical big_operators
 open classical linear_map
 noncomputable theory
 
-section setup
 variables (ι : Type u) (R : Type v) (M : Type w)
 variables [semiring R] [add_comm_monoid M] [module R M]
 
@@ -37,6 +36,7 @@ structure decomposition : Type (max u v w) :=
 (factors_ind : complete_lattice.independent factors)
 (factors_supr : supr factors = ⊤)
 
+/-
 variables {ι R M}
 
 /--
@@ -197,3 +197,4 @@ begin
   exact_mod_cast h,
   exact linear_equiv.injective _,
 end
+-/

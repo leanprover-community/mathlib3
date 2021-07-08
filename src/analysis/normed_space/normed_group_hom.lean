@@ -563,7 +563,7 @@ def lift (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
   map_add' := λ v₁ v₂, by { ext, simp only [map_add, add_subgroup.coe_add, subtype.coe_mk] },
   bound' := by { obtain ⟨C, C_pos, hC⟩ := φ.bound, exact ⟨C, hC⟩ } }
 
-@[simp] lemma lift_ι (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
+@[simp] lemma ι_comp_lift (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
   (ι _ _).comp (lift φ h) = φ :=
 by { ext, refl }
 

@@ -396,9 +396,10 @@ begin
   { exact or.inl (finset.Ico.subset (le_refl N) (by simp [h])), },
 end
 
-lemma finset.Inter_inter_Inter_eq_Inter_union_ite {α ι} (s1 s2 : finset ι) (f1 f2 : ι → set α) :
+lemma finset.Inter_inter_Inter_eq_Inter_union_if {α ι} (s1 s2 : finset ι) (f1 f2 : ι → set α) :
   (⋂ i (hp : i ∈ s1), f1 i) ∩ (⋂ i (hp : i ∈ s2), f2 i)
-    = ⋂ i (hp : i ∈ s1 ∪ s2), (ite (i ∈ s1) (f1 i) set.univ) ∩ (ite (i ∈ s2) (f2 i) set.univ) :=
+    = ⋂ i (hp : i ∈ s1 ∪ s2),
+      (if i ∈ s1 then f1 i else set.univ) ∩ (if i ∈ s2 then f2 i else set.univ) :=
 begin
   simp_rw ←set.inf_eq_inter,
   rw binfi_inf_binfi_eq_binfi_union_if (λ i:ι, i ∈ s1) (λ i:ι, i ∈ s2) f1 f2,

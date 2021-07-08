@@ -591,11 +591,6 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, ← mul_le_mul_iff_left a⁻¹, inv_mul_c
 lemma div_le_div_left' (h : a ≤ b) (c : α) : c / b ≤ c / a :=
 (div_le_div_iff_left c).2 h
 
-/-- `equiv.mul_left` as an order_iso. -/
-@[simps {simp_rhs := tt}]
-def order_iso.mul_left (a : α) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_iff_left a, ..equiv.mul_left a }
-
 end left
 
 end group

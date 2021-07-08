@@ -123,8 +123,7 @@ begin
   contradiction,
 end
 
-lemma to_direct_sum_map_range
-  (p : ι → submodule R M) (h : complete_lattice.independent p) : (to_direct_sum_map p).range = ⊤ :=
+lemma to_direct_sum_map_range (p : ι → submodule R M) : (to_direct_sum_map p).range = ⊤ :=
 begin
   ext,
   cases x with x hx,
@@ -141,7 +140,7 @@ begin
   refine finset.sum_congr rfl (λ i hi, _),
   simp [direct_sum.mk],
   split_ifs,
-  exact h_1.symm,
+  exact h.symm,
   exact set_like.coe_mk _ _,
 end
 
@@ -160,7 +159,7 @@ begin
   dsimp,
   convert to_direct_sum_map_ker p h,
   dsimp,
-  convert to_direct_sum_map_range p h,
+  convert to_direct_sum_map_range p,
 end
 
 @[simp] lemma direct_sum_equiv_of_independent_apply

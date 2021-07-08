@@ -150,7 +150,7 @@ instance incidence_set_decidable_pred [decidable_eq V] [decidable_rel G.adj] (v 
   decidable_pred (G.incidence_set v) := λ e, and.decidable
 
 /--
-The `edge_set` of the graph as a `finset`
+The `edge_set` of the graph as a `finset`.
 -/
 def edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] : finset (sym2 V) :=
 set.to_finset G.edge_set
@@ -285,7 +285,7 @@ by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
 fintype.of_equiv (G.neighbor_set v) (G.incidence_set_equiv_neighbor_set v).symm
 
-/-- This is the `finset` version of `incidence_set` -/
+/-- This is the `finset` version of `incidence_set`. -/
 def incidence_finset [decidable_eq V] : finset (sym2 V) := (G.incidence_set v).to_finset
 
 @[simp] lemma card_incidence_set_eq_degree [decidable_eq V] :

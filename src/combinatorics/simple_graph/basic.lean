@@ -3,11 +3,9 @@ Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
-
 import data.fintype.basic
 import data.sym2
 import data.set.finite
-
 /-!
 # Simple graphs
 
@@ -81,7 +79,8 @@ by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
-  (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) := iff.rfl
+  (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
+iff.rfl
 
 /--
 The complete graph on a type `V` is the simple graph with all pairs of distinct vertices

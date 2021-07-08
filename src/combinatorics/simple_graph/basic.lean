@@ -51,7 +51,7 @@ in order to start learning what the combinatorics hierarchy should
 look like.
 -/
 open finset
-universe u
+universes u v
 
 /--
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
@@ -89,13 +89,14 @@ adjacent.
 def complete_graph (V : Type u) : simple_graph V :=
 { adj := ne }
 
-instance (V : Type u) : inhabited (simple_graph V) := ⟨complete_graph V⟩
+instance (V : Type u) : inhabited (simple_graph V) :=
+⟨complete_graph V⟩
 
 instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
   decidable_rel (complete_graph V).adj := λ v w, not.decidable
 
 namespace simple_graph
-variables {V W: Type u} (G : simple_graph V) (G' : simple_graph V)
+variables {V: Type u} {W: Type v} (G : simple_graph V) (G' : simple_graph W)
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)

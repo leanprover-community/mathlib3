@@ -1449,7 +1449,7 @@ begin
   { exact norm_indicator_const_Lp hp_pos hp_top, },
 end
 
-lemma mem_ℒp_add {f g : α → E}
+lemma mem_ℒp_add_of_disjoint {f g : α → E}
   (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
   mem_ℒp (f + g) p μ ↔ mem_ℒp f p μ ∧ mem_ℒp g p μ :=
 begin

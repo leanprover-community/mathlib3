@@ -760,7 +760,7 @@ begin
         simple_func.coe_piecewise, const_apply, hc],
       exact not_not.symm },
     { intros f g hfg hf hg int_fg,
-      rw [simple_func.coe_add, mem_ℒp_add hfg f.measurable g.measurable] at int_fg,
+      rw [simple_func.coe_add, mem_ℒp_add_of_disjoint hfg f.measurable g.measurable] at int_fg,
       refine h_add hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
   have : ∀ (f : Lp.simple_func E p μ), P f,
   { intro f,

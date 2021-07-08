@@ -428,7 +428,7 @@ h.mono_measure $ measure.le_add_right $ le_refl _
 lemma integrable.right_of_add_measure {f : α → β} (h : integrable f (μ + ν)) : integrable f ν :=
 h.mono_measure $ measure.le_add_left $ le_refl _
 
-@[simp] lemma integrable_add_measure {f : α → β} :
+@[simp] lemma integrable_add_of_disjoint_measure {f : α → β} :
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
 ⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 

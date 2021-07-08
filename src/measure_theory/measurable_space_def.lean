@@ -328,6 +328,14 @@ gi_generate_from.lift_complete_lattice
 
 instance : inhabited (measurable_space α) := ⟨⊤⟩
 
+lemma generate_from_le_generate_from {s t : set (set α)} (h : s ⊆ t) :
+  generate_from s ≤ generate_from t :=
+gi_generate_from.gc.monotone_l h
+
+lemma generate_from_sup_generate_from {s t : set (set α)} :
+  generate_from s ⊔ generate_from t = generate_from (s ∪ t) :=
+(@gi_generate_from α).gc.l_sup.symm
+
 lemma measurable_set_bot_iff {s : set α} : @measurable_set α ⊥ s ↔ (s = ∅ ∨ s = univ) :=
 let b : measurable_space α :=
 { measurable_set'      := λ s, s = ∅ ∨ s = univ,

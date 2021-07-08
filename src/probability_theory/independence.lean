@@ -372,7 +372,7 @@ begin
   exact ⟨hs x y hx.left hy.left, ht x y hx.right hy.right⟩,
 end
 
-lemma sup_closed_totally_ordered {α} [semilattice_sup α] (s : set α)
+lemma sup_closed_of_totally_ordered {α} [semilattice_sup α] (s : set α)
   (hs : ∀ x y : α, x ∈ s → y ∈ s → y ≤ x ∨ x ≤ y) :
   sup_closed s :=
 begin
@@ -383,12 +383,12 @@ begin
 end
 
 lemma sup_closed_of_linear_order {α} [linear_order α] (s : set α) : sup_closed s :=
-sup_closed_totally_ordered s (λ x y hxs hys, le_total y x)
+sup_closed_of_totally_ordered s (λ x y hxs hys, le_total y x)
 
 lemma sup_closed_tail_finset_set (N : ℕ) :
   sup_closed {s : finset ℕ | ∃ r : ℕ, s = finset.Ico N (N+r+1)} :=
 begin
-  refine sup_closed_totally_ordered _ _,
+  refine sup_closed_of_totally_ordered _ _,
   rintros s1 s2 ⟨r1, hs1⟩ ⟨r2, hs2⟩,
   rw [hs1, hs2],
   cases le_total r1 r2,

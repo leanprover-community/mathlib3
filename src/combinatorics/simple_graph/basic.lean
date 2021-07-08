@@ -93,7 +93,8 @@ instance (V : Type u) : inhabited (simple_graph V) :=
 ⟨complete_graph V⟩
 
 instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
-  decidable_rel (complete_graph V).adj := λ v w, not.decidable
+  decidable_rel (complete_graph V).adj :=
+λ v w, not.decidable
 
 namespace simple_graph
 variables {V: Type u} {W: Type v} (G : simple_graph V) (G' : simple_graph W)
@@ -122,7 +123,8 @@ lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set :=
 λ _ h, h.1
 
 @[simp]
-lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := by refl
+lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
+by refl
 
 /--
 Two vertices are adjacent iff there is an edge between them. The

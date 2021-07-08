@@ -33,7 +33,7 @@ namespace subgraph
 
 variable {G}
 
-/-- The edges of `G'` consist of a subset of edges of `G` -/
+/-- The edges of `G'` consist of a subset of edges of `G`. -/
 def edge_set' (G' : subgraph G) : set (sym2 V) := sym2.from_rel G'.sym'
 
 @[simp]

@@ -569,7 +569,7 @@ by { ext, refl }
 
 def lift_equiv : {φ : normed_group_hom V₁ V // f.comp φ = g.comp φ} ≃
   normed_group_hom V₁ (f.equalizer g) :=
-{ to_fun := λ φ, lift φ.1 φ.2,
+{ to_fun := λ φ, lift φ φ.prop,
   inv_fun := λ ψ, ⟨(ι f g).comp ψ, by { rw [← comp_assoc, ← comp_assoc, condition] }⟩,
   left_inv := λ φ, by simp,
   right_inv := λ ψ, by { ext, refl } }

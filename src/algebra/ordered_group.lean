@@ -573,7 +573,14 @@ def order_iso.mul_right (a : α) : α ≃o α :=
 end right
 
 section left
-variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
+variables [covariant_class α α (*) (≤)]
+
+/-- `equiv.mul_left` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_left (a : α) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_iff_left a, ..equiv.mul_left a }
+
+variables [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
 
 @[simp, to_additive]
 lemma div_le_div_iff_left (a : α) : a / b ≤ a / c ↔ c ≤ b :=

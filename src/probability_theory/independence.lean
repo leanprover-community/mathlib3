@@ -396,26 +396,12 @@ begin
   { exact or.inl (finset.Ico.subset (le_refl N) (by simp [h])), },
 end
 
-lemma binfi_eq_infi_ite {α ι} [complete_lattice α] (p : ι → Prop) (f : ι → α) :
-  (⨅ i (h : p i), f i) = ⨅ i, ite (p i) (f i) ⊤ :=
-by {congr' 1 with i, split_ifs; simp [h], }
-
-lemma binfi_inf_binfi_eq_binfi_union_ite {α ι} [complete_lattice α] (p1 p2 : ι → Prop)
-  (f1 f2 : ι → α) :
-  (⨅ i (hp : p1 i), f1 i) ⊓ (⨅ i (hp : p2 i), f2 i)
-    = ⨅ i (hp : p1 i ∨ p2 i), (ite (p1 i) (f1 i) ⊤) ⊓ (ite (p2 i) (f2 i) ⊤) :=
-begin
-  simp_rw [binfi_eq_infi_ite, ←infi_inf_eq],
-  congr' 1 with i,
-  by_cases hi1 : p1 i; by_cases hi2 : p2 i; simp [hi1, hi2],
-end
-
 lemma finset.Inter_inter_Inter_eq_Inter_union_ite {α ι} (s1 s2 : finset ι) (f1 f2 : ι → set α) :
   (⋂ i (hp : i ∈ s1), f1 i) ∩ (⋂ i (hp : i ∈ s2), f2 i)
     = ⋂ i (hp : i ∈ s1 ∪ s2), (ite (i ∈ s1) (f1 i) set.univ) ∩ (ite (i ∈ s2) (f2 i) set.univ) :=
 begin
   simp_rw ←set.inf_eq_inter,
-  rw binfi_inf_binfi_eq_binfi_union_ite (λ i:ι, i ∈ s1) (λ i:ι, i ∈ s2) f1 f2,
+  rw binfi_inf_binfi_eq_binfi_union_if (λ i:ι, i ∈ s1) (λ i:ι, i ∈ s2) f1 f2,
   simp_rw [set.top_eq_univ, set.inf_eq_inter, set.Inter],
   congr,
   ext1 i,
@@ -438,9 +424,7 @@ begin
   have h_inter_eq : t1 ∩ t2 = ⋂ (i : ι) (hp : i ∈ p1 ∪ p2), g i,
   { rw [ht1_eq, ht2_eq],
     exact finset.Inter_inter_Inter_eq_Inter_union_ite p1 p2 f1 f2, },
-  split,
-  swap, { exact h_inter_eq, },
-  intros n hn,
+  refine ⟨λ n hn, _, h_inter_eq⟩,
   simp_rw g,
   split_ifs with hn1 hn2,
   { refine hpi n (f1 n) (f2 n) (hf1m n hn1) (hf2m n hn2) _,
@@ -474,10 +458,10 @@ begin
 end
 
 lemma subset_pi_Union_Inter {α ι} {pi : ι → set (set α)} {S : set (finset ι)}
-  (h_univ : ∀ x, set.univ ∈ (pi x)) {x : ι} {s : finset ι} (hsS : s ∈ S) (hxs : x ∈ s) :
-  pi x ⊆ pi_Union_Inter pi S :=
+  (h_univ : ∀ i, set.univ ∈ (pi i)) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
+  pi i ⊆ pi_Union_Inter pi S :=
 begin
-  refine λ t ht_pix, ⟨s, hsS, (λ i, ite (i = x) t set.univ), _⟩,
+  refine λ t ht_pii, ⟨s, hsS, (λ j, ite (j = i) t set.univ), _⟩,
   split,
   { intros m h_pm,
     split_ifs,
@@ -490,7 +474,7 @@ begin
       split_ifs,
       { exact hx1, },
       { exact set.mem_univ _, }, },
-    { simpa using hx1 x hxs, }, },
+    { simpa using hx1 i his, }, },
 end
 
 lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
@@ -499,19 +483,19 @@ lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
   m ≤ generate_from (pi_Union_Inter pi S) :=
 by { rw hpix, exact generate_from_le_generate_from (subset_pi_Union_Inter h_univ htS hxt) }
 
-lemma measurable_subset_pi_Union_Inter {α ι} (s : ι → measurable_space α)
+lemma measurable_subset_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   {S : set (finset ι)} {i : ι} {p : finset ι} (hpS : p ∈ S) (hpi : i ∈ p) :
-  set_of (s i).measurable_set' ⊆ pi_Union_Inter (λ n, (s n).measurable_set') S :=
+  set_of (m i).measurable_set' ⊆ pi_Union_Inter (λ n, (m n).measurable_set') S :=
 begin
   intros t ht,
   let g := λ n, ite (n=i) t set.univ,
   use [p, hpS, g],
   split,
   { intros j hj,
-    change (s j).measurable_set' (ite (j=i) t set.univ),
+    change (m j).measurable_set' (ite (j=i) t set.univ),
     split_ifs with hji,
     { rwa hji, },
-    { exact @measurable_set.univ α (s j), }, },
+    { exact @measurable_set.univ α (m j), }, },
   { ext,
     simp_rw [set.mem_Inter, g],
     split; intro hx,
@@ -520,18 +504,17 @@ begin
     { simpa using (hx i hpi), }, },
 end
 
-lemma pi_Union_Inter_subset_measurable {α ι} (s : ι → measurable_space α)
-  (S : set (finset ι)) :
-  pi_Union_Inter (λ n, (s n).measurable_set') S
-    ⊆ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i).measurable_set' :=
+lemma pi_Union_Inter_subset_measurable {α ι} (m : ι → measurable_space α) (S : set (finset ι)) :
+  pi_Union_Inter (λ n, (m n).measurable_set') S
+    ⊆ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), m i).measurable_set' :=
 begin
   intros t ht,
   rw [pi_Union_Inter, set.mem_set_of_eq] at ht,
   rcases ht with ⟨pt, hpt, ft, ht_m, ht_eq⟩,
   have h_i : ∀ i, i ∈ pt
-    → (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i).measurable_set' (ft i),
+    → (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), m i).measurable_set' (ft i),
   { intros i hi,
-    have h_le : s i ≤ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i),
+    have h_le : m i ≤ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), m i),
     { have hi' : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p,
       { use pt,
         exact ⟨hpt, hi⟩, },
@@ -539,7 +522,7 @@ begin
     exact h_le (ft i) (ht_m i hi), },
   subst ht_eq,
   exact @finset.measurable_set_bInter _ _
-    ((⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i)) _ pt (λ i hipt, h_i i hipt),
+    ((⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), m i)) _ pt (λ i hipt, h_i i hipt),
 end
 
 lemma bsupr_measurable_space_eq_generate_from_pi_Union_Inter {α ι} (m : ι → measurable_space α)

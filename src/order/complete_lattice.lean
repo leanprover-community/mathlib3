@@ -682,6 +682,14 @@ lemma infi_eq_if {p : Prop} [decidable p] (a : α) :
   (⨅h:p, a) = (if p then a else ⊤) :=
 infi_eq_dif (λ _, a)
 
+lemma bsupr_eq_supr_if {ι} (p : ι → Prop) [decidable_pred p] (f : ι → α) :
+  (⨆ i (h : p i), f i) = ⨆ i, if p i then f i else ⊥ :=
+by {congr' 1 with i, exact supr_eq_if _, }
+
+lemma binfi_eq_infi_if {ι} (p : ι → Prop) [decidable_pred p] (f : ι → α) :
+  (⨅ i (h : p i), f i) = ⨅ i, if p i then f i else ⊤ :=
+by {congr' 1 with i, exact infi_eq_if _, }
+
 -- TODO: should this be @[simp]?
 theorem infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=
 le_antisymm
@@ -748,6 +756,16 @@ le_antisymm
     (inf_le_of_left_le $ infi_le _ _)
     (inf_le_of_right_le $ infi_le _ _))
 
+lemma binfi_inf_binfi_eq_binfi_union_if {ι} (p1 p2 : ι → Prop) [decidable_pred p1]
+  [decidable_pred p2] (f1 f2 : ι → α) :
+  (⨅ i (hp : p1 i), f1 i) ⊓ (⨅ i (hp : p2 i), f2 i)
+    = ⨅ i (hp : p1 i ∨ p2 i), (if p1 i then f1 i else ⊤) ⊓ (if p2 i then f2 i else ⊤) :=
+begin
+  simp_rw [binfi_eq_infi_if, ←infi_inf_eq],
+  congr' 1 with i,
+  by_cases hi1 : p1 i; by_cases hi2 : p2 i; simp [hi1, hi2],
+end
+
 /- TODO: here is another example where more flexible pattern matching
    might help.
 
@@ -774,6 +792,12 @@ by simpa only [inf_comm] using binfi_inf h
 
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 @infi_inf_eq (order_dual α) β _ _ _
+
+lemma bsupr_sup_bsupr_eq_bsupr_union_if {ι} (p1 p2 : ι → Prop) [decidable_pred p1]
+  [decidable_pred p2] (f1 f2 : ι → α) :
+  (⨆ i (hp : p1 i), f1 i) ⊔ (⨆ i (hp : p2 i), f2 i)
+    = ⨆ i (hp : p1 i ∨ p2 i), (if p1 i then f1 i else ⊥) ⊔ (if p2 i then f2 i else ⊥) :=
+@binfi_inf_binfi_eq_binfi_union_if (order_dual α) _ _ _ _ _ _ _ _
 
 lemma supr_sup [h : nonempty ι] {f : ι → α} {a : α} : (⨆ x, f x) ⊔ a = (⨆ x, f x ⊔ a) :=
 @infi_inf (order_dual α) _ _ _ _ _

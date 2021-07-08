@@ -520,7 +520,7 @@ infix ` ≃g ` : 50 := isomorphism
   `G.adj f(v) f(w) ↔ G.adj v w `. Its image is an induced subgraph of G' -/
 abbreviation embedding := rel_embedding G.adj G'.adj
 
-lemma graph_iso_self : G ≃g G :=
+def graph_iso_self : G ≃g G :=
 begin
   fconstructor,
   exact equiv.cast rfl,
@@ -528,7 +528,7 @@ begin
   exact iff.rfl,
 end
 
-lemma graph_hom_self : G →g G :=
+def graph_hom_self : G →g G :=
 begin
   fconstructor,
   exact equiv.cast rfl,

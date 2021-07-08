@@ -71,7 +71,6 @@ begin
   { exact ⟨Hinh, b, Hb⟩, }
 end
 
-
 @[simp]
 lemma cInf_empty : Inf (∅ : set ℤ) = 0 := dif_neg (by simp)
 

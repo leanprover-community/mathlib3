@@ -32,6 +32,20 @@ variable {α : Type*}
 section linear_ordered_field
 variables [linear_ordered_field α] {a b c d e : α}
 
+section
+
+/-- `equiv.mul_left'` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_left' (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_left ha, ..equiv.mul_left' a ha.ne' }
+
+/-- `equiv.mul_right'` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_right' (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_right ha, ..equiv.mul_right' a ha.ne' }
+
+end
+
 /-!
 ### Lemmas about pos, nonneg, nonpos, neg
 -/

@@ -7,6 +7,7 @@ Authors: Damiano Testa
 import algebra.group.defs
 
 /-!
+
 # Covariants and contravariants
 
 This file contains general lemmas and instances to work with the interactions between a relation and
@@ -16,7 +17,7 @@ The intended application is the splitting of the ordering from the algebraic ass
 operations in the `ordered_[...]` hierarchy.
 
 The strategy is to introduce two more flexible typeclasses, `covariant_class` and
-`contravariant_class`.
+`contravariant_class`:
 
 * `covariant_class` models the implication `a ≤ b → c * a ≤ c * b` (multiplication is monotone),
 * `contravariant_class` models the implication `a * b < a * c → b < c`.
@@ -24,10 +25,10 @@ The strategy is to introduce two more flexible typeclasses, `covariant_class` an
 Since `co(ntra)variant_class` takes as input the operation (typically `(+)` or `(*)`) and the order
 relation (typically `(≤)` or `(<)`), these are the only two typeclasses that I have used.
 
-The general approach is to formulate the lemma that you are interested and prove it, with the
+The general approach is to formulate the lemma that you are interested in and prove it, with the
 `ordered_[...]` typeclass of your liking.  After that, you convert the single typeclass,
-say `[ordered_cancel_monoid M]`, with three typeclasses, e.g.
-`[partial_order M] [left_cancel_semigroup M] [covariant_class M M (function.swap (*)) (≤)]`
+say `[ordered_cancel_monoid M]`, into three typeclasses, e.g.
+`[left_cancel_semigroup M] [partial_order M] [covariant_class M M (function.swap (*)) (≤)]`
 and have a go at seeing if the proof still works!
 
 Note that it is possible to combine several co(ntra)variant_class assumptions together.
@@ -35,13 +36,13 @@ Indeed, the usual ordered typeclasses arise from assuming the pair
 `[covariant_class M M (*) (≤)] [contravariant_class M M (*) (<)]`
 on top of order/algebraic assumptions.
 
-A formal remark is that normally covariant_class uses the `(≤)`-relation, while contravariant_class
-uses the `(<)`-relation. This need not be the case in general, but seems to be the most common
-usage. In the opposite direction, the implication
+A formal remark is that normally `covariant_class` uses the `(≤)`-relation, while
+`contravariant_class` uses the `(<)`-relation. This need not be the case in general, but seems to be
+the most common usage. In the opposite direction, the implication
 ```lean
 [semigroup α] [partial_order α] [contravariant_class α α (*) (≤)] => left_cancel_semigroup α
 ```
-holds (note the `co*ntra*` assumption and the `(≤)`-relation).
+holds -- note the `co*ntra*` assumption on the `(≤)`-relation.
 
 # Formalization notes
 
@@ -51,10 +52,12 @@ However, sometimes as a **non-typeclass** assumption, we prefer `flip (*)` (or `
 as it is easier to use. -/
 
 -- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
--- TODO: relationship with `add_con`
--- include equivalence of `left_cancel_semigroup` with
+-- TODO: relationship with `con/add_con`
+-- TODO: include equivalence of `left_cancel_semigroup` with
 -- `semigroup partial_order contravariant_class α α (*) (≤)`?
--- use ⇒, as per Eric's suggestion?
+-- TODO : use ⇒, as per Eric's suggestion?  See
+-- https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/ordered.20stuff/near/236148738
+-- for a discussion.
 
 section variants
 variables {M N : Type*} (μ : M → N → N) (r : N → N → Prop)
@@ -74,6 +77,7 @@ def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r
 
 /--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
 `covariant_class` says that "the action `μ` preserves the relation `r`.
+
 More precisely, the `covariant_class` is a class taking two Types `M N`, together with an "action"
 `μ : M → N → N` and a relation `r : N → N`.  Its unique field `elim` is the assertion that
 for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair
@@ -204,7 +208,7 @@ lemma covariant_lt_iff_contravariant_le [linear_order N] :
 
 @[to_additive]
 lemma covariant_flip_mul_iff [comm_semigroup N] :
-  covariant N N (flip (*)) (r) ↔ covariant N N (*) (r)  :=
+  covariant N N (flip (*)) (r) ↔ covariant N N (*) (r) :=
 by rw is_symm_op.flip_eq
 
 @[to_additive]
@@ -221,6 +225,16 @@ instance contravariant_mul_lt_of_covariant_mul_le [has_mul N] [linear_order N]
 instance covariant_swap_mul_le_of_covariant_mul_le [comm_semigroup N] [has_le N]
   [covariant_class N N (*) (≤)] : covariant_class N N (function.swap (*)) (≤) :=
 { elim := (covariant_flip_mul_iff N (≤)).mpr covariant_class.elim }
+
+@[to_additive]
+instance contravariant_swap_mul_le_of_contravariant_mul_le [comm_semigroup N] [has_le N]
+  [contravariant_class N N (*) (≤)] : contravariant_class N N (function.swap (*)) (≤) :=
+{ elim := (contravariant_flip_mul_iff N (≤)).mpr contravariant_class.elim }
+
+@[to_additive]
+instance contravariant_swap_mul_lt_of_contravariant_mul_lt [comm_semigroup N] [has_lt N]
+  [contravariant_class N N (*) (<)] : contravariant_class N N (function.swap (*)) (<) :=
+{ elim := (contravariant_flip_mul_iff N (<)).mpr contravariant_class.elim }
 
 @[to_additive]
 instance covariant_swap_mul_lt_of_covariant_mul_lt [comm_semigroup N] [has_lt N]
@@ -245,16 +259,16 @@ instance right_cancel_semigroup.covariant_swap_mul_lt_of_covariant_swap_mul_le
 instance left_cancel_semigroup.contravariant_mul_le_of_contravariant_mul_lt
   [left_cancel_semigroup N] [partial_order N] [contravariant_class N N (*) (<)] :
   contravariant_class N N (*) (≤) :=
-{ elim :=  λ  a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
-      { exact ((mul_right_inj a).mp h).le },
-      { exact (contravariant_class.elim _ h).le } } }
+{ elim := λ a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
+    { exact ((mul_right_inj a).mp h).le },
+    { exact (contravariant_class.elim _ h).le } } }
 
 @[to_additive]
 instance right_cancel_semigroup.contravariant_swap_mul_le_of_contravariant_swap_mul_lt
   [right_cancel_semigroup N] [partial_order N] [contravariant_class N N (function.swap (*)) (<)] :
   contravariant_class N N (function.swap (*)) (≤) :=
-{ elim :=  λ a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
-      { exact ((mul_left_inj a).mp h).le },
-      { exact (contravariant_class.elim _ h).le } } }
+{ elim := λ a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
+    { exact ((mul_left_inj a).mp h).le },
+    { exact (contravariant_class.elim _ h).le } } }
 
 end variants

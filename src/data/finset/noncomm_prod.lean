@@ -212,6 +212,11 @@ by simp [insert_val_of_not_mem ha, noncomm_prod]
     (λ x hx y hy, comm _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy)) * f a :=
 by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
 
+@[simp, to_additive] lemma noncomm_prod_singleton (a : α) (f : α → β) :
+  noncomm_prod ({a} : finset α) f
+    (λ x hx y hy, by by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
+by simp [noncomm_prod]
+
 @[to_additive] lemma noncomm_prod_eq_prod {β : Type*} [comm_monoid β] (s : finset α) (f : α → β) :
   noncomm_prod s f (λ _ _ _ _, commute.all _ _) = s.prod f :=
 begin

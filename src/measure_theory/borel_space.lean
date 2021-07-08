@@ -1030,7 +1030,7 @@ begin
     rintros _ ⟨a, b, h, rfl⟩,
     refine (measure_mono subset_closure).trans_lt _,
     rw [closure_Ioo],
-    exacts [compact_Icc.finite_measure, rat.cast_lt.2 h] },
+    exacts [is_compact_Icc.finite_measure, rat.cast_lt.2 h] },
   { simp only [mem_Union, mem_singleton_iff],
     rintros _ ⟨a, b, hab, rfl⟩,
     exact h a b }

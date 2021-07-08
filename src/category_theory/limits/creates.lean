@@ -275,17 +275,13 @@ instance preserves_limit_of_creates_limit_and_has_limit (K : J ⥤ C) (F : C ⥤
 @[priority 100] -- see Note [lower instance priority]
 instance preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape (F : C ⥤ D)
   [creates_limits_of_shape J F] [has_limits_of_shape J D] :
-  preserves_limits_of_shape J F :=
-{ preserves_limit := λ K, category_theory.preserves_limit_of_creates_limit_and_has_limit K F }
+  preserves_limits_of_shape J F := {}
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
 @[priority 100] -- see Note [lower instance priority]
 instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F]
   [has_limits D] :
-  preserves_limits F :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  by exactI
-    category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
+  preserves_limits F := {}
 
 /--
 If `F` reflects isomorphisms and we can lift any colimit cocone to a colimit cocone,
@@ -325,17 +321,13 @@ instance preserves_colimit_of_creates_colimit_and_has_colimit (K : J ⥤ C) (F :
 @[priority 100] -- see Note [lower instance priority]
 instance preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape
   (F : C ⥤ D) [creates_colimits_of_shape J F] [has_colimits_of_shape J D] :
-  preserves_colimits_of_shape J F :=
-{ preserves_colimit := λ K,
-    category_theory.preserves_colimit_of_creates_colimit_and_has_colimit K F }
+  preserves_colimits_of_shape J F := {}
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
 @[priority 100] -- see Note [lower instance priority]
 instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F]
   [has_colimits D] :
-  preserves_colimits F :=
-{ preserves_colimits_of_shape := λ J 𝒥,
-  by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }
+  preserves_colimits F := {}
 
 /-- If `F` creates the limit of `K` and `F ≅ G`, then `G` creates the limit of `K`. -/
 def creates_limit_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [creates_limit K F] :
@@ -428,9 +420,11 @@ instance id_creates_colimits : creates_colimits (𝟭 C) :=
   { creates_colimit := λ F, { lifts := λ c t, id_lifts_cocone c } } }
 
 /-- Satisfy the inhabited linter -/
-instance inhabited_liftable_cone (c : cone (K ⋙ 𝟭 C)) : inhabited (liftable_cone K (𝟭 C) c) :=
+instance inhabited_liftable_cone (c : cone (K ⋙ 𝟭 C)) :
+  inhabited (liftable_cone K (𝟭 C) c) :=
 ⟨id_lifts_cone c⟩
-instance inhabited_liftable_cocone (c : cocone (K ⋙ 𝟭 C)) : inhabited (liftable_cocone K (𝟭 C) c) :=
+instance inhabited_liftable_cocone (c : cocone (K ⋙ 𝟭 C)) :
+  inhabited (liftable_cocone K (𝟭 C) c) :=
 ⟨id_lifts_cocone c⟩
 
 /-- Satisfy the inhabited linter -/

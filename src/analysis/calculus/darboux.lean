@@ -33,7 +33,7 @@ begin
   { intros x hx,
     simpa using (hf x hx).sub ((has_deriv_within_at_id x _).const_mul m) },
   obtain ⟨c, cmem, hc⟩ : ∃ c ∈ Icc a b, is_min_on g (Icc a b) c,
-    from compact_Icc.exists_forall_le (nonempty_Icc.2 $ hab)
+    from is_compact_Icc.exists_forall_le (nonempty_Icc.2 $ hab)
       (λ x hx, (hg x hx).continuous_within_at),
   have cmem' : c ∈ Ioo a b,
   { cases eq_or_lt_of_le cmem.1 with hac hac,

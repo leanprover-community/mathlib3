@@ -907,7 +907,7 @@ section lintegral
 open simple_func
 variables [measurable_space α] {μ : measure α}
 
-/-- The lower Lebesgue integral of a function `f` with respect to a measure `μ`. -/
+/-- The **lower Lebesgue integral** of a function `f` with respect to a measure `μ`. -/
 def lintegral (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
 ⨆ (g : α →ₛ ℝ≥0∞) (hf : ⇑g ≤ f), g.lintegral μ
 
@@ -1925,6 +1925,41 @@ begin
         exact ennreal.coe_to_nnreal (measure_spanning_sets_lt_top μ n).ne
       end
     ... < ε : by rwa [← ennreal.coe_tsum δsum.summable, ennreal.coe_lt_coe, δsum.tsum_eq] }
+end
+
+lemma lintegral_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
+  @lintegral _ m (μ.trim hm) f = ∫⁻ a, f a ∂μ :=
+begin
+  refine @measurable.ennreal_induction α m
+    (λ f, @lintegral _ m (μ.trim hm) f = ∫⁻ a, f a ∂μ) _ _ _ f hf,
+  { intros c s hs,
+    rw [@lintegral_indicator α m _ _ _ hs, @lintegral_indicator α _ _ _ _ (hm s hs),
+      @set_lintegral_const α m, set_lintegral_const],
+    suffices h_trim_s : μ.trim hm s = μ s, by rw h_trim_s,
+    exact trim_measurable_set_eq hm hs, },
+  { intros f g hfg hf hg hf_prop hg_prop,
+    have h_m := @lintegral_add _ m (μ.trim hm) f g hf hg,
+    have h_m0 := @lintegral_add _ m0 μ f g (measurable.mono hf hm le_rfl)
+      (measurable.mono hg hm le_rfl),
+    rwa [hf_prop, hg_prop, ← h_m0] at h_m, },
+  { intros f hf hf_mono hf_prop,
+    rw @lintegral_supr α m (μ.trim hm) _ hf hf_mono,
+    rw @lintegral_supr α m0 μ _ (λ n, measurable.mono (hf n) hm le_rfl) hf_mono,
+    congr,
+    exact funext (λ n, hf_prop n), },
+end
+
+lemma lintegral_trim_ae {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  {f : α → ℝ≥0∞} (hf : @ae_measurable _ _ m _ f (μ.trim hm)) :
+  @lintegral _ m (μ.trim hm) f = ∫⁻ a, f a ∂μ :=
+begin
+  let f' := @ae_measurable.mk _ _ m _ _ _ hf,
+  have hff'_m : eventually_eq (@measure.ae  _ m (μ.trim hm)) f' f,
+    from (@ae_measurable.ae_eq_mk _ _ m _ _ _ hf).symm,
+  have hff' : f' =ᵐ[μ] f, from ae_eq_of_ae_eq_trim hff'_m,
+  rw [lintegral_congr_ae hff'.symm, @lintegral_congr_ae _ m _ _ _ hff'_m.symm,
+    lintegral_trim hm (@ae_measurable.measurable_mk _ _ m _ _ _ hf)],
 end
 
 end measure_theory

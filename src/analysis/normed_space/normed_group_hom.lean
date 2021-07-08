@@ -592,12 +592,13 @@ variables {φ' : normed_group_hom V₂ V₃} {ψ' : normed_group_hom W₂ W₃}
   (ι f₂ g₂).comp (map φ ψ hf hg) = φ.comp (ι _ _) :=
 ι_comp_lift _ _
 
-@[simp] lemma map_id : @map _ _ _ _ _ _ _ _ f₁ g₁ f₁ g₁ (id V₁) (id W₁) rfl rfl = id _ :=
+@[simp] lemma map_id : map (id V₁) (id W₁) rfl rfl = id (f₁.equalizer g₁) :=
 by { ext, refl }
 
 lemma comm_sq₂ (hf : ψ.comp f₁ = f₂.comp φ)(hf' : ψ'.comp f₂ = f₃.comp φ') :
   (ψ'.comp ψ).comp f₁ = f₃.comp (φ'.comp φ) :=
 by rw [comp_assoc, hf, ← comp_assoc, hf', comp_assoc]
+
 
 lemma map_comp_map (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ)
   (hf' : ψ'.comp f₂ = f₃.comp φ') (hg' : ψ'.comp g₂ = g₃.comp φ') :

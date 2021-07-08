@@ -262,10 +262,6 @@ begin
   simp [H]
 end
 
-@[simp] lemma lt_one_iff {n : ℕ} :
-  n < 1 ↔ n = 0 :=
-⟨λ h, le_antisymm (le_of_lt_succ h) n.zero_le, λ h, lt_succ_of_le h.le⟩
-
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 lt_of_le_of_lt (nat.zero_le _) h
 

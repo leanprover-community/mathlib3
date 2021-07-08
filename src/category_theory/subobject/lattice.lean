@@ -68,9 +68,8 @@ end
 end has_top
 
 section has_bot
-variables [zero_le_category C] [has_initial C]
--- variables [has_zero_morphisms C] [has_zero_object C]
--- open_locale zero_object
+
+variables [has_initial C] [zero_le_category C]
 
 instance {X : C} : has_bot (mono_over X) :=
 { bot := mk' (initial.to X) }
@@ -84,7 +83,7 @@ hom_mk (initial.to _) (by simp)
 
 /-- `map f` sends `⊥ : mono_over X` to `⊥ : mono_over Y`. -/
 def map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ ≅ ⊥ :=
-iso_of_both_ways (hom_mk 0 (by simp)) (hom_mk (𝟙 _) (by simp [id_comp f]))
+iso_of_both_ways (hom_mk (initial.to _) (by simp)) (hom_mk (𝟙 _) (by simp))
 
 end has_bot
 
@@ -245,8 +244,7 @@ end
 end order_top
 
 section order_bot
-variables [has_zero_morphisms C] [has_zero_object C]
-open_locale zero_object
+variables [has_initial C] [zero_le_category C]
 
 instance order_bot {X : C} : order_bot (subobject X) :=
 { bot := quotient.mk' ⊥,
@@ -257,21 +255,37 @@ instance order_bot {X : C} : order_bot (subobject X) :=
   end,
   ..subobject.partial_order X }
 
-lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) := rfl
+lemma bot_eq_initial_to {B : C} : (⊥ : subobject B) = subobject.mk (initial.to B) := rfl
 
-/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the zero object. -/
-def bot_coe_iso_zero {B : C} : ((⊥ : subobject B) : C) ≅ 0 := underlying_iso _
-
-@[simp] lemma bot_arrow {B : C} : (⊥ : subobject B).arrow = 0 :=
-zero_of_source_iso_zero _ bot_coe_iso_zero
+/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the initial object. -/
+def bot_coe_iso_zero {B : C} : ((⊥ : subobject B) : C) ≅ ⊥_ C := underlying_iso _
 
 lemma map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ = ⊥ :=
 quotient.sound' ⟨mono_over.map_bot f⟩
 
+end order_bot
+
+section zero_order_bot
+
+variables [has_zero_morphisms C] [has_zero_object C]
+open_locale zero_object
+-- local attribute [instance] category_theory.limits.has_zero_object.has_initial
+
+set_option trace.class_instances true
+
+lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) := rfl
+
+/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the initial object. -/
+def bot_coe_iso_zero {B : C} : ((⊥ : subobject B) : C) ≅ ⊥_ C := underlying_iso _
+
+@[simp] lemma bot_arrow {B : C} : (⊥ : subobject B).arrow = initial.to B :=
+zero_of_source_iso_zero _ bot_coe_iso_zero
+
 lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
 ⟨by { rintro ⟨h, w⟩, simp at w, exact w.symm, }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
 
-end order_bot
+
+end zero_order_bot
 
 section functor
 variable (C)

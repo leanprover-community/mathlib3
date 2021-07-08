@@ -372,7 +372,7 @@ end simple_func
 
 namespace L1
 
-open ae_eq_fun
+open ae_eq_fun Lp.simple_func Lp
 
 variables
   [normed_group E] [second_countable_topology E] [measurable_space E] [borel_space E]
@@ -383,10 +383,8 @@ variables {α E μ}
 
 namespace simple_func
 
-open Lp.simple_func
-
 lemma norm_eq_integral (f : α →₁ₛ[μ] E) :
-  ∥f∥ = ((Lp.simple_func.to_simple_func f).map norm).integral μ :=
+  ∥f∥ = ((to_simple_func f).map norm).integral μ :=
 begin
   rw [norm_to_simple_func, simple_func.integral_eq_lintegral],
   { simp only [simple_func.map_apply, of_real_norm_eq_coe_nnnorm, snorm_one_eq_lintegral_nnnorm] },
@@ -425,7 +423,7 @@ and prove basic properties of this integral. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
 
-local attribute [instance] Lp.simple_func.normed_space
+local attribute [instance] simple_func.normed_space
 
 /-- The Bochner integral over simple functions in L1 space. -/
 def integral (f : α →₁ₛ[μ] E) : E := ((to_simple_func f)).integral μ
@@ -559,7 +557,7 @@ variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space �
 
 section integration_in_L1
 
-local attribute [instance] Lp.simple_func.normed_space
+local attribute [instance] simple_func.normed_space
 
 open continuous_linear_map
 
@@ -567,8 +565,8 @@ variables (𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
 (integral_clm' α E 𝕜 μ).extend
-  (Lp.simple_func.coe_to_Lp α E 𝕜) (Lp.simple_func.dense_range one_ne_top)
-  Lp.simple_func.uniform_inducing
+  (simple_func.coe_to_Lp α E 𝕜) (simple_func.dense_range one_ne_top)
+  simple_func.uniform_inducing
 
 variables {𝕜}
 
@@ -582,7 +580,7 @@ lemma integral_eq (f : α →₁[μ] E) : integral f = integral_clm f := rfl
 
 @[norm_cast] lemma simple_func.integral_L1_eq_integral (f : α →₁ₛ[μ] E) :
   integral (f : α →₁[μ] E) = (simple_func.integral f) :=
-uniformly_extend_of_ind Lp.simple_func.uniform_inducing (Lp.simple_func.dense_range one_ne_top)
+uniformly_extend_of_ind simple_func.uniform_inducing (simple_func.dense_range one_ne_top)
   (simple_func.integral_clm α E μ).uniform_continuous _
 
 variables (α E)
@@ -631,7 +629,7 @@ begin
   -- Use `is_closed_property` and `is_closed_eq`
   refine @is_closed_property _ _ _ (coe : (α →₁ₛ[μ] ℝ) → (α →₁[μ] ℝ))
     (λ f : α →₁[μ] ℝ, integral f = ∥Lp.pos_part f∥ - ∥Lp.neg_part f∥)
-    (Lp.simple_func.dense_range one_ne_top) (is_closed_eq _ _) _ f,
+    (simple_func.dense_range one_ne_top) (is_closed_eq _ _) _ f,
   { exact cont _ },
   { refine continuous.sub (continuous_norm.comp Lp.continuous_pos_part)
       (continuous_norm.comp Lp.continuous_neg_part) },

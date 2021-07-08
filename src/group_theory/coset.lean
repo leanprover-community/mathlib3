@@ -336,6 +336,7 @@ lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fi
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
+/-- **Order of a Subgroup** -/
 lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]

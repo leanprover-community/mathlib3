@@ -662,6 +662,20 @@ begin
   exact ennreal.tendsto_of_real h,
 end
 
+lemma tsum_coe_ne_top_iff_summable_coe {f : α → ℝ≥0} :
+  ∑' a, (f a : ℝ≥0∞) ≠ ∞ ↔ summable (λ a, (f a : ℝ)) :=
+begin
+  rw nnreal.summable_coe,
+  exact tsum_coe_ne_top_iff_summable,
+end
+
+lemma tsum_coe_eq_top_iff_not_summable_coe {f : α → ℝ≥0} :
+  ∑' a, (f a : ℝ≥0∞) = ∞ ↔ ¬ summable (λ a, (f a : ℝ)) :=
+begin
+  rw [← @not_not (∑' a, ↑(f a) = ⊤)],
+  exact not_congr tsum_coe_ne_top_iff_summable_coe
+end
+
 end ennreal
 
 namespace nnreal
@@ -799,6 +813,18 @@ by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 end nnreal
 
 namespace ennreal
+
+lemma tsum_to_real_eq
+  {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+  (∑' a, f a).to_real = ∑' a, (f a).to_real :=
+begin
+  lift f to α → ℝ≥0 using hf,
+  have : (∑' (a : α), (f a : ℝ≥0∞)).to_real =
+    ((∑' (a : α), (f a : ℝ≥0∞)).to_nnreal : ℝ≥0∞).to_real,
+  { rw [ennreal.coe_to_real], refl },
+  rw [this, ← nnreal.tsum_eq_to_nnreal_tsum, ennreal.coe_to_real],
+  exact nnreal.coe_tsum
+end
 
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=

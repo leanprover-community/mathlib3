@@ -142,7 +142,7 @@ def edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] : finset (sym
 set.to_finset G.edge_set
 
 @[simp] lemma mem_edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] (e : sym2 V) :
-  e ∈ G.edge_finset ↔ e ∈ G.edge_set := yset.mem_to_finset
+  e ∈ G.edge_finset ↔ e ∈ G.edge_set := set.mem_to_finset
 
 @[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=

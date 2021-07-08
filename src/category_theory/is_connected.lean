@@ -40,7 +40,7 @@ connected limit. That is, any limit of shape `J` where `J` is a connected
 category is preserved by the functor `(X × -)`. This appears in `category_theory.limits.connected`.
 -/
 
-universes v₁ v₂ v₃ u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 noncomputable theory
 

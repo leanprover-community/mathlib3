@@ -249,7 +249,7 @@ using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support
 
 -- The lemma `support_gpow_le` is relevant. It means that `h2` is equivalent to
 -- `σ.support = (σ ^ n).support`, as well as to `σ.support.card ≤ (σ ^ n).support.card`.
-lemma is_cycle_of_is_cycle_pow {σ : perm α} {n : ℤ}
+lemma is_cycle_of_is_cycle_gpow {σ : perm α} {n : ℤ}
   (h1 : is_cycle (σ ^ n)) (h2 : σ.support ≤ (σ ^ n).support) : is_cycle σ :=
 begin
   have key : ∀ x : α, (σ ^ n) x ≠ x ↔ σ x ≠ x,
@@ -763,7 +763,7 @@ begin
   cases exists_pow_eq_self_of_coprime h0 with m hm,
   have h2' : (σ ^ n).support = ⊤ := eq.trans (support_pow_coprime h0) h2,
   have h1' : is_cycle ((σ ^ n) ^ (m : ℤ)) := by rwa ← hm at h1,
-  replace h1' : is_cycle (σ ^ n) := is_cycle_of_is_cycle_pow h1'
+  replace h1' : is_cycle (σ ^ n) := is_cycle_of_is_cycle_gpow h1'
     (le_trans (support_gpow_le σ n) (ge_of_eq (congr_arg support hm))),
   rw [eq_top_iff, ←closure_cycle_adjacent_swap h1' h2' x, closure_le, set.insert_subset],
   exact ⟨subgroup.pow_mem (closure _) (subset_closure (set.mem_insert σ _)) n,

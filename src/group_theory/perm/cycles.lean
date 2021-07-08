@@ -459,7 +459,6 @@ begin
   { intro H,
     apply le_antisymm (support_pow_le _ n) _,
     intros x hx,
-    rw gpow_coe_nat,
     contrapose! H,
     ext z,
     by_cases hz : f z = z,
@@ -490,7 +489,7 @@ begin
   { intro h,
     obtain ⟨m, hm⟩ := exists_pow_eq_self_of_coprime h,
     have hf' : is_cycle ((f ^ n) ^ m) := by rwa hm,
-    refine @is_cycle_of_is_cycle_pow _ _ _ _ m hf' _,
+    refine @is_cycle_of_is_cycle_gpow _ _ _ _ m hf' _,
     intros x hx,
     rw [gpow_coe_nat, hm],
     exact support_pow_le _ n hx }

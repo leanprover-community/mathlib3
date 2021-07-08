@@ -468,9 +468,9 @@ begin
   refine generate_from_le (λ t ht, _),
   rcases ht with ⟨ht_p, ht_p_mem, ft, hft_mem_pi, ht_eq⟩,
   rw ht_eq,
-  refine finset.is_measurable_bInter _ (λ x hx_mem, (h x) _ _),
+  refine finset.measurable_set_bInter _ (λ x hx_mem, (h x) _ _),
   rw hpis x,
-  exact is_measurable_generate_from (hft_mem_pi x hx_mem),
+  exact measurable_set_generate_from (hft_mem_pi x hx_mem),
 end
 
 lemma subset_pi_Union_Inter {α ι} {pi : ι → set (set α)} {S : set (finset ι)}
@@ -501,17 +501,17 @@ by { rw hpix, exact generate_from_le_generate_from (subset_pi_Union_Inter h_univ
 
 lemma measurable_subset_pi_Union_Inter {α ι} (s : ι → measurable_space α)
   {S : set (finset ι)} {i : ι} {p : finset ι} (hpS : p ∈ S) (hpi : i ∈ p) :
-  set_of (s i).is_measurable' ⊆ pi_Union_Inter (λ n, (s n).is_measurable') S :=
+  set_of (s i).measurable_set' ⊆ pi_Union_Inter (λ n, (s n).measurable_set') S :=
 begin
   intros t ht,
   let g := λ n, ite (n=i) t set.univ,
   use [p, hpS, g],
   split,
   { intros j hj,
-    change (s j).is_measurable' (ite (j=i) t set.univ),
+    change (s j).measurable_set' (ite (j=i) t set.univ),
     split_ifs with hji,
     { rwa hji, },
-    { exact @is_measurable.univ α (s j), }, },
+    { exact @measurable_set.univ α (s j), }, },
   { ext,
     simp_rw [set.mem_Inter, g],
     split; intro hx,
@@ -522,14 +522,14 @@ end
 
 lemma pi_Union_Inter_subset_measurable {α ι} (s : ι → measurable_space α)
   (S : set (finset ι)) :
-  pi_Union_Inter (λ n, (s n).is_measurable') S
-    ⊆ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i).is_measurable' :=
+  pi_Union_Inter (λ n, (s n).measurable_set') S
+    ⊆ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i).measurable_set' :=
 begin
   intros t ht,
   rw [pi_Union_Inter, set.mem_set_of_eq] at ht,
   rcases ht with ⟨pt, hpt, ft, ht_m, ht_eq⟩,
   have h_i : ∀ i, i ∈ pt
-    → (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i).is_measurable' (ft i),
+    → (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i).measurable_set' (ft i),
   { intros i hi,
     have h_le : s i ≤ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i),
     { have hi' : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p,
@@ -538,21 +538,21 @@ begin
       exact le_bsupr i hi', },
     exact h_le (ft i) (ht_m i hi), },
   subst ht_eq,
-  exact @finset.is_measurable_bInter _ _
+  exact @finset.measurable_set_bInter _ _
     ((⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i)) _ pt (λ i hipt, h_i i hipt),
 end
 
 lemma bsupr_measurable_space_eq_generate_from_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   (S : set (finset ι)) :
   (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), m i) = measurable_space.generate_from
-    (pi_Union_Inter (λ n, (m n).is_measurable') S) :=
+    (pi_Union_Inter (λ n, (m n).measurable_set') S) :=
 begin
   refine le_antisymm _ _,
   { refine bsupr_le (λ i hi, _),
     rcases hi with ⟨p, hpS, hpi⟩,
-    rw ← @generate_from_is_measurable α (m i),
+    rw ← @generate_from_measurable_set α (m i),
     exact generate_from_le_generate_from (measurable_subset_pi_Union_Inter m hpS hpi), },
-  { rw ← @generate_from_is_measurable α
+  { rw ← @generate_from_measurable_set α
       (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), m i),
     exact generate_from_le_generate_from (pi_Union_Inter_subset_measurable m S), },
 end
@@ -606,7 +606,7 @@ lemma Indep_sets.Indep {α ι} (m : measurable_space α) (s : ι → measurable_
 begin
   refine finset.induction (by simp [measure_univ]) _,
   intros a S ha_notin_S h_rec f hf_m,
-  have hf_m_S : ∀ x, x ∈ S → (s x).is_measurable' (f x), from λ x hx, hf_m x (by simp [hx]),
+  have hf_m_S : ∀ x, x ∈ S → (s x).measurable_set' (f x), from λ x hx, hf_m x (by simp [hx]),
   rw [finset.set_bInter_insert, finset.prod_insert ha_notin_S, ←h_rec hf_m_S],
   let p_ := pi_Union_Inter pi {S},
   set S_ := generate_from p_ with hS_eq_generate,
@@ -620,9 +620,9 @@ begin
   { exact hf_m a (by simp), },
   { have h_le : ∀ n : ι, n ∈ S → s n ≤ S_,
       from (λ n hn, le_generate_from_pi_Union_Inter {S} hp_univ (set.mem_singleton _) hn (hps n)),
-    have h_S_f : ∀ i (hi : i ∈ S), S_.is_measurable' (f i),
+    have h_S_f : ∀ i (hi : i ∈ S), S_.measurable_set' (f i),
       from λ i hi, (h_le i hi) (f i) (hf_m_S i hi),
-    exact @finset.is_measurable_bInter α ι S_ f _ (λ i hi, h_S_f i hi), },
+    exact @finset.measurable_set_bInter α ι S_ f _ (λ i hi, h_S_f i hi), },
 end
 
 end indep_of_indep_sets_of_pi_system

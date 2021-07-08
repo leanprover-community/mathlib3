@@ -218,7 +218,7 @@ begin
   simp_rw ←set.inf_eq_inter,
   rw binfi_inf_binfi_eq_binfi_union_if (λ i:ι, i ∈ s1) (λ i:ι, i ∈ s2) f1 f2,
   simp_rw [set.top_eq_univ, set.inf_eq_inter, set.Inter],
-  simp [heq_iff_eq],
+  simp,
 end
 
 lemma is_pi_system_pi_Union_Inter {α ι} (pi : ι → set (set α))

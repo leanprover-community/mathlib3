@@ -383,8 +383,7 @@ variables {α E μ}
 
 namespace simple_func
 
-lemma norm_eq_integral (f : α →₁ₛ[μ] E) :
-  ∥f∥ = ((to_simple_func f).map norm).integral μ :=
+lemma norm_eq_integral (f : α →₁ₛ[μ] E) : ∥f∥ = ((to_simple_func f).map norm).integral μ :=
 begin
   rw [norm_to_simple_func, simple_func.integral_eq_lintegral],
   { simp only [simple_func.map_apply, of_real_norm_eq_coe_nnnorm, snorm_one_eq_lintegral_nnnorm] },
@@ -565,8 +564,7 @@ variables (𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
 (integral_clm' α E 𝕜 μ).extend
-  (simple_func.coe_to_Lp α E 𝕜) (simple_func.dense_range one_ne_top)
-  simple_func.uniform_inducing
+  (coe_to_Lp α E 𝕜) (simple_func.dense_range one_ne_top) simple_func.uniform_inducing
 
 variables {𝕜}
 

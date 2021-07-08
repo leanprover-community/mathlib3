@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Minchao Wu
+Authors: Mario Carneiro, Minchao Wu
 -/
 import tactic.core
 /-!
@@ -20,7 +20,7 @@ namespace explode
 inductive status : Type | reg | intro | lam | sintro
 
 /--
-A type to distinguish introduction or elimination rules represented as 
+A type to distinguish introduction or elimination rules represented as
 strings from theorems referred to by their names.
 -/
 meta inductive thm : Type

@@ -82,7 +82,7 @@ instance : full incl := { preimage := λ _ _ f, f }
 instance : faithful incl := {}
 instance : ess_surj incl :=
 { mem_ess_image := λ X,
-  let F := trunc.out (fintype.equiv_fin X) in
+  let F := fintype.equiv_fin X in
   ⟨fintype.card X, ⟨⟨F.symm, F, F.self_comp_symm, F.symm_comp_self⟩⟩⟩ }
 
 noncomputable instance : is_equivalence incl :=

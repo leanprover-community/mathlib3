@@ -6,7 +6,6 @@ Authors: Kenny Lau
 
 import algebra.direct_limit
 import field_theory.splitting_field
-import analysis.complex.polynomial
 
 /-!
 # Algebraic Closure
@@ -44,12 +43,28 @@ open polynomial
 
 variables (k : Type u) [field k]
 
-/-- Typeclass for algebraically closed fields. -/
+/-- Typeclass for algebraically closed fields.
+
+To show `polynomial.splits p f` for an arbitrary ring homomorphism `f`,
+see `is_alg_closed.splits_codomain` and `is_alg_closed.splits_domain`.
+-/
 class is_alg_closed : Prop :=
 (splits : ∀ p : polynomial k, p.splits $ ring_hom.id k)
 
-theorem polynomial.splits' {k K : Type*} [field k] [is_alg_closed k] [field K] {f : k →+* K}
-  (p : polynomial k) : p.splits f :=
+/-- Every polynomial splits in the field extension `f : K →+* k` if `k` is algebraically closed.
+
+See also `is_alg_closed.splits_domain` for the case where `K` is algebraically closed.
+-/
+theorem is_alg_closed.splits_codomain {k K : Type*} [field k] [is_alg_closed k] [field K]
+  {f : K →+* k} (p : polynomial K) : p.splits f :=
+by { convert is_alg_closed.splits (p.map f), simp [splits_map_iff] }
+
+/-- Every polynomial splits in the field extension `f : K →+* k` if `K` is algebraically closed.
+
+See also `is_alg_closed.splits_codomain` for the case where `k` is algebraically closed.
+-/
+theorem is_alg_closed.splits_domain {k K : Type*} [field k] [is_alg_closed k] [field K]
+  {f : k →+* K} (p : polynomial k) : p.splits f :=
 polynomial.splits_of_splits_id _ $ is_alg_closed.splits _
 
 namespace is_alg_closed
@@ -63,9 +78,10 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0) (hp : irreducible p) :
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k} (h_nz : p ≠ 0)
+  (hp : irreducible p) :
   p.degree = 1 :=
-degree_eq_one_of_irreducible_of_splits h_nz hp (polynomial.splits' _)
+degree_eq_one_of_irreducible_of_splits h_nz hp (is_alg_closed.splits_codomain _)
 
 lemma algebra_map_surjective_of_is_integral {k K : Type*} [field k] [domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_integral k K) :
@@ -81,6 +97,10 @@ begin
   exact (ring_hom.map_neg (algebra_map k K) ((minpoly k x).coeff 0)).symm ▸ this.symm,
 end
 
+lemma algebra_map_surjective_of_is_integral' {k K : Type*} [field k] [integral_domain K]
+  [hk : is_alg_closed k] (f : k →+* K) (hf : f.is_integral) : function.surjective f :=
+@algebra_map_surjective_of_is_integral k K _ _ _ f.to_algebra hf
+
 lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [domain K]
   [hk : is_alg_closed k] [algebra k K] (hf : algebra.is_algebraic k K) :
   function.surjective (algebra_map k K) :=
@@ -88,12 +108,14 @@ algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
 
 end is_alg_closed
 
-instance complex.is_alg_closed : is_alg_closed ℂ :=
-is_alg_closed.of_exists_root _ $ λ p _ hp, complex.exists_root $ degree_pos_of_irreducible hp
-
 /-- Typeclass for an extension being an algebraic closure. -/
-@[class] def is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
-is_alg_closed K ∧ algebra.is_algebraic k K
+class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=
+(alg_closed : is_alg_closed K)
+(algebraic : algebra.is_algebraic k K)
+
+theorem is_alg_closure_iff (K : Type v) [field K] [algebra k K] :
+  is_alg_closure k K ↔ is_alg_closed K ∧ algebra.is_algebraic k K :=
+⟨λ h, ⟨h.1, h.2⟩, λ h, ⟨h.1, h.2⟩⟩
 
 namespace algebraic_closure
 
@@ -107,7 +129,8 @@ open mv_polynomial
 def eval_X_self (f : monic_irreducible k) : mv_polynomial (monic_irreducible k) k :=
 polynomial.eval₂ mv_polynomial.C (X f) f
 
-/-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an indeterminate. -/
+/-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an
+indeterminate. -/
 def span_eval : ideal (mv_polynomial (monic_irreducible k) k) :=
 ideal.span $ set.range $ eval_X_self k
 
@@ -133,7 +156,8 @@ by { rw [to_splitting_field, eval_X_self, ← alg_hom.coe_to_ring_hom, hom_eval�
 
 theorem span_eval_ne_top : span_eval k ≠ ⊤ :=
 begin
-  rw [ideal.ne_top_iff_one, span_eval, ideal.span, ← set.image_univ, finsupp.mem_span_iff_total],
+  rw [ideal.ne_top_iff_one, span_eval, ideal.span, ← set.image_univ,
+    finsupp.mem_span_image_iff_total],
   rintros ⟨v, _, hv⟩,
   replace hv := congr_arg (to_splitting_field k v.support) hv,
   rw [alg_hom.map_one, finsupp.total_apply, finsupp.sum, alg_hom.map_sum, finset.sum_eq_zero] at hv,
@@ -255,7 +279,8 @@ instance to_step_of_le.directed_system :
 
 end algebraic_closure
 
-/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for each polynomial over the field. -/
+/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for
+each polynomial over the field. -/
 def algebraic_closure : Type u :=
 ring.direct_limit (algebraic_closure.step k) (λ i j h, algebraic_closure.to_step_of_le k i j h)
 
@@ -314,3 +339,24 @@ instance : is_alg_closure k (algebraic_closure k) :=
 ⟨algebraic_closure.is_alg_closed k, is_algebraic k⟩
 
 end algebraic_closure
+
+/--
+Every element `f` in a nontrivial finite-dimensional algebra `A`
+over an algebraically closed field `K`
+has non-empty spectrum:
+that is, there is some `c : K` so `f - c • 1` is not invertible.
+-/
+-- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
+lemma exists_spectrum_of_is_alg_closed_of_finite_dimensional (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
+  {A : Type*} [nontrivial A] [ring A] [algebra 𝕜 A] [I : finite_dimensional 𝕜 A] (f : A) :
+  ∃ c : 𝕜, ¬ is_unit (f - algebra_map 𝕜 A c) :=
+begin
+  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian I f,
+  have nu : ¬ is_unit (aeval f p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
+  rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p),
+    ←multiset.prod_to_list, alg_hom.map_list_prod] at nu,
+  replace nu := mt list.prod_is_unit nu,
+  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
+    list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at nu,
+  exact ⟨nu.some, nu.some_spec.2⟩,
+end

@@ -2,12 +2,25 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
-
-Elegant pairing function.
 -/
 import data.nat.sqrt
 import data.set.lattice
-open prod decidable
+
+/-!
+#  Naturals pairing function
+
+This file defines a pairing function for the naturals as follows:
+ 0  1  4  9 16
+ 2  3  5 10 17
+ 6  7  8 11 18
+12 13 14 15 19
+20 21 22 23 24
+
+It has the advantage of being monotone in both directions and sending `⟦0, n^2 - 1⟧` to
+`⟦0, n - 1⟧²`.
+-/
+
+open prod decidable function
 
 namespace nat
 
@@ -49,6 +62,9 @@ begin
     simp [unpair, ae, not_lt_zero, add_assoc] }
 end
 
+lemma surjective_unpair : surjective unpair :=
+λ ⟨m, n⟩, ⟨mkpair m n, unpair_mkpair m n⟩
+
 theorem unpair_lt {n : ℕ} (n1 : 1 ≤ n) : (unpair n).1 < n :=
 let s := sqrt n in begin
   simp [unpair], change sqrt n with s,
@@ -59,21 +75,24 @@ let s := sqrt n in begin
     exact lt_of_le_of_lt h (nat.sub_lt_self n1 (mul_pos s0 s0)) }
 end
 
-theorem unpair_le_left : ∀ (n : ℕ), (unpair n).1 ≤ n
-| 0     := dec_trivial
+@[simp] lemma unpair_zero : unpair 0 = 0 :=
+by { rw unpair, simp }
+
+theorem unpair_left_le : ∀ (n : ℕ), (unpair n).1 ≤ n
+| 0     := by simp
 | (n+1) := le_of_lt (unpair_lt (nat.succ_pos _))
 
-theorem le_mkpair_left (a b : ℕ) : a ≤ mkpair a b :=
-by simpa using unpair_le_left (mkpair a b)
+theorem left_le_mkpair (a b : ℕ) : a ≤ mkpair a b :=
+by simpa using unpair_left_le (mkpair a b)
 
-theorem le_mkpair_right (a b : ℕ) : b ≤ mkpair a b :=
+theorem right_le_mkpair (a b : ℕ) : b ≤ mkpair a b :=
 begin
   by_cases h : a < b; simp [mkpair, h],
   exact le_trans (le_mul_self _) (le_add_right _ _)
 end
 
-theorem unpair_le_right (n : ℕ) : (unpair n).2 ≤ n :=
-by simpa using le_mkpair_right n.unpair.1 n.unpair.2
+theorem unpair_right_le (n : ℕ) : (unpair n).2 ≤ n :=
+by simpa using right_le_mkpair n.unpair.1 n.unpair.2
 
 theorem mkpair_lt_mkpair_left {a₁ a₂} (b) (h : a₁ < a₂) : mkpair a₁ b < mkpair a₂ b :=
 begin
@@ -103,15 +122,12 @@ begin
 end
 
 end nat
+open nat
 
 namespace set
 
 lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
   (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
-begin
-  ext, simp only [mem_Union, mem_prod], split,
-  { rintro ⟨n, h1n, h2n⟩, exact ⟨⟨_, h1n⟩, _, h2n⟩ },
-  { rintro ⟨⟨n, hn⟩, m, hm⟩, use n.mkpair m, simp [hn, hm] }
-end
+by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
 end set

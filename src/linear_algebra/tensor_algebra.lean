@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Adam Topaz.
+Authors: Adam Topaz
 -/
 import algebra.free_algebra
 import algebra.ring_quot
@@ -36,7 +36,7 @@ modulo the additional relations making the inclusion of `M` into an `R`-linear m
 -/
 
 variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+variables (M : Type*) [add_comm_monoid M] [module R M]
 
 namespace tensor_algebra
 
@@ -61,7 +61,7 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 
 namespace tensor_algebra
 
-instance {S : Type*} [comm_ring S] [semimodule S M] : ring (tensor_algebra S M) :=
+instance {S : Type*} [comm_ring S] [module S M] : ring (tensor_algebra S M) :=
 ring_quot.ring (rel S M)
 
 variables {M}
@@ -120,6 +120,35 @@ theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : tensor_algebra R M
 begin
   rw [←lift_symm_apply, ←lift_symm_apply] at w,
   exact (lift R).symm.injective w,
+end
+
+/-- If `C` holds for the `algebra_map` of `r : R` into `tensor_algebra R M`, the `ι` of `x : M`,
+and is preserved under addition and muliplication, then it holds for all of `tensor_algebra R M`.
+-/
+-- This proof closely follows `free_algebra.induction`
+@[elab_as_eliminator]
+lemma induction {C : tensor_algebra R M → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (tensor_algebra R M) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : tensor_algebra R M) :
+  C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from M
+  let s : subalgebra R (tensor_algebra R M) := {
+    carrier := C,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : M →ₗ[R] s := (ι R).cod_restrict s.to_submodule h_grade1,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (tensor_algebra R M) = s.val.comp (lift R of),
+  { ext,
+    simp [of], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of a),
+  exact alg_hom.congr_fun of_id a,
 end
 
 /-- The left-inverse of `algebra_map`. -/

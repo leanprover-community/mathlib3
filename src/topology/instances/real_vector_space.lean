@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import topology.algebra.module
 import topology.instances.real
@@ -13,9 +13,9 @@ In this file we prove that a continuous map `f : E →+ F` between two topologic
 over `ℝ` is `ℝ`-linear
 -/
 
-variables {E : Type*} [add_comm_group E] [vector_space ℝ E] [topological_space E]
-  [topological_vector_space ℝ E] {F : Type*} [add_comm_group F] [vector_space ℝ F]
-  [topological_space F] [topological_vector_space ℝ F] [t2_space F]
+variables {E : Type*} [add_comm_group E] [module ℝ E] [topological_space E]
+  [has_continuous_smul ℝ E] {F : Type*} [add_comm_group F] [module ℝ F]
+  [topological_space F] [has_continuous_smul ℝ F] [t2_space F]
 
 namespace add_monoid_hom
 
@@ -31,7 +31,7 @@ dense_embedding_of_rat.dense.equalizer
 /-- Reinterpret a continuous additive homomorphism between two real vector spaces
 as a continuous real-linear map. -/
 def to_real_linear_map (f : E →+ F) (hf : continuous f) : E →L[ℝ] F :=
-⟨⟨f, f.map_add, f.map_real_smul hf⟩, hf⟩
+⟨{ to_fun := f, map_add' := f.map_add, map_smul' := f.map_real_smul hf }, hf⟩
 
 @[simp] lemma coe_to_real_linear_map (f : E →+ F) (hf : continuous f) :
   ⇑(f.to_real_linear_map hf) = f := rfl

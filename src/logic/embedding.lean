@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
 import data.sigma.basic
-import algebra.group.defs
 
 /-!
 # Injective functions
@@ -34,11 +33,25 @@ end function
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
 ⟨f, f.injective⟩
 
+/-- Given an equivalence to a subtype, produce an embedding to the elements of the corresponding
+set. -/
+@[simps]
+def equiv.as_embedding {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) : α ↪ β :=
+⟨coe ∘ e, subtype.coe_injective.comp e.injective⟩
+
+@[simp]
+lemma equiv.as_embedding_range {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) :
+  set.range e.as_embedding = set_of p :=
+set.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ subtype.coe_prop (e y), λ hs, ⟨e.symm ⟨x, hs⟩, by simp⟩⟩
+
 namespace function
 namespace embedding
 
+lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn
+| ⟨x, _⟩ ⟨y, _⟩ rfl := rfl
+
 @[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; simpa using funext h
+coe_injective (funext h)
 
 lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 ⟨ext, λ h _, by rw h⟩
@@ -47,6 +60,9 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 
 @[simp] theorem coe_fn_mk {α β} (f : α → β) (i) :
   (@mk _ _ f i : α → β) = f := rfl
+
+@[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) (inj) : (⟨f, inj⟩ : α ↪ β) = f :=
+by { ext, simp }
 
 theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 
@@ -81,6 +97,10 @@ protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjecti
 protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
 equiv.of_bijective f ⟨f.injective, hf⟩
+
+/-- There is always an embedding from an empty type. --/
+protected def of_is_empty {α β} [is_empty α] : α ↪ β :=
+⟨is_empty_elim, is_empty_elim⟩
 
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
@@ -153,11 +173,11 @@ def sum_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕
 rfl
 
 /-- The embedding of `α` into the sum `α ⊕ β`. -/
-def inl {α β : Type*} : α ↪ α ⊕ β :=
+@[simps] def inl {α β : Type*} : α ↪ α ⊕ β :=
 ⟨sum.inl, λ a b, sum.inl.inj⟩
 
 /-- The embedding of `β` into the sum `α ⊕ β`. -/
-def inr {α β : Type*} : β ↪ α ⊕ β :=
+@[simps] def inr {α β : Type*} : β ↪ α ⊕ β :=
 ⟨sum.inr, λ a b, sum.inr.inj⟩
 
 end sum
@@ -218,6 +238,46 @@ end function
 
 namespace equiv
 
+open function.embedding
+
+/-- The type of embeddings `α ↪ β` is equivalent to
+    the subtype of all injective functions `α → β`. -/
+def subtype_injective_equiv_embedding (α β : Sort*) :
+  {f : α → β // function.injective f} ≃ (α ↪ β) :=
+{ to_fun := λ f, ⟨f.val, f.property⟩,
+  inv_fun := λ f, ⟨f, f.injective⟩,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by {ext, refl} }
+
+/-- If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then the type of embeddings `α₁ ↪ β₁`
+is equivalent to the type of embeddings `α₂ ↪ β₂`. -/
+@[congr, simps apply] def embedding_congr {α β γ δ : Sort*}
+  (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
+{ to_fun := λ f, h.symm.to_embedding.trans $ f.trans $ h'.to_embedding,
+  inv_fun := λ f, h.to_embedding.trans $ f.trans $ h'.symm.to_embedding,
+  left_inv := λ x, by {ext, simp},
+  right_inv := λ x, by {ext, simp} }
+
+@[simp] lemma embedding_congr_refl {α β : Sort*} :
+  embedding_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α ↪ β) :=
+by {ext, refl}
+
+@[simp] lemma embedding_congr_trans {α₁ β₁ α₂ β₂ α₃ β₃ : Sort*}
+  (e₁ : α₁ ≃ α₂) (e₁' : β₁ ≃ β₂) (e₂ : α₂ ≃ α₃) (e₂' : β₂ ≃ β₃) :
+  embedding_congr (e₁.trans e₂) (e₁'.trans e₂') =
+  (embedding_congr e₁ e₁').trans (embedding_congr e₂ e₂') :=
+rfl
+
+@[simp] lemma embedding_congr_symm {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
+  (embedding_congr e₁ e₂).symm = embedding_congr e₁.symm e₂.symm :=
+rfl
+
+lemma embedding_congr_apply_trans {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
+  (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ ↪ β₁) (g : β₁ ↪ γ₁) :
+  equiv.embedding_congr ea ec (f.trans g) =
+  (equiv.embedding_congr ea eb f).trans (equiv.embedding_congr eb ec g) :=
+by {ext, simp}
+
 @[simp]
 lemma refl_to_embedding {α : Type*} : (equiv.refl α).to_embedding = function.embedding.refl α := rfl
 
@@ -234,26 +294,3 @@ namespace set
 ⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by { congr, injection h }⟩
 
 end set
-
--- TODO: these two definitions probably belong somewhere else, so that we can remove the
--- `algebra.group.defs` import.
-
-/--
-The embedding of a left cancellative semigroup into itself
-by left multiplication by a fixed element.
- -/
-@[to_additive
-  "The embedding of a left cancellative additive semigroup into itself
-   by left translation by a fixed element.", simps]
-def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, g * h, inj' := mul_right_injective g }
-
-/--
-The embedding of a right cancellative semigroup into itself
-by right multiplication by a fixed element.
- -/
-@[to_additive
-  "The embedding of a right cancellative additive semigroup into itself
-   by right translation by a fixed element.", simps]
-def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, h * g, inj' := mul_left_injective g }

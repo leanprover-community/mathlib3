@@ -6,16 +6,20 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 import algebra.ordered_ring
 import algebra.field
 import tactic.monotonicity.basic
+import algebra.group_power.order
+import order.order_dual
 
 /-!
-  ### Linear ordered fields
-  A linear ordered field is a field equipped with a linear order such that
-  * addition respects the order: `a ≤ b → c + a ≤ c + b`;
-  * multiplication of positives is positive: `0 < a → 0 < b → 0 < a * b`;
-  * `0 < 1`.
+# Linear ordered fields
 
-  ### Main Definitions
-  * `linear_ordered_field`: the class of linear ordered fields.
+A linear ordered field is a field equipped with a linear order such that
+* addition respects the order: `a ≤ b → c + a ≤ c + b`;
+* multiplication of positives is positive: `0 < a → 0 < b → 0 < a * b`;
+* `0 < 1`.
+
+## Main Definitions
+
+* `linear_ordered_field`: the class of linear ordered fields.
 -/
 
 set_option old_structure_cmd true
@@ -71,28 +75,28 @@ lemma div_nonpos_iff : a / b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤
 by simp [division_def, mul_nonpos_iff]
 
 lemma div_pos (ha : 0 < a) (hb : 0 < b) : 0 < a / b :=
-mul_pos ha (inv_pos.2 hb)
+div_pos_iff.2 $ or.inl ⟨ha, hb⟩
 
 lemma div_pos_of_neg_of_neg (ha : a < 0) (hb : b < 0) : 0 < a / b :=
-mul_pos_of_neg_of_neg ha (inv_lt_zero.2 hb)
+div_pos_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_neg_of_neg_of_pos (ha : a < 0) (hb : 0 < b) : a / b < 0 :=
-mul_neg_of_neg_of_pos ha (inv_pos.2 hb)
+div_neg_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_neg_of_pos_of_neg (ha : 0 < a) (hb : b < 0) : a / b < 0 :=
-mul_neg_of_pos_of_neg ha (inv_lt_zero.2 hb)
+div_neg_iff.2 $ or.inl ⟨ha, hb⟩
 
 lemma div_nonneg (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
-mul_nonneg ha (inv_nonneg.2 hb)
+div_nonneg_iff.2 $ or.inl ⟨ha, hb⟩
 
 lemma div_nonneg_of_nonpos (ha : a ≤ 0) (hb : b ≤ 0) : 0 ≤ a / b :=
-mul_nonneg_of_nonpos_of_nonpos ha (inv_nonpos.2 hb)
+div_nonneg_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_nonpos_of_nonpos_of_nonneg (ha : a ≤ 0) (hb : 0 ≤ b) : a / b ≤ 0 :=
-mul_nonpos_of_nonpos_of_nonneg ha (inv_nonneg.2 hb)
+div_nonpos_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_nonpos_of_nonneg_of_nonpos (ha : 0 ≤ a) (hb : b ≤ 0) : a / b ≤ 0 :=
-mul_nonpos_of_nonneg_of_nonpos ha (inv_nonpos.2 hb)
+div_nonpos_iff.2 $ or.inl ⟨ha, hb⟩
 
 /-!
 ### Relating one division with another term.
@@ -340,7 +344,7 @@ lemma div_lt_div_right_of_neg (hc : c < 0) : a / c < b / c ↔ b < a :=
 lt_iff_lt_of_le_iff_le $ div_le_div_right_of_neg hc
 
 lemma div_lt_div_left (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b < a / c ↔ c < b :=
-(mul_lt_mul_left ha).trans (inv_lt_inv hb hc)
+by simp only [div_eq_mul_inv, mul_lt_mul_left ha, inv_lt_inv hb hc]
 
 lemma div_le_div_left (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) : a / b ≤ a / c ↔ c ≤ b :=
 le_iff_le_iff_lt_iff_lt.2 (div_lt_div_left ha hc hb)
@@ -538,6 +542,14 @@ by { rw [div_lt_iff (@zero_lt_two α _ _)], exact lt_mul_of_one_lt_right h one_l
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
+lemma half_le_self (ha_nonneg : 0 ≤ a) : a / 2 ≤ a :=
+begin
+  by_cases h0 : a = 0,
+  { simp [h0], },
+  { rw ← ne.def at h0,
+    exact (half_lt_self (lt_of_le_of_ne ha_nonneg h0.symm)).le, },
+end
+
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
@@ -546,10 +558,37 @@ begin
     ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
+/--  An inequality involving `2`. -/
+lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) :
+  (1 - 1 / a)⁻¹ ≤ 2 :=
+begin
+  -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / a`
+  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : α)).le,
+  -- move `1 / a` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / a ≤ ⅟ 2`
+  refine trans ((le_sub_iff_add_le.mpr ((_ : _ + 2⁻¹ = _ ).le))) ((sub_le_sub_iff_left 1).mpr _),
+  { -- show 2⁻¹ + 2⁻¹ = 1
+    exact trans (two_mul _).symm (mul_inv_cancel two_ne_zero) },
+  { -- take inverses on both sides and use the assumption `2 ≤ a`.
+    exact (one_div a).le.trans (inv_le_inv_of_le zero_lt_two a2) }
+end
 
 /-!
 ### Miscellaneous lemmas
 -/
+
+/-- Pullback a `linear_ordered_field` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
+def function.injective.linear_ordered_field {β : Type*}
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_inv β] [has_div β]
+  [nontrivial β]
+  (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  linear_ordered_field β :=
+{ ..hf.linear_ordered_ring f zero one add mul neg sub,
+  ..hf.field f zero one add mul neg sub inv div}
 
 lemma mul_sub_mul_div_mul_neg_iff (hc : c ≠ 0) (hd : d ≠ 0) :
   (a * d - b * c) / (c * d) < 0 ↔ a / c < b / d :=
@@ -589,12 +628,12 @@ end
 
 lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monotone f)
   {c : α} (hc : 0 ≤ c) : monotone (λ x, (f x) / c) :=
-hf.mul_const (inv_nonneg.2 hc)
+by simpa only [div_eq_mul_inv] using hf.mul_const (inv_nonneg.2 hc)
 
 lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : strict_mono f)
   {c : α} (hc : 0 < c) :
   strict_mono (λ x, (f x) / c) :=
-hf.mul_const (inv_pos.2 hc)
+by simpa only [div_eq_mul_inv] using hf.mul_const (inv_pos.2 hc)
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
@@ -630,5 +669,25 @@ by rw [abs_div, abs_one]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
 (abs_hom : monoid_with_zero_hom α α).map_inv' a
+
+-- TODO: add lemmas with `a⁻¹`.
+lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : α, 1 / x) (set.Ioi 0) :=
+λ x x1 y y1 xy, (one_div_lt_one_div (set.mem_Ioi.mp y1) (set.mem_Ioi.mp x1)).mpr xy
+
+lemma one_div_pow_le_one_div_pow_of_le (a1 : 1 ≤ a) {m n : ℕ} (mn : m ≤ n) :
+  1 / a ^ n ≤ 1 / a ^ m :=
+by refine (one_div_le_one_div _ _).mpr (pow_le_pow a1 mn);
+  exact pow_pos (zero_lt_one.trans_le a1) _
+
+lemma one_div_pow_lt_one_div_pow_of_lt (a1 : 1 < a) {m n : ℕ} (mn : m < n) :
+  1 / a ^ n < 1 / a ^ m :=
+by refine (one_div_lt_one_div _ _).mpr (pow_lt_pow a1 mn);
+  exact pow_pos (trans zero_lt_one a1) _
+
+lemma one_div_pow_mono (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
+λ m n, one_div_pow_le_one_div_pow_of_le a1
+
+lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
+λ m n, one_div_pow_lt_one_div_pow_of_lt a1
 
 end linear_ordered_field

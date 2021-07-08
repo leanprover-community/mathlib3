@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import data.list.chain
 import category_theory.punit
+import category_theory.groupoid
 
 /-!
 # Connected category
@@ -121,7 +122,8 @@ This can be thought of as a local-to-global property.
 The converse of `constant_of_preserves_morphisms`.
 -/
 lemma is_connected.of_constant_of_preserves_morphisms [nonempty J]
-  (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j j' : J, F j = F j')) :
+  (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) →
+    (∀ j j' : J, F j = F j')) :
   is_connected J :=
 is_connected.of_any_functor_const_on_obj (λ _ F, h F.obj (λ _ _ f, (F.map f).down.1))
 
@@ -147,8 +149,8 @@ If any maximal connected component containing some element j₀ of J is all of J
 
 The converse of `induct_on_objects`.
 -/
-lemma is_connected.of_induct [nonempty J]
-  {j₀ : J} (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
+lemma is_connected.of_induct [nonempty J] {j₀ : J}
+  (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
   is_connected J :=
 is_connected.of_constant_of_preserves_morphisms (λ α F a,
 begin
@@ -247,7 +249,7 @@ lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equiva
 begin
   have z : ∀ (j : J), r (classical.arbitrary J) j :=
     induct_on_objects (λ k, r (classical.arbitrary J) k)
-        (hr.1 (classical.arbitrary J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
+      (hr.1 (classical.arbitrary J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
   intros, apply hr.2.2 (hr.2.1 (z _)) (z _)
 end
 
@@ -316,5 +318,17 @@ lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (X ⟶ Y)
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
+
+instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] (x y : G) :
+  nonempty (x ⟶ y) :=
+begin
+  have h := is_connected_zigzag x y,
+  induction h with z w _ h ih,
+  { exact ⟨𝟙 x⟩ },
+  { refine nonempty.map (λ f, f ≫ classical.choice _) ih,
+    cases h,
+    { assumption },
+    { apply nonempty.map (λ f, inv f) h } }
+end
 
 end category_theory

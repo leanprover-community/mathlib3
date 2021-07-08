@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Leonardo de Moura, Jeremy Avigad
+Authors: Leonardo de Moura, Jeremy Avigad
 -/
 
 /-!
@@ -22,15 +22,19 @@ prefix `!`:90 := bnot
 
 namespace bool
 
-@[simp] theorem coe_sort_tt : coe_sort.{1 1} tt = true := eq_true_intro rfl
+-- TODO: duplicate of a lemma in core
+theorem coe_sort_tt : coe_sort.{1 1} tt = true := coe_sort_tt
 
-@[simp] theorem coe_sort_ff : coe_sort.{1 1} ff = false := eq_false_intro ff_ne_tt
+-- TODO: duplicate of a lemma in core
+theorem coe_sort_ff : coe_sort.{1 1} ff = false := coe_sort_ff
 
-@[simp] theorem to_bool_true {h} : @to_bool true h = tt :=
-show _ = to_bool true, by congr
+-- TODO: duplicate of a lemma in core
+theorem to_bool_true {h} : @to_bool true h = tt :=
+to_bool_true_eq_tt h
 
-@[simp] theorem to_bool_false {h} : @to_bool false h = ff :=
-show _ = to_bool false, by congr
+-- TODO: duplicate of a lemma in core
+theorem to_bool_false {h} : @to_bool false h = ff :=
+to_bool_false_eq_ff h
 
 @[simp] theorem to_bool_coe (b:bool) {h} : @to_bool b h = b :=
 (show _ = to_bool b, by congr).trans (by cases b; refl)

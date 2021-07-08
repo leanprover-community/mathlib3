@@ -77,7 +77,8 @@ begin
   calc (∏ j : σ, (e a : σ → K) j ^ d j)
         = (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
         by { rw [← e'.prod_comp, fintype.prod_sum_type, univ_unique, prod_singleton], refl }
-    ... = a ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) : by rw equiv.subtype_equiv_codomain_symm_apply_eq
+    ... = a ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
+        by rw equiv.subtype_equiv_codomain_symm_apply_eq
     ... = a ^ d i * (∏ j, x₀ j ^ d j) : congr_arg _ (fintype.prod_congr _ _ _) -- see below
     ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,
   { -- the remaining step of the calculation above
@@ -141,7 +142,8 @@ begin
   -- Now we prove the remaining step from the preceding calculation
   show (1 - f i ^ (q - 1)).total_degree ≤ (q - 1) * (f i).total_degree,
   calc (1 - f i ^ (q - 1)).total_degree
-        ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree : total_degree_sub _ _
+        ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree :
+        total_degree_sub _ _
     ... ≤ (f i ^ (q - 1)).total_degree : by simp only [max_eq_right, nat.zero_le, total_degree_one]
     ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end

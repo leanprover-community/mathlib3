@@ -341,7 +341,8 @@ We define `P` to be a sheaf for the presieve `R` if every compatible family has 
 amalgamation.
 
 This is the definition of a sheaf for the given presieve given in C2.1.2 of [Elephant], and
-https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents. Using `compatible_iff_sieve_compatible`,
+https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents.
+Using `compatible_iff_sieve_compatible`,
 this is equivalent to the definition of a sheaf in [MM92], Chapter III, Section 4.
 -/
 def is_sheaf_for (P : Cᵒᵖ ⥤ Type v) (R : presieve X) : Prop :=
@@ -894,7 +895,7 @@ def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps, derive [full, faithful]]
+@[simps {rhs_md := semireducible}, derive [full, faithful]]
 def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type v) :=
 full_subcategory_inclusion (presieve.is_sheaf J)
 

@@ -22,7 +22,7 @@ comma, arrow
 
 namespace category_theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 variables {T : Type u} [category.{v} T]
 
 section
@@ -51,6 +51,14 @@ def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
   right := Y,
   hom := f }
 
+theorem mk_injective (A B : T) :
+  function.injective (arrow.mk : (A ⟶ B) → arrow T) :=
+λ f g h, by { cases h, refl }
+
+theorem mk_inj (A B : T) {f g : A ⟶ B} : arrow.mk f = arrow.mk g ↔ f = g :=
+(mk_injective A B).eq_iff
+instance {X Y : T} : has_coe (X ⟶ Y) (arrow T) := ⟨mk⟩
+
 /-- A morphism in the arrow category is a commutative square connecting two objects of the arrow
     category. -/
 @[simps]
@@ -70,11 +78,45 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
 
 @[simp, reassoc] lemma w {f g : arrow T} (sq : f ⟶ g) : sq.left ≫ g.hom = f.hom ≫ sq.right := sq.w
 
+-- `w_mk_left` is not needed, as it is a consequence of `w` and `mk_hom`.
+@[simp, reassoc] lemma w_mk_right {f : arrow T} {X Y : T} {g : X ⟶ Y} (sq : f ⟶ mk g) :
+  sq.left ≫ g = f.hom ≫ sq.right :=
+sq.w
+
+instance {f g : arrow T} (ff : f ⟶ g) [is_iso ff.left] [is_iso ff.right] :
+  is_iso ff :=
+{ out := ⟨⟨inv ff.left, inv ff.right⟩,
+          by { ext; dsimp; simp only [is_iso.hom_inv_id] },
+          by { ext; dsimp; simp only [is_iso.inv_hom_id] }⟩ }
+
+/-- Create an isomorphism between arrows,
+by providing isomorphisms between the domains and codomains,
+and a proof that the square commutes. -/
+@[simps] def iso_mk {f g : arrow T}
+  (l : f.left ≅ g.left) (r : f.right ≅ g.right) (h : l.hom ≫ g.hom = f.hom ≫ r.hom) :
+  f ≅ g :=
+comma.iso_mk l r h
+
+/-- Given a square from an arrow `i` to an isomorphism `p`, express the source part of `sq`
+in terms of the inverse of `p`. -/
+@[simp] lemma square_to_iso_invert (i : arrow T) {X Y : T} (p : X ≅ Y) (sq : i ⟶ arrow.mk p.hom) :
+  i.hom ≫ sq.right ≫ p.inv = sq.left :=
+by simpa only [category.assoc] using (iso.comp_inv_eq p).mpr ((arrow.w_mk_right sq).symm)
+
+/-- Given a square from an isomorphism `i` to an arrow `p`, express the target part of `sq`
+in terms of the inverse of `i`. -/
+lemma square_from_iso_invert {X Y : T} (i : X ≅ Y) (p : arrow T) (sq : arrow.mk i.hom ⟶ p) :
+  i.inv ≫ sq.left ≫ p.hom = sq.right :=
+by simp only [iso.inv_hom_id_assoc, arrow.w, arrow.mk_hom]
+
 /-- A lift of a commutative square is a diagonal morphism making the two triangles commute. -/
 @[ext] structure lift_struct {f g : arrow T} (sq : f ⟶ g) :=
 (lift : f.right ⟶ g.left)
-(fac_left : f.hom ≫ lift = sq.left)
-(fac_right : lift ≫ g.hom = sq.right)
+(fac_left' : f.hom ≫ lift = sq.left . obviously)
+(fac_right' : lift ≫ g.hom = sq.right . obviously)
+
+restate_axiom lift_struct.fac_left'
+restate_axiom lift_struct.fac_right'
 
 instance lift_struct_inhabited {X : T} : inhabited (lift_struct (𝟙 (arrow.mk (𝟙 X)))) :=
 ⟨⟨𝟙 _, category.id_comp _, category.comp_id _⟩⟩
@@ -104,6 +146,16 @@ lemma lift.fac_right {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift sq ≫ 
 by simp
 
 @[simp, reassoc]
+lemma lift.fac_right_of_to_mk {X Y : T} {f : arrow T} {g : X ⟶ Y} (sq : f ⟶ mk g) [has_lift sq] :
+  lift sq ≫ g = sq.right :=
+by simp only [←mk_hom g, lift.fac_right]
+
+@[simp, reassoc]
+lemma lift.fac_left_of_from_mk {X Y : T} {f : X ⟶ Y} {g : arrow T} (sq : mk f ⟶ g) [has_lift sq] :
+  f ≫ lift sq = sq.left :=
+by simp only [←mk_hom f, lift.fac_left]
+
+@[simp, reassoc]
 lemma lift_mk'_left {X Y P Q : T} {f : X ⟶ Y} {g : P ⟶ Q} {u : X ⟶ P} {v : Y ⟶ Q}
   (h : u ≫ g = f ≫ v) [has_lift $ arrow.hom_mk' h] : f ≫ lift (arrow.hom_mk' h) = u :=
 by simp only [←arrow.mk_hom f, lift.fac_left, arrow.hom_mk'_left]
@@ -124,6 +176,32 @@ instance subsingleton_lift_struct_of_mono {f g : arrow T} (sq : f ⟶ g) [mono g
 subsingleton.intro $ λ a b, lift_struct.ext a b $ (cancel_mono g.hom).1 $ by simp
 
 end
+
+variables {C : Type u} [category.{v} C]
+/-- A helper construction: given a square between `i` and `f ≫ g`, produce a square between
+`i` and `g`, whose top leg uses `f`:
+A  → X
+     ↓f
+↓i   Y             --> A → Y
+     ↓g                ↓i  ↓g
+B  → Z                 B → Z
+ -/
+@[simps] def square_to_snd {X Y Z: C} {i : arrow C} {f : X ⟶ Y} {g : Y ⟶ Z}
+  (sq : i ⟶ arrow.mk (f ≫ g)) :
+  i ⟶ arrow.mk g :=
+{ left := sq.left ≫ f,
+  right := sq.right }
+
+/-- The functor sending an arrow to its source. -/
+@[simps] def left_func : arrow C ⥤ C := comma.fst _ _
+
+/-- The functor sending an arrow to its target. -/
+@[simps] def right_func : arrow C ⥤ C := comma.snd _ _
+
+/-- The natural transformation from `left_func` to `right_func`, given by the arrow itself. -/
+@[simps]
+def left_to_right : (left_func : arrow C ⥤ C) ⟶ right_func :=
+{ app := λ f, f.hom }
 
 end arrow
 

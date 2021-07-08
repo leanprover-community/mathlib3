@@ -571,7 +571,7 @@ by { ext, refl }
 def lift_equiv : {φ : normed_group_hom V₁ V // f.comp φ = g.comp φ} ≃
   normed_group_hom V₁ (f.equalizer g) :=
 { to_fun := λ φ, lift φ φ.prop,
-  inv_fun := λ ψ, ⟨(ι f g).comp ψ, by { rw [← comp_assoc, ← comp_assoc, condition] }⟩,
+  inv_fun := λ ψ, ⟨(ι f g).comp ψ, by { rw [← comp_assoc, ← comp_assoc, comp_ι_eq] }⟩,
   left_inv := λ φ, by simp,
   right_inv := λ ψ, by { ext, refl } }
 
@@ -582,7 +582,7 @@ def map (φ : normed_group_hom V₁ V₂) (ψ : normed_group_hom W₁ W₂)
   (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ) :
   normed_group_hom (f₁.equalizer g₁) (f₂.equalizer g₂) :=
 lift (φ.comp $ ι _ _) $
-by { simp only [← comp_assoc, ← hf, ← hg], simp only [comp_assoc, condition] }
+by { simp only [← comp_assoc, ← hf, ← hg], simp only [comp_assoc, comp_ι_eq] }
 
 variables {φ : normed_group_hom V₁ V₂} {ψ : normed_group_hom W₁ W₂}
 variables {φ' : normed_group_hom V₂ V₃} {ψ' : normed_group_hom W₂ W₃}

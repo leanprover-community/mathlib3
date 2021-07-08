@@ -75,7 +75,7 @@ begin
   exact G'.edge_vert (G'.sym' he),
 end
 
-lemma adj_symm' (G' : subgraph G) ⦃v w : V⦄ : G'.adj' v w ↔ G'.adj' w v :=
+lemma sym' (G' : subgraph G) : symmetric G'.adj :=
 by { split; apply G'.sym' }
 
 /--

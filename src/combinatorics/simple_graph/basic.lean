@@ -576,7 +576,7 @@ section maps
 /--
 A graph homomorphism is a map on vertex sets that respects adjacency relations.
 -/
-abbreviation hom (G : simple_graph V) (G' : simple_graph W) := rel_hom (G.adj) (G'.adj)
+abbreviation hom (G : simple_graph V) (G' : simple_graph W) := rel_hom G.adj G'.adj
 
 infix ` →g ` : 50 := hom
 

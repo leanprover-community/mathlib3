@@ -9,7 +9,15 @@ import combinatorics.simple_graph.basic
 /-!
 # Subgraphs of a simple graph
 
-This file formalizes a subgraph of a simple graph as a structure and proves a few simple lemmas.
+A subgraph of a simple graph consists of subsets of the graph's vertices and edges such that the endpoints of each
+edge are present in the vertex subset.  The edge subset is formalized as a sub-relation of the adjacency relation
+of the simple graph.
+
+## Todo
+
+* The injective homomorphism from a subgraph of `G` as a simple graph to `G`.
+
+* The complete lattice instance on subgraphs.
 -/
 
 universe u

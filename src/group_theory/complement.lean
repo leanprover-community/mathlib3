@@ -16,8 +16,8 @@ In this file we define the complement of a subgroup.
 ## Main definitions
 
 - `is_complement S T` where `S` and `T` are subsets of `G`
-- `left_transversals S`
-- `left_transversals T`
+- `left_transversals T` where `T` is a subset of `G`
+- `right_transversals S` where `S` is a subset of `G`
 
 ## Main results
 

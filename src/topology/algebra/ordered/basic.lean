@@ -3015,9 +3015,8 @@ lemma tendsto_at_top_is_lub {ι α : Type*} [preorder ι] [topological_space α]
   [order_topology α] {f : ι → α} (h_mono : monotone f) {a : α} (ha : is_lub (set.range f) a) :
   tendsto f at_top (𝓝 a) :=
 begin
-  by_cases hi : nonempty ι,
-  { resetI,
-    rw tendsto_order,
+  casesI (is_empty_or_nonempty ι).symm,
+  { rw tendsto_order,
     split,
     { intros a' ha',
       obtain ⟨_, ⟨N, rfl⟩, hN⟩ : ∃ x ∈ set.range f, a' < x := (lt_is_lub_iff ha).mp ha',
@@ -3026,7 +3025,7 @@ begin
       exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
     { intros a' ha',
       exact eventually_of_forall (λ i, lt_of_le_of_lt (ha.1 (set.mem_range_self i)) ha') } },
-  { exact tendsto_of_not_nonempty hi }
+  { exact tendsto_of_is_empty }
 end
 
 lemma tendsto_at_bot_is_glb {ι α : Type*} [preorder ι] [topological_space α] [linear_order α]
@@ -3039,10 +3038,9 @@ lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
   {f : ι → α} (h_mono : monotone f) (hbdd : bdd_above $ range f) :
   tendsto f at_top (𝓝 (⨆i, f i)) :=
 begin
-  by_cases hi : nonempty ι,
-  { resetI,
-    exact tendsto_at_top_is_lub h_mono (is_lub_cSup (range_nonempty f) hbdd) },
-  { exact tendsto_of_not_nonempty hi }
+  casesI (is_empty_or_nonempty ι).symm,
+  { exact tendsto_at_top_is_lub h_mono (is_lub_cSup (range_nonempty f) hbdd) },
+  { exact tendsto_of_is_empty }
 end
 
 lemma tendsto_at_bot_cinfi {ι α : Type*} [preorder ι] [topological_space α]

@@ -109,7 +109,7 @@ by classical; exact ⟨(n % order_of f).to_nat, by {
   have := n.mod_nonneg (int.coe_nat_ne_zero.mpr (ne_of_gt (order_of_pos f))),
   rwa [← gpow_coe_nat, int.to_nat_of_nonneg this, ← gpow_eq_mod_order_of] }⟩
 
-lemma is_cycle.exists_pow_ge_one_eq_one [fintype β] {f : perm β} (hf : is_cycle f) :
+lemma is_cycle.exists_pow_eq_one [fintype β] {f : perm β} (hf : is_cycle f) :
   ∃ (k : ℕ) (hk : 1 < k), f ^ k = 1 :=
 begin
   classical,
@@ -303,36 +303,9 @@ begin
   { exact (hb (extend_domain_apply_not_subtype _ _ pb)).elim }
 end
 
-lemma nodup_of_pairwise_disjoint_cycles {l : list (perm β)} (h1 : ∀ (f ∈ l), is_cycle f)
+lemma nodup_of_pairwise_disjoint_cycles {l : list (perm β)} (h1 : ∀ f ∈ l, is_cycle f)
   (h2 : l.pairwise disjoint) : l.nodup :=
 nodup_of_pairwise_disjoint (λ h, (h1 1 h).ne_one rfl) h2
-
-lemma pow_inj_on_lt_order_of (f : perm β) (n m : ℕ) (hn : n < order_of f) (hm : m < order_of f) :
-  f ^ n = f ^ m ↔ n = m :=
-begin
-  refine ⟨λ h, _, λ h, congr_arg _ h⟩,
-  by_cases hf : f = 1,
-  { simp only [hf, nat.lt_iff_add_one_le, order_of_one, add_le_iff_nonpos_left,
-               nonpos_iff_eq_zero] at hn hm,
-    simp [hn, hm] },
-  { induction n with n IH generalizing m,
-    { cases m,
-      { refl },
-      { simp only [pow_zero] at h,
-        have := order_of_dvd_of_pow_eq_one h.symm,
-        replace this : order_of f ≤ m.succ :=
-          nat.le_of_dvd (nat.zero_lt_succ _) this,
-        exact absurd this hm.not_le } },
-    { cases m,
-      { simp only [pow_zero] at h,
-        have := order_of_dvd_of_pow_eq_one h,
-        replace this : order_of f ≤ n.succ :=
-          nat.le_of_dvd (nat.zero_lt_succ _) this,
-        exact absurd this hn.not_le },
-      { rw nat.succ_inj',
-        refine IH ((nat.lt_succ_self _).trans hn) _ ((nat.lt_succ_self _).trans hm) _,
-        simpa [pow_succ'] using h } } }
-end
 
 end sign_cycle
 
@@ -362,28 +335,35 @@ lemma is_cycle.same_cycle {f : perm β} (hf : is_cycle f) {x y : β}
 hf.exists_gpow_eq hx hy
 
 lemma same_cycle.nat' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x y) :
-  ∃ (i : ℕ) (hpos : 0 < i) (h : i ≤ order_of f), (f ^ i) x = y :=
+  ∃ (i : ℕ) (h : i < order_of f), (f ^ i) x = y :=
 begin
   classical,
   obtain ⟨k, rfl⟩ := id h,
   by_cases hk : (k % order_of f) = 0,
-  { use order_of f,
+  { use 0,
     rw ←int.dvd_iff_mod_eq_zero at hk,
     obtain ⟨m, rfl⟩ := hk,
     simp [pow_order_of_eq_one, order_of_pos, gpow_mul] },
   { use ((k % order_of f).nat_abs),
     rw [←gpow_coe_nat, int.nat_abs_of_nonneg, ←gpow_eq_mod_order_of],
-    split,
-    { exact int.nat_abs_pos_of_ne_zero hk },
     { refine ⟨_, rfl⟩,
-      rw ←int.coe_nat_le,
-      rw int.nat_abs_of_nonneg,
-      { refine (int.mod_lt_of_pos _ _).le,
+      rw [←int.coe_nat_lt, int.nat_abs_of_nonneg],
+      { refine (int.mod_lt_of_pos _ _),
         simpa using order_of_pos _ },
       { refine int.mod_nonneg _ _,
         simpa using ne_of_gt (order_of_pos _) } },
-    { refine int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.mpr _),
-      exact order_of_pos _ } }
+    { refine int.mod_nonneg _ _,
+      simpa using (order_of_pos _).ne' } }
+end
+
+lemma same_cycle.nat'' [fintype β] {f : perm β} {x y : β} (h : same_cycle f x y) :
+  ∃ (i : ℕ) (hpos : 0 < i) (h : i ≤ order_of f), (f ^ i) x = y :=
+begin
+  classical,
+  obtain ⟨_|i, hi, rfl⟩ := h.nat',
+  { refine ⟨order_of f, order_of_pos f, le_rfl, _⟩,
+    rw [pow_order_of_eq_one, pow_zero] },
+  { exact ⟨i.succ, i.zero_lt_succ, hi.le, rfl⟩ }
 end
 
 instance [fintype α] (f : perm α) : decidable_rel (same_cycle f) :=
@@ -538,14 +518,6 @@ begin
   have : ¬ order_of f ∣ n := nat.not_dvd_of_pos_of_lt npos hn,
   rw ←hf.support_pow_eq_iff at this,
   rw this
-end
-
-lemma is_cycle.pow_inj_iff [fintype α] (f : perm α) (hf : is_cycle f)
-  (n m : ℕ) (hn : n < f.support.card) (hm : m < f.support.card) :
-  f ^ n = f ^ m ↔ n = m :=
-begin
-  rw pow_inj_on_lt_order_of;
-  rwa order_of_is_cycle hf
 end
 
 lemma is_cycle.is_cycle_pow_pos_of_lt_prime_order [fintype β] {f : perm β} (hf : is_cycle f)
@@ -1072,11 +1044,7 @@ begin
   { intros g hg H hx,
     rw mem_support at hx,
     rw [hg.cycle_of_eq hx, ←order_of_is_cycle hg],
-    obtain ⟨n, hpos, hn, rfl⟩ := H.nat',
-    rcases hn.eq_or_lt with rfl|hn',
-    { refine ⟨0, order_of_pos _, _⟩,
-      simp [pow_order_of_eq_one] },
-    { exact ⟨n, hn', rfl⟩ } },
+    exact H.nat' },
   { rintros g h hd hg IH IH' ⟨m, rfl⟩ hx,
     cases (disjoint_iff_eq_or_eq.mp hd) x with hgx hhx,
     { have hpow : ∀ (k : ℤ), ((g * h) ^ k) x = (h ^ k) x,

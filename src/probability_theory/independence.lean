@@ -357,34 +357,6 @@ def pi_Union_Inter {α ι} (π : ι → set (set α)) (S : set (finset ι)) : se
 {s : set α | ∃ (t : finset ι) (htS : t ∈ S) (f : ι → set α) (hf : ∀ x, x ∈ t → f x ∈ π x),
   s = ⋂ x (hxt : x ∈ t), f x}
 
-/-- A set `s` is sup-closed if for all `x₁, x₂ ∈ s`, `x₁ ⊔ x₂ ∈ s`. -/
-def sup_closed {α} [has_sup α] (s : set α) : Prop := ∀ x1 x2, x1 ∈ s → x2 ∈ s → x1 ⊔ x2 ∈ s
-
-lemma sup_closed_singleton {α} [semilattice_sup α] (x : α) : sup_closed ({x} : set α) :=
-λ _ _ y1_mem y2_mem, by { rw set.mem_singleton_iff at *, rw [y1_mem, y2_mem, sup_idem], }
-
-lemma sup_closed_inter {α} [semilattice_sup α] {s t : set α} (hs : sup_closed s)
-  (ht : sup_closed t) :
-  sup_closed (s ∩ t) :=
-begin
-  intros x y hx hy,
-  rw set.mem_inter_iff at hx hy ⊢,
-  exact ⟨hs x y hx.left hy.left, ht x y hx.right hy.right⟩,
-end
-
-lemma sup_closed_of_totally_ordered {α} [semilattice_sup α] (s : set α)
-  (hs : ∀ x y : α, x ∈ s → y ∈ s → y ≤ x ∨ x ≤ y) :
-  sup_closed s :=
-begin
-  intros x y hxs hys,
-  cases hs x y hxs hys,
-  { rwa (sup_eq_left.mpr h), },
-  { rwa (sup_eq_right.mpr h), },
-end
-
-lemma sup_closed_of_linear_order {α} [linear_order α] (s : set α) : sup_closed s :=
-sup_closed_of_totally_ordered s (λ x y hxs hys, le_total y x)
-
 lemma sup_closed_tail_finset_set (N : ℕ) :
   sup_closed {s : finset ℕ | ∃ r : ℕ, s = finset.Ico N (N+r+1)} :=
 begin
@@ -404,14 +376,7 @@ begin
   simp_rw ←set.inf_eq_inter,
   rw binfi_inf_binfi_eq_binfi_union_if (λ i:ι, i ∈ s1) (λ i:ι, i ∈ s2) f1 f2,
   simp_rw [set.top_eq_univ, set.inf_eq_inter, set.Inter],
-  congr,
-  ext1 i,
-  congr' 1 with h,
-  { simp, },
-  { simp, },
-  { intros _ _ _,
-    rw heq_iff_eq,
-    congr', },
+  simp [heq_iff_eq],
 end
 
 lemma is_pi_system_pi_Union_Inter {α ι} (pi : ι → set (set α))
@@ -424,7 +389,7 @@ begin
   use [p1 ∪ p2, h_sup p1 p2 hp1S hp2S, g],
   have h_inter_eq : t1 ∩ t2 = ⋂ (i : ι) (hp : i ∈ p1 ∪ p2), g i,
   { rw [ht1_eq, ht2_eq],
-    exact finset.Inter_inter_Inter_eq_Inter_union_ite p1 p2 f1 f2, },
+    exact finset.Inter_inter_Inter_eq_Inter_union_if p1 p2 f1 f2, },
   refine ⟨λ n hn, _, h_inter_eq⟩,
   simp_rw g,
   split_ifs with hn1 hn2,

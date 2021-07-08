@@ -567,6 +567,7 @@ def lift (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
   (ι _ _).comp (lift φ h) = φ :=
 by { ext, refl }
 
+@[simps]
 def lift_equiv : {φ : normed_group_hom V₁ V // f.comp φ = g.comp φ} ≃
   normed_group_hom V₁ (f.equalizer g) :=
 { to_fun := λ φ, lift φ φ.prop,

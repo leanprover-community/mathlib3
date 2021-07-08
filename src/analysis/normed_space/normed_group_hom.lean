@@ -599,7 +599,6 @@ lemma comm_sq₂ (hf : ψ.comp f₁ = f₂.comp φ)(hf' : ψ'.comp f₂ = f₃.c
   (ψ'.comp ψ).comp f₁ = f₃.comp (φ'.comp φ) :=
 by rw [comp_assoc, hf, ← comp_assoc, hf', comp_assoc]
 
-
 lemma map_comp_map (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ)
   (hf' : ψ'.comp f₂ = f₃.comp φ') (hg' : ψ'.comp g₂ = g₃.comp φ') :
   (map φ' ψ' hf' hg').comp (map φ ψ hf hg) =

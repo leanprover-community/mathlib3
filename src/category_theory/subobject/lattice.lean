@@ -68,19 +68,19 @@ end
 end has_top
 
 section has_bot
-variables [has_zero_morphisms C] [has_zero_object C]
-open_locale zero_object
+variables [zero_le_category C] [has_initial C]
+-- variables [has_zero_morphisms C] [has_zero_object C]
+-- open_locale zero_object
 
 instance {X : C} : has_bot (mono_over X) :=
-{ bot := mk' (0 : 0 ⟶ X) }
+{ bot := mk' (initial.to X) }
 
-@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : C) = 0 := rfl
-@[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = 0 :=
-by ext
+@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : C) = ⊥_ C := rfl
+@[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = initial.to X := rfl
 
 /-- The (unique) morphism from `⊥ : mono_over X` to any other `f : mono_over X`. -/
 def bot_le {X : C} (f : mono_over X) : ⊥ ⟶ f :=
-hom_mk 0 (by simp)
+hom_mk (initial.to _) (by simp)
 
 /-- `map f` sends `⊥ : mono_over X` to `⊥ : mono_over Y`. -/
 def map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ ≅ ⊥ :=

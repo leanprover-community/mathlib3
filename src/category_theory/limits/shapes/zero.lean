@@ -212,11 +212,21 @@ def zero_morphisms_of_zero_object : has_zero_morphisms C :=
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
 /-- A zero object is in particular initial. -/
+def zero_is_initial : is_initial (0 : C) :=
+is_initial.of_unique 0
+/-- A zero object is in particular terminal. -/
+def zero_is_terminal : is_terminal (0 : C) :=
+is_terminal.of_unique 0
+
+/-- A zero object is in particular initial. -/
 lemma has_initial : has_initial C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
 lemma has_terminal : has_terminal C :=
 has_terminal_of_unique 0
+
+instance has_strict_initial : zero_le_category C :=
+zero_le_category.of_is_initial zero_is_initial (λ X, category_theory.mono _)
 
 open_locale zero_object
 

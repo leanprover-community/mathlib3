@@ -26,8 +26,15 @@ def SemiRing : Type (u+1) := bundled semiring
 
 namespace SemiRing
 
-instance bundled_hom : bundled_hom @ring_hom :=
-⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
+/-- `ring_hom` doesn't actually assume associativity. This alias is needed to make the category
+theory machinery work. We use the same trick in `category_theory.Mon.assoc_monoid_hom`. -/
+abbreviation assoc_ring_hom (M N : Type*) [semiring M] [semiring N] := ring_hom M N
+
+instance bundled_hom : bundled_hom assoc_ring_hom :=
+⟨λ M N [semiring M] [semiring N], by exactI @ring_hom.to_fun M N _ _,
+ λ M [semiring M], by exactI @ring_hom.id M _,
+ λ M N P [semiring M] [semiring N] [semiring P], by exactI @ring_hom.comp M N P _ _ _,
+ λ M N [semiring M] [semiring N], by exactI @ring_hom.coe_inj M N _ _⟩
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] SemiRing
 
@@ -154,7 +161,8 @@ variables {X Y : Type u}
   inv := e.symm.to_ring_hom }
 
 /-- Build an isomorphism in the category `CommRing` from a `ring_equiv` between `comm_ring`s. -/
-@[simps] def to_CommRing_iso [comm_ring X] [comm_ring Y] (e : X ≃+* Y) : CommRing.of X ≅ CommRing.of Y :=
+@[simps] def to_CommRing_iso [comm_ring X] [comm_ring Y] (e : X ≃+* Y) :
+  CommRing.of X ≅ CommRing.of Y :=
 { hom := e.to_ring_hom,
   inv := e.symm.to_ring_hom }
 
@@ -182,13 +190,14 @@ def CommRing_iso_to_ring_equiv {X Y : CommRing} (i : X ≅ Y) : X ≃+* Y :=
 
 end category_theory.iso
 
-/-- ring equivalences between `ring`s are the same as (isomorphic to) isomorphisms in `Ring`. -/
+/-- Ring equivalences between `ring`s are the same as (isomorphic to) isomorphisms in `Ring`. -/
 def ring_equiv_iso_Ring_iso {X Y : Type u} [ring X] [ring Y] :
   (X ≃+* Y) ≅ (Ring.of X ≅ Ring.of Y) :=
 { hom := λ e, e.to_Ring_iso,
   inv := λ i, i.Ring_iso_to_ring_equiv, }
 
-/-- ring equivalences between `comm_ring`s are the same as (isomorphic to) isomorphisms in `CommRing`. -/
+/-- Ring equivalences between `comm_ring`s are the same as (isomorphic to) isomorphisms
+in `CommRing`. -/
 def ring_equiv_iso_CommRing_iso {X Y : Type u} [comm_ring X] [comm_ring Y] :
   (X ≃+* Y) ≅ (CommRing.of X ≅ CommRing.of Y) :=
 { hom := λ e, e.to_CommRing_iso,
@@ -200,7 +209,7 @@ instance Ring.forget_reflects_isos : reflects_isomorphisms (forget Ring.{u}) :=
     resetI,
     let i := as_iso ((forget Ring).map f),
     let e : X ≃+* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Ring_iso },
+    exact ⟨(is_iso.of_iso e.to_Ring_iso).1⟩,
   end }
 
 instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.{u}) :=
@@ -209,7 +218,7 @@ instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.
     resetI,
     let i := as_iso ((forget CommRing).map f),
     let e : X ≃+* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_CommRing_iso },
+    exact ⟨(is_iso.of_iso e.to_CommRing_iso).1⟩,
   end }
 
 example : reflects_isomorphisms (forget₂ Ring AddCommGroup) := by apply_instance

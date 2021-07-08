@@ -5,7 +5,8 @@ Authors: Oliver Nash
 -/
 import algebra.invertible
 import algebra.lie.skew_adjoint
-import linear_algebra.matrix
+import algebra.lie.abelian
+import linear_algebra.matrix.trace
 
 /-!
 # Classical Lie algebras
@@ -44,7 +45,7 @@ For the algebras of type `B` and `D`, there are two natural definitions. For exa
 the `2l × 2l` matrix:
 $$
   J = \left[\begin{array}{cc}
-              0_l & 1_l\\\\
+              0_l & 1_l\\
               1_l & 0_l
             \end{array}\right]
 $$
@@ -71,17 +72,16 @@ variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
 @[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
-begin
-  -- TODO: if we use matrix.mul here, we get a timeout
-  change matrix.trace n R R (X * Y - Y * X) = 0,
-  erw [linear_map.map_sub, matrix.trace_mul_comm, sub_self]
-end
+calc _ = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (Y ⬝ X) : linear_map.map_sub _ _ _
+   ... = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (X ⬝ Y) :
+     congr_arg (λ x, _ - x) (matrix.trace_mul_comm X Y)
+   ... = 0 : sub_self _
 
 namespace special_linear
 
 /-- The special linear Lie algebra: square matrices of trace zero. -/
 def sl : lie_subalgebra R (matrix n n R) :=
-{ lie_mem := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
+{ lie_mem' := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
   ..linear_map.ker (matrix.trace n R R) }
 
 lemma sl_bracket (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
@@ -98,18 +98,14 @@ abbreviation E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
 @[simp] lemma E_apply_zero (i' j' : n) (h : ¬(i = i' ∧ j = j')) : E R i j i' j' = 0 := if_neg h
 
 @[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
-begin
-  ext k, rw matrix.diag_apply,
-  suffices : ¬(i = k ∧ j = k), by exact if_neg this,
-  rintros ⟨e₁, e₂⟩, apply h, subst e₁, exact e₂,
-end
+funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
 
 lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
 
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
-⟨E R i j, by { change E R i j ∈ linear_map.ker (matrix.trace n R R), simp [E_trace_zero R i j h], }⟩
+⟨E R i j, show E R i j ∈ linear_map.ker (matrix.trace n R R), from E_trace_zero R i j h⟩
 
 @[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
 
@@ -121,7 +117,7 @@ begin
   let A := Eb R i j hij,
   let B := Eb R j i hij.symm,
   intros c,
-  have c' : A.val ⬝ B.val = B.val ⬝ A.val := by { rw [←sub_eq_zero, ←sl_bracket, c.trivial], refl, },
+  have c' : A.val ⬝ B.val = B.val ⬝ A.val, by { rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
   have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
   exact one_ne_zero this,
 end
@@ -207,20 +203,21 @@ noncomputable def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv
     (indefinite_diagonal p q R) (Pso p q R i) (is_unit_Pso p q R hi)).trans,
-  apply lie_algebra.equiv.of_eq,
+  apply lie_equiv.of_eq,
   ext A, rw indefinite_diagonal_transform p q R hi, refl,
 end
 
 lemma so_indefinite_equiv_apply {i : R} (hi : i*i = -1) (A : so' p q R) :
-  (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) = (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
-by erw [lie_algebra.equiv.trans_apply, lie_algebra.equiv.of_eq_apply,
+  (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) =
+    (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
+by erw [lie_equiv.trans_apply, lie_equiv.of_eq_apply,
         skew_adjoint_matrices_lie_subalgebra_equiv_apply]
 
 /-- A matrix defining a canonical even-rank symmetric bilinear form.
 
 It looks like this as a `2l x 2l` matrix of `l x l` blocks:
 
-   [ 0 1 ]  
+   [ 0 1 ]
    [ 1 0 ]
 -/
 def JD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 1 1 0
@@ -234,7 +231,7 @@ diagonal matrix.
 
 It looks like this as a `2l x 2l` matrix of `l x l` blocks:
 
-   [ 1 -1 ]  
+   [ 1 -1 ]
    [ 1  1 ]
 -/
 def PD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 1 (-1) 1 1
@@ -277,9 +274,9 @@ noncomputable def type_D_equiv_so' [invertible (2 : R)] :
   type_D l R ≃ₗ⁅R⁆ so' l l R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
-  apply lie_algebra.equiv.of_eq,
+  apply lie_equiv.of_eq,
   ext A,
-  rw [JD_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
+  rw [JD_transform, ← unit_of_invertible_val (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
       mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   refl,
 end
@@ -288,14 +285,14 @@ end
 
 It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
 
-   [ 2 0 0 ]  
-   [ 0 0 1 ]  
+   [ 2 0 0 ]
+   [ 0 0 1 ]
    [ 0 1 0 ]
 
 where sizes of the blocks are:
 
-   [`1 x 1` `1 x l` `1 x l`]  
-   [`l x 1` `l x l` `l x l`]  
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
    [`l x 1` `l x l` `l x l`]
 -/
 def JB := matrix.from_blocks ((2 : R) • 1 : matrix unit unit R) 0 0 (JD l R)
@@ -309,14 +306,14 @@ almost-split-signature diagonal matrix.
 
 It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
 
-   [ 1 0  0 ]  
-   [ 0 1 -1 ]  
+   [ 1 0  0 ]
+   [ 0 1 -1 ]
    [ 0 1  1 ]
 
 where sizes of the blocks are:
 
-   [`1 x 1` `1 x l` `1 x l`]  
-   [`l x 1` `l x l` `l x l`]  
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
    [`l x 1` `l x l` `l x l`]
 -/
 def PB := matrix.from_blocks (1 : matrix unit unit R) 0 0 (PD l R)
@@ -346,7 +343,13 @@ begin
   ext i j,
   rcases i with ⟨⟨i₁ | i₂⟩ | i₃⟩;
   rcases j with ⟨⟨j₁ | j₂⟩ | j₃⟩;
-  simp [indefinite_diagonal, matrix.diagonal],
+  simp only [indefinite_diagonal, matrix.diagonal, equiv.sum_assoc_apply_in1,
+    matrix.reindex_lie_equiv_apply, matrix.minor_apply, equiv.symm_symm, matrix.reindex_apply,
+    sum.elim_inl, if_true, eq_self_iff_true, matrix.one_apply_eq, matrix.from_blocks_apply₁₁,
+    dmatrix.zero_apply, equiv.sum_assoc_apply_in2, if_false, matrix.from_blocks_apply₁₂,
+    matrix.from_blocks_apply₂₁, matrix.from_blocks_apply₂₂, equiv.sum_assoc_apply_in3,
+    sum.elim_inr];
+  congr,
 end
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type B. -/
@@ -357,11 +360,11 @@ begin
   symmetry,
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
     (indefinite_diagonal (unit ⊕ l) l R)
-    (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
-  apply lie_algebra.equiv.of_eq,
+    (matrix.reindex_alg_equiv _ (equiv.sum_assoc punit l l)) (matrix.transpose_reindex _ _)).trans,
+  apply lie_equiv.of_eq,
   ext A,
-  rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe, lie_subalgebra.mem_coe,
-      mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
+  rw [JB_transform, ← unit_of_invertible_val (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
+      lie_subalgebra.mem_coe, mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   simpa [indefinite_diagonal_assoc],
 end
 

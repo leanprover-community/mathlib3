@@ -33,7 +33,8 @@ namespace Group
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group AddGroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group
+attribute [to_additive] Group.has_coe_to_sort Group.large_category Group.concrete_category
 
 /-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
@@ -60,10 +61,11 @@ instance one.unique : unique (1 : Group) :=
 @[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive, ext]
+@[ext, to_additive]
 lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
 
+-- should to_additive do this automatically?
 attribute [ext] AddGroup.ext
 
 @[to_additive has_forget_to_AddMon]
@@ -86,7 +88,9 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup AddCommGroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup
+attribute [to_additive] CommGroup.has_coe_to_sort CommGroup.large_category
+  CommGroup.concrete_category
 
 /-- Construct a bundled `CommGroup` from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
@@ -197,13 +201,13 @@ namespace category_theory.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
-`AddGroup`.", simps {rhs_md := semireducible}]
+`AddGroup`.", simps]
 def Group_iso_to_mul_equiv {X Y : Group} (i : X ≅ Y) : X ≃* Y :=
 i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
-in the category `AddCommGroup`.", simps {rhs_md := semireducible}]
+in the category `AddCommGroup`.", simps]
 def CommGroup_iso_to_mul_equiv {X Y : CommGroup} (i : X ≅ Y) : X ≃* Y :=
 i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
@@ -249,7 +253,7 @@ instance Group.forget_reflects_isos : reflects_isomorphisms (forget Group.{u}) :
     resetI,
     let i := as_iso ((forget Group).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Group_iso },
+    exact ⟨(is_iso.of_iso e.to_Group_iso).1⟩,
   end }
 
 @[to_additive]
@@ -259,5 +263,5 @@ instance CommGroup.forget_reflects_isos : reflects_isomorphisms (forget CommGrou
     resetI,
     let i := as_iso ((forget CommGroup).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_CommGroup_iso },
+    exact ⟨(is_iso.of_iso e.to_CommGroup_iso).1⟩,
   end }

@@ -342,6 +342,21 @@ add_tactic_doc
   decl_names               := [`extensional_attribute],
   tags                     := ["rewrite", "logic"] }
 
+/--
+When possible, `ext` lemmas are stated without a full set of arguments. As an example, for bundled
+homs `f`, `g`, and `of`, `f.comp of = g.comp of → f = g` is a better `ext` lemma than
+`(∀ x, f (of x) = g (of x)) → f = g`, as the former allows a second type-specific extensionality
+lemmas to be applied to `f.comp of = g.comp of`.
+If the domain of `of` is `ℕ` or `ℤ` and `of` is a `ring_hom`, such a lemma could then make the goal
+`f (of 1) = g (of 1)`.
+
+For bundled morphisms, there is a `ext` lemma that always applies of the form
+`(∀ x, ⇑f x = ⇑g x) → f = g`. When adding type-specific `ext` lemmas like the one above, we want
+these to be tried first. This happens automatically since the type-specific lemmas are inevitably
+defined later.
+-/
+library_note "partially-applied ext lemmas"
+
 -- We mark some existing extensionality lemmas.
 attribute [ext] array.ext propext function.hfunext
 attribute [ext [(→),thunk]] _root_.funext

@@ -17,6 +17,12 @@ In this file we derive common identities between the Frobenius and Verschiebung 
 
 * `frobenius_verschiebung`: the composition of Frobenius and Verschiebung is multiplication by `p`
 * `verschiebung_mul_frobenius`: the “projection formula”: `V(x * F y) = V x * y`
+
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 namespace witt_vector

@@ -223,7 +223,7 @@ begin
   rcases hc₂ with ⟨v, hv₁, hv₂⟩,
   let k := closure (image2 ϕ v s),
   have hk : is_compact (k \ n) :=
-    compact_diff (compact_of_is_closed_subset hc₁ is_closed_closure hv₂) hn₁,
+    is_compact.diff (compact_of_is_closed_subset hc₁ is_closed_closure hv₂) hn₁,
   let j := λ u, (closure (image2 ϕ (u ∩ v) s))ᶜ,
   have hj₁ : ∀ u ∈ f, is_open (j u), from
     λ _ _, (is_open_compl_iff.mpr is_closed_closure),
@@ -235,22 +235,16 @@ begin
     rw ←inter_Inter,
     exact subset.trans (inter_subset_right _ _) hn₂,
   end,
-  rcases hk.elim_finite_subcover_image hj₁ hj₂ with ⟨g, hg₁, hg₂, hg₃⟩,
+  rcases hk.elim_finite_subcover_image hj₁ hj₂ with ⟨g, hg₁ : ∀ u ∈ g, u ∈ f, hg₂, hg₃⟩,
   let w := (⋂ u ∈ g, u) ∩ v,
-  have hw₂ : w ∈ f, begin
-    apply inter_mem_sets _ hv₁,
-    rw ←sInter_eq_bInter,
-    exact sInter_mem_sets_of_finite hg₂ (λ _ hu, hg₁ hu),
-  end,
+  have hw₂ : w ∈ f, by simpa *,
   have hw₃ : k \ n ⊆ (closure (image2 ϕ w s))ᶜ, from
-    calc _ ⊆ _ : hg₃
+    calc k \ n ⊆ ⋃ u ∈ g, j u : hg₃
     ... ⊆ (closure (image2 ϕ w s))ᶜ :
     begin
-      rw Union_subset_iff, intro u,
-      rw Union_subset_iff, intro hu,
-      rw compl_subset_compl,
-      apply closure_mono (image2_subset _ subset.rfl),
-      apply inter_subset_inter _ subset.rfl,
+      simp only [Union_subset_iff, compl_subset_compl],
+      intros u hu,
+      mono* using [w],
       exact Inter_subset_of_subset u (Inter_subset_of_subset hu subset.rfl),
     end,
   have hw₄ : kᶜ ⊆ (closure (image2 ϕ w s))ᶜ, begin
@@ -387,8 +381,8 @@ begin
   simp only [subset_def, mem_omega_limit_iff_frequently₂, frequently_iff],
   intros _ h,
   rintro n hn u hu,
-  rcases mem_nhds_sets_iff.mp hn with ⟨o, ho₁, ho₂, ho₃⟩,
-  rcases h o (mem_nhds_sets ho₂ ho₃) hu with ⟨t, ht₁, ht₂⟩,
+  rcases mem_nhds_iff.mp hn with ⟨o, ho₁, ho₂, ho₃⟩,
+  rcases h o (is_open.mem_nhds ho₂ ho₃) hu with ⟨t, ht₁, ht₂⟩,
   have l₁ : (ω f ϕ s ∩ o).nonempty, from
     ht₂.mono (inter_subset_inter_left _
       ((is_invariant_iff_image _ _).mp (is_invariant_omega_limit _ _ _ hf) _)),
@@ -397,7 +391,7 @@ begin
   have l₃ : (o ∩ image2 ϕ u s).nonempty,
   begin
     rcases l₂ with ⟨b, hb₁, hb₂⟩,
-    exact mem_closure_iff_nhds.mp hb₁ o (mem_nhds_sets ho₂ hb₂)
+    exact mem_closure_iff_nhds.mp hb₁ o (is_open.mem_nhds ho₂ hb₂)
   end,
   rcases l₃ with ⟨ϕra, ho, ⟨_, _, hr, ha, hϕra⟩⟩,
   exact ⟨_, hr, ϕra, ⟨_, ha, hϕra⟩, ho₁ ho⟩,

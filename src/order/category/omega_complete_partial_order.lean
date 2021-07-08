@@ -1,14 +1,14 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 
 import order.omega_complete_partial_order
 import order.category.Preorder
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
-import category_theory.limits.shapes.constructions.limits_of_products_and_equalizers
+import category_theory.limits.constructions.limits_of_products_and_equalizers
 
 /-!
 # Category of types with a omega complete partial order

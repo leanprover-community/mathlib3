@@ -35,7 +35,7 @@ by interpreting it as a functor `Mon_ (J ⥤ C)`,
 and noting that taking limits is a lax monoidal functor,
 and hence sends monoid objects to monoid objects.
 -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def limit (F : J ⥤ Mon_ C) : Mon_ C :=
 lim_lax.map_Mon.obj (Mon_functor_category_equivalence.inverse.obj F)
 
@@ -74,7 +74,7 @@ def limit_cone_is_limit (F : J ⥤ Mon_ C) : is_limit (limit_cone F) :=
   uniq' := λ s m w,
   begin
     ext,
-    dsimp, simp only [Mon_.forget_map, limit.lift_π, functor.map_cone_π],
+    dsimp, simp only [Mon_.forget_map, limit.lift_π, functor.map_cone_π_app],
     exact congr_arg Mon_.hom.hom (w j),
   end, }
 

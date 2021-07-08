@@ -29,7 +29,7 @@ theorem span_gcd {α} [euclidean_domain α] (x y : α) :
 begin
   apply le_antisymm,
   { refine span_le.2 (λ x, _),
-    simp only [set.mem_singleton_iff, submodule.mem_coe, mem_span_pair],
+    simp only [set.mem_singleton_iff, set_like.mem_coe, mem_span_pair],
     rintro rfl,
     exact ⟨gcd_a x y, gcd_b x y, by simp [gcd_eq_gcd_ab, mul_comm]⟩ },
   { assume z ,

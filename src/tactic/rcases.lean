@@ -299,7 +299,7 @@ meta mutual def rcases_core, rcases.continue
 with rcases_core : rcases_patt → expr → tactic (list uncleared_goal)
 | (rcases_patt.one `rfl) e := do
   (t, e) ← get_local_and_type e,
-  subst e,
+  subst' e,
   list.map (prod.mk []) <$> get_goals
 -- If the pattern is any other name, we already bound the name in the
 -- top-level `cases` tactic, so there is no more work to do for it.
@@ -478,25 +478,29 @@ with rcases_hint_core : ℕ → expr → tactic (rcases_patt × list expr)
   env ← get_env,
   let I := t.get_app_fn.const_name,
   (do guard (I = ``eq),
-    subst e,
+    subst' e,
     prod.mk (rcases_patt.one `rfl) <$> get_goals) <|>
   (do
     let c := env.constructors_of I,
     some l ← try_core (guard (depth ≠ 0) >> cases_core e) |
-      prod.mk (rcases_patt.one e.local_pp_name) <$> get_goals,
+      let n := match e.local_pp_name with name.anonymous := `_ | n := n end in
+      prod.mk (rcases_patt.one n) <$> get_goals,
     gs ← get_goals,
-    (ps, gs') ← rcases_hint.process_constructors (depth - 1) c (gs.zip l),
-    pure (rcases_patt.alts₁ ps, gs'))
+    if gs.empty then
+      pure (rcases_patt.tuple [], [])
+    else do
+      (ps, gs') ← rcases_hint.process_constructors (depth - 1) c (gs.zip l),
+      pure (rcases_patt.alts₁ ps, gs'))
 
 with rcases_hint.process_constructors : ℕ → listΣ name →
   list (expr × name × listΠ expr × list (name × expr)) →
   tactic (listΣ (listΠ rcases_patt) × list expr)
 | depth [] _  := pure ([], [])
 | depth cs [] := pure (cs.map (λ _, []), [])
-| depth (c::cs) ((g, c', hs, _) :: l) :=
+| depth (c::cs) ls@((g, c', hs, _) :: l) :=
   if c ≠ c' then do
-    (ps, gs) ← rcases_hint.process_constructors depth cs l,
-    pure (default _ :: ps, gs)
+    (ps, gs) ← rcases_hint.process_constructors depth cs ls,
+    pure ([] :: ps, gs)
   else do
     (p, gs) ← set_goals [g] >> rcases_hint.continue depth hs,
     (ps, gs') ← rcases_hint.process_constructors depth cs l,

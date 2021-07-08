@@ -21,6 +21,7 @@ discrete_sum
 open_locale big_operators
 open finset
 
+/-- **Sum of the Reciprocals of the Triangular Numbers** -/
 lemma inverse_triangle_sum :
   ∀ n, ∑ k in range n, (2 : ℚ) / (k * (k + 1)) = if n = 0 then 0 else 2 - (2 : ℚ) / n :=
 begin
@@ -29,6 +30,6 @@ begin
   simp_rw [if_neg (nat.succ_ne_zero _), nat.succ_eq_add_one],
   have A : (n + 1 + 1 : ℚ) ≠ 0, by { norm_cast, norm_num },
   push_cast,
-  field_simp [nat.cast_add_one_ne_zero, A],
+  field_simp [nat.cast_add_one_ne_zero],
   ring
 end

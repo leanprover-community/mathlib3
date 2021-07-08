@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
-import tactic
+import data.finset.intervals
 import data.nat.prime
 
 /-!

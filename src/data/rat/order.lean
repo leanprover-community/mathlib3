@@ -26,8 +26,8 @@ namespace rat
 variables (a b c : ℚ)
 open_locale rat
 
-protected def nonneg : ℚ → Prop
-| ⟨n, d, h, c⟩ := 0 ≤ n
+/-- A rational number is called nonnegative if its numerator is nonnegative. -/
+protected def nonneg (r : ℚ) : Prop := 0 ≤ r.num
 
 @[simp] theorem mk_nonneg (a : ℤ) {b : ℤ} (h : 0 < b) : (a /. b).nonneg ↔ 0 ≤ a :=
 begin
@@ -77,6 +77,8 @@ or.imp_right neg_nonneg_of_nonpos (le_total 0 n)
 instance decidable_nonneg : decidable (rat.nonneg a) :=
 by cases a; unfold rat.nonneg; apply_instance
 
+/-- Relation `a ≤ b` on `ℚ` defined as `a ≤ b ↔ rat.nonneg (b - a)`. Use `a ≤ b` instead of
+`rat.le a b`. -/
 protected def le (a b : ℚ) := rat.nonneg (b - a)
 
 instance : has_le ℚ := ⟨rat.le⟩
@@ -206,14 +208,13 @@ end
 
 theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
 begin
-  have hz : (0:ℚ) = 0 /. 1 := rfl,
   cases le_total q 0 with hq hq,
   { rw [abs_of_nonpos hq],
-    rw [←(@num_denom q), hz, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
+    rw [←(@num_denom q), ← mk_zero_one, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
         mul_one, zero_mul] at hq,
     rw [int.of_nat_nat_abs_of_nonpos hq, ← neg_def, num_denom] },
   { rw [abs_of_nonneg hq],
-    rw [←(@num_denom q), hz, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
+    rw [←(@num_denom q), ← mk_zero_one, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
         mul_one, zero_mul] at hq,
     rw [int.nat_abs_of_nonneg hq, num_denom] }
 end

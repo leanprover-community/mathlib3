@@ -18,7 +18,8 @@ namespace category_theory.functor
 
 variables (C : Type u) [category.{v} C]
 
-/-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
+/-- `functor.hom` is the hom-pairing, sending `(X, Y)` to `X ⟶ Y`, contravariant in `X` and
+covariant in `Y`. -/
 definition hom : Cᵒᵖ × C ⥤ Type v :=
 { obj       := λ p, unop p.1 ⟶ p.2,
   map       := λ X Y f, λ h, f.1.unop ≫ h ≫ f.2 }

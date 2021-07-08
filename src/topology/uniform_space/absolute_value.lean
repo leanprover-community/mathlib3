@@ -68,7 +68,8 @@ begin
     exact this },
   rw mem_infi,
   { simp [subset_def] },
-  { exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
+  { rintros ⟨r, hr⟩ ⟨p, hp⟩,
+    exact ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
 end
 
 end is_absolute_value

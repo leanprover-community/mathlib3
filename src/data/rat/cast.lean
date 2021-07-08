@@ -54,6 +54,9 @@ by rw [coe_int_eq_of_int, cast_of_int]
 theorem cast_commute (r : ℚ) (a : α) : commute ↑r a :=
 (r.1.cast_commute a).div_left (r.2.cast_commute a)
 
+theorem cast_comm (r : ℚ) (a : α) : (r : α) * a = a * r :=
+(cast_commute r a).eq
+
 theorem commute_cast (a : α) (r : ℚ) : commute a r :=
 (r.cast_commute a).symm
 
@@ -204,10 +207,8 @@ by simp only [mk_eq_div, cast_div, cast_coe_int]
 end with_div_ring
 
 @[simp, norm_cast] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
-| ⟨n, d, h, c⟩ := show 0 ≤ (n * d⁻¹ : α) ↔ 0 ≤ (⟨n, d, h, c⟩ : ℚ),
-  by rw [num_denom', ← nonneg_iff_zero_le, mk_nonneg _ (int.coe_nat_pos.2 h),
-    mul_nonneg_iff_right_nonneg_of_pos ((@inv_pos α _ _).2 (nat.cast_pos.2 h)),
-    int.cast_nonneg]
+| ⟨n, d, h, c⟩ :=
+  by { rw [num_denom', cast_mk, mk_eq_div, div_nonneg_iff, div_nonneg_iff], norm_cast }
 
 @[simp, norm_cast] theorem cast_le [linear_ordered_field α] {m n : ℚ} : (m : α) ≤ n ↔ m ≤ n :=
 by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
@@ -225,7 +226,7 @@ by rw [← cast_zero, cast_lt]
 by rw [← cast_zero, cast_lt]
 
 @[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
-| ⟨n, d, h, c⟩ := show (n / (d : ℤ) : ℚ) = _, by rw [num_denom', mk_eq_div]
+| ⟨n, d, h, c⟩ := by rw [num_denom', cast_mk, mk_eq_div]
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
@@ -276,3 +277,28 @@ end
 
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
 ⟨ring_hom.ext_rat⟩
+
+namespace monoid_with_zero_hom
+
+variables {M : Type*} [group_with_zero M]
+
+/-- If `f` and `g` agree on the integers then they are equal `φ`.
+
+See note [partially-applied ext lemmas] for why `comp` is used here. -/
+@[ext]
+theorem ext_rat {f g : monoid_with_zero_hom ℚ M}
+  (same_on_int : f.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
+    g.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : f = g :=
+begin
+  have same_on_int' : ∀ k : ℤ, f k = g k := congr_fun same_on_int,
+  ext x,
+  rw [← @rat.num_denom x, rat.mk_eq_div, f.map_div, g.map_div,
+    same_on_int' x.num, same_on_int' x.denom],
+end
+
+/-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
+theorem ext_rat_on_pnat {f g : monoid_with_zero_hom ℚ M}
+  (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
+ext_rat $ ext_int' (by simpa) ‹_›
+
+end monoid_with_zero_hom

@@ -28,6 +28,8 @@ sieve, pullback
 universes v u
 namespace category_theory
 
+open category limits
+
 variables {C : Type u} [category.{v} C]
 variables {X Y Z : C} (f : Y ⟶ X)
 
@@ -69,6 +71,72 @@ begin
 end
 
 lemma singleton_self : singleton f f := singleton.mk
+
+/--
+Pullback a set of arrows with given codomain along a fixed map, by taking the pullback in the
+category.
+This is not the same as the arrow set of `sieve.pullback`, but there is a relation between them
+in `pullback_arrows_comm`.
+-/
+inductive pullback_arrows [has_pullbacks C] (R : presieve X) :
+  presieve Y
+| mk (Z : C) (h : Z ⟶ X) : R h → pullback_arrows (pullback.snd : pullback h f ⟶ Y)
+
+lemma pullback_singleton [has_pullbacks C] (g : Z ⟶ X) :
+ pullback_arrows f (singleton g) = singleton (pullback.snd : pullback g f ⟶ _) :=
+begin
+  ext W h,
+  split,
+  { rintro ⟨W, _, _, _⟩,
+    exact singleton.mk },
+  { rintro ⟨_⟩,
+    exact pullback_arrows.mk Z g singleton.mk }
+end
+
+/-- Construct the presieve given by the family of arrows indexed by `ι`. -/
+inductive of_arrows {ι : Type*} (Y : ι → C) (f : Π i, Y i ⟶ X) : presieve X
+| mk (i : ι) : of_arrows (f i)
+
+lemma of_arrows_punit :
+  of_arrows _ (λ _ : punit, f) = singleton f :=
+begin
+  ext Y g,
+  split,
+  { rintro ⟨_⟩,
+    apply singleton.mk },
+  { rintro ⟨_⟩,
+    exact of_arrows.mk punit.star },
+end
+
+lemma of_arrows_pullback [has_pullbacks C] {ι : Type*}
+  (Z : ι → C) (g : Π (i : ι), Z i ⟶ X) :
+  of_arrows (λ i, pullback (g i) f) (λ i, pullback.snd) =
+    pullback_arrows f (of_arrows Z g) :=
+begin
+  ext T h,
+  split,
+  { rintro ⟨hk⟩,
+   exact pullback_arrows.mk _ _ (of_arrows.mk hk) },
+  { rintro ⟨W, k, hk₁⟩,
+    cases hk₁ with i hi,
+    apply of_arrows.mk },
+end
+
+lemma of_arrows_bind {ι : Type*} (Z : ι → C) (g : Π (i : ι), Z i ⟶ X)
+  (j : Π ⦃Y⦄ (f : Y ⟶ X), of_arrows Z g f → Type*)
+  (W : Π ⦃Y⦄ (f : Y ⟶ X) H, j f H → C)
+  (k : Π ⦃Y⦄ (f : Y ⟶ X) H i, W f H i ⟶ Y) :
+  (of_arrows Z g).bind (λ Y f H, of_arrows (W f H) (k f H)) =
+    of_arrows (λ (i : Σ i, j _ (of_arrows.mk i)), W (g i.1) _ i.2)
+      (λ ij, k (g ij.1) _ ij.2 ≫ g ij.1) :=
+begin
+  ext Y f,
+  split,
+  { rintro ⟨_, _, _, ⟨i⟩, ⟨i'⟩, rfl⟩,
+    exact of_arrows.mk (sigma.mk _ _) },
+  { rintro ⟨i⟩,
+    exact bind_comp _ (of_arrows.mk _) (of_arrows.mk _) }
+end
 
 end presieve
 
@@ -225,6 +293,9 @@ def gi_generate : galois_insertion (generate : presieve X → sieve X) arrows :=
 lemma le_generate (R : presieve X) : R ≤ generate R :=
 gi_generate.gc.le_u_l R
 
+@[simp] lemma generate_sieve (S : sieve X) : generate S = S :=
+gi_generate.l_u_eq S
+
 /-- If the identity arrow is in a sieve, the sieve is maximal. -/
 lemma id_mem_iff_eq_top : S (𝟙 X) ↔ S = ⊤ :=
 ⟨λ h, top_unique $ λ Y f _, by simpa using downward_closed _ h f,
@@ -352,6 +423,21 @@ begin
   refine ⟨g ≫ section_ f, by simpa⟩,
 end
 
+lemma pullback_arrows_comm [has_pullbacks C] {X Y : C} (f : Y ⟶ X)
+  (R : presieve X) :
+  sieve.generate (R.pullback_arrows f) = (sieve.generate R).pullback f :=
+begin
+  ext Z g,
+  split,
+  { rintro ⟨_, h, k, hk, rfl⟩,
+    cases hk with W g hg,
+    change (sieve.generate R).pullback f (h ≫ pullback.snd),
+    rw [sieve.pullback_apply, assoc, ← pullback.condition, ← assoc],
+    exact sieve.downward_closed _ (sieve.le_generate R W hg) (h ≫ pullback.fst)},
+  { rintro ⟨W, h, k, hk, comm⟩,
+    exact ⟨_, _, _, presieve.pullback_arrows.mk _ _ hk, pullback.lift_snd _ _ comm⟩ },
+end
+
 /-- A sieve induces a presheaf. -/
 @[simps]
 def functor (S : sieve X) : Cᵒᵖ ⥤ Type v :=
@@ -407,7 +493,7 @@ begin
 end
 
 instance functor_inclusion_top_is_iso : is_iso ((⊤ : sieve X).functor_inclusion) :=
-{ inv := { app := λ Y a, ⟨a, ⟨⟩⟩ } }
+⟨⟨{ app := λ Y a, ⟨a, ⟨⟩⟩ }, by tidy⟩⟩
 
 end sieve
 end category_theory

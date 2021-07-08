@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kenny Lau.
+Authors: Kenny Lau
 -/
 
 import ring_theory.polynomial
@@ -74,7 +74,7 @@ begin
     { rw ← pow_one (X : polynomial F) at hz, exact X_pow_sub_C_ne_zero zero_lt_one _ hz } }
 end
 
-variables (f : (↑s : set F) → F)
+variables (f : s → F)
 
 /-- Lagrange interpolation: given a finset `s` and a function `f : s → F`,
 `interpolate s f` is the unique polynomial of degree `< s.card`
@@ -96,7 +96,7 @@ end
 
 theorem degree_interpolate_lt : (interpolate s f).degree < s.card :=
 if H : s = ∅ then by { subst H, rw [interpolate_empty, degree_zero], exact with_bot.bot_lt_coe _ }
-else lt_of_le_of_lt (degree_sum_le _ _) $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
+else (degree_sum_le _ _).trans_lt $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
 calc  (C (f b) * basis s b).degree
     ≤ (C (f b)).degree + (basis s b).degree : degree_mul_le _ _
 ... ≤ 0 + (basis s b).degree : add_le_add_right degree_C_le _
@@ -106,7 +106,7 @@ calc  (C (f b) * basis s b).degree
 ... < s.card : with_bot.coe_lt_coe.2 (nat.pred_lt $ mt finset.card_eq_zero.1 H)
 
 /-- Linear version of `interpolate`. -/
-def linterpolate : ((↑s : set F) → F) →ₗ[F] polynomial F :=
+def linterpolate : (s → F) →ₗ[F] polynomial F :=
 { to_fun := interpolate s,
   map_add' := λ f g, by { simp_rw [interpolate, ← finset.sum_add_distrib, ← add_mul, ← C_add],
     refl },
@@ -148,7 +148,7 @@ eq_of_eval_eq s (degree_interpolate_lt s _) hf $ λ x hx, eval_interpolate s _ x
 
 /-- Lagrange interpolation induces isomorphism between functions from `s` and polynomials
 of degree less than `s.card`. -/
-def fun_equiv_degree_lt : degree_lt F s.card ≃ₗ[F] ((↑s : set F) → F) :=
+def fun_equiv_degree_lt : degree_lt F s.card ≃ₗ[F] (s → F) :=
 { to_fun := λ f x, f.1.eval x,
   map_add' := λ f g, funext $ λ x, eval_add,
   map_smul' := λ c f, funext $ λ x, by { rw [pi.smul_apply, smul_eq_mul, ← @eval_C F c _ x,

@@ -83,6 +83,9 @@ instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
 @is_total.swap α _ _
 
+lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y
+| _ _ h rfl := irrefl _ h
+
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
   ¬r b a → r b c → r a c :=
 begin
@@ -273,3 +276,19 @@ end
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by { classical, rw [not_iff_comm, not_bounded_iff] }
+
+namespace prod
+
+instance is_refl_preimage_fst {r : α → α → Prop} [h : is_refl α r] :
+  is_refl (α × α) (prod.fst ⁻¹'o r) := ⟨λ a, refl_of r a.1⟩
+
+instance is_refl_preimage_snd {r : α → α → Prop} [h : is_refl α r] :
+  is_refl (α × α) (prod.snd ⁻¹'o r) := ⟨λ a, refl_of r a.2⟩
+
+instance is_trans_preimage_fst {r : α → α → Prop} [h : is_trans α r] :
+  is_trans (α × α) (prod.fst ⁻¹'o r) := ⟨λ _ _ _, trans_of r⟩
+
+instance is_trans_preimage_snd {r : α → α → Prop} [h : is_trans α r] :
+  is_trans (α × α) (prod.snd ⁻¹'o r) := ⟨λ _ _ _, trans_of r⟩
+
+end prod

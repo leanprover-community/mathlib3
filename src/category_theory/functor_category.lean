@@ -7,7 +7,8 @@ import category_theory.natural_transformation
 
 namespace category_theory
 
-universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 open nat_trans category category_theory.functor
 
@@ -80,8 +81,8 @@ lemma id_hcomp_app {H : E ⥤ C} (α : F ⟶ G) (X : E) : (𝟙 H ◫ α).app X 
 
 -- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we
 -- need to use associativity of functor composition. (It's true without the explicit associator,
--- because functor composition is definitionally associative, but relying on the definitional equality
--- causes bad problems with elaboration later.)
+-- because functor composition is definitionally associative,
+-- but relying on the definitional equality causes bad problems with elaboration later.)
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=

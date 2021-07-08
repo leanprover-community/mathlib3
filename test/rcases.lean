@@ -186,3 +186,42 @@ end
 example : bool → false → true
 | ff := by rintro ⟨⟩
 | tt := by rintro ⟨⟩
+
+open tactic
+meta def test_rcases_hint (s : string) (num_goals : ℕ) (depth := 5) : tactic unit :=
+do change `(true),
+  h ← get_local `h,
+  pat ← rcases_hint ```(h) depth,
+  p ← pp pat,
+  guard (p.to_string = s) <|> fail format!"got '{p.to_string}', expected: '{s}'",
+  gs ← get_goals,
+  guard (gs.length = num_goals) <|> fail format!"there are {gs.length} goals remaining",
+  all_goals triv $> ()
+
+example {α} (h : ∃ x : α, x = x) := by test_rcases_hint "⟨h_w, ⟨⟩⟩" 1
+example (h : true ∨ true ∨ true) := by test_rcases_hint "⟨⟨⟩⟩ | ⟨⟨⟩⟩ | ⟨⟨⟩⟩" 3
+example (h : ℕ) := by test_rcases_hint "_ | _ | h" 3 2
+example {p} (h : (p ∧ p) ∨ (p ∧ p)) :=
+by test_rcases_hint "⟨h_left, h_right⟩ | ⟨h_left, h_right⟩" 2
+example {p} (h : (p ∧ p) ∨ (p ∧ (p ∨ p))) :=
+by test_rcases_hint "⟨h_left, h_right⟩ | ⟨h_left, h_right | h_right⟩" 3
+example {p} (h : p ∧ (p ∨ p)) :=
+by test_rcases_hint "⟨h_left, h_right | h_right⟩" 2
+example (h : 0 < 2) := by test_rcases_hint "_ | ⟨_, _ | ⟨_, ⟨⟩⟩⟩" 1
+example (h : 3 < 2) := by test_rcases_hint "_ | ⟨_, _ | ⟨_, ⟨⟩⟩⟩" 0
+example (h : 3 < 0) := by test_rcases_hint "⟨⟩" 0
+example (h : false) := by test_rcases_hint "⟨⟩" 0
+example (h : true) := by test_rcases_hint "⟨⟩" 1
+example {α} (h : list α) := by test_rcases_hint "_ | ⟨h_hd, _ | ⟨h_tl_hd, h_tl_tl⟩⟩" 3 2
+example {α} (h : (α ⊕ α) × α) := by test_rcases_hint "⟨h_fst | h_fst, h_snd⟩" 2 2
+
+inductive foo (α : Type) : ℕ → Type
+| zero : foo 0
+| one (m) : α → foo m
+
+example {α} (h : foo α 0) : true := by test_rcases_hint "_ | ⟨_, h_ᾰ⟩" 2
+example {α} (h : foo α 1) : true := by test_rcases_hint "_ | ⟨_, h_ᾰ⟩" 1
+example {α n} (h : foo α n) : true := by test_rcases_hint "_ | ⟨n, h_ᾰ⟩" 2 1
+
+example {α} (V : set α) (h : ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) :=
+by test_rcases_hint "⟨⟨h_w_fst, h_w_snd⟩, ⟨⟩⟩" 0

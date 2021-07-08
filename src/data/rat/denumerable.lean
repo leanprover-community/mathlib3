@@ -1,10 +1,16 @@
 /-
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Chris Hughes
+Authors: Chris Hughes
 -/
 import data.rat
 import set_theory.cardinal
+
+/-!
+# Denumerability of ℚ
+
+This file proves that ℚ is infinite, denumerable, and deduces that it has cardinality `omega`.
+-/
 
 namespace rat
 open denumerable
@@ -18,6 +24,7 @@ private def denumerable_aux : ℚ ≃ { x : ℤ × ℕ // 0 < x.2 ∧ x.1.nat_ab
   left_inv := λ ⟨_, _, _, _⟩, rfl,
   right_inv := λ ⟨⟨_, _⟩, _, _⟩, rfl }
 
+/-- **Denumerability of the Rational Numbers** -/
 instance : denumerable ℚ :=
 begin
   let T := { x : ℤ × ℕ // 0 < x.2 ∧ x.1.nat_abs.coprime x.2 },

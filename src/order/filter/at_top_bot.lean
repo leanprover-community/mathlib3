@@ -252,6 +252,28 @@ lemma extraction_of_eventually_at_top {P : ℕ → Prop} (h : ∀ᶠ n in at_top
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=
 extraction_of_frequently_at_top h.frequently
 
+lemma extraction_forall_of_frequently {P : ℕ → ℕ → Prop} (h : ∀ n, ∃ᶠ k in at_top, P n k) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P n (φ n) :=
+begin
+  simp only [frequently_at_top'] at h,
+  choose u hu hu' using h,
+  use (λ n, nat.rec_on n (u 0 0) (λ n v, u (n+1) v) : ℕ → ℕ),
+  split,
+  { apply strict_mono.nat,
+    intro n,
+    apply hu },
+  { intros n,
+    cases n ; simp [hu'] },
+end
+
+lemma extraction_forall_of_eventually  {P : ℕ → ℕ → Prop} (h : ∀ n, ∀ᶠ k in at_top, P n k) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P n (φ n) :=
+extraction_forall_of_frequently (λ n, (h n).frequently)
+
+lemma extraction_forall_of_eventually' {P : ℕ → ℕ → Prop} (h : ∀ n, ∃ N, ∀ k ≥ N, P n k) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P n (φ n) :=
+extraction_forall_of_eventually (by simp [eventually_at_top, h])
+
 lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
   (h : tendsto u at_top at_top) (a : α) (b : β) : ∃ a' ≥ a, b ≤ u a' :=
 begin
@@ -399,15 +421,21 @@ lemma tendsto_at_bot_add (hf : tendsto f l at_bot) (hg : tendsto g l at_bot) :
 @tendsto_at_top_add _ (order_dual β) _ _ _ _ hf hg
 
 lemma tendsto.nsmul_at_top (hf : tendsto f l at_top) {n : ℕ} (hn : 0 < n) :
-  tendsto (λ x, n •ℕ f x) l at_top :=
+  tendsto (λ x, n • f x) l at_top :=
 tendsto_at_top.2 $ λ y, (tendsto_at_top.1 hf y).mp $ (tendsto_at_top.1 hf 0).mono $ λ x h₀ hy,
 calc y ≤ f x : hy
-... = 1 •ℕ f x : (one_nsmul _).symm
-... ≤  n •ℕ f x : nsmul_le_nsmul h₀ hn
+... = 1 • f x : (one_nsmul _).symm
+... ≤  n • f x : nsmul_le_nsmul h₀ hn
 
 lemma tendsto.nsmul_at_bot (hf : tendsto f l at_bot) {n : ℕ} (hn : 0 < n) :
-  tendsto (λ x, n •ℕ f x) l at_bot :=
+  tendsto (λ x, n • f x) l at_bot :=
 @tendsto.nsmul_at_top α (order_dual β) _ l f hf n hn
+
+lemma tendsto_bit0_at_top : tendsto bit0 (at_top : filter β) at_top :=
+tendsto_at_top_add tendsto_id tendsto_id
+
+lemma tendsto_bit0_at_bot : tendsto bit0 (at_bot : filter β) at_bot :=
+tendsto_at_bot_add tendsto_id tendsto_id
 
 end ordered_add_comm_monoid
 
@@ -540,6 +568,9 @@ section ordered_semiring
 
 variables [ordered_semiring α] {l : filter β} {f g : β → α}
 
+lemma tendsto_bit1_at_top : tendsto bit1 (at_top : filter α) at_top :=
+tendsto_at_top_add_nonneg_right tendsto_bit0_at_top (λ _, zero_le_one)
+
 lemma tendsto.at_top_mul_at_top (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
   tendsto (λ x, f x * g x) l at_top :=
 begin
@@ -551,7 +582,7 @@ end
 lemma tendsto_mul_self_at_top : tendsto (λ x : α, x * x) at_top at_top :=
 tendsto_id.at_top_mul_at_top tendsto_id
 
-/-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
+/-- The monomial function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_at_top`. -/
 lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
 begin
@@ -560,6 +591,10 @@ begin
 end
 
 end ordered_semiring
+
+lemma zero_pow_eventually_eq [monoid_with_zero α] :
+  (λ n : ℕ, (0 : α) ^ n) =ᶠ[at_top] (λ n, 0) :=
+eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 
 section ordered_ring
 
@@ -584,6 +619,20 @@ by simpa only [neg_mul_neg] using this
 
 end ordered_ring
 
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α]
+
+/-- $\lim_{x\to+\infty}|x|=+\infty$ -/
+lemma tendsto_abs_at_top_at_top : tendsto (abs : α → α) at_top at_top :=
+tendsto_at_top_mono le_abs_self tendsto_id
+
+/-- $\lim_{x\to-\infty}|x|=+\infty$ -/
+lemma tendsto_abs_at_bot_at_top : tendsto (abs : α → α) at_bot at_top :=
+tendsto_at_top_mono neg_le_abs_self tendsto_neg_at_bot_at_top
+
+end linear_ordered_add_comm_group
+
 section linear_ordered_semiring
 
 variables [linear_ordered_semiring α] {l : filter β} {f : β → α}
@@ -597,6 +646,10 @@ lemma tendsto.at_top_of_mul_const {c : α} (hc : 0 < c) (hf : tendsto (λ x, f x
 tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (b * c)).mono $ λ x hx, le_of_mul_le_mul_right hx hc
 
 end linear_ordered_semiring
+
+lemma nonneg_of_eventually_pow_nonneg [linear_ordered_ring α] {a : α}
+  (h : ∀ᶠ n in at_top, 0 ≤ a ^ (n : ℕ)) : 0 ≤ a :=
+let ⟨n, hn⟩ := (tendsto_bit1_at_top.eventually h).exists in pow_bit1_nonneg_iff.1 hn
 
 section linear_ordered_field
 
@@ -620,7 +673,7 @@ by simpa only [mul_comm] using hf.const_mul_at_top hr
 constant also tends to infinity. -/
 lemma tendsto.at_top_div_const (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x / r) l at_top :=
-hf.at_top_mul_const (inv_pos.2 hr)
+by simpa only [div_eq_mul_inv] using hf.at_top_mul_const (inv_pos.2 hr)
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a negative
 constant (on the left) tends to negative infinity. -/
@@ -652,7 +705,7 @@ by simpa only [mul_comm] using hf.const_mul_at_bot hr
 a positive constant also tends to negative infinity. -/
 lemma tendsto.at_bot_div_const (hr : 0 < r) (hf : tendsto f l at_bot) :
   tendsto (λx, f x / r) l at_bot :=
-hf.at_bot_mul_const (inv_pos.2 hr)
+by simpa only [div_eq_mul_inv] using hf.at_bot_mul_const (inv_pos.2 hr)
 
 /-- If a function tends to negative infinity along a filter, then this function multiplied by
 a negative constant (on the left) tends to positive infinity. -/
@@ -666,6 +719,44 @@ a negative constant (on the right) tends to positive infinity. -/
 lemma tendsto.at_bot_mul_neg_const (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x * r) l at_top :=
 by simpa only [mul_comm] using hf.neg_const_mul_at_bot hr
+
+lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
+tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
+
+lemma tendsto_const_mul_pow_at_top_iff (c : α) (n : ℕ) :
+  tendsto (λ x, c * x^n) at_top at_top ↔ 1 ≤ n ∧ 0 < c :=
+begin
+  refine ⟨λ h, _, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
+  simp only [tendsto_at_top, eventually_at_top] at h,
+  have : 0 < c := let ⟨x, hx⟩ := h 1 in
+    pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
+    (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
+  refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
+  obtain ⟨x, hx⟩ := h (c + 1),
+  specialize hx x le_rfl,
+  rw [hn, pow_zero, mul_one, add_le_iff_nonpos_right] at hx,
+  exact absurd hx (not_le.mpr zero_lt_one),
+end
+
+lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
+  (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
+tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
+
+lemma tendsto_neg_const_mul_pow_at_top_iff (c : α) (n : ℕ) :
+  tendsto (λ x, c * x^n) at_top at_bot ↔ 1 ≤ n ∧ c < 0 :=
+begin
+  refine ⟨λ h, _, λ h, tendsto_neg_const_mul_pow_at_top h.1 h.2⟩,
+  simp only [tendsto_at_bot, eventually_at_top] at h,
+  have : c < 0 := let ⟨x, hx⟩ := h (-1) in
+    neg_of_mul_neg_right (lt_of_le_of_lt (hx (max x 1) (le_max_left x 1)) (by simp [zero_lt_one]))
+    (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
+  refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
+  obtain ⟨x, hx⟩ := h (c - 1),
+  specialize hx x le_rfl,
+  rw [hn, pow_zero, mul_one, le_sub, sub_self] at hx,
+  exact absurd hx (not_le.mpr zero_lt_one),
+end
 
 end linear_ordered_field
 
@@ -816,6 +907,60 @@ lemma prod_map_at_bot_eq {α₁ α₂ β₁ β₂ : Type*} [semilattice_inf β�
   (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
   (map u₁ at_bot) ×ᶠ (map u₂ at_bot) = map (prod.map u₁ u₂) at_bot :=
 @prod_map_at_top_eq _ _ (order_dual β₁) (order_dual β₂) _ _ _ _
+
+lemma tendsto.subseq_mem {F : filter α} {V : ℕ → set α} (h : ∀ n, V n ∈ F) {u : ℕ → α}
+  (hu : tendsto u at_top F) : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, u (φ n) ∈ V n :=
+extraction_forall_of_eventually' (λ n, tendsto_at_top'.mp hu _ (h n) : ∀ n, ∃ N, ∀ k ≥ N, u k ∈ V n)
+
+lemma tendsto_at_bot_diagonal [semilattice_inf α] : tendsto (λ a : α, (a, a)) at_bot at_bot :=
+by { rw ← prod_at_bot_at_bot_eq, exact tendsto_id.prod_mk tendsto_id }
+
+lemma tendsto_at_top_diagonal [semilattice_sup α] : tendsto (λ a : α, (a, a)) at_top at_top :=
+by { rw ← prod_at_top_at_top_eq, exact tendsto_id.prod_mk tendsto_id }
+
+lemma tendsto.prod_map_prod_at_bot [semilattice_inf γ] {F : filter α} {G : filter β}
+  {f : α → γ} {g : β → γ} (hf : tendsto f F at_bot) (hg : tendsto g G at_bot) :
+  tendsto (prod.map f g) (F ×ᶠ G) at_bot :=
+by { rw ← prod_at_bot_at_bot_eq, exact hf.prod_map hg, }
+
+lemma tendsto.prod_map_prod_at_top [semilattice_sup γ] {F : filter α} {G : filter β}
+  {f : α → γ} {g : β → γ} (hf : tendsto f F at_top) (hg : tendsto g G at_top) :
+  tendsto (prod.map f g) (F ×ᶠ G) at_top :=
+by { rw ← prod_at_top_at_top_eq, exact hf.prod_map hg, }
+
+lemma tendsto.prod_at_bot [semilattice_inf α] [semilattice_inf γ]
+  {f g : α → γ} (hf : tendsto f at_bot at_bot) (hg : tendsto g at_bot at_bot) :
+  tendsto (prod.map f g) at_bot at_bot :=
+by { rw ← prod_at_bot_at_bot_eq, exact hf.prod_map_prod_at_bot hg, }
+
+lemma tendsto.prod_at_top [semilattice_sup α] [semilattice_sup γ]
+  {f g : α → γ} (hf : tendsto f at_top at_top) (hg : tendsto g at_top at_top) :
+  tendsto (prod.map f g) at_top at_top :=
+by { rw ← prod_at_top_at_top_eq, exact hf.prod_map_prod_at_top hg, }
+
+lemma eventually_at_bot_prod_self [semilattice_inf α] [nonempty α] {p : α × α → Prop} :
+  (∀ᶠ x in at_bot, p x) ↔ (∃ a, ∀ k l, k ≤ a → l ≤ a → p (k, l)) :=
+by simp [← prod_at_bot_at_bot_eq, at_bot_basis.prod_self.eventually_iff]
+
+lemma eventually_at_top_prod_self [semilattice_sup α] [nonempty α] {p : α × α → Prop} :
+  (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ k l, a ≤ k → a ≤ l → p (k, l)) :=
+by simp [← prod_at_top_at_top_eq, at_top_basis.prod_self.eventually_iff]
+
+lemma eventually_at_bot_prod_self' [semilattice_inf α] [nonempty α] {p : α × α → Prop} :
+  (∀ᶠ x in at_bot, p x) ↔ (∃ a, ∀ k ≤ a, ∀ l ≤ a, p (k, l)) :=
+begin
+  rw filter.eventually_at_bot_prod_self,
+  apply exists_congr,
+  tauto,
+end
+
+lemma eventually_at_top_prod_self' [semilattice_sup α] [nonempty α] {p : α × α → Prop} :
+  (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ k ≥ a, ∀ l ≥ a, p (k, l)) :=
+begin
+  rw filter.eventually_at_top_prod_self,
+  apply exists_congr,
+  tauto,
+end
 
 /-- A function `f` maps upwards closed sets (at_top sets) to upwards closed sets when it is a
 Galois insertion. The Galois "insertion" and "connection" is weakened to only require it to be an

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 
 import data.nat.upto
@@ -75,7 +75,8 @@ begin
   revert hk,
   dsimp [roption.fix], rw assert_pos h', revert this,
   generalize : upto.zero = z, intros,
-  suffices : ∀ x', well_founded.fix (fix._proof_1 f x h') (fix_aux f) z x' = fix.approx f (succ k) x',
+  suffices : ∀ x',
+    well_founded.fix (fix._proof_1 f x h') (fix_aux f) z x' = fix.approx f (succ k) x',
     from this _,
   induction k generalizing z; intro,
   { rw [fix.approx,well_founded.fix_eq,fix_aux],

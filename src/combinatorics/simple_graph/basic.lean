@@ -55,17 +55,21 @@ look like.
 open finset
 universe u
 
-/-- A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
+/--
+A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
-see `simple_graph.edge_set` for the corresponding edge set. -/
+see `simple_graph.edge_set` for the corresponding edge set.
+-/
 @[ext] structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
 (sym : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
-/-- Construct the simple graph induced by the given relation.  It
-symmetrizes the relation and makes it irreflexive. -/
+/--
+Construct the simple graph induced by the given relation.  It
+symmetrizes the relation and makes it irreflexive.
+-/
 def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
   sym := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
@@ -77,8 +81,10 @@ by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 @[simp] lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
   (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) := iff.rfl
 
-/-- The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
-adjacent. -/
+/--
+The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
+adjacent.
+-/
 def complete_graph (V : Type u) : simple_graph V := { adj := ne }
 
 instance (V : Type u) : inhabited (simple_graph V) := ⟨complete_graph V⟩
@@ -98,19 +104,25 @@ instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
 
-/-- The edges of G consist of the unordered pairs of vertices related by `G.adj`. -/
+/--
+The edges of G consist of the unordered pairs of vertices related by `G.adj`.
+-/
 def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
-/-- The `incidence_set` is the set of edges incident to a given vertex. -/
+/--
+The `incidence_set` is the set of edges incident to a given vertex.
+-/
 def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
 
 lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set := λ _ h, h.1
 
 @[simp] lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := by refl
 
-/-- Two vertices are adjacent iff there is an edge between them. The condition `v ≠ w` ensures
+/--
+Two vertices are adjacent iff there is an edge between them. The condition `v ≠ w` ensures
 they are different endpoints of the edge, which is necessary since when `v = w` the existential
-`∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge incident to `v`. -/
+`∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge incident to `v`.
+-/
 lemma adj_iff_exists_edge {v w : V} :
   G.adj v w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
 begin
@@ -137,7 +149,9 @@ instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
 instance incidence_set_decidable_pred [decidable_eq V] [decidable_rel G.adj] (v : V) :
   decidable_pred (G.incidence_set v) := λ e, and.decidable
 
-/-- The `edge_set` of the graph as a `finset` -/
+/--
+The `edge_set` of the graph as a `finset`
+-/
 def edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] : finset (sym2 V) :=
 set.to_finset G.edge_set
 
@@ -174,8 +188,10 @@ begin
   { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
 end
 
-/-- The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
-intersection of the neighbor sets of `v` and `w`. -/
+/--
+The set of common neighbors between two vertices `v` and `w` in a graph `G` is the
+intersection of the neighbor sets of `v` and `w`.
+-/
 def common_neighbors (v w : V) : set V := G.neighbor_set v ∩ G.neighbor_set w
 
 lemma common_neighbors_eq (v w : V) :
@@ -202,7 +218,9 @@ instance [decidable_rel G.adj] (v w : V) : decidable_pred (G.common_neighbors v 
 section incidence
 variable [decidable_eq V]
 
-/-- Given an edge incident to a particular vertex, get the other vertex on the edge. -/
+/--
+Given an edge incident to a particular vertex, get the other vertex on the edge.
+-/
 def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
 lemma edge_mem_other_incident_set {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
@@ -217,8 +235,10 @@ by { cases h with he hv, rwa [←sym2.mem_other_spec' hv, mem_edge_set] at he }
   G.other_vertex_of_incident (G.mem_incidence_iff_neighbor.mpr h) = w :=
 sym2.congr_right.mp (sym2.mem_other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
 
-/-- There is an equivalence between the set of edges incident to a given
-vertex and the set of vertices adjacent to the vertex. -/
+/--
+There is an equivalence between the set of edges incident to a given
+vertex and the set of vertices adjacent to the vertex.
+-/
 @[simps] def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=
 { to_fun := λ e, ⟨G.other_vertex_of_incident e.2, G.incidence_other_prop e.2⟩,
   inv_fun := λ w, ⟨⟦(v, w.1)⟧, G.mem_incidence_iff_neighbor.mpr w.2⟩,
@@ -241,15 +261,19 @@ Use `neighbor_finset_eq_filter` to rewrite this definition as a `filter`.
 -/
 
 variables (v : V) [fintype (G.neighbor_set v)]
-/-- `G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
-locally finite at `v`. -/
+/--
+`G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
+locally finite at `v`.
+-/
 def neighbor_finset : finset V := (G.neighbor_set v).to_finset
 
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
 
-/-- `G.degree v` is the number of vertices adjacent to `v`. -/
+/--
+`G.degree v` is the number of vertices adjacent to `v`.
+-/
 def degree : ℕ := (G.neighbor_finset v).card
 
 @[simp] lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v :=
@@ -276,16 +300,21 @@ end finite_at
 
 section locally_finite
 
-/-- A graph is locally finite if every vertex has a finite neighbor set. -/
+/--
+A graph is locally finite if every vertex has a finite neighbor set.
+-/
 @[reducible]
 def locally_finite := Π (v : V), fintype (G.neighbor_set v)
 
 variable [locally_finite G]
 
-/-- A locally finite simple graph is regular of degree `d` if every vertex has degree `d`. -/
+/--
+A locally finite simple graph is regular of degree `d` if every vertex has degree `d`.
+-/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
-lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d :=
+  h v
 
 end locally_finite
 
@@ -309,14 +338,18 @@ end
 lemma complete_graph_is_regular [decidable_eq V] :
   (complete_graph V).is_regular_of_degree (fintype.card V - 1) := by { intro v, simp }
 
-/-- The minimum degree of all vertices (and `0` if there are no vertices). The key properties of
+/--
+The minimum degree of all vertices (and `0` if there are no vertices). The key properties of
 this are given in `exists_minimal_degree_vertex`, `min_degree_le_degree`
-and `le_min_degree_of_forall_le_degree`. -/
+and `le_min_degree_of_forall_le_degree`.
+-/
 def min_degree [decidable_rel G.adj] : ℕ :=
 option.get_or_else (univ.image (λ v, G.degree v)).min 0
 
-/-- There exists a vertex of minimal degree. Note the assumption of being nonempty is necessary, as
-the lemma implies there exists a vertex. -/
+/--
+There exists a vertex of minimal degree. Note the assumption of being nonempty is necessary, as
+the lemma implies there exists a vertex.
+-/
 lemma exists_minimal_degree_vertex [decidable_rel G.adj] [nonempty V] :
   ∃ v, G.min_degree = G.degree v :=
 begin
@@ -325,7 +358,9 @@ begin
   refine ⟨v, by simp [min_degree, ht]⟩,
 end
 
-/-- The minimum degree in the graph is at most the degree of any particular vertex. -/
+/--
+The minimum degree in the graph is at most the degree of any particular vertex.
+-/
 lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.degree v :=
 begin
   obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
@@ -334,9 +369,11 @@ begin
   rwa [min_degree, ht, option.get_or_else_some],
 end
 
-/-- In a nonempty graph, if `k` is at most the degree of every vertex, it is at most the minimum
+/--
+In a nonempty graph, if `k` is at most the degree of every vertex, it is at most the minimum
 degree. Note the assumption that the graph is nonempty is necessary as long as `G.min_degree` is
-defined to be a natural. -/
+defined to be a natural.
+-/
 lemma le_min_degree_of_forall_le_degree [decidable_rel G.adj] [nonempty V] (k : ℕ)
   (h : ∀ v, k ≤ G.degree v) : k ≤ G.min_degree :=
 begin
@@ -345,14 +382,18 @@ begin
   apply h
 end
 
-/-- The maximum degree of all vertices (and `0` if there are no vertices).
+/--
+The maximum degree of all vertices (and `0` if there are no vertices).
 The key properties of this are given in `exists_maximal_degree_vertex`, `degree_le_max_degree`
-and `max_degree_le_of_forall_degree_le`. -/
+and `max_degree_le_of_forall_degree_le`.
+-/
 def max_degree [decidable_rel G.adj] : ℕ :=
 option.get_or_else (univ.image (λ v, G.degree v)).max 0
 
-/-- There exists a vertex of maximal degree. Note the assumption of being nonempty is necessary, as
-the lemma implies there exists a vertex. -/
+/--
+There exists a vertex of maximal degree. Note the assumption of being nonempty is necessary, as
+the lemma implies there exists a vertex.
+-/
 lemma exists_maximal_degree_vertex [decidable_rel G.adj] [nonempty V] :
   ∃ v, G.max_degree = G.degree v :=
 begin
@@ -366,7 +407,9 @@ begin
   refl
 end
 
-/-- The maximum degree in the graph is at least the degree of any particular vertex. -/
+/--
+The maximum degree in the graph is at least the degree of any particular vertex.
+-/
 lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_degree :=
 begin
   obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
@@ -374,8 +417,10 @@ begin
   rwa [max_degree, ht, option.get_or_else_some],
 end
 
-/-- In a graph, if `k` is at least the degree of every vertex, then it is at least the maximum
-degree. -/
+/--
+In a graph, if `k` is at least the degree of every vertex, then it is at least the maximum
+degree.
+-/
 lemma max_degree_le_of_forall_degree_le [decidable_rel G.adj] (k : ℕ)
   (h : ∀ v, G.degree v ≤ k) : G.max_degree ≤ k :=
 begin
@@ -397,9 +442,11 @@ begin
   exact ⟨v, by simp, finset.subset_univ _⟩,
 end
 
-/-- The maximum degree of a nonempty graph is less than the number of vertices. Note that the
+/--
+The maximum degree of a nonempty graph is less than the number of vertices. Note that the
 assumption that `V` is nonempty is necessary, as otherwise this would assert the existence of a
-natural number less than zero. -/
+natural number less than zero.
+-/
 lemma max_degree_lt_card_verts [decidable_rel G.adj] [nonempty V] : G.max_degree < fintype.card V :=
 begin
   cases G.exists_maximal_degree_vertex with v hv,
@@ -425,8 +472,10 @@ lemma card_common_neighbors_lt_card_verts [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) < fintype.card V :=
 nat.lt_of_le_of_lt (G.card_common_neighbors_le_degree_left _ _) (G.degree_lt_card_verts v)
 
-/-- If the condition `G.adj v w` fails, then `card_common_neighbors_le_degree` is
-the best we can do in general. -/
+/--
+If the condition `G.adj v w` fails, then `card_common_neighbors_le_degree` is
+the best we can do in general.
+-/
 lemma adj.card_common_neighbors_lt_degree {G : simple_graph V} [decidable_rel G.adj]
   {v w : V} (h : G.adj v w) :
   fintype.card (G.common_neighbors v w) < G.degree v :=
@@ -457,9 +506,11 @@ section complement
 This section contains definitions and lemmas concerning the complement of a simple graph.
 -/
 
-/-- We define `compl G` to be the `simple_graph V` such that no two adjacent vertices in `G`
+/--
+We define `compl G` to be the `simple_graph V` such that no two adjacent vertices in `G`
 are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
-(still ensuring that vertices are not adjacent to themselves.) -/
+(still ensuring that vertices are not adjacent to themselves.)
+-/
 def compl (G : simple_graph V) : simple_graph V :=
 { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
   sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa edge_symm⟩,
@@ -506,27 +557,39 @@ end complement
 
 section maps
 
-/-- A graph homomorphism is a map on vertex sets that respects adjacency relations. -/
+/--
+A graph homomorphism is a map on vertex sets that respects adjacency relations.
+-/
 abbreviation hom (G : simple_graph V) (G' : simple_graph W) := rel_hom (G.adj) (G'.adj)
 
 infix ` →g ` : 50 := hom
 
-/-- A graph isomorphism is an bijective map on vertex sets that respects adjacency relations. -/
+/--
+A graph isomorphism is an bijective map on vertex sets that respects adjacency relations.
+-/
 abbreviation iso (G : simple_graph V) (G' : simple_graph W) := rel_iso G.adj G'.adj
 
 infix ` ≃g ` : 50 := iso
 
-/-- A graph embedding is an embedding `f` such that for vertices `v w : V`,
-  `G.adj f(v) f(w) ↔ G.adj v w `. Its image is an induced subgraph of G'. -/
+/--
+A graph embedding is an embedding `f` such that for vertices `v w : V`,
+`G.adj f(v) f(w) ↔ G.adj v w `. Its image is an induced subgraph of G'.
+-/
 abbreviation embedding := rel_embedding G.adj G'.adj
 
-/-- Any graph is isomorphic with itself. -/
+/--
+Any graph is isomorphic with itself.
+-/
 def iso.refl : G ≃g G := rel_iso.refl _
 
-/-- Any graph has a homomorphism with itself. -/
+/--
+Any graph has a homomorphism with itself.
+-/
 def hom.id : G →g G := rel_hom.id _
 
-/-- Define the map from the edges of G to the edges of G' implied by a homomorphism. -/
+/--
+Define the map from the edges of G to the edges of G' implied by a homomorphism.
+-/
 def map_edge_set (f : G →g G'): G.edge_set → G'.edge_set :=
 λ e, ⟨sym2.map f e.val,
 begin

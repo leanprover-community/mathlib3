@@ -16,8 +16,10 @@ universe u
 variables {V : Type u} (G : simple_graph V)
 open simple_graph
 
-/-- A subgraph of a graph is a subset of vertices and a subset of edges such that each endpoint of
-an edge is contained in the vertex set. Subgraphs implement the `simple_graph` class. -/
+/--
+A subgraph of a graph is a subset of vertices and a subset of edges such that each endpoint of
+an edge is contained in the vertex set. Subgraphs implement the `simple_graph` class.
+-/
 @[ext]
 structure subgraph :=
 (verts : set V)
@@ -26,14 +28,18 @@ structure subgraph :=
 (edge_vert : ∀ ⦃v w : V⦄, adj' v w → v ∈ verts)
 (sym' : symmetric adj')
 
-/-- The Prop that states that `G'` is isomorphic to a subgraph of `G`. -/
+/--
+The Prop that states that `G'` is isomorphic to a subgraph of `G`.
+-/
 def is_subgraph (G' : simple_graph V) : Prop := ∀ ⦃v w : V⦄, G'.adj v w → G.adj v w
 
 namespace subgraph
 
 variable {G}
 
-/-- The edges of `G'` consist of a subset of edges of `G`. -/
+/--
+The edges of `G'` consist of a subset of edges of `G`.
+-/
 def edge_set' (G' : subgraph G) : set (sym2 V) := sym2.from_rel G'.sym'
 
 @[simp]
@@ -64,19 +70,25 @@ end
 lemma adj_symm' (G' : subgraph G) ⦃v w : V⦄ : G'.adj' v w ↔ G'.adj' w v :=
 by { split; apply G'.sym' }
 
-/-- Function lifting `G' : subgraph G` to `G' : simple_graph G.V` -/
+/--
+Function lifting `G' : subgraph G` to `G' : simple_graph G.V`
+-/
 def to_simple_graph {G : simple_graph V} (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj' ↑v ↑w,
   sym := λ v w h, G'.sym' h,
   loopless := λ ⟨v, _⟩ h, loopless G v (G'.adj_sub h) }
 
-/-- Coercion from `G' : subgraph G` to `G' : simple_graph G.V` -/
+/--
+Coercion from `G' : subgraph G` to `G' : simple_graph G.V`
+-/
 def coe {V : Type*} {G : simple_graph V} (G' : subgraph G) : simple_graph V :=
 { adj := G'.adj',
   sym := G'.sym',
   loopless := λ v h, loopless G v (G'.adj_sub h) }
 
-/-- The subgraph type is inhabited by a graph with no vertices. -/
+/--
+The subgraph type is inhabited by a graph with no vertices.
+-/
 instance : inhabited (subgraph G) := { default :=
 { verts := ∅,
   adj' := λ v w, false,

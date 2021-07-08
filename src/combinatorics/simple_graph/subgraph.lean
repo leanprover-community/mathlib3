@@ -20,10 +20,10 @@ open simple_graph
 an edge is contained in the vertex set. Subgraphs implement the `simple_graph` class. -/
 @[ext]
 structure subgraph :=
-(V' : set V)
+(verts : set V)
 (adj' : V → V → Prop)
 (adj_sub : ∀ ⦃v w : V⦄, adj' v w → G.adj v w)
-(edge_vert : ∀ ⦃v w : V⦄, adj' v w → v ∈ V')
+(edge_vert : ∀ ⦃v w : V⦄, adj' v w → v ∈ verts)
 (sym' : symmetric adj')
 
 /-- The Prop that states that `G'` is isomorphic to a subgraph of `G`. -/
@@ -33,7 +33,7 @@ namespace subgraph
 
 variable {G}
 
-/-- The edges of `G'` consist of a subset of edges of `G` -/
+/-- The edges of `G'` consist of a subset of edges of `G`. -/
 def edge_set' (G' : subgraph G) : set (sym2 V) := sym2.from_rel G'.sym'
 
 @[simp]
@@ -49,7 +49,8 @@ begin
   apply G'.adj_sub,
 end
 
-lemma has_verts (G' : subgraph G) : ∀ ⦃e : sym2 V⦄ ⦃v : V⦄, e ∈ G'.edge_set' → v ∈ e → v ∈ G'.V' :=
+lemma has_verts (G' : subgraph G) : ∀ ⦃e : sym2 V⦄ ⦃v : V⦄, e ∈ G'.edge_set' → v ∈ e →
+  v ∈ G'.verts :=
 begin
   intro e,
   refine quotient.rec_on_subsingleton e (λ e, _),
@@ -64,7 +65,7 @@ lemma adj_symm' (G' : subgraph G) ⦃v w : V⦄ : G'.adj' v w ↔ G'.adj' w v :=
 by { split; apply G'.sym' }
 
 /-- Function lifting `G' : subgraph G` to `G' : simple_graph G.V` -/
-def to_simple_graph {G : simple_graph V} (G' : subgraph G) : simple_graph G'.V' :=
+def to_simple_graph {G : simple_graph V} (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj' ↑v ↑w,
   sym := λ v w h, G'.sym' h,
   loopless := λ ⟨v, _⟩ h, loopless G v (G'.adj_sub h) }
@@ -75,9 +76,9 @@ def coe {V : Type*} {G : simple_graph V} (G' : subgraph G) : simple_graph V :=
   sym := G'.sym',
   loopless := λ v h, loopless G v (G'.adj_sub h) }
 
-/-- The subgraph type is inhabited by a graph with no vertices -/
+/-- The subgraph type is inhabited by a graph with no vertices. -/
 instance : inhabited (subgraph G) := { default :=
-{ V' := ∅,
+{ verts := ∅,
   adj' := λ v w, false,
   adj_sub := λ v w, by finish,
   edge_vert := λ v w, by finish,

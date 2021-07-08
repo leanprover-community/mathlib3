@@ -33,7 +33,7 @@ finitely many vertices.
 * `incidence_finset` is the `finset` of edges containing a given vertex,
    if `incidence_set` is finite
 
-* `homomorphism`, `isomorphism`, and `embedding` are three types of maps between graphs
+* `homo`, `iso`, and `embedding` are three types of maps between graphs
 
 ## Implementation notes
 
@@ -78,7 +78,7 @@ by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
   (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) := iff.rfl
 
 /-- The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
-adjacent -/
+adjacent. -/
 def complete_graph (V : Type u) : simple_graph V := { adj := ne }
 
 instance (V : Type u) : inhabited (simple_graph V) := ⟨complete_graph V⟩
@@ -87,7 +87,7 @@ instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
   decidable_rel (complete_graph V).adj := λ v w, not.decidable
 
 namespace simple_graph
-variables {V : Type*} (G G' : simple_graph V)
+variables {V W: Type*} (G : simple_graph V) (G' : simple_graph W)
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
@@ -98,10 +98,10 @@ instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
 
-/-- The edges of G consist of the unordered pairs of vertices related by `G.adj` -/
+/-- The edges of G consist of the unordered pairs of vertices related by `G.adj`. -/
 def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
-/-- The `incidence_set` is the set of edges incident to a given vertex -/
+/-- The `incidence_set` is the set of edges incident to a given vertex. -/
 def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
 
 lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set := λ _ h, h.1
@@ -202,7 +202,7 @@ instance [decidable_rel G.adj] (v w : V) : decidable_pred (G.common_neighbors v 
 section incidence
 variable [decidable_eq V]
 
-/-- Given an edge incident to a particular vertex, get the other vertex on the edge -/
+/-- Given an edge incident to a particular vertex, get the other vertex on the edge. -/
 def other_vertex_of_incident {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) : V := h.2.other'
 
 lemma edge_mem_other_incident_set {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
@@ -218,7 +218,7 @@ by { cases h with he hv, rwa [←sym2.mem_other_spec' hv, mem_edge_set] at he }
 sym2.congr_right.mp (sym2.mem_other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
 
 /-- There is an equivalence between the set of edges incident to a given
-vertex and the set of vertices adjacent to the vertex -/
+vertex and the set of vertices adjacent to the vertex. -/
 @[simps] def incidence_set_equiv_neighbor_set (v : V) : G.incidence_set v ≃ G.neighbor_set v :=
 { to_fun := λ e, ⟨G.other_vertex_of_incident e.2, G.incidence_other_prop e.2⟩,
   inv_fun := λ w, ⟨⟦(v, w.1)⟧, G.mem_incidence_iff_neighbor.mpr w.2⟩,
@@ -249,7 +249,7 @@ def neighbor_finset : finset V := (G.neighbor_set v).to_finset
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
 
-/-- `G.degree v` is the number of vertices adjacent to `v` -/
+/-- `G.degree v` is the number of vertices adjacent to `v`. -/
 def degree : ℕ := (G.neighbor_finset v).card
 
 @[simp] lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v :=
@@ -276,13 +276,13 @@ end finite_at
 
 section locally_finite
 
-/-- A graph is locally finite if every vertex has a finite neighbor set -/
+/-- A graph is locally finite if every vertex has a finite neighbor set. -/
 @[reducible]
 def locally_finite := Π (v : V), fintype (G.neighbor_set v)
 
 variable [locally_finite G]
 
-/-- A locally finite simple graph is regular of degree `d` if every vertex has degree `d` -/
+/-- A locally finite simple graph is regular of degree `d` if every vertex has degree `d`. -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
 lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
@@ -311,12 +311,12 @@ lemma complete_graph_is_regular [decidable_eq V] :
 
 /-- The minimum degree of all vertices (and `0` if there are no vertices). The key properties of
 this are given in `exists_minimal_degree_vertex`, `min_degree_le_degree`
-and `le_min_degree_of_forall_le_degree` -/
+and `le_min_degree_of_forall_le_degree`. -/
 def min_degree [decidable_rel G.adj] : ℕ :=
 option.get_or_else (univ.image (λ v, G.degree v)).min 0
 
 /-- There exists a vertex of minimal degree. Note the assumption of being nonempty is necessary, as
-the lemma implies there exists a vertex -/
+the lemma implies there exists a vertex. -/
 lemma exists_minimal_degree_vertex [decidable_rel G.adj] [nonempty V] :
   ∃ v, G.min_degree = G.degree v :=
 begin
@@ -352,7 +352,7 @@ def max_degree [decidable_rel G.adj] : ℕ :=
 option.get_or_else (univ.image (λ v, G.degree v)).max 0
 
 /-- There exists a vertex of maximal degree. Note the assumption of being nonempty is necessary, as
-the lemma implies there exists a vertex -/
+the lemma implies there exists a vertex. -/
 lemma exists_maximal_degree_vertex [decidable_rel G.adj] [nonempty V] :
   ∃ v, G.max_degree = G.degree v :=
 begin
@@ -375,7 +375,7 @@ begin
 end
 
 /-- In a graph, if `k` is at least the degree of every vertex, then it is at least the maximum
-degree -/
+degree. -/
 lemma max_degree_le_of_forall_degree_le [decidable_rel G.adj] (k : ℕ)
   (h : ∀ v, G.degree v ≤ k) : G.max_degree ≤ k :=
 begin
@@ -506,37 +506,27 @@ end complement
 
 section maps
 
-/-- A graph homomorphism is a map on vertex sets that respects adjacency relations -/
-abbreviation homomorphism (G G' : simple_graph V) := rel_hom (G.adj) (G'.adj)
+/-- A graph homomorphism is a map on vertex sets that respects adjacency relations. -/
+abbreviation hom (G : simple_graph V) (G' : simple_graph W) := rel_hom (G.adj) (G'.adj)
 
-infix ` →g ` : 50 := homomorphism
+infix ` →g ` : 50 := hom
 
-/-- A graph isomorphism is an bijective map on vertex sets that respects adjacency relations -/
-abbreviation isomorphism (G G' : simple_graph V) := rel_iso G.adj G'.adj
+/-- A graph isomorphism is an bijective map on vertex sets that respects adjacency relations. -/
+abbreviation iso (G : simple_graph V) (G' : simple_graph W) := rel_iso G.adj G'.adj
 
-infix ` ≃g ` : 50 := isomorphism
+infix ` ≃g ` : 50 := iso
 
 /-- A graph embedding is an embedding `f` such that for vertices `v w : V`,
-  `G.adj f(v) f(w) ↔ G.adj v w `. Its image is an induced subgraph of G' -/
+  `G.adj f(v) f(w) ↔ G.adj v w `. Its image is an induced subgraph of G'. -/
 abbreviation embedding := rel_embedding G.adj G'.adj
 
-def graph_iso_self : G ≃g G :=
-begin
-  fconstructor,
-  exact equiv.cast rfl,
-  intros a b,
-  exact iff.rfl,
-end
+/-- Any graph is isomorphic with itself. -/
+def iso.refl : G ≃g G := rel_iso.refl _
 
-def graph_hom_self : G →g G :=
-begin
-  fconstructor,
-  exact equiv.cast rfl,
-  intros a b,
-  exact (mem_edge_set G).mp,
-end
+/-- Any graph has a homomorphism with itself. -/
+def hom.id : G →g G := rel_hom.id _
 
-/-- Define the map from the edges of G to the edges of G' implied by a homomorphism -/
+/-- Define the map from the edges of G to the edges of G' implied by a homomorphism. -/
 def map_edge_set (f : G →g G'): G.edge_set → G'.edge_set :=
 λ e, ⟨sym2.map f e.val,
 begin

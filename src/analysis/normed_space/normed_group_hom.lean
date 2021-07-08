@@ -567,6 +567,13 @@ def lift (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
   (ι _ _).comp (lift φ h) = φ :=
 by { ext, refl }
 
+def lift_equiv : {φ : normed_group_hom V₁ V // f.comp φ = g.comp φ} ≃
+  normed_group_hom V₁ (f.equalizer g) :=
+{ to_fun := λ φ, lift φ.1 φ.2,
+  inv_fun := λ ψ, ⟨(ι f g).comp ψ, by { rw [← comp_assoc, ← comp_assoc, condition] }⟩,
+  left_inv := λ φ, by simp,
+  right_inv := λ ψ, by { ext, refl } }
+
 /-- Given `φ : normed_group_hom V₁ V₂` and `ψ : normed_group_hom W₁ W₂` such that
 `ψ.comp f₁ = f₂.comp φ` and `ψ.comp g₁ = g₂.comp φ`, the induced morphism
 `normed_group_hom (f₁.equalizer g₁) (f₂.equalizer g₂)`. -/

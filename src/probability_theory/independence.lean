@@ -121,7 +121,7 @@ Indep (λ x, measurable_space.comap (f x) (m x)) μ
 independent. For a function `f` with codomain having measurable space structure `m`, the generated
 measurable space structure is `measurable_space.comap f m`. -/
 def indep_fun {α β γ} [measurable_space α] (mβ : measurable_space β) (mγ : measurable_space γ)
-  {f : α → β} {g : α → γ} (μ : measure α . volume_tac) : Prop :=
+  (f : α → β) (g : α → γ) (μ : measure α . volume_tac) : Prop :=
 indep (measurable_space.comap f mβ) (measurable_space.comap g mγ) μ
 
 end definitions
@@ -308,5 +308,286 @@ begin
 end
 
 end from_pi_systems_to_measurable_spaces
+
+section pi_systems
+
+/-- From a set of finsets `S` and a family of sets of sets `π`, define the set of sets `s` that can
+be written as `s = ⋂ x ∈ t, f x` for some `t` in `S` and sets `f x ∈ π x`.
+If `S` is union-closed and `π` is a family of π-systems, then it is a π-system.
+The name expresses that it is the union over `t ∈ S` of sets that are written as intersections.
+The π-systems used to prove Komogorov's 0-1 law are of that form. -/
+def pi_Union_Inter {α ι} (π : ι → set (set α)) (S : set (finset ι)) : set (set α) :=
+{s : set α | ∃ (t : finset ι) (htS : t ∈ S) (f : ι → set α) (hf : ∀ x, x ∈ t → f x ∈ π x),
+  s = ⋂ x (hxt : x ∈ t), f x}
+
+/-- A set `s` is sup-closed if for all `x₁, x₂ ∈ s`, `x₁ ⊔ x₂ ∈ s`. -/
+def sup_closed {α} [has_sup α] (s : set α) : Prop := ∀ x1 x2, x1 ∈ s → x2 ∈ s → x1 ⊔ x2 ∈ s
+
+lemma sup_closed_singleton {α} [semilattice_sup α] (x : α) : sup_closed ({x} : set α) :=
+λ _ _ y1_mem y2_mem, by { rw set.mem_singleton_iff at *, rw [y1_mem, y2_mem, sup_idem], }
+
+lemma sup_closed_inter {α} [semilattice_sup α] {s t : set α} (hs : sup_closed s)
+  (ht : sup_closed t) :
+  sup_closed (s ∩ t) :=
+begin
+  intros x y hx hy,
+  rw set.mem_inter_iff at hx hy ⊢,
+  exact ⟨hs x y hx.left hy.left, ht x y hx.right hy.right⟩,
+end
+
+lemma sup_closed_totally_ordered {α} [semilattice_sup α] (s : set α)
+  (hs : ∀ x y : α, x ∈ s → y ∈ s → y ≤ x ∨ x ≤ y) :
+  sup_closed s :=
+begin
+  intros x y hxs hys,
+  cases hs x y hxs hys,
+  { rwa (sup_eq_left.mpr h), },
+  { rwa (sup_eq_right.mpr h), },
+end
+
+lemma sup_closed_of_linear_order {α} [linear_order α] (s : set α) : sup_closed s :=
+sup_closed_totally_ordered s (λ x y hxs hys, le_total y x)
+
+lemma sup_closed_tail_finset_set (N : ℕ) :
+  sup_closed {s : finset ℕ | ∃ r : ℕ, s = finset.Ico N (N+r+1)} :=
+begin
+  refine sup_closed_totally_ordered _ _,
+  rintros s1 s2 ⟨r1, hs1⟩ ⟨r2, hs2⟩,
+  rw [hs1, hs2],
+  cases le_total r1 r2,
+  { exact or.inr (finset.Ico.subset (le_refl N) (by simp [h])), },
+  { exact or.inl (finset.Ico.subset (le_refl N) (by simp [h])), },
+end
+
+lemma binfi_eq_infi_ite {α ι} [complete_lattice α] (p : ι → Prop) (f : ι → α) :
+  (⨅ i (h : p i), f i) = ⨅ i, ite (p i) (f i) ⊤ :=
+by {congr' 1 with i, split_ifs; simp [h], }
+
+lemma binfi_inf_binfi_eq_binfi_union_ite {α ι} [complete_lattice α] (p1 p2 : ι → Prop)
+  (f1 f2 : ι → α) :
+  (⨅ i (hp : p1 i), f1 i) ⊓ (⨅ i (hp : p2 i), f2 i)
+    = ⨅ i (hp : p1 i ∨ p2 i), (ite (p1 i) (f1 i) ⊤) ⊓ (ite (p2 i) (f2 i) ⊤) :=
+begin
+  simp_rw [binfi_eq_infi_ite, ←infi_inf_eq],
+  congr' 1 with i,
+  by_cases hi1 : p1 i; by_cases hi2 : p2 i; simp [hi1, hi2],
+end
+
+lemma finset.Inter_inter_Inter_eq_Inter_union_ite {α ι} (s1 s2 : finset ι) (f1 f2 : ι → set α) :
+  (⋂ i (hp : i ∈ s1), f1 i) ∩ (⋂ i (hp : i ∈ s2), f2 i)
+    = ⋂ i (hp : i ∈ s1 ∪ s2), (ite (i ∈ s1) (f1 i) set.univ) ∩ (ite (i ∈ s2) (f2 i) set.univ) :=
+begin
+  simp_rw ←set.inf_eq_inter,
+  rw binfi_inf_binfi_eq_binfi_union_ite (λ i:ι, i ∈ s1) (λ i:ι, i ∈ s2) f1 f2,
+  simp_rw [set.top_eq_univ, set.inf_eq_inter, set.Inter],
+  congr,
+  ext1 i,
+  congr' 1 with h,
+  { simp, },
+  { simp, },
+  { intros _ _ _,
+    rw heq_iff_eq,
+    congr', },
+end
+
+lemma is_pi_system_pi_Union_Inter {α ι} (pi : ι → set (set α))
+  (hpi : ∀ x, is_pi_system (pi x)) (S : set (finset ι)) (h_sup : sup_closed S) :
+  is_pi_system (pi_Union_Inter pi S) :=
+begin
+  rintros t1 t2 ⟨p1, hp1S, f1, hf1m, ht1_eq⟩ ⟨p2, hp2S, f2, hf2m, ht2_eq⟩ h_nonempty,
+  simp_rw [pi_Union_Inter, set.mem_set_of_eq],
+  let g := λ n, (ite (n ∈ p1) (f1 n) set.univ) ∩ (ite (n ∈ p2) (f2 n) set.univ),
+  use [p1 ∪ p2, h_sup p1 p2 hp1S hp2S, g],
+  have h_inter_eq : t1 ∩ t2 = ⋂ (i : ι) (hp : i ∈ p1 ∪ p2), g i,
+  { rw [ht1_eq, ht2_eq],
+    exact finset.Inter_inter_Inter_eq_Inter_union_ite p1 p2 f1 f2, },
+  split,
+  swap, { exact h_inter_eq, },
+  intros n hn,
+  simp_rw g,
+  split_ifs with hn1 hn2,
+  { refine hpi n (f1 n) (f2 n) (hf1m n hn1) (hf2m n hn2) _,
+    rw h_inter_eq at h_nonempty,
+    by_contra h,
+    rw set.not_nonempty_iff_eq_empty at h,
+    have h_empty :(⋂ (i : ι) (hp : i ∈ p1 ∪ p2), g i) = ∅,
+    { refine le_antisymm (set.Inter_subset_of_subset n _) (set.empty_subset _),
+      refine set.Inter_subset_of_subset hn _,
+      have h_gn_eq : g n = f1 n ∩ f2 n,
+      { change (ite (n ∈ p1) (f1 n) set.univ) ∩ (ite (n ∈ p2) (f2 n) set.univ) = f1 n ∩ f2 n,
+        simp only [if_true, hn1, hn2], },
+      rw [h_gn_eq, h], },
+    exact (set.not_nonempty_iff_eq_empty.mpr h_empty) h_nonempty, },
+  { simp [hf1m n hn1], },
+  { simp [hf2m n h], },
+  { exact absurd hn (by simp [hn1, h]), },
+end
+
+lemma generate_from_pi_Union_Inter_le {α ι} {m : measurable_space α}
+  {s : ι → measurable_space α} (h : ∀ n, s n ≤ m) (pi : ι → set (set α)) (S : set (finset ι))
+  (hpis : ∀ n, s n = generate_from (pi n)) :
+  generate_from (pi_Union_Inter pi S) ≤ m :=
+begin
+  refine generate_from_le (λ t ht, _),
+  rcases ht with ⟨ht_p, ht_p_mem, ft, hft_mem_pi, ht_eq⟩,
+  rw ht_eq,
+  refine finset.is_measurable_bInter _ (λ x hx_mem, (h x) _ _),
+  rw hpis x,
+  exact is_measurable_generate_from (hft_mem_pi x hx_mem),
+end
+
+lemma subset_pi_Union_Inter {α ι} {pi : ι → set (set α)} {S : set (finset ι)}
+  (h_univ : ∀ x, set.univ ∈ (pi x)) {x : ι} {s : finset ι} (hsS : s ∈ S) (hxs : x ∈ s) :
+  pi x ⊆ pi_Union_Inter pi S :=
+begin
+  refine λ t ht_pix, ⟨s, hsS, (λ i, ite (i = x) t set.univ), _⟩,
+  split,
+  { intros m h_pm,
+    split_ifs,
+    { rwa h, },
+    { exact h_univ m,}, },
+  { ext,
+    simp_rw set.mem_Inter,
+    split; intro hx1,
+    { intros i h_p_i,
+      split_ifs,
+      { exact hx1, },
+      { exact set.mem_univ _, }, },
+    { simpa using hx1 x hxs, }, },
+end
+
+lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
+  {pi : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (pi n)) {x : ι}
+  {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) (hpix : m = measurable_space.generate_from (pi x)) :
+  m ≤ generate_from (pi_Union_Inter pi S) :=
+by { rw hpix, exact generate_from_le_generate_from (subset_pi_Union_Inter h_univ htS hxt) }
+
+lemma measurable_subset_pi_Union_Inter {α ι} (s : ι → measurable_space α)
+  {S : set (finset ι)} {i : ι} {p : finset ι} (hpS : p ∈ S) (hpi : i ∈ p) :
+  set_of (s i).is_measurable' ⊆ pi_Union_Inter (λ n, (s n).is_measurable') S :=
+begin
+  intros t ht,
+  let g := λ n, ite (n=i) t set.univ,
+  use [p, hpS, g],
+  split,
+  { intros j hj,
+    change (s j).is_measurable' (ite (j=i) t set.univ),
+    split_ifs with hji,
+    { rwa hji, },
+    { exact @is_measurable.univ α (s j), }, },
+  { ext,
+    simp_rw [set.mem_Inter, g],
+    split; intro hx,
+    { intros j hj,
+      split_ifs; simp [hx], },
+    { simpa using (hx i hpi), }, },
+end
+
+lemma pi_Union_Inter_subset_measurable {α ι} (s : ι → measurable_space α)
+  (S : set (finset ι)) :
+  pi_Union_Inter (λ n, (s n).is_measurable') S
+    ⊆ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i).is_measurable' :=
+begin
+  intros t ht,
+  rw [pi_Union_Inter, set.mem_set_of_eq] at ht,
+  rcases ht with ⟨pt, hpt, ft, ht_m, ht_eq⟩,
+  have h_i : ∀ i, i ∈ pt
+    → (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i).is_measurable' (ft i),
+  { intros i hi,
+    have h_le : s i ≤ (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i),
+    { have hi' : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p,
+      { use pt,
+        exact ⟨hpt, hi⟩, },
+      exact le_bsupr i hi', },
+    exact h_le (ft i) (ht_m i hi), },
+  subst ht_eq,
+  exact @finset.is_measurable_bInter _ _
+    ((⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), s i)) _ pt (λ i hipt, h_i i hipt),
+end
+
+lemma bsupr_measurable_space_eq_generate_from_pi_Union_Inter {α ι} (m : ι → measurable_space α)
+  (S : set (finset ι)) :
+  (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), m i) = measurable_space.generate_from
+    (pi_Union_Inter (λ n, (m n).is_measurable') S) :=
+begin
+  refine le_antisymm _ _,
+  { refine bsupr_le (λ i hi, _),
+    rcases hi with ⟨p, hpS, hpi⟩,
+    rw ← @generate_from_is_measurable α (m i),
+    exact generate_from_le_generate_from (measurable_subset_pi_Union_Inter m hpS hpi), },
+  { rw ← @generate_from_is_measurable α
+      (⨆ (i : ι) (hi : ∃ (p : finset ι) (hp : p ∈ S), i ∈ p), m i),
+    exact generate_from_le_generate_from (pi_Union_Inter_subset_measurable m S), },
+end
+
+end pi_systems
+
+section indep_of_indep_sets_of_pi_system
+
+lemma pi_system_indep_insert {α ι} [measurable_space α] {μ : measure α} {pi : ι → set (set α)}
+  (hp_ind : Indep_sets pi μ) {a : ι} {S : finset ι} (haS : a ∉ S) :
+  indep_sets (pi_Union_Inter pi {S}) (pi a) μ :=
+begin
+  rintros t1 t2 ⟨s, hs_mem, ft1, hft1_mem, ht1_eq⟩ ht2_mem_pia,
+  rw set.mem_singleton_iff at hs_mem,
+  simp_rw hs_mem at hft1_mem,
+  let f1 := λ n, ite (n=a) t2 (ite (n ∈ S) (ft1 n) set.univ),
+  have h_f1_mem : ∀ n, n ∈ insert a S → f1 n ∈ pi n,
+  { intros n hn_mem,
+    simp_rw [f1],
+    cases (finset.mem_insert.mp hn_mem) with hn_mem hn_mem,
+    { simp [hn_mem, ht2_mem_pia], },
+    { have hn_ne_a : n ≠ a, from λ hna, by { rw hna at hn_mem, exact haS hn_mem, },
+      simp [hn_ne_a, hn_mem, hft1_mem n hn_mem], }, },
+  have h_f1_mem_S : ∀ n, n ∈ S → f1 n ∈ pi n, from λ x hxS, h_f1_mem x (by simp [hxS]),
+  have h_t1 : t1 = ⋂ (n : ι) (h : n ∈ S), f1 n,
+  { suffices h_forall : ∀ n (h : n ∈ S), f1 n = ft1 n,
+    { rw ht1_eq,
+      congr' with n,
+      congr' with hnS,
+      congr',
+      intros hns hnS _,
+      simp only [(h_forall n hnS).symm], },
+    intros n hnS,
+    have hn_ne_a : n ≠ a, from λ hna, by { rw hna at hnS, exact haS hnS, },
+    simp_rw [f1],
+    simp [hnS, hn_ne_a], },
+  have h_μ_t1 : μ t1 = ∏ n in S, μ (f1 n), by rw [h_t1, ←hp_ind S h_f1_mem_S],
+  have h_t2 : t2 = f1 a, by { simp_rw [f1], simp, },
+  have h_μ_inter : μ (t1 ∩ t2) = ∏ n in insert a S, μ (f1 n),
+  { have h_t1_inter_t2 : t1 ∩ t2 = ⋂ (n : ι) (h : n ∈ insert a S), f1 n,
+      by rw [h_t1, h_t2, finset.set_bInter_insert, set.inter_comm],
+    rw [h_t1_inter_t2, ←hp_ind (insert a S) h_f1_mem], },
+  rw [h_μ_inter, finset.prod_insert haS, h_t2, mul_comm, h_μ_t1],
+end
+
+lemma Indep_sets.Indep {α ι} (m : measurable_space α) (s : ι → measurable_space α)
+  (μ : @measure_theory.measure α m) [probability_measure μ] (h : ∀ n, s n ≤ m)
+  (pi : ι → set (set α)) (h_pi : ∀ n, is_pi_system (pi n)) (hp_univ : ∀ n, set.univ ∈ pi n)
+  (hps : ∀ n, s n = generate_from (pi n)) (hp_ind : Indep_sets pi μ) :
+  Indep s μ :=
+begin
+  refine finset.induction (by simp [measure_univ]) _,
+  intros a S ha_notin_S h_rec f hf_m,
+  have hf_m_S : ∀ x, x ∈ S → (s x).is_measurable' (f x), from λ x hx, hf_m x (by simp [hx]),
+  rw [finset.set_bInter_insert, finset.prod_insert ha_notin_S, ←h_rec hf_m_S],
+  let p_ := pi_Union_Inter pi {S},
+  set S_ := generate_from p_ with hS_eq_generate,
+  have h_indep : indep S_ (s a) μ,
+  { have hp_ : is_pi_system p_,
+      from is_pi_system_pi_Union_Inter pi h_pi {S} (sup_closed_singleton S),
+    have hS : S_ ≤ m, from generate_from_pi_Union_Inter_le h pi {S} hps,
+    exact indep_sets.indep hS (h a) hp_ (h_pi a) hS_eq_generate (hps a)
+      (pi_system_indep_insert hp_ind ha_notin_S), },
+  refine h_indep.symm (f a) (⋂ (n : ι) (H : n ∈ S), f n) _ _,
+  { exact hf_m a (by simp), },
+  { have h_le : ∀ n : ι, n ∈ S → s n ≤ S_,
+      from (λ n hn, le_generate_from_pi_Union_Inter {S} hp_univ (set.mem_singleton _) hn (hps n)),
+    have h_S_f : ∀ i (hi : i ∈ S), S_.is_measurable' (f i),
+      from λ i hi, (h_le i hi) (f i) (hf_m_S i hi),
+    exact @finset.is_measurable_bInter α ι S_ f _ (λ i hi, h_S_f i hi), },
+end
+
+end indep_of_indep_sets_of_pi_system
 
 end probability_theory

@@ -345,7 +345,7 @@ lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
 @[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
-lt_succ_iff_le.trans le_zero_iff
+lt_succ_iff.trans le_zero_iff
 
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin

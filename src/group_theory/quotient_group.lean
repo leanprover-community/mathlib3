@@ -299,7 +299,7 @@ have φ_surjective : function.surjective φ := λ x, x.induction_on' $
 
 end snd_isomorphism_thm
 
-namespace third_iso_thm
+section third_iso_thm
 
 variables (M : subgroup G) [nM : M.normal]
 

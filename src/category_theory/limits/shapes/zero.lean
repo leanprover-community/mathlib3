@@ -225,6 +225,9 @@ has_initial_of_unique 0
 lemma has_terminal : has_terminal C :=
 has_terminal_of_unique 0
 
+localized "attribute [instance] category_theory.limits.has_zero_object.has_initial" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.has_terminal" in zero_object
+
 instance has_strict_initial : zero_le_category C :=
 zero_le_category.of_is_initial zero_is_initial (λ X, category_theory.mono _)
 

@@ -271,19 +271,17 @@ variables [has_zero_morphisms C] [has_zero_object C]
 open_locale zero_object
 local attribute [instance] category_theory.limits.has_zero_object.has_initial
 
-set_option trace.class_instances true
+lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) :=
+sorry
 
-lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) := rfl
+-- /-- The object underlying `⊥ : subobject B` is (up to isomorphism) the initial object. -/
+-- def bot_coe_iso_zero {B : C} : ((⊥ : subobject B) : C) ≅ ⊥_ C := underlying_iso _
 
-/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the initial object. -/
-def bot_coe_iso_zero {B : C} : ((⊥ : subobject B) : C) ≅ ⊥_ C := underlying_iso _
+-- @[simp] lemma bot_arrow {B : C} : (⊥ : subobject B).arrow = initial.to B :=
+-- zero_of_source_iso_zero _ bot_coe_iso_zero
 
-@[simp] lemma bot_arrow {B : C} : (⊥ : subobject B).arrow = initial.to B :=
-zero_of_source_iso_zero _ bot_coe_iso_zero
-
-lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
-⟨by { rintro ⟨h, w⟩, simp at w, exact w.symm, }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
-
+-- lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
+-- ⟨by { rintro ⟨h, w⟩, simp at w, exact w.symm, }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
 
 end zero_order_bot
 

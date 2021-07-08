@@ -108,7 +108,8 @@ lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
 
 /--
-The edges of G consist of the unordered pairs of vertices related by `G.adj`.
+The edges of G consist of the unordered pairs of vertices related by
+`G.adj`.
 -/
 def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
@@ -117,9 +118,11 @@ The `incidence_set` is the set of edges incident to a given vertex.
 -/
 def incidence_set (v : V) : set (sym2 V) := {e ∈ G.edge_set | v ∈ e}
 
-lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set := λ _ h, h.1
+lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set :=
+λ _ h, h.1
 
-@[simp] lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := by refl
+@[simp]
+lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := by refl
 
 /--
 Two vertices are adjacent iff there is an edge between them. The
@@ -303,7 +306,8 @@ lemma card_incidence_set_eq_degree [decidable_eq V] :
   fintype.card (G.incidence_set v) = G.degree v :=
 by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
 
-@[simp] lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
+@[simp]
+lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
 set.mem_to_finset
 
@@ -324,8 +328,7 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
-lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d :=
-  h v
+lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
 
 end locally_finite
 
@@ -340,7 +343,8 @@ lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=
 by { ext, simp }
 
-@[simp] lemma complete_graph_degree [decidable_eq V] (v : V) :
+@[simp]
+lemma complete_graph_degree [decidable_eq V] (v : V) :
   (complete_graph V).degree v = fintype.card V - 1 :=
 begin
   convert univ.card.pred_eq_sub_one,
@@ -352,8 +356,8 @@ lemma complete_graph_is_regular [decidable_eq V] :
 by { intro v, simp }
 
 /--
-The minimum degree of all vertices (and `0` if there are no vertices). The key properties of
-this are given in `exists_minimal_degree_vertex`, `min_degree_le_degree`
+The minimum degree of all vertices (and `0` if there are no vertices).
+The key properties of this are given in `exists_minimal_degree_vertex`, `min_degree_le_degree`
 and `le_min_degree_of_forall_le_degree`.
 -/
 def min_degree [decidable_rel G.adj] : ℕ :=
@@ -371,9 +375,7 @@ begin
   refine ⟨v, by simp [min_degree, ht]⟩,
 end
 
-/--
-The minimum degree in the graph is at most the degree of any particular vertex.
--/
+/-- The minimum degree in the graph is at most the degree of any particular vertex. -/
 lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.degree v :=
 begin
   obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
@@ -388,7 +390,8 @@ degree. Note the assumption that the graph is nonempty is necessary as long as `
 defined to be a natural.
 -/
 lemma le_min_degree_of_forall_le_degree [decidable_rel G.adj] [nonempty V] (k : ℕ)
-  (h : ∀ v, k ≤ G.degree v) : k ≤ G.min_degree :=
+  (h : ∀ v, k ≤ G.degree v) :
+  k ≤ G.min_degree :=
 begin
   rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩,
   rw hv,
@@ -420,9 +423,7 @@ begin
   refl
 end
 
-/--
-The maximum degree in the graph is at least the degree of any particular vertex.
--/
+/-- The maximum degree in the graph is at least the degree of any particular vertex. -/
 lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_degree :=
 begin
   obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
@@ -457,7 +458,7 @@ begin
 end
 
 /--
-The maximum degree of a nonempty graph is less than the number of vertices. Note that theassumption
+The maximum degree of a nonempty graph is less than the number of vertices. Note that the assumption
 that `V` is nonempty is necessary, as otherwise this would assert the existence of a
 natural number less than zero.
 -/
@@ -533,7 +534,8 @@ def compl (G : simple_graph V) : simple_graph V :=
 instance has_compl : has_compl (simple_graph V) :=
 { compl := compl }
 
-@[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+@[simp]
+lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
 instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
   [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable

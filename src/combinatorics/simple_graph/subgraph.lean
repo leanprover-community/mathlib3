@@ -91,7 +91,7 @@ The subgraph type is inhabited by a graph with no vertices.
 -/
 instance : inhabited (subgraph G) := { default :=
 { verts := ∅,
-  adj' := λ v w, false,
+  adj' := ⊥,
   adj_sub := λ v w, by finish,
   edge_vert := λ v w, by finish,
   sym' := λ v w, by finish } }

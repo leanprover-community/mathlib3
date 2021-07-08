@@ -210,17 +210,6 @@ def pi_Union_Inter {α ι} (π : ι → set (set α)) (S : set (finset ι)) : se
 {s : set α | ∃ (t : finset ι) (htS : t ∈ S) (f : ι → set α) (hf : ∀ x, x ∈ t → f x ∈ π x),
   s = ⋂ x (hxt : x ∈ t), f x}
 
-lemma sup_closed_tail_finset_set (N : ℕ) :
-  sup_closed {s : finset ℕ | ∃ r : ℕ, s = finset.Ico N (N+r+1)} :=
-begin
-  refine sup_closed_of_totally_ordered _ _,
-  rintros s1 s2 ⟨r1, hs1⟩ ⟨r2, hs2⟩,
-  rw [hs1, hs2],
-  cases le_total r1 r2,
-  { exact or.inr (finset.Ico.subset (le_refl N) (by simp [h])), },
-  { exact or.inl (finset.Ico.subset (le_refl N) (by simp [h])), },
-end
-
 lemma finset.Inter_inter_Inter_eq_Inter_union_if {α ι} (s1 s2 : finset ι) (f1 f2 : ι → set α) :
   (⋂ i (hp : i ∈ s1), f1 i) ∩ (⋂ i (hp : i ∈ s2), f2 i)
     = ⋂ i (hp : i ∈ s1 ∪ s2),

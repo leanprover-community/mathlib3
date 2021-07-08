@@ -61,7 +61,8 @@ The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.edge_set` for the corresponding edge set.
 -/
-@[ext] structure simple_graph (V : Type u) :=
+@[ext]
+structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
 (sym : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
@@ -78,14 +79,16 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
 noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
 by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
-@[simp] lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
+@[simp]
+lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
   (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) := iff.rfl
 
 /--
 The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
 adjacent.
 -/
-def complete_graph (V : Type u) : simple_graph V := { adj := ne }
+def complete_graph (V : Type u) : simple_graph V :=
+{ adj := ne }
 
 instance (V : Type u) : inhabited (simple_graph V) := ⟨complete_graph V⟩
 
@@ -93,7 +96,7 @@ instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
   decidable_rel (complete_graph V).adj := λ v w, not.decidable
 
 namespace simple_graph
-variables {V W: Type*} (G : simple_graph V) (G' : simple_graph W)
+variables {V W: Type u} (G : simple_graph V) (G' : simple_graph V)
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
@@ -119,9 +122,11 @@ lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set := λ _ h,
 @[simp] lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := by refl
 
 /--
-Two vertices are adjacent iff there is an edge between them. The condition `v ≠ w` ensures
-they are different endpoints of the edge, which is necessary since when `v = w` the existential
-`∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge incident to `v`.
+Two vertices are adjacent iff there is an edge between them. The
+condition `v ≠ w` ensures they are different endpoints of the edge,
+which is necessary since when `v = w` the existential
+`∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge
+incident to `v`.
 -/
 lemma adj_iff_exists_edge {v w : V} :
   G.adj v w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
@@ -156,7 +161,8 @@ def edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] : finset (sym
 set.to_finset G.edge_set
 
 @[simp] lemma mem_edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] (e : sym2 V) :
-  e ∈ G.edge_finset ↔ e ∈ G.edge_set := set.mem_to_finset
+  e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
+set.mem_to_finset
 
 @[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=
@@ -231,7 +237,8 @@ lemma incidence_other_prop {v : V} {e : sym2 V} (h : e ∈ G.incidence_set v) :
   G.other_vertex_of_incident h ∈ G.neighbor_set v :=
 by { cases h with he hv, rwa [←sym2.mem_other_spec' hv, mem_edge_set] at he }
 
-@[simp] lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
+@[simp]
+lemma incidence_other_neighbor_edge {v w : V} (h : w ∈ G.neighbor_set v) :
   G.other_vertex_of_incident (G.mem_incidence_iff_neighbor.mpr h) = w :=
 sym2.congr_right.mp (sym2.mem_other_spec' (G.mem_incidence_iff_neighbor.mpr h).right)
 
@@ -276,7 +283,8 @@ set.mem_to_finset
 -/
 def degree : ℕ := (G.neighbor_finset v).card
 
-@[simp] lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v :=
+@[simp]
+lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v :=
 (set.to_finset_card _).symm
 
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
@@ -285,10 +293,13 @@ by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
 fintype.of_equiv (G.neighbor_set v) (G.incidence_set_equiv_neighbor_set v).symm
 
-/-- This is the `finset` version of `incidence_set`. -/
+/--
+This is the `finset` version of `incidence_set`.
+-/
 def incidence_finset [decidable_eq V] : finset (sym2 V) := (G.incidence_set v).to_finset
 
-@[simp] lemma card_incidence_set_eq_degree [decidable_eq V] :
+@[simp]
+lemma card_incidence_set_eq_degree [decidable_eq V] :
   fintype.card (G.incidence_set v) = G.degree v :=
 by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
 
@@ -326,7 +337,8 @@ instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbo
 @subtype.fintype _ _ (by { simp_rw mem_neighbor_set, apply_instance }) _
 
 lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
-  G.neighbor_finset v = finset.univ.filter (G.adj v) := by { ext, simp }
+  G.neighbor_finset v = finset.univ.filter (G.adj v) :=
+by { ext, simp }
 
 @[simp] lemma complete_graph_degree [decidable_eq V] (v : V) :
   (complete_graph V).degree v = fintype.card V - 1 :=
@@ -336,7 +348,8 @@ begin
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :
-  (complete_graph V).is_regular_of_degree (fintype.card V - 1) := by { intro v, simp }
+  (complete_graph V).is_regular_of_degree (fintype.card V - 1) :=
+by { intro v, simp }
 
 /--
 The minimum degree of all vertices (and `0` if there are no vertices). The key properties of
@@ -422,7 +435,8 @@ In a graph, if `k` is at least the degree of every vertex, then it is at least t
 degree.
 -/
 lemma max_degree_le_of_forall_degree_le [decidable_rel G.adj] (k : ℕ)
-  (h : ∀ v, G.degree v ≤ k) : G.max_degree ≤ k :=
+  (h : ∀ v, G.degree v ≤ k) :
+  G.max_degree ≤ k :=
 begin
   by_cases hV : (univ : finset V).nonempty,
   { haveI : nonempty V := univ_nonempty_iff.mp hV,
@@ -443,8 +457,8 @@ begin
 end
 
 /--
-The maximum degree of a nonempty graph is less than the number of vertices. Note that the
-assumption that `V` is nonempty is necessary, as otherwise this would assert the existence of a
+The maximum degree of a nonempty graph is less than the number of vertices. Note that theassumption
+that `V` is nonempty is necessary, as otherwise this would assert the existence of a
 natural number less than zero.
 -/
 lemma max_degree_lt_card_verts [decidable_rel G.adj] [nonempty V] : G.max_degree < fintype.card V :=
@@ -524,7 +538,8 @@ instance has_compl : has_compl (simple_graph V) :=
 instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
   [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
 
-@[simp] lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
+@[simp]
+lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
 begin
   ext v w,
   split; simp only [compl_adj, not_and, not_not],
@@ -533,7 +548,8 @@ begin
     simpa [G.ne_of_adj h], },
 end
 
-@[simp] lemma compl_involutive : function.involutive (@compl V) := compl_compl
+@[simp]
+lemma compl_involutive : function.involutive (@compl V) := compl_compl
 
 lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
   disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=

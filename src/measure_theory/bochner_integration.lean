@@ -559,8 +559,6 @@ variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space �
 
 section integration_in_L1
 
-local notation `to_L1` := Lp.simple_func.coe_to_Lp α E ℝ
-
 local attribute [instance] Lp.simple_func.normed_space
 
 open continuous_linear_map

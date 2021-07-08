@@ -226,7 +226,9 @@ begin
   { simp [ha, IH] }
 end
 
-@[to_additive] lemma noncomm_prod_union_of_disjoint [decidable_eq α] {s t : finset α}
+/- The non-commutative version of `finset.prod_union` -/
+@[to_additive /-" The non-commutative version of `finset.sum_union` "-/]
+lemma noncomm_prod_union_of_disjoint [decidable_eq α] {s t : finset α}
   (h : disjoint s t) (f : α → β)
   (comm : ∀ (x ∈ s ∪ t) (y ∈ s ∪ t), commute (f x) (f y))
   (scomm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y) :=

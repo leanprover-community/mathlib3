@@ -314,7 +314,7 @@ lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
 not_lt_of_ge (nat.le_succ _)
 
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
-succ_le_succ_iff
+⟨le_of_lt_succ, lt_succ_of_le⟩
 
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 ⟨lt_of_succ_le, succ_le_of_lt⟩
@@ -343,6 +343,9 @@ H.lt_or_eq_dec.imp le_of_lt_succ id
 
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
+
+@[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
+lt_succ_iff.trans le_zero_iff
 
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin

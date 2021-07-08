@@ -548,7 +548,7 @@ namespace equalizer
 /-- The inclusion of `f.equalizer g` as a `normed_group_hom`. -/
 def ι : normed_group_hom (f.equalizer g) V := incl _
 
-lemma condition : f.comp (ι f g) = g.comp (ι f g) :=
+lemma comp_ι_eq : f.comp (ι f g) = g.comp (ι f g) :=
 by { ext, rw [comp_apply, comp_apply, ← sub_eq_zero, ← normed_group_hom.sub_apply], exact x.2 }
 
 variables {f g}

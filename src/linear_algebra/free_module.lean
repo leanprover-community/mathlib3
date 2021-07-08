@@ -129,6 +129,12 @@ instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_
 [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
 of_basis $ pi.basis $ λ i, choose_basis R (M i)
 
+/-- Any module is a quotient of a free module. This is stated as surjectivity of
+`finsupp.total M M R id : (M →₀ R) →ₗ[R] M`. -/
+lemma resolution (M : Type*) [add_comm_monoid M] [module R M] :
+  function.surjective (finsupp.total M M R id) :=
+λ x, ⟨finsupp.single x 1, by simp⟩
+
 end semiring
 
 section comm_ring

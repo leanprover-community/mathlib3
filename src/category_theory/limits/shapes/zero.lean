@@ -392,8 +392,7 @@ def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0)
 end is_iso
 
 /-- If there are zero morphisms, any initial object is a zero object. -/
-@[priority 50]
-instance has_zero_object_of_has_initial_object
+def has_zero_object_of_has_initial_object
   [has_zero_morphisms C] [has_initial C] : has_zero_object C :=
 { zero := ⊥_ C,
   unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
@@ -405,8 +404,7 @@ instance has_zero_object_of_has_initial_object
   ⟩ }
 
 /-- If there are zero morphisms, any terminal object is a zero object. -/
-@[priority 50]
-instance has_zero_object_of_has_terminal_object
+def has_zero_object_of_has_terminal_object
   [has_zero_morphisms C] [has_terminal C] : has_zero_object C :=
 { zero := ⊤_ C,
   unique_from := λ X, ⟨⟨0⟩, by tidy⟩,

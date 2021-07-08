@@ -269,7 +269,7 @@ section zero_order_bot
 
 variables [has_zero_morphisms C] [has_zero_object C]
 open_locale zero_object
--- local attribute [instance] category_theory.limits.has_zero_object.has_initial
+local attribute [instance] category_theory.limits.has_zero_object.has_initial
 
 set_option trace.class_instances true
 

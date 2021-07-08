@@ -16,8 +16,8 @@ universe u
 variables {V : Type u} (G : simple_graph V)
 open simple_graph
 
-/-- A subgraph of a graph is a subset of vertices and a subset of edges such that each endpoint of an
-edge is contained in the vertex set. Subgraphs implement the `simple_graph` class. -/
+/-- A subgraph of a graph is a subset of vertices and a subset of edges such that each endpoint of
+an edge is contained in the vertex set. Subgraphs implement the `simple_graph` class. -/
 @[ext]
 structure subgraph :=
 (V' : set V)
@@ -26,8 +26,8 @@ structure subgraph :=
 (edge_vert : ∀ ⦃v w : V⦄, adj' v w → v ∈ V')
 (sym' : symmetric adj')
 
-/-- The Prop that states that `H` is isomorphic to a subgraph of `G`. -/
-def is_subgraph (H : simple_graph V) : Prop := ∀ ⦃v w : V⦄, H.adj v w → G.adj v w
+/-- The Prop that states that `G'` is isomorphic to a subgraph of `G`. -/
+def is_subgraph (G' : simple_graph V) : Prop := ∀ ⦃v w : V⦄, G'.adj v w → G.adj v w
 
 namespace subgraph
 

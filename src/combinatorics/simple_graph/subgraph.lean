@@ -282,8 +282,7 @@ lemma degree_le' (G' G'' : subgraph G) (h : G' ≤ G'') (v : V)
   G'.degree v ≤ G''.degree v :=
 set.card_le_of_subset (neighbor_set_subset_of_subgraph h v)
 
-@[simp]
-lemma degree_coe (G' : subgraph G) (v : G'.verts)
+@[simp] lemma coe_degree (G' : subgraph G) (v : G'.verts)
   [fintype (G'.coe.neighbor_set v)] [fintype (G'.neighbor_set v)] :
   G'.coe.degree v = G'.degree v :=
 begin

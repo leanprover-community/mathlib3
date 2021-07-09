@@ -48,6 +48,8 @@ finitely many vertices.
   is locally finite, too.
 
 * Morphisms of graphs are abbreviations for `rel_hom`, `rel_embedding`, and `rel_iso`.
+  To make use of pre-existing simp lemmas, definitions involving morphisms are
+  abbreviations as well.
 
 ## Naming Conventions
 
@@ -92,8 +94,7 @@ lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
 iff.rfl
 
 /--
-The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
-adjacent.
+The complete graph on a type `V` is the simple graph with all pairs of distinct vertices adjacent.
 -/
 def complete_graph (V : Type u) : simple_graph V :=
 { adj := ne }
@@ -141,7 +142,7 @@ lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
 by refl
 
 /--
-Two vertices are adjacent iff there is an edge between them. The
+Two vertices are adjacent iff there is an edge between them.  The
 condition `v ≠ w` ensures they are different endpoints of the edge,
 which is necessary since when `v = w` the existential
 `∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge

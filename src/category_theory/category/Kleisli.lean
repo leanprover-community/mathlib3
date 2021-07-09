@@ -9,7 +9,6 @@ TODO: generalise this to work with category_theory.monad
 -/
 import category_theory.category
 
-
 /-!
 # The Kleisli construction on the Type category
 
@@ -17,7 +16,6 @@ Define the Kleisli category for (control) monads.
 `category_theory/monad/kleisli` defines the general version for a monad on `C`, and demonstrates
 the equivalence between the two.
 -/
-
 
 universes u v
 

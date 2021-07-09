@@ -337,12 +337,12 @@ variables {f g : β → α} {a a₁ a₂ : α}
 lemma has_sum.tsum_eq (ha : has_sum f a) : ∑'b, f b = a :=
 (summable.has_sum ⟨a, ha⟩).unique ha
 
-@[simp] lemma tsum_empty [is_empty β] : ∑'b, f b = 0 := has_sum_empty.tsum_eq
-
 lemma summable.has_sum_iff (h : summable f) : has_sum f a ↔ ∑'b, f b = a :=
 iff.intro has_sum.tsum_eq (assume eq, eq ▸ h.has_sum)
 
 @[simp] lemma tsum_zero : ∑'b:β, (0:α) = 0 := has_sum_zero.tsum_eq
+
+@[simp] lemma tsum_empty [is_empty β] : ∑'b, f b = 0 := has_sum_empty.tsum_eq
 
 lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   ∑' b, f b = ∑ b in s, f b :=

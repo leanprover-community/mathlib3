@@ -1914,7 +1914,7 @@ begin
   rw [add_apply, sub_apply h_s_meas h₁, ennreal.sub_add_cancel_of_le (h₁ s h_s_meas)],
 end
 
-lemma measure.sub_le [finite_measure μ] : μ - ν ≤ μ :=
+lemma sub_le [finite_measure μ] : μ - ν ≤ μ :=
 Inf_le (measure.le_add_right (le_refl _))
 
 end measure_sub

@@ -23,7 +23,7 @@ namespace Top
 
 /-- Equipping a type with the discrete topology is left adjoint to the forgetful functor
 `Top ⥤ Type`. -/
-@[simps]
+@[simps unit counit]
 def adj₁ : discrete ⊣ forget Top.{u} :=
 adjunction.mk_of_unit_counit
 { unit := { app := λ X, id },
@@ -31,7 +31,7 @@ adjunction.mk_of_unit_counit
 
 /-- Equipping a type with the trivial topology is right adjoint to the forgetful functor
 `Top ⥤ Type`. -/
-@[simps]
+@[simps unit counit]
 def adj₂ : forget Top.{u} ⊣ trivial :=
 adjunction.mk_of_unit_counit
 { unit := { app := λ X, ⟨id, continuous_top⟩ },

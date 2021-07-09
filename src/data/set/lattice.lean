@@ -744,7 +744,7 @@ begin
   simp [union_comm]
 end
 
-lemma set.union_Union_neq_eq_Union {ι} (f : ι → set α) (j : ι) :
+lemma union_Union_neq_eq_Union {ι} (f : ι → set α) (j : ι) :
   (f j ∪ ⋃ (i : ι) (hi : i ≠ j), f i) = ⋃ i, f i :=
 begin
   ext x,

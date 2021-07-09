@@ -661,10 +661,7 @@ hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 lemma continuous_at.comp_continuous_within_at {g : β → γ} {f : α → β} {s : set α} {x : α}
   (hg : continuous_at g (f x)) (hf : continuous_within_at f s x) :
   continuous_within_at (g ∘ f) s x :=
-begin
-  rw ← continuous_within_at_univ at hg,
-  exact hg.comp hf subset_preimage_univ,
-end
+hg.continuous_within_at.comp hf subset_preimage_univ
 
 lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) (h : s ⊆ f ⁻¹' t) :
@@ -1012,3 +1009,16 @@ continuous_snd.continuous_on
 lemma continuous_within_at_snd {s : set (α × β)} {p : α × β} :
   continuous_within_at prod.snd s p :=
 continuous_snd.continuous_within_at
+
+lemma continuous_within_at.fst {f : α → β × γ} {s : set α} {a : α}
+  (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).fst) s a :=
+continuous_at_fst.comp_continuous_within_at h
+
+lemma continuous_within_at.snd {f : α → β × γ} {s : set α} {a : α}
+  (h : continuous_within_at f s a) : continuous_within_at (λ x, (f x).snd) s a :=
+continuous_at_snd.comp_continuous_within_at h
+
+lemma continuous_within_at_prod_iff {f : α → β × γ} {s : set α} {x : α} :
+  continuous_within_at f s x ↔ continuous_within_at (prod.fst ∘ f) s x ∧
+  continuous_within_at (prod.snd ∘ f) s x :=
+⟨λ h, ⟨h.fst, h.snd⟩, by { rintro ⟨h1, h2⟩, convert h1.prod h2, ext, refl, refl }⟩

@@ -76,7 +76,7 @@ by convert has_sum_zero
 
 lemma summable_zero : summable (λb, 0 : β → α) := has_sum_zero.summable
 
-lemma summable_empty [is_empty β] : summable f := ⟨0, has_sum_empty⟩
+lemma summable_empty [is_empty β] : summable f := has_sum_empty.summable
 
 lemma tsum_eq_zero_of_not_summable (h : ¬ summable f) : ∑'b, f b = 0 :=
 by simp [tsum, h]

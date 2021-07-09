@@ -71,7 +71,7 @@ lemma is_submonoid.inter {s₁ s₂ : set M} (is₁ : is_submonoid s₁) (is₂ 
 /-- The intersection of an indexed set of submonoids of a monoid `M` is a submonoid of `M`. -/
 @[to_additive "The intersection of an indexed set of `add_submonoid`s of an `add_monoid` `M` is
 an `add_submonoid` of `M`."]
-lemma is_submonoid.Inter {ι : Sort*} (s : ι → set M) (h : ∀ y : ι, is_submonoid (s y)) :
+lemma is_submonoid.Inter {ι : Sort*} {s : ι → set M} (h : ∀ y : ι, is_submonoid (s y)) :
   is_submonoid (set.Inter s) :=
 { one_mem := set.mem_Inter.2 $ λ y, (h y).one_mem,
   mul_mem := λ x₁ x₂ h₁ h₂, set.mem_Inter.2 $

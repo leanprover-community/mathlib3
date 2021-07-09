@@ -88,7 +88,7 @@ end
 end monoid
 
 
-section group
+/-section group
 variables [ring R] [add_comm_group M] [module R M]
 
 lemma to_direct_sum_map_ker
@@ -352,7 +352,7 @@ def of_is_internal (p : ι → submodule R M) (hp : direct_sum.submodule_is_inte
     simp only [mem_support_iff, ne.def, subtype.val_eq_coe, coe_eq_zero]
   end }
 
-end group
+end group-/
 
 end decomposition
 

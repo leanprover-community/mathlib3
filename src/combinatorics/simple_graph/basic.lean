@@ -31,14 +31,18 @@ finitely many vertices.
 * `incidence_finset` is the `finset` of edges containing a given vertex,
    if `incidence_set` is finite
 
-* `homo`, `iso`, and `embedding` are three types of maps between graphs
+* `homo`, `embedding`, and `iso` for graph homomorphisms, graph embeddings, and
+  graph isomorphisms. Note that a graph embedding is a stronger notion than an
+  injective graph homomorphism, since its image is an induced subgraph.
 
 ## Implementation notes
 
-* A locally finite graph is one with instances `∀ v, fintype (G.neighbor_set v)`.
+* A locally finite graph is one with instances `Π v, fintype (G.neighbor_set v)`.
 
 * Given instances `decidable_rel G.adj` and `fintype V`, then the graph
   is locally finite, too.
+
+* Morphisms of graphs are abbreviations for `rel_hom`, `rel_embedding`, and `rel_iso`.
 
 ## Naming Conventions
 
@@ -95,6 +99,10 @@ instance (V : Type u) : inhabited (simple_graph V) :=
 instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
   decidable_rel (complete_graph V).adj :=
 λ v w, not.decidable
+
+/-- The graph with no edges on a given vertex type `V`. -/
+def empty_graph (V : Type u) : simple_graph V :=
+{ adj := λ i j, false }
 
 namespace simple_graph
 
@@ -408,12 +416,6 @@ and `max_degree_le_of_forall_degree_le`.
 -/
 def max_degree [decidable_rel G.adj] : ℕ :=
 option.get_or_else (univ.image (λ v, G.degree v)).max 0
-
-/--
-The graph with no edges on a given vertex type.
--/
-def empty_graph (V : Type u) : simple_graph V :=
-{ adj := λ i j, false }
 
 /--
 There exists a vertex of maximal degree. Note the assumption of being nonempty is necessary, as

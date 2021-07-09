@@ -13,11 +13,24 @@ A subgraph of a simple graph consists of subsets of the graph's vertices and edg
 endpoints of each edge are present in the vertex subset.  The edge subset is formalized as a
 sub-relation of the adjacency relation of the simple graph.
 
+## Main definitions
+
+* `subgraph G` is the type of subgraphs of a `G : simple_graph`
+
+* `subgraph.neighbor_set`, `subgraph.incidence_set`, and `subgraph.degree` are like their
+  `simple_graph` counterparts, but they refer to vertices from `G` to avoid subtype coercions.
+
+* `subgraph.coe` is the coercion from a `G' : subgraph G` to a `simple_graph G'.verts`.
+  (This cannot be a `has_coe` instance due to universe variable inference issues.)
+
+* A `bounded_lattice (subgraph G)` instance.
+
+* Graph homomorphisms from a subgraph to a graph (`subgraph.map_top`) and between subgraphs (`subgraph.map`).
+
 ## Todo
 
-* The injective homomorphism from a subgraph of `G` as a simple graph to `G`.
+* Images of graph homomorphisms as subgraphs.
 
-* The complete lattice instance on subgraphs.
 -/
 
 universe u
@@ -269,6 +282,7 @@ lemma degree_le' (G' G'' : subgraph G) (h : G' ≤ G'') (v : V)
   G'.degree v ≤ G''.degree v :=
 set.card_le_of_subset (neighbor_set_subset_of_subgraph h v)
 
+@[simp]
 lemma degree_coe (G' : subgraph G) (v : G'.verts)
   [fintype (G'.coe.neighbor_set v)] [fintype (G'.neighbor_set v)] :
   G'.coe.degree v = G'.degree v :=

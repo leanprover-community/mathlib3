@@ -12,7 +12,7 @@ import measure_theory.pi
 noncomputable theory
 open classical set filter
 open ennreal (of_real)
-open_locale big_operators ennreal
+open_locale big_operators ennreal nnreal
 
 structure stieltjes_function :=
 (to_fun : ℝ → ℝ)
@@ -55,60 +55,6 @@ lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
   f.length s₁ ≤ f.length s₂ :=
 infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_refl _⟩
 
-/-
-lemma f.length_eq_infi_Ioo (s) :
-  f.length s = ⨅a b (h : s ⊆ Ioo a b), of_real (b - a) :=
-begin
-  refine le_antisymm
-    (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
-      ⟨subset.trans h Ioo_subset_Ico_self, le_refl _⟩) _,
-  refine le_infi (λ a, le_infi $ λ b, le_infi $ λ h, _),
-  refine ennreal.le_of_forall_pos_le_add (λ ε ε0 _, _),
-  refine infi_le_of_le (a - ε) (infi_le_of_le b $ infi_le_of_le
-    (subset.trans h $ Ico_subset_Ioo_left $ (sub_lt_self_iff _).2 ε0) _),
-  rw ← sub_add,
-  refine le_trans ennreal.of_real_add_le (add_le_add_left _ _),
-  simp only [ennreal.of_real_coe_nnreal, le_refl]
-end
-
-@[simp] lemma f.length_Ioo (a b : ℝ) :
-  f.length (Ioo a b) = of_real (b - a) :=
-begin
-  rw ← f.length_Ico,
-  refine le_antisymm (f.length_mono Ioo_subset_Ico_self) _,
-  rw f.length_eq_infi_Ioo (Ioo a b),
-  refine (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, _),
-  cases le_or_lt b a with ab ab, {simp [ab]},
-  cases (Ioo_subset_Ioo_iff ab).1 h with h₁ h₂,
-  rw [f.length_Ico],
-  exact ennreal.of_real_le_of_real (sub_le_sub h₂ h₁)
-end
-
-lemma f.length_eq_infi_Icc (s) :
-  f.length s = ⨅a b (h : s ⊆ Icc a b), of_real (b - a) :=
-begin
-  refine le_antisymm _
-    (infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h,
-      ⟨subset.trans h Ico_subset_Icc_self, le_refl _⟩),
-  refine le_infi (λ a, le_infi $ λ b, le_infi $ λ h, _),
-  refine ennreal.le_of_forall_pos_le_add (λ ε ε0 _, _),
-  refine infi_le_of_le a (infi_le_of_le (b + ε) $ infi_le_of_le
-    (subset.trans h $ Icc_subset_Ico_right $ (lt_add_iff_pos_right _).2 ε0) _),
-  rw [← sub_add_eq_add_sub],
-  refine le_trans ennreal.of_real_add_le (add_le_add_left _ _),
-  simp only [ennreal.of_real_coe_nnreal, le_refl]
-end
-
-@[simp] lemma f.length_Icc (a b : ℝ) :
-  f.length (Icc a b) = of_real (b - a) :=
-begin
-  rw ← f.length_Ico,
-  refine le_antisymm _ (f.length_mono Ico_subset_Icc_self),
-  rw f.length_eq_infi_Icc (Icc a b),
-  exact infi_le_of_le a (infi_le_of_le b $ infi_le_of_le (by refl) (by simp [le_refl]))
-end
-
--/
 open measure_theory
 
 /-- The stieltjes outer measure, as an outer measure of ℝ. -/
@@ -118,9 +64,13 @@ outer_measure.of_function f.length f.length_empty
 lemma to_outer_le_length (s : set ℝ) : f.to_outer s ≤ f.length s :=
 outer_measure.of_function_le _
 
-lemma length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
-  (ss : Icc a b ⊆ ⋃i, Ioo (c i) (d i)) :
-  (of_real (f b - f a) : ℝ≥0∞) ≤ ∑' i, of_real (f (d i) - f (c i)) :=
+/-- If a compact interval `[a, b]` is covered by a union of open interval `(c i, d i)`, then
+`f b - f a ≤ ∑ f (d i) - f (c i)`. This is an auxiliary technical statement to prove the same
+statement for half-open intervals, the point of the current statement being that one can use
+compactness to reduce it to a finite sum, and argue by induction on the size of the covering set. -/
+lemma length_subadditive_Icc_Ioo {a b : ℝ} {c d : ℕ → ℝ}
+  (ss : Icc a b ⊆ ⋃ i, Ioo (c i) (d i)) :
+  of_real (f b - f a) ≤ ∑' i, of_real (f (d i) - f (c i)) :=
 begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),
@@ -154,12 +104,29 @@ end
 @[simp] lemma stieltjes_outer_Icc (a b : ℝ) :
   f.to_outer (Ioc a b) = of_real (f b - f a) :=
 begin
+  /- It suffices to show that, if `(a, b]` is covered by sets `s i`, then `f b - f a` is bounded
+  by `∑ f.length (s i) + ε`. The difficulty is that `f.length` is expressed in terms of half-open
+  intervals, while we would like to have a compact interval covered by open intervals to use
+  compactness and finite sums, as provided by `length_subadditive_Icc_Ioo`. The trick is to use the
+  right-continuity of `f`. If `a'` is close enough to `a` on its right, then `[a', b]` is still
+  covered by the sets `s i` and moreover `f b - f a'` is very close to `f b - f a` (up to `ε/2`).
+  Also, by definition one can cover `s i` by a half-closed interval `(p i, q i]` with `f`-length
+  very close to  that of `s i` (within a suitably small `ε' i`, say). If one moves `q i` very
+  slightly to the right, then the `f`-length will change very little by right continuity, and we
+  will get an open interval `(p i, q' i)` covering `s i` with `f (q' i) - f (p i)` within `ε' i`
+  of the `f`-length of `s i`. -/
   refine le_antisymm (by { rw ← f.length_Ioc, apply to_outer_le_length })
-    (le_binfi $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
+    (le_binfi $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε εpos h, _),
+  let δ := ε/2,
+  have δpos : 0 < δ := nnreal.half_pos εpos,
   rcases ennreal.exists_pos_sum_of_encodable
-    (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
-  refine le_trans _ (add_le_add_left (le_of_lt hε) _),
-  rw ← ennreal.tsum_add,
+    (ennreal.zero_lt_coe_iff.2 δpos) ℕ with ⟨ε', ε'0, hε⟩,
+  obtain ⟨a', ha', aa'⟩ : ∃ a', f a' - f a < δ ∧ a < a',
+  { have A : continuous_within_at (λ r, f r - f a) (Ioi a) a,
+    { refine continuous_within_at.sub _ continuous_within_at_const,
+      exact (f.right_continuous a).mono Ioi_subset_Ici_self },
+    have B : f a - f a < δ, by rwa [sub_self],
+    exact (((tendsto_order.1 A).2 _ B).and self_mem_nhds_within).exists },
   have : ∀ i, ∃ p:ℝ×ℝ, s i ⊆ Ioo p.1 p.2 ∧
                         (of_real (f p.2 - f p.1) : ℝ≥0∞) < f.length (s i) + ε' i,
   { intro i,
@@ -169,41 +136,31 @@ begin
     simp only [infi_lt_iff, exists_prop] at this,
     rcases this with ⟨p, q', spq, hq'⟩,
     have : continuous_within_at (λ r, of_real (f r - f p)) (Ioi q') q',
-    { apply continuous_at.comp_continuous_within_at,
-
-    },
+    { apply ennreal.continuous_of_real.continuous_at.comp_continuous_within_at,
+      refine continuous_within_at.sub _ continuous_within_at_const,
+      exact (f.right_continuous q').mono Ioi_subset_Ici_self },
     rcases (((tendsto_order.1 this).2 _ hq').and self_mem_nhds_within).exists with ⟨q, hq, q'q⟩,
     exact ⟨⟨p, q⟩, spq.trans (Ioc_subset_Ioo_right q'q), hq⟩ },
   choose g hg using this,
+  have I_subset : Icc a' b ⊆ ⋃ i, Ioo (g i).1 (g i).2 := calc
+    Icc a' b ⊆ Ioc a b : λ x hx, ⟨aa'.trans_le hx.1, hx.2⟩
+    ... ⊆ ⋃ i, s i : hs
+    ... ⊆ ⋃ i, Ioo (g i).1 (g i).2 : Union_subset_Union (λ i, (hg i).1),
+  calc of_real (f b - f a)
+      = of_real ((f b - f a') + (f a' - f a)) : by rw sub_add_sub_cancel
+  ... ≤ of_real (f b - f a') + of_real (f a' - f a) : ennreal.of_real_add_le
+  ... ≤ (∑' i, of_real (f (g i).2 - f (g i).1)) + of_real δ :
+    add_le_add (f.length_subadditive_Icc_Ioo I_subset) (ennreal.of_real_le_of_real ha'.le)
+  ... ≤ (∑' i, (f.length (s i) + ε' i)) + δ :
+    add_le_add (ennreal.tsum_le_tsum (λ i, (hg i).2.le))
+      (by simp only [ennreal.of_real_coe_nnreal, le_rfl])
+  ... = (∑' i, f.length (s i)) + (∑' i, ε' i) + δ : by rw [ennreal.tsum_add]
+  ... ≤ (∑' i, f.length (s i)) + δ + δ : add_le_add (add_le_add le_rfl hε.le) le_rfl
+  ... = ∑' (i : ℕ), f.length (s i) + ε : by simp [add_assoc, ennreal.add_halves]
 end
-
-#exit
-
-  refine le_trans _ (ennreal.tsum_le_tsum $ λ i, le_of_lt (hg i).2),
-  exact f.length_subadditive (subset.trans hf $
-    Union_subset_Union $ λ i, (hg i).1)
-end
-
-#exit
-
-@[simp] lemma stieltjes_outer_singleton (a : ℝ) : stieltjes_outer {a} = 0 :=
-by simpa using stieltjes_outer_Icc a a
-
-@[simp] lemma stieltjes_outer_Ico (a b : ℝ) :
-  stieltjes_outer (Ico a b) = of_real (b - a) :=
-by rw [← Icc_diff_right, stieltjes_outer.diff_null _ (stieltjes_outer_singleton _),
-  stieltjes_outer_Icc]
-
-@[simp] lemma stieltjes_outer_Ioo (a b : ℝ) :
-  stieltjes_outer (Ioo a b) = of_real (b - a) :=
-by rw [← Ico_diff_left, stieltjes_outer.diff_null _ (stieltjes_outer_singleton _), stieltjes_outer_Ico]
-
-@[simp] lemma stieltjes_outer_Ioc (a b : ℝ) :
-  stieltjes_outer (Ioc a b) = of_real (b - a) :=
-by rw [← Icc_diff_left, stieltjes_outer.diff_null _ (stieltjes_outer_singleton _), stieltjes_outer_Icc]
 
 lemma is_stieltjes_measurable_Ioi {c : ℝ} :
-  f.stieltjes_outer.caratheodory.measurable_set' (Ioi c) :=
+  f.to_outer.caratheodory.measurable_set' (Ioi c) :=
 begin
   apply outer_measure.of_function_caratheodory (λ t, _),
   refine le_infi (λ a, le_infi (λ b, le_infi (λ h, _))),
@@ -222,21 +179,19 @@ begin
       sup_eq_max, le_refl, Ioc_eq_empty, add_zero, max_eq_left, f.length_empty] }
 end
 
-#exit
-
-theorem stieltjes_outer_trim : stieltjes_outer.trim = stieltjes_outer :=
+theorem to_outer_trim : f.to_outer.trim = f.to_outer :=
 begin
   refine le_antisymm (λ s, _) (outer_measure.le_trim _),
   rw outer_measure.trim_eq_infi,
-  refine le_infi (λ f, le_infi $ λ hf,
+  refine le_infi (λ g, le_infi $ λ hg,
     ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
-    ∀ i, ∃ s, f i ⊆ s ∧ measurable_set s ∧
-      stieltjes_outer s ≤ f.length (f i) + of_real (ε' i),
+    ∀ i, ∃ s, g i ⊆ s ∧ measurable_set s ∧
+      f.to_outer s ≤ f.length (g i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
@@ -252,11 +207,11 @@ begin
   exact le_trans (stieltjes_outer.Union _) (ennreal.tsum_le_tsum $ λ i, (hg i).2.2)
 end
 
-lemma borel_le_stieltjes_measurable : borel ℝ ≤ stieltjes_outer.caratheodory :=
+lemma borel_le_stieltjes_measurable : borel ℝ ≤ f.to_outer.caratheodory :=
 begin
   rw real.borel_eq_generate_from_Iio_rat,
   refine measurable_space.generate_from_le _,
-  simp [is_stieltjes_measurable_Iio] { contextual := tt }
+  simp [is_stieltjes_measurable_Ioi] { contextual := tt }
 end
 
 /-!

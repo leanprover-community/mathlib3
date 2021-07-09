@@ -2460,7 +2460,7 @@ end
 lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
   (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
 begin
-  by_cases h : nonempty β,
+  casesI (is_empty_or_nonempty β).symm,
   { refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
               (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
     intros t ht,
@@ -2468,7 +2468,8 @@ begin
     refine measurable_set.union _ ((measurable_const ht).diff hs),
     rw [← subtype.image_preimage_coe, ← preimage_comp],
     exact hs.subtype_image (hf ht) },
-  { exact (measurable_of_not_nonempty (mt (nonempty.map f) h) f).ae_measurable }
+  { haveI : is_empty α := ⟨is_empty_elim ∘ f⟩,
+    exact (measurable_of_is_empty f).ae_measurable, }
 end
 
 end

@@ -53,7 +53,6 @@ agree with left multiplication by the image of the structure morphism.
 
 Given an `algebra R A` instance, the structure morphism `R →+* A` is denoted `algebra_map R A`.
 -/
-@[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
   extends has_scalar R A, R →+* A :=
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
@@ -225,6 +224,7 @@ protected def linear_map : R →ₗ[R] A :=
 lemma linear_map_apply (r : R) : algebra.linear_map R A r = algebra_map R A r := rfl
 
 instance id : algebra R R := (ring_hom.id R).to_algebra
+instance : inhabited (algebra R R) := ⟨algebra.id R⟩
 
 variables {R A}
 
@@ -415,7 +415,6 @@ instance matrix_algebra (n : Type u) (R : Type v)
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
-@[nolint has_inhabited_instance]
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] extends ring_hom A B :=
 (commutes' : ∀ r : R, to_fun (algebra_map R A r) = algebra_map R B r)
@@ -544,6 +543,8 @@ variables (R A)
 protected def id : A →ₐ[R] A :=
 { commutes' := λ _, rfl,
   ..ring_hom.id A  }
+
+instance : inhabited (A →ₐ[R] A) := ⟨alg_hom.id⟩
 
 @[simp] lemma coe_id : ⇑(alg_hom.id R A) = id := rfl
 

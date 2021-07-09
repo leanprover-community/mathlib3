@@ -177,8 +177,12 @@ begin
   refine finset.sum_congr rfl (λ x hx, rfl),
 end
 
+/--
+Given an indexed collection of submodules of `M` and a proof that they form an internal
+direct sum, build an linear equivlance `(⨁ i, A i) ≃ₗ[R] M`.
+-/
 noncomputable def submodule_is_internal.to_equiv
-  {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
+  {R : Type u} {M : Type w} [ring R] [add_comm_group M] [module R M]
   (A : ι → submodule R M) (hA : submodule_is_internal A) :
   (⨁ i, A i) ≃ₗ[R] M :=
 begin
@@ -194,8 +198,8 @@ end
   submodule_is_internal.to_equiv A hA x = to_module R ι M (λ i, (A i).subtype) x :=
 rfl
 
-lemma equiv_of_is_internal_symm_single_apply
-  {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
+lemma submodule_is_internal.to_equiv_symm_single_apply
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
   (A : ι → submodule R M) [Π i (x : A i), decidable (x ≠ 0)]
   (hA : submodule_is_internal A) (i : ι) (x : M) (hx : x ∈ A i) :
   (submodule_is_internal.to_equiv A hA).symm x = dfinsupp.single i ⟨x, hx⟩ :=

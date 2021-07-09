@@ -35,6 +35,11 @@ finitely many vertices.
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.
 
+## Notations
+
+* `→g`, `↪g`, and `≃g` for graph homomorphisms, graph embeddings, and graph isomorphisms,
+  respectively.
+
 ## Implementation notes
 
 * A locally finite graph is one with instances `Π v, fintype (G.neighbor_set v)`.

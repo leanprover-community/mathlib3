@@ -51,7 +51,7 @@ in order to start learning what the combinatorics hierarchy should
 look like.
 -/
 open finset
-universes u v
+universes u v w
 
 /--
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
@@ -97,7 +97,8 @@ instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
 λ v w, not.decidable
 
 namespace simple_graph
-variables {V: Type u} {W: Type v} (G : simple_graph V) (G' : simple_graph W)
+
+variables {V: Type u} {W: Type v} {X: Type w} (G : simple_graph V) (G' : simple_graph W)
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
@@ -409,6 +410,12 @@ def max_degree [decidable_rel G.adj] : ℕ :=
 option.get_or_else (univ.image (λ v, G.degree v)).max 0
 
 /--
+The graph with no edges on a given vertex type.
+-/
+def empty_graph (V : Type u) : simple_graph V :=
+{ adj := λ i j, false }
+
+/--
 There exists a vertex of maximal degree. Note the assumption of being nonempty is necessary, as
 the lemma implies there exists a vertex.
 -/
@@ -607,6 +614,11 @@ Any graph has a homomorphism with itself.
 -/
 def hom.id : G →g G := rel_hom.id _
 
+variable (f : G →g G')
+
+lemma map_adj {v w : V} (G : simple_graph V) (G' : simple_graph W) (f : G →g G'): G.adj v w → G'.adj (f v) (f w) :=
+by apply f.map_rel'
+
 /--
 Define the map from the edges of G to the edges of G' implied by a homomorphism.
 -/
@@ -620,6 +632,32 @@ begin
   exact f.map_rel' h,
 end⟩
 
+def map_neighbor_set (v : V) (f : G →g G') : G.neighbor_set v → G'.neighbor_set (f v) :=
+λ w, ⟨f w.val, begin
+  rcases w with ⟨w, h⟩,
+  rw mem_neighbor_set at h ⊢,
+  exact map_adj G G' f h,
+end⟩
+
+variable {G'' : simple_graph X}
+
+/--
+Composition of graph homomorphisms
+-/
+def comp (f' : G' →g G'') (f : G →g G') : G →g G'' :=
+f'.comp f
+
+@[simp] lemma comp_app (f' : G' →g G'') (f : G →g G') (v : V) : (f'.comp f) v = f' (f v) := rfl
+
+@[simp] lemma coe_comp (f' : G' →g G'') (f : G →g G') : ⇑(f'.comp f) = f' ∘ f := rfl
+
+class mono (f : G →g G') : Prop :=
+(injective [] : function.injective f)
+
+-- lemma mono_iff_injective (f : G →g G') : mono f ↔ function.injective f :=
+-- ⟨@mono.injective _ _ G G' f, mono.mk⟩
+
 end maps
+
 
 end simple_graph

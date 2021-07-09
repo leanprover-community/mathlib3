@@ -364,3 +364,9 @@ rfl
 lemma units.coe_op_equiv_symm {R} [monoid R] (u : (units R)ᵒᵖ) :
   (units.op_equiv.symm u : Rᵒᵖ) = op (u.unop : R) :=
 rfl
+
+@[simps]
+def monoid_hom.op {α β} [monoid α] [monoid β] (f : α →* β) : αᵒᵖ →* βᵒᵖ :=
+{ to_fun := opposite.op ∘ f ∘ opposite.unop,
+  map_one' := by simp only [opposite.unop_one, function.comp_app, opposite.op_one, monoid_hom.map_one],
+  map_mul' := λ x y, by simp only [monoid_hom.map_mul, function.comp_app, opposite.op_mul, opposite.unop_mul]}

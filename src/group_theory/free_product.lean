@@ -83,24 +83,39 @@ def of {i : ι} : M i →* free_product M :=
   map_one' := (con.eq _).mpr (con_gen.rel.of _ _ (free_product.rel.of_one i)),
   map_mul' := λ x y, eq.symm $ (con.eq _).mpr (con_gen.rel.of _ _ (free_product.rel.of_mul x y)) }
 
+lemma of_apply {i} (m : M i) : of m = con.mk' _ (free_monoid.of $ sigma.mk i m) := rfl
+
+variables {N : Type*} [monoid N]
+
+@[ext] lemma ext_hom (f g : free_product M →* N) (h : ∀ i, f.comp (of : M i →* _) = g.comp of) :
+  f = g :=
+(monoid_hom.cancel_right con.mk'_surjective).mp $ free_monoid.hom_eq $ λ ⟨i, x⟩,
+  by rw [monoid_hom.comp_apply, monoid_hom.comp_apply, ←of_apply,
+    ←monoid_hom.comp_apply, ←monoid_hom.comp_apply, h]
+
 /-- A map out of the free product corresponds to a family of maps out of the summands. This is the
 universal property of the free product, charaterizing it as a categorical coproduct. -/
-def lift {N} [monoid N] : (Π i, M i →* N) ≃ (free_product M →* N) :=
-{ to_fun := λ fi, con.lift _ (free_monoid.lift $ λ p : Σ i, M i, fi p.fst p.snd)
+@[simps symm_apply]
+def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
+{ to_fun := λ fi, con.lift _ (free_monoid.lift $ λ p : Σ i, M i, fi p.fst p.snd) $ con.con_gen_le
     begin
-      refine con.con_gen_le _,
-      rintros p q (i | ⟨i, x, y⟩),
-      { simp only [free_monoid.lift_apply, con.ker_rel, con.rel_eq_coe, mul_one, list.prod_cons,
-          list.prod_nil, list.map, monoid_hom.map_one], },
-      { simp only [free_monoid.of, free_monoid.lift_apply, con.ker_rel, con.rel_eq_coe, mul_one,
-          list.append, monoid_hom.map_mul, list.prod_cons, list.prod_nil, list.map], }
+      simp_rw [con.rel_eq_coe, con.ker_rel],
+      rintros _ _ (i | ⟨i, x, y⟩),
+      { change free_monoid.lift _ (free_monoid.of _) = free_monoid.lift _ 1,
+        simp only [monoid_hom.map_one, free_monoid.lift_eval_of], },
+      { change free_monoid.lift _ (free_monoid.of _ * free_monoid.of _) =
+          free_monoid.lift _ (free_monoid.of _),
+        simp only [monoid_hom.map_mul, free_monoid.lift_eval_of], }
     end,
   inv_fun := λ f i, f.comp of,
-  left_inv := λ fi, by { ext i x, simp only [of, free_monoid.lift_eval_of, function.comp_app,
-    monoid_hom.coe_mk, monoid_hom.coe_comp, con.lift_mk'], },
-  right_inv := λ f, (monoid_hom.cancel_right con.mk'_surjective).mp $ free_monoid.hom_eq $ λ ⟨i, x⟩,
-    by simp only [of, free_monoid.lift_eval_of, con.lift_comp_mk', monoid_hom.coe_mk,
-      monoid_hom.coe_comp], }
+  left_inv := by { intro fi, ext i x,
+    rw [monoid_hom.comp_apply, of_apply, con.lift_mk', free_monoid.lift_eval_of], },
+  right_inv := by { intro f, ext i x,
+    simp only [monoid_hom.comp_apply, of_apply, con.lift_mk', free_monoid.lift_eval_of], } }
+
+@[simp] lemma lift_of {N} [monoid N] (fi : Π i, M i →* N) {i} (m : M i) :
+  lift fi (of m) = fi i m :=
+by conv_rhs { rw [←lift.symm_apply_apply fi, lift_symm_apply, monoid_hom.comp_apply] }
 
 lemma induction_on {C : free_product M → Prop}
   (m : free_product M)
@@ -116,14 +131,30 @@ begin
   { rintros ⟨i, x⟩ m'' ih, rw con.coe_mul, exact h_mul (h_of x) ih },
 end
 
-noncomputable instance (G : ι → Type*) [∀ i, group (G i)] : group (free_product G) :=
-group_of_is_unit $ λ m,
-begin
-  refine m.induction_on is_unit_one _ (λ _ _ , is_unit.mul),
-  intros i m,
-  refine ⟨⟨of m, of m⁻¹, _, _⟩, rfl⟩;
-  simp only [←of.map_mul, mul_right_inv, mul_left_inv, monoid_hom.map_one],
-end
+section group
+
+variables (G : ι → Type*) [∀ i, group (G i)]
+
+instance : has_inv (free_product G) :=
+{ inv := opposite.unop ∘ lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) }
+
+lemma has_inv_def (x : free_product G) : x⁻¹ = opposite.unop
+  (lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) x) := rfl
+
+instance : group (free_product G) :=
+{ mul_left_inv := begin
+    intro m,
+    rw has_inv_def,
+    apply m.induction_on,
+    { rw [monoid_hom.map_one, opposite.unop_one, one_mul], },
+    { intros i m, change of m⁻¹ * of m = 1, rw [←of.map_mul, mul_left_inv, of.map_one], },
+    { intros x y hx hy,
+      rw [monoid_hom.map_mul, opposite.unop_mul, mul_assoc, ←mul_assoc _ x y, hx, one_mul, hy], },
+  end,
+  ..free_product.has_inv G,
+  ..free_product.monoid G }
+
+end group
 
 namespace word
 

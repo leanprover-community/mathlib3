@@ -348,6 +348,9 @@ congr_arg tsum (funext hfg)
 lemma tsum_fintype [fintype β] (f : β → α) : ∑'b, f b = ∑ b, f b :=
 (has_sum_fintype f).tsum_eq
 
+lemma tsum_bool (f : bool → α) : ∑' i : bool, f i = f false + f true :=
+by { rw [tsum_fintype, finset.sum_eq_add]; simp }
+
 @[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
   ∑' x : {x // x ∈ s}, f x = ∑ x in s, f x :=
 (s.has_sum f).tsum_eq

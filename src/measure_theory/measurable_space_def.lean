@@ -134,6 +134,10 @@ lemma measurable_set.Inter [encodable β] {f : β → set α} (h : ∀ b, measur
 measurable_set.compl_iff.1 $
 by { rw compl_Inter, exact measurable_set.Union (λ b, (h b).compl) }
 
+lemma measurable_set.cond {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
+  {i : bool} : measurable_set (cond i A B) :=
+by { cases i, exacts [hB, hA] }
+
 section fintype
 
 local attribute [instance] fintype.encodable

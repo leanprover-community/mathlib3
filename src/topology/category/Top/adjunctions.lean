@@ -5,7 +5,6 @@ Authors: Patrick Massot, Mario Carneiro
 -/
 import topology.category.Top.basic
 import category_theory.adjunction.basic
-import category_theory.concrete_category.representable
 
 /-!
 # Adjunctions regarding the category of topological spaces
@@ -24,6 +23,7 @@ namespace Top
 
 /-- Equipping a type with the discrete topology is left adjoint to the forgetful functor
 `Top ⥤ Type`. -/
+@[simps]
 def adj₁ : discrete ⊣ forget Top.{u} :=
 adjunction.mk_of_unit_counit
 { unit := { app := λ X, id },
@@ -31,6 +31,7 @@ adjunction.mk_of_unit_counit
 
 /-- Equipping a type with the trivial topology is right adjoint to the forgetful functor
 `Top ⥤ Type`. -/
+@[simps]
 def adj₂ : forget Top.{u} ⊣ trivial :=
 adjunction.mk_of_unit_counit
 { unit := { app := λ X, ⟨id, continuous_top⟩ },

@@ -1532,8 +1532,8 @@ hn.trans_le (le_exp_bound n)
 open_locale classical
 variables {V : Type u} [fintype V] {G : simple_graph V} {P : finpartition V} {ε : ℝ}
 
-local notation `m` := card V/exp_bound P.size
-local notation `a` := card V/P.size - m * 4^P.size
+local notation `m` := (card V/exp_bound P.size : ℕ)
+local notation `a` := (card V/P.size - m * 4^P.size : ℕ)
 
 private lemma card_aux₀ :
   a + 1 ≤ 4^P.size :=
@@ -1598,7 +1598,7 @@ end
 lemma le_sum_card_subset_chunk_increment_parts {hP : P.is_equipartition} {U : finset V}
   {hU : U ∈ P.parts} {A : finset (finset V)} (hA : A ⊆ (hP.chunk_increment G ε hU).parts)
   {u : finset V} (hu : u ∈ A) :
-  (A.card : ℝ) * m/(m + 1) * u.card ≤ ∑ W in A, W.card :=
+  (A.card : ℝ) * u.card ≤ (∑ W in A, W.card)/(m/(m + 1)) :=
 begin
   have m_le_card : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts → (m : ℝ) ≤ W.card := sorry,
   have card_le_m_add_one : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts →
@@ -1607,17 +1607,16 @@ begin
     (A.card : ℝ) * m/(m + 1) * u.card
         = A.card * m * (u.card/(m + 1)) : by rw [div_mul_eq_mul_div, mul_div_assoc]
     ... ≤ A.card * m : mul_le_of_le_one_right
-          (mul_nonneg (nat.cast_nonneg _) (div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)))
-          ((div_le_one (by exact add_pos_of_nonneg_of_pos (div_nonneg (nat.cast_nonneg _)
-          (nat.cast_nonneg _)) zero_lt_one)).2 (card_le_m_add_one (hA hu)))
-    ... = ∑ W in A, m : by rw [sum_const, nsmul_eq_mul]
+          (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) ((div_le_one (by exact
+          nat.cast_add_one_pos _)).2 (card_le_m_add_one (hA hu)))
+    ... = ∑ W in A, (m : ℝ) : by rw [sum_const, nsmul_eq_mul]
     ... ≤ ∑ W in A, W.card : sum_le_sum (λ W hW, m_le_card (hA hW)),
 end
 
-lemma sum_card_subset_chunk_increment_parts_le {hP : P.is_equipartition} {U : finset V}
+lemma sum_card_subset_chunk_increment_parts_le {hP : P.is_equipartition} (hm : 0 < m) {U : finset V}
   {hU : U ∈ P.parts} {A : finset (finset V)} (hA : A ⊆ (hP.chunk_increment G ε hU).parts)
-  (hm : 0 < m) {u : finset V} (hu : u ∈ A) :
-  ∑ W in A, (W.card : ℝ) ≤ A.card * (m + 1)/m * u.card :=
+  {u : finset V} (hu : u ∈ A) :
+  (∑ W in A, (W.card : ℝ))/((m + 1)/m) ≤ A.card * u.card :=
 begin
   have m_le_card : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts → (m : ℝ) ≤ W.card := sorry,
   have card_le_m_add_one : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts →
@@ -1626,24 +1625,18 @@ begin
     ∑ W in A, (W.card : ℝ)
         ≤ ∑ W in A, (m + 1) : sum_le_sum (λ W hW, card_le_m_add_one (hA hW))
     ... = A.card * (m + 1) : by rw [sum_const, nsmul_eq_mul]
-    ... ≤ A.card * (m + 1) * (u.card/m) : begin
-      refine le_mul_of_one_le_right (mul_nonneg (nat.cast_nonneg _) sorry) ((one_le_div sorry).2
-        (m_le_card (hA hu))),
-    end
+    ... ≤ A.card * (m + 1) * (u.card/m) : le_mul_of_one_le_right (mul_nonneg (nat.cast_nonneg _)
+          (nat.cast_add_one_pos _).le) ((one_le_div (by exact nat.cast_pos.2 hm)).2
+          (m_le_card (hA hu)))
     ... = A.card * (m + 1)/m * u.card : by rw [div_mul_eq_mul_div, mul_div_assoc],
 end
 
-lemma stuff_le {hP : P.is_equipartition} {U W : finset V} {hU : U ∈ P.parts} {hW : W ∈ P.parts}
-  {A B : finset (finset V)} (hA : A ⊆ (hP.chunk_increment G ε hU).parts)
-  (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
+lemma density_sub_eps_le_sum_density_div_card {hP : P.is_equipartition} (hε : 0 ≤ ε)
+  {U W : finset V} {hU : U ∈ P.parts} {hW : W ∈ P.parts} {A B : finset (finset V)}
+  (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
   G.edge_density (A.bUnion id) (B.bUnion id) - ε^5/50 ≤
   (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) :=
 begin
-  unfold simple_graph.edge_density,
-  unfold pairs_density,
-  rw relation.pairs_count_finpartition hA.finpartition_on hB.finpartition_on,
-  rw [←hA.finpartition_on.sum_card_parts, ←hB.finpartition_on.sum_card_parts],
-  simp_rw [hA.finpartition_on_parts, hB.finpartition_on_parts],
   have le_m : 1 - ε^5/50 ≤ (m/(m + 1))^2,
   {
     sorry
@@ -1652,18 +1645,118 @@ begin
   {
     sorry
   },
-  rw sum_nat_cast,
-  rw su
-  rw ←sum_sub_distrib,
-end
+  calc
+    G.edge_density (A.bUnion id) (B.bUnion id) - ε^5/50
+        ≤ (1 - ε^5/50) * G.edge_density (A.bUnion id) (B.bUnion id)
+        : begin
+            rw [sub_mul, one_mul],
+            exact sub_le_sub_left (mul_le_of_le_one_right (div_nonneg (pow_nonneg hε _)
+              (by norm_num)) (G.edge_density_le_one _ _)) _,
+          end
+    ... ≤ (m/(m + 1))^2 * G.edge_density (A.bUnion id) (B.bUnion id)
+        : mul_le_mul_of_nonneg_right le_m (G.edge_density_nonneg _ _)
+    ... = pairs_count G.adj (A.bUnion id) (B.bUnion id) /
+          ((A.bUnion id).card/(m/(m + 1)) * ((B.bUnion id).card/(m/(m + 1))))
+        : begin
+            unfold simple_graph.edge_density pairs_density,
+            simp only [←div_div_eq_div_mul],
+            rw [div_div_eq_mul_div, div_div_eq_mul_div],
+            ring,
+          end
+    ... = ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/((∑ aa in A, (aa.card : ℝ))/(m/(m + 1))
+          * ((∑ b in B, (b.card : ℝ))/(m/(m + 1))))
+        : begin
+            rw [relation.pairs_count_finpartition hA.finpartition_on hB.finpartition_on,
+              ←hA.finpartition_on.sum_card_parts, ←hB.finpartition_on.sum_card_parts],
+            simp only [sum_nat_cast],
+            rw [sum_div, hA.finpartition_on_parts, hB.finpartition_on_parts],
+          end
+    ... ≤ ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/(A.card * ab.1.card *
+          (B.card * ab.2.card))
+          : begin
+            refine sum_le_sum (λ x hx, div_le_div_of_le_left (nat.cast_nonneg _) _ _);
+            rw mem_product at hx,
+            { norm_cast,
+              refine mul_pos (mul_pos _ _) (mul_pos _ _); rw card_pos,
+              exacts [⟨x.1, hx.1⟩, nonempty_of_mem_parts _ (hA hx.1), ⟨x.2, hx.2⟩,
+                nonempty_of_mem_parts _ (hB hx.2)] },
+            refine mul_le_mul (le_sum_card_subset_chunk_increment_parts hA hx.1)
+              (le_sum_card_subset_chunk_increment_parts hB hx.2) _
+              (div_nonneg _ (div_nonneg _ _));
+            norm_cast; exact nat.zero_le _,
+          end
+    ... = (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card)
+        : begin
+            unfold simple_graph.edge_density pairs_density,
+            rw sum_div,
+            simp_rw div_div_eq_div_mul,
+            refine finset.sum_congr rfl (λ x _, _),
+            rw [mul_comm (B.card : ℝ), ←mul_assoc, ←mul_assoc, mul_comm _ (A.card : ℝ), ←mul_assoc],
+          end,
+end.
 
-lemma le_stuff {hP : P.is_equipartition} {U W : finset V} {hU : U ∈ P.parts} {hW : W ∈ P.parts}
-  {A B : finset (finset V)} (hA : A ⊆ (hP.chunk_increment G ε hU).parts)
-  (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
+lemma sum_density_div_card_le_density_add_eps {hP : P.is_equipartition} (hε : 0 ≤ ε) (hm : 0 < m)
+  {U W : finset V} {hU : U ∈ P.parts} {hW : W ∈ P.parts} {A B : finset (finset V)}
+  (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
   (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) ≤
   G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49 :=
 begin
-
+  have le_m : 1 - ε^5/50 ≤ (m/(m + 1))^2,
+  {
+    sorry
+  },
+  have m_le : ((m + 1)/m : ℝ)^2 ≤ 1 + ε^5/49,
+  {
+    sorry
+  },
+  have m_add_one_div_m_pos : (0 : ℝ) < (m + 1)/m :=
+    div_pos (nat.cast_add_one_pos _) (nat.cast_pos.2 hm),
+  calc
+    (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card)
+        = ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/(A.card * ab.1.card *
+          (B.card * ab.2.card))
+        : begin
+            unfold simple_graph.edge_density pairs_density,
+            rw sum_div,
+            simp_rw div_div_eq_div_mul,
+            refine finset.sum_congr rfl (λ x _, _),
+            rw [mul_comm (B.card : ℝ), ←mul_assoc, ←mul_assoc, mul_comm _ (A.card : ℝ), ←mul_assoc],
+          end
+    ... ≤ ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/((∑ aa in A, (aa.card : ℝ))/((m + 1)/m)
+          * ((∑ b in B, (b.card : ℝ))/((m + 1)/m)))
+        : begin
+            refine sum_le_sum (λ x hx, div_le_div_of_le_left (nat.cast_nonneg _) _ _);
+            rw mem_product at hx,
+            { refine mul_pos (div_pos sorry m_add_one_div_m_pos)
+              (div_pos sorry m_add_one_div_m_pos),
+              },
+            refine mul_le_mul (sum_card_subset_chunk_increment_parts_le hm hA hx.1)
+              (sum_card_subset_chunk_increment_parts_le hm hB hx.2)
+              (div_nonneg _ (div_nonneg _ _)) _; norm_cast; exact nat.zero_le _,
+          end
+    ... = pairs_count G.adj (A.bUnion id) (B.bUnion id) /
+          ((A.bUnion id).card/((m + 1)/m) * ((B.bUnion id).card/((m + 1)/m)))
+        : begin
+            rw [relation.pairs_count_finpartition hA.finpartition_on hB.finpartition_on,
+              ←hA.finpartition_on.sum_card_parts, ←hB.finpartition_on.sum_card_parts],
+            simp only [sum_nat_cast],
+            rw [eq_comm, sum_div, hA.finpartition_on_parts, hB.finpartition_on_parts],
+          end
+    ... = ((m + 1)/m)^2 * G.edge_density (A.bUnion id) (B.bUnion id)
+        : begin
+            unfold simple_graph.edge_density pairs_density,
+            simp only [←div_div_eq_div_mul],
+            rw [div_div_eq_mul_div, div_div_eq_mul_div],
+            ring,
+          end
+    ... ≤ (1 + ε^5/49) * G.edge_density (A.bUnion id) (B.bUnion id)
+          : mul_le_mul_of_nonneg_right m_le (G.edge_density_nonneg _ _)
+    ... ≤ G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49
+        : begin
+            rw [add_mul, one_mul],
+            exact add_le_add_left (mul_le_of_le_one_right (div_nonneg (pow_nonneg hε _)
+              (by norm_num)) (G.edge_density_le_one _ _)) _,
+          end,
 end
 
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then

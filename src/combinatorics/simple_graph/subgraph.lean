@@ -25,7 +25,8 @@ sub-relation of the adjacency relation of the simple graph.
 
 * A `bounded_lattice (subgraph G)` instance.
 
-* Graph homomorphisms from a subgraph to a graph (`subgraph.map_top`) and between subgraphs (`subgraph.map`).
+* Graph homomorphisms from a subgraph to a graph (`subgraph.map_top`) and between subgraphs
+  (`subgraph.map`).
 
 ## Todo
 
@@ -94,8 +95,8 @@ lemma edge_set_subset (G' : subgraph G) : G'.edge_set ⊆ G.edge_set :=
 @[simp]
 lemma mem_edge_set {G' : subgraph G} {v w : V} : ⟦(v, w)⟧ ∈ G'.edge_set ↔ G'.adj v w := iff.rfl
 
-lemma mem_verts_if_mem_edge {G' : subgraph G} {e : sym2 V} {v : V} (he : e ∈ G'.edge_set) (hv : v ∈ e) :
-  v ∈ G'.verts :=
+lemma mem_verts_if_mem_edge {G' : subgraph G} {e : sym2 V} {v : V}
+  (he : e ∈ G'.edge_set) (hv : v ∈ e) : v ∈ G'.verts :=
 begin
   refine quotient.ind (λ e he hv, _) e he hv,
   cases e with v w,
@@ -221,8 +222,8 @@ def bot_equiv : (⊥ : subgraph G).coe ≃g empty_graph empty :=
   right_inv := by tidy,
   map_rel_iff' := by tidy }
 
-/-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of the
-subgraphs as graphs. -/
+/-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
+the subgraphs as graphs. -/
 def map {x y : subgraph G} (h : x ≤ y) : x.coe →g y.coe :=
 { to_fun := λ v, ⟨↑v, and.left h v.property⟩,
   map_rel' := λ v w hvw, h.2 hvw }

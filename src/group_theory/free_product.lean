@@ -87,6 +87,7 @@ lemma of_apply {i} (m : M i) : of m = con.mk' _ (free_monoid.of $ sigma.mk i m) 
 
 variables {N : Type*} [monoid N]
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma ext_hom (f g : free_product M →* N) (h : ∀ i, f.comp (of : M i →* _) = g.comp of) :
   f = g :=
 (monoid_hom.cancel_right con.mk'_surjective).mp $ free_monoid.hom_eq $ λ ⟨i, x⟩,
@@ -268,3 +269,4 @@ def equiv : free_product M ≃ word M :=
 end word
 
 end free_product
+#lint

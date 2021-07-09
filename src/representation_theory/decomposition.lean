@@ -231,7 +231,8 @@ end
   equiv_of_is_internal p hp x = direct_sum.to_module R ι M (λ i, (p i).subtype) x :=
 rfl
 
-lemma equiv_of_is_internal_symm_single_apply (p : ι → submodule R M) (hp : direct_sum.submodule_is_internal p)
+lemma equiv_of_is_internal_symm_single_apply
+  (p : ι → submodule R M) (hp : direct_sum.submodule_is_internal p)
   (i : ι) (x : M) (hx : x ∈ p i) : (equiv_of_is_internal p hp).symm x = single i ⟨x, hx⟩ :=
 begin
   apply_fun equiv_of_is_internal p hp using linear_equiv.injective _,

@@ -831,7 +831,7 @@ nat_iff.1 $ (encode_iff.2 this).of_eq $ λ n, begin
   suffices : ∀ (o : option (list ℕ)) p (_ : encode o = encode p),
     encode (option.map (list.cons (encode a)) o) =
     encode (option.map (list.cons a) p),
-  from this _ _ (IH _ (nat.unpair_le_right n)),
+  from this _ _ (IH _ (nat.unpair_right_le n)),
   intros o p IH,
   cases o; cases p; injection IH with h,
   exact congr_arg (λ k, (nat.mkpair (encode a) k).succ.succ) h

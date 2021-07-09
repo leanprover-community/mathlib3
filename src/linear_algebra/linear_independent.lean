@@ -447,6 +447,38 @@ theorem linear_independent.image {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
 by convert linear_independent.image_of_comp s f id hs
 
+lemma linear_independent.group_smul
+  {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : ι → M} (hv : linear_independent R v)
+  (w : ι → G) : linear_independent R (w • v) :=
+begin
+  rw linear_independent_iff'' at hv ⊢,
+  intros s g hgs hsum i,
+  refine (smul_eq_zero_iff_eq (w i)).1 _,
+  refine hv s (λ i, w i • g i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ smul_zero _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros, erw [pi.smul_apply, smul_assoc, smul_comm] },
+end
+
+-- This lemma cannot be proved with `linear_independent.group_smul` since the action of
+-- `units R` on `R` is not commutative.
+lemma linear_independent.units_smul {v : ι → M} (hv : linear_independent R v)
+  (w : ι → units R) : linear_independent R (w • v) :=
+begin
+  rw linear_independent_iff'' at hv ⊢,
+  intros s g hgs hsum i,
+  rw ← (w i).mul_left_eq_zero,
+  refine hv s (λ i, g i • w i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ zero_smul _ _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros,
+    erw [pi.smul_apply, smul_assoc],
+    refl }
+end
+
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 

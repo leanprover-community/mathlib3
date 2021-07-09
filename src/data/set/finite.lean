@@ -273,11 +273,12 @@ instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred 
   fintype ({a ∈ s | p a} : set α) :=
 fintype.of_finset (s.to_finset.filter p) $ by simp
 
-instance fintype_inter (s t : set α) [fintype s] [decidable_pred t] : fintype (s ∩ t : set α) :=
+instance fintype_inter (s t : set α) [fintype s] [decidable_pred (∈ t)] : fintype (s ∩ t : set α) :=
 set.fintype_sep s t
 
 /-- A `fintype` structure on a set defines a `fintype` structure on its subset. -/
-def fintype_subset (s : set α) {t : set α} [fintype s] [decidable_pred t] (h : t ⊆ s) : fintype t :=
+def fintype_subset (s : set α) {t : set α} [fintype s] [decidable_pred (∈ t)] (h : t ⊆ s) :
+  fintype t :=
 by rw ← inter_eq_self_of_subset_right h; apply_instance
 
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t

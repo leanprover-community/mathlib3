@@ -114,10 +114,14 @@ lemma ext_iff {φ ψ : mv_power_series σ R} :
   φ = ψ ↔ (∀ (n : σ →₀ ℕ), coeff R n φ = coeff R n ψ) :=
 function.funext_iff
 
-lemma coeff_monomial (m n : σ →₀ ℕ) (a : R) :
+lemma monomial_def [decidable_eq σ] (n : σ →₀ ℕ) :
+  monomial R n = linear_map.std_basis R _ n :=
+by convert rfl -- unify the `decidable` arguments
+
+lemma coeff_monomial [decidable_eq σ] (m n : σ →₀ ℕ) (a : R) :
   coeff R m (monomial R n a) = if m = n then a else 0 :=
-by rw [coeff, monomial, linear_map.proj_apply, linear_map.std_basis_apply, function.update_apply,
-  pi.zero_apply]
+by rw [coeff, monomial_def, linear_map.proj_apply, linear_map.std_basis_apply,
+  function.update_apply, pi.zero_apply]
 
 @[simp] lemma coeff_monomial_same (n : σ →₀ ℕ) (a : R) :
   coeff R n (monomial R n a) = a :=
@@ -141,7 +145,7 @@ variables (m n : σ →₀ ℕ) (φ ψ : mv_power_series σ R)
 
 instance : has_one (mv_power_series σ R) := ⟨monomial R (0 : σ →₀ ℕ) 1⟩
 
-lemma coeff_one :
+lemma coeff_one [decidable_eq σ] :
   coeff R n (1 : mv_power_series σ R) = if n = 0 then 1 else 0 :=
 coeff_monomial _ _ _
 
@@ -287,7 +291,7 @@ variables {σ} {R}
 
 lemma monomial_zero_eq_C_apply (a : R) : monomial R (0 : σ →₀ ℕ) a = C σ R a := rfl
 
-lemma coeff_C (n : σ →₀ ℕ) (a : R) :
+lemma coeff_C [decidable_eq σ] (n : σ →₀ ℕ) (a : R) :
   coeff R n (C σ R a) = if n = 0 then a else 0 :=
 coeff_monomial _ _ _
 
@@ -297,11 +301,11 @@ coeff_monomial_same 0 a
 /-- The variables of the multivariate formal power series ring.-/
 def X (s : σ) : mv_power_series σ R := monomial R (single s 1) 1
 
-lemma coeff_X (n : σ →₀ ℕ) (s : σ) :
+lemma coeff_X [decidable_eq σ] (n : σ →₀ ℕ) (s : σ) :
   coeff R n (X s : mv_power_series σ R) = if n = (single s 1) then 1 else 0 :=
 coeff_monomial _ _ _
 
-lemma coeff_index_single_X (s t : σ) :
+lemma coeff_index_single_X [decidable_eq σ] (s t : σ) :
   coeff R (single t 1) (X s : mv_power_series σ R) = if t = s then 1 else 0 :=
 by { simp only [coeff_X, single_left_inj one_ne_zero], split_ifs; refl }
 
@@ -322,7 +326,7 @@ begin
   { rw [pow_succ', ih, nat.succ_eq_add_one, finsupp.single_add, X, monomial_mul_monomial, one_mul] }
 end
 
-lemma coeff_X_pow (m : σ →₀ ℕ) (s : σ) (n : ℕ) :
+lemma coeff_X_pow [decidable_eq σ] (m : σ →₀ ℕ) (s : σ) (n : ℕ) :
   coeff R m ((X s : mv_power_series σ R)^n) = if m = single s n then 1 else 0 :=
 by rw [X_pow_eq s n, coeff_monomial]
 
@@ -501,9 +505,9 @@ mv_polynomial.ext _ _ $ λ m,
 begin
   rw [coeff_trunc, coeff_one],
   split_ifs with H H' H',
-  { subst m, erw mv_polynomial.coeff_C 0, simp },
-  { symmetry, erw mv_polynomial.coeff_monomial, convert if_neg (ne.elim (ne.symm H')), },
-  { symmetry, erw mv_polynomial.coeff_monomial, convert if_neg _,
+  { subst m, simp },
+  { symmetry, rw mv_polynomial.coeff_one, exact if_neg (ne.symm H'), },
+  { symmetry, rw mv_polynomial.coeff_one, refine if_neg _,
     intro H', apply H, subst m, intro s, exact nat.zero_le _ }
 end
 
@@ -582,17 +586,21 @@ using_well_founded
 { rel_tac := λ _ _, `[exact ⟨_, finsupp.lt_wf σ⟩],
   dec_tac := tactic.assumption }
 
-lemma coeff_inv_aux (n : σ →₀ ℕ) (a : R) (φ : mv_power_series σ R) :
+lemma coeff_inv_aux [decidable_eq σ] (n : σ →₀ ℕ) (a : R) (φ : mv_power_series σ R) :
   coeff R n (inv.aux a φ) = if n = 0 then a else
   - a * ∑ x in n.antidiagonal,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv.aux a φ) else 0 :=
-show inv.aux a φ n = _, by { rw inv.aux, refl }
+show inv.aux a φ n = _,
+begin
+  rw inv.aux,
+  convert rfl -- unify `decidable` instances
+end
 
 /-- A multivariate formal power series is invertible if the constant coefficient is invertible.-/
 def inv_of_unit (φ : mv_power_series σ R) (u : units R) : mv_power_series σ R :=
 inv.aux (↑u⁻¹) φ
 
-lemma coeff_inv_of_unit (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : units R) :
+lemma coeff_inv_of_unit [decidable_eq σ] (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : units R) :
   coeff R n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
   - ↑u⁻¹ * ∑ x in n.antidiagonal,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv_of_unit φ u) else 0 :=
@@ -679,7 +687,7 @@ inv.aux (constant_coeff σ k φ)⁻¹ φ
 
 instance : has_inv (mv_power_series σ k) := ⟨mv_power_series.inv⟩
 
-lemma coeff_inv (n : σ →₀ ℕ) (φ : mv_power_series σ k) :
+lemma coeff_inv [decidable_eq σ] (n : σ →₀ ℕ) (φ : mv_power_series σ k) :
   coeff k n (φ⁻¹) = if n = 0 then (constant_coeff σ k φ)⁻¹ else
   - (constant_coeff σ k φ)⁻¹ * ∑ x in n.antidiagonal,
     if x.2 < n then coeff k x.1 φ * coeff k x.2 (φ⁻¹) else 0 :=
@@ -901,7 +909,7 @@ lemma coeff_C (n : ℕ) (a : R) :
   coeff R n (C R a : power_series R) = if n = 0 then a else 0 :=
 by rw [← monomial_zero_eq_C_apply, coeff_monomial]
 
-lemma coeff_zero_C (a : R) : coeff R 0 (C R a) = a :=
+@[simp] lemma coeff_zero_C (a : R) : coeff R 0 (C R a) = a :=
 by rw [← monomial_zero_eq_C_apply, coeff_monomial_same 0 a]
 
 lemma X_eq : (X : power_series R) = monomial R 1 1 := rfl
@@ -910,7 +918,7 @@ lemma coeff_X (n : ℕ) :
   coeff R n (X : power_series R) = if n = 1 then 1 else 0 :=
 by rw [X_eq, coeff_monomial]
 
-lemma coeff_zero_X : coeff R 0 (X : power_series R) = 0 :=
+@[simp] lemma coeff_zero_X : coeff R 0 (X : power_series R) = 0 :=
 by rw [coeff, finsupp.single_zero, X, mv_power_series.coeff_zero_X]
 
 @[simp] lemma coeff_one_X : coeff R 1 (X : power_series R) = 1 :=
@@ -929,9 +937,7 @@ by rw [coeff_X_pow, if_pos rfl]
 
 @[simp] lemma coeff_one (n : ℕ) :
   coeff R n (1 : power_series R) = if n = 0 then 1 else 0 :=
-calc coeff R n (1 : power_series R) = _ : mv_power_series.coeff_one _
-    ... = if n = 0 then 1 else 0 :
-by { simp only [finsupp.single_eq_zero], split_ifs; refl }
+coeff_C n 1
 
 lemma coeff_zero_one : coeff R 0 (1 : power_series R) = 1 :=
 coeff_zero_C 1
@@ -1554,7 +1560,7 @@ begin
 end
 
 /-- The order of the monomial `a*X^n` is infinite if `a = 0` and `n` otherwise.-/
-lemma order_monomial (n : ℕ) (a : R) :
+lemma order_monomial (n : ℕ) (a : R) [decidable (a = 0)] :
   order (monomial R n a) = if a = 0 then ⊤ else n :=
 begin
   split_ifs with h,

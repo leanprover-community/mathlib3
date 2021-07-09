@@ -224,7 +224,6 @@ else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
 
 section
 open euclidean_domain
-local attribute [-instance] finsupp.finsupp.decidable_eq
 theorem gcd_map [field k] (f : R →+* k) :
   gcd (p.map f) (q.map f) = (gcd p q).map f :=
 gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) $ λ x y hx ih,

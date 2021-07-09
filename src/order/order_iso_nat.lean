@@ -7,12 +7,25 @@ import data.equiv.denumerable
 import order.preorder_hom
 import order.conditionally_complete_lattice
 
+/-!
+# Relation embeddings from the naturals
+
+This file allows translation from monotone functions `ℕ → α` to order embeddings `ℕ ↪ α` and
+defines the limit value of an eventually-constant sequence.
+
+## Main declarations
+
+* `nat_lt`/`nat_gt`: Make an order embedding `ℕ ↪ α` from an increasing/decreasing function `ℕ → α`.
+* `monotonic_sequence_limit`: The limit of an eventually-constant monotone sequence `ℕ →ₘ α`.
+* `monotonic_sequence_limit_index`: The index of the first occurence of `monotonic_sequence_limit`
+  in the sequence.
+-/
 namespace rel_embedding
 
 variables {α : Type*} {r : α → α → Prop} [is_strict_order α r]
 
 /-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
-def nat_lt (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
+def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
   ((<) : ℕ → ℕ → Prop) ↪r r :=
 of_monotone f $ λ a b h, begin
   induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
@@ -22,10 +35,12 @@ of_monotone f $ λ a b h, begin
 end
 
 @[simp]
-lemma nat_lt_apply {f : ℕ → α} {H : ∀ n:ℕ, r (f n) (f (n+1))} {n : ℕ} : nat_lt f H n = f n := rfl
+lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} :
+  nat_lt f H n = f n :=
+rfl
 
 /-- If `f` is a strictly `r`-decreasing sequence, then this returns `f` as an order embedding. -/
-def nat_gt (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
+def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) :
   ((>) : ℕ → ℕ → Prop) ↪r r :=
 by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
 
@@ -48,8 +63,8 @@ theorem well_founded_iff_no_descending_seq :
 end rel_embedding
 
 namespace nat
+variables (s : set ℕ) [decidable_pred (∈ s)] [infinite s]
 
-variables (s : set ℕ) [decidable_pred s] [infinite s]
 /-- An order embedding from `ℕ` to itself with a specified range -/
 def order_embedding_of_set : ℕ ↪o ℕ :=
 (rel_embedding.order_embedding_of_lt_embedding
@@ -82,7 +97,7 @@ begin
   ext x,
   rw [set.mem_range, nat.order_embedding_of_set],
   split; intro h,
-  { rcases h with ⟨y, rfl⟩,
+  { obtain ⟨y, rfl⟩ := h,
     simp },
   { refine ⟨(nat.subtype.order_iso_of_nat s).symm ⟨x, h⟩, _⟩,
     simp only [rel_embedding.coe_trans, rel_embedding.order_embedding_of_lt_embedding_apply,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
 import linear_algebra.affine_space.midpoint
-import topology.metric_space.isometry
+import analysis.normed_space.basic
 import topology.instances.real_vector_space
 
 /-!

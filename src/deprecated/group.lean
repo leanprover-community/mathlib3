@@ -174,12 +174,12 @@ end is_monoid_hom
 namespace is_add_monoid_hom
 
 /-- Left multiplication in a ring is an additive monoid morphism. -/
-instance is_add_monoid_hom_mul_left {γ : Type*} [semiring γ] (x : γ) :
+instance is_add_monoid_hom_mul_left {γ : Type*} [non_unital_non_assoc_semiring γ] (x : γ) :
   is_add_monoid_hom (λ y : γ, x * y) :=
 { map_zero := mul_zero x, map_add := λ y z, mul_add x y z }
 
 /-- Right multiplication in a ring is an additive monoid morphism. -/
-instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) :
+instance is_add_monoid_hom_mul_right {γ : Type*} [non_unital_non_assoc_semiring γ] (x : γ) :
   is_add_monoid_hom (λ y : γ, y * x) :=
 { map_zero := zero_mul x, map_add := λ y z, add_mul y z x }
 
@@ -268,7 +268,7 @@ Nevertheless these are harmless, and helpful for stripping out dependencies on `
 variables {R : Type*} {S : Type*}
 
 section
-variables [semiring R] [semiring S]
+variables [non_assoc_semiring R] [non_assoc_semiring S]
 
 instance (f : R →+* S) : is_monoid_hom f :=
 { map_one := f.map_one,

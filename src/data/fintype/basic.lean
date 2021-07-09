@@ -51,6 +51,9 @@ univ_nonempty_iff.2 ‹_›
 lemma univ_eq_empty : (univ : finset α) = ∅ ↔ ¬nonempty α :=
 by rw [← univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
 
+lemma univ_eq_empty' : (univ : finset α) = ∅ ↔ is_empty α :=
+univ_eq_empty.trans (not_nonempty_iff)
+
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 instance : order_top (finset α) :=
@@ -483,16 +486,27 @@ arbitrary `fintype` instances, use either `fintype.card_le_one_iff_subsingleton`
   fintype.card α = 1 :=
 subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 
+@[priority 100] -- see Note [lower instance priority]
+instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
+
+/-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
+arbitrary `fintype` instances, use `fintype.univ_eq_empty'`. -/
+@[simp] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
+
+/-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
+arbitrary `fintype` instances, use `fintype.card_eq_zero_iff`. -/
+@[simp] theorem card_of_is_empty [is_empty α] : fintype.card α = 0 := rfl
+
 open_locale classical
 variables (α)
 
 /-- Any subsingleton type is (noncomputably) a fintype (with zero or one terms). -/
-@[priority 100]
+@[priority 5] -- see Note [lower instance priority]
 noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
 if h : nonempty α then
   of_subsingleton (nonempty.some h)
 else
-  ⟨∅, (λ a, false.elim (h ⟨a⟩))⟩
+  @fintype.of_is_empty _ $ not_nonempty_iff.mp h
 
 end fintype
 
@@ -651,13 +665,9 @@ fintype.of_subsingleton (default α)
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 
-instance : fintype empty := ⟨∅, empty.rec _⟩
-
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
 
 @[simp] theorem fintype.card_empty : fintype.card empty = 0 := rfl
-
-instance : fintype pempty := ⟨∅, pempty.rec _⟩
 
 @[simp] theorem fintype.univ_pempty : @univ pempty _ = ∅ := rfl
 
@@ -681,6 +691,8 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
+
+@[simp] lemma units_int.univ : (finset.univ : finset (units ℤ)) = {1, -1} := rfl
 
 instance additive.fintype : Π [fintype α], fintype (additive α) := id
 
@@ -947,8 +959,12 @@ instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fin
 fintype.subtype (univ.filter p) (by simp)
 
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
-def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
+def set_fintype {α} [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
 subtype.fintype (λ x, x ∈ s)
+
+lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
+  fintype.card ↥s ≤ fintype.card α :=
+fintype.card_le_of_embedding (function.embedding.subtype s)
 
 namespace function.embedding
 
@@ -1048,7 +1064,10 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
-instance function.embedding.fintype {α β} [fintype α] [fintype β]
+-- irreducible due to this conversation on Zulip:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
+-- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
+@[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
 
@@ -1071,8 +1090,6 @@ by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
   s.to_finset = ∅ ↔ s = ∅ :=
 by simp [ext_iff, set.ext_iff]
-
-instance : fintype (∅ : set α) := ⟨∅, subtype.property⟩
 
 @[simp] lemma set.to_finset_empty :
   (∅ : set α).to_finset = ∅ :=
@@ -1527,11 +1544,16 @@ begin
   intros x y, contrapose, apply hf,
 end
 
+-- irreducible due to this conversation on Zulip:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
+-- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
+
+@[irreducible]
 instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_empty (α ↪ β) :=
-⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+  ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
 
 @[priority 100]
-noncomputable instance function.embedding.fintype'' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
+noncomputable instance function.embedding.fintype' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
 begin
   by_cases h : infinite α,
   { resetI, apply_instance },
@@ -1566,10 +1588,6 @@ lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β)
 assume (hf : surjective f),
 have H : infinite α := infinite.of_surjective f hf,
 by exactI not_fintype α
-
--- the instance generated by `is_empty → subsingleton → fintype is non-computable
-instance function.embedding.fintype' {α β} [infinite α] [fintype β] : fintype (α ↪ β) :=
-{ elems := finset.empty, complete := is_empty_elim }
 
 instance nat.infinite : infinite ℕ :=
 ⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩

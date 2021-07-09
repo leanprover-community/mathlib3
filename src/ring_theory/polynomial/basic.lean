@@ -867,7 +867,7 @@ begin
   intros m hm,
   rw [← mul_one (coeff m p), ← C_mul_monomial],
   suffices : C (coeff m p) ∈ I,
-  { exact ideal.mul_mem_right I (monomial m 1) this },
+  { exact I.mul_mem_right (monomial m 1) this },
   simpa [ideal.mem_comap] using hcoe m
 end
 

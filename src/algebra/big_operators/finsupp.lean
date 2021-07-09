@@ -39,7 +39,7 @@ by simp_rw [finset.sum_insert has, finsupp.sum_add_index h0 h1, ih]
 end
 
 section
-variables {R S : Type*} [semiring R] [semiring S]
+variables {R S : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
 
 lemma finsupp.sum_mul (b : S) (s : α →₀ R) {f : α → R → S} :
   (s.sum f) * b = s.sum (λ a c, (f a c) * b) :=

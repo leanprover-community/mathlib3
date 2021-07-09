@@ -277,22 +277,6 @@ lemma measure_of_Union_nonpos (hf₁ : ∀ i, measurable_set (f i))
   s (⋃ i, f i) ≤ 0 :=
 (s.measure_of_disjoint_Union hf₁ hf₂).symm ▸ tsum_nonpos hf₃
 
--- move
-lemma set.union_Union_neq_eq_Union {ι} (f : ι → set α) (j : ι) :
-  (f j ∪ ⋃ (i : ι) (hi : i ≠ j), f i) = ⋃ i, f i :=
-begin
-  ext x,
-  simp only [exists_prop, mem_Union, mem_union_eq],
-  split,
-  { rintro (hj | ⟨i, hij, hi⟩),
-    { exact ⟨j, hj⟩ },
-    { exact ⟨i, hi⟩ } },
-  { rintro ⟨i, hi⟩,
-    by_cases i = j,
-    { exact or.inl (h ▸ hi) },
-    { exact or.inr ⟨i, h, hi⟩ } }
-end
-
 private lemma summable_measure_of_nonneg
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f))
   (hf₃ : ∀ i, 0 ≤ s (f i)) : summable (s ∘ f) :=
@@ -636,4 +620,3 @@ instance [topological_add_group M] : module R (vector_measure α R M) :=
 end
 
 end vector_measure
-#lint

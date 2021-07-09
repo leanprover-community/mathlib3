@@ -753,6 +753,44 @@ begin
     { exact neg_zero.symm } },
 end
 
+/-- The function `x * log (1 + t / x)` tends to `t` at `+∞`. -/
+lemma tendsto_mul_log_one_plus_div_at_top (t : ℝ) :
+  tendsto (λ x, x * log (1 + t / x)) at_top (𝓝 t) :=
+begin
+  rcases eq_or_ne t 0 with rfl | ht,
+  { simpa using tendsto_const_nhds },
+  suffices h : tendsto (λ x, real.log (1 + t * x) / x) (𝓝[{0}ᶜ] 0) (𝓝 t),
+  { apply (h.comp (tendsto_inv_at_top_zero'.mono_right _)).congr' _,
+    { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
+      dsimp,
+      have : x ≠ 0 := ne_of_gt (lt_of_lt_of_le zero_lt_one hx),
+      rw [←div_eq_mul_inv, div_eq_mul_inv, inv_inv', mul_comm] },
+    refine inf_le_inf_left _ _,
+    rw principal_mono,
+    intros x,
+    apply ne_of_gt },
+  suffices h : tendsto (λ x, real.log (1 + x) / x) (𝓝[{0}ᶜ] 0) (𝓝 1),
+  { have : tendsto (λ (x : ℝ), real.log (1 + t * x) / (t * x)) (𝓝[{0}ᶜ] 0) (𝓝 1),
+    { apply h.comp (tendsto.inf (by simpa using (continuous_mul_left t).tendsto 0) _),
+      simp [ht, not_or_distrib] },
+    replace := filter.tendsto.mul_const t this,
+    simp_rw [one_mul, div_mul_eq_mul_div, mul_comm _ t, mul_div_mul_left _ _ ht] at this,
+    exact this },
+  suffices h : tendsto (λ x, (real.log (1 + x) - x) / x) (𝓝[{0}ᶜ] 0) (𝓝 0),
+  { simp_rw [sub_div] at h,
+    have : tendsto (λ (x : ℝ), real.log (1 + x) / x - 1) (𝓝[{0}ᶜ] 0) (𝓝 0),
+    { apply h.congr' (eventually_inf_principal.2 _),
+      rw _root_.eventually_nhds_iff,
+      exact ⟨set.univ, λ x _ (hx : x ≠ 0), by simp [div_self hx], is_open_univ, ⟨⟩⟩ },
+    simpa using this.add_const 1 },
+  apply asymptotics.is_o.tendsto_0,
+  have : has_deriv_at real.log 1 1,
+    by simpa using real.has_deriv_at_log (show (1 : ℝ) ≠ 0, by norm_num),
+  rw has_deriv_at_iff_is_o_nhds_zero at this,
+  simp only [mul_one, algebra.id.smul_eq_mul, real.log_one, sub_zero] at this,
+  apply this.mono inf_le_left,
+end
+
 open_locale big_operators
 
 /-- A crude lemma estimating the difference between `log (1-x)` and its Taylor series at `0`,

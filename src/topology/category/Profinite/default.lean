@@ -217,8 +217,6 @@ has_limits_of_has_limits_creates_limits Profinite_to_Top
 instance has_colimits : limits.has_colimits Profinite :=
 has_colimits_of_reflective to_CompHaus
 
--- lemma continuous_sum_elim
-
 def binary_coproduct_cocone (X Y : Profinite.{u}) : limits.cocone (limits.pair X Y) :=
 limits.binary_cofan.mk ({ to_fun := sum.inl } : _ ⟶ of (X ⊕ Y)) { to_fun := sum.inr }
 
@@ -236,6 +234,10 @@ def binary_coproduct_colimit (X Y : Profinite.{u}) :
     { rw ←(show _ = s.inr, from w limits.walking_pair.right),
       refl },
   end }
+
+noncomputable
+instance forget_preserves_limits : limits.preserves_limits (forget Profinite) :=
+by apply limits.comp_preserves_limits Profinite_to_Top (forget _)
 
 variables {X Y : Profinite.{u}} (f : X ⟶ Y)
 

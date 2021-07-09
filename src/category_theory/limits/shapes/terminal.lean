@@ -136,8 +136,8 @@ lemma has_initial_of_has_colimit_empty [has_colimit (functor.empty C)] :
   has_initial C :=
 { has_colimit := λ K, has_colimit_of_iso K.unique_from_empty }
 
-notation `⊤_` C:20 := terminal C
-notation `⊥_` C:20 := initial C
+notation `⊤_ ` C:20 := terminal C
+notation `⊥_ ` C:20 := initial C
 
 section
 variables {C}

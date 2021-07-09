@@ -1277,6 +1277,54 @@ begin
   rwa hvs at this,
 end
 
+-- this is **definitely** going to be atrocious
+lemma mem_bsupr {p : ι → Prop} (f : ι → submodule R M) (x : M) :
+  x ∈ (⨆ i (H : p i), f i) ↔
+  ∃ v : ι →₀ M, (∀ i, v i ∈ f i) ∧ ∑ i in v.support, v i = x ∧ (∀ i, ¬ p i → v i = 0) :=
+begin
+  classical,
+  change set ι at p,
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw bsupr_eq_supr at h,
+    rcases (mem_supr' _).mp h with ⟨v', hv', hsum⟩,
+    change p →₀ M at v',
+    -- define `v = v'` where `p i` is true and zero otherwise
+    let v : ι →₀ M :=
+      ⟨v'.support.map (function.embedding.subtype p),
+       λ (i : ι), dite (p i) (λ hi, v' ⟨i, hi⟩) (λ _, 0), _⟩,
+    refine ⟨v, _, _, _⟩,
+    { intros i,
+      simp only [finsupp.coe_mk],
+      split_ifs with hi,
+      { exact hv' ⟨i, hi⟩ },
+      exact zero_mem _ },
+    { simp only [finsupp.coe_mk, dite_eq_ite, function.embedding.coe_subtype, finset.sum_map,
+        subtype.coe_eta],
+      convert hsum,
+      ext i, split_ifs with hi, refl,
+      exfalso, apply hi, exact i.2 },
+    { intros i hi,
+      simp only [finsupp.coe_mk, dif_neg hi], },
+    intros i,
+    simp only [exists_prop, function.embedding.coe_subtype, set_coe.exists, finset.mem_map,
+      exists_and_distrib_right, exists_eq_right, finsupp.mem_support_iff, ne.def, subtype.coe_mk],
+    split_ifs with hi,
+    { refine ⟨λ hh, _, λ hh, ⟨hi, hh⟩⟩,
+      cases hh with _ key, exact key },
+    refine ⟨λ hh _, _, λ hh, _⟩,
+    { cases hh with key _,
+      exact hi key },
+    exfalso, exact hh rfl },
+  rcases h with ⟨v, hv, hsum, hzero⟩,
+  have hle: (⨆ i ∈ v.support, f i) ≤ ⨆ (i : ι) (H : p i), f i,
+  { refine bsupr_le_bsupr' (λ i hi, _),
+    revert hi, contrapose!,
+    refine λ h, finsupp.not_mem_support_iff.mpr (hzero i h), },
+  have key: x ∈ ⨆ i ∈ v.support, f i,
+  { rw ← hsum, exact sum_mem_bsupr (λ i hi, hv i), },
+  exact hle key,
+end
+
 section
 
 open_locale classical

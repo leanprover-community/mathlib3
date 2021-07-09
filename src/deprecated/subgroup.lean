@@ -249,7 +249,8 @@ variable [group G]
 
 -- Normal subgroup properties
 @[to_additive]
-lemma mem_norm_comm {s : set G} (hs : is_normal_subgroup s) {a b : G} (hab : a * b ∈ s) : b * a ∈ s :=
+lemma mem_norm_comm {s : set G} (hs : is_normal_subgroup s) {a b : G} (hab : a * b ∈ s) :
+  b * a ∈ s :=
 have h : a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ s, from hs.normal (a * b) hab a⁻¹,
 by simp at h; exact h
 

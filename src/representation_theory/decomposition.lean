@@ -186,27 +186,171 @@ begin
   simp [submodule.top_equiv_self],
 end
 
+lemma is_internal_map_apply (p : ι → submodule R M) (x : ⨁ i, p i) :
+  direct_sum.to_module R ι M (λ i, (p i).subtype) x = ∑ i in x.support, x i :=
+begin
+  simp only [direct_sum.to_module, sum_add_hom_apply, to_add_monoid_hom_coe,
+    linear_map.coe_mk, dfinsupp.lsum_apply, submodule.subtype],
+  refine finset.sum_congr rfl (λ x hx, rfl),
+end
+
+lemma to_equiv_apply' (D : decomposition ι R M) (x : ⨁ i, D.factors i) :
+  D.to_equiv x = direct_sum.to_module R ι M (λ i, (D.factors i).subtype) x :=
+begin
+  rw to_equiv_apply,
+  rw is_internal_map_apply,
+end
+
 lemma to_equiv_symm_single_apply
   (D : decomposition ι R M) (i : ι) (x : M) (hx : x ∈ D.factors i) :
-  D.to_equiv.symm x = dfinsupp.single i ⟨x, hx⟩ :=
+  D.to_equiv.symm x = single i ⟨x, hx⟩ :=
 begin
-  apply_fun D.to_equiv,
+  apply_fun D.to_equiv using linear_equiv.injective _,
   rw [linear_equiv.apply_symm_apply],
   rw to_equiv_apply,
   by_cases h : x = 0,
   { rw dfinsupp.support_single_eq_zero,
-    rw finset.sum_empty,
-    exact h,
-    rw ← submodule.coe_eq_zero,
-    exact h,  },
-  rw dfinsupp.support_single_ne_zero,
-  simp only [dite_eq_ite, if_true, dfinsupp.single_eq_same, submodule.coe_mk, eq_self_iff_true,
-    finset.sum_singleton],
-  rw ← ne.def at h,
-  rw ← submodule.coe_mk x hx at h,
-  exact_mod_cast h,
-  exact linear_equiv.injective _,
+    rwa finset.sum_empty,
+    rwa ← submodule.coe_eq_zero },
+  rw [support_single_ne_zero, finset.sum_singleton, single_eq_same, submodule.coe_mk],
+  refine λ h', h _,
+  rw [← submodule.coe_eq_zero.mpr h', submodule.coe_mk]
 end
+
+def equiv_of_is_internal (p : ι → submodule R M) (hp : direct_sum.submodule_is_internal p) :
+  (⨁ i, p i) ≃ₗ[R] M :=
+begin
+  letI : add_comm_group (⨁ (i : ι), (p i)) := direct_sum.add_comm_group (λ i, p i),
+  exact linear_equiv.of_bijective (direct_sum.to_module R ι M (λ i, (p i).subtype))
+    (linear_map.ker_eq_bot_of_injective hp.injective)
+    (linear_map.range_eq_top.mpr hp.surjective),
+end
+
+@[simp] lemma equiv_of_is_internal_apply
+  (p : ι → submodule R M) (hp : direct_sum.submodule_is_internal p) (x : ⨁ i, p i) :
+  equiv_of_is_internal p hp x = direct_sum.to_module R ι M (λ i, (p i).subtype) x :=
+rfl
+
+lemma equiv_of_is_internal_symm_single_apply (p : ι → submodule R M) (hp : direct_sum.submodule_is_internal p)
+  (i : ι) (x : M) (hx : x ∈ p i) : (equiv_of_is_internal p hp).symm x = single i ⟨x, hx⟩ :=
+begin
+  apply_fun equiv_of_is_internal p hp using linear_equiv.injective _,
+  rw linear_equiv.apply_symm_apply, dsimp, rw is_internal_map_apply,
+  by_cases h : x = 0,
+  { rw dfinsupp.support_single_eq_zero,
+    rwa finset.sum_empty,
+    rwa ← submodule.coe_eq_zero },
+  rw [support_single_ne_zero, finset.sum_singleton, single_eq_same, submodule.coe_mk],
+  refine λ h', h _,
+  rw [← submodule.coe_eq_zero.mpr h', submodule.coe_mk]
+end
+
+lemma is_internal (D : decomposition ι R M) :
+  direct_sum.submodule_is_internal D.factors :=
+begin
+  rw direct_sum.submodule_is_internal,
+  convert D.to_equiv.bijective using 1, ext,
+  rw to_equiv_apply',
+end
+
+lemma bsupr_eq_supr {α : Type v} {ι : Type u} [complete_lattice α] {f : ι → α}
+  {p : set ι} : (⨆ i (H : p i), f i) = ⨆ (i : p), f i :=
+begin
+  refine le_antisymm (bsupr_le (λ i hi, _)) _,
+  { change f (⟨i, hi⟩ : p) ≤ supr (λ (i : p), f i),
+    apply le_supr (λ (i : p), f i) _, },
+  simp only [supr_le_iff, set_coe.forall],
+  intros i hi,
+  rw subtype.coe_mk,
+  exact le_bsupr i hi,
+end
+
+-- this is **definitely** going to be atrocious
+lemma mem_bsupr {p : ι → Prop} (f : ι → submodule R M) (x : M) :
+  x ∈ (⨆ i (H : p i), f i) ↔
+  ∃ v : ι →₀ M, (∀ i, v i ∈ f i) ∧ ∑ i in v.support, v i = x ∧ (∀ i, ¬ p i → v i = 0) :=
+begin
+  classical,
+  change set ι at p,
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw bsupr_eq_supr at h,
+    rcases (mem_supr' _).mp h with ⟨v', hv', hsum⟩,
+    change p →₀ M at v',
+    -- define `v = v'` where `p i` is true and zero otherwise
+    let v : ι →₀ M :=
+      ⟨v'.support.map (function.embedding.subtype p),
+       λ (i : ι), dite (p i) (λ hi, v' ⟨i, hi⟩) (λ _, 0), _⟩,
+    refine ⟨v, _, _, _⟩,
+    { intros i,
+      simp only [finsupp.coe_mk],
+      split_ifs with hi,
+      { exact hv' ⟨i, hi⟩ },
+      exact zero_mem _ },
+    { simp only [finsupp.coe_mk, dite_eq_ite, function.embedding.coe_subtype, finset.sum_map,
+        subtype.coe_eta],
+      convert hsum,
+      ext i, split_ifs with hi, refl,
+      exfalso, apply hi, exact i.2 },
+    { intros i hi,
+      simp only [finsupp.coe_mk, dif_neg hi], },
+    intros i,
+    simp only [exists_prop, function.embedding.coe_subtype, set_coe.exists, finset.mem_map,
+      exists_and_distrib_right, exists_eq_right, finsupp.mem_support_iff, ne.def, subtype.coe_mk],
+    split_ifs with hi,
+    { refine ⟨λ hh, _, λ hh, ⟨hi, hh⟩⟩,
+      cases hh with _ key, exact key },
+    refine ⟨λ hh _, _, λ hh, _⟩,
+    { cases hh with key _,
+      exact hi key },
+    exfalso, exact hh rfl },
+  rcases h with ⟨v, hv, hsum, hzero⟩,
+  have hle: (⨆ i ∈ v.support, f i) ≤ ⨆ (i : ι) (H : p i), f i,
+  { refine bsupr_le_bsupr' (λ i hi, _),
+    revert hi, contrapose!,
+    refine λ h, finsupp.not_mem_support_iff.mpr (hzero i h), },
+  have key: x ∈ ⨆ i ∈ v.support, f i,
+  { rw ← hsum, exact sum_mem_bsupr (λ i hi, hv i), },
+  exact hle key,
+end
+
+def of_is_internal (p : ι → submodule R M) (hp : direct_sum.submodule_is_internal p) :
+  decomposition ι R M :=
+{ factors := p,
+  factors_ind := begin
+    rw complete_lattice.independent_def,
+    refine λ i, submodule.disjoint_def.mpr (λ x hi hSup, _),
+    apply_fun (equiv_of_is_internal p hp).symm using linear_equiv.injective _,
+    rw linear_equiv.map_zero,
+    -- now we unfold the info from `hSup`
+    obtain ⟨v, hv, hsum, hzero⟩ := (mem_bsupr _ _).mp hSup,
+    simp only [forall_eq, not_not] at hzero,
+    apply_fun (equiv_of_is_internal p hp).symm at hsum,
+    rw linear_equiv.map_sum at hsum,
+    have key := λ i, equiv_of_is_internal_symm_single_apply p hp i (v i) (hv i),
+    simp only [key] at hsum,
+    -- do casework on `i = j`
+    ext j, by_cases h : i = j,
+    { rw [← h, ← hsum, direct_sum.zero_apply, coe_zero, coe_eq_zero, finset_sum_apply],
+      simp only [single_apply, finset.sum_dite_eq', finsupp.mem_support_iff, ne.def,
+        mk_eq_zero, not_imp_self, ite_eq_right_iff, hzero], },
+    rw [equiv_of_is_internal_symm_single_apply p hp i x hi, single_eq_of_ne], refl,
+    exact h
+  end,
+  factors_supr := begin
+    rw eq_top_iff, intros x y, clear y,
+    rw mem_supr',
+    let v' := (equiv_of_is_internal p hp).symm x,
+    let v : ι →₀ M := ⟨v'.support, λ i, (v' i).1, λ i, _⟩,
+    { refine ⟨v, λ i, (v' i).2, _⟩,
+      simp only [v, subtype.val_eq_coe, finsupp.coe_mk],
+      apply_fun (equiv_of_is_internal p hp).symm using linear_equiv.injective _,
+      rw linear_equiv.map_sum,
+      have key := λ i, equiv_of_is_internal_symm_single_apply p hp i (v' i) (v' i).2,
+      simp only [key, set_like.eta],
+      change v'.sum (single : Π i, p i → (⨁ i, p i)) = v',
+      exact sum_single },
+    simp only [mem_support_iff, ne.def, subtype.val_eq_coe, coe_eq_zero]
+  end }
 
 end group
 

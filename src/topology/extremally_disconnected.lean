@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import topology.compact_open
 import topology.stone_cech
+import topology.category.CompHaus
 
 /-!
 
@@ -123,3 +124,50 @@ begin
     replace hfstφ := congr_fun hfstφ x, rw comp_apply at hfstφ,
     rw hfstφ at hx, exact hx.1 }
 end
+
+section CompHaus
+
+section CompHaus_projective
+
+variable (X)
+include X
+def CompHaus.projective : Prop :=
+  Π {Y Z : CompHaus.{u}},
+  by exactI Π {f : X → Z} {g : Y → Z} (hf : continuous f) (hg : continuous g)
+    (g_sur : surjective g),
+  ∃ h : X → Y, continuous h ∧ g ∘ h = f
+
+end CompHaus_projective
+
+lemma stone_cech.projective_1 [discrete_topology X] : CompHaus.projective (stone_cech X) :=
+λ Y Z f g, stone_cech.projective
+
+lemma extremally_disconnected_of_projective_1 (X : CompHaus)
+  (h : CompHaus.projective X) :
+  extremally_disconnected X :=
+begin
+  apply extremally_disconnected_of_projective,
+
+  intros Y Z tY tZ cY t2Y cZ t2Z f g hf hg g_sur,
+  let YY : Top := ⟨Y, tY⟩,
+  haveI : compact_space YY := cY,
+  haveI : t2_space YY := t2Y,
+  have cYY : CompHaus := CompHaus.mk YY,
+  let ZZ : Top := ⟨Z, tZ⟩,
+  haveI : compact_space ZZ := cZ,
+  haveI : t2_space ZZ := t2Z,
+  have cZZ : CompHaus := CompHaus.mk ZZ,
+  let f' : X → cZZ := by {
+      intros x,
+      have ff : Z → cZZ, intros z, unfold_coes,casesI cZZ,casesI cZZ_to_Top,convert z,simp,hint,
+      unfold_coes,casesI cZZ,casesI cZZ_to_Top,
+      dsimp,
+      casesI ZZ,
+
+      simp at *,
+  },
+--  have : CompHaus.mk YY,unfold_coes,simp at *,sorry,
+  obtain F := @h X cYY ,
+end
+
+end CompHaus

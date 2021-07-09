@@ -55,7 +55,7 @@ by { haveI := @has_finite_coproducts.out C _ _ J (classical.dec_eq _), apply_ins
 
 /-- If `C` has finite colimits then it has finite coproducts. -/
 @[priority 10]
-lemma has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] :
+instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] :
   has_finite_coproducts C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
 

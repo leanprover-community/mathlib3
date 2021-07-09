@@ -360,33 +360,13 @@ lemma measurable_set_lt [second_countable_topology α] {f g : δ → α} (hf : m
   (hg : measurable g) : measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
 
-private lemma ord_connected_measurable_set_aux {α : Type*} [linear_order α] (s : set α)
-  (h : ∀ (x ∈ s) (y ∈ s) (z ∈ s), x ≤ y → y ≤ z → x = y ∨ y = z) :
-  s.finite :=
-begin
-  by_contra hinf,
-  change s.infinite at hinf,
-  rcases hinf.exists_subset_card_eq 3 with ⟨t, hts, ht⟩,
-  let f := t.order_iso_of_fin ht,
-  let x := f 0,
-  let y := f 1,
-  let z := f 2,
-  have := h x (hts x.2) y (hts y.2) z (hts z.2)
-    (f.monotone $ by dec_trivial) (f.monotone $ by dec_trivial),
-  have key₁ : (0 : fin 3) ≠ 1 := by dec_trivial,
-  have key₂ : (1 : fin 3) ≠ 2 := by dec_trivial,
-  cases this,
-  { dsimp only [x, y] at this, exact key₁ (f.injective $ subtype.coe_injective this) },
-  { dsimp only [y, z] at this, exact key₂ (f.injective $ subtype.coe_injective this) }
-end
-
 lemma set.ord_connected.measurable_set (h : ord_connected s) : measurable_set s :=
 begin
   let u := ⋃ (x ∈ s) (y ∈ s), Ioo x y,
   have huopen : is_open u := is_open_bUnion (λ x hx, is_open_bUnion (λ y hy, is_open_Ioo)),
   have humeas : measurable_set u := huopen.measurable_set,
   have hfinite : (s \ u).finite,
-  { refine ord_connected_measurable_set_aux (s \ u) (λ x hx y hy z hz hxy hyz, _),
+  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
     by_contra h,
     push_neg at h,
     exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,

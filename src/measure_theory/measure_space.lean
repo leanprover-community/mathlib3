@@ -1914,6 +1914,9 @@ begin
   rw [add_apply, sub_apply h_s_meas h₁, ennreal.sub_add_cancel_of_le (h₁ s h_s_meas)],
 end
 
+lemma measure.sub_le [finite_measure μ] : μ - ν ≤ μ :=
+Inf_le (measure.le_add_right (le_refl _))
+
 end measure_sub
 
 lemma restrict_sub_eq_restrict_sub_restrict (h_meas_s : measurable_set s) :
@@ -1977,6 +1980,10 @@ begin
       sub_eq_zero_of_le],
   repeat {simp [*]},
 end
+
+instance finite_measure_sub [finite_measure μ] : finite_measure (μ - ν) :=
+{ measure_univ_lt_top := lt_of_le_of_lt
+    (measure.sub_le set.univ measurable_set.univ) (measure_lt_top _ _) }
 
 end measure
 

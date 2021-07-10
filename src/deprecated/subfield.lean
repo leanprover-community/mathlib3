@@ -5,7 +5,18 @@ Authors: Andreas Swerdlow
 -/
 import deprecated.subring
 import algebra.group_with_zero.power
+/-
 
+# Unbundled subfields
+
+This file introduces the predicate `is_subfield` on `S : set F` where `F` is a field.
+This is *not* the preferred way to do subfields in Lean 3: in general `S : subfield F`
+works more smoothly. However this predicate is occasionally useful.
+
+## Tags
+
+is_subfield
+-/
 variables {F : Type*} [field F] (S : set F)
 
 structure is_subfield extends is_subring S : Prop :=
@@ -39,10 +50,6 @@ lemma univ.is_subfield : is_subfield (@set.univ F) :=
   ..univ.is_submonoid,
   ..is_add_subgroup.univ_add_subgroup }
 
-/- note: in the next two declarations, if we let type-class inference figure out the instance
-  `ring_hom.is_subring_preimage` then that instance only applies when particular instances of
-  `is_add_subgroup _` and `is_submonoid _` are chosen (which are not the default ones).
-  If we specify it explicitly, then it doesn't complain. -/
 lemma preimage.is_subfield {K : Type*} [field K]
   (f : F →+* K) {s : set K} (hs : is_subfield s) : is_subfield (f ⁻¹' s) :=
 { inv_mem := λ a (ha : f a ∈ s), show f a⁻¹ ∈ s,

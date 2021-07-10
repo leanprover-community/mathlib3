@@ -96,6 +96,9 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
+noncomputable def equiv_mono_over {X : C} : subobject X ≌ mono_over X :=
+thin_skeleton_equivalence _
+
 /--
 Use choice to pick a representative `mono_over X` for each `subobject X`.
 -/

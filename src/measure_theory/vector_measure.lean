@@ -22,7 +22,7 @@ Similarly, when `R = M = ℂ`, we call the measure a complex measure and write `
 
 ## Implementation notes
 
-We require all non-measurable set to be mapped to zero in order for the extensionality lemma
+We require all non-measurable sets to be mapped to zero in order for the extensionality lemma
 to only compare the underlying functions for measurable sets.
 
 We use `has_sum` instead of `tsum` in the definition of vector measures in comparison to `measure`
@@ -282,37 +282,39 @@ private lemma summable_measure_of_nonneg
   (hf₃ : ∀ i, 0 ≤ s (f i)) : summable (s ∘ f) :=
 begin
   have := s.measure_of_disjoint_Union hf₁ hf₂,
-  by_cases s (⋃ (i : ℕ), (λ (i : ℕ), f i) i) = 0,
+  by_cases h : s (⋃ (i : ℕ), (λ (i : ℕ), f i) i) = 0,
   { suffices : ∀ i, s (f i) = 0,
     { convert summable_zero, ext i, exact this i },
     intro i, rw ← set.union_Union_neq_eq_Union f i at h,
     have hmeas : ∀ j, measurable_set (⋃ (hi : j ≠ i), f j),
-    { intro j, by_cases i = j,
+    { intro j, by_cases h' : j = i,
       { convert measurable_set.empty,
         rw Union_eq_empty,
-        exact λ hij, false.elim (hij h.symm) },
+        exact λ hij, false.elim (hij h') },
       { convert hf₁ j,
         ext x, rw [mem_Union, exists_prop, and_iff_right_iff_imp],
-        exact λ _, ne.symm h } },
+        exact λ _, h' } },
     refine measure_of_nonneg_disjoint_union_eq_zero _ (hf₁ i) _ (hf₃ i) _ h,
     { intros x hx,
       simp only [exists_prop, mem_Union, mem_inter_eq, inf_eq_inter] at hx,
-      exact let ⟨hfi, j, hij, hfj⟩ := hx in hf₂ j i hij ⟨hfj, hfi⟩ },
+      obtain ⟨hfi, j, hij, hfj⟩ := hx,
+      exact hf₂ j i hij ⟨hfj, hfi⟩ },
     { refine measurable_set.Union hmeas },
     { refine measure_of_Union_nonneg hmeas _ _,
       { intros l m hlm x hx,
         simp only [exists_prop, mem_Union, mem_inter_eq, inf_eq_inter] at hx,
-        exact hf₂ l m hlm (let ⟨⟨_, h₁⟩, _, h₂⟩ := hx in ⟨h₁, h₂⟩) },
-      { intro j, by_cases i = j,
+        obtain ⟨⟨-, h₁⟩, -, h₂⟩ := hx,
+        exact hf₂ l m hlm ⟨h₁, h₂⟩ },
+      { intro j, by_cases h': j = i,
         { apply le_of_eq,
           convert s.empty.symm,
           rw Union_eq_empty,
-          exact λ hij, false.elim (hij h.symm) },
+          exact λ hij, false.elim (hij h') },
         { convert hf₃ j,
           ext, rw [mem_Union, exists_prop, and_iff_right_iff_imp],
-          exact λ _, ne.symm h } } } },
-  { revert h, contrapose, intro h,
-    rw [not_not, this, tsum_eq_zero_of_not_summable h] },
+          exact λ _, h' } } } },
+  { contrapose! h,
+    rw [this, tsum_eq_zero_of_not_summable h] },
 end
 
 private lemma summable_measure_of_nonpos
@@ -320,7 +322,7 @@ private lemma summable_measure_of_nonpos
   (hf₃ : ∀ i, s (f i) ≤ 0) : summable (s ∘ f) :=
 begin
   have := s.measure_of_disjoint_Union hf₁ hf₂,
-  by_cases s (⋃ (i : ℕ), (λ (i : ℕ), f i) i) = 0,
+  by_cases h : s (⋃ (i : ℕ), (λ (i : ℕ), f i) i) = 0,
   { suffices : ∀ i, s (f i) = 0,
     { convert summable_zero, ext i, exact this i },
     intro i, rw ← set.union_Union_neq_eq_Union f i at h,
@@ -361,10 +363,11 @@ def measure_of_nonneg_seq (s : signed_measure' α) (f : ℕ → set α) : ℕ �
 lemma measure_of_nonneg_seq_nonneg (i : ℕ) :
   0 ≤ s (s.measure_of_nonneg_seq f i) :=
 begin
-  by_cases 0 ≤ (s ∘ f) i,
-  { simp_rw [measure_of_nonneg_seq, if_pos h],
-    exact h },
-  { simp_rw [measure_of_nonneg_seq, if_neg h, s.measure_of_empty] }
+  rw [measure_of_nonneg_seq],
+  dsimp only,
+  split_ifs,
+  { exact h },
+  { exact s.measure_of_empty.ge },
 end
 
 lemma measure_of_nonneg_seq_of_measurable_set (hf : ∀ i, measurable_set (f i))

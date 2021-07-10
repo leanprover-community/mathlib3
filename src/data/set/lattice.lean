@@ -754,7 +754,7 @@ begin
     { exact ⟨j, hj⟩ },
     { exact ⟨i, hi⟩ } },
   { rintro ⟨i, hi⟩,
-    by_cases i = j,
+    by_cases h :  i = j,
     { exact or.inl (h ▸ hi) },
     { exact or.inr ⟨i, h, hi⟩ } }
 end

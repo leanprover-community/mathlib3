@@ -35,6 +35,8 @@ section
 
 variables {X Y : C} (f : X ⟶ Y)
 
+-- TODO: Generalize (this will work whenever f has a cokernel)
+-- (The abelian case is probably sufficient for most applications.)
 /-- The kernel of `f.op` is the opposite of `cokernel f`. -/
 @[simps]
 def kernel_op_unop : (kernel f.op).unop ≅ cokernel f :=
@@ -54,6 +56,8 @@ def kernel_op_unop : (kernel f.op).unop ≅ cokernel f :=
     simp [← unop_comp],
   end }
 
+-- TODO: Generalize (this will work whenever f has a kernel)
+-- (The abelian case is probably sufficient for most applications.)
 /-- The cokernel of `f.op` is the opposite of `kernel f`. -/
 @[simps]
 def cokernel_op_unop : (cokernel f.op).unop ≅ kernel f :=

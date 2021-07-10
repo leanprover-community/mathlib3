@@ -664,7 +664,11 @@ begin
 end
 
 
-lemma power_series_le_exp (x : ℝ) (n : ℕ) (hx : 0 ≤ x): ∑ i in finset.range n, x ^ i / i.factorial ≤ exp x
+lemma lim_real_is_real_lim (s : cau_seq ℂ complex.abs) :
+s.lim.re = (s.re).lim
+
+lemma power_series_le_exp_of_nonneg (x : ℝ) (n : ℕ) (hx : 0 ≤ x) :
+∑ i in finset.range n, x ^ i / i.factorial ≤ exp x
 :=
 begin
   sorry
@@ -672,7 +676,7 @@ end
 
 lemma a_584_le_exp_6 : (584 : ℝ) ≤ exp (6.37 : ℝ) :=
 begin
-  apply trans _ (power_series_le_exp 6.37 19 (by linarith)),
+  apply trans _ (power_series_le_exp_of_nonneg 6.37 19 (by linarith)),
   simp_rw [finset.sum_range_succ],
   simp_rw [nat.factorial],
   norm_num,

@@ -1116,6 +1116,34 @@ mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
 lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
 mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
 
+lemma exists_seq_strict_mono_tendsto' [densely_ordered α] {x l : α}
+  (hl : l < x) (hx : is_countably_generated (𝓝 x)):
+  ∃ u : ℕ → α, strict_mono u ∧ ∀ n, u n < x ∧ tendsto u at_top (𝓝 x) :=
+begin
+  obtain ⟨s, hs⟩ : ∃ s : ℕ → set α, (𝓝 x).has_basis (λ (_x : ℕ), true) s :=
+    let ⟨s, hs⟩ := hx.exists_antimono_basis in ⟨s, hs.to_has_basis⟩,
+  have : ∀ n k, k < x → ∃ y, y ∈ s n ∧ k < y ∧ y < x,
+  { assume n k hk,
+    obtain ⟨L, hL, h⟩ : ∃ (L : α) (hL : L ∈ Ico k x), Ioc L x ⊆ s n :=
+      exists_Ioc_subset_of_mem_nhds' (hs.mem_of_mem trivial) hk,
+    obtain ⟨y, hy⟩ : ∃ (y : α), L < y ∧ y < x := exists_between hL.2,
+    exact ⟨y, h ⟨hy.1, hy.2.le⟩, hL.1.trans_lt hy.1, hy.2⟩ },
+  choose! f hf using this,
+  let u : ℕ → α := λ n, nat.rec_on n (f 0 l) f,
+  have : ∀ n, u n < x,
+  { assume n,
+    induction n with n IH,
+    { exact (hf 0 l hl).2.2 },
+    { exact (hf n _ IH).2.2 } },
+  have : strict_mono u,
+  { have Z := monotone_of_monotone_nat,
+
+  }
+
+end
+
+
+
 section pi
 
 /-!

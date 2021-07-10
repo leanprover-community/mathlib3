@@ -12,7 +12,7 @@ import measure_theory.pi
 noncomputable theory
 open classical set filter
 open ennreal (of_real)
-open_locale big_operators ennreal nnreal
+open_locale big_operators ennreal nnreal topological_space
 
 structure stieltjes_function :=
 (to_fun : ℝ → ℝ)
@@ -32,6 +32,29 @@ lemma right_continuous (x : ℝ) : continuous_within_at f (Ici x) x := f.right_c
 /-!
 ### Preliminary definitions
 -/
+
+/-- The limit of a Stieltjes function to the left of `x` (it exists by monotonicity). The fact that
+it is indeed a left limit is asserted in `tendsto_left_lim` -/
+@[irreducible] def left_lim (x : ℝ) := Sup (f '' (Iio x))
+
+lemma tendsto_left_lim (x : ℝ) : tendsto f (𝓝[Iio x] x) (𝓝 (f.left_lim x)) :=
+by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
+
+lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
+begin
+  apply le_of_tendsto (f.tendsto_left_lim x),
+  filter_upwards [self_mem_nhds_within],
+  assume z hz,
+  exact (f.mono (le_of_lt hz)).trans (f.mono h)
+end
+
+lemma le_left_lim {x y : ℝ} (h : x < y) : f x ≤ f.left_lim y :=
+begin
+  apply ge_of_tendsto (f.tendsto_left_lim y),
+  apply mem_nhds_within_Iio_iff_exists_Ioo_subset.2 ⟨x, h, _⟩,
+  assume z hz,
+  exact f.mono hz.1.le,
+end
 
 /-- Length of an interval. This is the largest monotonic function which correctly
   measures all intervals. -/
@@ -57,11 +80,11 @@ infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans
 
 open measure_theory
 
-/-- The stieltjes outer measure, as an outer measure of ℝ. -/
-def to_outer : outer_measure ℝ :=
+/-- The Stieltjes outer measure associated to a Stieltjes function. -/
+protected def outer : outer_measure ℝ :=
 outer_measure.of_function f.length f.length_empty
 
-lemma to_outer_le_length (s : set ℝ) : f.to_outer s ≤ f.length s :=
+lemma outer_le_length (s : set ℝ) : f.outer s ≤ f.length s :=
 outer_measure.of_function_le _
 
 /-- If a compact interval `[a, b]` is covered by a union of open interval `(c i, d i)`, then
@@ -101,8 +124,8 @@ begin
       (mt and.left (not_lt_of_le h₂)) }
 end
 
-@[simp] lemma stieltjes_outer_Icc (a b : ℝ) :
-  f.to_outer (Ioc a b) = of_real (f b - f a) :=
+@[simp] lemma outer_Ioc (a b : ℝ) :
+  f.outer (Ioc a b) = of_real (f b - f a) :=
 begin
   /- It suffices to show that, if `(a, b]` is covered by sets `s i`, then `f b - f a` is bounded
   by `∑ f.length (s i) + ε`. The difficulty is that `f.length` is expressed in terms of half-open
@@ -115,7 +138,7 @@ begin
   slightly to the right, then the `f`-length will change very little by right continuity, and we
   will get an open interval `(p i, q' i)` covering `s i` with `f (q' i) - f (p i)` within `ε' i`
   of the `f`-length of `s i`. -/
-  refine le_antisymm (by { rw ← f.length_Ioc, apply to_outer_le_length })
+  refine le_antisymm (by { rw ← f.length_Ioc, apply outer_le_length })
     (le_binfi $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε εpos h, _),
   let δ := ε/2,
   have δpos : 0 < δ := nnreal.half_pos εpos,
@@ -159,8 +182,8 @@ begin
   ... = ∑' (i : ℕ), f.length (s i) + ε : by simp [add_assoc, ennreal.add_halves]
 end
 
-lemma is_stieltjes_measurable_Ioi {c : ℝ} :
-  f.to_outer.caratheodory.measurable_set' (Ioi c) :=
+lemma measurable_set_Ioi {c : ℝ} :
+  f.outer.caratheodory.measurable_set' (Ioi c) :=
 begin
   apply outer_measure.of_function_caratheodory (λ t, _),
   refine le_infi (λ a, le_infi (λ b, le_infi (λ h, _))),
@@ -179,40 +202,60 @@ begin
       sup_eq_max, le_refl, Ioc_eq_empty, add_zero, max_eq_left, f.length_empty] }
 end
 
-theorem to_outer_trim : f.to_outer.trim = f.to_outer :=
+theorem outer_trim : f.outer.trim = f.outer :=
 begin
   refine le_antisymm (λ s, _) (outer_measure.le_trim _),
   rw outer_measure.trim_eq_infi,
-  refine le_infi (λ g, le_infi $ λ hg,
+  refine le_infi (λ t, le_infi $ λ ht,
     ennreal.le_of_forall_pos_le_add $ λ ε ε0 h, _),
   rcases ennreal.exists_pos_sum_of_encodable
     (ennreal.zero_lt_coe_iff.2 ε0) ℕ with ⟨ε', ε'0, hε⟩,
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
-    ∀ i, ∃ s, g i ⊆ s ∧ measurable_set s ∧
-      f.to_outer s ≤ f.length (g i) + of_real (ε' i),
+    ∀ i, ∃ s, t i ⊆ s ∧ measurable_set s ∧
+      f.outer s ≤ f.length (t i) + of_real (ε' i),
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
-    conv at this {to_lhs, rw f.length},
+    conv at this {to_lhs, rw length},
     simp only [infi_lt_iff] at this,
     rcases this with ⟨a, b, h₁, h₂⟩,
-    rw ← stieltjes_outer_Ico at h₂,
-    exact ⟨_, h₁, measurable_set_Ico, le_of_lt $ by simpa using h₂⟩ },
+    rw ← f.outer_Ioc at h₂,
+    exact ⟨_, h₁, measurable_set_Ioc, le_of_lt $ by simpa using h₂⟩ },
   simp at hg,
   apply infi_le_of_le (Union g) _,
-  apply infi_le_of_le (subset.trans hf $ Union_subset_Union (λ i, (hg i).1)) _,
+  apply infi_le_of_le (subset.trans ht $ Union_subset_Union (λ i, (hg i).1)) _,
   apply infi_le_of_le (measurable_set.Union (λ i, (hg i).2.1)) _,
-  exact le_trans (stieltjes_outer.Union _) (ennreal.tsum_le_tsum $ λ i, (hg i).2.2)
+  exact le_trans (f.outer.Union _) (ennreal.tsum_le_tsum $ λ i, (hg i).2.2)
 end
 
-lemma borel_le_stieltjes_measurable : borel ℝ ≤ f.to_outer.caratheodory :=
+lemma borel_le_measurable : borel ℝ ≤ f.outer.caratheodory :=
 begin
-  rw real.borel_eq_generate_from_Iio_rat,
+  rw borel_eq_generate_Ioi,
   refine measurable_space.generate_from_le _,
-  simp [is_stieltjes_measurable_Ioi] { contextual := tt }
+  simp [f.measurable_set_Ioi] { contextual := tt }
 end
+
+/-- The measure associated to a Stieltjes function, giving mass `f b - f a` to the
+interval `(a, b]`. -/
+protected def measure : measure ℝ :=
+{ to_outer_measure := f.outer,
+  m_Union := λ s hs, f.outer.Union_eq_of_caratheodory $
+    λ i, f.borel_le_measurable _ (hs i),
+  trimmed := f.outer_trim }
+
+@[simp] lemma measure_Ioc (a b : ℝ) : f.measure (Ioc a b) = of_real (f b - f a) :=
+f.outer_Ioc a b
+
+@[simp] lemma measure_singleton (a : ℝ) : f.measure {a} = of_real (f a - f.left_lim a) :=
+begin
+  have T := exists_mono
+  have Z := tendsto_measure_Inter,
+end
+
+#exit
+
 
 /-!
 ### Definition of the stieltjes measure and lengths of intervals
@@ -223,13 +266,13 @@ end
 The outer stieltjes measure is the completion of this measure. (TODO: proof this)
 -/
 instance real.measure_space : measure_space ℝ :=
-⟨{to_outer_measure := stieltjes_outer,
+⟨{outer_measure := stieltjes_outer,
   m_Union := λ f hf, stieltjes_outer.Union_eq_of_caratheodory $
     λ i, borel_le_stieltjes_measurable _ (hf i),
   trimmed := stieltjes_outer_trim }⟩
 
-@[simp] theorem stieltjes_to_outer_measure :
-  (volume : measure ℝ).to_outer_measure = stieltjes_outer := rfl
+@[simp] theorem stieltjes_outer_measure :
+  (volume : measure ℝ).outer_measure = stieltjes_outer := rfl
 
 end measure_theory
 

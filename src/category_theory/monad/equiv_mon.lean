@@ -3,7 +3,7 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.monad.bundled
+import category_theory.monad.basic
 import category_theory.monoidal.End
 import category_theory.monoidal.Mon_
 import category_theory.category.Cat
@@ -26,7 +26,7 @@ A monad "is just" a monoid in the category of endofunctors.
 namespace category_theory
 open category
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 variables {C : Type u} [category.{v} C]
 
 namespace Monad
@@ -85,12 +85,12 @@ def counit_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
 { hom := { app := λ _, { hom := 𝟙 _ } },
   inv := { app := λ _, { hom := 𝟙 _ } } }
 
-/-- Auxilliary definition for `Monad_Mon_equiv` -/
+/-- Auxiliary definition for `Monad_Mon_equiv` -/
 @[simps]
 def unit_iso_hom : 𝟭 _ ⟶ Monad_to_Mon C ⋙ Mon_to_Monad C :=
 { app := λ _, { app := λ _, 𝟙 _ } }
 
-/-- Auxilliary definition for `Monad_Mon_equiv` -/
+/-- Auxiliary definition for `Monad_Mon_equiv` -/
 @[simps]
 def unit_iso_inv : Monad_to_Mon C ⋙ Mon_to_Monad C ⟶ 𝟭 _ :=
 { app := λ _, { app := λ _, 𝟙 _ } }

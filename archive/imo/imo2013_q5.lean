@@ -190,22 +190,8 @@ lemma fixed_point_of_gt_1 {f : ℚ → ℝ} {x : ℚ} (hx : 1 < x)
   f x = x :=
 begin
   -- Choose n such that 1 + x < a^n.
-  have hbound : ∀ m : ℕ, 1 + (m : ℚ) * (a - 1) ≤ a^m,
-  { intros m,
-    have ha : -1 ≤ a := le_of_lt (lt_trans (neg_one_lt_zero.trans zero_lt_one) ha1),
-    exact one_add_mul_sub_le_pow ha m },
-
-  -- Choose N greater than x / (a - 1).
-  obtain ⟨N, hN⟩ := exists_nat_gt (max 0 (x / (a - 1))),
-  have hN' := calc x / (a - 1) ≤ max 0 (x / (a - 1)) : le_max_right _ _
-                           ... < N                   : hN,
-  have h_big_enough :=
-    calc (1 : ℚ)
-          = (1 + N * (a - 1)) - N * (a - 1) : by ring
-      ... ≤ a^N - N * (a - 1)               : sub_le_sub_right (hbound N) (↑N * (a - 1))
-      ... < a^N - (x / (a - 1)) * (a - 1)   : sub_lt_sub_left
-                                                ((mul_lt_mul_right (sub_pos.mpr ha1)).mpr hN') (a^N)
-      ... = a^N - x                         : by field_simp [ne_of_gt (sub_pos.mpr ha1)],
+  obtain ⟨N, hN⟩ := pow_unbounded_of_one_lt (1 + x) ha1,
+  have h_big_enough : (1:ℚ) < a^N - x := lt_sub_iff_add_lt.mpr hN,
 
   have h1 := calc (x : ℝ) + ((a^N - x) : ℚ)
                         ≤ f x + ((a^N - x) : ℚ) : add_le_add_right (H5 x hx) _
@@ -214,13 +200,11 @@ begin
   have hxp : 0 < x := zero_lt_one.trans hx,
 
   have hNp : 0 < N,
-  { exact_mod_cast calc ((0 : ℕ) : ℚ) = (0 : ℚ)             : nat.cast_zero
-                                  ... ≤ max 0 (x / (a - 1)) : le_max_left 0 _
-                                  ... < N                   : hN, },
+  { by_contra H, push_neg at H, rw [nat.le_zero_iff.mp H] at hN, linarith },
 
   have h2 := calc f x + f (a^N - x)
                         ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp (zero_lt_one.trans h_big_enough)
-                    ... = f (a^N)           : by ring
+                    ... = f (a^N)           : by ring_nf
                     ... = a^N               : fixed_point_of_pos_nat_pow hNp H1 H4 H5 ha1 hae
                     ... = x + (a^N - x)     : by ring,
 
@@ -308,7 +292,7 @@ begin
   have hx2cnezr : (x2denom : ℝ) ≠ (0 : ℝ) := nat.cast_ne_zero.mpr (ne_of_gt hx2pos),
 
   have hrat_expand2 := calc x = x.num / x.denom : by exact_mod_cast rat.num_denom.symm
-                          ... = x2num / x2denom : by { field_simp, linarith [hxcnez] },
+                          ... = x2num / x2denom : by { field_simp [-rat.num_div_denom], linarith },
 
   have h_denom_times_fx :=
     calc (x2denom : ℝ) * f x = f (x2denom * x)                 : (h_f_commutes_with_pos_nat_mul

@@ -149,6 +149,7 @@ begin
   have h4 : (0:ℚ) < 4, by norm_num,
   contrapose! H, rw sum_inv_pqr,
   have h4r := H.trans hqr,
+  simp only [pnat.coe_bit0, nat.cast_bit0, pnat.one_coe, nat.cast_one, coe_coe],
   calc (2⁻¹ + q⁻¹ + r⁻¹ : ℚ) ≤ 2⁻¹ + 4⁻¹ + 4⁻¹ : add_le_add (add_le_add le_rfl _) _
   ... = 1 : by norm_num,
   all_goals { rw inv_le_inv _ h4; [assumption_mod_cast, norm_num] }
@@ -159,6 +160,8 @@ lemma lt_six {r : ℕ+} (H : 1 < sum_inv {2, 3, r}) :
 begin
   have h6 : (0:ℚ) < 6, by norm_num,
   contrapose! H, rw sum_inv_pqr,
+  simp only [pnat.coe_bit0, nat.cast_bit0, pnat.one_coe, nat.cast_bit1, nat.cast_one,
+    pnat.coe_bit1, coe_coe],
   calc (2⁻¹ + 3⁻¹ + r⁻¹ : ℚ) ≤ 2⁻¹ + 3⁻¹ + 6⁻¹ : add_le_add (add_le_add le_rfl le_rfl) _
   ... = 1 : by norm_num,
   rw inv_le_inv _ h6; [assumption_mod_cast, norm_num]

@@ -79,6 +79,9 @@ is_fixed_pt.decidable
 
 @[simp] lemma mem_fixed_points : x ∈ fixed_points f ↔ is_fixed_pt f x := iff.rfl
 
+@[simp] lemma fixed_points_id : fixed_points (@id α) = set.univ :=
+set.ext $ λ _, by simpa using is_fixed_pt_id _
+
 /-- If `g` semiconjugates `fa` to `fb`, then it sends fixed points of `fa` to fixed points
 of `fb`. -/
 lemma semiconj.maps_to_fixed_pts {g : α → β} (h : semiconj g fa fb) :

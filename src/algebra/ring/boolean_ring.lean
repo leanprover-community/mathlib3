@@ -53,7 +53,7 @@ lemma add_eq_zero : a + b = 0 ↔ a = b :=
 calc a + b = 0 ↔ a = -b : add_eq_zero_iff_eq_neg
            ... ↔ a = b  : by rw neg_eq
 
-lemma mul_add_mul : a*b + b*a = 0 :=
+@[simp] lemma mul_add_mul : a*b + b*a = 0 :=
 have a + b = a + b + (a*b + b*a) :=
   calc a + b = (a + b) * (a + b)       : by rw mul_self
          ... = a*a + a*b + (b*a + b*b) : by rw [add_mul, mul_add, mul_add]
@@ -63,6 +63,8 @@ by rwa self_eq_add_right at this
 
 @[simp] lemma sub_eq_add : a - b = a + b :=
 by rw [sub_eq_add_neg, add_right_inj, neg_eq]
+
+@[simp] lemma mul_one_add_self : a * (1 + a) = 0 := by rw [mul_add, mul_one, mul_self, add_self]
 
 end boolean_ring
 
@@ -107,6 +109,27 @@ calc (a + b + a * b) * (a + c + a * c) =
 lemma le_sup_inf (a b c : α) : (a ⊔ b) ⊓ (a ⊔ c) ⊔ (a ⊔ b ⊓ c) = a ⊔ b ⊓ c :=
 by { dsimp only [(⊔), (⊓)], rw [le_sup_inf_aux, add_self, mul_self, zero_add] }
 
+/-- The "set difference" operation in a Boolean ring is `x * (1 + y)`. -/
+def has_sdiff : has_sdiff α := ⟨λ a b, a * (1 + b)⟩
+/-- The bottom element of a Boolean ring is `0`. -/
+def has_bot : has_bot α := ⟨0⟩
+
+localized "attribute [instance, priority 100] boolean_ring.has_sdiff" in
+  boolean_algebra_of_boolean_ring
+localized "attribute [instance, priority 100] boolean_ring.has_bot" in
+  boolean_algebra_of_boolean_ring
+
+lemma sup_inf_sdiff (a b : α) : a ⊓ b ⊔ a \ b = a :=
+calc a * b + a * (1 + b) + (a * b) * (a * (1 + b)) =
+       a * b + a * (1 + b) + a * a * (b * (1 + b)) : by ac_refl
+... = a * b + (a + a * b)           : by rw [mul_one_add_self, mul_zero, add_zero, mul_add, mul_one]
+... = a + (a * b + a * b)                          : by ac_refl
+... = a                                            : by rw [add_self, add_zero]
+
+lemma inf_inf_sdiff (a b : α) : a ⊓ b ⊓ (a \ b) = ⊥ :=
+calc a * b * (a * (1 + b)) = a * a * (b * (1 + b)) : by ac_refl
+                       ... = 0                     : by rw [mul_one_add_self, mul_zero]
+
 /--
 The Boolean algebra structure on a Boolean ring.
 
@@ -117,16 +140,16 @@ The data is defined so that:
 * `⊥` unfolds to `0`
 * `⊤` unfolds to `1`
 * `aᶜ` unfolds to `1 + a`
-* `a \ b` unfolds to `a * (1 + a)`
+* `a \ b` unfolds to `a * (1 + b)`
 -/
 def to_boolean_algebra : boolean_algebra α :=
 { le_sup_inf := le_sup_inf,
   top := 1,
   le_top := λ a, show a + 1 + a * 1 = 1, by assoc_rw [mul_one, add_comm, add_self, add_zero],
-  bot := 0,
   bot_le := λ a, show 0 + a + 0 * a = a, by rw [zero_mul, zero_add, add_zero],
   compl := λ a, 1 + a,
-  sdiff := λ a b, a * (1 + b),
+  sup_inf_sdiff := sup_inf_sdiff,
+  inf_inf_sdiff := inf_inf_sdiff,
   inf_compl_le_bot := λ a,
     show a*(1+a) + 0 + a*(1+a)*0 = 0,
     by norm_num [mul_add, mul_self, add_self],
@@ -137,7 +160,9 @@ def to_boolean_algebra : boolean_algebra α :=
       rw [←add_assoc, add_self],
     end,
   sdiff_eq := λ a b, rfl,
-  .. lattice.mk' sup_comm sup_assoc inf_comm inf_assoc sup_inf_self inf_sup_self }
+  .. lattice.mk' sup_comm sup_assoc inf_comm inf_assoc sup_inf_self inf_sup_self,
+  .. has_sdiff,
+  .. has_bot }
 
 localized "attribute [instance, priority 100] boolean_ring.to_boolean_algebra" in
   boolean_algebra_of_boolean_ring

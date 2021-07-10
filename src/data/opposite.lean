@@ -18,7 +18,8 @@ meanings:
   `op (x * y) = op x * op y`.
 -/
 
-universes v u -- declare the `v` first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
+
 variable (α : Sort u)
 
 /-- The type of objects of the opposite of `α`; used to define the opposite category or group.

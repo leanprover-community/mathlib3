@@ -119,6 +119,10 @@ lemma get_eq_iff_eq_some {a : roption α} {ha : a.dom} {b : α} :
   a.get ha = b ↔ a = some b :=
 ⟨λ h, by simp [h.symm], λ h, by simp [h]⟩
 
+lemma get_eq_get_of_eq (a : roption α) (ha : a.dom) {b : roption α} (h : a = b) :
+  a.get ha = b.get (h ▸ ha) :=
+by { congr, exact h }
+
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true
 
@@ -399,7 +403,7 @@ set.ext (mem_dom f)
 def fn (f : α →. β) (x) (h : dom f x) : β := (f x).get h
 
 /-- Evaluate a partial function to return an `option` -/
-def eval_opt (f : α →. β) [D : decidable_pred (dom f)] (x : α) : option β :=
+def eval_opt (f : α →. β) [D : decidable_pred (∈ dom f)] (x : α) : option β :=
 @roption.to_option _ _ (D x)
 
 /-- Partial function extensionality -/

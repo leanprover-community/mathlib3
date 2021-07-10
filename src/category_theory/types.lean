@@ -12,10 +12,10 @@ import data.equiv.basic
 In this section we set up the theory so that Lean's types and functions between them
 can be viewed as a `large_category` in our framework.
 
-Lean can not transparently view a function as a morphism in this category,
-and needs a hint in order to be able to type check.
-We provide the abbreviation `as_hom f` to guide type checking,
-as well as a corresponding notation `↾ f`. (Entered as `\upr `.)
+Lean can not transparently view a function as a morphism in this category, and needs a hint in
+order to be able to type check. We provide the abbreviation `as_hom f` to guide type checking,
+as well as a corresponding notation `↾ f`. (Entered as `\upr `.) The notation is enabled using
+`open_locale category_theory.Type`.
 
 We provide various simplification lemmas for functors and natural transformations valued in `Type`.
 
@@ -31,8 +31,12 @@ We prove some basic facts about the category `Type`:
 
 namespace category_theory
 
-universes v v' w u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- morphism levels before object levels. See note [category_theory universes].
+universes v v' w u u'
 
+/- The `@[to_additive]` attribute is just a hint that expressions involving this instance can
+  still be additivized. -/
+@[to_additive category_theory.types]
 instance types : large_category (Type u) :=
 { hom     := λ a b, (a → b),
   id      := λ a, id,
@@ -58,7 +62,7 @@ congr_fun f.inv_hom_id y
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
 abbreviation as_hom {α β : Type u} (f : α → β) : α ⟶ β := f
 -- If you don't mind some notation you can use fewer keystrokes:
-notation  `↾` f : 200 := as_hom f -- type as \upr in VScode
+localized "notation  `↾` f : 200 := as_hom f" in category_theory.Type -- type as \upr in VScode
 
 section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)
@@ -273,11 +277,10 @@ end category_theory.iso
 namespace category_theory
 
 /-- A morphism in `Type u` is an isomorphism if and only if it is bijective. -/
-noncomputable
-def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
-equiv_of_subsingleton_of_subsingleton
-  (λ i, ({ hom := f, .. i } : X ≅ Y).to_equiv.bijective)
-  (λ b, { .. (equiv.of_bijective f b).to_iso })
+lemma is_iso_iff_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ↔ function.bijective f :=
+iff.intro
+  (λ i, (by exactI as_iso f : X ≅ Y).to_equiv.bijective)
+  (λ b, is_iso.of_iso (equiv.of_bijective f b).to_iso)
 
 end category_theory
 
@@ -292,14 +295,11 @@ of types. -/
 
 /-- Equivalences (between types in the same universe) are the same as (equivalent to) isomorphisms
 of types. -/
--- We leave `X` and `Y` as explicit arguments here, because the coercions from `equiv` to a function
--- won't fire without them.
--- TODO: is it still true?
-def equiv_equiv_iso (X Y : Type u) : (X ≃ Y) ≃ (X ≅ Y) :=
+def equiv_equiv_iso {X Y : Type u} : (X ≃ Y) ≃ (X ≅ Y) :=
 (equiv_iso_iso).to_equiv
 
 @[simp] lemma equiv_equiv_iso_hom {X Y : Type u} (e : X ≃ Y) :
-  (equiv_equiv_iso X Y) e = e.to_iso := rfl
+  equiv_equiv_iso e = e.to_iso := rfl
 
 @[simp] lemma equiv_equiv_iso_inv {X Y : Type u} (e : X ≅ Y) :
-  (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl
+  equiv_equiv_iso.symm e = e.to_equiv := rfl

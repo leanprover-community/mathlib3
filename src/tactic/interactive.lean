@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
+Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
 import tactic.lint
 import tactic.dependencies
@@ -121,6 +121,8 @@ meta def work_on_goal : parse small_nat → itactic → tactic unit
 /--
 `swap n` will move the `n`th goal to the front.
 `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+See also `tactic.interactive.rotate`, which moves the first `n` goals to the back.
 -/
 meta def swap (n := 2) : tactic unit :=
 do gs ← get_goals,
@@ -135,7 +137,11 @@ add_tactic_doc
   decl_names := [`tactic.interactive.swap],
   tags       := ["goal management"] }
 
-/-- `rotate` moves the first goal to the back. `rotate n` will do this `n` times. -/
+/--
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.
+
+See also `tactic.interactive.swap`, which moves the `n`th goal to the front.
+-/
 meta def rotate (n := 1) : tactic unit := tactic.rotate n
 
 add_tactic_doc
@@ -328,7 +334,7 @@ literals. It creates a goal for each missing field and tags it with the name of 
 field so that `have_field` can be used to generically refer to the field currently
 being refined.
 
-As an example, we can use `refine_struct` to automate the construction semigroup
+As an example, we can use `refine_struct` to automate the construction of semigroup
 instances:
 
 ```lean
@@ -595,7 +601,7 @@ do let (e,n) := arg,
         tactic.clear h' ),
    when h.is_some (do
      (to_expr ``(heq_of_eq_rec_left %%eq_h %%asm)
-       <|> to_expr ``(heq_of_eq_mp %%eq_h %%asm))
+       <|> to_expr ``(heq_of_cast_eq %%eq_h %%asm))
      >>= note h' none >> pure ()),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
@@ -1075,6 +1081,25 @@ add_tactic_doc
 { name       := "generalize'",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.generalize'],
+  tags       := ["context management"] }
+
+/--
+If the expression `q` is a local variable with type `x = t` or `t = x`, where `x` is a local
+constant, `tactic.interactive.subst' q` substitutes `x` by `t` everywhere in the main goal and
+then clears `q`.
+If `q` is another local variable, then we find a local constant with type `q = t` or `t = q` and
+substitute `t` for `q`.
+
+Like `tactic.interactive.subst`, but fails with a nicer error message if the substituted variable is
+a local definition. It is trickier to fix this in core, since `tactic.is_local_def` is in mathlib.
+-/
+meta def subst' (q : parse texpr) : tactic unit := do
+i_to_expr q >>= tactic.subst' >> try (tactic.reflexivity reducible)
+
+add_tactic_doc
+{ name       := "subst'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.subst'],
   tags       := ["context management"] }
 
 end interactive

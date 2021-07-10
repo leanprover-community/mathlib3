@@ -178,11 +178,11 @@ end is_supported
 
 /-- The restriction map from `free_comm_ring α` to `free_comm_ring s` where `s : set α`, defined
   by sending all variables not in `s` to zero. -/
-def restriction (s : set α) [decidable_pred s] : free_comm_ring α →+* free_comm_ring s :=
+def restriction (s : set α) [decidable_pred (∈ s)] : free_comm_ring α →+* free_comm_ring s :=
 lift (λ p, if H : p ∈ s then of (⟨p, H⟩ : s) else 0)
 
 section restriction
-variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
+variables (s : set α) [decidable_pred (∈ s)] (x y : free_comm_ring α)
 @[simp] lemma restriction_of (p) :
   restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
 
@@ -207,7 +207,8 @@ assume hps : is_supported (of p) s, begin
   rwa [polynomial.coeff_C, if_neg (one_ne_zero : 1 ≠ 0), polynomial.coeff_X, if_pos rfl] at this
 end
 
-theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
+theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred (∈ s)]
+  (hxs : is_supported x s) :
   map (subtype.val : s → α) (restriction s x) = x :=
 begin
   refine ring.in_closure.rec_on hxs _ _ _ _,
@@ -331,9 +332,6 @@ ring_equiv.of_hom_inv
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempty_ring_equiv _)
-
--- this messes with the next definition
-local attribute [-instance] algebra_int
 
 /-- The free commutative ring on a type with one term is isomorphic to `ℤ[X]`. -/
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃+* polynomial ℤ :=

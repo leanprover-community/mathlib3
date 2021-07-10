@@ -39,6 +39,19 @@ variables [monoid α]
 
 @[to_additive] instance : has_coe (units α) α := ⟨val⟩
 
+@[to_additive] instance : has_inv (units α) := ⟨λ u, ⟨u.2, u.1, u.4, u.3⟩⟩
+
+/-- See Note [custom simps projection] -/
+@[to_additive /-" See Note [custom simps projection] "-/]
+def simps.coe (u : units α) : α := u
+
+/-- See Note [custom simps projection] -/
+@[to_additive /-" See Note [custom simps projection] "-/]
+def simps.coe_inv (u : units α) : α := ↑(u⁻¹)
+
+initialize_simps_projections units (val → coe as_prefix, inv → coe_inv as_prefix)
+initialize_simps_projections add_units (val → coe as_prefix, neg → coe_neg as_prefix)
+
 @[simp, to_additive] lemma coe_mk (a : α) (b h₁ h₂) : ↑(units.mk a b h₁ h₂) = a := rfl
 
 @[ext, to_additive] theorem ext :
@@ -60,6 +73,17 @@ variables [monoid α]
   mk (u : α) y h₁ h₂ = u :=
 ext rfl
 
+/-- Copy a unit, adjusting definition equalities. -/
+@[to_additive /-"Copy an `add_unit`, adjusting definitional equalities."-/, simps]
+def copy (u : units α) (val : α) (hv : val = u) (inv : α) (hi : inv = ↑(u⁻¹)) : units α :=
+{ val := val, inv := inv,
+  inv_val := hv.symm ▸ hi.symm ▸ u.inv_val, val_inv := hv.symm ▸ hi.symm ▸ u.val_inv }
+
+@[to_additive]
+lemma copy_eq (u : units α) (val hv inv hi) :
+  u.copy val hv inv hi = u :=
+ext hv
+
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
@@ -69,7 +93,7 @@ ext rfl
   mul_one := λ u, ext $ mul_one u,
   one_mul := λ u, ext $ one_mul u,
   mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
-  inv := λ u, ⟨u.2, u.1, u.4, u.3⟩,
+  inv := has_inv.inv,
   mul_left_inv := λ u, ext u.inv_val }
 
 variables (a b : units α) {c : units α}
@@ -236,7 +260,7 @@ def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 ⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
 
 @[simp, to_additive is_add_unit_add_unit]
-lemma is_unit_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
+protected lemma units.is_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
 
 @[simp, to_additive is_add_unit_zero]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
@@ -245,9 +269,17 @@ theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
   (a b : M) (h : a * b = 1) : is_unit a :=
 ⟨units.mk_of_mul_eq_one a b h, rfl⟩
 
+@[to_additive is_add_unit.exists_neg] theorem is_unit.exists_right_inv [monoid M]
+  {a : M} (h : is_unit a) : ∃ b, a * b = 1 :=
+by { rcases h with ⟨⟨a, b, hab, _⟩, rfl⟩, exact ⟨b, hab⟩ }
+
+@[to_additive is_add_unit.exists_neg'] theorem is_unit.exists_left_inv [monoid M]
+  {a : M} (h : is_unit a) : ∃ b, b * a = 1 :=
+by { rcases h with ⟨⟨a, b, _, hba⟩, rfl⟩, exact ⟨b, hba⟩ }
+
 @[to_additive is_add_unit_iff_exists_neg] theorem is_unit_iff_exists_inv [comm_monoid M]
   {a : M} : is_unit a ↔ ∃ b, a * b = 1 :=
-⟨by rintro ⟨⟨a, b, hab, _⟩, rfl⟩; exact ⟨b, hab⟩,
+⟨λ h, h.exists_right_inv,
  λ ⟨b, hab⟩, is_unit_of_mul_eq_one _ b hab⟩
 
 @[to_additive is_add_unit_iff_exists_neg'] theorem is_unit_iff_exists_inv' [comm_monoid M]
@@ -265,6 +297,7 @@ iff.intro
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
   (assume ⟨v, hv⟩, hv ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
 
+@[to_additive]
 lemma is_unit.mul [monoid M] {x y : M} : is_unit x → is_unit y → is_unit (x * y) :=
 by { rintros ⟨x, rfl⟩ ⟨y, rfl⟩, exact ⟨x * y, units.coe_mul _ _⟩ }
 
@@ -277,6 +310,11 @@ is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
 @[to_additive] theorem is_unit_of_mul_is_unit_right [comm_monoid M] {x y : M}
   (hu : is_unit (x * y)) : is_unit y :=
 @is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
+
+@[simp]
+lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
+⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
+  λ h, is_unit.mul h.1 h.2⟩
 
 @[to_additive] theorem is_unit.mul_right_inj [monoid M] {a b c : M} (ha : is_unit a) :
   a * b = a * c ↔ b = c :=

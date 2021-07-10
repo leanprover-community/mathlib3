@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import data.pi
 import data.prod
+import data.subtype
 import logic.unique
 import logic.function.basic
 
@@ -33,7 +34,8 @@ lemma nontrivial_iff : nontrivial α ↔ ∃ (x y : α), x ≠ y :=
 lemma exists_pair_ne (α : Type*) [nontrivial α] : ∃ (x y : α), x ≠ y :=
 nontrivial.exists_pair_ne
 
-lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+-- See Note [decidable namespace]
+protected lemma decidable.exists_ne [nontrivial α] [decidable_eq α] (x : α) : ∃ y, y ≠ x :=
 begin
   rcases exists_pair_ne α with ⟨y, y', h⟩,
   by_cases hx : x = y,
@@ -41,6 +43,9 @@ begin
     exact ⟨y', h.symm⟩ },
   { exact ⟨y, ne.symm hx⟩ }
 end
+
+lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+by classical; exact decidable.exists_ne x
 
 -- `x` and `y` are explicit here, as they are often needed to guide typechecking of `h`.
 lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
@@ -50,9 +55,24 @@ lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
 lemma nontrivial_of_lt [preorder α] (x y : α) (h : x < y) : nontrivial α :=
 ⟨⟨x, y, ne_of_lt h⟩⟩
 
-@[priority 100] -- see Note [lower instance priority]
+lemma nontrivial_iff_exists_ne (x : α) : nontrivial α ↔ ∃ y, y ≠ x :=
+⟨λ h, @exists_ne α h x, λ ⟨y, hy⟩, nontrivial_of_ne _ _ hy⟩
+
+lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
+  nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
+by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
+
+/--
+See Note [lower instance priority]
+
+Note that since this and `nonempty_of_inhabited` are the most "obvious" way to find a nonempty
+instance if no direct instance can be found, we give this a higher priority than the usual `100`.
+-/
+@[priority 500]
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
 let ⟨x, _⟩ := exists_pair_ne α in ⟨x⟩
+
+attribute [instance, priority 500] nonempty_of_inhabited
 
 /-- An inhabited type is either nontrivial, or has a unique element. -/
 noncomputable def nontrivial_psum_unique (α : Type*) [inhabited α] :

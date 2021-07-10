@@ -116,11 +116,11 @@ variable [monoid R]
 
 /--  Any power of a left-regular element is left-regular. -/
 lemma is_left_regular.pow (n : ℕ) (rla : is_left_regular a) : is_left_regular (a ^ n) :=
-by simp [is_left_regular, ← mul_left_iterate, rla.iterate n]
+by simp only [is_left_regular, ← mul_left_iterate, rla.iterate n]
 
 /--  Any power of a right-regular element is right-regular. -/
 lemma is_right_regular.pow (n : ℕ) (rra : is_right_regular a) : is_right_regular (a ^ n) :=
-by simp [is_right_regular, ← mul_right_iterate, rra.iterate n]
+by { rw [is_right_regular, ← mul_right_iterate], exact rra.iterate n }
 
 /--  Any power of a regular element is regular. -/
 lemma is_regular.pow (n : ℕ) (ra : is_regular a) : is_regular (a ^ n) :=
@@ -227,6 +227,18 @@ end
 lemma is_regular.ne_zero [nontrivial R] (la : is_regular a) : a ≠ 0 :=
 la.left.ne_zero
 
+/--  In a non-trivial ring, the element `0` is not left-regular -- with typeclasses. -/
+lemma not_is_left_regular_zero [nR : nontrivial R] : ¬ is_left_regular (0 : R) :=
+not_is_left_regular_zero_iff.mpr nR
+
+/--  In a non-trivial ring, the element `0` is not right-regular -- with typeclasses. -/
+lemma not_is_right_regular_zero [nR : nontrivial R] : ¬ is_right_regular (0 : R) :=
+not_is_right_regular_zero_iff.mpr nR
+
+/--  In a non-trivial ring, the element `0` is not regular -- with typeclasses. -/
+lemma not_is_regular_zero [nontrivial R] : ¬ is_regular (0 : R) :=
+λ h, is_regular.ne_zero h rfl
+
 end mul_zero_class
 
 section comm_semigroup
@@ -273,6 +285,26 @@ end
 end monoid
 
 section left_or_right_cancel_semigroup
+
+/--
+The embedding of a left cancellative semigroup into itself
+by left multiplication by a fixed element.
+ -/
+@[to_additive
+  "The embedding of a left cancellative additive semigroup into itself
+   by left translation by a fixed element.", simps]
+def mul_left_embedding {G : Type*} [left_cancel_semigroup G] (g : G) : G ↪ G :=
+{ to_fun := λ h, g * h, inj' := mul_right_injective g }
+
+/--
+The embedding of a right cancellative semigroup into itself
+by right multiplication by a fixed element.
+ -/
+@[to_additive
+  "The embedding of a right cancellative additive semigroup into itself
+   by right translation by a fixed element.", simps]
+def mul_right_embedding {G : Type*} [right_cancel_semigroup G] (g : G) : G ↪ G :=
+{ to_fun := λ h, h * g, inj' := mul_left_injective g }
 
 /--  Elements of a left cancel semigroup are left regular. -/
 lemma is_left_regular_of_left_cancel_semigroup [left_cancel_semigroup R] (g : R) :

@@ -90,9 +90,9 @@ begin
   rcases hs with ⟨S, Sopen, Scount, rfl⟩,
   rcases ht with ⟨T, Topen, Tcount, rfl⟩,
   rw [sInter_union_sInter],
-  apply is_Gδ_bInter_of_open (countable_prod Scount Tcount),
+  apply is_Gδ_bInter_of_open (Scount.prod Tcount),
   rintros ⟨a, b⟩ hab,
-  exact is_open_union (Sopen a hab.1) (Topen b hab.2)
+  exact is_open.union (Sopen a hab.1) (Topen b hab.2)
 end
 
 end is_Gδ
@@ -114,7 +114,7 @@ begin
     set_of_forall, id],
   refine is_Gδ_Inter (λ k, is_open.is_Gδ $ is_open_iff_mem_nhds.2 $ λ x, _),
   rintros ⟨s, ⟨hsx, hso⟩, hsU⟩,
-  filter_upwards [mem_nhds_sets hso hsx],
+  filter_upwards [is_open.mem_nhds hso hsx],
   intros y hy,
   exact ⟨s, ⟨hy, hso⟩, hsU⟩
 end

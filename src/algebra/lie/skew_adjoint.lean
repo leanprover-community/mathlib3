@@ -148,13 +148,13 @@ end
 rfl
 
 lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : units R) (J A : matrix n n R) :
-  A ∈ skew_adjoint_matrices_lie_subalgebra ((u : R) • J) ↔
+  A ∈ skew_adjoint_matrices_lie_subalgebra (u • J) ↔
   A ∈ skew_adjoint_matrices_lie_subalgebra J :=
 begin
-  change A ∈ skew_adjoint_matrices_submodule ((u : R) • J) ↔  A ∈ skew_adjoint_matrices_submodule J,
+  change A ∈ skew_adjoint_matrices_submodule (u • J) ↔ A ∈ skew_adjoint_matrices_submodule J,
   simp only [mem_skew_adjoint_matrices_submodule, matrix.is_skew_adjoint, matrix.is_adjoint_pair],
   split; intros h,
-  { simpa using congr_arg (λ B, (↑u⁻¹ : R) • B) h, },
+  { simpa using congr_arg (λ B, u⁻¹ • B) h, },
   { simp [h], },
 end
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
+Authors: Jeremy Avigad
 -/
 import data.list.perm
 import data.list.chain
@@ -280,7 +280,7 @@ end
 section correctness
 
 theorem perm_merge : ∀ (l l' : list α), merge r l l' ~ l ++ l'
-| []       []        := perm.nil
+| []       []        := by simp [merge]
 | []       (b :: l') := by simp [merge]
 | (a :: l) []        := by simp [merge]
 | (a :: l) (b :: l') := begin
@@ -291,8 +291,8 @@ theorem perm_merge : ∀ (l l' : list α), merge r l l' ~ l ++ l'
 end
 
 theorem perm_merge_sort : ∀ l : list α, merge_sort r l ~ l
-| []        := perm.refl _
-| [a]       := perm.refl _
+| []        := by simp [merge_sort]
+| [a]       := by simp [merge_sort]
 | (a::b::l) := begin
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,
@@ -311,7 +311,7 @@ section total_and_transitive
 variables {r} [is_total α r] [is_trans α r]
 
 theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge r l l')
-| []       []        h₁ h₂ := sorted_nil
+| []       []        h₁ h₂ := by simp [merge]
 | []       (b :: l') h₁ h₂ := by simpa [merge] using h₂
 | (a :: l) []        h₁ h₂ := by simpa [merge] using h₁
 | (a :: l) (b :: l') h₁ h₂ := begin
@@ -338,8 +338,8 @@ end
 variable (r)
 
 theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort r l)
-| []        := sorted_nil
-| [a]       := sorted_singleton _
+| []        := by simp [merge_sort]
+| [a]       := by simp [merge_sort]
 | (a::b::l) := begin
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,

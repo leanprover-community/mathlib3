@@ -45,7 +45,7 @@ def grothendieck_topology : grothendieck_topology (opens T) :=
   top_mem' := λ X x hx, ⟨_, 𝟙 _, trivial, hx⟩,
   pullback_stable' := λ X Y S f hf y hy,
   begin
-    rcases hf y (le_of_hom f hy) with ⟨U, g, hg, hU⟩,
+    rcases hf y (f.le hy) with ⟨U, g, hg, hU⟩,
     refine ⟨U ⊓ Y, hom_of_le inf_le_right, _, hU, hy⟩,
     apply S.downward_closed hg (hom_of_le inf_le_left),
   end,
@@ -60,11 +60,11 @@ def grothendieck_topology : grothendieck_topology (opens T) :=
 def pretopology : pretopology (opens T) :=
 { coverings := λ X R, ∀ x ∈ X, ∃ U (f : U ⟶ X), R f ∧ x ∈ U,
   has_isos := λ X Y f i x hx,
-        by exactI ⟨_, _, presieve.singleton_self _, le_of_hom (inv f) hx⟩,
+        by exactI ⟨_, _, presieve.singleton_self _, (inv f).le hx⟩,
   pullbacks := λ X Y f S hS x hx,
   begin
-    rcases hS _ (le_of_hom f hx) with ⟨U, g, hg, hU⟩,
-    refine ⟨_, _, pullback_arrows.mk _ _ hg, _⟩,
+    rcases hS _ (f.le hx) with ⟨U, g, hg, hU⟩,
+    refine ⟨_, _, presieve.pullback_arrows.mk _ _ hg, _⟩,
     have : U ⊓ Y ≤ pullback g f,
       refine le_of_hom (pullback.lift (hom_of_le inf_le_left) (hom_of_le inf_le_right) rfl),
     apply this ⟨hU, hx⟩,

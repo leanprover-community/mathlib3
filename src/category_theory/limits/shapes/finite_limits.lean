@@ -31,20 +31,17 @@ This is often called 'finitely complete'.
 -/
 -- We can't just made this an `abbreviation`
 -- because of https://github.com/leanprover-community/lean/issues/429
-def has_finite_limits : Prop :=
-Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
-
-attribute [class] has_finite_limits
+class has_finite_limits : Prop :=
+(out (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥] : @has_limits_of_shape J 𝒥 C _)
 
 @[priority 100]
 instance has_limits_of_shape_of_has_finite_limits
   (J : Type v) [small_category J] [fin_category J] [has_finite_limits C] :
-  has_limits_of_shape J C :=
-‹has_finite_limits C› J
+  has_limits_of_shape J C := has_finite_limits.out J
 
 /-- If `C` has all limits, it has finite limits. -/
 lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
-λ J 𝒥₁ 𝒥₂, by apply_instance
+⟨λ J 𝒥₁ 𝒥₂, by apply_instance⟩
 
 /--
 A category has all finite colimits if every functor `J ⥤ C` with a `fin_category J` instance
@@ -52,20 +49,17 @@ has a colimit.
 
 This is often called 'finitely cocomplete'.
 -/
-def has_finite_colimits : Prop :=
-Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
-
-attribute [class] has_finite_colimits
+class has_finite_colimits : Prop :=
+(out (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥] : @has_colimits_of_shape J 𝒥 C _)
 
 @[priority 100]
-instance has_colimits_of_shape_of_has_finite_colimits
+instance has_limits_of_shape_of_has_finite_colimits
   (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
-  has_colimits_of_shape J C :=
-‹has_finite_colimits C› J
+  has_colimits_of_shape J C := has_finite_colimits.out J
 
 /-- If `C` has all colimits, it has finite colimits. -/
 lemma has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
-λ J 𝒥₁ 𝒥₂, by apply_instance
+⟨λ J 𝒥₁ 𝒥₂, by apply_instance⟩
 
 section
 
@@ -157,29 +151,25 @@ for every finite collection of morphisms
 -/
 -- We can't just made this an `abbreviation`
 -- because of https://github.com/leanprover-community/lean/issues/429
-def has_finite_wide_pullbacks : Prop :=
-Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape (wide_pullback_shape J) C
-
-attribute [class] has_finite_wide_pullbacks
+class has_finite_wide_pullbacks : Prop :=
+(out (J : Type v) [decidable_eq J] [fintype J] : has_limits_of_shape (wide_pullback_shape J) C)
 
 instance has_limits_of_shape_wide_pullback_shape
   (J : Type v) [fintype J] [has_finite_wide_pullbacks C] :
   has_limits_of_shape (wide_pullback_shape J) C :=
-by { classical, exact ‹has_finite_wide_pullbacks C› J }
+by { haveI := @has_finite_wide_pullbacks.out C _ _ J (classical.dec_eq _), apply_instance }
 
 /--
 `has_finite_wide_pushouts` represents a choice of wide pushout
 for every finite collection of morphisms
 -/
-def has_finite_wide_pushouts : Prop :=
-Π (J : Type v) [decidable_eq J] [fintype J], has_colimits_of_shape (wide_pushout_shape J) C
-
-attribute [class] has_finite_wide_pushouts
+class has_finite_wide_pushouts : Prop :=
+(out (J : Type v) [decidable_eq J] [fintype J] : has_colimits_of_shape (wide_pushout_shape J) C)
 
 instance has_colimits_of_shape_wide_pushout_shape
   (J : Type v) [fintype J] [has_finite_wide_pushouts C] :
   has_colimits_of_shape (wide_pushout_shape J) C :=
-by { classical, exact ‹has_finite_wide_pushouts C› J }
+by { haveI := @has_finite_wide_pushouts.out C _ _ J (classical.dec_eq _), apply_instance }
 
 /--
 Finite wide pullbacks are finite limits, so if `C` has all finite limits,
@@ -187,7 +177,7 @@ it also has finite wide pullbacks
 -/
 lemma has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits C] :
   has_finite_wide_pullbacks C :=
-λ J _ _, by exactI limits.has_limits_of_shape_of_has_finite_limits _ _
+⟨λ J _ _, by exactI has_finite_limits.out _⟩
 
 /--
 Finite wide pushouts are finite colimits, so if `C` has all finite colimits,
@@ -195,7 +185,7 @@ it also has finite wide pushouts
 -/
 lemma has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits C] :
   has_finite_wide_pushouts C :=
-λ J _ _, by exactI limits.has_colimits_of_shape_of_has_finite_colimits _ _
+⟨λ J _ _, by exactI has_finite_colimits.out _⟩
 
 instance fintype_walking_pair : fintype walking_pair :=
 { elems := {walking_pair.left, walking_pair.right},

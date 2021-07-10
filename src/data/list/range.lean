@@ -8,13 +8,22 @@ import data.list.nodup
 import data.list.of_fn
 import data.list.zip
 
-open nat
+/-!
+# Ranges of naturals as lists
 
-namespace list
-/- iota and range(') -/
+This file shows basic results about `list.iota`, `list.range`, `list.range'` (all defined in
+`data.list.defs`) and defines `list.fin_range`.
+`fin_range n` is the list of elements of `fin n`.
+`iota n = [1, ..., n]` and `range n = [0, ..., n - 1]` are basic list constructions used for
+tactics. `range' a b = [a, ..., a + b - 1]` is there to help prove properties about them.
+Actual maths should use `list.Ico` instead.
+-/
 
 universe u
 
+open nat
+
+namespace list
 variables {α : Type u}
 
 @[simp] theorem length_range' : ∀ (s n : ℕ), length (range' s n) = n
@@ -30,7 +39,7 @@ by rw [← length_eq_zero, length_range']
   have m = s → m < s + n + 1,
     from λ e, e ▸ lt_succ_of_le (le_add_right _ _),
   have l : m = s ∨ s + 1 ≤ m ↔ s ≤ m,
-    by simpa only [eq_comm] using (@le_iff_eq_or_lt _ _ s m).symm,
+    by simpa only [eq_comm] using (@decidable.le_iff_eq_or_lt _ _ _ s m).symm,
   (mem_cons_iff _ _ _).trans $ by simp only [mem_range',
     or_and_distrib_left, or_iff_right_of_imp this, l, add_right_comm]; refl
 

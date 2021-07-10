@@ -512,7 +512,7 @@ begin
       simp only [stream_nth_fr_ne_zero, conts_eq.symm, pred_conts_eq.symm] at tmp,
       rw tmp,
       simp only [denom'],
-      ring,
+      ring_nf,
       ac_refl },
     rwa this },
   -- derive some tedious inequalities that we need to rewrite our goal

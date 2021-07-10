@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Floris van Doorn
+Authors: Floris van Doorn
 -/
 import data.real.basic
 import data.set.disjointed
@@ -513,7 +513,7 @@ begin
   dsimp only [decreasing_sequence], rw hnm
 end
 
-/-- A cube cannot be cubed. -/
+/-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :
   ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
   ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes

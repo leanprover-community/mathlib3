@@ -210,10 +210,8 @@ See Note [use has_coe_t]. -/
 relation", priority 0]
 instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
-/-- The quotient of a type with decidable equality by a congruence relation also has
-    decidable equality. -/
-@[to_additive "The quotient of a type with decidable equality by an additive congruence relation
-also has decidable equality."]
+/-- The quotient by a decidable congruence relation has decidable equality. -/
+@[to_additive "The quotient by a decidable additive congruence relation has decidable equality."]
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 
@@ -543,30 +541,18 @@ end
 
 end
 
--- Monoids
-section monoids
+section mul_one_class
 
-variables {M} [monoid M] [monoid N] [monoid P] (c : con M)
+variables {M} [mul_one_class M] [mul_one_class N] [mul_one_class P] (c : con M)
 
 /-- The quotient of a monoid by a congruence relation is a monoid. -/
 @[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
-instance monoid : monoid c.quotient :=
+instance mul_one_class : mul_one_class c.quotient :=
 { one := ((1 : M) : c.quotient),
   mul := (*),
-  mul_assoc := λ x y z, quotient.induction_on₃' x y z
-               $ λ _ _ _, congr_arg coe $ mul_assoc _ _ _,
   mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ mul_one _,
   one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ one_mul _ }
-
-
-/-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
-@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
-relation is an `add_comm_monoid`."]
-instance comm_monoid {α : Type*} [comm_monoid α] (c : con α) :
-  comm_monoid c.quotient :=
-{ mul_comm := λ x y, con.induction_on₂ x y $ λ w z, by rw [←coe_mul, ←coe_mul, mul_comm],
-  ..c.monoid}
 
 variables {c}
 
@@ -739,10 +725,7 @@ lift_funext g (c.lift f H) $ λ x, by rw [lift_coe H, ←comp_mk'_apply, Hg]
 constant on `c`'s equivalence classes, `f` has the same image as the homomorphism that `f` induces
 on the quotient."]
 theorem lift_range (H : c ≤ ker f) : (c.lift f H).mrange = f.mrange :=
-submonoid.ext $ λ x,
-  ⟨λ ⟨y, hy⟩, by revert hy; rcases y; exact
-     λ hy, ⟨y, hy.1, by rw [hy.2.symm, ←lift_coe H]; refl⟩,
-   λ ⟨y, hy⟩, ⟨↑y, hy.1, by rw ←hy.2; refl⟩⟩
+submonoid.ext $ λ x, ⟨by rintros ⟨⟨y⟩, hy⟩; exact ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨↑y, hy⟩⟩
 
 /-- Surjective monoid homomorphisms constant on a congruence relation `c`'s equivalence classes
     induce a surjective homomorphism on `c`'s quotient. -/
@@ -822,16 +805,32 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
         ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
-         λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
+         λ ⟨w, z, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
-/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
+/-- The first isomorphism theorem for monoids in the case of a homomorphism with right inverse. -/
+@[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a homomorphism
+with right inverse.", simps]
+def quotient_ker_equiv_of_right_inverse (f : M →* P) (g : P → M)
+  (hf : function.right_inverse g f) :
+  (ker f).quotient ≃* P :=
+{ to_fun := ker_lift f,
+  inv_fun := coe ∘ g,
+  left_inv := λ x, ker_lift_injective _ (by rw [function.comp_app, ker_lift_mk, hf]),
+  right_inv := hf,
+  .. ker_lift f }
+
+/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism.
+
+For a `computable` version, see `con.quotient_ker_equiv_of_right_inverse`.
+-/
 @[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a surjective
-homomorphism."]
+homomorphism.
+
+For a `computable` version, see `add_con.quotient_ker_equiv_of_right_inverse`.
+"]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
   (ker f).quotient ≃* P :=
-{ map_mul' := monoid_hom.map_mul _,
-  ..equiv.of_bijective (ker_lift f)
-      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+quotient_ker_equiv_of_right_inverse _ _ hf.has_right_inverse.some_spec
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]
@@ -846,6 +845,28 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
 { map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
     show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
   ..quotient_quotient_equiv_quotient c.to_setoid d.to_setoid h }
+
+end mul_one_class
+
+section monoids
+
+/-- The quotient of a monoid by a congruence relation is a monoid. -/
+@[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
+an `add_monoid`."]
+instance monoid {M : Type*} [monoid M] (c : con M): monoid c.quotient :=
+{ one := ((1 : M) : c.quotient),
+  mul := (*),
+  mul_assoc := λ x y z, quotient.induction_on₃' x y z
+               $ λ _ _ _, congr_arg coe $ mul_assoc _ _ _,
+  .. c.mul_one_class }
+
+/-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
+@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
+relation is an `add_comm_monoid`."]
+instance comm_monoid {M : Type*} [comm_monoid M] (c : con M) :
+  comm_monoid c.quotient :=
+{ mul_comm := λ x y, con.induction_on₂ x y $ λ w z, by rw [←coe_mul, ←coe_mul, mul_comm],
+  ..c.monoid}
 
 end monoids
 

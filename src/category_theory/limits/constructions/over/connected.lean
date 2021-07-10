@@ -14,7 +14,7 @@ Shows that the forgetful functor `over B ⥤ C` creates connected limits, in par
 any connected limit which `C` has.
 -/
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 noncomputable theory
 

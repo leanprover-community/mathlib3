@@ -553,7 +553,7 @@ theorem lt_cof_power {a b : cardinal} (ha : omega ≤ a) (b1 : 1 < b) :
 begin
   have b0 : b ≠ 0 := ne_of_gt (lt_trans zero_lt_one b1),
   apply lt_imp_lt_of_le_imp_le (power_le_power_left $ power_ne_zero a b0),
-  rw [power_mul, mul_eq_self ha],
+  rw [← power_mul, mul_eq_self ha],
   exact lt_power_cof (le_trans ha $ le_of_lt $ cantor' _ b1),
 end
 

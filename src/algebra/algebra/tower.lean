@@ -26,7 +26,7 @@ variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁) (M : Type v₁)
 namespace algebra
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 
 variables {A}
 
@@ -45,20 +45,24 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
+@[simp] lemma lmul_algebra_map (x : R) :
+  lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
+eq.symm $ linear_map.ext $ smul_def'' x
+
 end algebra
 
 namespace is_scalar_tower
 
-section semimodule
+section module
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 
 variables {R} (A) {M}
 theorem algebra_map_smul (r : R) (x : M) : algebra_map R A r • x = r • x :=
 by rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul]
 
-end semimodule
+end module
 
 section semiring
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
@@ -104,14 +108,6 @@ begin
   ext r, erw [← mul_one (g1 r), ← h12, ← mul_one (g2 r), ← h22, h], refl }
 end
 
-variables (R S A)
-theorem algebra_comap_eq : algebra.comap.algebra R S A = ‹_› :=
-algebra.ext _ _ $ λ x (z : A),
-calc  algebra_map R S x • z
-    = (x • 1 : S) • z : by rw algebra.algebra_map_eq_smul_one
-... = x • (1 : S) • z : by rw smul_assoc
-... = (by exact x • z : A) : by rw one_smul
-
 /-- In a tower, the canonical map from the middle element to the top element is an
 algebra homomorphism over the bottom element. -/
 def to_alg_hom : S →ₐ[R] A :=
@@ -127,13 +123,6 @@ ring_hom.ext $ λ _, rfl
 rfl
 
 variables (R) {S A B}
-
-instance right : is_scalar_tower S A A :=
-⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, algebra.smul_mul_assoc]⟩
-
-instance comap {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
-  [algebra R S] [algebra S A] : is_scalar_tower R S (algebra.comap R S A) :=
-of_algebra_map_eq $ λ x, rfl
 
 -- conflicts with is_scalar_tower.subalgebra
 @[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
@@ -175,6 +164,18 @@ variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 variables (R) {A S B}
 
 open is_scalar_tower
+
+/-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
+`R`-subalgebra. -/
+def subalgebra.restrict_scalars (iSB : subalgebra S A) :
+  subalgebra R A :=
+{ one_mem' := iSB.one_mem,
+  mul_mem' := λ _ _, iSB.mul_mem,
+  algebra_map_mem' := λ r, begin
+    rw is_scalar_tower.algebra_map_eq R S,
+    exact iSB.algebra_map_mem' _,
+  end,
+  .. iSB.to_submodule.restrict_scalars R  }
 
 namespace alg_hom
 
@@ -258,8 +259,7 @@ show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range 
   z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),
 from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (algebra_map S A),
   by rw this,
-by { ext z, exact ⟨λ ⟨⟨x, y, _, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩,
-  ⟨⟨z, y, set.mem_univ _, hy⟩, rfl⟩⟩ }
+by { ext z, exact ⟨λ ⟨⟨x, y, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, hy⟩, rfl⟩⟩ }
 
 end is_scalar_tower
 
@@ -267,7 +267,7 @@ section semiring
 
 variables {R S A}
 variables [comm_semiring R] [semiring S] [add_comm_monoid A]
-variables [algebra R S] [semimodule S A] [semimodule R A] [is_scalar_tower R S A]
+variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
 
 namespace submodule
 
@@ -315,11 +315,11 @@ section ring
 namespace algebra
 
 variables [comm_semiring R] [ring A] [algebra R A]
-variables [add_comm_group M] [module A M] [semimodule R M] [is_scalar_tower R A M]
+variables [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
-smul_injective hx
+smul_left_injective _ hx
 
 end algebra
 

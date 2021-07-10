@@ -40,7 +40,7 @@ connected limit. That is, any limit of shape `J` where `J` is a connected
 category is preserved by the functor `(X × -)`. This appears in `category_theory.limits.connected`.
 -/
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ v₃ u₁ u₂
 
 noncomputable theory
 
@@ -318,6 +318,14 @@ lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (X ⟶ Y)
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
+
+instance [is_connected J] : full (functor.const J : C ⥤ _) :=
+{ preimage := λ X Y f, f.app (classical.arbitrary J),
+  witness' := λ X Y f,
+  begin
+    ext j,
+    apply nat_trans_from_is_connected f (classical.arbitrary J) j,
+  end }
 
 instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] (x y : G) :
   nonempty (x ⟶ y) :=

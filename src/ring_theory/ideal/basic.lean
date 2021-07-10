@@ -180,8 +180,8 @@ begin
   exact submodule.singleton_span_is_compact_element 1,
 end
 
-/-- **Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
-    maximal ideal**. -/
+/-- **Krull's theorem**: if `I` is an ideal that is not the whole ring, then it is included in some
+    maximal ideal. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 let ⟨m, hm⟩ := (eq_top_or_exists_le_coatom I).resolve_left hI in ⟨m, ⟨⟨hm.1⟩, hm.2⟩⟩

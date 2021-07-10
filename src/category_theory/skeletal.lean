@@ -209,7 +209,7 @@ noncomputable instance from_thin_skeleton_equivalence : is_equivalence (from_thi
       (by tidy) }
 
 /-- The equivalence between the thin skeleton and the category itself. -/
-noncomputable def thin_skeleton_equivalence : thin_skeleton C ≌ C :=
+noncomputable def equivalence : thin_skeleton C ≌ C :=
 (from_thin_skeleton C).as_equivalence
 
 variables {C}
@@ -286,7 +286,7 @@ the `thin_skeleton C` is order isomorphic to `α`.
 noncomputable
 def equivalence.thin_skeleton_order_iso
   [∀ X Y : C, subsingleton (X ⟶ Y)] (e : C ≌ α) : thin_skeleton C ≃o α :=
-((thin_skeleton_equivalence C).trans e).to_order_iso
+((thin_skeleton.equivalence C).trans e).to_order_iso
 
 end
 

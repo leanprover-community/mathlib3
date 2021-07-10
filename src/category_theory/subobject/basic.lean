@@ -96,16 +96,15 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
-noncomputable def equiv_mono_over {X : C} : subobject X ≌ mono_over X :=
-thin_skeleton_equivalence _
+noncomputable def equiv_mono_over (X : C) : subobject X ≌ mono_over X :=
+thin_skeleton.equivalence _
 
 /--
 Use choice to pick a representative `mono_over X` for each `subobject X`.
 -/
 noncomputable
 def representative {X : C} : subobject X ⥤ mono_over X :=
-thin_skeleton.from_thin_skeleton _
-
+(equiv_mono_over X).functor
 
 /--
 Starting with `A : mono_over X`, we can take its equivalence class in `subobject X`
@@ -115,7 +114,7 @@ This is isomorphic (in `mono_over X`) to the original `A`.
 noncomputable
 def representative_iso {X : C} (A : mono_over X) :
   representative.obj ((to_thin_skeleton _).obj A) ≅ A :=
-(thin_skeleton.from_thin_skeleton _).as_equivalence.counit_iso.app A
+(equiv_mono_over X).counit_iso.app A
 
 /--
 Use choice to pick a representative underlying object in `C` for any `subobject X`.

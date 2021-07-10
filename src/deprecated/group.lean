@@ -9,41 +9,22 @@ import algebra.ring.basic
 import data.equiv.mul_add
 
 /-!
-# Unbundled monoid and group homomorphisms (deprecated)
+# Unbundled monoid and group homomorphisms
 
-This file defines typeclasses for unbundled monoid and group homomorphisms. Though these classes are
-deprecated, they are still widely used in mathlib, and probably will not go away before Lean 4
+This file defines predicates for unbundled monoid and group homomorphisms. Though
+bundled morphisms are preferred in mathlib, these unbundled predicates are still occasionally used
+in mathlib, and probably will not go away before Lean 4
 because Lean 3 often fails to coerce a bundled homomorphism to a function.
 
-## main definitions
+## Main Definitions
 
-is_monoid_hom (deprecated), is_group_hom (deprecated)
-
-## implementation notes
-
-There's a coercion from bundled homs to fun, and the canonical
-notation is to use the bundled hom as a function via this coercion.
-
-There is no `group_hom` -- the idea is that `monoid_hom` is used.
-The constructor for `monoid_hom` needs a proof of `map_one` as well
-as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
-group homs (i.e. monoid homs between groups) given only a proof
-that multiplication is preserved,
+`is_monoid_hom` (deprecated), `is_group_hom` (deprecated)
 
 ## Tags
 
-is_group_hom, is_monoid_hom, monoid_hom
+is_group_hom, is_monoid_hom
 
 -/
-
-/--
-We have lemmas stating that the composition of two morphisms is again a morphism.
-Since composition is reducible, type class inference will always succeed in applying these
-instances. For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
-will still succeed, unifying `f` with `f ∘ (λ x, x)`.  This causes type class inference to loop.
-To avoid this, we do not make these lemmas instances.
--/
-library_note "no instance on morphisms"
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -220,8 +201,7 @@ lemma monoid_hom.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (f : G �
 lemma mul_equiv.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (h : G ≃* H) :
   is_group_hom h := { map_mul := h.map_mul }
 
-/-- Construct `is_group_hom` from its only hypothesis. The default constructor tries to get
-`is_mul_hom` from class instances, and this makes some proofs fail. -/
+/-- Construct `is_group_hom` from its only hypothesis. -/
 @[to_additive]
 lemma is_group_hom.mk' [group α] [group β] {f : α → β} (hf : ∀ x y, f (x * y) = f x * f y) :
   is_group_hom f :=

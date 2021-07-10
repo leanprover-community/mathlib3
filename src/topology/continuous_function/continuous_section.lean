@@ -62,6 +62,10 @@ open bundle
 
 variables {B : Type*} [topological_space B] {E : B → Type*} [topological_space (total_space E)]
 
+@[nolint unused_arguments]
+instance bundle_section_to_right_inv : has_coe (bundle_section E) (right_inv (proj E)) :=
+⟨bundle_section_right_inv⟩
+
 /-- A continuous section of a bundle `E` is an element of `Π x, E x` that is continuous when
 coerced to the total space.
 Note that the `nolint has_inhabited_instance` here has a true matematical meaning: the universal
@@ -75,8 +79,7 @@ namespace continuous_bundle_section
 
 variables (s t : continuous_bundle_section E)
 
-instance : has_coe_to_fun (continuous_bundle_section E) :=
-⟨λ s, Π x, E x, continuous_bundle_section.to_fun⟩
+instance : has_coe_to_fun (continuous_bundle_section E) := ⟨λ s, Π x, E x, to_fun⟩
 
 /-- Natural identification as a `continuous_section`. -/
 def to_continuous_section (s : continuous_bundle_section E) : continuous_section (proj E) :=

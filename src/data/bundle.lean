@@ -24,6 +24,11 @@ we will make will be of this form.
 
 -/
 
+
+/-- TEMPORARY: to be removed when Lean will be updated. -/
+instance lift_fn_range' {α : Sort*} {A : α → Sort*} {B : α → Sort*} [Π i, has_lift_t (A i) (B i)] :
+  has_lift (Π i, A i) (Π i, B i) := ⟨λ f i, ↑(f i)⟩
+
 namespace bundle
 
 variables {B : Type*} (E : B → Type*)
@@ -93,8 +98,10 @@ open bundle
 
 variables {B : Type*} {E : B → Type*}
 
-/-- Type synonim to avoid cluttering type class inference. -/
-@[reducible] def bundle_section (E : B → Type*) := Π x, E x
+/-- Type synonim for name clarity. -/
+@[reducible, nolint has_coe_to_fun] def bundle_section (E : B → Type*) := Π x, E x
+
+-- instance : has_coe_to_fun (bundle_section E) := ⟨_, λ s, s⟩
 
 @[simp] lemma right_inv.fst_eq_id (f : right_inv (proj E)) (b : B) : (f b).fst = b :=
 congr_fun f.right_inv_def b
@@ -106,7 +113,7 @@ def bundle_section_right_inv : equiv (bundle_section E) (right_inv (proj E)) :=
   left_inv := λ g, rfl,
   right_inv := λ g, by { ext a, exacts [(g.right_inv' a).symm, cast_heq _ _] }, }
 
-variable (x : B)
+variables (x : B) (g : bundle_section E)
 
 @[simp] lemma right_inv.bundle_section_right_inv_symm_apply (g : right_inv (proj E)) :
   bundle_section_right_inv.symm g x == (g x).2 := cast_heq _ (g x).snd
@@ -117,8 +124,5 @@ variable (x : B)
 @[simp] lemma right_inv.snd_eq_to_bundle_section_fst (g : right_inv (proj E)) :
   bundle_section_right_inv.symm g (g x).fst = (g x).snd :=
 eq_of_heq ((cast_heq _ _).trans (congr_arg_heq sigma.snd (congr_arg g (g.fst_eq_id x))))
-
-instance bundle_section_to_right_inv : has_coe (bundle_section E) (right_inv (proj E)) :=
-⟨bundle_section_right_inv⟩
 
 end bundle_sections

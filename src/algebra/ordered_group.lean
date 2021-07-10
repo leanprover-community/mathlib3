@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
+import order.rel_iso
 
 /-!
 # Ordered groups
@@ -564,10 +565,22 @@ alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
+/-- `equiv.mul_right` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_right (a : α) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_iff_right a, ..equiv.mul_right a }
+
 end right
 
 section left
-variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
+variables [covariant_class α α (*) (≤)]
+
+/-- `equiv.mul_left` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_left (a : α) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_iff_left a, ..equiv.mul_left a }
+
+variables [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
 
 @[simp, to_additive]
 lemma div_le_div_iff_left (a : α) : a / b ≤ a / c ↔ c ≤ b :=

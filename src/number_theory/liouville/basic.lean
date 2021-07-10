@@ -6,8 +6,6 @@ Authors: Damiano Testa, Jujian Zhang
 import analysis.calculus.mean_value
 import data.polynomial.denoms_clearable
 import data.real.irrational
-import ring_theory.algebraic
-import topology.algebra.polynomial
 /-!
 
 # Liouville's theorem
@@ -168,6 +166,7 @@ begin
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
 
+/-- **Liouville's Theorem** -/
 theorem transcendental {x : ℝ} (lx : liouville x) :
   transcendental ℤ x :=
 begin

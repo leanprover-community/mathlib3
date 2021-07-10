@@ -741,6 +741,14 @@ lemma orthonormal.inner_left_fintype [fintype ι]
   ⟪∑ i : ι, (l i) • (v i), v i⟫ = conj (l i) :=
 by simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
 
+/--
+The double sum of weighted inner products of pairs of vectors from an orthonormal sequence is the
+sum of the weights.
+-/
+lemma orthonormal.inner_left_right_finset {s : finset ι}  {v : ι → E} (hv : orthonormal 𝕜 v)
+  {a : ι → ι → 𝕜} : ∑ i in s, ∑ j in s, (a i j) • ⟪v j, v i⟫ = ∑ k in s, a k k :=
+by simp [orthonormal_iff_ite.mp hv, finset.sum_ite_of_true]
+
 /-- An orthonormal set is linearly independent. -/
 lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :
   linear_independent 𝕜 v :=
@@ -1373,6 +1381,56 @@ linear_map.mk_continuous
 @[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
 
 end norm
+
+section bessels_inequality
+
+variables {ι: Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [complete_space E] (x : E) {v : ι → E}
+
+lemma bessel_finite {s : finset ι} (hv : orthonormal 𝕜 v) : ∑ i in s, ∥ ⟪v i, x⟫ ∥^2 ≤ ∥x∥ ^2 :=
+begin
+  rw ←sub_nonneg,
+  suffices hbf: ∥ x -  ∑ i in s, ⟪v i, x⟫ • (v i) ∥^2 = ∥x∥^2 - ∑ i in s, ∥ ⟪v i, x⟫ ∥^2,
+  { rw ←hbf, simp only [norm_nonneg, pow_nonneg], },
+  rw [norm_sub_sq, sub_add], congr' 1,
+  simp only [inner_product_space.norm_sq_eq_inner, inner_sum],
+  simp only [sum_inner],
+  simp only [inner_smul_left, inner_smul_right, inner_conj_sym, ←mul_assoc],
+  have h₂ : ∑ i in s, ∑ i_1 in s, (inner (v i) x * inner x (v i_1)) * inner (v i_1) (v i)
+   = (∑ k in s, (inner (v k) x * inner x (v k)) : 𝕜 ),
+   { apply orthonormal.inner_left_right_finset, exact hv },
+  simp only [h₂], clear h₂,
+  simp only [add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib],
+  simp only [two_mul, add_sub_cancel'],
+  have h₃ : ∀ z : 𝕜, re (z * conj (z)) = ∥ z ∥ ^2,
+  { intro z, simp only [mul_conj, norm_sq_eq_def'], norm_cast, },
+  simp only [←h₃, inner_conj_sym],
+end
+
+lemma bessels_inequality (hv : orthonormal 𝕜 v) : ∑' i, ∥ ⟪v i, x⟫ ∥^2 ≤ ∥ x ∥ ^ 2 :=
+begin
+  refine tsum_le_of_sum_le' _ _,
+  { simp only [norm_nonneg, pow_nonneg], },
+  { intro s, apply bessel_finite _ hv }
+end
+
+lemma bessels_inequality.summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥ ⟪v i, x⟫ ∥^2) :=
+begin
+  by_cases hnon : nonempty ι,
+  { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥ ⟪v i, x⟫ ∥^2)),
+    apply has_sum_of_is_lub_of_nonneg,
+    { intro b, simp only [norm_nonneg, pow_nonneg], },
+    { apply is_lub_cSup,
+      { apply set.range_nonempty, },
+      { refine @set.nonempty_of_mem _ _ (∥x∥^2) _,
+        rw mem_upper_bounds,
+        rintro y ⟨s, rfl⟩,
+        apply bessel_finite _ hv, }, }, },
+  { rw not_nonempty_iff at hnon,
+    haveI := hnon,
+    exact summable_empty, },
+end
+
+end bessels_inequality
 
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=

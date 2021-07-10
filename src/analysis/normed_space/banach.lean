@@ -334,8 +334,7 @@ namespace continuous_linear_map
 /-- Intermediate definition used to show
 `continuous_linear_map.closed_complemented_range_of_is_compl_of_ker_eq_bot`.
 
-This is `f.coprod G.subtypeL` as an `continuous_linear_equiv`.
--/
+This is `f.coprod G.subtypeL` as an `continuous_linear_equiv`. -/
 noncomputable def coprod_subtypeL_equiv_of_is_compl
   (f : E →L[𝕜] F) {G : submodule 𝕜 F}
   (h : is_compl f.range G) [complete_space G] (hker : f.ker = ⊥) : (E × G) ≃L[𝕜] F :=

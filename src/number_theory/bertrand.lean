@@ -664,8 +664,8 @@ begin
 end
 
 
-lemma lim_real_is_real_lim (s : cau_seq ℂ complex.abs) :
-s.lim.re = (s.re).lim
+-- lemma lim_real_is_real_lim (s : cau_seq ℂ complex.abs) :
+-- s.lim.re = (s.re).lim
 
 lemma power_series_le_exp_of_nonneg (x : ℝ) (n : ℕ) (hx : 0 ≤ x) :
 ∑ i in finset.range n, x ^ i / i.factorial ≤ exp x

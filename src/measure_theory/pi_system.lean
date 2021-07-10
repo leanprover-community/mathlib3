@@ -212,17 +212,6 @@ def pi_Union_Inter {α ι} (π : ι → set (set α)) (S : set (finset ι)) : se
 {s : set α | ∃ (t : finset ι) (htS : t ∈ S) (f : ι → set α) (hf : ∀ x, x ∈ t → f x ∈ π x),
   s = ⋂ x (hxt : x ∈ t), f x}
 
-lemma finset.Inter_inter_Inter_eq_Inter_union_if {α ι} (s1 s2 : finset ι) (f1 f2 : ι → set α) :
-  (⋂ i (hp : i ∈ s1), f1 i) ∩ (⋂ i (hp : i ∈ s2), f2 i)
-    = ⋂ i (hp : i ∈ s1 ∪ s2),
-      (if i ∈ s1 then f1 i else set.univ) ∩ (if i ∈ s2 then f2 i else set.univ) :=
-begin
-  simp_rw ←set.inf_eq_inter,
-  rw binfi_inf_binfi_eq_binfi_union_if (λ i:ι, i ∈ s1) (λ i:ι, i ∈ s2) f1 f2,
-  simp_rw [set.top_eq_univ, set.inf_eq_inter, set.Inter],
-  simp,
-end
-
 lemma is_pi_system_pi_Union_Inter {α ι} (pi : ι → set (set α))
   (hpi : ∀ x, is_pi_system (pi x)) (S : set (finset ι)) (h_sup : sup_closed S) :
   is_pi_system (pi_Union_Inter pi S) :=
@@ -233,7 +222,9 @@ begin
   use [p1 ∪ p2, h_sup p1 p2 hp1S hp2S, g],
   have h_inter_eq : t1 ∩ t2 = ⋂ (i : ι) (hp : i ∈ p1 ∪ p2), g i,
   { rw [ht1_eq, ht2_eq],
-    exact finset.Inter_inter_Inter_eq_Inter_union_if p1 p2 f1 f2, },
+    simp_rw ←set.inf_eq_inter,
+    rw binfi_inf_binfi_eq_binfi_union_if,
+    simp [set.Inter], },
   refine ⟨λ n hn, _, h_inter_eq⟩,
   simp_rw g,
   split_ifs with hn1 hn2,

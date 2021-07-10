@@ -21,12 +21,17 @@ sub-relation of the adjacency relation of the simple graph.
   `simple_graph` counterparts, but they refer to vertices from `G` to avoid subtype coercions.
 
 * `subgraph.coe` is the coercion from a `G' : subgraph G` to a `simple_graph G'.verts`.
-  (This cannot be a `has_coe` instance due to universe variable inference issues.)
+  (This cannot be a `has_coe` instance since the destination type depends on `G'`.)
 
 * A `bounded_lattice (subgraph G)` instance.
 
 * Graph homomorphisms from a subgraph to a graph (`subgraph.map_top`) and between subgraphs
   (`subgraph.map`).
+
+## Implementation notes
+
+* Recall that subgraphs are not determined by their vertex sets, so `set_like` does not apply to
+  this kind of subobject.
 
 ## Todo
 
@@ -41,14 +46,14 @@ namespace simple_graph
 /-- A subgraph of a `simple_graph` is a subset of vertices along with a restriction of the adjacency
 relation that is symmetric and is supported by the vertex subset.  They also form a bounded lattice.
 
-Thinking of `V → V → Prop` as `set (V × V)`, a set of darts, then `subgraph.adj_sub` is that the
-darts of a subgraph are a subset of the darts of `G`. -/
+Thinking of `V → V → Prop` as `set (V × V)`, a set of darts (i.e., half-edges), then
+`subgraph.adj_sub` is that the darts of a subgraph are a subset of the darts of `G`. -/
 @[ext]
 structure subgraph {V : Type u} (G : simple_graph V) :=
 (verts : set V)
 (adj : V → V → Prop)
-(adj_sub : ∀ ⦃v w : V⦄, adj v w → G.adj v w)
-(edge_vert : ∀ ⦃v w : V⦄, adj v w → v ∈ verts)
+(adj_sub : ∀ {v w : V}, adj v w → G.adj v w)
+(edge_vert : ∀ {v w : V}, adj v w → v ∈ verts)
 (sym : symmetric adj . obviously)
 
 namespace subgraph
@@ -178,7 +183,7 @@ def bot : subgraph G :=
 instance subgraph_inhabited : inhabited (subgraph G) := ⟨bot⟩
 
 /-- The relation that one subgraph is a subgraph of another. -/
-def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
+def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ {v w : V}, x.adj v w → y.adj v w
 
 instance : bounded_lattice (subgraph G) :=
 { le := is_subgraph,
@@ -186,13 +191,14 @@ instance : bounded_lattice (subgraph G) :=
   inf := inter,
   top := top,
   bot := bot,
-  le_refl := by tidy,
-  le_trans := by tidy,
+  le_refl := λ x, ⟨rfl.subset, λ _ _ h, h⟩,
+  le_trans := λ x y z hxy hyz, ⟨set.subset.trans hxy.1 hyz.1, λ _ _ h, hyz.2 (hxy.2 h)⟩,
   le_antisymm := begin
     intros x y hxy hyx,
-    cases x, cases y, congr,
+    ext1 v,
     exact set.subset.antisymm hxy.1 hyx.1,
-    ext v w, split, apply hxy.2, apply hyx.2,
+    ext v w,
+    exact iff.intro (λ h, hxy.2 h) (λ h, hyx.2 h),
   end,
   le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩,

@@ -657,6 +657,9 @@ end hom
 namespace embedding
 variables {G G'} (f : G ↪g G')
 
+/-- The identity embedding from a graph to itself. -/
+abbreviation refl : G ↪g G := rel_embedding.refl _
+
 /-- An embedding of graphs gives rise to a homomorphism of graphs. -/
 abbreviation to_hom : G →g G' := f.to_rel_hom
 
@@ -735,7 +738,7 @@ lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w  := f.map_rel_iff
     simp only [hom.map_edge_set, rel_iso.coe_coe_fn, rel_embedding.coe_coe_fn, sym2.map_pair_eq,
       rel_iso.apply_symm_apply, subtype.coe_mk, coe_coe],
   end }
-.
+
 /-- A graph isomorphism induces an equivalence of neighbor sets. -/
 @[simps] def map_neighbor_set (v : V) : G.neighbor_set v ≃ G'.neighbor_set (f v) :=
 { to_fun := λ w, ⟨f w, begin

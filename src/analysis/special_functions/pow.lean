@@ -996,16 +996,12 @@ lemma tendsto_one_plus_div_rpow_tendsto_exp (t : ℝ) :
   tendsto (λ (x : ℝ), (1 + t / x) ^ x) at_top (𝓝 (exp t)) :=
 begin
   apply ((real.continuous_exp.tendsto _).comp (tendsto_mul_log_one_plus_div_at_top t)).congr' _,
-  refine eventually_at_top.2 ⟨max 1 (1 - t), λ x hx, _⟩,
-  have : 0 < x := zero_lt_one.trans_le ((le_max_left _ _).trans hx),
-  have : x ≠ 0 := ‹0 < x›.ne',
-  have : 0 < 1 + t / x,
-  { rw [add_div' _ _ _ ‹x ≠ 0›, one_mul],
-    apply div_pos _ ‹0 < x›,
-    linarith [(le_max_right _ _).trans hx]},
-  dsimp only [function.comp_apply],
-  rw [←real.log_rpow ‹0 < 1 + t / x›, real.exp_log],
-  apply real.rpow_pos_of_pos ‹0 < 1 + t / x›,
+  have h₁ : (1:ℝ)/2 < 1 := by linarith,
+  have h₂ : tendsto (λ x : ℝ, 1 + t / x) at_top (𝓝 1) := 
+    by simpa using (tendsto_inv_at_top_zero.const_mul t).const_add 1,
+  refine (eventually_ge_of_tendsto_gt h₁ h₂).mono (λ x hx, _),
+  have hx' : 0 < 1 + t / x := by linarith,
+  simp [mul_comm x, exp_mul, exp_log hx'],
 end
 
 /-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞` for naturals `x`. -/

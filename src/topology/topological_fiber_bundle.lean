@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 import topology.local_homeomorph
 import topology.algebra.ordered.basic
 import topology.continuous_function.continuous_section
-import data.bundle
 
 /-!
 # Fiber bundles

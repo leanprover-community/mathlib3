@@ -68,19 +68,22 @@ lemma _root_.matrix.special_linear_group.row_nonzero {n : ℕ} (g : SL(n, ℝ)) 
   g i ≠ 0 :=
 λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simp [h]
 
-lemma bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠ 0 :=
+lemma linear_ne_zero (cd : (fin 2) → ℝ) (z : ℍ) (hcd: cd ≠ 0) : (cd 0 :ℂ)*z+(cd 1)≠0 :=
 begin
   intros h,
-  apply g.row_nonzero 1,
-  have : g 1 0 = 0,
-  { have : (bottom g z).im = 0 := by simp [h],
-    simpa [bottom, z.im_nonzero] using this, },
+  apply hcd,
+  have : cd 0 = 0,
+  { have : ((cd 0 :ℂ)*z+(cd 1)).im = 0 := by simp [h],
+    simpa [z.im_nonzero] using this },
   ext i,
   fin_cases i,
   { exact this,},
-  have this1 : (bottom g z).re = 0 := by simp [h],
-  simpa [bottom, this] using this1,
+  have this1 : ((cd 0 :ℂ)*z+(cd 1)).re = 0 := by simp [h],
+  simpa [bottom, this] using this1
 end
+
+lemma bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠ 0 :=
+linear_ne_zero (g 1) z (g.row_nonzero 1)
 
 lemma normsq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=
   ne_of_gt (complex.norm_sq_pos.mpr (bottom_ne_zero g z))

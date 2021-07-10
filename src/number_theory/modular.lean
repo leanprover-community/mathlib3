@@ -60,6 +60,37 @@ begin
   simpa [c_eq_zero, d_eq_zero] using p.is_coprime
 end
 
+lemma junk (x y z w :ℂ) (h: ![x,y]=![z,w]) : x=z :=
+begin
+  sorry,
+/-  simp [vec_cons, vec_empty, fin_zero_elim] at h,
+  rw vec_cons at h,
+  rw vec_cons at h,
+  rw vec_cons at h,
+  rw vec_cons at h,
+  rw vec_empty at h,
+  -/
+-- library_search,
+end
+
+lemma junk1 (x y :ℂ) (h1 : ![x,y]=![0,0]) : x=0 := junk x y 0 0 h1
+
+lemma ne_zero' (p : coprime_ints) : ![(p.c:ℂ ),p.d] ≠ 0 :=
+begin
+  by_contra,
+  push_neg at h,
+  have cd_eq_z: p.c=0 ∧ p.d=0,
+  {
+    split,
+    have := junk1 (p.c:ℂ ) (p.d:ℂ ) ,
+--    have := this h,
+   -- have := h 1,
+    sorry,
+    sorry,
+  },
+  exact not_and_distrib.mpr (ne_zero p) (cd_eq_z)
+end
+
 lemma sum_sq_ne_zero (p : coprime_ints) : p.c ^ 2 + p.d ^ 2 ≠ 0 :=
 begin
   intros h,
@@ -70,17 +101,25 @@ end
 
 end coprime_ints
 
+lemma det_SL2ℤ (g : SL(2,ℤ)) : g 0 0 * g 1 1 - g 0 1 * g 1 0 = 1 :=
+begin
+    calc _ = matrix.det g : _
+    ... = 1 : by rw g.det_coe_fun,
+    simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+    ring,
+end
+
 @[simps] def bottom_row (g : SL(2, ℤ)) : coprime_ints :=
 { c := g 1 0,
   d := g 1 1,
   is_coprime := begin
     rw is_coprime,
     use [( - g 0 1), (g 0 0)],
-    calc _ = matrix.det g : _
-    ... = 1 : by rw g.det_coe_fun,
-    simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+    convert det_SL2ℤ g using 1,
     ring,
   end }
+
+
 
 lemma bottom_row_surj : function.surjective bottom_row :=
 begin
@@ -139,6 +178,11 @@ def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 
 def acbd (p : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 p.c • matrix.coord 0 0 + p.d • matrix.coord 0 1
+
+@[simp]lemma acbd_apply (p : coprime_ints) (g : matrix (fin 2) (fin 2) ℝ) :
+  acbd p g = p.c * g 0 0 + p.d * g 0 1 :=
+by simp [acbd, matrix.coord]
+
 
 /-- Map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)`.
 -/
@@ -211,7 +255,8 @@ begin
         matrix.cons_dot_product, matrix.cons_mul_vec, matrix.cons_val_zero,
         matrix.dot_product_empty, matrix.empty_mul_vec, matrix.map_apply, mul_eq_mul_left_iff,
         neg_mul_eq_neg_mul_symm, true_or, acbd, matrix.coord, matrix.vec_head,
-        matrix.vec_tail] },
+        matrix.vec_tail],
+      refl },
     { simp only [← hg, vec_head, vec_tail, add_zero, function.comp_app, gsmul_eq_mul,
         linear_map.add_apply, linear_map.smul_apply, matrix.cons_dot_product, matrix.cons_mul_vec,
         matrix.cons_val_fin_one, matrix.cons_val_one, matrix.dot_product_empty,
@@ -233,34 +278,30 @@ lemma something2 (p : coprime_ints) (z : ℍ) :
   ∃ (w : ℂ), ∀ g : bottom_row ⁻¹' {p},
   ↑((g : SL(2, ℤ)) • z) = ((acbd p ↑g) : ℂ ) / (p.c ^ 2 + p.d ^ 2) + w :=
 begin
-  obtain ⟨pg, hpg⟩ := bottom_row_surj p,
   use ((p.d:ℂ )* z - p.c) /
-    ((p.c ^ 2 + p.d ^ 2) * (bottom pg z)),
+    ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d)),
   have nonZ1 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0 := by exact_mod_cast p.sum_sq_ne_zero,
-  --have nonZ2 : norm_sq (bottom pg z)  ≠ 0 := normsq_bottom_ne_zero pg z,
+  have nonZ2 : (p.c : ℂ) * z + p.d ≠ 0 := by simpa using (linear_ne_zero (![p.c,p.d]) z sorry),-- z (p.ne_zero')),
   intro g,
-  let acbdg := acbd p,
---  let acbdg := (acbd p) (((g : SL(2,ℤ)) : matrix (fin 2) (fin 2) ℝ).map coe),
-  field_simp [nonZ1, bottom_ne_zero, -upper_half_plane.bottom_def],
-  rw (_ : bottom (g:SL(2,ℤ)) z =  bottom pg z),
-  rw (_ : (p.d:ℂ)*z - p.c = (g 0 0)*(p.d)^2*z - (g 0 1)*(p.c)^2*z + (g 0 1)*(p.c)^2 - (g 0 0)*(p.d)*(p.c)),
---  simp [acbd, matrix.coord],
-  sorry,
-  {
-
-    sorry,
-  },
-  {
-    rw bottom,
-    sorry,
-  },
---  rw (_ : (((acbd p) ((g:matrix (fin 2) (fin 2) ℤ).map coe)):ℂ) = (p.c:ℂ)* g 0 0 + p.d * g 0 1 ),
-  -- simp [acbd, smul_aux, smul_aux'],
-  -- change ((top _ _) / (bottom _ _) * _) = _,
---  simp [acbd, matrix.coord],
---  ring,
-  -- Heather homework :)
-  sorry,
+  let acbdpg := acbd p ((((g: SL(2,ℤ)) : SL(2,ℝ )) : matrix (fin 2) (fin 2) ℝ)),
+  field_simp [nonZ1, nonZ2, bottom_ne_zero, -upper_half_plane.bottom_def],
+  rw (_ : (p.d:ℂ)*z - p.c = ((p.d)*z - p.c)*(g 0 0 * g 1 1 - g 0 1 * g 1 0)),
+  simp,
+  rw (_ : p.c = g 1 0),
+  rw (_ : p.d = g 1 1),
+  simp only [coe_fn_coe_base],
+  -- simp,
+  ring,
+  { convert bottom_row_d g,
+    have : p = bottom_row g := g.2.symm,
+    exact this },
+  { convert bottom_row_c g,
+    have : p = bottom_row g := g.2.symm,
+    exact this },
+  { rw (_ : (g 0 0 : ℂ) * ↑(g 1 1) - ↑(g 0 1) * ↑(g 1 0) = 1),
+    ring,
+    norm_cast,
+    convert det_SL2ℤ g using 1 },
 end
 
 lemma something1 (p : coprime_ints) (z : ℍ) :

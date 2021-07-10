@@ -97,9 +97,6 @@ variables {R F E}
 def trivialization.to_pretrivialization (e : trivialization R F E) :
   topological_vector_prebundle.trivialization R F E := { ..e }
 
-instance : has_coe (trivialization R F E) (topological_vector_prebundle.trivialization R F E) :=
-⟨trivialization.to_pretrivialization⟩
-
 lemma trivialization.mem_source (e : trivialization R F E)
   {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set := bundle_trivialization.mem_source e
 

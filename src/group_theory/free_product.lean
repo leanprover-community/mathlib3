@@ -139,13 +139,13 @@ variables (G : ι → Type*) [∀ i, group (G i)]
 instance : has_inv (free_product G) :=
 { inv := opposite.unop ∘ lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) }
 
-lemma has_inv_def (x : free_product G) : x⁻¹ = opposite.unop
+lemma inv_def (x : free_product G) : x⁻¹ = opposite.unop
   (lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) x) := rfl
 
 instance : group (free_product G) :=
 { mul_left_inv := begin
     intro m,
-    rw has_inv_def,
+    rw inv_def,
     apply m.induction_on,
     { rw [monoid_hom.map_one, opposite.unop_one, one_mul], },
     { intros i m, change of m⁻¹ * of m = 1, rw [←of.map_mul, mul_left_inv, of.map_one], },

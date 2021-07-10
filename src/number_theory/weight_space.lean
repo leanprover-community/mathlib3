@@ -422,8 +422,8 @@ end
 
 variables {c : ℤ}
 
-def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a : ℤ) / (p^(n + 1)))
-    - c * fract ((a : ℤ) / (c * (p^(n + 1)))) + (c - 1)/2
+def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a : ℤ) / (d*p^(n + 1)))
+    - c * fract ((a : ℤ) / (c * (d*p^(n + 1)))) + (c - 1)/2
 
 --instance {α : Type*} [topological_space α] : semimodule A (locally_constant α A) := sorry
 
@@ -524,7 +524,7 @@ lemma subspace_induces_locally_constant (f : locally_constant (units (zmod d) ×
     f.to_fun = g.to_fun ∘ (prod.map (coe : units (zmod d) → zmod d) (coe : units ℤ_[p] → ℤ_[p])) :=
 sorry
 --generalize to units X
-
+#print uniform_continuous_uniformly_extend
 instance is_this_even_true : compact_space (units (zmod d) × units ℤ_[p]) := sorry
 instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) := sorry
 instance so_many_times : totally_disconnected_space (units (zmod d) × units ℤ_[p]) := sorry
@@ -549,8 +549,10 @@ lemma cont_paLf : continuous (λ (a : (units (zmod d) × units ℤ_[p])),
   * (w.to_fun a : R)) :=
 sorry
 
+def f : R := sorry
+
 noncomputable def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) := --h wont go in the system if you put it in [], is this independent of c?
-  integral (units (zmod d) × units ℤ_[p]) R _ (bernoulli_measure_of_measure p d R hc)
+ (f R) * (integral (units (zmod d) × units ℤ_[p]) R _ (bernoulli_measure_of_measure p d R hc)
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R) a) *
-  (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj w ⟩
+  (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj w ⟩)
 --is it accurate to say that ω⁻¹ = ω^(p - 2)? I think so

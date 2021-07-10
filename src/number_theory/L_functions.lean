@@ -14,6 +14,7 @@ import topology.continuous_function.bounded
 import number_theory.padics.ring_homs
 import number_theory.bernoulli_polynomials
 import ring_theory.roots_of_unity
+import topology.continuous_function.compact
 
 def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
@@ -52,7 +53,7 @@ begin
   suffices : bdd_above (set.range bdd_cont), convert this, exact bdd.2, },
 end
 
-noncomputable instance {R : Type*} [normed_group R] : has_norm C(X,R) :=
+/-noncomputable instance {R : Type*} [normed_group R] : has_norm C(X,R) :=
 { norm := λ f, (⨆ x : X, ∥f x∥) }
 
 lemma norm_def {R : Type*} [normed_group R] (f : C(X,R)) : ∥f∥ = ⨆ x : X, ∥f x∥ := rfl
@@ -97,7 +98,20 @@ begin
   have : metric_space C(X,R), { refine normed_group.to_metric_space, },
   apply metric_space.to_uniform_space',
 end
---  @metric_space.to_uniform_space' _ (normed_group.to_metric_space)
+--  @metric_space.to_uniform_space' _ (normed_group.to_metric_space)-/
+
+variables {R : Type*} [normed_group R]
+
+--instance : normed_group C(X, R) := continuous_map.normed_group X R
+noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
+
+lemma norm_eq_supr_norm [nonempty X] (f : C(X, R)) : ∥f∥ = ⨆ x : X, ∥f x∥ :=
+begin
+  unfold has_norm.norm, symmetry',
+
+--  apply Sup_eq_of_forall_le_of_forall_lt_exists_gt,
+  sorry,
+end
 
 --todo
 --instance completeness {R : Type*} [normed_group R] : complete_space C(X, R) := sorry
@@ -475,7 +489,8 @@ begin
 /-     set b : locally_constant X A :=
       (∑ s in T', if H : s ∈ T' then ((f (c' s H)) • (char_fn X (c s H))) else 0) with hb, -/
     { have : dist f (inclusion X A ⟨(c2 X f ε t ht), loc_const⟩) ≤ (ε/2),
-      { refine cSup_le _ _,
+      { rw dist_eq_norm, rw norm_eq_supr_norm,
+        refine cSup_le _ _,
         { rw set.range_nonempty_iff_nonempty, assumption, },
         { rintros m hm, rw set.mem_range at hm, cases hm with y hy, rw ←hy, have ht3 := ht3 y, rcases ht3 with ⟨w, wT, hw⟩,
           obtain ⟨w1, w2⟩ := exists_prop.1 (exists_of_exists_unique wT),
@@ -657,10 +672,10 @@ begin
   refine metric_space.induced (inclusion X A) (sub X) _, apply_instance,
 end
 
-instance pms [nonempty X] : pseudo_metric_space (locally_constant X A) := --because nonempty is a class, hence put it in []
+/-instance pms [nonempty X] : pseudo_metric_space (locally_constant X A) := --because nonempty is a class, hence put it in []
 begin
   refine pseudo_metric_space.induced (inclusion X A) _, apply_instance,
-end
+end-/
 
 instance [nonempty X] : pseudo_metric_space (locally_constant X A) :=
 begin

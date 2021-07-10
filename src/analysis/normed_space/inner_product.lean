@@ -1384,7 +1384,7 @@ end norm
 
 section bessels_inequality
 
-variables {ι: Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [complete_space E] (x : E) {v : ι → E}
+variables {ι: Type*} (x : E) {v : ι → E}
 
 lemma bessel_finite {s : finset ι} (hv : orthonormal 𝕜 v) : ∑ i in s, ∥ ⟪v i, x⟫ ∥^2 ≤ ∥x∥ ^2 :=
 begin

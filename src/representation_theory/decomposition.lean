@@ -216,6 +216,10 @@ begin
   rw to_equiv_apply',
 end
 
+/--
+Given an indexed collection of submodules of `M` and a proof that they form an internal
+direct sum, construct a decomposition.
+-/
 def of_is_internal (p : ι → submodule R M) (hp : direct_sum.submodule_is_internal p) :
   decomposition ι R M :=
 { factors := p,

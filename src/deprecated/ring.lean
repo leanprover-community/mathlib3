@@ -8,13 +8,14 @@ import deprecated.group
 /-!
 # Unbundled semiring and ring homomorphisms (deprecated)
 
-This file defines typeclasses for unbundled semiring and ring homomorphisms. Though these classes
-are deprecated, they are still widely used in mathlib, and probably will not go away before Lean 4
-because Lean 3 often fails to coerce a bundled homomorphism to a function.
+This file defines structures for unbundled semiring and ring homomorphisms. Though bundled
+morphisms are now preferred, the unbundled structures are still occasionally used in mathlib,
+and probably will not go away before Lean 4 because Lean 3 often fails to coerce a bundled
+homomorphism to a function.
 
-## main definitions
+## Main Definitions
 
-is_semiring_hom (deprecated), is_ring_hom (deprecated)
+`is_semiring_hom` (deprecated), `is_ring_hom` (deprecated)
 
 ## Tags
 

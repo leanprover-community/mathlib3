@@ -81,21 +81,6 @@ theorem add_pow [comm_semiring R] (x y : R) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n
 
-lemma pow_mul_pow_mul_choose_le [ordered_comm_semiring R] {n k : ℕ} (h : k ≤ n)
-  {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) :
-  a ^ k * b ^ (n - k) * choose n k ≤ (a + b) ^ n :=
-begin
-  rw add_pow,
-  refine single_le_sum (λ l hl, _) (mem_range.2 $ nat.lt_succ_of_le h),
-  exact mul_nonneg (mul_nonneg (pow_nonneg ha _) (pow_nonneg hb _)) (nat.cast_nonneg _)
-end
-
-lemma choose_le_add_pow_div_pow_div_pow {𝕜 : Type*} [linear_ordered_field 𝕜] {n k : ℕ} (h : k ≤ n)
-  {a b : 𝕜} (ha : 0 < a) (hb : 0 < b) :
-  ↑(choose n k) ≤ (a + b) ^ n / (a ^ k * b ^ (n - k)) :=
-(le_div_iff' $ mul_pos (pow_pos ha k) (pow_pos hb (n - k))).2 $
-  pow_mul_pow_mul_choose_le h ha.le hb.le
-
 namespace nat
 
 /-- The sum of entries in a row of Pascal's triangle -/

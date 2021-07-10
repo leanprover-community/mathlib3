@@ -245,24 +245,4 @@ begin
     apply zero_le }
 end
 
-/-- A polynomial (in `l`) estimate on `choose (k + l) l * k!`-/
-lemma add_choose_mul_factorial_le_pow (k l : ℕ) : (k + l).choose l * k! ≤ (k + l) ^ k :=
-begin
-  refine le_of_mul_le_mul_right _ (factorial_pos l),
-  rw [add_choose_mul_factorial_mul_factorial, mul_comm, add_comm],
-  exact factorial_add_le_mul_pow _ _
-end
-
-/-- A (very imprecise) polynomial (in `l`) estimate on `choose (k + l) l`-/
-lemma add_choose_le_pow (k l : ℕ) : (k + l).choose l ≤ (k + l) ^ k :=
-calc (k + l).choose l = (k + l).choose l * 1 : (mul_one _).symm
-... ≤ (k + l).choose l * k! : nat.mul_le_mul le_rfl (factorial_pos _)
-... ≤ (k + l) ^ k : add_choose_mul_factorial_le_pow _ _
-
-/-- A (very imprecise) polynomial (in `l`) estimate on `choose (k + l) l`-/
-lemma add_choose_le_pow_of_le {k l : ℕ} (h : k ≤ l) : (k + l).choose l ≤ 2 ^ k * l ^ k :=
-calc (k + l).choose l ≤ (k + l) ^ k : add_choose_le_pow _ _
-... ≤ (l + l) ^ k : nat.pow_le_pow_of_le_left (add_le_add h le_rfl) _
-... = 2 ^ k * l ^ k : by rw [← two_mul, mul_pow]
-
 end nat

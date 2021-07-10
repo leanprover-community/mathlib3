@@ -3,17 +3,35 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import order.complete_boolean_algebra
 import data.sigma.basic
+import order.complete_boolean_algebra
 import order.galois_connection
 import order.directed
 
 /-!
 # The set lattice
 
-This file provides a `complete_lattice` instance for `set α`. It also proves ⊆
+This file provides usual set notation for unions and intersections, a `complete_lattice` instance
+  for `set α`, some more set constructions, and proves basic results combining them.
 
-`⋃₀` stand `⋂₀` `sInter` `sUnion`
+## Main declarations
+
+* `set.lattice_set`: `set α` along with `(⊆)`, `(⋂)` and `(⋃)` is a `complete_lattice`,
+* `set.Union`: Union of an indexed family of sets.
+* `set.Inter`: Intersection of an indexed family of sets.
+* `set.sInter`: **s**et **Inter**. Intersection of sets belonging to a set of sets. We provide the
+  notation `⋃₀`.
+* `set.sUnion`: **s**et **Union**. Intersection of sets belonging to a set of sets. We provide the
+  notation `⋂₀`.
+* `set.sInter_eq_bInter`, `set.sUnion_eq_bInter`: Shows that `⋂₀ s = ⋂ x ∈ s, x` and
+  `⋃₀ s = ⋃ x ∈ s, x`.
+* `set.kern_image`: `kern_image f s` is the set of `y` such that `f ⁻¹ y ⊆ s`.
+* `set.seq`: Union of a **seq**uence of sets. `seq s t` is the union of `f '' t` over all `f ∈ s`,
+  where `t : set α` and `s : set (α → β)`.
+* `set.pairwise_disjoint`: `pairwise_disjoint s` states that all sets in `s` are either equal or
+  disjoint.
+* `set.Union_eq_sigma_of_disjoint`: Equivalence between `⋃ i, t i` and `Σ i, t i`, where `t` is an
+  indexed family of disjoint sets.
 -/
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
@@ -26,8 +44,8 @@ variables {α β γ : Type*} {ι ι' ι₂ : Sort*}
 namespace set
 
 instance lattice_set : complete_lattice (set α) :=
-{ Sup    := λ s, {a | ∃ t ∈ s, a ∈ t },
-  Inf    := λ s, {a | ∀ t ∈ s, a ∈ t },
+{ Sup    := λ s, {a | ∃ t ∈ s, a ∈ t},
+  Inf    := λ s, {a | ∀ t ∈ s, a ∈ t},
 
   le_Sup := λ s t t_in a a_in, ⟨t, t_in, a_in⟩,
   Sup_le := λ s t h a ⟨t', t'_in, a_in⟩, h t' t'_in a_in,
@@ -38,7 +56,7 @@ instance lattice_set : complete_lattice (set α) :=
   .. set.boolean_algebra,
   .. (infer_instance : complete_lattice (α → Prop)) }
 
-/-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
+/-- `image` is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
 λ s t, image_subset _
 
@@ -93,7 +111,7 @@ lemma Union_prop (f : ι → set α) (p : ι → Prop) (i : ι) [decidable $ p i
 begin
   ext x,
   rw mem_Union,
-  split_ifs ; tauto,
+  split_ifs; tauto,
 end
 
 @[simp]
@@ -163,7 +181,7 @@ theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) :=
 -- and has `i` explicit for this use case.
 theorem subset_subset_Union
   {A : set β} {s : ι → set β} (i : ι) (h : A ⊆ s i) : A ⊆ ⋃ (i : ι), s i :=
-subset.trans h (subset_Union s i)
+h.trans (subset_Union s i)
 
 theorem Inter_subset : ∀ (s : ι → set β) (i : ι), (⋂ i, s i) ⊆ s i := infi_le
 
@@ -179,7 +197,7 @@ lemma Inter_subset_Inter2 {s : ι → set α} {t : ι' → set α} (h : ∀ j, �
   (⋂ i, s i) ⊆ (⋂ j, t j) :=
 set.subset_Inter $ λ j, let ⟨i, hi⟩ := h j in Inter_subset_of_subset i hi
 
-lemma Inter_set_of (P : ι → α → Prop) : (⋂ i, {x : α | P i x }) = {x : α | ∀ i, P i x} :=
+lemma Inter_set_of (P : ι → α → Prop) : (⋂ i, {x : α | P i x}) = {x : α | ∀ i, P i x} :=
 by { ext, simp }
 
 lemma Union_congr {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
@@ -544,7 +562,7 @@ theorem sInter_Union (s : ι → set (set α)) : ⋂₀ (⋃ i, s i) = ⋂ i, �
 begin
   ext x,
   simp only [mem_Union, mem_Inter, mem_sInter, exists_imp_distrib],
-  split ; tauto
+  split; tauto
 end
 
 @[simp] theorem sUnion_insert (s : set α) (T : set (set α)) : ⋃₀ (insert s T) = s ∪ ⋃₀ T :=
@@ -684,17 +702,17 @@ Sup_inf_Sup
 
 /-- If `S` is a set of sets, and each `s ∈ S` can be represented as an intersection
 of sets `T s hs`, then `⋂₀ S` is the intersection of the union of all `T s hs`. -/
-lemma sInter_bUnion {S : set (set α)} {T : Π s ∈ S, set (set α)} (hT : ∀ s ∈ S, s = ⋂₀ T s ‹s ∈ S›) :
+lemma sInter_bUnion {S : set (set α)} {T : Π s ∈ S, set (set α)}
+  (hT : ∀ s ∈ S, s = ⋂₀ T s ‹s ∈ S›) :
   ⋂₀ (⋃ s ∈ S, T s ‹_›) = ⋂₀ S :=
 begin
   ext,
   simp only [and_imp, exists_prop, set.mem_sInter, set.mem_Union, exists_imp_distrib],
   split,
-  { λ H s sS,
+  { rintro H s sS,
     rw [hT s sS, mem_sInter],
-    λ t tTs,
-    exact H t s sS tTs },
-  { λ H t s sS tTs,
+    exact λ t, H t s sS },
+  { rintro H t s sS tTs,
     suffices : s ⊆ t, exact this (H s sS),
     rw [hT s sS, sInter_eq_bInter],
     exact bInter_subset_of_mem tTs }
@@ -743,7 +761,7 @@ lemma union_distrib_Inter_right {ι : Type*} (s : ι → set α) (t : set α) :
 begin
   ext x,
   rw [mem_union_eq, mem_Inter],
-  split ; finish
+  split; finish
 end
 
 lemma union_distrib_Inter_left {ι : Type*} (s : ι → set α) (t : set α) :

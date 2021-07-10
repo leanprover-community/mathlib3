@@ -71,7 +71,7 @@ end
 theorem measurable_set_disc : measurable_set (disc r) :=
 by apply measurable_set_lt; apply continuous.measurable; continuity
 
-/-- The area of a disc with radius `r` is `π * r ^ 2`. -/
+/-- **Area of a Circle**: The area of a disc with radius `r` is `π * r ^ 2`. -/
 theorem area_disc : volume (disc r) = nnreal.pi * r ^ 2 :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
@@ -79,7 +79,7 @@ begin
   have hf : continuous f := by continuity,
   suffices : ∫ x in -r..r, 2 * f x = nnreal.pi * r ^ 2,
   { have h : integrable_on f (Ioc (-r) r) :=
-      (hf.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
+      (hf.integrable_on_compact is_compact_Icc).mono_set Ioc_subset_Icc_self,
     calc  volume (disc r)
         = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between
     ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) :

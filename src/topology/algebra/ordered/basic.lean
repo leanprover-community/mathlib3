@@ -348,7 +348,7 @@ begin
   exact ⟨b, b.prop, h⟩,
 end
 
-/-- Intermediate Value Theorem for continuous functions on connected sets. -/
+/-- **Intermediate Value Theorem** for continuous functions on connected sets. -/
 lemma is_preconnected.intermediate_value {s : set γ} (hs : is_preconnected s)
   {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
   Icc (f a) (f b) ⊆ f '' s :=
@@ -410,12 +410,12 @@ lemma is_preconnected.intermediate_value_Iii {s : set γ} (hs : is_preconnected 
 λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
   hf continuous_on_const (tendsto_at_bot.1 ht₁ y) (tendsto_at_top.1 ht₂ y)
 
-/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+/-- **Intermediate Value Theorem** for continuous functions on connected spaces. -/
 lemma intermediate_value_univ [preconnected_space γ] (a b : γ) {f : γ → α} (hf : continuous f) :
   Icc (f a) (f b) ⊆ range f :=
 λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
 
-/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+/-- **Intermediate Value Theorem** for continuous functions on connected spaces. -/
 lemma mem_range_of_exists_le_of_exists_ge [preconnected_space γ] {c : α} {f : γ → α}
   (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
   c ∈ range f :=
@@ -679,6 +679,10 @@ lemma filter.tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (�
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 (continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
+lemma is_preconnected.ord_connected {s : set α} (h : is_preconnected s) :
+  ord_connected s :=
+⟨λ x hx y hy, h.Icc_subset hx hy⟩
+
 end linear_order
 
 end order_closed_topology
@@ -739,8 +743,8 @@ from le_antisymm
     (le_binfi $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
   (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
     match s, ha, hs with
-    | _, h, (or.inl rfl) := inf_le_left_of_le $ infi_le_of_le b $ infi_le _ h
-    | _, h, (or.inr rfl) := inf_le_right_of_le $ infi_le_of_le b $ infi_le _ h
+    | _, h, (or.inl rfl) := inf_le_of_left_le $ infi_le_of_le b $ infi_le _ h
+    | _, h, (or.inr rfl) := inf_le_of_right_le $ infi_le_of_le b $ infi_le _ h
     end)
 
 lemma tendsto_order {f : β → α} {a : α} {x : filter β} :
@@ -1494,7 +1498,7 @@ local notation `|` x `|` := abs x
 lemma nhds_eq_infi_abs_sub (a : α) : 𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r}) :=
 begin
   simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
-    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ a, @sub_lt _ _ a, set_of_and],
+    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt _ _ _ _ a, set_of_and],
   refine ⟨_, _, _⟩,
   { intros ε ε0,
     exact inter_mem_inf_sets
@@ -1580,7 +1584,7 @@ begin
   convert nhds_basis_Ioo_pos a,
   { ext ε,
     change abs (x - a) < ε ↔ a - ε < x ∧ x < a + ε,
-    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a] },
+    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a, add_comm x ε] }
 end
 
 variable (α)
@@ -2006,6 +2010,9 @@ begin
   exact mem_sets_of_superset self_mem_nhds_within (λ y hy, hf _ hx _ hy.1 hy.2)
 end
 
+-- For a version of this theorem in which the convergence considered on the domain `α` is as
+-- `x : α` tends to infinity, rather than tending to a point `x` in `α`, see `is_lub_of_tendsto`,
+-- below
 lemma is_lub.is_lub_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) (ha : is_lub s a) (hs : s.nonempty)
@@ -2023,6 +2030,9 @@ lemma is_glb.mem_lower_bounds_of_tendsto [preorder γ] [topological_space γ]
 @is_lub.mem_upper_bounds_of_tendsto (order_dual α) (order_dual γ) _ _ _ _ _ _ _ _ _ _
   (λ x hx y hy, hf y hy x hx) ha hb
 
+-- For a version of this theorem in which the convergence considered on the domain `α` is as
+-- `x : α` tends to negative infinity, rather than tending to a point `x` in `α`, see
+-- `is_glb_of_tendsto`, below
 lemma is_glb.is_glb_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) : is_glb s a → s.nonempty →
@@ -2626,7 +2636,7 @@ end
 on a closed subset, contains `a`, and for any `a ≤ x < y ≤ b`, `x ∈ s`, the set `s ∩ (x, y]`
 is not empty, then `[a, b] ⊆ s`. -/
 lemma is_closed.Icc_subset_of_forall_exists_gt {a b : α} {s : set α} (hs : is_closed (s ∩ Icc a b))
-  (ha : a ∈ s) (hgt : ∀ x ∈ s ∩ Ico a b, ∀ y ∈ Ioi x,  (s ∩ Ioc x y).nonempty) :
+  (ha : a ∈ s) (hgt : ∀ x ∈ s ∩ Ico a b, ∀ y ∈ Ioi x, (s ∩ Ioc x y).nonempty) :
   Icc a b ⊆ s :=
 begin
   assume y hy,
@@ -2682,14 +2692,14 @@ end
 
 lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
 
+lemma set.ord_connected.is_preconnected {s : set α} (h : s.ord_connected) :
+  is_preconnected s :=
+is_preconnected_of_forall_pair $ λ x y hx hy, ⟨interval x y, h.interval_subset hx hy,
+  left_mem_interval, right_mem_interval, is_preconnected_interval⟩
+
 lemma is_preconnected_iff_ord_connected {s : set α} :
   is_preconnected s ↔ ord_connected s :=
-⟨λ h, ⟨λ x hx y hy, h.Icc_subset hx hy⟩, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
-  ⟨interval x y, h.interval_subset hx hy, left_mem_interval, right_mem_interval,
-    is_preconnected_interval⟩⟩
-
-alias is_preconnected_iff_ord_connected ↔
-  is_preconnected.ord_connected set.ord_connected.is_preconnected
+⟨is_preconnected.ord_connected, set.ord_connected.is_preconnected⟩
 
 lemma is_preconnected_Ici : is_preconnected (Ici a) := ord_connected_Ici.is_preconnected
 lemma is_preconnected_Iic : is_preconnected (Iic a) := ord_connected_Iic.is_preconnected
@@ -2724,17 +2734,19 @@ end
 
 variables {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
 
-/-- Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
+/-- **Intermediate Value Theorem** for continuous functions on closed intervals, case
+`f a ≤ t ≤ f b`.-/
 lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
-/-- Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
+/-- **Intermediate Value Theorem** for continuous functions on closed intervals, case
+`f a ≥ t ≥ f b`.-/
 lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f b) (f a) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
-/-- Intermediate Value Theorem for continuous functions on closed intervals, unordered case. -/
+/-- **Intermediate Value Theorem** for continuous functions on closed intervals, unordered case. -/
 lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
   interval (f a) (f b) ⊆ f '' interval a b :=
 by cases le_total (f a) (f b); simp [*, is_preconnected_interval.intermediate_value]
@@ -2824,7 +2836,7 @@ lemma continuous_on.surj_on_of_tendsto' {f : α → β} {s : set α} [ord_connec
 end densely_ordered
 
 /-- A closed interval in a conditionally complete linear order is compact. -/
-lemma compact_Icc {a b : α} : is_compact (Icc a b) :=
+lemma is_compact_Icc {a b : α} : is_compact (Icc a b) :=
 begin
   cases le_or_lt a b with hab hab, swap, { simp [hab] },
   refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
@@ -2868,26 +2880,26 @@ begin
 end
 
 /-- An unordered closed interval in a conditionally complete linear order is compact. -/
-lemma compact_interval {a b : α} : is_compact (interval a b) := compact_Icc
+lemma is_compact_interval {a b : α} : is_compact (interval a b) := is_compact_Icc
 
-lemma compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
+lemma is_compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
   [Π i, topological_space (α i)] [Π i, order_topology (α i)] (a b : Π i, α i) :
   is_compact (Icc a b) :=
-pi_univ_Icc a b ▸ is_compact_univ_pi $ λ i, compact_Icc
+pi_univ_Icc a b ▸ is_compact_univ_pi $ λ i, is_compact_Icc
 
 instance compact_space_Icc (a b : α) : compact_space (Icc a b) :=
-is_compact_iff_compact_space.mp compact_Icc
+is_compact_iff_compact_space.mp is_compact_Icc
 
 instance compact_space_pi_Icc {ι : Type*} {α : ι → Type*}
   [Π i, conditionally_complete_linear_order (α i)] [Π i, topological_space (α i)]
   [Π i, order_topology (α i)] (a b : Π i, α i) : compact_space (Icc a b) :=
-is_compact_iff_compact_space.mp (compact_pi_Icc a b)
+is_compact_iff_compact_space.mp (is_compact_pi_Icc a b)
 
 @[priority 100] -- See note [lower instance priority]
 instance compact_space_of_complete_linear_order {α : Type*} [complete_linear_order α]
   [topological_space α] [order_topology α] :
   compact_space α :=
-⟨by simp only [← Icc_bot_top, compact_Icc]⟩
+⟨by simp only [← Icc_bot_top, is_compact_Icc]⟩
 
 lemma is_compact.Inf_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   Inf s ∈ s :=
@@ -2989,10 +3001,43 @@ end conditionally_complete_linear_order
 end order_topology
 
 /-!
-Here is a counter-example to a version of the following with `conditionally_complete_lattice α`.
-Take `α = [0, 1) → ℝ` with the natural lattice structure, `ι = ℕ`. Put `f n x = -x^n`. Then
-`⨆ n, f n = 0` while none of `f n` is strictly greater than the constant function `-0.5`.
+### Bounded monotone sequences converge
+
+The first result in this section is that in a linear order `α`, if the range of a monotone function
+`f : α → ι` admits a least upper bound `a`, then `f` converges to `a`.
+
+Later results specialize this to the case of (conditionally) complete linear orders, where the
+existence of a least upper bound `α` is automatic.  In these settings the result is that `f`
+converges to its supremum, `⨆ i, f i`.
+
+Here is a counter-example to show that the order must be a linear (i.e., total) order. Take
+`α = [0, 1) → ℝ` with the natural lattice structure; this is a `conditionally_complete_lattice`.
+Take `ι = ℕ` and `f n x = -x^n`. Then `⨆ n, f n = 0` while none of `f n` is strictly greater than
+the constant function `-0.5`.
 -/
+
+lemma tendsto_at_top_is_lub {ι α : Type*} [preorder ι] [topological_space α] [linear_order α]
+  [order_topology α] {f : ι → α} (h_mono : monotone f) {a : α} (ha : is_lub (set.range f) a) :
+  tendsto f at_top (𝓝 a) :=
+begin
+  by_cases hi : nonempty ι,
+  { resetI,
+    rw tendsto_order,
+    split,
+    { intros a' ha',
+      obtain ⟨_, ⟨N, rfl⟩, hN⟩ : ∃ x ∈ set.range f, a' < x := (lt_is_lub_iff ha).mp ha',
+      have := ha.2,
+      apply eventually.mono (mem_at_top N),
+      exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
+    { intros a' ha',
+      exact eventually_of_forall (λ i, lt_of_le_of_lt (ha.1 (set.mem_range_self i)) ha') } },
+  { exact tendsto_of_not_nonempty hi }
+end
+
+lemma tendsto_at_bot_is_glb {ι α : Type*} [preorder ι] [topological_space α] [linear_order α]
+  [order_topology α] {f : ι → α} (h_mono : monotone f) {a : α} (ha : is_glb (set.range f) a) :
+  tendsto f at_bot (𝓝 a) :=
+@tendsto_at_top_is_lub (order_dual ι) (order_dual α) _ _ _ _ _ h_mono.order_dual _ ha
 
 lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α]
@@ -3001,13 +3046,7 @@ lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
 begin
   by_cases hi : nonempty ι,
   { resetI,
-    rw tendsto_order,
-    split,
-    { intros a h,
-      cases exists_lt_of_lt_csupr h with N hN,
-      apply eventually.mono (mem_at_top N),
-      exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
-    { exact λ a h, eventually_of_forall (λ n, lt_of_le_of_lt (le_csupr hbdd n) h) } },
+    exact tendsto_at_top_is_lub h_mono (is_lub_cSup (range_nonempty f) hbdd) },
   { exact tendsto_of_not_nonempty hi }
 end
 
@@ -3067,6 +3106,46 @@ begin
     { exact (not_tendsto_at_top_of_tendsto_nhds h (h'.comp hg)).elim },
     { rwa tendsto_nhds_unique h (hl'.comp hg) } }
 end
+
+/-! The next family of results, such as `is_lub_of_tendsto` and `supr_eq_of_tendsto`, are converses
+to the standard fact that bounded monotone functions converge. They state, that if a monotone
+function `f` tends to `a` along `at_top`, then that value `a` is a least upper bound for the range
+of `f`.
+
+Related theorems above (`is_lub.is_lub_of_tendsto`, `is_glb.is_glb_of_tendsto` etc) cover the case
+when `f x` tends to `a` as `x` tends to some point `b` in the domain. -/
+
+lemma monotone.ge_of_tendsto {α β : Type*} [topological_space α] [preorder α]
+  [order_closed_topology α] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
+  (ha : tendsto f at_top (𝓝 a)) (b : β) :
+  f b ≤ a :=
+begin
+  haveI : nonempty β := nonempty.intro b,
+  exact ge_of_tendsto ha ((eventually_ge_at_top b).mono (λ _ hxy, hf hxy))
+end
+
+lemma monotone.le_of_tendsto {α β : Type*} [topological_space α] [preorder α]
+  [order_closed_topology α] [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
+  (ha : tendsto f at_bot (𝓝 a)) (b : β) :
+  a ≤ f b :=
+@monotone.ge_of_tendsto (order_dual α) (order_dual β) _ _ _ _ f _ hf.order_dual ha b
+
+lemma is_lub_of_tendsto {α β : Type*} [topological_space α] [preorder α] [order_closed_topology α]
+  [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
+  (ha : tendsto f at_top (𝓝 a)) :
+  is_lub (set.range f) a :=
+begin
+  split,
+  { rintros _ ⟨b, rfl⟩,
+    exact hf.ge_of_tendsto ha b },
+  { exact λ _ hb, le_of_tendsto' ha (λ x, hb (set.mem_range_self x)) }
+end
+
+lemma is_glb_of_tendsto {α β : Type*} [topological_space α] [preorder α] [order_closed_topology α]
+  [nonempty β] [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
+  (ha : tendsto f at_bot (𝓝 a)) :
+  is_glb (set.range f) a :=
+@is_lub_of_tendsto (order_dual α) (order_dual β) _ _ _ _ _ _ _ hf.order_dual ha
 
 lemma supr_eq_of_tendsto {α β} [topological_space α] [complete_linear_order α] [order_topology α]
   [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f) :

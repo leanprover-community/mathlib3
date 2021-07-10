@@ -217,9 +217,10 @@ def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.un
   uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
 /-- A category is a `initial_mono_class` if the canonical morphism of an initial object is a
-monomorphism.
-In practice, this is most useful when given an arbitrary morphism out of the chosen initial object,
-see `initial.mono_from`.
+monomorphism.  In practice, this is most useful when given an arbitrary morphism out of the chosen
+initial object, see `initial.mono_from`.
+Given a terminal object, this is equivalent to the assumption that the unique morphism from initial
+to terminal is a monomorphism, which is the second of Freyd's axioms for an AT category.
 
 TODO: This is a condition satisfied by categories with zero objects and morphisms, as well as
 categories with a strict initial object; though these conditions are essentially mutually exclusive.

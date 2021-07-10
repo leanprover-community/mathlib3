@@ -420,7 +420,7 @@ end
 
 /-! ### Vitali-Carathéodory theorem -/
 
-/-- Vitali-Carathéodory theorem: given an integrable real function `f`, there exists an integrable
+/-- **Vitali-Carathéodory Theorem**: given an integrable real function `f`, there exists an integrable
 function `g > f` which is lower semicontinuous, with integral arbitrarily close to that of `f`.
 This function has to be `ereal`-valued in general. -/
 lemma exists_lt_lower_semicontinuous_integral_lt [sigma_finite μ]

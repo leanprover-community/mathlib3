@@ -180,15 +180,15 @@ begin
   exact submodule.singleton_span_is_compact_element 1,
 end
 
-/-- Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
-    maximal ideal. -/
+/-- **Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
+    maximal ideal**. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 let ⟨m, hm⟩ := (eq_top_or_exists_le_coatom I).resolve_left hI in ⟨m, ⟨⟨hm.1⟩, hm.2⟩⟩
 
 variables (α)
 
-/-- Krull's theorem: a nontrivial ring has a maximal ideal. -/
+/-- **Krull's theorem: a nontrivial ring has a maximal ideal**. -/
 theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
 let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) bot_ne_top in ⟨I, hI⟩
 

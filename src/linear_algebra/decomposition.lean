@@ -3,10 +3,7 @@ Copyright (c) 2021 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang
 -/
-import ring_theory.simple_module
-import linear_algebra.matrix
 import linear_algebra.direct_sum_module
-import algebra.direct_sum
 
 /-!
 # Decompositions of Modules

@@ -269,4 +269,3 @@ def equiv : free_product M ≃ word M :=
 end word
 
 end free_product
-#lint

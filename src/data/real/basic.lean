@@ -76,7 +76,11 @@ begin
     apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
 end
 
-/- Extra instances to short-circuit type class resolution -/
+/-! Extra instances to short-circuit type class resolution.
+
+ These short-circuits have an additional property of ensuring that a computable path is found; if
+ `field ℝ` is found first, then decaying it to these typeclasses would result in a `noncomputable`
+ version of them. -/
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
 instance : semiring ℝ           := by apply_instance
@@ -93,6 +97,7 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ            := by apply_instance
+instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/

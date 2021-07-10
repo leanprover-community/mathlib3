@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy
 -/
 import algebra.ordered_group
 import data.set.basic
+import order.rel_iso
 
 /-!
 # Intervals
@@ -1274,3 +1275,49 @@ end
 end linear_ordered_add_comm_group
 
 end set
+
+namespace order_iso
+variables {α β : Type*}
+
+open set
+
+section preorder
+variables [preorder α] [preorder β]
+
+@[simp] lemma preimage_Iic (e : α ≃o β) (b : β) : e ⁻¹' (Iic b) = Iic (e.symm b) :=
+by { ext x, simp [← e.le_iff_le] }
+
+@[simp] lemma preimage_Ici (e : α ≃o β) (b : β) : e ⁻¹' (Ici b) = Ici (e.symm b) :=
+by { ext x, simp [← e.le_iff_le] }
+
+@[simp] lemma preimage_Iio (e : α ≃o β) (b : β) : e ⁻¹' (Iio b) = Iio (e.symm b) :=
+by { ext x, simp [← e.lt_iff_lt] }
+
+@[simp] lemma preimage_Ioi (e : α ≃o β) (b : β) : e ⁻¹' (Ioi b) = Ioi (e.symm b) :=
+by { ext x, simp [← e.lt_iff_lt] }
+
+@[simp] lemma preimage_Icc (e : α ≃o β) (a b : β) : e ⁻¹' (Icc a b) = Icc (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iic]
+
+@[simp] lemma preimage_Ico (e : α ≃o β) (a b : β) : e ⁻¹' (Ico a b) = Ico (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iio]
+
+@[simp] lemma preimage_Ioc (e : α ≃o β) (a b : β) : e ⁻¹' (Ioc a b) = Ioc (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iic]
+
+@[simp] lemma preimage_Ioo (e : α ≃o β) (a b : β) : e ⁻¹' (Ioo a b) = Ioo (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iio]
+
+end preorder
+
+/-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
+def Iic_top [order_top α] : set.Iic (⊤ : α) ≃o α :=
+{ map_rel_iff' := λ x y, by refl,
+  .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
+
+/-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
+def Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
+{ map_rel_iff' := λ x y, by refl,
+  .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
+
+end order_iso

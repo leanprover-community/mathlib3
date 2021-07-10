@@ -1071,6 +1071,16 @@ lemma pred_to_nat : ∀ (i : ℤ), (i - 1).to_nat = i.to_nat - 1
 lemma to_nat_pred_coe_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=
 by simp [h, le_of_lt h] with push_cast
 
+@[simp] lemma to_nat_sub_to_nat_neg : ∀ (n : ℤ), ↑n.to_nat - ↑((-n).to_nat) = n
+| (0 : ℕ)   := rfl
+| (n+1 : ℕ) := show ↑(n+1) - (0:ℤ) = n+1, from sub_zero _
+| -[1+ n]   := show 0 - (n+1 : ℤ)  = _,   from zero_sub _
+
+@[simp] lemma to_nat_add_to_nat_neg_eq_nat_abs : ∀ (n : ℤ), (n.to_nat) + ((-n).to_nat) = n.nat_abs
+| (0 : ℕ)   := rfl
+| (n+1 : ℕ) := show (n+1) + 0 = n+1, from add_zero _
+| -[1+ n]   := show 0 + (n+1) = n+1, from zero_add _
+
 /-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
 -/
 def to_nat' : ℤ → option ℕ

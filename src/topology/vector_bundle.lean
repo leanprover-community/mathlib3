@@ -49,6 +49,9 @@ with a topology and a topological vector bundle structure.
 Similar constructions can be done for tensor products of topological vector bundles, exterior
 algebras, and so on, where the topology can be defined using a norm on the fiber model if this
 helps.
+
+## Tags
+Vector bundle
 -/
 
 noncomputable theory
@@ -355,13 +358,10 @@ variables {ι} (b : B) (a : F)
 /-- Extended version of the local trivialization of a fiber bundle constructed from core,
 registering additionally in its type that it is a local bundle trivialization. -/
 def local_triv (i : ι) : topological_vector_bundle.trivialization R F Z.fiber :=
-{ linear := λ x hx, { map_add := λ v w, by simp only [topological_fiber_bundle_core.local_triv_ext,
-      local_homeomorph.to_fun_eq_coe, coe_fst, coe_snd_map_apply,
-      topological_fiber_bundle_core.local_triv_apply, linear_map.map_add, coe_cord_change],
-  map_smul := λ r v, by simp only [topological_fiber_bundle_core.local_triv_ext, coe_fst,
-    local_homeomorph.to_fun_eq_coe, topological_fiber_bundle_core.local_triv_apply, coe_cord_change,
-    coe_snd_map_smul, linear_map.map_smul] },
-  ..topological_fiber_bundle_core.local_triv_ext ↑Z i }
+{ linear := λ x hx,
+  { map_add := λ v w, by simp only [linear_map.map_add] with mfld_simps,
+    map_smul := λ r v, by simp only [linear_map.map_smul] with mfld_simps},
+  ..topological_fiber_bundle_core.local_triv ↑Z i }
 
 @[simp, mfld_simps] lemma mem_local_triv_source (i : ι) (p : total_space Z.fiber) :
   p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i :=

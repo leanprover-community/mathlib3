@@ -2,8 +2,6 @@
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
-
-Continuous linear functions -- functions between normed vector spaces which are bounded and linear.
 -/
 import analysis.normed_space.multilinear
 
@@ -24,10 +22,11 @@ than `∥ f x ∥` itself.
 * `is_bounded_bilinear_map`! Class stating that a map `f : E × F → G` is bilinear and continuous,
   but through the simpler to provide statement that `∥f (x, y)∥` is bounded by a multiple of
   `∥x∥ * ∥y∥`
-* `is_bounded_bilinear_map.linear_deriv`: Derivative of a bounded bilinear map as a linear map.
-* `is_bounded_bilinear_map.deriv`: Derivative of a bounded bilinear map as a continuous linear map.
-  The proof that it is indeed the derivative is `is_bounded_bilinear_map.has_fderiv_at` in
+* `is_bounded_bilinear_map.linear_deriv`: Derivative of a continuous bilinear map as a linear map.
+* `is_bounded_bilinear_map.deriv`: Derivative of a continuous bilinear map as a continuous linear
+  map. The proof that it is indeed the derivative is `is_bounded_bilinear_map.has_fderiv_at` in
   `analysis.calculus.fderiv`.
+* `linear_map.norm_apply_of_isometry`: A linear isometry preserves the norm.
 -/
 
 noncomputable theory
@@ -180,9 +179,9 @@ lemma is_bounded_linear_map_prod_multilinear
     apply continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λ m, _),
     rw [continuous_multilinear_map.prod_apply, norm_prod_le_iff],
     split,
-    { exact le_trans (p.1.le_op_norm m)
+    { exact (p.1.le_op_norm m).trans
         (mul_le_mul_of_nonneg_right (norm_fst_le p) (finset.prod_nonneg (λ i hi, norm_nonneg _))) },
-    { exact le_trans (p.2.le_op_norm m)
+    { exact (p.2.le_op_norm m).trans
         (mul_le_mul_of_nonneg_right (norm_snd_le p) (finset.prod_nonneg (λ i hi, norm_nonneg _))) },
   end⟩ }
 

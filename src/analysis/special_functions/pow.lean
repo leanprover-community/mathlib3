@@ -1080,7 +1080,8 @@ variables {f g : ℝ → ℝ} {f' g' x y p : ℝ} {s : set ℝ}
 
 lemma has_deriv_within_at.rpow (hf : has_deriv_within_at f f' s x)
   (hg : has_deriv_within_at g g' s x) (h : 0 < f x) :
-  has_deriv_within_at (λ x, f x ^ g x) (f' * g x * (f x) ^ (g x - 1) + g' * f x ^ g x * log (f x)) s x :=
+  ha s_deriv_within_at (λ x, f x ^ g x)
+    (f' * g x * (f x) ^ (g x - 1) + g' * f x ^ g x * log (f x)) s x :=
 begin
   convert (hf.has_fderiv_within_at.rpow hg.has_fderiv_within_at h).has_deriv_within_at using 1,
   dsimp, ring
@@ -1095,7 +1096,8 @@ end
 
 lemma has_strict_deriv_at.rpow (hf : has_strict_deriv_at f f' x)
   (hg : has_strict_deriv_at g g' x) (h : 0 < f x) :
-  has_strict_deriv_at (λ x, f x ^ g x) (f' * g x * (f x) ^ (g x - 1) + g' * f x ^ g x * log (f x)) x :=
+  has_strict_deriv_at (λ x, f x ^ g x)
+    (f' * g x * (f x) ^ (g x - 1) + g' * f x ^ g x * log (f x)) x :=
 begin
   convert (hf.has_strict_fderiv_at.rpow hg.has_strict_fderiv_at h).has_strict_deriv_at using 1,
   dsimp, ring

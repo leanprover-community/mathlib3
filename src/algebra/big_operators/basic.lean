@@ -373,7 +373,8 @@ begin
     simp only [prod_insert H, prod_mul_distrib, ih] }
 end
 
-@[to_additive]
+/-- Note that `monoid_hom.map_prod` is the same lemma for bundled homomorphisms. -/
+@[to_additive "Note that `add_monoid_hom.map_sum` is the same lemma for bundled homomorphisms."]
 lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} {g : β → γ} (hg : is_monoid_hom g) :
   (∏ x in s, g (f x)) = g (∏ x in s, f x) :=
 ((monoid_hom.of hg).map_prod f s).symm

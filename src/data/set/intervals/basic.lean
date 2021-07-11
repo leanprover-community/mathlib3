@@ -1198,7 +1198,6 @@ begin
     le_max_of_le_right, le_refl] { max_depth := 5 }}
 end
 
-
 end linear_order
 
 /-! ### Lemmas about membership of arithmetic operations -/

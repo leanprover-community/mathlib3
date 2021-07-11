@@ -375,13 +375,20 @@ def monoid_hom.op {α β} [mul_one_class α] [mul_one_class β] :
   left_inv  := λ f, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
 
+@[simp]
+def monoid_hom.unop {α β} [mul_one_class α] [mul_one_class β] :
+  (αᵒᵖ →* βᵒᵖ) ≃ (α →* β) := monoid_hom.op.symm
+
 /-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵒᵖ →+* βᵒᵖ`. This is the action
 of the (fully faithful) `ᵒᵖ`-functor on morphisms. -/
 @[simps]
 def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
   (α →+* β) ≃ (αᵒᵖ →+* βᵒᵖ) :=
 { to_fun    := λ f, { map_zero' := by simp, map_add' := by simp, ..f.to_monoid_hom.op },
-  inv_fun   := λ f, { map_zero' := by simp, map_add' := by simp,
-    ..(monoid_hom.op.symm f.to_monoid_hom) },
+  inv_fun   := λ f, { map_zero' := by simp, map_add' := by simp, ..f.to_monoid_hom.unop },
   left_inv  := λ f, by { ext, simp },
-  right_inv := λ f, by {ext, simp } }
+  right_inv := λ f, by { ext, simp } }
+
+@[simp]
+def ring_hom.unop {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+  (αᵒᵖ →+* βᵒᵖ) ≃ (α →+* β) := ring_hom.op.symm

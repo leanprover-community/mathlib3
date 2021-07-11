@@ -66,7 +66,7 @@ lemma is_initial.is_iso_to (hI : is_initial I) {A : C} (f : A ⟶ I) :
   is_iso f :=
 has_strict_initial_object.out f hI
 
-lemma is_initial.subsingleton_to (hI : is_initial I) {A : C} (f g : A ⟶ I) :
+lemma is_initial.strict_hom_ext (hI : is_initial I) {A : C} (f g : A ⟶ I) :
   f = g :=
 begin
   haveI := hI.is_iso_to f,
@@ -74,9 +74,13 @@ begin
   exact eq_of_inv_eq_inv (hI.hom_ext (inv f) (inv g)),
 end
 
+lemma is_initial.subsingleton_to (hI : is_initial I) {A : C} :
+  subsingleton (A ⟶ I) :=
+⟨hI.strict_hom_ext⟩
+
 lemma is_initial.mono_from (hI : is_initial I) {A : C} (f : I ⟶ A) :
   mono f :=
-{ right_cancellation := λ B g h i, hI.subsingleton_to _ _ }
+{ right_cancellation := λ B g h i, hI.strict_hom_ext _ _ }
 
 lemma is_initial.to_mono (hI : is_initial I) {A : C} :
   mono (hI.to A) :=
@@ -107,9 +111,11 @@ variable [has_initial C]
 instance initial_is_iso_to {A : C} (f : A ⟶ ⊥_ C) : is_iso f :=
 initial_is_initial.is_iso_to _
 
-lemma initial_subsingleton_to {A : C} (f g : A ⟶ ⊥_ C) :
-  f = g :=
-initial_is_initial.subsingleton_to _ _
+@[ext] lemma initial.hom_ext {A : C} (f g : A ⟶ ⊥_ C) : f = g :=
+initial_is_initial.strict_hom_ext _ _
+
+@[ext] lemma initial.subsingleton_to {A : C} : subsingleton (A ⟶ ⊥_ C) :=
+initial_is_initial.subsingleton_to
 
 instance initial_mono_from {A : C} (f : ⊥_ C ⟶ A) : mono f :=
 initial_is_initial.mono_from _

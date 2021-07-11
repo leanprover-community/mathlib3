@@ -96,7 +96,7 @@ begin
     { simp [h] },
     { simp only [matrix.head_cons, linear_isometry.coe_to_linear_map,
         linear_map.id_coe, id.def, matrix.cons_val_one], simpa } },
-  { suffices : f.to_linear_map = conj_li.to_linear_map,
+  { suffices : f.to_linear_map = conj_lie.to_linear_equiv,
     { rw [←linear_isometry.coe_to_linear_map, this],
       simp only [linear_isometry.coe_to_linear_map], refl },
     apply basis.ext basis_one_I,

@@ -110,11 +110,17 @@ lemma map_sub [add_group α] [add_group β] (f : α →+ β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 by { ext, simp }
 
-lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, contrapose! hm, use i }⟩
+lemma map_smul [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
+  (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
+by { ext, simp, }
 
-lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, contrapose! hn, use j }⟩
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim i }⟩
+
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
 end matrix
 
@@ -128,6 +134,15 @@ def add_monoid_hom.map_matrix [add_monoid α] [add_monoid β] (f : α →+ β) :
 
 @[simp] lemma add_monoid_hom.map_matrix_apply [add_monoid α] [add_monoid β]
   (f : α →+ β) (M : matrix m n α) : f.map_matrix M = M.map f := rfl
+
+/-- The `linear_map` between spaces of matrices induced by a `linear_map` between their
+coefficients. -/
+@[simps]
+def linear_map.map_matrix [semiring R] [add_comm_monoid α] [add_comm_monoid β]
+  [module R α] [module R β] (f : α →ₗ[R] β) : matrix m n α →ₗ[R] matrix m n β :=
+{ to_fun := λ M, M.map f,
+  map_add' := matrix.map_add f.to_add_monoid_hom,
+  map_smul' := matrix.map_smul f.to_mul_action_hom, }
 
 open_locale matrix
 
@@ -921,6 +936,9 @@ lemma minor_zero [has_zero α] :
 lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α] (r : R)
   (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
+
+lemma minor_map (f : α → β) (e₁ : l → m) (e₂ : o → n) (A : matrix m n α) :
+  (A.map f).minor e₁ e₂ = (A.minor e₁ e₂).map f := rfl
 
 /-- Given a `(m × m)` diagonal matrix defined by a map `d : m → α`, if the reindexing map `e` is
   injective, then the resulting matrix is again diagonal. -/

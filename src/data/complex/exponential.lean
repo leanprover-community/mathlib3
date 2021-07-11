@@ -13,6 +13,7 @@ This file contains the definitions of the real and complex exponential, sine, co
 hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
+
 local notation `abs'` := _root_.abs
 open is_absolute_value
 open_locale classical big_operators nat
@@ -455,7 +456,7 @@ lemma exp_multiset_sum (s : multiset ℂ) : exp s.sum = (s.map exp).prod :=
 @monoid_hom.map_multiset_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ s
 
 lemma exp_sum {α : Type*} (s : finset α) (f : α → ℂ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
-@monoid_hom.map_prod α (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+@monoid_hom.map_prod (multiplicative ℂ) α ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
@@ -920,7 +921,7 @@ lemma exp_multiset_sum (s : multiset ℝ) : exp s.sum = (s.map exp).prod :=
 @monoid_hom.map_multiset_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ s
 
 lemma exp_sum {α : Type*} (s : finset α) (f : α → ℝ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
-@monoid_hom.map_prod α (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+@monoid_hom.map_prod (multiplicative ℝ) α ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]

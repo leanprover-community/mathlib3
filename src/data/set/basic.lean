@@ -375,6 +375,14 @@ theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ := subset_
 theorem eq_empty_of_not_nonempty (h : ¬nonempty α) (s : set α) : s = ∅ :=
 eq_empty_of_subset_empty $ λ x hx, h ⟨x⟩
 
+theorem eq_empty_of_is_empty [is_empty α] (s : set α) : s = ∅ :=
+eq_empty_of_subset_empty $ λ x hx, is_empty_elim x
+
+/-- There is exactly one set of a type that is empty. -/
+-- TODO[gh-6025]: make this an instance once safe to do so
+def unique_empty [is_empty α] : unique (set α) :=
+{ default := ∅, uniq := eq_empty_of_is_empty }
+
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 
@@ -1206,11 +1214,11 @@ rfl
 
 @[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
 
-theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
+@[simp] theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
   (λ (x : α), b) ⁻¹' s = univ :=
 eq_univ_of_forall $ λ x, h
 
-theorem preimage_const_of_not_mem {b : β} {s : set β} (h : b ∉ s) :
+@[simp] theorem preimage_const_of_not_mem {b : β} {s : set β} (h : b ∉ s) :
   (λ (x : α), b) ⁻¹' s = ∅ :=
 eq_empty_of_subset_empty $ λ x hx, h hx
 
@@ -2181,6 +2189,11 @@ ext $ by simp [range]
 theorem prod_univ_range_eq {α β δ} {m₂ : β → δ} :
   (univ : set α).prod (range m₂) = range (λp:α×β, (p.1, m₂ p.2)) :=
 ext $ by simp [range]
+
+lemma range_pair_subset {α β γ : Type*} (f : α → β) (g : α → γ) :
+  range (λ x, (f x, g x)) ⊆ (range f).prod (range g) :=
+have (λ x, (f x, g x)) = prod.map f g ∘ (λ x, (x, x)), from funext (λ x, rfl),
+by { rw [this, ← range_prod_map], apply range_comp_subset_range }
 
 theorem nonempty.prod : s.nonempty → t.nonempty → (s.prod t).nonempty
 | ⟨x, hx⟩ ⟨y, hy⟩ := ⟨(x, y), ⟨hx, hy⟩⟩

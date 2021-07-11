@@ -166,7 +166,7 @@ sub_lt_self _ zero_lt_one
 theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
-@add_le_add_iff_right _ a b _ _ _ _ 1
+add_le_add_iff_right _
 
 @[simp] lemma succ_coe_nat_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
 lt_add_one_iff.mpr (by simp)
@@ -237,6 +237,9 @@ begin
   cases a; cases b with b b; simp [nat_abs, nat.succ_add];
   try {refl}; [skip, rw add_comm a b]; apply this
 end
+
+lemma nat_abs_sub_le (a b : ℤ) : nat_abs (a - b) ≤ nat_abs a + nat_abs b :=
+by { rw [sub_eq_add_neg, ← int.nat_abs_neg b], apply nat_abs_add_le }
 
 theorem nat_abs_neg_of_nat (n : ℕ) : nat_abs (neg_of_nat n) = n :=
 by cases n; refl
@@ -780,6 +783,9 @@ by rw [mul_comm, int.eq_mul_of_div_eq_right H1 H2]
 protected theorem div_eq_of_eq_mul_left {a b c : ℤ} (H1 : b ≠ 0) (H2 : a = c * b) :
   a / b = c :=
 int.div_eq_of_eq_mul_right H1 (by rw [mul_comm, H2])
+
+protected lemma eq_zero_of_div_eq_zero {d n : ℤ} (h : d ∣ n) (H : n / d = 0) : n = 0 :=
+by rw [← int.mul_div_cancel' h, H, mul_zero]
 
 theorem neg_div_of_dvd : ∀ {a b : ℤ} (H : b ∣ a), -a / b = -(a / b)
 | ._ b ⟨c, rfl⟩ := if bz : b = 0 then by simp [bz] else

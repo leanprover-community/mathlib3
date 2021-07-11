@@ -450,13 +450,12 @@ def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', norme
   @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
     (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
       (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
-{ to_fun := pi,
-  map_add' := λ f g, rfl,
-  map_smul' := λ c f, rfl,
-  inv_fun := λ f i,
-    (@continuous_linear_map.proj 𝕜 _ _ E' _ _ _ i).comp_continuous_multilinear_map f,
-  left_inv := λ f, by { ext, refl },
-  right_inv := λ f, by { ext, refl },
+{ to_linear_equiv :=
+  -- note: `pi_linear_equiv` does not unify correctly here, presumably due to issues with dependent
+  -- typeclass arguments.
+  { map_add' := λ f g, rfl,
+    map_smul' := λ c f, rfl,
+    .. pi_equiv, },
   norm_map' := norm_pi }
 
 end
@@ -1125,8 +1124,8 @@ def continuous_multilinear_map.uncurry_right
   continuous_multilinear_map 𝕜 Ei G :=
 let f' : multilinear_map 𝕜 (λ(i : fin n), Ei i.cast_succ) (Ei (last n) →ₗ[𝕜] G) :=
 { to_fun    := λ m, (f m).to_linear_map,
-  map_add'  := λ m i x y, by { simp, refl },
-  map_smul' := λ m i c x, by { simp, refl } } in
+  map_add'  := λ m i x y, by simp,
+  map_smul' := λ m i c x, by simp } in
 (@multilinear_map.uncurry_right 𝕜 n Ei G _ _ _ _ _ f').mk_continuous
   (∥f∥) (λm, f.norm_map_init_le m)
 

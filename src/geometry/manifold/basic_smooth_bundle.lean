@@ -169,7 +169,7 @@ def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M)
   end }
 
 @[simp, mfld_simps] lemma base_set (i : atlas H M) :
-  Z.to_topological_fiber_bundle_core.base_set i = i.1.source := rfl
+  (Z.to_topological_fiber_bundle_core.local_triv_ext i).base_set = i.1.source := rfl
 
 /-- Local chart for the total space of a basic smooth bundle -/
 def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
@@ -500,7 +500,7 @@ them, noting in particular that the tangent bundle is a smooth manifold. -/
 variable (M)
 
 instance : topological_space (tangent_bundle I M) :=
-(tangent_bundle_core I M).to_topological_fiber_bundle_core.to_topological_space
+(tangent_bundle_core I M).to_topological_fiber_bundle_core.to_topological_space (atlas H M)
 
 instance : charted_space (model_prod H E) (tangent_bundle I M) :=
 (tangent_bundle_core I M).to_charted_space
@@ -554,7 +554,7 @@ begin
   { rintros ⟨x_fst, x_snd⟩,
     simp only [chart_at, basic_smooth_bundle_core.chart, tangent_bundle_core,
       continuous_linear_map.coe_id', basic_smooth_bundle_core.to_topological_fiber_bundle_core, A]
-      with mfld_simps},
+      with mfld_simps },
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
     by simp only [chart_at] with mfld_simps,
 end

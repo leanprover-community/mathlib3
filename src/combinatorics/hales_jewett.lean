@@ -64,22 +64,6 @@ open_locale big_operators
 
 namespace combinatorics
 
-/-- An induction principle for finite types. It effectively says that any finite type is equivalent
-to either `empty`, `unit`, or `option α` where `α` is nonempty. -/
-lemma fintype_induction {P : Type → Prop} (h_congr : ∀ {α β}, α ≃ β → P α → P β)
-  (h_empty : P empty) (h_unit : P unit)
-  (h_option : ∀ {α} [fintype α] [nonempty α], P α → P (option α))
-  (α) [fintype α] : P α :=
-begin
-  suffices : ∀ ι : nat, P (fin ι),
-  { refine h_congr (fintype.equiv_fin α).symm (this _), },
-  rintro (_ | ι),
-  { apply h_congr fin_zero_equiv.symm h_empty },
-  induction ι with ι ih,
-  { apply h_congr fin_one_equiv.symm h_unit },
-  { apply h_congr (fin_succ_equiv _).symm (h_option ih), }
-end
-
 /-- The type of combinatorial lines. A line `l : line α ι` in the hypercube `ι → α` defines a
 function `α → ι → α` from `α` to the hypercube, such that for each coordinate `i : ι`, the function
 `λ x, l x i` is either `id` or constant. We require lines to be nontrivial in the sense that
@@ -192,7 +176,7 @@ that whenever the hypercube `ι → α` is `κ`-colored, there is a monochromati
 theorem exists_mono_in_high_dimension : ∀ (α : Type) [fintype α] (κ : Type) [fintype κ],
   ∃ (ι : Type) [fintype ι], ∀ C : (ι → α) → κ, ∃ l : line α ι, l.is_mono C :=
 -- The proof proceeds by induction on `α`.
-fintype_induction
+fintype.induction_empty_option
 -- We have to show that the theorem is invariant under `α ≃ α'` for the induction to work.
 (λ α α' e, forall_imp $ λ κ, forall_imp $ λ _, Exists.imp $ λ ι, Exists.imp $ λ _ h C,
   let ⟨l, c, lc⟩ := h (λ v, C (e ∘ v)) in
@@ -200,12 +184,15 @@ fintype_induction
 -- This deals with the degenerate case where `α` is empty.
 (λ κ hκ, ⟨κ, hκ, λ C, begin
     haveI : nonempty κ := not_is_empty_iff.mp (λ ⟨h⟩, h (C $ λ i, (h i).elim)),
-    exact ⟨default _, classical.arbitrary κ, empty.rec _⟩
+    exact ⟨default _, classical.arbitrary κ, pempty.rec _⟩
   end⟩)
--- The base case `α = unit` is easy since any line is monochromatic.
-(λ κ _, ⟨unit, infer_instance, λ C, ⟨diagonal _ _, C (λ _, ()), λ ⟨⟩, rfl⟩⟩)
 begin -- Now we have to show that the theorem holds for `option α` if it holds for `α`.
-  introsI α _ _ ihα κ _,
+  introsI α _ ihα κ _,
+-- Later we'll need `α` to be nonempty. So we first deal with the trivial case where `α` is empty.
+-- Then `option α` has only one element, so any line is monochromatic.
+  by_cases h : nonempty α,
+  work_on_goal 1 { refine ⟨unit, infer_instance, λ C, ⟨diagonal _ _, C (λ _, none), _⟩⟩,
+    rintros (_ | ⟨a⟩), refl, exact (h ⟨a⟩).elim, },
 -- The key idea is to show that for every `r`, in high dimension we can either find
 -- `r` color focused lines or a monochromatic line.
   suffices key : ∀ r : ℕ, ∃ (ι : Type) [fintype ι], ∀ C : (ι → (option α)) → κ,
@@ -251,7 +238,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
 -- By above, we are done if `C'` has a monochromatic line.
   work_on_goal 1 { exact or.inr (mono_of_mono hι) },
 -- Here we assume `C'` has `r` color focused lines. We split into cases depending on whether one of
--- these `r` lines has the same color as the focus point. -/
+-- these `r` lines has the same color as the focus point.
   by_cases h : ∃ p ∈ s.lines, (p : almost_mono _).color = C' s.focus,
 -- If so then this is a `C'`-monochromatic line and we are done.
   { obtain ⟨p, p_mem, hp⟩ := h,

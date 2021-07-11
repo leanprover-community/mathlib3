@@ -138,16 +138,10 @@ lemma exact_cokernel : exact f (cokernel.π f) :=
 by { rw exact_iff, tidy }
 
 instance [exact f g] : mono (cokernel.desc f g (by simp)) :=
-begin
-  suffices : cokernel.desc f g (by simp) =
-    (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) (is_colimit_image f g)).hom
-    ≫ image.ι g,
-    { rw this,
-      apply mono_comp },
-  apply (cancel_epi (cokernel.π f)).1,
-  simp only [cokernel.π_desc, image.fac, cofork.of_π_ι_app,
-    colimit.comp_cocone_point_unique_up_to_iso_hom_assoc],
-end
+suffices h : cokernel.desc f g (by simp) =
+  (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) (is_colimit_image f g)).hom
+    ≫ image.ι g, by { rw h, apply mono_comp },
+(cancel_epi (cokernel.π f)).1 $ by simp
 
 section
 variables (Z)

@@ -1325,8 +1325,7 @@ calc (∫⁻ a, r * f a ∂μ) = (∫⁻ a, (⨆n, (const α r * eapprox f n) a)
     { congr, funext n,
       rw [← simple_func.const_mul_lintegral, ← simple_func.lintegral_eq_lintegral] },
     { assume n, exact simple_func.measurable _ },
-    { assume i j h a, exact mul_le_mul_left
-        (monotone_eapprox _ h _) }
+    { assume i j h a, exact mul_le_mul_left' (monotone_eapprox _ h _) _ }
   end
   ... = r * (∫⁻ a, f a ∂μ) : by rw [← ennreal.mul_supr, lintegral_eq_supr_eapprox_lintegral hf]
 

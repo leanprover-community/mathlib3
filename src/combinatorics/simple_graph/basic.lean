@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved.
+Copyright (c) 2021 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
 -/
@@ -64,7 +64,7 @@ see `simple_graph.edge_set` for the corresponding edge set.
 @[ext]
 structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
-(sym : symmetric adj . obviously)
+(symm : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
 /--
@@ -73,7 +73,7 @@ symmetrizes the relation and makes it irreflexive.
 -/
 def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :=
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
-  sym := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
+  symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
 noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
@@ -113,7 +113,7 @@ by { rintro rfl, exact G.loopless a hab }
 The edges of G consist of the unordered pairs of vertices related by
 `G.adj`.
 -/
-def edge_set : set (sym2 V) := sym2.from_rel G.sym
+def edge_set : set (sym2 V) := sym2.from_rel G.symm
 
 /--
 The `incidence_set` is the set of edges incident to a given vertex.
@@ -176,9 +176,9 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
-lemma edge_symm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.sym x, λ x, G.sym x⟩
+lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G.symm x⟩
 
-@[symm] lemma edge_symm' {u v : V} (h : G.adj u v) : G.adj v u := G.sym h
+@[symm] lemma adj_symm {u v : V} (h : G.adj u v) : G.adj v u := G.symm h
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl
@@ -532,7 +532,7 @@ are adjacent in the complement, and every nonadjacent pair of vertices is adjace
 -/
 def compl (G : simple_graph V) : simple_graph V :=
 { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
-  sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa edge_symm⟩,
+  symm := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
   loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
 
 instance has_compl : has_compl (simple_graph V) :=

@@ -1413,9 +1413,8 @@ end
 lemma orthonormal.tsum_inner_products_le (hv : orthonormal 𝕜 v)
   : ∑' i, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
 begin
-  refine tsum_le_of_sum_le' _ _,
-  { simp only [norm_nonneg, pow_nonneg], },
-  { intro s, apply orthonormal.sum_inner_products_le _ hv }
+  refine tsum_le_of_sum_le' _ (λ s, hv.sum_inner_products_le x),
+  simp only [norm_nonneg, pow_nonneg]
 end
 
 /-- The sum defined in Bessel's inequality is summable. -/

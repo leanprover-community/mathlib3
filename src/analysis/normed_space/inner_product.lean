@@ -1386,7 +1386,9 @@ section bessels_inequality
 
 variables {ι: Type*} (x : E) {v : ι → E}
 
-lemma bessel_finite {s : finset ι} (hv : orthonormal 𝕜 v) : ∑ i in s, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
+/-- Bessel's inequality for finite sums. -/
+lemma orthonormal.sum_inner_products_le {s : finset ι} (hv : orthonormal 𝕜 v) :
+  ∑ i in s, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
 begin
   rw ←sub_nonneg,
   suffices hbf: ∥ x -  ∑ i in s, ⟪v i, x⟫ • (v i) ∥^2 = ∥x∥^2 - ∑ i in s, ∥ ⟪v i, x⟫ ∥^2,
@@ -1406,14 +1408,17 @@ begin
   simp only [←h₃, inner_conj_sym],
 end
 
-lemma bessels_inequality (hv : orthonormal 𝕜 v) : ∑' i, ∥ ⟪v i, x⟫ ∥^2 ≤ ∥ x ∥ ^ 2 :=
+/-- Bessel's inequality. -/
+lemma orthonormal.tsum_inner_products_le (hv : orthonormal 𝕜 v)
+  : ∑' i, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
 begin
   refine tsum_le_of_sum_le' _ _,
   { simp only [norm_nonneg, pow_nonneg], },
-  { intro s, apply bessel_finite _ hv }
+  { intro s, apply orthonormal.sum_inner_products_le _ hv }
 end
 
-lemma bessels_inequality.summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥ ⟪v i, x⟫ ∥^2) :=
+/-- The sum defined in Bessel's inequality is summable. -/
+lemma orthonormal.inner_products_summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥⟪v i, x⟫∥ ^ 2) :=
 begin
   by_cases hnon : nonempty ι,
   { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥ ⟪v i, x⟫ ∥^2)),
@@ -1423,7 +1428,7 @@ begin
       { apply set.range_nonempty, },
       { use ∥x∥ ^ 2,
         rintro y ⟨s, rfl⟩,
-        apply bessel_finite _ hv, }, }, },
+        apply orthonormal.sum_inner_products_le _ hv, }, }, },
   { rw not_nonempty_iff at hnon,
     haveI := hnon,
     exact summable_empty, },

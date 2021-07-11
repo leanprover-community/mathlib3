@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 -/
 
 import category_theory.limits.shapes.finite_products
+import category_theory.limits.shapes.strict_initial
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.closed.monoidal
 import category_theory.monoidal.of_has_finite_products
@@ -263,37 +264,6 @@ def internal_hom [cartesian_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
 { obj := λ X, exp X.unop,
   map := λ X Y f, pre f.unop }
 
-/-- If an initial object `I` exists in a CCC, then `A ⨯ I ≅ I`. -/
-@[simps]
-def zero_mul {I : C} (t : is_initial I) : A ⨯ I ≅ I :=
-{ hom := limits.prod.snd,
-  inv := t.to _,
-  hom_inv_id' :=
-  begin
-    have: (limits.prod.snd : A ⨯ I ⟶ I) = uncurry (t.to _),
-      rw ← curry_eq_iff,
-      apply t.hom_ext,
-    rw [this, ← uncurry_natural_right, ← eq_curry_iff],
-    apply t.hom_ext,
-  end,
-  inv_hom_id' := t.hom_ext _ _ }
-
-/-- If an initial object `0` exists in a CCC, then `0 ⨯ A ≅ 0`. -/
-def mul_zero {I : C} (t : is_initial I) : I ⨯ A ≅ I :=
-limits.prod.braiding _ _ ≪≫ zero_mul t
-
-/-- If an initial object `0` exists in a CCC then `0^B ≅ 1` for any `B`. -/
-def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ C :=
-{ hom := default _,
-  inv := curry ((mul_zero t).hom ≫ t.to _),
-  hom_inv_id' :=
-  begin
-    rw [← curry_natural_left, curry_eq_iff, ← cancel_epi (mul_zero t).inv],
-    { apply t.hom_ext },
-    { apply_instance },
-    { apply_instance }
-  end }
-
 -- TODO: Generalise the below to its commutated variants.
 -- TODO: Define a distributive category, so that zero_mul and friends can be derived from this.
 /-- In a CCC with binary coproducts, the distribution morphism is an isomorphism. -/
@@ -315,34 +285,26 @@ def prod_coprod_distrib [has_binary_coproducts C] [cartesian_closed C] (X Y Z : 
     rw [coprod.inr_desc_assoc, ←curry_natural_right, coprod.inr_desc, ←curry_natural_left, comp_id],
   end }
 
-/--
-If an initial object `I` exists in a CCC then it is a strict initial object,
-i.e. any morphism to `I` is an iso.
-This actually shows a slightly stronger version: any morphism to an initial object from an
-exponentiable object is an isomorphism.
--/
-lemma strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
+@[priority 100]
+instance strict_initial_of_cartesian_closed [cartesian_closed C] :
+  has_strict_initial_object C :=
+has_strict_initial_object_of_mono_to_initial $ λ I A f hI,
 begin
-  haveI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
-  rw [zero_mul_hom, prod.lift_snd] at _inst,
-  haveI: split_epi f := ⟨t.to _, t.hom_ext _ _⟩,
-  apply is_iso_of_mono_of_split_epi
+  letI : split_mono (limits.prod.snd : A ⨯ I ⟶ I) := ⟨hI.to _, curry_injective (hI.hom_ext _ _)⟩,
+  simpa using mono_comp (prod.lift (𝟙 A) f) limits.prod.snd,
 end
 
-instance to_initial_is_iso [has_initial C] (f : A ⟶ ⊥_ C) : is_iso f :=
-strict_initial initial_is_initial _
-
-/-- If an initial object `0` exists in a CCC then every morphism from it is monic. -/
-lemma initial_mono {I : C} (B : C) (t : is_initial I) [cartesian_closed C] : mono (t.to B) :=
-⟨λ B g h _,
-begin
-  haveI := strict_initial t g,
-  haveI := strict_initial t h,
-  exact eq_of_inv_eq_inv (t.hom_ext _ _)
-end⟩
-
-instance initial.mono_to [has_initial C] (B : C) [cartesian_closed C] : mono (initial.to B) :=
-initial_mono B initial_is_initial
+/-- If an initial object `0` exists in a CCC then `0^B ≅ 1` for any `B`. -/
+def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ C :=
+{ hom := terminal.from _,
+  inv := curry ((is_initial_mul _ t).hom ≫ t.to _),
+  hom_inv_id' :=
+  begin
+    apply uncurry_injective,
+    rw ←cancel_epi (is_initial_mul _ t).inv,
+    apply t.hom_ext,
+    apply_instance,
+  end }
 
 variables {D : Type u₂} [category.{v} D]
 section functor
@@ -359,30 +321,11 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
 { closed := λ X,
   { is_adj :=
     begin
-      haveI q : exponentiable (e.inverse.obj X) := infer_instance,
-      have : is_left_adjoint (prod.functor.obj (e.inverse.obj X)) := q.is_adj,
-      have : e.functor ⋙ prod.functor.obj X ⋙ e.inverse ≅ prod.functor.obj (e.inverse.obj X),
-      apply nat_iso.of_components _ _,
-      intro Y,
-      { apply as_iso (prod_comparison e.inverse X (e.functor.obj Y)) ≪≫ _,
-        apply prod.map_iso (iso.refl _) (e.unit_iso.app Y).symm },
-      { intros Y Z g,
-        dsimp [prod_comparison],
-        simp [prod.comp_lift, ← e.inverse.map_comp, ← e.inverse.map_comp_assoc],
-          -- I wonder if it would be a good idea to make `map_comp` a simp lemma the other way round
-        dsimp, simp -- See note [dsimp, simp]
-        },
-      { have : is_left_adjoint (e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
-          by exactI adjunction.left_adjoint_of_nat_iso this.symm,
-        have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
-          by exactI adjunction.left_adjoint_of_comp e.inverse _,
-        have : (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) ⋙ e.functor ≅
-          prod.functor.obj X,
-        { apply iso_whisker_right e.counit_iso (prod.functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
-          change prod.functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod.functor.obj X,
-          apply iso_whisker_left (prod.functor.obj X) e.counit_iso, },
-        resetI,
-        apply adjunction.left_adjoint_of_nat_iso this },
+      have : is_left_adjoint (prod.functor.obj (e.inverse.obj X)) := ⟨_, exp.adjunction _⟩,
+      suffices : e.inverse ⋙ prod.functor.obj (e.inverse.obj X) ⋙ e.functor ≅ prod.functor.obj X,
+      { exactI adjunction.left_adjoint_of_nat_iso this },
+      apply iso_whisker_right (prod_comparison_nat_iso e.inverse X).symm _ ≪≫
+        functor.associator _ _ _ ≪≫ iso_whisker_left _ e.counit_iso
     end } }
 
 end functor

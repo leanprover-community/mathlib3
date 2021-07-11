@@ -152,6 +152,14 @@ is_initial_mul _ initial_is_initial
 subsingleton.elim _ _
 end
 
+/--
+If every morphism to an initial object is a monomorphism, then `C` has strict initial objects.
+-/
+lemma has_strict_initial_object_of_mono_to_initial
+  (h : ∀ {I A : C} (f : A ⟶ I), is_initial I → mono f) :
+  has_strict_initial_object C :=
+{ out := λ I A f hI, @@is_iso_of_mono_of_split_epi _ _ (h _ hI) (hI.split_epi_to f) }
+
 /-- If `C` has an initial object such that every morphism *to* it is an isomorphism, then `C`
 has strict initial objects. -/
 lemma has_strict_initial_object_of_initial_is_strict [has_initial C]

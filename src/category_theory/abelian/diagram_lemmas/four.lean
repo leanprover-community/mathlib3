@@ -10,12 +10,14 @@ import category_theory.abelian.pseudoelements
 
 Consider the following commutative diagram with exact rows in an abelian category:
 
+```
 A ---f--> B ---g--> C ---h--> D ---i--> E
 |         |         |         |         |
 α         β         γ         δ         ε
 |         |         |         |         |
 v         v         v         v         v
 A' --f'-> B' --g'-> C' --h'-> D' --i'-> E'
+```
 
 We show:
 - the "mono" version of the four lemma: if `α` is an epimorphism and `β` and `δ` are monomorphisms,

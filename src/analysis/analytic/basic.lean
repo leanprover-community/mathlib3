@@ -858,17 +858,18 @@ begin
   exact ((nnreal.summable_sigma.1 this).1 l).has_sum
 end
 
+#check mul_le_mul_right'
 /-- The radius of convergence of `p.change_origin x` is at least `p.radius - ∥x∥`. In other words,
 `p.change_origin x` is well defined on the largest ball contained in the original ball of
 convergence.-/
-lemma change_origin_radius : p.radius - nnnorm x ≤ (p.change_origin x).radius :=
+lemma change_origin_radius : p.radius - ∥x∥₊ ≤ (p.change_origin x).radius :=
 begin
   refine ennreal.le_of_forall_pos_nnreal_lt (λ r h0 hr, _),
   rw [ennreal.lt_sub_iff_add_lt, add_comm] at hr,
-  have hr' : ↑(nnnorm x) < p.radius, from (le_add_right le_rfl).trans_lt hr,
+  have hr' : (∥x∥₊ : ℝ≥0∞) < p.radius, from (le_add_right le_rfl).trans_lt hr,
   apply le_radius_of_summable_nnnorm,
-  convert nnreal.summable_of_le
-    (λ k, mul_le_mul' (p.nnnorm_change_origin_le k hr') (le_refl (r ^ k))) _,
+  have := nnreal.summable_of_le
+    (λ k : ℕ, @mul_le_mul_right' ℝ≥0∞ _ _ _ _ _ (p.nnnorm_change_origin_le k hr') (r ^ k)) _,
   simpa only [← nnreal.tsum_mul_right]
     using (nnreal.summable_sigma.1 (p.change_origin_series_summable_aux₁ hr)).2
 end

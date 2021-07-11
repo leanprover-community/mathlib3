@@ -206,6 +206,15 @@ lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
 ((extend_domain_hom f).injective_iff).mpr (λ e he, ext (λ x, f.injective (subtype.ext
   ((extend_domain_apply_image e f x).symm.trans (ext_iff.mp he (f x))))))
 
+@[simp] lemma extend_domain_eq_one_iff {e : perm α} {f : α ≃ subtype p} :
+  e.extend_domain f = 1 ↔ e = 1 :=
+begin
+  rw ←extend_domain_hom_apply,
+  revert e,
+  rw ←monoid_hom.injective_iff',
+  exact extend_domain_hom_injective f
+end
+
 end extend_domain
 
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation

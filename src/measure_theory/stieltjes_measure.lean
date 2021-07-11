@@ -29,6 +29,7 @@ open_locale big_operators ennreal nnreal topological_space
 
 /-! ### Basic properties of Stieltjes functions -/
 
+/-- Bundled monotone right-continuous real functions, used to construct Stieltjes measures. -/
 structure stieltjes_function :=
 (to_fun : ℝ → ℝ)
 (mono' : monotone to_fun)
@@ -73,6 +74,20 @@ begin
   { exact le_rfl },
   { exact (f.left_lim_le le_rfl).trans (f.le_left_lim hxy) }
 end
+
+/-- The identity of `ℝ` as a Stieltjes function, used to construct Lebesgue measure. -/
+protected def id : stieltjes_function :=
+{ to_fun := id,
+  mono' := λ x y, id,
+  right_continuous' := λ x, continuous_within_at_id }
+
+@[simp] lemma id_apply (x : ℝ) : stieltjes_function.id x = x := rfl
+
+@[simp] lemma id_left_lim (x : ℝ) : stieltjes_function.id.left_lim x = x :=
+tendsto_nhds_unique (stieltjes_function.id.tendsto_left_lim x) $
+  (continuous_at_id).tendsto.mono_left nhds_within_le_nhds
+
+instance : inhabited stieltjes_function := ⟨stieltjes_function.id⟩
 
 /-! ### The outer measure associated to a Stieltjes function -/
 

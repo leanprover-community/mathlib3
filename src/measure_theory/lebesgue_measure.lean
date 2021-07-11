@@ -23,22 +23,7 @@ open_locale big_operators ennreal topological_space
 ### Definition of the Lebesgue measure and lengths of intervals
 -/
 
-/-- The identity of `ℝ` as a Stieltjes function, used to construct Lebesgue measure. -/
-def stieltjes_function.id : stieltjes_function :=
-{ to_fun := id,
-  mono' := λ x y, id,
-  right_continuous' := λ x, continuous_within_at_id }
-
-@[simp] lemma stieljes_function.id_apply (x : ℝ) : stieltjes_function.id x = x := rfl
-
-@[simp] lemma stieltjes_function.id_left_lim (x : ℝ) : stieltjes_function.id.left_lim x = x :=
-tendsto_nhds_unique (stieltjes_function.id.tendsto_left_lim x) $
-  (continuous_at_id).tendsto.mono_left nhds_within_le_nhds
-
-/-- Lebesgue measure on the Borel sets
-
-The outer Lebesgue measure is the completion of this measure. (TODO: proof this)
--/
+/-- Lebesgue measure on the Borel sigma algebra, giving measure `b - a` to the interval `[a, b]`. -/
 instance real.measure_space : measure_space ℝ :=
 ⟨stieltjes_function.id.measure⟩
 

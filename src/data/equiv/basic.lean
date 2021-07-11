@@ -2001,6 +2001,9 @@ end swap
 
 end equiv
 
+lemma plift.eq_up_iff_down_eq {x : plift α} {y : α} : x = plift.up y ↔ x.down = y :=
+equiv.plift.eq_symm_apply
+
 lemma function.injective.map_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
   {f : α → β} (hf : function.injective f) (x y z : α) :
   f (equiv.swap x y z) = equiv.swap (f x) (f y) (f z) :=

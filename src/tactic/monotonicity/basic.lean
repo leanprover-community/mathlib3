@@ -3,7 +3,6 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import algebra.ordered_ring
 import order.bounded_lattice
 
 namespace tactic.interactive
@@ -164,11 +163,3 @@ do ns  ← monotonicity.attr.get_cache,
                else pure ns'
 
 end tactic.interactive
-
-attribute [mono] add_le_add mul_le_mul neg_le_neg
-         mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
-         imp_imp_imp le_implies_le_of_le_of_le
-         sub_le_sub abs_le_abs sup_le_sup
-         inf_le_inf
-attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
-attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul

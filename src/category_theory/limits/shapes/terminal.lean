@@ -5,6 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.pempty
 import category_theory.limits.has_limits
+import category_theory.epi_mono
 
 /-!
 # Initial and terminal objects in a category.
@@ -83,13 +84,21 @@ t.hom_ext _ _
 @[simp] lemma is_initial.to_self {X : C} (t : is_initial X) : t.to X = 𝟙 X :=
 t.hom_ext _ _
 
+/-- Any morphism from a terminal object is split mono. -/
+def is_terminal.split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : split_mono f :=
+⟨t.from _, t.hom_ext _ _⟩
+
+/-- Any morphism to an initial object is split epi. -/
+def is_initial.split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : split_epi f :=
+⟨t.to _, t.hom_ext _ _⟩
+
 /-- Any morphism from a terminal object is mono. -/
 lemma is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
-⟨λ Z g h eq, t.hom_ext _ _⟩
+by haveI := t.split_mono_from f; apply_instance
 
 /-- Any morphism to an initial object is epi. -/
 lemma is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
-⟨λ Z g h eq, t.hom_ext _ _⟩
+by haveI := t.split_epi_to f; apply_instance
 
 variable (C)
 
@@ -117,8 +126,8 @@ This object is characterized by having a unique morphism to any object.
 -/
 abbreviation initial [has_initial C] : C := colimit (functor.empty C)
 
-notation `⊤_` C:20 := terminal C
-notation `⊥_` C:20 := initial C
+notation `⊤_ ` C:20 := terminal C
+notation `⊥_ ` C:20 := initial C
 
 section
 variables {C}
@@ -167,33 +176,33 @@ def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
 def initial_is_initial [has_initial C] : is_initial (⊥_ C) :=
 { desc := λ s, initial.to _ }
 
-/-- Any morphism from a terminal object is mono. -/
-instance terminal.mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : mono f :=
-is_terminal.mono_from terminal_is_terminal _
+/-- Any morphism from a terminal object is split mono. -/
+instance terminal.split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : split_mono f :=
+is_terminal.split_mono_from terminal_is_terminal _
 
-/-- Any morphism to an initial object is epi. -/
-instance initial.epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : epi f :=
-is_initial.epi_to initial_is_initial _
+/-- Any morphism to an initial object is split epi. -/
+instance initial.split_epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : split_epi f :=
+is_initial.split_epi_to initial_is_initial _
 
 /-- An initial object is terminal in the opposite category. -/
 def terminal_op_of_initial {X : C} (t : is_initial X) : is_terminal (opposite.op X) :=
 { lift := λ s, (t.to s.X.unop).op,
-  uniq' := λ s m w, has_hom.hom.unop_inj (t.hom_ext _ _) }
+  uniq' := λ s m w, quiver.hom.unop_inj (t.hom_ext _ _) }
 
 /-- An initial object in the opposite category is terminal in the original category. -/
 def terminal_unop_of_initial {X : Cᵒᵖ} (t : is_initial X) : is_terminal X.unop :=
 { lift := λ s, (t.to (opposite.op s.X)).unop,
-  uniq' := λ s m w, has_hom.hom.op_inj (t.hom_ext _ _) }
+  uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
 /-- A terminal object is initial in the opposite category. -/
 def initial_op_of_terminal {X : C} (t : is_terminal X) : is_initial (opposite.op X) :=
 { desc := λ s, (t.from s.X.unop).op,
-  uniq' := λ s m w, has_hom.hom.unop_inj (t.hom_ext _ _) }
+  uniq' := λ s m w, quiver.hom.unop_inj (t.hom_ext _ _) }
 
 /-- A terminal object in the opposite category is initial in the original category. -/
 def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.unop :=
 { desc := λ s, (t.from (opposite.op s.X)).unop,
-  uniq' := λ s m w, has_hom.hom.op_inj (t.hom_ext _ _) }
+  uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
 /-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
 In `limit_of_diagram_initial` we show it is a limit cone. -/

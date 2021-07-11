@@ -1065,7 +1065,7 @@ meta def prove_pow (a : expr) (na : ℚ) :
 
 end
 
-/-- Evaluates expressions of the form `a ^ b`, `monoid.pow a b` or `nat.pow a b`. -/
+/-- Evaluates expressions of the form `a ^ b`, `monoid.npow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
@@ -1074,7 +1074,7 @@ meta def eval_pow : expr → tactic (expr × expr)
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
   | _ := failed
   end
-| `(monoid.pow %%e₁ %%e₂) := do
+| `(monoid.npow %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
   prod.snd <$> prove_pow e₁ n₁ c e₂
@@ -1215,7 +1215,7 @@ theorem dvd_eq_int (a b c : ℤ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (
 theorem int_to_nat_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
   a.to_nat = b := by rw ← h; simp
 theorem int_to_nat_neg (a : ℤ) (h : 0 < a) : (-a).to_nat = 0 :=
-by simp [int.to_nat_zero_of_neg, h]
+by simp only [int.to_nat_of_nonpos, h.le, neg_nonpos]
 
 theorem nat_abs_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
   a.nat_abs = b := by rw ← h; simp
@@ -1434,8 +1434,11 @@ do x₁ ← to_expr x,
 /--
 Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over
 numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`,
-`A < B` and `A ≤ B`, where `A` and `B` are
-numerical expressions. It also has a relatively simple primality prover.
+`A < B` and `A ≤ B`, where `A` and `B` are numerical expressions.
+
+Add-on tactics marked as `@[norm_num]` can extend the behavior of `norm_num` to include other
+functions. This is used to support several other functions on `nat` like `prime`, `min_fac` and
+`factors`.
 ```lean
 import data.real.basic
 

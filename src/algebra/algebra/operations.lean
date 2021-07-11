@@ -248,7 +248,7 @@ instance : comm_semiring (submodule R A) :=
 variables (R A)
 
 /-- R-submodules of the R-algebra A are a module over `set A`. -/
-instance semimodule_set : semimodule (set_semiring A) (submodule R A) :=
+instance module_set : module (set_semiring A) (submodule R A) :=
 { smul := λ s P, span R s * P,
   smul_add := λ _ _ _, mul_add _ _ _,
   add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },

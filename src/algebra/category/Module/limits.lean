@@ -49,19 +49,19 @@ def sections_submodule (F : J ⥤ Module R) :
   ..(AddGroup.sections_add_subgroup
           (F ⋙ forget₂ (Module R) AddCommGroup.{v} ⋙ forget₂ AddCommGroup AddGroup.{v})) }
 
+-- Adding the following instance speeds up `limit_module` noticeably,
+-- by preventing a bad unfold of `limit_add_comm_group`.
+instance limit_add_comm_monoid (F : J ⥤ Module R) :
+  add_comm_monoid (types.limit_cone (F ⋙ forget (Module.{v} R))).X :=
+show add_comm_monoid (sections_submodule F), by apply_instance
+
 instance limit_add_comm_group (F : J ⥤ Module R) :
   add_comm_group (types.limit_cone (F ⋙ forget (Module.{v} R))).X :=
-begin
-  change add_comm_group (sections_submodule F),
-  apply_instance,
-end
+show add_comm_group (sections_submodule F), by apply_instance
 
 instance limit_module (F : J ⥤ Module R) :
   module R (types.limit_cone (F ⋙ forget (Module.{v} R))).X :=
-begin
-  change module R (sections_submodule F),
-  apply_instance,
-end
+show module R (sections_submodule F), by apply_instance
 
 /-- `limit.π (F ⋙ forget Ring) j` as a `ring_hom`. -/
 def limit_π_linear_map (F : J ⥤ Module R) (j) :
@@ -147,7 +147,7 @@ variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [module.directed_system G 
 @[simps]
 def direct_limit_diagram : ι ⥤ Module R :=
 { obj := λ i, Module.of R (G i),
-  map := λ i j hij, f i j (le_of_hom hij),
+  map := λ i j hij, f i j hij.le,
   map_id' := λ i, by { ext x, apply module.directed_system.map_self },
   map_comp' := λ i j k hij hjk,
   begin

@@ -55,7 +55,7 @@ by rw ← h.coe; exact a.2
 theorem normalize_fin_lt.of {n a b} (h : normalize_fin_lt n a b) : normalize_fin n a b :=
 h.trans $ eq.symm $ nat.mod_eq_of_lt h.lt
 
-theorem normalize_fin.zero (n) : normalize_fin (n+1) 0 0 := refl _
+theorem normalize_fin.zero (n) : normalize_fin (n+1) 0 0 := by { rw normalize_fin, norm_num }
 theorem normalize_fin_lt.zero (n) : normalize_fin_lt (n+1) 0 0 := refl _
 theorem normalize_fin.one (n) : normalize_fin (n+1) 1 1 := refl _
 theorem normalize_fin.add {n} {a b : fin n} {a' b' c' : ℕ}

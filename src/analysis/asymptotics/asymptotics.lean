@@ -798,6 +798,15 @@ begin
     metric.mem_closed_ball, dist_zero_right]
 end
 
+theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} (hc : c ≠ 0) :
+  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
+begin
+  rw is_o_const_iff hc,
+  refine ⟨λ h, tendsto_nhds_unique tendsto_const_nhds h, _⟩,
+  rintros rfl,
+  exact tendsto_const_nhds,
+end
+
 lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
   is_o (λ (x : E'), x) (λ x, c) (𝓝 0) :=
 (is_o_const_iff hc).mpr (continuous_id.tendsto 0)
@@ -1013,7 +1022,7 @@ theorem is_o.pow {f : α → R} {g : α → 𝕜} (h : is_o f g l) {n : ℕ} (hn
 begin
   cases n, exact hn.false.elim, clear hn,
   induction n with n ihn, { simpa only [pow_one] },
-  exact h.mul ihn
+  convert h.mul ihn; simp [pow_succ]
 end
 
 /-! ### Scalar multiplication -/

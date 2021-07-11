@@ -67,6 +67,9 @@ are given by the restriction maps from `U j` to `U i ⊓ U j`.
 def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
 pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
 
+@[simp] lemma res_π (i : ι) : res F U ≫ limit.π _ i = F.map (opens.le_supr U i).op :=
+by rw [res, limit.lift_π, fan.mk_π_app]
+
 lemma w : res F U ≫ left_res F U = res F U ≫ right_res F U :=
 begin
   dsimp [res, left_res, right_res],
@@ -238,7 +241,7 @@ begin
       limit.lift_π, cones.postcompose_obj_π, functor.comp_map,
       fork_π_app_walking_parallel_pair_zero, pi_opens.iso_of_open_embedding,
       nat_iso.of_components.inv_app, functor.map_iso_refl, functor.op_map, limit.lift_map,
-      fan.mk_π_app, nat_trans.comp_app, has_hom.hom.unop_op, category.assoc, lim_map_eq_lim_map],
+      fan.mk_π_app, nat_trans.comp_app, quiver.hom.unop_op, category.assoc, lim_map_eq_lim_map],
     dsimp,
     rw [category.comp_id, ←F.map_comp],
     refl, },

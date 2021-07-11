@@ -57,7 +57,7 @@ begin
 end
 
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=
-⟨λ h n, nat.cases_on n (one_dvd _) (by simpa [finite, not_not] using h),
+⟨λ h n, nat.cases_on n (by { rw pow_zero, exact one_dvd _ }) (by simpa [finite, not_not] using h),
   by simp [finite, multiplicity, not_not]; tauto⟩
 
 lemma not_unit_of_finite {a b : α} (h : finite a b) : ¬is_unit a :=
@@ -73,7 +73,7 @@ by rw mul_comm; exact finite_of_finite_mul_left
 variable [decidable_rel ((∣) : α → α → Prop)]
 
 lemma pow_dvd_of_le_multiplicity {a b : α} {k : ℕ} : (k : enat) ≤ multiplicity a b → a ^ k ∣ b :=
-nat.cases_on k (λ _, one_dvd _)
+nat.cases_on k (λ _, by { rw pow_zero, exact one_dvd _ })
   (λ k ⟨h₁, h₂⟩, by_contradiction (λ hk, (nat.find_min _ (lt_of_succ_le (h₂ ⟨k, hk⟩)) hk)))
 
 lemma pow_multiplicity_dvd {a b : α} (h : finite a b) : a ^ get (multiplicity a b) h ∣ b :=
@@ -118,7 +118,8 @@ lemma eq_some_iff {a b : α} {n : ℕ} :
 lemma eq_top_iff {a b : α} :
   multiplicity a b = ⊤ ↔ ∀ n : ℕ, a ^ n ∣ b :=
 (enat.find_eq_top_iff _).trans $
-by { simp only [not_not], exact ⟨λ h n, nat.cases_on n (one_dvd _) (λ n, h _), λ h n, h _⟩ }
+by { simp only [not_not],
+     exact ⟨λ h n, nat.cases_on n (by { rw pow_zero, exact one_dvd _}) (λ n, h _), λ h n, h _⟩ }
 
 @[simp] lemma is_unit_left {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
 eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
@@ -132,7 +133,7 @@ eq_some_iff.2 ⟨by simp, by { rw pow_one, exact λ h, mt (is_unit_of_dvd_unit h
 lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 := is_unit_right ha is_unit_one
 
 @[simp] lemma get_one_right {a : α} (ha : finite a 1) : get (multiplicity a 1) ha = 0 :=
-get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨dvd_refl _,
+get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨by rw pow_zero,
   by simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha⟩)
 
 @[simp] lemma unit_left (a : α) (u : units α) : multiplicity (u : α) a = ⊤ :=
@@ -393,12 +394,12 @@ end
 
 protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ},
   get (multiplicity p (a ^ k)) (finite_pow hp ha) = k * get (multiplicity p a) ha
-| 0     := by dsimp [pow_zero]; simp [one_right hp.not_unit]; refl
-| (k+1) := by dsimp only [pow_succ];
-  erw [multiplicity.mul' hp, pow', add_mul, one_mul, add_comm]
+| 0     := by simp [one_right hp.not_unit]
+| (k+1) := have multiplicity p (a ^ (k + 1)) = multiplicity p (a * a ^ k), by rw pow_succ,
+    by rw [get_eq_get_of_eq _ _ this, multiplicity.mul' hp, pow', add_mul, one_mul, add_comm]
 
 lemma pow {p a : α} (hp : prime p) : ∀ {k : ℕ},
-  multiplicity p (a ^ k) = k •ℕ (multiplicity p a)
+  multiplicity p (a ^ k) = k • (multiplicity p a)
 | 0        := by simp [one_right hp.not_unit]
 | (succ k) := by simp [pow_succ, succ_nsmul, pow, multiplicity.mul hp]
 

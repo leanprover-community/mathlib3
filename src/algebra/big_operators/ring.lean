@@ -26,13 +26,18 @@ variables {s s₁ s₂ : finset α} {a : α} {b : β}  {f g : α → β}
 
 
 section semiring
-variables [semiring β]
+variables [non_unital_non_assoc_semiring β]
 
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
 (s.sum_hom (λ x, x * b)).symm
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
 (s.sum_hom _).symm
+
+end semiring
+
+section semiring
+variables [non_assoc_semiring β]
 
 lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   (∑ x in s, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
@@ -207,25 +212,12 @@ end
 
 /-- A product over `powerset s` is equal to the double product over
 sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+@[to_additive]
 lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
   ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
 begin
   classical,
   rw [powerset_card_bUnion, prod_bUnion],
-  intros i hi j hj hij,
-  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
-  intros x hx hc hnc,
-  apply hij,
-  rwa ← hc,
-end
-
-/-- A sum over `powerset s` is equal to the double sum over
-sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
-lemma sum_powerset [add_comm_monoid β] (s : finset α) (f : finset α → β) :
-  ∑ t in powerset s, f t = ∑ j in range (card s + 1), ∑ t in powerset_len j s, f t :=
-begin
-  classical,
-  rw [powerset_card_bUnion, sum_bUnion],
   intros i hi j hj hij,
   rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
   intros x hx hc hnc,

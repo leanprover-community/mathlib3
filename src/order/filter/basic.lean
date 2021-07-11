@@ -533,8 +533,17 @@ nonempty_of_exists $ nonempty_of_mem_sets (univ_mem_sets : univ ∈ f)
 lemma compl_not_mem_sets {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) : sᶜ ∉ f :=
 λ hsc, (nonempty_of_mem_sets (inter_mem_sets h hsc)).ne_empty $ inter_compl_self s
 
+lemma filter_eq_bot_of_is_empty [is_empty α] (f : filter α) : f = ⊥ :=
+empty_in_sets_eq_bot.mp $ univ_mem_sets' is_empty_elim
+
 lemma filter_eq_bot_of_not_nonempty (f : filter α) (ne : ¬ nonempty α) : f = ⊥ :=
 empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
+
+/-- There is exactly one filter on an empty type. --/
+-- TODO[gh-6025]: make this globally an instance once safe to do so
+local attribute [instance]
+protected def unique [is_empty α] : unique (filter α) :=
+{ default := ⊥, uniq := filter_eq_bot_of_is_empty }
 
 lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
@@ -542,7 +551,7 @@ lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
 
 lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
 ⟨λ ⟨⟨f, g, hfg⟩⟩, by_contra $
-  λ h, hfg $ (filter_eq_bot_of_not_nonempty f h).trans (filter_eq_bot_of_not_nonempty g h).symm,
+  λ h, hfg $ by haveI : is_empty α := not_nonempty_iff.1 h; exact subsingleton.elim _ _,
   λ ⟨x⟩, ⟨⟨⊤, ⊥, ne_bot.ne $ forall_sets_nonempty_iff_ne_bot.1 $ λ s hs,
     by rwa [mem_top_sets.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
 
@@ -656,7 +665,7 @@ begin
   rcases h₂ with ⟨s, hs⟩,
   suffices : (⨅i, f ⊔ g i) ≤ f ⊔ s.inf (λi, g i.down), { exact this ⟨h₁, hs⟩ },
   refine finset.induction_on s _ _,
-  { exact le_sup_right_of_le le_top },
+  { exact le_sup_of_le_right le_top },
   { rintros ⟨i⟩ s his ih,
     rw [finset.inf_insert, sup_inf_left],
     exact le_inf (infi_le _ _) ih }
@@ -2058,6 +2067,11 @@ lemma tendsto.frequently {f : α → β} {l₁ : filter α} {l₂ : filter β} {
   ∃ᶠ y in l₂, p y :=
 mt hf.eventually h
 
+lemma tendsto.frequently_map {l₁ : filter α} {l₂ : filter β} {p : α → Prop} {q : β → Prop}
+  (f : α → β) (c : filter.tendsto f l₁ l₂) (w : ∀ x, p x → q (f x)) (h : ∃ᶠ x in l₁, p x) :
+  ∃ᶠ y in l₂, q y :=
+c.frequently (h.mono w)
+
 @[simp] lemma tendsto_bot {f : α → β} {l : filter β} : tendsto f ⊥ l := by simp [tendsto]
 @[simp] lemma tendsto_top {f : α → β} {l : filter α} : tendsto f l ⊤ := le_top
 
@@ -2531,6 +2545,47 @@ lemma tendsto.prod_map_coprod {δ : Type*} {f : α → γ} {g : β → δ} {a : 
 map_prod_map_coprod_le.trans (coprod_mono hf hg)
 
 end coprod
+
+/-! ### `n`-ary coproducts of filters -/
+
+section Coprod
+variables {δ : Type*} {κ : δ → Type*}  -- {f : Π d, filter (κ d)}
+
+/-- Coproduct of filters. -/
+protected def Coprod (f : Π d, filter (κ d)) : filter (Π d, κ d) :=
+⨆ d : δ, (f d).comap (λ k, k d)
+
+lemma mem_Coprod_iff {s : set (Π d, κ d)} {f : Π d, filter (κ d)} :
+  (s ∈ (filter.Coprod f)) ↔ (∀ d : δ, (∃ t₁ ∈ f d, (λ k : (Π d, κ d), k d) ⁻¹' t₁ ⊆ s)) :=
+by simp [filter.Coprod]
+
+@[mono] lemma Coprod_mono {f₁ f₂ : Π d, filter (κ d)} (hf : ∀ d, f₁ d ≤ f₂ d) :
+  filter.Coprod f₁ ≤ filter.Coprod f₂ :=
+supr_le_supr $ λ d, comap_mono (hf d)
+
+lemma map_pi_map_Coprod_le {μ : δ → Type*}
+  {f : Π d, filter (κ d)} {m : Π d, κ d → μ d} :
+  map (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) ≤ filter.Coprod (λ d, map (m d) (f d)) :=
+begin
+  intros s h,
+  rw [mem_map, mem_Coprod_iff],
+  intros d,
+  rw mem_Coprod_iff at h,
+  obtain ⟨t, H, hH⟩ := h d,
+  rw mem_map at H,
+  refine ⟨{x : κ d | m d x ∈ t}, H, _⟩,
+  intros x hx,
+  simp only [mem_set_of_eq, preimage_set_of_eq] at hx,
+  rw mem_set_of_eq,
+  exact set.mem_of_subset_of_mem hH (mem_preimage.mpr hx),
+end
+
+lemma tendsto.pi_map_Coprod {μ : δ → Type*} {f : Π d, filter (κ d)} {m : Π d, κ d → μ d}
+  {g : Π d, filter (μ d)} (hf : ∀ d, tendsto (m d) (f d) (g d)) :
+  tendsto (λ (k : Π d, κ d), λ d, m d (k d)) (filter.Coprod f) (filter.Coprod g) :=
+map_pi_map_Coprod_le.trans (Coprod_mono hf)
+
+end Coprod
 
 end filter
 

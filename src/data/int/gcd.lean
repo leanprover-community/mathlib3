@@ -17,6 +17,9 @@ import data.nat.prime
 
 * `gcd_eq_gcd_ab`: Bézout's lemma, given `x y : ℕ`, `gcd x y = x * gcd_a x y + y * gcd_b x y`.
 
+## Tags
+
+Bézout's lemma, Bezout's lemma
 -/
 
 /-! ### Extended Euclidean algorithm -/
@@ -93,7 +96,7 @@ gcd.induction r r' (by simp) $ λ a b h IH s t s' t' p p', begin
   simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add, mul_assoc]
 end
 
-/-- Bézout's lemma: given `x y : ℕ`, `gcd x y = x * a + y * b`, where `a = gcd_a x y` and
+/-- **Bézout's lemma**: given `x y : ℕ`, `gcd x y = x * a + y * b`, where `a = gcd_a x y` and
 `b = gcd_b x y` are computed by the extended Euclidean algorithm.
 -/
 theorem gcd_eq_gcd_ab : (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y :=
@@ -133,6 +136,7 @@ def gcd_b : ℤ → ℤ → ℤ
 | m (of_nat n) := m.nat_abs.gcd_b n
 | m -[1+ n]    := -m.nat_abs.gcd_b n.succ
 
+/-- **Bézout's lemma** -/
 theorem gcd_eq_gcd_ab : ∀ x y : ℤ, (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y
 | (m : ℕ) (n : ℕ) := nat.gcd_eq_gcd_ab _ _
 | (m : ℕ) -[1+ n] := show (_ : ℤ) = _ + -(n+1) * -_, by rw neg_mul_neg; apply nat.gcd_eq_gcd_ab
@@ -174,11 +178,11 @@ dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel' k_non_ze
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
 
-lemma prime.dvd_nat_abs_of_coe_dvd_pow_two {p : ℕ} (hp : p.prime) (k : ℤ) (h : ↑p ∣ k ^ 2) :
+lemma prime.dvd_nat_abs_of_coe_dvd_sq {p : ℕ} (hp : p.prime) (k : ℤ) (h : ↑p ∣ k ^ 2) :
   p ∣ k.nat_abs :=
 begin
   apply @nat.prime.dvd_of_dvd_pow _ _ 2 hp,
-  rwa [pow_two, ← nat_abs_mul, ← coe_nat_dvd_left, ← pow_two]
+  rwa [sq, ← nat_abs_mul, ← coe_nat_dvd_left, ← sq]
 end
 
 /-- ℤ specific version of least common multiple. -/
@@ -348,8 +352,8 @@ begin
   simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
 end
 
-lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m •ℕ x = 0)
-  (hn : n •ℕ x = 0) : (m.gcd n) •ℕ x = 0 :=
+lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m • x = 0)
+  (hn : n • x = 0) : (m.gcd n) • x = 0 :=
 begin
   apply multiplicative.of_add.injective,
   rw [of_add_nsmul, of_add_zero, pow_gcd_eq_one];

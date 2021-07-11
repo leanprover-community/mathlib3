@@ -75,7 +75,7 @@ by { have : 1 - 1 - 0 = 0 := rfl,
 @[simp] lemma op_geom_sum₂ [ring α] (x y : α) (n : ℕ) :
   op (geom_sum₂ x y n) = geom_sum₂ (op y) (op x) n :=
 begin
-  simp only [geom_sum₂_def, op_sum, op_mul, units.op_pow],
+  simp only [geom_sum₂_def, op_sum, op_mul, op_pow],
   rw ← sum_range_reflect,
   refine sum_congr rfl (λ j j_in, _),
   rw [mem_range, nat.lt_iff_add_one_le] at j_in,
@@ -123,7 +123,7 @@ calc  ∑ i in finset.range n, x ^ i * x ^ (n - 1 - i)
     = ∑ i in finset.range n, x ^ (i + (n - 1 - i)) : by simp_rw [← pow_add]
 ... = ∑ i in finset.range n, x ^ (n - 1) : finset.sum_congr rfl
   (λ i hi, congr_arg _ $ nat.add_sub_cancel' $ nat.le_pred_of_lt $ finset.mem_range.1 hi)
-... = (finset.range n).card •ℕ (x ^ (n - 1)) : finset.sum_const _
+... = (finset.range n).card • (x ^ (n - 1)) : finset.sum_const _
 ... = n * x ^ (n - 1) : by rw [finset.card_range, nsmul_eq_mul]
 
 /-- $x^n-y^n = (x-y) \sum x^ky^{n-1-k}$ reformulated without `-` signs. -/
@@ -151,7 +151,7 @@ lemma commute.mul_neg_geom_sum₂ [ring α] {x y : α} (h : commute x y) (n : �
   (y - x) * (geom_sum₂ x y n) = y ^ n - x ^ n :=
 begin
   rw ← op_inj_iff,
-  simp only [op_mul, op_sub, op_geom_sum₂, units.op_pow],
+  simp only [op_mul, op_sub, op_geom_sum₂, op_pow],
   exact (commute.op h.symm).geom_sum₂_mul n
 end
 
@@ -255,7 +255,7 @@ protected theorem commute.geom_sum₂_Ico_mul [ring α] {x y : α} (h : commute 
   (∑ i in finset.Ico m n, x ^ i * y ^ (n - 1 - i)) * (x - y) = x ^ n -  y ^ (n - m) * x ^ m :=
 begin
   rw ← op_inj_iff,
-  simp only [op_sub, op_mul, units.op_pow, op_sum],
+  simp only [op_sub, op_mul, op_pow, op_sum],
   have : ∑ k in Ico m n, op y ^ (n - 1 - k) * op x ^ k
     = ∑ k in Ico m n, op x ^ k * op y ^ (n - 1 - k),
   { refine sum_congr rfl (λ k k_in, _),

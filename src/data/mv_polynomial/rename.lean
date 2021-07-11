@@ -188,7 +188,8 @@ theorem exists_fin_rename (p : mv_polynomial σ R) :
   ∃ (n : ℕ) (f : fin n → σ) (hf : injective f) (q : mv_polynomial (fin n) R), p = rename f q :=
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
-  obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
+  let n := fintype.card {x // x ∈ s},
+  let e := fintype.equiv_fin {x // x ∈ s},
   refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, rename e q, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]

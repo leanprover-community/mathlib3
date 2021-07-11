@@ -65,14 +65,14 @@ lemma one_sub_gold : 1 - ψ = φ := by linarith [gold_add_gold_conj]
 begin
   rw [golden_ratio, ←sub_eq_zero],
   ring_exp,
-  rw real.sqr_sqrt; norm_num,
+  rw real.sq_sqrt; norm_num,
 end
 
 @[simp] lemma gold_conj_sq : ψ^2 = ψ + 1 :=
 begin
   rw [golden_conj, ←sub_eq_zero],
   ring_exp,
-  rw real.sqr_sqrt; norm_num,
+  rw real.sq_sqrt; norm_num,
 end
 
 lemma gold_pos : 0 < φ :=
@@ -83,7 +83,7 @@ lemma gold_ne_zero : φ ≠ 0 := ne_of_gt gold_pos
 lemma one_lt_gold : 1 < φ :=
 begin
   refine lt_of_mul_lt_mul_left _ (le_of_lt gold_pos),
-  simp [← pow_two, gold_pos, zero_lt_one]
+  simp [← sq, gold_pos, zero_lt_one]
 end
 
 lemma gold_conj_neg : ψ < 0 := by linarith [one_sub_gold_conj, one_lt_gold]
@@ -155,7 +155,6 @@ begin
   simp only,
   rw [nat.fib_succ_succ, add_comm],
   simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ'],
-  refl,
 end
 
 /-- The geometric sequence `λ n, φ^n` is a solution of `fib_rec`. -/

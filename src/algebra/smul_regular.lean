@@ -104,7 +104,7 @@ lemma pow (n : ℕ) (ra : is_smul_regular M a) : is_smul_regular M (a ^ n) :=
 begin
   induction n with n hn,
   { simp only [one, pow_zero] },
-  { exact (ra.smul_iff (a ^ n)).mpr hn }
+  { rw pow_succ, exact (ra.smul_iff (a ^ n)).mpr hn }
 end
 
 /-- An element `a` is `M`-regular if and only if a positive power of `a` is `M`-regular. -/
@@ -131,7 +131,7 @@ protected lemma subsingleton (h : is_smul_regular M (0 : R)) : subsingleton M :=
 lemma zero_iff_subsingleton : is_smul_regular M (0 : R) ↔ subsingleton M :=
 ⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
-/-- The `0` element is not `M`-regular, on a non-trivial semimodule. -/
+/-- The `0` element is not `M`-regular, on a non-trivial module. -/
 lemma not_zero_iff : ¬ is_smul_regular M (0 : R) ↔ nontrivial M :=
 begin
   rw [nontrivial_iff, not_iff_comm, zero_iff_subsingleton, subsingleton_iff],
@@ -143,7 +143,7 @@ end
 lemma zero [sM : subsingleton M] : is_smul_regular M (0 : R) :=
 zero_iff_subsingleton.mpr sM
 
-/-- The `0` element is not `M`-regular, on a non-trivial semimodule. -/
+/-- The `0` element is not `M`-regular, on a non-trivial module. -/
 lemma not_zero [nM : nontrivial M] : ¬ is_smul_regular M (0 : R) :=
 not_zero_iff.mpr nM
 

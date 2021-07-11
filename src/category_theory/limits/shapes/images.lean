@@ -89,6 +89,8 @@ def self [mono f] : mono_factorisation f :=
 -- ought to exist...
 instance [mono f] : inhabited (mono_factorisation f) := ⟨self f⟩
 
+variables {f}
+
 /-- The morphism `m` in a factorisation `f = e ≫ m` through a monomorphism is uniquely
 determined. -/
 @[ext]
@@ -104,6 +106,42 @@ begin
   { resetI, apply (cancel_mono F_m).1,
     rw [F_fac', hm, F'_fac'], }
 end
+
+/-- Any mono factorisation of `f` gives a mono factorisation of `f ≫ g` when `g` is a mono. -/
+@[simps]
+def comp_mono (F : mono_factorisation f) {Y' : C} (g : Y ⟶ Y') [mono g] :
+  mono_factorisation (f ≫ g) :=
+{ I := F.I,
+  m := F.m ≫ g,
+  m_mono := mono_comp _ _,
+  e := F.e, }
+
+/-- A mono factorisation of `f ≫ g`, where `g` is an isomorphism,
+gives a mono factorisation of `f`. -/
+@[simps]
+def of_comp_iso {Y' : C} {g : Y ⟶ Y'} [is_iso g] (F : mono_factorisation (f ≫ g)) :
+  mono_factorisation f :=
+{ I := F.I,
+  m := F.m ≫ (inv g),
+  m_mono := mono_comp _ _,
+  e := F.e, }
+
+/-- Any mono factorisation of `f` gives a mono factorisation of `g ≫ f`. -/
+@[simps]
+def iso_comp (F : mono_factorisation f) {X' : C} (g : X' ⟶ X) :
+  mono_factorisation (g ≫ f) :=
+{ I := F.I,
+  m := F.m,
+  e := g ≫ F.e, }
+
+/-- A mono factorisation of `g ≫ f`, where `g` is an isomorphism,
+gives a mono factorisation of `f`. -/
+@[simps]
+def of_iso_comp {X' : C} (g : X' ⟶ X) [is_iso g] (F : mono_factorisation (g ≫ f)) :
+  mono_factorisation f :=
+{ I := F.I,
+  m := F.m,
+  e := inv g ≫ F.e, }
 
 end mono_factorisation
 
@@ -361,6 +399,16 @@ lemma image.factor_thru_image_pre_comp [has_image g] [has_image (f ≫ g)] :
 by simp [image.pre_comp]
 
 /--
+`image.pre_comp f g` is a monomorphism.
+-/
+instance image.pre_comp_mono [has_image g] [has_image (f ≫ g)] : mono (image.pre_comp f g) :=
+begin
+  apply mono_of_mono _ (image.ι g),
+  simp only [image.pre_comp_ι],
+  apply_instance,
+end
+
+/--
 The two step comparison map
   `image (f ≫ (g ≫ h)) ⟶ image (g ≫ h) ⟶ image h`
 agrees with the one step comparison map
@@ -379,10 +427,26 @@ end
 variables [has_equalizers C]
 
 /--
+`image.pre_comp f g` is an epimorphism when `f` is an epimorphism
+(we need `C` to have equalizers to prove this).
+-/
+instance image.pre_comp_epi_of_epi [has_image g] [has_image (f ≫ g)] [epi f] :
+  epi (image.pre_comp f g) :=
+begin
+  apply epi_of_epi_fac (image.factor_thru_image_pre_comp _ _),
+  exact epi_comp _ _
+end
+
+instance has_image_iso_comp [is_iso f] [has_image g] : has_image (f ≫ g) :=
+has_image.mk
+{ F := (image.mono_factorisation g).iso_comp f,
+  is_image := { lift := λ F', image.lift (F'.of_iso_comp f) }, }
+
+/--
 `image.pre_comp f g` is an isomorphism when `f` is an isomorphism
 (we need `C` to have equalizers to prove this).
 -/
-instance image.is_iso_precomp_iso (f : X ⟶ Y) [is_iso f] [has_image g] [has_image (f ≫ g)] :
+instance image.is_iso_precomp_iso (f : X ⟶ Y) [is_iso f] [has_image g] :
   is_iso (image.pre_comp f g) :=
 ⟨⟨image.lift
   { I := image (f ≫ g),
@@ -393,27 +457,24 @@ instance image.is_iso_precomp_iso (f : X ⟶ Y) [is_iso f] [has_image g] [has_im
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.
 
+instance has_image_comp_iso [has_image f] [is_iso g] : has_image (f ≫ g) :=
+has_image.mk
+{ F := (image.mono_factorisation f).comp_mono g,
+  is_image := { lift := λ F', image.lift F'.of_comp_iso }, }
+
 /-- Postcomposing by an isomorphism induces an isomorphism on the image. -/
-def image.post_comp_is_iso [is_iso g] [has_image f] [has_image (f ≫ g)] :
+def image.comp_iso [has_image f] [is_iso g] :
   image f ≅ image (f ≫ g) :=
-{ hom := image.lift
-  { I := _,
-    m := image.ι (f ≫ g) ≫ inv g,
-    m_mono := mono_comp _ _,
-    e := factor_thru_image (f ≫ g) },
-  inv := image.lift
-  { I := _,
-    m := image.ι f ≫ g,
-    m_mono := mono_comp _ _,
-    e := factor_thru_image f } }
+{ hom := image.lift (image.mono_factorisation (f ≫ g)).of_comp_iso,
+  inv := image.lift ((image.mono_factorisation f).comp_mono g) }
 
-@[simp, reassoc] lemma image.post_comp_is_iso_hom_comp_image_ι [is_iso g] [has_image f]
-  [has_image (f ≫ g)] : (image.post_comp_is_iso f g).hom ≫ image.ι (f ≫ g) = image.ι f ≫ g :=
-by { ext, simp [image.post_comp_is_iso] }
+@[simp, reassoc] lemma image.comp_iso_hom_comp_image_ι [has_image f] [is_iso g] :
+  (image.comp_iso f g).hom ≫ image.ι (f ≫ g) = image.ι f ≫ g :=
+by { ext, simp [image.comp_iso] }
 
-@[simp, reassoc] lemma image.post_comp_is_iso_inv_comp_image_ι [is_iso g] [has_image f]
-  [has_image (f ≫ g)] : (image.post_comp_is_iso f g).inv ≫ image.ι f = image.ι (f ≫ g) ≫ inv g :=
-by { ext, simp [image.post_comp_is_iso] }
+@[simp, reassoc] lemma image.comp_iso_inv_comp_image_ι [has_image f] [is_iso g] :
+  (image.comp_iso f g).inv ≫ image.ι f = image.ι (f ≫ g) ≫ inv g :=
+by { ext, simp [image.comp_iso] }
 
 end
 

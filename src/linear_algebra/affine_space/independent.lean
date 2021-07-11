@@ -358,23 +358,25 @@ lemma exists_subset_affine_independent_affine_span_eq_top {s : set P}
 begin
   rcases s.eq_empty_or_nonempty with rfl | ⟨p₁, hp₁⟩,
   { have p₁ : P := add_torsor.nonempty.some,
-    rcases exists_is_basis k V with ⟨sv, hsvi, hsvt⟩,
-    have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
-    { intros v hv,
-      change ((⟨v, hv⟩ : sv) : V) ≠ 0,
-      exact hsvi.ne_zero _ },
+    let hsv := basis.of_vector_space k V,
+    have hsvi := hsv.linear_independent,
+    have hsvt := hsv.span_eq,
+    rw basis.coe_of_vector_space at hsvi hsvt,
+    have h0 : ∀ v : V, v ∈ (basis.of_vector_space_index _ _) → v ≠ 0,
+    { intros v hv, simpa using hsv.ne_zero ⟨v, hv⟩ },
     rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
-    use [{p₁} ∪ (λ v, v +ᵥ p₁) '' sv, set.empty_subset _, hsvi,
-         affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] },
+    exact ⟨{p₁} ∪ (λ v, v +ᵥ p₁) '' _, set.empty_subset _, hsvi,
+         affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt⟩ },
   { rw affine_independent_set_iff_linear_independent_vsub k hp₁ at h,
-    rcases exists_subset_is_basis h with ⟨sv, hsv, hsvi, hsvt⟩,
-    have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
-    { intros v hv,
-      change ((⟨v, hv⟩ : sv) : V) ≠ 0,
-      exact hsvi.ne_zero _ },
+    let bsv := basis.extend h,
+    have hsvi := bsv.linear_independent,
+    have hsvt := bsv.span_eq,
+    rw basis.coe_extend at hsvi hsvt,
+    have hsv := h.subset_extend (set.subset_univ _),
+    have h0 : ∀ v : V, v ∈ (h.extend _) → v ≠ 0,
+    { intros v hv, simpa using bsv.ne_zero ⟨v, hv⟩ },
     rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p₁ at hsvi,
-    use {p₁} ∪ (λ v, v +ᵥ p₁) '' sv,
-    split,
+    refine ⟨{p₁} ∪ (λ v, v +ᵥ p₁) '' h.extend (set.subset_univ _), _, _⟩,
     { refine set.subset.trans _ (set.union_subset_union_right _ (set.image_subset _ hsv)),
       simp [set.image_image] },
     { use [hsvi, affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] } }
@@ -386,7 +388,7 @@ variables (k)
 lemma affine_independent_of_ne {p₁ p₂ : P} (h : p₁ ≠ p₂) : affine_independent k ![p₁, p₂] :=
 begin
   rw affine_independent_iff_linear_independent_vsub k ![p₁, p₂] 0,
-  let i₁ : {x // x ≠ (0 : fin 2)} := ⟨1, dec_trivial⟩,
+  let i₁ : {x // x ≠ (0 : fin 2)} := ⟨1, by norm_num⟩,
   have he' : ∀ i, i = i₁,
   { rintro ⟨i, hi⟩,
     ext,
@@ -394,11 +396,8 @@ begin
     { simpa using hi } },
   haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
   have hz : (![p₁, p₂] ↑(default {x // x ≠ (0 : fin 2)}) -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
-  { rw he' (default _),
-    intro he,
-    rw vsub_eq_zero_iff_eq at he,
-    exact h he.symm },
-  exact linear_independent_unique hz
+  { rw he' (default _), simp, cc },
+  exact linear_independent_unique _ hz
 end
 
 end field

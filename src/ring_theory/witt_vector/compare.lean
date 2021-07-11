@@ -6,7 +6,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 
 import ring_theory.witt_vector.truncated
 import ring_theory.witt_vector.identities
-import data.padics.ring_homs
+import number_theory.padics.ring_homs
 
 /-!
 

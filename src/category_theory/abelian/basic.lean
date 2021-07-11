@@ -118,12 +118,15 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- An abelian category has finite biproducts. -/
-lemma has_finite_biproducts : has_finite_biproducts C :=
+@[priority 100]
+instance has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
 
-section to_non_preadditive_abelian
+@[priority 100]
+instance has_binary_biproducts : has_binary_biproducts C :=
+limits.has_binary_biproducts_of_finite_biproducts _
 
-local attribute [instance] has_finite_biproducts
+section to_non_preadditive_abelian
 
 /-- Every abelian category is, in particular, `non_preadditive_abelian`. -/
 def non_preadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }
@@ -322,28 +325,33 @@ non_preadditive_abelian.mono_is_kernel_of_cokernel s h
 end cokernel_of_kernel
 
 section
-local attribute [instance] preadditive.has_equalizers_of_has_kernels
+
+@[priority 100]
+instance has_equalizers : has_equalizers C :=
+preadditive.has_equalizers_of_has_kernels
 
 /-- Any abelian category has pullbacks -/
-lemma has_pullbacks : has_pullbacks C :=
+@[priority 100]
+instance has_pullbacks : has_pullbacks C :=
 has_pullbacks_of_has_binary_products_of_has_equalizers C
 
 end
 
 section
-local attribute [instance] preadditive.has_coequalizers_of_has_cokernels
-local attribute [instance] has_binary_biproducts.of_has_binary_products
+
+@[priority 100]
+instance has_coequalizers : has_coequalizers C :=
+preadditive.has_coequalizers_of_has_cokernels
 
 /-- Any abelian category has pushouts -/
-lemma has_pushouts : has_pushouts C :=
+@[priority 100]
+instance has_pushouts : has_pushouts C :=
 has_pushouts_of_has_binary_coproducts_of_has_coequalizers C
 
 end
 
 namespace pullback_to_biproduct_is_kernel
 variables [limits.has_pullbacks C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
-
-local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-! This section contains a slightly technical result about pullbacks and biproducts.
     We will need it in the proof that the pullback of an epimorphism is an epimorpism. -/
@@ -359,8 +367,6 @@ biprod.lift pullback.fst pullback.snd
 abbreviation pullback_to_biproduct_fork : kernel_fork (biprod.desc f (-g)) :=
 kernel_fork.of_ι (pullback_to_biproduct f g) $
 by rw [biprod.lift_desc, comp_neg, pullback.condition, add_right_neg]
-
-local attribute [irreducible] has_limit_cospan_of_has_limit_pair_of_has_limit_parallel_pair
 
 /-- The canonical map `pullback f g ⟶ X ⊞ Y` is a kernel of the map induced by
     `(f, -g)`. -/
@@ -381,8 +387,6 @@ end pullback_to_biproduct_is_kernel
 
 namespace biproduct_to_pushout_is_cokernel
 variables [limits.has_pushouts C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
-
-local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-- The canonical map `Y ⊞ Z ⟶ pushout f g` -/
 abbreviation biproduct_to_pushout : Y ⊞ Z ⟶ pushout f g :=
@@ -408,8 +412,6 @@ end biproduct_to_pushout_is_cokernel
 
 section epi_pullback
 variables [limits.has_pullbacks C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
-
-local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-- In an abelian category, the pullback of an epimorphism is an epimorphism.
     Proof from [aluffi2016, IX.2.3], cf. [borceux-vol2, 1.7.6] -/
@@ -484,8 +486,6 @@ end epi_pullback
 
 section mono_pushout
 variables [limits.has_pushouts C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
-
-local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 instance mono_pushout_of_mono_f [mono f] : mono (pushout.inr : Z ⟶ pushout f g) :=
 mono_of_cancel_zero _ $ λ R e h,

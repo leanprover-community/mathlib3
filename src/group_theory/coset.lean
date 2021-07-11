@@ -202,7 +202,7 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
     by simpa [mul_assoc] using this⟩
 
 @[to_additive]
-instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
+instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (∈ s)] :
   decidable_rel (left_rel s).r := λ _ _, d _
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
@@ -224,7 +224,7 @@ def right_rel [group α] (s : subgroup α) : setoid α :=
     by simpa [mul_assoc] using this⟩
 
 @[to_additive]
-instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
+instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (∈ s)] :
   decidable_rel (left_rel s).r := λ _ _, d _
 
 end quotient_group
@@ -281,12 +281,13 @@ set.ext $ λ z, by { rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotien
 
 @[to_additive]
 lemma preimage_image_coe (N : subgroup α) (s : set α) :
-  coe ⁻¹' ((coe : α → quotient N) '' s) = ⋃ x : N, (λ y : α, y * x) '' s :=
+  coe ⁻¹' ((coe : α → quotient N) '' s) = ⋃ x : N, (λ y : α, y * x) ⁻¹' s :=
 begin
   ext x,
   simp only [quotient_group.eq, set_like.exists, exists_prop, set.mem_preimage, set.mem_Union,
     set.mem_image, subgroup.coe_mk, ← eq_inv_mul_iff_mul_eq],
-  exact ⟨λ ⟨y, hs, hN⟩, ⟨_, hN, y, hs, rfl⟩, λ ⟨z, hN, y, hs, hyz⟩, ⟨y, hs, hyz ▸ hN⟩⟩
+  exact ⟨λ ⟨y, hs, hN⟩, ⟨_, N.inv_mem hN, by simpa using hs⟩,
+         λ ⟨z, hz, hxz⟩, ⟨x*z, hxz, by simpa using hz⟩⟩,
 end
 
 end quotient_group
@@ -335,6 +336,7 @@ lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fi
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
+/-- **Order of a Subgroup** -/
 lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]

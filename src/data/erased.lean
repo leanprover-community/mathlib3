@@ -5,8 +5,6 @@ Authors: Mario Carneiro
 -/
 import data.equiv.basic
 
-universes u
-
 /-!
 # A type for VM-erased data
 
@@ -14,6 +12,8 @@ This file defines a type `erased α` which is classically isomorphic to `α`,
 but erased in the VM. That is, at runtime every value of `erased α` is
 represented as `0`, just like types and proofs.
 -/
+
+universes u
 
 /-- `erased α` is the same as `α`, except that the elements
   of `erased α` are erased in the VM in the same way as types

@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 -/
 
-import group_theory.abelianization
 import data.bracket
+import data.matrix.notation
+import group_theory.abelianization
+import set_theory.cardinal
 
 /-!
 # Solvable Groups
@@ -24,7 +26,7 @@ the derived series of a group.
 
 open subgroup
 
-variables {G : Type*} [group G]
+variables {G G' : Type*} [group G] [group G'] {f : G →* G'}
 
 section general_commutator
 
@@ -73,6 +75,10 @@ begin
   { rintros h x ⟨p, hp, q, hq, rfl⟩,
     exact h p hp q hq, }
 end
+
+lemma general_commutator_containment (H₁ H₂ : subgroup G) {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
+  p * q * p⁻¹ * q⁻¹ ∈ ⁅H₁, H₂⁆ :=
+(general_commutator_le H₁ H₂ ⁅H₁, H₂⁆).mp (le_refl ⁅H₁, H₂⁆) p hp q hq
 
 lemma general_commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
 begin
@@ -159,8 +165,6 @@ end derived_series
 
 section commutator_map
 
-variables {G} {G' : Type*} [group G'] {f : G →* G'}
-
 lemma map_commutator_eq_commutator_map (H₁ H₂ : subgroup G) :
   ⁅H₁, H₂⁆.map f = ⁅H₁.map f, H₂.map f⁆ :=
 begin
@@ -243,7 +247,7 @@ lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :
 instance is_solvable_of_subsingleton [subsingleton G] : is_solvable G :=
 is_solvable_of_top_eq_bot G (by ext; simp at *)
 
-variables {G} {G' : Type*} [group G'] {f : G →* G'}
+variables {G}
 
 lemma solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
   is_solvable G :=
@@ -331,3 +335,39 @@ lemma is_simple_group.comm_iff_is_solvable :
 end⟩
 
 end is_simple_group
+
+section perm_not_solvable
+
+lemma not_solvable_of_mem_derived_series {g : G} (h1 : g ≠ 1)
+  (h2 : ∀ n : ℕ, g ∈ derived_series G n) : ¬ is_solvable G :=
+mt (is_solvable_def _).mp (not_exists_of_forall_not
+  (λ n h, h1 (subgroup.mem_bot.mp ((congr_arg (has_mem.mem g) h).mp (h2 n)))))
+
+lemma equiv.perm.fin_5_not_solvable : ¬ is_solvable (equiv.perm (fin 5)) :=
+begin
+  let x : equiv.perm (fin 5) := ⟨![1, 2, 0, 3, 4], ![2, 0, 1, 3, 4], dec_trivial, dec_trivial⟩,
+  let y : equiv.perm (fin 5) := ⟨![3, 4, 2, 0, 1], ![3, 4, 2, 0, 1], dec_trivial, dec_trivial⟩,
+  let z : equiv.perm (fin 5) := ⟨![0, 3, 2, 1, 4], ![0, 3, 2, 1, 4], dec_trivial, dec_trivial⟩,
+  have x_ne_one : x ≠ 1, { rw [ne.def, equiv.ext_iff], dec_trivial },
+  have key : x = z * (x * (y * x * y⁻¹) * x⁻¹ * (y * x * y⁻¹)⁻¹) * z⁻¹,
+  { ext a, dec_trivial! },
+  refine not_solvable_of_mem_derived_series x_ne_one (λ n, _),
+  induction n with n ih,
+  { exact mem_top x },
+  { rw key,
+    exact (derived_series_normal _ _).conj_mem _
+      (general_commutator_containment _ _ ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
+end
+
+lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :
+  ¬ is_solvable (equiv.perm X) :=
+begin
+  introI h,
+  have key : nonempty (fin 5 ↪ X),
+  { rwa [←cardinal.lift_mk_le, cardinal.mk_fin, cardinal.lift_nat_cast,
+    nat.cast_bit1, nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
+  exact equiv.perm.fin_5_not_solvable (solvable_of_solvable_injective
+    (equiv.perm.via_embedding_hom_injective (nonempty.some key))),
+end
+
+end perm_not_solvable

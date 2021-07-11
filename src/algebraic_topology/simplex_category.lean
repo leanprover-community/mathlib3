@@ -114,6 +114,14 @@ instance small_category : small_category.{u} simplex_category :=
   id := λ m, simplex_category.hom.id _,
   comp := λ _ _ _ f g, simplex_category.hom.comp g f, }
 
+/-- The constant morphism from [0]. -/
+def const (x : simplex_category.{u}) (i : fin (x.len+1)) : [0] ⟶ x :=
+  hom.mk $ ⟨λ _, i, by tauto⟩
+
+@[simp]
+lemma const_comp (x y : simplex_category.{u}) (i : fin (x.len + 1)) (f : x ⟶ y) :
+  const x i ≫ f = const y (f.to_preorder_hom i) := rfl
+
 /--
 Make a morphism `[n] ⟶ [m]` from a monotone map between fin's.
 This is useful for constructing morphisms beetween `[n]` directly
@@ -122,6 +130,9 @@ without identifying `n` with `[n].len`.
 @[simp]
 def mk_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) : [n] ⟶ [m] :=
 simplex_category.hom.mk f
+
+lemma hom_zero_zero (f : [0] ⟶ [0]) : f = 𝟙 _ :=
+by { ext : 2, dsimp, apply subsingleton.elim }
 
 end
 
@@ -154,7 +165,7 @@ begin
     order_embedding.coe_of_strict_mono,
     function.comp_app,
     simplex_category.hom.to_preorder_hom_mk,
-    preorder_hom.comp_to_fun],
+    preorder_hom.comp_coe],
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
@@ -163,18 +174,7 @@ end
 
 /-- The special case of the first simplicial identity -/
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : δ i ≫ δ i.cast_succ = δ i ≫ δ i.succ :=
-begin
-  ext j,
-  dsimp [δ, fin.succ_above],
-  simp only [order_embedding.to_preorder_hom_coe,
-    order_embedding.coe_of_strict_mono,
-    function.comp_app,
-    simplex_category.hom.to_preorder_hom_mk,
-    preorder_hom.comp_to_fun],
-  rcases i with ⟨i, _⟩,
-  rcases j with ⟨j, _⟩,
-  split_ifs; { simp at *; linarith },
-end
+(δ_comp_δ (le_refl i)).symm
 
 /-- The second simplicial identity -/
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
@@ -314,10 +314,13 @@ section skeleton
 
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
+@[simps obj map]
 def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd :=
 { obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
   map := λ a b f,
-    ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩ }
+    ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩,
+  map_id' := λ a, by { ext, simp, },
+  map_comp' := λ a b c f g, by { ext, simp, }, }
 
 lemma skeletal : skeletal simplex_category :=
 λ X Y ⟨I⟩,
@@ -333,12 +336,12 @@ namespace skeletal_functor
 
 instance : full skeletal_functor :=
 { preimage := λ a b f, simplex_category.hom.mk ⟨λ i, (f (ulift.up i)).down, λ i j h, f.monotone h⟩,
-  witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, refl } }
+  witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, ext1, cases x, simp, } }
 
 instance : faithful skeletal_functor :=
 { map_injective' := λ m n f g h,
   begin
-    ext1, ext1 i, apply ulift.up.inj,
+    ext1, ext1, ext1 i, apply ulift.up.inj,
     change (skeletal_functor.map f) ⟨i⟩ = (skeletal_functor.map g) ⟨i⟩,
     rw h,
   end }
@@ -357,12 +360,12 @@ instance : ess_surj skeletal_functor :=
     { rintro ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, exact hf.monotone h, },
     { intros i j h, show f.symm i ≤ f.symm j, rw ← hf.le_iff_le,
       show f (f.symm i) ≤ f (f.symm j), simpa only [order_iso.apply_symm_apply], },
-    { ext1 ⟨i⟩, ext1, exact f.symm_apply_apply i },
-    { ext1 i, exact f.apply_symm_apply i },
-  end⟩⟩,}
+    { ext1, ext1 ⟨i⟩, ext1, exact f.symm_apply_apply i },
+    { ext1, ext1 i, exact f.apply_symm_apply i },
+  end⟩⟩, }
 
 noncomputable instance is_equivalence : is_equivalence skeletal_functor :=
-equivalence.equivalence_of_fully_faithfully_ess_surj skeletal_functor
+equivalence.of_fully_faithfully_ess_surj skeletal_functor
 
 end skeletal_functor
 
@@ -398,5 +401,101 @@ def inclusion {n : ℕ} : simplex_category.truncated n ⥤ simplex_category :=
 full_subcategory_inclusion _
 
 end truncated
+
+section concrete
+
+instance : concrete_category.{0} simplex_category.{u} :=
+{ forget :=
+  { obj := λ i, fin (i.len + 1),
+    map := λ i j f, f.to_preorder_hom },
+  forget_faithful := {} }
+
+end concrete
+
+section epi_mono
+
+/-- A morphism in `simplex_category` is a monomorphism precisely when it is an injective function
+-/
+theorem mono_iff_injective {n m : simplex_category} {f : n ⟶ m} :
+  mono f ↔ function.injective f.to_preorder_hom :=
+begin
+  split,
+  { introsI m x y h,
+    have H : const n x ≫ f = const n y ≫ f,
+    { dsimp, rw h },
+    change (n.const x).to_preorder_hom 0 = (n.const y).to_preorder_hom 0,
+    rw cancel_mono f at H,
+    rw H },
+  { exact concrete_category.mono_of_injective f }
+end
+
+/-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
+-/
+lemma epi_iff_surjective {n m : simplex_category} {f: n ⟶ m} :
+  epi f ↔ function.surjective f.to_preorder_hom :=
+begin
+  split,
+  { introsI hyp_f_epi x,
+    by_contradiction h_ab,
+    rw not_exists at h_ab,
+    -- The proof is by contradiction: assume f is not surjective,
+    -- then introduce two non-equal auxiliary functions equalizing f, and get a contradiction.
+    -- First we define the two auxiliary functions.
+    set chi_1 : m ⟶ [1] := hom.mk ⟨λ u, if u ≤ x then 0 else 1, begin
+      intros a b h,
+      dsimp only [],
+      split_ifs with h1 h2 h3,
+      any_goals { exact le_refl _ },
+      { exact bot_le },
+      { exact false.elim (h1 (le_trans h h3)) }
+    end ⟩,
+    set chi_2 : m ⟶ [1] := hom.mk ⟨λ u, if u < x then 0 else 1, begin
+      intros a b h,
+      dsimp only [],
+      split_ifs with h1 h2 h3,
+      any_goals { exact le_refl _ },
+      { exact bot_le },
+      { exact false.elim (h1 (lt_of_le_of_lt h h3)) }
+    end ⟩,
+    -- The two auxiliary functions equalize f
+    have f_comp_chi_i : f ≫ chi_1 = f ≫ chi_2,
+    { dsimp,
+      ext,
+      simp [le_iff_lt_or_eq, h_ab x_1] },
+    -- We now just have to show the two auxiliary functions are not equal.
+    rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
+    apply_fun (λ e, e.to_preorder_hom x) at eq_chi_i,
+    suffices : (0 : fin 2) = 1, by exact bot_ne_top this,
+    simpa using eq_chi_i },
+  { exact concrete_category.epi_of_surjective f }
+end
+
+/-- A monomorphism in `simplex_category` must increase lengths-/
+lemma len_le_of_mono {x y : simplex_category} {f : x ⟶ y} :
+  mono f → (x.len ≤ y.len) :=
+begin
+  intro hyp_f_mono,
+  have f_inj : function.injective f.to_preorder_hom.to_fun,
+  { exact mono_iff_injective.elim_left (hyp_f_mono) },
+  simpa using fintype.card_le_of_injective f.to_preorder_hom.to_fun f_inj,
+end
+
+lemma le_of_mono {n m : ℕ} {f : [n] ⟶ [m]} : (category_theory.mono f) → (n ≤ m) :=
+len_le_of_mono
+
+/-- An epimorphism in `simplex_category` must decrease lengths-/
+lemma len_le_of_epi {x y : simplex_category} {f : x ⟶ y} :
+  epi f → y.len ≤ x.len :=
+begin
+  intro hyp_f_epi,
+  have f_surj : function.surjective f.to_preorder_hom.to_fun,
+  { exact epi_iff_surjective.elim_left (hyp_f_epi) },
+  simpa using fintype.card_le_of_surjective f.to_preorder_hom.to_fun f_surj,
+end
+
+lemma le_of_epi {n m : ℕ} {f : [n] ⟶ [m]} : epi f → (m ≤ n) :=
+len_le_of_epi
+
+end epi_mono
 
 end simplex_category

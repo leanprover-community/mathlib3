@@ -92,7 +92,7 @@ lemma times_cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
     symmetry,
     apply times_cont_diff_within_at_inter,
     have : u ∈ 𝓝 (I.symm (I x)),
-      by { rw [model_with_corners.left_inv], exact mem_nhds_sets u_open xu },
+      by { rw [model_with_corners.left_inv], exact is_open.mem_nhds u_open xu },
     apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
   end,
   right_invariance :=
@@ -508,7 +508,7 @@ begin
   suffices h : mdifferentiable_within_at I I' f (s ∩ (f ⁻¹' (ext_chart_at I' (f x)).source)) x,
   { rwa mdifferentiable_within_at_inter' at h,
     apply (hf.1).preimage_mem_nhds_within,
-    exact mem_nhds_sets (ext_chart_at_open_source I' (f x)) (mem_ext_chart_source I' (f x)) },
+    exact is_open.mem_nhds (ext_chart_at_open_source I' (f x)) (mem_ext_chart_source I' (f x)) },
   rw mdifferentiable_within_at_iff,
   exact ⟨hf.1.mono (inter_subset_left _ _),
     (hf.2.differentiable_within_at hn).mono (by mfld_set_tac)⟩,
@@ -631,10 +631,10 @@ begin
     obtain ⟨o, o_open, xo, ho, h'o⟩ : ∃ (o : set M),
       is_open o ∧ x ∈ o ∧ o ⊆ (chart_at H x).source ∧ o ∩ s ⊆ f ⁻¹' (chart_at H' (f x)).source,
     { have : (chart_at H' (f x)).source ∈ 𝓝 (f x) :=
-        mem_nhds_sets (local_homeomorph.open_source _) (mem_chart_source H' (f x)),
+        is_open.mem_nhds (local_homeomorph.open_source _) (mem_chart_source H' (f x)),
       rcases mem_nhds_within.1 (h.1.preimage_mem_nhds_within this) with ⟨u, u_open, xu, hu⟩,
       refine ⟨u ∩ (chart_at H x).source, _, ⟨xu, mem_chart_source _ _⟩, _, _⟩,
-      { exact is_open_inter u_open (local_homeomorph.open_source _) },
+      { exact is_open.inter u_open (local_homeomorph.open_source _) },
       { assume y hy, exact hy.2 },
       { assume y hy, exact hu ⟨hy.1.1, hy.2⟩ } },
     have h' : times_cont_mdiff_within_at I I' n f (s ∩ o) x := h.mono (inter_subset_left _ _),
@@ -958,7 +958,7 @@ end
 
 /-! ### Equivalence with the basic definition for functions between vector spaces -/
 
-section vector_space
+section module
 
 lemma times_cont_mdiff_within_at_iff_times_cont_diff_within_at {f : E → E'} {s : set E} {x : E} :
   times_cont_mdiff_within_at 𝓘(𝕜, E) 𝓘(𝕜, E') n f s x
@@ -999,7 +999,7 @@ by rw [← times_cont_diff_on_univ, ← times_cont_mdiff_on_univ,
 alias times_cont_mdiff_iff_times_cont_diff ↔
   times_cont_mdiff.times_cont_diff times_cont_diff.times_cont_mdiff
 
-end vector_space
+end module
 
 /-! ### The tangent map of a smooth function is smooth -/
 
@@ -1181,7 +1181,7 @@ begin
   suffices h : times_cont_mdiff_on I.tangent I'.tangent m (tangent_map_within I I' f s) s'_lift,
   { refine ⟨(tangent_bundle.proj I M)⁻¹' (o ∩ l.source), _, _, _⟩,
     show is_open ((tangent_bundle.proj I M)⁻¹' (o ∩ l.source)), from
-      (is_open_inter o_open l.open_source).preimage (tangent_bundle_proj_continuous _ _) ,
+      (is_open.inter o_open l.open_source).preimage (tangent_bundle_proj_continuous _ _) ,
     show p ∈ tangent_bundle.proj I M ⁻¹' (o ∩ l.source),
     { simp [tangent_bundle.proj] at ⊢,
       have : p.1 ∈ f ⁻¹' r.source ∩ s, by simp [hp],
@@ -1507,7 +1507,7 @@ lemma tangent_map_tangent_bundle_pure (p : tangent_bundle I M) :
 begin
   rcases p with ⟨x, v⟩,
   have N : I.symm ⁻¹' (chart_at H x).target ∈ 𝓝 (I ((chart_at H x) x)),
-  { apply mem_nhds_sets,
+  { apply is_open.mem_nhds,
     apply (local_homeomorph.open_target _).preimage I.continuous_inv_fun,
     simp only with mfld_simps },
   have A : mdifferentiable_at I I.tangent (λ (x : M), (⟨x, 0⟩ : tangent_bundle I M)) x :=

@@ -65,7 +65,7 @@ def hom (X Y : LocallyRingedSpace) : Type* :=
 { f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace //
     ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
 
-instance : has_hom LocallyRingedSpace := ⟨hom⟩
+instance : quiver LocallyRingedSpace := ⟨hom⟩
 
 @[ext] lemma hom_ext {X Y : LocallyRingedSpace} (f g : hom X Y) (w : f.1 = g.1) : f = g :=
 subtype.eq w

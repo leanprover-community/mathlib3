@@ -6,7 +6,8 @@
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/leanprover-community/mathlib)
 
 [Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).
-It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the latter.
+It contains both programming infrastructure and mathematics,
+as well as tactics that use the former and allow to develop the latter.
 
 ## Installation
 

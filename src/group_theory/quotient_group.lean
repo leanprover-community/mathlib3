@@ -28,14 +28,12 @@ proves Noether's first and second isomorphism theorems.
 * `quotient_inf_equiv_prod_normal_quotient`: Noether's second isomorphism theorem, an explicit
   isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
   group `G`.
+* `quotient_group.quotient_quotient_equiv_quotient`: Noether's third isomorphism theorem,
+  the canonical isomorphism between `(G / M) / (M / N)` and `G / N`, where `N ≤ M`.
 
 ## Tags
 
 isomorphism theorems, quotient groups
-
-## TODO
-
-Noether's third isomorphism theorem
 -/
 
 universes u v
@@ -80,14 +78,30 @@ instance : group (quotient N) :=
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
 def mk' : G →* quotient N := monoid_hom.mk' (quotient_group.mk) (λ _ _, rfl)
 
+@[to_additive, simp]
+lemma coe_mk' : (mk' N : G → quotient N) = coe := rfl
+
+@[to_additive, simp]
+lemma mk'_apply (x : G) : mk' N x = x := rfl
+
+@[simp, to_additive quotient_add_group.eq_zero_iff]
+lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : quotient N) = 1 ↔ x ∈ N :=
+begin
+  refine quotient_group.eq.trans _,
+  rw [mul_one, subgroup.inv_mem_iff],
+end
+
 @[simp, to_additive quotient_add_group.ker_mk]
 lemma ker_mk :
   monoid_hom.ker (quotient_group.mk' N : G →* quotient_group.quotient N) = N :=
+subgroup.ext eq_one_iff
+
+@[to_additive quotient_add_group.eq_iff_sub_mem]
+lemma eq_iff_div_mem {N : subgroup G} [nN : N.normal] {x y : G} :
+  (x : quotient N) = y ↔ x / y ∈ N :=
 begin
-  ext g,
-  rw [monoid_hom.mem_ker, eq_comm],
-  show (((1 : G) : quotient_group.quotient N)) = g ↔ _,
-  rw [quotient_group.eq, one_inv, one_mul],
+  refine eq_comm.trans (quotient_group.eq.trans _),
+  rw [nN.mem_comm_iff, div_eq_mul_inv]
 end
 
 -- for commutative groups we don't need normality assumption
@@ -156,6 +170,16 @@ begin
   exact h hx,
 end
 
+@[simp, to_additive quotient_add_group.map_coe] lemma map_coe
+  (M : subgroup H) [M.normal] (f : G →* H) (h : N ≤ M.comap f) (x : G) :
+  map N M f h ↑x = ↑(f x) :=
+lift_mk' _ _ x
+
+@[to_additive quotient_add_group.map_mk'] lemma map_mk'
+  (M : subgroup H) [M.normal] (f : G →* H) (h : N ≤ M.comap f) (x : G) :
+  map N M f h (mk' _ x) = ↑(f x) :=
+quotient_group.lift_mk' _ _ x
+
 omit nN
 variables (φ : G →* H)
 
@@ -182,21 +206,21 @@ assume a b, quotient.induction_on₂' a b $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
   is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
 
--- Note that ker φ isn't definitionally ker (to_range φ)
+-- Note that `ker φ` isn't definitionally `ker (φ.range_restrict)`
 -- so there is a bit of annoying code duplication here
 
 /-- The induced map from the quotient by the kernel to the range. -/
 @[to_additive quotient_add_group.range_ker_lift "The induced map from the quotient by the kernel to
 the range."]
 def range_ker_lift : quotient (ker φ) →* φ.range :=
-lift _ (to_range φ) $ λ g hg, (mem_ker _).mp $ by rwa to_range_ker
+lift _ φ.range_restrict $ λ g hg, (mem_ker _).mp $ by rwa range_restrict_ker
 
 @[to_additive quotient_add_group.range_ker_lift_injective]
 lemma range_ker_lift_injective : injective (range_ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
-  assume a b (h : to_range φ a = to_range φ b), quotient.sound' $
-show a⁻¹ * b ∈ ker φ, by rw [←to_range_ker, mem_ker,
-  is_mul_hom.map_mul (to_range φ), ← h, is_group_hom.map_inv (to_range φ), inv_mul_self]
+  assume a b (h : φ.range_restrict a = φ.range_restrict b), quotient.sound' $
+show a⁻¹ * b ∈ ker φ, by rw [←range_restrict_ker, mem_ker,
+  φ.range_restrict.map_mul, ← h, φ.range_restrict.map_inv, inv_mul_self]
 
 @[to_additive quotient_add_group.range_ker_lift_surjective]
 lemma range_ker_lift_surjective : surjective (range_ker_lift φ) :=
@@ -206,23 +230,37 @@ begin
   refl,
 end
 
-/-- The first isomorphism theorem (a definition): the canonical isomorphism between
+/-- **Noether's first isomorphism theorem** (a definition): the canonical isomorphism between
 `G/(ker φ)` to `range φ`. -/
 @[to_additive quotient_add_group.quotient_ker_equiv_range "The first isomorphism theorem
 (a definition): the canonical isomorphism between `G/(ker φ)` to `range φ`."]
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃* range φ :=
 mul_equiv.of_bijective (range_ker_lift φ) ⟨range_ker_lift_injective φ, range_ker_lift_surjective φ⟩
 
-/-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`. -/
+/-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a homomorphism `φ : G →* H`
+with a right inverse `ψ : H → G`. -/
+@[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse "The canonical isomorphism
+`G/(ker φ) ≃+ H` induced by a homomorphism `φ : G →+ H` with a right inverse `ψ : H → G`.",
+  simps]
+def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inverse ψ φ) :
+  quotient (ker φ) ≃* H :=
+{ to_fun := ker_lift φ,
+  inv_fun := mk ∘ ψ,
+  left_inv := λ x, ker_lift_injective φ (by rw [function.comp_app, ker_lift_mk', hφ]),
+  right_inv := hφ,
+  .. ker_lift φ }
+
+/-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`.
+
+For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inverse`.
+-/
 @[to_additive quotient_add_group.quotient_ker_equiv_of_surjective "The canonical isomorphism
-`G/(ker φ) ≃+ H` induced by a surjection `φ : G →+ H`."]
+`G/(ker φ) ≃+ H` induced by a surjection `φ : G →+ H`.
+
+For a `computable` version, see `quotient_add_group.quotient_ker_equiv_of_right_inverse`."]
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
-  (quotient (ker φ)) ≃* H :=
-mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, λ h, begin
-  rcases hφ h with ⟨g, rfl⟩,
-  use mk g,
-  refl
-end⟩
+  quotient (ker φ) ≃* H :=
+quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec
 
 /-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
 isomorphic. -/
@@ -240,8 +278,8 @@ section snd_isomorphism_thm
 
 open subgroup
 
-/-- The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`, where `N`
-is normal, defines an isomorphism between `H/(H ∩ N)` and `(HN)/N`. -/
+/-- **Noether's second isomorphism theorem**: given two subgroups `H` and `N` of a group `G`, where
+`N` is normal, defines an isomorphism between `H/(H ∩ N)` and `(HN)/N`. -/
 @[to_additive "The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`,
 where `N` is normal, defines an isomorphism between `H/(H ∩ N)` and `(H + N)/N`"]
 noncomputable def quotient_inf_equiv_prod_normal_quotient (H N : subgroup G) [N.normal] :
@@ -260,5 +298,56 @@ have φ_surjective : function.surjective φ := λ x, x.induction_on' $
   (quotient_ker_equiv_of_surjective φ φ_surjective)
 
 end snd_isomorphism_thm
+
+section third_iso_thm
+
+variables (M : subgroup G) [nM : M.normal]
+
+include nM nN
+
+@[to_additive quotient_add_group.map_normal]
+instance map_normal : (M.map (quotient_group.mk' N)).normal :=
+{ conj_mem := begin
+    rintro _ ⟨x, hx, rfl⟩ y,
+    refine induction_on' y (λ y, ⟨y * x * y⁻¹, subgroup.normal.conj_mem nM x hx y, _⟩),
+    simp only [mk'_apply, coe_mul, coe_inv]
+  end }
+
+variables (h : N ≤ M)
+
+/-- The map from the third isomorphism theorem for groups: `(G / N) / (M / N) → G / M`. -/
+@[to_additive quotient_add_group.quotient_quotient_equiv_quotient_aux
+"The map from the third isomorphism theorem for additive groups: `(A / N) / (M / N) → A / M`."]
+def quotient_quotient_equiv_quotient_aux :
+  quotient (M.map (mk' N)) →* quotient M :=
+lift (M.map (mk' N))
+  (map N M (monoid_hom.id G) h)
+  (by { rintro _ ⟨x, hx, rfl⟩, rw map_mk' N M _ _ x,
+        exact (quotient_group.eq_one_iff _).mpr hx })
+
+@[simp, to_additive quotient_add_group.quotient_quotient_equiv_quotient_aux_coe]
+lemma quotient_quotient_equiv_quotient_aux_coe (x : quotient_group.quotient N) :
+  quotient_quotient_equiv_quotient_aux N M h x = quotient_group.map N M (monoid_hom.id G) h x :=
+quotient_group.lift_mk' _ _ x
+
+@[to_additive quotient_add_group.quotient_quotient_equiv_quotient_aux_coe_coe]
+lemma quotient_quotient_equiv_quotient_aux_coe_coe (x : G) :
+  quotient_quotient_equiv_quotient_aux N M h (x : quotient_group.quotient N) =
+    x :=
+quotient_group.lift_mk' _ _ x
+
+/-- **Noether's third isomorphism theorem** for groups: `(G / N) / (M / N) ≃ G / M`. -/
+@[to_additive quotient_add_group.quotient_quotient_equiv_quotient
+"**Noether's third isomorphism theorem** for additive groups: `(A / N) / (M / N) ≃ A / M`."]
+def quotient_quotient_equiv_quotient :
+  quotient_group.quotient (M.map (quotient_group.mk' N)) ≃* quotient_group.quotient M :=
+{ to_fun := quotient_quotient_equiv_quotient_aux N M h,
+  inv_fun := quotient_group.map _ _ (quotient_group.mk' N) (subgroup.le_comap_map _ _),
+  left_inv := λ x, quotient_group.induction_on' x $ λ x, quotient_group.induction_on' x $
+    λ x, by simp,
+  right_inv := λ x, quotient_group.induction_on' x $ λ x, by simp,
+  map_mul' := monoid_hom.map_mul _ }
+
+end third_iso_thm
 
 end quotient_group

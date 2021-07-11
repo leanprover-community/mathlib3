@@ -476,7 +476,7 @@ instance [Π i, topological_space (α i)] [∀ i, opens_measurable_space (α i)]
 begin
   refine ⟨λ x, _⟩,
   choose s hxs ho hμ using λ i, (μ i).exists_is_open_measure_lt_top (x i),
-  refine ⟨pi univ s, set_pi_mem_nhds finite_univ (λ i hi, mem_nhds_sets (ho i) (hxs i)), _⟩,
+  refine ⟨pi univ s, set_pi_mem_nhds finite_univ (λ i hi, is_open.mem_nhds (ho i) (hxs i)), _⟩,
   rw [pi_pi],
   exacts [ennreal.prod_lt_top (λ i _, hμ i), λ i, (ho i).measurable_set]
 end

@@ -352,7 +352,7 @@ example (p q r s t u v w : ℕ) (h1 : p + u = q + t) (h2 : r + w = s + v) :
   p * r + q * s + (t * w + u * v) = p * s + q * r + (t * v + u * w) :=
 by nlinarith
 
--- Tests involving a norm, including that squares in a type where `pow_two_nonneg` does not apply
+-- Tests involving a norm, including that squares in a type where `sq_nonneg` does not apply
 -- do not cause an exception
 variables {R : Type*} [ring R] (abs : R → ℚ)
 

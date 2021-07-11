@@ -80,6 +80,48 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
+lemma Union_prop (f : ι → set α) (p : ι → Prop) (i : ι) [decidable $ p i] :
+  (⋃ (h : p i), f i) = if p i then f i else ∅ :=
+begin
+  ext x,
+  rw mem_Union,
+  split_ifs ; tauto,
+end
+
+@[simp]
+lemma Union_prop_pos {p : ι → Prop} {i : ι} (hi : p i) (f : ι → set α)  :
+  (⋃ (h : p i), f i) = f i :=
+begin
+  classical,
+  ext x,
+  rw [Union_prop, if_pos hi]
+end
+
+@[simp]
+lemma Union_prop_neg {p : ι → Prop} {i : ι} (hi : ¬ p i) (f : ι → set α)  :
+  (⋃ (h : p i), f i) = ∅ :=
+begin
+  classical,
+  ext x,
+  rw [Union_prop, if_neg hi]
+end
+
+lemma exists_set_mem_of_union_eq_top {ι : Type*} (t : set ι) (s : ι → set β)
+  (w : (⋃ i ∈ t, s i) = ⊤) (x : β) :
+  ∃ (i ∈ t), x ∈ s i :=
+begin
+  have p : x ∈ ⊤ := set.mem_univ x,
+  simpa only [←w, set.mem_Union] using p,
+end
+
+lemma nonempty_of_union_eq_top_of_nonempty
+  {ι : Type*} (t : set ι) (s : ι → set α) (H : nonempty α) (w : (⋃ i ∈ t, s i) = ⊤) :
+  t.nonempty :=
+begin
+  obtain ⟨x, m, -⟩ := exists_set_mem_of_union_eq_top t s w H.some,
+  exact ⟨x, m⟩,
+end
+
 theorem set_of_exists (p : ι → β → Prop) : {x | ∃ i, p i x} = ⋃ i, {x | p i x} :=
 ext $ λ i, mem_Union.symm
 
@@ -243,6 +285,10 @@ infi_option s
 theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x := by simp
 
+lemma mem_bUnion_iff' {p : α → Prop} {t : α → set β} {y : β} :
+  y ∈ (⋃ i (h : p i), t i) ↔ ∃ i (h : p i), y ∈ t i :=
+mem_bUnion_iff
+
 theorem mem_bInter_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋂ x ∈ s, t x) ↔ ∀ x ∈ s, y ∈ t x := by simp
 
@@ -353,6 +399,20 @@ begin rw insert_eq, simp [bInter_union] end
 theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
 by simp [inter_comm]
+
+lemma bInter_inter {ι α : Type*} {s : set ι} (hs : s.nonempty) (f : ι → set α) (t : set α) :
+  (⋂ i ∈ s, f i ∩ t) = (⋂ i ∈ s, f i) ∩ t :=
+begin
+  haveI : nonempty s := hs.to_subtype,
+  simp [bInter_eq_Inter, ← Inter_inter]
+end
+
+lemma inter_bInter {ι α : Type*} {s : set ι} (hs : s.nonempty) (f : ι → set α) (t : set α) :
+  (⋂ i ∈ s, t ∩ f i) = t ∩ ⋂ i ∈ s, f i :=
+begin
+  rw [inter_comm, ← bInter_inter hs],
+  simp [inter_comm]
+end
 
 theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset
@@ -916,19 +976,6 @@ infi_image
 
 end image
 
-section image2
-
-variables (f : α → β → γ) {s : set α} {t : set β}
-
-lemma Union_image_left : (⋃ a ∈ s, f a '' t) = image2 f s t :=
-by { ext y, split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨a, x, ha, hx, ax⟩ }
-
-lemma Union_image_right : (⋃ b ∈ t, (λ a, f a b) '' s) = image2 f s t :=
-by { ext y, split; simp only [mem_Union]; rintros ⟨a, b, c, d, e⟩, exact ⟨c, a, d, b, e⟩,
-     exact ⟨b, d, a, c, e⟩ }
-
-end image2
-
 section preimage
 
 theorem monotone_preimage {f : α → β} : monotone (preimage f) := assume a b h, preimage_mono h
@@ -1003,6 +1050,28 @@ begin
 end
 
 end prod
+
+
+section image2
+
+variables (f : α → β → γ) {s : set α} {t : set β}
+
+lemma Union_image_left : (⋃ a ∈ s, f a '' t) = image2 f s t :=
+by { ext y, split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨a, x, ha, hx, ax⟩ }
+
+lemma Union_image_right : (⋃ b ∈ t, (λ a, f a b) '' s) = image2 f s t :=
+by { ext y, split; simp only [mem_Union]; rintros ⟨a, b, c, d, e⟩, exact ⟨c, a, d, b, e⟩,
+     exact ⟨b, d, a, c, e⟩ }
+
+lemma image2_Union_left (s : ι → set α) (t : set β) :
+  image2 f (⋃ i, s i) t = ⋃ i, image2 f (s i) t :=
+by simp only [← image_prod, Union_prod_const, image_Union]
+
+lemma image2_Union_right (s : set α) (t : ι → set β) :
+  image2 f s (⋃ i, t i) = ⋃ i, image2 f s (t i) :=
+by simp only [← image_prod, prod_Union, image_Union]
+
+end image2
 
 section seq
 

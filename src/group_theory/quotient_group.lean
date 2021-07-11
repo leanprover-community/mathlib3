@@ -278,15 +278,23 @@ map _ _ (subgroup.inclusion h) $
   by simp [subgroup.subgroup_of, subgroup.comap_comap]; exact subgroup.comap_mono h'
 
 /-- Let `A', A, B', B` be subgroups of `G`.
-If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic. -/
+If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic. 
+
+Applying this equiv is nicer than rewriting along the equalities, since the type of
+`(A'.subgroup_of A : subgroup A)` depends on on `A`.
+-/
 @[to_additive "Let `A', A, B', B` be subgroups of `G`.
-If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic."]
+If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic.
+
+Applying this equiv is nicer than rewriting along the equalities, since the type of
+`(A'.add_subgroup_of A : add_subgroup A)` depends on on `A`.
+"]
 def equiv_quotient_subgroup_of_of_eq {A' A B' B : subgroup G}
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
   (h' : A' = B') (h : A = B) :
   quotient (A'.subgroup_of A) ≃* quotient (B'.subgroup_of B) :=
 by apply monoid_hom.to_mul_equiv
-  (quotient_map_subgroup_of_of_le h'.le h.le) (quotient_map_subgroup_of_of_le h'.ge h.ge);
+    (quotient_map_subgroup_of_of_le h'.le h.le) (quotient_map_subgroup_of_of_le h'.ge h.ge);
   { ext ⟨x⟩, simp [quotient_map_subgroup_of_of_le, map, lift, mk', subgroup.inclusion], refl }
 
 section snd_isomorphism_thm

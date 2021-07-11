@@ -126,8 +126,8 @@ lemma incidence_set_subset (G' : subgraph G) (v : V) : G'.incidence_set v ⊆ G'
 def vert (G' : subgraph G) (v : V) (h : v ∈ G'.verts) : G'.verts := ⟨v, h⟩
 
 /--
-Given a subgraph, replace the vertex set with an equal set.
-The resulting subgraph is equal (see `copy_eq`).
+Create an equal copy of a subgraph (see `copy_eq`) with possibly different definitional equalities.
+See Note [range copy pattern].
 -/
 def copy (G' : subgraph G)
   (V'' : set V) (hV : V'' = G'.verts)
@@ -192,7 +192,7 @@ instance : bounded_lattice (subgraph G) :=
   top := top,
   bot := bot,
   le_refl := λ x, ⟨rfl.subset, λ _ _ h, h⟩,
-  le_trans := λ x y z hxy hyz, ⟨set.subset.trans hxy.1 hyz.1, λ _ _ h, hyz.2 (hxy.2 h)⟩,
+  le_trans := λ x y z hxy hyz, ⟨hxy.1.trans hyz.1, λ _ _ h, hyz.2 (hxy.2 h)⟩,
   le_antisymm := begin
     intros x y hxy hyx,
     ext1 v,
@@ -204,7 +204,7 @@ instance : bounded_lattice (subgraph G) :=
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩,
   sup_le := λ x y z hxy hyz,
             ⟨set.union_subset hxy.1 hyz.1,
-              (λ v w h, by { cases h, exact hxy.2 h, exact hyz.2 h })⟩,
+              (λ v w h, h.cases_on (λ h, hxy.2 h) (λ h, hyz.2 h))⟩,
   le_sup_left := λ x y, ⟨set.subset_union_left x.verts y.verts, (λ v w h, or.inl h)⟩,
   le_sup_right := λ x y, ⟨set.subset_union_right x.verts y.verts, (λ v w h, or.inr h)⟩,
   le_inf := λ x y z hxy hyz, ⟨set.subset_inter hxy.1 hyz.1, (λ v w h, ⟨hxy.2 h, hyz.2 h⟩)⟩,
@@ -263,7 +263,7 @@ set.fintype_subset (G.neighbor_set v) (G'.neighbor_set_subset v)
 /-- If a subgraph is locally finite at a vertex, then so are subgraphs of that subgraph.
 
 This is not an instance because `G''` cannot be inferred. -/
-def finite_at_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj]
+def finite_at_of_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj]
    (h : G' ≤ G'') (v : G'.verts) [hf : fintype (G''.neighbor_set v)] :
    fintype (G'.neighbor_set v) :=
 set.fintype_subset (G''.neighbor_set v) (neighbor_set_subset_of_subgraph h v)

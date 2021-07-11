@@ -126,6 +126,9 @@ by { rintro rfl, exact G.loopless a hab }
 /--
 The edges of G consist of the unordered pairs of vertices related by
 `G.adj`.
+
+The way `edge_set` is defined is such that `mem_edge_set` is proved by `refl`.
+(That is, `⟦(v, w)⟧ ∈ G.edge_set` is definitionally equal to `G.adj v w`.)
 -/
 def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
@@ -139,7 +142,7 @@ lemma incidence_set_subset (v : V) : G.incidence_set v ⊆ G.edge_set :=
 
 @[simp]
 lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
-by refl
+iff.rfl
 
 /--
 Two vertices are adjacent iff there is an edge between them.  The

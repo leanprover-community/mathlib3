@@ -1145,16 +1145,6 @@ lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : 
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
 
-@[norm_cast]
-lemma _root_.nat.cast_sum [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
-  ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
-(nat.cast_add_monoid_hom β).map_sum f s
-
-@[norm_cast]
-lemma _root_.int.cast_sum [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
-  ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
-(int.cast_add_hom β).map_sum f s
-
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card • (f b) :=
 @prod_comp (multiplicative β) _ _ _ _ _ _ _
@@ -1406,11 +1396,19 @@ end
 
 end multiset
 
-@[simp, norm_cast] lemma nat.coe_prod {R : Type*} [comm_semiring R]
+@[simp, norm_cast] lemma nat.cast_sum [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
+  ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
+(nat.cast_add_monoid_hom β).map_sum f s
+
+@[simp, norm_cast] lemma int.cast_sum [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
+  ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
+(int.cast_add_hom β).map_sum f s
+
+@[simp, norm_cast] lemma nat.cast_prod {R : Type*} [comm_semiring R]
   (f : α → ℕ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
 (nat.cast_ring_hom R).map_prod _ _
 
-@[simp, norm_cast] lemma int.coe_prod {R : Type*} [comm_ring R]
+@[simp, norm_cast] lemma int.cast_prod {R : Type*} [comm_ring R]
   (f : α → ℤ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
 (int.cast_ring_hom R).map_prod _ _
 

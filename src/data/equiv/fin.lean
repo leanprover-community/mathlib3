@@ -317,7 +317,7 @@ def fin_order_iso_subtype {n m : ℕ} (h : n ≤ m) : fin n ≃o subtype (λ (i 
   map_rel_iff' := λ _ _, by simp }
 
 @[simp] lemma fin_order_iso_subtype_apply {n m : ℕ} (h : n ≤ m) (i : fin n) :
-  fin_order_iso_subtype h i = ⟨i, i.is_lt.trans_le h⟩ := rfl
+  fin_order_iso_subtype h i = ⟨⟨i, i.is_lt.trans_le h⟩, i.is_lt⟩ := rfl
 
 @[simp] lemma fin_order_iso_subtype_symm_apply {n m : ℕ} (h : n ≤ m)
   (i : subtype (λ (i : fin m), (i : ℕ) < n)) :

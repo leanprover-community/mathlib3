@@ -365,66 +365,23 @@ lemma units.coe_op_equiv_symm {R} [monoid R] (u : (units R)ᵒᵖ) :
   (units.op_equiv.symm u : Rᵒᵖ) = op (u.unop : R) :=
 rfl
 
-namespace monoid_hom
-
-variables {α β : Type*} [mul_one_class α] [mul_one_class β]
-
-/-- A hom `α →* β` viewed as a hom `αᵒᵖ →* βᵒᵖ`. This is the action of the `ᵒᵖ`-functor
-on morphisms. -/
+/-- A hom `α →* β` can equivalently be viewed as a hom `αᵒᵖ →* βᵒᵖ`. This is the action of the
+(fully faithful) `ᵒᵖ`-functor on morphisms. -/
 @[simps]
-def op (f : α →* β) : αᵒᵖ →* βᵒᵖ :=
-{ to_fun := opposite.op ∘ f ∘ opposite.unop,
-  map_one' := by simp only [unop_one, function.comp_app, op_one, map_one],
-  map_mul' := λ x y, by simp only [map_mul, function.comp_app, op_mul, unop_mul] }
+def monoid_hom.op {α β} [mul_one_class α] [mul_one_class β] :
+  (α →* β) ≃ (αᵒᵖ →* βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun := op ∘ f ∘ unop, map_one' := by simp, map_mul' := λ x y, by simp },
+  inv_fun   := λ f, { to_fun := unop ∘ f ∘ op, map_one' := by simp, map_mul' := λ x y, by simp },
+  left_inv  := λ f, by { ext, simp },
+  right_inv := λ f, by { ext, simp } }
 
-/-- A hom `αᵒᵖ →* βᵒᵖ` viewed as a hom `α →* β`. -/
+/-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵒᵖ →+* βᵒᵖ`. This is the action
+of the (fully faithful) `ᵒᵖ`-functor on morphisms. -/
 @[simps]
-def unop (f : αᵒᵖ →* βᵒᵖ) : α →* β :=
-{ to_fun := opposite.unop ∘ f ∘ opposite.op,
-  map_one' := by simp only [unop_one, function.comp_app, op_one, map_one],
-  map_mul' := λ x y, by simp only [map_mul, function.comp_app, op_mul, unop_mul] }
-
-/-- A hom `α →* β` can equivalently be viewed as a hom `αᵒᵖ →* βᵒᵖ`. This expresses that the
-`op`-functor is fully faithful. -/
-@[simps]
-def hom_equiv_op_hom_op : (α →* β) ≃ (αᵒᵖ →* βᵒᵖ) :=
-{ to_fun := op,
-  inv_fun := unop,
-  left_inv := λ f, by { ext, simp only [unop_op, function.comp_app, unop_apply, op_apply] },
-  right_inv := λ f, by { ext, simp only [op_unop, function.comp_app, unop_apply, op_apply] } }
-
-end monoid_hom
-
-namespace ring_hom
-
-variables {α β : Type*} [non_assoc_semiring α] [non_assoc_semiring β]
-
-/-- A ring hom `α →+* β` viewed as a ring hom `αᵒᵖ →+* βᵒᵖ`. This is the action of the `ᵒᵖ`-functor
-on morphisms. -/
-@[simps]
-def op (f : α →+* β) : αᵒᵖ →+* βᵒᵖ :=
-{ to_fun := opposite.op ∘ f ∘ opposite.unop,
-  map_one' := by simp only [unop_one, function.comp_app, map_one, op_one],
-  map_mul' := λ x y, by simp only [unop_mul, op_mul, function.comp_app, map_mul],
-  map_zero' := by simp only [unop_zero, function.comp_app, map_zero, op_zero],
-  map_add' := λ x y, by simp only [map_add, function.comp_app, unop_add, op_add] }
-
-/-- A ring hom `αᵒᵖ →+* βᵒᵖ` viewed as a ring hom `α →+* β`. -/
-@[simps]
-def unop (f : αᵒᵖ →+* βᵒᵖ) : α →+* β :=
-{ to_fun := opposite.unop ∘ f ∘ opposite.op,
-  map_one' := by simp only [unop_one, function.comp_app, map_one, op_one],
-  map_mul' := λ x y, by simp only [unop_mul, op_mul, function.comp_app, map_mul],
-  map_zero' := by simp only [unop_zero, function.comp_app, map_zero, op_zero],
-  map_add' := λ x y, by simp only [map_add, function.comp_app, unop_add, op_add] }
-
-/-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵒᵖ →+* βᵒᵖ`. This expresses that
-the `op`-functor is fully faithful. -/
-@[simps]
-def hom_equiv_op_hom_op : (α →+* β) ≃ (αᵒᵖ →+* βᵒᵖ) :=
-{ to_fun := op,
-  inv_fun := unop,
-  left_inv := λ f, by { ext, simp only [unop_op, function.comp_app, unop_apply, op_apply] },
-  right_inv := λ f, by { ext, simp only [op_unop, function.comp_app, unop_apply, op_apply] } }
-
-end ring_hom
+def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+  (α →+* β) ≃ (αᵒᵖ →+* βᵒᵖ) :=
+{ to_fun    := λ f, { map_zero' := by simp, map_add' := by simp, ..f.to_monoid_hom.op },
+  inv_fun   := λ f, { map_zero' := by simp, map_add' := by simp,
+    ..(monoid_hom.op.symm f.to_monoid_hom) },
+  left_inv  := λ f, by { ext, simp },
+  right_inv := λ f, by {ext, simp } }

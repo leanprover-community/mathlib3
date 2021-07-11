@@ -1402,7 +1402,6 @@ begin
   { rw ←hbf,
     simp only [norm_nonneg, pow_nonneg], },
   rw [norm_sub_sq, sub_add],
-  congr' 1,
   simp only [inner_product_space.norm_sq_eq_inner, inner_sum],
   simp only [sum_inner, two_mul, inner_smul_right, inner_conj_sym, ←mul_assoc, h₂, ←h₃,
   inner_conj_sym, add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib, inner_smul_left,

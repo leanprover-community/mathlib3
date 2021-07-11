@@ -707,10 +707,7 @@ For the implication, see `monoid_hom.injective_iff`. -/
 @[to_additive]
 lemma injective_iff' {G H} [group G] [mul_one_class H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 ↔ a = 1) :=
-begin
-  rw f.injective_iff,
-  exact ⟨λ h a, ⟨h a, λ H, H.symm ▸ f.map_one⟩, λ h a, (h a).mp⟩
-end
+f.injective_iff.trans $ forall_congr $ λ a, ⟨λ h, ⟨h, λ H, H.symm ▸ f.map_one⟩, iff.mp⟩
 
 include mM
 /-- Makes a group homomorphism from a proof that the map preserves multiplication. -/

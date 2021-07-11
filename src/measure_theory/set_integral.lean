@@ -63,52 +63,6 @@ section normed_group
 variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} {μ ν : measure α}
   {l l' : filter α} [borel_space E] [second_countable_topology E]
 
-/-- To prove something for an arbitrary integrable function in a second countable
-Borel normed group, it suffices to show that
-* the property holds for (multiples of) characteristic functions;
-* is closed under addition;
-* the set of functions in the `L¹` space for which the property holds is closed.
-* the property is closed under the almost-everywhere equal relation.
-
-It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
-can be added once we need them (for example in `h_add` it is only necessary to consider the sum of
-a simple function with a multiple of a characteristic function and that the intersection
-of their images is a subset of `{0}`).
--/
-@[elab_as_eliminator]
-lemma integrable.induction (P : (α → E) → Prop)
-  (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
-  (h_add : ∀ ⦃f g : α → E⦄, disjoint (support f) (support g) → integrable f μ → integrable g μ →
-    P f → P g → P (f + g))
-  (h_closed : is_closed {f : α →₁[μ] E | P f} )
-  (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → integrable f μ → P f → P g) :
-  ∀ ⦃f : α → E⦄ (hf : integrable f μ), P f :=
-begin
-  have : ∀ (f : simple_func α E), integrable f μ → P f,
-  { refine simple_func.induction _ _,
-    { intros c s hs h, dsimp only [simple_func.coe_const, simple_func.const_zero,
-        piecewise_eq_indicator, simple_func.coe_zero, simple_func.coe_piecewise] at h ⊢,
-      by_cases hc : c = 0,
-      { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, simp [const] },
-      apply h_ind c hs,
-      have : (nnnorm c : ℝ≥0∞) * μ s < ∞,
-      { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ℝ≥0∞)) (const α c) s,
-        dsimp only at this,
-        have h' := h.has_finite_integral,
-        simpa [has_finite_integral, this, lintegral_indicator, hs] using h' },
-      exact ennreal.lt_top_of_mul_lt_top_right this (by simp [hc]) },
-    { intros f g hfg hf hg int_fg,
-      rw [simple_func.coe_add, integrable_add hfg f.measurable g.measurable] at int_fg,
-      refine h_add hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
-  have : ∀ (f : α →₁ₛ[μ] E), P f,
-  { intro f,
-    exact h_ae (L1.simple_func.to_simple_func_eq_to_fun f) (L1.simple_func.integrable f)
-      (this (L1.simple_func.to_simple_func f) (L1.simple_func.integrable f)) },
-  have : ∀ (f : α →₁[μ] E), P f :=
-    λ f, L1.simple_func.dense_range.induction_on f h_closed this,
-  exact λ f hf, h_ae hf.coe_fn_to_L1 (L1.integrable_coe_fn _) (this (hf.to_L1 f)),
-end
-
 variables [complete_space E] [normed_space ℝ E]
 
 

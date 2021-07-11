@@ -375,8 +375,8 @@ def monoid_hom.op {α β} [mul_one_class α] [mul_one_class β] :
   left_inv  := λ f, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
 
-@[simp]
-def monoid_hom.unop {α β} [mul_one_class α] [mul_one_class β] :
+/-- The 'unopposite' of a monoid hom `αᵒᵖ →* βᵒᵖ`. Inverse to `monoid_hom.op`. -/
+@[simp] def monoid_hom.unop {α β} [mul_one_class α] [mul_one_class β] :
   (αᵒᵖ →* βᵒᵖ) ≃ (α →* β) := monoid_hom.op.symm
 
 /-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵒᵖ →+* βᵒᵖ`. This is the action
@@ -389,6 +389,6 @@ def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
   left_inv  := λ f, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
 
-@[simp]
-def ring_hom.unop {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+/-- The 'unopposite' of a ring hom `αᵒᵖ →+* βᵒᵖ`. Inverse to `ring_hom.op`. -/
+@[simp] def ring_hom.unop {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
   (αᵒᵖ →+* βᵒᵖ) ≃ (α →+* β) := ring_hom.op.symm

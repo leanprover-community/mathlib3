@@ -1390,22 +1390,23 @@ variables {ι: Type*} (x : E) {v : ι → E}
 lemma orthonormal.sum_inner_products_le {s : finset ι} (hv : orthonormal 𝕜 v) :
   ∑ i in s, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
 begin
-  rw ←sub_nonneg,
-  suffices hbf: ∥ x -  ∑ i in s, ⟪v i, x⟫ • (v i) ∥^2 = ∥x∥^2 - ∑ i in s, ∥ ⟪v i, x⟫ ∥^2,
-  { rw ←hbf, simp only [norm_nonneg, pow_nonneg], },
-  rw [norm_sub_sq, sub_add], congr' 1,
-  simp only [inner_product_space.norm_sq_eq_inner, inner_sum],
-  simp only [sum_inner],
-  simp only [inner_smul_left, inner_smul_right, inner_conj_sym, ←mul_assoc],
-  have h₂ : ∑ i in s, ∑ i_1 in s, (inner (v i) x * inner x (v i_1)) * inner (v i_1) (v i)
-   = (∑ k in s, (inner (v k) x * inner x (v k)) : 𝕜 ),
+  have h₂ : ∑ i in s, ∑ j in s, ⟪v i, x⟫ * ⟪x, v j⟫ * ⟪v j, v i⟫
+    = (∑ k in s, (⟪v k, x⟫ * ⟪x, v k⟫) : 𝕜),
    { exact hv.inner_left_right_finset },
-  simp only [h₂], clear h₂,
-  simp only [add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib],
-  simp only [two_mul, add_sub_cancel'],
-  have h₃ : ∀ z : 𝕜, re (z * conj (z)) = ∥ z ∥ ^2,
-  { intro z, simp only [mul_conj, norm_sq_eq_def'], norm_cast, },
-  simp only [←h₃, inner_conj_sym],
+  have h₃ : ∀ z : 𝕜, re (z * conj (z)) = ∥z∥ ^ 2,
+  { intro z,
+    simp only [mul_conj, norm_sq_eq_def'],
+    norm_cast, },
+  rw ←sub_nonneg,
+  suffices hbf: ∥x -  ∑ i in s, ⟪v i, x⟫ • (v i)∥ ^ 2 = ∥x∥ ^ 2 - ∑ i in s, ∥⟪v i, x⟫∥ ^ 2,
+  { rw ←hbf,
+    simp only [norm_nonneg, pow_nonneg], },
+  rw [norm_sub_sq, sub_add],
+  congr' 1,
+  simp only [inner_product_space.norm_sq_eq_inner, inner_sum],
+  simp only [sum_inner, two_mul, inner_smul_right, inner_conj_sym, ←mul_assoc, h₂, ←h₃,
+  inner_conj_sym, add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib, inner_smul_left,
+  add_sub_cancel'],
 end
 
 /-- Bessel's inequality. -/

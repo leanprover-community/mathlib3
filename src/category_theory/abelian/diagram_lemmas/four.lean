@@ -57,47 +57,6 @@ local attribute [instance] object_to_sort hom_to_fun
 
 namespace category_theory.abelian
 
-def pullback.is_limit_inner {A B C D : V} (f : A ⟶ C) (g : B ⟶ C) (h : D ⟶ C) [mono h]
-  (x : A ⟶ D) (y : B ⟶ D) (hxh : x ≫ h = f) (hyh : y ≫ h = g) (s : pullback_cone f g)
-  (hs : is_limit s) : is_limit (pullback_cone.mk _ _ (show s.fst ≫ x = s.snd ≫ y,
-    from (cancel_mono h).1 $ by simp only [category.assoc, hxh, hyh, s.condition])) :=
-pullback_cone.is_limit_aux' _ $ λ t,
-  ⟨hs.lift (pullback_cone.mk t.fst t.snd $ by rw [←hxh, ←hyh, reassoc_of t.condition]),
-  ⟨hs.fac _ walking_cospan.left, hs.fac _ walking_cospan.right, λ r hr hr',
-  begin
-    apply pullback_cone.is_limit.hom_ext hs;
-    simp only [pullback_cone.mk_fst, pullback_cone.mk_snd] at ⊢ hr hr';
-    simp only [hr, hr'];
-    symmetry,
-    exacts [hs.fac _ walking_cospan.left, hs.fac _ walking_cospan.right]
-  end⟩⟩
-
-def pushout.is_colimit_inner {A B C D : V} (f : A ⟶ B) (g : A ⟶ C) (h : A ⟶ D) [epi h] (x : D ⟶ B)
-  (y : D ⟶ C) (hhx : h ≫ x = f) (hhy : h ≫ y = g) (s : pushout_cocone f g) (hs : is_colimit s) :
-  is_colimit (pushout_cocone.mk _ _ (show x ≫ s.inl = y ≫ s.inr,
-    from (cancel_epi h).1 $ by rw [reassoc_of hhx, reassoc_of hhy, s.condition])) :=
-pushout_cocone.is_colimit_aux' _ $ λ t,
-  ⟨hs.desc (pushout_cocone.mk t.inl t.inr $
-    by rw [←hhx, ←hhy, category.assoc, category.assoc, t.condition]),
-  ⟨hs.fac _ walking_span.left, hs.fac _ walking_span.right, λ r hr hr',
-  begin
-    apply pushout_cocone.is_colimit.hom_ext hs;
-    simp only [pushout_cocone.mk_inl, pushout_cocone.mk_inr] at ⊢ hr hr';
-    simp only [hr, hr'];
-    symmetry,
-    exacts [hs.fac _ walking_span.left, hs.fac _ walking_span.right]
-  end⟩⟩
-
-lemma epi_fst_of_factor_thru_epi_mono_factorization {A B C D : V} (f : A ⟶ C) (g : B ⟶ C) (g₁ : B ⟶ D)
-  [epi g₁] (g₂ : D ⟶ C) [mono g₂] (hg : g₁ ≫ g₂ = g) (f' : A ⟶ D) (hf : f' ≫ g₂ = f)
-  (t : pullback_cone f g) (ht : is_limit t) : epi t.fst :=
-by apply abelian.epi_fst_of_is_limit _ _ (pullback.is_limit_inner f g g₂ f' g₁ hf hg t ht)
-
-lemma mono_inl_of_factor_thru_epi_mono_factorization {A B C D : V} (f : A ⟶ B) (g : A ⟶ C) (g₁ : A ⟶ D)
-  [epi g₁] (g₂ : D ⟶ C) [mono g₂] (hg : g₁ ≫ g₂ = g) (f' : D ⟶ B) (hf : g₁ ≫ f' = f)
-  (t : pushout_cocone f g) (ht : is_colimit t) : mono t.inl :=
-by apply abelian.mono_inl_of_is_colimit _ _ (pushout.is_colimit_inner _ _ _ _ _ hf hg t ht)
-
 variables {A B C D A' B' C' D' : V}
 variables {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
 variables {f' : A' ⟶ B'} {g' : B' ⟶ C'} {h' : C' ⟶ D'}

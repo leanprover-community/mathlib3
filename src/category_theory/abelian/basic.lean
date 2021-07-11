@@ -394,7 +394,7 @@ fork.is_limit.mk _
 end pullback_to_biproduct_is_kernel
 
 namespace biproduct_to_pushout_is_cokernel
-variables [limits.has_pushouts C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
+variables [limits.has_pushouts C] {W X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
 
 /-- The canonical map `Y ⊞ Z ⟶ pushout f g` -/
 abbreviation biproduct_to_pushout : Y ⊞ Z ⟶ pushout f g :=
@@ -419,7 +419,7 @@ cofork.is_colimit.mk _
 end biproduct_to_pushout_is_cokernel
 
 section epi_pullback
-variables [limits.has_pullbacks C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+variables [limits.has_pullbacks C] {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 
 /-- In an abelian category, the pullback of an epimorphism is an epimorphism.
     Proof from [aluffi2016, IX.2.3], cf. [borceux-vol2, 1.7.6] -/
@@ -504,10 +504,18 @@ begin
   { exact abelian.epi_pullback_of_epi_g _ _ }
 end
 
+/-- Suppose `f` and `g` are two morphisms with a common codomain and suppose we have written `g` as
+    an epimorphism followed by a monomorphism. If `f` factors through the mono part of this
+    factorization, then any pullback of `g` along `f` is an epimorphism. -/
+lemma epi_fst_of_factor_thru_epi_mono_factorization
+  (g₁ : Y ⟶ W) [epi g₁] (g₂ : W ⟶ Z) [mono g₂] (hg : g₁ ≫ g₂ = g) (f' : X ⟶ W) (hf : f' ≫ g₂ = f)
+  (t : pullback_cone f g) (ht : is_limit t) : epi t.fst :=
+by apply epi_fst_of_is_limit _ _ (pullback_cone.is_limit_of_factors f g g₂ f' g₁ hf hg t ht)
+
 end epi_pullback
 
 section mono_pushout
-variables [limits.has_pushouts C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
+variables [limits.has_pushouts C] {W X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
 
 instance mono_pushout_of_mono_f [mono f] : mono (pushout.inr : Z ⟶ pushout f g) :=
 mono_of_cancel_zero _ $ λ R e h,
@@ -557,17 +565,27 @@ end
 
 lemma mono_inr_of_is_colimit [mono f] {s : pushout_cocone f g} (hs : is_colimit s) : mono s.inr :=
 begin
-  convert mono_of_mono_fac (is_colimit.comp_cocone_point_unique_up_to_iso_hom hs (colimit.is_colimit _) _),
+  convert mono_of_mono_fac
+    (is_colimit.comp_cocone_point_unique_up_to_iso_hom hs (colimit.is_colimit _) _),
   { refl },
   { exact abelian.mono_pushout_of_mono_f _ _ }
 end
 
 lemma mono_inl_of_is_colimit [mono g] {s : pushout_cocone f g} (hs : is_colimit s) : mono s.inl :=
 begin
-  convert mono_of_mono_fac (is_colimit.comp_cocone_point_unique_up_to_iso_hom hs (colimit.is_colimit _) _),
+  convert mono_of_mono_fac
+    (is_colimit.comp_cocone_point_unique_up_to_iso_hom hs (colimit.is_colimit _) _),
   { refl },
   { exact abelian.mono_pushout_of_mono_g _ _ }
 end
+
+/-- Suppose `f` and `g` are two morphisms with a common domain and suppose we have written `g` as
+    an epimorphism followed by a monomorphism. If `f` factors through the epi part of this
+    factorization, then any pushout of `g` along `f` is a monomorphism. -/
+lemma mono_inl_of_factor_thru_epi_mono_factorization (f : X ⟶ Y) (g : X ⟶ Z)
+  (g₁ : X ⟶ W) [epi g₁] (g₂ : W ⟶ Z) [mono g₂] (hg : g₁ ≫ g₂ = g) (f' : W ⟶ Y) (hf : g₁ ≫ f' = f)
+  (t : pushout_cocone f g) (ht : is_colimit t) : mono t.inl :=
+by apply mono_inl_of_is_colimit _ _ (pushout_cocone.is_colimit_of_factors _ _ _ _ _ hf hg t ht)
 
 end mono_pushout
 

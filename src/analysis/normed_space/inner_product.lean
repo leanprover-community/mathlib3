@@ -1427,7 +1427,7 @@ begin
     { refine is_lub_cSup (set.range_nonempty _) _,
       use ∥x∥ ^ 2,
       rintro y ⟨s, rfl⟩,
-      apply orthonormal.sum_inner_products_le _ hv, }, },
+      exact hv.sum_inner_products_le x, }, },
   { rw not_nonempty_iff at hnon,
     haveI := hnon,
     exact summable_empty, },

@@ -81,21 +81,22 @@ begin
 end
 
 /-- The type of combinatorial lines. A line `l : line α ι` in the hypercube `ι → α` defines a
-function `α → (ι → α)` to the hypercube, such that for each coordinate `i : ι`, the function
-`l x i` is either identically `x` or constant. We require lines to be nontrivial, in the sense
-that `l x i` is identically `x` for at least one `i`.
+function `α → ι → α` from `α` to the hypercube, such that for each coordinate `i : ι`, the function
+`λ x, l x i` is either `id` or constant. We require lines to be nontrivial in the sense that
+`λ x, l x i` is `id` for at least one `i`.
 
 Formally, a line is represented by the function `l.idx_fun : ι → option α` which says whether
-`l x i` is identically `x` (corresponding to `l.idx_fun i = none`) or constantly `y`
-(corresponding to `l.idx_fun i = some y`). When `α` has size `1` there can be many elements of
-`line α ι` defining the same function. -/
+`λ x, l x i` is `id` (corresponding to `l.idx_fun i = none`) or constantly `y` (corresponding to
+`l.idx_fun i = some y`).
+
+When `α` has size `1` there can be many elements of `line α ι` defining the same function. -/
 structure line (α ι : Type*) :=
 (idx_fun : ι → option α)
 (proper : ∃ i, idx_fun i = none)
 
 namespace line
 
-/- This lets us treat a line `l : line α ι` as a function `α → (ι → α)`. -/
+/- This lets us treat a line `l : line α ι` as a function `α → ι → α`. -/
 instance (α ι) : has_coe_to_fun (line α ι) :=
 ⟨λ _, α → ι → α, λ l x i, (l.idx_fun i).get_or_else x⟩
 
@@ -226,8 +227,8 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
 -- dimension `ι` for `r`.
   obtain ⟨ι, _inst, hι⟩ := ihr,
   resetI,
--- Then since the theorem holds for `α` with and number of colors, pick a dimension `ι'` such that
--- `ι' → α` always has a monochromatic line whenever it is colored with `(ι → α) → κ` colors.
+-- Then since the theorem holds for `α` with any number of colors, pick a dimension `ι'` such that
+-- `ι' → α` always has a monochromatic line whenever it is `(ι → option α) → κ`-colored.
   specialize ihα ((ι → option α) → κ),
   obtain ⟨ι', _inst, hι'⟩ := ihα,
   resetI,

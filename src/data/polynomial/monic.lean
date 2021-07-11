@@ -50,7 +50,7 @@ if h : (0 : S) = 1 then
   exact subsingleton.elim _ _
 else
 have f (leading_coeff p) ≠ 0,
-  by rwa [show _ = _, from hp, is_semiring_hom.map_one f, ne.def, eq_comm],
+  by rwa [show _ = _, from hp, f.map_one, ne.def, eq_comm],
 by
 begin
   rw [monic, leading_coeff, coeff_map],
@@ -248,7 +248,7 @@ end
 lemma monic_of_injective {p : polynomial R} (hp : (p.map f).monic) : p.monic :=
 begin
   apply hf,
-  rw [← leading_coeff_of_injective hf, hp.leading_coeff, is_semiring_hom.map_one f]
+  rw [← leading_coeff_of_injective hf, hp.leading_coeff, f.map_one]
 end
 
 end injective

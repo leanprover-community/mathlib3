@@ -679,6 +679,10 @@ lemma filter.tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (�
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 (continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
+lemma is_preconnected.ord_connected {s : set α} (h : is_preconnected s) :
+  ord_connected s :=
+⟨λ x hx y hy, h.Icc_subset hx hy⟩
+
 end linear_order
 
 end order_closed_topology
@@ -2688,14 +2692,14 @@ end
 
 lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
 
+lemma set.ord_connected.is_preconnected {s : set α} (h : s.ord_connected) :
+  is_preconnected s :=
+is_preconnected_of_forall_pair $ λ x y hx hy, ⟨interval x y, h.interval_subset hx hy,
+  left_mem_interval, right_mem_interval, is_preconnected_interval⟩
+
 lemma is_preconnected_iff_ord_connected {s : set α} :
   is_preconnected s ↔ ord_connected s :=
-⟨λ h, ⟨λ x hx y hy, h.Icc_subset hx hy⟩, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
-  ⟨interval x y, h.interval_subset hx hy, left_mem_interval, right_mem_interval,
-    is_preconnected_interval⟩⟩
-
-alias is_preconnected_iff_ord_connected ↔
-  is_preconnected.ord_connected set.ord_connected.is_preconnected
+⟨is_preconnected.ord_connected, set.ord_connected.is_preconnected⟩
 
 lemma is_preconnected_Ici : is_preconnected (Ici a) := ord_connected_Ici.is_preconnected
 lemma is_preconnected_Iic : is_preconnected (Iic a) := ord_connected_Iic.is_preconnected

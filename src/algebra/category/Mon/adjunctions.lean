@@ -55,8 +55,7 @@ adjunction.mk_of_hom_equiv
     apply with_one.cases_on x,
     { refl },
     { simp }
-  end
-}
+  end }
 
 
 /-- The free functor `Type u ⥤ Mon` sending a type `X` to the free monoid on `X`. -/

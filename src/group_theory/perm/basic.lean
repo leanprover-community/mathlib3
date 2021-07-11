@@ -208,12 +208,7 @@ lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
 
 @[simp] lemma extend_domain_eq_one_iff {e : perm α} {f : α ≃ subtype p} :
   e.extend_domain f = 1 ↔ e = 1 :=
-begin
-  rw ←extend_domain_hom_apply,
-  revert e,
-  rw ←monoid_hom.injective_iff',
-  exact extend_domain_hom_injective f
-end
+(extend_domain_hom f).injective_iff'.mp (extend_domain_hom_injective f) e
 
 end extend_domain
 

@@ -78,13 +78,9 @@ lemma is_initial.subsingleton_to (hI : is_initial I) {A : C} :
   subsingleton (A ⟶ I) :=
 ⟨hI.strict_hom_ext⟩
 
-lemma is_initial.mono_from (hI : is_initial I) {A : C} (f : I ⟶ A) :
-  mono f :=
-{ right_cancellation := λ B g h i, hI.strict_hom_ext _ _ }
-
-lemma is_initial.to_mono (hI : is_initial I) {A : C} :
-  mono (hI.to A) :=
-hI.mono_from _
+@[priority 100] instance initial_mono_of_strict_initial_object : initial_mono_class C :=
+{ is_initial_mono_from := λ I A hI,
+  { right_cancellation := λ B g h i, hI.strict_hom_ext _ _ } }
 
 /-- If `I` is initial, then `X ⨯ I` is isomorphic to it. -/
 @[simps hom]
@@ -116,12 +112,6 @@ initial_is_initial.strict_hom_ext _ _
 
 @[ext] lemma initial.subsingleton_to {A : C} : subsingleton (A ⟶ ⊥_ C) :=
 initial_is_initial.subsingleton_to
-
-instance initial_mono_from {A : C} (f : ⊥_ C ⟶ A) : mono f :=
-initial_is_initial.mono_from _
-
-instance initial_to_mono {A : C} : mono (initial.to A) :=
-initial_is_initial.to_mono
 
 /--
 The product of `X` with an initial object in a category with strict initial objects is itself

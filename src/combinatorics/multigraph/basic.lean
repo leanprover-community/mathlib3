@@ -26,6 +26,14 @@ but allowing loop edges).
 There is a basic API for locally finite graphs (TODO and for graphs with
 finitely many vertices).
 
+The definition has some similarities to [Chou94], but (1) the "links"
+are represented as a function `V → V → set α` rather than as
+`set (V × α × V)`, (2) not all terms of `α` need to be used, and (3) terms of
+`α` are allowed to be reused.
+
+[Chou94] Chou, Ching-Tsun. "A formal theory of undirected graphs in Higher-Order Logic." (1994)
+https://doi.org/10.1007/3-540-58450-1_40
+
 ## Main definitions
 
 * `multigraph` is a structure for a multigraph with labeled edges.

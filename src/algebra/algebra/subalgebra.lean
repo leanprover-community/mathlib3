@@ -734,9 +734,11 @@ def subalgebra_of_subring (S : subring R) : subalgebra ℤ R :=
     exact S.sub_mem ih S.one_mem }),
   .. S }
 
+example {S : set R} (hs : is_subring S) : subring R := set.to_subring hs
+
 /-- A subset closed under the ring operations is a `ℤ`-subalgebra. -/
-def subalgebra_of_is_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
-subalgebra_of_subring S.to_subring
+def subalgebra_of_is_subring {S : set R} (hs : is_subring S) : subalgebra ℤ R :=
+subalgebra_of_subring (set.to_subring hs)
 
 variables {S : Type*} [semiring S]
 
@@ -744,8 +746,8 @@ variables {S : Type*} [semiring S]
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
 iff.rfl
 
-@[simp] lemma mem_subalgebra_of_is_subring {x : R} {S : set R} [is_subring S] :
-  x ∈ subalgebra_of_is_subring S ↔ x ∈ S :=
+@[simp] lemma mem_subalgebra_of_is_subring {x : R} {S : set R} (hs : is_subring S) :
+  x ∈ subalgebra_of_is_subring hs ↔ x ∈ S :=
 iff.rfl
 
 end int

@@ -143,10 +143,10 @@ intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 instance. -/
 instance : ring ℂ := by apply_instance
 
-instance re.is_add_group_hom : is_add_group_hom complex.re :=
+lemma re.is_add_group_hom : is_add_group_hom complex.re :=
 { map_add := complex.add_re }
 
-instance im.is_add_group_hom : is_add_group_hom complex.im :=
+lemma im.is_add_group_hom : is_add_group_hom complex.im :=
 { map_add := complex.add_im }
 
 @[simp] lemma I_pow_bit0 (n : ℕ) : I ^ (bit0 n) = (-1) ^ n :=

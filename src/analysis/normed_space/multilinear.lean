@@ -706,8 +706,8 @@ begin
   calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι then 1 else ∥(1 : A)∥ :
     multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
   ... = ∥(1 : A)∥ : if_neg (not_nonempty_iff.mpr ‹_›),
-  convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
-  simp [eq_empty_of_is_empty univ]
+  convert ratio_le_op_norm _ (λ _, (1 : A)),
+  simp [eq_empty_of_is_empty (univ : finset ι)],
 end
 
 @[simp] lemma norm_mk_pi_algebra [norm_one_class A] :

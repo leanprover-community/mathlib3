@@ -13,8 +13,6 @@ Given an `ι`-indexed family `M` of monoids, we define their free product (categ
 When `M i` are all groups, `free_product M` is also a group (and the coproduct in the category of
 groups).
 
-The equivalence with reduced words should be added to this file soon.
-
 ## Main definitions
 
 - `free_product M`: the free product, defined as a quotient of a free monoid.
@@ -22,21 +20,14 @@ The equivalence with reduced words should be added to this file soon.
 - `free_product.lift : (Π {i}, M i →* N) ≃ (free_product M →* N)`: the universal property.
 
 ## Remarks
+
 There are many answers to the question "what is the free product of a family `M` of monoids?", and
-they are all equivalent but not obviously equivalent. We provide two answers. The first, almost
-tautological answer is given by `free_product M`, which is a quotient of the type of words in the
-alphabet `Σ i, M i`. It's straightforward to define and easy to prove its universal property. But
-this answer is not completely satisfactory, because it's difficult to tell when two elements
-`x y : free_product M` are distinct since `free_product M` is defined as a quotient.
-
-The second, maximally efficient answer is given by `word M`. An element of `word M` is a word in the
-alphabet `Σ i, { m : M i // m ≠ 1 }`, where no adjacent letters can share an index `i`. Since we
-only work with reduced words, there is no need for quotienting, so it's easy to tell when two
-elements are distinct. However it's not obvious that this is even a monoid!
-
-We prove that every element of `free_product M` can be represented by a unique reduced word, i.e.
-`free_product M` and `word M` are equivalent types. This means that `word M` can be given a monoid
-structure, and it lets us tell when two elements of `free_product M` are distinct.
+they are all equivalent but not obviously equivalent. We provide one almost tautological answer,
+namely `free_product M`, which is a quotient of the type of words in the alphabet `Σ i, M i`. It's
+straightforward to define and easy to prove its universal property. But this answer is not
+completely satisfactory, because it's difficult to tell when two elements `x y : free_product M` are
+distinct since `free_product M` is defined as a quotient. Soon a second answer will be given, in
+terms of reduced words, which lets you show that distinct elements are distinct.
 
 There is also a completely tautological, maximally inefficient answer given by
 `algebra.category.Mon.colimits`. Whereas `free_product M` at least ensures that (any instance of)
@@ -108,6 +99,7 @@ def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
   lift fi (of m) = fi i m :=
 by conv_rhs { rw [←lift.symm_apply_apply fi, lift_symm_apply, monoid_hom.comp_apply] }
 
+@[elab_as_eliminator]
 lemma induction_on {C : free_product M → Prop}
   (m : free_product M)
   (h_one : C 1)

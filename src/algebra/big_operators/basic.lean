@@ -1404,16 +1404,16 @@ end multiset
   ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
 (int.cast_add_hom β).map_sum f s
 
-@[simp, norm_cast] lemma nat.cast_prod {R : Type*} [comm_semiring R]
-  (f : α → ℕ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+@[simp, norm_cast] lemma nat.cast_prod {R : Type*} [comm_semiring R] (f : α → ℕ) (s : finset α) :
+  (↑∏ i in s, f i : R) = ∏ i in s, f i :=
 (nat.cast_ring_hom R).map_prod _ _
 
-@[simp, norm_cast] lemma int.cast_prod {R : Type*} [comm_ring R]
-  (f : α → ℤ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+@[simp, norm_cast] lemma int.cast_prod {R : Type*} [comm_ring R] (f : α → ℤ) (s : finset α) :
+  (↑∏ i in s, f i : R) = ∏ i in s, f i :=
 (int.cast_ring_hom R).map_prod _ _
 
-@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M]
-  (f : α → units M) (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
+@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → units M)
+  (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
 (units.coe_hom M).map_prod _ _
 
 lemma nat_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℤ) :

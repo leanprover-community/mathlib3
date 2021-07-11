@@ -1421,9 +1421,10 @@ end
 lemma orthonormal.inner_products_summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥⟪v i, x⟫∥ ^ 2) :=
 begin
   by_cases hnon : nonempty ι,
-  { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥ ⟪v i, x⟫ ∥^2)),
+  { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2)),
     apply has_sum_of_is_lub_of_nonneg,
-    { intro b, simp only [norm_nonneg, pow_nonneg], },
+    { intro b,
+      simp only [norm_nonneg, pow_nonneg], },
     { apply is_lub_cSup,
       { apply set.range_nonempty, },
       { use ∥x∥ ^ 2,

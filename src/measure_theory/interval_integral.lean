@@ -1588,9 +1588,9 @@ lemma integral_has_strict_fderiv_at
 integral_has_strict_fderiv_at_of_tendsto_ae hf hmeas_a hmeas_b
   (ha.mono_left inf_le_left) (hb.mono_left inf_le_left)
 
-/-- Fundamental theorem of calculus-1: if `f : ℝ → E` is integrable on `a..b` and `f x` has a finite
-limit `c` almost surely at `b`, then `u ↦ ∫ x in a..u, f x` has derivative `c` at `b` in the sense
-of strict differentiability. -/
+/-- **First Fundamental Theorem of Calculus**: if `f : ℝ → E` is integrable on `a..b` and `f x` has
+a finite limit `c` almost surely at `b`, then `u ↦ ∫ x in a..u, f x` has derivative `c` at `b` in
+the sense of strict differentiability. -/
 lemma integral_has_strict_deriv_at_of_tendsto_ae_right
   (hf : interval_integrable f volume a b) (hmeas : measurable_at_filter f (𝓝 b))
   (hb : tendsto f (𝓝 b ⊓ volume.ae) (𝓝 c)) : has_strict_deriv_at (λ u, ∫ x in a..u, f x) c b :=
@@ -2085,9 +2085,9 @@ end
 
 variable {f' : ℝ → E}
 
-/-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
-  has a right derivative at `f' x` for all `x` in `(a, b)`, and `f'` is integrable on `[a, b]`, then
-  `∫ y in a..b, f' y` equals `f b - f a`. -/
+/-- **Fundamental theorem of calculus-2**: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`)
+  and has a right derivative at `f' x` for all `x` in `(a, b)`, and `f'` is integrable on `[a, b]`,
+  then `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on f (Icc a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at f (f' x) (Ioi x) x)
   (f'int : interval_integrable f' volume a b) :

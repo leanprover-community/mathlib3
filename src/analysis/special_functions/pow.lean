@@ -1080,7 +1080,7 @@ variables {f g : ℝ → ℝ} {f' g' x y p : ℝ} {s : set ℝ}
 
 lemma has_deriv_within_at.rpow (hf : has_deriv_within_at f f' s x)
   (hg : has_deriv_within_at g g' s x) (h : 0 < f x) :
-  ha s_deriv_within_at (λ x, f x ^ g x)
+  has_deriv_within_at (λ x, f x ^ g x)
     (f' * g x * (f x) ^ (g x - 1) + g' * f x ^ g x * log (f x)) s x :=
 begin
   convert (hf.has_fderiv_within_at.rpow hg.has_fderiv_within_at h).has_deriv_within_at using 1,

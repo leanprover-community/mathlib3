@@ -528,7 +528,6 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       apply common_neighbors_subset_neighbor_set } },
-
 end
 
 end finite
@@ -629,24 +628,17 @@ abbreviation id : G →g G := rel_hom.id _
 
 lemma map_adj {v w : V} (h : G.adj v w) : G'.adj (f v) (f w) := f.map_rel' h
 
-/-- The map between edge sets induced by a homomorphism. -/
+/-- The map between edge sets induced by a homomorphism.
+The underlying map on edges is given by `sym2.map`. -/
 @[simps] def map_edge_set (e : G.edge_set) : G'.edge_set :=
 ⟨sym2.map f e, begin
   obtain ⟨e, h⟩ := e,
-  refine quotient.ind (λ e h, _) e h,
-  obtain ⟨v, w⟩ := e,
-  rw [subtype.coe_mk, sym2.map_pair_eq],
-  rw mem_edge_set at ⊢ h,
-  exact f.map_rel' h,
+  refine quotient.ind (λ e h, sym2.from_rel_prop.mpr (f.map_rel' h)) e h,
 end⟩
 
 /-- The map between neighbor sets induced by a homomorphism. -/
 @[simps] def map_neighbor_set (v : V) (w : G.neighbor_set v) : G'.neighbor_set (f v) :=
-⟨f w, begin
-  obtain ⟨w, h⟩ := w,
-  rw mem_neighbor_set at h ⊢,
-  exact map_adj f h,
-end⟩
+⟨f w, map_adj f w.property⟩
 
 variable {G'' : simple_graph X}
 
@@ -675,8 +667,7 @@ lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
     rintros ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ h,
     dsimp [hom.map_edge_set] at h,
     rw subtype.mk_eq_mk at h ⊢,
-    refine quotient.ind (λ e₁ h₁ h, _) e₁ h₁ h,
-    refine quotient.ind (λ e₂ h₂ h, _) e₂ h₂ h,
+    refine quotient.ind₂ (λ e₁ e₂ h₁ h₂ h, _) e₁ e₂ h₁ h₂ h,
     obtain ⟨x₁, y₁⟩ := e₁,
     obtain ⟨x₂, y₂⟩ := e₂,
     repeat { rw sym2.map_pair_eq at h },
@@ -687,7 +678,7 @@ lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff
 /-- A graph embedding induces an embedding of neighbor sets. -/
 @[simps] def map_neighbor_set (v : V) : G.neighbor_set v ↪ G'.neighbor_set (f v) :=
 { to_fun := λ w, ⟨f w, begin
-    rcases w with ⟨w, h⟩,
+    obtain ⟨w, h⟩ := w,
     rw mem_neighbor_set at h ⊢,
     exact f.map_adj_iff.mpr h,
   end⟩,
@@ -736,7 +727,7 @@ lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w  := f.map_rel_iff
   end,
   right_inv := begin
     rintro ⟨e, h⟩,
-    refine quotient.rec_on_subsingleton e (λ e h, _) h,
+    refine quotient.ind (λ e h, _) e h,
     obtain ⟨v, w⟩ := e,
     simp only [hom.map_edge_set, rel_iso.coe_coe_fn, rel_embedding.coe_coe_fn, sym2.map_pair_eq,
       rel_iso.apply_symm_apply, subtype.coe_mk, coe_coe],
@@ -745,12 +736,12 @@ lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w  := f.map_rel_iff
 /-- A graph isomorphism induces an equivalence of neighbor sets. -/
 @[simps] def map_neighbor_set (v : V) : G.neighbor_set v ≃ G'.neighbor_set (f v) :=
 { to_fun := λ w, ⟨f w, begin
-    rcases w with ⟨w, h⟩,
+    obtain ⟨w, h⟩ := w,
     rw mem_neighbor_set at h ⊢,
     exact f.map_adj_iff.mpr h,
   end⟩,
   inv_fun := λ w, ⟨f.symm w, begin
-    rcases w with ⟨w, h⟩,
+    obtain ⟨w, h⟩ := w,
     rw mem_neighbor_set at h ⊢,
     apply f.map_adj_iff.mp,
     simp [h],

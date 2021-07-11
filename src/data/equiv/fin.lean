@@ -307,6 +307,22 @@ def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
         ... = y.1 : nat.mod_eq_of_lt y.2),
   right_inv := λ x, fin.eq_of_veq $ nat.mod_add_div _ _ }
 
+/- Promote a `fin n` into a larger `fin m`, as a subtype where the underlying
+values are retained. This is the `order_iso` version of `fin.cast_le`. -/
+def fin_order_iso_subtype {n m : ℕ} (h : n ≤ m) : fin n ≃o subtype (λ (i : fin m), (i : ℕ) < n) :=
+{ to_fun := λ i, ⟨fin.cast_le h i, by simpa using i.is_lt⟩,
+  inv_fun := λ i, ⟨i, i.prop⟩,
+  left_inv := λ _, by simp,
+  right_inv := λ _, by simp,
+  map_rel_iff' := λ _ _, by simp }
+
+@[simp] lemma fin_order_iso_subtype_apply {n m : ℕ} (h : n ≤ m) (i : fin n) :
+  fin_as_subtype h i = ⟨i, i.is_lt.trans_le h⟩ := rfl
+
+@[simp] lemma fin_order_iso_subtype_symm_apply {n m : ℕ} (h : n ≤ m)
+  (i : subtype (λ (i : fin m), (i : ℕ) < n)) :
+  (fin_as_subtype h).symm i = ⟨i, i.prop⟩ := rfl
+
 /-- `fin 0` is a subsingleton. -/
 instance subsingleton_fin_zero : subsingleton (fin 0) :=
 fin_zero_equiv.subsingleton

@@ -1927,7 +1927,7 @@ begin
   have h : ∀ᵐ x ∂μ, ∃ l : E,
     at_top.tendsto (λ n, ∑ i in finset.range n, (f (i + 1) x - f i x)) (𝓝 l),
   { refine h_summable.mono (λ x hx, _),
-    let hx_sum := has_sum.tendsto_sum_nat hx.has_sum,
+    let hx_sum := hx.has_sum.tendsto_sum_nat,
     exact ⟨∑' i, (f (i + 1) x - f i x), hx_sum⟩, },
   refine h.mono (λ x hx, _),
   cases hx with l hx,

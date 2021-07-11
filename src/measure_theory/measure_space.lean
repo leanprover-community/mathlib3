@@ -435,6 +435,9 @@ instance : module ℝ≥0∞ (measure α) :=
 injective.module ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
 
+@[simp, norm_cast] theorem coe_nnreal_smul (c : ℝ≥0) (μ : measure α) : ⇑(c • μ) = c • μ :=
+rfl
+
 /-! ### The complete lattice of measures -/
 
 instance : partial_order (measure α) :=
@@ -1384,11 +1387,7 @@ end
 lemma restrict_congr_set (H : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
 le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 
-/-- A measure `μ` is called a probability measure if `μ univ = 1`. -/
-class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
-
-instance measure.dirac.probability_measure {x : α} : probability_measure (dirac x) :=
-⟨dirac_apply_of_mem $ mem_univ x⟩
+section finite_measure
 
 /-- A measure `μ` is called finite if `μ univ < ∞`. -/
 class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
@@ -1396,22 +1395,6 @@ class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ 
 instance restrict.finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
   finite_measure (μ.restrict s) :=
 ⟨by simp [hs.elim]⟩
-
-/-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
-
-NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
-there exists a measurable `t ⊆ s` such that `0 < μ t < μ s`. While this implies `μ {x} = 0`,
-the converse is not true. -/
-class has_no_atoms (μ : measure α) : Prop :=
-(measure_singleton : ∀ x, μ {x} = 0)
-
-export probability_measure (measure_univ) has_no_atoms (measure_singleton)
-
-attribute [simp] measure_singleton
-
-@[simp] lemma measure.restrict_singleton' [has_no_atoms μ] {a : α} :
-  μ.restrict {a} = 0 :=
-by simp only [measure_singleton, measure.restrict_eq_zero]
 
 lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s < ∞ :=
 (measure_mono (subset_univ s)).trans_lt finite_measure.measure_univ_lt_top
@@ -1427,6 +1410,16 @@ def measure_univ_nnreal (μ : measure α) : ℝ≥0 := (μ univ).to_nnreal
 ennreal.coe_to_nnreal (measure_ne_top μ univ)
 
 instance finite_measure_zero : finite_measure (0 : measure α) := ⟨by simp⟩
+
+instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_measure (μ + ν) :=
+{ measure_univ_lt_top :=
+  begin
+    rw [measure.coe_add, pi.add_apply, ennreal.add_lt_top],
+    exact ⟨measure_lt_top _ _, measure_lt_top _ _⟩,
+  end }
+
+instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
+{ measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
 @[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl
 
@@ -1448,6 +1441,18 @@ lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measur
   (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
+end finite_measure
+
+section probability_measure
+
+/-- A measure `μ` is called a probability measure if `μ univ = 1`. -/
+class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
+
+export probability_measure (measure_univ)
+
+instance measure.dirac.probability_measure {x : α} : probability_measure (dirac x) :=
+⟨dirac_apply_of_mem $ mem_univ x⟩
+
 @[priority 100]
 instance probability_measure.to_finite_measure (μ : measure α) [probability_measure μ] :
   finite_measure μ :=
@@ -1456,9 +1461,33 @@ instance probability_measure.to_finite_measure (μ : measure α) [probability_me
 lemma probability_measure.ne_zero (μ : measure α) [probability_measure μ] : μ ≠ 0 :=
 mt measure_univ_eq_zero.2 $ by simp [measure_univ]
 
+lemma prob_add_prob_compl [probability_measure μ]
+  (h : measurable_set s) : μ s + μ sᶜ = 1 :=
+(measure_add_measure_compl h).trans measure_univ
+
+lemma prob_le_one [probability_measure μ] : μ s ≤ 1 :=
+(measure_mono $ set.subset_univ _).trans_eq measure_univ
+
+end probability_measure
+
 section no_atoms
 
+/-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
+
+NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
+there exists a measurable `t ⊆ s` such that `0 < μ t < μ s`. While this implies `μ {x} = 0`,
+the converse is not true. -/
+class has_no_atoms (μ : measure α) : Prop :=
+(measure_singleton : ∀ x, μ {x} = 0)
+
+export has_no_atoms (measure_singleton)
+attribute [simp] measure_singleton
+
 variables [has_no_atoms μ]
+
+@[simp] lemma measure.restrict_singleton' {a : α} :
+  μ.restrict {a} = 0 :=
+by simp only [measure_singleton, measure.restrict_eq_zero]
 
 instance (s : set α) : has_no_atoms (μ.restrict s) :=
 begin
@@ -2434,6 +2463,20 @@ begin
     from (@ae_measurable.ae_eq_mk _ _ m _ _ _ hf).symm,
   have hff' : f' =ᵐ[μ] f, from ae_eq_of_ae_eq_trim hff'_m,
   exact ⟨f', measurable.mono hf'_meas hm le_rfl, hff'.symm⟩,
+end
+
+lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
+  (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
+begin
+  by_cases h : nonempty β,
+  { refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
+              (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
+    intros t ht,
+    rw piecewise_preimage,
+    refine measurable_set.union _ ((measurable_const ht).diff hs),
+    rw [← subtype.image_preimage_coe, ← preimage_comp],
+    exact hs.subtype_image (hf ht) },
+  { exact (measurable_of_not_nonempty (mt (nonempty.map f) h) f).ae_measurable }
 end
 
 end

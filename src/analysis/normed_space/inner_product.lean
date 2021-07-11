@@ -1386,7 +1386,7 @@ section bessels_inequality
 
 variables {ι: Type*} (x : E) {v : ι → E}
 
-lemma bessel_finite {s : finset ι} (hv : orthonormal 𝕜 v) : ∑ i in s, ∥ ⟪v i, x⟫ ∥^2 ≤ ∥x∥ ^2 :=
+lemma bessel_finite {s : finset ι} (hv : orthonormal 𝕜 v) : ∑ i in s, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
 begin
   rw ←sub_nonneg,
   suffices hbf: ∥ x -  ∑ i in s, ⟪v i, x⟫ • (v i) ∥^2 = ∥x∥^2 - ∑ i in s, ∥ ⟪v i, x⟫ ∥^2,
@@ -1397,7 +1397,7 @@ begin
   simp only [inner_smul_left, inner_smul_right, inner_conj_sym, ←mul_assoc],
   have h₂ : ∑ i in s, ∑ i_1 in s, (inner (v i) x * inner x (v i_1)) * inner (v i_1) (v i)
    = (∑ k in s, (inner (v k) x * inner x (v k)) : 𝕜 ),
-   { apply orthonormal.inner_left_right_finset, exact hv },
+   { exact hv.inner_left_right_finset },
   simp only [h₂], clear h₂,
   simp only [add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib],
   simp only [two_mul, add_sub_cancel'],
@@ -1421,8 +1421,7 @@ begin
     { intro b, simp only [norm_nonneg, pow_nonneg], },
     { apply is_lub_cSup,
       { apply set.range_nonempty, },
-      { refine @set.nonempty_of_mem _ _ (∥x∥^2) _,
-        rw mem_upper_bounds,
+      { use ∥x∥ ^ 2,
         rintro y ⟨s, rfl⟩,
         apply bessel_finite _ hv, }, }, },
   { rw not_nonempty_iff at hnon,

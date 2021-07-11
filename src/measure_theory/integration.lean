@@ -1363,7 +1363,7 @@ begin
   have := lintegral_const_mul_le (r⁻¹) (λx, r * f x),
   simp [(mul_assoc _ _ _).symm, rinv'] at this,
   simpa [(mul_assoc _ _ _).symm, rinv]
-    using mul_le_mul_left' this _
+    using mul_le_mul_left' this r
 end
 
 lemma lintegral_mul_const (r : ℝ≥0∞) {f : α → ℝ≥0∞} (hf : measurable f) :

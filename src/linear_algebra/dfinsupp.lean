@@ -44,11 +44,11 @@ include dec_ι
 
 /-- `dfinsupp.mk` as a `linear_map`. -/
 def lmk (s : finset ι) : (Π i : (↑s : set ι), M i) →ₗ[R] Π₀ i, M i :=
-⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul R x]⟩
+{ to_fun := mk s, map_add' := λ _ _, mk_add, map_smul' := λ c x, mk_smul R x }
 
 /-- `dfinsupp.single` as a `linear_map` -/
 def lsingle (i) : M i →ₗ[R] Π₀ i, M i :=
-⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
+{ to_fun := single i, map_smul' := λ r x, single_smul _, .. dfinsupp.single_add_hom _ _ }
 
 /-- Two `R`-linear maps from `Π₀ i, M i` which agree on each `single i x` agree everywhere. -/
 lemma lhom_ext ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
@@ -108,7 +108,7 @@ include dec_ι
 /-- The `dfinsupp` version of `finsupp.lsum`.
 
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
-@[simps apply symm_apply]
+@[simps]
 def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
@@ -202,3 +202,15 @@ basis.of_repr ((map_range.linear_equiv (λ i, (b i).repr)).trans
 end basis
 
 end dfinsupp
+
+include dec_ι
+
+lemma submodule.dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
+  [Π i (x : β i), decidable (x ≠ 0)] (S : submodule R N)
+  (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_mem f g h
+
+lemma submodule.dfinsupp_sum_add_hom_mem {β : ι → Type*} [Π i, add_zero_class (β i)]
+  (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i →+ N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
+  dfinsupp.sum_add_hom g f ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_add_hom_mem f g h

@@ -533,8 +533,7 @@ lemma norm_noninc_of_isometry (hf : isometry f) : f.norm_noninc :=
 
 end isometry
 
-variables {V₄ W₁ W₂ W₃ : Type*} [semi_normed_group V₄] [semi_normed_group W₁] [semi_normed_group W₂]
-  [semi_normed_group W₃]
+variables {W₁ W₂ W₃ : Type*} [semi_normed_group W₁] [semi_normed_group W₂] [semi_normed_group W₃]
 variables (f) (g : normed_group_hom V W)
 variables {f₁ g₁ : normed_group_hom V₁ W₁}
 variables {f₂ g₂ : normed_group_hom V₂ W₂}

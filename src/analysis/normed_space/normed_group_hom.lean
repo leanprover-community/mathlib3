@@ -16,7 +16,8 @@ between normed (abelian) groups (abbreviated to "normed group homs").
 The main lemmas relate the boundedness condition to continuity and Lipschitzness.
 
 The main construction is to endow the type of normed group homs between two given normed groups
-with a group structure and a norm, giving rise to a normed group structure.
+with a group structure and a norm, giving rise to a normed group structure. We provide several
+simple constructions for normed group homs, like kernel, range and equalizer.
 
 Some easy other constructions are related to subgroups of normed groups.
 

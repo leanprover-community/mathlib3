@@ -67,14 +67,16 @@ section
 
 /-- Local trivialization for vector bundles. -/
 @[nolint has_inhabited_instance]
-structure topological_vector_bundle.trivialization
-  extends topological_fiber_bundle.trivialization F (proj E) :=
+structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivialization :
+  topological_fiber_bundle.trivialization F (proj E) :=
 (linear : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
 
 open topological_vector_bundle
 
+instance : has_coe_to_fun (trivialization R F E) := ⟨_, λ e, e.to_fun⟩
+
 instance : has_coe (trivialization R F E) (topological_fiber_bundle.trivialization F (proj E)) :=
-⟨topological_vector_bundle.trivialization.to_trivialization⟩
+⟨topological_vector_bundle.trivialization.to_fiber_bundle_trivialization⟩
 
 namespace topological_vector_bundle
 
@@ -176,7 +178,7 @@ def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   continuous_inv_fun := begin
     rw (topological_vector_bundle.inducing R F E b).continuous_iff,
     dsimp,
-    have : continuous (λ (z : F), (e.to_trivialization.to_local_homeomorph.symm) (b, z)),
+    have : continuous (λ (z : F), e.to_fiber_bundle_trivialization.to_local_homeomorph.symm (b, z)),
     { apply e.to_local_homeomorph.symm.continuous_on.comp_continuous
         (continuous_const.prod_mk continuous_id') (λ z, _),
       simp only [topological_fiber_bundle.trivialization.mem_target, hb, local_equiv.symm_source,
@@ -250,7 +252,8 @@ variables {R B F}
 /- Not registered as an instance because of a metavariable. -/
 lemma is_topological_vector_bundle_is_topological_fiber_bundle :
   is_topological_fiber_bundle F (proj E) :=
-λ x, ⟨(trivialization_at R F E x).to_trivialization, mem_base_set_trivialization_at R F E x⟩
+λ x, ⟨(trivialization_at R F E x).to_fiber_bundle_trivialization,
+  mem_base_set_trivialization_at R F E x⟩
 
 end topological_vector_bundle
 

@@ -320,10 +320,13 @@ begin
     simp [ennreal.of_real_eq_zero, f.le_left_lim hab] }
 end
 
-@[simp] lemma measure_Ioo {a b : ℝ} (h : a ≠ b) :
+@[simp] lemma measure_Ioo {a b : ℝ} :
   f.measure (Ioo a b) = of_real (f.left_lim b - f a) :=
 begin
-  rcases lt_trichotomy a b with hab|rfl|hab,
+  rcases le_or_lt b a with hab|hab,
+  { simp only [hab, measure_empty, Ioo_eq_empty],
+    symmetry,
+    simp [ennreal.of_real_eq_zero, f.left_lim_le hab] },
   { have A : disjoint (Ioo a b) {b}, by simp,
     have D : f b - f a = (f b - f.left_lim b) + (f.left_lim b - f a), by abel,
     have := f.measure_Ioc a b,
@@ -333,10 +336,6 @@ begin
     { simpa only [ennreal.add_right_inj, ennreal.of_real_lt_top] },
     { simp only [f.left_lim_le, sub_nonneg] },
     { simp only [f.le_left_lim hab, sub_nonneg] } },
-  { exact (h rfl).elim },
-  { simp only [hab.le, measure_empty, Ioo_eq_empty],
-    symmetry,
-    simp [ennreal.of_real_eq_zero, f.left_lim_le hab.le] }
 end
 
 @[simp] lemma measure_Ico (a b : ℝ) : f.measure (Ico a b) = of_real (f.left_lim b - f.left_lim a) :=

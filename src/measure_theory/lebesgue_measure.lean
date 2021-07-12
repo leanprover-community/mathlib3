@@ -42,7 +42,7 @@ by simp [volume_val]
 by simp [volume_val]
 
 @[simp] lemma volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) :=
-by rcases eq_or_ne a b with hab|hab; simp [hab, volume_val]
+by simp [volume_val]
 
 @[simp] lemma volume_Ioc {a b : ℝ} : volume (Ioc a b) = of_real (b - a) :=
 by simp [volume_val]

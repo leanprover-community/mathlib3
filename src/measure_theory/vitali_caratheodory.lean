@@ -58,6 +58,12 @@ Then we follow the same steps for the lower bound.
 Finally, we glue them together to obtain the main statement
 `exists_lt_lower_semicontinuous_integral_lt`.
 
+## Related results
+
+Are you looking for a result on approximation by continuous functions (not just semicontinuous)?
+See result `measure_theory.Lp.continuous_map_dense`, in the file
+`measure_theory.continuous_map_dense`.
+
 ## References
 
 [Rudin, *Real and Complex Analysis* (Theorem 2.24)][rudin2006real]

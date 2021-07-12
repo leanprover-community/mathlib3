@@ -1005,6 +1005,9 @@ lemma mem_coe_submodule (I : ideal R) {x : S} :
   x ∈ coe_submodule S I ↔ ∃ y : R, y ∈ I ∧ algebra_map R S y = x :=
 iff.rfl
 
+@[simp] lemma coe_submodule_top : coe_submodule S (⊤ : ideal R) = 1 :=
+by rw [coe_submodule, submodule.one_eq_map_top]
+
 variables {g : R →+* P}
 variables {T : submonoid P} (hy : M ≤ T.comap g) {Q : Type*} [comm_ring Q]
 variables [algebra P Q] [is_localization T Q]

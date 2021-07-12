@@ -588,7 +588,7 @@ by { simp only [← comp_assoc, ← hf, ← hg], simp only [comp_assoc, comp_ι_
 variables {φ : normed_group_hom V₁ V₂} {ψ : normed_group_hom W₁ W₂}
 variables {φ' : normed_group_hom V₂ V₃} {ψ' : normed_group_hom W₂ W₃}
 
-@[simp] lemma map_ι (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ) :
+@[simp] lemma ι_comp_map (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ) :
   (ι f₂ g₂).comp (map φ ψ hf hg) = φ.comp (ι _ _) :=
 ι_comp_lift _ _
 

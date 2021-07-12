@@ -770,7 +770,7 @@ end finsupp
 variables {R : Type*} {M : Type*} {N : Type*}
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
 
-lemma submodule.finsupp_sum_mem  {ι β : Type*} [has_zero ι] (S : submodule R M) (f : ι →₀ β)
+lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : submodule R M) (f : ι →₀ β)
   (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
 S.to_add_submonoid.finsupp_sum_mem f g h
 

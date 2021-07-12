@@ -408,7 +408,7 @@ end
   ((A' ⊓ B) ⊔ (A ⊓ B') ≤ A ⊓ B) :=
 sup_le (inf_le_inf hA (le_refl _)) (inf_le_inf (le_refl _) hB)
 
-instance Zassenhaus
+instance normal_Zassenhaus_subgroup
   {A' A B' B : subgroup G} [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)]
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal] :
   (((A' ⊓ B) ⊔ (A ⊓ B')).subgroup_of (A ⊓ B)).normal :=
@@ -425,7 +425,10 @@ begin
   { exact inf_le_inf (le_refl _) hB.out },
 end
 
-/-- bruh  -/
+/--
+Construct the quotient `(A ⊓ B) / ((A' ⊓ B) ⊔ (A ⊓ B'))`.
+We delay the hypotheses `A' ≤ A` and `B' ≤ B` as much as possible.
+-/
 @[derive inhabited] def Zassenhaus_quot (A' A B' B : subgroup G) :=
 quotient_group.quotient $ ((A' ⊓ B) ⊔ (A ⊓ B')).subgroup_of (A ⊓ B)
 
@@ -435,7 +438,7 @@ instance Zassenhaus_group
   group (Zassenhaus_quot A' A B' B) :=
 begin
   dsimp [Zassenhaus_quot],
-  haveI := @quotient_group.Zassenhaus _ _ A' A B' B hA hB,
+  haveI := @quotient_group.normal_Zassenhaus_subgroup _ _ A' A B' B hA hB,
   apply_instance,
 end
 
@@ -469,8 +472,11 @@ end
 lemma inv_mul_eq_mul_inv {u v a b : G} (h : u * v = a * b) : a⁻¹ * u = b * v⁻¹ :=
   inv_mul_eq_of_eq_mul (mul_assoc a b v⁻¹ ▸ eq_mul_inv_of_mul_eq h)
 
-
-/-- bruh -/
+/--
+The map `A' ⊔ A ⊓ B → (A ⊓ B) / ((A' ⊓ B) ⊔ (A ⊓ B'))`.
+We prove that this map is in fact a group homomorphism with kernel `A' ⊔ A ⊓ B'`
+in `Zassenhaus_fun` and `Zassenhaus_fun_ker`.
+-/
 noncomputable def Zassenhaus_fun_aux {A' A : subgroup G} (B' B : subgroup G) (hA : A' ≤ A)
   [hAN : (A'.subgroup_of A).normal] (x : A' ⊔ A ⊓ B) : Zassenhaus_quot A' A B' B :=
 quotient.mk' ⟨_, ((mem_sup_iff (Zassenhaus_aux B hA)).mp x.2).some_spec.some_spec.2.1⟩
@@ -501,7 +507,12 @@ begin
   convert ← Zassenhaus_fun_aux_app hA _ _ h, ext, exact e,
 end
 
-/-- bruh -/
+/--
+The intermediary group homomorphism `A' ⊔ A ⊓ B →* (A ⊓ B) / ((A' ⊓ B) ⊔ (A ⊓ B'))`
+that provides "one side" of the butterfly diagram. Exploiting the symmtery between
+`A'/A` and `B'/B` and glueing the respective two sides together will give us the
+full Zassenhaus lemma.
+-/
 noncomputable def Zassenhaus_fun (A' A B' B : subgroup G) [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)]
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal] :
   ↥(A' ⊔ A ⊓ B) →* Zassenhaus_quot A' A B' B :=
@@ -568,21 +579,27 @@ begin
   exact Zassenhaus_fun_aux_app hA.out 1 ⟨y, hy⟩ hy',
 end
 
-/-- bruh -/
-def Zassenhaus' {A' A B' B : subgroup G} [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)]
+/--
+Technical lemma that proves `(A ⊓ B) / ((A' ⊓ B) ⊔ (A ⊓ B')) ≃* (B ⊓ A) / ((B' ⊓ A) ⊔ (B ⊓ A'))`,
+which we must provide explictly due to the complex types of the LHS and RHS,
+-/
+def Zassenhaus_symm_equiv {A' A B' B : subgroup G} [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)]
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal] :
   Zassenhaus_quot A' A B' B ≃* Zassenhaus_quot B' B A' A :=
 equiv_quotient_subgroup_of_of_eq (by { rwa [inf_comm, @inf_comm _ _ A B', sup_comm] } ) (inf_comm)
 
-/-- bruh  -/
-noncomputable def Zassenhaus''
+/--
+**The Zassenhaus Lemma** (or the Butterfly Lemma) for groups:
+`(A' ⊔ A ⊓ B') / (A' ⊔ A ⊓ B) ≃* (B' ⊔ B ⊓ A') / (B' ⊔ B ⊓ A)`
+-/
+noncomputable def Zassenhaus
   {A' A B' B : subgroup G} [hA : fact (A' ≤ A)] [hB : fact (B' ≤ B)]
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal] :
   quotient ((A' ⊔ A ⊓ B').subgroup_of (A' ⊔ A ⊓ B)) ≃*
     quotient ((B' ⊔ B ⊓ A').subgroup_of (B' ⊔ B ⊓ A)) :=
 (((equiv_quotient_of_eq Zassenhaus_fun_ker).symm.trans
   (quotient_ker_equiv_of_surjective (Zassenhaus_fun A' A B' B)
-  Zassenhaus_fun_surjective)).trans Zassenhaus').trans
+  Zassenhaus_fun_surjective)).trans Zassenhaus_symm_equiv).trans
   ((equiv_quotient_of_eq Zassenhaus_fun_ker).symm.trans
   (quotient_ker_equiv_of_surjective (Zassenhaus_fun B' B A' A)
   (Zassenhaus_fun_surjective))).symm

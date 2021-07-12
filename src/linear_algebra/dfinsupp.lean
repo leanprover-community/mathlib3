@@ -211,6 +211,6 @@ lemma submodule.dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
 S.to_add_submonoid.dfinsupp_sum_mem f g h
 
 lemma submodule.dfinsupp_sum_add_hom_mem {β : ι → Type*} [Π i, add_zero_class (β i)]
-  (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
-  lsum g ∈ S :=
+  (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i →+ N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
+  dfinsupp.sum_add_hom g f ∈ S :=
 S.to_add_submonoid.dfinsupp_sum_add_hom_mem f g h

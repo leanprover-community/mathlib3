@@ -312,7 +312,7 @@ def model_with_corners.pi
   model_with_corners 𝕜 (Π i, E i) (model_pi H) :=
 { to_local_equiv := local_equiv.pi (λ i, (I i).to_local_equiv),
   source_eq := by simp only [set.pi_univ] with mfld_simps,
-  unique_diff' := unique_diff_on.pi (λ i _, (I i).unique_diff'),
+  unique_diff' := unique_diff_on.pi ι E _ _ (λ i _, (I i).unique_diff'),
   continuous_to_fun := continuous_pi $ λ i, (I i).continuous.comp (continuous_apply i),
   continuous_inv_fun := continuous_pi $ λ i, (I i).continuous_symm.comp (continuous_apply i) }
 

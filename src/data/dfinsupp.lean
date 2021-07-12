@@ -958,7 +958,7 @@ begin
   exact h
 end
 
-/-- The supremum of a family of commutatice additive submonoids is equal to the range of
+/-- The supremum of a family of commutative additive submonoids is equal to the range of
 `finsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
 number of non-zero elements of `p i`, coercing them to `γ`, and summing them. -/
 lemma _root_.add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom [add_comm_monoid γ]

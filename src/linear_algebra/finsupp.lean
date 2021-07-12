@@ -433,6 +433,22 @@ theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l (default α) • v (default α) :=
 by rw [← total_single, ← unique_single l]
 
+lemma total_surjective (h : function.surjective v) : function.surjective (finsupp.total α M R v) :=
+begin
+  intro x,
+  obtain ⟨y, hy⟩ := h x,
+  exact ⟨finsupp.single y 1, by simp [hy]⟩
+end
+
+theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
+range_eq_top.2 $ total_surjective R h
+
+/-- Any module is a quotient of a free module. This is stated as surjectivity of
+`finsupp.total M M R id : (M →₀ R) →ₗ[R] M`. -/
+lemma total_id_surjective (M) [add_comm_monoid M] [module R M] :
+  function.surjective (finsupp.total M M R id) :=
+total_surjective R function.surjective_id
+
 lemma range_total : (finsupp.total α M R v).range = span R (range v) :=
 begin
   ext x,

@@ -15,15 +15,16 @@ Relations are also known as set-valued functions, or partial multifunctions.
 
 * `rel α β`: Relation between `α` and `β`.
 * `rel.inv`: `r.inv` is the `rel β α` obtained by swapping the arguments of `r`.
-* `rel.dom`: Domain. `x ∈ r.dom` iff there exists `y` such that `r x y`.
-* `rel.codom`: Codomain, or range. `y ∈ r.codom` iff there exists `x` such that `r x y`.
+* `rel.dom`: Domain of a relation. `x ∈ r.dom` iff there exists `y` such that `r x y`.
+* `rel.codom`: Codomain, aka range, of a relation. `y ∈ r.codom` iff there exists `x` such that
+  `r x y`.
 * `rel.comp`: Relation composition. Note that the arguments order follows the `category_theory/`
   one, so `r.comp s x z ↔ ∃ y, r x y ∧ s y z`.
-* `rel.image`: Image of a set under a relation.
+* `rel.image`: Image of a set under a relation. `r.image s` is the set of `f x` over all `x ∈ s`.
 * `rel.preimage`: Preimage of a set under a relation. Note that `r.preimage = r.inv.image`.
 * `rel.core`: Core of a set. For `s : set β`, `r.core s` is the set of `x : α` such that all `y`
   related to `x` are in `s`.
-* `rel.restrict_domain`: Domain-restriction of a relation.
+* `rel.restrict_domain`: Domain-restriction of a relation to a subtype.
 * `function.graph`: Graph of a function as a relation.
 -/
 

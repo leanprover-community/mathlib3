@@ -43,7 +43,7 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
 /-! ### Primitive element theorem for finite fields -/
 
-/-- Primitive element theorem assuming E is finite. -/
+/-- **Primitive element theorem** assuming E is finite. -/
 lemma exists_primitive_element_of_fintype_top [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   obtain ⟨α, hα⟩ := is_cyclic.exists_generator (units E),

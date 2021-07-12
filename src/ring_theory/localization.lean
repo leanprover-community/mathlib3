@@ -1006,7 +1006,7 @@ lemma mem_coe_submodule (I : ideal R) {x : S} :
 iff.rfl
 
 @[simp] lemma coe_submodule_top : coe_submodule S (⊤ : ideal R) = 1 :=
-by rw [coe_submodule, submodule.one_eq_map_top]
+by rw [coe_submodule, submodule.map_top, submodule.one_eq_range]
 
 variables {g : R →+* P}
 variables {T : submonoid P} (hy : M ≤ T.comap g) {Q : Type*} [comm_ring Q]

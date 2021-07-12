@@ -445,9 +445,9 @@ section
 include R F
 
 lemma continuous.add_section [has_continuous_add F] {g h : bundle_section E} (hg : continuous g)
-  (hh : continuous h) : continuous ((g + h : bundle_section E) : B → total_space E) :=
+  (hh : continuous h) : continuous (↑(g + h) : B → total_space E) :=
 continuous_iff_continuous_at.mpr (λ b, ((g + h).continuous_at_iff_continuous_within_at_triv_at R F E
-  b).mpr (continuous_within_at.congr (continuous_add.continuous_within_at.comp_univ
+  b).mpr (continuous_within_at.congr (continuous_add.continuous_at.comp_continuous_within_at
   (((g.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hg.continuous_at).prod
   ((h.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hh.continuous_at)))
   trivialization.snd_map_add (trivialization.snd_map_add b
@@ -539,7 +539,7 @@ section
 include R F
 
 lemma continuous.neg_section {g : bundle_section E} (hg : continuous g) :
-  continuous ((- g : bundle_section E) : B → total_space E) :=
+  continuous (↑(- g) : B → total_space E) :=
 continuous_iff_continuous_at.2 (λ b, ((- g).continuous_at_iff_continuous_within_at_triv_at
   R F E b).mpr ((((g.continuous_at_iff_continuous_within_at_triv_at R F E b).mp
   hg.continuous_at).neg).congr trivialization.map_neg (trivialization.map_neg b
@@ -551,9 +551,9 @@ instance : has_neg (vector_bundle_section R F E) :=
 ⟨λ g, { to_fun := - g, continuous_to_fun := g.continuous.neg_section R F }⟩
 
 lemma continuous.sub_section {g h : bundle_section E} (hg : continuous g)
-  (hh : continuous h) : continuous ((g - h : bundle_section E) : B → total_space E) :=
+  (hh : continuous h) : continuous (↑(g - h) : B → total_space E) :=
 continuous_iff_continuous_at.mpr (λ b, ((g - h).continuous_at_iff_continuous_within_at_triv_at
-  R F E b).mpr (continuous_within_at.congr (continuous_sub.continuous_within_at.comp_univ
+  R F E b).mpr (continuous_within_at.congr (continuous_sub.continuous_at.comp_continuous_within_at
   (((g.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hg.continuous_at).prod
   ((h.continuous_at_iff_continuous_within_at_triv_at R F E b).mp hh.continuous_at)))
   trivialization.snd_map_sub (trivialization.snd_map_sub b

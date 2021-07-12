@@ -24,7 +24,6 @@ we will make will be of this form.
 
 -/
 
-
 /-- TEMPORARY: to be removed when Lean will be updated. -/
 instance lift_fn_range' {α : Sort*} {A : α → Sort*} {B : α → Sort*} [Π i, has_lift_t (A i) (B i)] :
   has_lift (Π i, A i) (Π i, B i) := ⟨λ f i, ↑(f i)⟩
@@ -100,8 +99,6 @@ variables {B : Type*} {E : B → Type*}
 
 /-- Type synonim for name clarity. -/
 @[reducible, nolint has_coe_to_fun] def bundle_section (E : B → Type*) := Π x, E x
-
--- instance : has_coe_to_fun (bundle_section E) := ⟨_, λ s, s⟩
 
 @[simp] lemma right_inv.fst_eq_id (f : right_inv (proj E)) (b : B) : (f b).fst = b :=
 congr_fun f.right_inv_def b

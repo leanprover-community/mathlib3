@@ -37,6 +37,7 @@ to add a `(h : ¬ is_field A)` assumption whenever this is explicitly needed.
 
 * [D. Marcus, *Number Fields*][marcus1977number]
 * [J.W.S. Cassels, A. Frölich, *Algebraic Number Theory*][cassels1967algebraic]
+* [J. Neukirch, *Algebraic Number Theory*][Neukirch1992]
 
 ## Tags
 
@@ -70,6 +71,8 @@ end ring
 /--
 A Dedekind domain is an integral domain that is Noetherian, integrally closed, and
 has Krull dimension at most one.
+
+This is definition 3.2 of [Neukirch1992].
 
 The integral closure condition is independent of the choice of field of fractions:
 use `is_dedekind_domain_iff` to prove `is_dedekind_domain` for a given `fraction_map`.

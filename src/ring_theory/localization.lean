@@ -1009,6 +1009,9 @@ lemma coe_submodule_mono {I J : ideal R} (h : I ≤ J) :
   coe_submodule S I ≤ coe_submodule S J :=
 submodule.map_mono h
 
+@[simp] lemma coe_submodule_top : coe_submodule S (⊤ : ideal R) = 1 :=
+by rw [coe_submodule, submodule.map_top, submodule.one_eq_range]
+
 variables {g : R →+* P}
 variables {T : submonoid P} (hy : M ≤ T.comap g) {Q : Type*} [comm_ring Q]
 variables [algebra P Q] [is_localization T Q]

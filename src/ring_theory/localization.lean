@@ -1152,7 +1152,7 @@ end
 
 variables {S Q M}
 
-lemma coe_submodule_le_coe_submodule (h : M ≤ non_zero_divisors R) [is_localization M S]
+lemma coe_submodule_le_coe_submodule (h : M ≤ non_zero_divisors R)
   {I J : ideal R} :
   coe_submodule S I ≤ coe_submodule S J ↔ I ≤ J :=
 submodule.map_le_map_iff_of_injective (is_localization.injective _ h) _ _

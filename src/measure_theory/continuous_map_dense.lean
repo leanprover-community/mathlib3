@@ -21,7 +21,7 @@ Note that for `p = ∞` this result is not true:  the characteristic function of
 `ℝ` cannot be continuously approximated in `L∞`.
 
 The proof is in three steps.  First, since simple functions are dense in `Lp`, it suffices to prove
-the result for a scalar multiples of a characteristic functions of a measurable set `s`. Secondly,
+the result for a scalar multiple of a characteristic function of a measurable set `s`. Secondly,
 since the measure `μ` is weakly regular, the set `s` can be approximated above by an open set and
 below by a closed set.  Finally, since the domain `α` is normal, we use Urysohn's lemma to find a
 continuous function interpolating between these two sets.

@@ -1219,7 +1219,7 @@ subgroup.copy ((⊤ : subgroup G).map f) (set.range f) (by simp [set.ext_iff])
 
 @[to_additive]
 instance decidable_mem_range (f : G →* N) [fintype G] [decidable_eq N] :
-  decidable_pred (λ x, x ∈ f.range) :=
+  decidable_pred (∈ f.range) :=
 λ x, fintype.decidable_exists_fintype
 
 @[simp, to_additive] lemma coe_range (f : G →* N) :

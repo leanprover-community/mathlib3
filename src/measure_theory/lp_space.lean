@@ -1625,19 +1625,23 @@ lemma continuous_comp_Lp [fact (1 ≤ p)] (hg : lipschitz_with c g) (g0 : g 0 = 
 end lipschitz_with
 
 namespace continuous_linear_map
-variables [normed_space ℝ E] [normed_space ℝ F]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
 
-/-- Composing `f : Lp ` with `L : E →L[ℝ] F`. -/
-def comp_Lp (L : E →L[ℝ] F) (f : Lp E p μ) : Lp F p μ :=
+/-- Composing `f : Lp ` with `L : E →L[𝕜] F`. -/
+def comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) : Lp F p μ :=
 L.lipschitz.comp_Lp (map_zero L) f
 
-lemma coe_fn_comp_Lp (L : E →L[ℝ] F) (f : Lp E p μ) :
+lemma coe_fn_comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) :
   ∀ᵐ a ∂μ, (L.comp_Lp f) a = L (f a) :=
 lipschitz_with.coe_fn_comp_Lp _ _ _
 
-variables (μ p)
-/-- Composing `f : Lp E p μ` with `L : E →L[ℝ] F`, seen as a `ℝ`-linear map on `Lp E p μ`. -/
-def comp_Lpₗ (L : E →L[ℝ] F) : (Lp E p μ) →ₗ[ℝ] (Lp F p μ) :=
+lemma norm_comp_Lp_le (L : E →L[𝕜] F) (f : Lp E p μ)  : ∥L.comp_Lp f∥ ≤ ∥L∥ * ∥f∥ :=
+lipschitz_with.norm_comp_Lp_le _ _ _
+
+variables (μ p) [measurable_space 𝕜] [opens_measurable_space 𝕜]
+
+/-- Composing `f : Lp E p μ` with `L : E →L[𝕜] F`, seen as a `𝕜`-linear map on `Lp E p μ`. -/
+def comp_Lpₗ (L : E →L[𝕜] F) : (Lp E p μ) →ₗ[𝕜] (Lp F p μ) :=
 { to_fun := λ f, L.comp_Lp f,
   map_add' := begin
     intros f g,
@@ -1656,18 +1660,17 @@ def comp_Lpₗ (L : E →L[ℝ] F) : (Lp E p μ) →ₗ[ℝ] (Lp F p μ) :=
     simp only [ha1, ha2, ha3, ha4, map_smul, pi.smul_apply],
   end }
 
-variables {μ p}
-lemma norm_comp_Lp_le (L : E →L[ℝ] F) (f : Lp E p μ)  : ∥L.comp_Lp f∥ ≤ ∥L∥ * ∥f∥ :=
-lipschitz_with.norm_comp_Lp_le _ _ _
-
-variables (μ p)
-
-/-- Composing `f : Lp E p μ` with `L : E →L[ℝ] F`, seen as a continuous `ℝ`-linear map on
-`Lp E p μ`. -/
-def comp_LpL [fact (1 ≤ p)] (L : E →L[ℝ] F) : (Lp E p μ) →L[ℝ] (Lp F p μ) :=
+/-- Composing `f : Lp E p μ` with `L : E →L[𝕜] F`, seen as a continuous `𝕜`-linear map on
+`Lp E p μ`. See also the similar
+* `linear_map.comp_left` for functions,
+* `continuous_linear_map.comp_left_continuous` for continuous functions,
+* `continuous_linear_map.comp_left_continuous_bounded` for bounded continuous functions,
+* `continuous_linear_map.comp_left_continuous_compact` for continuous functions on compact spaces.
+-/
+def comp_LpL [fact (1 ≤ p)] (L : E →L[𝕜] F) : (Lp E p μ) →L[𝕜] (Lp F p μ) :=
 linear_map.mk_continuous (L.comp_Lpₗ p μ) ∥L∥ L.norm_comp_Lp_le
 
-lemma norm_compLpL_le [fact (1 ≤ p)] (L : E →L[ℝ] F) :
+lemma norm_compLpL_le [fact (1 ≤ p)] (L : E →L[𝕜] F) :
   ∥L.comp_LpL p μ∥ ≤ ∥L∥ :=
 linear_map.mk_continuous_norm_le _ (norm_nonneg _) _
 
@@ -2009,7 +2012,7 @@ begin
   have h : ∀ᵐ x ∂μ, ∃ l : E,
     at_top.tendsto (λ n, ∑ i in finset.range n, (f (i + 1) x - f i x)) (𝓝 l),
   { refine h_summable.mono (λ x hx, _),
-    let hx_sum := (summable.has_sum_iff_tendsto_nat hx).mp hx.has_sum,
+    let hx_sum := hx.has_sum.tendsto_sum_nat,
     exact ⟨∑' i, (f (i + 1) x - f i x), hx_sum⟩, },
   refine h.mono (λ x hx, _),
   cases hx with l hx,
@@ -2133,8 +2136,8 @@ namespace bounded_continuous_function
 
 open_locale bounded_continuous_function
 variables [borel_space E] [second_countable_topology E]
-variables [topological_space α] [borel_space α]
-variables [finite_measure μ]
+  [topological_space α] [borel_space α]
+  [finite_measure μ]
 
 /-- A bounded continuous function is in `Lp`. -/
 lemma mem_Lp (f : α →ᵇ E) :

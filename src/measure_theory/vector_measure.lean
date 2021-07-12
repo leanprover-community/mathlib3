@@ -51,9 +51,9 @@ structure vector_measure (α : Type*) [measurable_space α] (R : Type*) [ring R]
   (∀ i, measurable_set (f i)) → pairwise (disjoint on f) →
   has_sum (λ i, measure_of (f i)) (measure_of (⋃ i, f i)))
 
--- A `signed_measure` is a `vector_measure` over `ℝ` over itself.
+-- A `signed_measure` is a `vector_measure` of `ℝ` over itself.
 notation `signed_measure ` α := vector_measure α ℝ ℝ
--- A `complex_measure` is a `vector_measure` over `ℂ` over itself.
+-- A `complex_measure` is a `vector_measure` of `ℂ` over itself.
 notation `complex_measure ` α := vector_measure α ℂ ℂ
 
 open set measure_theory
@@ -452,13 +452,6 @@ theorem summable_measure_of
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   summable (s ∘ f) :=
 begin
-  /-
-    It suffices to show `∑ |s ∘ f| < ∞`.
-    Let `N+ := { i | s(f i) ≥ 0 }`
-    and `N- := { i | s(f i) < 0 }`
-    Then, `Σ i, |s ∘ f i| = ∑ i ∈ N+, s ∘ f i - ∑ i ∈ N-, s ∘ f i`
-    Clearly, both sum are finite since `s.range = ℝ`.
-  -/
   apply summable_of_summable_norm,
   simp_rw measure_of_seq_eq,
   apply summable.sub,
@@ -481,7 +474,7 @@ def to_signed_measure (s : signed_measure' α) : signed_measure α :=
     (summable.has_sum_iff (signed_measure'.summable_measure_of hf₁ hf₂)).2
       (s.measure_of_disjoint_Union hf₁ hf₂).symm }
 
-/-- The naturally induces `signed_measure'` from a `signed_measure`. -/
+/-- The naturally induced `signed_measure'` from a `signed_measure`. -/
 def of_signed_measure (s : signed_measure α) : signed_measure' α :=
 { measure_of := s,
   empty := s.empty,

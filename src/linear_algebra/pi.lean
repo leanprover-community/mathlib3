@@ -23,9 +23,9 @@ It contains theorems relating these to each other, as well as to `linear_map.ker
 
 -/
 
-universes u v w x y z u' v' w' y'
+universes u v w x y z u' v' w' x' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
-variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
+variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x} {ι' : Type x'}
 
 open function submodule
 open_locale big_operators
@@ -242,12 +242,13 @@ variables [semiring R] {φ ψ χ : ι → Type*} [∀ i, add_comm_monoid (φ i)]
 variables [∀ i, add_comm_monoid (ψ i)] [∀ i, module R (ψ i)]
 variables [∀ i, add_comm_monoid (χ i)] [∀ i, module R (χ i)]
 
-/-- Combine a family of linear equivalences into a linear equivalence of `pi`-types. -/
+/-- Combine a family of linear equivalences into a linear equivalence of `pi`-types.
+
+This is `equiv.Pi_congr_right` as a `linear_equiv` -/
 @[simps apply] def Pi_congr_right (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
 { to_fun := λ f i, e i (f i),
   inv_fun := λ f i, (e i).symm (f i),
   map_smul' := λ c f, by { ext, simp },
-  left_inv := λ f, by { ext, simp },
   .. add_equiv.Pi_congr_right (λ j, (e j).to_add_equiv) }
 
 @[simp]
@@ -261,6 +262,22 @@ lemma Pi_congr_right_symm (e : Π i, φ i ≃ₗ[R] ψ i) :
 lemma Pi_congr_right_trans (e : Π i, φ i ≃ₗ[R] ψ i) (f : Π i, ψ i ≃ₗ[R] χ i) :
   (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) :=
 rfl
+
+variables (R φ)
+
+/-- Transport dependent functions through an equivalence of the base space.
+
+This is `equiv.Pi_congr_left'` as a `linear_equiv`. -/
+@[simps {simp_rhs := tt}]
+def Pi_congr_left' (e : ι ≃ ι') : (Π i', φ i') ≃ₗ[R] (Π i, φ $ e.symm i) :=
+{ map_add' := λ x y, rfl, map_smul' := λ x y, rfl, .. equiv.Pi_congr_left' φ e }
+
+/-- Transporting dependent functions through an equivalence of the base,
+expressed as a "simplification".
+
+This is `equiv.Pi_congr_left` as a `linear_equiv` -/
+def Pi_congr_left (e : ι' ≃ ι) : (Π i', φ (e i')) ≃ₗ[R] (Π i, φ i) :=
+(Pi_congr_left' R φ e.symm).symm
 
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
   [add_comm_monoid M] [module R M] [module S M] [smul_comm_class R S M]

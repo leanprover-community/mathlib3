@@ -37,8 +37,9 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 
 ## Main statements
 
-* The first and second isomorphism laws for modules are proved as `quot_ker_equiv_range` and
-  `quotient_inf_equiv_sup_quotient`.
+* The first, second and third isomorphism laws for modules are proved as
+  `linear_map.quot_ker_equiv_range`, `linear_map.quotient_inf_equiv_sup_quotient` and
+  `submodule.quotient_quotient_equiv_quotient`.
 
 ## Notations
 
@@ -308,6 +309,17 @@ begin
   { simpa only [pow_zero], },
   { rw [pow_succ, pow_succ, linear_map.mul_eq_comp, linear_map.comp_assoc, ih,
       ← linear_map.comp_assoc, h, linear_map.comp_assoc, linear_map.mul_eq_comp], },
+end
+
+lemma submodule_pow_eq_zero_of_pow_eq_zero {N : submodule R M}
+  {g : module.End R N} {G : module.End R M} (h : G.comp N.subtype = N.subtype.comp g)
+  {k : ℕ} (hG : G^k = 0) : g^k = 0 :=
+begin
+  ext m,
+  have hg : N.subtype.comp (g^k) m = 0,
+  { rw [← commute_pow_left_of_commute h, hG, zero_comp, zero_apply], },
+  simp only [submodule.subtype_apply, comp_app, submodule.coe_eq_zero, coe_comp] at hg,
+  rw [hg, linear_map.zero_apply],
 end
 
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
@@ -1032,6 +1044,9 @@ by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
 
 lemma mem_sup' : x ∈ p ⊔ p' ↔ ∃ (y : p) (z : p'), (y:M) + z = x :=
 mem_sup.trans $ by simp only [set_like.exists, coe_mk]
+
+lemma coe_sup : ↑(p ⊔ p') = (p + p' : set M) :=
+by { ext, rw [set_like.mem_coe, mem_sup, set.mem_add], simp, }
 
 end
 
@@ -2820,5 +2835,35 @@ instance : is_modular_lattice (submodule R M) :=
   rw [← add_sub_cancel c b, add_comm],
   apply z.sub_mem haz (xz hb),
 end⟩
+
+section third_iso_thm
+
+variables (S T : submodule R M) (h : S ≤ T)
+
+/-- The map from the third isomorphism theorem for modules: `(M / S) / (T / S) → M / T`. -/
+def quotient_quotient_equiv_quotient_aux :
+  quotient (T.map S.mkq) →ₗ[R] quotient T :=
+liftq _ (mapq S T linear_map.id h)
+  (by { rintro _ ⟨x, hx, rfl⟩, rw [linear_map.mem_ker, mkq_apply, mapq_apply],
+        exact (quotient.mk_eq_zero _).mpr hx })
+
+@[simp] lemma quotient_quotient_equiv_quotient_aux_mk (x : S.quotient) :
+  quotient_quotient_equiv_quotient_aux S T h (quotient.mk x) = mapq S T linear_map.id h x :=
+liftq_apply _ _ _
+
+@[simp] lemma quotient_quotient_equiv_quotient_aux_mk_mk (x : M) :
+  quotient_quotient_equiv_quotient_aux S T h (quotient.mk (quotient.mk x)) = quotient.mk x :=
+by rw [quotient_quotient_equiv_quotient_aux_mk, mapq_apply, linear_map.id_apply]
+
+/-- **Noether's third isomorphism theorem** for modules: `(M / S) / (T / S) ≃ M / T`. -/
+def quotient_quotient_equiv_quotient :
+  quotient (T.map S.mkq) ≃ₗ[R] quotient T :=
+{ to_fun := quotient_quotient_equiv_quotient_aux S T h,
+  inv_fun := mapq _ _ (mkq S) (le_comap_map _ _),
+  left_inv := λ x, quotient.induction_on' x $ λ x, quotient.induction_on' x $ λ x, by simp,
+  right_inv := λ x, quotient.induction_on' x $ λ x, by simp,
+  .. quotient_quotient_equiv_quotient_aux S T h }
+
+end third_iso_thm
 
 end submodule

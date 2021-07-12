@@ -100,7 +100,7 @@ theorem is_linear : is_linear_map R f := ⟨f.map_add', f.map_smul'⟩
 
 variables {f g}
 
-theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
+theorem coe_injective : @injective (M →ₗ[R] M₂) (M → M₂) coe_fn :=
 by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
@@ -279,6 +279,29 @@ instance compatible_smul.units {R S : Type*}
 end add_comm_group
 
 end linear_map
+
+namespace distrib_mul_action_hom
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂]
+
+/-- A `distrib_mul_action_hom` between two modules is a linear map. -/
+def to_linear_map (f : M →+[R] M₂) : M →ₗ[R] M₂ := { ..f }
+
+instance : has_coe (M →+[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
+
+@[simp] lemma to_linear_map_eq_coe (f : M →+[R] M₂) :
+  f.to_linear_map = ↑f :=
+rfl
+
+@[simp, norm_cast] lemma coe_to_linear_map (f : M →+[R] M₂) :
+  ((f : M →ₗ[R] M₂) : M → M₂) = f :=
+rfl
+
+lemma to_linear_map_injective {f g : M →+[R] M₂} (h : (f : M →ₗ[R] M₂) = (g : M →ₗ[R] M₂)) :
+  f = g :=
+by { ext m, exact linear_map.congr_fun h m, }
+
+end distrib_mul_action_hom
 
 namespace is_linear_map
 

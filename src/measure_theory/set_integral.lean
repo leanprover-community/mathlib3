@@ -63,52 +63,6 @@ section normed_group
 variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} {μ ν : measure α}
   {l l' : filter α} [borel_space E] [second_countable_topology E]
 
-/-- To prove something for an arbitrary integrable function in a second countable
-Borel normed group, it suffices to show that
-* the property holds for (multiples of) characteristic functions;
-* is closed under addition;
-* the set of functions in the `L¹` space for which the property holds is closed.
-* the property is closed under the almost-everywhere equal relation.
-
-It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
-can be added once we need them (for example in `h_add` it is only necessary to consider the sum of
-a simple function with a multiple of a characteristic function and that the intersection
-of their images is a subset of `{0}`).
--/
-@[elab_as_eliminator]
-lemma integrable.induction (P : (α → E) → Prop)
-  (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
-  (h_add : ∀ ⦃f g : α → E⦄, disjoint (support f) (support g) → integrable f μ → integrable g μ →
-    P f → P g → P (f + g))
-  (h_closed : is_closed {f : α →₁[μ] E | P f} )
-  (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → integrable f μ → P f → P g) :
-  ∀ ⦃f : α → E⦄ (hf : integrable f μ), P f :=
-begin
-  have : ∀ (f : simple_func α E), integrable f μ → P f,
-  { refine simple_func.induction _ _,
-    { intros c s hs h, dsimp only [simple_func.coe_const, simple_func.const_zero,
-        piecewise_eq_indicator, simple_func.coe_zero, simple_func.coe_piecewise] at h ⊢,
-      by_cases hc : c = 0,
-      { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, simp [const] },
-      apply h_ind c hs,
-      have : (nnnorm c : ℝ≥0∞) * μ s < ∞,
-      { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ℝ≥0∞)) (const α c) s,
-        dsimp only at this,
-        have h' := h.has_finite_integral,
-        simpa [has_finite_integral, this, lintegral_indicator, hs] using h' },
-      exact ennreal.lt_top_of_mul_lt_top_right this (by simp [hc]) },
-    { intros f g hfg hf hg int_fg,
-      rw [simple_func.coe_add, integrable_add hfg f.measurable g.measurable] at int_fg,
-      refine h_add hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
-  have : ∀ (f : α →₁ₛ[μ] E), P f,
-  { intro f,
-    exact h_ae (L1.simple_func.to_simple_func_eq_to_fun f) (L1.simple_func.integrable f)
-      (this (L1.simple_func.to_simple_func f) (L1.simple_func.integrable f)) },
-  have : ∀ (f : α →₁[μ] E), P f :=
-    λ f, L1.simple_func.dense_range.induction_on f h_closed this,
-  exact λ f hf, h_ae hf.coe_fn_to_L1 (L1.integrable_coe_fn _) (this (hf.to_L1 f)),
-end
-
 variables [complete_space E] [normed_space ℝ E]
 
 
@@ -503,9 +457,9 @@ the composition, as we are dealing with classes of functions, but it has already
 as `continuous_linear_map.comp_Lp`. We take advantage of this construction here.
 -/
 
-variables {μ : measure α} [normed_space ℝ E]
-variables [normed_group F] [normed_space ℝ F]
-variables {p : ennreal}
+variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
+  [normed_group F] [normed_space 𝕜 F]
+  {p : ennreal}
 
 local attribute [instance] fact_one_le_one_ennreal
 
@@ -514,28 +468,27 @@ namespace continuous_linear_map
 variables [measurable_space F] [borel_space F]
 
 variables [second_countable_topology F] [complete_space F]
-[borel_space E] [second_countable_topology E]
+  [borel_space E] [second_countable_topology E] [normed_space ℝ F]
 
-lemma integral_comp_Lp (L : E →L[ℝ] F) (φ : Lp E p μ) :
+lemma integral_comp_Lp (L : E →L[𝕜] F) (φ : Lp E p μ) :
   ∫ a, (L.comp_Lp φ) a ∂μ = ∫ a, L (φ a) ∂μ :=
 integral_congr_ae $ coe_fn_comp_Lp _ _
 
-lemma continuous_integral_comp_L1 (L : E →L[ℝ] F) :
+lemma continuous_integral_comp_L1 [measurable_space 𝕜] [opens_measurable_space 𝕜] (L : E →L[𝕜] F) :
   continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=
-begin
-  rw ← funext L.integral_comp_Lp,
-  exact continuous_integral.comp (L.comp_LpL 1 μ).continuous
-end
+by { rw ← funext L.integral_comp_Lp, exact continuous_integral.comp (L.comp_LpL 1 μ).continuous, }
 
-variables [complete_space E]
+variables [complete_space E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [normed_space ℝ E] [is_scalar_tower ℝ 𝕜 E] [is_scalar_tower ℝ 𝕜 F]
 
-lemma integral_comp_comm (L : E →L[ℝ] F) {φ : α → E} (φ_int : integrable φ μ) :
+lemma integral_comp_comm (L : E →L[𝕜] F) {φ : α → E} (φ_int : integrable φ μ) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 begin
   apply integrable.induction (λ φ, ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ)),
   { intros e s s_meas s_finite,
-    rw [integral_indicator_const e s_meas, continuous_linear_map.map_smul,
-        ← integral_indicator_const (L e) s_meas],
+    rw [integral_indicator_const e s_meas, ← @smul_one_smul E ℝ 𝕜 _ _ _ _ _ (μ s).to_real e,
+      continuous_linear_map.map_smul, @smul_one_smul F ℝ 𝕜 _ _ _ _ _ (μ s).to_real (L e),
+      ← integral_indicator_const (L e) s_meas],
     congr' 1 with a,
     rw set.indicator_comp_of_zero L.map_zero },
   { intros f g H f_int g_int hf hg,
@@ -554,7 +507,7 @@ lemma integral_apply {H : Type*} [normed_group H] [normed_space ℝ H]
   (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
 ((continuous_linear_map.apply ℝ E v).integral_comp_comm φ_int).symm
 
-lemma integral_comp_comm' (L : E →L[ℝ] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
+lemma integral_comp_comm' (L : E →L[𝕜] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 begin
   by_cases h : integrable φ μ,
@@ -564,34 +517,42 @@ begin
   simp [integral_undef, h, this]
 end
 
-lemma integral_comp_L1_comm (L : E →L[ℝ] F) (φ : α →₁[μ] E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+lemma integral_comp_L1_comm (L : E →L[𝕜] F) (φ : α →₁[μ] E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 L.integral_comp_comm (L1.integrable_coe_fn φ)
 
 end continuous_linear_map
 
 namespace linear_isometry
 
-variables [measurable_space F] [borel_space F] [complete_space E]
-[second_countable_topology F] [complete_space F]
-[borel_space E] [second_countable_topology E]
+variables [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
+  [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
+  [borel_space E] [second_countable_topology E] [complete_space E] [normed_space ℝ E]
+  [is_scalar_tower ℝ 𝕜 E]
+  [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
-lemma integral_comp_comm (L : E →ₗᵢ[ℝ] F) (φ : α → E) :
-  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+lemma integral_comp_comm (L : E →ₗᵢ[𝕜] F) (φ : α → E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
 
 end linear_isometry
 
-variables [borel_space E] [second_countable_topology E] [complete_space E]
+variables [borel_space E] [second_countable_topology E] [complete_space E] [normed_space ℝ E]
   [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
+  [normed_space ℝ F]
+  [measurable_space 𝕜] [borel_space 𝕜]
 
-@[norm_cast] lemma integral_of_real {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
-  {f : α → ℝ} :
-  ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm (@is_R_or_C.of_real_li 𝕜 _) f
+@[norm_cast] lemma integral_of_real {f : α → ℝ} : ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
+(@is_R_or_C.of_real_li 𝕜 _).integral_comp_comm f
 
-lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜] {f : α → 𝕜} :
-  ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm (@is_R_or_C.conj_li 𝕜 _) f
+lemma integral_re {f : α → 𝕜} (hf : integrable f μ) :
+  ∫ a, is_R_or_C.re (f a) ∂μ = is_R_or_C.re ∫ a, f a ∂μ :=
+(@is_R_or_C.re_clm 𝕜 _).integral_comp_comm hf
+
+lemma integral_im {f : α → 𝕜} (hf : integrable f μ) :
+  ∫ a, is_R_or_C.im (f a) ∂μ = is_R_or_C.im ∫ a, f a ∂μ :=
+(@is_R_or_C.im_clm 𝕜 _).integral_comp_comm hf
+
+lemma integral_conj {f : α → 𝕜} : ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
+(@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

@@ -97,7 +97,8 @@ begin
     refine ⟨range s, finite_range s, hs⟩ },
 end
 
-/-- Nakayama's Lemma. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2, Stacks 00DV -/
+/-- **Nakayama's Lemma**. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2,
+[Stacks 00DV](https://stacks.math.columbia.edu/tag/00VL) -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
   {M : Type*} [add_comm_group M] [module R M]
   (I : ideal R) (N : submodule R M) (hn : N.fg) (hin : N ≤ I • N) :
@@ -389,17 +390,10 @@ instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
   [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=
 begin
   haveI := classical.dec_eq ι,
-  suffices : ∀ s : finset ι, is_noetherian R (Π i : (↑s : set ι), M i),
-  { letI := this finset.univ,
-    refine @is_noetherian_of_linear_equiv _ _ _ _ _ _ _ _
-      _ (this finset.univ),
-    exact {
-      to_fun := λ f i, f ⟨i, finset.mem_univ _⟩,
-      map_add' := λ f g, by { ext, refl },
-      map_smul' := λ r f, by { ext, refl },
-      inv_fun := λ f i, f i.1,
-      left_inv := λ f, by { ext ⟨⟩, refl },
-      right_inv := λ f, by { ext i, refl } }, },
+  suffices on_finset : ∀ s : finset ι, is_noetherian R (Π i : s, M i),
+  { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,
+    letI : is_noetherian R (Π i : finset.univ, M (coe_e i)) := on_finset finset.univ,
+    exact is_noetherian_of_linear_equiv (linear_equiv.Pi_congr_left R M coe_e), },
   intro s,
   induction s using finset.induction with a s has ih,
   { split, intro s, convert submodule.fg_bot, apply eq_bot_iff.2,
@@ -431,9 +425,9 @@ begin
       rw [dif_neg this, dif_pos his] } },
   { intro f, ext ⟨i, hi⟩,
     rcases finset.mem_insert.1 hi with rfl | h,
-    { simp only [or.by_cases, dif_pos], refl },
+    { simp only [or.by_cases, dif_pos], },
     { have : ¬i = a, { rintro rfl, exact has h },
-      simp only [or.by_cases, dif_neg this, dif_pos h], refl } }
+      simp only [or.by_cases, dif_neg this, dif_pos h], } }
 end
 
 end

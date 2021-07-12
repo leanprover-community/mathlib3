@@ -271,14 +271,14 @@ instance : star_ring ℍ[R, c₁, c₂] :=
 open opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_alg_equiv : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵒᵖ) :=
+def conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵒᵖ) :=
 { to_fun := op ∘ conj,
   inv_fun := conj ∘ unop,
   map_mul' := λ x y, by simp,
   commutes' := λ r, by simp,
   .. conj.to_add_equiv.trans op_add_equiv }
 
-@[simp] lemma coe_conj_alg_equiv : ⇑(conj_alg_equiv : ℍ[R, c₁, c₂] ≃ₐ[R] _) = op ∘ conj := rfl
+@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R, c₁, c₂] ≃ₐ[R] _) = op ∘ conj := rfl
 
 end quaternion_algebra
 
@@ -451,9 +451,9 @@ lemma mul_conj_eq_coe : a * conj a = (a * conj a).re := a.mul_conj_eq_coe
 open opposite
 
 /-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
-def conj_alg_equiv : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_alg_equiv
+def conj_ae : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_ae
 
-@[simp] lemma coe_conj_alg_equiv : ⇑(conj_alg_equiv : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
+@[simp] lemma coe_conj_ae : ⇑(conj_ae : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
 
 /-- Square of the norm. -/
 def norm_sq : monoid_with_zero_hom ℍ[R] R :=

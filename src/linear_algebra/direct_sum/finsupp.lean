@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import linear_algebra.finsupp
 import linear_algebra.direct_sum.tensor_product
+import data.finsupp.to_dfinsupp
 
 /-!
 # Results on direct sums and finitely supported functions.
@@ -18,7 +19,7 @@ the direct sum of copies of `M` indexed by `ι`.
 universes u v w
 
 noncomputable theory
-open_locale classical direct_sum
+open_locale direct_sum
 
 open set linear_map submodule
 variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M]
@@ -28,30 +29,28 @@ section finsupp_lequiv_direct_sum
 
 variables (R M) (ι : Type*) [decidable_eq ι]
 
-/-- The finitely supported functions ι →₀ M are in linear equivalence with the direct sum of
+/-- The finitely supported functions `ι →₀ M` are in linear equivalence with the direct sum of
 copies of M indexed by ι. -/
 def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] ⨁ i : ι, M :=
-linear_equiv.of_linear
-  (finsupp.lsum ℕ (show ι → (M →ₗ[R] ⨁ i, M), from direct_sum.lof R ι _))
-  (direct_sum.to_module _ _ _ finsupp.lsingle)
-  (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
-    linear_map.ext $ λ x, by simp [finsupp.sum_single_index])
-  (linear_map.ext $ λ f, finsupp.ext $ λ i, by simp [finsupp.lsum_apply])
+by haveI : Π m : M, decidable (m ≠ 0) := classical.dec_pred _; exact finsupp_lequiv_dfinsupp R
 
 @[simp] theorem finsupp_lequiv_direct_sum_single (i : ι) (m : M) :
   finsupp_lequiv_direct_sum R M ι (finsupp.single i m) = direct_sum.lof R ι _ i m :=
-finsupp.sum_single_index $ linear_map.map_zero _
+finsupp.to_dfinsupp_single i m
 
 @[simp] theorem finsupp_lequiv_direct_sum_symm_lof (i : ι) (m : M) :
   (finsupp_lequiv_direct_sum R M ι).symm (direct_sum.lof R ι _ i m) = finsupp.single i m :=
-direct_sum.to_module_lof _ _ _
+begin
+  letI : Π m : M, decidable (m ≠ 0) := classical.dec_pred _,
+  exact (dfinsupp.to_finsupp_single i m),
+end
 
 end finsupp_lequiv_direct_sum
 
 section tensor_product
 
 open tensor_product
-open_locale tensor_product
+open_locale tensor_product classical
 
 /-- The tensor product of ι →₀ M and κ →₀ N is linearly equivalent to (ι × κ) →₀ (M ⊗ N). -/
 def finsupp_tensor_finsupp (R M N ι κ : Sort*) [comm_ring R]

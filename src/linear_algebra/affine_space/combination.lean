@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import algebra.invertible
-import data.indicator_function
+import algebra.indicator_function
 import linear_algebra.affine_space.affine_map
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp
+import tactic.fin_cases
 
 /-!
 # Affine combinations of points
@@ -42,6 +43,9 @@ noncomputable theory
 open_locale big_operators classical affine
 
 namespace finset
+
+lemma univ_fin2 : (univ : finset (fin 2)) = {0, 1} :=
+by { ext x, fin_cases x; simp }
 
 variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
 variables [S : affine_space V P]
@@ -408,8 +412,7 @@ as adding a vector to the first point. -/
 lemma centroid_insert_singleton_fin [invertible (2 : k)] (p : fin 2 → P) :
   univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
 begin
-  have hu : (finset.univ : finset (fin 2)) = {0, 1}, by dec_trivial,
-  rw hu,
+  rw univ_fin2,
   convert centroid_insert_singleton k p 0 1
 end
 
@@ -534,7 +537,7 @@ begin
   by_cases hn : nonempty ι,
   { cases hn with i0,
     rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
-        finsupp.mem_span_iff_total,
+        finsupp.mem_span_image_iff_total,
         finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero s w p h (p i0),
         finset.weighted_vsub_of_point_apply],
     let w' := set.indicator ↑s w,
@@ -584,7 +587,7 @@ begin
   { by_cases hn : nonempty ι,
     { cases hn with i0,
       rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
-          finsupp.mem_span_iff_total],
+          finsupp.mem_span_image_iff_total],
       rintros ⟨l, hl, hv⟩,
       use insert i0 l.support,
       set w := (l : ι → k) -

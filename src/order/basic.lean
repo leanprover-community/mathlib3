@@ -56,6 +56,8 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+attribute [simp] le_refl
+
 @[simp] lemma lt_self_iff_false [preorder α] (a : α) : a < a ↔ false :=
 by simp [lt_irrefl a]
 
@@ -177,6 +179,7 @@ instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
 instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
+instance (α : Type*) [has_zero α] : has_zero (order_dual α) := ⟨(0 : α)⟩
 
 -- `dual_le` and `dual_lt` should not be simp lemmas:
 -- they cause a loop since `α` and `order_dual α` are definitionally equal
@@ -247,7 +250,7 @@ variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α
 lemma le_iff_le (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x ≤ f y ↔ x ≤ y :=
 ⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H hy hx h') h,
- λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H hx hy h')) (λ h', h' ▸ le_refl _)⟩
+ λ h, h.lt_or_eq_dec.elim (λ h', le_of_lt (H hx hy h')) (λ h', h' ▸ le_refl _)⟩
 
 lemma lt_iff_lt (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x < f y ↔ x < y :=
@@ -461,8 +464,9 @@ theorem strict_mono.order_dual [has_lt α] [has_lt β] {f : α → β} (hf : str
   @strict_mono (order_dual α) (order_dual β) _ _ f :=
 λ x y hxy, hf hxy
 
-/-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`. -/
-def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
+/-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`.
+See note [reducible non-instances]. -/
+@[reducible] def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
 { le := λx y, f x ≤ f y,
   le_refl := λ a, le_refl _,
   le_trans := λ a b c, le_trans,
@@ -470,14 +474,14 @@ def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
   lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
 /-- Transfer a `partial_order` on `β` to a `partial_order` on `α` using an injective
-function `f : α → β`. -/
-def partial_order.lift {α β} [partial_order β] (f : α → β) (inj : injective f) :
+function `f : α → β`. See note [reducible non-instances]. -/
+@[reducible] def partial_order.lift {α β} [partial_order β] (f : α → β) (inj : injective f) :
   partial_order α :=
 { le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f }
 
 /-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using an injective
-function `f : α → β`. -/
-def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
+function `f : α → β`. See note [reducible non-instances]. -/
+@[reducible] def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
 { le_total := λx y, le_total (f x) (f y),
   decidable_le := λ x y, (infer_instance : decidable (f x ≤ f y)),

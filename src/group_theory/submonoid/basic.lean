@@ -79,6 +79,13 @@ namespace submonoid
 instance : set_like (submonoid M) M :=
 ⟨submonoid.carrier, λ p q h, by cases p; cases q; congr'⟩
 
+/-- See Note [custom simps projection] -/
+@[to_additive " See Note [custom simps projection]"]
+def simps.coe (S : submonoid M) : set M := S
+
+initialize_simps_projections submonoid (carrier → coe)
+initialize_simps_projections add_submonoid (carrier → coe)
+
 @[simp, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
@@ -91,7 +98,7 @@ attribute [ext] add_submonoid.ext
 
 /-- Copy a submonoid replacing `carrier` with a set that is equal to it. -/
 @[to_additive "Copy an additive submonoid replacing `carrier` with a set that is equal to it."]
-def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
+protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 { carrier := s,
   one_mem' := hs.symm ▸ S.one_mem',
   mul_mem' := hs.symm ▸ S.mul_mem' }

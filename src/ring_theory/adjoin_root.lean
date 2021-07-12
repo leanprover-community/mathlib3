@@ -101,7 +101,7 @@ polynomial.induction_on p (λ x, by { rw aeval_C, refl })
 
 theorem adjoin_root_eq_top : algebra.adjoin R ({root f} : set (adjoin_root f)) = ⊤ :=
 algebra.eq_top_iff.2 $ λ x, induction_on f x $ λ p,
-(algebra.adjoin_singleton_eq_range R (root f)).symm ▸ ⟨p, set.mem_univ _, aeval_eq p⟩
+(algebra.adjoin_singleton_eq_range R (root f)).symm ▸ ⟨p, aeval_eq p⟩
 
 @[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=
 by rw [← algebra_map_eq, ← aeval_def, aeval_eq, mk_self]
@@ -208,7 +208,9 @@ section power_basis
 
 variables [field K] {f : polynomial K}
 
-lemma power_basis_is_basis (hf : f ≠ 0) : is_basis K (λ (i : fin f.nat_degree), (root f ^ i.val)) :=
+/-- The elements `1, root f, ..., root f ^ (d - 1)` form a basis for `adjoin_root f`,
+where `f` is an irreducible polynomial over a field of degree `d`. -/
+def power_basis_aux (hf : f ≠ 0) : basis (fin f.nat_degree) K (adjoin_root f) :=
 begin
   set f' := f * C (f.leading_coeff⁻¹) with f'_def,
   have deg_f' : f'.nat_degree = f.nat_degree,
@@ -228,14 +230,14 @@ begin
     rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
         with_bot.coe_le_coe, deg_f'],
     apply nat_degree_le_of_dvd,
-    { rw [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem],
-      change mk f q = 0,
-      rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero] },
+    { have : mk f q = 0, by rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero],
+      rwa [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem] },
     { exact q_monic.ne_zero } },
-  refine ⟨_, eq_top_iff.mpr _⟩,
+  apply @basis.mk _ _ _ (λ (i : fin f.nat_degree), (root f ^ i.val)),
   { rw [←deg_f', minpoly_eq],
     exact hx.linear_independent_pow },
-  { rintros y -,
+  { rw _root_.eq_top_iff,
+    rintros y -,
     rw [←deg_f', minpoly_eq],
     apply hx.mem_span_pow,
     obtain ⟨g⟩ := y,
@@ -246,11 +248,12 @@ end
 
 /-- The power basis `1, root f, ..., root f ^ (d - 1)` for `adjoin_root f`,
 where `f` is an irreducible polynomial over a field of degree `d`. -/
-noncomputable def power_basis (hf : f ≠ 0) :
+@[simps] def power_basis (hf : f ≠ 0) :
   power_basis K (adjoin_root f) :=
 { gen := root f,
   dim := f.nat_degree,
-  is_basis := power_basis_is_basis hf }
+  basis := power_basis_aux hf,
+  basis_eq_pow := basis.mk_apply _ _ }
 
 end power_basis
 

@@ -89,13 +89,13 @@ variables {α : Type v} (U : ι → α)
 section
 variables [semilattice_inf α]
 
-/-- Auxilliary definition for `diagram`. -/
+/-- Auxiliary definition for `diagram`. -/
 @[simp]
 def diagram_obj : pairwise ι → α
 | (single i) := U i
 | (pair i j) := U i ⊓ U j
 
-/-- Auxilliary definition for `diagram`. -/
+/-- Auxiliary definition for `diagram`. -/
 @[simp]
 def diagram_map : Π {o₁ o₂ : pairwise ι} (f : o₁ ⟶ o₂), diagram_obj U o₁ ⟶ diagram_obj U o₂
 | _ _ (id_single i) := 𝟙 _
@@ -120,7 +120,7 @@ section
 -- but the appropriate structure has not been defined.
 variables [complete_lattice α]
 
-/-- Auxilliary definition for `cocone`. -/
+/-- Auxiliary definition for `cocone`. -/
 def cocone_ι_app : Π (o : pairwise ι), diagram_obj U o ⟶ supr U
 | (single i) := hom_of_le (le_supr U i)
 | (pair i j) := hom_of_le inf_le_left ≫ hom_of_le (le_supr U i)
@@ -143,7 +143,7 @@ def cocone_is_colimit : is_colimit (cocone U) :=
   begin
     apply complete_lattice.Sup_le,
     rintros _ ⟨j, rfl⟩,
-    exact le_of_hom (s.ι.app (single j))
+    exact (s.ι.app (single j)).le
   end }
 
 end

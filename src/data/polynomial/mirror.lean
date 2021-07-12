@@ -10,9 +10,9 @@ import algebra.big_operators.nat_antidiagonal
 /-!
 # "Mirror" of a univariate polynomial
 
-In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference 
-between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is 
-divisible by `X`. We also define `polynomial.norm2`, which is the sum of the squares of the 
+In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference
+between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is
+divisible by `X`. We also define `polynomial.norm2`, which is the sum of the squares of the
 coefficients of a polynomial. It is also a coefficient of `p * p.mirror`.
 
 ## Main definitions
@@ -37,7 +37,7 @@ section mirror
 /-- mirror of a polynomial: reverses the coefficients while preserving `polynomial.nat_degree` -/
 noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
 
-lemma mirror_zero : (0 : polynomial R).mirror = 0 := rfl
+@[simp] lemma mirror_zero : (0 : polynomial R).mirror = 0 := by simp [mirror]
 
 lemma mirror_monomial (n : ℕ) (a : R) : (monomial n a).mirror = (monomial n a) :=
 begin

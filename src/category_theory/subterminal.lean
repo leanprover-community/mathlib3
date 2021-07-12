@@ -21,9 +21,7 @@ We also construct the subcategory of subterminal objects.
 ## TODO
 
 * Define exponential ideals, and show this subcategory is an exponential ideal.
-* Define subobject lattices in general, show that `subterminals C` is equivalent to the subobject
-category of a terminal object.
-* Use both the above to show that in a locally cartesian closed category, every subobject lattice
+* Use the above to show that in a locally cartesian closed category, every subobject lattice
   is cartesian closed (equivalently, a Heyting algebra).
 
 -/

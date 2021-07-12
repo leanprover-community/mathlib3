@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.of_associative
-import linear_algebra.matrix
+import linear_algebra.matrix.reindex
+import linear_algebra.matrix.to_linear_equiv
 
 /-!
 # Lie algebras of matrices
@@ -72,7 +73,7 @@ def matrix.reindex_lie_equiv {m : Type w₁} [decidable_eq m] [fintype m]
 { to_fun := matrix.reindex e e,
   map_lie' := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_apply,
     ←matrix.minor_mul_equiv _ _ _ _, matrix.mul_eq_mul, matrix.minor_sub, pi.sub_apply],
-  ..(matrix.reindex_linear_equiv e e) }
+  ..(matrix.reindex_linear_equiv R R e e) }
 
 @[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) (M : matrix n n R) :

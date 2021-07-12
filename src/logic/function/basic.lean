@@ -168,13 +168,14 @@ lemma bijective.of_comp_iff' {f : α → β} (hf : bijective f) (g : γ → α) 
   function.bijective (f ∘ g) ↔ function.bijective g :=
 and_congr (injective.of_comp_iff hf.injective _) (surjective.of_comp_iff' hf _)
 
-/-- Cantor's diagonal argument implies that there are no surjective functions from `α`
+/-- **Cantor's diagonal argument** implies that there are no surjective functions from `α`
 to `set α`. -/
 theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
 
-/-- Cantor's diagonal argument implies that there are no injective functions from `set α` to `α`. -/
+/-- **Cantor's diagonal argument** implies that there are no injective functions from `set α`
+to `α`. -/
 theorem cantor_injective {α : Type*} (f : (set α) → α) :
   ¬ function.injective f | i :=
 cantor_surjective (λ a b, ∀ U, a = f U → U b) $
@@ -571,6 +572,10 @@ protected lemma ite_not (P : Prop) [decidable P] (x : α) :
   f (ite P x (f x)) = ite (¬ P) x (f x) :=
 by rw [apply_ite f, h, ite_not]
 
+/-- An involution commutes across an equality. Compare to `function.injective.eq_iff`. -/
+protected lemma eq_iff {x y : α} : f x = y ↔ x = f y :=
+h.injective.eq_iff' (h y)
+
 end involutive
 
 /-- The property of a binary function `f : α → β → γ` being injective.
@@ -648,10 +653,8 @@ lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y �
 
 /-- A set of functions "separates points"
 if for each pair of distinct points there is a function taking different values on them. -/
-def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
+def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ ⦃x y : α⦄, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
 
-/-- A set of functions "separates points strongly"
-if for each pair of distinct points there is a function with specified values on them.  -/
-def separates_points_strongly {α β : Type*} (A : set (α → β)) : Prop :=
-∀ (x y : α), x ≠ y → ∀ (a b : β), ∃ f ∈ A, (f x : β) = a ∧ f y = b
+lemma is_symm_op.flip_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
+funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm

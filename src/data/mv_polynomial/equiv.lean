@@ -259,6 +259,11 @@ def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
   end,
   ..sum_ring_equiv R S₁ S₂ }
 
+section
+
+-- this speeds up typeclass search in the lemma below
+local attribute [instance, priority 2000] is_scalar_tower.right
+
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
@@ -268,6 +273,8 @@ def option_equiv_left : mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_p
   .trans $
 (sum_alg_equiv R _ _).trans $
 (punit_alg_equiv (mv_polynomial S₁ R)).restrict_scalars R
+
+end
 
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and

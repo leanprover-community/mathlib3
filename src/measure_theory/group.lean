@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.integration
+import measure_theory.regular
 
 /-!
 # Measures on Groups
@@ -93,8 +94,8 @@ end
 variables {μ : measure G}
 
 @[to_additive]
-lemma regular.inv [t2_space G] (hμ : μ.regular) : μ.inv.regular :=
-hμ.map (homeomorph.inv G)
+instance regular.inv [t2_space G] [regular μ] : regular μ.inv :=
+regular.map (homeomorph.inv G)
 
 end measure
 
@@ -103,7 +104,14 @@ variables [measurable_space G] [group G] [topological_space G] [topological_grou
   {μ : measure G}
 
 @[simp, to_additive] lemma regular_inv_iff [t2_space G] : μ.inv.regular ↔ μ.regular :=
-by { refine ⟨λ h, _, measure.regular.inv⟩, rw ←μ.inv_inv, exact measure.regular.inv h }
+begin
+  split,
+  { introI h,
+    rw ←μ.inv_inv,
+    exact measure.regular.inv },
+  { introI h,
+    exact measure.regular.inv }
+end
 
 @[to_additive]
 lemma is_mul_left_invariant.inv (h : is_mul_left_invariant μ) :
@@ -148,10 +156,10 @@ variables [group G] [topological_group G]
 
 /-! Properties of regular left invariant measures -/
 @[to_additive measure_theory.measure.is_add_left_invariant.null_iff_empty]
-lemma is_mul_left_invariant.null_iff_empty (hμ : μ.regular) (h2μ : is_mul_left_invariant μ)
+lemma is_mul_left_invariant.null_iff_empty [regular μ] (h2μ : is_mul_left_invariant μ)
   (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ :=
 begin
-  obtain ⟨K, hK, h2K⟩ := hμ.exists_compact_not_null.mpr h3μ,
+  obtain ⟨K, hK, h2K⟩ := regular.exists_compact_not_null.mpr h3μ,
   refine ⟨λ h, _, λ h, by simp [h]⟩,
   apply classical.by_contradiction, -- `by_contradiction` is very slow
   refine mt (λ h2s, _) h2K,
@@ -170,24 +178,24 @@ begin
 end
 
 @[to_additive measure_theory.measure.is_add_left_invariant.null_iff]
-lemma is_mul_left_invariant.null_iff (hμ : regular μ) (h2μ : is_mul_left_invariant μ)
+lemma is_mul_left_invariant.null_iff [regular μ] (h2μ : is_mul_left_invariant μ)
   {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
 begin
   by_cases h3μ : μ = 0, { simp [h3μ] },
   simp only [h3μ, or_false],
-  exact h2μ.null_iff_empty hμ h3μ hs,
+  exact h2μ.null_iff_empty h3μ hs,
 end
 
 @[to_additive measure_theory.measure.is_add_left_invariant.measure_ne_zero_iff_nonempty]
-lemma is_mul_left_invariant.measure_ne_zero_iff_nonempty (hμ : regular μ)
+lemma is_mul_left_invariant.measure_ne_zero_iff_nonempty [regular μ]
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
   μ s ≠ 0 ↔ s.nonempty :=
-by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty hμ h3μ hs]
+by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty h3μ hs]
 
 /-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
   `f` is 0 iff `f` is 0. -/
 -- @[to_additive] (fails for now)
-lemma lintegral_eq_zero_of_is_mul_left_invariant (hμ : regular μ)
+lemma lintegral_eq_zero_of_is_mul_left_invariant [regular μ]
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ℝ≥0∞} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=
 begin
@@ -202,7 +210,7 @@ begin
   have : 0 < r * μ (f ⁻¹' Ioi r),
   { rw ennreal.mul_pos,
     refine ⟨h1r, _⟩,
-    rw [pos_iff_ne_zero, h2μ.measure_ne_zero_iff_nonempty hμ h3μ h3r],
+    rw [pos_iff_ne_zero, h2μ.measure_ne_zero_iff_nonempty h3μ h3r],
     exact ⟨x, h2r⟩ },
   refine this.trans_le _,
   rw [← set_lintegral_const, ← lintegral_indicator _ h3r.measurable_set],

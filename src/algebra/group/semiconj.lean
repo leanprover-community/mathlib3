@@ -57,9 +57,9 @@ by unfold semiconj_by; assoc_rw [hb.eq, ha.eq, mul_assoc]
 
 end semigroup
 
-section monoid
+section mul_one_class
 
-variables {M : Type u} [monoid M]
+variables {M : Type u} [mul_one_class M]
 
 /-- Any element semiconjugates `1` to `1`. -/
 @[simp, to_additive]
@@ -68,6 +68,12 @@ lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_
 /-- One semiconjugates any element to itself. -/
 @[simp, to_additive]
 lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x
+
+end mul_one_class
+
+section monoid
+
+variables {M : Type u} [monoid M]
 
 /-- If `a` semiconjugates a unit `x` to a unit `y`, then it semiconjugates `x⁻¹` to `y⁻¹`. -/
 @[to_additive] lemma units_inv_right {a : M} {x y : units M} (h : semiconj_by a x y) :

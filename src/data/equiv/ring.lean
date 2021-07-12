@@ -158,9 +158,8 @@ symm_bijective.injective $ ext $ λ x, rfl
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
 
-@[simp] lemma trans_apply {A B C : Type*}
-  [semiring A] [semiring B] [semiring C] (e : A ≃+* B) (f : B ≃+* C) (a : A) :
-  e.trans f a = f (e a) := rfl
+@[simp] lemma trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : R) :
+  e₁.trans e₂ a = e₂ (e₁ a) := rfl
 
 protected lemma bijective (e : R ≃+* S) : function.bijective e := e.to_equiv.bijective
 protected lemma injective (e : R ≃+* S) : function.injective e := e.to_equiv.injective
@@ -193,23 +192,34 @@ lemma to_opposite_symm_apply (r : Rᵒᵖ) : (to_opposite R).symm r = unop r := 
 
 end comm_semiring
 
-section semiring
+section non_unital_semiring
 
-variables [semiring R] [semiring S] (f : R ≃+* S) (x y : R)
-
-/-- A ring isomorphism sends one to one. -/
-@[simp] lemma map_one : f 1 = 1 := (f : R ≃* S).map_one
+variables [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
+  (f : R ≃+* S) (x y : R)
 
 /-- A ring isomorphism sends zero to zero. -/
 @[simp] lemma map_zero : f 0 = 0 := (f : R ≃+ S).map_zero
 
 variable {x}
 
-@[simp] lemma map_eq_one_iff : f x = 1 ↔ x = 1 := (f : R ≃* S).map_eq_one_iff
 @[simp] lemma map_eq_zero_iff : f x = 0 ↔ x = 0 := (f : R ≃+ S).map_eq_zero_iff
 
-lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := (f : R ≃* S).map_ne_one_iff
 lemma map_ne_zero_iff : f x ≠ 0 ↔ x ≠ 0 := (f : R ≃+ S).map_ne_zero_iff
+
+end non_unital_semiring
+
+section semiring
+
+variables [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (x y : R)
+
+/-- A ring isomorphism sends one to one. -/
+@[simp] lemma map_one : f 1 = 1 := (f : R ≃* S).map_one
+
+variable {x}
+
+@[simp] lemma map_eq_one_iff : f x = 1 ↔ x = 1 := (f : R ≃* S).map_eq_one_iff
+
+lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := (f : R ≃* S).map_ne_one_iff
 
 /-- Produce a ring isomorphism from a bijective ring homomorphism. -/
 noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R ≃+* S :=
@@ -231,7 +241,7 @@ end
 
 section semiring_hom
 
-variables [semiring R] [semiring S] [semiring S']
+variables [non_assoc_semiring R] [non_assoc_semiring S] [non_assoc_semiring S']
 
 /-- Reinterpret a ring equivalence as a ring homomorphism. -/
 def to_ring_hom (e : R ≃+* S) : R →+* S :=
@@ -246,7 +256,8 @@ lemma to_ring_hom_eq_coe (f : R ≃+* S) : f.to_ring_hom = ↑f := rfl
 
 @[simp, norm_cast] lemma coe_to_ring_hom (f : R ≃+* S) : ⇑(f : R →+* S) = f := rfl
 
-lemma coe_ring_hom_inj_iff {R S : Type*} [semiring R] [semiring S] (f g : R ≃+* S) :
+lemma coe_ring_hom_inj_iff {R S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+  (f g : R ≃+* S) :
   f = g ↔ (f : R →+* S) = g :=
 ⟨congr_arg _, λ h, ext $ ring_hom.ext_iff.mp h⟩
 

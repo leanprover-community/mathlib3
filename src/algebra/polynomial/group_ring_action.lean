@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.polynomial.monic
+import data.polynomial.algebra_map
 import algebra.group_ring_action
 import algebra.group_action_hom
+
 
 /-!
 # Group action on rings applied to polynomials
@@ -95,11 +97,18 @@ theorem prod_X_sub_smul.monic (x : R) : (prod_X_sub_smul G R x).monic :=
 polynomial.monic_prod_of_monic _ _ $ λ g _, polynomial.monic_X_sub_C _
 
 theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
+(monoid_hom.map_prod ((polynomial.aeval x).to_ring_hom.to_monoid_hom : polynomial R →* R) _ _).trans $
+  finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
+  by { change polynomial.eval x _ = _, rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X,
+    polynomial.eval_C, sub_self] }
+
+/-
+theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
 (finset.prod_hom _ (polynomial.eval x)).symm.trans $
   finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
   by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X,
     polynomial.eval_C, sub_self]
-
+-/
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
 (smul_prod _ _ _ _ _).trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _

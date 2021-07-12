@@ -10,9 +10,9 @@ import analysis.normed_space.multilinear
 
 This file defines a class stating that a map between normed vector spaces is (bi)linear and
 continuous.
-Instead of asking for continuity, the definition takes the equivalent condition that `∥ f x ∥` is
-bounded by a multiple of `∥ x ∥`. Hence the "bounded" in the name refers to `∥ f x ∥/∥ x ∥` rather
-than `∥ f x ∥` itself.
+Instead of asking for continuity, the definition takes the equivalent condition that `∥f x∥` is
+bounded by a multiple of `∥x∥`. Hence the "bounded" in the name refers to `∥f x∥/∥x∥` rather than
+`∥f x∥` itself.
 
 ## Main declarations
 
@@ -27,6 +27,15 @@ than `∥ f x ∥` itself.
   map. The proof that it is indeed the derivative is `is_bounded_bilinear_map.has_fderiv_at` in
   `analysis.calculus.fderiv`.
 * `linear_map.norm_apply_of_isometry`: A linear isometry preserves the norm.
+
+## Notes
+
+The main use of this file is `is_bounded_bilinear_map`. The file `analysis.normed_space.multilinear`
+already expands the theory of multilinear maps, but the `2`-variables case is sufficiently simpler
+to currently deserve its own treatment.
+
+`is_bounded_linear_map` should in most cases be replaced by a bundled `continuous_linear_map`. The
+latter is developed in `analysis.normed_space.operator_norm`.
 -/
 
 noncomputable theory

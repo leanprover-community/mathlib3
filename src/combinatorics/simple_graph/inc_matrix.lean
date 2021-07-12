@@ -3,11 +3,7 @@ Copyright (c) 2021 Gabriel Moise. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Moise
 -/
-
-import algebra.big_operators.basic
 import combinatorics.simple_graph.basic
-import data.fintype.basic
-import data.sym2
 import linear_algebra.matrix
 
 /-!
@@ -21,27 +17,27 @@ each undirected edge in the graph and then defining the oriented incidence matri
 
 ## Main definitions
 
-* `inc_matrix` : the incidence matrix `M` of a `simple_graph` with coefficients in a given ring R.
-* `orientation` : a structure that defines a choice of direction on the edges of a `simple_graph`.
-* `oriented_inc_matrix` : the oriented incidence matrix `N(o)` of a `simple_graph` with
+* `inc_matrix`: The incidence matrix `M` of a `simple_graph` with coefficients in a given ring `R`.
+* `orientation`: A structure that defines a choice of direction on the edges of a `simple_graph`.
+* `oriented_inc_matrix`: The oriented incidence matrix `N(o)` of a `simple_graph` with
 respect to a given `orientation`.
 
 ## Main results
 
-1. `adj_sum_of_mul_inc_one` : `∑ e : E, M i e * M j e = 1`, for any two adjacent vertices
+1. `adj_sum_of_mul_inc_one`: `∑ e : E, M i e * M j e = 1`, for any two adjacent vertices
 `i` and `j`.
-2. `inc_matrix_mul_non_adj` : `M i e * M j e = 0`, for any two distinct non-adjacent vertices
+2. `inc_matrix_mul_non_adj`: `M i e * M j e = 0`, for any two distinct non-adjacent vertices
 `i`, `j` and edge `e`.
-3. `inc_matrix_element_power_id` : every element from `M` is idempotent.
-4. `degree_equals_sum_of_incidence_row` : for any vertex `i`, the sum on the ith row of `M` is
+3. `inc_matrix_element_power_id`: Every element from `M` is idempotent.
+4. `degree_equals_sum_of_incidence_row`: For any vertex `i`, the sum on the ith row of `M` is
 equal to the degree of `i`.
-5. `oriented_inc_matrix_elem_squared` : `(N(o) i e) ^ 2 = M i e`, for any orientation `o`,
+5. `oriented_inc_matrix_elem_squared`: `(N(o) i e) ^ 2 = M i e`, for any orientation `o`,
 vertex `i` and edge `e`.
-6. `oriented_inc_matrix_mul_of_adj` : for any adjacent vertices `i`, `j` and edge `e`,
+6. `oriented_inc_matrix_mul_of_adj`: For any adjacent vertices `i`, `j` and edge `e`,
 `N(o) i e * N(o) j e = if e = ⟦(i, j)⟧ then -1 else 0`.
-7. `oriented_inc_matrix_mul_non_adj` : for any non-adjacent distinct vertices `i`, `j` and
+7. `oriented_inc_matrix_mul_non_adj`: For any non-adjacent distinct vertices `i`, `j` and
 edge `e`, `N(o) i e * N(o) j e = 0`.
-8. `vec_mul_oriented_inc_matrix` : `(xᵀ ⬝ N(o)) e = x o.head(e) - x o.tail(e).`
+8. `vec_mul_oriented_inc_matrix`: `(xᵀ ⬝ N(o)) e = x o.head(e) - x o.tail(e).`
 
 ## References
 
@@ -70,7 +66,7 @@ variables (G : simple_graph V)
 
 -- ### Helping lemmas for edges
 
-lemma edge_set_ne {u v : V} {e: G.edge_set} (h : ↑e = ⟦(u, v)⟧) : u ≠ v :=
+lemma edge_set_ne {u v : V} {e : G.edge_set} (h : ↑e = ⟦(u, v)⟧) : u ≠ v :=
 begin
   apply G.ne_of_adj,
   rw [←G.mem_edge_set, ←h],

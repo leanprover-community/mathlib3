@@ -375,8 +375,6 @@ lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_alge
 @[simp] lemma smul_im_i : (r • a).im_i = r • a.im_i := rfl
 @[simp] lemma smul_im_j : (r • a).im_j = r • a.im_j := rfl
 @[simp] lemma smul_im_k : (r • a).im_k = r • a.im_k := rfl
-@[simp]
-lemma smul_mk : r • (⟨re, im_i, im_j, im_k⟩ : ℍ[R]) = ⟨r • re, r • im_i, r • im_j, r • im_k⟩ := rfl
 
 lemma coe_commutes : ↑r * a = a * r := quaternion_algebra.coe_commutes r a
 

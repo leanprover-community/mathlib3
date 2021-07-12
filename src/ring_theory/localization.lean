@@ -1157,6 +1157,11 @@ lemma coe_submodule_le_coe_submodule (h : M ≤ non_zero_divisors R)
   coe_submodule S I ≤ coe_submodule S J ↔ I ≤ J :=
 submodule.map_le_map_iff_of_injective (is_localization.injective _ h) _ _
 
+lemma coe_submodule_strict_mono (h : M ≤ non_zero_divisors R)
+  {I J : ideal R} :
+  strict_mono (coe_submodule S : ideal R → submodule R S) :=
+strict_mono_of_le_iff_le (λ _ _, (coe_submodule_le_coe_submodule h).symm)
+
 variables (S) {Q M}
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
@@ -1384,6 +1389,11 @@ variables {R K}
 lemma coe_submodule_le_coe_submodule
   {I J : ideal R} : coe_submodule K I ≤ coe_submodule K J ↔ I ≤ J :=
 is_localization.coe_submodule_le_coe_submodule (le_refl _)
+
+lemma coe_submodule_strict_mono
+  {I J : ideal R} :
+  strict_mono (coe_submodule K : ideal R → submodule R K) :=
+strict_mono_of_le_iff_le (λ _ _, coe_submodule_le_coe_submodule.symm)
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R K x ≠ 0 :=

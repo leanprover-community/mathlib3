@@ -719,6 +719,7 @@ section
 
 variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r R : ℝ≥0}
 
+/-- A term of `formal_multilinear_series.change_origin_series`. -/
 def change_origin_series_term (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l) :
   E [×l]→L[𝕜] E [×k]→L[𝕜] F :=
 continuous_multilinear_map.curry_fin_finset 𝕜 E F hs
@@ -749,6 +750,7 @@ begin
   apply continuous_multilinear_map.le_op_nnnorm
 end
 
+/-- The power series for `f.change_origin k`. -/
 def change_origin_series (k : ℕ) : formal_multilinear_series 𝕜 E (E [×k]→L[𝕜] F) :=
 λ l, ∑ s : {s : finset (fin (k + l)) // finset.card s = l}, p.change_origin_series_term k l s s.2
 
@@ -773,6 +775,14 @@ Changing the origin of a formal multilinear series `p`, so that
 def change_origin (x : E) : formal_multilinear_series 𝕜 E F :=
 λ k, (p.change_origin_series k).sum x
 
+/-- An auxiliary equivalence useful in the proofs about
+`formal_multilinear_series.change_origin_series`: the set of triples `(k, l, s)`, where `s` is a
+`finset (fin (k + l))` of cardinality `l` is equivalent to the set of pairs `(n, s)`, where `s` is a
+`finset (fin n)`.
+
+The forward map sends `(k, l, s)` to `(k + l, s)` and the inverse map sends `(n, s)` to
+`(n - finset.card s, finset.card s, s)`. The actual definition is less readable because of problems
+with non-definitional equalities. -/
 @[simps] def change_origin_index_equiv :
   (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l}) ≃ Σ n : ℕ, finset (fin n) :=
 { to_fun := λ s, ⟨s.1 + s.2.1, s.2.2⟩,

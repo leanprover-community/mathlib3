@@ -362,14 +362,14 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 @[simp] lemma coeff_zero_X (i : σ) : coeff 0 (X i : mv_polynomial σ R) = 0 :=
 single_eq_of_ne (λ h, by cases single_eq_zero.1 h)
 
-instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
+lemma coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
   is_add_monoid_hom (coeff m : mv_polynomial σ R → R) :=
 { map_add := coeff_add m,
   map_zero := coeff_zero m }
 
 lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ R) (m : σ →₀ ℕ) :
   coeff m (∑ x in s, f x) = ∑ x in s, coeff m (f x) :=
-(s.sum_hom _).symm
+(s.sum_hom $ coeff.is_add_monoid_hom _).symm
 
 lemma monic_monomial_eq (m) : monomial m (1:R) = (m.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp [monomial_eq]
@@ -593,35 +593,34 @@ section
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
 finsupp.sum_add_index
-  (by simp [is_semiring_hom.map_zero f])
-  (by simp [add_mul, is_semiring_hom.map_add f])
+  (by simp [f.map_zero])
+  (by simp [add_mul, f.map_add])
 
 @[simp] lemma eval₂_monomial : (monomial s a).eval₂ f g = f a * s.prod (λn e, g n ^ e) :=
-finsupp.sum_single_index (by simp [is_semiring_hom.map_zero f])
+finsupp.sum_single_index (by simp [f.map_zero])
 
 @[simp] lemma eval₂_C (a) : (C a).eval₂ f g = f a :=
 by simp [eval₂_monomial, C, prod_zero_index]
 
 @[simp] lemma eval₂_one : (1 : mv_polynomial σ R).eval₂ f g = 1 :=
-(eval₂_C _ _ _).trans (is_semiring_hom.map_one f)
+(eval₂_C _ _ _).trans f.map_one
 
 @[simp] lemma eval₂_X (n) : (X n).eval₂ f g = g n :=
-by simp [eval₂_monomial,
-  is_semiring_hom.map_one f, X, prod_single_index, pow_one]
+by simp [eval₂_monomial, f.map_one, X, prod_single_index, pow_one]
 
 lemma eval₂_mul_monomial :
   ∀{s a}, (p * monomial s a).eval₂ f g = p.eval₂ f g * f a * s.prod (λn e, g n ^ e) :=
 begin
   apply mv_polynomial.induction_on p,
   { assume a' s a,
-    simp [C_mul_monomial, eval₂_monomial, is_semiring_hom.map_mul f] },
+    simp [C_mul_monomial, eval₂_monomial, f.map_mul] },
   { assume p q ih_p ih_q, simp [add_mul, eval₂_add, ih_p, ih_q] },
   { assume p n ih s a,
     from calc (p * X n * monomial s a).eval₂ f g = (p * monomial (single n 1 + s) a).eval₂ f g :
-        by simp [monomial_single_add, -add_comm, pow_one, mul_assoc]
+        by rw [monomial_single_add, pow_one, mul_assoc]
       ... = (p * monomial (single n 1) 1).eval₂ f g * f a * s.prod (λn e, g n ^ e) :
         by simp [ih, prod_single_index, prod_add_index, pow_one, pow_add, mul_assoc, mul_left_comm,
-          is_semiring_hom.map_one f, -add_comm] }
+          f.map_one, -add_comm] }
 end
 
 @[simp] lemma eval₂_mul : ∀{p}, (p * q).eval₂ f g = p.eval₂ f g * q.eval₂ f g :=
@@ -636,14 +635,15 @@ end
 | 0       := by { rw [pow_zero, pow_zero], exact eval₂_one _ _ }
 | (n + 1) := by rw [pow_add, pow_one, pow_add, pow_one, eval₂_mul, eval₂_pow]
 
-instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
+lemma eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
 { map_zero := eval₂_zero _ _,
   map_one := eval₂_one _ _,
   map_add := λ p q, eval₂_add _ _,
   map_mul := λ p q, eval₂_mul _ _ }
 
 /-- `mv_polynomial.eval₂` as a `ring_hom`. -/
-def eval₂_hom (f : R →+* S₁) (g : σ → S₁) : mv_polynomial σ R →+* S₁ := ring_hom.of (eval₂ f g)
+def eval₂_hom (f : R →+* S₁) (g : σ → S₁) : mv_polynomial σ R →+* S₁ :=
+ring_hom.of (eval₂.is_semiring_hom f g)
 
 @[simp] lemma coe_eval₂_hom (f : R →+* S₁) (g : σ → S₁) : ⇑(eval₂_hom f g) = eval₂ f g := rfl
 
@@ -677,7 +677,6 @@ by simp only [monomial_eq, ring_hom.map_mul, eval₂_hom_C, finsupp.prod,
   ring_hom.map_prod, ring_hom.map_pow, eval₂_hom_X']
 
 section
-local attribute [instance, priority 10] is_semiring_hom.comp
 lemma eval₂_comp_left {S₂} [comm_semiring S₂]
   (k : S₁ →+* S₂) (f : R →+* S₁) (g : σ → S₁)
   (p) : k (eval₂ f g p) = eval₂ (k.comp f) (k ∘ g) p :=
@@ -704,11 +703,11 @@ end
 
 @[simp] lemma eval₂_prod (s : finset S₂) (p : S₂ → mv_polynomial σ R) :
   eval₂ f g (∏ x in s, p x) = ∏ x in s, eval₂ f g (p x) :=
-(s.prod_hom _).symm
+(s.prod_hom (eval₂.is_semiring_hom f g).to_is_monoid_hom).symm
 
 @[simp] lemma eval₂_sum (s : finset S₂) (p : S₂ → mv_polynomial σ R) :
   eval₂ f g (∑ x in s, p x) = ∑ x in s, eval₂ f g (p x) :=
-(s.sum_hom _).symm
+(s.sum_hom (eval₂.is_semiring_hom f g).to_is_add_monoid_hom).symm
 
 attribute [to_additive] eval₂_prod
 
@@ -833,7 +832,7 @@ begin
   { intros p i hp m, simp only [hp, (map f).map_mul, map_X],
     simp only [hp, mem_support_iff, coeff_mul_X'],
     split_ifs, {refl},
-    rw is_semiring_hom.map_zero f }
+    rw f.map_zero }
 end
 
 lemma map_injective (hf : function.injective f) :

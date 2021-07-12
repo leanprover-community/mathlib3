@@ -595,7 +595,7 @@ variables {φ' : normed_group_hom V₂ V₃} {ψ' : normed_group_hom W₂ W₃}
 @[simp] lemma map_id : map (id V₁) (id W₁) rfl rfl = id (f₁.equalizer g₁) :=
 by { ext, refl }
 
-lemma comm_sq₂ (hf : ψ.comp f₁ = f₂.comp φ)(hf' : ψ'.comp f₂ = f₃.comp φ') :
+lemma comm_sq₂ (hf : ψ.comp f₁ = f₂.comp φ) (hf' : ψ'.comp f₂ = f₃.comp φ') :
   (ψ'.comp ψ).comp f₁ = f₃.comp (φ'.comp φ) :=
 by rw [comp_assoc, hf, ← comp_assoc, hf', comp_assoc]
 

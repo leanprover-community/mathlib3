@@ -233,7 +233,7 @@ lemma is_dedekind_domain_inv_iff (K : Type*) [field K] [algebra A K] [is_fractio
     (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
   set h : fraction_ring A ≃ₐ[A] K := fraction_ring.alg_equiv A K,
-  split; swap; rintros hi I hI,
+  split; rintros hi I hI,
   { have := hi (fractional_ideal.map h.symm.to_alg_hom I)
                (fractional_ideal.map_ne_zero h.symm.to_alg_hom hI),
     convert congr_arg (fractional_ideal.map h.to_alg_hom) this;

@@ -108,7 +108,7 @@ include dec_ι
 /-- The `dfinsupp` version of `finsupp.lsum`.
 
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
-@[simps apply symm_apply]
+@[simps]
 def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
@@ -202,3 +202,15 @@ basis.of_repr ((map_range.linear_equiv (λ i, (b i).repr)).trans
 end basis
 
 end dfinsupp
+
+include dec_ι
+
+lemma submodule.dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
+  [Π i (x : β i), decidable (x ≠ 0)] (S : submodule R N)
+  (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_mem f g h
+
+lemma submodule.dfinsupp_sum_add_hom_mem {β : ι → Type*} [Π i, add_zero_class (β i)]
+  (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
+  lsum g ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_add_hom_mem f g h

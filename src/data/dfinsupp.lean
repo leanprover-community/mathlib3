@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Kenny Lau
 import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
-import group_theory.submonoid.basic
+import group_theory.submonoid.membership
 
 /-!
 # Dependent functions with finite support
@@ -884,6 +884,12 @@ calc ∏ i in (f + g).support, h i ((f + g) i) =
     by simp [h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
+@[to_additive]
+lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] (S : submonoid γ)
+  (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
+S.prod_mem $ λ i hi, h _ $ (f.mem_support_iff _).mp hi
+
 /--
 When summing over an `add_monoid_hom`, the decidability assumption is not needed, and the result is
 also an `add_monoid_hom`.
@@ -947,6 +953,30 @@ begin
   split_ifs,
   refl,
   rw [(not_not.mp h), add_monoid_hom.map_zero],
+end
+
+lemma _root_.add_submonoid.dfinsupp_sum_add_hom_mem [Π i, add_zero_class (β i)] [add_comm_monoid γ]
+  (S : add_submonoid γ) (f : Π₀ i, β i) (g : Π i, β i →+ γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
+  dfinsupp.sum_add_hom g f ∈ S :=
+begin
+  classical,
+  rw dfinsupp.sum_add_hom_apply,
+  convert S.dfinsupp_sum_mem _ _ _,
+  exact h
+end
+
+/-- The supremum of a family of commutative additive submonoids is equal to the range of
+`finsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
+number of non-zero elements of `p i`, coercing them to `γ`, and summing them. -/
+lemma _root_.add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom [add_comm_monoid γ]
+  (p : ι → add_submonoid γ) : supr p = (dfinsupp.sum_add_hom (λ i, (p i).subtype)).mrange :=
+begin
+  apply le_antisymm,
+  { apply supr_le _,
+    intros i y hy,
+    exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
+  { rintros x ⟨v, rfl⟩,
+    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
 end
 
 omit dec

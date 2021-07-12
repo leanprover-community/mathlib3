@@ -108,7 +108,7 @@ include dec_ι
 /-- The `dfinsupp` version of `finsupp.lsum`.
 
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
-@[simps apply symm_apply]
+@[simps]
 def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
@@ -202,3 +202,33 @@ basis.of_repr ((map_range.linear_equiv (λ i, (b i).repr)).trans
 end basis
 
 end dfinsupp
+
+include dec_ι
+
+namespace submodule
+
+lemma dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
+  [Π i (x : β i), decidable (x ≠ 0)] (S : submodule R N)
+  (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_mem f g h
+
+lemma dfinsupp_sum_add_hom_mem {β : ι → Type*} [Π i, add_zero_class (β i)]
+  (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i →+ N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
+  dfinsupp.sum_add_hom g f ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_add_hom_mem f g h
+
+/-- The supremum of a family of submodules is equal to the range of `dfinsupp.lsum`; that is
+every element in the `supr` can be produced from taking a finite number of non-zero elements
+of `p i`, coercing them to `N`, and summing them. -/
+lemma supr_eq_range_dfinsupp_lsum
+  (p : ι → submodule R N) : supr p = (dfinsupp.lsum ℕ (λ i, (p i).subtype)).range :=
+begin
+  apply le_antisymm,
+  { apply supr_le _,
+    intros i y hy,
+    exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
+  { rintros x ⟨v, rfl⟩,
+    exact dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
+end
+
+end submodule

@@ -60,7 +60,7 @@ namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
-lemma adj_comm (G' : subgraph G) {v w : V} : G'.adj v w ↔ G'.adj w v :=
+lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 ⟨λ x, G'.sym x, λ x, G'.sym x⟩
 
 @[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.sym h

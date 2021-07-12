@@ -1460,6 +1460,13 @@ instance probability_measure.to_finite_measure (μ : measure α) [probability_me
 lemma probability_measure.ne_zero (μ : measure α) [probability_measure μ] : μ ≠ 0 :=
 mt measure_univ_eq_zero.2 $ by simp [measure_univ]
 
+lemma prob_add_prob_compl [probability_measure μ]
+  (h : measurable_set s) : μ s + μ sᶜ = 1 :=
+(measure_add_measure_compl h).trans measure_univ
+
+lemma prob_le_one [probability_measure μ] : μ s ≤ 1 :=
+(measure_mono $ set.subset_univ _).trans_eq measure_univ
+
 end probability_measure
 
 section no_atoms

@@ -3,7 +3,6 @@ src/analysis/normed_space/bounded_linear_maps.lean : line 10 : ERR_MOD : Module 
 src/category_theory/adjunction/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/fully_faithful.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/limits.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/category/Kleisli.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/endomorphism.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/epi_mono.lean : line 15 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/eq_to_hom.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -20,7 +19,7 @@ src/category_theory/limits/opposites.lean : line 10 : ERR_MOD : Module docstring
 src/category_theory/limits/shapes/finite_products.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/types.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/monad/adjunction.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/monad/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/category_theory/monad/basic.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/natural_transformation.lean : line 16 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/opposites.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/products/bifunctor.lean : line 8 : ERR_MOD : Module docstring missing, or too late

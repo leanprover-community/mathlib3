@@ -144,7 +144,7 @@ def diagram_iso_span (F : walking_span ⥤ C) :
   F ≅ span (F.map fst) (F.map snd) :=
 nat_iso.of_components (λ j, eq_to_iso (by tidy)) (by tidy)
 
-variables {X Y Z : C}
+variables {W X Y Z : C}
 
 /-- A pullback cone is just a cone on the cospan formed by two morphisms `f : X ⟶ Z` and
     `g : Y ⟶ Z`.-/
@@ -278,6 +278,25 @@ lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y)
   mono f :=
 ⟨λ Z g h eq, by { rcases pullback_cone.is_limit.lift' t _ _ eq with ⟨_, rfl, rfl⟩, refl } ⟩
 
+/-- Suppose `f` and `g` are two morphisms with a common codomain and `s` is a limit cone over the
+    diagram formed by `f` and `g`. Suppose `f` and `g` both factor through a monomorphism `h` via
+    `x` and `y`, respectively.  Then `s` is also a limit cone over the diagram formed by `x` and
+    `y`.  -/
+def is_limit_of_factors (f : X ⟶ Z) (g : Y ⟶ Z) (h : W ⟶ Z) [mono h]
+  (x : X ⟶ W) (y : Y ⟶ W) (hxh : x ≫ h = f) (hyh : y ≫ h = g) (s : pullback_cone f g)
+  (hs : is_limit s) : is_limit (pullback_cone.mk _ _ (show s.fst ≫ x = s.snd ≫ y,
+    from (cancel_mono h).1 $ by simp only [category.assoc, hxh, hyh, s.condition])) :=
+pullback_cone.is_limit_aux' _ $ λ t,
+  ⟨hs.lift (pullback_cone.mk t.fst t.snd $ by rw [←hxh, ←hyh, reassoc_of t.condition]),
+  ⟨hs.fac _ walking_cospan.left, hs.fac _ walking_cospan.right, λ r hr hr',
+  begin
+    apply pullback_cone.is_limit.hom_ext hs;
+    simp only [pullback_cone.mk_fst, pullback_cone.mk_snd] at ⊢ hr hr';
+    simp only [hr, hr'];
+    symmetry,
+    exacts [hs.fac _ walking_cospan.left, hs.fac _ walking_cospan.right]
+  end⟩⟩
+
 end pullback_cone
 
 /-- A pushout cocone is just a cocone on the span formed by two morphisms `f : X ⟶ Y` and
@@ -390,6 +409,26 @@ begin
   { rwa (is_colimit.desc' t _ _ _).2.1 },
   { rwa (is_colimit.desc' t _ _ _).2.2 },
 end
+
+/-- Suppose `f` and `g` are two morphisms with a common domain and `s` is a colimit cocone over the
+    diagram formed by `f` and `g`. Suppose `f` and `g` both factor through an epimorphism `h` via
+    `x` and `y`, respectively. Then `s` is also a colimit cocone over the diagram formed by `x` and
+    `y`.  -/
+def is_colimit_of_factors (f : X ⟶ Y) (g : X ⟶ Z) (h : X ⟶ W) [epi h]
+  (x : W ⟶ Y) (y : W ⟶ Z) (hhx : h ≫ x = f) (hhy : h ≫ y = g) (s : pushout_cocone f g)
+  (hs : is_colimit s) : is_colimit (pushout_cocone.mk _ _ (show x ≫ s.inl = y ≫ s.inr,
+    from (cancel_epi h).1 $ by rw [reassoc_of hhx, reassoc_of hhy, s.condition])) :=
+pushout_cocone.is_colimit_aux' _ $ λ t,
+  ⟨hs.desc (pushout_cocone.mk t.inl t.inr $
+    by rw [←hhx, ←hhy, category.assoc, category.assoc, t.condition]),
+  ⟨hs.fac _ walking_span.left, hs.fac _ walking_span.right, λ r hr hr',
+  begin
+    apply pushout_cocone.is_colimit.hom_ext hs;
+    simp only [pushout_cocone.mk_inl, pushout_cocone.mk_inr] at ⊢ hr hr';
+    simp only [hr, hr'];
+    symmetry,
+    exacts [hs.fac _ walking_span.left, hs.fac _ walking_span.right]
+  end⟩⟩
 
 end pushout_cocone
 

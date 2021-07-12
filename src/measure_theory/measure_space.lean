@@ -2566,3 +2566,14 @@ lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_se
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end indicator_function
+
+namespace measurable_set
+
+variables [measurable_space α]
+
+@[measurability]
+lemma cond {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
+  {i : bool} : measurable_set (cond i A B) :=
+by { cases i, exacts [hB, hA] }
+
+end measurable_set

@@ -461,6 +461,20 @@ by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_ri
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul _ _ _).symm ⟩ }
 
+@[to_additive] lemma preimage_mul_of_injective
+  (s t : set β) (hm : function.injective m) (hs : s ⊆ set.range m) (ht : t ⊆ set.range m) :
+  m ⁻¹' (s * t) = m ⁻¹' s * m ⁻¹' t :=
+begin
+  refine set.subset.antisymm _ (set.preimage_mul_preimage_subset m),
+  rintros x ⟨a, b, ha, hb, hab⟩,
+  rw set.mem_mul,
+  rcases set.mem_range.mp (hs ha) with ⟨xa, hxa⟩,
+  rcases set.mem_range.mp (ht hb) with ⟨xb, hxb⟩,
+  refine ⟨xa, xb, set.mem_preimage.mpr (hxa.symm.subst ha),
+    set.mem_preimage.mpr (hxb.symm.subst hb), _⟩,
+  apply_fun m, rwa [is_mul_hom.map_mul m, hxa, hxb],
+end
+
 end is_mul_hom
 
 /-- The image of a set under function is a ring homomorphism

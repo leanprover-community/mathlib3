@@ -631,14 +631,14 @@ variables {α' E : Type*} {m m0 : measurable_space α'} [normed_group E] [measur
   [opens_measurable_space E]
 
 lemma integrable_of_bounded_on_fin_meas' {μ : measure α'} (hm : m ≤ m0)
-  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) (hC : C < ∞) (f : α' → E) (hf_meas : ae_measurable f μ)
+  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) (hC : C < ∞) {f : α' → E} (hf_meas : ae_measurable f μ)
   (hf : ∀ s, @measurable_set _ m s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
   integrable f μ :=
 ⟨hf_meas,
   (lintegral_le_of_bounded_on_fin_meas' hm C hf_meas.nnnorm.coe_nnreal_ennreal hf).trans_lt hC⟩
 
 lemma integrable_of_bounded_on_fin_meas [sigma_finite μ]
-  (C : ℝ≥0∞) (hC : C < ∞) (f : α → E) (hf_meas : ae_measurable f μ)
+  (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_measurable f μ)
   (hf : ∀ s : set α, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
   integrable f μ :=
 begin

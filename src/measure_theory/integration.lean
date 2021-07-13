@@ -1972,4 +1972,85 @@ begin
     lintegral_trim hm (@ae_measurable.measurable_mk _ _ m _ _ _ hf)],
 end
 
+section sigma_finite
+
+variables {α E : Type*} {m m0 : measurable_space α} [normed_group E] [measurable_space E]
+  [opens_measurable_space E]
+
+/-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
+measure in a sub-σ-algebra and the measure is σ-finite on that sub-σ-algebra, then the integral
+over the whole space is bounded by that same constant. Version for a measurable function.
+See `lintegral_le_of_bounded_on_fin_meas` for the more general `ae_measurable` version. -/
+lemma lintegral_le_of_bounded_on_fin_meas_of_measurable {μ : measure α} (hm : m ≤ m0)
+  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : measurable f)
+  (hf : ∀ s, @measurable_set _ m s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
+  ∫⁻ x, f x ∂μ ≤ C :=
+begin
+  let S := @spanning_sets _ m (μ.trim hm) _,
+  have hS_meas : ∀ n, @measurable_set _ m (S n), from @measurable_spanning_sets _ m (μ.trim hm) _,
+  let F := λ n, (S n).indicator f,
+  have h_F_lim : ∀ a, (⨆ n, (F n a : ℝ≥0∞)) = f a,
+  { refine λ a, le_antisymm (supr_le (λ n, _)) _,
+    { simp_rw [F, set.indicator_apply],
+      split_ifs; simp, },
+    { have h_exists : ∃ n, a ∈ S n,
+      { rw [← set.mem_Union, @Union_spanning_sets _ m (μ.trim hm)],
+        exact set.mem_univ a, },
+      obtain ⟨n₀, han₀⟩ := h_exists,
+      refine le_trans _ (le_supr _ n₀),
+      simp_rw [F, set.indicator_apply],
+      simp [han₀], }, },
+  have h_eq : ∫⁻ a, f a ∂μ = ∫⁻ a, ⨆ n, (F n a : ℝ≥0∞) ∂μ,
+    from lintegral_congr (λ a, (h_F_lim a).symm),
+  rw [h_eq, lintegral_supr],
+  { have h_F_bound : ∀ n, ∫⁻ a, F n a ∂μ ≤ C,
+    { intro n,
+      simp_rw F,
+      rw lintegral_indicator _ (hm _ (hS_meas n)),
+      exact hf (S n) (hS_meas n)
+        ((le_trim hm).trans_lt (@measure_spanning_sets_lt_top _ m (μ.trim hm) _ n)).ne, },
+    exact supr_le h_F_bound, },
+  { exact λ n, hf_meas.indicator (hm _ (hS_meas n)), },
+  { intros n₁ n₂ hn₁₂ a,
+    simp_rw [F, set.indicator_apply],
+    split_ifs,
+    { exact le_rfl, },
+    { have h_S_mono : monotone S, from @monotone_spanning_sets _ m (μ.trim hm) _,
+      exact absurd (set.mem_of_mem_of_subset h (h_S_mono hn₁₂)) h_1, },
+    { simp, },
+    { exact le_rfl, }, },
+end
+
+/-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
+measure in a sub-σ-algebra and the measure is σ-finite on that sub-σ-algebra, then the integral
+over the whole space is bounded by that same constant. -/
+lemma lintegral_le_of_bounded_on_fin_meas' {μ : measure α} (hm : m ≤ m0)
+  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : _ → ℝ≥0∞}
+  (hf_meas : ae_measurable f μ)
+  (hf : ∀ s, @measurable_set _ m s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
+  ∫⁻ x, f x ∂μ ≤ C :=
+begin
+  let f' := hf_meas.mk f,
+  have hf' : ∀ s, @measurable_set _ m s → μ s ≠ ∞ → ∫⁻ x in s, f' x ∂μ ≤ C,
+  { refine λ s hs hμs, (le_of_eq _).trans (hf s hs hμs),
+    refine lintegral_congr_ae (ae_restrict_of_ae (hf_meas.ae_eq_mk.mono (λ x hx, _))),
+    rw hx, },
+  rw lintegral_congr_ae hf_meas.ae_eq_mk,
+  exact lintegral_le_of_bounded_on_fin_meas_of_measurable hm C hf_meas.measurable_mk hf',
+end
+
+/-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
+measure and the measure is σ-finite, then the integral over the whole space is bounded by that same
+constant. -/
+lemma lintegral_le_of_bounded_on_fin_meas [measurable_space α] {μ : measure α} [sigma_finite μ]
+  (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : ae_measurable f μ)
+  (hf : ∀ s, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
+  ∫⁻ x, f x ∂μ ≤ C :=
+begin
+  haveI : sigma_finite (μ.trim le_rfl) := by rwa trim_eq_self,
+  exact lintegral_le_of_bounded_on_fin_meas' le_rfl C hf_meas hf,
+end
+
+end sigma_finite
+
 end measure_theory

@@ -408,6 +408,9 @@ def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
   map_mul' := λ x y, subtype.eq $ f.map_mul x y,
   map_one' := subtype.eq f.map_one }
 
+instance fintype_range [decidable_eq S] (f : R →+* S) [fintype R] : fintype (range f) :=
+set.fintype_range f
+
 end ring_hom
 
 namespace subring

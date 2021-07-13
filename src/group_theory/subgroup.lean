@@ -1406,6 +1406,17 @@ le_antisymm
     (gclosure_preimage_le _ _))
   ((closure_le _).2 $ set.image_subset _ subset_closure)
 
+-- this instance can't go just after the definition of mrange because `fintype` is
+-- not imported at that stage
+@[to_additive]
+instance fintype_mrange {M : Type*} [monoid M] {N : Type*} [monoid N] [decidable_eq N]
+  (f : M →* N) [fintype M] : fintype (mrange f) :=
+set.fintype_range f
+
+@[to_additive]
+instance fintype_range [decidable_eq N] (f : G →* N) [fintype G] : fintype (range f) :=
+set.fintype_range f
+
 end monoid_hom
 
 namespace subgroup

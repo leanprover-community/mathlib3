@@ -632,9 +632,50 @@ begin
   exact ⟨s, hs1, hs⟩,
 end
 
+omit loc
+
+lemma mem_span_mul_finite_of_mem_mul
+  {I J : fractional_ideal S P} {x : P} (hx : x ∈ I * J) :
+  ∃ (T T' : finset P), (T : set P) ⊆ I ∧ (T' : set P) ⊆ J ∧ x ∈ span R (T * T' : set P) :=
+submodule.mem_span_mul_finite_of_mem_mul (by simpa using mem_coe.mpr hx)
+
+variables (S)
+
+lemma coe_ideal_fg (inj : function.injective (algebra_map R P)) (I : ideal R) :
+  fg ((I : fractional_ideal S P) : submodule R P) ↔ fg I :=
+coe_submodule_fg _ inj _
+
+variables {S}
+
+lemma fg_unit (inj : function.injective (algebra_map R P))
+  (I : units (fractional_ideal S P)) :
+  fg (I : submodule R P) :=
+begin
+  have : (1 : P) ∈ (I * ↑I⁻¹ : fractional_ideal S P),
+  { rw units.mul_inv, exact one_mem_one _ },
+  obtain ⟨T, T', hT, hT', one_mem⟩ := mem_span_mul_finite_of_mem_mul this,
+  refine ⟨T, submodule.span_eq_of_le _ hT _⟩,
+  rw [← one_mul ↑I, ← mul_one (span R ↑T)],
+  conv_rhs { rw [← fractional_ideal.coe_one, ← units.mul_inv I, fractional_ideal.coe_mul,
+                 mul_comm ↑↑I, ← mul_assoc] },
+  refine submodule.mul_le_mul_left
+    (le_trans _ (submodule.mul_le_mul_right (submodule.span_le.mpr hT'))),
+  rwa [submodule.one_le, submodule.span_mul_span]
+end
+
+lemma fg_of_is_unit (inj : function.injective (algebra_map R P))
+  (I : fractional_ideal S P) (h : is_unit I) :
+  fg (I : submodule R P) :=
+by { rcases h with ⟨I, rfl⟩, exact fg_unit inj I }
+
+lemma _root_.ideal.fg_of_is_unit (inj : function.injective (algebra_map R P))
+  (I : ideal R) (h : is_unit (I : fractional_ideal S P)) :
+  I.fg :=
+by { rw ← coe_ideal_fg S inj I, exact fg_of_is_unit inj I h }
+
 variables (S P P')
 
-include loc'
+include loc loc'
 
 /-- `canonical_equiv f f'` is the canonical equivalence between the fractional
 ideals in `P` and in `P'` -/

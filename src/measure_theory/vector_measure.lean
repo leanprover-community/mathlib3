@@ -110,7 +110,7 @@ end
 
 variables [t2_space M] {v : vector_measure α M} {f : ℕ → set α}
 
-lemma measure_Union_has_sum [encodable β] {f : β → set α}
+lemma has_sum_measure_Union [encodable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   has_sum (λ i, v (f i)) (v (⋃ i, f i)) :=
 begin
@@ -147,7 +147,7 @@ end
 lemma measure_Union [encodable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   v (⋃ i, f i) = ∑' i, v (f i) :=
-(measure_Union_has_sum hf₁ hf₂).tsum_eq.symm
+(has_sum_measure_Union hf₁ hf₂).tsum_eq.symm
 
 lemma of_union {A B : set α}
   (h : disjoint A B) (hA : measurable_set A) (hB : measurable_set B) :

@@ -59,6 +59,9 @@ structure multigraph (V : Type u) (α : Type v):=
 (labels : V → V → set α)
 (symm : ∀ (u v : V), labels u v = labels v u . obviously)
 
+-- TODO decide whether something like this should be the way to go:
+--abbreviation simple_graph (V : Type u) := {G : multigraph V unit // G.loopless}
+
 namespace multigraph
 variables {V W X : Type u} {α β γ : Type v} (G : multigraph V α) (G' : multigraph W β) (G'' : multigraph X γ)
 

@@ -227,7 +227,7 @@ This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
 def is_dedekind_domain_inv : Prop :=
-∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * (1 / I) = 1
+∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * I⁻¹ = 1
 
 open fractional_ideal
 
@@ -247,6 +247,20 @@ begin
     convert congr_arg (fractional_ideal.map h.symm.to_alg_hom) this;
       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one,
                  fractional_ideal.map_mul, fractional_ideal.map_div, inv_eq] },
+end
+
+variables {R}
+
+lemma is_dedekind_domain_inv.is_noetherian_ring
+  (h2 : is_dedekind_domain_inv A) : is_noetherian_ring A :=
+begin
+  refine is_noetherian_ring_iff.mpr ⟨λ (I : ideal A), _⟩,
+  by_cases h : I = ⊥,
+  { rw h, apply submodule.fg_bot },
+
+  have h : (I : fractional_ideal A⁰ (fraction_ring A)) ≠ 0 :=
+    (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr h,
+  exact I.fg_of_is_unit (is_fraction_ring.injective A _) (is_unit_of_mul_eq_one _ _ (h2 _ h))
 end
 
 end inverse

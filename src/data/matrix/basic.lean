@@ -951,7 +951,7 @@ When `α` is a `*`-(semi)ring, `matrix n n α` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
 -/
 instance [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
-{ star := λ M, M.transpose.map star,
+{ star := conj_transpose,
   star_involutive := conj_transpose_conj_transpose,
   star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }

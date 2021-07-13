@@ -23,6 +23,9 @@ to a group structure. Our choice is that `⊥ + ⊤ = ⊤ + ⊥ = ⊤`.
 An ad hoc subtraction is then defined by `x - y = x + (-y)`. It does not have nice properties,
 but it is sometimes convenient to have.
 
+An ad hoc multiplication is defined, for which `ereal` is a `comm_monoid_with_zero`.
+This does not distribute with addition, as `⊤ = ⊤ - ⊥ = 1*⊤ - 1*⊤ ≠ (1 - 1) * ⊤ = 0 * ⊤ = 0`.
+
 `ereal` is a `complete_linear_order`; this is deduced by type class inference from
 the fact that `with_top (with_bot L)` is a complete linear order if `L` is
 a conditionally complete linear order.
@@ -49,7 +52,7 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [order_bot, order_top,
+@[derive [order_bot, order_top, comm_monoid_with_zero,
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
@@ -154,6 +157,14 @@ begin
   { simp [hx, (h.trans_lt (lt_top_iff_ne_top.2 hy)).ne], },
 end
 
+lemma coe_to_real {x : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) : (x.to_real : ereal) = x :=
+begin
+  rcases x.cases with rfl|⟨x, rfl⟩|rfl,
+  { simpa using h'x },
+  { refl },
+  { simpa using hx },
+end
+
 /-! ### ennreal coercion -/
 
 @[simp] lemma to_real_coe_ennreal : ∀ {x : ℝ≥0∞}, to_real (x : ereal) = ennreal.to_real x
@@ -224,6 +235,11 @@ lemma lt_iff_exists_rat_btwn {a b : ereal} :
   a < b ↔ ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b :=
 ⟨λ hab, exists_rat_btwn_of_lt hab, λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
+lemma lt_iff_exists_real_btwn {a b : ereal} :
+  a < b ↔ ∃ (x : ℝ), a < x ∧ (x : ereal) < b :=
+⟨λ hab, let ⟨x, ax, xb⟩ := exists_rat_btwn_of_lt hab in ⟨(x : ℝ), ax, xb⟩,
+ λ ⟨x, ax, xb⟩, ax.trans xb⟩
+
 /-- The set of numbers in `ereal` that are not equal to `±∞` is equivalent to `ℝ`. -/
 def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=
 { to_fun := λ x, ereal.to_real x,
@@ -288,7 +304,7 @@ begin
   { simp [lt_top_iff_ne_top, with_top.add_eq_top, h1.ne, (h2.trans_le le_top).ne] }
 end
 
-@[simp] lemma ad_eq_top_iff {x y : ereal} : x + y = ⊤ ↔ x = ⊤ ∨ y = ⊤ :=
+@[simp] lemma add_eq_top_iff {x y : ereal} : x + y = ⊤ ↔ x = ⊤ ∨ y = ⊤ :=
 begin
   rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨x, rfl⟩|rfl;
   simp [← ereal.coe_add],
@@ -393,6 +409,13 @@ protected noncomputable def sub (x y : ereal) : ereal := x + (-y)
 
 noncomputable instance : has_sub ereal := ⟨ereal.sub⟩
 
+@[simp] lemma top_sub (x : ereal) : ⊤ - x = ⊤ := top_add x
+@[simp] lemma sub_bot (x : ereal) : x - ⊥ = ⊤ := add_top x
+
+@[simp] lemma bot_sub_top : (⊥ : ereal) - ⊤ = ⊥ := rfl
+@[simp] lemma bot_sub_coe (x : ℝ) : (⊥ : ereal) - x = ⊥ := rfl
+@[simp] lemma coe_sub_bot (x : ℝ) : (x : ereal) - ⊤ = ⊥ := rfl
+
 @[simp] lemma sub_zero (x : ereal) : x - 0 = x := by { change x + (-0) = x, simp }
 @[simp] lemma zero_sub (x : ereal) : 0 - x = - x := by { change 0 + (-x) = - x, simp }
 
@@ -429,5 +452,33 @@ begin
   { simpa using hy },
   { simpa using h'y }
 end
+
+/-! ### Multiplication -/
+
+@[simp] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
+
+@[simp, norm_cast] lemma coe_mul (x y : ℝ) : ((x * y : ℝ) : ereal) = (x : ereal) * (y : ereal) :=
+eq.trans (with_bot.coe_eq_coe.mpr with_bot.coe_mul) with_top.coe_mul
+
+@[simp] lemma mul_top (x : ereal) (h : x ≠ 0) : x * ⊤ = ⊤ := with_top.mul_top h
+@[simp] lemma top_mul (x : ereal) (h : x ≠ 0) : ⊤ * x = ⊤ := with_top.top_mul h
+
+@[simp] lemma bot_mul_bot : (⊥ : ereal) * ⊥ = ⊥ := rfl
+@[simp] lemma bot_mul_coe (x : ℝ) (h : x ≠ 0) : (⊥ : ereal) * x = ⊥ :=
+with_top.coe_mul.symm.trans $
+  with_bot.coe_eq_coe.mpr $ with_bot.bot_mul $ function.injective.ne (@option.some.inj _) h
+@[simp] lemma coe_mul_bot (x : ℝ) (h : x ≠ 0) : (x : ereal) * ⊥ = ⊥ :=
+with_top.coe_mul.symm.trans $
+  with_bot.coe_eq_coe.mpr $ with_bot.mul_bot $ function.injective.ne (@option.some.inj _) h
+
+@[simp] lemma to_real_one : to_real 1 = 1 := rfl
+
+lemma to_real_mul : ∀ {x y : ereal}, to_real (x * y) = to_real x * to_real y
+| ⊤ y := by by_cases hy : y = 0; simp [hy]
+| x ⊤ := by by_cases hx : x = 0; simp [hx]
+| (x : ℝ) (y : ℝ) := by simp [← ereal.coe_mul]
+| ⊥ (y : ℝ) := by by_cases hy : y = 0; simp [hy]
+| (x : ℝ) ⊥ := by by_cases hx : x = 0; simp [hx]
+| ⊥ ⊥ := by simp
 
 end ereal

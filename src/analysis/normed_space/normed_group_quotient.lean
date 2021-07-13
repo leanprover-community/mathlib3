@@ -434,7 +434,7 @@ def lift {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   normed_group_hom (quotient S) N :=
 { bound' :=
   begin
-    obtain ⟨c : ℝ≥0, hcpos : (0 : ℝ) < c, hc : f.bound_by c⟩ := f.bound,
+    obtain ⟨c : ℝ, hcpos : (0 : ℝ) < c, hc : ∀ x, ∥f x∥ ≤ c * ∥x∥⟩ := f.bound,
     refine ⟨c, λ mbar, le_of_forall_pos_le_add (λ ε hε, _)⟩,
     obtain ⟨m : M, rfl : mk' S m = mbar, hmnorm : ∥m∥ < ∥mk' S m∥ + ε/c⟩ :=
       norm_mk_lt mbar (div_pos hε hcpos),

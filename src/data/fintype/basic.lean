@@ -692,6 +692,8 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
+@[simp] lemma units_int.univ : (finset.univ : finset (units ℤ)) = {1, -1} := rfl
+
 instance additive.fintype : Π [fintype α], fintype (additive α) := id
 
 instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
@@ -1062,7 +1064,10 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
-instance function.embedding.fintype {α β} [fintype α] [fintype β]
+-- irreducible due to this conversation on Zulip:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
+-- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
+@[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
 
@@ -1547,8 +1552,13 @@ begin
   intros x y, contrapose, apply hf,
 end
 
+-- irreducible due to this conversation on Zulip:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
+-- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
+
+@[irreducible]
 instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_empty (α ↪ β) :=
-⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+  ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
 
 @[priority 100]
 noncomputable instance function.embedding.fintype' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
@@ -1636,3 +1646,51 @@ variables [fintype α] [decidable_eq α]
 count_eq_one_of_mem finset.univ.nodup (finset.mem_univ _)
 
 end multiset
+
+namespace fintype
+
+/-- A recursor principle for finite types, analogous to `nat.rec`. It effectively says
+that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
+def trunc_rec_empty_option {P : Type u → Sort v}
+  (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
+  (h_empty : P pempty)
+  (h_option : ∀ {α} [fintype α] [decidable_eq α], P α → P (option α))
+  (α : Type u) [fintype α] [decidable_eq α] : trunc (P α) :=
+begin
+  suffices : ∀ n : ℕ, trunc (P (ulift $ fin n)),
+  { apply trunc.bind (this (fintype.card α)),
+    intro h,
+    apply trunc.map _ (fintype.trunc_equiv_fin α),
+    intro e,
+    exact of_equiv (equiv.ulift.trans e.symm) h },
+  intro n,
+  induction n with n ih,
+  { have : card pempty = card (ulift (fin 0)),
+    { simp only [card_fin, card_pempty, card_ulift] },
+    apply trunc.bind (trunc_equiv_of_card_eq this),
+    intro e,
+    apply trunc.mk,
+    refine of_equiv e h_empty, },
+  { have : card (option (ulift (fin n))) = card (ulift (fin n.succ)),
+    { simp only [card_fin, card_option, card_ulift] },
+    apply trunc.bind (trunc_equiv_of_card_eq this),
+    intro e,
+    apply trunc.map _ ih,
+    intro ih,
+    refine of_equiv e (h_option ih), },
+end
+
+/-- An induction principle for finite types, analogous to `nat.rec`. It effectively says
+that every `fintype` is either `empty` or `option α`, up to an `equiv`. -/
+lemma induction_empty_option {P : Type u → Prop}
+  (of_equiv : ∀ {α β}, α ≃ β → P α → P β)
+  (h_empty : P pempty)
+  (h_option : ∀ {α} [fintype α], P α → P (option α))
+  (α : Type u) [fintype α] : P α :=
+begin
+  haveI := classical.dec_eq α,
+  obtain ⟨p⟩ := trunc_rec_empty_option @of_equiv h_empty (λ _ _ _, by exactI h_option) α,
+  exact p,
+end
+
+end fintype

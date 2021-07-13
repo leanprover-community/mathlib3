@@ -907,8 +907,6 @@ begin
     exact measurable_set.bInter hs (λ i hi, measurable_set_le (hf i) measurable_const) }
 end
 
-#lint
-
 end conditionally_complete_linear_order
 
 /-- Convert a `homeomorph` to a `measurable_equiv`. -/

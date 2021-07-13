@@ -5,6 +5,7 @@ Authors: Chris Hughes, Yury Kudryashov
 -/
 import algebra.group.defs
 import algebra.group.hom
+import algebra.group.type_tags
 import logic.embedding
 
 /-!
@@ -267,25 +268,6 @@ a multiplicative action of `N` on `α`. -/
 an additive action of `N` on `α`. -/
 add_decl_doc add_action.comp_hom
 
-variable {α}
-
-/-- The tautological action by `function.End α` on `α`. -/
-instance function_End : mul_action (function.End α) α :=
-{ smul := ($),
-  one_smul := λ _, rfl,
-  mul_smul := λ _ _ _, rfl }
-
-/-- The monoid hom representing a monoid action.
-
-When `M` is a group, see `mul_action.to_perm_hom`. -/
-def to_End_hom : M →* function.End α :=
-{ to_fun := (•),
-  map_one' := funext (one_smul M),
-  map_mul' := λ x y, funext (mul_smul x y) }
-
-/-- The monoid action induced by a monoid hom to `function.End α`-/
-def of_End_hom [monoid N] (f : N →* function.End α) : mul_action N α := comp_hom α f
-
 end mul_action
 
 end
@@ -376,3 +358,39 @@ theorem smul_sub (r : M) (x y : A) : r • (x - y) = r • x - r • y :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
 
 end
+
+/-- The tautological action by `function.End α` on `α`. -/
+instance mul_action.function_End : mul_action (function.End α) α :=
+{ smul := ($),
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+/-- The monoid hom representing a monoid action.
+
+When `M` is a group, see `mul_action.to_perm_hom`. -/
+def mul_action.to_End_hom [monoid M] [mul_action M α] : M →* function.End α :=
+{ to_fun := (•),
+  map_one' := funext (one_smul M),
+  map_mul' := λ x y, funext (mul_smul x y) }
+
+/-- The monoid action induced by a monoid hom to `function.End α`-/
+def mul_action.of_End_hom [monoid M] (f : M →* function.End α) : mul_action M α :=
+mul_action.comp_hom α f
+
+/-- The tautological additive action by `additive (function.End α)` on `α`. -/
+instance add_action.function_End : add_action (additive (function.End α)) α :=
+{ vadd := ($),
+  zero_vadd := λ _, rfl,
+  add_vadd := λ _ _ _, rfl }
+
+/-- The additive monoid hom representing an additive monoid action.
+
+When `M` is a group, see `add_action.to_perm_hom`. -/
+def add_action.to_End_hom [add_monoid M] [add_action M α] : M →+ additive (function.End α) :=
+{ to_fun := (+ᵥ),
+  map_zero' := funext (zero_vadd M),
+  map_add' := λ x y, funext (add_vadd x y) }
+
+/-- The additive action induced by hom to `additive (function.End α)`-/
+def add_action.of_End_hom [add_monoid M] (f : M →+ additive (function.End α)) : add_action M α :=
+add_action.comp_hom α f

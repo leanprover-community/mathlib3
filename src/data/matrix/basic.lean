@@ -882,11 +882,57 @@ by { ext, refl }
 
 end transpose
 
+section conj_transpose
+
+open_locale matrix
+
+/--
+  Tell `simp` what the entries are in a conjugate transposed matrix.
+
+  Compare with `mul_apply`, `diagonal_apply_eq`, etc.
+-/
+@[simp] lemma conj_transpose_apply [has_star α] (M : matrix m n α) (i j) :
+M.conj_transpose j i = star (M i j) := rfl
+
+@[simp] lemma conj_transpose_transpose [has_involutive_star α] (M : matrix m n α) :
+  Mᴴᴴ = M :=
+by ext; simp [conj_transpose]
+
+@[simp] lemma conj_transpose_zero [semiring α] [star_ring α] : (0 : matrix m n α)ᴴ = 0 :=
+by ext i j; simp [conj_transpose]
+
+@[simp] lemma conj_transpose_one [decidable_eq n] [semiring α] [star_ring α]:
+(1 : matrix n n α)ᴴ = 1 :=
+begin
+  ext i j,
+  unfold has_one.one conj_transpose,
+  have h': mul_one_class.one= (1 : α), {refl},
+  by_cases i = j,
+  { simp [*, diagonal_apply_eq]},
+  { simp [*, diagonal_apply_ne h, diagonal_apply_ne (λ p, h (symm p))]}
+end
+
+@[simp] lemma conj_transpose_add
+[semiring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+(M + N)ᴴ = Mᴴ + Nᴴ  := by ext i j; simp
+
+@[simp] lemma conj_transpose_sub [ring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+(M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
+
+@[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
+  (c • M)ᴴ = (star c) • Mᴴ :=
+by ext i j; simp [mul_comm]
+
+@[simp] lemma conj_transpose_neg [ring α] [star_ring α] (M : matrix m n α) :
+  (- M)ᴴ = - Mᴴ  :=
+by ext i j; simp
+
+section conj_transpose
+
 section has_star
 variables [has_star α]
 instance : has_star (matrix n n α) := {star := conj_transpose}
-lemma conj_transpose_eq_star_of_square_matrix (M : matrix m m α) :
-star M = Mᴴ  := rfl
+@[simp] lemma star_eq_conj_transpose (M : matrix m m α) : star M = Mᴴ := rfl
 end has_star
 
 section star_ring

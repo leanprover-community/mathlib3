@@ -450,7 +450,7 @@ begin
     cardinal.mk_finset_eq_mk (cardinal.infinite_iff.mp ‹infinite ι›),
   rw ←w at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
-  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.infinite_pigeonhole'' Φ h
+  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h
     (by { rw w, exact (cardinal.infinite_iff.mp ‹infinite ι›), }),
   let v' := λ k : Φ ⁻¹' {s}, v k,
   have i' : linear_independent R v' := i.comp _ subtype.val_injective,

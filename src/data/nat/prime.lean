@@ -594,7 +594,7 @@ lemma mem_factors {n p} (hn : 0 < n) : p ∈ factors n ↔ prime p ∧ p ∣ n :
 ⟨λ h, ⟨prime_of_mem_factors h, (mem_factors_iff_dvd hn $ prime_of_mem_factors h).mp h⟩,
  λ ⟨hprime, hdvd⟩, (mem_factors_iff_dvd hn hprime).mpr hdvd⟩
 
-lemma factors_subset {n k : ℕ} (h : k ≠ 0) : n.factors ⊆ (n * k).factors :=
+lemma factors_subset_right {n k : ℕ} (h : k ≠ 0) : n.factors ⊆ (n * k).factors :=
 begin
   cases n,
   { rw zero_mul, refl },
@@ -609,7 +609,7 @@ end
 lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
 begin
   obtain ⟨a, rfl⟩ := h,
-  exact factors_subset (right_ne_zero_of_mul h'),
+  exact factors_subset_right (right_ne_zero_of_mul h'),
 end
 
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →

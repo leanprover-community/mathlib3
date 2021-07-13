@@ -975,7 +975,7 @@ ext $ λ _ _, rfl
 ext $ λ _ _, rfl
 
 @[simp] lemma conj_transpose_minor
-[has_star α] (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
+  [has_star α] (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
   (A.minor r_reindex c_reindex)ᴴ = Aᴴ.minor c_reindex r_reindex :=
 ext $ λ _ _, rfl
 

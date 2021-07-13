@@ -551,25 +551,23 @@ begin
   exact λ h', le_trans (norm_nonneg (f a)) (h' a),
 end
 
-@[simp] lemma norm_eq_zero_of_empty (h : ¬ nonempty α) : ∥f∥ = 0 :=
+@[simp] lemma norm_eq_zero_of_empty [h : is_empty α] : ∥f∥ = 0 :=
 begin
-  have h' : ∀ (C : ℝ) (x : α), ∥f x∥ ≤ C, { intros, exfalso, apply h, use x, },
+  have h' : ∀ (C : ℝ) (x : α), ∥f x∥ ≤ C, { intros, exfalso, apply h.false, use x, },
   simp only [norm_eq, h', and_true, implies_true_iff],
   exact cInf_Ici,
 end
 
 lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
 begin
-  by_cases hα : nonempty α,
-  { haveI := hα,
-    rw [norm_eq_of_non_empty, supr,
-      ← cInf_upper_bounds_eq_cSup f.bdd_above_range_norm_comp (set.range_nonempty _)],
+  casesI is_empty_or_nonempty α with hα _,
+  { suffices : range (norm ∘ f) = ∅, { rw [f.norm_eq_zero_of_empty, supr, this, real.Sup_empty], },
+    simp only [hα, range_eq_empty, not_nonempty_iff], },
+  { rw [norm_eq_of_non_empty, supr,
+      ← cInf_upper_bounds_eq_cSup f.bdd_above_range_norm_comp (range_nonempty _)],
     congr,
     ext,
-    simp only [forall_apply_eq_imp_iff', set.mem_range, exists_imp_distrib], },
-  { suffices : set.range (norm ∘ f) = ∅,
-    { rw [f.norm_eq_zero_of_empty hα, supr, this, real.Sup_empty], },
-    exact set.range_eq_empty.mpr hα, },
+    simp only [forall_apply_eq_imp_iff', mem_range, exists_imp_distrib], },
 end
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/

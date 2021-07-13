@@ -64,11 +64,6 @@ end
 
 variables [normal_space α] [normed_space ℝ E]
 
--- need a typeclass for linear orders with `bot`
-
-lemma nnreal.nhds_basis_zero : (𝓝 (0:ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, set.Iio a) :=
-nhds_basis_bot
-
 /-- A simple function in `Lp` can be approximated in `Lp` by continuous functions. -/
 lemma continuous_map_dense [_i : fact (1 ≤ p)] (hp' : p ≠ ∞) [μ.weakly_regular] :
   (continuous_map E p μ).topological_closure = ⊤ :=

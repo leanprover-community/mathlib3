@@ -178,6 +178,14 @@ variables (S)
   x ∈ (I : fractional_ideal S P) ↔ ∃ x', x' ∈ I ∧ algebra_map R P x' = x :=
 mem_coe_submodule _ _
 
+lemma coe_ideal_le_coe_ideal' [is_localization S P] (h : S ≤ non_zero_divisors R)
+  {I J : ideal R} : (I : fractional_ideal S P) ≤ J ↔ I ≤ J :=
+coe_submodule_le_coe_submodule h
+
+@[simp] lemma coe_ideal_le_coe_ideal (K : Type*) [comm_ring K] [algebra R K] [is_fraction_ring R K]
+  {I J : ideal R} : (I : fractional_ideal R⁰ K) ≤ J ↔ I ≤ J :=
+is_fraction_ring.coe_submodule_le_coe_submodule
+
 instance : has_zero (fractional_ideal S P) := ⟨(0 : ideal R)⟩
 
 @[simp] lemma mem_zero_iff {x : P} : x ∈ (0 : fractional_ideal S P) ↔ x = 0 :=

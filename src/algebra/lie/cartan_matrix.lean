@@ -62,11 +62,11 @@ exceptional semisimple Lie algebras.
 ## Main definitions
 
   * `matrix.to_lie_algebra`
-  * `cartan_matrix.e₆`
-  * `cartan_matrix.e₇`
-  * `cartan_matrix.e₈`
-  * `cartan_matrix.f₄`
-  * `cartan_matrix.g₂`
+  * `cartan_matrix.E₆`
+  * `cartan_matrix.E₇`
+  * `cartan_matrix.E₈`
+  * `cartan_matrix.F₄`
+  * `cartan_matrix.G₂`
   * `lie_algebra.e₆`
   * `lie_algebra.e₇`
   * `lie_algebra.e₈`
@@ -180,7 +180,7 @@ The corresponding Dynkin diagram is:
             |
 o --- o --- o --- o --- o
 -/
-def e₆ : matrix (fin 6) (fin 6) ℤ := ![![ 2,  0, -1,  0,  0,  0],
+def E₆ : matrix (fin 6) (fin 6) ℤ := ![![ 2,  0, -1,  0,  0,  0],
                                        ![ 0,  2,  0, -1,  0,  0],
                                        ![-1,  0,  2, -1,  0,  0],
                                        ![ 0, -1, -1,  2, -1,  0],
@@ -194,7 +194,7 @@ The corresponding Dynkin diagram is:
             |
 o --- o --- o --- o --- o --- o
 -/
-def e₇ : matrix (fin 7) (fin 7) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0],
+def E₇ : matrix (fin 7) (fin 7) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0],
                                        ![ 0,  2,  0, -1,  0,  0,  0],
                                        ![-1,  0,  2, -1,  0,  0,  0],
                                        ![ 0, -1, -1,  2, -1,  0,  0],
@@ -209,7 +209,7 @@ The corresponding Dynkin diagram is:
             |
 o --- o --- o --- o --- o --- o --- o
 -/
-def e₈ : matrix (fin 8) (fin 8) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0,  0],
+def E₈ : matrix (fin 8) (fin 8) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0,  0],
                                        ![ 0,  2,  0, -1,  0,  0,  0,  0],
                                        ![-1,  0,  2, -1,  0,  0,  0,  0],
                                        ![ 0, -1, -1,  2, -1,  0,  0,  0],
@@ -223,7 +223,7 @@ def e₈ : matrix (fin 8) (fin 8) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0,  0],
 The corresponding Dynkin diagram is:
 o --- o =>= o --- o
 -/
-def f₄ : matrix (fin 4) (fin 4) ℤ := ![![ 2, -1,  0,  0],
+def F₄ : matrix (fin 4) (fin 4) ℤ := ![![ 2, -1,  0,  0],
                                        ![-1,  2, -2,  0],
                                        ![ 0, -1,  2, -1],
                                        ![ 0,  0, -1,  2]]
@@ -235,7 +235,7 @@ o ≡>≡ o
 
 Actually we are using the transpose Bourbaki's matrix. This is to make the matrices for g₂ and f₄
 consistent in the sense that all non-zero values below the diagonal are -1. -/
-def g₂ : matrix (fin 2) (fin 2) ℤ := ![![ 2, -3],
+def G₂ : matrix (fin 2) (fin 2) ℤ := ![![ 2, -3],
                                        ![-1,  2]]
 
 end cartan_matrix
@@ -244,22 +244,22 @@ namespace lie_algebra
 
 /-- The exceptional split Lie algebra of type e₆. -/
 @[derive [inhabited, lie_ring, lie_algebra R]]
-def e₆ := cartan_matrix.e₆.to_lie_algebra R
+def e₆ := cartan_matrix.E₆.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type e₇. -/
 @[derive [inhabited, lie_ring, lie_algebra R]]
-def e₇ := cartan_matrix.e₇.to_lie_algebra R
+def e₇ := cartan_matrix.E₇.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type e₈. -/
 @[derive [inhabited, lie_ring, lie_algebra R]]
-def e₈ := cartan_matrix.e₈.to_lie_algebra R
+def e₈ := cartan_matrix.E₈.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type f₄. -/
 @[derive [inhabited, lie_ring, lie_algebra R]]
-def f₄ := cartan_matrix.f₄.to_lie_algebra R
+def f₄ := cartan_matrix.F₄.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type g₂. -/
 @[derive [inhabited, lie_ring, lie_algebra R]]
-def g₂ := cartan_matrix.g₂.to_lie_algebra R
+def g₂ := cartan_matrix.G₂.to_lie_algebra R
 
 end lie_algebra

@@ -894,7 +894,7 @@ open_locale matrix
 @[simp] lemma conj_transpose_apply [has_star α] (M : matrix m n α) (i j) :
 M.conj_transpose j i = star (M i j) := rfl
 
-@[simp] lemma conj_transpose_transpose [has_involutive_star α] (M : matrix m n α) :
+@[simp] lemma conj_transpose_conj_transpose [has_involutive_star α] (M : matrix m n α) :
   Mᴴᴴ = M :=
 by ext; simp [conj_transpose]
 

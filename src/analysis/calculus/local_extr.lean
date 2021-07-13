@@ -201,27 +201,27 @@ begin
     rw pos_tangent_cone_at_univ; apply mem_univ
 end
 
-/-- Fermat's Theorem: the derivative of a function at a local minimum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local minimum equals zero. -/
 lemma is_local_min.fderiv_eq_zero (h : is_local_min f a) : fderiv ℝ f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_fderiv_at_eq_zero hf.has_fderiv_at
 else fderiv_zero_of_not_differentiable_at hf
 
-/-- Fermat's Theorem: the derivative of a function at a local maximum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local maximum equals zero. -/
 lemma is_local_max.has_fderiv_at_eq_zero (h : is_local_max f a) (hf : has_fderiv_at f f' a) :
   f' = 0 :=
 neg_eq_zero.1 $ h.neg.has_fderiv_at_eq_zero hf.neg
 
-/-- Fermat's Theorem: the derivative of a function at a local maximum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local maximum equals zero. -/
 lemma is_local_max.fderiv_eq_zero (h : is_local_max f a) : fderiv ℝ f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_fderiv_at_eq_zero hf.has_fderiv_at
 else fderiv_zero_of_not_differentiable_at hf
 
-/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.has_fderiv_at_eq_zero (h : is_local_extr f a) :
   has_fderiv_at f f' a → f' = 0 :=
 h.elim is_local_min.has_fderiv_at_eq_zero is_local_max.has_fderiv_at_eq_zero
 
-/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.fderiv_eq_zero (h : is_local_extr f a) : fderiv ℝ f a = 0 :=
 h.elim is_local_min.fderiv_eq_zero is_local_max.fderiv_eq_zero
 
@@ -231,33 +231,33 @@ section real
 
 variables {f : ℝ → ℝ} {f' : ℝ} {a b : ℝ}
 
-/-- Fermat's Theorem: the derivative of a function at a local minimum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local minimum equals zero. -/
 lemma is_local_min.has_deriv_at_eq_zero (h : is_local_min f a) (hf : has_deriv_at f f' a) :
   f' = 0 :=
 by simpa using continuous_linear_map.ext_iff.1
   (h.has_fderiv_at_eq_zero (has_deriv_at_iff_has_fderiv_at.1 hf)) 1
 
-/-- Fermat's Theorem: the derivative of a function at a local minimum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local minimum equals zero. -/
 lemma is_local_min.deriv_eq_zero (h : is_local_min f a) : deriv f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_deriv_at_eq_zero hf.has_deriv_at
 else deriv_zero_of_not_differentiable_at hf
 
-/-- Fermat's Theorem: the derivative of a function at a local maximum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local maximum equals zero. -/
 lemma is_local_max.has_deriv_at_eq_zero (h : is_local_max f a) (hf : has_deriv_at f f' a) :
   f' = 0 :=
 neg_eq_zero.1 $ h.neg.has_deriv_at_eq_zero hf.neg
 
-/-- Fermat's Theorem: the derivative of a function at a local maximum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local maximum equals zero. -/
 lemma is_local_max.deriv_eq_zero (h : is_local_max f a) : deriv f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_deriv_at_eq_zero hf.has_deriv_at
 else deriv_zero_of_not_differentiable_at hf
 
-/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.has_deriv_at_eq_zero (h : is_local_extr f a) :
   has_deriv_at f f' a → f' = 0 :=
 h.elim is_local_min.has_deriv_at_eq_zero is_local_max.has_deriv_at_eq_zero
 
-/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.deriv_eq_zero (h : is_local_extr f a) : deriv f a = 0 :=
 h.elim is_local_min.deriv_eq_zero is_local_max.deriv_eq_zero
 

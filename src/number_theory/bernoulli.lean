@@ -318,7 +318,7 @@ begin
   field_simp [mul_right_comm _ ↑p!, ← mul_assoc _ _ ↑p!, cast_add_one_ne_zero, hne],
 end
 
-/-- Alternate form of Faulhaber's theorem, relating the sum of p-th powers to the Bernoulli numbers:
+/-- Alternate form of **Faulhaber's theorem**, relating the sum of p-th powers to the Bernoulli numbers:
 $$\sum_{k=1}^{n} k^p = \sum_{i=0}^p (-1)^iB_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 Deduced from `sum_range_pow`. -/
 theorem sum_Ico_pow (n p : ℕ) :

@@ -75,10 +75,14 @@ quotient.lift (function.uncurry G.labels) begin
   { exact G.symm v w }
 end
 
+/-- For convenience, we give an abbreviation for the edge type.
+While `G` is unused, it allows you to use dot notation like `G.edge_type`.  -/
+abbreviation edge_type (G : multigraph V α) := sym2 V × α
+
 /-- An edge is given by an unordered pair of vertices and an edge label.
 
 We define it this way so that `mem_edge_set` is true definitionally. -/
-def edge_set : set (sym2 V × α) := set_of $ function.uncurry (λ e v, v ∈ G.labels' e)
+def edge_set : set G.edge_type := set_of $ function.uncurry (λ e v, v ∈ G.labels' e)
 
 @[simp]
 lemma mem_edge_set (v w : V) (a : α) : (⟦(v, w)⟧, a) ∈ G.edge_set ↔ a ∈ G.labels v w := iff.rfl
@@ -115,7 +119,7 @@ def to_simple_graph (h : G.loopless) : simple_graph V :=
 /-- Relabel the multigraph so that each edge gets its own unique label.
 We use its element in `G.edge_set` for this. -/
 @[simps]
-def relabel : multigraph V (sym2 V × α) :=
+def relabel : multigraph V G.edge_type :=
 { labels := λ v w, {p | ∃ (a : α), p = (⟦(v, w)⟧, a) ∧ a ∈ G.labels v w},
   symm := λ v w, by { ext, simp [sym2.eq_swap, mem_labels_comm] } }
 

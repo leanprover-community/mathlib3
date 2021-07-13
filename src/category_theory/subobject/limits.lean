@@ -115,6 +115,11 @@ def factor_thru_kernel_subobject {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
   factor_thru_kernel_subobject f h w ≫ (kernel_subobject f).arrow = h :=
 by { dsimp [factor_thru_kernel_subobject], simp, }
 
+@[simp] lemma factor_thru_kernel_subobject_comp_kernel_subobject_iso {W : C} (h : W ⟶ X)
+  (w : h ≫ f = 0) :
+  factor_thru_kernel_subobject f h w ≫ (kernel_subobject_iso f).hom = kernel.lift f h w :=
+(cancel_mono (kernel.ι f)).1 $ by simp
+
 section
 variables {f} {X' Y' : C} {f' : X' ⟶ Y'} [has_kernel f']
 

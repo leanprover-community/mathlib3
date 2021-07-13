@@ -90,7 +90,7 @@ begin
   { apply units.ne_zero _ con },
 end
 
-/-- Gauss's Lemma states that a primitive polynomial is irreducible iff it is irreducible in the
+/-- **Gauss's Lemma** states that a primitive polynomial is irreducible iff it is irreducible in the
   fraction field. -/
 theorem is_primitive.irreducible_iff_irreducible_map_fraction_map
   {p : polynomial R} (hp : p.is_primitive) :
@@ -167,7 +167,7 @@ lemma is_primitive.dvd_iff_fraction_map_dvd_fraction_map {p q : polynomial R}
 
 end fraction_map
 
-/-- Gauss's Lemma for `ℤ` states that a primitive integer polynomial is irreducible iff it is
+/-- **Gauss's Lemma** for `ℤ` states that a primitive integer polynomial is irreducible iff it is
   irreducible over `ℚ`. -/
 theorem is_primitive.int.irreducible_iff_irreducible_map_cast
   {p : polynomial ℤ} (hp : p.is_primitive) :

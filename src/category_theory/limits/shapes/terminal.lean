@@ -138,8 +138,8 @@ This object is characterized by having a unique morphism to any object.
 -/
 abbreviation initial [has_initial C] : C := colimit (functor.empty C)
 
-notation `⊤_` C:20 := terminal C
-notation `⊥_` C:20 := initial C
+notation `⊤_ ` C:20 := terminal C
+notation `⊥_ ` C:20 := initial C
 
 section
 variables {C}
@@ -216,59 +216,59 @@ def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.un
 { desc := λ s, (t.from (opposite.op s.X)).unop,
   uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
-/-- A category is a `zero_le_category` if the canonical morphism of an initial object is a
-monomorphism.
-In practice, this is most useful when given an arbitrary morphism out of the chosen initial object,
-see `initial.mono_from`.
+/-- A category is a `initial_mono_class` if the canonical morphism of an initial object is a
+monomorphism.  In practice, this is most useful when given an arbitrary morphism out of the chosen
+initial object, see `initial.mono_from`.
+Given a terminal object, this is equivalent to the assumption that the unique morphism from initial
+to terminal is a monomorphism, which is the second of Freyd's axioms for an AT category.
 
 TODO: This is a condition satisfied by categories with zero objects and morphisms, as well as
 categories with a strict initial object; though these conditions are essentially mutually exclusive.
 -/
-class zero_le_category (C : Type u) [category.{v} C] : Prop :=
+class initial_mono_class (C : Type u) [category.{v} C] : Prop :=
 (is_initial_mono_from : ∀ {I} (X : C) (hI : is_initial I), mono (hI.to X))
 
-lemma is_initial.mono_from [zero_le_category C] {I} {X : C} (hI : is_initial I) (f : I ⟶ X) :
+lemma is_initial.mono_from [initial_mono_class C] {I} {X : C} (hI : is_initial I) (f : I ⟶ X) :
   mono f :=
 begin
   rw hI.hom_ext f (hI.to X),
-  apply zero_le_category.is_initial_mono_from,
+  apply initial_mono_class.is_initial_mono_from,
 end
 
-instance initial.mono_from [has_initial C] [zero_le_category C] (X : C) (f : ⊥_ C ⟶ X) : mono f :=
+@[priority 100]
+instance initial.mono_from [has_initial C] [initial_mono_class C] (X : C) (f : ⊥_ C ⟶ X) :
+  mono f :=
 initial_is_initial.mono_from f
 
-/-- To show a category is a `zero_le_category` it suffices to give an initial object such that
+/-- To show a category is a `initial_mono_class` it suffices to give an initial object such that
 every morphism out of it is a monomorphism. -/
-lemma zero_le_category.of_is_initial {I : C} (hI : is_initial I) (h : ∀ X, mono (hI.to X)) :
-  zero_le_category C :=
+lemma initial_mono_class.of_is_initial {I : C} (hI : is_initial I) (h : ∀ X, mono (hI.to X)) :
+  initial_mono_class C :=
 { is_initial_mono_from := λ I' X hI',
   begin
     rw hI'.hom_ext (hI'.to X) ((hI'.unique_up_to_iso hI).hom ≫ hI.to X),
     apply mono_comp,
   end }
 
-/-- To show a category is a `zero_le_category` it suffices to show every morphism out of the
+/-- To show a category is a `initial_mono_class` it suffices to show every morphism out of the
 initial object is a monomorphism. -/
-lemma zero_le_category.of_initial [has_initial C] (h : ∀ X : C, mono (initial.to X)) :
-  zero_le_category C :=
-zero_le_category.of_is_initial initial_is_initial h
+lemma initial_mono_class.of_initial [has_initial C] (h : ∀ X : C, mono (initial.to X)) :
+  initial_mono_class C :=
+initial_mono_class.of_is_initial initial_is_initial h
 
-/-- To show a category is a `zero_le_category` it suffices to show the unique morphism from an
+/-- To show a category is a `initial_mono_class` it suffices to show the unique morphism from an
 initial object to a terminal object is a monomorphism. -/
-lemma zero_le_category.of_is_terminal {I T : C} (hI : is_initial I) (hT : is_terminal T)
+lemma initial_mono_class.of_is_terminal {I T : C} (hI : is_initial I) (hT : is_terminal T)
   (f : mono (hI.to T)) :
-  zero_le_category C :=
-begin
-  apply zero_le_category.of_is_initial hI,
-  intros X,
-  apply mono_of_mono_fac (hI.hom_ext (hI.to X ≫ hT.from X) (hI.to T)),
-end
+  initial_mono_class C :=
+initial_mono_class.of_is_initial hI (λ X, mono_of_mono_fac (hI.hom_ext (_ ≫ hT.from X) (hI.to T)))
 
-/-- To show a category is a `zero_le_category` it suffices to show the unique morphism from the
+/-- To show a category is a `initial_mono_class` it suffices to show the unique morphism from the
 initial object to a terminal object is a monomorphism. -/
-lemma zero_le_category.of_terminal [has_initial C] [has_terminal C] (h : mono (initial.to (⊤_ C))) :
-  zero_le_category C :=
-zero_le_category.of_is_terminal initial_is_initial terminal_is_terminal h
+lemma initial_mono_class.of_terminal [has_initial C] [has_terminal C]
+  (h : mono (initial.to (⊤_ C))) :
+  initial_mono_class C :=
+initial_mono_class.of_is_terminal initial_is_initial terminal_is_terminal h
 
 section comparison
 variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)

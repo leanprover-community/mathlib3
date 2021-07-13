@@ -60,7 +60,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 ## Tags
 
 cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
-Cantor's theorem, König's theorem
+Cantor's theorem, König's theorem, Konig's theorem
 -/
 
 open function set
@@ -339,8 +339,7 @@ quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_con
 
 end order_properties
 
-
-
+/-- **Cantor's theorem** -/
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
 by rw ← prop_eq_two; rintros ⟨a⟩; exact ⟨
   ⟨⟨λ a b, ⟨a = b⟩, λ a b h, cast (ulift.up.inj (@congr_fun _ _ _ _ h b)).symm rfl⟩⟩,
@@ -931,7 +930,7 @@ begin
   { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
 end
 
-/-- König's theorem -/
+/-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
   have : inhabited (Π (i : ι), (g i).out),

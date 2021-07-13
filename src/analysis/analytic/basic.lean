@@ -794,7 +794,7 @@ with non-definitional equalities. -/
       rintro ⟨k, l, ⟨s : finset (fin $ k + l), hs : s.card = l⟩⟩,
       dsimp only [subtype.coe_mk],
       -- Lean can't automatically generalize `k' = k + l - s.card`, `l' = s.card`, so we explicitly
-      -- formulate the genralized goal
+      -- formulate the generalized goal
       suffices : ∀ k' l', k' = k → l' = l → ∀ (hkl : k + l = k' + l') hs',
         (⟨k', l', ⟨finset.map (fin.cast hkl).to_equiv.to_embedding s, hs'⟩⟩ :
           (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l})) = ⟨k, l, ⟨s, hs⟩⟩,

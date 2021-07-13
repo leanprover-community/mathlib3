@@ -1339,6 +1339,20 @@ begin
   exact le_rfl,
 end
 
+variables (hs)
+
+lemma snorm_indicator_le {E : Type*} [normed_group E] (f : α → E) :
+  snorm (s.indicator f) p μ ≤ snorm f p μ :=
+begin
+  refine snorm_mono_ae (eventually_of_forall (λ x, _)),
+  suffices : ∥s.indicator f x∥₊ ≤ ∥f x∥₊,
+  { exact nnreal.coe_mono this },
+  rw nnnorm_indicator_eq_indicator_nnnorm,
+  exact s.indicator_le_self _ x,
+end
+
+variables {hs}
+
 lemma snorm_indicator_const {c : G} (hs : measurable_set s) (hp : p ≠ 0) (hp_top : p ≠ ∞) :
   snorm (s.indicator (λ x, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=
 begin
@@ -1362,6 +1376,10 @@ begin
   { simp [hp_top, snorm_ess_sup_indicator_const_eq s c hμs], },
   { exact snorm_indicator_const hs hp hp_top, },
 end
+
+lemma mem_ℒp.indicator (hs : measurable_set s) (hf : mem_ℒp f p μ) :
+  mem_ℒp (s.indicator f) p μ :=
+⟨hf.ae_measurable.indicator hs, lt_of_le_of_lt (snorm_indicator_le f) hf.snorm_lt_top⟩
 
 lemma mem_ℒp_indicator_const (p : ℝ≥0∞) (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s ≠ ∞) :
   mem_ℒp (s.indicator (λ _, c)) p μ :=
@@ -1390,6 +1408,9 @@ end
 end indicator
 
 section indicator_const_Lp
+
+open set function
+
 variables {s : set α} {hs : measurable_set s} {hμs : μ s ≠ ∞} {c : E}
   [borel_space E] [second_countable_topology E]
 
@@ -1426,6 +1447,15 @@ begin
   { rw [hp_top, ennreal.top_to_real, div_zero, real.rpow_zero, mul_one],
     exact norm_indicator_const_Lp_top hμs_pos, },
   { exact norm_indicator_const_Lp hp_pos hp_top, },
+end
+
+lemma mem_ℒp_add_of_disjoint {f g : α → E}
+  (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
+  mem_ℒp (f + g) p μ ↔ mem_ℒp f p μ ∧ mem_ℒp g p μ :=
+begin
+  refine ⟨λ hfg, ⟨_, _⟩, λ h, h.1.add h.2⟩,
+  { rw ← indicator_add_eq_left h, exact hfg.indicator (measurable_set_support hf) },
+  { rw ← indicator_add_eq_right h, exact hfg.indicator (measurable_set_support hg) }
 end
 
 /-- The indicator of a disjoint union of two sets is the sum of the indicators of the sets. -/
@@ -1540,9 +1570,9 @@ lemma continuous_comp_Lp [fact (1 ≤ p)] (hg : lipschitz_with c g) (g0 : g 0 = 
 end lipschitz_with
 
 namespace continuous_linear_map
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
 
-/-- Composing `f : Lp ` with `L : E →L[ℝ] F`. -/
+/-- Composing `f : Lp ` with `L : E →L[𝕜] F`. -/
 def comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) : Lp F p μ :=
 L.lipschitz.comp_Lp (map_zero L) f
 
@@ -1576,7 +1606,12 @@ def comp_Lpₗ (L : E →L[𝕜] F) : (Lp E p μ) →ₗ[𝕜] (Lp F p μ) :=
   end }
 
 /-- Composing `f : Lp E p μ` with `L : E →L[𝕜] F`, seen as a continuous `𝕜`-linear map on
-`Lp E p μ`. -/
+`Lp E p μ`. See also the similar
+* `linear_map.comp_left` for functions,
+* `continuous_linear_map.comp_left_continuous` for continuous functions,
+* `continuous_linear_map.comp_left_continuous_bounded` for bounded continuous functions,
+* `continuous_linear_map.comp_left_continuous_compact` for continuous functions on compact spaces.
+-/
 def comp_LpL [fact (1 ≤ p)] (L : E →L[𝕜] F) : (Lp E p μ) →L[𝕜] (Lp F p μ) :=
 linear_map.mk_continuous (L.comp_Lpₗ p μ) ∥L∥ L.norm_comp_Lp_le
 
@@ -1922,7 +1957,7 @@ begin
   have h : ∀ᵐ x ∂μ, ∃ l : E,
     at_top.tendsto (λ n, ∑ i in finset.range n, (f (i + 1) x - f i x)) (𝓝 l),
   { refine h_summable.mono (λ x hx, _),
-    let hx_sum := (summable.has_sum_iff_tendsto_nat hx).mp hx.has_sum,
+    let hx_sum := hx.has_sum.tendsto_sum_nat,
     exact ⟨∑' i, (f (i + 1) x - f i x), hx_sum⟩, },
   refine h.mono (λ x hx, _),
   cases hx with l hx,
@@ -2046,8 +2081,8 @@ namespace bounded_continuous_function
 
 open_locale bounded_continuous_function
 variables [borel_space E] [second_countable_topology E]
-variables [topological_space α] [borel_space α]
-variables [finite_measure μ]
+  [topological_space α] [borel_space α]
+  [finite_measure μ]
 
 /-- A bounded continuous function is in `Lp`. -/
 lemma mem_Lp (f : α →ᵇ E) :

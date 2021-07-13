@@ -905,12 +905,7 @@ by ext i j; simp
 
 @[simp] lemma conj_transpose_one [decidable_eq n] [semiring α] [star_ring α]:
   (1 : matrix n n α)ᴴ = 1 :=
-begin
-  ext,
-  simp [one_apply, apply_ite star],
-  by_cases i = j;
-  simp*, try {tidy}
-end
+by simp [conj_transpose]
 
 @[simp] lemma conj_transpose_add
 [semiring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :

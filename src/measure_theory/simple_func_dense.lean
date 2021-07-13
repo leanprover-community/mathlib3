@@ -460,12 +460,12 @@ integrable_iff.mp hf x hx
 
 lemma measure_lt_top_of_mem_ℒp_indicator (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {c : E} (hc : c ≠ 0)
   {s : set α} (hs : measurable_set s)
-  (hcs : mem_ℒp (simple_func.piecewise s hs (simple_func.const α c) (simple_func.const α 0)) p μ) :
+  (hcs : mem_ℒp ((const α c).piecewise s hs (const α 0)) p μ) :
   μ s < ⊤ :=
 begin
   have : function.support (const α c) = set.univ := function.support_const hc,
   simpa only [mem_ℒp_iff_fin_meas_supp hp_pos hp_ne_top, fin_meas_supp_iff_support,
-    Lp.simple_func.support_indicator, set.inter_univ, this] using hcs
+    support_indicator, set.inter_univ, this] using hcs
 end
 
 end simple_func_properties
@@ -719,8 +719,7 @@ begin
     by_cases hc : c = 0,
     { convert h_ind 0 measurable_set.empty (by simp) using 1,
       ext1,
-      simp [hc],
-      sorry },
+      simp [hc] },
     exact h_ind c hs (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs hf) },
   { intros f g hfg hf hg hfg',
     obtain ⟨hf', hg'⟩ : mem_ℒp f p μ ∧ mem_ℒp g p μ,

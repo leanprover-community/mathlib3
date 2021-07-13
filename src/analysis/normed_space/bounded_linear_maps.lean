@@ -10,16 +10,16 @@ import analysis.normed_space.multilinear
 
 This file defines a class stating that a map between normed vector spaces is (bi)linear and
 continuous.
-Instead of asking for continuity, the definition takes the equivalent condition that `∥f x∥` is
-bounded by a multiple of `∥x∥`. Hence the "bounded" in the name refers to `∥f x∥/∥x∥` rather than
-`∥f x∥` itself.
+Instead of asking for continuity, the definition takes the equivalent condition (because the space
+is normed) that `∥f x∥` is bounded by a multiple of `∥x∥`. Hence the "bounded" in the name refers to
+`∥f x∥/∥x∥` rather than `∥f x∥` itself.
 
 ## Main declarations
 
 * `is_bounded_linear_map`: Class stating that a map `f : E → F` is linear and continuous, but
-  through the simpler to provide statement that `∥ f x ∥` is bounded by a multiple of `∥ x ∥`.
+  through the simpler to provide statement that `∥f x∥` is bounded by a multiple of `∥x∥`.
   Effectively an unbundled version of `continuous_linear_map`, albeit the name disparity.
-* `is_bounded_bilinear_map`! Class stating that a map `f : E × F → G` is bilinear and continuous,
+* `is_bounded_bilinear_map`: Class stating that a map `f : E × F → G` is bilinear and continuous,
   but through the simpler to provide statement that `∥f (x, y)∥` is bounded by a multiple of
   `∥x∥ * ∥y∥`
 * `is_bounded_bilinear_map.linear_deriv`: Derivative of a continuous bilinear map as a linear map.
@@ -31,11 +31,11 @@ bounded by a multiple of `∥x∥`. Hence the "bounded" in the name refers to `�
 ## Notes
 
 The main use of this file is `is_bounded_bilinear_map`. The file `analysis.normed_space.multilinear`
-already expands the theory of multilinear maps, but the `2`-variables case is sufficiently simpler
+already expounds the theory of multilinear maps, but the `2`-variables case is sufficiently simpler
 to currently deserve its own treatment.
 
-`is_bounded_linear_map` should in most cases be replaced by a bundled `continuous_linear_map`. The
-latter is developed in `analysis.normed_space.operator_norm`.
+A bundled `continuous_linear_map` is to be preferred over a function with a `is_bounded_linear_map`
+hypothesis. The former is developed in `analysis.normed_space.operator_norm`.
 -/
 
 noncomputable theory
@@ -50,15 +50,15 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 
 /-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
-inequality `∥ f x ∥ ≤ M * ∥ x ∥` for some positive constant `M`. -/
+inequality `∥f x∥ ≤ M * ∥x∥` for some positive constant `M`. -/
 structure is_bounded_linear_map (𝕜 : Type*) [normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {F : Type*} [normed_group F] [normed_space 𝕜 F] (f : E → F)
   extends is_linear_map 𝕜 f : Prop :=
-(bound : ∃ M, 0 < M ∧ ∀ x : E, ∥ f x ∥ ≤ M * ∥ x ∥)
+(bound : ∃ M, 0 < M ∧ ∀ x : E, ∥f x∥ ≤ M * ∥x∥)
 
 lemma is_linear_map.with_bound
-  {f : E → F} (hf : is_linear_map 𝕜 f) (M : ℝ) (h : ∀ x : E, ∥ f x ∥ ≤ M * ∥ x ∥) :
+  {f : E → F} (hf : is_linear_map 𝕜 f) (M : ℝ) (h : ∀ x : E, ∥f x∥ ≤ M * ∥x∥) :
   is_bounded_linear_map 𝕜 f :=
 ⟨ hf, classical.by_cases
   (assume : M ≤ 0, ⟨1, zero_lt_one, λ x,

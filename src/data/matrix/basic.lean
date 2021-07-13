@@ -931,8 +931,13 @@ end conj_transpose
 
 section has_star
 variables [has_star α]
+
 instance : has_star (matrix n n α) := {star := conj_transpose}
+
 @[simp] lemma star_eq_conj_transpose (M : matrix m m α) : star M = Mᴴ := rfl
+
+@[simp] lemma star_apply (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
+
 end has_star
 
 section star_ring
@@ -948,7 +953,7 @@ instance : star_ring (matrix n n α) :=
   star_add := λ M N, by { ext, simp, },
   star_mul := λ M N, by { ext, simp [mul_apply], }, }
 
-@[simp] lemma star_apply (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
+@[simp] lemma star_apply_of_star_ring (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
 
 lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
 

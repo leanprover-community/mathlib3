@@ -496,12 +496,10 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
 end⟩
 
 /--
-A useful special case of the pigeonhole principal with `θ = (mk α).succ`.
-
 A function whose codomain's cardinality is infinite but strictly smaller than its domain's
 has a fiber with cardinality strictly great than the codomain.
 -/
-theorem infinite_pigeonhole' {β α : Type u} (f : β → α)
+theorem infinite_pigeonhole_card_lt {β α : Type u} (f : β → α)
   (w : mk α < mk β) (w' : omega ≤ mk α) :
   ∃ a : α, mk α < mk (f ⁻¹' {a}) :=
 begin
@@ -515,12 +513,12 @@ end
 A function whose codomain's cardinality is infinite but strictly smaller than its domain's
 has an infinite fiber.
 -/
-theorem infinite_pigeonhole'' {β α : Type*} (f : β → α)
-  (w : mk α < mk β) (w' : omega ≤ mk α) :
+theorem exists_infinite_fiber {β α : Type*} (f : β → α)
+  (w : mk α < mk β) (w' : _root_.infinite α) :
   ∃ a : α, _root_.infinite (f ⁻¹' {a}) :=
 begin
-  simp_rw [cardinal.infinite_iff],
-  cases infinite_pigeonhole' f w w' with a ha,
+  simp_rw [cardinal.infinite_iff] at ⊢ w',
+  cases infinite_pigeonhole_card_lt f w w' with a ha,
   exact ⟨a, w'.trans ha.le⟩,
 end
 
@@ -533,8 +531,8 @@ lemma le_range_of_union_finset_eq_top
   {α β : Type*} [infinite β] (f : α → finset β) (w : (⋃ a, (f a : set β)) = ⊤) :
   mk β ≤ mk (range f) :=
 begin
-  have k : omega ≤ mk (range f),
-  { rw ←infinite_iff, rw infinite_coe_iff,
+  have k : _root_.infinite (range f),
+  { rw infinite_coe_iff,
     apply mt (union_finset_finite_of_range_finite f),
     rw w,
     exact infinite_univ, },
@@ -547,7 +545,7 @@ begin
     rw ←m,
     apply (λ b, (u b).some_spec),
   end,
-  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := infinite_pigeonhole'' u' h k,
+  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := exists_infinite_fiber u' h k,
   exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
 end
 

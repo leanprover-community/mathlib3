@@ -647,7 +647,7 @@ coe_submodule_fg _ inj _
 
 variables {S}
 
-lemma fg_unit (inj : function.injective (algebra_map R P))
+lemma fg_unit
   (I : units (fractional_ideal S P)) :
   fg (I : submodule R P) :=
 begin
@@ -663,15 +663,15 @@ begin
   rwa [submodule.one_le, submodule.span_mul_span]
 end
 
-lemma fg_of_is_unit (inj : function.injective (algebra_map R P))
+lemma fg_of_is_unit
   (I : fractional_ideal S P) (h : is_unit I) :
   fg (I : submodule R P) :=
-by { rcases h with ⟨I, rfl⟩, exact fg_unit inj I }
+by { rcases h with ⟨I, rfl⟩, exact fg_unit I }
 
 lemma _root_.ideal.fg_of_is_unit (inj : function.injective (algebra_map R P))
   (I : ideal R) (h : is_unit (I : fractional_ideal S P)) :
   I.fg :=
-by { rw ← coe_ideal_fg S inj I, exact fg_of_is_unit inj I h }
+by { rw ← coe_ideal_fg S inj I, exact fg_of_is_unit I h }
 
 variables (S P P')
 

@@ -41,7 +41,7 @@ namespace measure_theory
 variables {α β : Type*} [measurable_space α]
 
 /-- A vector measure on a measurable space `α` is a σ-additive `M`-valued function (for some `M`
-a add monoid) such that the empty set and non-measurable sets are mapped to zero. -/
+an add monoid) such that the empty set and non-measurable sets are mapped to zero. -/
 structure vector_measure (α : Type*) [measurable_space α]
   (M : Type*) [add_comm_monoid M] [topological_space M] :=
 (measure_of : set α → M)

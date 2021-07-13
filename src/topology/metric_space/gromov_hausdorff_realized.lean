@@ -76,7 +76,7 @@ def candidates : set (prod_space_fun X Y) :=
 
 /-- Version of the set of candidates in bounded_continuous_functions, to apply
 Arzela-Ascoli -/
-private def candidates_b : set (Cb X Y) := {f : Cb X Y | f.to_fun ∈ candidates X Y}
+private def candidates_b : set (Cb X Y) := {f : Cb X Y | (f : _ → ℝ) ∈ candidates X Y}
 
 end definitions --section
 
@@ -244,10 +244,7 @@ begin
                ∩ (⋂x y z, {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)})
                ∩ (⋂x, {f : Cb X Y | f (x, x) = 0})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}),
-  { ext,
-    simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq,
-               continuous_map.to_fun_eq_coe],
-    refl },
+  { ext, simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq], refl },
   rw this,
   repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _

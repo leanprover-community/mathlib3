@@ -23,6 +23,9 @@ sub-relation of the adjacency relation of the simple graph.
 * `subgraph.coe` is the coercion from a `G' : subgraph G` to a `simple_graph G'.verts`.
   (This cannot be a `has_coe` instance since the destination type depends on `G'`.)
 
+* `subgraph.is_spanning` for whether a subgraph is a spanning subgraph and
+  `subgraph.is_induced` for whether a subgraph is an induced subgraph.
+
 * A `bounded_lattice (subgraph G)` instance.
 
 * Graph homomorphisms from a subgraph to a graph (`subgraph.map_top`) and between subgraphs
@@ -73,6 +76,14 @@ lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 
 @[simp] lemma coe_adj_sub (G' : subgraph G) (u v : G'.verts) (h : G'.coe.adj u v) : G.adj u v :=
 G'.adj_sub h
+
+/-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
+def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
+
+/-- A subgraph is called an *induced subgraph* if vertices of `G'` are adjacent if
+they are adjacent in `G`. -/
+def is_induced (G' : subgraph G) : Prop :=
+∀ {v w : V}, v ∈ G'.verts → w ∈ G'.verts → G.adj v w → G'.adj v w
 
 /-- `G'.neighbor_set v` is the set of vertices adjacent to `v` in `G'`. -/
 def neighbor_set (G' : subgraph G) (v : V) : set V := set_of (G'.adj v)

@@ -104,7 +104,7 @@ variables {B : Type*} {E : B → Type*}
 congr_fun f.right_inv_def b
 
 /-- Equivalence between Pi functions and righ inverses. -/
-def bundle_section_right_inv : equiv (bundle_section E) (right_inv (proj E)) :=
+def bundle_section_equiv_right_inv : equiv (bundle_section E) (right_inv (proj E)) :=
 { to_fun := λ g, ⟨λ x, ⟨x, g x⟩, λ x, rfl⟩,
   inv_fun := λ g, (λ x, cast (congr_arg E (g.right_inverse x)) (g x).2),
   left_inv := λ g, rfl,
@@ -112,14 +112,14 @@ def bundle_section_right_inv : equiv (bundle_section E) (right_inv (proj E)) :=
 
 variables (x : B) (g : bundle_section E)
 
-@[simp] lemma right_inv.bundle_section_right_inv_symm_apply (g : right_inv (proj E)) :
-  bundle_section_right_inv.symm g x == (g x).2 := cast_heq _ (g x).snd
+@[simp] lemma right_inv.bundle_section_equiv_right_inv_symm_apply (g : right_inv (proj E)) :
+  bundle_section_equiv_right_inv.symm g x == (g x).2 := cast_heq _ (g x).snd
 
-@[simp] lemma bundle_section.bundle_section_right_inv_apply (g : bundle_section E) :
-(bundle_section_right_inv g) x = ⟨x, g x⟩ := rfl
+@[simp] lemma bundle_section.bundle_section_equiv_right_inv_apply (g : bundle_section E) :
+(bundle_section_equiv_right_inv g) x = ⟨x, g x⟩ := rfl
 
 @[simp] lemma right_inv.snd_eq_to_bundle_section_fst (g : right_inv (proj E)) :
-  bundle_section_right_inv.symm g (g x).fst = (g x).snd :=
+  bundle_section_equiv_right_inv.symm g (g x).fst = (g x).snd :=
 eq_of_heq ((cast_heq _ _).trans (congr_arg_heq sigma.snd (congr_arg g (g.fst_eq_id x))))
 
 end bundle_sections

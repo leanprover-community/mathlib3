@@ -101,8 +101,8 @@ lemma monomial_mem_lifts {s : S} (n : ℕ) (h : s ∈ set.range f) : (monomial n
 begin
   obtain ⟨r, rfl⟩ := set.mem_range.1 h,
   use monomial n r,
-  simp only [coe_map_ring_hom, set.mem_univ, map_monomial, subsemiring.coe_top, eq_self_iff_true, ring_hom.coe_of,
-  and_self],
+  simp only [coe_map_ring_hom, set.mem_univ, map_monomial, subsemiring.coe_top, eq_self_iff_true,
+    ring_hom.coe_of, and_self],
 end
 
 /-- If `p` lifts then `p.erase n` lifts. -/

@@ -423,7 +423,8 @@ begin
     ((df.comap_nhds_ne_bot _).nonempty_of_mem V₁_nhd),
 
   rcases (extend_Z_bilin_aux he de hf df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
-  rcases (extend_Z_bilin_aux hf df he de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
+  rcases (extend_Z_bilin_aux hf df he de (hφ.comp continuous_swap) W_nhd y₀ x₁)
+    with ⟨V₂, V₂_nhd, HV⟩,
 
   existsi [U₁ ∩ U₂, inter_mem_sets U₁_nhd U₂_nhd,
             V₁ ∩ V₂, inter_mem_sets V₁_nhd V₂_nhd],

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
+Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
 import algebra.big_operators.pi
 import algebra.module.pi
@@ -26,49 +26,21 @@ open dmatrix
 def matrix (m : Type u) (n : Type u') [fintype m] [fintype n] (α : Type v) : Type (max u u' v) :=
 m → n → α
 
-variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
+variables {l m n o p q: Type*} [fintype l]
+variables [fintype m] [fintype n] [fintype o] [fintype p] [fintype q]
 variables {m' : o → Type*} [∀ i, fintype (m' i)]
 variables {n' : o → Type*} [∀ i, fintype (n' i)]
 variables {R : Type*} {S : Type*} {α : Type v} {β : Type w}
 
+/-- `equiv.perm.to_matrix` converts a permutation `σ : equiv.perm m` to a matrix
+    containing ones and zeros. This definition is then used to define the Prop `matrix.is_perm`.
+    `equiv.perm.to_prequiv_to_matrix_eq_to_matrix` proves that
+    `σ.to_pequiv.to_matrix = σ.to_matrix` in `pequiv.lean`.-/
+def equiv.perm.to_matrix [decidable_eq m] [has_zero α] [has_one α] (σ : equiv.perm m) :
+matrix m m α
+| i j := if σ i = j then 1 else 0
+
 namespace matrix
-
-section ext
-variables {M N : matrix m n α}
-
-theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
-⟨λ h, funext $ λ i, funext $ h i, λ h, by simp [h]⟩
-
-@[ext] theorem ext : (∀ i j, M i j = N i j) → M = N :=
-ext_iff.mp
-
-end ext
-
-/-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`. -/
-def map (M : matrix m n α) (f : α → β) : matrix m n β := λ i j, f (M i j)
-
-@[simp]
-lemma map_apply {M : matrix m n α} {f : α → β} {i : m} {j : n} :
-  M.map f i j = f (M i j) := rfl
-
-@[simp]
-lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ} :
-  (M.map f).map g = M.map (g ∘ f) :=
-by { ext, simp, }
-
-/-- The transpose of a matrix. -/
-def transpose (M : matrix m n α) : matrix n m α
-| x y := M y x
-
-localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
-
-/-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
-def col (w : m → α) : matrix m unit α
-| x y := w x
-
-/-- `matrix.row u` is the row matrix whose entries are given by `u`. -/
-def row (v : n → α) : matrix unit n α
-| x y := v y
 
 instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
 instance [has_add α] : has_add (matrix m n α) := pi.has_add
@@ -97,6 +69,96 @@ instance [monoid R] [add_monoid α] [distrib_mul_action R α] :
   distrib_mul_action R (matrix m n α) := pi.distrib_mul_action _
 instance [semiring R] [add_comm_monoid α] [module R α] :
   module R (matrix m n α) := pi.module _ _ _
+
+section ext
+
+variables {M N : matrix m n α}
+
+theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
+⟨λ h, funext $ λ i, funext $ h i, λ h, by simp [h]⟩
+
+@[ext] theorem ext : (∀ i j, M i j = N i j) → M = N := ext_iff.mp
+
+end ext
+
+section transpose
+
+/-- The transpose of a matrix. -/
+def transpose (M : matrix m n α) : matrix n m α
+| x y := M y x
+localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
+
+lemma trans_col_eq_row (A : matrix m n α) (i : m) : (λ j, Aᵀ j i) = A i :=
+by simp [transpose]
+lemma trans_row_eq_col (A : matrix m n α) (j : n) : Aᵀ j = (λ i, A i j):=
+by ext; simp [transpose]
+
+instance vec_has_star [has_star α]: has_star (n → α) := ⟨λ v i, star (v i)⟩
+@[simp] lemma vec_star_ext [has_star α] (v : n → α) (i : n) : star v i = star (v i) := rfl
+
+def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α
+| x y := star (M y x)
+localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
+
+end transpose
+
+open_locale matrix
+
+protected def is_sym (A : matrix m m α) : Prop := Aᵀ = A
+
+protected def is_skewsym [has_neg α] (A : matrix m m α) : Prop := -Aᵀ = A
+
+protected def is_Hermitian [has_star α] (A : matrix m m α) : Prop := Aᴴ = A
+
+/-- Proposition `matrix.is_perm`.
+    `P.is_perm` means `P` is a permutation matrix.
+    A new file is probably required for systematically investigating permutation matrices. -/
+protected def is_perm [decidable_eq m] [has_zero α] [has_one α] (P : matrix m m α): Prop :=
+∃ σ : equiv.perm m, P = equiv.perm.to_matrix σ
+
+/-- Proposition `matrix.is_perfect_shuffle`.
+    `P.is_perfect_shuffle` means `P` is a perfect shuffle matrix.
+    A new file is probably required for systematically investigating perfect shuffle matrices. -/
+protected def is_perfect_shuffle
+[decidable_eq m] [has_zero α] [has_one α] (P : matrix m m α) : Prop :=
+∃ σ : equiv.perm m, (P = equiv.perm.to_matrix σ ∧ ∀ i : m, σ i ≠ i)
+
+/-- The "trace" of a matrix.
+    A different version of "trace" is defined in `trace.lean` as `matrix.trace`.
+    One advantage of `matrix.tr` is that this definition is more elementary,
+    which only requires α to be a `add_comm_monoid`; whilst `matrix.trace` requires
+    `[semiring β] [add_comm_monoid α] [module β α]`.
+    The equivalence can be easily established when `α` is indeed a `β-module`.
+    Another advantage is that `matrix.tr` is more convenient for users to explore lemmas/theorems
+    involving "tace" from a combinatorial aspect.-/
+def tr [add_comm_monoid α] (A : matrix n n α) : α := ∑ i : n, A i i
+/-
+lemma trace_eq_tr [semiring β] [add_comm_monoid α] [module β α] (A : matrix n n α)
+: trace n β α A = tr A := rfl
+-/
+
+lemma eq_of_empty [c: is_empty m] (M N: matrix m m α) : M = N :=
+by {ext, exfalso, apply is_empty_iff.mp c i}
+
+/-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`. -/
+def map (M : matrix m n α) (f : α → β) : matrix m n β := λ i j, f (M i j)
+
+@[simp]
+lemma map_apply {M : matrix m n α} {f : α → β} {i : m} {j : n} :
+  M.map f i j = f (M i j) := rfl
+
+@[simp]
+lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ} :
+  (M.map f).map g = M.map (g ∘ f) :=
+by { ext, simp, }
+
+/-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
+def col (w : m → α) : matrix m unit α
+| x y := w x
+
+/-- `matrix.row u` is the row matrix whose entries are given by `u`. -/
+def row (v : n → α) : matrix unit n α
+| x y := v y
 
 @[simp] lemma map_zero [has_zero α] [has_zero β] {f : α → β} (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=
@@ -251,21 +313,49 @@ by simp_rw [dot_product, mul_comm]
   dot_product v w = v ⟨⟩ * w ⟨⟩ :=
 by simp [dot_product]
 
-@[simp] lemma dot_product_zero [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product v 0 = 0 :=
+section dot_product_zero
+
+variables [non_unital_non_assoc_semiring α] (v : m → α)
+
+@[simp] lemma dot_product_zero  : dot_product v 0 = 0 :=
 by simp [dot_product]
 
-@[simp] lemma dot_product_zero' [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product v (λ _, 0) = 0 :=
+@[simp] lemma dot_product_zero'  : dot_product v (λ _, 0) = 0 :=
 dot_product_zero v
 
-@[simp] lemma zero_dot_product [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product 0 v = 0 :=
+@[simp] lemma zero_dot_product  : dot_product 0 v = 0 :=
 by simp [dot_product]
 
-@[simp] lemma zero_dot_product' [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product (λ _, (0 : α)) v = 0 :=
+@[simp] lemma zero_dot_product' : dot_product (λ _, (0 : α)) v = 0 :=
 zero_dot_product v
+
+end dot_product_zero
+
+section dot_product_one
+
+def vec_one [has_one α] : n → α := λ x, 1
+
+variables [mul_one_class α] [add_comm_monoid α]
+
+@[simp] lemma dot_product_one (v : n → α) : dot_product v vec_one = ∑ i, v i :=
+by simp [dot_product, vec_one]
+
+@[simp] lemma dot_product_one' (v : n → α) : dot_product v (λ i, 1) = ∑ i, v i :=
+by simp [dot_product]
+
+@[simp] lemma one_dot_product (v : n → α) : dot_product vec_one v = ∑ i, v i :=
+by simp [dot_product, vec_one]
+
+@[simp] lemma one_dot_product' (v : n → α) : dot_product (λ i, 1 : n → α) v = ∑ i, v i :=
+by simp [dot_product]
+
+lemma one_dot_one_eq_card : dot_product (vec_one : n → α) vec_one = fintype.card n :=
+by simp [dot_product, vec_one, fintype.card]
+
+lemma one_dot_one_eq_card' : dot_product (λ i, 1 : n → α) (λ i, 1) = fintype.card n :=
+by simp [dot_product, fintype.card]
+
+end dot_product_one
 
 @[simp] lemma add_dot_product [non_unital_non_assoc_semiring α] (u v w : m → α) :
   dot_product (u + v) w = dot_product u w + dot_product v w :=
@@ -274,6 +364,14 @@ by simp [dot_product, add_mul, finset.sum_add_distrib]
 @[simp] lemma dot_product_add [non_unital_non_assoc_semiring α] (u v w : m → α) :
   dot_product u (v + w) = dot_product u v + dot_product u w :=
 by simp [dot_product, mul_add, finset.sum_add_distrib]
+
+lemma dot_product_block' [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :
+dot_product v w = ∑ i, v (sum.inl i) * w (sum.inl i) + ∑ j, v (sum.inr j) * w (sum.inr j) :=
+by {rw [dot_product, ←fintype.sum_sum_elim], congr, ext (i | j); simp }
+
+lemma dot_product_block [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :
+dot_product v w = dot_product (λ i, v (sum.inl i))  (λ i, w (sum.inl i)) + dot_product (λ j, v (sum.inr j))  (λ j, w (sum.inr j)) :=
+by simp [dot_product, dot_product_block']
 
 @[simp] lemma diagonal_dot_product [decidable_eq m] [non_unital_non_assoc_semiring α]
   (v w : m → α) (i : m) :
@@ -710,6 +808,18 @@ by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
 @[simp] lemma vec_mul_one [decidable_eq m] (v : m → α) : vec_mul v 1 = v :=
 by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
 
+@[simp] lemma mul_vector_one (A : matrix m n α) : mul_vec A vec_one = λ i, ∑ j, A i j :=
+by ext; simp [mul_vec, vec_one, dot_product]
+
+@[simp] lemma mul_vector_one' (A : matrix m n α) : mul_vec A (λ i, 1) = λ i, ∑ j, A i j :=
+by ext; simp [mul_vec, dot_product]
+
+@[simp] lemma vector_one_mul (A : matrix m n α) : vec_mul vec_one A = λ j, ∑ i, A i j :=
+by ext; simp [vec_mul, vec_one, dot_product]
+
+@[simp] lemma vector_one_mul' (A : matrix m n α) : vec_mul (λ j, 1 : m → α) A = λ j, ∑ i, A i j :=
+by ext; simp [vec_mul, dot_product]
+
 end non_assoc_semiring
 
 section semiring
@@ -895,6 +1005,10 @@ instance : star_ring (matrix n n α) :=
 
 lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
 
+lemma conj_transpose_eq_star_of_square_matrix
+[decidable_eq m] [semiring α] [star_ring α] (M : matrix m m α) :
+Mᴴ = star M := rfl
+
 end star_ring
 
 /-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of
@@ -1023,6 +1137,18 @@ def reindex (eₘ : m ≃ l) (eₙ : n ≃ o) : matrix m n α ≃ matrix l o α 
   inv_fun   := λ M, M.minor eₘ eₙ,
   left_inv  := λ M, by simp,
   right_inv := λ M, by simp, }
+
+def reindex_prod_assoc : matrix ((l × m) × n) ((o × p) × q) α ≃ matrix (l × m × n) (o × p × q) α :=
+reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
+
+def reindex_prod_comm_snd : matrix l (m × n) α ≃ matrix l (n × m) α :=
+reindex (equiv.refl _) (equiv.prod_comm _ _)
+
+def reindex_prod_comm_fst : matrix (l × m) n α ≃ matrix (m × l) n α :=
+reindex (equiv.prod_comm _ _) (equiv.refl _)
+
+def reindex_prod_comm : matrix (m × n) (p × q) α ≃ matrix (n × m) (q × p) α :=
+reindex (equiv.prod_comm _ _) (equiv.prod_comm _ _)
 
 @[simp] lemma reindex_apply (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
   reindex eₘ eₙ M = M.minor eₘ.symm eₙ.symm :=

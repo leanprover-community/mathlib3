@@ -541,7 +541,7 @@ end
 
 /-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ∥f∥ as an
 `Inf`. -/
-lemma norm_of_non_empty_eq [h : nonempty α] : ∥f∥ = Inf {C : ℝ | ∀ (x : α), ∥f x∥ ≤ C} :=
+lemma norm_eq_of_non_empty [h : nonempty α] : ∥f∥ = Inf {C : ℝ | ∀ (x : α), ∥f x∥ ≤ C} :=
 begin
   unfreezingI { obtain ⟨a⟩ := h, },
   rw norm_eq,
@@ -551,7 +551,7 @@ begin
   exact λ h', le_trans (norm_nonneg (f a)) (h' a),
 end
 
-@[simp] lemma norm_of_empty_eq_zero (h : ¬ nonempty α) : ∥f∥ = 0 :=
+@[simp] lemma norm_eq_zero_of_empty (h : ¬ nonempty α) : ∥f∥ = 0 :=
 begin
   have h' : ∀ (C : ℝ) (x : α), ∥f x∥ ≤ C, { intros, exfalso, apply h, use x, },
   simp only [norm_eq, h', and_true, implies_true_iff],
@@ -562,13 +562,13 @@ lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
 begin
   by_cases hα : nonempty α,
   { haveI := hα,
-    rw [norm_of_non_empty_eq, supr,
+    rw [norm_eq_of_non_empty, supr,
       ← cInf_upper_bounds_eq_cSup f.bdd_above_range_norm_comp (set.range_nonempty _)],
     congr,
     ext,
     simp only [forall_apply_eq_imp_iff', set.mem_range, exists_imp_distrib], },
   { suffices : set.range (norm ∘ f) = ∅,
-    { rw [f.norm_of_empty_eq_zero hα, supr, this, real.Sup_empty], },
+    { rw [f.norm_eq_zero_of_empty hα, supr, this, real.Sup_empty], },
     exact set.range_eq_empty.mpr hα, },
 end
 

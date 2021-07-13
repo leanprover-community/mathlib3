@@ -3803,9 +3803,57 @@ match _, permutations_aux2_fst t ts r _ _ : ∀ o : list α × list β, o.1 = ys
 | ⟨_, zs⟩, rfl := rfl
 end
 
+/-- The `r` argument to `permutations_aux2` is the same as appending. -/
 theorem permutations_aux2_append (t : α) (ts : list α) (r : list β) (ys : list α) (f : list α → β) :
   (permutations_aux2 t ts nil ys f).2 ++ r = (permutations_aux2 t ts r ys f).2 :=
 by induction ys generalizing f; simp *
+
+/-- The `ts` argument to `permutations_aux2` can be folded into the `f` argument. -/
+theorem permutations_aux2_comp_append {t : α} {ts ys : list α} {r : list β} (f : list α → β) :
+  (permutations_aux2 t [] r ys $ λ x, f (x ++ ts)).2 = (permutations_aux2 t ts r ys f).2 :=
+begin
+  induction ys generalizing f,
+  { simp },
+  { simp [ys_ih (λ xs, f (ys_hd :: xs))] },
+end
+
+theorem map_permutations_aux2' {α β α' β'} (g : α → α') (g' : β → β')
+  (t : α) (ts ys : list α) (r : list β) (f : list α → β) (f' : list α' → β')
+  (H : ∀ a, g' (f a) = f' (map g a)) :
+  map g' (permutations_aux2 t ts r ys f).2 =
+  (permutations_aux2 (g t) (map g ts) (map g' r) (map g ys) f').2 :=
+begin
+  induction ys generalizing f f'; simp *,
+  apply ys_ih, simp [H],
+end
+
+/-- The `f` argument to `permutations_aux2` when `r = []` can be eliminated. -/
+theorem map_permutations_aux2 (t : α) (ts : list α) (ys : list α) (f : list α → β) :
+  (permutations_aux2 t ts [] ys id).2.map f = (permutations_aux2 t ts [] ys f).2 :=
+begin
+  convert map_permutations_aux2' id _ _ _ _ _ _ _ _; simp only [map_id, id.def],
+  exact (λ _, rfl)
+end
+
+/-- An expository lemma to show how all of `ts`, `r`, and `f` can be eliminated from
+`permutations_aux2`.
+
+`(permutations_aux2 t [] [] ys id).2`, which appears on the RHS, is a list whose elements are
+produced by inserting `t` into every non-terminal position of `ys` in order. As an example:
+```lean
+#eval permutations_aux2 1 [] [] [2, 3, 4] id
+-- [[1, 2, 3, 4], [2, 1, 3, 4], [2, 3, 1, 4]]
+```
+-/
+lemma permutations_aux2_snd_eq (t : α) (ts : list α) (r : list β) (ys : list α) (f : list α → β) :
+  (permutations_aux2 t ts r ys f).2 =
+    (permutations_aux2 t [] [] ys id).2.map (λ x, f (x ++ ts)) ++ r :=
+by rw [←permutations_aux2_append, map_permutations_aux2, permutations_aux2_comp_append]
+
+theorem map_map_permutations_aux2 {α α'} (g : α → α') (t : α) (ts ys : list α) :
+  map (map g) (permutations_aux2 t ts [] ys id).2 =
+  (permutations_aux2 (g t) (map g ts) [] (map g ys) id).2 :=
+map_permutations_aux2' _ _ _ _ _ _ _ _ (λ _, rfl)
 
 theorem mem_permutations_aux2 {t : α} {ts : list α} {ys : list α} {l l' : list α} :
     l' ∈ (permutations_aux2 t ts [] ys (append l)).2 ↔
@@ -3873,27 +3921,12 @@ by rw [permutations_aux, permutations_aux.rec]
     (permutations_aux ts (t::is)) (permutations is) :=
 by rw [permutations_aux, permutations_aux.rec]; refl
 
-theorem map_permutations_aux2' {α β α' β'} (g : α → α') (g' : β → β')
-  (t : α) (ts ys : list α) (r : list β) (f : list α → β) (f' : list α' → β')
-  (H : ∀ a, g' (f a) = f' (map g a)) :
-  map g' (permutations_aux2 t ts r ys f).2 =
-  (permutations_aux2 (g t) (map g ts) (map g' r) (map g ys) f').2 :=
-begin
-  induction ys generalizing f f'; simp *,
-  apply ys_ih, simp [H],
-end
-
-theorem map_permutations_aux2 {α α'} (g : α → α') (t : α) (ts ys : list α) :
-  map (map g) (permutations_aux2 t ts [] ys id).2 =
-  (permutations_aux2 (g t) (map g ts) [] (map g ys) id).2 :=
-map_permutations_aux2' _ _ _ _ _ _ _ _ (λ _, rfl)
-
 theorem map_permutations_aux (f : α → β) : ∀ (ts is : list α),
   map (map f) (permutations_aux ts is) = permutations_aux (map f ts) (map f is) :=
 begin
   refine permutations_aux.rec (by simp) _,
   introv IH1 IH2, rw map at IH2,
-  simp only [foldr_permutations_aux2, map_append, map, map_permutations_aux2, permutations,
+  simp only [foldr_permutations_aux2, map_append, map, map_map_permutations_aux2, permutations,
     bind_map, IH1, append_assoc, permutations_aux_cons, cons_bind, ← IH2, map_bind],
 end
 

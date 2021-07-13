@@ -1710,6 +1710,16 @@ begin
   exact lintegral_mono' restrict_Union_le (le_refl _)
 end
 
+lemma lintegral_union {f : α → ℝ≥0∞} {A B : set α}
+  (hA : measurable_set A) (hB : measurable_set B) (hAB : disjoint A B) :
+  ∫⁻ a in A ∪ B, f a ∂μ = ∫⁻ a in A, f a ∂μ + ∫⁻ a in B, f a ∂μ :=
+begin
+  rw [set.union_eq_Union, lintegral_Union, tsum_bool, add_comm],
+  { simp only [to_bool_false_eq_ff, to_bool_true_eq_tt, cond] },
+  { intros i, exact measurable_set.cond hA hB },
+  { rwa pairwise_disjoint_on_bool }
+end
+
 lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin

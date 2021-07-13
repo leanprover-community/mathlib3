@@ -59,18 +59,14 @@ by { ext, simp, }
 /-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
+
 localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
 /-- The conjugate transpose of a matrix. -/
 def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α :=
   M.transpose.map star
+
 localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
-
-instance [has_star α] : has_star (matrix n n α) := {star := conj_transpose}
-
-lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ := rfl
-
-@[simp] lemma star_apply [has_star α] (M : matrix n n α) (i j) : (star M) i j = star (M j i) := rfl
 
 /-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
 def col (w : m → α) : matrix m unit α
@@ -935,15 +931,39 @@ by ext i j; simp [mul_comm]
 
 end conj_transpose
 
+section star
+
+instance [has_star α] : has_star (matrix n n α) := {star := conj_transpose}
+
+lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ := rfl
+
+@[simp] lemma star_apply [has_star α] (M : matrix n n α) (i j) :
+  (star M) i j = star (M j i) := rfl
+
+instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
+{ star := λ M, M.transpose.map star,
+  star_involutive := conj_transpose_conj_transpose, }
+
+@[simp] lemma star_star [has_involutive_star α] (M : matrix n n α) :
+  star (star M) = M := star_star M
+
 /--
-When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
+When `α` is a `*`-(semi)ring, `matrix n n α` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
 -/
 instance [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
 { star := λ M, M.transpose.map star,
-  star_involutive := λ M, by ext; simp,
+  star_involutive := conj_transpose_conj_transpose,
   star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }
+
+lemma star_add [decidable_eq n] [semiring α] [star_ring α] (M N : matrix n n α) :
+  star (M + N) = star M + star N := star_add _ _
+
+lemma star_mul [decidable_eq n] [semiring α] [star_ring α] (M N : matrix n n α) :
+  star (M ⬝ N) = star N ⬝ star M := star_mul _ _
+
+end star
 
 /-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of
 a matrix `M : matrix m n α`, the matrix `M.minor r_reindex c_reindex : matrix l o α` is defined

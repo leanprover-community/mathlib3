@@ -929,7 +929,7 @@ end conj_transpose
 section star
 
 /-- When `α` has a star operation, square matrices `matrix n n α` have a star
-operation given by taking the transpose, and the star of each entry. -/
+operation equal to `matrix.conj_transpose`. -/
 instance [has_star α] : has_star (matrix n n α) := {star := conj_transpose}
 
 lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ := rfl

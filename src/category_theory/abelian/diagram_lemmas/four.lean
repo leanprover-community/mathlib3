@@ -6,30 +6,49 @@ Authors: Markus Himmel
 import category_theory.abelian.pseudoelements
 
 /-!
-# The four lemma
+# The four and five lemmas
 
 Consider the following commutative diagram with exact rows in an abelian category:
 
-A ---f--> B ---g--> C ---h--> D
-|         |         |         |
-α         β         γ         δ
-|         |         |         |
-v         v         v         v
-A' --f'-> B' --g'-> C' --h'-> D'
+```
+A ---f--> B ---g--> C ---h--> D ---i--> E
+|         |         |         |         |
+α         β         γ         δ         ε
+|         |         |         |         |
+v         v         v         v         v
+A' --f'-> B' --g'-> C' --h'-> D' --i'-> E'
+```
 
-We prove the "mono" version of the four lemma: if α is an epimorphism and β and δ are monomorphisms,
-then γ is a monomorphism.
+We show:
+- the "mono" version of the four lemma: if `α` is an epimorphism and `β` and `δ` are monomorphisms,
+  then `γ` is a monomorphism,
+- the "epi" version of the four lemma: if `β` and `δ` are epimorphisms and `ε` is a monomorphism,
+  then `γ` is an epimorphism,
+- the five lemma: if `α`, `β`, `δ` and `ε` are isomorphisms, then `γ` is an isomorphism.
 
-## Future work
+## Implementation details
 
-The "epi" four lemma and the five lemma, which is then an easy corollary.
+To show the mono version, we use pseudoelements. For the epi version, we use a completely different
+arrow-theoretic proof. In theory, it should be sufficient to have one version and the other should
+follow automatically by duality. In practice, mathlib's knowledge about duality isn't quite at the
+point where this is doable easily.
+
+However, one key duality statement about exactness is needed in the proof of the epi version of the
+four lemma: we need to know that exactness of a pair `(f, g)`, which we defined via the map from
+the image of `f` to the kernel of `g`, is the same as "co-exactness", defined via the map from the
+cokernel of `f` to the coimage of `g` (more precisely, we only need the consequence that if `(f, g)`
+is exact, then the factorization of `g` through the cokernel of `f` is monomorphic). Luckily, in the
+case of abelian categories, we have the characterization that `(f, g)` is exact if and only if
+`f ≫ g = 0` and `kernel.ι g ≫ cokernel.π f = 0`, and the latter condition is self dual, so the
+equivalence of exactness and co-exactness follows easily.
 
 ## Tags
 
-four lemma, diagram lemma, diagram chase
+four lemma, five lemma, diagram lemma, diagram chase
 -/
 open category_theory (hiding comp_apply)
 open category_theory.abelian.pseudoelement
+open category_theory.limits
 
 universes v u
 
@@ -44,11 +63,14 @@ variables {A B C D A' B' C' D' : V}
 variables {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
 variables {f' : A' ⟶ B'} {g' : B' ⟶ C'} {h' : C' ⟶ D'}
 variables {α : A ⟶ A'} {β : B ⟶ B'} {γ : C ⟶ C'} {δ : D ⟶ D'}
-variables [exact f g] [exact g h] [exact f' g']
 variables (comm₁ : α ≫ f' = f ≫ β) (comm₂ : β ≫ g' = g ≫ γ) (comm₃ : γ ≫ h' = h ≫ δ)
 include comm₁ comm₂ comm₃
 
-/-- The four lemma, mono version. For names of objects and morphisms, consider the following
+section
+variables [exact f g] [exact g h] [exact f' g']
+
+
+/-- The four lemma, mono version. For names of objects and morphisms, refer to the following
     diagram:
 
 ```
@@ -83,4 +105,76 @@ mono_of_zero_of_map_zero _ $ λ c hc,
          ... = g (f a) : by rw this
          ... = 0       : pseudo_exact_of_exact.1 _
 
+end
+
+section
+variables [exact g h] [exact f' g'] [exact g' h']
+
+/-- The four lemma, epi version. For names of objects and morphisms, refer to the following
+    diagram:
+
+```
+A ---f--> B ---g--> C ---h--> D
+|         |         |         |
+α         β         γ         δ
+|         |         |         |
+v         v         v         v
+A' --f'-> B' --g'-> C' --h'-> D'
+```
+-/
+lemma epi_of_epi_of_epi_of_mono (hα : epi α) (hγ : epi γ) (hδ : mono δ) : epi β :=
+preadditive.epi_of_cancel_zero _ $ λ R r hβr,
+  have hf'r : f' ≫ r = 0, from limits.zero_of_epi_comp α $
+    calc α ≫ f' ≫ r = f ≫ β ≫ r : by rw reassoc_of comm₁
+                 ... = f ≫ 0      : by rw hβr
+                 ... = 0           : has_zero_morphisms.comp_zero _ _,
+  let y : R ⟶ pushout r g' := pushout.inl, z : C' ⟶ pushout r g' := pushout.inr in
+  have mono y, from mono_inl_of_factor_thru_epi_mono_factorization r g' (cokernel.π f')
+    (cokernel.desc f' g' (by simp)) (by simp) (cokernel.desc f' r hf'r) (by simp) _
+    (colimit.is_colimit _),
+  have hz : g ≫ γ ≫ z = 0, from
+    calc g ≫ γ ≫ z = β ≫ g' ≫ z : by rw ←reassoc_of comm₂
+                ... = β ≫ r ≫ y  : by rw ←pushout.condition
+                ... = 0 ≫ y       : by rw reassoc_of hβr
+                ... = 0           : has_zero_morphisms.zero_comp _ _,
+  let v : pushout r g' ⟶ pushout (γ ≫ z) (h ≫ δ) := pushout.inl,
+      w : D' ⟶ pushout (γ ≫ z) (h ≫ δ) := pushout.inr in
+  have mono v, from mono_inl_of_factor_thru_epi_mono_factorization _ _ (cokernel.π g)
+    (cokernel.desc g h (by simp) ≫ δ) (by simp) (cokernel.desc _ _ hz) (by simp) _
+    (colimit.is_colimit _),
+  have hzv : z ≫ v = h' ≫ w, from (cancel_epi γ).1 $
+    calc γ ≫ z ≫ v = h ≫ δ ≫ w  : by rw [←category.assoc, pushout.condition, category.assoc]
+                ... = γ ≫ h' ≫ w : by rw reassoc_of comm₃,
+  suffices (r ≫ y) ≫ v = 0, by exactI zero_of_comp_mono _ (zero_of_comp_mono _ this),
+  calc (r ≫ y) ≫ v = g' ≫ z ≫ v : by rw [pushout.condition, category.assoc]
+                ... = g' ≫ h' ≫ w : by rw hzv
+                ... = 0 ≫ w        : exact.w_assoc _
+                ... = 0            : has_zero_morphisms.zero_comp _ _
+
+end
+
+section five
+variables {E E' : V} {i : D ⟶ E} {i' : D' ⟶ E'} {ε : E ⟶ E'} (comm₄ : δ ≫ i' = i ≫ ε)
+variables [exact f g] [exact g h] [exact h i] [exact f' g'] [exact g' h'] [exact h' i']
+variables [is_iso α] [is_iso β] [is_iso δ] [is_iso ε]
+include comm₄
+
+
+/-- The five lemma. For names of objects and morphisms, refer to the following diagram:
+
+```
+A ---f--> B ---g--> C ---h--> D ---i--> E
+|         |         |         |         |
+α         β         γ         δ         ε
+|         |         |         |         |
+v         v         v         v         v
+A' --f'-> B' --g'-> C' --h'-> D' --i'-> E'
+```
+-/
+lemma is_iso_of_is_iso_of_is_iso_of_is_iso_of_is_iso : is_iso γ :=
+have mono γ, by apply mono_of_epi_of_mono_of_mono comm₁ comm₂ comm₃; apply_instance,
+have epi γ, by apply epi_of_epi_of_epi_of_mono comm₂ comm₃ comm₄; apply_instance,
+by exactI is_iso_of_mono_of_epi _
+
+end five
 end category_theory.abelian

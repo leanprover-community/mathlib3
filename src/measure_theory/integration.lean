@@ -907,7 +907,7 @@ section lintegral
 open simple_func
 variables [measurable_space α] {μ : measure α}
 
-/-- The lower Lebesgue integral of a function `f` with respect to a measure `μ`. -/
+/-- The **lower Lebesgue integral** of a function `f` with respect to a measure `μ`. -/
 def lintegral (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
 ⨆ (g : α →ₛ ℝ≥0∞) (hf : ⇑g ≤ f), g.lintegral μ
 
@@ -1709,6 +1709,16 @@ lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ℝ≥0�
 begin
   rw [← lintegral_sum_measure],
   exact lintegral_mono' restrict_Union_le (le_refl _)
+end
+
+lemma lintegral_union {f : α → ℝ≥0∞} {A B : set α}
+  (hA : measurable_set A) (hB : measurable_set B) (hAB : disjoint A B) :
+  ∫⁻ a in A ∪ B, f a ∂μ = ∫⁻ a in A, f a ∂μ + ∫⁻ a in B, f a ∂μ :=
+begin
+  rw [set.union_eq_Union, lintegral_Union, tsum_bool, add_comm],
+  { simp only [to_bool_false_eq_ff, to_bool_true_eq_tt, cond] },
+  { intros i, exact measurable_set.cond hA hB },
+  { rwa pairwise_disjoint_on_bool }
 end
 
 lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}

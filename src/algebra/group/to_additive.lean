@@ -21,13 +21,11 @@ Usage information is contained in the doc string of `to_additive.attr`.
 
 * For structures, automatically generate theorems like `group α ↔
   add_group (additive α)`.
-
-* Rewrite rules for the last part of the name that work in more
-  cases. E.g., we can replace `monoid` with `add_monoid` etc.
 -/
 
 namespace to_additive
-open tactic exceptional
+open tactic
+setup_tactic_parser
 
 section performance_hack -- see Note [user attribute parameters]
 
@@ -60,10 +58,8 @@ end performance_hack
 
 section extra_attributes
 
-setup_tactic_parser
-
 /--
-n attribute that tells `@[to_additive]` that certain arguments of this definition are not
+An attribute that tells `@[to_additive]` that certain arguments of this definition are not
 involved when using `@[to_additive]`.
 This helps the heuristic of `@[to_additive]` by also transforming definitions if `ℕ` or another
 fixed type occurs as one of these arguments.
@@ -80,6 +76,30 @@ meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
         return $ dict.insert n (param.to_list expr.to_nat).iget)
       mk_name_map, []⟩,
   parser    := (lean.parser.small_nat)* }
+
+/--
+An attribute that stores all the declarations that needs their arguments reordered when
+applying `@[to_additive]`. Currently, we only support swapping consecutive arguments.
+The list of the natural numbers contains the positions of the first of the two arguments
+to be swapped.
+Example: `@[to_additive_reorder 1 4]` swaps the first two arguments and the arguments in
+positions 4 and 5.
+-/
+@[user_attribute]
+meta def reorder_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
+{ name      := `to_additive_reorder,
+  descr     :=
+    "Auxiliary attribute for `to_additive` that stores arguments that need to be reordered.",
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl
+      (λ dict n, do
+        param ← reorder_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        return $ dict.insert n (param.to_list expr.to_nat).iget)
+      mk_name_map, []⟩,
+  parser    := do
+    l ← (lean.parser.small_nat)*,
+    guard (l.all (≠ 0)) <|> exceptional.fail "The reorder positions must be positive",
+    return l }
 
 end extra_attributes
 
@@ -101,10 +121,18 @@ do let n := src.mk_string "_to_additive",
    aux_attr.set n tgt tt
 
 /-- `value_type` is the type of the arguments that can be provided to `to_additive`.
-`to_additive.parser` parses the provided arguments into `name` for the target and an
-optional doc string. -/
+`to_additive.parser` parses the provided arguments:
+* `replace_all`: replace all multiplicative declarations, do not use the heuristic.
+* `trace`: output the generated additive declaration.
+* `tgt : name`: the name of the target (the additive declaration).
+* `doc`: an optional doc string.
+-/
 @[derive has_reflect, derive inhabited]
-structure value_type : Type := (replace_all : bool) (tgt : name) (doc : option string)
+structure value_type : Type :=
+(replace_all : bool)
+(trace : bool)
+(tgt : name)
+(doc : option string)
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
@@ -166,18 +194,18 @@ meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
 Give the desired additive name explicitly using `@[to_additive additive_name]`. ")
   else pure res)
 
-setup_tactic_parser
-/-- the parser for the arguments to `to_additive` -/
+/-- the parser for the arguments to `to_additive`. -/
 meta def parser : lean.parser value_type :=
 do
-  b ← option.is_some <$> (tk "!")?,
+  bang ← option.is_some <$> (tk "!")?,
+  ques ← option.is_some <$> (tk "?")?,
   tgt ← ident?,
   e ← texpr?,
   doc ← match e with
       | some pe := some <$> ((to_expr pe >>= eval_expr string) : tactic string)
       | none := pure none
       end,
-  return ⟨b, tgt.get_or_else name.anonymous, doc⟩
+  return ⟨bang, ques, tgt.get_or_else name.anonymous, doc⟩
 
 private meta def proceed_fields_aux (src tgt : name) (prio : ℕ) (f : name → tactic (list string)) :
   command :=
@@ -365,13 +393,14 @@ protected meta def attr : user_attribute unit value_type :=
     val ← attr.get_param src,
     dict ← aux_attr.get_cache,
     ignore ← ignore_args_attr.get_cache,
+    reorder ← reorder_attr.get_cache,
     tgt ← target_name src val.tgt dict,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict val.replace_all ignore src tgt
+      transform_decl_with_prefix_dict dict val.replace_all val.trace ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp, `measurability],
       mwhen (has_attribute' `simps src)

@@ -167,16 +167,6 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hq0_lt) (ne_of_lt hfq),
 end
 
-lemma mem_ℒp.lintegral_rpow_nnnorm_lt_top {f : α → E} (hf : mem_ℒp f p μ) (hp₀ : p ≠ 0)
-  (hp : p ≠ ⊤) :
-  ∫⁻ (a : α), (nnnorm (f a)) ^ p.to_real ∂μ < ⊤ :=
-begin
-  apply lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top,
-  { sorry },
-  { rw ← snorm_eq_snorm' hp₀ hp,
-    exact hf.2 }
-end
-
 lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → F} (hp_ne_zero : p ≠ 0)
   (hp_ne_top : p ≠ ∞) (hfp : snorm f p μ < ∞) :
   ∫⁻ a, (nnnorm (f a)) ^ p.to_real ∂μ < ∞ :=
@@ -210,22 +200,6 @@ by simp [snorm]
 
 lemma mem_ℒp_zero_iff_ae_measurable {f : α → E} : mem_ℒp f 0 μ ↔ ae_measurable f μ :=
 by simp [mem_ℒp, snorm_exponent_zero]
-
-lemma mem_ℒp.of_lintegral_rpow_nnnorm_lt_top {f : α → E} (hf : ae_measurable f μ)
-  (hf_lint : ∫⁻ (a : α), (nnnorm (f a)) ^ p.to_real ∂μ < ⊤) (hp : p ≠ ⊤) :
-  mem_ℒp f p μ :=
-begin
-  by_cases hp₀ : p = 0,
-  { rw [hp₀, mem_ℒp_zero_iff_ae_measurable],
-    exact hf },
-  refine ⟨hf, _⟩,
-  rw snorm_eq_snorm' hp₀ hp,
-  suffices : (snorm' f p.to_real μ) ^ p.to_real < ⊤,
-  { sorry },
-  rw ← lintegral_rpow_nnnorm_eq_rpow_snorm',
-  { exact hf_lint },
-  { sorry }
-end
 
 @[simp] lemma snorm'_zero (hp0_lt : 0 < q) : snorm' (0 : α → F) q μ = 0 :=
 by simp [snorm', hp0_lt]
@@ -485,35 +459,6 @@ lemma mem_ℒp.of_bound [finite_measure μ] {f : α → E} (hf : ae_measurable f
   (C : ℝ) (hfC : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   mem_ℒp f p μ :=
 (mem_ℒp_const C).of_le hf (hfC.mono (λ x hx, le_trans hx (le_abs_self _)))
-
-lemma disjlem {A B C : Type*} [add_monoid B] [add_monoid C] {T : B → C} (hT : T 0 = 0)
-  {f g : A → B} (hfg : disjoint (function.support f) (function.support g)) (a : A) :
-  T (f a + g a) = T (f a) + T (g a) :=
-begin
-  by_cases ha : a ∈ function.support f,
-  { have : g a = 0 := function.nmem_support.mp (set.disjoint_left.mp hfg ha),
-    simp [this, hT] },
-  { have : f a = 0 := function.nmem_support.mp ha,
-    simp [this, hT] },
-end
-
-lemma mem_ℒp.of_add_right_disjoint {f g : α → E} (hfg : mem_ℒp (f + g) p μ)
-  (hf : ae_measurable f μ) (hfg' : disjoint (function.support f) (function.support g)) :
-  mem_ℒp f p μ :=
-begin
-  refine hfg.of_le hf (eventually_of_forall _),
-  intros a,
-  calc ∥f a∥ ≤ ∥f a∥ + ∥g a∥ : le_add_of_nonneg_right (norm_nonneg _)
-  ... = ∥(f + g) a∥ : (disjlem (norm_zero) hfg' a).symm
-end
-
-lemma mem_ℒp.of_add_left_disjoint {f g : α → E} (hfg : mem_ℒp (f + g) p μ)
-  (hg : ae_measurable g μ) (hfg' : disjoint (function.support f) (function.support g)) :
-  mem_ℒp g p μ :=
-begin
-  rw add_comm at hfg,
-  exact hfg.of_add_right_disjoint hg hfg'.symm,
-end
 
 @[mono] lemma snorm'_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≤ μ) (hq : 0 ≤ q) :
   snorm' f q ν ≤ snorm' f q μ :=

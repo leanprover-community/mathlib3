@@ -97,7 +97,7 @@ begin
     let ε' : ℝ≥0 := ⟨ε, hε.le⟩,
     have hε' : 0 < ε' := by exact_mod_cast hε,
     obtain ⟨δ, hδ, hδε'⟩ :=
-      nnreal.nhds_basis_zero.eventually_iff.mp (eventually_le_of_tendsto_lt hε' this),
+      nnreal.nhds_zero_basis.eventually_iff.mp (eventually_le_of_tendsto_lt hε' this),
     obtain ⟨η, hη, hηδ⟩ := exists_between hδ,
     refine ⟨η, hη, _⟩,
     exact_mod_cast hδε' hηδ },

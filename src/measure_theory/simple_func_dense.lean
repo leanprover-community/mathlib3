@@ -458,6 +458,16 @@ lemma measure_preimage_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f
   μ (f ⁻¹' {x}) < ∞ :=
 integrable_iff.mp hf x hx
 
+lemma measure_lt_top_of_mem_ℒp_indicator (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {c : E} (hc : c ≠ 0)
+  {s : set α} (hs : measurable_set s)
+  (hcs : mem_ℒp (simple_func.piecewise s hs (simple_func.const α c) (simple_func.const α 0)) p μ) :
+  μ s < ⊤ :=
+begin
+  have : function.support (const α c) = set.univ := function.support_const hc,
+  simpa only [mem_ℒp_iff_fin_meas_supp hp_pos hp_ne_top, fin_meas_supp_iff_support,
+    Lp.simple_func.support_indicator, set.inter_univ, this] using hcs
+end
+
 end simple_func_properties
 
 end simple_func
@@ -667,6 +677,59 @@ by simpa [to_Lp_to_simple_func] using norm_to_Lp (to_simple_func f) (simple_func
 
 end to_simple_func
 
+section induction
+
+variables (p)
+
+/-- The characteristic function of a finite-measure measurable set `s`, as an `Lp` simple function.
+-/
+def indicator_const {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
+  Lp.simple_func E p μ :=
+to_Lp ((simple_func.const _ c).piecewise s hs (simple_func.const _ 0))
+  (mem_ℒp_indicator_const p hs c (or.inr hμs))
+
+variables {p}
+
+@[simp] lemma coe_indicator_const {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
+  (↑(indicator_const p hs hμs c) : Lp E p μ) = indicator_const_Lp p hs hμs c :=
+rfl
+
+lemma to_simple_func_indicator_const {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
+  to_simple_func (indicator_const p hs hμs c)
+    =ᵐ[μ] (simple_func.const _ c).piecewise s hs (simple_func.const _ 0) :=
+Lp.simple_func.to_simple_func_to_Lp _ _
+
+/-- To prove something for an arbitrary `Lp` simple function, with `0 < p < ∞`, it suffices to show
+that the property holds for (multiples of) characteristic functions of finite-measure measurable
+sets and is closed under addition (of functions with disjoint support). -/
+@[elab_as_eliminator]
+protected lemma induction (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {P : Lp.simple_func E p μ → Prop}
+  (h_ind : ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ∞),
+    P (Lp.simple_func.indicator_const p hs hμs.ne c))
+  (h_add : ∀ ⦃f g : α →ₛ E⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ,
+    disjoint (support f) (support g) → P (Lp.simple_func.to_Lp f hf) → P (Lp.simple_func.to_Lp g hg)
+    → P ((Lp.simple_func.to_Lp f hf) + (Lp.simple_func.to_Lp g hg)))
+  (f : Lp.simple_func E p μ) : P f :=
+begin
+  suffices : ∀ f : α →ₛ E, ∀ hf : mem_ℒp f p μ, P (to_Lp f hf),
+  { rw ← to_Lp_to_simple_func f,
+    apply this }, clear f,
+  refine simple_func.induction _ _,
+  { intros c s hs hf,
+    by_cases hc : c = 0,
+    { convert h_ind 0 measurable_set.empty (by simp) using 1,
+      ext1,
+      simp [hc],
+      sorry },
+    exact h_ind c hs (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs hf) },
+  { intros f g hfg hf hg hfg',
+    obtain ⟨hf', hg'⟩ : mem_ℒp f p μ ∧ mem_ℒp g p μ,
+    { exact (mem_ℒp_add_of_disjoint hfg f.measurable g.measurable).mp hfg' },
+    exact h_add hf' hg' hfg (hf hf') (hg hg') },
+end
+
+end induction
+
 section coe_to_Lp
 
 variables [fact (1 ≤ p)]
@@ -724,79 +787,17 @@ end Lp
 variables [measurable_space α] [normed_group E] [measurable_space E] [borel_space E]
   [second_countable_topology E] {f : α → E} {p : ℝ≥0∞} {μ : measure α}
 
-
-lemma foo (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {c : E} (hc : c ≠ 0) {s : set α}
-  (hs : measurable_set s)
-  (hcs : mem_ℒp (simple_func.piecewise s hs (simple_func.const α c) (simple_func.const α 0)) p μ) :
-  μ s < ⊤ :=
-begin
-  rw simple_func.mem_ℒp_iff hp_pos hp_ne_top at hcs,
-  convert hcs c hc,
-  ext x,
-  simp only [simple_func.coe_const, set.mem_preimage, mem_singleton_iff, simple_func.coe_zero,
-    indicator_apply_eq_self, piecewise_eq_indicator, simple_func.const_zero,
-    simple_func.coe_piecewise, const_apply, hc],
-  exact not_not.symm
-end
-
-
-def Lp.simple_func.indicator_const (p : ℝ≥0∞) {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
-  Lp.simple_func E p μ :=
-Lp.simple_func.to_Lp (simple_func.piecewise s hs (simple_func.const _ c) (simple_func.const _ 0))
-  (mem_ℒp_indicator_const p hs c (or.inr hμs))
-
-@[simp] lemma foo₁ (p : ℝ≥0∞) {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
-  (↑(Lp.simple_func.indicator_const p hs hμs c) : Lp E p μ) = indicator_const_Lp p hs hμs c :=
-rfl
-
-lemma foo₂ (p : ℝ≥0∞) {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
-  Lp.simple_func.to_simple_func (Lp.simple_func.indicator_const p hs hμs c)
-    =ᵐ[μ] simple_func.piecewise s hs (simple_func.const _ c) (simple_func.const _ 0) :=
-Lp.simple_func.to_simple_func_to_Lp _ _
-
--- lemma foo₃ (p : ℝ≥0∞) {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
---   Lp.simple_func.to_simple_func (Lp.simple_func.indicator_const p hs hμs c)
---     =ᵐ[μ] simple_func.piecewise s hs (simple_func.const _ c) (simple_func.const _ 0) :=
--- Lp.simple_func.to_simple_func_to_Lp _ _
-
-/-- To prove something for an arbitrary `Lp` simple function, it suffices to show
-that the property holds for (multiples of) characteristic functions and is closed under
-addition (of functions with disjoint support).
-
-It is possible to make the hypotheses in `h_add` a bit stronger, and such conditions can be added
-once we need them (for example it is only necessary to consider the case where `g` is a multiple
-of a characteristic function, and that this multiple doesn't appear in the image of `f`) -/
+/-- To prove something for an arbitrary `Lp` function in a second countable Borel normed group, it
+suffices to show that
+* the property holds for (multiples of) characteristic functions;
+* is closed under addition;
+* the set of functions in `Lp` for which the property holds is closed.
+-/
 @[elab_as_eliminator]
-protected lemma Lp.simple_func.induction (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {P : Lp.simple_func E p μ → Prop}
-  (h_ind : ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ∞),
-    P (Lp.simple_func.indicator_const p hs hμs.ne c))
-  (h_add : ∀ ⦃f g : simple_func α E⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ,
-    disjoint (support f) (support g) → P (Lp.simple_func.to_Lp f hf) → P (Lp.simple_func.to_Lp g hg)
-    → P ((Lp.simple_func.to_Lp f hf) + (Lp.simple_func.to_Lp g hg)))
-  (f : Lp.simple_func E p μ) : P f :=
-begin
-  suffices : ∀ f : simple_func α E, ∀ hf : mem_ℒp f p μ, P (Lp.simple_func.to_Lp f hf),
-  { rw ← Lp.simple_func.to_Lp_to_simple_func f,
-    apply this }, clear f,
-  refine simple_func.induction _ _,
-  { intros c s hs hf,
-    by_cases hc : c = 0,
-    { convert h_ind 0 measurable_set.empty (by simp) using 1,
-      ext1,
-      simp [hc],
-      sorry },
-    exact h_ind c hs (foo hp_pos hp_ne_top hc hs hf) },
-  { intros f g hfg hf hg hfg',
-    obtain ⟨hf', hg'⟩ : mem_ℒp f p μ ∧ mem_ℒp g p μ,
-    { exact (mem_ℒp_add_of_disjoint hfg f.measurable g.measurable).mp hfg' },
-    exact h_add hf' hg' hfg (hf hf') (hg hg') },
-end
-
-@[elab_as_eliminator]
-lemma Lp.induction [_i : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) (P : (Lp E p μ) → Prop)
+lemma Lp.induction [_i : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) (P : Lp E p μ → Prop)
   (h_ind : ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ∞),
       P (Lp.simple_func.indicator_const p hs hμs.ne c))
-  (h_add : ∀ ⦃f g : α → E⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ, disjoint (support f) (support g) →
+  (h_add : ∀ ⦃f g⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ, disjoint (support f) (support g) →
     P (hf.to_Lp f) → P (hg.to_Lp g) → P ((hf.to_Lp f) + (hg.to_Lp g)))
   (h_closed : is_closed {f : Lp E p μ | P f}) :
   ∀ f : Lp E p μ, P f :=
@@ -834,7 +835,7 @@ begin
       by_cases hc : c = 0,
       { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, ext, simp [const] },
       have hp_pos : 0 < p := lt_of_lt_of_le ennreal.zero_lt_one _i.elim,
-      exact h_ind c hs (foo hp_pos hp_ne_top hc hs h) },
+      exact h_ind c hs (simple_func.measure_lt_top_of_mem_ℒp_indicator hp_pos hp_ne_top hc hs h) },
     { intros f g hfg hf hg int_fg,
       rw [simple_func.coe_add, mem_ℒp_add_of_disjoint hfg f.measurable g.measurable] at int_fg,
       refine h_add hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },

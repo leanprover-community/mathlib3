@@ -172,6 +172,10 @@ coe_injective $ by simp
 @[simp] lemma piecewise_empty (f g : α →ₛ β) : piecewise ∅ measurable_set.empty f g = g :=
 coe_injective $ by simp
 
+lemma support_indicator [has_zero β] {s : set α} (hs : measurable_set s) (f : α →ₛ β) :
+  function.support (f.piecewise s hs (simple_func.const α 0)) = s ∩ function.support f :=
+set.support_indicator
+
 lemma measurable_bind [measurable_space γ] (f : α →ₛ β) (g : β → α → γ)
   (hg : ∀ b, measurable (g b)) : measurable (λ a, g (f a) a) :=
 λ s hs, f.measurable_set_cut (λ a b, g b a ∈ s) $ λ b, hg b hs

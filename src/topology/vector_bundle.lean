@@ -434,7 +434,7 @@ namespace topological_vector_prebundle
 
 variables {R E F}
 
-/-- Natural identification as a `topological_fiber_prebundle`. -/
+/-- Natural identification of `topological_vector_prebundle` as a `topological_fiber_prebundle`. -/
 def to_topological_fiber_prebundle (a : topological_vector_prebundle R F E) :
   topological_fiber_prebundle F (proj E) :=
 { pretrivialization_at := λ x, a.pretrivialization_at x, ..a }
@@ -487,7 +487,7 @@ lemma inducing_total_space_mk_of_inducing_comp (b : B)
   @inducing _ _ _ a.total_space_topology (total_space_mk E b) :=
 begin
   letI := a.total_space_topology,
-  rw factor_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
+  rw restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
   apply inducing_of_inducing_cod_restrict (a.mem_trivialization_at_source b),
   refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
     (a.trivialization_at b).continuous_to_fun) h,

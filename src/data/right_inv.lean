@@ -10,7 +10,7 @@ import tactic.basic
 # Bundled right inverse (section)
 
 In this file we implement the bundled version of a right inverse function. The final purpose of
-this type is to conviniently implement sections of bundles.
+this type is to conveniently implement sections of bundles.
 
 ## Implementation notes
 

@@ -97,14 +97,14 @@ open bundle
 
 variables {B : Type*} {E : B → Type*}
 
-/-- Type synonim for name clarity. -/
+/-- Type synonym for name clarity. -/
 @[reducible, nolint has_coe_to_fun] def bundle_section (E : B → Type*) := Π x, E x
 
 @[simp] lemma right_inv.fst_eq_id (f : right_inv (proj E)) (b : B) : (f b).fst = b :=
 congr_fun f.right_inv_def b
 
-/-- Equivalence between Pi functions and righ inverses. -/
-def bundle_section_right_inv : equiv (bundle_section E) (right_inv (proj E)) :=
+/-- Equivalence between Pi functions and right inverses. -/
+def bundle_section_equiv_right_inv : bundle_section E ≃ right_inv (proj E) :=
 { to_fun := λ g, ⟨λ x, ⟨x, g x⟩, λ x, rfl⟩,
   inv_fun := λ g, (λ x, cast (congr_arg E (g.right_inverse x)) (g x).2),
   left_inv := λ g, rfl,

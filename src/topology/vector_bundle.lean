@@ -415,7 +415,7 @@ section sections
 
 /-! ### Sections of topological vector bundles -/
 
-/-- Type synonim to allow to declare instances that depend on implicit parameters containing `R`
+/-- Type synonym to allow to declare instances that depend on implicit parameters containing `R`
 and `F`. -/
 @[reducible, nolint unused_arguments]
 def topological_vector_bundle.vector_bundle_section (R : Type*) {B : Type*} (F : Type*)

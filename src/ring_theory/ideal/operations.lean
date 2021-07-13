@@ -265,7 +265,7 @@ instance : has_mul (ideal R) := ⟨(•)⟩
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
 @[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
-by erw [submodule.one_eq_map_top, submodule.map_id]
+by erw [submodule.one_eq_range, linear_map.range_id]
 
 theorem mul_mem_mul {r s} (hr : r ∈ I) (hs : s ∈ J) : r * s ∈ I * J :=
 submodule.smul_mem_smul hr hs
@@ -317,7 +317,7 @@ by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton], }
 lemma span_singleton_pow (s : R) (n : ℕ):
   span {s} ^ n = (span {s ^ n} : ideal R) :=
 begin
-  induction n with n ih, { simp [set.singleton_one] },
+  induction n with n ih, { simp [set.singleton_one], },
   simp only [pow_succ, ih, span_singleton_mul_span_singleton],
 end
 
@@ -1267,7 +1267,7 @@ end
   (⊥ : ideal I.quotient).is_maximal ↔ I.is_maximal :=
 ⟨λ hI, (@mk_ker _ _ I) ▸
   @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) ⊥ quotient.mk_surjective hI,
- λ hI, @bot_is_maximal _ (@quotient.field _ _ I hI) ⟩
+ λ hI, @bot_is_maximal _ (@field.to_division_ring _ (@quotient.field _ _ I hI)) ⟩
 
 section quotient_algebra
 
@@ -1304,7 +1304,7 @@ surjective_quot_mk _
 
 /-- The kernel of `A →ₐ[R] I.quotient` is `I`. -/
 @[simp]
-lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I).to_ring_hom.ker = I :=
+lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I : A →+* I.quotient).ker = I :=
 ideal.mk_ker
 
 variables {R} {B : Type*} [comm_ring B] [algebra R B]

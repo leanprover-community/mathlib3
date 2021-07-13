@@ -5,6 +5,7 @@ Authors: Benjamin Davidson
 -/
 import data.int.parity
 import algebra.module.opposites
+import algebra.archimedean
 
 /-!
 # Periodicity
@@ -35,6 +36,11 @@ namespace function
 /-- A function `f` is said to be `periodic` with period `c` if for all `x`, `f (x + c) = f x`. -/
 @[simp] def periodic [has_add α] (f : α → β) (c : α) : Prop :=
 ∀ x : α, f (x + c) = f x
+
+lemma periodic.funext [has_add α]
+  (h : periodic f c) :
+  (λ x, f (x + c)) = f :=
+funext h
 
 lemma periodic.comp [has_add α]
   (h : periodic f c) (g : β → γ) :
@@ -122,6 +128,11 @@ lemma periodic.sub_eq [add_group α]
   f (x - c) = f x :=
 by simpa only [sub_add_cancel] using (h (x - c)).symm
 
+lemma periodic.sub_eq' [add_comm_group α]
+  (h : periodic f c) :
+  f (c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h (-x)
+
 lemma periodic.neg [add_group α]
   (h : periodic f c) :
   periodic f (-c) :=
@@ -162,12 +173,23 @@ lemma periodic.sub_nat_mul_eq [ring α]
   f (x - n * c) = f x :=
 by simpa only [nsmul_eq_mul] using h.sub_nsmul_eq n
 
+lemma periodic.nsmul_sub_eq [add_comm_group α]
+  (h : periodic f c) (n : ℕ) :
+  f (n • c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h.nsmul n (-x)
+
+lemma periodic.nat_mul_sub_eq [ring α]
+  (h : periodic f c) (n : ℕ) :
+  f (n * c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h.nat_mul n (-x)
+
 lemma periodic.gsmul [add_group α]
   (h : periodic f c) (n : ℤ) :
   periodic f (n • c) :=
 begin
-  cases n, { simpa only [int.of_nat_eq_coe, gsmul_coe_nat] using h.nsmul n },
-  simpa only [gsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg,
+  cases n,
+  { simpa only [int.of_nat_eq_coe, gsmul_coe_nat] using h.nsmul n },
+  { simpa only [gsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg },
 end
 
 lemma periodic.int_mul [ring α]
@@ -184,6 +206,16 @@ lemma periodic.sub_int_mul_eq [ring α]
   (h : periodic f c) (n : ℤ) :
   f (x - n * c) = f x :=
 (h.int_mul n).sub_eq x
+
+lemma periodic.gsmul_sub_eq [add_comm_group α]
+  (h : periodic f c) (n : ℤ) :
+  f (n • c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h.gsmul n (-x)
+
+lemma periodic.int_mul_sub_eq [ring α]
+  (h : periodic f c) (n : ℤ) :
+  f (n * c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h.int_mul n (-x)
 
 lemma periodic.eq [add_zero_class α]
   (h : periodic f c) :
@@ -215,6 +247,14 @@ lemma periodic.int_mul_eq [ring α]
   f (n * c) = f 0 :=
 (h.int_mul n).eq
 
+/-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
+  `y ∈ Ico 0 c` such that `f x = f y`. -/
+lemma periodic.exists_mem_Ico [linear_ordered_add_comm_group α] [archimedean α]
+  (h : periodic f c) (hc : 0 < c) (x) :
+  ∃ y ∈ set.Ico 0 c, f x = f y :=
+let ⟨n, H⟩ := linear_ordered_add_comm_group.exists_int_smul_near_of_pos' hc x in
+⟨x - n • c, H, (h.sub_gsmul_eq n).symm⟩
+
 lemma periodic_with_period_zero [add_zero_class α]
   (f : α → β) :
   periodic f 0 :=
@@ -226,6 +266,16 @@ lemma periodic_with_period_zero [add_zero_class α]
   `f (x + c) = -f x`. -/
 @[simp] def antiperiodic [has_add α] [has_neg β] (f : α → β) (c : α) : Prop :=
 ∀ x : α, f (x + c) = -f x
+
+lemma antiperiodic.funext [has_add α] [has_neg β]
+  (h : antiperiodic f c) :
+  (λ x, f (x + c)) = -f :=
+funext h
+
+lemma antiperiodic.funext' [has_add α] [add_group β]
+  (h : antiperiodic f c) :
+  (λ x, -f (x + c)) = f :=
+(eq_neg_iff_eq_neg.mp h.funext).symm
 
 /-- If a function is `antiperiodic` with antiperiod `c`, then it is also `periodic` with period
   `2 * c`. -/
@@ -282,6 +332,11 @@ lemma antiperiodic.sub_eq [add_group α] [add_group β]
   (h : antiperiodic f c) (x : α) :
   f (x - c) = -f x :=
 by simp only [eq_neg_iff_eq_neg.mp (h (x - c)), sub_add_cancel]
+
+lemma antiperiodic.sub_eq' [add_comm_group α] [add_group β]
+  (h : antiperiodic f c) :
+  f (c - x) = -f (-x) :=
+by simpa only [sub_eq_neg_add] using h (-x)
 
 lemma antiperiodic.neg [add_group α] [add_group β]
   (h : antiperiodic f c) :

@@ -213,6 +213,12 @@ begin
   exact ⟨n, f, hf.1⟩
 end
 
+instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A × B) :=
+⟨begin
+  rw ← subalgebra.prod_top,
+  exact subalgebra.fg_prod hA.1 hB.1
+end⟩
+
 end finite_type
 
 namespace finite_presentation
@@ -279,7 +285,7 @@ begin
   refine ⟨n, (ideal.quotient.mkₐ R I).comp f, _, _⟩,
   { exact (ideal.quotient.mkₐ_surjective R I).comp hf.1 },
   { refine submodule.fg_ker_ring_hom_comp _ _ hf.2 _ hf.1,
-    rwa ideal.quotient.mkₐ_ker R I }
+    simp [h] }
 end
 
 /-- If `f : A →ₐ[R] B` is surjective with finitely generated kernel and `A` is finitely presented,

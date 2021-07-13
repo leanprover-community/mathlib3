@@ -209,7 +209,7 @@ lemma has_deriv_at_of_has_deriv_at_of_ne' {f g : ℝ → E} {x : ℝ}
   (hf : continuous_at f x) (hg : continuous_at g x) (y : ℝ) :
   has_deriv_at f (g y) y :=
 begin
-  rcases em (y = x) with rfl|hne,
+  rcases eq_or_ne y x with rfl|hne,
   { exact has_deriv_at_of_has_deriv_at_of_ne f_diff hf hg },
   { exact f_diff y hne }
 end

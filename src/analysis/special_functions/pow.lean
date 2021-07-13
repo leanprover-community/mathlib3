@@ -780,8 +780,8 @@ lemma continuous_at_rpow_of_ne_zero (hx : x ≠ 0) (y : ℝ) :
 lemma continuous_at_rpow_of_pos (hy : 0 < y) (x : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
 begin
-  by_cases hx : x = 0, swap, { exact continuous_at_rpow_of_ne_zero hx y },
-  subst x,
+  obtain hx|rfl := ne_or_eq x 0,
+  { exact continuous_at_rpow_of_ne_zero hx y },
   have A : tendsto (λ p : ℝ × ℝ, exp (log p.1 * p.2)) (𝓝[{0}ᶜ] 0 ×ᶠ 𝓝 y) (𝓝 0) :=
     tendsto_exp_at_bot.comp
       ((tendsto_log_nhds_within_zero.comp tendsto_fst).at_bot_mul hy tendsto_snd),
@@ -865,8 +865,8 @@ variables {z x y : ℝ}
 lemma has_deriv_at_rpow_const {x p : ℝ} (h : x ≠ 0 ∨ 1 ≤ p) :
   has_deriv_at (λ x, x ^ p) (p * x ^ (p - 1)) x :=
 begin
-  rcases em (x = 0) with rfl | hx;
-    [skip, exact (has_strict_deriv_at_rpow_const_of_ne hx _).has_deriv_at],
+  rcases ne_or_eq x 0 with hx | rfl,
+  { exact (has_strict_deriv_at_rpow_const_of_ne hx _).has_deriv_at },
   replace h : 1 ≤ p := h.neg_resolve_left rfl,
   apply has_deriv_at_of_has_deriv_at_of_ne
     (λ x hx, (has_strict_deriv_at_rpow_const_of_ne hx p).has_deriv_at),

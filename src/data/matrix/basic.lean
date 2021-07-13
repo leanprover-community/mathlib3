@@ -944,9 +944,6 @@ instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 { star := λ M, M.transpose.map star,
   star_involutive := conj_transpose_conj_transpose, }
 
-@[simp] lemma star_star [has_involutive_star α] (M : matrix n n α) :
-  star (star M) = M := star_star M
-
 /--
 When `α` is a `*`-(semi)ring, `matrix n n α` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
@@ -956,9 +953,6 @@ instance [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n �
   star_involutive := conj_transpose_conj_transpose,
   star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }
-
-lemma star_add [decidable_eq n] [semiring α] [star_ring α] (M N : matrix n n α) :
-  star (M + N) = star M + star N := star_add _ _
 
 lemma star_mul [decidable_eq n] [semiring α] [star_ring α] (M N : matrix n n α) :
   star (M ⬝ N) = star N ⬝ star M := star_mul _ _

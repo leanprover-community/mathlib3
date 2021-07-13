@@ -732,32 +732,32 @@ end topological_fiber_bundle
 
 namespace right_inv
 
-open bundle
+open bundle topological_fiber_bundle
 
 variable {E : B → Type*}
 
 variables [topological_space B] [topological_space (total_space E)] [topological_space F]
 
 lemma mem_base_set_right_inv_fst (g : right_inv (proj E)) {b : B}
-  {e : bundle_trivialization F (proj E)} (hb : b ∈ e.base_set) : (g b).fst ∈ e.base_set :=
+  {e : trivialization F (proj E)} (hb : b ∈ e.base_set) : (g b).fst ∈ e.base_set :=
 by { rw right_inv.fst_eq_id, exact hb }
 
 @[simp] lemma preimage_source_eq_base_set (f : right_inv (proj E))
-  {e : bundle_trivialization F (proj E)} : f ⁻¹' e.source = e.base_set :=
-by rw [bundle_trivialization.source_eq, ←preimage_comp, f.right_inv_def]; refl
+  {e : trivialization F (proj E)} : f ⁻¹' e.source = e.base_set :=
+by rw [trivialization.source_eq, ←preimage_comp, f.right_inv_def]; refl
 
-lemma mem_base_set_image_mem_source (f : right_inv (proj E)) {e : bundle_trivialization F (proj E)}
+lemma mem_base_set_image_mem_source (f : right_inv (proj E)) {e : trivialization F (proj E)}
   {x : B} (h : x ∈ e.base_set) : f x ∈ e.source :=
 by { rw [mem_preimage.symm, right_inv.preimage_source_eq_base_set], exact h }
 
-lemma trivialization_at_fst {e : bundle_trivialization F (proj E)} (f : right_inv (proj E))
+lemma trivialization_at_fst {e : trivialization F (proj E)} (f : right_inv (proj E))
   (x : B) (h : x ∈ e.base_set) : (e (f x)).fst = x :=
 by {rw [e.coe_fst (f.mem_base_set_image_mem_source h)], exact congr_fun f.right_inv_def x }
 
 /-- Continuity of sections can be checked locally through trivialization. This lemma is the main
 tool to prove continuity of sections when it is not straightforward. -/
 lemma continuous_at_iff_continuous_within_at (f : right_inv (proj E)) {b : B}
-  (e : bundle_trivialization F (proj E)) (hb : b ∈ e.base_set) :
+  (e : trivialization F (proj E)) (hb : b ∈ e.base_set) :
   continuous_at f b ↔ continuous_within_at (λ x, (e (f x)).snd) e.base_set b :=
 ⟨λ h, begin
   have h2 := e.to_local_homeomorph.continuous_at (f.mem_base_set_image_mem_source hb),

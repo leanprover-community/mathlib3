@@ -68,7 +68,7 @@ lemma colex.eq_iff (A B : finset α) :
 
 /--
 `A` is less than `B` in the colex ordering if the largest thing that's not in both sets is in B.
-In other words, max (A ▵ B) ∈ B (if the maximum exists).
+In other words, max (A Δ B) ∈ B (if the maximum exists).
 -/
 instance [has_lt α] : has_lt (finset.colex α) :=
 ⟨λ (A B : finset α), ∃ (k : α), (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B⟩
@@ -120,7 +120,7 @@ end
 
 /-- A special case of `colex.hom_lt_iff` which is sometimes useful. -/
 @[simp] lemma hom_fin {n : ℕ} (A B : finset (fin n)) :
-  (A.image (λ (i : fin n), (i : ℕ))).to_colex < (B.image (λ (i : fin n), (i : ℕ))).to_colex
+  (A.image (λ i : fin n, (i : ℕ))).to_colex < (B.image (λ i : fin n, (i : ℕ))).to_colex
    ↔ A.to_colex < B.to_colex :=
 colex.hom_lt_iff (λ x y k, k) _ _
 
@@ -215,7 +215,7 @@ by rw [le_iff_le_iff_lt_iff_lt, hom_lt_iff h₁]
 
 /-- A special case of `colex_hom` which is sometimes useful. -/
 @[simp] lemma hom_fin_le_iff {n : ℕ} (A B : finset (fin n)) :
-  (A.image (λ (i : fin n), (i : ℕ))).to_colex ≤ (B.image (λ (i : fin n), (i : ℕ))).to_colex
+  (A.image (λ i : fin n, (i : ℕ))).to_colex ≤ (B.image (λ i : fin n, (i : ℕ))).to_colex
    ↔ A.to_colex ≤ B.to_colex :=
 colex.hom_le_iff (λ x y k, k) _ _
 

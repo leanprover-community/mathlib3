@@ -52,7 +52,7 @@ variables {p q : mv_polynomial σ R}
 
 instance : comm_ring (mv_polynomial σ R) := add_monoid_algebra.comm_ring
 
-instance C.is_ring_hom : is_ring_hom (C : R → mv_polynomial σ R) :=
+lemma C.is_ring_hom : is_ring_hom (C : R → mv_polynomial σ R) :=
 is_ring_hom.of_semiring (C.to_is_semiring_hom)
 
 variables (σ a a')

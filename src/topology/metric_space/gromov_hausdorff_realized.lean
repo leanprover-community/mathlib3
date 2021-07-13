@@ -243,8 +243,11 @@ begin
                ∩ (⋂x y, {f : Cb X Y | f (x, y) = f (y, x)})
                ∩ (⋂x y z, {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)})
                ∩ (⋂x, {f : Cb X Y | f (x, x) = 0})
-               ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}) :=
-    begin ext, unfold candidates_b, unfold candidates, simp [-sum.forall], refl end,
+               ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}),
+  { ext,
+    simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq,
+               continuous_map.to_fun_eq_coe],
+    refl },
   rw this,
   repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _

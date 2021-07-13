@@ -753,7 +753,7 @@ lemma C_neg : C (-a) = -C a := ring_hom.map_neg C a
 
 lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 
-instance map.is_ring_hom {S} [ring S] (f : R →+* S) : is_ring_hom (map f) :=
+lemma map.is_ring_hom {S} [ring S] (f : R →+* S) : is_ring_hom (map f) :=
 is_ring_hom.of_semiring (map_ring_hom f).to_is_semiring_hom
 
 @[simp] lemma map_sub {S} [ring S] (f : R →+* S) :
@@ -800,11 +800,11 @@ end ring
 section comm_ring
 variables [comm_ring R] {p q : polynomial R}
 
-instance eval₂.is_ring_hom {S} [comm_ring S]
+lemma eval₂.is_ring_hom {S} [comm_ring S]
   (f : R →+* S) {x : S} : is_ring_hom (eval₂ f x) :=
 is_ring_hom.of_semiring (eval₂.is_semiring_hom f x)
 
-instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _
+lemma eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _
 
 end comm_ring
 

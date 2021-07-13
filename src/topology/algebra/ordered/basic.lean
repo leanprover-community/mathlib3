@@ -923,7 +923,7 @@ by simp [nhds_eq_order (⊥:α)]
 
 lemma nhds_top_basis [topological_space α] [semilattice_sup_top α] [is_total α has_le.le]
   [order_topology α] [nontrivial α] :
-  (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, set.Ioi a) :=
+  (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, Ioi a) :=
 ⟨ begin
     simp only [nhds_top_order],
     refine @filter.mem_binfi α α (λ a, 𝓟 (Ioi a)) (λ a, a < ⊤) _ _,

@@ -47,7 +47,7 @@ open set topological_space metric filter
 open_locale topological_space
 
 namespace nnreal
-open_locale nnreal big_operators
+open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
@@ -93,6 +93,12 @@ tendsto_Ici_at_top.symm
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
   tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
 (continuous_of_real.tendsto _).comp h
+
+lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
+nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, Iio a) :=
+nhds_bot_basis
 
 instance : has_continuous_sub ℝ≥0 :=
 ⟨continuous_subtype_mk _ $

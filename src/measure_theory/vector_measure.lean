@@ -10,10 +10,10 @@ import data.real.ereal
 
 # Vector valued measures
 
-This file defines vector valued measures, which are σ-additive functions from a set to a module `M`
-over the ring `R` such that it maps the empty set and non-measurable sets to zero. In the case
-that `R = M = ℝ`, we called the vector measure a signed measure and write `signed_measure α`.
-Similarly, when `R = M = ℂ`, we call the measure a complex measure and write `complex_measure α`.
+This file defines vector valued measures, which are σ-additive functions from a set to a add monoid
+`M` such that it maps the empty set and non-measurable sets to zero. In the case
+that `M = ℝ`, we called the vector measure a signed measure and write `signed_measure α`.
+Similarly, when `M = ℂ`, we call the measure a complex measure and write `complex_measure α`.
 
 ## Main definitions
 
@@ -40,10 +40,10 @@ open_locale classical big_operators nnreal ennreal
 
 variables {α β : Type*} [measurable_space α]
 
-/-- A signed measure on a measurable space `α` is a σ-additive, real-valued function
-that maps the empty set to zero. -/
-structure vector_measure (α : Type*) [measurable_space α] (R : Type*) [ring R]
-  (M : Type*) [add_comm_monoid M] [module R M] [topological_space M] :=
+/-- A vector measure on a measurable space `α` is a σ-additive over some add monoid `M` is a
+`M`-valued function that maps the empty set to zero. -/
+structure vector_measure (α : Type*) [measurable_space α]
+  (M : Type*) [add_comm_monoid M] [topological_space M] :=
 (measure_of : set α → M)
 (empty : measure_of ∅ = 0)
 (not_measurable ⦃i : set α⦄ : ¬ measurable_set i → measure_of i = 0)
@@ -51,43 +51,43 @@ structure vector_measure (α : Type*) [measurable_space α] (R : Type*) [ring R]
   (∀ i, measurable_set (f i)) → pairwise (disjoint on f) →
   has_sum (λ i, measure_of (f i)) (measure_of (⋃ i, f i)))
 
--- A `signed_measure` is a `vector_measure` of `ℝ` over itself.
-notation `signed_measure ` α := vector_measure α ℝ ℝ
--- A `complex_measure` is a `vector_measure` of `ℂ` over itself.
-notation `complex_measure ` α := vector_measure α ℂ ℂ
+-- A `signed_measure` is a `ℝ`-vector measure.
+notation `signed_measure ` α := vector_measure α ℝ
+-- A `complex_measure` is a `ℂ`-vector_measure.
+notation `complex_measure ` α := vector_measure α ℂ
 
 open set measure_theory
 
 namespace vector_measure
 
-variables {R M : Type*} [ring R] [add_comm_monoid M] [module R M] [topological_space M]
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
-instance : has_coe_to_fun (vector_measure α R M) :=
+instance : has_coe_to_fun (vector_measure α M) :=
 ⟨λ _, set α → M, vector_measure.measure_of⟩
 
-lemma apply (v : vector_measure α R M) (i : set α) : v i = v.measure_of i := rfl
+lemma apply (v : vector_measure α M) (i : set α) : v i = v.measure_of i := rfl
 
 @[simp]
-lemma measure_of_empty (v : vector_measure α R M) : v ∅ = 0 := v.empty
+lemma measure_of_empty (v : vector_measure α M) : v ∅ = 0 := v.empty
 
-lemma measure_of_not_measurable_set (v : vector_measure α R M)
+lemma measure_of_not_measurable_set (v : vector_measure α M)
   {i : set α} (hi : ¬ measurable_set i) : v i = 0 := v.not_measurable hi
 
-lemma measure_of_disjoint_Union_has_sum (v : vector_measure α R M) {f : ℕ → set α}
+lemma measure_of_disjoint_Union_has_sum (v : vector_measure α M) {f : ℕ → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
 has_sum (λ i, v (f i)) (v (⋃ i, f i)) := v.m_Union hf₁ hf₂
 
-lemma measure_of_disjoint_Union [t2_space M] (v : vector_measure α R M) {f : ℕ → set α}
+lemma measure_of_disjoint_Union [t2_space M] (v : vector_measure α M) {f : ℕ → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
 v (⋃ i, f i) = ∑' i, v (f i) := (v.measure_of_disjoint_Union_has_sum hf₁ hf₂).tsum_eq.symm
 
-lemma ext_iff' (v w : vector_measure α R M) :
+lemma ext_iff' (v w : vector_measure α M) :
   v = w ↔ ∀ i : set α, v i = w i :=
 begin
   cases v, cases w, simpa [function.funext_iff],
 end
 
-lemma ext_iff (v w : vector_measure α R M) :
+lemma ext_iff (v w : vector_measure α M) :
   v = w ↔ ∀ i : set α, measurable_set i → v i = w i :=
 begin
   split,
@@ -99,11 +99,11 @@ begin
     { simp_rw [measure_of_not_measurable_set _ hi] } }
 end
 
-@[ext] lemma ext {s t : vector_measure α R M}
+@[ext] lemma ext {s t : vector_measure α M}
   (h : ∀ i : set α, measurable_set i → s i = t i) : s = t :=
 (ext_iff s t).2 h
 
-variables [t2_space M] {v : vector_measure α R M} {s : signed_measure α} {f : ℕ → set α}
+variables [t2_space M] {v : vector_measure α M} {s : signed_measure α} {f : ℕ → set α}
 
 lemma measure_Union_has_sum [encodable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
@@ -159,8 +159,8 @@ begin
   apply_instance,
 end
 
-lemma measure_of_diff' {M : Type*} [add_comm_group M] [module R M]
-  [topological_space M] [t2_space M] {v : vector_measure α R M}
+lemma measure_of_diff' {M : Type*} [add_comm_group M]
+  [topological_space M] [t2_space M] {v : vector_measure α M}
   {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v (B \ A) = v B - (v A) :=
 begin
@@ -512,27 +512,25 @@ lemma of_measure_apply_not_measurable {μ : measure α} [finite_measure μ]
   of_measure μ i = 0 :=
 if_neg hi
 
-variables {R M : Type*}
-variables [ring R] [add_comm_group M] [module R M]
-variables [topological_space M]
+variables {M : Type*} [add_comm_group M] [topological_space M]
 
 /-- The zero signed measure. -/
-def zero : vector_measure α R M :=
+def zero : vector_measure α M :=
 ⟨0, rfl, λ _ _, rfl, λ _ _ _, has_sum_zero⟩
 
-instance : has_zero (vector_measure α R M) := ⟨zero⟩
-instance : inhabited (vector_measure α R M) := ⟨0⟩
+instance : has_zero (vector_measure α M) := ⟨zero⟩
+instance : inhabited (vector_measure α M) := ⟨0⟩
 instance : inhabited (signed_measure' α) := ⟨signed_measure'.of_signed_measure 0⟩
 
 @[simp]
-lemma zero_apply (i : set α) : (0 : vector_measure α R M) i = 0 := rfl
+lemma zero_apply (i : set α) : (0 : vector_measure α M) i = 0 := rfl
 
 section
 
 variables [topological_add_group M]
 
 /-- The negative of a vector measure is a vector measure. -/
-def neg (v : vector_measure α R M) : vector_measure α R M :=
+def neg (v : vector_measure α M) : vector_measure α M :=
 { measure_of := -v,
   empty := by simp,
   not_measurable := λ _ hi, by simp [v.measure_of_not_measurable_set hi],
@@ -540,7 +538,7 @@ def neg (v : vector_measure α R M) : vector_measure α R M :=
     has_sum.neg $ v.measure_of_disjoint_Union_has_sum hf₁ hf₂ }
 
 /-- The sum of two vector measure is a vector measure. -/
-def add (v w : vector_measure α R M) : vector_measure α R M :=
+def add (v w : vector_measure α M) : vector_measure α M :=
 { measure_of := v + w,
   empty := by simp,
   not_measurable := λ _ hi,
@@ -549,18 +547,18 @@ def add (v w : vector_measure α R M) : vector_measure α R M :=
     has_sum.add (v.measure_of_disjoint_Union_has_sum hf₁ hf₂)
       (w.measure_of_disjoint_Union_has_sum hf₁ hf₂) }
 
-instance : has_add (vector_measure α R M) := ⟨add⟩
-instance : has_neg (vector_measure α R M) := ⟨neg⟩
+instance : has_add (vector_measure α M) := ⟨add⟩
+instance : has_neg (vector_measure α M) := ⟨neg⟩
 
 @[simp]
-lemma neg_apply {v : vector_measure α R M} (i : set α) :
+lemma neg_apply {v : vector_measure α M} (i : set α) :
   (-v) i = - v i := rfl
 
 @[simp]
-lemma add_apply {v w : vector_measure α R M} (i : set α) :
+lemma add_apply {v w : vector_measure α M} (i : set α) :
   (v + w) i = v i + w i := rfl
 
-instance : add_comm_group (vector_measure α R M) :=
+instance : add_comm_group (vector_measure α M) :=
 { add := (+), zero := (0),
   neg := vector_measure.neg,
   add_assoc := by { intros, ext i; simp [add_assoc] },
@@ -587,25 +585,26 @@ end
 
 section
 
+variables {R : Type*} [ring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M]
 
 /-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
 measure corresponding to the function `r • s`. -/
 def smul
-  (r : R) (v : vector_measure α R M) : vector_measure α R M :=
+  (r : R) (v : vector_measure α M) : vector_measure α M :=
 { measure_of := r • v,
   empty := by simp,
   not_measurable := λ _ hi, by simp [v.measure_of_not_measurable_set hi],
   m_Union := λ _ hf₁ hf₂,
     has_sum.smul (v.measure_of_disjoint_Union_has_sum hf₁ hf₂) }
 
-instance : has_scalar R (vector_measure α R M) := ⟨smul⟩
+instance : has_scalar R (vector_measure α M) := ⟨smul⟩
 
 @[simp]
-lemma smul_apply {v : vector_measure α R M} {r : R} (i : set α) :
+lemma smul_apply {v : vector_measure α M} {r : R} (i : set α) :
   (r • v) i = r • v i := rfl
 
-instance [topological_add_group M] : module R (vector_measure α R M) :=
+instance [topological_add_group M] : module R (vector_measure α M) :=
 { one_smul := by { intros, ext i; simp [one_smul] },
   mul_smul := by { intros, ext i; simp [mul_smul] },
   smul_add := by { intros, ext i; simp [smul_add] },

@@ -42,8 +42,6 @@ colex, colexicographic, binary
 ## References
 * https://github.com/b-mehta/maths-notes/blob/master/iii/mich/combinatorics.pdf
 
-## Todo
-Show the subset ordering is a sub-relation of the colex ordering.
 -/
 
 variable {α : Type*}

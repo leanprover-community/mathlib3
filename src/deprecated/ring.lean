@@ -61,7 +61,7 @@ lemma to_is_monoid_hom (hf : is_semiring_hom f) : is_monoid_hom f :=
 end is_semiring_hom
 
 /-- Predicate for ring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
-class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
+structure is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
 (map_one [] : f 1 = 1)
 (map_mul [] : ∀ {x y}, f (x * y) = f x * f y)
 (map_add [] : ∀ {x y}, f (x + y) = f x + f y)
@@ -90,15 +90,15 @@ lemma map_sub (hf : is_ring_hom f) : f (x - y) = f x - f y :=
 by simp [sub_eq_add_neg, hf.map_add, hf.map_neg]
 
 /-- The identity map is a ring homomorphism. -/
-instance id : is_ring_hom (@id α) := by refine {..}; intros; refl
+lemma id : is_ring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two ring homomorphisms is a ring homomorphism. -/
 -- see Note [no instance on morphisms]
 lemma comp (hf : is_ring_hom f) {γ} [ring γ] {g : β → γ} (hg : is_ring_hom g) :
   is_ring_hom (g ∘ f) :=
-{ map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
-  map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
-  map_one := by simp [map_one f]; exact map_one g }
+{ map_add := λ x y, by simp [map_add hf]; rw map_add hg; refl,
+  map_mul := λ x y, by simp [map_mul hf]; rw map_mul hg; refl,
+  map_one := by simp [map_one hf]; exact map_one hg }
 
 /-- A ring homomorphism is also a semiring homomorphism. -/
 lemma to_is_semiring_hom (hf : is_ring_hom f) : is_semiring_hom f :=

@@ -1155,12 +1155,14 @@ end
 
 variables {S Q M}
 
+@[mono]
 lemma coe_submodule_le_coe_submodule (h : M ≤ non_zero_divisors R)
   {I J : ideal R} :
   coe_submodule S I ≤ coe_submodule S J ↔ I ≤ J :=
 submodule.map_le_map_iff_of_injective (is_localization.injective _ h) _ _
 
-lemma coe_submodule_strict_mono (h : M ≤ non_zero_divisors R)
+@[mono]
+lemma coe_submodule_strict_mono (h : M ≤ non_zero_divisors R) :
   {I J : ideal R} :
   strict_mono (coe_submodule S : ideal R → submodule R S) :=
 strict_mono_of_le_iff_le (λ _ _, (coe_submodule_le_coe_submodule h).symm)
@@ -1388,13 +1390,13 @@ is_localization.injective _ (le_of_eq rfl)
 
 variables {R K}
 
-@[simp]
+@[simp, mono]
 lemma coe_submodule_le_coe_submodule
   {I J : ideal R} : coe_submodule K I ≤ coe_submodule K J ↔ I ≤ J :=
 is_localization.coe_submodule_le_coe_submodule (le_refl _)
 
-lemma coe_submodule_strict_mono
-  {I J : ideal R} :
+@[mono]
+lemma coe_submodule_strict_mono :
   strict_mono (coe_submodule K : ideal R → submodule R K) :=
 strict_mono_of_le_iff_le (λ _ _, coe_submodule_le_coe_submodule.symm)
 

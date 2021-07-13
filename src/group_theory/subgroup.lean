@@ -1414,7 +1414,7 @@ instance fintype_mrange {M N : Type*} [monoid M] [monoid N] [fintype M] [decidab
 set.fintype_range f
 
 @[to_additive]
-instance fintype_range [decidable_eq N] (f : G →* N) [fintype G] : fintype (range f) :=
+instance fintype_range  [fintype G] [decidable_eq N] (f : G →* N) : fintype (range f) :=
 set.fintype_range f
 
 end monoid_hom

@@ -882,6 +882,13 @@ by { ext, refl }
 
 end transpose
 
+section has_star
+variables [has_star α]
+instance : has_star (matrix n n α) := {star := conj_transpose}
+lemma conj_transpose_eq_star_of_square_matrix (M : matrix m m α) :
+Mᴴ = star M := rfl
+end has_star
+
 section star_ring
 variables [decidable_eq n] [semiring α] [star_ring α]
 
@@ -898,10 +905,6 @@ instance : star_ring (matrix n n α) :=
 @[simp] lemma star_apply (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
 
 lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
-
-lemma conj_transpose_eq_star_of_square_matrix
-[decidable_eq m] [semiring α] [star_ring α] (M : matrix m m α) :
-Mᴴ = star M := rfl
 
 end star_ring
 

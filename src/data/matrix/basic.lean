@@ -62,7 +62,7 @@ def transpose (M : matrix m n α) : matrix n m α
 
 localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
-/-- The conjugate transpose of a matrix. -/
+/-- The conjugate transpose of a matrix defined in term of `star`. -/
 def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α :=
 M.transpose.map star
 
@@ -938,13 +938,9 @@ lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ :
   (star M) i j = star (M j i) := rfl
 
 instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
-{ star := λ M, M.transpose.map star,
-  star_involutive := conj_transpose_conj_transpose, }
+{ star_involutive := conj_transpose_conj_transpose }
 
-/--
-When `α` is a `*`-(semi)ring, `matrix n n α` becomes a `*`-(semi)ring with
-the star operation given by taking the conjugate, and the star of each entry.
--/
+/-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
 instance [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
 { star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }

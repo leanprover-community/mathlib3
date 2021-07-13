@@ -899,9 +899,7 @@ instance : star_ring (matrix n n α) :=
 
 lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
 
-lemma conj_transpose_eq_star_of_square_matrix
-[decidable_eq m] [semiring α] [star_ring α] (M : matrix m m α) :
-Mᴴ = star M := rfl
+lemma star_eq_conj_transpose (M : matrix n n α) : star M = Mᴴ := rfl
 
 end star_ring
 

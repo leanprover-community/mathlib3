@@ -130,7 +130,7 @@ protected def is_perfect_shuffle
     `[semiring β] [add_comm_monoid α] [module β α]`.
     The equivalence can be easily established when `α` is indeed a `β-module`.
     Another advantage is that `matrix.tr` is more convenient for users to explore lemmas/theorems
-    involving "tace" from a combinatorial aspect.-/
+    involving "trace" from a combinatorial aspect.-/
 def tr [add_comm_monoid α] (A : matrix n n α) : α := ∑ i : n, A i i
 /-
 lemma trace_eq_tr [semiring β] [add_comm_monoid α] [module β α] (A : matrix n n α)
@@ -333,7 +333,7 @@ end dot_product_zero
 
 section dot_product_one
 
-def vec_one [has_one α] : n → α := λ x, 1
+def vec_one [has_one α] : n → α := 1
 
 variables [mul_one_class α] [add_comm_monoid α]
 

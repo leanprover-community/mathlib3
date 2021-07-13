@@ -398,6 +398,32 @@ ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_s
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=
 image2_singleton_left
 
+instance smul_comm_class_set {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class α (set β) (set γ) :=
+{ smul_comm := λ a T T', begin
+    ext c,
+    simp only [mem_smul_set, mem_smul],
+    split,
+    { rintro ⟨_, ⟨b, c, hb, hc, rfl⟩, rfl⟩,
+      exact ⟨b, _, hb, ⟨c, hc, rfl⟩, (smul_comm a b c).symm⟩, },
+    { rintro ⟨b, _, hb, ⟨c, hc, rfl⟩, rfl⟩,
+      exact ⟨_, ⟨b, c, hb, hc, rfl⟩, smul_comm a b c⟩ }
+  end }
+
+instance smul_comm_class {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class (set α) (set β) (set γ) :=
+{ smul_comm := λ T T' T'', begin
+    ext c,
+    simp only [mem_smul],
+    split,
+    { rintro ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, rfl⟩,
+      exact ⟨b, _, hb, ⟨a, c, ha, hc, rfl⟩, (smul_comm a b c).symm⟩ },
+    { rintro ⟨b, _, hb, ⟨a, c, ha, hc, rfl⟩, rfl⟩,
+      exact ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, smul_comm a b c⟩ },
+  end }
+
 section monoid
 
 /-! ### `set α` as a `(∪,*)`-semiring -/

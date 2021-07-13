@@ -64,7 +64,7 @@ localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
 /-- The conjugate transpose of a matrix. -/
 def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α :=
-  M.transpose.map star
+M.transpose.map star
 
 localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
 

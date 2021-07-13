@@ -955,8 +955,8 @@ instance [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n �
   star_mul := conj_transpose_mul, }
 
 /-- A version of `star_mul` for `⬝` instead of `*`. -/
-lemma star_mul [decidable_eq n] [semiring α] [star_ring α] (M N : matrix n n α) :
-  star (M ⬝ N) = star N ⬝ star M := star_mul _ _
+lemma star_mul [semiring α] [star_ring α] (M N : matrix n n α) :
+  star (M ⬝ N) = star N ⬝ star M := conj_transpose_mul _ _
 
 end star
 

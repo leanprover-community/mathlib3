@@ -401,15 +401,8 @@ image2_singleton_left
 instance smul_comm_class_set {γ : Type*}
   [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α (set β) (set γ) :=
-{ smul_comm := λ a T T', begin
-    ext c,
-    simp only [mem_smul_set, mem_smul],
-    split,
-    { rintro ⟨_, ⟨b, c, hb, hc, rfl⟩, rfl⟩,
-      exact ⟨b, _, hb, ⟨c, hc, rfl⟩, (smul_comm a b c).symm⟩, },
-    { rintro ⟨b, _, hb, ⟨c, hc, rfl⟩, rfl⟩,
-      exact ⟨_, ⟨b, c, hb, hc, rfl⟩, smul_comm a b c⟩ }
-  end }
+{ smul_comm := λ a T T',
+    by simp only [←image2_smul, ←image_smul, image2_image_right, image_image2, smul_comm] }
 
 instance smul_comm_class_set' {γ : Type*}
   [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :

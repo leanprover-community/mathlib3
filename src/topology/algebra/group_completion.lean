@@ -7,6 +7,7 @@ Completion of topological groups:
 -/
 import topology.uniform_space.completion
 import topology.algebra.uniform_group
+
 noncomputable theory
 
 universes u v

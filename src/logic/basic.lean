@@ -70,6 +70,10 @@ lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsi
 lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
 ⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
 
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : subsingleton (subtype p) :=
+⟨λ ⟨x,_⟩ ⟨y,_⟩, have x = y, from subsingleton.elim _ _, by { cases this, refl }⟩
+
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
    part of a chain. -/
@@ -250,13 +254,19 @@ theorem em' (p : Prop) : ¬p ∨ p := (em p).swap
 
 theorem or_not {p : Prop} : p ∨ ¬p := em _
 
-theorem decidable.eq_or_ne [decidable (a = b)] : a = b ∨ a ≠ b := dec_em $ a = b
+section eq_or_ne
 
-theorem decidable.ne_or_eq [decidable (a = b)] : a ≠ b ∨ a = b := dec_em' $ a = b
+variables {α : Sort*} (x y : α)
 
-theorem eq_or_ne : a = b ∨ a ≠ b := em $ a = b
+theorem decidable.eq_or_ne [decidable (x = y)] : x = y ∨ x ≠ y := dec_em $ x = y
 
-theorem ne_or_eq : a ≠ b ∨ a = b := em' $ a = b
+theorem decidable.ne_or_eq [decidable (x = y)] : x ≠ y ∨ x = y := dec_em' $ x = y
+
+theorem eq_or_ne : x = y ∨ x ≠ y := em $ x = y
+
+theorem ne_or_eq : x ≠ y ∨ x = y := em' $ x = y
+
+end eq_or_ne
 
 theorem by_contradiction {p} : (¬p → false) → p := decidable.by_contradiction
 
@@ -373,6 +383,12 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 
 @[simp] theorem and_iff_right_iff_imp {a b : Prop} : ((a ∧ b) ↔ b) ↔ (b → a) :=
 ⟨λ h ha, (h.2 ha).1, and_iff_right_of_imp⟩
+
+@[simp] lemma iff_self_and {p q : Prop} : (p ↔ p ∧ q) ↔ (p → q) :=
+by rw [@iff.comm p, and_iff_left_iff_imp]
+
+@[simp] lemma iff_and_self {p q : Prop} : (p ↔ q ∧ p) ↔ (p → q) :=
+by rw [and_comm, iff_self_and]
 
 @[simp] lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩

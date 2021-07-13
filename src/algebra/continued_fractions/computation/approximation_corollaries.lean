@@ -78,7 +78,7 @@ theorem of_convergence_epsilon :
   ∀ (ε > (0 : K)), ∃ (N : ℕ), ∀ (n ≥ N), |v - (gcf.of v).convergents n| < ε :=
 begin
   assume ε ε_pos,
-  -- use the archemidean property to obtian a suitable N
+  -- use the archimedean property to obtian a suitable N
   rcases (exists_nat_gt (1 / ε) : ∃ (N' : ℕ), 1 / ε < N') with ⟨N', one_div_ε_lt_N'⟩,
   let N := max N' 5, -- set minimum to 5 to have N ≤ fib N work
   existsi N,
@@ -110,7 +110,7 @@ begin
         exact (lt_of_lt_of_le this nB_ineq) },
       solve_by_elim [mul_pos] },
     suffices : 1 < ε * (B * nB), from (div_lt_iff zero_lt_mul_conts).elim_right this,
-    -- use that `N ≥ n` was obtained from the archimedian property to show the following
+    -- use that `N ≥ n` was obtained from the archimedean property to show the following
     have one_lt_ε_mul_N : 1 < ε * n, by
     { have one_lt_ε_mul_N' : 1 < ε * (N' : K), from (div_lt_iff' ε_pos).elim_left one_div_ε_lt_N',
       have : (N' : K) ≤ N, by exact_mod_cast (le_max_left  _ _),
@@ -138,7 +138,7 @@ local attribute [instance] preorder.topology
 
 theorem of_convergence [order_topology K] :
   filter.tendsto ((gcf.of v).convergents) filter.at_top $ nhds v :=
-by simpa [linear_ordered_add_comm_group.tendsto_nhds, abs_sub] using (of_convergence_epsilon v)
+by simpa [linear_ordered_add_comm_group.tendsto_nhds, abs_sub_comm] using (of_convergence_epsilon v)
 
 end convergence
 

@@ -67,8 +67,8 @@ namespace measurable_space
 section functors
 variables {m m₁ m₂ : measurable_space α} {m' : measurable_space β} {f : α → β} {g : β → α}
 
-/-- The forward image of a measure space under a function. `map f m` contains the sets `s : set β`
-  whose preimage under `f` is measurable. -/
+/-- The forward image of a measurable space under a function. `map f m` contains the sets
+  `s : set β` whose preimage under `f` is measurable. -/
 protected def map (f : α → β) (m : measurable_space α) : measurable_space β :=
 { measurable_set'      := λ s, m.measurable_set' $ f ⁻¹' s,
   measurable_set_empty := m.measurable_set_empty,
@@ -81,8 +81,8 @@ measurable_space.ext $ assume s, iff.rfl
 @[simp] lemma map_comp {f : α → β} {g : β → γ} : (m.map f).map g = m.map (g ∘ f) :=
 measurable_space.ext $ assume s, iff.rfl
 
-/-- The reverse image of a measure space under a function. `comap f m` contains the sets `s : set α`
-  such that `s` is the `f`-preimage of a measurable set in `β`. -/
+/-- The reverse image of a measurable space under a function. `comap f m` contains the sets
+  `s : set α` such that `s` is the `f`-preimage of a measurable set in `β`. -/
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
 { measurable_set'      := λ s, ∃s', m.measurable_set' s' ∧ f ⁻¹' s' = s,
   measurable_set_empty := ⟨∅, m.measurable_set_empty, rfl⟩,
@@ -186,7 +186,7 @@ lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :
 λ s hs, @subsingleton.measurable_set α _ _ _
 
 @[measurability]
-lemma measurable.piecewise {s : set α} {_ : decidable_pred s} {f g : α → β}
+lemma measurable.piecewise {s : set α} {_ : decidable_pred (∈ s)} {f g : α → β}
   (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
   measurable (piecewise s f g) :=
 begin
@@ -241,6 +241,10 @@ begin
   rw this,
   exact (hf ht).inter h.measurable_set.of_compl,
 end
+
+lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
+  measurable f :=
+λ s hs, (finite.of_fintype (f ⁻¹' s)).measurable_set
 
 end measurable_functions
 
@@ -343,12 +347,29 @@ begin
       subtype.range_coe, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
 end
 
+instance {α} {p : α → Prop} [measurable_space α] [measurable_singleton_class α] :
+  measurable_singleton_class (subtype p) :=
+{ measurable_set_singleton := λ x,
+  begin
+    have : measurable_set {(x : α)} := measurable_set_singleton _,
+    convert @measurable_subtype_coe α _ p _ this,
+    ext y,
+    simp [subtype.ext_iff],
+  end }
+
+lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
+  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (set.restrict f sᶜ)) :
+  measurable f :=
+begin
+  letI : fintype s := finite.fintype hs,
+  exact measurable_of_measurable_union_cover s sᶜ hs.measurable_set hs.measurable_set.compl
+    (by simp only [union_compl_self]) (measurable_of_fintype _) hf
+end
+
 lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α]
   {f : α → β} (a : α) (hf : measurable (set.restrict f {x | x ≠ a})) :
   measurable f :=
-measurable_of_measurable_union_cover _ _ measurable_set_eq measurable_set_eq.compl
-  (λ x hx, classical.em _)
-  (@subsingleton.measurable {x | x = a} _ _ _ ⟨λ x y, subtype.eq $ x.2.trans y.2.symm⟩ _) hf
+measurable_of_measurable_on_compl_finite {a} (finite_singleton a) hf
 
 end subtype
 

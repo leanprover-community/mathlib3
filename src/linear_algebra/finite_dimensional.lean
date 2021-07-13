@@ -549,6 +549,10 @@ lemma finrank_eq_zero_of_not_exists_basis_finite
   (h : ¬ ∃ (s : set V) (b : basis.{v} (s : set V) K V), s.finite) : finrank K V = 0 :=
 finrank_eq_zero_of_basis_imp_not_finite (λ s b hs, h ⟨s, b, hs⟩)
 
+lemma finrank_eq_zero_of_not_exists_basis_finset
+  (h : ¬ ∃ (s : finset V), nonempty (basis s K V)) : finrank K V = 0 :=
+finrank_eq_zero_of_basis_imp_false (λ s b, h ⟨s, ⟨b⟩⟩)
+
 variables (K V)
 
 lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=

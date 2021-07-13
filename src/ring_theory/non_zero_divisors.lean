@@ -50,13 +50,13 @@ lemma mem_non_zero_divisors_iff_ne_zero {x : A} : x ∈ non_zero_divisors A ↔ 
 λ hnx z, eq_zero_of_ne_zero_of_mul_right_eq_zero hnx⟩
 
 lemma map_ne_zero_of_mem_non_zero_divisors [nontrivial R] {B : Type*} [ring B] {g : R →+* B}
-  (hg : function.injective g) {x : non_zero_divisors R} : g x ≠ 0 :=
-λ h0, one_ne_zero (x.2 1 ((one_mul x.1).symm ▸ (hg (trans h0 g.map_zero.symm))))
+  (hg : function.injective g) {x : R} (h : x ∈ non_zero_divisors R) : g x ≠ 0 :=
+λ h0, one_ne_zero (h 1 ((one_mul x).symm ▸ (hg (trans h0 g.map_zero.symm))))
 
 lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
-  (hg : function.injective g) {x : non_zero_divisors A} : g x ∈ non_zero_divisors B :=
+  (hg : function.injective g) {x : A} (h : x ∈ non_zero_divisors A) : g x ∈ non_zero_divisors B :=
 λ z hz, eq_zero_of_ne_zero_of_mul_right_eq_zero
-  (map_ne_zero_of_mem_non_zero_divisors hg) hz
+  (map_ne_zero_of_mem_non_zero_divisors hg h) hz
 
 lemma le_non_zero_divisors_of_domain {M : submonoid A}
   (hM : ↑0 ∉ M) : M ≤ non_zero_divisors A :=
@@ -78,7 +78,7 @@ lemma prod_zero_iff_exists_zero {R : Type*} [comm_semiring R] [no_zero_divisors 
 begin
   split, swap,
   { rintros ⟨r, hrs, rfl⟩,
-    exact multiset.prod_eq_zero hrs, },   
+    exact multiset.prod_eq_zero hrs, },
   refine multiset.induction _ (λ a s ih, _) s,
   { intro habs,
     simpa using habs, },

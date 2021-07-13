@@ -148,11 +148,6 @@ lemma has_fderiv_at_cpow {p : ℂ × ℂ} (hp : 0 < p.1.re ∨ p.1.im ≠ 0) :
       (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℂ ℂ ℂ) p :=
 (has_strict_fderiv_at_cpow hp).has_fderiv_at
 
-instance : has_measurable_pow ℂ ℂ :=
-⟨measurable.ite (measurable_fst (measurable_set_singleton 0))
-  (measurable.ite (measurable_snd (measurable_set_singleton 0)) measurable_one measurable_zero)
-  (measurable_fst.clog.mul measurable_snd).cexp⟩
-
 end complex
 
 section lim
@@ -646,6 +641,30 @@ begin
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
+lemma le_rpow_iff_log_le (hx : 0 < x) (hy : 0 < y) :
+  x ≤ y^z ↔ real.log x ≤ z * real.log y :=
+by rw [←real.log_le_log hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
+
+lemma le_rpow_of_log_le (hx : 0 ≤ x) (hy : 0 < y) (h : real.log x ≤ z * real.log y) :
+  x ≤ y^z :=
+begin
+  obtain hx | rfl := hx.lt_or_eq,
+  { exact (le_rpow_iff_log_le hx hy).2 h },
+  exact (real.rpow_pos_of_pos hy z).le,
+end
+
+lemma lt_rpow_iff_log_lt (hx : 0 < x) (hy : 0 < y) :
+  x < y^z ↔ real.log x < z * real.log y :=
+by rw [←real.log_lt_log_iff hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
+
+lemma lt_rpow_of_log_lt (hx : 0 ≤ x) (hy : 0 < y) (h : real.log x < z * real.log y) :
+  x < y^z :=
+begin
+  obtain hx | rfl := hx.lt_or_eq,
+  { exact (lt_rpow_iff_log_lt hx hy).2 h },
+  exact real.rpow_pos_of_pos hy z,
+end
+
 lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
 by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
 
@@ -834,10 +853,6 @@ end
 
 end sqrt
 
-instance : has_measurable_pow ℝ ℝ :=
-⟨complex.measurable_re.comp $ ((complex.measurable_of_real.comp measurable_fst).pow
-  (complex.measurable_of_real.comp measurable_snd))⟩
-
 end real
 
 section differentiability
@@ -975,6 +990,24 @@ by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring_nf }
 /-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
 by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring_nf }
+
+/-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞`. -/
+lemma tendsto_one_plus_div_rpow_exp (t : ℝ) :
+  tendsto (λ (x : ℝ), (1 + t / x) ^ x) at_top (𝓝 (exp t)) :=
+begin
+  apply ((real.continuous_exp.tendsto _).comp (tendsto_mul_log_one_plus_div_at_top t)).congr' _,
+  have h₁ : (1:ℝ)/2 < 1 := by linarith,
+  have h₂ : tendsto (λ x : ℝ, 1 + t / x) at_top (𝓝 1) :=
+    by simpa using (tendsto_inv_at_top_zero.const_mul t).const_add 1,
+  refine (eventually_ge_of_tendsto_gt h₁ h₂).mono (λ x hx, _),
+  have hx' : 0 < 1 + t / x := by linarith,
+  simp [mul_comm x, exp_mul, exp_log hx'],
+end
+
+/-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞` for naturals `x`. -/
+lemma tendsto_one_plus_div_pow_exp (t : ℝ) :
+  tendsto (λ (x : ℕ), (1 + t / (x:ℝ)) ^ x) at_top (𝓝 (real.exp t)) :=
+((tendsto_one_plus_div_rpow_exp t).comp tendsto_coe_nat_at_top_at_top).congr (by simp)
 
 end limits
 
@@ -1127,9 +1160,6 @@ begin
   rw [←nnreal.coe_rpow, real.to_nnreal_coe],
 end
 
-instance : has_measurable_pow ℝ≥0 ℝ :=
-⟨(measurable_fst.nnreal_coe.pow measurable_snd).subtype_mk⟩
-
 end nnreal
 
 open filter
@@ -1151,6 +1181,17 @@ h.elim (λ h, tendsto_id.nnrpow tendsto_const_nhds (or.inl h)) $
 lemma continuous_rpow_const {y : ℝ} (h : 0 ≤ y) :
   continuous (λ x : ℝ≥0, x^y) :=
 continuous_iff_continuous_at.2 $ λ x, continuous_at_rpow_const (or.inr h)
+
+theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
+  tendsto (λ (x : ℝ≥0), x ^ y) at_top at_top :=
+begin
+  rw filter.tendsto_at_top_at_top,
+  intros b,
+  obtain ⟨c, hc⟩ := tendsto_at_top_at_top.mp (tendsto_rpow_at_top hy) b,
+  use c.to_nnreal,
+  intros a ha,
+  exact_mod_cast hc a (real.to_nnreal_le_iff_le_coe.mp ha),
+end
 
 end nnreal
 
@@ -1662,17 +1703,50 @@ lemma rpow_left_monotone_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : �
 lemma rpow_left_strict_mono_of_pos {x : ℝ} (hx : 0 < x) : strict_mono (λ y : ℝ≥0∞, y^x) :=
 λ y z hyz, rpow_lt_rpow hyz hx
 
-instance : has_measurable_pow ℝ≥0∞ ℝ :=
+theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
+  tendsto (λ (x : ℝ≥0∞), x ^ y) (𝓝 ⊤) (𝓝 ⊤) :=
 begin
-  refine ⟨ennreal.measurable_of_measurable_nnreal_prod _ _⟩,
-  { simp_rw ennreal.coe_rpow_def,
-    refine measurable.ite _ measurable_const
-      (measurable_fst.pow measurable_snd).ennreal_coe,
-    exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
-      (measurable_snd measurable_set_Iio), },
-  { simp_rw ennreal.top_rpow_def,
-    refine measurable.ite measurable_set_Ioi measurable_const _,
-    exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const, },
+  rw tendsto_nhds_top_iff_nnreal,
+  intros x,
+  obtain ⟨c, _, hc⟩ :=
+    (at_top_basis_Ioi.tendsto_iff at_top_basis_Ioi).mp (nnreal.tendsto_rpow_at_top hy) x trivial,
+  have hc' : set.Ioi (↑c) ∈ 𝓝 (⊤ : ℝ≥0∞) := Ioi_mem_nhds coe_lt_top,
+  refine eventually_of_mem hc' _,
+  intros a ha,
+  by_cases ha' : a = ⊤,
+  { simp [ha', hy] },
+  lift a to ℝ≥0 using ha',
+  change ↑c < ↑a at ha,
+  rw coe_rpow_of_nonneg _ hy.le,
+  exact_mod_cast hc a (by exact_mod_cast ha),
+end
+
+private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
+  continuous_at (λ a : ennreal, a ^ y) x :=
+begin
+  by_cases hx : x = ⊤,
+  { rw [hx, continuous_at],
+    convert tendsto_rpow_at_top h,
+    simp [h] },
+  lift x to ℝ≥0 using hx,
+  rw continuous_at_coe_iff,
+  convert continuous_coe.continuous_at.comp
+    (nnreal.continuous_at_rpow_const (or.inr h.le)) using 1,
+  ext1 x,
+  simp [coe_rpow_of_nonneg _ h.le]
+end
+
+@[continuity]
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+begin
+  apply continuous_iff_continuous_at.2 (λ x, _),
+  rcases lt_trichotomy 0 y with hy|rfl|hy,
+  { exact continuous_at_rpow_const_of_pos hy },
+  { simp, exact continuous_at_const },
+  { obtain ⟨z, hz⟩ : ∃ z, y = -z := ⟨-y, (neg_neg _).symm⟩,
+    have z_pos : 0 < z, by simpa [hz] using hy,
+    simp_rw [hz, rpow_neg],
+    exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
 end
 
 end ennreal

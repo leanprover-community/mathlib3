@@ -12,6 +12,16 @@ import probability_theory.independence
 Integration results for independent random variables. Specifically, for two
 independent random variables X and Y over the extended non-negative
 reals, `E[X * Y] = E[X] * E[Y]`, and similar results.
+
+## Implementation notes
+
+Many lemmas in this file take two arguments of the same typeclass. It is worth remembering that lean
+will always pick the later typeclass in this situation, and does not care whether the arguments are
+`[]`, `{}`, or `()`. All of these use the `measurable_space` `M2` to define `μ`:
+
+`example {M1 : measurable_space α} [M2 : measurable_space α] {μ : measure α} : sorry := sorry`
+`example [M1 : measurable_space α] {M2 : measurable_space α} {μ : measure α} : sorry := sorry`
+
 -/
 
 noncomputable theory

@@ -885,8 +885,7 @@ end transpose
 section has_star
 variables [has_star α]
 instance : has_star (matrix n n α) := {star := conj_transpose}
-lemma conj_transpose_eq_star_of_square_matrix (M : matrix m m α) :
-star M = Mᴴ  := rfl
+lemma star_eq_conj_transpose (M : matrix m m α) : star M = Mᴴ := rfl
 end has_star
 
 section star_ring

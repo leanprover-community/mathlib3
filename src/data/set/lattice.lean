@@ -5,40 +5,47 @@ Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import data.sigma.basic
 import order.complete_boolean_algebra
-import order.galois_connection
 import order.directed
+import order.galois_connection
 
 /-!
 # The set lattice
 
 This file provides usual set notation for unions and intersections, a `complete_lattice` instance
-  for `set α`, some more set constructions, and proves basic results combining them.
+for `set α`, and some more set constructions.
 
 ## Main declarations
 
-* `set.lattice_set`: `set α` along with `(⊆)`, `(⋂)` and `(⋃)` is a `complete_lattice`,
+* `set.lattice_set`: `set α` is a `complete_lattice` with `< = ⊂`, `≤ = ⊆`, `⊓ = ∩`, `⊔ = ∪`. See
+  `set.boolean_algebra` for more.
 * `set.Union`: Union of an indexed family of sets.
 * `set.Inter`: Intersection of an indexed family of sets.
-* `set.sInter`: **s**et **Inter**. Intersection of sets belonging to a set of sets. We provide the
-  notation `⋃₀`.
-* `set.sUnion`: **s**et **Union**. Intersection of sets belonging to a set of sets. We provide the
-  notation `⋂₀`.
+* `set.sInter`: **s**et **Inter**. Intersection of sets belonging to a set of sets.
+* `set.sUnion`: **s**et **Union**. Intersection of sets belonging to a set of sets.
 * `set.sInter_eq_bInter`, `set.sUnion_eq_bInter`: Shows that `⋂₀ s = ⋂ x ∈ s, x` and
   `⋃₀ s = ⋃ x ∈ s, x`.
-* `set.kern_image`: `kern_image f s` is the set of `y` such that `f ⁻¹ y ⊆ s`.
-* `set.seq`: Union of a **seq**uence of sets. `seq s t` is the union of `f '' t` over all `f ∈ s`,
-  where `t : set α` and `s : set (α → β)`.
+* `set.kern_image`: For a function `f : α → β`, `s.kern_image f` is the set of `y` such that
+  `f ⁻¹ y ⊆ s`.
+* `set.seq`: Union of the image of a set under a **seq**uence of functions. `seq s t` is the union
+  of `f '' t` over all `f ∈ s`, where `t : set α` and `s : set (α → β)`.
 * `set.pairwise_disjoint`: `pairwise_disjoint s` states that all sets in `s` are either equal or
   disjoint.
 * `set.Union_eq_sigma_of_disjoint`: Equivalence between `⋃ i, t i` and `Σ i, t i`, where `t` is an
   indexed family of disjoint sets.
+
+## Notation
+
+* `⋃`: `set.Union`
+* `⋂`: `set.Inter`
+* `⋃₀`: `set.sUnion`
+* `⋂₀`: `set.sInter`
 -/
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 
 open function tactic set auto
 
-universes u v
+universes u
 variables {α β γ : Type*} {ι ι' ι₂ : Sort*}
 
 namespace set
@@ -56,7 +63,7 @@ instance lattice_set : complete_lattice (set α) :=
   .. set.boolean_algebra,
   .. (infer_instance : complete_lattice (α → Prop)) }
 
-/-- `image` is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
+/-- `set.image` is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
 λ s t, image_subset _
 

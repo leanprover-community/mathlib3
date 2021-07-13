@@ -1172,7 +1172,7 @@ def extend_op_clm' (T : Π s : set α, measurable_set s → (E' →L[ℝ] F'))
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
   (α →₁[μ] E') →L[𝕜] F' :=
 (extend_op_clm' α 𝕜 μ E' T h_add h_smul hC hT_norm).extend
-  (coe_to_L1 α E' 𝕜) simple_func.dense_range simple_func.uniform_inducing
+  (coe_to_Lp α E' 𝕜) (simple_func.dense_range one_ne_top) simple_func.uniform_inducing
 
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
@@ -1187,7 +1187,7 @@ def extend_op_clm (T : Π s : set α, measurable_set s → (E' →L[ℝ] F'))
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
   (α →₁[μ] E') →L[ℝ] F' :=
 (extend_op_clm α μ E' T h_add hC hT_norm).extend
-  (coe_to_L1 α E' ℝ) simple_func.dense_range simple_func.uniform_inducing
+  (coe_to_Lp α E' ℝ) (simple_func.dense_range one_ne_top) simple_func.uniform_inducing
 
 /-- The Bochner integral in L1 space as a continuous linear map over ℝ. -/
 def integral_clm : (α →₁[μ] E) →L[ℝ] E := integral_clm' ℝ

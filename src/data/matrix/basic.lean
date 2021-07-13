@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
+Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
 import algebra.big_operators.pi
 import algebra.module.pi
@@ -61,6 +61,12 @@ def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
 
 localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
+
+/-- The conjugate transpose of a matrix defined in term of `star`. -/
+def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α :=
+M.transpose.map star
+
+localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
 
 /-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
 def col (w : m → α) : matrix m unit α
@@ -878,24 +884,72 @@ by { ext, refl }
 
 end transpose
 
-section star_ring
-variables [decidable_eq n] [semiring α] [star_ring α]
+section conj_transpose
+
+open_locale matrix
 
 /--
-When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
-the star operation given by taking the conjugate, and the star of each entry.
+  Tell `simp` what the entries are in a conjugate transposed matrix.
+
+  Compare with `mul_apply`, `diagonal_apply_eq`, etc.
 -/
-instance : star_ring (matrix n n α) :=
-{ star := λ M, M.transpose.map star,
-  star_involutive := λ M, by { ext, simp, },
-  star_add := λ M N, by { ext, simp, },
-  star_mul := λ M N, by { ext, simp [mul_apply], }, }
+@[simp] lemma conj_transpose_apply [has_star α] (M : matrix m n α) (i j) :
+  M.conj_transpose j i = star (M i j) := rfl
 
-@[simp] lemma star_apply (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
+@[simp] lemma conj_transpose_conj_transpose [has_involutive_star α] (M : matrix m n α) :
+  Mᴴᴴ = M :=
+by ext; simp
 
-lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
+@[simp] lemma conj_transpose_zero [semiring α] [star_ring α] : (0 : matrix m n α)ᴴ = 0 :=
+by ext i j; simp
 
-end star_ring
+@[simp] lemma conj_transpose_one [decidable_eq n] [semiring α] [star_ring α]:
+  (1 : matrix n n α)ᴴ = 1 :=
+by simp [conj_transpose]
+
+@[simp] lemma conj_transpose_add
+[semiring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+  (M + N)ᴴ = Mᴴ + Nᴴ  := by ext i j; simp
+
+@[simp] lemma conj_transpose_sub [ring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+  (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
+
+@[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
+  (c • M)ᴴ = (star c) • Mᴴ :=
+by ext i j; simp [mul_comm]
+
+@[simp] lemma conj_transpose_mul [semiring α] [star_ring α] (M : matrix m n α) (N : matrix n l α) :
+  (M ⬝ N)ᴴ = Nᴴ ⬝ Mᴴ  := by ext i j; simp [mul_apply]
+
+@[simp] lemma conj_transpose_neg [ring α] [star_ring α] (M : matrix m n α) :
+  (- M)ᴴ = - Mᴴ  := by ext i j; simp
+
+end conj_transpose
+
+section star
+
+/-- When `α` has a star operation, square matrices `matrix n n α` have a star
+operation equal to `matrix.conj_transpose`. -/
+instance [has_star α] : has_star (matrix n n α) := {star := conj_transpose}
+
+lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ := rfl
+
+@[simp] lemma star_apply [has_star α] (M : matrix n n α) (i j) :
+  (star M) i j = star (M j i) := rfl
+
+instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
+{ star_involutive := conj_transpose_conj_transpose }
+
+/-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
+instance [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
+{ star_add := conj_transpose_add,
+  star_mul := conj_transpose_mul, }
+
+/-- A version of `star_mul` for `⬝` instead of `*`. -/
+lemma star_mul [semiring α] [star_ring α] (M N : matrix n n α) :
+  star (M ⬝ N) = star N ⬝ star M := conj_transpose_mul _ _
+
+end star
 
 /-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of
 a matrix `M : matrix m n α`, the matrix `M.minor r_reindex c_reindex : matrix l o α` is defined
@@ -918,6 +972,11 @@ ext $ λ _ _, rfl
 
 @[simp] lemma transpose_minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
   (A.minor r_reindex c_reindex)ᵀ = Aᵀ.minor c_reindex r_reindex :=
+ext $ λ _ _, rfl
+
+@[simp] lemma conj_transpose_minor
+  [has_star α] (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
+  (A.minor r_reindex c_reindex)ᴴ = Aᴴ.minor c_reindex r_reindex :=
 ext $ λ _ _, rfl
 
 lemma minor_add [has_add α] (A B : matrix m n α) :
@@ -1044,6 +1103,10 @@ equiv.ext $ λ A, (A.minor_minor eₘ.symm eₙ.symm eₘ₂.symm eₙ₂.symm :
 
 lemma transpose_reindex (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
+rfl
+
+lemma conj_transpose_reindex [has_star α] (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
+  (reindex eₘ eₙ M)ᴴ = (reindex eₙ eₘ Mᴴ) :=
 rfl
 
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/

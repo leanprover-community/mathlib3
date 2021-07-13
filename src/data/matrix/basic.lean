@@ -974,6 +974,11 @@ ext $ λ _ _, rfl
   (A.minor r_reindex c_reindex)ᵀ = Aᵀ.minor c_reindex r_reindex :=
 ext $ λ _ _, rfl
 
+@[simp] lemma conj_transpose_minor
+[has_star α] (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
+  (A.minor r_reindex c_reindex)ᴴ = Aᴴ.minor c_reindex r_reindex :=
+ext $ λ _ _, rfl
+
 lemma minor_add [has_add α] (A B : matrix m n α) :
   ((A + B).minor : (l → m) → (o → n) → matrix l o α) = A.minor + B.minor := rfl
 
@@ -1098,6 +1103,10 @@ equiv.ext $ λ A, (A.minor_minor eₘ.symm eₙ.symm eₘ₂.symm eₙ₂.symm :
 
 lemma transpose_reindex (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
+rfl
+
+lemma conj_transpose_reindex [has_star α] (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
+  (reindex eₘ eₙ M)ᴴ = (reindex eₙ eₘ Mᴴ) :=
 rfl
 
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/

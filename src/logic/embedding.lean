@@ -66,8 +66,8 @@ by { ext, simp }
 
 theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 
-@[simp] lemma apply_eq_apply_iff {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
-⟨λ h, f.injective h, λ h, congr_arg f h⟩
+@[simp] lemma apply_eq_iff_eq {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
+f.injective.eq_iff
 
 @[refl, simps {simp_rhs := tt}]
 protected def refl (α : Sort*) : α ↪ α :=

@@ -19,8 +19,10 @@ Many lemmas in this file take two arguments of the same typeclass. It is worth r
 will always pick the later typeclass in this situation, and does not care whether the arguments are
 `[]`, `{}`, or `()`. All of these use the `measurable_space` `M2` to define `μ`:
 
-`example {M1 : measurable_space α} [M2 : measurable_space α] {μ : measure α} : sorry := sorry`
-`example [M1 : measurable_space α] {M2 : measurable_space α} {μ : measure α} : sorry := sorry`
+```lean
+example {M1 : measurable_space α} [M2 : measurable_space α] {μ : measure α} : sorry := sorry
+example [M1 : measurable_space α] {M2 : measurable_space α} {μ : measure α} : sorry := sorry
+```
 
 -/
 

@@ -187,6 +187,26 @@ lemma of_Union_nonpos {M : Type*} [topological_space M]
   v (⋃ i, f i) ≤ 0 :=
 (v.of_disjoint_Union hf₁ hf₂).symm ▸ tsum_nonpos hf₃
 
+lemma of_nonneg_disjoint_union_eq_zero {s : signed_measure α} {A B : set α}
+  (h : disjoint A B) (hA₁ : measurable_set A) (hB₁ : measurable_set B)
+  (hA₂ : 0 ≤ s A) (hB₂ : 0 ≤ s B)
+  (hAB : s (A ∪ B) = 0) : s A = 0 :=
+begin
+  rw of_union h hA₁ hB₁ at hAB,
+  linarith,
+  apply_instance,
+end
+
+lemma of_nonpos_disjoint_union_eq_zero {s : signed_measure α} {A B : set α}
+  (h : disjoint A B) (hA₁ : measurable_set A) (hB₁ : measurable_set B)
+  (hA₂ : s A ≤ 0) (hB₂ : s B ≤ 0)
+  (hAB : s (A ∪ B) = 0) : s A = 0 :=
+begin
+  rw of_union h hA₁ hB₁ at hAB,
+  linarith,
+  apply_instance,
+end
+
 end vector_measure
 
 /-- An alternative definition of `signed_measure` which does not require the

@@ -473,7 +473,7 @@ include I
 `(tangent_bundle_core I M).to_topological_vector_bundle_core.fiber x`, but we use `E` to help the
 kernel.
 -/
-@[nolint unused_arguments]
+@[nolint unused_arguments, reducible]
 def tangent_space (x : M) : Type* :=
 (tangent_bundle_core I M).to_topological_vector_bundle_core.fiber x
 
@@ -515,9 +515,6 @@ instance : charted_space (model_prod H E) (tangent_bundle I M) :=
 instance : smooth_manifold_with_corners I.tangent (tangent_bundle I M) :=
 (tangent_bundle_core I M).to_smooth_manifold
 
-section
-
-local attribute [reducible] tangent_space -- This should be global...
 variables {M} (x : M)
 
 instance : topological_space (tangent_space I x) := by apply_instance
@@ -525,13 +522,7 @@ instance : add_comm_group (tangent_space I x) := by apply_instance
 instance : topological_add_group (tangent_space I x) := by apply_instance
 instance : module 𝕜 (tangent_space I x) := by apply_instance
 instance : inhabited (tangent_space I x) := ⟨0⟩
-
-instance tangent_space.total_space.topologial_space : --not needed if tangent space is reducible
-  topological_space (bundle.total_space (tangent_space I : M → Type*)) := by apply_instance
-
 instance : topological_vector_bundle 𝕜 E (tangent_space I : M → Type*) := by apply_instance
-
-end
 
 
 end tangent_bundle_instances

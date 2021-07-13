@@ -26,6 +26,7 @@ to only compare the underlying functions for measurable sets.
 
 We use `has_sum` instead of `tsum` in the definition of vector measures in comparison to `measure`
 since this provides summablity.
+
 ## Tags
 
 vector measure, signed measure, complex measure
@@ -58,8 +59,6 @@ notation `complex_measure ` α := vector_measure α ℂ
 open set measure_theory
 
 namespace vector_measure
-
-section
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
@@ -206,29 +205,22 @@ begin
   apply_instance,
 end
 
-lemma summable_to_real {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) (hsum : ∑' x, f x ≠ ∞) :
-  summable (λ x, (f x).to_real) :=
-begin
-  lift f to α → ℝ≥0 using hf,
-  rw ennreal.tsum_coe_ne_top_iff_summable_coe at hsum,
-  simp [hsum],
-end
-
 lemma summable_measure {μ : measure α} [hμ : finite_measure μ]
   (hf₁ : ∀ (i : ℕ), measurable_set (f i))
   (hf₂ : pairwise (disjoint on f)) :
   summable (λ x, (μ (f x)).to_real) :=
 begin
-  apply summable_to_real,
-  { intro, exact ne_of_lt (measure_lt_top _ _) },
-  { rw ← measure_theory.measure_Union hf₂ hf₁,
-    exact ne_of_lt (measure_lt_top _ _) }
+  apply ennreal.summable_to_real,
+  rw ← measure_theory.measure_Union hf₂ hf₁,
+  exact ne_of_lt (measure_lt_top _ _)
 end
 
-end
+end vector_measure
+
+namespace measure
 
 /-- A finite measure coerced into a real function is a signed measure. -/
-def of_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :=
+def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :=
 { measure_of := λ i : set α, if measurable_set i then (μ.measure_of i).to_real else 0,
   empty := by simp [μ.empty],
   not_measurable := λ _ hi, if_neg hi,
@@ -243,22 +235,39 @@ def of_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :
         exacts [ennreal.to_real_nonneg, le_refl _] },
       { intro, split_ifs,
         exacts [le_refl _, ennreal.to_real_nonneg] },
-        exact summable_measure hf₁ hf₂ },
+        exact vector_measure.summable_measure hf₁ hf₂ },
     { intros a ha,
       apply ne_of_lt hμ.measure_univ_lt_top,
       rw [eq_top_iff, ← ha, outer_measure.measure_of_eq_coe, coe_to_outer_measure],
       exact measure_mono (set.subset_univ _) }
   end }
 
-lemma of_measure_apply_measurable {μ : measure α} [finite_measure μ]
+lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
   {i : set α} (hi : measurable_set i) :
-  of_measure μ i = (μ i).to_real :=
+  μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
-lemma of_measure_apply_not_measurable {μ : measure α} [finite_measure μ]
-  {i : set α} (hi : ¬ measurable_set i) :
-  of_measure μ i = 0 :=
-if_neg hi
+/-- A measure is a vector measure over `ℝ≥0∞`. -/
+def to_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :=
+{ measure_of := λ i : set α, if measurable_set i then μ i else 0,
+  empty := by simp [μ.empty],
+  not_measurable := λ _ hi, if_neg hi,
+  m_Union := λ _ hf₁ hf₂,
+  begin
+    rw summable.has_sum_iff ennreal.summable,
+    { rw [if_pos (measurable_set.Union hf₁), measure_theory.measure_Union hf₂ hf₁],
+      exact tsum_congr (λ n, if_pos (hf₁ n)) },
+  end }
+
+@[simp]
+lemma to_vector_measure_apply {μ : measure α}
+  {i : set α} (hi : measurable_set i) :
+  μ.to_vector_measure i = μ i :=
+if_pos hi
+
+end measure
+
+namespace vector_measure
 
 variables {M : Type*} [add_comm_group M] [topological_space M]
 
@@ -271,8 +280,6 @@ instance : inhabited (vector_measure α M) := ⟨0⟩
 
 @[simp]
 lemma zero_apply (i : set α) : (0 : vector_measure α M) i = 0 := rfl
-
-section
 
 variables [topological_add_group M]
 
@@ -298,11 +305,11 @@ instance : has_add (vector_measure α M) := ⟨add⟩
 instance : has_neg (vector_measure α M) := ⟨neg⟩
 
 @[simp]
-lemma neg_apply {v : vector_measure α M} (i : set α) :
+lemma coe_neg {v : vector_measure α M} (i : set α) :
   (-v) i = - v i := rfl
 
 @[simp]
-lemma add_apply {v w : vector_measure α M} (i : set α) :
+lemma coe_add {v w : vector_measure α M} (i : set α) :
   (v + w) i = v i + w i := rfl
 
 instance : add_comm_group (vector_measure α M) :=
@@ -314,24 +321,38 @@ instance : add_comm_group (vector_measure α M) :=
   add_comm := by { intros, ext i; simp [add_comm] },
   add_left_neg := by { intros, ext i, simp } } .
 
-end
-
-/-- Given two finite measures `μ, ν`, `of_sub_measure μ ν` is the signed measure
-corresponding to the function `μ - ν`. -/
-def of_sub_measure (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν] :
-  signed_measure α :=
-of_measure μ + - of_measure ν
-
-lemma of_sub_measure_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
-  {i : set α} (hi : measurable_set i) :
-  of_sub_measure μ ν i = (μ i).to_real - (ν i).to_real :=
+@[simp]
+lemma coe_sub {v w : vector_measure α M} (i : set α) :
+  (v - w) i = v i - w i :=
 begin
-  rw [of_sub_measure, add_apply, neg_apply, of_measure_apply_measurable hi,
-      of_measure_apply_measurable hi, sub_eq_add_neg]
+  rw [sub_eq_add_neg, sub_eq_add_neg],
+  refl
 end
 
-section
+end vector_measure
 
+namespace measure
+
+/-- Given two finite measures `μ, ν`, `sub_to_signed_measure μ ν` is the signed measure
+corresponding to the function `μ - ν`. -/
+def sub_to_signed_measure (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν] :
+  signed_measure α :=
+μ.to_signed_measure + - ν.to_signed_measure
+
+lemma sub_to_signed_measure_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+  {i : set α} (hi : measurable_set i) :
+  μ.sub_to_signed_measure ν i = (μ i).to_real - (ν i).to_real :=
+begin
+  rw [sub_to_signed_measure, vector_measure.coe_add, vector_measure.coe_neg,
+      to_signed_measure_apply_measurable hi, measure.to_signed_measure_apply_measurable hi,
+      sub_eq_add_neg]
+end
+
+end measure
+
+namespace vector_measure
+
+variables {M : Type*} [add_comm_group M] [topological_space M]
 variables {R : Type*} [ring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M]
 
@@ -358,8 +379,6 @@ instance [topological_add_group M] : module R (vector_measure α M) :=
   smul_zero := by { intros, ext i; simp [smul_zero] },
   add_smul := by { intros, ext i; simp [add_smul] },
   zero_smul := by { intros, ext i; simp [zero_smul] } } .
-
-end
 
 end vector_measure
 

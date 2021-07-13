@@ -411,6 +411,11 @@ instance smul_comm_class_set {γ : Type*}
       exact ⟨_, ⟨b, c, hb, hc, rfl⟩, smul_comm a b c⟩ }
   end }
 
+instance smul_comm_class_set' {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class (set α) β (set γ) :=
+by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
+
 instance smul_comm_class {γ : Type*}
   [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (set α) (set β) (set γ) :=

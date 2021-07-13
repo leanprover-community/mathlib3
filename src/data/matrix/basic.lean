@@ -914,10 +914,10 @@ end
 
 @[simp] lemma conj_transpose_add
 [semiring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
-(M + N)ᴴ = Mᴴ + Nᴴ  := by ext i j; simp
+  (M + N)ᴴ = Mᴴ + Nᴴ  := by ext i j; simp
 
 @[simp] lemma conj_transpose_sub [ring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
-(M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
+  (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
 
 @[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
   (c • M)ᴴ = (star c) • Mᴴ :=

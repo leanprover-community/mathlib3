@@ -32,7 +32,7 @@ Vitali-Carathéodory theorem, in the file `measure_theory.vitali_caratheodory`.
 
 -/
 
-open_locale ennreal nnreal
+open_locale ennreal nnreal topological_space
 open measure_theory topological_space continuous_map
 
 namespace measure_theory.Lp
@@ -64,12 +64,19 @@ end
 
 variables [normal_space α] [normed_space ℝ E]
 
+-- need a typeclass for linear orders with `bot`
+
+lemma nnreal.nhds_basis_zero : (𝓝 (0:ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, set.Iio a) :=
+nhds_basis_bot
+
 /-- A simple function in `Lp` can be approximated in `Lp` by continuous functions. -/
 lemma continuous_map_dense [_i : fact (1 ≤ p)] (hp' : p ≠ ∞) [μ.weakly_regular] :
   (continuous_map E p μ).topological_closure = ⊤ :=
 begin
   have hp₀ : 0 < p := lt_of_lt_of_le ennreal.zero_lt_one _i.elim,
   have hp₀' : 0 ≤ 1 / p.to_real := div_nonneg zero_le_one ennreal.to_real_nonneg,
+  have hp₀'' : 0 < p.to_real,
+  { simpa [← ennreal.to_real_lt_to_real ennreal.zero_ne_top hp'] using hp₀ },
   -- It suffices to prove that scalar multiples of the indicator function of a finite-measure
   -- measurable set can be approximated by continuous functions
   suffices :  ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ⊤),
@@ -84,11 +91,24 @@ begin
   intros c s hs hsμ,
   refine mem_closure_iff_frequently.mpr _,
   rw metric.nhds_basis_closed_ball.frequently_iff,
-  intros ε' hε',
-  obtain ⟨η, hη_pos, hη_le⟩ : ∃ η, (0:ℝ≥0) < η ∧ (↑(∥c∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ) ≤ ε',
-  { sorry },
+  intros ε hε,
+  -- A little bit of pre-emptive work, to find `η : ℝ≥0` which will be a margin small enough for
+  -- our purposes
+  obtain ⟨η, hη_pos, hη_le⟩ : ∃ η, (0:ℝ≥0) < η ∧ (↑(∥c∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ) ≤ ε,
+  { have : filter.tendsto (λ x : ℝ≥0, ∥c∥₊ * (2 * x) ^ (1 / p.to_real)) (𝓝 0) (𝓝 0),
+    { have : filter.tendsto (λ x : ℝ≥0, 2 * x) (𝓝 0) (𝓝 (2 * 0)) := filter.tendsto_id.const_mul 2,
+      convert ((nnreal.continuous_at_rpow_const (or.inr hp₀')).tendsto.comp this).const_mul (∥c∥₊),
+      simp [hp₀''.ne'] },
+    let ε' : ℝ≥0 := ⟨ε, hε.le⟩,
+    have hε' : 0 < ε' := by exact_mod_cast hε,
+    obtain ⟨δ, hδ, hδε'⟩ :=
+      nnreal.nhds_basis_zero.eventually_iff.mp (eventually_le_of_tendsto_lt hε' this),
+    obtain ⟨η, hη, hηδ⟩ := exists_between hδ,
+    refine ⟨η, hη, _⟩,
+    exact_mod_cast hδε' hηδ },
   have hη_pos' : (0 : ℝ≥0∞) < ↑η := by exact_mod_cast hη_pos,
-  -- Use the regularity of the measure to approximate `s` by an open superset and a closed subset
+  -- Use the regularity of the measure to `η`-approximate `s` by an open superset and a closed
+  -- subset
   obtain ⟨u, u_open, su, μu⟩ : ∃ u, is_open u ∧ s ⊆ u ∧ μ u < μ s + ↑η,
   { refine hs.exists_is_open_lt_of_lt _ _,
     simpa using (ennreal.add_lt_add_iff_left hsμ).2 hη_pos' },

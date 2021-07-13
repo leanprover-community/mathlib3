@@ -140,7 +140,7 @@ by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
 @[simp] lemma dist_sub_right (g₁ g₂ h : α) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using dist_add_right _ _ _
 
-/-- Triangle inequality for the norm. -/
+/-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : α) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 (-h)
 

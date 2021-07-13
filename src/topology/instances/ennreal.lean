@@ -143,6 +143,8 @@ nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 lemma nhds_top' : 𝓝 ∞ = ⨅ r : ℝ≥0, 𝓟 (Ioi r) :=
 nhds_top.trans $ infi_ne_top _
 
+lemma nhds_top_basis : (𝓝 ∞).has_basis (λ a, a < ∞) (λ a, Ioi a) := nhds_top_basis
+
 lemma tendsto_nhds_top_iff_nnreal {m : α → ℝ≥0∞} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ≥0, ∀ᶠ a in f, ↑x < m a :=
 by simp only [nhds_top', tendsto_infi, tendsto_principal, mem_Ioi]
@@ -168,6 +170,8 @@ by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) (λ a, Iio a) := nhds_bot_basis
 
 @[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
@@ -663,6 +667,20 @@ begin
   exact ennreal.tendsto_of_real h,
 end
 
+lemma tsum_coe_ne_top_iff_summable_coe {f : α → ℝ≥0} :
+  ∑' a, (f a : ℝ≥0∞) ≠ ∞ ↔ summable (λ a, (f a : ℝ)) :=
+begin
+  rw nnreal.summable_coe,
+  exact tsum_coe_ne_top_iff_summable,
+end
+
+lemma tsum_coe_eq_top_iff_not_summable_coe {f : α → ℝ≥0} :
+  ∑' a, (f a : ℝ≥0∞) = ∞ ↔ ¬ summable (λ a, (f a : ℝ)) :=
+begin
+  rw [← @not_not (∑' a, ↑(f a) = ⊤)],
+  exact not_congr tsum_coe_ne_top_iff_summable_coe
+end
+
 end ennreal
 
 namespace nnreal
@@ -800,6 +818,18 @@ by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 end nnreal
 
 namespace ennreal
+
+lemma tsum_to_real_eq
+  {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+  (∑' a, f a).to_real = ∑' a, (f a).to_real :=
+begin
+  lift f to α → ℝ≥0 using hf,
+  have : (∑' (a : α), (f a : ℝ≥0∞)).to_real =
+    ((∑' (a : α), (f a : ℝ≥0∞)).to_nnreal : ℝ≥0∞).to_real,
+  { rw [ennreal.coe_to_real], refl },
+  rw [this, ← nnreal.tsum_eq_to_nnreal_tsum, ennreal.coe_to_real],
+  exact nnreal.coe_tsum
+end
 
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=

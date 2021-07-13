@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.pequiv
+import data.matrix.block
 import data.fintype.card
 import group_theory.perm.fin
 import group_theory.perm.sign

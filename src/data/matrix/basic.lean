@@ -892,7 +892,7 @@ open_locale matrix
   Compare with `mul_apply`, `diagonal_apply_eq`, etc.
 -/
 @[simp] lemma conj_transpose_apply [has_star α] (M : matrix m n α) (i j) :
-M.conj_transpose j i = star (M i j) := rfl
+  M.conj_transpose j i = star (M i j) := rfl
 
 @[simp] lemma conj_transpose_conj_transpose [has_involutive_star α] (M : matrix m n α) :
   Mᴴᴴ = M :=
@@ -902,7 +902,7 @@ by ext; simp [conj_transpose]
 by ext i j; simp [conj_transpose]
 
 @[simp] lemma conj_transpose_one [decidable_eq n] [semiring α] [star_ring α]:
-(1 : matrix n n α)ᴴ = 1 :=
+  (1 : matrix n n α)ᴴ = 1 :=
 begin
   ext i j,
   unfold has_one.one conj_transpose,
@@ -930,11 +930,12 @@ by ext i j; simp
 end conj_transpose
 
 section has_star
+
 variables [has_star α]
 
 instance : has_star (matrix n n α) := {star := conj_transpose}
 
-@[simp] lemma star_eq_conj_transpose (M : matrix m m α) : star M = Mᴴ := rfl
+lemma star_eq_conj_transpose (M : matrix m m α) : star M = Mᴴ := rfl
 
 @[simp] lemma star_apply (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
 
@@ -952,8 +953,6 @@ instance : star_ring (matrix n n α) :=
   star_involutive := λ M, by { ext, simp, },
   star_add := λ M N, by { ext, simp, },
   star_mul := λ M N, by { ext, simp [mul_apply], }, }
-
-@[simp] lemma star_apply_of_star_ring (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
 
 lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
 

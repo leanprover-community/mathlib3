@@ -163,6 +163,17 @@ le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
 lemma neg_norm_le_apply (f : C(α, ℝ)) (x : α) : -∥f∥ ≤ f x :=
 le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
 
+@[simp] lemma _root_.bounded_continuous_function.norm_forget_boundedness_eq (f : α →ᵇ β) :
+∥forget_boundedness α β f∥ = ∥f∥ :=
+rfl
+
+lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
+begin
+  equiv_rw equiv_bounded_of_compact α β at f,
+  rw [equiv_bounded_of_compact_symm_apply, forget_boundedness_coe, f.norm_forget_boundedness_eq,
+    f.norm_eq_supr_norm],
+end
+
 end
 
 section

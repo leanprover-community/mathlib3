@@ -521,6 +521,57 @@ of_normed_group f continuous_of_discrete_topology C H
   (f : α → β) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
   (of_normed_group_discrete f C H : α → β) = f := rfl
 
+/-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
+yields a bounded continuous function with values in ℝ. -/
+def norm_comp : α →ᵇ ℝ :=
+of_normed_group (norm ∘ f) (by continuity) ∥f∥ (λ x, by simp only [f.norm_coe_le_norm, norm_norm])
+
+@[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
+
+@[simp] lemma norm_norm_comp : ∥f.norm_comp∥ = ∥f∥ :=
+by simp only [norm_eq, coe_norm_comp, norm_norm]
+
+lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
+begin
+  rw ← coe_norm_comp,
+  suffices : metric.bounded (set.range f.norm_comp),
+  { rw real.bounded_iff_bdd_below_bdd_above at this, exact this.2, },
+  apply bounded_range,
+end
+
+/-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ∥f∥ as an
+`Inf`. -/
+lemma norm_of_non_empty_eq [h : nonempty α] : ∥f∥ = Inf {C : ℝ | ∀ (x : α), ∥f x∥ ≤ C} :=
+begin
+  unfreezingI { obtain ⟨a⟩ := h, },
+  rw norm_eq,
+  congr,
+  ext,
+  simp only [and_iff_right_iff_imp],
+  exact λ h', le_trans (norm_nonneg (f a)) (h' a),
+end
+
+@[simp] lemma norm_of_empty_eq_zero (h : ¬ nonempty α) : ∥f∥ = 0 :=
+begin
+  have h' : ∀ (C : ℝ) (x : α), ∥f x∥ ≤ C, { intros, exfalso, apply h, use x, },
+  simp only [norm_eq, h', and_true, implies_true_iff],
+  exact cInf_Ici,
+end
+
+lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
+begin
+  by_cases hα : nonempty α,
+  { haveI := hα,
+    rw [norm_of_non_empty_eq, supr,
+      ← cInf_upper_bounds_eq_cSup f.bdd_above_range_norm_comp (set.range_nonempty _)],
+    congr,
+    ext,
+    simp only [forall_apply_eq_imp_iff', set.mem_range, exists_imp_distrib], },
+  { suffices : set.range (norm ∘ f) = ∅,
+    { rw [f.norm_of_empty_eq_zero hα, supr, this, real.Sup_empty], },
+    exact set.range_eq_empty.mpr hα, },
+end
+
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
 ⟨λf g, of_normed_group (f + g) (f.continuous.add g.continuous) (∥f∥ + ∥g∥) $ λ x,

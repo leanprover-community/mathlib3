@@ -445,7 +445,7 @@ Tensoring on the left, as a functor from `C` into endofunctors of `C`.
 TODO: show this is a op-monoidal functor.
 -/
 @[simps]
-def tensoring_left : C ⥤ (C ⥤ C) :=
+def tensoring_left : C ⥤ C ⥤ C :=
 { obj := tensor_left,
   map := λ X Y f,
   { app := λ Z, f ⊗ (𝟙 Z) } }
@@ -464,7 +464,7 @@ Tensoring on the right, as a functor from `C` into endofunctors of `C`.
 We later show this is a monoidal functor.
 -/
 @[simps]
-def tensoring_right : C ⥤ (C ⥤ C) :=
+def tensoring_right : C ⥤ C ⥤ C :=
 { obj := tensor_right,
   map := λ X Y f,
   { app := λ Z, (𝟙 Z) ⊗ f } }
@@ -476,7 +476,6 @@ instance : faithful (tensoring_right C) :=
     replace h := congr_fun h (𝟙_ C),
     simpa using h,
   end }
-
 
 variables {C}
 

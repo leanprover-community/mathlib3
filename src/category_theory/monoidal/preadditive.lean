@@ -29,11 +29,15 @@ Note we don't `extend preadditive C` here, as `abelian C` already extends it,
 and we'll need to have both typeclasses sometimes.
 -/
 class monoidal_preadditive :=
-(tensor_zero : ∀ {W X Y Z : C} (f : W ⟶ X), f ⊗ (0 : Y ⟶ Z) = 0)
-(zero_tensor : ∀ {W X Y Z : C} (f : Y ⟶ Z), (0 : W ⟶ X) ⊗ f = 0)
-(tensor_add : ∀ {W X Y Z : C} (f : W ⟶ X) (g h : Y ⟶ Z), f ⊗ (g + h) = f ⊗ g + f ⊗ h)
-(add_tensor : ∀ {W X Y Z : C} (f g : W ⟶ X) (h : Y ⟶ Z), (f + g) ⊗ h = f ⊗ h + g ⊗ h)
+(tensor_zero' : ∀ {W X Y Z : C} (f : W ⟶ X), f ⊗ (0 : Y ⟶ Z) = 0 . obviously)
+(zero_tensor' : ∀ {W X Y Z : C} (f : Y ⟶ Z), (0 : W ⟶ X) ⊗ f = 0 . obviously)
+(tensor_add' : ∀ {W X Y Z : C} (f : W ⟶ X) (g h : Y ⟶ Z), f ⊗ (g + h) = f ⊗ g + f ⊗ h . obviously)
+(add_tensor' : ∀ {W X Y Z : C} (f g : W ⟶ X) (h : Y ⟶ Z), (f + g) ⊗ h = f ⊗ h + g ⊗ h . obviously)
 
+restate_axiom monoidal_preadditive.tensor_zero'
+restate_axiom monoidal_preadditive.zero_tensor'
+restate_axiom monoidal_preadditive.tensor_add'
+restate_axiom monoidal_preadditive.add_tensor'
 attribute [simp] monoidal_preadditive.tensor_zero monoidal_preadditive.zero_tensor
 
 variables [monoidal_preadditive C]

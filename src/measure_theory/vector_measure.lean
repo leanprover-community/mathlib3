@@ -103,7 +103,7 @@ end
   (h : ∀ i : set α, measurable_set i → s i = t i) : s = t :=
 (ext_iff s t).2 h
 
-variables [t2_space M] {v : vector_measure α M} {s : signed_measure α} {f : ℕ → set α}
+variables [t2_space M] {v : vector_measure α M} {f : ℕ → set α}
 
 lemma measure_Union_has_sum [encodable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
@@ -167,6 +167,20 @@ begin
   rw [← measure_of_diff hA hB h, add_sub_cancel'],
   apply_instance,
 end
+
+lemma measure_of_Union_nonneg {M : Type*} [topological_space M]
+  [ordered_add_comm_monoid M] [order_closed_topology M]
+  {v : vector_measure α M} (hf₁ : ∀ i, measurable_set (f i))
+  (hf₂ : pairwise (disjoint on f)) (hf₃ : ∀ i, 0 ≤ v (f i)) :
+  0 ≤ v (⋃ i, f i) :=
+(v.measure_of_disjoint_Union hf₁ hf₂).symm ▸ tsum_nonneg hf₃
+
+lemma measure_of_Union_nonpos {M : Type*} [topological_space M]
+  [ordered_add_comm_monoid M] [order_closed_topology M]
+  {v : vector_measure α M} (hf₁ : ∀ i, measurable_set (f i))
+  (hf₂ : pairwise (disjoint on f)) (hf₃ : ∀ i, v (f i) ≤ 0) :
+  v (⋃ i, f i) ≤ 0 :=
+(v.measure_of_disjoint_Union hf₁ hf₂).symm ▸ tsum_nonpos hf₃
 
 end vector_measure
 

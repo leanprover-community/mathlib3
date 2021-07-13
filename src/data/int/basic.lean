@@ -1398,8 +1398,8 @@ lemma coe_least_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
   {b b' : ℤ} (Hb : ∀ z : ℤ, P z → b ≤ z) (Hb' : ∀ z : ℤ, P z → b' ≤ z) (Hinh : ∃ z : ℤ, P z) :
   (least_of_bdd b Hb Hinh : ℤ) = least_of_bdd b' Hb' Hinh :=
 begin
-  rcases least_of_bdd b Hb Hinh with ⟨n , hn, h2n⟩,
-  rcases least_of_bdd b' Hb' Hinh with ⟨n' , hn', h2n'⟩,
+  rcases least_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
+  rcases least_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
   exact le_antisymm (h2n _ hn') (h2n' _ hn),
 end
 
@@ -1424,8 +1424,8 @@ lemma coe_greatest_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
   {b b' : ℤ} (Hb : ∀ z : ℤ, P z → z ≤ b) (Hb' : ∀ z : ℤ, P z → z ≤ b') (Hinh : ∃ z : ℤ, P z) :
   (greatest_of_bdd b Hb Hinh : ℤ) = greatest_of_bdd b' Hb' Hinh :=
 begin
-  rcases greatest_of_bdd b Hb Hinh with ⟨n , hn, h2n⟩,
-  rcases greatest_of_bdd b' Hb' Hinh with ⟨n' , hn', h2n'⟩,
+  rcases greatest_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
+  rcases greatest_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
   exact le_antisymm (h2n' _ hn) (h2n _ hn'),
 end
 

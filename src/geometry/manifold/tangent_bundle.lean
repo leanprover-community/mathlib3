@@ -39,9 +39,9 @@ not require that this changes in fiber are linear, but only diffeomorphisms.
 
 Let `Z` be a basic smooth bundle core over `M` with fiber `F`. We define
 `Z.to_topological_vector_bundle_core`, the (topological) fiber bundle core associated to `Z`. From
-it, we get a space `Z.to_topological_vector_bundle_core.total_space` (which as a Type is just `Σ (x :
-M), F`), with the fiber bundle topology. It inherits a manifold structure (where the charts are in
-bijection with the charts of the basis). We show that this manifold is smooth.
+it, we get a space `Z.to_topological_vector_bundle_core.total_space` (which as a Type is just
+`Σ (x : M), F`), with the fiber bundle topology. It inherits a manifold structure (where the
+charts are in bijection with the charts of the basis). We show that this manifold is smooth.
 
 Then we use this machinery to construct the tangent bundle of a smooth manifold.
 

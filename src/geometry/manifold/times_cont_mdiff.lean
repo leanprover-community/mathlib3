@@ -1357,7 +1357,7 @@ lemma times_cont_mdiff_proj :
 begin
   assume x,
   rw [times_cont_mdiff_at, times_cont_mdiff_within_at_iff],
-  refine ⟨Z.to_topological_vector_bundle_core.continuous_proj.continuous_at.continuous_within_at, _⟩,
+  refine ⟨Z.to_topological_vector_bundle_core.continuous_proj.continuous_within_at, _⟩,
   simp only [(∘), chart_at, chart] with mfld_simps,
   apply times_cont_diff_within_at_fst.congr,
   { rintros ⟨a, b⟩ hab,

@@ -1112,6 +1112,33 @@ begin
   apply is_noetherian_coe_to_fractional_ideal,
 end
 
+section adjoin
+
+include loc
+omit frac
+
+variables {R P} (S) (x : P) (hx : is_integral R x)
+
+/-- `A[x]` is a fractional ideal for every integral `x`. -/
+lemma is_fractional_adjoin_integral :
+  is_fractional S (algebra.adjoin R ({x} : set P)).to_submodule :=
+is_fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
+
+/-- `fractional_ideal.adjoin_integral (S : submonoid R) x hx` is `R[x]` as a fractional ideal,
+where `hx` is a proof that `x : P` is integral over `R`. -/
+def adjoin_integral : fractional_ideal S P :=
+⟨_, is_fractional_adjoin_integral S x hx⟩
+
+lemma mem_adjoin_integral_self :
+  x ∈ adjoin_integral S x hx :=
+algebra.subset_adjoin (set.mem_singleton x)
+
+@[simp] lemma coe_adjoin_integral :
+  (adjoin_integral S x hx : submodule R P) = (algebra.adjoin R {x}).to_submodule :=
+rfl
+
+end adjoin
+
 end fractional_ideal
 
 end ring

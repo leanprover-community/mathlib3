@@ -305,12 +305,20 @@ instance : has_add (vector_measure α M) := ⟨add⟩
 instance : has_neg (vector_measure α M) := ⟨neg⟩
 
 @[simp]
-lemma coe_neg {v : vector_measure α M} (i : set α) :
+lemma neg_apply {v : vector_measure α M} (i : set α) :
   (-v) i = - v i := rfl
 
 @[simp]
-lemma coe_add {v w : vector_measure α M} (i : set α) :
+lemma add_apply {v w : vector_measure α M} (i : set α) :
   (v + w) i = v i + w i := rfl
+
+@[simp]
+lemma coe_neg {v : vector_measure α M} (i : set α) :
+  ⇑(-v) = - v := rfl
+
+@[simp]
+lemma coe_add {v w : vector_measure α M} (i : set α) :
+  ⇑(v + w) = v + w := rfl
 
 instance : add_comm_group (vector_measure α M) :=
 { add := (+), zero := (0),
@@ -322,8 +330,15 @@ instance : add_comm_group (vector_measure α M) :=
   add_left_neg := by { intros, ext i, simp } } .
 
 @[simp]
-lemma coe_sub {v w : vector_measure α M} (i : set α) :
+lemma sub_apply {v w : vector_measure α M} (i : set α) :
   (v - w) i = v i - w i :=
+begin
+  rw [sub_eq_add_neg, sub_eq_add_neg],
+  refl
+end
+
+lemma coe_sub {v w : vector_measure α M} (i : set α) :
+  ⇑(v - w) = v - w :=
 begin
   rw [sub_eq_add_neg, sub_eq_add_neg],
   refl
@@ -343,7 +358,7 @@ lemma sub_to_signed_measure_apply {μ ν : measure α} [finite_measure μ] [fini
   {i : set α} (hi : measurable_set i) :
   μ.sub_to_signed_measure ν i = (μ i).to_real - (ν i).to_real :=
 begin
-  rw [sub_to_signed_measure, vector_measure.coe_add, vector_measure.coe_neg,
+  rw [sub_to_signed_measure, vector_measure.add_apply, vector_measure.neg_apply,
       to_signed_measure_apply_measurable hi, measure.to_signed_measure_apply_measurable hi,
       sub_eq_add_neg]
 end

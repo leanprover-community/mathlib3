@@ -679,6 +679,10 @@ lemma filter.tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (�
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 (continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
+lemma is_preconnected.ord_connected {s : set α} (h : is_preconnected s) :
+  ord_connected s :=
+⟨λ x hx y hy, h.Icc_subset hx hy⟩
+
 end linear_order
 
 end order_closed_topology
@@ -916,6 +920,25 @@ by simp [nhds_eq_order (⊤:α)]
 lemma nhds_bot_order [topological_space α] [order_bot α] [order_topology α] :
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
+
+lemma nhds_top_basis [topological_space α] [semilattice_sup_top α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] :
+  (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, Ioi a) :=
+⟨ begin
+    simp only [nhds_top_order],
+    refine @filter.mem_binfi α α (λ a, 𝓟 (Ioi a)) (λ a, a < ⊤) _ _,
+    { rintros a (ha : a < ⊤) b (hb : b < ⊤),
+      use a ⊔ b,
+      simp only [filter.le_principal_iff, ge_iff_le, order.preimage],
+      exact ⟨sup_lt_iff.mpr ⟨ha, hb⟩, Ioi_subset_Ioi le_sup_left, Ioi_subset_Ioi le_sup_right⟩ },
+    { obtain ⟨a, ha⟩ : ∃ a : α, a ≠ ⊤ := exists_ne ⊤,
+      exact ⟨a, lt_top_iff_ne_top.mpr ha⟩ }
+  end ⟩
+
+lemma nhds_bot_basis [topological_space α] [semilattice_inf_bot α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] :
+  (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a : α, Iio a) :=
+@nhds_top_basis (order_dual α) _ _ _ _ _
 
 lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
   {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
@@ -2688,14 +2711,14 @@ end
 
 lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
 
+lemma set.ord_connected.is_preconnected {s : set α} (h : s.ord_connected) :
+  is_preconnected s :=
+is_preconnected_of_forall_pair $ λ x y hx hy, ⟨interval x y, h.interval_subset hx hy,
+  left_mem_interval, right_mem_interval, is_preconnected_interval⟩
+
 lemma is_preconnected_iff_ord_connected {s : set α} :
   is_preconnected s ↔ ord_connected s :=
-⟨λ h, ⟨λ x hx y hy, h.Icc_subset hx hy⟩, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
-  ⟨interval x y, h.interval_subset hx hy, left_mem_interval, right_mem_interval,
-    is_preconnected_interval⟩⟩
-
-alias is_preconnected_iff_ord_connected ↔
-  is_preconnected.ord_connected set.ord_connected.is_preconnected
+⟨is_preconnected.ord_connected, set.ord_connected.is_preconnected⟩
 
 lemma is_preconnected_Ici : is_preconnected (Ici a) := ord_connected_Ici.is_preconnected
 lemma is_preconnected_Iic : is_preconnected (Iic a) := ord_connected_Iic.is_preconnected

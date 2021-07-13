@@ -1578,6 +1578,9 @@ This is the bundled version of `set.range_factorization`. -/
 @[reducible] def range_restrict (f : M →ₗ[R] M₂) : M →ₗ[R] f.range :=
 f.cod_restrict f.range f.mem_range_self
 
+instance fintype_range [decidable_eq M₂] (f : M →ₗ[R] M₂) [fintype M] : fintype (range f) :=
+set.fintype_range f
+
 section
 variables (R) (M)
 

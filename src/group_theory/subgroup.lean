@@ -313,6 +313,7 @@ instance has_div : has_div H := ⟨λ a b, ⟨a / b, H.div_mem a.2 b.2⟩⟩
 @[simp, norm_cast, to_additive] lemma coe_mul (x y : H) : (↑(x * y) : G) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : H) : G) = 1 := rfl
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
+@[simp, norm_cast, to_additive] lemma coe_div (x y : H) : (↑(x / y) : G) = ↑x / ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
 
 attribute [norm_cast] add_subgroup.coe_add add_subgroup.coe_zero
@@ -1404,6 +1405,17 @@ le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image f s)
     (gclosure_preimage_le _ _))
   ((closure_le _).2 $ set.image_subset _ subset_closure)
+
+-- this instance can't go just after the definition of mrange because `fintype` is
+-- not imported at that stage
+@[to_additive]
+instance fintype_mrange {M : Type*} [monoid M] {N : Type*} [monoid N] [decidable_eq N]
+  (f : M →* N) [fintype M] : fintype (mrange f) :=
+set.fintype_range f
+
+@[to_additive]
+instance fintype_range [decidable_eq N] (f : G →* N) [fintype G] : fintype (range f) :=
+set.fintype_range f
 
 end monoid_hom
 

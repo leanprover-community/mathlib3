@@ -927,7 +927,7 @@ by ext i j; simp [mul_comm]
   (- M)ᴴ = - Mᴴ  :=
 by ext i j; simp
 
-section conj_transpose
+end conj_transpose
 
 section has_star
 variables [has_star α]

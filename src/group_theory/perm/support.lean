@@ -245,9 +245,9 @@ begin
   { rw [list.prod_cons, mul_apply, ih (λ g hg, hx g (or.inr hg)), hx f (or.inl rfl)] },
 end
 
-lemma support_pow_le (σ : perm α) (n : ℤ) :
+lemma support_pow_le (σ : perm α) (n : ℕ) :
   (σ ^ n).support ≤ σ.support :=
-λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (pow_apply_eq_self_of_apply_eq_self h2 n))
 
 @[simp] lemma support_inv (σ : perm α) : support (σ⁻¹) = σ.support :=
 by simp_rw [finset.ext_iff, mem_support, not_iff_not,
@@ -325,7 +325,7 @@ end
 
 lemma support_gpow_le (σ : perm α) (n : ℤ) :
   (σ ^ n).support ≤ σ.support :=
-by { cases n; exact support_pow_le σ _ }
+λ x h1, mem_support.mpr (λ h2, mem_support.mp h1 (gpow_apply_eq_self_of_apply_eq_self h2 n))
 
 @[simp] lemma support_swap {x y : α} (h : x ≠ y) : support (swap x y) = {x, y} :=
 begin

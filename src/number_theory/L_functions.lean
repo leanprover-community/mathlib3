@@ -667,7 +667,7 @@ def measures'' [nonempty X] :=
     ∃ K : ℝ, 0 < K ∧ ∀ f : (locally_constant X A), ∥φ.phi f∥ ≤ K * ∥inclusion X A f∥ }
 
 noncomputable theory
-instance [nonempty X] : metric_space (locally_constant X A) :=
+instance : metric_space (locally_constant X A) :=
 begin
   refine metric_space.induced (inclusion X A) (sub X) _, apply_instance,
 end
@@ -677,12 +677,12 @@ begin
   refine pseudo_metric_space.induced (inclusion X A) _, apply_instance,
 end-/
 
-instance [nonempty X] : pseudo_metric_space (locally_constant X A) :=
+/-instance [nonempty X] : pseudo_metric_space (locally_constant X A) :=
 begin
   refine pseudo_metric_space.induced (inclusion X A) _, apply_instance,
-end
+end-/
 
-instance [nonempty X] : has_norm (locally_constant X A) :=
+instance : has_norm (locally_constant X A) :=
 begin
   refine {norm := _},
   rintros f, exact ∥inclusion X A f∥,
@@ -692,15 +692,15 @@ end
   (@locally_constant.pseudo_metric_space X A _ h).dist x y =
     (@locally_constant.has_norm X A _ h).norm (x - y) :=-/
 
-instance [nonempty X] : semi_normed_group (locally_constant X A) :=
+instance [nonempty X] : normed_group (locally_constant X A) :=
 {
   dist_eq := begin
     intros x y,
-
-    change ∥(inclusion' X A x) - (inclusion' X A y)∥ = ∥inclusion' X A (x - y)∥,
+    change dist (inclusion' X A x) (inclusion' X A y) = ∥inclusion' X A (x - y)∥,
+    rw dist_eq_norm,
     rw (inclusion' X A).map_sub,
   end,
-  ..locally_constant.pseudo_metric_space X A, ..locally_constant.has_norm X A,
+  ..locally_constant.metric_space X A, ..locally_constant.has_norm X A,
 }
 /-begin
   refine ⟨_, locally_constant.has_norm X h, _, locally_constant.pseudo_metric_space X h⟩,
@@ -711,7 +711,7 @@ end-/
 example {α : Type*} [has_lt α] [has_le α] (a b c : ℤ) (h1 : a ≤ b) (h2 : b < c) : a < c :=
 begin
   exact lt_of_le_of_lt h1 h2,
-end.
+end
 
 lemma integral_cont [nonempty X] (φ : measures'' X A) : continuous (φ.1).phi :=
 begin
@@ -724,15 +724,17 @@ begin
   rw ←linear_map.map_sub,
   specialize hK (a - b), apply lt_of_le_of_lt hK _, rw mul_comm, rw ←lt_div_iff hKpos,
   convert dab,
-  change inclusion' X A _ = inclusion' X A _ - inclusion' X A _,
-  rw continuous_linear_map.map_sub,
+  change ∥inclusion X A (a - b)∥ = dist (inclusion' X A a) (inclusion' X A b),
+  rw dist_eq_norm,
+--  change inclusion' X A _ = inclusion' X A _ - inclusion' X A _,
+  rw ←continuous_linear_map.map_sub, refl,
 end
 
 lemma di (h : nonempty X) : dense_inducing (inclusion X A) :=
 begin
   constructor,
   { constructor, refl, },
-  { apply dense_C, },
+  { apply dense_C, assumption, },
 end
 
 lemma uni_ind [h : nonempty X] : uniform_inducing (inclusion X A) :=
@@ -754,11 +756,12 @@ begin
   rw ←linear_map.map_sub,
   specialize hK (a - b), apply lt_of_le_of_lt hK _, rw mul_comm, rw ←lt_div_iff hKpos,
   convert dab,
-  change inclusion' X A _ = inclusion' X A _ - inclusion' X A _,
-  rw continuous_linear_map.map_sub,
+  change ∥inclusion X A (a - b)∥ = dist (inclusion' X A a) (inclusion' X A b),
+  rw dist_eq_norm,
+  rw ←continuous_linear_map.map_sub, refl,
 end
 
-noncomputable instance [h : nonempty X] : normed_ring C(X,A) :=
+/-noncomputable instance [h : nonempty X] : normed_ring C(X,A) :=
 { norm_mul := λ f g, csupr_le $ λ x, le_trans (norm_mul_le _ _) (mul_le_mul
     (le_csupr (bdd_above_compact_range_norm X f) x)
     (le_csupr (bdd_above_compact_range_norm X g) x)
@@ -766,7 +769,7 @@ noncomputable instance [h : nonempty X] : normed_ring C(X,A) :=
     (norm_nonneg f)),
 --  ..continuous_map_ring,
   ..(infer_instance : normed_group C(X,A))
-}
+}-/
 
 instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
 { continuous_smul := begin
@@ -779,6 +782,7 @@ instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
     refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
     rw dist_eq_norm at hb ⊢,
     refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
+    rw norm_eq_supr_norm,
     apply csupr_le,
     intro x,
     apply le_of_lt,

@@ -89,10 +89,10 @@ begin
   intros ε hε,
   -- A little bit of pre-emptive work, to find `η : ℝ≥0` which will be a margin small enough for
   -- our purposes
-  obtain ⟨η, hη_pos, hη_le⟩ : ∃ η, (0:ℝ≥0) < η ∧ (↑(∥c∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ) ≤ ε,
-  { have : filter.tendsto (λ x : ℝ≥0, ∥c∥₊ * (2 * x) ^ (1 / p.to_real)) (𝓝 0) (𝓝 0),
+  obtain ⟨η, hη_pos, hη_le⟩ : ∃ η, 0 < η ∧ (↑(∥bit0 (∥c∥)∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ) ≤ ε,
+  { have : filter.tendsto (λ x : ℝ≥0, ∥bit0 (∥c∥)∥₊ * (2 * x) ^ (1 / p.to_real)) (𝓝 0) (𝓝 0),
     { have : filter.tendsto (λ x : ℝ≥0, 2 * x) (𝓝 0) (𝓝 (2 * 0)) := filter.tendsto_id.const_mul 2,
-      convert ((nnreal.continuous_at_rpow_const (or.inr hp₀')).tendsto.comp this).const_mul (∥c∥₊),
+      convert ((nnreal.continuous_at_rpow_const (or.inr hp₀')).tendsto.comp this).const_mul _,
       simp [hp₀''.ne'] },
     let ε' : ℝ≥0 := ⟨ε, hε.le⟩,
     have hε' : 0 < ε' := by exact_mod_cast hε,
@@ -113,20 +113,43 @@ begin
   { rw [set.disjoint_iff_inter_eq_empty, set.inter_comm, ← set.subset_compl_iff_disjoint],
     simpa using Fs.trans su },
   have h_μ_sdiff : μ (u \ F) ≤ 2 * η,
-  { rw ← ennreal.add_lt_add_iff_right (ennreal.coe_lt_top : ↑η < ⊤) at μF,
-    have := μu.trans μF,
-    sorry },
+  { have hFμ : μ F < ⊤ := (measure_mono Fs).trans_lt hsμ,
+    refine ennreal.le_of_add_le_add_left hFμ _,
+    have : μ u < μ F + ↑η + ↑η,
+    { refine μu.trans _,
+      rwa ennreal.add_lt_add_iff_right (ennreal.coe_lt_top : ↑η < ⊤) },
+    convert this.le using 1,
+    { rw [add_comm, ← measure_union, set.diff_union_of_subset (Fs.trans su)],
+      { exact disjoint_sdiff_self_left },
+      { exact (u_open.sdiff F_closed).measurable_set },
+      { exact F_closed.measurable_set } },
+    have : (2:ℝ≥0∞) * η = η + η := by simpa using add_mul (1:ℝ≥0∞) 1 η,
+    rw this,
+    abel },
   -- Apply Urysohn's lemma to get a continuous approximation to the characteristic function of
   -- the set `s`
   obtain ⟨g, hg_cont, hgu, hgF, hg_range⟩ :=
     exists_continuous_zero_one_of_closed u_open.is_closed_compl F_closed this,
   -- Multiply this by `c` to get a continuous approximation to the function `f`; the key point is
   -- that this is pointwise bounded by the indicator of the set `u \ F`
-  have gc_bd : ∀ x, ∥g x • c - s.indicator (λ x, c) x∥ ≤ ∥(u \ F).indicator (λ x, c) x∥,
-  { sorry },
+  have gc_bd : ∀ x, ∥g x • c - s.indicator (λ x, c) x∥ ≤ ∥(u \ F).indicator (λ x, bit0 ∥c∥) x∥,
+  { intros x,
+    by_cases hu : x ∈ u,
+    { rw ← set.diff_union_of_subset (Fs.trans su) at hu,
+      cases hu with hFu hF,
+      { refine (norm_sub_le _ _).trans _,
+        refine (add_le_add_left (norm_indicator_le_norm_self (λ x, c) x) _).trans _,
+        have h₀ : g x * ∥c∥ + ∥c∥ ≤ 2 * ∥c∥,
+        { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
+        have h₁ : (2:ℝ) * ∥c∥ = bit0 (∥c∥) := by simpa using add_mul (1:ℝ) 1 (∥c∥),
+        have h₂ : ∥g x∥ = g x := by rw [real.norm_eq_abs, abs_of_nonneg (hg_range x).1],
+        simp [hFu, norm_smul, h₀, ← h₁, h₂] },
+      { simp [hgF hF, Fs hF] } },
+    { have : x ∉ s := λ h, hu (su h),
+      simp [hgu hu, this] } },
   -- The rest is basically just `ennreal`-arithmetic
   have gc_snorm : snorm ((λ x, g x • c) - s.indicator (λ x, c)) p μ
-    ≤ (↑(∥c∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ≥0∞),
+    ≤ (↑(∥bit0 (∥c∥)∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ≥0∞),
   { refine (snorm_mono_ae (filter.eventually_of_forall gc_bd)).trans _,
     rw snorm_indicator_const (u_open.sdiff F_closed).measurable_set hp₀.ne' hp',
     push_cast [← ennreal.coe_rpow_of_nonneg _ hp₀'],
@@ -145,17 +168,6 @@ begin
     exact ennreal.to_real_le_coe_of_le_coe gc_snorm },
   { rw [set_like.mem_coe, mem_continuous_map_iff],
     exact ⟨⟨_, gc_cont⟩, rfl⟩ },
-
-    -- refine hu_ℒp.of_le (hgc_cont.ae_measurable μ) (filter.eventually_of_forall _),
-    -- intros a,
-    -- by_cases ha : a ∈ uᶜ,
-    -- { have : g a = 0 := by simpa using hgu ha,
-    --   simp [this] },
-    -- { have : ∥g a • c∥ ≤ ∥c∥,
-    --   { have : ∥g a∥ = g a := by rw [real.norm_eq_abs, abs_of_nonneg (hg_range a).1],
-    --     nlinarith [(hg_range a).2, norm_smul (g a) c, norm_nonneg c] },
-    --   have ha' : a ∈ u := by simpa using ha,
-    --   simpa [ha'] using this } ,
 end
 
 end measure_theory.Lp

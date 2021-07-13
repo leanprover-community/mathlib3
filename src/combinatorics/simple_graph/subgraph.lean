@@ -264,7 +264,7 @@ lemma neighbor_set_subset_of_subgraph {x y : subgraph G} (h : x ≤ y) (v : V) :
 λ w h', h.2 h'
 
 instance neighbor_set.decidable_pred (G' : subgraph G) [h : decidable_rel G'.adj] (v : V) :
-  decidable_pred (∈ (G'.neighbor_set v)) := h v
+  decidable_pred (∈ G'.neighbor_set v) := h v
 
 /-- If a graph is locally finite at a vertex, then so is a subgraph of that graph. -/
 instance finite_at {G' : subgraph G} (v : G'.verts) [decidable_rel G'.adj]

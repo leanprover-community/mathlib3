@@ -224,7 +224,7 @@ variable (α)
 /-- The monoid of endomorphisms.
 
 Note that this is generalized by `category_theory.End` to categories other than `Type u`. -/
-def function.End  := α → α
+protected def function.End := α → α
 
 instance : monoid (function.End α) :=
 { one := id,
@@ -275,7 +275,9 @@ instance function_End : mul_action (function.End α) α :=
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-/-- The monoid hom representing a monoid action. -/
+/-- The monoid hom representing a monoid action.
+
+When `M` is a group, see `mul_action.to_perm_hom`. -/
 def to_End_hom : M →* function.End α :=
 { to_fun := (•),
   map_one' := funext (one_smul M),

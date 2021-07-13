@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.uniform_space.completion
 import topology.metric_space.isometry
+import topology.instances.real
 
 /-!
 # The completion of a metric space

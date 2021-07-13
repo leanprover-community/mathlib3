@@ -260,7 +260,7 @@ then `a ⊔ b` is the least upper bound of `s ∪ t`. -/
 lemma is_lub.union [semilattice_sup γ] {a b : γ} {s t : set γ}
   (hs : is_lub s a) (ht : is_lub t b) :
   is_lub (s ∪ t) (a ⊔ b) :=
-⟨assume c h, h.cases_on (λ h, le_sup_left_of_le $ hs.left h) (λ h, le_sup_right_of_le $ ht.left h),
+⟨λ c h, h.cases_on (λ h, le_sup_of_le_left $ hs.left h) (λ h, le_sup_of_le_right $ ht.left h),
   assume c hc, sup_le
     (hs.right $ assume d hd, hc $ or.inl hd) (ht.right $ assume d hd, hc $ or.inr hd)⟩
 

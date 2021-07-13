@@ -180,7 +180,7 @@ begin
   tfae_finish
 end
 
-lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [metric_space α]
+lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [pseudo_metric_space α]
   {r : ℝ} (h₀ : 0 < r) (h₁ : r < 1) :
   (𝓤 α).has_basis (λ k : ℕ, true) (λ k, {p : α × α | dist p.1 p.2 < r ^ k}) :=
 metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
@@ -350,6 +350,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 lemma tsum_geometric_two' (a : ℝ) : ∑' n:ℕ, (a / 2) / 2^n = a :=
 (has_sum_geometric_two' a).tsum_eq
 
+/-- **Sum of a Geometric Series** -/
 lemma nnreal.has_sum_geometric {r : ℝ≥0} (hr : r < 1) :
   has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
 begin
@@ -477,7 +478,7 @@ decaying terms.
 -/
 section edist_le_geometric
 
-variables [emetric_space α] (r C : ℝ≥0∞) (hr : r < 1) (hC : C ≠ ⊤) {f : ℕ → α}
+variables [pseudo_emetric_space α] (r C : ℝ≥0∞) (hr : r < 1) (hC : C ≠ ⊤) {f : ℕ → α}
   (hu : ∀n, edist (f n) (f (n+1)) ≤ C * r^n)
 
 include hr hC hu
@@ -513,7 +514,7 @@ end edist_le_geometric
 
 section edist_le_geometric_two
 
-variables [emetric_space α] (C : ℝ≥0∞) (hC : C ≠ ⊤) {f : ℕ → α}
+variables [pseudo_emetric_space α] (C : ℝ≥0∞) (hC : C ≠ ⊤) {f : ℕ → α}
   (hu : ∀n, edist (f n) (f (n+1)) ≤ C / 2^n) {a : α} (ha : tendsto f at_top (𝓝 a))
 
 include hC hu
@@ -550,7 +551,7 @@ end edist_le_geometric_two
 
 section le_geometric
 
-variables [metric_space α] {r C : ℝ} (hr : r < 1) {f : ℕ → α}
+variables [pseudo_metric_space α] {r C : ℝ} (hr : r < 1) {f : ℕ → α}
   (hu : ∀n, dist (f n) (f (n+1)) ≤ C * r^n)
 
 include hr hu
@@ -620,7 +621,11 @@ end le_geometric
 
 section summable_le_geometric
 
-variables [normed_group α] {r C : ℝ} {f : ℕ → α}
+variables [semi_normed_group α] {r C : ℝ} {f : ℕ → α}
+
+lemma semi_normed_group.cauchy_seq_of_le_geometric {C : ℝ} {r : ℝ} (hr : r < 1)
+  {u : ℕ → α} (h : ∀ n, ∥u n - u (n + 1)∥ ≤ C*r^n) : cauchy_seq u :=
+cauchy_seq_of_le_geometric r C hr (by simpa [dist_eq_norm] using h)
 
 lemma dist_partial_sum_le_of_le_geometric (hf : ∀n, ∥f n∥ ≤ C * r^n) (n : ℕ) :
   dist (∑ i in range n, f i) (∑ i in range (n+1), f i) ≤ C * r ^ n :=
@@ -646,6 +651,63 @@ begin
   rw ← dist_eq_norm,
   apply dist_le_of_le_geometric_of_tendsto r C hr (dist_partial_sum_le_of_le_geometric hf),
   exact ha.tendsto_sum_nat
+end
+
+@[simp] lemma dist_partial_sum (u : ℕ → α) (n : ℕ) :
+ dist (∑ k in range (n + 1), u k) (∑ k in range n, u k) = ∥u n∥ :=
+by simp [dist_eq_norm, sum_range_succ]
+
+@[simp] lemma dist_partial_sum' (u : ℕ → α) (n : ℕ) :
+ dist (∑ k in range n, u k) (∑ k in range (n+1), u k) = ∥u n∥ :=
+by simp [dist_eq_norm', sum_range_succ]
+
+lemma cauchy_series_of_le_geometric {C : ℝ} {u : ℕ → α}
+  {r : ℝ} (hr : r < 1) (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range n, u k) :=
+cauchy_seq_of_le_geometric r C hr (by simp [h])
+
+lemma normed_group.cauchy_series_of_le_geometric' {C : ℝ} {u : ℕ → α} {r : ℝ} (hr : r < 1)
+  (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
+begin
+  by_cases hC : C = 0,
+  { subst hC,
+    simp at h,
+    exact cauchy_seq_of_le_geometric 0 0 zero_lt_one (by simp [h]) },
+  have : 0 ≤ C,
+  { simpa using (norm_nonneg _).trans (h 0) },
+  replace hC : 0 < C,
+    from (ne.symm hC).le_iff_lt.mp this,
+  have : 0 ≤ r,
+  { have := (norm_nonneg _).trans (h 1),
+    rw pow_one at this,
+    exact (zero_le_mul_left hC).mp this },
+  simp_rw finset.sum_range_succ_comm,
+  have : cauchy_seq u,
+  { apply tendsto.cauchy_seq,
+    apply squeeze_zero_norm h,
+    rw show 0 = C*0, by simp,
+    exact tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 this hr) },
+  exact this.add (cauchy_series_of_le_geometric hr h),
+end
+
+lemma normed_group.cauchy_series_of_le_geometric'' {C : ℝ} {u : ℕ → α} {N : ℕ} {r : ℝ}
+  (hr₀ : 0 < r) (hr₁ : r < 1)
+  (h : ∀ n ≥ N, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
+begin
+  set v : ℕ → α := λ n, if n < N then 0 else u n,
+  have hC : 0 ≤ C,
+    from (zero_le_mul_right $ pow_pos hr₀ N).mp ((norm_nonneg _).trans $ h N $ le_refl N),
+  have : ∀ n ≥ N, u n = v n,
+  { intros n hn,
+    simp [v, hn, if_neg (not_lt.mpr hn)] },
+  refine cauchy_seq_sum_of_eventually_eq this (normed_group.cauchy_series_of_le_geometric' hr₁ _),
+  { exact C },
+  intro n,
+  dsimp [v],
+  split_ifs with H H,
+  { rw norm_zero,
+    exact mul_nonneg hC (pow_nonneg hr₀.le _) },
+  { push_neg at H,
+    exact h _ H }
 end
 
 end summable_le_geometric
@@ -782,6 +844,19 @@ begin
   filter_upwards [eventually_ge_of_tendsto_gt hr₁ h, key],
   intros n h₀ h₁,
   rwa ← le_div_iff (lt_of_le_of_ne (norm_nonneg _) h₁.symm)
+end
+
+/-- A series whose terms are bounded by the terms of a converging geometric series converges. -/
+lemma summable_one_div_pow_of_le {m : ℝ} {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
+  summable (λ i, 1 / m ^ f i) :=
+begin
+  refine summable_of_nonneg_of_le
+    (λ a, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _)) (λ a, _)
+    (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
+      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (one_div_one.le.trans_lt hm))),
+  rw [div_pow, one_pow],
+  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a));
+  exact pow_pos (zero_lt_one.trans hm) _
 end
 
 /-! ### Positive sequences with small sums on encodable types -/

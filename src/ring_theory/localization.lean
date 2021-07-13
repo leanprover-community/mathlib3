@@ -1163,7 +1163,6 @@ submodule.map_le_map_iff_of_injective (is_localization.injective _ h) _ _
 
 @[mono]
 lemma coe_submodule_strict_mono (h : M ≤ non_zero_divisors R) :
-  {I J : ideal R} :
   strict_mono (coe_submodule S : ideal R → submodule R S) :=
 strict_mono_of_le_iff_le (λ _ _, (coe_submodule_le_coe_submodule h).symm)
 

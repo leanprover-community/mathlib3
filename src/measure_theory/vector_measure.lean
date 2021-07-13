@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.integration
-import data.real.ereal
 
 /-!
 
@@ -26,9 +25,7 @@ We require all non-measurable sets to be mapped to zero in order for the extensi
 to only compare the underlying functions for measurable sets.
 
 We use `has_sum` instead of `tsum` in the definition of vector measures in comparison to `measure`
-since this provides summablity. In the case of `signed_measure`, this is not necessary and one
-can construct a signed measure without proving summable using `signed_measure'.to_signed_measure`.
-
+since this provides summablity.
 ## Tags
 
 vector measure, signed measure, complex measure
@@ -61,6 +58,8 @@ notation `complex_measure ` α := vector_measure α ℂ
 open set measure_theory
 
 namespace vector_measure
+
+section
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
@@ -207,334 +206,44 @@ begin
   apply_instance,
 end
 
-end vector_measure
-
-/-- An alternative definition of `signed_measure` which does not require the
-summability condition. We can construct a `signed_measure` using a `signed_measure'`
-with `signed_measure'.to_signed_measure`. -/
-structure signed_measure' (α : Type*) [measurable_space α] :=
-(measure_of : set α → ℝ)
-(empty : measure_of ∅ = 0)
-(not_measurable ⦃i : set α⦄ : ¬ measurable_set i → measure_of i = 0)
-(m_Union ⦃f : ℕ → set α⦄ :
-  (∀ i, measurable_set (f i)) → pairwise (disjoint on f) →
-  measure_of (⋃ i, f i) = ∑' i, measure_of (f i))
-
-namespace signed_measure'
-
-instance : has_coe_to_fun (signed_measure' α) :=
-⟨λ _, set α → ℝ, signed_measure'.measure_of⟩
-
-variables {s : signed_measure' α} {f : ℕ → set α}
-
-@[simp]
-lemma apply (s : signed_measure' α) (i : set α) : s i = s.measure_of i := rfl
-
-@[simp]
-lemma of_empty (s : signed_measure' α) : s ∅ = 0 := s.empty
-
-lemma of_not_measurable_set (s : signed_measure' α)
-  {i : set α} (hi : ¬ measurable_set i) : s i = 0 := s.not_measurable hi
-
-lemma of_disjoint_Union (s : signed_measure' α)
-  (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
-  s (⋃ i, f i) = ∑' i, s (f i) := s.m_Union hf₁ hf₂
-
-lemma ext_iff' (s t : signed_measure' α) :
-  s = t ↔ ∀ i : set α, s i = t i :=
+lemma summable_to_real {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) (hsum : ∑' x, f x ≠ ∞) :
+  summable (λ x, (f x).to_real) :=
 begin
-  cases s, cases t, simp [function.funext_iff],
+  lift f to α → ℝ≥0 using hf,
+  rw ennreal.tsum_coe_ne_top_iff_summable_coe at hsum,
+  simp [hsum],
 end
 
-lemma ext_iff (s t : signed_measure' α) :
-  s = t ↔ ∀ i : set α, measurable_set i → s i = t i :=
+lemma summable_measure {μ : measure α} [hμ : finite_measure μ]
+  (hf₁ : ∀ (i : ℕ), measurable_set (f i))
+  (hf₂ : pairwise (disjoint on f)) :
+  summable (λ x, (μ (f x)).to_real) :=
 begin
-  split,
-  { rintro rfl _ _, refl },
-  { rw ext_iff',
-    intros h i,
-    by_cases hi : measurable_set i,
-    { exact h i hi },
-    { simp_rw [of_not_measurable_set _ hi] } }
+  apply summable_to_real,
+  { intro, exact ne_of_lt (measure_lt_top _ _) },
+  { rw ← measure_theory.measure_Union hf₂ hf₁,
+    exact ne_of_lt (measure_lt_top _ _) }
 end
 
-@[ext] lemma ext {s t : signed_measure' α}
-  (h : ∀ i : set α, measurable_set i → s i = t i) : s = t :=
-(ext_iff s t).2 h
-
-lemma measure_Union [encodable β] {f : β → set α}
-  (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
-  s (⋃ i, f i) = ∑' i, s (f i) :=
-begin
-  rw [← encodable.Union_decode₂, ← tsum_Union_decode₂],
-  apply s.m_Union,
-  { exact measurable_set.bUnion_decode₂ hf₁ },
-  { exact encodable.Union_decode₂_disjoint_on hf₂ },
-  { exact s.empty }
 end
-
-lemma of_union {A B : set α}
-  (h : disjoint A B) (hA : measurable_set A) (hB : measurable_set B) :
-  s (A ∪ B) = s A + s B :=
-begin
-  rw [union_eq_Union, measure_Union, tsum_fintype, fintype.sum_bool, cond, cond],
-  exacts [λ b, bool.cases_on b hB hA, pairwise_disjoint_on_bool.2 h]
-end
-
-lemma of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
-  (h : A ⊆ B) : s A + s (B \ A) = s B :=
-by rw [← of_union disjoint_diff hA (hB.diff hA), union_diff_cancel h]
-
-lemma of_diff' {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
-  (h : A ⊆ B) : s (B \ A) = s B - s A :=
-by rw [← of_diff hA hB h, add_sub_cancel']
-
-lemma of_nonneg_disjoint_union_eq_zero {A B : set α}
-  (h : disjoint A B) (hA₁ : measurable_set A) (hB₁ : measurable_set B)
-  (hA₂ : 0 ≤ s A) (hB₂ : 0 ≤ s B)
-  (hAB : s (A ∪ B) = 0) : s A = 0 :=
-begin
-  rw of_union h hA₁ hB₁ at hAB,
-  linarith,
-end
-
-lemma of_nonpos_disjoint_union_eq_zero {A B : set α}
-  (h : disjoint A B) (hA₁ : measurable_set A) (hB₁ : measurable_set B)
-  (hA₂ : s A ≤ 0) (hB₂ : s B ≤ 0)
-  (hAB : s (A ∪ B) = 0) : s A = 0 :=
-begin
-  rw of_union h hA₁ hB₁ at hAB,
-  linarith,
-end
-
-lemma of_Union_nonneg (hf₁ : ∀ i, measurable_set (f i))
-  (hf₂ : pairwise (disjoint on f)) (hf₃ : ∀ i, 0 ≤ s (f i)) :
-  0 ≤ s (⋃ i, f i) :=
-(s.of_disjoint_Union hf₁ hf₂).symm ▸ tsum_nonneg hf₃
-
-lemma of_Union_nonpos (hf₁ : ∀ i, measurable_set (f i))
-  (hf₂ : pairwise (disjoint on f)) (hf₃ : ∀ i, s (f i) ≤ 0) :
-  s (⋃ i, f i) ≤ 0 :=
-(s.of_disjoint_Union hf₁ hf₂).symm ▸ tsum_nonpos hf₃
-
-private lemma summable_of_nonneg
-  (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f))
-  (hf₃ : ∀ i, 0 ≤ s (f i)) : summable (s ∘ f) :=
-begin
-  have := s.of_disjoint_Union hf₁ hf₂,
-  by_cases h : s (⋃ (i : ℕ), (λ (i : ℕ), f i) i) = 0,
-  { suffices : ∀ i, s (f i) = 0,
-    { convert summable_zero, ext i, exact this i },
-    intro i, rw ← set.union_Union_neq_eq_Union f i at h,
-    have hmeas : ∀ j, measurable_set (⋃ (hi : j ≠ i), f j),
-    { intro j, by_cases h' : j = i,
-      { convert measurable_set.empty,
-        rw Union_eq_empty,
-        exact λ hij, false.elim (hij h') },
-      { convert hf₁ j,
-        ext x, rw [mem_Union, exists_prop, and_iff_right_iff_imp],
-        exact λ _, h' } },
-    refine of_nonneg_disjoint_union_eq_zero _ (hf₁ i) _ (hf₃ i) _ h,
-    { intros x hx,
-      simp only [exists_prop, mem_Union, mem_inter_eq, inf_eq_inter] at hx,
-      obtain ⟨hfi, j, hij, hfj⟩ := hx,
-      exact hf₂ j i hij ⟨hfj, hfi⟩ },
-    { refine measurable_set.Union hmeas },
-    { refine of_Union_nonneg hmeas _ _,
-      { intros l m hlm x hx,
-        simp only [exists_prop, mem_Union, mem_inter_eq, inf_eq_inter] at hx,
-        obtain ⟨⟨-, h₁⟩, -, h₂⟩ := hx,
-        exact hf₂ l m hlm ⟨h₁, h₂⟩ },
-      { intro j, by_cases h': j = i,
-        { apply le_of_eq,
-          convert s.empty.symm,
-          rw Union_eq_empty,
-          exact λ hij, false.elim (hij h') },
-        { convert hf₃ j,
-          ext, rw [mem_Union, exists_prop, and_iff_right_iff_imp],
-          exact λ _, h' } } } },
-  { contrapose! h,
-    rw [this, tsum_eq_zero_of_not_summable h] },
-end
-
-private lemma summable_of_nonpos
-  (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f))
-  (hf₃ : ∀ i, s (f i) ≤ 0) : summable (s ∘ f) :=
-begin
-  have := s.of_disjoint_Union hf₁ hf₂,
-  by_cases h : s (⋃ (i : ℕ), (λ (i : ℕ), f i) i) = 0,
-  { suffices : ∀ i, s (f i) = 0,
-    { convert summable_zero, ext i, exact this i },
-    intro i, rw ← set.union_Union_neq_eq_Union f i at h,
-    have hmeas : ∀ j, measurable_set (⋃ (hi : j ≠ i), f j),
-    { intro j, by_cases i = j,
-      { convert measurable_set.empty,
-        rw Union_eq_empty,
-        exact λ hij, false.elim (hij h.symm) },
-      { convert hf₁ j,
-        ext x, rw [mem_Union, exists_prop, and_iff_right_iff_imp],
-        exact λ _, ne.symm h } },
-    refine of_nonpos_disjoint_union_eq_zero _ (hf₁ i) _ (hf₃ i) _ h,
-    { intros x hx,
-      simp only [exists_prop, mem_Union, mem_inter_eq, inf_eq_inter] at hx,
-      exact let ⟨hfi, j, hij, hfj⟩ := hx in hf₂ j i hij ⟨hfj, hfi⟩ },
-    { refine measurable_set.Union hmeas },
-    { refine of_Union_nonpos hmeas _ _,
-      { intros l m hlm x hx,
-        simp only [exists_prop, mem_Union, mem_inter_eq, inf_eq_inter] at hx,
-        exact hf₂ l m hlm (let ⟨⟨_, h₁⟩, _, h₂⟩ := hx in ⟨h₁, h₂⟩) },
-      { intro j, by_cases i = j,
-        { apply le_of_eq,
-          convert s.empty,
-          rw Union_eq_empty,
-          exact λ hij, false.elim (hij h.symm) },
-        { convert hf₃ j,
-          ext, rw [mem_Union, exists_prop, and_iff_right_iff_imp],
-          exact λ _, ne.symm h } } } },
-  { revert h, contrapose, intro h,
-    rw [not_not, this, tsum_eq_zero_of_not_summable h] },
-end
-
-/-- For all `n : ℕ`, `of_nonneg_seq s f n` returns `f n` if `0 ≤ s (f n)`
-and `∅` otherwise. -/
-def of_nonneg_seq (s : signed_measure' α) (f : ℕ → set α) : ℕ → set α :=
-λ i, if 0 ≤ (s ∘ f) i then f i else ∅
-
-lemma of_nonneg_seq_nonneg (i : ℕ) :
-  0 ≤ s (s.of_nonneg_seq f i) :=
-begin
-  rw [of_nonneg_seq],
-  dsimp only,
-  split_ifs,
-  { exact h },
-  { exact s.of_empty.ge },
-end
-
-lemma of_nonneg_seq_of_measurable_set (hf : ∀ i, measurable_set (f i))
-  (i : ℕ) : measurable_set $ of_nonneg_seq s f i :=
-begin
-  by_cases 0 ≤ (s ∘ f) i,
-  { simp_rw [of_nonneg_seq, if_pos h],
-    exact hf i },
-  { simp_rw [of_nonneg_seq, if_neg h],
-    exact measurable_set.empty }
-end
-
-lemma of_nonneg_seq_of_disjoint (hf : pairwise (disjoint on f)) :
-  pairwise $ disjoint on (s.of_nonneg_seq f) :=
-begin
-  rintro i j hij x ⟨hx₁, hx₂⟩,
-  by_cases hi : 0 ≤ (s ∘ f) i,
-  { by_cases hj : 0 ≤ (s ∘ f) j,
-    { simp_rw [of_nonneg_seq, if_pos hi] at hx₁,
-      simp_rw [of_nonneg_seq, if_pos hj] at hx₂,
-      exact hf i j hij ⟨hx₁, hx₂⟩ },
-    { simp_rw [of_nonneg_seq, if_neg hj] at hx₂,
-      exact false.elim hx₂ } },
-  { simp_rw [of_nonneg_seq, if_neg hi] at hx₁,
-    exact false.elim hx₁ }
-end
-
-/-- For all `n : ℕ`, `of_nonneg_seq s f n` returns `f n` if `¬ 0 ≤ s (f n)`
-and `∅` otherwise. -/
-def of_nonpos_seq (s : signed_measure' α) (f : ℕ → set α) : ℕ → set α :=
-λ i, if ¬ 0 ≤ (s ∘ f) i then f i else ∅
-
-lemma of_nonpos_seq_nonpos (i : ℕ) :
-  s (s.of_nonpos_seq f i) ≤ 0 :=
-begin
-  by_cases ¬ 0 ≤ (s ∘ f) i,
-  { simp_rw [of_nonpos_seq, if_pos h],
-    exact le_of_not_ge h },
-  { simp_rw [of_nonpos_seq, if_neg h, s.of_empty] }
-end
-
-lemma of_nonpos_seq_of_measurable_set (hf : ∀ i, measurable_set (f i))
-  (i : ℕ) : measurable_set $ of_nonpos_seq s f i :=
-begin
-  by_cases ¬ 0 ≤ (s ∘ f) i,
-  { simp_rw [of_nonpos_seq, if_pos h],
-    exact hf i },
-  { simp_rw [of_nonpos_seq, if_neg h],
-    exact measurable_set.empty }
-end
-
-lemma of_nonpos_seq_of_disjoint (hf : pairwise (disjoint on f)) :
-  pairwise $ disjoint on (s.of_nonpos_seq f) :=
-begin
-  rintro i j hij x ⟨hx₁, hx₂⟩,
-  by_cases hi : ¬ 0 ≤ (s ∘ f) i,
-  { by_cases hj : ¬ 0 ≤ (s ∘ f) j,
-    { simp_rw [of_nonpos_seq, if_pos hi] at hx₁,
-      simp_rw [of_nonpos_seq, if_pos hj] at hx₂,
-      exact hf i j hij ⟨hx₁, hx₂⟩ },
-    { simp_rw [of_nonpos_seq, if_neg hj] at hx₂,
-      exact false.elim hx₂ } },
-  { simp_rw [of_nonpos_seq, if_neg hi] at hx₁,
-    exact false.elim hx₁ }
-end
-
-lemma of_seq_eq (i : ℕ) : ∥s (f i)∥ = s (s.of_nonneg_seq f i) - s (s.of_nonpos_seq f i) :=
-begin
-  rw [of_nonneg_seq, of_nonpos_seq],
-  by_cases 0 ≤ (s ∘ f) i,
-  { have : ¬¬0 ≤ (s ∘ f) i := not_not.2 h,
-    simp_rw [real.norm_of_nonneg h, if_pos h, if_neg this,
-             s.of_empty, _root_.sub_zero] },
-  { simp_rw [real.norm_of_neg (lt_of_not_ge h), if_pos h, if_neg h,
-             s.of_empty, _root_.zero_sub] }
-end
-
-/-- Given a signed measure `s`, `s ∘ f` is summable for all sequence
-`f` of pairwise disjoint measurable sets. -/
-theorem summable_measure_of
-  (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
-  summable (s ∘ f) :=
-begin
-  apply summable_of_summable_norm,
-  simp_rw of_seq_eq,
-  apply summable.sub,
-  { apply summable_of_nonneg,
-    { exact of_nonneg_seq_of_measurable_set hf₁ },
-    { exact of_nonneg_seq_of_disjoint hf₂ },
-    { exact of_nonneg_seq_nonneg } },
-  { apply summable_of_nonpos,
-    { exact of_nonpos_seq_of_measurable_set hf₁ },
-    { exact of_nonpos_seq_of_disjoint hf₂ },
-    { exact of_nonpos_seq_nonpos } },
-end
-
-/-- Obtain a `signed_measure` by constructing a `signed_measure'`. -/
-def to_signed_measure (s : signed_measure' α) : signed_measure α :=
-{ measure_of := s,
-  empty := s.empty,
-  not_measurable := s.not_measurable,
-  m_Union := λ _ hf₁ hf₂,
-    (summable.has_sum_iff (signed_measure'.summable_measure_of hf₁ hf₂)).2
-      (s.of_disjoint_Union hf₁ hf₂).symm }
-
-/-- The naturally induced `signed_measure'` from a `signed_measure`. -/
-def of_signed_measure (s : signed_measure α) : signed_measure' α :=
-{ measure_of := s,
-  empty := s.empty,
-  not_measurable := s.not_measurable,
-  m_Union := λ _ hf₁ hf₂, s.of_disjoint_Union hf₁ hf₂ }
-
-end signed_measure'
-
-namespace vector_measure
 
 /-- A finite measure coerced into a real function is a signed measure. -/
 def of_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :=
-signed_measure'.to_signed_measure
 { measure_of := λ i : set α, if measurable_set i then (μ.measure_of i).to_real else 0,
   empty := by simp [μ.empty],
   not_measurable := λ _ hi, if_neg hi,
   m_Union :=
   begin
     intros _ hf₁ hf₂,
-    rw [μ.m_Union hf₁ hf₂, ennreal.tsum_to_real_eq, if_pos (measurable_set.Union hf₁)],
+    rw [μ.m_Union hf₁ hf₂, ennreal.tsum_to_real_eq, if_pos (measurable_set.Union hf₁),
+        summable.has_sum_iff],
     { congr, ext n, rw if_pos (hf₁ n) },
+    { refine @summable_of_nonneg_of_le _ (ennreal.to_real ∘ μ ∘ f) _ _ _ _,
+      { intro, split_ifs,
+        exacts [ennreal.to_real_nonneg, le_refl _] },
+      { intro, split_ifs,
+        exacts [le_refl _, ennreal.to_real_nonneg] },
+        exact summable_measure hf₁ hf₂ },
     { intros a ha,
       apply ne_of_lt hμ.measure_univ_lt_top,
       rw [eq_top_iff, ← ha, outer_measure.measure_of_eq_coe, coe_to_outer_measure],
@@ -559,7 +268,6 @@ def zero : vector_measure α M :=
 
 instance : has_zero (vector_measure α M) := ⟨zero⟩
 instance : inhabited (vector_measure α M) := ⟨0⟩
-instance : inhabited (signed_measure' α) := ⟨signed_measure'.of_signed_measure 0⟩
 
 @[simp]
 lemma zero_apply (i : set α) : (0 : vector_measure α M) i = 0 := rfl

@@ -138,6 +138,7 @@ section indicator_const_Lp
 
 variables [measurable_space 𝕜] [borel_space 𝕜] {s : set α}
 
+variables (𝕜)
 lemma inner_indicator_const_Lp_eq_set_integral_inner (f : Lp E 2 μ) (hs : measurable_set s) (c : E)
   (hμs : μ s ≠ ∞) :
   inner (indicator_const_Lp 2 hs hμs c) f = ∫ x in s, ⟪c, f x⟫ ∂μ :=
@@ -167,7 +168,6 @@ begin
   rw [h_left, h_right, add_zero],
 end
 
-variables (𝕜)
 lemma inner_indicator_const_Lp_eq_inner_set_integral [complete_space E] [normed_space ℝ E]
   [is_scalar_tower ℝ 𝕜 E] (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) (f : Lp E 2 μ) :
   inner (indicator_const_Lp 2 hs hμs c) f = ⟪c, ∫ x in s, f x ∂μ⟫ :=

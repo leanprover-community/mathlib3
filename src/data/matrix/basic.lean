@@ -370,7 +370,9 @@ dot_product v w = ∑ i, v (sum.inl i) * w (sum.inl i) + ∑ j, v (sum.inr j) * 
 by {rw [dot_product, ←fintype.sum_sum_elim], congr, ext (i | j); simp }
 
 lemma dot_product_block [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :
-dot_product v w = dot_product (λ i, v (sum.inl i))  (λ i, w (sum.inl i)) + dot_product (λ j, v (sum.inr j))  (λ j, w (sum.inr j)) :=
+dot_product v w =
+dot_product (λ i, v (sum.inl i))  (λ i, w (sum.inl i)) +
+dot_product (λ j, v (sum.inr j))  (λ j, w (sum.inr j)) :=
 by simp [dot_product, dot_product_block']
 
 @[simp] lemma diagonal_dot_product [decidable_eq m] [non_unital_non_assoc_semiring α]
@@ -1141,7 +1143,8 @@ def reindex (eₘ : m ≃ l) (eₙ : n ≃ o) : matrix m n α ≃ matrix l o α 
   left_inv  := λ M, by simp,
   right_inv := λ M, by simp, }
 
-def reindex_prod_assoc : matrix ((l × m) × n) ((o × p) × q) α ≃ matrix (l × m × n) (o × p × q) α :=
+def reindex_prod_assoc :
+matrix ((l × m) × n) ((o × p) × q) α ≃ matrix (l × m × n) (o × p × q) α :=
 reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
 
 def reindex_prod_comm_snd : matrix l (m × n) α ≃ matrix l (n × m) α :=

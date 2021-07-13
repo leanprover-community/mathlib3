@@ -59,13 +59,12 @@ by { ext, simp, }
 /-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
+localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
 /-- The conjugate transpose of a matrix. -/
 def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α
 | x y := star (M y x)
 localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
-
-localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
 /-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
 def col (w : m → α) : matrix m unit α

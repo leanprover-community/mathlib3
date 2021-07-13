@@ -46,7 +46,7 @@ However the difference is illusory since the construction stays inside the Lie s
 ## Definitions of exceptional Lie algebras
 
 This file also contains the Cartan matrices of the exceptional Lie algebras. By using these in the
-above construction, it also provides definitions of the exceptional Lie algebras. These definitions
+above construction, it thus provides definitions of the exceptional Lie algebras. These definitions
 make sense over any commutative ring. When the ring is ℝ, these are the split real forms of the
 exceptional semisimple Lie algebras.
 
@@ -168,14 +168,12 @@ end cartan_matrix
 
 Note that it is defined for any matrix of integers. Its value for non-Cartan matrices should be
 regarded as junk. -/
-@[derive [lie_ring, lie_algebra R]]
+@[derive [inhabited, lie_ring, lie_algebra R]]
 def matrix.to_lie_algebra := (cartan_matrix.relations.to_ideal R A).quotient
-
-instance (A : matrix B B ℤ) : inhabited (matrix.to_lie_algebra R A) := ⟨0⟩
 
 namespace cartan_matrix
 
-/- The Cartan matrix of type e₆. See `bourbaki1968` plate V, page 277.
+/-- The Cartan matrix of type e₆. See `bourbaki1968` plate V, page 277.
 
 The corresponding Dynkin diagram is:
             o
@@ -189,7 +187,7 @@ def e₆ : matrix (fin 6) (fin 6) ℤ := ![![ 2,  0, -1,  0,  0,  0],
                                        ![ 0,  0,  0, -1,  2, -1],
                                        ![ 0,  0,  0,  0, -1,  2]]
 
-/- The Cartan matrix of type e₇. See `bourbaki1968` plate VI, page 281.
+/-- The Cartan matrix of type e₇. See `bourbaki1968` plate VI, page 281.
 
 The corresponding Dynkin diagram is:
             o
@@ -204,7 +202,7 @@ def e₇ : matrix (fin 7) (fin 7) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0],
                                        ![ 0,  0,  0,  0, -1,  2, -1],
                                        ![ 0,  0,  0,  0,  0, -1,  2]]
 
-/- The Cartan matrix of type e₈. See `bourbaki1968` plate VII, page 285.
+/-- The Cartan matrix of type e₈. See `bourbaki1968` plate VII, page 285.
 
 The corresponding Dynkin diagram is:
             o
@@ -220,7 +218,7 @@ def e₈ : matrix (fin 8) (fin 8) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0,  0],
                                        ![ 0,  0,  0,  0,  0, -1,  2, -1],
                                        ![ 0,  0,  0,  0,  0,  0, -1,  2]]
 
-/- The Cartan matrix of type f₄. See `bourbaki1968` plate VIII, page 288.
+/-- The Cartan matrix of type f₄. See `bourbaki1968` plate VIII, page 288.
 
 The corresponding Dynkin diagram is:
 o --- o =>= o --- o
@@ -230,7 +228,7 @@ def f₄ : matrix (fin 4) (fin 4) ℤ := ![![ 2, -1,  0,  0],
                                        ![ 0, -1,  2, -1],
                                        ![ 0,  0, -1,  2]]
 
-/- The Cartan matrix of type g₂. See `bourbaki1968` plate IX, page 290.
+/-- The Cartan matrix of type g₂. See `bourbaki1968` plate IX, page 290.
 
 The corresponding Dynkin diagram is:
 o ≡>≡ o
@@ -245,23 +243,23 @@ end cartan_matrix
 namespace lie_algebra
 
 /-- The exceptional split Lie algebra of type e₆. -/
-@[derive [lie_ring, lie_algebra R]]
+@[derive [inhabited, lie_ring, lie_algebra R]]
 def e₆ := cartan_matrix.e₆.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type e₇. -/
-@[derive [lie_ring, lie_algebra R]]
+@[derive [inhabited, lie_ring, lie_algebra R]]
 def e₇ := cartan_matrix.e₇.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type e₈. -/
-@[derive [lie_ring, lie_algebra R]]
+@[derive [inhabited, lie_ring, lie_algebra R]]
 def e₈ := cartan_matrix.e₈.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type f₄. -/
-@[derive [lie_ring, lie_algebra R]]
+@[derive [inhabited, lie_ring, lie_algebra R]]
 def f₄ := cartan_matrix.f₄.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type g₂. -/
-@[derive [lie_ring, lie_algebra R]]
+@[derive [inhabited, lie_ring, lie_algebra R]]
 def g₂ := cartan_matrix.g₂.to_lie_algebra R
 
 end lie_algebra

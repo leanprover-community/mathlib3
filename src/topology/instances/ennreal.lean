@@ -143,7 +143,7 @@ nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 lemma nhds_top' : 𝓝 ∞ = ⨅ r : ℝ≥0, 𝓟 (Ioi r) :=
 nhds_top.trans $ infi_ne_top _
 
-lemma nhds_basis_top : (𝓝 ∞).has_basis (λ a, a < ∞) (λ a, Ioi a) := nhds_basis_top
+lemma nhds_top_basis : (𝓝 ∞).has_basis (λ a, a < ∞) (λ a, Ioi a) := nhds_top_basis
 
 lemma tendsto_nhds_top_iff_nnreal {m : α → ℝ≥0∞} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ≥0, ∀ᶠ a in f, ↑x < m a :=
@@ -171,7 +171,7 @@ by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
 lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
-lemma nhds_basis_zero : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) (λ a, Iio a) := nhds_basis_bot
+lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) (λ a, Iio a) := nhds_bot_basis
 
 @[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top

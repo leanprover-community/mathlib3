@@ -921,9 +921,9 @@ lemma nhds_bot_order [topological_space α] [order_bot α] [order_topology α] :
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
 
-lemma nhds_basis_top [topological_space α] [semilattice_sup_top α]
-  [is_total α has_le.le] [order_topology α] [nontrivial α] :
-  (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, set.Ioi a) :=
+lemma nhds_top_basis [topological_space α] [semilattice_sup_top α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] :
+  (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, Ioi a) :=
 ⟨ begin
     simp only [nhds_top_order],
     refine @filter.mem_binfi α α (λ a, 𝓟 (Ioi a)) (λ a, a < ⊤) _ _,
@@ -935,10 +935,10 @@ lemma nhds_basis_top [topological_space α] [semilattice_sup_top α]
       exact ⟨a, lt_top_iff_ne_top.mpr ha⟩ }
   end ⟩
 
-lemma nhds_basis_bot [topological_space α] [semilattice_inf_bot α]
-  [is_total α has_le.le] [order_topology α] [nontrivial α] :
+lemma nhds_bot_basis [topological_space α] [semilattice_inf_bot α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] :
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a : α, Iio a) :=
-@nhds_basis_top (order_dual α) _ _ _ _ _
+@nhds_top_basis (order_dual α) _ _ _ _ _
 
 lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
   {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :

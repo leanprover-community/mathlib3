@@ -173,12 +173,14 @@ def matrix.to_lie_algebra := (cartan_matrix.relations.to_ideal R A).quotient
 
 namespace cartan_matrix
 
-/-- The Cartan matrix of type e₆. See `bourbaki1968` plate V, page 277.
+/-- The Cartan matrix of type e₆. See [bourbaki1968] plate V, page 277.
 
 The corresponding Dynkin diagram is:
+```
             o
             |
 o --- o --- o --- o --- o
+```
 -/
 def E₆ : matrix (fin 6) (fin 6) ℤ := ![![ 2,  0, -1,  0,  0,  0],
                                        ![ 0,  2,  0, -1,  0,  0],
@@ -187,12 +189,14 @@ def E₆ : matrix (fin 6) (fin 6) ℤ := ![![ 2,  0, -1,  0,  0,  0],
                                        ![ 0,  0,  0, -1,  2, -1],
                                        ![ 0,  0,  0,  0, -1,  2]]
 
-/-- The Cartan matrix of type e₇. See `bourbaki1968` plate VI, page 281.
+/-- The Cartan matrix of type e₇. See [bourbaki1968] plate VI, page 281.
 
 The corresponding Dynkin diagram is:
+```
             o
             |
 o --- o --- o --- o --- o --- o
+```
 -/
 def E₇ : matrix (fin 7) (fin 7) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0],
                                        ![ 0,  2,  0, -1,  0,  0,  0],
@@ -202,12 +206,14 @@ def E₇ : matrix (fin 7) (fin 7) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0],
                                        ![ 0,  0,  0,  0, -1,  2, -1],
                                        ![ 0,  0,  0,  0,  0, -1,  2]]
 
-/-- The Cartan matrix of type e₈. See `bourbaki1968` plate VII, page 285.
+/-- The Cartan matrix of type e₈. See [bourbaki1968] plate VII, page 285.
 
 The corresponding Dynkin diagram is:
+```
             o
             |
 o --- o --- o --- o --- o --- o --- o
+```
 -/
 def E₈ : matrix (fin 8) (fin 8) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0,  0],
                                        ![ 0,  2,  0, -1,  0,  0,  0,  0],
@@ -218,21 +224,24 @@ def E₈ : matrix (fin 8) (fin 8) ℤ := ![![ 2,  0, -1,  0,  0,  0,  0,  0],
                                        ![ 0,  0,  0,  0,  0, -1,  2, -1],
                                        ![ 0,  0,  0,  0,  0,  0, -1,  2]]
 
-/-- The Cartan matrix of type f₄. See `bourbaki1968` plate VIII, page 288.
+/-- The Cartan matrix of type f₄. See [bourbaki1968] plate VIII, page 288.
 
 The corresponding Dynkin diagram is:
+```
 o --- o =>= o --- o
+```
 -/
 def F₄ : matrix (fin 4) (fin 4) ℤ := ![![ 2, -1,  0,  0],
                                        ![-1,  2, -2,  0],
                                        ![ 0, -1,  2, -1],
                                        ![ 0,  0, -1,  2]]
 
-/-- The Cartan matrix of type g₂. See `bourbaki1968` plate IX, page 290.
+/-- The Cartan matrix of type g₂. See [bourbaki1968] plate IX, page 290.
 
 The corresponding Dynkin diagram is:
+```
 o ≡>≡ o
-
+```
 Actually we are using the transpose Bourbaki's matrix. This is to make the matrices for g₂ and f₄
 consistent in the sense that all non-zero values below the diagonal are -1. -/
 def G₂ : matrix (fin 2) (fin 2) ℤ := ![![ 2, -3],
@@ -243,23 +252,18 @@ end cartan_matrix
 namespace lie_algebra
 
 /-- The exceptional split Lie algebra of type e₆. -/
-@[derive [inhabited, lie_ring, lie_algebra R]]
-def e₆ := cartan_matrix.E₆.to_lie_algebra R
+abbreviation e₆ := cartan_matrix.E₆.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type e₇. -/
-@[derive [inhabited, lie_ring, lie_algebra R]]
-def e₇ := cartan_matrix.E₇.to_lie_algebra R
+abbreviation e₇ := cartan_matrix.E₇.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type e₈. -/
-@[derive [inhabited, lie_ring, lie_algebra R]]
-def e₈ := cartan_matrix.E₈.to_lie_algebra R
+abbreviation e₈ := cartan_matrix.E₈.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type f₄. -/
-@[derive [inhabited, lie_ring, lie_algebra R]]
-def f₄ := cartan_matrix.F₄.to_lie_algebra R
+abbreviation f₄ := cartan_matrix.F₄.to_lie_algebra R
 
 /-- The exceptional split Lie algebra of type g₂. -/
-@[derive [inhabited, lie_ring, lie_algebra R]]
-def g₂ := cartan_matrix.G₂.to_lie_algebra R
+abbreviation g₂ := cartan_matrix.G₂.to_lie_algebra R
 
 end lie_algebra

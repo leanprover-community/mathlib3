@@ -429,6 +429,38 @@ instance smul_comm_class {γ : Type*}
       exact ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, smul_comm a b c⟩ },
   end }
 
+instance is_scalar_tower {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower α β (set γ) :=
+{ smul_assoc := λ a b T,
+    by { ext c, simp only [mem_smul_set, smul_assoc, exists_exists_and_eq_and] } }
+
+instance is_scalar_tower' {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower α (set β) (set γ) :=
+{ smul_assoc := λ a T T', begin
+    ext c,
+    simp only [mem_smul_set, mem_smul],
+    split,
+    { rintros ⟨_, c, ⟨b, hb, rfl⟩, hc, rfl⟩,
+      exact ⟨_, ⟨b, c, hb, hc, rfl⟩, (smul_assoc _ _ _).symm⟩ },
+    { rintros ⟨_, ⟨b, c, hb, hc, rfl⟩, rfl⟩,
+      exact ⟨_, c, ⟨b, hb, rfl⟩, hc, smul_assoc _ _ _⟩ }
+  end }
+
+instance is_scalar_tower'' {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower (set α) (set β) (set γ) :=
+{ smul_assoc := λ T T' T'', begin
+    ext c,
+    simp only [mem_smul],
+    split,
+    { rintros ⟨_, c, ⟨a, b, ha, hb, rfl⟩, hc, rfl⟩,
+      exact ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, (smul_assoc a b c).symm⟩ },
+    { rintros ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, rfl⟩,
+      exact ⟨_, c, ⟨a, b, ha, hb, rfl⟩, hc, smul_assoc a b c⟩ }
+  end }
+
 section monoid
 
 /-! ### `set α` as a `(∪,*)`-semiring -/

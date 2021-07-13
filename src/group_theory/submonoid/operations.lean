@@ -735,7 +735,7 @@ equivalence between `M` and `f.mrange`.
 
 This is a bidirectional version of `monoid_hom.mrange_restrict`. -/
 @[to_additive /-"
-A additive monoid homomorphism `f : M →+ N` with a left-inverse `g : N → M` defines an additive
+An additive monoid homomorphism `f : M →+ N` with a left-inverse `g : N → M` defines an additive
 equivalence between `M` and `f.mrange`.
 
 This is a bidirectional version of `add_monoid_hom.mrange_restrict`. "-/, simps {simp_rhs := tt}]

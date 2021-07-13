@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.formal_multilinear_series
-import analysis.specific_limits
 
 /-!
 # Analytic functions

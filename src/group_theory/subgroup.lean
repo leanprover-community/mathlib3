@@ -1409,8 +1409,8 @@ le_antisymm
 -- this instance can't go just after the definition of mrange because `fintype` is
 -- not imported at that stage
 @[to_additive]
-instance fintype_mrange {M : Type*} [monoid M] {N : Type*} [monoid N] [decidable_eq N]
-  (f : M →* N) [fintype M] : fintype (mrange f) :=
+instance fintype_mrange {M N : Type*} [monoid M] [monoid N] [fintype M] [decidable_eq N]
+  (f : M →* N) : fintype (mrange f) :=
 set.fintype_range f
 
 @[to_additive]

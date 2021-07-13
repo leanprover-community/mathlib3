@@ -643,7 +643,7 @@ lemma integrable_of_bounded_on_fin_meas [sigma_finite μ]
   integrable f μ :=
 begin
   haveI : sigma_finite (μ.trim le_rfl) := by rwa trim_eq_self,
-  exact integrable_of_bounded_on_fin_meas' le_rfl C hC f hf_meas hf,
+  exact integrable_of_bounded_on_fin_meas' le_rfl C hC hf_meas hf,
 end
 
 end sigma_finite

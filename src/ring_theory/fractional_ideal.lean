@@ -179,7 +179,7 @@ variables (S)
   x ∈ (I : fractional_ideal S P) ↔ ∃ x', x' ∈ I ∧ algebra_map R P x' = x :=
 mem_coe_submodule _ _
 
-@[simp] lemma mem_coe_ideal_of_mem {x : R} {I : ideal R} (hx : x ∈ I) :
+lemma mem_coe_ideal_of_mem {x : R} {I : ideal R} (hx : x ∈ I) :
   algebra_map R P x ∈ (I : fractional_ideal S P) :=
 (mem_coe_ideal S).mpr ⟨x, hx, rfl⟩
 

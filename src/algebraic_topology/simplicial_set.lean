@@ -6,6 +6,8 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 import algebraic_topology.simplicial_object
 import category_theory.yoneda
 import category_theory.limits.types
+import category_theory.limits.presheaf
+import algebraic_topology.topological_simplex
 
 /-!
 A simplicial set is just a simplicial object in `Type`,
@@ -117,3 +119,7 @@ def sk (n : ℕ) : sSet ⥤ sSet.truncated n := simplicial_object.sk n
 instance {n} : inhabited (sSet.truncated n) := ⟨(sk n).obj $ Δ[0]⟩
 
 end sSet
+
+/-- The functor associating the singular simplicial set to a topological space. -/
+noncomputable def Top.to_sSet : Top ⥤ sSet :=
+colimit_adj.restricted_yoneda simplex_category.to_Top

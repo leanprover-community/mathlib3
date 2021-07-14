@@ -27,8 +27,8 @@ The actual statements involve (pre)images under `ext_chart_at I f` and are given
 manifold, smooth bump function
 -/
 
-universes uι uE uH uM
-variables {ι : Type uι}
+universes uE uF uH uM
+variables
 {E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] (I : model_with_corners ℝ E H)
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]

@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import geometry.manifold.bump_function
 import topology.partition_of_unity
@@ -204,7 +204,7 @@ instance : has_coe_to_fun (smooth_bump_covering I M s) := ⟨_, to_fun⟩
   (h₁ h₂ h₃) : ⇑(mk ι c to_fun h₁ h₂ h₃ : smooth_bump_covering I M s) = to_fun :=
 rfl
 
-/-- 
+/--
 We say that `f : smooth_bump_covering I M s` is *subordinate* to a map `U : M → set M` if for each
 index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`

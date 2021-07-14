@@ -1,29 +1,30 @@
 /-
-Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import geometry.manifold.partition_of_unity
 
 /-!
 # Whitney embedding theorem
 
-In this file we prove a “baby” version of the Whitney weak embedding theorem: for any compact real
-manifold `M`, for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`. The actual
-theorem does not assume that `M` is a compact space and provides an explicit `n`.
+In this file we prove a version of the Whitney embedding theorem: for any compact real manifold `M`,
+for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 
 ## TODO
 
-* Drop unneeded assumptions.
-* Formalize the strong embedding theorem.
+* Prove the weak Whitney embedding theorem: any `σ`-compact smooth `m`-dimensional manifold can be
+  embedded into `ℝ^(2m+1)`. This requires a version of Sard's theorem: for a locally Lipschitz
+  continuous map `f : ℝ^m → ℝ^n`, `m < n`, the range has Hausdorff dimension at most `m`, hence it
+  has measure zero.
 
 ## Tags
 
-manifold, embedding, immersion
+partition of unity, smooth bump function, whitney theorem
 -/
 
-universes uι uE uH uM
-variables {ι : Type uι}
+universes uE uH uM
+variables
 {E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] {I : model_with_corners ℝ E H}
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]

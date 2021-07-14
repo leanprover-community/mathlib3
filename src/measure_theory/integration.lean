@@ -1415,7 +1415,7 @@ begin
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
-/-- Chebyshev's inequality -/
+/-- **Chebyshev's inequality** -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 begin

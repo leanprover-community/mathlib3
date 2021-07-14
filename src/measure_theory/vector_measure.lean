@@ -205,16 +205,6 @@ begin
   apply_instance,
 end
 
-lemma summable_measure {μ : measure α} [hμ : finite_measure μ]
-  (hf₁ : ∀ (i : ℕ), measurable_set (f i))
-  (hf₂ : pairwise (disjoint on f)) :
-  summable (λ x, (μ (f x)).to_real) :=
-begin
-  apply ennreal.summable_to_real,
-  rw ← measure_theory.measure_Union hf₂ hf₁,
-  exact ne_of_lt (measure_lt_top _ _)
-end
-
 end vector_measure
 
 namespace measure
@@ -235,7 +225,7 @@ def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measu
         exacts [ennreal.to_real_nonneg, le_refl _] },
       { intro, split_ifs,
         exacts [le_refl _, ennreal.to_real_nonneg] },
-        exact vector_measure.summable_measure hf₁ hf₂ },
+        exact summable_measure_to_real hf₁ hf₂ },
     { intros a ha,
       apply ne_of_lt hμ.measure_univ_lt_top,
       rw [eq_top_iff, ← ha, outer_measure.measure_of_eq_coe, coe_to_outer_measure],
@@ -248,7 +238,7 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
 if_pos hi
 
 /-- A measure is a vector measure over `ℝ≥0∞`. -/
-def to_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :=
+def to_ennreal_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :=
 { measure_of := λ i : set α, if measurable_set i then μ i else 0,
   empty := by simp [μ.empty],
   not_measurable := λ _ hi, if_neg hi,
@@ -260,9 +250,9 @@ def to_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :=
   end }
 
 @[simp]
-lemma to_vector_measure_apply {μ : measure α}
+lemma to_ennreal_vector_measure_apply {μ : measure α}
   {i : set α} (hi : measurable_set i) :
-  μ.to_vector_measure i = μ i :=
+  μ.to_ennreal_vector_measure i = μ i :=
 if_pos hi
 
 end measure
@@ -304,20 +294,18 @@ def add (v w : vector_measure α M) : vector_measure α M :=
 instance : has_add (vector_measure α M) := ⟨add⟩
 instance : has_neg (vector_measure α M) := ⟨neg⟩
 
-@[simp]
 lemma neg_apply {v : vector_measure α M} (i : set α) :
   (-v) i = - v i := rfl
 
-@[simp]
 lemma add_apply {v w : vector_measure α M} (i : set α) :
   (v + w) i = v i + w i := rfl
 
 @[simp]
-lemma coe_neg {v : vector_measure α M} (i : set α) :
+lemma coe_neg {v : vector_measure α M} :
   ⇑(-v) = - v := rfl
 
 @[simp]
-lemma coe_add {v w : vector_measure α M} (i : set α) :
+lemma coe_add {v w : vector_measure α M} :
   ⇑(v + w) = v + w := rfl
 
 instance : add_comm_group (vector_measure α M) :=
@@ -329,7 +317,6 @@ instance : add_comm_group (vector_measure α M) :=
   add_comm := by { intros, ext i; simp [add_comm] },
   add_left_neg := by { intros, ext i, simp } } .
 
-@[simp]
 lemma sub_apply {v w : vector_measure α M} (i : set α) :
   (v - w) i = v i - w i :=
 begin
@@ -337,7 +324,8 @@ begin
   refl
 end
 
-lemma coe_sub {v w : vector_measure α M} (i : set α) :
+@[simp]
+lemma coe_sub {v w : vector_measure α M} :
   ⇑(v - w) = v - w :=
 begin
   rw [sub_eq_add_neg, sub_eq_add_neg],
@@ -373,8 +361,7 @@ variables [topological_space R] [has_continuous_smul R M]
 
 /-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
 measure corresponding to the function `r • s`. -/
-def smul
-  (r : R) (v : vector_measure α M) : vector_measure α M :=
+def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
 { measure_of := r • v,
   empty := by simp,
   not_measurable := λ _ hi, by simp [v.of_not_measurable_set hi],

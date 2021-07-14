@@ -1441,6 +1441,15 @@ lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measur
   (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
+lemma summable_measure_to_real [hμ : finite_measure μ]
+  {f : ℕ → set α} (hf₁ : ∀ (i : ℕ), measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
+  summable (λ x, (μ (f x)).to_real) :=
+begin
+  apply ennreal.summable_to_real,
+  rw ← measure_theory.measure_Union hf₂ hf₁,
+  exact ne_of_lt (measure_lt_top _ _)
+end
+
 end finite_measure
 
 section probability_measure

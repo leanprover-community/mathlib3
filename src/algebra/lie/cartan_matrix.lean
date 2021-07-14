@@ -242,8 +242,8 @@ The corresponding Dynkin diagram is:
 ```
 o ≡>≡ o
 ```
-Actually we are using the transpose Bourbaki's matrix. This is to make the matrices for g₂ and f₄
-consistent in the sense that all non-zero values below the diagonal are -1. -/
+Actually we are using the transpose of Bourbaki's matrix. This is to make this matrix consistent
+with `cartan_matrix.F₄`, in the sense that all non-zero values below the diagonal are -1. -/
 def G₂ : matrix (fin 2) (fin 2) ℤ := ![![ 2, -3],
                                        ![-1,  2]]
 

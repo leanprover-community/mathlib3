@@ -26,7 +26,7 @@ open dmatrix
 def matrix (m : Type u) (n : Type u') [fintype m] [fintype n] (α : Type v) : Type (max u u' v) :=
 m → n → α
 
-variables {l m n o: Type*} [fintype l] [fintype m] [fintype n] [fintype o]
+variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
 variables {m' : o → Type*} [∀ i, fintype (m' i)]
 variables {n' : o → Type*} [∀ i, fintype (n' i)]
 variables {R : Type*} {S : Type*} {α : Type v} {β : Type w}

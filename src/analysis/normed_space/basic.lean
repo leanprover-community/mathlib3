@@ -443,8 +443,11 @@ f.isometry_iff_norm.2 hf
 
 lemma controlled_sum_of_mem_closure {s : add_subgroup α} {g : α}
   (hg : g ∈ closure (s : set α)) {b : ℕ → ℝ} (b_pos : ∀ n, 0 < b n) :
-  ∃ v : ℕ → α, tendsto (λ n, ∑ i in range (n+1), v i) at_top (𝓝 g) ∧
-               (∀ n, v n ∈ s) ∧ ∥v 0 - g∥ < b 0 ∧ ∀ n > 0, ∥v n∥ < b n :=
+  ∃ v : ℕ → α,
+    tendsto (λ n, ∑ i in range (n+1), v i) at_top (𝓝 g) ∧
+    (∀ n, v n ∈ s) ∧
+    ∥v 0 - g∥ < b 0 ∧
+    ∀ n > 0, ∥v n∥ < b n :=
 begin
   obtain ⟨u : ℕ → α, u_in : ∀ n, u n ∈ s, lim_u : tendsto u at_top (𝓝 g)⟩ :=
     mem_closure_iff_seq_limit.mp hg,
@@ -476,10 +479,11 @@ begin
 end
 
 lemma controlled_sum_of_mem_closure_range {j : α →+ β} {h : β}
-  (Hh : h ∈ (closure $ (j.range : set β))) {b : ℕ → ℝ}
-  (b_pos : ∀ n, 0 < b n) :
-  ∃ g : ℕ → α, tendsto (λ n, ∑ i in range (n+1), j (g i)) at_top (𝓝 h) ∧
-               ∥j (g 0) - h∥ < b 0 ∧ ∀ n > 0, ∥j (g n)∥ < b n :=
+  (Hh : h ∈ (closure $ (j.range : set β))) {b : ℕ → ℝ} (b_pos : ∀ n, 0 < b n) :
+  ∃ g : ℕ → α,
+    tendsto (λ n, ∑ i in range (n+1), j (g i)) at_top (𝓝 h) ∧
+    ∥j (g 0) - h∥ < b 0 ∧
+    ∀ n > 0, ∥j (g n)∥ < b n :=
 begin
   rcases controlled_sum_of_mem_closure Hh b_pos with ⟨v, sum_v, v_in, hv₀, hv_pos⟩,
   choose g hg using v_in,

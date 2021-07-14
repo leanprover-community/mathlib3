@@ -315,6 +315,18 @@ by simp [dot_product, finset.smul_sum, smul_mul_assoc]
   dot_product v (x • w) = x • dot_product v w :=
 by simp [dot_product, finset.smul_sum, mul_smul_comm]
 
+lemma star_dot_product_star [semiring α] [star_ring α] (v w : m → α) :
+  dot_product (star v) (star w) = star (dot_product w v) :=
+by simp [dot_product]
+
+lemma star_dot_product [semiring α] [star_ring α] (v w : m → α) :
+  dot_product (star v) w = star (dot_product (star w) v) :=
+by simp [dot_product]
+
+lemma dot_product_star [semiring α] [star_ring α] (v w : m → α) :
+  dot_product v (star w) = star (dot_product w (star v)) :=
+by simp [dot_product]
+
 end dot_product
 
 /-- `M ⬝ N` is the usual product of matrices `M` and `N`, i.e. we have that

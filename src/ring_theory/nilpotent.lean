@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import data.nat.choose.sum
+import algebra.algebra.basic
 
 /-!
 # Nilpotent elements
@@ -19,7 +20,7 @@ import data.nat.choose.sum
 
 -/
 
-universes u
+universes u v
 
 variables {R : Type u} {x y : R}
 
@@ -101,3 +102,25 @@ end
 end ring
 
 end commute
+
+namespace algebra
+
+variables (R) {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
+
+@[simp] lemma is_nilpotent_lmul_left_iff (a : A) :
+  is_nilpotent (lmul_left R a) ↔ is_nilpotent a :=
+begin
+  split; rintros ⟨n, hn⟩; use n;
+  simp only [lmul_left_eq_zero_iff, pow_lmul_left] at ⊢ hn;
+  exact hn,
+end
+
+@[simp] lemma is_nilpotent_lmul_right_iff (a : A) :
+  is_nilpotent (lmul_right R a) ↔ is_nilpotent a :=
+begin
+  split; rintros ⟨n, hn⟩; use n;
+  simp only [lmul_right_eq_zero_iff, pow_lmul_right] at ⊢ hn;
+  exact hn,
+end
+
+end algebra

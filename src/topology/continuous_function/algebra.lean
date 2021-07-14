@@ -438,6 +438,9 @@ def continuous_map.coe_fn_alg_hom : C(α, A) →ₐ[R] (α → A) :=
   map_add' := continuous_map.coe_add,
   map_mul' := continuous_map.coe_mul }
 
+instance: is_scalar_tower R A C(α, A) :=
+{ smul_assoc := λ _ _ _, by { ext, simp } }
+
 variables {R}
 
 /--

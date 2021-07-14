@@ -348,7 +348,7 @@ begin
   exact ⟨b, b.prop, h⟩,
 end
 
-/-- Intermediate Value Theorem for continuous functions on connected sets. -/
+/-- **Intermediate Value Theorem** for continuous functions on connected sets. -/
 lemma is_preconnected.intermediate_value {s : set γ} (hs : is_preconnected s)
   {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
   Icc (f a) (f b) ⊆ f '' s :=
@@ -410,12 +410,12 @@ lemma is_preconnected.intermediate_value_Iii {s : set γ} (hs : is_preconnected 
 λ y h, bex_def.1 $ hs.intermediate_value₂_eventually₂ hl₁ hl₂
   hf continuous_on_const (tendsto_at_bot.1 ht₁ y) (tendsto_at_top.1 ht₂ y)
 
-/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+/-- **Intermediate Value Theorem** for continuous functions on connected spaces. -/
 lemma intermediate_value_univ [preconnected_space γ] (a b : γ) {f : γ → α} (hf : continuous f) :
   Icc (f a) (f b) ⊆ range f :=
 λ x hx, intermediate_value_univ₂ hf continuous_const hx.1 hx.2
 
-/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+/-- **Intermediate Value Theorem** for continuous functions on connected spaces. -/
 lemma mem_range_of_exists_le_of_exists_ge [preconnected_space γ] {c : α} {f : γ → α}
   (hf : continuous f) (h₁ : ∃ a, f a ≤ c) (h₂ : ∃ b, c ≤ f b) :
   c ∈ range f :=
@@ -920,6 +920,25 @@ by simp [nhds_eq_order (⊤:α)]
 lemma nhds_bot_order [topological_space α] [order_bot α] [order_topology α] :
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
+
+lemma nhds_top_basis [topological_space α] [semilattice_sup_top α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] :
+  (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, Ioi a) :=
+⟨ begin
+    simp only [nhds_top_order],
+    refine @filter.mem_binfi α α (λ a, 𝓟 (Ioi a)) (λ a, a < ⊤) _ _,
+    { rintros a (ha : a < ⊤) b (hb : b < ⊤),
+      use a ⊔ b,
+      simp only [filter.le_principal_iff, ge_iff_le, order.preimage],
+      exact ⟨sup_lt_iff.mpr ⟨ha, hb⟩, Ioi_subset_Ioi le_sup_left, Ioi_subset_Ioi le_sup_right⟩ },
+    { obtain ⟨a, ha⟩ : ∃ a : α, a ≠ ⊤ := exists_ne ⊤,
+      exact ⟨a, lt_top_iff_ne_top.mpr ha⟩ }
+  end ⟩
+
+lemma nhds_bot_basis [topological_space α] [semilattice_inf_bot α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] :
+  (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a : α, Iio a) :=
+@nhds_top_basis (order_dual α) _ _ _ _ _
 
 lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
   {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
@@ -1498,7 +1517,7 @@ local notation `|` x `|` := abs x
 lemma nhds_eq_infi_abs_sub (a : α) : 𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r}) :=
 begin
   simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
-    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ a, @sub_lt _ _ a, set_of_and],
+    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt _ _ _ _ a, set_of_and],
   refine ⟨_, _, _⟩,
   { intros ε ε0,
     exact inter_mem_inf_sets
@@ -1584,7 +1603,7 @@ begin
   convert nhds_basis_Ioo_pos a,
   { ext ε,
     change abs (x - a) < ε ↔ a - ε < x ∧ x < a + ε,
-    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a] },
+    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a, add_comm x ε] }
 end
 
 variable (α)
@@ -2734,17 +2753,19 @@ end
 
 variables {δ : Type*} [linear_order δ] [topological_space δ] [order_closed_topology δ]
 
-/-- Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
+/-- **Intermediate Value Theorem** for continuous functions on closed intervals, case
+`f a ≤ t ≤ f b`.-/
 lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f a) (f b) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
-/-- Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
+/-- **Intermediate Value Theorem** for continuous functions on closed intervals, case
+`f a ≥ t ≥ f b`.-/
 lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :
   Icc (f b) (f a) ⊆ f '' (Icc a b) :=
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
-/-- Intermediate Value Theorem for continuous functions on closed intervals, unordered case. -/
+/-- **Intermediate Value Theorem** for continuous functions on closed intervals, unordered case. -/
 lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
   interval (f a) (f b) ⊆ f '' interval a b :=
 by cases le_total (f a) (f b); simp [*, is_preconnected_interval.intermediate_value]

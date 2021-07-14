@@ -25,37 +25,6 @@ open_locale classical topological_space interval big_operators filter ennreal me
 
 variables {α β E F : Type*} [measurable_space α]
 
-section piecewise
-
-variables {μ : measure α} {s : set α} {f g : α → β}
-
-lemma piecewise_ae_eq_restrict (hs : measurable_set s) : piecewise s f g =ᵐ[μ.restrict s] f :=
-begin
-  rw [ae_restrict_eq hs],
-  exact (piecewise_eq_on s f g).eventually_eq.filter_mono inf_le_right
-end
-
-lemma piecewise_ae_eq_restrict_compl (hs : measurable_set s) :
-  piecewise s f g =ᵐ[μ.restrict sᶜ] g :=
-begin
-  rw [ae_restrict_eq hs.compl],
-  exact (piecewise_eq_on_compl s f g).eventually_eq.filter_mono inf_le_right
-end
-
-end piecewise
-
-section indicator_function
-
-variables [has_zero β] {μ : measure α} {s : set α} {f : α → β}
-
-lemma indicator_ae_eq_restrict (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict s] f :=
-piecewise_ae_eq_restrict hs
-
-lemma indicator_ae_eq_restrict_compl (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
-piecewise_ae_eq_restrict_compl hs
-
-end indicator_function
-
 section
 
 variables [measurable_space β] {l l' : filter α} {f g : α → β} {μ ν : measure α}
@@ -88,31 +57,6 @@ lemma ae_measurable.measurable_at_filter_of_mem {s} (h : ae_measurable f (μ.res
 protected lemma measurable.measurable_at_filter (h : measurable f) :
   measurable_at_filter f l μ :=
 h.ae_measurable.measurable_at_filter
-
-lemma ae_measurable_indicator_iff [has_zero β] {s} (hs : measurable_set s) :
-  ae_measurable (indicator s f) μ ↔ ae_measurable f (μ.restrict s)  :=
-begin
-  split,
-  { assume h,
-    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) },
-  { assume h,
-    refine ⟨indicator s (h.mk f), h.measurable_mk.indicator hs, _⟩,
-    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
-      (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
-    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
-      (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
-    have : s.indicator f =ᵐ[μ.restrict s + μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
-      ae_add_measure_iff.2 ⟨A, B⟩,
-    simpa only [hs, measure.restrict_add_restrict_compl] using this },
-end
-
-lemma ae_measurable.restrict (hfm : ae_measurable f μ) {s} :
-  ae_measurable f (μ.restrict s) :=
-⟨ae_measurable.mk f hfm, hfm.measurable_mk, ae_restrict_of_ae hfm.ae_eq_mk⟩
-
-lemma ae_measurable.indicator [has_zero β] (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
-  ae_measurable (s.indicator f) μ :=
-(ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end
 
@@ -233,6 +177,28 @@ lemma integrable.indicator (h : integrable f μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
 h.integrable_on.indicator hs
 
+lemma integrable_indicator_const_Lp {E} [normed_group E] [measurable_space E] [borel_space E]
+  [second_countable_topology E] {p : ℝ≥0∞} {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (c : E) :
+  integrable (indicator_const_Lp p hs hμs c) μ :=
+begin
+  rw [integrable_congr indicator_const_Lp_coe_fn, integrable_indicator_iff hs, integrable_on,
+    integrable_const_iff, lt_top_iff_ne_top],
+  right,
+  simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
+end
+
+lemma integrable_on_Lp_of_measure_ne_top {E} [normed_group E] [measurable_space E] [borel_space E]
+  [second_countable_topology E] {p : ℝ≥0∞} {s : set α} (f : Lp E p μ) (hp : 1 ≤ p) (hμs : μ s ≠ ∞) :
+  integrable_on f s μ :=
+begin
+  refine mem_ℒp_one_iff_integrable.mp _,
+  have hμ_restrict_univ : (μ.restrict s) set.univ < ∞,
+    by simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply, lt_top_iff_ne_top],
+  haveI hμ_finite : finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
+  exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
+end
+
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
 set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.lift' powerset`. -/
 def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=
@@ -307,7 +273,7 @@ alias measure.finite_at_filter.integrable_at_filter_of_tendsto ← filter.tendst
 
 variables [borel_space E] [second_countable_topology E]
 
-lemma integrable_add [opens_measurable_space E] {f g : α → E}
+lemma integrable_add_of_disjoint {f g : α → E}
   (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
   integrable (f + g) μ ↔ integrable f μ ∧ integrable g μ :=
 begin

@@ -265,7 +265,7 @@ instance : has_mul (ideal R) := ⟨(•)⟩
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
 @[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
-by erw [submodule.one_eq_map_top, submodule.map_id]
+by erw [submodule.one_eq_range, linear_map.range_id]
 
 theorem mul_mem_mul {r s} (hr : r ∈ I) (hs : s ∈ J) : r * s ∈ I * J :=
 submodule.smul_mem_smul hr hs
@@ -1304,7 +1304,7 @@ surjective_quot_mk _
 
 /-- The kernel of `A →ₐ[R] I.quotient` is `I`. -/
 @[simp]
-lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I).to_ring_hom.ker = I :=
+lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I : A →+* I.quotient).ker = I :=
 ideal.mk_ker
 
 variables {R} {B : Type*} [comm_ring B] [algebra R B]

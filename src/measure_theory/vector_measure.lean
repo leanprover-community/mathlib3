@@ -378,7 +378,7 @@ def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
 instance : has_scalar R (vector_measure α M) := ⟨smul⟩
 
 @[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
-lemma smul_apply (v : vector_measure α M) {r : R} (i : set α) :
+lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
   (r • v) i = r • v i := rfl
 
 instance [topological_add_group M] : module R (vector_measure α M) :=

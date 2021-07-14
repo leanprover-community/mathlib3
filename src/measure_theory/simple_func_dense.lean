@@ -707,7 +707,7 @@ protected lemma induction (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {P : Lp.simpl
     P (Lp.simple_func.indicator_const p hs hμs.ne c))
   (h_add : ∀ ⦃f g : α →ₛ E⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ,
     disjoint (support f) (support g) → P (Lp.simple_func.to_Lp f hf) → P (Lp.simple_func.to_Lp g hg)
-    → P ((Lp.simple_func.to_Lp f hf) + (Lp.simple_func.to_Lp g hg)))
+    → P (Lp.simple_func.to_Lp f hf + Lp.simple_func.to_Lp g hg))
   (f : Lp.simple_func E p μ) : P f :=
 begin
   suffices : ∀ f : α →ₛ E, ∀ hf : mem_ℒp f p μ, P (to_Lp f hf),

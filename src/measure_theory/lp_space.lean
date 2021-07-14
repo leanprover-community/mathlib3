@@ -2208,7 +2208,7 @@ def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E
 
 variables {𝕜}
 
-lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] :
   ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 begin

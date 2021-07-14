@@ -96,6 +96,9 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
+/-- The category of subobjects is equivalent to the `mono_over` category. It is more convenient to
+use the former due to the partial order instance, but oftentimes it is easier to define structures
+on the latter. -/
 noncomputable def equiv_mono_over (X : C) : subobject X ≌ mono_over X :=
 thin_skeleton.equivalence _
 

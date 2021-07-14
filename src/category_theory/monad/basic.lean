@@ -246,34 +246,6 @@ An isomorphism of monads gives a natural isomorphism of the underlying functors.
 def monad_iso.to_nat_iso {M N : monad C} (h : M ≅ N) : (M : C ⥤ C) ≅ N :=
 (monad_to_functor C).map_iso h
 
-@[simps hom_to_nat_trans {rhs_md := semireducible}]
-def monad_iso_mk {M N : monad C} (h : (M : C ⥤ C) ≅ N)
-  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
-  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
-                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
-M ≅ N :=
-begin
-  apply as_iso _,
-  { apply monad_hom.mk },
-  { apply is_iso_of_reflects_iso _ (monad_to_functor C),
-    dsimp,
-    apply_instance },
-end
-
-@[simp] lemma monad_iso_mk_inv_to_nat_trans {M N : monad C} (h : (M : C ⥤ C) ≅ N)
-  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
-  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
-                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
-  (monad_iso_mk h app_η app_μ).inv.to_nat_trans = h.inv :=
-rfl
-
-@[simp] lemma monad_iso_mk_to_nat_iso {M N : monad C} (h : (M : C ⥤ C) ≅ N)
-  (app_η : ∀ ⦃X⦄, M.η.app X ≫ h.hom.app X = N.η.app X)
-  (app_μ : ∀ ⦃X⦄, M.μ.app X ≫ h.hom.app X =
-                    ((M : C ⥤ C).map (h.hom.app X) ≫ h.hom.app ((N : C ⥤ C).obj X)) ≫ N.μ.app X) :
-  monad_iso.to_nat_iso (monad_iso_mk h app_η app_μ) = h :=
-by { ext, refl }
-
 /--
 An isomorphism of comonads gives a natural isomorphism of the underlying functors.
 -/

@@ -158,19 +158,19 @@ begin
   exacts [λ b, bool.cases_on b hB hA, pairwise_disjoint_on_bool.2 h]
 end
 
-lemma of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
+lemma of_add_of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v A + v (B \ A) = v B :=
 begin
   rw [← of_union disjoint_diff hA (hB.diff hA), union_diff_cancel h],
   apply_instance,
 end
 
-lemma of_diff' {M : Type*} [add_comm_group M]
+lemma of_diff {M : Type*} [add_comm_group M]
   [topological_space M] [t2_space M] {v : vector_measure α M}
   {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v (B \ A) = v B - (v A) :=
 begin
-  rw [← of_diff hA hB h, add_sub_cancel'],
+  rw [← of_add_of_diff hA hB h, add_sub_cancel'],
   apply_instance,
 end
 

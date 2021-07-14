@@ -180,7 +180,7 @@ begin
   exact submodule.singleton_span_is_compact_element 1,
 end
 
-/-- Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
+/-- **Krull's theorem**: if `I` is an ideal that is not the whole ring, then it is included in some
     maximal ideal. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
@@ -582,6 +582,15 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
   lift S f H (mk S a) = f a := rfl
 
 end quotient
+
+/-- Quotienting by equal ideals gives equivalent rings.
+
+See also `submodule.quot_equiv_of_eq`.
+-/
+def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
+  I.quotient ≃+* J.quotient :=
+{ map_mul' := by { rintro ⟨x⟩ ⟨y⟩, refl },
+  .. submodule.quot_equiv_of_eq I J h }
 
 section pi
 variables (ι : Type v)

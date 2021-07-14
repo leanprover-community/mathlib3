@@ -526,9 +526,7 @@ lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ]
                  ... ≤ ∥(∥f x∥ + ∥g x∥)∥ : le_abs_self _⟩
 
 lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
-by simp_rw [integrable, has_finite_integral, mem_ℒp,
-    snorm_eq_snorm' one_ne_zero ennreal.one_ne_top, ennreal.one_to_real, snorm', one_div_one,
-    ennreal.rpow_one]
+by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
 
 lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [finite_measure μ]
   (hfq : mem_ℒp f q μ) : integrable f μ :=
@@ -626,6 +624,26 @@ begin
 end
 
 end trim
+
+section sigma_finite
+
+variables {α' E : Type*} {m m0 : measurable_space α'} [normed_group E] [measurable_space E]
+  [opens_measurable_space E]
+
+lemma integrable_of_forall_fin_meas_le' {μ : measure α'} (hm : m ≤ m0)
+  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) (hC : C < ∞) {f : α' → E} (hf_meas : ae_measurable f μ)
+  (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
+  integrable f μ :=
+⟨hf_meas,
+  (lintegral_le_of_forall_fin_meas_le' hm C hf_meas.nnnorm.coe_nnreal_ennreal hf).trans_lt hC⟩
+
+lemma integrable_of_forall_fin_meas_le [sigma_finite μ]
+  (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_measurable f μ)
+  (hf : ∀ s : set α, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
+  integrable f μ :=
+@integrable_of_forall_fin_meas_le' _ _ _ _ _ _ _ _ le_rfl (by rwa trim_eq_self) C hC _ hf_meas hf
+
+end sigma_finite
 
 /-! ### The predicate `integrable` on measurable functions modulo a.e.-equality -/
 

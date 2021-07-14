@@ -44,11 +44,11 @@ include dec_ι
 
 /-- `dfinsupp.mk` as a `linear_map`. -/
 def lmk (s : finset ι) : (Π i : (↑s : set ι), M i) →ₗ[R] Π₀ i, M i :=
-⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul R x]⟩
+{ to_fun := mk s, map_add' := λ _ _, mk_add, map_smul' := λ c x, mk_smul R x }
 
 /-- `dfinsupp.single` as a `linear_map` -/
 def lsingle (i) : M i →ₗ[R] Π₀ i, M i :=
-⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
+{ to_fun := single i, map_smul' := λ r x, single_smul _, .. dfinsupp.single_add_hom _ _ }
 
 /-- Two `R`-linear maps from `Π₀ i, M i` which agree on each `single i x` agree everywhere. -/
 lemma lhom_ext ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
@@ -108,7 +108,7 @@ include dec_ι
 /-- The `dfinsupp` version of `finsupp.lsum`.
 
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
-@[simps apply symm_apply]
+@[simps]
 def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
@@ -202,3 +202,47 @@ basis.of_repr ((map_range.linear_equiv (λ i, (b i).repr)).trans
 end basis
 
 end dfinsupp
+
+include dec_ι
+
+namespace submodule
+
+lemma dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
+  [Π i (x : β i), decidable (x ≠ 0)] (S : submodule R N)
+  (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_mem f g h
+
+lemma dfinsupp_sum_add_hom_mem {β : ι → Type*} [Π i, add_zero_class (β i)]
+  (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i →+ N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
+  dfinsupp.sum_add_hom g f ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_add_hom_mem f g h
+
+/-- The supremum of a family of submodules is equal to the range of `dfinsupp.lsum`; that is
+every element in the `supr` can be produced from taking a finite number of non-zero elements
+of `p i`, coercing them to `N`, and summing them. -/
+lemma supr_eq_range_dfinsupp_lsum (p : ι → submodule R N) :
+  supr p = (dfinsupp.lsum ℕ (λ i, (p i).subtype)).range :=
+begin
+  apply le_antisymm,
+  { apply supr_le _,
+    intros i y hy,
+    exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
+  { rintros x ⟨v, rfl⟩,
+    exact dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
+end
+
+lemma mem_supr_iff_exists_dfinsupp (p : ι → submodule R N) (x : N) :
+  x ∈ supr p ↔ ∃ f : Π₀ i, p i, dfinsupp.lsum ℕ (λ i, (p i).subtype) f = x :=
+set_like.ext_iff.mp (supr_eq_range_dfinsupp_lsum p) x
+
+/-- A variant of `submodule.mem_supr_iff_exists_dfinsupp` with the RHS fully unfolded. -/
+lemma mem_supr_iff_exists_dfinsupp' (p : ι → submodule R N) [Π i (x : p i), decidable (x ≠ 0)]
+  (x : N) :
+  x ∈ supr p ↔ ∃ f : Π₀ i, p i, f.sum (λ i xi, ↑xi) = x :=
+begin
+  rw mem_supr_iff_exists_dfinsupp,
+  simp_rw [dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply],
+  congr',
+end
+
+end submodule

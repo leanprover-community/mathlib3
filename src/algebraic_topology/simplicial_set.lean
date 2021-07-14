@@ -131,3 +131,9 @@ colimit_adj.extend_along_yoneda simplex_category.to_Top
 /-- Geometric realization is left adjoint to the singular simplicial set construction. -/
 noncomputable def sSet_Top_adj : sSet.to_Top ⊣ Top.to_sSet :=
 colimit_adj.yoneda_adjunction _
+
+/-- The geometric realization of the representable simplicial sets agree
+  with the usual topological simplices. -/
+noncomputable def sSet.to_Top_simplex :
+  (yoneda : simplex_category ⥤ _) ⋙ sSet.to_Top ≅ simplex_category.to_Top :=
+colimit_adj.is_extension_along_yoneda _

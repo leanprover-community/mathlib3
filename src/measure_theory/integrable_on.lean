@@ -188,6 +188,17 @@ begin
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
 end
 
+lemma integrable_on_Lp_of_measure_ne_top {E} [normed_group E] [measurable_space E] [borel_space E]
+  [second_countable_topology E] {p : ℝ≥0∞} {s : set α} (f : Lp E p μ) (hp : 1 ≤ p) (hμs : μ s ≠ ∞) :
+  integrable_on f s μ :=
+begin
+  refine mem_ℒp_one_iff_integrable.mp _,
+  have hμ_restrict_univ : (μ.restrict s) set.univ < ∞,
+    by simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply, lt_top_iff_ne_top],
+  haveI hμ_finite : finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
+  exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
+end
+
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
 set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.lift' powerset`. -/
 def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=
@@ -262,7 +273,7 @@ alias measure.finite_at_filter.integrable_at_filter_of_tendsto ← filter.tendst
 
 variables [borel_space E] [second_countable_topology E]
 
-lemma integrable_add [opens_measurable_space E] {f g : α → E}
+lemma integrable_add_of_disjoint {f g : α → E}
   (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
   integrable (f + g) μ ↔ integrable f μ ∧ integrable g μ :=
 begin

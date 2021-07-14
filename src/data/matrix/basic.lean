@@ -80,9 +80,6 @@ theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
 
 end ext
 
-lemma eq_of_empty [c: is_empty m] (M N: matrix m m α) : M = N :=
-by {ext, exfalso, apply is_empty_iff.mp c i}
-
 /-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`. -/
 def map (M : matrix m n α) (f : α → β) : matrix m n β := λ i j, f (M i j)
 
@@ -160,6 +157,11 @@ lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim j }⟩
+
+local attribute [instance] matrix.subsingleton_of_empty_left matrix.subsingleton_of_empty_right
+
+lemma eq_of_empty [c: is_empty m] (M N: matrix m m α) : M = N :=
+subsingleton.elim M N
 
 end matrix
 

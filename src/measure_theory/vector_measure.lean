@@ -347,15 +347,14 @@ namespace measure
 corresponding to the function `μ - ν`. -/
 def sub_to_signed_measure (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν] :
   signed_measure α :=
-μ.to_signed_measure + - ν.to_signed_measure
+μ.to_signed_measure - ν.to_signed_measure
 
 lemma sub_to_signed_measure_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
   {i : set α} (hi : measurable_set i) :
   μ.sub_to_signed_measure ν i = (μ i).to_real - (ν i).to_real :=
 begin
-  rw [sub_to_signed_measure, vector_measure.add_apply, vector_measure.neg_apply,
-      to_signed_measure_apply_measurable hi, measure.to_signed_measure_apply_measurable hi,
-      sub_eq_add_neg]
+  rw [sub_to_signed_measure, vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
+      measure.to_signed_measure_apply_measurable hi, sub_eq_add_neg]
 end
 
 end measure

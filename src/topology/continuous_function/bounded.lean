@@ -532,12 +532,7 @@ of_normed_group (norm ∘ f) (by continuity) ∥f∥ (λ x, by simp only [f.norm
 by simp only [norm_eq, coe_norm_comp, norm_norm]
 
 lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
-begin
-  rw ← coe_norm_comp,
-  suffices : metric.bounded (set.range f.norm_comp),
-  { rw real.bounded_iff_bdd_below_bdd_above at this, exact this.2, },
-  apply bounded_range,
-end
+(real.bounded_iff_bdd_below_bdd_above.mp $ @bounded_range _ _ _ _ f.norm_comp).2
 
 /-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ∥f∥ as an
 `Inf`. -/

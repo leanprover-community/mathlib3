@@ -323,7 +323,7 @@ lemma prod_sigma {σ : α → Type*}
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=
 by classical;
 calc (∏ x in s.sigma t, f x) =
-       ∏ x in s.bUnion (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bUnion
+       ∏ x in s.bUnion (λ a, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bUnion
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
     prod_bUnion $ assume a₁ ha a₂ ha₂ h x hx,
     by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
@@ -352,7 +352,7 @@ end
 
 @[to_additive]
 lemma prod_image' [decidable_eq α] {s : finset γ} {g : γ → α} (h : γ → β)
-  (eq : ∀ c ∈ s, f (g c) = ∏ x in s.filter (λc', g c' = g c), h x) :
+  (eq : ∀ c ∈ s, f (g c) = ∏ x in s.filter (λ c', g c' = g c), h x) :
   (∏ x in s.image g, f x) = ∏ x in s, h x :=
 calc (∏ x in s.image g, f x) = ∏ x in s.image g, ∏ x in s.filter (λ c', g c' = x), h x :
   prod_congr rfl $ λ x hx, let ⟨c, hcs, hc⟩ := mem_image.1 hx in hc ▸ (eq c hcs)
@@ -401,7 +401,7 @@ prod_subset (filter_subset _ _) $ λ x,
 -- instance first; `{∀ x, decidable (f x ≠ 1)}` doesn't work with `rw ← prod_filter_ne_one`
 @[to_additive]
 lemma prod_filter_ne_one [∀ x, decidable (f x ≠ 1)] :
-  (∏ x in (s.filter $ λx, f x ≠ 1), f x) = (∏ x in s, f x) :=
+  (∏ x in (s.filter $ λ x, f x ≠ 1), f x) = (∏ x in s, f x) :=
 prod_filter_of_ne $ λ _ _, id
 
 @[to_additive]
@@ -673,7 +673,7 @@ sum_dite_eq _ _ _
 "]
 lemma prod_bij {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Π a ∈ s, γ) (hi : ∀ a ha, i a ha ∈ t) (h : ∀ a ha, f a = g (i a ha))
-  (i_inj : ∀ a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀ b ∈ t, ∃a ha, b = i a ha) :
+  (i_inj : ∀ a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀ b ∈ t, ∃ a ha, b = i a ha) :
   (∏ x in s, f x) = (∏ x in t, g x) :=
 congr_arg multiset.prod
   (multiset.map_eq_map_of_bij_of_nodup f g s.2 t.2 i hi h i_inj i_surj)
@@ -705,20 +705,20 @@ end
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Π a ∈ s, f a ≠ 1 → γ) (hi : ∀ a h₁ h₂, i a h₁ h₂ ∈ t)
   (i_inj : ∀ a₁ a₂ h₁₁ h₁₂ h₂₁ h₂₂, i a₁ h₁₁ h₁₂ = i a₂ h₂₁ h₂₂ → a₁ = a₂)
-  (i_surj : ∀ b ∈ t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
+  (i_surj : ∀ b ∈ t, g b ≠ 1 → ∃ a h₁ h₂, b = i a h₁ h₂)
   (h : ∀ a h₁ h₂, f a = g (i a h₁ h₂)) :
   (∏ x in s, f x) = (∏ x in t, g x) :=
 by classical; exact
-calc (∏ x in s, f x) = ∏ x in (s.filter $ λx, f x ≠ 1), f x : prod_filter_ne_one.symm
-  ... = ∏ x in (t.filter $ λx, g x ≠ 1), g x :
+calc (∏ x in s, f x) = ∏ x in (s.filter $ λ x, f x ≠ 1), f x : prod_filter_ne_one.symm
+  ... = ∏ x in (t.filter $ λ x, g x ≠ 1), g x :
     prod_bij (assume a ha, i a (mem_filter.mp ha).1 (mem_filter.mp ha).2)
-      (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr
+      (assume a ha, (mem_filter.mp ha).elim $ λ h₁ h₂, mem_filter.mpr
         ⟨hi a h₁ h₂, λ hg, h₂ (hg ▸ h a h₁ h₂)⟩)
       (assume a ha, (mem_filter.mp ha).elim $ h a)
       (assume a₁ a₂ ha₁ ha₂,
         (mem_filter.mp ha₁).elim $ λ ha₁₁ ha₁₂,
           (mem_filter.mp ha₂).elim $ λ ha₂₁ ha₂₂, i_inj a₁ a₂ _ _ _ _)
-      (assume b hb, (mem_filter.mp hb).elim $ λh₁ h₂,
+      (assume b hb, (mem_filter.mp hb).elim $ λ h₁ h₂,
         let ⟨a, ha₁, ha₂, eq⟩ := i_surj b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
   ... = (∏ x in t, g x) : prod_filter_ne_one
 
@@ -727,7 +727,7 @@ lemma nonempty_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : s.nonempty :=
 s.eq_empty_or_nonempty.elim (λ H, false.elim $ h $ H.symm ▸ prod_empty) id
 
 @[to_additive]
-lemma exists_ne_one_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : ∃a ∈ s, f a ≠ 1 :=
+lemma exists_ne_one_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : ∃ a ∈ s, f a ≠ 1 :=
 begin
   classical,
   rw ← prod_filter_ne_one at h,
@@ -1039,7 +1039,7 @@ end
 lemma prod_update_of_not_mem [decidable_eq α] {s : finset α} {i : α}
   (h : i ∉ s) (f : α → β) (b : β) : (∏ x in s, function.update f i b x) = (∏ x in s, f x) :=
 begin
-  apply prod_congr rfl (λj hj, _),
+  apply prod_congr rfl (λ j hj, _),
   have : j ≠ i, by { assume eq, rw eq at hj, exact h hj },
   simp [this]
 end
@@ -1257,7 +1257,7 @@ end
 
 variables [nontrivial β] [no_zero_divisors β]
 
-lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃a ∈ s, f a = 0) :=
+lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃ a ∈ s, f a = 0) :=
 begin
   classical,
   apply finset.induction_on s,

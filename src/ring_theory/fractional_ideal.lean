@@ -104,7 +104,7 @@ instance : has_coe (fractional_ideal S P) (submodule R P) := ⟨λ I, I.val⟩
 section set_like
 
 instance : set_like (fractional_ideal S P) P :=
-{ coe := λ I, (I : submodule S P),
+{ coe := λ I, (I : submodule R P),
   coe_injective' := set_like.coe_injective.comp subtype.coe_injective }
 
 lemma mem_val {I : fractional_ideal S P} {x : P} : x ∈ I.val ↔ x ∈ I := iff.rfl

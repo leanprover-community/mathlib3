@@ -31,10 +31,9 @@ measurable function can be approximated in `Lᵖ` norm, by a sequence of simple 
   be considered as elements of `Lp E p μ`, and they tend in Lᵖ to `f`.
 * `Lp.simple_func.dense_embedding`: the embedding `coe_to_Lp` of the `Lp` simple functions into
   `Lp` is dense.
-* `mem_ℒp.induction`: to prove a predicate for all elements of `Lp`, it suffices to check that
-  it behaves correctly on simple functions in `Lp`.
-* `integrable.induction`: to prove a predicate for all elements of `L1`, it suffices to check that
-  it behaves correctly on simple functions in `L1`.
+* `Lp.simple_func.induction`, `Lp.induction`, `mem_ℒp.induction`, `integrable.induction`: to prove
+  a predicate for all elements of one of these classes of functions, it suffices to check that it
+  behaves correctly on simple functions.
 
 ## TODO
 

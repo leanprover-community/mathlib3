@@ -93,9 +93,6 @@ by simp [transpose]
 lemma trans_row_eq_col (A : matrix m n α) (j : n) : Aᵀ j = (λ i, A i j):=
 by ext; simp [transpose]
 
-instance vec_has_star [has_star α]: has_star (n → α) := ⟨λ v i, star (v i)⟩
-@[simp] lemma vec_star_ext [has_star α] (v : n → α) (i : n) : star v i = star (v i) := rfl
-
 def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α
 | x y := star (M y x)
 localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
@@ -1009,8 +1006,6 @@ instance : star_ring (matrix n n α) :=
   star_involutive := λ M, by { ext, simp, },
   star_add := λ M N, by { ext, simp, },
   star_mul := λ M N, by { ext, simp [mul_apply], }, }
-
-@[simp] lemma star_apply (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
 
 lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
 

@@ -65,7 +65,10 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 instance : has_coe_to_fun (vector_measure α M) :=
 ⟨λ _, set α → M, vector_measure.measure_of⟩
 
+initialize_simps_projections vector_measure (measure_of → apply)
+
 @[simp]
+lemma measure_of_eq_coe (v : vector_measure α M) : v.measure_of = v := rfl
 lemma apply (v : vector_measure α M) (i : set α) : v.measure_of i = v i := rfl
 
 @[simp]
@@ -210,6 +213,7 @@ end vector_measure
 namespace measure
 
 /-- A finite measure coerced into a real function is a signed measure. -/
+@[simps]
 def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :=
 { measure_of := λ i : set α, if measurable_set i then (μ.measure_of i).to_real else 0,
   empty := by simp [μ.empty],
@@ -232,12 +236,14 @@ def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measu
       exact measure_mono (set.subset_univ _) }
   end }
 
+@[simp]
 lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
   {i : set α} (hi : measurable_set i) :
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
 /-- A measure is a vector measure over `ℝ≥0∞`. -/
+@[simps]
 def to_ennreal_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :=
 { measure_of := λ i : set α, if measurable_set i then μ i else 0,
   empty := by simp [μ.empty],
@@ -250,7 +256,7 @@ def to_ennreal_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :
   end }
 
 @[simp]
-lemma to_ennreal_vector_measure_apply {μ : measure α}
+lemma to_ennreal_vector_measure_apply_measurable {μ : measure α}
   {i : set α} (hi : measurable_set i) :
   μ.to_ennreal_vector_measure i = μ i :=
 if_pos hi
@@ -261,14 +267,12 @@ namespace vector_measure
 
 variables {M : Type*} [add_comm_group M] [topological_space M]
 
-/-- The zero signed measure. -/
-def zero : vector_measure α M :=
-⟨0, rfl, λ _ _, rfl, λ _ _ _, has_sum_zero⟩
+instance : has_zero (vector_measure α M) :=
+⟨⟨0, rfl, λ _ _, rfl, λ _ _ _, has_sum_zero⟩⟩
 
-instance : has_zero (vector_measure α M) := ⟨zero⟩
 instance : inhabited (vector_measure α M) := ⟨0⟩
 
-@[simp]
+@[simp] lemma coe_zero : ⇑(0 : vector_measure α M) = 0 := rfl
 lemma zero_apply (i : set α) : (0 : vector_measure α M) i = 0 := rfl
 
 variables [topological_add_group M]
@@ -294,19 +298,11 @@ def add (v w : vector_measure α M) : vector_measure α M :=
 instance : has_add (vector_measure α M) := ⟨add⟩
 instance : has_neg (vector_measure α M) := ⟨neg⟩
 
-lemma neg_apply {v : vector_measure α M} (i : set α) :
-  (-v) i = - v i := rfl
+@[simp] lemma coe_neg (v : vector_measure α M) : ⇑(-v) = - v := rfl
+lemma neg_apply (v : vector_measure α M) (i : set α) :(-v) i = - v i := rfl
 
-lemma add_apply {v w : vector_measure α M} (i : set α) :
-  (v + w) i = v i + w i := rfl
-
-@[simp]
-lemma coe_neg {v : vector_measure α M} :
-  ⇑(-v) = - v := rfl
-
-@[simp]
-lemma coe_add {v w : vector_measure α M} :
-  ⇑(v + w) = v + w := rfl
+@[simp] lemma coe_add (v w : vector_measure α M) : ⇑(v + w) = v + w := rfl
+lemma add_apply (v w : vector_measure α M) (i : set α) :(v + w) i = v i + w i := rfl
 
 instance : add_comm_group (vector_measure α M) :=
 { add := (+), zero := (0),
@@ -370,8 +366,8 @@ def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
 
 instance : has_scalar R (vector_measure α M) := ⟨smul⟩
 
-@[simp]
-lemma smul_apply {v : vector_measure α M} {r : R} (i : set α) :
+@[simp] lemma coe_smul (v : vector_measure α M) (r : R) : ⇑(r • v) = r • v := rfl
+lemma smul_apply (v : vector_measure α M) {r : R} (i : set α) :
   (r • v) i = r • v i := rfl
 
 instance [topological_add_group M] : module R (vector_measure α M) :=

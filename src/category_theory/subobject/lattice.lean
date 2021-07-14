@@ -69,7 +69,7 @@ end has_top
 
 section has_bot
 
-variables [has_initial C] [zero_le_category C]
+variables [has_initial C] [initial_mono_class C]
 
 instance {X : C} : has_bot (mono_over X) :=
 { bot := mk' (initial.to X) }
@@ -258,7 +258,7 @@ end
 end order_top
 
 section order_bot
-variables [has_initial C] [zero_le_category C]
+variables [has_initial C] [initial_mono_class C]
 
 instance order_bot {X : C} : order_bot (subobject X) :=
 { bot := quotient.mk' ⊥,
@@ -470,7 +470,7 @@ lemma sup_factors_of_factors_right {A B : C} {X Y : subobject B} {f : A ⟶ B} (
   (X ⊔ Y).factors f :=
 factors_of_le f le_sup_right P
 
-variables [has_initial C] [zero_le_category C]
+variables [has_initial C] [initial_mono_class C]
 
 instance {B : C} : semilattice_sup_bot (subobject B) :=
 { ..subobject.order_bot,
@@ -500,7 +500,7 @@ instance {B : C} : lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,
   ..subobject.semilattice_sup }
 
-variables [has_initial C] [zero_le_category C]
+variables [has_initial C] [initial_mono_class C]
 
 instance {B : C} : bounded_lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,
@@ -665,7 +665,7 @@ end Sup
 
 section complete_lattice
 variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts C]
-  [zero_le_category C]
+  [initial_mono_class C]
 
 instance {B : C} : complete_lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,

@@ -219,17 +219,16 @@ def zero_is_terminal : is_terminal (0 : C) :=
 is_terminal.of_unique 0
 
 /-- A zero object is in particular initial. -/
-lemma has_initial : has_initial C :=
+@[priority 10]
+instance has_initial : has_initial C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-lemma has_terminal : has_terminal C :=
+@[priority 10]
+instance has_terminal : has_terminal C :=
 has_terminal_of_unique 0
 
-localized "attribute [instance] category_theory.limits.has_zero_object.has_initial" in zero_object
-localized "attribute [instance] category_theory.limits.has_zero_object.has_terminal" in zero_object
-
-instance has_strict_initial : zero_le_category C :=
-zero_le_category.of_is_initial zero_is_initial (λ X, category_theory.mono _)
+instance has_strict_initial : initial_mono_class C :=
+initial_mono_class.of_is_initial zero_is_initial (λ X, category_theory.mono _)
 
 open_locale zero_object
 

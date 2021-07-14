@@ -474,7 +474,7 @@ lemma indicator_le_indicator_nonneg {β} [linear_order β] [has_zero β] (s : se
   s.indicator f ≤ {x | 0 ≤ f x}.indicator f :=
 begin
   intro x,
-  simp [set.indicator_apply],
+  simp_rw set.indicator_apply,
   split_ifs,
   { exact le_rfl, },
   { exact (not_le.mp h_1).le, },
@@ -486,7 +486,7 @@ lemma indicator_nonpos_le_indicator {β} [linear_order β] [has_zero β] (s : se
   {x | f x ≤ 0}.indicator f ≤ s.indicator f :=
 begin
   intro x,
-  simp [set.indicator_apply],
+  simp_rw set.indicator_apply,
   split_ifs,
   { exact le_rfl, },
   { exact h, },

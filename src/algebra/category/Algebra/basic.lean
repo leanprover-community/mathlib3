@@ -95,7 +95,7 @@ def free : Type u ⥤ Algebra.{u} R :=
     simp only [free_algebra.lift_ι_apply, category_theory.coe_comp, function.comp_app,
       types_comp_apply] } }
 
-/-- The free/forget ajunction for `R`-algebras. -/
+/-- The free/forget adjunction for `R`-algebras. -/
 def adj : free.{u} R ⊣ forget (Algebra.{u} R) :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X A, (free_algebra.lift _).symm,

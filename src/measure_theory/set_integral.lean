@@ -292,7 +292,7 @@ begin
     (indicator_le_indicator_nonneg s f),
 end
 
-lemma set_integral_ge_nonpos {s : set α} (hs : measurable_set s) {f : α → ℝ} (hf : measurable f)
+lemma set_integral_nonpos_le {s : set α} (hs : measurable_set s) {f : α → ℝ} (hf : measurable f)
   (hfi : integrable f μ) :
   ∫ x in {y | f y ≤ 0}, f x ∂μ ≤ ∫ x in s, f x ∂μ :=
 begin

@@ -299,7 +299,7 @@ begin
         ((measure_mono (set.inter_subset_right _ _)).trans_lt (lt_top_iff_ne_top.mpr hμs)).ne,
       ← measure.restrict_restrict (hm _ h_meas_nonpos_g),
       ← measure.restrict_restrict h_meas_nonpos_f],
-    exact set_integral_ge_nonpos (hm _ h_meas_nonpos_g) hf hfi, },
+    exact set_integral_nonpos_le (hm _ h_meas_nonpos_g) hf hfi, },
 end
 
 /-- Let `m` be a sub-σ-algebra of `m0`, `f` and `g` two functions such that `g` is `m`-measurable

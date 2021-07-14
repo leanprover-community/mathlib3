@@ -269,8 +269,8 @@ variables {m m0 : measurable_space α} {μ : measure α} {s : set α}
 /-- Let `m` be a sub-σ-algebra of `m0`, `f` and `g` two functions such that `g` is `m`-measurable
 and their integrals coincide on `m`-measurable sets with finite measure.
 Then `∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ` on all `m`-measurable sets with finite measure. -/
-lemma integral_norm_le_on (hm : m ≤ m0) {f g : α → ℝ} (hf : measurable f)
-  (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
+lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α → ℝ}
+  (hf : measurable f) (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
   (hgf : ∀ t, measurable_set[m] t → μ t ≠ ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ :=
@@ -306,15 +306,15 @@ end
 and their integrals coincide on `m`-measurable sets with finite measure.
 Then `∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ` on all `m`-measurable sets with finite
 measure. -/
-lemma lintegral_nnnorm_le_on (hm : m ≤ m0) {f g : α → ℝ} (hf : measurable f)
-  (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
+lemma lintegral_nnnorm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α → ℝ}
+  (hf : measurable f) (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
   (hgf : ∀ t, measurable_set[m] t → μ t ≠ ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ :=
 begin
   rw [← of_real_integral_norm_eq_lintegral_nnnorm hfi,
     ← of_real_integral_norm_eq_lintegral_nnnorm hgi, ennreal.of_real_le_of_real_iff],
-  { exact integral_norm_le_on hm hf hfi hg hgi hgf hs hμs, },
+  { exact integral_norm_le_of_forall_fin_meas_integral_eq hm hf hfi hg hgi hgf hs hμs, },
   { exact integral_nonneg (λ x, norm_nonneg _), },
 end
 

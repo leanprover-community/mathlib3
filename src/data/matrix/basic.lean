@@ -160,7 +160,10 @@ lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
 
 local attribute [instance] matrix.subsingleton_of_empty_left matrix.subsingleton_of_empty_right
 
-lemma eq_of_empty [c: is_empty m] (M N: matrix m m α) : M = N :=
+lemma empty_eq_empty_left [is_empty m] (M N: matrix m n α) : M = N :=
+subsingleton.elim M N
+
+lemma empty_eq_empty_right [is_empty n] (M N: matrix m n α) : M = N :=
 subsingleton.elim M N
 
 end matrix

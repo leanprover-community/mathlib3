@@ -77,10 +77,6 @@ functorially from the description of the tangent bundle as a basic smooth bundle
 ## Tags
 Smooth fiber bundle, vector bundle, tangent space, tangent bundle
 -/
-
-meta def myTac : tactic unit :=
-  `[show_term { dsimp_result { repeat { split <|> assumption }}}]
-
 noncomputable theory
 
 universe u

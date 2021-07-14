@@ -31,10 +31,9 @@ measurable function can be approximated in `Lᵖ` norm, by a sequence of simple 
   be considered as elements of `Lp E p μ`, and they tend in Lᵖ to `f`.
 * `Lp.simple_func.dense_embedding`: the embedding `coe_to_Lp` of the `Lp` simple functions into
   `Lp` is dense.
-* `mem_ℒp.induction`: to prove a predicate for all elements of `Lp`, it suffices to check that
-  it behaves correctly on simple functions in `Lp`.
-* `integrable.induction`: to prove a predicate for all elements of `L1`, it suffices to check that
-  it behaves correctly on simple functions in `L1`.
+* `Lp.simple_func.induction`, `Lp.induction`, `mem_ℒp.induction`, `integrable.induction`: to prove
+  a predicate for all elements of one of these classes of functions, it suffices to check that it
+  behaves correctly on simple functions.
 
 ## TODO
 
@@ -708,7 +707,7 @@ protected lemma induction (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {P : Lp.simpl
     P (Lp.simple_func.indicator_const p hs hμs.ne c))
   (h_add : ∀ ⦃f g : α →ₛ E⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ,
     disjoint (support f) (support g) → P (Lp.simple_func.to_Lp f hf) → P (Lp.simple_func.to_Lp g hg)
-    → P ((Lp.simple_func.to_Lp f hf) + (Lp.simple_func.to_Lp g hg)))
+    → P (Lp.simple_func.to_Lp f hf + Lp.simple_func.to_Lp g hg))
   (f : Lp.simple_func E p μ) : P f :=
 begin
   suffices : ∀ f : α →ₛ E, ∀ hf : mem_ℒp f p μ, P (to_Lp f hf),

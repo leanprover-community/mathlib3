@@ -443,6 +443,25 @@ lemma norm_eq (f : α →ᵇ β) :
   ∥f∥ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ∥f x∥ ≤ C} :=
 by simp [norm_def, bounded_continuous_function.dist_eq]
 
+/-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ∥f∥ as an
+`Inf`. -/
+lemma norm_eq_of_non_empty [h : nonempty α] : ∥f∥ = Inf {C : ℝ | ∀ (x : α), ∥f x∥ ≤ C} :=
+begin
+  unfreezingI { obtain ⟨a⟩ := h, },
+  rw norm_eq,
+  congr,
+  ext,
+  simp only [and_iff_right_iff_imp],
+  exact λ h', le_trans (norm_nonneg (f a)) (h' a),
+end
+
+@[simp] lemma norm_eq_zero_of_empty [h : is_empty α] : ∥f∥ = 0 :=
+begin
+  have h' : ∀ (C : ℝ) (x : α), ∥f x∥ ≤ C, { intros, exfalso, apply h.false, use x, },
+  simp only [norm_eq, h', and_true, implies_true_iff],
+  exact cInf_Ici,
+end
+
 lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ := calc
   ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]
   ... ≤ ∥f∥ : dist_coe_le_dist _
@@ -533,25 +552,6 @@ by simp only [norm_eq, coe_norm_comp, norm_norm]
 
 lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
 (real.bounded_iff_bdd_below_bdd_above.mp $ @bounded_range _ _ _ _ f.norm_comp).2
-
-/-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ∥f∥ as an
-`Inf`. -/
-lemma norm_eq_of_non_empty [h : nonempty α] : ∥f∥ = Inf {C : ℝ | ∀ (x : α), ∥f x∥ ≤ C} :=
-begin
-  unfreezingI { obtain ⟨a⟩ := h, },
-  rw norm_eq,
-  congr,
-  ext,
-  simp only [and_iff_right_iff_imp],
-  exact λ h', le_trans (norm_nonneg (f a)) (h' a),
-end
-
-@[simp] lemma norm_eq_zero_of_empty [h : is_empty α] : ∥f∥ = 0 :=
-begin
-  have h' : ∀ (C : ℝ) (x : α), ∥f x∥ ≤ C, { intros, exfalso, apply h.false, use x, },
-  simp only [norm_eq, h', and_true, implies_true_iff],
-  exact cInf_Ici,
-end
 
 lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
 begin

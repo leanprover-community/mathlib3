@@ -248,7 +248,7 @@ free_ring.lift free_comm_ring.of
 
 instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 
-instance coe.is_ring_hom : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
+lemma coe.is_ring_hom : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
 free_ring.to_free_comm_ring.to_is_ring_hom
 
 @[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
@@ -292,8 +292,10 @@ by { simp_rw [free_abelian_group.lift.of, (∘)], exact free_monoid.rec_on L rfl
 -- FIXME This was in `deprecated.ring`, but only used here.
 -- It would be good to inline it into the next construction.
 /-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
-def of' {R S : Type*} [ring R] [ring S] (e : R ≃ S) [is_ring_hom e] : R ≃+* S :=
-{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+def of' {R S : Type*} [ring R] [ring S] (e : R ≃ S) (he : is_ring_hom e) : R ≃+* S :=
+{ .. e,
+  .. monoid_hom.of he.to_is_semiring_hom.to_is_monoid_hom,
+  .. add_monoid_hom.of he.to_is_semiring_hom.to_is_add_monoid_hom }
 
 /-- If α has size at most 1 then the natural map from the free ring on `α` to the
     free commutative ring on `α` is an isomorphism of rings. -/
@@ -305,7 +307,7 @@ def subsingleton_equiv_free_comm_ring [subsingleton α] :
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
     work_on_goal 2 { symmetry, exact coe_eq α },
-    apply_instance
+    exact coe.is_ring_hom α,
   end
 
 instance [subsingleton α] : comm_ring (free_ring α) :=

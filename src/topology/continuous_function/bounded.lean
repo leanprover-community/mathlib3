@@ -445,7 +445,7 @@ by simp [norm_def, bounded_continuous_function.dist_eq]
 
 /-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ∥f∥ as an
 `Inf`. -/
-lemma norm_eq_of_non_empty [h : nonempty α] : ∥f∥ = Inf {C : ℝ | ∀ (x : α), ∥f x∥ ≤ C} :=
+lemma norm_eq_of_nonempty [h : nonempty α] : ∥f∥ = Inf {C : ℝ | ∀ (x : α), ∥f x∥ ≤ C} :=
 begin
   unfreezingI { obtain ⟨a⟩ := h, },
   rw norm_eq,
@@ -558,7 +558,7 @@ begin
   casesI is_empty_or_nonempty α with hα _,
   { suffices : range (norm ∘ f) = ∅, { rw [f.norm_eq_zero_of_empty, supr, this, real.Sup_empty], },
     simp only [hα, range_eq_empty, not_nonempty_iff], },
-  { rw [norm_eq_of_non_empty, supr,
+  { rw [norm_eq_of_nonempty, supr,
       ← cInf_upper_bounds_eq_cSup f.bdd_above_range_norm_comp (range_nonempty _)],
     congr,
     ext,

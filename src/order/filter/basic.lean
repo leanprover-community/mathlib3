@@ -1545,6 +1545,26 @@ le_antisymm
   (assume c ⟨b, ⟨a, ha, (h₁ : preimage n a ⊆ b)⟩, (h₂ : preimage m b ⊆ c)⟩,
     ⟨a, ha, show preimage m (preimage n a) ⊆ c, from subset.trans (preimage_mono h₁) h₂⟩)
 
+section comm
+variables  {δ : Type*}
+
+/-
+    φ
+  α → β
+θ ↓   ↓ ψ
+  γ → δ
+    ρ
+-/
+variables {φ : α → β} {θ : α → γ} {ψ : β → δ} {ρ : γ → δ} (H : ψ ∘ φ = ρ ∘ θ)
+include H
+
+lemma map_comm (F : filter α) : map ψ (map φ F) = map ρ (map θ F) :=
+by rw [filter.map_map, H, ← filter.map_map]
+
+lemma comap_comm (G : filter δ) : comap φ (comap ψ G) = comap θ (comap ρ G) :=
+by rw [filter.comap_comap, H, ← filter.comap_comap]
+end comm
+
 @[simp] theorem comap_principal {t : set β} : comap m (𝓟 t) = 𝓟 (m ⁻¹' t) :=
 filter_eq $ set.ext $ assume s,
   ⟨assume ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, subset.trans (preimage_mono hu) b,
@@ -1741,6 +1761,9 @@ lemma ne_bot.map (hf : ne_bot f) (m : α → β) : ne_bot (map m f) :=
 (map_ne_bot_iff m).2 hf
 
 instance map_ne_bot [hf : ne_bot f] : ne_bot (f.map m) := hf.map m
+
+lemma map_neq_bot {α β : Type*} (f : α → β) {F : filter α} (hF : F ≠ ⊥) : map f F ≠ ⊥ :=
+λ h, hF (map_eq_bot_iff.mp h)
 
 lemma sInter_comap_sets (f : α → β) (F : filter β) :
   ⋂₀ (comap f F).sets = ⋂ U ∈ F, f ⁻¹' U :=

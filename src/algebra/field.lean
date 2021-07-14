@@ -73,6 +73,9 @@ begin
   { exact ring.inverse_unit (units.mk0 x hx) }
 end
 
+lemma division_ring.val_inv_eq_inv_val (x : units K) : (x⁻¹).val = (x.val)⁻¹ :=
+units.coe_inv' x
+
 attribute [field_simps] inv_eq_one_div
 
 local attribute [simp]

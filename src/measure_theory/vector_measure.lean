@@ -236,7 +236,6 @@ def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measu
       exact measure_mono (set.subset_univ _) }
   end }
 
-@[simp]
 lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
   {i : set α} (hi : measurable_set i) :
   μ.to_signed_measure i = (μ i).to_real :=
@@ -255,7 +254,6 @@ def to_ennreal_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :
       exact tsum_congr (λ n, if_pos (hf₁ n)) },
   end }
 
-@[simp]
 lemma to_ennreal_vector_measure_apply_measurable {μ : measure α}
   {i : set α} (hi : measurable_set i) :
   μ.to_ennreal_vector_measure i = μ i :=
@@ -285,6 +283,11 @@ def neg (v : vector_measure α M) : vector_measure α M :=
   m_Union := λ f hf₁ hf₂,
     has_sum.neg $ v.has_sum_of_disjoint_Union hf₁ hf₂ }
 
+instance : has_neg (vector_measure α M) := ⟨neg⟩
+
+@[simp] lemma coe_neg (v : vector_measure α M) : ⇑(-v) = - v := rfl
+lemma neg_apply (v : vector_measure α M) (i : set α) :(-v) i = - v i := rfl
+
 /-- The sum of two vector measure is a vector measure. -/
 def add (v w : vector_measure α M) : vector_measure α M :=
 { measure_of := v + w,
@@ -296,13 +299,24 @@ def add (v w : vector_measure α M) : vector_measure α M :=
       (w.has_sum_of_disjoint_Union hf₁ hf₂) }
 
 instance : has_add (vector_measure α M) := ⟨add⟩
-instance : has_neg (vector_measure α M) := ⟨neg⟩
-
-@[simp] lemma coe_neg (v : vector_measure α M) : ⇑(-v) = - v := rfl
-lemma neg_apply (v : vector_measure α M) (i : set α) :(-v) i = - v i := rfl
 
 @[simp] lemma coe_add (v w : vector_measure α M) : ⇑(v + w) = v + w := rfl
 lemma add_apply (v w : vector_measure α M) (i : set α) :(v + w) i = v i + w i := rfl
+
+/-- The difference of two vector measure is a vector measure. -/
+def sub (v w : vector_measure α M) : vector_measure α M :=
+{ measure_of := v - w,
+  empty := by simp,
+  not_measurable := λ _ hi,
+    by simp [v.of_not_measurable_set hi, w.of_not_measurable_set hi],
+  m_Union := λ f hf₁ hf₂,
+    has_sum.sub (v.has_sum_of_disjoint_Union hf₁ hf₂)
+      (w.has_sum_of_disjoint_Union hf₁ hf₂) }
+
+instance : has_sub (vector_measure α M) := ⟨sub⟩
+
+@[simp] lemma coe_sub {v w : vector_measure α M} : ⇑(v - w) = v - w := rfl
+lemma sub_apply {v w : vector_measure α M} (i : set α) : (v - w) i = v i - w i := rfl
 
 instance : add_comm_group (vector_measure α M) :=
 { add := (+), zero := (0),
@@ -312,21 +326,6 @@ instance : add_comm_group (vector_measure α M) :=
   add_zero := by { intros, ext i; simp },
   add_comm := by { intros, ext i; simp [add_comm] },
   add_left_neg := by { intros, ext i, simp } } .
-
-lemma sub_apply {v w : vector_measure α M} (i : set α) :
-  (v - w) i = v i - w i :=
-begin
-  rw [sub_eq_add_neg, sub_eq_add_neg],
-  refl
-end
-
-@[simp]
-lemma coe_sub {v w : vector_measure α M} :
-  ⇑(v - w) = v - w :=
-begin
-  rw [sub_eq_add_neg, sub_eq_add_neg],
-  refl
-end
 
 end vector_measure
 

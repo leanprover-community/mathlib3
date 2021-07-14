@@ -416,6 +416,15 @@ def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
 
+--/-- Range of an `alg_hom` as a subalgebra. -/
+--protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
+--{ algebra_map_mem' := λ r, ⟨algebra_map R A r, φ.commutes r⟩,
+--  .. φ.to_ring_hom.srange }
+
+/-- The range of a morphism of algebras is a fintype, if the domain is a fintype. -/
+instance fintype_range [fintype A] [decidable_eq B] (φ : A →ₐ[R] B) : fintype φ.range :=
+set.fintype_range φ
+
 end alg_hom
 
 namespace alg_equiv

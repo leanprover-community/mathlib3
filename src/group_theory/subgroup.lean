@@ -1413,6 +1413,8 @@ instance fintype_mrange {M N : Type*} [monoid M] [monoid N] [fintype M] [decidab
   (f : M →* N) : fintype (mrange f) :=
 set.fintype_range f
 
+/-- Note: this instance can form a diamond with `subgroup.fintype` in the
+  presence of `fintype N`. -/
 @[to_additive]
 instance fintype_range  [fintype G] [decidable_eq N] (f : G →* N) : fintype (range f) :=
 set.fintype_range f

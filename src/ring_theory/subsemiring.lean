@@ -299,6 +299,7 @@ mem_srange.mpr ⟨x, rfl⟩
 lemma map_srange : f.srange.map g = (g.comp f).srange :=
 by simpa only [srange_eq_map] using (⊤ : subsemiring R).map_map g f
 
+/-- The range of a morphism of semirings is a fintype, if the domain is a fintype. -/
 instance fintype_srange [fintype R] [decidable_eq S] (f : R →+* S) : fintype (srange f) :=
 set.fintype_range f
 

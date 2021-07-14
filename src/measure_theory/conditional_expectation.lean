@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
-import measure_theory.lp_space
+import measure_theory.set_integral
 
 /-! # Conditional expectation
 
@@ -261,5 +261,149 @@ by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_space
 end complete_subspace
 
 end Lp_meas
+
+variables [measurable_space α] {μ : measure α}
+
+lemma set_lintegral_congr_fun {s : set α} (hs : measurable_set s) {f g : α → ℝ≥0∞}
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
+  ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
+by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
+
+lemma lintegral_nnnorm_eq_pos_sub_neg (f : α → ℝ) (hf : measurable f) :
+  ∫⁻ x, nnnorm (f x) ∂μ = ∫⁻ x in {x | 0 ≤ f x}, ennreal.of_real (f x) ∂μ
+    + ∫⁻ x in {x | 0 ≤ f x}ᶜ, ennreal.of_real (- f x) ∂μ :=
+have h_meas : measurable_set {x | 0 ≤ f x},
+  from measurable_set_le measurable_const hf,
+calc ∫⁻ x, nnnorm (f x) ∂μ = ∫⁻ x, ennreal.of_real (∥f x∥) ∂μ :
+  by simp_rw of_real_norm_eq_coe_nnnorm
+... = ∫⁻ x in {x | 0 ≤ f x}, ennreal.of_real (∥f x∥) ∂μ
+      + ∫⁻ x in {x | 0 ≤ f x}ᶜ, ennreal.of_real (∥f x∥) ∂μ :
+  by rw ← lintegral_compl h_meas
+... = ∫⁻ x in {x | 0 ≤ f x}, ennreal.of_real (f x) ∂μ
+      + ∫⁻ x in {x | 0 ≤ f x}ᶜ, ennreal.of_real (∥f x∥) ∂μ :
+begin
+  congr' 1,
+  refine set_lintegral_congr_fun h_meas (eventually_of_forall (λ x hx, _)),
+  congr,
+  rw [real.norm_eq_abs, abs_eq_self.mpr _],
+  exact hx,
+end
+... = ∫⁻ x in {x | 0 ≤ f x}, ennreal.of_real (f x) ∂μ
+      + ∫⁻ x in {x | 0 ≤ f x}ᶜ, ennreal.of_real (- f x) ∂μ :
+begin
+  congr' 1,
+  refine set_lintegral_congr_fun (measurable_set.compl h_meas)
+    (eventually_of_forall (λ x hx, _)),
+  congr,
+  rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
+  rw [set.mem_compl_iff, set.nmem_set_of_eq] at hx,
+  linarith,
+end
+
+lemma integral_norm_eq_pos_sub_neg {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ) :
+  ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | 0 ≤ f x}ᶜ, f x ∂μ :=
+have h_meas : measurable_set {x | 0 ≤ f x}, from measurable_set_le measurable_const hf,
+calc ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, ∥f x∥ ∂μ
+      + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
+  by rw ← integral_add_compl h_meas hfi.norm
+... = ∫ x in {x | 0 ≤ f x}, f x ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
+begin
+  congr' 1,
+  refine set_integral_congr h_meas (λ x hx, _),
+  dsimp only,
+  rw [real.norm_eq_abs, abs_eq_self.mpr _],
+  exact hx,
+end
+... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | 0 ≤ f x}ᶜ, f x ∂μ :
+begin
+  congr' 1,
+  rw ← integral_neg,
+  refine set_integral_congr h_meas.compl (λ x hx, _),
+  dsimp only,
+  rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
+  rw [set.mem_compl_iff, set.nmem_set_of_eq] at hx,
+  linarith,
+end
+
+lemma lintegral_nnnorm_eq_integral_norm {f : α → G} (hf : integrable f μ) :
+  ∫⁻ x, nnnorm (f x) ∂μ = ennreal.of_real ∫ x, ∥f x∥ ∂μ :=
+begin
+  rw integral_eq_lintegral_of_nonneg_ae _ hf.1.norm,
+  swap, { refine ae_of_all _ _, simp, },
+  simp_rw of_real_norm_eq_coe_nnnorm,
+  rw ennreal.of_real_to_real _,
+  exact lt_top_iff_ne_top.mp hf.2,
+end
+
+lemma set_integral_neg_eq_set_integral_nonpos {f : α → ℝ} (hf : measurable f)
+  (hfi : integrable f μ) :
+  ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
+begin
+  have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
+  { ext,
+    simp_rw [set.mem_union_eq, set.mem_set_of_eq],
+    exact le_iff_lt_or_eq, },
+  rw [h_union, integral_union _ (measurable_set_lt hf measurable_const)
+    (measurable_set_eq_fun hf measurable_const) hfi.integrable_on hfi.integrable_on],
+  { rw ← add_zero (∫ (x : α) in {x : α | f x < 0}, f x ∂μ),  -- nth_rewrites times out
+    congr,
+    { rw add_zero, },
+    { refine (integral_eq_zero_of_ae _).symm,
+      rw [eventually_eq, ae_restrict_iff (measurable_set_eq_fun hf measurable_zero)],
+      refine eventually_of_forall (λ x hx, _),
+      simpa using hx, }, },
+  { intros x hx,
+    simp only [set.mem_inter_eq, set.mem_set_of_eq, set.inf_eq_inter] at hx,
+    exact absurd hx.2 hx.1.ne, },
+end
+
+lemma integral_norm_le_on (hm : m ≤ m0) {f g : α → ℝ} (hf : measurable f)
+  (hfi : integrable_on f s μ) (hg : @measurable _ _ m _ g) (hgi : integrable_on g s μ)
+  (hgf : integral_eq_on_fin_meas m g f μ) (hs : @measurable_set _ m s) (hμs : μ s < ∞) :
+  ∫ (x : α) in s, ∥g x∥ ∂μ ≤ ∫ (x : α) in s, ∥f x∥ ∂μ :=
+begin
+  rw integral_norm_eq_pos_sub_neg (hg.mono hm le_rfl) hgi,
+  rw integral_norm_eq_pos_sub_neg hf hfi,
+  have h_meas_nonneg_g : @measurable_set α m {x | 0 ≤ g x},
+    from @measurable_set_le _ α _ _ _ m _ _ _ _ g (@measurable_const _ α _ m _) hg,
+  have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},
+    from measurable_set_le measurable_const hf,
+  have h_meas_nonpos_g : @measurable_set α m {x | g x ≤ 0},
+    from @measurable_set_le _ α _ _ _ m _ _ _ g _ hg (@measurable_const _ α _ m _),
+  have h_meas_nonpos_f : measurable_set {x | f x ≤ 0},
+    from measurable_set_le hf measurable_const,
+  refine sub_le_sub _ _,
+  { rw [measure.restrict_restrict (hm _ h_meas_nonneg_g),
+      measure.restrict_restrict h_meas_nonneg_f,
+      hgf _ (@measurable_set.inter α m _ _ h_meas_nonneg_g hs)
+        ((measure_mono (set.inter_subset_right _ _)).trans_lt hμs),
+      ← measure.restrict_restrict (hm _ h_meas_nonneg_g),
+      ← measure.restrict_restrict h_meas_nonneg_f],
+    exact set_integral_le_nonneg (hm _ h_meas_nonneg_g) hf hfi, },
+  { have h_set_f_eq : {x : α | 0 ≤ f x}ᶜ = {x | f x < 0}, by { ext, simp, },
+    have h_set_g_eq : {x : α | 0 ≤ g x}ᶜ = {x | g x < 0}, by { ext, simp, },
+    simp_rw [h_set_f_eq, h_set_g_eq],
+    rw set_integral_neg_eq_set_integral_nonpos hf hfi,
+    rw set_integral_neg_eq_set_integral_nonpos (hg.mono hm le_rfl) hgi,
+    rw [measure.restrict_restrict (hm _ h_meas_nonpos_g),
+      measure.restrict_restrict h_meas_nonpos_f,
+      hgf _ (@measurable_set.inter α m _ _ h_meas_nonpos_g hs)
+        ((measure_mono (set.inter_subset_right _ _)).trans_lt hμs),
+      ← measure.restrict_restrict (hm _ h_meas_nonpos_g),
+      ← measure.restrict_restrict h_meas_nonpos_f],
+    exact set_integral_ge_nonpos (hm _ h_meas_nonpos_g) hf hfi, },
+end
+
+lemma lintegral_nnnorm_le_on (hm : m ≤ m0) {f g : α → ℝ} (hf : measurable f)
+  (hfi : integrable_on f s μ) (hg : @measurable _ _ m _ g) (hgi : integrable_on g s μ)
+  (hgf : integral_eq_on_fin_meas m g f μ) (hs : @measurable_set _ m s) (hμs : μ s < ∞) :
+  ∫⁻ x in s, nnnorm (g x) ∂μ ≤ ∫⁻ x in s, nnnorm (f x) ∂μ :=
+begin
+  rw [lintegral_nnnorm_eq_integral_norm hfi, lintegral_nnnorm_eq_integral_norm hgi,
+    ennreal.of_real_le_of_real_iff],
+  { exact integral_norm_le_on hm hf hfi hg hgi hgf hs hμs, },
+  { exact integral_nonneg (λ x, norm_nonneg _), },
+end
+
 
 end measure_theory

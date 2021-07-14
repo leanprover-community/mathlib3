@@ -229,6 +229,24 @@ lemma set_integral_nonneg (hs : measurable_set s) (hf : ∀ a, a ∈ s → 0 ≤
   (0:ℝ) ≤ (∫ a in s, f a ∂μ) :=
 set_integral_nonneg_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
 
+lemma set_integral_le_nonneg {s : set α} (hs : measurable_set s) (hf : measurable f)
+  (hfi : integrable f μ) :
+  ∫ x in s, f x ∂μ ≤ ∫ x in {y | 0 ≤ f y}, f x ∂μ :=
+begin
+  rw [← integral_indicator hs, ← integral_indicator (measurable_set_le measurable_const hf)],
+  exact integral_mono (hfi.indicator hs) (hfi.indicator (measurable_set_le measurable_const hf))
+    (indicator_le_indicator_nonneg s f),
+end
+
+lemma set_integral_ge_nonpos {s : set α} (hs : measurable_set s) {f : α → ℝ} (hf : measurable f)
+  (hfi : integrable f μ) :
+  ∫ x in {y | f y ≤ 0}, f x ∂μ ≤ ∫ x in s, f x ∂μ :=
+begin
+  rw [← integral_indicator hs, ← integral_indicator (measurable_set_le hf measurable_const)],
+  exact integral_mono (hfi.indicator (measurable_set_le hf measurable_const)) (hfi.indicator hs)
+    (indicator_nonpos_le_indicator s f),
+end
+
 end nonneg
 
 lemma set_integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}

@@ -1721,6 +1721,10 @@ begin
   { rwa pairwise_disjoint_on_bool }
 end
 
+lemma lintegral_compl {f : α → ℝ≥0∞} {A : set α} (hA : measurable_set A) :
+  ∫⁻ x in A, f x ∂μ + ∫⁻ x in Aᶜ, f x ∂μ = ∫⁻ x, f x ∂μ :=
+by rw [← lintegral_add_measure, measure.restrict_add_restrict_compl hA]
+
 lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin

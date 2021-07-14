@@ -266,8 +266,8 @@ section integral_norm_le
 
 variables {m m0 : measurable_space α} {μ : measure α} {s : set α}
 
-/-- Let `m` be a sub-σ-algebra of `m0`, `f` and `g` two functions such that `g` is `m`-measurable
-and their integrals coincide on `m`-measurable sets with finite measure.
+/-- Let `m` be a sub-σ-algebra of `m0`, `f` a `m0`-measurable function and `g` a `m`-measurable
+function, such that their integrals coincide on `m`-measurable sets with finite measure.
 Then `∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ` on all `m`-measurable sets with finite measure. -/
 lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α → ℝ}
   (hf : measurable f) (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
@@ -302,8 +302,8 @@ begin
     exact set_integral_nonpos_le (hm _ h_meas_nonpos_g) hf hfi, },
 end
 
-/-- Let `m` be a sub-σ-algebra of `m0`, `f` and `g` two functions such that `g` is `m`-measurable
-and their integrals coincide on `m`-measurable sets with finite measure.
+/-- Let `m` be a sub-σ-algebra of `m0`, `f` a `m0`-measurable function and `g` a `m`-measurable
+function, such that their integrals coincide on `m`-measurable sets with finite measure.
 Then `∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ` on all `m`-measurable sets with finite
 measure. -/
 lemma lintegral_nnnorm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α → ℝ}

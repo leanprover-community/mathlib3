@@ -1184,9 +1184,14 @@ by { ext, refl }
 @[simp] lemma row_apply (v : m → α) (i j) : matrix.row v i j = v j := rfl
 
 @[simp]
-lemma transpose_col (v : m → α) : (matrix.col v).transpose = matrix.row v := by {ext, refl}
+lemma transpose_col (v : m → α) : (matrix.col v)ᵀ = matrix.row v := by {ext, refl}
 @[simp]
-lemma transpose_row (v : m → α) : (matrix.row v).transpose = matrix.col v := by {ext, refl}
+lemma transpose_row (v : m → α) : (matrix.row v)ᵀ = matrix.col v := by {ext, refl}
+
+@[simp]
+lemma conj_transpose_col [has_star α] (v : m → α) : (col v)ᴴ = row (star v) := by {ext, refl}
+@[simp]
+lemma conj_transpose_row [has_star α] (v : m → α) : (row v)ᴴ = col (star v) := by {ext, refl}
 
 lemma row_vec_mul [semiring α] (M : matrix m n α) (v : m → α) :
   matrix.row (matrix.vec_mul v M) = matrix.row v ⬝ M := by {ext, refl}

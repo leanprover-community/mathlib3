@@ -35,7 +35,7 @@ We introduce the following notation for the lower Lebesgue integral of a functio
 
 noncomputable theory
 open set (hiding restrict restrict_apply) filter ennreal function (support)
-open_locale classical topological_space big_operators nnreal ennreal
+open_locale classical topological_space big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -1978,14 +1978,14 @@ variables {α E : Type*} {m m0 : measurable_space α} [normed_group E] [measurab
   [opens_measurable_space E]
 
 lemma univ_le_of_forall_fin_meas_le {μ : measure α} (hm : m ≤ m0) [@sigma_finite _ m (μ.trim hm)]
-  (C : ℝ≥0∞) {f : set α → ℝ≥0∞} (hf : ∀ s, measurable_set' m s → μ s ≠ ∞ → f s ≤ C)
+  (C : ℝ≥0∞) {f : set α → ℝ≥0∞} (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → f s ≤ C)
   (h_F_lim : ∀ S : ℕ → set α,
-    (∀ n, measurable_set' m (S n)) → monotone S → f (⋃ n, S n) ≤ ⨆ n, f (S n)) :
+    (∀ n, measurable_set[m] (S n)) → monotone S → f (⋃ n, S n) ≤ ⨆ n, f (S n)) :
   f univ ≤ C :=
 begin
   let S := @spanning_sets _ m (μ.trim hm) _,
   have hS_mono : monotone S, from @monotone_spanning_sets _ m (μ.trim hm) _,
-  have hS_meas : ∀ n, measurable_set' m (S n), from @measurable_spanning_sets _ m (μ.trim hm) _,
+  have hS_meas : ∀ n, measurable_set[m] (S n), from @measurable_spanning_sets _ m (μ.trim hm) _,
   rw ← @Union_spanning_sets _ m (μ.trim hm),
   refine (h_F_lim S hS_meas hS_mono).trans _,
   refine supr_le (λ n, hf (S n) (hS_meas n) _),
@@ -1998,7 +1998,7 @@ over the whole space is bounded by that same constant. Version for a measurable 
 See `lintegral_le_of_forall_fin_meas_le'` for the more general `ae_measurable` version. -/
 lemma lintegral_le_of_forall_fin_meas_le_of_measurable {μ : measure α} (hm : m ≤ m0)
   [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : measurable f)
-  (hf : ∀ s, measurable_set' m s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
+  (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
 begin
   have : ∫⁻ x in univ, f x ∂μ = ∫⁻ x, f x ∂μ, by simp only [measure.restrict_univ],
@@ -2039,11 +2039,11 @@ measure in a sub-σ-algebra and the measure is σ-finite on that sub-σ-algebra,
 over the whole space is bounded by that same constant. -/
 lemma lintegral_le_of_forall_fin_meas_le' {μ : measure α} (hm : m ≤ m0)
   [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : _ → ℝ≥0∞} (hf_meas : ae_measurable f μ)
-  (hf : ∀ s, measurable_set' m s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
+  (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
 begin
   let f' := hf_meas.mk f,
-  have hf' : ∀ s, measurable_set' m s → μ s ≠ ∞ → ∫⁻ x in s, f' x ∂μ ≤ C,
+  have hf' : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, f' x ∂μ ≤ C,
   { refine λ s hs hμs, (le_of_eq _).trans (hf s hs hμs),
     refine lintegral_congr_ae (ae_restrict_of_ae (hf_meas.ae_eq_mk.mono (λ x hx, _))),
     rw hx, },

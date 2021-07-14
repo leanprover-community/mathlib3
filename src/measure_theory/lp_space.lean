@@ -2153,7 +2153,7 @@ lemma range_to_Lp_hom [fact (1 ≤ p)] :
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 begin
   symmetry,
-  convert range_add_subgroup_of_eq_of_le
+  convert add_monoid_hom.range_add_subgroup_of_eq_of_le
     ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
     (by { rintros - ⟨f, rfl⟩, exact mem_Lp f } : _ ≤ Lp E p μ),
 end

@@ -11,11 +11,18 @@ import topology.urysohns_lemma
 /-!
 # Approximation in Lᵖ by continuous functions
 
-This file defines `measure_theory.Lp.continuous_map E p μ`, the additive subgroup of
-`measure_theory.Lp E p μ` consisting of equivalence classes containing a continuous representative.
-The main result is `measure_theory.Lp.continuous_map_dense`: for `1 ≤ p < ∞`, if the domain `α` of
-the functions is a normal topological space and the measure `μ` is weakly regular, then the
-subgroup `Lp.continuous_map E p μ` is dense in `Lp E p μ`.
+This file proves that bounded continuous functions are dense in `Lp E p μ`, for `1 ≤ p < ∞`, if the
+domain `α` of the functions is a normal topological space and the measure `μ` is weakly regular.
+
+The result is presented in several versions:
+* `measure_theory.Lp.bounded_continuous_function_dense`: The subgroup
+  `measure_theory.Lp.bounded_continuous_function` of `Lp E p μ`, the additive subgroup of
+  `Lp E p μ` consisting of equivalence classes containing a continuous representative, is dense in
+  `Lp E p μ`.
+* `bounded_continuous_function.dense_range`: For finite-measure `μ`, the continuous linear map
+  `bounded_continuous_function.to_Lp p μ ℝ` from `α →ᵇ E` to `Lp E p μ` has dense range.
+* `continuous_map.dense_range`: For compact `α` and finite-measure `μ`, the continuous linear map
+  `continuous_map.to_Lp p μ ℝ` from `C(α, E)` to `Lp E p μ` has dense range.
 
 Note that for `p = ∞` this result is not true:  the characteristic function of the set `[0, ∞)` in
 `ℝ` cannot be continuously approximated in `L∞`.
@@ -32,53 +39,33 @@ Vitali-Carathéodory theorem, in the file `measure_theory.vitali_caratheodory`.
 
 -/
 
-open_locale ennreal nnreal topological_space
+open_locale ennreal nnreal topological_space bounded_continuous_function
 open measure_theory topological_space continuous_map
+
+variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]
+variables (E : Type*) [measurable_space E] [normed_group E] [borel_space E]
+  [second_countable_topology E] [normed_space ℝ E]
+variables {p : ℝ≥0∞} [_i : fact (1 ≤ p)] (hp : p ≠ ∞) (μ : measure α)
+
+include _i hp
 
 namespace measure_theory.Lp
 
-variables {α : Type*} (E : Type*) [measurable_space α] [topological_space α] [borel_space α]
-  [measurable_space E] [normed_group E] [borel_space E] [second_countable_topology E] (p : ℝ≥0∞)
-  (μ : measure α)
-
-/-- An additive subgroup of `Lp E p μ`, consisting of the equivalence classes which contain a
-continuous representative. -/
-def continuous_map : add_subgroup (Lp E p μ) :=
-add_monoid_hom.range $
-  add_subgroup.inclusion $
-    @inf_le_right _ _ (@add_monoid_hom.range C(α, E) _ _ _ (to_ae_eq_fun_add_hom μ)) (Lp E p μ)
-
-variables {E p μ}
-
-/-- By definition, the elements of `Lp.continuous_map E p μ` are the elements of `Lp E p μ` which
-contain a continuous representative. -/
-lemma mem_continuous_map_iff {f : (Lp E p μ)} :
-  f ∈ continuous_map E p μ ↔ ∃ f₀ : C(α, E), to_ae_eq_fun μ f₀ = (f : α →ₘ[μ] E) :=
-begin
-  split,
-  { rintros ⟨⟨f, ⟨⟨f₀, hff₀⟩, hf⟩⟩, rfl⟩,
-    exact ⟨f₀, hff₀⟩ },
-  { rintros f',
-    exact ⟨⟨f, ⟨f', f.2⟩⟩, subtype.ext rfl⟩ }
-end
-
-variables [normal_space α] [normed_space ℝ E]
-
 /-- A simple function in `Lp` can be approximated in `Lp` by continuous functions. -/
-lemma continuous_map_dense [_i : fact (1 ≤ p)] (hp' : p ≠ ∞) [μ.weakly_regular] :
-  (continuous_map E p μ).topological_closure = ⊤ :=
+lemma bounded_continuous_function_dense [μ.weakly_regular] :
+  (bounded_continuous_function E p μ).topological_closure = ⊤ :=
 begin
   have hp₀ : 0 < p := lt_of_lt_of_le ennreal.zero_lt_one _i.elim,
   have hp₀' : 0 ≤ 1 / p.to_real := div_nonneg zero_le_one ennreal.to_real_nonneg,
   have hp₀'' : 0 < p.to_real,
-  { simpa [← ennreal.to_real_lt_to_real ennreal.zero_ne_top hp'] using hp₀ },
+  { simpa [← ennreal.to_real_lt_to_real ennreal.zero_ne_top hp] using hp₀ },
   -- It suffices to prove that scalar multiples of the indicator function of a finite-measure
   -- measurable set can be approximated by continuous functions
   suffices :  ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ⊤),
     (Lp.simple_func.indicator_const p hs hμs.ne c : Lp E p μ)
-      ∈ (continuous_map E p μ).topological_closure,
+      ∈ (bounded_continuous_function E p μ).topological_closure,
   { rw add_subgroup.eq_top_iff',
-    refine Lp.induction hp' _ _ _ _,
+    refine Lp.induction hp _ _ _ _,
     { exact this },
     { exact λ f g hf hg hfg', add_subgroup.add_mem _ },
     { exact add_subgroup.is_closed_topological_closure _ } },
@@ -132,6 +119,7 @@ begin
     exists_continuous_zero_one_of_closed u_open.is_closed_compl F_closed this,
   -- Multiply this by `c` to get a continuous approximation to the function `f`; the key point is
   -- that this is pointwise bounded by the indicator of the set `u \ F`
+  have g_norm : ∀ x, ∥g x∥ = g x := λ x, by rw [real.norm_eq_abs, abs_of_nonneg (hg_range x).1],
   have gc_bd : ∀ x, ∥g x • c - s.indicator (λ x, c) x∥ ≤ ∥(u \ F).indicator (λ x, bit0 ∥c∥) x∥,
   { intros x,
     by_cases hu : x ∈ u,
@@ -142,8 +130,7 @@ begin
         have h₀ : g x * ∥c∥ + ∥c∥ ≤ 2 * ∥c∥,
         { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
         have h₁ : (2:ℝ) * ∥c∥ = bit0 (∥c∥) := by simpa using add_mul (1:ℝ) 1 (∥c∥),
-        have h₂ : ∥g x∥ = g x := by rw [real.norm_eq_abs, abs_of_nonneg (hg_range x).1],
-        simp [hFu, norm_smul, h₀, ← h₁, h₂] },
+        simp [hFu, norm_smul, h₀, ← h₁, g_norm x] },
       { simp [hgF hF, Fs hF] } },
     { have : x ∉ s := λ h, hu (su h),
       simp [hgu hu, this] } },
@@ -151,7 +138,7 @@ begin
   have gc_snorm : snorm ((λ x, g x • c) - s.indicator (λ x, c)) p μ
     ≤ (↑(∥bit0 (∥c∥)∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ≥0∞),
   { refine (snorm_mono_ae (filter.eventually_of_forall gc_bd)).trans _,
-    rw snorm_indicator_const (u_open.sdiff F_closed).measurable_set hp₀.ne' hp',
+    rw snorm_indicator_const (u_open.sdiff F_closed).measurable_set hp₀.ne' hp,
     push_cast [← ennreal.coe_rpow_of_nonneg _ hp₀'],
     exact ennreal.mul_left_mono (ennreal.rpow_left_monotone_of_nonneg hp₀' h_μ_sdiff) },
   have gc_cont : continuous (λ x, g x • c) :=
@@ -164,10 +151,40 @@ begin
   refine ⟨gc_mem_ℒp.to_Lp _, _, _⟩,
   { rw mem_closed_ball_iff_norm,
     refine le_trans _ hη_le,
-    rw [foo₁, indicator_const_Lp, ← mem_ℒp.to_Lp_sub, Lp.norm_to_Lp],
+    rw [simple_func.coe_indicator_const, indicator_const_Lp, ← mem_ℒp.to_Lp_sub, Lp.norm_to_Lp],
     exact ennreal.to_real_le_coe_of_le_coe gc_snorm },
-  { rw [set_like.mem_coe, mem_continuous_map_iff],
-    exact ⟨⟨_, gc_cont⟩, rfl⟩ },
+  { rw [set_like.mem_coe, mem_bounded_continuous_function_iff],
+    refine ⟨bounded_continuous_function.of_normed_group _ gc_cont (∥c∥) _, rfl⟩,
+    intros x,
+    have h₀ : g x * ∥c∥ ≤ ∥c∥,
+    { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
+    simp [norm_smul, g_norm x, h₀] },
 end
 
 end measure_theory.Lp
+
+namespace bounded_continuous_function
+
+lemma to_Lp_dense_range [μ.weakly_regular] [finite_measure μ] :
+  dense_range (to_Lp p μ ℝ : (α →ᵇ E) → Lp E p μ) :=
+begin
+  rw dense_range_iff_closure_range,
+  suffices : (to_Lp p μ ℝ : _ →L[ℝ] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
+  { exact congr_arg coe this },
+  simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp]
+end
+
+end bounded_continuous_function
+
+namespace continuous_map
+
+lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [finite_measure μ] :
+  dense_range (to_Lp p μ ℝ : C(α, E) → Lp E p μ) :=
+begin
+  rw dense_range_iff_closure_range,
+  suffices : (to_Lp p μ ℝ : _ →L[ℝ] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
+  { exact congr_arg coe this },
+  simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp]
+end
+
+end continuous_map

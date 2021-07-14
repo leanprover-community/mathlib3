@@ -377,17 +377,12 @@ def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
 
 instance : has_scalar R (vector_measure α M) := ⟨smul⟩
 
-@[simp] lemma coe_smul (v : vector_measure α M) (r : R) : ⇑(r • v) = r • v := rfl
+@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
 lemma smul_apply (v : vector_measure α M) {r : R} (i : set α) :
   (r • v) i = r • v i := rfl
 
 instance [topological_add_group M] : module R (vector_measure α M) :=
-{ one_smul := by { intros, ext i; simp [one_smul] },
-  mul_smul := by { intros, ext i; simp [mul_smul] },
-  smul_add := by { intros, ext i; simp [smul_add] },
-  smul_zero := by { intros, ext i; simp [smul_zero] },
-  add_smul := by { intros, ext i; simp [add_smul] },
-  zero_smul := by { intros, ext i; simp [zero_smul] } } .
+function.injective.module R coe_fn_add_monoid_hom coe_injective coe_smul
 
 end vector_measure
 

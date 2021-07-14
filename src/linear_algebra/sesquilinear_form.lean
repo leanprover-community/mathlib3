@@ -85,28 +85,37 @@ variable {D : sesq_form R M I}
 @[ext] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D :=
 by {cases S, cases D, congr, funext, exact H _ _}
 
-instance : add_comm_group (sesq_form R M I) :=
-{ add := λ S D, { sesq := λ x y, S x y + D x y,
-                  sesq_add_left := λ x y z, by {rw add_left, rw add_left, ac_refl},
+instance : has_add (sesq_form R M I) :=
+⟨λ S D, { sesq := λ x y, S x y + D x y,
+                  sesq_add_left := λ x y z, by {rw add_left, rw add_left, abel},
                   sesq_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]},
-                  sesq_add_right := λ x y z, by {rw add_right, rw add_right, ac_refl},
-                  sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} },
-  add_assoc := by {intros, ext,
-    unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc},
-  zero := { sesq := λ x y, 0,
+                  sesq_add_right := λ x y z, by {rw add_right, rw add_right, abel},
+                  sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} }⟩
+
+instance : has_zero (sesq_form R M I) :=
+⟨{ sesq := λ x y, 0,
             sesq_add_left := λ x y z, (add_zero 0).symm,
             sesq_smul_left := λ a x y, (mul_zero a).symm,
             sesq_add_right := λ x y z, (zero_add 0).symm,
-            sesq_smul_right := λ a x y, (mul_zero (I a).unop).symm },
-  zero_add := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add},
-  add_zero := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero},
-  neg := λ S, { sesq := λ x y, - (S.1 x y),
+            sesq_smul_right := λ a x y, (mul_zero (I a).unop).symm }⟩
+
+instance : has_neg (sesq_form R M I) :=
+⟨λ S, { sesq := λ x y, - (S.1 x y),
                 sesq_add_left := λ x y z, by rw [sesq_add_left, neg_add],
                 sesq_smul_left := λ a x y, by rw [sesq_smul_left, mul_neg_eq_neg_mul_symm],
                 sesq_add_right := λ x y z, by rw [sesq_add_right, neg_add],
-                sesq_smul_right := λ a x y, by rw [sesq_smul_right, mul_neg_eq_neg_mul_symm] },
-  add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self},
-  add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm} }
+                sesq_smul_right := λ a x y, by rw [sesq_smul_right, mul_neg_eq_neg_mul_symm] }⟩
+
+instance : add_comm_group (sesq_form R M I) :=
+{ add := (+),
+  add_assoc := by { intros, ext,
+    unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc },
+  zero := 0,
+  zero_add := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add },
+  add_zero := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero },
+  neg := has_neg.neg,
+  add_left_neg := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self },
+  add_comm := by { intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm } }
 
 instance : inhabited (sesq_form R M I) := ⟨0⟩
 
@@ -125,11 +134,11 @@ lemma is_add_monoid_hom_right (S : sesq_form R M I) (x : M) : is_add_monoid_hom 
 { map_add := λ z y, sesq_add_right S _ _ _,
   map_zero := zero_right x }
 
-lemma map_sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
+lemma sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S (∑ i in t, g i) w = ∑ i in t, S (g i) w :=
 by haveI s_inst := is_add_monoid_hom_left S w; exact (finset.sum_hom t (λ z, S z w)).symm
 
-lemma map_sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
+lemma sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S w (∑ i in t, g i) = ∑ i in t, S w (g i) :=
 by haveI s_inst := is_add_monoid_hom_right S w; exact (finset.sum_hom t (λ z, S w z)).symm
 

@@ -179,6 +179,11 @@ instance [topological_space H] [group H] [topological_group H] :
   topological_group (G × H) :=
 { continuous_inv := continuous_inv.prod_map continuous_inv }
 
+@[to_additive]
+instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, group (C b)] [∀ b, topological_group (C b)] : topological_group (Π b, C b) :=
+{ continuous_inv := continuous_pi (λ i, (continuous_apply i).inv) }
+
 variable (G)
 
 /-- Inversion in a topological group as a homeomorphism. -/
@@ -367,7 +372,7 @@ begin
   intros s s_op,
   change is_open ((coe : G →  quotient N) ⁻¹' (coe '' s)),
   rw quotient_group.preimage_image_coe N s,
-  exact is_open_Union (λ n, is_open_map_mul_right n s s_op)
+  exact is_open_Union (λ n, (continuous_mul_right _).is_open_preimage s s_op)
 end
 
 @[to_additive]
@@ -555,7 +560,7 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
  begin
    use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
-   rw [nhds_within, inf_principal_eq_bot, mem_nhds_sets_iff],
+   rw [nhds_within, inf_principal_eq_bot, mem_nhds_iff],
    refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
    rintros x hx ⟨y, z, hy, hz, yz⟩,
    have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
@@ -585,7 +590,7 @@ begin
   let W : G → set G := λ x, (λ y, x * y) ⁻¹' U,
   have h1W : ∀ x, is_open (W x) := λ x, hU.preimage (continuous_mul_left x),
   have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
-  choose V hV using λ x : K, exists_open_nhds_one_mul_subset (mem_nhds_sets (h1W x) (h2W x.1 x.2)),
+  choose V hV using λ x : K, exists_open_nhds_one_mul_subset ((h1W x).mem_nhds (h2W x.1 x.2)),
   let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
   obtain ⟨t, ht⟩ : ∃ t : finset ↥K, K ⊆ ⋃ i ∈ t, X i,
   { refine hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _,
@@ -655,7 +660,7 @@ begin
     rintros ⟨vb, vd⟩,
     refine ac ⟨v * y⁻¹, y, _, _, _⟩,
     { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },
-    { apply dc y, rw mul_right_inv, exact mem_of_nhds hd },
+    { apply dc y, rw mul_right_inv, exact mem_of_mem_nhds hd },
     { simp only [inv_mul_cancel_right] } }
 end
 
@@ -673,3 +678,13 @@ instance additive.topological_add_group {G} [h : topological_space G]
 instance multiplicative.topological_group {G} [h : topological_space G]
   [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
 { continuous_inv := @continuous_neg G _ _ _ }
+
+namespace units
+
+variables [monoid α] [topological_space α] [has_continuous_mul α]
+
+instance : topological_group (units α) :=
+{ continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
+    (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+
+end units

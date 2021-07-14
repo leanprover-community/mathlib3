@@ -149,7 +149,8 @@ else let v : term := coeffs_reduce n u.fst u.snd in
 meta def elim_eqs : eqelim (list ee) :=
 elim_eq !>>= get_ees ; λ _, elim_eqs
 
-/-- Given a linear constrain clause, return a list of steps for eliminating its equality constraints. -/
+/-- Given a linear constrain clause, return a list of steps for eliminating its equality
+constraints. -/
 meta def find_ees : clause → tactic (list ee)
 | (eqs,les) := run eqs les elim_eqs
 

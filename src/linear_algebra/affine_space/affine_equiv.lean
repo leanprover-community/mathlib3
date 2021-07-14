@@ -38,8 +38,8 @@ We define it using an `equiv` for the map and a `linear_equiv` for the linear pa
 to allow affine equivalences with good definitional equalities. -/
 @[nolint has_inhabited_instance]
 structure affine_equiv (k P₁ P₂ : Type*) {V₁ V₂ : Type*} [ring k]
-  [add_comm_group V₁] [semimodule k V₁] [add_torsor V₁ P₁]
-  [add_comm_group V₂] [semimodule k V₂] [add_torsor V₂ P₂] extends P₁ ≃ P₂ :=
+  [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+  [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂] extends P₁ ≃ P₂ :=
 (linear : V₁ ≃ₗ[k] V₂)
 (map_vadd' : ∀ (p : P₁) (v : V₁), to_equiv (v +ᵥ p) = linear v +ᵥ to_equiv p)
 
@@ -53,10 +53,10 @@ instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
 ⟨_, λ e, e.to_fun⟩
 
 variables {k V₁ V₂ V₃ V₄ P₁ P₂ P₃ P₄ : Type*} [ring k]
-  [add_comm_group V₁] [semimodule k V₁] [add_torsor V₁ P₁]
-  [add_comm_group V₂] [semimodule k V₂] [add_torsor V₂ P₂]
-  [add_comm_group V₃] [semimodule k V₃] [add_torsor V₃ P₃]
-  [add_comm_group V₄] [semimodule k V₄] [add_torsor V₄ P₄]
+  [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+  [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+  [add_comm_group V₃] [module k V₃] [add_torsor V₃ P₃]
+  [add_comm_group V₄] [module k V₄] [add_torsor V₄ P₄]
 
 namespace linear_equiv
 
@@ -253,7 +253,7 @@ tangent space `V`. -/
 def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.vadd_const b,
   linear := linear_equiv.refl _ _,
-  map_vadd' := λ p v, (vadd_assoc _ _ _).symm }
+  map_vadd' := λ p v, add_vadd _ _ _  }
 
 @[simp] lemma linear_vadd_const (b : P₁) : (vadd_const k b).linear = linear_equiv.refl k V₁ := rfl
 
@@ -277,7 +277,7 @@ variable (P₁)
 def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.const_vadd P₁ v,
   linear := linear_equiv.refl _ _,
-  map_vadd' := λ p w, vadd_comm _ _ _ _ }
+  map_vadd' := λ p w, vadd_comm _ _ _ }
 
 @[simp] lemma linear_const_vadd (v : V₁) : (const_vadd k P₁ v).linear = linear_equiv.refl _ _ := rfl
 
@@ -349,7 +349,7 @@ lemma vadd_line_map (v : V₁) (p₁ p₂ : P₁) (c : k) :
   v +ᵥ line_map p₁ p₂ c = line_map (v +ᵥ p₁) (v +ᵥ p₂) c :=
 (const_vadd k P₁ v).apply_line_map p₁ p₂ c
 
-variables {R' : Type*} [comm_ring R'] [semimodule R' V₁]
+variables {R' : Type*} [comm_ring R'] [module R' V₁]
 
 lemma homothety_neg_one_apply (c p : P₁) :
   homothety c (-1:R') p = point_reflection R' c p :=

@@ -222,6 +222,12 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
+lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
+begin
+  have : aleph 1 = (aleph 0).succ, by simp only [← aleph_succ, ordinal.succ_zero],
+  rw [countable_iff, ← aleph_zero, this, lt_succ],
+end
+
 /-! ### Properties of `mul` -/
 
 /-- If `α` is an infinite type, then `α × α` and `α` have the same cardinality. -/
@@ -439,7 +445,7 @@ H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
 lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
 begin
   apply le_antisymm,
-  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [power_mul, mul_eq_self h] },
+  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [← power_mul, mul_eq_self h] },
   { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
 end
 
@@ -569,7 +575,7 @@ theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
 begin
   intros, have := h, cases this with g,
   let h : α ≃ β := (set.sum_compl (s : set α)).symm.trans
-    ((sum_congr (equiv.set.range f f.2) g).trans
+    ((sum_congr (equiv.of_injective f f.2) g).trans
     (set.sum_compl (range f))),
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end

@@ -489,7 +489,7 @@ begin
   have H1 := H (u ∩ s) (v ∩ s),
   rw [subset_inter_iff, subset_inter_iff] at H1,
   simp only [subset.refl, and_true] at H1,
-  apply H1 (is_closed_inter hu hs) (is_closed_inter hv hs),
+  apply H1 (is_closed.inter hu hs) (is_closed.inter hv hs),
   { rw ←inter_distrib_right,
     apply subset_inter_iff.2,
     exact ⟨hss, subset.refl s⟩ },
@@ -591,8 +591,8 @@ begin
     { exact h } },
 
   -- Now we show T₁, T₂ are closed, cover connected_component t and are disjoint.
-  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed_inter hT hu))),
-  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed_inter hT hv))),
+  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed.inter hT hu))),
+  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed.inter hT hv))),
 
   have T_decomp : connected_component t ⊆ T₁ ∪ T₂,
   { intros t' ht',
@@ -660,6 +660,16 @@ instance pi.totally_disconnected_space {α : Type*} {β : α → Type*}
   have this : ∀ a, is_preconnected ((λ x : Π a, β a, x a) '' t),
     from λ a, h2.image (λ x, x a) (continuous_apply a).continuous_on,
   λ x x_in y y_in, funext $ λ a, (this a).subsingleton ⟨x, x_in, rfl⟩ ⟨y, y_in, rfl⟩⟩
+
+instance prod.totally_disconnected_space [topological_space β]
+  [totally_disconnected_space α] [totally_disconnected_space β] :
+  totally_disconnected_space (α × β) :=
+⟨λ t h1 h2,
+have H1 : is_preconnected (prod.fst '' t), from h2.image prod.fst continuous_fst.continuous_on,
+have H2 : is_preconnected (prod.snd '' t), from h2.image prod.snd continuous_snd.continuous_on,
+λ x hx y hy, prod.ext
+  (H1.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)
+  (H2.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)⟩
 
 /-- A space is totally disconnected iff its connected components are subsingletons. -/
 lemma totally_disconnected_space_iff_connected_component_subsingleton :
@@ -759,6 +769,18 @@ instance totally_separated_space.totally_disconnected_space (α : Type u) [topol
 instance totally_separated_space.of_discrete
   (α : Type*) [topological_space α] [discrete_topology α] : totally_separated_space α :=
 ⟨λ a _ b _ h, ⟨{b}ᶜ, {b}, is_open_discrete _, is_open_discrete _, by simpa⟩⟩
+
+lemma exists_clopen_of_totally_separated {α : Type*} [topological_space α]
+  [totally_separated_space α] {x y : α} (hxy : x ≠ y) :
+  ∃ (U : set α) (hU : is_clopen U), x ∈ U ∧ y ∈ Uᶜ :=
+begin
+  obtain ⟨U, V, hU, hV, Ux, Vy, f, disj⟩ :=
+    totally_separated_space.is_totally_separated_univ α x (set.mem_univ x) y (set.mem_univ y) hxy,
+  have clopen_U := is_clopen_inter_of_disjoint_cover_clopen (is_clopen_univ) f hU hV disj,
+  rw set.univ_inter _ at clopen_U,
+  rw [←set.subset_compl_iff_disjoint, set.subset_compl_comm] at disj,
+  exact ⟨U, clopen_U, Ux, disj Vy⟩,
+end
 
 end totally_separated
 

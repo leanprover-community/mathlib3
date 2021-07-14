@@ -5,6 +5,14 @@ Authors: Scott Morrison
 -/
 import category_theory.products.bifunctor
 
+/-!
+# Curry and uncurry, as functors.
+
+We define `curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E))` and `uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E)`,
+and verify that they provide an equivalence of categories
+`currying : (C ⥤ (D ⥤ E)) ≌ ((C × D) ⥤ E)`.
+
+-/
 namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃

@@ -15,7 +15,7 @@ Some of the main results include
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 open finsupp finset
 
@@ -37,42 +37,21 @@ else with_bot.coe_le_coe.1 $
   ... ≤ _ : sup_le (λ n hn,
     calc degree (C (coeff p n) * q ^ n)
         ≤ degree (C (coeff p n)) + degree (q ^ n) : degree_mul_le _ _
-    ... ≤ nat_degree (C (coeff p n)) + n •ℕ (degree q) :
+    ... ≤ nat_degree (C (coeff p n)) + n • (degree q) :
       add_le_add degree_le_nat_degree (degree_pow_le _ _)
-    ... ≤ nat_degree (C (coeff p n)) + n •ℕ (nat_degree q) :
+    ... ≤ nat_degree (C (coeff p n)) + n • (nat_degree q) :
       add_le_add_left (nsmul_le_nsmul_of_le_right (@degree_le_nat_degree _ _ q) n) _
     ... = (n * nat_degree q : ℕ) :
      by rw [nat_degree_C, with_bot.coe_zero, zero_add, ← with_bot.coe_nsmul,
        nsmul_eq_mul]; simp
     ... ≤ (nat_degree p * nat_degree q : ℕ) : with_bot.coe_le_coe.2 $
       mul_le_mul_of_nonneg_right
-        (le_nat_degree_of_ne_zero (finsupp.mem_support_iff.1 hn))
+        (le_nat_degree_of_ne_zero (mem_support_iff.1 hn))
         (nat.zero_le _))
-
-lemma degree_map_le [semiring S] (f : R →+* S) :
-  degree (map f p) ≤ degree p :=
-if h : map f p = 0 then by simp [h]
-else begin
-  rw [degree_eq_nat_degree h],
-  refine le_degree_of_ne_zero (mt (congr_arg f) _),
-  rw [← coeff_map f, is_semiring_hom.map_zero f],
-  exact mt leading_coeff_eq_zero.1 h
-end
-
-lemma nat_degree_map_le [semiring S] (f : R →+* S) :
-  (map f p).nat_degree ≤ p.nat_degree :=
-begin
-  by_cases hp : p = 0,
-  { simp [hp] },
-  { rw [← with_bot.coe_le_coe, ← degree_eq_nat_degree hp],
-    by_cases hfp : map f p = 0,
-    { simp [hfp, zero_le_degree_iff.mpr hp] },
-    { simp [← degree_eq_nat_degree hfp, degree_map_le] } }
-end
 
 lemma degree_map_eq_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
   (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
-le_antisymm (degree_map_le f) $
+le_antisymm (degree_map_le f _) $
   have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, is_semiring_hom.map_zero f] using hf,
   begin
     rw [degree_eq_nat_degree hp0],
@@ -95,9 +74,8 @@ lemma degree_pos_of_root {p : polynomial R} (hp : p ≠ 0) (h : is_root p a) : 0
 lt_of_not_ge $ λ hlt, begin
   have := eq_C_of_degree_le_zero hlt,
   rw [is_root, this, eval_C] at h,
-  exact hp (finsupp.ext (λ n, show coeff p n = 0, from
-    nat.cases_on n h (λ _, coeff_eq_zero_of_degree_lt (lt_of_le_of_lt hlt
-      (with_bot.coe_lt_coe.2 (nat.succ_pos _)))))),
+  simp only [h, ring_hom.map_zero] at this,
+  exact hp this,
 end
 
 lemma nat_degree_le_iff_coeff_eq_zero :
@@ -170,19 +148,16 @@ lemma nat_degree_lt_coeff_mul (h : p.nat_degree + q.nat_degree < m + n) :
   (p * q).coeff (m + n) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (nat_degree_mul_le.trans_lt h)
 
-
-
 variables [semiring S]
 
 lemma nat_degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
   {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
   0 < nat_degree p :=
 lt_of_not_ge $ λ hlt, begin
-  rw [eq_C_of_nat_degree_le_zero hlt, eval₂_C] at hz,
-  refine hp (finsupp.ext (λ n, _)),
-  cases n,
-  { exact inj _ hz },
-  { exact coeff_eq_zero_of_nat_degree_lt (lt_of_le_of_lt hlt (nat.succ_pos _)) }
+  have A : p = C (p.coeff 0) := eq_C_of_nat_degree_le_zero hlt,
+  rw [A, eval₂_C] at hz,
+  simp only [inj (p.coeff 0) hz, ring_hom.map_zero] at A,
+  exact hp A
 end
 
 lemma degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
@@ -216,6 +191,14 @@ begin
   rw [coeff_map, nat_degree_map' hf p],
 end
 
+lemma next_coeff_map (p : polynomial R) :
+  (p.map f).next_coeff = f p.next_coeff :=
+begin
+  unfold next_coeff,
+  rw nat_degree_map' hf,
+  split_ifs; simp
+end
+
 end injective
 
 section
@@ -224,11 +207,9 @@ variable {f : polynomial R}
 lemma monomial_nat_degree_leading_coeff_eq_self (h : f.support.card ≤ 1) :
   monomial f.nat_degree f.leading_coeff = f :=
 begin
-  interval_cases f.support.card with H,
-  { have : f = 0 := finsupp.card_support_eq_zero.1 H,
-    simp [this] },
-  { obtain ⟨n, x, hx, rfl : f = monomial n x⟩ := finsupp.card_support_eq_one'.1 H,
-    simp [hx] }
+  rcases card_support_le_one_iff_monomial.1 h with ⟨n, a, rfl⟩,
+  by_cases ha : a = 0;
+  simp [ha]
 end
 
 lemma C_mul_X_pow_eq_self (h : f.support.card ≤ 1) :

@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import analysis.calculus.local_extr
 import analysis.calculus.implicit
+import linear_algebra.dual
 
 /-!
 # Lagrange multipliers

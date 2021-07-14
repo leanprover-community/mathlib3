@@ -312,8 +312,8 @@ do p ← resolve_name n,
                         report_invalid_em_lemma n
    end
 
-private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool) (hs : hinst_lemmas)
-  : pexpr → smt_tactic hinst_lemmas
+private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool)
+  (hs : hinst_lemmas) : pexpr → smt_tactic hinst_lemmas
 | p@(expr.const c [])          := add_hinst_lemma_from_name md lhs_lemma c hs p
 | p@(expr.local_const c _ _ _) := add_hinst_lemma_from_name md lhs_lemma c hs p
 | p                          := do new_e ← to_expr p, h ← hinst_lemma.mk_core md new_e lhs_lemma,
@@ -399,7 +399,8 @@ it will:
 - (if `opt` is `case_option.at_most_one`) fail if it produces more than one goal, and
 - (if `opt` is `case_option.accept`) ignore the number of goals it produces.
 -/
-meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) : case_option → tactic unit :=
+meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) :
+  case_option → tactic unit :=
 λ co, focus1 $
 do trace_state_if_enabled `auto.finish "entering safe_core",
    if cfg.use_simp then do

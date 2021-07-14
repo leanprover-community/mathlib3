@@ -10,8 +10,9 @@ import data.list.defs
 # rb_map
 
 This file defines additional operations on native rb_maps and rb_sets.
-These structures are defined in core in `init.meta.rb_map`. They are meta objects,
-and are generally the most efficient dictionary structures to use for pure metaprogramming right now.
+These structures are defined in core in `init.meta.rb_map`.
+They are meta objects, and are generally the most efficient dictionary structures
+to use for pure metaprogramming right now.
 -/
 
 namespace native

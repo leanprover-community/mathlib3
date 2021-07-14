@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
-import measure_theory.measurable_space
 import measure_theory.pi_system
 import data.matrix.notation
 import topology.algebra.infinite_sum
@@ -209,9 +208,9 @@ instance : has_scalar ℝ≥0∞ (outer_measure α) :=
 
 lemma smul_apply (c : ℝ≥0∞) (m : outer_measure α) (s : set α) : (c • m) s = c * m s := rfl
 
-instance : semimodule ℝ≥0∞ (outer_measure α) :=
+instance : module ℝ≥0∞ (outer_measure α) :=
 { smul := (•),
-  .. injective.semimodule ℝ≥0∞ ⟨show outer_measure α → set α → ℝ≥0∞, from coe_fn, coe_zero,
+  .. injective.module ℝ≥0∞ ⟨show outer_measure α → set α → ℝ≥0∞, from coe_fn, coe_zero,
     coe_add⟩ coe_fn_injective coe_smul }
 
 instance : has_bot (outer_measure α) := ⟨0⟩
@@ -332,7 +331,7 @@ def sum {ι} (f : ι → outer_measure α) : outer_measure α :=
 
 theorem smul_dirac_apply (a : ℝ≥0∞) (b : α) (s : set α) :
   (a • dirac b) s = indicator s (λ _, a) b :=
-by simp
+by simp only [smul_apply, dirac_apply, ← indicator_mul_right _ (λ _, a), mul_one]
 
 /-- Pullback of an `outer_measure`: `comap f μ s = μ (f '' s)`. -/
 def comap {β} (f : α → β) : outer_measure β →ₗ[ℝ≥0∞] outer_measure α :=
@@ -612,6 +611,38 @@ end
 theorem le_bounded_by' {μ : outer_measure α} :
   μ ≤ bounded_by m ↔ ∀ s : set α, s.nonempty → μ s ≤ m s :=
 by { rw [le_bounded_by, forall_congr], intro s, cases s.eq_empty_or_nonempty with h h; simp [h] }
+
+lemma smul_bounded_by {c : ℝ≥0∞} (hc : c ≠ ∞) : c • bounded_by m = bounded_by (c • m) :=
+begin
+  simp only [bounded_by, smul_of_function hc],
+  congr' 1 with s : 1,
+  rcases s.eq_empty_or_nonempty with rfl|hs; simp *
+end
+
+lemma comap_bounded_by {β} (f : β → α)
+  (h : monotone (λ s : {s : set α // s.nonempty}, m s) ∨ surjective f) :
+  comap f (bounded_by m) = bounded_by (λ s, m (f '' s)) :=
+begin
+  refine (comap_of_function _ _).trans _,
+  { refine h.imp (λ H s t hst, supr_le $ λ hs, _) id,
+    have ht : t.nonempty := hs.mono hst,
+    exact (@H ⟨s, hs⟩ ⟨t, ht⟩ hst).trans (le_supr (λ h : t.nonempty, m t) ht) },
+  { dunfold bounded_by,
+    congr' with s : 1,
+    rw nonempty_image_iff }
+end
+
+/-- If `m u = ∞` for any set `u` that has nonempty intersection both with `s` and `t`, then
+`μ (s ∪ t) = μ s + μ t`, where `μ = measure_theory.outer_measure.bounded_by m`.
+
+E.g., if `α` is an (e)metric space and `m u = ∞` on any set of diameter `≥ r`, then this lemma
+implies that `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s`
+and `y ∈ t`.  -/
+lemma bounded_by_union_of_top_of_nonempty_inter {s t : set α}
+  (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → m u = ∞) :
+  bounded_by m (s ∪ t) = bounded_by m s + bounded_by m t :=
+of_function_union_of_top_of_nonempty_inter $ λ u hs ht,
+  top_unique $ (h u hs ht).ge.trans $ le_supr (λ h, m u) (hs.mono $ inter_subset_right s u)
 
 end bounded_by
 
@@ -948,6 +979,9 @@ def extend (s : α) : ℝ≥0∞ := ⨅ h : P s, m s h
 lemma extend_eq {s : α} (h : P s) : extend m s = m s h :=
 by simp [extend, h]
 
+lemma extend_eq_top {s : α} (h : ¬P s) : extend m s = ∞ :=
+by simp [extend, h]
+
 lemma le_extend {s : α} (h : P s) : m s h ≤ extend m s :=
 by { simp only [extend, le_infi_iff], intro, refl' }
 
@@ -1007,10 +1041,10 @@ lemma extend_Union {β} [encodable β] {f : β → set α}
   (hd : pairwise (disjoint on f)) (hm : ∀i, P (f i)) :
   extend m (⋃i, f i) = ∑'i, extend m (f i) :=
 begin
-  rw [← encodable.Union_decode2, ← tsum_Union_decode2],
+  rw [← encodable.Union_decode₂, ← tsum_Union_decode₂],
   { exact extend_Union_nat PU
-      (λ n, encodable.Union_decode2_cases P0 hm)
-      (mU _ (encodable.Union_decode2_disjoint_on hd)) },
+      (λ n, encodable.Union_decode₂_cases P0 hm)
+      (mU _ (encodable.Union_decode₂_disjoint_on hd)) },
   { exact extend_empty P0 m0 }
 end
 
@@ -1038,7 +1072,7 @@ le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 /-- If `P u` is `false` for any set `u` that has nonempty intersection both with `s` and `t`, then
 `μ (s ∪ t) = μ s + μ t`, where `μ = induced_outer_measure m P0 m0`.
 
-E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that 
+E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that
 `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s` and `y ∈ t`. -/
 lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :

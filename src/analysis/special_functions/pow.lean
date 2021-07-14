@@ -92,7 +92,7 @@ by simpa using cpow_neg x 1
 
 @[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
-| -[1+ n] := by rw fpow_neg_succ_of_nat;
+| -[1+ n] := by rw gpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
 
@@ -155,12 +155,6 @@ section lim
 open complex
 
 variables {α : Type*}
-
-lemma measurable.cpow [measurable_space α] {f g : α → ℂ} (hf : measurable f) (hg : measurable g) :
-  measurable (λ x, f x ^ g x) :=
-measurable.ite (hf $ measurable_set_singleton _)
-  (measurable.ite (hg $ measurable_set_singleton _) measurable_const measurable_const)
-  (hf.clog.mul hg).cexp
 
 lemma filter.tendsto.cpow {l : filter α} {f g : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 a))
   (hg : tendsto g l (𝓝 b)) (ha : 0 < a.re ∨ a.im ≠ 0) :
@@ -519,7 +513,7 @@ by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, fpow_one, fpow_neg],
+  simp only [rpow_int_cast, gpow_one, fpow_neg],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
@@ -647,6 +641,30 @@ begin
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
+lemma le_rpow_iff_log_le (hx : 0 < x) (hy : 0 < y) :
+  x ≤ y^z ↔ real.log x ≤ z * real.log y :=
+by rw [←real.log_le_log hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
+
+lemma le_rpow_of_log_le (hx : 0 ≤ x) (hy : 0 < y) (h : real.log x ≤ z * real.log y) :
+  x ≤ y^z :=
+begin
+  obtain hx | rfl := hx.lt_or_eq,
+  { exact (le_rpow_iff_log_le hx hy).2 h },
+  exact (real.rpow_pos_of_pos hy z).le,
+end
+
+lemma lt_rpow_iff_log_lt (hx : 0 < x) (hy : 0 < y) :
+  x < y^z ↔ real.log x < z * real.log y :=
+by rw [←real.log_lt_log_iff hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
+
+lemma lt_rpow_of_log_lt (hx : 0 ≤ x) (hy : 0 < y) (h : real.log x < z * real.log y) :
+  x < y^z :=
+begin
+  obtain hx | rfl := hx.lt_or_eq,
+  { exact (lt_rpow_iff_log_lt hx hy).2 h },
+  exact real.rpow_pos_of_pos hy z,
+end
+
 lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
 by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
 
@@ -688,12 +706,12 @@ begin
   cases lt_trichotomy 0 x,
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux1 _ h)
-    (mem_nhds_sets (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
+    (is_open.mem_nhds (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
   cases h,
   { exact absurd h.symm hx },
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux2 _ h)
-    (mem_nhds_sets (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
+    (is_open.mem_nhds (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
 end
 
 lemma continuous_rpow_aux3 : continuous (λ p : {p:ℝ×ℝ // 0 < p.2}, p.val.1 ^ p.val.2) :=
@@ -729,7 +747,7 @@ lemma continuous_at_rpow_of_pos (hy : 0 < y) (x : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
 continuous_within_at.continuous_at
   (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux3 _ hy)
-  (mem_nhds_sets (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
+  (is_open.mem_nhds (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
 
 lemma continuous_at_rpow {x y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
@@ -772,7 +790,7 @@ begin
     field_simp [rpow_def_of_pos h, mul_sub, exp_sub, exp_log h, ne_of_gt h],
     ring },
   apply this.congr_of_eventually_eq,
-  have : set.Ioi (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Ioi h,
+  have : set.Ioi (0 : ℝ) ∈ 𝓝 x := is_open.mem_nhds is_open_Ioi h,
   exact filter.eventually_of_mem this (λ y hy, rpow_def_of_pos hy _)
 end
 
@@ -786,7 +804,7 @@ begin
       ne_of_lt h],
     ring },
   apply this.congr_of_eventually_eq,
-  have : set.Iio (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Iio h,
+  have : set.Iio (0 : ℝ) ∈ 𝓝 x := is_open.mem_nhds is_open_Iio h,
   exact filter.eventually_of_mem this (λ y hy, rpow_def_of_neg hy _)
 end
 
@@ -826,7 +844,7 @@ section sqrt
 lemma sqrt_eq_rpow : sqrt = λx:ℝ, x ^ (1/(2:ℝ)) :=
 begin
   funext, by_cases h : 0 ≤ x,
-  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← pow_two, ← rpow_nat_cast, ← rpow_mul h],
+  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← sq, ← rpow_nat_cast, ← rpow_mul h],
     norm_num, exact sqrt_nonneg _, exact rpow_nonneg_of_nonneg h _ },
   { replace h : x < 0 := lt_of_not_ge h,
     have : 1 / (2:ℝ) * π = π / (2:ℝ), ring,
@@ -836,29 +854,6 @@ end
 end sqrt
 
 end real
-
-section measurability_real
-
-open complex
-
-lemma measurable.rpow {α} [measurable_space α] {f g : α → ℝ} (hf : measurable f)
-  (hg : measurable g) :
-  measurable (λ a : α, (f a) ^ (g a)) :=
-measurable_re.comp $ ((measurable_of_real.comp hf).cpow (measurable_of_real.comp hg))
-
-lemma measurable.rpow_const {α} [measurable_space α] {f : α → ℝ} (hf : measurable f) {y : ℝ} :
-  measurable (λ a : α, (f a) ^ y) :=
-hf.rpow measurable_const
-
-lemma ae_measurable.rpow_const {α} [measurable_space α] {f : α → ℝ}
-  {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :
-  ae_measurable (λ a : α, (f a) ^ y) μ :=
-measurable.comp_ae_measurable (measurable.rpow_const measurable_id) hf
-
-lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
-measurable_id.rpow_const
-
-end measurability_real
 
 section differentiability
 open real
@@ -990,11 +985,29 @@ end
 
 /-- The function `x ^ (1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring }
+by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring_nf }
 
 /-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring }
+by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring_nf }
+
+/-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞`. -/
+lemma tendsto_one_plus_div_rpow_exp (t : ℝ) :
+  tendsto (λ (x : ℝ), (1 + t / x) ^ x) at_top (𝓝 (exp t)) :=
+begin
+  apply ((real.continuous_exp.tendsto _).comp (tendsto_mul_log_one_plus_div_at_top t)).congr' _,
+  have h₁ : (1:ℝ)/2 < 1 := by linarith,
+  have h₂ : tendsto (λ x : ℝ, 1 + t / x) at_top (𝓝 1) :=
+    by simpa using (tendsto_inv_at_top_zero.const_mul t).const_add 1,
+  refine (eventually_ge_of_tendsto_gt h₁ h₂).mono (λ x hx, _),
+  have hx' : 0 < 1 + t / x := by linarith,
+  simp [mul_comm x, exp_mul, exp_log hx'],
+end
+
+/-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞` for naturals `x`. -/
+lemma tendsto_one_plus_div_pow_exp (t : ℝ) :
+  tendsto (λ (x : ℕ), (1 + t / (x:ℝ)) ^ x) at_top (𝓝 (real.exp t)) :=
+((tendsto_one_plus_div_rpow_exp t).comp tendsto_coe_nat_at_top_at_top).congr (by simp)
 
 end limits
 
@@ -1127,9 +1140,9 @@ by { rw [← nnreal.coe_eq, nnreal.coe_pow, coe_rpow], exact real.rpow_nat_inv_p
 lemma continuous_at_rpow {x : ℝ≥0} {y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ≥0×ℝ, p.1^p.2) (x, y) :=
 begin
-  have : (λp:ℝ≥0×ℝ, p.1^p.2) = nnreal.of_real ∘ (λp:ℝ×ℝ, p.1^p.2) ∘ (λp:ℝ≥0 × ℝ, (p.1.1, p.2)),
+  have : (λp:ℝ≥0×ℝ, p.1^p.2) = real.to_nnreal ∘ (λp:ℝ×ℝ, p.1^p.2) ∘ (λp:ℝ≥0 × ℝ, (p.1.1, p.2)),
   { ext p,
-    rw [coe_rpow, nnreal.coe_of_real _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
+    rw [coe_rpow, real.coe_to_nnreal _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
     refl },
   rw this,
   refine nnreal.continuous_of_real.continuous_at.comp (continuous_at.comp _ _),
@@ -1140,30 +1153,14 @@ begin
   { exact ((continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd).continuous_at }
 end
 
-lemma of_real_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
-  nnreal.of_real (x ^ y) = (nnreal.of_real x) ^ y :=
+lemma _root_.real.to_nnreal_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
+  real.to_nnreal (x ^ y) = (real.to_nnreal x) ^ y :=
 begin
-  nth_rewrite 0 ← nnreal.coe_of_real x hx,
-  rw [←nnreal.coe_rpow, nnreal.of_real_coe],
+  nth_rewrite 0 ← real.coe_to_nnreal x hx,
+  rw [←nnreal.coe_rpow, real.to_nnreal_coe],
 end
 
 end nnreal
-
-namespace measurable
-
-variables {α : Type*} [measurable_space α]
-
-lemma nnreal_rpow {f : α → ℝ≥0} (hf : measurable f)
-  {g : α → ℝ} (hg : measurable g) :
-  measurable (λ a : α, (f a) ^ (g a)) :=
-(hf.nnreal_coe.rpow hg).subtype_mk
-
-lemma nnreal_rpow_const {f : α → ℝ≥0} (hf : measurable f)
-  {y : ℝ} :
-  measurable (λ a : α, (f a) ^ y) :=
-hf.nnreal_rpow measurable_const
-
-end measurable
 
 open filter
 
@@ -1184,6 +1181,17 @@ h.elim (λ h, tendsto_id.nnrpow tendsto_const_nhds (or.inl h)) $
 lemma continuous_rpow_const {y : ℝ} (h : 0 ≤ y) :
   continuous (λ x : ℝ≥0, x^y) :=
 continuous_iff_continuous_at.2 $ λ x, continuous_at_rpow_const (or.inr h)
+
+theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
+  tendsto (λ (x : ℝ≥0), x ^ y) at_top at_top :=
+begin
+  rw filter.tendsto_at_top_at_top,
+  intros b,
+  obtain ⟨c, hc⟩ := tendsto_at_top_at_top.mp (tendsto_rpow_at_top hy) b,
+  use c.to_nnreal,
+  intros a ha,
+  exact_mod_cast hc a (real.to_nnreal_le_iff_le_coe.mp ha),
+end
 
 end nnreal
 
@@ -1322,6 +1330,9 @@ begin
     { have A : x ^ y ≠ 0, by simp [h],
       simp [coe_rpow_of_ne_zero h, ← coe_inv A, nnreal.rpow_neg] } }
 end
+
+lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=
+by rw [sub_eq_add_neg, rpow_add _ _ hx h'x, rpow_neg, div_eq_mul_inv]
 
 lemma rpow_neg_one (x : ℝ≥0∞) : x ^ (-1 : ℝ) = x ⁻¹ :=
 by simp [rpow_neg]
@@ -1653,7 +1664,7 @@ lemma of_real_rpow_of_pos {x p : ℝ} (hx_pos : 0 < x) :
   ennreal.of_real x ^ p = ennreal.of_real (x ^ p) :=
 begin
   simp_rw ennreal.of_real,
-  rw [coe_rpow_of_ne_zero, coe_eq_coe, nnreal.of_real_rpow_of_nonneg hx_pos.le],
+  rw [coe_rpow_of_ne_zero, coe_eq_coe, real.to_nnreal_rpow_of_nonneg hx_pos.le],
   simp [hx_pos],
 end
 
@@ -1692,42 +1703,50 @@ lemma rpow_left_monotone_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : �
 lemma rpow_left_strict_mono_of_pos {x : ℝ} (hx : 0 < x) : strict_mono (λ y : ℝ≥0∞, y^x) :=
 λ y z hyz, rpow_lt_rpow hyz hx
 
+theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
+  tendsto (λ (x : ℝ≥0∞), x ^ y) (𝓝 ⊤) (𝓝 ⊤) :=
+begin
+  rw tendsto_nhds_top_iff_nnreal,
+  intros x,
+  obtain ⟨c, _, hc⟩ :=
+    (at_top_basis_Ioi.tendsto_iff at_top_basis_Ioi).mp (nnreal.tendsto_rpow_at_top hy) x trivial,
+  have hc' : set.Ioi (↑c) ∈ 𝓝 (⊤ : ℝ≥0∞) := Ioi_mem_nhds coe_lt_top,
+  refine eventually_of_mem hc' _,
+  intros a ha,
+  by_cases ha' : a = ⊤,
+  { simp [ha', hy] },
+  lift a to ℝ≥0 using ha',
+  change ↑c < ↑a at ha,
+  rw coe_rpow_of_nonneg _ hy.le,
+  exact_mod_cast hc a (by exact_mod_cast ha),
+end
+
+private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
+  continuous_at (λ a : ennreal, a ^ y) x :=
+begin
+  by_cases hx : x = ⊤,
+  { rw [hx, continuous_at],
+    convert tendsto_rpow_at_top h,
+    simp [h] },
+  lift x to ℝ≥0 using hx,
+  rw continuous_at_coe_iff,
+  convert continuous_coe.continuous_at.comp
+    (nnreal.continuous_at_rpow_const (or.inr h.le)) using 1,
+  ext1 x,
+  simp [coe_rpow_of_nonneg _ h.le]
+end
+
+@[continuity]
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+begin
+  apply continuous_iff_continuous_at.2 (λ x, _),
+  rcases lt_trichotomy 0 y with hy|rfl|hy,
+  { exact continuous_at_rpow_const_of_pos hy },
+  { simp, exact continuous_at_const },
+  { obtain ⟨z, hz⟩ : ∃ z, y = -z := ⟨-y, (neg_neg _).symm⟩,
+    have z_pos : 0 < z, by simpa [hz] using hy,
+    simp_rw [hz, rpow_neg],
+    exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
+end
+
 end ennreal
-
-section measurability_ennreal
-
-variables {α : Type*} [measurable_space α]
-
-lemma ennreal.measurable_rpow : measurable (λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2) :=
-begin
-  refine ennreal.measurable_of_measurable_nnreal_prod _ _,
-  { simp_rw ennreal.coe_rpow_def,
-    refine measurable.ite _ measurable_const
-      (measurable_fst.nnreal_rpow measurable_snd).ennreal_coe,
-    exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
-      (measurable_snd measurable_set_Iio), },
-  { simp_rw ennreal.top_rpow_def,
-    refine measurable.ite measurable_set_Ioi measurable_const _,
-    exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const, },
-end
-
-lemma measurable.ennreal_rpow {f : α → ℝ≥0∞} (hf : measurable f) {g : α → ℝ} (hg : measurable g) :
-  measurable (λ a : α, (f a) ^ (g a)) :=
-begin
-  change measurable ((λ p : ℝ≥0∞ × ℝ, p.1 ^ p.2) ∘ (λ a, (f a, g a))),
-  exact ennreal.measurable_rpow.comp (measurable.prod hf hg),
-end
-
-lemma measurable.ennreal_rpow_const {f : α → ℝ≥0∞} (hf : measurable f) {y : ℝ} :
-  measurable (λ a : α, (f a) ^ y) :=
-hf.ennreal_rpow measurable_const
-
-lemma ennreal.measurable_rpow_const {y : ℝ} : measurable (λ a : ℝ≥0∞, a ^ y) :=
-measurable_id.ennreal_rpow_const
-
-lemma ae_measurable.ennreal_rpow_const {α} [measurable_space α] {f : α → ℝ≥0∞}
-  {μ : measure_theory.measure α} (hf : ae_measurable f μ) {y : ℝ} :
-  ae_measurable (λ a : α, (f a) ^ y) μ :=
-ennreal.measurable_rpow_const.comp_ae_measurable hf
-
-end measurability_ennreal

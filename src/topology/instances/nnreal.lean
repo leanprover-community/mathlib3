@@ -47,7 +47,7 @@ open set topological_space metric filter
 open_locale topological_space
 
 namespace nnreal
-open_locale nnreal big_operators
+open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
@@ -66,7 +66,7 @@ section coe
 variable {α : Type*}
 open filter finset
 
-lemma continuous_of_real : continuous nnreal.of_real :=
+lemma continuous_of_real : continuous real.to_nnreal :=
 continuous_subtype_mk _ $ continuous_id.max continuous_const
 
 lemma continuous_coe : continuous (coe : ℝ≥0 → ℝ) :=
@@ -91,8 +91,14 @@ lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
 tendsto_Ici_at_top.symm
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
-  tendsto (λa, nnreal.of_real (m a)) f (𝓝 (nnreal.of_real x)) :=
+  tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
 (continuous_of_real.tendsto _).comp h
+
+lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
+nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, Iio a) :=
+nhds_bot_basis
 
 instance : has_continuous_sub ℝ≥0 :=
 ⟨continuous_subtype_mk _ $
@@ -108,10 +114,10 @@ instance : has_continuous_inv' ℝ≥0 :=
 by simp only [has_sum, coe_sum.symm, tendsto_coe]
 
 lemma has_sum_of_real_of_nonneg {f : α → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
-  has_sum (λ n, nnreal.of_real (f n)) (nnreal.of_real (∑' n, f n)) :=
+  has_sum (λ n, real.to_nnreal (f n)) (real.to_nnreal (∑' n, f n)) :=
 begin
-  have h_sum : (λ s, ∑ b in s, nnreal.of_real (f b)) = λ s, nnreal.of_real (∑ b in s, f b),
-    from funext (λ _, (of_real_sum_of_nonneg (λ n _, hf_nonneg n)).symm),
+  have h_sum : (λ s, ∑ b in s, real.to_nnreal (f b)) = λ s, real.to_nnreal (∑ b in s, f b),
+    from funext (λ _, (real.to_nnreal_sum_of_nonneg (λ n _, hf_nonneg n)).symm),
   simp_rw [has_sum, h_sum],
   exact tendsto_of_real hf.has_sum,
 end
@@ -171,8 +177,8 @@ end coe
 lemma tendsto_cofinite_zero_of_summable {α} {f : α → ℝ≥0} (hf : summable f) :
   tendsto f cofinite (𝓝 0) :=
 begin
-  have h_f_coe : f = λ n, nnreal.of_real (f n : ℝ), from funext (λ n, of_real_coe.symm),
-  rw [h_f_coe, ←@of_real_coe 0],
+  have h_f_coe : f = λ n, real.to_nnreal (f n : ℝ), from funext (λ n, real.to_nnreal_coe.symm),
+  rw [h_f_coe, ← @real.to_nnreal_coe 0],
   exact tendsto_of_real ((summable_coe.mpr hf).tendsto_cofinite_zero),
 end
 

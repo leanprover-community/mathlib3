@@ -17,13 +17,7 @@ namespace list
 
 open function nat native (rb_map mk_rb_map rb_map.of_list)
 universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
-
-/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
-def is_nil {α} : list α → bool
-| [] := tt
-| _  := ff
-
+variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
 
@@ -908,24 +902,61 @@ to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
 meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
 
+
+/-- Auxliary definition used to define `to_chunks`.
+
+  `to_chunks_aux n xs i` returns `(xs.take i, (xs.drop i).to_chunks (n+1))`,
+  that is, the first `i` elements of `xs`, and the remaining elements chunked into
+  sublists of length `n+1`. -/
+def to_chunks_aux {α} (n : ℕ) : list α → ℕ → list α × list (list α)
+| [] i := ([], [])
+| (x::xs) 0 := let (l, L) := to_chunks_aux xs n in ([], (x::l)::L)
+| (x::xs) (i+1) := let (l, L) := to_chunks_aux xs i in (x::l, L)
+
 /--
 `xs.to_chunks n` splits the list into sublists of size at most `n`,
 such that `(xs.to_chunks n).join = xs`.
 
-TODO: make non-meta; currently doesn't terminate, e.g.
 ```
-#eval [0].to_chunks 0
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 10 = [[1, 2, 3, 4, 5, 6, 7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 3 = [[1, 2, 3], [4, 5, 6], [7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 2 = [[1, 2], [3, 4], [5, 6], [7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 0 = [[1, 2, 3, 4, 5, 6, 7, 8]]
 ```
 -/
-meta def to_chunks {α} (n : ℕ) : list α → list (list α)
-| [] := []
-| xs :=
-  xs.take n :: (xs.drop n).to_chunks
+def to_chunks {α} : ℕ → list α → list (list α)
+| _ [] := []
+| 0 xs := [xs]
+| (n+1) (x::xs) := let (l, L) := to_chunks_aux n xs n in (x::l)::L
 
 /--
 Asynchronous version of `list.map`.
 -/
 meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
 ((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
+
+/-!
+We add some n-ary versions of `list.zip_with` for functions with more than two arguments.
+These can also be written in terms of `list.zip` or `list.zip_with`.
+For example, `zip_with3 f xs ys zs` could also be written as
+`zip_with id (zip_with f xs ys) zs`
+or as
+`(zip xs $ zip ys zs).map $ λ ⟨x, y, z⟩, f x y z`.
+-/
+
+/-- Ternary version of `list.zip_with`. -/
+def zip_with3 (f : α → β → γ → δ) : list α → list β → list γ → list δ
+| (x::xs) (y::ys) (z::zs) := f x y z :: zip_with3 xs ys zs
+| _       _       _       := []
+
+/-- Quaternary version of `list.zip_with`. -/
+def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → list γ → list δ → list ε
+| (x::xs) (y::ys) (z::zs) (u::us) := f x y z u :: zip_with4 xs ys zs us
+| _       _       _       _       := []
+
+/-- Quinary version of `list.zip_with`. -/
+def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
+| (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
+| _       _       _       _       _       := []
 
 end list

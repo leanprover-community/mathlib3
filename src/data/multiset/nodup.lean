@@ -94,6 +94,14 @@ theorem nodup_map {f : α → β} {s : multiset α} (hf : function.injective f) 
   nodup s → nodup (map f s) :=
 nodup_map_on (λ x _ y _ h, hf h)
 
+theorem inj_on_of_nodup_map {f : α → β} {s : multiset α} :
+  nodup (map f s) → ∀ (x ∈ s) (y ∈ s), f x = f y → x = y :=
+quot.induction_on s $ λ l, inj_on_of_nodup_map
+
+theorem nodup_map_iff_inj_on {f : α → β} {s : multiset α} (d : nodup s) :
+  nodup (map f s) ↔ (∀ (x ∈ s) (y ∈ s), f x = f y → x = y) :=
+⟨inj_on_of_nodup_map, λ h, nodup_map_on h d⟩
+
 theorem nodup_filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
 quot.induction_on s $ λ l, nodup_filter p
 

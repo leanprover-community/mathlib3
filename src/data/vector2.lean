@@ -278,8 +278,8 @@ theorem m_of_fn_pure {m} [monad m] [is_lawful_monad m] {α} :
 
 def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
-| _ ⟨[], rfl⟩   := pure nil
-| _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' ::ᵥ t')
+| 0 xs := pure nil
+| (n+1) xs := do h' ← f xs.head, t' ← @mmap n xs.tail, pure (h' ::ᵥ t')
 
 @[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
   mmap f nil = pure nil := rfl

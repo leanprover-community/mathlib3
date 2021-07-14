@@ -7,6 +7,24 @@ import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
 
+/-!
+# Simple objects
+
+We define simple objects in any category with zero morphisms.
+A simple object is an object `Y` such that any monomorphism `f : X ⟶ Y`
+is either an isomorphism or zero (but not both).
+
+This is formalized as a `Prop` valued typeclass `simple X`.
+
+If a morphism `f` out of a simple object is nonzero and has a kernel, then that kernel is zero.
+(We state this as `kernel.ι f = 0`, but should add `kernel f ≅ 0`.)
+
+When the category is abelian, being simple is the same as being cosimple (although we do not
+state a separate typeclass for this).
+As a consequence, any nonzero epimorphism out of a simple object is an isomorphism,
+and any nonzero morphism into a simple object has trivial cokernel.
+-/
+
 noncomputable theory
 
 open category_theory.limits
@@ -50,13 +68,16 @@ end
 lemma id_nonzero (X : C) [simple.{v} X] : 𝟙 X ≠ 0 :=
 (simple.mono_is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance)
 
+instance (X : C) [simple.{v} X] : nontrivial (End X) :=
+nontrivial_of_ne 1 0 (id_nonzero X)
+
 section
 variable [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- We don't want the definition of 'simple' to include the zero object, so we check that here. -/
 lemma zero_not_simple [simple (0 : C)] : false :=
-(simple.mono_is_iso_iff_nonzero (0 : (0 : C) ⟶ (0 : C))).mp ⟨0, by tidy⟩ rfl
+(simple.mono_is_iso_iff_nonzero (0 : (0 : C) ⟶ (0 : C))).mp ⟨⟨0, by tidy⟩⟩ rfl
 
 end
 end

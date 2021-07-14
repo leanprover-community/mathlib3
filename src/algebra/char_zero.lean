@@ -108,10 +108,63 @@ end
 section
 variables {R : Type*} [semiring R] [no_zero_divisors R] [char_zero R]
 
+@[simp]
 lemma add_self_eq_zero {a : R} : a + a = 0 ↔ a = 0 :=
 by simp only [(two_mul a).symm, mul_eq_zero, two_ne_zero', false_or]
 
+@[simp]
 lemma bit0_eq_zero {a : R} : bit0 a = 0 ↔ a = 0 := add_self_eq_zero
+@[simp]
+lemma zero_eq_bit0 {a : R} : 0 = bit0 a ↔ a = 0 :=
+by { rw [eq_comm], exact bit0_eq_zero }
+end
+
+section
+variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
+
+lemma neg_eq_self_iff {a : R} : -a = a ↔ a = 0 :=
+neg_eq_iff_add_eq_zero.trans add_self_eq_zero
+
+lemma eq_neg_self_iff {a : R} : a = -a ↔ a = 0 :=
+eq_neg_iff_add_eq_zero.trans add_self_eq_zero
+
+lemma nat_mul_inj {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) : n = 0 ∨ a = b :=
+begin
+  rw [←sub_eq_zero, ←mul_sub, mul_eq_zero, sub_eq_zero] at h,
+  exact_mod_cast h,
+end
+
+lemma nat_mul_inj' {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) (w : n ≠ 0) : a = b :=
+by simpa [w] using nat_mul_inj h
+
+lemma bit0_injective : function.injective (bit0 : R → R) :=
+λ a b h, begin
+  dsimp [bit0] at h,
+  simp only [(two_mul a).symm, (two_mul b).symm] at h,
+  refine nat_mul_inj' _ two_ne_zero,
+  exact_mod_cast h,
+end
+
+lemma bit1_injective : function.injective (bit1 : R → R) :=
+λ a b h, begin
+  simp only [bit1, add_left_inj] at h,
+  exact bit0_injective h,
+end
+
+@[simp] lemma bit0_eq_bit0 {a b : R} : bit0 a = bit0 b ↔ a = b :=
+bit0_injective.eq_iff
+
+@[simp] lemma bit1_eq_bit1 {a b : R} : bit1 a = bit1 b ↔ a = b :=
+bit1_injective.eq_iff
+
+@[simp]
+lemma bit1_eq_one {a : R} : bit1 a = 1 ↔ a = 0 :=
+by rw [show (1 : R) = bit1 0, by simp, bit1_eq_bit1]
+
+@[simp]
+lemma one_eq_bit1 {a : R} : 1 = bit1 a ↔ a = 0 :=
+by { rw [eq_comm], exact bit1_eq_one }
+
 end
 
 section
@@ -137,3 +190,17 @@ instance {R : Type*} [add_monoid R] [has_one R] [char_zero R] : char_zero (with_
 { cast_injective := λ m n h, by rwa [← coe_nat, ← coe_nat n, coe_eq_coe, nat.cast_inj] at h }
 
 end with_top
+
+section ring_hom
+
+variables {R S : Type*} [semiring R] [semiring S]
+
+lemma ring_hom.char_zero (ϕ : R →+* S) [hS : char_zero S] : char_zero R :=
+⟨λ a b h, char_zero.cast_injective (by rw [←ϕ.map_nat_cast, ←ϕ.map_nat_cast, h])⟩
+
+lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) :
+  char_zero R ↔ char_zero S :=
+⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, ϕ.map_nat_cast, ϕ.map_nat_cast]⟩,
+  λ hS, by exactI ϕ.char_zero⟩
+
+end ring_hom

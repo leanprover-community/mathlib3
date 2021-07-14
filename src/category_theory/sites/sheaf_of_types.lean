@@ -895,7 +895,7 @@ def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 
 /-- The inclusion functor from sheaves to presheaves. -/
-@[simps, derive [full, faithful]]
+@[simps {rhs_md := semireducible}, derive [full, faithful]]
 def SheafOfTypes_to_presheaf : SheafOfTypes J ⥤ (Cᵒᵖ ⥤ Type v) :=
 full_subcategory_inclusion (presieve.is_sheaf J)
 

@@ -79,7 +79,7 @@ Construct limit data for a product in `AddCommGroup`, using `AddCommGroup.of (Π
 def product_limit_cone : limits.limit_cone F :=
 { cone :=
   { X := AddCommGroup.of (Π j, F.obj j),
-    π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
+    π := discrete.nat_trans (λ j, pi.eval_add_monoid_hom (λ j, F.obj j) j), },
   is_limit :=
   { lift := lift F,
     fac' := λ s j, by { ext, simp, },

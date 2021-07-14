@@ -344,6 +344,7 @@ lemma disjoint_range {i₁ i₂ : fin c.length} (h : i₁ ≠ i₂) :
 begin
   classical,
   wlog h' : i₁ ≤ i₂ using i₁ i₂,
+  swap, exact (this h.symm).symm,
   by_contradiction d,
   obtain ⟨x, hx₁, hx₂⟩ :
     ∃ x : fin n, (x ∈ set.range (c.embedding i₁) ∧ x ∈ set.range (c.embedding i₂)) :=
@@ -543,12 +544,10 @@ begin
     { intros j,
       by_contradiction ji,
       apply lt_irrefl ∑ k, c.blocks_fun k,
-      calc ∑ k, c.blocks_fun k ≤ ∑ k in {i}, c.blocks_fun k : by simp [c.sum_blocks_fun, hi]
-      ... < ∑ k, c.blocks_fun k : begin
-        have : j ∈ finset.univ \ {i}, by { rw [finset.mem_sdiff, finset.mem_singleton], simp [ji] },
-        refine finset.sum_lt_sum_of_subset (finset.subset_univ _) this (c.one_le_blocks_fun j) _,
-        exact λ k hk, zero_le_one.trans (c.one_le_blocks_fun k)
-      end },
+      calc ∑ k, c.blocks_fun k ≤ c.blocks_fun i      : by simp only [c.sum_blocks_fun, hi]
+                           ... < ∑ k, c.blocks_fun k :
+        finset.single_lt_sum ji (finset.mem_univ _) (finset.mem_univ _) (c.one_le_blocks_fun j)
+          (λ _ _ _, zero_le _) },
     simpa using fintype.card_eq_one_of_forall_eq this }
 end
 

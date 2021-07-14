@@ -163,7 +163,7 @@ local notation `∞` := (⊤ : with_top ℕ)
 universes u v w
 
 local attribute [instance, priority 1001]
-normed_group.to_add_comm_group normed_space.to_semimodule add_comm_group.to_add_comm_monoid
+normed_group.to_add_comm_group normed_space.to_module add_comm_group.to_add_comm_monoid
 
 open set fin
 open_locale topological_space
@@ -286,7 +286,7 @@ of order `1` of this series is a derivative of `f` at `x`. -/
 lemma has_ftaylor_series_up_to_on.has_fderiv_at {n : with_top ℕ}
   (h : has_ftaylor_series_up_to_on n f p s) (hn : 1 ≤ n) (hx : s ∈ 𝓝 x) :
   has_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) x :=
-(h.has_fderiv_within_at hn (mem_of_nhds hx)).has_fderiv_at hx
+(h.has_fderiv_within_at hn (mem_of_mem_nhds hx)).has_fderiv_at hx
 
 /-- If a function has a Taylor series at order at least `1` on a neighborhood of `x`, then
 in a neighborhood of `x`, the term of order `1` of this series is a derivative of `f`. -/
@@ -511,7 +511,7 @@ begin
   rcases mem_nhds_within.1 hu with ⟨t, t_open, xt, tu⟩,
   rw inter_comm at tu,
   have := ((H.mono tu).differentiable_on (le_refl _)) x ⟨mem_insert x s, xt⟩,
-  exact (differentiable_within_at_inter (mem_nhds_sets t_open xt)).1 this,
+  exact (differentiable_within_at_inter (is_open.mem_nhds t_open xt)).1 this,
 end
 
 lemma times_cont_diff_within_at.differentiable_within_at {n : with_top ℕ}
@@ -656,7 +656,7 @@ begin
   assume x xs,
   rcases h x xs with ⟨u, u_open, xu, hu⟩,
   apply (times_cont_diff_within_at_inter _).1 (hu x ⟨xs, xu⟩),
-  exact mem_nhds_sets u_open xu
+  exact is_open.mem_nhds u_open xu
 end
 
 /-- A function is `C^(n + 1)` on a domain iff locally, it has a derivative which is `C^n`. -/
@@ -793,8 +793,8 @@ begin
       fderiv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx),
     have B : fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f s y) (s ∩ u) x
            = fderiv_within 𝕜 (λ y, iterated_fderiv_within 𝕜 n f s y) s x :=
-      fderiv_within_inter (mem_nhds_sets hu hx.2)
-        ((unique_diff_within_at_inter (mem_nhds_sets hu hx.2)).1 (hs x hx)),
+      fderiv_within_inter (is_open.mem_nhds hu hx.2)
+        ((unique_diff_within_at_inter (is_open.mem_nhds hu hx.2)).1 (hs x hx)),
     ext m,
     rw [iterated_fderiv_within_succ_apply_left, iterated_fderiv_within_succ_apply_left, A, B] }
 end
@@ -890,14 +890,14 @@ begin
     rw inter_comm at ho,
     have : p x m.succ = ftaylor_series_within 𝕜 f s x m.succ,
     { change p x m.succ = iterated_fderiv_within 𝕜 m.succ f s x,
-      rw ← iterated_fderiv_within_inter (mem_nhds_sets o_open xo) hs hx,
+      rw ← iterated_fderiv_within_inter (is_open.mem_nhds o_open xo) hs hx,
       exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on (le_refl _)
         (hs.inter o_open) ⟨hx, xo⟩ },
-    rw [← this, ← has_fderiv_within_at_inter (mem_nhds_sets o_open xo)],
+    rw [← this, ← has_fderiv_within_at_inter (is_open.mem_nhds o_open xo)],
     have A : ∀ y ∈ s ∩ o, p y m = ftaylor_series_within 𝕜 f s y m,
     { rintros y ⟨hy, yo⟩,
       change p y m = iterated_fderiv_within 𝕜 m f s y,
-      rw ← iterated_fderiv_within_inter (mem_nhds_sets o_open yo) hs hy,
+      rw ← iterated_fderiv_within_inter (is_open.mem_nhds o_open yo) hs hy,
       exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on (with_top.coe_le_coe.2 (nat.le_succ m))
         (hs.inter o_open) ⟨hy, yo⟩ },
     exact ((Hp.mono ho).fderiv_within m (with_top.coe_lt_coe.2 (lt_add_one m)) x ⟨hx, xo⟩).congr
@@ -913,7 +913,7 @@ begin
     have A : ∀ y ∈ s ∩ o, p y m = ftaylor_series_within 𝕜 f s y m,
     { rintros y ⟨hy, yo⟩,
       change p y m = iterated_fderiv_within 𝕜 m f s y,
-      rw ← iterated_fderiv_within_inter (mem_nhds_sets o_open yo) hs hy,
+      rw ← iterated_fderiv_within_inter (is_open.mem_nhds o_open yo) hs hy,
       exact (Hp.mono ho).eq_ftaylor_series_of_unique_diff_on (le_refl _)
         (hs.inter o_open) ⟨hy, yo⟩ },
     exact ((Hp.mono ho).cont m (le_refl _)).congr (λ y hy, (A y hy).symm) }
@@ -989,7 +989,7 @@ begin
     rcases mem_nhds_within.1 hu with ⟨o, o_open, xo, ho⟩,
     rw [inter_comm, insert_eq_of_mem hx] at ho,
     have := hf'.mono ho,
-    rw times_cont_diff_within_at_inter' (mem_nhds_within_of_mem_nhds (mem_nhds_sets o_open xo))
+    rw times_cont_diff_within_at_inter' (mem_nhds_within_of_mem_nhds (is_open.mem_nhds o_open xo))
       at this,
     apply this.congr_of_eventually_eq' _ hx,
     have : o ∩ s ∈ 𝓝[s] x := mem_nhds_within.2 ⟨o, o_open, xo, subset.refl _⟩,
@@ -997,7 +997,7 @@ begin
     apply filter.eventually_eq_of_mem this (λ y hy, _),
     have A : fderiv_within 𝕜 f (s ∩ o) y = f' y :=
       ((hff' y (ho hy)).mono ho).fderiv_within (hs.inter o_open y hy),
-    rwa fderiv_within_inter (mem_nhds_sets o_open hy.2) (hs y hy.1) at A, },
+    rwa fderiv_within_inter (is_open.mem_nhds o_open hy.2) (hs y hy.1) at A, },
   { rintros ⟨hdiff, h⟩ x hx,
     rw [times_cont_diff_within_at_succ_iff_has_fderiv_within_at, insert_eq_of_mem hx],
     exact ⟨s, self_mem_nhds_within, fderiv_within 𝕜 f s,
@@ -1239,12 +1239,12 @@ begin
   simp only [nhds_within_univ, exists_prop, mem_univ, insert_eq_of_mem],
   split,
   { rintros ⟨u, H, f', h_fderiv, h_times_cont_diff⟩,
-    rcases mem_nhds_sets_iff.mp H with ⟨t, htu, ht, hxt⟩,
+    rcases mem_nhds_iff.mp H with ⟨t, htu, ht, hxt⟩,
     refine ⟨f', ⟨t, _⟩, h_times_cont_diff.times_cont_diff_at H⟩,
-    refine ⟨mem_nhds_sets_iff.mpr ⟨t, subset.rfl, ht, hxt⟩, _⟩,
+    refine ⟨mem_nhds_iff.mpr ⟨t, subset.rfl, ht, hxt⟩, _⟩,
     intros y hyt,
     refine (h_fderiv y (htu hyt)).has_fderiv_at _,
-    exact mem_nhds_sets_iff.mpr ⟨t, htu, ht, hyt⟩ },
+    exact mem_nhds_iff.mpr ⟨t, htu, ht, hyt⟩ },
   { rintros ⟨f', ⟨u, H, h_fderiv⟩, h_times_cont_diff⟩,
     refine ⟨u, H, f', _, h_times_cont_diff.times_cont_diff_within_at⟩,
     intros x hxu,
@@ -2314,25 +2314,25 @@ times_cont_diff_mul.comp (hf.prod hg)
 lemma times_cont_diff_within_at.div_const {f : E → 𝕜} {n} {c : 𝕜}
   (hf : times_cont_diff_within_at 𝕜 n f s x) :
   times_cont_diff_within_at 𝕜 n (λ x, f x / c) s x :=
-hf.mul times_cont_diff_within_at_const
+by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_within_at_const
 
 lemma times_cont_diff_at.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff_at 𝕜 n f x) :
   times_cont_diff_at 𝕜 n (λ x, f x / c) x :=
-hf.mul times_cont_diff_at_const
+by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_at_const
 
 lemma times_cont_diff_on.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff_on 𝕜 n f s) :
   times_cont_diff_on 𝕜 n (λ x, f x / c) s :=
-hf.mul times_cont_diff_on_const
+by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_on_const
 
 lemma times_cont_diff.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff 𝕜 n f) :
   times_cont_diff 𝕜 n (λ x, f x / c) :=
-hf.mul times_cont_diff_const
+by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_const
 
 lemma times_cont_diff.pow {n : with_top ℕ} {f : E → 𝕜}
   (hf : times_cont_diff 𝕜 n f) :
   ∀ m : ℕ, times_cont_diff 𝕜 n (λ x, (f x) ^ m)
-| 0 := by simpa using times_cont_diff_const
-| (m + 1) := hf.mul (times_cont_diff.pow m)
+| 0       := by simpa using times_cont_diff_const
+| (m + 1) := by simpa [pow_succ] using hf.mul (times_cont_diff.pow m)
 
 lemma times_cont_diff_at.pow {n : with_top ℕ} {f : E → 𝕜} (hf : times_cont_diff_at 𝕜 n f x)
   (m : ℕ) : times_cont_diff_at 𝕜 n (λ y, f y ^ m) x :=
@@ -2516,7 +2516,7 @@ lemma times_cont_diff_within_at.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x)
   (hx : g x ≠ 0) :
   times_cont_diff_within_at 𝕜 n (λ x, f x / g x) s x :=
-hf.mul (hg.inv hx)
+by simpa only [div_eq_mul_inv] using hf.mul (hg.inv hx)
 
 lemma times_cont_diff_on.div [complete_space 𝕜] {f g : E → 𝕜} {n}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) (h₀ : ∀ x ∈ s, g x ≠ 0) :
@@ -2591,13 +2591,13 @@ begin
   -- We prove this by induction on `n`
   induction n using with_top.nat_induction with n IH Itop,
   { rw times_cont_diff_at_zero,
-    exact ⟨f.target, mem_nhds_sets f.open_target ha, f.continuous_inv_fun⟩ },
+    exact ⟨f.target, is_open.mem_nhds f.open_target ha, f.continuous_inv_fun⟩ },
   { obtain ⟨f', ⟨u, hu, hff'⟩, hf'⟩ := times_cont_diff_at_succ_iff_has_fderiv_at.mp hf,
     apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
     -- For showing `n.succ` times continuous differentiability (the main inductive step), it
     -- suffices to produce the derivative and show that it is `n` times continuously differentiable
     have eq_f₀' : f' (f.symm a) = f₀',
-    { exact (hff' (f.symm a) (mem_of_nhds hu)).unique hf₀' },
+    { exact (hff' (f.symm a) (mem_of_mem_nhds hu)).unique hf₀' },
     -- This follows by a bootstrapping formula expressing the derivative as a function of `f` itself
     refine ⟨inverse ∘ f' ∘ f.symm, _, _⟩,
     { -- We first check that the derivative of `f` is that formula
@@ -2605,9 +2605,9 @@ begin
       { have hf₀' := f₀'.nhds,
         rw ← eq_f₀' at hf₀',
         exact hf'.continuous_at.preimage_mem_nhds hf₀' },
-      obtain ⟨t, htu, ht, htf⟩ := mem_nhds_sets_iff.mp (filter.inter_mem_sets hu h_nhds),
+      obtain ⟨t, htu, ht, htf⟩ := mem_nhds_iff.mp (filter.inter_mem_sets hu h_nhds),
       use f.target ∩ (f.symm) ⁻¹' t,
-      refine ⟨mem_nhds_sets _ _, _⟩,
+      refine ⟨is_open.mem_nhds _ _, _⟩,
       { exact f.preimage_open_of_open_symm ht },
       { exact mem_inter ha (mem_preimage.mpr htf) },
       intros x hx,

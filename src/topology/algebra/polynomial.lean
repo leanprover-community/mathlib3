@@ -68,7 +68,6 @@ variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   [topological_space A] [topological_semiring A]
   (p : polynomial R)
 
-
 @[continuity]
 protected lemma continuous_aeval : continuous (λ x : A, aeval x p) :=
 p.continuous_eval₂ _

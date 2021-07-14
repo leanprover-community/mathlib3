@@ -259,7 +259,7 @@ end resp
 /-- A set function is "definable" if it is the image of some n-ary pre-set
   function. This isn't exactly definability, but is useful as a sufficient
   condition for functions that have a computable image. -/
-@[class] inductive definable (n) : arity Set.{u} n → Type (u+1)
+class inductive definable (n) : arity Set.{u} n → Type (u+1)
 | mk (f) : definable (resp.eval _ f)
 attribute [instance] definable.mk
 

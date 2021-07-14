@@ -299,7 +299,7 @@ begin
   exact add_nonneg C.coe_nonneg ε0.le,
   have hs' := hs, rw [← map_add_left_nhds_zero x₀, mem_map] at hs',
   filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hs'], intros y hy hys,
-  have := hlip.norm_sub_le hys (mem_of_nhds hs), rw add_sub_cancel' at this,
+  have := hlip.norm_sub_le hys (mem_of_mem_nhds hs), rw add_sub_cancel' at this,
   calc ∥f' y∥ ≤ ∥f (x₀ + y) - f x₀∥ + ∥f (x₀ + y) - f x₀ - f' y∥ : norm_le_insert _ _
           ... ≤ C * ∥y∥ + ε * ∥y∥                                : add_le_add this hy
           ... = (C + ε) * ∥y∥                                    : (add_mul _ _ _).symm
@@ -359,7 +359,7 @@ begin
   refine (has_fderiv_within_at_univ.2 hf).lim _ (univ_mem_sets' (λ _, trivial)) hc _,
   assume U hU,
   refine (eventually_ne_of_tendsto_norm_at_top hc (0:𝕜)).mono (λ y hy, _),
-  convert mem_of_nhds hU,
+  convert mem_of_mem_nhds hU,
   dsimp only,
   rw [← mul_smul, mul_inv_cancel hy, one_smul]
 end
@@ -494,7 +494,7 @@ lemma differentiable_on_of_locally_differentiable_on
 begin
   assume x xs,
   rcases h x xs with ⟨t, t_open, xt, ht⟩,
-  exact (differentiable_within_at_inter (mem_nhds_sets t_open xt)).1 (ht x ⟨xs, xt⟩)
+  exact (differentiable_within_at_inter (is_open.mem_nhds t_open xt)).1 (ht x ⟨xs, xt⟩)
 end
 
 lemma fderiv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
@@ -537,7 +537,7 @@ end
 
 lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
-fderiv_within_of_mem_nhds (mem_nhds_sets hs hx)
+fderiv_within_of_mem_nhds (is_open.mem_nhds hs hx)
 
 lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_at 𝕜 f x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
@@ -660,7 +660,7 @@ has_fderiv_at_filter.congr_of_eventually_eq h h₁ hx
 
 lemma has_fderiv_at.congr_of_eventually_eq (h : has_fderiv_at f f' x)
   (h₁ : f₁ =ᶠ[𝓝 x] f) : has_fderiv_at f₁ f' x :=
-has_fderiv_at_filter.congr_of_eventually_eq h h₁ (mem_of_nhds h₁ : _)
+has_fderiv_at_filter.congr_of_eventually_eq h h₁ (mem_of_mem_nhds h₁ : _)
 
 lemma differentiable_within_at.congr_mono (h : differentiable_within_at 𝕜 f s x)
   (ht : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (h₁ : t ⊆ s) : differentiable_within_at 𝕜 f₁ t x :=
@@ -691,7 +691,7 @@ lemma differentiable_on_congr (h' : ∀x ∈ s, f₁ x = f x) :
 lemma differentiable_at.congr_of_eventually_eq (h : differentiable_at 𝕜 f x) (hL : f₁ =ᶠ[𝓝 x] f) :
   differentiable_at 𝕜 f₁ x :=
 has_fderiv_at.differentiable_at
-  (has_fderiv_at_filter.congr_of_eventually_eq h.has_fderiv_at hL (mem_of_nhds hL : _))
+  (has_fderiv_at_filter.congr_of_eventually_eq h.has_fderiv_at hL (mem_of_mem_nhds hL : _))
 
 lemma differentiable_within_at.fderiv_within_congr_mono (h : differentiable_within_at 𝕜 f s x)
   (hs : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (hxt : unique_diff_within_at 𝕜 t x) (h₁ : t ⊆ s) :
@@ -1223,7 +1223,7 @@ section fst
 
 variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 
-lemma has_strict_fderiv_at_fst : has_strict_fderiv_at prod.fst (fst 𝕜 E F) p :=
+lemma has_strict_fderiv_at_fst : has_strict_fderiv_at (fst 𝕜 E F) (fst 𝕜 E F) p :=
 (fst 𝕜 E F).has_strict_fderiv_at
 
 protected lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x) :
@@ -1231,14 +1231,14 @@ protected lemma has_strict_fderiv_at.fst (h : has_strict_fderiv_at f₂ f₂' x)
 has_strict_fderiv_at_fst.comp x h
 
 lemma has_fderiv_at_filter_fst {L : filter (E × F)} :
-  has_fderiv_at_filter prod.fst (fst 𝕜 E F) p L :=
+  has_fderiv_at_filter (fst 𝕜 E F) (fst 𝕜 E F) p L :=
 (fst 𝕜 E F).has_fderiv_at_filter
 
 protected lemma has_fderiv_at_filter.fst (h : has_fderiv_at_filter f₂ f₂' x L) :
   has_fderiv_at_filter (λ x, (f₂ x).1) ((fst 𝕜 F G).comp f₂') x L :=
 has_fderiv_at_filter_fst.comp x h
 
-lemma has_fderiv_at_fst : has_fderiv_at prod.fst (fst 𝕜 E F) p :=
+lemma has_fderiv_at_fst : has_fderiv_at (fst 𝕜 E F) (fst 𝕜 E F) p :=
 has_fderiv_at_filter_fst
 
 protected lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
@@ -1246,7 +1246,7 @@ protected lemma has_fderiv_at.fst (h : has_fderiv_at f₂ f₂' x) :
 h.fst
 
 lemma has_fderiv_within_at_fst {s : set (E × F)} :
-  has_fderiv_within_at prod.fst (fst 𝕜 E F) s p :=
+  has_fderiv_within_at (fst 𝕜 E F) (fst 𝕜 E F) s p :=
 has_fderiv_at_filter_fst
 
 protected lemma has_fderiv_within_at.fst (h : has_fderiv_within_at f₂ f₂' s x) :
@@ -1301,7 +1301,7 @@ section snd
 
 variables {f₂ : E → F × G} {f₂' : E →L[𝕜] F × G} {p : E × F}
 
-lemma has_strict_fderiv_at_snd : has_strict_fderiv_at prod.snd (snd 𝕜 E F) p :=
+lemma has_strict_fderiv_at_snd : has_strict_fderiv_at (snd 𝕜 E F) (snd 𝕜 E F) p :=
 (snd 𝕜 E F).has_strict_fderiv_at
 
 protected lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x) :
@@ -1309,14 +1309,14 @@ protected lemma has_strict_fderiv_at.snd (h : has_strict_fderiv_at f₂ f₂' x)
 has_strict_fderiv_at_snd.comp x h
 
 lemma has_fderiv_at_filter_snd {L : filter (E × F)} :
-  has_fderiv_at_filter prod.snd (snd 𝕜 E F) p L :=
+  has_fderiv_at_filter (snd 𝕜 E F) (snd 𝕜 E F) p L :=
 (snd 𝕜 E F).has_fderiv_at_filter
 
 protected lemma has_fderiv_at_filter.snd (h : has_fderiv_at_filter f₂ f₂' x L) :
   has_fderiv_at_filter (λ x, (f₂ x).2) ((snd 𝕜 F G).comp f₂') x L :=
 has_fderiv_at_filter_snd.comp x h
 
-lemma has_fderiv_at_snd : has_fderiv_at prod.snd (snd 𝕜 E F) p :=
+lemma has_fderiv_at_snd : has_fderiv_at (snd 𝕜 E F) (snd 𝕜 E F) p :=
 has_fderiv_at_filter_snd
 
 protected lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
@@ -1324,7 +1324,7 @@ protected lemma has_fderiv_at.snd (h : has_fderiv_at f₂ f₂' x) :
 h.snd
 
 lemma has_fderiv_within_at_snd {s : set (E × F)} :
-  has_fderiv_within_at prod.snd (snd 𝕜 E F) s p :=
+  has_fderiv_within_at (snd 𝕜 E F) (snd 𝕜 E F) s p :=
 has_fderiv_at_filter_snd
 
 protected lemma has_fderiv_within_at.snd (h : has_fderiv_within_at f₂ f₂' s x) :
@@ -2118,7 +2118,7 @@ protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜]
 begin
   nontriviality E,
   rw [is_open_iff_mem_nhds, forall_range_iff],
-  refine λ e, mem_nhds_sets _ (mem_range_self _),
+  refine λ e, is_open.mem_nhds _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
   have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_left,
   convert units.is_open.preimage h_O using 1,
@@ -2134,7 +2134,7 @@ end
 
 protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :
   (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) ∈ 𝓝 (e : E →L[𝕜] F) :=
-mem_nhds_sets continuous_linear_equiv.is_open (by simp)
+is_open.mem_nhds continuous_linear_equiv.is_open (by simp)
 
 end continuous_linear_equiv
 

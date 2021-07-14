@@ -48,13 +48,13 @@ begin
   { refine λ x, le_trans (h x) _,
     rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
     swap, { exact add_nonneg (by simp) (by simp), },
-    refine le_trans _ (half_le_self (add_nonneg (pow_two_nonneg _) (pow_two_nonneg _))),
-    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr ((le_of_eq _).trans (two_mul_le_add_pow_two _ _)),
+    refine le_trans _ (half_le_self (add_nonneg (sq_nonneg _) (sq_nonneg _))),
+    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
     ring, },
   simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
   refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
-  { exact (Lp.ae_measurable f).norm.rpow_const, },
-  { exact (Lp.ae_measurable g).norm.rpow_const, },
+  { exact (Lp.ae_measurable f).norm.pow_const _ },
+  { exact (Lp.ae_measurable g).norm.pow_const _ },
   simp only [nat.cast_bit0, ennreal.add_lt_top, nat.cast_one],
   exact ⟨snorm_rpow_two_norm_lt_top f, snorm_rpow_two_norm_lt_top g⟩,
 end
@@ -75,8 +75,8 @@ begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,
   rw integral_eq_lintegral_of_nonneg_ae,
-  swap, { exact filter.eventually_of_forall (λ x, pow_two_nonneg _), },
-  swap, { exact (Lp.ae_measurable f).norm.pow, },
+  swap, { exact filter.eventually_of_forall (λ x, sq_nonneg _), },
+  swap, { exact (Lp.ae_measurable f).norm.pow_const _ },
   congr,
   ext1 x,
   have h_two : (2 : ℝ) = ((2 : ℕ) : ℝ), by simp,
@@ -134,5 +134,107 @@ instance inner_product_space : inner_product_space 𝕜 (α →₂[μ] E) :=
 
 end inner_product_space
 
+section indicator_const_Lp
+
+variables [measurable_space 𝕜] [borel_space 𝕜] {s : set α}
+
+variables (𝕜)
+
+/-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs c` and `f` is
+equal to the integral of the inner product over `s`: `∫ x in s, ⟪c, f x⟫ ∂μ`. -/
+lemma inner_indicator_const_Lp_eq_set_integral_inner (f : Lp E 2 μ) (hs : measurable_set s) (c : E)
+  (hμs : μ s ≠ ∞) :
+  inner (indicator_const_Lp 2 hs hμs c) f = ∫ x in s, ⟪c, f x⟫ ∂μ :=
+begin
+  rw [inner_def, ← integral_add_compl hs (L2.integrable_inner _ f)],
+  have h_left : ∫ x in s, ⟪(indicator_const_Lp 2 hs hμs c) x, f x⟫ ∂μ = ∫ x in s, ⟪c, f x⟫ ∂μ,
+  { suffices h_ae_eq : ∀ᵐ x ∂μ, x ∈ s → ⟪indicator_const_Lp 2 hs hμs c x, f x⟫ = ⟪c, f x⟫,
+      from set_integral_congr_ae hs h_ae_eq,
+    have h_indicator : ∀ᵐ (x : α) ∂μ, x ∈ s → (indicator_const_Lp 2 hs hμs c x) = c,
+      from indicator_const_Lp_coe_fn_mem,
+    refine h_indicator.mono (λ x hx hxs, _),
+    congr,
+    exact hx hxs, },
+  have h_right : ∫ x in sᶜ, ⟪(indicator_const_Lp 2 hs hμs c) x, f x⟫ ∂μ = 0,
+  { suffices h_ae_eq : ∀ᵐ x ∂μ, x ∉ s → ⟪indicator_const_Lp 2 hs hμs c x, f x⟫ = 0,
+    { simp_rw ← set.mem_compl_iff at h_ae_eq,
+      suffices h_int_zero : ∫ x in sᶜ, inner (indicator_const_Lp 2 hs hμs c x) (f x) ∂μ
+        = ∫ x in sᶜ, (0 : 𝕜) ∂μ,
+      { rw h_int_zero,
+        simp, },
+      exact set_integral_congr_ae hs.compl h_ae_eq, },
+    have h_indicator : ∀ᵐ (x : α) ∂μ, x ∉ s → (indicator_const_Lp 2 hs hμs c x) = 0,
+      from indicator_const_Lp_coe_fn_nmem,
+    refine h_indicator.mono (λ x hx hxs, _),
+    rw hx hxs,
+    exact inner_zero_left, },
+  rw [h_left, h_right, add_zero],
+end
+
+/-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs c` and `f` is
+equal to the inner product of the constant `c` and the integral of `f` over `s`. -/
+lemma inner_indicator_const_Lp_eq_inner_set_integral [complete_space E] [normed_space ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) (f : Lp E 2 μ) :
+  inner (indicator_const_Lp 2 hs hμs c) f = ⟪c, ∫ x in s, f x ∂μ⟫ :=
+by rw [← integral_inner (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs),
+    L2.inner_indicator_const_Lp_eq_set_integral_inner]
+
+variables {𝕜}
+
+/-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs (1 : ℝ)` and
+a real function `f` is equal to the integral of `f` over `s`. -/
+lemma inner_indicator_const_Lp_one (hs : measurable_set s) (hμs : μ s ≠ ∞) (f : Lp ℝ 2 μ) :
+  inner (indicator_const_Lp 2 hs hμs (1 : ℝ)) f = ∫ x in s, f x ∂μ :=
+by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral ℝ hs hμs (1 : ℝ) f, simp, }
+
+end indicator_const_Lp
+
 end L2
+
+section inner_continuous
+
+variables {α : Type*} [topological_space α] [measure_space α] [borel_space α] {𝕜 : Type*}
+  [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+variables (μ : measure α) [finite_measure μ]
+
+open_locale bounded_continuous_function
+
+local attribute [instance] fact_one_le_two_ennreal
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 (α →₂[μ] 𝕜) _ x y
+
+/-- For bounded continuous functions `f`, `g` on a finite-measure topological space `α`, the L^2
+inner product is the integral of their pointwise inner product. -/
+lemma bounded_continuous_function.inner_to_Lp (f g : α →ᵇ 𝕜) :
+  ⟪bounded_continuous_function.to_Lp 2 μ 𝕜 f, bounded_continuous_function.to_Lp 2 μ 𝕜 g⟫
+  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+begin
+  apply integral_congr_ae,
+  have hf_ae := f.coe_fn_to_Lp μ,
+  have hg_ae := g.coe_fn_to_Lp μ,
+  filter_upwards [hf_ae, hg_ae],
+  intros x hf hg,
+  rw [hf, hg],
+  simp
+end
+
+variables [compact_space α]
+
+/-- For continuous functions `f`, `g` on a compact, finite-measure topological space `α`, the L^2
+inner product is the integral of their pointwise inner product. -/
+lemma continuous_map.inner_to_Lp (f g : C(α, 𝕜)) :
+  ⟪continuous_map.to_Lp 2 μ 𝕜 f, continuous_map.to_Lp 2 μ 𝕜 g⟫
+  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+begin
+  apply integral_congr_ae,
+  have hf_ae := f.coe_fn_to_Lp μ,
+  have hg_ae := g.coe_fn_to_Lp μ,
+  filter_upwards [hf_ae, hg_ae],
+  intros x hf hg,
+  rw [hf, hg],
+  simp
+end
+
+end inner_continuous
+
 end measure_theory

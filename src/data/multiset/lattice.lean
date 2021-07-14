@@ -59,6 +59,15 @@ by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_add]; simp
   (ndinsert a s).sup = a ⊔ s.sup :=
 by rw [← sup_erase_dup, erase_dup_ext.2, sup_erase_dup, sup_cons]; simp
 
+lemma nodup_sup_iff {α : Type*} [decidable_eq α] {m : multiset (multiset α) } :
+  m.sup.nodup ↔ ∀ (a : multiset α), a ∈ m → a.nodup :=
+begin
+  apply m.induction_on,
+  { simp },
+  { intros a s h,
+    simp [h] }
+end
+
 end sup
 
 /-! ### inf -/

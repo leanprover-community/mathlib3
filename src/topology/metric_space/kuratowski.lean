@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.isometry
-import topology.bounded_continuous_function
+import topology.continuous_function.bounded
 import topology.compacts
 
 /-!
@@ -105,4 +105,4 @@ def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [comp
   [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
 ⟨range (Kuratowski_embedding α), range_nonempty _,
-  compact_range (Kuratowski_embedding.isometry α).continuous⟩
+  is_compact_range (Kuratowski_embedding.isometry α).continuous⟩

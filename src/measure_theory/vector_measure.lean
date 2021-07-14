@@ -69,7 +69,6 @@ initialize_simps_projections vector_measure (measure_of → apply)
 
 @[simp]
 lemma measure_of_eq_coe (v : vector_measure α M) : v.measure_of = v := rfl
-lemma apply (v : vector_measure α M) (i : set α) : v.measure_of i = v i := rfl
 
 @[simp]
 lemma of_empty (v : vector_measure α M) : v ∅ = 0 := v.empty

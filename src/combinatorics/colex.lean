@@ -119,7 +119,7 @@ begin
 end
 
 /-- A special case of `colex.hom_lt_iff` which is sometimes useful. -/
-@[simp] lemma hom_fin {n : ℕ} (A B : finset (fin n)) :
+@[simp] lemma hom_fin_lt_iff {n : ℕ} (A B : finset (fin n)) :
   (A.image (λ i : fin n, (i : ℕ))).to_colex < (B.image (λ i : fin n, (i : ℕ))).to_colex
    ↔ A.to_colex < B.to_colex :=
 colex.hom_lt_iff (λ x y k, k) _ _

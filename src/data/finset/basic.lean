@@ -2613,7 +2613,8 @@ ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_pr
 begin
   ext x,
   simp only [mem_bUnion, exists_prop, mem_product],
-  exact ⟨λ ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩, ⟨a, ha, b, hb, hx⟩, λ ⟨a, ha, b, hb, hx⟩, ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩⟩,
+  exact ⟨λ ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩, ⟨a, ha, b, hb, hx⟩,
+    λ ⟨a, ha, b, hb, hx⟩, ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩⟩,
 end
 
 @[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=

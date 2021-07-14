@@ -1281,6 +1281,15 @@ lemma cod_restrict_apply {G : Type*} [group G] {N : Type*} [group N] (f : G →*
   (S : subgroup N) (h : ∀ (x : G), f x ∈ S) {x : G} :
     f.cod_restrict S h x = ⟨f x, h x⟩ := rfl
 
+@[to_additive] lemma range_subgroup_of_eq_of_le {G₁ G₂ : Type*} [group G₁] [group G₂]
+  {K : subgroup G₂} (f : G₁ →* G₂) (h : f.range ≤ K) :
+  f.range.subgroup_of K = (f.cod_restrict K (λ x, h ⟨x, rfl⟩)).range :=
+begin
+  ext k,
+  refine exists_congr _,
+  simp [subtype.ext_iff],
+end
+
 /-- Computable alternative to `monoid_hom.of_injective`. -/
 def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
 { to_fun := f.range_restrict,

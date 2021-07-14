@@ -569,6 +569,20 @@ by refine_struct
     .. linear_map.add_comm_monoid, .. };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
+
+variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
+
+instance endomorphism_semiring.is_scalar_tower : is_scalar_tower S (M →ₗ[R] M) (M →ₗ[R] M) :=
+{ smul_assoc := λ s f g, ext $ λ x, rfl }
+
+instance endomorphism_semiring.smul_comm_class [compatible_smul M M S R] :
+  smul_comm_class S (M →ₗ[R] M) (M →ₗ[R] M) :=
+{ smul_comm := λ s f g, ext $ λ x, (map_smul_of_tower f s _).symm }
+
+instance endomorphism_semiring.smul_comm_class' [compatible_smul M M S R] :
+  smul_comm_class (M →ₗ[R] M) S (M →ₗ[R] M) :=
+{ smul_comm := λ f s g, ext $ λ x, map_smul_of_tower f s _ }
+
 end semiring
 
 section ring

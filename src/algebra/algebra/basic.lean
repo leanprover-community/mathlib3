@@ -89,7 +89,10 @@ variables {R : Type u} {S : Type v} {A : Type w} {B : Type*}
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
-over `R`. -/
+over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module' [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x : A), (r • 1) * x = r • x)
   (h₂ : ∀ (r : R) (x : A), x * (r • 1) = r • x) : algebra R A :=
@@ -103,7 +106,10 @@ def of_module' [comm_semiring R] [semiring A] [module R A]
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • x) * y = x * (r • y) = r • (x * y)` for all `r : R` and `x y : A`, then `A`
-is an `algebra` over `R`. -/
+is an `algebra` over `R`.
+
+See note [reducible non-instances].-/
+@[reducible]
 def of_module [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x y : A), (r • x) * y = r • (x * y))
   (h₂ : ∀ (r : R) (x y : A), x * (r • y) = r • (x * y)) : algebra R A :=
@@ -383,13 +389,7 @@ namespace module
 variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]
 
 instance endomorphism_algebra : algebra R (M →ₗ[R] M) :=
-{ to_fun    := λ r, r • linear_map.id,
-  map_one' := one_smul _ _,
-  map_zero' := zero_smul _ _,
-  map_add' := λ r₁ r₂, add_smul _ _ _,
-  map_mul' := λ r₁ r₂, by { ext x, simp [mul_smul] },
-  commutes' := by { intros, ext, simp },
-  smul_def' := by { intros, ext, simp } }
+algebra.of_module smul_assoc smul_comm
 
 lemma algebra_map_End_eq_smul_id (a : R) :
   (algebra_map R (End R M)) a = a • linear_map.id := rfl

@@ -2111,7 +2111,6 @@ add_subgroup.mem_add_subgroup_of
 
 namespace bounded_continuous_function
 
-open bounded_continuous_function
 variables [finite_measure μ]
 
 /-- A bounded continuous function on a finite-measure space is in `Lp`. -/
@@ -2172,7 +2171,14 @@ linear_map.mk_continuous
   _
   Lp_norm_le
 
-variables {p 𝕜}
+variables {𝕜}
+
+lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+  ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
+    = measure_theory.Lp.bounded_continuous_function E p μ :=
+range_to_Lp_hom p μ
+
+variables {p}
 
 lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)]
   (f : α →ᵇ E) :
@@ -2183,13 +2189,6 @@ lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [opens_measurable_space 𝕜
   [fact (1 ≤ p)] :
   ∥@to_Lp _ E _ p μ _ _ _ _ _ _ _ 𝕜 _ _ _ _ _∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
-
-variables (p)
-
-lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
-  ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
-    = measure_theory.Lp.bounded_continuous_function E p μ :=
-range_to_Lp_hom p μ
 
 end bounded_continuous_function
 
@@ -2207,7 +2206,20 @@ def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E
 (bounded_continuous_function.to_Lp p μ 𝕜).comp
   (linear_isometry_bounded_of_compact α E 𝕜).to_linear_isometry.to_continuous_linear_map
 
-variables {p 𝕜}
+variables {𝕜}
+
+lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+  ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
+    = measure_theory.Lp.bounded_continuous_function E p μ :=
+begin
+  refine set_like.ext' _,
+  have := (linear_isometry_bounded_of_compact α E 𝕜).surjective,
+  convert function.surjective.range_comp this (bounded_continuous_function.to_Lp p μ 𝕜),
+  rw ← bounded_continuous_function.range_to_Lp p μ,
+  refl,
+end
+
+variables {p}
 
 lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] (f : C(α,  E)) :
   to_Lp p μ 𝕜 f =ᵐ[μ] f :=
@@ -2229,20 +2241,6 @@ rfl
   (to_Lp p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
 rfl
 
-variables (p μ)
-
-lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
-  ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
-    = measure_theory.Lp.bounded_continuous_function E p μ :=
-begin
-  refine set_like.ext' _,
-  have := (linear_isometry_bounded_of_compact α E 𝕜).surjective,
-  convert function.surjective.range_comp this (bounded_continuous_function.to_Lp p μ 𝕜),
-  rw ← bounded_continuous_function.range_to_Lp p μ,
-  refl,
-end
-
-variables {p μ}
 variables [nondiscrete_normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E]
 
 lemma to_Lp_norm_eq_to_Lp_norm_coe :

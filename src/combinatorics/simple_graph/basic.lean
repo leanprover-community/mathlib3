@@ -55,7 +55,11 @@ finitely many vertices.
 
 * If the vertex type of a graph is finite, we refer to its cardinality as `card_verts`.
 
-TODO: This is the simplest notion of an unoriented graph.  This should
+## Todo
+
+* The `bounded_lattice (simple_graph V)` instance.
+
+* This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which
 includes multigraphs and directed graphs.  We begin with simple graphs
 in order to start learning what the combinatorics hierarchy should

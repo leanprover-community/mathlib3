@@ -86,11 +86,12 @@ lemma of_disjoint_Union [t2_space M] (v : vector_measure α M) {f : ℕ → set 
   v (⋃ i, f i) = ∑' i, v (f i) :=
 (v.m_Union hf₁ hf₂).tsum_eq.symm
 
+lemma coe_injective : @function.injective (vector_measure α M) (set α → M) coe_fn :=
+λ v w h, by { cases v, cases w, congr' }
+
 lemma ext_iff' (v w : vector_measure α M) :
   v = w ↔ ∀ i : set α, v i = w i :=
-begin
-  cases v, cases w, simpa [function.funext_iff],
-end
+by rw [← coe_injective.eq_iff, function.funext_iff]
 
 lemma ext_iff (v w : vector_measure α M) :
   v = w ↔ ∀ i : set α, measurable_set i → v i = w i :=
@@ -262,7 +263,9 @@ end measure
 
 namespace vector_measure
 
-variables {M : Type*} [add_comm_group M] [topological_space M]
+section add_comm_monoid
+
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
 instance : has_zero (vector_measure α M) :=
 ⟨⟨0, rfl, λ _ _, rfl, λ _ _ _, has_sum_zero⟩⟩
@@ -272,20 +275,7 @@ instance : inhabited (vector_measure α M) := ⟨0⟩
 @[simp] lemma coe_zero : ⇑(0 : vector_measure α M) = 0 := rfl
 lemma zero_apply (i : set α) : (0 : vector_measure α M) i = 0 := rfl
 
-variables [topological_add_group M]
-
-/-- The negative of a vector measure is a vector measure. -/
-def neg (v : vector_measure α M) : vector_measure α M :=
-{ measure_of' := -v,
-  empty' := by simp,
-  not_measurable' := λ _ hi, by simp [v.not_measurable hi],
-  m_Union' := λ f hf₁ hf₂,
-    has_sum.neg $ v.m_Union hf₁ hf₂ }
-
-instance : has_neg (vector_measure α M) := ⟨neg⟩
-
-@[simp] lemma coe_neg (v : vector_measure α M) : ⇑(-v) = - v := rfl
-lemma neg_apply (v : vector_measure α M) (i : set α) :(-v) i = - v i := rfl
+variables [has_continuous_add M]
 
 /-- The sum of two vector measure is a vector measure. -/
 def add (v w : vector_measure α M) : vector_measure α M :=
@@ -294,13 +284,40 @@ def add (v w : vector_measure α M) : vector_measure α M :=
   not_measurable' := λ _ hi,
     by simp [v.not_measurable hi, w.not_measurable hi],
   m_Union' := λ f hf₁ hf₂,
-    has_sum.add (v.m_Union hf₁ hf₂)
-      (w.m_Union hf₁ hf₂) }
+    has_sum.add (v.m_Union hf₁ hf₂) (w.m_Union hf₁ hf₂) }
 
 instance : has_add (vector_measure α M) := ⟨add⟩
 
 @[simp] lemma coe_add (v w : vector_measure α M) : ⇑(v + w) = v + w := rfl
 lemma add_apply (v w : vector_measure α M) (i : set α) :(v + w) i = v i + w i := rfl
+
+instance : add_comm_monoid (vector_measure α M) :=
+function.injective.add_comm_monoid _ coe_injective coe_zero coe_add
+
+/-- `coe_fn` is an `add_monoid_hom`. -/
+@[simps]
+def coe_fn_add_monoid_hom : vector_measure α M →+ (set α → M) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables {M : Type*} [add_comm_group M] [topological_space M]
+
+variables [topological_add_group M]
+
+/-- The negative of a vector measure is a vector measure. -/
+def neg (v : vector_measure α M) : vector_measure α M :=
+{ measure_of' := -v,
+  empty' := by simp,
+  not_measurable' := λ _ hi, by simp [v.not_measurable hi],
+  m_Union' := λ f hf₁ hf₂, has_sum.neg $ v.m_Union hf₁ hf₂ }
+
+instance : has_neg (vector_measure α M) := ⟨neg⟩
+
+@[simp] lemma coe_neg (v : vector_measure α M) : ⇑(-v) = - v := rfl
+lemma neg_apply (v : vector_measure α M) (i : set α) :(-v) i = - v i := rfl
 
 /-- The difference of two vector measure is a vector measure. -/
 def sub (v w : vector_measure α M) : vector_measure α M :=
@@ -314,17 +331,13 @@ def sub (v w : vector_measure α M) : vector_measure α M :=
 
 instance : has_sub (vector_measure α M) := ⟨sub⟩
 
-@[simp] lemma coe_sub {v w : vector_measure α M} : ⇑(v - w) = v - w := rfl
-lemma sub_apply {v w : vector_measure α M} (i : set α) : (v - w) i = v i - w i := rfl
+@[simp] lemma coe_sub (v w : vector_measure α M) : ⇑(v - w) = v - w := rfl
+lemma sub_apply (v w : vector_measure α M) (i : set α) : (v - w) i = v i - w i := rfl
 
 instance : add_comm_group (vector_measure α M) :=
-{ add := (+), zero := (0),
-  neg := vector_measure.neg,
-  add_assoc := by { intros, ext i; simp [add_assoc] },
-  zero_add := by { intros, ext i; simp },
-  add_zero := by { intros, ext i; simp },
-  add_comm := by { intros, ext i; simp [add_comm] },
-  add_left_neg := by { intros, ext i, simp } } .
+function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_sub
+
+end add_comm_group
 
 end vector_measure
 

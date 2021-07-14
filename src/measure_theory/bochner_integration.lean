@@ -967,7 +967,7 @@ end
 
 lemma of_real_integral_norm_eq_lintegral_nnnorm {G} [normed_group G] [measurable_space G]
   [opens_measurable_space G] {f : α → G} (hf : integrable f μ) :
-  ennreal.of_real ∫ x, ∥f x∥ ∂μ = ∫⁻ x, nnnorm (f x) ∂μ :=
+  ennreal.of_real ∫ x, ∥f x∥ ∂μ = ∫⁻ x, ∥f x∥₊ ∂μ :=
 begin
   rw integral_eq_lintegral_of_nonneg_ae _ hf.1.norm,
   { simp_rw [of_real_norm_eq_coe_nnnorm, ennreal.of_real_to_real (lt_top_iff_ne_top.mp hf.2)], },

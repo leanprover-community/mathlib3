@@ -64,8 +64,7 @@ variable [measurable_space α]
 /-- `measurable_set s` means that `s` is measurable (in the ambient measure space on `α`) -/
 def measurable_set : set α → Prop := ‹measurable_space α›.measurable_set'
 
-/-- Version of `measurable_set` with an explicit `measurable_space` argument. -/
-abbreviation measurable_set' {α : Type*} : measurable_space α → set α → Prop := @measurable_set α
+localized "notation `measurable_set[` m `]` := @measurable_set _ m" in measure_theory
 
 @[simp] lemma measurable_set.empty : measurable_set (∅ : set α) :=
 ‹measurable_space α›.measurable_set_empty
@@ -396,9 +395,7 @@ open measurable_space
 def measurable [measurable_space α] [measurable_space β] (f : α → β) : Prop :=
 ∀ ⦃t : set β⦄, measurable_set t → measurable_set (f ⁻¹' t)
 
-/-- Version of `measurable` with an explicit `measurable_space` for the domain of the function. -/
-abbreviation measurable' [measurable_space β] (m : measurable_space α) (f : α → β) : Prop :=
-@measurable _ _ m _ f
+localized "notation `measurable[` m `]` := @measurable _ _ m _" in measure_theory
 
 variables [measurable_space α] [measurable_space β] [measurable_space γ]
 

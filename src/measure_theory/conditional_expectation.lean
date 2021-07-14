@@ -270,18 +270,18 @@ variables {m m0 : measurable_space α} {μ : measure α} {s : set α}
 and their integrals coincide on `m`-measurable sets with finite measure.
 Then `∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ` on all `m`-measurable sets with finite measure. -/
 lemma integral_norm_le_on (hm : m ≤ m0) {f g : α → ℝ} (hf : measurable f)
-  (hfi : integrable_on f s μ) (hg : measurable' m g) (hgi : integrable_on g s μ)
-  (hgf : ∀ t, measurable_set' m t → μ t ≠ ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
-  (hs : measurable_set' m s) (hμs : μ s ≠ ∞) :
+  (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
+  (hgf : ∀ t, measurable_set[m] t → μ t ≠ ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
+  (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ :=
 begin
   rw integral_norm_eq_pos_sub_neg (hg.mono hm le_rfl) hgi,
   rw integral_norm_eq_pos_sub_neg hf hfi,
-  have h_meas_nonneg_g : measurable_set' m {x | 0 ≤ g x},
+  have h_meas_nonneg_g : measurable_set[m] {x | 0 ≤ g x},
     from @measurable_set_le _ α _ _ _ m _ _ _ _ g (@measurable_const _ α _ m _) hg,
   have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},
     from measurable_set_le measurable_const hf,
-  have h_meas_nonpos_g : measurable_set' m {x | g x ≤ 0},
+  have h_meas_nonpos_g : measurable_set[m] {x | g x ≤ 0},
     from @measurable_set_le _ α _ _ _ m _ _ _ g _ hg (@measurable_const _ α _ m _),
   have h_meas_nonpos_f : measurable_set {x | f x ≤ 0},
     from measurable_set_le hf measurable_const,
@@ -307,9 +307,9 @@ and their integrals coincide on `m`-measurable sets with finite measure.
 Then `∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ` on all `m`-measurable sets with finite
 measure. -/
 lemma lintegral_nnnorm_le_on (hm : m ≤ m0) {f g : α → ℝ} (hf : measurable f)
-  (hfi : integrable_on f s μ) (hg : measurable' m g) (hgi : integrable_on g s μ)
-  (hgf : ∀ t, measurable_set' m t → μ t ≠ ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
-  (hs : measurable_set' m s) (hμs : μ s ≠ ∞) :
+  (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
+  (hgf : ∀ t, measurable_set[m] t → μ t ≠ ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
+  (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ :=
 begin
   rw [← of_real_integral_norm_eq_lintegral_nnnorm hfi,

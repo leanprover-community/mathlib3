@@ -2,18 +2,17 @@
 Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Adam Topaz
-
 -/
 import algebraic_topology.simplex_category
 import topology.category.Top
 import topology.instances.nnreal
 
 /-!
-  # Topological simplices
+# Topological simplices
 
-  We define the natural functor from `simplex_category` to `Top` sending `[n]` to the
-  topological `n`-simplex.
-  This is used to define `Top.to_sSet` in `algebraic_topology.simpliciaL_set`.
+We define the natural functor from `simplex_category` to `Top` sending `[n]` to the
+topological `n`-simplex.
+This is used to define `Top.to_sSet` in `algebraic_topology.simpliciaL_set`.
 -/
 
 noncomputable theory

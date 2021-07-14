@@ -499,9 +499,9 @@ begin
       exact ereal.continuous_at_add (by simp) (by simp) } }
 end
 
-/-- **Vitali-Carathéodory Theorem**: given an integrable real function `f`, there exists an integrable
-function `g < f` which is upper semicontinuous, with integral arbitrarily close to that of `f`.
-This function has to be `ereal`-valued in general. -/
+/-- **Vitali-Carathéodory Theorem**: given an integrable real function `f`, there exists an
+integrable function `g < f` which is upper semicontinuous, with integral arbitrarily close to that
+of `f`. This function has to be `ereal`-valued in general. -/
 lemma exists_upper_semicontinuous_lt_integral_gt [sigma_finite μ]
   (f : α → ℝ) (hf : integrable f μ) {ε : ℝ} (εpos : 0 < ε) :
   ∃ g : α → ereal, (∀ x, (g x : ereal) < f x) ∧ upper_semicontinuous g ∧

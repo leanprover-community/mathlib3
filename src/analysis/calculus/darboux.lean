@@ -62,7 +62,8 @@ begin
   exact (hc.is_local_min this).has_deriv_at_eq_zero ((hg c cmem).has_deriv_at this)
 end
 
-/-- **Darboux's theorem**: if `a ≤ b` and `f' a > m > f' b`, then `f' c = m` for some `c ∈ [a, b]`. -/
+/-- **Darboux's theorem**: if `a ≤ b` and `f' a > m > f' b`, then `f' c = m` for some `c ∈ [a, b]`.
+-/
 theorem exists_has_deriv_within_at_eq_of_lt_of_gt
   (hab : a ≤ b) (hf : ∀ x ∈ (Icc a b), has_deriv_within_at f (f' x) (Icc a b) x)
   {m : ℝ} (hma : m < f' a) (hmb : f' b < m) :

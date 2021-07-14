@@ -111,8 +111,6 @@ instance : set_like (fractional_ideal S P) P :=
 { coe := λ I, ↑(I : submodule R P),
   coe_injective' := set_like.coe_injective.comp subtype.coe_injective }
 
-lemma mem_val {I : fractional_ideal S P} {x : P} : x ∈ I.val ↔ x ∈ I := iff.rfl
-
 @[ext] lemma ext {I J : fractional_ideal S P} : (∀ x, x ∈ I ↔ x ∈ J) → I = J := set_like.ext
 
 /-- Copy of a `fractional_ideal` with a new underlying set equal to the old one.

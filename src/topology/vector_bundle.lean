@@ -292,8 +292,6 @@ def trivial_topological_vector_bundle_core (ι : Type*) [inhabited ι] :
 instance (ι : Type*) [inhabited ι] : inhabited (topological_vector_bundle_core R B F ι) :=
 ⟨trivial_topological_vector_bundle_core R B F ι⟩
 
-attribute [simp, mfld_simps] topological_vector_bundle_core.mem_base_set_at
-
 namespace topological_vector_bundle_core
 
 variables {R B F} {ι : Type*} (Z : topological_vector_bundle_core R B F ι)

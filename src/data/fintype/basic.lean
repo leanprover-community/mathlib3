@@ -3,13 +3,12 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import tactic.wlog
-import data.finset.powerset
-import data.finset.lattice
-import data.finset.pi
 import data.array.lemmas
-import order.well_founded
+import data.finset.pi
+import data.finset.powerset
 import group_theory.perm.basic
+import order.well_founded
+import tactic.wlog
 
 /-!
 # Finite types
@@ -29,7 +28,7 @@ This file defines a typeclass to state that a type is finite.
   equivalent. See above.
 * `fin.equiv_iff_eq`: `fin m ≃ fin n` iff `m = n`.
 * `infinite α`: Typeclass saying that a type is infinite. Defined as `fintype α → false`.
-* `not_fintype`: No `fintype` is infinite.
+* `not_fintype`: No `fintype` has an `infinite` instance.
 * `infinite.nat_embedding`: An embedding of `ℕ` into an infinite type.
 
 We also provide the following versions of the pigeonholes principle.
@@ -92,13 +91,13 @@ fintype.complete x
 by ext; simp
 
 lemma univ_nonempty_iff : (univ : finset α).nonempty ↔ nonempty α :=
-by rw [←coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
+by rw [← coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
 
 lemma univ_nonempty [nonempty α] : (univ : finset α).nonempty :=
 univ_nonempty_iff.2 ‹_›
 
 lemma univ_eq_empty : (univ : finset α) = ∅ ↔ ¬nonempty α :=
-by rw [←univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
+by rw [← univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
 
 lemma univ_eq_empty' : (univ : finset α) = ∅ ↔ is_empty α :=
 univ_eq_empty.trans (not_nonempty_iff)
@@ -329,7 +328,7 @@ multiset.card_pmap _ _ _
 theorem card_of_subtype {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x)
   [fintype {x // p x}] :
   card {x // p x} = s.card :=
-by { rw ←subtype_card s H, congr }
+by { rw ← subtype_card s H, congr }
 
 /-- Construct a fintype from a finset with the same elements. -/
 def of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
@@ -458,7 +457,7 @@ theorem of_equiv_card [fintype α] (f : α ≃ β) :
 multiset.card_map _ _
 
 theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α = card β :=
-by rw ←of_equiv_card f; congr
+by rw ← of_equiv_card f; congr
 
 section
 
@@ -847,7 +846,7 @@ lemma card_lt_of_injective_of_not_mem (f : α → β) (h : function.injective f)
   {b : β} (w : b ∉ set.range f) : card α < card β :=
 calc card α = (univ.map ⟨f, h⟩).card : (card_map _).symm
 ... < card β : finset.card_lt_univ_of_not_mem $
-                 by rwa [←mem_coe, coe_map, coe_univ, set.image_univ]
+                 by rwa [← mem_coe, coe_map, coe_univ, set.image_univ]
 
 lemma card_lt_of_injective_not_surjective (f : α → β) (h : function.injective f)
   (h' : ¬function.surjective f) : card α < card β :=
@@ -890,7 +889,7 @@ match n, hn with
 | 1     := λ ha, ⟨λ h, λ a b, let ⟨x, hx⟩ := card_eq_one_iff.1 ha.symm in
   by rw [hx a, hx b],
     λ _, ha ▸ le_refl _⟩
-| (n+2) := λ ha, ⟨λ h, by rw ←ha at h; exact absurd h dec_trivial,
+| (n+2) := λ ha, ⟨λ h, by rw ← ha at h; exact absurd h dec_trivial,
   (λ h, card_unit ▸ card_le_of_injective (λ _, ())
     (λ _ _ _, h _ _))⟩
 end
@@ -1053,7 +1052,7 @@ begin
   { simp only [pi_finset, mem_map, and_imp, forall_prop_of_true, exists_prop, mem_univ,
                exists_imp_distrib, mem_pi],
     rintro g hg hgf a,
-    rw ←hgf,
+    rw ← hgf,
     exact hg a },
   { simp only [pi_finset, mem_map, forall_prop_of_true, exists_prop, mem_univ, mem_pi],
     exact λ hf, ⟨λ a ha, f a, hf, rfl⟩ }
@@ -1337,15 +1336,15 @@ by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; 
     have hix : x a = nth_le l i (lt_trans hij hj),
       by rw [←hf.2, mul_apply, hmeml hf.1, swap_apply_left],
     have hiy : x a = nth_le l j hj,
-      by rw [←hg.2, mul_apply, hmeml hg.1, swap_apply_left],
+      by rw [← hg.2, mul_apply, hmeml hg.1, swap_apply_left],
     absurd (hf.2.trans (hg.2.symm)) $
       λ h, ne_of_lt hij $ nodup_iff_nth_le_inj.1 hl' i j (lt_trans hij hj) hj $
-        by rw [←hix, hiy]⟩,
+        by rw [← hix, hiy]⟩,
   λ f hf₁ hf₂,
     let ⟨x, hx, hx'⟩ := list.mem_bind.1 hf₂ in
     let ⟨g, hg⟩ := list.mem_map.1 hx' in
     have hgxa : g⁻¹ x = a, from f.injective $
-      by rw [hmeml hf₁, ←hg.2]; simp,
+      by rw [hmeml hf₁, ← hg.2]; simp,
     have hxa : x ≠ a, from λ h, (list.nodup_cons.1 hl).1 (h ▸ hx),
     (list.nodup_cons.1 hl).1 $
       hgxa ▸ mem_of_mem_perms_of_list hg.1 (by rwa [apply_inv_self, hgxa])⟩
@@ -1430,7 +1429,7 @@ def bij_inv (f_bij : bijective f) (b : β) : α :=
 fintype.choose (λ a, f a = b)
 begin
   rcases f_bij.right b with ⟨a', fa_eq_b⟩,
-  rw ←fa_eq_b,
+  rw ← fa_eq_b,
   exact ⟨a', ⟨rfl, (λ a h, f_bij.left h)⟩⟩
 end
 

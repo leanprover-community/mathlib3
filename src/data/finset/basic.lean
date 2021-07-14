@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
 import data.multiset.finset_ops
-import tactic.monotonicity
 import tactic.apply
+import tactic.monotonicity
 import tactic.nth_rewrite
 
 /-!
@@ -1141,6 +1141,14 @@ end
 
 @[simp] lemma sdiff_subset (s t : finset α) : s \ t ⊆ s :=
 show s \ t ≤ s, from sdiff_le
+
+lemma sdiff_ssubset [decidable_eq α] {x y : finset α} (hx : y ⊆ x) (hy : y.nonempty) :
+  x \ y ⊂ x :=
+begin
+  obtain ⟨i, hi⟩ := hy,
+  rw ssubset_iff_of_subset (sdiff_subset _ _),
+  exact ⟨i, hx hi, λ t, (mem_sdiff.1 t).2 hi⟩,
+end
 
 lemma union_sdiff_distrib (s₁ s₂ t : finset α) : (s₁ ∪ s₂) \ t = s₁ \ t ∪ s₂ \ t :=
 sup_sdiff
@@ -2548,6 +2556,15 @@ begin
   exact subset_of_eq singleton_bUnion.symm,
 end
 
+@[simp] lemma bUnion_subset_iff_forall_subset {α β : Type*} [decidable_eq β]
+  {s : finset α} {t : finset β} {f : α → finset β} : s.bUnion f ⊆ t ↔ ∀ x ∈ s, f x ⊆ t :=
+begin
+  refine ⟨λ h x hx, (subset_bUnion_of_mem f hx).trans h, λ h x hx, _⟩,
+  simp only [mem_bUnion, exists_prop] at hx,
+  obtain ⟨a, ha₁, ha₂⟩ := hx,
+  exact h _ ha₁ ha₂,
+end
+
 lemma bUnion_singleton {f : α → β} : s.bUnion (λa, {f a}) = s.image f :=
 ext $ λ x, by simp only [mem_bUnion, mem_image, mem_singleton, eq_comm]
 
@@ -2589,6 +2606,15 @@ theorem product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t
   s.product t = s.bUnion (λa, t.image $ λb, (a, b)) :=
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
+
+@[simp] lemma product_bUnion {β γ : Type*} [decidable_eq γ] (A : finset α) (B : finset β)
+  (f : α × β → finset γ) :
+  (A.product B).bUnion f = A.bUnion (λ a, B.bUnion (λ b, f (a, b))) :=
+begin
+  ext x,
+  simp only [mem_bUnion, exists_prop, mem_product],
+  exact ⟨λ ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩, ⟨a, ha, b, hb, hx⟩, λ ⟨a, ha, b, hb, hx⟩, ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩⟩,
+end
 
 @[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=
 multiset.card_product _ _

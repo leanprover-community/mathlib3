@@ -101,10 +101,14 @@ variables [algebra R P] [loc : is_localization S P]
 
 instance : has_coe (fractional_ideal S P) (submodule R P) := ⟨λ I, I.val⟩
 
+protected lemma is_fractional (I : fractional_ideal S P) :
+  is_fractional S (I : submodule R P) :=
+I.prop
+
 section set_like
 
 instance : set_like (fractional_ideal S P) P :=
-{ coe := λ I, (I : submodule R P),
+{ coe := λ I, ↑(I : submodule R P),
   coe_injective' := set_like.coe_injective.comp subtype.coe_injective }
 
 lemma mem_val {I : fractional_ideal S P} {x : P} : x ∈ I.val ↔ x ∈ I := iff.rfl
@@ -114,7 +118,7 @@ lemma mem_val {I : fractional_ideal S P} {x : P} : x ∈ I.val ↔ x ∈ I := if
 /-- Copy of a `fractional_ideal` with a new underlying set equal to the old one.
 Useful to fix definitional equalities. -/
 protected def copy (p : fractional_ideal S P) (s : set P) (hs : s = ↑p) : fractional_ideal S P :=
-⟨submodule.copy p s hs, by { convert p.2, ext, simp only [hs], refl }⟩
+⟨submodule.copy p s hs, by { convert p.is_fractional, ext, simp only [hs], refl }⟩
 
 end set_like
 
@@ -143,7 +147,7 @@ end
 lemma is_fractional_of_le {I : submodule R P} {J : fractional_ideal S P}
   (hIJ : I ≤ J) : is_fractional S I :=
 begin
-  obtain ⟨a, a_mem, ha⟩ := J.2,
+  obtain ⟨a, a_mem, ha⟩ := J.is_fractional,
   use [a, a_mem],
   intros b b_mem,
   exact ha b (hIJ b_mem)
@@ -289,8 +293,8 @@ lemma eq_zero_iff {I : fractional_ideal S P} : I = 0 ↔ (∀ x ∈ I, x = (0 : 
 
 lemma fractional_sup (I J : fractional_ideal S P) : is_fractional S (I.1 ⊔ J.1) :=
 begin
-  rcases I.2 with ⟨aI, haI, hI⟩,
-  rcases J.2 with ⟨aJ, haJ, hJ⟩,
+  rcases I.is_fractional with ⟨aI, haI, hI⟩,
+  rcases J.is_fractional with ⟨aJ, haJ, hJ⟩,
   use aI * aJ,
   use S.mul_mem haI haJ,
   intros b hb,
@@ -305,7 +309,7 @@ end
 
 lemma fractional_inf (I J : fractional_ideal S P) : is_fractional S (I.1 ⊓ J.1) :=
 begin
-  rcases I.2 with ⟨aI, haI, hI⟩,
+  rcases I.is_fractional with ⟨aI, haI, hI⟩,
   use aI,
   use haI,
   intros b hb,
@@ -1023,7 +1027,7 @@ end
 lemma exists_eq_span_singleton_mul (I : fractional_ideal R₁⁰ K) :
   ∃ (a : R₁) (aI : ideal R₁), a ≠ 0 ∧ I = span_singleton R₁⁰ (algebra_map R₁ K a)⁻¹ * aI :=
 begin
-  obtain ⟨a_inv, nonzero, ha⟩ := I.2,
+  obtain ⟨a_inv, nonzero, ha⟩ := I.is_fractional,
   have nonzero := mem_non_zero_divisors_iff_ne_zero.mp nonzero,
   have map_a_nonzero : algebra_map R₁ K a_inv ≠ 0 :=
     mt is_fraction_ring.to_map_eq_zero_iff.mp nonzero,

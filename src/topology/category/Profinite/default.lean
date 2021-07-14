@@ -84,6 +84,8 @@ end Profinite
 @[simps, derive [full, faithful]]
 def Profinite_to_CompHaus : Profinite ⥤ CompHaus := induced_functor _
 
+/-- The fully faithful embedding of `Profinite` in `Top`. This is definitionally the same as the
+obvious composite. -/
 @[simps, derive [full, faithful]]
 def Profinite.to_Top : Profinite ⥤ Top := forget₂ _ _
 

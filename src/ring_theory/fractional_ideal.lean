@@ -260,9 +260,6 @@ Defines the order on fractional ideals as inclusion of their underlying sets,
 and ports the lattice structure on submodules to fractional ideals.
 -/
 
-lemma le_iff_mem {I J : fractional_ideal S P} : I ≤ J ↔ (∀ x ∈ I, x ∈ J) :=
-iff.rfl
-
 @[simp] lemma coe_le_coe {I J : fractional_ideal S P} :
   (I : submodule R P) ≤ (J : submodule R P) ↔ I ≤ J :=
 iff.rfl

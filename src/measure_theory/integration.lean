@@ -1062,6 +1062,11 @@ lemma set_lintegral_congr {f : α → ℝ≥0∞} {s t : set α} (h : s =ᵐ[μ]
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
 by rw [restrict_congr_set h]
 
+lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measurable_set s)
+  (hfg : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
+  ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ :=
+by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
+
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
 
 See `lintegral_supr_directed` for a more general form. -/

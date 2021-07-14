@@ -60,6 +60,8 @@ open set measure_theory
 
 namespace vector_measure
 
+section
+
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
 instance : has_coe_to_fun (vector_measure α M) :=
@@ -81,7 +83,7 @@ lemma m_Union (v : vector_measure α M) {f : ℕ → set α}
   has_sum (λ i, v (f i)) (v (⋃ i, f i)) :=
 v.m_Union' hf₁ hf₂
 
-lemma of_disjoint_Union [t2_space M] (v : vector_measure α M) {f : ℕ → set α}
+lemma of_disjoint_Union_nat [t2_space M] (v : vector_measure α M) {f : ℕ → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   v (⋃ i, f i) = ∑' i, v (f i) :=
 (v.m_Union hf₁ hf₂).tsum_eq.symm
@@ -111,7 +113,7 @@ end
 
 variables [t2_space M] {v : vector_measure α M} {f : ℕ → set α}
 
-lemma has_sum_measure_Union [encodable β] {f : β → set α}
+lemma has_sum_of_disjoint_Union [encodable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   has_sum (λ i, v (f i)) (v (⋃ i, f i)) :=
 begin
@@ -120,7 +122,7 @@ begin
   { exact λ _, measurable_set.Union (λ b, measurable_set.Union_Prop $ λ _, hf₁ b) },
   have hg₂ : pairwise (disjoint on g),
   { exact encodable.Union_decode₂_disjoint_on hf₂ },
-  have := v.of_disjoint_Union hg₁ hg₂,
+  have := v.of_disjoint_Union_nat hg₁ hg₂,
   rw [hg, encodable.Union_decode₂] at this,
 
   have hg₃ : (λ (i : β), v (f i)) = (λ i, v (g (encodable.encode i))),
@@ -145,16 +147,16 @@ begin
       exact false.elim ((hx i) ((encodable.decode₂_is_partial_inv _ _).1 hi)) } }
 end
 
-lemma measure_Union [encodable β] {f : β → set α}
+lemma of_disjoint_Union [encodable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   v (⋃ i, f i) = ∑' i, v (f i) :=
-(has_sum_measure_Union hf₁ hf₂).tsum_eq.symm
+(has_sum_of_disjoint_Union hf₁ hf₂).tsum_eq.symm
 
 lemma of_union {A B : set α}
   (h : disjoint A B) (hA : measurable_set A) (hB : measurable_set B) :
   v (A ∪ B) = v A + v B :=
 begin
-  rw [union_eq_Union, measure_Union, tsum_fintype, fintype.sum_bool, cond, cond],
+  rw [union_eq_Union, of_disjoint_Union, tsum_fintype, fintype.sum_bool, cond, cond],
   exacts [λ b, bool.cases_on b hB hA, pairwise_disjoint_on_bool.2 h]
 end
 
@@ -179,14 +181,14 @@ lemma of_Union_nonneg {M : Type*} [topological_space M]
   {v : vector_measure α M} (hf₁ : ∀ i, measurable_set (f i))
   (hf₂ : pairwise (disjoint on f)) (hf₃ : ∀ i, 0 ≤ v (f i)) :
   0 ≤ v (⋃ i, f i) :=
-(v.of_disjoint_Union hf₁ hf₂).symm ▸ tsum_nonneg hf₃
+(v.of_disjoint_Union_nat hf₁ hf₂).symm ▸ tsum_nonneg hf₃
 
 lemma of_Union_nonpos {M : Type*} [topological_space M]
   [ordered_add_comm_monoid M] [order_closed_topology M]
   {v : vector_measure α M} (hf₁ : ∀ i, measurable_set (f i))
   (hf₂ : pairwise (disjoint on f)) (hf₃ : ∀ i, v (f i) ≤ 0) :
   v (⋃ i, f i) ≤ 0 :=
-(v.of_disjoint_Union hf₁ hf₂).symm ▸ tsum_nonpos hf₃
+(v.of_disjoint_Union_nat hf₁ hf₂).symm ▸ tsum_nonpos hf₃
 
 lemma of_nonneg_disjoint_union_eq_zero {s : signed_measure α} {A B : set α}
   (h : disjoint A B) (hA₁ : measurable_set A) (hB₁ : measurable_set B)
@@ -208,60 +210,7 @@ begin
   apply_instance,
 end
 
-end vector_measure
-
-namespace measure
-
-/-- A finite measure coerced into a real function is a signed measure. -/
-@[simps]
-def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :=
-{ measure_of' := λ i : set α, if measurable_set i then (μ.measure_of i).to_real else 0,
-  empty' := by simp [μ.empty],
-  not_measurable' := λ _ hi, if_neg hi,
-  m_Union' :=
-  begin
-    intros _ hf₁ hf₂,
-    rw [μ.m_Union hf₁ hf₂, ennreal.tsum_to_real_eq, if_pos (measurable_set.Union hf₁),
-        summable.has_sum_iff],
-    { congr, ext n, rw if_pos (hf₁ n) },
-    { refine @summable_of_nonneg_of_le _ (ennreal.to_real ∘ μ ∘ f) _ _ _ _,
-      { intro, split_ifs,
-        exacts [ennreal.to_real_nonneg, le_refl _] },
-      { intro, split_ifs,
-        exacts [le_refl _, ennreal.to_real_nonneg] },
-        exact summable_measure_to_real hf₁ hf₂ },
-    { intros a ha,
-      apply ne_of_lt hμ.measure_univ_lt_top,
-      rw [eq_top_iff, ← ha, outer_measure.measure_of_eq_coe, coe_to_outer_measure],
-      exact measure_mono (set.subset_univ _) }
-  end }
-
-lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
-  {i : set α} (hi : measurable_set i) :
-  μ.to_signed_measure i = (μ i).to_real :=
-if_pos hi
-
-/-- A measure is a vector measure over `ℝ≥0∞`. -/
-@[simps]
-def to_ennreal_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :=
-{ measure_of' := λ i : set α, if measurable_set i then μ i else 0,
-  empty' := by simp [μ.empty],
-  not_measurable' := λ _ hi, if_neg hi,
-  m_Union' := λ _ hf₁ hf₂,
-  begin
-    rw summable.has_sum_iff ennreal.summable,
-    { rw [if_pos (measurable_set.Union hf₁), measure_theory.measure_Union hf₂ hf₁],
-      exact tsum_congr (λ n, if_pos (hf₁ n)) },
-  end }
-
-lemma to_ennreal_vector_measure_apply_measurable {μ : measure α}
-  {i : set α} (hi : measurable_set i) :
-  μ.to_ennreal_vector_measure i = μ i :=
-if_pos hi
-
-end measure
-
-namespace vector_measure
+end
 
 section add_comm_monoid
 
@@ -339,28 +288,6 @@ function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_s
 
 end add_comm_group
 
-end vector_measure
-
-namespace measure
-
-/-- Given two finite measures `μ, ν`, `sub_to_signed_measure μ ν` is the signed measure
-corresponding to the function `μ - ν`. -/
-def sub_to_signed_measure (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν] :
-  signed_measure α :=
-μ.to_signed_measure - ν.to_signed_measure
-
-lemma sub_to_signed_measure_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
-  {i : set α} (hi : measurable_set i) :
-  μ.sub_to_signed_measure ν i = (μ i).to_real - (ν i).to_real :=
-begin
-  rw [sub_to_signed_measure, vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
-      measure.to_signed_measure_apply_measurable hi, sub_eq_add_neg]
-end
-
-end measure
-
-namespace vector_measure
-
 variables {M : Type*} [add_comm_group M] [topological_space M]
 variables {R : Type*} [ring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M]
@@ -384,5 +311,85 @@ instance [topological_add_group M] : module R (vector_measure α M) :=
 function.injective.module R coe_fn_add_monoid_hom coe_injective coe_smul
 
 end vector_measure
+
+namespace measure
+
+/-- A finite measure coerced into a real function is a signed measure. -/
+@[simps]
+def to_signed_measure (μ : measure α) [hμ : finite_measure μ] : signed_measure α :=
+{ measure_of' := λ i : set α, if measurable_set i then (μ.measure_of i).to_real else 0,
+  empty' := by simp [μ.empty],
+  not_measurable' := λ _ hi, if_neg hi,
+  m_Union' :=
+  begin
+    intros _ hf₁ hf₂,
+    rw [μ.m_Union hf₁ hf₂, ennreal.tsum_to_real_eq, if_pos (measurable_set.Union hf₁),
+        summable.has_sum_iff],
+    { congr, ext n, rw if_pos (hf₁ n) },
+    { refine @summable_of_nonneg_of_le _ (ennreal.to_real ∘ μ ∘ f) _ _ _ _,
+      { intro, split_ifs,
+        exacts [ennreal.to_real_nonneg, le_refl _] },
+      { intro, split_ifs,
+        exacts [le_refl _, ennreal.to_real_nonneg] },
+        exact summable_measure_to_real hf₁ hf₂ },
+    { intros a ha,
+      apply ne_of_lt hμ.measure_univ_lt_top,
+      rw [eq_top_iff, ← ha, outer_measure.measure_of_eq_coe, coe_to_outer_measure],
+      exact measure_mono (set.subset_univ _) }
+  end }
+
+lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
+  {i : set α} (hi : measurable_set i) :
+  μ.to_signed_measure i = (μ i).to_real :=
+if_pos hi
+
+@[simp] lemma zero_to_signed_measure :
+  (0 : measure α).to_signed_measure = 0 :=
+by { ext i hi, simp }
+
+@[simp] lemma add_to_signed_measure (μ ν : measure α) [finite_measure μ] [finite_measure ν] :
+  (μ + ν).to_signed_measure = μ.to_signed_measure + ν.to_signed_measure :=
+begin
+  ext i hi,
+  rw [to_signed_measure_apply_measurable hi, add_apply,
+      ennreal.to_real_add (ne_of_lt (measure_lt_top _ _ )) (ne_of_lt (measure_lt_top _ _)),
+      vector_measure.add_apply, to_signed_measure_apply_measurable hi,
+      to_signed_measure_apply_measurable hi],
+  all_goals { apply_instance }
+end
+
+/-- A measure is a vector measure over `ℝ≥0∞`. -/
+@[simps]
+def to_ennreal_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :=
+{ measure_of' := λ i : set α, if measurable_set i then μ i else 0,
+  empty' := by simp [μ.empty],
+  not_measurable' := λ _ hi, if_neg hi,
+  m_Union' := λ _ hf₁ hf₂,
+  begin
+    rw summable.has_sum_iff ennreal.summable,
+    { rw [if_pos (measurable_set.Union hf₁), measure_theory.measure_Union hf₂ hf₁],
+      exact tsum_congr (λ n, if_pos (hf₁ n)) },
+  end }
+
+lemma to_ennreal_vector_measure_apply_measurable (μ : measure α)
+  {i : set α} (hi : measurable_set i) :
+  μ.to_ennreal_vector_measure i = μ i :=
+if_pos hi
+
+/-- Given two finite measures `μ, ν`, `sub_to_signed_measure μ ν` is the signed measure
+corresponding to the function `μ - ν`. -/
+def sub_to_signed_measure (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν] :
+  signed_measure α :=
+μ.to_signed_measure - ν.to_signed_measure
+
+lemma sub_to_signed_measure_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+  {i : set α} (hi : measurable_set i) :
+  μ.sub_to_signed_measure ν i = (μ i).to_real - (ν i).to_real :=
+begin
+  rw [sub_to_signed_measure, vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
+      measure.to_signed_measure_apply_measurable hi, sub_eq_add_neg]
+end
+
+end measure
 
 end measure_theory

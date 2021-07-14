@@ -386,16 +386,27 @@ instance : algebra R Aᵒᵖ :=
 end opposite
 
 namespace module
-variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]
+variables (R : Type u) (S : Type*) (M : Type v)
+variables [comm_semiring R] [semiring S] [add_comm_monoid M] [algebra R S] [module R M] [module S M]
+variables [smul_comm_class S R M] [is_scalar_tower R S M]
 
+instance endomorphism_algebra' : algebra R (M →ₗ[S] M) :=
+algebra.of_module smul_assoc (λ r f, smul_comm f r)
+
+/-- The most common case of `module.endomorphism_algebra'`, when most of the typeclass arguments
+are automatic. -/
 instance endomorphism_algebra : algebra R (M →ₗ[R] M) :=
-algebra.of_module smul_assoc smul_comm
+module.endomorphism_algebra' R R M
+
+variables {R}
 
 lemma algebra_map_End_eq_smul_id (a : R) :
-  (algebra_map R (End R M)) a = a • linear_map.id := rfl
+  (algebra_map R (End S M)) a = a • linear_map.id := rfl
+
+variables {M}
 
 @[simp] lemma algebra_map_End_apply (a : R) (m : M) :
-  (algebra_map R (End R M)) a m = a • m := rfl
+  (algebra_map R (End S M)) a m = a • m := rfl
 
 @[simp] lemma ker_algebra_map_End (K : Type u) (V : Type v)
   [field K] [add_comm_group V] [module K V] (a : K) (ha : a ≠ 0) :

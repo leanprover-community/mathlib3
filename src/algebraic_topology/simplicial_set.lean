@@ -123,3 +123,11 @@ end sSet
 /-- The functor associating the singular simplicial set to a topological space. -/
 noncomputable def Top.to_sSet : Top ⥤ sSet :=
 colimit_adj.restricted_yoneda simplex_category.to_Top
+
+/-- The geometric realization functor. -/
+noncomputable def sSet.to_Top : sSet ⥤ Top :=
+colimit_adj.extend_along_yoneda simplex_category.to_Top
+
+/-- Geometric realization is left adjoint to the singular simplicial set construction. -/
+noncomputable def sSet_Top_adj : sSet.to_Top ⊣ Top.to_sSet :=
+colimit_adj.yoneda_adjunction _

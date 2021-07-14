@@ -1995,7 +1995,7 @@ end
 /-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
 measure in a sub-σ-algebra and the measure is σ-finite on that sub-σ-algebra, then the integral
 over the whole space is bounded by that same constant. Version for a measurable function.
-See `lintegral_le_of_bounded_on_fin_meas` for the more general `ae_measurable` version. -/
+See `lintegral_le_of_forall_fin_meas_le'` for the more general `ae_measurable` version. -/
 lemma lintegral_le_of_forall_fin_meas_le_of_measurable {μ : measure α} (hm : m ≤ m0)
   [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : measurable f)
   (hf : ∀ s, @measurable_set _ m s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :

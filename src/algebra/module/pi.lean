@@ -22,6 +22,7 @@ instance has_scalar {α : Type*} [Π i, has_scalar α $ f i] :
   has_scalar α (Π i : I, f i) :=
 ⟨λ s x, λ i, s • (x i)⟩
 
+lemma smul_def {α : Type*} [Π i, has_scalar α $ f i] (s : α) : s • x = λ i, s • x i := rfl
 @[simp] lemma smul_apply {α : Type*} [Π i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
 
 instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :

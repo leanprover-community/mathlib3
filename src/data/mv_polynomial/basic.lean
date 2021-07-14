@@ -101,14 +101,17 @@ instance decidable_eq_mv_polynomial [comm_semiring R] [decidable_eq σ] [decidab
   decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
 instance [comm_semiring R] : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
 instance [comm_semiring R] : inhabited (mv_polynomial σ R) := ⟨0⟩
+instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] :
+  distrib_mul_action R (mv_polynomial σ S₁) :=
+add_monoid_algebra.distrib_mul_action
 instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
 add_monoid_algebra.module
-instance [semiring R] [semiring S₁] [comm_semiring S₂]
-  [has_scalar R S₁] [module R S₂] [module S₁ S₂] [is_scalar_tower R S₁ S₂] :
+instance [monoid R] [monoid S₁] [comm_semiring S₂]
+  [has_scalar R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.is_scalar_tower
-instance [semiring R] [semiring S₁][comm_semiring S₂]
-  [module R S₂] [module S₁ S₂] [smul_comm_class R S₁ S₂] :
+instance [monoid R] [monoid S₁][comm_semiring S₂]
+  [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
@@ -156,16 +159,12 @@ lemma C_injective (σ : Type*) (R : Type*) [comm_semiring R] :
   function.injective (C : R → mv_polynomial σ R) :=
 finsupp.single_injective _
 
-lemma C_surjective {R : Type*} [comm_semiring R] (σ : Type*) (hσ : ¬ nonempty σ) :
+lemma C_surjective {R : Type*} [comm_semiring R] (σ : Type*) [is_empty σ] :
   function.surjective (C : R → mv_polynomial σ R) :=
 begin
   refine λ p, ⟨p.to_fun 0, finsupp.ext (λ a, _)⟩,
-  simpa [(finsupp.ext (λ x, absurd (nonempty.intro x) hσ) : a = 0), C_apply, monomial],
+  simpa [(finsupp.ext is_empty_elim : a = 0), C_apply, monomial],
 end
-
-lemma C_surjective_fin_0 {R : Type*} [comm_ring R] :
-  function.surjective (mv_polynomial.C : R → mv_polynomial (fin 0) R) :=
-C_surjective (fin 0) (λ h, let ⟨n⟩ := h in fin_zero_elim n)
 
 @[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_semiring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
@@ -349,7 +348,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply p q m
 
-@[simp] lemma coeff_smul {S₁ : Type*} [semiring S₁] [module S₁ R]
+@[simp] lemma coeff_smul {S₁ : Type*} [monoid S₁] [distrib_mul_action S₁ R]
   (m : σ →₀ ℕ) (c : S₁) (p : mv_polynomial σ R) :
   coeff m (c • p) = c • coeff m p := smul_apply c p m
 
@@ -371,15 +370,25 @@ lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ R) (m : �
 lemma monic_monomial_eq (m) : monomial m (1:R) = (m.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp [monomial_eq]
 
-@[simp] lemma coeff_monomial (m n) (a) :
+@[simp] lemma coeff_monomial [decidable_eq σ] (m n) (a) :
   coeff m (monomial n a : mv_polynomial σ R) = if n = m then a else 0 :=
 single_apply
 
-@[simp] lemma coeff_C (m) (a) :
+@[simp] lemma coeff_C [decidable_eq σ] (m) (a) :
   coeff m (C a : mv_polynomial σ R) = if 0 = m then a else 0 :=
 single_apply
 
-lemma coeff_X_pow (i : σ) (m) (k : ℕ) :
+lemma coeff_one [decidable_eq σ] (m) :
+  coeff m (1 : mv_polynomial σ R) = if 0 = m then 1 else 0 :=
+coeff_C m 1
+
+@[simp] lemma coeff_zero_C (a) : coeff 0 (C a : mv_polynomial σ R) = a :=
+single_eq_same
+
+@[simp] lemma coeff_zero_one : coeff 0 (1 : mv_polynomial σ R) = 1 :=
+coeff_zero_C 1
+
+lemma coeff_X_pow [decidable_eq σ] (i : σ) (m) (k : ℕ) :
   coeff m (X i ^ k : mv_polynomial σ R) = if single i k = m then 1 else 0 :=
 begin
   have := coeff_monomial m (finsupp.single i k) (1:R),
@@ -388,7 +397,7 @@ begin
   exact pow_zero _
 end
 
-lemma coeff_X' (i : σ) (m) :
+lemma coeff_X' [decidable_eq σ] (i : σ) (m) :
   coeff m (X i : mv_polynomial σ R) = if single i 1 = m then 1 else 0 :=
 by rw [← coeff_X_pow, pow_one]
 
@@ -410,7 +419,7 @@ begin
   rw mul_def,
   -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij_ne_zero`,
   -- so we need to turn both sides into a sum over a product.
-  have := @finset.sum_product (σ →₀ ℕ) R _ _ p.support q.support
+  have := @finset.sum_product R (σ →₀ ℕ) _ _ p.support q.support
     (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
   convert this.symm using 1; clear this,
   { rw [coeff],
@@ -452,7 +461,7 @@ begin
   { rw [coeff_X', if_neg H, mul_zero] },
 end
 
-lemma coeff_mul_X' (m) (s : σ) (p : mv_polynomial σ R) :
+lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
   coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
 begin
   nontriviality R,
@@ -529,7 +538,7 @@ lemma constant_coeff_X (i : σ) :
   constant_coeff (X i : mv_polynomial σ R) = 0 :=
 by simp [constant_coeff_eq]
 
-lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
+lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
 by rw [constant_coeff_eq, coeff_monomial]
 

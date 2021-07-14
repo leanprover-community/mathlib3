@@ -139,6 +139,10 @@ by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has
   gsmul := @gsmul_rec _ ⟨(0)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
+/-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
+instance. -/
+instance : ring ℂ := by apply_instance
+
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
 { map_add := complex.add_re }
 
@@ -445,6 +449,9 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
 
+/--
+The **triangle inequality** for complex numbers.
+-/
 lemma abs_add (z w : ℂ) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)
   (add_nonneg (abs_nonneg _) (abs_nonneg _))).2 $
@@ -467,7 +474,7 @@ _root_.abs_of_nonneg (abs_nonneg _)
 
 @[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
 @[simp] lemma abs_neg : ∀ z, abs (-z) = abs z := abv_neg abs
-lemma abs_sub : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
+lemma abs_sub_comm : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
 lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
 @[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs

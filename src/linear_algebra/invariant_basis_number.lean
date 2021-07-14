@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel
+Authors: Markus Himmel, Scott Morrison
 -/
 import ring_theory.principal_ideal_domain
 import ring_theory.ideal.basic
@@ -30,14 +30,13 @@ the invariant basis number property.
 
 ## Main results
 
-We show that every nontrivial left-noetherian ring satifies the rank condition,
+We show that every nontrivial left-noetherian ring satisfies the strong rank condition,
 (and so in particular every division ring or field),
 and then use this to show every nontrivial commutative ring has the invariant basis number property.
 
 ## Future work
 
-We can improve these results: in fact every nontrivial left-noetherian ring,
-and every commutative rings, satisfies the strong rank condition.
+We can improve these results: in fact every commutative ring satisfies the strong rank condition.
 
 So far, there is no API at all for the `invariant_basis_number` class. There are several natural
 ways to formulate that a module `M` is finitely generated and free, for example
@@ -88,7 +87,15 @@ lemma le_of_fin_surjective [rank_condition R] {n m : ℕ} (f : (fin n → R) →
   surjective f → m ≤ n :=
 rank_condition.le_of_fin_surjective f
 
--- TODO the strong rank condition implies the rank condition
+/--
+By the universal property for free modules, any surjective map `(fin n → R) →ₗ[R] (fin m → R)`
+has an injective splitting `(fin m → R) →ₗ[R] (fin n → R)`
+from which the strong rank condition gives the necessary inequality for the rank condition.
+-/
+@[priority 100]
+instance rank_condition_of_strong_rank_condition [strong_rank_condition R] : rank_condition R :=
+{ le_of_fin_surjective := λ n m f s,
+    le_of_fin_injective R _ (f.splitting_of_fun_on_fintype_surjective_injective s), }
 
 /-- We say that `R` has the invariant basis number property if `(fin n → R) ≃ₗ[R] (fin m → R)`
     implies `n = m`. This gives rise to a well-defined notion of rank of a finitely generated free
@@ -124,42 +131,32 @@ end
 section
 variables (R : Type u) [ring R] [nontrivial R] [is_noetherian_ring R]
 
--- TODO: in fact, any nontrivial noetherian ring satisfies the strong rank condition.
+/--
+Any nontrivial noetherian ring satisfies the strong rank condition.
 
-/-- Any nontrivial noetherian ring satisfies the rank condition. -/
+An injective map `((fin n ⊕ fin (1 + m)) → R) →ₗ[R] (fin n → R)` for some left-noetherian `R`
+would force `fin (1 + m) → R ≃ₗ punit` (via `is_noetherian.equiv_punit_of_prod_injective`),
+which is not the case!
+-/
 -- Note this includes fields,
 -- and we use this below to show any commutative ring has invariant basis number.
 @[priority 100]
-instance noetherian_ring_rank_condition : rank_condition R :=
-⟨begin
-  intros n m f fs,
+instance noetherian_ring_strong_rank_condition : strong_rank_condition R :=
+begin
+  fsplit,
+  intros m n f i,
   by_contradiction h,
   rw [not_le, ←nat.add_one_le_iff, le_iff_exists_add] at h,
   obtain ⟨m, rfl⟩ := h,
-  -- Let `g` be the projection map discarding the last `n` coordinates.
-  let g : (fin ((n + 1) + m) → R) →ₗ[R] (fin n → R) :=
-    linear_map.fun_left R R ((fin.cast_add 1).trans (fin.cast_add m)),
-  have gs : function.surjective g :=
-    linear_map.fun_left_surjective_of_injective _ _ _
-      ((fin.cast_add m).injective.comp (fin.cast_add 1).injective),
-  -- Since `g` composed with the `f` is a surjective endomorphism of
-  -- a noetherian module, it is injective, and so `f` itself is injective.
-  have gi : function.injective g :=
-    (is_noetherian.injective_of_surjective_endomorphism (f.comp g)
-      (function.surjective.comp fs gs)).of_comp,
-  -- But this gives an easy contradiction.
-  let i : fin (n + 1 + m) := fin.cast_add m (fin.nat_add n 0),
-  let x : fin (n + 1 + m) → R := finsupp.single i 1,
-  have z : g x = 0 := begin
-    ext j,
-    simp only [g, x, i, linear_map.fun_left_apply, pi.zero_apply],
-    rw finsupp.single_eq_of_ne,
-    refine fin.ne_of_vne _,
-    simp only [add_zero, fin.coe_zero, fin.val_eq_coe, fin.coe_nat_add, ne.def, fin.coe_cast_add],
-    exact j.2.ne.symm,
-  end,
-  simpa [x] using congr_fun ((g.map_eq_zero_iff gi).mp z) i,
-end⟩
+  let e : fin (n + 1 + m) ≃ fin n ⊕ fin (1 + m) :=
+    (fin_congr (add_assoc _ _ _)).trans fin_sum_fin_equiv.symm,
+  let f' := f.comp ((linear_equiv.sum_arrow_lequiv_prod_arrow _ _ R R).symm.trans
+    (linear_map.fun_congr_left R R e)).to_linear_map,
+  have i' : injective f' := i.comp (linear_equiv.injective _),
+  apply @zero_ne_one (fin (1 + m) → R) _ _,
+  apply (is_noetherian.equiv_punit_of_prod_injective f' i').injective,
+  ext,
+end
 
 end
 
@@ -190,7 +187,7 @@ begin
   exact ideal.map_pi _ _ hab e h,
 end
 
-/-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism `R/I`-modules
+/-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism of `R/I`-modules
     `R^n/I^n ≃ R^m/I^m`. -/
 private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] (ι' → R)) :
   (I.pi ι).quotient ≃ₗ[I.quotient] (I.pi ι').quotient :=
@@ -207,6 +204,12 @@ section
 local attribute [instance] ideal.quotient.field
 
 -- TODO: in fact, any nontrivial commutative ring satisfies the strong rank condition.
+-- To see this, consider `f : (fin m → R) →ₗ[R] (fin n → R)`,
+-- and consider the subring `A` of `R` generated by the matrix entries.
+-- That subring is noetherian, and `f` induces a new linear map `f' : (fin m → A) →ₗ[R] (fin n → A)`
+-- which is injective if `f` is.
+-- Since we've already established the strong rank condition for noetherian rings,
+-- this gives the result.
 
 /-- Nontrivial commutative rings have the invariant basis number property. -/
 @[priority 100]

@@ -35,7 +35,7 @@ We introduce the following notation for the lower Lebesgue integral of a functio
 
 noncomputable theory
 open set (hiding restrict restrict_apply) filter ennreal function (support)
-open_locale classical topological_space big_operators nnreal ennreal
+open_locale classical topological_space big_operators nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -125,13 +125,16 @@ begin
     (λ b _, measurable_set.inter (h b) (f.measurable_set_fiber _))
 end
 
+@[measurability]
 theorem measurable_set_preimage (f : α →ₛ β) (s) : measurable_set (f ⁻¹' s) :=
 measurable_set_cut (λ _ b, b ∈ s) f (λ b, measurable_set.const (b ∈ s))
 
 /-- A simple function is measurable -/
+@[measurability]
 protected theorem measurable [measurable_space β] (f : α →ₛ β) : measurable f :=
 λ s _, measurable_set_preimage f s
 
+@[measurability]
 protected theorem ae_measurable [measurable_space β] {μ : measure α} (f : α →ₛ β) :
   ae_measurable f μ :=
 f.measurable.ae_measurable
@@ -506,6 +509,19 @@ by rw [ennreal_rat_embed, encodable.encodek]; refl
 def eapprox : (α → ℝ≥0∞) → ℕ → α →ₛ ℝ≥0∞ :=
 approx ennreal_rat_embed
 
+lemma eapprox_lt_top (f : α → ℝ≥0∞) (n : ℕ) (a : α) : eapprox f n a < ∞ :=
+begin
+  simp only [eapprox, approx, finset_sup_apply, finset.sup_lt_iff, with_top.zero_lt_top,
+    finset.mem_range, ennreal.bot_eq_zero, restrict],
+  assume b hb,
+  split_ifs,
+  { simp only [coe_zero, coe_piecewise, piecewise_eq_indicator, coe_const],
+    calc {a : α | ennreal_rat_embed b ≤ f a}.indicator (λ x, ennreal_rat_embed b) a
+        ≤ ennreal_rat_embed b : indicator_le_self _ _ a
+    ... < ⊤ : ennreal.coe_lt_top },
+  { exact with_top.zero_lt_top },
+end
+
 @[mono] lemma monotone_eapprox (f : α → ℝ≥0∞) : monotone (eapprox f) :=
 monotone_approx _ f
 
@@ -529,6 +545,30 @@ lemma eapprox_comp [measurable_space γ] {f : γ → ℝ≥0∞} {g : α → γ}
   (hf : measurable f) (hg : measurable g) :
   (eapprox (f ∘ g) n : α → ℝ≥0∞) = (eapprox f n : γ →ₛ ℝ≥0∞) ∘ g :=
 funext $ assume a, approx_comp a hf hg
+
+/-- Approximate a function `α → ℝ≥0∞` by a series of simple functions taking their values
+in `ℝ≥0`. -/
+def eapprox_diff (f : α → ℝ≥0∞) : ∀ (n : ℕ), α →ₛ ℝ≥0
+| 0 := (eapprox f 0).map ennreal.to_nnreal
+| (n+1) := (eapprox f (n+1) - eapprox f n).map ennreal.to_nnreal
+
+lemma sum_eapprox_diff (f : α → ℝ≥0∞) (n : ℕ) (a : α) :
+  (∑ k in finset.range (n+1), (eapprox_diff f k a : ℝ≥0∞)) = eapprox f n a :=
+begin
+  induction n with n IH,
+  { simp only [nat.nat_zero_eq_zero, finset.sum_singleton, finset.range_one], refl },
+  { rw [finset.sum_range_succ, nat.succ_eq_add_one, IH, eapprox_diff, coe_map, function.comp_app,
+        coe_sub, pi.sub_apply, ennreal.coe_to_nnreal,
+        ennreal.add_sub_cancel_of_le (monotone_eapprox f (nat.le_succ _) _)],
+    apply (lt_of_le_of_lt _ (eapprox_lt_top f (n+1) a)).ne,
+    rw ennreal.sub_le_iff_le_add,
+    exact le_self_add },
+end
+
+lemma tsum_eapprox_diff (f : α → ℝ≥0∞) (hf : measurable f) (a : α) :
+  (∑' n, (eapprox_diff f n a : ℝ≥0∞)) = f a :=
+by simp_rw [ennreal.tsum_eq_supr_nat' (tendsto_add_at_top_nat 1), sum_eapprox_diff,
+  supr_eapprox_apply f hf a]
 
 end eapprox
 
@@ -867,7 +907,7 @@ section lintegral
 open simple_func
 variables [measurable_space α] {μ : measure α}
 
-/-- The lower Lebesgue integral of a function `f` with respect to a measure `μ`. -/
+/-- The **lower Lebesgue integral** of a function `f` with respect to a measure `μ`. -/
 def lintegral (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
 ⨆ (g : α →ₛ ℝ≥0∞) (hf : ⇑g ≤ f), g.lintegral μ
 
@@ -902,6 +942,16 @@ begin
   rw ennreal.coe_le_coe,
   exact h a,
 end
+
+lemma lintegral_mono_set ⦃μ : measure α⦄
+  {s t : set α} {f : α → ℝ≥0∞} (hst : s ⊆ t) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
+lintegral_mono' (measure.restrict_mono hst (le_refl μ)) (le_refl f)
+
+lemma lintegral_mono_set' ⦃μ : measure α⦄
+  {s t : set α} {f : α → ℝ≥0∞} (hst : s ≤ᵐ[μ] t) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
+lintegral_mono' (measure.restrict_mono' hst (le_refl μ)) (le_refl f)
 
 lemma monotone_lintegral (μ : measure α) : monotone (lintegral μ) :=
 lintegral_mono
@@ -1136,7 +1186,7 @@ calc (∫⁻ a, f a ∂μ) = (∫⁻ a, ⨆n, (eapprox f n : α → ℝ≥0∞) 
 ... = (⨆n, ∫⁻ a, (eapprox f n : α → ℝ≥0∞) a ∂μ) :
 begin
   rw [lintegral_supr],
-  { assume n, exact (eapprox f n).measurable },
+  { measurability, },
   { assume i j h, exact (monotone_eapprox f h) }
 end
 ... = (⨆n, (eapprox f n).lintegral μ) : by congr; ext n; rw [(eapprox f n).lintegral_eq_lintegral]
@@ -1205,7 +1255,7 @@ calc (∫⁻ a, f a + g a ∂μ) =
     { congr,
       funext n, rw [← simple_func.add_lintegral, ← simple_func.lintegral_eq_lintegral],
       refl },
-    { assume n, exact measurable.add (eapprox f n).measurable (eapprox g n).measurable },
+    { measurability, },
     { assume i j h a, exact add_le_add (monotone_eapprox _ h _) (monotone_eapprox _ h _) }
   end
   ... = (⨆n, (eapprox f n).lintegral μ) + (⨆n, (eapprox g n).lintegral μ) :
@@ -1365,7 +1415,7 @@ begin
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
-/-- Chebyshev's inequality -/
+/-- **Chebyshev's inequality** -/
 lemma mul_meas_ge_le_lintegral {f : α → ℝ≥0∞} (hf : measurable f) (ε : ℝ≥0∞) :
   ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
 begin
@@ -1661,6 +1711,16 @@ begin
   exact lintegral_mono' restrict_Union_le (le_refl _)
 end
 
+lemma lintegral_union {f : α → ℝ≥0∞} {A B : set α}
+  (hA : measurable_set A) (hB : measurable_set B) (hAB : disjoint A B) :
+  ∫⁻ a in A ∪ B, f a ∂μ = ∫⁻ a in A, f a ∂μ + ∫⁻ a in B, f a ∂μ :=
+begin
+  rw [set.union_eq_Union, lintegral_Union, tsum_bool, add_comm],
+  { simp only [to_bool_false_eq_ff, to_bool_true_eq_tt, cond] },
+  { intros i, exact measurable_set.cond hA hB },
+  { rwa pairwise_disjoint_on_bool }
+end
+
 lemma lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin
@@ -1862,7 +1922,7 @@ begin
         = ∫⁻ x, ∑' n, (((s n).indicator (λ x, ρ n) x : ℝ≥0) : ℝ≥0∞) ∂μ :
       by { apply lintegral_congr (λ x, _), simp_rw [g, ennreal.coe_tsum (B x)] }
     ... = ∑' n, ∫⁻ x, (((s n).indicator (λ x, ρ n) x : ℝ≥0) : ℝ≥0∞) ∂μ :
-      lintegral_tsum (λ n, (M n).ennreal_coe)
+      lintegral_tsum (λ n, (M n).coe_nnreal_ennreal)
     ... = ∑' n, μ (s n) * ρ n :
       by simp only [measurable_spanning_sets μ, lintegral_const, measurable_set.univ, mul_comm,
                     lintegral_indicator, univ_inter, coe_indicator, measure.restrict_apply]
@@ -1876,5 +1936,130 @@ begin
       end
     ... < ε : by rwa [← ennreal.coe_tsum δsum.summable, ennreal.coe_lt_coe, δsum.tsum_eq] }
 end
+
+lemma lintegral_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
+  @lintegral _ m (μ.trim hm) f = ∫⁻ a, f a ∂μ :=
+begin
+  refine @measurable.ennreal_induction α m
+    (λ f, @lintegral _ m (μ.trim hm) f = ∫⁻ a, f a ∂μ) _ _ _ f hf,
+  { intros c s hs,
+    rw [@lintegral_indicator α m _ _ _ hs, @lintegral_indicator α _ _ _ _ (hm s hs),
+      @set_lintegral_const α m, set_lintegral_const],
+    suffices h_trim_s : μ.trim hm s = μ s, by rw h_trim_s,
+    exact trim_measurable_set_eq hm hs, },
+  { intros f g hfg hf hg hf_prop hg_prop,
+    have h_m := @lintegral_add _ m (μ.trim hm) f g hf hg,
+    have h_m0 := @lintegral_add _ m0 μ f g (measurable.mono hf hm le_rfl)
+      (measurable.mono hg hm le_rfl),
+    rwa [hf_prop, hg_prop, ← h_m0] at h_m, },
+  { intros f hf hf_mono hf_prop,
+    rw @lintegral_supr α m (μ.trim hm) _ hf hf_mono,
+    rw @lintegral_supr α m0 μ _ (λ n, measurable.mono (hf n) hm le_rfl) hf_mono,
+    congr,
+    exact funext (λ n, hf_prop n), },
+end
+
+lemma lintegral_trim_ae {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  {f : α → ℝ≥0∞} (hf : @ae_measurable _ _ m _ f (μ.trim hm)) :
+  @lintegral _ m (μ.trim hm) f = ∫⁻ a, f a ∂μ :=
+begin
+  let f' := @ae_measurable.mk _ _ m _ _ _ hf,
+  have hff'_m : eventually_eq (@measure.ae  _ m (μ.trim hm)) f' f,
+    from (@ae_measurable.ae_eq_mk _ _ m _ _ _ hf).symm,
+  have hff' : f' =ᵐ[μ] f, from ae_eq_of_ae_eq_trim hff'_m,
+  rw [lintegral_congr_ae hff'.symm, @lintegral_congr_ae _ m _ _ _ hff'_m.symm,
+    lintegral_trim hm (@ae_measurable.measurable_mk _ _ m _ _ _ hf)],
+end
+
+section sigma_finite
+
+variables {α E : Type*} {m m0 : measurable_space α} [normed_group E] [measurable_space E]
+  [opens_measurable_space E]
+
+lemma univ_le_of_forall_fin_meas_le {μ : measure α} (hm : m ≤ m0) [@sigma_finite _ m (μ.trim hm)]
+  (C : ℝ≥0∞) {f : set α → ℝ≥0∞} (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → f s ≤ C)
+  (h_F_lim : ∀ S : ℕ → set α,
+    (∀ n, measurable_set[m] (S n)) → monotone S → f (⋃ n, S n) ≤ ⨆ n, f (S n)) :
+  f univ ≤ C :=
+begin
+  let S := @spanning_sets _ m (μ.trim hm) _,
+  have hS_mono : monotone S, from @monotone_spanning_sets _ m (μ.trim hm) _,
+  have hS_meas : ∀ n, measurable_set[m] (S n), from @measurable_spanning_sets _ m (μ.trim hm) _,
+  rw ← @Union_spanning_sets _ m (μ.trim hm),
+  refine (h_F_lim S hS_meas hS_mono).trans _,
+  refine supr_le (λ n, hf (S n) (hS_meas n) _),
+  exact ((le_trim hm).trans_lt (@measure_spanning_sets_lt_top _ m (μ.trim hm) _ n)).ne,
+end
+
+/-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
+measure in a sub-σ-algebra and the measure is σ-finite on that sub-σ-algebra, then the integral
+over the whole space is bounded by that same constant. Version for a measurable function.
+See `lintegral_le_of_forall_fin_meas_le'` for the more general `ae_measurable` version. -/
+lemma lintegral_le_of_forall_fin_meas_le_of_measurable {μ : measure α} (hm : m ≤ m0)
+  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : measurable f)
+  (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
+  ∫⁻ x, f x ∂μ ≤ C :=
+begin
+  have : ∫⁻ x in univ, f x ∂μ = ∫⁻ x, f x ∂μ, by simp only [measure.restrict_univ],
+  rw ← this,
+  refine univ_le_of_forall_fin_meas_le hm C hf (λ S hS_meas hS_mono, _),
+  rw ← lintegral_indicator,
+  swap, { exact hm (⋃ n, S n) (@measurable_set.Union _ _ m _ _ hS_meas), },
+  have h_integral_indicator : (⨆ n, ∫⁻ x in S n, f x ∂μ) = ⨆ n, ∫⁻ x, (S n).indicator f x ∂μ,
+  { congr,
+    ext1 n,
+    rw lintegral_indicator _ (hm _ (hS_meas n)), },
+  rw [h_integral_indicator,  ← lintegral_supr],
+  { refine le_of_eq (lintegral_congr (λ x, _)),
+    simp_rw indicator_apply,
+    by_cases hx_mem : x ∈ Union S,
+    { simp only [hx_mem, if_true],
+      obtain ⟨n, hxn⟩ := mem_Union.mp hx_mem,
+      refine le_antisymm (trans _ (le_supr _ n)) (supr_le (λ i, _)),
+      { simp only [hxn, le_refl, if_true], },
+      { by_cases hxi : x ∈ S i; simp [hxi], }, },
+    { simp only [hx_mem, if_false],
+      rw mem_Union at hx_mem,
+      push_neg at hx_mem,
+      refine le_antisymm (zero_le _) (supr_le (λ n, _)),
+      simp only [hx_mem n, if_false, nonpos_iff_eq_zero], }, },
+  { exact λ n, hf_meas.indicator (hm _ (hS_meas n)), },
+  { intros n₁ n₂ hn₁₂ a,
+    simp_rw indicator_apply,
+    split_ifs,
+    { exact le_rfl, },
+    { exact absurd (mem_of_mem_of_subset h (hS_mono hn₁₂)) h_1, },
+    { exact zero_le _, },
+    { exact le_rfl, }, },
+end
+
+/-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
+measure in a sub-σ-algebra and the measure is σ-finite on that sub-σ-algebra, then the integral
+over the whole space is bounded by that same constant. -/
+lemma lintegral_le_of_forall_fin_meas_le' {μ : measure α} (hm : m ≤ m0)
+  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : _ → ℝ≥0∞} (hf_meas : ae_measurable f μ)
+  (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
+  ∫⁻ x, f x ∂μ ≤ C :=
+begin
+  let f' := hf_meas.mk f,
+  have hf' : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, f' x ∂μ ≤ C,
+  { refine λ s hs hμs, (le_of_eq _).trans (hf s hs hμs),
+    refine lintegral_congr_ae (ae_restrict_of_ae (hf_meas.ae_eq_mk.mono (λ x hx, _))),
+    rw hx, },
+  rw lintegral_congr_ae hf_meas.ae_eq_mk,
+  exact lintegral_le_of_forall_fin_meas_le_of_measurable hm C hf_meas.measurable_mk hf',
+end
+
+/-- If the Lebesgue integral of a function is bounded by some constant on all sets with finite
+measure and the measure is σ-finite, then the integral over the whole space is bounded by that same
+constant. -/
+lemma lintegral_le_of_forall_fin_meas_le [measurable_space α] {μ : measure α} [sigma_finite μ]
+  (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : ae_measurable f μ)
+  (hf : ∀ s, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
+  ∫⁻ x, f x ∂μ ≤ C :=
+@lintegral_le_of_forall_fin_meas_le' _ _ _ _ le_rfl (by rwa trim_eq_self) C _ hf_meas hf
+
+end sigma_finite
 
 end measure_theory

@@ -1,15 +1,15 @@
 /-
 Copyright (c) 2020 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang
+Authors: Damiano Testa, Jujian Zhang
 -/
 import analysis.calculus.mean_value
 import data.polynomial.denoms_clearable
 import data.real.irrational
-import ring_theory.algebraic
-import topology.algebra.polynomial
 /-!
+
 # Liouville's theorem
+
 This file contains a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 
@@ -136,7 +136,7 @@ begin
   -- Since `fR` is continuous, it is bounded on the interval above.
   obtain ⟨xm, -, hM⟩ : ∃ (xm : ℝ) (H : xm ∈ Icc (α - ζ) (α + ζ)), ∀ (y : ℝ),
     y ∈ Icc (α - ζ) (α + ζ) → abs (fR.derivative.eval y) ≤ abs (fR.derivative.eval xm) :=
-    is_compact.exists_forall_ge compact_Icc
+    is_compact.exists_forall_ge is_compact_Icc
     ⟨α, (sub_lt_self α z0).le, (lt_add_of_pos_right α z0).le⟩
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
   -- Use the key lemma `exists_one_le_pow_mul_dist`: we are left to show that ...
@@ -166,6 +166,7 @@ begin
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
 
+/-- **Liouville's Theorem** -/
 theorem transcendental {x : ℝ} (lx : liouville x) :
   transcendental ℤ x :=
 begin

@@ -549,6 +549,10 @@ lemma finrank_eq_zero_of_not_exists_basis_finite
   (h : ¬ ∃ (s : set V) (b : basis.{v} (s : set V) K V), s.finite) : finrank K V = 0 :=
 finrank_eq_zero_of_basis_imp_not_finite (λ s b hs, h ⟨s, b, hs⟩)
 
+lemma finrank_eq_zero_of_not_exists_basis_finset
+  (h : ¬ ∃ (s : finset V), nonempty (basis s K V)) : finrank K V = 0 :=
+finrank_eq_zero_of_basis_imp_false (λ s b, h ⟨s, ⟨b⟩⟩)
+
 variables (K V)
 
 lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
@@ -886,18 +890,12 @@ finrank_zero_iff.trans (subsingleton_iff_forall_eq 0)
 
 /-- If `ι` is an empty type and `V` is zero-dimensional, there is a unique `ι`-indexed basis. -/
 noncomputable def basis_of_finrank_zero [finite_dimensional K V]
-  {ι : Type*} (h : ¬ nonempty ι) (hV : finrank K V = 0) :
+  {ι : Type*} [is_empty ι] (hV : finrank K V = 0) :
   basis ι K V :=
 begin
   haveI : subsingleton V := finrank_zero_iff.1 hV,
-  exact basis.empty _ h
+  exact basis.empty _
 end
-
-/-- If `V` is zero-dimensional, there is a unique `fin 0`-indexed basis. -/
-noncomputable def basis_of_finrank_zero' [finite_dimensional K V]
-  (hV : finrank K V = 0) :
-  basis (fin 0) K V :=
-basis_of_finrank_zero (finset.univ_eq_empty.mp rfl) hV
 
 namespace linear_map
 

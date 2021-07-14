@@ -3,7 +3,7 @@ Copyright (c) 2021 Martin Zinkevich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Martin Zinkevich
 -/
-import measure_theory.measurable_space
+import measure_theory.measurable_space_def
 import data.equiv.encodable.lattice
 
 /-!
@@ -349,6 +349,7 @@ have generate s ≤ (generate s).restrict_on ht₂,
 this _ ht₁
 
 /--
+  **Dynkin's π-λ theorem**:
   Given a collection of sets closed under binary intersections, then the Dynkin system it
   generates is equal to the σ-algebra it generates.
   This result is known as the π-λ theorem.

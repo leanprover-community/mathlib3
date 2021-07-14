@@ -6,7 +6,7 @@ Authors: Kevin Buzzard
 
 import algebra.module.basic
 import linear_algebra.finsupp
-import linear_algebra.basis
+import linear_algebra.free_module
 
 /-!
 
@@ -51,7 +51,6 @@ https://en.wikipedia.org/wiki/Projective_module
 
 - Direct sum of two projective modules is projective.
 - Arbitrary sum of projective modules is projective.
-- Any module admits a surjection from a projective module.
 
 All of these should be relatively straightforward.
 
@@ -68,11 +67,16 @@ universes u v
 /-- An R-module is projective if it is a direct summand of a free module, or equivalently
   if maps from the module lift along surjections. There are several other equivalent
   definitions. -/
-def is_projective
-  (R : Type u) [semiring R] (P : Type (max u v)) [add_comm_monoid P] [module R P] : Prop :=
-∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s
+class module.projective (R : Type u) [semiring R] (P : Type (max u v)) [add_comm_monoid P]
+  [module R P] : Prop :=
+(out : ∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s)
 
-namespace is_projective
+namespace module
+
+lemma projective_def {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P]
+  [module R P] : projective R P ↔
+  (∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s) :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 section semiring
 
@@ -80,7 +84,7 @@ variables {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P] [mo
   {M : Type (max u v)} [add_comm_group M] [module R M] {N : Type*} [add_comm_group N] [module R N]
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
-theorem lifting_property (h : is_projective R P) (f : M →ₗ[R] N) (g : P →ₗ[R] N)
+theorem projective_lifting_property [h : projective R P] (f : M →ₗ[R] N) (g : P →ₗ[R] N)
   (hf : function.surjective f) : ∃ (h : P →ₗ[R] M), f.comp h = g :=
 begin
   /-
@@ -94,7 +98,7 @@ begin
   -/
   let φ : (P →₀ R) →ₗ[R] M := finsupp.total _ _ _ (λ p, function.surj_inv hf (g p)),
   -- By projectivity we have a map `P →ₗ (P →₀ R)`;
-  cases h with s hs,
+  cases h.out with s hs,
   -- Compose to get `P →ₗ M`. This works.
   use φ.comp s,
   ext p,
@@ -104,7 +108,7 @@ end
 
 /-- A module which satisfies the universal property is projective. Note that the universe variables
 in `huniv` are somewhat restricted. -/
-theorem of_lifting_property'
+theorem projective_of_lifting_property'
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
   (huniv : ∀ {M : Type (max v u)} {N : Type (max u v)} [add_comm_monoid M] [add_comm_monoid N],
     by exactI
@@ -113,7 +117,7 @@ theorem of_lifting_property'
     ∀ (f : M →ₗ[R] N) (g : P →ₗ[R] N),
   function.surjective f → ∃ (h : P →ₗ[R] M), f.comp h = g) :
   -- then `P` is projective.
-  is_projective R P :=
+  projective R P :=
 begin
   -- let `s` be the universal map `(P →₀ R) →ₗ P` coming from the identity map `P →ₗ P`.
   obtain ⟨s, hs⟩ : ∃ (s : P →ₗ[R] P →₀ R),
@@ -135,7 +139,7 @@ variables {R : Type u} [ring R] {P : Type (max u v)} [add_comm_group P] [module 
 
 /-- A variant of `of_lifting_property'` when we're working over a `[ring R]`,
 which only requires quantifying over modules with an `add_comm_group` instance. -/
-theorem of_lifting_property
+theorem projective_of_lifting_property
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
   (huniv : ∀ {M : Type (max v u)} {N : Type (max u v)} [add_comm_group M] [add_comm_group N],
     by exactI
@@ -144,7 +148,7 @@ theorem of_lifting_property
     ∀ (f : M →ₗ[R] N) (g : P →ₗ[R] N),
   function.surjective f → ∃ (h : P →ₗ[R] M), f.comp h = g) :
   -- then `P` is projective.
-  is_projective R P :=
+  projective R P :=
 -- We could try and prove this *using* `of_lifting_property`,
 -- but this quickly leads to typeclass hell,
 -- so we just prove it over again.
@@ -162,7 +166,7 @@ begin
 end
 
 /-- Free modules are projective. -/
-theorem of_free {ι : Type*} (b : basis ι R P) : is_projective R P :=
+theorem projective_of_basis {ι : Type*} (b : basis ι R P) : projective R P :=
 begin
   -- need P →ₗ (P →₀ R) for definition of projective.
   -- get it from `ι → (P →₀ R)` coming from `b`.
@@ -173,6 +177,10 @@ begin
   exact b.total_repr m,
 end
 
+@[priority 100]
+instance projective_of_free [module.free R P] : module.projective R P :=
+projective_of_basis $ module.free.choose_basis R P
+
 end ring
 
-end is_projective
+end module

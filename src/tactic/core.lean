@@ -620,8 +620,23 @@ tactic.unsafe.type_context.run $ do
 
 /-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
 `e : α := t`) and otherwise fails. -/
-meta def is_local_def (e : expr) : tactic unit :=
-retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
+meta def is_local_def (e : expr) : tactic unit := do
+  ctx ← unsafe.type_context.get_local_context.run,
+  (some decl) ← pure $ ctx.get_local_decl e.local_uniq_name |
+    fail format!"is_local_def: {e} is not a local constant",
+  when decl.value.is_none $ fail
+   format!"is_local_def: {e} is not a local definition"
+
+/-- Returns the local definitions from the context. A local definition is a
+local constant of the form `e : α := t`. The local definitions are returned in
+the order in which they appear in the context. -/
+meta def local_defs : tactic (list expr) := do
+  ctx ← unsafe.type_context.get_local_context.run,
+  ctx' ← local_context,
+  ctx'.mfilter $ λ h, do
+    (some decl) ← pure $ ctx.get_local_decl h.local_uniq_name |
+      fail format!"local_defs: local {h} not found in the local context",
+    pure decl.value.is_some
 
 /-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs`
 (using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
@@ -681,6 +696,31 @@ meta def context_upto_hyp_has_local_def (h : expr) : tactic bool := do
   ctx ← local_context,
   let ctx := ctx.take_while (≠ h),
   ctx.many (succeeds ∘ local_def_value)
+
+/--
+If the expression `h` is a local variable with type `x = t` or `t = x`, where `x` is a local
+constant, `tactic.subst' h` substitutes `x` by `t` everywhere in the main goal and then clears `h`.
+If `h` is another local variable, then we find a local constant with type `h = t` or `t = h` and
+substitute `t` for `h`.
+
+This is like `tactic.subst`, but fails with a nicer error message if the substituted variable is a
+local definition. It is trickier to fix this in core, since `tactic.is_local_def` is in mathlib.
+-/
+meta def subst' (h : expr) : tactic unit := do
+  e ← do { -- we first find the variable being substituted away
+    t ← infer_type h,
+    let (f, args) := t.get_app_fn_args,
+    if (f.const_name = `eq ∨ f.const_name = `heq) then do {
+      let lhs := args.inth 1,
+      let rhs := args.ilast,
+      if rhs.is_local_constant then return rhs else
+      if lhs.is_local_constant then return lhs else fail
+      "subst tactic failed, hypothesis '{h.local_pp_name}' is not of the form (x = t) or (t = x)." }
+    else return h },
+  success_if_fail (is_local_def e) <|>
+    fail format!("Cannot substitute variable {e.local_pp_name}, " ++
+      "it is a local definition. If you really want to do this, use `clear_value` first."),
+  subst h
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting

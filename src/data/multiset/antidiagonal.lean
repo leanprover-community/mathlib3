@@ -77,7 +77,9 @@ begin
   refine s.induction_on _ _,
   { simp },
   { assume a s ih,
-    simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm],
+    have := @sum_map_mul_left α β _,
+    simp [ih, add_mul, mul_comm, mul_left_comm (f a), mul_left_comm (g a), mul_assoc,
+      sum_map_mul_left.symm],
     cc },
 end
 

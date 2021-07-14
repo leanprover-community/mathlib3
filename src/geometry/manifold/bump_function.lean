@@ -22,9 +22,6 @@ define a coercion to function for this type, and for `f : smooth_bump_function I
 The actual statements involve (pre)images under `ext_chart_at I f.c` and are given as lemmas in the
 `smooth_bump_function` namespace.
 
- Then we use this fact to prove a version of the Whitney embedding theorem: any
-compact real manifold can be embedded into `ℝ^n` for large enough `n`.
-
 ## Tags
 
 manifold, smooth bump function, partition of unity, Whitney theorem

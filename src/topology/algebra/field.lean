@@ -89,9 +89,7 @@ variables [topological_division_ring K]
 lemma units_top_group : topological_group (units K) :=
 { continuous_inv := begin
      have : (coe : units K → K) ∘ (λ x, x⁻¹ : units K → units K) =
-            (λ x, x⁻¹ : K → K) ∘ (coe : units K → K),
-     { ext,
-       norm_cast },
+            (λ x, x⁻¹ : K → K) ∘ (coe : units K → K), from funext units.coe_inv',
      rw continuous_iff_continuous_at,
      intros x,
      rw [continuous_at, nhds_induced, nhds_induced, tendsto_iff_comap, comap_comm this],

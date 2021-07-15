@@ -28,21 +28,31 @@ initialize_simps_projections embedding (to_fun → apply)
 
 end function
 
+section equiv
+
+variables {α : Sort u} {β : Sort v} (f : α ≃ β)
+
 /-- Convert an `α ≃ β` to `α ↪ β`. -/
-@[simps]
-protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
-⟨f, f.injective⟩
+@[simps] protected def equiv.to_embedding : α ↪ β := ⟨f, f.injective⟩
+
+instance equiv.coe_embedding : has_coe (α ≃ β) (α ↪ β) := ⟨equiv.to_embedding⟩
+
+instance equiv.perm.coe_embedding : has_coe (equiv.perm α) (α ↪ α) := equiv.coe_embedding
+
+@[simp] lemma equiv.coe_eq_to_embedding  : ↑f = f.to_embedding := rfl
 
 /-- Given an equivalence to a subtype, produce an embedding to the elements of the corresponding
 set. -/
 @[simps]
-def equiv.as_embedding {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) : α ↪ β :=
+def equiv.as_embedding {p : β → Prop} (e : α ≃ subtype p) : α ↪ β :=
 ⟨coe ∘ e, subtype.coe_injective.comp e.injective⟩
 
 @[simp]
 lemma equiv.as_embedding_range {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) :
   set.range e.as_embedding = set_of p :=
 set.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ subtype.coe_prop (e y), λ hs, ⟨e.symm ⟨x, hs⟩, by simp⟩⟩
+
+end equiv
 
 namespace function
 namespace embedding

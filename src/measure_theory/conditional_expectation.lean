@@ -117,7 +117,7 @@ lemma Lp_meas_coe {m m0 : measurable_space α} {μ : measure α} {f : Lp_meas F 
 coe_fn_coe_base f
 
 lemma mem_Lp_meas_indicator_const_Lp {m m0 : measurable_space α} (hm : m ≤ m0)
-  {μ : measure α} {s : set α} (hs : @measurable_set α m s) {hμs : μ s ≠ ∞} {c : F} :
+  {μ : measure α} {s : set α} (hs : measurable_set[m] s) {hμs : μ s ≠ ∞} {c : F} :
   indicator_const_Lp p (hm s hs) hμs c ∈ Lp_meas F 𝕜 m p μ :=
 ⟨s.indicator (λ x : α, c),
   @measurable.indicator α _ m _ _ s (λ x, c) (@measurable_const _ α _ m _) hs,
@@ -333,7 +333,7 @@ lemma inner_condexp_L2_left_eq_right (hm : m ≤ m0) {f g : α →₂[μ] E} :
 by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact inner_orthogonal_projection_left_eq_right _ f g, }
 
 lemma condexp_L2_indicator_of_measurable (hm : m ≤ m0)
-  (hs : @measurable_set _ m s) (hμs : μ s ≠ ∞) (c : E) :
+  (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) (c : E) :
   (condexp_L2 𝕜 hm (indicator_const_Lp 2 (hm s hs) hμs c) : α →₂[μ] E)
     = indicator_const_Lp 2 (hm s hs) hμs c :=
 begin

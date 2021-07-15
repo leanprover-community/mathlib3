@@ -278,7 +278,7 @@ end Lp_meas
 We define a conditional expectation in `L2`: it is the orthogonal projection on the subspace
 `Lp_meas`. -/
 
-section condexp_L2_clm
+section condexp_L2
 
 local attribute [instance] fact_one_le_two_ennreal
 
@@ -287,79 +287,74 @@ variables [complete_space E] [borel_space 𝕜] {m m0 : measurable_space α} {μ
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 local notation `⟪`x`, `y`⟫'` := @inner 𝕜 E' _ x y
-local notation `⟪`x`, `y`⟫₂` := @inner 𝕜 (α→₂[μ] E) _ x y
+local notation `⟪`x`, `y`⟫₂` := @inner 𝕜 (α →₂[μ] E) _ x y
 
 variables (𝕜)
 /-- Conditional expectation of a function in L2 with respect to a sigma-algebra -/
-def condexp_L2_clm (hm : m ≤ m0) : (α →₂[μ] E) →L[𝕜] (Lp_meas E 𝕜 m 2 μ) :=
+def condexp_L2 (hm : m ≤ m0) : (α →₂[μ] E) →L[𝕜] (Lp_meas E 𝕜 m 2 μ) :=
 @orthogonal_projection 𝕜 (α →₂[μ] E) _ _ (Lp_meas E 𝕜 m 2 μ)
   (by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact infer_instance, })
 variables {𝕜}
 
-lemma integrable_on_condexp_L2_of_measure_ne_top (hm : m ≤ m0) (hμs : μ s ≠ ∞) (f : Lp E 2 μ) :
-  integrable_on (condexp_L2_clm 𝕜 hm f) s μ :=
-integrable_on_Lp_of_measure_ne_top ((condexp_L2_clm 𝕜 hm f) : Lp E 2 μ)
+lemma integrable_on_condexp_L2_of_measure_ne_top (hm : m ≤ m0) (hμs : μ s ≠ ∞) (f : α →₂[μ] E) :
+  integrable_on (condexp_L2 𝕜 hm f) s μ :=
+integrable_on_Lp_of_measure_ne_top ((condexp_L2 𝕜 hm f) : α →₂[μ] E)
   fact_one_le_two_ennreal.elim hμs
 
-lemma integrable_condexp_L2_of_finite_measure (hm : m ≤ m0) [finite_measure μ] {f : Lp E 2 μ} :
-  integrable (condexp_L2_clm 𝕜 hm f) μ :=
+lemma integrable_condexp_L2_of_finite_measure (hm : m ≤ m0) [finite_measure μ] {f : α →₂[μ] E} :
+  integrable (condexp_L2 𝕜 hm f) μ :=
 integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_ne_top hm (measure_ne_top _ _) f
 
-lemma norm_condexp_L2_le_one (hm : m ≤ m0) :
-  ∥@condexp_L2_clm α E 𝕜 _ _ _ _ _ _ _ _ _ _ μ hm∥ ≤ 1 :=
+lemma norm_condexp_L2_le_one (hm : m ≤ m0) : ∥@condexp_L2 α E 𝕜 _ _ _ _ _ _ _ _ _ _ μ hm∥ ≤ 1 :=
 by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact orthogonal_projection_norm_le _, }
 
-lemma norm_condexp_L2_apply_le (hm : m ≤ m0) (f : Lp E 2 μ) :
-  ∥condexp_L2_clm 𝕜 hm f∥ ≤ ∥f∥ :=
-begin
-  refine ((@condexp_L2_clm α E 𝕜 _ _ _ _ _ _ _ _ _ _ μ hm).le_op_norm _).trans _,
-  nth_rewrite 1 ← one_mul (∥f∥),
-  exact mul_le_mul (norm_condexp_L2_le_one hm) le_rfl (norm_nonneg _) zero_le_one,
-end
+lemma norm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) : ∥condexp_L2 𝕜 hm f∥ ≤ ∥f∥ :=
+((@condexp_L2 _ E 𝕜 _ _ _ _ _ _ _ _ _ _ μ hm).le_op_norm f).trans
+  (mul_le_of_le_one_left (norm_nonneg _) (norm_condexp_L2_le_one hm))
 
-lemma snorm_condexp_L2_le (hm : m ≤ m0) (f : Lp E 2 μ) :
-  snorm (condexp_L2_clm 𝕜 hm f) 2 μ ≤ snorm f 2 μ :=
+lemma snorm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) :
+  snorm (condexp_L2 𝕜 hm f) 2 μ ≤ snorm f 2 μ :=
 begin
   rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _), ← norm_def,
     ← norm_def, submodule.norm_coe],
-  exact norm_condexp_L2_apply_le hm f,
+  exact norm_condexp_L2_le hm f,
 end
 
-lemma norm_condexp_L2_coe_le (hm : m ≤ m0) (f : Lp E 2 μ) :
-  ∥(condexp_L2_clm 𝕜 hm f : Lp E 2 μ)∥ ≤ ∥f∥ :=
+lemma norm_condexp_L2_coe_le (hm : m ≤ m0) (f : α →₂[μ] E) :
+  ∥(condexp_L2 𝕜 hm f : α →₂[μ] E)∥ ≤ ∥f∥ :=
 begin
   rw [norm_def, norm_def, ← Lp_meas_coe],
   refine (ennreal.to_real_le_to_real _ (Lp.snorm_ne_top _)).mpr (snorm_condexp_L2_le hm f),
   exact Lp.snorm_ne_top _,
 end
 
-lemma inner_condexp_L2_left_eq_right (hm : m ≤ m0) {f g : Lp E 2 μ} :
-  ⟪(condexp_L2_clm 𝕜 hm f : Lp E 2 μ), g⟫₂ = ⟪f, (condexp_L2_clm 𝕜 hm g : Lp E 2 μ)⟫₂ :=
+lemma inner_condexp_L2_left_eq_right (hm : m ≤ m0) {f g : α →₂[μ] E} :
+  ⟪(condexp_L2 𝕜 hm f : α →₂[μ] E), g⟫₂ = ⟪f, (condexp_L2 𝕜 hm g : α →₂[μ] E)⟫₂ :=
 by { haveI : fact (m ≤ m0) := ⟨hm⟩, exact inner_orthogonal_projection_left_eq_right _ f g, }
 
 lemma condexp_L2_indicator_of_measurable (hm : m ≤ m0)
   (hs : @measurable_set _ m s) (hμs : μ s ≠ ∞) (c : E) :
-  (condexp_L2_clm 𝕜 hm (indicator_const_Lp 2 (hm s hs) hμs c) : Lp E 2 μ)
+  (condexp_L2 𝕜 hm (indicator_const_Lp 2 (hm s hs) hμs c) : α →₂[μ] E)
     = indicator_const_Lp 2 (hm s hs) hμs c :=
 begin
-  rw condexp_L2_clm,
+  rw condexp_L2,
   haveI : fact(m ≤ m0) := ⟨hm⟩,
   have h_mem : indicator_const_Lp 2 (hm s hs) hμs c ∈ Lp_meas E 𝕜 m 2 μ,
     from mem_Lp_meas_indicator_const_Lp hm hs,
   let ind := (⟨indicator_const_Lp 2 (hm s hs) hμs c, h_mem⟩ : Lp_meas E 𝕜 m 2 μ),
-  have h_coe_ind : (ind : Lp E 2 μ) = indicator_const_Lp 2 (hm s hs) hμs c, by refl,
+  have h_coe_ind : (ind : α →₂[μ] E) = indicator_const_Lp 2 (hm s hs) hμs c, by refl,
   have h_orth_mem := orthogonal_projection_mem_subspace_eq_self ind,
   rw [← h_coe_ind, h_orth_mem],
 end
 
-lemma inner_condexp_L2_eq_inner_fun (hm : m ≤ m0) (f g : Lp E 2 μ) (hg : ae_measurable' m g μ) :
-  ⟪(condexp_L2_clm 𝕜 hm f : Lp E 2 μ), g⟫₂ = ⟪f, g⟫₂ :=
+lemma inner_condexp_L2_eq_inner_fun (hm : m ≤ m0) (f g : α →₂[μ] E) (hg : ae_measurable' m g μ) :
+  ⟪(condexp_L2 𝕜 hm f : α →₂[μ] E), g⟫₂ = ⟪f, g⟫₂ :=
 begin
   symmetry,
-  rw [← sub_eq_zero, ← inner_sub_left, condexp_L2_clm],
+  rw [← sub_eq_zero, ← inner_sub_left, condexp_L2],
   simp only [mem_Lp_meas_iff_ae_measurable'.mpr hg, orthogonal_projection_inner_eq_zero],
 end
 
-end condexp_L2_clm
+end condexp_L2
 
 end measure_theory

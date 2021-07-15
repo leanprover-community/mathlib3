@@ -142,7 +142,7 @@ end
 end caratheodory
 
 /--
-One inclusion of Carathéodory's convexity theorem.
+One inclusion of **Carathéodory's convexity theorem**.
 
 The convex hull of a set `s` in ℝᵈ is contained in
 the union of the convex hulls of the (d+1)-tuples in `s`.
@@ -163,7 +163,7 @@ begin
 end
 
 /--
-Carathéodory's convexity theorem.
+**Carathéodory's convexity theorem**.
 
 The convex hull of a set `s` in ℝᵈ is the union of the convex hulls of the (d+1)-tuples in `s`.
 -/
@@ -177,7 +177,7 @@ begin
 end
 
 /--
-A more explicit formulation of Carathéodory's convexity theorem,
+A more explicit formulation of **Carathéodory's convexity theorem**,
 writing an element of a convex hull as the center of mass
 of an explicit `finset` with cardinality at most `dim + 1`.
 -/
@@ -195,7 +195,7 @@ begin
 end
 
 /--
-A variation on Carathéodory's convexity theorem,
+A variation on **Carathéodory's convexity theorem**,
 writing an element of a convex hull as a center of mass
 of an explicit `finset` with cardinality at most `dim + 1`,
 where all coefficients in the center of mass formula

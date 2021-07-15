@@ -508,7 +508,7 @@ Measures and integral Calculus:
     integrable functions: 'measure_theory.integrable'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
     finite dimensional vector-valued integrable functions: 'measure_theory.integrable'
-    continuity of integrals with respect to parameters: 'continuous_of_dominated_interval'
+    continuity of integrals with respect to parameters: 'interval_integral.continuous_of_dominated_interval'
     differentiability of integrals with respect to parameters:
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$: 'measure_theory.Lp'
     Completeness of $\mathrm{L}^p$ spaces: 'measure_theory.Lp.complete_space'

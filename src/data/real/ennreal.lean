@@ -300,8 +300,14 @@ instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
 example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
 example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
 
-lemma coe_smul (r s : ℝ≥0) : (↑(r • s) : ℝ≥0∞) = r • ↑s :=
-by simpa only [algebra.id.smul_eq_mul, ennreal.coe_mul]
+lemma coe_smul {R} [monoid R] (r : R) (s : ℝ≥0) [mul_action R ℝ≥0] [has_scalar R ℝ≥0∞]
+  [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
+  (↑(r • s) : ℝ≥0∞) = r • ↑s :=
+begin
+  rw ←smul_one_smul ℝ≥0 r (s: ℝ≥0∞),
+  change ↑(r • s) = ↑(r • (1 : ℝ≥0)) * ↑s,
+  rw [←ennreal.coe_mul, smul_mul_assoc, one_mul],
+end
 
 end actions
 

@@ -88,8 +88,8 @@ lemma integral_add_compl (hs : measurable_set s) (hfi : integrable f μ) :
 by rw [← integral_union (@disjoint_compl_right (set α) _ _) hs hs.compl
     hfi.integrable_on hfi.integrable_on, union_compl_self, integral_univ]
 
-lemma set_integral_neg_eq_set_integral_nonpos {f : α → ℝ} (hf : measurable f)
-  (hfi : integrable f μ) :
+lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_topology E]
+  {f : α → E} (hf : measurable f) (hfi : integrable f μ) :
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 begin
   have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},

@@ -35,6 +35,8 @@ section emetric
 
 variables [pseudo_emetric_space X] [pseudo_emetric_space Y] [pseudo_emetric_space Z]
 
+/-- A function `f : X → Y` between two `pseudo_emeteric_space`s is Hölder continuous with constant
+`C : ℝ≥0` and exponent `r : ℝ≥0`, if `edist (f x) (f y) ≤ C * edist x y ^ r` for all `x y : X`. -/
 def holder_with (C r : ℝ≥0) (f : X → Y) : Prop :=
 ∀ x y, edist (f x) (f y) ≤ C * edist x y ^ (r : ℝ)
 

@@ -288,8 +288,10 @@ function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_s
 
 end add_comm_group
 
-variables {M : Type*} [add_comm_group M] [topological_space M]
-variables {R : Type*} [ring R] [module R M]
+section add_comm_monoid
+
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {R : Type*} [semiring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M]
 
 /-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
@@ -306,6 +308,12 @@ instance : has_scalar R (vector_measure α M) := ⟨smul⟩
 @[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
 lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
   (r • v) i = r • v i := rfl
+
+end add_comm_monoid
+
+variables {M : Type*} [add_comm_group M] [topological_space M]
+variables {R : Type*} [semiring R] [module R M]
+variables [topological_space R] [has_continuous_smul R M]
 
 instance [topological_add_group M] : module R (vector_measure α M) :=
 function.injective.module R coe_fn_add_monoid_hom coe_injective coe_smul
@@ -343,11 +351,11 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
-@[simp] lemma zero_to_signed_measure :
+@[simp] lemma to_signed_measure_zero :
   (0 : measure α).to_signed_measure = 0 :=
 by { ext i hi, simp }
 
-@[simp] lemma add_to_signed_measure (μ ν : measure α) [finite_measure μ] [finite_measure ν] :
+@[simp] lemma to_signed_measure_add (μ ν : measure α) [finite_measure μ] [finite_measure ν] :
   (μ + ν).to_signed_measure = μ.to_signed_measure + ν.to_signed_measure :=
 begin
   ext i hi,
@@ -356,6 +364,35 @@ begin
       vector_measure.add_apply, to_signed_measure_apply_measurable hi,
       to_signed_measure_apply_measurable hi],
   all_goals { apply_instance }
+end
+
+-- Move to topology.instances.nnreal
+instance : has_continuous_smul ℝ≥0 ℝ :=
+{ continuous_smul := continuous.comp real.continuous_mul $ continuous.prod_mk
+    (continuous.comp continuous_subtype_val continuous_fst) continuous_snd }
+
+-- Move to data.real.nnreal
+lemma nnreal.coe_ennreal_smul (r s : ℝ≥0) : (↑(r • s) : ℝ≥0∞) = r • ↑s :=
+by simpa only [algebra.id.smul_eq_mul, ennreal.coe_mul]
+
+-- Move to data.real.ennreal
+lemma to_real_smul (r : ℝ≥0) (μ : measure α)
+  (i : set α) : (r • μ i).to_real = r • (μ i).to_real :=
+begin
+  by_cases h : μ i = ∞,
+  { rw [h, show r • ⊤ = (r : ℝ≥0∞) * ⊤, by refl],
+    simp },
+  { lift μ i to ℝ≥0 using h with s hs,
+    rw [← nnreal.coe_ennreal_smul, ennreal.coe_to_real, ennreal.coe_to_real],
+    refl }
+end
+
+@[simp] lemma to_signed_measure_smul (μ : measure α) [finite_measure μ] (r : ℝ≥0) :
+  (r • μ).to_signed_measure = r • μ.to_signed_measure :=
+begin
+  ext i hi,
+  rw [to_signed_measure_apply_measurable hi, vector_measure.smul_apply,
+      to_signed_measure_apply_measurable hi, coe_nnreal_smul, pi.smul_apply, to_real_smul],
 end
 
 /-- A measure is a vector measure over `ℝ≥0∞`. -/
@@ -371,10 +408,22 @@ def to_ennreal_vector_measure (μ : measure α) : vector_measure α ℝ≥0∞ :
       exact tsum_congr (λ n, if_pos (hf₁ n)) },
   end }
 
-lemma to_ennreal_vector_measure_apply_measurable (μ : measure α)
-  {i : set α} (hi : measurable_set i) :
+lemma to_ennreal_vector_measure_apply_measurable
+  {μ : measure α} {i : set α} (hi : measurable_set i) :
   μ.to_ennreal_vector_measure i = μ i :=
 if_pos hi
+
+@[simp] lemma to_ennreal_vector_measure_zero :
+  (0 : measure α).to_ennreal_vector_measure = 0 :=
+by { ext i hi, simp }
+
+@[simp] lemma to_ennreal_vector_measure_add (μ ν : measure α) :
+  (μ + ν).to_ennreal_vector_measure = μ.to_ennreal_vector_measure + ν.to_ennreal_vector_measure :=
+begin
+  refine measure_theory.vector_measure.ext (λ i hi, _),
+  rw [to_ennreal_vector_measure_apply_measurable hi, add_apply, vector_measure.add_apply,
+      to_ennreal_vector_measure_apply_measurable hi, to_ennreal_vector_measure_apply_measurable hi]
+end
 
 /-- Given two finite measures `μ, ν`, `sub_to_signed_measure μ ν` is the signed measure
 corresponding to the function `μ - ν`. -/

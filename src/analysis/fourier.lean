@@ -163,42 +163,8 @@ begin
   exact congr_arg subalgebra.to_submodule fourier_subalgebra_closure_eq_top,
 end
 
-
--- @[simp] lemma bar {E : Type*} [group E] : ((⊤ : subgroup E) : set E) = set.univ := rfl
-
-example {E F : Type*} [group E] [topological_space E] [topological_group E] [group F]
-  [topological_space F] [topological_group F] {f : E →* F} (hf : continuous f)
-  (hf' : dense_range f) {s : subgroup E} (hs : s.topological_closure = ⊤) :
-  (s.map f).topological_closure = ⊤ :=
-begin
-  rw set_like.ext'_iff at hs ⊢,
-  simp only [set_like.ext'_iff, add_subgroup.topological_closure_coe, add_subgroup.coe_top,
-    ← dense_iff_closure_eq] at hs ⊢,
-  exact hf'.dense_image hf hs
-end
-
--- @[simp] lemma foo' {R E : Type*} [semiring R] [topological_space R] [add_comm_monoid E]
---   [topological_space E] [has_continuous_add E]
---   [module R E] [has_continuous_smul R E] {s : submodule R E} :
---   (s.topological_closure : set E) = closure s :=
--- rfl
-
--- @[simp] lemma bar' {R E : Type*} [semiring R] [add_comm_monoid E] [module R E] :
---   ((⊤ : submodule R E) : set E) = set.univ := rfl
-
-lemma baz {R E F : Type*} [semiring R] [topological_space R] [add_comm_monoid E]
-  [topological_space E] [has_continuous_add E] [module R E]
-  [has_continuous_smul R E] [add_comm_monoid F] [topological_space F] [has_continuous_add F]
-  [module R F] [has_continuous_smul R F] {f : E →L[R] F}
-  (hf' : dense_range f) {s : submodule R E} (hs : s.topological_closure = ⊤) :
-  (@submodule.map R E F _ _ _ _ _ f s).topological_closure = ⊤ :=
-begin
-  rw set_like.ext'_iff at hs ⊢,
-  simp only [set_like.ext'_iff, submodule.topological_closure_coe, submodule.coe_top,
-    ← dense_iff_closure_eq] at hs ⊢,
-  exact hf'.dense_image f.continuous hs
-end
-
+/-- The family of monomials `λ z, z ^ n`, parametrized by `n : ℤ` and considered as elements of
+the `Lp` space of functions on `circle` taking values in `ℂ`. -/
 abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p haar_circle :=
 to_Lp p haar_circle ℂ (fourier n)
 
@@ -213,7 +179,7 @@ begin
   { convert this,
     rw [submodule.map_span, set.range_comp],
     simp },
-  refine baz _ span_fourier_closure_eq_top,
+  refine submodule.topological_closure_map_dense_range _ span_fourier_closure_eq_top,
 --  convert continuous_map.to_Lp_dense_range ℂ hp haar_circle,
 end
 

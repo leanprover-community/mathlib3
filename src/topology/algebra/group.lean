@@ -258,6 +258,16 @@ by convert is_closed_closure
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+@[to_additive] lemma subgroup.topological_closure_map_dense_range [group H] [topological_space H]
+  [topological_group H] {f : G →* H} (hf : continuous f) (hf' : dense_range f) {s : subgroup G}
+  (hs : s.topological_closure = ⊤) :
+  (s.map f).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [subgroup.topological_closure_coe, subgroup.coe_top, ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image hf hs
+end
+
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
   ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v / w ∈ s :=

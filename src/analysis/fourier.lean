@@ -157,7 +157,7 @@ continuous_map.subalgebra_complex_topological_closure_eq_top_of_separates_points
   fourier_subalgebra_conj_invariant
 
 /-- The linear span of the monomials `z ^ n` is dense in `C(circle, ℂ)`. -/
-lemma span_fourier_closure_eq_top : (span ℂ (set.range fourier)).topological_closure = ⊤ :=
+lemma span_fourier_closure_eq_top : (span ℂ (range fourier)).topological_closure = ⊤ :=
 begin
   rw ← fourier_subalgebra_coe,
   exact congr_arg subalgebra.to_submodule fourier_subalgebra_closure_eq_top,
@@ -171,16 +171,12 @@ to_Lp p haar_circle ℂ (fourier n)
 /-- For each `1 ≤ p < ∞`, the linear span of the monomials `z ^ n` is dense in
 `Lp ℂ p haar_circle`. -/
 lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ⊤) :
-  (span ℂ (set.range (fourier_Lp p))).topological_closure = ⊤ :=
+  (span ℂ (range (fourier_Lp p))).topological_closure = ⊤ :=
 begin
-  suffices : ((span ℂ (set.range fourier)).map
-    ↑(to_Lp p haar_circle ℂ : C(circle, ℂ) →L[ℂ] (Lp ℂ p haar_circle))).topological_closure
-    = (⊤ : submodule ℂ (Lp ℂ p haar_circle)),
-  { convert this,
-    rw [submodule.map_span, set.range_comp],
-    simp },
-  refine span_fourier_closure_eq_top.topological_closure_map_submodule _,
-  exact continuous_map.to_Lp_dense_range ℂ hp haar_circle ℂ,
+  convert (continuous_map.to_Lp_dense_range ℂ hp haar_circle ℂ).topological_closure_map_submodule
+    span_fourier_closure_eq_top,
+  rw [map_span, range_comp],
+  simp
 end
 
 /-- For `n ≠ 0`, a rotation by `n⁻¹ * real.pi` negates the monomial `z ^ n`. -/

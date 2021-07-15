@@ -230,6 +230,10 @@ def subgroup.topological_closure (s : subgroup G) : subgroup G :=
   inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
   ..s.to_submonoid.topological_closure }
 
+@[simp, to_additive] lemma subgroup.topological_closure_coe {s : subgroup G} :
+  (s.topological_closure : set G) = closure s :=
+rfl
+
 @[to_additive]
 instance subgroup.topological_closure_topological_group (s : subgroup G) :
   topological_group (s.topological_closure) :=

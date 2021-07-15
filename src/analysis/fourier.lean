@@ -3,6 +3,7 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
+import measure_theory.continuous_map_dense
 import measure_theory.l2_space
 import measure_theory.haar_measure
 import analysis.complex.circle
@@ -12,7 +13,7 @@ import topology.continuous_function.stone_weierstrass
 
 # Fourier analysis on the circle
 
-This file contains some first steps towards Fourier series.
+This file contains basic technical results for a development of Fourier series.
 
 ## Main definitions
 
@@ -20,6 +21,9 @@ This file contains some first steps towards Fourier series.
 * instances `measure_space`, `probability_measure` for the circle with respect to this measure
 * for `n : ℤ`, `fourier n` is the monomial `λ z, z ^ n`, bundled as a continuous map from `circle`
   to `ℂ`
+* for `n : ℤ` and `p : ℝ≥0∞`, `fourier_Lp p n` is an abbreviation for the monomial `fourier n`
+  considered as an element of the Lᵖ-space `Lp ℂ p haar_circle`, via the embedding
+  `continuous_map.to_Lp`
 
 ## Main statements
 
@@ -28,24 +32,33 @@ dense in `C(circle, ℂ)`, i.e. that its `submodule.topological_closure` is `⊤
 the Stone-Weierstrass theorem after checking that it is a subalgebra, closed under conjugation, and
 separates points.
 
-The theorem `orthonormal_fourier` states that the functions `fourier n`, when sent via
-`continuous_map.to_Lp` to the L^2 space on the circle, form an orthonormal set.
+The theorem `span_fourier_Lp_closure_eq_top` states that for `1 ≤ p < ∞` the span of the monomials
+`fourier_Lp` is dense in `Lp ℂ p haar_circle`, i.e. that its `submodule.topological_closure` is
+`⊤`.  This follows from the previous theorem using general theory on approximation of Lᵖ functions
+by continuous functions.
+
+The theorem `orthonormal_fourier` states that the monomials `fourier_Lp 2 n` form an orthonormal
+set (in the L² space of the circle).
+
+By definition, a Hilbert basis for an inner product space is an orthonormal set whose span is
+dense.  Thus, the last two results together establish that the functions `fourier_Lp 2 n` form a
+Hilbert basis for L².
 
 ## TODO
 
-Show that the image of `submodule.span fourier` under `continuous_map.to_Lp` is dense in the `L^2`
-space on the circle. This follows from `span_fourier_closure_eq_top` using general theory (not yet
-in Lean) on approximation by continuous functions.
-
-Paired with `orthonormal_fourier`, this establishes that the functions `fourier` form a Hilbert
-basis for `L^2`.
+Once mathlib has general theory showing that a Hilbert basis of an inner product space induces a
+unitary equivalence with L², the results in this file will give Fourier series applications such
+as Parseval's formula.
 
 -/
 
 noncomputable theory
+open_locale ennreal
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
 
 local attribute [instance] fact_one_le_two_ennreal
+
+/-! ### Choice of measure on the circle -/
 
 section haar_circle
 /-! We make the circle into a measure space, using the Haar measure normalized to have total
@@ -64,6 +77,8 @@ instance : measure_space circle :=
   .. circle.measurable_space }
 
 end haar_circle
+
+/-! ### Monomials on the circle -/
 
 section fourier
 
@@ -148,6 +163,60 @@ begin
   exact congr_arg subalgebra.to_submodule fourier_subalgebra_closure_eq_top,
 end
 
+
+-- @[simp] lemma bar {E : Type*} [group E] : ((⊤ : subgroup E) : set E) = set.univ := rfl
+
+example {E F : Type*} [group E] [topological_space E] [topological_group E] [group F]
+  [topological_space F] [topological_group F] {f : E →* F} (hf : continuous f)
+  (hf' : dense_range f) {s : subgroup E} (hs : s.topological_closure = ⊤) :
+  (s.map f).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [set_like.ext'_iff, add_subgroup.topological_closure_coe, add_subgroup.coe_top,
+    ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image hf hs
+end
+
+-- @[simp] lemma foo' {R E : Type*} [semiring R] [topological_space R] [add_comm_monoid E]
+--   [topological_space E] [has_continuous_add E]
+--   [module R E] [has_continuous_smul R E] {s : submodule R E} :
+--   (s.topological_closure : set E) = closure s :=
+-- rfl
+
+-- @[simp] lemma bar' {R E : Type*} [semiring R] [add_comm_monoid E] [module R E] :
+--   ((⊤ : submodule R E) : set E) = set.univ := rfl
+
+lemma baz {R E F : Type*} [semiring R] [topological_space R] [add_comm_monoid E]
+  [topological_space E] [has_continuous_add E] [module R E]
+  [has_continuous_smul R E] [add_comm_monoid F] [topological_space F] [has_continuous_add F]
+  [module R F] [has_continuous_smul R F] {f : E →L[R] F}
+  (hf' : dense_range f) {s : submodule R E} (hs : s.topological_closure = ⊤) :
+  (@submodule.map R E F _ _ _ _ _ f s).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [set_like.ext'_iff, submodule.topological_closure_coe, submodule.coe_top,
+    ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image f.continuous hs
+end
+
+abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p haar_circle :=
+to_Lp p haar_circle ℂ (fourier n)
+
+/-- For each `1 ≤ p < ∞`, the linear span of the monomials `z ^ n` is dense in
+`Lp ℂ p haar_circle`. -/
+lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ⊤) :
+  (span ℂ (set.range (fourier_Lp p))).topological_closure = ⊤ :=
+begin
+  suffices : ((span ℂ (set.range fourier)).map
+    ↑(to_Lp p haar_circle ℂ : C(circle, ℂ) →L[ℂ] (Lp ℂ p haar_circle))).topological_closure
+    = (⊤ : submodule ℂ (Lp ℂ p haar_circle)),
+  { convert this,
+    rw [submodule.map_span, set.range_comp],
+    simp },
+  refine baz _ span_fourier_closure_eq_top,
+--  convert continuous_map.to_Lp_dense_range ℂ hp haar_circle,
+end
+
 /-- For `n ≠ 0`, a rotation by `n⁻¹ * real.pi` negates the monomial `z ^ n`. -/
 lemma fourier_add_half_inv_index {n : ℤ} (hn : n ≠ 0) (z : circle) :
   fourier n ((exp_map_circle (n⁻¹ * real.pi) * z)) = - fourier n z :=
@@ -160,7 +229,7 @@ begin
 end
 
 /-- The monomials `z ^ n` are an orthonormal set with respect to Haar measure on the circle. -/
-lemma orthonormal_fourier : orthonormal ℂ (λ n, to_Lp 2 haar_circle ℂ (fourier n)) :=
+lemma orthonormal_fourier : orthonormal ℂ (fourier_Lp 2) :=
 begin
   rw orthonormal_iff_ite,
   intros i j,

@@ -1410,11 +1410,10 @@ end
 lemma to_real_smul (r : ℝ≥0) (s : ℝ≥0∞) :
   (r • s).to_real = r • s.to_real :=
 begin
-  by_cases h : s = ∞,
-  { rw [h, show r • ∞ = (r : ℝ≥0∞) * ∞, by refl],
-    simp only [ennreal.to_real_mul_top, ennreal.top_to_real, smul_zero]},
-  { lift s to ℝ≥0 using h with t ht,
-    rw [← ht, ← ennreal.coe_smul, ennreal.coe_to_real, ennreal.coe_to_real],
+  induction s using with_top.rec_top_coe,
+  { rw [show r • ∞ = (r : ℝ≥0∞) * ∞, by refl],
+    simp only [ennreal.to_real_mul_top, ennreal.top_to_real, smul_zero] },
+  { rw [← coe_smul, ennreal.coe_to_real, ennreal.coe_to_real],
     refl }
 end
 

@@ -350,6 +350,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 lemma tsum_geometric_two' (a : ℝ) : ∑' n:ℕ, (a / 2) / 2^n = a :=
 (has_sum_geometric_two' a).tsum_eq
 
+/-- **Sum of a Geometric Series** -/
 lemma nnreal.has_sum_geometric {r : ℝ≥0} (hr : r < 1) :
   has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
 begin
@@ -377,7 +378,8 @@ begin
   { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
-    have : ∀ k:ℕ, 1 ≤ r^k, by simpa using canonically_ordered_semiring.pow_le_pow_of_le_left hr,
+    have : ∀ k:ℕ, 1 ≤ r^k,
+      by simpa using canonically_ordered_comm_semiring.pow_le_pow_of_le_left hr,
     calc (n:ℝ≥0∞) = (∑ i in range n, 1) : by rw [sum_const, nsmul_one, card_range]
     ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, this k) }
 end

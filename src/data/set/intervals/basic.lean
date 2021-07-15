@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy
 -/
 import algebra.ordered_group
 import data.set.basic
+import order.rel_iso
 
 /-!
 # Intervals
@@ -155,21 +156,33 @@ nonempty.to_subtype nonempty_Ioi
 instance nonempty_Iio_subtype [no_bot_order α] : nonempty (Iio a) :=
 nonempty.to_subtype nonempty_Iio
 
-@[simp] lemma Ioo_eq_empty (h : b ≤ a) : Ioo a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans h₂).not_le h
+@[simp] lemma Icc_eq_empty (h : ¬a ≤ b) : Icc a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩, h (ha.trans hb)
 
-@[simp] lemma Ico_eq_empty (h : b ≤ a) : Ico a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans_lt h₂).not_le h
+@[simp] lemma Ico_eq_empty (h : ¬a < b) : Ico a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩, h (ha.trans_lt hb)
 
-@[simp] lemma Icc_eq_empty (h : b < a) : Icc a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans h₂).not_lt h
+@[simp] lemma Ioc_eq_empty (h : ¬a < b) : Ioc a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩, h (ha.trans_le hb)
 
-@[simp] lemma Ioc_eq_empty (h : b ≤ a) : Ioc a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₂.trans h).not_lt h₁
+@[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩,  h (ha.trans hb)
 
-@[simp] lemma Ioo_self (a : α) : Ioo a a = ∅ := Ioo_eq_empty $ le_refl _
-@[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ le_refl _
-@[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ le_refl _
+@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ :=
+Icc_eq_empty h.not_le
+
+@[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ :=
+Ico_eq_empty h.not_lt
+
+@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ :=
+Ioc_eq_empty h.not_lt
+
+@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ :=
+Ioo_eq_empty h.not_lt
+
+@[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ lt_irrefl _
+@[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ lt_irrefl _
+@[simp] lemma Ioo_self (a : α) : Ioo a a = ∅ := Ioo_eq_empty $ lt_irrefl _
 
 lemma Ici_subset_Ici : Ici a ⊆ Ici b ↔ b ≤ a :=
 ⟨λ h, h $ left_mem_Ici, λ h x hx, h.trans hx⟩
@@ -345,6 +358,18 @@ lemma mem_Icc_of_Ico (h : x ∈ Ico a b) : x ∈ Icc a b := Ico_subset_Icc_self 
 lemma mem_Icc_of_Ioc (h : x ∈ Ioc a b) : x ∈ Icc a b := Ioc_subset_Icc_self h
 lemma mem_Ici_of_Ioi (h : x ∈ Ioi a) : x ∈ Ici a := Ioi_subset_Ici_self h
 lemma mem_Iic_of_Iio (h : x ∈ Iio a) : x ∈ Iic a := Iio_subset_Iic_self h
+
+lemma Icc_eq_empty_iff : Icc a b = ∅ ↔ ¬a ≤ b :=
+by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Icc]
+
+lemma Ico_eq_empty_iff : Ico a b = ∅ ↔ ¬a < b :=
+by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ico]
+
+lemma Ioc_eq_empty_iff : Ioc a b = ∅ ↔ ¬a < b :=
+by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioc]
+
+lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
+by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioo]
 
 end intervals
 
@@ -569,20 +594,6 @@ by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iic]
 @[simp] lemma Iio_diff_Iio : Iio b \ Iio a = Ico a b :=
 by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iio]
 
-lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
-⟨λ eq, le_of_not_lt $ λ h,
-  let ⟨x, h₁, h₂⟩ := exists_between h in
-  eq_empty_iff_forall_not_mem.1 eq x ⟨h₁, h₂⟩,
-Ioo_eq_empty⟩
-
-lemma Ico_eq_empty_iff : Ico a b = ∅ ↔ b ≤ a :=
-⟨λ eq, le_of_not_lt $ λ h, eq_empty_iff_forall_not_mem.1 eq a ⟨le_rfl, h⟩,
- Ico_eq_empty⟩
-
-lemma Icc_eq_empty_iff : Icc a b = ∅ ↔ b < a :=
-⟨λ eq, lt_of_not_ge $ λ h, eq_empty_iff_forall_not_mem.1 eq a ⟨le_rfl, h⟩,
- Icc_eq_empty⟩
-
 lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
   Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
 ⟨λ h, have a₂ ≤ a₁ ∧ a₁ < b₂ := h ⟨le_rfl, h₁⟩,
@@ -634,7 +645,7 @@ begin
 end
 
 @[simp] lemma Iio_subset_Iic_iff [densely_ordered α] : Iio a ⊆ Iic b ↔ a ≤ b :=
-by rw [← diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff]
+by rw [←diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff, not_lt]
 
 /-! ### Unions of adjacent intervals -/
 
@@ -1048,7 +1059,7 @@ begin
   cases le_or_lt a b with hab hab; cases le_or_lt c d with hcd hcd;
     simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, min_eq_left_of_lt,
     min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt, hab, hcd] at h₁ h₂,
-  { exact Icc_union_Icc' (le_of_lt h₂) (le_of_lt h₁) },
+  { exact Icc_union_Icc' h₂.le h₁.le },
   all_goals { simp [*, min_eq_left_of_lt, max_eq_left_of_lt, min_eq_right_of_lt,
     max_eq_right_of_lt] },
 end
@@ -1274,3 +1285,49 @@ end
 end linear_ordered_add_comm_group
 
 end set
+
+namespace order_iso
+variables {α β : Type*}
+
+open set
+
+section preorder
+variables [preorder α] [preorder β]
+
+@[simp] lemma preimage_Iic (e : α ≃o β) (b : β) : e ⁻¹' (Iic b) = Iic (e.symm b) :=
+by { ext x, simp [← e.le_iff_le] }
+
+@[simp] lemma preimage_Ici (e : α ≃o β) (b : β) : e ⁻¹' (Ici b) = Ici (e.symm b) :=
+by { ext x, simp [← e.le_iff_le] }
+
+@[simp] lemma preimage_Iio (e : α ≃o β) (b : β) : e ⁻¹' (Iio b) = Iio (e.symm b) :=
+by { ext x, simp [← e.lt_iff_lt] }
+
+@[simp] lemma preimage_Ioi (e : α ≃o β) (b : β) : e ⁻¹' (Ioi b) = Ioi (e.symm b) :=
+by { ext x, simp [← e.lt_iff_lt] }
+
+@[simp] lemma preimage_Icc (e : α ≃o β) (a b : β) : e ⁻¹' (Icc a b) = Icc (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iic]
+
+@[simp] lemma preimage_Ico (e : α ≃o β) (a b : β) : e ⁻¹' (Ico a b) = Ico (e.symm a) (e.symm b) :=
+by simp [← Ici_inter_Iio]
+
+@[simp] lemma preimage_Ioc (e : α ≃o β) (a b : β) : e ⁻¹' (Ioc a b) = Ioc (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iic]
+
+@[simp] lemma preimage_Ioo (e : α ≃o β) (a b : β) : e ⁻¹' (Ioo a b) = Ioo (e.symm a) (e.symm b) :=
+by simp [← Ioi_inter_Iio]
+
+end preorder
+
+/-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
+def Iic_top [order_top α] : set.Iic (⊤ : α) ≃o α :=
+{ map_rel_iff' := λ x y, by refl,
+  .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
+
+/-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
+def Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
+{ map_rel_iff' := λ x y, by refl,
+  .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
+
+end order_iso

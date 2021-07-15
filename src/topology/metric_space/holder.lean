@@ -57,7 +57,7 @@ h x y
 
 lemma edist_le_of_le (h : holder_with C r f) {x y : X} {d : ℝ≥0∞} (hd : edist x y ≤ d) :
   edist (f x) (f y) ≤ C * d ^ (r : ℝ) :=
-(h _ _).trans (ennreal.mul_left_mono (ennreal.rpow_le_rpow hd r.coe_nonneg))
+(h _ _).trans (mul_le_mul_left' (ennreal.rpow_le_rpow hd r.coe_nonneg) _)
 
 lemma comp {Cg rg : ℝ≥0} {g : Y → Z} (hg : holder_with Cg rg g)
   {Cf rf : ℝ≥0} {f : X → Y} (hf : holder_with Cf rf f) :

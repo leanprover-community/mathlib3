@@ -179,7 +179,7 @@ begin
   { convert this,
     rw [submodule.map_span, set.range_comp],
     simp },
-  refine submodule.topological_closure_map_dense_range _ span_fourier_closure_eq_top,
+  refine span_fourier_closure_eq_top.topological_closure_map_submodule _,
   exact continuous_map.to_Lp_dense_range ℂ hp haar_circle ℂ,
 end
 

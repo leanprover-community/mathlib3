@@ -258,7 +258,7 @@ by convert is_closed_closure
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
-@[to_additive] lemma subgroup.topological_closure_map_dense_range [group H] [topological_space H]
+@[to_additive] lemma dense_range.topological_closure_map_subgroup [group H] [topological_space H]
   [topological_group H] {f : G →* H} (hf : continuous f) (hf' : dense_range f) {s : subgroup G}
   (hs : s.topological_closure = ⊤) :
   (s.map f).topological_closure = ⊤ :=

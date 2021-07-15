@@ -253,7 +253,7 @@ image_closure_subset_closure_image f.continuous
 /-- Under a dense continuous linear map, a submodule whose `topological_closure` is `⊤` is sent to
 another such submodule.  That is, the image of a dense set under a map with dense range is dense.
 -/
-lemma _root_.submodule.topological_closure_map_dense_range [topological_space R]
+lemma _root_.dense_range.topological_closure_map_submodule [topological_space R]
   [has_continuous_smul R M] [has_continuous_add M] [has_continuous_smul R M₂]
   [has_continuous_add M₂] {f : M →L[R] M₂} (hf' : dense_range f) {s : submodule R M}
   (hs : s.topological_closure = ⊤) :

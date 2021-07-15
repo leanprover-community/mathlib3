@@ -32,7 +32,8 @@ class induced_units [t : topological_space $ units R] : Prop :=
 
 variables [topological_space $ units R]
 
-lemma units_topology_eq [induced_units R] : ‹topological_space (units R)› = induced (coe : units R → R) ‹_› :=
+lemma units_topology_eq [induced_units R] :
+  ‹topological_space (units R)› = induced (coe : units R → R) ‹_› :=
 induced_units.top_eq
 
 lemma induced_units.continuous_coe [induced_units R] : continuous (coe : units R → R) :=

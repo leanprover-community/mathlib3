@@ -7,7 +7,7 @@ import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.module.linear_map
 import algebra.big_operators.ring
-import algebra.star.basic
+import algebra.star.pi
 import data.equiv.ring
 import data.fintype.card
 import data.matrix.dmatrix
@@ -320,6 +320,20 @@ by simp [dot_product, finset.smul_sum, smul_mul_assoc]
 by simp [dot_product, finset.smul_sum, mul_smul_comm]
 
 end distrib_mul_action
+
+section star_ring
+variables [semiring α] [star_ring α] (v w : m → α)
+
+lemma star_dot_product_star : dot_product (star v) (star w) = star (dot_product w v) :=
+by simp [dot_product]
+
+lemma star_dot_product : dot_product (star v) w = star (dot_product (star w) v) :=
+by simp [dot_product]
+
+lemma dot_product_star : dot_product v (star w) = star (dot_product w (star v)) :=
+by simp [dot_product]
+
+end star_ring
 
 end dot_product
 
@@ -1184,9 +1198,14 @@ by { ext, refl }
 @[simp] lemma row_apply (v : m → α) (i j) : matrix.row v i j = v j := rfl
 
 @[simp]
-lemma transpose_col (v : m → α) : (matrix.col v).transpose = matrix.row v := by {ext, refl}
+lemma transpose_col (v : m → α) : (matrix.col v)ᵀ = matrix.row v := by { ext, refl }
 @[simp]
-lemma transpose_row (v : m → α) : (matrix.row v).transpose = matrix.col v := by {ext, refl}
+lemma transpose_row (v : m → α) : (matrix.row v)ᵀ = matrix.col v := by { ext, refl }
+
+@[simp]
+lemma conj_transpose_col [has_star α] (v : m → α) : (col v)ᴴ = row (star v) := by { ext, refl }
+@[simp]
+lemma conj_transpose_row [has_star α] (v : m → α) : (row v)ᴴ = col (star v) := by { ext, refl }
 
 lemma row_vec_mul [semiring α] (M : matrix m n α) (v : m → α) :
   matrix.row (matrix.vec_mul v M) = matrix.row v ⬝ M := by {ext, refl}
@@ -1244,6 +1263,22 @@ begin
   { rwa [update_column_ne h, if_neg h] }
 end
 
+lemma map_update_row [decidable_eq n] (f : α → β) :
+  map (update_row M i b) f = update_row (M.map f) i (f ∘ b) :=
+begin
+  ext i' j',
+  rw [update_row_apply, map_apply, map_apply, update_row_apply],
+  exact apply_ite f _ _ _,
+end
+
+lemma map_update_column [decidable_eq m] (f : α → β) :
+  map (update_column M j c) f = update_column (M.map f) j (f ∘ c) :=
+begin
+  ext i' j',
+  rw [update_column_apply, map_apply, map_apply, update_column_apply],
+  exact apply_ite f _ _ _,
+end
+
 lemma update_row_transpose [decidable_eq m] : update_row Mᵀ j c = (update_column M j c)ᵀ :=
 begin
   ext i' j,
@@ -1256,6 +1291,22 @@ begin
   ext i' j,
   rw [transpose_apply, update_row_apply, update_column_apply],
   refl
+end
+
+lemma update_row_conj_transpose [decidable_eq m] [has_star α] :
+  update_row Mᴴ j (star c) = (update_column M j c)ᴴ :=
+begin
+  rw [conj_transpose, conj_transpose, transpose_map, transpose_map, update_row_transpose,
+    map_update_column],
+  refl,
+end
+
+lemma update_column_conj_transpose [decidable_eq n] [has_star α] :
+  update_column Mᴴ i (star b) = (update_row M i b)ᴴ :=
+begin
+  rw [conj_transpose, conj_transpose, transpose_map, transpose_map, update_column_transpose,
+    map_update_row],
+  refl,
 end
 
 @[simp] lemma update_row_eq_self [decidable_eq m]

@@ -180,7 +180,7 @@ begin
     rw [submodule.map_span, set.range_comp],
     simp },
   refine submodule.topological_closure_map_dense_range _ span_fourier_closure_eq_top,
---  convert continuous_map.to_Lp_dense_range ℂ hp haar_circle,
+  exact continuous_map.to_Lp_dense_range ℂ hp haar_circle ℂ,
 end
 
 /-- For `n ≠ 0`, a rotation by `n⁻¹ * real.pi` negates the monomial `z ^ n`. -/

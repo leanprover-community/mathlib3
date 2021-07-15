@@ -20,9 +20,9 @@ The result is presented in several versions:
   `Lp E p μ` consisting of equivalence classes containing a continuous representative, is dense in
   `Lp E p μ`.
 * `bounded_continuous_function.dense_range`: For finite-measure `μ`, the continuous linear map
-  `bounded_continuous_function.to_Lp p μ ℝ` from `α →ᵇ E` to `Lp E p μ` has dense range.
+  `bounded_continuous_function.to_Lp p μ 𝕜` from `α →ᵇ E` to `Lp E p μ` has dense range.
 * `continuous_map.dense_range`: For compact `α` and finite-measure `μ`, the continuous linear map
-  `continuous_map.to_Lp p μ ℝ` from `C(α, E)` to `Lp E p μ` has dense range.
+  `continuous_map.to_Lp p μ 𝕜` from `C(α, E)` to `Lp E p μ` has dense range.
 
 Note that for `p = ∞` this result is not true:  the characteristic function of the set `[0, ∞)` in
 `ℝ` cannot be continuously approximated in `L∞`.
@@ -44,12 +44,14 @@ open measure_theory topological_space continuous_map
 
 variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]
 variables (E : Type*) [measurable_space E] [normed_group E] [borel_space E]
-  [second_countable_topology E] [normed_space ℝ E]
+  [second_countable_topology E]
 variables {p : ℝ≥0∞} [_i : fact (1 ≤ p)] (hp : p ≠ ∞) (μ : measure α)
 
 include _i hp
 
 namespace measure_theory.Lp
+
+variables [normed_space ℝ E]
 
 /-- A simple function in `Lp` can be approximated in `Lp` by continuous functions. -/
 lemma bounded_continuous_function_dense [μ.weakly_regular] :
@@ -163,15 +165,19 @@ end
 
 end measure_theory.Lp
 
+variables (𝕜 : Type*) [measurable_space 𝕜] [normed_field 𝕜] [opens_measurable_space 𝕜]
+  [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
+
 namespace bounded_continuous_function
 
 lemma to_Lp_dense_range [μ.weakly_regular] [finite_measure μ] :
-  dense_range (to_Lp p μ ℝ : (α →ᵇ E) → Lp E p μ) :=
+  dense_range ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ) :=
 begin
+  haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
   rw dense_range_iff_closure_range,
-  suffices : (to_Lp p μ ℝ : _ →L[ℝ] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
+  suffices : (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
-  simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp]
+  simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp],
 end
 
 end bounded_continuous_function
@@ -179,10 +185,11 @@ end bounded_continuous_function
 namespace continuous_map
 
 lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [finite_measure μ] :
-  dense_range (to_Lp p μ ℝ : C(α, E) → Lp E p μ) :=
+  dense_range ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] Lp E p μ) :=
 begin
+  haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
   rw dense_range_iff_closure_range,
-  suffices : (to_Lp p μ ℝ : _ →L[ℝ] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
+  suffices : (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
   simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp]
 end

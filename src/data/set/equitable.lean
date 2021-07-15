@@ -3,7 +3,7 @@ Copyright (c) 2021 Bhavik Mehta, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yaël Dillies
 -/
-import algebra.big_operators.basic
+import algebra.big_operators.order
 import algebra.ordered_ring
 import data.nat.basic
 
@@ -17,80 +17,68 @@ A function `f` is equitable on a set `s` if `f a₁ ≤ f a₂ + 1` for all `a�
 
 open_locale big_operators
 
-variables {α β : Type*} [ordered_semiring β]
+-- [has_lt_iff_add_one_le α]
+lemma le_and_le_add_one_iff {α : Type*} [ordered_semiring α] {x a : α} :
+  a ≤ x ∧ x ≤ a + 1 ↔ x = a ∨ x = a + 1 := sorry
 
 namespace set
+variables {α β : Type*}
 
 /-- A set is equitable if no element value is more than one bigger than another. -/
-def equitable_on (s : set α) (f : α → β) : Prop :=
+def equitable_on [has_le β] [has_add β] [has_one β] (s : set α) (f : α → β) : Prop :=
   ∀ ⦃a₁ a₂⦄, a₁ ∈ s → a₂ ∈ s → f a₁ ≤ f a₂ + 1
 
 @[simp]
-lemma equitable_on_empty (f : α → β) :
+lemma equitable_on_empty [has_le β] [has_add β] [has_one β] (f : α → β) :
   equitable_on ∅ f :=
 λ a _ ha, (set.not_mem_empty _ ha).elim
 
-lemma equitable_on_iff (s : set α) (f : α → β) :
-  equitable_on s f ↔ ∀ ⦃a₁ a₂⦄, a₁ ∈ s → a₂ ∈ s → f a₂ - f a₁ ≤ 1 :=
+-- [has_lt_iff_add_one_le β]
+lemma equitable_on_iff_le_le_add_one [linear_ordered_semiring β] {s : set α} {f : α → β} :
+  s.equitable_on f ↔ ∃ b, ∀ a ∈ s, b ≤ f a ∧ f a ≤ b + 1 :=
 begin
-  split,
-  { intros hf a₁ a₂ ha₁ ha₂,
-    cases le_total (f a₁) (f a₂),
-    { apply hf ha₁ ha₂ h },
-    rw nat.sub_eq_zero_of_le h,
-    exact nat.zero_le _ },
-  exact λ hf a₁ a₂ ha₁ ha₂ _, hf ha₁ ha₂,
+  refine ⟨_, λ ⟨b, hb⟩ x y hx hy, (hb x hx).2.trans (add_le_add_right (hb y hy).1 _)⟩,
+  obtain rfl | ⟨x, hx⟩ := s.eq_empty_or_nonempty,
+  { simp },
+  intros hs,
+  by_cases h : ∀ y ∈ s, f x ≤ f y,
+  { exact ⟨f x, λ y hy, ⟨h _ hy, hs hy hx⟩⟩ },
+  push_neg at h,
+  obtain ⟨w, hw, h⟩ := h,
+  refine ⟨f w, λ y hy, ⟨_, hs hy hw⟩⟩,
+  by_contra,
+  sorry
 end
 
-lemma equitable_on_iff_almost_eq_constant {s : set α} {f : α → β} :
-  equitable_on s f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
-begin
-  classical,
-  split,
-  { rw equitable_on_iff,
-    obtain rfl | hs := s.eq_empty_or_nonempty,
-    { simp },
-    intros h,
-    refine ⟨nat.find (set.nonempty.image f hs), _⟩,
-    obtain ⟨w, hw₁, hw₂⟩ := nat.find_spec (set.nonempty.image f hs),
-    intros a ha,
-    have : nat.find (set.nonempty.image f hs) ≤ f a := nat.find_min' _ ⟨_, ha, rfl⟩,
-    cases eq_or_lt_of_le this with q q,
-    { exact or.inl q.symm },
-    refine or.inr (le_antisymm _ (nat.succ_le_of_lt q)),
-      rw [←hw₂, ←nat.sub_le_left_iff_le_add],
-      exact h hw₁ ha },
-  rintro ⟨b, hb⟩ x₁ x₂ hx₁ hx₂ h,
-  rcases hb x₁ hx₁ with rfl | hx₁';
-  cases hb x₂ hx₂ with hx₂' hx₂',
-  { simp [hx₂'] },
-  { simp [hx₂'] },
-  { simpa [hx₁', hx₂'] using h },
-  { simp [hx₁', hx₂'] }
-end
+-- [has_lt_iff_add_one_le β]
+lemma equitable_on_iff_almost_eq_constant [linear_ordered_semiring β] {s : set α} {f : α → β} :
+  s.equitable_on f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
+by simp_rw [equitable_on_iff_le_le_add_one, le_and_le_add_one_iff]
 
-lemma equitable_on_finset_iff_eq_average {s : finset α} {f : α → β} :
+end set
+
+open set
+
+namespace finset
+variables {α : Type*}
+
+-- TODO: Could be generalised but we don't have the correct instances
+lemma equitable_on_iff_le_le_add_one {s : finset α} {f : α → ℕ} :
   equitable_on (s : set α) f ↔
-    ∀ a ∈ s, f a = (∑ i in s, f i) / s.card ∨ f a = (∑ i in s, f i) / s.card + 1 :=
+    ∀ a ∈ s, (∑ i in s, f i) / s.card ≤ f a ∧ f a ≤ (∑ i in s, f i) / s.card + 1 :=
 begin
-  rw equitable_on_iff_almost_eq_constant,
+  rw set.equitable_on_iff_le_le_add_one,
   refine ⟨_, λ h, ⟨_, h⟩ ⟩,
   rintro ⟨b, hb⟩,
   by_cases h : ∀ a ∈ s, f a = b + 1,
-  { clear hb,
-    intros a ha,
-    left,
-    symmetry,
-    apply nat.div_eq_of_eq_mul_left (finset.card_pos.2 ⟨_, ha⟩),
-    rw [mul_comm, sum_const_nat],
-    intros c hc,
-    rw [h _ ha, h _ hc] },
+  { intros a ha,
+    rw [h _ ha, sum_const_nat h, nat.mul_div_cancel_left _ (card_pos.2 ⟨a, ha⟩)],
+    exact ⟨le_rfl, nat.le_succ _⟩ },
   push_neg at h,
   obtain ⟨x, hx₁, hx₂⟩ := h,
-  suffices : b = (∑ i in s, f i) / s.card,
-  { simp_rw [←this],
+  suffices h : b = (∑ i in s, f i) / s.card,
+  { simp_rw ←h,
     apply hb },
-  simp_rw between_nat_iff at hb,
   symmetry,
   refine nat.div_eq_of_lt_le (le_trans (by simp [mul_comm]) (sum_le_sum (λ a ha, (hb a ha).1)))
     ((sum_lt_sum (λ a ha, (hb a ha).2) ⟨_, hx₁, (hb _ hx₁).2.lt_of_ne hx₂⟩).trans_le _),
@@ -98,9 +86,9 @@ begin
   exact λ _ _, rfl,
 end
 
-lemma equitable_on_finset_iff {s : finset α} {f : α → β} :
+lemma equitable_on_finset_iff {s : finset α} {f : α → ℕ} :
   equitable_on (s : set α) f ↔
-    ∀ a ∈ s, (∑ i in s, f i) / s.card ≤ f a ∧ f a ≤ (∑ i in s, f i) / s.card + 1 :=
-by simp_rw [equitable_on_finset_iff_eq_average, between_nat_iff]
+    ∀ a ∈ s, f a = (∑ i in s, f i) / s.card ∨ f a = (∑ i in s, f i) / s.card + 1 :=
+by simp_rw [equitable_on_iff_le_le_add_one, le_and_le_add_one_iff]
 
-end set
+end finset

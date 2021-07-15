@@ -286,7 +286,6 @@ variables [complete_space E] [borel_space 𝕜] {m m0 : measurable_space α} {μ
   {s t : set α}
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local notation `⟪`x`, `y`⟫'` := @inner 𝕜 E' _ x y
 local notation `⟪`x`, `y`⟫₂` := @inner 𝕜 (α →₂[μ] E) _ x y
 
 variables (𝕜)

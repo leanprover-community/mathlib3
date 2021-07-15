@@ -15,12 +15,12 @@ namespace nat
 
 /-! ### `pow` -/
 
--- This is redundant with `canonically_ordered_semiring.pow_le_pow_of_le_left`,
--- but `canonically_ordered_semiring` is not such an obvious abstraction, and also quite long.
+-- This is redundant with `canonically_ordered_comm_semiring.pow_le_pow_of_le_left`,
+-- but `canonically_ordered_comm_semiring` is not such an obvious abstraction, and also quite long.
 -- So, we leave a version in the `nat` namespace as well.
 -- (The global `pow_le_pow_of_le_left` needs an extra hypothesis `0 ≤ x`.)
 protected theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ, x^i ≤ y^i :=
-canonically_ordered_semiring.pow_le_pow_of_le_left H
+canonically_ordered_comm_semiring.pow_le_pow_of_le_left H
 
 theorem pow_le_pow_of_le_right {x : ℕ} (H : x > 0) {i : ℕ} : ∀ {j}, i ≤ j → x^i ≤ x^j
 | 0        h := by rw eq_zero_of_le_zero h; apply le_refl

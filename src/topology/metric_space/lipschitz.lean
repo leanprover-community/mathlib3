@@ -129,7 +129,7 @@ protected lemma uniform_continuous (hf : lipschitz_with K f) :
   uniform_continuous f :=
 begin
   refine emetric.uniform_continuous_iff.2 (λε εpos, _),
-  use [ε/K, canonically_ordered_semiring.mul_pos.2 ⟨εpos, ennreal.inv_pos.2 $ ennreal.coe_ne_top⟩],
+  use [ε / K, ennreal.div_pos_iff.2 ⟨ne_of_gt εpos, ennreal.coe_ne_top⟩],
   assume x y Dxy,
   apply lt_of_le_of_lt (hf.edist_le_mul x y),
   rw [mul_comm],

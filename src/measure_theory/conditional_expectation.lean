@@ -271,7 +271,7 @@ function, such that their integrals coincide on `m`-measurable sets with finite 
 Then `∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ` on all `m`-measurable sets with finite measure. -/
 lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α → ℝ}
   (hf : measurable f) (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
-  (hgf : ∀ t, measurable_set[m] t → μ t ≠ ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
+  (hgf : ∀ t, measurable_set[m] t → μ t < ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ :=
 begin
@@ -289,14 +289,14 @@ begin
   { rw [measure.restrict_restrict (hm _ h_meas_nonneg_g),
       measure.restrict_restrict h_meas_nonneg_f,
       hgf _ (@measurable_set.inter α m _ _ h_meas_nonneg_g hs)
-        ((measure_mono (set.inter_subset_right _ _)).trans_lt (lt_top_iff_ne_top.mpr hμs)).ne,
+        ((measure_mono (set.inter_subset_right _ _)).trans_lt (lt_top_iff_ne_top.mpr hμs)),
       ← measure.restrict_restrict (hm _ h_meas_nonneg_g),
       ← measure.restrict_restrict h_meas_nonneg_f],
     exact set_integral_le_nonneg (hm _ h_meas_nonneg_g) hf hfi, },
   { rw [measure.restrict_restrict (hm _ h_meas_nonpos_g),
       measure.restrict_restrict h_meas_nonpos_f,
       hgf _ (@measurable_set.inter α m _ _ h_meas_nonpos_g hs)
-        ((measure_mono (set.inter_subset_right _ _)).trans_lt (lt_top_iff_ne_top.mpr hμs)).ne,
+        ((measure_mono (set.inter_subset_right _ _)).trans_lt (lt_top_iff_ne_top.mpr hμs)),
       ← measure.restrict_restrict (hm _ h_meas_nonpos_g),
       ← measure.restrict_restrict h_meas_nonpos_f],
     exact set_integral_nonpos_le (hm _ h_meas_nonpos_g) hf hfi, },
@@ -308,7 +308,7 @@ Then `∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ` o
 measure. -/
 lemma lintegral_nnnorm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α → ℝ}
   (hf : measurable f) (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
-  (hgf : ∀ t, measurable_set[m] t → μ t ≠ ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
+  (hgf : ∀ t, measurable_set[m] t → μ t < ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
   (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ :=
 begin

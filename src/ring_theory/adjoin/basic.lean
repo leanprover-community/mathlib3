@@ -389,7 +389,7 @@ by haveI : is_noetherian_ring (mv_polynomial (↑t : set A) R) :=
 mv_polynomial.is_noetherian_ring;
 convert alg_hom.is_noetherian_ring_range _; apply_instance
 
-theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :
+theorem is_noetherian_subring_closure (s : set R) (hs : s.finite) :
   is_noetherian_ring (subring.closure s) :=
 show is_noetherian_ring (subalgebra_of_subring (subring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)

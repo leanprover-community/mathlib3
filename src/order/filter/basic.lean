@@ -1548,12 +1548,15 @@ le_antisymm
 section comm
 variables  {δ : Type*}
 
-/-
+/-!
+The variables in the following lemmas are used as in this diagram:
+```
     φ
   α → β
 θ ↓   ↓ ψ
   γ → δ
     ρ
+```
 -/
 variables {φ : α → β} {θ : α → γ} {ψ : β → δ} {ρ : γ → δ} (H : ψ ∘ φ = ρ ∘ θ)
 include H

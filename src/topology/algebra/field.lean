@@ -24,7 +24,7 @@ variables  [topological_space R]
 /-- The induced topology on units of a topological ring.
 This is not a global instance since other topologies could be relevant. Instead there is a class
 `induced_units` asserting that something equivalent to this construction holds. -/
-def topological_space_units : topological_space (units R) := induced units.val ‹_›
+def topological_space_units : topological_space (units R) := induced (coe : units R → R) ‹_›
 
 /-- Asserts the topology on units is the induced topology. -/
 class induced_units [t : topological_space $ units R] : Prop :=
@@ -39,7 +39,7 @@ lemma induced_units.continuous_coe [induced_units R] : continuous (coe : units R
 (units_topology_eq R).symm ▸ continuous_induced_dom
 
 lemma units_embedding [induced_units R] :
-  embedding (units.val : units R → R) :=
+  embedding (coe : units R → R) :=
 { induced := units_topology_eq R,
   inj := λ x y h, units.ext h }
 
@@ -87,23 +87,22 @@ variables [topological_division_ring K]
 
 lemma units_top_group : topological_group (units K) :=
 { continuous_inv := begin
-     have : (units.val : units K → K) ∘ (λ x, x⁻¹ : units K → units K) =
+     have : (coe : units K → K) ∘ (λ x, x⁻¹ : units K → units K) =
             (λ x, x⁻¹ : K → K) ∘ (coe : units K → K),
      { ext,
-       change x⁻¹.val = (↑x)⁻¹,
        norm_cast },
      rw continuous_iff_continuous_at,
      intros x,
      rw [continuous_at, nhds_induced, nhds_induced, tendsto_iff_comap, comap_comm this],
      apply comap_mono,
-     rw [← tendsto_iff_comap, division_ring.val_inv_eq_inv_val],
-     exact topological_division_ring.continuous_inv x.val x.ne_zero
+     rw [← tendsto_iff_comap, units.coe_inv'],
+     exact topological_division_ring.continuous_inv (x : K) x.ne_zero
    end ,
   ..topological_ring.top_monoid_units K}
 
 local attribute [instance] units_top_group
 
-lemma continuous_units_inv : continuous (λ x, x.inv : units K → K) :=
+lemma continuous_units_inv : continuous (λ x : units K, (↑(x⁻¹) : K)) :=
 (topological_ring.induced_units.continuous_coe K).comp topological_group.continuous_inv
 
 end topological_division_ring

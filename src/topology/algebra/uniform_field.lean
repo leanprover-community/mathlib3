@@ -17,7 +17,7 @@ which does not have a cluster point at `0` is a Cauchy filter
 (with respect to the additive uniform structure).
 
 Bourbaki does not give any detail here, he refers to the general discussion of extending
-function defined on a dense subset with values in a complete Hausdorff space. In particular
+functions defined on a dense subset with values in a complete Hausdorff space. In particular
 the subtlety about clustering at zero is totally left to readers.
 
 Note that the separated completion of a non-separated topological field is the zero ring, hence

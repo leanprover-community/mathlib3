@@ -397,7 +397,7 @@ instance [has_mul α] [add_comm_monoid α] : has_mul (matrix n n α) := ⟨matri
 @[simp] theorem mul_eq_mul [has_mul α] [add_comm_monoid α] (M N : matrix n n α) :
   M * N = M ⬝ N := rfl
 
-theorem mul_apply' [has_mul α] [add_comm_monoid α] {M N : matrix n n α} {i k} :
+theorem mul_apply' [has_mul α] [add_comm_monoid α] {M : matrix l m α} {N : matrix m n α} {i k} :
   (M ⬝ N) i k = dot_product (λ j, M i j) (λ j, N j k) := rfl
 
 @[simp] theorem diagonal_neg [decidable_eq n] [add_group α] (d : n → α) :
@@ -415,7 +415,13 @@ variables [non_unital_non_assoc_semiring α]
 @[simp] protected theorem mul_zero (M : matrix m n α) : M ⬝ (0 : matrix n o α) = 0 :=
 by { ext i j, apply dot_product_zero }
 
+@[simp] protected theorem mul_zero' (M : matrix m n α) : M ⬝ (λ i j , 0 : matrix n o α) = 0 :=
+by { ext i j, apply dot_product_zero }
+
 @[simp] protected theorem zero_mul (M : matrix m n α) : (0 : matrix l m α) ⬝ M = 0 :=
+by { ext i j, apply zero_dot_product }
+
+@[simp] protected theorem zero_mul' (M : matrix m n α) : (λ i j , 0 : matrix l m α) ⬝ M = 0 :=
 by { ext i j, apply zero_dot_product }
 
 protected theorem mul_add (L : matrix m n α) (M N : matrix n o α) : L ⬝ (M + N) = L ⬝ M + L ⬝ N :=
@@ -783,13 +789,13 @@ by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
 @[simp] lemma mul_vec_one (A : matrix m n α) : mul_vec A 1 = λ i, ∑ j, A i j :=
 by ext; simp [mul_vec, dot_product]
 
-@[simp] lemma mul_vec_one' (A : matrix m n α) : mul_vec A (λ i, 1) = λ i, ∑ j, A i j :=
+lemma mul_vec_one' (A : matrix m n α) : mul_vec A (λ i, 1) = λ i, ∑ j, A i j :=
 by ext; simp [mul_vec, dot_product]
 
 @[simp] lemma vec_one_mul (A : matrix m n α) : vec_mul 1 A = λ j, ∑ i, A i j :=
 by ext; simp [vec_mul, dot_product]
 
-@[simp] lemma vec_one_mul' (A : matrix m n α) : vec_mul (λ j, 1 : m → α) A = λ j, ∑ i, A i j :=
+lemma vec_one_mul' (A : matrix m n α) : vec_mul (λ j, 1 : m → α) A = λ j, ∑ i, A i j :=
 by ext; simp [vec_mul, dot_product]
 
 end non_assoc_semiring

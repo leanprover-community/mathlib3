@@ -300,6 +300,9 @@ instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
 example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
 example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
 
+lemma coe_smul (r s : ℝ≥0) : (↑(r • s) : ℝ≥0∞) = r • ↑s :=
+by simpa only [algebra.id.smul_eq_mul, ennreal.coe_mul]
+
 end actions
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
@@ -1396,6 +1399,17 @@ begin
   lift a to ℝ≥0 using ha.ne,
   lift b to ℝ≥0 using hb.ne,
   simp only [coe_eq_coe, nnreal.coe_eq, coe_to_real],
+end
+
+lemma to_real_smul (r : ℝ≥0) (s : ℝ≥0∞) :
+  (r • s).to_real = r • s.to_real :=
+begin
+  by_cases h : s = ∞,
+  { rw [h, show r • ∞ = (r : ℝ≥0∞) * ∞, by refl],
+    simp only [ennreal.to_real_mul_top, ennreal.top_to_real, smul_zero]},
+  { lift s to ℝ≥0 using h with t ht,
+    rw [← ht, ← ennreal.coe_smul, ennreal.coe_to_real, ennreal.coe_to_real],
+    refl }
 end
 
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/

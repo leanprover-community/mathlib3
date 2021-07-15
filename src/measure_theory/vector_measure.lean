@@ -366,27 +366,6 @@ begin
   all_goals { apply_instance }
 end
 
--- Move to topology.instances.nnreal
-instance : has_continuous_smul ℝ≥0 ℝ :=
-{ continuous_smul := continuous.comp real.continuous_mul $ continuous.prod_mk
-    (continuous.comp continuous_subtype_val continuous_fst) continuous_snd }
-
--- Move to data.real.nnreal
-lemma nnreal.coe_ennreal_smul (r s : ℝ≥0) : (↑(r • s) : ℝ≥0∞) = r • ↑s :=
-by simpa only [algebra.id.smul_eq_mul, ennreal.coe_mul]
-
--- Move to data.real.ennreal
-lemma to_real_smul (r : ℝ≥0) (μ : measure α)
-  (i : set α) : (r • μ i).to_real = r • (μ i).to_real :=
-begin
-  by_cases h : μ i = ∞,
-  { rw [h, show r • ⊤ = (r : ℝ≥0∞) * ⊤, by refl],
-    simp },
-  { lift μ i to ℝ≥0 using h with s hs,
-    rw [← nnreal.coe_ennreal_smul, ennreal.coe_to_real, ennreal.coe_to_real],
-    refl }
-end
-
 @[simp] lemma to_signed_measure_smul (μ : measure α) [finite_measure μ] (r : ℝ≥0) :
   (r • μ).to_signed_measure = r • μ.to_signed_measure :=
 begin

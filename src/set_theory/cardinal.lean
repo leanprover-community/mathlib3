@@ -767,9 +767,9 @@ begin
     right, by_cases hb : b = 0, { left, exact hb },
     right, rw [← ne, ← one_le_iff_ne_zero] at ha hb, split,
     { rw [← mul_one a],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_refl a) hb) h },
+      refine lt_of_le_of_lt (mul_le_mul' (le_refl a) hb) h },
     { rw [← _root_.one_mul b],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul ha (le_refl b)) h }},
+      refine lt_of_le_of_lt (mul_le_mul' ha (le_refl b)) h }},
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, _root_.zero_mul, mul_zero]
 end
 

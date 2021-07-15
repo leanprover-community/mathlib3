@@ -442,7 +442,7 @@ begin
       pos_iff_ne_zero.1 (lt_of_lt_of_le (pos_iff_ne_zero.2 hx0) (le_Sup hx)),
     have : Sup ((λb, a * b) '' s) = a * Sup s :=
       is_lub.Sup_eq ((is_lub_Sup s).is_lub_of_tendsto
-        (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
+        (assume x _ y _ h, mul_le_mul_left' h _)
         ⟨x, hx⟩
         (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
@@ -1015,7 +1015,7 @@ begin
           ... ≤ f y + C * edist x y : h x y
           ... = f y + C * edist y x : by simp [edist_comm]
           ... ≤ f y + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
+            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
           ... < f y + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I,
         show e < f y, from
           (ennreal.add_lt_add_iff_right ‹ε < ⊤›).1 this }},
@@ -1038,7 +1038,7 @@ begin
       show f y < e, from calc
         f y ≤ f x + C * edist y x : h y x
         ... ≤ f x + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
+            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
         ... < f x + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I
         ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
         ... = e : by simp [le_of_lt he] },

@@ -338,7 +338,7 @@ lemma condexp_L2_indicator_of_measurable (hm : m ≤ m0)
     = indicator_const_Lp 2 (hm s hs) hμs c :=
 begin
   rw condexp_L2,
-  haveI : fact(m ≤ m0) := ⟨hm⟩,
+  haveI : fact (m ≤ m0) := ⟨hm⟩,
   have h_mem : indicator_const_Lp 2 (hm s hs) hμs c ∈ Lp_meas E 𝕜 m 2 μ,
     from mem_Lp_meas_indicator_const_Lp hm hs hμs,
   let ind := (⟨indicator_const_Lp 2 (hm s hs) hμs c, h_mem⟩ : Lp_meas E 𝕜 m 2 μ),

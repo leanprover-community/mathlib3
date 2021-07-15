@@ -324,13 +324,13 @@ end
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
 
-theorem multiset_prod_le_inf {s : multiset ι} {f : ι → ideal R} :
-  (s.map f).prod ≤ (s.map f).inf :=
+theorem multiset_prod_le_inf {s : multiset (ideal R)} :
+  s.prod ≤ s.inf :=
 begin
   classical, refine s.induction_on _ _,
-  { rw [multiset.map_zero, multiset.inf_zero], exact le_top },
+  { rw [multiset.inf_zero], exact le_top },
   intros a s ih,
-  rw [multiset.map_cons, multiset.prod_cons, multiset.inf_cons],
+  rw [multiset.prod_cons, multiset.inf_cons],
   exact le_trans mul_le_inf (inf_le_inf (le_refl _) ih)
 end
 
@@ -519,12 +519,12 @@ theorem is_prime.inf_le {I J P : ideal R} (hp : is_prime P) :
 ⟨λ h, hp.mul_le.1 $ le_trans mul_le_inf h,
 λ h, or.cases_on h (le_trans inf_le_left) (le_trans inf_le_right)⟩
 
-theorem is_prime.multiset_prod_le {s : multiset ι} {f : ι → ideal R} {P : ideal R}
+theorem is_prime.multiset_prod_le {s : multiset (ideal R)} {P : ideal R}
   (hp : is_prime P) (hne : s ≠ 0) :
-  (s.map f).prod ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
-suffices (s.map f).prod ≤ P → ∃ i ∈ s, f i ≤ P,
+  s.prod ≤ P ↔ ∃ I ∈ s, I ≤ P :=
+suffices s.prod ≤ P → ∃ I ∈ s, I ≤ P,
   from ⟨this, λ ⟨i, his, hip⟩, le_trans multiset_prod_le_inf $
-    le_trans (multiset.inf_le (multiset.mem_map_of_mem _ his)) hip⟩,
+    le_trans (multiset.inf_le his) hip⟩,
 begin
   classical,
   obtain ⟨b, hb⟩ : ∃ b, b ∈ s := multiset.exists_mem_of_ne_zero hne,
@@ -535,18 +535,26 @@ begin
       multiset.prod_cons, one_eq_top, exists_eq_left, multiset.prod_zero,
       multiset.map_zero, multiset.mem_singleton] },
   intros a s ih h,
-  rw [multiset.cons_swap, multiset.map_cons, multiset.prod_cons, hp.mul_le] at h,
+  rw [multiset.cons_swap, multiset.prod_cons, hp.mul_le] at h,
   rw multiset.cons_swap,
   cases h,
   { exact ⟨a, multiset.mem_cons_self a _, h⟩ },
-  obtain ⟨i, hi, ih⟩ : ∃ i ∈ b ::ₘ s, f i ≤ P := ih h,
-  exact ⟨i, multiset.mem_cons_of_mem hi, ih⟩
+  obtain ⟨I, hI, ih⟩ : ∃ I ∈ b ::ₘ s, I ≤ P := ih h,
+  exact ⟨I, multiset.mem_cons_of_mem hI, ih⟩
+end
+
+theorem is_prime.multiset_prod_map_le {s : multiset ι} (f : ι → ideal R) {P : ideal R}
+  (hp : is_prime P) (hne : s ≠ 0) :
+  (s.map f).prod ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
+begin
+  rw hp.multiset_prod_le (mt multiset.map_eq_zero.mp hne),
+  simp_rw [exists_prop, multiset.mem_map, exists_exists_and_eq_and],
 end
 
 theorem is_prime.prod_le {s : finset ι} {f : ι → ideal R} {P : ideal R}
   (hp : is_prime P) (hne : s.nonempty) :
   s.prod f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
-hp.multiset_prod_le (mt finset.val_eq_zero.mp hne.ne_empty)
+hp.multiset_prod_map_le f (mt finset.val_eq_zero.mp hne.ne_empty)
 
 theorem is_prime.inf_le' {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P)
   (hsne: s.nonempty) :

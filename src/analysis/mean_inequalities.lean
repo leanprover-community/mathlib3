@@ -418,7 +418,7 @@ begin
         rw [mul_rpow, mul_left_comm, ← rpow_mul _ _ p, div_mul_cancel _ hpq.ne_zero, div_rpow,
           div_mul_div, mul_comm (G ^ q), mul_div_mul_right],
         { nth_rewrite 1 [← mul_one ((f i) ^ p)],
-          exact canonically_ordered_semiring.mul_le_mul (le_refl _) (div_self_le _) },
+          exact mul_le_mul_left' (div_self_le _) _ },
         { simpa [hpq.symm.ne_zero] using hG }
       end }
 end
@@ -444,8 +444,8 @@ begin
       simpa [hpq.symm.ne_zero] using hf } },
   { rintros _ ⟨g, hg, rfl⟩,
     apply le_trans (inner_le_Lp_mul_Lq s f g hpq),
-    simpa only [mul_one] using canonically_ordered_semiring.mul_le_mul (le_refl _)
-      (nnreal.rpow_le_one hg (le_of_lt hpq.symm.one_div_pos)) }
+    simpa only [mul_one] using mul_le_mul_left'
+      (nnreal.rpow_le_one hg (le_of_lt hpq.symm.one_div_pos)) _ }
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal

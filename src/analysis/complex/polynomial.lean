@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import analysis.special_functions.pow
-import field_theory.splitting_field
-import topology.algebra.polynomial
+import field_theory.algebraic_closure
 
 /-!
 # The fundamental theorem of algebra

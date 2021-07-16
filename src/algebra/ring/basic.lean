@@ -779,7 +779,9 @@ dvd.elim h
 theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
 let t := dvd_neg_of_dvd h in by rwa neg_neg at t
 
-theorem dvd_neg_iff_dvd (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
+/-- An element a of a commutative ring divides the additive inverse of an element b iff a
+  divides b. -/
+@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
 ⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
 
 theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
@@ -790,7 +792,9 @@ dvd.elim h
 theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
 let t := neg_dvd_of_dvd h in by rwa neg_neg at t
 
-theorem neg_dvd_iff_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
+/-- The additive inverse of an element a of a commutative ring divides another element b iff a
+  divides b. -/
+@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
 ⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
 
 theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
@@ -810,16 +814,6 @@ by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
 
 lemma mul_self_sub_one (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
 by rw [← mul_self_sub_mul_self, mul_one]
-
-/-- An element a of a commutative ring divides the additive inverse of an element b iff a
-  divides b. -/
-@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
-⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
-
-/-- The additive inverse of an element a of a commutative ring divides another element b iff a
-  divides b. -/
-@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
-⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
 
 /-- If an element a divides another element c in a commutative ring, a divides the sum of another
   element b with c iff a divides b. -/

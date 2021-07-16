@@ -364,3 +364,53 @@ rfl
 lemma units.coe_op_equiv_symm {R} [monoid R] (u : (units R)ᵒᵖ) :
   (units.op_equiv.symm u : Rᵒᵖ) = op (u.unop : R) :=
 rfl
+
+/-- A hom `α →* β` can equivalently be viewed as a hom `αᵒᵖ →* βᵒᵖ`. This is the action of the
+(fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def monoid_hom.op {α β} [mul_one_class α] [mul_one_class β] :
+  (α →* β) ≃ (αᵒᵖ →* βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
+                      map_one' := unop_injective f.map_one,
+                      map_mul' := λ x y, unop_injective (f.map_mul y.unop x.unop) },
+  inv_fun   := λ f, { to_fun   := unop ∘ f ∘ op,
+                      map_one' := congr_arg unop f.map_one,
+                      map_mul' := λ x y, congr_arg unop (f.map_mul (op y) (op x)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a monoid hom `αᵒᵖ →* βᵒᵖ`. Inverse to `monoid_hom.op`. -/
+@[simp] def monoid_hom.unop {α β} [mul_one_class α] [mul_one_class β] :
+  (αᵒᵖ →* βᵒᵖ) ≃ (α →* β) := monoid_hom.op.symm
+
+/-- A hom `α →+ β` can equivalently be viewed as a hom `αᵒᵖ →+ βᵒᵖ`. This is the action of the
+(fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def add_monoid_hom.op {α β} [add_zero_class α] [add_zero_class β] :
+  (α →+ β) ≃ (αᵒᵖ →+ βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun    := op ∘ f ∘ unop,
+                      map_zero' := unop_injective f.map_zero,
+                      map_add'  := λ x y, unop_injective (f.map_add x.unop y.unop) },
+  inv_fun   := λ f, { to_fun    := unop ∘ f ∘ op,
+                      map_zero' := congr_arg unop f.map_zero,
+                      map_add'  := λ x y, congr_arg unop (f.map_add (op x) (op y)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of an additive monoid hom `αᵒᵖ →+ βᵒᵖ`. Inverse to `add_monoid_hom.op`. -/
+@[simp] def add_monoid_hom.unop {α β} [add_zero_class α] [add_zero_class β] :
+  (αᵒᵖ →+ βᵒᵖ) ≃ (α →+ β) := add_monoid_hom.op.symm
+
+/-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵒᵖ →+* βᵒᵖ`. This is the action
+of the (fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+  (α →+* β) ≃ (αᵒᵖ →+* βᵒᵖ) :=
+{ to_fun    := λ f, { ..f.to_add_monoid_hom.op, ..f.to_monoid_hom.op },
+  inv_fun   := λ f, { ..f.to_add_monoid_hom.unop, ..f.to_monoid_hom.unop },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a ring hom `αᵒᵖ →+* βᵒᵖ`. Inverse to `ring_hom.op`. -/
+@[simp] def ring_hom.unop {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+  (αᵒᵖ →+* βᵒᵖ) ≃ (α →+* β) := ring_hom.op.symm

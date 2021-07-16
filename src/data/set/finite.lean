@@ -565,9 +565,10 @@ begin
 end
 
 /-- A finite union of finsets is finite. -/
-lemma union_finset_finite_of_range_finite
-  [decidable_eq β] (f : α → finset β) (h : (range f).finite) : (⋃ a, (f a : set β)).finite :=
+lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :
+  (⋃ a, (f a : set β)).finite :=
 begin
+  classical,
   have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
   { ext x,
     simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],

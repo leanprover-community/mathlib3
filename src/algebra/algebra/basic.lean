@@ -89,7 +89,10 @@ variables {R : Type u} {S : Type v} {A : Type w} {B : Type*}
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
-over `R`. -/
+over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module' [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x : A), (r • 1) * x = r • x)
   (h₂ : ∀ (r : R) (x : A), x * (r • 1) = r • x) : algebra R A :=
@@ -103,7 +106,10 @@ def of_module' [comm_semiring R] [semiring A] [module R A]
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • x) * y = x * (r • y) = r • (x * y)` for all `r : R` and `x y : A`, then `A`
-is an `algebra` over `R`. -/
+is an `algebra` over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x y : A), (r • x) * y = r • (x * y))
   (h₂ : ∀ (r : R) (x y : A), x * (r • y) = r • (x * y)) : algebra R A :=

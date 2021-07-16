@@ -1609,7 +1609,7 @@ lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
 end⟩
 
-section metric_ordered
+section conditionally_complete_linear_order
 
 variables [conditionally_complete_linear_order α] [order_topology α]
 
@@ -1625,13 +1625,14 @@ lemma bounded_Ioc (a b : α) : bounded (Ioc a b) :=
 lemma bounded_Ioo (a b : α) : bounded (Ioo a b) :=
 (totally_bounded_Ioo a b).bounded
 
+/-- In a pseudo metric space with a conditionally complete linear order such that the order and the
+    metric structure give the same topology, any order-bounded set is metric-bounded. -/
 lemma bounded_of_bdd_above_of_bdd_below {s : set α} (h₁ : bdd_above s) (h₂ : bdd_below s) :
   bounded s :=
-let ⟨u, hu⟩ := h₁ in
-let ⟨l, hl⟩ := h₂ in
+let ⟨u, hu⟩ := h₁, ⟨l, hl⟩ := h₂ in
 bounded.subset (λ x hx, mem_Icc.mpr ⟨hl hx, hu hx⟩) (bounded_Icc l u)
 
-end metric_ordered
+end conditionally_complete_linear_order
 
 end bounded
 

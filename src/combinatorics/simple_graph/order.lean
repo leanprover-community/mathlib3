@@ -5,6 +5,24 @@ Authors: Eric Rodriguez
 -/
 import combinatorics.simple_graph.subgraph
 
+/-!
+# Order relation on simple graphs
+
+This file gives `simple_graph` a `bounded_lattice` instance under the `is_subgraph` relation, and
+proves a couple lemmata about how this relation interacts with `simple_graph.subgraph.spanning_coe`.
+
+# Main definitions:
+
+* `simple_graph.is_subgraph`: A `simple_graph` is a subgraph of another if its `adj` is dominated by
+  the other graph's.
+
+* `bounded_lattice` instance: With this definition, `simple_graph` forms a `bounded_lattice`.
+
+* `simple_graph.to_subgraph`: If a `simple_graph` is a subgraph of another, then you can turn it
+  into a member of the larger graph's `simple_graph.subgraph` type.
+
+-/
+
 namespace simple_graph
 
 variable {V : Type*}
@@ -49,7 +67,7 @@ variable {G : simple_graph V}
 G.subgraph :=
 { verts := set.univ,
   adj := H.adj,
-  adj_sub := λ v w, h, -- reviewers: this is preferred to `@h`?
+  adj_sub := λ v w, h, -- reviewers: is this preferred to `@h`?
   edge_vert := λ v w h, set.mem_univ v,
   sym := H.sym }
 

@@ -404,13 +404,18 @@ lemma measure_theory.integrable_on.continuous_on_mul
   integrable_on (λ x, g x * f x) s μ :=
 by simpa [mul_comm] using hf.mul_continuous_on hg hs
 
-lemma integrable_on_compact_of_monotone_on
+section monotone
+
+variables
   [topological_space α] [opens_measurable_space α] [t2_space α]
   [borel_space α] {μ : measure α} [locally_finite_measure μ]
-  [conditionally_complete_linear_order α] [order_topology α] [densely_ordered α]
+  [conditionally_complete_linear_order α] [order_topology α]
   [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
   [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
-  (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+
+include hs
+
+lemma integrable_on_compact_of_monotone_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
   integrable_on f s μ :=
 begin
   by_cases h : s.nonempty,
@@ -453,36 +458,20 @@ begin
     exact integrable_on_empty }
 end
 
-lemma integrable_on_compact_of_antimono_on
-  [topological_space α] [opens_measurable_space α] [t2_space α]
-  [borel_space α] {μ : measure α} [locally_finite_measure μ]
-  [conditionally_complete_linear_order α] [order_topology α] [densely_ordered α]
-  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
-  [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
-  (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+lemma integrable_on_compact_of_antimono_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
   integrable_on f s μ :=
-@integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ _ _ _ _ _ _ _ _ _ ‹_› ‹_› _ hs _
+@integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ _ _ _ _ _ _ _ _ ‹_› ‹_› _ hs _
   hmono
 
-lemma integrable_on_compact_of_monotone
-  [topological_space α] [opens_measurable_space α] [t2_space α]
-  [borel_space α] {μ : measure α} [locally_finite_measure μ]
-  [conditionally_complete_linear_order α] [order_topology α] [densely_ordered α]
-  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
-  [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
-  (hmono : monotone f) :
+lemma integrable_on_compact_of_monotone (hmono : monotone f) :
   integrable_on f s μ :=
 integrable_on_compact_of_monotone_on hs (λ x y _ _ hxy, hmono hxy)
 
 alias integrable_on_compact_of_monotone ← monotone.integrable_on_compact
 
-lemma integrable_on_compact_of_antimono
-  [topological_space α] [opens_measurable_space α] [t2_space α]
-  [borel_space α] {μ : measure α} [locally_finite_measure μ]
-  [conditionally_complete_linear_order α] [order_topology α] [densely_ordered α]
-  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
-  [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
-  (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
+lemma integrable_on_compact_of_antimono (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
   integrable_on f s μ :=
-@integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ _ _ _ _ _ _ _ _ _ ‹_› ‹_› _ hs _
+@integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ _ _ _ _ _ _ _ _ ‹_› ‹_› _ hs _
   hmono
+
+end monotone

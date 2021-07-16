@@ -492,10 +492,10 @@ begin
   { exact ⟨0, f.ker.zero_mem, by simp⟩ }
 end
 
-lemma lift_bound_by {N : Type*} [semi_normed_group N] (S : add_subgroup M)
+lemma lift_norm_le {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
-  {c : ℝ≥0} (fb : f.bound_by c) :
-  (lift S f hf).bound_by c :=
+  {c : ℝ≥0} (fb : ∥f∥ ≤ c) :
+  ∥lift S f hf∥ ≤ c :=
 begin
   intros x,
   by_cases hc : c = 0,
@@ -522,6 +522,6 @@ lemma lift_norm_noninc {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   (fb : f.norm_noninc) :
   (lift S f hf).norm_noninc :=
-λ x, by simpa only [one_mul, nnreal.coe_one] using lift_bound_by _ _ _ fb.bound_by_one x
+λ x, by simpa only [one_mul, nnreal.coe_one] using lift_norm_le _ _ _ fb.bound_by_one x
 
 end normed_group_hom

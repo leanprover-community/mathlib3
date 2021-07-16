@@ -497,12 +497,13 @@ lemma lift_norm_le {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   {c : ℝ≥0} (fb : ∥f∥ ≤ c) :
   ∥lift S f hf∥ ≤ c :=
 begin
+  apply op_norm_le_bound _ c.coe_nonneg,
   intros x,
   by_cases hc : c = 0,
   { simp only [hc, nnreal.coe_zero, zero_mul] at fb ⊢,
     obtain ⟨x, rfl⟩ := surjective_quot_mk _ x,
     show ∥f x∥ ≤ 0,
-    calc ∥f x∥ ≤ 0 * ∥x∥ : fb x
+    calc ∥f x∥ ≤ 0 * ∥x∥ : f.le_of_op_norm_le fb x
           ... = 0 : zero_mul _ },
   { replace hc : 0 < c := pos_iff_ne_zero.mpr hc,
     apply le_of_forall_pos_le_add,
@@ -511,7 +512,7 @@ begin
     obtain ⟨x, rfl, Hx⟩ : ∃ x', S.normed_mk x' = x ∧ ∥x'∥ < ∥x∥ + (ε / c) :=
       (is_quotient_quotient _).norm_lift aux _,
     rw lift_mk,
-    calc ∥f x∥ ≤ c * ∥x∥ : fb x
+    calc ∥f x∥ ≤ c * ∥x∥ : f.le_of_op_norm_le fb x
           ... ≤ c * (∥S.normed_mk x∥ + ε / c) : (mul_le_mul_left _).mpr Hx.le
           ... = c * _ + ε : _,
     { exact_mod_cast hc },
@@ -522,6 +523,10 @@ lemma lift_norm_noninc {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
   (fb : f.norm_noninc) :
   (lift S f hf).norm_noninc :=
-λ x, by simpa only [one_mul, nnreal.coe_one] using lift_norm_le _ _ _ fb.bound_by_one x
+λ x,
+begin
+  have fb' : ∥f∥ ≤ (1 : ℝ≥0) := norm_noninc.norm_noninc_iff_norm_le_one.mp fb,
+  simpa using le_of_op_norm_le _ (f.lift_norm_le _ _ fb') _,
+end
 
 end normed_group_hom

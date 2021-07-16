@@ -91,7 +91,9 @@ variables (s : set α)
 
 /-- Interpret `finsupp.subtype_domain s` as a linear map. -/
 def lsubtype_domain : (α →₀ M) →ₗ[R] (s →₀ M) :=
-⟨subtype_domain (λx, x ∈ s), assume a b, subtype_domain_add, assume c a, ext $ assume a, rfl⟩
+{ to_fun := subtype_domain (λx, x ∈ s),
+  map_add' := λ a b, subtype_domain_add,
+  map_smul' := λ c a, ext $ λ a, rfl }
 
 lemma lsubtype_domain_apply (f : α →₀ M) :
   (lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)) f = subtype_domain (λx, x ∈ s) f := rfl
@@ -141,8 +143,8 @@ begin
   by_cases his : i ∈ s,
   { by_cases hit : i ∈ t,
     { exact (hs ⟨his, hit⟩).elim },
-    exact inf_le_right_of_le (infi_le_of_le i $ infi_le _ hit) },
-  exact inf_le_left_of_le (infi_le_of_le i $ infi_le _ his)
+    exact inf_le_of_right_le (infi_le_of_le i $ infi_le _ hit) },
+  exact inf_le_of_left_le (infi_le_of_le i $ infi_le _ his)
 end
 
 lemma span_single_image (s : set M) (a : α) :
@@ -349,7 +351,7 @@ variables {α' : Type*} {α'' : Type*} (M R)
 
 /-- Interpret `finsupp.map_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
-⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
+{ to_fun := map_domain f, map_add' := λ a b, map_domain_add, map_smul' := map_domain_smul }
 
 @[simp] theorem lmap_domain_apply (f : α → α') (l : α →₀ M) :
   (lmap_domain M R f : (α →₀ M) →ₗ[R] (α' →₀ M)) l = map_domain f l := rfl
@@ -431,6 +433,22 @@ theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l (default α) • v (default α) :=
 by rw [← total_single, ← unique_single l]
 
+lemma total_surjective (h : function.surjective v) : function.surjective (finsupp.total α M R v) :=
+begin
+  intro x,
+  obtain ⟨y, hy⟩ := h x,
+  exact ⟨finsupp.single y 1, by simp [hy]⟩
+end
+
+theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
+range_eq_top.2 $ total_surjective R h
+
+/-- Any module is a quotient of a free module. This is stated as surjectivity of
+`finsupp.total M M R id : (M →₀ R) →ₗ[R] M`. -/
+lemma total_id_surjective (M) [add_comm_monoid M] [module R M] :
+  function.surjective (finsupp.total M M R id) :=
+total_surjective R function.surjective_id
+
 lemma range_total : (finsupp.total α M R v).range = span R (range v) :=
 begin
   ext x,
@@ -501,6 +519,10 @@ theorem mem_span_image_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
 by { rw span_image_eq_map_total, simp, }
 
+@[simp] lemma total_fin_zero (f : fin 0 → M) :
+  finsupp.total (fin 0) M R f = 0 :=
+by { ext i, apply fin_zero_elim i }
+
 variables (α) (M) (v)
 
 /-- `finsupp.total_on M v s` interprets `p : α →₀ R` as a linear combination of a
@@ -550,7 +572,9 @@ end total
 This is `finsupp.dom_congr` as a `linear_equiv`.-/
 protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
-(finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
+(finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv $
+by simpa only [equiv_map_domain_eq_map_domain, dom_congr_apply]
+  using (lmap_domain M R e).map_smul
 
 @[simp]
 lemma dom_lcongr_apply {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (v : α₁ →₀ M) :
@@ -559,12 +583,12 @@ rfl
 
 @[simp]
 lemma dom_lcongr_refl : finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
-linear_equiv.ext $ λ _, map_domain_id
+linear_equiv.ext $ λ _, equiv_map_domain_refl _
 
 lemma dom_lcongr_trans {α₁ α₂ α₃ : Type*} (f : α₁ ≃ α₂) (f₂ : α₂ ≃ α₃) :
   (finsupp.dom_lcongr f).trans (finsupp.dom_lcongr f₂) =
     (finsupp.dom_lcongr (f.trans f₂) : (_ →₀ M) ≃ₗ[R] _) :=
-linear_equiv.ext $ λ _, map_domain_comp.symm
+linear_equiv.ext $ λ _, (equiv_map_domain_trans _ _ _).symm
 
 @[simp]
 lemma dom_lcongr_symm {α₁ α₂ : Type*} (f : α₁ ≃ α₂) :
@@ -573,7 +597,7 @@ linear_equiv.ext $ λ x, rfl
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
-by simp [finsupp.dom_lcongr, finsupp.dom_congr, map_domain_single]
+by simp [finsupp.dom_lcongr, finsupp.dom_congr, equiv_map_domain_single]
 
 /-- An equivalence of sets induces a linear equivalence of `finsupp`s supported on those sets. -/
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
@@ -762,6 +786,10 @@ end finsupp
 variables {R : Type*} {M : Type*} {N : Type*}
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
 
+lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : submodule R M) (f : ι →₀ β)
+  (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+S.to_add_submonoid.finsupp_sum_mem f g h
+
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
   f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
@@ -793,6 +821,13 @@ begin
   have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
   exact hN i hi (hg _),
 end
+
+/-- `submodule.exists_finset_of_mem_supr` as an `iff` -/
+lemma submodule.mem_supr_iff_exists_finset
+  {ι : Sort*} {p : ι → submodule R M} {m : M} :
+  (m ∈ ⨆ i, p i) ↔ ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+⟨submodule.exists_finset_of_mem_supr p,
+ λ ⟨_, hs⟩, supr_le_supr (λ i, (supr_const_le : _ ≤ p i)) hs⟩
 
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=

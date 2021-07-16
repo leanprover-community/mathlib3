@@ -125,10 +125,49 @@ instance : comm_semiring ℝ≥0 :=
 def to_real_hom : ℝ≥0 →+* ℝ :=
 ⟨coe, nnreal.coe_one, nnreal.coe_mul, nnreal.coe_zero, nnreal.coe_add⟩
 
-/-- The real numbers are an algebra over the non-negative reals. -/
-instance : algebra ℝ≥0 ℝ := to_real_hom.to_algebra
-
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
+
+section actions
+
+/-- A `mul_action` over `ℝ` restricts to a `mul_action` over `ℝ≥0`. -/
+instance {M : Type*} [mul_action ℝ M] : mul_action ℝ≥0 M :=
+mul_action.comp_hom M to_real_hom.to_monoid_hom
+
+lemma smul_def {M : Type*} [mul_action ℝ M] (c : ℝ≥0) (x : M) :
+  c • x = (c : ℝ) • x := rfl
+
+instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_scalar M N]
+  [is_scalar_tower ℝ M N] : is_scalar_tower ℝ≥0 M N :=
+{ smul_assoc := λ r, (smul_assoc (r : ℝ) : _)}
+
+instance smul_comm_class_left {M N : Type*} [mul_action ℝ N] [has_scalar M N]
+  [smul_comm_class ℝ M N] : smul_comm_class ℝ≥0 M N :=
+{ smul_comm := λ r, (smul_comm (r : ℝ) : _)}
+
+instance smul_comm_class_right {M N : Type*} [mul_action ℝ N] [has_scalar M N]
+  [smul_comm_class M ℝ N] : smul_comm_class M ℝ≥0 N :=
+{ smul_comm := λ m r, (smul_comm m (r : ℝ) : _)}
+
+/-- A `distrib_mul_action` over `ℝ` restricts to a `distrib_mul_action` over `ℝ≥0`. -/
+instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ M] : distrib_mul_action ℝ≥0 M :=
+distrib_mul_action.comp_hom M to_real_hom.to_monoid_hom
+
+/-- A `module` over `ℝ` restricts to a `module` over `ℝ≥0`. -/
+instance {M : Type*} [add_comm_monoid M] [module ℝ M] : module ℝ≥0 M :=
+module.comp_hom M to_real_hom
+
+/-- An `algebra` over `ℝ` restricts to an `algebra` over `ℝ≥0`. -/
+instance {A : Type*} [semiring A] [algebra ℝ A] : algebra ℝ≥0 A :=
+{ smul := (•),
+  commutes' := λ r x, by simp [algebra.commutes],
+  smul_def' := λ r x, by simp [←algebra.smul_def (r : ℝ) x, smul_def],
+  to_ring_hom := ((algebra_map ℝ A).comp (to_real_hom : ℝ≥0 →+* ℝ)) }
+
+-- verify that the above produces instances we might care about
+example : algebra ℝ≥0 ℝ := by apply_instance
+example : distrib_mul_action (units ℝ≥0) ℝ := by apply_instance
+
+end actions
 
 instance : comm_group_with_zero ℝ≥0 :=
 { zero := 0,
@@ -221,17 +260,23 @@ instance : order_bot ℝ≥0 :=
 { bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.linear_order }
 
 instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
-{ add_le_add_left       := assume a b h c, @add_le_add_left ℝ a b _ _ _ h c,
-  lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ a b c _ _ _,
+{ add_le_add_left       := assume a b h c,
+    nnreal.coe_le_coe.mp $ (add_le_add_left (nnreal.coe_le_coe.mpr h) c),
+  lt_of_add_lt_add_left := assume a b c bc,
+    nnreal.coe_lt_coe.mp $ lt_of_add_lt_add_left (nnreal.coe_lt_coe.mpr bc),
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
     iff.intro
       (assume h : a ≤ b,
-        ⟨⟨b - a, le_sub_iff_add_le.2 $ by simp [h]⟩,
-          nnreal.eq $ show b = a + (b - a), by rw [add_sub_cancel'_right]⟩)
+        ⟨⟨b - a, le_sub_iff_add_le.2 $ (zero_add _).le.trans h⟩,
+          nnreal.eq $ show b = a + (b - a), from (add_sub_cancel'_right _ _).symm⟩)
       (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
   ..nnreal.comm_semiring,
   ..nnreal.order_bot,
   ..nnreal.linear_order }
+
+instance : linear_ordered_add_comm_monoid ℝ≥0 :=
+{ .. nnreal.comm_semiring,
+  .. nnreal.canonically_linear_ordered_add_monoid }
 
 instance : distrib_lattice ℝ≥0 := by apply_instance
 
@@ -250,7 +295,10 @@ instance : linear_ordered_semiring ℝ≥0 :=
   zero_le_one                := @zero_le_one ℝ _,
   exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
   .. nnreal.canonically_linear_ordered_add_monoid,
-  .. nnreal.comm_semiring, }
+  .. nnreal.comm_semiring }
+
+instance : ordered_comm_semiring ℝ≥0 :=
+{ .. nnreal.linear_ordered_semiring, .. nnreal.comm_semiring }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
@@ -274,7 +322,7 @@ instance : no_top_order ℝ≥0 :=
 lemma bdd_above_coe {s : set ℝ≥0} : bdd_above ((coe : ℝ≥0 → ℝ) '' s) ↔ bdd_above s :=
 iff.intro
   (assume ⟨b, hb⟩, ⟨real.to_nnreal b, assume ⟨y, hy⟩ hys, show y ≤ max b 0, from
-    le_max_left_of_le $ hb $ set.mem_image_of_mem _ hys⟩)
+    le_max_of_le_left $ hb $ set.mem_image_of_mem _ hys⟩)
   (assume ⟨b, hb⟩, ⟨b, assume y ⟨x, hx, eq⟩, eq ▸ hb hx⟩)
 
 lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s) :=
@@ -742,3 +790,7 @@ begin
   { simp [h, real.coe_to_nnreal x h, le_abs_self] },
   { simp [real.to_nnreal, h, le_abs_self, abs_nonneg] }
 end
+
+lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
+  (n.nat_abs : ℝ≥0) = real.nnabs n :=
+by { ext, rw [nnreal.coe_nat_cast, int.cast_nat_abs, nnreal.coe_nnabs] }

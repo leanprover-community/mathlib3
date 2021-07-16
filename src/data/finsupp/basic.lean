@@ -874,7 +874,7 @@ lemma map_range_add [add_zero_class N]
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
-@[simp] lemma emb_domain_add [add_zero_class M] (f : α ↪ β) (v w : α →₀ M) :
+@[simp] lemma emb_domain_add (f : α ↪ β) (v w : α →₀ M) :
   emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
 begin
   ext b,

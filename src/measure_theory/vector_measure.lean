@@ -307,6 +307,7 @@ instance : has_scalar R (vector_measure α M) := ⟨smul⟩
 @[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
 lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
   (r • v) i = r • v i := rfl
+
 instance [has_continuous_add M] : distrib_mul_action R (vector_measure α M) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
 

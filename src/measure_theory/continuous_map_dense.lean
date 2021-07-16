@@ -33,6 +33,8 @@ since the measure `μ` is weakly regular, the set `s` can be approximated above 
 below by a closed set.  Finally, since the domain `α` is normal, we use Urysohn's lemma to find a
 continuous function interpolating between these two sets.
 
+## Related results
+
 Are you looking for a result on "directional" approximation (above or below with respect to an
 order) of functions whose codomain is `ℝ≥0∞` or `ℝ`, by semicontinuous functions?  See the
 Vitali-Carathéodory theorem, in the file `measure_theory.vitali_caratheodory`.

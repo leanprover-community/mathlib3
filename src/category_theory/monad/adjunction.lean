@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.algebra
-import category_theory.adjunction
+import category_theory.adjunction.reflective
 
 namespace category_theory
 open category
@@ -247,30 +247,37 @@ def monadic_of_iso (R₁ R₂ : D ⥤ C) [monadic_right_adjoint R₁] (i : R₁ 
 variables {D' : Type u₃} [category.{v₃} D']
 
 @[simps]
-def to_monad_iso_of_equivalence {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) (e : D' ≌ D) :
-  h.to_monad ≅ adjunction.to_monad (h.comp _ _ e.inverse.adjunction) :=
-sorry
+def to_monad_iso_of_equivalence {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) (e : D ≌ D') :
+  h.to_monad ≅ (h.comp _ _ e.to_adjunction).to_monad :=
+monad_iso.mk
+  (iso_whisker_left L (e.fun_inv_id_assoc R).symm ≪≫ (L.associator _ _).symm)
+  (λ X, by simp)
+  (λ X,
+  begin
+    dsimp,
+    simp only [e.counit_inv_functor_comp, id_comp, e.fun_inv_id_assoc_inv_app, assoc, ←R.map_comp],
+    simp,
+  end)
 
 def monadic_of_equivalent (R : D ⥤ C) (e : D' ≌ D) [monadic_right_adjoint R] :
   monadic_right_adjoint (e.functor ⋙ R) :=
 { eqv :=
   begin
     let h := adjunction.of_right_adjoint R,
-    let h' := adjunction.of_right_adjoint (e.functor ⋙ R),
-    let T := h.to_monad,
-    let T' := h'.to_monad,
-    let : T ≅ T',
-    { apply monad_iso.mk,
-
-    }
-    -- let : _ ≅ monad.comparison (adjunction.of_right_adjoint (e.functor ⋙ R)),
-
-    -- change is_equivalence
-    --   (monad.comparison
-    --     (adjunction.comp _ e.functor (adjunction.of_right_adjoint R) e.inverse.adjunction)),
-
-  end
-}
+    let h' := h.comp _ _ e.symm.to_adjunction,
+    let z' : h.to_monad.algebra ≌ h'.to_monad.algebra :=
+      monad.algebra_equiv_of_iso_monads (to_monad_iso_of_equivalence _ e.symm),
+    let : e.functor ⋙ monad.comparison (adjunction.of_right_adjoint R) ⋙ z'.functor ≅
+            monad.comparison (h.comp _ _ e.symm.to_adjunction),
+    { apply nat_iso.of_components _ _,
+      { intro X,
+        exact monad.algebra.iso_mk (iso.refl _) (by { dsimp, simp }) },
+      { intros X Y f,
+        ext,
+        dsimp,
+        simp } },
+    apply is_equivalence_of_iso _ _ this,
+  end }
 
 noncomputable instance (T : monad C) : monadic_right_adjoint T.forget :=
 ⟨(equivalence.of_fully_faithfully_ess_surj _ : is_equivalence (monad.comparison T.adj))⟩

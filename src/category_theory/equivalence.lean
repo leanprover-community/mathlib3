@@ -413,6 +413,7 @@ end is_equivalence
 namespace functor
 
 /-- Interpret a functor that is an equivalence as an equivalence. -/
+@[simps functor inverse]
 def as_equivalence (F : C ⥤ D) [is_equivalence F] : C ≌ D :=
 ⟨F, is_equivalence.inverse F, is_equivalence.unit_iso, is_equivalence.counit_iso,
   is_equivalence.functor_unit_iso_comp⟩
@@ -426,12 +427,6 @@ is_equivalence.inverse F
 
 instance is_equivalence_inv (F : C ⥤ D) [is_equivalence F] : is_equivalence F.inv :=
 is_equivalence.of_equivalence F.as_equivalence.symm
-
-@[simp] lemma as_equivalence_functor (F : C ⥤ D) [is_equivalence F] :
-  F.as_equivalence.functor = F := rfl
-
-@[simp] lemma as_equivalence_inverse (F : C ⥤ D) [is_equivalence F] :
-  F.as_equivalence.inverse = inv F := rfl
 
 @[simp] lemma inv_inv (F : C ⥤ D) [is_equivalence F] :
   inv (inv F) = F := rfl

@@ -442,6 +442,7 @@ namespace equivalence
 
 /-- The adjunction given by an equivalence of categories. (To obtain the opposite adjunction,
 simply use `e.symm.to_adjunction`. -/
+@[simps]
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
 mk_of_unit_counit ⟨e.unit, e.counit,
   by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp _, },
@@ -452,8 +453,9 @@ end equivalence
 namespace functor
 
 /-- An equivalence `E` is left adjoint to its inverse. -/
+@[simps]
 def adjunction (E : C ⥤ D) [is_equivalence E] : E ⊣ E.inv :=
-(E.as_equivalence).to_adjunction
+E.as_equivalence.to_adjunction
 
 /-- If `F` is an equivalence, it's a left adjoint. -/
 @[priority 10]

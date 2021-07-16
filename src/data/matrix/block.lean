@@ -20,7 +20,7 @@ import data.matrix.basic
 variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
 variables {m' : o → Type*} [∀ i, fintype (m' i)]
 variables {n' : o → Type*} [∀ i, fintype (n' i)]
-variables {R : Type*} {S : Type*} {α : Type*}
+variables {R : Type*} {S : Type*} {α : Type*} {β : Type*}
 
 open_locale matrix
 
@@ -101,11 +101,25 @@ rfl
   (from_blocks A B C D).to_blocks₂₂ = D :=
 rfl
 
+lemma from_blocks_map
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : α → β) :
+  (from_blocks A B C D).map f = from_blocks (A.map f) (B.map f) (C.map f) (D.map f) :=
+begin
+  ext i j, rcases i; rcases j; simp [from_blocks],
+end
+
 lemma from_blocks_transpose
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   (from_blocks A B C D)ᵀ = from_blocks Aᵀ Cᵀ Bᵀ Dᵀ :=
 begin
   ext i j, rcases i; rcases j; simp [from_blocks],
+end
+
+lemma from_blocks_conj_transpose [has_star α]
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D)ᴴ = from_blocks Aᴴ Cᴴ Bᴴ Dᴴ :=
+begin
+  simp only [conj_transpose, from_blocks_transpose, from_blocks_map]
 end
 
 /-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
@@ -191,7 +205,7 @@ variables (M N : o → matrix m n α) [decidable_eq o]
 
 section has_zero
 
-variables [has_zero α]
+variables [has_zero α] [has_zero β]
 
 /-- `matrix.block_diagonal M` turns a homogenously-indexed collection of matrices
 `M : o → matrix m n α'` into a `m × o`-by-`n × o` block matrix which has the entries of `M` along
@@ -215,6 +229,14 @@ lemma block_diagonal_apply_ne (i j) {k k'} (h : k ≠ k') :
   block_diagonal M (i, k) (j, k') = 0 :=
 if_neg h
 
+lemma block_diagonal_map (f : α → β) (hf : f 0 = 0) :
+  (block_diagonal M).map f = block_diagonal (λ k, (M k).map f) :=
+begin
+  ext,
+  simp only [map_apply, block_diagonal_apply, eq_comm],
+  rw [apply_ite f, hf],
+end
+
 @[simp] lemma block_diagonal_transpose :
   (block_diagonal M)ᵀ = block_diagonal (λ k, (M k)ᵀ) :=
 begin
@@ -223,6 +245,14 @@ begin
   split_ifs with h,
   { rw h },
   { refl }
+end
+
+@[simp] lemma block_diagonal_conj_transpose
+  {α : Type*} [semiring α] [star_ring α] (M : o → matrix m n α) :
+  (block_diagonal M)ᴴ = block_diagonal (λ k, (M k)ᴴ) :=
+begin
+  simp only [conj_transpose, block_diagonal_transpose],
+  rw block_diagonal_map _ star (star_zero α),
 end
 
 @[simp] lemma block_diagonal_zero :
@@ -284,7 +314,7 @@ variables (M N : Π i, matrix (m' i) (n' i) α) [decidable_eq o]
 
 section has_zero
 
-variables [has_zero α]
+variables [has_zero α] [has_zero β]
 
 /-- `matrix.block_diagonal' M` turns `M : Π i, matrix (m i) (n i) α` into a
 `Σ i, m i`-by-`Σ i, n i` block matrix which has the entries of `M` along the diagonal
@@ -317,6 +347,14 @@ lemma block_diagonal'_apply_ne {k k'} (i j) (h : k ≠ k') :
   block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ = 0 :=
 dif_neg h
 
+lemma block_diagonal'_map (f : α → β) (hf : f 0 = 0) :
+  (block_diagonal' M).map f = block_diagonal' (λ k, (M k).map f) :=
+begin
+  ext,
+  simp only [map_apply, block_diagonal'_apply, eq_comm],
+  rw [apply_dite f, hf],
+end
+
 @[simp] lemma block_diagonal'_transpose :
   (block_diagonal' M)ᵀ = block_diagonal' (λ k, (M k)ᵀ) :=
 begin
@@ -328,6 +366,14 @@ begin
   { exact (h₂ h₁.symm).elim },
   { exact (h₁ h₂.symm).elim },
   { refl }
+end
+
+@[simp] lemma block_diagonal'_conj_transpose {α} [semiring α] [star_ring α]
+  (M : Π i, matrix (m' i) (n' i) α) :
+  (block_diagonal' M)ᴴ = block_diagonal' (λ k, (M k)ᴴ) :=
+begin
+  simp only [conj_transpose, block_diagonal'_transpose],
+  exact block_diagonal'_map _ star (star_zero α),
 end
 
 @[simp] lemma block_diagonal'_zero :

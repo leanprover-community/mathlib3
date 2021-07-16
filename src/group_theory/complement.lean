@@ -138,13 +138,9 @@ mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
 
 @[to_additive] instance : inhabited (right_transversals (H : set G)) :=
-let hf : function.has_right_inverse (quotient.mk' : G → quotient (quotient_group.right_rel H)) :=
-function.surjective.has_right_inverse quotient.surjective_quotient_mk', f := classical.some hf in
-⟨⟨set.range f, mem_right_transversals_iff_bijective.mpr ⟨by
+⟨⟨set.range quotient.out', mem_right_transversals_iff_bijective.mpr ⟨by
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
-  rw [subtype.ext_iff, subtype.coe_mk, subtype.coe_mk,
-      ←classical.some_spec hf q₁, ←classical.some_spec hf q₂],
-  exact congr_arg f hg }, λ q, ⟨⟨f q, q, rfl⟩, classical.some_spec hf q⟩⟩⟩⟩
+  rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
 
 lemma is_complement_of_disjoint [fintype G] [fintype H] [fintype K]
   (h1 : fintype.card H * fintype.card K = fintype.card G)

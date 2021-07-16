@@ -488,6 +488,11 @@ initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_ap
 
 @[simp] lemma inv_fun_eq_symm : e.inv_fun = e.symm := rfl
 
+@[simp] lemma coe_mk_symm [module R M] [module R M₂]
+  {to_fun inv_fun map_add map_smul left_inv right_inv } :
+  ⇑((⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂).symm) = inv_fun :=
+rfl
+
 variables {module_M₃ : module R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃)
 
 /-- Linear equivalences are transitive. -/

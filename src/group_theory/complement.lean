@@ -299,6 +299,14 @@ begin
     apply_instance },
 end
 
+/-- **Schur-Zassenhaus** for abelian normal subgroups: if the order of `H : subgroup G` is coprime to the order of `G`,
+then there exists a subgroup `K` which is a (left) complement of `H`.
+-/
+theorem exists_left_complement_of_coprime [fintype G] [H.normal]
+  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
+  ∃ K : subgroup G, is_complement (K : set G) (H : set G) :=
+sorry -- something like exists.congr (exists_right_complement_of_coprime hH) is_complement.symm
+
 end schur_zassenhaus
 
 end subgroup

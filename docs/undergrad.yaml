@@ -353,7 +353,7 @@ Single Variable Real Analysis:
     continuity of the limit: 'continuous_of_uniform_approx_of_continuous'
     differentiability of the limit:
     Weierstrass polynomial approximation theorem: 'polynomial_functions_closure_eq_top'
-    Weierstrass trigonometric approximation theorem: 'span_fourier_closure_eq_top'
+    Weierstrass trigonometric approximation theorem:
   Convexity:
     convex functions of a real variable: 'convex_on'
     continuity and differentiability of convex functions:
@@ -426,7 +426,7 @@ Topology:
     Heine-Borel theorem (closed bounded subsets are compact in finite dimension): 'finite_dimensional.proper'
     Riesz' lemma (unit-ball characterization of finite dimension):
     Arzela-Ascoli theorem: 'bounded_continuous_function.arzela_ascoli'
-  Hilbert Spaces:
+  Hilbert spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
     dual space: 'normed_space.dual.normed_space'
@@ -443,7 +443,7 @@ Topology:
 
 # 9.
 Multivariable calculus:
-  Differential Calculus:
+  Differential calculus:
     differentiable functions on an open subset of $\R^n$: 'differentiable_on'
     differentials (linear tangent functions): 'fderiv'
     directional derivative:

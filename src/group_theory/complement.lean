@@ -25,7 +25,9 @@ In this file we define the complement of a subgroup.
 ## Main results
 
 - `is_complement_of_coprime` : Subgroups of coprime order are complements
-- `schur_zassenhaus` : Schur-Zassenhaus for abelian normal subgroups
+- `exists_right_complement_of_coprime` : **Schur-Zassenhaus** for abelian normal subgroups:
+  if the order of `H : subgroup G` is coprime to the order of `G`, then there exists a subgroup `K` which
+  is a (right) complement of `H`.
 -/
 
 open_locale big_operators

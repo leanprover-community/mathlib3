@@ -15,19 +15,19 @@ In this file we define the complement of a subgroup.
 
 ## Main definitions
 
-- `is_complement S T` where `S` and `T` are subsets of `G` states that every `g : G` can be written uniquely
-   as a product `s * t` for `s ∈ S`, `t ∈ T`.
-- `left_transversals T` where `T` is a subset of `G` is the set of all left-complements `S : set G`,
-  i.e. the set of all `S` that contain exactly one element of the left coset of each `t : T`
-- `right_transversals S` where `S` is a subset of `G` is the set of all right-complements `T : set G`
-  i.e. the set of all `T` that contain exactly one element of the right coset of each `s : S`
+- `is_complement S T` where `S` and `T` are subsets of `G` states that every `g : G` can be
+  written uniquely as a product `s * t` for `s ∈ S`, `t ∈ T`.
+- `left_transversals T` where `T` is a subset of `G` is the set of all left-complements of `T`,
+  i.e. the set of all `S : set G` that contain exactly one element of each left coset of `T`.
+- `right_transversals S` where `S` is a subset of `G` is the set of all right-complements of `S`,
+  i.e. the set of all `T : set G` that contain exactly one element of each right coset of `S`.
 
 ## Main results
 
-- `is_complement_of_coprime` : Subgroups of coprime order are complements
+- `is_complement_of_coprime` : Subgroups of coprime order are complements.
 - `exists_right_complement_of_coprime` : **Schur-Zassenhaus** for abelian normal subgroups:
-  if the order of `H : subgroup G` is coprime to the order of `G`, then there exists a subgroup `K` which
-  is a (right) complement of `H`.
+  If `H : subgroup G` is abelian, normal, and has order coprime to its index, then there exists
+  a subgroup `K` which is a (right) complement of `H`.
 -/
 
 open_locale big_operators
@@ -36,7 +36,8 @@ namespace subgroup
 
 variables {G : Type*} [group G] (H K : subgroup G) (S T : set G)
 
-/-- `S` and `T` are complements if `(*) : S × T → G` is a bijection -/
+/-- `S` and `T` are complements if `(*) : S × T → G` is a bijection.
+  This notion generalizes left transversals, right transversals, and complementary subgroups. -/
 @[to_additive "`S` and `T` are complements if `(*) : S × T → G` is a bijection"]
 def is_complement : Prop := ∀ g : G, ∃! x : S × T, x.1.1 * x.2.1 = g
 
@@ -94,7 +95,7 @@ begin
     exact prod.ext (subtype.ext (eq_mul_inv_of_mul_eq ((congr_arg _ this).mp hy))) this },
 end
 
-@[to_additive] lemma mem_left_transverals_iff_exists_unique_quotient_mk'_eq :
+@[to_additive] lemma mem_left_transversals_iff_exists_unique_quotient_mk'_eq :
   S ∈ left_transversals (H : set G) ↔
   ∀ q : quotient (quotient_group.left_rel H), ∃! s : S, quotient.mk' s.1 = q :=
 begin
@@ -104,7 +105,7 @@ begin
   exact ⟨λ h q, quotient.induction_on' q h, λ h g, h (quotient.mk' g)⟩,
 end
 
-@[to_additive] lemma mem_right_transverals_iff_exists_unique_quotient_mk'_eq :
+@[to_additive] lemma mem_right_transversals_iff_exists_unique_quotient_mk'_eq :
   S ∈ right_transversals (H : set G) ↔
   ∀ q : quotient (quotient_group.right_rel H), ∃! s : S, quotient.mk' s.1 = q :=
 begin
@@ -114,25 +115,25 @@ begin
   exact ⟨λ h q, quotient.induction_on' q h, λ h g, h (quotient.mk' g)⟩,
 end
 
-@[to_additive] lemma mem_left_transverals_iff_bijective : S ∈ left_transversals (H : set G) ↔
+@[to_additive] lemma mem_left_transversals_iff_bijective : S ∈ left_transversals (H : set G) ↔
   function.bijective (S.restrict (quotient.mk' : G → quotient (quotient_group.left_rel H))) :=
-mem_left_transverals_iff_exists_unique_quotient_mk'_eq.trans
+mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
-@[to_additive] lemma mem_right_transverals_iff_bijective : S ∈ right_transversals (H : set G) ↔
+@[to_additive] lemma mem_right_transversals_iff_bijective : S ∈ right_transversals (H : set G) ↔
   function.bijective (set.restrict (quotient.mk' : G → quotient (quotient_group.right_rel H)) S) :=
-mem_right_transverals_iff_exists_unique_quotient_mk'_eq.trans
+mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
 @[to_additive] instance : inhabited (left_transversals (H : set G)) :=
-⟨⟨set.range quotient.out', mem_left_transverals_iff_bijective.mpr ⟨by
+⟨⟨set.range quotient.out', mem_left_transversals_iff_bijective.mpr ⟨by
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
   rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
 
 @[to_additive] instance : inhabited (right_transversals (H : set G)) :=
 let hf : function.has_right_inverse (quotient.mk' : G → quotient (quotient_group.right_rel H)) :=
 function.surjective.has_right_inverse quotient.surjective_quotient_mk', f := classical.some hf in
-⟨⟨set.range f, mem_right_transverals_iff_bijective.mpr ⟨by
+⟨⟨set.range f, mem_right_transversals_iff_bijective.mpr ⟨by
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
   rw [subtype.ext_iff, subtype.coe_mk, subtype.coe_mk,
       ←classical.some_spec hf q₁, ←classical.some_spec hf q₂],
@@ -172,12 +173,12 @@ section schur_zassenhaus
 
 lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
   (g : G) (α : left_transversals (H : set G)) (q : quotient_group.quotient H) :
-  ↑((equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp (g • α).2)).symm q) =
-    g * ((equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp α.2)).symm
+  ↑((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)).symm q) =
+    g * ((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm
       (g⁻¹ • q : quotient_group.quotient H)) :=
 begin
-  let w := (equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp α.2)),
-  let y := (equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp (g • α).2)),
+  let w := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)),
+  let y := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)),
   change ↑(y.symm q) = ↑(⟨_, mem_left_coset g (subtype.mem _)⟩ : (g • α).1),
   refine subtype.ext_iff.mp (y.symm_apply_eq.mpr _),
   change q = g • (w (w.symm (g⁻¹ • q : quotient_group.quotient H))),
@@ -191,8 +192,8 @@ variables (α β γ : left_transversals (H : set G))
 /-- The difference of two left transversals -/
 @[to_additive "The difference of two left transversals"]
 noncomputable def diff [hH : normal H] : H :=
-let α' := (equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp α.2)).symm,
-    β' := (equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp β.2)).symm in
+let α' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm,
+    β' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp β.2)).symm in
 ∏ (q : quotient_group.quotient H), ⟨(α' q) * (β' q)⁻¹,
   hH.mem_comm (quotient.exact' ((β'.symm_apply_apply q).trans (α'.symm_apply_apply q).symm))⟩
 
@@ -239,7 +240,7 @@ instance setoid_diff [H.normal] : setoid (left_transversals (H : set G)) :=
 setoid.mk (λ α β, diff α β = 1) ⟨λ α, diff_self α, λ α β h₁,
   by rw [←diff_inv, h₁, one_inv], λ α β γ h₁ h₂, by rw [←diff_mul_diff, h₁, h₂, one_mul]⟩
 
-/-- The quotient of the transverals of an abelian normal `N` by the `diff` relation -/
+/-- The quotient of the transversals of an abelian normal `N` by the `diff` relation -/
 def quotient_diff [H.normal] :=
 quotient H.setoid_diff
 
@@ -278,15 +279,11 @@ begin
   exact (pow_coprime hH).injective hα,
 end
 
-/-- **Schur-Zassenhaus** for abelian normal subgroups: if the order of `H : subgroup G` is coprime to the order of `G`,
-then there exists a subgroup `K` which is a (right) complement of `H`.
--/
-theorem exists_right_complement_of_coprime [fintype G] [H.normal]
+lemma is_complement_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
   (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
-  ∃ K : subgroup G, is_complement (H : set G) (K : set G) :=
+  is_complement (H : set G) (mul_action.stabilizer G α : set G) :=
 begin
   classical,
-  refine nonempty_of_inhabited.elim (λ α : H.quotient_diff, ⟨mul_action.stabilizer G α, _⟩),
   let ϕ : H ≃ mul_action.orbit G α := equiv.of_bijective (λ h, ⟨h • α, h, rfl⟩)
     ⟨λ h₁ h₂ hh, smul_injective α hH (subtype.ext_iff.mp hh),
       λ β, exists_imp_exists (λ h hh, subtype.ext hh) (exists_smul_eq α β hH)⟩,
@@ -299,13 +296,22 @@ begin
     apply_instance },
 end
 
-/-- **Schur-Zassenhaus** for abelian normal subgroups: if the order of `H : subgroup G` is coprime to the order of `G`,
-then there exists a subgroup `K` which is a (left) complement of `H`.
--/
+/-- **Schur-Zassenhaus** for abelian normal subgroups:
+  If `H : subgroup G` is abelian, normal, and has order coprime to its index, then there exists
+  a subgroup `K` which is a (right) complement of `H`. -/
+theorem exists_right_complement_of_coprime [fintype G] [H.normal]
+  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
+  ∃ K : subgroup G, is_complement (H : set G) (K : set G) :=
+nonempty_of_inhabited.elim
+  (λ α : H.quotient_diff, ⟨mul_action.stabilizer G α, is_complement_stabilizer_of_coprime hH⟩)
+
+/-- **Schur-Zassenhaus** for abelian normal subgroups:
+  If `H : subgroup G` is abelian, normal, and has order coprime to its index, then there exists
+  a subgroup `K` which is a (left) complement of `H`. -/
 theorem exists_left_complement_of_coprime [fintype G] [H.normal]
   (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
   ∃ K : subgroup G, is_complement (K : set G) (H : set G) :=
-sorry -- something like exists.congr (exists_right_complement_of_coprime hH) is_complement.symm
+Exists.imp (λ _, is_complement.symm) (exists_right_complement_of_coprime hH)
 
 end schur_zassenhaus
 

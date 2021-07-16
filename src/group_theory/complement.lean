@@ -17,8 +17,10 @@ In this file we define the complement of a subgroup.
 
 - `is_complement S T` where `S` and `T` are subsets of `G` states that every `g : G` can be written uniquely
    as a product `s * t` for `s ∈ S`, `t ∈ T`.
-- `left_transversals T` where `T` is a subset of `G`
-- `right_transversals S` where `S` is a subset of `G`
+- `left_transversals T` where `T` is a subset of `G` is the set of all left-complements `S : set G`,
+  i.e. the set of all `S` that contain exactly one element of the left coset of each `t : T`
+- `right_transversals S` where `S` is a subset of `G` is the set of all right-complements `T : set G`
+  i.e. the set of all `T` that contain exactly one element of the right coset of each `s : S`
 
 ## Main results
 

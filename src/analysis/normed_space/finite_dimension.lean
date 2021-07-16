@@ -5,8 +5,8 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.operator_norm
 import analysis.normed_space.add_torsor
-import topology.bases
 import linear_algebra.finite_dimensional
+import topology.bases
 
 /-!
 # Finite dimensional normed spaces over complete fields

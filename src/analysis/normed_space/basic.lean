@@ -3,13 +3,11 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import algebra.punit_instances
-import topology.instances.nnreal
-import topology.algebra.module
-import topology.algebra.algebra
+import algebra.algebra.subalgebra
+import order.liminf_limsup
 import topology.algebra.group_completion
+import topology.instances.nnreal
 import topology.metric_space.completion
-import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Normed spaces

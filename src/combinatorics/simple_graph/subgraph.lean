@@ -82,8 +82,9 @@ G'.adj_sub h
 /-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
 
-/-- Coercion from `subgraph G` to `simple_graph V`. This will include "junk"
-isolated vertices unless the subgraph is spanning, hence the name. -/
+/-- Coercion from `subgraph G` to `simple_graph V`.  If `G'` is a spanning
+subgraph, then `G'.spanning_coe` yields an isomorphic graph.
+In general, this adds in all vertices from `V` as isolated vertices. -/
 @[simps] def spanning_coe (G' : subgraph G) : simple_graph V :=
 { adj := G'.adj,
   sym := G'.sym,
@@ -193,9 +194,6 @@ def inter (x y : subgraph G) : subgraph G :=
   edge_vert := λ v w h, ⟨x.edge_vert h.1, y.edge_vert h.2⟩,
   sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }
 
-instance : has_union (subgraph G) := ⟨union⟩
-instance : has_inter (subgraph G) := ⟨inter⟩
-
 /-- The `top` subgraph is `G` as a subgraph of itself. -/
 def top : subgraph G :=
 { verts := set.univ,
@@ -215,7 +213,7 @@ def bot : subgraph G :=
 instance subgraph_inhabited : inhabited (subgraph G) := ⟨bot⟩
 
 /-- The relation that one subgraph is a subgraph of another. -/
-def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ {v w : V}, x.adj v w → y.adj v w
+def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
 instance : bounded_lattice (subgraph G) :=
 { le := is_subgraph,

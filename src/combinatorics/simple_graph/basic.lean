@@ -36,6 +36,7 @@ finitely many vertices.
   injective graph homomorphism, since its image is an induced subgraph.
 
 * `boolean_lattice` instance: Under the subgraph relation, `simple_graph` forms a `bounded_lattice`.
+  In other words, this is the lattice of spanning subgraphs of the complete graph.
 
 ## Notations
 
@@ -94,25 +95,27 @@ by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
-  (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
-iff.rfl
+  (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) := iff.rfl
 
-/--
-The complete graph on a type `V` is the simple graph with all pairs of distinct vertices adjacent.
--/
-def complete_graph (V : Type u) : simple_graph V :=
-{ adj := ne }
+/-- The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
+adjacent. In `mathlib`, this is usually referred to as `⊤`. -/
+def complete_graph (V : Type u) : simple_graph V := { adj := ne }
 
-instance (V : Type u) : inhabited (simple_graph V) :=
-⟨complete_graph V⟩
+instance (V : Type u) : has_top (simple_graph V) := ⟨complete_graph V⟩
+
+@[simp] lemma complete_graph_eq_top (V : Type u) : complete_graph V = ⊤ := rfl
+
+instance (V : Type u) : inhabited (simple_graph V) := ⟨⊤⟩
 
 instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
-  decidable_rel (complete_graph V).adj :=
-λ v w, not.decidable
+  decidable_rel (⊤ : simple_graph V).adj := λ v w, not.decidable
 
-/-- The graph with no edges on a given vertex type `V`. -/
-def empty_graph (V : Type u) : simple_graph V :=
-{ adj := λ i j, false }
+/-- The graph with no edges on a given vertex type `V`. `mathlib` prefers the notation `⊥`. -/
+def empty_graph (V : Type u) : simple_graph V := { adj := λ i j, false }
+
+instance (V : Type u) : has_bot (simple_graph V) := ⟨empty_graph V⟩
+
+@[simp] lemma empty_graph_eq_bot (V : Type u) : empty_graph V = ⊥ := rfl
 
 namespace simple_graph
 
@@ -370,14 +373,14 @@ by { ext, simp }
 
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
-  (complete_graph V).degree v = fintype.card V - 1 :=
+  (⊤ : simple_graph V).degree v = fintype.card V - 1 :=
 begin
   convert univ.card.pred_eq_sub_one,
   erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :
-  (complete_graph V).is_regular_of_degree (fintype.card V - 1) :=
+  (⊤ : simple_graph V).is_regular_of_degree (fintype.card V - 1) :=
 by { intro v, simp }
 
 /--
@@ -579,7 +582,7 @@ instance : boolean_algebra (simple_graph V) :=
   inf := simple_graph.inter,
   compl := simple_graph.compl,
   sdiff := simple_graph.sdiff,
-  top := complete_graph V,
+  top := ⊤,
   bot := empty_graph V,
   le_top := λ x v w h, x.ne_of_adj h,
   bot_le := λ x v w h, h.elim,

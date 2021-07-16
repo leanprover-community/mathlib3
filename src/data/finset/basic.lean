@@ -1142,12 +1142,10 @@ end
 @[simp] lemma sdiff_subset (s t : finset α) : s \ t ⊆ s :=
 show s \ t ≤ s, from sdiff_le
 
-lemma sdiff_ssubset [decidable_eq α] {x y : finset α} (hx : y ⊆ x) (hy : y.nonempty) :
-  x \ y ⊂ x :=
+lemma sdiff_ssubset {s t : finset α} (h : t ⊆ s) (ht : t.nonempty) :
+  s \ t ⊂ s :=
 begin
-  obtain ⟨i, hi⟩ := hy,
-  rw ssubset_iff_of_subset (sdiff_subset _ _),
-  exact ⟨i, hx hi, λ t, (mem_sdiff.1 t).2 hi⟩,
+  exact sdiff_lt h ht.ne_empty,
 end
 
 lemma union_sdiff_distrib (s₁ s₂ t : finset α) : (s₁ ∪ s₂) \ t = s₁ \ t ∪ s₂ \ t :=

@@ -305,6 +305,7 @@ Composition of adjunctions.
 
 See https://stacks.math.columbia.edu/tag/0DV0.
 -/
+@[simps]
 def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
   unit := adj₁.unit ≫

@@ -79,35 +79,17 @@ nat_iso.of_components
   (by tidy)
 
 /-- If `F` and `F'` are both left adjoint to `G`, then they are naturally isomorphic. -/
+@[simps]
 def left_adjoint_uniq {F F' : C ⥤ D} {G : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G) : F ≅ F' :=
 nat_iso.remove_op (fully_faithful_cancel_right _ (left_adjoints_coyoneda_equiv adj2 adj1))
 
 /-- If `G` and `G'` are both right adjoint to `F`, then they are naturally isomorphic. -/
+@[simps]
 def right_adjoint_uniq {F : C ⥤ D} {G G' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F ⊣ G') : G ≅ G' :=
 nat_iso.remove_op
   (left_adjoint_uniq (op_adjoint_op_of_adjoint _ F adj2) (op_adjoint_op_of_adjoint _ _ adj1))
-
-lemma left_adjoint_uniq_hom_app {F F' : C ⥤ D} {G : D ⥤ C}
-  (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (X) :
-  (left_adjoint_uniq adj1 adj2).hom.app X = (adj1.hom_equiv _ _).symm (adj2.hom_equiv _ _ (𝟙 _)) :=
-rfl
-
-lemma left_adjoint_uniq_inv_app {F F' : C ⥤ D} {G : D ⥤ C}
-  (adj1 : F ⊣ G) (adj2 : F' ⊣ G) (X) :
-  (left_adjoint_uniq adj1 adj2).inv.app X = (adj2.hom_equiv _ _).symm (adj1.hom_equiv _ _ (𝟙 _)) :=
-rfl
-
-lemma right_adjoint_uniq_hom_app {F : C ⥤ D} {G G' : D ⥤ C}
-  (adj1 : F ⊣ G) (adj2 : F ⊣ G') (X) :
-  (right_adjoint_uniq adj1 adj2).hom.app X = adj2.hom_equiv _ _ ((adj1.hom_equiv _ _).symm (𝟙 _)) :=
-rfl
-
-lemma right_adjoint_uniq_inv_app {F : C ⥤ D} {G G' : D ⥤ C}
-  (adj1 : F ⊣ G) (adj2 : F ⊣ G') (X) :
-  (right_adjoint_uniq adj1 adj2).inv.app X = adj1.hom_equiv _ _ ((adj2.hom_equiv _ _).symm (𝟙 _)) :=
-rfl
 
 /--
 Given two adjunctions, if the left adjoints are naturally isomorphic, then so are the right

@@ -9,7 +9,8 @@ import category_theory.adjunction
 namespace category_theory
 open category
 
-universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ u₁ u₂ u₃
+  -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 variables {L : C ⥤ D} {R : D ⥤ C}
@@ -39,29 +40,6 @@ def to_comonad (h : L ⊣ R) : comonad D :=
   δ' := whisker_right (whisker_left R h.unit) L,
   coassoc' := λ X, by { dsimp, rw ← L.map_comp, simp },
   right_counit' := λ X, by { dsimp, rw ← L.map_comp, simp } }
-
-@[simps]
-def test {L : C ⥤ D} {R₁ R₂ : D ⥤ C} (h₁ : L ⊣ R₁) (h₂ : L ⊣ R₂) :
-  h₁.to_monad ≅ h₂.to_monad :=
-monad_iso.mk
-  (iso_whisker_left L (adjunction.right_adjoint_uniq h₁ h₂))
-  (λ X,
-    begin
-      dsimp [adjunction.right_adjoint_uniq_hom_app],
-      rw [h₂.hom_equiv_unit, ←h₂.unit_naturality_assoc, h₁.hom_equiv_counit, L.map_id,
-        ←R₂.map_comp, id_comp, h₁.left_triangle_components],
-      dsimp,
-      simp,
-    end)
-  (λ X,
-  begin
-    dsimp [adjunction.right_adjoint_uniq_hom_app],
-    simp only [adjunction.hom_equiv_unit, adjunction.hom_equiv_counit],
-    rw [L.map_id, id_comp, L.map_id, id_comp, assoc, assoc, ←R₂.map_comp, ←h₁.counit_naturality,
-      R₂.map_comp, h₂.unit_naturality_assoc, ←R₁.map_comp_assoc, L.map_comp, assoc,
-      h₂.counit_naturality, h₂.left_triangle_components_assoc],
-    refl,
-  end)
 
 /-- The monad induced by the Eilenberg-Moore adjunction is the original monad.  -/
 @[simps]
@@ -219,32 +197,29 @@ from `C` to the category of Eilenberg-Moore algebras for the adjunction is an eq
 class comonadic_left_adjoint (L : C ⥤ D) extends is_left_adjoint L :=
 (eqv : is_equivalence (comonad.comparison (adjunction.of_left_adjoint L)))
 
+attribute [instance] monadic_right_adjoint.eqv comonadic_left_adjoint.eqv
+
+/-- Given an adjunction `L ⊣ R₁` and an isomorphism `R₁ ≅ R₂` the monads induced on `C` by `R₁` and
+`R₂` are isomorphic. -/
 @[simps]
-def test {L : C ⥤ D} {R₁ R₂ : D ⥤ C} (h₁ : L ⊣ R₁) (i : R₁ ≅ R₂) :
+def to_monad_iso_of_nat_iso_right {L : C ⥤ D} {R₁ R₂ : D ⥤ C} (h₁ : L ⊣ R₁) (i : R₁ ≅ R₂) :
   h₁.to_monad ≅ (h₁.of_nat_iso_right i).to_monad :=
 monad_iso.mk (iso_whisker_left L i)
   (λ X, by simp)
-  (λ X, begin dsimp, simp,  end)
+  (λ X,
+  begin
+    dsimp only [adjunction.to_monad_coe, adjunction.to_monad_μ, whisker_left_app, functor.comp_obj,
+      whisker_right_app, functor.comp_map, iso_whisker_left_hom, functor.id_obj],
+    simp only [i.hom.naturality, h₁.of_nat_iso_right_counit_app, assoc, ←R₂.map_comp,
+      ←L.map_comp_assoc, i.hom_inv_id_app, L.map_id, id_comp],
+  end)
 
--- monad_iso.mk
---   (iso_whisker_left L (adjunction.right_adjoint_uniq h₁ h₂))
---   (λ X,
---     begin
---       dsimp [adjunction.right_adjoint_uniq_hom_app],
---       rw [h₂.hom_equiv_unit, ←h₂.unit_naturality_assoc, h₁.hom_equiv_counit, L.map_id,
---         ←R₂.map_comp, id_comp, h₁.left_triangle_components],
---       dsimp,
---       simp,
---     end)
---   (λ X,
---   begin
---     dsimp [adjunction.right_adjoint_uniq_hom_app],
---     simp only [adjunction.hom_equiv_unit, adjunction.hom_equiv_counit],
---     rw [L.map_id, id_comp, L.map_id, id_comp, assoc, assoc, ←R₂.map_comp, ←h₁.counit_naturality,
---       R₂.map_comp, h₂.unit_naturality_assoc, ←R₁.map_comp_assoc, L.map_comp, assoc,
---       h₂.counit_naturality, h₂.left_triangle_components_assoc],
---     refl,
---   end)
+def is_equivalence_of_iso (R₁ R₂ : D ⥤ C) (i : R₁ ≅ R₂) [is_equivalence R₁] :
+  is_equivalence R₂ :=
+is_equivalence.mk
+  R₁.inv
+  (is_equivalence.unit_iso ≪≫ iso_whisker_right i _)
+  (iso_whisker_left _ i.symm ≪≫ is_equivalence.counit_iso)
 
 def monadic_of_iso (R₁ R₂ : D ⥤ C) [monadic_right_adjoint R₁] (i : R₁ ≅ R₂) :
   monadic_right_adjoint R₂ :=
@@ -252,31 +227,49 @@ def monadic_of_iso (R₁ R₂ : D ⥤ C) [monadic_right_adjoint R₁] (i : R₁ 
   eqv :=
   begin
     let h₁ := adjunction.of_right_adjoint R₁,
-    let h₂ := h₁.of_nat_iso_right i,
-    let T₁ := h₁.to_monad,
-    let T₂ := h₂.to_monad,
-    change is_equivalence (monad.comparison h₂),
-    let z : T₁ ≅ T₂ := adjunction.test h₁ h₂,
-    -- let z : _ ≅ _ := adjunction.test (adjunction.of_right_adjoint R₁) h₂,
-    let z' : T₁.algebra ≌ T₂.algebra := monad.algebra_equiv_of_iso_monads z,
-    have : z'.functor ⋙ T₂.forget = T₁.forget := rfl,
-    let : monad.comparison h₁ ⋙ z'.functor ≅ monad.comparison h₂,
-    { apply nat_iso.of_components _ _,
+    change is_equivalence (monad.comparison (h₁.of_nat_iso_right i)),
+    let z' : h₁.to_monad.algebra ≌ (h₁.of_nat_iso_right i).to_monad.algebra :=
+      monad.algebra_equiv_of_iso_monads (to_monad_iso_of_nat_iso_right h₁ i),
+    let : monad.comparison h₁ ⋙ z'.functor ≅ monad.comparison (h₁.of_nat_iso_right i),
+    { refine nat_iso.of_components _ _,
       { intro X,
         refine monad.algebra.iso_mk (i.app X) _,
         dsimp,
+        rw [adjunction.of_nat_iso_right_counit_app, assoc, i.hom.naturality,
+          i.inv_hom_id_app_assoc, ←R₂.map_comp, ←functor.map_comp_assoc, i.hom_inv_id_app,
+          functor.map_id, id_comp] },
+      { intros X Y f,
+        ext,
+        apply i.hom.naturality } },
+    apply is_equivalence_of_iso _ _ this,
+  end }
 
-      }
+variables {D' : Type u₃} [category.{v₃} D']
+
+@[simps]
+def to_monad_iso_of_equivalence {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) (e : D' ≌ D) :
+  h.to_monad ≅ adjunction.to_monad (h.comp _ _ e.inverse.adjunction) :=
+sorry
+
+def monadic_of_equivalent (R : D ⥤ C) (e : D' ≌ D) [monadic_right_adjoint R] :
+  monadic_right_adjoint (e.functor ⋙ R) :=
+{ eqv :=
+  begin
+    let h := adjunction.of_right_adjoint R,
+    let h' := adjunction.of_right_adjoint (e.functor ⋙ R),
+    let T := h.to_monad,
+    let T' := h'.to_monad,
+    let : T ≅ T',
+    { apply monad_iso.mk,
 
     }
+    -- let : _ ≅ monad.comparison (adjunction.of_right_adjoint (e.functor ⋙ R)),
 
-    -- let : monad.comparison (adjunction.of_right_adjoint R₂) ≅ monad.comparison (adjunction.of_right_adjoint R₁) ⋙ z₂.functor,
-    -- symmetry,
-    -- refine monad.comparison_unique _ _ _,
+    -- change is_equivalence
+    --   (monad.comparison
+    --     (adjunction.comp _ e.functor (adjunction.of_right_adjoint R) e.inverse.adjunction)),
 
-    -- -- have := z₂.functor,
   end
-
 }
 
 noncomputable instance (T : monad C) : monadic_right_adjoint T.forget :=

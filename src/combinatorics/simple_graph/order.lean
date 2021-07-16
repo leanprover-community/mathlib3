@@ -28,7 +28,7 @@ namespace simple_graph
 variable {V : Type*}
 
 /-- The relation that one `simple_graph` is a subgraph of another. -/
-def is_subgraph (x y : simple_graph V) := ∀ {v w : V}, x.adj v w → y.adj v w
+def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
 /-- The union of two `simple_graph`s. -/
 def union (x y : simple_graph V) : simple_graph V :=
@@ -67,13 +67,12 @@ variable {G : simple_graph V}
 G.subgraph :=
 { verts := set.univ,
   adj := H.adj,
-  adj_sub := λ v w, h, -- reviewers: is this preferred to `@h`?
+  adj_sub := h,
   edge_vert := λ v w h, set.mem_univ v,
   sym := H.sym }
 
--- reviewers: why does `h` get unfolded so eagerly? `H.to_subgraph h` gives me errors
 lemma to_subgraph.is_spanning (H : simple_graph V) (h : H ≤ G) :
-(H.to_subgraph @h).is_spanning := set.mem_univ
+(H.to_subgraph h).is_spanning := set.mem_univ
 
 lemma subgraph.spanning_coe.is_subgraph_of_is_subgraph (H H' : subgraph G) (h : H ≤ H') :
 H.spanning_coe ≤ H'.spanning_coe := h.2

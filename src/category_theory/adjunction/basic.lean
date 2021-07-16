@@ -279,6 +279,7 @@ adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y, (equiv_homset_left_of_nat_iso iso.symm).trans (adj.hom_equiv X Y) }
 
 /-- Transport an adjunction along an natural isomorphism on the right. -/
+@[simps]
 def of_nat_iso_right
   {F : C ⥤ D} {G H : D ⥤ C} (adj : F ⊣ G) (iso : G ≅ H) :
   F ⊣ H :=

@@ -427,7 +427,7 @@ begin
   suffices : ∥p.partial_sum n y - f (x + y)∥ ≤ C * (a * (∥y∥ / r')) ^ n / (1 - a * (∥y∥ / r')),
   { refine this.trans _,
     apply_rules [div_le_div_of_le_left, sub_pos.2, div_nonneg, mul_nonneg, pow_nonneg, hC.lt.le,
-      ha.1.le, norm_nonneg, nnreal.coe_nonneg, ha.2, (sub_le_sub_iff_left _).2] },
+      ha.1.le, norm_nonneg, nnreal.coe_nonneg, ha.2, (sub_le_sub_iff_left _).2]; apply_instance },
   apply norm_sub_le_of_geometric_bound_of_has_sum (ya.trans_lt ha.2) _ (hf.has_sum this),
   assume n,
   calc ∥(p n) (λ (i : fin n), y)∥ ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) :
@@ -588,7 +588,7 @@ begin
   assume u hu x hx,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hx with ⟨r', xr', hr'⟩,
   have : emetric.ball (0 : E) r' ∈ 𝓝 x :=
-    mem_nhds_sets emetric.is_open_ball xr',
+    is_open.mem_nhds emetric.is_open_ball xr',
   refine ⟨emetric.ball (0 : E) r', mem_nhds_within_of_mem_nhds this, _⟩,
   simpa [metric.emetric_ball_nnreal] using hf.tendsto_uniformly_on hr' u hu
 end
@@ -914,7 +914,7 @@ begin
   -- defining `p.change_origin`, by definition
   have J : ∀k, has_sum (λ c, A ⟨k, c⟩) (p.change_origin x k (λ(i : fin k), y)),
   { assume k,
-    have : (nnnorm x : ℝ≥0∞) < radius p := lt_of_le_of_lt (le_add_right (le_refl _)) h,
+    have : (nnnorm x : ℝ≥0∞) < radius p := lt_of_le_of_lt (le_self_add) h,
     convert continuous_multilinear_map.has_sum_eval (p.change_origin_has_sum k this)
       (λ(i : fin k), y),
     ext ⟨_, _, _⟩,

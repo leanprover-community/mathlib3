@@ -114,6 +114,7 @@ lemma is_homogeneous_monomial (d : σ →₀ ℕ) (r : R) (n : ℕ) (hn : ∑ i 
   is_homogeneous (monomial d r) n :=
 begin
   intros c hc,
+  classical,
   rw coeff_monomial at hc,
   split_ifs at hc with h,
   { subst c, exact hn },

@@ -158,6 +158,7 @@ match tp with
 | _ := return [h]
 end }
 
+
 /--
 If `h` is an equality or inequality between natural numbers,
 `nat_to_int` lifts this inequality to the integers.
@@ -167,11 +168,15 @@ To avoid adding the same nonnegativity facts many times, it is a global preproce
 meta def nat_to_int : global_preprocessor :=
 { name := "move nats to ints",
   transform := λ l,
-do l ← l.mmap (λ h, infer_type h >>= guardb ∘ is_nat_prop >> zify_proof [] h <|> return h),
+-- we lock the tactic state here because a `simplify` call inside of
+-- `zify_proof` corrupts the tactic state when run under `io.run_tactic`.
+do l ← lock_tactic_state $ l.mmap $ λ h,
+         infer_type h >>= guardb ∘ is_nat_prop >> zify_proof [] h <|> return h,
    nonnegs ← l.mfoldl (λ (es : expr_set) h, do
      (a, b) ← infer_type h >>= get_rel_sides,
      return $ (es.insert_list (get_nat_comps a)).insert_list (get_nat_comps b)) mk_rb_set,
    (++) l <$> nonnegs.to_list.mmap mk_coe_nat_nonneg_prf }
+
 
 /-- `strengthen_strict_int h` turns a proof `h` of a strict integer inequality `t1 < t2`
 into a proof of `t1 ≤ t2 + 1`. -/

@@ -82,7 +82,7 @@ protected lemma mul_mem {g₁ g₂ : G} (h₁ : g₁ ∈ U) (h₂ : g₂ ∈ U) 
 
 @[to_additive]
 lemma mem_nhds_one : (U : set G) ∈ 𝓝 (1 : G) :=
-mem_nhds_sets U.is_open U.one_mem
+is_open.mem_nhds U.is_open U.one_mem
 variable {U}
 
 @[to_additive]
@@ -182,7 +182,7 @@ begin
     (continuous_id.mul continuous_const).tendsto _,
   rw [mul_inv_cancel_left] at this,
   have := filter.mem_map.1 (this hg),
-  replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_nhds hg),
+  replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_mem_nhds hg),
   simp only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
   exact this
 end

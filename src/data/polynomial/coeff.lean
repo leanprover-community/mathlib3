@@ -34,11 +34,11 @@ coeff_monomial
 lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
 by { rcases p, rcases q, simp [coeff, add_to_finsupp] }
 
-@[simp] lemma coeff_smul [semiring S] [module R S] (r : R) (p : polynomial S) (n : ℕ) :
+@[simp] lemma coeff_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) (n : ℕ) :
   coeff (r • p) n = r • coeff p n :=
 by { rcases p, simp [coeff, smul_to_finsupp] }
 
-lemma support_smul [semiring S] [module R S] (r : R) (p : polynomial S) :
+lemma support_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) :
   support (r • p) ⊆ support p :=
 begin
   assume i hi,
@@ -166,6 +166,14 @@ begin
     { rw hc },
     { rw [not_not] at hi, rwa mul_zero } },
 end
+
+lemma coeff_bit0_mul (P Q : polynomial R) (n : ℕ) :
+  coeff (bit0 P * Q) n = 2 * coeff (P * Q) n :=
+by simp [bit0, add_mul]
+
+lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
+  coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
+by simp [bit1, add_mul, coeff_bit0_mul]
 
 end coeff
 

@@ -2,12 +2,16 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Additional facts about equiv and encodable using the
-pairing function on nat.
 -/
 import data.nat.pairing
 import data.pnat.basic
+
+/-!
+# Equivalences involving `ℕ`
+
+This file defines some additional constructive equivalences using `encodable` and the pairing
+function on `ℕ`.
+-/
 
 open nat
 

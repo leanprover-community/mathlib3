@@ -113,7 +113,7 @@ section roots
 
 open multiset
 
-local attribute [reducible] with_zero
+local attribute [semireducible] with_zero
 
 lemma degree_eq_zero_of_is_unit (h : is_unit p) : degree p = 0 :=
 let ⟨q, hq⟩ := is_unit_iff_dvd_one.1 h in

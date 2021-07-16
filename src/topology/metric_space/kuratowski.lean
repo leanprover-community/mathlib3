@@ -105,4 +105,4 @@ def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [comp
   [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
 ⟨range (Kuratowski_embedding α), range_nonempty _,
-  compact_range (Kuratowski_embedding.isometry α).continuous⟩
+  is_compact_range (Kuratowski_embedding.isometry α).continuous⟩

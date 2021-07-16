@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.homology
-import tactic.omega
 
 /-!
 # Chain complexes supported in a single degree
@@ -185,11 +184,11 @@ def to_single₀_equiv (C : chain_complex V ℕ) (X : V) :
     | 0 := f.1
     | (n+1) := 0
     end,
-    comm' := λ i j, begin
+    comm' := λ i j h, begin
       rcases i with _|_|i; cases j; unfold_aux; simp only [comp_zero, zero_comp, single₀_obj_X_d],
       { rw [C.shape, zero_comp], simp, },
       { exact f.2.symm, },
-      { rw [C.shape, zero_comp], simp only [complex_shape.down_rel, zero_add], omega, },
+      { rw [C.shape, zero_comp], simp [i.succ_succ_ne_one.symm] },
     end, },
   left_inv := λ f, begin
     ext i,
@@ -298,11 +297,12 @@ def from_single₀_equiv (C : cochain_complex V ℕ) (X : V) :
     | 0 := f.1
     | (n+1) := 0
     end,
-    comm' := λ i j, begin
+    comm' := λ i j h, begin
       rcases j with _|_|j; cases i; unfold_aux; simp only [comp_zero, zero_comp, single₀_obj_X_d],
       { convert comp_zero, rw [C.shape], simp, },
       { exact f.2, },
-      { convert comp_zero, rw [C.shape], simp only [complex_shape.up_rel, zero_add], omega, },
+      { convert comp_zero, rw [C.shape], simp only [complex_shape.up_rel, zero_add],
+        exact (nat.one_lt_succ_succ j).ne },
     end, },
   left_inv := λ f, begin
     ext i,

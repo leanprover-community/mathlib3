@@ -104,11 +104,11 @@ begin
   refine le_antisymm (assume s hs, _) (assume s hs, _),
   { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
     have h₁ : {b | s ∈ n b} ∈ 𝓝 a,
-    { refine mem_nhds_sets (assume b (hb : s ∈ n b), _) hs,
+    { refine is_open.mem_nhds (assume b (hb : s ∈ n b), _) hs,
       rcases h₁ hb with ⟨t, ht, hts, h⟩,
       exact mem_sets_of_superset ht h },
     exact mem_sets_of_superset h₁ h₀ },
-  { rcases (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
+  { rcases (@mem_nhds_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
     exact (n a).sets_of_superset (ht _ hat) hts },
 end
 
@@ -214,7 +214,7 @@ lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
 begin
   refine le_antisymm _ (@pure_le_nhds α ⊥),
   assume a s hs,
-  exact @mem_nhds_sets α ⊥ a s trivial hs
+  exact @is_open.mem_nhds α ⊥ a s trivial hs
 end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
@@ -270,6 +270,10 @@ lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β
   @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
 iff.rfl
 
+lemma is_open_induced_iff' [t : topological_space β] {s : set α} {f : α → β} :
+  (t.induced f).is_open s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
+iff.rfl
+
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 begin
@@ -298,8 +302,8 @@ lemma preimage_nhds_coinduced [topological_space α] {π : α → β} {s : set �
   {a : α} (hs : s ∈ @nhds β (topological_space.coinduced π ‹_›) (π a)) : π ⁻¹' s ∈ 𝓝 a :=
 begin
   letI := topological_space.coinduced π ‹_›,
-  rcases mem_nhds_sets_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
-  exact mem_nhds_sets_iff.mpr ⟨π ⁻¹' V, set.preimage_mono hVs, V_op, mem_V⟩
+  rcases mem_nhds_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
+  exact mem_nhds_iff.mpr ⟨π ⁻¹' V, set.preimage_mono hVs, V_op, mem_V⟩
 end
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
@@ -419,6 +423,15 @@ le_antisymm
   (le_generate_from $ ball_image_iff.2 $ assume s hs, ⟨s, generate_open.basic _ hs, rfl⟩)
   (coinduced_le_iff_le_induced.1 $ le_generate_from $ assume s hs,
     generate_open.basic _ $ mem_image_of_mem _ hs)
+
+lemma le_induced_generate_from {α β} [t : topological_space α] {b : set (set β)}
+  {f : α → β} (h : ∀ (a : set β), a ∈ b → is_open (f ⁻¹' a)) : t ≤ induced f (generate_from b) :=
+begin
+  rw induced_generate_from_eq,
+  apply le_generate_from,
+  simp only [mem_image, and_imp, forall_apply_eq_imp_iff₂, exists_imp_distrib],
+  exact h,
+end
 
 /-- This construction is left adjoint to the operation sending a topology on `α`
   to its neighborhood filter at a fixed point `a : α`. -/
@@ -582,7 +595,7 @@ continuous_iff_coinduced_le.2 $ le_top
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
   s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [mem_nhds_sets_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simp only [mem_nhds_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },

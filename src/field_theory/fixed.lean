@@ -78,7 +78,7 @@ begin
   rw coe_insert at hs ⊢,
   rw linear_independent_insert (mt mem_coe.1 has) at hs,
   rw linear_independent_insert' (mt mem_coe.1 has), refine ⟨ih hs.1, λ ha, _⟩,
-  rw finsupp.mem_span_iff_total at ha, rcases ha with ⟨l, hl, hla⟩,
+  rw finsupp.mem_span_image_iff_total at ha, rcases ha with ⟨l, hl, hla⟩,
   rw [finsupp.total_apply_of_mem_supported F hl] at hla,
   suffices : ∀ i ∈ s, l i ∈ fixed_points G F,
   { replace hla := (sum_apply _ _ (λ i, l i • to_fun G F i)).symm.trans (congr_fun hla 1),
@@ -204,7 +204,7 @@ begin
 end
 
 instance : finite_dimensional (fixed_points G F) F :=
-finite_dimensional.finite_dimensional_iff_dim_lt_omega.2 $
+is_noetherian.iff_dim_lt_omega.2 $
 lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
 
 lemma finrank_le_card : finrank (fixed_points G F) F ≤ fintype.card G :=

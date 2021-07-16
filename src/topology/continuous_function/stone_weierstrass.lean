@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Heather Macbeth
 -/
 import topology.continuous_function.weierstrass
+import analysis.complex.basic
 
 /-!
 # The Stone-Weierstrass theorem
@@ -28,11 +29,11 @@ We argue as follows.
 * Finally we put these pieces together. `L = A.topological_closure` is a nonempty sublattice
   which separates points since `A` does, and so is dense (in fact equal to `⊤`).
 
-## Future work
-
-Prove the complex version for self-adjoint subalgebras `A`, by separately approximating
+We then prove the complex version for self-adjoint subalgebras `A`, by separately approximating
 the real and imaginary parts using the real subalgebra of real-valued functions in `A`
 (which still separates points, by taking the norm-square of a separating function).
+
+## Future work
 
 Extend to cover the case of subalgebras of the continuous functions vanishing at infinity,
 on non-compact spaces.
@@ -199,7 +200,7 @@ begin
   let U : X → X → set X := λ x y, {z | f z - ε < g x y z},
   have U_nhd_y : ∀ x y, U x y ∈ 𝓝 y,
   { intros x y,
-    refine mem_nhds_sets _ _,
+    refine is_open.mem_nhds _ _,
     { apply is_open_lt; continuity, },
     { rw [set.mem_set_of_eq, w₂],
       exact sub_lt_self _ pos, }, },
@@ -238,7 +239,7 @@ begin
   -- This is still a neighbourhood of `x`.
   have W_nhd : ∀ x, W x ∈ 𝓝 x,
   { intros x,
-    refine mem_nhds_sets _ _,
+    refine is_open.mem_nhds _ _,
     { apply is_open_lt; continuity, },
     { dsimp only [W, set.mem_set_of_eq],
       rw h_eq,
@@ -279,7 +280,7 @@ begin
 end
 
 /--
-The Stone-Weierstrass approximation theorem,
+The **Stone-Weierstrass Approximation Theorem**,
 that a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact topological space,
 is dense if it separates points.
 -/
@@ -301,7 +302,6 @@ begin
     (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },
-  { ext, simp, },
 end
 
 /--
@@ -356,5 +356,101 @@ begin
   rwa norm_lt_iff _ pos at b,
 end
 
+end continuous_map
+
+section complex
+open complex
+
+-- Redefine `X`, since for the next few lemmas it need not be compact
+variables {X : Type*} [topological_space X]
+
+namespace continuous_map
+
+/-- A real subalgebra of `C(X, ℂ)` is `conj_invariant`, if it contains all its conjugates. -/
+def conj_invariant_subalgebra (A : subalgebra ℝ C(X, ℂ)) : Prop :=
+A.map (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) ≤ A
+
+lemma mem_conj_invariant_subalgebra {A : subalgebra ℝ C(X, ℂ)} (hA : conj_invariant_subalgebra A)
+  {f : C(X, ℂ)} (hf : f ∈ A) :
+  (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ A :=
+hA ⟨f, hf, rfl⟩
 
 end continuous_map
+
+open continuous_map
+
+/-- If a conjugation-invariant subalgebra of `C(X, ℂ)` separates points, then the real subalgebra
+of its purely real-valued elements also separates points. -/
+lemma subalgebra.separates_points.complex_to_real {A : subalgebra ℂ C(X, ℂ)}
+  (hA : A.separates_points) (hA' : conj_invariant_subalgebra (A.restrict_scalars ℝ)) :
+  ((A.restrict_scalars ℝ).comap'
+    (of_real_am.comp_left_continuous ℝ continuous_of_real)).separates_points :=
+begin
+  intros x₁ x₂ hx,
+  -- Let `f` in the subalgebra `A` separate the points `x₁`, `x₂`
+  obtain ⟨_, ⟨f, hfA, rfl⟩, hf⟩ := hA hx,
+  let F : C(X, ℂ) := f - const (f x₂),
+  -- Subtract the constant `f x₂` from `f`; this is still an element of the subalgebra
+  have hFA : F ∈ A,
+  { refine A.sub_mem hfA _,
+    convert A.smul_mem A.one_mem (f x₂),
+    ext1,
+    simp },
+  -- Consider now the function `λ x, |f x - f x₂| ^ 2`
+  refine ⟨_, ⟨(⟨complex.norm_sq, continuous_norm_sq⟩ : C(ℂ, ℝ)).comp F, _, rfl⟩, _⟩,
+  { -- This is also an element of the subalgebra, and takes only real values
+    rw [set_like.mem_coe, subalgebra.mem_comap],
+    convert (A.restrict_scalars ℝ).mul_mem (mem_conj_invariant_subalgebra hA' hFA) hFA,
+    ext1,
+    exact complex.norm_sq_eq_conj_mul_self },
+  { -- And it also separates the points `x₁`, `x₂`
+    have : f x₁ - f x₂ ≠ 0 := sub_ne_zero.mpr hf,
+    simpa using this },
+end
+
+variables [compact_space X]
+
+/--
+The Stone-Weierstrass approximation theorem, complex version,
+that a subalgebra `A` of `C(X, ℂ)`, where `X` is a compact topological space,
+is dense if it is conjugation-invariant and separates points.
+-/
+theorem continuous_map.subalgebra_complex_topological_closure_eq_top_of_separates_points
+  (A : subalgebra ℂ C(X, ℂ)) (hA : A.separates_points)
+  (hA' : conj_invariant_subalgebra (A.restrict_scalars ℝ)) :
+  A.topological_closure = ⊤ :=
+begin
+  rw algebra.eq_top_iff,
+  -- Let `I` be the natural inclusion of `C(X, ℝ)` into `C(X, ℂ)`
+  let I : C(X, ℝ) →ₗ[ℝ] C(X, ℂ) := of_real_clm.comp_left_continuous ℝ X,
+  -- The main point of the proof is that its range (i.e., every real-valued function) is contained
+  -- in the closure of `A`
+  have key : I.range ≤ (A.to_submodule.restrict_scalars ℝ).topological_closure,
+  { -- Let `A₀` be the subalgebra of `C(X, ℝ)` consisting of `A`'s purely real elements; it is the
+    -- preimage of `A` under `I`.  In this argument we only need its submodule structure.
+    let A₀ : submodule ℝ C(X, ℝ) := (A.to_submodule.restrict_scalars ℝ).comap I,
+    -- By `subalgebra.separates_points.complex_to_real`, this subalgebra also separates points, so
+    -- we may apply the real Stone-Weierstrass result to it.
+    have SW : A₀.topological_closure = ⊤,
+    { have := subalgebra_topological_closure_eq_top_of_separates_points _ (hA.complex_to_real hA'),
+      exact congr_arg subalgebra.to_submodule this },
+    rw [← submodule.map_top, ← SW],
+    -- So it suffices to prove that the image under `I` of the closure of `A₀` is contained in the
+    -- closure of `A`, which follows by abstract nonsense
+    have h₁ := A₀.topological_closure_map (of_real_clm.comp_left_continuous_compact X),
+    have h₂ := (A.to_submodule.restrict_scalars ℝ).map_comap_le I,
+    exact h₁.trans (submodule.topological_closure_mono h₂) },
+  -- In particular, for a function `f` in `C(X, ℂ)`, the real and imaginary parts of `f` are in the
+  -- closure of `A`
+  intros f,
+  let f_re : C(X, ℝ) := (⟨complex.re, complex.re_clm.continuous⟩ : C(ℂ, ℝ)).comp f,
+  let f_im : C(X, ℝ) := (⟨complex.im, complex.im_clm.continuous⟩ : C(ℂ, ℝ)).comp f,
+  have h_f_re : I f_re ∈ A.topological_closure := key ⟨f_re, rfl⟩,
+  have h_f_im : I f_im ∈ A.topological_closure := key ⟨f_im, rfl⟩,
+  -- So `f_re + complex.I • f_im` is in the closure of `A`
+  convert A.topological_closure.add_mem h_f_re (A.topological_closure.smul_mem h_f_im complex.I),
+  -- And this, of course, is just `f`
+  ext; simp [I]
+end
+
+end complex

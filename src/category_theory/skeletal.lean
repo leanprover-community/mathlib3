@@ -75,7 +75,7 @@ instance : ess_surj (from_skeleton C) :=
 { mem_ess_image := λ X, ⟨quotient.mk X, quotient.mk_out X⟩ }
 
 noncomputable instance : is_equivalence (from_skeleton C) :=
-equivalence.equivalence_of_fully_faithfully_ess_surj (from_skeleton C)
+equivalence.of_fully_faithfully_ess_surj (from_skeleton C)
 
 lemma skeleton_skeletal : skeletal (skeleton C) :=
 begin
@@ -152,7 +152,7 @@ variables {C} {D}
 def map (F : C ⥤ D) : thin_skeleton C ⥤ thin_skeleton D :=
 { obj := quotient.map F.obj $ λ X₁ X₂ ⟨hX⟩, ⟨F.map_iso hX⟩,
   map := λ X Y, quotient.rec_on_subsingleton₂ X Y $
-           λ x y k, hom_of_le ((le_of_hom k).elim (λ t, ⟨F.map t⟩)) }
+           λ x y k, hom_of_le (k.le.elim (λ t, ⟨F.map t⟩)) }
 
 lemma comp_to_thin_skeleton (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_skeleton C ⋙ map F :=
 rfl
@@ -172,11 +172,11 @@ def map₂ (F : C ⥤ D ⥤ E) :
                 (λ X₁ X₂ ⟨hX⟩ Y₁ Y₂ ⟨hY⟩, ⟨(F.obj X₁).map_iso hY ≪≫ (F.map_iso hX).app Y₂⟩) x y,
     map := λ y₁ y₂, quotient.rec_on_subsingleton x $
             λ X, quotient.rec_on_subsingleton₂ y₁ y₂ $
-              λ Y₁ Y₂ hY, hom_of_le ((le_of_hom hY).elim (λ g, ⟨(F.obj X).map g⟩)) },
+              λ Y₁ Y₂ hY, hom_of_le (hY.le.elim (λ g, ⟨(F.obj X).map g⟩)) },
   map := λ x₁ x₂, quotient.rec_on_subsingleton₂ x₁ x₂ $
            λ X₁ X₂ f,
            { app := λ y, quotient.rec_on_subsingleton y
-              (λ Y, hom_of_le ((le_of_hom f).elim (λ f', ⟨(F.map f').app Y⟩))) } }
+              (λ Y, hom_of_le (f.le.elim (λ f', ⟨(F.map f').app Y⟩))) } }
 
 variables (C)
 
@@ -192,7 +192,7 @@ noncomputable def from_thin_skeleton : thin_skeleton C ⥤ C :=
   map := λ x y, quotient.rec_on_subsingleton₂ x y $
     λ X Y f,
             (nonempty.some (quotient.mk_out X)).hom
-          ≫ (le_of_hom f).some
+          ≫ f.le.some
           ≫ (nonempty.some (quotient.mk_out Y)).inv }
 
 noncomputable instance from_thin_skeleton_equivalence : is_equivalence (from_thin_skeleton C) :=
@@ -218,7 +218,7 @@ instance thin_skeleton_partial_order : partial_order (thin_skeleton C) :=
   ..category_theory.thin_skeleton.preorder C }
 
 lemma skeletal : skeletal (thin_skeleton C) :=
-λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, (le_of_hom i.1).antisymm (le_of_hom i.2)
+λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, i.1.le.antisymm i.2.le
 
 lemma map_comp_eq (F : E ⥤ D) (G : D ⥤ C) : map (F ⋙ G) = map F ⋙ map G :=
 functor.eq_of_iso skeletal $

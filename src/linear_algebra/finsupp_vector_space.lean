@@ -223,7 +223,7 @@ lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K 
 begin
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
   exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
-    (finite_dimensional.dim_lt_omega K V),
+    (is_noetherian.dim_lt_omega K V),
 end
 
 end module

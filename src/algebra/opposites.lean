@@ -51,13 +51,19 @@ instance [nontrivial α] : nontrivial (opposite α) :=
 let ⟨x, y, h⟩ := exists_pair_ne α in nontrivial_of_ne (op x) (op y) (op_injective.ne h)
 
 section
-local attribute [reducible] opposite
-@[simp] lemma unop_eq_zero_iff [has_zero α] (a : αᵒᵖ) : a.unop = (0 : α) ↔ a = (0 : αᵒᵖ) :=
+local attribute [semireducible] opposite
+@[simp] lemma unop_eq_zero_iff {α} [has_zero α] (a : αᵒᵖ) : a.unop = (0 : α) ↔ a = (0 : αᵒᵖ) :=
 iff.refl _
 
-@[simp] lemma op_eq_zero_iff [has_zero α] (a : α) : op a = (0 : αᵒᵖ) ↔ a = (0 : α) :=
+@[simp] lemma op_eq_zero_iff {α} [has_zero α] (a : α) : op a = (0 : αᵒᵖ) ↔ a = (0 : α) :=
 iff.refl _
 end
+
+lemma unop_ne_zero_iff {α} [has_zero α] (a : αᵒᵖ) : a.unop ≠ (0 : α) ↔ a ≠ (0 : αᵒᵖ) :=
+not_iff_not.mpr $ unop_eq_zero_iff a
+
+lemma op_ne_zero_iff {α} [has_zero α] (a : α) : op a ≠ (0 : αᵒᵖ) ↔ a ≠ (0 : α) :=
+not_iff_not.mpr $ op_eq_zero_iff a
 
 instance [add_zero_class α] : add_zero_class (opposite α) :=
 { zero_add := λ x, unop_injective $ zero_add $ unop x,
@@ -104,11 +110,11 @@ instance [has_one α] : has_one (opposite α) :=
 { one := op 1 }
 
 section
-local attribute [reducible] opposite
-@[simp] lemma unop_eq_one_iff [has_one α] (a : αᵒᵖ) : a.unop = 1 ↔ a = 1 :=
+local attribute [semireducible] opposite
+@[simp] lemma unop_eq_one_iff {α} [has_one α] (a : αᵒᵖ) : a.unop = 1 ↔ a = 1 :=
 iff.refl _
 
-@[simp] lemma op_eq_one_iff [has_one α] (a : α) : op a = 1 ↔ a = 1 :=
+@[simp] lemma op_eq_one_iff {α} [has_one α] (a : α) : op a = 1 ↔ a = 1 :=
 iff.refl _
 end
 
@@ -147,11 +153,23 @@ instance [mul_zero_class α] : mul_zero_class (opposite α) :=
 instance [mul_zero_one_class α] : mul_zero_one_class (opposite α) :=
 { .. opposite.mul_zero_class α, .. opposite.mul_one_class α }
 
+instance [semigroup_with_zero α] : semigroup_with_zero (opposite α) :=
+{ .. opposite.semigroup α, .. opposite.mul_zero_class α }
+
 instance [monoid_with_zero α] : monoid_with_zero (opposite α) :=
 { .. opposite.monoid α, .. opposite.mul_zero_one_class α }
 
+instance [non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring (opposite α) :=
+{ .. opposite.add_comm_monoid α, .. opposite.mul_zero_class α, .. opposite.distrib α }
+
+instance [non_unital_semiring α] : non_unital_semiring (opposite α) :=
+{ .. opposite.semigroup_with_zero α, .. opposite.non_unital_non_assoc_semiring α }
+
+instance [non_assoc_semiring α] : non_assoc_semiring (opposite α) :=
+{ .. opposite.mul_zero_one_class α, .. opposite.non_unital_non_assoc_semiring α }
+
 instance [semiring α] : semiring (opposite α) :=
-{ .. opposite.add_comm_monoid α, .. opposite.monoid_with_zero α, .. opposite.distrib α }
+{ .. opposite.non_unital_semiring α, .. opposite.non_assoc_semiring α }
 
 instance [ring α] : ring (opposite α) :=
 { .. opposite.add_comm_group α, .. opposite.monoid α, .. opposite.semiring α }
@@ -167,10 +185,16 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors (op
 instance [integral_domain α] : integral_domain (opposite α) :=
 { .. opposite.no_zero_divisors α, .. opposite.comm_ring α, .. opposite.nontrivial α }
 
-instance [field α] : field (opposite α) :=
-{ mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ λ hx', hx $ unop_injective hx',
+instance [group_with_zero α] : group_with_zero (opposite α) :=
+{ mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
   inv_zero := unop_injective inv_zero,
-  .. opposite.comm_ring α, .. opposite.has_inv α, .. opposite.nontrivial α }
+  .. opposite.monoid_with_zero α, .. opposite.nontrivial α, .. opposite.has_inv α }
+
+instance [division_ring α] : division_ring (opposite α) :=
+{ .. opposite.group_with_zero α, .. opposite.ring α }
+
+instance [field α] : field (opposite α) :=
+{ .. opposite.division_ring α, .. opposite.comm_ring α }
 
 instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
 { smul := λ c x, op (c • unop x) }
@@ -178,7 +202,7 @@ instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
 instance (R : Type*) [monoid R] [mul_action R α] : mul_action R (opposite α) :=
 { one_smul := λ x, unop_injective $ one_smul R (unop x),
   mul_smul := λ r₁ r₂ x, unop_injective $ mul_smul r₁ r₂ (unop x),
-  ..opposite.has_scalar α R  }
+  ..opposite.has_scalar α R }
 
 instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   distrib_mul_action R (opposite α) :=
@@ -322,3 +346,71 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
 { to_fun := opposite.op ∘ f,
   .. ((opposite.op_add_equiv : S ≃+ Sᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵒᵖ),
   .. f.to_monoid_hom.to_opposite hf }
+
+/-- The units of the opposites are equivalent to the opposites of the units. -/
+def units.op_equiv {R} [monoid R] : units Rᵒᵖ ≃* (units R)ᵒᵖ :=
+{ to_fun := λ u, op ⟨unop u, unop ↑(u⁻¹), op_injective u.4, op_injective u.3⟩,
+  inv_fun := op_induction $ λ u, ⟨op ↑(u), op ↑(u⁻¹), unop_injective $ u.4, unop_injective u.3⟩,
+  map_mul' := λ x y, unop_injective $ units.ext $ rfl,
+  left_inv := λ x, units.ext $ rfl,
+  right_inv := λ x, unop_injective $ units.ext $ rfl }
+
+@[simp]
+lemma units.coe_unop_op_equiv {R} [monoid R] (u : units Rᵒᵖ) :
+  ((units.op_equiv u).unop : R) = unop (u : Rᵒᵖ) :=
+rfl
+
+@[simp]
+lemma units.coe_op_equiv_symm {R} [monoid R] (u : (units R)ᵒᵖ) :
+  (units.op_equiv.symm u : Rᵒᵖ) = op (u.unop : R) :=
+rfl
+
+/-- A hom `α →* β` can equivalently be viewed as a hom `αᵒᵖ →* βᵒᵖ`. This is the action of the
+(fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def monoid_hom.op {α β} [mul_one_class α] [mul_one_class β] :
+  (α →* β) ≃ (αᵒᵖ →* βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
+                      map_one' := unop_injective f.map_one,
+                      map_mul' := λ x y, unop_injective (f.map_mul y.unop x.unop) },
+  inv_fun   := λ f, { to_fun   := unop ∘ f ∘ op,
+                      map_one' := congr_arg unop f.map_one,
+                      map_mul' := λ x y, congr_arg unop (f.map_mul (op y) (op x)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a monoid hom `αᵒᵖ →* βᵒᵖ`. Inverse to `monoid_hom.op`. -/
+@[simp] def monoid_hom.unop {α β} [mul_one_class α] [mul_one_class β] :
+  (αᵒᵖ →* βᵒᵖ) ≃ (α →* β) := monoid_hom.op.symm
+
+/-- A hom `α →+ β` can equivalently be viewed as a hom `αᵒᵖ →+ βᵒᵖ`. This is the action of the
+(fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def add_monoid_hom.op {α β} [add_zero_class α] [add_zero_class β] :
+  (α →+ β) ≃ (αᵒᵖ →+ βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun    := op ∘ f ∘ unop,
+                      map_zero' := unop_injective f.map_zero,
+                      map_add'  := λ x y, unop_injective (f.map_add x.unop y.unop) },
+  inv_fun   := λ f, { to_fun    := unop ∘ f ∘ op,
+                      map_zero' := congr_arg unop f.map_zero,
+                      map_add'  := λ x y, congr_arg unop (f.map_add (op x) (op y)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of an additive monoid hom `αᵒᵖ →+ βᵒᵖ`. Inverse to `add_monoid_hom.op`. -/
+@[simp] def add_monoid_hom.unop {α β} [add_zero_class α] [add_zero_class β] :
+  (αᵒᵖ →+ βᵒᵖ) ≃ (α →+ β) := add_monoid_hom.op.symm
+
+/-- A ring hom `α →+* β` can equivalently be viewed as a ring hom `αᵒᵖ →+* βᵒᵖ`. This is the action
+of the (fully faithful) `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+  (α →+* β) ≃ (αᵒᵖ →+* βᵒᵖ) :=
+{ to_fun    := λ f, { ..f.to_add_monoid_hom.op, ..f.to_monoid_hom.op },
+  inv_fun   := λ f, { ..f.to_add_monoid_hom.unop, ..f.to_monoid_hom.unop },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a ring hom `αᵒᵖ →+* βᵒᵖ`. Inverse to `ring_hom.op`. -/
+@[simp] def ring_hom.unop {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
+  (αᵒᵖ →+* βᵒᵖ) ≃ (α →+* β) := ring_hom.op.symm

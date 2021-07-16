@@ -838,3 +838,52 @@ end subring
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
   (k : R) * g ∈ G :=
 by { convert add_subgroup.gsmul_mem G h k, simp }
+
+
+/-! ### Actions by `subring`s
+
+These are just copies of the definitions about `subsemiring` starting from
+`subsemiring.mul_action`.
+
+When `R` is commutative, `algebra.of_subring` provides a stronger result than those found in
+this file, which uses the same scalar action.
+-/
+section actions
+
+namespace subring
+
+variables {α β : Type*}
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [mul_action R α] (S : subring R) : mul_action S α :=
+S.to_subsemiring.mul_action
+
+lemma smul_def [mul_action R α] {S : subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
+
+instance smul_comm_class_left
+  [mul_action R β] [has_scalar α β] [smul_comm_class R α β] (S : subring R) :
+  smul_comm_class S α β :=
+S.to_subsemiring.smul_comm_class_left
+
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action R β] [smul_comm_class α R β] (S : subring R) :
+  smul_comm_class α S β :=
+S.to_subsemiring.smul_comm_class_right
+
+/-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action R α] [mul_action R β] [is_scalar_tower R α β] (S : subring R) :
+  is_scalar_tower S α β :=
+S.to_subsemiring.is_scalar_tower
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [add_monoid α] [distrib_mul_action R α] (S : subring R) : distrib_mul_action S α :=
+S.to_subsemiring.distrib_mul_action
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
+S.to_subsemiring.module
+
+end subring
+
+end actions

@@ -61,7 +61,7 @@ shouldn't be needed outside of this file setting up the theory.
 Since `quotient S` is automatically a topological space (as any quotient of a topological space),
 one needs to be careful while defining the `semi_normed_group` instance to avoid having two
 different topologies on this quotient. This is not purely a technological issue.
-Mathematically there is something to prove. The main point is proved in the auxilliary lemma
+Mathematically there is something to prove. The main point is proved in the auxiliary lemma
 `quotient_nhd_basis` that has no use beyond this verification and states that zero in the quotient
 admits as basis of neighborhoods in the quotient topology the sets `{x | ∥x∥ < ε}` for positive `ε`.
 
@@ -268,7 +268,7 @@ lemma quotient_nhd_basis (S : add_subgroup M) :
       exact lt_of_le_of_lt (quotient_norm_mk_le S x) x_in },
     apply filter.mem_sets_of_superset _ (set.subset.trans this h),
     clear h U this,
-    apply mem_nhds_sets,
+    apply is_open.mem_nhds,
     { change is_open ((mk' S) ⁻¹' _),
       erw quotient_add_group.preimage_image_coe,
       apply is_open_Union,
@@ -434,7 +434,7 @@ def lift {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   normed_group_hom (quotient S) N :=
 { bound' :=
   begin
-    obtain ⟨c : ℝ≥0, hcpos : (0 : ℝ) < c, hc : f.bound_by c⟩ := f.bound,
+    obtain ⟨c : ℝ, hcpos : (0 : ℝ) < c, hc : ∀ x, ∥f x∥ ≤ c * ∥x∥⟩ := f.bound,
     refine ⟨c, λ mbar, le_of_forall_pos_le_add (λ ε hε, _)⟩,
     obtain ⟨m : M, rfl : mk' S m = mbar, hmnorm : ∥m∥ < ∥mk' S m∥ + ε/c⟩ :=
       norm_mk_lt mbar (div_pos hε hcpos),

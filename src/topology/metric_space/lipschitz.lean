@@ -33,7 +33,7 @@ uniformly continuous.
 
 The parameter `K` has type `ℝ≥0`. This way we avoid conjuction in the definition and have
 coercions both to `ℝ` and `ℝ≥0∞`. Constructors whose names end with `'` take `K : ℝ` as an
-argument, and return `lipschitz_with (nnreal.of_real K) f`.
+argument, and return `lipschitz_with (real.to_nnreal K) f`.
 -/
 
 universes u v w x
@@ -129,7 +129,7 @@ protected lemma uniform_continuous (hf : lipschitz_with K f) :
   uniform_continuous f :=
 begin
   refine emetric.uniform_continuous_iff.2 (λε εpos, _),
-  use [ε/K, canonically_ordered_semiring.mul_pos.2 ⟨εpos, ennreal.inv_pos.2 $ ennreal.coe_ne_top⟩],
+  use [ε / K, ennreal.div_pos_iff.2 ⟨ne_of_gt εpos, ennreal.coe_ne_top⟩],
   assume x y Dxy,
   apply lt_of_le_of_lt (hf.edist_le_mul x y),
   rw [mul_comm],
@@ -227,9 +227,9 @@ section metric
 variables [pseudo_metric_space α] [pseudo_metric_space β] [pseudo_metric_space γ] {K : ℝ≥0}
 
 protected lemma of_dist_le' {f : α → β} {K : ℝ} (h : ∀ x y, dist (f x) (f y) ≤ K * dist x y) :
-  lipschitz_with (nnreal.of_real K) f :=
+  lipschitz_with (real.to_nnreal K) f :=
 of_dist_le_mul $ λ x y, le_trans (h x y) $
-  mul_le_mul_of_nonneg_right (nnreal.le_coe_of_real K) dist_nonneg
+  mul_le_mul_of_nonneg_right (real.le_coe_to_nnreal K) dist_nonneg
 
 protected lemma mk_one {f : α → β} (h : ∀ x y, dist (f x) (f y) ≤ dist x y) :
   lipschitz_with 1 f :=
@@ -238,7 +238,7 @@ of_dist_le_mul $ by simpa only [nnreal.coe_one, one_mul] using h
 /-- For functions to `ℝ`, it suffices to prove `f x ≤ f y + K * dist x y`; this version
 doesn't assume `0≤K`. -/
 protected lemma of_le_add_mul' {f : α → ℝ} (K : ℝ) (h : ∀x y, f x ≤ f y + K * dist x y) :
-  lipschitz_with (nnreal.of_real K) f :=
+  lipschitz_with (real.to_nnreal K) f :=
 have I : ∀ x y, f x - f y ≤ K * dist x y,
   from assume x y, sub_le_iff_le_add'.2 (h x y),
 lipschitz_with.of_dist_le' $
@@ -249,7 +249,7 @@ abs_sub_le_iff.2 ⟨I x y, dist_comm y x ▸ I y x⟩
 assumes `0≤K`. -/
 protected lemma of_le_add_mul {f : α → ℝ} (K : ℝ≥0) (h : ∀x y, f x ≤ f y + K * dist x y) :
   lipschitz_with K f :=
-by simpa only [nnreal.of_real_coe] using lipschitz_with.of_le_add_mul' K h
+by simpa only [real.to_nnreal_coe] using lipschitz_with.of_le_add_mul' K h
 
 protected lemma of_le_add {f : α → ℝ} (h : ∀ x y, f x ≤ f y + dist x y) :
   lipschitz_with 1 f :=

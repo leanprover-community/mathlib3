@@ -21,9 +21,6 @@ operations.
 universes uM uN uP uQ
 variables {M : Type uM} {N : Type uN} {P : Type uP} {Q : Type uQ}
 
-lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
-by rw [nat.succ_eq_add_one, nat.add_comm]
-
 /-- `(M →* N)` is a `comm_monoid` if `N` is commutative. -/
 instance [mul_one_class M] [comm_monoid N] : comm_monoid (M →* N) :=
 { mul := (*),

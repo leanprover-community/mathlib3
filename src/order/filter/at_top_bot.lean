@@ -372,7 +372,7 @@ lemma strict_mono_subseq_of_id_le {u : ℕ → ℕ} (hu : ∀ n, n ≤ u n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ strict_mono (u ∘ φ) :=
 strict_mono_subseq_of_tendsto_at_top (tendsto_at_top_mono hu tendsto_id)
 
-lemma strict_mono_tendsto_at_top {φ : ℕ → ℕ} (h : strict_mono φ) :
+lemma _root_.strict_mono.tendsto_at_top {φ : ℕ → ℕ} (h : strict_mono φ) :
   tendsto φ at_top at_top :=
 tendsto_at_top_mono h.id_le tendsto_id
 
@@ -724,10 +724,39 @@ lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
 tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
 
+lemma tendsto_const_mul_pow_at_top_iff (c : α) (n : ℕ) :
+  tendsto (λ x, c * x^n) at_top at_top ↔ 1 ≤ n ∧ 0 < c :=
+begin
+  refine ⟨λ h, _, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
+  simp only [tendsto_at_top, eventually_at_top] at h,
+  have : 0 < c := let ⟨x, hx⟩ := h 1 in
+    pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
+    (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
+  refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
+  obtain ⟨x, hx⟩ := h (c + 1),
+  specialize hx x le_rfl,
+  rw [hn, pow_zero, mul_one, add_le_iff_nonpos_right] at hx,
+  exact absurd hx (not_le.mpr zero_lt_one),
+end
+
 lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
 tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
 
+lemma tendsto_neg_const_mul_pow_at_top_iff (c : α) (n : ℕ) :
+  tendsto (λ x, c * x^n) at_top at_bot ↔ 1 ≤ n ∧ c < 0 :=
+begin
+  refine ⟨λ h, _, λ h, tendsto_neg_const_mul_pow_at_top h.1 h.2⟩,
+  simp only [tendsto_at_bot, eventually_at_top] at h,
+  have : c < 0 := let ⟨x, hx⟩ := h (-1) in
+    neg_of_mul_neg_right (lt_of_le_of_lt (hx (max x 1) (le_max_left x 1)) (by simp [zero_lt_one]))
+    (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
+  refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
+  obtain ⟨x, hx⟩ := h (c - 1),
+  specialize hx x le_rfl,
+  rw [hn, pow_zero, mul_one, le_sub, sub_self] at hx,
+  exact absurd hx (not_le.mpr zero_lt_one),
+end
 
 end linear_ordered_field
 
@@ -1241,7 +1270,7 @@ begin
     from (tendsto_at_top_mono φ_ge tendsto_id),
   obtain ⟨ψ, hψ, hψφ⟩ : ∃ ψ : ℕ → ℕ, strict_mono ψ ∧ strict_mono (φ ∘ ψ),
     from strict_mono_subseq_of_tendsto_at_top lim_φ,
-  exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp $ strict_mono_tendsto_at_top hψ⟩,
+  exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp hψ.tendsto_at_top⟩,
 end
 
 end is_countably_generated

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.pequiv
+import data.matrix.block
 import data.fintype.card
 import group_theory.perm.fin
 import group_theory.perm.sign
@@ -57,13 +58,13 @@ abbreviation det (M : matrix n n R) : R :=
 det_row_multilinear M
 
 lemma det_apply (M : matrix n n R) :
-  M.det = ∑ σ : perm n, (σ.sign : ℤ) • ∏ i, M (σ i) i :=
+  M.det = ∑ σ : perm n, σ.sign • ∏ i, M (σ i) i :=
 multilinear_map.alternatization_apply _ M
 
 -- This is what the old definition was. We use it to avoid having to change the old proofs below
 lemma det_apply' (M : matrix n n R) :
   M.det = ∑ σ : perm n, ε σ * ∏ i, M (σ i) i :=
-by simp [det_apply]
+by simp [det_apply, units.smul_def]
 
 @[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = ∏ i, d i :=
 begin
@@ -143,28 +144,48 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
 ... = ∑ p in (@univ (n → n) _).filter bijective, ∑ σ : perm n,
     ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
   eq.symm $ sum_subset (filter_subset _ _)
-    (λ f _ hbij, det_mul_aux $ by simpa using hbij)
+    (λ f _ hbij, det_mul_aux $ by simpa only [true_and, mem_filter, mem_univ] using hbij)
 ... = ∑ τ : perm n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (τ i) * N (τ i) i) :
   sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)
     (λ _ _, rfl) (λ _ _ _ _ h, by injection h)
     (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, coe_fn_injective rfl⟩)
 ... = ∑ σ : perm n, ∑ τ : perm n, (∏ i, N (σ i) i) * ε τ * (∏ j, M (τ j) (σ j)) :
-  by simp [mul_sum, det_apply', mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
+  by simp only [mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
 ... = ∑ σ : perm n, ∑ τ : perm n, (((∏ i, N (σ i) i) * (ε σ * ε τ)) * ∏ i, M (τ i) i) :
   sum_congr rfl (λ σ _, fintype.sum_equiv (equiv.mul_right σ⁻¹) _ _
     (λ τ,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
-        by rw ← σ⁻¹.prod_comp; simp [mul_apply],
+        by { rw ← σ⁻¹.prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
-          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp
-        ... = ε τ : by simp,
-      by simp_rw [equiv.coe_mul_right, h]; simp [this, mul_comm, mul_assoc, mul_left_comm]))
-... = det M * det N : by simp [det_apply', mul_assoc, mul_sum, mul_comm, mul_left_comm]
+          by { rw [mul_comm, sign_mul (τ * σ⁻¹)], simp only [int.cast_mul, units.coe_mul] }
+        ... = ε τ : by simp only [inv_mul_cancel_right],
+      by { simp_rw [equiv.coe_mul_right, h], simp only [this] }))
+... = det M * det N : by simp only [det_apply', finset.mul_sum, mul_comm, mul_left_comm]
 
 instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
+
+/-- On square matrices, `mul_comm` applies under `det`. -/
+lemma det_mul_comm (M N : matrix m m R) : det (M ⬝ N) = det (N ⬝ M) :=
+by rw [det_mul, det_mul, mul_comm]
+
+/-- On square matrices, `mul_left_comm` applies under `det`. -/
+lemma det_mul_left_comm (M N P : matrix m m R) : det (M ⬝ (N ⬝ P)) = det (N ⬝ (M ⬝ P)) :=
+by rw [←matrix.mul_assoc, ←matrix.mul_assoc, det_mul, det_mul_comm M N, ←det_mul]
+
+/-- On square matrices, `mul_right_comm` applies under `det`. -/
+lemma det_mul_right_comm (M N P : matrix m m R) :
+  det (M ⬝ N ⬝ P) = det (M ⬝ P ⬝ N) :=
+by rw [matrix.mul_assoc, matrix.mul_assoc, det_mul, det_mul_comm N P, ←det_mul]
+
+lemma det_units_conj (M : units (matrix m m R)) (N : matrix m m R) :
+  det (↑M ⬝ N ⬝ ↑M⁻¹ : matrix m m R) = det N :=
+by rw [det_mul_right_comm, ←mul_eq_mul, ←mul_eq_mul, units.mul_inv, one_mul]
+
+lemma det_units_conj' (M : units (matrix m m R)) (N : matrix m m R) :
+  det (↑M⁻¹ ⬝ N ⬝ ↑M : matrix m m R) = det N := det_units_conj M⁻¹ N
 
 /-- Transposing a matrix preserves the determinant. -/
 @[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
@@ -182,7 +203,8 @@ end
 
 /-- Permuting the columns changes the sign of the determinant. -/
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
-((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans (by simp)
+((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans
+  (by simp [units.smul_def])
 
 /-- Permuting rows and columns with the same equivalence has no effect. -/
 @[simp]
@@ -190,21 +212,13 @@ lemma det_minor_equiv_self (e : n ≃ m) (A : matrix m m R) :
   det (A.minor e e) = det A :=
 begin
   rw [det_apply', det_apply'],
-  apply finset.sum_bij' (λ σ _, equiv.perm_congr e σ) _ _ (λ σ _, equiv.perm_congr e.symm σ),
-  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.symm_apply_apply] },
-  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.apply_symm_apply] },
-  { intros σ _, apply finset.mem_univ },
-  { intros σ _, apply finset.mem_univ },
-  intros σ _,
-  simp_rw [equiv.perm_congr_apply],
+  apply fintype.sum_equiv (equiv.perm_congr e),
+  intro σ,
   rw equiv.perm.sign_perm_congr e σ,
   congr' 1,
-  apply finset.prod_bij' (λ i _, e i) _ _ (λ i _, e.symm i),
-  { intros, simp_rw equiv.symm_apply_apply },
-  { intros, simp_rw equiv.apply_symm_apply },
-  { intros, apply finset.mem_univ },
-  { intros, apply finset.mem_univ },
-  { intros, simp_rw equiv.symm_apply_apply, rw minor_apply, },
+  apply fintype.prod_equiv e,
+  intro i,
+  rw [equiv.perm_congr_apply, equiv.symm_apply_apply, minor_apply],
 end
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
@@ -468,10 +482,11 @@ begin
   { intros σ _,
     rw mem_preserving_snd,
     rintros ⟨k, x⟩,
-    simp },
+    simp only [prod_congr_left_apply] },
   { intros σ _,
     rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
-    simp [sign_prod_congr_left] },
+    simp only [sign_prod_congr_left, units.coe_prod, int.cast_prod, block_diagonal_apply_eq,
+      prod_congr_left_apply] },
   { intros σ σ' _ _ eq,
     ext x hx k,
     simp only at eq,
@@ -486,18 +501,24 @@ begin
     { intro x, conv_rhs { rw [← perm.apply_inv_self σ x, hσ] } },
     have mk_apply_eq : ∀ k x, ((σ (x, k)).fst, k) = σ (x, k),
     { intros k x,
-      ext; simp [hσ] },
+      ext,
+      { simp only},
+      { simp only [hσ] } },
     have mk_inv_apply_eq : ∀ k x, ((σ⁻¹ (x, k)).fst, k) = σ⁻¹ (x, k),
     { intros k x,
       conv_lhs { rw ← perm.apply_inv_self σ (x, k) },
-      ext; simp [hσ'] },
+      ext,
+      { simp only [apply_inv_self] },
+      { simp only [hσ'] } },
     refine ⟨λ k _, ⟨λ x, (σ (x, k)).fst, λ x, (σ⁻¹ (x, k)).fst, _, _⟩, _, _⟩,
     { intro x,
-      simp [mk_apply_eq, mk_inv_apply_eq] },
+      simp only [mk_apply_eq, inv_apply_self] },
     { intro x,
-      simp [mk_apply_eq, mk_inv_apply_eq] },
+      simp only [mk_inv_apply_eq, apply_inv_self] },
     { apply finset.mem_univ },
-    { ext ⟨k, x⟩; simp [hσ] } },
+    { ext ⟨k, x⟩,
+      { simp only [coe_fn_mk, prod_congr_left_apply] },
+      { simp only [prod_congr_left_apply, hσ] } } },
   { intros σ _ hσ,
     rw mem_preserving_snd at hσ,
     obtain ⟨⟨k, x⟩, hkx⟩ := not_forall.mp hσ,
@@ -524,7 +545,7 @@ begin
     simp only [],
     erw [set.mem_to_finset, monoid_hom.mem_range],
     use σ₁₂,
-    simp },
+    simp only [sum_congr_hom_apply] },
   { simp only [forall_prop_of_true, prod.forall, mem_univ],
     intros σ₁ σ₂,
     rw fintype.prod_sum_type,
@@ -533,8 +554,7 @@ begin
     have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
     rw hr,
     congr,
-    norm_cast,
-    rw sign_sum_congr },
+    rw [sign_sum_congr, units.coe_mul, int.cast_mul] },
   { intros σ₁ σ₂ h₁ h₂,
     dsimp only [],
     intro h,
@@ -577,7 +597,7 @@ begin
         equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
         equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
         equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
-        algebra.mul_smul_comm] },
+        mul_smul_comm] },
   -- `univ_perm_fin_succ` gives a different embedding of `perm (fin n)` into
   -- `perm (fin n.succ)` than the determinant of the submatrix we want,
   -- permute `A` so that we get the correct one.

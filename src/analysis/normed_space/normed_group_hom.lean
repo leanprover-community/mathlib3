@@ -6,7 +6,6 @@ Authors: Johan Commelin
 
 import analysis.normed_space.basic
 import topology.sequences
-import topology.metric_space.isometry
 
 /-!
 # Normed groups homomorphisms
@@ -17,7 +16,8 @@ between normed (abelian) groups (abbreviated to "normed group homs").
 The main lemmas relate the boundedness condition to continuity and Lipschitzness.
 
 The main construction is to endow the type of normed group homs between two given normed groups
-with a group structure and a norm, giving rise to a normed group structure.
+with a group structure and a norm, giving rise to a normed group structure. We provide several
+simple constructions for normed group homs, like kernel, range and equalizer.
 
 Some easy other constructions are related to subgroups of normed groups.
 
@@ -120,35 +120,13 @@ f.to_add_monoid_hom.map_sum _ _
 
 @[simp] lemma map_neg (x) : f (-x) = -(f x) := f.to_add_monoid_hom.map_neg _
 
-/-- Predicate asserting a norm bound on a normed group hom. -/
-def bound_by (f : normed_group_hom V₁ V₂) (C : ℝ≥0) : Prop := ∀ x, ∥f x∥ ≤ C * ∥x∥
+lemma bound : ∃ C, 0 < C ∧ ∀ x, ∥f x∥ ≤ C * ∥x∥ :=
+let ⟨C, hC⟩ := f.bound' in exists_pos_bound_of_bound _ hC
 
-lemma mk_normed_group_hom'_bound_by (f : V₁ →+ V₂) (C) (hC) :
-  (f.mk_normed_group_hom' C hC).bound_by C := hC
-
-lemma bound : ∃ C, 0 < C ∧ f.bound_by C :=
-begin
-  obtain ⟨C, hC⟩ := f.bound',
-  rcases exists_pos_bound_of_bound _ hC with ⟨C', C'pos, hC'⟩,
-  exact ⟨⟨C', C'pos.le⟩, C'pos, hC'⟩,
-end
-
-lemma lipschitz_of_bound_by (C : ℝ≥0) (h : f.bound_by C) :
-  lipschitz_with (nnreal.of_real C) f :=
-lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
-
-theorem antilipschitz_of_bound_by {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+theorem antilipschitz_of_norm_ge {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=
 antilipschitz_with.of_le_mul_dist $
 λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
-
-protected lemma uniform_continuous (f : normed_group_hom V₁ V₂) :
-  uniform_continuous f :=
-let ⟨C, C_pos, hC⟩ := f.bound in (lipschitz_of_bound_by f C hC).uniform_continuous
-
-@[continuity]
-protected lemma continuous (f : normed_group_hom V₁ V₂) : continuous f :=
-f.uniform_continuous.continuous
 
 /-! ### The operator norm -/
 
@@ -193,6 +171,13 @@ theorem le_of_op_norm_le {c : ℝ} (h : ∥f∥ ≤ c) (x : V₁) : ∥f x∥ �
 theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
 lipschitz_with.of_dist_le_mul $ λ x y,
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
+
+protected lemma uniform_continuous (f : normed_group_hom V₁ V₂) :
+  uniform_continuous f := f.lipschitz.uniform_continuous
+
+@[continuity]
+protected lemma continuous (f : normed_group_hom V₁ V₂) : continuous f :=
+f.uniform_continuous.continuous
 
 lemma ratio_le_op_norm (x : V₁) : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 div_le_of_nonneg_of_le_mul (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
@@ -281,6 +266,8 @@ variables {f g}
 
 /-! ### The identity normed group hom -/
 
+variable (V)
+
 /-- The identity as a continuous normed group hom. -/
 @[simps]
 def id : normed_group_hom V V :=
@@ -289,24 +276,26 @@ def id : normed_group_hom V V :=
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the norm of every
 element vanishes, where it is `0`. (Since we are working with seminorms this can happen even if the
 space is non-trivial.) It means that one can not do better than an inequality in general. -/
-lemma norm_id_le : ∥(id : normed_group_hom V V)∥ ≤ 1 :=
+lemma norm_id_le : ∥(id V : normed_group_hom V V)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If there is an element with norm different from `0`, then the norm of the identity equals `1`.
 (Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
 lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : V), ∥x∥ ≠ 0 ) :
-  ∥(id : normed_group_hom V V)∥ = 1 :=
-le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
-have _ := (id : normed_group_hom V V).ratio_le_op_norm x,
+  ∥(id V)∥ = 1 :=
+le_antisymm (norm_id_le V) $ let ⟨x, hx⟩ := h in
+have _ := (id V).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id {V : Type*} [normed_group V] [nontrivial V] : ∥(id : normed_group_hom V V)∥ = 1 :=
+lemma norm_id {V : Type*} [normed_group V] [nontrivial V] : ∥(id V)∥ = 1 :=
 begin
-  refine norm_id_of_nontrivial_seminorm _,
+  refine norm_id_of_nontrivial_seminorm V _,
   obtain ⟨x, hx⟩ := exists_ne (0 : V),
   exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
 end
+
+lemma coe_id : ((normed_group_hom.id V) : V → V) = (_root_.id : V → V) := rfl
 
 /-! ### The negation of a normed group hom -/
 
@@ -384,6 +373,14 @@ lemma norm_comp_le (g : normed_group_hom V₂ V₃) (f : normed_group_hom V₁ V
   ∥g.comp f∥ ≤ ∥g∥ * ∥f∥ :=
 mk_normed_group_hom_norm_le _ (mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
 
+lemma norm_comp_le_of_le {g : normed_group_hom V₂ V₃} {C₁ C₂ : ℝ} (hg : ∥g∥ ≤ C₂) (hf : ∥f∥ ≤ C₁) :
+  ∥g.comp f∥ ≤ C₂ * C₁ :=
+le_trans (norm_comp_le g f) $ mul_le_mul hg hf (norm_nonneg _) (le_trans (norm_nonneg _) hg)
+
+lemma norm_comp_le_of_le' {g : normed_group_hom V₂ V₃} (C₁ C₂ C₃ : ℝ) (h : C₃ = C₂ * C₁)
+  (hg : ∥g∥ ≤ C₂) (hf : ∥f∥ ≤ C₁) : ∥g.comp f∥ ≤ C₃ :=
+by { rw h, exact norm_comp_le_of_le hg hf }
+
 /-- Composition of normed groups hom as an additive group morphism. -/
 def comp_hom : (normed_group_hom V₂ V₃) →+ (normed_group_hom V₁ V₂) →+ (normed_group_hom V₁ V₃) :=
 add_monoid_hom.mk' (λ g, add_monoid_hom.mk' (λ f, g.comp f)
@@ -396,6 +393,14 @@ by { ext, exact f.map_zero }
 
 @[simp] lemma zero_comp (f : normed_group_hom V₁ V₂) : (0 : normed_group_hom V₂ V₃).comp f = 0 :=
 by { ext, refl }
+
+lemma comp_assoc {V₄: Type* } [semi_normed_group V₄] (h : normed_group_hom V₃ V₄)
+  (g : normed_group_hom V₂ V₃) (f : normed_group_hom V₁ V₂) :
+  (h.comp g).comp f = h.comp (g.comp f) :=
+by { ext, refl }
+
+lemma coe_comp (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃) :
+  (g.comp f : V₁ → V₃) = (g : V₂ → V₃) ∘ (f : V₁ → V₂) := rfl
 
 end normed_group_hom
 
@@ -481,13 +486,18 @@ def norm_noninc (f : normed_group_hom V W) : Prop :=
 
 namespace norm_noninc
 
-lemma bound_by_one (hf : f.norm_noninc) : f.bound_by 1 :=
-λ v, by simpa only [one_mul, nnreal.coe_one] using hf v
+lemma norm_noninc_iff_norm_le_one : f.norm_noninc ↔ ∥f∥ ≤ 1 :=
+begin
+  refine ⟨λ h, _, λ h, λ v, _⟩,
+  { refine op_norm_le_bound _ (zero_le_one) (λ v, _),
+    simpa [one_mul] using h v },
+  { simpa using le_of_op_norm_le f h v }
+end
 
 lemma zero : (0 : normed_group_hom V₁ V₂).norm_noninc :=
 λ v, by simp
 
-lemma id : (id : normed_group_hom V V).norm_noninc :=
+lemma id : (id V).norm_noninc :=
 λ v, le_rfl
 
 lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
@@ -511,7 +521,7 @@ lemma norm_eq_of_isometry {f : normed_group_hom V W} (hf : isometry f) (v : V) :
   ∥f v∥ = ∥v∥ :=
 f.isometry_iff_norm.mp hf v
 
-lemma isometry_id : @isometry V V _ _ (id : normed_group_hom V V) :=
+lemma isometry_id : @isometry V V _ _ (id V) :=
 isometry_id
 
 lemma isometry_comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
@@ -522,9 +532,98 @@ hg.comp hf
 lemma norm_noninc_of_isometry (hf : isometry f) : f.norm_noninc :=
 λ v, le_of_eq $ norm_eq_of_isometry hf v
 
-lemma bound_by_one_of_isometry (hf : isometry f) : f.bound_by 1 :=
-(norm_noninc_of_isometry hf).bound_by_one
-
 end isometry
+
+variables {W₁ W₂ W₃ : Type*} [semi_normed_group W₁] [semi_normed_group W₂] [semi_normed_group W₃]
+variables (f) (g : normed_group_hom V W)
+variables {f₁ g₁ : normed_group_hom V₁ W₁}
+variables {f₂ g₂ : normed_group_hom V₂ W₂}
+variables {f₃ g₃ : normed_group_hom V₃ W₃}
+
+/-- The equalizer of two morphisms `f g : normed_group_hom V W`. -/
+def equalizer := (f - g).ker
+
+namespace equalizer
+
+/-- The inclusion of `f.equalizer g` as a `normed_group_hom`. -/
+def ι : normed_group_hom (f.equalizer g) V := incl _
+
+lemma comp_ι_eq : f.comp (ι f g) = g.comp (ι f g) :=
+by { ext, rw [comp_apply, comp_apply, ← sub_eq_zero, ← normed_group_hom.sub_apply], exact x.2 }
+
+variables {f g}
+
+/-- If `φ : normed_group_hom V₁ V` is such that `f.comp φ = g.comp φ`, the induced morphism
+`normed_group_hom V₁ (f.equalizer g)`. -/
+@[simps]
+def lift (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
+  normed_group_hom V₁ (f.equalizer g) :=
+{ to_fun := λ v, ⟨φ v, show (f - g) (φ v) = 0,
+    by rw [normed_group_hom.sub_apply, sub_eq_zero, ← comp_apply, h, comp_apply]⟩,
+  map_add' := λ v₁ v₂, by { ext, simp only [map_add, add_subgroup.coe_add, subtype.coe_mk] },
+  bound' := by { obtain ⟨C, C_pos, hC⟩ := φ.bound, exact ⟨C, hC⟩ } }
+
+@[simp] lemma ι_comp_lift (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) :
+  (ι _ _).comp (lift φ h) = φ :=
+by { ext, refl }
+
+/-- The lifting property of the equalizer as an equivalence. -/
+@[simps]
+def lift_equiv : {φ : normed_group_hom V₁ V // f.comp φ = g.comp φ} ≃
+  normed_group_hom V₁ (f.equalizer g) :=
+{ to_fun := λ φ, lift φ φ.prop,
+  inv_fun := λ ψ, ⟨(ι f g).comp ψ, by { rw [← comp_assoc, ← comp_assoc, comp_ι_eq] }⟩,
+  left_inv := λ φ, by simp,
+  right_inv := λ ψ, by { ext, refl } }
+
+/-- Given `φ : normed_group_hom V₁ V₂` and `ψ : normed_group_hom W₁ W₂` such that
+`ψ.comp f₁ = f₂.comp φ` and `ψ.comp g₁ = g₂.comp φ`, the induced morphism
+`normed_group_hom (f₁.equalizer g₁) (f₂.equalizer g₂)`. -/
+def map (φ : normed_group_hom V₁ V₂) (ψ : normed_group_hom W₁ W₂)
+  (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ) :
+  normed_group_hom (f₁.equalizer g₁) (f₂.equalizer g₂) :=
+lift (φ.comp $ ι _ _) $
+by { simp only [← comp_assoc, ← hf, ← hg], simp only [comp_assoc, comp_ι_eq] }
+
+variables {φ : normed_group_hom V₁ V₂} {ψ : normed_group_hom W₁ W₂}
+variables {φ' : normed_group_hom V₂ V₃} {ψ' : normed_group_hom W₂ W₃}
+
+@[simp] lemma ι_comp_map (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ) :
+  (ι f₂ g₂).comp (map φ ψ hf hg) = φ.comp (ι _ _) :=
+ι_comp_lift _ _
+
+@[simp] lemma map_id : map (id V₁) (id W₁) rfl rfl = id (f₁.equalizer g₁) :=
+by { ext, refl }
+
+lemma comm_sq₂ (hf : ψ.comp f₁ = f₂.comp φ) (hf' : ψ'.comp f₂ = f₃.comp φ') :
+  (ψ'.comp ψ).comp f₁ = f₃.comp (φ'.comp φ) :=
+by rw [comp_assoc, hf, ← comp_assoc, hf', comp_assoc]
+
+lemma map_comp_map (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ)
+  (hf' : ψ'.comp f₂ = f₃.comp φ') (hg' : ψ'.comp g₂ = g₃.comp φ') :
+  (map φ' ψ' hf' hg').comp (map φ ψ hf hg) =
+    map (φ'.comp φ) (ψ'.comp ψ) (comm_sq₂ hf hf') (comm_sq₂ hg hg') :=
+by { ext, refl }
+
+lemma ι_norm_noninc : (ι f g).norm_noninc := λ v, le_rfl
+
+/-- The lifting of a norm nonincreasing morphism is norm nonincreasing. -/
+lemma lift_norm_noninc (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ) (hφ : φ.norm_noninc) :
+  (lift φ h).norm_noninc :=
+hφ
+
+/-- If `φ` satisfies `∥φ∥ ≤ C`, then the same is true for the lifted morphism. -/
+lemma norm_lift_le (φ : normed_group_hom V₁ V) (h : f.comp φ = g.comp φ)
+  (C : ℝ) (hφ : ∥φ∥ ≤ C) : ∥(lift φ h)∥ ≤ C := hφ
+
+lemma map_norm_noninc (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ)
+  (hφ : φ.norm_noninc) : (map φ ψ hf hg).norm_noninc :=
+lift_norm_noninc _ _ $ hφ.comp ι_norm_noninc
+
+lemma norm_map_le (hf : ψ.comp f₁ = f₂.comp φ) (hg : ψ.comp g₁ = g₂.comp φ)
+  (C : ℝ) (hφ : ∥φ.comp (ι f₁ g₁)∥ ≤ C) : ∥map φ ψ hf hg∥ ≤ C :=
+norm_lift_le _ _ _ hφ
+
+end equalizer
 
 end normed_group_hom

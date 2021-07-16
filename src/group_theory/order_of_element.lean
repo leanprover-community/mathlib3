@@ -3,11 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
-import algebra.big_operators.order
+import algebra.pointwise
 import group_theory.coset
-import data.nat.totient
-import data.int.gcd
-import data.set.finite
 import dynamics.periodic_pts
 import algebra.iterate_hom
 
@@ -488,7 +485,7 @@ finset.mem_range_iff_mem_finset_range_of_mod_eq' (order_of_pos x)
   (assume i, pow_eq_mod_order_of.symm)
 
 noncomputable instance decidable_multiples [decidable_eq A] :
-  decidable_pred (add_submonoid.multiples a : set A) :=
+  decidable_pred (∈ add_submonoid.multiples a) :=
 begin
   assume b,
   apply decidable_of_iff' (b ∈ (finset.range (add_order_of a)).image (• a)),
@@ -497,7 +494,7 @@ end
 
 @[to_additive decidable_multiples]
 noncomputable instance decidable_powers [decidable_eq G] :
-  decidable_pred (submonoid.powers x : set G) :=
+  decidable_pred (∈ submonoid.powers x) :=
 begin
   assume y,
   apply decidable_of_iff'
@@ -637,16 +634,18 @@ lemma mem_gpowers_iff_mem_range_order_of [decidable_eq G] :
 by rw [← mem_powers_iff_mem_gpowers, mem_powers_iff_mem_range_order_of]
 
 noncomputable instance decidable_gmultiples [decidable_eq A] :
-  decidable_pred (add_subgroup.gmultiples a : set A) :=
+  decidable_pred (∈ add_subgroup.gmultiples a) :=
 begin
+  simp_rw ←set_like.mem_coe,
   rw ← multiples_eq_gmultiples,
   exact decidable_multiples,
 end
 
 @[to_additive decidable_gmultiples]
 noncomputable instance decidable_gpowers [decidable_eq G] :
-  decidable_pred (subgroup.gpowers x : set G) :=
+  decidable_pred (∈ subgroup.gpowers x) :=
 begin
+  simp_rw ←set_like.mem_coe,
   rw ← powers_eq_gpowers,
   exact decidable_powers,
 end
@@ -736,9 +735,9 @@ begin
   have ft_prod : fintype (quotient (gpowers x) × (gpowers x)),
     from fintype.of_equiv G group_equiv_quotient_times_subgroup,
   have ft_s : fintype (gpowers x),
-    from @fintype.fintype_prod_right _ _ _ ft_prod _,
+    from @fintype.prod_right _ _ _ ft_prod _,
   have ft_cosets : fintype (quotient (gpowers x)),
-    from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, (gpowers x).one_mem⟩⟩,
+    from @fintype.prod_left _ _ _ ft_prod ⟨⟨1, (gpowers x).one_mem⟩⟩,
   have eq₁ : fintype.card G = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
     from calc fintype.card G = @fintype.card _ ft_prod :
         @fintype.card_congr _ _ _ ft_prod group_equiv_quotient_times_subgroup
@@ -774,6 +773,26 @@ end
 
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 
+/-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
+@[simps] def pow_coprime (h : nat.coprime (fintype.card G) n) : G ≃ G :=
+{ to_fun := λ g, g ^ n,
+  inv_fun := λ g, g ^ (nat.gcd_b (fintype.card G) n),
+  left_inv := λ g, by
+  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
+    rwa [gpow_add, gpow_mul, gpow_mul, gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key },
+  right_inv := λ g, by
+  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
+    rwa [gpow_add, gpow_mul, gpow_mul', gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key } }
+
+@[simp] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) : pow_coprime h 1 = 1 :=
+one_pow n
+
+@[simp] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) {g : G} :
+  pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ :=
+inv_pow g n
+
 variable (a)
 
 lemma image_range_add_order_of [decidable_eq A] :
@@ -802,3 +821,45 @@ lemma pow_gcd_card_eq_one_iff : x ^ n = 1 ↔ x ^ (gcd n (fintype.card G)) = 1 :
 end finite_group
 
 end fintype
+
+section pow_is_subgroup
+
+/-- A nonempty idempotent subset of a finite cancellative monoid is a submonoid -/
+def submonoid_of_idempotent {M : Type*} [left_cancel_monoid M] [fintype M] (S : set M)
+  (hS1 : S.nonempty) (hS2 : S * S = S) : submonoid M :=
+have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
+λ a ha, nat.rec (by rwa [zero_add, pow_one])
+  (λ n ih, (congr_arg2 (∈) (pow_succ a (n + 1)).symm hS2).mp (set.mul_mem_mul ha ih)),
+{ carrier := S,
+  one_mem' := by {
+    obtain ⟨a, ha⟩ := hS1,
+    rw [←pow_order_of_eq_one a, ←nat.sub_add_cancel (order_of_pos a)],
+    exact pow_mem a ha (order_of a - 1) },
+  mul_mem' := λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb) }
+
+/-- A nonempty idempotent subset of a finite group is a subgroup -/
+def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
+  (hS1 : S.nonempty) (hS2 : S * S = S) : subgroup G :=
+{ carrier := S,
+  inv_mem' := λ a ha, by {
+    rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
+    exact (submonoid_of_idempotent S hS1 hS2).pow_mem ha (order_of a - 1) },
+  .. submonoid_of_idempotent S hS1 hS2 }
+
+/-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/
+def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
+  subgroup G :=
+have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
+{ obtain ⟨a, ha⟩ := hS,
+  rw ← pow_card_eq_one,
+  exact set.pow_mem_pow ha (fintype.card G) },
+subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
+  classical,
+  refine (set.eq_of_subset_of_card_le
+    (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
+  change _ = fintype.card (_ * _ : set G),
+  rw [←pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
+      group.card_pow_eq_card_pow_card_univ S (fintype.card G + fintype.card G) le_add_self],
+end
+
+end pow_is_subgroup

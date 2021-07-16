@@ -175,7 +175,7 @@ eventually_nhds_within_iff.2 $ (e.eventually_left_inverse hx).mono $
 
 lemma nhds_within_source_inter {x} (hx : x ∈ e.source) (s : set α) :
   𝓝[e.source ∩ s] x = 𝓝[s] x :=
-nhds_within_inter_of_mem (mem_nhds_within_of_mem_nhds $ mem_nhds_sets e.open_source hx)
+nhds_within_inter_of_mem (mem_nhds_within_of_mem_nhds $ is_open.mem_nhds e.open_source hx)
 
 lemma nhds_within_target_inter {x} (hx : x ∈ e.target) (s : set β) :
   𝓝[e.target ∩ s] x = 𝓝[s] x :=
@@ -209,6 +209,10 @@ lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=
 e.symm.source_inter_preimage_inv_preimage _
 
+lemma source_inter_preimage_target_inter (s : set β) :
+  e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
+e.to_local_equiv.source_inter_preimage_target_inter s
+
 /-- Two local homeomorphisms are equal when they have equal `to_fun`, `inv_fun` and `source`.
 It is not sufficient to have equal `to_fun` and `source`, as this only determines `inv_fun` on
 the target. This would only be true for a weaker notion of equality, arguably the right one,
@@ -226,7 +230,7 @@ lemma symm_target : e.symm.target = e.source := rfl
 
 /-- A local homeomorphism is continuous at any point of its source -/
 protected lemma continuous_at {x : α} (h : x ∈ e.source) : continuous_at e x :=
-(e.continuous_on x h).continuous_at (mem_nhds_sets e.open_source h)
+(e.continuous_on x h).continuous_at (is_open.mem_nhds e.open_source h)
 
 /-- A local homeomorphism inverse is continuous at any point of its target -/
 lemma continuous_at_symm {x : β} (h : x ∈ e.target) : continuous_at e.symm x :=
@@ -829,7 +833,7 @@ begin
   refine forall_congr (λ x, forall_congr $ λ hx, _),
   rw [e.continuous_within_at_iff_continuous_within_at_comp_right (h hx),
     e.symm_image_eq_source_inter_preimage h, inter_comm, continuous_within_at_inter],
-  exact mem_nhds_sets e.open_source (e.map_target (h hx))
+  exact is_open.mem_nhds e.open_source (e.map_target (h hx))
 end
 
 /-- Continuity within a set at a point can be read under left composition with a local
@@ -853,7 +857,7 @@ neighborhood of the initial point is sent to the source of the local homeomorphi
 lemma continuous_at_iff_continuous_at_comp_left {f : γ → α} {x : γ} (h : f ⁻¹' e.source ∈ 𝓝 x) :
   continuous_at f x ↔ continuous_at (e ∘ f) x :=
 begin
-  have hx : f x ∈ e.source := (mem_of_nhds h : _),
+  have hx : f x ∈ e.source := (mem_of_mem_nhds h : _),
   have h' : f ⁻¹' e.source ∈ 𝓝[univ] x, by rwa nhds_within_univ,
   rw [← continuous_within_at_univ, ← continuous_within_at_univ,
       e.continuous_within_at_iff_continuous_within_at_comp_left hx h']

@@ -177,9 +177,9 @@ This can not be a global instance as it will trigger for every `has_zero C` type
 protected def has_zero : has_zero C :=
 { zero := has_zero_object.zero }
 
-localized "attribute [instance] has_zero_object.has_zero" in zero_object
-localized "attribute [instance] has_zero_object.unique_to" in zero_object
-localized "attribute [instance] has_zero_object.unique_from" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.has_zero" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.unique_to" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.unique_from" in zero_object
 
 @[ext]
 lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
@@ -414,6 +414,10 @@ variable [has_zero_morphisms C]
 lemma image_ι_comp_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f]
   [epi (factor_thru_image f)] (h : f ≫ g = 0) : image.ι f ≫ g = 0 :=
 zero_of_epi_comp (factor_thru_image f) $ by simp [h]
+
+lemma comp_factor_thru_image_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image g]
+  (h : f ≫ g = 0) : f ≫ factor_thru_image g = 0 :=
+zero_of_comp_mono (image.ι g) $ by simp [h]
 
 variables [has_zero_object C]
 open_locale zero_object

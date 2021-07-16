@@ -22,6 +22,10 @@ open_locale classical topological_space big_operators
 
 variables {ι α X M N : Type*} [topological_space X]
 
+@[to_additive]
+lemma continuous_one [topological_space M] [has_one M] : continuous (1 : X → M) :=
+@continuous_const _ _ _ _ 1
+
 /-- Basic hypothesis to talk about a topological additive monoid or a topological additive
 semigroup. A topological additive monoid over `M`, for example, is obtained by requiring both the
 instances `add_monoid M` and `has_continuous_add M`. -/
@@ -214,7 +218,7 @@ by simpa only [prod_subset_iff] using exists_nhds_square this
 lemma exists_nhds_one_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :
   ∃ V ∈ 𝓝 (1 : M), ∀ (v ∈ V) (w ∈ V), v * w ∈ s :=
 let ⟨V, Vo, V1, hV⟩ := exists_open_nhds_one_split hs
-in ⟨V, mem_nhds_sets Vo V1, hV⟩
+in ⟨V, is_open.mem_nhds Vo V1, hV⟩
 
 @[to_additive exists_nhds_zero_quarter]
 lemma exists_nhds_one_split4 {u : set M} (hu : u ∈ 𝓝 (1 : M)) :
@@ -335,7 +339,7 @@ variables [topological_space M] [comm_monoid M]
 @[to_additive]
 lemma submonoid.mem_nhds_one (S : submonoid M) (oS : is_open (S : set M)) :
   (S : set M) ∈ 𝓝 (1 : M) :=
-mem_nhds_sets oS S.one_mem
+is_open.mem_nhds oS S.one_mem
 
 variable [has_continuous_mul M]
 

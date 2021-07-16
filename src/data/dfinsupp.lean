@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Kenny Lau
 import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
-import group_theory.submonoid.basic
+import group_theory.submonoid.membership
 
 /-!
 # Dependent functions with finite support
@@ -59,6 +59,10 @@ instance : has_coe_to_fun (Π₀ i, β i) :=
 
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨0, ∅, λ i, or.inr rfl⟩⟧⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
+
+@[simp]
+lemma coe_pre_mk (f : Π i, β i) (s : multiset ι) (hf) :
+  ⇑(⟦⟨f, s, hf⟩⟧ : Π₀ i, β i) = f := rfl
 
 @[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
@@ -873,6 +877,12 @@ calc ∏ i in (f + g).support, h i ((f + g) i) =
     by simp [h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
+@[to_additive]
+lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] (S : submonoid γ)
+  (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
+S.prod_mem $ λ i hi, h _ $ (f.mem_support_iff _).mp hi
+
 /--
 When summing over an `add_monoid_hom`, the decidability assumption is not needed, and the result is
 also an `add_monoid_hom`.
@@ -936,6 +946,45 @@ begin
   split_ifs,
   refl,
   rw [(not_not.mp h), add_monoid_hom.map_zero],
+end
+
+lemma _root_.add_submonoid.dfinsupp_sum_add_hom_mem [Π i, add_zero_class (β i)] [add_comm_monoid γ]
+  (S : add_submonoid γ) (f : Π₀ i, β i) (g : Π i, β i →+ γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
+  dfinsupp.sum_add_hom g f ∈ S :=
+begin
+  classical,
+  rw dfinsupp.sum_add_hom_apply,
+  convert S.dfinsupp_sum_mem _ _ _,
+  exact h
+end
+
+/-- The supremum of a family of commutative additive submonoids is equal to the range of
+`finsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
+number of non-zero elements of `p i`, coercing them to `γ`, and summing them. -/
+lemma _root_.add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom [add_comm_monoid γ]
+  (p : ι → add_submonoid γ) : supr p = (dfinsupp.sum_add_hom (λ i, (p i).subtype)).mrange :=
+begin
+  apply le_antisymm,
+  { apply supr_le _,
+    intros i y hy,
+    exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
+  { rintros x ⟨v, rfl⟩,
+    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
+end
+
+lemma _root_.add_submonoid.mem_supr_iff_exists_dfinsupp [add_comm_monoid γ]
+  (p : ι → add_submonoid γ) (x : γ) :
+  x ∈ supr p ↔ ∃ f : Π₀ i, p i, dfinsupp.sum_add_hom (λ i, (p i).subtype) f = x :=
+set_like.ext_iff.mp (add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom p) x
+
+/-- A variant of `add_submonoid.mem_supr_iff_exists_dfinsupp` with the RHS fully unfolded. -/
+lemma _root_.add_submonoid.mem_supr_iff_exists_dfinsupp' [add_comm_monoid γ]
+  (p : ι → add_submonoid γ) [Π i (x : p i), decidable (x ≠ 0)] (x : γ) :
+  x ∈ supr p ↔ ∃ f : Π₀ i, p i, f.sum (λ i xi, ↑xi) = x :=
+begin
+  rw add_submonoid.mem_supr_iff_exists_dfinsupp,
+  simp_rw sum_add_hom_apply,
+  congr',
 end
 
 omit dec

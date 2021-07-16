@@ -30,7 +30,7 @@ def truncate [has_zero_morphisms V] : chain_complex V ℕ ⥤ chain_complex V �
 { obj := λ C,
   { X := λ i, C.X (i+1),
     d := λ i j, C.d (i+1) (j+1),
-    shape' := λ i j w, by { apply C.shape, dsimp at w ⊢, omega, }, },
+    shape' := λ i j w, by { apply C.shape, simpa }, },
   map := λ C D f,
   { f := λ i, f.f (i+1), }, }
 
@@ -67,14 +67,14 @@ def augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫
     simp at s,
     rcases i with _|_|i; cases j; unfold_aux; try { simp },
     { simpa using s, },
-    { rw [C.shape], simp, omega, },
+    { rw [C.shape], simpa [← ne.def, nat.succ_ne_succ] using s },
   end,
-  d_comp_d' := λ i j k, begin
+  d_comp_d' := λ i j k hij hjk, begin
     rcases i with _|_|i; rcases j with _|_|j; cases k; unfold_aux; try { simp },
     cases i,
     { exact w, },
     { rw [C.shape, zero_comp],
-      simp, omega, },
+      simpa using i.succ_succ_ne_one.symm },
   end, }
 
 @[simp] lemma augment_X_zero (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫ f = 0) :
@@ -117,7 +117,7 @@ by { cases i; refl, }
 
 @[simp] lemma chain_complex_d_succ_succ_zero (C : chain_complex V ℕ) (i : ℕ) :
   C.d (i+2) 0 = 0 :=
-by { rw C.shape, simp, omega, }
+by { rw C.shape, simpa using i.succ_succ_ne_one.symm }
 
 /--
 Augmenting a truncated complex with the original object and morphism is isomorphic
@@ -171,7 +171,7 @@ def truncate [has_zero_morphisms V] : cochain_complex V ℕ ⥤ cochain_complex 
 { obj := λ C,
   { X := λ i, C.X (i+1),
     d := λ i j, C.d (i+1) (j+1),
-    shape' := λ i j w, by { apply C.shape, dsimp at w ⊢, omega, }, },
+    shape' := λ i j w, by { apply C.shape, simpa }, },
   map := λ C D f,
   { f := λ i, f.f (i+1), }, }
 
@@ -205,14 +205,15 @@ def augment (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : f ≫ C.d
     simp at s,
     rcases j with _|_|j; cases i; unfold_aux; try { simp },
     { simpa using s, },
-    { rw [C.shape], simp, omega, },
+    { rw [C.shape], simp only [complex_shape.up_rel], contrapose! s, rw ←s },
   end,
-  d_comp_d' := λ i j k, begin
+  d_comp_d' := λ i j k hij hjk, begin
     rcases k with _|_|k; rcases j with _|_|j; cases i; unfold_aux; try { simp },
     cases k,
     { exact w, },
     { rw [C.shape, comp_zero],
-      simp, omega, },
+      simp only [nat.nat_zero_eq_zero, complex_shape.up_rel, zero_add],
+      exact (nat.one_lt_succ_succ _).ne },
   end, }
 
 @[simp] lemma augment_X_zero
@@ -256,7 +257,7 @@ by { cases i; refl, }
 
 @[simp] lemma cochain_complex_d_succ_succ_zero (C : cochain_complex V ℕ) (i : ℕ) :
   C.d 0 (i+2) = 0 :=
-by { rw C.shape, simp, omega, }
+by { rw C.shape, simp only [complex_shape.up_rel, zero_add], exact (nat.one_lt_succ_succ _).ne }
 
 /--
 Augmenting a truncated complex with the original object and morphism is isomorphic

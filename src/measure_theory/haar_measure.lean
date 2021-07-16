@@ -277,7 +277,8 @@ by { rintro ⟨K, hK⟩ h2K, rw [mem_Icc], exact ⟨prehaar_nonneg K₀ _, preha
 lemma nonempty_Inter_cl_prehaar (K₀ : positive_compacts G) :
   (haar_product K₀.1 ∩ ⋂ (V : open_nhds_of (1 : G)), cl_prehaar K₀.1 V).nonempty :=
 begin
-  have : is_compact (haar_product K₀.1), { apply compact_univ_pi, intro K, apply compact_Icc },
+  have : is_compact (haar_product K₀.1),
+  { apply is_compact_univ_pi, intro K, apply is_compact_Icc },
   refine this.inter_Inter_nonempty (cl_prehaar K₀.1) (λ s, is_closed_closure) (λ t, _),
   let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).1,
   have h1V₀ : is_open V₀,

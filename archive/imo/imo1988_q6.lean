@@ -8,7 +8,6 @@ import data.nat.prime
 import data.rat.basic
 import order.well_founded
 import tactic.linarith
-import tactic.omega
 
 /-!
 # IMO 1988 Q6 and constant descent Vieta jumping
@@ -292,6 +291,6 @@ begin
     { simp only [mul_one, one_mul, add_comm, zero_add] at h,
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
-      obtain rfl|rfl : y = 1 ∨ y = 2 := nat.prime_two.2 y y_dvd,
-      all_goals { ring_nf at h, omega } } }
+      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply nat.eq_of_mul_eq_mul_left,
+      exacts [zero_lt_one, h.symm, zero_lt_two, h.symm] } }
 end

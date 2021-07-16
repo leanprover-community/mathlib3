@@ -22,40 +22,6 @@ define a coercion to function for this type, and for `f : smooth_bump_function I
 The actual statements involve (pre)images under `ext_chart_at I f.c` and are given as lemmas in the
 `smooth_bump_function` namespace.
 
-We also define `smooth_bump_covering` of a set `s : set M` to be a collection of
-`smooth_bump_function`s such that their supports is a locally finite family of sets, and for each
-point `x ∈ s` there exists a bump function `f i` in the collection such that `f i =ᶠ[𝓝 x] 1`. This
-structure is the main building block in the construction of a smooth partition of unity (see TODO),
-and can be used instead of a partition of unity in some proofs.
-
-We say that `f : smooth_bump_covering I s` is *subordinate* to a map `U : M → set M` if for each
-index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
-being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
-depends on `x`.
-
-We prove that on a smooth finitely dimensional real manifold with `σ`-compact Hausdorff topology,
-for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I s`
-subordinate to `U`. Then we use this fact to prove a version of the Whitney embedding theorem: any
-compact real manifold can be embedded into `ℝ^n` for large enough `n`.
-
-## TODO
-
-* Prove the weak Whitney embedding theorem: any `σ`-compact smooth `m`-dimensional manifold can be
-  embedded into `ℝ^(2m+1)`. This requires a version of Sard's theorem: for a locally Lipschitz
-  continuous map `f : ℝ^m → ℝ^n`, `m < n`, the range has Hausdorff dimension at most `m`, hence it
-  has measure zero.
-
-* Construct a smooth partition of unity. While we can do it now, the formulas will be much nicer if
-  we wait for `finprod` and `finsum` coming in #6355.
-
-* Deduce some corollaries from existence of a smooth partition of unity.
-
-  - Prove that for any disjoint closed sets `s`, `t` there exists a smooth function `f` suth that
-  `f` equals zero on `s` and `f` equals one on `t`.
-
-  - Build a framework for to transfer local definitions to global using partition of unity and use
-    it to define, e.g., the integral of a differential form over a manifold.
-
 ## Tags
 
 manifold, smooth bump function, partition of unity, Whitney theorem
@@ -125,7 +91,7 @@ eq_on_indicator
 
 lemma eventually_eq_of_mem_source (hx : x ∈ (chart_at H c).source) :
   f =ᶠ[𝓝 x] f.to_times_cont_diff_bump ∘ ext_chart_at I c :=
-f.eq_on_source.eventually_eq_of_mem $ mem_nhds_sets (chart_at H c).open_source hx
+f.eq_on_source.eventually_eq_of_mem $ is_open.mem_nhds (chart_at H c).open_source hx
 
 lemma one_of_dist_le (hs : x ∈ (chart_at H c).source)
   (hd : eudist (ext_chart_at I c x) (ext_chart_at I c c) ≤ f.r) :
@@ -187,7 +153,7 @@ lemma eventually_eq_one_of_dist_lt (hs : x ∈ (chart_at H c).source)
   (hd : eudist (ext_chart_at I c x) (ext_chart_at I c c) < f.r) :
   f =ᶠ[𝓝 x] 1 :=
 begin
-  filter_upwards [mem_nhds_sets (ext_chart_preimage_open_of_open I c is_open_ball) ⟨hs, hd⟩],
+  filter_upwards [is_open.mem_nhds (ext_chart_preimage_open_of_open I c is_open_ball) ⟨hs, hd⟩],
   rintro z ⟨hzs, hzd : _ < _⟩,
   exact f.one_of_dist_le hzs hzd.le
 end
@@ -204,7 +170,7 @@ f.eventually_eq_one.mono $ λ x hx, by { rw hx, exact one_ne_zero }
 lemma closure_support_mem_nhds : closure (support f) ∈ 𝓝 c :=
 mem_sets_of_superset f.support_mem_nhds subset_closure
 
-lemma c_mem_support : c ∈ support f := mem_of_nhds f.support_mem_nhds
+lemma c_mem_support : c ∈ support f := mem_of_mem_nhds f.support_mem_nhds
 
 lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 
@@ -334,7 +300,7 @@ begin
   refine times_cont_mdiff_of_support (λ x hx, _),
   have : x ∈ (chart_at H c).source := f.closure_support_subset_chart_at_source hx,
   refine times_cont_mdiff_at.congr_of_eventually_eq _
-    (f.eq_on_source.eventually_eq_of_mem $ mem_nhds_sets (chart_at _ _).open_source this),
+    (f.eq_on_source.eventually_eq_of_mem $ is_open.mem_nhds (chart_at _ _).open_source this),
   exact f.to_times_cont_diff_bump.times_cont_diff_at.times_cont_mdiff_at.comp _
     (times_cont_mdiff_at_ext_chart_at' this)
 end
@@ -353,252 +319,7 @@ begin
      ... ⊆ closure (support f) : closure_mono (support_smul_subset_left _ _)
      ... ⊆ (chart_at _ c).source : f.closure_support_subset_chart_at_source,
   exact f.smooth_at.smul ((hg _ this).times_cont_mdiff_at $
-    mem_nhds_sets (chart_at _ _).open_source this)
+    is_open.mem_nhds (chart_at _ _).open_source this)
 end
 
 end smooth_bump_function
-
-/-!
-### Covering by supports of smooth bump functions
-
-In this section we define `smooth_bump_covering I s` to be a collection of `smooth_bump_function`s
-such that their supports is a locally finite family of sets and for each `x ∈ s` some function `f i`
-from the collection is equal to `1` in a neighborhood of `x`. A covering of this type is useful to
-construct a smooth partition of unity and can be used instead of a partition of unity in some
-proofs.
-
-We prove that on a smooth finite dimensional real manifold with `σ`-compact Hausdorff topology,
-for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I s`
-subordinate to `U`. Then we use this fact to prove a version of the Whitney embedding theorem: any
-compact real manifold can be embedded into `ℝ^n` for large enough `n`.
--/
-
-/-- We say that a collection of `smooth_bump_function`s is a `smooth_bump_covering` of a set `s` if
-
-* `(f i).c ∈ s` for all `i`;
-* the family `λ i, support (f i)` is locally finite;
-* for each point `x ∈ s` there exists `i` such that `f i =ᶠ[𝓝 x] 1`;
-  in other words, `x` belongs to the interior of `{y | f i y = 1}`;
-
-If `M` is a finite dimensional real manifold which is a sigma-compact Hausdorff topological space,
-then a choice of `smooth_bump_covering` is available as `smooth_bump_covering.choice_set`, see also
-`smooth_bump_covering.choice` for the case `s = univ` and
-`smooth_bump_covering.exists_is_subordinate` for a lemma providing a covering subordinate to a given
-`U : M → set M`.
-
-This covering can be used, e.g., to construct a partition of unity and to prove the weak
-Whitney embedding theorem. -/
-structure smooth_bump_covering (s : set M) :=
-(ι : Type uM)
-(c : ι → M)
-(to_fun : Π i, smooth_bump_function I (c i))
-(c_mem' : ∀ i, c i ∈ s)
-(locally_finite' : locally_finite (λ i, support (to_fun i)))
-(eventually_eq_one' : ∀ x ∈ s, ∃ i, to_fun i =ᶠ[𝓝 x] 1)
-
-namespace smooth_bump_covering
-
-variables {s : set M} {U : M → set M} (fs : smooth_bump_covering I s) {I}
-
-instance : has_coe_to_fun (smooth_bump_covering I s) := ⟨_, to_fun⟩
-
-@[simp] lemma coe_mk (ι : Type uM) (c : ι → M) (to_fun : Π i, smooth_bump_function I (c i))
-  (h₁ h₂ h₃) : ⇑(mk ι c to_fun h₁ h₂ h₃ : smooth_bump_covering I s) = to_fun :=
-rfl
-
-/--
-We say that `f : smooth_bump_covering I s` is *subordinate* to a map `U : M → set M` if for each
-index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
-being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
-depends on `x`.
--/
-def is_subordinate {s : set M} (f : smooth_bump_covering I s) (U : M → set M) :=
-∀ i, closure (support $ f i) ⊆ U (f.c i)
-
-variable (I)
-
-/-- Let `M` be a smooth manifold with corners modelled on a finite dimensional real vector space.
-Suppose also that `M` is a Hausdorff `σ`-compact topological space. Let `s` be a closed set
-in `M` and `U : M → set M` be a collection of sets such that `U x ∈ 𝓝 x` for every `x ∈ s`.
-Then there exists a smooth bump covering of `s` that is subordinate to `U`. -/
-lemma exists_is_subordinate [t2_space M] [sigma_compact_space M] (hs : is_closed s)
-  (hU : ∀ x ∈ s, U x ∈ 𝓝 x) :
-  ∃ f : smooth_bump_covering I s, f.is_subordinate U :=
-begin
-  -- First we deduce some missing instances
-  haveI : locally_compact_space H := I.locally_compact,
-  haveI : locally_compact_space M := charted_space.locally_compact H,
-  haveI : normal_space M := normal_of_paracompact_t2,
-  -- Next we choose a covering by supports of smooth bump functions
-  have hB := λ x hx, smooth_bump_function.nhds_basis_support I (hU x hx),
-  rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs hB
-    with ⟨ι, c, f, hf, hsub', hfin⟩, choose hcs hfU using hf,
-  /- Then we use the shrinking lemma to get a covering by smaller open -/
-  rcases exists_subset_Union_closed_subset hs (λ i, (f i).open_support)
-    (λ x hx, hfin.point_finite x) hsub' with ⟨V, hsV, hVc, hVf⟩,
-  choose r hrR hr using λ i, (f i).exists_r_pos_lt_subset_ball (hVc i) (hVf i),
-  refine ⟨⟨ι, c, λ i, (f i).update_r (r i) (hrR i), hcs, _, λ x hx, _⟩, λ i, _⟩,
-  { simpa only [smooth_bump_function.support_update_r] },
-  { refine (mem_Union.1 $ hsV hx).imp (λ i hi, _),
-    exact ((f i).update_r _ _).eventually_eq_one_of_dist_lt
-      ((f i).support_subset_source $ hVf _ hi) (hr i hi).2 },
-  { simpa only [coe_mk, smooth_bump_function.support_update_r] using hfU i }
-end
-
-/-- Choice of a covering of a closed set `s` by supports of smooth bump functions. -/
-def choice_set [t2_space M] [sigma_compact_space M] (s : set M) (hs : is_closed s) :
-  smooth_bump_covering I s :=
-(exists_is_subordinate I hs (λ x hx, univ_mem_sets)).some
-
-instance [t2_space M] [sigma_compact_space M] {s : set M} [is_closed s] :
-  inhabited (smooth_bump_covering I s) :=
-⟨choice_set I s ‹_›⟩
-
-variable (M)
-
-/-- Choice of a covering of a manifold by supports of smooth bump functions. -/
-def choice [t2_space M] [sigma_compact_space M] :
-  smooth_bump_covering I (univ : set M) :=
-choice_set I univ is_closed_univ
-
-variables {I M}
-
-protected lemma locally_finite : locally_finite (λ i, support (fs i)) := fs.locally_finite'
-
-protected lemma point_finite (x : M) : {i | fs i x ≠ 0}.finite :=
-fs.locally_finite.point_finite x
-
-lemma mem_chart_at_source_of_eq_one {i : fs.ι} {x : M} (h : fs i x = 1) :
-  x ∈ (chart_at H (fs.c i)).source :=
-(fs i).support_subset_source $ by simp [h]
-
-lemma mem_ext_chart_at_source_of_eq_one {i : fs.ι} {x : M} (h : fs i x = 1) :
-  x ∈ (ext_chart_at I (fs.c i)).source :=
-by { rw ext_chart_at_source, exact fs.mem_chart_at_source_of_eq_one h }
-
-/-- Index of a bump function such that `fs i =ᶠ[𝓝 x] 1`. -/
-def ind (x : M) (hx : x ∈ s) : fs.ι := (fs.eventually_eq_one' x hx).some
-
-lemma eventually_eq_one (x : M) (hx : x ∈ s) : fs (fs.ind x hx) =ᶠ[𝓝 x] 1 :=
-(fs.eventually_eq_one' x hx).some_spec
-
-lemma apply_ind (x : M) (hx : x ∈ s) : fs (fs.ind x hx) x = 1 :=
-(fs.eventually_eq_one x hx).eq_of_nhds
-
-lemma mem_support_ind (x : M) (hx : x ∈ s) : x ∈ support (fs $ fs.ind x hx) :=
-by simp [fs.apply_ind x hx]
-
-lemma mem_chart_at_ind_source (x : M) (hx : x ∈ s) :
-  x ∈ (chart_at H (fs.c (fs.ind x hx))).source :=
-fs.mem_chart_at_source_of_eq_one (fs.apply_ind x hx)
-
-lemma mem_ext_chart_at_ind_source (x : M) (hx : x ∈ s) :
-  x ∈ (ext_chart_at I (fs.c (fs.ind x hx))).source :=
-fs.mem_ext_chart_at_source_of_eq_one (fs.apply_ind x hx)
-
-section embedding
-
-/-!
-### Whitney embedding theorem
-
-In this section we prove a version of the Whitney embedding theorem: for any compact real manifold
-`M`, for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
--/
-
-instance fintype_ι_of_compact [compact_space M] : fintype fs.ι :=
-fs.locally_finite.fintype_of_compact $ λ i, (fs i).nonempty_support
-
-variables [t2_space M] [fintype fs.ι] (f : smooth_bump_covering I (univ : set M))
-  [fintype f.ι]
-
-/-- Smooth embedding of `M` into `(E × ℝ) ^ f.ι`. -/
-def embedding_pi_tangent : C^∞⟮I, M; 𝓘(ℝ, fs.ι → (E × ℝ)), fs.ι → (E × ℝ)⟯ :=
-{ to_fun := λ x i, (fs i x • ext_chart_at I (fs.c i) x, fs i x),
-  times_cont_mdiff_to_fun := times_cont_mdiff_pi_space.2 $ λ i,
-    ((fs i).smooth_smul times_cont_mdiff_on_ext_chart_at).prod_mk_space ((fs i).smooth) }
-
-local attribute [simp] lemma embedding_pi_tangent_coe :
-  ⇑fs.embedding_pi_tangent = λ x i, (fs i x • ext_chart_at I (fs.c i) x, fs i x) :=
-rfl
-
-lemma embedding_pi_tangent_inj_on : inj_on fs.embedding_pi_tangent s :=
-begin
-  intros x hx y hy h,
-  simp only [embedding_pi_tangent_coe, funext_iff] at h,
-  obtain ⟨h₁, h₂⟩ := prod.mk.inj_iff.1 (h (fs.ind x hx)),
-  rw [fs.apply_ind x hx] at h₂,
-  rw [← h₂, fs.apply_ind x hx, one_smul, one_smul] at h₁,
-  have := fs.mem_ext_chart_at_source_of_eq_one h₂.symm,
-  exact (ext_chart_at I (fs.c _)).inj_on (fs.mem_ext_chart_at_ind_source x hx) this h₁
-end
-
-lemma embedding_pi_tangent_injective :
-  injective f.embedding_pi_tangent :=
-injective_iff_inj_on_univ.2 f.embedding_pi_tangent_inj_on
-
-lemma comp_embedding_pi_tangent_mfderiv (x : M) (hx : x ∈ s) :
-  ((continuous_linear_map.fst ℝ E ℝ).comp
-    (@continuous_linear_map.proj ℝ _ fs.ι (λ _, E × ℝ) _ _
-      (λ _, infer_instance) (fs.ind x hx))).comp
-      (mfderiv I 𝓘(ℝ, fs.ι → (E × ℝ)) fs.embedding_pi_tangent x) =
-  mfderiv I I (chart_at H (fs.c (fs.ind x hx))) x :=
-begin
-  set L := ((continuous_linear_map.fst ℝ E ℝ).comp
-    (@continuous_linear_map.proj ℝ _ fs.ι (λ _, E × ℝ) _ _ (λ _, infer_instance) (fs.ind x hx))),
-  have := (L.has_mfderiv_at.comp x (fs.embedding_pi_tangent.mdifferentiable_at.has_mfderiv_at)),
-  convert has_mfderiv_at_unique this _,
-  refine (has_mfderiv_at_ext_chart_at I (fs.mem_chart_at_ind_source x hx)).congr_of_eventually_eq _,
-  refine (fs.eventually_eq_one x hx).mono (λ y hy, _),
-  simp only [embedding_pi_tangent_coe, continuous_linear_map.coe_comp', (∘),
-    continuous_linear_map.coe_fst', continuous_linear_map.proj_apply],
-  rw [hy, pi.one_apply, one_smul]
-end
-
-lemma embedding_pi_tangent_ker_mfderiv (x : M) (hx : x ∈ s) :
-  (mfderiv I 𝓘(ℝ, fs.ι → (E × ℝ)) fs.embedding_pi_tangent x).ker = ⊥ :=
-begin
-  apply bot_unique,
-  rw [← (mdifferentiable_chart I (fs.c (fs.ind x hx))).ker_mfderiv_eq_bot
-    (fs.mem_chart_at_ind_source x hx), ← comp_embedding_pi_tangent_mfderiv],
-  exact linear_map.ker_le_ker_comp _ _
-end
-
-lemma embedding_pi_tangent_injective_mfderiv (x : M) (hx : x ∈ s) :
-  injective (mfderiv I 𝓘(ℝ, fs.ι → (E × ℝ)) fs.embedding_pi_tangent x) :=
-linear_map.ker_eq_bot.1 (fs.embedding_pi_tangent_ker_mfderiv x hx)
-
-end embedding
-
-/-- Baby version of the Whitney weak embedding theorem: if `M` admits a finite covering by
-supports of bump functions, then for some `n` it can be immersed into the `n`-dimensional
-Euclidean space. -/
-lemma exists_immersion_finrank [t2_space M] (f : smooth_bump_covering I (univ : set M))
-  [fintype f.ι] :
-  ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
-    injective e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
-begin
-  set F := euclidean_space ℝ (fin $ finrank ℝ (f.ι → (E × ℝ))),
-  letI : finite_dimensional ℝ (E × ℝ) := by apply_instance,
-  set eEF : (f.ι → (E × ℝ)) ≃L[ℝ] F :=
-    continuous_linear_equiv.of_finrank_eq finrank_euclidean_space_fin.symm,
-  refine ⟨_, eEF ∘ f.embedding_pi_tangent,
-    eEF.to_diffeomorph.smooth.comp f.embedding_pi_tangent.smooth,
-    eEF.injective.comp f.embedding_pi_tangent_injective, λ x, _⟩,
-  rw [mfderiv_comp _ eEF.differentiable_at.mdifferentiable_at
-    f.embedding_pi_tangent.mdifferentiable_at, eEF.mfderiv_eq],
-  exact eEF.injective.comp (f.embedding_pi_tangent_injective_mfderiv _ trivial)
-end
-
-end smooth_bump_covering
-
-/-- Baby version of the Whitney weak embedding theorem: if `M` admits a finite covering by
-supports of bump functions, then for some `n` it can be embedded into the `n`-dimensional
-Euclidean space. -/
-lemma exists_embedding_finrank_of_compact [t2_space M] [compact_space M] :
-  ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
-    closed_embedding e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
-begin
-  rcases (smooth_bump_covering.choice I M).exists_immersion_finrank
-    with ⟨n, e, hsmooth, hinj, hinj_mfderiv⟩,
-  exact ⟨n, e, hsmooth, hsmooth.continuous.closed_embedding hinj, hinj_mfderiv⟩
-end

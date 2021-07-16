@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
-import data.support
+import algebra.support
 
 /-!
 # Basic theory of topological spaces.
@@ -190,6 +190,9 @@ is_open.inter h₁ $ is_open_compl_iff.mpr h₂
 
 lemma is_closed.inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
 by { rw [← is_open_compl_iff] at *, rw compl_inter, exact is_open.union h₁ h₂ }
+
+lemma is_closed.sdiff {s t : set α} (h₁ : is_closed s) (h₂ : is_open t) : is_closed (s \ t) :=
+is_closed.inter h₁ (is_closed_compl_iff.mpr h₂)
 
 lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
@@ -540,7 +543,7 @@ the principal filter of some open set `s` containing `a`. -/
 lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 s ≤ f) : 𝓝 a ≤ f :=
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
-lemma mem_nhds_sets_iff {a : α} {s : set α} :
+lemma mem_nhds_iff {a : α} {s : set α} :
   s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
 (nhds_basis_opens a).mem_iff.trans
   ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
@@ -549,27 +552,27 @@ lemma mem_nhds_sets_iff {a : α} {s : set α} :
 containing `a`. -/
 lemma eventually_nhds_iff {a : α} {p : α → Prop} :
   (∀ᶠ x in 𝓝 a, p x) ↔ ∃ (t : set α), (∀ x ∈ t, p x) ∧ is_open t ∧ a ∈ t :=
-mem_nhds_sets_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
+mem_nhds_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
 
 lemma map_nhds {a : α} {f : α → β} :
   map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 (image f s)) :=
 ((nhds_basis_opens a).map f).eq_binfi
 
-lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
-λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
+lemma mem_of_mem_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
+λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_iff.1 H in ht hs
 
 /-- If a predicate is true in a neighborhood of `a`, then it is true for `a`. -/
 lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
   (h : ∀ᶠ y in 𝓝 a, p y) : p a :=
-mem_of_nhds h
+mem_of_mem_nhds h
 
-lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
+lemma is_open.mem_nhds {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
-mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
+mem_nhds_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
 lemma is_open.eventually_mem {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   ∀ᶠ x in 𝓝 a, x ∈ s :=
-mem_nhds_sets hs ha
+is_open.mem_nhds hs ha
 
 /-- The open neighborhoods of `a` are a basis for the neighborhood filter. See `nhds_basis_opens`
 for a variant using open sets around `a` instead. -/
@@ -579,10 +582,33 @@ begin
   ext s,
   split,
   { rintros ⟨s_in, s_op⟩,
-    exact ⟨mem_of_nhds s_in, s_op⟩ },
+    exact ⟨mem_of_mem_nhds s_in, s_op⟩ },
   { rintros ⟨a_in, s_op⟩,
-    exact ⟨mem_nhds_sets s_op a_in, s_op⟩ },
+    exact ⟨is_open.mem_nhds s_op a_in, s_op⟩ },
 end
+
+/-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of `s`:
+it contains an open set containing `s`. -/
+lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
+  ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
+begin
+  have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
+  choose! Z hZ hZ' using this,
+  refine ⟨⋃ x ∈ s, Z x, _, _, bUnion_subset hZ'⟩,
+  { intros x hx,
+    simp only [mem_Union],
+    exact ⟨x, hx, (hZ x hx).1⟩ },
+  { apply is_open_Union,
+    intros x,
+    by_cases hx : x ∈ s ; simp [hx],
+    exact (hZ x hx).2 }
+end
+
+/-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:
+it contains an open set containing `s`. -/
+lemma exists_open_set_nhds' {s U : set α} (h : U ∈ ⨆ x ∈ s, 𝓝 x) :
+  ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
+exists_open_set_nhds (by simpa using h)
 
 /-- If a predicate is true in a neighbourhood of `a`, then for `y` sufficiently close
 to `a` this predicate is true in a neighbourhood of `y`. -/
@@ -652,8 +678,16 @@ all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
 lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (𝓝 a) :=
 tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
 
+lemma tendsto_at_top_of_eventually_const {ι : Type*} [semilattice_sup ι] [nonempty ι]
+  {x : α} {u : ι → α} {i₀ : ι} (h : ∀ i ≥ i₀, u i = x) : tendsto u at_top (𝓝 x) :=
+tendsto.congr' (eventually_eq.symm (eventually_at_top.mpr ⟨i₀, h⟩)) tendsto_const_nhds
+
+lemma tendsto_at_bot_of_eventually_const {ι : Type*} [semilattice_inf ι] [nonempty ι]
+  {x : α} {u : ι → α} {i₀ : ι} (h : ∀ i ≤ i₀, u i = x) : tendsto u at_bot (𝓝 x) :=
+tendsto.congr' (eventually_eq.symm (eventually_at_bot.mpr ⟨i₀, h⟩)) tendsto_const_nhds
+
 lemma pure_le_nhds : pure ≤ (𝓝 : α → filter α) :=
-assume a s hs, mem_pure_sets.2 $ mem_of_nhds hs
+assume a s hs, mem_pure_sets.2 $ mem_of_mem_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
@@ -749,7 +783,7 @@ end
 -/
 
 lemma interior_eq_nhds' {s : set α} : interior s = {a | s ∈ 𝓝 a} :=
-set.ext $ λ x, by simp only [mem_interior, mem_nhds_sets_iff, mem_set_of_eq]
+set.ext $ λ x, by simp only [mem_interior, mem_nhds_iff, mem_set_of_eq]
 
 lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ 𝓟 s} :=
 interior_eq_nhds'.trans $ by simp only [le_principal_iff]
@@ -761,7 +795,7 @@ by rw [interior_eq_nhds', mem_set_of_eq]
 @[simp] lemma interior_mem_nhds {s : set α} {a : α} :
   interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=
 ⟨λ h, mem_sets_of_superset h interior_subset,
-  λ h, mem_nhds_sets is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
+  λ h, is_open.mem_nhds is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
 
 lemma interior_set_of_eq {p : α → Prop} :
   interior {x | p x} = {x | ∀ᶠ y in 𝓝 x, p y} :=
@@ -849,7 +883,7 @@ by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 begin
   rintro a ⟨hs, ht⟩,
-  have : s ∈ 𝓝 a := mem_nhds_sets h hs,
+  have : s ∈ 𝓝 a := is_open.mem_nhds h hs,
   rw mem_closure_iff_nhds_ne_bot at ht ⊢,
   rwa [← inf_principal, ← inf_assoc, inf_eq_left.2 (le_principal_iff.2 this)],
 end
@@ -870,7 +904,7 @@ inter_comm t s ▸ ht.inter_of_open_left hs hto
 
 lemma dense.inter_nhds_nonempty {s t : set α} (hs : dense s) {x : α} (ht : t ∈ 𝓝 x) :
   (s ∩ t).nonempty :=
-let ⟨U, hsub, ho, hx⟩ := mem_nhds_sets_iff.1 ht in
+let ⟨U, hsub, ho, hx⟩ := mem_nhds_iff.1 ht in
   (hs.inter_open_nonempty U ho ⟨x, hx⟩).mono $ λ y hy, ⟨hy.2, hsub hy.1⟩
 
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
@@ -904,7 +938,7 @@ begin
   rw [tendsto_iff_comap, tendsto_iff_comap],
   replace h : 𝓟 sᶜ ≤ comap f (𝓝 a),
   { rintros U ⟨t, ht, htU⟩ x hx,
-    have : f x ∈ t, from (h x hx).symm ▸ mem_of_nhds ht,
+    have : f x ∈ t, from (h x hx).symm ▸ mem_of_mem_nhds ht,
     exact htU this },
   refine ⟨λ h', _, le_trans inf_le_left⟩,
   have := sup_le h' h,
@@ -969,7 +1003,7 @@ def locally_finite (f : β → set α) :=
 
 lemma locally_finite.point_finite {f : β → set α} (hf : locally_finite f) (x : α) :
   finite {b | x ∈ f b} :=
-let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_nhds hxt⟩
+let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_mem_nhds hxt⟩
 
 lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
 assume x, ⟨univ, univ_mem_sets, finite.of_fintype _⟩
@@ -1000,7 +1034,7 @@ is_open_compl_iff.1 $ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f
   have ∀i, a ∈ (f i)ᶜ,
     from assume i hi, h $ mem_Union.2 ⟨i, hi⟩,
   have ∀i, (f i)ᶜ ∈ (𝓝 a),
-    by simp only [mem_nhds_sets_iff]; exact assume i,
+    by simp only [mem_nhds_iff]; exact assume i,
       ⟨(f i)ᶜ, subset.refl _, (h₂ i).is_open_compl, this i⟩,
   let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
   calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) : by simp *
@@ -1113,7 +1147,7 @@ lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, con
   continuous_def.2 $
   assume s, assume hs : is_open s,
   have ∀a, f a ∈ s → s ∈ 𝓝 (f a),
-    from λ a ha, mem_nhds_sets hs ha,
+    from λ a ha, is_open.mem_nhds hs ha,
   show is_open (f ⁻¹' s),
     from is_open_iff_nhds.2 $ λ a ha, le_principal_iff.2 $ hf _ (this a ha)⟩
 
@@ -1163,7 +1197,7 @@ lemma pcontinuous_iff' {f : α →. β} :
 begin
   split,
   { intros h x y h',
-    simp only [ptendsto'_def, mem_nhds_sets_iff],
+    simp only [ptendsto'_def, mem_nhds_iff],
     rintros s ⟨t, tsubs, opent, yt⟩,
     exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩
   },
@@ -1180,7 +1214,7 @@ begin
      rw ptendsto'_def at this,
      exact this s hs },
   show f.preimage s ∈ 𝓝 x,
-  apply h', rw mem_nhds_sets_iff, exact ⟨s, set.subset.refl _, os, ys⟩
+  apply h', rw mem_nhds_iff, exact ⟨s, set.subset.refl _, os, ys⟩
 end
 
 /-- If a continuous map `f` maps `s` to `t`, then it maps `closure s` to `closure t`. -/

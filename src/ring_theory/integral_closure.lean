@@ -180,8 +180,8 @@ end
 theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
   (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s).to_submodule.fg :=
 set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
-  by { erw [algebra.adjoin_empty, finset.coe_singleton, ← one_eq_span, one_eq_map_top,
-      map_top, linear_map.mem_range, algebra.mem_bot], refl }⟩)
+  by { erw [algebra.adjoin_empty, finset.coe_singleton, ← one_eq_span, one_eq_range,
+            linear_map.mem_range, algebra.mem_bot], refl }⟩)
 (λ a s has hs ih his, by rw [← set.union_singleton, algebra.adjoin_union_coe_submodule]; exact
   fg_mul _ _ (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
@@ -192,12 +192,12 @@ begin
   cases HS with y hy,
   obtain ⟨lx, hlx1, hlx2⟩ :
     ∃ (l : A →₀ R) (H : l ∈ finsupp.supported R R ↑y), (finsupp.total A A R id) l = x,
-  { rwa [←(@finsupp.mem_span_iff_total A A R _ _ _ id ↑y x), set.image_id ↑y, hy] },
+  { rwa [←(@finsupp.mem_span_image_iff_total A A R _ _ _ id ↑y x), set.image_id ↑y, hy] },
   have hyS : ∀ {p}, p ∈ y → p ∈ S := λ p hp, show p ∈ S.to_submodule,
     by { rw ← hy, exact subset_span hp },
   have : ∀ (jk : (↑(y.product y) : set (A × A))), jk.1.1 * jk.1.2 ∈ S.to_submodule :=
     λ jk, S.mul_mem (hyS (finset.mem_product.1 jk.2).1) (hyS (finset.mem_product.1 jk.2).2),
-  rw [← hy, ← set.image_id ↑y] at this, simp only [finsupp.mem_span_iff_total] at this,
+  rw [← hy, ← set.image_id ↑y] at this, simp only [finsupp.mem_span_image_iff_total] at this,
   choose ly hly1 hly2,
   let S₀ : set R := ring.closure ↑(lx.frange ∪ finset.bUnion finset.univ (finsupp.frange ∘ ly)),
   refine is_integral_of_subring S₀ _,

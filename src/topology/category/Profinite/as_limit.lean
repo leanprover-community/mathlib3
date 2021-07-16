@@ -41,7 +41,7 @@ variables (X : Profinite.{u})
 /-- The functor `discrete_quotient X ⥤ Fintype` whose limit is isomorphic to `X`. -/
 def fintype_diagram : discrete_quotient X ⥤ Fintype :=
 { obj := λ S, Fintype.of S,
-  map := λ S T f, discrete_quotient.of_le $ le_of_hom f }
+  map := λ S T f, discrete_quotient.of_le f.le }
 
 /-- An abbreviation for `X.fintype_diagram ⋙ Fintype_to_Profinite`. -/
 abbreviation diagram : discrete_quotient X ⥤ Profinite :=

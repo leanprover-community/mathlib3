@@ -60,7 +60,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 ## Tags
 
 cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
-Cantor's theorem, König's theorem
+Cantor's theorem, König's theorem, Konig's theorem
 -/
 
 open function set
@@ -140,10 +140,14 @@ instance : has_zero cardinal.{u} := ⟨⟦pempty⟧⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
+@[simp]
+lemma eq_zero_of_is_empty {α : Type u} [is_empty α] : mk α = 0 :=
+quotient.sound ⟨equiv.equiv_pempty α⟩
+
 lemma eq_zero_iff_is_empty {α : Type u} : mk α = 0 ↔ is_empty α :=
 ⟨λ e, let ⟨h⟩ := quotient.exact e in
   equiv.equiv_empty_equiv α $ h.trans equiv.empty_equiv_pempty.symm,
-  λ h, by exactI quotient.sound ⟨equiv.equiv_pempty α⟩⟩
+  @eq_zero_of_is_empty _⟩
 
 theorem ne_zero_iff_nonempty {α : Type u} : mk α ≠ 0 ↔ nonempty α :=
 (not_iff_not.2 eq_zero_iff_is_empty).trans not_is_empty_iff
@@ -280,7 +284,7 @@ section order_properties
 open sum
 
 protected theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
-by rintro ⟨α⟩; exact ⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim⟩
+by rintro ⟨α⟩; exact ⟨embedding.of_is_empty⟩
 
 protected theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
@@ -335,8 +339,7 @@ quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_con
 
 end order_properties
 
-
-
+/-- **Cantor's theorem** -/
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
 by rw ← prop_eq_two; rintros ⟨a⟩; exact ⟨
   ⟨⟨λ a b, ⟨a = b⟩, λ a b h, cast (ulift.up.inj (@congr_fun _ _ _ _ h b)).symm rfl⟩⟩,
@@ -641,7 +644,7 @@ by rw [← lift_mk_fin.{u}, ← lift_id (mk α), lift_mk_eq.{u 0 u}];
 theorem card_le_of_finset {α} (s : finset α) :
   (s.card : cardinal) ≤ cardinal.mk α :=
 begin
-  rw (_ : (s.card : cardinal) = cardinal.mk (↑s : set α)),
+  rw (_ : (s.card : cardinal) = cardinal.mk s),
   { exact ⟨function.embedding.subtype _⟩ },
   rw [cardinal.fintype_card, fintype.card_coe]
 end
@@ -764,9 +767,9 @@ begin
     right, by_cases hb : b = 0, { left, exact hb },
     right, rw [← ne, ← one_le_iff_ne_zero] at ha hb, split,
     { rw [← mul_one a],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_refl a) hb) h },
+      refine lt_of_le_of_lt (mul_le_mul' (le_refl a) hb) h },
     { rw [← _root_.one_mul b],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul ha (le_refl b)) h }},
+      refine lt_of_le_of_lt (mul_le_mul' ha (le_refl b)) h }},
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, _root_.zero_mul, mul_zero]
 end
 
@@ -868,10 +871,10 @@ noncomputable def to_enat : cardinal →+ enat :=
         rw [← nat.cast_add, to_nat_cast, enat.coe_add] },
       { rw [if_neg hy, if_neg, enat.add_top],
         contrapose! hy,
-        apply lt_of_le_of_lt (le_add_left (le_refl y)) hy } },
+        apply lt_of_le_of_lt le_add_self hy } },
     { rw [if_neg hx, if_neg, enat.top_add],
       contrapose! hx,
-      apply lt_of_le_of_lt (le_add_right (le_refl x)) hx },
+      apply lt_of_le_of_lt le_self_add hx },
   end }
 
 @[simp]
@@ -927,7 +930,7 @@ begin
   { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
 end
 
-/-- König's theorem -/
+/-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
   have : inhabited (Π (i : ι), (g i).out),
@@ -1031,6 +1034,10 @@ lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
 
+theorem mk_range_le_lift {α : Type u} {β : Type v} {f : α → β} :
+  lift.{v u} (mk (range f)) ≤ lift.{u v} (mk α) :=
+lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
+
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.of_injective f h).symm⟩
 
@@ -1071,7 +1078,7 @@ lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
   mk (⋃(x ∈ s), A x) ≤ mk s * cardinal.sup.{u u} (λ x : s, mk (A x.1)) :=
 by { rw [bUnion_eq_Union], apply mk_Union_le }
 
-@[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk (↑s : set α) :=
+@[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk s :=
 by rw [fintype_card, nat_cast_inj, fintype.card_coe]
 
 lemma finset_card_lt_omega (s : finset α) : mk (↑s : set α) < omega :=
@@ -1084,7 +1091,7 @@ begin
   { intro h,
     have : # s < omega, by { rw h, exact nat_lt_omega n },
     refine ⟨(lt_omega_iff_finite.1 this).to_finset, finite.coe_to_finset _, nat_cast_inj.1 _⟩,
-    rwa [finset_card, finite.coe_to_finset] },
+    rwa [finset_card, finite.coe_sort_to_finset] },
   { rintro ⟨t, rfl, rfl⟩,
     exact finset_card.symm }
 end

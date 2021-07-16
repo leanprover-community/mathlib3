@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.matrix.reindex
 import linear_algebra.matrix.to_lin
 
 /-!
@@ -142,16 +143,33 @@ by { haveI := classical.dec_eq ι',
 
 /-- A generalization of `basis.to_matrix_self`, in the opposite direction. -/
 @[simp] lemma basis.to_matrix_mul_to_matrix
-  {ι'' : Type*} [fintype ι''] (b'' : basis ι'' R M) :
+  {ι'' : Type*} [fintype ι''] (b'' : ι'' → M) :
   b.to_matrix b' ⬝ b'.to_matrix b'' = b.to_matrix b'' :=
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq ι',
   haveI := classical.dec_eq ι'',
-  rw [← linear_map.to_matrix_id_eq_basis_to_matrix b' b,
-      ← linear_map.to_matrix_id_eq_basis_to_matrix b'' b',
-      ← to_matrix_comp, id_comp, linear_map.to_matrix_id_eq_basis_to_matrix],
+  ext i j,
+  simp only [matrix.mul_apply, basis.to_matrix_apply, basis.sum_repr_mul_repr],
 end
+
+@[simp]
+lemma basis.to_matrix_reindex
+  (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
+  (b.reindex e).to_matrix v = (b.to_matrix v).minor e.symm id :=
+by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.minor_apply, id.def] }
+
+/-- See also `basis.to_matrix_reindex` which gives the `simp` normal form of this result. -/
+lemma basis.to_matrix_reindex' [decidable_eq ι] [decidable_eq ι']
+  (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
+  (b.reindex e).to_matrix v = matrix.reindex_alg_equiv _ e (b.to_matrix (v ∘ e)) :=
+by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.reindex_alg_equiv_apply,
+        matrix.reindex_apply, matrix.minor_apply, function.comp_app, e.apply_symm_apply] }
+
+@[simp]
+lemma basis.to_matrix_map (b : basis ι R M) (f : M ≃ₗ[R] N) (v : ι → N) :
+  (b.map f).to_matrix v = b.to_matrix (f.symm ∘ v) :=
+by { ext, simp only [basis.to_matrix_apply, basis.map, linear_equiv.trans_apply] }
 
 end mul_linear_map_to_matrix
 

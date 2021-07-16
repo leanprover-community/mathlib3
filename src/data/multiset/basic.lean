@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.list.perm
-import algebra.group_power
 
 /-!
 # Multisets
@@ -496,6 +495,10 @@ lemma strong_downward_induction_on_eq {p : multiset α → Sort*} (s : multiset 
   s.strong_downward_induction_on H = H s (λ t ht h, t.strong_downward_induction_on H ht) :=
 by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
+/-- Another way of expressing `strong_induction_on`: the `(<)` relation is well-founded. -/
+lemma well_founded_lt : well_founded ((<) : multiset α → multiset α → Prop) :=
+subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
+
 /-! ### Singleton -/
 instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
 
@@ -833,6 +836,13 @@ prod_eq_foldl _
 
 attribute [norm_cast] coe_prod coe_sum
 
+@[simp, to_additive] theorem prod_to_list [comm_monoid α] (s : multiset α) :
+  s.to_list.prod = s.prod :=
+begin
+  conv_rhs { rw ←coe_to_list s, },
+  rw coe_prod,
+end
+
 @[simp, to_additive]
 theorem prod_zero [comm_monoid α] : @prod α _ 0 = 1 := rfl
 
@@ -856,34 +866,24 @@ lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
-@[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
+@[simp, to_additive] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) :
+  prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
-@[simp] theorem sum_repeat [add_comm_monoid α] :
-  ∀ (a : α) (n : ℕ), sum (multiset.repeat a n) = n • a :=
-@prod_repeat (multiplicative α) _
-attribute [to_additive] prod_repeat
 
+@[to_additive]
 lemma prod_map_one [comm_monoid γ] {m : multiset α} :
   prod (m.map (λa, (1 : γ))) = (1 : γ) :=
 by simp
-lemma sum_map_zero [add_comm_monoid γ] {m : multiset α} :
-  sum (m.map (λa, (0 : γ))) = (0 : γ) :=
-by simp [nsmul_zero]
-attribute [to_additive] prod_map_one
 
 @[simp, to_additive]
 lemma prod_map_mul [comm_monoid γ] {m : multiset α} {f g : α → γ} :
   prod (m.map $ λa, f a * g a) = prod (m.map f) * prod (m.map g) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih]; cc)
 
+@[to_additive]
 lemma prod_map_prod_map [comm_monoid γ] (m : multiset α) (n : multiset β) {f : α → β → γ} :
   prod (m.map $ λa, prod $ n.map $ λb, f a b) = prod (n.map $ λb, prod $ m.map $ λa, f a b) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
-
-lemma sum_map_sum_map [add_comm_monoid γ] : ∀ (m : multiset α) (n : multiset β) {f : α → β → γ},
-  sum (m.map $ λa, sum $ n.map $ λb, f a b) = sum (n.map $ λb, sum $ m.map $ λa, f a b) :=
-@prod_map_prod_map _ _ (multiplicative γ) _
-attribute [to_additive] prod_map_prod_map
 
 lemma sum_map_mul_left [semiring β] {b : β} {s : multiset α} {f : α → β} :
   sum (s.map (λa, b * f a)) = b * sum (s.map f) :=
@@ -1042,10 +1042,6 @@ lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoi
 le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) s
   hs_nonempty (by simp)
 
-lemma abs_sum_le_sum_abs [linear_ordered_field α] {s : multiset α} :
-  abs s.sum ≤ (s.map abs).sum :=
-le_sum_of_subadditive _ abs_zero abs_add s
-
 theorem dvd_sum [comm_semiring α] {a : α} {s : multiset α} : (∀ x ∈ s, a ∣ x) → a ∣ s.sum :=
 multiset.induction_on s (λ _, dvd_zero _)
   (λ x s ih h, by rw sum_cons; exact dvd_add
@@ -1053,13 +1049,6 @@ multiset.induction_on s (λ _, dvd_zero _)
 
 @[simp] theorem sum_map_singleton (s : multiset α) : (s.map (λ a, a ::ₘ 0)).sum = s :=
 multiset.induction_on s (by simp) (by simp)
-
-@[simp, to_additive] theorem prod_to_list [comm_monoid α] (s : multiset α) :
-  s.to_list.prod = s.prod :=
-begin
-  conv_rhs { rw ←coe_to_list s, },
-  rw coe_prod,
-end
 
 /-! ### Join -/
 
@@ -2174,6 +2163,14 @@ end rel
 
 section sum_inequalities
 
+lemma le_sum_of_mem [canonically_ordered_add_monoid α] {m : multiset α} {a : α}
+  (h : a ∈ m) : a ≤ m.sum :=
+begin
+  obtain ⟨m', rfl⟩ := exists_cons_of_mem h,
+  rw [sum_cons],
+  exact _root_.le_add_right (le_refl a),
+end
+
 variables [ordered_add_comm_monoid α]
 
 lemma sum_map_le_sum
@@ -2300,6 +2297,11 @@ by simp [disjoint, or_imp_distrib, forall_and_distrib]
 @[simp] theorem disjoint_union_right [decidable_eq α] {s t u : multiset α} :
   disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
 by simp [disjoint, or_imp_distrib, forall_and_distrib]
+
+lemma add_eq_union_iff_disjoint [decidable_eq α] {s t : multiset α} :
+  s + t = s ∪ t ↔ disjoint s t :=
+by simp_rw [←inter_eq_zero_iff_disjoint, ext, count_add, count_union, count_inter, count_zero,
+            nat.min_eq_zero_iff, nat.add_eq_max_iff]
 
 lemma disjoint_map_map {f : α → γ} {g : β → γ} {s : multiset α} {t : multiset β} :
   disjoint (s.map f) (t.map g) ↔ (∀a∈s, ∀b∈t, f a ≠ g b) :=

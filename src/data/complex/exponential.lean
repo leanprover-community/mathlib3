@@ -13,6 +13,7 @@ This file contains the definitions of the real and complex exponential, sine, co
 hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
+
 local notation `abs'` := _root_.abs
 open is_absolute_value
 open_locale classical big_operators nat
@@ -99,7 +100,7 @@ begin
   have sub_le := abs_sub_le (∑ k in range j, g k) (∑ k in range i, g k)
     (∑ k in range (max n i), g k),
   have := add_lt_add hi₁ hi₂,
-  rw [abs_sub (∑ k in range (max n i), g k), add_halves ε] at this,
+  rw [abs_sub_comm (∑ k in range (max n i), g k), add_halves ε] at this,
   refine lt_of_le_of_lt (le_trans (le_trans _ (le_abs_self _)) sub_le) this,
   generalize hk : j - max n i = k,
   clear this hi₂ hi₁ hi ε0 ε hg sub_le,
@@ -455,7 +456,7 @@ lemma exp_multiset_sum (s : multiset ℂ) : exp s.sum = (s.map exp).prod :=
 @monoid_hom.map_multiset_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ s
 
 lemma exp_sum {α : Type*} (s : finset α) (f : α → ℂ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
-@monoid_hom.map_prod α (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+@monoid_hom.map_prod (multiplicative ℂ) α ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
@@ -470,6 +471,14 @@ by rw [← mul_right_inj' (exp_ne_zero x), ← exp_add];
 
 lemma exp_sub : exp (x - y) = exp x / exp y :=
 by simp [sub_eq_add_neg, exp_add, exp_neg, div_eq_mul_inv]
+
+lemma exp_int_mul (z : ℂ) (n : ℤ) : complex.exp (n * z) = (complex.exp z) ^ n :=
+begin
+  cases n,
+  { apply complex.exp_nat_mul },
+  { simpa [complex.exp_neg, add_comm, ← neg_mul_eq_neg_mul_symm]
+      using complex.exp_nat_mul (-z) (1 + n) },
+end
 
 @[simp] lemma exp_conj : exp (conj x) = conj (exp x) :=
 begin
@@ -881,7 +890,7 @@ by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, cos_of_real_re] }
 lemma exp_im : (exp x).im = real.exp x.re * real.sin x.im :=
 by { rw [exp_eq_exp_re_mul_sin_add_cos], simp [exp_of_real_re, sin_of_real_re] }
 
-/-- De Moivre's formula -/
+/-- **De Moivre's formula** -/
 theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
   (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
 begin
@@ -912,7 +921,7 @@ lemma exp_multiset_sum (s : multiset ℝ) : exp s.sum = (s.map exp).prod :=
 @monoid_hom.map_multiset_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ s
 
 lemma exp_sum {α : Type*} (s : finset α) (f : α → ℝ) : exp (∑ x in s, f x) = ∏ x in s, exp (f x) :=
-@monoid_hom.map_prod α (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+@monoid_hom.map_prod (multiplicative ℝ) α ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
@@ -1462,18 +1471,15 @@ calc cos 1 ≤ abs' (1 : ℝ) ^ 4 * (5 / 96) + (1 - 1 ^ 2 / 2) :
   sub_le_iff_le_add.1 (abs_sub_le_iff.1 (cos_bound (by simp))).1
 ... ≤ 2 / 3 : by norm_num
 
-lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (by simp)
+lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (le_of_eq abs_one)
 
 lemma cos_two_neg : cos 2 < 0 :=
 calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
-... = _ : real.cos_two_mul 1
-... ≤ 2 * (2 / 3) ^ 2 - 1 :
-  sub_le_sub_right (mul_le_mul_of_nonneg_left
-    (by rw [sq, sq]; exact
-      mul_self_le_mul_self (le_of_lt cos_one_pos)
-        cos_one_le)
-    (by norm_num)) _
-... < 0 : by norm_num
+  ... = _ : real.cos_two_mul 1
+  ... ≤ 2 * (2 / 3) ^ 2 - 1 : sub_le_sub_right (mul_le_mul_of_nonneg_left
+          (by { rw [sq, sq], exact mul_self_le_mul_self (le_of_lt cos_one_pos) cos_one_le })
+          zero_le_two) _
+  ... < 0 : by norm_num
 
 end real
 

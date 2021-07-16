@@ -37,11 +37,24 @@ instance (M : SemiNormedGroup) : semi_normed_group M := M.str
 
 @[simp] lemma coe_of (V : Type u) [semi_normed_group V] : (SemiNormedGroup.of V : Type u) = V := rfl
 @[simp] lemma coe_id (V : SemiNormedGroup) : ⇑(𝟙 V) = id := rfl
+@[simp] lemma coe_comp {M N K : SemiNormedGroup} (f : M ⟶ N) (g : N ⟶ K) :
+  ((f ≫ g) : M → K) = g ∘ f := rfl
 
 instance : has_zero SemiNormedGroup := ⟨of punit⟩
 instance : inhabited SemiNormedGroup := ⟨0⟩
 
 instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup := {}
+
+@[simp] lemma zero_apply {V W : SemiNormedGroup} (x : V) : (0 : V ⟶ W) x = 0 := rfl
+
+instance has_zero_object : limits.has_zero_object SemiNormedGroup.{u} :=
+{ zero := 0,
+  unique_to := λ X,
+  { default := 0,
+    uniq := λ a, by { ext ⟨⟩, exact a.map_zero, }, },
+  unique_from := λ X,
+  { default := 0,
+    uniq := λ f, by ext } }
 
 end SemiNormedGroup
 
@@ -56,7 +69,7 @@ namespace SemiNormedGroup₁
 
 instance : large_category.{u} SemiNormedGroup₁ :=
 { hom := λ X Y, { f : normed_group_hom X Y // f.norm_noninc },
-  id := λ X, ⟨normed_group_hom.id, normed_group_hom.norm_noninc.id⟩,
+  id := λ X, ⟨normed_group_hom.id X, normed_group_hom.norm_noninc.id⟩,
   comp := λ X Y Z f g, ⟨(g : normed_group_hom Y Z).comp (f : normed_group_hom X Y), g.2.comp f.2⟩, }
 
 @[ext] lemma hom_ext {M N : SemiNormedGroup₁} (f g : M ⟶ N) (w : (f : M → N) = (g : M → N)) :
@@ -111,6 +124,15 @@ instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup₁ :=
   zero_comp' := λ X Y Z f, by { ext, simp, }, }
 
 @[simp] lemma zero_apply {V W : SemiNormedGroup₁} (x : V) : (0 : V ⟶ W) x = 0 := rfl
+
+instance has_zero_object : limits.has_zero_object SemiNormedGroup₁.{u} :=
+{ zero := 0,
+  unique_to := λ X,
+  { default := 0,
+    uniq := λ a, by { ext ⟨⟩, exact a.1.map_zero, }, },
+  unique_from := λ X,
+  { default := 0,
+    uniq := λ f, by ext } }
 
 lemma iso_isometry {V W : SemiNormedGroup₁} (i : V ≅ W) :
   isometry i.hom :=

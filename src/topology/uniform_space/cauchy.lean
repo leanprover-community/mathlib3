@@ -439,11 +439,11 @@ end
 lemma compact_iff_totally_bounded_complete {s : set α} :
   is_compact s ↔ totally_bounded s ∧ is_complete s :=
 ⟨λ hs, ⟨totally_bounded_iff_ultrafilter.2 (λ f hf,
-    let ⟨x, xs, fx⟩ := compact_iff_ultrafilter_le_nhds.1 hs f hf in cauchy_nhds.mono fx),
+    let ⟨x, xs, fx⟩ := is_compact_iff_ultrafilter_le_nhds.1 hs f hf in cauchy_nhds.mono fx),
   λ f fc fs,
     let ⟨a, as, fa⟩ := @hs f fc.1 fs in
     ⟨a, as, le_nhds_of_cauchy_adhp fc fa⟩⟩,
- λ ⟨ht, hc⟩, compact_iff_ultrafilter_le_nhds.2
+ λ ⟨ht, hc⟩, is_compact_iff_ultrafilter_le_nhds.2
    (λf hf, hc _ (totally_bounded_iff_ultrafilter.1 ht f hf) hf)⟩
 
 lemma is_compact.totally_bounded {s : set α} (h : is_compact s) : totally_bounded s :=
@@ -598,7 +598,7 @@ begin
     exact is_open_ball x (hto k).2.1 },
   { intros x V hxV hVo,
     simp only [mem_bUnion_iff, mem_range, exists_prop],
-    rcases uniform_space.mem_nhds_iff.1 (mem_nhds_sets hVo hxV) with ⟨U, hU, hUV⟩,
+    rcases uniform_space.mem_nhds_iff.1 (is_open.mem_nhds hVo hxV) with ⟨U, hU, hUV⟩,
     rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
     rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,
     rcases hsd.inter_open_nonempty (ball x $ t k) (uniform_space.is_open_ball x (hto k).2.1)

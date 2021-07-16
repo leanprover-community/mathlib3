@@ -3,7 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.basic
+import analysis.normed_space.operator_norm
 import topology.continuous_function.algebra
 
 /-!
@@ -59,7 +59,7 @@ rfl
 
 /-- A continuous function on a compact space is automatically a bounded continuous function. -/
 def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
-⟨f, bounded_range_iff.1 $ bounded_of_compact $ compact_range f.continuous⟩
+⟨f, bounded_range_iff.1 $ bounded_of_compact $ is_compact_range f.continuous⟩
 
 @[simp] lemma mk_of_compact_apply [compact_space α] (f : C(α, β)) (a : α) :
   mk_of_compact f a = f a :=
@@ -189,7 +189,7 @@ instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)�
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
 have Hs : _ := continuous_iff'.1 f.continuous x (ε/2) (half_pos ε0),
-mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
+mem_sets_of_superset (prod_is_open.mem_nhds (ball_mem_nhds _ (half_pos ε0)) Hs) $
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
   ... < ε/2 + ε/2 : add_lt_add (lt_of_le_of_lt (dist_coe_le_dist _) hg) hy
@@ -302,7 +302,7 @@ begin
   have : ∀x:α, ∃U, x ∈ U ∧ is_open U ∧ ∀ (y z ∈ U) {f : α →ᵇ β},
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
-          ⟨V, VU, openV, xV⟩ := mem_nhds_sets_iff.1 nhdsU in
+          ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
       ⟨V, xV, openV, λy z hy hz f hf, hU y z (VU hy) (VU hz) f hf⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A
@@ -357,7 +357,7 @@ begin
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
   refine compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
-  { haveI : compact_space s := compact_iff_compact_space.1 hs,
+  { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
       (λ x ε ε0, bex.imp_right (λ U U_nhds hU y z hy hz f hf, _) (H x ε ε0)),
     calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
@@ -605,9 +605,12 @@ In this section, if `β` is a normed space, then we show that the space of bound
 continuous functions from `α` to `β` inherits a normed space structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*} [normed_field 𝕜]
-variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
+variables {𝕜 : Type*}
+variables [topological_space α] [normed_group β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
+
+section normed_field
+variables [normed_field 𝕜] [normed_space 𝕜 β]
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
 ⟨λ c f, of_normed_group (c • f) (f.continuous.const_smul c) (∥c∥ * ∥f∥) $ λ x,
@@ -646,6 +649,35 @@ def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
 { to_fun := forget_boundedness α β,
   map_smul' := by { intros, ext, simp, },
   map_add' := by { intros, ext, simp, }, }
+
+end normed_field
+
+variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
+variables [normed_group γ] [normed_space 𝕜 γ]
+
+variables (α)
+/--
+Postcomposition of bounded continuous functions into a normed module by a continuous linear map is
+a continuous linear map.
+Upgraded version of `continuous_linear_map.comp_left_continuous`, similar to
+`linear_map.comp_left`. -/
+protected def _root_.continuous_linear_map.comp_left_continuous_bounded (g : β →L[𝕜] γ) :
+  (α →ᵇ β) →L[𝕜] (α →ᵇ γ) :=
+linear_map.mk_continuous
+  { to_fun := λ f, of_normed_group
+      (g ∘ f)
+      (g.continuous.comp f.continuous)
+      (∥g∥ * ∥f∥)
+      (λ x, (g.le_op_norm_of_le (f.norm_coe_le_norm x))),
+    map_add' := λ f g, by ext; simp,
+    map_smul' := λ c f, by ext; simp }
+  ∥g∥
+  (λ f, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg g) (norm_nonneg f)) _)
+
+@[simp] lemma _root_.continuous_linear_map.comp_left_continuous_bounded_apply (g : β →L[𝕜] γ)
+  (f : α →ᵇ β) (x : α) :
+  (g.comp_left_continuous_bounded α f) x = g (f x) :=
+rfl
 
 end normed_space
 

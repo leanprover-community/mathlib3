@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import data.nat.basic
+import data.nat.pow
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -346,6 +346,8 @@ by simp [coprime]
 
 @[simp] theorem coprime_zero_right (n : ℕ) : coprime n 0 ↔ n = 1 :=
 by simp [coprime]
+
+theorem not_coprime_zero_zero : ¬ coprime 0 0 := by simp
 
 @[simp] theorem coprime_one_left_iff (n : ℕ) : coprime 1 n ↔ true :=
 by simp [coprime]

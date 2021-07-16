@@ -79,6 +79,24 @@ G'.adj_sub h
 /-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
 
+/-- Coercion from `subgraph G` to `simple_graph V`. This will include "junk" isolated vertices
+unless the subgraph `is_spanning`, hence the name. -/
+@[simps] def spanning_coe (G' : subgraph G) : simple_graph V :=
+{ adj := G'.adj,
+  sym := G'.sym,
+  loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
+
+@[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
+G.adj u v := H.adj_sub h
+
+def spanning_coe_equiv_coe_of_spanning (H : subgraph G) (h : H.is_spanning) :
+H.spanning_coe ≃g H.coe :=
+{ to_fun := λ v, ⟨v, h v⟩,
+  inv_fun := λ v, v,
+  left_inv := λ v, rfl,
+  right_inv := λ ⟨v, hv⟩, rfl,
+  map_rel_iff' := λ v w, iff.rfl }
+
 /-- A subgraph is called an *induced subgraph* if vertices of `G'` are adjacent if
 they are adjacent in `G`. -/
 def is_induced (G' : subgraph G) : Prop :=

@@ -32,12 +32,13 @@ def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w �
 
 /-- The union of two `simple_graph`s. -/
 def union (x y : simple_graph V) : simple_graph V :=
-{ adj := λ v w, x.adj v w ∨ y.adj v w,
-  sym := λ v w h, by rwa [x.adj_comm, y.adj_comm] }
+{ adj := x.adj ⊔ y.adj,
+  sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }
 
 /-- The intersection of two `simple_graph`s. -/
 def inter (x y : simple_graph V) : simple_graph V :=
-{ adj := λ v w, x.adj v w ∧ y.adj v w }
+{ adj := x.adj ⊓ y.adj,
+  sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }
 
 instance : has_union (simple_graph V) := ⟨union⟩
 instance : has_inter (simple_graph V) := ⟨inter⟩

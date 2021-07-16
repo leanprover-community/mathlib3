@@ -35,6 +35,8 @@ finitely many vertices.
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.
 
+* `boolean_lattice` instance: Under the subgraph relation, `simple_graph` forms a `bounded_lattice`.
+
 ## Notations
 
 * `→g`, `↪g`, and `≃g` for graph homomorphisms, graph embeddings, and graph isomorphisms,
@@ -535,13 +537,26 @@ end
 
 end finite
 
-section complement
+section order
 
 /-!
 ## Complement of a simple graph
 
 This section contains definitions and lemmas concerning the complement of a simple graph.
 -/
+
+/-- The relation that one `simple_graph` is a subgraph of another. -/
+def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
+
+/-- The union of two `simple_graph`s. -/
+def union (x y : simple_graph V) : simple_graph V :=
+{ adj := x.adj ⊔ y.adj,
+  sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }
+
+/-- The intersection of two `simple_graph`s. -/
+def inter (x y : simple_graph V) : simple_graph V :=
+{ adj := x.adj ⊓ y.adj,
+  sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }
 
 /--
 We define `compl G` to be the `simple_graph V` such that no two adjacent vertices in `G`
@@ -553,23 +568,43 @@ protected def compl (G : simple_graph V) : simple_graph V :=
   sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
   loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
 
-instance has_compl : has_compl (simple_graph V) := ⟨simple_graph.compl⟩
+/-- The symmetric difference of two `simple_graph`s. -/
+protected def sdiff (x y : simple_graph V) : simple_graph V :=
+{ adj := x.adj \ y.adj,
+  sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm]  }
 
-@[simp]
-lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+instance : boolean_algebra (simple_graph V) :=
+{ le := is_subgraph,
+  sup := simple_graph.union,
+  inf := simple_graph.inter,
+  compl := simple_graph.compl,
+  sdiff := simple_graph.sdiff,
+  top := complete_graph V,
+  bot := empty_graph V,
+  le_top := λ x v w h, x.ne_of_adj h,
+  bot_le := λ x v w h, h.elim,
+  sup_le := λ x y z hxy hyz v w h, h.cases_on (λ h, hxy h) (λ h, hyz h),
+  sdiff_eq := λ x y, by { ext v w, refine ⟨λ h, ⟨h.1, ⟨_, h.2⟩⟩, λ h, ⟨h.1, h.2.2⟩⟩,
+                          rintro rfl, exact x.loopless _ h.1 },
+  sup_inf_sdiff := λ a b, by { ext v w, refine ⟨λ h, _, λ h', _⟩,
+                               obtain ⟨ha, _⟩|⟨ha, _⟩ := h; exact ha,
+                               by_cases b.adj v w; exact or.inl ⟨h', h⟩ <|> exact or.inr ⟨h', h⟩ },
+  inf_inf_sdiff := λ a b, by { ext v w, exact ⟨λ ⟨⟨_, hb⟩,⟨_, hb'⟩⟩, hb' hb, λ h, h.elim⟩ },
+  le_sup_left := λ x y v w h, or.inl h,
+  le_sup_right := λ x y v w h, or.inr h,
+  le_inf := λ x y z hxy hyz v w h, ⟨hxy h, hyz h⟩,
+  le_sup_inf := λ a b c v w h, or.dcases_on h.2 or.inl $
+    or.dcases_on h.1 (λ h _, or.inl h) $ λ hb hc, or.inr ⟨hb, hc⟩,
+  inf_compl_le_bot := λ a v w h, false.elim $ h.2.2 h.1,
+  top_le_sup_compl := λ a v w ne, by { by_cases a.adj v w, exact or.inl h, exact or.inr ⟨ne, h⟩ },
+  inf_le_left := λ x y v w h, h.1,
+  inf_le_right := λ x y v w h, h.2,
+  .. partial_order.lift simple_graph.adj $ λ (x y : simple_graph V) h, by { ext, rw h } }
+
+@[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
 instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
   [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
-
-@[simp]
-lemma compl_compl (G : simple_graph V) : Gᶜᶜ = G :=
-begin
-  ext v w,
-  split; simp only [compl_adj, not_and, not_not],
-  { exact λ ⟨hne, h⟩, h hne },
-  { intro h,
-    simpa [G.ne_of_adj h], },
-end
 
 lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
   disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=
@@ -589,7 +624,7 @@ begin
   tauto,
 end
 
-end complement
+end order
 
 section maps
 

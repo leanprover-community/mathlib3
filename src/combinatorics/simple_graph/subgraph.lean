@@ -25,7 +25,10 @@ sub-relation of the adjacency relation of the simple graph.
 * `subgraph.is_spanning` for whether a subgraph is a spanning subgraph and
   `subgraph.is_induced` for whether a subgraph is an induced subgraph.
 
-* A `bounded_lattice (subgraph G)` instance.
+* A `bounded_lattice (subgraph G)` instance, under the `subgraph` relation.
+
+* `simple_graph.to_subgraph`: If a `simple_graph` is a subgraph of another, then you can turn it
+  into a member of the larger graph's `simple_graph.subgraph` type.
 
 * Graph homomorphisms from a subgraph to a graph (`subgraph.map_top`) and between subgraphs
   (`subgraph.map`).
@@ -87,11 +90,11 @@ isolated vertices unless the subgraph is spanning, hence the name. -/
   loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
 
 @[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
-G.adj u v := H.adj_sub h
+  G.adj u v := H.adj_sub h
 
 /-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
 @[simps] def spanning_coe_equiv_coe_of_spanning (G' : subgraph G) (h : G'.is_spanning) :
-G'.spanning_coe ≃g G'.coe :=
+  G'.spanning_coe ≃g G'.coe :=
 { to_fun := λ v, ⟨v, h v⟩,
   inv_fun := λ v, v,
   left_inv := λ v, rfl,
@@ -239,6 +242,21 @@ instance : bounded_lattice (subgraph G) :=
   le_inf := λ x y z hxy hyz, ⟨set.subset_inter hxy.1 hyz.1, (λ v w h, ⟨hxy.2 h, hyz.2 h⟩)⟩,
   inf_le_left := λ x y, ⟨set.inter_subset_left x.verts y.verts, (λ v w h, h.1)⟩,
   inf_le_right := λ x y, ⟨set.inter_subset_right x.verts y.verts, (λ v w h, h.2)⟩ }
+
+/-- Turn a subgraph of a `simple_graph` into a member of its subgraph type. -/
+@[simps] def _root_.simple_graph.to_subgraph (H : simple_graph V) (h : H ≤ G) :
+  G.subgraph :=
+{ verts := set.univ,
+  adj := H.adj,
+  adj_sub := h,
+  edge_vert := λ v w h, set.mem_univ v,
+  sym := H.sym }
+
+lemma _root_.simple_graph.to_subgraph.is_spanning (H : simple_graph V) (h : H ≤ G) :
+  (H.to_subgraph h).is_spanning := set.mem_univ
+
+lemma spanning_coe.is_subgraph_of_is_subgraph {H H' : subgraph G} (h : H ≤ H') :
+  H.spanning_coe ≤ H'.spanning_coe := h.2
 
 /-- The top of the `subgraph G` lattice is equivalent to the graph itself. -/
 def top_equiv : (⊤ : subgraph G).coe ≃g G :=

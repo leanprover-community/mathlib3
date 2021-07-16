@@ -1144,9 +1144,7 @@ show s \ t ≤ s, from sdiff_le
 
 lemma sdiff_ssubset {s t : finset α} (h : t ⊆ s) (ht : t.nonempty) :
   s \ t ⊂ s :=
-begin
-  exact sdiff_lt h ht.ne_empty,
-end
+sdiff_lt (le_iff_subset.2 h) ht.ne_empty
 
 lemma union_sdiff_distrib (s₁ s₂ t : finset α) : (s₁ ∪ s₂) \ t = s₁ \ t ∪ s₂ \ t :=
 sup_sdiff

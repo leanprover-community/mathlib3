@@ -33,6 +33,8 @@ since the measure `μ` is weakly regular, the set `s` can be approximated above 
 below by a closed set.  Finally, since the domain `α` is normal, we use Urysohn's lemma to find a
 continuous function interpolating between these two sets.
 
+## Related results
+
 Are you looking for a result on "directional" approximation (above or below with respect to an
 order) of functions whose codomain is `ℝ≥0∞` or `ℝ`, by semicontinuous functions?  See the
 Vitali-Carathéodory theorem, in the file `measure_theory.vitali_caratheodory`.
@@ -53,7 +55,7 @@ namespace measure_theory.Lp
 
 variables [normed_space ℝ E]
 
-/-- A simple function in `Lp` can be approximated in `Lp` by continuous functions. -/
+/-- A function in `Lp` can be approximated in `Lp` by continuous functions. -/
 lemma bounded_continuous_function_dense [μ.weakly_regular] :
   (bounded_continuous_function E p μ).topological_closure = ⊤ :=
 begin

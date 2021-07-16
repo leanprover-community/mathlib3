@@ -67,7 +67,7 @@ lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 
 @[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.sym h
 
-/-- Coercion from `subgraph G` to `simple_graph G.V`. -/
+/-- Coercion from `G' : subgraph G` to a `simple_graph ↥G'.verts`. -/
 @[simps] def coe (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj v w,
   sym := λ v w h, G'.sym h,
@@ -79,8 +79,8 @@ G'.adj_sub h
 /-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
 
-/-- Coercion from `subgraph G` to `simple_graph V`. This will include "junk" isolated vertices
-unless the subgraph `is_spanning`, hence the name. -/
+/-- Coercion from `subgraph G` to `simple_graph V`. This will include "junk"
+isolated vertices unless the subgraph is spanning, hence the name. -/
 @[simps] def spanning_coe (G' : subgraph G) : simple_graph V :=
 { adj := G'.adj,
   sym := G'.sym,
@@ -89,8 +89,9 @@ unless the subgraph `is_spanning`, hence the name. -/
 @[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
 G.adj u v := H.adj_sub h
 
-def spanning_coe_equiv_coe_of_spanning (H : subgraph G) (h : H.is_spanning) :
-H.spanning_coe ≃g H.coe :=
+/-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
+@[simps] def spanning_coe_equiv_coe_of_spanning (G' : subgraph G) (h : G'.is_spanning) :
+G'.spanning_coe ≃g G'.coe :=
 { to_fun := λ v, ⟨v, h v⟩,
   inv_fun := λ v, v,
   left_inv := λ v, rfl,

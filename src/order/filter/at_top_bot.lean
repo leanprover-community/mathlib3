@@ -372,7 +372,7 @@ lemma strict_mono_subseq_of_id_le {u : ℕ → ℕ} (hu : ∀ n, n ≤ u n) :
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ strict_mono (u ∘ φ) :=
 strict_mono_subseq_of_tendsto_at_top (tendsto_at_top_mono hu tendsto_id)
 
-lemma strict_mono_tendsto_at_top {φ : ℕ → ℕ} (h : strict_mono φ) :
+lemma _root_.strict_mono.tendsto_at_top {φ : ℕ → ℕ} (h : strict_mono φ) :
   tendsto φ at_top at_top :=
 tendsto_at_top_mono h.id_le tendsto_id
 
@@ -1266,7 +1266,7 @@ begin
     from (tendsto_at_top_mono φ_ge tendsto_id),
   obtain ⟨ψ, hψ, hψφ⟩ : ∃ ψ : ℕ → ℕ, strict_mono ψ ∧ strict_mono (φ ∘ ψ),
     from strict_mono_subseq_of_tendsto_at_top lim_φ,
-  exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp $ strict_mono_tendsto_at_top hψ⟩,
+  exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp hψ.tendsto_at_top⟩,
 end
 
 end is_countably_generated

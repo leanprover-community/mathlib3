@@ -460,17 +460,8 @@ lt_iff_le_not_le.trans $ and_congr iff.rfl $ by simp only [le_iff, not_forall, n
 theorem lt_iff' : μ < ν ↔ μ ≤ ν ∧ ∃ s, μ s < ν s :=
 lt_iff_le_not_le.trans $ and_congr iff.rfl $ by simp only [le_iff', not_forall, not_le]
 
--- TODO: add typeclasses for `∀ c, monotone ((*) c)` and `∀ c, monotone ((+) c)`
-
-protected lemma add_le_add_left (ν : measure α) (hμ : μ₁ ≤ μ₂) : ν + μ₁ ≤ ν + μ₂ :=
-λ s hs, add_le_add_left (hμ s hs) _
-
-protected lemma add_le_add_right (hμ : μ₁ ≤ μ₂) (ν : measure α) : μ₁ + ν ≤ μ₂ + ν :=
-λ s hs, add_le_add_right (hμ s hs) _
-
-protected lemma add_le_add (hμ : μ₁ ≤ μ₂) (hν : ν₁ ≤ ν₂) :
-  μ₁ + ν₁ ≤ μ₂ + ν₂ :=
-λ s hs, add_le_add (hμ s hs) (hν s hs)
+instance covariant_add_le : covariant_class (measure α) (measure α) (+) (≤) :=
+⟨λ ν μ₁ μ₂ hμ s hs, add_le_add_left (hμ s hs) _⟩
 
 protected lemma le_add_left (h : μ ≤ ν) : μ ≤ ν' + ν :=
 λ s hs, le_add_left (h s hs)
@@ -1913,6 +1904,9 @@ begin
   rw [add_apply, sub_apply h_s_meas h₁, ennreal.sub_add_cancel_of_le (h₁ s h_s_meas)],
 end
 
+lemma sub_le : μ - ν ≤ μ :=
+Inf_le (measure.le_add_right (le_refl _))
+
 end measure_sub
 
 lemma restrict_sub_eq_restrict_sub_restrict (h_meas_s : measurable_set s) :
@@ -1976,6 +1970,10 @@ begin
       sub_eq_zero_of_le],
   repeat {simp [*]},
 end
+
+instance finite_measure_sub [finite_measure μ] : finite_measure (μ - ν) :=
+{ measure_univ_lt_top := lt_of_le_of_lt
+    (measure.sub_le set.univ measurable_set.univ) (measure_lt_top _ _) }
 
 end measure
 
@@ -2566,3 +2564,14 @@ lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_se
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end indicator_function
+
+namespace measurable_set
+
+variables [measurable_space α]
+
+@[measurability]
+lemma cond {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
+  {i : bool} : measurable_set (cond i A B) :=
+by { cases i, exacts [hB, hA] }
+
+end measurable_set

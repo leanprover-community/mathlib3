@@ -299,7 +299,7 @@ measure corresponding to the function `r • s`. -/
 def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
 { measure_of' := r • v,
   empty' := by rw [pi.smul_apply, empty, smul_zero],
-  not_measurable' := λ _ hi, by rw [ pi.smul_apply, v.not_measurable hi, smul_zero],
+  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
   m_Union' := λ _ hf₁ hf₂, has_sum.smul (v.m_Union hf₁ hf₂) }
 
 instance : has_scalar R (vector_measure α M) := ⟨smul⟩

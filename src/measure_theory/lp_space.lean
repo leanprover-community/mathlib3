@@ -1449,6 +1449,14 @@ begin
   { exact norm_indicator_const_Lp hp_pos hp_top, },
 end
 
+@[simp] lemma indicator_const_empty :
+  indicator_const_Lp p measurable_set.empty (by simp : μ ∅ ≠ ∞) c = 0 :=
+begin
+  rw Lp.eq_zero_iff_ae_eq_zero,
+  convert indicator_const_Lp_coe_fn,
+  simp [set.indicator_empty'],
+end
+
 lemma mem_ℒp_add_of_disjoint {f g : α → E}
   (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
   mem_ℒp (f + g) p μ ↔ mem_ℒp f p μ ∧ mem_ℒp g p μ :=

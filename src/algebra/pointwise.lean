@@ -398,6 +398,41 @@ ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_s
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=
 image2_singleton_left
 
+instance smul_comm_class_set {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class α (set β) (set γ) :=
+{ smul_comm := λ a T T',
+    by simp only [←image2_smul, ←image_smul, image2_image_right, image_image2, smul_comm] }
+
+instance smul_comm_class_set' {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class (set α) β (set γ) :=
+by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
+
+instance smul_comm_class {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class (set α) (set β) (set γ) :=
+{ smul_comm := λ T T' T'', begin
+    simp only [←image2_smul, image2_swap _ T],
+    exact image2_assoc (λ b c a, smul_comm a b c),
+  end }
+
+instance is_scalar_tower {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower α β (set γ) :=
+{ smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
+
+instance is_scalar_tower' {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower α (set β) (set γ) :=
+{ smul_assoc := λ a T T',
+    by simp only [←image_smul, ←image2_smul, image_image2, image2_image_left, smul_assoc] }
+
+instance is_scalar_tower'' {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower (set α) (set β) (set γ) :=
+{ smul_assoc := λ T T' T'', image2_assoc smul_assoc }
+
 section monoid
 
 /-! ### `set α` as a `(∪,*)`-semiring -/

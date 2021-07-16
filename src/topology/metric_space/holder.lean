@@ -7,7 +7,7 @@ import topology.metric_space.lipschitz
 import analysis.special_functions.pow
 
 /-!
-# Holder continuous functions
+# Hölder continuous functions
 
 In this file we define `f : X → Y` to be *Hölder continuous* with constant `C : ℝ≥0` and exponent
 `r : ℝ≥0`, if `edist (f x) (f y) ≤ C * edist x y ^ r` for all `x y : X`. We also prove some basic
@@ -35,7 +35,7 @@ section emetric
 
 variables [pseudo_emetric_space X] [pseudo_emetric_space Y] [pseudo_emetric_space Z]
 
-/-- A function `f : X → Y` between two `pseudo_emeteric_space`s is Hölder continuous with constant
+/-- A function `f : X → Y` between two `pseudo_emetric_space`s is Hölder continuous with constant
 `C : ℝ≥0` and exponent `r : ℝ≥0`, if `edist (f x) (f y) ≤ C * edist x y ^ r` for all `x y : X`. -/
 def holder_with (C r : ℝ≥0) (f : X → Y) : Prop :=
 ∀ x y, edist (f x) (f y) ≤ C * edist x y ^ (r : ℝ)

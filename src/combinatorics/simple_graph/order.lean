@@ -49,9 +49,6 @@ instance : bounded_lattice (simple_graph V) :=
   inf := inter,
   top := complete_graph V,
   bot := empty_graph V,
-  le_refl := λ _ _ _ h, h,
-  le_trans := λ x y z hxy hyz _ _ h, hyz (hxy h),
-  le_antisymm := λ x y hxy hyx, by { ext v w, exact ⟨λ h, hxy h, λ h, hyx h⟩ },
   le_top := λ x v w h, x.ne_of_adj h,
   bot_le := λ x v w h, h.elim,
   sup_le := λ x y z hxy hyz v w h, h.cases_on (λ h, hxy h) (λ h, hyz h),
@@ -59,7 +56,8 @@ instance : bounded_lattice (simple_graph V) :=
   le_sup_right := λ x y v w h, or.inr h,
   le_inf := λ x y z hxy hyz v w h, ⟨hxy h, hyz h⟩,
   inf_le_left := λ x y v w h, h.1,
-  inf_le_right := λ x y v w h, h.2 }
+  inf_le_right := λ x y v w h, h.2,
+  .. partial_order.lift simple_graph.adj (λ (x y : simple_graph V) h, by { ext, rw h }) }
 
 variable {G : simple_graph V}
 

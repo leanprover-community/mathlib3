@@ -2527,6 +2527,16 @@ by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
   by simp only [bUnion_insert, image_union, ih])
 
+lemma bUnion_bUnion [decidable_eq β] [decidable_eq γ] (s : finset α) (f : α → finset β)
+  (g : β → finset γ) :
+  (s.bUnion f).bUnion g = s.bUnion (λ a, (f a).bUnion g) :=
+begin
+  ext,
+  simp only [finset.mem_bUnion, exists_prop],
+  simp_rw [←exists_and_distrib_right, ←exists_and_distrib_left, and_assoc],
+  rw exists_comm,
+end
+
 theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
   (s.bind t).to_finset = s.to_finset.bUnion (λa, (t a).to_finset) :=
 ext $ λ x, by simp only [multiset.mem_to_finset, mem_bUnion, multiset.mem_bind, exists_prop]
@@ -2603,15 +2613,10 @@ theorem product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
-@[simp] lemma product_bUnion {β γ : Type*} [decidable_eq γ] (A : finset α) (B : finset β)
-  (f : α × β → finset γ) :
-  (A.product B).bUnion f = A.bUnion (λ a, B.bUnion (λ b, f (a, b))) :=
-begin
-  ext x,
-  simp only [mem_bUnion, exists_prop, mem_product],
-  exact ⟨λ ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩, ⟨a, ha, b, hb, hx⟩,
-    λ ⟨a, ha, b, hb, hx⟩, ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩⟩,
-end
+@[simp] lemma product_bUnion {β γ : Type*} [decidable_eq α] [decidable_eq β] [decidable_eq γ]
+  (s : finset α) (t : finset β) (f : α × β → finset γ) :
+  (s.product t).bUnion f = s.bUnion (λ a, t.bUnion (λ b, f (a, b))) :=
+by simp_rw [product_eq_bUnion, bUnion_bUnion, image_bUnion]
 
 @[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=
 multiset.card_product _ _

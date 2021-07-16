@@ -177,18 +177,18 @@ subgraph.ext _ _ hV hadj
 /-- The union of two subgraphs. -/
 def union (x y : subgraph G) : subgraph G :=
 { verts := x.verts ∪ y.verts,
-  adj := λ v w, x.adj v w ∨ y.adj v w,
+  adj := x.adj ⊔ y.adj,
   adj_sub := λ v w h, or.cases_on h (λ h, x.adj_sub h) (λ h, y.adj_sub h),
   edge_vert := λ v w h, or.cases_on h (λ h, or.inl (x.edge_vert h)) (λ h, or.inr (y.edge_vert h)),
-  sym := λ v w h, by rwa [x.adj_comm, y.adj_comm] }
+  sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }
 
 /-- The intersection of two subgraphs. -/
 def inter (x y : subgraph G) : subgraph G :=
 { verts := x.verts ∩ y.verts,
-  adj := λ v w, x.adj v w ∧ y.adj v w,
+  adj := x.adj ⊓ y.adj,
   adj_sub := λ v w h, x.adj_sub h.1,
   edge_vert := λ v w h, ⟨x.edge_vert h.1, y.edge_vert h.2⟩,
-  sym := λ v w h, by rwa [x.adj_comm, y.adj_comm] }
+  sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }
 
 instance : has_union (subgraph G) := ⟨union⟩
 instance : has_inter (subgraph G) := ⟨inter⟩
@@ -243,19 +243,19 @@ instance : bounded_lattice (subgraph G) :=
 /-- The top of the `subgraph G` lattice is equivalent to the graph itself. -/
 def top_equiv : (⊤ : subgraph G).coe ≃g G :=
 { to_fun := λ v, ↑v,
-  inv_fun := λ v, ⟨v, by tidy⟩,
-  left_inv := by tidy,
-  right_inv := by tidy,
-  map_rel_iff' := by tidy }
+  inv_fun := λ v, ⟨v, trivial⟩,
+  left_inv := λ ⟨v, _⟩, rfl,
+  right_inv := λ v, rfl,
+  map_rel_iff' := λ a b, iff.rfl }
 
 /-- The bottom of the `subgraph G` lattice is equivalent to the empty graph on the empty
 vertex type. -/
 def bot_equiv : (⊥ : subgraph G).coe ≃g empty_graph empty :=
-{ to_fun := λ v, false.elim v.property,
-  inv_fun := λ v, begin cases v, end,
-  left_inv := by tidy,
-  right_inv := by tidy,
-  map_rel_iff' := by tidy }
+{ to_fun := λ v, v.property.elim,
+  inv_fun := λ v, v.elim,
+  left_inv := λ ⟨_, h⟩, h.elim,
+  right_inv := λ v, v.elim,
+  map_rel_iff' := λ a b, iff.rfl }
 
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/

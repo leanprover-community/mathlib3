@@ -345,7 +345,10 @@ def clopen_basis' : set (clopen_sets ((zmod d) × ℤ_[p])) :=
 
 lemma find_this_out (ε : ℝ) (h : 0 < ε) : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
 begin
-  sorry
+  convert exists_pow_lt_of_lt_one h _, swap, exact 1/p,
+  { simp only [one_div, inv_pow'], },
+  rw div_lt_iff _, { simp, apply nat.prime.one_lt, apply fact_iff.1 _, assumption, },
+  simp, apply nat.prime.pos, apply fact_iff.1 _, assumption,
 end
 
 lemma mem_clopen_basis (n : ℕ) (a : zmod (p^n)) :
@@ -502,9 +505,26 @@ def bernoulli_measure (hc : gcd c p = 1) :=
 
 variables (d)
 
+open_locale big_operators
+
+lemma what_to_do (f : locally_constant (zmod d × ℤ_[p]) R) : ∃ (s : finset ℕ)
+  (i : s → (clopen_basis' p d)) (j : s → R), f = ∑ k : s, j(k) • (char_fn (zmod d × ℤ_[p]) (i k)) :=
+begin
+  sorry,
+end
+
 lemma bernoulli_measure_nonempty (hc : gcd c p = 1) :
   nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
 begin
+  refine mem_nonempty _,
+  { constructor, swap 3,
+    { intro f,
+      have s := classical.some (what_to_do p d R f),
+      have hs := classical.some_spec (what_to_do p d R f),
+      have hs' := classical.some_spec (classical.some_spec (what_to_do p d R f)),
+       },
+    sorry,
+    sorry, },
 sorry,
 end
 

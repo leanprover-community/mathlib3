@@ -39,7 +39,7 @@ variables {G : Type*} [group G] (H K : subgroup G) (S T : set G)
 /-- `S` and `T` are complements if `(*) : S × T → G` is a bijection.
   This notion generalizes left transversals, right transversals, and complementary subgroups. -/
 @[to_additive "`S` and `T` are complements if `(*) : S × T → G` is a bijection"]
-def is_complement : Prop := ∀ g : G, ∃! x : S × T, x.1.1 * x.2.1 = g
+def is_complement : Prop := function.bijective (λ x : S × T, x.1.1 * x.2.1)
 
 /-- The set of left-complements of `T : set G` -/
 @[to_additive "The set of left-complements of `T : set G`"]
@@ -51,18 +51,23 @@ def right_transversals : set (set G) := {T : set G | is_complement S T}
 
 variables {H K S T}
 
-@[to_additive] lemma is_complement_iff_bijective :
-  is_complement S T ↔ function.bijective (λ x : S × T, x.1.1 * x.2.1) :=
-(function.bijective_iff_exists_unique _).symm
+@[to_additive] lemma is_complement_iff_exists_unique :
+  is_complement S T ↔ ∀ g : G, ∃! x : S × T, x.1.1 * x.2.1 = g :=
+function.bijective_iff_exists_unique _
+
+@[to_additive] lemma is_complement.exists_unique (h : is_complement S T) (g : G) :
+  ∃! x : S × T, x.1.1 * x.2.1 = g :=
+is_complement_iff_exists_unique.mp h g
 
 @[to_additive] lemma is_complement.symm (h : is_complement (H : set G) (K : set G)) :
   is_complement (K : set G) (H : set G) :=
 begin
   let ϕ : H × K ≃ K × H := equiv.mk (λ x, ⟨x.2⁻¹, x.1⁻¹⟩) (λ x, ⟨x.2⁻¹, x.1⁻¹⟩)
     (λ x, prod.ext (inv_inv _) (inv_inv _)) (λ x, prod.ext (inv_inv _) (inv_inv _)),
-  refine λ g, (equiv.exists_unique_congr ϕ (λ x, _)).mp (h g⁻¹),
-  rw [eq_inv_iff_eq_inv, mul_inv_rev],
-  exact eq_comm,
+  let ψ : G ≃ G := equiv.mk (λ g : G, g⁻¹) (λ g : G, g⁻¹) inv_inv inv_inv,
+  suffices : ψ ∘ (λ x : H × K, x.1.1 * x.2.1) = (λ x : K × H, x.1.1 * x.2.1) ∘ ϕ,
+  { rwa [is_complement, ←equiv.bijective_comp, ←this, equiv.comp_bijective] },
+  exact funext (λ x, mul_inv_rev _ _),
 end
 
 @[to_additive] lemma is_complement_comm :
@@ -72,6 +77,7 @@ end
 @[to_additive] lemma mem_left_transversals_iff_exists_unique_inv_mul_mem :
   S ∈ left_transversals T ↔ ∀ g : G, ∃! s : S, (s : G)⁻¹ * g ∈ T :=
 begin
+  rw [left_transversals, set.mem_set_of_eq, is_complement_iff_exists_unique],
   refine ⟨λ h g, _, λ h g, _⟩,
   { obtain ⟨x, h1, h2⟩ := h g,
     exact ⟨x.1, (congr_arg (∈ T) (eq_inv_mul_of_mul_eq h1)).mp x.2.2, λ y hy,
@@ -85,6 +91,7 @@ end
 @[to_additive] lemma mem_right_transversals_iff_exists_unique_mul_inv_mem :
   S ∈ right_transversals T ↔ ∀ g : G, ∃! s : S, g * (s : G)⁻¹ ∈ T :=
 begin
+  rw [right_transversals, set.mem_set_of_eq, is_complement_iff_exists_unique],
   refine ⟨λ h g, _, λ h g, _⟩,
   { obtain ⟨x, h1, h2⟩ := h g,
     exact ⟨x.2, (congr_arg (∈ T) (eq_mul_inv_of_mul_eq h1)).mp x.1.2, λ y hy,
@@ -144,8 +151,8 @@ lemma is_complement_of_disjoint [fintype G] [fintype H] [fintype K]
   (h2 : disjoint H K) :
   is_complement (H : set G) (K : set G) :=
 begin
-  refine function.bijective.exists_unique ((fintype.bijective_iff_injective_and_card _).mpr
-    ⟨λ x y h, _, (fintype.card_prod H K).trans h1⟩),
+  refine (fintype.bijective_iff_injective_and_card _).mpr
+    ⟨λ x y h, _, (fintype.card_prod H K).trans h1⟩,
   rw [←eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_inv_eq_iff_eq_mul] at h,
   change ↑(x.2 * y.2⁻¹) = ↑(x.1⁻¹ * y.1) at h,
   rw [prod.ext_iff, ←@inv_mul_eq_one H _ x.1 y.1, ←@mul_inv_eq_one K _ x.2 y.2, subtype.ext_iff,

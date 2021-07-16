@@ -375,7 +375,10 @@ def mul_action.to_End_hom [monoid M] [mul_action M α] : M →* function.End α 
   map_one' := funext (one_smul M),
   map_mul' := λ x y, funext (mul_smul x y) }
 
-/-- The monoid action induced by a monoid hom to `function.End α`-/
+/-- The monoid action induced by a monoid hom to `function.End α`
+
+See note [reducible non-instances]. -/
+@[reducible]
 def mul_action.of_End_hom [monoid M] (f : M →* function.End α) : mul_action M α :=
 mul_action.comp_hom α f
 
@@ -393,6 +396,9 @@ def add_action.to_End_hom [add_monoid M] [add_action M α] : M →+ additive (fu
   map_zero' := funext (zero_vadd M),
   map_add' := λ x y, funext (add_vadd x y) }
 
-/-- The additive action induced by a hom to `additive (function.End α)`-/
+/-- The additive action induced by a hom to `additive (function.End α)`
+
+See note [reducible non-instances]. -/
+@[reducible]
 def add_action.of_End_hom [add_monoid M] (f : M →+ additive (function.End α)) : add_action M α :=
 add_action.comp_hom α f

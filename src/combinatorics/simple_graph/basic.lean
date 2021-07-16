@@ -548,13 +548,12 @@ We define `compl G` to be the `simple_graph V` such that no two adjacent vertice
 are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
 (still ensuring that vertices are not adjacent to themselves.)
 -/
-def compl (G : simple_graph V) : simple_graph V :=
+protected def compl (G : simple_graph V) : simple_graph V :=
 { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
   sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
   loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
 
-instance has_compl : has_compl (simple_graph V) :=
-{ compl := compl }
+instance has_compl : has_compl (simple_graph V) := ⟨simple_graph.compl⟩
 
 @[simp]
 lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
@@ -571,9 +570,6 @@ begin
   { intro h,
     simpa [G.ne_of_adj h], },
 end
-
-@[simp]
-lemma compl_involutive : function.involutive (@compl V) := compl_compl
 
 lemma compl_neighbor_set_disjoint (G : simple_graph V) (v : V) :
   disjoint (G.neighbor_set v) (Gᶜ.neighbor_set v) :=

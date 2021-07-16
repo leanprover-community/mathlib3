@@ -257,75 +257,83 @@ by simp_rw [dot_product, mul_comm]
   dot_product v w = v ⟨⟩ * w ⟨⟩ :=
 by simp [dot_product]
 
-@[simp] lemma dot_product_zero [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product v 0 = 0 :=
-by simp [dot_product]
+section non_unital_non_assoc_semiring
+variables [non_unital_non_assoc_semiring α] (u v w : m → α)
 
-@[simp] lemma dot_product_zero' [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product v (λ _, 0) = 0 :=
-dot_product_zero v
+@[simp] lemma dot_product_zero : dot_product v 0 = 0 := by simp [dot_product]
 
-@[simp] lemma zero_dot_product [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product 0 v = 0 :=
-by simp [dot_product]
+@[simp] lemma dot_product_zero' : dot_product v (λ _, 0) = 0 := dot_product_zero v
 
-@[simp] lemma zero_dot_product' [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product (λ _, (0 : α)) v = 0 :=
-zero_dot_product v
+@[simp] lemma zero_dot_product : dot_product 0 v = 0 := by simp [dot_product]
 
-@[simp] lemma add_dot_product [non_unital_non_assoc_semiring α] (u v w : m → α) :
-  dot_product (u + v) w = dot_product u w + dot_product v w :=
+@[simp] lemma zero_dot_product' : dot_product (λ _, (0 : α)) v = 0 := zero_dot_product v
+
+@[simp] lemma add_dot_product : dot_product (u + v) w = dot_product u w + dot_product v w :=
 by simp [dot_product, add_mul, finset.sum_add_distrib]
 
-@[simp] lemma dot_product_add [non_unital_non_assoc_semiring α] (u v w : m → α) :
-  dot_product u (v + w) = dot_product u v + dot_product u w :=
+@[simp] lemma dot_product_add : dot_product u (v + w) = dot_product u v + dot_product u w :=
 by simp [dot_product, mul_add, finset.sum_add_distrib]
 
-@[simp] lemma diagonal_dot_product [decidable_eq m] [non_unital_non_assoc_semiring α]
-  (v w : m → α) (i : m) :
-  dot_product (diagonal v i) w = v i * w i :=
+end non_unital_non_assoc_semiring
+
+section non_unital_non_assoc_semiring_decidable
+variables [decidable_eq m] [non_unital_non_assoc_semiring α] (u v w : m → α)
+
+@[simp] lemma diagonal_dot_product (i : m) : dot_product (diagonal v i) w = v i * w i :=
 have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma dot_product_diagonal [decidable_eq m] [non_unital_non_assoc_semiring α]
-  (v w : m → α) (i : m) :
-  dot_product v (diagonal w i) = v i * w i :=
+@[simp] lemma dot_product_diagonal (i : m) : dot_product v (diagonal w i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma dot_product_diagonal' [decidable_eq m] [non_unital_non_assoc_semiring α]
-  (v w : m → α) (i : m) :
-  dot_product v (λ j, diagonal w j i) = v i * w i :=
+@[simp] lemma dot_product_diagonal' (i : m) : dot_product v (λ j, diagonal w j i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma neg_dot_product [ring α] (v w : m → α) : dot_product (-v) w = - dot_product v w :=
-by simp [dot_product]
+end non_unital_non_assoc_semiring_decidable
 
-@[simp] lemma dot_product_neg [ring α] (v w : m → α) : dot_product v (-w) = - dot_product v w :=
-by simp [dot_product]
+section ring
+variables [ring α] (u v w : m → α)
 
-@[simp] lemma smul_dot_product [monoid R] [has_mul α] [add_comm_monoid α] [distrib_mul_action R α]
-  [is_scalar_tower R α α] (x : R) (v w : m → α) :
+@[simp] lemma neg_dot_product : dot_product (-v) w = - dot_product v w := by simp [dot_product]
+
+@[simp] lemma dot_product_neg : dot_product v (-w) = - dot_product v w := by simp [dot_product]
+
+@[simp] lemma sub_dot_product : dot_product (u - v) w = dot_product u w - dot_product v w :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma dot_product_sub : dot_product u (v - w) = dot_product u v - dot_product u w :=
+by simp [sub_eq_add_neg]
+
+end ring
+
+section distrib_mul_action
+variables [monoid R] [has_mul α] [add_comm_monoid α] [distrib_mul_action R α]
+
+@[simp] lemma smul_dot_product [is_scalar_tower R α α] (x : R) (v w : m → α) :
   dot_product (x • v) w = x • dot_product v w :=
 by simp [dot_product, finset.smul_sum, smul_mul_assoc]
 
-@[simp] lemma dot_product_smul [monoid R] [has_mul α] [add_comm_monoid α] [distrib_mul_action R α]
-  [smul_comm_class R α α] (x : R) (v w : m → α) :
+@[simp] lemma dot_product_smul [smul_comm_class R α α] (x : R) (v w : m → α)  :
   dot_product v (x • w) = x • dot_product v w :=
 by simp [dot_product, finset.smul_sum, mul_smul_comm]
 
-lemma star_dot_product_star [semiring α] [star_ring α] (v w : m → α) :
-  dot_product (star v) (star w) = star (dot_product w v) :=
+end distrib_mul_action
+
+section star_ring
+variables [semiring α] [star_ring α] (v w : m → α)
+
+lemma star_dot_product_star : dot_product (star v) (star w) = star (dot_product w v) :=
 by simp [dot_product]
 
-lemma star_dot_product [semiring α] [star_ring α] (v w : m → α) :
-  dot_product (star v) w = star (dot_product (star w) v) :=
+lemma star_dot_product : dot_product (star v) w = star (dot_product (star w) v) :=
 by simp [dot_product]
 
-lemma dot_product_star [semiring α] [star_ring α] (v w : m → α) :
-  dot_product v (star w) = star (dot_product w (star v)) :=
+lemma dot_product_star : dot_product v (star w) = star (dot_product w (star v)) :=
 by simp [dot_product]
+
+end star_ring
 
 end dot_product
 
@@ -676,7 +684,13 @@ dot_product_diagonal' v w x
 @[simp] lemma mul_vec_zero (A : matrix m n α) : mul_vec A 0 = 0 :=
 by { ext, simp [mul_vec] }
 
-@[simp] lemma vec_mul_zero (A : matrix m n α) : vec_mul 0 A = 0 :=
+@[simp] lemma zero_vec_mul (A : matrix m n α) : vec_mul 0 A = 0 :=
+by { ext, simp [vec_mul] }
+
+@[simp] lemma zero_mul_vec (v : n → α) : mul_vec (0 : matrix m n α) v = 0 :=
+by { ext, simp [mul_vec] }
+
+@[simp] lemma vec_mul_zero (v : m → α) : vec_mul v (0 : matrix m n α) = 0 :=
 by { ext, simp [vec_mul] }
 
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
@@ -722,7 +736,7 @@ end non_unital_semiring
 section non_assoc_semiring
 variables [non_assoc_semiring α]
 
-@[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
+@[simp] lemma one_mul_vec [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
 by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
 
 @[simp] lemma vec_mul_one [decidable_eq m] (v : m → α) : vec_mul v 1 = v :=

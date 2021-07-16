@@ -35,7 +35,7 @@ finitely many vertices.
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.
 
-* `boolean_lattice` instance: Under the subgraph relation, `simple_graph` forms a `bounded_lattice`.
+* `boolean_algebra` instance: Under the subgraph relation, `simple_graph` forms a `boolean_algebra`.
   In other words, this is the lattice of spanning subgraphs of the complete graph.
 
 ## Notations

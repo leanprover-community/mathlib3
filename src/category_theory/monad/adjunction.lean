@@ -40,7 +40,7 @@ def to_comonad (h : L ⊣ R) : comonad D :=
   coassoc' := λ X, by { dsimp, rw ← L.map_comp, simp },
   right_counit' := λ X, by { dsimp, rw ← L.map_comp, simp } }
 
-@[simps {rhs_md := semireducible}]
+@[simps]
 def test {L : C ⥤ D} {R₁ R₂ : D ⥤ C} (h₁ : L ⊣ R₁) (h₂ : L ⊣ R₂) :
   h₁.to_monad ≅ h₂.to_monad :=
 monad_iso.mk
@@ -62,6 +62,7 @@ monad_iso.mk
       h₂.counit_naturality, h₂.left_triangle_components_assoc],
     refl,
   end)
+
 /-- The monad induced by the Eilenberg-Moore adjunction is the original monad.  -/
 @[simps]
 def adj_to_monad_iso (T : monad C) : T.adj.to_monad ≅ T :=
@@ -104,10 +105,10 @@ def monad.comparison_forget (h : L ⊣ R) :
 { hom := { app := λ X, 𝟙 _, },
   inv := { app := λ X, 𝟙 _, } }.
 
-def monad.free_comparison {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
-  L ⋙ monad.comparison h ≅ h.to_monad.free :=
-{ hom := { app := λ X, { f := 𝟙 _ } },
-  inv := { app := λ X, { f := 𝟙 _ } } }
+-- def monad.free_comparison {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
+--   L ⋙ monad.comparison h ≅ h.to_monad.free :=
+-- { hom := { app := λ X, { f := 𝟙 _ } },
+--   inv := { app := λ X, { f := 𝟙 _ } } }
 
 -- lemma monad.free_comparison_forget {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
 --   iso_whisker_right (monad.free_comparison h) h.to_monad.forget = _ :=
@@ -115,35 +116,44 @@ def monad.free_comparison {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R) :
 -- end
 
 lemma monad.comparison_unique_aux {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R}
-  (K : D ⥤ h.to_monad.algebra)
-  (hK₁ : K ⋙ h.to_monad.forget ≅ R)
-  (hK₂ : L ⋙ K ≅ h.to_monad.free)
-  (hK : ∀ X, (hK₂.hom.app X).f = hK₁.hom.app (L.obj X)) -- compatibility between hK₁ and hK₂
-  (X : D) :
-  R.map (L.map (hK₁.hom.app X)) ≫ R.map (h.counit.app X) = (K.obj X).a ≫ hK₁.hom.app X :=
+  {K : D ⥤ h.to_monad.algebra}
+  {hK₁ : K ⋙ h.to_monad.forget ≅ R}
+  (hK₂ : Π X, (L ⋙ K).obj X ⟶ h.to_monad.free.obj X)
+  (hK : ∀ X, (hK₂ X).f = hK₁.hom.app (L.obj X)) : -- compatibility between hK₁ and hK₂
+  ∀ Y, R.map (L.map (hK₁.hom.app Y)) ≫ R.map (h.counit.app Y) = (K.obj Y).a ≫ hK₁.hom.app Y :=
 begin
-  have : ∀ Y, R.map (L.map (hK₂.hom.app Y).f) ≫ R.map (h.counit.app (L.obj Y))
-            = (K.obj _).a ≫ (hK₂.hom.app _).f := λ Y, (hK₂.app Y).hom.h,
-  simp_rw [hK] at this,
-  have := this (R.obj X) =≫ R.map (h.counit.app X),
-  rw [assoc, ←R.map_comp, ←R.map_comp] at this,
+  let β' : Π (Y : D), R.obj (L.obj (R.obj Y)) ⟶ R.obj Y :=
+    λ Y, inv (R.map (L.map (hK₁.hom.app Y))) ≫ (K.obj Y).a ≫ hK₁.hom.app _,
+  have hβ' : ∀ {Y Y'} (f : Y ⟶ Y'), β' Y ≫ R.map f = R.map (L.map (R.map f)) ≫ β' Y',
+  { intros Y Y' f,
+    rw [assoc, is_iso.inv_comp_eq, assoc, ←R.map_comp_assoc, ←L.map_comp, ←hK₁.hom.naturality,
+      functor.comp_map, monad.forget_map, ←(K.map f).h_assoc, L.map_comp, R.map_comp_assoc,
+      is_iso.hom_inv_id_assoc],
+    refl },
+  intro Y,
+  suffices : R.map (h.counit.app Y) = β' Y,
+  { rw [this, is_iso.hom_inv_id_assoc] },
+  have : ∀ (X : C), R.map (h.counit.app (L.obj X)) = β' (L.obj X),
+  { intro X,
+    have := (hK₂ X).h,
+    dsimp at this,
+    simp [hK] at this,
+    simpa [hK] using (hK₂ X).h },
+  haveI : split_epi (R.map (h.counit.app Y)) := ⟨h.unit.app _, h.right_triangle_components⟩,
+  rw [←cancel_epi (R.map (L.map (R.map (h.counit.app Y)))), ←R.map_comp],
+  dsimp only [functor.comp_obj, functor.id_obj],
+  rw [←hβ', h.counit_naturality, R.map_comp, this],
 end
 
-#exit
-
-def monad.comparison_unique {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R} (K : D ⥤ h.to_monad.algebra)
-  (hK' : K ⋙ h.to_monad.forget ≅ R) :
+def monad.comparison_unique {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R} {K : D ⥤ h.to_monad.algebra}
+  (hK : K ⋙ h.to_monad.forget ≅ R) (hK' : L ⋙ K ≅ h.to_monad.free)
+  (h' : ∀ (X : C), (hK'.hom.app X).f = hK.hom.app (L.obj X)) :
   K ≅ monad.comparison h :=
 nat_iso.of_components
-  (λ X, monad.algebra.iso_mk (hK.app X) (begin dsimp, extract_goal end))
+  (λ X, monad.algebra.iso_mk (hK.app X) (monad.comparison_unique_aux hK'.hom.app h' _))
   (λ X Y f, by { ext, apply hK.hom.naturality f })
 
--- begin
---   let : Π B : D, R.obj (L.obj (K'.obj B).A) ⟶ (K'.obj B).A := λ B, (K'.obj B).a,
-
--- end
-
-lemma monad.left_comparison (h : L ⊣ R) : L ⋙ monad.comparison h = h.to_monad.free := rfl
+-- lemma monad.left_comparison (h : L ⊣ R) : L ⋙ monad.comparison h = h.to_monad.free := rfl
 
 instance [faithful R] (h : L ⊣ R) :
   faithful (monad.comparison h) :=
@@ -209,22 +219,61 @@ from `C` to the category of Eilenberg-Moore algebras for the adjunction is an eq
 class comonadic_left_adjoint (L : C ⥤ D) extends is_left_adjoint L :=
 (eqv : is_equivalence (comonad.comparison (adjunction.of_left_adjoint L)))
 
+@[simps]
+def test {L : C ⥤ D} {R₁ R₂ : D ⥤ C} (h₁ : L ⊣ R₁) (i : R₁ ≅ R₂) :
+  h₁.to_monad ≅ (h₁.of_nat_iso_right i).to_monad :=
+monad_iso.mk (iso_whisker_left L i)
+  (λ X, by simp)
+  (λ X, begin dsimp, simp,  end)
+
+-- monad_iso.mk
+--   (iso_whisker_left L (adjunction.right_adjoint_uniq h₁ h₂))
+--   (λ X,
+--     begin
+--       dsimp [adjunction.right_adjoint_uniq_hom_app],
+--       rw [h₂.hom_equiv_unit, ←h₂.unit_naturality_assoc, h₁.hom_equiv_counit, L.map_id,
+--         ←R₂.map_comp, id_comp, h₁.left_triangle_components],
+--       dsimp,
+--       simp,
+--     end)
+--   (λ X,
+--   begin
+--     dsimp [adjunction.right_adjoint_uniq_hom_app],
+--     simp only [adjunction.hom_equiv_unit, adjunction.hom_equiv_counit],
+--     rw [L.map_id, id_comp, L.map_id, id_comp, assoc, assoc, ←R₂.map_comp, ←h₁.counit_naturality,
+--       R₂.map_comp, h₂.unit_naturality_assoc, ←R₁.map_comp_assoc, L.map_comp, assoc,
+--       h₂.counit_naturality, h₂.left_triangle_components_assoc],
+--     refl,
+--   end)
+
 def monadic_of_iso (R₁ R₂ : D ⥤ C) [monadic_right_adjoint R₁] (i : R₁ ≅ R₂) :
   monadic_right_adjoint R₂ :=
-{ to_is_right_adjoint := adjunction.right_adjoint_of_nat_iso i,
+{ to_is_right_adjoint := ⟨_, (adjunction.of_right_adjoint R₁).of_nat_iso_right i⟩,
   eqv :=
   begin
-    letI := adjunction.right_adjoint_of_nat_iso i,
-    let z := adjunction.test (adjunction.of_right_adjoint R₁) (adjunction.of_nat_iso_right (adjunction.of_right_adjoint R₁) i),
-    let z₂ : _ ≌ (adjunction.of_right_adjoint R₂).to_monad.algebra := monad.algebra_equiv_of_iso_monads z,
-    let : monad.comparison (adjunction.of_right_adjoint R₂) ≅ monad.comparison (adjunction.of_right_adjoint R₁) ⋙ z₂.functor,
+    let h₁ := adjunction.of_right_adjoint R₁,
+    let h₂ := h₁.of_nat_iso_right i,
+    let T₁ := h₁.to_monad,
+    let T₂ := h₂.to_monad,
+    change is_equivalence (monad.comparison h₂),
+    let z : T₁ ≅ T₂ := adjunction.test h₁ h₂,
+    -- let z : _ ≅ _ := adjunction.test (adjunction.of_right_adjoint R₁) h₂,
+    let z' : T₁.algebra ≌ T₂.algebra := monad.algebra_equiv_of_iso_monads z,
+    have : z'.functor ⋙ T₂.forget = T₁.forget := rfl,
+    let : monad.comparison h₁ ⋙ z'.functor ≅ monad.comparison h₂,
     { apply nat_iso.of_components _ _,
       { intro X,
-        refine monad.algebra.iso_mk (i.symm.app X) _,
-        dsimp [adjunction.test, adjunction.right_adjoint_uniq_inv_app],
-        simp,
+        refine monad.algebra.iso_mk (i.app X) _,
+        dsimp,
+
       }
+
     }
+
+    -- let : monad.comparison (adjunction.of_right_adjoint R₂) ≅ monad.comparison (adjunction.of_right_adjoint R₁) ⋙ z₂.functor,
+    -- symmetry,
+    -- refine monad.comparison_unique _ _ _,
+
     -- -- have := z₂.functor,
   end
 

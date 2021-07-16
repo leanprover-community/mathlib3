@@ -170,6 +170,10 @@ def algebra_functor_of_monad_hom {T₁ T₂ : monad C} (h : T₂ ⟶ T₁) :
   map := λ A₁ A₂ f,
   { f := f.f } }
 
+@[simp] lemma algebra_functor_of_monad_hom_comp_forget {T₁ T₂ : monad C} (h : T₁ ⟶ T₂) :
+  algebra_functor_of_monad_hom h ⋙ forget _ = forget _ :=
+rfl
+
 /--
 The identity monad morphism induces the identity functor from the category of algebras to itself.
 -/
@@ -221,10 +225,6 @@ def algebra_equiv_of_iso_monads {T₁ T₂ : monad C} (h : T₁ ≅ T₂) :
     (algebra_functor_of_monad_hom_comp _ _).symm ≪≫
     algebra_functor_of_monad_hom_eq (by simp) ≪≫
     algebra_functor_of_monad_hom_id }
-
-@[simp] lemma algebra_equiv_of_iso_monads_comp_forget {T₁ T₂ : monad C} (h : T₁ ⟶ T₂) :
-  algebra_functor_of_monad_hom h ⋙ forget _ = forget _ :=
-rfl
 
 end monad
 

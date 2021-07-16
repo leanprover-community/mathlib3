@@ -53,7 +53,7 @@ namespace measure_theory.Lp
 
 variables [normed_space ℝ E]
 
-/-- A simple function in `Lp` can be approximated in `Lp` by continuous functions. -/
+/-- A function in `Lp` can be approximated in `Lp` by continuous functions. -/
 lemma bounded_continuous_function_dense [μ.weakly_regular] :
   (bounded_continuous_function E p μ).topological_closure = ⊤ :=
 begin

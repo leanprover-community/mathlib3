@@ -6,7 +6,6 @@ Authors: Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 import analysis.convex.specific_functions
 import analysis.special_functions.pow
 import data.real.conjugate_exponents
-import tactic.nth_rewrite
 
 /-!
 # Mean value inequalities

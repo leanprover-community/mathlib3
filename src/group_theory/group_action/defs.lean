@@ -220,24 +220,6 @@ by rw [smul_mul_assoc, mul_smul_comm, ← smul_assoc, smul_eq_mul]
 
 end
 
-variable (α)
-
-/-- The monoid of endomorphisms.
-
-Note that this is generalized by `category_theory.End` to categories other than `Type u`. -/
-protected def function.End := α → α
-
-instance : monoid (function.End α) :=
-{ one := id,
-  mul := (∘),
-  mul_assoc := λ f g h, rfl,
-  mul_one := λ f, rfl,
-  one_mul := λ f, rfl, }
-
-instance : inhabited (function.End α) := ⟨1⟩
-
-variable {α}
-
 namespace mul_action
 
 variables (M α)
@@ -359,11 +341,31 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
 
 end
 
+variable (α)
+
+/-- The monoid of endomorphisms.
+
+Note that this is generalized by `category_theory.End` to categories other than `Type u`. -/
+protected def function.End := α → α
+
+instance : monoid (function.End α) :=
+{ one := id,
+  mul := (∘),
+  mul_assoc := λ f g h, rfl,
+  mul_one := λ f, rfl,
+  one_mul := λ f, rfl, }
+
+instance : inhabited (function.End α) := ⟨1⟩
+
+variable {α}
+
 /-- The tautological action by `function.End α` on `α`. -/
 instance mul_action.function_End : mul_action (function.End α) α :=
 { smul := ($),
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
+
+@[simp] lemma function.End.smul_def (f : function.End α) (a : α) : f • a = f a := rfl
 
 /-- The monoid hom representing a monoid action.
 
@@ -391,6 +393,6 @@ def add_action.to_End_hom [add_monoid M] [add_action M α] : M →+ additive (fu
   map_zero' := funext (zero_vadd M),
   map_add' := λ x y, funext (add_vadd x y) }
 
-/-- The additive action induced by hom to `additive (function.End α)`-/
+/-- The additive action induced by a hom to `additive (function.End α)`-/
 def add_action.of_End_hom [add_monoid M] (f : M →+ additive (function.End α)) : add_action M α :=
 add_action.comp_hom α f

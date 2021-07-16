@@ -167,6 +167,9 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
 
+@[simp] lemma det_pow (M : matrix m m R) (n : ℕ) : det (M ^ n) = (det M) ^ n :=
+is_monoid_hom.map_pow det M n
+
 /-- On square matrices, `mul_comm` applies under `det`. -/
 lemma det_mul_comm (M N : matrix m m R) : det (M ⬝ N) = det (N ⬝ M) :=
 by rw [det_mul, det_mul, mul_comm]

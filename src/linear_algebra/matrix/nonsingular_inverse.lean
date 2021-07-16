@@ -103,6 +103,70 @@ begin
     apply h }
 end
 
+@[simp] lemma cramer_one : cramer (1 : matrix n n α) = 1 :=
+begin
+  ext i j,
+  simp only [linear_map.one_apply, function.comp_app, linear_map.coe_comp, linear_map.coe_single],
+  have : (1 : matrix n n α) i = pi.single i 1,
+  { ext k,
+    by_cases hk : k = i,
+    { subst hk,
+      simp },
+    { simp [matrix.one_apply, hk, pi.single_eq_of_ne, ne.symm hk] } },
+  rw [←transpose_one, ←this, cramer_transpose_row_self],
+  simp [matrix.one_apply],
+end
+
+@[simp] lemma update_column_subsingleton_apply [subsingleton n] (A : matrix n n α)
+  (b : n → α) (i : n) :
+  A.update_column i b = λ _, b :=
+begin
+  ext x y,
+  have : x = y := by simp,
+  simp [update_column_apply, this]
+end
+
+@[simp] lemma prod_perm_singleton {n α : Type*} [subsingleton n] [comm_monoid α]
+  (f : perm n → α) :
+  ∏ (σ : perm n), f σ = f 1 :=
+begin
+  have : (finset.univ : finset (perm n)) = {1},
+  { ext, simp },
+  simp [this]
+end
+
+@[simp] lemma sum_perm_singleton {n α : Type*} [subsingleton n] [add_comm_monoid α]
+  (f : perm n → α) :
+  ∑ (σ : perm n), f σ = f 1 :=
+begin
+  have : (finset.univ : finset (perm n)) = {1},
+  { ext, simp },
+  simp [this]
+end
+
+attribute [to_additive] prod_perm_singleton
+
+@[simp] lemma cramer_subsingleton_apply [subsingleton n] (A : matrix n n α) (b : n → α) (i : n) :
+  cramer A b i = b i :=
+begin
+  rw cramer_apply,
+  rw [det_apply],
+  convert sum_perm_singleton _,
+  { have : (finset.univ : finset n) = {i},
+    { ext, simp },
+    simp [this] },
+  { apply_instance }
+end
+
+lemma cramer_zero [nontrivial n] : cramer (0 : matrix n n α) = 0 :=
+begin
+  ext i j,
+  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := exists_ne j,
+  apply det_eq_zero_of_column_eq_zero j',
+  intro j'',
+  simp [update_column_ne hj'],
+end
+
 /-- Use linearity of `cramer` to take it out of a summation. -/
 lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
   ∑ x in s, cramer A (f x) = cramer A (∑ x in s, f x) :=
@@ -234,6 +298,9 @@ begin
   simp [update_column_ne hj'],
 end
 
+@[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
+by { ext, simp [adjugate_def, matrix.one_apply] }
+
 lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
 calc (adjugate A).det
     = A.det ^ (fintype.card n - 1) : det_adjugate_of_cancel (λ b hb, by simpa [h] using hb)
@@ -293,9 +360,15 @@ if h : is_unit A.det then h.unit⁻¹ • A.adjugate else 0
 
 noncomputable instance : has_inv (matrix n n α) := ⟨matrix.nonsing_inv⟩
 
+lemma inv_def (A : matrix n n α) : A⁻¹ = A.nonsing_inv := rfl
+
+lemma nonsing_inv_apply_not_is_unit (h : ¬ is_unit A.det) :
+  A⁻¹ = 0 :=
+by rw [inv_def, nonsing_inv, dif_neg h]
+
 lemma nonsing_inv_apply (h : is_unit A.det) :
   A⁻¹ = h.unit⁻¹ • A.adjugate :=
-by { change A.nonsing_inv = _, dunfold nonsing_inv, simp only [dif_pos, h], }
+by rw [inv_def, nonsing_inv, dif_pos h]
 
 lemma transpose_nonsing_inv (h : is_unit A.det) :
   (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
@@ -472,6 +545,33 @@ mul_nonsing_inv A (is_unit_det_of_invertible A)
 
 @[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
 nonsing_inv_mul A (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_zero : (0 : matrix n n α)⁻¹ = 0 :=
+begin
+  casesI (subsingleton_or_nontrivial α) with ht ht,
+  { simp },
+  cases (fintype.card n).zero_le.eq_or_lt with hc hc,
+  { rw [eq_comm, fintype.card_eq_zero_iff] at hc,
+    haveI := hc,
+    ext i,
+    exact (is_empty.false i).elim },
+  { have hn : nonempty n := fintype.card_pos_iff.mp hc,
+    refine nonsing_inv_apply_not_is_unit _ _,
+    simp [hn] },
+end
+
+@[simp] lemma inv_one : (1 : matrix n n α)⁻¹ = 1 :=
+inv_eq_left_inv (by simp)
+
+@[simp] lemma inv_smul (k : α) [invertible k] : (k • A)⁻¹ = ⅟k • A⁻¹ :=
+begin
+  by_cases h : is_unit A.det,
+  { refine inv_eq_left_inv _,
+    simp [mul_smul, smul_mul, h, nonsing_inv_mul, smul_smul] },
+  { have h' : ¬ is_unit (k • A).det,
+    { simp [h] },
+    simp [nonsing_inv_apply_not_is_unit, h, h'] }
+end
 
 end inv
 

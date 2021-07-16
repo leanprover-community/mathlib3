@@ -214,7 +214,7 @@ lemma coe_mono : monotone (coe : ℝ≥0 → ℝ≥0∞) := λ _ _, coe_le_coe.2
 lemma coe_two : ((2:ℝ≥0) : ℝ≥0∞) = 2 := by norm_cast
 
 protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
-  canonically_ordered_semiring.zero_lt_one
+  canonically_ordered_comm_semiring.zero_lt_one
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
@@ -464,7 +464,7 @@ by simp only [nonpos_iff_eq_zero.symm, max_le_iff]
 eq_of_forall_ge_iff $ λ c, sup_le_iff.trans max_le_iff.symm
 
 protected lemma pow_pos : 0 < a → ∀ n : ℕ, 0 < a^n :=
-  canonically_ordered_semiring.pow_pos
+  canonically_ordered_comm_semiring.pow_pos
 
 protected lemma pow_ne_zero : a ≠ 0 → ∀ n : ℕ, a^n ≠ 0 :=
 by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
@@ -595,7 +595,7 @@ end complete_lattice
 section mul
 
 @[mono] lemma mul_le_mul : a ≤ b → c ≤ d → a * c ≤ b * d :=
-canonically_ordered_semiring.mul_le_mul
+mul_le_mul'
 
 @[mono] lemma mul_lt_mul (ac : a < c) (bd : b < d) : a * b < c * d :=
 begin
@@ -1123,6 +1123,14 @@ end
 
 lemma inv_mul_cancel (h0 : a ≠ 0) (ht : a ≠ ∞) : a⁻¹ * a = 1 :=
 mul_comm a a⁻¹ ▸ mul_inv_cancel h0 ht
+
+lemma eq_inv_of_mul_eq_one (h : a * b = 1) : a = b⁻¹ :=
+begin
+  rcases eq_or_ne b ∞ with rfl|hb,
+  { have : false, by simpa [left_ne_zero_of_mul_eq_one h] using h,
+    exact this.elim },
+  { rw [← mul_one a, ← mul_inv_cancel (right_ne_zero_of_mul_eq_one h) hb, ← mul_assoc, h, one_mul] }
+end
 
 lemma mul_le_iff_le_inv {a b r : ℝ≥0∞} (hr₀ : r ≠ 0) (hr₁ : r ≠ ∞) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
 by rw [← @ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ← mul_assoc, mul_inv_cancel hr₀ hr₁, one_mul]

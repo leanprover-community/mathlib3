@@ -140,7 +140,8 @@ protected def compl (G : simple_graph V) : simple_graph V :=
   sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
   loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
 
-/-- The symmetric difference of two `simple_graph`s. -/
+/-- The difference of two `simple_graph`s, which is the simple graph whose edges
+are all of those from the first graph that aren't in the second graph. -/
 protected def sdiff (x y : simple_graph V) : simple_graph V :=
 { adj := x.adj \ y.adj,
   sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm]  }

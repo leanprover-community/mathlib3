@@ -291,17 +291,16 @@ end add_comm_group
 section add_comm_monoid
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {R : Type*} [semiring R] [module R M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M]
 variables [topological_space R] [has_continuous_smul R M]
 
 /-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
 measure corresponding to the function `r • s`. -/
 def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
 { measure_of' := r • v,
-  empty' := by simp,
-  not_measurable' := λ _ hi, by simp [v.not_measurable hi],
-  m_Union' := λ _ hf₁ hf₂,
-    has_sum.smul (v.m_Union hf₁ hf₂) }
+  empty' := by rw [pi.smul_apply, empty, smul_zero],
+  not_measurable' := λ _ hi, by rw [ pi.smul_apply, v.not_measurable hi, smul_zero],
+  m_Union' := λ _ hf₁ hf₂, has_sum.smul (v.m_Union hf₁ hf₂) }
 
 instance : has_scalar R (vector_measure α M) := ⟨smul⟩
 

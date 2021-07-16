@@ -278,7 +278,10 @@ begin
   exact (pow_coprime hH).injective hα,
 end
 
-theorem schur_zassenhaus [fintype G] [H.normal]
+/-- **Schur-Zassenhaus** for abelian normal subgroups: if the order of `H : subgroup G` is coprime to the order of `G`,
+then there exists a subgroup `K` which is a (right) complement of `H`.
+-/
+theorem exists_right_complement_of_coprime [fintype G] [H.normal]
   (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
   ∃ K : subgroup G, is_complement (H : set G) (K : set G) :=
 begin

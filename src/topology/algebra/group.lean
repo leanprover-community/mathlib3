@@ -241,15 +241,15 @@ instance subgroup.topological_closure_topological_group (s : subgroup G) :
   end
   ..s.to_submonoid.topological_closure_has_continuous_mul}
 
-lemma subgroup.subgroup_topological_closure (s : subgroup G) :
+@[to_additive] lemma subgroup.subgroup_topological_closure (s : subgroup G) :
   s ≤ s.topological_closure :=
 subset_closure
 
-lemma subgroup.is_closed_topological_closure (s : subgroup G) :
+@[to_additive] lemma subgroup.is_closed_topological_closure (s : subgroup G) :
   is_closed (s.topological_closure : set G) :=
 by convert is_closed_closure
 
-lemma subgroup.topological_closure_minimal
+@[to_additive] lemma subgroup.topological_closure_minimal
   (s : subgroup G) {t : subgroup G} (h : s ≤ t) (ht : is_closed (t : set G)) :
   s.topological_closure ≤ t :=
 closure_minimal h ht

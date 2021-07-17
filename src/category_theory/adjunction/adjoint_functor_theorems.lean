@@ -44,7 +44,7 @@ universe of morphisms of the category: this is the "smallness" condition which a
 adjoint functor theorem to go through.
 -/
 def solution_set_condition {D : Type u} [category.{v} D] (G : D ⥤ C) : Prop :=
-  ∀ (A : C), ∃ (ι : Type v) (B : ι → D) (f : Π (i : ι), A ⟶ G.obj (B i)),
+∀ (A : C), ∃ (ι : Type v) (B : ι → D) (f : Π (i : ι), A ⟶ G.obj (B i)),
   ∀ X (h : A ⟶ G.obj X), ∃ (i : ι) (g : B i ⟶ X), f i ≫ G.map g = h
 
 variables {D : Type u} [category.{v} D]
@@ -65,8 +65,8 @@ begin
 end
 
 /--
-The general adjoint functor theorem says that if `G : D ⥤ C` preserves limits and `D` has them,
-then `G` is a right adjoint.
+The general adjoint functor theorem says that if `G : D ⥤ C` preserves limits and `D` has them, 
+if `G` satisfies the solution set condition then `G` is a right adjoint.
 -/
 noncomputable def is_right_adjoint_of_preserves_limits_of_solution_set_condition
   [has_limits D] [preserves_limits G] (hG : solution_set_condition G) :

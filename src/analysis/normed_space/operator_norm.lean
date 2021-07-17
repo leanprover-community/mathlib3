@@ -1195,6 +1195,12 @@ begin
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
+/-- The non-negative norm of the tensor product of a scalar linear map and of an element of a normed
+space is the product of the non-negative norms. -/
+@[simp] lemma nnnorm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
+  ∥smul_right c f∥₊ = ∥c∥₊ * ∥f∥₊ :=
+nnreal.eq $ c.norm_smul_right_apply f
+
 variables (𝕜 E F)
 
 /-- `continuous_linear_map.smul_right` as a continuous trilinear map:

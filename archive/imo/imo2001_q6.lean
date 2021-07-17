@@ -16,7 +16,7 @@ $$
 a*c + b*d = (b*d + a*c) * (b*d + a*c).
 $$
 
-Prove that a*b + c*d is not prime.
+Prove that $a*b + c*d$ is not prime.
 -/
 
 /-!

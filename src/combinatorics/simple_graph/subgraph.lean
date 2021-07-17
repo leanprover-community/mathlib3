@@ -266,7 +266,7 @@ def top_equiv : (⊤ : subgraph G).coe ≃g G :=
 
 /-- The bottom of the `subgraph G` lattice is equivalent to the empty graph on the empty
 vertex type. -/
-def bot_equiv : (⊥ : subgraph G).coe ≃g empty_graph empty :=
+def bot_equiv : (⊥ : subgraph G).coe ≃g (⊥ : simple_graph empty) :=
 { to_fun := λ v, v.property.elim,
   inv_fun := λ v, v.elim,
   left_inv := λ ⟨_, h⟩, h.elim,

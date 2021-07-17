@@ -291,7 +291,7 @@ begin
   { rw [hs, finset.sep_def, finset.mem_filter], exact ⟨finset.mem_univ _, l.proper.some_spec⟩, },
   intros x xs,
   rw ←hl ⟨x, xs⟩,
-  clear hl, dsimp, congr,
+  clear hl, congr,
   rw ←finset.sum_add_sum_compl s,
   congr' 1,
   { rw ←finset.sum_const,

@@ -5,12 +5,6 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.bochner_integration
 
-noncomputable theory
-open measure_theory
-open filter
-open_locale topological_space
-open_locale bounded_continuous_function
-
 /-!
 # Weak convergence of finite Borel measures and Borel probability measures
 
@@ -40,6 +34,12 @@ A standard textbook about the weak convergence of Borel probability measures is 
 [Billingsley1999] Billingsley, Patrick (1999). Convergence of Probability Measures. New York, NY:
 John Wiley & Sons, Inc. ISBN 0-471-19745-9.
 -/
+
+noncomputable theory
+open measure_theory
+open filter
+open_locale topological_space
+open_locale bounded_continuous_function
 
 -- TODO: What is the appropriate place for this definition suggested by Floris?
 def bounded_above {α β : Type*} [has_le β] [has_top β] (f : α → β) : Prop :=
@@ -92,7 +92,10 @@ lemma borel_measurable_of_bounded_continuous_to_ennreal [measurable_space α] [b
   (f : bounded_continuous_to_ennreal α) : measurable (f : α → ennreal) :=
 continuous.measurable (continuous_of_bounded_continuous_to_ennreal f)
 
-/-- The type `functional_on_bounded_continuous_to_ennreal` consists of continuous bounded functions on the type `bounded_continuous_to_ennreal α` of "test functions" for weak convergence. Such functionals are by construction positive (by the choice of `ennreal` as their codomain), but there is no a priori requirement of continuity.
+/-- The type `functional_on_bounded_continuous_to_ennreal` consists of continuous bounded functions
+on the type `bounded_continuous_to_ennreal α` of "test functions" for weak convergence. Such
+functionals are by construction positive (by the choice of `ennreal` as their codomain), but there
+is no a priori requirement of continuity.
 (To define the usual continuity, one should equip `bounded_continuous_to_ennreal α` with
 the topology determined by the sup-norm-like metric. Riesz-Markov-Kakutani representation theorem
 would then identify the continuous positive functionals as finite measures.) -/
@@ -104,7 +107,9 @@ instance functional_on_bounded_continuous_to_ennreal.has_coe_to_fun :
 ⟨λ _, (bounded_continuous_to_ennreal α) → ennreal, λ φ, φ⟩
 
 /-- As a first step towards the definition of the topology of the weak convergence of probability
-measures, the space of functionals `(cont_bdd_ennval α) → ennreal` is equipped with the product topology (the topology of "testfunctionwise" convergence, i.e., of pointwise convergence of the functionals defined on the space of continuous bounded test functions). -/
+measures, the space of functionals `(cont_bdd_ennval α) → ennreal` is equipped with the product
+topology (the topology of "testfunctionwise" convergence, i.e., of pointwise convergence of the
+functionals defined on the space of continuous bounded test functions). -/
 instance : topological_space (functional_on_bounded_continuous_to_ennreal α) :=
 Pi.topological_space
 
@@ -115,7 +120,8 @@ section topology_of_weak_convergence
 /-!
 ### Topology of weak convergence of measures
 
-In this section, we define the topology of weak convergence on the set of Borel probability measures and on the set of finite Borel measures on a topological space.
+In this section, we define the topology of weak convergence on the set of Borel probability
+measures and on the set of finite Borel measures on a topological space.
 -/
 
 def probability_measures (α : Type*) [measurable_space α] : Type :=
@@ -240,9 +246,11 @@ by rw [@proba_meas_tendsto_nhds_iff_fin_meas_tendsto_nhds α _ _ _ _ at_top μse
 
 /-- The usual definition of weak convergence of probability measures is given in terms of sequences
 of probability measures: it is the requirement that the integrals of all continuous bounded
-functions against members of the sequence converge. This characterization is shown by `weak_conv_seq_iff'` in the case when the functions are `ennreal`-valued and the integral is
+functions against members of the sequence converge. This characterization is shown by
+`weak_conv_seq_iff'` in the case when the functions are `ennreal`-valued and the integral is
 `lintegral`. -/
-/- The most common formulation with `ℝ`-valued functions and Bochner integrals is going to be `weak_conv_seq_iff`. -/
+/- The most common formulation with `ℝ`-valued functions and Bochner integrals is going to
+be `weak_conv_seq_iff`. -/
 theorem weak_conv_seq_iff' {α : Type*} [measurable_space α] [topological_space α] [borel_space α]
   {μseq : ℕ → probability_measures α} {μ : probability_measures α} :
   tendsto μseq at_top (𝓝 μ) ↔

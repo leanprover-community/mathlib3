@@ -10,7 +10,7 @@ import algebra.associated
 
 /-!
 # IMO 2001 Q6
-Let a, b, c, d be integers with a > b > c > d > 0. Suppose that
+Let $a$, $b$, $c$, $d$ be integers with $a > b > c > d > 0$. Suppose that
 
 $$
 a*c + b*d = (b*d + a*c) * (b*d + a*c).

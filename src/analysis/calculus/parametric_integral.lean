@@ -196,11 +196,10 @@ begin
   have : ∀ᵐ a ∂μ, lipschitz_on_with (real.nnabs (bound a)) (λ x, F x a) (ball x₀ ε),
   { apply (h_diff.and h_bound).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
-    have bound_nonneg : 0 ≤ bound a := (norm_nonneg (F' x₀ a)).trans (ha_bound x₀ x₀_in),
-    rw show real.nnabs (bound a) = real.to_nnreal (bound a), by simp [bound_nonneg],
-    apply convex.lipschitz_on_with_of_norm_has_fderiv_within_le _ ha_bound (convex_ball _ _),
-    intros x x_in,
-    exact (ha_deriv x x_in).has_fderiv_within_at, },
+    refine (convex_ball _ _).lipschitz_on_with_of_nnnorm_has_fderiv_within_le
+      (λ x x_in, (ha_deriv x x_in).has_fderiv_within_at) (λ x x_in, _),
+    rw [← nnreal.coe_le_coe, coe_nnnorm, nnreal.coe_nnabs],
+    exact (ha_bound x x_in).trans (le_abs_self _) },
   exact (has_fderiv_at_of_dominated_loc_of_lip ε_pos hF_meas hF_int
                                                hF'_meas this bound_integrable diff_x₀).2
 end

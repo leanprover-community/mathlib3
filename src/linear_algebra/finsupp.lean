@@ -786,6 +786,24 @@ end finsupp
 variables {R : Type*} {M : Type*} {N : Type*}
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
 
+section
+variables (R)
+/--
+Pick some representation of `x : span R w` as a linear combination in `w`,
+using the axiom of choice.
+-/
+def span.repr (w : set M) :
+  span R w → (w →₀ R) :=
+λ x, ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
+
+@[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
+  finsupp.total w M R coe (span.repr R w x) = x :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+
+attribute [irreducible] span.repr
+
+end
+
 lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : submodule R M) (f : ι →₀ β)
   (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
 S.to_add_submonoid.finsupp_sum_mem f g h

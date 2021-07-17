@@ -80,9 +80,8 @@ lemma fun_mul_inv_snorm_rpow {p : ℝ} (hp0 : 0 < p) {f : α → ℝ≥0∞} {a 
 begin
   rw [fun_mul_inv_snorm, mul_rpow_of_nonneg _ _ (le_of_lt hp0)],
   suffices h_inv_rpow : ((∫⁻ (c : α), f c ^ p ∂μ) ^ (1 / p))⁻¹ ^ p = (∫⁻ (c : α), f c ^ p ∂μ)⁻¹,
-  by rw h_inv_rpow,
-  rw [inv_rpow_of_pos hp0, ←rpow_mul, div_eq_mul_inv, one_mul,
-    _root_.inv_mul_cancel (ne_of_lt hp0).symm, rpow_one],
+    by rw h_inv_rpow,
+  rw [inv_rpow, ← rpow_mul, one_div_mul_cancel hp0.ne', rpow_one]
 end
 
 lemma lintegral_rpow_fun_mul_inv_snorm_eq_one {p : ℝ} (hp0_lt : 0 < p) {f : α → ℝ≥0∞}

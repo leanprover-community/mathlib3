@@ -313,6 +313,7 @@ instance has_div : has_div H := ⟨λ a b, ⟨a / b, H.div_mem a.2 b.2⟩⟩
 @[simp, norm_cast, to_additive] lemma coe_mul (x y : H) : (↑(x * y) : G) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : H) : G) = 1 := rfl
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
+@[simp, norm_cast, to_additive] lemma coe_div (x y : H) : (↑(x / y) : G) = ↑x / ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
 
 attribute [norm_cast] add_subgroup.coe_add add_subgroup.coe_zero
@@ -1279,6 +1280,15 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
 lemma cod_restrict_apply {G : Type*} [group G] {N : Type*} [group N] (f : G →* N)
   (S : subgroup N) (h : ∀ (x : G), f x ∈ S) {x : G} :
     f.cod_restrict S h x = ⟨f x, h x⟩ := rfl
+
+@[to_additive] lemma subgroup_of_range_eq_of_le {G₁ G₂ : Type*} [group G₁] [group G₂]
+  {K : subgroup G₂} (f : G₁ →* G₂) (h : f.range ≤ K) :
+  f.range.subgroup_of K = (f.cod_restrict K (λ x, h ⟨x, rfl⟩)).range :=
+begin
+  ext k,
+  refine exists_congr _,
+  simp [subtype.ext_iff],
+end
 
 /-- Computable alternative to `monoid_hom.of_injective`. -/
 def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=

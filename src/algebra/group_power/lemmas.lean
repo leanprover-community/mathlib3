@@ -560,32 +560,13 @@ lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_s
 
 alias int.le_self_sq ← int.le_self_pow_two
 
-lemma pow_right_injective {x : ℤ} (h : 2 ≤ x.nat_abs) : function.injective (λ (n : ℕ), x ^ n) :=
-λ n m hnm, begin
-  obtain pos | neg := int.nat_abs_eq x,
-  { lift x to ℕ using (pos.symm ▸ int.coe_nat_nonneg _),
-  norm_cast at h hnm,
-  exact nat.pow_right_injective h hnm },
-  dsimp only at hnm,
-  rw [←neg_neg x, neg_pow, neg_pow (-x)] at hnm,
-  replace neg := neg_eq_iff_neg_eq.mp neg.symm,
-  generalize' hy : -x = y,
-  rw [←neg_neg x, int.nat_abs_neg] at h,
-  rw [hy] at *,
-  lift y to ℕ using (neg.symm ▸ int.coe_nat_nonneg _),
-  obtain h₁ | h₁ := neg_one_pow_eq_or ℤ n;
-  obtain h₂ | h₂ := neg_one_pow_eq_or ℤ m;
-  all_goals { simp only [h₁, h₂, neg_mul_eq_neg_mul_symm, one_mul, neg_inj] at hnm,
-              norm_cast at h hnm,
-              exact nat.pow_right_injective h hnm <|> exfalso },
-  swap,
-  replace hnm := hnm.symm,
-  all_goals { apply int.ne_neg_of_pos _ _ hnm;
-              norm_cast;
-              apply nat.pos_of_ne_zero;
-              apply pow_ne_zero;
-              apply ne_bot_of_gt;
-              exact nat.succ_le_iff.mp h }
+lemma pow_right_injective {x : ℤ} (h : 1 < x.nat_abs) : function.injective ((^) x : ℕ → ℤ) :=
+begin
+  suffices : function.injective (nat_abs ∘ ((^) x : ℕ → ℤ)),
+  { exact function.injective.of_comp this },
+  convert nat.pow_right_injective h,
+  ext n,
+  rw [function.comp_app, nat_abs_pow]
 end
 
 end int

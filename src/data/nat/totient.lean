@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import algebra.big_operators.basic
+import data.nat.prime
 
 /-!
 # Euler's totient function
@@ -82,5 +83,40 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
         ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (zero_le _) h)
           (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
 ... = n : card_range _
+
+/-- When `p` is prime, then the totient of `p ^ (n + 1)` is `p ^ n * (p - 1)` -/
+lemma totient_prime_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
+  φ (p ^ (n + 1)) = p ^ n * (p - 1) :=
+calc φ (p ^ (n + 1))
+    = ((range (p ^ (n + 1))).filter (coprime (p ^ (n + 1)))).card : rfl
+... = (range (p ^ (n + 1)) \ ((range (p ^ n)).image (* p))).card :
+  congr_arg card begin
+    rw [sdiff_eq_filter],
+    apply filter_congr,
+    simp only [mem_range, mem_filter, coprime_pow_left_iff n.succ_pos,
+      mem_image, not_exists, hp.coprime_iff_not_dvd],
+    intros a ha,
+    split,
+    { rintros hap b _ rfl,
+      exact hap (dvd_mul_left _ _) },
+    { rintros h ⟨b, rfl⟩,
+      rw [pow_succ] at ha,
+      exact h b (lt_of_mul_lt_mul_left ha (zero_le _)) (mul_comm _ _) }
+  end
+... = _ :
+have h1 : set.inj_on (* p) (range (p ^ n)),
+  from λ x _ y _, (nat.mul_left_inj hp.pos).1,
+have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
+  from λ a, begin
+    simp only [mem_image, mem_range, exists_imp_distrib],
+    rintros b h rfl,
+    rw [pow_succ'],
+    exact (mul_lt_mul_right hp.pos).2 h
+  end,
+begin
+  rw [card_sdiff h2, card_image_of_inj_on h1, card_range,
+    card_range, ← one_mul (p ^ n), pow_succ, ← nat.mul_sub_right_distrib,
+    one_mul, mul_comm]
+end
 
 end nat

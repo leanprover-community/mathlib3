@@ -514,21 +514,15 @@ begin
   { rw hs, exact le_top }
 end
 
-@[simp] lemma hausdorff_measure_singleton (d : ℝ) (x : X) :
-  μH[d] ({x} : set X) = 0 :=
+instance no_atoms_hausdorff (d : ℝ) : has_no_atoms (hausdorff_measure d : measure X) :=
 begin
+  refine ⟨λ x, _⟩,
   rw [← nonpos_iff_eq_zero, hausdorff_measure_apply'],
   refine bsupr_le (λ ε ε0, binfi_le_of_le (λ n, {x}) _ (infi_le_of_le (λ n, _) _)),
   { exact subset_Union (λ n, {x} : ℕ → set X) 0 },
   { simp only [emetric.diam_singleton, zero_le] },
   { simp }
 end
-
-lemma hausdorff_measure_of_subsingleton {s : set X} (hs : s.subsingleton) (d : ℝ) :
-  μH[d] s = 0 :=
-hs.induction_on measure_empty (hausdorff_measure_singleton d)
-
-alias hausdorff_measure_of_subsingleton ← set.subsingleton.hausdorff_measure_eq
 
 end measure
 
@@ -539,7 +533,7 @@ open measure
 def dimH (s : set X) : ℝ≥0∞ := ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d
 
 lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
-by simp [dimH, h.hausdorff_measure_eq]
+by simp [dimH, h.measure_eq]
 
 alias dimH_subsingleton ← set.subsingleton.dimH_eq
 

@@ -499,7 +499,7 @@ begin
     obtain ⟨a₂, ha₂⟩ := n₂.prop,
     have hn₁ : n₁ = submonoid.pow 2 a₁ := subtype.ext ha₁.symm,
     have hn₂ : n₂ = submonoid.pow 2 a₂ := subtype.ext ha₂.symm,
-    have h₂ : 1 < (2 : ℤ).nat_abs := exact dec_trivial,
+    have h₂ : 1 < (2 : ℤ).nat_abs, from dec_trivial,
     rw [hn₁, hn₂, submonoid.log_pow_int_eq_self h₂, submonoid.log_pow_int_eq_self h₂],
     apply dyadic_aux,
     rwa [ha₁, ha₂] },

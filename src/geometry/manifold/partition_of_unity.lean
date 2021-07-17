@@ -18,7 +18,7 @@ partition of unity can use a `smooth_bump_covering` as well.
 Given a real manifold `M` and its subset `s`, a `smooth_bump_covering I M s` is a collection of
 `smooth_bump_function`s `f i` indexed by `i : f.ι` such that
 
-* center of each `f i` belongs to `s`;
+* the center of each `f i` belongs to `s`;
 * the family of sets `support (f i)` is locally finite;
 * for each `x ∈ s`, there exists `i : f.ι` such that `f i =ᶠ[𝓝 x] 1`.
 In the same settings, a `smooth_partition_of_unity ι I M s` is a collection of smooth nonnegative

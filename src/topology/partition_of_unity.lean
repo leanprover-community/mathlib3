@@ -15,7 +15,7 @@ In this file we define `partition_of_unity (ι X : Type*) [topological_space X] 
 to be a continuous partition of unity on `s` indexed by `ι`. More precisely, `f : partition_of_unity
 ι X s` is a collection of continuous functions `f i : C(X, ℝ)`, `i : ι`, such that
 
-* supports of `f i` is a locally finite family of sets;
+* the supports of `f i` form a locally finite family of sets;
 * each `f i` is nonnegative;
 * `∑ᶠ i, f i x = 1` for all `x ∈ s`;
 * `∑ᶠ i, f i x ≤ 1` for all `x : X`.
@@ -27,7 +27,7 @@ We also define a bump function covering,
 `bump_covering (ι X : Type*) [topological_space X] (s : set X := univ)`, to be a collection of
 functions `f i : C(X, ℝ)`, `i : ι`, such that
 
-* supports of `f i` is a locally finite family of sets;
+* the supports of `f i` form a locally finite family of sets;
 * each `f i` is nonnegative;
 * for each `x ∈ s` there exists `i : ι` such that `f i y = 1` in a neighborhood of `x`.
 
@@ -39,7 +39,7 @@ If `f` is a bump function covering indexed by a linearly ordered type, then
 actual definition to avoid a `[linear_order ι]` assumption.
 
 We say that a partition of unity or a bump function covering `f` is *subordinate* to a family of
-sets `U i`, `i : ι`, if the closure of the support of each `f i` is included by `U i`. We use
+sets `U i`, `i : ι`, if the closure of the support of each `f i` is included in `U i`. We use
 Urysohn's Lemma to prove that a locally finite open covering of a normal topological space admits a
 subordinate bump function covering (hence, a subordinate partition of unity), see
 `bump_covering.exists_is_subordinate_of_locally_finite`. If `X` is a paracompact space, then any
@@ -69,11 +69,11 @@ open_locale big_operators topological_space classical
 
 noncomputable theory
 
-/-- Continuous partition of unity on a set `s : set X` is a colletion of continuous functions `f i`
+/-- A continuous partition of unity on a set `s : set X` is a collection of continuous functions `f i`
 such that
 
-* supports of `f i` form a locally finite family of sets, i.e., for every point `x : X` there exists
-  a neighborhood `U ⊇ x` such that all but finitely many functions `f i` are zero on `U`;
+* the supports of `f i` form a locally finite family of sets, i.e., for every point `x : X` there exists
+  a neighborhood `U ∋ x` such that all but finitely many functions `f i` are zero on `U`;
 * the functions `f i` are nonnegative;
 * the sum `∑ᶠ i, f i x` is equal to one for every `x ∈ s` and is less than or equal to one
   otherwise.
@@ -91,8 +91,8 @@ structure partition_of_unity (ι X : Type*) [topological_space X] (s : set X := 
 
 /-- A `bump_covering ι X s` is an indexed family of functions `f i`, `i : ι`, such that
 
-* supports of `f i` form a locally finite family of sets, i.e., for every point `x : X` there exists
-  a neighborhood `U ⊇ x` such that all but finitely many functions `f i` are zero on `U`;
+* the supports of `f i` form a locally finite family of sets, i.e., for every point `x : X` there exists
+  a neighborhood `U ∋ x` such that all but finitely many functions `f i` are zero on `U`;
 * for all `i`, `x` we have `0 ≤ f i x ≤ 1`;
 * each point `x ∈ s` belongs to the interior of `{x | f i x = 1}` for some `i`.
 
@@ -156,8 +156,8 @@ lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x
 
 lemma le_one (i : ι) (x : X) : f i x ≤ 1 := f.le_one' i x
 
-/-- A `bump_covering` that consists of a single function, defined as an example
-for `inhabited` instance. -/
+/-- A `bump_covering` that consists of a single function, uniformly equal to one, defined as an 
+example for `inhabited` instance. -/
 protected def single (i : ι) (s : set X) : bump_covering ι X s :=
 { to_fun := pi.single i 1,
   locally_finite' := λ x,
@@ -189,7 +189,7 @@ lemma is_subordinate.mono {f : bump_covering ι X s} {U V : ι → set X} (hU : 
 closed set `s`, then there exists a `bump_covering ι X s` that is subordinate to `U`. If `X` is a
 paracompact space, then the assumption `hf : locally_finite U` can be omitted, see
 `bump_covering.exists_is_subordinate`. This version assumes that `p : (X → ℝ) → Prop` is a predicate
-that satisfies the Urysohn's lemma, and provides a `bump_covering` such that each function of the
+that satisfies Urysohn's lemma, and provides a `bump_covering` such that each function of the
 covering satisfies `p`. -/
 lemma exists_is_subordinate_of_locally_finite_of_prop [normal_space X] (p : (X → ℝ) → Prop)
   (h01 : ∀ s t, is_closed s → is_closed t → disjoint s t →
@@ -231,7 +231,7 @@ in ⟨f, hfU⟩
 
 /-- If `X` is a paracompact normal topological space and `U` is an open covering of a closed set
 `s`, then there exists a `bump_covering ι X s` that is subordinate to `U`. This version assumes that
-`p : (X → ℝ) → Prop` is a predicate that satisfies the Urysohn's lemma, and provides a
+`p : (X → ℝ) → Prop` is a predicate that satisfies Urysohn's lemma, and provides a
 `bump_covering` such that each function of the covering satisfies `p`. -/
 lemma exists_is_subordinate_of_prop [normal_space X] [paracompact_space X] (p : (X → ℝ) → Prop)
   (h01 : ∀ s t, is_closed s → is_closed t → disjoint s t →

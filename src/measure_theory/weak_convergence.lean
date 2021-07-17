@@ -72,7 +72,7 @@ structure bounded_continuous_to_ennreal (α : Type*) [topological_space α]
 (bounded_above' : bounded_above to_fun)
 
 instance bounded_continuous_to_ennreal.has_coe_to_fun :
-  has_coe_to_fun (bounded_continuous_to_ennreal α) := ⟨λ _, α → ennreal, λ f, f.to_fun⟩
+  has_coe_to_fun (bounded_continuous_to_ennreal α) := ⟨(λ _, α → ennreal), (λ f, f.to_fun)⟩
 
 @[simp] lemma bounded_continuous_to_ennreal.to_fun_eq_coe (f : bounded_continuous_to_ennreal α) :
   f.to_fun = f := rfl
@@ -104,7 +104,7 @@ def functional_on_bounded_continuous_to_ennreal (α : Type*) [topological_space 
 
 instance functional_on_bounded_continuous_to_ennreal.has_coe_to_fun :
   has_coe_to_fun (functional_on_bounded_continuous_to_ennreal α) :=
-⟨λ _, (bounded_continuous_to_ennreal α) → ennreal, λ φ, φ⟩
+⟨(λ _, (bounded_continuous_to_ennreal α) → ennreal), (λ φ, φ)⟩
 
 /-- As a first step towards the definition of the topology of the weak convergence of probability
 measures, the space of functionals `(cont_bdd_ennval α) → ennreal` is equipped with the product
@@ -124,18 +124,51 @@ In this section, we define the topology of weak convergence on the set of Borel 
 measures and on the set of finite Borel measures on a topological space.
 -/
 
-def probability_measures (α : Type*) [measurable_space α] : Type :=
+variables {α : Type} [measurable_space α]
+
+def probability_measures (α : Type) [measurable_space α] : Type :=
 {μ : measure α // probability_measure μ}
 
-instance probability_measures.coe (α : Type*) [measurable_space α] :
+instance probability_measures.coe (α : Type) [measurable_space α] :
   has_coe (probability_measures α) (measure_theory.measure α) := ⟨subtype.val⟩
 
-@[simp] lemma probability_measures.val_eq_coe {α : Type*} [measurable_space α]
-  (ν : probability_measures α) : ν.val = ν := rfl
+instance probability_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
+  has_coe_to_fun (probability_measures α) := ⟨(λ _, set α → ennreal), (λ μ, μ.val.measure_of)⟩
 
-abbreviation probability_measures.test_against {α : Type*}
-  [measurable_space α] [topological_space α] [borel_space α]
+--variables (μ ν : probability_measures α)
+
+@[simp] lemma probability_measures.coe_eq_val (ν : probability_measures α) :
+  (ν : measure_theory.measure α) = ν.val := rfl
+
+def finite_measures (α : Type*) [measurable_space α] : Type
+  := { μ : measure α // finite_measure μ }
+
+instance finite_measures.coe (α : Type*) [measurable_space α] :
+  has_coe (finite_measures α) (measure_theory.measure α) := ⟨subtype.val⟩
+
+@[simp] lemma finite_measures.coe_eq_val (ν : finite_measures α) :
+  (ν : measure_theory.measure α) = ν.val := rfl
+
+instance probability_measures.coe_to_finite_measures (α : Type*) [measurable_space α] :
+  has_coe (probability_measures α) (finite_measures α) :=
+{ coe := λ μ , { val := μ.val,
+                 property := begin -- TODO: This needs golf.
+                   have key : (1 : ennreal) < ⊤ := ennreal.one_lt_top,
+                   rw [←μ.prop.measure_univ, probability_measures.coe_eq_val] at key,
+                   exact ⟨key⟩,
+                 end, }}
+
+lemma coe_coe_eq_val_probability_measures (ν : probability_measures α) :
+  ((ν : finite_measures α) : measure_theory.measure α) = ν.val := rfl
+
+variables [topological_space α] [borel_space α]
+
+abbreviation probability_measures.test_against
   (μ : probability_measures α) (f : bounded_continuous_to_ennreal α) : ennreal :=
+lintegral (μ : measure_theory.measure α) f
+
+abbreviation finite_measures.test_against
+  (μ : finite_measures α) (f : bounded_continuous_to_ennreal α) : ennreal :=
 lintegral (μ : measure_theory.measure α) f
 
 /-- When `α` is a topological space equipped with its Borel sigma algebra, we introduce the
@@ -144,52 +177,26 @@ called the weak-* topology. -/
 /- The topology of weak convergence on `probability_measures α` is defined as the induced topology
 of the mapping  `probability_measures α → ((cont_bdd_ennval α) → ennreal)` to functionals defined
 by integration of a test functio against to the measure. -/
-instance {α : Type} [measurable_space α] [topological_space α] [borel_space α] :
-  topological_space (probability_measures α) :=
+instance : topological_space (probability_measures α) :=
 topological_space.induced (λ (μ : probability_measures α), probability_measures.test_against μ)
+  infer_instance
+
+instance : topological_space (finite_measures α) :=
+topological_space.induced (λ (μ : finite_measures α), finite_measures.test_against μ)
   infer_instance
 
 /- Integration of test functions against borel probability measures depends continuously on the
 measure. -/
-lemma probability_measures.continuous_test_against {α : Type}
-  [measurable_space α] [topological_space α] [borel_space α] :
+lemma probability_measures.continuous_test_against :
   continuous (@probability_measures.test_against α _ _ _) := continuous_induced_dom
 
-def finite_measures (α : Type*) [measurable_space α] : Type
-  := { μ : measure α // finite_measure μ }
-
-instance finite_measures.coe (α : Type*) [measurable_space α] :
-  has_coe (finite_measures α) (measure_theory.measure α) := ⟨subtype.val⟩
-
-@[simp] lemma val_eq_coe_finite_measures {α : Type*} [measurable_space α] (ν : finite_measures α) :
-  ν.val = ν := rfl
-
-instance probability_measures.coe_to_finite_measures (α : Type*) [measurable_space α] :
-  has_coe (probability_measures α) (finite_measures α) :=
-{ coe := λ μ , { val := μ.val ,
-                 property := ⟨ by simp [μ.prop.measure_univ] ⟩ , }}
-
-@[simp] lemma val_eq_coe_coe_probability_measures {α : Type*} [measurable_space α]
-  (ν : probability_measures α) : ν.val = (ν : finite_measures α) := rfl
-
-abbreviation finite_measures.test_against {α : Type*}
-  [measurable_space α] [topological_space α] [borel_space α]
-  (μ : finite_measures α) (f : bounded_continuous_to_ennreal α) : ennreal :=
-lintegral (μ : measure_theory.measure α) f
+lemma finite_measures.continuous_test_against :
+  continuous (@finite_measures.test_against α _ _ _) := continuous_induced_dom
 
 lemma probability_measures.test_against_comp_via_finite_measures (α : Type*)
   [measurable_space α] [topological_space α] [borel_space α] :
   @probability_measures.test_against α _ _ _ = (@finite_measures.test_against α _ _ _) ∘ coe :=
 by { funext μ f, refl, }
-
-instance {α : Type} [measurable_space α] [topological_space α] [borel_space α] :
-  topological_space (finite_measures α) :=
-topological_space.induced (λ (μ : finite_measures α), finite_measures.test_against μ)
-  infer_instance
-
-lemma finite_measures.continuous_test_against {α : Type}
-  [measurable_space α] [topological_space α] [borel_space α] :
-  continuous (@finite_measures.test_against α _ _ _) := continuous_induced_dom
 
 lemma probability_measures.coe_embedding (α : Type*)
   [measurable_space α] [topological_space α] [borel_space α] :
@@ -205,19 +212,16 @@ lemma probability_measures.coe_embedding (α : Type*)
   inj := begin
     intros μ ν h,
     apply subtype.eq,
-    rw [val_eq_coe_coe_probability_measures μ,
-        val_eq_coe_coe_probability_measures ν],
+    rw [←coe_coe_eq_val_probability_measures μ, ←coe_coe_eq_val_probability_measures ν],
     exact congr_arg coe h,
   end, }
 
-lemma proba_meas_tendsto_nhds_iff_fin_meas_tendsto_nhds {α δ : Type*}
-  [measurable_space α] [topological_space α] [borel_space α] (F : filter δ)
+lemma proba_meas_tendsto_nhds_iff_fin_meas_tendsto_nhds {δ : Type*} (F : filter δ)
   {μs : δ → probability_measures α} {μ₀ : probability_measures α} :
   tendsto μs F (𝓝 μ₀) ↔ tendsto (coe ∘ μs) F (𝓝 (μ₀ : finite_measures α)) :=
 embedding.tendsto_nhds_iff (probability_measures.coe_embedding α)
 
-theorem finite_measures.weak_conv_seq_iff_test_against {α : Type*}
-  [measurable_space α] [topological_space α] [borel_space α]
+theorem finite_measures.weak_conv_seq_iff_test_against
   {μseq : ℕ → finite_measures α} {μ : finite_measures α} :
   tendsto μseq at_top (𝓝 μ) ↔
   ∀ (f : bounded_continuous_to_ennreal α),
@@ -235,8 +239,7 @@ begin
     rwa [nhds_induced, tendsto_comap_iff], },
 end
 
-theorem probability_measures.weak_conv_seq_iff_test_against {α : Type*}
-  [measurable_space α] [topological_space α] [borel_space α]
+theorem probability_measures.weak_conv_seq_iff_test_against
   {μseq : ℕ → probability_measures α} {μ : probability_measures α} :
   tendsto μseq at_top (𝓝 μ) ↔
   ∀ (f : bounded_continuous_to_ennreal α),
@@ -253,8 +256,7 @@ functions against members of the sequence converge. This characterization is sho
 `lintegral`. -/
 /- The most common formulation with `ℝ`-valued functions and Bochner integrals is going to
 be `weak_conv_seq_iff`. -/
-theorem weak_conv_seq_iff' {α : Type*} [measurable_space α] [topological_space α] [borel_space α]
-  {μseq : ℕ → probability_measures α} {μ : probability_measures α} :
+theorem weak_conv_seq_iff' {μseq : ℕ → probability_measures α} {μ : probability_measures α} :
   tendsto μseq at_top (𝓝 μ) ↔
   ∀ (f : α → ennreal), continuous f → bounded_above f →
     tendsto (λ n, lintegral (μseq(n) : measure_theory.measure α) f) at_top

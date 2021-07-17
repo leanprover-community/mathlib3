@@ -1835,13 +1835,10 @@ lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
 subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
   ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
 
-/--
-We can use the axiom of choice to pick a preimage for every element of `range f`.
--/
+/-- We can use the axiom of choice to pick a preimage for every element of `range f`. -/
 noncomputable def range_splitting (f : α → β) : range f → α := λ x, x.2.some
 
-@[simp] lemma apply_range_splitting (f : α → β) (x : range f) :
-  f (range_splitting f x) = x :=
+lemma apply_range_splitting (f : α → β) (x : range f) : f (range_splitting f x) = x :=
 x.2.some_spec
 
 attribute [irreducible] range_splitting

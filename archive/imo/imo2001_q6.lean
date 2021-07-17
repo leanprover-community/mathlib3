@@ -19,7 +19,7 @@ $$
 Prove that a*b + c*d is not prime.
 -/
 
-/-
+/-!
 The main idea of this formalization is using the negation
 introduction, that is, we are going to suppose that the number
 a*b+c*d  is prime.

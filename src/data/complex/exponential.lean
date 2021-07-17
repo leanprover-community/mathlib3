@@ -1290,9 +1290,52 @@ begin
     mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
 end
 
-lemma foo (a b d: ℝ) (c : ℕ) (ha : 0 ≤ a) (hab : a ≤ b) : a * (1 / b) = a / b :=
-begin
 
+
+lemma sum_half_geometric (j : ℕ) : ∑ (x : ℕ) in (range j), ((1:ℝ) / 2) ^ (x) = 2 - 2 * ((1 : ℝ)/2)^(j) :=
+begin
+  induction j,
+    {simp,},
+    {
+      rw finset.sum_range_succ,
+      rw j_ih,
+      rw pow_succ,
+      simp only [one_div, inv_pow', mul_inv_cancel_left'],
+      rw <-mul_assoc,
+      simp only [one_mul, mul_inv_cancel],
+      ring_nf,
+      -- TODO why does sub_add_assoc not exist?
+
+    },
+end
+
+lemma sum_half_geometric' (j n : ℕ) (h : n ≤ j) : ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ) / 2) ^ (x - n) ≤ (2 : ℝ) :=
+begin
+  calc ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ)/ 2) ^ (x - n)
+      = ∑ (x : ℕ) in (range (j - n)), ((1 : ℝ)/ 2) ^ (x) :
+        begin
+          rw range_eq_Ico,
+          -- rw range_eq_Ico,
+          rw Ico.filter_le_of_le (nat.zero_le n),
+          rw finset.sum_Ico_eq_sum_range,
+          congr,
+          funext,
+          congr,
+          exact norm_num.sub_nat_pos (n + k) n k rfl,
+        end
+  ... = 2 - 2 * ((1 : ℝ)/2)^(j-n) :
+        begin
+          exact sum_half_geometric (j - n),
+        end
+  ... ≤ 2 :
+        begin
+          simp only [one_div, sub_le_self_iff, inv_nonneg, inv_pow', pow_nonneg],
+          apply mul_nonneg,
+          linarith,
+          apply inv_nonneg.2,
+          apply pow_nonneg,
+          linarith,
+        end
 end
 
 lemma exp_bound' {x : ℂ} {n : ℕ} (hn : 0 < n) (hx : abs x ≤ n / 2) :
@@ -1312,7 +1355,7 @@ begin
       rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel' hm.2]
     end
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
-  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (((1/2) ^ (m - n)) / n!) :
+  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * ((((1 : ℝ)/2) ^ (m - n)) / n!) :
     begin
       refine sum_le_sum (λ m hm, _),
       rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
@@ -1344,7 +1387,13 @@ begin
             end
       ... ≤ ↑m! :
             begin
-              apply pow_mul_factorial_le_factorial,
+              rw <-nat.cast_pow,
+              rw <-nat.cast_mul,
+              apply nat.cast_le.2,
+              --   by library_search,
+              apply nat.pow_mul_factorial_le_factorial,
+              exact hm.right,
+              exact real.nontrivial,
             end,
 
       apply pow_pos,
@@ -1373,14 +1422,21 @@ begin
       apply mul_le_mul,
       rw mul_comm,
       apply mul_le_mul,
-      sorry,
+      apply sum_half_geometric',
+      exact hj,
       exact le_refl (abs x ^ n),
       apply pow_nonneg,
       exact abs_nonneg x,
       exact zero_le_two,
       apply le_refl,
+      apply inv_nonneg.2,
+      exact n!.cast_nonneg,
+      apply mul_nonneg,
+      linarith,
+      apply pow_nonneg,
+      exact abs_nonneg x,
 
-    end
+    end,
 end
 
 lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :

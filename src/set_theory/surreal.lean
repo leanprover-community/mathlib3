@@ -202,20 +202,6 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 theorem numeric_omega : numeric omega :=
 ⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
-theorem zero_lt_one : (0 : pgame) < 1 :=
-begin
-  rw lt_def,
-  left,
-  use ⟨punit.star, by split; rintro ⟨ ⟩⟩,
-end
-
-/-- The pre-game `half` is defined as `{0 | 1}`. -/
-def half : pgame := ⟨punit, punit, 0, 1⟩
-
-@[simp] lemma half_move_left : half.move_left punit.star = 0 := rfl
-
-@[simp] lemma half_move_right : half.move_right punit.star = 1 := rfl
-
 /-- The pre-game `half` is numeric. -/
 theorem numeric_half : numeric half :=
 begin
@@ -225,58 +211,6 @@ begin
   split; rintro ⟨ ⟩,
   { exact numeric_zero },
   { exact numeric_one }
-end
-
-theorem zero_lt_half : 0 < half :=
-begin
-  rw lt_def,
-  left,
-  use punit.star,
-  split; rintro ⟨ ⟩,
-end
-
-theorem half_lt_one : half < 1 :=
-begin
-  rw lt_def,
-  right,
-  use punit.star,
-  split; rintro ⟨ ⟩,
-  exact zero_lt_one,
-end
-
-theorem add_half_self_equiv_one : half + half ≈ 1 :=
-begin
-  split; rw le_def; split,
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { right,
-      use (sum.inr punit.star),
-      calc ((half + half).move_left (sum.inl punit.star)).move_right (sum.inr punit.star)
-          = (half.move_left punit.star + half).move_right (sum.inr punit.star) : by fsplit
-      ... = (0 + half).move_right (sum.inr punit.star) : by fsplit
-      ... ≈ 1 : zero_add_equiv 1
-      ... ≤ 1 : pgame.le_refl 1 },
-    { right,
-      use (sum.inl punit.star),
-      calc ((half + half).move_left (sum.inr punit.star)).move_right (sum.inl punit.star)
-          = (half + half.move_left punit.star).move_right (sum.inl punit.star) : by fsplit
-      ... = (half + 0).move_right (sum.inl punit.star) : by fsplit
-      ... ≈ 1 : add_zero_equiv 1
-      ... ≤ 1 : pgame.le_refl 1 } },
-  { rintro ⟨ ⟩ },
-  { rintro ⟨ ⟩,
-    left,
-    use (sum.inl punit.star),
-    calc 0 ≤ half : le_of_lt numeric_zero numeric_half zero_lt_half
-    ... ≈ 0 + half : (zero_add_equiv half).symm
-    ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { left,
-      use (sum.inr punit.star),
-      calc 1 ≤ 1 : pgame.le_refl 1
-          ... ≈ 1 + 0 : (add_zero_equiv 1).symm },
-    { use (sum.inl punit.star),
-      calc 1 ≤ 1 : pgame.le_refl 1
-          ... ≈ 0 + 1 : (zero_add_equiv 1).symm } }
 end
 
 /-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as

@@ -11,8 +11,8 @@ import data.complex.module
 
 This file contains isomorphisms showing that other types are equivalent to some `clifford_algebra`:
 
-* `clifford_algebra_ring.equiv`: any ring is equivalent to a `clifford_algebra` over an empty
-  vector space.
+* `clifford_algebra_ring.equiv`: any ring is equivalent to a `clifford_algebra` over a
+  zero-dimensional vector space
 * `clifford_algebra_complex.equiv`: the `complex` numbers are equivalent to a
   `clifford_algebra` over a one-dimensional vector space with a quadratic form that satisfies
   `Q (ι Q 1) = -1`.

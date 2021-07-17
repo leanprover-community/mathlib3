@@ -93,6 +93,14 @@ embedding_coe.continuous_iff.symm
 lemma nhds_coe {r : ℝ≥0} : 𝓝 (r : ℝ≥0∞) = (𝓝 r).map coe :=
 (open_embedding_coe.map_nhds_eq r).symm
 
+lemma tendsto_nhds_coe_iff {α : Type*} {l : filter α} {x : ℝ≥0} {f : ℝ≥0∞ → α} :
+  tendsto f (𝓝 ↑x) l ↔ tendsto (f ∘ coe : ℝ≥0 → α) (𝓝 x) l :=
+show _ ≤ _ ↔ _ ≤ _, by rw [nhds_coe, filter.map_map]
+
+lemma continuous_at_coe_iff {α : Type*} [topological_space α] {x : ℝ≥0} {f : ℝ≥0∞ → α} :
+  continuous_at f (↑x) ↔ continuous_at (f ∘ coe : ℝ≥0 → α) x :=
+tendsto_nhds_coe_iff
+
 lemma nhds_coe_coe {r p : ℝ≥0} :
   𝓝 ((r : ℝ≥0∞), (p : ℝ≥0∞)) = (𝓝 (r, p)).map (λp:ℝ≥0×ℝ≥0, (p.1, p.2)) :=
 ((open_embedding_coe.prod open_embedding_coe).map_nhds_eq (r, p)).symm
@@ -135,6 +143,8 @@ nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 lemma nhds_top' : 𝓝 ∞ = ⨅ r : ℝ≥0, 𝓟 (Ioi r) :=
 nhds_top.trans $ infi_ne_top _
 
+lemma nhds_top_basis : (𝓝 ∞).has_basis (λ a, a < ∞) (λ a, Ioi a) := nhds_top_basis
+
 lemma tendsto_nhds_top_iff_nnreal {m : α → ℝ≥0∞} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ≥0, ∀ᶠ a in f, ↑x < m a :=
 by simp only [nhds_top', tendsto_infi, tendsto_principal, mem_Ioi]
@@ -160,6 +170,8 @@ by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) (λ a, Iio a) := nhds_bot_basis
 
 @[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
@@ -430,7 +442,7 @@ begin
       pos_iff_ne_zero.1 (lt_of_lt_of_le (pos_iff_ne_zero.2 hx0) (le_Sup hx)),
     have : Sup ((λb, a * b) '' s) = a * Sup s :=
       is_lub.Sup_eq ((is_lub_Sup s).is_lub_of_tendsto
-        (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
+        (assume x _ y _ h, mul_le_mul_left' h _)
         ⟨x, hx⟩
         (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
@@ -655,6 +667,20 @@ begin
   exact ennreal.tendsto_of_real h,
 end
 
+lemma tsum_coe_ne_top_iff_summable_coe {f : α → ℝ≥0} :
+  ∑' a, (f a : ℝ≥0∞) ≠ ∞ ↔ summable (λ a, (f a : ℝ)) :=
+begin
+  rw nnreal.summable_coe,
+  exact tsum_coe_ne_top_iff_summable,
+end
+
+lemma tsum_coe_eq_top_iff_not_summable_coe {f : α → ℝ≥0} :
+  ∑' a, (f a : ℝ≥0∞) = ∞ ↔ ¬ summable (λ a, (f a : ℝ)) :=
+begin
+  rw [← @not_not (∑' a, ↑(f a) = ⊤)],
+  exact not_congr tsum_coe_ne_top_iff_summable_coe
+end
+
 end ennreal
 
 namespace nnreal
@@ -792,6 +818,18 @@ by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 end nnreal
 
 namespace ennreal
+
+lemma tsum_to_real_eq
+  {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+  (∑' a, f a).to_real = ∑' a, (f a).to_real :=
+begin
+  lift f to α → ℝ≥0 using hf,
+  have : (∑' (a : α), (f a : ℝ≥0∞)).to_real =
+    ((∑' (a : α), (f a : ℝ≥0∞)).to_nnreal : ℝ≥0∞).to_real,
+  { rw [ennreal.coe_to_real], refl },
+  rw [this, ← nnreal.tsum_eq_to_nnreal_tsum, ennreal.coe_to_real],
+  exact nnreal.coe_tsum
+end
 
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
@@ -977,7 +1015,7 @@ begin
           ... ≤ f y + C * edist x y : h x y
           ... = f y + C * edist y x : by simp [edist_comm]
           ... ≤ f y + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
+            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
           ... < f y + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I,
         show e < f y, from
           (ennreal.add_lt_add_iff_right ‹ε < ⊤›).1 this }},
@@ -1000,7 +1038,7 @@ begin
       show f y < e, from calc
         f y ≤ f x + C * edist y x : h y x
         ... ≤ f x + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
+            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
         ... < f x + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I
         ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
         ... = e : by simp [le_of_lt he] },

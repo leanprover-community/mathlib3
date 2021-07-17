@@ -216,7 +216,8 @@ lemma proba_meas_tendsto_nhds_iff_fin_meas_tendsto_nhds {α δ : Type*}
   tendsto μs F (𝓝 μ₀) ↔ tendsto (coe ∘ μs) F (𝓝 (μ₀ : finite_measures α)) :=
 embedding.tendsto_nhds_iff (probability_measures.coe_embedding α)
 
-theorem finite_measures.weak_conv_seq_iff_test_against {α : Type*} [measurable_space α] [topological_space α] [borel_space α]
+theorem finite_measures.weak_conv_seq_iff_test_against {α : Type*}
+  [measurable_space α] [topological_space α] [borel_space α]
   {μseq : ℕ → finite_measures α} {μ : finite_measures α} :
   tendsto μseq at_top (𝓝 μ) ↔
   ∀ (f : bounded_continuous_to_ennreal α),
@@ -234,7 +235,8 @@ begin
     rwa [nhds_induced, tendsto_comap_iff], },
 end
 
-theorem probability_measures.weak_conv_seq_iff_test_against {α : Type*} [measurable_space α] [topological_space α] [borel_space α]
+theorem probability_measures.weak_conv_seq_iff_test_against {α : Type*}
+  [measurable_space α] [topological_space α] [borel_space α]
   {μseq : ℕ → probability_measures α} {μ : probability_measures α} :
   tendsto μseq at_top (𝓝 μ) ↔
   ∀ (f : bounded_continuous_to_ennreal α),

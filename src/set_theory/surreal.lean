@@ -238,14 +238,9 @@ begin
     calc 0 ≤ half : le_of_lt numeric_zero numeric_half zero_lt_half
     ... ≈ 0 + half : (zero_add_equiv half).symm
     ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { left,
-      use (sum.inr punit.star),
-      calc 1 ≤ 1 : pgame.le_refl 1
-          ... ≈ 1 + 0 : (add_zero_equiv 1).symm },
-    { use (sum.inl punit.star),
-      calc 1 ≤ 1 : pgame.le_refl 1
-          ... ≈ 0 + 1 : (zero_add_equiv 1).symm } }
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
+    { exact ⟨sum.inr punit.star, le_of_le_of_equiv (pgame.le_refl _) (add_zero_equiv _).symm⟩ },
+    { exact ⟨sum.inl punit.star, le_of_le_of_equiv (pgame.le_refl _) (zero_add_equiv _).symm⟩ } }
 end
 
 /-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as

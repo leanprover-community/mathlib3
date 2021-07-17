@@ -538,6 +538,15 @@ open measure
 /-- Hausdorff dimension of a set in an (e)metric space. -/
 def dimH (s : set X) : ℝ≥0∞ := ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d
 
+lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
+by simp [dimH, h.hausdorff_measure_eq]
+
+alias dimH_subsingleton ← set.subsingleton.dimH_eq
+
+@[simp] lemma dimH_empty : dimH (∅ : set X) = 0 := subsingleton_empty.dimH_eq
+
+@[simp] lemma dimH_singleton (x : X) : dimH ({x} : set X) = 0 := subsingleton_singleton.dimH_eq
+
 lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0}
   (h : ↑d < dimH s) : μH[d] s = ∞ :=
 begin

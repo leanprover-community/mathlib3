@@ -183,9 +183,9 @@ variables {𝕜}
 
 /-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs (1 : ℝ)` and
 a real function `f` is equal to the integral of `f` over `s`. -/
-lemma inner_indicator_const_Lp_one (hs : measurable_set s) (hμs : μ s ≠ ∞) (f : Lp ℝ 2 μ) :
-  inner (indicator_const_Lp 2 hs hμs (1 : ℝ)) f = ∫ x in s, f x ∂μ :=
-by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral ℝ hs hμs (1 : ℝ) f, simp, }
+lemma inner_indicator_const_Lp_one (hs : measurable_set s) (hμs : μ s ≠ ∞) (f : Lp 𝕜 2 μ) :
+  inner (indicator_const_Lp 2 hs hμs (1 : 𝕜)) f = ∫ x in s, f x ∂μ :=
+by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral 𝕜 hs hμs (1 : 𝕜) f, simp, }
 
 end indicator_const_Lp
 

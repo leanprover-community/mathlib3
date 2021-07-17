@@ -151,12 +151,7 @@ theorem fintype.linear_independent_iff' [fintype ι] :
 by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
 
 lemma linear_independent_empty_type [is_empty ι] : linear_independent R v :=
-begin
- rw [linear_independent_iff],
- intros,
- ext i,
- exact is_empty_elim i
-end
+linear_independent_iff.mpr $ λ v hv, subsingleton.elim v 0
 
 lemma linear_independent.ne_zero [nontrivial R]
   (i : ι) (hv : linear_independent R v) : v i ≠ 0 :=

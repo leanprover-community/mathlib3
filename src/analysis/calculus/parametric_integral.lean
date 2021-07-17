@@ -225,7 +225,7 @@ begin
     h_diff with hF'_int key,
   replace hF'_int : integrable F' μ,
   { rw [← integrable_norm_iff hm] at hF'_int,
-    simpa only [integrable_norm_iff, hF'_meas, one_mul, continuous_linear_map.norm_id_field',
+    simpa only [integrable_norm_iff, hF'_meas, one_mul, norm_one,
                 continuous_linear_map.norm_smul_rightL_apply] using hF'_int},
   refine ⟨hF'_int, _⟩,
   simp_rw has_deriv_at_iff_has_fderiv_at at h_diff ⊢,

@@ -319,7 +319,7 @@ op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If there is an element with norm different from `0`, then the norm of the identity equals `1`.
 (Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
-lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : E), ∥x∥ ≠ 0 ) : ∥id 𝕜 E∥ = 1 :=
+lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : E), ∥x∥ ≠ 0) : ∥id 𝕜 E∥ = 1 :=
 le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
@@ -901,18 +901,14 @@ iff.intro
     (op_norm_nonneg _))
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
+@[simp] lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
 begin
   refine norm_id_of_nontrivial_seminorm _,
   obtain ⟨x, hx⟩ := exists_ne (0 : E),
   exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
 end
 
-@[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
-norm_id
-
-@[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
-norm_id_field
+instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨norm_id⟩
 
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/

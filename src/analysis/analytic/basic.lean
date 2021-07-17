@@ -719,7 +719,14 @@ section
 
 variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r R : ℝ≥0}
 
-/-- A term of `formal_multilinear_series.change_origin_series`. -/
+/-- A term of `formal_multilinear_series.change_origin_series`.
+
+Given a formal multilinear series `p` and a point `x` in its ball of convergence,
+`p.change_origin x` is a formal multilinear series such that
+`p.sum (x+y) = (p.change_origin x).sum y` when this makes sense. Each term of `p.change_origin x`
+is itself an analytic function of `x` given by the series `p.change_origin_series`. Each term in
+`change_origin_series` is the sum of `change_origin_series_term`'s over all `s` of cardinality `l`.
+-/
 def change_origin_series_term (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l) :
   E [×l]→L[𝕜] E [×k]→L[𝕜] F :=
 continuous_multilinear_map.curry_fin_finset 𝕜 E F hs
@@ -750,7 +757,11 @@ begin
   apply continuous_multilinear_map.le_op_nnnorm
 end
 
-/-- The power series for `f.change_origin k`. -/
+/-- The power series for `f.change_origin k`.
+
+Given a formal multilinear series `p` and a point `x` in its ball of convergence,
+`p.change_origin x` is a formal multilinear series such that
+`p.sum (x+y) = (p.change_origin x).sum y` when this makes sense. -/
 def change_origin_series (k : ℕ) : formal_multilinear_series 𝕜 E (E [×k]→L[𝕜] F) :=
 λ l, ∑ s : {s : finset (fin (k + l)) // finset.card s = l}, p.change_origin_series_term k l s s.2
 
@@ -893,7 +904,7 @@ have _ := p.le_change_origin_series_radius k,
 
 /-- Summing the series `p.change_origin x` at a point `y` gives back `p (x + y)`-/
 theorem change_origin_eval (h : (∥x∥₊ + ∥y∥₊ : ℝ≥0∞) < p.radius) :
-  (p.change_origin x).sum y =  (p.sum (x + y)) :=
+  (p.change_origin x).sum y = (p.sum (x + y)) :=
 begin
   have radius_pos : 0 < p.radius := lt_of_le_of_lt (zero_le _) h,
   have x_mem_ball : x ∈ emetric.ball (0 : E) p.radius,

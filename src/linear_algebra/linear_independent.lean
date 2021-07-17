@@ -176,6 +176,10 @@ begin
   rw [finsupp.map_domain_apply hf]
 end
 
+lemma linear_independent.reindex_range (i : linear_independent R v) :
+  linear_independent R (coe : range v → M) :=
+by simpa using i.comp _ (range_splitting_injective v)
+
 /-- If `v` is a linearly independent family of vectors and the kernel of a linear map `f` is
 disjoint with the sumodule spaned by the vectors of `v`, then `f ∘ v` is a linearly independent
 family of vectors. See also `linear_independent.map'` for a special case assuming `ker f = ⊥`. -/

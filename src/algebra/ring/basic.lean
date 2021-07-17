@@ -817,7 +817,7 @@ begin
     exact eq_add_of_sub_eq rfl }
 end
 
-@[simp] theorem even_neg (a : α): even (-a) ↔ even a :=
+@[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
 dvd_neg _ _
 
 end ring

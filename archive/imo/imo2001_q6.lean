@@ -24,7 +24,7 @@ The main idea of this formalization is using the negation
 introduction, that is, we are going to suppose that the number
 a*b+c*d  is prime.
 
-However, firstly we have to prove some auxiliar results that
+However, firstly we have to prove some auxiliary results that
 will be used in the final theorem.
 -/
 

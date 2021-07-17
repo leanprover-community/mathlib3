@@ -1014,7 +1014,7 @@ lemma countable_cover_nhds_of_sigma_compact {f : α → set α}
   (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
 begin
   simp only [← nhds_within_univ] at hf,
- rcases countable_cover_nhds_within_of_sigma_compact is_closed_univ (λ x _, hf x)
+  rcases countable_cover_nhds_within_of_sigma_compact is_closed_univ (λ x _, hf x)
     with ⟨s, -, hsc, hsU⟩,
   exact ⟨s, hsc, univ_subset_iff.1 hsU⟩
 end

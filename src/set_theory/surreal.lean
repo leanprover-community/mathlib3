@@ -36,7 +36,7 @@ via dyadic Dedekind cuts the homomorphic inclusion of the reals into the surreal
 One can also map all the ordinals into the surreals!
 
 ## Dyadic surreals
-We construct dyadic surreal numbers using a map from `ℤ[2 ^ {-1}]` to surreals. As we currently do
+We construct dyadic surreal numbers using a map from ℤ[2 ^ {-1}] to surreals. As we currently do
 not have a ring structure on `surreal` we construct this map explicitly. Once we have a ring
 structure on `surreal`, this map can be constructed immediately by sending `2 ^ {-1}` to `half`.
 
@@ -301,11 +301,11 @@ by cases n; cases i; refl
 
 lemma pow_half_move_left' (n) :
   (pow_half n).move_left (equiv.cast (pow_half_left_moves.symm) punit.star) = 0 :=
-by simp only [eq_self_iff_true, pgame.pow_half_move_left]
+by simp only [eq_self_iff_true, pow_half_move_left]
 
 lemma pow_half_move_right' (n) :
   (pow_half (n + 1)).move_right (equiv.cast (pow_half_right_moves.symm) punit.star) = pow_half n :=
-by simp only [pgame.pow_half_move_right, eq_self_iff_true]
+by simp only [pow_half_move_right, eq_self_iff_true]
 
 /-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
 theorem numeric_pow_half {n} : (pow_half n).numeric :=
@@ -335,7 +335,7 @@ le_of_lt numeric_zero numeric_pow_half zero_lt_pow_half
 theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
 begin
   induction n with n hn,
-  { exact add_half_self_equiv_one },
+  { exact half_add_half_equiv_one },
   { split; rw le_def_lt; split,
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
       { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
@@ -467,7 +467,7 @@ def pow_half (n : ℕ) : surreal := ⟦⟨pgame.pow_half n, pgame.numeric_pow_ha
 @[simp] lemma pow_half_one : pow_half 1 = half := rfl
 
 @[simp] theorem add_half_self_eq_one : half + half = 1 :=
-quotient.sound pgame.add_half_self_equiv_one
+quotient.sound pgame.half_add_half_equiv_one
 
 lemma double_pow_half_succ_eq_pow_half (n : ℕ) : 2 • pow_half n.succ = pow_half n :=
 begin
@@ -545,8 +545,7 @@ def dyadic : set surreal := set.range dyadic_map
 
 -- TODO define the inclusion of groups `surreal → game`
 
--- TODO define the dyadic rationals, and show they map into the surreals via the formula
---   m / 2^n ↦ { (m-1) / 2^n | (m+1) / 2^n }
+-- TODO define the dyadic rationals, and show they map into the surreals
 -- TODO show this is a group homomorphism, and injective
 
 -- TODO map the reals into the surreals, using dyadic Dedekind cuts

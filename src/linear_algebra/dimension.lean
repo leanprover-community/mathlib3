@@ -356,6 +356,7 @@ variables (M : Type v) [add_comm_group M] [module R M]
 
 open submodule
 
+-- FIXME move this!
 /-- If every finset in a type has bounded cardinality, that type is finite. -/
 def fintype_of_finset_card_le {ι : Type*} (n : ℕ)
   (w : ∀ s : finset ι, s.card ≤ n) : fintype ι :=

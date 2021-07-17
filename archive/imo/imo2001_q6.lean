@@ -41,7 +41,7 @@ lemma equivalent_sums
   (h : a*c + b*d = (a + b - c + d) * (-a + b + c + d)) :
   b^2 + b*d + d^2 = a^2 - a*c + c^2 :=
 begin
-  have h1: (a + b - c + d) * (-a + b + c + d) =
+  have h1 : (a + b - c + d) * (-a + b + c + d) =
            -a^2  + b^2  + a*c - c^2 + b*d + d^2 + a*c + b*d,
     by ring,
   by nlinarith,

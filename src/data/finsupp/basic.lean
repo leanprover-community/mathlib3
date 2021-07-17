@@ -878,7 +878,7 @@ lemma map_range_add [add_zero_class N]
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
-@[simp] lemma emb_domain_add [add_zero_class M] (f : α ↪ β) (v w : α →₀ M) :
+@[simp] lemma emb_domain_add (f : α ↪ β) (v w : α →₀ M) :
   emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
 begin
   ext b,
@@ -1096,7 +1096,7 @@ lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
 prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
 
-lemma emb_domain_sum [add_comm_monoid M] [add_comm_monoid N]
+lemma sum_emb_domain_index [add_comm_monoid M] [add_comm_monoid N]
   (f : α ↪ β) (v : α →₀ M) (g : β → M →+ N) :
   (v.emb_domain f).sum (λ b m, g b m) = v.sum (λ a m, g (f a) m) :=
 begin

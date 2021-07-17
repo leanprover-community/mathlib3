@@ -204,7 +204,7 @@ lemma probability_measures.coe_embedding (α : Type*)
   end,
   inj := begin
     intros μ ν h,
-    apply subtype.eq ,
+    apply subtype.eq,
     rw [val_eq_coe_coe_probability_measures μ,
         val_eq_coe_coe_probability_measures ν],
     exact congr_arg coe h,

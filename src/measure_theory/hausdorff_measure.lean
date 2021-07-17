@@ -565,17 +565,17 @@ begin
   exact ennreal.zero_ne_top
 end
 
-lemma dimH_bUnion {s : set ι} (hs : countable s) (t : ι → set X) :
+@[simp] lemma dimH_bUnion {s : set ι} (hs : countable s) (t : ι → set X) :
   dimH (⋃ i ∈ s, t i) = ⨆ i ∈ s, dimH (t i) :=
 begin
   haveI := hs.to_encodable,
   rw [← Union_subtype, dimH_Union, ← supr_subtype'']
 end
 
-lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
+@[simp] lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
 by rw [sUnion_eq_bUnion, dimH_bUnion hS]
 
-lemma dimH_union (s t : set X) : dimH (s ∪ t) = max (dimH s) (dimH t) :=
+@[simp] lemma dimH_union (s t : set X) : dimH (s ∪ t) = max (dimH s) (dimH t) :=
 by rw [union_eq_Union, dimH_Union, supr_bool_eq, cond, cond, ennreal.sup_eq_max]
 
 end measure_theory

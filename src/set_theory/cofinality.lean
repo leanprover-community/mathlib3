@@ -195,9 +195,9 @@ le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 
 @[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 :=
 ⟨induction_on o $ λ α r _ z, by exactI
-  let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_empty.2 $
-  λ ⟨a⟩, let ⟨b, h, _⟩ := hl a in
-  ne_zero_iff_nonempty.2 (by exact ⟨⟨_, h⟩⟩) (e.trans z),
+  let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_is_empty.2 $
+  ⟨λ a, let ⟨b, h, _⟩ := hl a in
+    (eq_zero_iff_is_empty.1 (e.trans z)).elim' ⟨_, h⟩⟩,
 λ e, by simp [e]⟩
 
 @[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
@@ -483,7 +483,7 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   rw [← Se],
   apply lt_imp_lt_of_le_imp_le
-    (λ (h : mk S ≤ c), canonically_ordered_semiring.mul_le_mul_right' h c),
+    (λ (h : mk S ≤ c), mul_le_mul_right' h c),
   rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
   { simp [typein, sum_mk (λ x:S, {a//r a x})],

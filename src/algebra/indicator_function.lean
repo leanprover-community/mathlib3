@@ -117,6 +117,9 @@ mul_indicator_eq_self.2 $ subset_univ _
 @[simp, to_additive] lemma mul_indicator_empty (f : α → M) : mul_indicator (∅ : set α) f = λa, 1 :=
 mul_indicator_eq_one.2 $ disjoint_empty _
 
+@[to_additive] lemma mul_indicator_empty' (f : α → M) : mul_indicator (∅ : set α) f = 1 :=
+mul_indicator_empty f
+
 variable (M)
 
 @[simp, to_additive] lemma mul_indicator_one (s : set α) :

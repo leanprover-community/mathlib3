@@ -1057,39 +1057,4 @@ begin
   exact zero_lt_one,
 end
 
-theorem half_add_half_equiv_one : half + half ≈ 1 :=
-begin
-  split; rw le_def; split,
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { right,
-      use (sum.inr punit.star),
-      calc ((half + half).move_left (sum.inl punit.star)).move_right (sum.inr punit.star)
-          = (half.move_left punit.star + half).move_right (sum.inr punit.star) : by fsplit
-      ... = (0 + half).move_right (sum.inr punit.star) : by fsplit
-      ... ≈ 1 : zero_add_equiv 1
-      ... ≤ 1 : pgame.le_refl 1 },
-    { right,
-      use (sum.inl punit.star),
-      calc ((half + half).move_left (sum.inr punit.star)).move_right (sum.inl punit.star)
-          = (half + half.move_left punit.star).move_right (sum.inl punit.star) : by fsplit
-      ... = (half + 0).move_right (sum.inl punit.star) : by fsplit
-      ... ≈ 1 : add_zero_equiv 1
-      ... ≤ 1 : pgame.le_refl 1 } },
-  { rintro ⟨ ⟩ },
-  { rintro ⟨ ⟩,
-    left,
-    use (sum.inl punit.star),
-    calc 0 ≤ half : le_of_lt numeric_zero numeric_half zero_lt_half
-    ... ≈ 0 + half : (zero_add_equiv half).symm
-    ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { left,
-      use (sum.inr punit.star),
-      calc 1 ≤ 1 : pgame.le_refl 1
-          ... ≈ 1 + 0 : (add_zero_equiv 1).symm },
-    { use (sum.inl punit.star),
-      calc 1 ≤ 1 : pgame.le_refl 1
-          ... ≈ 0 + 1 : (zero_add_equiv 1).symm } }
-end
-
 end pgame

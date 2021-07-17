@@ -412,7 +412,7 @@ def cases_on' : option α → β → (α → β) → β
 by cases o; refl
 
 @[simp] lemma get_or_else_map (f : α → β) (x : α) (o : option α) :
-  get_or_else (option.map f o) (f x) = f (get_or_else o x) :=
+  get_or_else (o.map f) (f x) = f (get_or_else o x) :=
 by cases o; refl
 
 section

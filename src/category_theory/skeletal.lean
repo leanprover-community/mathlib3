@@ -81,6 +81,10 @@ equivalence.of_fully_faithfully_ess_surj (from_skeleton C)
 noncomputable def skeleton_equivalence : skeleton C ≌ C :=
 (from_skeleton C).as_equivalence
 
+/-- The equivalence between the skeleton and the category itself. -/
+noncomputable def skeleton_equivalence : skeleton C ≌ C :=
+(from_skeleton C).as_equivalence
+
 lemma skeleton_skeletal : skeletal (skeleton C) :=
 begin
   rintro X Y ⟨h⟩,

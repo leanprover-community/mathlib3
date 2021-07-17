@@ -3,11 +3,12 @@ Copyright (c) 2020 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
+import analysis.normed_space.indicator_function
+import analysis.normed_space.normed_group_hom
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import measure_theory.mean_inequalities
 import topology.continuous_function.compact
-import analysis.normed_space.indicator_function
 
 /-!
 # ℒp space and Lp space

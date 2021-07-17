@@ -2527,8 +2527,7 @@ by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
   by simp only [bUnion_insert, image_union, ih])
 
-lemma bUnion_bUnion [decidable_eq β] [decidable_eq γ] (s : finset α) (f : α → finset β)
-  (g : β → finset γ) :
+lemma bUnion_bUnion [decidable_eq γ] (s : finset α) (f : α → finset β) (g : β → finset γ) :
   (s.bUnion f).bUnion g = s.bUnion (λ a, (f a).bUnion g) :=
 begin
   ext,

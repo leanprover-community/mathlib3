@@ -177,6 +177,10 @@ lemma mem_supported' {s : set α}  (p : α →₀ M) :
 by haveI := classical.dec_pred (λ (x : α), x ∈ s);
    simp [mem_supported, set.subset_def, not_imp_comm]
 
+lemma mem_supported_support (p : α →₀ M) :
+  p ∈ finsupp.supported M R (p.support : set α) :=
+by rw finsupp.mem_supported
+
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
 set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)

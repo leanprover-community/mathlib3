@@ -48,6 +48,13 @@ This for instance gives the natural meaning for a bounded `ennreal`-valued funct
 def bounded_above {α β : Type*} [has_le β] [has_top β] (f : α → β) : Prop :=
 ∃ (M : β), M ≠ ⊤ ∧ ∀ (a : α), f(a) ≤ M
 
+lemma constant_bounded_above {α β : Type*} [preorder β] [has_top β] {c : β} (hc : c ≠ ⊤) :
+  bounded_above (λ (a : α), c) :=
+begin
+  use c,
+  exact ⟨hc, (λ a, le_refl c)⟩,
+end
+
 namespace weak_convergence
 
 section test_functions_for_weak_convergence
@@ -73,6 +80,11 @@ the definition of the topology of the weak convergence of probability measures. 
 structure bounded_continuous_to_ennreal (α : Type*) [topological_space α]
   extends continuous_map α ennreal :=
 (bounded_above' : bounded_above to_fun)
+
+instance bounded_continuous_to_ennreal_inhabited : inhabited (bounded_continuous_to_ennreal α) :=
+⟨ { to_fun := 0,
+    continuous_to_fun := continuous_zero,
+    bounded_above' := constant_bounded_above ennreal.zero_ne_top, } ⟩
 
 instance bounded_continuous_to_ennreal.has_coe_to_fun :
   has_coe_to_fun (bounded_continuous_to_ennreal α) := ⟨(λ _, α → ennreal), (λ f, f.to_fun)⟩
@@ -108,6 +120,9 @@ would then identify the continuous positive functionals as finite measures.) -/
 def functional_on_bounded_continuous_to_ennreal (α : Type*) [topological_space α] : Type* :=
 (bounded_continuous_to_ennreal α) → ennreal
 
+instance functional_on_bounded_continuous_to_ennreal_inhabited :
+  inhabited (functional_on_bounded_continuous_to_ennreal α) := ⟨λ _, 0⟩
+
 /-- As a first step towards the definition of the topology of the weak convergence of probability
 measures, the space of functionals `(cont_bdd_ennval α) → ennreal` is equipped with the product
 topology (the topology of "testfunctionwise" convergence, i.e., of pointwise convergence of the
@@ -133,7 +148,11 @@ probability measures (i.e., their total mass is one). -/
 def probability_measures (α : Type) [measurable_space α] : Type :=
 {μ : measure α // probability_measure μ}
 
-instance probability_measures.to_measure (α : Type) [measurable_space α] :
+instance probability_measures_inhabited [inhabited α] : inhabited (probability_measures α) :=
+⟨{ val := measure_theory.measure.dirac (default α),
+   property := measure_theory.measure.dirac.probability_measure, }⟩
+
+instance probability_measures.has_coe_to_measure (α : Type) [measurable_space α] :
   has_coe (probability_measures α) (measure_theory.measure α) := ⟨subtype.val⟩
 
 instance probability_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
@@ -147,7 +166,11 @@ measures (i.e., their total mass is finite). -/
 def finite_measures (α : Type*) [measurable_space α] : Type :=
 { μ : measure α // finite_measure μ }
 
-instance finite_measures.to_measure (α : Type*) [measurable_space α] :
+instance finite_measures_inhabited : inhabited (finite_measures α) :=
+⟨{ val := 0,
+   property := measure_theory.finite_measure_zero, }⟩
+
+instance finite_measures.has_coe_to_measure (α : Type*) [measurable_space α] :
   has_coe (finite_measures α) (measure_theory.measure α) := ⟨subtype.val⟩
 
 instance finite_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
@@ -156,7 +179,7 @@ instance finite_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
 lemma finite_measures.coe_eq_val (ν : finite_measures α) :
   (ν : measure_theory.measure α) = ν.val := rfl
 
-instance probability_measures.to_finite_measures (α : Type*) [measurable_space α] :
+instance probability_measures.has_coe_to_finite_measures (α : Type*) [measurable_space α] :
   has_coe (probability_measures α) (finite_measures α) :=
 { coe := λ μ , { val := μ.val,
                  property := begin -- TODO: This needs golf.
@@ -165,11 +188,15 @@ instance probability_measures.to_finite_measures (α : Type*) [measurable_space 
                    exact ⟨key⟩,
                  end, }}
 
--- TODO: How to state this with dot notation?
+-- TODO: Can this be stated with dot notation?
 lemma probability_measures.coe_coe_eq_val (ν : probability_measures α) :
   ((ν : finite_measures α) : measure_theory.measure α) = ν.val := rfl
 
-variables [topological_space α] [borel_space α]
+variables [topological_space α]
+-- TODO: From here on, I would only like to make the definitions under the assumption
+-- `[borel_space α]`, because otherwise there is no guarantee that they are meaningful, and I
+-- don't think anyone should ever use them. But the linter complains about unused arguments if I
+-- include this assumption.
 
 /-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This is
@@ -177,10 +204,6 @@ function is obtained by (Lebesgue) integrating the (test) function against the m
 abbreviation probability_measures.test_against
   (μ : probability_measures α) (f : bounded_continuous_to_ennreal α) : ennreal :=
 lintegral (μ : measure_theory.measure α) f
-
-variables {γ :Type} [measurable_space γ] [topological_space γ] [borel_space γ]
-variables (ν : probability_measures γ) (g : bounded_continuous_to_ennreal γ)
-#check ν.test_against g
 
 /-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This is
@@ -206,24 +229,24 @@ topological_space.induced (λ (μ : finite_measures α), μ.test_against)
 /- Integration of test functions against borel probability measures depends continuously on the
 measure. -/
 lemma probability_measures.continuous_test_against :
-  continuous (@probability_measures.test_against α _ _ _) := continuous_induced_dom
+  continuous (@probability_measures.test_against α _ _) := continuous_induced_dom
 
 lemma finite_measures.continuous_test_against :
-  continuous (@finite_measures.test_against α _ _ _) := continuous_induced_dom
+  continuous (@finite_measures.test_against α _ _) := continuous_induced_dom
 
 lemma probability_measures.test_against_comp_via_finite_measures (α : Type*)
-  [measurable_space α] [topological_space α] [borel_space α] :
-  @probability_measures.test_against α _ _ _ = (@finite_measures.test_against α _ _ _) ∘ coe :=
+  [measurable_space α] [topological_space α] :
+  @probability_measures.test_against α _ _ = (@finite_measures.test_against α _ _) ∘ coe :=
 by { funext μ f, refl, }
 
 lemma probability_measures.coe_embedding (α : Type*)
-  [measurable_space α] [topological_space α] [borel_space α] :
+  [measurable_space α] [topological_space α] :
   embedding (coe : probability_measures α → finite_measures α) :=
 { induced := begin
     have factorize := probability_measures.test_against_comp_via_finite_measures α,
     have key := @induced_compose (probability_measures α) (finite_measures α)
       (functional_on_bounded_continuous_to_ennreal α) infer_instance coe
-      (@finite_measures.test_against α infer_instance infer_instance infer_instance),
+      (@finite_measures.test_against α infer_instance infer_instance),
     rw ←factorize at key,
     exact key.symm,
   end,
@@ -249,7 +272,7 @@ begin
   split,
   { intros weak_conv,
     exact tendsto_pi.mp (tendsto.comp (continuous.tendsto
-      (@finite_measures.continuous_test_against α _ _ _) μ) weak_conv), },
+      (@finite_measures.continuous_test_against α _ _) μ) weak_conv), },
   { intro h_lim_forall,
     have h_lim : tendsto (λ n, (μseq(n)).test_against) at_top
       (𝓝 (finite_measures.test_against μ)),
@@ -262,7 +285,7 @@ theorem probability_measures.weak_conv_seq_iff_test_against
   tendsto μseq at_top (𝓝 μ) ↔
   ∀ (f : bounded_continuous_to_ennreal α),
     tendsto (λ n, (μseq(n)).test_against f) at_top (𝓝 (μ.test_against f)) :=
-by rw [@proba_meas_tendsto_nhds_iff_fin_meas_tendsto_nhds α _ _ _ _ at_top μseq μ,
+by rw [@proba_meas_tendsto_nhds_iff_fin_meas_tendsto_nhds α _ _ _ at_top μseq μ,
       finite_measures.weak_conv_seq_iff_test_against,
       probability_measures.test_against_comp_via_finite_measures]
 
@@ -279,7 +302,7 @@ theorem weak_conv_seq_iff' {μseq : ℕ → probability_measures α} {μ : proba
     tendsto (λ n, lintegral (μseq(n) : measure_theory.measure α) f) at_top
       (𝓝 (lintegral (μ : measure_theory.measure α) f)) :=
 begin
-  rw @probability_measures.weak_conv_seq_iff_test_against α _ _ _ μseq μ,
+  rw @probability_measures.weak_conv_seq_iff_test_against α _ _ μseq μ,
   split,
   { intros h f f_cont f_bdd,
     exact h (bounded_continuous_to_ennreal.mk' f f_cont f_bdd) , },

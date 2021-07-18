@@ -144,7 +144,7 @@ ring_hom.ext $ λ _, rfl
 variables (R S) [subsingleton S]
 
 /-- A ring `R` isomorphic to `R × S` when `S` is the zero ring -/
-@[simps] def prod_trivial_ring_equiv : R ≃+* R × S :=
+@[simps] def prod_trivial_ring : R ≃+* R × S :=
 { to_fun := λ x, (x, 0),
   inv_fun := prod.fst,
   map_add' := by simp,
@@ -153,7 +153,7 @@ variables (R S) [subsingleton S]
   right_inv := λ x, by apply prod.ext; simp; congr }
 
 /-- A ring `R` isomorphic to `S × R` when `S` is the zero ring -/
-@[simps] def trivial_ring_prod_equiv : R ≃+* S × R :=
+@[simps] def trivial_ring_prod : R ≃+* S × R :=
 { to_fun := λ x, (0, x),
   inv_fun := prod.snd,
   map_add' := by simp,

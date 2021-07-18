@@ -839,7 +839,12 @@ variables [fintype α] {G : simple_graph α} {P : finpartition α} {ε : ℝ}
 local notation `m` := (card α/exp_bound P.size : ℕ)
 local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 
-private lemma card_aux₀ :
+private lemma hundred_div_ε_pow_five_le_m : 100/ε^5 ≤ m :=
+begin
+
+end
+
+private lemma a_add_one_le_four_pow_size :
   a + 1 ≤ 4^P.size :=
 begin
   have h : 1 ≤ 4^P.size := one_le_pow_of_one_le (by norm_num) _,
@@ -852,11 +857,12 @@ end
 private lemma card_aux₁ :
   m * 4^P.size + a = (4^P.size - a) * m + a * (m + 1) :=
 by rw [mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
-  ((nat.le_succ _).trans card_aux₀), mul_comm]
+  ((nat.le_succ _).trans a_add_one_le_four_pow_size), mul_comm]
 
 private lemma card_aux₂ {U : finset α} (hUcard : U.card = m * 4^P.size + a) :
   (4^P.size - a) * m + a * (m + 1) = U.card :=
-by rw [hUcard, card_aux₁]
+by rw [hUcard, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
+  ((nat.le_succ _).trans a_add_one_le_four_pow_size), mul_comm]
 
 private lemma card_aux₃ (hP : P.is_equipartition) {U : finset α} (hU : U ∈ P.parts)
   (hUcard : ¬U.card = m * 4^P.size + a) :
@@ -870,7 +876,7 @@ begin
   rw aux at hUcard,
   rw finpartition.is_equipartition_iff_card_parts_eq_average at hP,
   rw [(hP U hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul,
-    nat.sub_add_cancel card_aux₀, ←add_assoc, mul_comm, nat.add_sub_cancel', ←aux],
+    nat.sub_add_cancel a_add_one_le_four_pow_size, ←add_assoc, mul_comm, nat.add_sub_cancel', ←aux],
   rw ←aux,
   exact nat.le_add_right _ _,
 end
@@ -887,8 +893,12 @@ begin
     (λ hUcard, R.mk_equitable $ card_aux₃ hP hU hUcard),
 end
 
-lemma card_eq_of_mem_parts_chunk_increment {hP : P.is_equipartition} {U : finset α}
-  {hU : U ∈ P.parts} {A : finset α} (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
+section chunk_increment
+variables {hP : P.is_equipartition} {U : finset α}
+  {hU : U ∈ P.parts}
+
+lemma card_eq_of_mem_parts_chunk_increment {A : finset α}
+  (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
   A.card = card α / exp_bound P.size ∨ A.card = card α / exp_bound P.size + 1 :=
 begin
   simp [finpartition_on.is_equipartition.chunk_increment] at hA,
@@ -899,9 +909,16 @@ begin
   exact finpartition_on.card_eq_of_mem_parts_mk_equitable _ hA,
 end
 
-lemma le_sum_card_subset_chunk_increment_parts {hP : P.is_equipartition} {U : finset α}
-  {hU : U ∈ P.parts} {A : finset (finset α)} (hA : A ⊆ (hP.chunk_increment G ε hU).parts)
-  {u : finset α} (hu : u ∈ A) :
+lemma m_le_card_of_mem_chunk_increment_part {A : finset α}
+  (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
+  (m : ℝ) ≤ A.card :=
+begin
+  obtain h | h := card_eq_of_mem_parts_chunk_increment hA; rw h,
+  exact nat.cast_le.2 (nat.le_succ _),
+end
+
+lemma le_sum_card_subset_chunk_increment_parts {A : finset (finset α)}
+  (hA : A ⊆ (hP.chunk_increment G ε hU).parts) {u : finset α} (hu : u ∈ A) :
   (A.card : ℝ) * u.card ≤ (∑ W in A, W.card)/(m/(m + 1)) :=
 begin
   have m_le_card : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts → (m : ℝ) ≤ W.card := sorry,
@@ -917,9 +934,8 @@ begin
     ... ≤ ∑ W in A, W.card : sum_le_sum (λ W hW, m_le_card (hA hW)),
 end
 
-lemma sum_card_subset_chunk_increment_parts_le {hP : P.is_equipartition} (hm : 0 < m) {U : finset α}
-  {hU : U ∈ P.parts} {A : finset (finset α)} (hA : A ⊆ (hP.chunk_increment G ε hU).parts)
-  {u : finset α} (hu : u ∈ A) :
+lemma sum_card_subset_chunk_increment_parts_le (hm : 0 < m) {A : finset (finset α)}
+  (hA : A ⊆ (hP.chunk_increment G ε hU).parts) {u : finset α} (hu : u ∈ A) :
   (∑ W in A, (W.card : ℝ))/((m + 1)/m) ≤ A.card * u.card :=
 begin
   have m_le_card : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts → (m : ℝ) ≤ W.card := sorry,
@@ -935,7 +951,7 @@ begin
     ... = A.card * (m + 1)/m * u.card : by rw [div_mul_eq_mul_div, mul_div_assoc],
 end
 
-lemma density_sub_eps_le_sum_density_div_card {hP : P.is_equipartition} (hε : 0 ≤ ε)
+lemma density_sub_eps_le_sum_density_div_card (hε : 0 ≤ ε)
   {U W : finset α} {hU : U ∈ P.parts} {hW : W ∈ P.parts} {A B : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
   G.edge_density (A.bUnion id) (B.bUnion id) - ε^5/50 ≤
@@ -999,7 +1015,26 @@ begin
           end,
 end.
 
-lemma sum_density_div_card_le_density_add_eps {hP : P.is_equipartition} (hε : 0 ≤ ε) (hm : 0 < m)
+lemma thing : 1 - ε^5/50 ≤ (m/(m + 1))^2 :=
+begin
+  calc
+    1 - ε^5/50
+        = 1 - 2/(100/ε^5) : begin
+          rw [div_div_eq_mul_div, mul_comm, mul_div_assoc, div_eq_mul_one_div],
+          norm_num,
+         end
+    ... ≤ 1 - 2/m : begin
+      apply sub_le_sub_left,
+      apply div_le_div_of_le_left,
+    end
+    ... ≤ 1 - 2/(m + 1) : sorry
+    ... ≤ 1 - 2/(m + 1) + 1/(m + 1)^2 : sorry
+    ... = (m/(m + 1))^2 : sorry
+end
+
+#exit
+
+lemma sum_density_div_card_le_density_add_eps (hε : 0 ≤ ε) (hm : 0 < m)
   {U W : finset α} {hU : U ∈ P.parts} {hW : W ∈ P.parts} {A B : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
   (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) ≤
@@ -1063,6 +1098,8 @@ begin
           end,
 end
 
+end chunk_increment
+
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
 index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
@@ -1091,7 +1128,7 @@ begin
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
   exact λ x hx, finpartition_on.mk_equitable.size (nat.div_pos hPα' hPpos) _,
   exact λ x hx, finpartition_on.mk_equitable.size (nat.div_pos hPα' hPpos) _,
-  rw [nat.sub_add_cancel card_aux₀, nat.sub_add_cancel ((nat.le_succ _).trans card_aux₀), ←add_mul],
+  rw [nat.sub_add_cancel a_add_one_le_four_pow_size, nat.sub_add_cancel ((nat.le_succ _).trans a_add_one_le_four_pow_size), ←add_mul],
   congr,
   rw [filter_card_add_filter_neg_card_eq_card, card_attach, finpartition_on.size],
 end

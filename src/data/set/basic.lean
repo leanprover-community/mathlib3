@@ -1823,6 +1823,7 @@ subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
 /-- We can use the axiom of choice to pick a preimage for every element of `range f`. -/
 noncomputable def range_splitting (f : α → β) : range f → α := λ x, x.2.some
 
+-- This can not be a `@[simp]` lemma because the head of the left hand side is a variable.
 lemma apply_range_splitting (f : α → β) (x : range f) : f (range_splitting f x) = x :=
 x.2.some_spec
 
@@ -1831,6 +1832,7 @@ attribute [irreducible] range_splitting
 @[simp] lemma comp_range_splitting (f : α → β) : f ∘ range_splitting f = coe :=
 by { ext, simp only [function.comp_app], apply apply_range_splitting, }
 
+-- When `f` is injective, see also `equiv.of_injective`.
 lemma left_inverse_range_splitting (f : α → β) :
   left_inverse (range_factorization f) (range_splitting f) :=
 λ x, by { ext, simp only [range_factorization_coe], apply apply_range_splitting, }

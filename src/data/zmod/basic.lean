@@ -83,7 +83,7 @@ instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 | 0     h := false.elim $ nat.not_lt_zero 0 h.1
 | (n+1) _ := fin.fintype (n+1)
 
-lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
+@[simp] lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
@@ -576,6 +576,79 @@ def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
   inv_fun := λ x, unit_of_coprime x.1.val x.2,
   left_inv := λ ⟨_, _, _, _⟩, units.ext (nat_cast_zmod_val _),
   right_inv := λ ⟨_, _⟩, by simp }
+
+/-- A ring `R` isomorphic to `R × zmod 1` -/
+def prod_zmod_one_equiv (R : Type*) [semiring R] : R ≃+* R × zmod 1 :=
+{ to_fun := λ x, (x, 0),
+  inv_fun := prod.fst,
+  map_add' := by intros; ext; simp; congr,
+  map_mul' := by intros; ext; simp; congr,
+  left_inv := λ x, rfl,
+  right_inv := λ x, by apply prod.ext; simp; congr }
+
+@[simp] lemma prod_zmod_one_equiv_apply {R : Type*} [semiring R] (x : R) :
+  prod_zmod_one_equiv R x = (x, 0) := rfl
+
+@[simp] lemma prod_zmod_one_equiv_symm_apply {R : Type*} [semiring R] (x : R × zmod 1) :
+  (prod_zmod_one_equiv R).symm x = x.fst := rfl
+
+/-- A ring `R` isomorphic to `zmod 1 × R` -/
+def zmod_one_prod_equiv (R : Type*) [semiring R] : R ≃+* zmod 1 × R :=
+{ to_fun := λ x, (0, x),
+  inv_fun := prod.snd,
+  map_add' := by intros; ext; simp; congr,
+  map_mul' := by intros; ext; simp; congr,
+  left_inv := λ x, rfl,
+  right_inv := λ x, by apply prod.ext; simp; congr }
+
+@[simp] lemma zmod_one_prod_equiv_apply {R : Type*} [semiring R] (x : R) :
+  zmod_one_prod_equiv R x = (0, x) := rfl
+
+@[simp] lemma zmod_one_prod_equiv_symm_apply {R : Type*} [semiring R] (x : zmod 1 × R) :
+  (zmod_one_prod_equiv R).symm x = x.snd := rfl
+
+/-- The chinese remainder theorem. For a pair of coprime natural numbers, `m` and `n`,
+  the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic. -/
+def chinese_remainder {m n : ℕ} (h : m.coprime n) :
+  zmod (m * n) ≃+* zmod m × zmod n :=
+if hmn0 : m * n = 0
+then if hm1 : m = 1
+  then by rw [hm1, one_mul]; exact zmod_one_prod_equiv _
+  else have hn1 : n = 1,
+      begin
+        rw [nat.mul_eq_zero] at hmn0,
+        rcases hmn0 with ⟨rfl, rfl⟩;
+        simp * at *
+      end,
+    by rw [hn1, mul_one]; exact prod_zmod_one_equiv _
+else
+let to_fun : zmod (m * n) → zmod m × zmod n :=
+  λ x, (zmod.cast_hom (dvd_mul_right _ _) _ x, zmod.cast_hom (dvd_mul_left _ _) _ x) in
+let inv_fun : zmod m × zmod n → zmod (m * n) :=
+  λ x, nat.modeq.chinese_remainder h x.1.val x.2.val in
+begin
+  haveI : fact (0 < (m * n)) := fact.mk (nat.pos_of_ne_zero hmn0),
+  haveI : fact (0 < m) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
+  haveI : fact (0 < n) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
+  let left_inv : function.left_inverse inv_fun to_fun :=
+    λ x, begin
+      dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],
+      conv_rhs { rw ← zmod.nat_cast_zmod_val x },
+      rw [zmod.eq_iff_modeq_nat, ← nat.modeq.modeq_and_modeq_iff_modeq_mul h],
+      refine
+       ⟨(nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.left.trans _,
+        (nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.right.trans _⟩,
+      { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
+      { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
+    end,
+  exact
+  { to_fun := to_fun,
+    inv_fun := inv_fun,
+    map_mul' := λ _ _, by ext; simp only [ring_hom.map_mul]; refl,
+    map_add' := λ _ _, by ext; simp only [ring_hom.map_add]; refl,
+    left_inv := left_inv,
+    right_inv := fintype.right_inverse_of_left_inverse_of_card_le left_inv (by simp) }
+end
 
 section totient
 open_locale nat

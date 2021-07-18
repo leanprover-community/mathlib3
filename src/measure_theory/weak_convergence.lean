@@ -43,7 +43,8 @@ open_locale bounded_continuous_function
 
 -- TODO: What is the appropriate place for this definition suggested by Floris?
 /-- For a function `f : α → β`, under the assumption that β has an order relation and top element,
-`bounded above f` is defined to mean that f has a nontrivial upper bound (not equal to the top).This for instance gives the natural meaning for a bounded `ennreal`-valued function. -/
+`bounded above f` is defined to mean that f has a nontrivial upper bound (not equal to the top).
+This for instance gives the natural meaning for a bounded `ennreal`-valued function. -/
 def bounded_above {α β : Type*} [has_le β] [has_top β] (f : α → β) : Prop :=
 ∃ (M : β), M ≠ ⊤ ∧ ∀ (a : α), f(a) ≤ M
 

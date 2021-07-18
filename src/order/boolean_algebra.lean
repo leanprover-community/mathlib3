@@ -577,8 +577,13 @@ is_compl_bot_top.compl_eq
 @[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
 is_compl_compl.symm.compl_eq
 
+@[simp] theorem compl_involutive : function.involutive (compl : α → α) := compl_compl
+
+theorem compl_bijective : function.bijective (compl : α → α) :=
+compl_involutive.bijective
+
 theorem compl_injective : function.injective (compl : α → α) :=
-function.involutive.injective compl_compl
+compl_involutive.injective
 
 @[simp] theorem compl_inj_iff : xᶜ = yᶜ ↔ x = y :=
 compl_injective.eq_iff

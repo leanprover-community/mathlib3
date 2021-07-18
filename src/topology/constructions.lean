@@ -292,7 +292,6 @@ lemma prod_induced_induced {α γ : Type*} (f : α → β) (g : γ → δ) :
   @prod.topological_space α γ (induced f ‹_›) (induced g ‹_›) =
   induced (λ p, (f p.1, g p.2)) prod.topological_space :=
 begin
-  letI := induced f ‹_›, letI := induced g ‹_›,
   set fxg := (λ p : α × γ, (f p.1, g p.2)),
   have key1 : f ∘ (prod.fst : α × γ → α) = (prod.fst : β × δ → β) ∘ fxg, from rfl,
   have key2 : g ∘ (prod.snd : α × γ → γ) = (prod.snd : β × δ → δ) ∘ fxg, from rfl,

@@ -52,11 +52,8 @@ which does not have a cluster point at 0 is a Cauchy filter
 (with respect to the additive uniform structure). This ensures the completion is
 a field.
 -/
-class completable_top_field : Prop :=
-(separated : separated_space K)
+class completable_top_field extends separated_space K : Prop :=
 (nice : ∀ F : filter K, cauchy F → 𝓝 0 ⊓ F = ⊥ → cauchy (map (λ x, x⁻¹) F))
-
-local attribute [instance, priority 100] completable_top_field.separated
 
 variables {K}
 
@@ -117,7 +114,7 @@ end
 
 variables [uniform_add_group K] [topological_ring K]
 
-lemma hat_inv_is_inv {x : hat K} (x_ne : x ≠ 0) : x*hat_inv x = 1 :=
+lemma mul_hat_inv_cancel {x : hat K} (x_ne : x ≠ 0) : x*hat_inv x = 1 :=
 begin
   haveI : t1_space (hat K) := t2_space.t1_space,
   let f := λ x : hat K, x*hat_inv x,
@@ -152,7 +149,7 @@ end
 
 instance field_completion : field (hat K) :=
 { exists_pair_ne := ⟨0, 1, λ h, zero_ne_one ((uniform_embedding_coe K).inj h)⟩,
-  mul_inv_cancel := λ x x_ne, by { dsimp [has_inv.inv], simp [if_neg x_ne, hat_inv_is_inv x_ne], },
+  mul_inv_cancel := λ x x_ne, by { dsimp [has_inv.inv], simp [if_neg x_ne, mul_hat_inv_cancel x_ne], },
   inv_zero := show ((0 : K) : hat K)⁻¹ = ((0 : K) : hat K), by rw [coe_inv, inv_zero],
   ..completion.has_inv,
   ..(by apply_instance : comm_ring (hat K)) }

@@ -1192,8 +1192,9 @@ lemma mem_closure_image {f : α → β} {x : α} {s : set α} (hf : continuous_a
 begin
   rw [mem_closure_iff_nhds_ne_bot] at hx ⊢,
   rw ← bot_lt_iff_ne_bot,
+  haveI : ne_bot _ := ⟨hx⟩,
   calc
-    ⊥   < map f (𝓝 x ⊓ principal s) : bot_lt_iff_ne_bot.mpr (map_neq_bot f hx)
+    ⊥   < map f (𝓝 x ⊓ principal s) : bot_lt_iff_ne_bot.mpr ne_bot.ne'
     ... ≤ (map f $ 𝓝 x) ⊓ (map f $ principal s) : map_inf_le
     ... = (map f $ 𝓝 x) ⊓ (principal $ f '' s) : by rw map_principal
     ... ≤ 𝓝 (f x) ⊓ (principal $ f '' s) : inf_le_inf hf le_rfl

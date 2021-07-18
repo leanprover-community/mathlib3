@@ -1092,19 +1092,6 @@ lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
 prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
 
-lemma sum_emb_domain_index [add_comm_monoid M] [add_comm_monoid N]
-  (f : α ↪ β) (v : α →₀ M) (g : β → M →+ N) :
-  (v.emb_domain f).sum (λ b m, g b m) = v.sum (λ a m, g (f a) m) :=
-begin
-  apply induction_linear v,
-  { simp, },
-  { intros v₁ v₂ h₁ h₂,
-    rw [emb_domain_add, sum_add_index, sum_add_index],
-    { simp [h₁, h₂], },
-    all_goals { simp, }, },
-  { intros, simp, },
-end
-
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
 def lift_add_hom [add_comm_monoid M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
@@ -1437,6 +1424,12 @@ lemma prod_map_domain_index_inj [comm_monoid N] {f : α → β} {s : α →₀ M
   {h : β → M → N} (hf : function.injective f) :
   (s.map_domain f).prod h = s.prod (λa b, h (f a) b) :=
 by rw [←function.embedding.coe_fn_mk f hf, ←emb_domain_eq_map_domain, prod_emb_domain]
+
+@[to_additive]
+lemma prod_emb_domain_index [comm_monoid M] [comm_monoid N]
+  (f : α ↪ β) (v : α →₀ M) (g : β → M → N) :
+  (v.emb_domain f).prod (λ b m, g b m) = v.prod (λ a m, g (f a) m) :=
+by rw [emb_domain_eq_map_domain, prod_map_domain_index_inj f.injective]
 
 lemma map_domain_injective {f : α → β} (hf : function.injective f) :
   function.injective (map_domain f : (α →₀ M) → (β →₀ M)) :=

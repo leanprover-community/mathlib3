@@ -3,8 +3,12 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
-import analysis.normed_space.basic
+import algebra.algebra.subalgebra
+import order.liminf_limsup
+import topology.algebra.group_completion
+import topology.instances.nnreal
+import topology.metric_space.completion
+import topology.sequences
 
 /-!
 # The integers as normed ring

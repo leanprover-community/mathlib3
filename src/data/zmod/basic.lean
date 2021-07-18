@@ -630,7 +630,7 @@ begin
   haveI : fact (0 < (m * n)) := fact.mk (nat.pos_of_ne_zero hmn0),
   haveI : fact (0 < m) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
   haveI : fact (0 < n) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
-  let left_inv : function.left_inverse inv_fun to_fun :=
+  have left_inv : function.left_inverse inv_fun to_fun :=
     λ x, begin
       dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],
       conv_rhs { rw ← zmod.nat_cast_zmod_val x },

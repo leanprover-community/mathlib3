@@ -1485,23 +1485,23 @@ end comap_domain
 
 section option
 
-/-- Restrict a finitely supported function on `option α` to a finitely support function on `α`. -/
+/-- Restrict a finitely supported function on `option α` to a finitely supported function on `α`. -/
 def some [has_zero M] (f : option α →₀ M) : α →₀ M :=
 f.comap_domain option.some (λ _, by simp)
 
 @[simp] lemma some_apply [has_zero M] (f : option α →₀ M) (a : α) :
   f.some a = f (option.some a) := rfl
 
-@[simp] lemma zero_sum [has_zero M] : (0 : option α →₀ M).some = 0 :=
+@[simp] lemma some_zero [has_zero M] : (0 : option α →₀ M).some = 0 :=
 by { ext, simp, }
 
-@[simp] lemma add_sum [add_comm_monoid M] (f g : option α →₀ M) : (f + g).some = f.some + g.some :=
+@[simp] lemma some_add [add_comm_monoid M] (f g : option α →₀ M) : (f + g).some = f.some + g.some :=
 by { ext, simp, }
 
-@[simp] lemma single_none_some [has_zero M] (m : M) : (single none m : option α →₀ M).some = 0 :=
+@[simp] lemma some_single_none [has_zero M] (m : M) : (single none m : option α →₀ M).some = 0 :=
 by { ext, simp, }
 
-@[simp] lemma single_some_some [has_zero M] (a : α) (m : M) :
+@[simp] lemma some_single_some [has_zero M] (a : α) (m : M) :
   (single (option.some a) m : option α →₀ M).some = single a m :=
 by { ext b, simp [single_apply], }
 

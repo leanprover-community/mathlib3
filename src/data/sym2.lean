@@ -227,8 +227,8 @@ lemma is_diag_iff_proj_eq (z : α × α) : is_diag ⟦z⟧ ↔ z.1 = z.2 :=
 prod.rec_on z $ λ _ _, is_diag_iff_eq
 
 @[simp]
-lemma diag_is_diag (a : α) : is_diag (diag a) :=
-is_diag_iff_eq.mpr rfl
+lemma is_diag_diag (a : α) : is_diag (diag a) :=
+eq.refl a
 
 lemma is_diag.mem_range_diag {z : sym2 α} : is_diag z → z ∈ set.range (@diag α) :=
 begin
@@ -239,7 +239,7 @@ begin
 end
 
 lemma is_diag_iff_mem_range_diag (z : sym2 α) : is_diag z ↔ z ∈ set.range (@diag α) :=
-⟨is_diag.mem_range_diag, λ ⟨i, hi⟩, hi ▸ diag_is_diag i⟩
+⟨is_diag.mem_range_diag, λ ⟨i, hi⟩, hi ▸ is_diag_diag i⟩
 
 instance is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@is_diag α) :=
 by { refine λ z, quotient.rec_on_subsingleton z (λ a, _), erw is_diag_iff_proj_eq, apply_instance }

@@ -101,16 +101,12 @@ continuous.measurable (continuous_of_bounded_continuous_to_ennreal f)
 /-- The type `functional_on_bounded_continuous_to_ennreal` consists of continuous bounded functions
 on the type `bounded_continuous_to_ennreal α` of "test functions" for weak convergence. Such
 functionals are by construction positive (by the choice of `ennreal` as their codomain), but there
-is no a priori requirement of continuity.
+is no a priori requirement of linearity or continuity.
 (To define the usual continuity, one should equip `bounded_continuous_to_ennreal α` with
 the topology determined by the sup-norm-like metric. Riesz-Markov-Kakutani representation theorem
 would then identify the continuous positive functionals as finite measures.) -/
 def functional_on_bounded_continuous_to_ennreal (α : Type*) [topological_space α] : Type* :=
 (bounded_continuous_to_ennreal α) → ennreal
-
-instance functional_on_bounded_continuous_to_ennreal.has_coe_to_fun :
-  has_coe_to_fun (functional_on_bounded_continuous_to_ennreal α) :=
-⟨(λ _, (bounded_continuous_to_ennreal α) → ennreal), (λ φ, φ)⟩
 
 /-- As a first step towards the definition of the topology of the weak convergence of probability
 measures, the space of functionals `(cont_bdd_ennval α) → ennreal` is equipped with the product
@@ -169,7 +165,7 @@ instance probability_measures.coe_to_finite_measures (α : Type*) [measurable_sp
                    exact ⟨key⟩,
                  end, }}
 
-lemma coe_coe_eq_val_probability_measures (ν : probability_measures α) :
+lemma probability_measures.coe_coe_eq_val (ν : probability_measures α) :
   ((ν : finite_measures α) : measure_theory.measure α) = ν.val := rfl
 
 variables [topological_space α] [borel_space α]
@@ -180,6 +176,10 @@ function is obtained by (Lebesgue) integrating the (test) function against the m
 abbreviation probability_measures.test_against
   (μ : probability_measures α) (f : bounded_continuous_to_ennreal α) : ennreal :=
 lintegral (μ : measure_theory.measure α) f
+
+variables {γ :Type} [measurable_space γ] [topological_space γ] [borel_space γ]
+variables (ν : probability_measures γ) (g : bounded_continuous_to_ennreal γ)
+#check ν.test_against g
 
 /-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This is
@@ -195,11 +195,11 @@ called the weak-* topology. -/
 of the mapping  `probability_measures α → ((cont_bdd_ennval α) → ennreal)` to functionals defined
 by integration of a test functio against to the measure. -/
 instance : topological_space (probability_measures α) :=
-topological_space.induced (λ (μ : probability_measures α), probability_measures.test_against μ)
+topological_space.induced (λ (μ : probability_measures α), μ.test_against)
   infer_instance
 
 instance : topological_space (finite_measures α) :=
-topological_space.induced (λ (μ : finite_measures α), finite_measures.test_against μ)
+topological_space.induced (λ (μ : finite_measures α), μ.test_against)
   infer_instance
 
 /- Integration of test functions against borel probability measures depends continuously on the
@@ -229,7 +229,7 @@ lemma probability_measures.coe_embedding (α : Type*)
   inj := begin
     intros μ ν h,
     apply subtype.eq,
-    rw [←coe_coe_eq_val_probability_measures μ, ←coe_coe_eq_val_probability_measures ν],
+    rw [←μ.coe_coe_eq_val, ←ν.coe_coe_eq_val],
     exact congr_arg coe h,
   end, }
 
@@ -242,7 +242,7 @@ theorem finite_measures.weak_conv_seq_iff_test_against
   {μseq : ℕ → finite_measures α} {μ : finite_measures α} :
   tendsto μseq at_top (𝓝 μ) ↔
   ∀ (f : bounded_continuous_to_ennreal α),
-    tendsto (λ n, finite_measures.test_against (μseq(n) : finite_measures α) f) at_top
+    tendsto (λ n, (μseq(n) : finite_measures α).test_against f) at_top
       (𝓝 (finite_measures.test_against (μ : finite_measures α) f)) :=
 begin
   split,
@@ -250,7 +250,7 @@ begin
     exact tendsto_pi.mp (tendsto.comp (continuous.tendsto
       (@finite_measures.continuous_test_against α _ _ _) μ) weak_conv), },
   { intro h_lim_forall,
-    have h_lim : tendsto (λ n, finite_measures.test_against (μseq(n))) at_top
+    have h_lim : tendsto (λ n, (μseq(n)).test_against) at_top
       (𝓝 (finite_measures.test_against μ)),
     by exact tendsto_pi.mpr h_lim_forall,
     rwa [nhds_induced, tendsto_comap_iff], },
@@ -260,8 +260,7 @@ theorem probability_measures.weak_conv_seq_iff_test_against
   {μseq : ℕ → probability_measures α} {μ : probability_measures α} :
   tendsto μseq at_top (𝓝 μ) ↔
   ∀ (f : bounded_continuous_to_ennreal α),
-    tendsto (λ n, probability_measures.test_against (μseq(n) : probability_measures α) f) at_top
-      (𝓝 (probability_measures.test_against (μ : probability_measures α) f)) :=
+    tendsto (λ n, (μseq(n)).test_against f) at_top (𝓝 (μ.test_against f)) :=
 by rw [@proba_meas_tendsto_nhds_iff_fin_meas_tendsto_nhds α _ _ _ _ at_top μseq μ,
       finite_measures.weak_conv_seq_iff_test_against,
       probability_measures.test_against_comp_via_finite_measures]

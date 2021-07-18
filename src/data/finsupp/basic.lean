@@ -1518,45 +1518,45 @@ end comap_domain
 
 section option
 
-/-- Restrict a finitely supported function on `option α` to a finitely support function on `α`. -/
+/-- Restrict a finitely supported function on `option α` to a finitely supported function on `α`. -/
 def some [has_zero M] (f : option α →₀ M) : α →₀ M :=
-f.comap_domain option.some (by tidy)
+f.comap_domain option.some (λ _, by simp)
 
 @[simp] lemma some_apply [has_zero M] (f : option α →₀ M) (a : α) :
   f.some a = f (option.some a) := rfl
 
-@[simp] lemma zero_sum [has_zero M] : (0 : option α →₀ M).some = 0 :=
+@[simp] lemma some_zero [has_zero M] : (0 : option α →₀ M).some = 0 :=
 by { ext, simp, }
 
-@[simp] lemma add_sum [add_comm_monoid M] (f g : option α →₀ M) : (f + g).some = f.some + g.some :=
+@[simp] lemma some_add [add_comm_monoid M] (f g : option α →₀ M) : (f + g).some = f.some + g.some :=
 by { ext, simp, }
 
-@[simp] lemma single_none_some [has_zero M] (m : M) : (single none m : option α →₀ M).some = 0 :=
+@[simp] lemma some_single_none [has_zero M] (m : M) : (single none m : option α →₀ M).some = 0 :=
 by { ext, simp, }
 
-@[simp] lemma single_some_some [has_zero M] (a : α) (m : M) :
+@[simp] lemma some_single_some [has_zero M] (a : α) (m : M) :
   (single (option.some a) m : option α →₀ M).some = single a m :=
 by { ext b, simp [single_apply], }
 
-lemma sum_option [add_comm_monoid M] [add_comm_monoid N]
+lemma sum_option_index [add_comm_monoid M] [add_comm_monoid N]
   (f : option α →₀ M) (b : option α → M →+ N) :
   f.sum (λ a, b a) = b none (f none) + f.some.sum (λ a, b (option.some a)) :=
 begin
   apply induction_linear f,
   { simp, },
   { intros f₁ f₂ h₁ h₂,
-    rw [finsupp.sum_add_index, h₁, h₂, add_sum, finsupp.sum_add_index],
+    rw [finsupp.sum_add_index, h₁, h₂, some_add, finsupp.sum_add_index],
     simp only [add_monoid_hom.map_add, pi.add_apply, finsupp.coe_add],
     abel,
     all_goals { simp, }, },
   { rintros (_|a) m; simp, }
 end
 
-lemma sum_option' [semiring R] [add_comm_monoid M] [module R M]
+lemma sum_option_index_smul [semiring R] [add_comm_monoid M] [module R M]
   (f : option α →₀ R) (b : option α → M) :
   f.sum (λ o r, r • b o) =
     f none • b none + f.some.sum (λ a r, r • b (option.some a)) :=
-f.sum_option (λ o, (smul_add_hom R M).flip (b o))
+f.sum_option_index (λ o, (smul_add_hom R M).flip (b o))
 
 end option
 

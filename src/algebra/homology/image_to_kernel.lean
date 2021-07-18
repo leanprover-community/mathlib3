@@ -270,6 +270,8 @@ We provide a variant `image_to_kernel' : image f ⟶ kernel g`,
 and use this to give alternative formulas for `homology f g w`.
 -/
 section image_to_kernel'
+variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0)
+  [has_kernels V] [has_images V]
 
 /--
 While `image_to_kernel f g w` provides a morphism
@@ -291,6 +293,8 @@ by { ext, simp [image_to_kernel'], }
   image_to_kernel' f g w ≫ (kernel_subobject_iso g).inv =
     (image_subobject_iso f).inv ≫ image_to_kernel f g w :=
 by { ext, simp [image_to_kernel'], }
+
+variables [has_cokernels V]
 
 /--
 `homology f g w` can be computed as the cokernel of `image_to_kernel' f g w`.

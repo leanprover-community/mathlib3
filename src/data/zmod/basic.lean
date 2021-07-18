@@ -607,7 +607,7 @@ def zmod_one_prod_equiv (R : Type*) [semiring R] : R ≃+* zmod 1 × R :=
 @[simp] lemma zmod_one_prod_equiv_symm_apply {R : Type*} [semiring R] (x : zmod 1 × R) :
   (zmod_one_prod_equiv R).symm x = x.snd := rfl
 
-/-- The chinese remainder theorem. For a pair of coprime natural numbers, `m` and `n`,
+/-- The **Chinese remainder theorem**. For a pair of coprime natural numbers, `m` and `n`,
   the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic. -/
 def chinese_remainder {m n : ℕ} (h : m.coprime n) :
   zmod (m * n) ≃+* zmod m × zmod n :=

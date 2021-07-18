@@ -42,6 +42,8 @@ open_locale topological_space
 open_locale bounded_continuous_function
 
 -- TODO: What is the appropriate place for this definition suggested by Floris?
+/-- For a function `f : α → β`, under the assumption that β has an order relation and top element,
+`bounded above f` is defined to mean that f has a nontrivial upper bound (not equal to the top).This for instance gives the natural meaning for a bounded `ennreal`-valued function. -/
 def bounded_above {α β : Type*} [has_le β] [has_top β] (f : α → β) : Prop :=
 ∃ (M : β), M ≠ ⊤ ∧ ∀ (a : α), f(a) ≤ M
 
@@ -77,6 +79,8 @@ instance bounded_continuous_to_ennreal.has_coe_to_fun :
 @[simp] lemma bounded_continuous_to_ennreal.to_fun_eq_coe (f : bounded_continuous_to_ennreal α) :
   f.to_fun = f := rfl
 
+/-- A constructor `bounded_continuous_to_ennreal.mk'` for the type
+`bounded_continuous_to_ennreal α` takes a function f and proofs that f is continuous and bounded above (by a finite number). -/
 def bounded_continuous_to_ennreal.mk' (f : α → ennreal)
   (f_cont : continuous f) (f_bdd : bounded_above f) : bounded_continuous_to_ennreal α :=
 { to_fun := f,
@@ -126,6 +130,8 @@ measures and on the set of finite Borel measures on a topological space.
 
 variables {α : Type} [measurable_space α]
 
+/-- Probability measures are defined as the subtype of measures that have the property of being
+probability measures (i.e., their total mass is one). -/
 def probability_measures (α : Type) [measurable_space α] : Type :=
 {μ : measure α // probability_measure μ}
 
@@ -135,18 +141,21 @@ instance probability_measures.coe (α : Type) [measurable_space α] :
 instance probability_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
   has_coe_to_fun (probability_measures α) := ⟨(λ _, set α → ennreal), (λ μ, μ.val.measure_of)⟩
 
---variables (μ ν : probability_measures α)
-
-@[simp] lemma probability_measures.coe_eq_val (ν : probability_measures α) :
+lemma probability_measures.coe_eq_val (ν : probability_measures α) :
   (ν : measure_theory.measure α) = ν.val := rfl
 
-def finite_measures (α : Type*) [measurable_space α] : Type
-  := { μ : measure α // finite_measure μ }
+/-- Finite measures are defined as the subtype of measures that have the property of being finite
+measures (i.e., their total mass is finite). -/
+def finite_measures (α : Type*) [measurable_space α] : Type :=
+{ μ : measure α // finite_measure μ }
 
 instance finite_measures.coe (α : Type*) [measurable_space α] :
   has_coe (finite_measures α) (measure_theory.measure α) := ⟨subtype.val⟩
 
-@[simp] lemma finite_measures.coe_eq_val (ν : finite_measures α) :
+instance finite_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
+  has_coe_to_fun (finite_measures α) := ⟨(λ _, set α → ennreal), (λ μ, μ.val.measure_of)⟩
+
+lemma finite_measures.coe_eq_val (ν : finite_measures α) :
   (ν : measure_theory.measure α) = ν.val := rfl
 
 instance probability_measures.coe_to_finite_measures (α : Type*) [measurable_space α] :
@@ -163,10 +172,16 @@ lemma coe_coe_eq_val_probability_measures (ν : probability_measures α) :
 
 variables [topological_space α] [borel_space α]
 
+/-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
+function is obtained by (Lebesgue) integrating the (test) function against the measure. This is
+`probability_measures.test_against`. -/
 abbreviation probability_measures.test_against
   (μ : probability_measures α) (f : bounded_continuous_to_ennreal α) : ennreal :=
 lintegral (μ : measure_theory.measure α) f
 
+/-- The pairing of a finite (Borel) measure `μ` with a nonnegative bounded continuous
+function is obtained by (Lebesgue) integrating the (test) function against the measure. This is
+`finite_measures.test_against`. -/
 abbreviation finite_measures.test_against
   (μ : finite_measures α) (f : bounded_continuous_to_ennreal α) : ennreal :=
 lintegral (μ : measure_theory.measure α) f

@@ -94,6 +94,21 @@ begin
   { cases h; rw [h.1, h.2], rw eq_swap }
 end
 
+/-- The universal property of `sym2`; symmetric functions of two arguments are equivalent to
+functions from `sym2`. Note that this applies to both `Prop` and `Type`, although frequently
+`sym2.from_rel` is a more convenient spelling when working with `Prop`. -/
+def lift {β : Sort*} :
+  {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁} ≃ (sym2 α → β) :=
+{ to_fun := λ f, quotient.lift (λ a : α × α, (f : α → α → β) a.1 a.2) $
+    by { rintro ⟨_, _⟩ ⟨_, _⟩ (_ | _), refl, exact f.prop _ _ },
+  inv_fun := λ F, ⟨λ a₁ a₂, F ⟦(a₁, a₂)⟧, λ a₁ a₂, congr_arg F eq_swap⟩,
+  left_inv := λ f, subtype.ext rfl,
+  right_inv := λ F, funext $ quotient.ind $ prod.rec $ by exact λ _ _, rfl }
+
+@[simp]
+lemma lift_mk {β : Sort*} (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁})
+  (a₁ a₂ : α) : lift f ⟦(a₁, a₂)⟧ = (f : α → α → β) a₁ a₂ := rfl
+
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.
 -/
@@ -200,19 +215,31 @@ def diag (x : α) : sym2 α := ⟦(x, x)⟧
 /--
 A predicate for testing whether an element of `sym2 α` is on the diagonal.
 -/
-def is_diag (z : sym2 α) : Prop := z ∈ set.range (@diag α)
+def is_diag : sym2 α → Prop :=
+lift ⟨eq, λ _ _, propext eq_comm⟩
 
 @[simp]
-lemma diag_is_diag (a : α) : is_diag (diag a) :=
-by use a
+lemma is_diag_iff_eq {x y : α} : is_diag ⟦(x, y)⟧ ↔ x = y :=
+iff.rfl
 
 @[simp]
 lemma is_diag_iff_proj_eq (z : α × α) : is_diag ⟦z⟧ ↔ z.1 = z.2 :=
+prod.rec_on z $ λ _ _, is_diag_iff_eq
+
+@[simp]
+lemma diag_is_diag (a : α) : is_diag (diag a) :=
+is_diag_iff_eq.mpr rfl
+
+lemma is_diag.mem_range_diag {z : sym2 α} : is_diag z → z ∈ set.range (@diag α) :=
 begin
-  cases z with a, split,
-  { rintro ⟨_, h⟩, dsimp only, erw eq_iff at h, rcases h; cc },
-  { rintro ⟨⟩, use a, refl },
+  induction z using quotient.induction_on,
+  cases z,
+  rintro (rfl : z_fst = z_snd),
+  exact ⟨z_fst, rfl⟩,
 end
+
+lemma is_diag_iff_mem_range_diag (z : sym2 α) : is_diag z ↔ z ∈ set.range (@diag α) :=
+⟨is_diag.mem_range_diag, λ ⟨i, hi⟩, hi ▸ diag_is_diag i⟩
 
 instance is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@is_diag α) :=
 by { refine λ z, quotient.rec_on_subsingleton z (λ a, _), erw is_diag_iff_proj_eq, apply_instance }
@@ -237,7 +264,7 @@ Symmetric relations define a set on `sym2 α` by taking all those pairs
 of elements that are related.
 -/
 def from_rel (sym : symmetric r) : set (sym2 α) :=
-quotient.lift (uncurry r) (by { rintros _ _ ⟨_, _⟩, tidy })
+set_of (lift ⟨r, λ x y, propext ⟨λ h, sym h, λ h, sym h⟩⟩)
 
 @[simp]
 lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} :
@@ -245,13 +272,12 @@ lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} :
 
 @[simp]
 lemma from_rel_prop {sym : symmetric r} {a b : α} :
-  ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := by simp only [from_rel_proj_prop]
+  ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := iff.rfl
 
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
-{ mp  := by { intros h z hr hd, induction z,
-              erw is_diag_iff_proj_eq at hd, erw from_rel_proj_prop at hr, tidy },
-  mpr := by { intros h x hr, rw ← @from_rel_prop _ _ sym at hr, exact h hr ⟨x, rfl⟩ }}
+{ mp  := λ h, quotient.ind $ prod.rec $ by { rintros a b hr (rfl : a = b), exact h _ hr },
+  mpr := λ h x hr, h (from_rel_prop.mpr hr) rfl }
 
 lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)
   {a : α} {z : sym2 α} (hz : z ∈ from_rel sym) (h : a ∈ z) : h.other ≠ a :=

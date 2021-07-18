@@ -140,18 +140,6 @@ lemma sdiff_le : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
        ... = x                 : sup_inf_sdiff x y
 
-lemma sdiff_lt (hx : y ≤ x) (hy : y ≠ ⊥) :
-  x \ y < x :=
-begin
-  refine sdiff_le.lt_of_ne (λ h, hy _),
-  suffices hyx : disjoint y x,
-  { rw [disjoint.comm, disjoint_iff] at hyx,
-    rw [eq_comm, ←hyx, inf_eq_right],
-    exact hx },
-  convert (disjoint_inf_sdiff : disjoint (x ⊓ y) _),
-  exacts [(inf_eq_right.2 hx).symm, h.symm],
-end
-
 @[simp] lemma bot_sdiff : ⊥ \ x = ⊥ := le_bot_iff.1 sdiff_le
 
 lemma inf_sdiff_right : x ⊓ (x \ y) = x \ y := by rw [inf_of_le_right (@sdiff_le _ x y _)]
@@ -334,6 +322,14 @@ calc x \ y = x ↔ x \ y = x \ ⊥ : by rw sdiff_bot
 
 theorem sdiff_eq_self_iff_disjoint' : x \ y = x ↔ disjoint x y :=
 by rw [sdiff_eq_self_iff_disjoint, disjoint.comm]
+
+lemma sdiff_lt (hx : y ≤ x) (hy : y ≠ ⊥) :
+  x \ y < x :=
+begin
+  refine sdiff_le.lt_of_ne (λ h, hy _),
+  rw [sdiff_eq_self_iff_disjoint', disjoint_iff] at h,
+  rw [←h, inf_eq_right.mpr hx],
+end
 
 -- cf. `is_compl.antimono`
 lemma sdiff_le_sdiff_self (h : z ≤ x) : w \ x ≤ w \ z :=

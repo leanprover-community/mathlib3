@@ -150,7 +150,7 @@ variables (R S) [subsingleton S]
   map_add' := by simp,
   map_mul' := by simp,
   left_inv := λ x, rfl,
-  right_inv := λ x, by apply prod.ext; simp; congr }
+  right_inv := λ x, by cases x; simp }
 
 /-- A ring `R` isomorphic to `S × R` when `S` is the zero ring -/
 @[simps] def trivial_ring_prod : R ≃+* S × R :=
@@ -159,6 +159,6 @@ variables (R S) [subsingleton S]
   map_add' := by simp,
   map_mul' := by simp,
   left_inv := λ x, rfl,
-  right_inv := λ x, by apply prod.ext; simp; congr }
+  right_inv := λ x, by cases x; simp }
 
 end ring_equiv

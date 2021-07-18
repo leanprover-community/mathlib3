@@ -83,6 +83,8 @@ def monad.comparison_forget (h : L ⊣ R) :
 { hom := { app := λ X, 𝟙 _, },
   inv := { app := λ X, 𝟙 _, } }
 
+lemma monad.left_comparison (h : L ⊣ R) : L ⋙ monad.comparison h = h.to_monad.free := rfl
+
 /-- A technical lemma which helps show uniqueness of the comparison functor. -/
 lemma monad.comparison_unique_aux {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R}
   {K : D ⥤ h.to_monad.algebra}
@@ -107,7 +109,11 @@ begin
   refl,
 end
 
-/-- Given an funct -/
+/-- Given an adjunction `h : L ⊣ R` and an functor `K` from `D` to the category of algebras on the
+monad induced by `h`, if `K ⋙ monad.forget _` is isomorphic to `R` and the isomorphism commutes
+with the monad on objects of the from `L (R Y)`, produce an isomorphism from `K` to the comparison
+functor. -/
+@[simps]
 def monad.comparison_unique {L : C ⥤ D} {R : D ⥤ C} {h : L ⊣ R} {K : D ⥤ h.to_monad.algebra}
   (i : K ⋙ h.to_monad.forget ≅ R)
   (hK' : ∀ (Y : D),
@@ -199,7 +205,7 @@ monad_iso.mk (iso_whisker_left L i)
   end)
 
 /-- The property of being a monadic right adjoint is preserved under isomorphism. -/
-def monadic_of_iso (R₁ R₂ : D ⥤ C) [monadic_right_adjoint R₁] (i : R₁ ≅ R₂) :
+def monadic_right_adjoint_of_iso (R₁ R₂ : D ⥤ C) [monadic_right_adjoint R₁] (i : R₁ ≅ R₂) :
   monadic_right_adjoint R₂ :=
 { to_is_right_adjoint := ⟨_, (adjunction.of_right_adjoint R₁).of_nat_iso_right i⟩,
   eqv :=
@@ -241,7 +247,7 @@ composite `e.functor ⋙ R` is monadic.
 Note that the composite of monadic functors is not in general monadic (in fact the composite of
 a reflective functor with a monadic functor may not be monadic).
 -/
-def monadic_of_equivalent (R : D ⥤ C) (e : D' ≌ D) [monadic_right_adjoint R] :
+def monadic_right_adjoint_of_equivalent (R : D ⥤ C) (e : D' ≌ D) [monadic_right_adjoint R] :
   monadic_right_adjoint (e.functor ⋙ R) :=
 { eqv :=
   begin

@@ -8,6 +8,7 @@ import order.liminf_limsup
 import topology.algebra.group_completion
 import topology.instances.nnreal
 import topology.metric_space.completion
+import topology.sequences
 
 /-!
 # Normed spaces

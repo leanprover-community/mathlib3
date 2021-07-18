@@ -49,11 +49,7 @@ def bounded_above {α β : Type*} [has_le β] [has_top β] (f : α → β) : Pro
 ∃ (M : β), M ≠ ⊤ ∧ ∀ (a : α), f(a) ≤ M
 
 lemma constant_bounded_above {α β : Type*} [preorder β] [has_top β] {c : β} (hc : c ≠ ⊤) :
-  bounded_above (λ (a : α), c) :=
-begin
-  use c,
-  exact ⟨hc, (λ a, le_refl c)⟩,
-end
+  bounded_above (λ (a : α), c) := by {use c, exact ⟨hc, (λ a, le_refl c)⟩,}
 
 namespace weak_convergence
 
@@ -217,7 +213,7 @@ topology of weak convergence on `probability_measures α`. In some contexts this
 called the weak-* topology. -/
 /- The topology of weak convergence on `probability_measures α` is defined as the induced topology
 of the mapping  `probability_measures α → ((cont_bdd_ennval α) → ennreal)` to functionals defined
-by integration of a test functio against to the measure. -/
+by integration of a test function against the measure. -/
 instance : topological_space (probability_measures α) :=
 topological_space.induced (λ (μ : probability_measures α), μ.test_against)
   infer_instance

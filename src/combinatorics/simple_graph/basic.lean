@@ -60,6 +60,8 @@ finitely many vertices.
 
 ## Todo
 
+* Upgrade the `boolean_lattice` to a `complete_boolean_lattice`.
+
 * This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which
 includes multigraphs and directed graphs.  We begin with simple graphs

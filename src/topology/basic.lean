@@ -1200,8 +1200,7 @@ lemma continuous.closure_preimage_subset {f : α → β}
   closure (f ⁻¹' t) ⊆ f ⁻¹' (closure t) :=
 begin
   rw ← (is_closed_closure.preimage hf).closure_eq,
-  mono*,
-  exact subset_closure,
+  exact closure_mono (preimage_mono subset_closure),
 end
 
 lemma continuous.frontier_preimage_subset

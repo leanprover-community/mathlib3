@@ -80,7 +80,8 @@ instance bounded_continuous_to_ennreal.has_coe_to_fun :
   f.to_fun = f := rfl
 
 /-- A constructor `bounded_continuous_to_ennreal.mk'` for the type
-`bounded_continuous_to_ennreal α` takes a function f and proofs that f is continuous and bounded above (by a finite number). -/
+`bounded_continuous_to_ennreal α` takes a function f and proofs that f is continuous and bounded
+above (by a finite number). -/
 def bounded_continuous_to_ennreal.mk' (f : α → ennreal)
   (f_cont : continuous f) (f_bdd : bounded_above f) : bounded_continuous_to_ennreal α :=
 { to_fun := f,

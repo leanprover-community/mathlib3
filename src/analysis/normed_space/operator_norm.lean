@@ -43,7 +43,11 @@ variables [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (real.to_nnreal C) f :=
-lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+f.to_add_monoid_hom.lipschitz_of_bound C h
+
+lemma linear_map.lipschitz_of_bound_nnnorm (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
+  lipschitz_with C f :=
+f.to_add_monoid_hom.lipschitz_of_bound_nnnorm C h
 
 theorem linear_map.antilipschitz_of_bound {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=
@@ -162,18 +166,7 @@ theorem bound : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 f.to_linear_map.bound_of_continuous f.2
 
 section
-open asymptotics filter
-
-theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
-let ⟨M, hMp, hM⟩ := f.bound in is_O_of_le' l hM
-
-theorem is_O_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
-  is_O (λ x', g (f x')) f l :=
-(g.is_O_id ⊤).comp_tendsto le_top
-
-theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
-  is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
-f.is_O_comp _ l
+open filter
 
 /-- A linear map which is a homothety is a continuous linear map.
     Since the field `𝕜` need not have `ℝ` as a subfield, this theorem is not directly deducible from
@@ -235,11 +228,6 @@ le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
 
 theorem le_of_op_norm_le {c : ℝ} (h : ∥f∥ ≤ c) (x : E) : ∥f x∥ ≤ c * ∥x∥ :=
 (f.le_op_norm x).trans (mul_le_mul_of_nonneg_right h (norm_nonneg x))
-
-/-- continuous linear maps are Lipschitz continuous. -/
-theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
-lipschitz_with.of_dist_le_mul $ λ x y,
-  by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 div_le_of_nonneg_of_le_mul (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
@@ -303,8 +291,8 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-show ∥f + g∥ ≤ (coe : ℝ≥0 → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
-from op_norm_le_of_lipschitz (f.lipschitz.add g.lipschitz)
+(f + g).op_norm_le_bound (add_nonneg f.op_norm_nonneg g.op_norm_nonneg) $
+  λ x, (norm_add_le_of_le (f.le_op_norm x) (g.le_op_norm x)).trans_eq (add_mul _ _ _).symm
 
 /-- The norm of the `0` operator is `0`. -/
 theorem op_norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
@@ -355,6 +343,12 @@ instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
 { norm_mul := op_norm_comp_le,
   .. continuous_linear_map.to_semi_normed_group }
 
+theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm x
+
+/-- continuous linear maps are Lipschitz continuous. -/
+theorem lipschitz : lipschitz_with ∥f∥₊ f :=
+(f : E →ₗ[𝕜] F).lipschitz_of_bound_nnnorm _ f.le_op_nnnorm
+
 theorem le_op_norm₂ (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) :
   ∥f x y∥ ≤ ∥f∥ * ∥x∥ * ∥y∥ :=
 (f x).le_of_op_norm_le (f.le_op_norm x) y
@@ -398,6 +392,34 @@ lemma isometry_iff_norm : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
 f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
 end op_norm
+
+section is_O
+
+open asymptotics
+
+theorem is_O_with_id (l : filter E) : is_O_with ∥f∥ f (λ x, x) l :=
+is_O_with_of_le' _ f.le_op_norm
+
+theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
+(f.is_O_with_id l).is_O
+
+theorem is_O_with_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
+  is_O_with ∥g∥ (λ x', g (f x')) f l :=
+(g.is_O_with_id ⊤).comp_tendsto le_top
+
+theorem is_O_comp {α : Type*} (g : F →L[𝕜] G) (f : α → F) (l : filter α) :
+  is_O (λ x', g (f x')) f l :=
+(g.is_O_with_comp f l).is_O
+
+theorem is_O_with_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
+  is_O_with ∥f∥ (λ x', f (x' - x)) (λ x', x' - x) l :=
+f.is_O_with_comp _ l
+
+theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
+  is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
+f.is_O_comp _ l
+
+end is_O
 
 end continuous_linear_map
 
@@ -719,7 +741,7 @@ namespace continuous_linear_equiv
 
 variables (e : E ≃L[𝕜] F)
 
-protected lemma lipschitz : lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
+protected lemma lipschitz : lipschitz_with (∥(e : E →L[𝕜] F)∥₊) e :=
 (e : E →L[𝕜] F).lipschitz
 
 theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :

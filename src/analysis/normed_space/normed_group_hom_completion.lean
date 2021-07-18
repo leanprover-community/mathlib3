@@ -79,6 +79,7 @@ by { ext x, exact normed_group_hom.completion_def f x }
 lemma normed_group_hom.completion_coe (f : normed_group_hom G H) (g : G) : f.completion g = f g :=
 completion.map_coe f.uniform_continuous _
 
+/-- Completion of normed group homs as a normed group hom. -/
 def normed_group_hom_completion_hom :
   normed_group_hom G H →+ normed_group_hom (completion G) (completion H) :=
 { to_fun := normed_group_hom.completion,

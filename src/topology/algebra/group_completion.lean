@@ -80,6 +80,7 @@ instance : add_group (completion α) :=
 instance : uniform_add_group (completion α) :=
 ⟨uniform_continuous_map₂ has_sub.sub⟩
 
+/-- The map from a group to its completion as a group hom. -/
 def to_compl : α →+ completion α :=
 { to_fun := coe,
   map_add' := coe_add,
@@ -108,6 +109,7 @@ variables {α β : Type*} [uniform_space α] [add_group α] [uniform_add_group �
 
 open uniform_space uniform_space.completion
 
+/-- Extension to the completion of a continuous group hom. -/
 def add_monoid_hom.extension [complete_space β] [separated_space β] (f : α →+ β)
   (hf : continuous f) : completion α →+ β :=
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
@@ -128,8 +130,8 @@ lemma add_monoid_hom.continuous_extension [complete_space β] [separated_space �
   (hf : continuous f) : continuous (f.extension hf) :=
 continuous_extension
 
-def add_monoid_hom.completion
-  (f : α →+ β) (hf : continuous f) : completion α →+ completion β :=
+/-- Completion of a continuous group hom, as a group hom. -/
+def add_monoid_hom.completion (f : α →+ β) (hf : continuous f) : completion α →+ completion β :=
 (to_compl.comp f).extension (continuous_to_compl.comp hf)
 
 lemma add_monoid_hom.continuous_completion (f : α →+ β)

@@ -133,7 +133,7 @@ probability measures (i.e., their total mass is one). -/
 def probability_measures (α : Type) [measurable_space α] : Type :=
 {μ : measure α // probability_measure μ}
 
-instance probability_measures.coe (α : Type) [measurable_space α] :
+instance probability_measures.to_measure (α : Type) [measurable_space α] :
   has_coe (probability_measures α) (measure_theory.measure α) := ⟨subtype.val⟩
 
 instance probability_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
@@ -147,7 +147,7 @@ measures (i.e., their total mass is finite). -/
 def finite_measures (α : Type*) [measurable_space α] : Type :=
 { μ : measure α // finite_measure μ }
 
-instance finite_measures.coe (α : Type*) [measurable_space α] :
+instance finite_measures.to_measure (α : Type*) [measurable_space α] :
   has_coe (finite_measures α) (measure_theory.measure α) := ⟨subtype.val⟩
 
 instance finite_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
@@ -156,7 +156,7 @@ instance finite_measures.has_coe_to_fun (α : Type*) [measurable_space α] :
 lemma finite_measures.coe_eq_val (ν : finite_measures α) :
   (ν : measure_theory.measure α) = ν.val := rfl
 
-instance probability_measures.coe_to_finite_measures (α : Type*) [measurable_space α] :
+instance probability_measures.to_finite_measures (α : Type*) [measurable_space α] :
   has_coe (probability_measures α) (finite_measures α) :=
 { coe := λ μ , { val := μ.val,
                  property := begin -- TODO: This needs golf.
@@ -165,6 +165,7 @@ instance probability_measures.coe_to_finite_measures (α : Type*) [measurable_sp
                    exact ⟨key⟩,
                  end, }}
 
+-- TODO: How to state this with dot notation?
 lemma probability_measures.coe_coe_eq_val (ν : probability_measures α) :
   ((ν : finite_measures α) : measure_theory.measure α) = ν.val := rfl
 

@@ -289,7 +289,7 @@ variables {α' : Type*} [topological_space α'] [measurable_space α']
 lemma meas_interior_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (interior s) = μ s :=
 meas_eq_meas_smaller_of_between_null_diff
-  (@interior_subset _ _ s) (@subset_closure _ _ s) h_nullbdry
+  interior_subset subset_closure h_nullbdry
 
 lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=

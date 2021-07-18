@@ -3,11 +3,12 @@ Copyright (c) 2020 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
+import analysis.normed_space.indicator_function
+import analysis.normed_space.normed_group_hom
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import measure_theory.mean_inequalities
 import topology.continuous_function.compact
-import analysis.normed_space.indicator_function
 
 /-!
 # ℒp space and Lp space
@@ -2085,14 +2086,35 @@ end measure_theory
 
 end complete_space
 
-namespace bounded_continuous_function
+/-! ### Continuous functions in `Lp` -/
 
 open_locale bounded_continuous_function
-variables [borel_space E] [second_countable_topology E]
-  [topological_space α] [borel_space α]
-  [finite_measure μ]
+open bounded_continuous_function
+variables [borel_space E] [second_countable_topology E] [topological_space α] [borel_space α]
 
-/-- A bounded continuous function is in `Lp`. -/
+variables (E p μ)
+
+/-- An additive subgroup of `Lp E p μ`, consisting of the equivalence classes which contain a
+bounded continuous representative. -/
+def measure_theory.Lp.bounded_continuous_function : add_subgroup (Lp E p μ) :=
+add_subgroup.add_subgroup_of
+  ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E)).range
+  (Lp E p μ)
+
+variables {E p μ}
+
+/-- By definition, the elements of `Lp.bounded_continuous_function E p μ` are the elements of
+`Lp E p μ` which contain a bounded continuous representative. -/
+lemma measure_theory.Lp.mem_bounded_continuous_function_iff {f : (Lp E p μ)} :
+  f ∈ measure_theory.Lp.bounded_continuous_function E p μ
+    ↔ ∃ f₀ : (α →ᵇ E), f₀.to_continuous_map.to_ae_eq_fun μ = (f : α →ₘ[μ] E) :=
+add_subgroup.mem_add_subgroup_of
+
+namespace bounded_continuous_function
+
+variables [finite_measure μ]
+
+/-- A bounded continuous function on a finite-measure space is in `Lp`. -/
 lemma mem_Lp (f : α →ᵇ E) :
   f.to_continuous_map.to_ae_eq_fun μ ∈ Lp E p μ :=
 begin
@@ -2126,6 +2148,16 @@ def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
       (Lp E p μ)
       mem_Lp }
 
+lemma range_to_Lp_hom [fact (1 ≤ p)] :
+  ((to_Lp_hom p μ).range : add_subgroup (Lp E p μ))
+    = measure_theory.Lp.bounded_continuous_function E p μ :=
+begin
+  symmetry,
+  convert add_monoid_hom.add_subgroup_of_range_eq_of_le
+    ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
+    (by { rintros - ⟨f, rfl⟩, exact mem_Lp f } : _ ≤ Lp E p μ),
+end
+
 variables (𝕜 : Type*) [measurable_space 𝕜]
 
 /-- The bounded linear map of considering a bounded continuous function on a finite-measure space
@@ -2140,7 +2172,14 @@ linear_map.mk_continuous
   _
   Lp_norm_le
 
-variables {p 𝕜}
+variables {𝕜}
+
+lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+  ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
+    = measure_theory.Lp.bounded_continuous_function E p μ :=
+range_to_Lp_hom p μ
+
+variables {p}
 
 lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)]
   (f : α →ᵇ E) :
@@ -2156,12 +2195,7 @@ end bounded_continuous_function
 
 namespace continuous_map
 
-open_locale bounded_continuous_function
-
-variables [borel_space E] [second_countable_topology E]
-variables [topological_space α] [compact_space α] [borel_space α]
-variables [finite_measure μ]
-
+variables [compact_space α] [finite_measure μ]
 variables (𝕜 : Type*) [measurable_space 𝕜] (p μ) [fact (1 ≤ p)]
 
 /-- The bounded linear map of considering a continuous function on a compact finite-measure
@@ -2173,7 +2207,20 @@ def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E
 (bounded_continuous_function.to_Lp p μ 𝕜).comp
   (linear_isometry_bounded_of_compact α E 𝕜).to_linear_isometry.to_continuous_linear_map
 
-variables {p 𝕜}
+variables {𝕜}
+
+lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] :
+  ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
+    = measure_theory.Lp.bounded_continuous_function E p μ :=
+begin
+  refine set_like.ext' _,
+  have := (linear_isometry_bounded_of_compact α E 𝕜).surjective,
+  convert function.surjective.range_comp this (bounded_continuous_function.to_Lp p μ 𝕜),
+  rw ← bounded_continuous_function.range_to_Lp p μ,
+  refl,
+end
+
+variables {p}
 
 lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] (f : C(α,  E)) :
   to_Lp p μ 𝕜 f =ᵐ[μ] f :=

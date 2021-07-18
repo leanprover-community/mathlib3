@@ -310,6 +310,8 @@ def homology_iso_cokernel_image_to_kernel' (w : f ≫ g = 0) :
     exact (category.comp_id _).symm,
   end, }
 
+variables [has_equalizers V]
+
 /--
 `homology f g w` can be computed as the cokernel of `kernel.lift g f w`.
 -/

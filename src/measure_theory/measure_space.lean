@@ -1476,6 +1476,11 @@ attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
 
+lemma measure_subsingleton (hs : s.subsingleton) : μ s = 0 :=
+hs.induction_on measure_empty measure_singleton
+
+alias measure_subsingleton ← set.subsingleton.measure_eq
+
 @[simp] lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=
 by simp only [measure_singleton, measure.restrict_eq_zero]

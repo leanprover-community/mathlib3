@@ -2563,12 +2563,8 @@ end
 
 @[simp] lemma bUnion_subset_iff_forall_subset {α β : Type*} [decidable_eq β]
   {s : finset α} {t : finset β} {f : α → finset β} : s.bUnion f ⊆ t ↔ ∀ x ∈ s, f x ⊆ t :=
-begin
-  refine ⟨λ h x hx, (subset_bUnion_of_mem f hx).trans h, λ h x hx, _⟩,
-  simp only [mem_bUnion, exists_prop] at hx,
-  obtain ⟨a, ha₁, ha₂⟩ := hx,
-  exact h _ ha₁ ha₂,
-end
+⟨λ h x hx, (subset_bUnion_of_mem f hx).trans h,
+ λ h x hx, let ⟨a, ha₁, ha₂⟩ := mem_bUnion.mp hx in h _ ha₁ ha₂⟩
 
 lemma bUnion_singleton {f : α → β} : s.bUnion (λa, {f a}) = s.image f :=
 ext $ λ x, by simp only [mem_bUnion, mem_image, mem_singleton, eq_comm]

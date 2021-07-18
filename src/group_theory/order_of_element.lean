@@ -771,7 +771,7 @@ begin
   exact pow_card_eq_one,
 end
 
-@[to_additive nsmul_eq_nsmul_mod_card] lemma pow_eq_pow_mod_card (n : ℕ) :
+@[to_additive nsmul_eq_mod_card] lemma pow_eq_mod_card (n : ℕ) :
   x ^ n = x ^ (n % fintype.card G) :=
 by rw [pow_eq_mod_order_of, @pow_eq_mod_order_of _ _ _ (_ % fintype.card G),
     nat.mod_mod_of_dvd _ order_of_dvd_card_univ]

@@ -32,7 +32,7 @@ intervals.)
 * `boolean_algebra`: the main type class for Boolean algebras; it extends both
   `generalized_boolean_algebra` and `boolean_algebra.core`. An instance of `boolean_algebra` can be
   obtained from one of `boolean_algebra.core` using `boolean_algebra.of_core`.
-* `boolean_algebra_Prop`: the Boolean algebra instance on `Prop`
+* `Prop.boolean_algebra`: the Boolean algebra instance on `Prop`
 
 ## Implementation notes
 
@@ -666,12 +666,12 @@ theorem top_sdiff : ⊤ \ x = xᶜ := by rw [sdiff_eq, top_inf_eq]
 
 end boolean_algebra
 
-instance boolean_algebra_Prop : boolean_algebra Prop :=
+instance Prop.boolean_algebra : boolean_algebra Prop :=
 boolean_algebra.of_core
 { compl := not,
   inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
   top_le_sup_compl := λ p H, classical.em p,
-  .. bounded_distrib_lattice_Prop }
+  .. Prop.bounded_distrib_lattice }
 
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
   boolean_algebra (Π i, α i) :=

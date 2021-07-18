@@ -295,7 +295,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
       ... = ⊥ : h₂⟩
 
 /-- Propositions form a bounded distributive lattice. -/
-instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
+instance Prop.bounded_distrib_lattice : bounded_distrib_lattice Prop :=
 { le           := λ a b, a → b,
   le_refl      := λ _, id,
   le_trans     := λ a b c f g, g ∘ f,

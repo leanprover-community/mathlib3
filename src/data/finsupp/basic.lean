@@ -1429,12 +1429,6 @@ lemma prod_map_domain_index_inj [comm_monoid N] {f : α → β} {s : α →₀ M
   (s.map_domain f).prod h = s.prod (λa b, h (f a) b) :=
 by rw [←function.embedding.coe_fn_mk f hf, ←emb_domain_eq_map_domain, prod_emb_domain]
 
-@[to_additive]
-lemma prod_emb_domain_index [comm_monoid M] [comm_monoid N]
-  (f : α ↪ β) (v : α →₀ M) (g : β → M → N) :
-  (v.emb_domain f).prod (λ b m, g b m) = v.prod (λ a m, g (f a) m) :=
-by rw [emb_domain_eq_map_domain, prod_map_domain_index_inj f.injective]
-
 lemma map_domain_injective {f : α → β} (hf : function.injective f) :
   function.injective (map_domain f : (α →₀ M) → (β →₀ M)) :=
 begin

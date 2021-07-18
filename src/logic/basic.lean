@@ -196,8 +196,9 @@ variables {a b c d : Prop}
 
 /-! ### Declarations about `implies` -/
 
-instance Prop.is_refl : is_refl Prop iff := ⟨iff.refl⟩
-instance Prop.is_trans : is_trans Prop iff := ⟨λ _ _ _, iff.trans⟩
+instance : is_refl Prop iff := ⟨iff.refl⟩
+
+instance : is_trans Prop iff := ⟨λ _ _ _, iff.trans⟩
 
 theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 

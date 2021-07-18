@@ -15,7 +15,7 @@ import data.prod
 
 - `monotone f`: A function between two types equipped with `≤` is monotone if `a ≤ b` implies
   `f a ≤ f b`.
-- `strict_mono f` : A function between two types equipped with `<` is strictly monotone  if
+- `strict_mono f` : A function between two types equipped with `<` is strictly monotone if
   `a < b` implies `f a < f b`.
 - `order_dual α` : A type tag reversing the meaning of all inequalities.
 
@@ -102,7 +102,7 @@ by { ext x y, exact H x y }
 /-- Given a relation `R` on `β` and a function `f : α → β`, the preimage relation on `α` is defined
 by `x ≤ y ↔ f x ≤ f y`. It is the unique relation on `α` making `f` a `rel_embedding` (assuming `f`
 is injective). -/
-@[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
+@[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) : Prop := s (f x) (f y)
 
 infix ` ⁻¹'o `:80 := order.preimage
 
@@ -115,7 +115,7 @@ section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
 /-- A function between preorders is monotone if `a ≤ b` implies `f a ≤ f b`. -/
-def monotone (f : α → β) := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
+def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
 
 theorem monotone_id : @monotone α α _ _ id := λ x y h, h
 
@@ -171,7 +171,7 @@ def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : P
 ∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f y < f x
 
 /-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
-def order_dual (α : Type*) := α
+def order_dual (α : Type*) : Type* := α
 
 namespace order_dual
 instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
@@ -194,8 +194,8 @@ lemma dual_compares [has_lt α] {a b : α} {o : ordering} :
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
-{ le_refl  := le_refl,
-  le_trans := λ a b c hab hbc, hbc.trans hab,
+{ le_refl          := le_refl,
+  le_trans         := λ a b c hab hbc, hbc.trans hab,
   lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
   .. order_dual.has_le α,
   .. order_dual.has_lt α }
@@ -204,7 +204,7 @@ instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 { le_antisymm := λ a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
 
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
-{ le_total := λ a b : α, le_total b a,
+{ le_total     := λ a b : α, le_total b a,
   decidable_le := show decidable_rel (λ a b : α, b ≤ a), by apply_instance,
   decidable_lt := show decidable_rel (λ a b : α, b < a), by apply_instance,
   .. order_dual.partial_order α }
@@ -466,10 +466,10 @@ theorem strict_mono.order_dual [has_lt α] [has_lt β] {f : α → β} (hf : str
 /-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`.
 See note [reducible non-instances]. -/
 @[reducible] def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
-{ le := λ x y, f x ≤ f y,
-  le_refl := λ a, le_refl _,
-  le_trans := λ a b c, le_trans,
-  lt := λ x y, f x < f y,
+{ le               := λ x y, f x ≤ f y,
+  le_refl          := λ a, le_refl _,
+  le_trans         := λ a b c, le_trans,
+  lt               := λ x y, f x < f y,
   lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
 /-- Transfer a `partial_order` on `β` to a `partial_order` on `α` using an injective
@@ -482,7 +482,7 @@ function `f : α → β`. See note [reducible non-instances]. -/
 function `f : α → β`. See note [reducible non-instances]. -/
 @[reducible] def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
-{ le_total := λ x y, le_total (f x) (f y),
+{ le_total     := λ x y, le_total (f x) (f y),
   decidable_le := λ x y, (infer_instance : decidable (f x ≤ f y)),
   decidable_lt := λ x y, (infer_instance : decidable (f x < f y)),
   decidable_eq := λ x y, decidable_of_iff _ inj.eq_iff,
@@ -623,6 +623,6 @@ instance {α} [inhabited α] : inhabited (as_linear_order α) :=
 
 noncomputable instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
   linear_order (as_linear_order α) :=
-{ le_total := @total_of α (≤) _,
+{ le_total     := @total_of α (≤) _,
   decidable_le := classical.dec_rel _,
   .. (_ : partial_order α) }

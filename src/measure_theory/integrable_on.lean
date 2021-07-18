@@ -406,6 +406,37 @@ by simpa [mul_comm] using hf.mul_continuous_on hg hs
 
 section monotone
 
+
+
+lemma integrable_on_compact_of_monotone_on'
+  [topological_space α] [opens_measurable_space α] [t2_space α]
+  [borel_space α] {μ : measure α} [locally_finite_measure μ]
+  [conditionally_complete_linear_order α] [order_topology α]
+  [linear_order E] [order_topology E] [second_countable_topology E]
+  [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
+  (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+  integrable_on f s μ :=
+begin
+  by_cases h : s.nonempty,
+  { have hbelow : bdd_below (f '' s) :=
+      ⟨f (Inf s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono (hs.Inf_mem h) hy (cInf_le hs.bdd_below hy)⟩,
+    have habove : bdd_above (f '' s) :=
+      ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
+    have : metric.bounded (f '' s) := sorry,
+    rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
+    refine integrable.mono' (continuous_const.integrable_on_compact hs) _
+      ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
+        λ y hy, hC (f y) (mem_image_of_mem f hy)),
+    refine ae_measurable_restrict_of_measurable_subtype hs.measurable_set _,
+    have : monotone (f ∘ coe : s → E),
+    { rintros ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y),
+      exact hmono hx hy hxy },
+    exact this.measurable },
+  { rw set.not_nonempty_iff_eq_empty at h,
+    rw h,
+    exact integrable_on_empty }
+end
+
 variables
   [topological_space α] [opens_measurable_space α] [t2_space α]
   [borel_space α] {μ : measure α} [locally_finite_measure μ]
@@ -414,6 +445,49 @@ variables
   [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
 
 include hs
+
+lemma integrable_on_compact_of_monotone_on' (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+  integrable_on f s μ :=
+begin
+  by_cases h : s.nonempty,
+  { have hbelow : bdd_below (f '' s) :=
+      ⟨f (Inf s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono (hs.Inf_mem h) hy (cInf_le hs.bdd_below hy)⟩,
+    have habove : bdd_above (f '' s) :=
+      ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
+    have : metric.bounded (f '' s) := metric.bounded_of_bdd_above_of_bdd_below habove hbelow,
+    rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
+    refine integrable.mono' (continuous_const.integrable_on_compact hs) _
+      ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
+        λ y hy, hC (f y) (mem_image_of_mem f hy)),
+    let g := λ x, if ∃ y ∈ s, y ≤ x then f (Sup (s ∩ Iic x)) else f (Inf s),
+    have : monotone g,
+    { intros x y hxy,
+      dsimp only [g],
+      by_cases h' : ∃ a ∈ s, a ≤ x,
+      { rcases (id h') with ⟨a, has, hax⟩,
+        have : ∃ a ∈ s, a ≤ y := ⟨a, has, hax.trans hxy⟩,
+        rw [if_pos h', if_pos this],
+        exact hmono ((hs.inter_right is_closed_Iic).Sup_mem ⟨a, has, hax⟩).1
+          ((hs.inter_right is_closed_Iic).Sup_mem ⟨a, has, hax.trans hxy⟩).1
+          (cSup_le_cSup hs.bdd_above.inter_of_left ⟨a, has, hax⟩
+            (inter_subset_inter_right _ (Iic_subset_Iic.mpr hxy))) },
+      { rw [if_neg h'],
+        by_cases h'' : ∃ a ∈ s, a ≤ y,
+        { rcases (id h'') with ⟨a, has, hay⟩,
+          rw if_pos h'',
+          have : Sup (s ∩ Iic y) ∈ s := ((hs.inter_right is_closed_Iic).Sup_mem ⟨a, has, hay⟩).1,
+          exact hmono (hs.Inf_mem h) this (cInf_le hs.bdd_below this), },
+        { rw if_neg h'' } } },
+    refine ⟨g, this.measurable, (ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $ λ a ha, _⟩,
+    dsimp only [g],
+    rw if_pos (⟨a, ha, le_refl a⟩ : ∃ y ∈ s, y ≤ a),
+    symmetry,
+    exact congr_arg f (cSup_eq_of_forall_le_of_forall_lt_exists_gt ⟨a, ha, le_refl a⟩
+      (λ b hb, hb.2) (λ b hb, ⟨a, ⟨ha, le_refl a⟩, hb⟩)) },
+  { rw set.not_nonempty_iff_eq_empty at h,
+    rw h,
+    exact integrable_on_empty }
+end
 
 lemma integrable_on_compact_of_monotone_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
   integrable_on f s μ :=

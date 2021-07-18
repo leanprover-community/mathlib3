@@ -768,7 +768,7 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
-lemma measurable_of_monotone [linear_order β] [order_topology β] {f : β → α} (hf : monotone f) :
+lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α} (hf : monotone f) :
   measurable f :=
 suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
   from measurable_of_Ioi (λ x, (h x).measurable_set),
@@ -776,12 +776,31 @@ suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
 
 alias measurable_of_monotone ← monotone.measurable
 
-lemma measurable_of_antimono [linear_order β] [order_topology β] {f : β → α}
+lemma measurable_of_antimono [linear_order β] [order_closed_topology β] {f : β → α}
   (hf : ∀ ⦃x y : β⦄, x ≤ y → f y ≤ f x) :
   measurable f :=
 suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
   from measurable_of_Ioi (λ x, (h x).measurable_set),
 λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le hb (hf hc.2))
+
+lemma order_closed_topology.subtype [h : order_closed_topology α] {s : set α} :
+order_closed_topology s :=
+have this : continuous (λ (p : s × s), ((p.fst : α), (p.snd : α))) :=
+  (continuous_subtype_coe.comp continuous_fst).prod_mk
+  (continuous_subtype_coe.comp continuous_snd),
+order_closed_topology.mk (h.is_closed_le'.preimage this)
+
+lemma ae_measurable_of_monotone_on {μ : measure β} [linear_order β] [order_closed_topology β]
+  {s : set β} (hs : is_compact s) {f : β → α} (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+  ae_measurable f (μ.restrict s) :=
+have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
+ae_measurable_restrict_of_measurable_subtype hs.measurable_set this.measurable
+
+refine ae_measurable_restrict_of_measurable_subtype hs.measurable_set _,
+    have : monotone (f ∘ coe : s → E),
+    { rintros ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y),
+      exact hmono hx hy hxy },
+    exact this.measurable
 
 end linear_order
 

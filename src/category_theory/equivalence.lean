@@ -437,6 +437,13 @@ instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is
   is_equivalence (F ⋙ G) :=
 is_equivalence.of_equivalence (equivalence.trans (as_equivalence F) (as_equivalence G))
 
+/-- If `F₁` is an equivalence and it is isomorphic to `F₂`, then `F₂` is also an equivalence. -/
+def is_equivalence_of_iso (F₁ : D ⥤ C) {F₂ : D ⥤ C} (i : F₁ ≅ F₂) [is_equivalence F₁] :
+  is_equivalence F₂ :=
+is_equivalence.mk F₁.inv
+  (is_equivalence.unit_iso ≪≫ iso_whisker_right i _)
+  (iso_whisker_left _ i.symm ≪≫ is_equivalence.counit_iso)
+
 end functor
 
 namespace equivalence

@@ -45,7 +45,7 @@ The vertical maps in the above diagrams are also normed group homs constructed i
 
 noncomputable theory
 
-open set normed_group_hom uniform_space uniform_space.completion
+open set normed_group_hom uniform_space
 
 variables {G : Type*} [semi_normed_group G]
 variables {H : Type*} [semi_normed_group H]
@@ -54,28 +54,19 @@ variables {K : Type*} [semi_normed_group K]
 /-- The normed group hom induced between completions. -/
 def normed_group_hom.completion (f : normed_group_hom G H) :
   normed_group_hom (completion G) (completion H) :=
-{ to_fun := completion.map f,
-  map_add' := begin
-    intros x y,
-    apply induction_on₂ x y,
-    apply is_closed_eq,
-    exact continuous_map.comp continuous_add,
-    exact (continuous_map.comp continuous_fst).add (continuous_map.comp continuous_snd),
-    intros a b,
-    norm_cast,
-    simp [map_coe f.uniform_continuous],
-    norm_cast
-  end,
-  bound' := begin
+{ bound' := begin
     use ∥f∥,
     intro y,
     apply completion.induction_on y,
-    { exact is_closed_le (continuous_norm.comp continuous_map)
+    { exact is_closed_le (continuous_norm.comp $ f.to_add_monoid_hom.continuous_completion f.continuous)
                          (continuous_const.mul continuous_norm) },
     { intro x,
-      rw map_coe f.uniform_continuous,
-      simp only [f.le_op_norm x, norm_coe] }
-  end }
+      change ∥f.to_add_monoid_hom.completion _ ↑x∥ ≤ ∥f∥ * ∥↑x∥,
+      rw f.to_add_monoid_hom.completion_coe f.continuous,
+      simp only [completion.norm_coe],
+      exact f.le_op_norm x }
+  end,
+  ..f.to_add_monoid_hom.completion f.continuous }
 
 lemma normed_group_hom.completion_def (f : normed_group_hom G H) (x : completion G) :
   f.completion x = completion.map f x := rfl
@@ -87,6 +78,18 @@ by { ext x, exact normed_group_hom.completion_def f x }
 @[simp]
 lemma normed_group_hom.completion_coe (f : normed_group_hom G H) (g : G) : f.completion g = f g :=
 completion.map_coe f.uniform_continuous _
+
+def normed_group_hom_completion_hom :
+  normed_group_hom G H →+ normed_group_hom (completion G) (completion H) :=
+{ to_fun := normed_group_hom.completion,
+  map_zero' := begin
+    apply to_add_monoid_hom_injective,
+    exact add_monoid_hom.completion_zero
+  end,
+  map_add' := λ f g, begin
+    apply to_add_monoid_hom_injective,
+    exact f.to_add_monoid_hom.completion_add g.to_add_monoid_hom f.continuous g.continuous,
+  end }
 
 @[simp]
 lemma normed_group_hom.completion_id :
@@ -110,37 +113,20 @@ end
 
 lemma normed_group_hom.completion_neg (f : normed_group_hom G H) :
   (-f).completion = -f.completion :=
-begin
-  ext x,
-  apply uniform_space.completion.induction_on x,
-  { refine is_closed_eq (normed_group_hom.continuous _) _,
-    apply continuous.neg; apply normed_group_hom.continuous },
-  { intro g,
-    simp,
-    norm_cast }
-end
+normed_group_hom_completion_hom.map_neg f
 
 lemma normed_group_hom.completion_add (f g : normed_group_hom G H) :
   (f + g).completion = f.completion + g.completion :=
-begin
-  ext x,
-  apply uniform_space.completion.induction_on x,
-  { refine is_closed_eq (normed_group_hom.continuous _) _,
-    apply continuous.add; apply normed_group_hom.continuous },
-  { clear x, intro x,
-    simp only [add_apply, normed_group_hom.completion_coe],
-    exact is_add_hom.map_add coe (f x) (g x) }
-end
+normed_group_hom_completion_hom.map_add f g
 
 lemma normed_group_hom.completion_sub (f g : normed_group_hom G H) :
   (f - g).completion = f.completion - g.completion :=
-by rw [sub_eq_add_neg, f.completion_add, g.completion_neg, sub_eq_add_neg]
+normed_group_hom_completion_hom.map_sub f g
 
 /-- The map from a normed group to its completion, as a normed group hom. -/
 def normed_group.to_compl : normed_group_hom G (completion G) :=
 { to_fun := coe,
-  map_add' := by { intros x y,
-                   exact is_add_hom.map_add coe x y },
+  map_add' := completion.to_compl.map_add,
   bound' := ⟨1, by simp [le_refl]⟩ }
 
 open normed_group
@@ -255,8 +241,6 @@ begin
                       ... ≤ C * ∥f g∥ : hfg
                       ... ≤ C * ∥f∥ * ∥hatg - g∥ : by { rw mul_assoc,
                                                         exact mul_le_mul_of_nonneg_left this hC},
-
-
     refine ⟨g - g', _, _⟩,
     { norm_cast,
       rw normed_group_hom.comp_range,

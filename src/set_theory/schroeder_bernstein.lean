@@ -45,7 +45,7 @@ have hs : (g '' (f '' s)ᶜ)ᶜ = s,
     compl_subset_compl.mpr $ image_subset _ hxy : monotone (λ s, (g '' (f '' s)ᶜ)ᶜ)),
 
 have hns : sᶜ = g '' (f '' s)ᶜ,
-  from compl_bijective.1 $ by simp [hs],
+  from compl_injective $ by simp [hs],
 
 let g' := λ a, @inv_fun β ⟨f a⟩ α g a in
 have g'g : g' ∘ g = id,

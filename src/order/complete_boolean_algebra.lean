@@ -126,7 +126,7 @@ le_antisymm
   (supr_le $ assume i, compl_le_compl $ infi_le _ _)
 
 theorem compl_supr : (supr f)ᶜ = (⨅i, (f i)ᶜ) :=
-compl_bijective.1 (by simp [compl_infi])
+compl_injective (by simp [compl_infi])
 
 theorem compl_Inf : (Inf s)ᶜ = (⨆i∈s, iᶜ) :=
 by simp only [Inf_eq_infi, compl_infi]

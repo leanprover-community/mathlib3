@@ -582,8 +582,11 @@ is_compl_compl.symm.compl_eq
 theorem compl_bijective : function.bijective (compl : α → α) :=
 compl_involutive.bijective
 
+theorem compl_injective : function.injective (compl : α → α) :=
+compl_involutive.injective
+
 @[simp] theorem compl_inj_iff : xᶜ = yᶜ ↔ x = y :=
-compl_bijective.1.eq_iff
+compl_injective.eq_iff
 
 theorem is_compl.compl_eq_iff (h : is_compl x y) : zᶜ = y ↔ z = x :=
 h.compl_eq ▸ compl_inj_iff

@@ -12,6 +12,7 @@ Given two (semi) normed groups `G` and `H` and a normed group hom `f  : normed_g
 we build and study a normed group hom
 `f.completion  : normed_group_hom (completion G) (completion H)` such that the diagram
 
+```
                    f
      G       ----------->     H
 
@@ -22,8 +23,9 @@ we build and study a normed group hom
 
 completion G -----------> completion H
             f.completion
+```
 
-commutes. The map itself comes the general theory of completion of uniform spaces, but here
+commutes. The map itself comes from the general theory of completion of uniform spaces, but here
 we want a normed group hom, study its operator norm and kernel.
 
 The vertical maps in the above diagrams are also normed group homs constructed in this file.
@@ -87,8 +89,8 @@ lemma normed_group_hom.completion_coe (f : normed_group_hom G H) (g : G) : f.com
 completion.map_coe f.uniform_continuous _
 
 @[simp]
-lemma normed_group_hom.completion_id : (normed_group_hom.id G).completion =
-  normed_group_hom.id (completion G) :=
+lemma normed_group_hom.completion_id :
+  (normed_group_hom.id G).completion = normed_group_hom.id (completion G) :=
 begin
   ext x,
   rw [normed_group_hom.completion_def, normed_group_hom.coe_id, completion.map_id],
@@ -200,9 +202,9 @@ begin
       rw semi_normed_group.mem_closure_iff,
       intros ε ε_pos,
       obtain ⟨_, ⟨g : G, rfl⟩, hg : ∥hatg - g∥ < ε⟩ :=
-      semi_normed_group.mem_closure_iff.mp (completion.dense_inducing_coe.dense hatg) ε ε_pos,
+        semi_normed_group.mem_closure_iff.mp (completion.dense_inducing_coe.dense hatg) ε ε_pos,
       obtain ⟨g' : G, hgg' : f g' = f g, hfg : ∥g'∥ ≤ C * ∥f g∥⟩ :=
-      h (f g) (mem_range_self g),
+        h (f g) (mem_range_self g),
       rw [Hf g, mul_zero] at hfg,
       refine ⟨g - g', _, _⟩,
       { norm_cast,

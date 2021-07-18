@@ -644,7 +644,8 @@ calc card M = card (ι → R)    : card_congr b.equiv_fun.to_equiv
 a function `x : ι → R` to the linear combination `∑_i x i • v i`. -/
 @[simp] lemma basis.equiv_fun_symm_apply (x : ι → R) :
   b.equiv_fun.symm x = ∑ i, x i • b i :=
-by simp [basis.equiv_fun, finsupp.total_apply, finsupp.sum_fintype]
+by { simp [basis.equiv_fun, finsupp.total_apply, finsupp.sum_fintype],
+     refl }
 
 @[simp]
 lemma basis.equiv_fun_apply (u : M) : b.equiv_fun u = b.repr u := rfl

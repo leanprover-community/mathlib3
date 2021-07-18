@@ -940,6 +940,18 @@ lemma nhds_bot_basis [topological_space α] [semilattice_inf_bot α] [is_total �
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a : α, Iio a) :=
 @nhds_top_basis (order_dual α) _ _ _ _ _
 
+lemma nhds_top_basis_Ici [topological_space α] [semilattice_sup_top α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] [densely_ordered α] :
+  (𝓝 ⊤).has_basis (λ a : α, a < ⊤) Ici :=
+nhds_top_basis.to_has_basis
+  (λ a ha, let ⟨b, hab, hb⟩ := exists_between ha in ⟨b, hb, Ici_subset_Ioi.mpr hab⟩)
+  (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩)
+
+lemma nhds_bot_basis_Iic [topological_space α] [semilattice_inf_bot α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] [densely_ordered α] :
+  (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) Iic :=
+@nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _
+
 lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
   {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
   tendsto g l (𝓝 ⊤) :=

@@ -457,8 +457,8 @@ sup_le.2 $ le_sum _
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * sup.{u u} f :=
 by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)
 
-theorem sup_eq_zero {ι} {f : ι → cardinal} (h : ι → false) : sup f = 0 :=
-by { rw [← nonpos_iff_eq_zero, sup_le], intro x, exfalso, exact h x }
+theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
+by { rw [← nonpos_iff_eq_zero, sup_le], exact is_empty_elim }
 
 /-- The indexed product of cardinals is the cardinality of the Pi type
   (dependent product). -/
@@ -767,9 +767,9 @@ begin
     right, by_cases hb : b = 0, { left, exact hb },
     right, rw [← ne, ← one_le_iff_ne_zero] at ha hb, split,
     { rw [← mul_one a],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_refl a) hb) h },
+      refine lt_of_le_of_lt (mul_le_mul' (le_refl a) hb) h },
     { rw [← _root_.one_mul b],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul ha (le_refl b)) h }},
+      refine lt_of_le_of_lt (mul_le_mul' ha (le_refl b)) h }},
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, _root_.zero_mul, mul_zero]
 end
 
@@ -1241,7 +1241,10 @@ begin
 end
 
 lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
-by { apply sup_eq_zero, rintro ⟨x, hx⟩, rw [←not_le] at hx, apply hx, apply zero_le }
+begin
+  convert sup_eq_zero,
+  exact subtype.is_empty_of_false (λ x, (zero_le _).not_lt),
+end
 
 end cardinal
 

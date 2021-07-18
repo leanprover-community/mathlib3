@@ -294,7 +294,7 @@ meas_eq_meas_smaller_of_between_null_diff
 lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
   (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=
 (meas_eq_meas_larger_of_between_null_diff
-  (@interior_subset _ _ s) (@subset_closure _ _ s) h_nullbdry).symm
+  interior_subset subset_closure h_nullbdry).symm
 
 section preorder
 variables [preorder α] [order_closed_topology α] {a b : α}

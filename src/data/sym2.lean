@@ -218,7 +218,6 @@ A predicate for testing whether an element of `sym2 α` is on the diagonal.
 def is_diag : sym2 α → Prop :=
 lift ⟨eq, λ _ _, propext eq_comm⟩
 
-@[simp]
 lemma is_diag_iff_eq {x y : α} : is_diag ⟦(x, y)⟧ ↔ x = y :=
 iff.rfl
 

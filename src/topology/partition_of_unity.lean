@@ -69,11 +69,11 @@ open_locale big_operators topological_space classical
 
 noncomputable theory
 
-/-- A continuous partition of unity on a set `s : set X` is a collection of continuous functions `f i`
-such that
+/-- A continuous partition of unity on a set `s : set X` is a collection of continuous functions
+`f i` such that
 
-* the supports of `f i` form a locally finite family of sets, i.e., for every point `x : X` there exists
-  a neighborhood `U ∋ x` such that all but finitely many functions `f i` are zero on `U`;
+* the supports of `f i` form a locally finite family of sets, i.e., for every point `x : X` there
+  exists a neighborhood `U ∋ x` such that all but finitely many functions `f i` are zero on `U`;
 * the functions `f i` are nonnegative;
 * the sum `∑ᶠ i, f i x` is equal to one for every `x ∈ s` and is less than or equal to one
   otherwise.
@@ -91,8 +91,8 @@ structure partition_of_unity (ι X : Type*) [topological_space X] (s : set X := 
 
 /-- A `bump_covering ι X s` is an indexed family of functions `f i`, `i : ι`, such that
 
-* the supports of `f i` form a locally finite family of sets, i.e., for every point `x : X` there exists
-  a neighborhood `U ∋ x` such that all but finitely many functions `f i` are zero on `U`;
+* the supports of `f i` form a locally finite family of sets, i.e., for every point `x : X` there
+  exists a neighborhood `U ∋ x` such that all but finitely many functions `f i` are zero on `U`;
 * for all `i`, `x` we have `0 ≤ f i x ≤ 1`;
 * each point `x ∈ s` belongs to the interior of `{x | f i x = 1}` for some `i`.
 

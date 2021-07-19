@@ -9,6 +9,7 @@ import group_theory.order_of_element
 import data.zmod.basic
 import data.fintype.card
 import data.list.rotate
+import ring_theory.multiplicity
 
 /-!
 # Sylow theorems
@@ -263,5 +264,29 @@ begin
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
 end⟩
+
+variables (G) [fintype G] (p : ℕ)
+
+/-- The type of Sylow-`p` subgroups of a finite group `G`. A Sylow `p` subgroup is a
+  subgroup of cardinality `p ^ n`, when `n` is the maximum natural number such that
+  `p ^ n` divides the cardinality of `G`. -/
+def sylow_subgroup : Type* :=
+{ H : subgroup G // ∃ n : ℕ, fintype.card H = p ^ n ∧ ∀ m, p ^ m ∣ fintype.card G → m ≤ n }
+
+noncomputable instance : fintype (sylow_subgroup G p) :=
+subtype.fintype _
+
+instance [hp : fact p.prime] : nonempty (sylow_subgroup G p) :=
+have hm : multiplicity.finite p (fintype.card G),
+  by simp only [multiplicity.finite_nat_iff, ne.def, hp.elim.ne_one,
+    fintype.card_pos_iff, not_false_iff, true_and];
+    exact ⟨1⟩,
+let ⟨H, hH⟩ := exists_subgroup_card_pow_prime p
+  (multiplicity.pow_multiplicity_dvd hm) in
+⟨⟨H, ⟨_, hH, λ m hm, by rw [← enat.coe_le_coe, enat.coe_get];
+    exact multiplicity.le_multiplicity_of_pow_dvd hm⟩⟩⟩
+
+instance : mul_action G (sylow_subgroup G p) :=
+{ smul := λ g H, _ }
 
 end sylow

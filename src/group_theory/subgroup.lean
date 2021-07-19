@@ -380,6 +380,10 @@ instance : has_bot (subgroup G) :=
 @[to_additive]
 instance : inhabited (subgroup G) := ⟨⊥⟩
 
+noncomputable instance fintype' [fintype G] : fintype (subgroup G) :=
+fintype.of_injective subgroup.carrier
+  (λ s t h, by cases s; cases t; simp * at *)
+
 @[simp, to_additive] lemma mem_bot {x : G} : x ∈ (⊥ : subgroup G) ↔ x = 1 := iff.rfl
 
 @[simp, to_additive] lemma mem_top (x : G) : x ∈ (⊤ : subgroup G) := set.mem_univ x

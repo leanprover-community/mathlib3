@@ -36,7 +36,7 @@ noncomputable theory
 
 section conformality
 
-/-- A continuous linear map `f'` is said to be conformal if it is a nonzero multiple of a bijective linear isometry. -/
+/-- A continuous linear map `f'` is said to be conformal if it's a nonzero multiple of a bijective linear isometry. -/
 def is_conformal_map {X Y : Type*}
 [inner_product_space ℝ X] [inner_product_space ℝ Y] (f' : X →L[ℝ] Y) :=
 ∃ (c : ℝ) (hc : c ≠ 0) (lie : X ≃ₗᵢ[ℝ] Y), (f' : X → Y) = (λ y, c • y) ∘ lie

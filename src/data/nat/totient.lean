@@ -119,4 +119,7 @@ begin
     one_mul, mul_comm]
 end
 
+lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
+by rw [← pow_one p, totient_prime_pow hp]; simp
+
 end nat

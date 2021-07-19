@@ -80,7 +80,7 @@ topological_ring.topological_space_units topological_division_ring.units_top_gro
 
 local attribute [instance] topological_ring.topological_space_units
 
-instance induced_units : topological_ring.induced_units K := ⟨rfl⟩
+@[priority 100] instance induced_units : topological_ring.induced_units K := ⟨rfl⟩
 
 variables [topological_division_ring K]
 

@@ -110,7 +110,7 @@ lemma exists_nonzero_mem_of_ne_bot {P : ideal (polynomial R)}
 begin
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
   refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
-  refine (is_add_group_hom.injective_iff (polynomial.map (quotient.mk (P.comap C)))).mp _ _ pp0,
+  refine (ring_hom.injective_iff (polynomial.map_ring_hom (quotient.mk (P.comap C)))).mp _ _ pp0,
   refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
   rw [mk_ker],
   exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),

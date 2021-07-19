@@ -158,6 +158,16 @@ lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * 
 lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
+@[simp] lemma cast_fst {β : Type*} [has_zero α] [has_one α] [has_add α]
+  [has_zero β] [has_one β] [has_add β]
+  (n : ℕ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma cast_snd {β : Type*} [has_zero α] [has_one α] [has_add α]
+  [has_zero β] [has_one β] [has_add β]
+  (n : ℕ) : (n : α × β).snd = n :=
+by induction n; simp *
+
 section
 
 variables [ordered_semiring α]

@@ -38,37 +38,53 @@ noncomputable theory
 
 section conformality
 
+open linear_isometry_equiv continuous_linear_map
+
 /-- A continuous linear map `f'` is said to be conformal if it's
 a nonzero multiple of a bijective linear isometry. -/
-def is_conformal_map {X Y : Type*} [inner_product_space ℝ X] [inner_product_space ℝ Y]
-  (f' : X →L[ℝ] Y) :=
-∃ (c : ℝ) (hc : c ≠ 0) (lie : X ≃ₗᵢ[ℝ] Y), (f' : X → Y) = c • lie
+def is_conformal_map (R : Type*) {X Y : Type*} [nondiscrete_normed_field R]
+  [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y]
+  (f' : X →L[R] Y) :=
+∃ (c : R) (hc : c ≠ 0) (lie : X ≃ₗᵢ[R] Y), (f' : X → Y) = c • lie
+
+lemma is_conformal_map_iff {E F : Type*}
+  [inner_product_space ℝ X] [inner_product_space ℝ Y] (f' : E →L[ℝ] F) :
+  is_conformal_map ℝ f' ↔ ∀ (u v : E), inner (f' u) (f' v) = inner u v :=
+begin
+
+
+end
+
+variables {X Y Z : Type*}
+  [normed_group X] [normed_group Y] [normed_group Z]
+  [normed_space ℝ X] [normed_space ℝ Y] [normed_space ℝ Z]
 
 /-- A map `f` is said to be conformal if it has a conformal differential `f'`. -/
-def conformal_at {X Y : Type*} [inner_product_space ℝ X] [inner_product_space ℝ Y]
+def conformal_at {X Y : Type*}
+  [normed_group X] [normed_group Y] [normed_space ℝ X] [normed_space ℝ Y]
   (f : X → Y) (x : X) :=
-∃ (f' : X →L[ℝ] Y), has_fderiv_at f f' x ∧ is_conformal_map f'
+∃ (f' : X →L[ℝ] Y), has_fderiv_at f f' x ∧ is_conformal_map ℝ f'
+
+lemma conformal_at_id {X : Type*}
+  [normed_group X] [normed_space ℝ X] (x : X) : conformal_at id x :=
+⟨id ℝ X, has_fderiv_at_id _, 1, one_ne_zero, refl ℝ X, by ext; simp⟩
+
+lemma conformal_at_lemma_const_smul {X : Type*}
+  [normed_group X] [normed_space ℝ X] {c : ℝ} (h : c ≠ 0) (x : X) :
+  conformal_at (λ (x': X), c • x') x :=
+⟨c • continuous_linear_map.id ℝ X, has_fderiv_at.const_smul (has_fderiv_at_id x) c,
+  c, h, refl ℝ X, by ext; simp⟩
 
 
 namespace conformal_at
 
-variables {X Y Z : Type*}
-  [inner_product_space ℝ X] [inner_product_space ℝ Y] [inner_product_space ℝ Z]
 
-open linear_isometry_equiv continuous_linear_map
 
-theorem differentiable_at {f : X → Y} {x : X} (h : conformal_at f x) :
+lemma differentiable_at {f : X → Y} {x : X} (h : conformal_at f x) :
   differentiable_at ℝ f x :=
 let ⟨_, h₁, _, _, _, _⟩ := h in h₁.differentiable_at
 
-theorem id (x : X) : conformal_at id x :=
-⟨id ℝ X, has_fderiv_at_id _, 1, one_ne_zero, refl ℝ X, by ext; simp⟩
-
-theorem const_smul {c : ℝ} (h : c ≠ 0) (x : X) : conformal_at (λ (x': X), c • x') x :=
-⟨c • continuous_linear_map.id ℝ X, has_fderiv_at.const_smul (has_fderiv_at_id x) c,
-  c, h, refl ℝ X, by ext; simp⟩
-
-theorem comp {f : X → Y} {g : Y → Z} {x : X} :
+lemma comp {f : X → Y} {g : Y → Z} {x : X} :
   conformal_at f x → conformal_at g (f x) → conformal_at (g ∘ f) x :=
 begin
   rintro ⟨f', hf₁, cf, hcf, lief, hf₂⟩ ⟨g', hg₁, cg, hcg, lieg, hg₂⟩,
@@ -76,9 +92,12 @@ begin
     by { ext, simp [coe_comp' f' g', hf₂, hg₂, smul_smul cg cf] }⟩,
 end
 
+variables {E F : Type*}
+  [inner_product_space ℝ E] [inner_product_space ℝ F]
+
 /-- A real differentiable map `f` is conformal at point `x` if and only if
     its differential `f'` at that point scales any inner product by a positive scalar. -/
-theorem _root_.conformal_at_iff {f : X → Y} {x : X} {f' : X ≃L[ℝ] Y}
+lemma _root_.conformal_at_iff {f : X → Y} {x : X} {f' : X ≃L[ℝ] Y}
   (h : has_fderiv_at f f'.to_continuous_linear_map x) :
   conformal_at f x ↔ ∃ (c : ℝ) (hc : 0 < c),
   ∀ (u v : X), inner (f' u) (f' v) = (c : ℝ) * (inner u v) :=
@@ -113,7 +132,7 @@ by choose c hc huv using (conformal_at_iff h).mp H; exact c
 
 /-- If a real differentiable map `f` is conformal at a point `x`,
     then it preserves the angles at that point. -/
-theorem _root_.conformal_at_preserves_angle {f : X → Y} {x : X} {f' : X →L[ℝ] Y}
+lemma _root_.conformal_at_preserves_angle {f : X → Y} {x : X} {f' : X →L[ℝ] Y}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : X) :
   inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
 begin
@@ -149,15 +168,15 @@ namespace conformal_on
 variables {X Y Z: Type*}
   [inner_product_space ℝ X] [inner_product_space ℝ Y] [inner_product_space ℝ Z]
 
-theorem conformal_at {f : X → Y} {u : set X} (h : conformal_on f u) {x : X} (hx : x ∈ u) :
+lemma conformal_at {f : X → Y} {u : set X} (h : conformal_on f u) {x : X} (hx : x ∈ u) :
 conformal_at f x := h x hx
 
-theorem comp {f : X → Y} {g : Y → Z}
+lemma comp {f : X → Y} {g : Y → Z}
   {u : set X} {v : set Y} (hf : conformal_on f u) (hg : conformal_on g v) :
   conformal_on (g ∘ f) (u ∩ f⁻¹' v) :=
 λ x hx, (hf x hx.1).comp (hg (f x) $ set.mem_preimage.mp hx.2)
 
-theorem congr {f : X → X} {g : X → X}
+lemma congr {f : X → X} {g : X → X}
   {u : set X} (hu : is_open u) (h : ∀ (x : X), x ∈ u → g x = f x) (hf : conformal_on f u) :
   conformal_on g u := λ x hx, let ⟨f', h₁, c, hc, lie, h₂⟩ := hf x hx in
 begin
@@ -178,19 +197,19 @@ namespace conformal
 variables {X Y Z : Type*}
   [inner_product_space ℝ X] [inner_product_space ℝ Y] [inner_product_space ℝ Z]
 
-theorem conformal_at {f : X → Y} (h : conformal f) (x : X) : conformal_at f x := h x
+lemma conformal_at {f : X → Y} (h : conformal f) (x : X) : conformal_at f x := h x
 
-theorem conformal_on {f : X → Y} (h : conformal f) : conformal_on f set.univ := λ x hx, h x
+lemma conformal_on {f : X → Y} (h : conformal f) : conformal_on f set.univ := λ x hx, h x
 
-theorem differentiable {f : X → Y} (h : conformal f) : differentiable ℝ f :=
+lemma differentiable {f : X → Y} (h : conformal f) : differentiable ℝ f :=
 λ x, (h x).differentiable_at
 
-theorem id : conformal (id : X → X) := λ x, conformal_at.id x
+lemma id : conformal (id : X → X) := λ x, conformal_at.id x
 
-theorem const_smul {c : ℝ} (h : c ≠ 0) : conformal (λ (x : X), c • x) :=
+lemma const_smul {c : ℝ} (h : c ≠ 0) : conformal (λ (x : X), c • x) :=
 λ x, conformal_at.const_smul h x
 
-theorem comp {f : X → Y} {g : Y → Z} (hf : conformal f) (hg : conformal g) : conformal (g ∘ f) :=
+lemma comp {f : X → Y} {g : Y → Z} (hf : conformal f) (hg : conformal g) : conformal (g ∘ f) :=
 λ x, conformal_at.comp (hf x) (hg $ f x)
 
 end conformal

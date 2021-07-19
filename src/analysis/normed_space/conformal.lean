@@ -154,8 +154,9 @@ theorem conformal_at {f : X → Y} {u : set X} (h : conformal_on f u) {x : X} (h
 conformal_at f x := h x hx
 
 theorem comp {f : X → Y} {g : Y → Z}
-{u : set X} {v : set Y} (hf : conformal_on f u) (hg : conformal_on g v) :
-conformal_on (g ∘ f) (u ∩ f⁻¹' v) := λ x hx, (hf x hx.1).comp (hg (f x) $ set.mem_preimage.mp hx.2)
+  {u : set X} {v : set Y} (hf : conformal_on f u) (hg : conformal_on g v) :
+  conformal_on (g ∘ f) (u ∩ f⁻¹' v) :=
+λ x hx, (hf x hx.1).comp (hg (f x) $ set.mem_preimage.mp hx.2)
 
 theorem congr {f : X → X} {g : X → X}
 {u : set X} (hu : is_open u) (h : ∀ (x : X), x ∈ u → g x = f x) (hf : conformal_on f u) :

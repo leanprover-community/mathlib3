@@ -22,10 +22,14 @@ test.  Given `h : a ∈ z` for `z : sym2 α`, then `h.other` is the other
 element of the pair, defined using `classical.choice`.  If `α` has
 decidable equality, then `h.other'` computably gives the other element.
 
+The universal property of `sym2` is provided as `sym2.lift`, which
+states that functions from `sym2 α` are equivalent to symmetric
+two-argument functions from `α`.
+
 Recall that an undirected graph (allowing self loops, but no multiple
 edges) is equivalent to a symmetric relation on the vertex type `α`.
 Given a symmetric relation on `α`, the corresponding edge set is
-constructed by `sym2.from_rel`.
+constructed by `sym2.from_rel` which is a special case of `sym2.lift`.
 
 ## Notation
 
@@ -99,13 +103,17 @@ functions from `sym2`. Note that when `β` is `Prop`, it can sometimes be more c
 `sym2.from_rel` instead. -/
 def lift {β : Type*} : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁} ≃ (sym2 α → β) :=
 { to_fun := λ f, quotient.lift (uncurry ↑f) $ by { rintro _ _ ⟨⟩, exacts [rfl, f.prop _ _] },
-  inv_fun := λ F, ⟨λ a₁ a₂, F ⟦(a₁, a₂)⟧, λ a₁ a₂, congr_arg F eq_swap⟩,
+  inv_fun := λ F, ⟨curry (F ∘ quotient.mk), λ a₁ a₂, congr_arg F eq_swap⟩,
   left_inv := λ f, subtype.ext rfl,
   right_inv := λ F, funext $ quotient.ind $ prod.rec $ by exact λ _ _, rfl }
 
 @[simp]
 lemma lift_mk {β : Type*} (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁}) (a₁ a₂ : α) :
   lift f ⟦(a₁, a₂)⟧ = (f : α → α → β) a₁ a₂ := rfl
+
+@[simp]
+lemma coe_lift_symm_apply {β : Type*} (F : sym2 α → β) (a₁ a₂ : α) :
+  (lift.symm F : α → α → β) a₁ a₂ = F ⟦(a₁, a₂)⟧ := rfl
 
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.
@@ -224,7 +232,7 @@ lemma is_diag_iff_proj_eq (z : α × α) : is_diag ⟦z⟧ ↔ z.1 = z.2 :=
 prod.rec_on z $ λ _ _, is_diag_iff_eq
 
 @[simp]
-lemma is_diag_diag (a : α) : is_diag (diag a) :=
+lemma diag_is_diag (a : α) : is_diag (diag a) :=
 eq.refl a
 
 lemma is_diag.mem_range_diag {z : sym2 α} : is_diag z → z ∈ set.range (@diag α) :=
@@ -236,7 +244,7 @@ begin
 end
 
 lemma is_diag_iff_mem_range_diag (z : sym2 α) : is_diag z ↔ z ∈ set.range (@diag α) :=
-⟨is_diag.mem_range_diag, λ ⟨i, hi⟩, hi ▸ is_diag_diag i⟩
+⟨is_diag.mem_range_diag, λ ⟨i, hi⟩, hi ▸ diag_is_diag i⟩
 
 instance is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@is_diag α) :=
 by { refine λ z, quotient.rec_on_subsingleton z (λ a, _), erw is_diag_iff_proj_eq, apply_instance }

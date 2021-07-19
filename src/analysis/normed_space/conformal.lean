@@ -1,9 +1,8 @@
 /-
 Copyright (c) 2021 Yourong Zang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yourong Zang.
+Author: Yourong Zang
 -/
-import tactic
 import geometry.euclidean.basic
 import geometry.manifold.charted_space
 import analysis.normed_space.inner_product

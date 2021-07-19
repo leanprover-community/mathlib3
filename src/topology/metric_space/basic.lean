@@ -1562,20 +1562,16 @@ finite.induction_on H (by simp) $ λ x I _ _ IH,
 by simp [or_imp_distrib, forall_and_distrib, IH]
 
 /-- A totally bounded set is bounded -/
-lemma bounded_of_totally_bounded {s : set α} (h : totally_bounded s) : bounded s :=
+lemma _root_.totally_bounded.bounded {s : set α} (h : totally_bounded s) : bounded s :=
 -- We cover the totally bounded set by finitely many balls of radius 1,
 -- and then argue that a finite union of bounded sets is bounded
 let ⟨t, fint, subs⟩ := (totally_bounded_iff.mp h) 1 zero_lt_one in
 bounded.subset subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
 
-alias bounded_of_totally_bounded ← totally_bounded.bounded
-
 /-- A compact set is bounded -/
-lemma bounded_of_compact {s : set α} (h : is_compact s) : bounded s :=
+lemma _root_.is_compact.bounded {s : set α} (h : is_compact s) : bounded s :=
 -- A compact set is totally bounded, thus bounded
 h.totally_bounded.bounded
-
-alias bounded_of_compact ← is_compact.bounded
 
 /-- A finite set is bounded -/
 lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=

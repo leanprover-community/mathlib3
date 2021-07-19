@@ -435,7 +435,7 @@ variables (S : Type v) [semiring R] [semiring S] (p q : ℕ) [char_p R p] [char_
 
 /-- The characteristic of the product of rings is the least common multiple of the
 characteristics of the two rings. -/
-protected lemma char_p.prod : char_p (R × S) (nat.lcm p q) :=
+instance : char_p (R × S) (nat.lcm p q) :=
 { cast_eq_zero_iff :=
     by simp [prod.ext_iff, char_p.cast_eq_zero_iff R p,
       char_p.cast_eq_zero_iff S q, nat.lcm_dvd_iff] }

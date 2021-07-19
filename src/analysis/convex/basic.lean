@@ -284,11 +284,10 @@ lemma convex.smul_mem_of_zero_mem (h : convex s) {x : E} (zero_mem : (0:E) ∈ s
 by simpa using h.add_smul_mem zero_mem (by simpa using hx) ht
 
 lemma convex.mem_smul_of_zero_mem (h : convex s) {x : E} (zero_mem : (0:E) ∈ s) (hx : x ∈ s)
-  {t : ℝ} (ht : t ∈ Ici (1 : ℝ)) : x ∈ t • s :=
+  {t : ℝ} (ht : 1 ≤ t) : x ∈ t • s :=
 begin
-  rw mem_smul_set_iff_inv_smul_mem,
-  apply h.smul_mem_of_zero_mem zero_mem hx ⟨inv_nonneg.2 (zero_le_one.trans ht), inv_le_one ht⟩,
-  exact ne_of_gt (zero_lt_one.trans_le ht),
+  rw mem_smul_set_iff_inv_smul_mem (zero_lt_one.trans_le ht).ne',
+  exac h.smul_mem_of_zero_mem zero_mem hx ⟨inv_nonneg.2 (zero_le_one.trans ht), inv_le_one ht⟩,
 end
 
 /-- Alternative definition of set convexity, in terms of pointwise set operations. -/

@@ -95,19 +95,17 @@ begin
 end
 
 /-- The universal property of `sym2`; symmetric functions of two arguments are equivalent to
-functions from `sym2`. Note that this applies to both `Prop` and `Type`, although frequently
-`sym2.from_rel` is a more convenient spelling when working with `Prop`. -/
-def lift {β : Sort*} :
-  {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁} ≃ (sym2 α → β) :=
-{ to_fun := λ f, quotient.lift (λ a : α × α, (f : α → α → β) a.1 a.2) $
-    by { rintro ⟨_, _⟩ ⟨_, _⟩ (_ | _), refl, exact f.prop _ _ },
+functions from `sym2`. Note that when `β` is `Prop`, it can sometimes be more convenient to use
+`sym2.from_rel` instead. -/
+def lift {β : Type*} : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁} ≃ (sym2 α → β) :=
+{ to_fun := λ f, quotient.lift (uncurry ↑f) $ by { rintro _ _ ⟨⟩, exacts [rfl, f.prop _ _] },
   inv_fun := λ F, ⟨λ a₁ a₂, F ⟦(a₁, a₂)⟧, λ a₁ a₂, congr_arg F eq_swap⟩,
   left_inv := λ f, subtype.ext rfl,
   right_inv := λ F, funext $ quotient.ind $ prod.rec $ by exact λ _ _, rfl }
 
 @[simp]
-lemma lift_mk {β : Sort*} (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁})
-  (a₁ a₂ : α) : lift f ⟦(a₁, a₂)⟧ = (f : α → α → β) a₁ a₂ := rfl
+lemma lift_mk {β : Type*} (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁}) (a₁ a₂ : α) :
+  lift f ⟦(a₁, a₂)⟧ = (f : α → α → β) a₁ a₂ := rfl
 
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.

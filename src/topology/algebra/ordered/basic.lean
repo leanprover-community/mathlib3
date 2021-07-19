@@ -118,6 +118,16 @@ section preorder
 variables [topological_space α] [preorder α] [t : order_closed_topology α]
 include t
 
+namespace subtype
+
+instance {p : α → Prop} : order_closed_topology (subtype p) :=
+have this : continuous (λ (p : (subtype p) × (subtype p)), ((p.fst : α), (p.snd : α))) :=
+  (continuous_subtype_coe.comp continuous_fst).prod_mk
+  (continuous_subtype_coe.comp continuous_snd),
+order_closed_topology.mk (t.is_closed_le'.preimage this)
+
+end subtype
+
 lemma is_closed_le_prod : is_closed {p : α × α | p.1 ≤ p.2} :=
 t.is_closed_le'
 

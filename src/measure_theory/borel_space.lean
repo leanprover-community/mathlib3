@@ -804,19 +804,6 @@ lemma ae_measurable_restrict_of_antimono_on [linear_order β] [order_closed_topo
   (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) : ae_measurable f (μ.restrict s) :=
 @ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
-lemma order_closed_topology.subtype [h : order_closed_topology α] {s : set α} :
-order_closed_topology s :=
-have this : continuous (λ (p : s × s), ((p.fst : α), (p.snd : α))) :=
-  (continuous_subtype_coe.comp continuous_fst).prod_mk
-  (continuous_subtype_coe.comp continuous_snd),
-order_closed_topology.mk (h.is_closed_le'.preimage this)
-
-lemma ae_measurable_of_monotone_on {μ : measure β} [linear_order β] [order_closed_topology β]
-  {s : set β} (hs : is_compact s) {f : β → α} (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
-  ae_measurable f (μ.restrict s) :=
-have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
-ae_measurable_restrict_of_measurable_subtype hs.measurable_set this.measurable
-
 end linear_order
 
 @[measurability]

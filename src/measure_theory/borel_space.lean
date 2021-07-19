@@ -780,20 +780,29 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
-lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α} (hf : monotone f) :
-  measurable f :=
+lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : monotone f) : measurable f :=
 suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
   from measurable_of_Ioi (λ x, (h x).measurable_set),
 λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
 
 alias measurable_of_monotone ← monotone.measurable
 
+lemma ae_measurable_restrict_of_monotone_on [linear_order β] [order_closed_topology β]
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
+  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) : ae_measurable f (μ.restrict s) :=
+have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
+ae_measurable_restrict_of_measurable_subtype hs this.measurable
+
 lemma measurable_of_antimono [linear_order β] [order_closed_topology β] {f : β → α}
   (hf : ∀ ⦃x y : β⦄, x ≤ y → f y ≤ f x) :
   measurable f :=
-suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
-  from measurable_of_Ioi (λ x, (h x).measurable_set),
-λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le hb (hf hc.2))
+@measurable_of_monotone (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
+
+lemma ae_measurable_restrict_of_antimono_on [linear_order β] [order_closed_topology β]
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
+  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) : ae_measurable f (μ.restrict s) :=
+@ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
 lemma order_closed_topology.subtype [h : order_closed_topology α] {s : set α} :
 order_closed_topology s :=

@@ -198,19 +198,22 @@ lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
   (m : α) ∣ (n : α) :=
 ring_hom.map_dvd (int.cast_ring_hom α) h
 
-@[simp] lemma cast_fst {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
-  [has_zero β] [has_one β] [has_add β] [has_neg β]
-  (n : ℤ) : (n : α × β).fst = n :=
-by induction n; simp *
-
-@[simp] lemma cast_snd {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
-  [has_zero β] [has_one β] [has_add β] [has_neg β]
-  (n : ℤ) : (n : α × β).snd = n :=
-by induction n; simp *
-
 end cast
 
 end int
+
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+  [has_zero β] [has_one β] [has_add β] [has_neg β]
+
+@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
 
 open int
 

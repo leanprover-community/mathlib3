@@ -158,16 +158,6 @@ lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * 
 lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
-@[simp] lemma cast_fst {β : Type*} [has_zero α] [has_one α] [has_add α]
-  [has_zero β] [has_one β] [has_add β]
-  (n : ℕ) : (n : α × β).fst = n :=
-by induction n; simp *
-
-@[simp] lemma cast_snd {β : Type*} [has_zero α] [has_one α] [has_add α]
-  [has_zero β] [has_one β] [has_add β]
-  (n : ℕ) : (n : α × β).snd = n :=
-by induction n; simp *
-
 section
 
 variables [ordered_semiring α]
@@ -248,6 +238,19 @@ by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
 end linear_ordered_field
 
 end nat
+
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α]
+  [has_zero β] [has_one β] [has_add β]
+
+@[simp] lemma fst_nat_cast (n : ℕ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_nat_cast (n : ℕ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
 
 namespace add_monoid_hom
 

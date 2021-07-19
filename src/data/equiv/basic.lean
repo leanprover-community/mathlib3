@@ -1776,7 +1776,7 @@ theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : 
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
 
-theorem of_injective_symm_apply {α β} (f : α → β) (hf : injective f) (a : α) :
+@[simp] theorem of_injective_symm_apply {α β} (f : α → β) (hf : injective f) (a : α) :
   (of_injective f hf).symm ⟨f a, ⟨a, rfl⟩⟩ = a :=
 begin
   apply (of_injective f hf).injective,

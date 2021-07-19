@@ -59,7 +59,8 @@ variables {X Y Z : Type*}
 open linear_isometry_equiv continuous_linear_map
 
 theorem differentiable_at {f : X → Y} {x : X} (h : conformal_at f x) :
-differentiable_at ℝ f x := let ⟨_, h₁, _, _, _, _⟩ := h in h₁.differentiable_at
+  differentiable_at ℝ f x :=
+let ⟨_, h₁, _, _, _, _⟩ := h in h₁.differentiable_at
 
 theorem id (x : X) : conformal_at id x :=
 ⟨id ℝ X, has_fderiv_at_id _, 1, one_ne_zero, refl ℝ X, by ext; simp⟩

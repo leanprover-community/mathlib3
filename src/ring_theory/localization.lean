@@ -608,7 +608,7 @@ is_localization.lift $ λ (y : submonoid.powers x), show is_unit (g y.1),
 begin
   obtain ⟨n, hn⟩ := y.2,
   rw [←hn, g.map_pow],
-  exact is_unit.map (monoid_hom.of $ ((^ n) : P → P)) hg,
+  exact is_unit.map (monoid_hom.of (pow.is_monoid_hom n)) hg,
 end
 
 @[simp] lemma away_map.lift_eq (hg : is_unit (g x)) (a : R) :

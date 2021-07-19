@@ -227,6 +227,7 @@ has_initial_of_unique 0
 instance has_terminal : has_terminal C :=
 has_terminal_of_unique 0
 
+@[priority 100]
 instance has_strict_initial : initial_mono_class C :=
 initial_mono_class.of_is_initial zero_is_initial (λ X, category_theory.mono _)
 

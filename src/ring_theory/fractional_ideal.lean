@@ -216,12 +216,15 @@ not_iff_not.mpr coe_to_submodule_eq_bot
 instance : inhabited (fractional_ideal S P) := ⟨0⟩
 
 instance : has_one (fractional_ideal S P) :=
-⟨(1 : ideal R)⟩
+⟨(⊤ : ideal R)⟩
 
 variables (S)
 
+@[simp, norm_cast] lemma coe_ideal_top : ((⊤ : ideal R) : fractional_ideal S P) = 1 :=
+rfl
+
 lemma mem_one_iff {x : P} : x ∈ (1 : fractional_ideal S P) ↔ ∃ x' : R, algebra_map R P x' = x :=
-iff.intro (λ ⟨x', _, h⟩, ⟨x', h⟩) (λ ⟨x', h⟩, ⟨x', ⟨x', set.mem_univ _, rfl⟩, h⟩)
+iff.intro (λ ⟨x', _, h⟩, ⟨x', h⟩) (λ ⟨x', h⟩, ⟨x', ⟨⟩, h⟩)
 
 lemma coe_mem_one (x : R) : algebra_map R P x ∈ (1 : fractional_ideal S P) :=
 (mem_one_iff S).mpr ⟨x, rfl⟩
@@ -235,16 +238,13 @@ variables {S}
 
 However, this is not definitionally equal to `1 : submodule R P`,
 which is proved in the actual `simp` lemma `coe_one`. -/
-lemma coe_one_eq_coe_submodule_one :
-  ↑(1 : fractional_ideal S P) = coe_submodule P (1 : ideal R) :=
+lemma coe_one_eq_coe_submodule_top :
+  ↑(1 : fractional_ideal S P) = coe_submodule P (⊤ : ideal R) :=
 rfl
 
 @[simp, norm_cast] lemma coe_one :
   (↑(1 : fractional_ideal S P) : submodule R P) = 1 :=
-begin
-  simp only [coe_one_eq_coe_submodule_one, ideal.one_eq_top],
-  convert (submodule.one_eq_map_top).symm,
-end
+by rw [coe_one_eq_coe_submodule_top, coe_submodule_top]
 
 section lattice
 
@@ -558,7 +558,7 @@ end
 
 @[simp] lemma map_one :
   (1 : fractional_ideal S P).map g = 1 :=
-map_coe_ideal g 1
+map_coe_ideal g ⊤
 
 @[simp] lemma map_zero :
   (0 : fractional_ideal S P).map g = 0 :=

@@ -3,11 +3,10 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
+import algebra.module.ordered
 import data.complex.basic
-import algebra.algebra.ordered
 import data.matrix.notation
 import field_theory.tower
-import linear_algebra.finite_dimensional
 
 /-!
 # Complex number as a vector space over `ℝ`
@@ -33,7 +32,6 @@ It also provides a universal property of the complex numbers `complex.lift`, whi
 `ℂ →ₐ[ℝ] A` into any `ℝ`-algebra `A` given a square root of `-1`.
 
 -/
-noncomputable theory
 
 namespace complex
 
@@ -138,7 +136,7 @@ end
 open submodule finite_dimensional
 
 /-- `ℂ` has a basis over `ℝ` given by `1` and `I`. -/
-def basis_one_I : basis (fin 2) ℝ ℂ :=
+noncomputable def basis_one_I : basis (fin 2) ℝ ℂ :=
 basis.of_equiv_fun
 { to_fun := λ z, ![z.re, z.im],
   inv_fun := λ c, c 0 + c 1 • I,
@@ -267,7 +265,7 @@ This can be used to embed the complex numbers in the `quaternion`s.
 
 This isomorphism is named to match the very similar `zsqrtd.lift`. -/
 @[simps {simp_rhs := tt}]
-noncomputable def lift : {I' : A // I' * I' = -1} ≃ (ℂ →ₐ[ℝ] A) :=
+def lift : {I' : A // I' * I' = -1} ≃ (ℂ →ₐ[ℝ] A) :=
 { to_fun := λ I', lift_aux I' I'.prop,
   inv_fun := λ F, ⟨F I, by rw [←F.map_mul, I_mul_I, alg_hom.map_neg, alg_hom.map_one]⟩,
   left_inv := λ I', subtype.ext $ lift_aux_apply_I I' I'.prop,

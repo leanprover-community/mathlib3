@@ -100,8 +100,10 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
 
 variables {R} (M)
 
-/-- Compose a `module` with a `ring_hom`, with action `f s • m` -/
-def module.comp_hom [semiring S] (f : S →+* R) :
+/-- Compose a `module` with a `ring_hom`, with action `f s • m`.
+
+See note [reducible non-instances]. -/
+@[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
 { smul := (•) ∘ f,
   add_smul := λ r s x, by simp [add_smul],

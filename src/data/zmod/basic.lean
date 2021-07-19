@@ -623,8 +623,8 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
           rw [if_neg hmn0, zmod.eq_iff_modeq_nat, ← nat.modeq.modeq_and_modeq_iff_modeq_mul h,
             prod.fst_zmod_cast, prod.snd_zmod_cast],
           refine
-            ⟨(nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.left.trans _,
-            (nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.right.trans _⟩,
+            ⟨(nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.left.trans _,
+            (nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.right.trans _⟩,
           { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
           { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] } },
         exact ⟨left_inv, fintype.right_inverse_of_left_inverse_of_card_le left_inv (by simp)⟩,

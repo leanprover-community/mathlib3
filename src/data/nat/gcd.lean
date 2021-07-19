@@ -191,6 +191,10 @@ or.elim (eq_zero_or_pos k)
     by rw [gcd_mul_lcm, ←gcd_mul_right, mul_comm n k];
        exact dvd_gcd (mul_dvd_mul_left _ H2) (mul_dvd_mul_right H1 _))
 
+lemma lcm_dvd_iff {m n k : ℕ} : lcm m n ∣ k ↔ m ∣ k ∧ n ∣ k :=
+⟨λ h, ⟨dvd_trans (dvd_lcm_left _ _) h, dvd_trans (dvd_lcm_right _ _) h⟩,
+  and_imp.2 lcm_dvd⟩
+
 theorem lcm_assoc (m n k : ℕ) : lcm (lcm m n) k = lcm m (lcm n k) :=
 dvd_antisymm
   (lcm_dvd

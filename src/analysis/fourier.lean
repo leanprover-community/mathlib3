@@ -170,7 +170,7 @@ to_Lp p haar_circle ℂ (fourier n)
 
 /-- For each `1 ≤ p < ∞`, the linear span of the monomials `z ^ n` is dense in
 `Lp ℂ p haar_circle`. -/
-lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ⊤) :
+lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ∞) :
   (span ℂ (range (fourier_Lp p))).topological_closure = ⊤ :=
 begin
   convert (continuous_map.to_Lp_dense_range ℂ hp haar_circle ℂ).topological_closure_map_submodule

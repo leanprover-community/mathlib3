@@ -1,0 +1,19 @@
+Advantages of the bare function and typeclass approach:
+
+1) if f is a ring hom and the lemma needs an add monoid hom
+then you can get one with a coercion (f : R \to+ S) but
+`⇑↑f` is not syntactically `⇑f` so rewrites can fail
+(but erw might work)
+
+2) If S is a subring but the lemma needs a submonoid
+then the same sort of story. I
+
+3) Even worse than (2) -- if S is a subring but is first
+defined as an additive subgroup and then later on you prove
+it's closed under multiplication then the promotion now
+needs `S' : subring R`. Say S is an add_subgroup_closure
+and `S'` is then the subring, and you're trying to prove
+an inclusion of the set S' into another add_subgroup
+you need to rewrite
+
+TODO : find examples where this is happening.

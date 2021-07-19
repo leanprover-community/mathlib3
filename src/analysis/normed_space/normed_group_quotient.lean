@@ -470,7 +470,7 @@ begin
   obtain ⟨m, rfl⟩ := hquot.surjective n,
   have nonemp : ((λ m', ∥m + m'∥) '' f.ker).nonempty,
   { rw set.nonempty_image_iff,
-    exact ⟨0, is_add_submonoid.zero_mem⟩ },
+    exact ⟨0, f.ker.zero_mem⟩ },
   have bdd : bdd_below ((λ m', ∥m + m'∥) '' f.ker),
   { use 0,
     rintro _ ⟨x, hx, rfl⟩,

@@ -16,7 +16,7 @@ a linear isometry equivalence.
 
 ## Main results
 
-* `conformal_at`: the main defintion
+* `conformal_at`: the main definition
 * The conformality of the composition of two conformal maps, the identity map
   and multiplications by a constant
 * `conformal_at_iff`: an equivalent definition of the conformality at some point

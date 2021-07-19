@@ -1505,25 +1505,27 @@ by { ext, simp, }
   (single (option.some a) m : option α →₀ M).some = single a m :=
 by { ext b, simp [single_apply], }
 
-lemma sum_option_index [add_comm_monoid M] [add_comm_monoid N]
-  (f : option α →₀ M) (b : option α → M →+ N) :
-  f.sum (λ a, b a) = b none (f none) + f.some.sum (λ a, b (option.some a)) :=
+@[to_additive]
+lemma prod_option_index [add_comm_monoid M] [comm_monoid N]
+  (f : option α →₀ M) (b : option α → M → N) (h_zero : ∀ o, b o 0 = 1)
+  (h_add : ∀ o m₁ m₂, b o (m₁ + m₂) = b o m₁ * b o m₂) :
+  f.prod (λ a, b a) = b none (f none) * f.some.prod (λ a, b (option.some a)) :=
 begin
   apply induction_linear f,
-  { simp, },
+  { simp [h_zero], },
   { intros f₁ f₂ h₁ h₂,
-    rw [finsupp.sum_add_index, h₁, h₂, some_add, finsupp.sum_add_index],
-    simp only [add_monoid_hom.map_add, pi.add_apply, finsupp.coe_add],
-    abel,
-    all_goals { simp, }, },
-  { rintros (_|a) m; simp, }
+    rw [finsupp.prod_add_index, h₁, h₂, some_add, finsupp.prod_add_index],
+    simp only [h_add, pi.add_apply, finsupp.coe_add],
+    rw mul_mul_mul_comm,
+    all_goals { simp [h_zero, h_add], }, },
+  { rintros (_|a) m; simp [h_zero, h_add], }
 end
 
 lemma sum_option_index_smul [semiring R] [add_comm_monoid M] [module R M]
   (f : option α →₀ R) (b : option α → M) :
   f.sum (λ o r, r • b o) =
     f none • b none + f.some.sum (λ a r, r • b (option.some a)) :=
-f.sum_option_index (λ o, (smul_add_hom R M).flip (b o))
+f.sum_option_index _ (λ _, zero_smul _ _) (λ _ _ _, add_smul _ _ _)
 
 end option
 

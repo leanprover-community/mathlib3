@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yourong Zang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yourong Zang
+Authors: Yourong Zang
 -/
 import geometry.euclidean.basic
 import geometry.manifold.charted_space

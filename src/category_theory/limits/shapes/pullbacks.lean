@@ -617,12 +617,12 @@ colimit.hom_ext $ pushout_cocone.coequalizer_ext _ h₀ h₁
 /-- The pushout of an epimorphism is an epimorphism -/
 instance pushout.inl_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g] [epi g] :
   epi (pushout.inl : Y ⟶ pushout f g) :=
-⟨λ W u v h, pushout.hom_ext h $ (cancel_epi g).1 $ by simp [← pushout.condition_assoc, h] ⟩
+pushout_cocone.epi_inl_of_is_pushout_of_epi (colimit.is_colimit _)
 
 /-- The pushout of an epimorphism is an epimorphism -/
 instance pushout.inr_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g] [epi f] :
   epi (pushout.inr : Z ⟶ pushout f g) :=
-⟨λ W u v h, pushout.hom_ext ((cancel_epi f).1 $ by simp [pushout.condition_assoc, h]) h⟩
+pushout_cocone.epi_inr_of_is_pushout_of_epi (colimit.is_colimit _)
 
 section
 

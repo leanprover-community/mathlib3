@@ -80,7 +80,7 @@ end
     its differential `f'` at that point scales any inner product by a positive scalar. -/
 theorem _root_.conformal_at_iff {f : X → Y} {x : X} {f' : X ≃L[ℝ] Y}
 (h : has_fderiv_at f f'.to_continuous_linear_map x) :
-conformal_at f x ↔ ∃ (c : ℝ) (hc : c > 0),
+conformal_at f x ↔ ∃ (c : ℝ) (hc : 0 < c),
   ∀ (u v : X), inner (f' u) (f' v) = (c : ℝ) * (inner u v) :=
 begin
   split,
@@ -107,6 +107,7 @@ begin
            f₁.isometry_of_inner key, minor'⟩, },
 end
 
+/-- The characteristic function of a conformal map. -/
 def char_fun_at {f : X → Y} (x : X) {f' : X ≃L[ℝ] Y}
 (h : has_fderiv_at f f'.to_continuous_linear_map x) (H : conformal_at f x) : ℝ :=
 by choose c hc huv using (conformal_at_iff h).mp H; exact c
@@ -202,6 +203,7 @@ end conformal
 
 variables {X : Type*} [inner_product_space ℝ X]
 
+/-- The pregroupoid of conformal maps. -/
 def conformal_pregroupoid : pregroupoid X :=
 { property := λ f u, conformal_on f u,
   comp := λ f g u v hf hg hu hv huv, hf.comp hg,
@@ -209,6 +211,7 @@ def conformal_pregroupoid : pregroupoid X :=
   locality := λ f u hu h x hx, let ⟨v, h₁, h₂, h₃⟩ := h x hx in h₃ x ⟨hx, h₂⟩,
   congr := λ f g u hu h hf, conformal_on.congr hu h hf, }
 
+/-- The groupoid of conformal maps. -/
 def conformal_groupoid : structure_groupoid X := conformal_pregroupoid.groupoid
 
 end conformality

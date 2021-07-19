@@ -386,6 +386,10 @@ begin
     apply h _ _ k }
 end
 
+lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
+  (h : ∀ {x y}, f x ≤ f y → x ≤ y) : function.injective f :=
+λ x y hxy, le_antisymm (h hxy.le) (h hxy.ge)
+
 lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
   (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
 λ a b h,

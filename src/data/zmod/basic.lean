@@ -178,10 +178,10 @@ by { cases n; refl }
 
 variables {S : Type*} [has_zero S] [has_one S] [has_add S] [has_neg S]
 
-@[simp] lemma cast_fst (a : zmod n) : (a : R × S).fst = a :=
+@[simp] lemma _root_.prod.fst_zmod_cast (a : zmod n) : (a : R × S).fst = a :=
 by cases n; simp
 
-@[simp] lemma cast_snd (a : zmod n) : (a : R × S).snd = a :=
+@[simp] lemma _root_.prod.snd_zmod_cast (a : zmod n) : (a : R × S).snd = a :=
 by cases n; simp
 
 end
@@ -585,10 +585,6 @@ def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
   left_inv := λ ⟨_, _, _, _⟩, units.ext (nat_cast_zmod_val _),
   right_inv := λ ⟨_, _⟩, by simp }
 
-section
-
-local attribute [instance] char_p.prod
-
 /-- The **Chinese remainder theorem**. For a pair of coprime natural numbers, `m` and `n`,
   the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic. -/
 def chinese_remainder {m n : ℕ} (h : m.coprime n) :
@@ -625,7 +621,7 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
           dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],
           conv_rhs { rw ← zmod.nat_cast_zmod_val x },
           rw [if_neg hmn0, zmod.eq_iff_modeq_nat, ← nat.modeq.modeq_and_modeq_iff_modeq_mul h,
-            zmod.cast_fst, zmod.cast_snd],
+            prod.fst_zmod_cast, prod.snd_zmod_cast],
           refine
             ⟨(nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.left.trans _,
             (nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.right.trans _⟩,
@@ -639,8 +635,6 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
   map_add' := ring_hom.map_add _,
   left_inv := inv.1,
   right_inv := inv.2 }
-
-end
 
 section totient
 open_locale nat

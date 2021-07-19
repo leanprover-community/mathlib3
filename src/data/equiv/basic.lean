@@ -1772,10 +1772,16 @@ noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α �
 equiv.of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
 
-
 theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : set.range f) :
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
+
+theorem of_injective_symm_apply {α β} (f : α → β) (hf : injective f) (a : α) :
+  (of_injective f hf).symm ⟨f a, ⟨a, rfl⟩⟩ = a :=
+begin
+  apply (of_injective f hf).injective,
+  simp [apply_of_injective_symm f hf],
+end
 
 @[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
   f ∘ ((of_injective f hf).symm) = coe :=

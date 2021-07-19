@@ -473,7 +473,7 @@ theorem lmap_domain_total (f : α → α') (g : M →ₗ[R] M') (h : ∀ i, g (v
   (finsupp.total α' M' R v').comp (lmap_domain R R f) = g.comp (finsupp.total α M R v) :=
 by ext l; simp [total_apply, finsupp.sum_map_domain_index, add_smul, h]
 
-theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
+@[simp] theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
   (finsupp.total α' M' R v') (emb_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
 by simp [total_apply, finsupp.sum, support_emb_domain, emb_domain_apply]
 
@@ -486,6 +486,10 @@ begin
   rw this,
   apply total_emb_domain R ⟨f, hf⟩ l
 end
+
+@[simp] theorem total_equiv_map_domain (f : α ≃ α') (l : α →₀ R) :
+  (finsupp.total α' M' R v') (equiv_map_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
+by rw [equiv_map_domain_eq_map_domain, total_map_domain _ _ f.injective]
 
 /-- A version of `finsupp.range_total` which is useful for going in the other direction -/
 theorem span_eq_range_total (s : set M) :

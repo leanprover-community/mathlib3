@@ -106,7 +106,7 @@ begin
     by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
                                ... = (∏ x : units (zmod p), x) : _
                                ... = -1 :
-    by rw [prod_hom _ (coe : units (zmod p) → zmod p),
+    by rw [prod_hom _ (units.coe_is_monoid_hom : is_monoid_hom (coe : units (zmod p) → zmod p)),
            prod_univ_units_id_eq_neg_one, units.coe_neg, units.coe_one],
   have hp : 0 < p := (fact.out p.prime).pos,
   symmetry,

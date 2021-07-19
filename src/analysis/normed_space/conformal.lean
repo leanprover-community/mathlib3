@@ -42,7 +42,7 @@ section conformality
 a nonzero multiple of a bijective linear isometry. -/
 def is_conformal_map {X Y : Type*} [inner_product_space ℝ X] [inner_product_space ℝ Y]
   (f' : X →L[ℝ] Y) :=
-∃ (c : ℝ) (hc : c ≠ 0) (lie : X ≃ₗᵢ[ℝ] Y), (f' : X → Y) = (λ y, c • y) ∘ lie
+∃ (c : ℝ) (hc : c ≠ 0) (lie : X ≃ₗᵢ[ℝ] Y), (f' : X → Y) = c • lie
 
 /-- A map `f` is said to be conformal if it has a conformal differential `f'`. -/
 def conformal_at {X Y : Type*} [inner_product_space ℝ X] [inner_product_space ℝ Y]
@@ -79,8 +79,8 @@ end
 /-- A real differentiable map `f` is conformal at point `x` if and only if
     its differential `f'` at that point scales any inner product by a positive scalar. -/
 theorem _root_.conformal_at_iff {f : X → Y} {x : X} {f' : X ≃L[ℝ] Y}
-(h : has_fderiv_at f f'.to_continuous_linear_map x) :
-conformal_at f x ↔ ∃ (c : ℝ) (hc : 0 < c),
+  (h : has_fderiv_at f f'.to_continuous_linear_map x) :
+  conformal_at f x ↔ ∃ (c : ℝ) (hc : 0 < c),
   ∀ (u v : X), inner (f' u) (f' v) = (c : ℝ) * (inner u v) :=
 begin
   split,
@@ -94,12 +94,11 @@ begin
       exact (real.sqrt_ne_zero'.mpr $ inv_pos.mpr hc₁) w},
     let c_map := linear_equiv.smul_of_ne_zero ℝ Y c hc,
     let f₁ := f'.to_linear_equiv.trans c_map,
-    have minor : (f₁ : X → Y) = (λ (y : Y), c • y) ∘ f' := rfl,
-    have minor' : (f' : X → Y) = (λ (y : Y), c⁻¹ • y) ∘ f₁ := by ext;
-      rw [minor, function.comp_apply, function.comp_apply,
-          smul_smul, inv_mul_cancel hc, one_smul],
+    have minor : (f₁ : X → Y) = c • f' := rfl,
+    have minor' : (f' : X → Y) = c⁻¹ • f₁ := by ext;
+      simp_rw [minor, pi.smul_apply]; rw [smul_smul, inv_mul_cancel hc, one_smul],
     have key : ∀ (u v : X), inner (f₁ u) (f₁ v) = inner u v := λ u v, by
-      rw [minor, function.comp_app, function.comp_app, real_inner_smul_left,
+      simp_rw [minor, pi.smul_apply]; rw [real_inner_smul_left,
           real_inner_smul_right, huv u v, ← mul_assoc, ← mul_assoc,
           real.mul_self_sqrt $ le_of_lt $ inv_pos.mpr hc₁,
           inv_mul_cancel $ ne_of_gt hc₁, one_mul],
@@ -109,13 +108,13 @@ end
 
 /-- The characteristic function of a conformal map. -/
 def char_fun_at {f : X → Y} (x : X) {f' : X ≃L[ℝ] Y}
-(h : has_fderiv_at f f'.to_continuous_linear_map x) (H : conformal_at f x) : ℝ :=
+  (h : has_fderiv_at f f'.to_continuous_linear_map x) (H : conformal_at f x) : ℝ :=
 by choose c hc huv using (conformal_at_iff h).mp H; exact c
 
 /-- If a real differentiable map `f` is conformal at a point `x`,
     then it preserves the angles at that point. -/
 theorem _root_.conformal_at_preserves_angle {f : X → Y} {x : X} {f' : X →L[ℝ] Y}
-(h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : X) :
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : X) :
   inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
 begin
   repeat { rw inner_product_geometry.angle },
@@ -124,8 +123,7 @@ begin
   { rcases H with ⟨f₁, h₁, c₁, hc₁, lie, h₂⟩,
     have minor : ∥c₁∥ ≠ 0 := λ w, hc₁ (norm_eq_zero.mp w),
     have : f' = f₁ := has_fderiv_at.unique h h₁,
-    rw [this, h₂],
-    repeat { rw function.comp_apply },
+    simp_rw [this, h₂, pi.smul_apply],
     rw [real_inner_smul_left, real_inner_smul_right, ← mul_assoc, inner_map_map],
     repeat { rw [norm_smul, norm_map] },
     rw [← mul_assoc],
@@ -143,7 +141,8 @@ end conformal_at
 
 /-- A map `f` is conformal on a set `s` if it's conformal at every point in that set. -/
 def conformal_on {X Y : Type*} [inner_product_space ℝ X] [inner_product_space ℝ Y]
-(f : X → Y) (s : set X) := ∀ (x : X), x ∈ s → conformal_at f x
+  (f : X → Y) (s : set X) :=
+∀ (x : X), x ∈ s → conformal_at f x
 
 namespace conformal_on
 
@@ -159,8 +158,8 @@ theorem comp {f : X → Y} {g : Y → Z}
 λ x hx, (hf x hx.1).comp (hg (f x) $ set.mem_preimage.mp hx.2)
 
 theorem congr {f : X → X} {g : X → X}
-{u : set X} (hu : is_open u) (h : ∀ (x : X), x ∈ u → g x = f x) (hf : conformal_on f u) :
-conformal_on g u := λ x hx, let ⟨f', h₁, c, hc, lie, h₂⟩ := hf x hx in
+  {u : set X} (hu : is_open u) (h : ∀ (x : X), x ∈ u → g x = f x) (hf : conformal_on f u) :
+  conformal_on g u := λ x hx, let ⟨f', h₁, c, hc, lie, h₂⟩ := hf x hx in
 begin
   have : has_fderiv_at g f' x :=
     by apply h₁.congr_of_eventually_eq; rw filter.eventually_eq_iff_exists_mem;
@@ -171,31 +170,28 @@ end
 end conformal_on
 
 /-- A map `f` is conformal if it's conformal at every point. -/
-def conformal
-{X Y : Type*} [inner_product_space ℝ X] [inner_product_space ℝ Y]
-(f : X → Y) := ∀ (x : X), conformal_at f x
+def conformal {X Y : Type*} [inner_product_space ℝ X] [inner_product_space ℝ Y] (f : X → Y) :=
+∀ (x : X), conformal_at f x
 
 namespace conformal
 
 variables {X Y Z : Type*}
   [inner_product_space ℝ X] [inner_product_space ℝ Y] [inner_product_space ℝ Z]
 
-theorem conformal_at {f : X → Y} (h : conformal f) (x : X) :
-conformal_at f x := h x
+theorem conformal_at {f : X → Y} (h : conformal f) (x : X) : conformal_at f x := h x
 
-theorem conformal_on {f : X → Y} (h : conformal f) :
-conformal_on f set.univ := λ x hx, h x
+theorem conformal_on {f : X → Y} (h : conformal f) : conformal_on f set.univ := λ x hx, h x
 
-theorem differentiable {f : X → Y} (h : conformal f) :
-differentiable ℝ f := λ x, (h x).differentiable_at
+theorem differentiable {f : X → Y} (h : conformal f) : differentiable ℝ f :=
+λ x, (h x).differentiable_at
 
 theorem id : conformal (id : X → X) := λ x, conformal_at.id x
 
-theorem const_smul {c : ℝ} (h : c ≠ 0) :
-conformal (λ (x : X), c • x) := λ x, conformal_at.const_smul h x
+theorem const_smul {c : ℝ} (h : c ≠ 0) : conformal (λ (x : X), c • x) :=
+λ x, conformal_at.const_smul h x
 
-theorem comp {f : X → Y} {g : Y → Z} (hf : conformal f) (hg : conformal g) :
-conformal (g ∘ f) := λ x, conformal_at.comp (hf x) (hg (f x))
+theorem comp {f : X → Y} {g : Y → Z} (hf : conformal f) (hg : conformal g) : conformal (g ∘ f) :=
+λ x, conformal_at.comp (hf x) (hg $ f x)
 
 end conformal
 

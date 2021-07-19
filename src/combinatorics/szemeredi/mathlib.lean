@@ -137,41 +137,11 @@ begin
   assumption
 end
 
-lemma sdiff_ssubset [decidable_eq α] {x y : finset α} (hx : y ⊆ x) (hy : y.nonempty) :
-  x \ y ⊂ x :=
-begin
-  obtain ⟨i, hi⟩ := hy,
-  rw ssubset_iff_of_subset (sdiff_subset _ _),
-  exact ⟨i, hx hi, λ t, (mem_sdiff.1 t).2 hi⟩,
-end
-
 lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
 begin
   rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
   exact nat.lt_succ_self _,
 end
-
-namespace finset
-
-@[simp] lemma bUnion_subset_iff_forall_subset {α β : Type*} [decidable_eq β]
-  {s : finset α} {t : finset β} {f : α → finset β} : s.bUnion f ⊆ t ↔ ∀ x ∈ s, f x ⊆ t :=
-begin
-  refine ⟨λ h x hx, (subset_bUnion_of_mem f hx).trans h, λ h x hx, _⟩,
-  simp only [mem_bUnion, exists_prop] at hx,
-  obtain ⟨a, ha₁, ha₂⟩ := hx,
-  exact h _ ha₁ ha₂,
-end
-
-@[simp] lemma product_bUnion {β γ : Type*} [decidable_eq γ] (A : finset α) (B : finset β)
-  (f : α × β → finset γ) :
-  (A.product B).bUnion f = A.bUnion (λ a, B.bUnion (λ b, f (a, b))) :=
-begin
-  ext x,
-  simp only [mem_bUnion, exists_prop, mem_product],
-  exact ⟨λ ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩, ⟨a, ha, b, hb, hx⟩, λ ⟨a, ha, b, hb, hx⟩, ⟨⟨a, b⟩, ⟨ha, hb⟩, hx⟩⟩,
-end
-
-end finset
 
 open finset
 

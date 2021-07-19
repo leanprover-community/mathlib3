@@ -817,12 +817,6 @@ lemma ae_measurable_of_monotone_on {μ : measure β} [linear_order β] [order_cl
 have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
 ae_measurable_restrict_of_measurable_subtype hs.measurable_set this.measurable
 
-refine ae_measurable_restrict_of_measurable_subtype hs.measurable_set _,
-    have : monotone (f ∘ coe : s → E),
-    { rintros ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y),
-      exact hmono hx hy hxy },
-    exact this.measurable
-
 end linear_order
 
 @[measurability]

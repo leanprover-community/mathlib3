@@ -323,6 +323,14 @@ calc x \ y = x ↔ x \ y = x \ ⊥ : by rw sdiff_bot
 theorem sdiff_eq_self_iff_disjoint' : x \ y = x ↔ disjoint x y :=
 by rw [sdiff_eq_self_iff_disjoint, disjoint.comm]
 
+lemma sdiff_lt (hx : y ≤ x) (hy : y ≠ ⊥) :
+  x \ y < x :=
+begin
+  refine sdiff_le.lt_of_ne (λ h, hy _),
+  rw [sdiff_eq_self_iff_disjoint', disjoint_iff] at h,
+  rw [←h, inf_eq_right.mpr hx],
+end
+
 -- cf. `is_compl.antimono`
 lemma sdiff_le_sdiff_self (h : z ≤ x) : w \ x ≤ w \ z :=
 le_of_inf_le_sup_le

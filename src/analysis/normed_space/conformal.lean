@@ -114,8 +114,8 @@ by choose c hc huv using (conformal_at_iff h).mp H; exact c
 
 /-- If a real differentiable map `f` is conformal at a point `x`,
     then it preserves the angles at that point. -/
-theorem _root_.conformal_at_preserves_angle {f : X → Y} {x : X} {f' : X ≃L[ℝ] Y}
-(h : has_fderiv_at f f'.to_continuous_linear_map x) (H : conformal_at f x) (u v : X) :
+theorem _root_.conformal_at_preserves_angle {f : X → Y} {x : X} {f' : X →L[ℝ] Y}
+(h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : X) :
   inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
 begin
   repeat { rw inner_product_geometry.angle },
@@ -123,8 +123,7 @@ begin
   { rw new, },
   { rcases H with ⟨f₁, h₁, c₁, hc₁, lie, h₂⟩,
     have minor : ∥c₁∥ ≠ 0 := λ w, hc₁ (norm_eq_zero.mp w),
-    have : f'.to_continuous_linear_map = f₁ := has_fderiv_at.unique h h₁,
-    rw [← continuous_linear_equiv.coe_coe f', ← continuous_linear_equiv.coe_def_rev f'],
+    have : f' = f₁ := has_fderiv_at.unique h h₁,
     rw [this, h₂],
     repeat { rw function.comp_apply },
     rw [real_inner_smul_left, real_inner_smul_right, ← mul_assoc, inner_map_map],

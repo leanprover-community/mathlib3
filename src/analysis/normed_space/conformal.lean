@@ -125,12 +125,10 @@ begin
     have minor : ∥c₁∥ ≠ 0 := λ w, hc₁ (norm_eq_zero.mp w),
     have : f'.to_continuous_linear_map = f₁ := has_fderiv_at.unique h h₁,
     rw [← continuous_linear_equiv.coe_coe f', ← continuous_linear_equiv.coe_def_rev f'],
-    repeat { rw inner_product_angle.def },
     rw [this, h₂],
     repeat { rw function.comp_apply },
-    rw [real_inner_smul_left, real_inner_smul_right, ← mul_assoc,
-        linear_isometry_equiv.inner_map_map],
-    repeat { rw [norm_smul, linear_isometry_equiv.norm_map] },
+    rw [real_inner_smul_left, real_inner_smul_right, ← mul_assoc, inner_map_map],
+    repeat { rw [norm_smul, norm_map] },
     rw [← mul_assoc],
     exact calc c₁ * c₁ * inner u v / (∥c₁∥ * ∥u∥ * ∥c₁∥ * ∥v∥)
             = c₁ * c₁ * inner u v / (∥c₁∥ * ∥c₁∥ * ∥u∥ * ∥v∥) : by simp only [mul_comm, mul_assoc]

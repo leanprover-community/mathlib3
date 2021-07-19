@@ -467,15 +467,40 @@ begin
         upper_half_plane.top_def, zero_add, zero_mul] } }
 end
 
-lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
+lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : (z -- :ℂ
+) = (g • z) :=
 begin
 /-
   either c=0 in which case, translation, in which case translation by 0
   or im (y) > Sqrt(3)/2 -> c=±1 and compute...
 -/
+  -- ext,
+  have g_det : g.val.det = (g 0 0)*(g 1 1)-(g 1 0)*(g 0 1),
+  {
+    simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+    ring,
+  },
+
   by_cases (g 0 1 = 0),
   {
+    have : ∃ (n:ℤ), g = ⟨![![1,n],![0,1]],_⟩ ∨ g = ⟨![![-1,n],![0,-1]],_⟩,
+    {
+      use (g 0 1),
+      ext,
+      have := g.2,
+      rw [g_det, h, h₁.1, h₁.2] at this,
 
+      have := g.det_coe_fun,
+      sorry,
+    },
+    --obtain ⟨ n, hn⟩ := this,
+    -- have : ((g • z):ℂ ) = z+n,
+
+    suffices h₁ : (g 0 0 = 1 ∧ g 1 1 = 1) ∨ (g 0 0 = -1 ∧ g 1 1 = -1),
+    {
+      cases h₁,
+
+    },
     -- want to argue that g=± (1 n),(0,1), so gz=z+n, and n=0
     have := g.2,
 

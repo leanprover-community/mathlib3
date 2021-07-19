@@ -176,6 +176,14 @@ def cast : Π {n : ℕ}, zmod n → R
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by { cases n; refl }
 
+variables {S : Type*} [has_zero S] [has_one S] [has_add S] [has_neg S]
+
+@[simp] lemma cast_fst (a : zmod n) : (a : R × S).fst = a :=
+by cases n; simp
+
+@[simp] lemma cast_snd (a : zmod n) : (a : R × S).snd = a :=
+by cases n; simp
+
 end
 
 /-- So-named because the coercion is `nat.cast` into `zmod`. For `nat.cast` into an arbitrary ring,
@@ -577,47 +585,61 @@ def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
   left_inv := λ ⟨_, _, _, _⟩, units.ext (nat_cast_zmod_val _),
   right_inv := λ ⟨_, _⟩, by simp }
 
+section
+
+local attribute [instance] char_p.prod
+
 /-- The **Chinese remainder theorem**. For a pair of coprime natural numbers, `m` and `n`,
   the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic. -/
 def chinese_remainder {m n : ℕ} (h : m.coprime n) :
   zmod (m * n) ≃+* zmod m × zmod n :=
-if hmn0 : m * n = 0
-then if hm1 : m = 1
-  then by rw [hm1, one_mul]; exact ring_equiv.zero_ring_prod _ _
-  else have hn1 : n = 1,
-      begin
-        rw [nat.mul_eq_zero] at hmn0,
-        rcases hmn0 with ⟨rfl, rfl⟩;
-        simp * at *
-      end,
-    by rw [hn1, mul_one]; exact ring_equiv.prod_zero_ring _ _
-else
 let to_fun : zmod (m * n) → zmod m × zmod n :=
-  λ x, (zmod.cast_hom (dvd_mul_right _ _) _ x, zmod.cast_hom (dvd_mul_left _ _) _ x) in
+  zmod.cast_hom (show m.lcm n ∣ m * n, by simp [nat.lcm_dvd_iff]) (zmod m × zmod n) in
 let inv_fun : zmod m × zmod n → zmod (m * n) :=
-  λ x, nat.modeq.chinese_remainder h x.1.val x.2.val in
-begin
-  haveI : fact (0 < (m * n)) := fact.mk (nat.pos_of_ne_zero hmn0),
-  haveI : fact (0 < m) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
-  haveI : fact (0 < n) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
-  have left_inv : function.left_inverse inv_fun to_fun :=
-    λ x, begin
-      dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],
-      conv_rhs { rw ← zmod.nat_cast_zmod_val x },
-      rw [zmod.eq_iff_modeq_nat, ← nat.modeq.modeq_and_modeq_iff_modeq_mul h],
-      refine
-       ⟨(nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.left.trans _,
-        (nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.right.trans _⟩,
-      { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
-      { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
-    end,
-  exact
-  { to_fun := to_fun,
-    inv_fun := inv_fun,
-    map_mul' := λ _ _, by ext; simp only [ring_hom.map_mul]; refl,
-    map_add' := λ _ _, by ext; simp only [ring_hom.map_add]; refl,
-    left_inv := left_inv,
-    right_inv := fintype.right_inverse_of_left_inverse_of_card_le left_inv (by simp) }
+  λ x,if m * n = 0
+    then if m = 1
+      then ring_hom.snd _ _ x
+      else ring_hom.fst _ _ x
+    else nat.modeq.chinese_remainder h x.1.val x.2.val in
+have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_fun to_fun :=
+  if hmn0 : m * n = 0
+    then begin
+      have : m = 0 ∧ n = 1 ∨ n = 0 ∧ m = 1,
+      { rw [nat.mul_eq_zero] at hmn0,
+        rcases hmn0 with rfl|rfl,
+        { rw [nat.coprime_zero_left] at h,
+          simp [h] },
+        { rw [nat.coprime_zero_right] at h,
+          simp [h] } },
+      rcases this with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩;
+      simp [inv_fun, to_fun, function.left_inverse, function.right_inverse,
+        ring_hom.eq_int_cast, prod.ext_iff]
+    end
+    else
+      begin
+        haveI : fact (0 < (m * n)) := fact.mk (nat.pos_of_ne_zero hmn0),
+        haveI : fact (0 < m) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
+        haveI : fact (0 < n) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
+        have left_inv : function.left_inverse inv_fun to_fun,
+        { intro x,
+          dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],
+          conv_rhs { rw ← zmod.nat_cast_zmod_val x },
+          rw [if_neg hmn0, zmod.eq_iff_modeq_nat, ← nat.modeq.modeq_and_modeq_iff_modeq_mul h,
+            zmod.cast_fst, zmod.cast_snd],
+          refine
+            ⟨(nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.left.trans _,
+            (nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).property.right.trans _⟩,
+          { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
+          { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] } },
+        exact ⟨left_inv, fintype.right_inverse_of_left_inverse_of_card_le left_inv (by simp)⟩,
+      end,
+{ to_fun := to_fun,
+  inv_fun := inv_fun,
+  map_mul' := ring_hom.map_mul _,
+  map_add' := ring_hom.map_add _,
+  left_inv := inv.1,
+  right_inv := inv.2 }
+
 end
 
 section totient

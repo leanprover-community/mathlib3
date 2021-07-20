@@ -64,7 +64,7 @@ noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
 def inclusion (R : Type*) [topological_space R] : locally_constant X R → C(X,R) :=
   λ x, ⟨x, locally_constant.continuous x⟩
 
-noncomputable instance {R : Type*} [normed_group R] [h : nonempty X] :
+noncomputable instance {R : Type*} [normed_group R] :
   topological_space (locally_constant X R) :=
 topological_space.induced (inclusion X R) uniform_space.to_topological_space
 
@@ -307,11 +307,6 @@ def c := λ (s : set X) (H : s ∈ (T' X ε f t ht)), (⟨s, (ht1 X f ε t ht s 
 
 noncomputable def c' := λ (s : set X) (H : s ∈ (T' X ε f t ht) ∧ nonempty s), classical.choice (H.2)
 
-lemma mem_nonempty {α : Type*} {s : set α} {x : α} (h : x ∈ s) : nonempty s :=
-begin
-  refine set.nonempty.to_subtype _, rw set.nonempty, refine ⟨x, h⟩,
-end
-
 noncomputable def c2 (f : C(X, A)) (ε : ℝ) (t : finset(set A))
   (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i) : X → A :=
 λ x, f (c' X f ε t ht (classical.some (exists_of_exists_unique (ht3 X f ε t ht x)) )
@@ -383,7 +378,7 @@ begin
           rcases ht3 with ⟨w, wT, hw⟩,
           obtain ⟨w1, w2⟩ := exists_prop.1 (exists_of_exists_unique wT),
           have : (inclusion X A ⟨(c2 X f ε t ht), loc_const⟩) y =
-                 f (c' X f ε t ht w ⟨w1, mem_nonempty w2⟩),
+                 f (c' X f ε t ht w ⟨w1, ⟨⟨y, w2⟩⟩⟩),
           { rw inc_eval, simp, rw c2, simp, apply congr_arg,
             congr' 2, swap, congr, swap 3, congr,
             repeat { apply hw, refine classical.some_spec (exists_of_exists_unique (ht3 y)), }, },
@@ -394,9 +389,9 @@ begin
           have ht5 := (ht1 w w1).2, rcases ht5 with ⟨U, hU, wU⟩,
           --rw h at hz, simp only [continuous_map.to_fun_eq_coe] at hz,
           rw S at hU, rw set.mem_range at hU, cases hU with z hz,
-          have tired' : f (c' X f ε t ht w ⟨w1, mem_nonempty w2⟩) ∈ set.image f w,
+          have tired' : f (c' X f ε t ht w ⟨w1, ⟨⟨y, w2⟩⟩⟩) ∈ set.image f w,
           { simp,
-            refine ⟨(c' X f ε t ht w ⟨w1, mem_nonempty w2⟩), _, _⟩, { simp, }, refl, },
+            refine ⟨(c' X f ε t ht w ⟨w1, ⟨⟨y, w2⟩⟩⟩), _, _⟩, { simp, }, refl, },
           have tired := wU tired',
           have tS' : f y ∈ set.image f w, { simp, refine ⟨y, w2, _⟩, refl, },
           have tS := wU tS',
@@ -518,7 +513,7 @@ instance semi : module A (locally_constant X A) :=
 
 variable (A)
 
-noncomputable def inclusion' [h : nonempty X] :
+noncomputable def inclusion' :
   continuous_linear_map A (locally_constant X A) C(X, A) :=
 { to_fun := inclusion X A,
   map_add' := λ x y, begin ext, refl end,
@@ -528,18 +523,18 @@ noncomputable def inclusion' [h : nonempty X] :
 
 variable {A}
 
-structure distribution' [nonempty X] :=
+structure distribution' :=
 (phi : linear_map A (locally_constant X A) A)
 
 def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
 
 variable (A)
 
-def measures' [nonempty X] :=
+def measures' :=
   {φ : distribution' X //
     ∃ K : ℝ, ∀ f : (locally_constant X A), ∥φ.phi f∥ ≤ K * ∥inclusion X A f∥ }
 
-def measures'' [nonempty X] :=
+def measures'' :=
   {φ : distribution' X //
     ∃ K : ℝ, 0 < K ∧ ∀ f : (locally_constant X A), ∥φ.phi f∥ ≤ K * ∥inclusion X A f∥ }
 
@@ -555,7 +550,7 @@ begin
   rintros f, exact ∥inclusion X A f∥,
 end
 
-instance [nonempty X] : normed_group (locally_constant X A) :=
+instance : normed_group (locally_constant X A) :=
 {
   dist_eq := begin
     intros x y,
@@ -566,7 +561,7 @@ instance [nonempty X] : normed_group (locally_constant X A) :=
   ..locally_constant.metric_space X A, ..locally_constant.has_norm X A,
 }
 
-lemma integral_cont [nonempty X] (φ : measures'' X A) : continuous (φ.1).phi :=
+lemma integral_cont (φ : measures'' X A) : continuous (φ.1).phi :=
 begin
   /-suffices : ∀ (b : locally_constant X A) (ε : ℝ), ε > 0 → (∃ (δ : ℝ) (H : δ > 0),
       ∀ (a : locally_constant X A), dist a b < δ → dist ((φ.val.phi) a) ((φ.val.phi) b) < ε),-/
@@ -599,7 +594,7 @@ begin
                           (uniformity C(X, A)))},
 end
 
-lemma uni_cont [h : nonempty X] (φ : measures'' X A) : uniform_continuous ⇑(φ.val.phi) :=
+lemma uni_cont (φ : measures'' X A) : uniform_continuous ⇑(φ.val.phi) :=
 begin
   refine metric.uniform_continuous_iff.mpr _,
   rintros ε hε,

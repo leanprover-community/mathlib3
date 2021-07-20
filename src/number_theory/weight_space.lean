@@ -544,6 +544,9 @@ begin
   sorry,
 end
 
+-- TODO Remove this lemma
+lemma mem_nonempty {α : Type*} {s : set α} {x : α} (h : x ∈ s) : nonempty s := ⟨⟨x, h⟩⟩
+
 lemma bernoulli_measure_nonempty (hc : gcd c p = 1) :
   nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
 begin

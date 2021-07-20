@@ -19,10 +19,10 @@ The result is presented in several versions:
   `measure_theory.Lp.bounded_continuous_function` of `Lp E p μ`, the additive subgroup of
   `Lp E p μ` consisting of equivalence classes containing a continuous representative, is dense in
   `Lp E p μ`.
-* `bounded_continuous_function.dense_range`: For finite-measure `μ`, the continuous linear map
-  `bounded_continuous_function.to_Lp p μ 𝕜` from `α →ᵇ E` to `Lp E p μ` has dense range.
-* `continuous_map.dense_range`: For compact `α` and finite-measure `μ`, the continuous linear map
-  `continuous_map.to_Lp p μ 𝕜` from `C(α, E)` to `Lp E p μ` has dense range.
+* `bounded_continuous_function.to_Lp_dense_range`: For finite-measure `μ`, the continuous linear
+  map `bounded_continuous_function.to_Lp p μ 𝕜` from `α →ᵇ E` to `Lp E p μ` has dense range.
+* `continuous_map.to_Lp_dense_range`: For compact `α` and finite-measure `μ`, the continuous linear
+  map `continuous_map.to_Lp p μ 𝕜` from `C(α, E)` to `Lp E p μ` has dense range.
 
 Note that for `p = ∞` this result is not true:  the characteristic function of the set `[0, ∞)` in
 `ℝ` cannot be continuously approximated in `L∞`.

@@ -59,7 +59,7 @@ rfl
 
 /-- A continuous function on a compact space is automatically a bounded continuous function. -/
 def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
-⟨f, bounded_range_iff.1 $ bounded_of_compact $ is_compact_range f.continuous⟩
+⟨f, bounded_range_iff.1 (is_compact_range f.continuous).bounded⟩
 
 @[simp] lemma mk_of_compact_apply [compact_space α] (f : C(α, β)) (a : α) :
   mk_of_compact f a = f a :=

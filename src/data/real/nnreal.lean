@@ -785,11 +785,7 @@ lemma real.nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : real.nnabs x = real.to_nnre
 by { ext, simp [real.coe_to_nnreal x h, abs_of_nonneg h] }
 
 lemma real.coe_to_nnreal_le (x : ℝ) : (real.to_nnreal x : ℝ) ≤ abs x :=
-begin
-  by_cases h : 0 ≤ x,
-  { simp [h, real.coe_to_nnreal x h, le_abs_self] },
-  { simp [real.to_nnreal, h, le_abs_self, abs_nonneg] }
-end
+max_le (le_abs_self _) (abs_nonneg _)
 
 lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
   (n.nat_abs : ℝ≥0) = real.nnabs n :=

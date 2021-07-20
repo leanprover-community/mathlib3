@@ -715,8 +715,7 @@ end
 begin
   casesI is_empty_or_nonempty ι,
   { simp [norm_mk_pi_algebra_of_empty] },
-  { resetI,
-    refine le_antisymm norm_mk_pi_algebra_le _,
+  { refine le_antisymm norm_mk_pi_algebra_le _,
     convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
     simp },
 end

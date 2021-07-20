@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import analysis.normed_space.basic
-import topology.sequences
 
 /-!
 # Normed groups homomorphisms

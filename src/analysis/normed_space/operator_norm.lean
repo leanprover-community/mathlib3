@@ -3,12 +3,9 @@ Copyright (c) 2019 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 -/
-import linear_algebra.finite_dimensional
+import algebra.algebra.tower
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
-import analysis.normed_space.normed_group_hom
-import analysis.asymptotics.asymptotics
-import algebra.algebra.tower
 import data.equiv.transfer_instance
 
 /-!
@@ -1194,6 +1191,12 @@ begin
       ... = ∥smul_right c f x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
+
+/-- The non-negative norm of the tensor product of a scalar linear map and of an element of a normed
+space is the product of the non-negative norms. -/
+@[simp] lemma nnnorm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
+  ∥smul_right c f∥₊ = ∥c∥₊ * ∥f∥₊ :=
+nnreal.eq $ c.norm_smul_right_apply f
 
 variables (𝕜 E F)
 

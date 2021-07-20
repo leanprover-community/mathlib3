@@ -284,7 +284,7 @@ which is sometimes more convenient.
 def image_to_kernel' (w : f ≫ g = 0) : image f ⟶ kernel g :=
 kernel.lift g (image.ι f) (by { ext, simpa using w, })
 
-@[simp] lemma image_subobject_iso_comp_image_to_kernel' (w : f ≫ g = 0) :
+@[simp] lemma image_subobject_iso_image_to_kernel' (w : f ≫ g = 0) :
   (image_subobject_iso f).hom ≫ image_to_kernel' f g w =
     image_to_kernel f g w ≫ (kernel_subobject_iso g).hom :=
 by { ext, simp [image_to_kernel'], }

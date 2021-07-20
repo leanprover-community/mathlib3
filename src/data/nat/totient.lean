@@ -28,6 +28,8 @@ localized "notation `φ` := nat.totient" in nat
 
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
 
+lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter (nat.coprime n)).card := rfl
+
 lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_filter_le _ _
            ... = n              : card_range _
@@ -88,7 +90,8 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
 lemma totient_prime_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
   φ (p ^ (n + 1)) = p ^ n * (p - 1) :=
 calc φ (p ^ (n + 1))
-    = ((range (p ^ (n + 1))).filter (coprime (p ^ (n + 1)))).card : rfl
+    = ((range (p ^ (n + 1))).filter (coprime (p ^ (n + 1)))).card :
+  totient_eq_card_coprime _
 ... = (range (p ^ (n + 1)) \ ((range (p ^ n)).image (* p))).card :
   congr_arg card begin
     rw [sdiff_eq_filter],

@@ -658,4 +658,31 @@ by { rw [← det_transpose, det_succ_row _ j],
      refine finset.sum_congr rfl (λ i _, _),
      rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
 
+
+/-- Determinant of 1x1 matrix -/
+lemma det_fin_one (A : matrix (fin 1) (fin 1) R) :
+  det A = A 0 0 :=
+begin
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring
+end
+
+/-- Determinant of 2x2 matrix -/
+lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :
+  det A = A 0 0 * A 1 1 - A 0 1 * A 0 0 :=
+begin
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring
+end
+
+/-- Determinant of 3x3 matrix -/
+lemma det_fin_three (A : matrix (fin 3) (fin 3) R) :
+  det A = A 0 0 * A 1 1 * A 2 2 - A 0 0 * A 1 2 * A 2 1 - A 0 1 * A 1 0 * A 2 2
+  + A 0 1 * A 1 2 * A 2 0 + A 0 2 * A 1 0 * A 2 1 - A 0 2 * A 1 1 * A 2 0 :=
+begin
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring
+end
+
+
 end matrix

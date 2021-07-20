@@ -7,7 +7,6 @@ import measure_theory.vector_measure
 import order.symm_diff
 
 /-!
-
 # Unsigned Hahn decomposition
 
 This file defines positive and negative sets with respect to a vector measure and
@@ -34,70 +33,13 @@ positive, negative, Hahn decomposition
 noncomputable theory
 open_locale classical big_operators nnreal ennreal
 
-variables {α β : Type*} [measurable_space α]
-variables {M : Type*} [add_comm_monoid M] [topological_space M] [ordered_add_comm_monoid M]
+section lemmas
+-- ↓ I will move the content of this section to the approprate files after the reviews so we don't
+-- need to compile all of mathlib everytime.
 
-namespace measure_theory
+variables {α : Type*}
 
-namespace vector_measure
-
-open filter
-
-/-- A set `i` is positive with respect to a vector measure if for all
-measurable set `j`, `j ⊆ i`, `j` has non-negative measure. -/
-def positive (v : vector_measure α M) (i : set α) : Prop :=
-∀ j ⊆ i, measurable_set j → 0 ≤ v j
-
-/-- A set `i` is negative with respect to a vector measure if for all
-measurable set `j`, `j ⊆ i`, `j` has non-positive measure. -/
-def negative (v : vector_measure α M) (i : set α) : Prop :=
-∀ j ⊆ i, measurable_set j → v j ≤ 0
-
-variables {v : signed_measure α} {i j : set α}
-
-lemma empty_positive : v.positive ∅ :=
-begin
-  intros j hj _,
-  rw [set.subset_eq_empty hj rfl, v.empty],
-end
-
-lemma empty_negative : v.negative ∅ :=
-begin
-  intros j hj _,
-  rw [set.subset_eq_empty hj rfl, v.empty],
-end
-
-lemma positive_nonneg_measure (hi₁ : measurable_set i) (hi₂ : v.positive i) :
-  0 ≤ v i :=
-hi₂ i set.subset.rfl hi₁
-
-lemma negative_nonpos_measure (hi₁ : measurable_set i) (hi₂ : v.negative i) :
-  v i ≤ 0 :=
-hi₂ i set.subset.rfl hi₁
-
-lemma positive_subset_positive (hi : v.positive i) (hij : j ⊆ i) :
-  v.positive j :=
-begin
-  intros k hk,
-  exact hi _ (set.subset.trans hk hij),
-end
-
-lemma negative_subset_negative (hi : v.negative i) (hij : j ⊆ i) :
-  v.negative j :=
-begin
-  intros k hk,
-  exact hi _ (set.subset.trans hk hij),
-end
-
-lemma not_positive_subset (hi : ¬ v.positive i) (h : i ⊆ j) : ¬ v.positive j :=
-λ h', hi $ positive_subset_positive h' h
-
-lemma not_negative_subset (hi : ¬ v.negative i) (h : i ⊆ j) : ¬ v.negative j :=
-λ h', hi $ negative_subset_negative h' h
-
-section -- ↓ Move
-
-open set
+open set filter
 
 lemma set.union_inter_diff_eq {a b c : set α} (habc : a ⊆ b ∪ c) :
   a ∩ b ∪ a ∩ c \ (a ∩ b) = a :=
@@ -198,7 +140,66 @@ begin
   { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero], exact lt_add_one k }
 end
 
+end lemmas
+
+variables {α β : Type*} [measurable_space α]
+variables {M : Type*} [add_comm_monoid M] [topological_space M] [ordered_add_comm_monoid M]
+
+namespace measure_theory
+
+namespace vector_measure
+
+/-- A set `i` is positive with respect to a vector measure if for all
+measurable set `j`, `j ⊆ i`, `j` has non-negative measure. -/
+def positive (v : vector_measure α M) (i : set α) : Prop :=
+∀ j ⊆ i, measurable_set j → 0 ≤ v j
+
+/-- A set `i` is negative with respect to a vector measure if for all
+measurable set `j`, `j ⊆ i`, `j` has non-positive measure. -/
+def negative (v : vector_measure α M) (i : set α) : Prop :=
+∀ j ⊆ i, measurable_set j → v j ≤ 0
+
+variables {v : signed_measure α} {i j : set α}
+
+lemma empty_positive : v.positive ∅ :=
+begin
+  intros j hj _,
+  rw [set.subset_eq_empty hj rfl, v.empty],
 end
+
+lemma empty_negative : v.negative ∅ :=
+begin
+  intros j hj _,
+  rw [set.subset_eq_empty hj rfl, v.empty],
+end
+
+lemma positive_nonneg_measure (hi₁ : measurable_set i) (hi₂ : v.positive i) :
+  0 ≤ v i :=
+hi₂ i set.subset.rfl hi₁
+
+lemma negative_nonpos_measure (hi₁ : measurable_set i) (hi₂ : v.negative i) :
+  v i ≤ 0 :=
+hi₂ i set.subset.rfl hi₁
+
+lemma positive_subset_positive (hi : v.positive i) (hij : j ⊆ i) :
+  v.positive j :=
+begin
+  intros k hk,
+  exact hi _ (set.subset.trans hk hij),
+end
+
+lemma negative_subset_negative (hi : v.negative i) (hij : j ⊆ i) :
+  v.negative j :=
+begin
+  intros k hk,
+  exact hi _ (set.subset.trans hk hij),
+end
+
+lemma not_positive_subset (hi : ¬ v.positive i) (h : i ⊆ j) : ¬ v.positive j :=
+λ h', hi $ positive_subset_positive h' h
+
+lemma not_negative_subset (hi : ¬ v.negative i) (h : i ⊆ j) : ¬ v.negative j :=
+λ h', hi $ negative_subset_negative h' h
 
 lemma positive_union_positive
   (hi₁ : measurable_set i) (hi₂ : v.positive i)
@@ -342,8 +343,7 @@ private lemma aux₁_lt (hi : ¬ s.negative (i \ j)) :
   (1 / (aux₀ s i j + 1) : ℝ) < s (aux₁ s i j) :=
 let ⟨_, _, h⟩ := aux₁_spec hi in h
 
-private noncomputable
-def aux (s : signed_measure α) (i : set α) : ℕ → set α
+private def aux (s : signed_measure α) (i : set α) : ℕ → set α
 | 0 := aux₁ s i ∅
 | (n + 1) := aux₁ s i ⋃ k ≤ n,
   have k < n + 1 := nat.lt_succ_iff.mpr H,

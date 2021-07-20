@@ -495,6 +495,10 @@ lemma strong_downward_induction_on_eq {p : multiset α → Sort*} (s : multiset 
   s.strong_downward_induction_on H = H s (λ t ht h, t.strong_downward_induction_on H ht) :=
 by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
+/-- Another way of expressing `strong_induction_on`: the `(<)` relation is well-founded. -/
+lemma well_founded_lt : well_founded ((<) : multiset α → multiset α → Prop) :=
+subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
+
 /-! ### Singleton -/
 instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
 

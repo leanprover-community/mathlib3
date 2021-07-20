@@ -547,6 +547,15 @@ lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_s
 
 alias int.le_self_sq ← int.le_self_pow_two
 
+lemma pow_right_injective {x : ℤ} (h : 1 < x.nat_abs) : function.injective ((^) x : ℕ → ℤ) :=
+begin
+  suffices : function.injective (nat_abs ∘ ((^) x : ℕ → ℤ)),
+  { exact function.injective.of_comp this },
+  convert nat.pow_right_injective h,
+  ext n,
+  rw [function.comp_app, nat_abs_pow]
+end
+
 end int
 
 variables (M G A)

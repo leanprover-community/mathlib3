@@ -5,7 +5,7 @@ Authors: Anatole Dedecker, Devon Tuma
 -/
 import analysis.asymptotics.asymptotic_equivalent
 import analysis.asymptotics.specific_asymptotics
-import data.polynomial.erase_lead
+import data.polynomial.ring_division
 
 /-!
 # Limits related to polynomial and rational functions

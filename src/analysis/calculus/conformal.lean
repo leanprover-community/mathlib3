@@ -71,11 +71,22 @@ begin
     exact ⟨f', h, (is_conformal_map_iff f').mpr ⟨c, hc, huv⟩⟩, },
 end
 
+lemma conformal_factor_aux {f : E → F} (x : E) {f' : E →L[ℝ] F}
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) :
+  ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫:=
+let ⟨c, hc, p⟩ := (conformal_at_iff h).mp H in ⟨c, hc, p⟩
+
 /-- The conformal factor of a conformal map at some point `x`. Some authors refer to this function
     as the characteristic function of the conformal map. -/
 def conformal_factor_at {f : E → F} (x : E) {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) : ℝ :=
-by choose c hc huv using (conformal_at_iff h).mp H; exact c
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) :=
+classical.some (conformal_factor_aux x h H)
+
+lemma conformal_factor_prop {f : E → F} (x : E) {f' : E →L[ℝ] F}
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) :
+  0 < conformal_factor_at x h H ∧
+  ∀ (u v : E), ⟪f' u, f' v⟫ = (conformal_factor_at x h H : ℝ) * ⟪u, v⟫ :=
+classical.some_spec (conformal_factor_aux x h H)
 
 namespace conformal_at
 

@@ -134,8 +134,6 @@ variables (M : Type u) [monoid M] {R : Type v} [ring R] [mul_semiring_action M R
 variables (S : subring R)
 open mul_action
 
-set_option old_structure_cmd false
-
 /-- A typeclass for subrings invariant under a `mul_semiring_action`. -/
 class is_invariant_subring : Prop :=
 (smul_mem : ∀ (m : M) {x : R}, x ∈ S → m • x ∈ S)

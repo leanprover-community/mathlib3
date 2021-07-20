@@ -15,7 +15,7 @@ import data.prod
 
 - `monotone f`: A function between two types equipped with `≤` is monotone if `a ≤ b` implies
   `f a ≤ f b`.
-- `strict_mono f` : A function between two types equipped with `<` is strictly monotone  if
+- `strict_mono f` : A function between two types equipped with `<` is strictly monotone if
   `a < b` implies `f a < f b`.
 - `order_dual α` : A type tag reversing the meaning of all inequalities.
 
@@ -36,9 +36,9 @@ import data.prod
 
 ## Main theorems
 
-- `monotone_of_monotone_nat`: if `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
+- `monotone_of_monotone_nat`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
   monotone.
-- `strict_mono.nat`: if `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is strictly
+- `strict_mono.nat`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is strictly
   monotone.
 
 ## TODO
@@ -104,7 +104,7 @@ by { ext x y, exact H x y }
 /-- Given a relation `R` on `β` and a function `f : α → β`, the preimage relation on `α` is defined
 by `x ≤ y ↔ f x ≤ f y`. It is the unique relation on `α` making `f` a `rel_embedding` (assuming `f`
 is injective). -/
-@[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
+@[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) : Prop := s (f x) (f y)
 
 infix ` ⁻¹'o `:80 := order.preimage
 
@@ -117,7 +117,7 @@ section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
 /-- A function between preorders is monotone if `a ≤ b` implies `f a ≤ f b`. -/
-def monotone (f : α → β) := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
+def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
 
 theorem monotone_id : @monotone α α _ _ id := λ x y h, h
 
@@ -173,7 +173,7 @@ def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : P
 ∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f y < f x
 
 /-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
-def order_dual (α : Type*) := α
+def order_dual (α : Type*) : Type* := α
 
 namespace order_dual
 instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
@@ -196,8 +196,8 @@ lemma dual_compares [has_lt α] {a b : α} {o : ordering} :
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
-{ le_refl  := le_refl,
-  le_trans := λ a b c hab hbc, hbc.trans hab,
+{ le_refl          := le_refl,
+  le_trans         := λ a b c hab hbc, hbc.trans hab,
   lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
   .. order_dual.has_le α,
   .. order_dual.has_lt α }
@@ -206,7 +206,7 @@ instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 { le_antisymm := λ a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
 
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
-{ le_total := λ a b : α, le_total b a,
+{ le_total     := λ a b : α, le_total b a,
   decidable_le := show decidable_rel (λ a b : α, b ≤ a), by apply_instance,
   decidable_lt := show decidable_rel (λ a b : α, b < a), by apply_instance,
   .. order_dual.partial_order α }
@@ -260,7 +260,7 @@ by simp only [H.le_iff_le, hx, hy, lt_iff_le_not_le]
 protected theorem compares (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   ∀ {o}, ordering.compares o (f x) (f y) ↔ ordering.compares o x y
 | ordering.lt := H.lt_iff_lt hx hy
-| ordering.eq := ⟨λ h, le_antisymm ((H.le_iff_le hx hy).1 h.le) ((H.le_iff_le hy hx).1 h.symm.le),
+| ordering.eq := ⟨λ h, ((H.le_iff_le hx hy).1 h.le).antisymm ((H.le_iff_le hy hx).1 h.symm.le),
                    congr_arg _⟩
 | ordering.gt := H.lt_iff_lt hy hx
 
@@ -363,7 +363,7 @@ H.le_iff_le.mp (h_bot (f x))
 
 end
 
-protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀ n, f n < f (n+1)) : strict_mono f :=
+protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀ n, f n < f (n + 1)) : strict_mono f :=
 by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact ih.trans (h _) }
 
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
@@ -438,7 +438,7 @@ by simp [update_le_iff] {contextual := tt}
 
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_order (α i)] :
   partial_order (Πi, α i) :=
-{ le_antisymm := λ f g h1 h2, funext (λ b, le_antisymm (h1 b) (h2 b)),
+{ le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
   ..pi.preorder }
 
 theorem comp_le_comp_left_of_monotone [preorder α] [preorder β]
@@ -468,23 +468,23 @@ theorem strict_mono.order_dual [has_lt α] [has_lt β] {f : α → β} (hf : str
 /-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`.
 See note [reducible non-instances]. -/
 @[reducible] def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
-{ le := λ x y, f x ≤ f y,
-  le_refl := λ a, le_refl _,
-  le_trans := λ a b c, le_trans,
-  lt := λ x y, f x < f y,
+{ le               := λ x y, f x ≤ f y,
+  le_refl          := λ a, le_refl _,
+  le_trans         := λ a b c, le_trans,
+  lt               := λ x y, f x < f y,
   lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
 /-- Transfer a `partial_order` on `β` to a `partial_order` on `α` using an injective
 function `f : α → β`. See note [reducible non-instances]. -/
 @[reducible] def partial_order.lift {α β} [partial_order β] (f : α → β) (inj : injective f) :
   partial_order α :=
-{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f }
+{ le_antisymm := λ a b h₁ h₂, inj (h₁.antisymm h₂), .. preorder.lift f }
 
 /-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using an injective
 function `f : α → β`. See note [reducible non-instances]. -/
 @[reducible] def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
-{ le_total := λ x y, le_total (f x) (f y),
+{ le_total     := λ x y, le_total (f x) (f y),
   decidable_le := λ x y, (infer_instance : decidable (f x ≤ f y)),
   decidable_lt := λ x y, (infer_instance : decidable (f x < f y)),
   decidable_eq := λ x y, decidable_of_iff _ inj.eq_iff,
@@ -537,7 +537,7 @@ instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] :
 instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
-    prod.ext (le_antisymm hac hca) (le_antisymm hbd hdb),
+    prod.ext (hac.antisymm hca) (hbd.antisymm hdb),
   .. prod.preorder α β }
 
 /-!
@@ -606,23 +606,13 @@ le_of_not_gt $ λ ha,
 
 lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h₁ : a₂ ≤ a₁) (h₂ : ∀ a₃ < a₁, a₃ ≤ a₂) : a₁ = a₂ :=
-le_antisymm (le_of_forall_ge_of_dense h₂) h₁
+(le_of_forall_ge_of_dense h₂).antisymm h₁
 
 lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
   (∃ a, a₁ < a ∧ a < a₂) ∨ ((∀ a, a₁ < a → a₂ ≤ a) ∧ (∀ a < a₂, a ≤ a₁)) :=
 or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
-
-/-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b`. This is a way to say that the order is sparse.
-If we have a cast `ℕ → α` or `ℤ → α`, this then roughly says that the cast is surjective. -/
-class has_lt_iff_add_one_le (α : Type u) [preorder α] [has_add α] [has_one α] : Prop :=
-(lt_iff_add_one_le : ∀ a b : α, a < b ↔ a + 1 ≤ b)
-
-lemma lt_iff_add_one_le {α : Type u} [preorder α] [has_add α] [has_one α]
-  [has_lt_iff_add_one_le α] {a b : α} :
-  a < b ↔ a + 1 ≤ b :=
-has_lt_iff_add_one_le.lt_iff_add_one_le a b
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
@@ -635,6 +625,6 @@ instance {α} [inhabited α] : inhabited (as_linear_order α) :=
 
 noncomputable instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
   linear_order (as_linear_order α) :=
-{ le_total := @total_of α (≤) _,
+{ le_total     := @total_of α (≤) _,
   decidable_le := classical.dec_rel _,
   .. (_ : partial_order α) }

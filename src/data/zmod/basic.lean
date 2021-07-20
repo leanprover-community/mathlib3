@@ -600,14 +600,7 @@ let inv_fun : zmod m × zmod n → zmod (m * n) :=
 have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_fun to_fun :=
   if hmn0 : m * n = 0
     then begin
-      have : m = 0 ∧ n = 1 ∨ n = 0 ∧ m = 1,
-      { rw [nat.mul_eq_zero] at hmn0,
-        rcases hmn0 with rfl|rfl,
-        { rw [nat.coprime_zero_left] at h,
-          simp [h] },
-        { rw [nat.coprime_zero_right] at h,
-          simp [h] } },
-      rcases this with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩;
+      rcases h.eq_of_mul_eq_zero hmn0 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩;
       simp [inv_fun, to_fun, function.left_inverse, function.right_inverse,
         ring_hom.eq_int_cast, prod.ext_iff]
     end

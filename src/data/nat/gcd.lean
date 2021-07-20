@@ -362,6 +362,12 @@ by simp [coprime]
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
 
+lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) :
+  m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=
+(nat.eq_zero_of_mul_eq_zero hmn).imp
+  (λ hm, ⟨hm, n.coprime_zero_left.mp $ hm ▸ h⟩)
+  (λ hn, ⟨m.coprime_zero_left.mp $ hn ▸ h.symm, hn⟩)
+
 /-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
 def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
   { d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1 * d.2 } :=

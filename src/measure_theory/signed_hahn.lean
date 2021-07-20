@@ -320,16 +320,8 @@ begin
     exact set.empty_subset _ },
 end
 
-private lemma aux₁_subset'' : aux₁ s i j ⊆ i :=
+private lemma aux₁_subset' : aux₁ s i j ⊆ i :=
 set.subset.trans aux₁_subset (set.diff_subset _ _)
-
-private lemma aux₁_subset' {k : set α} (hk : i \ k ⊆ i \ j) : aux₁ s i k ⊆ i \ j :=
-begin
-  by_cases hi : ¬ s.negative (i \ k),
-  { exact let ⟨h, _⟩ := aux₁_spec hi in set.subset.trans h hk },
-  { rw [aux₁, dif_neg hi],
-    exact set.empty_subset _ },
-end
 
 private lemma aux₁_measurable_set : measurable_set (aux₁ s i j) :=
 begin
@@ -356,18 +348,7 @@ private lemma aux_subset (n : ℕ) :
   aux s i n ⊆ i :=
 begin
   cases n;
-  { rw aux, exact aux₁_subset'' }
-end
-
-private lemma aux_spec (n : ℕ) (h : ¬ s.negative (i \ ⋃ k ≤ n, aux s i k)) :
-  p s i (aux s i n) (aux₀ s i (⋃ k ≤ n, aux s i k)) :=
-begin
-  rcases aux₀_spec h with ⟨k, hk₁, hk₂, hk₃⟩,
-  refine ⟨k, set.subset.trans hk₁ _, hk₂, hk₃⟩,
-  apply set.diff_subset_diff_right,
-  intros x hx,
-  simp only [exists_prop, set.mem_Union],
-  exact ⟨n, le_rfl, hx⟩,
+  { rw aux, exact aux₁_subset' }
 end
 
 private lemma aux_lt (n : ℕ) (hn :¬ s.negative (i \ ⋃ l ≤ n, aux s i l)) :
@@ -404,14 +385,6 @@ begin
     exact aux₁_measurable_set },
   { rw aux,
     exact aux₁_measurable_set }
-end
-
-private lemma aux_lt' (hi : ¬ s.negative i) :
-  (1 / (aux₀ s i ∅ + 1) : ℝ) < s (aux s i 0) :=
-begin
-  rw aux,
-  rw ← @set.diff_empty _ i at hi,
-  exact aux₁_lt hi,
 end
 
 private lemma aux_disjoint' {n m : ℕ} (h : n < m) : aux s i n ∩ aux s i m = ∅ :=

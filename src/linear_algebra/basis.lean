@@ -780,6 +780,7 @@ begin
   rw finsupp.total_apply at e,
   simp_rw r at e,
   erw ←@finsupp.sum_emb_domain _ _ _ _ _ _ (b.repr x) u (λ (x : w), (smul_add_hom R M).flip (x : M)) at e,
+  change (finsupp.emb_domain u _).sum (λ x m, (((smul_add_hom R M).flip) x) m) = _ at e,
   simp only [add_monoid_hom.flip_apply, smul_add_hom_apply] at e,
   rw ←finsupp.total_apply at e,
   -- contradicting linear independence.

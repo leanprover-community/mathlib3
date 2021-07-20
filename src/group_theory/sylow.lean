@@ -379,8 +379,6 @@ end
 lemma sylow_conjugate [hp : fact p.prime] (P Q : sylow_subgroup G p) :
   ∃ g : G, g • P = Q :=
 begin
-  have : mul_action (P : subgroup G) (quotient_group.quotient (Q : subgroup G)),
-  apply_instance,
   rcases mul_action.exists_fixed_point_of_prime_not_dvd_card (quotient (Q : subgroup G))
     (card_eq_pow_exponent P) (not_dvd_card_quotient_sylow Q) with ⟨g, hg⟩,
   induction g using quotient_group.induction_on,

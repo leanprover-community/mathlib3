@@ -9,9 +9,6 @@ import group_theory.order_of_element
 import data.zmod.basic
 import data.fintype.card
 import data.list.rotate
-import ring_theory.multiplicity
-import group_theory.group_action.sub_mul_action
-import group_theory.group_action.subgroup
 
 /-!
 # Sylow theorems

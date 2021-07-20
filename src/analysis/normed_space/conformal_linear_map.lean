@@ -12,9 +12,12 @@ import analysis.normed_space.inner_product
 A continuous linear map between `R`-normed spaces `X` and `Y` `is_conformal_map` if it is
 a nonzero multiple of a linear isometry.
 
+## Main definitions
+
+* `is_conformal_map`: the main definition of conformal linear maps
+
 ## Main results
 
-* `is_conformal_map`: the main definition
 * The conformality of the composition of two conformal linear maps, the identity map
   and multiplications by nonzero constants as continuous linear maps
 * `is_conformal_map_iff`: an equivalent definition of the conformality
@@ -48,6 +51,9 @@ variables {E F : Type*} [inner_product_space ℝ E] [inner_product_space ℝ F]
   {R M N G : Type*} [nondiscrete_normed_field R]
   [normed_group M] [normed_group N] [normed_group G]
   [normed_space R M] [normed_space R N] [normed_space R G]
+
+lemma is_conformal_map_id : is_conformal_map (id R M) :=
+⟨1, one_ne_zero, id, by ext; simp⟩
 
 lemma is_conformal_map_const_smul {c : R} (hc : c ≠ 0) : is_conformal_map (c • (id R M)) :=
 ⟨c, hc, id, by ext; simp⟩
@@ -90,6 +96,10 @@ begin
   simp only [coe_comp', linear_isometry.coe_comp, hlif, hlig, pi.smul_apply,
              function.comp_app, linear_isometry.map_smul, smul_smul],
 end
+
+lemma injective {f' : M →L[R] N} (h : is_conformal_map f') : function.injective f' :=
+let ⟨c, hc, li, hf'⟩ := h in by simp only [hf', pi.smul_def];
+  exact (smul_left_injective _ hc).comp li.injective
 
 lemma preserves_angle {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
   inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=

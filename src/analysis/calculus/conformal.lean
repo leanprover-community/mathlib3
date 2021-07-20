@@ -11,15 +11,18 @@ import analysis.normed_space.conformal_linear_map
 A continuous linear map between real normed spaces `X` and `Y` is `conformal_at` some point `x`
 if it is real differentiable at that point and its differential `is_conformal_linear_map`.
 
-## Main results
+## Main definitions
 
-* `conformal_at`: the main definition
+* `conformal_at`: the main definition of conformal maps
+* `conformal`: maps that are conformal at every point
+* `conformal_factor_at`: the conformal factor of a conformal map at some point
+
+## Main results
 * The conformality of the composition of two conformal maps, the identity map
   and multiplications by nonzero constants
 * `conformal_at_iff`: an equivalent definition of the conformality
 * `conformal_at.preserves_angle`: if a map is conformal at `x`, then its differential
                                   preserves all angles at `x`
-* `conformal_factor_at`: the conformal factor of a conformal map at some point
 
 ## Tags
 
@@ -47,16 +50,12 @@ def conformal_at (f : X → Y) (x : X) :=
 ∃ (f' : X →L[ℝ] Y), has_fderiv_at f f' x ∧ is_conformal_map f'
 
 lemma conformal_at_id (x : X) : conformal_at id x :=
-⟨id ℝ X, has_fderiv_at_id _, 1, one_ne_zero, id, by ext; simp⟩
+⟨id ℝ X, has_fderiv_at_id _, is_conformal_map_id⟩
 
 lemma conformal_at_const_smul {c : ℝ} (h : c ≠ 0) (x : X) :
   conformal_at (λ (x': X), c • x') x :=
 ⟨c • continuous_linear_map.id ℝ X,
   has_fderiv_at.const_smul (has_fderiv_at_id x) c, is_conformal_map_const_smul h⟩
-
-lemma conformal_at_of_is_conformal_map_fderiv {f : X → Y} {x : X}
-  (h : differentiable_at ℝ f x) (H : is_conformal_map (fderiv ℝ f x)) : conformal_at f x :=
-⟨fderiv ℝ f x, h.has_fderiv_at, H⟩
 
 /-- A real differentiable map `f` is conformal at point `x` if and only if
     its differential `f'` at that point scales any inner product by a positive scalar. -/
@@ -71,27 +70,6 @@ begin
     exact ⟨f', h, (is_conformal_map_iff f').mpr ⟨c, hc, huv⟩⟩, },
 end
 
-lemma conformal_factor_aux {f : E → F} (x : E) {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) :
-  ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫:=
-let ⟨c, hc, p⟩ := (conformal_at_iff h).mp H in ⟨c, hc, p⟩
-
-/-- The conformal factor of a conformal map at some point `x`. Some authors refer to this function
-    as the characteristic function of the conformal map. -/
-def conformal_factor_at {f : E → F} (x : E) {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) :=
-classical.some (conformal_factor_aux x h H)
-
-lemma conformal_factor_at_pos {f : E → F} (x : E) {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) :
-  0 < conformal_factor_at x h H :=
-(classical.some_spec $ conformal_factor_aux x h H).1
-
-lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} (x : E) {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) :
-  ∀ (u v : E), ⟪f' u, f' v⟫ = (conformal_factor_at x h H : ℝ) * ⟪u, v⟫ :=
-(classical.some_spec $ conformal_factor_aux x h H).2
-
 namespace conformal_at
 
 lemma differentiable_at {f : X → Y} {x : X} (h : conformal_at f x) :
@@ -105,7 +83,7 @@ let ⟨f', hfderiv, hf'⟩ := hf in
   ⟨f', hfderiv.congr_of_eventually_eq (filter.eventually_eq_of_mem (hu.mem_nhds hx) h), hf'⟩
 
 lemma comp {f : X → Y} {g : Y → Z} (x : X)
-  (hg : conformal_at g (f x)) (hf : conformal_at f x)  : conformal_at (g ∘ f) x :=
+  (hg : conformal_at g (f x)) (hf : conformal_at f x) : conformal_at (g ∘ f) x :=
 begin
   rcases hf with ⟨f', hf₁, cf⟩,
   rcases hg with ⟨g', hg₁, cg⟩,
@@ -116,6 +94,33 @@ lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_
   conformal_at (c • f) x :=
 (conformal_at_const_smul hc $ f x).comp x hf
 
+lemma conformal_factor_aux {f : E → F} {x : E} (h : conformal_at f x) :
+  ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪(fderiv ℝ f x) u, (fderiv ℝ f x) v⟫ = (c : ℝ) * ⟪u, v⟫ :=
+begin
+  let p := h.differentiable_at.has_fderiv_at,
+  rcases h with ⟨f', hf, hf'⟩,
+  rcases (is_conformal_map_iff f').mp hf' with ⟨c, hc, huv⟩,
+  exact ⟨c, hc, (hf.unique p) ▸ huv⟩,
+end
+
+/-- The conformal factor of a conformal map at some point `x`. Some authors refer to this function
+    as the characteristic function of the conformal map. -/
+def conformal_factor_at {f : E → F} {x : E} (h : conformal_at f x) : ℝ :=
+classical.some (conformal_factor_aux h)
+
+lemma conformal_factor_at_pos {f : E → F} {x : E} (h : conformal_at f x) :
+  0 < conformal_factor_at h :=
+(classical.some_spec $ conformal_factor_aux h).1
+
+lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} {x : E} (h : conformal_at f x) :
+  ∀ (u v : E), ⟪(fderiv ℝ f x) u, (fderiv ℝ f x) v⟫ = (conformal_factor_at h : ℝ) * ⟪u, v⟫ :=
+(classical.some_spec $ conformal_factor_aux h).2
+
+lemma conformal_factor_at_inner_eq_mul_inner' {f : E → F} {x : E} {f' : E →L[ℝ] F}
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) :
+  ∀ (u v : E), ⟪f' u, f' v⟫ = (conformal_factor_at H : ℝ) * ⟪u, v⟫ :=
+(H.differentiable_at.has_fderiv_at.unique h) ▸ (classical.some_spec $ conformal_factor_aux H).2
+
 /-- If a real differentiable map `f` is conformal at a point `x`,
     then it preserves the angles at that point. -/
 lemma preserves_angle {f : E → F} {x : E} {f' : E →L[ℝ] F}
@@ -124,6 +129,28 @@ lemma preserves_angle {f : E → F} {x : E} {f' : E →L[ℝ] F}
 let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ c.preserves_angle u v
 
 end conformal_at
+
+lemma conformal_at_iff_is_conformal_map_fderiv {f : X → Y} {x : X} :
+  is_conformal_map (fderiv ℝ f x) ↔ conformal_at f x :=
+begin
+  split,
+  { intros H,
+    by_cases h : differentiable_at ℝ f x,
+    { exact ⟨fderiv ℝ f x, h.has_fderiv_at, H⟩, },
+    { by_cases w : nontrivial X,
+      { exfalso, rcases w with ⟨a, b, hab⟩,
+        rw [fderiv_zero_of_not_differentiable_at h] at H,
+        have : (0 : X → Y) a = (0 : X → Y) b := rfl,
+        exact hab (H.injective this), },
+      { simp_rw [not_nontrivial_iff_subsingleton, subsingleton_iff] at w,
+        have minor : ∀ (x' : X), ∥(0 : X →ₗ[ℝ] Y) x'∥ = ∥x'∥ := λ x',
+          by rw w x' 0; simp only [linear_map.zero_apply, norm_zero],
+        have key : function.const X (f 0) = f := by ext x'; rw w x' 0,
+        exact key ▸ ⟨(0 : X →L[ℝ] Y), has_fderiv_at_const (f 0) _, 1, one_ne_zero, ⟨0, minor⟩,
+          by ext; simp only [pi.smul_apply, one_smul]; refl⟩, }, }, },
+  { intros H, let p := H.differentiable_at, rcases H with ⟨c, hf, hf'⟩,
+    rw p.has_fderiv_at.unique hf, exact hf', },
+end
 
 end loc_conformality
 

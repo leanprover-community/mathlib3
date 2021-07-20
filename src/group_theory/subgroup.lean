@@ -962,6 +962,10 @@ variables {H K : subgroup G}
 instance normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
 ⟨by simp [mul_comm, mul_left_comm]⟩
 
+@[to_additive]
+lemma normal_def (H : subgroup G) : H.normal ↔ (∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H) :=
+⟨λ h, by cases h; assumption, normal.mk⟩
+
 namespace normal
 
 variable (nH : H.normal)
@@ -1056,6 +1060,16 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
 λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
   λ yH, by simpa [mem_comap, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
+
+@[to_additive]
+lemma normal_iff_normalizer_eq_top : H.normal ↔ H.normalizer = ⊤ :=
+begin
+  simp only [normal_def, eq_top_iff', mem_normalizer_iff],
+  split,
+  { intros h x n,
+    exact ⟨λ hn, h _ hn _, λ hn, by simpa [mul_assoc] using h _ hn (x⁻¹)⟩ },
+  { exact λ h n hn g, (h g n).1 hn }
+end
 
 end subgroup
 

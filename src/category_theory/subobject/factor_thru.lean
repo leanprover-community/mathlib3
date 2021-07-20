@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.basic
 import category_theory.limits.shapes.zero
+import category_theory.preadditive
 
 /-!
 # Factoring through subobjects

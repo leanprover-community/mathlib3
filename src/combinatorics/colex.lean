@@ -339,6 +339,13 @@ instance [linear_order α] : order_bot (finset.colex α) :=
   bot_le := λ x, empty_to_colex_le,
   ..(by apply_instance : partial_order (finset.colex α)) }
 
+noncomputable instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
+{ ..finset.colex.order_bot,
+  ..(by apply_instance : semilattice_inf (finset.colex α)) }
+
+noncomputable instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
+{ ..finset.colex.order_bot,
+  ..(by apply_instance : semilattice_sup (finset.colex α)) }
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :
   ∑ i in A, 2^i < ∑ i in B, 2^i ↔ A.to_colex < B.to_colex :=

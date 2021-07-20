@@ -614,6 +614,16 @@ or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
+/-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b`. This is a way to say that the order is sparse.
+If we have a cast `ℕ → α` or `ℤ → α`, this then roughly says that the cast is surjective. -/
+class has_lt_iff_add_one_le (α : Type u) [has_le α] [has_lt α] [has_add α] [has_one α] : Prop :=
+(lt_iff_add_one_le : ∀ a b : α, a < b ↔ a + 1 ≤ b)
+
+lemma lt_iff_add_one_le {α : Type u} [has_le α] [has_lt α] [has_add α] [has_one α]
+  [has_lt_iff_add_one_le α] {a b : α} :
+  a < b ↔ a + 1 ≤ b :=
+has_lt_iff_add_one_le.lt_iff_add_one_le a b
+
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
 /-- Type synonym to create an instance of `linear_order` from a `partial_order` and

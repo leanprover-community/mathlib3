@@ -20,10 +20,9 @@ a linear isometry equivalence.
 * `conformal_at`: the main definition
 * The conformality of the composition of two conformal maps, the identity map
   and multiplications by a constant
-* `conformal_at_iff`: an equivalent definition of the conformality at some point
-* `conformal_at_preserves_angle`: if a map is `conformal_at` some point, then its differential
+* `conformal_at.iff`: an equivalent definition of the conformality at some point
+* `conformal_at.preserves_angle`: if a map is `conformal_at` some point, then its differential
                                   preserves all angles at that point
-* `conformal_groupoid`: the groupoid of conformal local homeomorphisms
 
 ## Tags
 
@@ -158,7 +157,7 @@ end
 
 /-- A real differentiable map `f` is conformal at point `x` if and only if
     its differential `f'` at that point scales any inner product by a positive scalar. -/
-lemma _root_.iff_fderiv_scales_inner {f : E → F} {x : E} {f' : E →L[ℝ] F}
+lemma _root_.conformal_at_iff {f : E → F} {x : E} {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) : conformal_at f x ↔ ∃ (c : ℝ) (hc : 0 < c),
   ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫ :=
 begin
@@ -173,7 +172,7 @@ end
     as the characteristic function of the conformal map. -/
 def conformal_factor_at {f : E → F} (x : E) {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) : ℝ :=
-by choose c hc huv using (iff_fderiv_scales_inner h).mp H; exact c
+by choose c hc huv using (conformal_at_iff h).mp H; exact c
 
 /-- If a real differentiable map `f` is conformal at a point `x`,
     then it preserves the angles at that point. -/

@@ -421,6 +421,11 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
+/-- A submonoid is isomorphic to its image under an injective function -/
+@[to_additive] noncomputable def equiv_map_of_injective
+  (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf  }
+
 /-- An induction principle on elements of the type `submonoid.closure s`.
 If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
 holds for all elements of the closure of `s`.

@@ -54,7 +54,7 @@ lemma conformal_at_const_smul {c : ℝ} (h : c ≠ 0) (x : X) :
 ⟨c • continuous_linear_map.id ℝ X,
   has_fderiv_at.const_smul (has_fderiv_at_id x) c, is_conformal_map_const_smul h⟩
 
-lemma conformal_at_of_conformal_fderiv {f : X → Y} {x : X}
+lemma conformal_at_of_is_conformal_map_fderiv {f : X → Y} {x : X}
   (h : differentiable_at ℝ f x) (H : is_conformal_map (fderiv ℝ f x)) : conformal_at f x :=
 ⟨fderiv ℝ f x, h.has_fderiv_at, H⟩
 

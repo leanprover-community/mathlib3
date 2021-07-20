@@ -49,12 +49,8 @@ variables [topological_space X] [compact_space X] [t2_space X] [totally_disconne
 lemma bdd_above_compact_range_norm {R : Type*} [normed_group R] (f : C(X, R)) :
   bdd_above (set.range (λ (x : X), ∥f x∥)) :=
 begin
-{  set g := λ (x : X), ∥(f x)∥ with hg,
-  have cont : continuous g, { rw hg, refine continuous.norm _, show continuous f, apply f.2, },
-  set bdd_cont := bounded_continuous_function.mk_of_compact ⟨g,cont⟩ with hb,
-  have bdd := @bounded_continuous_function.bounded_range _ _ _ _ bdd_cont,
-  rw real.bounded_iff_bdd_below_bdd_above at bdd,
-  suffices : bdd_above (set.range bdd_cont), convert this, exact bdd.2, },
+  equiv_rw continuous_map.equiv_bounded_of_compact X R at f,
+  exact f.bdd_above_range_norm_comp,
 end
 
 variables {R : Type*} [normed_group R]

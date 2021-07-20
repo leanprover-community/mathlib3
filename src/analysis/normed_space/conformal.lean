@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
 import geometry.euclidean.basic
-import geometry.manifold.charted_space
 import analysis.normed_space.inner_product
 
 /-!

@@ -7,15 +7,15 @@ import analysis.normed_space.conformal
 import geometry.manifold.charted_space
 
 /-!
-## Conformal Groupoid
+# Conformal Groupoid
 
 In this file we define the groupoid of conformal maps on normed spaces.
 
-# Main results
+## Main definitions
 
 * `conformal_groupoid`: the groupoid of conformal local homeomorphisms.
 
-# Tags
+## Tags
 
 conformal, groupoid
 -/

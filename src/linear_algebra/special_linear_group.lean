@@ -120,6 +120,14 @@ matrix.to_lin'_mul A B
   to_lin' (1 : special_linear_group n R) = linear_map.id :=
 matrix.to_lin'_one
 
+lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
+  det g ≠ 0 :=
+by { rw g.det_coe_fun, norm_num }
+
+lemma row_nonzero [nontrivial R] (g : special_linear_group n R) (i : n):
+  g i ≠ 0 :=
+λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simp [h]
+
 end coe_lemmas
 
 instance group : group (special_linear_group n R) :=

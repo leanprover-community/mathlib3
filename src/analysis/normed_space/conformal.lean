@@ -6,7 +6,6 @@ Authors: Yourong Zang
 import geometry.euclidean.basic
 import geometry.manifold.charted_space
 import analysis.normed_space.inner_product
-import linear_algebra.finite_dimensional
 
 /-!
 # Conformal Maps on Inner Product Spaces

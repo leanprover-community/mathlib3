@@ -1,5 +1,24 @@
+/-
+Copyright (c) 2021 Yourong Zang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yourong Zang
+-/
 import analysis.normed_space.conformal
 import geometry.manifold.charted_space
+
+/-!
+## Conformal Groupoid
+
+In this file we define the groupoid of conformal maps on normed spaces.
+
+# Main results
+
+* `conformal_groupoid`: the groupoid of conformal local homeomorphisms.
+
+# Tags
+
+conformal, groupoid
+-/
 
 variables {X : Type*} [normed_group X] [normed_space ℝ X]
 

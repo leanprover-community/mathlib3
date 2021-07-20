@@ -194,12 +194,12 @@ lemma comp {f : X → Y} {g : Y → Z}
 
 lemma congr {f : X → X} {g : X → X}
   {u : set X} (hu : is_open u) (h : ∀ (x : X), x ∈ u → g x = f x) (hf : conformal_on f u) :
-  conformal_on g u := λ x hx, let ⟨f', h₁, c, hc, li, h₂⟩ := hf x hx in
-begin
-  have : has_fderiv_at g f' x :=
-    by apply h₁.congr_of_eventually_eq; rw filter.eventually_eq_iff_exists_mem;
-       exact ⟨u, hu.mem_nhds hx, h⟩,
-  exact ⟨f', this, c, hc, li, h₂⟩,
+  conformal_on g u :=
+λ x hx, begin
+  obtain ⟨f', h₁, c⟩ := hf x hx,
+  refine ⟨f', h₁.congr_of_eventually_eq _, c⟩,
+  rw filter.eventually_eq_iff_exists_mem,
+  exact ⟨u, hu.mem_nhds hx, h⟩,
 end
 
 end conformal_on

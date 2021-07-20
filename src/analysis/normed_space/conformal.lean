@@ -142,8 +142,7 @@ lemma comp {f : X → Y} {g : Y → Z} (x : X)
 begin
   rcases hf with ⟨f', hf₁, cf, hcf, lif, hf₂⟩,
   rcases hg with ⟨g', hg₁, cg, hcg, lig, hg₂⟩,
-  exact ⟨g'.comp f', has_fderiv_at.comp x hg₁ hf₁, cg * cf, mul_ne_zero hcg hcf, lig.comp lif,
-    by { ext, simp [coe_comp' f' g', hf₂, hg₂, smul_smul cg cf] }⟩,
+  exact ⟨g'.comp f', has_fderiv_at.comp x hg₁ hf₁, cf.comp cg⟩,
 end
 
 lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_at f x) :

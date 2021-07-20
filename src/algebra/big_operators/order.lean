@@ -244,7 +244,7 @@ by classical;
 calc ∏ x in s, f x = (∏ x in s.filter (λ x, f x = 1), f x) * ∏ x in s.filter (λ x, f x ≠ 1), f x :
     by rw [← prod_union, filter_union_filter_neg_eq];
        exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
-  ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le'
+  ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le
       (prod_le_one' $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (prod_le_prod_of_subset' $ by simpa only [subset_iff, mem_filter, and_imp])
 
@@ -405,7 +405,7 @@ begin
   induction s using finset.induction with a s has ih h,
   { simp },
   { rw [finset.prod_insert has, finset.prod_insert has],
-    apply canonically_ordered_semiring.mul_le_mul,
+    apply mul_le_mul',
     { exact h _ (finset.mem_insert_self a s) },
     { exact ih (λ i hi, h _ (finset.mem_insert_of_mem hi)) } }
 end
@@ -418,9 +418,9 @@ lemma prod_add_prod_le' (hi : i ∈ s) (h2i : g i + h i ≤ f i)
   ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
 begin
   classical, simp_rw [prod_eq_mul_prod_diff_singleton hi],
-  refine le_trans _ (canonically_ordered_semiring.mul_le_mul_right' h2i _),
+  refine le_trans _ (mul_le_mul_right' h2i _),
   rw [right_distrib],
-  apply add_le_add; apply canonically_ordered_semiring.mul_le_mul_left'; apply prod_le_prod';
+  apply add_le_add; apply mul_le_mul_left'; apply prod_le_prod';
   simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption
 end
 

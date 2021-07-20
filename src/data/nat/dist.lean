@@ -1,15 +1,17 @@
 /-
 Copyright (c) 2014 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-
 Authors: Floris van Doorn, Jeremy Avigad
-Distance function on the natural numbers.
 -/
 import data.nat.basic
 
-namespace nat
+/-!
+#  Distance function on ℕ
 
-/- distance -/
+This file defines a simple distance function on naturals from truncated substraction.
+-/
+
+namespace nat
 
 /-- Distance (absolute value of difference) between natural numbers. -/
 def dist (n m : ℕ) := (n - m) + (m - n)

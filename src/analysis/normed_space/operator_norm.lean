@@ -3,12 +3,9 @@ Copyright (c) 2019 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 -/
-import linear_algebra.finite_dimensional
+import algebra.algebra.tower
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
-import analysis.normed_space.normed_group_hom
-import analysis.asymptotics.asymptotics
-import algebra.algebra.tower
 import data.equiv.transfer_instance
 
 /-!
@@ -84,7 +81,8 @@ def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * 
 lemma continuous_of_linear_of_bound {f : E → F} (h_add : ∀ x y, f (x + y) = f x + f y)
   (h_smul : ∀ (c : 𝕜) x, f (c • x) = c • f x) {C : ℝ} (h_bound : ∀ x, ∥f x∥ ≤ C*∥x∥) :
   continuous f :=
-let φ : E →ₗ[𝕜] F := ⟨f, h_add, h_smul⟩ in φ.continuous_of_bound C h_bound
+let φ : E →ₗ[𝕜] F := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
+φ.continuous_of_bound C h_bound
 
 @[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
@@ -318,7 +316,7 @@ op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If there is an element with norm different from `0`, then the norm of the identity equals `1`.
 (Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
-lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : E), ∥x∥ ≠ 0 ) : ∥id 𝕜 E∥ = 1 :=
+lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : E), ∥x∥ ≠ 0) : ∥id 𝕜 E∥ = 1 :=
 le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
@@ -900,18 +898,14 @@ iff.intro
     (op_norm_nonneg _))
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
+@[simp] lemma norm_id [nontrivial E] : ∥id 𝕜 E∥ = 1 :=
 begin
   refine norm_id_of_nontrivial_seminorm _,
   obtain ⟨x, hx⟩ := exists_ne (0 : E),
   exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
 end
 
-@[simp] lemma norm_id_field : ∥id 𝕜 𝕜∥ = 1 :=
-norm_id
-
-@[simp] lemma norm_id_field' : ∥(1 : 𝕜 →L[𝕜] 𝕜)∥ = 1 :=
-norm_id_field
+instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨norm_id⟩
 
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
@@ -1197,6 +1191,12 @@ begin
       ... = ∥smul_right c f x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
+
+/-- The non-negative norm of the tensor product of a scalar linear map and of an element of a normed
+space is the product of the non-negative norms. -/
+@[simp] lemma nnnorm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
+  ∥smul_right c f∥₊ = ∥c∥₊ * ∥f∥₊ :=
+nnreal.eq $ c.norm_smul_right_apply f
 
 variables (𝕜 E F)
 

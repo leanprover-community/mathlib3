@@ -191,6 +191,19 @@ by rw [linear_map.coe_det, dif_pos, det_aux_def' _ b]; assumption
 by { haveI := classical.dec_eq M,
      rw [det_eq_det_to_matrix_of_finset b.reindex_finset_range, det_to_matrix_eq_det_to_matrix b] }
 
+/-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
+@[elab_as_eliminator]
+lemma det_cases [decidable_eq M] {P : A → Prop} (f : M →ₗ[A] M)
+  (hb : ∀ (s : finset M) (b : basis s A M), P (to_matrix b b f).det) (h1 : P 1) :
+  P f.det :=
+begin
+  unfold linear_map.det,
+  split_ifs with h,
+  { convert hb _ h.some_spec.some,
+    apply det_aux_def' },
+  { exact h1 }
+end
+
 @[simp]
 lemma det_comp (f g : M →ₗ[A] M) : (f.comp g).det = f.det * g.det :=
 linear_map.det.map_mul f g
@@ -214,6 +227,12 @@ begin
   apply is_unit_det_of_left_inverse,
   simpa using (linear_map.to_matrix_comp v v' v f.symm f).symm
 end
+
+/-- Specialization of `linear_equiv.is_unit_det` -/
+lemma linear_equiv.is_unit_det' {A : Type*} [integral_domain A] [module A M]
+  (f : M ≃ₗ[A] M) : is_unit (linear_map.det (f : M →ₗ[A] M)) :=
+by haveI := classical.dec_eq M; exact
+(f : M →ₗ[A] M).det_cases (λ s b, f.is_unit_det _ _) is_unit_one
 
 /-- Builds a linear equivalence from a linear map whose determinant in some bases is a unit. -/
 @[simps]

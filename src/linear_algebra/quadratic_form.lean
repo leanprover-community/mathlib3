@@ -942,8 +942,8 @@ section real
 
 open real
 
-/-- The isometry between a weighted sum of squares with weights `u` on the complex numbers
-and the weighted sum of squares with weights `sign ∘ u`. -/
+/-- The isometry between a weighted sum of squares with weights `u` on the
+(non-zero) real numbers and the weighted sum of squares with weights `sign ∘ u`. -/
 noncomputable def isometry_sign_weighted_sum_squares
   [decidable_eq ι] (u : ι → units ℝ) :
   isometry (weighted_sum_squares ℝ u) (weighted_sum_squares ℝ (sign ∘ coe ∘ u)) :=
@@ -986,7 +986,9 @@ theorem equivalent_one_neg_one_weighted_sum_squared
   ∃ w : fin (finite_dimensional.finrank ℝ M) → ℝ,
   (∀ i, w i = -1 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares ℝ w) :=
 let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
-  ⟨sign ∘ coe ∘ w, λ i, sign_apply_eq (w i), ⟨hw₁.trans (isometry_sign_weighted_sum_squares w)⟩⟩
+  ⟨sign ∘ coe ∘ w,
+   λ i, sign_apply_eq_of_ne_zero (w i) (w i).ne_zero,
+   ⟨hw₁.trans (isometry_sign_weighted_sum_squares w)⟩⟩
 
 end real
 

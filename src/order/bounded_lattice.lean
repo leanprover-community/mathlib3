@@ -46,6 +46,9 @@ class has_bot (α : Type u) := (bot : α)
 notation `⊤` := has_top.top
 notation `⊥` := has_bot.bot
 
+@[priority 100] instance has_top_nonempty (α : Type u) [has_top α] : nonempty α := ⟨⊤⟩
+@[priority 100] instance has_bot_nonempty (α : Type u) [has_bot α] : nonempty α := ⟨⊥⟩
+
 attribute [pattern] has_bot.bot has_top.top
 
 /-- An `order_top` is a partial order with a greatest element.

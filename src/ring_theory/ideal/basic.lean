@@ -180,7 +180,7 @@ begin
   exact submodule.singleton_span_is_compact_element 1,
 end
 
-/-- Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
+/-- **Krull's theorem**: if `I` is an ideal that is not the whole ring, then it is included in some
     maximal ideal. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
@@ -427,10 +427,16 @@ namespace ideal
 
 variables [comm_ring α] (I : ideal α) {a b : α}
 
-/-- The quotient `R/I` of a ring `R` by an ideal `I`. -/
+/-- The quotient `R/I` of a ring `R` by an ideal `I`.
+
+The ideal quotient of `I` is defined to equal the quotient of `I` as an `R`-submodule of `R`.
+This definition is marked `reducible` so that typeclass instances can be shared between
+`ideal.quotient I` and `submodule.quotient I`.
+-/
 -- Note that at present `ideal` means a left-ideal,
 -- so this quotient is only useful in a commutative ring.
 -- We should develop quotients by two-sided ideals as well.
+@[reducible]
 def quotient (I : ideal α) := I.quotient
 
 namespace quotient
@@ -489,6 +495,18 @@ protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quot
 
 lemma mk_surjective : function.surjective (mk I) :=
 λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
+
+/-- If `I` is an ideal of a commutative ring `R`, if `q : R → R/I` is the quotient map, and if
+`s ⊆ R` is a subset, then `q⁻¹(q(s)) = ⋃ᵢ(i + s)`, the union running over all `i ∈ I`. -/
+lemma quotient_ring_saturate (I : ideal α) (s : set α) :
+  mk I ⁻¹' (mk I '' s) = (⋃ x : I, (λ y, x.1 + y) '' s) :=
+begin
+  ext x,
+  simp only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
+  exact ⟨λ ⟨a, a_in, h⟩, ⟨⟨_, I.neg_mem h⟩, a, a_in, by simp⟩,
+         λ ⟨⟨i, hi⟩, a, ha, eq⟩,
+           ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact I.neg_mem hi⟩⟩
+end
 
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
@@ -564,6 +582,15 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
   lift S f H (mk S a) = f a := rfl
 
 end quotient
+
+/-- Quotienting by equal ideals gives equivalent rings.
+
+See also `submodule.quot_equiv_of_eq`.
+-/
+def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
+  I.quotient ≃+* J.quotient :=
+{ map_mul' := by { rintro ⟨x⟩ ⟨y⟩, refl },
+  .. submodule.quot_equiv_of_eq I J h }
 
 section pi
 variables (ι : Type v)

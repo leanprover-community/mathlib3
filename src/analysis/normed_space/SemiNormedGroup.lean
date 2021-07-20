@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Riccardo Brasca
 -/
 import analysis.normed_space.normed_group_hom
-import category_theory.concrete_category.bundled_hom
 import category_theory.limits.shapes.zero
 
 /-!
@@ -69,7 +68,7 @@ namespace SemiNormedGroup₁
 
 instance : large_category.{u} SemiNormedGroup₁ :=
 { hom := λ X Y, { f : normed_group_hom X Y // f.norm_noninc },
-  id := λ X, ⟨normed_group_hom.id, normed_group_hom.norm_noninc.id⟩,
+  id := λ X, ⟨normed_group_hom.id X, normed_group_hom.norm_noninc.id⟩,
   comp := λ X Y Z f g, ⟨(g : normed_group_hom Y Z).comp (f : normed_group_hom X Y), g.2.comp f.2⟩, }
 
 @[ext] lemma hom_ext {M N : SemiNormedGroup₁} (f g : M ⟶ N) (w : (f : M → N) = (g : M → N)) :

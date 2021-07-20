@@ -2,11 +2,27 @@
 Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Natural homomorphism from the natural numbers into a monoid with one.
 -/
 import algebra.ordered_field
 import data.nat.basic
+
+/-!
+# Cast of naturals
+
+This file defines the *canonical* homomorphism from the natural numbers into a type `α` with `0`,
+`1` and `+` (typically an `add_monoid` with one).
+
+## Main declarations
+
+* `cast`: Canonical homomorphism `ℕ → α` where `α` has a `0`, `1` and `+`.
+* `bin_cast`: Binary representation version of `cast`.
+* `cast_add_monoid_hom`: `cast` bundled as an `add_monoid_hom`.
+* `cast_ring_hom`: `cast` bundled as a `ring_hom`.
+
+## Implementation note
+
+Setting up the coercions priorities is tricky. See Note [coercion into rings].
+-/
 
 namespace nat
 variables {α : Type*}

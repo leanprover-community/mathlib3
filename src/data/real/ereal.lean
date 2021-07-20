@@ -157,6 +157,14 @@ begin
   { simp [hx, (h.trans_lt (lt_top_iff_ne_top.2 hy)).ne], },
 end
 
+lemma coe_to_real {x : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) : (x.to_real : ereal) = x :=
+begin
+  rcases x.cases with rfl|⟨x, rfl⟩|rfl,
+  { simpa using h'x },
+  { refl },
+  { simpa using hx },
+end
+
 /-! ### ennreal coercion -/
 
 @[simp] lemma to_real_coe_ennreal : ∀ {x : ℝ≥0∞}, to_real (x : ereal) = ennreal.to_real x
@@ -226,6 +234,11 @@ lemma exists_rat_btwn_of_lt : Π {a b : ereal} (hab : a < b),
 lemma lt_iff_exists_rat_btwn {a b : ereal} :
   a < b ↔ ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b :=
 ⟨λ hab, exists_rat_btwn_of_lt hab, λ ⟨x, ax, xb⟩, ax.trans xb⟩
+
+lemma lt_iff_exists_real_btwn {a b : ereal} :
+  a < b ↔ ∃ (x : ℝ), a < x ∧ (x : ereal) < b :=
+⟨λ hab, let ⟨x, ax, xb⟩ := exists_rat_btwn_of_lt hab in ⟨(x : ℝ), ax, xb⟩,
+ λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
 /-- The set of numbers in `ereal` that are not equal to `±∞` is equivalent to `ℝ`. -/
 def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=

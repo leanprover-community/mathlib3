@@ -373,6 +373,13 @@ set.image_subset_iff
 lemma gc_map_comap (f : R →+* S) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
 
+/-- A subring is isomorphic to its image under an injective function -/
+noncomputable def equiv_map_of_injective
+  (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
+  map_add' := λ _ _, subtype.ext (f.map_add _ _),
+  ..equiv.set.image f s hf  }
+
 end subring
 
 namespace ring_hom

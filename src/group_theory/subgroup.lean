@@ -1532,6 +1532,11 @@ begin
   exact ker_le_comap _ _,
 end
 
+/-- A subgroup is isomorphic to its image under an injective function -/
+@[to_additive] noncomputable def equiv_map_of_injective (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
+
 end subgroup
 
 namespace monoid_hom

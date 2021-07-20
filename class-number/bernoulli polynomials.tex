@@ -1,0 +1,135 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+
+\usepackage{graphicx}
+\graphicspath{ {C:} }
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{xspace}
+\usepackage{listings}
+\def\lstlanguagefiles{lstlean.tex}
+\lstset{language=lean}
+
+\definecolor{keywordcolor}{rgb}{0.7, 0.1, 0.1}   % red
+\definecolor{commentcolor}{rgb}{0.4, 0.4, 0.4}   % grey
+\definecolor{symbolcolor}{rgb}{0.4, 0.4, 0.4}    % grey
+\definecolor{sortcolor}{rgb}{0.1, 0.5, 0.1}      % green
+
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+
+%Information to be included in the title page:
+\title{Bernoulli polynomials in Lean}
+\author{Ashvni Narayanan}
+\institute{Lean Summer Projects 2021}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{My PhD project}
+\begin{itemize}
+  \item To formalize Iwasawa Theory Main Conjecture : \\
+     $$ f_k((1 + p)^s - 1) = L_p(\omega^k, s) $$ \pause
+  \item To formalize the p-adic L-functions : \\
+    $$ L_p(-s, \chi) = \frac{-1}{1 - \chi(c)<c>^{s + 1}}
+    \int_{(\mathbb{Z}/dp\mathbb{Z})^{\times} \times (1 + p \mathbb{Z}_p)} \chi \omega^{-1}(a) <a>^s dE_c $$ \pause
+  \item To formalize the p-adic integral \pause
+  \item To define the Bernoulli measure \pause
+  \item To define the Bernoulli polynomial
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Bernoulli numbers}
+The Bernoulli numbers are an important number theoretic object. They occur as special values
+of the Reimann-zeta functions / p-adic L-functions. They are a generalization of
+Bernoulli numbers. \pause
+
+The Bernoulli numbers $B_n$ are generating functions given by :
+$$\sum_{n = 0}^{\infty} B_n\frac{t^n}{n!}=\frac{t}{e^{t} - 1}$$ \pause
+
+Note that several authors think of Bernoulli numbers $B_n'$ to be defined as :
+$$\sum_{n = 0}^{\infty} B_n'\frac{t^n}{n!}=\frac{t}{1-e^{-t}}$$ \pause
+
+The difference between these two is : $B_n' = (-1)^n B_n$, with $B_1 = \frac{-1}{2}$. \pause
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Bernoulli numbers in Lean}
+Using recursion, $B_n$ is defined in \lean{mathlib} as
+$B_n := \sum_{k = 0}^{n - 1} {n \choose k} \frac{B_k}{n - k + 1}$ :
+\begin{lstlisting}
+  bernoulli' n = 1 - ∑ k : fin n, n.choose k / (n - k + 1) * bernoulli' k
+\end{lstlisting} \pause
+and $B_n'$ as
+$B_n' := (-1)^n B_n $ :
+\begin{lstlisting}
+  def bernoulli (n : ℕ) : ℚ := (-1)^n * bernoulli' n
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Bernoulli polynomials}
+The Bernoulli polynomials denoted $B_n(X)$, a generalization of the Bernoulli numbers,
+are generating functions :
+$$ \sum_{n = 0}^{\infty} B_n(X) \frac{t^n}{n!} = \frac{t e^{tX}}{e^t - 1} $$ \pause
+
+We now define the Bernoulli polynomials as
+$ B_n(X) := \sum_{i = 0}^{n} {n \choose i} B_i X^{n - i} $ :
+\begin{lstlisting}
+  def bernoulli_poly (n : ℕ) : polynomial ℚ :=
+  ∑ i in range (n + 1), polynomial.monomial (n - i) ((bernoulli i) * (choose n i))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Bernoulli polynomials in Lean}
+The following properties of Bernoulli polynomials were proved :
+\begin{enumerate}
+  \item $ B_0(X) = X $ : \begin{lstlisting}
+    lemma bernoulli_poly_zero : bernoulli_poly 0 = 1
+  \end{lstlisting} \pause
+  \item $ B_n(0) = B_n $ : \begin{lstlisting}
+    lemma bernoulli_poly_eval_zero (n : ℕ) : (bernoulli_poly n).eval 0 = bernoulli n
+  \end{lstlisting} \pause
+  \item $ B_n(1) = B_n' $ : \begin{lstlisting}
+    lemma bernoulli_poly_eval_one (n : ℕ) : (bernoulli_poly n).eval 1 = bernoulli' n
+  \end{lstlisting}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Bernoulli polynomials in Lean}
+  \begin{enumerate}
+  \item $\sum_{k = 0}^n {{n + 1} \choose k} B_k(X) = (n + 1) X^n $
+  \begin{lstlisting}
+    theorem sum_bernoulli_poly (n : ℕ) :
+  ∑ k in range (n + 1), ((n + 1).choose k : ℚ) • bernoulli_poly k =
+    polynomial.monomial n (n + 1 : ℚ)
+  \end{lstlisting} \pause
+  \item $ \bigg( \sum_{n = 0}^{\infty} B_n(t) \frac{X^n}{n!} \bigg) * (e^X - 1) = X e^{tX} $ :
+  \begin{lstlisting}
+    theorem exp_bernoulli_poly' (t : A) :
+  mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli_poly n)) * (exp A - 1) =
+  X * rescale t (exp A)
+  \end{lstlisting}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{So..}
+Come join us on Discord/Zulip! \pause
+\begin{figure}
+  \includegraphics[width = \linewidth]{dumbledore-quote.jpg}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+Thank you!
+\end{frame}
+\end{document}

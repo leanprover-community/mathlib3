@@ -556,6 +556,7 @@ begin
       have s := classical.some (what_to_do p d R f),
       have hs := classical.some_spec (what_to_do p d R f),
       have hs' := classical.some_spec (classical.some_spec (what_to_do p d R f)),
+      sorry,
        },
     sorry,
     sorry, },
@@ -607,7 +608,7 @@ def f : R := sorry
 
 --h wont go in the system if you put it in [], is this independent of c?
 noncomputable def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) :=
- (f R) * (integral (units (zmod d) × units ℤ_[p]) R _ (bernoulli_measure_of_measure p d R hc)
+ (f R) * (integral (units (zmod d) × units ℤ_[p]) R sorry (bernoulli_measure_of_measure p d R hc)
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R) a) *
   (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj w ⟩)
 --is it accurate to say that ω⁻¹ = ω^(p - 2)? I think so

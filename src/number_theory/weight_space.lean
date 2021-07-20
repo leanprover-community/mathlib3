@@ -471,7 +471,7 @@ end
 --instance [fact (0 < d)] : compact_space (zmod d × ℤ_[p]) := infer_instance
 instance : totally_disconnected_space ℤ_[p] :=
 begin
-  refine (compact_t2_tot_disc_iff_tot_sep ℤ_[p]).mpr _,
+  rw compact_t2_tot_disc_iff_tot_sep,
   refine {is_totally_separated_univ := _},
   rintros x hx y hx ne,
   obtain ⟨n,hn⟩ : ∃ (n : ℕ), to_zmod_pow n x ≠ to_zmod_pow n y,

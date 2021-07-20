@@ -779,7 +779,7 @@ begin
   have r : ∀ i, b i = u i := λ i, (u' i).some_spec,
   rw finsupp.total_apply at e,
   simp_rw r at e,
-  erw ←finsupp.sum_emb_domain u (b.repr x) (λ (x : w), (smul_add_hom R M).flip (x : M)) at e,
+  erw ←@finsupp.sum_emb_domain _ _ _ _ _ _ (b.repr x) u (λ (x : w), (smul_add_hom R M).flip (x : M)) at e,
   simp only [add_monoid_hom.flip_apply, smul_add_hom_apply] at e,
   rw ←finsupp.total_apply at e,
   -- contradicting linear independence.

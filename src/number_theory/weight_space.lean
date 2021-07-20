@@ -1,7 +1,31 @@
+/-
+Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Ashvni Narayanan
+-/
 import number_theory.L_functions
 import ring_theory.witt_vector.teichmuller
 import ring_theory.witt_vector.compare
 import data.nat.modeq
+
+/-!
+# Weight spaces
+
+This file defines ... and proves ...
+
+## Main definitions
+ * `foo`
+ * `bar`
+
+## Implementation notes
+TODO (optional)
+
+## References
+TODO (optional)
+
+## Tags
+p-adic, L-function, Bernoulli measure, ...
+-/
 
 --variables (A : Type*) [normed_comm_ring A] (p : ℕ) [fact p.prime] (d : ℕ) (hd : gcd d p = 1)
 
@@ -16,7 +40,9 @@ variables (A : Type*) [topological_space A] [mul_one_class A] (p : ℕ) [fact p.
 set_option old_structure_cmd true
 /-- A-valued points of weight space -/ --shouldn't this be a category theory statement?
 @[ancestor continuous_map monoid_hom]
-structure weight_space extends monoid_hom ((units (zmod d)) × (units ℤ_[p])) A, C((units (zmod d)) × (units ℤ_[p]), A)
+structure weight_space extends
+  monoid_hom ((units (zmod d)) × (units ℤ_[p])) A,
+  C((units (zmod d)) × (units ℤ_[p]), A)
 --generalize domain to a compact space?
 
 attribute [nolint doc_blame] weight_space.to_continuous_map
@@ -133,7 +159,8 @@ end-/
 /-lemma inj' {B : Type*} [monoid B] (inj : B → A) [hinj : (function.injective inj)] :
   ∃ inj' : (units B) → (units A), ∀ (x : (units B)), inj' x = inj (x : B) -/
 
-variables (R : Type*) [normed_comm_ring R] [complete_space R] (inj : ℤ_[p] → R) --[fact (function.injective inj)]
+--[fact (function.injective inj)]
+variables (R : Type*) [normed_comm_ring R] [complete_space R] (inj : ℤ_[p] → R)
 
 variables (m : ℕ) (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space R p d)
 --variables (d : ℕ) (hd : gcd d p = 1) (χ : dirichlet_char_space A p d) (w : weight_space A p)
@@ -220,7 +247,8 @@ begin
   exact h i (hS memi),
 end
 
-lemma discrete_topology.is_topological_basis {α : Type*} [topological_space α] [discrete_topology α] [monoid α] :
+lemma discrete_topology.is_topological_basis
+  {α : Type*} [topological_space α] [discrete_topology α] [monoid α] :
   @topological_space.is_topological_basis α _ (set.range set.singleton_hom) :=
 begin
   refine topological_space.is_topological_basis_of_open_of_nhds _ _,
@@ -248,7 +276,8 @@ begin
 end
 
 lemma preimage_to_zmod_pow_eq_ball (n : ℕ) (x : ℕ) :
-  (padic_int.to_zmod_pow n) ⁻¹' {(x : zmod (p^n))} = metric.ball (x : ℤ_[p]) ((p : ℝ) ^ (1 - (n : ℤ))) :=
+  (padic_int.to_zmod_pow n) ⁻¹' {(x : zmod (p^n))} =
+  metric.ball (x : ℤ_[p]) ((p : ℝ) ^ (1 - (n : ℤ))) :=
 begin
   ext y,
   simp only [set.mem_preimage, metric.mem_ball, set.mem_singleton_iff],
@@ -304,7 +333,8 @@ begin
   { refine continuous_iff_is_closed.mp (continuous_to_zmod_pow p n) {a} _, simp, },
 end
 
-lemma add_ball (x y : ℤ_[p]) (r : ℝ) : ({x} : set ℤ_[p]) + metric.ball y r = metric.ball (x + y) r :=
+lemma add_ball (x y : ℤ_[p]) (r : ℝ) :
+  ({x} : set ℤ_[p]) + metric.ball y r = metric.ball (x + y) r :=
 begin
   ext z, simp,
   have : dist (-x + z) y = dist z (x + y),
@@ -383,7 +413,8 @@ begin
   split,
   { refine topological_space.is_topological_basis_of_open_of_nhds _ _,
     { rintros u hu, rcases hu with ⟨n, a, hu⟩,
-      have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, rw hu, convert (this a).1, simp, },
+      have := proj_lim_preimage_clopen p 1 n,
+      rw one_mul at this, rw hu, convert (this a).1, simp, },
     rintros a u mema hu, rw metric.is_open_iff at hu,
     obtain ⟨ε, hε, h⟩ := hu a mema,
     obtain ⟨m, fm⟩ := find_this_out p (ε/2) (half_pos hε),
@@ -571,7 +602,8 @@ sorry
 
 def f : R := sorry
 
-noncomputable def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) := --h wont go in the system if you put it in [], is this independent of c?
+--h wont go in the system if you put it in [], is this independent of c?
+noncomputable def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) :=
  (f R) * (integral (units (zmod d) × units ℤ_[p]) R _ (bernoulli_measure_of_measure p d R hc)
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R) a) *
   (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj w ⟩)

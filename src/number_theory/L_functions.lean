@@ -93,8 +93,6 @@ noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topologica
     end,
 }
 
-example (P : Prop) : ¬ ¬ P → P := not_not.mp
-
 open_locale topological_space filter
 
 open topological_space.is_topological_basis
@@ -168,11 +166,6 @@ end
 
 --show that locally compact Hausdorff is tot disc iff zero dim
 open_locale big_operators
-
-example (a b c : ℤ) : a ≤ b → b < c → a < c :=
-begin
-  exact lt_of_le_of_lt,
-end
 
 def h {A : Type*} [normed_ring A] (ε : ℝ) : A → set A := λ (x : A), metric.ball x (ε / 4)
 
@@ -278,23 +271,8 @@ begin
   {revert x, show t ⊆ s, apply h.2,},
 end
 
-example {α β γ : Type*} [add_comm_monoid γ] (s : finset α) (y : β) (f : α → (β → γ)) :
-  (∑ x in s, f x) y = ∑ x in s, f x y :=
-begin refine finset.sum_apply y s (λ (c : α), f c), end
-
-example : ring C(X, A) :=
-begin
-  apply_instance,
-end
-
 lemma coe_sub (g : C(X, A)) : ((f - g) : X → A) = (f : X → A) - g :=
 begin exact rfl, end
-
---Thank you to the collaborative spirit of Lean
-example {J : Type*} [normed_ring J] (f g : C(X, J)) (y : X) : (f - g) y = f y - g y :=
-begin
-  simp only [continuous_map.coe_sub, pi.sub_apply],
-end
 
 lemma sub_apply (f : C(X, A)) (g : locally_constant X A) (y : X) :
   ∥(f - inclusion X A g) y ∥ = ∥f y - (inclusion X A g) y∥ :=
@@ -591,11 +569,6 @@ instance [nonempty X] : normed_group (locally_constant X A) :=
   end,
   ..locally_constant.metric_space X A, ..locally_constant.has_norm X A,
 }
-
-example {α : Type*} [has_lt α] [has_le α] (a b c : ℤ) (h1 : a ≤ b) (h2 : b < c) : a < c :=
-begin
-  exact lt_of_le_of_lt h1 h2,
-end
 
 lemma integral_cont [nonempty X] (φ : measures'' X A) : continuous (φ.1).phi :=
 begin

@@ -17,3 +17,54 @@ an inclusion of the set S' into another add_subgroup
 you need to rewrite
 
 TODO : find examples where this is happening.
+
+Still needs to be done:
+
+I added some `[fact (is_subring S)]` stuff. Should I remove
+all of these? Why are they there? Because sometimes `S : set R`
+gets treated as a ring with e.g. `S \to+* T` after an `is_subring`
+instance has been proved. Adding it as a `fact` saved me the refactor
+is_subring -> subring. But should these refactors be taking place anyway?
+
+ I added them in
+
+algebra.algebra.basic
+algebra.algebra.tower
+
+***
+
+algebra.big_operators.basic : I should rrmove the note about how it's map_prod.
+
+algebra.big_operators.ring : I have an accidental `example`
+
+algebra.group_power.lemmas : random section lines 170-176 should be removed
+
+src/algebra/polynomial/group_ring_action.lean : remove commented out code line 106 or so
+
+src/data/polynomial/eval.lean : does erw mean I can avoid change on line 365?
+
+src/data/polynomial/ring_division.lean can I get rid of the @ on line 425
+
+src/deprecated/group.lean is_monoid_hom.of_mul and is_mul_hom.to_is_monoid_hom
+are the same? Delete `of_mul` version? is_group_hom.inv <- inv.is_group_hom o linw 294.
+Can I remove @ on line 355?
+
+src/deprecated/subfield.lean add main defs to module docstring
+
+The only "fact" in deprecated/subfield is line 29 -- can we just delete it?
+
+src/deprecated/subgroup.lean mention main defs in module docstring. Do we ever use subtype.group?
+It has a fact in. Line 174 can I get rid of the @ ? line 493 shoudl I just delete monoid_hom.range_subtype_val ?
+
+src/deprecated/submonoid.lean add #main definitions. Lines 227 and 237 have facts:
+can we delete? Or just change to lemmas? also 259, 265, 274, 280...
+
+src/field_theory/fixed.lean move line 32 to the right place
+
+src/ring_theory/free_comm_ring.lean do I really need "to_is_add_blah" on lines 152, 156, 160, 164?
+
+src/ring_theory/integral_closure.lean do I really need change then exact on line 155?
+
+src/ring_theory/subring.lean do I need to_is_submonoid etc on lnioes 174-179?
+
+src/topology/algebra/uniform_ring.lean can I move lines 52 and 53 into line 50?

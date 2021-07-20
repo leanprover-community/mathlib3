@@ -94,22 +94,17 @@ end
 lemma preserves_angle (f' : E →L[ℝ] F) (h : is_conformal_map ℝ f') (u v : E) :
   inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
 begin
-  repeat { rw inner_product_geometry.angle },
-  suffices new : ⟪f' u, f' v⟫ / (∥f' u∥ * ∥f' v∥) = ⟪u, v⟫ / (∥u∥ * ∥v∥),
-  { rw new, },
-  { rcases h with ⟨c₁, hc₁, li, hf'⟩,
-    have minor : ∥c₁∥ ≠ 0 := λ w, hc₁ (norm_eq_zero.mp w),
-    simp_rw [hf', pi.smul_apply],
-    rw [real_inner_smul_left, real_inner_smul_right, ← mul_assoc, inner_map_map],
-    repeat { rw [norm_smul, norm_map] },
-    rw [← mul_assoc],
-    exact calc c₁ * c₁ * ⟪u, v⟫ / (∥c₁∥ * ∥u∥ * ∥c₁∥ * ∥v∥)
-            = c₁ * c₁ * ⟪u, v⟫ / (∥c₁∥ * ∥c₁∥ * ∥u∥ * ∥v∥) : by simp only [mul_comm, mul_assoc]
-        ... = c₁ * c₁ * ⟪u, v⟫ / (abs c₁ * abs c₁ * ∥u∥ * ∥v∥) : by rw [real.norm_eq_abs]
-        ... = c₁ * c₁ * ⟪u, v⟫ / (c₁ * c₁ * ∥u∥ * ∥v∥) : by rw [← pow_two, ← sq_abs, pow_two]
-        ... = c₁ * (c₁ * ⟪u, v⟫) / (c₁ * (c₁ * (∥u∥ * ∥v∥))) : by simp only [mul_assoc]
-        ... = (c₁ * ⟪u, v⟫) / (c₁ * (∥u∥ * ∥v∥)) : by rw mul_div_mul_left _ _ hc₁
-        ... = ⟪u, v⟫ / (∥u∥ * ∥v∥) : by rw mul_div_mul_left _ _ hc₁, },
+  obtain ⟨c, hc, li, hcf⟩ := h,
+  suffices : c * (c * inner u v) / (∥c∥ * ∥u∥ * (∥c∥ * ∥v∥)) = inner u v / (∥u∥ * ∥v∥),
+  { simp [this, inner_product_geometry.angle, hcf, norm_smul, inner_smul_left, inner_smul_right] },
+  by_cases hu : ∥u∥ = 0,
+  { simp [norm_eq_zero.mp hu] },
+  by_cases hv : ∥v∥ = 0,
+  { simp [norm_eq_zero.mp hv] },
+  have hc : ∥c∥ ≠ 0 := λ w, hc (norm_eq_zero.mp w),
+  field_simp,
+  have : c * c = ∥c∥ * ∥c∥ := by simp [real.norm_eq_abs, abs_mul_abs_self],
+  convert congr_arg (λ x, x * ⟪u, v⟫ * ∥u∥ * ∥v∥) this using 1; ring,
 end
 
 end is_conformal_map

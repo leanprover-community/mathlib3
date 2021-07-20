@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import algebra.geom_sum
+import analysis.asymptotics.asymptotics
 import order.filter.archimedean
 import order.iterate
 import topology.instances.ennreal
-import tactic.ring_exp
-import analysis.asymptotics.asymptotics
 
 /-!
 # A collection of specific limit computations
@@ -378,7 +377,8 @@ begin
   { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
-    have : ∀ k:ℕ, 1 ≤ r^k, by simpa using canonically_ordered_semiring.pow_le_pow_of_le_left hr,
+    have : ∀ k:ℕ, 1 ≤ r^k,
+      by simpa using canonically_ordered_comm_semiring.pow_le_pow_of_le_left hr,
     calc (n:ℝ≥0∞) = (∑ i in range n, 1) : by rw [sum_const, nsmul_one, card_range]
     ... ≤ ∑ i in range n, r ^ i : sum_le_sum (λ k _, this k) }
 end

@@ -33,6 +33,7 @@ private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
   γ - 2 * (1 / 2) ^ m + (1 / 2) ^ m ≤ d :=
 by linarith
 
+/-- **Hahn decomposition theorem** -/
 lemma hahn_decomposition [finite_measure μ] [finite_measure ν] :
   ∃s, measurable_set s ∧
     (∀t, measurable_set t → t ⊆ s → ν t ≤ μ t) ∧

@@ -181,14 +181,26 @@ end
 
 instance [linear_order α] : is_trichotomous (finset.colex α) (<) := ⟨lt_trichotomy⟩
 
--- It should be possible to do this computably but it doesn't seem to make any difference for now.
-noncomputable instance [linear_order α] : linear_order (finset.colex α) :=
+/-- Show that `colex.lt` is decidable. This isn't an instance since it's re-inferred from the
+(computable) `decidable_le` instance below. -/
+def colex_decidable_lt [linear_order α] {A B : finset α} : decidable (A.to_colex < B.to_colex) :=
+decidable_of_iff' (∃ (k ∈ B), (∀ x ∈ A ∪ B, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A)
+begin
+  rw colex.lt_def,
+  apply exists_congr,
+  simp only [mem_union, exists_prop, or_imp_distrib, and_comm (_ ∈ B), and_assoc],
+  intro k,
+  refine and_congr_left' (forall_congr _),
+  tauto,
+end
+
+instance [linear_order α] : linear_order (finset.colex α) :=
 { le_refl := λ A, or.inr rfl,
   le_trans := le_trans,
   le_antisymm := λ A B AB BA, AB.elim (λ k, BA.elim (λ t, (asymm k t).elim) (λ t, t.symm)) id,
   le_total := λ A B,
           (lt_trichotomy A B).elim3 (or.inl ∘ or.inl) (or.inl ∘ or.inr) (or.inr ∘ or.inl),
-  decidable_le := classical.dec_rel _,
+  decidable_le := λ A B, @or.decidable _ _ (colex_decidable_lt) _,
   lt_iff_le_not_le := λ A B,
   begin
     split,
@@ -340,11 +352,11 @@ instance [linear_order α] : order_bot (finset.colex α) :=
   bot_le := λ x, empty_to_colex_le,
   ..(by apply_instance : partial_order (finset.colex α)) }
 
-noncomputable instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
+instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
 { ..finset.colex.order_bot,
   ..(by apply_instance : semilattice_inf (finset.colex α)) }
 
-noncomputable instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
+instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
 { ..finset.colex.order_bot,
   ..(by apply_instance : semilattice_sup (finset.colex α)) }
 

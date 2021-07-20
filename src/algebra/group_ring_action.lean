@@ -6,7 +6,7 @@ Authors: Kenny Lau
 
 import group_theory.group_action.group
 import data.equiv.ring
-import deprecated.subring
+import ring_theory.subring
 
 /-!
 # Group action on rings
@@ -131,24 +131,18 @@ end semiring
 section ring
 
 variables (M : Type u) [monoid M] {R : Type v} [ring R] [mul_semiring_action M R]
-variables (S : set R) [hS : fact (is_subring S)]
+variables (S : subring R)
 open mul_action
 
 set_option old_structure_cmd false
 
-include hS
-
-/-- A subring invariant under the action. -/
-structure is_invariant_subring : Prop :=
+/-- A typeclass for subrings invariant under a `mul_semiring_action`. -/
+class is_invariant_subring : Prop :=
 (smul_mem : ∀ (m : M) {x : R}, x ∈ S → m • x ∈ S)
 
-variables [hMS : fact (is_invariant_subring M S)]
-
-include hMS
-
-local attribute [instance] subset.ring
-instance is_invariant_subring.to_mul_semiring_action : mul_semiring_action M S :=
-{ smul := λ m x, ⟨m • x, is_invariant_subring.smul_mem hMS.elim m x.2⟩,
+instance is_invariant_subring.to_mul_semiring_action [is_invariant_subring M S] :
+  mul_semiring_action M S :=
+{ smul := λ m x, ⟨m • x, is_invariant_subring.smul_mem m x.2⟩,
   one_smul := λ s, subtype.eq $ one_smul M s,
   mul_smul := λ m₁ m₂ s, subtype.eq $ mul_smul m₁ m₂ s,
   smul_add := λ m s₁ s₂, subtype.eq $ smul_add m s₁ s₂,

@@ -44,7 +44,7 @@ open_locale real_inner_product_space
 
 /-- A map `f` is said to be conformal if it has a conformal differential `f'`. -/
 def conformal_at (f : X → Y) (x : X) :=
-∃ (f' : X →L[ℝ] Y), has_fderiv_at f f' x ∧ is_conformal_map ℝ f'
+∃ (f' : X →L[ℝ] Y), has_fderiv_at f f' x ∧ is_conformal_map f'
 
 lemma conformal_at_id (x : X) : conformal_at id x :=
 ⟨id ℝ X, has_fderiv_at_id _, 1, one_ne_zero, id, by ext; simp⟩
@@ -55,7 +55,7 @@ lemma conformal_at_const_smul {c : ℝ} (h : c ≠ 0) (x : X) :
   has_fderiv_at.const_smul (has_fderiv_at_id x) c, is_conformal_map_const_smul h⟩
 
 lemma conformal_at_of_conformal_fderiv {f : X → Y} {x : X}
-  (h : differentiable_at ℝ f x) (H : is_conformal_map ℝ (fderiv ℝ f x)) : conformal_at f x :=
+  (h : differentiable_at ℝ f x) (H : is_conformal_map (fderiv ℝ f x)) : conformal_at f x :=
 ⟨fderiv ℝ f x, h.has_fderiv_at, H⟩
 
 /-- A real differentiable map `f` is conformal at point `x` if and only if
@@ -82,17 +82,21 @@ def conformal_factor_at {f : E → F} (x : E) {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) :=
 classical.some (conformal_factor_aux x h H)
 
-lemma conformal_factor_at_prop {f : E → F} (x : E) {f' : E →L[ℝ] F}
+lemma conformal_factor_at_pos {f : E → F} (x : E) {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) :
-  0 < conformal_factor_at x h H ∧
+  0 < conformal_factor_at x h H :=
+(classical.some_spec $ conformal_factor_aux x h H).1
+
+lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} (x : E) {f' : E →L[ℝ] F}
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) :
   ∀ (u v : E), ⟪f' u, f' v⟫ = (conformal_factor_at x h H : ℝ) * ⟪u, v⟫ :=
-classical.some_spec (conformal_factor_aux x h H)
+(classical.some_spec $ conformal_factor_aux x h H).2
 
 namespace conformal_at
 
 lemma differentiable_at {f : X → Y} {x : X} (h : conformal_at f x) :
   differentiable_at ℝ f x :=
-let ⟨_, h₁, _, _, _, _⟩ := h in h₁.differentiable_at
+let ⟨_, h₁, _⟩ := h in h₁.differentiable_at
 
 lemma congr {f g : X → Y} {x : X} {u : set X} (hx : x ∈ u) (hu : is_open u)
   (hf : conformal_at f x) (h : ∀ (x : X), x ∈ u → g x = f x) :

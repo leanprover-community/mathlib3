@@ -37,7 +37,7 @@ open_locale real_inner_product_space
 
 /-- A continuous linear map `f'` is said to be conformal if it's
     a nonzero multiple of a linear isometry. -/
-def is_conformal_map (R : Type*) {X Y : Type*} [nondiscrete_normed_field R]
+def is_conformal_map {R : Type*} {X Y : Type*} [nondiscrete_normed_field R]
   [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y]
   (f' : X →L[R] Y) :=
 ∃ (c : R) (hc : c ≠ 0) (li : X →ₗᵢ[R] Y), (f' : X → Y) = c • li
@@ -49,11 +49,11 @@ variables {E F : Type*} [inner_product_space ℝ E] [inner_product_space ℝ F]
   [normed_group M] [normed_group N] [normed_group G]
   [normed_space R M] [normed_space R N] [normed_space R G]
 
-lemma is_conformal_map_const_smul {c : R} (hc : c ≠ 0) : is_conformal_map R (c • (id R M)) :=
+lemma is_conformal_map_const_smul {c : R} (hc : c ≠ 0) : is_conformal_map (c • (id R M)) :=
 ⟨c, hc, id, by ext; simp⟩
 
 lemma is_conformal_map_iff (f' : E →L[ℝ] F) :
-  is_conformal_map ℝ f' ↔ ∃ (c : ℝ) (hc : 0 < c),
+  is_conformal_map f' ↔ ∃ (c : ℝ) (hc : 0 < c),
   ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫ :=
 begin
   split,
@@ -81,8 +81,8 @@ namespace is_conformal_map
 
 
 lemma comp {f' : M →L[R] N} {g' : N →L[R] G}
-  (hf' : is_conformal_map R f') (hg' : is_conformal_map R g') :
-  is_conformal_map R (g'.comp f') :=
+  (hf' : is_conformal_map f') (hg' : is_conformal_map g') :
+  is_conformal_map (g'.comp f') :=
 begin
   rcases hf' with ⟨cf, hcf, lif, hlif⟩,
   rcases hg' with ⟨cg, hcg, lig, hlig⟩,
@@ -91,7 +91,7 @@ begin
              function.comp_app, linear_isometry.map_smul, smul_smul],
 end
 
-lemma preserves_angle {f' : E →L[ℝ] F} (h : is_conformal_map ℝ f') (u v : E) :
+lemma preserves_angle {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
   inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
 begin
   obtain ⟨c, hc, li, hcf⟩ := h,

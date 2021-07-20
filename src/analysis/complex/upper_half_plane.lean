@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Alex Kontorovich and Heather Macbeth and Marc Masdeu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alex Kontorovich and Heather Macbeth and Marc Masdeu
+Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
 import linear_algebra.special_linear_group

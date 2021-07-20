@@ -45,7 +45,8 @@ instance decidable_mem_smul (g : G) (H : subgroup G) [decidable_pred (∈ H)] :
 noncomputable def equiv_smul [fintype G] (g : G) (H : subgroup G) : H ≃* (g • H : subgroup G) :=
 H.equiv_map_of_injective (mul_aut.conj g).to_monoid_hom (mul_aut.conj g).injective
 
-@[simp] lemma card_smul [fintype G] (g : G) (H : subgroup G) [decidable_pred (∈ H)] :
+@[simp] lemma card_smul [fintype G] (g : G) (H : subgroup G)
+  [decidable_pred (∈ H)] {h : fintype ↥(g • H : subgroup G)} :
   fintype.card (g • H : subgroup G) = fintype.card H :=
 fintype.card_congr (equiv_smul _ _).to_equiv.symm
 
@@ -68,5 +69,7 @@ lemma mem_fixed_points_iff_normal (H : subgroup G) :
   H ∈ fixed_points G (subgroup G) ↔ normal H :=
 by simp only [mem_fixed_points_iff_stabilizer_eq_top,
   stabilizer_eq_normalizer, normal_iff_normalizer_eq_top]
+
+
 
 end subgroup

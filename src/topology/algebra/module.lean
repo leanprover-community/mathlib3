@@ -247,8 +247,22 @@ contained in the `topological_closure` of its image. -/
 lemma _root_.submodule.topological_closure_map [topological_space R] [has_continuous_smul R M]
   [has_continuous_add M] [has_continuous_smul R M₂] [has_continuous_add M₂] (f : M →L[R] M₂)
   (s : submodule R M) :
-  (s.topological_closure.map f.to_linear_map) ≤ (s.map f.to_linear_map).topological_closure :=
+  (s.topological_closure.map ↑f) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
 image_closure_subset_closure_image f.continuous
+
+/-- Under a dense continuous linear map, a submodule whose `topological_closure` is `⊤` is sent to
+another such submodule.  That is, the image of a dense set under a map with dense range is dense.
+-/
+lemma _root_.dense_range.topological_closure_map_submodule [topological_space R]
+  [has_continuous_smul R M] [has_continuous_add M] [has_continuous_smul R M₂]
+  [has_continuous_add M₂] {f : M →L[R] M₂} (hf' : dense_range f) {s : submodule R M}
+  (hs : s.topological_closure = ⊤) :
+  (s.map (f : M →ₗ[R] M₂)).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [submodule.topological_closure_coe, submodule.top_coe, ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image f.continuous hs
+end
 
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_zero⟩⟩

@@ -662,7 +662,7 @@ variables (hv : linear_independent R v)
 
 /-- Canonical isomorphism between linear combinations and the span of linearly independent vectors.
 -/
-def linear_independent.total_equiv (hv : linear_independent R v) :
+@[simps] def linear_independent.total_equiv (hv : linear_independent R v) :
   (ι →₀ R) ≃ₗ[R] span R (range v) :=
 begin
 apply linear_equiv.of_bijective
@@ -687,7 +687,7 @@ It is simply one direction of `linear_independent.total_equiv`. -/
 def linear_independent.repr (hv : linear_independent R v) :
   span R (range v) →ₗ[R] ι →₀ R := hv.total_equiv.symm
 
-lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
+@[simp] lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
 subtype.ext_iff.1 (linear_equiv.apply_symm_apply hv.total_equiv x)
 
 lemma linear_independent.total_comp_repr :
@@ -719,6 +719,18 @@ lemma linear_independent.repr_eq_single (i) (x) (hx : ↑x = v i) :
 begin
   apply hv.repr_eq,
   simp [finsupp.total_single, hx]
+end
+
+lemma linear_independent.span_repr_eq [nontrivial R] (x) :
+  span.repr R (set.range v) x = (hv.repr x).equiv_map_domain (equiv.of_injective _ hv.injective) :=
+begin
+  have p : (span.repr R (set.range v) x).equiv_map_domain (equiv.of_injective _ hv.injective).symm =
+    hv.repr x,
+  { apply (linear_independent.total_equiv hv).injective,
+    ext,
+    simp, },
+  ext ⟨_, ⟨i, rfl⟩⟩,
+  simp [←p],
 end
 
 -- TODO: why is this so slow?

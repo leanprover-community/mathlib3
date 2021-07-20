@@ -44,9 +44,9 @@ as an `ae_cover` w.r.t. `μ.restrict (Iic b)`, instead of using `(λ x, Ioc x b)
 - `measure_theory.ae_cover.integrable_of_integral_norm_tendsto` : if `φ` is a `ae_cover μ l`,
   where `l` is a countably generated filter, if `f` is measurable and integrable on each `φ n`,
   and if `∫ x in φ n, ∥f x∥ ∂μ` tends to some `I : ℝ` as n tends to `l`, then `f` is integrable
-- `measure_theory.set_integral_tendsto_integral` : if `φ` is a `ae_cover μ l`, where `l` is a
-  countably generated filter, and if `f` is measurable and integrable (globally), then
-  `∫ x in φ n, f x ∂μ` tends to `∫ x, f x ∂μ` as `n` tends to `+∞`.
+- `measure_theory.ae_cover.integral_tendsto_of_countably_generated` : if `φ` is a `ae_cover μ l`,
+  where `l` is a countably generated filter, and if `f` is measurable and integrable (globally),
+  then `∫ x in φ n, f x ∂μ` tends to `∫ x, f x ∂μ` as `n` tends to `+∞`.
 
 We then specialize these lemmas to various use cases involving intervals, which are frequent
 in analysis.
@@ -70,7 +70,7 @@ variables {α ι : Type*} [measurable_space α] (μ : measure α) (l : filter ι
 
     See for example `measure_theory.ae_cover.lintegral_tendsto_of_countably_generated`,
     `measure_theory.ae_cover.integrable_of_integral_norm_tendsto` and
-    `measure_theory.set_integral_tendsto_integral`. -/
+    `measure_theory.ae_cover.integral_tendsto_of_countably_generated`. -/
 structure ae_cover (φ : ι → set α) : Prop :=
 (ae_eventually_mem : ∀ᵐ x ∂μ, ∀ᶠ i in l, x ∈ φ i)
 (measurable : ∀ i, measurable_set $ φ i)
@@ -335,7 +335,7 @@ tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥) hcg
   hfi.norm hφ.ae_tendsto_indicator
 
 /-- Slight reformulation of
-    `measure_theory.ae_cover.integral_tendsto_of_at_top_countably_generated`. -/
+    `measure_theory.ae_cover.integral_tendsto_of_countably_generated`. -/
 lemma ae_cover.integral_eq_of_tendsto [l.ne_bot] {φ : ι → set α} (hφ : ae_cover μ l φ)
   (hcg : l.is_countably_generated) {f : α → E}
   (I : E) (hfm : ae_measurable f μ) (hfi : integrable f μ)

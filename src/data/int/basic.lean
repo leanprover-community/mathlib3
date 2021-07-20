@@ -730,10 +730,10 @@ begin
 end
 
 theorem nat_abs_dvd {a b : ℤ} : (a.nat_abs : ℤ) ∣ b ↔ a ∣ b :=
-(nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd_iff_dvd, ← e])
+(nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd, ← e])
 
 theorem dvd_nat_abs {a b : ℤ} : a ∣ b.nat_abs ↔ a ∣ b :=
-(nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg_iff_dvd, ← e])
+(nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg, ← e])
 
 instance decidable_dvd : @decidable_rel ℤ (∣) :=
 assume a n, decidable_of_decidable_of_iff (by apply_instance) (dvd_iff_mod_eq_zero _ _).symm
@@ -1071,6 +1071,16 @@ lemma pred_to_nat : ∀ (i : ℤ), (i - 1).to_nat = i.to_nat - 1
 lemma to_nat_pred_coe_of_pos {i : ℤ} (h : 0 < i) : ((i.to_nat - 1 : ℕ) : ℤ) = i - 1 :=
 by simp [h, le_of_lt h] with push_cast
 
+@[simp] lemma to_nat_sub_to_nat_neg : ∀ (n : ℤ), ↑n.to_nat - ↑((-n).to_nat) = n
+| (0 : ℕ)   := rfl
+| (n+1 : ℕ) := show ↑(n+1) - (0:ℤ) = n+1, from sub_zero _
+| -[1+ n]   := show 0 - (n+1 : ℤ)  = _,   from zero_sub _
+
+@[simp] lemma to_nat_add_to_nat_neg_eq_nat_abs : ∀ (n : ℤ), (n.to_nat) + ((-n).to_nat) = n.nat_abs
+| (0 : ℕ)   := rfl
+| (n+1 : ℕ) := show (n+1) + 0 = n+1, from add_zero _
+| -[1+ n]   := show 0 + (n+1) = n+1, from zero_add _
+
 /-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
 -/
 def to_nat' : ℤ → option ℕ
@@ -1384,6 +1394,15 @@ theorem exists_least_of_bdd {P : ℤ → Prop}
   ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
 by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := least_of_bdd b Hb Hinh in ⟨lb, H⟩
 
+lemma coe_least_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
+  {b b' : ℤ} (Hb : ∀ z : ℤ, P z → b ≤ z) (Hb' : ∀ z : ℤ, P z → b' ≤ z) (Hinh : ∃ z : ℤ, P z) :
+  (least_of_bdd b Hb Hinh : ℤ) = least_of_bdd b' Hb' Hinh :=
+begin
+  rcases least_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
+  rcases least_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
+  exact le_antisymm (h2n _ hn') (h2n' _ hn),
+end
+
 /-- A computable version of `exists_greatest_of_bdd`: given a decidable predicate on the
 integers, with an explicit upper bound and a proof that it is somewhere true, return
 the greatest value for which the predicate is true. -/
@@ -1400,6 +1419,16 @@ theorem exists_greatest_of_bdd {P : ℤ → Prop}
   (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
   ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
 by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := greatest_of_bdd b Hb Hinh in ⟨lb, H⟩
+
+lemma coe_greatest_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
+  {b b' : ℤ} (Hb : ∀ z : ℤ, P z → z ≤ b) (Hb' : ∀ z : ℤ, P z → z ≤ b') (Hinh : ∃ z : ℤ, P z) :
+  (greatest_of_bdd b Hb Hinh : ℤ) = greatest_of_bdd b' Hb' Hinh :=
+begin
+  rcases greatest_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
+  rcases greatest_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
+  exact le_antisymm (h2n' _ hn) (h2n _ hn'),
+end
+
 
 end int
 

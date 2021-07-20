@@ -3,10 +3,8 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-
-import ring_theory.roots_of_unity
 import analysis.special_functions.trigonometric
-import analysis.special_functions.pow
+import ring_theory.roots_of_unity
 
 /-!
 # Complex roots of unity

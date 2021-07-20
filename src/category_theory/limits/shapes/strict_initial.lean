@@ -24,7 +24,7 @@ If the binary product of `X` with a strict initial object exists, it is also ini
 
 To show a category `C` with an initial object has strict initial objects, the most convenient way
 is to show any morphism to the (chosen) initial object is an isomorphism and use
-`has_strict_initial_object_of_initial_is_strict`.
+`has_strict_initial_objects_of_initial_is_strict`.
 
 The dual notion (strict terminal objects) occurs much less frequently in practice so is ignored.
 
@@ -54,17 +54,17 @@ We say `C` has strict initial objects if every initial object is strict, ie give
 Strictly speaking, this says that *any* initial object must be strict, rather than that strict
 initial objects exist.
 -/
-class has_strict_initial_object : Prop :=
+class has_strict_initial_objects : Prop :=
 (out : ∀ {I A : C} (f : A ⟶ I), is_initial I → is_iso f)
 
 variables {C}
 
 section
-variables [has_strict_initial_object C] {I : C}
+variables [has_strict_initial_objects C] {I : C}
 
 lemma is_initial.is_iso_to (hI : is_initial I) {A : C} (f : A ⟶ I) :
   is_iso f :=
-has_strict_initial_object.out f hI
+has_strict_initial_objects.out f hI
 
 lemma is_initial.strict_hom_ext (hI : is_initial I) {A : C} (f g : A ⟶ I) :
   f = g :=
@@ -78,7 +78,7 @@ lemma is_initial.subsingleton_to (hI : is_initial I) {A : C} :
   subsingleton (A ⟶ I) :=
 ⟨hI.strict_hom_ext⟩
 
-@[priority 100] instance initial_mono_of_strict_initial_object : initial_mono_class C :=
+@[priority 100] instance initial_mono_of_strict_initial_objects : initial_mono_class C :=
 { is_initial_mono_from := λ I A hI,
   { right_cancellation := λ B g h i, hI.strict_hom_ext _ _ } }
 
@@ -110,7 +110,7 @@ initial_is_initial.is_iso_to _
 @[ext] lemma initial.hom_ext {A : C} (f g : A ⟶ ⊥_ C) : f = g :=
 initial_is_initial.strict_hom_ext _ _
 
-@[ext] lemma initial.subsingleton_to {A : C} : subsingleton (A ⟶ ⊥_ C) :=
+lemma initial.subsingleton_to {A : C} : subsingleton (A ⟶ ⊥_ C) :=
 initial_is_initial.subsingleton_to
 
 /--
@@ -144,9 +144,9 @@ end
 
 /-- If `C` has an initial object such that every morphism *to* it is an isomorphism, then `C`
 has strict initial objects. -/
-lemma has_strict_initial_object_of_initial_is_strict [has_initial C]
+lemma has_strict_initial_objects_of_initial_is_strict [has_initial C]
   (h : ∀ A (f : A ⟶ ⊥_ C), is_iso f) :
-  has_strict_initial_object C :=
+  has_strict_initial_objects C :=
 { out := λ I A f hI,
   begin
     haveI := h A (f ≫ hI.to _),

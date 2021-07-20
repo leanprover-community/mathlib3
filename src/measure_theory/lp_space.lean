@@ -3,11 +3,12 @@ Copyright (c) 2020 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
+import analysis.normed_space.indicator_function
+import analysis.normed_space.normed_group_hom
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
 import measure_theory.mean_inequalities
 import topology.continuous_function.compact
-import analysis.normed_space.indicator_function
 
 /-!
 # ℒp space and Lp space
@@ -1339,6 +1340,20 @@ begin
   exact le_rfl,
 end
 
+variables (hs)
+
+lemma snorm_indicator_le {E : Type*} [normed_group E] (f : α → E) :
+  snorm (s.indicator f) p μ ≤ snorm f p μ :=
+begin
+  refine snorm_mono_ae (eventually_of_forall (λ x, _)),
+  suffices : ∥s.indicator f x∥₊ ≤ ∥f x∥₊,
+  { exact nnreal.coe_mono this },
+  rw nnnorm_indicator_eq_indicator_nnnorm,
+  exact s.indicator_le_self _ x,
+end
+
+variables {hs}
+
 lemma snorm_indicator_const {c : G} (hs : measurable_set s) (hp : p ≠ 0) (hp_top : p ≠ ∞) :
   snorm (s.indicator (λ x, c)) p μ = ∥c∥₊ * (μ s) ^ (1 / p.to_real) :=
 begin
@@ -1362,6 +1377,10 @@ begin
   { simp [hp_top, snorm_ess_sup_indicator_const_eq s c hμs], },
   { exact snorm_indicator_const hs hp hp_top, },
 end
+
+lemma mem_ℒp.indicator (hs : measurable_set s) (hf : mem_ℒp f p μ) :
+  mem_ℒp (s.indicator f) p μ :=
+⟨hf.ae_measurable.indicator hs, lt_of_le_of_lt (snorm_indicator_le f) hf.snorm_lt_top⟩
 
 lemma mem_ℒp_indicator_const (p : ℝ≥0∞) (hs : measurable_set s) (c : E) (hμsc : c = 0 ∨ μ s ≠ ∞) :
   mem_ℒp (s.indicator (λ _, c)) p μ :=
@@ -1390,6 +1409,9 @@ end
 end indicator
 
 section indicator_const_Lp
+
+open set function
+
 variables {s : set α} {hs : measurable_set s} {hμs : μ s ≠ ∞} {c : E}
   [borel_space E] [second_countable_topology E]
 
@@ -1426,6 +1448,23 @@ begin
   { rw [hp_top, ennreal.top_to_real, div_zero, real.rpow_zero, mul_one],
     exact norm_indicator_const_Lp_top hμs_pos, },
   { exact norm_indicator_const_Lp hp_pos hp_top, },
+end
+
+@[simp] lemma indicator_const_empty :
+  indicator_const_Lp p measurable_set.empty (by simp : μ ∅ ≠ ∞) c = 0 :=
+begin
+  rw Lp.eq_zero_iff_ae_eq_zero,
+  convert indicator_const_Lp_coe_fn,
+  simp [set.indicator_empty'],
+end
+
+lemma mem_ℒp_add_of_disjoint {f g : α → E}
+  (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
+  mem_ℒp (f + g) p μ ↔ mem_ℒp f p μ ∧ mem_ℒp g p μ :=
+begin
+  refine ⟨λ hfg, ⟨_, _⟩, λ h, h.1.add h.2⟩,
+  { rw ← indicator_add_eq_left h, exact hfg.indicator (measurable_set_support hf) },
+  { rw ← indicator_add_eq_right h, exact hfg.indicator (measurable_set_support hg) }
 end
 
 /-- The indicator of a disjoint union of two sets is the sum of the indicators of the sets. -/
@@ -1540,19 +1579,23 @@ lemma continuous_comp_Lp [fact (1 ≤ p)] (hg : lipschitz_with c g) (g0 : g 0 = 
 end lipschitz_with
 
 namespace continuous_linear_map
-variables [normed_space ℝ E] [normed_space ℝ F]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
 
-/-- Composing `f : Lp ` with `L : E →L[ℝ] F`. -/
-def comp_Lp (L : E →L[ℝ] F) (f : Lp E p μ) : Lp F p μ :=
+/-- Composing `f : Lp ` with `L : E →L[𝕜] F`. -/
+def comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) : Lp F p μ :=
 L.lipschitz.comp_Lp (map_zero L) f
 
-lemma coe_fn_comp_Lp (L : E →L[ℝ] F) (f : Lp E p μ) :
+lemma coe_fn_comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) :
   ∀ᵐ a ∂μ, (L.comp_Lp f) a = L (f a) :=
 lipschitz_with.coe_fn_comp_Lp _ _ _
 
-variables (μ p)
-/-- Composing `f : Lp E p μ` with `L : E →L[ℝ] F`, seen as a `ℝ`-linear map on `Lp E p μ`. -/
-def comp_Lpₗ (L : E →L[ℝ] F) : (Lp E p μ) →ₗ[ℝ] (Lp F p μ) :=
+lemma norm_comp_Lp_le (L : E →L[𝕜] F) (f : Lp E p μ)  : ∥L.comp_Lp f∥ ≤ ∥L∥ * ∥f∥ :=
+lipschitz_with.norm_comp_Lp_le _ _ _
+
+variables (μ p) [measurable_space 𝕜] [opens_measurable_space 𝕜]
+
+/-- Composing `f : Lp E p μ` with `L : E →L[𝕜] F`, seen as a `𝕜`-linear map on `Lp E p μ`. -/
+def comp_Lpₗ (L : E →L[𝕜] F) : (Lp E p μ) →ₗ[𝕜] (Lp F p μ) :=
 { to_fun := λ f, L.comp_Lp f,
   map_add' := begin
     intros f g,
@@ -1571,18 +1614,17 @@ def comp_Lpₗ (L : E →L[ℝ] F) : (Lp E p μ) →ₗ[ℝ] (Lp F p μ) :=
     simp only [ha1, ha2, ha3, ha4, map_smul, pi.smul_apply],
   end }
 
-variables {μ p}
-lemma norm_comp_Lp_le (L : E →L[ℝ] F) (f : Lp E p μ)  : ∥L.comp_Lp f∥ ≤ ∥L∥ * ∥f∥ :=
-lipschitz_with.norm_comp_Lp_le _ _ _
-
-variables (μ p)
-
-/-- Composing `f : Lp E p μ` with `L : E →L[ℝ] F`, seen as a continuous `ℝ`-linear map on
-`Lp E p μ`. -/
-def comp_LpL [fact (1 ≤ p)] (L : E →L[ℝ] F) : (Lp E p μ) →L[ℝ] (Lp F p μ) :=
+/-- Composing `f : Lp E p μ` with `L : E →L[𝕜] F`, seen as a continuous `𝕜`-linear map on
+`Lp E p μ`. See also the similar
+* `linear_map.comp_left` for functions,
+* `continuous_linear_map.comp_left_continuous` for continuous functions,
+* `continuous_linear_map.comp_left_continuous_bounded` for bounded continuous functions,
+* `continuous_linear_map.comp_left_continuous_compact` for continuous functions on compact spaces.
+-/
+def comp_LpL [fact (1 ≤ p)] (L : E →L[𝕜] F) : (Lp E p μ) →L[𝕜] (Lp F p μ) :=
 linear_map.mk_continuous (L.comp_Lpₗ p μ) ∥L∥ L.norm_comp_Lp_le
 
-lemma norm_compLpL_le [fact (1 ≤ p)] (L : E →L[ℝ] F) :
+lemma norm_compLpL_le [fact (1 ≤ p)] (L : E →L[𝕜] F) :
   ∥L.comp_LpL p μ∥ ≤ ∥L∥ :=
 linear_map.mk_continuous_norm_le _ (norm_nonneg _) _
 
@@ -1924,7 +1966,7 @@ begin
   have h : ∀ᵐ x ∂μ, ∃ l : E,
     at_top.tendsto (λ n, ∑ i in finset.range n, (f (i + 1) x - f i x)) (𝓝 l),
   { refine h_summable.mono (λ x hx, _),
-    let hx_sum := (summable.has_sum_iff_tendsto_nat hx).mp hx.has_sum,
+    let hx_sum := hx.has_sum.tendsto_sum_nat,
     exact ⟨∑' i, (f (i + 1) x - f i x), hx_sum⟩, },
   refine h.mono (λ x hx, _),
   cases hx with l hx,
@@ -2044,14 +2086,35 @@ end measure_theory
 
 end complete_space
 
-namespace bounded_continuous_function
+/-! ### Continuous functions in `Lp` -/
 
 open_locale bounded_continuous_function
-variables [borel_space E] [second_countable_topology E]
-variables [topological_space α] [borel_space α]
+open bounded_continuous_function
+variables [borel_space E] [second_countable_topology E] [topological_space α] [borel_space α]
+
+variables (E p μ)
+
+/-- An additive subgroup of `Lp E p μ`, consisting of the equivalence classes which contain a
+bounded continuous representative. -/
+def measure_theory.Lp.bounded_continuous_function : add_subgroup (Lp E p μ) :=
+add_subgroup.add_subgroup_of
+  ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E)).range
+  (Lp E p μ)
+
+variables {E p μ}
+
+/-- By definition, the elements of `Lp.bounded_continuous_function E p μ` are the elements of
+`Lp E p μ` which contain a bounded continuous representative. -/
+lemma measure_theory.Lp.mem_bounded_continuous_function_iff {f : (Lp E p μ)} :
+  f ∈ measure_theory.Lp.bounded_continuous_function E p μ
+    ↔ ∃ f₀ : (α →ᵇ E), f₀.to_continuous_map.to_ae_eq_fun μ = (f : α →ₘ[μ] E) :=
+add_subgroup.mem_add_subgroup_of
+
+namespace bounded_continuous_function
+
 variables [finite_measure μ]
 
-/-- A bounded continuous function is in `Lp`. -/
+/-- A bounded continuous function on a finite-measure space is in `Lp`. -/
 lemma mem_Lp (f : α →ᵇ E) :
   f.to_continuous_map.to_ae_eq_fun μ ∈ Lp E p μ :=
 begin
@@ -2085,6 +2148,16 @@ def to_Lp_hom [fact (1 ≤ p)] : normed_group_hom (α →ᵇ E) (Lp E p μ) :=
       (Lp E p μ)
       mem_Lp }
 
+lemma range_to_Lp_hom [fact (1 ≤ p)] :
+  ((to_Lp_hom p μ).range : add_subgroup (Lp E p μ))
+    = measure_theory.Lp.bounded_continuous_function E p μ :=
+begin
+  symmetry,
+  convert add_monoid_hom.add_subgroup_of_range_eq_of_le
+    ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E))
+    (by { rintros - ⟨f, rfl⟩, exact mem_Lp f } : _ ≤ Lp E p μ),
+end
+
 variables (𝕜 : Type*) [measurable_space 𝕜]
 
 /-- The bounded linear map of considering a bounded continuous function on a finite-measure space
@@ -2099,7 +2172,14 @@ linear_map.mk_continuous
   _
   Lp_norm_le
 
-variables {p 𝕜}
+variables {𝕜}
+
+lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+  ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
+    = measure_theory.Lp.bounded_continuous_function E p μ :=
+range_to_Lp_hom p μ
+
+variables {p}
 
 lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)]
   (f : α →ᵇ E) :
@@ -2115,12 +2195,7 @@ end bounded_continuous_function
 
 namespace continuous_map
 
-open_locale bounded_continuous_function
-
-variables [borel_space E] [second_countable_topology E]
-variables [topological_space α] [compact_space α] [borel_space α]
-variables [finite_measure μ]
-
+variables [compact_space α] [finite_measure μ]
 variables (𝕜 : Type*) [measurable_space 𝕜] (p μ) [fact (1 ≤ p)]
 
 /-- The bounded linear map of considering a continuous function on a compact finite-measure
@@ -2132,7 +2207,20 @@ def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E
 (bounded_continuous_function.to_Lp p μ 𝕜).comp
   (linear_isometry_bounded_of_compact α E 𝕜).to_linear_isometry.to_continuous_linear_map
 
-variables {p 𝕜}
+variables {𝕜}
+
+lemma range_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] :
+  ((to_Lp p μ 𝕜).range.to_add_subgroup : add_subgroup (Lp E p μ))
+    = measure_theory.Lp.bounded_continuous_function E p μ :=
+begin
+  refine set_like.ext' _,
+  have := (linear_isometry_bounded_of_compact α E 𝕜).surjective,
+  convert function.surjective.range_comp this (bounded_continuous_function.to_Lp p μ 𝕜),
+  rw ← bounded_continuous_function.range_to_Lp p μ,
+  refl,
+end
+
+variables {p}
 
 lemma coe_fn_to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E] (f : C(α,  E)) :
   to_Lp p μ 𝕜 f =ᵐ[μ] f :=

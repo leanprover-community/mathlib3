@@ -504,6 +504,17 @@ begin
     (is_closed_compl_iff.2 ht))
 end
 
+lemma frontier_eq_inter_compl_interior {s : set α} :
+  frontier s = (interior s)ᶜ ∩ (interior (sᶜ))ᶜ :=
+by { rw [←frontier_compl, ←closure_compl], refl }
+
+lemma compl_frontier_eq_union_interior {s : set α} :
+  (frontier s)ᶜ = interior s ∪ interior sᶜ :=
+begin
+  rw frontier_eq_inter_compl_interior,
+  simp only [compl_inter, compl_compl],
+end
+
 /-!
 ### Neighborhoods
 -/
@@ -1183,6 +1194,19 @@ tendsto_iff_ultrafilter f (𝓝 x) (𝓝 (f x))
 lemma continuous_iff_ultrafilter {f : α → β} :
   continuous f ↔ ∀ x (g : ultrafilter α), ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=
 by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
+
+lemma continuous.closure_preimage_subset {f : α → β}
+  (hf : continuous f) (t : set β) :
+  closure (f ⁻¹' t) ⊆ f ⁻¹' (closure t) :=
+begin
+  rw ← (is_closed_closure.preimage hf).closure_eq,
+  exact closure_mono (preimage_mono subset_closure),
+end
+
+lemma continuous.frontier_preimage_subset
+  {f : α → β} (hf : continuous f) (t : set β) :
+  frontier (f ⁻¹' t) ⊆ f ⁻¹' (frontier t) :=
+diff_subset_diff (hf.closure_preimage_subset t) (preimage_interior_subset_interior_preimage hf)
 
 /-! ### Continuity and partial functions -/
 

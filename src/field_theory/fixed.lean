@@ -153,8 +153,8 @@ namespace minpoly
 theorem monic : (minpoly G F x).monic :=
 by { simp only [minpoly, polynomial.monic_to_subring], exact prod_X_sub_smul.monic G F x }
 
-theorem eval₂ :
-  polynomial.eval₂ (subring.subtype $ (fixed_points.subfield G F).to_subring) x (minpoly G F x) = 0 :=
+theorem eval₂ : polynomial.eval₂ (subring.subtype $ (fixed_points.subfield G F).to_subring) x
+  (minpoly G F x) = 0 :=
 begin
   rw [← prod_X_sub_smul.eval G F x, polynomial.eval₂_eq_eval_map],
   simp only [minpoly, polynomial.map_to_subring],

@@ -34,9 +34,10 @@ open mul_action finset finite_dimensional
 
 universes u v w
 
-variables (G : Type u) [group G] (F : Type v) [field F] [mul_semiring_action G F] (g : G)
+variables {G : Type u} [group G] {F : Type v} [field F] [mul_semiring_action G F] (g : G)
 
-instance fixed_by.is_subfield : is_subfield (fixed_by G F g) :=
+-- this should change
+lemma fixed_by.is_subfield : is_subfield (fixed_by G F g) :=
 { zero_mem := smul_zero g,
   add_mem := λ x y hx hy, (smul_add g x y).trans $ congr_arg2 _ hx hy,
   neg_mem := λ x hx, (smul_neg g x).trans $ congr_arg _ hx,
@@ -44,10 +45,15 @@ instance fixed_by.is_subfield : is_subfield (fixed_by G F g) :=
   mul_mem := λ x y hx hy, (smul_mul' g x y).trans $ congr_arg2 _ hx hy,
   inv_mem := λ x hx, (smul_inv' F g x).trans $ congr_arg _ hx }
 
+variables (G F)
+
 namespace fixed_points
 
-instance : is_subfield (fixed_points G F) :=
-by convert @is_subfield.Inter F _ G (fixed_by G F) _; rw fixed_eq_Inter_fixed_by
+lemma fixed_points.is_subfield : is_subfield (fixed_points G F) :=
+begin
+  convert is_subfield.Inter fixed_by.is_subfield,
+  rw fixed_eq_Inter_fixed_by,
+end
 
 instance : is_invariant_subring G (fixed_points G F) :=
 { smul_mem := λ g x hx g', by rw [hx, hx] }

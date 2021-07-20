@@ -2,13 +2,24 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Hahn decomposition theorem
-
-TODO:
-* show general for signed measures (into ℝ)
 -/
 import measure_theory.measure_space
+
+/-!
+# Unsigned Hahn decomposition theorem
+
+This file proves the unsigned version of the Hahn decomposition theorem.
+
+## Main statements
+
+* `hahn_decomposition` : Given two finite measures `μ` and `ν`, there exists a measurable set `s`
+    such that for all measurable set `t`, `t ⊆ s`, `ν t ≤ μ t`, and for all measurable set `u`,
+    `u ⊆ sᶜ` and `μ u ≤ ν u`.
+
+## Tags
+
+Hahn decomposition
+-/
 
 open set filter
 open_locale classical topological_space ennreal

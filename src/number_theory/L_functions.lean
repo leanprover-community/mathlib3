@@ -5,7 +5,6 @@ import number_theory.padics.padic_integers
 import set_theory.zfc
 import topology.category.Profinite
 import topology.locally_constant.algebra
---import topology.algebra.continuous_functions
 import topology.metric_space.basic
 import topology.continuous_on
 import topology.opens
@@ -20,26 +19,7 @@ def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
 open_locale big_operators
 
---variables {R : Type*} [ring R] [topological_space R]
---variables {R : Type*} [ring R] [topological_space R] [topological_ring R]
 variables (X : Type*) [topological_space X] [compact_space X] [t2_space X] [totally_disconnected_space X]
-
-/-instance semi {R : Type*} [semiring R] : semimodule R (locally_constant X R) :=
-begin
-  refine ring_hom.to_semimodule _,
-  constructor,
-  swap 5, intros r, constructor, swap 2, rintros x,
-  sorry
-end -/
-
---variables {R : Type*} [ring R] {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation R Γ₀)
-
-/-
-/-- Very interesting, equating 2 zeros of C(X,R) coming from different sources. -/
-lemma zero' {R : Type*} [normed_group R] : (0 : C(X,R)) = (add_monoid.to_has_zero C(X,R)).zero :=
-begin
-  exact rfl,
-end -/
 
 example (S : Type*) : set.nonempty (set.univ : set S) → nonempty S := begin refine set.nonempty_iff_univ_nonempty.mpr, end
 
@@ -53,56 +33,8 @@ begin
   suffices : bdd_above (set.range bdd_cont), convert this, exact bdd.2, },
 end
 
-/-noncomputable instance {R : Type*} [normed_group R] : has_norm C(X,R) :=
-{ norm := λ f, (⨆ x : X, ∥f x∥) }
-
-lemma norm_def {R : Type*} [normed_group R] (f : C(X,R)) : ∥f∥ = ⨆ x : X, ∥f x∥ := rfl
-
-lemma met {R : Type*} [normed_group R] [nonempty X] : normed_group.core C(X,R) :=
-{
-  norm_eq_zero_iff := begin
-    rintros f, split,
-    { rintros h, rw le_antisymm_iff at h, cases h with h1 h2,
-      suffices : ∀ x : X, ∥f x∥ ≤ 0,
-      {  ext, specialize this x, rw [norm_le_zero_iff] at this, simp [this], },
-      rintros x, refine (cSup_le_iff  _ _).1 _ (∥f x∥) _,
-      exact set.range (λ x, ∥f x∥), apply bdd_above_compact_range_norm,
-      { rw set.range_nonempty_iff_nonempty, assumption, },
-      { change Sup (set.range (λ x, ∥f x∥)) ≤ 0 at h1, assumption,}, exact ⟨x, rfl⟩, },
-    { rintros h, rw h,-- conv_lhs { congr, funext, rw zero',},
-      have : ∀ x : X, ∥(0 : C(X, R)) x∥ = 0, { rintros x, rw norm_eq_zero, refl, },
-      unfold has_norm.norm, conv_lhs { congr, funext, rw this x, },
-      { refine csupr_const, }, },
-  end,
-  triangle := begin
-              rintros x y, refine csupr_le (λ z, _),
-              transitivity (∥x z∥ + ∥y z∥), {  exact norm_add_le (x z) (y z), },
-              { apply add_le_add,
-                { apply le_cSup, { apply bdd_above_compact_range_norm, },
-                  exact ⟨z, rfl⟩ },
-                { apply le_cSup, { apply bdd_above_compact_range_norm, }, exact ⟨z, rfl⟩ },
-              },
-              end,
-  norm_neg := begin
-                rintros f, unfold has_norm.norm, congr, ext, refine norm_neg (f x),
-              end,
-}
-
-noncomputable instance {R : Type*} [normed_group R] [h : nonempty X] : normed_group C(X,R) :=
-  normed_group.of_core _ (met X)
-
---example {R : Type*} [normed_group R] : metric_space R := begin  library_search, end
-
-noncomputable instance uniform {R : Type*} [normed_group R] [h : nonempty X] : uniform_space C(X, R) :=
-begin
-  have : metric_space C(X,R), { refine normed_group.to_metric_space, },
-  apply metric_space.to_uniform_space',
-end
---  @metric_space.to_uniform_space' _ (normed_group.to_metric_space)-/
-
 variables {R : Type*} [normed_group R]
 
---instance : normed_group C(X, R) := continuous_map.normed_group X R
 noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
 
 --todo
@@ -115,33 +47,12 @@ def inclusion (R : Type*) [topological_space R] : locally_constant X R → C(X,R
 noncomputable instance {R : Type*} [normed_group R] [h : nonempty X] : topological_space (locally_constant X R) :=
 topological_space.induced (inclusion X R) uniform_space.to_topological_space
 
-
---instance lin'' {R : Type*} [topological_space R] [add_monoid R] : add_monoid_hom (locally_constant X R) C(X,R) :=
-
-/-instance lin' {R : Type*} [topological_space R] : has_scalar R (locally_constant X R) :=
-begin
-  constructor, intros r f, constructor, swap,
-  sorry
-end
-
-instance linear' {R : Type*} [topological_space R] : mul_action_hom R (locally_constant X R) -/
-
 lemma sub {R : Type*} [topological_space R] : function.injective (inclusion X R) :=
 begin
   intros f g h, rw inclusion at h, simp at h, rw h,
 end
 
---instance topo_space {R : Type*} [topological_space R] :  topological_space (locally_constant ↥X R) := sorry
-
-/-lemma totally_disconnected_space.is_disconnected {A : Type*} [topological_space A]
-  [totally_disconnected_space A] : ∃ (U V : set A) (hU : is_open U) (hV : is_open V)
-    (hnU : U.nonempty) (hnV : V.nonempty) (hdis : disjoint U V), U ∪ V = ⊤:= sorry -/
-
 open classical
-
---local attribute [instance] classical.prop_decidable
-
---open_locale classical
 
 noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R]
   (U : clopen_sets X) : locally_constant X R :=
@@ -157,36 +68,7 @@ noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topologica
     end,
 }
 
---lemma exists_local {R : Type*} [topological_space R] [ring R] [topological_ring R] (a b : X) (h : a ≠ b) : ∃ (f : locally_constant X R), f a = 1 ∧ f b = 0 := sorry
-
-/-lemma exists_local' {R : Type*} [has_norm R] [topological_space R] [ring R] [topological_ring R] (g : C(X,R)) (U : set X) [is_open U] :
-   ∀ (x : X) (h : x ∈ U) (ε : ℝ) [hε : ε > 0], ∃ (f : locally_constant X R) (V : set X)
-    (hV : is_open V) (hVx : x ∈ V), ∀ (y : X) (hy : y ∈ V), ∥(g - (inclusion X f)) y∥ < ε := sorry -/
-
---variable [topological_space R]
-
-/- lemma Inter_nonempty_of {α : Type*} {ι : Type*} {s : ι → set α} :
-  (⋂ j, s j).nonempty → ∀ (i : ι), (s i).nonempty :=
-begin
-  rintros h i,
-  refine set.nonempty.mono _ h,
-  exact set.Inter_subset (λ (i : ι), s i) i,
-end -/
-
 example (P : Prop) : ¬ ¬ P → P := not_not.mp
-
-/-lemma tot_sep_exists_clopen {H : Type*} [topological_space H] [totally_separated_space H]
-  (x y : H) (hxy : x ≠ y) : ∃ (U : set H) (hU : is_clopen U), x ∈ U ∧ y ∈ Uᶜ :=
-begin
-  obtain ⟨U, V, hU, hV, Ux, Vy, f, disj⟩ :=
-    totally_separated_space.is_totally_separated_univ H x (set.mem_univ x) y (set.mem_univ y) hxy,
-  have clopen_U := is_clopen_inter_of_disjoint_cover_clopen (is_clopen_univ) f hU hV disj,
-  rw set.univ_inter _ at clopen_U,
-  have g : V = Uᶜ,
-  { rw set.univ_subset_iff at f, rw [set.compl_eq_univ_diff _, <-f, set.union_diff_left], symmetry',
-     rw set.diff_eq_self, simp_rw disj,},
-  rw g at Vy, refine ⟨U, clopen_U, Ux, Vy⟩,
-end-/
 
 open_locale topological_space filter
 
@@ -206,7 +88,6 @@ begin
   { rw set.inter_assoc, rw this, rw set.inter_empty, },
   apply set.inter_empty_of_inter_sUnion_empty h _, rw set.compl_inter_self,
 end
---instance : measurable_set (clopen_sets X) :=
 
 lemma clopen_finite_Union {H : Type*} [topological_space H]
   [locally_compact_space H] [t2_space H] [totally_disconnected_space H] (s : finset(set H)) (hs : ∀ x ∈ s, is_clopen x) :
@@ -260,12 +141,6 @@ example (a b c : ℤ) : a ≤ b → b < c → a < c :=
 begin
   exact lt_of_le_of_lt,
 end
-
---instance scalar {A : Type*} [group A] : has_scalar A (locally_constant X A) := sorry
-
---instance scalar' {A : Type*} [normed_group A] : has_scalar A (locally_constant X A) := sorry
-
---lemma inc_sum : inclusion X ∑ (x in s), f x = ∑ (x in s), inclusion X f x :=
 
 def h {A : Type*} [normed_ring A] (ε : ℝ) : A → set A := λ (x : A), metric.ball x (ε / 4)
 
@@ -427,9 +302,6 @@ begin
   apply this.2,
 end).
 
-/-λ (x : X), f (c' X f ε t ht (classical.some (exists_of_exists_unique (ht3 X f ε t ht x)) )
-  (finset.mem_coe.1 (exists_prop.1 (exists_of_exists_unique (classical.some_spec (exists_of_exists_unique (ht3 X f ε t ht x))))).1) ) -/
-
 lemma loc_const : is_locally_constant (c2 X f ε t ht) :=
 begin
   have c2 := c2 X f ε t ht, -- this line must be useless because c2 is data and have forgets defns
@@ -535,12 +407,6 @@ begin
 end
 --end of density section
 
---instance bool' {H : Type*} [topological_space H] : boolean_algebra (clopen_sets H) :=
-/-begin
-  rw boolean_algebra,
-  constructor,
-end-/
-
 lemma clopen_coe (a b : clopen_sets X) : a.val = b.val → a = b :=
 begin
   rintros h,
@@ -571,8 +437,6 @@ begin
   { rintros x y, apply is_clopen.inter, },
 end
 
---instance : boolean_algebra (clopen_sets X) := sorry
-
 instance has_union' : has_union (clopen_sets X) :=
 begin
 constructor,
@@ -586,12 +450,6 @@ structure  distribution {R : Type*} [add_monoid R] :=
 (count_add ⦃f : ℕ → clopen_sets X⦄ :
   (∀ (S T : clopen_sets X), S ⊓ T = ⊥ →
   phi(S ∪ T) = phi S + phi T)) --define has_sup lattice structure via gi
-
-/-structure  distribution {R : Type*} [add_monoid R] :=
-(phi : clopen_sets X → R)
-(count_add ⦃f : ℕ → clopen_sets X⦄ :
-  (∀ i j, pairwise (disjoint on f) →
-  phi((f i) ∪ (f j)) = phi (f i) + phi (f j))) -/
 
 instance : has_scalar A (locally_constant X A) :=
 { smul := λ a f,
@@ -633,20 +491,12 @@ noncomputable def inclusion' [h : nonempty X] : continuous_linear_map A (locally
 --    simp only [continuous_map.coe_mk, continuous_map.smul_coe, smul_eq_mul, pi.smul_apply],
       refl, end }
 
-  --map_zero' := begin ext, refl, end,
-  --map_one' := begin ext, refl, end,
-  --map_mul' := λ x y, begin ext, refl, end,
-
 variable {A}
 
 structure distribution' [nonempty X] :=
 (phi : linear_map A (locally_constant X A) A)
 
 def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
-
-/-def measures' (h : nonempty X) :=
-  {φ : distribution' X h //
-    ∀ f : (locally_constant X A), ∃ K : ℝ, (v (φ.phi f) : ℝ) ≤ K * ∥inclusion X A f∥ } -/
 
 variable (A)
 
@@ -664,25 +514,11 @@ begin
   refine metric_space.induced (inclusion X A) (sub X) _, apply_instance,
 end
 
-/-instance pms [nonempty X] : pseudo_metric_space (locally_constant X A) := --because nonempty is a class, hence put it in []
-begin
-  refine pseudo_metric_space.induced (inclusion X A) _, apply_instance,
-end-/
-
-/-instance [nonempty X] : pseudo_metric_space (locally_constant X A) :=
-begin
-  refine pseudo_metric_space.induced (inclusion X A) _, apply_instance,
-end-/
-
 instance : has_norm (locally_constant X A) :=
 begin
   refine {norm := _},
   rintros f, exact ∥inclusion X A f∥,
 end
-
-/-instance (h : nonempty X) [decidable (@locally_constant.pseudo_metric_space X A _ h)] : ∀ (x y : locally_constant X A),
-  (@locally_constant.pseudo_metric_space X A _ h).dist x y =
-    (@locally_constant.has_norm X A _ h).norm (x - y) :=-/
 
 instance [nonempty X] : normed_group (locally_constant X A) :=
 {
@@ -694,11 +530,6 @@ instance [nonempty X] : normed_group (locally_constant X A) :=
   end,
   ..locally_constant.metric_space X A, ..locally_constant.has_norm X A,
 }
-/-begin
-  refine ⟨_, locally_constant.has_norm X h, _, locally_constant.pseudo_metric_space X h⟩,
-sorry
-end-/
---{ ..locally_constant.pseudo_metric_space X h, ..locally_constant.has_norm X h,   },
 
 example {α : Type*} [has_lt α] [has_le α] (a b c : ℤ) (h1 : a ≤ b) (h2 : b < c) : a < c :=
 begin
@@ -752,16 +583,6 @@ begin
   rw dist_eq_norm,
   rw ←continuous_linear_map.map_sub, refl,
 end
-
-/-noncomputable instance [h : nonempty X] : normed_ring C(X,A) :=
-{ norm_mul := λ f g, csupr_le $ λ x, le_trans (norm_mul_le _ _) (mul_le_mul
-    (le_csupr (bdd_above_compact_range_norm X f) x)
-    (le_csupr (bdd_above_compact_range_norm X g) x)
-    (norm_nonneg (g x))
-    (norm_nonneg f)),
---  ..continuous_map_ring,
-  ..(infer_instance : normed_group C(X,A))
-}-/
 
 instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
 { continuous_smul := begin
@@ -824,92 +645,13 @@ begin
   simp only [auto_param_eq], assumption,
 end
 
-/-structure dir_sys ( α : Type* ) :=
-(h : ℕ → finset α )
-(sys : ∀ (i j : ℕ) (hji : j ≤ i), (h i : set α) → (h j : set α))
-(hsys : ∀ (i j : ℕ) (hji : j ≤ i), function.surjective (sys i j hji) )
-(maps : ∀ i j k (h1 : k ≤ j) (h2 : j ≤ i), sys j k h1 ∘ sys i j h2  = sys i k (trans h1 h2) )
-
-variables {G : Type*} [comm_group G] {α : Type*} [ϕ : dir_sys α]
-
-open_locale big_operators
---set_option trace.class_instances
-structure distribution :=
-( φ : ↑(ϕ.h) → G )
-(sum : ∀ (i j : ℕ) (hi : j ≤ i) (x : ϕ.h j), φ j x = tsum (λ (y : (ϕ.lam i j hi)⁻¹ x), φ i y) ) -/
 
 structure system {X : Type*} [set X] :=
 ( h : ℕ → finset X )
 ( projlim : X = Prop ) --inverse limit
 
---variables {A : Type*} [integral_domain A] [algebra ℚ A]
-
 variables (p : ℕ) [fact p.prime]
 
-/-def dirichlet_char_space (f : ℕ) := { χ : mul_hom ℤ_[p] A // ∀ a : ℤ, gcd a f ≠ 1 → χ a = 0 }
---iff requires A to be an int dom
-
-lemma dir_char_zero_iff (f : ℕ) (χ : dirichlet_char_space A p f) (a : ℤ) :
-  gcd a f ≠ 1 → χ.val a = 0 := χ.prop a
-
-example {a b c : Prop} (f1 : a ↔ c) (f2 : b ↔ c) : a ∧ b ↔ c :=
-begin
-  split,
-  repeat { simp [f1, f2], },
-end
-
-example {α β : Type*} [has_mul β] (x y : α) (f g : α → β) : (f * g) x = f x * g x :=
-begin
-  refine pi.mul_apply f g x,
-end
-
-/-lemma int_cast_inducing : inducing (@int.cast A _ _ _ _) :=
-begin
-  suggest,
-end-/
-
-instance (f : ℕ) : monoid (dirichlet_char_space A p f) :=
-{
-  mul := begin
-        rintros a b, constructor, swap, constructor, swap, exact a.val * b.val,
-        { rintros x y, rw pi.mul_apply (a.val) (b.val), rw pi.mul_apply (a.val) (b.val),
-          rw pi.mul_apply (a.val) (b.val), --how to do it once
-          rw mul_hom.map_mul (a.val) x y, rw mul_hom.map_mul (b.val) x y, ring, },
-        rintros n, simp only [mul_hom.coe_mk, pi.mul_apply, subtype.val_eq_coe],
-        intro h,
-        have f1 := a.prop n h, rw f1, rw zero_mul,
-        end,
-  one := begin constructor, swap, constructor, swap,
-  set one : ℤ → A := λ n, if gcd n f = 1 then 1 else 0 with h,
-  rw padic_int.
-  apply dense_inducing.extend _ one,
-  apply_instance,
-  exact int.cast,
-  split,
-  swap, apply padic_int.dense_range_int_cast,
-
-
-  swap,
-  end,
-  one_mul := begin sorry end,
-  mul_one := begin sorry end,
-  mul_assoc := begin sorry end,
-} -/
-
---instance (f : ℤ) : group { χ : mul_hom ℤ A // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } := sorry
-
---instance : compact_space ℤ_[p] := sorry
---instance : locally_compact_space ℤ_[p] := infer_instance
---instance : totally_disconnected_space ℤ_[p] := sorry
-
 instance topo : topological_space (units ℤ_[p]) := infer_instance
---units Z_p → Z_p is a closed immersion (inj and image is closed) and has subspace topo
---instance : compact_space (units ℤ_[p]) := sorry
-
---instance : t2_space (units ℤ_[p]) := sorry
-
---instance : totally_disconnected_space (units ℤ_[p]) := sorry
-
---instance cat : (units ℤ_[p]) ∈ category_theory.Cat.objects Profinite :=
 
 instance topo' : topological_space (units A) := infer_instance

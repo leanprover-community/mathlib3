@@ -337,7 +337,7 @@ def to_colex_order_emb [linear_order α] :
 instance [linear_order α] : order_bot (finset.colex α) :=
 { bot := (∅ : finset α).to_colex,
   bot_le := λ x, empty_to_colex_le,
-  ..(infer_instance : partial_order (finset.colex α)) }
+  ..(by apply_instance : partial_order (finset.colex α)) }
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :

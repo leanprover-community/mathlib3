@@ -148,11 +148,7 @@ end
 
 lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_at f x) :
   conformal_at (c • f) x :=
-let p := (conformal_at_const_smul hc $ f x).comp x hf in
-begin
-  have : c • f = (λ x', c • x') ∘ f := by ext; simp only [pi.smul_apply, function.comp_app],
-  rw this, exact p,
-end
+(conformal_at_const_smul hc $ f x).comp x hf
 
 /-- A real differentiable map `f` is conformal at point `x` if and only if
     its differential `f'` at that point scales any inner product by a positive scalar. -/

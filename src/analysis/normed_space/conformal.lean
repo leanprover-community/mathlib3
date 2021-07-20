@@ -19,7 +19,7 @@ a linear isometry equivalence.
 * `conformal_at`: the main definition
 * The conformality of the composition of two conformal maps, the identity map
   and multiplications by a constant
-* `conformal_at.iff`: an equivalent definition of the conformality at some point
+* `conformal_at_iff`: an equivalent definition of the conformality at some point
 * `conformal_at.preserves_angle`: if a map is `conformal_at` some point, then its differential
                                   preserves all angles at that point
 

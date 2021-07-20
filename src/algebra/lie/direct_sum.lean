@@ -98,11 +98,11 @@ variables (R ι L)
 
 /-- The inclusion of each component into the direct sum as morphism of Lie algebras. -/
 @[simps] def lie_algebra_of [decidable_eq ι] (j : ι) : L j →ₗ⁅R⁆ ⨁ i, L i :=
-{ to_fun   := lof R ι L j,
+{ to_fun   := of L j,
   map_lie' := λ x y, by
   { ext i, by_cases h : j = i,
-    { rw ← h, simp, },
-    { simp [lof, single_eq_of_ne h], }, },
+    { rw ← h, simp [of], },
+    { simp [of, single_eq_of_ne h], }, },
   ..lof R ι L j, }
 
 /-- The projection map onto one component, as a morphism of Lie algebras. -/
@@ -116,32 +116,35 @@ variables (R ι L)
   (h : ∀ i, lie_algebra_component R ι L i x = lie_algebra_component R ι L i y) : x = y :=
 dfinsupp.ext h
 
-lemma lie_lof_of_ne [decidable_eq ι] {i j : ι} (hij : j ≠ i) (x : L i) (y : L j) :
-  ⁅lof R ι L i x, lof R ι L j y⁆ = 0 :=
+include R
+
+lemma lie_of_of_ne [decidable_eq ι] {i j : ι} (hij : j ≠ i) (x : L i) (y : L j) :
+  ⁅of L i x, of L j y⁆ = 0 :=
 begin
   apply lie_algebra_ext R ι L, intros k,
   rw lie_hom.map_lie,
-  simp only [component.of, linear_map.map_zero, lie_algebra_of_apply, lie_algebra_component_apply],
+  simp only [component, of, lapply_apply, single_add_hom_apply, lie_algebra_component_apply,
+    single_apply, zero_apply],
   by_cases hik : i = k,
   { simp only [dif_neg, not_false_iff, lie_zero, hik.symm, hij], },
   { simp only [dif_neg, not_false_iff, zero_lie, hik], },
 end
 
-lemma lie_lof_of_eq [decidable_eq ι] {i j : ι} (hij : j = i) (x : L i) (y : L j) :
-  ⁅lof R ι L i x, lof R ι L j y⁆ = lof R ι L i ⁅x, hij.rec_on y⁆ :=
+lemma lie_of_of_eq [decidable_eq ι] {i j : ι} (hij : j = i) (x : L i) (y : L j) :
+  ⁅of L i x, of L j y⁆ = of L i ⁅x, hij.rec_on y⁆ :=
 begin
-  have : lof R ι L j y = lof R ι L i (hij.rec_on y), { exact eq.drec (eq.refl _) hij, },
+  have : of L j y = of L i (hij.rec_on y), { exact eq.drec (eq.refl _) hij, },
   rw [this, ← lie_algebra_of_apply R ι L i ⁅x, hij.rec_on y⁆, lie_hom.map_lie,
     lie_algebra_of_apply, lie_algebra_of_apply],
 end
 
-@[simp] lemma lie_lof [decidable_eq ι] {i j : ι} (x : L i) (y : L j) :
-  ⁅lof R ι L i x, lof R ι L j y⁆ =
+@[simp] lemma lie_of [decidable_eq ι] {i j : ι} (x : L i) (y : L j) :
+  ⁅of L i x, of L j y⁆ =
   if hij : j = i then lie_algebra_of R ι L i ⁅x, hij.rec_on y⁆ else 0 :=
 begin
   by_cases hij : j = i,
-  { simp only [lie_lof_of_eq R ι L hij x y, hij, dif_pos, not_false_iff, lie_algebra_of_apply], },
-  { simp only [lie_lof_of_ne R ι L hij x y, hij, dif_neg, not_false_iff], },
+  { simp only [lie_of_of_eq R ι L hij x y, hij, dif_pos, not_false_iff, lie_algebra_of_apply], },
+  { simp only [lie_of_of_ne R ι L hij x y, hij, dif_neg, not_false_iff], },
 end
 
 variables {R L ι}
@@ -159,26 +162,27 @@ then this map is a morphism of Lie algebras. -/
       let f' := λ i, (f i : L i →ₗ[R] L'),
       /- The goal is linear in `y`. We can use this to reduce to the case that `y` has only one
         non-zero component. -/
-      suffices : ∀ (i : ι) (y : L i), to_module R ι L' f' ⁅x, lof R ι L i y⁆ =
-        ⁅to_module R ι L' f' x, to_module R ι L' f' (lof R ι L i y)⁆,
+      suffices : ∀ (i : ι) (y : L i), to_module R ι L' f' ⁅x, of L i y⁆ =
+        ⁅to_module R ι L' f' x, to_module R ι L' f' (of L i y)⁆,
       { simp only [← lie_algebra.ad_apply R, ← linear_map.comp_apply],
         congr, clear y, ext i y, exact this i y, },
       /- Similarly, we can reduce to the case that `x` has only one non-zero component. -/
-      suffices : ∀ i j (y : L i) (x : L j), to_module R ι L' f' ⁅lof R ι L j x, lof R ι L i y⁆ =
-        ⁅to_module R ι L' f' (lof R ι L j x), to_module R ι L' f' (lof R ι L i y)⁆,
+      suffices : ∀ i j (y : L i) (x : L j), to_module R ι L' f' ⁅of L j x, of L i y⁆ =
+        ⁅to_module R ι L' f' (of L j x), to_module R ι L' f' (of L i y)⁆,
       { intros i y,
         rw [← lie_skew x, ← lie_skew (to_module R ι L' f' x)],
         simp only [linear_map.map_neg, neg_inj, ← lie_algebra.ad_apply R, ← linear_map.comp_apply],
         congr, clear x, ext j x, exact this j i x y, },
-      /- Tidy up and use `lie_lof`. -/
+      /- Tidy up and use `lie_of`. -/
       intros i j y x,
-      simp only [to_module_lof, lie_algebra_of_apply, lie_hom.coe_to_linear_map, lie_lof],
+      simp only [lie_of R, lie_of, lie_algebra_of_apply, lie_hom.coe_to_linear_map, to_module_apply,
+        linear_map.to_add_monoid_hom_coe, to_add_monoid_of],
       /- And finish with trivial case analysis. -/
       rcases eq_or_ne i j with h | h,
       { have h' : f j (h.rec_on y) = f i y, { exact eq.drec (eq.refl _) h, },
-        simp only [h, to_module_lof, lie_hom.coe_to_linear_map, dif_pos, eq_self_iff_true,
-          lie_hom.map_lie, h'], },
-      { simp only [h, hf j i h.symm x y, linear_map.map_zero, dif_neg, not_false_iff], },
+        simp only [h, h', lie_hom.coe_to_linear_map, dif_pos, lie_hom.map_lie, to_add_monoid_of,
+          linear_map.to_add_monoid_hom_coe], },
+      { simp only [h, hf j i h.symm x y, dif_neg, not_false_iff, add_monoid_hom.map_zero], },
     end,
 .. to_module R ι L' (λ i, (f i : L i →ₗ[R] L')) }
 

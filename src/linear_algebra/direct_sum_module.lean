@@ -81,6 +81,10 @@ variables (R ι N φ)
 def to_module : (⨁ i, M i) →ₗ[R] N :=
 dfinsupp.lsum ℕ φ
 
+@[simp] lemma to_module_apply (f : ⨁ i, M i) :
+  to_module R ι N φ f = to_add_monoid (λ i, (φ i).to_add_monoid_hom) f :=
+rfl
+
 variables {ι N φ}
 
 /-- The map constructed using the universal property gives back the original maps when

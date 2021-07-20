@@ -249,6 +249,64 @@ begin
   exact mul_le_mul' (hbA hxa) (hbB hxb),
 end
 
+section big_operators
+open_locale big_operators
+
+variables {ι : Type*} [comm_monoid α]
+
+/-- The n-ary version of `set.mem_mul`. -/
+@[to_additive /-" The n-ary version of `set.mem_add`. "-/]
+lemma mem_finset_prod (t : finset ι) (f : ι → set α) (a : α) :
+  a ∈ ∏ i in t, f i ↔ ∃ (g : ι → α) (hg : ∀ {i}, i ∈ t → g i ∈ f i), ∏ i in t, g i = a :=
+begin
+  classical,
+  induction t using finset.induction_on with i is hi ih generalizing a,
+  { simp_rw [finset.prod_empty, set.mem_one],
+    exact ⟨λ h, ⟨λ i, a, λ i, false.elim, h.symm⟩, λ ⟨f, _, hf⟩, hf.symm⟩ },
+  rw [finset.prod_insert hi, set.mem_mul],
+  simp_rw [finset.prod_insert hi],
+  simp_rw ih,
+  split,
+  { rintros ⟨x, y, hx, ⟨g, hg, rfl⟩, rfl⟩,
+    refine ⟨function.update g i x, λ j hj, _, _⟩,
+    obtain rfl | hj := finset.mem_insert.mp hj,
+    { rw function.update_same, exact hx },
+    { rw update_noteq (ne_of_mem_of_not_mem hj hi), exact hg hj, },
+    rw [finset.prod_update_of_not_mem hi, function.update_same], },
+  { rintros ⟨g, hg, rfl⟩,
+    exact ⟨g i, is.prod g, hg (is.mem_insert_self _),
+      ⟨g, λ i hi, hg (finset.mem_insert_of_mem hi), rfl⟩, rfl⟩ },
+end
+
+/-- A version of `set.mem_finset_prod` with a simpler RHS for products over a fintype. -/
+@[to_additive /-" A version of `set.mem_finset_sum` with a simpler RHS for sums over a fintype. "-/]
+lemma mem_fintype_prod [fintype ι] (f : ι → set α) (a : α) :
+  a ∈ ∏ i, f i ↔ ∃ (g : ι → α) (hg : ∀ i, g i ∈ f i), ∏ i, g i = a :=
+by { rw mem_finset_prod, simp }
+
+/-- The n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" The n-ary version of `set.add_mem_add`. "-/]
+lemma finset_prod_mem_finset_prod (t : finset ι) (f : ι → set α)
+  (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
+  ∏ i in t, g i ∈ ∏ i in t, f i :=
+by { rw mem_finset_prod, exact ⟨g, hg, rfl⟩ }
+
+/-- The n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" The n-ary version of `set.add_subset_add`. "-/]
+lemma finset_prod_subset_finset_prod (t : finset ι) (f₁ f₂ : ι → set α)
+  (hf : ∀ {i}, i ∈ t → f₁ i ⊆ f₂ i) :
+  ∏ i in t, f₁ i ⊆ ∏ i in t, f₂ i :=
+begin
+  intro a,
+  rw [mem_finset_prod, mem_finset_prod],
+  rintro ⟨g, hg, rfl⟩,
+  exact ⟨g, λ i hi, hf hi $ hg hi, rfl⟩
+end
+
+/-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
+
+end big_operators
+
 /-! ### Properties about inversion -/
 @[to_additive set.has_neg]
 instance [has_inv α] : has_inv (set α) :=
@@ -339,6 +397,41 @@ ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_s
 
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=
 image2_singleton_left
+
+instance smul_comm_class_set {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class α (set β) (set γ) :=
+{ smul_comm := λ a T T',
+    by simp only [←image2_smul, ←image_smul, image2_image_right, image_image2, smul_comm] }
+
+instance smul_comm_class_set' {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class (set α) β (set γ) :=
+by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
+
+instance smul_comm_class {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class (set α) (set β) (set γ) :=
+{ smul_comm := λ T T' T'', begin
+    simp only [←image2_smul, image2_swap _ T],
+    exact image2_assoc (λ b c a, smul_comm a b c),
+  end }
+
+instance is_scalar_tower {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower α β (set γ) :=
+{ smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
+
+instance is_scalar_tower' {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower α (set β) (set γ) :=
+{ smul_assoc := λ a T T',
+    by simp only [←image_smul, ←image2_smul, image_image2, image2_image_left, smul_assoc] }
+
+instance is_scalar_tower'' {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower (set α) (set β) (set γ) :=
+{ smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
 section monoid
 

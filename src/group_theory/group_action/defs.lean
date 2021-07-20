@@ -83,6 +83,11 @@ class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=
 export mul_action (mul_smul) add_action (add_vadd) smul_comm_class (smul_comm)
   vadd_comm_class (vadd_comm)
 
+attribute [to_additive_reorder 1] has_pow
+attribute [to_additive_reorder 1 4] has_pow.pow
+attribute [to_additive has_scalar] has_pow
+attribute [to_additive has_scalar.smul] has_pow.pow
+
 /--
 Frequently, we find ourselves wanting to express a bilinear map `M →ₗ[R] N →ₗ[R] P` or an
 equivalence between maps `(M →ₗ[R] N) ≃ₗ[R] (M' →ₗ[R] N')` where the maps have an associated ring
@@ -233,15 +238,19 @@ rfl
 variable (α)
 
 /-- A multiplicative action of `M` on `α` and a monoid homomorphism `N → M` induce
-a multiplicative action of `N` on `α`. -/
-@[to_additive] def comp_hom [monoid N] (g : N →* M) :
+a multiplicative action of `N` on `α`.
+
+See note [reducible non-instances]. -/
+@[reducible, to_additive] def comp_hom [monoid N] (g : N →* M) :
   mul_action N α :=
 { smul := λ x b, (g x) • b,
   one_smul := by simp [g.map_one, mul_action.one_smul],
   mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
 
 /-- An additive action of `M` on `α` and an additive monoid homomorphism `N → M` induce
-an additive action of `N` on `α`. -/
+an additive action of `N` on `α`.
+
+See note [reducible non-instances]. -/
 add_decl_doc add_action.comp_hom
 
 end mul_action
@@ -299,8 +308,9 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar 
 
 variable (A)
 
-/-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m` -/
-def distrib_mul_action.comp_hom [monoid N] (f : N →* M) :
+/-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m`.
+See note [reducible non-instances]. -/
+@[reducible] def distrib_mul_action.comp_hom [monoid N] (f : N →* M) :
   distrib_mul_action N A :=
 { smul := (•) ∘ f,
   smul_zero := λ x, smul_zero (f x),

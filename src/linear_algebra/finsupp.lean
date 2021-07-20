@@ -91,7 +91,9 @@ variables (s : set α)
 
 /-- Interpret `finsupp.subtype_domain s` as a linear map. -/
 def lsubtype_domain : (α →₀ M) →ₗ[R] (s →₀ M) :=
-⟨subtype_domain (λx, x ∈ s), assume a b, subtype_domain_add, assume c a, ext $ assume a, rfl⟩
+{ to_fun := subtype_domain (λx, x ∈ s),
+  map_add' := λ a b, subtype_domain_add,
+  map_smul' := λ c a, ext $ λ a, rfl }
 
 lemma lsubtype_domain_apply (f : α →₀ M) :
   (lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)) f = subtype_domain (λx, x ∈ s) f := rfl
@@ -349,7 +351,7 @@ variables {α' : Type*} {α'' : Type*} (M R)
 
 /-- Interpret `finsupp.map_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
-⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
+{ to_fun := map_domain f, map_add' := λ a b, map_domain_add, map_smul' := map_domain_smul }
 
 @[simp] theorem lmap_domain_apply (f : α → α') (l : α →₀ M) :
   (lmap_domain M R f : (α →₀ M) →ₗ[R] (α' →₀ M)) l = map_domain f l := rfl
@@ -431,6 +433,22 @@ theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l (default α) • v (default α) :=
 by rw [← total_single, ← unique_single l]
 
+lemma total_surjective (h : function.surjective v) : function.surjective (finsupp.total α M R v) :=
+begin
+  intro x,
+  obtain ⟨y, hy⟩ := h x,
+  exact ⟨finsupp.single y 1, by simp [hy]⟩
+end
+
+theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
+range_eq_top.2 $ total_surjective R h
+
+/-- Any module is a quotient of a free module. This is stated as surjectivity of
+`finsupp.total M M R id : (M →₀ R) →ₗ[R] M`. -/
+lemma total_id_surjective (M) [add_comm_monoid M] [module R M] :
+  function.surjective (finsupp.total M M R id) :=
+total_surjective R function.surjective_id
+
 lemma range_total : (finsupp.total α M R v).range = span R (range v) :=
 begin
   ext x,
@@ -455,7 +473,7 @@ theorem lmap_domain_total (f : α → α') (g : M →ₗ[R] M') (h : ∀ i, g (v
   (finsupp.total α' M' R v').comp (lmap_domain R R f) = g.comp (finsupp.total α M R v) :=
 by ext l; simp [total_apply, finsupp.sum_map_domain_index, add_smul, h]
 
-theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
+@[simp] theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
   (finsupp.total α' M' R v') (emb_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
 by simp [total_apply, finsupp.sum, support_emb_domain, emb_domain_apply]
 
@@ -468,6 +486,10 @@ begin
   rw this,
   apply total_emb_domain R ⟨f, hf⟩ l
 end
+
+@[simp] theorem total_equiv_map_domain (f : α ≃ α') (l : α →₀ R) :
+  (finsupp.total α' M' R v') (equiv_map_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
+by rw [equiv_map_domain_eq_map_domain, total_map_domain _ _ f.injective]
 
 /-- A version of `finsupp.range_total` which is useful for going in the other direction -/
 theorem span_eq_range_total (s : set M) :
@@ -768,6 +790,28 @@ end finsupp
 variables {R : Type*} {M : Type*} {N : Type*}
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
 
+section
+variables (R)
+/--
+Pick some representation of `x : span R w` as a linear combination in `w`,
+using the axiom of choice.
+-/
+def span.repr (w : set M) (x : span R w) :
+  w →₀ R :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some
+
+@[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
+  finsupp.total w M R coe (span.repr R w x) = x :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+
+attribute [irreducible] span.repr
+
+end
+
+lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : submodule R M) (f : ι →₀ β)
+  (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+S.to_add_submonoid.finsupp_sum_mem f g h
+
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
   f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
@@ -799,6 +843,13 @@ begin
   have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
   exact hN i hi (hg _),
 end
+
+/-- `submodule.exists_finset_of_mem_supr` as an `iff` -/
+lemma submodule.mem_supr_iff_exists_finset
+  {ι : Sort*} {p : ι → submodule R M} {m : M} :
+  (m ∈ ⨆ i, p i) ↔ ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+⟨submodule.exists_finset_of_mem_supr p,
+ λ ⟨_, hs⟩, supr_le_supr (λ i, (supr_const_le : _ ≤ p i)) hs⟩
 
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=

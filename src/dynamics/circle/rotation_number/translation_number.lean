@@ -747,7 +747,7 @@ lemma translation_number_lt_of_forall_lt_add (hf : continuous f) {z : ℝ}
   (hz : ∀ x, f x < x + z) : τ f < z :=
 begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f y - y ≤ f x - x,
-    from compact_Icc.exists_forall_ge (nonempty_Icc.2 zero_le_one)
+    from is_compact_Icc.exists_forall_ge (nonempty_Icc.2 zero_le_one)
       (hf.sub continuous_id).continuous_on,
   refine lt_of_le_of_lt _ (sub_lt_iff_lt_add'.2 $ hz x),
   apply translation_number_le_of_le_add,
@@ -759,7 +759,7 @@ lemma lt_translation_number_of_forall_add_lt (hf : continuous f) {z : ℝ}
   (hz : ∀ x, x + z < f x) : z < τ f :=
 begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f x - x ≤ f y - y,
-    from compact_Icc.exists_forall_le (nonempty_Icc.2 zero_le_one)
+    from is_compact_Icc.exists_forall_le (nonempty_Icc.2 zero_le_one)
       (hf.sub continuous_id).continuous_on,
   refine lt_of_lt_of_le (lt_sub_iff_add_lt'.2 $ hz x) _,
   apply le_translation_number_of_add_le,

@@ -86,6 +86,14 @@ by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 lemma congr_left {a b c : α} : ⟦(b, a)⟧ = ⟦(c, a)⟧ ↔ b = c :=
 by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
+lemma eq_iff {x y z w : α} :
+  ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
+begin
+  split; intro h,
+  { rw quotient.eq at h, cases h; tidy },
+  { cases h; rw [h.1, h.2], rw eq_swap }
+end
+
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.
 -/
@@ -99,9 +107,21 @@ lemma map_id : sym2.map (@id α) = id := by tidy
 lemma map_comp {α β γ : Type*} {g : β → γ} {f : α → β} :
   sym2.map (g ∘ f) = sym2.map g ∘ sym2.map f := by tidy
 
+lemma map_map {α β γ : Type*} {g : β → γ} {f : α → β} (x : sym2 α) :
+  map g (map f x) = map (g ∘ f) x := by tidy
+
 @[simp]
-lemma map_pair_eq {α β : Type*} (f : α → β) (x y : α) : map f ⟦(x, y)⟧ = ⟦(f x, f y)⟧ :=
-by simp [map]
+lemma map_pair_eq {α β : Type*} (f : α → β) (x y : α) : map f ⟦(x, y)⟧ = ⟦(f x, f y)⟧ := rfl
+
+lemma map.injective {α β : Type*} {f : α → β} (hinj : injective f) : injective (map f) :=
+begin
+  intros z z',
+  refine quotient.ind₂ (λ z z', _) z z',
+  cases z with x y,
+  cases z' with x' y',
+  repeat { rw [map_pair_eq, eq_iff] },
+  rintro (h|h); simp [hinj h.1, hinj h.2],
+end
 
 section membership
 
@@ -131,14 +151,6 @@ classical.some h
 @[simp]
 lemma mem_other_spec {a : α} {z : sym2 α} (h : a ∈ z) : ⟦(a, h.other)⟧ = z :=
 by erw ← classical.some_spec h
-
-lemma eq_iff {x y z w : α} :
-  ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
-begin
-  split; intro h,
-  { rw quotient.eq at h, cases h; tidy },
-  { cases h; rw [h.1, h.2], rw eq_swap }
-end
 
 @[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
@@ -246,7 +258,7 @@ lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)
 mem_other_ne (from_rel_irreflexive.mp irrefl hz) h
 
 instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
-  decidable_pred (sym2.from_rel sym) :=
+  decidable_pred (∈ sym2.from_rel sym) :=
 λ z, quotient.rec_on_subsingleton z (λ x, h _ _)
 
 end relations

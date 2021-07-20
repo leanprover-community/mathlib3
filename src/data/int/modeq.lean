@@ -53,7 +53,7 @@ modeq_iff_dvd.2 $ dvd_trans d (modeq_iff_dvd.1 h)
 theorem modeq_mul_left' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
 or.cases_on (lt_or_eq_of_le hc) (λ hc,
   by unfold modeq;
-  simp [mul_mod_mul_of_pos _ _ hc, (show _ = _, from h)] )
+  simp [mul_mod_mul_of_pos hc, (show _ = _, from h)] )
 (λ hc, by simp [hc.symm])
 
 theorem modeq_mul_right' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD (n * c)] :=

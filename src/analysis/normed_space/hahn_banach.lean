@@ -3,13 +3,9 @@ Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.operator_norm
-import analysis.normed_space.extend
 import analysis.convex.cone
 import analysis.convex.topology
-import analysis.seminorm
-import analysis.specific_limits
-import data.complex.is_R_or_C
+import analysis.normed_space.extend
 
 /-!
 # Hahn-Banach theorem
@@ -47,6 +43,12 @@ lemma norm_norm'
   (A : Type*) [semi_normed_group A]
   (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
 by rw [norm'_def, norm_algebra_map_eq, norm_norm]
+
+@[simp] lemma norm'_eq_zero_iff
+  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
+  (A : Type*) [normed_group A] (x : A) :
+  norm' 𝕜 x = 0 ↔ x = 0 :=
+by simp [norm', ← norm_eq_zero, norm_algebra_map_eq]
 
 namespace real
 variables {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E]
@@ -120,7 +122,7 @@ end
 end is_R_or_C
 
 section dual_vector
-variables {𝕜 : Type v} [is_R_or_C 𝕜]
+variables (𝕜 : Type v) [is_R_or_C 𝕜]
 variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 open continuous_linear_equiv submodule
@@ -151,10 +153,10 @@ theorem exists_dual_vector' [nontrivial E] (x : E) :
 begin
   by_cases hx : x = 0,
   { obtain ⟨y, hy⟩ := exists_ne (0 : E),
-    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = norm' 𝕜 y := exists_dual_vector y hy,
+    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = norm' 𝕜 y := exists_dual_vector 𝕜 y hy,
     refine ⟨g, hg.left, _⟩,
     rw [norm'_def, hx, norm_zero, ring_hom.map_zero, continuous_linear_map.map_zero] },
-  { exact exists_dual_vector x hx }
+  { exact exists_dual_vector 𝕜 x hx }
 end
 
 end dual_vector

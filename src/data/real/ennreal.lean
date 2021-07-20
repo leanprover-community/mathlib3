@@ -214,7 +214,7 @@ lemma coe_mono : monotone (coe : ℝ≥0 → ℝ≥0∞) := λ _ _, coe_le_coe.2
 lemma coe_two : ((2:ℝ≥0) : ℝ≥0∞) = 2 := by norm_cast
 
 protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
-  canonically_ordered_semiring.zero_lt_one
+  canonically_ordered_comm_semiring.zero_lt_one
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
@@ -259,6 +259,48 @@ def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 ⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
+
+section actions
+
+/-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/
+instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
+mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
+
+lemma smul_def {M : Type*} [mul_action ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
+  c • x = (c : ℝ≥0∞) • x := rfl
+
+instance {M N : Type*} [mul_action ℝ≥0∞ M] [mul_action ℝ≥0∞ N] [has_scalar M N]
+  [is_scalar_tower ℝ≥0∞ M N] : is_scalar_tower ℝ≥0 M N :=
+{ smul_assoc := λ r, (smul_assoc (r : ℝ≥0∞) : _)}
+
+instance smul_comm_class_left {M N : Type*} [mul_action ℝ≥0∞ N] [has_scalar M N]
+  [smul_comm_class ℝ≥0∞ M N] : smul_comm_class ℝ≥0 M N :=
+{ smul_comm := λ r, (smul_comm (r : ℝ≥0∞) : _)}
+
+instance smul_comm_class_right {M N : Type*} [mul_action ℝ≥0∞ N] [has_scalar M N]
+  [smul_comm_class M ℝ≥0∞ N] : smul_comm_class M ℝ≥0 N :=
+{ smul_comm := λ m r, (smul_comm m (r : ℝ≥0∞) : _)}
+
+/-- A `distrib_mul_action` over `ℝ≥0∞` restricts to a `distrib_mul_action` over `ℝ≥0`. -/
+instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ≥0∞ M] : distrib_mul_action ℝ≥0 M :=
+distrib_mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
+
+/-- A `module` over `ℝ≥0∞` restricts to a `module` over `ℝ≥0`. -/
+instance {M : Type*} [add_comm_monoid M] [module ℝ≥0∞ M] : module ℝ≥0 M :=
+module.comp_hom M of_nnreal_hom
+
+/-- An `algebra` over `ℝ≥0∞` restricts to an `algebra` over `ℝ≥0`. -/
+instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
+{ smul := (•),
+  commutes' := λ r x, by simp [algebra.commutes],
+  smul_def' := λ r x, by simp [←algebra.smul_def (r : ℝ≥0∞) x, smul_def],
+  to_ring_hom := ((algebra_map ℝ≥0∞ A).comp (of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞)) }
+
+-- verify that the above produces instances we might care about
+example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
+example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
+
+end actions
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ≥0∞) = s.indicator (λ x, f x) a :=
@@ -413,7 +455,7 @@ by simp only [nonpos_iff_eq_zero.symm, max_le_iff]
 eq_of_forall_ge_iff $ λ c, sup_le_iff.trans max_le_iff.symm
 
 protected lemma pow_pos : 0 < a → ∀ n : ℕ, 0 < a^n :=
-  canonically_ordered_semiring.pow_pos
+  canonically_ordered_comm_semiring.pow_pos
 
 protected lemma pow_ne_zero : a ≠ 0 → ∀ n : ℕ, a^n ≠ 0 :=
 by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
@@ -544,7 +586,7 @@ end complete_lattice
 section mul
 
 @[mono] lemma mul_le_mul : a ≤ b → c ≤ d → a * c ≤ b * d :=
-canonically_ordered_semiring.mul_le_mul
+mul_le_mul'
 
 @[mono] lemma mul_lt_mul (ac : a < c) (bd : b < d) : a * b < c * d :=
 begin
@@ -1073,6 +1115,14 @@ end
 lemma inv_mul_cancel (h0 : a ≠ 0) (ht : a ≠ ∞) : a⁻¹ * a = 1 :=
 mul_comm a a⁻¹ ▸ mul_inv_cancel h0 ht
 
+lemma eq_inv_of_mul_eq_one (h : a * b = 1) : a = b⁻¹ :=
+begin
+  rcases eq_or_ne b ∞ with rfl|hb,
+  { have : false, by simpa [left_ne_zero_of_mul_eq_one h] using h,
+    exact this.elim },
+  { rw [← mul_one a, ← mul_inv_cancel (right_ne_zero_of_mul_eq_one h) hb, ← mul_assoc, h, one_mul] }
+end
+
 lemma mul_le_iff_le_inv {a b r : ℝ≥0∞} (hr₀ : r ≠ 0) (hr₁ : r ≠ ∞) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
 by rw [← @ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ← mul_assoc, mul_inv_cancel hr₀ hr₁, one_mul]
 
@@ -1082,6 +1132,9 @@ begin
   lift r to ℝ≥0 using ne_top_of_lt hr,
   exact h r hr
 end
+
+lemma le_of_forall_pos_nnreal_lt {x y : ℝ≥0∞} (h : ∀ r : ℝ≥0, 0 < r → ↑r < x → ↑r ≤ y) : x ≤ y :=
+le_of_forall_nnreal_lt $ λ r hr, (zero_le r).eq_or_lt.elim (λ h, h ▸ zero_le _) (λ h0, h r h0 hr)
 
 lemma eq_top_of_forall_nnreal_le {x : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r ≤ x) : x = ∞ :=
 top_unique $ le_of_forall_nnreal_lt $ λ r hr, h r
@@ -1469,20 +1522,36 @@ finset.induction_on s (by simp) $ assume a s ha ih,
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
 
+/-- If `x ≠ 0` and `x ≠ ∞`, then right multiplication by `x` maps infimum to infimum.
+See also `ennreal.infi_mul` that assumes `[nonempty ι]` but does not require `x ≠ 0`. -/
+lemma infi_mul_of_ne {ι} {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h0 : x ≠ 0) (h : x ≠ ∞) :
+  infi f * x = ⨅ i, f i * x :=
+le_antisymm
+  mul_right_mono.map_infi_le
+  ((div_le_iff_le_mul (or.inl h0) $ or.inl h).mp $ le_infi $
+    λ i, (div_le_iff_le_mul (or.inl h0) $ or.inl h).mpr $ infi_le _ _)
 
+/-- If `x ≠ ∞`, then right multiplication by `x` maps infimum over a nonempty type to infimum. See
+also `ennreal.infi_mul_of_ne` that assumes `x ≠ 0` but does not require `[nonempty ι]`. -/
 lemma infi_mul {ι} [nonempty ι] {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h : x ≠ ∞) :
-  infi f * x = ⨅i, f i * x :=
+  infi f * x = ⨅ i, f i * x :=
 begin
-  by_cases h2 : x = 0, simp only [h2, mul_zero, infi_const],
-  refine le_antisymm
-    (le_infi $ λ i, mul_right_mono $ infi_le _ _)
-    ((div_le_iff_le_mul (or.inl h2) $ or.inl h).mp $ le_infi $
-      λ i, (div_le_iff_le_mul (or.inl h2) $ or.inl h).mpr $ infi_le _ _)
+  by_cases h0 : x = 0,
+  { simp only [h0, mul_zero, infi_const] },
+  { exact infi_mul_of_ne h0 h }
 end
 
+/-- If `x ≠ ∞`, then left multiplication by `x` maps infimum over a nonempty type to infimum. See
+also `ennreal.mul_infi_of_ne` that assumes `x ≠ 0` but does not require `[nonempty ι]`. -/
 lemma mul_infi {ι} [nonempty ι] {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h : x ≠ ∞) :
-  x * infi f = ⨅i, x * f i :=
-by { rw [mul_comm, infi_mul h], simp only [mul_comm], assumption }
+  x * infi f = ⨅ i, x * f i :=
+by simpa only [mul_comm] using infi_mul h
+
+/-- If `x ≠ 0` and `x ≠ ∞`, then left multiplication by `x` maps infimum to infimum.
+See also `ennreal.mul_infi` that assumes `[nonempty ι]` but does not require `x ≠ 0`. -/
+lemma mul_infi_of_ne {ι} {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h0 : x ≠ 0) (h : x ≠ ∞) :
+  x * infi f = ⨅ i, x * f i :=
+by simpa only [mul_comm] using infi_mul_of_ne h0 h
 
 /-! `supr_mul`, `mul_supr` and variants are in `topology.instances.ennreal`. -/
 

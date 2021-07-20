@@ -127,13 +127,13 @@ attribute [to_additive] powers.mul_mem
 /-- The set of natural number powers of an element of a monoid `M` is a submonoid of `M`. -/
 @[to_additive "The set of natural number multiples of an element of
 an `add_monoid` `M` is an `add_submonoid` of `M`."]
-def powers.is_submonoid (x : M) : is_submonoid (powers x) :=
+lemma powers.is_submonoid (x : M) : is_submonoid (powers x) :=
 { one_mem := powers.one_mem,
   mul_mem := λ y z, powers.mul_mem }
 
 /-- A monoid is a submonoid of itself. -/
 @[to_additive "An `add_monoid` is an `add_submonoid` of itself."]
-def univ.is_submonoid : is_submonoid (@set.univ M) := by split; simp
+lemma univ.is_submonoid : is_submonoid (@set.univ M) := by split; simp
 
 /-- The preimage of a submonoid under a monoid hom is a submonoid of the domain. -/
 @[to_additive "The preimage of an `add_submonoid` under an `add_monoid` hom is
@@ -419,7 +419,7 @@ end monoid
 
 /-- Create a bundled submonoid from a set `s` and `[is_submonoid s]`. -/
 @[to_additive "Create a bundled additive submonoid from a set `s` and `[is_add_submonoid s]`."]
-def submonoid.of (s : set M) [h : is_submonoid s] : submonoid M := ⟨s, h.1, h.2⟩
+def submonoid.of {s : set M} (h : is_submonoid s) : submonoid M := ⟨s, h.1, h.2⟩
 
 @[to_additive]
 lemma submonoid.is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.2, S.3⟩

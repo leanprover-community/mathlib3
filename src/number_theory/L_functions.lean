@@ -105,14 +105,6 @@ variables {R : Type*} [normed_group R]
 --instance : normed_group C(X, R) := continuous_map.normed_group X R
 noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
 
-lemma norm_eq_supr_norm [nonempty X] (f : C(X, R)) : ∥f∥ = ⨆ x : X, ∥f x∥ :=
-begin
-  unfold has_norm.norm, symmetry',
-
---  apply Sup_eq_of_forall_le_of_forall_lt_exists_gt,
-  sorry,
-end
-
 --todo
 --instance completeness {R : Type*} [normed_group R] : complete_space C(X, R) := sorry
 
@@ -489,7 +481,7 @@ begin
 /-     set b : locally_constant X A :=
       (∑ s in T', if H : s ∈ T' then ((f (c' s H)) • (char_fn X (c s H))) else 0) with hb, -/
     { have : dist f (inclusion X A ⟨(c2 X f ε t ht), loc_const⟩) ≤ (ε/2),
-      { rw dist_eq_norm, rw norm_eq_supr_norm,
+      { rw [dist_eq_norm, continuous_map.norm_eq_supr_norm],
         refine cSup_le _ _,
         { rw set.range_nonempty_iff_nonempty, assumption, },
         { rintros m hm, rw set.mem_range at hm, cases hm with y hy, rw ←hy, have ht3 := ht3 y, rcases ht3 with ⟨w, wT, hw⟩,
@@ -782,7 +774,7 @@ instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
     refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
     rw dist_eq_norm at hb ⊢,
     refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
-    rw norm_eq_supr_norm,
+    rw continuous_map.norm_eq_supr_norm,
     apply csupr_le,
     intro x,
     apply le_of_lt,

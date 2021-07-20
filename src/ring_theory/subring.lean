@@ -380,6 +380,10 @@ noncomputable def equiv_map_of_injective
   map_add' := λ _ _, subtype.ext (f.map_add _ _),
   ..equiv.set.image f s hf  }
 
+@[simp] lemma coe_equiv_map_of_injective_apply
+  (f : R →+* S) (hf : function.injective f) (x : s) :
+  (equiv_map_of_injective s f hf x : S) = f x := rfl
+
 end subring
 
 namespace ring_hom

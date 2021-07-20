@@ -426,6 +426,10 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
   (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf  }
 
+@[simp] lemma coe_equiv_map_of_injective_apply
+  (f : M →* N) (hf : function.injective f) (x : S) :
+  (equiv_map_of_injective S f hf x : N) = f x := rfl
+
 /-- An induction principle on elements of the type `submonoid.closure s`.
 If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
 holds for all elements of the closure of `s`.

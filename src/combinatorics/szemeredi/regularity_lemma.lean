@@ -83,8 +83,8 @@ begin
   { rw [←hscard, zero_div, zero_mul, add_zero, ←ht, le_div_iff htcard, div_pow, sq (t.card : ℝ),
       div_mul_eq_mul_div_comm, div_self_mul_self', mul_inv_le_iff htcard],
     simpa using sum_mul_sq_le_sq_mul_sq t (λ _, 1) f },
-  have htzero : (t.card : ℝ) ≠ 0 := htcard.ne.symm,
-  have hszero : (s.card : ℝ) ≠ 0 := hscard.ne.symm,
+  have htzero : (t.card : ℝ) ≠ 0 := htcard.ne',
+  have hszero : (s.card : ℝ) ≠ 0 := hscard.ne',
   rw div_eq_iff htzero at ht,
   rw div_eq_iff hszero at hs,
   suffices h : (∑ x in s, (f x - a))^2 ≤ s.card * (∑ x in t, (f x - a)^2),
@@ -118,7 +118,7 @@ begin
   have hAB' : (0 : ℝ) < A'.card * B'.card := by exact_mod_cast mul_pos hA' hB',
   have hAB : (0 : ℝ) < A.card * B.card := by exact_mod_cast mul_pos (hA'.trans_le
     (finset.card_le_of_subset hA)) (hB'.trans_le (finset.card_le_of_subset hB)),
-  rw [pairs_density, pairs_density, div_mul_div, mul_comm, div_mul_div_cancel _ hAB'.ne.symm,
+  rw [pairs_density, pairs_density, div_mul_div, mul_comm, div_mul_div_cancel _ hAB'.ne',
     div_le_div_right hAB, nat.cast_le],
   exact finset.card_le_of_subset (pairs_finset_mono r hA hB),
 end
@@ -208,7 +208,7 @@ lemma LemmaA {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} 
   abs (pairs_density r A' B' - pairs_density r A B) ≤ 2 * δ :=
 begin
   cases le_or_lt 1 δ,
-  { apply (abs_sub _ _).trans,
+  { refine (abs_sub _ _).trans _,
     rw [abs_of_nonneg (pairs_density_nonneg r _ _), abs_of_nonneg (pairs_density_nonneg r A B),
       two_mul],
     exact add_le_add ((pairs_density_le_one r _ _).trans h)
@@ -280,7 +280,7 @@ begin
     rw [distinct_pairs_card, div_mul_eq_mul_div, one_mul],
     convert choose_le_pow 2 _,
     norm_num },
-  rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
+  rw [finset.card_eq_sum_ones, nat.cast_sum, nat.cast_one],
   refine finset.sum_le_sum (λ s _, _),
   rw [sq, ←abs_le_one_iff_mul_self_le_one, abs_eq_self.2 (G.edge_density_nonneg _ _)],
   exact G.edge_density_le_one _ _,
@@ -595,7 +595,7 @@ lemma card_filter_mk_equitable_small (Q : finpartition_on s) {m a b : ℕ} (hm :
   (h : a*m + b*(m+1) = s.card) :
   ((Q.mk_equitable h).parts.filter (λ u : finset α, u.card = m)).card = a :=
 begin
-  refine (mul_eq_mul_right_iff.1 $ (add_left_inj $ b * (m + 1)).1 _).resolve_right hm.ne.symm,
+  refine (mul_eq_mul_right_iff.1 $ (add_left_inj $ b * (m + 1)).1 _).resolve_right hm.ne',
   rw [h, ←(Q.mk_equitable h).sum_card_parts],
   have hunion : (Q.mk_equitable h).parts = (Q.mk_equitable h).parts.filter (λ u, u.card = m) ∪
     (Q.mk_equitable h).parts.filter (λ u, u.card = m + 1),
@@ -728,7 +728,7 @@ begin
   exact ⟨_, hY'₂, hY₂⟩,
 end
 
-lemma card_atomise {s : finset α} {Q : finset (finset α)} :
+lemma card_atomise_le {s : finset α} {Q : finset (finset α)} :
   ((atomise s Q).parts).card ≤ 2^Q.card :=
 begin
   apply (card_le_of_subset (sdiff_subset _ _)).trans,
@@ -830,8 +830,11 @@ lemma exp_bound_mono :
   monotone exp_bound :=
 λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
-lemma exp_bound_pos {n : ℕ} (hn : 0 < n) : 0 < exp_bound n :=
-hn.trans_le (le_exp_bound n)
+lemma exp_bound_pos {n : ℕ} : 0 < exp_bound n ↔ 0 < n :=
+begin
+  rw exp_bound,
+  exact zero_lt_mul_right (pow_pos (by norm_num) _),
+end
 
 open_locale classical
 variables [fintype α] {G : simple_graph α} {P : finpartition α} {ε : ℝ}
@@ -839,9 +842,31 @@ variables [fintype α] {G : simple_graph α} {P : finpartition α} {ε : ℝ}
 local notation `m` := (card α/exp_bound P.size : ℕ)
 local notation `a` := (card α/P.size - m * 4^P.size : ℕ)
 
-private lemma hundred_div_ε_pow_five_le_m : 100/ε^5 ≤ m :=
+lemma m_pos [nonempty α] (hPα : P.size * 16^P.size ≤ card α) : 0 < m :=
 begin
+  refine nat.div_pos ((nat.mul_le_mul_left _ (nat.pow_le_pow_of_le_left (by norm_num) _)).trans hPα)
+    _,
+  rw [exp_bound_pos, size_eq_card_parts, card_pos],
+  exact P.parts_nonempty,
+end
 
+private lemma hundred_div_ε_pow_five_le_m [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+  (hPε : 100 ≤ 4^P.size * ε^5) :
+  100/ε^5 ≤ m :=
+begin
+  calc
+    100/ε^5
+        ≤ 4^P.size : div_le_of_nonneg_of_le_mul (nonneg_of_mul_nonneg_left
+          (le_trans (by norm_num) hPε) (pow_pos (by norm_num) _)) (pow_nonneg (by norm_num) _) hPε
+    ... = ((P.size * 16^P.size)/exp_bound P.size : ℕ) : begin
+      norm_cast,
+      refine (nat.div_eq_of_eq_mul_left _ _).symm,
+      { rw [exp_bound_pos, size_eq_card_parts, card_pos],
+        exact P.parts_nonempty },
+      rw [exp_bound, mul_comm (4^P.size), mul_assoc, ←mul_pow],
+      norm_num,
+    end
+    ... ≤ m : nat.cast_le.2 (nat.div_le_div_right hPα)
 end
 
 private lemma a_add_one_le_four_pow_size :
@@ -951,20 +976,65 @@ begin
     ... = A.card * (m + 1)/m * u.card : by rw [div_mul_eq_mul_div, mul_div_assoc],
 end
 
-lemma density_sub_eps_le_sum_density_div_card (hε : 0 ≤ ε)
+lemma one_sub_le_m_div_m_add_one_sq [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+  (hPε : 100 ≤ 4^P.size * ε^5) :
+  1 - ε^5/50 ≤ (m/(m + 1))^2 :=
+begin
+  have hε : 0 < ε^5 := pos_of_mul_pos_left (lt_of_lt_of_le (by norm_num) hPε)
+    (pow_nonneg (by norm_num) _),
+  calc
+    1 - ε^5/50
+        = 1 - 2/(100/ε^5) : begin
+          rw [div_div_eq_mul_div, mul_comm, mul_div_assoc, div_eq_mul_one_div],
+          norm_num,
+         end
+    ... ≤ 1 - 2/m : sub_le_sub_left (div_le_div_of_le_left zero_le_two
+          (div_pos (by norm_num) hε) (hundred_div_ε_pow_five_le_m hPα hPε)) _
+    ... ≤ 1 - 2/(m + 1) : sub_le_sub_left (div_le_div_of_le_left zero_le_two
+          (nat.cast_pos.2 (m_pos hPα)) ((le_add_iff_nonneg_right _).2 zero_le_one)) _
+    ... ≤ 1 - 2/(m + 1) + 1/(m + 1)^2
+        : le_add_of_nonneg_right (div_nonneg zero_le_one (sq_nonneg _))
+    ... = ((m + 1 - 1)/(m + 1))^2 : by rw [sub_div, div_self (nat.cast_add_one_ne_zero m :
+            (m : ℝ) + 1 ≠ 0), sub_sq, div_pow, one_pow, mul_one, mul_one_div]
+    ... = (m/(m + 1))^2 : by rw add_sub_cancel,
+end
+
+lemma m_add_one_div_m_le_one_add [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+  (hPε : 100 ≤ 4^P.size * ε^5) (hm : 25 ≤ m) :
+  ((m + 1 : ℝ)/m)^2 ≤ 1 + ε^5/49 :=
+begin
+  have hm' : (0 : ℝ) < m,
+  { rw ←nat.cast_zero,
+    exact lt_of_lt_of_le (by norm_num) (nat.cast_le.2 hm) },
+  rw [←sub_le_iff_le_add', add_comm],
+  calc
+    ((1 + m : ℝ)/m)^2 - 1
+        = 1/m/m + 2/m : by rw [add_div, div_self hm'.ne', add_sq, div_pow, one_pow, mul_one,
+          mul_one_div, sq, ←div_div_eq_div_mul, add_sub_cancel]
+    ... ≤ 1/25/m + 2/m : begin
+      refine add_le_add_right (div_le_div_of_le_of_nonneg (div_le_div_of_le_left zero_le_one
+        (by norm_num) _) (nat.cast_nonneg _)) _,
+      rw (by norm_num : (25 : ℝ) = (25 : ℕ)),
+      exact nat.cast_le.2 hm,
+    end
+    ... = (1/25 + 2)/m : (add_div _ _ _).symm
+    ... ≤ 100/49/m : div_le_div_of_le_of_nonneg (by norm_num) (nat.cast_nonneg _)
+    ... ≤ ε^5/49 : begin
+      rw div_right_comm,
+      refine div_le_div_of_le_of_nonneg _ (by norm_num),
+      rw [div_le_iff hm', mul_comm, ←div_le_iff
+        (pos_of_mul_pos_left (lt_of_lt_of_le (by norm_num) hPε) (pow_nonneg (by norm_num) _))],
+      exact hundred_div_ε_pow_five_le_m hPα hPε,
+    end
+end
+
+lemma density_sub_eps_le_sum_density_div_card [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+  (hPε : 100 ≤ 4^P.size * ε^5)
   {U W : finset α} {hU : U ∈ P.parts} {hW : W ∈ P.parts} {A B : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
   G.edge_density (A.bUnion id) (B.bUnion id) - ε^5/50 ≤
   (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) :=
 begin
-  have le_m : 1 - ε^5/50 ≤ (m/(m + 1))^2,
-  {
-    sorry
-  },
-  have m_le : ((m + 1)/m : ℝ)^2 ≤ 1 + ε^5/49,
-  {
-    sorry
-  },
   calc
     G.edge_density (A.bUnion id) (B.bUnion id) - ε^5/50
         ≤ (1 - ε^5/50) * G.edge_density (A.bUnion id) (B.bUnion id)
@@ -974,7 +1044,8 @@ begin
               (by norm_num)) (G.edge_density_le_one _ _)) _,
           end
     ... ≤ (m/(m + 1))^2 * G.edge_density (A.bUnion id) (B.bUnion id)
-        : mul_le_mul_of_nonneg_right le_m (G.edge_density_nonneg _ _)
+        : mul_le_mul_of_nonneg_right (one_sub_le_m_div_m_add_one_sq hPα hPε)
+          (G.edge_density_nonneg _ _)
     ... = pairs_count G.adj (A.bUnion id) (B.bUnion id) /
           ((A.bUnion id).card/(m/(m + 1)) * ((B.bUnion id).card/(m/(m + 1))))
         : begin
@@ -988,7 +1059,7 @@ begin
         : begin
             rw [relation.pairs_count_finpartition hA.finpartition_on hB.finpartition_on,
               ←hA.finpartition_on.sum_card_parts, ←hB.finpartition_on.sum_card_parts],
-            simp only [sum_nat_cast],
+            simp only [nat.cast_sum],
             rw [sum_div, hA.finpartition_on_parts, hB.finpartition_on_parts],
           end
     ... ≤ ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/(A.card * ab.1.card *
@@ -1013,41 +1084,15 @@ begin
             refine finset.sum_congr rfl (λ x _, _),
             rw [mul_comm (B.card : ℝ), ←mul_assoc, ←mul_assoc, mul_comm _ (A.card : ℝ), ←mul_assoc],
           end,
-end.
-
-lemma thing : 1 - ε^5/50 ≤ (m/(m + 1))^2 :=
-begin
-  calc
-    1 - ε^5/50
-        = 1 - 2/(100/ε^5) : begin
-          rw [div_div_eq_mul_div, mul_comm, mul_div_assoc, div_eq_mul_one_div],
-          norm_num,
-         end
-    ... ≤ 1 - 2/m : begin
-      apply sub_le_sub_left,
-      apply div_le_div_of_le_left,
-    end
-    ... ≤ 1 - 2/(m + 1) : sorry
-    ... ≤ 1 - 2/(m + 1) + 1/(m + 1)^2 : sorry
-    ... = (m/(m + 1))^2 : sorry
 end
 
-#exit
-
-lemma sum_density_div_card_le_density_add_eps (hε : 0 ≤ ε) (hm : 0 < m)
+lemma sum_density_div_card_le_density_add_eps [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
+  (hPε : 100 ≤ 4^P.size * ε^5) (hm : 25 ≤ m)
   {U W : finset α} {hU : U ∈ P.parts} {hW : W ∈ P.parts} {A B : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
   (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) ≤
   G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49 :=
 begin
-  have le_m : 1 - ε^5/50 ≤ (m/(m + 1))^2,
-  {
-    sorry
-  },
-  have m_le : ((m + 1)/m : ℝ)^2 ≤ 1 + ε^5/49,
-  {
-    sorry
-  },
   have m_add_one_div_m_pos : (0 : ℝ) < (m + 1)/m :=
     div_pos (nat.cast_add_one_pos _) (nat.cast_pos.2 hm),
   calc
@@ -1089,7 +1134,8 @@ begin
             ring,
           end
     ... ≤ (1 + ε^5/49) * G.edge_density (A.bUnion id) (B.bUnion id)
-          : mul_le_mul_of_nonneg_right m_le (G.edge_density_nonneg _ _)
+        : mul_le_mul_of_nonneg_right (m_add_one_div_m_le_one_add hPα hPε hm)
+          (G.edge_density_nonneg _ _)
     ... ≤ G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49
         : begin
             rw [add_mul, one_mul],
@@ -1113,8 +1159,8 @@ open finpartition_on.is_equipartition
 
 namespace increment
 
-protected lemma size (hP : P.is_equipartition)
-  (hε : 100 < ε^5 * 4^P.size) (hPα : P.size * 16^P.size ≤ card α) (hPG : ¬P.is_uniform G ε) :
+protected lemma size (hP : P.is_equipartition) (hPα : P.size * 16^P.size ≤ card α)
+  (hPG : ¬P.is_uniform G ε) :
   (hP.increment G ε).size = exp_bound P.size :=
 begin
   have hPα' : exp_bound P.size ≤ card α :=
@@ -1128,7 +1174,8 @@ begin
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
   exact λ x hx, finpartition_on.mk_equitable.size (nat.div_pos hPα' hPpos) _,
   exact λ x hx, finpartition_on.mk_equitable.size (nat.div_pos hPα' hPpos) _,
-  rw [nat.sub_add_cancel a_add_one_le_four_pow_size, nat.sub_add_cancel ((nat.le_succ _).trans a_add_one_le_four_pow_size), ←add_mul],
+  rw [nat.sub_add_cancel a_add_one_le_four_pow_size, nat.sub_add_cancel ((nat.le_succ _).trans
+    a_add_one_le_four_pow_size), ←add_mul],
   congr,
   rw [filter_card_add_filter_neg_card_eq_card, card_attach, finpartition_on.size],
 end

@@ -471,6 +471,8 @@ variables {s : finset α} (P : finpartition_on s)
 /-- The size of a finpartition is its number of parts. -/
 protected def size : ℕ := P.parts.card
 
+lemma size_eq_card_parts : P.size = P.parts.card := rfl
+
 lemma disjoint' [decidable_eq α] (a₁ : finset α) (ha₁ : a₁ ∈ P.parts) (a₂ : finset α)
   (ha₂ : a₂ ∈ P.parts)
   (h : a₁ ≠ a₂) :
@@ -570,6 +572,14 @@ begin
 end
 
 end finpartition_on
+
+namespace finpartition
+variables [fintype α] (P : finpartition α)
+
+lemma parts_nonempty [nonempty α] : P.parts.nonempty :=
+P.nonempty_parts_iff.2 univ_nonempty
+
+end finpartition
 
 /-! # pairs_count with finpartition -/
 

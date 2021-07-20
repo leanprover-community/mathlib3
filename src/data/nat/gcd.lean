@@ -341,10 +341,9 @@ theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m)
 lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime (a ^ n) b ↔ nat.coprime a b :=
 begin
-  cases n with n,
-  { exact (lt_irrefl _ hn).elim },
-  { rw [pow_succ, nat.coprime_mul_iff_left],
-    exact iff.intro and.left (λ hab, ⟨hab, coprime.pow_left _ hab⟩) }
+  obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn.ne',
+  rw [pow_succ, nat.coprime_mul_iff_left],
+  exact ⟨and.left, λ hab, ⟨hab, hab.pow_left _⟩⟩
 end
 
 lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :

@@ -201,7 +201,7 @@ function.bijective $ to_module R ι L $ λ i, ((I i).incl : I i →ₗ[R] L)
 Typeclass.20resolution.20under.20binders/near/245151099). -/
 instance lie_ring_of_ideals : lie_ring (⨁ i, I i) := direct_sum.lie_ring (λ i, ↥(I i))
 
-/-- See `lie_ring_of_ideals` comment. -/
+/-- See `direct_sum.lie_ring_of_ideals` comment. -/
 instance lie_algebra_of_ideals : lie_algebra R (⨁ i, I i) := direct_sum.lie_algebra (λ i, ↥(I i))
 
 end ideals

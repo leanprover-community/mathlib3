@@ -422,11 +422,12 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
 /-- A submonoid is isomorphic to its image under an injective function -/
-@[to_additive] noncomputable def equiv_map_of_injective
+@[to_additive "An additive submonoid is isomorphic to its image under an injective function"]
+noncomputable def equiv_map_of_injective
   (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf  }
 
-@[simp] lemma coe_equiv_map_of_injective_apply
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply
   (f : M →* N) (hf : function.injective f) (x : S) :
   (equiv_map_of_injective S f hf x : N) = f x := rfl
 

@@ -173,10 +173,7 @@ by choose c hc huv using (conformal_at_iff h).mp H; exact c
 lemma _root_.preserves_angle {f : E → F} {x : E} {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
   inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
-let ⟨f₁, h₁, c₁, hc₁, li, h₂⟩ := H in
-begin
-  rw has_fderiv_at.unique h h₁, exact is_conformal_map.preserves_angle f₁ ⟨c₁, hc₁, li, h₂⟩ u v,
-end
+let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ c.preserves_angle f₁ u v
 
 end conformal_at
 

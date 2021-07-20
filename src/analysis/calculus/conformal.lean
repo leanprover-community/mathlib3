@@ -82,7 +82,7 @@ def conformal_factor_at {f : E → F} (x : E) {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) :=
 classical.some (conformal_factor_aux x h H)
 
-lemma conformal_factor_prop {f : E → F} (x : E) {f' : E →L[ℝ] F}
+lemma conformal_factor_at_prop {f : E → F} (x : E) {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) :
   0 < conformal_factor_at x h H ∧
   ∀ (u v : E), ⟪f' u, f' v⟫ = (conformal_factor_at x h H : ℝ) * ⟪u, v⟫ :=

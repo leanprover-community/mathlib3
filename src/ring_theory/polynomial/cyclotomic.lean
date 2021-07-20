@@ -222,11 +222,11 @@ begin
   cases nat.eq_zero_or_pos k with hzero hpos,
   { use 1,
     simp only [hzero, cyclotomic'_zero, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
-    map_one, ring_hom.coe_of, and_self], },
+    coe_map_ring_hom, map_one, ring_hom.coe_of, and_self] },
   by_cases hone : k = 1,
   { use X - 1,
     simp only [hone, cyclotomic'_one K, set.mem_univ, pnat.one_coe, subsemiring.coe_top,
-    eq_self_iff_true, map_X, map_one, ring_hom.coe_of, and_self, map_sub] },
+    eq_self_iff_true, map_X, coe_map_ring_hom, map_one, ring_hom.coe_of, and_self, map_sub], },
   let B : polynomial K := ∏ i in nat.proper_divisors k, cyclotomic' i K,
   have Bmo : B.monic,
   { apply monic_prod_of_monic,
@@ -253,6 +253,7 @@ begin
   replace huniq := div_mod_by_monic_unique (cyclotomic' k K) (0 : polynomial K) Bmo huniq,
   simp only [lifts, ring_hom.coe_of, ring_hom.mem_srange],
   use Q₁,
+  rw coe_map_ring_hom,
   rw [(map_div_by_monic (int.cast_ring_hom K) hB₁mo), hB₁, ← huniq.1],
   simp
 end

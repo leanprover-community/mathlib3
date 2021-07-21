@@ -16,9 +16,8 @@ is normed) that `∥f x∥` is bounded by a multiple of `∥x∥`. Hence the "bo
 
 ## Main declarations
 
-* `is_bounded_linear_map`: Class stating that a map `f : E → F` is linear and continuous, but
-  through the simpler to provide statement that `∥f x∥` is bounded by a multiple of `∥x∥`.
-  Effectively an unbundled version of `continuous_linear_map`, albeit the name disparity.
+* `is_bounded_linear_map`: Class stating that a map `f : E → F` is linear and has `∥f x∥` bounded
+  by a multiple of `∥x∥`.
 * `is_bounded_bilinear_map`: Class stating that a map `f : E × F → G` is bilinear and continuous,
   but through the simpler to provide statement that `∥f (x, y)∥` is bounded by a multiple of
   `∥x∥ * ∥y∥`
@@ -34,8 +33,10 @@ The main use of this file is `is_bounded_bilinear_map`. The file `analysis.norme
 already expounds the theory of multilinear maps, but the `2`-variables case is sufficiently simpler
 to currently deserve its own treatment.
 
-A bundled `continuous_linear_map` is to be preferred over a function with a `is_bounded_linear_map`
-hypothesis. The former is developed in `analysis.normed_space.operator_norm`.
+`is_bounded_linear_map` is effectively an unbundled version of `continuous_linear_map` (developed
+in `analysis.normed_space.operator_norm`), albeit the name disparity. A bundled
+`continuous_linear_map` is to be preferred over a `is_bounded_linear_map` hypothesis. Historical
+artifact, really.
 -/
 
 noncomputable theory

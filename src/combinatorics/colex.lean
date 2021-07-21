@@ -181,16 +181,18 @@ end
 
 instance [linear_order α] : is_trichotomous (finset.colex α) (<) := ⟨lt_trichotomy⟩
 
-instance decidable_lt [linear_order α] {A B : finset α} : decidable (A.to_colex < B.to_colex) :=
-decidable_of_iff' (∃ (k ∈ B), (∀ x ∈ A ∪ B, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A)
-begin
-  rw colex.lt_def,
-  apply exists_congr,
-  simp only [mem_union, exists_prop, or_imp_distrib, and_comm (_ ∈ B), and_assoc],
-  intro k,
-  refine and_congr_left' (forall_congr _),
-  tauto,
-end
+instance decidable_lt [linear_order α] : ∀ {A B : finset.colex α}, decidable (A < B) :=
+show ∀ A B : finset α, decidable (A.to_colex < B.to_colex),
+from λ A B, decidable_of_iff'
+  (∃ (k ∈ B), (∀ x ∈ A ∪ B, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A)
+  begin
+    rw colex.lt_def,
+    apply exists_congr,
+    simp only [mem_union, exists_prop, or_imp_distrib, and_comm (_ ∈ B), and_assoc],
+    intro k,
+    refine and_congr_left' (forall_congr _),
+    tauto,
+  end
 
 instance [linear_order α] : linear_order (finset.colex α) :=
 { le_refl := λ A, or.inr rfl,
@@ -198,9 +200,9 @@ instance [linear_order α] : linear_order (finset.colex α) :=
   le_antisymm := λ A B AB BA, AB.elim (λ k, BA.elim (λ t, (asymm k t).elim) (λ t, t.symm)) id,
   le_total := λ A B,
           (lt_trichotomy A B).elim3 (or.inl ∘ or.inl) (or.inl ∘ or.inr) (or.inr ∘ or.inl),
-  decidable_le := λ A B, @or.decidable _ _ colex.decidable_lt _,
-  decidable_lt := λ A B, colex.decidable_lt,
-  decidable_eq := λ A B, decidable_of_iff' (A.to_colex = B.to_colex) iff.rfl,
+  decidable_le := λ A B, by apply_instance,
+  decidable_lt := λ A B, by apply_instance,
+  decidable_eq := λ A B, by apply_instance,
   lt_iff_le_not_le := λ A B,
   begin
     split,

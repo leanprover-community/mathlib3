@@ -230,6 +230,10 @@ def subgroup.topological_closure (s : subgroup G) : subgroup G :=
   inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
   ..s.to_submonoid.topological_closure }
 
+@[simp, to_additive] lemma subgroup.topological_closure_coe {s : subgroup G} :
+  (s.topological_closure : set G) = closure s :=
+rfl
+
 @[to_additive]
 instance subgroup.topological_closure_topological_group (s : subgroup G) :
   topological_group (s.topological_closure) :=
@@ -253,6 +257,16 @@ by convert is_closed_closure
   (s : subgroup G) {t : subgroup G} (h : s ≤ t) (ht : is_closed (t : set G)) :
   s.topological_closure ≤ t :=
 closure_minimal h ht
+
+@[to_additive] lemma dense_range.topological_closure_map_subgroup [group H] [topological_space H]
+  [topological_group H] {f : G →* H} (hf : continuous f) (hf' : dense_range f) {s : subgroup G}
+  (hs : s.topological_closure = ⊤) :
+  (s.map f).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [subgroup.topological_closure_coe, subgroup.coe_top, ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image hf hs
+end
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :

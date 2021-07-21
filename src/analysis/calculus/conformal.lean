@@ -148,8 +148,9 @@ begin
         have key : function.const X (f 0) = f := by ext x'; rw w x' 0,
         exact key ▸ ⟨(0 : X →L[ℝ] Y), has_fderiv_at_const (f 0) _, 1, one_ne_zero, ⟨0, minor⟩,
           by ext; simp only [pi.smul_apply, one_smul]; refl⟩, }, }, },
-  { intros H, let p := H.differentiable_at, rcases H with ⟨c, hf, hf'⟩,
-    rw p.has_fderiv_at.unique hf, exact hf', },
+  { rintros ⟨c, hf, hf'⟩,
+    rw hf.fderiv,
+    exact hf' },
 end
 
 end loc_conformality

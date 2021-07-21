@@ -175,8 +175,8 @@ then this map is a morphism of Lie algebras. -/
         congr, clear x, ext j x, exact this j i x y, },
       /- Tidy up and use `lie_of`. -/
       intros i j y x,
-      simp only [lie_of R, lie_of, lie_algebra_of_apply, lie_hom.coe_to_linear_map, to_module_apply,
-        linear_map.to_add_monoid_hom_coe, to_add_monoid_of],
+      simp only [lie_of R, lie_algebra_of_apply, lie_hom.coe_to_linear_map, to_add_monoid_of,
+        coe_to_module_eq_coe_to_add_monoid, linear_map.to_add_monoid_hom_coe],
       /- And finish with trivial case analysis. -/
       rcases eq_or_ne i j with h | h,
       { have h' : f j (h.rec_on y) = f i y, { exact eq.drec (eq.refl _) h, },

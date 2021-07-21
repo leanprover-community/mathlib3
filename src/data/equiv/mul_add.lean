@@ -508,7 +508,7 @@ variable {G}
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 /-- A version of `equiv.mul_left a b⁻¹` that is defeq to `a / b`. -/
-@[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. -/, simps]
+@[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. "-/, simps]
 def div_left (a : G) : G ≃ G :=
 { to_fun := λ b, a / b,
   inv_fun := λ b, b⁻¹ * a,
@@ -520,7 +520,7 @@ lemma div_left_eq_mul_left_trans_inv (a : G) : div_left a = (mul_left a).trans (
 ext $ λ _, div_eq_mul_inv _ _
 
 /-- A version of `equiv.mul_right a⁻¹ b` that is defeq to `b / a`. -/
-@[to_additive /-"" A version of `equiv.add_right (-a) b` that is defeq to `b - a`. -/, simps]
+@[to_additive /-" A version of `equiv.add_right (-a) b` that is defeq to `b - a`. "-/, simps]
 def div_right (a : G) : G ≃ G :=
 { to_fun := λ b, b / a,
   inv_fun := λ b, b * a,

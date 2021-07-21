@@ -15,15 +15,15 @@ prove the Hahn decomposition (signed version).
 ## Main definitions
 
 * `vector_measure.positive` : a set `i` is positive with respect to a vector measure if for all
-  measurable set `j`, `j ⊆ i`, the measure of `j` is non-negative.
+  measurable sets `j` contained in `i`, the measure of `j` is non-negative.
 * `vector_measure.negative` : a set `i` is negative with respect to a vector measure if for all
-  measurable set `j`, `j ⊆ i`, the measure of `j` is non-positive.
+  measurable sets `j` contained in `i`, the measure of `j` is non-positive.
 
 ## Main results
 
 * `signed_measure.exists_disjoint_positive_negative_union_eq` : the Hahn decomposition theorem.
-* `signed_measure.exists_negative_set` : A measurable set of negative measure has a negative subset
-  of negative measure.
+* `signed_measure.exists_negative_set` : A measurable set of negative measure contains at least
+  one negative subset.
 
 ## Tags
 
@@ -556,7 +556,7 @@ begin
   { exact (measurable_set.Union hmeas).diff (hmeas n) },
 end
 
-/-- **The Hahn decomposition thoerem**: Given a signed measure `s`, there exists
+/-- **The Hahn decomposition thoerem**: Given a signed measure `s`, there exist
 disjoint measurable sets `i`, `j` such that `i` is positive, `j` is negative
 and `i ∪ j = set.univ`.  -/
 theorem exists_disjoint_positive_negative_union_eq (s : signed_measure α) :
@@ -604,7 +604,7 @@ begin
   { exact negative_union_negative hA₁ hA₂ hD₁ hD₂ }
 end
 
-/-- Alternative formulation of `exists_disjoint_positive_negative_union_eq`. -/
+/-- Alternative formulation of `exists_disjoint_positive_negative_union_eq` using complements. -/
 lemma exists_compl_positive_negative (s : signed_measure α) :
   ∃ (i : set α) (hi₁ : measurable_set i), s.positive i ∧ s.negative iᶜ :=
 begin
@@ -616,7 +616,7 @@ begin
   exact hj₂,
 end
 
-/-- The symmetric difference of two Hahn decompositions is a null-set. -/
+/-- The symmetric difference of two Hahn decompositions have measure zero. -/
 lemma of_symm_diff_compl_positive_negative {s : signed_measure α}
   {i j : set α} (hi : measurable_set i) (hj : measurable_set j)
   (hi' : s.positive i ∧ s.negative iᶜ) (hj' : s.positive j ∧ s.negative jᶜ) :

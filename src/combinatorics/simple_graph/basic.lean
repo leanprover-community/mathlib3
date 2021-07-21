@@ -122,9 +122,15 @@ by { rintro rfl, exact G.irrefl hab }
 
 section order
 
-/-- The relation that one `simple_graph` is a subgraph of another. -/
+/-- The relation that one `simple_graph` is a subgraph of another.
+Note that this should be spelled `≤`. -/
 def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
+instance : has_le (simple_graph V) := ⟨is_subgraph⟩
+
+@[simp] lemma is_subgraph_eq_le : (is_subgraph : simple_graph V → simple_graph V → Prop) = (≤) := rfl
+
+/-- The supremum of two graphs `x ⊔ y` has edges where either `x` or `y` have edges. -/
 instance : has_sup (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊔ y.adj,
     sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }⟩
@@ -132,6 +138,7 @@ instance : has_sup (simple_graph V) := ⟨λ x y,
 @[simp] lemma sup_adj (x y : simple_graph V) (v w : V) : (x ⊔ y).adj v w ↔ x.adj v w ∨ y.adj v w :=
 iff.rfl
 
+/-- The infinum of two graphs `x ⊓ y` has edges where both `x` and `y` have edges. -/
 instance : has_inf (simple_graph V) := ⟨λ x y,
   { adj := x.adj ⊓ y.adj,
     sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }⟩
@@ -139,6 +146,11 @@ instance : has_inf (simple_graph V) := ⟨λ x y,
 @[simp] lemma inf_adj (x y : simple_graph V) (v w : V) : (x ⊓ y).adj v w ↔ x.adj v w ∧ y.adj v w :=
 iff.rfl
 
+/--
+We define `cGᶜ` to be the `simple_graph V` such that no two adjacent vertices in `G`
+are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
+(still ensuring that vertices are not adjacent to themselves).
+-/
 instance : has_compl (simple_graph V) := ⟨λ G,
   { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
     sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
@@ -146,15 +158,16 @@ instance : has_compl (simple_graph V) := ⟨λ G,
 
 @[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
 
+/-- The difference of two graphs `x / y` has the edges of `x` with the edges of `y` removed. -/
 instance : has_sdiff (simple_graph V) := ⟨λ x y,
   { adj := x.adj \ y.adj,
-  sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
+    sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
 
 @[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
   (x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
 
 instance : boolean_algebra (simple_graph V) :=
-{ le := is_subgraph,
+{ le := (≤),
   sup := (⊔),
   inf := (⊓),
   compl := has_compl.compl,

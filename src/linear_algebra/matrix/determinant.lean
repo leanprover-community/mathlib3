@@ -93,13 +93,10 @@ begin
   simp [det_apply, card_eq_zero.mp h, perm_eq],
 end
 
-/-- Specialize `det_eq_one_of_card_eq_zero` to `fin 0`.
-
-This is especially useful in combination with the `det_succ_` lemmas,
-for computing the determinant of a matrix given in the `![...]` notation.
--/
-@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
-det_eq_one_of_card_eq_zero (fintype.card_fin _)
+/-- An alternate statement of `det_eq_one_of_card_eq_zero` suitable for use by `simp`. -/
+@[simp]
+lemma det_eq_one_of_is_empty [is_empty n] {A : matrix n n R} : det A = 1 :=
+det_eq_one_of_card_eq_zero $ fintype.card_eq_zero_iff.mpr ‹_›
 
 /-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
 Although `unique` implies `decidable_eq` and `fintype`, the instances might
@@ -112,11 +109,9 @@ by simp [det_apply, univ_unique]
 lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
   det A = A k k :=
 begin
-  have h1 : (univ : finset (perm n)) = {1},
-  { apply univ_eq_singleton_of_card_one (1 : perm n),
-    simp [card_univ, fintype.card_perm, h] },
-  have h2 := univ_eq_singleton_of_card_one k h,
-  simp [det_apply, h1, h2],
+  obtain ⟨d, h⟩ := fintype.card_eq_one_iff.mp h,
+  haveI : unique n := { default := d, uniq := h},
+  convert det_unique A,
 end
 
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :

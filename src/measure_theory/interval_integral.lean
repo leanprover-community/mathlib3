@@ -322,6 +322,23 @@ hu.continuous_on.interval_integrable
 
 end
 
+section
+
+variables {ι : Type*} [topological_space ι] [conditionally_complete_linear_order ι]
+  [order_topology ι] [measurable_space ι] [borel_space ι] {μ : measure ι} [locally_finite_measure μ]
+  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
+  [borel_space E]
+
+lemma interval_integrable_of_monotone_on {u : ι → E} {a b : ι}
+  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u x ≤ u y) :
+  interval_integrable u μ a b :=
+begin
+  rw interval_integrable_iff,
+  exact (integrable_on_compact_of_monotone_on is_compact_interval hu).mono_set Ioc_subset_Icc_self,
+end
+
+end
+
 /-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`
 eventually includes `Ioc u v` as both `u` and `v` tend to `l`. Let `μ` be a measure finite at `l'`.
 

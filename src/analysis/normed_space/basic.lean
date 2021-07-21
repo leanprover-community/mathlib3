@@ -3,13 +3,11 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import algebra.punit_instances
-import topology.instances.nnreal
-import topology.algebra.module
-import topology.algebra.algebra
+import algebra.algebra.subalgebra
+import order.liminf_limsup
 import topology.algebra.group_completion
+import topology.instances.nnreal
 import topology.metric_space.completion
-import topology.algebra.ordered.liminf_limsup
 import topology.sequences
 
 /-!
@@ -1314,6 +1312,9 @@ namespace real
 
 lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
 abs_of_nonneg hx
+
+lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
+abs_of_nonpos hx
 
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 

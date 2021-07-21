@@ -51,7 +51,7 @@ lemma equivalent_products
   (h : a*c + b*d = (a + b - c + d) * (-a + b + c + d))
   : (a*c + b*d) * (b^2 + b*d + d^2) = (a*b + c*d) * (a*d + b*c) :=
 begin
-  have h1: (a*c + b*d) * (b^2 + b*d + d^2) =
+  have h1 : (a*c + b*d) * (b^2 + b*d + d^2) =
            a*c * (b^2 + b*d + d^2) + b*d * (b^2 + b*d + d^2),
     by ring,
   have h2: a*c * (b^2 + b*d + d^2) + b*d * (b^2 + b*d + d^2) =

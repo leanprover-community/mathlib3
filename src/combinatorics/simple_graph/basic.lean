@@ -60,7 +60,7 @@ finitely many vertices.
 
 ## Todo
 
-* Upgrade the `boolean_lattice` to a `complete_boolean_lattice`.
+* Upgrade `simple_graph.boolean_algebra` to a `complete_boolean_algebra`.
 
 * This is the simplest notion of an unoriented graph.  This should
 eventually fit into a more complete combinatorics hierarchy which

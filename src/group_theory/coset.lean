@@ -293,7 +293,8 @@ quotient.eq'
 @[to_additive]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=
-set.ext $ λ z, by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq, set_like.mem_coe]
+set.ext $ λ z,
+  by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq, set_like.mem_coe]
 
 @[to_additive]
 lemma preimage_image_coe (N : subgroup α) (s : set α) :

@@ -546,7 +546,7 @@ end
 
 -- TODO Remove this lemma
 lemma mem_nonempty {α : Type*} {s : set α} {x : α} (h : x ∈ s) : nonempty s := ⟨⟨x, h⟩⟩
-
+#print E_c
 lemma bernoulli_measure_nonempty (hc : gcd c p = 1) :
   nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
 begin
@@ -554,8 +554,12 @@ begin
   { constructor, swap 3,
     { intro f,
       have s := classical.some (what_to_do p d R f),
-      have hs := classical.some_spec (what_to_do p d R f),
-      have hs' := classical.some_spec (classical.some_spec (what_to_do p d R f)),
+ --     have hs := classical.some_spec (what_to_do p d R f),
+      have j := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R f))),
+      have i := classical.some (classical.some_spec (what_to_do p d R f)),
+      have hs' := classical.some_spec (classical.some_spec (classical.some_spec (what_to_do p d R f))),
+      exact ∑ (k : s), j k •
+      (E_c p d hc (classical.some (i k).prop) (classical.some (classical.some_spec (i k).prop))),
       sorry,
        },
     sorry,

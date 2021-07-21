@@ -484,8 +484,8 @@ instance : has_scalar A (locally_constant X A) :=
 { smul := λ a f,
   { to_fun := λ x, a*f(x),
     is_locally_constant := begin
-      refine is_locally_constant.comp _ (has_mul.mul a),
-      apply locally_constant.is_locally_constant f,
+      refine is_locally_constant.comp (locally_constant.is_locally_constant f) (has_mul.mul a),
+--      apply locally_constant.is_locally_constant f,
     end } }
 
 instance : mul_action A (locally_constant X A) :=

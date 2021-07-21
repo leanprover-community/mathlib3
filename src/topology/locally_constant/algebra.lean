@@ -124,14 +124,12 @@ instance : mul_action M (locally_constant X M) :=
   mul_smul := λ a b f, ext ( λ x, mul_assoc _ _ _ ) }
 
 instance : distrib_mul_action A (locally_constant X A) :=
-{
-  smul_add := λ r f g, ext ( λ x, mul_add _ _ _ ),
+{ smul_add := λ r f g, ext ( λ x, mul_add _ _ _ ),
   smul_zero := λ r, ext (λ x, mul_zero r),
   ..locally_constant.mul_action A }
 
 instance : module A (locally_constant X A) :=
-{
-  add_smul := λ r s f, ext (λ x, add_mul _ _ _),
+{ add_smul := λ r s f, ext (λ x, add_mul _ _ _),
   zero_smul := zero_mul,
   ..locally_constant.distrib_mul_action A }
 

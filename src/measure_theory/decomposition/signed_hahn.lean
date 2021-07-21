@@ -493,13 +493,9 @@ end .
 
 end exists_negative_set
 
-/-- The set of measurable negative sets. -/
-def negatives (s : signed_measure α) : set (set α) :=
-  { B | ∃ (hB₁ : measurable_set B), s.negative B }
-
 /-- The set of measures of the set of measurable negative sets. -/
 def measure_of_negatives (s : signed_measure α) : set ℝ :=
-  s '' s.negatives
+  s '' { B | ∃ (hB₁ : measurable_set B), s.negative B }
 
 lemma zero_mem_measure_of_negatives : (0 : ℝ) ∈ s.measure_of_negatives :=
 ⟨∅, ⟨measurable_set.empty, empty_negative⟩, s.empty⟩
@@ -510,7 +506,7 @@ begin
   by_contra, push_neg at h,
   have h' : ∀ n : ℕ, ∃ y : ℝ, y ∈ s.measure_of_negatives ∧ y < -n := λ n, h (-n),
   choose f hf using h',
-  have hf' : ∀ n : ℕ, ∃ B ∈ s.negatives, s B < -n,
+  have hf' : ∀ n : ℕ, ∃ B ∈ { B | ∃ (hB₁ : measurable_set B), s.negative B }, s B < -n,
   { intro n,
     rcases hf n with ⟨⟨B, hB₁, hB₂⟩, hlt⟩,
     exact ⟨B, hB₁, hB₂.symm ▸ hlt⟩ },

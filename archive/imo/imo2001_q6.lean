@@ -60,7 +60,7 @@ begin
   by nlinarith,
 end
 
-lemma auxiliar_inequality1
+lemma auxiliary_inequality1
   (hba : b < a)
   (hcb : c < b)
   (hdc : d < c)

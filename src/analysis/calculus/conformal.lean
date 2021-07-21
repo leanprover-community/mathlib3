@@ -127,12 +127,12 @@ lemma conformal_factor_at_pos {f : E → F} {x : E} (h : conformal_at f x) :
 lemma conformal_factor_at_inner_eq_mul_inner' {f : E → F} {x : E}
   (h : conformal_at f x) (u v : E) :
   ⟪(fderiv ℝ f x) u, (fderiv ℝ f x) v⟫ = (conformal_factor_at h : ℝ) * ⟪u, v⟫ :=
-(classical.some_spec $ conformal_at_iff'.mp h).2
+(classical.some_spec $ conformal_at_iff'.mp h).2 u v
 
 lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} {x : E} {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
   ⟪f' u, f' v⟫ = (conformal_factor_at H : ℝ) * ⟪u, v⟫ :=
-(H.differentiable_at.has_fderiv_at.unique h) ▸ conformal_factor_at_inner_eq_mul_inner' H
+(H.differentiable_at.has_fderiv_at.unique h) ▸ conformal_factor_at_inner_eq_mul_inner' H u v
 
 /-- If a real differentiable map `f` is conformal at a point `x`,
     then it preserves the angles at that point. -/

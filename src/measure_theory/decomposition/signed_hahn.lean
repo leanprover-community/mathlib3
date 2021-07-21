@@ -285,8 +285,7 @@ let ⟨k, hj₁, hj₂, hj⟩ := exists_pos_measure_of_not_negative hi in
 let ⟨n, hn⟩ := exists_nat_one_div_lt hj in ⟨n, k, hj₁, hj₂, hn⟩
 
 private def aux₀ (s : signed_measure α) (i j : set α) : ℕ :=
-if hi : ¬ s.negative (i \ j) then nat.find (exists_nat_one_div_lt_measure_of_not_negative hi)
-                       else 0
+if hi : ¬ s.negative (i \ j) then nat.find (exists_nat_one_div_lt_measure_of_not_negative hi) else 0
 
 private lemma aux₀_spec (hi : ¬ s.negative (i \ j)) : p s i j (aux₀ s i j) :=
 begin

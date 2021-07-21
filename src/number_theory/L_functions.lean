@@ -41,8 +41,6 @@ L-function, totally disconnected, locally constant, ...
 
 def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
-open_locale big_operators
-
 variables (X : Type*)
 variables [topological_space X] [compact_space X] [t2_space X] [totally_disconnected_space X]
 
@@ -63,6 +61,8 @@ noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
 --topo ring assumption not really needed
 def inclusion (R : Type*) [topological_space R] : locally_constant X R → C(X,R) :=
   λ x, ⟨x, locally_constant.continuous x⟩
+
+@[simp] lemma inc_eval (f : locally_constant X R) (y : X) : inclusion X R f y = f y := rfl
 
 noncomputable instance {R : Type*} [normed_group R] :
   topological_space (locally_constant X R) :=
@@ -161,7 +161,6 @@ begin
 end
 
 --show that locally compact Hausdorff is tot disc iff zero dim
-open_locale big_operators
 
 def h {A : Type*} [normed_ring A] (ε : ℝ) : A → set A := λ (x : A), metric.ball x (ε / 4)
 
@@ -255,20 +254,12 @@ begin
   { rintros i, have iC := hV i.2, apply topological_space.is_topological_basis.is_open f' iC, },
 end
 
-lemma inc_eval (f : locally_constant X A) (y : X) : inclusion X A f y = f y :=
-begin
-  rw inclusion, simp,
-end
-
 lemma sub_iff {α : Type*} (s t : set α) (h : s = t) : ∀ (x : α), x ∈ s ↔ x ∈ t :=
 begin
   rw set.subset.antisymm_iff at h, rintros x, split,
   {revert x, show s ⊆ t, apply h.1,},
   {revert x, show t ⊆ s, apply h.2,},
 end
-
-lemma coe_sub (g : C(X, A)) : ((f - g) : X → A) = (f : X → A) - g :=
-begin exact rfl, end
 
 lemma sub_apply (f : C(X, A)) (g : locally_constant X A) (y : X) :
   ∥(f - inclusion X A g) y ∥ = ∥f y - (inclusion X A g) y∥ :=

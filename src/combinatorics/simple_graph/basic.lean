@@ -128,7 +128,8 @@ def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w �
 
 instance : has_le (simple_graph V) := ⟨is_subgraph⟩
 
-@[simp] lemma is_subgraph_eq_le : (is_subgraph : simple_graph V → simple_graph V → Prop) = (≤) := rfl
+@[simp] lemma is_subgraph_eq_le : (is_subgraph : simple_graph V → simple_graph V → Prop) = (≤) :=
+rfl
 
 /-- The supremum of two graphs `x ⊔ y` has edges where either `x` or `y` have edges. -/
 instance : has_sup (simple_graph V) := ⟨λ x y,
@@ -147,7 +148,7 @@ instance : has_inf (simple_graph V) := ⟨λ x y,
 iff.rfl
 
 /--
-We define `cGᶜ` to be the `simple_graph V` such that no two adjacent vertices in `G`
+We define `Gᶜ` to be the `simple_graph V` such that no two adjacent vertices in `G`
 are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
 (still ensuring that vertices are not adjacent to themselves).
 -/

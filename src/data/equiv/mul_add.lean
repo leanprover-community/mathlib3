@@ -509,26 +509,27 @@ lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 /-- A version of `equiv.mul_left a b⁻¹` that is defeq to `a / b`. -/
 @[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. "-/, simps]
-def div_left (a : G) : G ≃ G :=
+protected def div_left (a : G) : G ≃ G :=
 { to_fun := λ b, a / b,
   inv_fun := λ b, b⁻¹ * a,
   left_inv := λ b, by simp [div_eq_mul_inv],
   right_inv := λ b, by simp [div_eq_mul_inv] }
 
 @[to_additive]
-lemma div_left_eq_mul_left_trans_inv (a : G) : div_left a = (mul_left a).trans (inv G) :=
+lemma div_left_eq_mul_left_trans_inv (a : G) :
+  equiv.div_left a = (equiv.mul_left a).trans (equiv.inv G) :=
 ext $ λ _, div_eq_mul_inv _ _
 
 /-- A version of `equiv.mul_right a⁻¹ b` that is defeq to `b / a`. -/
 @[to_additive /-" A version of `equiv.add_right (-a) b` that is defeq to `b - a`. "-/, simps]
-def div_right (a : G) : G ≃ G :=
+protected def div_right (a : G) : G ≃ G :=
 { to_fun := λ b, b / a,
   inv_fun := λ b, b * a,
   left_inv := λ b, by simp [div_eq_mul_inv],
   right_inv := λ b, by simp [div_eq_mul_inv] }
 
 @[to_additive]
-lemma div_right_eq_mul_right_inv (a : G) : div_right a = mul_right a⁻¹ :=
+lemma div_right_eq_mul_right_inv (a : G) : equiv.div_right a = equiv.mul_right a⁻¹ :=
 ext $ λ _, div_eq_mul_inv _ _
 
 end group

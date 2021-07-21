@@ -735,9 +735,9 @@ end topological_semiring
 
 section has_continuous_smul
 variables {R : Type*}
-[semiring R] [topological_space R]
+[monoid R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
-[module R α] [has_continuous_smul R α]
+[distrib_mul_action R α] [has_continuous_smul R α]
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
@@ -758,6 +758,9 @@ variables [division_ring α] [topological_space α] [topological_semiring α]
 
 lemma has_sum.div_const (h : has_sum f a) (b : α) : has_sum (λ x, f x / b) (a / b) :=
 by simp only [div_eq_mul_inv, h.mul_right b⁻¹]
+
+lemma summable.div_const (h : summable f) (b : α) : summable (λ x, f x / b) :=
+(h.has_sum.div_const b).summable
 
 lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, a₂ * f b) (a₂ * a₁) :=
 ⟨has_sum.mul_left _, λ H, by simpa only [inv_mul_cancel_left' h] using H.mul_left a₂⁻¹⟩

@@ -514,6 +514,16 @@ begin
   { rw hs, exact le_top }
 end
 
+instance no_atoms_hausdorff (d : ℝ) : has_no_atoms (hausdorff_measure d : measure X) :=
+begin
+  refine ⟨λ x, _⟩,
+  rw [← nonpos_iff_eq_zero, hausdorff_measure_apply'],
+  refine bsupr_le (λ ε ε0, binfi_le_of_le (λ n, {x}) _ (infi_le_of_le (λ n, _) _)),
+  { exact subset_Union (λ n, {x} : ℕ → set X) 0 },
+  { simp only [emetric.diam_singleton, zero_le] },
+  { simp }
+end
+
 end measure
 
 open_locale measure_theory
@@ -521,6 +531,15 @@ open measure
 
 /-- Hausdorff dimension of a set in an (e)metric space. -/
 def dimH (s : set X) : ℝ≥0∞ := ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d
+
+lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
+by simp [dimH, h.measure_eq]
+
+alias dimH_subsingleton ← set.subsingleton.dimH_eq
+
+@[simp] lemma dimH_empty : dimH (∅ : set X) = 0 := subsingleton_empty.dimH_eq
+
+@[simp] lemma dimH_singleton (x : X) : dimH ({x} : set X) = 0 := subsingleton_singleton.dimH_eq
 
 lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0}
   (h : ↑d < dimH s) : μH[d] s = ∞ :=
@@ -531,6 +550,10 @@ begin
   refine (hausdorff_measure_zero_or_top hdd' s).resolve_left (λ h, _),
   exact (ennreal.zero_ne_top $ h.symm.trans hsd').elim
 end
+
+lemma le_dimH_of_hausdorff_measure_eq_top {s : set X} {d : ℝ≥0} (h : μH[d] s = ∞) :
+  ↑d ≤ dimH s :=
+le_bsupr d h
 
 lemma hausdorff_measure_of_dimH_lt {s : set X} {d : ℝ≥0}
   (h : dimH s < d) : μH[d] s = 0 :=
@@ -545,5 +568,33 @@ lemma measure_zero_of_dimH_lt {μ : measure X} {d : ℝ≥0}
   (h : μ ≪ μH[d]) {s : set X} (hd : dimH s < d) :
   μ s = 0 :=
 h $ hausdorff_measure_of_dimH_lt hd
+
+@[mono] lemma dimH_mono {s t : set X} (h : s ⊆ t) : dimH s ≤ dimH t :=
+bsupr_le $ λ d hd, le_dimH_of_hausdorff_measure_eq_top $
+  top_unique $ hd ▸ measure_mono h
+
+@[simp] lemma dimH_Union [encodable ι] (s : ι → set X) :
+  dimH (⋃ i, s i) = ⨆ i, dimH (s i) :=
+begin
+  refine le_antisymm (bsupr_le $ λ d hd, _) (supr_le $ λ i, dimH_mono $ subset_Union _ _),
+  contrapose! hd,
+  have : ∀ i, μH[d] (s i) = 0,
+    from λ i, hausdorff_measure_of_dimH_lt ((le_supr (λ i, dimH (s i)) i).trans_lt hd),
+  rw measure_Union_null this,
+  exact ennreal.zero_ne_top
+end
+
+@[simp] lemma dimH_bUnion {s : set ι} (hs : countable s) (t : ι → set X) :
+  dimH (⋃ i ∈ s, t i) = ⨆ i ∈ s, dimH (t i) :=
+begin
+  haveI := hs.to_encodable,
+  rw [← Union_subtype, dimH_Union, ← supr_subtype'']
+end
+
+@[simp] lemma dimH_sUnion {S : set (set X)} (hS : countable S) : dimH (⋃₀ S) = ⨆ s ∈ S, dimH s :=
+by rw [sUnion_eq_bUnion, dimH_bUnion hS]
+
+@[simp] lemma dimH_union (s t : set X) : dimH (s ∪ t) = max (dimH s) (dimH t) :=
+by rw [union_eq_Union, dimH_Union, supr_bool_eq, cond, cond, ennreal.sup_eq_max]
 
 end measure_theory

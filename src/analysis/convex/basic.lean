@@ -3,11 +3,9 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import data.set.intervals.ord_connected
-import data.set.intervals.image_preimage
 import data.complex.module
+import data.set.intervals.image_preimage
 import linear_algebra.affine_space.affine_map
-import algebra.module.ordered
 import order.closure
 
 /-!

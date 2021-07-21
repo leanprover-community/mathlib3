@@ -124,21 +124,40 @@ section order
 /-- The relation that one `simple_graph` is a subgraph of another. -/
 def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
+instance : has_sup (simple_graph V) := ⟨λ x y,
+  { adj := x.adj ⊔ y.adj,
+    sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }⟩
+
+@[simp] lemma sup_adj (x y : simple_graph V) (v w : V) : (x ⊔ y).adj v w ↔ x.adj v w ∨ y.adj v w :=
+iff.rfl
+
+instance : has_inf (simple_graph V) := ⟨λ x y,
+  { adj := x.adj ⊓ y.adj,
+    sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }⟩
+
+@[simp] lemma inf_adj (x y : simple_graph V) (v w : V) : (x ⊓ y).adj v w ↔ x.adj v w ∧ y.adj v w :=
+iff.rfl
+
+instance : has_compl (simple_graph V) := ⟨λ G,
+  { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
+    sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
+    loopless := λ v ⟨hne, _⟩, (hne rfl).elim }⟩
+
+@[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+
+instance : has_sdiff (simple_graph V) := ⟨λ x y,
+  { adj := x.adj \ y.adj,
+  sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] }⟩
+
+@[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
+  (x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
+
 instance : boolean_algebra (simple_graph V) :=
 { le := is_subgraph,
-  sup := λ x y,
-        { adj := x.adj ⊔ y.adj,
-          sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] },
-  inf := λ x y,
-        { adj := x.adj ⊓ y.adj,
-          sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] },
-  compl := λ G,
-        { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
-          sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
-          loopless := λ v ⟨hne, _⟩, (hne rfl).elim },
-  sdiff := λ x y,
-        { adj := x.adj \ y.adj,
-        sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] },
+  sup := (⊔),
+  inf := (⊓),
+  compl := has_compl.compl,
+  sdiff := (\),
   top := complete_graph V,
   bot := empty_graph V,
   le_top := λ x v w h, x.ne_of_adj h,
@@ -160,17 +179,6 @@ instance : boolean_algebra (simple_graph V) :=
   inf_le_left := λ x y v w h, h.1,
   inf_le_right := λ x y v w h, h.2,
   .. partial_order.lift adj ext }
-
-@[simp] lemma sup_adj (x y : simple_graph V) (v w : V) :
-(x ⊔ y).adj v w ↔ (x.adj v w ∨ y.adj v w) := iff.rfl
-
-@[simp] lemma inf_adj (x y : simple_graph V) (v w : V) :
-(x ⊓ y).adj v w ↔ (x.adj v w ∧ y.adj v w) := iff.rfl
-
-@[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
-
-@[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
-(x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
 
 @[simp] lemma top_adj (v w : V) : (⊤ : simple_graph V).adj v w ↔ v ≠ w := iff.rfl
 

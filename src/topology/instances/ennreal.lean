@@ -686,6 +686,13 @@ begin
   exact not_congr tsum_coe_ne_top_iff_summable_coe
 end
 
+lemma summable_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
+  summable (λ x, (f x).to_real) :=
+begin
+  lift f to α → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hsum,
+  rwa ennreal.tsum_coe_ne_top_iff_summable_coe at hsum,
+end
+
 end ennreal
 
 namespace nnreal

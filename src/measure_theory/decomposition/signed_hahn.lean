@@ -41,17 +41,6 @@ variables {α : Type*}
 
 open set filter
 
-lemma set.union_inter_diff_eq {a b c : set α} (habc : a ⊆ b ∪ c) :
-  a ∩ b ∪ a ∩ c \ (a ∩ b) = a :=
-by rwa [union_diff_self, ← inter_union_distrib_left, inter_eq_left_iff_subset]
-
-lemma set.union_inter_diff_disjoint {a b c : set α} :
-  disjoint (a ∩ b) (a ∩ c \ (a ∩ b)) :=
-begin
-  rintro x ⟨⟨hxa, hxb⟩, _, hxab⟩,
-  exact hxab ⟨hxa, hxb⟩,
-end
-
 lemma set.Union_inter_diff_eq {f : ℕ → set α} {a : set α} (ha : a ⊆ ⋃ n, f n) :
   (⋃ n, a ∩ f n \ ⋃ k < n, f k) = a :=
 begin
@@ -208,7 +197,9 @@ begin
   intros a ha₁ ha₂,
   have h₁ := ha₂.inter hi₁,
   have h₂ := (ha₂.inter hj₁).diff h₁,
-  rw [← set.union_inter_diff_eq ha₁, of_union set.union_inter_diff_disjoint h₁ h₂],
+  have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
+    { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
+  rw [← this, of_union disjoint_sdiff_self_right h₁ h₂],
   refine add_nonneg (hi₂ _ (a.inter_subset_right i) h₁) _,
   exact hj₂ _ (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)) h₂,
   apply_instance
@@ -236,7 +227,9 @@ begin
   intros a ha₁ ha₂,
   have h₁ := ha₂.inter hi₁,
   have h₂ := (ha₂.inter hj₁).diff h₁,
-  rw [← set.union_inter_diff_eq ha₁, of_union set.union_inter_diff_disjoint h₁ h₂],
+  have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
+    { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
+  rw [← this, of_union disjoint_sdiff_self_right h₁ h₂],
   refine add_nonpos (hi₂ _ (a.inter_subset_right i) h₁) _,
   exact hj₂ _ (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)) h₂,
   apply_instance

@@ -124,7 +124,7 @@ namespace vector_measure
 /-- A set `i` is positive with respect to a vector measure if for all
 measurable set `j`, `j ⊆ i`, `j` has non-negative measure. -/
 def positive (v : vector_measure α M) (i : set α) : Prop :=
-∀ ⦃j⦄ ,j ⊆ i → measurable_set j → 0 ≤ v j
+∀ ⦃j⦄, j ⊆ i → measurable_set j → 0 ≤ v j
 
 /-- A set `i` is negative with respect to a vector measure if for all
 measurable set `j`, `j ⊆ i`, `j` has non-positive measure. -/

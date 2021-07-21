@@ -22,42 +22,6 @@ universes u v
 open set metric
 open_locale topological_space
 
-section proper_pseudo_metric
-
-variables {α : Type u} [pseudo_metric_space α] [proper_space α] {x : α} {r : ℝ} {s : set α}
-
-/-- If a nonempty ball in a proper space includes a closed set `s`, then there exists a nonempty
-ball with the same center and a strictly smaller radius that includes `s`. -/
-lemma exists_pos_lt_subset_ball (hr : 0 < r) (hs : is_closed s) (h : s ⊆ ball x r) :
-  ∃ r' ∈ Ioo 0 r, s ⊆ ball x r' :=
-begin
-  unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
-  { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
-  have : is_compact s,
-    from compact_of_is_closed_subset (proper_space.compact_ball x r) hs
-      (subset.trans h ball_subset_closed_ball),
-  obtain ⟨y, hys, hy⟩ : ∃ y ∈ s, s ⊆ closed_ball x (dist y x),
-    from this.exists_forall_ge hne (continuous_id.dist continuous_const).continuous_on,
-  have hyr : dist y x < r, from h hys,
-  rcases exists_between hyr with ⟨r', hyr', hrr'⟩,
-  exact ⟨r', ⟨dist_nonneg.trans_lt hyr', hrr'⟩, subset.trans hy $ closed_ball_subset_ball hyr'⟩
-end
-
-/-- If a ball in a proper space includes a closed set `s`, then there exists a ball with the same
-center and a strictly smaller radius that includes `s`. -/
-lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
-  ∃ r' < r, s ⊆ ball x r' :=
-begin
-  cases le_or_lt r 0 with hr hr,
-  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
-    exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
-  { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
-end
-
-end proper_pseudo_metric
-
-section proper_space
-
 variables {α : Type u} {ι : Type v} [metric_space α] [proper_space α] {c : ι → α}
 variables {x : α} {r : ℝ} {s : set α}
 
@@ -151,5 +115,3 @@ lemma exists_locally_finite_Union_eq_ball_radius_lt {R : α → ℝ} (hR : ∀ x
 let ⟨ι, c, r, r', hlt, hfin, hsub⟩ := exists_locally_finite_subset_Union_ball_radius_lt
   is_closed_univ (λ x _, hR x)
 in ⟨ι, c, r, r', λ i, (hlt i).2, hfin, univ_subset_iff.1 hsub⟩
-
-end proper_space

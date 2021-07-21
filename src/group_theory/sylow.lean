@@ -269,7 +269,7 @@ begin
   simpa using hy
 end⟩
 
-/-- If `H` is a subgroup of `G` of cardinality `p ^ n`, then
+/-- If `H` is a subgroup of `G` of cardinality `p ^ n`,
   then `H` is contained in a subgroup of cardinality `p ^ m`
   if `n ≤ m` and `p ^ m` divides the cardinality of `G` -/
 theorem exists_subgroup_card_pow_prime_le [fintype G] (p : ℕ) : ∀ {n m : ℕ} [hp : fact p.prime]

@@ -110,4 +110,29 @@ instance [ring Y] : ring (locally_constant X Y) :=
 instance [comm_ring Y] : comm_ring (locally_constant X Y) :=
 { .. locally_constant.comm_semiring, .. locally_constant.ring }
 
+variables (A : Type*) [semiring A]
+
+instance : has_scalar A (locally_constant X A) :=
+{ smul := λ a f,
+  { to_fun := λ x, a*f(x),
+    is_locally_constant := is_locally_constant.comp (is_locally_constant f)
+      (has_mul.mul a) } }
+
+instance : mul_action A (locally_constant X A) :=
+{ smul := (•),
+  one_smul := one_mul,
+  mul_smul := λ a b f, ext ( λ x, show a * b * f x = a * (b * f x), from mul_assoc _ _ _ ) }
+
+instance : distrib_mul_action A (locally_constant X A) :=
+{
+  smul_add := λ r f g, ext ( λ x, show  r * (f x + g x) = r * f x + r * g x, from mul_add _ _ _ ),
+  smul_zero := λ r, ext (λ x, mul_zero r),
+  ..locally_constant.mul_action A }
+
+instance : module A (locally_constant X A) :=
+{
+  add_smul := λ r s f, ext (λ x, show (r + s) * f x = r * f x + s * f x, from add_mul _ _ _),
+  zero_smul := zero_mul,
+  ..locally_constant.distrib_mul_action A }
+
 end locally_constant

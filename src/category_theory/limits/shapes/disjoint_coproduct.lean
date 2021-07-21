@@ -36,7 +36,7 @@ variables {C : Type u} [category.{v} C]
 Given any pullback diagram of the form
 
 Z  ⟶  X₁
-↓     ↓
+↓      ↓
 X₂ ⟶  X
 
 where `X₁ ⟶ X ← X₂` is a coproduct diagram, then `Z` is initial, and both `X₁ ⟶ X` and `X₂ ⟶ X`
@@ -54,7 +54,7 @@ class coproduct_disjoint (X₁ X₂ : C) :=
 If the coproduct of `X₁` and `X₂` is disjoint, then given any pullback square
 
 Z  ⟶  X₁
-↓     ↓
+↓      ↓
 X₂ ⟶  X
 
 where `X₁ ⟶ X ← X₂` is a coproduct, then `Z` is initial.
@@ -117,19 +117,17 @@ coproduct_disjoint.mono_inr _ _ _ (coprod_is_coprod _ _)
 class coproducts_disjoint (C : Type u) [category.{v} C] :=
 (coproduct_disjoint : ∀ (X Y : C), coproduct_disjoint X Y)
 
-attribute [instance] coproducts_disjoint.coproduct_disjoint
+attribute [instance, priority 999] coproducts_disjoint.coproduct_disjoint
 
 /-- If `C` has disjoint coproducts, any morphism out of initial is mono. Note it isn't true in
 general that `C` has strict initial objects, for instance consider the category of types and
 partial functions. -/
-def initial_mono_class_of_disjoint_coproducts [coproducts_disjoint C] : initial_mono_class C :=
+lemma initial_mono_class_of_disjoint_coproducts [coproducts_disjoint C] : initial_mono_class C :=
 { is_initial_mono_from := λ I X hI,
     coproduct_disjoint.mono_inl _ _ (𝟙 X)
       { desc := λ (s : binary_cofan _ _), s.inr,
         fac' := λ s j, walking_pair.cases_on j (hI.hom_ext _ _) (id_comp _),
         uniq' := λ (s : binary_cofan _ _) m w, (id_comp _).symm.trans (w walking_pair.right) } }
-
-attribute [instance] coproducts_disjoint.coproduct_disjoint
 
 end limits
 end category_theory

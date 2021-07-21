@@ -7,7 +7,7 @@ import measure_theory.vector_measure
 import order.symm_diff
 
 /-!
-# Unsigned Hahn decomposition
+# Hahn decomposition
 
 This file defines positive and negative sets with respect to a vector measure and
 prove the Hahn decomposition (signed version).

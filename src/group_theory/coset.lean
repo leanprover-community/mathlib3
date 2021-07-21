@@ -205,6 +205,22 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
 instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (∈ s)] :
   decidable_rel (left_rel s).r := λ _ _, d _
 
+@[to_additive]
+lemma left_rel_iff_left_coset_eq [group α] (s : subgroup α) {x y : α} :
+  @setoid.r _ (quotient_group.left_rel s) x y ↔ left_coset x s = left_coset y s :=
+begin
+  rw set.ext_iff,
+  change x⁻¹ * y ∈ s ↔ _,
+  simp_rw [mem_left_coset_iff, set_like.mem_coe],
+  split,
+  { intros h z, rw ←mul_inv_cancel_right x⁻¹ y, rw mul_assoc, exact s.mul_mem_cancel_left h,},
+  { intro h, apply (h y).mpr, rw mul_left_inv, exact s.one_mem }
+end
+
+lemma left_rel_eq_left_coset_equivalence  [group α] (s : subgroup α) :
+  @setoid.r _ (quotient_group.left_rel s) = left_coset_equivalence s :=
+by { ext, exact left_rel_iff_left_coset_eq s }
+
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
 def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
@@ -226,6 +242,22 @@ def right_rel [group α] (s : subgroup α) : setoid α :=
 @[to_additive]
 instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (∈ s)] :
   decidable_rel (left_rel s).r := λ _ _, d _
+
+@[to_additive]
+lemma right_rel_iff_right_coset_eq [group α] (s : subgroup α) {x y : α} :
+  @setoid.r _ (quotient_group.right_rel s) x y ↔ right_coset ↑s x = right_coset s y :=
+begin
+  rw set.ext_iff,
+  change y * x⁻¹ ∈ s ↔ _,
+  simp_rw [mem_right_coset_iff, set_like.mem_coe],
+  split,
+  { intros h z, rw ←inv_mul_cancel_left y x⁻¹, rw ←mul_assoc, exact s.mul_mem_cancel_right h,},
+  { intro h, apply (h y).mpr, rw mul_right_inv, exact s.one_mem }
+end
+
+lemma right_rel_eq_right_coset_equivalence  [group α] (s : subgroup α) :
+  @setoid.r _ (quotient_group.right_rel s) = right_coset_equivalence s :=
+by { ext, exact right_rel_iff_right_coset_eq s }
 
 end quotient_group
 

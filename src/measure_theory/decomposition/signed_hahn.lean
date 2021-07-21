@@ -41,35 +41,20 @@ variables {α : Type*}
 
 open set filter
 
--- TODO: generalize to `complete_boolean_algebra`
-lemma set.Union_diff_Union_nat_lt (f : ℕ → set α) :
-  (⋃ i, f i \ (⋃ k < i, f k)) = (⋃ n, f n) :=
-eq_of_subset_of_subset
-  (Union_subset_Union $ λ i, diff_subset _ _)
-  (λ x hx, begin
-    replace hx := mem_Union.1 hx,
-    classical,
-    simp only [mem_diff, mem_Union, not_exists],
-    refine ⟨nat.find hx, nat.find_spec hx, λ m hm, nat.find_min hx hm⟩,
-  end)
+lemma set.Union_inter_disjointed_eq {f : ℕ → set α} {a : set α} (ha : a ⊆ ⋃ n, f n) :
+  (⋃ n, a ∩ disjointed f n) = a :=
+by rwa [← inter_Union, set.Union_disjointed, inter_eq_left_iff_subset]
 
-lemma set.Union_inter_diff_eq {f : ℕ → set α} {a : set α} (ha : a ⊆ ⋃ n, f n) :
-  (⋃ n, a ∩ f n \ ⋃ k < n, f k) = a :=
+lemma set.pairwise_disjoint_on_inter {f : ℕ → set α} {a : set α}
+  (hf : pairwise (disjoint on f)) : pairwise (disjoint on (λ n, a ∩ f n)) :=
 begin
-  simp_rw [inter_diff_assoc, ←inter_Union, set.Union_diff_Union_nat_lt, inter_eq_left_iff_subset],
-  exact ha,
+  rintro i j hij x ⟨⟨-, hx₁⟩, -, hx₂⟩,
+  exact hf i j hij ⟨hx₁, hx₂⟩,
 end
 
-lemma set.Union_inter_diff_disjoint {f : ℕ → set α} {a : set α} :
-  pairwise $ disjoint on (λ n, a ∩ f n \ ⋃ k < n, f k) :=
-begin
-  rintro n m hnm x ⟨⟨hxn₁, hxn₂⟩, hxm₁, hxm₂⟩,
-  simp only [not_exists, exists_prop, mem_Union, mem_empty_eq, mem_inter_eq,
-             not_and, bot_eq_empty, ne.def] at *,
-  rcases lt_or_gt_of_ne hnm with (h | h),
-  { exact hxm₂ _ h hxn₁.2 },
-  { exact hxn₂ _ h hxm₁.2 }
-end
+lemma set.pairwise_disjoint_on_inter_disjointed {f : ℕ → set α} {a : set α} :
+  pairwise $ disjoint on (λ n, a ∩ disjointed f n) :=
+set.pairwise_disjoint_on_inter disjoint_disjointed
 
 lemma tendsto_top_of_pos_summable_inv {f : ℕ → ℝ}
   (hf : summable f⁻¹) (hf' : ∀ n, 0 < f n) : tendsto f at_top at_top :=
@@ -203,19 +188,18 @@ begin
   apply_instance
 end
 
-lemma positive_Union_negative {f : ℕ → set α}
+lemma positive_Union_positive {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.positive (f n)) :
   v.positive ⋃ n, f n :=
 begin
   intros a ha₁ ha₂,
-  rw [← set.Union_inter_diff_eq ha₁, v.of_disjoint_Union_nat _ set.Union_inter_diff_disjoint],
+  rw [← set.Union_inter_disjointed_eq ha₁,
+      v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
   refine tsum_nonneg (λ n, hf₂ n _ _ _),
-  { exact set.subset.trans (set.diff_subset _ _) (set.inter_subset_right _ _) },
-  { refine (ha₂.inter (hf₁ n)).diff _,
-    exact measurable_set.Union (λ m, measurable_set.Union_Prop (λ _, hf₁ m)) },
+  { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
+  { exact (ha₂.inter (measurable_set.disjointed hf₁ n)) },
   { intro n,
-    refine (ha₂.inter (hf₁ n)).diff _,
-    exact measurable_set.Union (λ m, measurable_set.Union_Prop (λ _, hf₁ m)) }
+    exact (ha₂.inter (measurable_set.disjointed hf₁ n)) }
 end
 
 lemma negative_union_negative
@@ -238,14 +222,13 @@ lemma negative_Union_negative {f : ℕ → set α}
   v.negative ⋃ n, f n :=
 begin
   intros a ha₁ ha₂,
-  rw [← set.Union_inter_diff_eq ha₁, v.of_disjoint_Union_nat _ set.Union_inter_diff_disjoint],
+  rw [← set.Union_inter_disjointed_eq ha₁,
+      v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
   refine tsum_nonpos (λ n, hf₂ n _ _ _),
-  { exact set.subset.trans (set.diff_subset _ _) (set.inter_subset_right _ _) },
-  { refine (ha₂.inter (hf₁ n)).diff _,
-    exact measurable_set.Union (λ m, measurable_set.Union_Prop (λ _, hf₁ m)) },
+  { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
+  { exact (ha₂.inter (measurable_set.disjointed hf₁ n)) },
   { intro n,
-    refine (ha₂.inter (hf₁ n)).diff _,
-    exact measurable_set.Union (λ m, measurable_set.Union_Prop (λ _, hf₁ m)) }
+    exact (ha₂.inter (measurable_set.disjointed hf₁ n)) }
 end
 
 lemma exists_pos_measure_of_not_negative (hi : ¬ v.negative i) :

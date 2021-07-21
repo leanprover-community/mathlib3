@@ -36,18 +36,21 @@ begin
   exact le_integral hmono k,
 end
 
-lemma integral_le_sum (n : ℕ) : ∫ (x : ℝ) in 0..(n+1), f x ≤ ∑ (k : ℕ) in finset.range n, f k :=
+lemma integral_le_sum (n : ℕ) : ∫ (x : ℝ) in 0..n, f x ≤ ∑ (k : ℕ) in finset.range n, f k :=
 begin
-  have : ∑ (k : ℕ) in finset.range n, ∫ (x : ℝ) in k..(k+1), f x
+  have : ∑ (k : ℕ) in finset.range n, ∫ (x : ℝ) in k..↑(k+1), f x
           ≤ ∑ (k : ℕ) in finset.range n, f k :=
     finset.sum_le_sum (λ (k : ℕ) (hk : k ∈ finset.range n), integral_le hmono k),
-  convert this,
-
+  rwa interval_integral.sum_integral_adjacent_intervals at this,
+  intros k hk,
+  sorry
 end
+
+include hpos
 
 theorem goal : summable (λ (n : ℕ), f n) ↔ integrable_on f (Ici 0) :=
 begin
   split; intro h,
-  { sorry },
+  {  },
   {  }
 end

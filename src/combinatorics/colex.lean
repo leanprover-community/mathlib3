@@ -181,9 +181,7 @@ end
 
 instance [linear_order α] : is_trichotomous (finset.colex α) (<) := ⟨lt_trichotomy⟩
 
-/-- Show that `colex.lt` is decidable. This isn't an instance since it's re-inferred from the
-(computable) `decidable_le` instance below. -/
-def colex_decidable_lt [linear_order α] {A B : finset α} : decidable (A.to_colex < B.to_colex) :=
+instance decidable_lt [linear_order α] {A B : finset α} : decidable (A.to_colex < B.to_colex) :=
 decidable_of_iff' (∃ (k ∈ B), (∀ x ∈ A ∪ B, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A)
 begin
   rw colex.lt_def,
@@ -200,7 +198,9 @@ instance [linear_order α] : linear_order (finset.colex α) :=
   le_antisymm := λ A B AB BA, AB.elim (λ k, BA.elim (λ t, (asymm k t).elim) (λ t, t.symm)) id,
   le_total := λ A B,
           (lt_trichotomy A B).elim3 (or.inl ∘ or.inl) (or.inl ∘ or.inr) (or.inr ∘ or.inl),
-  decidable_le := λ A B, @or.decidable _ _ (colex_decidable_lt) _,
+  decidable_le := λ A B, @or.decidable _ _ colex.decidable_lt _,
+  decidable_lt := λ A B, colex.decidable_lt,
+  decidable_eq := λ A B, decidable_of_iff' (A.to_colex = B.to_colex) iff.rfl,
   lt_iff_le_not_le := λ A B,
   begin
     split,
@@ -209,7 +209,7 @@ instance [linear_order α] : linear_order (finset.colex α) :=
       rintro (i | rfl),
       { apply asymm_of _ t i },
       { apply irrefl _ t } },
-    rintro ⟨(h₁ | rfl), h₂⟩,
+    rintro ⟨h₁ | rfl, h₂⟩,
     { apply h₁ },
     apply h₂.elim (or.inr rfl),
   end,

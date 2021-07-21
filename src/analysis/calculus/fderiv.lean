@@ -829,7 +829,7 @@ end
 lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 (differentiable_const _).differentiable_on
 
-lemma fderiv_eq_zero_of_subsingleton {R X Y : Type*} [nondiscrete_normed_field R]
+lemma has_fderiv_at_of_subsingleton {R X Y : Type*} [nondiscrete_normed_field R]
   [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y] [h : subsingleton X]
   (f : X → Y) (x : X) :
   has_fderiv_at f (0 : X →L[R] Y) x :=

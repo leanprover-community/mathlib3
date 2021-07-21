@@ -70,7 +70,7 @@ begin
     by_cases h : differentiable_at ℝ f x,
     { exact ⟨fderiv ℝ f x, h.has_fderiv_at, H⟩, },
     { cases subsingleton_or_nontrivial X with w w; resetI,
-      { exact ⟨(0 : X →L[ℝ] Y), fderiv_eq_zero_of_subsingleton f x,
+      { exact ⟨(0 : X →L[ℝ] Y), has_fderiv_at_of_subsingleton f x,
         is_conformal_map_of_subsingleton 0⟩, },
       { exfalso,
         rcases nontrivial_iff.mp w with ⟨a, b, hab⟩,

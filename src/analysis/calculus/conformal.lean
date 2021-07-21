@@ -20,7 +20,8 @@ if it is real differentiable at that point and its differential `is_conformal_li
 ## Main results
 * The conformality of the composition of two conformal maps, the identity map
   and multiplications by nonzero constants
-* `conformal_at_iff`: an equivalent definition of the conformality
+* `conformal_at_iff_is_conformal_map_fderiv`: an equivalent definition of the conformality of a map
+* `conformal_at_iff`: an equivalent definition of the conformality of a map
 * `conformal_at.preserves_angle`: if a map is conformal at `x`, then its differential
                                   preserves all angles at `x`
 
@@ -57,18 +58,39 @@ lemma conformal_at_const_smul {c : ℝ} (h : c ≠ 0) (x : X) :
 ⟨c • continuous_linear_map.id ℝ X,
   has_fderiv_at.const_smul (has_fderiv_at_id x) c, is_conformal_map_const_smul h⟩
 
-/-- A real differentiable map `f` is conformal at point `x` if and only if
-    its differential `f'` at that point scales any inner product by a positive scalar. -/
-lemma conformal_at_iff {f : E → F} {x : E} {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) : conformal_at f x ↔ ∃ (c : ℝ) (hc : 0 < c),
-  ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫ :=
+/-- A function is a conformal map if and only if its differential is a conformal linear map-/
+lemma conformal_at_iff_is_conformal_map_fderiv {f : X → Y} {x : X} :
+  conformal_at f x ↔ is_conformal_map (fderiv ℝ f x) :=
 begin
   split,
-  { rintros ⟨f₁, hf, c₁, hc₁, li, hf₁⟩,
-    exact (hf.unique h) ▸ (is_conformal_map_iff f₁).mp ⟨c₁, hc₁, li, hf₁⟩, },
-  { rintros ⟨c, hc, huv⟩,
-    exact ⟨f', h, (is_conformal_map_iff f').mpr ⟨c, hc, huv⟩⟩, },
+  { rintros ⟨c, hf, hf'⟩,
+    rw hf.fderiv,
+    exact hf' },
+  { intros H,
+    by_cases h : differentiable_at ℝ f x,
+    { exact ⟨fderiv ℝ f x, h.has_fderiv_at, H⟩, },
+    { cases subsingleton_or_nontrivial X with w w; resetI,
+      { exact ⟨(0 : X →L[ℝ] Y), fderiv_eq_zero_of_subsingleton f x,
+        is_conformal_map_of_subsingleton 0⟩, },
+      { exfalso,
+        rcases nontrivial_iff.mp w with ⟨a, b, hab⟩,
+        rw [fderiv_zero_of_not_differentiable_at h] at H,
+        have : (0 : X → Y) a = (0 : X → Y) b := rfl,
+        exact hab (H.injective this), }, }, },
 end
+
+
+/-- A real differentiable map `f` is conformal at point `x` if and only if its
+    differential `fderiv ℝ f x` at that point scales every inner product by a positive scalar. -/
+lemma conformal_at_iff' {f : E → F} {x : E} :
+  conformal_at f x ↔ ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪fderiv ℝ f x u, fderiv ℝ f x v⟫ = c * ⟪u, v⟫ :=
+by rw [conformal_at_iff_is_conformal_map_fderiv, is_conformal_map_iff]
+
+/-- A real differentiable map `f` is conformal at point `x` if and only if its
+    differential `f'` at that point scales every inner product by a positive scalar. -/
+lemma conformal_at_iff {f : E → F} {x : E} {f' : E →L[ℝ] F} (h : has_fderiv_at f f' x) :
+  conformal_at f x ↔ ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪f' u, f' v⟫ = c * ⟪u, v⟫ :=
+by simp only [conformal_at_iff', h.fderiv]
 
 namespace conformal_at
 
@@ -94,32 +116,23 @@ lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_
   conformal_at (c • f) x :=
 (conformal_at_const_smul hc $ f x).comp x hf
 
-lemma conformal_factor_aux {f : E → F} {x : E} (h : conformal_at f x) :
-  ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪(fderiv ℝ f x) u, (fderiv ℝ f x) v⟫ = (c : ℝ) * ⟪u, v⟫ :=
-begin
-  let p := h.differentiable_at.has_fderiv_at,
-  rcases h with ⟨f', hf, hf'⟩,
-  rcases (is_conformal_map_iff f').mp hf' with ⟨c, hc, huv⟩,
-  exact ⟨c, hc, (hf.unique p) ▸ huv⟩,
-end
-
 /-- The conformal factor of a conformal map at some point `x`. Some authors refer to this function
     as the characteristic function of the conformal map. -/
 def conformal_factor_at {f : E → F} {x : E} (h : conformal_at f x) : ℝ :=
-classical.some (conformal_factor_aux h)
+classical.some (conformal_at_iff'.mp h)
 
 lemma conformal_factor_at_pos {f : E → F} {x : E} (h : conformal_at f x) :
   0 < conformal_factor_at h :=
-(classical.some_spec $ conformal_factor_aux h).1
+(classical.some_spec $ conformal_at_iff'.mp h).1
 
-lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} {x : E} (h : conformal_at f x) :
+lemma conformal_factor_at_inner_eq_mul_inner' {f : E → F} {x : E} (h : conformal_at f x) :
   ∀ (u v : E), ⟪(fderiv ℝ f x) u, (fderiv ℝ f x) v⟫ = (conformal_factor_at h : ℝ) * ⟪u, v⟫ :=
-(classical.some_spec $ conformal_factor_aux h).2
+(classical.some_spec $ conformal_at_iff'.mp h).2
 
-lemma conformal_factor_at_inner_eq_mul_inner' {f : E → F} {x : E} {f' : E →L[ℝ] F}
+lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} {x : E} {f' : E →L[ℝ] F}
   (h : has_fderiv_at f f' x) (H : conformal_at f x) :
   ∀ (u v : E), ⟪f' u, f' v⟫ = (conformal_factor_at H : ℝ) * ⟪u, v⟫ :=
-(H.differentiable_at.has_fderiv_at.unique h) ▸ (classical.some_spec $ conformal_factor_aux H).2
+(H.differentiable_at.has_fderiv_at.unique h) ▸ conformal_factor_at_inner_eq_mul_inner' H
 
 /-- If a real differentiable map `f` is conformal at a point `x`,
     then it preserves the angles at that point. -/
@@ -129,29 +142,6 @@ lemma preserves_angle {f : E → F} {x : E} {f' : E →L[ℝ] F}
 let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ c.preserves_angle u v
 
 end conformal_at
-
-lemma conformal_at_iff_is_conformal_map_fderiv {f : X → Y} {x : X} :
-  is_conformal_map (fderiv ℝ f x) ↔ conformal_at f x :=
-begin
-  split,
-  { intros H,
-    by_cases h : differentiable_at ℝ f x,
-    { exact ⟨fderiv ℝ f x, h.has_fderiv_at, H⟩, },
-    { by_cases w : nontrivial X,
-      { exfalso, rcases w with ⟨a, b, hab⟩,
-        rw [fderiv_zero_of_not_differentiable_at h] at H,
-        have : (0 : X → Y) a = (0 : X → Y) b := rfl,
-        exact hab (H.injective this), },
-      { simp_rw [not_nontrivial_iff_subsingleton, subsingleton_iff] at w,
-        have minor : ∀ (x' : X), ∥(0 : X →ₗ[ℝ] Y) x'∥ = ∥x'∥ := λ x',
-          by rw w x' 0; simp only [linear_map.zero_apply, norm_zero],
-        have key : function.const X (f 0) = f := by ext x'; rw w x' 0,
-        exact key ▸ ⟨(0 : X →L[ℝ] Y), has_fderiv_at_const (f 0) _, 1, one_ne_zero, ⟨0, minor⟩,
-          by ext; simp only [pi.smul_apply, one_smul]; refl⟩, }, }, },
-  { rintros ⟨c, hf, hf'⟩,
-    rw hf.fderiv,
-    exact hf' },
-end
 
 end loc_conformality
 

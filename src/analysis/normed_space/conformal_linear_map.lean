@@ -21,6 +21,7 @@ a nonzero multiple of a linear isometry.
 * The conformality of the composition of two conformal linear maps, the identity map
   and multiplications by nonzero constants as continuous linear maps
 * `is_conformal_map_iff`: an equivalent definition of the conformality
+* `is_conformal_map_of_subsingleton`: all continuous linear maps on singleton spaces are conformal
 * `is_conformal_map.preserves_angle`: if a continuous linear map is conformal, then it
                                       preserves all angles in the normed space
 
@@ -59,7 +60,7 @@ lemma is_conformal_map_const_smul {c : R} (hc : c ≠ 0) : is_conformal_map (c �
 ⟨c, hc, id, by ext; simp⟩
 
 lemma is_conformal_map_iff (f' : E →L[ℝ] F) :
-  is_conformal_map f' ↔ ∃ (c : ℝ) (hc : 0 < c),
+  is_conformal_map f' ↔ ∃ (c : ℝ), 0 < c ∧
   ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫ :=
 begin
   split,
@@ -83,8 +84,26 @@ begin
         inv_mul_cancel $ ne_of_gt hc₁, one_mul], },
 end
 
-namespace is_conformal_map
+lemma fderiv_eq_zero_of_subsingleton [h : subsingleton M] (f : M → N) :
+  ∀ (x : M), has_fderiv_at f (0 : M →L[R] N) x :=
+λ x, begin
+  rw subsingleton_iff at h,
+  have key : function.const M (f 0) = f := by ext x'; rw h x' 0,
+  exact key ▸ (has_fderiv_at_const (f 0) _),
+end
 
+lemma is_conformal_map_of_subsingleton [h : subsingleton M] (f' : M →L[R] N) :
+  is_conformal_map f' :=
+begin
+  rw subsingleton_iff at h,
+  have minor : (f' : M → N) = function.const M 0 := by ext x'; rw h x' 0; exact f'.map_zero,
+  have key : ∀ (x' : M), ∥(0 : M →ₗ[R] N) x'∥ = ∥x'∥ := λ x',
+    by rw [linear_map.zero_apply, h x' 0]; repeat { rw norm_zero },
+  exact ⟨(1 : R), one_ne_zero, ⟨0, key⟩,
+    by rw pi.smul_def; ext p; rw [one_smul, minor]; refl⟩,
+end
+
+namespace is_conformal_map
 
 lemma comp {f' : M →L[R] N} {g' : N →L[R] G}
   (hf' : is_conformal_map f') (hg' : is_conformal_map g') :

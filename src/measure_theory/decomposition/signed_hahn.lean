@@ -54,7 +54,7 @@ begin
 end
 
 lemma set.Union_inter_diff_disjoint {f : ℕ → set α} {a : set α} :
-  pairwise $ disjoint on (λ n,  a ∩ f n \ ⋃ k < n, f k) :=
+  pairwise $ disjoint on (λ n, a ∩ f n \ ⋃ k < n, f k) :=
 begin
   rintro n m hnm x ⟨⟨hxn₁, hxn₂⟩, hxm₁, hxm₂⟩,
   simp only [not_exists, exists_prop, mem_Union, mem_empty_eq, mem_inter_eq,
@@ -75,15 +75,6 @@ begin
   refine ⟨set.Ioi 0, Ioi_mem_at_top _, λ _ _, _⟩,
   rw [set.mem_Ioi, inv_eq_one_div, one_div, pi.inv_apply, _root_.inv_pos],
   exact hf' _,
-end
-
-lemma not_forall_le_neg_nat (a : ℝ) (ha : ∀ n : ℕ, a ≤ -n) : false :=
-begin
-  suffices : ¬ ∀ n : ℕ, a ≤ -n,
-  { exact this ha },
-  push_neg,
-  rcases exists_nat_gt (-a) with ⟨n, hn⟩,
-  exact ⟨n, neg_lt.1 hn⟩,
 end
 
 lemma exists_tendsto_Inf {S : set ℝ} (hS : ∃ x, x ∈ S) (hS' : ∃ x, ∀ y ∈ S, x ≤ y) :
@@ -536,16 +527,22 @@ begin
   choose B hB using hf',
   have hmeas : ∀ n, measurable_set (B n) := λ n, let ⟨h, _⟩ := (hB n).1 in h,
   set A := ⋃ n, B n with hA,
-  refine not_forall_le_neg_nat (s A) (λ n, _),
-  refine le_trans _ (le_of_lt (hB n).2),
-  rw [hA, ← set.diff_union_of_subset (set.subset_Union _ n),
-      of_union (disjoint.comm.1 set.disjoint_diff) _ (hmeas n)],
-  { refine add_le_of_nonpos_left _,
-    have : s.negative A := negative_Union_negative hmeas (λ m, let ⟨_, h⟩ := (hB m).1 in h),
-    refine negative_nonpos_measure _ (negative_subset_negative this (set.diff_subset _ _)),
-    exact (measurable_set.Union hmeas).diff (hmeas n) },
-  { apply_instance },
-  { exact (measurable_set.Union hmeas).diff (hmeas n) },
+  have hfalse : ∀ n : ℕ, s A ≤ -n,
+  { intro n,
+    refine le_trans _ (le_of_lt (hB n).2),
+    rw [hA, ← set.diff_union_of_subset (set.subset_Union _ n),
+        of_union (disjoint.comm.1 set.disjoint_diff) _ (hmeas n)],
+    { refine add_le_of_nonpos_left _,
+      have : s.negative A := negative_Union_negative hmeas (λ m, let ⟨_, h⟩ := (hB m).1 in h),
+      refine negative_nonpos_measure _ (negative_subset_negative this (set.diff_subset _ _)),
+      exact (measurable_set.Union hmeas).diff (hmeas n) },
+    { apply_instance },
+    { exact (measurable_set.Union hmeas).diff (hmeas n) } },
+  suffices : ¬ ∀ n : ℕ, s A ≤ -n,
+  { exact this hfalse },
+  push_neg,
+  rcases exists_nat_gt (-(s A)) with ⟨n, hn⟩,
+  exact ⟨n, neg_lt.1 hn⟩,
 end
 
 /-- **The Hahn decomposition thoerem**: Given a signed measure `s`, there exist

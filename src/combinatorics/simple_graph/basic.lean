@@ -124,36 +124,21 @@ section order
 /-- The relation that one `simple_graph` is a subgraph of another. -/
 def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
-/-- The union of two `simple_graph`s. -/
-protected def union (x y : simple_graph V) : simple_graph V :=
-{ adj := x.adj ⊔ y.adj,
-  sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] }
-
-/-- The intersection of two `simple_graph`s. -/
-protected def inter (x y : simple_graph V) : simple_graph V :=
-{ adj := x.adj ⊓ y.adj,
-  sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] }
-
-/-- We define `compl G` to be the `simple_graph V` such that no two adjacent vertices in `G`
-are adjacent in the complement, and every nonadjacent pair of vertices is adjacent
-(still ensuring that vertices are not adjacent to themselves.) -/
-protected def compl (G : simple_graph V) : simple_graph V :=
-{ adj := λ v w, v ≠ w ∧ ¬G.adj v w,
-  sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
-  loopless := λ v ⟨hne, _⟩, false.elim (hne rfl) }
-
-/-- The difference of two `simple_graph`s, which is the simple graph whose edges
-are all of those from the first graph that aren't in the second graph. -/
-protected def sdiff (x y : simple_graph V) : simple_graph V :=
-{ adj := x.adj \ y.adj,
-  sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm]  }
-
 instance : boolean_algebra (simple_graph V) :=
 { le := is_subgraph,
-  sup := simple_graph.union,
-  inf := simple_graph.inter,
-  compl := simple_graph.compl,
-  sdiff := simple_graph.sdiff,
+  sup := λ x y,
+        { adj := x.adj ⊔ y.adj,
+          sym := λ v w h, by rwa [sup_apply, sup_apply, x.adj_comm, y.adj_comm] },
+  inf := λ x y,
+        { adj := x.adj ⊓ y.adj,
+          sym := λ v w h, by rwa [inf_apply, inf_apply, x.adj_comm, y.adj_comm] },
+  compl := λ G,
+        { adj := λ v w, v ≠ w ∧ ¬G.adj v w,
+          sym := λ v w ⟨hne, _⟩, ⟨hne.symm, by rwa adj_comm⟩,
+          loopless := λ v ⟨hne, _⟩, (hne rfl).elim },
+  sdiff := λ x y,
+        { adj := x.adj \ y.adj,
+        sym := λ v w h, by change x.adj w v ∧ ¬ y.adj w v; rwa [x.adj_comm, y.adj_comm] },
   top := complete_graph V,
   bot := empty_graph V,
   le_top := λ x v w h, x.ne_of_adj h,
@@ -174,7 +159,22 @@ instance : boolean_algebra (simple_graph V) :=
   top_le_sup_compl := λ a v w ne, by { by_cases a.adj v w, exact or.inl h, exact or.inr ⟨ne, h⟩ },
   inf_le_left := λ x y v w h, h.1,
   inf_le_right := λ x y v w h, h.2,
-  .. partial_order.lift simple_graph.adj $ λ (x y : simple_graph V) h, by { ext, rw h } }
+  .. partial_order.lift adj ext }
+
+@[simp] lemma sup_adj (x y : simple_graph V) (v w : V) :
+(x ⊔ y).adj v w ↔ (x.adj v w ∨ y.adj v w) := iff.rfl
+
+@[simp] lemma inf_adj (x y : simple_graph V) (v w : V) :
+(x ⊓ y).adj v w ↔ (x.adj v w ∧ y.adj v w) := iff.rfl
+
+@[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+
+@[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
+(x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
+
+@[simp] lemma top_adj (v w : V) : (⊤ : simple_graph V).adj v w ↔ v ≠ w := iff.rfl
+
+@[simp] lemma bot_adj (v w : V) : (⊥ : simple_graph V).adj v w ↔ false := iff.rfl
 
 @[simp] lemma complete_graph_eq_top (V : Type u) : complete_graph V = ⊤ := rfl
 
@@ -182,13 +182,25 @@ instance : boolean_algebra (simple_graph V) :=
 
 instance (V : Type u) : inhabited (simple_graph V) := ⟨⊤⟩
 
-instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
-  decidable_rel (⊤ : simple_graph V).adj := λ v w, not.decidable
+section decidable
 
-@[simp] lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+variables (V) (H : simple_graph V) [decidable_rel G.adj] [decidable_rel H.adj]
 
-instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
-  [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable
+instance bot.adj_decidable   : decidable_rel (⊥ : simple_graph V).adj := λ v w, decidable.false
+
+instance sup.adj_decidable   : decidable_rel (G ⊔ H).adj := λ v w, or.decidable
+
+instance inf.adj_decidable   : decidable_rel (G ⊓ H).adj := λ v w, and.decidable
+
+instance sdiff.adj_decidable : decidable_rel (G \ H).adj := λ v w, and.decidable
+
+variable [decidable_eq V]
+
+instance top.adj_decidable   : decidable_rel (⊤ : simple_graph V).adj :=  λ v w, not.decidable
+
+instance compl.adj_decidable : decidable_rel Gᶜ.adj := λ v w, and.decidable
+
+end decidable
 
 end order
 

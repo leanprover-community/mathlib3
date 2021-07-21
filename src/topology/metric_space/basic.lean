@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 -/
 
 import topology.metric_space.emetric_space
-import topology.shrinking_lemma
 import topology.algebra.ordered.basic
 import data.fintype.intervals
 
@@ -1416,36 +1415,6 @@ begin
   apply (h b).compact_ball
 end
 
-variables [proper_space α] {x : α} {r : ℝ} {s : set α}
-
-/-- If a nonempty ball in a proper space includes a closed set `s`, then there exists a nonempty
-ball with the same center and a strictly smaller radius that includes `s`. -/
-lemma exists_pos_lt_subset_ball (hr : 0 < r) (hs : is_closed s) (h : s ⊆ ball x r) :
-  ∃ r' ∈ Ioo 0 r, s ⊆ ball x r' :=
-begin
-  unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
-  { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
-  have : is_compact s,
-    from compact_of_is_closed_subset (proper_space.compact_ball x r) hs
-      (subset.trans h ball_subset_closed_ball),
-  obtain ⟨y, hys, hy⟩ : ∃ y ∈ s, s ⊆ closed_ball x (dist y x),
-    from this.exists_forall_ge hne (continuous_id.dist continuous_const).continuous_on,
-  have hyr : dist y x < r, from h hys,
-  rcases exists_between hyr with ⟨r', hyr', hrr'⟩,
-  exact ⟨r', ⟨dist_nonneg.trans_lt hyr', hrr'⟩, subset.trans hy $ closed_ball_subset_ball hyr'⟩
-end
-
-/-- If a ball in a proper space includes a closed set `s`, then there exists a ball with the same
-center and a strictly smaller radius that includes `s`. -/
-lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
-  ∃ r' < r, s ⊆ ball x r' :=
-begin
-  cases le_or_lt r 0 with hr hr,
-  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
-    exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
-  { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
-end
-
 end proper_space
 
 namespace metric
@@ -1981,105 +1950,6 @@ instance metric_space_pi : metric_space (Πb, π b) :=
   ..pseudo_metric_space_pi }
 
 end pi
-
-section proper_space
-
-variables {ι : Type*} {c : ι → γ}
-variables [proper_space γ] {x : γ} {r : ℝ} {s : set γ}
-
-/-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover
-of a closed subset of a proper metric space by open balls can be shrunk to a new cover by open balls
-so that each of the new balls has strictly smaller radius than the old one. This version assumes
-that `λ x, ball (c i) (r i)` is a locally finite covering and provides a covering indexed by the
-same type. -/
-lemma exists_subset_Union_ball_radius_lt {r : ι → ℝ} (hs : is_closed s)
-  (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
-  ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i < r i :=
-begin
-  rcases exists_subset_Union_closed_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us
-    with ⟨v, hsv, hvc, hcv⟩,
-  have := λ i, exists_lt_subset_ball (hvc i) (hcv i),
-  choose r' hlt hsub,
-  exact ⟨r', subset.trans hsv $ Union_subset_Union $ hsub, hlt⟩
-end
-
-/-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover
-of a proper metric space by open balls can be shrunk to a new cover by open balls so that each of
-the new balls has strictly smaller radius than the old one. -/
-lemma exists_Union_ball_eq_radius_lt {r : ι → ℝ} (uf : ∀ x, finite {i | x ∈ ball (c i) (r i)})
-  (uU : (⋃ i, ball (c i) (r i)) = univ) :
-  ∃ r' : ι → ℝ, (⋃ i, ball (c i) (r' i)) = univ ∧ ∀ i, r' i < r i :=
-let ⟨r', hU, hv⟩ := exists_subset_Union_ball_radius_lt is_closed_univ (λ x _, uf x) uU.ge
-in ⟨r', univ_subset_iff.1 hU, hv⟩
-
-/-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover
-of a closed subset of a proper metric space by nonempty open balls can be shrunk to a new cover by
-nonempty open balls so that each of the new balls has strictly smaller radius than the old one. -/
-lemma exists_subset_Union_ball_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r i) (hs : is_closed s)
-  (uf : ∀ x ∈ s, finite {i | x ∈ ball (c i) (r i)}) (us : s ⊆ ⋃ i, ball (c i) (r i)) :
-  ∃ r' : ι → ℝ, s ⊆ (⋃ i, ball (c i) (r' i)) ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
-begin
-  rcases exists_subset_Union_closed_subset hs (λ i, @is_open_ball _ _ (c i) (r i)) uf us
-    with ⟨v, hsv, hvc, hcv⟩,
-  have := λ i, exists_pos_lt_subset_ball (hr i) (hvc i) (hcv i),
-  choose r' hlt hsub,
-  exact ⟨r', subset.trans hsv $ Union_subset_Union hsub, hlt⟩
-end
-
-/-- Shrinking lemma for coverings by open balls in a proper metric space. A point-finite open cover
-of a proper metric space by nonempty open balls can be shrunk to a new cover by nonempty open balls
-so that each of the new balls has strictly smaller radius than the old one. -/
-lemma exists_Union_ball_eq_radius_pos_lt {r : ι → ℝ} (hr : ∀ i, 0 < r i)
-  (uf : ∀ x, finite {i | x ∈ ball (c i) (r i)}) (uU : (⋃ i, ball (c i) (r i)) = univ) :
-  ∃ r' : ι → ℝ, (⋃ i, ball (c i) (r' i)) = univ ∧ ∀ i, r' i ∈ Ioo 0 (r i) :=
-let ⟨r', hU, hv⟩ := exists_subset_Union_ball_radius_pos_lt hr is_closed_univ (λ x _, uf x) uU.ge
-in ⟨r', univ_subset_iff.1 hU, hv⟩
-
-/-- Let `R : γ → ℝ` be a (possibly discontinuous) function on a proper metric space.
-Let `s` be a closed set in `α` such that `R` is positive on `s`. Then there exists a collection of
-pairs of balls `metric.ball (c i) (r i)`, `metric.ball (c i) (r' i)` such that
-
-* all centers belong to `s`;
-* for all `i` we have `0 < r i < r' i < R (c i)`;
-* the family of balls `metric.ball (c i) (r' i)` is locally finite;
-* the balls `metric.ball (c i) (r i)` cover `s`.
-
-This is a simple corollary of `refinement_of_locally_compact_sigma_compact_of_nhds_basis_set`
-and `exists_subset_Union_ball_radius_pos_lt`. -/
-lemma exists_locally_finite_subset_Union_ball_radius_lt (hs : is_closed s)
-  {R : γ → ℝ} (hR : ∀ x ∈ s, 0 < R x) :
-  ∃ (ι : Type w) (c : ι → γ) (r r' : ι → ℝ),
-    (∀ i, c i ∈ s ∧ 0 < r i ∧ r i < r' i ∧ r' i < R (c i)) ∧
-    locally_finite (λ i, ball (c i) (r' i)) ∧ s ⊆ ⋃ i, ball (c i) (r i) :=
-begin
-  have : ∀ x ∈ s, (𝓝 x).has_basis (λ r : ℝ, 0 < r ∧ r < R x) (λ r, ball x r),
-    from λ x hx, nhds_basis_uniformity (uniformity_basis_dist_lt (hR x hx)),
-  rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs this
-    with ⟨ι, c, r', hr', hsub', hfin⟩,
-  rcases exists_subset_Union_ball_radius_pos_lt (λ i, (hr' i).2.1) hs
-    (λ x hx, hfin.point_finite x) hsub' with ⟨r, hsub, hlt⟩,
-  exact ⟨ι, c, r, r', λ i, ⟨(hr' i).1, (hlt i).1, (hlt i).2, (hr' i).2.2⟩, hfin, hsub⟩
-end
-
-/-- Let `R : γ → ℝ` be a (possibly discontinuous) positive function on a proper metric space. Then
-there exists a collection of pairs of balls `metric.ball (c i) (r i)`, `metric.ball (c i) (r' i)`
-such that
-
-* for all `i` we have `0 < r i < r' i < R (c i)`;
-* the family of balls `metric.ball (c i) (r' i)` is locally finite;
-* the balls `metric.ball (c i) (r i)` cover the whole space.
-
-This is a simple corollary of `refinement_of_locally_compact_sigma_compact_of_nhds_basis`
-and `exists_Union_ball_eq_radius_pos_lt` or `exists_locally_finite_subset_Union_ball_radius_lt`. -/
-lemma exists_locally_finite_Union_eq_ball_radius_lt {R : γ → ℝ} (hR : ∀ x, 0 < R x) :
-  ∃ (ι : Type w) (c : ι → γ) (r r' : ι → ℝ), (∀ i, 0 < r i ∧ r i < r' i ∧ r' i < R (c i)) ∧
-    locally_finite (λ i, ball (c i) (r' i)) ∧ (⋃ i, ball (c i) (r i)) = univ :=
-let ⟨ι, c, r, r', hlt, hfin, hsub⟩ := exists_locally_finite_subset_Union_ball_radius_lt
-  is_closed_univ (λ x _, hR x)
-in ⟨ι, c, r, r', λ i, (hlt i).2, hfin, univ_subset_iff.1 hsub⟩
-
-end proper_space
-
 
 namespace metric
 section second_countable

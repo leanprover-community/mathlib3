@@ -84,14 +84,6 @@ begin
         inv_mul_cancel $ ne_of_gt hc₁, one_mul], },
 end
 
-lemma fderiv_eq_zero_of_subsingleton [h : subsingleton M] (f : M → N) :
-  ∀ (x : M), has_fderiv_at f (0 : M →L[R] N) x :=
-λ x, begin
-  rw subsingleton_iff at h,
-  have key : function.const M (f 0) = f := by ext x'; rw h x' 0,
-  exact key ▸ (has_fderiv_at_const (f 0) _),
-end
-
 lemma is_conformal_map_of_subsingleton [h : subsingleton M] (f' : M →L[R] N) :
   is_conformal_map f' :=
 begin

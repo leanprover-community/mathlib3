@@ -56,7 +56,7 @@ lemma conformal_at_id (x : X) : conformal_at id x :=
 lemma conformal_at_const_smul {c : ℝ} (h : c ≠ 0) (x : X) :
   conformal_at (λ (x': X), c • x') x :=
 ⟨c • continuous_linear_map.id ℝ X,
-  has_fderiv_at.const_smul (has_fderiv_at_id x) c, is_conformal_map_const_smul h⟩
+  (has_fderiv_at_id x).const_smul c, is_conformal_map_const_smul h⟩
 
 /-- A function is a conformal map if and only if its differential is a conformal linear map-/
 lemma conformal_at_iff_is_conformal_map_fderiv {f : X → Y} {x : X} :
@@ -75,10 +75,8 @@ begin
       { exfalso,
         rcases nontrivial_iff.mp w with ⟨a, b, hab⟩,
         rw [fderiv_zero_of_not_differentiable_at h] at H,
-        have : (0 : X → Y) a = (0 : X → Y) b := rfl,
-        exact hab (H.injective this), }, }, },
+        exact hab (H.injective rfl), }, }, },
 end
-
 
 /-- A real differentiable map `f` is conformal at point `x` if and only if its
     differential `fderiv ℝ f x` at that point scales every inner product by a positive scalar. -/
@@ -103,14 +101,14 @@ lemma congr {f g : X → Y} {x : X} {u : set X} (hx : x ∈ u) (hu : is_open u)
   (hf : conformal_at f x) (h : ∀ (x : X), x ∈ u → g x = f x) :
   conformal_at g x :=
 let ⟨f', hfderiv, hf'⟩ := hf in
-  ⟨f', hfderiv.congr_of_eventually_eq (filter.eventually_eq_of_mem (hu.mem_nhds hx) h), hf'⟩
+  ⟨f', hfderiv.congr_of_eventually_eq ((hu.eventually_mem hx).mono h), hf'⟩
 
 lemma comp {f : X → Y} {g : Y → Z} (x : X)
   (hg : conformal_at g (f x)) (hf : conformal_at f x) : conformal_at (g ∘ f) x :=
 begin
   rcases hf with ⟨f', hf₁, cf⟩,
   rcases hg with ⟨g', hg₁, cg⟩,
-  exact ⟨g'.comp f', has_fderiv_at.comp x hg₁ hf₁, cf.comp cg⟩,
+  exact ⟨g'.comp f', hg₁.comp x hf₁, cf.comp cg⟩,
 end
 
 lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_at f x) :
@@ -126,13 +124,14 @@ lemma conformal_factor_at_pos {f : E → F} {x : E} (h : conformal_at f x) :
   0 < conformal_factor_at h :=
 (classical.some_spec $ conformal_at_iff'.mp h).1
 
-lemma conformal_factor_at_inner_eq_mul_inner' {f : E → F} {x : E} (h : conformal_at f x) :
-  ∀ (u v : E), ⟪(fderiv ℝ f x) u, (fderiv ℝ f x) v⟫ = (conformal_factor_at h : ℝ) * ⟪u, v⟫ :=
+lemma conformal_factor_at_inner_eq_mul_inner' {f : E → F} {x : E}
+  (h : conformal_at f x) (u v : E) :
+  ⟪(fderiv ℝ f x) u, (fderiv ℝ f x) v⟫ = (conformal_factor_at h : ℝ) * ⟪u, v⟫ :=
 (classical.some_spec $ conformal_at_iff'.mp h).2
 
 lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} {x : E} {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) :
-  ∀ (u v : E), ⟪f' u, f' v⟫ = (conformal_factor_at H : ℝ) * ⟪u, v⟫ :=
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
+  ⟪f' u, f' v⟫ = (conformal_factor_at H : ℝ) * ⟪u, v⟫ :=
 (H.differentiable_at.has_fderiv_at.unique h) ▸ conformal_factor_at_inner_eq_mul_inner' H
 
 /-- If a real differentiable map `f` is conformal at a point `x`,

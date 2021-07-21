@@ -124,12 +124,12 @@ namespace vector_measure
 /-- A set `i` is positive with respect to a vector measure if for all
 measurable set `j`, `j ⊆ i`, `j` has non-negative measure. -/
 def positive (v : vector_measure α M) (i : set α) : Prop :=
-∀ j ⊆ i, measurable_set j → 0 ≤ v j
+∀ ⦃j⦄ ,j ⊆ i → measurable_set j → 0 ≤ v j
 
 /-- A set `i` is negative with respect to a vector measure if for all
 measurable set `j`, `j ⊆ i`, `j` has non-positive measure. -/
 def negative (v : vector_measure α M) (i : set α) : Prop :=
-∀ j ⊆ i, measurable_set j → v j ≤ 0
+∀ ⦃j⦄, j ⊆ i → measurable_set j → v j ≤ 0
 
 variables {v : signed_measure α} {i j : set α}
 
@@ -147,24 +147,24 @@ end
 
 lemma positive_nonneg_measure (hi₁ : measurable_set i) (hi₂ : v.positive i) :
   0 ≤ v i :=
-hi₂ i set.subset.rfl hi₁
+hi₂ set.subset.rfl hi₁
 
 lemma negative_nonpos_measure (hi₁ : measurable_set i) (hi₂ : v.negative i) :
   v i ≤ 0 :=
-hi₂ i set.subset.rfl hi₁
+hi₂ set.subset.rfl hi₁
 
 lemma positive_subset_positive (hi : v.positive i) (hij : j ⊆ i) :
   v.positive j :=
 begin
   intros k hk,
-  exact hi _ (set.subset.trans hk hij),
+  exact hi (set.subset.trans hk hij),
 end
 
 lemma negative_subset_negative (hi : v.negative i) (hij : j ⊆ i) :
   v.negative j :=
 begin
   intros k hk,
-  exact hi _ (set.subset.trans hk hij),
+  exact hi (set.subset.trans hk hij),
 end
 
 lemma not_positive_subset (hi : ¬ v.positive i) (h : i ⊆ j) : ¬ v.positive j :=
@@ -183,8 +183,8 @@ begin
   have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
     { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
   rw [← this, of_union disjoint_sdiff_self_right h₁ h₂],
-  refine add_nonneg (hi₂ _ (a.inter_subset_right i) h₁) _,
-  exact hj₂ _ (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)) h₂,
+  refine add_nonneg (hi₂ (a.inter_subset_right i) h₁) _,
+  exact hj₂ (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)) h₂,
   apply_instance
 end
 
@@ -195,7 +195,7 @@ begin
   intros a ha₁ ha₂,
   rw [← set.Union_inter_disjointed_eq ha₁,
       v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
-  refine tsum_nonneg (λ n, hf₂ n _ _ _),
+  refine tsum_nonneg (λ n, hf₂ n _ _),
   { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
   { exact (ha₂.inter (measurable_set.disjointed hf₁ n)) },
   { intro n,
@@ -212,8 +212,8 @@ begin
   have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
     { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
   rw [← this, of_union disjoint_sdiff_self_right h₁ h₂],
-  refine add_nonpos (hi₂ _ (a.inter_subset_right i) h₁) _,
-  exact hj₂ _ (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)) h₂,
+  refine add_nonpos (hi₂ (a.inter_subset_right i) h₁) _,
+  exact hj₂ (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)) h₂,
   apply_instance
 end
 
@@ -224,7 +224,7 @@ begin
   intros a ha₁ ha₂,
   rw [← set.Union_inter_disjointed_eq ha₁,
       v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
-  refine tsum_nonpos (λ n, hf₂ n _ _ _),
+  refine tsum_nonpos (λ n, hf₂ n _ _),
   { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
   { exact (ha₂.inter (measurable_set.disjointed hf₁ n)) },
   { intro n,
@@ -600,10 +600,10 @@ begin
   split,
   { rw [symm_diff_def, set.diff_eq_compl_inter, set.diff_eq_compl_inter,
         set.sup_eq_union, of_union,
-        le_antisymm (hi'.2 _ (set.inter_subset_left _ _) (hi.compl.inter hj))
-          (hj'.1 _ (set.inter_subset_right _ _) (hi.compl.inter hj)),
-        le_antisymm (hj'.2 _ (set.inter_subset_left _ _) (hj.compl.inter hi))
-          (hi'.1 _ (set.inter_subset_right _ _) (hj.compl.inter hi)), add_zero],
+        le_antisymm (hi'.2 (set.inter_subset_left _ _) (hi.compl.inter hj))
+          (hj'.1 (set.inter_subset_right _ _) (hi.compl.inter hj)),
+        le_antisymm (hj'.2 (set.inter_subset_left _ _) (hj.compl.inter hi))
+          (hi'.1 (set.inter_subset_right _ _) (hj.compl.inter hi)), add_zero],
     { exact set.disjoint_of_subset_left (set.inter_subset_left _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _)
         (disjoint.comm.1 (is_compl.disjoint is_compl_compl))) },
@@ -611,10 +611,10 @@ begin
     { exact hi.compl.inter hj } },
   { rw [symm_diff_def, set.diff_eq_compl_inter, set.diff_eq_compl_inter,
         compl_compl, compl_compl, set.sup_eq_union, of_union,
-        le_antisymm (hi'.2 _ (set.inter_subset_right _ _) (hj.inter hi.compl))
-          (hj'.1 _ (set.inter_subset_left _ _) (hj.inter hi.compl)),
-        le_antisymm (hj'.2 _ (set.inter_subset_right _ _) (hi.inter hj.compl))
-          (hi'.1 _ (set.inter_subset_left _ _) (hi.inter hj.compl)), add_zero],
+        le_antisymm (hi'.2 (set.inter_subset_right _ _) (hj.inter hi.compl))
+          (hj'.1 (set.inter_subset_left _ _) (hj.inter hi.compl)),
+        le_antisymm (hj'.2 (set.inter_subset_right _ _) (hi.inter hj.compl))
+          (hi'.1 (set.inter_subset_left _ _) (hi.inter hj.compl)), add_zero],
     { exact set.disjoint_of_subset_left (set.inter_subset_left _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _)
         (is_compl.disjoint is_compl_compl)) },

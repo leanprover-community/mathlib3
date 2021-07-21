@@ -223,23 +223,22 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
   (by intros; refl)
 
-/-- The first of the **Sylow theorems** -/
-theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
-  (hdvd : p ^ n ∣ card G), ∃ H : subgroup G, fintype.card H = p ^ n
-| 0 := λ _ _, ⟨(⊥ : subgroup G), by convert card_bot⟩
-| (n+1) := λ hp hdvd,
-let ⟨H, hH2⟩ := @exists_subgroup_card_pow_prime _ hp
-  (dvd.trans (pow_dvd_pow _ (nat.le_succ _)) hdvd) in
+/-- If `H` is a subgroup of `G` of cardinality `p ^ n`, then
+  then `H` is contained in a subgroup of cardinality `p ^ (n + 1)`
+  if `p ^ (n + 1)` divides the cardinality of `G` -/
+theorem exists_subgroup_card_pow_succ [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
+  (hdvd : p ^ (n + 1) ∣ card G) {H : subgroup G} (hH : fintype.card H = p ^ n) :
+  ∃ K : subgroup G, fintype.card K = p ^ (n + 1) ∧ H ≤ K :=
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
-    (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH2, hs,
+    (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
-    @card_modeq_card_fixed_points _ _ _ _ _ _ _ p _ hp hH2,
+    @card_modeq_card_fixed_points _ _ _ _ _ _ _ p _ hp hH,
 have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
@@ -247,7 +246,6 @@ let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.quotient.gr
 have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
   ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
--- begin proof of ∃ H : subgroup G, fintype.card H = p ^ n
 ⟨subgroup.map ((normalizer H).subtype) (subgroup.comap
   (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
 begin
@@ -259,9 +257,42 @@ begin
   rw [set.card_image_of_injective
         (subgroup.comap (mk' (comap H.normalizer.subtype H)) (gpowers x) : set (H.normalizer))
         subtype.val_injective,
-      pow_succ', ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
+      pow_succ', ← hH, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
+end,
+begin
+  assume y hy,
+  simp only [exists_prop, subgroup.coe_subtype, mk'_apply, subgroup.mem_map, subgroup.mem_comap],
+  refine ⟨⟨y, le_normalizer hy⟩, ⟨0, _⟩, rfl⟩,
+  rw [gpow_zero, eq_comm, quotient_group.eq_one_iff],
+  simpa using hy
 end⟩
+
+/-- If `H` is a subgroup of `G` of cardinality `p ^ n`, then
+  then `H` is contained in a subgroup of cardinality `p ^ m`
+  if `n ≤ m` and `p ^ m` divides the cardinality of `G` -/
+theorem exists_subgroup_card_pow_prime_le [fintype G] (p : ℕ) : ∀ {n m : ℕ} [hp : fact p.prime]
+  (hdvd : p ^ m ∣ card G) (H : subgroup G) (hH : card H = p ^ n) (hnm : n ≤ m),
+  ∃ K : subgroup G, card K = p ^ m ∧ H ≤ K
+| n m := λ hp hdvd H hH hnm,
+  (lt_or_eq_of_le hnm).elim
+    (λ hnm : n < m,
+      have h0m : 0 < m, from (lt_of_le_of_lt n.zero_le hnm),
+      have wf : m - 1 < m,  from nat.sub_lt h0m zero_lt_one,
+      have hnm1 : n ≤ m - 1, from nat.le_sub_right_of_add_le hnm,
+      let ⟨K, hK⟩ := @exists_subgroup_card_pow_prime_le n (m - 1) hp
+        (nat.pow_dvd_of_le_of_pow_dvd (nat.sub_le_self _ _) hdvd) H hH hnm1 in
+      have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [nat.sub_add_cancel h0m],
+      let ⟨K', hK'⟩ := @exists_subgroup_card_pow_succ _ _ _ _ _ hp hdvd' K hK.1 in
+      ⟨K', by rw [hK'.1, nat.sub_add_cancel h0m], le_trans hK.2 hK'.2⟩)
+    (λ hnm : n = m, ⟨H, by simp [hH, hnm]⟩)
+
+/-- A generalisation of **Sylow's first theorem**. If `p ^ n` divides
+  the cardinality of `G`, then there is a subgroup of cardinality `p ^ n` -/
+theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) {n : ℕ} [hp : fact p.prime]
+  (hdvd : p ^ n ∣ card G) : ∃ K : subgroup G, fintype.card K = p ^ n :=
+let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero_le in
+⟨K, hK.1⟩
 
 end sylow

@@ -97,7 +97,8 @@ by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
-  (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) := iff.rfl
+  (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
+iff.rfl
 
 /-- The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
 adjacent. In `mathlib`, this is usually referred to as `⊤`. -/

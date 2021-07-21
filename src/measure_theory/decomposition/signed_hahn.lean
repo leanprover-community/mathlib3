@@ -41,16 +41,23 @@ variables {α : Type*}
 
 open set filter
 
+-- TODO: generalize to `complete_boolean_algebra`
+lemma set.Union_diff_Union_nat_lt (f : ℕ → set α) :
+  (⋃ i, f i \ (⋃ k < i, f k)) = (⋃ n, f n) :=
+eq_of_subset_of_subset
+  (Union_subset_Union $ λ i, diff_subset _ _)
+  (λ x hx, begin
+    replace hx := mem_Union.1 hx,
+    classical,
+    simp only [mem_diff, mem_Union, not_exists],
+    refine ⟨nat.find hx, nat.find_spec hx, λ m hm, nat.find_min hx hm⟩,
+  end)
+
 lemma set.Union_inter_diff_eq {f : ℕ → set α} {a : set α} (ha : a ⊆ ⋃ n, f n) :
   (⋃ n, a ∩ f n \ ⋃ k < n, f k) = a :=
 begin
-  ext x,
-  simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and, mem_diff],
-  split,
-  { rintro ⟨_, ⟨_, _⟩, _⟩, assumption },
-  { intro hx,
-    let n := nat.find (mem_Union.1 (ha hx)),
-    exact ⟨n, ⟨hx, nat.find_spec (mem_Union.1 (ha hx))⟩, λ m hm, nat.find_min _ hm⟩ }
+  simp_rw [inter_diff_assoc, ←inter_Union, set.Union_diff_Union_nat_lt, inter_eq_left_iff_subset],
+  exact ha,
 end
 
 lemma set.Union_inter_diff_disjoint {f : ℕ → set α} {a : set α} :

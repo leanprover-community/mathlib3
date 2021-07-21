@@ -13,8 +13,8 @@ This file proves the unsigned version of the Hahn decomposition theorem.
 ## Main statements
 
 * `hahn_decomposition` : Given two finite measures `μ` and `ν`, there exists a measurable set `s`
-    such that for all measurable set `t`, `t ⊆ s`, `ν t ≤ μ t`, and for all measurable set `u`,
-    `u ⊆ sᶜ` and `μ u ≤ ν u`.
+    such that any measurable set `t` included in `s` satisfies `ν t ≤ μ t`, and any
+    measurable set `u` included in the complement of `s` satisfies `μ u ≤ ν u`.
 
 ## Tags
 

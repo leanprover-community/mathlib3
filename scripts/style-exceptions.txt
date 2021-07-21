@@ -40,7 +40,6 @@ src/data/array/lemmas.lean : line 9 : ERR_MOD : Module docstring missing, or too
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/dlist/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/data/fintype/basic.lean : line 16 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/sort.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/int/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/list/func.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -54,7 +53,6 @@ src/data/qpf/multivariate/basic.lean : line 73 : ERR_LIN : Line has more than 10
 src/data/qpf/multivariate/constructions/cofix.lean : line 38 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/multivariate/constructions/fix.lean : line 47 : ERR_LIN : Line has more than 100 characters
 src/data/qpf/univariate/basic.lean : line 35 : ERR_LIN : Line has more than 100 characters
-src/data/rel.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
@@ -72,7 +70,6 @@ src/measure_theory/decomposition.lean : line 13 : ERR_MOD : Module docstring mis
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/rel_iso.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/lists.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/zfc.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/algebra.lean : line 8 : ERR_MOD : Module docstring missing, or too late

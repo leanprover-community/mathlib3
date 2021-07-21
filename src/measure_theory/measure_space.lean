@@ -176,6 +176,31 @@ begin
   rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
+lemma meas_eq_meas_of_null_diff {s t : set α}
+  (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
+by { rw [←diff_diff_cancel_left hst, ←@measure_diff_null _ _ _ t _ h_nulldiff], refl, }
+
+lemma meas_eq_meas_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃ \ s₁) = 0) :
+  (μ s₁ = μ s₂) ∧ (μ s₂ = μ s₃) :=
+begin
+  have le12 : μ s₁ ≤ μ s₂ := measure_mono h12,
+  have le23 : μ s₂ ≤ μ s₃ := measure_mono h23,
+  have key : μ s₃ ≤ μ s₁ := calc
+    μ s₃ = μ ((s₃ \ s₁) ∪ s₁)  : by rw (diff_union_of_subset (h12.trans h23))
+     ... ≤ μ (s₃ \ s₁) + μ s₁  : measure_union_le _ _
+     ... = μ s₁                : by simp only [h_nulldiff, zero_add],
+  exact ⟨le12.antisymm (le23.trans key), le23.antisymm (key.trans le12)⟩,
+end
+
+lemma meas_eq_meas_smaller_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₁ = μ s₂ :=
+(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).1
+
+lemma meas_eq_meas_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₂ = μ s₃ :=
+(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).2
+
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s < ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
 
@@ -1475,6 +1500,11 @@ export has_no_atoms (measure_singleton)
 attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
+
+lemma measure_subsingleton (hs : s.subsingleton) : μ s = 0 :=
+hs.induction_on measure_empty measure_singleton
+
+alias measure_subsingleton ← set.subsingleton.measure_eq
 
 @[simp] lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=

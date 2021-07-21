@@ -85,7 +85,7 @@ instance : has_coe_to_fun (α ≃ β) :=
 rfl
 
 /-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
-theorem coe_fn_injective : function.injective (λ (e : α ≃ β) (x : α), e x)
+theorem coe_fn_injective : @function.injective (α ≃ β) (α → β) coe_fn
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),

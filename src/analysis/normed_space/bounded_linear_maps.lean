@@ -33,8 +33,9 @@ The main use of this file is `is_bounded_bilinear_map`. The file `analysis.norme
 already expounds the theory of multilinear maps, but the `2`-variables case is sufficiently simpler
 to currently deserve its own treatment.
 
-`is_bounded_linear_map` is effectively an unbundled version of `continuous_linear_map` (developed
-in `analysis.normed_space.operator_norm`), albeit the name disparity. A bundled
+`is_bounded_linear_map` is effectively an unbundled version of `continuous_linear_map` (defined
+in `topology.algebra.module`, theory over normed spaces developed in
+`analysis.normed_space.operator_norm`), albeit the name disparity. A bundled
 `continuous_linear_map` is to be preferred over a `is_bounded_linear_map` hypothesis. Historical
 artifact, really.
 -/

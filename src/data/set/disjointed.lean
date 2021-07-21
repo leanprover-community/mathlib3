@@ -3,80 +3,35 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.lattice
-import tactic.wlog
+import data.set.pairwise
 
 /-!
-# Relations holding pairwise and consecutive differences of sets
+# Consecutive differences of sets
 
-This file defines pairwise relations and a way to make a sequence of sets into a sequence of
-disjoint sets.
+This file defines a way to make a sequence of sets into a sequence of disjoint sets.
 
 ## Main declarations
 
-* `pairwise p`: States that `p i j` for all `i ≠ j`.
 * `disjointed f`: Yields the sequence of sets `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ∪ f 1)`, ... This
   sequence has the same union as `f 0`, `f 1`, `f 2` but with disjoint sets.
-
 -/
-open set
 
-universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
-  {s t u : set α}
+variables {α β γ : Type*} {ι : Sort*} [complete_boolean_algebra α] {a b c : α}
 
-/-- A relation `p` holds pairwise if `p i j` for all `i ≠ j`. -/
-def pairwise {α : Type*} (p : α → α → Prop) := ∀ i j, i ≠ j → p i j
-
-theorem set.pairwise_on_univ {r : α → α → Prop} :
-  (univ : set α).pairwise_on r ↔ pairwise r :=
-by simp only [pairwise_on, pairwise, mem_univ, forall_const]
-
-theorem set.pairwise_on.on_injective {s : set α} {r : α → α → Prop} (hs : pairwise_on s r)
-  {f : β → α} (hf : function.injective f) (hfs : ∀ x, f x ∈ s) :
-  pairwise (r on f) :=
-λ i j hij, hs _ (hfs i) _ (hfs j) (hf.ne hij)
-
-theorem pairwise.mono {p q : α → α → Prop} (h : ∀ ⦃i j⦄, p i j → q i j) (hp : pairwise p) :
-  pairwise q :=
-λ i j hij, h (hp i j hij)
-
-theorem pairwise_on_bool {r} (hr : symmetric r) {a b : α} :
-  pairwise (r on (λ c, cond c a b)) ↔ r a b :=
-by simpa [pairwise, function.on_fun] using @hr a b
-
-theorem pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
-  pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
-pairwise_on_bool disjoint.symm
-
-theorem pairwise_on_nat {r} (hr : symmetric r) (f : ℕ → α) :
-  pairwise (r on f) ↔ ∀ (m n) (h : m < n), r (f m) (f n) :=
-⟨λ p m n w, p m n w.ne, λ p m n w, by { wlog w' : m ≤ n, exact p m n ((ne.le_iff_lt w).mp w'), }⟩
-
-theorem pairwise_disjoint_on_nat [semilattice_inf_bot α] (f : ℕ → α) :
-  pairwise (disjoint on f) ↔ ∀ (m n) (h : m < n), disjoint (f m) (f n) :=
-pairwise_on_nat disjoint.symm f
-
-theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
-λ x hx y hy, h x y
-
-theorem pairwise_disjoint_fiber (f : α → β) : pairwise (disjoint on (λ y : β, f ⁻¹' {y})) :=
-set.pairwise_on_univ.1 $ pairwise_on_disjoint_fiber f univ
-
-namespace set
-
-/-- If `f : ℕ → set α` is a sequence of sets, then `disjointed f` is
+/-- If `f : ℕ → α` is a sequence of sets, then `disjointed f` is
   the sequence formed with each set subtracted from the later ones
   in the sequence, to form a disjoint sequence. -/
-def disjointed (f : ℕ → set α) (n : ℕ) : set α := f n ∩ (⋂ i < n, (f i)ᶜ)
+def disjointed (f : ℕ → α) (n : ℕ) : α := f n \ (⨆ i < n, f i)
 
-variables {f : ℕ → set α} {n : ℕ}
+variables {f : ℕ → α} {n : ℕ}
 
 lemma disjoint_disjointed : pairwise (disjoint on disjointed f) :=
-λ i j h, begin
-  wlog h' : i ≤ j; [skip, {revert a, exact (this h.symm).symm}],
-  rintro a ⟨⟨h₁, _⟩, h₂, h₃⟩, simp at h₃,
-  exact h₃ _ (lt_of_le_of_ne h' h) h₁
+λ i j hij, begin
+  obtain h | h := hij.lt_or_lt,
+  {
+    refine disjoint_sdiff_self_right.mono_left (sdiff_le.trans (le_bsupr_of_le _ h le_rfl)),
+  }
+
 end
 
 -- a more useful version might be `∀ i j x, x ∈ disjointed f i → x ∈ disjointed f j → i = j`
@@ -92,7 +47,7 @@ ext $ λ a, by simp [nat.lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_d
 lemma Inter_lt_succ : (⋂ i < nat.succ n, f i) = f n ∩ (⋂ i < n, f i) :=
 ext $ λ a, by simp [nat.lt_succ_iff_lt_or_eq, or_imp_distrib, forall_and_distrib, and_comm]
 
-lemma disjointed_induct {p : set α → Prop} (h₁ : p (f n)) (h₂ : ∀ t i, p t → p (t \ f i)) :
+lemma disjointed_induct {p : α → Prop} (h₁ : p (f n)) (h₂ : ∀ t i, p t → p (t \ f i)) :
   p (disjointed f n) :=
 begin
   rw disjointed,
@@ -131,5 +86,3 @@ lemma Union_disjointed_of_mono (hf : monotone f) (n : ℕ) :
   (⋃ i < n.succ, disjointed f i) = f n :=
 subset.antisymm (bUnion_subset $ λ k hk, subset.trans disjointed_subset $ hf $ nat.lt_succ_iff.1 hk)
   subset_Union_disjointed
-
-end set

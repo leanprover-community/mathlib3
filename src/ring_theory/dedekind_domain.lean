@@ -127,8 +127,8 @@ J⁻¹ = ⟨(1 : fractional_ideal R₁⁰ K) / J, fractional_ideal.fractional_di
 fractional_ideal.div_nonzero _
 
 lemma coe_inv_of_nonzero {J : fractional_ideal R₁⁰ K} (h : J ≠ 0) :
-  (↑J⁻¹ : submodule R₁ K) = is_localization.coe_submodule K 1 / J :=
-by { rwa inv_nonzero _, refl, assumption}
+  (↑J⁻¹ : submodule R₁ K) = is_localization.coe_submodule K ⊤ / J :=
+by { rwa inv_nonzero _, refl, assumption }
 
 /-- `I⁻¹` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
@@ -229,7 +229,7 @@ TODO: prove the equivalence.
 def is_dedekind_domain_inv : Prop :=
 ∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * (1 / I) = 1
 
-open ring.fractional_ideal
+open fractional_ideal
 
 lemma is_dedekind_domain_inv_iff (K : Type*) [field K] [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔

@@ -43,8 +43,8 @@ begin
   -- First, we have the topological basis of the cofiltered limit obtained by pulling back
   -- clopen sets from the factors in the limit. By continuity, all such sets are again clopen.
   have hB := Top.is_topological_basis_cofiltered_limit
-    (F ⋙ Profinite_to_Top)
-    (Profinite_to_Top.map_cone C)
+    (F ⋙ Profinite.to_Top)
+    (Profinite.to_Top.map_cone C)
     (is_limit_of_preserves _ hC)
     (λ j, {W | is_clopen W})
     _ (λ i, is_clopen_univ) (λ i U1 U2 hU1 hU2, hU1.inter hU2) _,
@@ -225,16 +225,16 @@ begin
     rw ← not_forall,
     intros h,
     apply hα,
-    haveI : ∀ j : J, nonempty ((F ⋙ Profinite_to_Top).obj j) := h,
-    haveI : ∀ j : J, t2_space ((F ⋙ Profinite_to_Top).obj j) := λ j,
+    haveI : ∀ j : J, nonempty ((F ⋙ Profinite.to_Top).obj j) := h,
+    haveI : ∀ j : J, t2_space ((F ⋙ Profinite.to_Top).obj j) := λ j,
       (infer_instance : t2_space (F.obj j)),
-    haveI : ∀ j : J, compact_space ((F ⋙ Profinite_to_Top).obj j) := λ j,
+    haveI : ∀ j : J, compact_space ((F ⋙ Profinite.to_Top).obj j) := λ j,
       (infer_instance : compact_space (F.obj j)),
     have cond := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system
-      (F ⋙ Profinite_to_Top),
+      (F ⋙ Profinite.to_Top),
     suffices : nonempty C.X, by exact nonempty.map S.proj this,
-    let D := Profinite_to_Top.map_cone C,
-    have hD : is_limit D := is_limit_of_preserves Profinite_to_Top hC,
+    let D := Profinite.to_Top.map_cone C,
+    have hD : is_limit D := is_limit_of_preserves Profinite.to_Top hC,
     have CD := (hD.cone_point_unique_up_to_iso (Top.limit_cone_is_limit _)).inv,
     exact cond.map CD }
 end

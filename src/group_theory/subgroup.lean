@@ -1281,6 +1281,15 @@ lemma cod_restrict_apply {G : Type*} [group G] {N : Type*} [group N] (f : G →*
   (S : subgroup N) (h : ∀ (x : G), f x ∈ S) {x : G} :
     f.cod_restrict S h x = ⟨f x, h x⟩ := rfl
 
+@[to_additive] lemma subgroup_of_range_eq_of_le {G₁ G₂ : Type*} [group G₁] [group G₂]
+  {K : subgroup G₂} (f : G₁ →* G₂) (h : f.range ≤ K) :
+  f.range.subgroup_of K = (f.cod_restrict K (λ x, h ⟨x, rfl⟩)).range :=
+begin
+  ext k,
+  refine exists_congr _,
+  simp [subtype.ext_iff],
+end
+
 /-- Computable alternative to `monoid_hom.of_injective`. -/
 def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
 { to_fun := f.range_restrict,
@@ -1405,6 +1414,32 @@ le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image f s)
     (gclosure_preimage_le _ _))
   ((closure_le _).2 $ set.image_subset _ subset_closure)
+
+-- this instance can't go just after the definition of `mrange` because `fintype` is
+-- not imported at that stage
+
+/-- The range of a finite monoid under a monoid homomorphism is finite.
+Note: this instance can form a diamond with `subtype.fintype` in the
+presence of `fintype N`. -/
+@[to_additive "The range of a finite additive monoid under an additive monoid homomorphism is
+finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`."]
+instance fintype_mrange {M N : Type*} [monoid M] [monoid N] [fintype M] [decidable_eq N]
+  (f : M →* N) : fintype (mrange f) :=
+set.fintype_range f
+
+/-- The range of a finite group under a group homomorphism is finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`. -/
+@[to_additive "The range of a finite additive group under an additive group homomorphism is finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`."]
+instance fintype_range  [fintype G] [decidable_eq N] (f : G →* N) : fintype (range f) :=
+set.fintype_range f
 
 end monoid_hom
 

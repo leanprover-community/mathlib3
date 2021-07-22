@@ -99,6 +99,14 @@ open submodule
 variables {R : Type*} [comm_ring R] {S : submonoid R} {P : Type*} [comm_ring P]
 variables [algebra R P] [loc : is_localization S P]
 
+/-- Map a fractional ideal `I` to a submodule by forgetting that `∃ a, a I ⊆ R`.
+
+This coercion is typically called `coe_to_submodule` in lemma names
+(or `coe` when the coercion is clear from the context),
+not to be confused with `is_localization.coe_submodule : ideal R → submodule R P`
+(which we use to define `coe : ideal R → fractional_ideal S P`, and
+is referred to `coe_ideal` in theorem names).
+-/
 instance : has_coe (fractional_ideal S P) (submodule R P) := ⟨λ I, I.val⟩
 
 protected lemma is_fractional (I : fractional_ideal S P) :
@@ -151,6 +159,12 @@ begin
   exact ha b (hIJ b_mem)
 end
 
+/-- Map an ideal `I` to a fractional ideal by forgetting `I` is integral.
+
+This is a bundled version of `is_localization.coe_submodule : ideal R → submodule R P`,
+which is not to be confused with the `coe : fractional_ideal S P → submodule R P`,
+also called `coe_to_submodule` in theorem names.
+-/
 instance coe_to_fractional_ideal : has_coe (ideal R) (fractional_ideal S P) :=
 ⟨λ I, ⟨coe_submodule P I, is_fractional_of_le_one _
   (by simpa using coe_submodule_mono P (le_top : I ≤ ⊤))⟩⟩

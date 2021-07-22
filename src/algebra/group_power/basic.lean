@@ -337,7 +337,7 @@ theorem mul_gpow (a b : G) (n : ℤ) : (a * b)^n = a^n * b^n := (commute.all a b
 theorem div_gpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_gpow, inv_gpow]
 
-@[to_additive gsmul_add_group_hom]
+@[to_additive]
 lemma gpow_group_hom (n : ℤ) : G →* G :=
 { to_fun := (^ n),
   map_one' := one_gpow n,

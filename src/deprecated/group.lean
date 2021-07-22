@@ -141,14 +141,7 @@ lemma inv {α β} [mul_one_class α] [comm_group β] {f : α → β} (hf : is_mo
 
 end is_monoid_hom
 
---TODO -- delete this and replace with is_mul_hom.is_monoid_hom
 /-- A map to a group preserving multiplication is a monoid homomorphism. -/
-@[to_additive]
-theorem is_monoid_hom.of_mul [mul_one_class α] [group β] {f : α → β} (hf : is_mul_hom f) :
-  is_monoid_hom f :=
-{ map_one := mul_right_eq_self.1 $ by rw [← hf.map_mul, one_mul],
-  map_mul := hf.map_mul }
-
 @[to_additive]
 theorem is_mul_hom.to_is_monoid_hom [mul_one_class α] [group β] {f : α → β} (hf : is_mul_hom f) :
   is_monoid_hom f :=
@@ -289,7 +282,6 @@ end
 
 end ring_hom
 
--- TODO `is_group_hom.inv` is a better name for this so delete this
 /-- Inversion is a group homomorphism if the group is commutative. -/
 @[to_additive neg.is_add_group_hom
 "Negation is an `add_group` homomorphism if the `add_group` is commutative."]
@@ -352,7 +344,7 @@ lemma multiplicative.is_mul_hom [has_add α] [has_add β] {f : α → β} (hf : 
 -- defeq abuse
 lemma additive.is_add_monoid_hom [mul_one_class α] [mul_one_class β] {f : α → β}
   (hf : is_monoid_hom f) : @is_add_monoid_hom (additive α) (additive β) _ _ f :=
-{ map_zero := @is_monoid_hom.map_one α β _ _ f hf,
+{ map_zero := hf.map_one,
   ..additive.is_add_hom hf.to_is_mul_hom }
 
 lemma multiplicative.is_monoid_hom

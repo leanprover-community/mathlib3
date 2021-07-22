@@ -28,10 +28,6 @@ then `finrank (fixed_points G F) F = fintype.card G`.
 
 -/
 
--- TODO move to appropriate place
-lemma subfield.to_subring.subtype_eq_subtype (F : Type*) [field F] (S : subfield F) :
-  S.to_subring.subtype = S.subtype := rfl
-
 noncomputable theory
 open_locale classical big_operators
 open mul_action finset finite_dimensional

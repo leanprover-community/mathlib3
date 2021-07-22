@@ -33,24 +33,8 @@ algebra.algebra.tower
 
 ***
 
-src/field_theory/fixed.lean move line 32 to the right place
+src/deprecated/subgroup.lean mention main defs in module docstring. Do we ever use subtype.group? It has a fact in. Line 174 can I get rid of the @ ? line 493 should I just delete monoid_hom.range_subtype_val ?
 
-***
-
-algebra.group_power.lemmas : random section lines 170-176 should be removed
-
-src/deprecated/group.lean is_monoid_hom.of_mul and is_mul_hom.to_is_monoid_hom
-are the same? Delete `of_mul` version? is_group_hom.inv <- inv.is_group_hom o linw 294.
-Can I remove @ on line 355?
-
-The only "fact" in deprecated/subfield is line 29 -- can we just delete it?
-
-src/deprecated/subgroup.lean mention main defs in module docstring. Do we ever use subtype.group?
-It has a fact in. Line 174 can I get rid of the @ ? line 493 shoudl I just delete monoid_hom.range_subtype_val ?
-
-src/deprecated/submonoid.lean add #main definitions. Lines 227 and 237 have facts:
-can we delete? Or just change to lemmas? also 259, 265, 274, 280...
-
-
+src/deprecated/submonoid.lean add #main definitions. Lines 227 and 237 have facts: can we delete? Or just change to lemmas? also 259, 265, 274, 280...
 
 src/ring_theory/subring.lean do I need to_is_submonoid etc on lnioes 174-179?

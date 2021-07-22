@@ -167,13 +167,6 @@ f.to_multiplicative.map_gpow a n
 
 end group
 
-section comm_group
-
-
-
-end comm_group
-
-
 section ordered_add_comm_group
 
 variables [ordered_add_comm_group A]

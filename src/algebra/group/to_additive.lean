@@ -136,7 +136,7 @@ structure value_type : Type :=
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
-| tt s := ("comm_" ++ s)
+| tt s := "comm_" ++ s
 | ff s := s
 
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
@@ -162,6 +162,8 @@ meta def tr : bool → list string → list string
 | is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
 | is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
 | is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
+| is_comm ("haar" :: s)        := ("add_" ++ add_comm_prefix is_comm "haar")      :: tr ff s
+| is_comm ("prehaar" :: s)     := ("add_" ++ add_comm_prefix is_comm "prehaar")   :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]

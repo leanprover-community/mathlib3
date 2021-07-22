@@ -199,16 +199,11 @@ class add_zero_class (M : Type u) extends has_zero M, has_add M :=
 attribute [to_additive] mul_one_class
 
 @[ext, to_additive]
-lemma mul_one_class.ext {M : Type u} (m₁ m₂ : mul_one_class M) (h : m₁.mul = m₂.mul) : m₁ = m₂ :=
+lemma mul_one_class.ext {M : Type u} : ∀ (m₁ m₂ : mul_one_class M), m₁.mul = m₂.mul → m₁ = m₂ :=
 begin
-  unfreezingI { cases m₁ with one₁ mul₁ one_mul₁ mul_one₁,
-    cases m₂ with one₂ mul₂ one_mul₂ mul_one₂, },
-  change mul₁ = mul₂ at h,
-  subst h,
-  have : one₁ = one₂,
-  { rw ←one_mul₂ one₁,
-    exact mul_one₁ one₂ },
-  subst this,
+  rintros ⟨one₁, mul₁, one_mul₁, mul_one₁⟩ ⟨one₂, mul₂, one_mul₂, mul_one₂⟩ (rfl : mul₁ = mul₂),
+  congr,
+  exact (one_mul₂ one₁).symm.trans (mul_one₁ one₂),
 end
 
 attribute [ext] add_zero_class.ext
@@ -425,25 +420,17 @@ class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 @[protect_proj, ancestor monoid comm_semigroup, to_additive]
 class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
 
-@[ext, to_additive]
-lemma comm_monoid.ext {M : Type*} (m₁ m₂ : comm_monoid M) (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+@[to_additive]
+lemma comm_monoid.to_monoid_injective {M : Type u} :
+  function.injective (@comm_monoid.to_monoid M) :=
 begin
-  unfreezingI {
-    cases m₁ with mul₁ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁,
-    cases m₂ with mul₂ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero₂ npow_succ₂ },
-  change mul₁ = mul₂ at h_mul,
-  subst h_mul,
-  have h_one : one₁ = one₂,
-  { rw ←one_mul₂ one₁,
-    exact mul_one₁ one₂ },
-  subst h_one,
-  have h_npow : npow₁ = npow₂,
-  { ext n,
-    induction n with d hd,
-    { rw [npow_zero₁, npow_zero₂] },
-    { rw [npow_succ₁, npow_succ₂, hd] } },
-  subst h_npow,
+  rintros ⟨⟩ ⟨⟩ h,
+  congr'; injection h,
 end
+
+@[ext, to_additive]
+lemma comm_monoid.ext {M : Type*} ⦃m₁ m₂ : comm_monoid M⦄ (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+comm_monoid.to_monoid_injective $ monoid.ext h_mul
 
 attribute [ext] add_comm_monoid.ext
 

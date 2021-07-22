@@ -171,11 +171,11 @@ end subring
 /-- Construct a `subring` from a set satisfying `is_subring`. -/
 def set.to_subring {S : set R} (hs : is_subring S) : subring R :=
 { carrier := S,
-  one_mem' := hs.to_is_submonoid.one_mem,
-  mul_mem' := hs.to_is_submonoid.mul_mem,
-  zero_mem' := hs.to_is_add_submonoid.zero_mem,
-  add_mem' := hs.to_is_add_submonoid.add_mem,
-  neg_mem' := hs.to_is_add_subgroup.neg_mem }
+  one_mem' := hs.one_mem,
+  mul_mem' := hs.mul_mem,
+  zero_mem' := hs.zero_mem,
+  add_mem' := hs.add_mem,
+  neg_mem' := hs.neg_mem }
 
 /-- A `subsemiring` containing -1 is a `subring`. -/
 def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=

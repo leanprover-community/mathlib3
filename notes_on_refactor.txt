@@ -6,17 +6,14 @@ then you can get one with a coercion (f : R \to+ S) but
 (but erw might work)
 
 2) If S is a subring but the lemma needs a submonoid
-then the same sort of story. I
+then the same sort of story (you write S.to_submonoid
+but this is not syntactically S so you need more rewrites).
 
 3) Even worse than (2) -- if S is a subring but is first
 defined as an additive subgroup and then later on you prove
 it's closed under multiplication then the promotion now
-needs `S' : subring R`. Say S is an add_subgroup_closure
-and `S'` is then the subring, and you're trying to prove
-an inclusion of the set S' into another add_subgroup
-you need to rewrite
-
-TODO : find examples where this is happening.
+needs `S' : subring R`, and now S and S' are fighting
+with each other. Example: Kenny's work on fixed fields.
 
 Still needs to be done:
 
@@ -30,11 +27,11 @@ is_subring -> subring. But should these refactors be taking place anyway?
 
 algebra.algebra.basic
 algebra.algebra.tower
+deprecated.subgroup
+deprecated.submonoid
 
 ***
 
-src/deprecated/subgroup.lean mention main defs in module docstring. Do we ever use subtype.group? It has a fact in. Line 174 can I get rid of the @ ? line 493 should I just delete monoid_hom.range_subtype_val ?
+src/deprecated/subgroup.lean line 493 should I just delete monoid_hom.range_subtype_val ?
 
-src/deprecated/submonoid.lean add #main definitions. Lines 227 and 237 have facts: can we delete? Or just change to lemmas? also 259, 265, 274, 280...
 
-src/ring_theory/subring.lean do I need to_is_submonoid etc on lnioes 174-179?

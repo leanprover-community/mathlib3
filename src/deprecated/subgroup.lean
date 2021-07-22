@@ -9,14 +9,18 @@ import deprecated.submonoid
 /-!
 # Unbundled subgroups
 
-This file defines unbundled multiplicative and additive subgroups. IMPORTANT : unless you
-know what you are doing, you should be using bundled subgroups (`subgroup G`) and
-not the `is_subgroup` structure defined in this file.
+This file defines unbundled multiplicative and additive subgroups `is_subgroup` and
+`is_add_subgroup`. These are not the preferred way to talk about subgroups and should
+not be used for any new projects. The preferred way in mathlib are the bundled
+versions `subgroup G` and `add_subgroup G`.
 
-For the bundled form of submonoids see `group_theory/subgroup`.
+## Main definitions
 
-We prove some results about centers, normalisers, kernels and so on. These results should
-not in general be needed.
+`is_add_subgroup (S : set G)` : the predicate that `S` is the underlying subset of an additive
+subgroup of `G`. The bundled variant `add_subgroup G` should be used in preference to this.
+
+`is_subgroup (S : set G)` : the predicate that `S` is the underlying subset of a subgroup
+of `G`. The bundled variant `subgroup G` should be used in preference to this.
 
 ## Tags
 
@@ -164,14 +168,14 @@ lemma is_subgroup.gpow_mem {a : G} {s : set G} (hs : is_subgroup s) (h : a ∈ s
 
 lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} (hs : is_add_subgroup s) :
   a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
-@is_subgroup.gpow_mem (multiplicative A) _ _ _ (multiplicative.is_subgroup hs)
+is_subgroup.gpow_mem (multiplicative.is_subgroup hs)
 
 lemma gpowers_subset {a : G} {s : set G} (hs : is_subgroup s) (h : a ∈ s) : gpowers a ⊆ s :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := hs.gpow_mem h end
 
 lemma gmultiples_subset {a : A} {s : set A} (hs : is_add_subgroup s) (h : a ∈ s) :
   gmultiples a ⊆ s :=
-@gpowers_subset (multiplicative A) _ _ _ (multiplicative.is_subgroup hs) h
+gpowers_subset (multiplicative.is_subgroup hs) h
 
 attribute [to_additive gmultiples_subset] gpowers_subset
 
@@ -487,6 +491,7 @@ end
 section
 local attribute [instance] subtype.monoid
 
+-- note that this is not used at all in mathlib
 /-- `subtype.val : set.range f → H` as a monoid homomorphism, when `f` is a monoid homomorphism. -/
 @[to_additive "`subtype.val : set.range f → H` as an additive monoid homomorphism, when `f` is
 an additive monoid homomorphism."]

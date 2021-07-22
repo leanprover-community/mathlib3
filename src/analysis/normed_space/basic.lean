@@ -7,6 +7,7 @@ import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
 import topology.instances.nnreal
+import topology.metric_space.algebra
 import topology.metric_space.completion
 import topology.sequences
 
@@ -781,6 +782,9 @@ begin
   subst x,
   exact not_le_of_lt zero_lt_one (add_le_iff_nonpos_left.1 hy)
 end
+
+instance semi_normed_group.has_lipschitz_add : has_lipschitz_add α :=
+{ lipschitz_add := ⟨2, lipschitz_with.prod_fst.add lipschitz_with.prod_snd⟩ }
 
 /-- A seminormed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/

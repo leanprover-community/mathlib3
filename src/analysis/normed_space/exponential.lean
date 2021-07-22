@@ -80,6 +80,33 @@ funext exp_series_tsum_eq
 lemma exp_def_field : exp 𝕂 𝕂 = (λ x : 𝕂, ∑' (n : ℕ), x^n / n!) :=
 funext exp_series_tsum_eq_field
 
+section analytic
+
+variables [complete_space 𝔸]
+
+lemma exp_has_fpower_series_on_ball_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
+  has_fpower_series_on_ball (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 (exp_series 𝕂 𝔸).radius :=
+(exp_series 𝕂 𝔸).has_fpower_series_on_ball h
+
+lemma exp_has_fpower_series_at_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
+  has_fpower_series_at (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 :=
+(exp_has_fpower_series_on_ball_of_radius_pos h).has_fpower_series_at
+
+lemma exp_continuous_on_ball :
+  continuous_on (exp 𝕂 𝔸) (emetric.ball 0 (exp_series 𝕂 𝔸).radius) :=
+formal_multilinear_series.continuous_on
+
+lemma exp_analytic_at_of_mem_ball (x : 𝔸) (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  analytic_at 𝕂 (exp 𝕂 𝔸) x:=
+begin
+  by_cases h : (exp_series 𝕂 𝔸).radius = 0,
+  { rw h at hx, exact (ennreal.not_lt_zero hx).elim },
+  { have h := pos_iff_ne_zero.mpr h,
+    exact (exp_has_fpower_series_on_ball_of_radius_pos h).analytic_at_of_mem hx }
+end
+
+end analytic
+
 end exp
 
 section is_R_or_C
@@ -199,7 +226,11 @@ section real
 lemma real.exp_eq_exp_ℝ_ℝ : real.exp = exp ℝ ℝ :=
 begin
   refine funext (λ x, _),
-  rw [real.exp, complex.exp_eq_exp_ℂ_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp, exp],
+  rw [real.exp, complex.exp_eq_exp_ℂ_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp_def, exp_def_field,
+      ← re_to_complex, ← re_clm_apply, re_clm.map_tsum (exp_series_summable' (x : ℂ))],
+  refine tsum_congr (λ n, _),
+  rw [re_clm.map_smul, ← complex.of_real_pow, re_clm_apply, re_to_complex, complex.of_real_re,
+      smul_eq_mul, one_div, mul_comm, div_eq_mul_inv]
 end
 
 end real

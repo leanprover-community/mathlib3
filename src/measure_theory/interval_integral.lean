@@ -337,6 +337,22 @@ begin
   exact (integrable_on_compact_of_monotone_on is_compact_interval hu).mono_set Ioc_subset_Icc_self,
 end
 
+lemma interval_integrable_of_antimono_on {u : ι → E} {a b : ι}
+  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u y ≤ u x) :
+  interval_integrable u μ a b :=
+@interval_integrable_of_monotone_on (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+
+lemma interval_integrable_of_monotone {u : ι → E} {a b : ι} (hu : monotone u) :
+  interval_integrable u μ a b :=
+interval_integrable_of_monotone_on (λ x y _ _ hxy, hu hxy)
+
+alias interval_integrable_of_monotone ← monotone.interval_integrable
+
+lemma interval_integrable_of_antimono {u : ι → E} {a b : ι}
+  (hu : ∀ ⦃x y⦄, x ≤ y → u y ≤ u x) :
+  interval_integrable u μ a b :=
+@interval_integrable_of_monotone (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+
 end
 
 /-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`

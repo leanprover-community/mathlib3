@@ -102,13 +102,6 @@ theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
   finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
   by simp
 
-/-
-theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
-(finset.prod_hom _ (polynomial.eval x)).symm.trans $
-  finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
-  by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X,
-    polynomial.eval_C, sub_self]
--/
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
 (smul_prod _ _ _ _ _).trans $ fintype.prod_bijective _ (mul_action.bijective g) _ _

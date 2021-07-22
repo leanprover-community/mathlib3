@@ -152,7 +152,6 @@ begin
   apply le_antisymm,
   { rw span_le, intros s hs, rw finset.mem_coe at hs,
     rcases finset.mem_image.1 hs with ⟨k, hk, rfl⟩, clear hk,
-    change x^k ∈ algebra.adjoin R ({x} : set A),
     exact (algebra.adjoin R {x}).pow_mem (algebra.subset_adjoin (set.mem_singleton _)) k },
   intros r hr, change r ∈ algebra.adjoin R ({x} : set A) at hr,
   rw algebra.adjoin_singleton_eq_range at hr,

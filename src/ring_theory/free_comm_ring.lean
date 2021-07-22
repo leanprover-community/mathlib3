@@ -149,11 +149,11 @@ ring.closure_mono (set.monotone_image hst) hs
 
 theorem is_supported_add (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x + y) s :=
-ring.closure.is_subring.to_is_add_submonoid.add_mem hxs hys
+ring.closure.is_subring.add_mem hxs hys
 
 theorem is_supported_neg (hxs : is_supported x s) :
   is_supported (-x) s :=
-ring.closure.is_subring.to_is_add_subgroup.neg_mem hxs
+ring.closure.is_subring.neg_mem hxs
 
 theorem is_supported_sub (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x - y) s :=
@@ -161,7 +161,7 @@ ring.closure.is_subring.to_is_add_subgroup.sub_mem hxs hys
 
 theorem is_supported_mul (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x * y) s :=
-ring.closure.is_subring.to_is_submonoid.mul_mem hxs hys
+ring.closure.is_subring.mul_mem hxs hys
 
 theorem is_supported_zero : is_supported 0 s :=
 ring.closure.is_subring.to_is_add_submonoid.zero_mem

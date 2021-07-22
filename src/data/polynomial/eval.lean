@@ -362,8 +362,7 @@ end
 @[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
 begin
   dsimp [comp, eval₂, eval, sum],
-  change _ = C.to_add_monoid_hom _,
-  rw (@C R _).to_add_monoid_hom.map_sum _ p.support,
+  erw (@C R _).to_add_monoid_hom.map_sum _ p.support,
   apply finset.sum_congr rfl; simp
 end
 

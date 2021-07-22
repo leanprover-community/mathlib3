@@ -422,7 +422,7 @@ then if h : (X : polynomial R) ^ n - C a = 0
   then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, card_zero]
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
    (by { rw [hn, pow_zero, ← C_1,
-             ← @is_ring_hom.map_sub _ _ _ _ (@C R _) _ _ (ring_hom.to_is_ring_hom C)],
+             ← is_ring_hom.map_sub (ring_hom.to_is_ring_hom (C : R →+* polynomial R))],
          exact degree_C_le }))
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)

@@ -11,7 +11,12 @@ import algebra.group_with_zero.power
 
 This file introduces the predicate `is_subfield` on `S : set F` where `F` is a field.
 This is *not* the preferred way to do subfields in Lean 3: in general `S : subfield F`
-works more smoothly. However this predicate is occasionally useful.
+works more smoothly.
+
+## Main definitions
+
+`is_subfield (S : set F)` : the predicate that `S` is the underlying set of a subfield
+of the field `F`. Note that the bundled variant `subfield F` is preferred to this approach.
 
 ## Tags
 
@@ -26,10 +31,10 @@ lemma is_subfield.div_mem {S : set F} (hS : is_subfield S) {x y : F} (hx : x ∈
   x / y ∈ S :=
 by { rw div_eq_mul_inv, exact hS.to_is_subring.to_is_submonoid.mul_mem hx (hS.inv_mem hy) }
 
-instance is_subfield.field [hS : fact (is_subfield S)] : field S :=
-by letI cr_inst : comm_ring S := @subset.comm_ring _ _ _ ⟨hS.elim.to_is_subring⟩; exact
-{ inv := λ x, ⟨x⁻¹, hS.elim.inv_mem x.2⟩,
-  div := λ x y, ⟨x / y, hS.elim.div_mem x.2 y.2⟩,
+instance is_subfield.field (hS : is_subfield S) : field S :=
+by letI cr_inst : comm_ring S := @subset.comm_ring _ _ _ ⟨hS.to_is_subring⟩; exact
+{ inv := λ x, ⟨x⁻¹, hS.inv_mem x.2⟩,
+  div := λ x y, ⟨x / y, hS.div_mem x.2 y.2⟩,
   div_eq_mul_inv := λ x y, subtype.ext $ div_eq_mul_inv (x : F) y,
   exists_pair_ne := ⟨0, 1, λ h, zero_ne_one (subtype.ext_iff_val.1 h)⟩,
   mul_inv_cancel := λ a ha, subtype.ext_iff_val.2 (mul_inv_cancel

@@ -7,7 +7,7 @@ import tactic.ring
 import algebra.big_operators.basic
 import data.fintype.basic
 import data.int.gcd
-import data.set.disjointed
+import data.set.pairwise
 
 /-!
 # Coprime elements of a ring

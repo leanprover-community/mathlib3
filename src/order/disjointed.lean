@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.pairwise
 import order.partial_sups
 
 /-!
@@ -17,7 +16,7 @@ This file defines a way to make a sequence of sets into a sequence of disjoint s
   sequence has the same union as `f 0`, `f 1`, `f 2` but with disjoint sets.
 -/
 
-variables {α β γ : Type*} {ι : Sort*} [complete_boolean_algebra α] {a b c : α}
+variables {α β γ : Type*} {ι : Sort*} [generalized_boolean_algebra α] {a b c : α}
 
 /-- If `f : ℕ → α` is a sequence of sets, then `disjointed f` is
   the sequence formed with each set subtracted from the later ones
@@ -34,8 +33,9 @@ lemma disjointed_succ (f : ℕ → α) (n : ℕ) :
   disjointed f (n + 1) = f (n + 1) \ (partial_sups f n) :=
 rfl
 
-lemma disjointed_le (f : ℕ → α) (n : ℕ) : disjointed f n ≤ f n :=
+lemma disjointed_le (f : ℕ → α) : disjointed f ≤ f :=
 begin
+  rintro n,
   cases n,
   { refl },
   { exact sdiff_le }
@@ -43,8 +43,12 @@ end
 
 lemma disjoint_disjointed : pairwise (disjoint on disjointed f) :=
 λ i j hij, begin
+  rw symmetric.pairwise_on,
   obtain h | h := hij.lt_or_lt,
-  { exact disjoint_sdiff_self_right.mono_left ((disjointed_le _ _).trans (le_bsupr i h)) },
+  { cases j,
+    { exact (h.not_le (nat.zero_le _)).elim },
+    exact disjoint_sdiff_self_right.mono_left ((disjointed_le f i).trans
+      (le_partial_sups f (nat.lt_add_one_iff.1 h))) },
   { exact disjoint_sdiff_self_left.mono_right ((disjointed_le _ _).trans (le_bsupr j h)) }
 end
 
@@ -70,7 +74,11 @@ by rw [disjointed_succ, hf.partial_sups_eq]
 
 open_locale classical
 
-lemma subset_Union_disjointed : f n ⊆ ⋃ i < n.succ, disjointed f i :=
+lemma le_partial_sups_disjointed (f : ℕ → α) : f ≤ partial_sups (disjointed f) :=
+begin
+  rintro n,
+
+end
 λ x hx,
   have ∃ k, x ∈ f k, from ⟨n, hx⟩,
   have hn : ∀ (i : ℕ), i < nat.find this → x ∉ f i,

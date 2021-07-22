@@ -23,7 +23,6 @@ If we started at `⊥` we wouldn't have this galois insertion.
 One could also generalize the domain from `ℕ` to any `preorder`.
 -/
 
-
 variables {α : Type*}
 
 /-- The monotone sequence whose value at `n` is the supremum of the `f m` where `m ≤ n`. -/

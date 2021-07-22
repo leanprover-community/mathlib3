@@ -410,7 +410,7 @@ by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
   the instance in a goal is often not the same as the one inferred by type class inference.  -/
 @[simp, to_additive] lemma card_bot {h : fintype.{u} (⊥ : subgroup G)} :
   fintype.card (⊥ : subgroup G)  = 1 :=
-(@fintype.card_eq_one_iff (↥(⊥ : subgroup G)) h).2
+fintype.card_eq_one_iff.2
   ⟨⟨(1 : G), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
 
 @[to_additive] lemma eq_top_of_card_eq [fintype H] [fintype G]

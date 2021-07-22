@@ -31,7 +31,7 @@ In this file we prove various facts about membership in a submonoid:
 submonoid, submonoids
 -/
 
-open_locale big_operators
+open_locale big_operators pointwise
 
 variables {M : Type*}
 variables {A : Type*}

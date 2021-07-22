@@ -62,7 +62,7 @@ linear algebra, vector space, module
 -/
 
 open function
-open_locale big_operators
+open_locale big_operators pointwise
 
 universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}

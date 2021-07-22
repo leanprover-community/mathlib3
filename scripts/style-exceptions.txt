@@ -1,5 +1,4 @@
 src/algebra/ordered_ring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/analysis/normed_space/bounded_linear_maps.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/fully_faithful.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/adjunction/limits.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -66,7 +65,6 @@ src/deprecated/subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or 
 src/deprecated/subring.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/logic/relation.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/measure_theory/decomposition.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late

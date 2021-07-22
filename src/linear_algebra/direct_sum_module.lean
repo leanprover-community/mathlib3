@@ -81,6 +81,12 @@ variables (R ι N φ)
 def to_module : (⨁ i, M i) →ₗ[R] N :=
 dfinsupp.lsum ℕ φ
 
+/-- Coproducts in the categories of modules and additive monoids commute with the forgetful functor
+from modules to additive monoids. -/
+lemma coe_to_module_eq_coe_to_add_monoid :
+  (to_module R ι N φ : (⨁ i, M i) → N) = to_add_monoid (λ i, (φ i).to_add_monoid_hom) :=
+rfl
+
 variables {ι N φ}
 
 /-- The map constructed using the universal property gives back the original maps when
@@ -166,5 +172,13 @@ lemma submodule_is_internal.to_add_subgroup {R M : Type*}
   [ring R] [add_comm_group M] [module R M] (A : ι → submodule R M) :
   submodule_is_internal A ↔ add_subgroup_is_internal (λ i, (A i).to_add_subgroup) :=
 iff.rfl
+
+lemma submodule_is_internal.supr_eq_top {R M : Type*}
+  [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M)
+  (h : submodule_is_internal A) : supr A = ⊤ :=
+begin
+  rw [submodule.supr_eq_range_dfinsupp_lsum, linear_map.range_eq_top],
+  exact function.bijective.surjective h,
+end
 
 end direct_sum

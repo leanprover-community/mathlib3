@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import data.complex.exponential
 import analysis.calculus.inverse
 import analysis.complex.real_deriv
+import data.complex.exponential
 
 /-!
 # Complex and real exponential, real logarithm
@@ -751,6 +751,20 @@ begin
       field_simp,
       rw [← neg_add (b * exp x) c, neg_div_neg_eq] },
     { exact neg_zero.symm } },
+end
+
+/-- The function `x * log (1 + t / x)` tends to `t` at `+∞`. -/
+lemma tendsto_mul_log_one_plus_div_at_top (t : ℝ) :
+  tendsto (λ x, x * log (1 + t / x)) at_top (𝓝 t) :=
+begin
+  have h₁ : tendsto (λ h, h⁻¹ * log (1 + t * h)) (𝓝[{0}ᶜ] 0) (𝓝 t),
+  { simpa [has_deriv_at_iff_tendsto_slope] using
+      ((has_deriv_at_const _ 1).add ((has_deriv_at_id 0).const_mul t)).log (by simp) },
+  have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[{0}ᶜ] 0) :=
+    tendsto_inv_at_top_zero'.mono_right (nhds_within_mono _ (λ x hx, (set.mem_Ioi.mp hx).ne')),
+  convert h₁.comp h₂,
+  ext,
+  field_simp [mul_comm],
 end
 
 open_locale big_operators

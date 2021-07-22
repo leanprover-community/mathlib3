@@ -58,6 +58,12 @@ Then we follow the same steps for the lower bound.
 Finally, we glue them together to obtain the main statement
 `exists_lt_lower_semicontinuous_integral_lt`.
 
+## Related results
+
+Are you looking for a result on approximation by continuous functions (not just semicontinuous)?
+See result `measure_theory.Lp.continuous_map_dense`, in the file
+`measure_theory.continuous_map_dense`.
+
 ## References
 
 [Rudin, *Real and Complex Analysis* (Theorem 2.24)][rudin2006real]
@@ -420,9 +426,9 @@ end
 
 /-! ### Vitali-Carathéodory theorem -/
 
-/-- Vitali-Carathéodory theorem: given an integrable real function `f`, there exists an integrable
-function `g > f` which is lower semicontinuous, with integral arbitrarily close to that of `f`.
-This function has to be `ereal`-valued in general. -/
+/-- **Vitali-Carathéodory Theorem**: given an integrable real function `f`, there exists an
+integrable function `g > f` which is lower semicontinuous, with integral arbitrarily close
+to that of `f`. This function has to be `ereal`-valued in general. -/
 lemma exists_lt_lower_semicontinuous_integral_lt [sigma_finite μ]
   (f : α → ℝ) (hf : integrable f μ) {ε : ℝ} (εpos : 0 < ε) :
   ∃ g : α → ereal, (∀ x, (f x : ereal) < g x) ∧ lower_semicontinuous g ∧
@@ -499,9 +505,9 @@ begin
       exact ereal.continuous_at_add (by simp) (by simp) } }
 end
 
-/-- Vitali-Carathéodory theorem: given an integrable real function `f`, there exists an integrable
-function `g < f` which is upper semicontinuous, with integral arbitrarily close to that of `f`.
-This function has to be `ereal`-valued in general. -/
+/-- **Vitali-Carathéodory Theorem**: given an integrable real function `f`, there exists an
+integrable function `g < f` which is upper semicontinuous, with integral arbitrarily close to that
+of `f`. This function has to be `ereal`-valued in general. -/
 lemma exists_upper_semicontinuous_lt_integral_gt [sigma_finite μ]
   (f : α → ℝ) (hf : integrable f μ) {ε : ℝ} (εpos : 0 < ε) :
   ∃ g : α → ereal, (∀ x, (g x : ereal) < f x) ∧ upper_semicontinuous g ∧

@@ -295,7 +295,10 @@ instance : linear_ordered_semiring ℝ≥0 :=
   zero_le_one                := @zero_le_one ℝ _,
   exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
   .. nnreal.canonically_linear_ordered_add_monoid,
-  .. nnreal.comm_semiring, }
+  .. nnreal.comm_semiring }
+
+instance : ordered_comm_semiring ℝ≥0 :=
+{ .. nnreal.linear_ordered_semiring, .. nnreal.comm_semiring }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
@@ -782,11 +785,7 @@ lemma real.nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : real.nnabs x = real.to_nnre
 by { ext, simp [real.coe_to_nnreal x h, abs_of_nonneg h] }
 
 lemma real.coe_to_nnreal_le (x : ℝ) : (real.to_nnreal x : ℝ) ≤ abs x :=
-begin
-  by_cases h : 0 ≤ x,
-  { simp [h, real.coe_to_nnreal x h, le_abs_self] },
-  { simp [real.to_nnreal, h, le_abs_self, abs_nonneg] }
-end
+max_le (le_abs_self _) (abs_nonneg _)
 
 lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
   (n.nat_abs : ℝ≥0) = real.nnabs n :=

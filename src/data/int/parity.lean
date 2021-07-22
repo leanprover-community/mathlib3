@@ -104,9 +104,6 @@ by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 theorem odd.add_odd (hm : odd m) (hn : odd n) : even (m + n) :=
 even_add'.2 $ iff_of_true hm hn
 
-@[parity_simps] theorem even_neg : even (-n) ↔ even n :=
-by simp [even_iff]
-
 @[simp] theorem not_even_bit1 (n : ℤ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 

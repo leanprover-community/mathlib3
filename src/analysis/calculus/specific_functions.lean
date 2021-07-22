@@ -3,11 +3,8 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
-import analysis.special_functions.exp_log
 import analysis.normed_space.euclidean_dist
-import topology.algebra.polynomial
 
 /-!
 # Infinitely smooth bump function

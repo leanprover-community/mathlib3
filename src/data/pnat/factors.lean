@@ -192,14 +192,6 @@ of multisets to the multiplicative monoid ℕ+. -/
 theorem prod_zero : (0 : prime_multiset).prod = 1 :=
 by { dsimp [prod], exact multiset.prod_zero }
 
-#check pnat.coe_add_hom
-
-#check pnat.coe_add_hom.map_add'
-
-#check coe_pnat_monoid_hom
-
-#check coe_pnat_monoid_hom.map_add _ _
-
 theorem prod_add (u v : prime_multiset) : (u + v).prod = u.prod * v.prod :=
 begin
   change (coe_pnat_monoid_hom (u + v)).prod = _,

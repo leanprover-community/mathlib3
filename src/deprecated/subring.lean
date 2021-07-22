@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import deprecated.subgroup
 import deprecated.group
+import ring_theory.subring
 
 universes u v
 
@@ -15,6 +16,15 @@ variables {R : Type u} [ring R]
 /-- `S` is a subring: a set containing 1 and closed under multiplication, addition and additive
 inverse. -/
 structure is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
+
+/-- Construct a `subring` from a set satisfying `is_subring`. -/
+def is_subring.subring {S : set R} (hs : is_subring S) : subring R :=
+{ carrier := S,
+  one_mem' := hs.one_mem,
+  mul_mem' := hs.mul_mem,
+  zero_mem' := hs.zero_mem,
+  add_mem' := hs.add_mem,
+  neg_mem' := hs.neg_mem }
 
 namespace ring_hom
 

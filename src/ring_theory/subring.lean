@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
 
-import deprecated.subring
 import group_theory.subgroup
 import ring_theory.subsemiring
 
@@ -167,15 +166,6 @@ set_like.coe_injective hm.symm
 set_like.coe_injective ha.symm
 
 end subring
-
-/-- Construct a `subring` from a set satisfying `is_subring`. -/
-def set.to_subring {S : set R} (hs : is_subring S) : subring R :=
-{ carrier := S,
-  one_mem' := hs.one_mem,
-  mul_mem' := hs.mul_mem,
-  zero_mem' := hs.zero_mem,
-  add_mem' := hs.add_mem,
-  neg_mem' := hs.neg_mem }
 
 /-- A `subsemiring` containing -1 is a `subring`. -/
 def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=

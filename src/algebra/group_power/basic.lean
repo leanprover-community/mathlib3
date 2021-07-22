@@ -338,10 +338,12 @@ theorem div_gpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_gpow, inv_gpow]
 
 @[to_additive]
-lemma gpow_group_hom (n : ℤ) : G →* G :=
+def gpow_group_hom (n : ℤ) : G →* G :=
 { to_fun := (^ n),
   map_one' := one_gpow n,
   map_mul' := λ a b, mul_gpow a b n }
+
+@[simp] lemma gpow_group_hom_coe (n : ℤ) : (gpow_group_hom n : G → G) = ((^ n) : G → G) := rfl
 
 end comm_group
 

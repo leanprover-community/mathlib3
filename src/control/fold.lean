@@ -11,7 +11,7 @@ import category_theory.category
 import category_theory.endomorphism
 import category_theory.types
 import category_theory.category.Kleisli
-
+import deprecated.group
 /-!
 
 # List folds generalized to `traversable`

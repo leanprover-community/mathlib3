@@ -11,7 +11,6 @@ import data.tprod
 import order.filter.lift
 import order.symm_diff
 
-
 /-!
 # Measurable spaces and measurable functions
 

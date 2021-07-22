@@ -192,7 +192,8 @@ by { rw inter_eq_compl_compl_union_compl, exact (h₁.compl.union h₂.compl).co
   measurable_set (s₁ \ s₂) :=
 h₁.inter h₂.compl
 
-@[simp] lemma measurable_set.symm_diff {s₁ s₂ : set α} (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
+@[simp] lemma measurable_set.symm_diff {s₁ s₂ : set α}
+  (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
   measurable_set (s₁ Δ s₂) :=
 (h₁.diff h₂).union (h₂.diff h₁)
 

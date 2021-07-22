@@ -517,7 +517,7 @@ protected def div_left (a : G) : G ≃ G :=
 
 @[to_additive]
 lemma div_left_eq_mul_left_trans_inv (a : G) :
-  equiv.div_left a = (equiv.mul_left a).trans (equiv.inv G) :=
+  equiv.div_left a = (equiv.inv G).trans (equiv.mul_left a) :=
 ext $ λ _, div_eq_mul_inv _ _
 
 /-- A version of `equiv.mul_right a⁻¹ b` that is defeq to `b / a`. -/

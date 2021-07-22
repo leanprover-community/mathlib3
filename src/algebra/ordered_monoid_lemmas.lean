@@ -120,16 +120,6 @@ end has_lt
 
 end has_mul
 
-section has_lt_iff_add_one_le
-variables [has_le α] [has_lt α] [has_add α] [has_one α] [has_lt_iff_add_one_le α]
-
-lemma lt_add_one_iff_le [covariant_class α α (function.swap (+)) (≤)]
-  [contravariant_class α α (function.swap (+)) (≤)] {a b : α} :
-  a < b + 1 ↔ a ≤ b :=
-by rw [lt_iff_add_one_le, add_le_add_iff_right]
-
-end has_lt_iff_add_one_le
-
 -- using one
 section mul_one_class
 variables [mul_one_class α]

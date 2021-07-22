@@ -104,9 +104,6 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] 
   ..subtype.linear_order s,
   ..lattice_of_linear_order }
 
-instance nat.has_lt_iff_add_one_le : has_lt_iff_add_one_le ℕ :=
-{ lt_iff_add_one_le := λ a b, iff.rfl }
-
 theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
 rfl
 
@@ -319,11 +316,11 @@ theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 ⟨le_of_lt_succ, lt_succ_of_le⟩
 
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
-lt_iff_add_one_le.symm
+iff.rfl
 
 -- just for linarith. Feel free to remove it if you manage to make linarith look up the instance
 lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
-lt_iff_add_one_le
+iff.rfl
 
 -- Just a restatement of `nat.lt_succ_iff` using `+1`.
 lemma lt_add_one_iff {a b : ℕ} : a < b + 1 ↔ a ≤ b :=
@@ -346,6 +343,12 @@ H.lt_or_eq_dec.imp le_of_lt_succ id
 
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
+
+instance : succ_eq_add_one_order ℕ :=
+{ succ := λ a, a + 1,
+  lt_iff_succ_le := λ a b, iff.rfl,
+  lt_succ_iff_le := λ a b, lt_add_one_iff,
+  succ_eq_add_one := λ a, rfl }
 
 @[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
 lt_succ_iff.trans le_zero_iff

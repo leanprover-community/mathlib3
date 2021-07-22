@@ -614,15 +614,36 @@ or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
-/-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b`. This is a way to say that the order is sparse.
-If we have a cast `ℕ → α` or `ℤ → α`, this then roughly says that the cast is surjective. -/
-class has_lt_iff_add_one_le (α : Type u) [has_le α] [has_lt α] [has_add α] [has_one α] : Prop :=
-(lt_iff_add_one_le : ∀ a b : α, a < b ↔ a + 1 ≤ b)
+/-- Order equipped with a sensible successor function. -/
+class succ_order (α : Type u) [preorder α] :=
+(succ : α → α)
+(lt_iff_succ_le : ∀ a b, a < b ↔ succ a ≤ b)
+(lt_succ_iff_le : ∀ a b, a < succ b ↔ a ≤ b)
 
-lemma lt_iff_add_one_le {α : Type u} [has_le α] [has_lt α] [has_add α] [has_one α]
-  [has_lt_iff_add_one_le α] {a b : α} :
+def succ {α : Type u} [preorder α] [succ_order α] : α → α := succ_order.succ
+
+lemma lt_iff_succ_le {α : Type u} [preorder α] [succ_order α] {a b : α} :
+  a < b ↔ succ a ≤ b :=
+succ_order.lt_iff_succ_le a b
+
+lemma lt_succ_iff_le {α : Type u} [preorder α] [succ_order α] {a b : α} :
+  a < succ b ↔ a ≤ b :=
+succ_order.lt_succ_iff_le a b
+
+/-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b` and `∀ a b, a < b + 1 ↔ a ≤ b`. -/
+class succ_eq_add_one_order (α : Type u) [preorder α] [has_add α] [has_one α] extends
+  succ_order α :=
+(succ_eq_add_one : ∀ a, succ a = a + 1)
+
+lemma lt_iff_add_one_le {α : Type u} [preorder α] [has_add α] [has_one α] [succ_eq_add_one_order α]
+  {a b : α} :
   a < b ↔ a + 1 ≤ b :=
-has_lt_iff_add_one_le.lt_iff_add_one_le a b
+by { rw ←succ_eq_add_one_order.succ_eq_add_one, exact lt_iff_succ_le }
+
+lemma lt_add_one_iff_le {α : Type u} [preorder α] [has_add α] [has_one α] [succ_eq_add_one_order α]
+  {a b : α} :
+  a < b + 1 ↔ a ≤ b :=
+by { rw ←succ_eq_add_one_order.succ_eq_add_one, exact lt_succ_iff_le }
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.measure_space_def
 import measure_theory.measurable_space
-import order.symm_diff
 
 /-!
 # Measure spaces
@@ -2604,19 +2603,3 @@ lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_se
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end indicator_function
-
-namespace measurable_set
-
-variables [measurable_space α]
-
-@[measurability]
-lemma cond {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
-  {i : bool} : measurable_set (cond i A B) :=
-by { cases i, exacts [hB, hA] }
-
-@[measurability]
-lemma symm_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B) :
-  measurable_set (A Δ B) :=
-(hA.diff hB).union (hB.diff hA)
-
-end measurable_set

@@ -354,8 +354,8 @@ hf.has_fderiv_at.differentiable_at
 
 /-- If `f` is strictly differentiable at `x` with derivative `f'` and `K > ∥f'∥₊`, then `f` is
 `K`-Lipschitz in a neighborhood of `x`. -/
-lemma has_strict_fderiv_at.exists_lipschitz_on_with (hf : has_strict_fderiv_at f f' x) {K : ℝ≥0}
-  (hK : ∥f'∥₊ < K) : ∃ s ∈ 𝓝 x, lipschitz_on_with K f s :=
+lemma has_strict_fderiv_at.exists_lipschitz_on_with_of_nnnorm_lt (hf : has_strict_fderiv_at f f' x)
+  (K : ℝ≥0) (hK : ∥f'∥₊ < K) : ∃ s ∈ 𝓝 x, lipschitz_on_with K f s :=
 begin
   have := hf.add_is_O_with (f'.is_O_with_comp _ _) hK,
   simp only [sub_add_cancel, is_O_with] at this,
@@ -363,6 +363,13 @@ begin
   exact ⟨U, Uo.mem_nhds xU, lipschitz_on_with_iff_norm_sub_le.2 $
     λ x hx y hy, hU (mk_mem_prod hx hy)⟩
 end
+
+/-- If `f` is strictly differentiable at `x` with derivative `f'`, then `f` is Lipschitz in a
+neighborhood of `x`. See also `has_strict_fderiv_at.exists_lipschitz_on_with_of_nnnorm_lt` for a
+more precise statement. -/
+lemma has_strict_fderiv_at.exists_lipschitz_on_with (hf : has_strict_fderiv_at f f' x) :
+  ∃ K (s ∈ 𝓝 x), lipschitz_on_with K f s :=
+(no_top _).imp hf.exists_lipschitz_on_with_of_nnnorm_lt
 
 /-- Directional derivative agrees with `has_fderiv`. -/
 lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α → 𝕜}

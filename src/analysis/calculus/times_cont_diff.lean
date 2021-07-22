@@ -2714,8 +2714,10 @@ lemma times_cont_diff.has_strict_deriv_at
   has_strict_deriv_at f (deriv f x) x :=
 hf.times_cont_diff_at.has_strict_deriv_at hn
 
-lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*} [normed_group E]
-  [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
+/-- If `f` has a formal Taylor series `p` up to order `1` on `{x} ∪ s`, where `s` is a convex set,
+and `∥p x 1∥₊ < K`, then `f` is `K`-Lipschitz in a neighborhood of `x` within `s`. -/
+lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with_of_nnnorm_lt {E F : Type*}
+  [normed_group E] [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
   {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
   (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex s) (K : ℝ≥0)
   (hK : ∥p x 1∥₊ < K) :
@@ -2728,30 +2730,48 @@ begin
     from (continuous_multilinear_curry_fin1 ℝ E F).continuous_at.comp_continuous_within_at
       ((hf.cont _ le_rfl _ (mem_insert _ _)).mono (subset_insert x s)),
   replace hK : ∥f' x∥₊ < K, by simpa only [linear_isometry_equiv.nnnorm_map],
-  exact hs.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_continuous_within_at
+  exact hs.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt
     (eventually_nhds_within_iff.2 $ eventually_of_forall hder) hcont K hK
 end
 
+/-- If `f` has a formal Taylor series `p` up to order `1` on `{x} ∪ s`, where `s` is a convex set,
+then `f` is Lipschitz in a neighborhood of `x` within `s`. -/
+lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with {E F : Type*}
+  [normed_group E] [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F}
+  {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
+  (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex s) :
+  ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
+(no_top _).imp $ hf.exists_lipschitz_on_with_of_nnnorm_lt hs
+
+/-- If `f` is `C^1` within a conves set `s` at `x`, then it is Lipschitz on a neighborhood of `x`
+within `s`. -/
 lemma times_cont_diff_within_at.exists_lipschitz_on_with {E F : Type*} [normed_group E]
   [normed_space ℝ E] [normed_group F] [normed_space ℝ F] {f : E → F} {s : set E}
   {x : E} (hf : times_cont_diff_within_at ℝ 1 f s x) (hs : convex s) :
   ∃ (K : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
 begin
   rcases hf 1 le_rfl with ⟨t, hst, p, hp⟩,
-  rcases no_top (∥p x 1∥₊) with ⟨K, hK⟩,
   rcases metric.mem_nhds_within_iff.mp hst with ⟨ε, ε0, hε⟩,
   replace hp : has_ftaylor_series_up_to_on 1 f p (metric.ball x ε ∩ insert x s) := hp.mono hε,
   clear hst hε t,
   rw [← insert_eq_of_mem (metric.mem_ball_self ε0), ← insert_inter] at hp,
-  rcases hp.exists_lipschitz_on_with ((convex_ball _ _).inter hs) K hK with ⟨t, hst, hft⟩,
+  rcases hp.exists_lipschitz_on_with ((convex_ball _ _).inter hs) with ⟨K, t, hst, hft⟩,
   rw [inter_comm, ← nhds_within_restrict' _ (metric.ball_mem_nhds _ ε0)] at hst,
   exact ⟨K, t, hst, hft⟩
 end
 
+/-- If `f` is `C^1` at `x` and `K > ∥fderiv 𝕂 f x∥`, then `f` is `K`-Lipschitz in a neighborhood of
+`x`. -/
+lemma times_cont_diff_at.exists_lipschitz_on_with_of_nnnorm_lt {f : E' → F'} {x : E'}
+  (hf : times_cont_diff_at 𝕂 1 f x) (K : ℝ≥0) (hK : ∥fderiv 𝕂 f x∥₊ < K) :
+  ∃ t ∈ 𝓝 x, lipschitz_on_with K f t :=
+(hf.has_strict_fderiv_at le_rfl).exists_lipschitz_on_with_of_nnnorm_lt K hK
+
+/-- If `f` is `C^1` at `x`, then `f` is Lipschitz in a neighborhood of `x`. -/
 lemma times_cont_diff_at.exists_lipschitz_on_with {f : E' → F'} {x : E'}
-  (hf : times_cont_diff_at 𝕂 1 f x) {K : ℝ≥0} (hK : ∥fderiv 𝕂 f x∥₊ < K) :
-  ∃ (t ∈ 𝓝 x), lipschitz_on_with K f t :=
-(hf.has_strict_fderiv_at le_rfl).exists_lipschitz_on_with hK
+  (hf : times_cont_diff_at 𝕂 1 f x) :
+  ∃ K (t ∈ 𝓝 x), lipschitz_on_with K f t :=
+(hf.has_strict_fderiv_at le_rfl).exists_lipschitz_on_with
 
 end real
 

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 -/
 import group_theory.submonoid.basic
 import algebra.big_operators.basic
-
+import deprecated.group
 
 /-!
 # Unbundled submonoids

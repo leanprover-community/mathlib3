@@ -160,8 +160,9 @@ instance [comm_monoid α] : comm_monoid (set α) :=
 { mul_comm := λ _ _, set.mul_comm, ..set.monoid }
 
 @[to_additive]
-lemma singleton.is_mul_hom [has_mul α] : is_mul_hom (singleton : α → set α) :=
-{ map_mul := λ a b, singleton_mul_singleton.symm }
+def singleton_mul_hom [has_mul α] : mul_hom α (set α) :=
+{ to_fun := singleton,
+  map_mul' := λ a b, singleton_mul_singleton.symm }
 
 @[simp, to_additive]
 lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
@@ -483,22 +484,19 @@ instance mul_action_set [monoid α] [mul_action α β] : mul_action α (set β) 
   one_smul := by { intros, simp only [← image_smul, image_eta, one_smul, image_id'] },
   ..set.has_scalar_set }
 
-section is_mul_hom
-open is_mul_hom
+section mul_hom
 
-variables [has_mul α] [has_mul β] {m : α → β} (hm : is_mul_hom m)
-
-include hm
+variables [has_mul α] [has_mul β] (m : mul_hom α β)
 
 @[to_additive]
 lemma image_mul : m '' (s * t) = m '' s * m '' t :=
-by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, map_mul hm] }
+by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, m.map_mul] }
 
 @[to_additive]
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
-by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul hm _ _).symm ⟩ }
+by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
-end is_mul_hom
+end mul_hom
 
 /-- The image of a set under function is a ring homomorphism
 with respect to the pointwise operations on sets. -/
@@ -507,7 +505,7 @@ def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* s
   map_zero' := image_empty _,
   map_one' := by simp only [← singleton_one, image_singleton, f.map_one],
   map_add' := image_union _,
-  map_mul' := λ _ _, image_mul f.is_monoid_hom_coe.to_is_mul_hom }
+  map_mul' := λ _ _, image_mul f.to_mul_hom }
 
 end monoid
 

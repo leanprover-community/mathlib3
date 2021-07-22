@@ -157,10 +157,9 @@ def coe_monoid_hom : ℕ+ →* ℕ :=
   map_one' := one_coe,
   map_mul' := mul_coe }
 
---lemma coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
--- {map_one := one_coe, map_mul := mul_coe}
+@[simp] lemma coe_monoid_hom_coe : (coe_monoid_hom : ℕ+ → ℕ) = coe := rfl
 
- @[simp]
+@[simp]
 lemma coe_eq_one_iff {m : ℕ+} :
 (m : ℕ) = 1 ↔ m = 1 := by { split; intro h; try { apply pnat.eq}; rw h; simp }
 

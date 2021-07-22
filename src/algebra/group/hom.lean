@@ -908,9 +908,8 @@ theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f
 map_inv f g
 
 /-- Group homomorphisms preserve division. -/
-@[to_additive]
-theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
-  f (g / h) = f g / f h :=
+@[to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
+theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) : f (g / h) = (f g) / (f h) :=
 map_div f g h
 
 /-- Group homomorphisms preserve division. -/
@@ -918,11 +917,6 @@ map_div f g h
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
 f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 map_mul_inv f g h
-
-/-- Group homomorphisms preserve division. -/
-@[simp, to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
-theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) : f (g / h) = (f g) / (f h) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul_inv g h]
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial.
 For the iff statement on the triviality of the kernel, see `monoid_hom.injective_iff'`.  -/

@@ -202,13 +202,17 @@ smul_mul_assoc r x y
 section
 variables {r : R} {a : A}
 
-@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = r • 2 :=
+@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = bit0 (r • (1 : A)) :=
+by simp [bit0, add_smul]
+lemma bit0_smul_one' : bit0 r • (1 : A) = r • 2 :=
 by simp [bit0, add_smul, smul_add]
 @[simp] lemma bit0_smul_bit0 : bit0 r • bit0 a = r • (bit0 (bit0 a)) :=
 by simp [bit0, add_smul, smul_add]
 @[simp] lemma bit0_smul_bit1 : bit0 r • bit1 a = r • (bit0 (bit1 a)) :=
 by simp [bit0, add_smul, smul_add]
-@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = r • 2 + 1 :=
+@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = bit1 (r • (1 : A)) :=
+by simp [bit1, add_smul]
+lemma bit1_smul_one' : bit1 r • (1 : A) = r • 2 + 1 :=
 by simp [bit1, add_smul, smul_add]
 @[simp] lemma bit1_smul_bit0 : bit1 r • bit0 a = r • (bit0 (bit0 a)) + bit0 a :=
 by simp [bit1, add_smul, smul_add]

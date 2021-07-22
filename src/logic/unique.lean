@@ -53,6 +53,14 @@ structure unique (α : Sort u) extends inhabited α :=
 
 attribute [class] unique
 
+/-- Given an explicit `a : α` with `[subsingleton α]`, we can construct
+a `[unique α]` instance. This is a def because the typeclass search cannot
+arbitrarily invent the `a : α` term. Nevertheless, these instances are all
+equivalent by `unique.subsingleton.unique`. -/
+def unique_of_subsingleton {α : Type*} [subsingleton α] (a : α) : unique α :=
+{ default := a,
+  uniq := λ _, subsingleton.elim _ _ }
+
 instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }

@@ -126,8 +126,6 @@ def degree_lt_equiv (F : Type*) [field F] (n : ℕ) : degree_lt F n ≃ₗ[F] (f
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
 
-local attribute [instance] subset.ring
-
 /-- The finset of nonzero coefficients of a polynomial. -/
 def frange (p : polynomial R) : finset R :=
 finset.image (λ n, p.coeff n) p.support

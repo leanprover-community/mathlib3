@@ -3,11 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.set.disjointed
-import data.set.countable
 import algebra.indicator_function
 import data.equiv.encodable.lattice
+import data.set.countable
 import data.tprod
+import order.disjointed
 import order.filter.lift
 
 /-!

@@ -5,7 +5,6 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.induction
 import data.polynomial.degree.definitions
-import deprecated.ring
 
 /-!
 # Theory of univariate polynomials
@@ -199,12 +198,13 @@ begin
   exact mul_eq_zero_of_right (p.eval₂ f x) hq
 end
 
-lemma eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
-⟨eval₂_zero _ _, eval₂_one _ _, λ _ _, eval₂_add _ _, λ _ _, eval₂_mul _ _⟩
-
 /-- `eval₂` as a `ring_hom` -/
-def eval₂_ring_hom (f : R →+* S) (x) : polynomial R →+* S :=
-ring_hom.of (eval₂.is_semiring_hom f x)
+def eval₂_ring_hom (f : R →+* S) (x : S) : polynomial R →+* S :=
+{ to_fun := eval₂ f x,
+  map_one' := eval₂_one _ _,
+  map_mul' := λ _ _, eval₂_mul _ _,
+  map_zero' := eval₂_zero _ _,
+  map_add' := λ _ _, eval₂_add _ _ }
 
 @[simp] lemma coe_eval₂_ring_hom (f : R →+* S) (x) : ⇑(eval₂_ring_hom f x) = eval₂ f x := rfl
 
@@ -452,9 +452,6 @@ variables (f : R →+* S)
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : polynomial R → polynomial S := eval₂ (C.comp f) X
 
-lemma is_semiring_hom_C_f : is_semiring_hom (C ∘ f) :=
-is_semiring_hom.comp f.to_is_semiring_hom C.to_is_semiring_hom
-
 @[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
 
 @[simp] lemma map_X : X.map f = X := eval₂_X _ _
@@ -544,11 +541,6 @@ lemma map_monic_ne_zero (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
 
 variables (f)
 
-open is_semiring_hom
-
-lemma map.is_semiring_hom : is_semiring_hom (map f) :=
-(map_ring_hom f).to_is_semiring_hom
-
 @[simp] lemma map_ring_hom_id : map_ring_hom (ring_hom.id R) = ring_hom.id (polynomial R) :=
 ring_hom.ext $ λ x, map_id
 
@@ -561,18 +553,30 @@ eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom
 
 @[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := (map_ring_hom f).map_pow _ _
 
-lemma mem_map_range {p : polynomial S} :
-  p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
+lemma mem_map_srange {p : polynomial S} :
+  p ∈ (map_ring_hom f).srange ↔ ∀ n, p.coeff n ∈ f.srange :=
 begin
   split,
-  { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
+  { rintro ⟨p, rfl⟩ n, rw [coe_map_ring_hom, coeff_map], exact set.mem_range_self _ },
   { intro h, rw p.as_sum_range_C_mul_X_pow,
-    refine is_add_submonoid.finset_sum_mem
-      (range.is_add_submonoid (map_ring_hom f).to_is_add_monoid_hom) _ _ _,
+    refine add_submonoid.sum_mem (map_ring_hom f).srange.to_add_submonoid _,
     intros i hi,
     rcases h i with ⟨c, hc⟩,
     use [C c * X^i],
-    rw [map_mul, map_C, hc, map_pow, map_X] }
+    rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
+end
+
+lemma mem_map_range {R S : Type*} [_inst_1 : ring R] [_inst_2 : ring S] (f : R →+* S) {p : polynomial S} :
+  p ∈ (map_ring_hom f).range ↔ ∀ n, p.coeff n ∈ f.range :=
+begin
+  split,
+  { rintro ⟨p, rfl⟩ n, rw [coe_map_ring_hom, coeff_map], exact set.mem_range_self _ },
+  { intro h, rw p.as_sum_range_C_mul_X_pow,
+    refine add_submonoid.sum_mem (map_ring_hom f).srange.to_add_submonoid _,
+    intros i hi,
+    rcases h i with ⟨c, hc⟩,
+    use [C c * X^i],
+    rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
 end
 
 lemma eval₂_map [semiring T] (g : S →+* T) (x : T) :
@@ -674,7 +678,7 @@ by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
 @[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
 
-lemma eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_hom _ _
+def eval_ring_hom : R → polynomial R →+* R := eval₂_ring_hom (ring_hom.id _)
 
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
 
@@ -686,8 +690,8 @@ begin
   { intros n a, simp, }
 end
 
-lemma comp.is_semiring_hom : is_semiring_hom (λ q : polynomial R, q.comp p) :=
-eval₂.is_semiring_hom C p
+def comp_ring_hom : polynomial R → polynomial R →+* polynomial R :=
+eval₂_ring_hom C
 
 lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=
@@ -752,16 +756,13 @@ lemma C_neg : C (-a) = -C a := ring_hom.map_neg C a
 
 lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 
-lemma map.is_ring_hom {S} [ring S] (f : R →+* S) : is_ring_hom (map f) :=
-is_ring_hom.of_semiring (map_ring_hom f).to_is_semiring_hom
-
 @[simp] lemma map_sub {S} [ring S] (f : R →+* S) :
   (p - q).map f = p.map f - q.map f :=
-is_ring_hom.map_sub (map_ring_hom f).to_is_ring_hom
+(map_ring_hom f).map_sub p q
 
 @[simp] lemma map_neg {S} [ring S] (f : R →+* S) :
   (-p).map f = -(p.map f) :=
-is_ring_hom.map_neg (map_ring_hom f).to_is_ring_hom
+(map_ring_hom f).map_neg p
 
 @[simp] lemma map_int_cast {S} [ring S] (f : R →+* S) (n : ℤ) :
   map f ↑n = ↑n :=
@@ -795,16 +796,5 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero, eq_comm]
 by cases i; simp
 
 end ring
-
-section comm_ring
-variables [comm_ring R] {p q : polynomial R}
-
-lemma eval₂.is_ring_hom {S} [comm_ring S]
-  (f : R →+* S) {x : S} : is_ring_hom (eval₂ f x) :=
-is_ring_hom.of_semiring (eval₂.is_semiring_hom f x)
-
-lemma eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _
-
-end comm_ring
 
 end polynomial

@@ -1232,6 +1232,24 @@ begin
   { rwa [update_column_ne h, if_neg h] }
 end
 
+@[simp] lemma update_column_subsingleton_apply [subsingleton m] (A : matrix n m R)
+  (i : m) (b : n → R) :
+  A.update_column i b = λ i _, b i :=
+begin
+  ext x y,
+  have : i = y := by simp,
+  simp [update_column_apply, this]
+end
+
+@[simp] lemma update_row_subsingleton_apply [subsingleton n] (A : matrix n m R)
+  (i : n) (b : m → R)  :
+  A.update_row i b = λ _, b :=
+begin
+  ext x y,
+  have : i = x := by simp,
+  simp [update_column_apply, this]
+end
+
 lemma update_row_transpose [decidable_eq m] : update_row Mᵀ j c = (update_column M j c)ᵀ :=
 begin
   ext i' j,

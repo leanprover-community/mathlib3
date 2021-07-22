@@ -1224,9 +1224,6 @@ lemma gsmul_sum (α β : Type) [add_comm_group β] {f : α → β} {s : finset �
 (s.sum_hom
   ((gsmul.is_add_group_hom z).to_is_add_monoid_hom : is_add_monoid_hom (gsmul z : β → β))).symm
 
---(s.sum_hom (gsmul z)).symm
---by convert (s.sum_hom (gsmul.is_add_group_hom z).to_is_add_monoid_hom).symm
-
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
 by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_distrib)

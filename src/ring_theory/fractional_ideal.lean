@@ -104,8 +104,8 @@ variables [algebra R P] [loc : is_localization S P]
 This coercion is typically called `coe_to_submodule` in lemma names
 (or `coe` when the coercion is clear from the context),
 not to be confused with `is_localization.coe_submodule : ideal R → submodule R P`
-(which we use to define `coe : ideal R → fractional_ideal S P`, and
-is referred to `coe_ideal` in theorem names).
+(which we use to define `coe : ideal R → fractional_ideal S P`,
+referred to as `coe_ideal` in theorem names).
 -/
 instance : has_coe (fractional_ideal S P) (submodule R P) := ⟨λ I, I.val⟩
 

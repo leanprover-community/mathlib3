@@ -31,17 +31,6 @@ lemma is_subfield.div_mem {S : set F} (hS : is_subfield S) {x y : F} (hx : x ∈
   x / y ∈ S :=
 by { rw div_eq_mul_inv, exact hS.to_is_subring.to_is_submonoid.mul_mem hx (hS.inv_mem hy) }
 
-instance is_subfield.field (hS : is_subfield S) : field S :=
-by letI cr_inst : comm_ring S := @subset.comm_ring _ _ _ ⟨hS.to_is_subring⟩; exact
-{ inv := λ x, ⟨x⁻¹, hS.inv_mem x.2⟩,
-  div := λ x y, ⟨x / y, hS.div_mem x.2 y.2⟩,
-  div_eq_mul_inv := λ x y, subtype.ext $ div_eq_mul_inv (x : F) y,
-  exists_pair_ne := ⟨0, 1, λ h, zero_ne_one (subtype.ext_iff_val.1 h)⟩,
-  mul_inv_cancel := λ a ha, subtype.ext_iff_val.2 (mul_inv_cancel
-    (λ h, ha $ subtype.ext_iff_val.2 h)),
-  inv_zero := subtype.ext_iff_val.2 inv_zero,
-  .. cr_inst }
-
 lemma is_subfield.pow_mem {a : F} {n : ℤ} {s : set F} (hs : is_subfield s) (h : a ∈ s) :
   a ^ n ∈ s :=
 begin

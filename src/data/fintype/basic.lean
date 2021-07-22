@@ -529,8 +529,9 @@ subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
-arbitrary `fintype` instances, use `fintype.univ_eq_empty'`. -/
-@[simp] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
+arbitrary `fintype` instances, use `fintype.univ_is_empty`. -/
+-- no-lint since while `fintype.of_is_empty` can prove this, it isn't applicable for `dsimp`.
+@[simp, nolint simp_nf] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
 arbitrary `fintype` instances, use `fintype.card_eq_zero_iff`. -/

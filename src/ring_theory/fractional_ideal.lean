@@ -46,7 +46,7 @@ Most definitions in this file specialize operations from submodules to fractiona
 proving that the result of this operation is fractional if the input is fractional.
 Exceptions to this rule are defining `(+) := (⊔)` and `⊥ := 0`,
 in order to re-use their respective proof terms.
-We can still use `simp` to show `I.1 + J.1 = (I + J).1` and `⊥.1 = 0.1`.
+We can still use `simp` to show `↑I + ↑J = ↑(I + J)` and `↑⊥ = ↑0`.
 
 Many results in fact do not need that `P` is a localization, only that `P` is an
 `R`-algebra. We omit the `is_localization` parameter whenever this is practical.
@@ -300,7 +300,7 @@ lemma eq_zero_iff {I : fractional_ideal S P} : I = 0 ↔ (∀ x ∈ I, x = (0 : 
 ⟨ (λ h x hx, by simpa [h, mem_zero_iff] using hx),
   (λ h, le_bot_iff.mp (λ x hx, (mem_zero_iff S).mpr (h x hx))) ⟩
 
-lemma fractional_sup (I J : fractional_ideal S P) : is_fractional S (I.1 ⊔ J.1) :=
+lemma fractional_sup (I J : fractional_ideal S P) : is_fractional S (I ⊔ J : submodule R P) :=
 begin
   rcases I.is_fractional with ⟨aI, haI, hI⟩,
   rcases J.is_fractional with ⟨aJ, haJ, hJ⟩,
@@ -316,7 +316,7 @@ begin
     exact is_integer_smul (hJ bJ hbJ) }
 end
 
-lemma fractional_inf (I J : fractional_ideal S P) : is_fractional S (I.1 ⊓ J.1) :=
+lemma fractional_inf (I J : fractional_ideal S P) : is_fractional S (I ⊓ J : submodule R P) :=
 begin
   rcases I.is_fractional with ⟨aI, haI, hI⟩,
   use aI,
@@ -327,14 +327,14 @@ begin
 end
 
 instance lattice : lattice (fractional_ideal S P) :=
-{ inf := λ I J, ⟨I.1 ⊓ J.1, fractional_inf I J⟩,
-  sup := λ I J, ⟨I.1 ⊔ J.1, fractional_sup I J⟩,
-  inf_le_left := λ I J, show I.1 ⊓ J.1 ≤ I.1, from inf_le_left,
-  inf_le_right := λ I J, show I.1 ⊓ J.1 ≤ J.1, from inf_le_right,
-  le_inf := λ I J K hIJ hIK, show I.1 ≤ (J.1 ⊓ K.1), from le_inf hIJ hIK,
-  le_sup_left := λ I J, show I.1 ≤ I.1 ⊔ J.1, from le_sup_left,
-  le_sup_right := λ I J, show J.1 ≤ I.1 ⊔ J.1, from le_sup_right,
-  sup_le := λ I J K hIK hJK, show (I.1 ⊔ J.1) ≤ K.1, from sup_le hIK hJK,
+{ inf := λ I J, ⟨I ⊓ J, fractional_inf I J⟩,
+  sup := λ I J, ⟨I ⊔ J, fractional_sup I J⟩,
+  inf_le_left := λ I J, show (I ⊓ J : submodule R P) ≤ I, from inf_le_left,
+  inf_le_right := λ I J, show (I ⊓ J : submodule R P) ≤ J, from inf_le_right,
+  le_inf := λ I J K hIJ hIK, show (I : submodule R P) ≤ J ⊓ K, from le_inf hIJ hIK,
+  le_sup_left := λ I J, show (I : submodule R P) ≤ I ⊔ J, from le_sup_left,
+  le_sup_right := λ I J, show (J : submodule R P) ≤ I ⊔ J, from le_sup_right,
+  sup_le := λ I J K hIK hJK, show (I ⊔ J : submodule R P) ≤ K, from sup_le hIK hJK,
   ..set_like.partial_order }
 
 instance : semilattice_sup_bot (fractional_ideal S P) :=
@@ -352,7 +352,7 @@ lemma sup_eq_add (I J : fractional_ideal S P) : I ⊔ J = I + J := rfl
 @[simp, norm_cast]
 lemma coe_add (I J : fractional_ideal S P) : (↑(I + J) : submodule R P) = I + J := rfl
 
-lemma fractional_mul (I J : fractional_ideal S P) : is_fractional S (I.1 * J.1) :=
+lemma fractional_mul (I J : fractional_ideal S P) : is_fractional S (I * J : submodule R P) :=
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨J, aJ, haJ, hJ⟩,
@@ -385,7 +385,7 @@ so by making definitions irreducible, we hope to avoid deep unfolds.
 -/
 @[irreducible]
 def mul (I J : fractional_ideal S P) : fractional_ideal S P :=
-⟨I.1 * J.1, fractional_mul I J⟩
+⟨I * J, fractional_mul I J⟩
 
 local attribute [semireducible] mul
 
@@ -522,7 +522,7 @@ variables {P' : Type*} [comm_ring P'] [algebra R P'] [loc' : is_localization S P
 variables {P'' : Type*} [comm_ring P''] [algebra R P''] [loc'' : is_localization S P'']
 
 lemma fractional_map (g : P →ₐ[R] P') (I : fractional_ideal S P) :
-  is_fractional S (submodule.map g.to_linear_map I.1) :=
+  is_fractional S (submodule.map g.to_linear_map I) :=
 begin
   rcases I with ⟨I, a, a_nonzero, hI⟩,
   use [a, a_nonzero],
@@ -536,7 +536,7 @@ end
 /-- `I.map g` is the pushforward of the fractional ideal `I` along the algebra morphism `g` -/
 def map (g : P →ₐ[R] P') :
   fractional_ideal S P → fractional_ideal S P' :=
-λ I, ⟨submodule.map g.to_linear_map I.1, fractional_map g I⟩
+λ I, ⟨submodule.map g.to_linear_map I, fractional_map g I⟩
 
 @[simp, norm_cast] lemma coe_map (g : P →ₐ[R] P') (I : fractional_ideal S P) :
   ↑(map g I) = submodule.map g.to_linear_map I := rfl
@@ -548,11 +548,11 @@ submodule.mem_map
 variables (I J : fractional_ideal S P) (g : P →ₐ[R] P')
 
 @[simp] lemma map_id : I.map (alg_hom.id _ _) = I :=
-coe_to_submodule_injective (submodule.map_id I.1)
+coe_to_submodule_injective (submodule.map_id I)
 
 @[simp] lemma map_comp (g' : P' →ₐ[R] P'') :
   I.map (g'.comp g) = (I.map g).map g' :=
-coe_to_submodule_injective (submodule.map_comp g.to_linear_map g'.to_linear_map I.1)
+coe_to_submodule_injective (submodule.map_comp g.to_linear_map g'.to_linear_map I)
 
 @[simp, norm_cast] lemma map_coe_ideal (I : ideal R) :
   (I : fractional_ideal S P).map g = I :=
@@ -736,7 +736,7 @@ instance : nontrivial (fractional_ideal R₁⁰ K) :=
 include frac
 
 lemma fractional_div_of_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0) :
-  is_fractional R₁⁰ (I.1 / J.1) :=
+  is_fractional R₁⁰ (I / J : submodule R₁ K) :=
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨J, aJ, haJ, hJ⟩,
@@ -759,7 +759,7 @@ end
 
 noncomputable instance fractional_ideal_has_div :
   has_div (fractional_ideal R₁⁰ K) :=
-⟨ λ I J, if h : J = 0 then 0 else ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ ⟩
+⟨ λ I J, if h : J = 0 then 0 else ⟨I / J, fractional_div_of_nonzero h⟩ ⟩
 
 variables {I J : fractional_ideal R₁⁰ K} [ J ≠ 0 ]
 
@@ -768,7 +768,7 @@ variables {I J : fractional_ideal R₁⁰ K} [ J ≠ 0 ]
 dif_pos rfl
 
 lemma div_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0) :
-  (I / J) = ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ :=
+  (I / J) = ⟨I / J, fractional_div_of_nonzero h⟩ :=
 dif_neg h
 
 @[simp] lemma coe_div {I J : fractional_ideal R₁⁰ K} (hJ : J ≠ 0) :
@@ -811,8 +811,7 @@ lemma le_div_iff_mul_le {I J J' : fractional_ideal R₁⁰ K} (hJ' : J' ≠ 0) :
 begin
   rw div_nonzero hJ',
   convert submodule.le_div_iff_mul_le using 1,
-  rw [val_eq_coe, val_eq_coe, ←coe_mul],
-  refl,
+  rw [← coe_mul, coe_le_coe]
 end
 
 @[simp] lemma div_one {I : fractional_ideal R₁⁰ K} : I / 1 = I :=
@@ -917,11 +916,11 @@ variables {S}
 lemma eq_span_singleton_of_principal (I : fractional_ideal S P)
   [is_principal (I : submodule R P)] :
   I = span_singleton S (generator (I : submodule R P)) :=
-coe_to_submodule_injective (span_singleton_generator I.1).symm
+coe_to_submodule_injective (span_singleton_generator ↑I).symm
 
 lemma is_principal_iff (I : fractional_ideal S P) :
   is_principal (I : submodule R P) ↔ ∃ x, I = span_singleton S x :=
-⟨λ h, ⟨@generator _ _ _ _ _ I.1 h, @eq_span_singleton_of_principal _ _ _ _ _ _ _ I h⟩,
+⟨λ h, ⟨@generator _ _ _ _ _ ↑I h, @eq_span_singleton_of_principal _ _ _ _ _ _ _ I h⟩,
  λ ⟨x, hx⟩, { principal := ⟨x, trans (congr_arg _ hx) (coe_span_singleton _ x)⟩ } ⟩
 
 @[simp] lemma span_singleton_zero : span_singleton S (0 : P) = 0 :=
@@ -997,13 +996,13 @@ begin
     apply fractional_ideal.mul_induction_on h,
     { intros x' hx' y' hy',
       obtain ⟨a, ha⟩ := (mem_span_singleton S).mp hx',
-      use [a • y', I.1.smul_mem a hy'],
+      use [a • y', submodule.smul_mem I a hy'],
       rw [←ha, algebra.mul_smul_comm, algebra.smul_mul_assoc] },
-    { exact ⟨0, I.1.zero_mem, (mul_zero x).symm⟩ },
+    { exact ⟨0, submodule.zero_mem I, (mul_zero x).symm⟩ },
     { rintros _ _ ⟨y, hy, rfl⟩ ⟨y', hy', rfl⟩,
-      exact ⟨y + y', I.1.add_mem hy hy', (mul_add _ _ _).symm⟩ },
+      exact ⟨y + y', submodule.add_mem I hy hy', (mul_add _ _ _).symm⟩ },
     { rintros r _ ⟨y', hy', rfl⟩,
-      exact ⟨r • y', I.1.smul_mem r hy', (algebra.mul_smul_comm _ _ _).symm ⟩ } },
+      exact ⟨r • y', submodule.smul_mem I r hy', (algebra.mul_smul_comm _ _ _).symm ⟩ } },
   { rintros ⟨y', hy', rfl⟩,
     exact mul_mem_mul ((mem_span_singleton S).mpr ⟨1, one_smul _ _⟩) hy' }
 end
@@ -1041,7 +1040,8 @@ begin
   have map_a_nonzero : algebra_map R₁ K a_inv ≠ 0 :=
     mt is_fraction_ring.to_map_eq_zero_iff.mp nonzero,
   refine ⟨a_inv,
-          (span_singleton R₁⁰ (algebra_map R₁ K a_inv) * I).1.comap (algebra.linear_map R₁ K),
+          submodule.comap (algebra.linear_map R₁ K)
+            ↑(span_singleton R₁⁰ (algebra_map R₁ K a_inv) * I),
           nonzero,
           ext (λ x, iff.trans ⟨_, _⟩ mem_singleton_mul.symm)⟩,
   { intro hx,

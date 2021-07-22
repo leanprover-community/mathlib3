@@ -485,7 +485,7 @@ finset.mem_range_iff_mem_finset_range_of_mod_eq' (order_of_pos x)
   (assume i, pow_eq_mod_order_of.symm)
 
 noncomputable instance decidable_multiples [decidable_eq A] :
-  decidable_pred (add_submonoid.multiples a : set A) :=
+  decidable_pred (∈ add_submonoid.multiples a) :=
 begin
   assume b,
   apply decidable_of_iff' (b ∈ (finset.range (add_order_of a)).image (• a)),
@@ -494,7 +494,7 @@ end
 
 @[to_additive decidable_multiples]
 noncomputable instance decidable_powers [decidable_eq G] :
-  decidable_pred (submonoid.powers x : set G) :=
+  decidable_pred (∈ submonoid.powers x) :=
 begin
   assume y,
   apply decidable_of_iff'
@@ -634,16 +634,18 @@ lemma mem_gpowers_iff_mem_range_order_of [decidable_eq G] :
 by rw [← mem_powers_iff_mem_gpowers, mem_powers_iff_mem_range_order_of]
 
 noncomputable instance decidable_gmultiples [decidable_eq A] :
-  decidable_pred (add_subgroup.gmultiples a : set A) :=
+  decidable_pred (∈ add_subgroup.gmultiples a) :=
 begin
+  simp_rw ←set_like.mem_coe,
   rw ← multiples_eq_gmultiples,
   exact decidable_multiples,
 end
 
 @[to_additive decidable_gmultiples]
 noncomputable instance decidable_gpowers [decidable_eq G] :
-  decidable_pred (subgroup.gpowers x : set G) :=
+  decidable_pred (∈ subgroup.gpowers x) :=
 begin
+  simp_rw ←set_like.mem_coe,
   rw ← powers_eq_gpowers,
   exact decidable_powers,
 end
@@ -768,6 +770,16 @@ begin
   rw [of_add_nsmul, of_add_zero],
   exact pow_card_eq_one,
 end
+
+@[to_additive nsmul_eq_mod_card] lemma pow_eq_mod_card (n : ℕ) :
+  x ^ n = x ^ (n % fintype.card G) :=
+by rw [pow_eq_mod_order_of, ←nat.mod_mod_of_dvd n order_of_dvd_card_univ,
+  ← pow_eq_mod_order_of]
+
+@[to_additive] lemma gpow_eq_mod_card (n : ℤ) :
+  x ^ n = x ^ (n % fintype.card G) :=
+by by rw [gpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_of_dvd_card_univ),
+  ← gpow_eq_mod_order_of]
 
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 

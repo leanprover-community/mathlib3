@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Tim Baanen
+Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
 import linear_algebra.matrix.determinant
@@ -280,7 +280,7 @@ Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.
 -/
 
-variables (A : matrix n n α)
+variables (A : matrix n n α) (B : matrix n n α)
 
 open_locale classical
 
@@ -341,13 +341,13 @@ def invertible_of_det_invertible [invertible A.det] : invertible A :=
     by rw [smul_mul_assoc, matrix.mul_eq_mul, adjugate_mul, smul_smul, inv_of_mul_self, one_smul] }
 
 /-- `A.det` is invertible if `A` has a left inverse. -/
-def det_invertible_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : invertible A.det :=
+def det_invertible_of_left_inverse (h : B ⬝ A = 1) : invertible A.det :=
 { inv_of := B.det,
   mul_inv_of_self := by rw [mul_comm, ← det_mul, h, det_one],
   inv_of_mul_self := by rw [← det_mul, h, det_one] }
 
 /-- `A.det` is invertible if `A` has a right inverse. -/
-def det_invertible_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : invertible A.det :=
+def det_invertible_of_right_inverse (h : A ⬝ B = 1) : invertible A.det :=
 { inv_of := B.det,
   mul_inv_of_self := by rw [← det_mul, h, det_one],
   inv_of_mul_self := by rw [mul_comm, ← det_mul, h, det_one] }
@@ -383,27 +383,99 @@ begin
     apply invertible_of_det_invertible, },
 end
 
-lemma is_unit_det_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : is_unit A.det :=
+/- `is_unit_of_invertible A`
+   converts the "stronger" condition `invertible A` to proposition `is_unit A`. -/
+
+/-- `matrix.is_unit_det_of_invertible` converts `invertible A` to `is_unit A.det`. -/
+lemma is_unit_det_of_invertible [invertible A] : is_unit A.det :=
+@is_unit_of_invertible _ _ _(det_invertible_of_invertible A)
+
+@[simp]
+lemma inv_eq_nonsing_inv_of_invertible [invertible A] : ⅟ A = A⁻¹ :=
+begin
+  suffices : is_unit A,
+  { rw [←this.mul_left_inj, inv_of_mul_self, matrix.mul_eq_mul, nonsing_inv_mul],
+    rwa ←is_unit_iff_is_unit_det },
+  exact is_unit_of_invertible _
+end
+
+variables {A} {B}
+
+/- `is_unit.invertible` lifts the proposition `is_unit A` to a constructive inverse of `A`. -/
+
+/-- "Lift" the proposition `is_unit A.det` to a constructive inverse of `A`. -/
+noncomputable def invertible_of_is_unit_det  (h : is_unit A.det) : invertible A :=
+⟨A⁻¹, nonsing_inv_mul A h, mul_nonsing_inv A h⟩
+
+lemma is_unit_det_of_left_inverse (h : B ⬝ A = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_left_inverse _ _ h)
 
-lemma is_unit_det_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : is_unit A.det :=
+lemma is_unit_det_of_right_inverse (h : A ⬝ B = 1) : is_unit A.det :=
 @is_unit_of_invertible _ _ _ (det_invertible_of_right_inverse _ _ h)
 
-lemma nonsing_inv_left_right (B : matrix n n α) (h : A ⬝ B = 1) : B ⬝ A = 1 :=
+lemma nonsing_inv_left_right (h : A ⬝ B = 1) : B ⬝ A = 1 :=
 begin
-  have h' : is_unit B.det := B.is_unit_det_of_left_inverse A h,
+  have h' : is_unit B.det := is_unit_det_of_left_inverse h,
   calc B ⬝ A = (B ⬝ A) ⬝ (B ⬝ B⁻¹) : by simp only [h', matrix.mul_one, mul_nonsing_inv]
         ... = B ⬝ ((A ⬝ B) ⬝ B⁻¹) : by simp only [matrix.mul_assoc]
         ... = B ⬝ B⁻¹ : by simp only [h, matrix.one_mul]
         ... = 1 : mul_nonsing_inv B h',
 end
 
-lemma nonsing_inv_right_left (B : matrix n n α) (h : B ⬝ A = 1) : A ⬝ B = 1 :=
-B.nonsing_inv_left_right A h
+lemma nonsing_inv_right_left (h : B ⬝ A = 1) : A ⬝ B = 1 :=
+nonsing_inv_left_right h
+
+/-- If matrix A is left invertible, then its inverse equals its left inverse. -/
+lemma inv_eq_left_inv (h : B ⬝ A = 1) : A⁻¹ = B :=
+begin
+  have h1 :=  (is_unit_det_of_left_inverse h),
+  have h2 := matrix.invertible_of_is_unit_det h1,
+  have := @inv_of_eq_left_inv (matrix n n α) (infer_instance) A B h2 h,
+  simp* at *,
+end
+
+/-- If matrix A is right invertible, then its inverse equals its right inverse. -/
+lemma inv_eq_right_inv (h : A ⬝ B = 1) : A⁻¹ = B :=
+begin
+  have h1 :=  (is_unit_det_of_right_inverse h),
+  have h2 := matrix.invertible_of_is_unit_det h1,
+  have := @inv_of_eq_right_inv (matrix n n α) (infer_instance) A B h2 h,
+  simp* at *,
+end
+
+/-- We can construct an instance of invertible A if A has a left inverse. -/
+def invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
+⟨B, h, nonsing_inv_right_left h⟩
+
+/-- We can construct an instance of invertible A if A has a right inverse. -/
+def invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
+⟨B, nonsing_inv_left_right h, h⟩
+
+variables {C: matrix n n α}
+
+/-- The left inverse of matrix A is unique when existing. -/
+lemma left_inv_eq_left_inv (h: B ⬝ A = 1) (g: C ⬝ A = 1) : B = C :=
+by rw [←(inv_eq_left_inv h), ←(inv_eq_left_inv g)]
+
+/-- The right inverse of matrix A is unique when existing. -/
+lemma right_inv_eq_right_inv (h: A ⬝ B = 1) (g: A ⬝ C = 1) : B = C :=
+by rw [←(inv_eq_right_inv h), ←(inv_eq_right_inv g)]
+
+/-- The right inverse of matrix A equals the left inverse of A when they exist. -/
+lemma right_inv_eq_left_inv (h: A ⬝ B = 1) (g: C ⬝ A = 1) : B = C :=
+by rw [←(inv_eq_right_inv h), ←(inv_eq_left_inv g)]
+
+variable (A)
+
+@[simp] lemma mul_inv_of_invertible [invertible A] : A ⬝ A⁻¹ = 1 :=
+mul_nonsing_inv A (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
+nonsing_inv_mul A (is_unit_det_of_invertible A)
 
 end inv
 
-/- One form of Cramer's rule. -/
+/-- One form of Cramer's rule -/
 @[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
   A.det • A⁻¹.mul_vec b = cramer A b :=
 begin
@@ -412,11 +484,11 @@ begin
   rw [←units.smul_def, smul_inv_smul],
 end
 
-/- A stronger form of Cramer's rule that allows us to solve some instances of `A ⬝ x = b` even if
-the determinant is not a unit. A sufficient (but still not necessary) condition is that `A.det`
+/-- A stronger form of **Cramer's rule** that allows us to solve some instances of `A ⬝ x = b` even
+if the determinant is not a unit. A sufficient (but still not necessary) condition is that `A.det`
 divides `b`. -/
 @[simp] lemma mul_vec_cramer (A : matrix n n α) (b : n → α) :
   A.mul_vec (cramer A b) = A.det • b :=
-by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, mul_vec_one]
+by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, one_mul_vec]
 
 end matrix

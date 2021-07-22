@@ -60,7 +60,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 ## Tags
 
 cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
-Cantor's theorem, König's theorem
+Cantor's theorem, König's theorem, Konig's theorem
 -/
 
 open function set
@@ -339,8 +339,7 @@ quotient.induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_con
 
 end order_properties
 
-
-
+/-- **Cantor's theorem** -/
 theorem cantor : ∀(a : cardinal.{u}), a < 2 ^ a :=
 by rw ← prop_eq_two; rintros ⟨a⟩; exact ⟨
   ⟨⟨λ a b, ⟨a = b⟩, λ a b h, cast (ulift.up.inj (@congr_fun _ _ _ _ h b)).symm rfl⟩⟩,
@@ -458,8 +457,8 @@ sup_le.2 $ le_sum _
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ mk ι * sup.{u u} f :=
 by rw ← sum_const; exact sum_le_sum _ _ (le_sup _)
 
-theorem sup_eq_zero {ι} {f : ι → cardinal} (h : ι → false) : sup f = 0 :=
-by { rw [← nonpos_iff_eq_zero, sup_le], intro x, exfalso, exact h x }
+theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
+by { rw [← nonpos_iff_eq_zero, sup_le], exact is_empty_elim }
 
 /-- The indexed product of cardinals is the cardinality of the Pi type
   (dependent product). -/
@@ -768,9 +767,9 @@ begin
     right, by_cases hb : b = 0, { left, exact hb },
     right, rw [← ne, ← one_le_iff_ne_zero] at ha hb, split,
     { rw [← mul_one a],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul (le_refl a) hb) h },
+      refine lt_of_le_of_lt (mul_le_mul' (le_refl a) hb) h },
     { rw [← _root_.one_mul b],
-      refine lt_of_le_of_lt (canonically_ordered_semiring.mul_le_mul ha (le_refl b)) h }},
+      refine lt_of_le_of_lt (mul_le_mul' ha (le_refl b)) h }},
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_omega, omega_pos, _root_.zero_mul, mul_zero]
 end
 
@@ -931,7 +930,7 @@ begin
   { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
 end
 
-/-- König's theorem -/
+/-- **König's theorem** -/
 theorem sum_lt_prod {ι} (f g : ι → cardinal) (H : ∀ i, f i < g i) : sum f < prod g :=
 lt_of_not_ge $ λ ⟨F⟩, begin
   have : inhabited (Π (i : ι), (g i).out),
@@ -1242,7 +1241,10 @@ begin
 end
 
 lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
-by { apply sup_eq_zero, rintro ⟨x, hx⟩, rw [←not_le] at hx, apply hx, apply zero_le }
+begin
+  convert sup_eq_zero,
+  exact subtype.is_empty_of_false (λ x, (zero_le _).not_lt),
+end
 
 end cardinal
 

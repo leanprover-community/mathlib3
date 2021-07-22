@@ -703,6 +703,9 @@ fintype.of_subsingleton (default α)
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 
+@[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
+finset.ext is_empty_elim
+
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
 
 @[simp] theorem fintype.card_empty : fintype.card empty = 0 := rfl
@@ -875,6 +878,11 @@ by rw [←card_unit, card_eq]; exact
 lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
 ⟨λ h, ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
   λ h, by { have e : α ≃ empty, exactI equiv.equiv_empty α, simp [card_congr e] }⟩
+
+lemma card_eq_one_iff_nonempty_unique {α : Type*} [fintype α] :
+  fintype.card α = 1 ↔ nonempty (unique α) :=
+⟨λ h, let ⟨d, h⟩ := fintype.card_eq_one_iff.mp h in ⟨{ default := d, uniq := h}⟩,
+ λ ⟨h⟩, by exactI fintype.card_unique⟩
 
 /-- A `fintype` with cardinality zero is equivalent to `empty`. -/
 def card_eq_zero_equiv_equiv_empty : card α = 0 ≃ (α ≃ empty) :=

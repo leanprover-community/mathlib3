@@ -86,19 +86,14 @@ end
 @[simp] lemma det_one : det (1 : matrix n n R) = 1 :=
 by rw [← diagonal_one]; simp [-diagonal_one]
 
+@[simp]
+lemma det_is_empty [is_empty n] {A : matrix n n R} : det A = 1 :=
+by simp [det_apply]
+
 lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
 begin
-  have perm_eq : (univ : finset (perm n)) = {1} :=
-  univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
-  simp [det_apply, card_eq_zero.mp h, perm_eq],
-end
-
-/-- An alternate statement of `det_eq_one_of_card_eq_zero` suitable for use by `simp`. -/
-@[simp]
-lemma det_eq_one_of_is_empty [is_empty n] {A : matrix n n R} : det A = 1 :=
--- det_eq_one_of_card_eq_zero $ fintype.card_eq_zero_iff.mpr ‹_›
-begin
-  simp [det_apply],
+  haveI : is_empty n := fintype.card_eq_zero_iff.mp h,
+  exact det_is_empty,
 end
 
 /-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
@@ -112,8 +107,7 @@ by simp [det_apply, univ_unique]
 lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
   det A = A k k :=
 begin
-  obtain ⟨d, h⟩ := fintype.card_eq_one_iff.mp h,
-  haveI : unique n := { default := d, uniq := h},
+  casesI fintype.card_eq_one_iff_nonempty_unique.mp h,
   convert det_unique A,
 end
 

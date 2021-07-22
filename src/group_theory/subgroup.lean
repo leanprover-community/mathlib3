@@ -406,6 +406,8 @@ end
 @[to_additive] instance fintype_bot : fintype (⊥ : subgroup G) := ⟨{1},
 by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
 
+/- curly brackets `{}` are used here instead of instance brackets `[]` because
+  the instance in a goal is often not the same as the one inferred by type class inference.  -/
 @[simp, to_additive] lemma card_bot {h : fintype.{u} (⊥ : subgroup G)} :
   fintype.card (⊥ : subgroup G)  = 1 :=
 (@fintype.card_eq_one_iff (↥(⊥ : subgroup G)) h).2

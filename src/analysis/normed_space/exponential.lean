@@ -143,26 +143,45 @@ section scalar_tower
 
 variables (𝕂 𝕂' 𝔸 : Type) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
   [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝕂'] [normed_algebra 𝕂' 𝔸]
-  [is_scalar_tower 𝕂 𝕂' 𝔸]
+  [is_scalar_tower 𝕂 𝕂' 𝔸] (p : ℕ) [char_p 𝕂 p] [char_p 𝕂' p]
 
-lemma goal (n : ℕ) (x : 𝔸) : (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
+include p
+
+private lemma exp_series_eq_exp_series (n : ℕ) (x : 𝔸) :
+  (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
 begin
-  rw [exp_series, exp_series],
-  rw [smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
-      smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat],
+  rw [exp_series, exp_series,
+      smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
+      smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
+      ←inv_eq_one_div, ←inv_eq_one_div, ← smul_one_smul 𝕂' (_ : 𝕂) (_ : 𝔸)],
+  congr,
+  symmetry,
+  have key : (n! : 𝕂) = 0 ↔ (n! : 𝕂') = 0,
+  { rw [char_p.cast_eq_zero_iff 𝕂' p, char_p.cast_eq_zero_iff 𝕂 p] },
+  by_cases h : (n! : 𝕂) = 0,
+  { have h' : (n! : 𝕂') = 0 := key.mp h,
+    field_simp [h, h'] },
+  { have h' : (n! : 𝕂') ≠ 0 := λ hyp, h (key.mpr hyp),
+    suffices : (n! : 𝕂) • (n!⁻¹ : 𝕂') = (n! : 𝕂) • ((n!⁻¹ : 𝕂) • 1),
+    { apply_fun (λ (x : 𝕂'), (n!⁻¹ : 𝕂) • x) at this,
+      rwa [inv_smul_smul' h, inv_smul_smul' h] at this },
+    rw [← smul_assoc, ← nsmul_eq_smul_cast, nsmul_eq_smul_cast 𝕂' _ (_ : 𝕂')],
+    field_simp [h, h'] }
 end
 
-lemma goal : exp 𝕂 𝔸 = exp 𝕂' 𝔸 :=
+lemma exp_eq_exp_of_field_extension : exp 𝕂 𝔸 = exp 𝕂' 𝔸 :=
 begin
   ext,
   rw [exp, exp],
+  refine tsum_congr (λ n, _),
+  rw exp_series_eq_exp_series 𝕂 𝕂' 𝔸 p n x
 end
 
 end scalar_tower
 
 section complex
 
-lemma complex.exp_eq_gen_exp : complex.exp = exp ℂ ℂ :=
+lemma complex.exp_eq_exp_ℂ_ℂ : complex.exp = exp ℂ ℂ :=
 begin
   refine funext (λ x, _),
   rw [complex.exp, exp_def_field],
@@ -170,14 +189,17 @@ begin
     (exp_series_summable_field x).has_sum.tendsto_sum_nat
 end
 
+lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : exp ℝ ℂ = exp ℂ ℂ :=
+exp_eq_exp_of_field_extension _ _ _ 0
+
 end complex
 
 section real
 
-lemma real.exp_eq_gen_exp : real.exp = exp ℝ ℝ :=
+lemma real.exp_eq_exp_ℝ_ℝ : real.exp = exp ℝ ℝ :=
 begin
   refine funext (λ x, _),
-  rw [real.exp, complex.exp, exp_def_field],
+  rw [real.exp, complex.exp_eq_exp_ℂ_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp, exp],
 end
 
 end real

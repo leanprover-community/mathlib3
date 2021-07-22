@@ -10,7 +10,6 @@ import data.list.basic
 import data.int.cast
 import data.equiv.basic
 import data.equiv.mul_add
-import deprecated.group
 
 /-!
 # Lemmas about power operations on monoids and groups

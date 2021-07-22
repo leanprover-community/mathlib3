@@ -211,6 +211,8 @@ begin
   subst this,
 end
 
+attribute [ext] add_zero_class.ext
+
 section mul_one_class
 variables {M : Type u} [mul_one_class M]
 
@@ -385,6 +387,8 @@ begin
   subst h_npow,
 end
 
+attribute [ext] add_monoid.ext
+
 section monoid
 variables {M : Type u} [monoid M]
 
@@ -441,6 +445,8 @@ begin
   subst h_npow,
 end
 
+attribute [ext] add_comm_monoid.ext
+
 section left_cancel_monoid
 
 /-- An additive monoid in which addition is left-cancellative.
@@ -473,6 +479,8 @@ begin
     { rw [npow_succ₁, npow_succ₂, hd] } },
   subst h_npow,
 end
+
+attribute [ext] add_left_cancel_monoid.ext
 
 end left_cancel_monoid
 
@@ -509,6 +517,8 @@ begin
   subst h_npow,
 end
 
+attribute [ext] add_right_cancel_monoid.ext
+
 end right_cancel_monoid
 
 section cancel_monoid
@@ -544,6 +554,8 @@ begin
   subst h_npow,
 end
 
+attribute [ext] add_cancel_monoid.ext
+
 /-- Commutative version of add_cancel_monoid. -/
 @[protect_proj, ancestor add_left_cancel_monoid add_comm_monoid]
 class add_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_comm_monoid M
@@ -572,6 +584,8 @@ begin
     { rw [npow_succ₁, npow_succ₂, hd] } },
   subst h_npow,
 end
+
+attribute [ext] add_cancel_comm_monoid.ext
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M] :
@@ -706,6 +720,8 @@ begin
   subst h_gpow,
 end
 
+attribute [ext] sub_neg_monoid.ext
+
 @[to_additive]
 lemma div_eq_mul_inv {G : Type u} [div_inv_monoid G] :
   ∀ a b : G, a / b = a * b⁻¹ :=
@@ -837,6 +853,8 @@ begin
   subst h_gpow,
 end
 
+attribute [ext] add_group.ext
+
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]
 class comm_group (G : Type u) extends group G, comm_monoid G
@@ -897,6 +915,8 @@ begin
       exact h_gpow_aux _ _ } },
   subst h_gpow,
 end
+
+attribute [ext] add_comm_group.ext
 
 section comm_group
 

@@ -1420,20 +1420,24 @@ le_antisymm
 
 /-- The range of a finite monoid under a monoid homomorphism is finite.
 Note: this instance can form a diamond with `subtype.fintype` in the
-  presence of `fintype N`. -/
+presence of `fintype N`. -/
 @[to_additive "The range of a finite additive monoid under an additive monoid homomorphism is
-finite. Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
-  presence of `fintype N`."]
+finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`."]
 instance fintype_mrange {M N : Type*} [monoid M] [monoid N] [fintype M] [decidable_eq N]
   (f : M →* N) : fintype (mrange f) :=
 set.fintype_range f
 
 /-- The range of a finite group under a group homomorphism is finite.
+
 Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
-  presence of `fintype N`. -/
+presence of `fintype N`. -/
 @[to_additive "The range of a finite additive group under an additive group homomorphism is finite.
+
 Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
-  presence of `fintype N`."]
+presence of `fintype N`."]
 instance fintype_range  [fintype G] [decidable_eq N] (f : G →* N) : fintype (range f) :=
 set.fintype_range f
 

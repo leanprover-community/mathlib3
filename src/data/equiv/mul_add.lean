@@ -516,7 +516,7 @@ protected def div_left (a : G) : G ≃ G :=
   right_inv := λ b, by simp [div_eq_mul_inv] }
 
 @[to_additive]
-lemma div_left_eq_mul_left_trans_inv (a : G) :
+lemma div_left_eq_inv_trans_mul_left (a : G) :
   equiv.div_left a = (equiv.inv G).trans (equiv.mul_left a) :=
 ext $ λ _, div_eq_mul_inv _ _
 

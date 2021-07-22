@@ -173,8 +173,8 @@ instance equiv_subsingleton_dom [subsingleton α] :
   subsingleton (α ≃ β) :=
 ⟨λ f g, equiv.ext $ λ x, @subsingleton.elim _ (equiv.subsingleton.symm f) _ _⟩
 
-instance perm_subsingleton [subsingleton α] : subsingleton (perm α) :=
-equiv.equiv_subsingleton_cod
+instance perm_unique [subsingleton α] : unique (perm α) :=
+{ default := equiv.refl α, uniq := λ _, subsingleton.elim _ _ }
 
 lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
   e = equiv.refl α := subsingleton.elim _ _

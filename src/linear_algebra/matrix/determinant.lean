@@ -96,7 +96,10 @@ end
 /-- An alternate statement of `det_eq_one_of_card_eq_zero` suitable for use by `simp`. -/
 @[simp]
 lemma det_eq_one_of_is_empty [is_empty n] {A : matrix n n R} : det A = 1 :=
-det_eq_one_of_card_eq_zero $ fintype.card_eq_zero_iff.mpr ‹_›
+-- det_eq_one_of_card_eq_zero $ fintype.card_eq_zero_iff.mpr ‹_›
+begin
+  simp [det_apply],
+end
 
 /-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
 Although `unique` implies `decidable_eq` and `fintype`, the instances might

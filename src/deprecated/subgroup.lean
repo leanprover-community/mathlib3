@@ -67,42 +67,6 @@ theorem multiplicative.is_subgroup_iff
 ⟨by rintro ⟨⟨h₁, h₂⟩, h₃⟩; exact @is_add_subgroup.mk A _ _ ⟨h₁, @h₂⟩ @h₃,
   λ h, by exactI multiplicative.is_subgroup h⟩
 
-/-- The group structure on a subgroup coerced to a type. -/
-@[to_additive "The additive group structure on an additive subgroup coerced to a type."]
-def subtype.group {s : set G} [hs : fact (is_subgroup s)] : group s :=
-{ inv := λ x, ⟨(x:G)⁻¹, hs.elim.inv_mem x.2⟩,
-  mul_left_inv := λ x, subtype.eq $ mul_left_inv x.1,
-  div := λ x y, ⟨(x / y : G), hs.elim.div_mem x.2 y.2⟩,
-  div_eq_mul_inv := λ x y, subtype.ext $ div_eq_mul_inv x.1 y.1,
-  .. @subtype.monoid G _ s ⟨hs.elim.to_is_submonoid⟩}
-
-/-- The commutative group structure on a commutative subgroup coerced to a type. -/
-@[to_additive "The additive commutative group structure
- on a additive commutative subgroup coerced to a type."]
-def subtype.comm_group {G : Type*} [comm_group G] {s : set G} [fact (is_subgroup s)] :
-  comm_group s :=
-{ mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
-  .. subtype.group,  }
-
-section
-local attribute [instance] subtype.group subtype.add_group
-
-@[simp, norm_cast, to_additive]
-lemma is_subgroup.coe_inv {s : set G} [fact (is_subgroup s)] (a : s) : ((a⁻¹ : s) : G) = a⁻¹ := rfl
-attribute [norm_cast] is_add_subgroup.coe_neg
-
-@[simp, norm_cast] lemma is_subgroup.coe_gpow {s : set G} [hs : fact (is_subgroup s)]
-  (a : s) (n : ℤ) : ((a ^ n : s) : G) = a ^ n :=
-by induction n; simp [@is_submonoid.coe_pow G _ s ⟨hs.elim.to_is_submonoid⟩ a]
-
-@[simp, norm_cast] lemma is_add_subgroup.gsmul_coe {s : set A} [hs : fact (is_add_subgroup s)]
-  (a : s) (n : ℤ) : ((n • a : s) : A) = n • a :=
-by induction n; simp [@is_add_submonoid.smul_coe A _ s ⟨hs.elim.to_is_add_submonoid⟩ a]
-
-attribute [to_additive gsmul_coe] is_subgroup.coe_gpow
-
-end
-
 @[to_additive of_add_neg]
 theorem is_subgroup.of_div (s : set G)
   (one_mem : (1:G) ∈ s) (div_mem : ∀{a b:G}, a ∈ s → b ∈ s → a * b⁻¹ ∈ s) :
@@ -328,17 +292,6 @@ lemma subset_normalizer {s : set G} (hs : is_subgroup s) : s ⊆ normalizer s :=
 λ g hg n, by rw [is_subgroup.mul_mem_cancel_right hs ((is_subgroup.inv_mem_iff hs).2 hg),
   is_subgroup.mul_mem_cancel_left hs hg]
 
-local attribute [instance] subtype.group
-/-- Every subgroup is a normal subgroup of its normalizer -/
-@[to_additive add_normal_in_add_normalizer]
-lemma normal_in_normalizer (s : set G) (hs : is_subgroup s) :
-  @is_normal_subgroup (normalizer s) (@subtype.group _ _ _ ⟨normalizer_is_subgroup _⟩)
-  (subtype.val ⁻¹' s : set (normalizer s)) :=
-{ one_mem := show (1 : G) ∈ s, from hs.to_is_submonoid.one_mem,
-  mul_mem := λ a b ha hb, show (a * b : G) ∈ s, from hs.to_is_submonoid.mul_mem ha hb,
-  inv_mem := λ a ha, show (a⁻¹ : G) ∈ s, from hs.inv_mem ha,
-  normal := λ a ha ⟨m, hm⟩, (hm a).1 ha }
-
 end is_subgroup
 
 -- Homomorphism subgroups
@@ -461,61 +414,6 @@ by rw set.ext_iff; simp [ker]; exact
 ⟨λ h x hx, (h x).1 hx, λ h x, ⟨h x, λ hx, by rw [hx, hf.map_one]⟩⟩
 
 end is_group_hom
-
-section
-local attribute [instance] subtype.group
-
-@[to_additive]
-lemma subtype_val.is_group_hom [group G] {s : set G} [hs : fact (is_subgroup s)] :
-  is_group_hom (subtype.val : s → G) :=
-{ ..@subtype_val.is_monoid_hom _ _ _ ⟨hs.elim.to_is_submonoid⟩}
-
-@[to_additive]
-lemma coe.is_group_hom [group G] {s : set G} [fact (is_subgroup s)] :
-  is_group_hom (coe : s → G) := subtype_val.is_group_hom
-
-@[to_additive]
-lemma subtype_mk.is_group_hom [group G] [group H] {s : set G}
-  [hs : fact (is_subgroup s)] {f : H → G} (hf : is_group_hom f) (h : ∀ x, f x ∈ s) :
-  is_group_hom (λ x, (⟨f x, h x⟩ : s)) :=
-{ ..@subtype_mk.is_monoid_hom _ _ _ _ _ ⟨hs.elim.to_is_submonoid⟩ _ hf.to_is_monoid_hom h }
-
-@[to_additive]
-lemma set_inclusion.is_group_hom [group G] {s t : set G}
-  [fact (is_subgroup s)] [fact (is_subgroup t)]
-  (h : s ⊆ t) : is_group_hom (set.inclusion h) :=
-subtype_mk.is_group_hom coe.is_group_hom _
-
-end
-
-section
-local attribute [instance] subtype.monoid
-
--- note that this is not used at all in mathlib
-/-- `subtype.val : set.range f → H` as a monoid homomorphism, when `f` is a monoid homomorphism. -/
-@[to_additive "`subtype.val : set.range f → H` as an additive monoid homomorphism, when `f` is
-an additive monoid homomorphism."]
-def monoid_hom.range_subtype_val [monoid G] [monoid H] (f : G →* H) :
-  @monoid_hom (set.range f) H
-  (@monoid.to_mul_one_class (set.range f)
-    (@subtype.monoid _ _ _ ⟨range.is_submonoid f.is_monoid_hom_coe⟩)) _ :=
-@monoid_hom.of _ _
-  (@monoid.to_mul_one_class (set.range f)
-    (@subtype.monoid _ _ _ ⟨range.is_submonoid f.is_monoid_hom_coe⟩)) _ _
-  (@coe.is_monoid_hom _ _ _ ⟨range.is_submonoid f.is_monoid_hom_coe⟩)
-
-/-- `set.range_factorization f : G → set.range f` as a monoid homomorphism, when `f` is a monoid
-homomorphism. -/
-@[to_additive "`set.range_factorization f : G → set.range f` as an additive monoid homomorphism,
-when `f` is an additive monoid homomorphism."]
-def monoid_hom.range_factorization [monoid G] [monoid H] (f : G →* H) :
-  @monoid_hom G (set.range f) _ (@monoid.to_mul_one_class (set.range f)
-    (@subtype.monoid _ _ _ ⟨range.is_submonoid f.is_monoid_hom_coe⟩)) :=
-{ to_fun := set.range_factorization f,
-  map_one' := by { dsimp [set.range_factorization], simp, refl, },
-  map_mul' := by { intros, dsimp [set.range_factorization], simp, refl, } }
-
-end
 
 namespace add_group
 

@@ -353,7 +353,7 @@ instance no_zero_smul_divisors_top {R A : Type*} [comm_semiring R] [comm_semirin
 
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
-@subring.domain A _ S ⟨is_subring S⟩
+subring.integral_domain S.to_subring
 
 end subalgebra
 

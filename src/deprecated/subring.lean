@@ -16,21 +16,8 @@ variables {R : Type u} [ring R]
 inverse. -/
 structure is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
 
-/-- The ring structure on a subring coerced to a type. -/
-local attribute [instance]
-def subset.ring {S : set R} [hS : fact (is_subring S)] : ring S :=
-{ left_distrib := λ x y z, subtype.eq $ left_distrib x.1 y.1 z.1,
-  right_distrib := λ x y z, subtype.eq $ right_distrib x.1 y.1 z.1,
-  .. @subtype.add_comm_group _ _ _ ⟨hS.elim.to_is_add_subgroup⟩,
-  .. @subtype.monoid _ _ _ ⟨hS.elim.to_is_submonoid⟩ }
-
-/-- The ring structure on a subring coerced to a type. -/
-def subtype.ring {S : set R} (hS : is_subring S) : ring (subtype S) :=
-@subset.ring _ _ _ ⟨hS⟩
-
 namespace ring_hom
 
--- TODO we seem to have three different naming conventions here
 lemma is_subring_preimage {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) {s : set S} (hs : is_subring s) : is_subring (f ⁻¹' s) :=
 { ..is_add_group_hom.preimage f.to_is_add_group_hom hs.to_is_add_subgroup,
@@ -51,40 +38,7 @@ lemma is_subring_set_range {R : Type u} {S : Type v} [ring R] [ring S]
 
 end ring_hom
 
-/-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
-def ring_hom.cod_restrict {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
-  (s : set S) [fact (is_subring s)] (h : ∀ x, f x ∈ s) :
-  R →+* s :=
-{ to_fun := λ x, ⟨f x, h x⟩,
-  map_add' := λ x y, subtype.eq $ f.map_add x y,
-  map_zero' := subtype.eq f.map_zero,
-  map_mul' := λ x y, subtype.eq $ f.map_mul x y,
-  map_one' := subtype.eq f.map_one }
-
-/-- Coersion `S → R` as a ring homormorphism-/
-def is_subring.subtype (S : set R) [fact (is_subring S)] : S →+* R :=
-⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
-
-@[simp] lemma is_subring.coe_subtype {S : set R} [fact (is_subring S)] :
-  ⇑(is_subring.subtype S) = coe := rfl
-
 variables {cR : Type u} [comm_ring cR]
-
-/-- The commutative ring structure on a subring coerced to a type. -/
-def subset.comm_ring {S : set cR} [fact (is_subring S)] : comm_ring S :=
-{ mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
-  .. subset.ring }
-
-/-- The commutative ring structure on a subring coerced to a type. -/
-def subtype.comm_ring {S : set cR} [fact (is_subring S)] : comm_ring (subtype S) := subset.comm_ring
-
-/-- The integral domain structure on a subring of an integral domain coerced to a type. -/
-def subring.domain {D : Type*} [integral_domain D] (S : set D) [fact (is_subring S)] :
-  integral_domain S :=
-{ exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.1 zero_ne_one⟩,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨x, hx⟩ ⟨y, hy⟩,
-    by { simp only [subtype.ext_iff_val, subtype.coe_mk], exact eq_zero_or_eq_zero_of_mul_eq_zero },
-  .. subset.comm_ring }
 
 lemma is_subring.inter {S₁ S₂ : set R} (hS₁ : is_subring S₁) (hS₂ : is_subring S₂) :
   is_subring (S₁ ∩ S₂) :=

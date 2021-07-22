@@ -373,14 +373,6 @@ begin
     simp only [prod_insert H, prod_mul_distrib, ih] }
 end
 
-/-- Note that `monoid_hom.map_prod`, `ring_hom.map_prod` etc are versions of this lemma for bundled
-  homomorphisms (and they are written other way around). -/
-@[to_additive "Note that `add_monoid_hom.map_sum`, `ring_hom.map_sum` etc are versions of this lemma
-  for bundled homomorphisms (and they are written the other way around)"]
-lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} {g : β → γ} (hg : is_monoid_hom g) :
-  (∏ x in s, g (f x)) = g (∏ x in s, f x) :=
-((monoid_hom.of hg).map_prod f s).symm
-
 @[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
   (h₁ : r 1 1) (h₂ : ∀ a b c, r b c → r (f a * b) (g a * c)) : r (∏ x in s, f x) (∏ x in s, g x) :=
@@ -1184,8 +1176,8 @@ section comm_group
 variables [comm_group β]
 
 @[simp, to_additive]
-lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
-s.prod_hom $ is_monoid_hom.inv $ is_monoid_hom.id
+lemma prod_inv_distrib : (∏ x in s, f x)⁻¹ = (∏ x in s, (f x)⁻¹) :=
+monoid_hom.map_prod (comm_group.inv_monoid_hom : β →* β) f s
 
 end comm_group
 
@@ -1221,12 +1213,11 @@ card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
 
 lemma gsmul_sum (α β : Type) [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=
-(s.sum_hom
-  ((gsmul.is_add_group_hom z).to_is_add_monoid_hom : is_add_monoid_hom (gsmul z : β → β))).symm
+add_monoid_hom.map_sum (gsmul_add_group_hom z : β →+ β) f s
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
-by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_distrib)
+by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_distrib.symm)
 
 section prod_eq_zero
 variables [comm_monoid_with_zero β]

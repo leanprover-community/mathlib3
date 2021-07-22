@@ -57,9 +57,6 @@ The embedding from `R` is called `C`. -/
 structure polynomial (R : Type*) [semiring R] := of_finsupp ::
 (to_finsupp : add_monoid_algebra R ℕ)
 
--- do not unfold polynomial in simps lemmas
-initialize_simps_projections polynomial (-to_finsupp)
-
 open finsupp add_monoid_algebra
 open_locale big_operators
 

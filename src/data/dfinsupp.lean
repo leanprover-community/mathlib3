@@ -1281,8 +1281,8 @@ variables {R S : Type*}
 open dfinsupp
 
 @[simp]
-lemma map_dfinsupp_sum_add_hom [non_assoc_semiring R] [non_assoc_semiring S] [Π i, add_zero_class (β i)]
-  (h : R →+* S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
+lemma map_dfinsupp_sum_add_hom [non_assoc_semiring R] [non_assoc_semiring S]
+  [Π i, add_zero_class (β i)] (h : R →+* S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
   h (sum_add_hom g f) = sum_add_hom (λ i, h.to_add_monoid_hom.comp (g i)) f :=
 add_monoid_hom.congr_fun (comp_lift_add_hom h.to_add_monoid_hom g) f
 

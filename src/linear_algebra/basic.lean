@@ -2142,13 +2142,13 @@ open dfinsupp
 variables {γ : ι → Type*} [decidable_eq ι] [module R M] [module R M₂]
 
 @[simp] lemma map_dfinsupp_sum [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
-  (f : M →ₗ[R] M₂) (t : Π₀ i, γ i) (g : Π i, γ i → M) :
-  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
+  (f : M ≃ₗ[R] M₂) (t : Π₀ i, γ i) (g : Π i, γ i → M) :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum _
 
-@[simp] lemma map_dfinsupp_sum_add_hom [Π i, add_zero_class (γ i)] (f : M →ₗ[R] M₂) (t : Π₀ i, γ i)
+@[simp] lemma map_dfinsupp_sum_add_hom [Π i, add_zero_class (γ i)] (f : M ≃ₗ[R] M₂) (t : Π₀ i, γ i)
   (g : Π i, γ i →+ M) :
-  f (sum_add_hom g t) = sum_add_hom (λ i, f.to_add_monoid_hom.comp (g i)) t :=
-f.to_add_monoid_hom.map_dfinsupp_sum_add_hom _ _
+  f (sum_add_hom g t) = sum_add_hom (λ i, f.to_add_equiv.to_add_monoid_hom.comp (g i)) t :=
+f.to_add_equiv.map_dfinsupp_sum_add_hom _ _
 
 end dfinsupp
 

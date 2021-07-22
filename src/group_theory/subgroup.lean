@@ -406,8 +406,8 @@ end
 @[to_additive] instance fintype_bot : fintype (⊥ : subgroup G) := ⟨{1},
 by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
 
-@[simp, to_additive] lemma card_bot [h : fintype.{u} (⊥ : subgroup G)] :
-  @fintype.card (⊥ : subgroup G) h = 1 :=
+@[simp, to_additive] lemma card_bot {h : fintype.{u} (⊥ : subgroup G)} :
+  fintype.card (⊥ : subgroup G)  = 1 :=
 (@fintype.card_eq_one_iff (↥(⊥ : subgroup G)) h).2
   ⟨⟨(1 : G), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
 

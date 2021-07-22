@@ -238,15 +238,19 @@ rfl
 variable (α)
 
 /-- A multiplicative action of `M` on `α` and a monoid homomorphism `N → M` induce
-a multiplicative action of `N` on `α`. -/
-@[to_additive] def comp_hom [monoid N] (g : N →* M) :
+a multiplicative action of `N` on `α`.
+
+See note [reducible non-instances]. -/
+@[reducible, to_additive] def comp_hom [monoid N] (g : N →* M) :
   mul_action N α :=
 { smul := λ x b, (g x) • b,
   one_smul := by simp [g.map_one, mul_action.one_smul],
   mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
 
 /-- An additive action of `M` on `α` and an additive monoid homomorphism `N → M` induce
-an additive action of `N` on `α`. -/
+an additive action of `N` on `α`.
+
+See note [reducible non-instances]. -/
 add_decl_doc add_action.comp_hom
 
 end mul_action
@@ -304,8 +308,9 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar 
 
 variable (A)
 
-/-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m` -/
-def distrib_mul_action.comp_hom [monoid N] (f : N →* M) :
+/-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m`.
+See note [reducible non-instances]. -/
+@[reducible] def distrib_mul_action.comp_hom [monoid N] (f : N →* M) :
   distrib_mul_action N A :=
 { smul := (•) ∘ f,
   smul_zero := λ x, smul_zero (f x),

@@ -216,12 +216,15 @@ not_iff_not.mpr coe_to_submodule_eq_bot
 instance : inhabited (fractional_ideal S P) := ⟨0⟩
 
 instance : has_one (fractional_ideal S P) :=
-⟨(1 : ideal R)⟩
+⟨(⊤ : ideal R)⟩
 
 variables (S)
 
+@[simp, norm_cast] lemma coe_ideal_top : ((⊤ : ideal R) : fractional_ideal S P) = 1 :=
+rfl
+
 lemma mem_one_iff {x : P} : x ∈ (1 : fractional_ideal S P) ↔ ∃ x' : R, algebra_map R P x' = x :=
-iff.intro (λ ⟨x', _, h⟩, ⟨x', h⟩) (λ ⟨x', h⟩, ⟨x', ⟨x', rfl⟩, h⟩)
+iff.intro (λ ⟨x', _, h⟩, ⟨x', h⟩) (λ ⟨x', h⟩, ⟨x', ⟨⟩, h⟩)
 
 lemma coe_mem_one (x : R) : algebra_map R P x ∈ (1 : fractional_ideal S P) :=
 (mem_one_iff S).mpr ⟨x, rfl⟩
@@ -235,13 +238,13 @@ variables {S}
 
 However, this is not definitionally equal to `1 : submodule R P`,
 which is proved in the actual `simp` lemma `coe_one`. -/
-lemma coe_one_eq_coe_submodule_one :
-  ↑(1 : fractional_ideal S P) = coe_submodule P (1 : ideal R) :=
+lemma coe_one_eq_coe_submodule_top :
+  ↑(1 : fractional_ideal S P) = coe_submodule P (⊤ : ideal R) :=
 rfl
 
 @[simp, norm_cast] lemma coe_one :
   (↑(1 : fractional_ideal S P) : submodule R P) = 1 :=
-by rw [coe_one_eq_coe_submodule_one, ideal.one_eq_top, coe_submodule_top]
+by rw [coe_one_eq_coe_submodule_top, coe_submodule_top]
 
 section lattice
 
@@ -555,7 +558,7 @@ end
 
 @[simp] lemma map_one :
   (1 : fractional_ideal S P).map g = 1 :=
-map_coe_ideal g 1
+map_coe_ideal g ⊤
 
 @[simp] lemma map_zero :
   (0 : fractional_ideal S P).map g = 0 :=
@@ -1111,6 +1114,30 @@ begin
   apply is_noetherian_span_singleton_inv_to_map_mul,
   apply is_noetherian_coe_to_fractional_ideal,
 end
+
+section adjoin
+
+include loc
+omit frac
+
+variables {R P} (S) (x : P) (hx : is_integral R x)
+
+/-- `A[x]` is a fractional ideal for every integral `x`. -/
+lemma is_fractional_adjoin_integral :
+  is_fractional S (algebra.adjoin R ({x} : set P)).to_submodule :=
+is_fractional_of_fg (fg_adjoin_singleton_of_integral x hx)
+
+/-- `fractional_ideal.adjoin_integral (S : submonoid R) x hx` is `R[x]` as a fractional ideal,
+where `hx` is a proof that `x : P` is integral over `R`. -/
+@[simps]
+def adjoin_integral : fractional_ideal S P :=
+⟨_, is_fractional_adjoin_integral S x hx⟩
+
+lemma mem_adjoin_integral_self :
+  x ∈ adjoin_integral S x hx :=
+algebra.subset_adjoin (set.mem_singleton x)
+
+end adjoin
 
 end fractional_ideal
 

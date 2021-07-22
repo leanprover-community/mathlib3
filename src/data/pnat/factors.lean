@@ -66,8 +66,12 @@ def to_nat_multiset : prime_multiset → multiset ℕ :=
 
 instance coe_nat : has_coe prime_multiset (multiset ℕ) := ⟨to_nat_multiset⟩
 
-lemma coe_nat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ) :=
-by { exact multiset.map_is_add_monoid_hom coe }
+def coe_nat_monoid_hom : prime_multiset →+ multiset ℕ :=
+{ to_fun := coe,
+  .. multiset.map_add_monoid_hom coe }
+
+@[simp] lemma coe_nat_monoid_hom_coe :
+  (coe_nat_monoid_hom : prime_multiset → multiset ℕ) = coe := rfl
 
 theorem coe_nat_injective : function.injective (coe : prime_multiset → multiset ℕ) :=
 multiset.map_injective nat.primes.coe_nat_inj
@@ -86,8 +90,12 @@ def to_pnat_multiset : prime_multiset → multiset ℕ+ :=
 
 instance coe_pnat : has_coe prime_multiset (multiset ℕ+) := ⟨to_pnat_multiset⟩
 
-lemma coe_pnat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ+) :=
-multiset.map_is_add_monoid_hom coe
+def coe_pnat_monoid_hom : prime_multiset →+ multiset ℕ+ :=
+{ to_fun := coe,
+  .. multiset.map_add_monoid_hom coe }
+
+@[simp] lemma coe_pnat_monoid_hom_coe :
+  (coe_pnat_monoid_hom : prime_multiset → multiset ℕ+) = coe := rfl
 
 theorem coe_pnat_injective : function.injective (coe : prime_multiset → multiset ℕ+) :=
 multiset.map_injective nat.primes.coe_pnat_inj
@@ -114,7 +122,7 @@ def prod (v : prime_multiset) : ℕ+ := (v : multiset pnat).prod
 theorem coe_prod (v : prime_multiset) : (v.prod : ℕ) = (v : multiset ℕ).prod :=
 begin
   let h : (v.prod : ℕ) = ((v.map coe).map coe).prod :=
-    ((monoid_hom.of pnat.coe_mul_hom).map_multiset_prod v.to_pnat_multiset),
+    (pnat.coe_monoid_hom.map_multiset_prod v.to_pnat_multiset),
   rw [multiset.map_map] at h,
   have : (coe : ℕ+ → ℕ) ∘ (coe : nat.primes → ℕ+) = coe := funext (λ p, rfl),
   rw[this] at h, exact h,
@@ -184,8 +192,20 @@ of multisets to the multiplicative monoid ℕ+. -/
 theorem prod_zero : (0 : prime_multiset).prod = 1 :=
 by { dsimp [prod], exact multiset.prod_zero }
 
+#check pnat.coe_add_hom
+
+#check pnat.coe_add_hom.map_add'
+
+#check coe_pnat_monoid_hom
+
+#check coe_pnat_monoid_hom.map_add _ _
+
 theorem prod_add (u v : prime_multiset) : (u + v).prod = u.prod * v.prod :=
-by simp [prod, multiset.prod_add, is_add_monoid_hom.map_add (coe_pnat_hom)]
+begin
+  change (coe_pnat_monoid_hom (u + v)).prod = _,
+  rw coe_pnat_monoid_hom.map_add,
+  exact multiset.prod_add _ _,
+end
 
 theorem prod_smul (d : ℕ) (u : prime_multiset) :
  (d • u).prod = u.prod ^ d :=

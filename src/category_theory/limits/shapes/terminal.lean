@@ -222,8 +222,7 @@ initial object, see `initial.mono_from`.
 Given a terminal object, this is equivalent to the assumption that the unique morphism from initial
 to terminal is a monomorphism, which is the second of Freyd's axioms for an AT category.
 
-TODO: This is a condition satisfied by categories with zero objects and morphisms, as well as
-categories with a strict initial object; though these conditions are essentially mutually exclusive.
+TODO: This is a condition satisfied by categories with zero objects and morphisms.
 -/
 class initial_mono_class (C : Type u) [category.{v} C] : Prop :=
 (is_initial_mono_from : ∀ {I} (X : C) (hI : is_initial I), mono (hI.to X))

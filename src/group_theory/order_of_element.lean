@@ -771,6 +771,16 @@ begin
   exact pow_card_eq_one,
 end
 
+@[to_additive nsmul_eq_mod_card] lemma pow_eq_mod_card (n : ℕ) :
+  x ^ n = x ^ (n % fintype.card G) :=
+by rw [pow_eq_mod_order_of, ←nat.mod_mod_of_dvd n order_of_dvd_card_univ,
+  ← pow_eq_mod_order_of]
+
+@[to_additive] lemma gpow_eq_mod_card (n : ℤ) :
+  x ^ n = x ^ (n % fintype.card G) :=
+by by rw [gpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_of_dvd_card_univ),
+  ← gpow_eq_mod_order_of]
+
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 
 /-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/

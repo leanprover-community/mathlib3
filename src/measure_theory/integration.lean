@@ -172,6 +172,10 @@ coe_injective $ by simp
 @[simp] lemma piecewise_empty (f g : α →ₛ β) : piecewise ∅ measurable_set.empty f g = g :=
 coe_injective $ by simp
 
+lemma support_indicator [has_zero β] {s : set α} (hs : measurable_set s) (f : α →ₛ β) :
+  function.support (f.piecewise s hs (simple_func.const α 0)) = s ∩ function.support f :=
+set.support_indicator
+
 lemma measurable_bind [measurable_space γ] (f : α →ₛ β) (g : β → α → γ)
   (hg : ∀ b, measurable (g b)) : measurable (λ a, g (f a) a) :=
 λ s hs, f.measurable_set_cut (λ a b, g b a ∈ s) $ λ b, hg b hs
@@ -700,7 +704,7 @@ calc f.lintegral μ ⊔ g.lintegral μ =
   begin
     rw [map_lintegral, map_lintegral],
     refine sup_le _ _;
-      refine finset.sum_le_sum (λ a _, canonically_ordered_semiring.mul_le_mul _ (le_refl _)),
+      refine finset.sum_le_sum (λ a _, mul_le_mul_right' _ _),
     exact le_sup_left,
     exact le_sup_right
   end
@@ -1118,7 +1122,7 @@ begin
         refine le_of_eq _,
         rw [ennreal.finset_sum_supr_nat],
         assume p i j h,
-        exact canonically_ordered_semiring.mul_le_mul (le_refl _) (measure_mono $ mono p h)
+        exact mul_le_mul_left' (measure_mono $ mono p h) _
       end
     ... ≤ (⨆n:ℕ, ((rs.map c).restrict {a | (rs.map c) a ≤ f n a}).lintegral μ) :
     begin
@@ -1325,8 +1329,7 @@ calc (∫⁻ a, r * f a ∂μ) = (∫⁻ a, (⨆n, (const α r * eapprox f n) a)
     { congr, funext n,
       rw [← simple_func.const_mul_lintegral, ← simple_func.lintegral_eq_lintegral] },
     { assume n, exact simple_func.measurable _ },
-    { assume i j h a, exact canonically_ordered_semiring.mul_le_mul (le_refl _)
-        (monotone_eapprox _ h _) }
+    { assume i j h a, exact mul_le_mul_left' (monotone_eapprox _ h _) _ }
   end
   ... = r * (∫⁻ a, f a ∂μ) : by rw [← ennreal.mul_supr, lintegral_eq_supr_eapprox_lintegral hf]
 
@@ -1349,7 +1352,7 @@ begin
   assume hs,
   rw ← simple_func.const_mul_lintegral,
   refine le_supr_of_le (const α r * s) (le_supr_of_le (λx, _) (le_refl _)),
-  exact canonically_ordered_semiring.mul_le_mul (le_refl _) (hs x)
+  exact mul_le_mul_left' (hs x) _
 end
 
 lemma lintegral_const_mul' (r : ℝ≥0∞) (f : α → ℝ≥0∞) (hr : r ≠ ∞) :
@@ -1363,7 +1366,7 @@ begin
   have := lintegral_const_mul_le (r⁻¹) (λx, r * f x),
   simp [(mul_assoc _ _ _).symm, rinv'] at this,
   simpa [(mul_assoc _ _ _).symm, rinv]
-    using canonically_ordered_semiring.mul_le_mul (le_refl r) this
+    using mul_le_mul_left' this r
 end
 
 lemma lintegral_mul_const (r : ℝ≥0∞) {f : α → ℝ≥0∞} (hf : measurable f) :

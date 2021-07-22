@@ -1561,14 +1561,17 @@ lemma bounded_bUnion {I : set β} {s : β → set α} (H : finite I) :
 finite.induction_on H (by simp) $ λ x I _ _ IH,
 by simp [or_imp_distrib, forall_and_distrib, IH]
 
-/-- A compact set is bounded -/
-lemma bounded_of_compact {s : set α} (h : is_compact s) : bounded s :=
--- We cover the compact set by finitely many balls of radius 1,
+/-- A totally bounded set is bounded -/
+lemma _root_.totally_bounded.bounded {s : set α} (h : totally_bounded s) : bounded s :=
+-- We cover the totally bounded set by finitely many balls of radius 1,
 -- and then argue that a finite union of bounded sets is bounded
-let ⟨t, ht, fint, subs⟩ := finite_cover_balls_of_compact h zero_lt_one in
+let ⟨t, fint, subs⟩ := (totally_bounded_iff.mp h) 1 zero_lt_one in
 bounded.subset subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
 
-alias bounded_of_compact ← is_compact.bounded
+/-- A compact set is bounded -/
+lemma _root_.is_compact.bounded {s : set α} (h : is_compact s) : bounded s :=
+-- A compact set is totally bounded, thus bounded
+h.totally_bounded.bounded
 
 /-- A finite set is bounded -/
 lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
@@ -1601,6 +1604,31 @@ lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
   exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
 end⟩
+
+section conditionally_complete_linear_order
+
+variables [conditionally_complete_linear_order α] [order_topology α]
+
+lemma bounded_Icc (a b : α) : bounded (Icc a b) :=
+(totally_bounded_Icc a b).bounded
+
+lemma bounded_Ico (a b : α) : bounded (Ico a b) :=
+(totally_bounded_Ico a b).bounded
+
+lemma bounded_Ioc (a b : α) : bounded (Ioc a b) :=
+(totally_bounded_Ioc a b).bounded
+
+lemma bounded_Ioo (a b : α) : bounded (Ioo a b) :=
+(totally_bounded_Ioo a b).bounded
+
+/-- In a pseudo metric space with a conditionally complete linear order such that the order and the
+    metric structure give the same topology, any order-bounded set is metric-bounded. -/
+lemma bounded_of_bdd_above_of_bdd_below {s : set α} (h₁ : bdd_above s) (h₂ : bdd_below s) :
+  bounded s :=
+let ⟨u, hu⟩ := h₁, ⟨l, hl⟩ := h₂ in
+bounded.subset (λ x hx, mem_Icc.mpr ⟨hl hx, hu hx⟩) (bounded_Icc l u)
+
+end conditionally_complete_linear_order
 
 end bounded
 

@@ -58,8 +58,9 @@ def normed_group_hom.completion (f : normed_group_hom G H) :
     use ∥f∥,
     intro y,
     apply completion.induction_on y,
-    { exact is_closed_le (continuous_norm.comp $ f.to_add_monoid_hom.continuous_completion f.continuous)
-                         (continuous_const.mul continuous_norm) },
+    { exact is_closed_le
+            (continuous_norm.comp $ f.to_add_monoid_hom.continuous_completion f.continuous)
+            (continuous_const.mul continuous_norm) },
     { intro x,
       change ∥f.to_add_monoid_hom.completion _ ↑x∥ ≤ ∥f∥ * ∥↑x∥,
       rw f.to_add_monoid_hom.completion_coe f.continuous,

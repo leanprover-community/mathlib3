@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.measure_space_def
 import measure_theory.measurable_space
+import order.symm_diff
 
 /-!
 # Measure spaces
@@ -2612,5 +2613,10 @@ variables [measurable_space α]
 lemma cond {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   {i : bool} : measurable_set (cond i A B) :=
 by { cases i, exacts [hB, hA] }
+
+@[measurability]
+lemma symm_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B) :
+  measurable_set (A Δ B) :=
+(hA.diff hB).union (hB.diff hA)
 
 end measurable_set

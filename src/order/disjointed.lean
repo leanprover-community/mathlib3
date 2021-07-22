@@ -23,10 +23,16 @@ variables {α β γ : Type*} {ι : Sort*} [complete_boolean_algebra α] {a b c :
   the sequence formed with each set subtracted from the later ones
   in the sequence, to form a disjoint sequence. -/
 def disjointed (f : ℕ → α) : ℕ → α
-| 0 := f 0
+| 0       := f 0
 | (n + 1) := f (n + 1) \ (partial_sups f n)
 
 variables {f : ℕ → α} {n : ℕ}
+
+lemma disjointed_zero (f : ℕ → α) : disjointed f 0 = f 0 := rfl
+
+lemma disjointed_succ (f : ℕ → α) (n : ℕ) :
+  disjointed f (n + 1) = f (n + 1) \ (partial_sups f n) :=
+rfl
 
 lemma disjointed_le (f : ℕ → α) (n : ℕ) : disjointed f n ≤ f n :=
 begin
@@ -42,31 +48,25 @@ lemma disjoint_disjointed : pairwise (disjoint on disjointed f) :=
   { exact disjoint_sdiff_self_left.mono_right ((disjointed_le _ _).trans (le_bsupr j h)) }
 end
 
-lemma bsupr_lt_succ : (⨆ i < n.succ, f i) = f n ⊔ (⨆ i < n, f i) :=
-ext $ λ a, by simp [nat.lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, or_comm]
+lemma disjointed_induct {p : α → Prop} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i)) :
+  ∀ ⦃n⦄, p (f n) → p (disjointed f n)
+| 0       := id
+| (n + 1) := λ h,
+  begin
+    rw [disjointed_succ],
+    suffices H : ∀ k, p (f (n + 1) \ partial_sups f k),
+    { exact H n },
+    rintro k,
+    induction k with k hk,
+    { rw partial_sups_zero,
+      exact hdiff h },
+    rw [partial_sups_succ, ←sdiff_sdiff_left],
+    exact hdiff hk,
+  end
 
-lemma Inter_lt_succ : (⋂ i < nat.succ n, f i) = f n ∩ (⋂ i < n, f i) :=
-ext $ λ a, by simp [nat.lt_succ_iff_lt_or_eq, or_imp_distrib, forall_and_distrib, and_comm]
-
-lemma disjointed_induct {p : α → Prop} (h₁ : p (f n)) (h₂ : ∀ t i, p t → p (t \ f i)) :
-  p (disjointed f n) :=
-begin
-  rw disjointed,
-  generalize_hyp : f n = t at h₁ ⊢,
-  induction n,
-  case nat.zero { simp [nat.not_lt_zero, h₁] },
-  case nat.succ : n ih {
-    rw [Inter_lt_succ, inter_comm ((f n)ᶜ), ← inter_assoc],
-    exact h₂ _ n ih }
-end
-
-lemma disjointed_of_mono (hf : monotone f) :
+lemma monotone.disjointed_eq (hf : monotone f) :
   disjointed f (n + 1) = f (n + 1) \ f n :=
-have (⋂ i (h : i < n + 1), (f i)ᶜ) = (f n)ᶜ,
-  from le_antisymm
-    (infi_le_of_le n $ infi_le_of_le (nat.lt_succ_self _) $ subset.refl _)
-    (le_infi $ λ i, le_infi $ λ hi, compl_le_compl $ hf $ nat.le_of_succ_le_succ hi),
-by simp [disjointed, this, diff_eq]
+by rw [disjointed_succ, hf.partial_sups_eq]
 
 open_locale classical
 

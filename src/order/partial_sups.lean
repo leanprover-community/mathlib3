@@ -53,7 +53,16 @@ begin
   { exact sup_le (ih (λ m p, w m (nat.le_succ_of_le p))) (w (n+1) (le_refl _)) }
 end
 
-lemma partial_sups_eq [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ) :
+lemma partial_sups_eq_sup_range [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ) :
+  partial_sups f n = (finset.range (n+1)).sup f :=
+begin
+  induction n with n ih,
+  { simp, },
+  { dsimp [partial_sups] at ih ⊢,
+    rw [finset.range_succ, finset.sup_insert, sup_comm, ih], },
+end
+
+lemma partial_sups_eq_Sup [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ) :
   partial_sups f n = (finset.range (n+1)).sup f :=
 begin
   induction n with n ih,
@@ -73,4 +82,13 @@ begin
   { dsimp [partial_sups],
     rw disjoint_sup_left,
     exact ⟨ih (nat.lt_of_succ_lt h), w (m+1) n h.ne⟩ },
+end
+
+lemma monotone.partial_sups_eq [semilattice_sup_bot α] {f : ℕ → α} (hf : monotone f) :
+  (partial_sups f : ℕ → α) = f :=
+begin
+  ext n,
+  induction n with n h,
+  { refl },
+  { rw [partial_sups_succ, h, sup_eq_right.2 (hf (nat.le_succ _))] }
 end

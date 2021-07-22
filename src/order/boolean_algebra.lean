@@ -528,7 +528,7 @@ end generalized_boolean_algebra
 
 
 /-- Set / lattice complement -/
-class has_compl (α : Type*) := (compl : α → α)
+@[notation_class] class has_compl (α : Type*) := (compl : α → α)
 
 export has_compl (compl)
 

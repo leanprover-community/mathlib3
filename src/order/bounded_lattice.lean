@@ -39,9 +39,9 @@ universes u v
 variables {α : Type u} {β : Type v}
 
 /-- Typeclass for the `⊤` (`\top`) notation -/
-class has_top (α : Type u) := (top : α)
+@[notation_class] class has_top (α : Type u) := (top : α)
 /-- Typeclass for the `⊥` (`\bot`) notation -/
-class has_bot (α : Type u) := (bot : α)
+@[notation_class] class has_bot (α : Type u) := (bot : α)
 
 notation `⊤` := has_top.top
 notation `⊥` := has_bot.bot

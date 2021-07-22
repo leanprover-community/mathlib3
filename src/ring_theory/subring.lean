@@ -408,7 +408,9 @@ def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
   map_mul' := λ x y, subtype.eq $ f.map_mul x y,
   map_one' := subtype.eq f.map_one }
 
-/-- The range of a ring homomorphism is a fintype, if the domain is a fintype. -/
+/-- The range of a ring homomorphism is a fintype, if the domain is a fintype.
+Note: this instance can form a diamond with `subtype.fintype` in the
+  presence of `fintype S`. -/
 instance fintype_range [fintype R] [decidable_eq S] (f : R →+* S) : fintype (range f) :=
 set.fintype_range f
 

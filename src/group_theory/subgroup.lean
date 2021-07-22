@@ -83,10 +83,8 @@ subgroup, subgroups
 
 open_locale big_operators
 
-universes u v
-
-variables {G : Type u} [group G]
-variables {A : Type v} [add_group A]
+variables {G : Type*} [group G]
+variables {A : Type*} [add_group A]
 
 set_option old_structure_cmd true
 
@@ -408,7 +406,7 @@ by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
 
 /- curly brackets `{}` are used here instead of instance brackets `[]` because
   the instance in a goal is often not the same as the one inferred by type class inference.  -/
-@[simp, to_additive] lemma card_bot {h : fintype.{u} (⊥ : subgroup G)} :
+@[simp, to_additive] lemma card_bot {h : fintype ↥(⊥ : subgroup G)} :
   fintype.card (⊥ : subgroup G)  = 1 :=
 fintype.card_eq_one_iff.2
   ⟨⟨(1 : G), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩

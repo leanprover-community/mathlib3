@@ -89,7 +89,10 @@ instance : has_add ℕ+ := ⟨λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩�
 instance : add_comm_semigroup ℕ+ := coe_injective.add_comm_semigroup coe (λ _ _, rfl)
 
 @[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
-lemma coe_add_hom : is_add_hom (coe : ℕ+ → ℕ) := ⟨add_coe⟩
+
+def coe_add_hom : add_hom ℕ+ ℕ :=
+{ to_fun := coe,
+  map_add' := add_coe }
 
 instance : add_left_cancel_semigroup ℕ+ :=
 coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
@@ -148,8 +151,14 @@ iff.rfl
 
 @[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
-lemma coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
- {map_one := one_coe, map_mul := mul_coe}
+
+def coe_monoid_hom : ℕ+ →* ℕ :=
+{ to_fun := coe,
+  map_one' := one_coe,
+  map_mul' := mul_coe }
+
+--lemma coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
+-- {map_one := one_coe, map_mul := mul_coe}
 
  @[simp]
 lemma coe_eq_one_iff {m : ℕ+} :

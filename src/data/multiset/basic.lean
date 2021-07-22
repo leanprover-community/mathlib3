@@ -931,20 +931,13 @@ theorem prod_hom_rel [comm_monoid β] [comm_monoid γ] (s : multiset α) {r : β
 quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
--- this should not be in data.multiset.basic
-@[to_additive]
-def inv_monoid_hom {G : Type*} [comm_group G] : G →* G :=
-{ to_fun := has_inv.inv,
-  map_one' := one_inv,
-  map_mul' := mul_inv }
-
 @[simp] lemma inv_monoid_hom_coe {G : Type*} [comm_group G] :
-  (inv_monoid_hom : G → G) = has_inv.inv := rfl
+  (comm_group.inv_monoid_hom : G → G) = has_inv.inv := rfl
 
 @[simp, to_additive]
 lemma prod_map_inv {G : Type*} [comm_group G] (m : multiset G) :
   (m.map has_inv.inv).prod = m.prod⁻¹ :=
-m.prod_hom inv_monoid_hom
+m.prod_hom comm_group.inv_monoid_hom
 
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a

@@ -362,6 +362,12 @@ let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
 
 end monoid_hom
 
+@[to_additive]
+def comm_group.inv_monoid_hom {G : Type*} [comm_group G] : G →* G :=
+{ to_fun := has_inv.inv,
+  map_one' := one_inv,
+  map_mul' := mul_inv }
+
 /-- The identity map from a type with 1 to itself. -/
 @[to_additive, simps]
 def one_hom.id (M : Type*) [has_one M] : one_hom M M :=

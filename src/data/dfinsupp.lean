@@ -1082,7 +1082,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_sum_index  {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
+lemma prod_sum_index {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i (x : β₁ i), decidable (x ≠ 0)]
   [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ]
@@ -1188,7 +1188,15 @@ end map_range
 
 end dfinsupp
 
-/-! ### Product and sum lemmas for bundled morphisms -/
+/-! ### Product and sum lemmas for bundled morphisms.
+
+In this section, we provide analogues of `add_monoid_hom.map_sum`, `add_monoid_hom.coe_sum`, and
+`add_monoid_hom.sum_apply` for `dfinsupp.sum` and `dfinsupp.sum_add_hom` instead of `finset.sum`.
+
+We provide these for `add_monoid_hom`, `monoid_hom`, `ring_hom`, `add_equiv`, and `mul_equiv`.
+
+Lemmas for `linear_map` and `linear_equiv` are in another file.
+-/
 section
 
 variables [decidable_eq ι]
@@ -1214,29 +1222,83 @@ lemma dfinsupp_prod_apply [monoid R] [comm_monoid S]
 
 end monoid_hom
 
+namespace ring_hom
+variables {R S : Type*}
+variables [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+
+@[simp]
+lemma map_dfinsupp_prod [comm_semiring R] [comm_semiring S]
+  (h : R →+* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) := h.map_prod _ _
+
+@[simp]
+lemma map_dfinsupp_sum [non_assoc_semiring R] [non_assoc_semiring S]
+  (h : R →+* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
+  h (f.sum g) = f.sum (λ a b, h (g a b)) := h.map_sum _ _
+
+end ring_hom
+
+namespace mul_equiv
+variables {R S : Type*}
+variables [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+
+@[simp, to_additive]
+lemma map_dfinsupp_prod [comm_monoid R] [comm_monoid S]
+  (h : R ≃* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) := h.map_prod _ _
+
+end mul_equiv
+
+/-! The above lemmas, repeated for `dfinsupp.sum_add_hom`. -/
+
 namespace add_monoid_hom
 variables {R S : Type*}
 
 open dfinsupp
 
-/-! The above lemmas, repeated for `dfinsupp.sum_add_hom`. -/
 @[simp]
-lemma map_dfinsupp_sum_add_hom [add_comm_monoid R] [add_comm_monoid S] [Π i, add_comm_monoid (β i)]
+lemma map_dfinsupp_sum_add_hom [add_comm_monoid R] [add_comm_monoid S] [Π i, add_zero_class (β i)]
   (h : R →+ S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
   h (sum_add_hom g f) = sum_add_hom (λ i, h.comp (g i)) f :=
 congr_fun (comp_lift_add_hom h g) f
 
 @[simp]
-lemma dfinsupp_sum_add_hom_apply [add_zero_class R] [add_comm_monoid S] [Π i, add_comm_monoid (β i)]
+lemma dfinsupp_sum_add_hom_apply [add_zero_class R] [add_comm_monoid S] [Π i, add_zero_class (β i)]
   (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) (r : R) :
   (sum_add_hom g f) r = sum_add_hom (λ i, (eval r).comp (g i)) f :=
 map_dfinsupp_sum_add_hom (eval r) f g
 
-lemma coe_dfinsupp_sum_add_hom [add_zero_class R] [add_comm_monoid S] [Π i, add_comm_monoid (β i)]
+lemma coe_dfinsupp_sum_add_hom [add_zero_class R] [add_comm_monoid S] [Π i, add_zero_class (β i)]
   (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) :
   ⇑(sum_add_hom g f) = sum_add_hom (λ i, (coe_fn R S).comp (g i)) f :=
 map_dfinsupp_sum_add_hom (coe_fn R S) f g
 
 end add_monoid_hom
+
+namespace ring_hom
+variables {R S : Type*}
+
+open dfinsupp
+
+@[simp]
+lemma map_dfinsupp_sum_add_hom [non_assoc_semiring R] [non_assoc_semiring S] [Π i, add_zero_class (β i)]
+  (h : R →+* S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
+  h (sum_add_hom g f) = sum_add_hom (λ i, h.to_add_monoid_hom.comp (g i)) f :=
+add_monoid_hom.congr_fun (comp_lift_add_hom h.to_add_monoid_hom g) f
+
+end ring_hom
+
+namespace add_equiv
+variables {R S : Type*}
+
+open dfinsupp
+
+@[simp]
+lemma map_dfinsupp_sum_add_hom [add_comm_monoid R] [add_comm_monoid S] [Π i, add_zero_class (β i)]
+  (h : R ≃+ S) (f : Π₀ i, β i) (g : Π i, β i →+ R) :
+  h (sum_add_hom g f) = sum_add_hom (λ i, h.to_add_monoid_hom.comp (g i)) f :=
+add_monoid_hom.congr_fun (comp_lift_add_hom h.to_add_monoid_hom g) f
+
+end add_equiv
 
 end

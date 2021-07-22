@@ -879,7 +879,7 @@ lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
 ⟨λ h, ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
   λ h, by { have e : α ≃ empty, exactI equiv.equiv_empty α, simp [card_congr e] }⟩
 
-lemma card_eq_one_iff_nonempty_unique {α : Type*} [fintype α] :
+lemma card_eq_one_iff_nonempty_unique :
   fintype.card α = 1 ↔ nonempty (unique α) :=
 ⟨λ h, let ⟨d, h⟩ := fintype.card_eq_one_iff.mp h in ⟨{ default := d, uniq := h}⟩,
  λ ⟨h⟩, by exactI fintype.card_unique⟩

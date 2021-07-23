@@ -52,8 +52,8 @@ lemma partial_sups_le [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ)
   (a : α) (w : ∀ m, m ≤ n → f m ≤ a) : partial_sups f n ≤ a :=
 begin
   induction n with n ih,
-  { apply w 0 (le_refl _), },
-  { exact sup_le (ih (λ m p, w m (nat.le_succ_of_le p))) (w (n+1) (le_refl _)) }
+  { apply w 0 le_rfl, },
+  { exact sup_le (ih (λ m p, w m (nat.le_succ_of_le p))) (w (n+1) le_rfl) }
 end
 
 lemma partial_sups_eq_sup_range [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ) :
@@ -65,10 +65,13 @@ begin
     rw [finset.range_succ, finset.sup_insert, sup_comm, ih], },
 end
 
-lemma partial_sups_eq_bUnion (f : ℕ → set α) (n : ℕ) :
-  partial_sups f n = ⋃ (i ≤ n), f i :=
+lemma partial_sups_eq_supr [complete_boolean_algebra α] (f : ℕ → α) (n : ℕ) :
+  partial_sups f n = ⨆ (i ≤ n), f i :=
 begin
-  sorry --rw [partial_sups_eq_sup_range, finset.sup_eq_bUnion],
+  rw [partial_sups_eq_sup_range, finset.sup_eq_supr],
+  congr,
+  ext a,
+  exact supr_congr_Prop (by rw [finset.mem_range, nat.lt_succ_iff]) (λ _, rfl),
 end
 
 -- Note this lemma requires a distributive lattice,

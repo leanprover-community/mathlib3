@@ -16,7 +16,10 @@ This file defines a way to make a sequence of sets into a sequence of disjoint s
   sequence has the same union as `f 0`, `f 1`, `f 2` but with disjoint sets.
 -/
 
-variables {α β γ : Type*} {ι : Sort*} [generalized_boolean_algebra α] {a b c : α}
+variables {α β : Type*}
+
+section generalized_boolean_algebra
+variables [generalized_boolean_algebra α]
 
 /-- If `f : ℕ → α` is a sequence of sets, then `disjointed f` is
   the sequence formed with each set subtracted from the later ones
@@ -24,8 +27,6 @@ variables {α β γ : Type*} {ι : Sort*} [generalized_boolean_algebra α] {a b 
 def disjointed (f : ℕ → α) : ℕ → α
 | 0       := f 0
 | (n + 1) := f (n + 1) \ (partial_sups f n)
-
-variables {f : ℕ → α} {n : ℕ}
 
 lemma disjointed_zero (f : ℕ → α) : disjointed f 0 = f 0 := rfl
 
@@ -41,7 +42,7 @@ begin
   { exact sdiff_le }
 end
 
-lemma disjoint_disjointed : pairwise (disjoint on disjointed f) :=
+lemma disjoint_disjointed (f : ℕ → α) : pairwise (disjoint on disjointed f) :=
 begin
   rw symmetric.pairwise_on disjoint.symm, swap, apply_instance,
   rintro m n h,
@@ -51,7 +52,7 @@ begin
     (le_partial_sups_of_le f (nat.lt_add_one_iff.1 h))),
 end
 
-lemma disjointed_induct {p : α → Prop} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i)) :
+lemma disjointed_induct {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i)) :
   ∀ ⦃n⦄, p (f n) → p (disjointed f n)
 | 0       := id
 | (n + 1) := λ h,
@@ -67,7 +68,7 @@ lemma disjointed_induct {p : α → Prop} (hdiff : ∀ ⦃t i⦄, p t → p (t \
     exact hdiff ih,
   end
 
-lemma monotone.disjointed_eq (hf : monotone f) :
+lemma monotone.disjointed_eq {f : ℕ → α} (hf : monotone f) (n : ℕ) :
   disjointed f (n + 1) = f (n + 1) \ f n :=
 by rw [disjointed_succ, hf.partial_sups_eq]
 
@@ -79,3 +80,17 @@ begin
   { rw [partial_sups_zero, partial_sups_zero, disjointed_zero] },
   { rw [partial_sups_succ, partial_sups_succ, disjointed_succ, ih, sup_sdiff_self_right] }
 end
+
+end generalized_boolean_algebra
+
+section complete_boolean_algebra
+variables [complete_boolean_algebra α]
+
+lemma le_supr_disjointed (f : ℕ → α) (n : ℕ) : f n ≤ ⨆ i ≤ n, disjointed f i :=
+by { rw [←partial_sups_eq_supr, partial_sups_disjointed_eq], exact le_partial_sups _ _ }
+
+lemma supr_disjointed_eq (f : ℕ → α) : (⨆ n, disjointed f n) = (⨆ n, f n) :=
+(supr_le_supr (λ n, disjointed_le f n)).antisymm
+  (supr_le (λ i, (le_supr_disjointed _ _).trans(bsupr_le_supr _ _)))
+
+end complete_boolean_algebra

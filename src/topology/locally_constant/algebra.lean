@@ -67,6 +67,9 @@ instance [mul_zero_one_class Y] : mul_zero_one_class (locally_constant X Y) :=
 @[to_additive] instance [has_div Y] : has_div (locally_constant X Y) :=
 { div := λ f g, ⟨f / g, f.is_locally_constant.div g.is_locally_constant⟩ }
 
+@[to_additive] lemma coe_div [has_div Y] (f g : locally_constant X Y) :
+  ⇑(f / g) = f / g := rfl
+
 @[to_additive] lemma div_apply [has_div Y] (f g : locally_constant X Y) (x : X) :
   (f / g) x = f x / g x := rfl
 

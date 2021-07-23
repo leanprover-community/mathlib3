@@ -471,49 +471,6 @@ structure  distribution {R : Type*} [add_monoid R] :=
   (∀ (S T : clopen_sets X), S ⊓ T = ⊥ →
   phi(S ∪ T) = phi S + phi T)) --define has_sup lattice structure via gi
 
-instance : has_scalar A (locally_constant X A) :=
-{ smul := λ a f,
-  { to_fun := λ x, a*f(x),
-    is_locally_constant := begin
-      refine is_locally_constant.comp (locally_constant.is_locally_constant f) (has_mul.mul a),
---      apply locally_constant.is_locally_constant f,
-    end } }
-
-instance : mul_action A (locally_constant X A) :=
-{ smul := (•),
-  one_smul := one_mul,
-  mul_smul := λ a b f, begin
-    repeat {rw locally_constant.has_scalar,},
-    refine congr_fun _ f, simp, ext, simp, rw mul_assoc,
-  end }
-
-instance : distrib_mul_action A (locally_constant X A) :=
-{
-  smul_add := λ r f g, begin
-    repeat { rw locally_constant.has_scalar, }, ext, exact mul_add r (f x) (g x),
-  end,
-  smul_zero := λ r, begin ext, exact mul_zero r, end,
-  ..locally_constant.mul_action X
-   }
-
-instance semi : module A (locally_constant X A) :=
-{
-  add_smul := λ r s f, by {ext, exact add_mul r s (f x)},
-  zero_smul := zero_mul,
-  ..locally_constant.distrib_mul_action X }
-
-variable (A)
-
-noncomputable def inclusion' :
-  continuous_linear_map A (locally_constant X A) C(X, A) :=
-{ to_fun := inclusion X A,
-  map_add' := λ x y, begin ext, refl end,
-  map_smul' := λ m x, begin ext y, rw inclusion, simp,
---    simp only [continuous_map.coe_mk, continuous_map.smul_coe, smul_eq_mul, pi.smul_apply],
-      refl, end }
-
-variable {A}
-
 structure distribution' :=
 (phi : linear_map A (locally_constant X A) A)
 
@@ -540,6 +497,11 @@ begin
   refine {norm := _},
   rintros f, exact ∥inclusion X A f∥,
 end
+
+noncomputable def inclusion' : continuous_linear_map A (locally_constant X A) C(X, A) :=
+{ to_fun    := inclusion X A,
+  map_add'  := λ x y, rfl,
+  map_smul' := λ m x, by { ext y, simp [inclusion], } }
 
 instance : normed_group (locally_constant X A) :=
 {

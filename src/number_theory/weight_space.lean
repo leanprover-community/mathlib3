@@ -539,10 +539,64 @@ variables (d)
 open_locale big_operators
 
 lemma what_to_do (f : locally_constant (zmod d × ℤ_[p]) R) : ∃ (s : finset ℕ)
-  (i : s → (clopen_basis' p d)) (j : s → R), f = ∑ k : s, j(k) • (char_fn (zmod d × ℤ_[p]) (i k)) :=
+  (j : s → R) (i : s → (clopen_basis' p d)), f = ∑ k : s, j(k) • (char_fn (zmod d × ℤ_[p]) (i k)) :=
 begin
   sorry,
 end
+
+/-- To define a linear map on locally constant functions, it is sufficient to define it for
+  characteristic functions on the topological basis `clopen_basis'`. -/
+noncomputable lemma pls_work (f : clopen_basis' p d → R) : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R :=
+begin
+constructor, swap 3,
+{ intro g,
+  set s := classical.some (what_to_do p d R g) with hs,
+ --     have hs := classical.some_spec (what_to_do p d R f),
+  set i := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R g))) with hi,
+  set j := classical.some (classical.some_spec (what_to_do p d R g)) with hj,
+  have hs' := classical.some_spec (classical.some_spec (classical.some_spec (what_to_do p d R g))),
+  exact ∑ k : s, j(k) * f(i(k)), },
+  { sorry, },
+  sorry,
+end
+
+--import linear_algebra.finsupp
+variables (R' M N : Type*) [ring R'] [add_comm_group M] [add_comm_group N]
+  [module R' M] [module R' N] (S : set M)
+
+noncomputable
+def linear_map_from_span (η : S → N)
+  (cond : ∀ (f : S →₀ R'), finsupp.total S M R' coe f = 0 → finsupp.total S N R' η f = 0) :
+  submodule.span R' S →ₗ[R'] N :=
+begin
+  let F := finsupp.total S M R' coe,
+  let K := F.ker,
+  let e := linear_map.quot_ker_equiv_range F,
+  let ee : F.range ≃ₗ[R'] submodule.span R' S :=
+    linear_equiv.of_eq _ _ (finsupp.span_eq_range_total _ _).symm,
+  refine linear_map.comp _ ee.symm.to_linear_map,
+  refine linear_map.comp _ e.symm.to_linear_map,
+  refine F.ker.liftq (finsupp.total S N R' η) _,
+  apply cond,
+end
+
+def s : set (locally_constant (zmod d × ℤ_[p]) R) := set.image (char_fn (zmod d × ℤ_[p])) (clopen_basis' p d)
+
+def equi_class (n m : ℕ) (h : n < m) (a : zmod (p^n)) :=
+ {b : zmod (p^m) | (b : zmod (p^n)) = a}
+
+instance (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p n m h a) := sorry
+
+--construct a map from `ℤ/dℤ × ℤ_p → clopen_basis' p d` ?
+/-- For m > n, χ_(b,a,n) = ∑_{j, b_j = a mod p^n} χ_(b,b_j,m) -/
+lemma sum_char_fn_dependent (m n : ℕ) (h : m > n) (a : zmod (p^n)) (b : zmod d) :
+  char_fn (zmod d × ℤ_[p]) (⟨({b} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+    is_clopen_prod (is_clopen_discrete (b : zmod d))
+      (proj_lim_preimage_clopen p d n b) ⟩) = ∑ x in set.to_finset (equi_class p n m h a),
+  char_fn _ (⟨({b} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow m) {(x : zmod (p^m))}),
+    is_clopen_prod (is_clopen_discrete (b : zmod d))
+
+--lemma trial : locally_constant (zmod d × ℤ_[p]) R = submodule.span R (s p d R) := sorry
 
 -- TODO Remove this lemma
 lemma mem_nonempty {α : Type*} {s : set α} {x : α} (h : x ∈ s) : nonempty s := ⟨⟨x, h⟩⟩
@@ -551,18 +605,55 @@ lemma bernoulli_measure_nonempty (hc : gcd c p = 1) :
   nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
 begin
   refine mem_nonempty _,
-  { constructor, swap 3,
-    { intro f,
-      have s := classical.some (what_to_do p d R f),
+  { --constructor, swap 3,
+    suffices : submodule.span R (s p d R) →ₗ[R] R, sorry, -- why you no work
+      refine linear_map_from_span R _ _ (s p d R) _ _,
+      { intro χ,
+        have : ∃ U : (clopen_basis' p d), char_fn _ U.val = (χ : locally_constant (zmod d × ℤ_[p]) R),
+        --construct a bijection between `clopen_basis' p d` and `char_fn`?
+        sorry,
+        set U := classical.some this with hU,
+        exact E_c p d hc (classical.some U.prop) (classical.some (classical.some_spec U.prop)), },
+      rintros f h, -- f is a relation, taking v in s to a; h says that ∑ a_i v_i = 0, tpt ∑ a_i E_c(v_i) = 0
+      --apply finsupp.induction_linear f,
+      rw finsupp.total_apply,
+      /-apply finsupp.induction f, { simp, },
+      { rintros χ a g hg nza rel_g_zero h, rw finsupp.total_apply at *,
+        rw finsupp.sum_add_index at *,
+        {  }, sorry, sorry, sorry, sorry, },-/
+
+      rw finsupp.total_apply,
+      apply submodule.span_induction (trial p d R f),
+      set s := classical.some (what_to_do p d R f) with hs,
  --     have hs := classical.some_spec (what_to_do p d R f),
-      have j := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R f))),
-      have i := classical.some (classical.some_spec (what_to_do p d R f)),
+      set i := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R f))) with hi,
+      set j := classical.some (classical.some_spec (what_to_do p d R f)) with hj,
       have hs' := classical.some_spec (classical.some_spec (classical.some_spec (what_to_do p d R f))),
-      exact ∑ (k : s), j k •
+      exact ∑ (k : s), (j k) •
       (E_c p d hc (classical.some (i k).prop) (classical.some (classical.some_spec (i k).prop))),
-      sorry,
-       },
-    sorry,
+    { rintros f g,
+      set fs := classical.some (what_to_do p d R f) with hfs,
+ --     have hs := classical.some_spec (what_to_do p d R f),
+      set fi := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R f))) with hfi,
+      set fj := classical.some (classical.some_spec (what_to_do p d R f)) with hfj,
+      have hfs' := classical.some_spec (classical.some_spec (classical.some_spec (what_to_do p d R f))),
+      set gs := classical.some (what_to_do p d R g) with hgs,
+ --     have hs := classical.some_spec (what_to_do p d R f),
+      set gi := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R g))) with hgi,
+      set gj := classical.some (classical.some_spec (what_to_do p d R g)) with hgj,
+      have hgs' := classical.some_spec (classical.some_spec (classical.some_spec (what_to_do p d R g))),
+      set fgs := classical.some (what_to_do p d R (f + g)) with hfgs,
+ --     have hs := classical.some_spec (what_to_do p d R f),
+      set fgi := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R (f + g)))) with hfgi,
+      set fgj := classical.some (classical.some_spec (what_to_do p d R (f + g))) with hfgj,
+      have hfgs' := classical.some_spec (classical.some_spec (classical.some_spec (what_to_do p d R (f + g)))),
+      convert_to ∑ (k : fgs), (fgj k) •
+      (E_c p d hc (classical.some (fgi k).prop) (classical.some (classical.some_spec (fgi k).prop)) : R) =
+      ∑ (k : fs), (fj k) •
+      (E_c p d hc (classical.some (fi k).prop) (classical.some (classical.some_spec (fi k).prop)) : R) +
+      ∑ (k : gs), (gj k) •
+      (E_c p d hc (classical.some (gi k).prop) (classical.some (classical.some_spec (gi k).prop))),
+  sorry, },
     sorry, },
 sorry,
 end

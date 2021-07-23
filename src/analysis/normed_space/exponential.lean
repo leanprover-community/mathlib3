@@ -3,7 +3,7 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.analytic.basic
+import analysis.calculus.deriv
 import analysis.specific_limits
 import data.complex.exponential
 import analysis.complex.basic
@@ -103,6 +103,15 @@ begin
   { rw h at hx, exact (ennreal.not_lt_zero hx).elim },
   { have h := pos_iff_ne_zero.mpr h,
     exact (exp_has_fpower_series_on_ball_of_radius_pos h).analytic_at_of_mem hx }
+end
+
+lemma foo (x : 𝔸) : (exp_series 𝕂 𝔸).change_origin x 1 ≠ 0 :=
+begin
+  rw formal_multilinear_series.change_origin,
+  simp_rw formal_multilinear_series.change_origin_series,
+  simp_rw formal_multilinear_series.change_origin_series_term,
+  rw formal_multilinear_series.sum,
+  simp,
 end
 
 end analytic

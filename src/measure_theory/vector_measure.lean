@@ -424,7 +424,41 @@ begin
   rw [sub_to_signed_measure, vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       measure.to_signed_measure_apply_measurable hi, sub_eq_add_neg]
 end
-
 end measure
+
+namespace vector_measure
+
+variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M]
+
+instance : partial_order (vector_measure α M) :=
+{ le          := λ v w, ∀ i, measurable_set i → v i ≤ w i,
+  le_refl     := λ v i hi, le_refl _,
+  le_trans    := λ u v w h₁ h₂ i hi, le_trans (h₁ i hi) (h₂ i hi),
+  le_antisymm := λ v w h₁ h₂, ext (λ i hi, le_antisymm (h₁ i hi) (h₂ i hi)) }
+
+variables {u v w : vector_measure α M}
+
+lemma le_iff : v ≤ w ↔ ∀ i, measurable_set i → v i ≤ w i :=
+iff.rfl
+
+lemma le_iff' : v ≤ w ↔ ∀ i, v i ≤ w i :=
+begin
+  refine ⟨λ h i, _, λ h i hi, h i⟩,
+  by_cases hi : measurable_set i,
+  { exact h i hi },
+  { rw [v.not_measurable hi, w.not_measurable hi] }
+end
+
+section
+
+variable [has_continuous_add M]
+
+instance covariant_add_le :
+  covariant_class (vector_measure α M) (vector_measure α M) (+) (≤) :=
+⟨λ u v w h i hi, add_le_add_left (h i hi) _⟩
+
+end
+
+end vector_measure
 
 end measure_theory

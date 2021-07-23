@@ -35,8 +35,10 @@ localized "notation `ℍ` := upper_half_plane" in upper_half_plane
 
 namespace upper_half_plane
 
+/-- Imaginary part -/
 def im (z : ℍ) := z.1.im
 
+/-- Real part -/
 def re (z : ℍ) := z.1.re
 
 @[simp] lemma coe_point (z : ℍ) : z.1 = (z:ℂ) := rfl
@@ -95,6 +97,7 @@ ne_of_gt (complex.norm_sq_pos.mpr (bottom_ne_zero g z))
 lemma normsq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (bottom g z) :=
 complex.norm_sq_pos.mpr (bottom_ne_zero g z)
 
+/-- Fractional linear transformation -/
 def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z
 
 lemma im_smul_eq_div_norm_sq' (g : SL(2, ℝ)) (z : ℍ) :
@@ -110,6 +113,7 @@ begin
   { ring }
 end
 
+/-- Fractional linear transformation -/
 def smul_aux (g : SL(2,ℝ)) (z : ℍ) : ℍ :=
 ⟨ smul_aux' g z,
   begin

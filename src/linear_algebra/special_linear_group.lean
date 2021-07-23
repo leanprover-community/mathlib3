@@ -189,12 +189,12 @@ instance {R : Type*} [comm_ring R] [_i : fact (even (fintype.card n))] :
     simp [nat.neg_one_pow_of_even _i.elim] }
 end⟩⟩
 
-@[simp] lemma special_linear_group.has_neg_coe_mat {R : Type*} [comm_ring R]
+@[simp] lemma has_neg_coe_mat {R : Type*} [comm_ring R]
   (g : (special_linear_group n R)) [_i : fact (even (fintype.card n))] :
   @coe _ (matrix n n R) _ (- g) = - (@coe _ (matrix n n R) _ g) :=
 rfl
 
-@[simp] lemma special_linear_group.has_neg_coe_fn {R : Type*} [comm_ring R]
+@[simp] lemma has_neg_coe_fn {R : Type*} [comm_ring R]
   (g : (special_linear_group n R)) [_i : fact (even (fintype.card n))] :
   @coe_fn _ _ (- g) = - (@coe_fn _ _ g) :=
 rfl

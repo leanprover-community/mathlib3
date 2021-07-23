@@ -143,7 +143,7 @@ ring_hom.ext $ λ _, rfl
 
 variables (R S) [subsingleton S]
 
-/-- A ring `R` isomorphic to `R × S` when `S` is the zero ring -/
+/-- A ring `R` is isomorphic to `R × S` when `S` is the zero ring -/
 @[simps] def prod_zero_ring : R ≃+* R × S :=
 { to_fun := λ x, (x, 0),
   inv_fun := prod.fst,

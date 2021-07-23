@@ -353,6 +353,8 @@ namespace linear_isometry
 
 open finite_dimensional linear_map
 
+/-- A linear isometry between finite dimensional spaces of equal dimension can be upgraded
+    to a linear isometry equivalence. -/
 noncomputable def linear_isometry_equiv_of_finrank_eq_finrank {R X Y : Type*}
   [field R] [normed_group X] [semi_normed_group Y]
   [module R X] [module R Y] [finite_dimensional R X] [finite_dimensional R Y]

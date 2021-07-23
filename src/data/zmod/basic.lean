@@ -606,9 +606,9 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
     end
     else
       begin
-        haveI : fact (0 < (m * n)) := fact.mk (nat.pos_of_ne_zero hmn0),
-        haveI : fact (0 < m) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
-        haveI : fact (0 < n) := fact.mk (nat.pos_of_ne_zero $ λ h, by simp [fact_iff, *] at *),
+        haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
+        haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
+        haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
         have left_inv : function.left_inverse inv_fun to_fun,
         { intro x,
           dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],

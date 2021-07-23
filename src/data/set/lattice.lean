@@ -1223,6 +1223,18 @@ hs.sup_left ht
 theorem union_right (ht : disjoint s t) (hu : disjoint s u) : disjoint s (t ∪ u) :=
 ht.sup_right hu
 
+lemma inter_left (u : set α) (h : disjoint s t) : disjoint (s ∩ u) t :=
+inf_left _ h
+
+lemma inter_left' (u : set α) (h : disjoint s t) : disjoint (u ∩ s) t :=
+inf_left' _ h
+
+lemma inter_right (u : set α) (h : disjoint s t) : disjoint s (t ∩ u) :=
+inf_right _ h
+
+lemma inter_right' (u : set α) (h : disjoint s t) : disjoint s (u ∩ t) :=
+inf_right' _ h
+
 lemma preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) : disjoint (f ⁻¹' s) (f ⁻¹' t) :=
 λ x hx, h hx
 

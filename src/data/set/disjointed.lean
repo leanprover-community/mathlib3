@@ -57,6 +57,14 @@ theorem pairwise_disjoint_on_nat [semilattice_inf_bot α] (f : ℕ → α) :
   pairwise (disjoint on f) ↔ ∀ (m n) (h : m < n), disjoint (f m) (f n) :=
 pairwise_on_nat disjoint.symm f
 
+lemma pairwise_disjoint_on_inter_right {f : β → set α} {a : set α}
+  (hf : pairwise (disjoint on f)) : pairwise (disjoint on (λ n, a ∩ f n)) :=
+hf.mono $ λ i j, disjoint.mono inf_le_right inf_le_right
+
+lemma pairwise_disjoint_on_inter_left {f : β → set α} {a : set α}
+  (hf : pairwise (disjoint on f)) : pairwise (disjoint on (λ n, f n ∩ a)) :=
+hf.mono $ λ i j, disjoint.mono inf_le_left inf_le_left
+
 theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
 λ x hx y hy, h x y
 
@@ -131,5 +139,21 @@ lemma Union_disjointed_of_mono (hf : monotone f) (n : ℕ) :
   (⋃ i < n.succ, disjointed f i) = f n :=
 subset.antisymm (bUnion_subset $ λ k hk, subset.trans disjointed_subset $ hf $ nat.lt_succ_iff.1 hk)
   subset_Union_disjointed
+
+lemma Union_inter_disjointed_eq {f : ℕ → set α} {a : set α} (ha : a ⊆ ⋃ n, f n) :
+  (⋃ n, a ∩ disjointed f n) = a :=
+by rwa [← inter_Union, set.Union_disjointed, inter_eq_left_iff_subset]
+
+lemma Union_disjoint_inter_eq {f : ℕ → set α} {a : set α} (ha : a ⊆ ⋃ n, f n) :
+  (⋃ n, disjointed f n ∩ a) = a :=
+by rwa [← Union_inter, set.Union_disjointed, inter_eq_right_iff_subset]
+
+lemma pairwise_disjoint_on_inter_disjointed {f : ℕ → set α} {a : set α} :
+  pairwise $ disjoint on (λ n, a ∩ disjointed f n) :=
+pairwise_disjoint_on_inter_right disjoint_disjointed
+
+lemma pairwise_disjoint_on_disjointed_inter {f : ℕ → set α} {a : set α} :
+  pairwise $ disjoint on (λ n, disjointed f n ∩ a) :=
+pairwise_disjoint_on_inter_left disjoint_disjointed
 
 end set

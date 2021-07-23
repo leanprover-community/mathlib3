@@ -7,6 +7,7 @@ import measure_theory.continuous_map_dense
 import measure_theory.l2_space
 import measure_theory.haar_measure
 import analysis.complex.circle
+import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass
 
 /-!

@@ -152,7 +152,7 @@ variables (R S) [subsingleton S]
   left_inv := λ x, rfl,
   right_inv := λ x, by cases x; simp }
 
-/-- A ring `R` isomorphic to `S × R` when `S` is the zero ring -/
+/-- A ring `R` is isomorphic to `S × R` when `S` is the zero ring -/
 @[simps] def zero_ring_prod : R ≃+* S × R :=
 { to_fun := λ x, (0, x),
   inv_fun := prod.snd,

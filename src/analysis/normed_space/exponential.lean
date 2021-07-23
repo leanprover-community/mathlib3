@@ -10,7 +10,84 @@ import analysis.complex.basic
 import topology.metric_space.cau_seq_filter
 
 open filter is_R_or_C continuous_multilinear_map normed_field
-open_locale nat topological_space
+open_locale nat topological_space big_operators
+
+section move_me
+
+namespace list
+
+lemma of_fn_eq_fin_range_map {α : Type*} (n : ℕ) {f : fin n → α} :
+  of_fn f = (fin_range n).map f :=
+begin
+  ext i : 1,
+  rw [nth_of_fn, of_fn_nth_val],
+  by_cases hi : i < n,
+  { have hi' : i < (fin_range n).length,
+    { rwa ← length_fin_range n at hi },
+    rw [dif_pos hi, nth_map, nth_le_nth hi', nth_le_fin_range hi', option.map_some'] },
+  { have hi' : (fin_range n).length ≤ i,
+    { rwa [not_lt, ← length_fin_range n] at hi },
+    rw [dif_neg hi, nth_map, nth_eq_none_iff.mpr hi', option.map_none'] }
+end
+
+lemma of_fn_eq_range_map {α : Type*} [nonempty α] (n : ℕ) {f : fin n → α} :
+  of_fn f = (range n).map (λ i, if hi : i < n then f ⟨i, hi⟩ else classical.arbitrary α) :=
+begin
+  rw [of_fn_eq_fin_range_map, fin_range, map_pmap,
+      ← pmap_eq_map _ _ _ (λ a, mem_range.1)],
+  congr,
+  ext i hi,
+  rw dif_pos hi,
+  refl
+end
+
+lemma of_fn_eq_range_map_nat {α : Type*} (n : ℕ) {f : ℕ → α} :
+  of_fn (f ∘ (coe : fin n → ℕ)) = (range n).map f :=
+begin
+  rw [of_fn_eq_fin_range_map, fin_range, map_pmap,
+      ← pmap_eq_map _ _ _ (λ a, mem_range.1)],
+  congr
+end
+
+lemma list.of_fn_piecewise_const_prod_of_commute_aux {α : Type*} [monoid α] (n i : ℕ) (hi : i ≤ n)
+  {s : finset ℕ} (x y : α) (h : commute x y) (f : ℕ → α)
+  (hf : ∀ k < n, f k = s.piecewise (λ _, x) (λ _, y) k):
+  (of_fn (f ∘ (coe : fin i → ℕ))).prod =
+    x^((finset.range i).filter (λ n, n ∈ s)).card *
+    y^((finset.range i).filter (λ n, n ∉ s)).card :=
+begin
+  induction i with i hrec,
+  { rw [finset.range_zero, finset.filter_empty, finset.filter_empty],
+    simp },
+  { specialize hrec (nat.le_of_succ_le hi),
+    rw [of_fn_eq_range_map_nat, prod_range_succ, ← of_fn_eq_range_map_nat, hrec],
+    rw hf i (nat.lt_of_succ_le hi),
+    by_cases his : i ∈ s,
+    { rw [finset.piecewise_eq_of_mem _ _ _ his, mul_assoc],
+      have := h.pow_right ((finset.range i).filter (λ n, n ∉ s)).card,
+      rw [← this.eq, ← mul_assoc, ← pow_succ'],
+      congr' 2,
+      { symmetry,
+        rw finset.card_eq_succ,
+        refine ⟨i, (finset.range i).filter (λ n, n ∈ s), λ hcontra, finset.not_mem_range_self
+                (finset.filter_subset (λ n, n ∈ s) (finset.range i) hcontra), _, rfl⟩,
+         } } }
+end
+
+lemma list.of_fn_piecewise_const_prod_of_commute {α : Type*} [monoid α] {n : ℕ} {s : finset (fin n)}
+  (x y : α) (h : commute x y) :
+  (list.of_fn $ s.piecewise (λ _, x) (λ _, y)).prod = x^s.card * y^sᶜ.card :=
+begin
+  induction n with n hn,
+  { rw nat.eq_zero_of_le_zero (card_finset_fin_le s),
+    rw nat.eq_zero_of_le_zero (card_finset_fin_le sᶜ),
+    simp },
+  { rw [of_fn_eq_range_map, prod_range_succ, dif_pos (n.lt_succ_self)], }
+end
+
+end list
+
+end move_me
 
 section exp
 
@@ -74,10 +151,10 @@ tsum_congr (λ n, exp_series_apply_eq x n)
 lemma exp_series_tsum_eq_field (x : 𝕂) : (exp_series 𝕂 𝕂).sum x = ∑' (n : ℕ), x^n / n! :=
 tsum_congr (λ n, exp_series_apply_eq_field x n)
 
-lemma exp_def : exp 𝕂 𝔸 = (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) :=
+lemma exp_eq_tsum : exp 𝕂 𝔸 = (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) :=
 funext exp_series_tsum_eq
 
-lemma exp_def_field : exp 𝕂 𝕂 = (λ x : 𝕂, ∑' (n : ℕ), x^n / n!) :=
+lemma exp_eq_tsum_field : exp 𝕂 𝕂 = (λ x : 𝕂, ∑' (n : ℕ), x^n / n!) :=
 funext exp_series_tsum_eq_field
 
 section analytic
@@ -105,16 +182,75 @@ begin
     exact (exp_has_fpower_series_on_ball_of_radius_pos h).analytic_at_of_mem hx }
 end
 
-lemma foo (x : 𝔸) : (exp_series 𝕂 𝔸).change_origin x 1 ≠ 0 :=
+end analytic
+
+section map_add_of_commute
+
+variables [complete_space 𝔸]
+
+#check formal_multilinear_series.change_origin_eval
+
+lemma step5 {x y : 𝔸} (hxy : commute x y) (n k : ℕ)
+  {s : finset (fin $ n+k)} (hs : s.card = k) :
+  continuous_multilinear_map.mk_pi_algebra_fin 𝕂 (n+k) 𝔸
+    (s.piecewise (λ _, x) (λ _, y)) = x^k * y^n :=
 begin
-  rw formal_multilinear_series.change_origin,
-  simp_rw formal_multilinear_series.change_origin_series,
-  simp_rw formal_multilinear_series.change_origin_series_term,
-  rw formal_multilinear_series.sum,
   simp,
 end
 
-end analytic
+lemma step4 {x y : 𝔸} (hxy : commute x y) (n k : ℕ)
+  {s : finset (fin $ n+k)} (hs : s.card = k) :
+  continuous_multilinear_map.mk_pi_algebra_fin 𝕂 (n+k) 𝔸
+    (s.piecewise (λ _, x) (λ _, y)) = x^k * y^n :=
+begin
+  simp,
+end
+
+lemma step3 {x y : 𝔸} (hxy : commute x y)
+  (hcv : ↑∥x∥₊ + ↑∥y∥₊ < (exp_series 𝕂 𝔸).radius)
+  (n k : ℕ) {s : finset (fin $ n+k)} (hs : s.card = k) :
+  ((exp_series 𝕂 𝔸).change_origin_series_term n k s hs) (λ _, x) (λ _, y) =
+    (1 / (n+k)! : 𝕂) • x^k * y^n :=
+begin
+  rw formal_multilinear_series.change_origin_series_term_apply,
+  unfold exp_series,
+  simp,
+  rw [continuous_multilinear_map.sum_apply, continuous_multilinear_map.sum_apply],
+end
+
+lemma step2 {x y : 𝔸} (n k : ℕ) (hxy : commute x y)
+  (hcv : ↑∥x∥₊ + ↑∥y∥₊ < (exp_series 𝕂 𝔸).radius) :
+  (exp_series 𝕂 𝔸).change_origin_series n k (λ _, x) (λ _, y) =
+    (1 / (n+k)! : 𝕂) • x^n * y^k :=
+begin
+  unfold formal_multilinear_series.change_origin_series,
+  rw [continuous_multilinear_map.sum_apply, continuous_multilinear_map.sum_apply],
+end
+
+lemma step1 {x y : 𝔸} (n : ℕ) (hxy : commute x y)
+  (hcv : ↑∥x∥₊ + ↑∥y∥₊ < (exp_series 𝕂 𝔸).radius) :
+  (exp_series 𝕂 𝔸).change_origin x n (λ _, y) =
+    ((1 / n! : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸) (λ _, y) :=
+begin
+  unfold formal_multilinear_series.change_origin,
+  unfold formal_multilinear_series.sum,
+  rw continuous_multilinear_map.tsum_eval,
+  unfold formal_multilinear_series.change_origin_series,
+end
+
+lemma exp_add_of_commute_of_mem_ball {x y : 𝔸} (hxy : commute x y)
+  (hcv : ↑∥x∥₊ + ↑∥y∥₊ < (exp_series 𝕂 𝔸).radius) :
+  exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
+begin
+  rw [exp, ← (exp_series 𝕂 𝔸).change_origin_eval hcv],
+  unfold formal_multilinear_series.sum,
+  unfold formal_multilinear_series.change_origin,
+  unfold formal_multilinear_series.change_origin_series,
+  unfold formal_multilinear_series.change_origin_series_term,
+
+end
+
+end map_add_of_commute
 
 end exp
 
@@ -220,7 +356,7 @@ section complex
 lemma complex.exp_eq_exp_ℂ_ℂ : complex.exp = exp ℂ ℂ :=
 begin
   refine funext (λ x, _),
-  rw [complex.exp, exp_def_field],
+  rw [complex.exp, exp_eq_tsum_field],
   exact tendsto_nhds_unique x.exp'.tendsto_limit
     (exp_series_summable_field x).has_sum.tendsto_sum_nat
 end
@@ -235,7 +371,7 @@ section real
 lemma real.exp_eq_exp_ℝ_ℝ : real.exp = exp ℝ ℝ :=
 begin
   refine funext (λ x, _),
-  rw [real.exp, complex.exp_eq_exp_ℂ_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp_def, exp_def_field,
+  rw [real.exp, complex.exp_eq_exp_ℂ_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp_eq_tsum, exp_eq_tsum_field,
       ← re_to_complex, ← re_clm_apply, re_clm.map_tsum (exp_series_summable' (x : ℂ))],
   refine tsum_congr (λ n, _),
   rw [re_clm.map_smul, ← complex.of_real_pow, re_clm_apply, re_to_complex, complex.of_real_re,

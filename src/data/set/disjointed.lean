@@ -59,10 +59,7 @@ pairwise_on_nat disjoint.symm f
 
 lemma pairwise_disjoint_on_inter {f : β → set α} {a : set α}
   (hf : pairwise (disjoint on f)) : pairwise (disjoint on (λ n, a ∩ f n)) :=
-begin
-  rintro i j hij x ⟨⟨-, hx₁⟩, -, hx₂⟩,
-  exact hf i j hij ⟨hx₁, hx₂⟩,
-end
+hf.mono $ λ i j, disjoint.mono inf_le_right inf_le_right
 
 theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
 λ x hx y hy, h x y

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.normed_space.basic
+import linear_algebra.finite_dimensional
 
 /-!
 # Linear isometries
@@ -347,3 +348,36 @@ lemma linear_isometry.id_to_linear_map :
   (linear_isometry.id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
 
 end linear_isometry_equiv
+
+namespace linear_isometry
+
+open finite_dimensional linear_map
+
+noncomputable def linear_isometry_equiv_of_finrank_eq_finrank {R X Y : Type*}
+  [field R] [normed_group X] [semi_normed_group Y]
+  [module R X] [module R Y] [finite_dimensional R X] [finite_dimensional R Y]
+  (li : X →ₗᵢ[R] Y) (h : finrank R X = finrank R Y) : X ≃ₗᵢ[R] Y :=
+{ to_linear_equiv := li.to_linear_map.linear_equiv_of_ker_eq_bot
+    (ker_eq_bot_of_injective li.injective) h,
+  norm_map' := li.norm_map' }
+
+lemma coe_linear_isometry_equiv_of_finrank_eq_finrank
+  {R X Y : Type*} [field R] [normed_group X] [semi_normed_group Y]
+  [module R X] [module R Y] [finite_dimensional R X] [finite_dimensional R Y]
+  (li : X →ₗᵢ[R] Y) (h : finrank R X = finrank R Y) :
+  (li.linear_isometry_equiv_of_finrank_eq_finrank h : X → Y) = li :=
+begin
+  rw ← linear_isometry_equiv.coe_to_linear_equiv,
+  funext,
+  simp only [linear_isometry_equiv_of_finrank_eq_finrank, linear_equiv_of_ker_eq_bot_apply],
+  rw li.coe_to_linear_map,
+end
+
+lemma linear_isometry_equiv_of_finrank_eq_finrank_apply
+  {R X Y : Type*} [field R] [normed_group X] [semi_normed_group Y]
+  [module R X] [module R Y] [finite_dimensional R X] [finite_dimensional R Y]
+  (li : X →ₗᵢ[R] Y) (h : finrank R X = finrank R Y) (x : X) :
+  (li.linear_isometry_equiv_of_finrank_eq_finrank h) x = li x :=
+by rw li.coe_linear_isometry_equiv_of_finrank_eq_finrank
+
+end linear_isometry

@@ -353,33 +353,23 @@ namespace linear_isometry
 
 open finite_dimensional linear_map
 
+variables {R₁ : Type*} [field R₁] [module R₁ E₁] [module R₁ F]
+  [finite_dimensional R₁ E₁] [finite_dimensional R₁ F]
+
 /-- A linear isometry between finite dimensional spaces of equal dimension can be upgraded
     to a linear isometry equivalence. -/
-noncomputable def linear_isometry_equiv_of_finrank_eq_finrank {R X Y : Type*}
-  [field R] [normed_group X] [semi_normed_group Y]
-  [module R X] [module R Y] [finite_dimensional R X] [finite_dimensional R Y]
-  (li : X →ₗᵢ[R] Y) (h : finrank R X = finrank R Y) : X ≃ₗᵢ[R] Y :=
+noncomputable def to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) : E₁ ≃ₗᵢ[R₁] F :=
 { to_linear_equiv := li.to_linear_map.linear_equiv_of_ker_eq_bot
     (ker_eq_bot_of_injective li.injective) h,
   norm_map' := li.norm_map' }
 
-lemma coe_linear_isometry_equiv_of_finrank_eq_finrank
-  {R X Y : Type*} [field R] [normed_group X] [semi_normed_group Y]
-  [module R X] [module R Y] [finite_dimensional R X] [finite_dimensional R Y]
-  (li : X →ₗᵢ[R] Y) (h : finrank R X = finrank R Y) :
-  (li.linear_isometry_equiv_of_finrank_eq_finrank h : X → Y) = li :=
-begin
-  rw ← linear_isometry_equiv.coe_to_linear_equiv,
-  funext,
-  simp only [linear_isometry_equiv_of_finrank_eq_finrank, linear_equiv_of_ker_eq_bot_apply],
-  rw li.coe_to_linear_map,
-end
+@[simp] lemma coe_to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) :
+  (li.to_linear_isometry_equiv h : E₁ → F) = li := rfl
 
-lemma linear_isometry_equiv_of_finrank_eq_finrank_apply
-  {R X Y : Type*} [field R] [normed_group X] [semi_normed_group Y]
-  [module R X] [module R Y] [finite_dimensional R X] [finite_dimensional R Y]
-  (li : X →ₗᵢ[R] Y) (h : finrank R X = finrank R Y) (x : X) :
-  (li.linear_isometry_equiv_of_finrank_eq_finrank h) x = li x :=
-by rw li.coe_linear_isometry_equiv_of_finrank_eq_finrank
+@[simp] lemma to_linear_isometry_equiv_apply
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) (x : E₁) :
+  (li.to_linear_isometry_equiv h) x = li x := rfl
 
 end linear_isometry

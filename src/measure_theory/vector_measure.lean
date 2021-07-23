@@ -429,7 +429,9 @@ end measure
 
 namespace vector_measure
 
-variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M]
+section
+
+variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
 
 instance : partial_order (vector_measure α M) :=
 { le          := λ v w, ∀ i, measurable_set i → v i ≤ w i,
@@ -450,9 +452,12 @@ begin
   { rw [v.not_measurable hi, w.not_measurable hi] }
 end
 
+end
+
 section
 
-variable [has_continuous_add M]
+variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
+  [covariant_class M M (+) (≤)] [has_continuous_add M]
 
 instance covariant_add_le :
   covariant_class (vector_measure α M) (vector_measure α M) (+) (≤) :=

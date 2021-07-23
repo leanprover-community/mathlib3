@@ -592,7 +592,7 @@ def chinese_remainder {m n : ℕ} (h : m.coprime n) :
 let to_fun : zmod (m * n) → zmod m × zmod n :=
   zmod.cast_hom (show m.lcm n ∣ m * n, by simp [nat.lcm_dvd_iff]) (zmod m × zmod n) in
 let inv_fun : zmod m × zmod n → zmod (m * n) :=
-  λ x,if m * n = 0
+  λ x, if m * n = 0
     then if m = 1
       then ring_hom.snd _ _ x
       else ring_hom.fst _ _ x

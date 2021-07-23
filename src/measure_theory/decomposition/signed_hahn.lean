@@ -34,40 +34,10 @@ noncomputable theory
 open_locale classical big_operators nnreal ennreal
 
 section lemmas
--- ↓ I will move the content of this section to the approprate files after the reviews so we don't
--- need to compile all of mathlib everytime.
 
 variables {α : Type*}
 
 open set filter
-
-lemma set.Union_inter_disjointed_eq {f : ℕ → set α} {a : set α} (ha : a ⊆ ⋃ n, f n) :
-  (⋃ n, a ∩ disjointed f n) = a :=
-by rwa [← inter_Union, set.Union_disjointed, inter_eq_left_iff_subset]
-
-lemma set.pairwise_disjoint_on_inter {f : ℕ → set α} {a : set α}
-  (hf : pairwise (disjoint on f)) : pairwise (disjoint on (λ n, a ∩ f n)) :=
-begin
-  rintro i j hij x ⟨⟨-, hx₁⟩, -, hx₂⟩,
-  exact hf i j hij ⟨hx₁, hx₂⟩,
-end
-
-lemma set.pairwise_disjoint_on_inter_disjointed {f : ℕ → set α} {a : set α} :
-  pairwise $ disjoint on (λ n, a ∩ disjointed f n) :=
-set.pairwise_disjoint_on_inter disjoint_disjointed
-
-lemma tendsto_top_of_pos_summable_inv {f : ℕ → ℝ}
-  (hf : summable f⁻¹) (hf' : ∀ n, 0 < f n) : tendsto f at_top at_top :=
-begin
-  rw [show  f = f⁻¹⁻¹, by { ext, simp }],
-  apply filter.tendsto.inv_tendsto_zero,
-  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
-    (summable.tendsto_at_top_zero hf),
-  rw eventually_iff_exists_mem,
-  refine ⟨set.Ioi 0, Ioi_mem_at_top _, λ _ _, _⟩,
-  rw [set.mem_Ioi, inv_eq_one_div, one_div, pi.inv_apply, _root_.inv_pos],
-  exact hf' _,
-end
 
 lemma exists_tendsto_Inf {S : set ℝ} (hS : ∃ x, x ∈ S) (hS' : ∃ x, ∀ y ∈ S, x ≤ y) :
   ∃ (f : ℕ → ℝ) (hf : ∀ n, f n ∈ S), tendsto f at_top (nhds (Inf S)) :=
@@ -455,7 +425,7 @@ begin
         { intro n, exact le_of_lt (aux_lt n (hn' n)) } },
       have h₃ : tendsto (λ n, (bdd n : ℝ) + 1) at_top at_top,
       { simp only [one_div] at h₃',
-        exact tendsto_top_of_pos_summable_inv h₃' (λ n, nat.cast_add_one_pos (bdd n)) },
+        exact summable.tendsto_top_of_pos h₃' (λ n, nat.cast_add_one_pos (bdd n)) },
       have h₄ : tendsto (λ n, (bdd n : ℝ)) at_top at_top,
       { convert at_top.tendsto_at_top_add_const_right (-1) h₃, simp },
 

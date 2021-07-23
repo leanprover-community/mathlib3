@@ -566,8 +566,8 @@ begin
     rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
 end
 
-lemma mem_map_range {R S : Type*} [_inst_1 : ring R] [_inst_2 : ring S] (f : R →+* S) {p : polynomial S} :
-  p ∈ (map_ring_hom f).range ↔ ∀ n, p.coeff n ∈ f.range :=
+lemma mem_map_range {R S : Type*} [_inst_1 : ring R] [_inst_2 : ring S] (f : R →+* S)
+  {p : polynomial S} : p ∈ (map_ring_hom f).range ↔ ∀ n, p.coeff n ∈ f.range :=
 begin
   split,
   { rintro ⟨p, rfl⟩ n, rw [coe_map_ring_hom, coeff_map], exact set.mem_range_self _ },

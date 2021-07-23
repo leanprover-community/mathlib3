@@ -65,33 +65,29 @@ begin
     rw [finset.range_succ, finset.sup_insert, sup_comm, ih], },
 end
 
-lemma partial_sups_eq_Sup [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ) :
-  partial_sups f n = (finset.range (n+1)).sup f :=
+lemma partial_sups_eq_bUnion (f : ℕ → set α) (n : ℕ) :
+  partial_sups f n = ⋃ (i ≤ n), f i :=
 begin
-  induction n with n ih,
-  { simp, },
-  { dsimp [partial_sups] at ih ⊢,
-    rw [finset.range_succ, finset.sup_insert, sup_comm, ih], },
+  sorry --rw [partial_sups_eq_sup_range, finset.sup_eq_bUnion],
 end
 
 -- Note this lemma requires a distributive lattice,
 -- so is not useful (or true) in situations such as submodules.
 lemma partial_sups_disjoint_of_disjoint [bounded_distrib_lattice α]
-  (f : ℕ → α) (w : pairwise (disjoint on f)) {m n : ℕ} (h : m < n) :
+  (f : ℕ → α) (h : pairwise (disjoint on f)) {m n : ℕ} (hmn : m < n) :
   disjoint (partial_sups f m) (f n) :=
 begin
   induction m with m ih,
-  { exact w 0 n h.ne, },
-  { dsimp [partial_sups],
-    rw disjoint_sup_left,
-    exact ⟨ih (nat.lt_of_succ_lt h), w (m+1) n h.ne⟩ },
+  { exact h 0 n hmn.ne, },
+  { rw [partial_sups_succ, disjoint_sup_left],
+    exact ⟨ih (nat.lt_of_succ_lt hmn), h (m + 1) n hmn.ne⟩ }
 end
 
 lemma monotone.partial_sups_eq [semilattice_sup_bot α] {f : ℕ → α} (hf : monotone f) :
   (partial_sups f : ℕ → α) = f :=
 begin
   ext n,
-  induction n with n h,
+  induction n with n ih,
   { refl },
-  { rw [partial_sups_succ, h, sup_eq_right.2 (hf (nat.le_succ _))] }
+  { rw [partial_sups_succ, ih, sup_eq_right.2 (hf (nat.le_succ _))] }
 end

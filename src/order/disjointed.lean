@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Yaël Dillies
 -/
 import order.partial_sups
 
@@ -56,15 +56,15 @@ lemma disjointed_induct {p : α → Prop} (hdiff : ∀ ⦃t i⦄, p t → p (t \
 | 0       := id
 | (n + 1) := λ h,
   begin
-    rw [disjointed_succ],
+    rw disjointed_succ,
     suffices H : ∀ k, p (f (n + 1) \ partial_sups f k),
     { exact H n },
     rintro k,
-    induction k with k hk,
+    induction k with k ih,
     { rw partial_sups_zero,
       exact hdiff h },
     rw [partial_sups_succ, ←sdiff_sdiff_left],
-    exact hdiff hk,
+    exact hdiff ih,
   end
 
 lemma monotone.disjointed_eq (hf : monotone f) :
@@ -75,7 +75,7 @@ lemma partial_sups_disjointed_eq (f : ℕ → α) :
   partial_sups (disjointed f) = partial_sups f :=
 begin
   ext n,
-  induction n with k hk,
+  induction n with k ih,
   { rw [partial_sups_zero, partial_sups_zero, disjointed_zero] },
-  { rw [partial_sups_succ, partial_sups_succ, disjointed_succ, hk, sup_sdiff_self_right] }
+  { rw [partial_sups_succ, partial_sups_succ, disjointed_succ, ih, sup_sdiff_self_right] }
 end

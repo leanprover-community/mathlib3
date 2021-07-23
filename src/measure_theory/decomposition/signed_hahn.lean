@@ -75,13 +75,6 @@ begin
     exact real.le_Sup S hS' hf₁ },
 end
 
-lemma nat.sub_one_lt {n : ℕ} (hn : 1 ≤ n) : n - 1 < n :=
-begin
-  induction n with k hk,
-  { norm_num at hn },
-  { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero], exact lt_add_one k }
-end
-
 end lemmas
 
 variables {α β : Type*} [measurable_space α]
@@ -453,7 +446,7 @@ begin
           intro x, simp only [set.mem_Union],
           rintro ⟨n, _, hn₂⟩,
           exact ⟨n, hn₂⟩ },
-        refine aux₀_min (hn' k) (nat.sub_one_lt hk₁) _,
+        refine aux₀_min (hn' k) (buffer.lt_aux_2 hk₁) _,
         refine ⟨E, set.subset.trans hE₁ hA', hE₂, _⟩,
         convert hk₂, norm_cast,
         exact nat.sub_add_cancel hk₁ },

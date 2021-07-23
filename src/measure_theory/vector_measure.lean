@@ -424,6 +424,7 @@ begin
   rw [sub_to_signed_measure, vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       measure.to_signed_measure_apply_measurable hi, sub_eq_add_neg]
 end
+
 end measure
 
 namespace vector_measure

@@ -34,7 +34,7 @@ def partial_sups [semilattice_sup_bot α] (f : ℕ → α) : ℕ →ₘ α :=
 @[simp] lemma partial_sups_succ [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ) :
   partial_sups f (n+1) = partial_sups f n ⊔ f (n+1) := rfl
 
-lemma le_partial_sups [semilattice_sup_bot α] (f : ℕ → α) {m n : ℕ} (h : m ≤ n) :
+lemma le_partial_sups_of_le [semilattice_sup_bot α] (f : ℕ → α) {m n : ℕ} (h : m ≤ n) :
   f m ≤ partial_sups f n :=
 begin
   induction n with n ih,
@@ -43,6 +43,10 @@ begin
     { exact le_sup_right, },
     { exact (ih h).trans le_sup_left, } },
 end
+
+lemma le_partial_sups [semilattice_sup_bot α] (f : ℕ → α) :
+  f ≤ partial_sups f :=
+λ n, le_partial_sups_of_le f le_rfl
 
 lemma partial_sups_le [semilattice_sup_bot α] (f : ℕ → α) (n : ℕ)
   (a : α) (w : ∀ m, m ≤ n → f m ≤ a) : partial_sups f n ≤ a :=

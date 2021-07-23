@@ -42,14 +42,13 @@ begin
 end
 
 lemma disjoint_disjointed : pairwise (disjoint on disjointed f) :=
-λ i j hij, begin
-  rw symmetric.pairwise_on,
-  obtain h | h := hij.lt_or_lt,
-  { cases j,
-    { exact (h.not_le (nat.zero_le _)).elim },
-    exact disjoint_sdiff_self_right.mono_left ((disjointed_le f i).trans
-      (le_partial_sups f (nat.lt_add_one_iff.1 h))) },
-  { exact disjoint_sdiff_self_left.mono_right ((disjointed_le _ _).trans (le_bsupr j h)) }
+begin
+  rw symmetric.pairwise_on disjoint.symm, swap, apply_instance,
+  rintro m n h,
+  cases n,
+  { exact (h.not_le (nat.zero_le _)).elim },
+  exact disjoint_sdiff_self_right.mono_left ((disjointed_le f m).trans
+    (le_partial_sups_of_le f (nat.lt_add_one_iff.1 h))),
 end
 
 lemma disjointed_induct {p : α → Prop} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i)) :
@@ -72,26 +71,11 @@ lemma monotone.disjointed_eq (hf : monotone f) :
   disjointed f (n + 1) = f (n + 1) \ f n :=
 by rw [disjointed_succ, hf.partial_sups_eq]
 
-open_locale classical
-
-lemma le_partial_sups_disjointed (f : ℕ → α) : f ≤ partial_sups (disjointed f) :=
+lemma partial_sups_disjointed_eq (f : ℕ → α) :
+  partial_sups (disjointed f) = partial_sups f :=
 begin
-  rintro n,
-
+  ext n,
+  induction n with k hk,
+  { rw [partial_sups_zero, partial_sups_zero, disjointed_zero] },
+  { rw [partial_sups_succ, partial_sups_succ, disjointed_succ, hk, sup_sdiff_self_right] }
 end
-λ x hx,
-  have ∃ k, x ∈ f k, from ⟨n, hx⟩,
-  have hn : ∀ (i : ℕ), i < nat.find this → x ∉ f i,
-    from λ i, nat.find_min this,
-  have hlt : nat.find this < n.succ,
-    from (nat.find_min' this hx).trans_lt n.lt_succ_self,
-  mem_bUnion hlt ⟨nat.find_spec this, mem_bInter hn⟩
-
-lemma Union_disjointed : (⋃ n, disjointed f n) = (⋃ n, f n) :=
-subset.antisymm (Union_subset_Union $ λ i, inter_subset_left _ _)
-  (Union_subset $ λ n, subset.trans subset_Union_disjointed (bUnion_subset_Union _ _))
-
-lemma Union_disjointed_of_mono (hf : monotone f) (n : ℕ) :
-  (⋃ i < n.succ, disjointed f i) = f n :=
-subset.antisymm (bUnion_subset $ λ k hk, subset.trans disjointed_subset $ hf $ nat.lt_succ_iff.1 hk)
-  subset_Union_disjointed

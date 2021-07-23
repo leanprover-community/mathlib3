@@ -105,10 +105,27 @@ section
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
 variables [module R M] [module R M₂] [module S M₃]
+variables {σ : R →+* S}
 
 /-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
 { map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
+
+instance : add_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
+{ coe := linear_map.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_add := linear_map.map_add' }
+
+@[simp] lemma to_fun_eq_coe {f : M →ₛₗ[σ] M₃} : f.to_fun = (f : M → M₃) := rfl
+
+@[ext] theorem ext {f g : M →ₛₗ[σ] M₃} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
+
+/-- Copy of a `linear_map` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : M →ₛₗ[σ] M₃ :=
+{ to_fun := f',
+  map_add' := h.symm ▸ f.map_add',
+  map_smul' := h.symm ▸ f.map_smul' }
 
 instance {σ : R →+* S} : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
 
@@ -136,33 +153,33 @@ variables [module R M] [module R M₂] [module S M₃]
 variables (σ : R →+* S)
 variables (fₗ gₗ : M →ₗ[R] M₂) (f g : M →ₛₗ[σ] M₃)
 
-@[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
-
 theorem is_linear : is_linear_map R fₗ := ⟨fₗ.map_add', fₗ.map_smul'⟩
 
 variables {fₗ gₗ f g σ}
 
+-- TODO: can be replaced with `fun_like.coe_injective`
 theorem coe_injective : @injective (M →ₛₗ[σ] M₃) (M → M₃) coe_fn :=
-by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
+fun_like.coe_injective
 
-@[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_injective $ funext H
+-- TODO: can be replaced with `fun_like.congr_arg`
+protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x' :=
+fun_like.congr_arg
 
-protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x'
-| _ _ rfl := rfl
-
+-- TODO: can be replaced with `fun_like.congr_fun`
 /-- If two linear maps are equal, they are equal at each point. -/
-protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
+protected lemma congr_fun (h : f = g) (x : M) : f x = g x :=
+fun_like.congr_fun
 
+-- TODO: can be replaced with `fun_like.ext_iff`
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
-⟨by { rintro rfl x, refl }, ext⟩
+fun_like.ext_iff
 
 @[simp] lemma mk_coe (f : M →ₛₗ[σ] M₃) (h₁ h₂) :
   (linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) = f := ext $ λ _, rfl
 
 variables (fₗ gₗ f g)
 
-@[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
+protected lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
 
 @[simp] lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := f.map_smul' c x
 

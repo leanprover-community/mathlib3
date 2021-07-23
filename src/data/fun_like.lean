@@ -23,11 +23,11 @@ namespace my_hom
 variables (A B : Type*) [my_class A] [my_class B]
 
 instance : fun_like (my_hom A B) A B :=
-⟨coe := my_hom.to_fun, coe_injective := λ f g h, by cases f; cases g; congr'⟩
+{ coe := my_hom.to_fun, coe_injective' := λ f g h, by cases f; cases g; congr' }
 
 @[simp] lemma to_fun_eq_coe {f : my_hom A B} : f.to_fun = (f : A → B) := rfl
 
-@[ext] theorem ext {f g : my_hom A B} (h : ∀ x, f x = g x) : p = q := fun_like.ext h
+@[ext] theorem ext {f g : my_hom A B} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
 /-- Copy of a `my_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
@@ -35,7 +35,7 @@ protected def copy (f : my_hom A B) (f' : A → B) (h : f' = ⇑f) : my_hom A B 
 { to_fun := f',
   map_op' := h.symm ▸ f.map_op' }
 
-end my_subobject
+end my_hom
 ```
 
 This file will then provide a `has_coe_to_fun` instance and various
@@ -84,5 +84,14 @@ coe_injective (funext h)
 
 theorem ext_iff {f g : F} : f = g ↔ (∀ x, f x = g x) :=
 coe_fn_eq.symm.trans function.funext_iff
+
+protected lemma congr {f g : F} {x y : α} (h₁ : f = g) (h₂ : x = y) : f x = g y :=
+congr (congr_arg _ h₁) h₂
+
+protected lemma congr_fun {f g : F} (h₁ : f = g) (x : α) : f x = g x :=
+congr_fun (congr_arg _ h₁) x
+
+protected lemma congr_arg (f : F) {x y : α} (h₂ : x = y) : f x = f y :=
+congr_arg _ h₂
 
 end fun_like

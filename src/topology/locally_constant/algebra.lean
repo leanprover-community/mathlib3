@@ -36,7 +36,7 @@ variables {X Y : Type*} [topological_space X]
 { mul := λ f g, ⟨f * g, f.is_locally_constant.mul g.is_locally_constant⟩ }
 
 @[to_additive] lemma coe_mul [has_mul Y] (f g : locally_constant X Y) :
-  ⇑(f * g) = (f * g) :=
+  ⇑(f * g) = f * g :=
 rfl
 
 @[to_additive] lemma mul_apply [has_mul Y] (f g : locally_constant X Y) (x : X) :

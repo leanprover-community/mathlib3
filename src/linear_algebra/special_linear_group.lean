@@ -124,7 +124,7 @@ lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
   det g ≠ 0 :=
 by { rw g.det_coe_fun, norm_num }
 
-lemma row_nonzero [nontrivial R] (g : special_linear_group n R) (i : n):
+lemma row_ne_zero [nontrivial R] (g : special_linear_group n R) (i : n):
   g i ≠ 0 :=
 λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simp [h]
 
@@ -173,6 +173,33 @@ by { ext v i, rw [coe_to_GL, to_lin'_mul], refl }
   to `general_linear_group n R`. -/
 def embedding_GL : (special_linear_group n R) →* (general_linear_group R (n → R)) :=
 ⟨λ A, to_GL A, by simp, by simp⟩
+
+
+section has_neg
+
+/-- Formal operation of negation on special linear group on even cardinality `n` given by negating
+each element. -/
+instance {R : Type*} [comm_ring R] [_i : fact (even (fintype.card n))] :
+  has_neg (special_linear_group n R) :=
+⟨λ g, ⟨- g.1, begin
+  convert @det_smul _ _ _ _ _ g (-1),
+  { simp,
+    refl },
+  { convert (det_coe_fun g).symm,
+    simp [nat.neg_one_pow_of_even _i.elim] }
+end⟩⟩
+
+@[simp] lemma special_linear_group.has_neg_coe_mat {R : Type*} [comm_ring R]
+  (g : (special_linear_group n R)) [_i : fact (even (fintype.card n))] :
+  @coe _ (matrix n n R) _ (- g) = - (@coe _ (matrix n n R) _ g) :=
+rfl
+
+@[simp] lemma special_linear_group.has_neg_coe_fn {R : Type*} [comm_ring R]
+  (g : (special_linear_group n R)) [_i : fact (even (fintype.card n))] :
+  @coe_fn _ _ (- g) = - (@coe_fn _ _ g) :=
+rfl
+
+end has_neg
 
 end special_linear_group
 

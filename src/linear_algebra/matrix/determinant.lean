@@ -93,14 +93,6 @@ begin
   simp [det_apply, card_eq_zero.mp h, perm_eq],
 end
 
-/-- Specialize `det_eq_one_of_card_eq_zero` to `fin 0`.
-
-This is especially useful in combination with the `det_succ_` lemmas,
-for computing the determinant of a matrix given in the `![...]` notation.
--/
-@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
-det_eq_one_of_card_eq_zero (fintype.card_fin _)
-
 /-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
 Although `unique` implies `decidable_eq` and `fintype`, the instances might
 not be syntactically equal. Thus, we need to fill in the args explicitly. -/
@@ -659,17 +651,20 @@ by { rw [← det_transpose, det_succ_row _ j],
      rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
 
 
+/-- Specialize `det_eq_one_of_card_eq_zero` to `fin 0`.
+
+This is especially useful in combination with the `det_succ_` lemmas,
+for computing the determinant of a matrix given in the `![...]` notation.
+-/
+@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
+det_eq_one_of_card_eq_zero (fintype.card_fin _)
+
 /-- Determinant of 1x1 matrix -/
-lemma det_fin_one (A : matrix (fin 1) (fin 1) R) :
-  det A = A 0 0 :=
-begin
-  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
-  ring
-end
+alias det_unique ← det_fin_one
 
 /-- Determinant of 2x2 matrix -/
 lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :
-  det A = A 0 0 * A 1 1 - A 0 1 * A 0 0 :=
+  det A = A 0 0 * A 1 1 - A 0 1 * A 1 0 :=
 begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   ring
@@ -683,6 +678,5 @@ begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   ring
 end
-
 
 end matrix

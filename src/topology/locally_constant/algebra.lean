@@ -40,6 +40,13 @@ variables {X Y : Type*} [topological_space X]
   .. locally_constant.has_one,
   .. locally_constant.has_mul }
 
+/-- `coe_fn` is a `monoid_hom`. -/
+@[to_additive "`coe_fn` is an `add_monoid_hom`.", simps]
+def coe_fn_monoid_hom [mul_one_class Y] : locally_constant X Y →* (X → Y) :=
+{ to_fun   := coe_fn,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
 instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
 { zero_mul := by { intros, ext, simp only [mul_apply, zero_apply, zero_mul] },
   mul_zero := by { intros, ext, simp only [mul_apply, zero_apply, mul_zero] },
@@ -110,27 +117,29 @@ instance [ring Y] : ring (locally_constant X Y) :=
 instance [comm_ring Y] : comm_ring (locally_constant X Y) :=
 { .. locally_constant.comm_semiring, .. locally_constant.ring }
 
-variables (M : Type*) [monoid M] (A : Type*) [semiring A]
+variables (R : Type*)
 
-instance : has_scalar M (locally_constant X M) :=
-{ smul := λ a f,
-  { to_fun := λ x, a*f(x),
-    is_locally_constant := is_locally_constant.comp (is_locally_constant f)
-      (has_mul.mul a) } }
+instance [has_scalar R Y] : has_scalar R (locally_constant X Y) :=
+{ smul := λ r f,
+  { to_fun := r • f,
+    is_locally_constant := ((is_locally_constant f).comp ((•) r) : _), } }
 
-instance : mul_action M (locally_constant X M) :=
-{ smul := (•),
-  one_smul := one_mul,
-  mul_smul := λ a b f, ext ( λ x, mul_assoc _ _ _ ) }
+@[simp] lemma coe_smul [has_scalar R Y] (r : R) (f : locally_constant X Y) :
+  ⇑(r • f) = r • (f : X → Y) :=
+rfl
 
-instance : distrib_mul_action A (locally_constant X A) :=
-{ smul_add := λ r f g, ext ( λ x, mul_add _ _ _ ),
-  smul_zero := λ r, ext (λ x, mul_zero r),
-  ..locally_constant.mul_action A }
+lemma smul_apply [has_scalar R Y] (r : R) (f : locally_constant X Y) (x : X) :
+  (r • f) x = r • (f x) :=
+rfl
 
-instance : module A (locally_constant X A) :=
-{ add_smul := λ r s f, ext (λ x, add_mul _ _ _),
-  zero_smul := zero_mul,
-  ..locally_constant.distrib_mul_action A }
+instance [monoid R] [mul_action R Y] : mul_action R (locally_constant X Y) :=
+function.injective.mul_action _ coe_injective (λ _ _, rfl)
+
+instance [monoid R] [add_monoid Y] [distrib_mul_action R Y] :
+  distrib_mul_action R (locally_constant X Y) :=
+function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective (λ _ _, rfl)
+
+instance [semiring R] [add_comm_monoid Y] [module R Y] : module R (locally_constant X Y) :=
+function.injective.module R coe_fn_add_monoid_hom coe_injective (λ _ _, rfl)
 
 end locally_constant

@@ -433,6 +433,9 @@ section
 
 variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
 
+/-- Vector measures over a partially ordered monoid is partially ordered.
+
+This definition is consistent with `measure.partial_order`. -/
 instance : partial_order (vector_measure α M) :=
 { le          := λ v w, ∀ i, measurable_set i → v i ≤ w i,
   le_refl     := λ v i hi, le_refl _,

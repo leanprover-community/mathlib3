@@ -57,7 +57,7 @@ theorem pairwise_disjoint_on_nat [semilattice_inf_bot α] (f : ℕ → α) :
   pairwise (disjoint on f) ↔ ∀ (m n) (h : m < n), disjoint (f m) (f n) :=
 pairwise_on_nat disjoint.symm f
 
-lemma pairwise_disjoint_on_inter_nat {f : ℕ → set α} {a : set α}
+lemma pairwise_disjoint_on_inter {f : β → set α} {a : set α}
   (hf : pairwise (disjoint on f)) : pairwise (disjoint on (λ n, a ∩ f n)) :=
 begin
   rintro i j hij x ⟨⟨-, hx₁⟩, -, hx₂⟩,
@@ -145,6 +145,6 @@ by rwa [← inter_Union, set.Union_disjointed, inter_eq_left_iff_subset]
 
 lemma pairwise_disjoint_on_inter_disjointed {f : ℕ → set α} {a : set α} :
   pairwise $ disjoint on (λ n, a ∩ disjointed f n) :=
-pairwise_disjoint_on_inter_nat disjoint_disjointed
+pairwise_disjoint_on_inter disjoint_disjointed
 
 end set

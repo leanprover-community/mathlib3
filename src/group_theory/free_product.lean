@@ -168,12 +168,15 @@ instance : inhabited (word M) := ⟨empty⟩
 def prod (w : word M) : free_product M :=
 list.prod (w.val.map $ λ p, of p.snd.val)
 
-@[simp] lemma prod_nil : (empty : word M).prod = 1 := rfl
+@[simp] lemma prod_nil : prod (empty : word M) = 1 := rfl
+
+/-- `not_head i w` says that the first letter of `w` doesn't come from `M i`. -/
+def not_head (i) (w : word M) : Prop := ∀ p ∈ (w.val.map sigma.fst).head', i ≠ p
 
 variables [∀ i, decidable_eq (M i)]
 
-/-- Prepend `m : M i` to `w` assuming `i` is not the first index in `w`. If `m = 1`, do nothing. -/
-def rcons {i} (m : M i) (w : word M) (h : ∀ p ∈ (w.val.map sigma.fst).head', i ≠ p) : word M :=
+/-- Prepend `m : M i` to `w` assuming `not_head i w`. Does nothing if `m = 1`. -/
+def rcons {i} (m : M i) (w : word M) (h : not_head i w) : word M :=
 if m_one : m = 1 then w else ⟨⟨i, m, m_one⟩ :: w.val, w.property.cons' h⟩
 
 @[simp] lemma rcons_one {i} (w : word M) (h) : rcons (1 : M i) w h = w := dif_pos rfl
@@ -186,48 +189,68 @@ lemma cons_eq_rcons {i m ls hl} :
 by { cases m with m hm, rw rcons_ne_one hm, refl, }
 
 @[simp] lemma rcons_prod {i} (m : M i) (w h) :
-  (rcons m w h).prod = of m * w.prod :=
+  prod (rcons m w h) = of m * prod w :=
 if hm : m = 1 then by rw [hm, rcons_one, monoid_hom.map_one, one_mul]
 else by rw [rcons_ne_one hm, prod, list.map_cons, list.prod_cons, prod]
 
-variable [decidable_eq ι]
-
-/-- A custom eliminator for the free product. The idea is that any reduced word can be uniquely
-expressed as `rcons m w h` with `m : M i`. If `i` is not the word's first index then `m = 1`. -/
-def cases {i : ι} (C : word M → Sort*)
-  (d : Π (m : M i) (w : word M) (h), C (rcons m w h)) :
-  Π w : word M, C w
-| w@⟨[], _⟩ := @eq.rec _ _ C (d 1 w $ by rintro _ ⟨⟩) _ (rcons_one w _)
-| w@⟨⟨j, m⟩ :: ls, h⟩ := if ij : i = j then by { cases ij, rw cons_eq_rcons, apply d, }
-else @eq.rec _ _ C (d 1 w $ by { rintro _ ⟨⟩, exact ij }) _ (rcons_one w _)
-
-/-- Computation rule for `free_product.cases` in the non-dependent case. -/
-@[simp] lemma cases_def {i : ι} {C : Sort*} {d} (m : M i) (w : word M) (h) :
-  (rcons m w h).cases (λ _, C) d = d m w h :=
+lemma rcons_inj {i} {m m' : M i} {w w' : word M} {h : not_head i w} {h' : not_head i w'}
+  (he : rcons m w h = rcons m' w' h') : m = m' ∧ w = w' :=
 begin
-  by_cases hm : m = 1,
-  { rw [hm, rcons_one],
-    rcases w with ⟨⟨⟩ | ⟨⟨j, m'⟩, ls⟩, hl ⟩,
-    { rw [word.cases, eq_rec_constant]},
-    { rw [word.cases, dif_neg (h j rfl), eq_rec_constant], }, },
-  { rw [rcons_ne_one hm, word.cases, dif_pos rfl], cases w, refl, },
+  by_cases hm : m = 1;
+  by_cases hm' : m' = 1,
+  { rw [hm, hm'] at *, rw [rcons_one, rcons_one] at he, exact ⟨rfl, he⟩ },
+  { exfalso, rw [hm, rcons_one, rcons_ne_one hm'] at he, rw he at h, exact h i rfl rfl, },
+  { exfalso, rw [hm', rcons_one, rcons_ne_one hm] at he, rw ←he at h', exact h' i rfl rfl, },
+  { simp only [rcons_ne_one hm, rcons_ne_one hm', subtype.mk_eq_mk, true_and, eq_self_iff_true,
+      heq_iff_eq, ←subtype.ext_iff_val] at he, exact he, }
 end
 
+variable [decidable_eq ι]
+
+/-- Given `i : ι`, any reduced word can be written as `rcons m w h` with `m : M i`. -/
+private def head_tail_aux (i) : Π w : word M,
+  Σ' (m : M i) (w' : word M) (h : not_head i w'), rcons m w' h = w
+| w@⟨[], _⟩           := ⟨1, w, by rintro _ ⟨⟩, rcons_one w _⟩
+| w@⟨⟨j, m⟩ :: ls, h⟩ := if ij : i = j then ⟨ij.symm.rec m.val, ⟨ls, h.tail⟩,
+  by cases ij; exact h.rel_head', by cases ij; exact cons_eq_rcons.symm ⟩
+else ⟨1, w, by rintro _ ⟨⟩; exact ij, rcons_one w _⟩
+
+/-- If the first letter of `w` comes from `M i`, then `head i w : M i` is that element.
+Otherwise it's `1`. -/
+def head (i w) : M i := (head_tail_aux i w).fst
+/-- `tail i w` drops the first letter of `w` if the first letter comes from `M i`.  -/
+def tail (i w) : word M := (head_tail_aux i w).snd.fst
+
+lemma not_head_tail {i} {w : word M} : not_head i (tail i w) := (head_tail_aux i w).snd.snd.fst
+
+@[simp] lemma rcons_eta {i} {w : word M} : rcons (head i w) (tail i w) not_head_tail = w :=
+(head_tail_aux i w).snd.snd.snd
+
+@[simp] lemma head_rcons {i w h} {m : M i} : head i (rcons m w h) = m := (rcons_inj rcons_eta).left
+
+@[simp] lemma tail_rcons {i w h} {m : M i} : tail i (rcons m w h) = w := (rcons_inj rcons_eta).right
+
+lemma head_eq_one_of_not_head {i} {w : word M} (h : not_head i w) : head i w = 1 :=
+(rcons_inj (rcons_eta.trans (rcons_one w h).symm)).left
+
+lemma tail_eq_self_of_not_head {i} {w : word M} (h : not_head i w) : tail i w = w :=
+(rcons_inj (rcons_eta.trans (rcons_one w h).symm)).right
+
 instance summand_action (i) : mul_action (M i) (word M) :=
-{ smul     := λ m w, w.cases _ $ λ m' w' h, rcons (m * m') w' h,
-  one_smul := λ w, w.cases _ $ λ m' w' h, by { dsimp only, rw [cases_def, one_mul] },
-  mul_smul := λ m m' w, w.cases _ $ λ m'' w' h,
-    by { dsimp only, rw [cases_def, cases_def, cases_def, mul_assoc] } }
+{ smul     := λ m w, rcons (m * head i w) (tail i w) not_head_tail,
+  one_smul := λ w, by simp only [rcons_eta, one_mul],
+  mul_smul := λ m m' w, by simp only [mul_assoc, head_rcons, tail_rcons] }
 
 instance : mul_action (free_product M) (word M) :=
 mul_action.of_End_hom (lift (λ i, mul_action.to_End_hom))
 
-lemma smul_rcons (i) (m m' : M i) (w h) : of m • rcons m' w h = rcons (m * m') w h :=
-cases_def m' w h
+lemma of_smul_def (i w) (m : M i) : of m • w = rcons (m * head i w) (tail i w) not_head_tail := rfl
 
 lemma cons_eq_smul {i m ls hl} :
   (⟨⟨i, m⟩ :: ls, hl⟩ : word M) = (of m.val • ⟨ls, hl.tail⟩ : word M) :=
-by rw [←rcons_one ⟨ls, hl.tail⟩ hl.rel_head', smul_rcons, mul_one, cons_eq_rcons]
+have nh : not_head i ⟨ls, hl.tail⟩ := hl.rel_head',
+by simp_rw [cons_eq_rcons, of_smul_def, head_eq_one_of_not_head nh, mul_one,
+  tail_eq_self_of_not_head nh]; refl
 
 lemma smul_induction {C : word M → Prop}
   (h_empty : C empty)
@@ -239,25 +262,20 @@ begin
   { exact h_empty },
   cases p with i m,
   rw cons_eq_smul,
-  exact h_smul i m.val _ (ih _),
+  exact h_smul i m.val ⟨ls, hl.tail⟩ (ih hl.tail),
 end
 
-@[simp] lemma smul_prod (m) : ∀ w : word M, (m • w).prod = m * w.prod :=
+@[simp] lemma smul_prod (m) : ∀ w : word M, prod (m • w) = m * prod w :=
 m.induction_on
 (λ w, by rw [one_smul, one_mul])
-(λ i m w, w.cases _ $ λ m' w' h,
-  by rw [smul_rcons, rcons_prod, rcons_prod, of.map_mul, mul_assoc])
+(λ i m w, by rw [of_smul_def, rcons_prod, of.map_mul, mul_assoc, ←rcons_prod, rcons_eta] )
 (λ x y hx hy w, by rw [mul_smul, hx, hy, mul_assoc])
 
-/-- An element of the free product corresponds to a unique reduced word. -/
+/-- Each element of the free product corresponds to a unique reduced word. -/
 def equiv : free_product M ≃ word M :=
 { to_fun := λ m, m • empty,
-  inv_fun := λ w, w.prod,
-  left_inv := begin
-    intro m,
-    dsimp only,
-    rw [smul_prod, prod_nil, mul_one],
-  end,
+  inv_fun := λ w, prod w,
+  left_inv := λ m, by dsimp only; rw [smul_prod, prod_nil, mul_one],
   right_inv := begin
     apply smul_induction,
     { dsimp only, rw [prod_nil, one_smul], },

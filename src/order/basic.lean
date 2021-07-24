@@ -620,15 +620,15 @@ class succ_order (α : Type u) [preorder α] :=
 (lt_iff_succ_le : ∀ a b, a < b ↔ succ a ≤ b)
 (lt_succ_iff_le : ∀ a b, a < succ b ↔ a ≤ b)
 
-def succ {α : Type u} [preorder α] [succ_order α] : α → α := succ_order.succ
+open succ_order
 
 lemma lt_iff_succ_le {α : Type u} [preorder α] [succ_order α] {a b : α} :
   a < b ↔ succ a ≤ b :=
-succ_order.lt_iff_succ_le a b
+lt_iff_succ_le a b
 
 lemma lt_succ_iff_le {α : Type u} [preorder α] [succ_order α] {a b : α} :
   a < succ b ↔ a ≤ b :=
-succ_order.lt_succ_iff_le a b
+lt_succ_iff_le a b
 
 /-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b` and `∀ a b, a < b + 1 ↔ a ≤ b`. -/
 class succ_eq_add_one_order (α : Type u) [preorder α] [has_add α] [has_one α] extends

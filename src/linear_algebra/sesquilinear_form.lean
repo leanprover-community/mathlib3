@@ -126,21 +126,24 @@ S x y = 0
 lemma ortho_zero (x : M) :
 is_ortho S (0 : M) x := zero_left x
 
-lemma is_add_monoid_hom_left (S : sesq_form R M I) (x : M) : is_add_monoid_hom (λ z, S z x) :=
-{ map_add := λ z y, sesq_add_left S _ _ _,
-  map_zero := zero_left x }
+@[simps]
+def linear_map_left (S : sesq_form R M I) (x : M) : M →ₗ[R] R :=
+{ to_fun := λ z, S z x,
+  map_add' := λ z y, sesq_add_left S _ _ _,
+  map_smul' := λ r m, sesq_smul_left S _ _ _ }
 
-lemma is_add_monoid_hom_right (S : sesq_form R M I) (x : M) : is_add_monoid_hom (λ z, S x z) :=
-{ map_add := λ z y, sesq_add_right S _ _ _,
-  map_zero := zero_right x }
+def add_monoid_hom_right (S : sesq_form R M I) (x : M) : M →+ R :=
+{ to_fun := λ z, S x z,
+  map_zero' := zero_right x,
+  map_add' := λ z y, sesq_add_right S _ _ _, }
 
 lemma sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S (∑ i in t, g i) w = ∑ i in t, S (g i) w :=
-(finset.sum_hom t (is_add_monoid_hom_left S w)).symm
+(linear_map_left S w).map_sum
 
 lemma sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S w (∑ i in t, g i) = ∑ i in t, S w (g i) :=
-(finset.sum_hom t (is_add_monoid_hom_right S w)).symm
+(add_monoid_hom_right S w).map_sum _ t
 
 variables {M₂ : Type w} [add_comm_group M₂] [module R M₂]
 

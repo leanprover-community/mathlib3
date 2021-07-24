@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import data.real.basic
-import data.set.pairwise
 import data.set.intervals
+import data.set.pairwise
 import set_theory.cardinal
+
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
 There does not exist a partition of a cube into finitely many smaller cubes (at least two)

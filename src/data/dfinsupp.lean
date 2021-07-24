@@ -7,13 +7,17 @@ import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
--- TODO: remove reliance on this import.
 import deprecated.group
 
 /-!
 # Dependent functions with finite support
 
 For a non-dependent version see `data/finsupp.lean`.
+
+## TODO
+
+Remove deprecated import.
+
 -/
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l

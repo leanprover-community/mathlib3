@@ -196,7 +196,7 @@ lemma cons_eq_rcons {i m ls hl} :
   (⟨⟨i, m⟩ :: ls, hl⟩ : word M) = rcons m.val ⟨ls, hl.tail⟩ hl.rel_head' :=
 by { cases m with m hm, rw rcons_ne_one hm, refl, }
 
-@[simp] lemma rcons_prod {i} (m : M i) (w h) :
+@[simp] lemma prod_rcons {i} (m : M i) (w h) :
   prod (rcons m w h) = of m * prod w :=
 if hm : m = 1 then by rw [hm, rcons_one, monoid_hom.map_one, one_mul]
 else by rw [rcons_ne_one hm, prod, list.map_cons, list.prod_cons, prod]
@@ -273,11 +273,11 @@ begin
   exact h_smul i m.val ⟨ls, hl.tail⟩ (ih hl.tail),
 end
 
-@[simp] lemma smul_prod (m) : ∀ w : word M, prod (m • w) = m * prod w :=
+@[simp] lemma prod_smul (m) : ∀ w : word M, prod (m • w) = m * prod w :=
 begin
   apply m.induction_on,
   { intro, rw [one_smul, one_mul] },
-  { intros, rw [of_smul_def, rcons_prod, of.map_mul, mul_assoc, ←rcons_prod, rcons_eta] },
+  { intros, rw [of_smul_def, prod_rcons, of.map_mul, mul_assoc, ←prod_rcons, rcons_eta] },
   { intros x y hx hy w, rw [mul_smul, hx, hy, mul_assoc] },
 end
 
@@ -285,13 +285,11 @@ end
 def equiv : free_product M ≃ word M :=
 { to_fun := λ m, m • empty,
   inv_fun := λ w, prod w,
-  left_inv := λ m, by dsimp only; rw [smul_prod, prod_nil, mul_one],
+  left_inv := λ m, by dsimp only; rw [prod_smul, prod_nil, mul_one],
   right_inv := begin
     apply smul_induction,
     { dsimp only, rw [prod_nil, one_smul], },
-    { dsimp only,
-      intros i m w ih,
-      rw [smul_prod, mul_smul, ih], },
+    { dsimp only, intros i m w ih, rw [prod_smul, mul_smul, ih], },
   end }
 
 end word

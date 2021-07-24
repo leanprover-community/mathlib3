@@ -124,12 +124,11 @@ instance [monoid α] : monoid (filter α) :=
   .. filter.has_one }
 
 section map
-open is_mul_hom
 
-variables [monoid α] [monoid β] {f : filter α} {m : α → β}
+variables [monoid α] [monoid β] {f : filter α} (m : mul_hom α β) (φ : α →* β)
 
 @[to_additive]
-protected lemma map_mul (hm : is_mul_hom m) {f₁ f₂ : filter α} :
+protected lemma map_mul {f₁ f₂ : filter α} :
   map m (f₁ * f₂) = map m f₁ * map m f₂ :=
 begin
   ext s,
@@ -137,46 +136,46 @@ begin
   { rintro ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩,
     have : m '' (t₁ * t₂) ⊆ s := subset.trans (image_subset m t₁t₂) (image_preimage_subset _ _),
     refine ⟨m '' t₁, m '' t₂, image_mem_map ht₁, image_mem_map ht₂, _⟩,
-    rwa ← image_mul hm },
+    rwa ← image_mul m },
   { rintro ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩,
     refine ⟨m ⁻¹' t₁, m ⁻¹' t₂, ht₁, ht₂, image_subset_iff.1 _⟩,
-    rw image_mul hm,
+    rw image_mul m,
     exact subset.trans
       (mul_subset_mul (image_preimage_subset _ _) (image_preimage_subset _ _)) t₁t₂ },
 end
 
 @[to_additive]
-protected lemma map_one (hm : is_monoid_hom m) : map m (1:filter α) = 1 :=
+protected lemma map_one : map φ (1:filter α) = 1 :=
 le_antisymm
   (le_principal_iff.2 $ mem_map_sets_iff.2 ⟨(1:set α), by simp,
-    by { assume x, simp [hm.map_one] }⟩)
+    by { assume x, simp [φ.map_one] }⟩)
   (le_map $ assume s hs,
    begin
      simp only [mem_one],
-     exact ⟨(1:α), (mem_one s).1 hs, hm.map_one⟩
+     exact ⟨(1:α), (mem_one s).1 hs, φ.map_one⟩
    end)
 
--- TODO: prove similar statements when `m` is group homomorphism etc.
-@[to_additive map.is_add_monoid_hom]
-lemma map.is_monoid_hom (hm : is_monoid_hom m) : is_monoid_hom (map m) :=
-{ map_one := filter.map_one hm,
-  map_mul := λ _ _, filter.map_mul hm.to_is_mul_hom }
+@[to_additive]
+def map_monoid_hom : filter α →* filter β :=
+{ to_fun := map φ,
+  map_one' := filter.map_one φ,
+  map_mul' := λ _ _, filter.map_mul φ.to_mul_hom }
 
 -- The other direction does not hold in general.
 @[to_additive]
-lemma comap_mul_comap_le (hm : is_mul_hom m) {f₁ f₂ : filter β} :
+lemma comap_mul_comap_le {f₁ f₂ : filter β} :
   comap m f₁ * comap m f₂ ≤ comap m (f₁ * f₂) :=
 begin
   rintros s ⟨t, ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩, mt⟩,
   refine ⟨m ⁻¹' t₁, m ⁻¹' t₂, ⟨t₁, ht₁, subset.refl _⟩, ⟨t₂, ht₂, subset.refl _⟩, _⟩,
   have := subset.trans (preimage_mono t₁t₂) mt,
-  exact subset.trans (preimage_mul_preimage_subset hm) this
+  exact subset.trans (preimage_mul_preimage_subset _) this
 end
 
 @[to_additive]
-lemma tendsto.mul_mul (hm : is_mul_hom m) {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
+lemma tendsto.mul_mul {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
   tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
-assume hf hg, by { rw [tendsto, filter.map_mul hm], exact filter.mul_le_mul hf hg }
+assume hf hg, by { rw [tendsto, filter.map_mul m], exact filter.mul_le_mul hf hg }
 
 end map
 

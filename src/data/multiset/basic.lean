@@ -495,6 +495,10 @@ lemma strong_downward_induction_on_eq {p : multiset α → Sort*} (s : multiset 
   s.strong_downward_induction_on H = H s (λ t ht h, t.strong_downward_induction_on H ht) :=
 by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
+/-- Another way of expressing `strong_induction_on`: the `(<)` relation is well-founded. -/
+lemma well_founded_lt : well_founded ((<) : multiset α → multiset α → Prop) :=
+subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
+
 /-! ### Singleton -/
 instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
 
@@ -724,6 +728,17 @@ le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
 
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
+
+lemma map_erase [decidable_eq α] [decidable_eq β]
+  (f : α → β) (hf : function.injective f) (x : α) (s : multiset α) :
+  (s.erase x).map f = (s.map f).erase (f x) :=
+begin
+  induction s using multiset.induction_on with y s ih,
+  { simp },
+  by_cases hxy : y = x,
+  { cases hxy, simp },
+  { rw [s.erase_cons_tail hxy, map_cons, map_cons, (s.map f).erase_cons_tail (hf.ne hxy), ih] }
+end
 
 /-! ### `multiset.fold` -/
 

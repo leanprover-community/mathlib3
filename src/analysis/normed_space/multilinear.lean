@@ -694,26 +694,25 @@ calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι
   multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
 ... = _ : if_pos ‹_›
 
-lemma norm_mk_pi_algebra_of_empty (h : ¬nonempty ι) :
+lemma norm_mk_pi_algebra_of_empty [is_empty ι] :
   ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ = ∥(1 : A)∥ :=
 begin
   apply le_antisymm,
   calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι then 1 else ∥(1 : A)∥ :
     multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
-  ... = ∥(1 : A)∥ : if_neg ‹_›,
-  convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
-  simp [eq_empty_of_not_nonempty h univ]
+  ... = ∥(1 : A)∥ : if_neg (not_nonempty_iff.mpr ‹_›),
+  convert ratio_le_op_norm _ (λ _, (1 : A)),
+  simp [eq_empty_of_is_empty (univ : finset ι)],
 end
 
 @[simp] lemma norm_mk_pi_algebra [norm_one_class A] :
   ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ = 1 :=
 begin
-  by_cases hι : nonempty ι,
-  { resetI,
-    refine le_antisymm norm_mk_pi_algebra_le _,
+  casesI is_empty_or_nonempty ι,
+  { simp [norm_mk_pi_algebra_of_empty] },
+  { refine le_antisymm norm_mk_pi_algebra_le _,
     convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
     simp },
-  { simp [norm_mk_pi_algebra_of_empty hι] }
 end
 
 end
@@ -1432,13 +1431,13 @@ end
 
 section
 
-variables (𝕜 G G') {k l : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+variables (𝕜 G G') {k l : ℕ} {s : finset (fin n)}
 
 /-- If `s : finset (fin n)` is a finite set of cardinality `k` and its complement has cardinality
 `l`, then the space of continuous multilinear maps `G [×n]→L[𝕜] G'` of `n` variables is isomorphic
 to the space of continuous multilinear maps `G [×k]→L[𝕜] G [×l]→L[𝕜] G'` of `k` variables taking
 values in the space of continuous multilinear maps of `l` variables. -/
-def curry_fin_finset {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+def curry_fin_finset {k l n : ℕ} {s : finset (fin n)}
   (hk : s.card = k) (hl : sᶜ.card = l) :
   (G [×n]→L[𝕜] G') ≃ₗᵢ[𝕜] (G [×k]→L[𝕜] G [×l]→L[𝕜] G') :=
 (dom_dom_congr 𝕜 G G' (fin_sum_equiv_of_finset hk hl).symm).trans

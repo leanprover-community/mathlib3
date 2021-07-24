@@ -118,23 +118,32 @@ def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
   lift fi (of m) = fi i m :=
 by conv_rhs { rw [←lift.symm_apply_apply fi, lift_symm_apply, monoid_hom.comp_apply] }
 
+@[elab_as_eliminator]
 lemma induction_on {C : free_product M → Prop}
   (m : free_product M)
   (h_one : C 1)
-  (h_of : ∀ {i} (m : M i), C (of m))
-  (h_mul : ∀ {x y}, C x → C y → C (x * y)) :
+  (h_of : ∀ (i) (m : M i), C (of m))
+  (h_mul : ∀ (x y), C x → C y → C (x * y)) :
   C m :=
 begin
-  apply con.induction_on m,
-  intro m',
-  apply m'.rec_on,
-  { rw con.coe_one, exact h_one, },
-  { rintros ⟨i, x⟩ m'' ih, rw con.coe_mul, exact h_mul (h_of x) ih },
+  let S : submonoid (free_product M) := ⟨set_of C, h_one, h_mul⟩,
+  convert subtype.prop (lift (λ i, of.cod_mrestrict S (h_of i)) m),
+  change monoid_hom.id _ m = S.subtype.comp _ m,
+  congr,
+  ext,
+  simp [monoid_hom.cod_mrestrict],
 end
+
+lemma of_left_inverse [decidable_eq ι] (i : ι) :
+  function.left_inverse (lift $ function.update 1 i (monoid_hom.id (M i))) of :=
+λ x, by simp only [lift_of, function.update_same, monoid_hom.id_apply]
+
+lemma of_injective (i : ι) : function.injective ⇑(of : M i →* _) :=
+by { classical, exact (of_left_inverse i).injective }
 
 section group
 
-variables (G : ι → Type*) [∀ i, group (G i)]
+variables (G : ι → Type*) [Π i, group (G i)]
 
 instance : has_inv (free_product G) :=
 { inv := opposite.unop ∘ lift (λ i, (of : G i →* _).op.comp (mul_equiv.inv' (G i)).to_monoid_hom) }

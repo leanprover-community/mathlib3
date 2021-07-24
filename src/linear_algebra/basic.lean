@@ -1578,7 +1578,10 @@ This is the bundled version of `set.range_factorization`. -/
 @[reducible] def range_restrict (f : M →ₗ[R] M₂) : M →ₗ[R] f.range :=
 f.cod_restrict f.range f.mem_range_self
 
-instance fintype_range [decidable_eq M₂] (f : M →ₗ[R] M₂) [fintype M] : fintype (range f) :=
+/-- The range of a linear map is finite if the domain is finite.
+Note: this instance can form a diamond with `subtype.fintype` in the
+  presence of `fintype M₂`. -/
+instance fintype_range [fintype M] [decidable_eq M₂] (f : M →ₗ[R] M₂) : fintype (range f) :=
 set.fintype_range f
 
 section

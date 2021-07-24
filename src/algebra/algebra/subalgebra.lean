@@ -418,6 +418,12 @@ def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
 
+/-- The range of a morphism of algebras is a fintype, if the domain is a fintype.
+
+Note that this instance can cause a diamond with `subtype.fintype` if `B` is also a fintype. -/
+instance fintype_range [fintype A] [decidable_eq B] (φ : A →ₐ[R] B) : fintype φ.range :=
+set.fintype_range φ
+
 end alg_hom
 
 namespace alg_equiv

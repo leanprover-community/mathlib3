@@ -1053,6 +1053,28 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
   λ yH, by simpa [mem_comap, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
 
+variable (H)
+
+/-- Commutivity of a subgroup -/
+structure is_commutative : Prop :=
+(is_comm : _root_.is_commutative H (*))
+
+attribute [class] is_commutative
+
+/-- Commutivity of an additive subgroup -/
+structure _root_.add_subgroup.is_commutative (H : add_subgroup A) : Prop :=
+(is_comm : _root_.is_commutative H (+))
+
+attribute [to_additive add_subgroup.is_commutative] subgroup.is_commutative
+attribute [class] add_subgroup.is_commutative
+
+/-- A commutative subgroup is commutative -/
+@[to_additive] instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
+{ mul_comm := h.is_comm.comm, .. H.to_group }
+
+instance center.is_commutative : (center G).is_commutative :=
+⟨⟨λ a b, subtype.ext (b.2 a)⟩⟩
+
 end subgroup
 
 namespace group
@@ -1415,15 +1437,30 @@ le_antisymm
     (gclosure_preimage_le _ _))
   ((closure_le _).2 $ set.image_subset _ subset_closure)
 
--- this instance can't go just after the definition of mrange because `fintype` is
+-- this instance can't go just after the definition of `mrange` because `fintype` is
 -- not imported at that stage
-@[to_additive]
-instance fintype_mrange {M : Type*} [monoid M] {N : Type*} [monoid N] [decidable_eq N]
-  (f : M →* N) [fintype M] : fintype (mrange f) :=
+
+/-- The range of a finite monoid under a monoid homomorphism is finite.
+Note: this instance can form a diamond with `subtype.fintype` in the
+presence of `fintype N`. -/
+@[to_additive "The range of a finite additive monoid under an additive monoid homomorphism is
+finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`."]
+instance fintype_mrange {M N : Type*} [monoid M] [monoid N] [fintype M] [decidable_eq N]
+  (f : M →* N) : fintype (mrange f) :=
 set.fintype_range f
 
-@[to_additive]
-instance fintype_range [decidable_eq N] (f : G →* N) [fintype G] : fintype (range f) :=
+/-- The range of a finite group under a group homomorphism is finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`. -/
+@[to_additive "The range of a finite additive group under an additive group homomorphism is finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`."]
+instance fintype_range  [fintype G] [decidable_eq N] (f : G →* N) : fintype (range f) :=
 set.fintype_range f
 
 end monoid_hom

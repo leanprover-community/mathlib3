@@ -91,6 +91,9 @@ by { rw [←partial_sups_eq_supr, partial_sups_disjointed_eq], exact le_partial_
 
 lemma supr_disjointed_eq (f : ℕ → α) : (⨆ n, disjointed f n) = (⨆ n, f n) :=
 (supr_le_supr (λ n, disjointed_le f n)).antisymm
-  (supr_le (λ i, (le_supr_disjointed _ _).trans(bsupr_le_supr _ _)))
+  (supr_le (λ i, (le_supr_disjointed _ _).trans (bsupr_le_supr _ _)))
 
 end complete_boolean_algebra
+
+lemma Union_disjointed_eq {f : ℕ → set α} : (⋃ n, disjointed f n) = (⋃ n, f n) :=
+supr_disjointed_eq f

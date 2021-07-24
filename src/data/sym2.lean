@@ -5,6 +5,7 @@ Authors: Kyle Miller
 -/
 import tactic.linarith
 import data.sym
+import algebra.big_operators.basic
 
 /-!
 # The symmetric square
@@ -41,8 +42,7 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
-open function
-open sym
+open finset fintype function sym
 
 universe u
 variables {α : Type u}
@@ -217,6 +217,12 @@ A type `α` is naturally included in the diagonal of `α × α`, and this functi
 of this diagonal in `sym2 α`.
 -/
 def diag (x : α) : sym2 α := ⟦(x, x)⟧
+
+lemma sym2.diag.injective : function.injective (sym2.diag : α → sym2 α) :=
+begin
+  rintro x y (h : ⟦_⟧ = ⟦_⟧),
+  rwa [sym2.eq_iff, or_self, and_self] at h,
+end
 
 /--
 A predicate for testing whether an element of `sym2 α` is on the diagonal.
@@ -452,5 +458,53 @@ begin
 end
 
 end decidable
+
+lemma prod_quotient_sym2_not_diag [decidable_eq α] (s : finset α) :
+  (finset.filter (λ (a : sym2 α), ¬a.is_diag) (finset.image quotient.mk (s.product s))).card =
+    s.card.choose 2 :=
+begin
+  rw [nat.choose_two_right, nat.mul_sub_left_distrib, mul_one, ←finset.off_diag_card],
+  refine (nat.div_eq_of_eq_mul_right (show 0 < 2, by norm_num) _).symm,
+  have : ∀ x ∈ s.off_diag,
+    quotient.mk x ∈ ((s.product s).image quotient.mk).filter (λ (a : sym2 α), ¬a.is_diag),
+  { rintro ⟨x, y⟩ h,
+    rw [mem_off_diag, ←and_assoc] at h,
+    simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,
+      prod.exists, mem_product],
+    exact ⟨⟨x, y, h.1, or.inl ⟨rfl, rfl⟩⟩, h.2⟩ },
+  rw [finset.card_eq_sum_card_fiberwise this, finset.sum_const_nat (quotient.ind _), mul_comm],
+  rintro ⟨x, y⟩ hxy,
+  simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,
+    prod.exists, mem_product] at hxy,
+  have : x ∈ s ∧ y ∈ s,
+  { obtain ⟨⟨x, y, ⟨_, _⟩, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩⟩, _⟩ := hxy; exact ⟨‹_›, ‹_›⟩ },
+  have : s.off_diag.filter (λ (z : α × α), ⟦z⟧ = ⟦(x, y)⟧) = ({(x,y), (y,x)} : finset _),
+  { ext ⟨x₁, y₁⟩,
+    simp only [true_and, mem_filter, mem_insert, mem_product, mem_singleton, sym2.eq_iff,
+      and_iff_right_iff_imp, prod.mk.inj_iff],
+    rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩); rw finset.mem_off_diag,
+    { refine ⟨this.1, this.2, hxy.2⟩ },
+    refine ⟨this.2, this.1, ne.symm hxy.2⟩ },
+  rw [this, card_insert_of_not_mem, card_singleton],
+  simp only [not_and, prod.mk.inj_iff, mem_singleton],
+  exact λ _, ne.symm hxy.2,
+end
+
+lemma card_sym2_not_diag [decidable_eq α] [fintype α] :
+  (univ.filter (λ (a : sym2 α), ¬a.is_diag)).card = (card α).choose 2 :=
+prod_quotient_sym2_not_diag (univ : finset α)
+
+protected lemma card [decidable_eq α] [fintype α] :
+  card (sym2 α) = card α * (card α + 1) / 2 :=
+begin
+  have h : univ.filter (is_diag : sym2 α → Prop) = univ.image sym2.diag,
+  { ext x,
+    rw [mem_filter, mem_image, is_diag_iff_mem_range_diag, set.mem_range],
+    exact ⟨λ ⟨_, a, ha⟩, ⟨a, mem_univ _, ha⟩, λ ⟨a, _, ha⟩, ⟨mem_univ _, a, ha⟩⟩ },
+  rw [←finset.card_univ, ←finset.filter_card_add_filter_neg_card_eq_card sym2.is_diag, h,
+    card_image_of_injective _ sym2.diag.injective, card_sym2_not_diag,
+    nat.choose_two_right, finset.card_univ, add_comm, ←nat.triangle_succ, nat.succ_sub_one,
+    mul_comm],
+end
 
 end sym2

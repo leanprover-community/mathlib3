@@ -672,27 +672,43 @@ end canonically_linear_ordered_monoid
 
 /-- A ordered additive monoid that has a canonical subtraction defined by `a - b ≤ c ↔ a ≤ b + c`.
 -/
-class has_canonical_sub (α : Type*) [ordered_add_comm_monoid α] [has_sub α] :=
+class has_canonical_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
 (sub_le_iff_left : ∀ a b c : α, a - b ≤ c ↔ a ≤ b + c)
 
 section has_canonical_sub
 
-section ordered_add_comm_monoid
-variables [ordered_add_comm_monoid α] [has_sub α] [has_canonical_sub α] {a b c d : α}
+section semigroup
+variables {a b c d : α} [preorder α] [add_semigroup α] [has_sub α] [has_canonical_sub α]
 
 lemma sub_le_iff_left : a - b ≤ c ↔ a ≤ b + c :=
 has_canonical_sub.sub_le_iff_left a b c
 
-theorem sub_le_right_iff_le_add : a - b ≤ c ↔ a ≤ c + b :=
-by rw [sub_le_iff_left, add_comm]
-
 lemma le_add_sub : b ≤ a + (b - a) :=
 sub_le_iff_left.mp le_rfl
 
-lemma le_sub_add : b ≤ (b - a) + a :=
-by { rw [add_comm], exact le_add_sub }
+end semigroup
 
-end ordered_add_comm_monoid
+section comm_semigroup
+variables {a b c d : α} [preorder α] [add_comm_semigroup α] [has_sub α] [has_canonical_sub α]
+
+theorem sub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
+by rw [sub_le_iff_left, add_comm]
+
+lemma le_sub_add : b ≤ (b - a) + a :=
+sub_le_iff_right.mp le_rfl
+
+end comm_semigroup
+
+section cov
+variables {a b c d : α} [partial_order α] [add_semigroup α] [has_sub α]
+  [has_canonical_sub α]
+
+theorem sub_eq_of_eq_add'' [contravariant_class α α (+) (≤)] (h : a = b + c) : a - b = c :=
+le_antisymm (sub_le_iff_left.mpr h.le) $
+  by { subst h, exact le_of_add_le_add_left le_add_sub }
+
+end cov
+
 
 section canonically_ordered_add_monoid
 variables [canonically_ordered_add_monoid α] [has_sub α] [has_canonical_sub α] {a b c d : α}
@@ -760,10 +776,11 @@ by simp_rw [← sub_add_eq_sub_sub', add_comm]
 lemma sub_pos_iff_not_le : 0 < a - b ↔ ¬ a ≤ b :=
 by rw [pos_iff_ne_zero, ne.def, sub_eq_zero_iff_le]
 
+
+
+
 -- namespace canonically_ordered
 
--- theorem sub_eq_of_eq_add (h : a = b + c) : a - b = c :=
--- le_antisymm (sub_le_iff.mpr h.le) $ by { subst h, have := le_refl (b + c - b), rw [sub_le_iff] at this, sorry }
 
 -- lemma eq_sub_of_add_eq (h : a + c = b) : a = b - c :=
 -- _

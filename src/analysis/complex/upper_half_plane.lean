@@ -28,6 +28,7 @@ open_locale classical big_operators
 
 local attribute [instance] fintype.card_fin_even
 
+/-- The upper half plane -/
 abbreviation upper_half_plane :=
 {point : ℂ // 0 < point.im}
 

@@ -714,7 +714,7 @@ lemma add_sub_eq_iff : a + (b - a) = b ↔ a ≤ b :=
 lemma sub_add_eq_iff : b - a + a = b ↔ a ≤ b :=
 by { rw [add_comm], exact add_sub_eq_iff }
 
-lemma sub_pos_of_lt (h : a < b) : 0 < b - a :=
+lemma sub_pos_of_lt' (h : a < b) : 0 < b - a :=
 begin
   refine pos_iff_ne_zero.2 (λ h2, _),
   have := add_sub_eq_iff.mpr h.le,

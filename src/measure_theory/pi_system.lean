@@ -296,8 +296,7 @@ def to_measurable_space (h_inter : ∀ s₁ s₂, d.has s₁ → d.has s₂ → 
   measurable_set_compl := assume s h, d.has_compl h,
   measurable_set_Union := λ f hf,
     begin
-      change d.has (⨆ (i : ℕ), f i),
-      rw [←supr_disjointed_eq],
+      rw ←Union_disjointed_eq,
       exact d.has_Union (disjoint_disjointed _)
         (λ n, disjointed_induct (λ t i h, h_inter _ _ h $ d.has_compl $ hf i) (hf n)),
     end }

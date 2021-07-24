@@ -7,6 +7,8 @@ import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
+-- TODO: remove reliance on this import.
+import deprecated.group
 
 /-!
 # Dependent functions with finite support
@@ -318,6 +320,12 @@ lemma subtype_domain.is_add_monoid_hom [Π i, add_zero_class (β i)]
   {p : ι → Prop} [decidable_pred p] :
   _root_.is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
+
+@[simps] def subtype_domain_add_monoid_hom [Π i, add_zero_class (β i)]
+  {p : ι → Prop} [decidable_pred p] : (Π₀ i : ι, β i) →+ Π₀ i : subtype p, β i :=
+{ to_fun := subtype_domain p,
+  map_zero' := subtype_domain_zero,
+  map_add' := λ _ _, subtype_domain_add }
 
 @[simp]
 lemma subtype_domain_neg [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p] {v : Π₀ i, β i} :
@@ -828,7 +836,7 @@ lemma prod_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ �
   [Π i, add_comm_monoid (β i)]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} {i₂ : ι} :
   (f.sum g) i₂ = f.sum (λi₁ b, g i₁ b i₂) :=
-(f.support.sum_hom (is_add_monoid_hom : _root_.is_add_monoid_hom (λf : Π₀ i, β i, f i₂))).symm
+add_monoid_hom.map_sum (eval_add_monoid_hom i₂ : (Π₀ i, β i) →+ β i₂) _ f.support
 
 include dec
 
@@ -857,7 +865,7 @@ finset.prod_mul_distrib
 @[simp, to_additive] lemma prod_inv [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
   f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
-f.support.prod_hom (show is_monoid_hom (@has_inv.inv γ _), from inv.is_group_hom.to_is_monoid_hom)
+(monoid_hom.map_prod (comm_group.inv_monoid_hom : γ →* γ) _ f.support).symm
 
 @[to_additive]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
@@ -1116,7 +1124,8 @@ omit dec
 lemma subtype_domain_sum [Π i, add_comm_monoid (β i)]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
   (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
-eq.symm (s.sum_hom subtype_domain.is_add_monoid_hom)
+add_monoid_hom.map_sum
+  (subtype_domain_add_monoid_hom : (Π₀ (i : ι), β i) →+ Π₀ (i : subtype p), β ↑i) _ s
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]
   [Π c, has_zero (δ c)] [Π c (x : δ c), decidable (x ≠ 0)]

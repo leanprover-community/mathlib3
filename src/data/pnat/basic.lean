@@ -213,9 +213,7 @@ begin
   { exact (lt_irrefl 0 kprop).elim },
   cases k with k,
   { exact hz },
-  refine hi ⟨k.succ, nat.succ_pos _⟩ (λ ⟨m, _⟩ hm, hk _ _),
-  rw lt_add_one_iff_le,
-  exact hm,
+  exact hi ⟨k.succ, nat.succ_pos _⟩ (λ m hm, hk _ (lt_succ_iff.2 hm)),
 end
 
 /-- An induction principle for `ℕ+`: it takes values in `Sort*`, so it applies also to Types,

@@ -406,21 +406,23 @@ theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal _ _
 
-lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
-  is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
-{ to_is_add_hom := ⟨matrix.mul_add _⟩, map_zero := matrix.mul_zero _ }
+@[simps] def add_monoid_hom_mul_left (M : matrix l m α) : matrix m n α →+ matrix l n α :=
+{ to_fun := λ x, M ⬝ x,
+  map_zero' := matrix.mul_zero _,
+  map_add' := matrix.mul_add _ }
 
-lemma is_add_monoid_hom_mul_right (M : matrix m n α) :
-  is_add_monoid_hom (λ x : matrix l m α, x ⬝ M) :=
-{ to_is_add_hom := ⟨λ _ _, matrix.add_mul _ _ _⟩, map_zero := matrix.zero_mul _ }
+@[simps] def add_monoid_hom_mul_right (M : matrix m n α) : matrix l m α →+ matrix l n α :=
+{ to_fun := λ x, x ⬝ M,
+  map_zero' := matrix.zero_mul _,
+  map_add' := λ _ _, matrix.add_mul _ _ _ }
 
 protected lemma sum_mul (s : finset β) (f : β → matrix l m α)
   (M : matrix m n α) : (∑ a in s, f a) ⬝ M = ∑ a in s, f a ⬝ M :=
-(@finset.sum_hom _ _ _ _ _ s f (λ x, x ⬝ M) M.is_add_monoid_hom_mul_right).symm
+(add_monoid_hom_mul_right M : matrix l m α →+ _).map_sum f s
 
 protected lemma mul_sum (s : finset β) (f : β → matrix m n α)
   (M : matrix l m α) : M ⬝ ∑ a in s, f a = ∑ a in s, M ⬝ f a :=
-(@finset.sum_hom _ _ _ _ _ s f (λ x, M ⬝ x) M.is_add_monoid_hom_mul_left).symm
+(add_monoid_hom_mul_left M : matrix m n α →+ _).map_sum f s
 
 end non_unital_non_assoc_semiring
 
@@ -663,15 +665,10 @@ def mul_vec (M : matrix m n α) (v : n → α) : m → α
 def vec_mul (v : m → α) (M : matrix m n α) : n → α
 | j := dot_product v (λ i, M i j)
 
-lemma mul_vec.is_add_monoid_hom_left (v : n → α) :
-  is_add_monoid_hom (λM:matrix m n α, mul_vec M v) :=
-{ map_zero := by ext; simp [mul_vec]; refl,
-  map_add :=
-  begin
-    intros x y,
-    ext m,
-    apply add_dot_product
-  end }
+@[simps] def mul_vec.add_monoid_hom_left (v : n → α) : matrix m n α →+ m → α :=
+{ to_fun := λ M, mul_vec M v,
+  map_zero' := by ext; simp [mul_vec]; refl,
+  map_add' := λ x y, by { ext m, apply add_dot_product } }
 
 lemma mul_vec_diagonal [decidable_eq m] (v w : m → α) (x : m) :
   mul_vec (diagonal v) w x = v x * w x :=

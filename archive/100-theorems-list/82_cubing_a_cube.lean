@@ -5,7 +5,7 @@ Authors: Floris van Doorn
 -/
 import data.real.basic
 import data.set.intervals
-import data.set.pairiwse
+import data.set.pairwise
 import set_theory.cardinal
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:

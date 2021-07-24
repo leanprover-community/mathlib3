@@ -1207,3 +1207,26 @@ lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
 by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0
 
 end cauchy_seq
+
+section cauchy_product
+
+variables [topological_space α] [regular_space α] [semiring α] [topological_semiring α]
+  {f : β → α} {g : γ → α} (s t u : α)
+
+lemma finset.sum_mul_sum' {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
+  (f₁ : ι₁ → α) (f₂ : ι₂ → α) :
+  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
+by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
+
+lemma has_sum.mul_eq_prod_map (hf : has_sum f s) (hg : has_sum g t)
+  (hfg : has_sum (λ (x : β × γ), f x.1 * g x.2) u) :
+  u = s * t :=
+have key₁ : has_sum (λ b, f b * t) (s * t),
+  from hf.mul_right t,
+have this : ∀ b : β, has_sum (λ c : γ, f b * g c) (f b * t),
+  from λ b, hg.mul_left (f b),
+have key₂ : has_sum (λ b, f b * t) u,
+  from has_sum.prod_fiberwise hfg this,
+has_sum.unique key₂ key₁
+
+end cauchy_product

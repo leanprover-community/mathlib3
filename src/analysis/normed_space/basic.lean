@@ -1947,6 +1947,21 @@ summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable
 
+section cauchy_product
+
+variables {ι' : Type*} [normed_ring α] [complete_space α]
+
+lemma summable_mul_of_summable_norm_left {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable g) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+begin
+  refine summable_of_summable_norm _,
+  rcases hf with ⟨s, hf⟩,
+  rcases hg with ⟨t, hg⟩,
+end
+
+end cauchy_product
+
 namespace uniform_space
 namespace completion
 

@@ -6,7 +6,6 @@ Authors: David Wärn
 import algebra.free_monoid
 import group_theory.congruence
 import data.list.chain
-import group_theory.group_action.End_hom
 /-!
 # The free product of groups or monoids
 
@@ -275,10 +274,12 @@ begin
 end
 
 @[simp] lemma smul_prod (m) : ∀ w : word M, prod (m • w) = m * prod w :=
-m.induction_on
-(λ w, by rw [one_smul, one_mul])
-(λ i m w, by rw [of_smul_def, rcons_prod, of.map_mul, mul_assoc, ←rcons_prod, rcons_eta] )
-(λ x y hx hy w, by rw [mul_smul, hx, hy, mul_assoc])
+begin
+  apply m.induction_on,
+  { intro, rw [one_smul, one_mul] },
+  { intros, rw [of_smul_def, rcons_prod, of.map_mul, mul_assoc, ←rcons_prod, rcons_eta] },
+  { intros x y hx hy w, rw [mul_smul, hx, hy, mul_assoc] },
+end
 
 /-- Each element of the free product corresponds to a unique reduced word. -/
 def equiv : free_product M ≃ word M :=

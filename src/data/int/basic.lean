@@ -163,8 +163,10 @@ lt_add_of_pos_right _ zero_lt_one
 theorem pred_self_lt (a : ℤ) : pred a < a :=
 sub_lt_self _ zero_lt_one
 
+-- just here for linarith
 theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 
+-- just here for linarith
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
 add_le_add_iff_right _
 
@@ -200,6 +202,12 @@ begin
       { convert hn _ n_ih using 1, simp [sub_eq_neg_add] } },
     exact this (i + 1) }
 end
+
+instance : succ_eq_add_one_order ℤ :=
+{ succ := succ,
+  lt_iff_succ_le := λ a b, iff.rfl,
+  lt_succ_iff_le := λ a b, add_le_add_iff_right _,
+  succ_eq_add_one := λ a, rfl }
 
 /-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
   than `b`, and the `pred` of a number less than `b`. -/

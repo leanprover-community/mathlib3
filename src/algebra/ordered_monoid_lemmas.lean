@@ -361,6 +361,17 @@ calc  a * b ≤ a * 1 : mul_le_mul_left' h a
 
 end mul_one_class
 
+@[to_additive]
+lemma mul_left_cancel'' [semigroup α] [partial_order α]
+  [contravariant_class α α ((*) : α → α → α) (≤)] {a b c : α} (h : a * b = a * c) : b = c :=
+(le_of_mul_le_mul_left' h.le).antisymm (le_of_mul_le_mul_left' h.ge)
+
+@[to_additive]
+lemma mul_right_cancel'' [semigroup α] [partial_order α]
+  [contravariant_class α α (function.swap (*) : α → α → α) (≤)] {a b c : α} (h : a * b = c * b) :
+  a = c :=
+le_antisymm (le_of_mul_le_mul_right' h.le) (le_of_mul_le_mul_right' h.ge)
+
 /- This is not instance, since we want to have an instance from `left_cancel_semigroup`s
 to the appropriate `covariant_class`. -/
 /--  A semigroup with a partial order and satisfying `left_cancel_semigroup`
@@ -371,8 +382,7 @@ to the appropriate `covariant_class`. -/
 def contravariant.to_left_cancel_semigroup [semigroup α] [partial_order α]
   [contravariant_class α α ((*) : α → α → α) (≤)] :
   left_cancel_semigroup α :=
-{ mul_left_cancel := λ a b c bc,
-    (le_of_mul_le_mul_left' bc.le).antisymm (le_of_mul_le_mul_left' bc.ge),
+{ mul_left_cancel := λ a b c, mul_left_cancel''
   ..‹semigroup α› }
 
 /- This is not instance, since we want to have an instance from `right_cancel_semigroup`s
@@ -385,8 +395,7 @@ to the appropriate `covariant_class`. -/
 def contravariant.to_right_cancel_semigroup [semigroup α] [partial_order α]
   [contravariant_class α α (function.swap (*) : α → α → α) (≤)] :
   right_cancel_semigroup α :=
-{ mul_right_cancel := λ a b c bc,
-    le_antisymm (le_of_mul_le_mul_right' bc.le) (le_of_mul_le_mul_right' bc.ge)
+{ mul_right_cancel := λ a b c, mul_right_cancel''
   ..‹semigroup α› }
 
 variables {a b c d : α}

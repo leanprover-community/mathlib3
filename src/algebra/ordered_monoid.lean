@@ -728,20 +728,20 @@ by rw [← nonpos_iff_eq_zero, sub_le_iff_left, add_zero]
 lemma sub_self' : a - a = 0 :=
 sub_eq_zero_iff_le.mpr le_rfl
 
-lemma sub_le_self : a - b ≤ a :=
+lemma sub_le_self' : a - b ≤ a :=
 sub_le_iff_left.mpr $ le_add_left le_rfl
 
 lemma sub_zero' : a - 0 = a :=
-le_antisymm sub_le_self $ le_add_sub.trans_eq $ zero_add _
+le_antisymm sub_le_self' $ le_add_sub.trans_eq $ zero_add _
 
-lemma sub_le_sub_right (h : a ≤ b) (c : α) : a - c ≤ b - c :=
+lemma sub_le_sub_right' (h : a ≤ b) (c : α) : a - c ≤ b - c :=
 sub_le_iff_left.mpr $ h.trans le_add_sub
 
-lemma sub_le_sub_left (h : a ≤ b) (c : α) : c - b ≤ c - a :=
+lemma sub_le_sub_left' (h : a ≤ b) (c : α) : c - b ≤ c - a :=
 sub_le_iff_left.mpr $ le_add_sub.trans $ add_le_add_right h _
 
 lemma sub_le_sub' (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
-(sub_le_sub_right hab _).trans $ sub_le_sub_left hcd _
+(sub_le_sub_right' hab _).trans $ sub_le_sub_left' hcd _
 
 lemma sub_add_eq_sub_sub' : a - (b + c) = a - b - c :=
 begin
@@ -756,6 +756,9 @@ by { rw [add_comm], exact sub_add_eq_sub_sub' }
 
 lemma sub_right_comm' : a - b - c = a - c - b :=
 by simp_rw [← sub_add_eq_sub_sub', add_comm]
+
+lemma sub_pos_iff_not_le : 0 < a - b ↔ ¬ a ≤ b :=
+by rw [pos_iff_ne_zero, ne.def, sub_eq_zero_iff_le]
 
 -- namespace canonically_ordered
 
@@ -932,7 +935,7 @@ section canonically_linear_ordered_add_monoid
 variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_canonical_sub α] {a b c : α}
 
 lemma sub_pos_iff_lt : 0 < a - b ↔ b < a :=
-by rw [pos_iff_ne_zero, ne.def, sub_eq_zero_iff_le, not_le]
+by rw [sub_pos_iff_not_le, not_le]
 
 end canonically_linear_ordered_add_monoid
 

@@ -195,7 +195,7 @@ theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
 instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
 
 /-- Strong induction on `ℕ+`. -/
-lemma strong_induction_on {p : ℕ+ → Sort*} : ∀ (n : ℕ+) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
+def strong_induction_on {p : ℕ+ → Sort*} : ∀ (n : ℕ+) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
 | n := λ IH, IH _ (λ a h, strong_induction_on a IH)
 using_well_founded { dec_tac := `[assumption] }
 
@@ -204,7 +204,7 @@ lemma exists_eq_succ_of_ne_one : ∀ {n : ℕ+} (h1 : n ≠ 1), ∃ (k : ℕ+), 
 | ⟨1, _⟩ h1 := false.elim $ h1 rfl
 | ⟨n+2, _⟩ _ := ⟨⟨n+1, by simp⟩, rfl⟩
 
-lemma case_strong_induction_on {p : ℕ+ → Sort*} (a : ℕ+) (hz : p 1)
+def case_strong_induction_on {p : ℕ+ → Sort*} (a : ℕ+) (hz : p 1)
   (hi : ∀ n, (∀ m, m ≤ n → p m) → p (n + 1)) : p a :=
 begin
   apply strong_induction_on a,

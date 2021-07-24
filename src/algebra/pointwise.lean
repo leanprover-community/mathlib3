@@ -431,7 +431,7 @@ is defined as `{x • y | x ∈ s, y ∈ t}` in locale `pointwise`.
 
 See note [reducible non-instances].
 -/
-protected def set.has_scalar [has_scalar α β] : has_scalar (set α) (set β) :=
+protected def has_scalar [has_scalar α β] : has_scalar (set α) (set β) :=
 ⟨image2 has_scalar.smul⟩
 
 localized "attribute [instance] set.has_scalar_set set.has_scalar" in pointwise

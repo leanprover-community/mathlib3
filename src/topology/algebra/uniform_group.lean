@@ -7,6 +7,7 @@ import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
 import topology.algebra.group
 import tactic.abel
+import deprecated.group
 
 /-!
 # Uniform structure on topological groups

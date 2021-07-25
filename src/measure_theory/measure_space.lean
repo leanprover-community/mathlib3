@@ -465,6 +465,12 @@ rfl
 
 /-! ### The complete lattice of measures -/
 
+/-- Measures are partially ordered.
+
+The definition of less equal here is equivalent to the definition without the
+measurable set condition, and this is shown by `measure.le_iff'`. It is defined
+this way since, to prove `μ ≤ ν`, we may simply `intros s hs` instead of rewriting followed
+by `intros s hs`. -/
 instance : partial_order (measure α) :=
 { le          := λ m₁ m₂, ∀ s, measurable_set s → m₁ s ≤ m₂ s,
   le_refl     := assume m s hs, le_refl _,

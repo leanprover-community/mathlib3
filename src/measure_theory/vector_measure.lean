@@ -430,9 +430,10 @@ end measure
 
 namespace vector_measure
 
+variables [measurable_space β]
+
 section
 
-variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {v : vector_measure α M}
 
@@ -548,9 +549,47 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M]
 variables [topological_space R] [has_continuous_smul R M]
 
-@[simp] lemma restrict_smul (c : R) (v : vector_measure α M) {i : set α} (hi : measurable_set i) :
+@[simp] lemma map_smul {v : vector_measure α M} {f : α → β} (c : R) :
+  (c • v).map f = c • v.map f :=
+begin
+  by_cases hf : measurable f,
+  { ext i hi,
+    simp [map_apply hf hi] },
+  { simp only [map, dif_neg hf],
+    -- `smul_zero` does not work since we do not require `has_continuous_add`
+    ext i hi, simp }
+end
+
+@[simp] lemma restrict_smul {v :vector_measure α M} {i : set α} (c : R) :
   (c • v).restrict i = c • v.restrict i :=
-ext (λ j hj, by simp [restrict_apply hi hj])
+begin
+  by_cases hi : measurable_set i,
+  { ext j hj,
+    simp [restrict_apply hi hj] },
+  { simp only [restrict, dif_neg hi],
+    -- `smul_zero` does not work since we do not require `has_continuous_add`
+    ext j hj, simp }
+end
+
+end
+
+section
+
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {R : Type*} [semiring R] [module R M]
+variables [topological_space R] [has_continuous_smul R M] [has_continuous_add M]
+
+/-- `vector_measure.map` as a linear map. -/
+def map'' (f : α → β) : vector_measure α M →ₗ[R] vector_measure β M :=
+{ to_fun := λ v, v.map f,
+  map_add' := λ _ _, map_add _ _ f,
+  map_smul' := λ _ _, map_smul _ }
+
+/-- `vector_measure.restrict` as an additive monoid homomorphism. -/
+def restrict'' (i : set α) : vector_measure α M →ₗ[R] vector_measure α M :=
+{ to_fun := λ v, v.restrict i,
+  map_add' := λ _ _, restrict_add _ _ i,
+  map_smul' := λ _ _, restrict_smul _ }
 
 end
 

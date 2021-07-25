@@ -176,6 +176,31 @@ begin
   rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
+lemma meas_eq_meas_of_null_diff {s t : set α}
+  (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
+by { rw [←diff_diff_cancel_left hst, ←@measure_diff_null _ _ _ t _ h_nulldiff], refl, }
+
+lemma meas_eq_meas_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃ \ s₁) = 0) :
+  (μ s₁ = μ s₂) ∧ (μ s₂ = μ s₃) :=
+begin
+  have le12 : μ s₁ ≤ μ s₂ := measure_mono h12,
+  have le23 : μ s₂ ≤ μ s₃ := measure_mono h23,
+  have key : μ s₃ ≤ μ s₁ := calc
+    μ s₃ = μ ((s₃ \ s₁) ∪ s₁)  : by rw (diff_union_of_subset (h12.trans h23))
+     ... ≤ μ (s₃ \ s₁) + μ s₁  : measure_union_le _ _
+     ... = μ s₁                : by simp only [h_nulldiff, zero_add],
+  exact ⟨le12.antisymm (le23.trans key), le23.antisymm (key.trans le12)⟩,
+end
+
+lemma meas_eq_meas_smaller_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₁ = μ s₂ :=
+(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).1
+
+lemma meas_eq_meas_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₂ = μ s₃ :=
+(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).2
+
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s < ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
 
@@ -440,6 +465,12 @@ rfl
 
 /-! ### The complete lattice of measures -/
 
+/-- Measures are partially ordered.
+
+The definition of less equal here is equivalent to the definition without the
+measurable set condition, and this is shown by `measure.le_iff'`. It is defined
+this way since, to prove `μ ≤ ν`, we may simply `intros s hs` instead of rewriting followed
+by `intros s hs`. -/
 instance : partial_order (measure α) :=
 { le          := λ m₁ m₂, ∀ s, measurable_set s → m₁ s ≤ m₂ s,
   le_refl     := assume m s hs, le_refl _,
@@ -461,17 +492,8 @@ lt_iff_le_not_le.trans $ and_congr iff.rfl $ by simp only [le_iff, not_forall, n
 theorem lt_iff' : μ < ν ↔ μ ≤ ν ∧ ∃ s, μ s < ν s :=
 lt_iff_le_not_le.trans $ and_congr iff.rfl $ by simp only [le_iff', not_forall, not_le]
 
--- TODO: add typeclasses for `∀ c, monotone ((*) c)` and `∀ c, monotone ((+) c)`
-
-protected lemma add_le_add_left (ν : measure α) (hμ : μ₁ ≤ μ₂) : ν + μ₁ ≤ ν + μ₂ :=
-λ s hs, add_le_add_left (hμ s hs) _
-
-protected lemma add_le_add_right (hμ : μ₁ ≤ μ₂) (ν : measure α) : μ₁ + ν ≤ μ₂ + ν :=
-λ s hs, add_le_add_right (hμ s hs) _
-
-protected lemma add_le_add (hμ : μ₁ ≤ μ₂) (hν : ν₁ ≤ ν₂) :
-  μ₁ + ν₁ ≤ μ₂ + ν₂ :=
-λ s hs, add_le_add (hμ s hs) (hν s hs)
+instance covariant_add_le : covariant_class (measure α) (measure α) (+) (≤) :=
+⟨λ ν μ₁ μ₂ hμ s hs, add_le_add_left (hμ s hs) _⟩
 
 protected lemma le_add_left (h : μ ≤ ν) : μ ≤ ν' + ν :=
 λ s hs, le_add_left (h s hs)
@@ -1441,6 +1463,15 @@ lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measur
   (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
+lemma summable_measure_to_real [hμ : finite_measure μ]
+  {f : ℕ → set α} (hf₁ : ∀ (i : ℕ), measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
+  summable (λ x, (μ (f x)).to_real) :=
+begin
+  apply ennreal.summable_to_real,
+  rw ← measure_theory.measure_Union hf₂ hf₁,
+  exact ne_of_lt (measure_lt_top _ _)
+end
+
 end finite_measure
 
 section probability_measure
@@ -1484,6 +1515,11 @@ export has_no_atoms (measure_singleton)
 attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
+
+lemma measure_subsingleton (hs : s.subsingleton) : μ s = 0 :=
+hs.induction_on measure_empty measure_singleton
+
+alias measure_subsingleton ← set.subsingleton.measure_eq
 
 @[simp] lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=
@@ -1914,6 +1950,9 @@ begin
   rw [add_apply, sub_apply h_s_meas h₁, ennreal.sub_add_cancel_of_le (h₁ s h_s_meas)],
 end
 
+lemma sub_le : μ - ν ≤ μ :=
+Inf_le (measure.le_add_right (le_refl _))
+
 end measure_sub
 
 lemma restrict_sub_eq_restrict_sub_restrict (h_meas_s : measurable_set s) :
@@ -1977,6 +2016,10 @@ begin
       sub_eq_zero_of_le],
   repeat {simp [*]},
 end
+
+instance finite_measure_sub [finite_measure μ] : finite_measure (μ - ν) :=
+{ measure_univ_lt_top := lt_of_le_of_lt
+    (measure.sub_le set.univ measurable_set.univ) (measure_lt_top _ _) }
 
 end measure
 

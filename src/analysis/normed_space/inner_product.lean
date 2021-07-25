@@ -3,12 +3,11 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis, Heather Macbeth
 -/
-
+import analysis.complex.basic
+import analysis.normed_space.bounded_linear_maps
+import analysis.special_functions.sqrt
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
-import data.complex.is_R_or_C
-import analysis.special_functions.sqrt
-import analysis.complex.basic
 
 /-!
 # Inner Product Space
@@ -741,6 +740,14 @@ lemma orthonormal.inner_left_fintype [fintype ι]
   ⟪∑ i : ι, (l i) • (v i), v i⟫ = conj (l i) :=
 by simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
 
+/--
+The double sum of weighted inner products of pairs of vectors from an orthonormal sequence is the
+sum of the weights.
+-/
+lemma orthonormal.inner_left_right_finset {s : finset ι}  {v : ι → E} (hv : orthonormal 𝕜 v)
+  {a : ι → ι → 𝕜} : ∑ i in s, ∑ j in s, (a i j) • ⟪v j, v i⟫ = ∑ k in s, a k k :=
+by simp [orthonormal_iff_ite.mp hv, finset.sum_ite_of_true]
+
 /-- An orthonormal set is linearly independent. -/
 lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :
   linear_independent 𝕜 v :=
@@ -1373,6 +1380,58 @@ linear_map.mk_continuous
 @[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
 
 end norm
+
+section bessels_inequality
+
+variables {ι: Type*} (x : E) {v : ι → E}
+
+/-- Bessel's inequality for finite sums. -/
+lemma orthonormal.sum_inner_products_le {s : finset ι} (hv : orthonormal 𝕜 v) :
+  ∑ i in s, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
+begin
+  have h₂ : ∑ i in s, ∑ j in s, ⟪v i, x⟫ * ⟪x, v j⟫ * ⟪v j, v i⟫
+    = (∑ k in s, (⟪v k, x⟫ * ⟪x, v k⟫) : 𝕜),
+   { exact hv.inner_left_right_finset },
+  have h₃ : ∀ z : 𝕜, re (z * conj (z)) = ∥z∥ ^ 2,
+  { intro z,
+    simp only [mul_conj, norm_sq_eq_def'],
+    norm_cast, },
+  suffices hbf: ∥x -  ∑ i in s, ⟪v i, x⟫ • (v i)∥ ^ 2 = ∥x∥ ^ 2 - ∑ i in s, ∥⟪v i, x⟫∥ ^ 2,
+  { rw [←sub_nonneg, ←hbf],
+    simp only [norm_nonneg, pow_nonneg], },
+  rw [norm_sub_sq, sub_add],
+  simp only [inner_product_space.norm_sq_eq_inner, inner_sum],
+  simp only [sum_inner, two_mul, inner_smul_right, inner_conj_sym, ←mul_assoc, h₂, ←h₃,
+  inner_conj_sym, add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib, inner_smul_left,
+  add_sub_cancel'],
+end
+
+/-- Bessel's inequality. -/
+lemma orthonormal.tsum_inner_products_le (hv : orthonormal 𝕜 v) :
+  ∑' i, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
+begin
+  refine tsum_le_of_sum_le' _ (λ s, hv.sum_inner_products_le x),
+  simp only [norm_nonneg, pow_nonneg]
+end
+
+/-- The sum defined in Bessel's inequality is summable. -/
+lemma orthonormal.inner_products_summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥⟪v i, x⟫∥ ^ 2) :=
+begin
+  by_cases hnon : nonempty ι,
+  { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2)),
+    apply has_sum_of_is_lub_of_nonneg,
+    { intro b,
+      simp only [norm_nonneg, pow_nonneg], },
+    { refine is_lub_cSup (set.range_nonempty _) _,
+      use ∥x∥ ^ 2,
+      rintro y ⟨s, rfl⟩,
+      exact hv.sum_inner_products_le x, }, },
+  { rw not_nonempty_iff at hnon,
+    haveI := hnon,
+    exact summable_empty, },
+end
+
+end bessels_inequality
 
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=

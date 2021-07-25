@@ -284,6 +284,18 @@ begin
     (is_open_of_mem_countable_basis hv).measurable_set
 end
 
+variables {α' : Type*} [topological_space α'] [measurable_space α']
+
+lemma meas_interior_of_null_bdry {μ : measure α'} {s : set α'}
+  (h_nullbdry : μ (frontier s) = 0) : μ (interior s) = μ s :=
+meas_eq_meas_smaller_of_between_null_diff
+  interior_subset subset_closure h_nullbdry
+
+lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
+  (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=
+(meas_eq_meas_larger_of_between_null_diff
+  interior_subset subset_closure h_nullbdry).symm
+
 section preorder
 variables [preorder α] [order_closed_topology α] {a b : α}
 
@@ -768,6 +780,30 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
+lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : monotone f) : measurable f :=
+suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
+  from measurable_of_Ioi (λ x, (h x).measurable_set),
+λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
+
+alias measurable_of_monotone ← monotone.measurable
+
+lemma ae_measurable_restrict_of_monotone_on [linear_order β] [order_closed_topology β]
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
+  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) : ae_measurable f (μ.restrict s) :=
+have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
+ae_measurable_restrict_of_measurable_subtype hs this.measurable
+
+lemma measurable_of_antimono [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : ∀ ⦃x y : β⦄, x ≤ y → f y ≤ f x) :
+  measurable f :=
+@measurable_of_monotone (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
+
+lemma ae_measurable_restrict_of_antimono_on [linear_order β] [order_closed_topology β]
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
+  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) : ae_measurable f (μ.restrict s) :=
+@ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
+
 end linear_order
 
 @[measurability]
@@ -879,7 +915,7 @@ end complete_linear_order
 
 section conditionally_complete_linear_order
 
-variables [conditionally_complete_linear_order α] [second_countable_topology α] [order_topology α]
+variables [conditionally_complete_linear_order α] [order_topology α] [second_countable_topology α]
 
 lemma measurable_cSup {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above ((λ i, f i x) '' s)) :

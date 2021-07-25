@@ -323,6 +323,14 @@ calc x \ y = x ↔ x \ y = x \ ⊥ : by rw sdiff_bot
 theorem sdiff_eq_self_iff_disjoint' : x \ y = x ↔ disjoint x y :=
 by rw [sdiff_eq_self_iff_disjoint, disjoint.comm]
 
+lemma sdiff_lt (hx : y ≤ x) (hy : y ≠ ⊥) :
+  x \ y < x :=
+begin
+  refine sdiff_le.lt_of_ne (λ h, hy _),
+  rw [sdiff_eq_self_iff_disjoint', disjoint_iff] at h,
+  rw [←h, inf_eq_right.mpr hx],
+end
+
 -- cf. `is_compl.antimono`
 lemma sdiff_le_sdiff_self (h : z ≤ x) : w \ x ≤ w \ z :=
 le_of_inf_le_sup_le
@@ -520,7 +528,7 @@ end generalized_boolean_algebra
 
 
 /-- Set / lattice complement -/
-class has_compl (α : Type*) := (compl : α → α)
+@[notation_class] class has_compl (α : Type*) := (compl : α → α)
 
 export has_compl (compl)
 
@@ -577,8 +585,13 @@ is_compl_bot_top.compl_eq
 @[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
 is_compl_compl.symm.compl_eq
 
+@[simp] theorem compl_involutive : function.involutive (compl : α → α) := compl_compl
+
+theorem compl_bijective : function.bijective (compl : α → α) :=
+compl_involutive.bijective
+
 theorem compl_injective : function.injective (compl : α → α) :=
-function.involutive.injective compl_compl
+compl_involutive.injective
 
 @[simp] theorem compl_inj_iff : xᶜ = yᶜ ↔ x = y :=
 compl_injective.eq_iff

@@ -21,6 +21,7 @@ Instances for the following typeclasses are defined:
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
 * `has_continuous_inv' ℝ≥0` (continuity of `x⁻¹` away from `0`)
+* `has_continuous_smul ℝ≥0 ℝ`
 
 Everything is inherited from the corresponding structures on the reals.
 
@@ -47,7 +48,7 @@ open set topological_space metric filter
 open_locale topological_space
 
 namespace nnreal
-open_locale nnreal big_operators
+open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
@@ -94,6 +95,12 @@ lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m 
   tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
 (continuous_of_real.tendsto _).comp h
 
+lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
+nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (λ a, Iio a) :=
+nhds_bot_basis
+
 instance : has_continuous_sub ℝ≥0 :=
 ⟨continuous_subtype_mk _ $
   ((continuous_coe.comp continuous_fst).sub
@@ -102,6 +109,10 @@ instance : has_continuous_sub ℝ≥0 :=
 instance : has_continuous_inv' ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
+
+instance : has_continuous_smul ℝ≥0 ℝ :=
+{ continuous_smul := continuous.comp real.continuous_mul $ continuous.prod_mk
+    (continuous.comp continuous_subtype_val continuous_fst) continuous_snd }
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=

@@ -89,7 +89,10 @@ variables {R : Type u} {S : Type v} {A : Type w} {B : Type*}
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
-over `R`. -/
+over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module' [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x : A), (r • 1) * x = r • x)
   (h₂ : ∀ (r : R) (x : A), x * (r • 1) = r • x) : algebra R A :=
@@ -103,7 +106,10 @@ def of_module' [comm_semiring R] [semiring A] [module R A]
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • x) * y = x * (r • y) = r • (x * y)` for all `r : R` and `x y : A`, then `A`
-is an `algebra` over `R`. -/
+is an `algebra` over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x y : A), (r • x) * y = r • (x * y))
   (h₂ : ∀ (r : R) (x y : A), x * (r • y) = r • (x * y)) : algebra R A :=
@@ -196,14 +202,18 @@ smul_mul_assoc r x y
 section
 variables {r : R} {a : A}
 
-@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = r • 2 :=
+@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = bit0 (r • (1 : A)) :=
+by simp [bit0, add_smul]
+lemma bit0_smul_one' : bit0 r • (1 : A) = r • 2 :=
 by simp [bit0, add_smul, smul_add]
 @[simp] lemma bit0_smul_bit0 : bit0 r • bit0 a = r • (bit0 (bit0 a)) :=
 by simp [bit0, add_smul, smul_add]
 @[simp] lemma bit0_smul_bit1 : bit0 r • bit1 a = r • (bit0 (bit1 a)) :=
 by simp [bit0, add_smul, smul_add]
-@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = r • 2 + 1 :=
-by simp [bit1, add_smul, smul_add]
+@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = bit1 (r • (1 : A)) :=
+by simp [bit1, add_smul]
+lemma bit1_smul_one' : bit1 r • (1 : A) = r • 2 + 1 :=
+by simp [bit1, bit0, add_smul, smul_add]
 @[simp] lemma bit1_smul_bit0 : bit1 r • bit0 a = r • (bit0 (bit0 a)) + bit0 a :=
 by simp [bit1, add_smul, smul_add]
 @[simp] lemma bit1_smul_bit1 : bit1 r • bit1 a = r • (bit0 (bit1 a)) + bit1 a :=

@@ -595,7 +595,7 @@ eval₂_map f (ring_hom.id _) x
 
 lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
-eq.symm $ sum_hom _ (map_ring_hom f).to_is_add_monoid_hom
+(map_ring_hom f).map_sum _ _
 
 lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
 polynomial.induction_on p
@@ -731,7 +731,7 @@ eq.symm $ multiset.prod_hom _ (map_ring_hom f).to_monoid_hom
 
 lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
-eq.symm $ prod_hom _ (map_ring_hom f).to_is_monoid_hom
+(map_ring_hom f).map_prod _ _
 
 lemma support_map_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
 begin

@@ -55,18 +55,21 @@ variables {R : Type u} [semiring R] {S : Type v} [semiring S] {f : R →+* S}
 def lifts (f : R →+* S) : subsemiring (polynomial S) := ring_hom.srange (map_ring_hom f)
 
 lemma mem_lifts (p : polynomial S) : p ∈ lifts f ↔ ∃ (q : polynomial R), map f q = p :=
-by simp only [coe_map_ring_hom, lifts, ring_hom.coe_of, ring_hom.mem_srange]
+by simp only [coe_map_ring_hom, lifts, ring_hom.mem_srange]
 
 lemma lifts_iff_set_range (p : polynomial S) : p ∈ lifts f ↔ p ∈ set.range (map f) :=
-by simp only [coe_map_ring_hom, lifts, set.mem_range, ring_hom.coe_of, ring_hom.mem_srange]
+by simp only [coe_map_ring_hom, lifts, set.mem_range, ring_hom.mem_srange]
+
+lemma lifts_iff_ring_hom_srange (p : polynomial S) : p ∈ lifts f ↔ p ∈ (map_ring_hom f).srange :=
+by simp only [coe_map_ring_hom, lifts, set.mem_range, ring_hom.mem_srange]
 
 lemma lifts_iff_coeff_lifts (p : polynomial S) : p ∈ lifts f ↔ ∀ (n : ℕ), p.coeff n ∈ set.range f :=
-by rw [lifts_iff_set_range, mem_map_range]
+by { rw [lifts_iff_ring_hom_srange, mem_map_srange f], refl }
 
 /--If `(r : R)`, then `C (f r)` lifts. -/
 lemma C_mem_lifts (f : R →+* S) (r : R) : (C (f r)) ∈ lifts f :=
 ⟨C r, by simp only [coe_map_ring_hom, map_C, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
-  ring_hom.coe_of, and_self]⟩
+  and_self]⟩
 
 /-- If `(s : S)` is in the image of `f`, then `C s` lifts. -/
 lemma C'_mem_lifts {f : R →+* S} {s : S} (h : s ∈ set.range f) : (C s) ∈ lifts f :=
@@ -74,23 +77,23 @@ begin
   obtain ⟨r, rfl⟩ := set.mem_range.1 h,
   use C r,
   simp only [coe_map_ring_hom, map_C, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
-    ring_hom.coe_of, and_self]
+    and_self]
 end
 
 /-- The polynomial `X` lifts. -/
 lemma X_mem_lifts (f : R →+* S) : (X : polynomial S) ∈ lifts f :=
 ⟨X, by simp only [coe_map_ring_hom, set.mem_univ, subsemiring.coe_top, eq_self_iff_true, map_X,
-  ring_hom.coe_of, and_self]⟩
+  and_self]⟩
 
 /-- The polynomial `X ^ n` lifts. -/
 lemma X_pow_mem_lifts (f : R →+* S) (n : ℕ) : (X ^ n : polynomial S) ∈ lifts f :=
 ⟨X ^ n, by simp only [coe_map_ring_hom, map_pow, set.mem_univ, subsemiring.coe_top,
-  eq_self_iff_true, map_X, ring_hom.coe_of, and_self]⟩
+  eq_self_iff_true, map_X, and_self]⟩
 
 /-- If `p` lifts and `(r : R)` then `r * p` lifts. -/
 lemma base_mul_mem_lifts {p : polynomial S} (r : R) (hp : p ∈ lifts f) : C (f r) * p ∈ lifts f :=
 begin
-  simp only [lifts, ring_hom.coe_of, ring_hom.mem_srange] at hp ⊢,
+  simp only [lifts, ring_hom.mem_srange] at hp ⊢,
   obtain ⟨p₁, rfl⟩ := hp,
   use C r * p₁,
   simp only [coe_map_ring_hom, map_C, map_mul]
@@ -102,13 +105,13 @@ begin
   obtain ⟨r, rfl⟩ := set.mem_range.1 h,
   use monomial n r,
   simp only [coe_map_ring_hom, set.mem_univ, map_monomial, subsemiring.coe_top, eq_self_iff_true,
-    ring_hom.coe_of, and_self],
+    and_self],
 end
 
 /-- If `p` lifts then `p.erase n` lifts. -/
 lemma erase_mem_lifts {p : polynomial S} (n : ℕ) (h : p ∈ lifts f) : p.erase n ∈ lifts f :=
 begin
-  rw [lifts_iff_set_range, mem_map_range] at h ⊢,
+  rw [lifts_iff_ring_hom_srange, mem_map_srange] at h ⊢,
   intros k,
   by_cases hk : k = n,
   { use 0,
@@ -252,7 +255,7 @@ by simp only [map_alg, aeval_def, eval₂, map, algebra_map_apply, ring_hom.coe_
 /-- A polynomial `p` lifts if and only if it is in the image of `map_alg`. -/
 lemma mem_lifts_iff_mem_alg (R : Type u) [comm_semiring R] {S : Type v} [semiring S] [algebra R S]
   (p : polynomial S) :p ∈ lifts (algebra_map R S) ↔ p ∈ (alg_hom.range (@map_alg R _ S _ _)) :=
-by simp only [coe_map_ring_hom, lifts, map_alg_eq_map, alg_hom.mem_range, ring_hom.coe_of,
+by simp only [coe_map_ring_hom, lifts, map_alg_eq_map, alg_hom.mem_range,
   ring_hom.mem_srange]
 
 /-- If `p` lifts and `(r : R)` then `r • p` lifts. -/

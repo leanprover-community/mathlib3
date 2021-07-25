@@ -20,9 +20,6 @@ open finset
 open_locale big_operators
 open_locale topological_space
 
--- TODO move this out of "data" to somewhere else
-
--- TODO i suspect this already exists somewhere, or something similar
 lemma complex.tendsto_iff_real (u : ℕ → ℝ) (x : ℝ) :
   tendsto (λ n, u n) at_top (𝓝 x) ↔
   tendsto (λ n, (u n : ℂ)) at_top (𝓝 (x : ℂ)) :=
@@ -32,7 +29,6 @@ begin
   { exact λ h, (complex.continuous_re.tendsto x).comp h },
 end
 
--- TODO what's the appropriate place for these lemmas?
 lemma complex.tendsto_exp_series (z : ℂ) :
   tendsto (λ n, ∑ k in range n, z^k / k.factorial) at_top (𝓝 z.exp) :=
 begin

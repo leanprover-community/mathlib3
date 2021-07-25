@@ -218,7 +218,7 @@ of this diagonal in `sym2 α`.
 -/
 def diag (x : α) : sym2 α := ⟦(x, x)⟧
 
-lemma sym2.diag.injective : function.injective (sym2.diag : α → sym2 α) :=
+lemma diag.injective : function.injective (sym2.diag : α → sym2 α) :=
 begin
   rintro x y (h : ⟦_⟧ = ⟦_⟧),
   rwa [sym2.eq_iff, or_self, and_self] at h,
@@ -459,14 +459,29 @@ end
 
 end decidable
 
+lemma filter_image_quotient_mk [decidable_eq α] (s : finset α) :
+  ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
+    s.off_diag.image quotient.mk :=
+begin
+  ext ⟨x, y⟩,
+  simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  split,
+  { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
+    rw [←h, sym2.is_diag_iff_eq] at hab,
+    exact ⟨a, b, ⟨ha, hb, hab⟩, h⟩ },
+  { rintro ⟨a, b, ⟨ha, hb, hab⟩, h⟩,
+    rw [ne.def, ←sym2.is_diag_iff_eq, h] at hab,
+    exact ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩ }
+end
+
 lemma prod_quotient_sym2_not_diag [decidable_eq α] (s : finset α) :
-  (finset.filter (λ (a : sym2 α), ¬a.is_diag) (finset.image quotient.mk (s.product s))).card =
+  (((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag)).card =
     s.card.choose 2 :=
 begin
-  rw [nat.choose_two_right, nat.mul_sub_left_distrib, mul_one, ←finset.off_diag_card],
-  refine (nat.div_eq_of_eq_mul_right (show 0 < 2, by norm_num) _).symm,
+  rw [nat.choose_two_right, nat.mul_sub_left_distrib, mul_one,
+    ←finset.off_diag_card, nat.div_eq_of_eq_mul_right zero_lt_two],
   have : ∀ x ∈ s.off_diag,
-    quotient.mk x ∈ ((s.product s).image quotient.mk).filter (λ (a : sym2 α), ¬a.is_diag),
+    quotient.mk x ∈ ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag),
   { rintro ⟨x, y⟩ h,
     rw [mem_off_diag, ←and_assoc] at h,
     simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,

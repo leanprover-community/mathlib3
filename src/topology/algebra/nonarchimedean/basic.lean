@@ -26,6 +26,8 @@ group is nonarchimedean.
 
 -/
 
+open_locale pointwise
+
 /-- An topological additive group is nonarchimedean if every neighborhood of 0
   contains an open subgroup. -/
 class nonarchimedean_add_group (G : Type*)

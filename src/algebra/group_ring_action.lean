@@ -140,7 +140,6 @@ begin
 end
 
 variables (M : Type u) [monoid M] {R : Type v} [ring R] [mul_semiring_action M R]
-
 variables (S : set R) [is_subring S]
 open mul_action
 

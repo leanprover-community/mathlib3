@@ -195,7 +195,7 @@ section complex_fderiv_properties
 
 open complex continuous_linear_map
 
-variables {f : ℂ → ℂ} {z : ℂ} {g : ℂ →L[ℝ] ℂ}
+variables {f : ℂ → ℂ} {z : ℂ}
 
 lemma fderiv_eq_fderiv_of_holomorph (h : differentiable_at ℂ f z) :
   (fderiv ℝ f z : ℂ → ℂ) = fderiv ℂ f z :=

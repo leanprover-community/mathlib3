@@ -1256,6 +1256,26 @@ function.update_eq_self i A
   A.update_column i (λ j, A j i) = A :=
 funext $ λ j, function.update_eq_self i (A j)
 
+lemma map_update_row [decidable_eq m] (f : R → S)
+  (M : matrix m n R) (i : m) (b : n → R) :
+  (M.update_row i b).map f = (M.map f).update_row i (f ∘ b) :=
+begin
+  ext,
+  rw [map_apply, update_row_apply, update_row_apply],
+  split_ifs;
+  simp
+end
+
+lemma map_update_column [decidable_eq n] (f : R → S)
+  (M : matrix m n R) (i : n) (b : m → R) :
+  (M.update_column i b).map f = (M.map f).update_column i (f ∘ b) :=
+begin
+  ext,
+  rw [map_apply, update_column_apply, update_column_apply],
+  split_ifs;
+  simp
+end
+
 end update
 
 end matrix

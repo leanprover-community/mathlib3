@@ -806,7 +806,7 @@ lemma separable_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬p ∣ n) :
 begin
   have hdvd : (map (int.cast_ring_hom (zmod p))
     (minpoly ℤ μ)) ∣ X ^ n - 1,
-  { simpa [map_pow, map_X, map_one, ring_hom.coe_of, map_sub] using
+  { simpa [map_pow, map_X, map_one, map_sub] using
       ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p)))
         (minpoly_dvd_X_pow_sub_one h hpos) },
   refine separable.of_dvd (separable_X_pow_sub_C 1 _ one_ne_zero) hdvd,

@@ -89,7 +89,10 @@ variables {R : Type u} {S : Type v} {A : Type w} {B : Type*}
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
-over `R`. -/
+over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module' [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x : A), (r • 1) * x = r • x)
   (h₂ : ∀ (r : R) (x : A), x * (r • 1) = r • x) : algebra R A :=
@@ -103,7 +106,10 @@ def of_module' [comm_semiring R] [semiring A] [module R A]
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • x) * y = x * (r • y) = r • (x * y)` for all `r : R` and `x y : A`, then `A`
-is an `algebra` over `R`. -/
+is an `algebra` over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x y : A), (r • x) * y = r • (x * y))
   (h₂ : ∀ (r : R) (x y : A), x * (r • y) = r • (x * y)) : algebra R A :=
@@ -196,14 +202,18 @@ smul_mul_assoc r x y
 section
 variables {r : R} {a : A}
 
-@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = r • 2 :=
+@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = bit0 (r • (1 : A)) :=
+by simp [bit0, add_smul]
+lemma bit0_smul_one' : bit0 r • (1 : A) = r • 2 :=
 by simp [bit0, add_smul, smul_add]
 @[simp] lemma bit0_smul_bit0 : bit0 r • bit0 a = r • (bit0 (bit0 a)) :=
 by simp [bit0, add_smul, smul_add]
 @[simp] lemma bit0_smul_bit1 : bit0 r • bit1 a = r • (bit0 (bit1 a)) :=
 by simp [bit0, add_smul, smul_add]
-@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = r • 2 + 1 :=
-by simp [bit1, add_smul, smul_add]
+@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = bit1 (r • (1 : A)) :=
+by simp [bit1, add_smul]
+lemma bit1_smul_one' : bit1 r • (1 : A) = r • 2 + 1 :=
+by simp [bit1, bit0, add_smul, smul_add]
 @[simp] lemma bit1_smul_bit0 : bit1 r • bit0 a = r • (bit0 (bit0 a)) + bit0 a :=
 by simp [bit1, add_smul, smul_add]
 @[simp] lemma bit1_smul_bit1 : bit1 r • bit1 a = r • (bit0 (bit1 a)) + bit1 a :=
@@ -588,6 +598,31 @@ theorem to_linear_map_injective : function.injective (to_linear_map : _ → (A �
 
 @[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
+
+@[simp] lemma to_linear_map_id : to_linear_map (alg_hom.id R A) = linear_map.id :=
+linear_map.ext $ λ _, rfl
+
+/-- Promote a `linear_map` to an `alg_hom` by supplying proofs about the behavior on `1` and `*`. -/
+@[simps]
+def of_linear_map (f : A →ₗ[R] B) (map_one : f 1 = 1) (map_mul : ∀ x y, f (x * y) = f x * f y) :
+  A →ₐ[R] B :=
+{ to_fun := f,
+  map_one' := map_one,
+  map_mul' := map_mul,
+  commutes' := λ c, by simp only [algebra.algebra_map_eq_smul_one, f.map_smul, map_one],
+  .. f.to_add_monoid_hom }
+
+@[simp] lemma of_linear_map_to_linear_map (map_one) (map_mul) :
+  of_linear_map φ.to_linear_map map_one map_mul = φ :=
+by { ext, refl }
+
+@[simp] lemma to_linear_map_of_linear_map (f : A →ₗ[R] B) (map_one) (map_mul) :
+  to_linear_map (of_linear_map f map_one map_mul) = f :=
+by { ext, refl }
+
+@[simp] lemma of_linear_map_id (map_one) (map_mul) :
+  of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
+ext $ λ _, rfl
 
 lemma map_list_prod (s : list A) :
   φ s.prod = (s.map φ).prod :=

@@ -210,7 +210,7 @@ congr_arg (λ h : locally_constant X Y, h x) h
 theorem congr_arg (f : locally_constant X Y) {x y : X} (h : x = y) : f x = f y :=
 congr_arg (λ x : X, f x) h
 
-theorem coe_injective : function.injective (λ (f : locally_constant X Y) (x : X), f x)
+theorem coe_injective : @function.injective (locally_constant X Y) (X → Y) coe_fn
 | ⟨f, hf⟩ ⟨g, hg⟩ h := have f = g, from h, by subst f
 
 @[simp, norm_cast] theorem coe_inj {f g : locally_constant X Y} : (f : X → Y) = g ↔ f = g :=

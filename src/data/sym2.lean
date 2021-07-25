@@ -22,10 +22,14 @@ test.  Given `h : a ∈ z` for `z : sym2 α`, then `h.other` is the other
 element of the pair, defined using `classical.choice`.  If `α` has
 decidable equality, then `h.other'` computably gives the other element.
 
+The universal property of `sym2` is provided as `sym2.lift`, which
+states that functions from `sym2 α` are equivalent to symmetric
+two-argument functions from `α`.
+
 Recall that an undirected graph (allowing self loops, but no multiple
 edges) is equivalent to a symmetric relation on the vertex type `α`.
 Given a symmetric relation on `α`, the corresponding edge set is
-constructed by `sym2.from_rel`.
+constructed by `sym2.from_rel` which is a special case of `sym2.lift`.
 
 ## Notation
 
@@ -86,6 +90,31 @@ by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 lemma congr_left {a b c : α} : ⟦(b, a)⟧ = ⟦(c, a)⟧ ↔ b = c :=
 by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
+lemma eq_iff {x y z w : α} :
+  ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
+begin
+  split; intro h,
+  { rw quotient.eq at h, cases h; tidy },
+  { cases h; rw [h.1, h.2], rw eq_swap }
+end
+
+/-- The universal property of `sym2`; symmetric functions of two arguments are equivalent to
+functions from `sym2`. Note that when `β` is `Prop`, it can sometimes be more convenient to use
+`sym2.from_rel` instead. -/
+def lift {β : Type*} : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁} ≃ (sym2 α → β) :=
+{ to_fun := λ f, quotient.lift (uncurry ↑f) $ by { rintro _ _ ⟨⟩, exacts [rfl, f.prop _ _] },
+  inv_fun := λ F, ⟨curry (F ∘ quotient.mk), λ a₁ a₂, congr_arg F eq_swap⟩,
+  left_inv := λ f, subtype.ext rfl,
+  right_inv := λ F, funext $ quotient.ind $ prod.rec $ by exact λ _ _, rfl }
+
+@[simp]
+lemma lift_mk {β : Type*} (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ a₁}) (a₁ a₂ : α) :
+  lift f ⟦(a₁, a₂)⟧ = (f : α → α → β) a₁ a₂ := rfl
+
+@[simp]
+lemma coe_lift_symm_apply {β : Type*} (F : sym2 α → β) (a₁ a₂ : α) :
+  (lift.symm F : α → α → β) a₁ a₂ = F ⟦(a₁, a₂)⟧ := rfl
+
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.
 -/
@@ -99,9 +128,21 @@ lemma map_id : sym2.map (@id α) = id := by tidy
 lemma map_comp {α β γ : Type*} {g : β → γ} {f : α → β} :
   sym2.map (g ∘ f) = sym2.map g ∘ sym2.map f := by tidy
 
+lemma map_map {α β γ : Type*} {g : β → γ} {f : α → β} (x : sym2 α) :
+  map g (map f x) = map (g ∘ f) x := by tidy
+
 @[simp]
-lemma map_pair_eq {α β : Type*} (f : α → β) (x y : α) : map f ⟦(x, y)⟧ = ⟦(f x, f y)⟧ :=
-by simp [map]
+lemma map_pair_eq {α β : Type*} (f : α → β) (x y : α) : map f ⟦(x, y)⟧ = ⟦(f x, f y)⟧ := rfl
+
+lemma map.injective {α β : Type*} {f : α → β} (hinj : injective f) : injective (map f) :=
+begin
+  intros z z',
+  refine quotient.ind₂ (λ z z', _) z z',
+  cases z with x y,
+  cases z' with x' y',
+  repeat { rw [map_pair_eq, eq_iff] },
+  rintro (h|h); simp [hinj h.1, hinj h.2],
+end
 
 section membership
 
@@ -131,14 +172,6 @@ classical.some h
 @[simp]
 lemma mem_other_spec {a : α} {z : sym2 α} (h : a ∈ z) : ⟦(a, h.other)⟧ = z :=
 by erw ← classical.some_spec h
-
-lemma eq_iff {x y z w : α} :
-  ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
-begin
-  split; intro h,
-  { rw quotient.eq at h, cases h; tidy },
-  { cases h; rw [h.1, h.2], rw eq_swap }
-end
 
 @[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
@@ -188,19 +221,30 @@ def diag (x : α) : sym2 α := ⟦(x, x)⟧
 /--
 A predicate for testing whether an element of `sym2 α` is on the diagonal.
 -/
-def is_diag (z : sym2 α) : Prop := z ∈ set.range (@diag α)
+def is_diag : sym2 α → Prop :=
+lift ⟨eq, λ _ _, propext eq_comm⟩
 
-@[simp]
-lemma diag_is_diag (a : α) : is_diag (diag a) :=
-by use a
+lemma is_diag_iff_eq {x y : α} : is_diag ⟦(x, y)⟧ ↔ x = y :=
+iff.rfl
 
 @[simp]
 lemma is_diag_iff_proj_eq (z : α × α) : is_diag ⟦z⟧ ↔ z.1 = z.2 :=
+prod.rec_on z $ λ _ _, is_diag_iff_eq
+
+@[simp]
+lemma diag_is_diag (a : α) : is_diag (diag a) :=
+eq.refl a
+
+lemma is_diag.mem_range_diag {z : sym2 α} : is_diag z → z ∈ set.range (@diag α) :=
 begin
-  cases z with a, split,
-  { rintro ⟨_, h⟩, dsimp only, erw eq_iff at h, rcases h; cc },
-  { rintro ⟨⟩, use a, refl },
+  induction z using quotient.induction_on,
+  cases z,
+  rintro (rfl : z_fst = z_snd),
+  exact ⟨z_fst, rfl⟩,
 end
+
+lemma is_diag_iff_mem_range_diag (z : sym2 α) : is_diag z ↔ z ∈ set.range (@diag α) :=
+⟨is_diag.mem_range_diag, λ ⟨i, hi⟩, hi ▸ diag_is_diag i⟩
 
 instance is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@is_diag α) :=
 by { refine λ z, quotient.rec_on_subsingleton z (λ a, _), erw is_diag_iff_proj_eq, apply_instance }
@@ -225,7 +269,7 @@ Symmetric relations define a set on `sym2 α` by taking all those pairs
 of elements that are related.
 -/
 def from_rel (sym : symmetric r) : set (sym2 α) :=
-quotient.lift (uncurry r) (by { rintros _ _ ⟨_, _⟩, tidy })
+set_of (lift ⟨r, λ x y, propext ⟨λ h, sym h, λ h, sym h⟩⟩)
 
 @[simp]
 lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} :
@@ -233,20 +277,19 @@ lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} :
 
 @[simp]
 lemma from_rel_prop {sym : symmetric r} {a b : α} :
-  ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := by simp only [from_rel_proj_prop]
+  ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := iff.rfl
 
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
-{ mp  := by { intros h z hr hd, induction z,
-              erw is_diag_iff_proj_eq at hd, erw from_rel_proj_prop at hr, tidy },
-  mpr := by { intros h x hr, rw ← @from_rel_prop _ _ sym at hr, exact h hr ⟨x, rfl⟩ }}
+{ mp  := λ h, quotient.ind $ prod.rec $ by { rintros a b hr (rfl : a = b), exact h _ hr },
+  mpr := λ h x hr, h (from_rel_prop.mpr hr) rfl }
 
 lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)
   {a : α} {z : sym2 α} (hz : z ∈ from_rel sym) (h : a ∈ z) : h.other ≠ a :=
 mem_other_ne (from_rel_irreflexive.mp irrefl hz) h
 
 instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
-  decidable_pred (sym2.from_rel sym) :=
+  decidable_pred (∈ sym2.from_rel sym) :=
 λ z, quotient.rec_on_subsingleton z (λ x, h _ _)
 
 end relations

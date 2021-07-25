@@ -3,13 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import algebra.punit_instances
-import topology.instances.nnreal
-import topology.algebra.module
-import topology.algebra.algebra
+import algebra.algebra.subalgebra
+import order.liminf_limsup
 import topology.algebra.group_completion
+import topology.instances.nnreal
 import topology.metric_space.completion
-import topology.algebra.ordered.liminf_limsup
+import topology.sequences
 
 /-!
 # Normed spaces
@@ -22,7 +21,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-open_locale topological_space big_operators nnreal ennreal
+open_locale topological_space big_operators nnreal ennreal uniformity
 
 /-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
 be extended in more interesting classes specifying the properties of the norm. -/
@@ -140,7 +139,7 @@ by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
 @[simp] lemma dist_sub_right (g₁ g₂ h : α) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using dist_add_right _ _ _
 
-/-- Triangle inequality for the norm. -/
+/-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : α) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 (-h)
 
@@ -219,6 +218,10 @@ lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥h - g∥ < r :=
 by rw [mem_ball, dist_eq_norm]
 
+lemma add_mem_ball_iff_norm {g h : α} {r : ℝ} :
+  g + h ∈ ball g r ↔ ∥h∥ < r :=
+by rw [mem_ball_iff_norm, add_sub_cancel']
+
 lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
@@ -229,6 +232,10 @@ by rw [mem_ball, dist_zero_right]
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
+
+lemma add_mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
+  g + h ∈ closed_ball g r ↔ ∥h∥ ≤ r :=
+by rw [mem_closed_ball_iff_norm, add_sub_cancel']
 
 lemma mem_closed_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥g - h∥ ≤ r :=
@@ -394,7 +401,7 @@ end
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
 (semi)normed spaces is in `normed_space.operator_norm`. -/
-lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma add_monoid_hom.lipschitz_of_bound (f : α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (real.to_nnreal C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
@@ -405,6 +412,10 @@ by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C f s)
   {x y : α} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
+
+lemma lipschitz_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} :
+  lipschitz_with C f ↔ ∀ x y, ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+by simp only [lipschitz_with_iff_dist_le_mul, dist_eq_norm]
 
 /-- A homomorphism `f` of seminormed groups is continuous, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
@@ -431,6 +442,57 @@ end
 
 lemma add_monoid_hom.isometry_of_norm (f : α →+ β) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
 f.isometry_iff_norm.2 hf
+
+lemma controlled_sum_of_mem_closure {s : add_subgroup α} {g : α}
+  (hg : g ∈ closure (s : set α)) {b : ℕ → ℝ} (b_pos : ∀ n, 0 < b n) :
+  ∃ v : ℕ → α,
+    tendsto (λ n, ∑ i in range (n+1), v i) at_top (𝓝 g) ∧
+    (∀ n, v n ∈ s) ∧
+    ∥v 0 - g∥ < b 0 ∧
+    ∀ n > 0, ∥v n∥ < b n :=
+begin
+  obtain ⟨u : ℕ → α, u_in : ∀ n, u n ∈ s, lim_u : tendsto u at_top (𝓝 g)⟩ :=
+    mem_closure_iff_seq_limit.mp hg,
+  obtain ⟨n₀, hn₀⟩ : ∃ n₀, ∀ n ≥ n₀, ∥u n - g∥ < b 0,
+  { have : {x | ∥x - g∥ < b 0} ∈ 𝓝 g,
+    { simp_rw ← dist_eq_norm,
+      exact metric.ball_mem_nhds _ (b_pos _) },
+    exact filter.tendsto_at_top'.mp lim_u _ this },
+  set z : ℕ → α := λ n, u (n + n₀),
+  have lim_z : tendsto z at_top (𝓝 g) := lim_u.comp (tendsto_add_at_top_nat n₀),
+  have mem_𝓤 : ∀ n, {p : α × α | ∥p.1 - p.2∥ < b (n + 1)} ∈ 𝓤 α :=
+  λ n, by simpa [← dist_eq_norm] using metric.dist_mem_uniformity (b_pos $ n+1),
+  obtain ⟨φ : ℕ → ℕ, φ_extr : strict_mono φ,
+          hφ : ∀ n, ∥z (φ $ n + 1) - z (φ n)∥ < b (n + 1)⟩ :=
+    lim_z.cauchy_seq.subseq_mem mem_𝓤,
+  set w : ℕ → α := z ∘ φ,
+  have hw : tendsto w at_top (𝓝 g),
+    from lim_z.comp φ_extr.tendsto_at_top,
+  set v : ℕ → α := λ i, if i = 0 then w 0 else w i - w (i - 1),
+  refine ⟨v, tendsto.congr (finset.eq_sum_range_sub' w) hw , _,
+          hn₀ _ (n₀.le_add_left _), _⟩,
+  { rintro ⟨⟩,
+    { change w 0 ∈ s,
+      apply u_in },
+    { apply s.sub_mem ; apply u_in }, },
+  { intros l hl,
+    obtain ⟨k, rfl⟩ : ∃ k, l = k+1, exact nat.exists_eq_succ_of_ne_zero (ne_of_gt hl),
+    apply hφ },
+end
+
+lemma controlled_sum_of_mem_closure_range {j : α →+ β} {h : β}
+  (Hh : h ∈ (closure $ (j.range : set β))) {b : ℕ → ℝ} (b_pos : ∀ n, 0 < b n) :
+  ∃ g : ℕ → α,
+    tendsto (λ n, ∑ i in range (n+1), j (g i)) at_top (𝓝 h) ∧
+    ∥j (g 0) - h∥ < b 0 ∧
+    ∀ n > 0, ∥j (g n)∥ < b n :=
+begin
+  rcases controlled_sum_of_mem_closure Hh b_pos with ⟨v, sum_v, v_in, hv₀, hv_pos⟩,
+  choose g hg using v_in,
+  change ∀ (n : ℕ), j (g n) = v n at hg,
+  refine ⟨g, by simpa [← hg] using sum_v, by simpa [hg 0] using hv₀, λ n hn,
+          by simpa [hg] using hv_pos n hn⟩
+end
 
 section nnnorm
 
@@ -483,6 +545,10 @@ by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
 lemma nnnorm_sum_le {β} : ∀(s : finset β) (f : β → α),
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 finset.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
+
+lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : α →+ β) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
+  lipschitz_with C f :=
+@real.to_nnreal_coe C ▸ f.lipschitz_of_bound C h
 
 end nnnorm
 
@@ -1246,6 +1312,9 @@ namespace real
 
 lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
 abs_of_nonneg hx
+
+lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
+abs_of_nonpos hx
 
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 

@@ -1279,6 +1279,18 @@ end
 
 end comm_group_with_zero
 
+@[to_additive]
+lemma prod_unique_nonempty {α β : Type*} [comm_monoid β] [unique α]
+  (s : finset α) (f : α → β) (h : s.nonempty) :
+  (∏ x in s, f x) = f (default α) :=
+begin
+  obtain ⟨a, ha⟩ := h,
+  have : s = {a},
+  { ext b,
+    simpa [subsingleton.elim a b] using ha },
+  rw [this, finset.prod_singleton, subsingleton.elim a (default α)]
+end
+
 end finset
 
 namespace fintype
@@ -1321,6 +1333,36 @@ prod_bijective e e.bijective f g h
 lemma prod_finset_coe [comm_monoid β] :
   ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
 (finset.prod_subtype s (λ _, iff.rfl) f).symm
+
+@[to_additive]
+lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
+  (∏ x : α, f x) = f (default α) :=
+by rw [univ_unique, prod_singleton]
+
+@[to_additive]
+lemma prod_subsingleton_univ {α β : Type*} [comm_monoid β] [subsingleton α] (f : α → β) (a : α) :
+  (∏ x : α, f x) = f a :=
+begin
+  haveI : unique α := { default := a, uniq := λ _, subsingleton.elim _ _ },
+  convert prod_unique f
+end
+
+@[simp] lemma prod_unique_has_one {α β : Type*} [unique α] [has_one α] [comm_monoid β]
+  (f : α → β) :
+  ∏ x : α, f x = f 1 :=
+by rw [prod_unique f, subsingleton.elim (default α) 1]
+
+@[simp] lemma sum_unique_has_one {α β : Type*} [unique α] [has_one α] [add_comm_monoid β]
+  (f : α → β) :
+  ∑ x : α, f x = f 1 :=
+by rw [sum_unique f, subsingleton.elim (default α) 1]
+
+attribute [to_additive sum_unique_has_one] prod_unique_has_one
+
+@[simp] lemma prod_unique_has_zero {α β : Type*} [unique α] [has_zero α] [comm_monoid β]
+  (f : α → β) :
+  ∏ x : α, f x = f 0 :=
+by rw [prod_unique f, subsingleton.elim (default α) 0]
 
 end fintype
 

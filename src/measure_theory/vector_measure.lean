@@ -433,10 +433,12 @@ section
 
 variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {v : vector_measure α M}
 
-/-- The pullback of a vector measure along a measurable function. -/
-def map (v : vector_measure α M) (f : α → β) (hf : measurable f) :
+/-- The pushforward of a vector measure along a measurable function. -/
+def map (v : vector_measure α M) (f : α → β) :
   vector_measure β M :=
+if hf : measurable f then
 { measure_of' := λ s, if measurable_set s then v (f ⁻¹' s) else 0,
   empty' := by simp,
   not_measurable' := λ i hi, if_neg hi,
@@ -446,19 +448,19 @@ def map (v : vector_measure α M) (f : α → β) (hf : measurable f) :
     convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij x hx, hg₂ i j hij hx),
     { ext i, rw if_pos (hg₁ i) },
     { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] }
-  end }
+  end } else 0
 
-lemma map_apply {f : α → β} (hf : measurable f)
-  (v : vector_measure α M) {s : set β} (hs : measurable_set s) :
-  v.map f hf s = v (f ⁻¹' s) :=
-if_pos hs
+lemma map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
+  v.map f s = v (f ⁻¹' s) :=
+by { rw [map, dif_pos hf], exact if_pos hs }
 
-lemma map_id (v : vector_measure α M) : v.map id (measurable_id) = v :=
-ext (λ i hi, if_pos hi)
+@[simp] lemma map_id : v.map id = v :=
+ext (λ i hi, by rw [map_apply measurable_id hi, preimage_id])
 
 /-- The restriction of a vector measure on some measurable set-/
-def restrict (v : vector_measure α M) (i : set α) (hi : measurable_set i) :
+def restrict (v : vector_measure α M) (i : set α) :
   vector_measure α M :=
+if hi : measurable_set i then
 { measure_of' := λ s, if measurable_set s then v (s ∩ i) else 0,
   empty' := by simp,
   not_measurable' := λ i hi, if_neg hi,
@@ -469,27 +471,25 @@ def restrict (v : vector_measure α M) (i : set α) (hi : measurable_set i) :
       (hf₂.mono $ λ i j, disjoint.mono inf_le_left inf_le_left),
     { ext n, rw if_pos (hf₁ n) },
     { rw [Union_inter, if_pos (measurable_set.Union hf₁)] }
-  end }
+  end } else 0
 
-lemma restrict_apply (v : vector_measure α M) {i : set α} (hi : measurable_set i)
-  {j : set α} (hj : measurable_set j) : v.restrict i hi j = v (j ∩ i) :=
-if_pos hj
+lemma restrict_apply {i : set α} (hi : measurable_set i)
+  {j : set α} (hj : measurable_set j) : v.restrict i j = v (j ∩ i) :=
+by { rw [restrict, dif_pos hi], exact if_pos hj }
 
-lemma restrict_eq_self (v : vector_measure α M) {i : set α} (hi : measurable_set i)
-  {j : set α} (hj : measurable_set j) (hij : j ⊆ i) : v.restrict i hi j = v j :=
-by rw [restrict_apply v hi hj, inter_eq_left_iff_subset.2 hij]
+lemma restrict_eq_self {i : set α} (hi : measurable_set i)
+  {j : set α} (hj : measurable_set j) (hij : j ⊆ i) : v.restrict i j = v j :=
+by rw [restrict_apply hi hj, inter_eq_left_iff_subset.2 hij]
 
-@[simp] lemma restrict_empty {v : vector_measure α M} :
-  v.restrict ∅ measurable_set.empty = 0 :=
-ext (λ i hi, by rw [restrict_apply v measurable_set.empty hi, inter_empty, v.empty, zero_apply])
+@[simp] lemma restrict_empty : v.restrict ∅ = 0 :=
+ext (λ i hi, by rw [restrict_apply measurable_set.empty hi, inter_empty, v.empty, zero_apply])
 
-@[simp] lemma restrict_univ {v : vector_measure α M} :
-  v.restrict univ measurable_set.univ = v :=
-ext (λ i hi, by rw [restrict_apply v measurable_set.univ hi, inter_univ])
+@[simp] lemma restrict_univ : v.restrict univ = v :=
+ext (λ i hi, by rw [restrict_apply measurable_set.univ hi, inter_univ])
 
 lemma restrict_zero {i : set α} (hi : measurable_set i) :
-  (0 : vector_measure α M).restrict i hi = 0 :=
-ext (λ j hj, by { rw [restrict_apply _ hi hj], refl })
+  (0 : vector_measure α M).restrict i = 0 :=
+ext (λ j hj, by { rw [restrict_apply hi hj], refl })
 
 end
 
@@ -498,8 +498,20 @@ section
 variables {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
 
 lemma restrict_add (v w : vector_measure α M) {i : set α} (hi : measurable_set i) :
-  (v + w).restrict i hi = v.restrict i hi + w.restrict i hi :=
-ext (λ j hj, by simp [restrict_apply _ hi hj])
+  (v + w).restrict i = v.restrict i + w.restrict i :=
+ext (λ j hj, by simp [restrict_apply hi hj])
+
+end
+
+section
+
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M]
+variables [topological_space R] [has_continuous_smul R M]
+
+@[simp] lemma restrict_smul (c : R) (v : vector_measure α M) {i : set α} (hi : measurable_set i) :
+  (c • v).restrict i = c • v.restrict i :=
+ext (λ j hj, by simp [restrict_apply hi hj])
 
 end
 
@@ -533,13 +545,6 @@ end
 
 section
 
-variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {R : Type*} [semiring R] [distrib_mul_action R M]
-variables [topological_space R] [has_continuous_smul R M]
-
-@[simp] lemma restrict_smul (c : R) (v : vector_measure α M) {i : set α} (hi : measurable_set i) :
-  (c • v).restrict i hi = c • v.restrict i hi :=
-ext (λ j hj, by simp [restrict_apply _ hi hj])
 variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
   [covariant_class M M (+) (≤)] [has_continuous_add M]
 

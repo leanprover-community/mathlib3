@@ -81,6 +81,12 @@ variables (R ι N φ)
 def to_module : (⨁ i, M i) →ₗ[R] N :=
 dfinsupp.lsum ℕ φ
 
+/-- Coproducts in the categories of modules and additive monoids commute with the forgetful functor
+from modules to additive monoids. -/
+lemma coe_to_module_eq_coe_to_add_monoid :
+  (to_module R ι N φ : (⨁ i, M i) → N) = to_add_monoid (λ i, (φ i).to_add_monoid_hom) :=
+rfl
+
 variables {ι N φ}
 
 /-- The map constructed using the universal property gives back the original maps when

@@ -427,4 +427,47 @@ end
 
 end measure
 
+namespace vector_measure
+
+section
+
+variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
+
+/-- Vector measures over a partially ordered monoid is partially ordered.
+
+This definition is consistent with `measure.partial_order`. -/
+instance : partial_order (vector_measure α M) :=
+{ le          := λ v w, ∀ i, measurable_set i → v i ≤ w i,
+  le_refl     := λ v i hi, le_refl _,
+  le_trans    := λ u v w h₁ h₂ i hi, le_trans (h₁ i hi) (h₂ i hi),
+  le_antisymm := λ v w h₁ h₂, ext (λ i hi, le_antisymm (h₁ i hi) (h₂ i hi)) }
+
+variables {u v w : vector_measure α M}
+
+lemma le_iff : v ≤ w ↔ ∀ i, measurable_set i → v i ≤ w i :=
+iff.rfl
+
+lemma le_iff' : v ≤ w ↔ ∀ i, v i ≤ w i :=
+begin
+  refine ⟨λ h i, _, λ h i hi, h i⟩,
+  by_cases hi : measurable_set i,
+  { exact h i hi },
+  { rw [v.not_measurable hi, w.not_measurable hi] }
+end
+
+end
+
+section
+
+variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
+  [covariant_class M M (+) (≤)] [has_continuous_add M]
+
+instance covariant_add_le :
+  covariant_class (vector_measure α M) (vector_measure α M) (+) (≤) :=
+⟨λ u v w h i hi, add_le_add_left (h i hi) _⟩
+
+end
+
+end vector_measure
+
 end measure_theory

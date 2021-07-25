@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
-import topology.instances.nnreal
+import topology.instances.ennreal
 import topology.metric_space.completion
 import topology.sequences
 
@@ -1959,33 +1959,33 @@ lemma summable_of_sum_le {f : ι → ℝ} {c : ℝ} (hf : 0 ≤ f) (h : ∀ u : 
 
 open_locale classical
 
+lemma real.summable_mul_of_summable_of_nonneg {f : ι → ℝ} {g : ι' → ℝ}
+  (hf : summable f) (hg : summable g) (hf' : 0 ≤ f) (hg' : 0 ≤ g) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+let ⟨s, hf⟩ := hf in
+let ⟨t, hg⟩ := hg in
+suffices this : ∀ u : finset (ι × ι'), ∑ x in u, f x.1 * g x.2 ≤ s*t,
+  from summable_of_sum_le (λ x, mul_nonneg (hf' _) (hg' _)) this,
+assume u,
+calc  ∑ x in u, f x.1 * g x.2
+    ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), f x.1 * g x.2 :
+      finset.sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) finset.subset_product
+... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : finset.sum_product
+... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :
+      finset.sum_congr rfl (λ x _, finset.mul_sum.symm)
+... ≤ ∑ x in u.image prod.fst, f x * t :
+      finset.sum_le_sum
+        (λ x _, mul_le_mul_of_nonneg_left (sum_le_has_sum _ (λ _ _, hg' _) hg) (hf' _))
+... = (∑ x in u.image prod.fst, f x) * t : finset.sum_mul.symm
+... ≤ s * t :
+      mul_le_mul_of_nonneg_right (sum_le_has_sum _ (λ _ _, hf' _) hf) (hg.nonneg $ λ _, hg' _)
+
 lemma summable_norm_mul_of_summable_norm {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ (x : ι × ι'), ∥f x.1 * g x.2∥) :=
-let ⟨s, hf⟩ := hf in
-let ⟨t, hg⟩ := hg in
-suffices this : ∀ u : finset (ι × ι'), ∑ x in u, ∥f x.1 * g x.2∥ ≤ s*t,
-  from summable_of_sum_le (λ x, norm_nonneg _) this,
-assume u,
-calc  ∑ x in u, ∥f x.1 * g x.2∥
-    ≤ ∑ x in u, ∥f x.1∥ * ∥g x.2∥ : finset.sum_le_sum (λ i _, norm_mul_le _ _)
-... ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), ∥f x.1∥ * ∥g x.2∥ :
-      finset.sum_mono_set_of_nonneg
-        (λ x, mul_nonneg (norm_nonneg _) (norm_nonneg _))
-        finset.subset_product
-... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, ∥f x∥ * ∥g y∥ : finset.sum_product
-... = ∑ x in u.image prod.fst, ∥f x∥ * ∑ y in u.image prod.snd, ∥g y∥ :
-      finset.sum_congr rfl (λ x _, finset.mul_sum.symm)
-... ≤ ∑ x in u.image prod.fst, ∥f x∥ * t :
-      finset.sum_le_sum
-        (λ x _, mul_le_mul_of_nonneg_left
-          (sum_le_has_sum _ (λ _ _, norm_nonneg _) hg)
-          (norm_nonneg _))
-... = (∑ x in u.image prod.fst, ∥f x∥) * t : finset.sum_mul.symm
-... ≤ s * t :
-      mul_le_mul_of_nonneg_right
-        (sum_le_has_sum _ (λ _ _, norm_nonneg _) hf)
-        (hg.nonneg $ λ _, norm_nonneg _)
+summable_of_nonneg_of_le (λ x, norm_nonneg (f x.1 * g x.2)) (λ x, norm_mul_le (f x.1) (g x.2))
+  (@real.summable_mul_of_summable_of_nonneg _ _ (λ x, ∥f x∥) (λ x, ∥g x∥) hf hg
+    (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x))
 
 lemma tsum_mul_tsum_of_summable_norm {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
@@ -1993,17 +1993,52 @@ lemma tsum_mul_tsum_of_summable_norm {f : ι → α} {g : ι' → α}
 tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
   (summable_of_summable_norm $ summable_norm_mul_of_summable_norm hf hg)
 
-def cauchy_product_equiv : ℕ × ℕ ≃ Σ (n : ℕ), fin (n+1) :=
-{ }
+def cauchy_product_equiv : (Σ (n : ℕ), fin (n+1)) ≃ ℕ × ℕ :=
+{ to_fun := λ x, ⟨x.2, x.1 - x.2⟩,
+  inv_fun := λ x, ⟨x.1 + x.2, ⟨x.1, nat.lt_add_one_iff.mpr $ self_le_add_right _ _⟩⟩,
+  left_inv :=
+    begin
+      intros x,
+      ext,
+      { exact nat.add_sub_cancel' (nat.lt_add_one_iff.mp x.2.2) },
+      { refl }
+    end,
+  right_inv :=
+    begin
+      intros x,
+      ext,
+      { refl },
+      { exact nat.add_sub_cancel_left _ _ }
+    end }
 
-lemma tsum_mul_tsum_nat_of_summable_norm {f g : ℕ → α}
+lemma summable_norm_cauchy_product_of_summable_norm_nat' {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ n, ∥∑ (k : fin (n+1)), f k * g (n - k)∥) :=
+begin
+  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) (λ _, norm_sum_le _ _) _,
+  conv {congr, funext, rw ← tsum_fintype},
+  exact (cauchy_product_equiv.summable_iff.mpr (summable_norm_mul_of_summable_norm hf hg)).sigma
+end
+
+lemma summable_norm_cauchy_product_of_summable_norm_nat {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ n, ∥∑ k in finset.range (n+1), f k * g (n - k)∥) :=
+begin
+  conv {congr, funext, rw ← fin.sum_univ_eq_sum_range},
+  exact summable_norm_cauchy_product_of_summable_norm_nat' hf hg
+end
+
+lemma tsum_mul_tsum_of_summable_norm_nat {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in finset.range (n+1), f k * g (n - k) :=
 begin
   rw tsum_mul_tsum_of_summable_norm hf hg,
   conv_rhs {congr, funext, rw ← fin.sum_univ_eq_sum_range, rw ← tsum_fintype},
   conv in (f _ * g (_ - _)) { change (λ (x : Σ (n : ℕ), fin (n+1)), f x.2 * g (x.1 - x.2)) ⟨n, b⟩ },
-  rw ← tsum_sigma,
+  rw [← tsum_sigma, ← cauchy_product_equiv.tsum_eq (_ : ℕ × ℕ → α)],
+  { refl },
+  { have := cauchy_product_equiv.summable_iff.mpr (summable_norm_mul_of_summable_norm hf hg),
+    exact summable_of_summable_norm this }
 end
 
 end cauchy_product

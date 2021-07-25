@@ -100,11 +100,8 @@ begin
   rw [mem_restrict_degree_iff_sup, indicator],
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
-  -- life would be easier here if `multiset.count n` were an add_monoid_hom
-  rw [← finset.univ.sum_hom
-    (show is_add_monoid_hom (multiset.count n), from multiset.count.is_add_monoid_hom n)],
-  simp only [is_add_monoid_hom.map_nsmul
-    (show is_add_monoid_hom (multiset.count n), from multiset.count.is_add_monoid_hom n),
+  simp_rw [ ← multiset.count_add_monoid_hom_coe, (multiset.count_add_monoid_hom n).map_sum,
+    add_monoid_hom.map_nsmul, multiset.count_add_monoid_hom_coe,
     multiset.singleton_eq_singleton, nsmul_eq_mul, nat.cast_id],
   transitivity,
   refine finset.sum_eq_single n _ _,

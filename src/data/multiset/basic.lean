@@ -1875,7 +1875,7 @@ countp_add _
 
 def count_add_monoid_hom (a : α) : multiset α →+ ℕ := countp_add_monoid_hom (eq a)
 
-@[simp] lemma count_add_monoid_com_coe {a : α} :
+@[simp] lemma count_add_monoid_hom_coe {a : α} :
   (count_add_monoid_hom a : multiset α → ℕ) = count a := rfl
 
 @[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=

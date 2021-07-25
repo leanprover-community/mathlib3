@@ -173,9 +173,6 @@ See `sum_ring_equiv` for the ring isomorphism.
 def sum_to_iter : mv_polynomial (S₁ ⊕ S₂) R →+* mv_polynomial S₁ (mv_polynomial S₂ R) :=
 eval₂_hom (C.comp C) (λbc, sum.rec_on bc X (C ∘ X))
 
-lemma is_semiring_hom_sum_to_iter : is_semiring_hom (sum_to_iter R S₁ S₂) :=
-eval₂.is_semiring_hom _ _
-
 @[simp]
 lemma sum_to_iter_C (a : R) : sum_to_iter R S₁ S₂ (C a) = C (C a) :=
 eval₂_C _ _ a

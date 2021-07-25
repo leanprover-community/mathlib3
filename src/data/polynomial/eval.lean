@@ -680,6 +680,8 @@ by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
 def eval_ring_hom : R → polynomial R →+* R := eval₂_ring_hom (ring_hom.id _)
 
+@[simp] lemma coe_eval_ring_hom (r : R) : ((eval_ring_hom r) : polynomial R → R) = eval r := rfl
+
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
 
 @[simp]

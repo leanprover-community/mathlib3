@@ -59,7 +59,7 @@ Noetherian, noetherian, Noetherian ring, Noetherian module, noetherian ring, noe
 -/
 
 open set
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace submodule
 variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]

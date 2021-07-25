@@ -3,9 +3,9 @@ Copyright (c) 2020 Kyle Miller All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import tactic.linarith
-import data.sym
 import algebra.big_operators.basic
+import data.sym
+import tactic.linarith
 
 /-!
 # The symmetric square

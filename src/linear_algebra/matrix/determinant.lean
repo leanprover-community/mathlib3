@@ -155,9 +155,12 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
       by { simp_rw [equiv.coe_mul_right, h], simp only [this] }))
 ... = det M * det N : by simp only [det_apply', finset.mul_sum, mul_comm, mul_left_comm]
 
-lemma det.is_monoid_hom : is_monoid_hom (det : matrix n n R → R) :=
-{ map_one := det_one,
-  map_mul := det_mul }
+def det_monoid_hom : matrix n n R →* R :=
+{ to_fun := det,
+  map_one' := det_one,
+  map_mul' := det_mul }
+
+@[simp] lemma coe_det_monoid_hom : (det_monoid_hom : matrix n n R → R) = det := rfl
 
 /-- On square matrices, `mul_comm` applies under `det`. -/
 lemma det_mul_comm (M N : matrix m m R) : det (M ⬝ N) = det (N ⬝ M) :=

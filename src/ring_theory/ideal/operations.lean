@@ -1116,15 +1116,15 @@ def ker : ideal R := ideal.comap f ⊥
 lemma mem_ker {r} : r ∈ ker f ↔ f r = 0 :=
 by rw [ker, ideal.mem_comap, submodule.mem_bot]
 
-lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
+lemma ker_eq : ((ker f) : set R) = set.preimage f {0} := rfl
 
 lemma ker_eq_comap_bot (f : R →+* S) : f.ker = ideal.comap f ⊥ := rfl
 
 lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by rw [set_like.ext'_iff, ker_eq]; exact f.to_is_add_group_hom.injective_iff_trivial_ker
+by { rw [set_like.ext'_iff, ker_eq, set.ext_iff], exact f.injective_iff' }
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
-by rw [set_like.ext'_iff, ker_eq]; exact f.to_is_add_group_hom.trivial_ker_iff_eq_zero
+by { rw [← f.injective_iff, injective_iff_ker_eq_bot] }
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=

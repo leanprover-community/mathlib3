@@ -104,7 +104,7 @@ lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :
 begin
   classical,
   obtain ⟨x, hx⟩ : ∃ x : monoid_hom.range f.to_hom_units,
-    ∀ y : monoid_hom.range f.to_hom_units, y ∈ powers x,
+    ∀ y : monoid_hom.range f.to_hom_units, y ∈ submonoid.powers x,
     from is_cyclic.exists_monoid_generator,
   have hx1 : x ≠ 1,
   { rintro rfl,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.integration
+import group_theory.subgroup
 
 /-!
 
@@ -457,6 +458,14 @@ by { rw [map, dif_pos hf], exact if_pos hs }
 @[simp] lemma map_id : v.map id = v :=
 ext (λ i hi, by rw [map_apply measurable_id hi, preimage_id])
 
+@[simp] lemma map_zero (f : α → β) : (0 : vector_measure α M).map f = 0 :=
+begin
+  by_cases hf : measurable f,
+  { ext i hi,
+    rw [map_apply hf hi, zero_apply, zero_apply] },
+  { exact dif_neg hf }
+end
+
 /-- The restriction of a vector measure on some measurable set-/
 def restrict (v : vector_measure α M) (i : set α) :
   vector_measure α M :=
@@ -487,19 +496,49 @@ ext (λ i hi, by rw [restrict_apply measurable_set.empty hi, inter_empty, v.empt
 @[simp] lemma restrict_univ : v.restrict univ = v :=
 ext (λ i hi, by rw [restrict_apply measurable_set.univ hi, inter_univ])
 
-lemma restrict_zero {i : set α} (hi : measurable_set i) :
+@[simp] lemma restrict_zero {i : set α} :
   (0 : vector_measure α M).restrict i = 0 :=
-ext (λ j hj, by { rw [restrict_apply hi hj], refl })
-
+begin
+  by_cases hi : measurable_set i,
+  { ext j hj, rw [restrict_apply hi hj], refl },
+  { exact dif_neg hi }
 end
 
-section
+section has_continuous_add
 
-variables {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
+variables [has_continuous_add M]
 
-lemma restrict_add (v w : vector_measure α M) {i : set α} (hi : measurable_set i) :
+lemma map_add (v w : vector_measure α M) (f : α → β) :
+  (v + w).map f = v.map f + w.map f :=
+begin
+  by_cases hf : measurable f,
+  { ext i hi,
+    simp [map_apply hf hi] },
+  { simp [map, dif_neg hf] }
+end
+
+/-- `vector_measure.map` as an additive monoid homomorphism. -/
+def map' (f : α → β) : vector_measure α M →+ vector_measure β M :=
+{ to_fun := λ v, v.map f,
+  map_zero' := map_zero f,
+  map_add' := λ _ _, map_add _ _ f }
+
+lemma restrict_add (v w : vector_measure α M) (i : set α) :
   (v + w).restrict i = v.restrict i + w.restrict i :=
-ext (λ j hj, by simp [restrict_apply hi hj])
+begin
+  by_cases hi : measurable_set i,
+  { ext j hj,
+    simp [restrict_apply hi hj] },
+  { simp [restrict, dif_neg hi] }
+end
+
+/--`vector_measure.restrict` as an additive monoid homomorphism. -/
+def restrict' (i : set α) : vector_measure α M →+ vector_measure α M :=
+{ to_fun := λ v, v.restrict i,
+  map_zero' := restrict_zero,
+  map_add' := λ _ _, restrict_add _ _ i }
+
+end has_continuous_add
 
 end
 

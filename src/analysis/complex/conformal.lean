@@ -6,17 +6,23 @@ Authors: Yourong Zang
 import analysis.complex.isometry
 import analysis.calculus.conformal
 
-noncomputable theory
-
 /-!
 # Complex Conformal Maps
 
-We prove the sufficient and necessary conditions for a complex function to be conformal
+We prove the sufficient and necessary conditions for a complex function to be conformal.
 
 ## Main results
-* `is_complex_or_conj_complex_linear_iff_is_conformal_map`: the main theorem for linear maps
-* `conformal_at_iff_holomorphic_or_antiholomorph`: the main theorem for complex functions
+
+* `is_complex_or_conj_complex_linear_iff_is_conformal_map`: the main theorem for linear maps.
+* `conformal_at_iff_holomorphic_or_antiholomorph`: the main theorem for complex functions.
+
+## Warning
+
+Antiholomorphic functions such as the complex conjugate are considered as conformal functions in
+this file.
 -/
+
+noncomputable theory
 
 section complex_conformal_linear_map
 
@@ -121,6 +127,8 @@ begin
       exact norm_zero, }, },
 end
 
+/-- A real continuous linear map is conformal if and only if the map or its conjugate is complex
+    linear, and the map is nonvanishing. -/
 lemma is_complex_or_conj_complex_linear_iff_is_conformal_map :
   (is_linear_map ℂ g ∨ is_linear_map ℂ (conj ∘ g)) ∧ (g : ℂ → ℂ) ≠ 0 ↔ is_conformal_map g :=
 iff.intro
@@ -137,6 +145,8 @@ by rw [conformal_at_iff_is_conformal_map_fderiv,
       ← is_complex_or_conj_complex_linear_iff_is_conformal_map,
       is_complex_linear_iff_holomorph hf, is_conj_complex_linear_iff_antiholomorph hf]
 
+/-- A complex function is conformal if and only if the function is holomorphic or antiholomorphic
+    with a nonvanishing differential. -/
 lemma conformal_at_iff_holomorphic_or_antiholomorphic :
   conformal_at f z ↔
   (differentiable_at ℂ f z ∨ differentiable_at ℂ (conj ∘ f) z) ∧ (fderiv ℝ f z : ℂ → ℂ) ≠ 0 :=

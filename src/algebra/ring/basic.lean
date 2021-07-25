@@ -885,6 +885,22 @@ lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
+lemma mul_left_cancel_of_non_zero_divisor [ring α] (k : α)
+  (h : ∀ (x : α), k * x = 0 → x = 0) {x y : α} (h' : k * x = k * y) : x = y :=
+begin
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [mul_sub, sub_eq_zero, h']
+end
+
+lemma mul_right_cancel_of_non_zero_divisor [ring α] (k : α)
+  (h : ∀ (x : α), x * k = 0 → x = 0) {x y : α} (h' : x * k = y * k) : x = y :=
+begin
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [sub_mul, sub_eq_zero, h']
+end
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -901,9 +917,9 @@ instance domain.to_no_zero_divisors : no_zero_divisors α :=
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
-    by { rw [← sub_eq_zero, ← mul_sub], simp [ha, sub_eq_zero] },
+     mul_left_cancel_of_non_zero_divisor a (by simp [ha]),
   mul_right_cancel_of_ne_zero := λ a b c hb,
-    by { rw [← sub_eq_zero, ← sub_mul], simp [hb, sub_eq_zero] },
+     mul_right_cancel_of_non_zero_divisor b (by simp [hb]),
   .. (infer_instance : semiring α) }
 
 /-- Pullback a `domain` instance along an injective function.

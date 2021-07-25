@@ -102,7 +102,8 @@ begin
 end
 
 theorem num_derangements_sum (n : ℕ) :
-  num_derangements n = ∑ k in finset.range (n + 1), (-1 : ℤ)^k * nat.desc_fac k (n - k) :=
+  num_derangements n = ∑ k in finset.range (n + 1),
+  (-1 : ℤ)^k * nat.asc_factorial k (n - k) :=
 begin
   induction n with n hn,
   { refl },
@@ -112,7 +113,7 @@ begin
     { refine finset.sum_congr (refl _) _,
       intros x hx,
       have h_le : x ≤ n := finset.mem_range_succ_iff.mp hx,
-      rw [nat.succ_sub h_le, nat.desc_fac_succ, nat.add_sub_cancel' h_le],
+      rw [nat.succ_sub h_le, nat.asc_factorial_succ, nat.add_sub_cancel' h_le],
       push_cast,
       ring },
     -- show that -(-1)^n = (-1)^n.succ * desc_fac n.succ (n.succ - n.succ)

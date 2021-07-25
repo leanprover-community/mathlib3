@@ -8,6 +8,12 @@ import data.complex.exponential
 import data.equiv.derangements.finite
 import topology.metric_space.cau_seq_filter
 
+/-!
+# Derangement exponential series
+
+This file proves that the probability of a permutation on n elements being a derangement is 1/e.
+The specific lemma is `num_derangements_tendsto_e`.
+-/
 open filter
 open finset
 
@@ -57,7 +63,7 @@ begin
     refine finset.sum_congr (refl _) _,
     intros k hk,
     have h_le : k ≤ n := finset.mem_range_succ_iff.mp hk,
-    rw [nat.desc_fac_eq_div, nat.add_sub_cancel' h_le],
+    rw [nat.asc_factorial_eq_div, nat.add_sub_cancel' h_le],
     push_cast [nat.factorial_dvd_factorial h_le],
     field_simp [nat.factorial_ne_zero],
     ring,

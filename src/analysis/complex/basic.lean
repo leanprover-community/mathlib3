@@ -244,7 +244,7 @@ begin
   { intros h,
     refine ⟨(h.mk' $ conj ∘ (fderiv ℝ f z)).to_continuous_linear_map, _⟩,
     have key : (conj_cle.to_continuous_linear_map.comp (fderiv ℝ f z) : ℂ → ℂ) =
-      ((h.mk' $ conj ∘ (fderiv ℝ f z)).to_continuous_linear_map : ℂ → ℂ) :=
+      (h.mk' $ conj ∘ (fderiv ℝ f z)).to_continuous_linear_map :=
     by { funext,
          simp only [h.mk'_apply, coe_comp', linear_map.coe_to_continuous_linear_map',
                     conj_cle.coe_def_rev, conj_cle.coe_coe, function.comp_app, conj_cle_apply], },

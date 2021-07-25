@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import data.complex.module
 import data.complex.is_R_or_C
+import analysis.calculus.fderiv
 
 /-!
 # Normed space structure on `ℂ`.
@@ -189,3 +190,67 @@ by simp [is_R_or_C.norm_sq, complex.norm_sq]
 by simp [is_R_or_C.abs, complex.abs]
 
 end is_R_or_C
+
+section complex_fderiv_properties
+
+open complex continuous_linear_map
+
+variables {f : ℂ → ℂ} {z : ℂ} {g : ℂ →L[ℝ] ℂ}
+
+lemma self_smul_one (x : ℂ) : x = x • 1 := by simp only [smul_eq_mul, mul_one]
+
+lemma fderiv_eq_fderiv_of_holomorph (h : differentiable_at ℂ f z) :
+  (fderiv ℝ f z : ℂ → ℂ) = fderiv ℂ f z :=
+by { rw (h.restrict_scalars ℝ).has_fderiv_at.unique (h.has_fderiv_at.restrict_scalars ℝ),
+  simp only [coe_restrict_scalars'], }
+
+lemma fderiv_congr_of_holomorph {f' : ℂ →L[ℝ] ℂ} {g' : ℂ →L[ℂ] ℂ}
+  (h : has_fderiv_at f f' z) (h' : (f' : ℂ → ℂ) = g') : has_fderiv_at f g' z :=
+by { simp only [has_fderiv_at, has_fderiv_at_filter] at h ⊢, rwa ← h', }
+
+lemma fderiv_conj (z : ℂ) : has_fderiv_at conj conj_cle.to_continuous_linear_map z :=
+conj_cle.has_fderiv_at
+
+lemma conj_fderiv_eq_fderiv_conj {z : ℂ} (h : differentiable_at ℝ f z) :
+  conj ∘ fderiv ℝ f z = fderiv ℝ (conj ∘ f) z :=
+begin
+  rw fderiv.comp z (fderiv_conj $ f z).differentiable_at h,
+  simp only [function.app, continuous_linear_map.coe_comp'],
+  simp only [(fderiv_conj $ f z).fderiv,
+             continuous_linear_equiv.coe_def_rev, continuous_linear_equiv.coe_coe],
+  funext,
+  simp only [function.funext_iff, function.comp_app, conj_cle_apply],
+end
+
+lemma is_complex_linear_iff_holomorph (hf : differentiable_at ℝ f z) :
+  differentiable_at ℂ f z ↔ is_linear_map ℂ (fderiv ℝ f z) :=
+begin
+  split,
+  { intros h,
+    refine is_linear_map.mk (fderiv ℝ f z).map_add _,
+    rw fderiv_eq_fderiv_of_holomorph h,
+    exact (fderiv ℂ f z).map_smul, },
+  { intros h,
+    exact ⟨(is_linear_map.mk' (fderiv ℝ f z) h).to_continuous_linear_map, hf.has_fderiv_at⟩, },
+end
+
+lemma is_conj_complex_linear_iff_antiholomorph (hf : differentiable_at ℝ f z) :
+  differentiable_at ℂ (conj ∘ f) z ↔ is_linear_map ℂ (conj ∘ (fderiv ℝ f z)) :=
+begin
+  split,
+  { intros h,
+    rw [conj_fderiv_eq_fderiv_conj hf, fderiv_eq_fderiv_of_holomorph h],
+    rcases h with ⟨f', hf'⟩,
+    rw hf'.fderiv,
+    exact f'.to_linear_map.is_linear, },
+  { intros h,
+    refine ⟨(h.mk' $ conj ∘ (fderiv ℝ f z)).to_continuous_linear_map, _⟩,
+    have key : (conj_cle.to_continuous_linear_map.comp (fderiv ℝ f z) : ℂ → ℂ) =
+      ((h.mk' $ conj ∘ (fderiv ℝ f z)).to_continuous_linear_map : ℂ → ℂ) :=
+    by { funext,
+         simp only [h.mk'_apply, coe_comp', linear_map.coe_to_continuous_linear_map',
+                 conj_cle.coe_def_rev, conj_cle.coe_coe, function.comp_app, conj_cle_apply], },
+    exact fderiv_congr_of_holomorph ((fderiv_conj $ f z).comp z hf.has_fderiv_at) key, },
+end
+
+end complex_fderiv_properties

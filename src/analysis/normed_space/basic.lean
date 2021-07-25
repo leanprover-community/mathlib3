@@ -1951,12 +1951,6 @@ section cauchy_product
 
 variables {ι' : Type*} [normed_ring α] [complete_space α]
 
---move_me
-lemma summable_of_sum_le {f : ι → ℝ} {c : ℝ} (hf : 0 ≤ f) (h : ∀ u : finset ι, ∑ x in u, f x ≤ c) :
-  summable f :=
-⟨ ⨆ u : finset ι, ∑ x in u, f x,
-  tendsto_at_top_csupr (finset.sum_mono_set_of_nonneg hf) ⟨c, λ y ⟨u, hu⟩, hu ▸ h u⟩ ⟩
-
 open_locale classical
 
 lemma real.summable_mul_of_summable_of_nonneg {f : ι → ℝ} {g : ι' → ℝ}

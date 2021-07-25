@@ -130,7 +130,17 @@ end semiring
 
 section ring
 
+lemma smul_cancel_of_non_zero_divisor {M R : Type*} [monoid M] [ring R] [distrib_mul_action M R]
+  (k : M) (h : ∀ (x : R), k • x = 0 → x = 0) {a b : R} (h' : k • a = k • b) :
+  a = b :=
+begin
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [smul_sub, h', sub_self]
+end
+
 variables (M : Type u) [monoid M] {R : Type v} [ring R] [mul_semiring_action M R]
+
 variables (S : set R) [is_subring S]
 open mul_action
 

@@ -1951,13 +1951,59 @@ section cauchy_product
 
 variables {ι' : Type*} [normed_ring α] [complete_space α]
 
-lemma summable_mul_of_summable_norm_left {f : ι → α} {g : ι' → α}
-  (hf : summable (λ x, ∥f x∥)) (hg : summable g) :
-  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+--move_me
+lemma summable_of_sum_le {f : ι → ℝ} {c : ℝ} (hf : 0 ≤ f) (h : ∀ u : finset ι, ∑ x in u, f x ≤ c) :
+  summable f :=
+⟨ ⨆ u : finset ι, ∑ x in u, f x,
+  tendsto_at_top_csupr (finset.sum_mono_set_of_nonneg hf) ⟨c, λ y ⟨u, hu⟩, hu ▸ h u⟩ ⟩
+
+open_locale classical
+
+lemma summable_norm_mul_of_summable_norm {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ (x : ι × ι'), ∥f x.1 * g x.2∥) :=
+let ⟨s, hf⟩ := hf in
+let ⟨t, hg⟩ := hg in
+suffices this : ∀ u : finset (ι × ι'), ∑ x in u, ∥f x.1 * g x.2∥ ≤ s*t,
+  from summable_of_sum_le (λ x, norm_nonneg _) this,
+assume u,
+calc  ∑ x in u, ∥f x.1 * g x.2∥
+    ≤ ∑ x in u, ∥f x.1∥ * ∥g x.2∥ : finset.sum_le_sum (λ i _, norm_mul_le _ _)
+... ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), ∥f x.1∥ * ∥g x.2∥ :
+      finset.sum_mono_set_of_nonneg
+        (λ x, mul_nonneg (norm_nonneg _) (norm_nonneg _))
+        finset.subset_product
+... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, ∥f x∥ * ∥g y∥ : finset.sum_product
+... = ∑ x in u.image prod.fst, ∥f x∥ * ∑ y in u.image prod.snd, ∥g y∥ :
+      finset.sum_congr rfl (λ x _, finset.mul_sum.symm)
+... ≤ ∑ x in u.image prod.fst, ∥f x∥ * t :
+      finset.sum_le_sum
+        (λ x _, mul_le_mul_of_nonneg_left
+          (sum_le_has_sum _ (λ _ _, norm_nonneg _) hg)
+          (norm_nonneg _))
+... = (∑ x in u.image prod.fst, ∥f x∥) * t : finset.sum_mul.symm
+... ≤ s * t :
+      mul_le_mul_of_nonneg_right
+        (sum_le_has_sum _ (λ _ _, norm_nonneg _) hf)
+        (hg.nonneg $ λ _, norm_nonneg _)
+
+lemma tsum_mul_tsum_of_summable_norm {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' x, f x) * (∑' y, g y) = (∑' z : ι × ι', f z.1 * g z.2) :=
+tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
+  (summable_of_summable_norm $ summable_norm_mul_of_summable_norm hf hg)
+
+def cauchy_product_equiv : ℕ × ℕ ≃ Σ (n : ℕ), fin (n+1) :=
+{ }
+
+lemma tsum_mul_tsum_nat_of_summable_norm {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in finset.range (n+1), f k * g (n - k) :=
 begin
-  refine summable_of_summable_norm _,
-  rcases hf with ⟨s, hf⟩,
-  rcases hg with ⟨t, hg⟩,
+  rw tsum_mul_tsum_of_summable_norm hf hg,
+  conv_rhs {congr, funext, rw ← fin.sum_univ_eq_sum_range, rw ← tsum_fintype},
+  conv in (f _ * g (_ - _)) { change (λ (x : Σ (n : ℕ), fin (n+1)), f x.2 * g (x.1 - x.2)) ⟨n, b⟩ },
+  rw ← tsum_sigma,
 end
 
 end cauchy_product

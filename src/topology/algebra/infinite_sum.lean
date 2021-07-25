@@ -1211,14 +1211,14 @@ end cauchy_seq
 section cauchy_product
 
 variables [topological_space α] [regular_space α] [semiring α] [topological_semiring α]
-  {f : β → α} {g : γ → α} (s t u : α)
+  {f : β → α} {g : γ → α} {s t u : α}
 
 lemma finset.sum_mul_sum' {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
   (f₁ : ι₁ → α) (f₂ : ι₂ → α) :
   (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
 by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
-lemma has_sum.mul_eq_prod_map (hf : has_sum f s) (hg : has_sum g t)
+lemma has_sum.eq_mul_of_has_sum_prod (hf : has_sum f s) (hg : has_sum g t)
   (hfg : has_sum (λ (x : β × γ), f x.1 * g x.2) u) :
   u = s * t :=
 have key₁ : has_sum (λ b, f b * t) (s * t),
@@ -1228,5 +1228,16 @@ have this : ∀ b : β, has_sum (λ c : γ, f b * g c) (f b * t),
 have key₂ : has_sum (λ b, f b * t) u,
   from has_sum.prod_fiberwise hfg this,
 has_sum.unique key₂ key₁
+
+lemma summable.has_sum_prod_mul (hf : has_sum f s) (hg : has_sum g t)
+  (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
+  has_sum (λ (x : β × γ), f x.1 * g x.2) (s * t) :=
+let ⟨u, hu⟩ := hfg in
+hf.eq_mul_of_has_sum_prod hg hu ▸ hu
+
+lemma tsum_mul_tsum (hf : summable f) (hg : summable g)
+  (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
+  (∑' x, f x) * (∑' y, g y) = (∑' z : β × γ, f z.1 * g z.2) :=
+(hf.has_sum.eq_mul_of_has_sum_prod hg.has_sum hfg.has_sum).symm
 
 end cauchy_product

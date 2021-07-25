@@ -946,7 +946,7 @@ lemma span_singleton_mul_span_singleton (x y : P) :
   span_singleton S x * span_singleton S y = span_singleton S (x * y) :=
 begin
   apply coe_to_submodule_injective,
-  simp_rw [coe_mul, coe_span_singleton, span_mul_span, singleton.is_mul_hom.map_mul]
+  simp only [coe_mul, coe_span_singleton, span_mul_span, singleton_mul_singleton],
 end
 
 @[simp]

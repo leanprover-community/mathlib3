@@ -32,7 +32,7 @@ topological space, group, topological group
 -/
 
 open classical set filter topological_space function
-open_locale classical topological_space filter
+open_locale classical topological_space filter pointwise
 
 universes u v w x
 variables {α : Type u} {β : Type v} {G : Type w} {H : Type x}

@@ -5,10 +5,10 @@ Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 
 -- QUESTION: can make the first argument in ∀ x ∈ a, ... implicit?
 -/
+import data.nat.basic
 import order.complete_boolean_algebra
-import data.sigma.basic
-import order.galois_connection
 import order.directed
+import order.galois_connection
 
 open function tactic set auto
 
@@ -394,6 +394,13 @@ show (⨅ x ∈ s ∪ t, u x) = (⨅ x ∈ s, u x) ⊓ (⨅ x ∈ t, u x),
   (⋂ x ∈ insert a s, t x) = t a ∩ (⋂ x ∈ s, t x) :=
 begin rw insert_eq, simp [bInter_union] end
 
+lemma bInter_lt_succ (f : ℕ → set α) (n : ℕ) : (⋂ i < n.succ, f i) = f n ∩ (⋂ i < n, f i) :=
+ext $ λ a, begin
+  rw mem_inter_iff,
+  simp_rw [mem_Inter, nat.lt_succ_iff_lt_or_eq, or_imp_distrib],
+  rw [forall_and_distrib, forall_eq, and_comm],
+end
+
 -- TODO(Jeremy): another example of where an annotation is needed
 
 theorem bInter_pair (a b : α) (s : α → set β) :
@@ -439,6 +446,13 @@ supr_union
 @[simp] theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :
   (⋃ x ∈ insert a s, t x) = t a ∪ (⋃ x ∈ s, t x) :=
 begin rw [insert_eq], simp [bUnion_union] end
+
+lemma bUnion_lt_succ (f : ℕ → set α) (n : ℕ) : (⋃ i < n.succ, f i) = f n ∪ (⋃ i < n, f i) :=
+ext $ λ a, begin
+  rw mem_union,
+  simp_rw [mem_Union, exists_prop, nat.lt_succ_iff_lt_or_eq, or_and_distrib_right],
+  rw [exists_or_distrib, exists_eq_left, or_comm],
+end
 
 theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=

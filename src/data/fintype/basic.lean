@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
+import data.sym
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -1115,6 +1116,15 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 @[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
+
+instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym.sym' α n) :=
+begin
+  unfold sym.sym' vector.perm.is_setoid,
+  exact quotient.fintype _,
+end
+
+instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym α n) :=
+fintype.of_equiv _ sym.sym_equiv_sym'.symm
 
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=

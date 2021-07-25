@@ -49,6 +49,15 @@ def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 
 @[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
 
+/-- Rotations as continuous `ℂ`-linear maps-/
+def rotation_clm (a : circle) : ℂ →L[ℂ] ℂ :=
+{ to_fun := rotation a,
+  map_add' := (rotation a).map_add,
+  map_smul' := λ s x, by { simp only [rotation_apply, smul_eq_mul], ring, },
+  cont := (rotation a).to_continuous_linear_equiv.continuous_to_fun, }
+
+@[simp] lemma rotation_clm_apply (a : circle) (z : ℂ) : rotation_clm a z = a * z := rfl
+
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
   (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 by simpa [ext_iff, add_re, add_im, conj_re, conj_im, ←two_mul,

@@ -329,7 +329,7 @@
 88:
   title  : Derangements Formula
   decls  :
-    - num_derangements_succ
+    - card_derangements_eq_num_derangements
     - num_derangements_sum
   author : Henry Swanson
 89:

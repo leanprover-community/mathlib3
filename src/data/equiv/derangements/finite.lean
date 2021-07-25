@@ -45,29 +45,40 @@ begin
   apply_instance
 end
 
-/-- The number of derangements on an `n`-element set. This definition is bad for
-    computation though, use `num_derangements` instead. -/
-def num_derangements_aux (n : ℕ) : ℕ := card (derangements (fin n))
-
-lemma num_derangements_aux_invariant (α : Type*) [fintype α] [decidable_eq α] :
-  card (derangements α) = num_derangements_aux (card α) :=
+lemma card_derangements_invariant {α β : Type*} [fintype α] [decidable_eq α]
+  [fintype β] [decidable_eq β] (h : card α = card β) :
+  card (derangements α) = card (derangements β) :=
 begin
   apply card_eq.mpr,  -- card_eq because we don't need the specific equivalence
-  use derangements_congr (equiv_fin α),
+  use derangements_congr (equiv_of_card_eq h),
 end
 
-theorem num_derangements_aux_succ (n : ℕ) :
-  num_derangements_aux (n+2) = (n+1) * num_derangements_aux n +
-  (n+1) * num_derangements_aux (n+1) :=
+lemma card_derangements_fin_succ_succ (n : ℕ) :
+  card (derangements (fin (n+2))) = (n+1) * card (derangements (fin n)) +
+  (n+1) * card (derangements (fin (n+1))) :=
 begin
-  have card_everything_but : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = n,
+  -- get some basic results about the size of fin (n+1) plus or minus an element
+  have card_n' : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = n,
   { intro a,
     simp only [fintype.card_of_finset, set.mem_compl_singleton_iff],
     rw [finset.filter_ne' _ a, finset.card_erase_of_mem (finset.mem_univ a)],
     simp },
-  have key := card_congr (@derangements_recursion_equiv (fin (n+1)) _),
-  rw [num_derangements_aux_invariant, fintype.card_option, fintype.card_fin] at key,
-  simp [num_derangements_aux_invariant, card_everything_but, mul_add, key],
+  have card_n : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = card (fin n),
+  { intro a, rw card_n' a, simp },
+  have card_n2 : card (fin (n+2)) = card (option (fin (n+1))) := by simp,
+  -- rewrite the LHS and substitute in our fintype-level equivalence
+  rw card_derangements_invariant card_n2,
+  rw card_congr (@derangements_recursion_equiv (fin (n+1)) _),
+  -- push the cardinality through the Σ and ⊕ so that we can use `card_n`
+  rw card_sigma,
+  conv_lhs
+  { apply_congr,
+    skip,
+    rw card_sum,
+    rw card_derangements_invariant (card_n x) },
+  rw [finset.sum_const, nsmul_eq_mul, finset.card_fin],
+  rw mul_add,
+  norm_cast,
 end
 
 /-- The number of derangements on an `n`-element set. -/
@@ -75,7 +86,17 @@ def num_derangements : ℕ → ℤ
 | 0 := 1
 | (n + 1) := (n + 1) * num_derangements n - (-1 : ℤ)^n
 
-lemma num_derangement_eq_aux (n : ℕ) : (num_derangements_aux n : ℤ) = num_derangements n :=
+lemma num_derangements_succ_succ {n : ℕ} :
+  num_derangements (n+2) = (n+1) * num_derangements n + (n+1) * num_derangements (n+1) :=
+begin
+  repeat { rw num_derangements },
+  rw pow_succ,
+  push_cast,
+  ring,
+end
+
+lemma card_derangements_eq_num_derangements_fin {n : ℕ} :
+  (card (derangements (fin n)) : ℤ) = num_derangements n :=
 begin
   apply nat.strong_induction_on n,
   clear n, -- to avoid confusion with the n in the hypothesis
@@ -83,21 +104,28 @@ begin
   -- knock out cases 0 and 1
   cases n, { refl },
   cases n, { refl },
-  -- now we have n ≥ 2
-  rw num_derangements_aux_succ,
-  push_cast,
+  -- now we have n ≥ 2. rewrite everything in terms of card_derangements, so that we can use
+  -- `card_derangements_fin_succ_succ`
+  rw num_derangements_succ_succ,
   have n_le : n < n + 2 := nat.lt_succ_of_le (nat.le_succ _),
   have n_succ_le : n + 1 < n + 2 := lt_add_one _,
-  rw [hyp n n_le, hyp n.succ n_succ_le],
-  repeat { rw num_derangements },
-  rw [pow_succ],
-  push_cast,
-  ring,
+  rw [← hyp n n_le, ← hyp n.succ n_succ_le],
+  rw card_derangements_fin_succ_succ,
+  norm_cast,
 end
 
-lemma num_derangements_nonneg (n : ℕ) : num_derangements n ≥ 0 :=
+lemma card_derangements_eq_num_derangements (α : Type*) [fintype α] [decidable_eq α] :
+  (card (derangements α) : ℤ) = num_derangements (card α) :=
 begin
-  rw ← num_derangement_eq_aux,
+  let n := card α,
+  have key : card α = card (fin n) := by simp,
+  rw card_derangements_invariant key,
+  exact card_derangements_eq_num_derangements_fin,
+end
+
+lemma num_derangements_nonneg (n : ℕ) : 0 ≤ num_derangements n :=
+begin
+  rw ← card_derangements_eq_num_derangements_fin,
   exact int.coe_zero_le _,
 end
 

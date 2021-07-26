@@ -265,16 +265,50 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
   assume bdd,
   rcases (bounded_iff_subset_ball 0).1 bdd with ⟨r, hr⟩, -- hr : s ⊆ closed_ball 0 r
   rw closed_ball_Icc at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
-  exact ⟨⟨-r, λy hy, by simpa using (hr hy).1⟩, ⟨r, λy hy, by simpa using (hr hy).2⟩⟩
+  exact ⟨bdd_below_Icc.mono hr, bdd_above_Icc.mono hr⟩
 end,
 begin
-  rintros ⟨⟨m, hm⟩, ⟨M, hM⟩⟩,
-  have I : s ⊆ Icc m M := λx hx, ⟨hm hx, hM hx⟩,
-  have : Icc m M = closed_ball ((m+M)/2) ((M-m)/2) :=
-    by rw closed_ball_Icc; congr; ring,
-  rw this at I,
-  exact bounded.subset I bounded_closed_ball
+  intro h,
+  rcases bdd_below_bdd_above_iff_subset_Icc.1 h with ⟨m, M, I : s ⊆ Icc m M⟩,
+  exact (bounded_Icc m M).subset I
 end⟩
+
+lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :
+  s ⊆ Icc (Inf s) (Sup s) :=
+subset_Icc_cInf_cSup (real.bounded_iff_bdd_below_bdd_above.1 h).1
+  (real.bounded_iff_bdd_below_bdd_above.1 h).2
+
+/-- For a bounded set `s`, its `emetric.diam` is equal to `Sup s - Inf s` reinterpreted as
+`ℝ≥0∞`. -/
+lemma real.ediam_eq {s : set ℝ} (h : bounded s) :
+  emetric.diam s = ennreal.of_real (Sup s - Inf s) :=
+begin
+  have h' := real.bounded_iff_bdd_below_bdd_above.1 h,
+  rcases eq_empty_or_nonempty s with rfl|hne, { simp },
+  refine le_antisymm (metric.ediam_le_of_forall_dist_le _) _,
+  { suffices : ∀ (x ∈ s) (y ∈ s), x - y ≤ Sup s - Inf s,
+    { intros x hx y hy,
+      exact abs_sub_le_iff.2 ⟨this x hx y hy, this y hy x hx⟩ },
+    exact λ x hx y hy, sub_le_sub (le_cSup h'.2 hx) (cInf_le h'.1 hy) },
+  { apply ennreal.of_real_le_of_le_to_real, rw [← diam],
+    refine le_of_forall_pos_le_add (λ ε ε0, _),
+    rcases exists_lt_of_lt_cSup hne (sub_lt_self _ (half_pos ε0)) with ⟨y, hys, hlty⟩,
+    rcases exists_lt_of_cInf_lt hne (lt_add_of_pos_right _ (half_pos ε0)) with ⟨x, hxs, hxlt⟩,
+    calc Sup s - Inf s ≤ (y + ε / 2) - (x - ε / 2) :
+      (sub_lt_sub (sub_lt_iff_lt_add.1 hlty) (sub_lt_iff_lt_add.2 hxlt)).le
+    ... = y - x + ε :
+      by rw [← sub_add, sub_add_eq_add_sub, add_assoc, add_halves, sub_add_eq_add_sub]
+    ... ≤ dist y x + ε : add_le_add_right (le_abs_self _) _
+    ... ≤ diam s + ε : add_le_add_right (dist_le_diam_of_mem h hys hxs) _ }
+end
+
+/-- For a bounded set `s`, its `metric.diam` is equal to `Sup s - Inf s`. -/
+lemma real.diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
+begin
+  rw [metric.diam, real.ediam_eq h, ennreal.to_real_of_real],
+  rw real.bounded_iff_bdd_below_bdd_above at h,
+  exact sub_nonneg.2 (real.Inf_le_Sup s h.1 h.2)
+end
 
 lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
   f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=

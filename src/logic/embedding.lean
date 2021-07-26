@@ -37,6 +37,7 @@ variables {α : Sort u} {β : Sort v} (f : α ≃ β)
 
 instance equiv.coe_embedding : has_coe (α ≃ β) (α ↪ β) := ⟨equiv.to_embedding⟩
 
+@[reducible]
 instance equiv.perm.coe_embedding : has_coe (equiv.perm α) (α ↪ α) := equiv.coe_embedding
 
 @[simp] lemma equiv.coe_eq_to_embedding  : ↑f = f.to_embedding := rfl

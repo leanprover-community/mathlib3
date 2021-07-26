@@ -123,8 +123,8 @@ lemma conformal_at_iff_holomorphic_or_antiholomorph_aux (hf : differentiable_at 
   conformal_at f z ↔
   (differentiable_at ℂ f z ∨ differentiable_at ℂ (conj ∘ f) z) ∧ fderiv ℝ f z ≠ 0 :=
 by rw [conformal_at_iff_is_conformal_map_fderiv,
-      ← is_complex_or_conj_complex_linear_iff_is_conformal_map,
-      is_complex_linear_iff_holomorph hf, is_conj_complex_linear_iff_antiholomorph hf]
+       ← is_complex_or_conj_complex_linear_iff_is_conformal_map,
+       is_complex_linear_iff_holomorph hf, is_conj_complex_linear_iff_antiholomorph hf]
 
 /-- A complex function is conformal if and only if the function is holomorphic or antiholomorphic
     with a nonvanishing differential. -/

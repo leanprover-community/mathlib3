@@ -266,9 +266,6 @@ begin
   simp only [(mul_inv_cancel_iff_is_unit K).mpr hI, mul_assoc, mul_one],
 end
 
-lemma is_field.is_principal_ideal_ring (h : is_field A) : is_principal_ideal_ring A :=
-@euclidean_domain.to_principal_ideal_domain A (@field.to_euclidean_domain A (h.to_field A))
-
 namespace is_dedekind_domain_inv
 
 variables [algebra A K] [is_fraction_ring A K] (h : is_dedekind_domain_inv A)

@@ -422,8 +422,15 @@ begin
   congr
 end
 
+@[to_additive] lemma eq_top_of_le_card [fintype H] [fintype G]
+  (h : fintype.card G ≤ fintype.card H) : H = ⊤ :=
+eq_top_of_card_eq H (le_antisymm (fintype.card_le_of_injective coe subtype.coe_injective) h)
+
+@[to_additive] lemma eq_bot_of_card_le [fintype H] (h : fintype.card H ≤ 1) : H = ⊥ :=
+let _ := fintype.card_le_one_iff_subsingleton.mp h in by exactI eq_bot_of_subsingleton H
+
 @[to_additive] lemma eq_bot_of_card_eq [fintype H] (h : fintype.card H = 1) : H = ⊥ :=
-let _ := fintype.card_le_one_iff_subsingleton.mp (le_of_eq h) in by exactI eq_bot_of_subsingleton H
+H.eq_bot_of_card_le (le_of_eq h)
 
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=

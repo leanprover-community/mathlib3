@@ -634,8 +634,7 @@ end
 
 omit loc
 
-lemma mem_span_mul_finite_of_mem_mul
-  {I J : fractional_ideal S P} {x : P} (hx : x ∈ I * J) :
+lemma mem_span_mul_finite_of_mem_mul {I J : fractional_ideal S P} {x : P} (hx : x ∈ I * J) :
   ∃ (T T' : finset P), (T : set P) ⊆ I ∧ (T' : set P) ⊆ J ∧ x ∈ span R (T * T' : set P) :=
 submodule.mem_span_mul_finite_of_mem_mul (by simpa using mem_coe.mpr hx)
 
@@ -647,8 +646,7 @@ coe_submodule_fg _ inj _
 
 variables {S}
 
-lemma fg_unit
-  (I : units (fractional_ideal S P)) :
+lemma fg_unit (I : units (fractional_ideal S P)) :
   fg (I : submodule R P) :=
 begin
   have : (1 : P) ∈ (I * ↑I⁻¹ : fractional_ideal S P),
@@ -663,8 +661,7 @@ begin
   rwa [submodule.one_le, submodule.span_mul_span]
 end
 
-lemma fg_of_is_unit
-  (I : fractional_ideal S P) (h : is_unit I) :
+lemma fg_of_is_unit (I : fractional_ideal S P) (h : is_unit I) :
   fg (I : submodule R P) :=
 by { rcases h with ⟨I, rfl⟩, exact fg_unit I }
 

@@ -358,6 +358,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 @[simp] lemma coeff_zero_X (i : σ) : coeff 0 (X i : mv_polynomial σ R) = 0 :=
 single_eq_of_ne (λ h, by cases single_eq_zero.1 h)
 
+/-- `mv_polynomial.coeff m` but promoted to an `add_monoid_hom`. -/
 @[simps] def coeff_add_monoid_hom (m : σ →₀ ℕ) : mv_polynomial σ R →+ R :=
 { to_fun := coeff m,
   map_zero' := coeff_zero m,

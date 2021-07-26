@@ -90,6 +90,7 @@ instance : add_comm_semigroup ℕ+ := coe_injective.add_comm_semigroup coe (λ _
 
 @[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
 
+/-- `pnat.coe` promoted to an `add_hom`, that is, a morphism which preserves addition. -/
 def coe_add_hom : add_hom ℕ+ ℕ :=
 { to_fun := coe,
   map_add' := add_coe }
@@ -152,6 +153,7 @@ iff.rfl
 @[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 
+/-- `pnat.coe` promoted to a `monoid_hom`. -/
 def coe_monoid_hom : ℕ+ →* ℕ :=
 { to_fun := coe,
   map_one' := one_coe,

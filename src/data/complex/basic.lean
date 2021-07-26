@@ -143,6 +143,7 @@ intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 instance. -/
 instance : ring ℂ := by apply_instance
 
+/-- The "real part" map, considered as an additive group homomorphism. -/
 def re_add_group_hom : ℂ →+ ℝ :=
 { to_fun := re,
   map_zero' := zero_re,
@@ -150,6 +151,7 @@ def re_add_group_hom : ℂ →+ ℝ :=
 
 @[simp] lemma coe_re_add_group_hom : (re_add_group_hom : ℂ → ℝ) = re := rfl
 
+/-- The "imaginary part" map, considered as an additive group homomorphism. -/
 def im_add_group_hom : ℂ →+ ℝ :=
 { to_fun := im,
   map_zero' := zero_im,

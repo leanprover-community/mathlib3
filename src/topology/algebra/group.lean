@@ -678,6 +678,7 @@ begin
     { simp only [inv_mul_cancel_right] } }
 end
 
+/-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
 @[to_additive, simps]
 def nhds_mul_hom : mul_hom G (filter G) :=
 { to_fun := 𝓝,

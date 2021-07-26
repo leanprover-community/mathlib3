@@ -249,6 +249,7 @@ free_ring.lift free_comm_ring.of
 
 instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 
+/-- The natural map `free_ring α → free_comm_ring α`, as a `ring_hom`. -/
 def coe_ring_hom : free_ring α →+* free_comm_ring α := to_free_comm_ring
 
 @[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl

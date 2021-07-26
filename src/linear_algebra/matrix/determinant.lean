@@ -155,6 +155,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
       by { simp_rw [equiv.coe_mul_right, h], simp only [this] }))
 ... = det M * det N : by simp only [det_apply', finset.mul_sum, mul_comm, mul_left_comm]
 
+/-- The determinant of a matrix, as a monoid homomorphism. -/
 def det_monoid_hom : matrix n n R →* R :=
 { to_fun := det,
   map_one' := det_one,

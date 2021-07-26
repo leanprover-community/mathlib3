@@ -325,6 +325,7 @@ lemma subtype_domain.is_add_monoid_hom [Π i, add_zero_class (β i)]
   _root_.is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
+/-- `subtype_domain` but as an `add_monoid_hom`. -/
 @[simps] def subtype_domain_add_monoid_hom [Π i, add_zero_class (β i)]
   {p : ι → Prop} [decidable_pred p] : (Π₀ i : ι, β i) →+ Π₀ i : subtype p, β i :=
 { to_fun := subtype_domain p,

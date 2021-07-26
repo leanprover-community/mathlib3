@@ -406,11 +406,13 @@ theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal _ _
 
+/-- Left multiplication by a matrix, as an `add_monoid_hom` from matrices to matrices. -/
 @[simps] def add_monoid_hom_mul_left (M : matrix l m α) : matrix m n α →+ matrix l n α :=
 { to_fun := λ x, M ⬝ x,
   map_zero' := matrix.mul_zero _,
   map_add' := matrix.mul_add _ }
 
+/-- Right multiplication by a matrix, as an `add_monoid_hom` from matrices to matrices. -/
 @[simps] def add_monoid_hom_mul_right (M : matrix m n α) : matrix l m α →+ matrix l n α :=
 { to_fun := λ x, x ⬝ M,
   map_zero' := matrix.zero_mul _,
@@ -665,6 +667,7 @@ def mul_vec (M : matrix m n α) (v : n → α) : m → α
 def vec_mul (v : m → α) (M : matrix m n α) : n → α
 | j := dot_product v (λ i, M i j)
 
+/-- Left multiplication by a matrix, as an `add_monoid_hom` from vectors to vectors. -/
 @[simps] def mul_vec.add_monoid_hom_left (v : n → α) : matrix m n α →+ m → α :=
 { to_fun := λ M, mul_vec M v,
   map_zero' := by ext; simp [mul_vec]; refl,

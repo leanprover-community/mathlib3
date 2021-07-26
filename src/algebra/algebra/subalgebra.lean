@@ -131,10 +131,12 @@ theorem sum_mem {ι : Type w} {t : finset ι} {f : ι → A}
   (h : ∀ x ∈ t, f x ∈ S) : ∑ x in t, f x ∈ S :=
 S.to_subsemiring.sum_mem h
 
+/-- The projection from a subalgebra of `A` to an additive submonoid of `A`. -/
 def to_add_submonoid {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
   (S : subalgebra R A) : add_submonoid A :=
 S.to_subsemiring.to_add_submonoid
 
+/-- The projection from a subalgebra of `A` to a submonoid of `A`. -/
 def to_submonoid {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
   (S : subalgebra R A) : submonoid A :=
 S.to_subsemiring.to_submonoid

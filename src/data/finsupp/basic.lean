@@ -1662,6 +1662,7 @@ variables [add_zero_class M] {p : α → Prop} {v v' : α →₀ M}
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ _, rfl
 
+/-- `subtype_domain` but as an `add_monoid_hom`. -/
 def subtype_domain_add_monoid_hom : (α →₀ M) →+ subtype p →₀ M :=
 { to_fun := subtype_domain p,
   map_zero' := subtype_domain_zero,

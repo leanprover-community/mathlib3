@@ -676,6 +676,7 @@ theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = rep
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
+/-- `multiset.map` as an `add_monoid_hom`. -/
 def map_add_monoid_hom (f : α → β) : multiset α →+ multiset β :=
 { to_fun := map f,
   map_zero' := map_zero _,
@@ -873,6 +874,9 @@ theorem prod_singleton [comm_monoid α] (a : α) : prod (a ::ₘ 0) = a := by si
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
+
+/-- `multiset.sum`, the sum of the elements of a multiset, promoted to a morphism of
+`add_comm_monoid`s. -/
 def sum_add_monoid_hom [add_comm_monoid α] : multiset α →+ α :=
 { to_fun := sum,
   map_zero' := sum_zero,
@@ -1809,6 +1813,8 @@ quot.induction_on s $ λ l, countp_eq_length_filter _ _
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
 
+/-- `countp p`, the number of elements of a multiset satisfying `p`, promoted to an
+`add_monoid_hom`. -/
 def countp_add_monoid_hom : multiset α →+ ℕ :=
 { to_fun := countp p,
   map_zero' := countp_zero _,
@@ -1873,6 +1879,7 @@ by simp
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add _
 
+/-- `count a`, the multiplicity of `a` in a multiset, promoted to an `add_monoid_hom`. -/
 def count_add_monoid_hom (a : α) : multiset α →+ ℕ := countp_add_monoid_hom (eq a)
 
 @[simp] lemma count_add_monoid_hom_coe {a : α} :

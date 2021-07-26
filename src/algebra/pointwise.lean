@@ -159,7 +159,10 @@ by simp only [← image2_mul, image2_swap _ s, mul_comm]
 instance [comm_monoid α] : comm_monoid (set α) :=
 { mul_comm := λ _ _, set.mul_comm, ..set.monoid }
 
-@[to_additive]
+/-- Under `[has_mul M]`, the `singleton` map from `M` to `set M` as a `mul_hom`, that is, a map
+which preserves multiplication. -/
+@[to_additive "Under `[has_add A]`, the `singleton` map from `A` to `set A` as an `add_hom`,
+that is, a map which preserves addition."]
 def singleton_mul_hom [has_mul α] : mul_hom α (set α) :=
 { to_fun := singleton,
   map_mul' := λ a b, singleton_mul_singleton.symm }

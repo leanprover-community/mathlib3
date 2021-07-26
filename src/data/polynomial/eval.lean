@@ -678,6 +678,7 @@ by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
 @[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
 
+/-- `eval r`, regarded as a ring homomorphism from `polynomial R` to `R`. -/
 def eval_ring_hom : R → polynomial R →+* R := eval₂_ring_hom (ring_hom.id _)
 
 @[simp] lemma coe_eval_ring_hom (r : R) : ((eval_ring_hom r) : polynomial R → R) = eval r := rfl
@@ -692,6 +693,7 @@ begin
   { intros n a, simp, }
 end
 
+/-- `comp p`, regarded as a ring homomorphism from `polynomial R` to itself. -/
 def comp_ring_hom : polynomial R → polynomial R →+* polynomial R :=
 eval₂_ring_hom C
 

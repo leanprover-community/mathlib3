@@ -225,7 +225,10 @@ variables [comm_monoid M] [add_comm_monoid A]
 theorem mul_pow (a b : M) (n : ℕ) : (a * b)^n = a^n * b^n :=
 (commute.all a b).mul_pow n
 
-@[to_additive nsmul_add_monoid_hom]
+/-- The `n`th power map on a commutative monoid for a natural `n`, considered as a morphism of
+monoids. -/
+@[to_additive nsmul_add_monoid_hom "Multiplication by a natural `n` on a commutative additive
+monoid, considered as a morphism of additive monoids."]
 def pow_monoid_hom (n : ℕ) : M →* M :=
 { to_fun := (^ n),
   map_one' := one_pow _,
@@ -337,7 +340,10 @@ theorem mul_gpow (a b : G) (n : ℤ) : (a * b)^n = a^n * b^n := (commute.all a b
 theorem div_gpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_gpow, inv_gpow]
 
-@[to_additive]
+/-- The `n`th power map (`n` an integer) on a commutative group, considered as a group
+homomorphism. -/
+@[to_additive "Multiplication by an integer `n` on a commutative additive group, considered as an
+additive group homomorphism."]
 def gpow_group_hom (n : ℤ) : G →* G :=
 { to_fun := (^ n),
   map_one' := one_gpow n,

@@ -362,7 +362,9 @@ let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
 
 end monoid_hom
 
-@[to_additive]
+/-- Inversion on a commutative group, considered as a monoid homomorphism. -/
+@[to_additive "Inversion on a commutative additive group, considered as an additive
+monoid homomorphism."]
 def comm_group.inv_monoid_hom {G : Type*} [comm_group G] : G →* G :=
 { to_fun := has_inv.inv,
   map_one' := one_inv,

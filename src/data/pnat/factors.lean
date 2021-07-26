@@ -66,6 +66,8 @@ def to_nat_multiset : prime_multiset → multiset ℕ :=
 
 instance coe_nat : has_coe prime_multiset (multiset ℕ) := ⟨to_nat_multiset⟩
 
+/-- `prime_multiset.coe`, the coercion from a multiset of primes to a multiset of
+naturals, promoted to an `add_monoid_hom`. -/
 def coe_nat_monoid_hom : prime_multiset →+ multiset ℕ :=
 { to_fun := coe,
   .. multiset.map_add_monoid_hom coe }
@@ -90,6 +92,8 @@ def to_pnat_multiset : prime_multiset → multiset ℕ+ :=
 
 instance coe_pnat : has_coe prime_multiset (multiset ℕ+) := ⟨to_pnat_multiset⟩
 
+/-- `coe_pnat`, the coercion from a multiset of primes to a multiset of positive
+naturals, regarded as an `add_monoid_hom`. -/
 def coe_pnat_monoid_hom : prime_multiset →+ multiset ℕ+ :=
 { to_fun := coe,
   .. multiset.map_add_monoid_hom coe }

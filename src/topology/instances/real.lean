@@ -278,38 +278,6 @@ lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :
 subset_Icc_cInf_cSup (real.bounded_iff_bdd_below_bdd_above.1 h).1
   (real.bounded_iff_bdd_below_bdd_above.1 h).2
 
-/-- For a bounded set `s`, its `emetric.diam` is equal to `Sup s - Inf s` reinterpreted as
-`ℝ≥0∞`. -/
-lemma real.ediam_eq {s : set ℝ} (h : bounded s) :
-  emetric.diam s = ennreal.of_real (Sup s - Inf s) :=
-begin
-  have h' := real.bounded_iff_bdd_below_bdd_above.1 h,
-  rcases eq_empty_or_nonempty s with rfl|hne, { simp },
-  refine le_antisymm (metric.ediam_le_of_forall_dist_le _) _,
-  { suffices : ∀ (x ∈ s) (y ∈ s), x - y ≤ Sup s - Inf s,
-    { intros x hx y hy,
-      exact abs_sub_le_iff.2 ⟨this x hx y hy, this y hy x hx⟩ },
-    exact λ x hx y hy, sub_le_sub (le_cSup h'.2 hx) (cInf_le h'.1 hy) },
-  { apply ennreal.of_real_le_of_le_to_real, rw [← diam],
-    refine le_of_forall_pos_le_add (λ ε ε0, _),
-    rcases exists_lt_of_lt_cSup hne (sub_lt_self _ (half_pos ε0)) with ⟨y, hys, hlty⟩,
-    rcases exists_lt_of_cInf_lt hne (lt_add_of_pos_right _ (half_pos ε0)) with ⟨x, hxs, hxlt⟩,
-    calc Sup s - Inf s ≤ (y + ε / 2) - (x - ε / 2) :
-      (sub_lt_sub (sub_lt_iff_lt_add.1 hlty) (sub_lt_iff_lt_add.2 hxlt)).le
-    ... = y - x + ε :
-      by rw [← sub_add, sub_add_eq_add_sub, add_assoc, add_halves, sub_add_eq_add_sub]
-    ... ≤ dist y x + ε : add_le_add_right (le_abs_self _) _
-    ... ≤ diam s + ε : add_le_add_right (dist_le_diam_of_mem h hys hxs) _ }
-end
-
-/-- For a bounded set `s`, its `metric.diam` is equal to `Sup s - Inf s`. -/
-lemma real.diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
-begin
-  rw [metric.diam, real.ediam_eq h, ennreal.to_real_of_real],
-  rw real.bounded_iff_bdd_below_bdd_above at h,
-  exact sub_nonneg.2 (real.Inf_le_Sup s h.1 h.2)
-end
-
 lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
   f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩

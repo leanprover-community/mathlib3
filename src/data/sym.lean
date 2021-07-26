@@ -39,7 +39,10 @@ def sym (α : Type u) (n : ℕ) := {s : multiset α // s.card = n}
 
 /--
 This is the `list.perm` setoid lifted to `vector`.
+
+See note [reducible non-instances].
 -/
+@[reducible]
 def vector.perm.is_setoid (α : Type u) (n : ℕ) : setoid (vector α n) :=
 { r := λ a b, list.perm a.1 b.1,
   iseqv := by { rcases list.perm.eqv α with ⟨hr, hs, ht⟩, tidy, } }

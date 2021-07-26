@@ -22,7 +22,7 @@ we do not have a `posreal` type.
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale nnreal uniformity
+open_locale nnreal ennreal uniformity
 open set
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
@@ -30,26 +30,44 @@ open set
 def antilipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀ x y, edist x y ≤ K * edist (f x) (f y)
 
-lemma antilipschitz_with_iff_le_mul_dist [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
-  {f : α → β} : antilipschitz_with K f ↔ ∀ x y, dist x y ≤ K * dist (f x) (f y) :=
-by { simp only [antilipschitz_with, edist_nndist, dist_nndist], norm_cast }
+section metric
+
+variables [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0} {f : α → β}
+
+lemma antilipschitz_with_iff_le_mul_nndist :
+  antilipschitz_with K f ↔ ∀ x y, nndist x y ≤ K * nndist (f x) (f y) :=
+by { simp only [antilipschitz_with, edist_nndist], norm_cast }
+
+alias antilipschitz_with_iff_le_mul_nndist ↔ antilipschitz_with.le_mul_nndist
+  antilipschitz_with.of_le_mul_nndist
+
+lemma antilipschitz_with_iff_le_mul_dist :
+  antilipschitz_with K f ↔ ∀ x y, dist x y ≤ K * dist (f x) (f y) :=
+by { simp only [antilipschitz_with_iff_le_mul_nndist, dist_nndist], norm_cast }
 
 alias antilipschitz_with_iff_le_mul_dist ↔ antilipschitz_with.le_mul_dist
   antilipschitz_with.of_le_mul_dist
 
-lemma antilipschitz_with.mul_le_dist [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
-  {f : α → β} (hf : antilipschitz_with K f) (x y : α) : ↑K⁻¹ * dist x y ≤ dist (f x) (f y) :=
-begin
-  by_cases hK : K = 0, by simp [hK, dist_nonneg],
-  rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw div_le_iff' (nnreal.coe_pos.2 $ pos_iff_ne_zero.2 hK),
-  exact hf.le_mul_dist x y
-end
+namespace antilipschitz_with
+
+lemma mul_le_nndist (hf : antilipschitz_with K f) (x y : α) :
+  K⁻¹ * nndist x y ≤ nndist (f x) (f y) :=
+by simpa only [div_eq_inv_mul] using nnreal.div_le_of_le_mul' (hf.le_mul_nndist x y)
+
+lemma mul_le_dist (hf : antilipschitz_with K f) (x y : α) :
+  (K⁻¹ * dist x y : ℝ) ≤ dist (f x) (f y) :=
+by exact_mod_cast hf.mul_le_nndist x y
+
+end antilipschitz_with
+
+end metric
 
 namespace antilipschitz_with
 
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 variables {K : ℝ≥0} {f : α → β}
+
+open emetric
 
 /-- Extract the constant from `hf : antilipschitz_with K f`. This is useful, e.g.,
 if `K` is given by a long formula, and we want to reuse this value. -/
@@ -61,14 +79,17 @@ protected lemma injective {α : Type*} {β : Type*} [emetric_space α] [pseudo_e
 λ x y h, by simpa only [h, edist_self, mul_zero, edist_le_zero] using hf x y
 
 lemma mul_le_edist (hf : antilipschitz_with K f) (x y : α) :
-  ↑K⁻¹ * edist x y ≤ edist (f x) (f y) :=
+  (K⁻¹ * edist x y : ℝ≥0∞) ≤ edist (f x) (f y) :=
 begin
-  by_cases hK : K = 0, by simp [hK],
-  rw [ennreal.coe_inv hK, mul_comm, ← div_eq_mul_inv],
-  apply ennreal.div_le_of_le_mul,
-  rw mul_comm,
-  exact hf x y
+  rw [mul_comm, ← div_eq_mul_inv],
+  exact ennreal.div_le_of_le_mul' (hf x y)
 end
+
+lemma ediam_preimage_le (hf : antilipschitz_with K f) (s : set β) : diam (f ⁻¹' s) ≤ K * diam s :=
+diam_le $ λ x hx y hy, (hf x y).trans $ mul_le_mul_left' (edist_le_diam_of_mem hx hy) K
+
+lemma le_mul_ediam_image (hf : antilipschitz_with K f) (s : set α) : diam s ≤ K * diam (f '' s) :=
+(diam_mono (subset_preimage_image _ _)).trans (hf.ediam_preimage_le (f '' s))
 
 protected lemma id : antilipschitz_with 1 (id : α → α) :=
 λ x y, by simp only [ennreal.coe_one, one_mul, id, le_refl]
@@ -148,6 +169,11 @@ antilipschitz_with.id.restrict s
 
 lemma of_subsingleton [subsingleton α] {K : ℝ≥0} : antilipschitz_with K f :=
 λ x y, by simp only [subsingleton.elim x y, edist_self, zero_le]
+
+/-- If `f : α → β` is `0`-antilipschitz, then `α` is a `subsingleton`. -/
+protected lemma subsingleton {α β} [emetric_space α] [pseudo_emetric_space β] {f : α → β}
+  (h : antilipschitz_with 0 f) : subsingleton α :=
+⟨λ x y, edist_le_zero.1 $ (h x y).trans_eq $ zero_mul _⟩
 
 end antilipschitz_with
 

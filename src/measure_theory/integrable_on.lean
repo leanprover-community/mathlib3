@@ -416,6 +416,8 @@ lemma measure_theory.integrable_on.continuous_on_mul [t2_space α]
   integrable_on (λ x, g x * f x) s μ :=
 hf.continuous_on_mul_of_subset hg hs.measurable_set hs (subset.refl _)
 
+end
+
 section monotone
 
 variables

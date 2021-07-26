@@ -73,9 +73,7 @@ begin
       { exact ⟨(0 : X →L[ℝ] Y), has_fderiv_at_of_subsingleton f x,
         is_conformal_map_of_subsingleton 0⟩, },
       { exfalso,
-        rcases nontrivial_iff.mp w with ⟨a, b, hab⟩,
-        rw [fderiv_zero_of_not_differentiable_at h] at H,
-        exact hab (H.injective rfl), }, }, },
+        exact H.ne_zero (fderiv_zero_of_not_differentiable_at h), }, }, },
 end
 
 /-- A real differentiable map `f` is conformal at point `x` if and only if its

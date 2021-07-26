@@ -7,8 +7,11 @@ import order.partial_sups
 
 /-!
 # Consecutive differences of sets
+
 This file defines a way to make a sequence of sets into a sequence of disjoint sets.
+
 ## Main declarations
+
 * `disjointed f`: Yields the sequence of sets `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ∪ f 1)`, ... This
   sequence has the same union as `f 0`, `f 1`, `f 2` but with disjoint sets.
 -/
@@ -18,9 +21,9 @@ variables {α β : Type*}
 section generalized_boolean_algebra
 variables [generalized_boolean_algebra α]
 
-/-- If `f : ℕ → α` is a sequence of sets, then `disjointed f` is
-  the sequence formed with each set subtracted from the later ones
-  in the sequence, to form a disjoint sequence. -/
+/-- If `f : ℕ → α` is a sequence of elements, then `disjointed f` is the sequence formed by
+subtracting each element from the nexts. This is the unique disjoint sequence whose partial sups
+are the same as the original sequence. -/
 def disjointed (f : ℕ → α) : ℕ → α
 | 0       := f 0
 | (n + 1) := f (n + 1) \ (partial_sups f n)
@@ -49,7 +52,9 @@ begin
     (le_partial_sups_of_le f (nat.lt_add_one_iff.1 h))),
 end
 
-lemma disjointed_induct {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i)) :
+/-- An induction principle for `disjointed`. To define/prove something on `disjointed f n`, it's
+enough to define/prove it for `f n` and being able to extend through diffs. -/
+def disjointed_induct {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i)) :
   ∀ ⦃n⦄, p (f n) → p (disjointed f n)
 | 0       := id
 | (n + 1) := λ h,
@@ -90,7 +95,25 @@ lemma supr_disjointed_eq (f : ℕ → α) : (⨆ n, disjointed f n) = (⨆ n, f 
 (supr_le_supr (λ n, disjointed_le f n)).antisymm
   (supr_le (λ i, (le_supr_disjointed _ _).trans (bsupr_le_supr _ _)))
 
+lemma disjointed_eq_inf_compl (f : ℕ → α) (n : ℕ) :
+  disjointed f n = f n ⊓ (⨅ i < n, (f i)ᶜ) :=
+begin
+  cases n,
+  { rw [disjointed_zero, eq_comm, inf_eq_left],
+    simp_rw le_infi_iff,
+    exact λ i hi, (i.not_lt_zero hi).elim },
+  simp_rw [disjointed_succ, partial_sups_eq_supr, sdiff_eq, compl_supr],
+  congr,
+  ext i,
+  sorry
+end
+
 end complete_boolean_algebra
+
+/-! ### Set notation variants of lemmas -/
+
+lemma disjointed_subset (f : ℕ → set α) (n : ℕ) : disjointed f n ⊆ f n :=
+disjointed_le f n
 
 lemma Union_disjointed_eq {f : ℕ → set α} : (⋃ n, disjointed f n) = (⋃ n, f n) :=
 supr_disjointed_eq f

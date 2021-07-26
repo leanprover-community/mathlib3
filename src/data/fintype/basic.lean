@@ -1118,7 +1118,7 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
 
 instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym.sym' α n) :=
-by { unfold sym.sym' vector.perm.is_setoid, exact quotient.fintype _ }
+quotient.fintype _
 
 instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym α n) :=
 fintype.of_equiv _ sym.sym_equiv_sym'.symm

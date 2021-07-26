@@ -52,11 +52,6 @@ lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   (∑ x in s, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
 by simp
 
-lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
-  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
-  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
-by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
-
 end semiring
 
 lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :

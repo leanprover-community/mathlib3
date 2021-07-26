@@ -129,6 +129,8 @@ begin
     apply_composition_ones, C, D],
 end
 
+#check finset.neg_sum
+
 /-! ### The right inverse of a formal multilinear series -/
 
 /-- The right inverse of a formal multilinear series, where the `n`-th term is defined inductively

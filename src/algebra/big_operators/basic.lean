@@ -1176,8 +1176,8 @@ section comm_group
 variables [comm_group β]
 
 @[simp, to_additive]
-lemma prod_inv_distrib : (∏ x in s, f x)⁻¹ = (∏ x in s, (f x)⁻¹) :=
-monoid_hom.map_prod (comm_group.inv_monoid_hom : β →* β) f s
+lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
+(monoid_hom.map_prod (comm_group.inv_monoid_hom : β →* β) f s).symm
 
 end comm_group
 
@@ -1217,7 +1217,7 @@ add_monoid_hom.map_sum (gsmul_add_group_hom z : β →+ β) f s
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
-by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_distrib.symm)
+by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_distrib)
 
 section prod_eq_zero
 variables [comm_monoid_with_zero β]

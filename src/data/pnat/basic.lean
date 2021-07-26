@@ -131,7 +131,7 @@ instance : inhabited ℕ+ := ⟨1⟩
 @[simp] lemma mk_bit1 (n) {h} {k} : (⟨bit1 n, h⟩ : ℕ+) = (bit1 ⟨n, k⟩ : ℕ+) := rfl
 
 -- Some lemmas that rewrite inequalities between explicit numerals in `ℕ+`
--- into the corresponding inequalities in `nat`.
+-- into the corresponding inequalities in `ℕ`.
 -- TODO: perhaps this should not be attempted by `simp`,
 -- and instead we should expect `norm_num` to take care of these directly?
 -- TODO: these lemmas are perhaps incomplete:
@@ -204,6 +204,7 @@ lemma exists_eq_succ_of_ne_one : ∀ {n : ℕ+} (h1 : n ≠ 1), ∃ (k : ℕ+), 
 | ⟨1, _⟩ h1 := false.elim $ h1 rfl
 | ⟨n+2, _⟩ _ := ⟨⟨n+1, by simp⟩, rfl⟩
 
+/-- Strong induction on `ℕ+`, with `n = 1` treated separately. -/
 def case_strong_induction_on {p : ℕ+ → Sort*} (a : ℕ+) (hz : p 1)
   (hi : ∀ n, (∀ m, m ≤ n → p m) → p (n + 1)) : p a :=
 begin

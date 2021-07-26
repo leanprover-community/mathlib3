@@ -465,6 +465,12 @@ rfl
 
 /-! ### The complete lattice of measures -/
 
+/-- Measures are partially ordered.
+
+The definition of less equal here is equivalent to the definition without the
+measurable set condition, and this is shown by `measure.le_iff'`. It is defined
+this way since, to prove `μ ≤ ν`, we may simply `intros s hs` instead of rewriting followed
+by `intros s hs`. -/
 instance : partial_order (measure α) :=
 { le          := λ m₁ m₂, ∀ s, measurable_set s → m₁ s ≤ m₂ s,
   le_refl     := assume m s hs, le_refl _,
@@ -2546,7 +2552,7 @@ lemma metric.bounded.finite_measure [metric_space α] [proper_space α]
 
 section piecewise
 
-variables [measurable_space α] {μ : measure α} {s : set α} {f g : α → β}
+variables [measurable_space α] {μ : measure α} {s t : set α} {f g : α → β}
 
 lemma piecewise_ae_eq_restrict (hs : measurable_set s) : piecewise s f g =ᵐ[μ.restrict s] f :=
 begin
@@ -2561,11 +2567,19 @@ begin
   exact (piecewise_eq_on_compl s f g).eventually_eq.filter_mono inf_le_right
 end
 
+lemma piecewise_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.piecewise f g =ᵐ[μ] t.piecewise f g :=
+begin
+  filter_upwards [hst],
+  intros x hx,
+  replace hx : x ∈ s ↔ x ∈ t := iff_of_eq hx,
+  by_cases h : x ∈ s; have h' := h; rw hx at h'; simp [h, h']
+end
+
 end piecewise
 
 section indicator_function
 
-variables [measurable_space α] {μ : measure α} {s : set α} {f : α → β}
+variables [measurable_space α] {μ : measure α} {s t : set α} {f : α → β}
 
 lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
   ae_measurable f (μ.restrict s) :=
@@ -2578,6 +2592,9 @@ piecewise_ae_eq_restrict hs
 
 lemma indicator_ae_eq_restrict_compl (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
 piecewise_ae_eq_restrict_compl hs
+
+lemma indicator_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.indicator f =ᵐ[μ] t.indicator f :=
+piecewise_ae_eq_of_ae_eq_set hst
 
 variables [measurable_space β]
 
@@ -2603,14 +2620,3 @@ lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_se
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end indicator_function
-
-namespace measurable_set
-
-variables [measurable_space α]
-
-@[measurability]
-lemma cond {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
-  {i : bool} : measurable_set (cond i A B) :=
-by { cases i, exacts [hB, hA] }
-
-end measurable_set

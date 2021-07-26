@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
+import data.sym
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -169,6 +170,14 @@ lemma univ_filter_mem_range (f : α → β) [fintype β]
   [decidable_pred (λ y, y ∈ set.range f)] [decidable_eq β] :
   finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
 univ_filter_exists f
+
+/-- A special case of `finset.sup_eq_supr` that omits the useless `x ∈ univ` binder. -/
+lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f = supr f :=
+(sup_eq_supr _ f).trans $ congr_arg _ $ funext $ λ a, supr_pos (mem_univ _)
+
+/-- A special case of `finset.inf_eq_infi` that omits the useless `x ∈ univ` binder. -/
+lemma inf_univ_eq_infi [complete_lattice β] (f : α → β) : finset.univ.inf f = infi f :=
+sup_univ_eq_supr (by exact f : α → order_dual β)
 
 end finset
 
@@ -529,8 +538,9 @@ subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
-arbitrary `fintype` instances, use `fintype.univ_eq_empty'`. -/
-@[simp] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
+arbitrary `fintype` instances, use `fintype.univ_is_empty`. -/
+-- no-lint since while `fintype.of_is_empty` can prove this, it isn't applicable for `dsimp`.
+@[simp, nolint simp_nf] theorem univ_of_is_empty [is_empty α] : @univ α _ = ∅ := rfl
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
 arbitrary `fintype` instances, use `fintype.card_eq_zero_iff`. -/
@@ -702,6 +712,9 @@ fintype.of_subsingleton (default α)
 
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
+
+@[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
+finset.ext is_empty_elim
 
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
 
@@ -875,6 +888,10 @@ by rw [←card_unit, card_eq]; exact
 lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
 ⟨λ h, ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
   λ h, by { have e : α ≃ empty, exactI equiv.equiv_empty α, simp [card_congr e] }⟩
+
+lemma card_eq_one_iff_nonempty_unique : card α = 1 ↔ nonempty (unique α) :=
+⟨λ h, let ⟨d, h⟩ := fintype.card_eq_one_iff.mp h in ⟨{ default := d, uniq := h}⟩,
+ λ ⟨h⟩, by exactI fintype.card_unique⟩
 
 /-- A `fintype` with cardinality zero is equivalent to `empty`. -/
 def card_eq_zero_equiv_equiv_empty : card α = 0 ≃ (α ≃ empty) :=
@@ -1107,6 +1124,12 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 @[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
+
+instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym.sym' α n) :=
+quotient.fintype _
+
+instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym α n) :=
+fintype.of_equiv _ sym.sym_equiv_sym'.symm
 
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=

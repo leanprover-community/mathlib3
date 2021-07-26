@@ -32,7 +32,19 @@ section equiv
 
 variables {α : Sort u} {β : Sort v} (f : α ≃ β)
 
-/-- Convert an `α ≃ β` to `α ↪ β`. -/
+/-- Convert an `α ≃ β` to `α ↪ β`.
+
+This is also available as a coercion `equiv.coe_embedding`.
+The explicit `equiv.to_embedding` version is preferred though, since the coercion can have issues
+inferring the type of the resulting embedding. For example:
+
+```lean
+-- Works:
+example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f.to_embedding = s.map f := by simp
+-- Error, `f` has type `fin 3 ≃ fin 3` but is expected to have type `fin 3 ↪ ?m_1 : Type ?`
+example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f = s.map f.to_embedding := by simp
+```
+-/
 @[simps] protected def equiv.to_embedding : α ↪ β := ⟨f, f.injective⟩
 
 instance equiv.coe_embedding : has_coe (α ≃ β) (α ↪ β) := ⟨equiv.to_embedding⟩

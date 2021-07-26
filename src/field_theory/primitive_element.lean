@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Thomas Browning and Patrick Lutz. All rights reserved.
+Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Browning and Patrick Lutz
+Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
@@ -26,7 +26,8 @@ requires more unfolding without much obvious benefit.
 
 ## Tags
 
-primitive element, separable field extension, separable extension, intermediate field, adjoin, exists_adjoin_simple_eq_top
+primitive element, separable field extension, separable extension, intermediate field, adjoin,
+exists_adjoin_simple_eq_top
 
 -/
 
@@ -42,7 +43,7 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
 /-! ### Primitive element theorem for finite fields -/
 
-/-- Primitive element theorem assuming E is finite. -/
+/-- **Primitive element theorem** assuming E is finite. -/
 lemma exists_primitive_element_of_fintype_top [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   obtain ⟨α, hα⟩ := is_cyclic.exists_generator (units E),
@@ -93,8 +94,8 @@ variables [algebra F E]
 lemma primitive_element_inf_aux (F_sep : is_separable F E) :
   ∃ γ : E, F⟮α, β⟯ = F⟮γ⟯ :=
 begin
-  obtain ⟨hα, hf⟩ := F_sep α,
-  obtain ⟨hβ, hg⟩ := F_sep β,
+  have hα := F_sep.is_integral α,
+  have hβ := F_sep.is_integral β,
   let f := minpoly F α,
   let g := minpoly F β,
   let ιFE := algebra_map F E,
@@ -127,7 +128,7 @@ begin
       simp [mul_sub, coeff_C, mul_div_cancel_left β (mt leading_coeff_eq_zero.mp h_ne_zero)] },
     rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1) },
-  have h_sep : h.separable := separable_gcd_right _ (separable.map hg),
+  have h_sep : h.separable := separable_gcd_right _ (separable.map (F_sep.separable β)),
   have h_root : h.eval β = 0,
   { apply eval_gcd_eq_zero,
     { rw [eval_comp, eval_sub, eval_mul, eval_C, eval_C, eval_X, eval_map, ←aeval_def,
@@ -182,5 +183,17 @@ begin
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },
 end
+
+/-- Alternative phrasing of primitive element theorem:
+a finite separable field extension has a basis `1, α, α^2, ..., α^n`.
+
+See also `exists_primitive_element`. -/
+noncomputable def power_basis_of_finite_of_separable
+  [finite_dimensional F E] (F_sep : is_separable F E) :
+  power_basis F E :=
+let α := (exists_primitive_element F_sep).some,
+    pb := (adjoin.power_basis (F_sep.is_integral α)) in
+have e : F⟮α⟯ = ⊤ := (exists_primitive_element F_sep).some_spec,
+pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
 
 end field

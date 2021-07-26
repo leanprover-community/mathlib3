@@ -7,17 +7,15 @@ Tests for norm_num
 -/
 
 import tactic.norm_num
-import data.complex.basic
-import data.nat.prime
 
--- constant real : Type
--- notation `ℝ` := real
--- @[instance] constant real.linear_ordered_ring : linear_ordered_field ℝ
+constant real : Type
+notation `ℝ` := real
+@[instance] constant real.linear_ordered_ring : linear_ordered_field ℝ
 
--- constant complex : Type
--- notation `ℂ` := complex
--- @[instance] constant complex.field : field ℂ
--- @[instance] constant complex.char_zero : char_zero ℂ
+constant complex : Type
+notation `ℂ` := complex
+@[instance] constant complex.field : field ℂ
+@[instance] constant complex.char_zero : char_zero ℂ
 
 example : 374 + (32 - (2 * 8123) : ℤ) - 61 * 50 = 86 + 32 * 32 - 4 * 5000
       ∧ 43 ≤ 74 + (33 : ℤ) := by norm_num
@@ -75,10 +73,10 @@ begin
   trivial
 end
 
-example : nat.prime 1277 := by norm_num
-example : nat.min_fac 221 = 13 := by norm_num
-
 example (h : (5 : ℤ) ∣ 2) : false := by norm_num at h
+example (h : false) : false := by norm_num at h
+example : true := by norm_num
+example : true ∧ true := by { split, norm_num, norm_num }
 
 example : 10 + 2 = 1 + 11 := by norm_num
 

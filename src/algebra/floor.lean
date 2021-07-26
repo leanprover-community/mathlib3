@@ -7,20 +7,22 @@ import tactic.linarith
 import tactic.abel
 import algebra.ordered_group
 import data.set.intervals.basic
+
 /-!
-# Floor and Ceil
+# Floor and ceil
 
 ## Summary
 
-We define `floor`, `ceil`, and `nat_ceil` functions on linear ordered rings.
+We define `floor`, `ceil`, `nat_floor`and `nat_ceil` functions on linear ordered rings.
 
 ## Main Definitions
 
-- `floor_ring` is a linear ordered ring with floor function.
-- `floor x` is the greatest integer `z` such that `z ≤ x`.
-- `fract x` is the fractional part of x, that is `x - floor x`.
-- `ceil x` is the smallest integer `z` such that `x ≤ z`.
-- `nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.
+- `floor_ring`: Linear ordered ring with a floor function.
+- `floor x`: Greatest integer `z` such that `z ≤ x`.
+- `ceil x`: Least integer `z` such that `x ≤ z`.
+- `fract x`: Fractional part of `x`, defined as `x - floor x`.
+- `nat_floor x`: Greatest natural `n` such that `n ≤ x`. Defined as `0` if `x < 0`.
+- `nat_ceil x`: Least natural `n` such that `x ≤ n`.
 
 ## Notations
 
@@ -29,12 +31,14 @@ We define `floor`, `ceil`, and `nat_ceil` functions on linear ordered rings.
 
 ## Tags
 
-rounding
+rounding, floor, ceil
 -/
 
 variables {α : Type*}
 
 open_locale classical
+
+/-! ### Floor rings -/
 
 /--
 A `floor_ring` is a linear ordered ring over `α` with a function
@@ -246,16 +250,95 @@ lemma ceil_eq_on_Ioc (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), ceil x = 
 lemma ceil_eq_on_Ioc' (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), (ceil x : α) = n :=
 λ x hx, by exact_mod_cast ceil_eq_on_Ioc n x hx
 
-/--
-`nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.
-It is the same as `⌈q⌉` when `q ≥ 0`, otherwise it is `0`.
--/
-def nat_ceil (a : α) : ℕ := int.to_nat (⌈a⌉)
+/-! ### `nat_floor` and `nat_ceil` -/
 
-theorem nat_ceil_le {a : α} {n : ℕ} : nat_ceil a ≤ n ↔ a ≤ n :=
+section nat
+variables {a : α} {n : ℕ}
+
+/-- `nat_floor x` is the greatest natural `n` that is less than `x`.
+It is equal to `⌊q⌋` when `q ≥ 0`, and is `0` otherwise. -/
+def nat_floor (a : α) : ℕ := int.to_nat ⌊a⌋
+
+lemma nat_floor_of_nonpos (ha : a ≤ 0) : nat_floor a = 0 :=
+begin
+  apply int.to_nat_of_nonpos,
+  exact_mod_cast (floor_le a).trans ha,
+end
+
+lemma pos_of_nat_floor_pos (h : 0 < nat_floor a) : 0 < a :=
+begin
+  refine (le_or_lt a 0).resolve_left (λ ha, lt_irrefl 0 _),
+  rwa nat_floor_of_nonpos ha at h,
+end
+
+lemma nat_floor_le (ha : 0 ≤ a) : ↑(nat_floor a) ≤ a :=
+begin
+  refine le_trans _ (floor_le _),
+  norm_cast,
+  exact (int.to_nat_of_nonneg (floor_nonneg.2 ha)).le,
+end
+
+lemma le_nat_floor_of_le (h : ↑n ≤ a) : n ≤ nat_floor a :=
+begin
+  have hn := int.le_to_nat n,
+  norm_cast at hn,
+  exact hn.trans (int.to_nat_le_to_nat (le_floor.2 h)),
+end
+
+theorem le_nat_floor_iff (ha : 0 ≤ a) : n ≤ nat_floor a ↔ ↑n ≤ a :=
+⟨λ h, (nat.cast_le.2 h).trans (nat_floor_le ha), le_nat_floor_of_le⟩
+
+lemma lt_of_lt_nat_floor (h : n < nat_floor a) : ↑n < a :=
+(nat.cast_lt.2 h).trans_le (nat_floor_le (pos_of_nat_floor_pos ((nat.zero_le n).trans_lt h)).le)
+
+theorem nat_floor_lt_iff (ha : 0 ≤ a) : nat_floor a < n ↔ a < ↑n :=
+le_iff_le_iff_lt_iff_lt.1 (le_nat_floor_iff ha)
+
+theorem nat_floor_mono {a₁ a₂ : α} (h : a₁ ≤ a₂) : nat_floor a₁ ≤ nat_floor a₂ :=
+begin
+  obtain ha | ha := le_total a₁ 0,
+  { rw nat_floor_of_nonpos ha,
+    exact nat.zero_le _ },
+  exact le_nat_floor_of_le ((nat_floor_le ha).trans h),
+end
+
+@[simp] theorem nat_floor_coe (n : ℕ) : nat_floor (n : α) = n :=
+begin
+  rw nat_floor,
+  convert int.to_nat_coe_nat n,
+  exact floor_coe n,
+end
+
+@[simp] theorem nat_floor_zero : nat_floor (0 : α) = 0 := nat_floor_coe 0
+
+theorem nat_floor_add_nat (ha : 0 ≤ a) (n : ℕ) : nat_floor (a + n) = nat_floor a + n :=
+begin
+  change int.to_nat ⌊a + (n : ℤ)⌋ = int.to_nat ⌊a⌋ + n,
+  rw [floor_add_int, int.to_nat_add_nat (le_floor.2 ha)],
+end
+
+lemma lt_nat_floor_add_one (a : α) : a < nat_floor a + 1 :=
+begin
+  refine (lt_floor_add_one a).trans_le (add_le_add_right _ 1),
+  norm_cast,
+  exact int.le_to_nat _,
+end
+
+lemma nat_floor_eq_zero_iff : nat_floor a = 0 ↔ a < 1 :=
+begin
+  obtain ha | ha := le_total a 0,
+  { exact iff_of_true (nat_floor_of_nonpos ha) (ha.trans_lt zero_lt_one) },
+  rw [←nat.cast_one, ←nat_floor_lt_iff ha, nat.lt_add_one_iff, nat.le_zero_iff],
+end
+
+/-- `nat_ceil x` is the least natural `n` that is greater than `x`.
+It is equal to `⌈q⌉` when `q ≥ 0`, and is `0` otherwise. -/
+def nat_ceil (a : α) : ℕ := int.to_nat ⌈a⌉
+
+theorem nat_ceil_le : nat_ceil a ≤ n ↔ a ≤ n :=
 by rw [nat_ceil, int.to_nat_le, ceil_le]; refl
 
-theorem lt_nat_ceil {a : α} {n : ℕ} : n < nat_ceil a ↔ (n : α) < a :=
+theorem lt_nat_ceil : n < nat_ceil a ↔ (n : α) < a :=
 not_iff_not.1 $ by rw [not_lt, not_lt, nat_ceil_le]
 
 theorem le_nat_ceil (a : α) : a ≤ nat_ceil a := nat_ceil_le.1 (le_refl _)
@@ -289,3 +372,37 @@ lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)
 
 lemma le_of_nat_ceil_le {x : α} {n : ℕ} (h : nat_ceil x ≤ n) : x ≤ n :=
 le_trans (le_nat_ceil x) (by exact_mod_cast h)
+
+end nat
+
+namespace int
+
+@[simp] lemma preimage_Ioo {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioo x y)) = set.Ioo (floor x) (ceil y) :=
+by { ext, simp [floor_lt, lt_ceil] }
+
+@[simp] lemma preimage_Ico {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ico x y)) = set.Ico (ceil x) (ceil y) :=
+by { ext, simp [ceil_le, lt_ceil] }
+
+@[simp] lemma preimage_Ioc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioc x y)) = set.Ioc (floor x) (floor y) :=
+by { ext, simp [floor_lt, le_floor] }
+
+@[simp] lemma preimage_Icc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Icc x y)) = set.Icc (ceil x) (floor y) :=
+by { ext, simp [ceil_le, le_floor] }
+
+@[simp] lemma preimage_Ioi {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ioi x)) = set.Ioi (floor x) :=
+by { ext, simp [floor_lt] }
+
+@[simp] lemma preimage_Ici {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ici x)) = set.Ici (ceil x) :=
+by { ext, simp [ceil_le] }
+
+@[simp] lemma preimage_Iio {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iio x)) = set.Iio (ceil x) :=
+by { ext, simp [lt_ceil] }
+
+@[simp] lemma preimage_Iic {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iic x)) = set.Iic (floor x) :=
+by { ext, simp [le_floor] }
+
+end int

@@ -12,6 +12,6 @@ import data.fintype.basic
 
 open_locale classical
 
-lemma card_units_lt (R : Type*) [semiring R] [nontrivial R] [fintype R] :
-  fintype.card (units R) < fintype.card R :=
-card_lt_card_of_injective_of_not_mem (coe : units R → R) units.ext not_is_unit_zero
+lemma card_units_lt (M₀ : Type*) [monoid_with_zero M₀] [nontrivial M₀] [fintype M₀] :
+  fintype.card (units M₀) < fintype.card M₀ :=
+fintype.card_lt_of_injective_of_not_mem (coe : units M₀ → M₀) units.ext not_is_unit_zero

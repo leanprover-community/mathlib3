@@ -57,7 +57,7 @@ end
 lemma eq_imp_1 {n : ℤ} (h1 : problem_predicate N n n) : n = 1 :=
 begin
   have : n * (n * (n * n)) = 1,
-  { calc _ = (n ^ 2 - n * n - n ^ 2) ^ 2 : by simp [pow_two, mul_assoc]
+  { calc _ = (n ^ 2 - n * n - n ^ 2) ^ 2 : by simp [sq, mul_assoc]
        ... = 1                           : h1.eq_one },
   exact eq_one_of_mul_eq_one_right h1.m_range.left.le this,
 end

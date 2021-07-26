@@ -34,6 +34,10 @@ already appears in the input.
 ## Notations
 
 The main new notation is `![a, b]`, which gets expanded to `vec_cons a (vec_cons b vec_empty)`.
+
+## Examples
+
+Examples of usage can be found in the `test/matrix.lean` file.
 -/
 
 namespace matrix
@@ -66,6 +70,26 @@ v 0
 /-- `vec_tail v` gives a vector consisting of all entries of `v` except the first -/
 def vec_tail {n : ℕ} (v : fin n.succ → α) : fin n → α :=
 v ∘ fin.succ
+
+variables {m n : ℕ}
+
+/-- Use `![...]` notation for displaying a vector `fin n → α`, for example:
+
+```
+#eval ![1, 2] + ![3, 4] -- ![4, 6]
+```
+-/
+instance [has_repr α] : has_repr (fin n → α) :=
+{ repr := λ f, "![" ++ (string.intercalate ", " ((list.fin_range n).map (λ n, repr (f n)))) ++ "]" }
+
+/-- Use `![...]` notation for displaying a `fin`-indexed matrix, for example:
+
+```
+#eval ![![1, 2], ![3, 4]] + ![![3, 4], ![5, 6]] -- ![![4, 6], ![8, 10]]
+```
+-/
+instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) :=
+(by apply_instance : has_repr (fin m → fin n → α))
 
 end matrix_notation
 
@@ -133,11 +157,14 @@ set.range_eq_empty.2 $ λ ⟨k⟩, k.elim0
 -/
 @[simp] lemma cons_val_one (x : α) (u : fin m.succ → α) :
   vec_cons x u 1 = vec_head u :=
-cons_val_succ x u 0
+by { rw [← fin.succ_zero_eq_one, cons_val_succ], refl }
 
 @[simp] lemma cons_val_fin_one (x : α) (u : fin 0 → α) (i : fin 1) :
   vec_cons x u i = x :=
 by { fin_cases i, refl }
+
+lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
+funext (cons_val_fin_one x u)
 
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
@@ -201,10 +228,11 @@ begin
   cases n,
   { simp, congr },
   { split_ifs with h; simp_rw [bit1, bit0]; congr,
-    { rw fin.coe_mk at h,
-      simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
+    { simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
+      rw fin.coe_mk at h,
+      rw fin.coe_one,
       rw nat.mod_eq_of_lt (nat.lt_of_succ_lt h),
-      exact (nat.mod_eq_of_lt h).symm },
+      rw nat.mod_eq_of_lt h },
     { rw [fin.coe_mk, not_lt] at h,
       simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
                  nat.mod_eq_sub_mod h],
@@ -217,7 +245,8 @@ end
   vec_head (vec_alt0 hm v) = v 0 := rfl
 
 @[simp] lemma vec_head_vec_alt1 (hm : (m + 2) = (n + 1) + (n + 1)) (v : fin (m + 2) → α) :
-  vec_head (vec_alt1 hm v) = v 1 := rfl
+  vec_head (vec_alt1 hm v) = v 1 :=
+by simp [vec_head, vec_alt1]
 
 @[simp] lemma cons_vec_bit0_eq_alt0 (x : α) (u : fin n → α) (i : fin (n + 1)) :
   vec_cons x u (bit0 i) = vec_alt0 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
@@ -380,7 +409,8 @@ rfl
   mul_vec (vec_cons v A) w = vec_cons (dot_product v w) (mul_vec A w) :=
 by { ext i, refine fin.cases _ _ i; simp [mul_vec] }
 
-@[simp] lemma mul_vec_cons {α} [comm_semiring α] (A : m' → (fin n.succ) → α) (x : α) (v : fin n → α) :
+@[simp] lemma mul_vec_cons {α} [comm_semiring α] (A : m' → (fin n.succ) → α) (x : α)
+  (v : fin n → α) :
   mul_vec A (vec_cons x v) = (x • vec_head ∘ A) + mul_vec (vec_tail ∘ A) v :=
 by { ext i, simp [mul_vec, mul_comm] }
 

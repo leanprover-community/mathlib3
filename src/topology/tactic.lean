@@ -81,7 +81,8 @@ setup_tactic_parser
 Solve goals of the form `continuous f`. `continuity?` reports back the proof term it found.
 -/
 meta def continuity
-  (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) : tactic unit :=
+  (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :
+  tactic unit :=
 let md              := if bang.is_some then semireducible else reducible,
     continuity_core := tactic.tidy { tactics := continuity_tactics md, ..cfg },
     trace_fn        := if trace.is_some then show_term else id in

@@ -1,10 +1,9 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.multilinear
-import ring_theory.power_series.basic
 
 /-!
 # Formal multilinear series
@@ -31,6 +30,7 @@ open_locale topological_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
+{G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 /-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
 multilinear maps from `E^n` to `F` for all `n`. -/
@@ -75,12 +75,34 @@ def unshift (q : formal_multilinear_series 𝕜 E (E →L[𝕜] F)) (z : F) :
 | 0       := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
 | (n + 1) := continuous_multilinear_curry_right_equiv' 𝕜 n E F (q n)
 
+/-- Killing the zeroth coefficient in a formal multilinear series -/
+def remove_zero (p : formal_multilinear_series 𝕜 E F) : formal_multilinear_series 𝕜 E F
+| 0       := 0
+| (n + 1) := p (n + 1)
+
+@[simp] lemma remove_zero_coeff_zero : p.remove_zero 0 = 0 := rfl
+
+@[simp] lemma remove_zero_coeff_succ (n : ℕ) : p.remove_zero (n+1) = p (n+1) := rfl
+
+lemma remove_zero_of_pos {n : ℕ} (h : 0 < n) : p.remove_zero n = p n :=
+by { rw ← nat.succ_pred_eq_of_pos h, refl }
+
 /-- Convenience congruence lemma stating in a dependent setting that, if the arguments to a formal
 multilinear series are equal, then the values are also equal. -/
 lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → E} {w : fin n → E}
   (h1 : m = n) (h2 : ∀ (i : ℕ) (him : i < m) (hin : i < n), v ⟨i, him⟩ = w ⟨i, hin⟩) :
   p m v = p n w :=
 by { cases h1, congr' with ⟨i, hi⟩, exact h2 i hi hi }
+
+/-- Composing each term `pₙ` in a formal multilinear series with `(u, ..., u)` where `u` is a fixed
+continuous linear map, gives a new formal multilinear series `p.comp_continuous_linear_map u`. -/
+def comp_continuous_linear_map (p : formal_multilinear_series 𝕜 F G) (u : E →L[𝕜] F) :
+  formal_multilinear_series 𝕜 E G :=
+λ n, (p n).comp_continuous_linear_map (λ (i : fin n), u)
+
+@[simp] lemma comp_continuous_linear_map_apply
+  (p : formal_multilinear_series 𝕜 F G) (u : E →L[𝕜] F) (n : ℕ) (v : fin n → E) :
+  (p.comp_continuous_linear_map u) n v = p n (u ∘ v) := rfl
 
 variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]

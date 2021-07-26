@@ -33,7 +33,8 @@ namespace Group
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group AddGroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group
+attribute [to_additive] Group.has_coe_to_sort Group.large_category Group.concrete_category
 
 /-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
@@ -87,7 +88,9 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup AddCommGroup
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup
+attribute [to_additive] CommGroup.has_coe_to_sort CommGroup.large_category
+  CommGroup.concrete_category
 
 /-- Construct a bundled `CommGroup` from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
@@ -250,7 +253,7 @@ instance Group.forget_reflects_isos : reflects_isomorphisms (forget Group.{u}) :
     resetI,
     let i := as_iso ((forget Group).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Group_iso },
+    exact ⟨(is_iso.of_iso e.to_Group_iso).1⟩,
   end }
 
 @[to_additive]
@@ -260,5 +263,5 @@ instance CommGroup.forget_reflects_isos : reflects_isomorphisms (forget CommGrou
     resetI,
     let i := as_iso ((forget CommGroup).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_CommGroup_iso },
+    exact ⟨(is_iso.of_iso e.to_CommGroup_iso).1⟩,
   end }

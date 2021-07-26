@@ -7,7 +7,8 @@ Authors: Kenny Lau
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
-import ring_theory.adjoin
+import ring_theory.adjoin.basic
+import ring_theory.polynomial.tower
 
 /-!
 # Towers of algebras
@@ -37,15 +38,7 @@ variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra S B] [algebra R A] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
-variables (R) {S A B}
-
-instance polynomial : is_scalar_tower R S (polynomial A) :=
-of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R S A x
-
-variables (R S A)
-theorem aeval_apply (x : A) (p : polynomial R) : polynomial.aeval x p =
-  polynomial.aeval x (polynomial.map (algebra_map R S) p) :=
-by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R S A]
+variables (R S A B)
 
 /-- Suppose that `R -> S -> A` is a tower of algebras.
 If an element `r : R` is invertible in `S`, then it is invertible in `A`. -/
@@ -66,25 +59,6 @@ section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
 variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
 
-lemma algebra_map_aeval (x : A) (p : polynomial R) :
-  algebra_map A B (polynomial.aeval x p) = polynomial.aeval (algebra_map A B x) p :=
-by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.hom_eval₂,
-  ←is_scalar_tower.algebra_map_eq]
-
-lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero {x : A} {p : polynomial R}
-  (h : function.injective (algebra_map A B)) (hp : polynomial.aeval (algebra_map A B x) p = 0) :
-  polynomial.aeval x p = 0 :=
-begin
-  rw [← algebra_map_aeval, ← (algebra_map A B).map_zero] at hp,
-  exact h hp,
-end
-
-lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero_field {R A B : Type*} [comm_semiring R] [field A]
-  [comm_semiring B] [nontrivial B] [algebra R A] [algebra R B] [algebra A B] [is_scalar_tower R A B]
-  {x : A} {p : polynomial R} (h : polynomial.aeval (algebra_map A B x) p = 0) :
-  polynomial.aeval x p = 0 :=
-aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B (algebra_map A B).injective h
-
 end comm_semiring
 
 end is_scalar_tower
@@ -93,14 +67,16 @@ namespace algebra
 
 theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] (s : set S) :
-  adjoin R (algebra_map S (comap R S A) '' s) = subalgebra.map (adjoin R s) (to_comap R S A) :=
+  adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
+  ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
   [is_scalar_tower R S A] (s : set S) :
-  adjoin R (algebra_map S A '' s) = subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
+  adjoin R (algebra_map S A '' s) =
+    subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
@@ -128,26 +104,9 @@ lemma adjoin_res_eq_adjoin_res (C D E F : Type*) [comm_semiring C] [comm_semirin
   (algebra.adjoin D (algebra_map E F '' T)).res C :=
 by { rw [adjoin_res, adjoin_res, ←hS, ←hT, ←algebra.adjoin_image, ←algebra.adjoin_image,
   ←alg_hom.coe_to_ring_hom, ←alg_hom.coe_to_ring_hom, is_scalar_tower.coe_to_alg_hom,
-  is_scalar_tower.coe_to_alg_hom, ←algebra.adjoin_union, ←algebra.adjoin_union, set.union_comm] }
+  is_scalar_tower.coe_to_alg_hom, ←adjoin_union_eq_under, ←adjoin_union_eq_under, set.union_comm] }
 
 end algebra
-
-namespace subalgebra
-
-open is_scalar_tower
-
-section comm_semiring
-
-variables (R) {S A} [comm_semiring R] [comm_semiring S] [comm_semiring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
-
-@[simp] lemma aeval_coe {S : subalgebra R A} {x : S} {p : polynomial R} :
-  polynomial.aeval (x : A) p = polynomial.aeval x p :=
-(algebra_map_aeval R S A x p).symm
-
-end comm_semiring
-
-end subalgebra
 
 section
 open_locale classical
@@ -156,8 +115,9 @@ lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A
   (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
   (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
-by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union, algebra.adjoin_algebra_map, hs,
-    algebra.map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
+by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union_eq_under,
+  algebra.adjoin_algebra_map, hs, algebra.map_top, is_scalar_tower.range_under_adjoin, ht,
+  subalgebra.res_top]⟩
 end
 
 section ring
@@ -185,38 +145,39 @@ begin
   exact hg _ hik
 end
 
-theorem is_basis.smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × ι', b p.1 • c p.2) :=
-⟨linear_independent_smul hb.1 hc.1,
-by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars_top R S A,
-    submodule.restrict_scalars_inj, hc.2]⟩
+/-- `basis.smul (b : basis ι R S) (c : basis ι S A)` is the `R`-basis on `A`
+where the `(i, j)`th basis vector is `b i • c j`. -/
+noncomputable def basis.smul {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) : basis (ι × ι') R A :=
+basis.of_repr ((c.repr.restrict_scalars R).trans $
+  (finsupp.lcongr (equiv.refl _) b.repr).trans $
+  (finsupp_prod_lequiv R).symm.trans $
+  (finsupp.lcongr (equiv.prod_comm ι' ι) (linear_equiv.refl _ _)))
 
-theorem is_basis.smul_repr
-  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × ι') :
-  (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
+@[simp] theorem basis.smul_repr {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (x ij):
+  (b.smul c).repr x ij = b.repr (c.repr x ij.2) ij.1 :=
+by simp [basis.smul]
+
+theorem basis.smul_repr_mk {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (x i j):
+  (b.smul c).repr x (i, j) = b.repr (c.repr x j) i :=
+b.smul_repr c x (i, j)
+
+@[simp] theorem basis.smul_apply {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (ij) :
+  (b.smul c) ij = b ij.1 • c ij.2 :=
 begin
-  apply (hb.smul hc).repr_apply_eq,
-  { intros x y, ext, simp only [linear_map.map_add, add_apply, pi.add_apply] },
-  { intros c x, ext,
-    simp only [← is_scalar_tower.algebra_map_smul S c x, linear_map.map_smul, smul_eq_mul,
-               ← algebra.smul_def, smul_apply, pi.smul_apply] },
-  rintros ij,
-  ext ij',
-  rw single_apply,
-  split_ifs with hij,
-  { simp [hij] },
-  rw [linear_map.map_smul, smul_apply, hc.repr_self_apply],
-  split_ifs with hj,
-  { simp [hj, show ¬ (ij.1 = ij'.1), from λ hi, hij (prod.ext hi hj)] },
-  simp
+  obtain ⟨i, j⟩ := ij,
+  rw basis.apply_eq_iff,
+  ext ⟨i', j'⟩,
+  rw [basis.smul_repr, linear_equiv.map_smul, basis.repr_self, finsupp.smul_apply,
+      finsupp.single_apply],
+  dsimp only,
+  split_ifs with hi,
+  { simp [hi, finsupp.single_apply] },
+  { simp [hi] },
 end
-
-theorem is_basis.smul_repr_mk
-  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (i : ι) (j : ι') :
-  (hb.smul hc).repr x (i, j) = hb.repr (hc.repr x j) i :=
-by simp [is_basis.smul_repr]
 
 end ring
 
@@ -242,7 +203,8 @@ begin
   have hsy : ∀ (yi yj yk ∈ y), f (yi * yj) yk ∈ s := λ yi yj yk hyi hyj hyk,
     show function.uncurry f (yi * yj, yk) ∈ s,
     from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
-  have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) :=
+  have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B))
+               (↑(insert 1 y : finset C) : set C) :=
     λ xi hxi, hf xi ▸ sum_mem _ (λ yj hyj, smul_mem
       (span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C))
       ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩
@@ -254,15 +216,16 @@ begin
     { rw mul_one, exact subset_span (set.mem_insert _ _) },
     { rw one_mul, exact subset_span (set.mem_insert_of_mem _ hyj) },
     { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
-    { rw ← hf (yi * yj), exact (submodule.mem_coe _).2 (sum_mem _ $ λ yk hyk, smul_mem
+    { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem _ $ λ yk hyk, smul_mem
         (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
         ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi yj yk hyi hyj hyk⟩
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
   refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
   refine restrict_scalars_injective A _ _ _,
-  rw [restrict_scalars_top, eq_top_iff, ← algebra.coe_top, ← hx, algebra.adjoin_eq_span, span_le],
-  refine λ r hr, monoid.in_closure.rec_on hr hxy (subset_span $ mem_insert_self _ _)
-      (λ p q _ _ hp hq, hyy $ submodule.mul_mem_mul hp hq)
+  rw [restrict_scalars_top, eq_top_iff, ← algebra.top_to_submodule, ← hx,
+    algebra.adjoin_eq_span, span_le],
+  refine λ r hr, submonoid.closure_induction hr (λ c hc, hxy c hc)
+    (subset_span $ mem_insert_self _ _) (λ p q hp hq, hyy $ submodule.mul_mem_mul hp hq)
 end
 
 /-- Artin--Tate lemma: if A ⊆ B ⊆ C is a chain of subrings of commutative rings, and
@@ -303,8 +266,8 @@ variables {B}
 def alg_hom_equiv_sigma :
   (C →ₐ[A] D) ≃ Σ (f : B →ₐ[A] D), @alg_hom B C D _ _ _ _ f.to_ring_hom.to_algebra :=
 { to_fun := λ f, ⟨f.restrict_domain B, f.extend_scalars B⟩,
-  inv_fun := λ fg, @is_scalar_tower.restrict_base A _ _ _ _ _ _ _ _ _
-    fg.1.to_ring_hom.to_algebra _ _ _ _ fg.2,
+  inv_fun := λ fg,
+    let alg := fg.1.to_ring_hom.to_algebra in by exactI fg.2.restrict_scalars A,
   left_inv := λ f, by { dsimp only, ext, refl },
   right_inv :=
   begin

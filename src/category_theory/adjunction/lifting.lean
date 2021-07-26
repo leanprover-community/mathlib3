@@ -137,7 +137,7 @@ calc (construct_left_adjoint_obj _ _ adj₁ adj₂ X ⟶ Y)
   ... ≃ {g : U.obj X ⟶ U.obj (R.obj Y) //
           U.map (F.map g ≫ adj₁.counit.app _) = U.map (adj₁.counit.app _) ≫ g} :
             begin
-              apply (adj₂.hom_equiv _ _).subtype_congr _,
+              apply (adj₂.hom_equiv _ _).subtype_equiv _,
               intro f,
               rw [← (adj₂.hom_equiv _ _).injective.eq_iff, eq_comm, adj₂.hom_equiv_naturality_left,
                   other_map, assoc, adj₂.hom_equiv_naturality_left, ← adj₂.counit_naturality,
@@ -149,7 +149,7 @@ calc (construct_left_adjoint_obj _ _ adj₁ adj₂ X ⟶ Y)
             end
   ... ≃ {z : F.obj (U.obj X) ⟶ R.obj Y // _} :
             begin
-              apply (adj₁.hom_equiv _ _).symm.subtype_congr,
+              apply (adj₁.hom_equiv _ _).symm.subtype_equiv,
               intro g,
               rw [← (adj₁.hom_equiv _ _).symm.injective.eq_iff, adj₁.hom_equiv_counit,
                   adj₁.hom_equiv_counit, adj₁.hom_equiv_counit, F.map_comp, assoc, U.map_comp,
@@ -166,8 +166,8 @@ begin
   rw [construct_left_adjoint_equiv_apply, construct_left_adjoint_equiv_apply, function.comp_app,
       function.comp_app, equiv.trans_apply, equiv.trans_apply, equiv.trans_apply, equiv.trans_apply,
       equiv.symm_apply_eq, subtype.ext_iff, cofork.is_colimit.hom_iso_natural,
-      equiv.apply_symm_apply, equiv.subtype_congr_apply, equiv.subtype_congr_apply,
-      equiv.subtype_congr_apply, equiv.subtype_congr_apply, subtype.coe_mk, subtype.coe_mk,
+      equiv.apply_symm_apply, equiv.subtype_equiv_apply, equiv.subtype_equiv_apply,
+      equiv.subtype_equiv_apply, equiv.subtype_equiv_apply, subtype.coe_mk, subtype.coe_mk,
       subtype.coe_mk, subtype.coe_mk, ← adj₁.hom_equiv_naturality_right_symm,
       cofork.is_colimit.hom_iso_natural, adj₂.hom_equiv_naturality_right, functor.comp_map],
 end
@@ -199,23 +199,23 @@ noncomputable def monadic_adjoint_triangle_lift (U : B ⥤ C) [monadic_right_adj
   [is_right_adjoint (R ⋙ U)] :
   is_right_adjoint R :=
 begin
-  let R' : A ⥤ _ := R ⋙ monad.comparison U,
+  let R' : A ⥤ _ := R ⋙ monad.comparison (adjunction.of_right_adjoint U),
   suffices : is_right_adjoint R',
-  { let : is_right_adjoint (R' ⋙ (monad.comparison U).inv),
+  { let : is_right_adjoint (R' ⋙ (monad.comparison (adjunction.of_right_adjoint U)).inv),
     { resetI,
       apply_instance },
-    { let : R' ⋙ (monad.comparison U).inv ≅ R :=
-        (iso_whisker_left R (monad.comparison U).fun_inv_id : _) ≪≫ R.right_unitor,
+    { let : R' ⋙ (monad.comparison (adjunction.of_right_adjoint U)).inv ≅ R :=
+        (iso_whisker_left R (monad.comparison _).as_equivalence.unit_iso.symm : _) ≪≫
+          R.right_unitor,
       exactI adjunction.right_adjoint_of_nat_iso this } },
-  let : is_right_adjoint (R' ⋙ monad.forget (left_adjoint U ⋙ U)) :=
-    adjunction.right_adjoint_of_nat_iso (iso_whisker_left R (monad.comparison_forget U).symm : _),
-  letI : Π X, regular_epi ((monad.adj (left_adjoint U ⋙ U)).counit.app X),
+  let : is_right_adjoint (R' ⋙ monad.forget (adjunction.of_right_adjoint U).to_monad) :=
+    adjunction.right_adjoint_of_nat_iso
+      (iso_whisker_left R (monad.comparison_forget (adjunction.of_right_adjoint U)).symm : _),
+  letI : Π X, regular_epi ((monad.adj (adjunction.of_right_adjoint U).to_monad).counit.app X),
   { intro X,
-    dsimp only [monad.adj_counit, functor.comp_map, monad.forget_obj, functor.id_obj,
-                functor.comp_obj, monad.free_obj_A],
-    simp only [functor.map_id, id_comp],
+    simp only [monad.adj_counit],
     exact ⟨_, _, _, _, monad.beck_algebra_coequalizer X⟩ },
-  exact adjoint_triangle_lift R' (monad.adj (left_adjoint U ⋙ U)),
+  exact adjoint_triangle_lift R' (monad.adj _),
 end
 
 variables {D : Type u₄}

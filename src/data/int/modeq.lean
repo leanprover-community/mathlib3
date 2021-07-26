@@ -6,9 +6,24 @@ Authors: Chris Hughes
 import data.nat.modeq
 import tactic.ring
 
+/-!
+
+# Congruences modulo an integer
+
+This file defines the equivalence relation `a ≡ b [ZMOD n]` on the integers, similarly to how
+`data.nat.modeq` defines them for the natural numbers. The notation is short for `modeq a b n`,
+which is defined to be `a % n = b % n` for integer `a b n`.
+
+## Tags
+
+modeq, congruence, mod, MOD, modulo, integers
+
+-/
+
 namespace int
 
 /-- `a ≡ b [ZMOD n]` when `a % n = b % n`. -/
+@[derive decidable]
 def modeq (n a b : ℤ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [ZMOD `:50 n `]`:0 := modeq n a b
@@ -25,8 +40,6 @@ variables {n m a b c d : ℤ}
 lemma coe_nat_modeq_iff {a b n : ℕ} : a ≡ b [ZMOD n] ↔ a ≡ b [MOD n] :=
 by unfold modeq nat.modeq; rw ← int.coe_nat_eq_coe_nat_iff; simp [int.coe_nat_mod]
 
-instance : decidable (a ≡ b [ZMOD n]) := by unfold modeq; apply_instance
-
 theorem modeq_zero_iff : a ≡ 0 [ZMOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
 
@@ -40,7 +53,7 @@ modeq_iff_dvd.2 $ dvd_trans d (modeq_iff_dvd.1 h)
 theorem modeq_mul_left' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
 or.cases_on (lt_or_eq_of_le hc) (λ hc,
   by unfold modeq;
-  simp [mul_mod_mul_of_pos _ _ hc, (show _ = _, from h)] )
+  simp [mul_mod_mul_of_pos hc, (show _ = _, from h)] )
 (λ hc, by simp [hc.symm])
 
 theorem modeq_mul_right' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD (n * c)] :=
@@ -106,14 +119,13 @@ calc a + n*c ≡ b + n*c [ZMOD n] : int.modeq.modeq_add ha (int.modeq.refl _)
                  (int.modeq.modeq_zero_iff.2 (dvd_mul_right _ _))
          ... ≡ b [ZMOD n] : by simp
 
-open nat
-lemma mod_coprime {a b : ℕ} (hab : coprime a b) : ∃ y : ℤ, a * y ≡ 1 [ZMOD b] :=
-⟨ gcd_a a b,
-  have hgcd : nat.gcd a b = 1, from coprime.gcd_eq_one hab,
+lemma mod_coprime {a b : ℕ} (hab : nat.coprime a b) : ∃ y : ℤ, a * y ≡ 1 [ZMOD b] :=
+⟨ nat.gcd_a a b,
+  have hgcd : nat.gcd a b = 1, from nat.coprime.gcd_eq_one hab,
   calc
-   ↑a * gcd_a a b ≡ ↑a*gcd_a a b + ↑b*gcd_b a b [ZMOD ↑b] : int.modeq.symm $
+   ↑a * nat.gcd_a a b ≡ ↑a * nat.gcd_a a b + ↑b * nat.gcd_b a b [ZMOD ↑b] : int.modeq.symm $
                       modeq_add_fac _ $ int.modeq.refl _
-              ... ≡ 1 [ZMOD ↑b] : by rw [←gcd_eq_gcd_ab, hgcd]; reflexivity ⟩
+              ... ≡ 1 [ZMOD ↑b] : by rw [← nat.gcd_eq_gcd_ab, hgcd]; reflexivity ⟩
 
 lemma exists_unique_equiv (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℤ, 0 ≤ z ∧ z < b ∧ z ≡ a [ZMOD b] :=
 ⟨ a % b, int.mod_nonneg _ (ne_of_gt hb),

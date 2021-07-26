@@ -3,7 +3,6 @@ Copyright (c) 2018 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Patrick Massot
 -/
-import topology.bases
 import topology.subset_properties
 import topology.metric_space.basic
 
@@ -316,7 +315,7 @@ protected lemma is_seq_compact.is_compact (h : is_countably_generated $ 𝓤 β)
   is_compact s :=
 begin
   classical,
-  rw compact_iff_finite_subcover,
+  rw is_compact_iff_finite_subcover,
   intros ι U Uop s_sub,
   rcases lebesgue_number_lemma_seq hs Uop s_sub h with ⟨V, V_in, Vsymm, H⟩,
   rcases totally_bounded_iff_subset.mp hs.totally_bounded V V_in with ⟨t,t_sub, tfin,  ht⟩,

@@ -95,7 +95,7 @@ namespace unfold_cases
   (e.g. `whnf` or `dsimp`).
 -/
 meta def find_splitting_expr : expr → tactic expr
-| `(@ite %%cond %%dec_inst _ _ _ = _) := pure `(@decidable.em %%cond %%dec_inst)
+| `(@ite _ %%cond %%dec_inst _ _ = _) := pure `(@decidable.em %%cond %%dec_inst)
 | `(%%(app x y) = _) := pure y
 | e := fail!"expected an expression of the form: f x = y. Got:\n{e}"
 

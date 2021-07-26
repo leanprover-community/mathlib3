@@ -1,9 +1,15 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon, Keeley Hoek, Floris van Doorn
+Authors: Simon Hudon, Keeley Hoek, Floris van Doorn
 -/
 import data.list.defs
+
+/-!
+# Definitions for `string`
+
+This file defines a bunch of functions for the `string` datatype.
+-/
 
 namespace string
 
@@ -47,6 +53,6 @@ def is_nat (s : string) : bool :=
 
 /-- Produce the head character from the string `s`, if `s` is not empty, otherwise 'A'. -/
 def head (s : string) : char :=
-(s.mk_iterator).curr
+s.mk_iterator.curr
 
 end string

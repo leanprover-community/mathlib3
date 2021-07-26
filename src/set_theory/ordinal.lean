@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro, Floris van Doorn
 -/
 import set_theory.cardinal
 
@@ -22,18 +22,19 @@ initial segment (or, equivalently, in any way). This total order is well founded
   `r ≺i s`.
 
 * `ordinal`: the type of ordinals (in a given universe)
-* `type r`: given a well-founded order `r`, this is the corresponding ordinal
-* `typein r a`: given a well-founded order `r` on a type `α`, and `a : α`, the ordinal
+* `ordinal.type r`: given a well-founded order `r`, this is the corresponding ordinal
+* `ordinal.typein r a`: given a well-founded order `r` on a type `α`, and `a : α`, the ordinal
   corresponding to all elements smaller than `a`.
 * `enum r o h`: given a well-order `r` on a type `α`, and an ordinal `o` strictly smaller than
   the ordinal corresponding to `r` (this is the assumption `h`), returns the `o`-th element of `α`.
   In other words, the elements of `α` can be enumerated using ordinals up to `type r`.
-* `card o`: the cardinality of an ordinal `o`.
-* `lift` lifts an ordinal in universe `u` to an ordinal in universe `max u v`. For a version
-  registering additionally that this is an initial segment embedding, see `lift.initial_seg`. For
-  a version regiserting that it is a principal segment embedding if `u < v`, see
-  `lift.principal_seg`.
-* `omega` is the first infinite ordinal. It is the order type of `ℕ`.
+* `ordinal.card o`: the cardinality of an ordinal `o`.
+* `ordinal.lift` lifts an ordinal in universe `u` to an ordinal in universe `max u v`.
+  For a version registering additionally that this is an initial segment embedding, see
+  `ordinal.lift.initial_seg`.
+  For a version regiserting that it is a principal segment embedding if `u < v`, see
+  `ordinal.lift.principal_seg`.
+* `ordinal.omega` is the first infinite ordinal. It is the order type of `ℕ`.
 
 * `o₁ + o₂` is the order on the disjoint union of `o₁` and `o₂` obtained by declaring that
   every element of `o₁` is smaller than every element of `o₂`. The main properties of addition
@@ -42,16 +43,16 @@ initial segment (or, equivalently, in any way). This total order is well founded
   is total (and well founded).
 * `succ o` is the successor of the ordinal `o`.
 
-* `min`: the minimal element of a nonempty indexed family of ordinals
-* `omin` : the minimal element of a nonempty set of ordinals
+* `ordinal.min`: the minimal element of a nonempty indexed family of ordinals
+* `ordinal.omin` : the minimal element of a nonempty set of ordinals
 
-* `ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality. It is
-  the canonical way to represent a cardinal with an ordinal.
+* `cardinal.ord c`: when `c` is a cardinal, `ord c` is the smallest ordinal with this cardinality.
+  It is the canonical way to represent a cardinal with an ordinal.
 
 ## Notations
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.
 * `r ≺i s`: the type of principal segment embeddings of `r` into `s`.
-* `ω` is a notation for the first infinite ordinal in the locale ordinal.
+* `ω` is a notation for the first infinite ordinal in the locale `ordinal`.
 -/
 
 noncomputable theory
@@ -153,7 +154,7 @@ by haveI := f.to_rel_embedding.is_well_order; exact
 
 @[simp] theorem antisymm_symm [is_well_order α r] [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g).symm = antisymm g f :=
-rel_iso.injective_coe_fn rfl
+rel_iso.coe_fn_injective rfl
 
 theorem eq_or_principal [is_well_order β s] (f : r ≼i s) :
   surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
@@ -735,9 +736,7 @@ quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
-induction_on o $ λ α r _,
-⟨⟨⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim,
-  λ a, a.elim⟩, λ a, a.elim⟩⟩
+induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
 
 @[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
 by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
@@ -925,9 +924,9 @@ instance : add_monoid ordinal.{u} :=
 { add       := (+),
   zero      := 0,
   zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
-    ⟨⟨(pempty_sum α).symm, λ a b, sum.lex_inr_inr⟩⟩,
+    ⟨⟨(empty_sum pempty α).symm, λ a b, sum.lex_inr_inr⟩⟩,
   add_zero  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
-    ⟨⟨(sum_pempty α).symm, λ a b, sum.lex_inl_inl⟩⟩,
+    ⟨⟨(sum_empty α pempty).symm, λ a b, sum.lex_inl_inl⟩⟩,
   add_assoc := λ o₁ o₂ o₃, quotient.induction_on₃ o₁ o₂ o₃ $
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, quot.sound
     ⟨⟨sum_assoc _ _ _, λ a b,
@@ -1128,9 +1127,9 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
-@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
-def ord_eq_min (α : Type u) : ord (mk α) =
-  @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
+lemma ord_eq_min (α : Type u) : ord (mk α) =
+  @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
+    (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
   ord (mk α) = @type α r wo :=

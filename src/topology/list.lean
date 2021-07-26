@@ -33,13 +33,13 @@ begin
       case list.forall₂.nil : hs this
         { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
       case list.forall₂.cons : a s as ss ht h ih t hts {
-        rcases mem_nhds_sets_iff.1 ht with ⟨u, hut, hu⟩,
+        rcases mem_nhds_iff.1 ht with ⟨u, hut, hu⟩,
         rcases ih (subset.refl _) with ⟨v, hv, hvss⟩,
         exact ⟨u::v, list.forall₂.cons hu hv,
           subset.trans (set.seq_mono (set.image_subset _ hut) hvss) hts⟩ } },
     rcases this with ⟨v, hv, hvs⟩,
     refine ⟨sequence v, mem_traverse_sets _ _ _, hvs, _⟩,
-    { exact hv.imp (assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) },
+    { exact hv.imp (assume a s ⟨hs, ha⟩, is_open.mem_nhds hs ha) },
     { assume u hu,
       have hu := (list.mem_traverse _ _).1 hu,
       have : list.forall₂ (λa s, is_open s ∧ a ∈ s) u v,
@@ -48,7 +48,7 @@ begin
         simp only [list.forall₂_and_left, flip] at ⊢ hv,
         exact ⟨hv.1, hu.flip⟩ },
       refine mem_sets_of_superset _ hvs,
-      exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
+      exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, is_open.mem_nhds hs ha) } }
 end
 
 @[simp] lemma nhds_nil : 𝓝 ([] : list α) = pure [] :=
@@ -84,7 +84,8 @@ continuous_iff_continuous_at.mpr $ λ ⟨x, y⟩, continuous_at_fst.cons continu
 
 lemma tendsto_nhds {β : Type*} {f : list α → β} {r : list α → _root_.filter β}
   (h_nil : tendsto f (pure []) (r []))
-  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) → tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
+  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) →
+    tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
   ∀l, tendsto f (𝓝 l) (r l)
 | []     := by rwa [nhds_nil]
 | (a::l) := by rw [tendsto_cons_iff]; exact h_cons l a (tendsto_nhds l)
@@ -145,7 +146,8 @@ continuous_iff_continuous_at.mpr $ assume a, tendsto_remove_nth
 lemma tendsto_prod [monoid α] [has_continuous_mul α] {l : list α} :
   tendsto list.prod (𝓝 l) (𝓝 l.prod) :=
 begin
-  induction l with x l ih, { simp [nhds_nil, mem_of_nhds, tendsto_pure_left] {contextual := tt} },
+  induction l with x l ih,
+  { simp [nhds_nil, mem_of_mem_nhds, tendsto_pure_left] {contextual := tt} },
   simp_rw [tendsto_cons_iff, prod_cons],
   have := continuous_iff_continuous_at.mp continuous_mul (x, l.prod),
   rw [continuous_at, nhds_prod_eq] at this,

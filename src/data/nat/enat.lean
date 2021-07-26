@@ -370,7 +370,8 @@ by convert to_with_top_zero
 
 lemma to_with_top_coe (n : ℕ) : to_with_top n = n := rfl
 
-@[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} : to_with_top (n : enat) = n :=
+@[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} :
+  to_with_top (n : enat) = n :=
 by convert to_with_top_coe n
 
 @[simp] lemma to_with_top_le {x y : enat} : Π [decidable x.dom]
@@ -491,5 +492,11 @@ lemma find_eq_top_iff : find P = ⊤ ↔ ∀ n, ¬P n :=
 ⟨λ h n, (lt_find_iff P n).mp (h n) _ le_rfl, λ h n, lt_find P n $ λ _ _, h _⟩
 
 end find
+
+noncomputable instance : linear_ordered_add_comm_monoid_with_top enat :=
+{ top_add' := top_add,
+  .. enat.linear_order,
+  .. enat.ordered_add_comm_monoid,
+  .. enat.order_top }
 
 end enat

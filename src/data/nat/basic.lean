@@ -463,35 +463,35 @@ end
 @[simp] lemma pred_one_add (n : ℕ) : pred (1 + n) = n :=
 by rw [add_comm, add_one, pred_succ]
 
-/-! ### `sub` -/
+lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
+⟨le_succ_of_pred_le, by { cases n, { exact λ h, zero_le m }, exact le_of_succ_le_succ }⟩
+
+/-! ### `sub`
+
+Todo: remove lemmas that are proven in general for `has_canonical_sub`. -/
+
+theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
+begin
+  induction n with n ih generalizing k,
+  { simp },
+  { simp [sub_succ, succ_add, ih, pred_le_iff] }
+end
+
+instance : has_canonical_sub ℕ :=
+⟨λ n m k, sub_le_left_iff_le_add⟩
 
 protected theorem le_sub_add (n m : ℕ) : n ≤ n - m + m :=
-or.elim (le_total n m)
-  (assume : n ≤ m, begin rw [sub_eq_zero_of_le this, zero_add], exact this end)
-  (assume : m ≤ n, begin rw (nat.sub_add_cancel this) end)
-
-theorem sub_add_eq_max (n m : ℕ) : n - m + m = max n m :=
-eq_max (nat.le_sub_add _ _) (le_add_left _ _) $ λ k h₁ h₂,
-by rw ← nat.sub_add_cancel h₂; exact
-add_le_add_right (nat.sub_le_sub_right h₁ _) _
-
-theorem add_sub_eq_max (n m : ℕ) : n + (m - n) = max n m :=
-by rw [add_comm, max_comm, sub_add_eq_max]
-
-theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
-(le_total n m).elim
-  (λ h, by rw [min_eq_left h, sub_eq_zero_of_le h, zero_add])
-  (λ h, by rw [min_eq_right h, nat.sub_add_cancel h])
+le_sub_add
 
 protected theorem add_sub_cancel' {n m : ℕ} (h : m ≤ n) : m + (n - m) = n :=
-by rw [add_comm, nat.sub_add_cancel h]
+add_sub_eq_of_le h
 
 protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
   (a - b) + (b - c) = a - c :=
 by rw [←nat.add_sub_assoc hbc, ←nat.sub_add_comm hab, nat.add_sub_cancel]
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
-begin rw [h, nat.add_sub_cancel_left] end
+sub_eq_of_eq_add'' h
 
 theorem sub_cancel {a b c : ℕ} (h₁ : a ≤ b) (h₂ : a ≤ c) (w : b - a = c - a) : b = c :=
 by rw [←nat.sub_add_cancel h₁, ←nat.sub_add_cancel h₂, w]
@@ -504,9 +504,6 @@ by { rw [nat.add_sub_assoc, nat.add_sub_cancel], apply k.le_add_left }
 
 protected lemma sub_add_eq_add_sub {a b c : ℕ} (h : b ≤ a) : (a - b) + c = (a + c) - b :=
 by rw [add_comm a, nat.add_sub_assoc h, add_comm]
-
-theorem sub_min (n m : ℕ) : n - min n m = n - m :=
-nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
 
 theorem sub_sub_assoc {a b c : ℕ} (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
 (nat.sub_eq_iff_eq_add (le_trans (nat.sub_le _ _) h₁)).2 $
@@ -591,9 +588,6 @@ protected theorem lt_sub_left_iff_add_lt : n < k - m ↔ m + n < k :=
 protected theorem lt_sub_right_iff_add_lt : m < k - n ↔ m + n < k :=
 by rw [nat.lt_sub_left_iff_add_lt, add_comm]
 
-theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
-le_iff_le_iff_lt_iff_lt.2 nat.lt_sub_left_iff_add_lt
-
 theorem sub_le_right_iff_le_add : m - k ≤ n ↔ m ≤ n + k :=
 by rw [nat.sub_le_left_iff_le_add, add_comm]
 
@@ -621,9 +615,7 @@ nat.sub_le_left_of_le_add (nat.le_add_left _ _)
 protected theorem sub_lt_iff (h₁ : n ≤ m) (h₂ : k ≤ m) : m - n < k ↔ m - k < n :=
 (nat.sub_lt_left_iff_lt_add h₁).trans (nat.sub_lt_right_iff_lt_add h₂).symm
 
-lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
-@nat.sub_le_right_iff_le_add n m 1
-
+/-! Below are some lemmas specific to `ℕ`. -/
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 @nat.lt_sub_right_iff_add_lt n 1 m
 
@@ -639,6 +631,22 @@ begin
     rw [a.add_sub_assoc hb, add_lt_add_iff_left] at h',
     exact nat.le_of_pred_lt h', },
 end
+
+theorem sub_add_eq_max (n m : ℕ) : n - m + m = max n m :=
+eq_max (nat.le_sub_add _ _) (le_add_left _ _) $ λ k h₁ h₂,
+by rw ← nat.sub_add_cancel h₂; exact
+add_le_add_right (nat.sub_le_sub_right h₁ _) _
+
+theorem add_sub_eq_max (n m : ℕ) : n + (m - n) = max n m :=
+by rw [add_comm, max_comm, sub_add_eq_max]
+
+theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
+(le_total n m).elim
+  (λ h, by rw [min_eq_left h, sub_eq_zero_of_le h, zero_add])
+  (λ h, by rw [min_eq_right h, nat.sub_add_cancel h])
+
+theorem sub_min (n m : ℕ) : n - min n m = n - m :=
+nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
 
 /-! ### `mul` -/
 

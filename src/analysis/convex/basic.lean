@@ -55,7 +55,7 @@ variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x} {α : Type v'}
   {s : set E}
 
 open set linear_map
-open_locale classical big_operators
+open_locale classical big_operators pointwise
 
 local notation `I` := (Icc 0 1 : set ℝ)
 

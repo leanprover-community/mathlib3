@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
+import data.sym
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -169,6 +170,14 @@ lemma univ_filter_mem_range (f : α → β) [fintype β]
   [decidable_pred (λ y, y ∈ set.range f)] [decidable_eq β] :
   finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
 univ_filter_exists f
+
+/-- A special case of `finset.sup_eq_supr` that omits the useless `x ∈ univ` binder. -/
+lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f = supr f :=
+(sup_eq_supr _ f).trans $ congr_arg _ $ funext $ λ a, supr_pos (mem_univ _)
+
+/-- A special case of `finset.inf_eq_infi` that omits the useless `x ∈ univ` binder. -/
+lemma inf_univ_eq_infi [complete_lattice β] (f : α → β) : finset.univ.inf f = infi f :=
+sup_univ_eq_supr (by exact f : α → order_dual β)
 
 end finset
 
@@ -1115,6 +1124,12 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 @[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
+
+instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym.sym' α n) :=
+quotient.fintype _
+
+instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym α n) :=
+fintype.of_equiv _ sym.sym_equiv_sym'.symm
 
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=

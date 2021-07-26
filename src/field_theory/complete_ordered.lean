@@ -5,6 +5,7 @@ Authors: Alex J. Best
 -/
 import analysis.special_functions.pow
 import data.equiv.ordered_ring
+import data.equiv.basic
 
 /-!
 # Conditionally complete linear ordered fields
@@ -47,7 +48,7 @@ open set
 /-- The natural equiv between the rationals and the rationals as a set inside any characteristic 0
     division ring -/
 def rat_equiv_of_char_zero (F : Type*) [division_ring F] [char_zero F] : ℚ ≃ range (coe : ℚ → F) :=
-equiv.set.range coe rat.cast_injective
+equiv.of_injective coe rat.cast_injective
 
 /-- The natural equiv between the rationals as a set inside any pair of characteristic 0
     division rings -/
@@ -59,8 +60,8 @@ def range_rat_equiv (F K : Type*) [division_ring F] [char_zero F] [division_ring
 lemma range_rat_equiv_apply {F K : Type*} {q : ℚ}
   [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
   range_rat_equiv F K ⟨q, mem_range_self q⟩ = ⟨q, mem_range_self q⟩ :=
-by simp only [range_rat_equiv, rat_equiv_of_char_zero, equiv.set.range_apply,
-  function.comp_app, subtype.mk_eq_mk, equiv.coe_trans, rat.cast_inj, equiv.symm_apply_eq]
+by simp only [range_rat_equiv, rat_equiv_of_char_zero, function.comp_app, subtype.mk_eq_mk,
+  equiv.coe_trans, rat.cast_inj, equiv.symm_apply_eq, equiv.of_injective_apply]
 
 /--
 The function sending subsets of the rationals embedded inside of one characteristic zero
@@ -100,8 +101,8 @@ begin
   end,
   refine ⟨q, _, _, _⟩,
   { assumption_mod_cast, },
-  { rw [← real.sqrt_lt hx, real.sqrt_sqr hq], exact hqx },
-  { rw [← real.sqrt_lt (pow_nonneg hq 2), real.sqrt_sqr hq], exact hqy },
+  { rwa [← real.sqrt_lt hx, real.sqrt_sq hq], },
+  { rwa [← real.sqrt_lt (pow_nonneg hq 2), real.sqrt_sq hq], },
 end
 
 lemma exists_rat_sqr_btwn_rat {x y : ℚ} (h : x < y) (hx : 0 ≤ x) :
@@ -115,12 +116,7 @@ begin
   obtain ⟨q1, hq1x, hq1y⟩ := exists_rat_btwn h,
   obtain ⟨q2, hq2x, hq1q2⟩ := exists_rat_btwn hq1x,
   norm_cast at hq1q2,
-  have : (0 : F) ≤ q2 :=
-  begin
-    transitivity x,
-    exact hx,
-    exact (le_of_lt hq2x),
-  end,
+  have : (0 : F) ≤ q2 := le_trans hx (le_of_lt hq2x),
   obtain ⟨q, hqpos, hq⟩ := exists_rat_sqr_btwn_rat hq1q2 (by exact_mod_cast this),
   refine ⟨q, hqpos, _, _⟩,
   { transitivity (q2 : F),
@@ -328,7 +324,7 @@ lemma induced_map_rat (F K : Type*) [linear_ordered_field F] [archimedean F]
   [conditionally_complete_linear_ordered_field K] (q : ℚ) : induced_map F K (q : F) = q :=
 begin
   rw induced_map,
-  apply cSup_intro (cut_image_nonempty F K q),
+  apply cSup_eq_of_forall_le_of_forall_lt_exists_gt (cut_image_nonempty F K q),
   { intros x h,
     simp only [cut_image_rat, mem_image, exists_and_distrib_right, exists_eq_right, subtype.exists,
       subtype.coe_mk, subtype.val_eq_coe] at h,
@@ -373,7 +369,7 @@ lemma pointwise_add_Sup {F : Type*} [conditionally_complete_linear_ordered_field
   (hA : A.nonempty) (hB : B.nonempty) (hbA : bdd_above A) (hbB : bdd_above B) :
   Sup (A + B) = Sup A + Sup B :=
 begin
-  apply cSup_intro (nonempty.add hA hB),
+  apply cSup_eq_of_forall_le_of_forall_lt_exists_gt (nonempty.add hA hB),
   { rintros f ⟨a, b, ha, hb, rfl⟩,
     exact add_le_add (le_cSup _ _ hbA ha) (le_cSup _ _ hbB hb), },
   { intros w hw,
@@ -493,7 +489,7 @@ def induced_ordered_ring_hom (F K : Type*) [linear_ordered_field F] [archimedean
       intros x hpos,
       -- prove that the (Sup of rationals less than x) ^ 2 is the Sup of the set of rationals less
       -- than (x ^ 2) by showing it is an upper bound and any smaller number is not an upper bound
-      apply cSup_intro (cut_image_nonempty F K _),
+      apply cSup_eq_of_forall_le_of_forall_lt_exists_gt (cut_image_nonempty F K _),
       exact le_induced_mul_self_of_mem_cut_image F K x hpos,
       exact exists_mem_cut_image_mul_self_of_lt_induced_map_mul_self F K x hpos,
     end two_ne_zero begin convert induced_map_rat F K 1; rw [rat.cast_one], refl, end }
@@ -504,7 +500,7 @@ lemma induced_map_inv_self (F K : Type*) [conditionally_complete_linear_ordered_
   induced_map K F (induced_map F K x) = x :=
 begin
   rw [induced_map],
-  apply cSup_intro (cut_image_nonempty K F (induced_map F K x)),
+  apply cSup_eq_of_forall_le_of_forall_lt_exists_gt (cut_image_nonempty K F (induced_map F K x)),
   { intros y hy,
     rw mem_cut_image_iff at hy,
     rcases hy with ⟨q, rfl, h⟩,
@@ -556,7 +552,7 @@ begin
   ext,
   change induced_map F F x = _,
   simp only [ordered_ring_equiv.refl_apply, induced_map, cut_image_self],
-  apply cSup_intro,
+  apply cSup_eq_of_forall_le_of_forall_lt_exists_gt,
   { obtain ⟨q, h⟩ := exists_rat_lt x,
     exact ⟨q, h, mem_range_self _⟩, },
   { rintro y ⟨hlt, _⟩,

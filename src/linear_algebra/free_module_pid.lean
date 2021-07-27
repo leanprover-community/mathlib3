@@ -277,7 +277,7 @@ begin
   { obtain ⟨P, P_eq, P_max⟩ := set_has_maximal_iff_noetherian.mpr
         (infer_instance : is_noetherian R R) _ (submodule.range_map_nonempty N),
     obtain ⟨ϕ, rfl⟩ := set.mem_range.mp P_eq,
-    use ϕ,
+    existsi ϕ,
     intros ψ hψ,
     exact P_max (N.map ψ) ⟨_, rfl⟩ hψ },
   let ϕ := this.some,

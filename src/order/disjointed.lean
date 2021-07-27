@@ -90,6 +90,8 @@ begin
   { rw [partial_sups_succ, partial_sups_succ, disjointed_succ, ih, sup_sdiff_self_right] }
 end
 
+/-- `disjointed f` is the unique sequence that is pairwise disjoint and has the same partial sups
+as `f`. -/
 lemma disjointed_unique {f d : ℕ → α} (hdisj : pairwise (disjoint on d))
   (hsups : partial_sups d = partial_sups f) : d = disjointed f :=
 begin
@@ -140,5 +142,5 @@ end complete_boolean_algebra
 lemma disjointed_subset (f : ℕ → set α) (n : ℕ) : disjointed f n ⊆ f n :=
 disjointed_le f n
 
-lemma Union_disjointed_eq {f : ℕ → set α} : (⋃ n, disjointed f n) = (⋃ n, f n) :=
+lemma Union_disjointed {f : ℕ → set α} : (⋃ n, disjointed f n) = (⋃ n, f n) :=
 supr_disjointed_eq f

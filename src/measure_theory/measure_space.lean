@@ -250,7 +250,7 @@ begin
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
   have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
     measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
-  rw [← encodable.Union_decode₂, ← Union_disjointed_eq, measure_Union (disjoint_disjointed _) this,
+  rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union (disjoint_disjointed _) this,
     ennreal.tsum_eq_supr_nat],
   simp only [← measure_bUnion_finset ((disjoint_disjointed _).pairwise_on _) (λ n _, this n)],
   refine supr_le (λ n, _),

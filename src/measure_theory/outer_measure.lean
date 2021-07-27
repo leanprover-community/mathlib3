@@ -1172,7 +1172,7 @@ end
 lemma extend_Union_le_tsum_nat : ∀ (s : ℕ → set α), extend m (⋃i, s i) ≤ ∑'i, extend m (s i) :=
 begin
   refine extend_Union_le_tsum_nat' measurable_set.Union _, intros f h,
-  simp [Union_disjointed_eq.symm] {single_pass := tt},
+  simp [Union_disjointed.symm] {single_pass := tt},
   rw [mU (measurable_set.disjointed h) (disjoint_disjointed _)],
   refine ennreal.tsum_le_tsum (λ i, _),
   rw [← extend_eq m, ← extend_eq m],

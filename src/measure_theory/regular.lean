@@ -363,7 +363,7 @@ begin
         λ i, (hs i _ (ennreal.div_pos_iff.2 ⟨ne_of_gt δpos, ennreal.nat_ne_top n⟩)).2,
       choose F hF using this,
       have F_disj: pairwise (disjoint on F) :=
-        pairwise.mono (λ i j hij, disjoint.mono (hF i).2.1 (hF j).2.1 hij) s_disj,
+        s_disj.mono (λ i j hij, disjoint.mono (hF i).2.1 (hF j).2.1 hij),
       refine ⟨⋃ i ∈ finset.range n, F i, _, _, _⟩,
       { exact is_closed_bUnion (by simpa using finite_lt_nat n) (λ i hi, (hF i).1) },
       { assume x hx,

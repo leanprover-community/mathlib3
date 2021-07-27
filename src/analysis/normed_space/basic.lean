@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
-import topology.instances.nnreal
+import topology.instances.ennreal
 import topology.metric_space.completion
 import topology.sequences
 
@@ -401,7 +401,7 @@ end
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
 (semi)normed spaces is in `normed_space.operator_norm`. -/
-lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma add_monoid_hom.lipschitz_of_bound (f : α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (real.to_nnreal C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
@@ -412,6 +412,10 @@ by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C f s)
   {x y : α} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
+
+lemma lipschitz_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} :
+  lipschitz_with C f ↔ ∀ x y, ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+by simp only [lipschitz_with_iff_dist_le_mul, dist_eq_norm]
 
 /-- A homomorphism `f` of seminormed groups is continuous, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
@@ -541,6 +545,10 @@ by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
 lemma nnnorm_sum_le {β} : ∀(s : finset β) (f : β → α),
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 finset.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
+
+lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : α →+ β) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
+  lipschitz_with C f :=
+@real.to_nnreal_coe C ▸ f.lipschitz_of_bound C h
 
 end nnnorm
 
@@ -1305,6 +1313,9 @@ namespace real
 lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
 abs_of_nonneg hx
 
+lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
+abs_of_nonpos hx
+
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : ∥(n : ℝ)∥₊ = n := nnreal.eq $ by simp
@@ -1935,6 +1946,98 @@ lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λ a, ∥f a�
 summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable
+
+section cauchy_product
+
+/-! ## Multipliying two infinite sums in a normed ring
+
+In this section, we prove various results about `(∑' x : ι, f x) * (∑' y : ι', g y)` in a normed
+ring. There are similar results proven in `topology/algebra/infinite_sum` (e.g `tsum_mul_tsum`),
+but in a normed ring we get summability results which aren't true in general.
+
+We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
+`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_nat_of_summable_norm`).
+
+### Arbitrary index types
+-/
+
+variables {ι' : Type*} [normed_ring α]
+
+open_locale classical
+
+lemma real.summable_mul_of_summable_of_nonneg {f : ι → ℝ} {g : ι' → ℝ}
+  (hf : summable f) (hg : summable g) (hf' : 0 ≤ f) (hg' : 0 ≤ g) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+let ⟨s, hf⟩ := hf in
+let ⟨t, hg⟩ := hg in
+suffices this : ∀ u : finset (ι × ι'), ∑ x in u, f x.1 * g x.2 ≤ s*t,
+  from summable_of_sum_le (λ x, mul_nonneg (hf' _) (hg' _)) this,
+assume u,
+calc  ∑ x in u, f x.1 * g x.2
+    ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), f x.1 * g x.2 :
+      finset.sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) finset.subset_product
+... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : finset.sum_product
+... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :
+      finset.sum_congr rfl (λ x _, finset.mul_sum.symm)
+... ≤ ∑ x in u.image prod.fst, f x * t :
+      finset.sum_le_sum
+        (λ x _, mul_le_mul_of_nonneg_left (sum_le_has_sum _ (λ _ _, hg' _) hg) (hf' _))
+... = (∑ x in u.image prod.fst, f x) * t : finset.sum_mul.symm
+... ≤ s * t :
+      mul_le_mul_of_nonneg_right (sum_le_has_sum _ (λ _ _, hf' _) hf) (hg.nonneg $ λ _, hg' _)
+
+lemma summable_norm_mul_of_summable_norm {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ (x : ι × ι'), ∥f x.1 * g x.2∥) :=
+summable_of_nonneg_of_le (λ x, norm_nonneg (f x.1 * g x.2)) (λ x, norm_mul_le (f x.1) (g x.2))
+  (@real.summable_mul_of_summable_of_nonneg _ _ (λ x, ∥f x∥) (λ x, ∥g x∥) hf hg
+    (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x))
+
+lemma summable_mul_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+summable_of_summable_norm (summable_norm_mul_of_summable_norm hf hg)
+
+/-- Product of two infinites sums indexed by arbitrary types.
+    See also `tsum_mul_tsum` if `f` and `g` are *not* abolutely summable. -/
+lemma tsum_mul_tsum_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' x, f x) * (∑' y, g y) = (∑' z : ι × ι', f z.1 * g z.2) :=
+tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
+  (summable_mul_of_summable_norm hf hg)
+
+/-! ### `ℕ`-indexed families (cauchy product) -/
+
+lemma summable_norm_cauchy_product_fin_of_summable_norm {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ n, ∥∑ (k : fin (n+1)), f k * g (n - k)∥) :=
+begin
+  have := summable_cauchy_product_fin_of_summable_mul
+    (real.summable_mul_of_summable_of_nonneg hf hg (λ _, norm_nonneg _) (λ _, norm_nonneg _)),
+  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) _ this,
+  intros n,
+  calc  ∥∑ (k : fin (n + 1)), f k * g (n - k)∥
+      ≤ ∑ (k : fin (n + 1)), ∥f k * g (n - k)∥ : norm_sum_le _ _
+  ... ≤ ∑ (k : fin (n + 1)), ∥f k∥ * ∥g (n - k)∥ : finset.sum_le_sum (λ i _, norm_mul_le _ _)
+end
+
+lemma summable_norm_cauchy_product_range_of_summable_norm {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ n, ∥∑ k in finset.range (n+1), f k * g (n - k)∥) :=
+begin
+  conv {congr, funext, rw ← fin.sum_univ_eq_sum_range},
+  exact summable_norm_cauchy_product_fin_of_summable_norm hf hg
+end
+
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`.
+    See also `tsum_mul_tsum_nat` if `f` and `g` are *not* abolutely summable. -/
+lemma tsum_mul_tsum_nat_of_summable_norm [complete_space α] {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in finset.range (n+1), f k * g (n - k) :=
+tsum_mul_tsum_nat (summable_of_summable_norm hf) (summable_of_summable_norm hg)
+  (summable_mul_of_summable_norm hf hg)
+
+end cauchy_product
 
 namespace uniform_space
 namespace completion

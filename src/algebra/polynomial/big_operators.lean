@@ -156,7 +156,7 @@ begin
 end
 
 lemma prod_X_sub_C_next_coeff [nontrivial R] {s : finset ι} (f : ι → R) :
-  next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, (f i) :=
+  next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
 by simpa using multiset_prod_X_sub_C_next_coeff (s.1.map f)
 
 lemma multiset_prod_X_sub_C_coeff_card_pred [nontrivial R] (t : multiset R) (ht : 0 < t.card) :

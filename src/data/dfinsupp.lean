@@ -829,7 +829,6 @@ lemma prod_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ �
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} {i₂ : ι} :
   (f.sum g) i₂ = f.sum (λi₁ b, g i₁ b i₂) :=
 (eval_add_monoid_hom i₂ : (Π₀ i, β i) →+ β i₂).map_sum  _ f.support
---add_monoid_hom.map_sum (eval_add_monoid_hom i₂ : (Π₀ i, β i) →+ β i₂) _ f.support
 
 include dec
 
@@ -858,7 +857,7 @@ finset.prod_mul_distrib
 @[simp, to_additive] lemma prod_inv [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
   f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
-(monoid_hom.map_prod (comm_group.inv_monoid_hom : γ →* γ) _ f.support).symm
+((comm_group.inv_monoid_hom : γ →* γ).map_prod _ f.support).symm
 
 @[to_additive]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
@@ -1117,8 +1116,7 @@ omit dec
 lemma subtype_domain_sum [Π i, add_comm_monoid (β i)]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
   (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
-add_monoid_hom.map_sum
-  (subtype_domain_add_monoid_hom : (Π₀ (i : ι), β i) →+ Π₀ (i : subtype p), β ↑i) _ s
+(subtype_domain_add_monoid_hom : (Π₀ (i : ι), β i) →+ Π₀ (i : subtype p), β i).map_sum  _ s
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]
   [Π c, has_zero (δ c)] [Π c (x : δ c), decidable (x ≠ 0)]

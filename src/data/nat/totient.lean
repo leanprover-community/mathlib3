@@ -28,6 +28,9 @@ localized "notation `φ` := nat.totient" in nat
 
 @[simp] theorem totient_zero : φ 0 = 0 := rfl
 
+@[simp] theorem totient_one : φ 1 = 1 :=
+by simp [totient]
+
 lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter (nat.coprime n)).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
@@ -87,7 +90,7 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
 ... = n : card_range _
 
 /-- When `p` is prime, then the totient of `p ^ (n + 1)` is `p ^ n * (p - 1)` -/
-lemma totient_prime_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
+lemma totient_prime_pow_succ {p : ℕ} (hp : p.prime) (n : ℕ) :
   φ (p ^ (n + 1)) = p ^ n * (p - 1) :=
 calc φ (p ^ (n + 1))
     = ((range (p ^ (n + 1))).filter (coprime (p ^ (n + 1)))).card :
@@ -122,7 +125,16 @@ begin
     one_mul, mul_comm]
 end
 
+/-- When `p` is prime, then the totient of `p ^ ` is `p ^ (n - 1) * (p - 1)` -/
+lemma totient_prime_pow {p : ℕ} (hp : p.prime) {n : ℕ} (hn : 0 < n) :
+  φ (p ^ n) = p ^ (n - 1) * (p - 1) :=
+by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
+  exact totient_prime_pow_succ hp _
+
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
+
+@[simp] lemma totient_two : φ 2 = 1 :=
+(totient_prime prime_two).trans (by norm_num)
 
 end nat

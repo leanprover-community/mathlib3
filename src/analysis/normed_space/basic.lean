@@ -591,7 +591,10 @@ lemma antilipschitz_with.add_sub_lipschitz_with {α : Type*} [pseudo_metric_spac
 by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with hg hK
 
 /-- A group homomorphism from an `add_comm_group` to a `semi_normed_group` induces a
-`semi_normed_group` structure on the domain. -/
+`semi_normed_group` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
 def semi_normed_group.induced [add_comm_group γ] (f : γ →+ α) : semi_normed_group γ :=
 { norm    := λ x, ∥f x∥,
   dist_eq := λ x y, by simpa only [add_monoid_hom.map_sub, ← dist_eq_norm],

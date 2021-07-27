@@ -8,12 +8,17 @@ import order.partial_sups
 /-!
 # Consecutive differences of sets
 
-This file defines a way to make a sequence of sets into a sequence of disjoint sets.
+This file defines the way to make a sequence of elements into a sequence of disjoint elements with
+the same partial sups.
+
+For a sequence `f : ℕ → α`, this new sequence will be `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ⊔ f 1)`.
+It is actually unique, as
 
 ## Main declarations
 
-* `disjointed f`: Yields the sequence of sets `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ∪ f 1)`, ... This
-  sequence has the same union as `f 0`, `f 1`, `f 2` but with disjoint sets.
+* `disjointed f`: The sequence `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ⊔ f 1)`.
+* `partial_sups_disjointed`: `disjointed f` has the same partial sups as `f`
+* `disjoint_disjointed`: The elements of `disjointed f` are pairwise disjoint.
 -/
 
 variables {α β : Type*}
@@ -34,13 +39,15 @@ lemma disjointed_succ (f : ℕ → α) (n : ℕ) :
   disjointed f (n + 1) = f (n + 1) \ (partial_sups f n) :=
 rfl
 
-lemma disjointed_le (f : ℕ → α) : disjointed f ≤ f :=
+lemma disjointed_le_id : disjointed ≤ (id : (ℕ → α) → ℕ → α) :=
 begin
-  rintro n,
+  rintro f n,
   cases n,
   { refl },
   { exact sdiff_le }
 end
+
+lemma disjointed_le (f : ℕ → α) : disjointed f ≤ f := disjointed_le_id f
 
 lemma disjoint_disjointed (f : ℕ → α) : pairwise (disjoint on disjointed f) :=
 begin
@@ -74,7 +81,7 @@ lemma monotone.disjointed_eq {f : ℕ → α} (hf : monotone f) (n : ℕ) :
   disjointed f (n + 1) = f (n + 1) \ f n :=
 by rw [disjointed_succ, hf.partial_sups_eq]
 
-lemma partial_sups_disjointed_eq (f : ℕ → α) :
+lemma partial_sups_disjointed (f : ℕ → α) :
   partial_sups (disjointed f) = partial_sups f :=
 begin
   ext n,
@@ -89,7 +96,7 @@ section complete_boolean_algebra
 variables [complete_boolean_algebra α]
 
 lemma le_supr_disjointed (f : ℕ → α) (n : ℕ) : f n ≤ ⨆ i ≤ n, disjointed f i :=
-by { rw [←partial_sups_eq_supr, partial_sups_disjointed_eq], exact le_partial_sups _ _ }
+by { rw [←partial_sups_eq_supr, partial_sups_disjointed], exact le_partial_sups _ _ }
 
 lemma supr_disjointed_eq (f : ℕ → α) : (⨆ n, disjointed f n) = (⨆ n, f n) :=
 (supr_le_supr (λ n, disjointed_le f n)).antisymm
@@ -105,7 +112,7 @@ begin
   simp_rw [disjointed_succ, partial_sups_eq_supr, sdiff_eq, compl_supr],
   congr,
   ext i,
-  sorry
+  rw nat.lt_succ_iff,
 end
 
 end complete_boolean_algebra

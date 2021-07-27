@@ -155,7 +155,7 @@ le_antisymm
      exact ⟨(1:α), (mem_one s).1 hs, φ.map_one⟩
    end)
 
-/- If `φ : α →* β` then `map_monoid_hom φ` is the monoid homomorphism
+/-- If `φ : α →* β` then `map_monoid_hom φ` is the monoid homomorphism
 `filter α →* filter β` induced by `map φ`. -/
 @[to_additive "If `φ : α →+ β` then `map_add_monoid_hom φ` is the monoid homomorphism
 `filter α →+ filter β` induced by `map φ`."]

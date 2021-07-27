@@ -345,12 +345,11 @@ begin
   exact mem_coe_ideal_of_mem A⁰ (or.resolve_left (hP.mem_or_mem hzy) hzp)
 end
 
-end is_dedekind_domain_inv
-
 /-- Showing one side of the equivalence between the definitions
 `is_dedekind_domain_inv` and `is_dedekind_domain` of Dedekind domains. -/
-theorem is_dedekind_domain_of_is_dedekind_domain_inv
-  (h : is_dedekind_domain_inv A) : is_dedekind_domain A :=
+theorem is_dedekind_domain : is_dedekind_domain A :=
 ⟨h.is_noetherian_ring, h.dimension_le_one, h.integrally_closed⟩
+
+end is_dedekind_domain_inv
 
 end inverse

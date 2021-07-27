@@ -25,7 +25,6 @@ ordered ring, equivalence, order isomorphism, order preserving isomorphism
 -/
 
 /-- Equivalence commuting with multiplicative, additive and order structure. -/
-@[nolint has_inhabited_instance]
 structure ordered_ring_equiv (R S : Type*) [has_mul R] [has_add R] [has_mul S] [has_add S]
   [has_le R] [has_le S] extends R ≃+* S :=
 (map_rel_iff' : ∀ {x y : R}, to_fun x ≤ to_fun y ↔ x ≤ y)

@@ -25,7 +25,6 @@ ordered ring homomorphism, order homomorphism
 -/
 
 /-- Homomorphism respecting the multiplicative, additive and order structure. -/
-@[nolint has_inhabited_instance]
 structure ordered_ring_hom (R S : Type*) [ordered_semiring R] [ordered_semiring S]
   extends R →+* S :=
 (map_rel' : ∀ {a b}, a ≤ b → to_fun a ≤ to_fun b)
@@ -110,8 +109,6 @@ protected def id : R →+*o R :=
 variable {R}
 @[simp] lemma id_apply (x : R) : ordered_ring_hom.id R x = x := rfl
 
-@[simp] lemma coe_add_hom_id : (ordered_ring_hom.id R : R →+ R) = add_monoid_hom.id R := rfl
-@[simp] lemma coe_mul_hom_id : (ordered_ring_hom.id R : R →* R) = monoid_hom.id R := rfl
 @[simp] lemma coe_ring_hom_id : (ordered_ring_hom.id R : R →+* R) = ring_hom.id R := rfl
 @[simp] lemma coe_rel_hom_id :
   (ordered_ring_hom.id R : ((≤) : R → R → Prop) →r ((≤) : R → R → Prop)) =

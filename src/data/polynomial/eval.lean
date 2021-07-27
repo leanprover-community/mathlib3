@@ -204,11 +204,9 @@ end
 
 /-- `eval₂` as a `ring_hom` -/
 def eval₂_ring_hom (f : R →+* S) (x : S) : polynomial R →+* S :=
-{ to_fun := eval₂ f x,
-  map_one' := eval₂_one _ _,
+{ map_one' := eval₂_one _ _,
   map_mul' := λ _ _, eval₂_mul _ _,
-  map_zero' := eval₂_zero _ _,
-  map_add' := λ _ _, eval₂_add _ _ }
+  ..eval₂_add_monoid_hom f x }
 
 @[simp] lemma coe_eval₂_ring_hom (f : R →+* S) (x) : ⇑(eval₂_ring_hom f x) = eval₂ f x := rfl
 

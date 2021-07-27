@@ -92,9 +92,9 @@ begin
 end
 ... = _ : by simp; refl
 
-/--If a p-group acts on `α` and the cardinality of `α` is not a multiple
+/-- If a p-group acts on `α` and the cardinality of `α` is not a multiple
   of `p` then the action has a fixed point. -/
-lemma exists_fixed_point_of_prime_not_dvd_card
+lemma nonempty_fixed_point_of_prime_not_dvd_card
   [fintype α] [fintype G] [fintype (fixed_points G α)]
   {p : ℕ} {n : ℕ} [hp : fact p.prime] (hG : card G = p ^ n)
   (hp : ¬ p ∣ fintype.card α) :

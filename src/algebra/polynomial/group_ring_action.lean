@@ -24,14 +24,14 @@ variables (R : Type*) [semiring R]
 variables {M}
 
 lemma smul_eq_map [mul_semiring_action M R] (m : M) :
-  ((•) m) = map (mul_semiring_action.to_semiring_hom M R m) :=
+  ((•) m) = map (mul_semiring_action.to_ring_hom M R m) :=
 begin
   suffices :
     distrib_mul_action.to_add_monoid_hom M (polynomial R) m =
-      (map_ring_hom (mul_semiring_action.to_semiring_hom M R m)).to_add_monoid_hom,
+      (map_ring_hom (mul_semiring_action.to_ring_hom M R m)).to_add_monoid_hom,
   { ext1 r, exact add_monoid_hom.congr_fun this r, },
   ext n r : 2,
-  change m • monomial n r = map (mul_semiring_action.to_semiring_hom M R m) (monomial n r),
+  change m • monomial n r = map (mul_semiring_action.to_ring_hom M R m) (monomial n r),
   simpa only [polynomial.map_monomial, polynomial.smul_monomial],
 end
 
@@ -39,8 +39,8 @@ variables (M)
 
 noncomputable instance [mul_semiring_action M R] : mul_semiring_action M (polynomial R) :=
 { smul := (•),
-  smul_one := λ m, (smul_eq_map R m).symm ▸ map_one (mul_semiring_action.to_semiring_hom M R m),
-  smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_semiring_hom M R m),
+  smul_one := λ m, (smul_eq_map R m).symm ▸ map_one (mul_semiring_action.to_ring_hom M R m),
+  smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_ring_hom M R m),
   ..polynomial.distrib_mul_action }
 
 noncomputable instance [faithful_mul_semiring_action M R] :

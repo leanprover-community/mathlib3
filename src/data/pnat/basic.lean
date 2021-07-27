@@ -159,7 +159,7 @@ def coe_monoid_hom : ℕ+ →* ℕ :=
   map_one' := one_coe,
   map_mul' := mul_coe }
 
-@[simp] lemma coe_monoid_hom_coe : (coe_monoid_hom : ℕ+ → ℕ) = coe := rfl
+@[simp] lemma coe_coe_monoid_hom : (coe_monoid_hom : ℕ+ → ℕ) = coe := rfl
 
 @[simp]
 lemma coe_eq_one_iff {m : ℕ+} :

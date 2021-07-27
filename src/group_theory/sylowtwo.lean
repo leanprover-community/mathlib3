@@ -1,5 +1,6 @@
 import data.zmod.basic
 import data.fintype.card
+import number_theory.padics.padic_numbers
 
 open fintype subgroup
 universe u
@@ -15,16 +16,26 @@ def is_sylow_subgroup [fintype G] (p : ℕ) [fact p.prime] (L : subgroup G)  :=
 
 namespace is_sylow_subgroup
 
-variables [fintype G] {L : subgroup G} {p : ℕ} [fact p.prime] (h : is_sylow_subgroup p L)
+variables [fintype G] {L : subgroup G} {p : ℕ} [hp : fact p.prime] (h : is_sylow_subgroup p L)
+
+variables (G) (p)
+/-- unique n which characterises sylow subgroup p -/
+abbreviation n := padic_val_nat p (fintype.card G)
 
 /-- unique m which characterises sylow subgroup p -/
-noncomputable def m := classical.some h
-/-- unique n which characterises sylow subgroup p -/
-noncomputable def n := classical.some (classical.some_spec h)
+abbreviation m := fintype.card G / p ^ (n G p)
 
-lemma card_G : card G = p ^ h.n * h.m := (classical.some_spec (classical.some_spec h)).2.1
-lemma not_p_div_m : ¬ p ∣ h.m :=  (classical.some_spec (classical.some_spec h)).2.2
-lemma card_P : card L = p ^ h.n := (classical.some_spec (classical.some_spec h)).1
+variables {G} {p}
+
+include hp
+lemma card_G : card G = p ^ (n G p) * (m G p) :=
+begin
+  rw ← nat.div_eq_iff_eq_mul_right (pow_pos (nat.prime.pos hp.elim) (n G p)),
+  sorry,
+end
+
+lemma not_p_div_m : ¬ p ∣ (m G p) := sorry
+lemma card_P : card L = p ^ (n G p) := sorry
 
 end is_sylow_subgroup
 

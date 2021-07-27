@@ -885,12 +885,13 @@ theorem real.dist_le_of_mem_interval {x y x' y' : ℝ} (hx : x ∈ interval x' y
 abs_sub_le_of_subinterval $ interval_subset_interval (by rwa interval_swap) (by rwa interval_swap)
 
 theorem real.dist_le_of_mem_Icc {x y x' y' : ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
-  dist x y ≤ dist x' y' :=
-real.dist_le_of_mem_interval (Icc_subset_interval hx) (Icc_subset_interval hy)
+  dist x y ≤ y' - x' :=
+by simpa only [real.dist_eq, abs_of_nonpos (sub_nonpos.2 $ hx.1.trans hx.2), neg_sub]
+  using real.dist_le_of_mem_interval (Icc_subset_interval hx) (Icc_subset_interval hy)
 
 theorem real.dist_le_of_mem_Icc_01 {x y : ℝ} (hx : x ∈ Icc (0:ℝ) 1) (hy : y ∈ Icc (0:ℝ) 1) :
   dist x y ≤ 1 :=
-by simpa [real.dist_eq] using real.dist_le_of_mem_Icc hx hy
+by simpa only [sub_zero] using real.dist_le_of_mem_Icc hx hy
 
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,

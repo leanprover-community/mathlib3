@@ -1583,10 +1583,16 @@ begin
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
 
+/-- The preimage of a subsingleton under an injective map is a subsingleton. -/
+theorem subsingleton.preimage {s : set β} (hs : s.subsingleton) {f : α → β}
+  (hf : function.injective f) :
+  (f ⁻¹' s).subsingleton :=
+λ a ha b hb, hf $ hs ha hb
+
 /-- `s` is a subsingleton, if its image of an injective function is. -/
 theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
   (s : set α) (hs : (f '' s).subsingleton) : s.subsingleton :=
-λ a ha b hb, hf $ hs (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
+(hs.preimage hf).mono $ subset_preimage_image _ _
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)

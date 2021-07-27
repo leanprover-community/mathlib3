@@ -2881,4 +2881,3 @@ def quotient_quotient_equiv_quotient :
 end third_iso_thm
 
 end submodule
-#lint

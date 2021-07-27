@@ -54,10 +54,9 @@ instance : comm_ring (mv_polynomial σ R) := add_monoid_algebra.comm_ring
 
 variables (σ a a')
 
-@[simp] lemma C_sub : (C (a - a') : mv_polynomial σ R) = C a - C a' :=
-(C : R →+* mv_polynomial σ R).map_sub _ _
+@[simp] lemma C_sub : (C (a - a') : mv_polynomial σ R) = C a - C a' := ring_hom.map_sub _ _ _
 
-@[simp] lemma C_neg : (C (-a) : mv_polynomial σ R) = -C a := (C : R →+* mv_polynomial σ R).map_neg _
+@[simp] lemma C_neg : (C (-a) : mv_polynomial σ R) = -C a := ring_hom.map_neg _ _
 
 @[simp] lemma coeff_neg (m : σ →₀ ℕ) (p : mv_polynomial σ R) :
   coeff m (-p) = -coeff m p := finsupp.neg_apply _ _

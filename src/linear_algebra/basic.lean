@@ -755,7 +755,7 @@ noncomputable def equiv_map_of_injective (f : M →ₗ[R] M₂) (i : injective f
   map_smul' := by { intros, simp, refl, },
   ..(equiv.set.image f p i) }
 
-@[simp] lemma coe_equiv_map_of_injective_apply (f : M →ₗ[R] M₂) (i : injective f)
+lemma coe_equiv_map_of_injective_apply (f : M →ₗ[R] M₂) (i : injective f)
   (p : submodule R M) (x : p) :
   (equiv_map_of_injective f i p x : M₂) = f x := rfl
 

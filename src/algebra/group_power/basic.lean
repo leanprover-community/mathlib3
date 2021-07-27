@@ -346,13 +346,11 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, mul_gpow, inv_gpow]
 /-- The `n`th power map (`n` an integer) on a commutative group, considered as a group
 homomorphism. -/
 @[to_additive "Multiplication by an integer `n` on a commutative additive group, considered as an
-additive group homomorphism."]
+additive group homomorphism.", simps?]
 def gpow_group_hom (n : ℤ) : G →* G :=
 { to_fun := (^ n),
   map_one' := one_gpow n,
   map_mul' := λ a b, mul_gpow a b n }
-
-@[simp] lemma coe_gpow_group_hom (n : ℤ) : (gpow_group_hom n : G → G) = ((^ n) : G → G) := rfl
 
 end comm_group
 

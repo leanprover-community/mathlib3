@@ -1208,6 +1208,20 @@ by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0
 
 end cauchy_seq
 
+/-! ## Multipliying of two infinite sums
+
+In this section, we prove various results about `(∑' x : β, f x) * (∑' y : γ, g y)`. Not that we
+always assume that the family `λ x : β × γ, f x.1 * g x.2` is summable, since there is no way to
+deduce this from the summmabilities of `f` and `g` in general, but if you are working in a normed
+space, you may want to use the analogous lemmas in `analysis/normed_space/basic`
+(e.g `tsum_mul_tsum_of_summable_norm`).
+
+We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
+`β = γ = ℕ` to prove the **Cauchy product** formula.
+
+### Arbitrary index types
+-/
+
 section tsum_mul_tsum
 
 variables [topological_space α] [regular_space α] [semiring α] [topological_semiring α]
@@ -1230,6 +1244,8 @@ lemma has_sum.mul (hf : has_sum f s) (hg : has_sum g t)
 let ⟨u, hu⟩ := hfg in
 (hf.mul_eq hg hu).symm ▸ hu
 
+/-- Product of two infinites sums indexed by arbitrary types.
+    See also `tsum_mul_tsum_of_summable_norm` if `f` and `g` are abolutely summable. -/
 lemma tsum_mul_tsum (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
   (∑' x, f x) * (∑' y, g y) = (∑' z : β × γ, f z.1 * g z.2) :=
@@ -1238,6 +1254,8 @@ hf.has_sum.mul_eq hg.has_sum hfg.has_sum
 end tsum_mul_tsum
 
 section cauchy_product
+
+/-! ### `ℕ`-indexed sequences (cauchy product) -/
 
 variables {f : ℕ → α} {g : ℕ → α}
 
@@ -1300,6 +1318,8 @@ begin
   exact summable_cauchy_product_fin_of_summable_mul h
 end
 
+/-- The **Cauchy product** formula for the product of two infinites sums indexed by `ℕ`.
+    See also `tsum_mul_tsum_nat_of_summable_norm` if `f` and `g` are abolutely summable. -/
 lemma tsum_mul_tsum_nat (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
   (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ k in range (n+1), f k * g (n - k)) :=

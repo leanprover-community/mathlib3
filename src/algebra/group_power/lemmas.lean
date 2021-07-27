@@ -96,6 +96,7 @@ theorem add_one_gsmul : ∀ (a : A) (i : ℤ), (i + 1) • a = i • a + a :=
 lemma gpow_sub_one (a : G) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
 calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : (mul_inv_cancel_right _ _).symm
              ... = a^n * a⁻¹             : by rw [← gpow_add_one, sub_add_cancel]
+
 lemma gpow_add (a : G) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
 begin
   induction n using int.induction_on with n ihn n ihn,

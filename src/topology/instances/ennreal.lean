@@ -1103,6 +1103,35 @@ begin
   rwa closure_Iic at this
 end
 
+@[simp] lemma metric.diam_closure {α : Type*} [pseudo_metric_space α] (s : set α) :
+  metric.diam (closure s) = diam s :=
+by simp only [metric.diam, emetric.diam_closure]
+
+/-- For a bounded set `s : set ℝ`, its `emetric.diam` is equal to `Sup s - Inf s` reinterpreted as
+`ℝ≥0∞`. -/
+lemma real.ediam_eq {s : set ℝ} (h : bounded s) :
+  emetric.diam s = ennreal.of_real (Sup s - Inf s) :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|hne, { simp },
+  refine le_antisymm (metric.ediam_le_of_forall_dist_le $ λ x hx y hy, _) _,
+  { have := real.subset_Icc_Inf_Sup_of_bounded h,
+    exact real.dist_le_of_mem_Icc (this hx) (this hy) },
+  { apply ennreal.of_real_le_of_le_to_real,
+    rw [← metric.diam, ← metric.diam_closure],
+    have h' := real.bounded_iff_bdd_below_bdd_above.1 h,
+    calc Sup s - Inf s ≤ dist (Sup s) (Inf s) : le_abs_self _
+                   ... ≤ diam (closure s)     :
+      dist_le_diam_of_mem h.closure (cSup_mem_closure hne h'.2) (cInf_mem_closure hne h'.1) }
+end
+
+/-- For a bounded set `s : set ℝ`, its `metric.diam` is equal to `Sup s - Inf s`. -/
+lemma real.diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
+begin
+  rw [metric.diam, real.ediam_eq h, ennreal.to_real_of_real],
+  rw real.bounded_iff_bdd_below_bdd_above at h,
+  exact sub_nonneg.2 (real.Inf_le_Sup s h.1 h.2)
+end
+
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,
 then the distance from `f n` to the limit is bounded by `∑'_{k=n}^∞ d k`. -/
 lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → ℝ≥0∞)

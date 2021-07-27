@@ -150,6 +150,25 @@ by { rw le_inf_iff, split; apply mono_lie_right; [exact inf_le_left, exact inf_l
 @[simp] lemma inf_lie : ⁅I ⊓ J, N⁆ ≤ ⁅I, N⁆ ⊓ ⁅J, N⁆ :=
 by { rw le_inf_iff, split; apply mono_lie_left; [exact inf_le_left, exact inf_le_right], }
 
+lemma map_bracket_eq
+  {M₂ : Type w₁} [add_comm_group M₂] [module R M₂] [lie_ring_module L M₂] [lie_module R L M₂]
+  (f : M →ₗ⁅R,L⁆ M₂) :
+  map f ⁅I, N⁆ = ⁅I, map f N⁆ :=
+begin
+  rw ← coe_to_submodule_eq_iff,
+  change (↑⁅I, N⁆ : submodule R M).map (f : M →ₗ[R] M₂) = _,
+  rw [lie_ideal_oper_eq_linear_span, lie_ideal_oper_eq_linear_span, submodule.map_span],
+  congr,
+  ext m,
+  split,
+  { rintros ⟨-, ⟨⟨x, ⟨n, hn⟩, rfl⟩, hm⟩⟩,
+    simp only [lie_module_hom.coe_to_linear_map, lie_module_hom.map_lie] at hm,
+    exact ⟨x, ⟨f n, (mem_map (f n)).mpr ⟨n, hn, rfl⟩⟩, hm⟩, },
+  { rintros ⟨x, ⟨m₂, hm₂ : m₂ ∈ map f N⟩, rfl⟩,
+    obtain ⟨n, hn, rfl⟩ := (mem_map m₂).mp hm₂,
+    exact ⟨⁅x, n⁆, ⟨x, ⟨n, hn⟩, rfl⟩, by simp⟩, },
+end
+
 end lie_ideal_operations
 
 end lie_submodule

@@ -144,6 +144,15 @@ instance lie_quotient_lie_algebra : lie_algebra R (L ⧸ I) :=
 def mk' : M →ₗ⁅R,L⁆ M ⧸ N :=
 { to_fun := mk, map_lie' := λ r m, rfl, ..N.to_submodule.mkq}
 
+@[simp] lemma mk_eq_zero {m : M} : mk' N m = 0 ↔ m ∈ N :=
+submodule.quotient.mk_eq_zero N.to_submodule
+
+lemma mk'_ker : (mk' N).ker = N :=
+by { ext, simp, }
+
+@[simp] lemma le_iff : N' ≤ N ↔ map (mk' N) N' = ⊥ :=
+by rw [← lie_module_hom.le_ker_iff_map, mk'_ker]
+
 /-- Two `lie_module_hom`s from a quotient lie module are equal if their compositions with
 `lie_submodule.quotient.mk'` are equal.
 

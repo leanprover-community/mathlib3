@@ -197,15 +197,6 @@ open complex continuous_linear_map
 
 variables {f : ℂ → ℂ} {z : ℂ}
 
-lemma fderiv_eq_fderiv_of_holomorph (h : differentiable_at ℂ f z) :
-  (fderiv ℝ f z : ℂ → ℂ) = fderiv ℂ f z :=
-by { rw (h.restrict_scalars ℝ).has_fderiv_at.unique (h.has_fderiv_at.restrict_scalars ℝ),
-  simp only [coe_restrict_scalars'], }
-
-lemma has_fderiv_at_of_eq {f' : ℂ →L[ℝ] ℂ} {g' : ℂ →L[ℂ] ℂ}
-  (h : has_fderiv_at f f' z) (h' : (f' : ℂ → ℂ) = g') : has_fderiv_at f g' z :=
-by { simp only [has_fderiv_at, has_fderiv_at_filter] at h ⊢, rwa ← h', }
-
 lemma has_fderiv_at_conj (z : ℂ) : has_fderiv_at conj conj_cle.to_continuous_linear_map z :=
 conj_cle.has_fderiv_at
 
@@ -220,24 +211,24 @@ begin
   simp only [function.funext_iff, function.comp_app, conj_cle_apply],
 end
 
-lemma is_complex_linear_iff_holomorph (hf : differentiable_at ℝ f z) :
+lemma holomorph_iff_is_complex_linear (hf : differentiable_at ℝ f z) :
   differentiable_at ℂ f z ↔ is_linear_map ℂ (fderiv ℝ f z) :=
 begin
   split,
   { intros h,
     refine is_linear_map.mk (fderiv ℝ f z).map_add _,
-    rw fderiv_eq_fderiv_of_holomorph h,
+    rw fderiv_eq_fderiv ℝ h,
     exact (fderiv ℂ f z).map_smul, },
   { intros h,
     exact ⟨(is_linear_map.mk' (fderiv ℝ f z) h).to_continuous_linear_map, hf.has_fderiv_at⟩, },
 end
 
-lemma is_conj_complex_linear_iff_antiholomorph (hf : differentiable_at ℝ f z) :
+lemma antiholomorph_iff_is_conj_complex_linear (hf : differentiable_at ℝ f z) :
   differentiable_at ℂ (conj ∘ f) z ↔ is_linear_map ℂ (conj ∘ (fderiv ℝ f z)) :=
 begin
   split,
   { intros h,
-    rw [conj_fderiv_eq_fderiv_conj hf, fderiv_eq_fderiv_of_holomorph h],
+    rw [conj_fderiv_eq_fderiv_conj hf, fderiv_eq_fderiv ℝ h],
     rcases h with ⟨f', hf'⟩,
     rw hf'.fderiv,
     exact f'.to_linear_map.is_linear, },
@@ -248,7 +239,7 @@ begin
     by { funext,
          simp only [h.mk'_apply, coe_comp', linear_map.coe_to_continuous_linear_map',
                     conj_cle.coe_def_rev, conj_cle.coe_coe, function.comp_app, conj_cle_apply], },
-    exact has_fderiv_at_of_eq ((has_fderiv_at_conj $ f z).comp z hf.has_fderiv_at) key, },
+    exact has_fderiv_at_of_eq ℝ ((has_fderiv_at_conj $ f z).comp z hf.has_fderiv_at) key, },
 end
 
 end complex_fderiv_properties

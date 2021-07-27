@@ -72,7 +72,7 @@ def coe_nat_monoid_hom : prime_multiset →+ multiset ℕ :=
 { to_fun := coe,
   .. multiset.map_add_monoid_hom coe }
 
-@[simp] lemma coe_nat_monoid_hom_coe :
+@[simp] lemma coe_coe_nat_monoid_hom :
   (coe_nat_monoid_hom : prime_multiset → multiset ℕ) = coe := rfl
 
 theorem coe_nat_injective : function.injective (coe : prime_multiset → multiset ℕ) :=
@@ -98,7 +98,7 @@ def coe_pnat_monoid_hom : prime_multiset →+ multiset ℕ+ :=
 { to_fun := coe,
   .. multiset.map_add_monoid_hom coe }
 
-@[simp] lemma coe_pnat_monoid_hom_coe :
+@[simp] lemma coe_coe_pnat_monoid_hom :
   (coe_pnat_monoid_hom : prime_multiset → multiset ℕ+) = coe := rfl
 
 theorem coe_pnat_injective : function.injective (coe : prime_multiset → multiset ℕ+) :=

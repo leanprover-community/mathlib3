@@ -239,7 +239,7 @@ begin
     by { funext,
          simp only [h.mk'_apply, coe_comp', linear_map.coe_to_continuous_linear_map',
                     conj_cle.coe_def_rev, conj_cle.coe_coe, function.comp_app, conj_cle_apply], },
-    exact has_fderiv_at_of_eq ℝ ((has_fderiv_at_conj $ f z).comp z hf.has_fderiv_at) key, },
+    exact has_fderiv_at_of_eq ((has_fderiv_at_conj $ f z).comp z hf.has_fderiv_at) key, },
 end
 
 end complex_fderiv_properties

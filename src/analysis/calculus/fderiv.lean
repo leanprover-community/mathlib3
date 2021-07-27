@@ -391,6 +391,12 @@ begin
   exact unique_diff_within_at_univ.eq h₀ h₁
 end
 
+lemma has_fderiv_at_of_eq {𝕜' : Type*} [nondiscrete_normed_field 𝕜']
+  [normed_space 𝕜' E] [normed_space 𝕜' F] {g' : E →L[𝕜'] F}
+  (h : has_fderiv_at f f' x) (h' : (f' : E → F) = g') :
+  has_fderiv_at f g' x :=
+by { simp only [has_fderiv_at, has_fderiv_at_filter] at h ⊢, rwa ← h', }
+
 lemma has_fderiv_within_at_inter' (h : t ∈ 𝓝[s] x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
 by simp [has_fderiv_within_at, nhds_within_restrict'' s h]
@@ -2871,10 +2877,5 @@ lemma fderiv_eq_fderiv (h : differentiable_at 𝕜' f x) :
   (fderiv 𝕜 f x : E → F) = fderiv 𝕜' f x :=
 by rw [(h.restrict_scalars 𝕜).has_fderiv_at.unique (h.has_fderiv_at.restrict_scalars 𝕜),
        coe_restrict_scalars']
-
-lemma has_fderiv_at_of_eq {g' : E →L[𝕜] F}
-  (h : has_fderiv_at f g' x) (h' : (g' : E → F) = f') :
-  has_fderiv_at f f' x :=
-by { simp only [has_fderiv_at, has_fderiv_at_filter] at h ⊢, rwa ← h', }
 
 end restrict_scalars

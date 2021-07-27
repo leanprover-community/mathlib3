@@ -1774,7 +1774,7 @@ begin
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.map_add, ih, map_domain_add, map_domain_single,
       to_multiset_single, to_multiset_add, to_multiset_single,
-      ← multiset.map_add_monoid_hom_coe,
+      ← multiset.coe_map_add_monoid_hom,
       (multiset.map_add_monoid_hom g).map_nsmul],
     refl }
 end

@@ -19,10 +19,10 @@ The result is presented in several versions:
   `measure_theory.Lp.bounded_continuous_function` of `Lp E p μ`, the additive subgroup of
   `Lp E p μ` consisting of equivalence classes containing a continuous representative, is dense in
   `Lp E p μ`.
-* `bounded_continuous_function.dense_range`: For finite-measure `μ`, the continuous linear map
-  `bounded_continuous_function.to_Lp p μ 𝕜` from `α →ᵇ E` to `Lp E p μ` has dense range.
-* `continuous_map.dense_range`: For compact `α` and finite-measure `μ`, the continuous linear map
-  `continuous_map.to_Lp p μ 𝕜` from `C(α, E)` to `Lp E p μ` has dense range.
+* `bounded_continuous_function.to_Lp_dense_range`: For finite-measure `μ`, the continuous linear
+  map `bounded_continuous_function.to_Lp p μ 𝕜` from `α →ᵇ E` to `Lp E p μ` has dense range.
+* `continuous_map.to_Lp_dense_range`: For compact `α` and finite-measure `μ`, the continuous linear
+  map `continuous_map.to_Lp p μ 𝕜` from `C(α, E)` to `Lp E p μ` has dense range.
 
 Note that for `p = ∞` this result is not true:  the characteristic function of the set `[0, ∞)` in
 `ℝ` cannot be continuously approximated in `L∞`.
@@ -119,7 +119,7 @@ begin
     abel },
   -- Apply Urysohn's lemma to get a continuous approximation to the characteristic function of
   -- the set `s`
-  obtain ⟨g, hg_cont, hgu, hgF, hg_range⟩ :=
+  obtain ⟨g, hgu, hgF, hg_range⟩ :=
     exists_continuous_zero_one_of_closed u_open.is_closed_compl F_closed this,
   -- Multiply this by `c` to get a continuous approximation to the function `f`; the key point is
   -- that this is pointwise bounded by the indicator of the set `u \ F`
@@ -145,8 +145,7 @@ begin
     rw snorm_indicator_const (u_open.sdiff F_closed).measurable_set hp₀.ne' hp,
     push_cast [← ennreal.coe_rpow_of_nonneg _ hp₀'],
     exact ennreal.mul_left_mono (ennreal.rpow_left_monotone_of_nonneg hp₀' h_μ_sdiff) },
-  have gc_cont : continuous (λ x, g x • c) :=
-    continuous_smul.comp (hg_cont.prod_mk continuous_const),
+  have gc_cont : continuous (λ x, g x • c) := g.continuous.smul continuous_const,
   have gc_mem_ℒp : mem_ℒp (λ x, g x • c) p μ,
   { have : mem_ℒp ((λ x, g x • c) - s.indicator (λ x, c)) p μ :=
     ⟨(gc_cont.ae_measurable μ).sub (measurable_const.indicator hs).ae_measurable,

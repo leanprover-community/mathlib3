@@ -3,11 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import tactic.tfae
 import algebra.group_with_zero.power
 import data.set.intervals.pi
-import topology.algebra.group
 import order.filter.interval
+import topology.algebra.group
+import tactic.linarith
+import tactic.tfae
 
 /-!
 # Theory of topology on ordered spaces
@@ -117,6 +118,16 @@ section order_closed_topology
 section preorder
 variables [topological_space α] [preorder α] [t : order_closed_topology α]
 include t
+
+namespace subtype
+
+instance {p : α → Prop} : order_closed_topology (subtype p) :=
+have this : continuous (λ (p : (subtype p) × (subtype p)), ((p.fst : α), (p.snd : α))) :=
+  (continuous_subtype_coe.comp continuous_fst).prod_mk
+  (continuous_subtype_coe.comp continuous_snd),
+order_closed_topology.mk (t.is_closed_le'.preimage this)
+
+end subtype
 
 lemma is_closed_le_prod : is_closed {p : α × α | p.1 ≤ p.2} :=
 t.is_closed_le'

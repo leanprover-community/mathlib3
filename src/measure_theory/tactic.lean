@@ -53,7 +53,9 @@ attribute [measurability]
   measurable_set.union
   measurable_set.inter
   measurable_set.diff
+  measurable_set.symm_diff
   measurable_set.ite
+  measurable_set.cond
   measurable_set.disjointed
   measurable_set.const
   measurable_set.insert

@@ -85,7 +85,7 @@ instance : has_coe_to_fun (α ≃ β) :=
 rfl
 
 /-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
-theorem coe_fn_injective : function.injective (λ (e : α ≃ β) (x : α), e x)
+theorem coe_fn_injective : @function.injective (α ≃ β) (α → β) coe_fn
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
@@ -173,8 +173,8 @@ instance equiv_subsingleton_dom [subsingleton α] :
   subsingleton (α ≃ β) :=
 ⟨λ f g, equiv.ext $ λ x, @subsingleton.elim _ (equiv.subsingleton.symm f) _ _⟩
 
-instance perm_subsingleton [subsingleton α] : subsingleton (perm α) :=
-equiv.equiv_subsingleton_cod
+instance perm_unique [subsingleton α] : unique (perm α) :=
+{ default := equiv.refl α, uniq := λ _, subsingleton.elim _ _ }
 
 lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
   e = equiv.refl α := subsingleton.elim _ _
@@ -1772,10 +1772,16 @@ noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α �
 equiv.of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
 
-
 theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : set.range f) :
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
+
+@[simp] theorem of_injective_symm_apply {α β} (f : α → β) (hf : injective f) (a : α) :
+  (of_injective f hf).symm ⟨f a, ⟨a, rfl⟩⟩ = a :=
+begin
+  apply (of_injective f hf).injective,
+  simp [apply_of_injective_symm f hf],
+end
 
 @[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
   f ∘ ((of_injective f hf).symm) = coe :=

@@ -686,6 +686,13 @@ begin
   exact not_congr tsum_coe_ne_top_iff_summable_coe
 end
 
+lemma summable_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
+  summable (λ x, (f x).to_real) :=
+begin
+  lift f to α → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hsum,
+  rwa ennreal.tsum_coe_ne_top_iff_summable_coe at hsum,
+end
+
 end ennreal
 
 namespace nnreal
@@ -1088,6 +1095,35 @@ begin
   have : edist x y ∈ closure (Iic (diam s)),
     from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
   rwa closure_Iic at this
+end
+
+@[simp] lemma metric.diam_closure {α : Type*} [pseudo_metric_space α] (s : set α) :
+  metric.diam (closure s) = diam s :=
+by simp only [metric.diam, emetric.diam_closure]
+
+/-- For a bounded set `s : set ℝ`, its `emetric.diam` is equal to `Sup s - Inf s` reinterpreted as
+`ℝ≥0∞`. -/
+lemma real.ediam_eq {s : set ℝ} (h : bounded s) :
+  emetric.diam s = ennreal.of_real (Sup s - Inf s) :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|hne, { simp },
+  refine le_antisymm (metric.ediam_le_of_forall_dist_le $ λ x hx y hy, _) _,
+  { have := real.subset_Icc_Inf_Sup_of_bounded h,
+    exact real.dist_le_of_mem_Icc (this hx) (this hy) },
+  { apply ennreal.of_real_le_of_le_to_real,
+    rw [← metric.diam, ← metric.diam_closure],
+    have h' := real.bounded_iff_bdd_below_bdd_above.1 h,
+    calc Sup s - Inf s ≤ dist (Sup s) (Inf s) : le_abs_self _
+                   ... ≤ diam (closure s)     :
+      dist_le_diam_of_mem h.closure (cSup_mem_closure hne h'.2) (cInf_mem_closure hne h'.1) }
+end
+
+/-- For a bounded set `s : set ℝ`, its `metric.diam` is equal to `Sup s - Inf s`. -/
+lemma real.diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
+begin
+  rw [metric.diam, real.ediam_eq h, ennreal.to_real_of_real],
+  rw real.bounded_iff_bdd_below_bdd_above at h,
+  exact sub_nonneg.2 (real.Inf_le_Sup s h.1 h.2)
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,

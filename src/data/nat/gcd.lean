@@ -191,6 +191,10 @@ or.elim (eq_zero_or_pos k)
     by rw [gcd_mul_lcm, ←gcd_mul_right, mul_comm n k];
        exact dvd_gcd (mul_dvd_mul_left _ H2) (mul_dvd_mul_right H1 _))
 
+lemma lcm_dvd_iff {m n k : ℕ} : lcm m n ∣ k ↔ m ∣ k ∧ n ∣ k :=
+⟨λ h, ⟨dvd_trans (dvd_lcm_left _ _) h, dvd_trans (dvd_lcm_right _ _) h⟩,
+  and_imp.2 lcm_dvd⟩
+
 theorem lcm_assoc (m n k : ℕ) : lcm (lcm m n) k = lcm m (lcm n k) :=
 dvd_antisymm
   (lcm_dvd
@@ -369,6 +373,12 @@ by simp [coprime]
 
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
+
+lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) :
+  m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=
+(nat.eq_zero_of_mul_eq_zero hmn).imp
+  (λ hm, ⟨hm, n.coprime_zero_left.mp $ hm ▸ h⟩)
+  (λ hn, ⟨m.coprime_zero_left.mp $ hn ▸ h.symm, hn⟩)
 
 /-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
 def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :

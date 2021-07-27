@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
+Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
 import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.module.linear_map
 import algebra.big_operators.ring
-import algebra.star.basic
+import algebra.star.pi
 import data.equiv.ring
 import data.fintype.card
 import data.matrix.dmatrix
@@ -62,6 +62,12 @@ def transpose (M : matrix m n α) : matrix n m α
 
 localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
+/-- The conjugate transpose of a matrix defined in term of `star`. -/
+def conj_transpose [has_star α] (M : matrix m n α) : matrix n m α :=
+M.transpose.map star
+
+localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
+
 /-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
 def col (w : m → α) : matrix m unit α
 | x y := w x
@@ -114,11 +120,13 @@ lemma map_smul [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
   (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 by { ext, simp, }
 
-lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, contrapose! hm, use i }⟩
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim i }⟩
 
-lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, contrapose! hn, use j }⟩
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
 end matrix
 
@@ -249,63 +257,83 @@ by simp_rw [dot_product, mul_comm]
   dot_product v w = v ⟨⟩ * w ⟨⟩ :=
 by simp [dot_product]
 
-@[simp] lemma dot_product_zero [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product v 0 = 0 :=
-by simp [dot_product]
+section non_unital_non_assoc_semiring
+variables [non_unital_non_assoc_semiring α] (u v w : m → α)
 
-@[simp] lemma dot_product_zero' [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product v (λ _, 0) = 0 :=
-dot_product_zero v
+@[simp] lemma dot_product_zero : dot_product v 0 = 0 := by simp [dot_product]
 
-@[simp] lemma zero_dot_product [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product 0 v = 0 :=
-by simp [dot_product]
+@[simp] lemma dot_product_zero' : dot_product v (λ _, 0) = 0 := dot_product_zero v
 
-@[simp] lemma zero_dot_product' [non_unital_non_assoc_semiring α] (v : m → α) :
-  dot_product (λ _, (0 : α)) v = 0 :=
-zero_dot_product v
+@[simp] lemma zero_dot_product : dot_product 0 v = 0 := by simp [dot_product]
 
-@[simp] lemma add_dot_product [non_unital_non_assoc_semiring α] (u v w : m → α) :
-  dot_product (u + v) w = dot_product u w + dot_product v w :=
+@[simp] lemma zero_dot_product' : dot_product (λ _, (0 : α)) v = 0 := zero_dot_product v
+
+@[simp] lemma add_dot_product : dot_product (u + v) w = dot_product u w + dot_product v w :=
 by simp [dot_product, add_mul, finset.sum_add_distrib]
 
-@[simp] lemma dot_product_add [non_unital_non_assoc_semiring α] (u v w : m → α) :
-  dot_product u (v + w) = dot_product u v + dot_product u w :=
+@[simp] lemma dot_product_add : dot_product u (v + w) = dot_product u v + dot_product u w :=
 by simp [dot_product, mul_add, finset.sum_add_distrib]
 
-@[simp] lemma diagonal_dot_product [decidable_eq m] [non_unital_non_assoc_semiring α]
-  (v w : m → α) (i : m) :
-  dot_product (diagonal v i) w = v i * w i :=
+end non_unital_non_assoc_semiring
+
+section non_unital_non_assoc_semiring_decidable
+variables [decidable_eq m] [non_unital_non_assoc_semiring α] (u v w : m → α)
+
+@[simp] lemma diagonal_dot_product (i : m) : dot_product (diagonal v i) w = v i * w i :=
 have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma dot_product_diagonal [decidable_eq m] [non_unital_non_assoc_semiring α]
-  (v w : m → α) (i : m) :
-  dot_product v (diagonal w i) = v i * w i :=
+@[simp] lemma dot_product_diagonal (i : m) : dot_product v (diagonal w i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma dot_product_diagonal' [decidable_eq m] [non_unital_non_assoc_semiring α]
-  (v w : m → α) (i : m) :
-  dot_product v (λ j, diagonal w j i) = v i * w i :=
+@[simp] lemma dot_product_diagonal' (i : m) : dot_product v (λ j, diagonal w j i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
-@[simp] lemma neg_dot_product [ring α] (v w : m → α) : dot_product (-v) w = - dot_product v w :=
-by simp [dot_product]
+end non_unital_non_assoc_semiring_decidable
 
-@[simp] lemma dot_product_neg [ring α] (v w : m → α) : dot_product v (-w) = - dot_product v w :=
-by simp [dot_product]
+section ring
+variables [ring α] (u v w : m → α)
 
-@[simp] lemma smul_dot_product [monoid R] [has_mul α] [add_comm_monoid α] [distrib_mul_action R α]
-  [is_scalar_tower R α α] (x : R) (v w : m → α) :
+@[simp] lemma neg_dot_product : dot_product (-v) w = - dot_product v w := by simp [dot_product]
+
+@[simp] lemma dot_product_neg : dot_product v (-w) = - dot_product v w := by simp [dot_product]
+
+@[simp] lemma sub_dot_product : dot_product (u - v) w = dot_product u w - dot_product v w :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma dot_product_sub : dot_product u (v - w) = dot_product u v - dot_product u w :=
+by simp [sub_eq_add_neg]
+
+end ring
+
+section distrib_mul_action
+variables [monoid R] [has_mul α] [add_comm_monoid α] [distrib_mul_action R α]
+
+@[simp] lemma smul_dot_product [is_scalar_tower R α α] (x : R) (v w : m → α) :
   dot_product (x • v) w = x • dot_product v w :=
 by simp [dot_product, finset.smul_sum, smul_mul_assoc]
 
-@[simp] lemma dot_product_smul [monoid R] [has_mul α] [add_comm_monoid α] [distrib_mul_action R α]
-  [smul_comm_class R α α] (x : R) (v w : m → α) :
+@[simp] lemma dot_product_smul [smul_comm_class R α α] (x : R) (v w : m → α)  :
   dot_product v (x • w) = x • dot_product v w :=
 by simp [dot_product, finset.smul_sum, mul_smul_comm]
+
+end distrib_mul_action
+
+section star_ring
+variables [semiring α] [star_ring α] (v w : m → α)
+
+lemma star_dot_product_star : dot_product (star v) (star w) = star (dot_product w v) :=
+by simp [dot_product]
+
+lemma star_dot_product : dot_product (star v) w = star (dot_product (star w) v) :=
+by simp [dot_product]
+
+lemma dot_product_star : dot_product v (star w) = star (dot_product w (star v)) :=
+by simp [dot_product]
+
+end star_ring
 
 end dot_product
 
@@ -325,7 +353,7 @@ instance [has_mul α] [add_comm_monoid α] : has_mul (matrix n n α) := ⟨matri
 @[simp] theorem mul_eq_mul [has_mul α] [add_comm_monoid α] (M N : matrix n n α) :
   M * N = M ⬝ N := rfl
 
-theorem mul_apply' [has_mul α] [add_comm_monoid α] {M N : matrix n n α} {i k} :
+theorem mul_apply' [has_mul α] [add_comm_monoid α] {M : matrix l m α} {N : matrix m n α} {i k} :
   (M ⬝ N) i k = dot_product (λ j, M i j) (λ j, N j k) := rfl
 
 @[simp] theorem diagonal_neg [decidable_eq n] [add_group α] (d : n → α) :
@@ -656,7 +684,13 @@ dot_product_diagonal' v w x
 @[simp] lemma mul_vec_zero (A : matrix m n α) : mul_vec A 0 = 0 :=
 by { ext, simp [mul_vec] }
 
-@[simp] lemma vec_mul_zero (A : matrix m n α) : vec_mul 0 A = 0 :=
+@[simp] lemma zero_vec_mul (A : matrix m n α) : vec_mul 0 A = 0 :=
+by { ext, simp [vec_mul] }
+
+@[simp] lemma zero_mul_vec (v : n → α) : mul_vec (0 : matrix m n α) v = 0 :=
+by { ext, simp [mul_vec] }
+
+@[simp] lemma vec_mul_zero (v : m → α) : vec_mul v (0 : matrix m n α) = 0 :=
 by { ext, simp [vec_mul] }
 
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
@@ -702,7 +736,7 @@ end non_unital_semiring
 section non_assoc_semiring
 variables [non_assoc_semiring α]
 
-@[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
+@[simp] lemma one_mul_vec [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
 by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
 
 @[simp] lemma vec_mul_one [decidable_eq m] (v : m → α) : vec_mul v 1 = v :=
@@ -876,24 +910,72 @@ by { ext, refl }
 
 end transpose
 
-section star_ring
-variables [decidable_eq n] [semiring α] [star_ring α]
+section conj_transpose
+
+open_locale matrix
 
 /--
-When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
-the star operation given by taking the conjugate, and the star of each entry.
+  Tell `simp` what the entries are in a conjugate transposed matrix.
+
+  Compare with `mul_apply`, `diagonal_apply_eq`, etc.
 -/
-instance : star_ring (matrix n n α) :=
-{ star := λ M, M.transpose.map star,
-  star_involutive := λ M, by { ext, simp, },
-  star_add := λ M N, by { ext, simp, },
-  star_mul := λ M N, by { ext, simp [mul_apply], }, }
+@[simp] lemma conj_transpose_apply [has_star α] (M : matrix m n α) (i j) :
+  M.conj_transpose j i = star (M i j) := rfl
 
-@[simp] lemma star_apply (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
+@[simp] lemma conj_transpose_conj_transpose [has_involutive_star α] (M : matrix m n α) :
+  Mᴴᴴ = M :=
+by ext; simp
 
-lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
+@[simp] lemma conj_transpose_zero [semiring α] [star_ring α] : (0 : matrix m n α)ᴴ = 0 :=
+by ext i j; simp
 
-end star_ring
+@[simp] lemma conj_transpose_one [decidable_eq n] [semiring α] [star_ring α]:
+  (1 : matrix n n α)ᴴ = 1 :=
+by simp [conj_transpose]
+
+@[simp] lemma conj_transpose_add
+[semiring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+  (M + N)ᴴ = Mᴴ + Nᴴ  := by ext i j; simp
+
+@[simp] lemma conj_transpose_sub [ring α] [star_ring α] (M : matrix m n α) (N : matrix m n α) :
+  (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
+
+@[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
+  (c • M)ᴴ = (star c) • Mᴴ :=
+by ext i j; simp [mul_comm]
+
+@[simp] lemma conj_transpose_mul [semiring α] [star_ring α] (M : matrix m n α) (N : matrix n l α) :
+  (M ⬝ N)ᴴ = Nᴴ ⬝ Mᴴ  := by ext i j; simp [mul_apply]
+
+@[simp] lemma conj_transpose_neg [ring α] [star_ring α] (M : matrix m n α) :
+  (- M)ᴴ = - Mᴴ  := by ext i j; simp
+
+end conj_transpose
+
+section star
+
+/-- When `α` has a star operation, square matrices `matrix n n α` have a star
+operation equal to `matrix.conj_transpose`. -/
+instance [has_star α] : has_star (matrix n n α) := {star := conj_transpose}
+
+lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ := rfl
+
+@[simp] lemma star_apply [has_star α] (M : matrix n n α) (i j) :
+  (star M) i j = star (M j i) := rfl
+
+instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
+{ star_involutive := conj_transpose_conj_transpose }
+
+/-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
+instance [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
+{ star_add := conj_transpose_add,
+  star_mul := conj_transpose_mul, }
+
+/-- A version of `star_mul` for `⬝` instead of `*`. -/
+lemma star_mul [semiring α] [star_ring α] (M N : matrix n n α) :
+  star (M ⬝ N) = star N ⬝ star M := conj_transpose_mul _ _
+
+end star
 
 /-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of
 a matrix `M : matrix m n α`, the matrix `M.minor r_reindex c_reindex : matrix l o α` is defined
@@ -916,6 +998,11 @@ ext $ λ _ _, rfl
 
 @[simp] lemma transpose_minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
   (A.minor r_reindex c_reindex)ᵀ = Aᵀ.minor c_reindex r_reindex :=
+ext $ λ _ _, rfl
+
+@[simp] lemma conj_transpose_minor
+  [has_star α] (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
+  (A.minor r_reindex c_reindex)ᴴ = Aᴴ.minor c_reindex r_reindex :=
 ext $ λ _ _, rfl
 
 lemma minor_add [has_add α] (A B : matrix m n α) :
@@ -1044,6 +1131,10 @@ lemma transpose_reindex (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
 rfl
 
+lemma conj_transpose_reindex [has_star α] (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
+  (reindex eₘ eₙ M)ᴴ = (reindex eₙ eₘ Mᴴ) :=
+rfl
+
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]
 def sub_left {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin l) α :=
@@ -1107,9 +1198,14 @@ by { ext, refl }
 @[simp] lemma row_apply (v : m → α) (i j) : matrix.row v i j = v j := rfl
 
 @[simp]
-lemma transpose_col (v : m → α) : (matrix.col v).transpose = matrix.row v := by {ext, refl}
+lemma transpose_col (v : m → α) : (matrix.col v)ᵀ = matrix.row v := by { ext, refl }
 @[simp]
-lemma transpose_row (v : m → α) : (matrix.row v).transpose = matrix.col v := by {ext, refl}
+lemma transpose_row (v : m → α) : (matrix.row v)ᵀ = matrix.col v := by { ext, refl }
+
+@[simp]
+lemma conj_transpose_col [has_star α] (v : m → α) : (col v)ᴴ = row (star v) := by { ext, refl }
+@[simp]
+lemma conj_transpose_row [has_star α] (v : m → α) : (row v)ᴴ = col (star v) := by { ext, refl }
 
 lemma row_vec_mul [semiring α] (M : matrix m n α) (v : m → α) :
   matrix.row (matrix.vec_mul v M) = matrix.row v ⬝ M := by {ext, refl}
@@ -1167,6 +1263,22 @@ begin
   { rwa [update_column_ne h, if_neg h] }
 end
 
+lemma map_update_row [decidable_eq n] (f : α → β) :
+  map (update_row M i b) f = update_row (M.map f) i (f ∘ b) :=
+begin
+  ext i' j',
+  rw [update_row_apply, map_apply, map_apply, update_row_apply],
+  exact apply_ite f _ _ _,
+end
+
+lemma map_update_column [decidable_eq m] (f : α → β) :
+  map (update_column M j c) f = update_column (M.map f) j (f ∘ c) :=
+begin
+  ext i' j',
+  rw [update_column_apply, map_apply, map_apply, update_column_apply],
+  exact apply_ite f _ _ _,
+end
+
 lemma update_row_transpose [decidable_eq m] : update_row Mᵀ j c = (update_column M j c)ᵀ :=
 begin
   ext i' j,
@@ -1181,6 +1293,22 @@ begin
   refl
 end
 
+lemma update_row_conj_transpose [decidable_eq m] [has_star α] :
+  update_row Mᴴ j (star c) = (update_column M j c)ᴴ :=
+begin
+  rw [conj_transpose, conj_transpose, transpose_map, transpose_map, update_row_transpose,
+    map_update_column],
+  refl,
+end
+
+lemma update_column_conj_transpose [decidable_eq n] [has_star α] :
+  update_column Mᴴ i (star b) = (update_row M i b)ᴴ :=
+begin
+  rw [conj_transpose, conj_transpose, transpose_map, transpose_map, update_column_transpose,
+    map_update_row],
+  refl,
+end
+
 @[simp] lemma update_row_eq_self [decidable_eq m]
   (A : matrix m n α) {i : m} :
   A.update_row i (A i) = A :=
@@ -1192,366 +1320,6 @@ function.update_eq_self i A
 funext $ λ j, function.update_eq_self i (A j)
 
 end update
-
-section block_matrices
-
-/-- We can form a single large matrix by flattening smaller 'block' matrices of compatible
-dimensions. -/
-def from_blocks (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
-  matrix (n ⊕ o) (l ⊕ m) α :=
-sum.elim (λ i, sum.elim (A i) (B i))
-         (λ i, sum.elim (C i) (D i))
-
-@[simp] lemma from_blocks_apply₁₁
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : n) (j : l) :
-  from_blocks A B C D (sum.inl i) (sum.inl j) = A i j :=
-rfl
-
-@[simp] lemma from_blocks_apply₁₂
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : n) (j : m) :
-  from_blocks A B C D (sum.inl i) (sum.inr j) = B i j :=
-rfl
-
-@[simp] lemma from_blocks_apply₂₁
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : o) (j : l) :
-  from_blocks A B C D (sum.inr i) (sum.inl j) = C i j :=
-rfl
-
-@[simp] lemma from_blocks_apply₂₂
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : o) (j : m) :
-  from_blocks A B C D (sum.inr i) (sum.inr j) = D i j :=
-rfl
-
-/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
-"top left" submatrix. -/
-def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
-λ i j, M (sum.inl i) (sum.inl j)
-
-/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
-"top right" submatrix. -/
-def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
-λ i j, M (sum.inl i) (sum.inr j)
-
-/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
-"bottom left" submatrix. -/
-def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
-λ i j, M (sum.inr i) (sum.inl j)
-
-/-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
-"bottom right" submatrix. -/
-def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
-λ i j, M (sum.inr i) (sum.inr j)
-
-lemma from_blocks_to_blocks (M : matrix (n ⊕ o) (l ⊕ m) α) :
-  from_blocks M.to_blocks₁₁ M.to_blocks₁₂ M.to_blocks₂₁ M.to_blocks₂₂ = M :=
-begin
-  ext i j, rcases i; rcases j; refl,
-end
-
-@[simp] lemma to_blocks_from_blocks₁₁
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
-  (from_blocks A B C D).to_blocks₁₁ = A :=
-rfl
-
-@[simp] lemma to_blocks_from_blocks₁₂
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
-  (from_blocks A B C D).to_blocks₁₂ = B :=
-rfl
-
-@[simp] lemma to_blocks_from_blocks₂₁
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
-  (from_blocks A B C D).to_blocks₂₁ = C :=
-rfl
-
-@[simp] lemma to_blocks_from_blocks₂₂
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
-  (from_blocks A B C D).to_blocks₂₂ = D :=
-rfl
-
-lemma from_blocks_transpose
-  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
-  (from_blocks A B C D)ᵀ = from_blocks Aᵀ Cᵀ Bᵀ Dᵀ :=
-begin
-  ext i j, rcases i; rcases j; simp [from_blocks],
-end
-
-/-- Let `p` pick out certain rows and `q` pick out certain columns of a matrix `M`. Then
-  `to_block M p q` is the corresponding block matrix. -/
-def to_block (M : matrix m n α) (p : m → Prop) [decidable_pred p]
-  (q : n → Prop) [decidable_pred q] : matrix {a // p a} {a // q a} α := M.minor coe coe
-
-@[simp] lemma to_block_apply (M : matrix m n α) (p : m → Prop) [decidable_pred p]
-  (q : n → Prop) [decidable_pred q] (i : {a // p a}) (j : {a // q a}) :
-  to_block M p q i j = M ↑i ↑j := rfl
-
-/-- Let `b` map rows and columns of a square matrix `M` to blocks. Then
-  `to_square_block M b k` is the block `k` matrix. -/
-def to_square_block (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
-  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
-
-@[simp] lemma to_square_block_def (M : matrix m m α) {n : nat} (b : m → fin n) (k : fin n) :
-  to_square_block M b k = λ i j, M ↑i ↑j := rfl
-
-/-- Alternate version with `b : m → nat`. Let `b` map rows and columns of a square matrix `M` to
-  blocks. Then `to_square_block' M b k` is the block `k` matrix. -/
-def to_square_block' (M : matrix m m α) (b : m → nat) (k : nat) :
-  matrix {a // b a = k} {a // b a = k} α := M.minor coe coe
-
-@[simp] lemma to_square_block_def' (M : matrix m m α) (b : m → nat) (k : nat) :
-  to_square_block' M b k = λ i j, M ↑i ↑j := rfl
-
-/-- Let `p` pick out certain rows and columns of a square matrix `M`. Then
-  `to_square_block_prop M p` is the corresponding block matrix. -/
-def to_square_block_prop (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
-  matrix {a // p a} {a // p a} α := M.minor coe coe
-
-@[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) [decidable_pred p] :
-  to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
-
-variables [semiring α]
-
-lemma from_blocks_smul
-  (x : α) (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
-  x • (from_blocks A B C D) = from_blocks (x • A) (x • B) (x • C) (x • D) :=
-begin
-  ext i j, rcases i; rcases j; simp [from_blocks],
-end
-
-lemma from_blocks_add
-  (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
-  (A' : matrix n l α) (B' : matrix n m α) (C' : matrix o l α) (D' : matrix o m α) :
-  (from_blocks A B C D) + (from_blocks A' B' C' D') =
-  from_blocks (A + A') (B + B')
-              (C + C') (D + D') :=
-begin
-  ext i j, rcases i; rcases j; refl,
-end
-
-lemma from_blocks_multiply {p q : Type*} [fintype p] [fintype q]
-  (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
-  (A' : matrix l p α) (B' : matrix l q α) (C' : matrix m p α) (D' : matrix m q α) :
-  (from_blocks A B C D) ⬝ (from_blocks A' B' C' D') =
-  from_blocks (A ⬝ A' + B ⬝ C') (A ⬝ B' + B ⬝ D')
-              (C ⬝ A' + D ⬝ C') (C ⬝ B' + D ⬝ D') :=
-begin
-  ext i j, rcases i; rcases j;
-  simp only [from_blocks, mul_apply, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr,
-    pi.add_apply],
-end
-
-variables [decidable_eq l] [decidable_eq m]
-
-@[simp] lemma from_blocks_diagonal (d₁ : l → α) (d₂ : m → α) :
-  from_blocks (diagonal d₁) 0 0 (diagonal d₂) = diagonal (sum.elim d₁ d₂) :=
-begin
-  ext i j, rcases i; rcases j; simp [diagonal],
-end
-
-@[simp] lemma from_blocks_one : from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
-by { ext i j, rcases i; rcases j; simp [one_apply] }
-
-end block_matrices
-
-section block_diagonal
-
-variables (M N : o → matrix m n α) [decidable_eq o]
-
-section has_zero
-
-variables [has_zero α]
-
-/-- `matrix.block_diagonal M` turns a homogenously-indexed collection of matrices
-`M : o → matrix m n α'` into a `m × o`-by-`n × o` block matrix which has the entries of `M` along
-the diagonal and zero elsewhere.
-
-See also `matrix.block_diagonal'` if the matrices may not have the same size everywhere.
--/
-def block_diagonal : matrix (m × o) (n × o) α
-| ⟨i, k⟩ ⟨j, k'⟩ := if k = k' then M k i j else 0
-
-lemma block_diagonal_apply (ik jk) :
-  block_diagonal M ik jk = if ik.2 = jk.2 then M ik.2 ik.1 jk.1 else 0 :=
-by { cases ik, cases jk, refl }
-
-@[simp]
-lemma block_diagonal_apply_eq (i j k) :
-  block_diagonal M (i, k) (j, k) = M k i j :=
-if_pos rfl
-
-lemma block_diagonal_apply_ne (i j) {k k'} (h : k ≠ k') :
-  block_diagonal M (i, k) (j, k') = 0 :=
-if_neg h
-
-@[simp] lemma block_diagonal_transpose :
-  (block_diagonal M)ᵀ = block_diagonal (λ k, (M k)ᵀ) :=
-begin
-  ext,
-  simp only [transpose_apply, block_diagonal_apply, eq_comm],
-  split_ifs with h,
-  { rw h },
-  { refl }
-end
-
-@[simp] lemma block_diagonal_zero :
-  block_diagonal (0 : o → matrix m n α) = 0 :=
-by { ext, simp [block_diagonal_apply] }
-
-@[simp] lemma block_diagonal_diagonal [decidable_eq m] (d : o → m → α) :
-  block_diagonal (λ k, diagonal (d k)) = diagonal (λ ik, d ik.2 ik.1) :=
-begin
-  ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, diagonal],
-  split_ifs; finish
-end
-
-@[simp] lemma block_diagonal_one [decidable_eq m] [has_one α] :
-  block_diagonal (1 : o → matrix m m α) = 1 :=
-show block_diagonal (λ (_ : o), diagonal (λ (_ : m), (1 : α))) = diagonal (λ _, 1),
-by rw [block_diagonal_diagonal]
-
-end has_zero
-
-@[simp] lemma block_diagonal_add [add_monoid α] :
-  block_diagonal (M + N) = block_diagonal M + block_diagonal N :=
-begin
-  ext,
-  simp only [block_diagonal_apply, add_apply],
-  split_ifs; simp
-end
-
-@[simp] lemma block_diagonal_neg [add_group α] :
-  block_diagonal (-M) = - block_diagonal M :=
-begin
-  ext,
-  simp only [block_diagonal_apply, neg_apply],
-  split_ifs; simp
-end
-
-@[simp] lemma block_diagonal_sub [add_group α] :
-  block_diagonal (M - N) = block_diagonal M - block_diagonal N :=
-by simp [sub_eq_add_neg]
-
-@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α] (N : o → matrix n p α) :
-  block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
-begin
-  ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product],
-  split_ifs with h; simp [h]
-end
-
-@[simp] lemma block_diagonal_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α]
-  (x : R) : block_diagonal (x • M) = x • block_diagonal M :=
-by { ext, simp only [block_diagonal_apply, pi.smul_apply], split_ifs; simp }
-
-end block_diagonal
-
-section block_diagonal'
-
-variables (M N : Π i, matrix (m' i) (n' i) α) [decidable_eq o]
-
-section has_zero
-
-variables [has_zero α]
-
-/-- `matrix.block_diagonal' M` turns `M : Π i, matrix (m i) (n i) α` into a
-`Σ i, m i`-by-`Σ i, n i` block matrix which has the entries of `M` along the diagonal
-and zero elsewhere.
-
-This is the dependently-typed version of `matrix.block_diagonal`. -/
-def block_diagonal' : matrix (Σ i, m' i) (Σ i, n' i) α
-| ⟨k, i⟩ ⟨k', j⟩ := if h : k = k' then M k i (cast (congr_arg n' h.symm) j) else 0
-
-lemma block_diagonal'_eq_block_diagonal (M : o → matrix m n α) {k k'} (i j) :
-  block_diagonal M (i, k) (j, k') = block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ :=
-rfl
-
-lemma block_diagonal'_minor_eq_block_diagonal (M : o → matrix m n α) :
-  (block_diagonal' M).minor (prod.to_sigma ∘ prod.swap) (prod.to_sigma ∘ prod.swap) =
-    block_diagonal M :=
-matrix.ext $ λ ⟨k, i⟩ ⟨k', j⟩, rfl
-
-lemma block_diagonal'_apply (ik jk) :
-  block_diagonal' M ik jk = if h : ik.1 = jk.1 then
-    M ik.1 ik.2 (cast (congr_arg n' h.symm) jk.2) else 0 :=
-by { cases ik, cases jk, refl }
-
-@[simp]
-lemma block_diagonal'_apply_eq (k i j) :
-  block_diagonal' M ⟨k, i⟩ ⟨k, j⟩ = M k i j :=
-dif_pos rfl
-
-lemma block_diagonal'_apply_ne {k k'} (i j) (h : k ≠ k') :
-  block_diagonal' M ⟨k, i⟩ ⟨k', j⟩ = 0 :=
-dif_neg h
-
-@[simp] lemma block_diagonal'_transpose :
-  (block_diagonal' M)ᵀ = block_diagonal' (λ k, (M k)ᵀ) :=
-begin
-  ext ⟨ii, ix⟩ ⟨ji, jx⟩,
-  simp only [transpose_apply, block_diagonal'_apply, eq_comm],
-  dsimp only,
-  split_ifs with h₁ h₂ h₂,
-  { subst h₁, refl, },
-  { exact (h₂ h₁.symm).elim },
-  { exact (h₁ h₂.symm).elim },
-  { refl }
-end
-
-@[simp] lemma block_diagonal'_zero :
-  block_diagonal' (0 : Π i, matrix (m' i) (n' i) α) = 0 :=
-by { ext, simp [block_diagonal'_apply] }
-
-@[simp] lemma block_diagonal'_diagonal [∀ i, decidable_eq (m' i)] (d : Π i, m' i → α) :
-  block_diagonal' (λ k, diagonal (d k)) = diagonal (λ ik, d ik.1 ik.2) :=
-begin
-  ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal'_apply, diagonal],
-  split_ifs; finish
-end
-
-@[simp] lemma block_diagonal'_one [∀ i, decidable_eq (m' i)] [has_one α] :
-  block_diagonal' (1 : Π i, matrix (m' i) (m' i) α) = 1 :=
-show block_diagonal' (λ (i : o), diagonal (λ (_ : m' i), (1 : α))) = diagonal (λ _, 1),
-by rw [block_diagonal'_diagonal]
-
-end has_zero
-
-@[simp] lemma block_diagonal'_add [add_monoid α] :
-  block_diagonal' (M + N) = block_diagonal' M + block_diagonal' N :=
-begin
-  ext,
-  simp only [block_diagonal'_apply, add_apply],
-  split_ifs; simp
-end
-
-@[simp] lemma block_diagonal'_neg [add_group α] :
-  block_diagonal' (-M) = - block_diagonal' M :=
-begin
-  ext,
-  simp only [block_diagonal'_apply, neg_apply],
-  split_ifs; simp
-end
-
-@[simp] lemma block_diagonal'_sub [add_group α] :
-  block_diagonal' (M - N) = block_diagonal' M - block_diagonal' N :=
-by simp [sub_eq_add_neg]
-
-@[simp] lemma block_diagonal'_mul {p : o → Type*} [Π i, fintype (p i)] [semiring α]
-  (N : Π i, matrix (n' i) (p i) α) :
-    block_diagonal' (λ k, M k ⬝ N k) = block_diagonal' M ⬝ block_diagonal' N :=
-begin
-  ext ⟨k, i⟩ ⟨k', j⟩,
-  simp only [block_diagonal'_apply, mul_apply, ← finset.univ_sigma_univ, finset.sum_sigma],
-  rw fintype.sum_eq_single k,
-  { split_ifs; simp },
-  { intros j' hj', exact finset.sum_eq_zero (λ _ _, by rw [dif_neg hj'.symm, zero_mul]) },
-end
-
-@[simp] lemma block_diagonal'_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α]
-  (x : R) : block_diagonal' (x • M) = x • block_diagonal' M :=
-by { ext, simp only [block_diagonal'_apply, pi.smul_apply], split_ifs; simp }
-
-end block_diagonal'
 
 end matrix
 

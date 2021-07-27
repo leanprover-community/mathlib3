@@ -151,7 +151,7 @@ variables (σ : Type u) (K : Type u) [fintype σ] [field K] [fintype K]
 def R : Type u := restrict_degree σ K (fintype.card K - 1)
 
 noncomputable instance decidable_restrict_degree (m : ℕ) :
-  decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
+  decidable_pred (∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
 by simp only [set.mem_set_of_eq]; apply_instance
 
 lemma dim_R : module.rank K (R σ K) = fintype.card (σ → K) :=

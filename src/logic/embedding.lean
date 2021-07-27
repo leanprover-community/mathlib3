@@ -66,6 +66,9 @@ by { ext, simp }
 
 theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 
+@[simp] lemma apply_eq_iff_eq {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
+f.injective.eq_iff
+
 @[refl, simps {simp_rhs := tt}]
 protected def refl (α : Sort*) : α ↪ α :=
 ⟨id, injective_id⟩
@@ -97,6 +100,10 @@ protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjecti
 protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
 equiv.of_bijective f ⟨f.injective, hf⟩
+
+/-- There is always an embedding from an empty type. --/
+protected def of_is_empty {α β} [is_empty α] : α ↪ β :=
+⟨is_empty_elim, is_empty_elim⟩
 
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩

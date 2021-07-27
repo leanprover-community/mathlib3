@@ -465,6 +465,12 @@ rfl
 
 /-! ### The complete lattice of measures -/
 
+/-- Measures are partially ordered.
+
+The definition of less equal here is equivalent to the definition without the
+measurable set condition, and this is shown by `measure.le_iff'`. It is defined
+this way since, to prove `μ ≤ ν`, we may simply `intros s hs` instead of rewriting followed
+by `intros s hs`. -/
 instance : partial_order (measure α) :=
 { le          := λ m₁ m₂, ∀ s, measurable_set s → m₁ s ≤ m₂ s,
   le_refl     := assume m s hs, le_refl _,
@@ -1457,6 +1463,15 @@ lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measur
   (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
+lemma summable_measure_to_real [hμ : finite_measure μ]
+  {f : ℕ → set α} (hf₁ : ∀ (i : ℕ), measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
+  summable (λ x, (μ (f x)).to_real) :=
+begin
+  apply ennreal.summable_to_real,
+  rw ← measure_theory.measure_Union hf₂ hf₁,
+  exact ne_of_lt (measure_lt_top _ _)
+end
+
 end finite_measure
 
 section probability_measure
@@ -1722,7 +1737,7 @@ end
 instance sum.sigma_finite {ι} [fintype ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
   sigma_finite (sum μ) :=
 begin
-  haveI : encodable ι := (encodable.trunc_encodable_of_fintype ι).out,
+  haveI : encodable ι := fintype.encodable ι,
   have : ∀ n, measurable_set (⋂ (i : ι), spanning_sets (μ i) n) :=
     λ n, measurable_set.Inter (λ i, measurable_spanning_sets (μ i) n),
   refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, this, λ n, _, _⟩⟩⟩,
@@ -2594,14 +2609,3 @@ lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_se
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end indicator_function
-
-namespace measurable_set
-
-variables [measurable_space α]
-
-@[measurability]
-lemma cond {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
-  {i : bool} : measurable_set (cond i A B) :=
-by { cases i, exacts [hB, hA] }
-
-end measurable_set

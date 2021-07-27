@@ -232,6 +232,7 @@ protected lemma continuous : continuous f := f.is_locally_constant.continuous
 /-- We can turn a locally-constant function into a bundled `continuous_map`. -/
 def to_continuous_map : C(X, Y) := ⟨f, f.continuous⟩
 
+/-- As a shorthand, `locally_constant.to_continuous_map` is available as a coercion -/
 instance : has_coe (locally_constant X Y) C(X, Y) := ⟨to_continuous_map⟩
 
 @[simp] lemma to_continuous_map_eq_coe : f.to_continuous_map = f := rfl

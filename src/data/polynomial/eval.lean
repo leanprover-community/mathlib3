@@ -362,11 +362,7 @@ end
 @[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
 
 @[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
-begin
-  dsimp [comp, eval₂, eval, sum],
-  erw (@C R _).to_add_monoid_hom.map_sum _ p.support,
-  apply finset.sum_congr rfl; simp
-end
+by simp [comp, (C : R →+* _).map_sum]
 
 @[simp] lemma C_comp : (C a).comp p = C a := eval₂_C _ _
 
@@ -561,25 +557,16 @@ begin
   split,
   { rintro ⟨p, rfl⟩ n, rw [coe_map_ring_hom, coeff_map], exact set.mem_range_self _ },
   { intro h, rw p.as_sum_range_C_mul_X_pow,
-    refine add_submonoid.sum_mem (map_ring_hom f).srange.to_add_submonoid _,
+    refine (map_ring_hom f).srange.sum_mem _,
     intros i hi,
     rcases h i with ⟨c, hc⟩,
     use [C c * X^i],
     rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
 end
 
-lemma mem_map_range {R S : Type*} [_inst_1 : ring R] [_inst_2 : ring S] (f : R →+* S)
+lemma mem_map_range {R S : Type*} [ring R] [ring S] (f : R →+* S)
   {p : polynomial S} : p ∈ (map_ring_hom f).range ↔ ∀ n, p.coeff n ∈ f.range :=
-begin
-  split,
-  { rintro ⟨p, rfl⟩ n, rw [coe_map_ring_hom, coeff_map], exact set.mem_range_self _ },
-  { intro h, rw p.as_sum_range_C_mul_X_pow,
-    refine add_submonoid.sum_mem (map_ring_hom f).srange.to_add_submonoid _,
-    intros i hi,
-    rcases h i with ⟨c, hc⟩,
-    use [C c * X^i],
-    rw [coe_map_ring_hom, map_mul, map_C, hc, map_pow, map_X] }
-end
+mem_map_srange f
 
 lemma eval₂_map [semiring T] (g : S →+* T) (x : T) :
   (p.map f).eval₂ g x = p.eval₂ (g.comp f) x :=

@@ -1,6 +1,13 @@
+/-
+Copyright (c) 2021 Anna Wright. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anna Wright
+-/
+
 import data.zmod.basic
 import data.fintype.card
-import number_theory.padics.padic_numbers
+import number_theory.padics.padic_norm
+
 
 open fintype subgroup
 universe u
@@ -31,8 +38,7 @@ include hp
 lemma card_G : card G = p ^ (n G p) * (m G p) :=
 begin
   rw ← nat.div_eq_iff_eq_mul_right (pow_pos (nat.prime.pos hp.elim) (n G p)),
-
-  sorry,
+  exact pow_padic_val_nat_dvd,
 end
 
 lemma not_p_div_m : ¬ p ∣ (m G p) := sorry

@@ -90,8 +90,12 @@ end
 polynomial.induction_on' p (λ p q hp hq, by simp [hp, hq])
   (λ n x, by rw [eval₂_monomial, monomial_eq_smul_X, C_mul'])
 
-lemma eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
-{ map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
+/-- `eval₂_add_monoid_hom (f : R →+* S) (x : S)` is the `add_monoid_hom` from
+`polynomial R` to `S` obtained by evaluating the pushforward of `p` along `f` at `x`. -/
+@[simps] def eval₂_add_monoid_hom : polynomial R →+ S :=
+{ to_fun := eval₂ f x,
+  map_zero' := eval₂_zero _ _,
+  map_add' := λ _ _, eval₂_add _ _ }
 
 @[simp] lemma eval₂_nat_cast (n : ℕ) : (n : polynomial R).eval₂ f x = n :=
 begin

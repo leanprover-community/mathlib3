@@ -828,7 +828,8 @@ lemma prod_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ �
   [Π i, add_comm_monoid (β i)]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} {i₂ : ι} :
   (f.sum g) i₂ = f.sum (λi₁ b, g i₁ b i₂) :=
-add_monoid_hom.map_sum (eval_add_monoid_hom i₂ : (Π₀ i, β i) →+ β i₂) _ f.support
+(eval_add_monoid_hom i₂ : (Π₀ i, β i) →+ β i₂).map_sum  _ f.support
+--add_monoid_hom.map_sum (eval_add_monoid_hom i₂ : (Π₀ i, β i) →+ β i₂) _ f.support
 
 include dec
 

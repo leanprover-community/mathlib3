@@ -748,14 +748,13 @@ lemma range_map_nonempty (N : submodule R M) :
 
 /-- The pushforward of a submodule by an injective linear map is
 linearly equivalent to the original submodule. -/
-@[simps]
 noncomputable def equiv_map_of_injective (f : M →ₗ[R] M₂) (i : injective f) (p : submodule R M) :
   p ≃ₗ[R] p.map f :=
 { map_add' := by { intros, simp, refl, },
   map_smul' := by { intros, simp, refl, },
   ..(equiv.set.image f p i) }
 
-lemma coe_equiv_map_of_injective_apply (f : M →ₗ[R] M₂) (i : injective f)
+@[simp] lemma coe_equiv_map_of_injective_apply (f : M →ₗ[R] M₂) (i : injective f)
   (p : submodule R M) (x : p) :
   (equiv_map_of_injective f i p x : M₂) = f x := rfl
 

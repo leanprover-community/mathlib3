@@ -225,10 +225,13 @@ variables [comm_monoid M] [add_comm_monoid A]
 theorem mul_pow (a b : M) (n : ℕ) : (a * b)^n = a^n * b^n :=
 (commute.all a b).mul_pow n
 
+-- at the time of writing, the call to `simps` below generates `pow_add_monoid_hom_apply`
+-- instead of `nsmul_add_monoid_hom_apply`
+
 /-- The `n`th power map on a commutative monoid for a natural `n`, considered as a morphism of
 monoids. -/
 @[to_additive nsmul_add_monoid_hom "Multiplication by a natural `n` on a commutative additive
-monoid, considered as a morphism of additive monoids."]
+monoid, considered as a morphism of additive monoids.", simps]
 def pow_monoid_hom (n : ℕ) : M →* M :=
 { to_fun := (^ n),
   map_one' := one_pow _,
@@ -349,7 +352,7 @@ def gpow_group_hom (n : ℤ) : G →* G :=
   map_one' := one_gpow n,
   map_mul' := λ a b, mul_gpow a b n }
 
-@[simp] lemma gpow_group_hom_coe (n : ℤ) : (gpow_group_hom n : G → G) = ((^ n) : G → G) := rfl
+@[simp] lemma coe_gpow_group_hom (n : ℤ) : (gpow_group_hom n : G → G) = ((^ n) : G → G) := rfl
 
 end comm_group
 

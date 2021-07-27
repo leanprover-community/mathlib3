@@ -31,6 +31,7 @@ include hp
 lemma card_G : card G = p ^ (n G p) * (m G p) :=
 begin
   rw ← nat.div_eq_iff_eq_mul_right (pow_pos (nat.prime.pos hp.elim) (n G p)),
+
   sorry,
 end
 

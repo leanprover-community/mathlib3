@@ -592,7 +592,7 @@ by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with 
 
 /-- A group homomorphism from an `add_comm_group` to a `semi_normed_group` induces a
 `semi_normed_group` structure on the domain. -/
-def add_monoid_hom.semi_normed_group [add_comm_group γ] (f : γ →+ α) : semi_normed_group γ :=
+def semi_normed_group.induced [add_comm_group γ] (f : γ →+ α) : semi_normed_group γ :=
 { norm    := λ x, ∥f x∥,
   dist_eq := λ x y, by simpa only [add_monoid_hom.map_sub, ← dist_eq_norm],
   .. pseudo_metric_space.induced f semi_normed_group.to_pseudo_metric_space, }
@@ -600,7 +600,7 @@ def add_monoid_hom.semi_normed_group [add_comm_group γ] (f : γ →+ α) : semi
 /-- A subgroup of a seminormed group is also a seminormed group,
 with the restriction of the norm. -/
 instance add_subgroup.semi_normed_group (s : add_subgroup α) : semi_normed_group s :=
-s.subtype.semi_normed_group
+semi_normed_group.induced s.subtype
 
 /-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
 its norm in `E`. -/
@@ -912,14 +912,14 @@ by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_group` induces a
 `normed_group` structure on the domain. -/
-def add_monoid_hom.normed_group [add_comm_group γ]
+def normed_group.induced [add_comm_group γ]
   (f : γ →+ α) (h : function.injective f) : normed_group γ :=
-{ .. f.semi_normed_group,
+{ .. semi_normed_group.induced f,
   .. metric_space.induced f h normed_group.to_metric_space, }
 
 /-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
 instance add_subgroup.normed_group (s : add_subgroup α) : normed_group s :=
-s.subtype.normed_group subtype.coe_injective
+normed_group.induced s.subtype subtype.coe_injective
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 

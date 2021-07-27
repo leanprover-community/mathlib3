@@ -631,13 +631,13 @@ begin
   have dz := degree_eq_zero_of_is_unit H,
   rw degree_map_eq_of_leading_coeff_ne_zero at dz,
   { rw eq_C_of_degree_eq_zero dz,
-    refine is_unit.map' C.to_is_monoid_hom _,
+    refine is_unit.map' C.to_monoid_hom _,
     convert hf,
     rw (degree_eq_iff_nat_degree_eq _).1 dz,
     rintro rfl,
     simpa using H, },
   { intro h,
-    have u : is_unit (φ f.leading_coeff) := is_unit.map' φ.to_is_monoid_hom hf,
+    have u : is_unit (φ f.leading_coeff) := is_unit.map' φ.to_monoid_hom hf,
     rw h at u,
     simpa using u, }
 end

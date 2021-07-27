@@ -1208,7 +1208,7 @@ by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0
 
 end cauchy_seq
 
-/-! ## Multipliying of two infinite sums
+/-! ## Multipliying two infinite sums
 
 In this section, we prove various results about `(∑' x : β, f x) * (∑' y : γ, g y)`. Not that we
 always assume that the family `λ x : β × γ, f x.1 * g x.2` is summable, since there is no way to
@@ -1217,7 +1217,7 @@ space, you may want to use the analogous lemmas in `analysis/normed_space/basic`
 (e.g `tsum_mul_tsum_of_summable_norm`).
 
 We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
-`β = γ = ℕ` to prove the **Cauchy product** formula.
+`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_nat`).
 
 ### Arbitrary index types
 -/
@@ -1255,7 +1255,7 @@ end tsum_mul_tsum
 
 section cauchy_product
 
-/-! ### `ℕ`-indexed sequences (cauchy product) -/
+/-! ### `ℕ`-indexed families (cauchy product) -/
 
 variables {f : ℕ → α} {g : ℕ → α}
 
@@ -1318,7 +1318,7 @@ begin
   exact summable_cauchy_product_fin_of_summable_mul h
 end
 
-/-- The **Cauchy product** formula for the product of two infinites sums indexed by `ℕ`.
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`.
     See also `tsum_mul_tsum_nat_of_summable_norm` if `f` and `g` are abolutely summable. -/
 lemma tsum_mul_tsum_nat (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :

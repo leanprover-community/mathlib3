@@ -1949,6 +1949,18 @@ end summable
 
 section cauchy_product
 
+/-! ## Multipliying two infinite sums in a normed ring
+
+In this section, we prove various results about `(∑' x : ι, f x) * (∑' y : ι', g y)` in a normed
+ring. There are similar results proven in `topology/algebra/infinite_sum` (e.g `tsum_mul_tsum`),
+but in a normed ring we get summability results which aren't true in general.
+
+We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
+`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_nat`).
+
+### Arbitrary index types
+-/
+
 variables {ι' : Type*} [normed_ring α]
 
 open_locale classical
@@ -1986,11 +1998,15 @@ lemma summable_mul_of_summable_norm [complete_space α] {f : ι → α} {g : ι'
   summable (λ (x : ι × ι'), f x.1 * g x.2) :=
 summable_of_summable_norm (summable_norm_mul_of_summable_norm hf hg)
 
+/-- Product of two infinites sums indexed by arbitrary types.
+    See also `tsum_mul_tsum` if `f` and `g` are *not* abolutely summable. -/
 lemma tsum_mul_tsum_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   (∑' x, f x) * (∑' y, g y) = (∑' z : ι × ι', f z.1 * g z.2) :=
 tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
   (summable_mul_of_summable_norm hf hg)
+
+/-! ### `ℕ`-indexed families (cauchy product) -/
 
 lemma summable_norm_cauchy_product_fin_of_summable_norm {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
@@ -2013,6 +2029,8 @@ begin
   exact summable_norm_cauchy_product_fin_of_summable_norm hf hg
 end
 
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`.
+    See also `tsum_mul_tsum_nat_of_summable_norm` if `f` and `g` are abolutely summable. -/
 lemma tsum_mul_tsum_nat_of_summable_norm [complete_space α] {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in finset.range (n+1), f k * g (n - k) :=

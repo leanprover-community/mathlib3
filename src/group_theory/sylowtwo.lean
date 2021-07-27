@@ -44,9 +44,23 @@ begin
   exact pow_succ_padic_val_nat_not_dvd p (card_pos_iff.2 has_one.nonempty) h,
 end
 
-lemma card_P : card L = p ^ n :=
+include h
+lemma card_L : card L = p ^ n :=
 begin
-  sorry
+  rcases h with ⟨x, y, hy1, hy2, hy3⟩,
+  rw [hy2, hy1],
+  congr,
+  rw padic_val_nat.mul p _ _,
+  {
+    rw [padic_val_nat_of_not_dvd hy3, add_zero],
+    rw padic_val_nat_eq_factors_count,
+
+    sorry, },
+  {  exact pow_ne_zero _ (nat.prime.ne_zero (fact.out _)) },
+  {
+    have h : 0 ≠ card G := ne_of_lt (card_pos_iff.2 has_one.nonempty),
+    rw hy2 at h,
+    exact right_ne_zero_of_mul (ne.symm h) }
 end
 
 end is_sylow_subgroup

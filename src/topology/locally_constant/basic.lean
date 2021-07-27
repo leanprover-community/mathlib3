@@ -238,9 +238,9 @@ instance : has_coe (locally_constant X Y) C(X, Y) := ⟨to_continuous_map⟩
 
 @[simp] lemma coe_to_continuous_map : ((f : C(X, Y)) : X → Y) = (f : X → Y) := rfl
 
-lemma to_continuous_map_injective {f g : locally_constant X Y}
-  (h : (f : C(X, Y)) = (g : C(X, Y))) : f = g :=
-by { ext x, exact continuous_map.congr_fun h x, }
+lemma to_continuous_map_injective :
+  function.injective (to_continuous_map : locally_constant X Y → C(X, Y)) :=
+λ _ _ h, by { ext x, exact continuous_map.congr_fun h x, }
 
 end codomain_topological_space
 

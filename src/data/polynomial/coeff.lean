@@ -60,7 +60,7 @@ variable {R}
 
 @[simp] lemma finset_sum_coeff {ι : Type*} (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
-add_monoid_hom.map_sum (linear_map.to_add_monoid_hom (lcoeff R n)) _ _
+(lcoeff R n).map_sum
 
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=

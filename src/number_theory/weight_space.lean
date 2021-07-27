@@ -456,6 +456,8 @@ end
 
 variables {c : ℤ}
 
+--def clopen_nat_equiv : clopen_basis' p d ≃ (ℕ → )
+
 def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a : ℤ) / (d*p^(n + 1)))
     - c * fract ((a : ℤ) / (c * (d*p^(n + 1)))) + (c - 1)/2
 
@@ -580,7 +582,10 @@ begin
   apply cond,
 end
 
-def s : set (locally_constant (zmod d × ℤ_[p]) R) := set.image (char_fn (zmod d × ℤ_[p])) (clopen_basis' p d)
+abbreviation s : set (locally_constant (zmod d × ℤ_[p]) R) := set.image (char_fn (zmod d × ℤ_[p]))
+  (clopen_basis' p d)
+
+def clopen_char_fn_equiv : clopen_basis' p d ≃ s p d R := sorry
 
 def equi_class (n m : ℕ) (h : n < m) (a : zmod (p^n)) :=
  {b : zmod (p^m) | (b : zmod (p^n)) = a}
@@ -590,33 +595,65 @@ instance (n m : ℕ) (h : n < m) (a : zmod (p^n)) : fintype (equi_class p n m h 
 --construct a map from `ℤ/dℤ × ℤ_p → clopen_basis' p d` ?
 /-- For m > n, χ_(b,a,n) = ∑_{j, b_j = a mod p^n} χ_(b,b_j,m) -/
 lemma sum_char_fn_dependent (m n : ℕ) (h : m > n) (a : zmod (p^n)) (b : zmod d) :
-  char_fn (zmod d × ℤ_[p]) (⟨({b} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+  @char_fn (zmod d × ℤ_[p]) _ _ _ _ R _ _ _ (⟨_,
     is_clopen_prod (is_clopen_discrete (b : zmod d))
-      (proj_lim_preimage_clopen p d n b) ⟩) = ∑ x in set.to_finset (equi_class p n m h a),
-  char_fn _ (⟨({b} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow m) {(x : zmod (p^m))}),
-    is_clopen_prod (is_clopen_discrete (b : zmod d))
+      (proj_lim_preimage_clopen p d n a) ⟩) = ∑ x in set.to_finset (equi_class p n m h a),
+  char_fn _ (⟨_,
+    is_clopen_prod (is_clopen_discrete (b : zmod d)) (proj_lim_preimage_clopen p d n x) ⟩) :=
+sorry
+
+#print E_c
+
+/-- For m > n, E_c(χ_(b,a,n)) = ∑_{j, b_j = a mod p^n} E_c(χ_(b,b_j,m)) -/
+lemma sum_char_fn_dependent_Ec (m n : ℕ) (h : m > n) (a : zmod (p^n)) (b : zmod d) (hc : gcd c p = 1) :
+  E_c p d hc n a = ∑ x in set.to_finset (equi_class p n m h a), E_c p d hc m x :=
+sorry
+
+lemma seems_useless (x : s p d R) : (x : locally_constant (zmod d × ℤ_[p]) R) =
+  char_fn (zmod d × ℤ_[p]) ((clopen_char_fn_equiv p d R).inv_fun x) :=
+begin
+  sorry,
+end
 
 --lemma trial : locally_constant (zmod d × ℤ_[p]) R = submodule.span R (s p d R) := sorry
 
 -- TODO Remove this lemma
 lemma mem_nonempty {α : Type*} {s : set α} {x : α} (h : x ∈ s) : nonempty s := ⟨⟨x, h⟩⟩
-#print E_c
+
 lemma bernoulli_measure_nonempty (hc : gcd c p = 1) :
   nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
 begin
   refine mem_nonempty _,
-  { --constructor, swap 3,
+  {
+    --constructor, swap 3,
     suffices : submodule.span R (s p d R) →ₗ[R] R, sorry, -- why you no work
       refine linear_map_from_span R _ _ (s p d R) _ _,
       { intro χ,
-        have : ∃ U : (clopen_basis' p d), char_fn _ U.val = (χ : locally_constant (zmod d × ℤ_[p]) R),
+        --have : ∃ U : (clopen_basis' p d), char_fn _ U.val = (χ : locally_constant (zmod d × ℤ_[p]) R),
         --construct a bijection between `clopen_basis' p d` and `char_fn`?
-        sorry,
-        set U := classical.some this with hU,
+        --sorry,
+        --set U := classical.some this with hU,
+        set U := (clopen_char_fn_equiv p d R).inv_fun χ with hU,
         exact E_c p d hc (classical.some U.prop) (classical.some (classical.some_spec U.prop)), },
       rintros f h, -- f is a relation, taking v in s to a; h says that ∑ a_i v_i = 0, tpt ∑ a_i E_c(v_i) = 0
       --apply finsupp.induction_linear f,
-      rw finsupp.total_apply,
+      rw finsupp.total_apply at *,
+      simp,
+      convert_to ∑ l in finsupp.support f, f(l) * (E_c p d hc (classical.some
+        ((clopen_char_fn_equiv p d R).inv_fun l).prop) (classical.some (classical.some_spec
+          ((clopen_char_fn_equiv p d R).inv_fun l).prop))) = 0,
+      { rw finsupp.sum_of_support_subset,
+        swap 4, exact f.support,
+        simp, simp,
+        { rintros i hi, rw zero_mul, }, },
+      set n := ⨆ (l : finsupp.support f), classical.some
+        ((clopen_char_fn_equiv p d R).inv_fun l).prop + 1 with hn,
+--      set n := ⨆ (l : finsupp.support f), ((clopen_char_fn_equiv p d R).inv_fun l) with hn,
+      rw finsupp.sum_of_support_subset at h,
+      swap 4, exact f.support,
+      swap, simp, swap, simp,
+      conv_lhs at h { apply_congr, skip, rw seems_useless p d R x, },
+
       /-apply finsupp.induction f, { simp, },
       { rintros χ a g hg nza rel_g_zero h, rw finsupp.total_apply at *,
         rw finsupp.sum_add_index at *,

@@ -914,7 +914,10 @@ end
 by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_group` induces a
-`normed_group` structure on the domain. -/
+`normed_group` structure on the domain.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def normed_group.induced [add_comm_group γ]
   (f : γ →+ α) (h : function.injective f) : normed_group γ :=
 { .. semi_normed_group.induced f,

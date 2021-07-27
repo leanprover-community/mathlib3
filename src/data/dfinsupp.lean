@@ -7,16 +7,11 @@ import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
-import deprecated.group
 
 /-!
 # Dependent functions with finite support
 
 For a non-dependent version see `data/finsupp.lean`.
-
-## TODO
-
-Remove deprecated import.
 
 -/
 
@@ -171,10 +166,6 @@ def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (
 def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
-lemma is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
-  is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-(eval_add_monoid_hom i).is_add_monoid_hom_coe
-
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
 
@@ -319,11 +310,6 @@ quotient.induction_on v $ λ x, rfl
   {v v' : Π₀ i, β i} :
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ i, by simp only [add_apply, subtype_domain_apply]
-
-lemma subtype_domain.is_add_monoid_hom [Π i, add_zero_class (β i)]
-  {p : ι → Prop} [decidable_pred p] :
-  _root_.is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
-{ map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
 /-- `subtype_domain` but as an `add_monoid_hom`. -/
 @[simps] def subtype_domain_add_monoid_hom [Π i, add_zero_class (β i)]
@@ -591,9 +577,11 @@ ext $ λ i, by simp only [neg_apply, mk_apply]; split_ifs; [refl, rw neg_zero]
   mk s (x - y) = mk s x - mk s y :=
 ext $ λ i, by simp only [sub_apply, mk_apply]; split_ifs; [refl, rw sub_zero]
 
-lemma mk_is_add_group_hom [Π i, add_group (β i)] {s : finset ι} :
-  is_add_group_hom (@mk ι β _ _ s) :=
-{ map_add := λ _ _, mk_add }
+def mk_add_group_hom [Π i, add_group (β i)] (s : finset ι) :
+  (Π (i : (s : set ι)), β ↑i) →+ (Π₀ (i : ι), β i) :=
+{ to_fun := mk s,
+  map_zero' := mk_zero,
+  map_add' := λ _ _, mk_add }
 
 section
 variables (γ : Type w) [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)]

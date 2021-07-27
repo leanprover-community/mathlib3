@@ -12,7 +12,6 @@ import group_theory.submonoid.membership
 # Dependent functions with finite support
 
 For a non-dependent version see `data/finsupp.lean`.
-
 -/
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l

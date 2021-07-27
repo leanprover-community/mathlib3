@@ -90,6 +90,24 @@ begin
   { rw [partial_sups_succ, partial_sups_succ, disjointed_succ, ih, sup_sdiff_self_right] }
 end
 
+lemma disjointed_unique {f d : ℕ → α} (hdisj : pairwise (disjoint on d))
+  (hsups : partial_sups d = partial_sups f) : d = disjointed f :=
+begin
+  ext n,
+  cases n,
+  { rw [←partial_sups_zero d, hsups, partial_sups_zero, disjointed_zero] },
+  suffices h : d n.succ = partial_sups d n.succ \ partial_sups d n,
+  { rw [h, hsups, partial_sups_succ, disjointed_succ, sup_sdiff, sdiff_self, bot_sup_eq] },
+  rw [partial_sups_succ, sup_sdiff, sdiff_self, bot_sup_eq, eq_comm, sdiff_eq_self_iff_disjoint],
+  suffices h : ∀ m ≤ n, disjoint (partial_sups d m) (d n.succ),
+  { exact h n le_rfl },
+  rintro m hm,
+  induction m with m ih,
+  { exact hdisj _ _ (nat.succ_ne_zero _).symm },
+  rw [partial_sups_succ, disjoint_iff, inf_sup_right, sup_eq_bot_iff, ←disjoint_iff, ←disjoint_iff],
+  exact ⟨ih (nat.le_of_succ_le hm), hdisj _ _ (nat.lt_succ_of_le hm).ne⟩,
+end
+
 end generalized_boolean_algebra
 
 section complete_boolean_algebra

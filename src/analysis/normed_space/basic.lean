@@ -590,12 +590,20 @@ lemma antilipschitz_with.add_sub_lipschitz_with {α : Type*} [pseudo_metric_spac
   (hK : Kg < Kf⁻¹) : antilipschitz_with (Kf⁻¹ - Kg)⁻¹ g :=
 by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with hg hK
 
+/-- A group homomorphism from an `add_comm_group` to a `semi_normed_group` induces a
+`semi_normed_group` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def semi_normed_group.induced [add_comm_group γ] (f : γ →+ α) : semi_normed_group γ :=
+{ norm    := λ x, ∥f x∥,
+  dist_eq := λ x y, by simpa only [add_monoid_hom.map_sub, ← dist_eq_norm],
+  .. pseudo_metric_space.induced f semi_normed_group.to_pseudo_metric_space, }
+
 /-- A subgroup of a seminormed group is also a seminormed group,
 with the restriction of the norm. -/
-instance add_subgroup.semi_normed_group {E : Type*} [semi_normed_group E] (s : add_subgroup E) :
-  semi_normed_group s :=
-{ norm := λx, norm (x : E),
-  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+instance add_subgroup.semi_normed_group (s : add_subgroup α) : semi_normed_group s :=
+semi_normed_group.induced s.subtype
 
 /-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
 its norm in `E`. -/
@@ -905,10 +913,19 @@ end
 @[simp] lemma nnnorm_eq_zero {a : α} : ∥a∥₊ = 0 ↔ a = 0 :=
 by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 
+/-- An injective group homomorphism from an `add_comm_group` to a `normed_group` induces a
+`normed_group` structure on the domain.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def normed_group.induced [add_comm_group γ]
+  (f : γ →+ α) (h : function.injective f) : normed_group γ :=
+{ .. semi_normed_group.induced f,
+  .. metric_space.induced f h normed_group.to_metric_space, }
+
 /-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
-instance add_subgroup.normed_group {E : Type*} [normed_group E] (s : add_subgroup E) :
-  normed_group s :=
-{ ..add_subgroup.semi_normed_group s }
+instance add_subgroup.normed_group (s : add_subgroup α) : normed_group s :=
+normed_group.induced s.subtype subtype.coe_injective
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 

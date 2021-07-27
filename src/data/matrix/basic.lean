@@ -31,14 +31,6 @@ variables {m' : o → Type*} [∀ i, fintype (m' i)]
 variables {n' : o → Type*} [∀ i, fintype (n' i)]
 variables {R : Type*} {S : Type*} {α : Type v} {β : Type w}
 
-/-- `equiv.perm.to_matrix` converts a permutation `σ : equiv.perm m` to a matrix
-    containing ones and zeros. This definition is then used to define the Prop `matrix.is_perm`.
-    `equiv.perm.to_prequiv_to_matrix_eq_to_matrix` proves that
-    `σ.to_pequiv.to_matrix = σ.to_matrix` in `pequiv.lean`.-/
-def equiv.perm.to_matrix [decidable_eq m] [has_zero α] [has_one α] (σ : equiv.perm m) :
-matrix m m α
-| i j := if σ i = j then 1 else 0
-
 namespace matrix
 
 instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
@@ -136,19 +128,6 @@ protected def is_skewsym [has_neg α] (A : matrix m m α) : Prop := -Aᵀ = A
 
 /-- Proposition `matrix.is_Hermitian`. `A.is_Hermitian` means `Aᴴ = A` if `[has_star α]` -/
 protected def is_Hermitian [has_star α] (A : matrix m m α) : Prop := Aᴴ = A
-
-/-- Proposition `matrix.is_perm`.
-    `P.is_perm` means `P` is a permutation matrix.
-    A new file is probably required for systematically investigating permutation matrices. -/
-protected def is_perm [decidable_eq m] [has_zero α] [has_one α] (P : matrix m m α): Prop :=
-∃ σ : equiv.perm m, P = equiv.perm.to_matrix σ
-
-/-- Proposition `matrix.is_perfect_shuffle`.
-    `P.is_perfect_shuffle` means `P` is a perfect shuffle matrix.
-    A new file is probably required for systematically investigating perfect shuffle matrices. -/
-protected def is_perfect_shuffle
-[decidable_eq m] [has_zero α] [has_one α] (P : matrix m m α) : Prop :=
-∃ σ : equiv.perm m, (P = equiv.perm.to_matrix σ ∧ ∀ i : m, σ i ≠ i)
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
@@ -334,16 +313,16 @@ end non_unital_non_assoc_semiring_decidable
 section non_distrib_ring
 variables [mul_one_class α] [add_comm_monoid α]
 
-@[simp] lemma dot_product_one (v : n → α) : dot_product v 1 = ∑ i, v i :=
+lemma dot_product_one (v : n → α) : dot_product v 1 = ∑ i, v i :=
 by simp [dot_product]
 
-@[simp] lemma dot_product_one' (v : n → α) : dot_product v (λ i, 1) = ∑ i, v i :=
+lemma dot_product_one' (v : n → α) : dot_product v (λ i, 1) = ∑ i, v i :=
 by simp [dot_product]
 
-@[simp] lemma one_dot_product (v : n → α) : dot_product 1 v = ∑ i, v i :=
+lemma one_dot_product (v : n → α) : dot_product 1 v = ∑ i, v i :=
 by simp [dot_product]
 
-@[simp] lemma one_dot_product' (v : n → α) : dot_product (λ i, 1 : n → α) v = ∑ i, v i :=
+lemma one_dot_product' (v : n → α) : dot_product (λ i, 1 : n → α) v = ∑ i, v i :=
 by simp [dot_product]
 
 @[simp] lemma one_dot_one_eq_card : dot_product (1 : n → α) 1 = fintype.card n :=

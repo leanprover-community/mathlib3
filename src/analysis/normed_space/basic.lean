@@ -1949,7 +1949,7 @@ end summable
 
 section cauchy_product
 
-variables {ι' : Type*} [normed_ring α] [complete_space α]
+variables {ι' : Type*} [normed_ring α]
 
 open_locale classical
 
@@ -1981,59 +1981,43 @@ summable_of_nonneg_of_le (λ x, norm_nonneg (f x.1 * g x.2)) (λ x, norm_mul_le 
   (@real.summable_mul_of_summable_of_nonneg _ _ (λ x, ∥f x∥) (λ x, ∥g x∥) hf hg
     (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x))
 
-lemma tsum_mul_tsum_of_summable_norm {f : ι → α} {g : ι' → α}
+lemma summable_mul_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+summable_of_summable_norm (summable_norm_mul_of_summable_norm hf hg)
+
+lemma tsum_mul_tsum_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   (∑' x, f x) * (∑' y, g y) = (∑' z : ι × ι', f z.1 * g z.2) :=
 tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
-  (summable_of_summable_norm $ summable_norm_mul_of_summable_norm hf hg)
+  (summable_mul_of_summable_norm hf hg)
 
-def cauchy_product_equiv : (Σ (n : ℕ), fin (n+1)) ≃ ℕ × ℕ :=
-{ to_fun := λ x, ⟨x.2, x.1 - x.2⟩,
-  inv_fun := λ x, ⟨x.1 + x.2, ⟨x.1, nat.lt_add_one_iff.mpr $ self_le_add_right _ _⟩⟩,
-  left_inv :=
-    begin
-      intros x,
-      ext,
-      { exact nat.add_sub_cancel' (nat.lt_add_one_iff.mp x.2.2) },
-      { refl }
-    end,
-  right_inv :=
-    begin
-      intros x,
-      ext,
-      { refl },
-      { exact nat.add_sub_cancel_left _ _ }
-    end }
-
-lemma summable_norm_cauchy_product_of_summable_norm_nat' {f g : ℕ → α}
+lemma summable_norm_cauchy_product_fin_of_summable_norm {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ n, ∥∑ (k : fin (n+1)), f k * g (n - k)∥) :=
 begin
-  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) (λ _, norm_sum_le _ _) _,
-  conv {congr, funext, rw ← tsum_fintype},
-  exact (cauchy_product_equiv.summable_iff.mpr (summable_norm_mul_of_summable_norm hf hg)).sigma
+  have := summable_cauchy_product_fin_of_summable_mul
+    (real.summable_mul_of_summable_of_nonneg hf hg (λ _, norm_nonneg _) (λ _, norm_nonneg _)),
+  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) _ this,
+  intros n,
+  calc  ∥∑ (k : fin (n + 1)), f k * g (n - k)∥
+      ≤ ∑ (k : fin (n + 1)), ∥f k * g (n - k)∥ : norm_sum_le _ _
+  ... ≤ ∑ (k : fin (n + 1)), ∥f k∥ * ∥g (n - k)∥ : finset.sum_le_sum (λ i _, norm_mul_le _ _)
 end
 
-lemma summable_norm_cauchy_product_of_summable_norm_nat {f g : ℕ → α}
+lemma summable_norm_cauchy_product_range_of_summable_norm {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ n, ∥∑ k in finset.range (n+1), f k * g (n - k)∥) :=
 begin
   conv {congr, funext, rw ← fin.sum_univ_eq_sum_range},
-  exact summable_norm_cauchy_product_of_summable_norm_nat' hf hg
+  exact summable_norm_cauchy_product_fin_of_summable_norm hf hg
 end
 
-lemma tsum_mul_tsum_of_summable_norm_nat {f g : ℕ → α}
+lemma tsum_mul_tsum_nat_of_summable_norm [complete_space α] {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in finset.range (n+1), f k * g (n - k) :=
-begin
-  rw tsum_mul_tsum_of_summable_norm hf hg,
-  conv_rhs {congr, funext, rw ← fin.sum_univ_eq_sum_range, rw ← tsum_fintype},
-  conv in (f _ * g (_ - _)) { change (λ (x : Σ (n : ℕ), fin (n+1)), f x.2 * g (x.1 - x.2)) ⟨n, b⟩ },
-  rw [← tsum_sigma, ← cauchy_product_equiv.tsum_eq (_ : ℕ × ℕ → α)],
-  { refl },
-  { have := cauchy_product_equiv.summable_iff.mpr (summable_norm_mul_of_summable_norm hf hg),
-    exact summable_of_summable_norm this }
-end
+tsum_mul_tsum_nat (summable_of_summable_norm hf) (summable_of_summable_norm hg)
+  (summable_mul_of_summable_norm hf hg)
 
 end cauchy_product
 

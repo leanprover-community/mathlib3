@@ -1208,7 +1208,7 @@ by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0
 
 end cauchy_seq
 
-section cauchy_product
+section tsum_mul_tsum
 
 variables [topological_space α] [regular_space α] [semiring α] [topological_semiring α]
   {f : β → α} {g : γ → α} {s t u : α}
@@ -1234,5 +1234,80 @@ lemma tsum_mul_tsum (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
   (∑' x, f x) * (∑' y, g y) = (∑' z : β × γ, f z.1 * g z.2) :=
 hf.has_sum.mul_eq hg.has_sum hfg.has_sum
+
+end tsum_mul_tsum
+
+section cauchy_product
+
+variables {f : ℕ → α} {g : ℕ → α}
+
+/-- The equivalence behind the Cauchy product formula. It maps `(n, k)` with `k ≤ n` to
+    the pair `(k, n-k)`, which allows us to show (under appropriate summability assumptions) that
+    `(∑' z : ℕ × ℕ, f z.1 * g z.2) = ∑' n : ℕ, ∑ k in range (n+1), f n * g (n - k)`
+    by rearranging terms. -/
+def cauchy_product_equiv : (Σ (n : ℕ), fin (n+1)) ≃ ℕ × ℕ :=
+{ to_fun := λ x, ⟨x.2, x.1 - x.2⟩,
+  inv_fun := λ x, ⟨x.1 + x.2, ⟨x.1, nat.lt_add_one_iff.mpr $ self_le_add_right _ _⟩⟩,
+  left_inv :=
+    begin
+      intros x,
+      ext,
+      { exact nat.add_sub_cancel' (nat.lt_add_one_iff.mp x.2.2) },
+      { refl }
+    end,
+  right_inv :=
+    begin
+      intros x,
+      ext,
+      { refl },
+      { exact nat.add_sub_cancel_left _ _ }
+    end }
+
+lemma comp_cauchy_product_equiv {f : ℕ → α} {g : ℕ → α} [has_mul α] :
+  (λ x : ℕ × ℕ, f x.1 * g x.2) ∘ cauchy_product_equiv =
+  (λ x : Σ (n : ℕ), fin (n+1), f x.2 * g (x.1 - x.2)) :=
+rfl
+
+lemma comp_cauchy_product_equiv' {f : ℕ → α} {g : ℕ → α} [has_mul α] :
+  (λ x : Σ (n : ℕ), fin (n+1), f (cauchy_product_equiv x).1 * g (cauchy_product_equiv x).2) =
+  (λ x : Σ (n : ℕ), fin (n+1), f x.2 * g (x.1 - x.2)) :=
+rfl
+
+variables [topological_space α] [semiring α]
+
+lemma summable_mul_iff_summable_cauchy_product_sigma {f g : ℕ → α} :
+  summable (λ x : ℕ × ℕ, f x.1 * g x.2) ↔
+  summable (λ x : (Σ (n : ℕ), fin (n+1)), f x.2 * g (x.1 - x.2)) :=
+by rw [← comp_cauchy_product_equiv, cauchy_product_equiv.summable_iff]
+
+variables [regular_space α] [topological_semiring α]
+
+lemma summable_cauchy_product_fin_of_summable_mul {f g : ℕ → α}
+  (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
+  summable (λ n, ∑ (k : fin $ n+1), f k * g (n - k)) :=
+begin
+  rw summable_mul_iff_summable_cauchy_product_sigma at h,
+  have := h.sigma' (λ n, (has_sum_fintype _).summable),
+  simp_rw tsum_fintype at this,
+  exact this
+end
+
+lemma summable_cauchy_product_range_of_summable_mul {f g : ℕ → α}
+  (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
+  summable (λ n, ∑ k in range (n+1), f k * g (n - k)) :=
+begin
+  simp_rw ← fin.sum_univ_eq_sum_range,
+  exact summable_cauchy_product_fin_of_summable_mul h
+end
+
+lemma tsum_mul_tsum_nat (hf : summable f) (hg : summable g)
+  (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
+  (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ k in range (n+1), f k * g (n - k)) :=
+begin
+  simp_rw [← fin.sum_univ_eq_sum_range, ← tsum_fintype],
+  rw [tsum_mul_tsum hf hg hfg, ← cauchy_product_equiv.tsum_eq (_ : ℕ × ℕ → α),
+      comp_cauchy_product_equiv', tsum_sigma' (λ n, (has_sum_fintype _).summable)
+        (summable_mul_iff_summable_cauchy_product_sigma.mp hfg)]
+end
 
 end cauchy_product

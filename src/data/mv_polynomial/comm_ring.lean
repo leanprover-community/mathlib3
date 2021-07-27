@@ -75,10 +75,6 @@ single_sub.symm
 @[simp] lemma support_neg : (- p).support = p.support :=
 finsupp.support_neg
 
-lemma coeff.is_add_group_hom (m : σ →₀ ℕ) :
-  is_add_group_hom (coeff m : mv_polynomial σ R → R) :=
-{ map_add := coeff_add m }
-
 variables {σ} (p)
 
 section degrees

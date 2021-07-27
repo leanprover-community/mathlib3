@@ -240,7 +240,7 @@ instance : has_coe (locally_constant X Y) C(X, Y) := ⟨to_continuous_map⟩
 
 lemma to_continuous_map_injective :
   function.injective (to_continuous_map : locally_constant X Y → C(X, Y)) :=
-λ _ _ h, by { ext x, exact continuous_map.congr_fun h x, }
+λ _ _ h, ext (continuous_map.congr_fun h)
 
 end codomain_topological_space
 

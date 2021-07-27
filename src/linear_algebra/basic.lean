@@ -223,10 +223,11 @@ instance : add_comm_monoid (M →ₗ[R] M₂) :=
   nsmul_zero' := λ f, by { ext x, simp },
   nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_one_add, add_nsmul] } }
 
-lemma linear_map_apply_is_add_monoid_hom (a : M) :
-  _root_.is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
-{ map_add := λ f g, linear_map.add_apply f g a,
-  map_zero := rfl }
+/-- Evaluation of an `R`-linear map at a fixed `a`, as an `add_monoid_hom`. -/
+def eval_add_monoid_hom (a : M) : (M →ₗ[R] M₂) →+ M₂ :=
+{ to_fun := λ f, f a,
+  map_add' := λ f g, linear_map.add_apply f g a,
+  map_zero' := rfl }
 
 lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
   (h + g).comp f = h.comp f + g.comp f := rfl
@@ -430,10 +431,6 @@ by refine
   gsmul_neg' := _,
   .. linear_map.add_comm_monoid };
 intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
-
-lemma linear_map_apply_is_add_group_hom (a : M) :
-  _root_.is_add_group_hom (λ f : M →ₗ[R] M₂, f a) :=
-{ map_add := λ f g, linear_map.add_apply f g a }
 
 end add_comm_group
 
@@ -2789,10 +2786,13 @@ instance automorphism_group : group (M ≃ₗ[R] M) :=
   one_mul := λ f, by {ext, refl},
   mul_left_inv := λ f, by {ext, exact f.left_inv x} }
 
-lemma automorphism_group.to_linear_map_is_monoid_hom :
-  is_monoid_hom (linear_equiv.to_linear_map : (M ≃ₗ[R] M) → (M →ₗ[R] M)) :=
-{ map_one := rfl,
-  map_mul := λ f g, rfl }
+/-- Restriction from `R`-linear automorphisms of `M` to `R`-linearendomorphisms of `M`,
+promoted to a monoid hom. -/
+def automorphism_group.to_linear_map_monoid_hom :
+  (M ≃ₗ[R] M) →* (M →ₗ[R] M) :=
+{ to_fun := coe,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
 /-- The group of invertible linear maps from `M` to itself -/
 @[reducible] def general_linear_group := units (M →ₗ[R] M)
@@ -2881,3 +2881,4 @@ def quotient_quotient_equiv_quotient :
 end third_iso_thm
 
 end submodule
+#lint

@@ -1533,7 +1533,8 @@ begin
 end
 
 /-- A subgroup is isomorphic to its image under an injective function -/
-@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"] noncomputable def equiv_map_of_injective (H : subgroup G)
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+noncomputable def equiv_map_of_injective (H : subgroup G)
   (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
 

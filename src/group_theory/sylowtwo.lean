@@ -3,11 +3,9 @@ Copyright (c) 2021 Anna Wright. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anna Wright
 -/
-
 import data.zmod.basic
 import data.fintype.card
 import number_theory.padics.padic_norm
-
 
 open fintype subgroup
 universe u
@@ -23,26 +21,33 @@ def is_sylow_subgroup [fintype G] (p : ℕ) [fact p.prime] (L : subgroup G)  :=
 
 namespace is_sylow_subgroup
 
-variables [fintype G] {L : subgroup G} {p : ℕ} [hp : fact p.prime] (h : is_sylow_subgroup p L)
+variables (G) [fintype G] {L : subgroup G} (p : ℕ) [fact p.prime] (h : is_sylow_subgroup p L)
 
-variables (G) (p)
 /-- unique n which characterises sylow subgroup p -/
-abbreviation n := padic_val_nat p (fintype.card G)
+local notation `n` := padic_val_nat p (card G)
 
 /-- unique m which characterises sylow subgroup p -/
-abbreviation m := fintype.card G / p ^ (n G p)
+local notation `m` := card G / p ^ n
 
-variables {G} {p}
-
-include hp
-lemma card_G : card G = p ^ (n G p) * (m G p) :=
+lemma card_G : card G = p ^ n * m :=
 begin
-  rw ← nat.div_eq_iff_eq_mul_right (pow_pos (nat.prime.pos hp.elim) (n G p)),
-  exact pow_padic_val_nat_dvd,
+  rw ← nat.div_eq_iff_eq_mul_right (pow_pos (nat.prime.pos (fact.out _ )) n) pow_padic_val_nat_dvd,
 end
 
-lemma not_p_div_m : ¬ p ∣ (m G p) := sorry
-lemma card_P : card L = p ^ (n G p) := sorry
+lemma not_p_div_m : ¬ p ∣ m :=
+begin
+  rintros ⟨x, hx⟩,
+  have h : p ^ (n + 1) ∣ card G,
+  { refine ⟨x, _⟩,
+    conv_lhs {rw card_G G p},
+    simp [hx, pow_add, mul_assoc] },
+  exact pow_succ_padic_val_nat_not_dvd p (card_pos_iff.2 has_one.nonempty) h,
+end
+
+lemma card_P : card L = p ^ n :=
+begin
+  sorry
+end
 
 end is_sylow_subgroup
 

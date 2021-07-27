@@ -682,7 +682,7 @@ def map_add_monoid_hom (f : α → β) : multiset α →+ multiset β :=
   map_zero' := map_zero _,
   map_add' := map_add _ }
 
-@[simp] lemma map_add_monoid_hom_coe (f : α → β) :
+@[simp] lemma coe_map_add_monoid_hom (f : α → β) :
   (map_add_monoid_hom f : multiset α → multiset β) = map f := rfl
 
 theorem map_nsmul (f : α → β) (n : ℕ) (s) : map f (n • s) = n • (map f s) :=
@@ -882,7 +882,7 @@ def sum_add_monoid_hom [add_comm_monoid α] : multiset α →+ α :=
   map_zero' := sum_zero,
   map_add' := sum_add }
 
-@[simp] lemma sum_add_monoid_hom_coe [add_comm_monoid α] :
+@[simp] lemma coe_sum_add_monoid_hom [add_comm_monoid α] :
   (sum_add_monoid_hom : multiset α → α) = sum := rfl
 
 lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
@@ -946,7 +946,7 @@ theorem prod_hom_rel [comm_monoid β] [comm_monoid γ] (s : multiset α) {r : β
 quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
-@[simp] lemma inv_monoid_hom_coe {G : Type*} [comm_group G] :
+@[simp] lemma coe_inv_monoid_hom {G : Type*} [comm_group G] :
   (comm_group.inv_monoid_hom : G → G) = has_inv.inv := rfl
 
 @[simp, to_additive]
@@ -1820,7 +1820,7 @@ def countp_add_monoid_hom : multiset α →+ ℕ :=
   map_zero' := countp_zero _,
   map_add' := countp_add _ }
 
-@[simp] lemma countp_add_monoid_hom_coe :
+@[simp] lemma coe_countp_add_monoid_hom :
   (countp_add_monoid_hom p : multiset α → ℕ) = countp p := rfl
 
 @[simp] theorem countp_sub [decidable_eq α] {s t : multiset α} (h : t ≤ s) :
@@ -1882,7 +1882,7 @@ countp_add _
 /-- `count a`, the multiplicity of `a` in a multiset, promoted to an `add_monoid_hom`. -/
 def count_add_monoid_hom (a : α) : multiset α →+ ℕ := countp_add_monoid_hom (eq a)
 
-@[simp] lemma count_add_monoid_hom_coe {a : α} :
+@[simp] lemma coe_count_add_monoid_hom {a : α} :
   (count_add_monoid_hom a : multiset α → ℕ) = count a := rfl
 
 @[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=

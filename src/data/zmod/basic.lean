@@ -588,7 +588,8 @@ def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
 /-- The **Chinese remainder theorem**. For a pair of coprime natural numbers, `m` and `n`,
   the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic. 
 
-See `ideal.quotient_inf_ring_equiv_pi_quotient` for the Chinese remainder theorem for ideals in any ring.
+See `ideal.quotient_inf_ring_equiv_pi_quotient` for the Chinese remainder theorem for ideals in any
+ring.
 -/
 def chinese_remainder {m n : ℕ} (h : m.coprime n) :
   zmod (m * n) ≃+* zmod m × zmod n :=

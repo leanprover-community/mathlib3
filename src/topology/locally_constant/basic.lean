@@ -236,7 +236,7 @@ instance : has_coe (locally_constant X Y) C(X, Y) := ⟨to_continuous_map⟩
 
 @[simp] lemma to_continuous_map_eq_coe : f.to_continuous_map = f := rfl
 
-@[simp] lemma coe_to_continuous_map : ((f : C(X, Y)) : X → Y) = (f : X → Y) := rfl
+@[simp] lemma coe_continuous_map : ((f : C(X, Y)) : X → Y) = (f : X → Y) := rfl
 
 lemma to_continuous_map_injective :
   function.injective (to_continuous_map : locally_constant X Y → C(X, Y)) :=

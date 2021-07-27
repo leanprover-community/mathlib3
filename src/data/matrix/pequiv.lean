@@ -48,13 +48,6 @@ open_locale matrix
 def to_matrix [decidable_eq n] [has_zero α] [has_one α] (f : m ≃. n) : matrix m n α
 | i j := if j ∈ f i then 1 else 0
 
-/-- `equiv.perm.to_prequiv_to_matrix_eq_to_matrix` proves that
-    `σ.to_pequiv.to_matrix = σ.to_matrix` for a permutation `σ : equiv.perm m`.-/
-lemma _root_.equiv.perm.to_prequiv_to_matrix_eq_to_matrix
-[decidable_eq n] [has_zero α] [has_one α] (σ : equiv.perm n) :
-(σ.to_pequiv.to_matrix : matrix n n α)= σ.to_matrix :=
-by ext i j; simp [pequiv.to_matrix, equiv.perm.to_matrix,equiv.to_pequiv]
-
 lemma mul_matrix_apply [decidable_eq m] [semiring α] (f : l ≃. m) (M : matrix m n α) (i j) :
   (f.to_matrix ⬝ M) i j = option.cases_on (f i) 0 (λ fi, M fi j) :=
 begin

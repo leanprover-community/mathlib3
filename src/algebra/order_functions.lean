@@ -105,4 +105,22 @@ le_trans (le_max_left _ _) h
 lemma le_of_max_le_right {a b c : α} (h : max a b ≤ c) : b ≤ c :=
 le_trans (le_max_right _ _) h
 
+lemma max_commutative : commutative (max : α → α → α) :=
+max_comm
+
+lemma max_associative : associative (max : α → α → α) :=
+max_assoc
+
+lemma max_left_commutative : left_commutative (max : α → α → α) :=
+max_left_comm
+
+lemma min_commutative : commutative (min : α → α → α) :=
+min_comm
+
+lemma min_associative : associative (min : α → α → α) :=
+min_assoc
+
+lemma min_left_commutative : left_commutative (min : α → α → α) :=
+min_left_comm
+
 end

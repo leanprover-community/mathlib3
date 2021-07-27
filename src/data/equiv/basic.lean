@@ -1738,6 +1738,24 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
   left_inv := λ x, by ext y; exact ⟨λ ⟨⟨_, _⟩, h, rfl⟩, h, λ h, ⟨⟨_, x.2 h⟩, h, rfl⟩⟩,
   right_inv := λ x, by ext; simp }
 
+lemma _root_.set.mem_image_equiv {α β} {S : set α} {f : α ≃ β} {x : β} :
+  x ∈ f '' S ↔ f.symm x ∈ S :=
+begin
+  split,
+  { rintros ⟨x, hxK, rfl⟩,
+    simp [hxK] },
+  { assume h,
+    exact ⟨_, h, by simp⟩ }
+end
+
+lemma _root_.set.image_equiv_eq_preimage_symm {α β} (S : set α) (f : α ≃ β) :
+  f '' S = f.symm ⁻¹' S :=
+by ext; simp only [set.mem_image_equiv]; simp
+
+lemma _root_.set.preimage_equiv_eq_image_symm {α β} (S : set α) (f : β ≃ α) :
+  f ⁻¹' S = f.symm '' S :=
+by ext; simp only [set.mem_image_equiv]; simp
+
 end set
 
 /-- If `f : α → β` has a left-inverse when `α` is nonempty, then `α` is computably equivalent to the

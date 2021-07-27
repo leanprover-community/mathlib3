@@ -804,6 +804,21 @@ lemma map_map (g : N →* P) (f : G →* N) : (K.map f).map g = K.map (g.comp f)
 set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
+lemma mem_map_equiv {f : G ≃* N} {K : subgroup G} {y : G} :
+  y ∈ K.map f.to_monoid_hom ↔ f.symm y ∈ K :=
+@set.mem_image_equiv _ _ ↑K f.to_equiv y
+
+@[to_additive]
+lemma map_equiv_eq_comap_symm (f : G ≃* N) (K : subgroup G) :
+  K.map f.to_monoid_hom = K.comap f.symm.to_monoid_hom :=
+by ext; simp only [mem_map_equiv]; simp
+
+@[to_additive]
+lemma comap_equiv_eq_map_symm (f : N ≃* G) (K : subgroup G) :
+  K.comap f.to_monoid_hom = K.map f.symm.to_monoid_hom :=
+by ext; simp only [mem_map_equiv]; simp
+
+@[to_additive]
 lemma map_le_iff_le_comap {f : G →* N} {K : subgroup G} {H : subgroup N} :
   K.map f ≤ H ↔ K ≤ H.comap f :=
 image_subset_iff
@@ -1052,6 +1067,33 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
 λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
   λ yH, by simpa [mem_comap, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
+
+variables {N : Type*} [group N]
+
+/-- The preimage of the normalizer is contained in the normalizer of the preimage -/
+@[to_additive] lemma le_normalizer_comap (f : N →* G) :
+  H.normalizer.comap f ≤ (H.comap f).normalizer :=
+λ x, begin
+  simp only [mem_normalizer_iff, mem_comap],
+  assume h n,
+  simp [h (f n)]
+end
+
+/-- The image of the normalizer is contained in the normalizer of the image -/
+@[to_additive] lemma le_normalizer_map (f : G →* N) :
+  H.normalizer.map f ≤ (H.map f).normalizer :=
+λ _, begin
+  simp only [and_imp, exists_prop, mem_map, exists_imp_distrib, mem_normalizer_iff],
+  rintros x hx rfl n,
+  split,
+  { rintros ⟨y, hy, rfl⟩,
+    use [x * y * x⁻¹, (hx y).1 hy],
+    simp },
+  { rintros ⟨y, hyH, hy⟩,
+    use [x⁻¹ * y * x],
+    rw [hx],
+    simp [hy, hyH, mul_assoc] }
+end
 
 end subgroup
 
@@ -1557,6 +1599,37 @@ begin
            ... ≤ comap f H ⊔ comap f K : le_sup_left, },
   exact ker_le_comap _ _,
 end
+
+/-- The preimage of the normalizer is equal to the normalizer of the preimage of a surjective
+  function -/
+@[to_additive] lemma comap_normalizer_eq_of_surjective {H : subgroup G}
+  {f : N →* G} (hf : function.surjective f) :
+  H.normalizer.comap f = (H.comap f).normalizer :=
+le_antisymm (le_normalizer_comap f)
+  begin
+    assume x hx,
+    simp only [mem_comap, mem_normalizer_iff] at *,
+    assume n,
+    rcases hf n with ⟨y, rfl⟩,
+    simp [hx y]
+  end
+
+/-- The image of the normalizer is equal to the normalizer of the image of an isomorphism -/
+@[to_additive] lemma map_equiv_normalizer_eq {H : subgroup G}
+  (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map f.to_monoid_hom).normalizer :=
+begin
+  ext x,
+  simp only [mem_normalizer_iff, mem_map_equiv],
+  rw [f.to_equiv.forall_congr],
+  simp
+end
+
+/-- The image of the normalizer is equal to the normalizer of the image of a bijective
+  function -/
+@[to_additive] lemma map_normalizer_eq_of_bijective {H : subgroup G}
+  {f : G →* N} (hf : function.bijective f) :
+  H.normalizer.map f = (H.map f).normalizer :=
+map_equiv_normalizer_eq (mul_equiv.of_bijective f hf)
 
 end subgroup
 

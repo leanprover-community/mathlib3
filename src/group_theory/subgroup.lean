@@ -1095,6 +1095,34 @@ begin
     exact ⟨λ hn, h _ hn _, λ hn, by simpa [mul_assoc] using h _ hn (x⁻¹)⟩ },
   { exact λ h n hn g, (h g n).1 hn }
 end
+
+variables {N : Type*} [group N]
+
+/-- The preimage of the normalizer is contained in the normalizer of the preimage -/
+@[to_additive] lemma le_normalizer_comap (f : N →* G) :
+  H.normalizer.comap f ≤ (H.comap f).normalizer :=
+λ x, begin
+  simp only [mem_normalizer_iff, mem_comap],
+  assume h n,
+  simp [h (f n)]
+end
+
+/-- The image of the normalizer is contained in the normalizer of the image -/
+@[to_additive] lemma le_normalizer_map (f : G →* N) :
+  H.normalizer.map f ≤ (H.map f).normalizer :=
+λ _, begin
+  simp only [and_imp, exists_prop, mem_map, exists_imp_distrib, mem_normalizer_iff],
+  rintros x hx rfl n,
+  split,
+  { rintros ⟨y, hy, rfl⟩,
+    use [x * y * x⁻¹, (hx y).1 hy],
+    simp },
+  { rintros ⟨y, hyH, hy⟩,
+    use [x⁻¹ * y * x],
+    rw [hx],
+    simp [hy, hyH, mul_assoc] }
+end
+
 variable (H)
 
 /-- Commutivity of a subgroup -/
@@ -1631,6 +1659,37 @@ noncomputable def equiv_map_of_injective (H : subgroup G)
 @[simp, to_additive] lemma coe_equiv_map_of_injective_apply (H : subgroup G)
   (f : G →* N) (hf : function.injective f) (h : H) :
   (equiv_map_of_injective H f hf h : N) = f h := rfl
+
+/-- The preimage of the normalizer is equal to the normalizer of the preimage of a surjective
+  function -/
+@[to_additive] lemma comap_normalizer_eq_of_surjective {H : subgroup G}
+  {f : N →* G} (hf : function.surjective f) :
+  H.normalizer.comap f = (H.comap f).normalizer :=
+le_antisymm (le_normalizer_comap f)
+  begin
+    assume x hx,
+    simp only [mem_comap, mem_normalizer_iff] at *,
+    assume n,
+    rcases hf n with ⟨y, rfl⟩,
+    simp [hx y]
+  end
+
+/-- The image of the normalizer is equal to the normalizer of the image of an isomorphism -/
+@[to_additive] lemma map_equiv_normalizer_eq {H : subgroup G}
+  (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map f.to_monoid_hom).normalizer :=
+begin
+  ext x,
+  simp only [mem_normalizer_iff, mem_map_equiv],
+  rw [f.to_equiv.forall_congr],
+  simp
+end
+
+/-- The image of the normalizer is equal to the normalizer of the image of a bijective
+  function -/
+@[to_additive] lemma map_normalizer_eq_of_bijective {H : subgroup G}
+  {f : G →* N} (hf : function.bijective f) :
+  H.normalizer.map f = (H.map f).normalizer :=
+map_equiv_normalizer_eq (mul_equiv.of_bijective f hf)
 
 end subgroup
 

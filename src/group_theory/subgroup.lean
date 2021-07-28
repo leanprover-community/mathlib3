@@ -422,6 +422,16 @@ begin
   congr
 end
 
+@[to_additive] lemma eq_top_of_le_card [fintype H] [fintype G]
+  (h : fintype.card G ≤ fintype.card H) : H = ⊤ :=
+eq_top_of_card_eq H (le_antisymm (fintype.card_le_of_injective coe subtype.coe_injective) h)
+
+@[to_additive] lemma eq_bot_of_card_le [fintype H] (h : fintype.card H ≤ 1) : H = ⊥ :=
+let _ := fintype.card_le_one_iff_subsingleton.mp h in by exactI eq_bot_of_subsingleton H
+
+@[to_additive] lemma eq_bot_of_card_eq [fintype H] (h : fintype.card H = 1) : H = ⊥ :=
+H.eq_bot_of_card_le (le_of_eq h)
+
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
 subtype.nontrivial_iff_exists_ne (λ x, x ∈ H) (1 : H)
@@ -1068,32 +1078,27 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
   λ yH, by simpa [mem_comap, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
 
-variables {N : Type*} [group N]
+variable (H)
 
-/-- The preimage of the normalizer is contained in the normalizer of the preimage -/
-@[to_additive] lemma le_normalizer_comap (f : N →* G) :
-  H.normalizer.comap f ≤ (H.comap f).normalizer :=
-λ x, begin
-  simp only [mem_normalizer_iff, mem_comap],
-  assume h n,
-  simp [h (f n)]
-end
+/-- Commutivity of a subgroup -/
+structure is_commutative : Prop :=
+(is_comm : _root_.is_commutative H (*))
 
-/-- The image of the normalizer is contained in the normalizer of the image -/
-@[to_additive] lemma le_normalizer_map (f : G →* N) :
-  H.normalizer.map f ≤ (H.map f).normalizer :=
-λ _, begin
-  simp only [and_imp, exists_prop, mem_map, exists_imp_distrib, mem_normalizer_iff],
-  rintros x hx rfl n,
-  split,
-  { rintros ⟨y, hy, rfl⟩,
-    use [x * y * x⁻¹, (hx y).1 hy],
-    simp },
-  { rintros ⟨y, hyH, hy⟩,
-    use [x⁻¹ * y * x],
-    rw [hx],
-    simp [hy, hyH, mul_assoc] }
-end
+attribute [class] is_commutative
+
+/-- Commutivity of an additive subgroup -/
+structure _root_.add_subgroup.is_commutative (H : add_subgroup A) : Prop :=
+(is_comm : _root_.is_commutative H (+))
+
+attribute [to_additive add_subgroup.is_commutative] subgroup.is_commutative
+attribute [class] add_subgroup.is_commutative
+
+/-- A commutative subgroup is commutative -/
+@[to_additive] instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
+{ mul_comm := h.is_comm.comm, .. H.to_group }
+
+instance center.is_commutative : (center G).is_commutative :=
+⟨⟨λ a b, subtype.ext (b.2 a)⟩⟩
 
 end subgroup
 
@@ -1600,36 +1605,15 @@ begin
   exact ker_le_comap _ _,
 end
 
-/-- The preimage of the normalizer is equal to the normalizer of the preimage of a surjective
-  function -/
-@[to_additive] lemma comap_normalizer_eq_of_surjective {H : subgroup G}
-  {f : N →* G} (hf : function.surjective f) :
-  H.normalizer.comap f = (H.comap f).normalizer :=
-le_antisymm (le_normalizer_comap f)
-  begin
-    assume x hx,
-    simp only [mem_comap, mem_normalizer_iff] at *,
-    assume n,
-    rcases hf n with ⟨y, rfl⟩,
-    simp [hx y]
-  end
+/-- A subgroup is isomorphic to its image under an injective function -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+noncomputable def equiv_map_of_injective (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
 
-/-- The image of the normalizer is equal to the normalizer of the image of an isomorphism -/
-@[to_additive] lemma map_equiv_normalizer_eq {H : subgroup G}
-  (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map f.to_monoid_hom).normalizer :=
-begin
-  ext x,
-  simp only [mem_normalizer_iff, mem_map_equiv],
-  rw [f.to_equiv.forall_congr],
-  simp
-end
-
-/-- The image of the normalizer is equal to the normalizer of the image of a bijective
-  function -/
-@[to_additive] lemma map_normalizer_eq_of_bijective {H : subgroup G}
-  {f : G →* N} (hf : function.bijective f) :
-  H.normalizer.map f = (H.map f).normalizer :=
-map_equiv_normalizer_eq (mul_equiv.of_bijective f hf)
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) (h : H) :
+  (equiv_map_of_injective H f hf h : N) = f h := rfl
 
 end subgroup
 

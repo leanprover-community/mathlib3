@@ -12,8 +12,7 @@ import data.nat.prime
 This file defines [Euler's totient function][https://en.wikipedia.org/wiki/Euler's_totient_function]
 `nat.totient n` which counts the number of naturals less than `n` that are coprime with `n`.
 We prove the divisor sum formula, namely that `n` equals `φ` summed over the divisors of `n`. See
-`sum_totient`. We also prove two lemmas to help compute the totient function, `totient_mul` and
-`totient_prime_pow`.
+`sum_totient`.
 -/
 
 open finset

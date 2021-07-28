@@ -533,12 +533,12 @@ lemma mem_map_equiv {f : M ≃* N} {K : submonoid M} {x : N} :
 @[to_additive]
 lemma map_equiv_eq_comap_symm (f : M ≃* N) (K : submonoid M) :
   K.map f.to_monoid_hom = K.comap f.symm.to_monoid_hom :=
-by ext; simp only [mem_map_equiv]; simp
+set_like.coe_injective (f.to_equiv.image_eq_preimage K)
 
 @[to_additive]
 lemma comap_equiv_eq_map_symm (f : N ≃* M) (K : submonoid M) :
   K.comap f.to_monoid_hom = K.map f.symm.to_monoid_hom :=
-by rw [map_equiv_eq_comap_symm, mul_equiv.symm_symm]
+(map_equiv_eq_comap_symm f.symm K).symm
 
 end submonoid
 

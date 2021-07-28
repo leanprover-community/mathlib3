@@ -685,11 +685,11 @@ lemma mem_map_equiv {f : R ≃+* S} {K : subring R} {x : S} :
 
 lemma map_equiv_eq_comap_symm (f : R ≃+* S) (K : subring R) :
   K.map (f : R →+* S) = K.comap f.symm :=
-by ext; simp only [mem_map_equiv]; simp
+set_like.coe_injective (f.to_equiv.image_eq_preimage K)
 
 lemma comap_equiv_eq_map_symm (f : R ≃+* S) (K : subring S) :
   K.comap (f : R →+* S) = K.map f.symm :=
-by rw [map_equiv_eq_comap_symm, ring_equiv.symm_symm]
+(map_equiv_eq_comap_symm f.symm K).symm
 
 end subring
 

@@ -179,7 +179,7 @@ lemma submodule_is_internal.apply
   direct_sum.to_module R ι M (λ i, (A i).subtype) x = ∑ i in x.support, x i :=
 begin
   simp only [direct_sum.to_module, dfinsupp.sum_add_hom_apply, linear_map.to_add_monoid_hom_coe,
-    linear_map.coe_mk, dfinsupp.lsum_apply, submodule.subtype],
+    linear_map.coe_mk, dfinsupp.lsum_apply_apply, submodule.subtype],
   refine finset.sum_congr rfl (λ x hx, rfl),
 end
 
@@ -220,6 +220,8 @@ begin
     dfinsupp.single_eq_same, submodule.coe_mk],
   refine λ h', h _,
   rw [← submodule.coe_eq_zero.mpr h', submodule.coe_mk]
+end
+
 lemma submodule_is_internal.supr_eq_top {R M : Type*}
   [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M)
   (h : submodule_is_internal A) : supr A = ⊤ :=

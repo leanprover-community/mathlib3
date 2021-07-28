@@ -117,6 +117,14 @@ instance [non_unital_semiring Y] : non_unital_semiring (locally_constant X Y) :=
 instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
 { .. locally_constant.mul_one_class, .. locally_constant.non_unital_non_assoc_semiring }
 
+/-- The constant-function embedding, as a ring hom.  -/
+@[simps] def const_ring_hom [non_assoc_semiring Y] : Y →+* locally_constant X Y :=
+{ to_fun    := const X,
+  map_one'  := rfl,
+  map_mul'  := λ _ _, rfl,
+  map_zero' := rfl,
+  map_add'  := λ _ _, rfl, }
+
 instance [semiring Y] : semiring (locally_constant X Y) :=
 { .. locally_constant.add_comm_monoid, .. locally_constant.monoid,
   .. locally_constant.distrib, .. locally_constant.mul_zero_class }
@@ -156,14 +164,6 @@ function.injective.module R coe_fn_add_monoid_hom coe_injective (λ _ _, rfl)
 section algebra
 
 variables [comm_semiring R] [semiring Y] [algebra R Y]
-
-/-- The constant-function embedding, as a ring hom.  -/
-@[simps] def const_ring_hom : Y →+* locally_constant X Y :=
-{ to_fun    := const X,
-  map_one'  := rfl,
-  map_mul'  := λ _ _, rfl,
-  map_zero' := rfl,
-  map_add'  := λ _ _, rfl, }
 
 instance : algebra R (locally_constant X Y) :=
 { to_ring_hom := const_ring_hom.comp $ algebra_map R Y,

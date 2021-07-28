@@ -3,21 +3,7 @@ Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
-import measure_theory.integration
-import algebra.group.hom
-import ring_theory.int.basic
 import number_theory.padics.padic_integers
-import set_theory.zfc
-import topology.category.Profinite
-import topology.locally_constant.algebra
-import topology.metric_space.basic
-import topology.continuous_on
-import topology.opens
-import data.setoid.partition
-import topology.continuous_function.bounded
-import number_theory.padics.ring_homs
-import number_theory.bernoulli_polynomials
-import ring_theory.roots_of_unity
 import topology.continuous_function.compact
 
 /-!

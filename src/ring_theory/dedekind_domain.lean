@@ -127,8 +127,8 @@ J⁻¹ = ⟨(1 : fractional_ideal R₁⁰ K) / J, fractional_ideal.fractional_di
 fractional_ideal.div_nonzero _
 
 lemma coe_inv_of_nonzero {J : fractional_ideal R₁⁰ K} (h : J ≠ 0) :
-  (↑J⁻¹ : submodule R₁ K) = is_localization.coe_submodule K 1 / J :=
-by { rwa inv_nonzero _, refl, assumption}
+  (↑J⁻¹ : submodule R₁ K) = is_localization.coe_submodule K ⊤ / J :=
+by { rwa inv_nonzero _, refl, assumption }
 
 /-- `I⁻¹` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
@@ -154,6 +154,10 @@ end
 theorem mul_inv_cancel_iff {I : fractional_ideal R₁⁰ K} :
   I * I⁻¹ = 1 ↔ ∃ J, I * J = 1 :=
 ⟨λ h, ⟨I⁻¹, h⟩, λ ⟨J, hJ⟩, by rwa ← right_inverse_eq K I J hJ⟩
+
+lemma mul_inv_cancel_iff_is_unit {I : fractional_ideal R₁⁰ K} :
+  I * I⁻¹ = 1 ↔ is_unit I :=
+(mul_inv_cancel_iff K).trans is_unit_iff_exists_inv.symm
 
 variables {K' : Type*} [field K'] [algebra R₁ K'] [is_fraction_ring R₁ K']
 
@@ -227,11 +231,13 @@ This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
 def is_dedekind_domain_inv : Prop :=
-∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * (1 / I) = 1
+∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * I⁻¹ = 1
 
-open ring.fractional_ideal
+open fractional_ideal
 
-lemma is_dedekind_domain_inv_iff (K : Type*) [field K] [algebra A K] [is_fraction_ring A K] :
+variables {R A K}
+
+lemma is_dedekind_domain_inv_iff [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔
     (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
@@ -248,5 +254,102 @@ begin
       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one,
                  fractional_ideal.map_mul, fractional_ideal.map_div, inv_eq] },
 end
+
+lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]
+  (x : K) (hx : is_integral A x) (hI : is_unit (adjoin_integral A⁰ x hx)) :
+  adjoin_integral A⁰ x hx = 1 :=
+begin
+  set I := adjoin_integral A⁰ x hx,
+  have mul_self : I * I = I,
+  { apply fractional_ideal.coe_to_submodule_injective, simp },
+  convert congr_arg (* I⁻¹) mul_self;
+  simp only [(mul_inv_cancel_iff_is_unit K).mpr hI, mul_assoc, mul_one],
+end
+
+namespace is_dedekind_domain_inv
+
+variables [algebra A K] [is_fraction_ring A K] (h : is_dedekind_domain_inv A)
+
+include h
+
+lemma mul_inv_eq_one {I : fractional_ideal A⁰ K} (hI : I ≠ 0) : I * I⁻¹ = 1 :=
+is_dedekind_domain_inv_iff.mp h I hI
+
+lemma inv_mul_eq_one {I : fractional_ideal A⁰ K} (hI : I ≠ 0) : I⁻¹ * I = 1 :=
+(mul_comm _ _).trans (h.mul_inv_eq_one hI)
+
+protected lemma is_unit {I : fractional_ideal A⁰ K} (hI : I ≠ 0) : is_unit I :=
+is_unit_of_mul_eq_one _ _ (h.mul_inv_eq_one hI)
+
+lemma is_noetherian_ring : is_noetherian_ring A :=
+begin
+  refine is_noetherian_ring_iff.mpr ⟨λ (I : ideal A), _⟩,
+  by_cases hI : I = ⊥,
+  { rw hI, apply submodule.fg_bot },
+  have hI : (I : fractional_ideal A⁰ (fraction_ring A)) ≠ 0 :=
+    (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr hI,
+  exact I.fg_of_is_unit (is_fraction_ring.injective A (fraction_ring A)) (h.is_unit hI)
+end
+
+lemma integrally_closed : integral_closure A (fraction_ring A) = ⊥ :=
+begin
+  rw eq_bot_iff,
+  -- It suffices to show that for integral `x`,
+  -- `A[x]` (which is a fractional ideal) is in fact equal to `A`.
+  rintros x hx,
+  rw [← subalgebra.mem_to_submodule, algebra.to_submodule_bot,
+      ← coe_span_singleton A⁰ (1 : fraction_ring A), fractional_ideal.span_singleton_one,
+      ← fractional_ideal.adjoin_integral_eq_one_of_is_unit x hx (h.is_unit _)],
+  { exact mem_adjoin_integral_self A⁰ x hx },
+  { exact λ h, one_ne_zero (eq_zero_iff.mp h 1 (subalgebra.one_mem _)) },
+end
+
+lemma dimension_le_one : dimension_le_one A :=
+begin
+  -- We're going to show that `P` is maximal because any (maximal) ideal `M`
+  -- that is strictly larger would be `⊤`.
+  rintros P P_ne hP,
+  refine ideal.is_maximal_def.mpr ⟨hP.ne_top, λ M hM, _⟩,
+  -- We may assume `P` and `M` (as fractional ideals) are nonzero.
+  have P'_ne : (P : fractional_ideal A⁰ (fraction_ring A)) ≠ 0 :=
+    (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr P_ne,
+  have M'_ne : (M : fractional_ideal A⁰ (fraction_ring A)) ≠ 0 :=
+    (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr
+      (lt_of_le_of_lt bot_le hM).ne',
+
+  -- In particular, we'll show `M⁻¹ * P ≤ P`
+  suffices : (M⁻¹ * P : fractional_ideal A⁰ (fraction_ring A)) ≤ P,
+  { rw [eq_top_iff, ← coe_ideal_le_coe_ideal (fraction_ring A), fractional_ideal.coe_ideal_top],
+    calc (1 : fractional_ideal A⁰ (fraction_ring A)) = _ * _ * _ : _
+    ... ≤ _ * _ : mul_right_mono (P⁻¹ * M : fractional_ideal A⁰ (fraction_ring A)) this
+    ... = M : _,
+    { rw [mul_assoc, ← mul_assoc ↑P, h.mul_inv_eq_one P'_ne, one_mul, h.inv_mul_eq_one M'_ne] },
+    { rw [← mul_assoc ↑P, h.mul_inv_eq_one P'_ne, one_mul] },
+    { apply_instance } },
+
+  -- Suppose we have `x ∈ M⁻¹ * P`, then in fact `x = algebra_map _ _ y` for some `y`.
+  intros x hx,
+  have le_one : (M⁻¹ * P : fractional_ideal A⁰ (fraction_ring A)) ≤ 1,
+  { rw [← h.inv_mul_eq_one M'_ne],
+    exact fractional_ideal.mul_left_mono _ ((coe_ideal_le_coe_ideal (fraction_ring A)).mpr hM.le) },
+  obtain ⟨y, hy, rfl⟩ := (mem_coe_ideal _).mp (le_one hx),
+
+  -- Since `M` is strictly greater than `P`, let `z ∈ M \ P`.
+  obtain ⟨z, hzM, hzp⟩ := set_like.exists_of_lt hM,
+  -- We have `z * y ∈ M * (M⁻¹ * P) = P`.
+  have zy_mem := fractional_ideal.mul_mem_mul (mem_coe_ideal_of_mem A⁰ hzM) hx,
+  rw [← ring_hom.map_mul, ← mul_assoc, h.mul_inv_eq_one M'_ne, one_mul] at zy_mem,
+  obtain ⟨zy, hzy, zy_eq⟩ := (mem_coe_ideal A⁰).mp zy_mem,
+  rw is_fraction_ring.injective A (fraction_ring A) zy_eq at hzy,
+  -- But `P` is a prime ideal, so `z ∉ P` implies `y ∈ P`, as desired.
+  exact mem_coe_ideal_of_mem A⁰ (or.resolve_left (hP.mem_or_mem hzy) hzp)
+end
+
+/-- Showing one side of the equivalence between the definitions
+`is_dedekind_domain_inv` and `is_dedekind_domain` of Dedekind domains. -/
+theorem is_dedekind_domain : is_dedekind_domain A :=
+⟨h.is_noetherian_ring, h.dimension_le_one, h.integrally_closed⟩
+
+end is_dedekind_domain_inv
 
 end inverse

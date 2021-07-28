@@ -665,6 +665,12 @@ lemma div_le_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ b * r 
 lemma div_le_iff' {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ r * b :=
 @div_le_iff' ℝ _ a r b $ pos_iff_ne_zero.2 hr
 
+lemma div_le_of_le_mul {a b c : ℝ≥0} (h : a ≤ b * c) : a / c ≤ b :=
+if h0 : c = 0 then by simp [h0] else (div_le_iff h0).2 h
+
+lemma div_le_of_le_mul' {a b c : ℝ≥0} (h : a ≤ b * c) : a / b ≤ c :=
+div_le_of_le_mul $ mul_comm b c ▸ h
+
 lemma le_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
 @le_div_iff ℝ _ a b r $ pos_iff_ne_zero.2 hr
 
@@ -785,11 +791,7 @@ lemma real.nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : real.nnabs x = real.to_nnre
 by { ext, simp [real.coe_to_nnreal x h, abs_of_nonneg h] }
 
 lemma real.coe_to_nnreal_le (x : ℝ) : (real.to_nnreal x : ℝ) ≤ abs x :=
-begin
-  by_cases h : 0 ≤ x,
-  { simp [h, real.coe_to_nnreal x h, le_abs_self] },
-  { simp [real.to_nnreal, h, le_abs_self, abs_nonneg] }
-end
+max_le (le_abs_self _) (abs_nonneg _)
 
 lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
   (n.nat_abs : ℝ≥0) = real.nnabs n :=

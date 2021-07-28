@@ -612,8 +612,8 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
       rcases this with ⟨U, U_open, UA, νU⟩,
       refine ⟨U ∩ interior (B (n+1)), U_open.inter is_open_interior, _, _⟩,
       { simp only [UA, true_and, subset_inter_iff],
-        refine subset.trans (inter_subset_right _ _) _,
-        refine subset.trans disjointed_subset (B.subset_interior_succ _) },
+        refine (inter_subset_right _ _).trans _,
+        exact (disjointed_subset _ n).trans (B.subset_interior_succ _) },
       { simp only [hν, restrict_apply' (B.is_compact _).measurable_set] at νU,
         calc μ (U ∩ interior (B (n + 1))) ≤ μ (U ∩ B (n + 1)) :
           measure_mono (inter_subset_inter_right _ interior_subset)

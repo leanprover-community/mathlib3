@@ -79,6 +79,8 @@ def disjointed_rec {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p
   {n : ℕ} (h₀ : p (f 0)) :
   disjointed_rec hdiff h₀ = h₀ := rfl
 
+-- TODO: Find a useful statement of `disjointed_rec_succ`.
+
 lemma monotone.disjointed_eq {f : ℕ → α} (hf : monotone f) (n : ℕ) :
   disjointed f (n + 1) = f (n + 1) \ f n :=
 by rw [disjointed_succ, hf.partial_sups_eq]
@@ -146,3 +148,7 @@ disjointed_le f n
 
 lemma Union_disjointed {f : ℕ → set α} : (⋃ n, disjointed f n) = (⋃ n, f n) :=
 supr_disjointed f
+
+lemma disjointed_eq_inter_compl (f : ℕ → set α) (n : ℕ) :
+  disjointed f n = f n ∩ (⋂ i < n, (f i)ᶜ) :=
+disjointed_eq_inf_compl f n

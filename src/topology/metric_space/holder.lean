@@ -9,9 +9,15 @@ import analysis.special_functions.pow
 /-!
 # Hölder continuous functions
 
-In this file we define `f : X → Y` to be *Hölder continuous* with constant `C : ℝ≥0` and exponent
-`r : ℝ≥0`, if `edist (f x) (f y) ≤ C * edist x y ^ r` for all `x y : X`. We also prove some basic
-facts about this definition.
+In this file we define Hölder continuity on a set and on the whole space. We also prove some basic
+properties of Hölder continuous functions.
+
+## Main definitions
+
+* `holder_on_with`: `f : X → Y` is said to be *Hölder continuous* with constant `C : ℝ≥0` and
+  exponent `r : ℝ≥0` on a set `s`, if `edist (f x) (f y) ≤ C * edist x y ^ r` for all `x y ∈ s`;
+* `holder_with`: `f : X → Y` is said to be *Hölder continuous* with constant `C : ℝ≥0` and exponent
+  `r : ℝ≥0`, if `edist (f x) (f y) ≤ C * edist x y ^ r` for all `x y : X`.
 
 ## Implementation notes
 

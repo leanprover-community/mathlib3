@@ -1590,6 +1590,16 @@ begin
   exact ker_le_comap _ _,
 end
 
+/-- A subgroup is isomorphic to its image under an injective function -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+noncomputable def equiv_map_of_injective (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
+
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) (h : H) :
+  (equiv_map_of_injective H f hf h : N) = f h := rfl
+
 end subgroup
 
 namespace monoid_hom

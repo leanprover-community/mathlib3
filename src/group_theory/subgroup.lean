@@ -818,6 +818,21 @@ lemma map_map (g : N →* P) (f : G →* N) : (K.map f).map g = K.map (g.comp f)
 set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
+lemma mem_map_equiv {f : G ≃* N} {K : subgroup G} {x : N} :
+  x ∈ K.map f.to_monoid_hom ↔ f.symm x ∈ K :=
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
+
+@[to_additive]
+lemma map_equiv_eq_comap_symm (f : G ≃* N) (K : subgroup G) :
+  K.map f.to_monoid_hom = K.comap f.symm.to_monoid_hom :=
+by ext; simp only [mem_map_equiv]; simp
+
+@[to_additive]
+lemma comap_equiv_eq_map_symm (f : N ≃* G) (K : subgroup G) :
+  K.comap f.to_monoid_hom = K.map f.symm.to_monoid_hom :=
+by rw [map_equiv_eq_comap_symm, mul_equiv.symm_symm]
+
+@[to_additive]
 lemma map_le_iff_le_comap {f : G →* N} {K : subgroup G} {H : subgroup N} :
   K.map f ≤ H ↔ K ≤ H.comap f :=
 image_subset_iff

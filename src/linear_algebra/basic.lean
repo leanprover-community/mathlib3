@@ -2589,6 +2589,14 @@ begin
   { intros hx, refine ⟨e.symm x, hx, by simp⟩, },
 end
 
+lemma map_equiv_eq_comap_symm (e : M ≃ₗ[R] M₂) (K : submodule R M) :
+  K.map (e : M →ₗ[R] M₂) = K.comap e.symm :=
+by ext; simp only [mem_map_equiv]; simp
+
+lemma comap_equiv_eq_map_symm (e : M ≃ₗ[R] M₂) (K : submodule R M₂) :
+  K.comap (e : M →ₗ[R] M₂) = K.map e.symm :=
+by rw [map_equiv_eq_comap_symm, linear_equiv.symm_symm]
+
 lemma comap_le_comap_smul (f : M →ₗ[R] M₂) (c : R) :
   comap f q ≤ comap (c • f) q :=
 begin

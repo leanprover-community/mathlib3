@@ -3,7 +3,7 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import tactic.core
+import algebra.group.to_additive
 import tactic.protected
 import data.sum
 
@@ -429,6 +429,9 @@ library_note "custom simps projection"
   * The option `trace` is set to `tt` when you write `@[simps?]`. In this case, the attribute will
     print all generated lemmas. It is almost the same as setting the option `trace.simps.verbose`,
     except that it doesn't print information about the found projections.
+  * if `add_additive` is `some nm` then `@[to_additive]` is added to the generated lemma. This
+    option is automatically set to `tt` when the original declaration was tagged with
+    `@[to_additive]`, where `nm` is the additive name of the original declaration.
 -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
 (attrs         := [`simp])
@@ -438,6 +441,7 @@ library_note "custom simps projection"
 (fully_applied := tt)
 (not_recursive := [`prod, `pprod])
 (trace         := ff)
+(add_additive  := @none name)
 
 /-- A common configuration for `@[simps]`: generate equalities between functions instead equalities
   between fully applied expressions. -/
@@ -488,8 +492,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   return new_proj_data
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
-  `args` is the list of local constants occurring, and `univs` is the list of universe variables.
-  If `add_simp` then we make the resulting lemma a `simp` lemma. -/
+  `args` is the list of local constants occurring, and `univs` is the list of universe variables. -/
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
   when_tracing `simps.debug trace!
@@ -516,7 +519,9 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     add_decl decl,
   b ← succeeds $ is_def_eq lhs rhs,
   when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
-  cfg.attrs.mmap' $ λ nm, set_attribute nm decl_name tt
+  cfg.attrs.mmap' $ λ nm, set_attribute nm decl_name tt,
+  when cfg.add_additive.is_some $
+    to_additive.attr.set decl_name ⟨ff, cfg.trace, cfg.add_additive.iget, none, tt⟩ tt
 
 /-- Derive lemmas specifying the projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`.
@@ -604,10 +609,12 @@ Note: these projection names might not correspond to the projection names of the
           when ((is_default ∧ todo = []) ∨ new_todo ≠ []) $ do
             let new_lhs := proj_expr.instantiate_lambdas_or_apps [lhs_ap],
             let new_nm := nm.append_to_last proj.last is_prefix,
+            let new_cfg := { add_additive := cfg.add_additive.map $
+              λ nm, nm.append_to_last proj.last is_prefix, ..cfg },
             when_tracing `simps.debug trace!"[simps] > Recursively add projections for:
         >  {new_lhs}",
             simps_add_projections e new_nm new_type new_lhs new_rhs new_args univs
-              ff cfg new_todo proj_nrs
+              ff new_cfg new_todo proj_nrs
     -- if I'm about to run into an error, try to set the transparency for `rhs_md` higher.
     else if cfg.rhs_md = transparency.none ∧ (must_be_str ∨ todo_next ≠ [] ∨ to_apply ≠ []) then do
       when cfg.trace trace!
@@ -649,11 +656,14 @@ meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []
   d ← e.get nm,
   let lhs : expr := const d.to_name d.univ_levels,
   let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
-  b ← has_attribute' `to_additive nm,
-  let cfg := if b then { attrs := cfg.attrs ++ [`to_additive], ..cfg } else cfg,
   let cfg := { trace := cfg.trace || is_trace_enabled_for `simps.verbose || trc, ..cfg },
-  when (cfg.trace ∧ `to_additive ∈ cfg.attrs)
-    trace!"[simps] > @[to_additive] will be added to all generated lemmas.",
+  b ← has_attribute' `to_additive nm,
+  cfg ← if b then do {
+    dict ← to_additive.aux_attr.get_cache,
+    when cfg.trace
+      trace!"[simps] > @[to_additive] will be added to all generated lemmas.",
+    return { add_additive := dict.find nm, ..cfg } } else
+    return cfg,
   simps_add_projections e nm d.type lhs d.value [] d.univ_params tt cfg todo []
 
 /-- The parser for the `@[simps]` attribute. -/

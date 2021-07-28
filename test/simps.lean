@@ -868,6 +868,10 @@ example {M N P : Type*} [add_zero_class M] [add_zero_class N] [add_zero_class P]
   (hnp : N →+ P) (hmn : M →+ N) (m : M) : hnp.my_comp hmn m = hnp (hmn m) :=
 by { dsimp, guard_target (hnp (hmn m) = hnp (hmn m)), refl }
 
+-- test that `to_additive` works with a custom name
+@[to_additive bar, simps]
+def foo (M : Type*) [comm_monoid M] : subtype (λ f : M, true) := ⟨1, trivial⟩
+
 end
 
 /- Test custom compositions of projections. -/
@@ -1042,6 +1046,5 @@ local infixr ` ⥤ `:26 := my_functor
 def foo_sum {I J : Type*} (C : I → Type*) {D : J → Type*} :
   (Π i, C i) ⥤ (Π j, D j) ⥤ (Π s : I ⊕ J, sum.elim C D s) :=
 { obj := λ f, { obj := λ g s, sum.rec f g s }}
-
 
 end

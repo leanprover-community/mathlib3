@@ -885,12 +885,13 @@ theorem real.dist_le_of_mem_interval {x y x' y' : ℝ} (hx : x ∈ interval x' y
 abs_sub_le_of_subinterval $ interval_subset_interval (by rwa interval_swap) (by rwa interval_swap)
 
 theorem real.dist_le_of_mem_Icc {x y x' y' : ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
-  dist x y ≤ dist x' y' :=
-real.dist_le_of_mem_interval (Icc_subset_interval hx) (Icc_subset_interval hy)
+  dist x y ≤ y' - x' :=
+by simpa only [real.dist_eq, abs_of_nonpos (sub_nonpos.2 $ hx.1.trans hx.2), neg_sub]
+  using real.dist_le_of_mem_interval (Icc_subset_interval hx) (Icc_subset_interval hy)
 
 theorem real.dist_le_of_mem_Icc_01 {x y : ℝ} (hx : x ∈ Icc (0:ℝ) 1) (hy : y ∈ Icc (0:ℝ) 1) :
   dist x y ≤ 1 :=
-by simpa [real.dist_eq] using real.dist_le_of_mem_Icc hx hy
+by simpa only [sub_zero] using real.dist_le_of_mem_Icc hx hy
 
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,
@@ -1708,13 +1709,13 @@ bounded_iff_ediam_ne_top.1 h
 lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=
 dist_le_diam_of_mem' h.ediam_ne_top hx hy
 
+lemma ediam_of_unbounded (h : ¬(bounded s)) : emetric.diam s = ∞ :=
+by rwa [bounded_iff_ediam_ne_top, not_not] at h
+
 /-- An unbounded set has zero diameter. If you would prefer to get the value ∞, use `emetric.diam`.
 This lemma makes it possible to avoid side conditions in some situations -/
 lemma diam_eq_zero_of_unbounded (h : ¬(bounded s)) : diam s = 0 :=
-begin
-  simp only [bounded_iff_ediam_ne_top, not_not, ne.def] at h,
-  simp [diam, h]
-end
+by rw [diam, ediam_of_unbounded h, ennreal.top_to_real]
 
 /-- If `s ⊆ t`, then the diameter of `s` is bounded by that of `t`, provided `t` is bounded. -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) (ht : bounded t) : diam s ≤ diam t :=

@@ -422,6 +422,16 @@ begin
   congr
 end
 
+@[to_additive] lemma eq_top_of_le_card [fintype H] [fintype G]
+  (h : fintype.card G ≤ fintype.card H) : H = ⊤ :=
+eq_top_of_card_eq H (le_antisymm (fintype.card_le_of_injective coe subtype.coe_injective) h)
+
+@[to_additive] lemma eq_bot_of_card_le [fintype H] (h : fintype.card H ≤ 1) : H = ⊥ :=
+let _ := fintype.card_le_one_iff_subsingleton.mp h in by exactI eq_bot_of_subsingleton H
+
+@[to_additive] lemma eq_bot_of_card_eq [fintype H] (h : fintype.card H = 1) : H = ⊥ :=
+H.eq_bot_of_card_le (le_of_eq h)
+
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
 subtype.nontrivial_iff_exists_ne (λ x, x ∈ H) (1 : H)
@@ -1579,6 +1589,16 @@ begin
            ... ≤ comap f H ⊔ comap f K : le_sup_left, },
   exact ker_le_comap _ _,
 end
+
+/-- A subgroup is isomorphic to its image under an injective function -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+noncomputable def equiv_map_of_injective (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
+
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) (h : H) :
+  (equiv_map_of_injective H f hf h : N) = f h := rfl
 
 end subgroup
 

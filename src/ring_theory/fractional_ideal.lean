@@ -119,6 +119,10 @@ instance : set_like (fractional_ideal S P) P :=
 { coe := λ I, ↑(I : submodule R P),
   coe_injective' := set_like.coe_injective.comp subtype.coe_injective }
 
+@[simp] lemma mem_coe {I : fractional_ideal S P} {x : P} :
+  x ∈ (I : submodule R P) ↔ x ∈ I :=
+iff.rfl
+
 @[ext] lemma ext {I J : fractional_ideal S P} : (∀ x, x ∈ I ↔ x ∈ J) → I = J := set_like.ext
 
 /-- Copy of a `fractional_ideal` with a new underlying set equal to the old one.
@@ -132,9 +136,6 @@ end set_like
 
 @[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
-
-@[simp, norm_cast] lemma mem_coe {I : fractional_ideal S P} {x} :
-  x ∈ (I : submodule R P) ↔ x ∈ I := iff.rfl
 
 lemma coe_to_submodule_injective :
   function.injective (coe : fractional_ideal S P → submodule R P) :=
@@ -177,6 +178,18 @@ variables (S)
 @[simp] lemma mem_coe_ideal {x : P} {I : ideal R} :
   x ∈ (I : fractional_ideal S P) ↔ ∃ x', x' ∈ I ∧ algebra_map R P x' = x :=
 mem_coe_submodule _ _
+
+lemma mem_coe_ideal_of_mem {x : R} {I : ideal R} (hx : x ∈ I) :
+  algebra_map R P x ∈ (I : fractional_ideal S P) :=
+(mem_coe_ideal S).mpr ⟨x, hx, rfl⟩
+
+lemma coe_ideal_le_coe_ideal' [is_localization S P] (h : S ≤ non_zero_divisors R)
+  {I J : ideal R} : (I : fractional_ideal S P) ≤ J ↔ I ≤ J :=
+coe_submodule_le_coe_submodule h
+
+@[simp] lemma coe_ideal_le_coe_ideal (K : Type*) [comm_ring K] [algebra R K] [is_fraction_ring R K]
+  {I J : ideal R} : (I : fractional_ideal R⁰ K) ≤ J ↔ I ≤ J :=
+is_fraction_ring.coe_submodule_le_coe_submodule
 
 instance : has_zero (fractional_ideal S P) := ⟨(0 : ideal R)⟩
 
@@ -632,9 +645,47 @@ begin
   exact ⟨s, hs1, hs⟩,
 end
 
+omit loc
+
+lemma mem_span_mul_finite_of_mem_mul {I J : fractional_ideal S P} {x : P} (hx : x ∈ I * J) :
+  ∃ (T T' : finset P), (T : set P) ⊆ I ∧ (T' : set P) ⊆ J ∧ x ∈ span R (T * T' : set P) :=
+submodule.mem_span_mul_finite_of_mem_mul (by simpa using mem_coe.mpr hx)
+
+variables (S)
+
+lemma coe_ideal_fg (inj : function.injective (algebra_map R P)) (I : ideal R) :
+  fg ((I : fractional_ideal S P) : submodule R P) ↔ fg I :=
+coe_submodule_fg _ inj _
+
+variables {S}
+
+lemma fg_unit (I : units (fractional_ideal S P)) :
+  fg (I : submodule R P) :=
+begin
+  have : (1 : P) ∈ (I * ↑I⁻¹ : fractional_ideal S P),
+  { rw units.mul_inv, exact one_mem_one _ },
+  obtain ⟨T, T', hT, hT', one_mem⟩ := mem_span_mul_finite_of_mem_mul this,
+  refine ⟨T, submodule.span_eq_of_le _ hT _⟩,
+  rw [← one_mul ↑I, ← mul_one (span R ↑T)],
+  conv_rhs { rw [← fractional_ideal.coe_one, ← units.mul_inv I, fractional_ideal.coe_mul,
+                 mul_comm ↑↑I, ← mul_assoc] },
+  refine submodule.mul_le_mul_left
+    (le_trans _ (submodule.mul_le_mul_right (submodule.span_le.mpr hT'))),
+  rwa [submodule.one_le, submodule.span_mul_span]
+end
+
+lemma fg_of_is_unit (I : fractional_ideal S P) (h : is_unit I) :
+  fg (I : submodule R P) :=
+by { rcases h with ⟨I, rfl⟩, exact fg_unit I }
+
+lemma _root_.ideal.fg_of_is_unit (inj : function.injective (algebra_map R P))
+  (I : ideal R) (h : is_unit (I : fractional_ideal S P)) :
+  I.fg :=
+by { rw ← coe_ideal_fg S inj I, exact fg_of_is_unit I h }
+
 variables (S P P')
 
-include loc'
+include loc loc'
 
 /-- `canonical_equiv f f'` is the canonical equivalence between the fractional
 ideals in `P` and in `P'` -/
@@ -706,6 +757,23 @@ end
 @[simp] lemma map_eq_zero_iff [nontrivial R] : I.map h = 0 ↔ I = 0 :=
 ⟨imp_of_not_imp_not _ _ (map_ne_zero _),
  λ hI, hI.symm ▸ map_zero h⟩
+
+lemma coe_ideal_injective :
+  function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
+injective_of_le_imp_le _ (λ _ _, (coe_ideal_le_coe_ideal _).mp)
+
+@[simp]
+lemma coe_ideal_eq_zero_iff
+  {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
+by { rw ← coe_to_fractional_ideal_bot, exact coe_ideal_injective.eq_iff }
+
+lemma coe_ideal_ne_zero_iff
+  {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
+not_iff_not.mpr coe_ideal_eq_zero_iff
+
+lemma coe_ideal_ne_zero
+  {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R⁰ K) ≠ 0 :=
+coe_ideal_ne_zero_iff.mpr hI
 
 end is_fraction_ring
 

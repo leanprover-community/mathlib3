@@ -462,6 +462,8 @@ include rα
 instance : inhabited (α →+* α) := ⟨id α⟩
 
 @[simp] lemma id_apply (x : α) : ring_hom.id α x = x := rfl
+@[simp] lemma coe_add_monoid_hom_id : (id α : α →+ α) = add_monoid_hom.id α := rfl
+@[simp] lemma coe_monoid_hom_id : (id α : α →* α) = monoid_hom.id α := rfl
 
 variable {rγ : non_assoc_semiring γ}
 include rβ rγ

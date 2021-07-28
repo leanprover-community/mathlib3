@@ -235,8 +235,6 @@ lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
 lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
   h.comp (f + g) = h.comp f + h.comp g := by { ext, simp }
 
-example : add_comm_monoid (M →ₗ[R] M₂) := linear_map.add_comm_monoid
-
 /-- A bundled version of `linear_map.to_add_monoid_hom` -/
 def to_add_monoid_hom' : (M →ₗ[R] M₂) →+ (M →+ M₂) :=
 { to_fun := to_add_monoid_hom,

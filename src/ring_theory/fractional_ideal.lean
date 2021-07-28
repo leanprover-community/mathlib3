@@ -119,6 +119,10 @@ instance : set_like (fractional_ideal S P) P :=
 { coe := λ I, ↑(I : submodule R P),
   coe_injective' := set_like.coe_injective.comp subtype.coe_injective }
 
+@[simp] lemma mem_coe {I : fractional_ideal S P} {x : P} :
+  x ∈ (I : submodule R P) ↔ x ∈ I :=
+iff.rfl
+
 @[ext] lemma ext {I J : fractional_ideal S P} : (∀ x, x ∈ I ↔ x ∈ J) → I = J := set_like.ext
 
 /-- Copy of a `fractional_ideal` with a new underlying set equal to the old one.
@@ -132,9 +136,6 @@ end set_like
 
 @[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
-
-@[simp, norm_cast] lemma mem_coe {I : fractional_ideal S P} {x} :
-  x ∈ (I : submodule R P) ↔ x ∈ I := iff.rfl
 
 lemma coe_to_submodule_injective :
   function.injective (coe : fractional_ideal S P → submodule R P) :=
@@ -177,6 +178,10 @@ variables (S)
 @[simp] lemma mem_coe_ideal {x : P} {I : ideal R} :
   x ∈ (I : fractional_ideal S P) ↔ ∃ x', x' ∈ I ∧ algebra_map R P x' = x :=
 mem_coe_submodule _ _
+
+lemma mem_coe_ideal_of_mem {x : R} {I : ideal R} (hx : x ∈ I) :
+  algebra_map R P x ∈ (I : fractional_ideal S P) :=
+(mem_coe_ideal S).mpr ⟨x, hx, rfl⟩
 
 lemma coe_ideal_le_coe_ideal' [is_localization S P] (h : S ≤ non_zero_divisors R)
   {I J : ideal R} : (I : fractional_ideal S P) ≤ J ↔ I ≤ J :=

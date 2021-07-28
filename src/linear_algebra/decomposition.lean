@@ -56,7 +56,7 @@ def to_direct_sum_map (p : ι → submodule R M) :
   to_direct_sum_map p x = ∑ i in x.support, ⟨(x i).1, (le_supr p i : p i ≤ supr p) (x i).2⟩ :=
 begin
   simp only [to_direct_sum_map, direct_sum.to_module, sum_add_hom_apply, to_add_monoid_hom_coe,
-    linear_map.coe_mk, dfinsupp.lsum_apply, subtype.val_eq_coe],
+    linear_map.coe_mk, dfinsupp.lsum_apply_apply, subtype.val_eq_coe],
   refine finset.sum_congr rfl (λ i hi, _),
   congr,
 end
@@ -240,21 +240,7 @@ def of_is_internal (p : ι → submodule R M) (hp : direct_sum.submodule_is_inte
     rw [submodule_is_internal.to_equiv_symm_single_apply p hp i x hi, single_eq_of_ne], refl,
     exact h
   end,
-  factors_supr := begin
-    rw eq_top_iff, intros x y, clear y,
-    rw mem_supr',
-    let v' := (submodule_is_internal.to_equiv p hp).symm x,
-    let v : ι →₀ M := ⟨v'.support, λ i, (v' i).1, λ i, _⟩,
-    { refine ⟨v, λ i, (v' i).2, _⟩,
-      simp only [v, subtype.val_eq_coe, finsupp.coe_mk],
-      apply_fun (submodule_is_internal.to_equiv p hp).symm using linear_equiv.injective _,
-      rw linear_equiv.map_sum,
-      have key := λ i, submodule_is_internal.to_equiv_symm_single_apply p hp i (v' i) (v' i).2,
-      simp only [key, set_like.eta],
-      change v'.sum (single : Π i, p i → (⨁ i, p i)) = v',
-      exact sum_single },
-    simp only [mem_support_iff, ne.def, subtype.val_eq_coe, coe_eq_zero]
-  end }
+  factors_supr := hp.supr_eq_top _ }
 
 end group
 

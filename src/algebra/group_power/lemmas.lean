@@ -53,12 +53,11 @@ lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 lemma is_unit_pos_pow_iff {M : Type*} [comm_monoid M] {m : M} {n : ℕ} (h : 0 < n) :
   is_unit (m ^ n) ↔ is_unit m :=
 begin
-  cases n,
-  { exact absurd h (lt_irrefl _) },
+  obtain ⟨p, rfl⟩ := nat.exists_eq_succ_of_ne_zero h.ne',
   refine ⟨λ h, _, is_unit.pow _⟩,
   obtain ⟨⟨k, k', hk, hk'⟩, h⟩ := h,
   rw [units.coe_mk] at h,
-  refine ⟨⟨m, m ^ n * k', _, _⟩, _⟩,
+  refine ⟨⟨m, m ^ p * k', _, _⟩, _⟩,
   { rw [←mul_assoc, ←pow_succ, ←h, hk] },
   { rw [mul_right_comm, ←pow_succ', ←h, hk] },
   { exact units.coe_mk _ _ _ _ }

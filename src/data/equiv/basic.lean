@@ -354,6 +354,18 @@ end perm_congr
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
+lemma _root_.set.mem_image_equiv {α β} {S : set α} {f : α ≃ β} {x : β} :
+  x ∈ f '' S ↔ f.symm x ∈ S :=
+by rw [f.image_eq_preimage, set.mem_preimage]
+
+lemma _root_.set.image_equiv_eq_preimage_symm {α β} (S : set α) (f : α ≃ β) :
+  f '' S = f.symm ⁻¹' S :=
+f.image_eq_preimage S
+
+lemma _root_.set.preimage_equiv_eq_image_symm {α β} (S : set α) (f : β ≃ α) :
+  f ⁻¹' S = f.symm '' S :=
+(f.symm.image_eq_preimage S).symm
+
 protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
   t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
@@ -1737,24 +1749,6 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
   inv_fun := λ x : set S, ⟨coe '' x, by rintro _ ⟨a : S, _, rfl⟩; exact a.2⟩,
   left_inv := λ x, by ext y; exact ⟨λ ⟨⟨_, _⟩, h, rfl⟩, h, λ h, ⟨⟨_, x.2 h⟩, h, rfl⟩⟩,
   right_inv := λ x, by ext; simp }
-
-lemma _root_.set.mem_image_equiv {α β} {S : set α} {f : α ≃ β} {x : β} :
-  x ∈ f '' S ↔ f.symm x ∈ S :=
-begin
-  split,
-  { rintros ⟨x, hxK, rfl⟩,
-    simp [hxK] },
-  { assume h,
-    exact ⟨_, h, by simp⟩ }
-end
-
-lemma _root_.set.image_equiv_eq_preimage_symm {α β} (S : set α) (f : α ≃ β) :
-  f '' S = f.symm ⁻¹' S :=
-by ext; simp only [set.mem_image_equiv]; simp
-
-lemma _root_.set.preimage_equiv_eq_image_symm {α β} (S : set α) (f : β ≃ α) :
-  f ⁻¹' S = f.symm '' S :=
-by ext; simp only [set.mem_image_equiv]; simp
 
 end set
 

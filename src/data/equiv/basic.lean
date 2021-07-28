@@ -377,7 +377,7 @@ e.symm.symm_image_image s
 e.surjective.image_preimage s
 
 @[simp] lemma preimage_image {α β} (e : α ≃ β) (s : set α) : e ⁻¹' (e '' s) = s :=
-set.preimage_image_eq s e.injective
+e.injective.preimage_image s
 
 protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=

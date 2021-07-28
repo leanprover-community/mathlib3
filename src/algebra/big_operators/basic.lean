@@ -1073,13 +1073,13 @@ end
 @[to_additive "Taking a sum over `s : finset α` is the same as adding the value on a single element
 `f a` to the the sum over `s.erase a`."]
 lemma mul_prod_erase [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
-  f a * (∏ (x : α) in s.erase a, f x) = ∏ (x : α) in s, f x :=
+  f a * (∏ x in s.erase a, f x) = ∏ x in s, f x :=
 by rw [← prod_insert (not_mem_erase a s), insert_erase h]
 
 /-- A variant of `finset.mul_prod_erase` with the multiplication swapped. -/
 @[to_additive "A variant of `finset.add_sum_erase` with the addition swapped."]
 lemma prod_erase_mul [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
-  (∏ (x : α) in s.erase a, f x) * f a = ∏ (x : α) in s, f x :=
+  (∏ x in s.erase a, f x) * f a = ∏ x in s, f x :=
 by rw [mul_comm, mul_prod_erase s f h]
 
 /-- If a function applied at a point is 1, a product is unchanged by

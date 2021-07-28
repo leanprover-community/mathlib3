@@ -128,8 +128,7 @@ section map
 variables [monoid α] [monoid β] {f : filter α} (m : mul_hom α β) (φ : α →* β)
 
 @[to_additive]
-protected lemma map_mul {f₁ f₂ : filter α} :
-  map m (f₁ * f₂) = map m f₁ * map m f₂ :=
+protected lemma map_mul {f₁ f₂ : filter α} : map m (f₁ * f₂) = map m f₁ * map m f₂ :=
 begin
   ext s,
   simp only [mem_mul], split,

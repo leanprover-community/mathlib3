@@ -8,7 +8,7 @@ import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
 import algebra.module.basic -- we use the ℤ-module structure on an add_comm_group in punit_equiv
-import deprecated.group
+import deprecated.group -- someone who understands `seq` can remove this
 
 /-!
 # Free abelian groups
@@ -170,6 +170,10 @@ begin
     simp only [(lift _).map_add, hx, hy],
     ac_refl }
 end
+
+@[simps]
+def lift_add_group_hom {α} (β) [add_comm_group β] (a : free_abelian_group α) : (α → β) →+ β :=
+add_monoid_hom.mk' (λ f, lift f a) (lift.add' a)
 
 lemma is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_group α) :
   is_add_group_hom (λf, (lift f a : β)) :=

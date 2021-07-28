@@ -422,6 +422,16 @@ begin
   congr
 end
 
+@[to_additive] lemma eq_top_of_le_card [fintype H] [fintype G]
+  (h : fintype.card G ≤ fintype.card H) : H = ⊤ :=
+eq_top_of_card_eq H (le_antisymm (fintype.card_le_of_injective coe subtype.coe_injective) h)
+
+@[to_additive] lemma eq_bot_of_card_le [fintype H] (h : fintype.card H ≤ 1) : H = ⊥ :=
+let _ := fintype.card_le_one_iff_subsingleton.mp h in by exactI eq_bot_of_subsingleton H
+
+@[to_additive] lemma eq_bot_of_card_eq [fintype H] (h : fintype.card H = 1) : H = ⊥ :=
+H.eq_bot_of_card_le (le_of_eq h)
+
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
 subtype.nontrivial_iff_exists_ne (λ x, x ∈ H) (1 : H)
@@ -1053,6 +1063,28 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
   λ yH, by simpa [mem_comap, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
 
+variable (H)
+
+/-- Commutivity of a subgroup -/
+structure is_commutative : Prop :=
+(is_comm : _root_.is_commutative H (*))
+
+attribute [class] is_commutative
+
+/-- Commutivity of an additive subgroup -/
+structure _root_.add_subgroup.is_commutative (H : add_subgroup A) : Prop :=
+(is_comm : _root_.is_commutative H (+))
+
+attribute [to_additive add_subgroup.is_commutative] subgroup.is_commutative
+attribute [class] add_subgroup.is_commutative
+
+/-- A commutative subgroup is commutative -/
+@[to_additive] instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
+{ mul_comm := h.is_comm.comm, .. H.to_group }
+
+instance center.is_commutative : (center G).is_commutative :=
+⟨⟨λ a b, subtype.ext (b.2 a)⟩⟩
+
 end subgroup
 
 namespace group
@@ -1557,6 +1589,16 @@ begin
            ... ≤ comap f H ⊔ comap f K : le_sup_left, },
   exact ker_le_comap _ _,
 end
+
+/-- A subgroup is isomorphic to its image under an injective function -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+noncomputable def equiv_map_of_injective (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
+
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) (h : H) :
+  (equiv_map_of_injective H f hf h : N) = f h := rfl
 
 end subgroup
 

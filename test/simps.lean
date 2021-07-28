@@ -869,8 +869,10 @@ example {M N P : Type*} [add_zero_class M] [add_zero_class N] [add_zero_class P]
 by { dsimp, guard_target (hnp (hmn m) = hnp (hmn m)), refl }
 
 -- test that `to_additive` works with a custom name
-@[to_additive bar, simps]
-def foo (M : Type*) [comm_monoid M] : subtype (λ f : M, true) := ⟨1, trivial⟩
+@[to_additive some_test2, simps]
+def some_test1 (M : Type*) [comm_monoid M] : subtype (λ f : M, true) := ⟨1, trivial⟩
+
+run_cmd get_decl `some_test2_coe
 
 end
 

@@ -311,7 +311,7 @@ theorem finrank_eq_card (G : Type u) (F : Type v) [group G] [field F]
 le_antisymm (fixed_points.finrank_le_card G F) $
 calc  fintype.card G
     ≤ fintype.card (F →ₐ[fixed_points.subfield G F] F) :
-      fintype.card_le_of_injective _ (to_alg_hom G F).2
+        fintype.card_le_of_injective _ (to_alg_hom G F).2
 ... ≤ finrank F (F →ₗ[fixed_points.subfield G F] F) : finrank_alg_hom (fixed_points G F) F
 ... = finrank (fixed_points.subfield G F) F : finrank_linear_map' _ _ _
 

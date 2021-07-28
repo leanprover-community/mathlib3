@@ -1999,60 +1999,33 @@ namespace locally_constant
 
 variables {X Y : Type*} [topological_space X] [topological_space Y] (f : locally_constant X Y)
 
-section monoid_hom
-
-variables [monoid Y] [has_continuous_mul Y]
-
 /-- The inclusion of locally-constant functions into continuous functions as a multiplicative
 monoid hom. -/
 @[to_additive "The inclusion of locally-constant functions into continuous functions as an
-additive monoid hom."]
-def to_continuous_map_monoid_hom : locally_constant X Y →* C(X, Y) :=
+additive monoid hom.", simps]
+def to_continuous_map_monoid_hom [monoid Y] [has_continuous_mul Y] :
+  locally_constant X Y →* C(X, Y) :=
 { to_fun    := coe,
   map_one' := by { ext, simp, },
   map_mul'  := λ x y, by { ext, simp, }, }
 
-@[simp, to_additive] lemma coe_to_continuous_map_monoid_hom :
-  (f.to_continuous_map_monoid_hom : X → Y) = f :=
-rfl
-
-end monoid_hom
-
-section linear_map
-
-variables (R : Type*) [semiring R] [topological_space R]
-variables [add_comm_monoid Y] [module R Y] [has_continuous_add Y] [has_continuous_smul R Y]
-
 /-- The inclusion of locally-constant functions into continuous functions as a linear map. -/
-def to_continuous_map_linear_map : locally_constant X Y →ₗ[R] C(X, Y) :=
+@[simps] def to_continuous_map_linear_map (R : Type*) [semiring R] [topological_space R]
+  [add_comm_monoid Y] [module R Y] [has_continuous_add Y] [has_continuous_smul R Y] :
+  locally_constant X Y →ₗ[R] C(X, Y) :=
 { to_fun    := coe,
   map_add'  := λ x y, by { ext, simp, },
   map_smul' := λ x y, by { ext, simp, }, }
 
-@[simp] lemma coe_to_continuous_map_linear_map :
-  (to_continuous_map_linear_map R f : X → Y) = f :=
-rfl
-
-end linear_map
-
-section alg_hom
-
-variables (R : Type*) [comm_semiring R] [topological_space R]
-variables [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_smul R Y]
-
 /-- The inclusion of locally-constant functions into continuous functions as an algebra map. -/
-def to_continuous_map_alg_hom : locally_constant X Y →ₐ[R] C(X, Y) :=
+@[simps] def to_continuous_map_alg_hom (R : Type*) [comm_semiring R] [topological_space R]
+  [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_smul R Y] :
+  locally_constant X Y →ₐ[R] C(X, Y) :=
 { to_fun    := coe,
   map_one'  := by { ext, simp, },
   map_mul'  := λ x y, by { ext, simp, },
   map_zero' := by { ext, simp, },
   map_add'  := λ x y, by { ext, simp, },
   commutes' := λ r, by { ext x, simp [algebra.smul_def], }, }
-
-@[simp] lemma coe_to_continuous_map_alg_hom :
-  (to_continuous_map_alg_hom R f : X → Y) = f :=
-rfl
-
-end alg_hom
 
 end locally_constant

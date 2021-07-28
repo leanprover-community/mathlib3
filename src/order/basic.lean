@@ -31,8 +31,6 @@ import data.prod
 - `no_top_order`, `no_bot_order`: An order without a maximal/minimal element.
 - `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
-- `has_lt_iff_add_one_le`: An order equipped with a `1` and a `+` in which `a < b ↔ a + 1 ≤ b`.
-  This is one notion of sparsity.
 
 ## Main theorems
 
@@ -613,37 +611,6 @@ lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
 or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
-
-/-- Order equipped with a sensible successor function. -/
-class succ_order (α : Type u) [preorder α] :=
-(succ : α → α)
-(lt_iff_succ_le : ∀ a b, a < b ↔ succ a ≤ b)
-(lt_succ_iff_le : ∀ a b, a < succ b ↔ a ≤ b)
-
-open succ_order
-
-lemma lt_iff_succ_le {α : Type u} [preorder α] [succ_order α] {a b : α} :
-  a < b ↔ succ a ≤ b :=
-lt_iff_succ_le a b
-
-lemma lt_succ_iff_le {α : Type u} [preorder α] [succ_order α] {a b : α} :
-  a < succ b ↔ a ≤ b :=
-lt_succ_iff_le a b
-
-/-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b` and `∀ a b, a < b + 1 ↔ a ≤ b`. -/
-class succ_eq_add_one_order (α : Type u) [preorder α] [has_add α] [has_one α] extends
-  succ_order α :=
-(succ_eq_add_one : ∀ a, succ a = a + 1)
-
-lemma lt_iff_add_one_le {α : Type u} [preorder α] [has_add α] [has_one α] [succ_eq_add_one_order α]
-  {a b : α} :
-  a < b ↔ a + 1 ≤ b :=
-by { rw ←succ_eq_add_one_order.succ_eq_add_one, exact lt_iff_succ_le }
-
-lemma lt_add_one_iff_le {α : Type u} [preorder α] [has_add α] [has_one α] [succ_eq_add_one_order α]
-  {a b : α} :
-  a < b + 1 ↔ a ≤ b :=
-by { rw ←succ_eq_add_one_order.succ_eq_add_one, exact lt_succ_iff_le }
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

@@ -157,27 +157,21 @@ section algebra
 
 variables [comm_semiring R] [semiring Y] [algebra R Y]
 
-/-- Constant functions as a `ring_hom`.
-
-See also `continuous_map.C`. -/
-@[simps] def C : R →+* locally_constant X Y :=
-{ to_fun    := λ c, const X $ algebra_map R Y c,
-  map_one'  := by { ext, exact (algebra_map R Y).map_one, },
-  map_mul'  := by { intros, ext, exact (algebra_map R Y).map_mul _ _, },
-  map_zero' := by { ext, exact (algebra_map R Y).map_zero, },
-  map_add'  := by { intros, ext, exact (algebra_map R Y).map_add _ _, }, }
+/-- The constant-function embedding, as a ring hom.  -/
+@[simps] def const_ring_hom : Y →+* locally_constant X Y :=
+{ to_fun    := const X,
+  map_one'  := rfl,
+  map_mul'  := λ _ _, rfl,
+  map_zero' := rfl,
+  map_add'  := λ _ _, rfl, }
 
 instance : algebra R (locally_constant X Y) :=
-{ to_ring_hom := C,
+{ to_ring_hom := const_ring_hom.comp $ algebra_map R Y,
   commutes'   := by { intros, ext, exact algebra.commutes' _ _, },
   smul_def'   := by { intros, ext, exact algebra.smul_def' _ _, }, }
 
 @[simp] lemma coe_algebra_map :
   (algebra_map R _ : R → locally_constant X Y) = (const X) ∘ (algebra_map R Y) :=
-rfl
-
-@[simp] lemma coe_comp_C_eq_continuous_map_C [topological_space Y] [topological_semiring Y] :
-  (coe : locally_constant X Y → C(X, Y)) ∘ (C : R →+* locally_constant X Y) = continuous_map.C :=
 rfl
 
 end algebra

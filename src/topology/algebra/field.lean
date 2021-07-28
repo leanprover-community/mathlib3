@@ -26,7 +26,12 @@ This is not a global instance since other topologies could be relevant. Instead 
 `induced_units` asserting that something equivalent to this construction holds. -/
 def topological_space_units : topological_space (units R) := induced (coe : units R → R) ‹_›
 
-/-- Asserts the topology on units is the induced topology. -/
+/-- Asserts the topology on units is the induced topology.
+
+ Note: this is not always the correct topology.
+ Another good candidate is the subspace topology of $R \times R$,
+ with the units embedded via $u \mapsto (u, u^{-1})$.
+ These topologies are not (propositionally) equal in general. -/
 class induced_units [t : topological_space $ units R] : Prop :=
 (top_eq : t = induced (coe : units R → R) ‹_›)
 

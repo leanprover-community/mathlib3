@@ -58,20 +58,13 @@ noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
 --todo
 --instance completeness {R : Type*} [normed_group R] : complete_space C(X, R) := sorry
 
---topo ring assumption not really needed
-def inclusion (R : Type*) [topological_space R] : locally_constant X R → C(X,R) :=
-  λ x, ⟨x, locally_constant.continuous x⟩
+-- TODO Remove `inclusion`
+abbreviation inclusion (R : Type*) [topological_space R] : locally_constant X R → C(X,R) :=
+locally_constant.to_continuous_map
 
-@[simp] lemma inc_eval (f : locally_constant X R) (y : X) : inclusion X R f y = f y := rfl
-
-noncomputable instance {R : Type*} [normed_group R] :
-  topological_space (locally_constant X R) :=
-topological_space.induced (inclusion X R) uniform_space.to_topological_space
-
-lemma sub {R : Type*} [topological_space R] : function.injective (inclusion X R) :=
-begin
-  intros f g h, rw inclusion at h, simp at h, rw h,
-end
+-- TODO Remove `inclusion'`
+abbreviation inclusion' (A : Type*) [normed_comm_ring A]: locally_constant X A →ₗ[A] C(X, A) :=
+locally_constant.to_continuous_map_linear_map A
 
 open classical
 
@@ -370,7 +363,7 @@ begin
           obtain ⟨w1, w2⟩ := exists_prop.1 (exists_of_exists_unique wT),
           have : (inclusion X A ⟨(c2 X f ε t ht), loc_const⟩) y =
                  f (c' X f ε t ht w ⟨w1, ⟨⟨y, w2⟩⟩⟩),
-          { rw inc_eval, simp, rw c2, simp, apply congr_arg,
+          { change c2 X f ε t ht y = _, rw c2, simp, apply congr_arg,
             congr' 2, swap, congr, swap 3, congr,
             repeat { apply hw, refine classical.some_spec (exists_of_exists_unique (ht3 y)), }, },
           convert_to ∥(f y) - ((inclusion X A ⟨(c2 X f ε t ht), loc_const⟩) y)∥ ≤ ε/2,
@@ -486,33 +479,10 @@ def measures'' :=
   {φ : distribution' X //
     ∃ K : ℝ, 0 < K ∧ ∀ f : (locally_constant X A), ∥φ.phi f∥ ≤ K * ∥inclusion X A f∥ }
 
-noncomputable theory
-instance : metric_space (locally_constant X A) :=
-begin
-  refine metric_space.induced (inclusion X A) (sub X) _, apply_instance,
-end
-
-instance : has_norm (locally_constant X A) :=
-begin
-  refine {norm := _},
-  rintros f, exact ∥inclusion X A f∥,
-end
-
-noncomputable def inclusion' : continuous_linear_map A (locally_constant X A) C(X, A) :=
-{ to_fun    := inclusion X A,
-  map_add'  := λ x y, rfl,
-  map_smul' := λ m x, by { ext y, simp [inclusion], } }
-
-instance : normed_group (locally_constant X A) :=
-{
-  dist_eq := begin
-    intros x y,
-    change dist (inclusion' X A x) (inclusion' X A y) = ∥inclusion' X A (x - y)∥,
-    rw dist_eq_norm,
-    rw (inclusion' X A).map_sub,
-  end,
-  ..locally_constant.metric_space X A, ..locally_constant.has_norm X A,
-}
+noncomputable instance : normed_group (locally_constant X A) :=
+normed_group.induced
+  locally_constant.to_continuous_map_add_monoid_hom
+  locally_constant.to_continuous_map_injective
 
 lemma integral_cont (φ : measures'' X A) : continuous (φ.1).phi :=
 begin
@@ -526,9 +496,8 @@ begin
   specialize hK (a - b), apply lt_of_le_of_lt hK _, rw mul_comm, rw ←lt_div_iff hKpos,
   convert dab,
   change ∥inclusion X A (a - b)∥ = dist (inclusion' X A a) (inclusion' X A b),
-  rw dist_eq_norm,
---  change inclusion' X A _ = inclusion' X A _ - inclusion' X A _,
-  rw ←continuous_linear_map.map_sub, refl,
+  rw [dist_eq_norm, ← linear_map.map_sub],
+  refl,
 end
 
 lemma di (h : nonempty X) : dense_inducing (inclusion X A) :=
@@ -558,8 +527,8 @@ begin
   specialize hK (a - b), apply lt_of_le_of_lt hK _, rw mul_comm, rw ←lt_div_iff hKpos,
   convert dab,
   change ∥inclusion X A (a - b)∥ = dist (inclusion' X A a) (inclusion' X A b),
-  rw dist_eq_norm,
-  rw ←continuous_linear_map.map_sub, refl,
+  rw [dist_eq_norm, ← linear_map.map_sub],
+  refl,
 end
 
 instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
@@ -606,7 +575,7 @@ begin
       { rintros a b,
         change di.extend (φ.val.phi) (inclusion' X A a + inclusion' X A b) =
   di.extend (φ.val.phi) (inclusion X A a) + di.extend (φ.val.phi) (inclusion X A b),
-        rw ←continuous_linear_map.map_add,
+        rw ← linear_map.map_add,
         change di.extend (φ.val.phi) ((inclusion X A) (a + b)) =
   di.extend (φ.val.phi) (inclusion X A a) + di.extend (φ.val.phi) (inclusion X A b),
         repeat { rw dense_inducing.extend_eq di (integral_cont X A φ), },
@@ -617,7 +586,7 @@ begin
       { rintros a,
         change di.extend (φ.val.phi) (m • inclusion' X A a) =
         m • di.extend (φ.val.phi) (inclusion X A a),
-        rw ←continuous_linear_map.map_smul,
+        rw ← linear_map.map_smul,
         change di.extend (φ.val.phi) ((inclusion X A) (m • a)) =
         m • di.extend (φ.val.phi) (inclusion X A a),
         repeat { rw dense_inducing.extend_eq di (integral_cont X A φ), },
@@ -625,13 +594,12 @@ begin
   simp only [auto_param_eq], assumption,
 end
 
-
 structure system {X : Type*} [set X] :=
 ( h : ℕ → finset X )
 ( projlim : X = Prop ) --inverse limit
 
 variables (p : ℕ) [fact p.prime]
 
-instance topo : topological_space (units ℤ_[p]) := infer_instance
+noncomputable instance topo : topological_space (units ℤ_[p]) := infer_instance
 
 instance topo' : topological_space (units A) := infer_instance

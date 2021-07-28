@@ -250,7 +250,7 @@ lemma det_mul_column (v : n → R) (A : matrix n n R) :
 multilinear_map.map_smul_univ _ v A
 
 @[simp] lemma det_pow (M : matrix m m R) (n : ℕ) : det (M ^ n) = (det M) ^ n :=
-is_monoid_hom.map_pow det M n
+(det_monoid_hom : matrix m m R →* R).map_pow M n
 
 section hom_map
 

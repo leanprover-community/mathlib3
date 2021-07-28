@@ -610,7 +610,7 @@ Note: these projection names might not correspond to the projection names of the
             let new_lhs := proj_expr.instantiate_lambdas_or_apps [lhs_ap],
             let new_nm := nm.append_to_last proj.last is_prefix,
             let new_cfg := { add_additive := cfg.add_additive.map $
-              λ nm, nm.append_to_last proj.last is_prefix, ..cfg },
+              λ nm, nm.append_to_last (to_additive.guess_name proj.last) is_prefix, ..cfg },
             when_tracing `simps.debug trace!"[simps] > Recursively add projections for:
         >  {new_lhs}",
             simps_add_projections e new_nm new_type new_lhs new_rhs new_args univs

@@ -198,7 +198,7 @@ begin
   simp_rw [mem_right_coset_iff, set_like.mem_coe],
   split,
   { intro h, apply (h y).mpr, rw mul_right_inv, exact s.one_mem },
-  { intros h z, rw ←inv_mul_cancel_left y x⁻¹, rw ←mul_assoc, exact s.mul_mem_cancel_right h,},
+  { intros h z, rw ←inv_mul_cancel_left y x⁻¹, rw ←mul_assoc, exact s.mul_mem_cancel_right h },
 end
 
 end coset_subgroup

@@ -9,6 +9,8 @@ import topology.algebra.group_completion
 import topology.instances.nnreal
 import topology.metric_space.completion
 import topology.sequences
+import topology.locally_constant.algebra
+import topology.continuous_function.algebra
 
 /-!
 # Normed spaces
@@ -1992,3 +1994,38 @@ instance [semi_normed_group V] : normed_group (completion V) :=
 
 end completion
 end uniform_space
+
+namespace locally_constant
+
+variables {X G R : Type*} [topological_space X] [normed_group G] [normed_ring R]
+
+def to_continuous_map_monoid_hom : locally_constant X G →+ C(X, G) :=
+{ to_fun    := to_continuous_map,
+  map_zero' := by { ext, simp, },
+  map_add'  := λ x y, by { ext, simp, }, }
+
+@[simp] lemma coe_to_continuous_map_monoid_hom (f : locally_constant X G) :
+  (f.to_continuous_map_monoid_hom : X → G) = f :=
+rfl
+
+def to_continuous_map_linear_map : locally_constant X R →ₗ[R] C(X, R) :=
+{ to_fun    := to_continuous_map,
+  map_add'  := λ x y, by { ext, simp, },
+  map_smul' := λ x y, by { ext, simp, }, }
+
+@[simp] lemma coe_to_continuous_map_linear_map (f : locally_constant X R) :
+  (f.to_continuous_map_linear_map : X → R) = f :=
+rfl
+
+def to_continuous_map_alg_hom {R : Type*} [normed_comm_ring R] :
+  locally_constant X R →ₐ[R] C(X, R) :=
+alg_hom.of_linear_map to_continuous_map_linear_map
+  (by { ext, simp only [coe_to_continuous_map_linear_map, coe_one, continuous_map.coe_one], })
+  (λ f g, by { ext, simp only [coe_to_continuous_map_linear_map, coe_mul, continuous_map.coe_mul] })
+
+@[simp] lemma coe_to_continuous_map_alg_hom
+  {R : Type*} [normed_comm_ring R] (f : locally_constant X R) :
+  (f.to_continuous_map_alg_hom : X → R) = f :=
+rfl
+
+end locally_constant

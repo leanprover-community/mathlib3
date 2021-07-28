@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import topology.locally_constant.basic
+import algebra.algebra.basic
 
 /-!
 # Algebraic structure on locally constant functions
@@ -150,5 +151,8 @@ function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective (λ _ 
 
 instance [semiring R] [add_comm_monoid Y] [module R Y] : module R (locally_constant X Y) :=
 function.injective.module R coe_fn_add_monoid_hom coe_injective (λ _ _, rfl)
+
+instance [comm_semiring R] [semiring Y] [algebra R Y] : algebra R (locally_constant X Y) :=
+algebra.of_module' (by { intros, ext, simp, }) (by { intros, ext, simp, })
 
 end locally_constant

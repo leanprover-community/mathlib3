@@ -135,10 +135,6 @@ lemma inv {α β} [mul_one_class α] [comm_group β] {f : α → β} (hf : is_mo
 { map_one := hf.map_one.symm ▸ one_inv,
   map_mul := λ a b, (hf.map_mul a b).symm ▸ mul_inv _ _ }
 
--- do we ever need this? It's a pain to prove here because we have no `int.induction_on` yet
---@[to_additive]
---lemma gpow (z : ℤ) [comm_group β] : is_monoid_hom (gpow z : β → β) := sorry
-
 end is_monoid_hom
 
 /-- A map to a group preserving multiplication is a monoid homomorphism. -/

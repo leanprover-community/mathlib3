@@ -550,7 +550,7 @@ all isomorphic to `M`.
 -/
 def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →ₘ order_dual (submodule R M) :=
 ⟨λ n, (tunnel' f i n).1, monotone_of_monotone_nat (λ n, begin
-    dsimp [tunnel', tunnel_aux],
+    dsimp only [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],
     apply submodule.map_subtype_le,
   end)⟩

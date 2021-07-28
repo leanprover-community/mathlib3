@@ -1740,13 +1740,7 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
 
 lemma _root_.set.mem_image_equiv {α β} {S : set α} {f : α ≃ β} {x : β} :
   x ∈ f '' S ↔ f.symm x ∈ S :=
-begin
-  split,
-  { rintros ⟨x, hxK, rfl⟩,
-    simp [hxK] },
-  { assume h,
-    exact ⟨_, h, by simp⟩ }
-end
+set.ext_iff.mp (f.image_eq_preimage S) x
 
 lemma _root_.set.image_equiv_eq_preimage_symm {α β} (S : set α) (f : α ≃ β) :
   f '' S = f.symm ⁻¹' S :=

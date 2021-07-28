@@ -1068,6 +1068,20 @@ begin
     exact h }
 end
 
+/-- Taking a product over `s : finset α` is the same as multiplying the value on a single element
+`f a` by the product of `s.erase a`. -/
+@[to_additive "Taking a sum over `s : finset α` is the same as adding the value on a single element
+`f a` to the the sum over `s.erase a`."]
+lemma mul_prod_erase [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
+  f a * (∏ (x : α) in s.erase a, f x) = ∏ (x : α) in s, f x :=
+by rw [← prod_insert (not_mem_erase a s), insert_erase h]
+
+/-- A variant of `finset.mul_prod_erase` with the multiplication swapped. -/
+@[to_additive "A variant of `finset.add_sum_erase` with the addition swapped."]
+lemma prod_erase_mul [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
+  (∏ (x : α) in s.erase a, f x) * f a = ∏ (x : α) in s, f x :=
+by rw [mul_comm, mul_prod_erase s f h]
+
 /-- If a function applied at a point is 1, a product is unchanged by
 removing that point, if present, from a `finset`. -/
 @[to_additive "If a function applied at a point is 0, a sum is unchanged by
@@ -1228,9 +1242,7 @@ section prod_eq_zero
 variables [comm_monoid_with_zero β]
 
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
-by haveI := classical.dec_eq α;
-calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
-                 ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
+by { haveI := classical.dec_eq α, rw [←prod_erase_mul _ _ ha, h, mul_zero] }
 
 lemma prod_boole {s : finset α} {p : α → Prop} [decidable_pred p] :
   ∏ i in s, ite (p i) (1 : β) (0 : β) = ite (∀ i ∈ s, p i) 1 0 :=

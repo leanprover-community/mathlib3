@@ -237,7 +237,8 @@ def pow_monoid_hom (n : ℕ) : M →* M :=
   map_one' := one_pow _,
   map_mul' := λ a b ,mul_pow a b n }
 
-attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
+-- the below line causes the linter to complain :-/
+-- attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
 
 lemma dvd_pow {x y : M} :
   ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n

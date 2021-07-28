@@ -1644,7 +1644,7 @@ noncomputable def equiv_map_of_injective (H : subgroup G)
 
 /-- The preimage of the normalizer is equal to the normalizer of the preimage of a surjective
   function -/
-@[to_additive] lemma comap_normalizer_eq_of_surjective {H : subgroup G}
+@[to_additive] lemma comap_normalizer_eq_of_surjective (H : subgroup G)
   {f : N →* G} (hf : function.surjective f) :
   H.normalizer.comap f = (H.comap f).normalizer :=
 le_antisymm (le_normalizer_comap f)
@@ -1657,7 +1657,7 @@ le_antisymm (le_normalizer_comap f)
   end
 
 /-- The image of the normalizer is equal to the normalizer of the image of an isomorphism -/
-@[to_additive] lemma map_equiv_normalizer_eq {H : subgroup G}
+@[to_additive] lemma map_equiv_normalizer_eq (H : subgroup G)
   (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map f.to_monoid_hom).normalizer :=
 begin
   ext x,
@@ -1668,10 +1668,10 @@ end
 
 /-- The image of the normalizer is equal to the normalizer of the image of a bijective
   function -/
-@[to_additive] lemma map_normalizer_eq_of_bijective {H : subgroup G}
+@[to_additive] lemma map_normalizer_eq_of_bijective (H : subgroup G)
   {f : G →* N} (hf : function.bijective f) :
   H.normalizer.map f = (H.map f).normalizer :=
-map_equiv_normalizer_eq (mul_equiv.of_bijective f hf)
+map_equiv_normalizer_eq H (mul_equiv.of_bijective f hf)
 
 end subgroup
 

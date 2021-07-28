@@ -8,6 +8,7 @@ import data.polynomial.basic
 import data.polynomial.div
 import data.polynomial.algebra_map
 import data.set.finite
+
 /-!
 # Theory of univariate polynomials
 

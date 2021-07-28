@@ -29,14 +29,6 @@ def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
 variables (X : Type*)
 variables [topological_space X] [compact_space X] [t2_space X] [totally_disconnected_space X]
-
-lemma bdd_above_compact_range_norm {R : Type*} [normed_group R] (f : C(X, R)) :
-  bdd_above (set.range (λ (x : X), ∥f x∥)) :=
-begin
-  equiv_rw continuous_map.equiv_bounded_of_compact X R at f,
-  exact f.bdd_above_range_norm_comp,
-end
-
 variables {R : Type*} [normed_group R]
 
 noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'

@@ -1304,7 +1304,8 @@ end
 
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
     expressed by summing on `finset.range`.
-    See also `tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm` if `f` and `g` are abolutely summable. -/
+    See also `tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`
+    if `f` and `g` are abolutely summable. -/
 lemma tsum_mul_tsum_eq_tsum_sum_range (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
   (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ k in range (n+1), f k * g (n - k)) :=

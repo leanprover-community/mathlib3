@@ -356,7 +356,7 @@ set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
 lemma _root_.set.mem_image_equiv {α β} {S : set α} {f : α ≃ β} {x : β} :
   x ∈ f '' S ↔ f.symm x ∈ S :=
-by rw [f.image_eq_preimage, set.mem_preimage]
+set.ext_iff.mp (f.image_eq_preimage S) x
 
 /-- Alias for `equiv.image_eq_preimage` -/
 lemma _root_.set.image_equiv_eq_preimage_symm {α β} (S : set α) (f : α ≃ β) :

@@ -173,7 +173,7 @@ instance : algebra R (locally_constant X Y) :=
   smul_def'   := by { intros, ext, exact algebra.smul_def' _ _, }, }
 
 @[simp] lemma coe_algebra_map :
-  (algebra_map R (locally_constant X Y) : R → locally_constant X Y) = λ c, const X (algebra_map R Y c) :=
+  (algebra_map R _ : R → locally_constant X Y) = (const X) ∘ (algebra_map R Y) :=
 rfl
 
 @[simp] lemma coe_comp_C_eq_continuous_map_C [topological_space Y] [topological_semiring Y] :

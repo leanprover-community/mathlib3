@@ -229,7 +229,7 @@ TODO: prove the equivalence.
 def is_dedekind_domain_inv : Prop :=
 ∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * (1 / I) = 1
 
-open ring.fractional_ideal
+open fractional_ideal
 
 lemma is_dedekind_domain_inv_iff (K : Type*) [field K] [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔

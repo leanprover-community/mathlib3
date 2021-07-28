@@ -358,10 +358,12 @@ lemma _root_.set.mem_image_equiv {α β} {S : set α} {f : α ≃ β} {x : β} :
   x ∈ f '' S ↔ f.symm x ∈ S :=
 by rw [f.image_eq_preimage, set.mem_preimage]
 
+/-- Alias for `equiv.image_eq_preimage` -/
 lemma _root_.set.image_equiv_eq_preimage_symm {α β} (S : set α) (f : α ≃ β) :
   f '' S = f.symm ⁻¹' S :=
 f.image_eq_preimage S
 
+/-- Alias for `equiv.image_eq_preimage` -/
 lemma _root_.set.preimage_equiv_eq_image_symm {α β} (S : set α) (f : β ≃ α) :
   f ⁻¹' S = f.symm '' S :=
 (f.symm.image_eq_preimage S).symm

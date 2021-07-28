@@ -128,15 +128,14 @@ is_ortho S (0 : M) x := zero_left x
 
 /-- For fixed `y : M`, the `R`-linear map sending `x : M` to `S x y`, where `S` is a
 sesquilinear form. -/
-@[simps]
-def linear_map_left (S : sesq_form R M I) (x : M) : M →ₗ[R] R :=
+@[simps] def linear_map_left (S : sesq_form R M I) (x : M) : M →ₗ[R] R :=
 { to_fun := λ z, S z x,
   map_add' := λ z y, sesq_add_left S _ _ _,
   map_smul' := λ r m, sesq_smul_left S _ _ _ }
 
 /-- For fixed `x : M`, the `add_monoid_hom` sending `y : M` to `S x y`, where `S` is a
 sesquilinear form. -/
-def add_monoid_hom_right (S : sesq_form R M I) (x : M) : M →+ R :=
+@[simps] def add_monoid_hom_right (S : sesq_form R M I) (x : M) : M →+ R :=
 { to_fun := λ z, S x z,
   map_zero' := zero_right x,
   map_add' := λ z y, sesq_add_right S _ _ _, }

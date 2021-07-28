@@ -1090,14 +1090,14 @@ end complete_linear_order
 ### Instances
 -/
 
-instance complete_lattice_Prop : complete_lattice Prop :=
+instance Prop.complete_lattice : complete_lattice Prop :=
 { Sup    := λs, ∃a∈s, a,
   le_Sup := assume s a h p, ⟨a, h, p⟩,
   Sup_le := assume s a h ⟨b, h', p⟩, h b h' p,
   Inf    := λs, ∀a:Prop, a∈s → a,
   Inf_le := assume s a h p, p a h,
   le_Inf := assume s a h p b hb, h b hb p,
-  .. bounded_distrib_lattice_Prop }
+  .. Prop.bounded_distrib_lattice }
 
 @[simp] lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
 

@@ -373,6 +373,17 @@ set.image_subset_iff
 lemma gc_map_comap (f : R →+* S) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
 
+/-- A subring is isomorphic to its image under an injective function -/
+noncomputable def equiv_map_of_injective
+  (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
+  map_add' := λ _ _, subtype.ext (f.map_add _ _),
+  ..equiv.set.image f s hf  }
+
+@[simp] lemma coe_equiv_map_of_injective_apply
+  (f : R →+* S) (hf : function.injective f) (x : s) :
+  (equiv_map_of_injective s f hf x : S) = f x := rfl
+
 end subring
 
 namespace ring_hom
@@ -407,6 +418,12 @@ def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
   map_zero' := subtype.eq f.map_zero,
   map_mul' := λ x y, subtype.eq $ f.map_mul x y,
   map_one' := subtype.eq f.map_one }
+
+/-- The range of a ring homomorphism is a fintype, if the domain is a fintype.
+Note: this instance can form a diamond with `subtype.fintype` in the
+  presence of `fintype S`. -/
+instance fintype_range [fintype R] [decidable_eq S] (f : R →+* S) : fintype (range f) :=
+set.fintype_range f
 
 end ring_hom
 

@@ -2000,7 +2000,7 @@ namespace locally_constant
 variables {X G R : Type*} [topological_space X] [normed_group G] [normed_ring R]
 
 def to_continuous_map_monoid_hom : locally_constant X G →+ C(X, G) :=
-{ to_fun    := to_continuous_map,
+{ to_fun    := coe,
   map_zero' := by { ext, simp, },
   map_add'  := λ x y, by { ext, simp, }, }
 
@@ -2009,7 +2009,7 @@ def to_continuous_map_monoid_hom : locally_constant X G →+ C(X, G) :=
 rfl
 
 def to_continuous_map_linear_map : locally_constant X R →ₗ[R] C(X, R) :=
-{ to_fun    := to_continuous_map,
+{ to_fun    := coe,
   map_add'  := λ x y, by { ext, simp, },
   map_smul' := λ x y, by { ext, simp, }, }
 

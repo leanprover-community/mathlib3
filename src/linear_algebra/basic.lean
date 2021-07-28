@@ -2591,7 +2591,7 @@ end
 
 lemma map_equiv_eq_comap_symm (e : M ≃ₗ[R] M₂) (K : submodule R M) :
   K.map (e : M →ₗ[R] M₂) = K.comap e.symm :=
-set_like.coe_injective (f.to_equiv.image_eq_preimage K)
+submodule.ext (λ _, by rw [mem_map_equiv, mem_comap, linear_equiv.coe_coe])
 
 lemma comap_equiv_eq_map_symm (e : M ≃ₗ[R] M₂) (K : submodule R M₂) :
   K.comap (e : M →ₗ[R] M₂) = K.map e.symm :=

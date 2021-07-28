@@ -2019,9 +2019,12 @@ rfl
 
 def to_continuous_map_alg_hom {R : Type*} [normed_comm_ring R] :
   locally_constant X R →ₐ[R] C(X, R) :=
-alg_hom.of_linear_map to_continuous_map_linear_map
-  (by { ext, simp only [coe_to_continuous_map_linear_map, coe_one, continuous_map.coe_one], })
-  (λ f g, by { ext, simp only [coe_to_continuous_map_linear_map, coe_mul, continuous_map.coe_mul] })
+{ to_fun    := coe,
+  map_one'  := by { ext, simp, },
+  map_mul'  := λ x y, by { ext, simp, },
+  map_zero' := by { ext, simp, },
+  map_add'  := λ x y, by { ext, simp, },
+  commutes' := λ x, by { ext y, simp, }, }
 
 @[simp] lemma coe_to_continuous_map_alg_hom
   {R : Type*} [normed_comm_ring R] (f : locally_constant X R) :

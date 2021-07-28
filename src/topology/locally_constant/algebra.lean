@@ -57,6 +57,13 @@ def coe_fn_monoid_hom [mul_one_class Y] : locally_constant X Y →* (X → Y) :=
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
 
+/-- The constant-function embedding, as a multiplicative monoid hom. -/
+@[to_additive "The constant-function embedding, as an additive monoid hom.", simps]
+def const_monoid_hom [mul_one_class Y] : Y →* locally_constant X Y :=
+{ to_fun   := const X,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl, }
+
 instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
 { zero_mul := by { intros, ext, simp only [mul_apply, zero_apply, zero_mul] },
   mul_zero := by { intros, ext, simp only [mul_apply, zero_apply, mul_zero] },
@@ -120,10 +127,8 @@ instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
 /-- The constant-function embedding, as a ring hom.  -/
 @[simps] def const_ring_hom [non_assoc_semiring Y] : Y →+* locally_constant X Y :=
 { to_fun    := const X,
-  map_one'  := rfl,
-  map_mul'  := λ _ _, rfl,
-  map_zero' := rfl,
-  map_add'  := λ _ _, rfl, }
+  .. const_monoid_hom,
+  .. const_add_monoid_hom, }
 
 instance [semiring Y] : semiring (locally_constant X Y) :=
 { .. locally_constant.add_comm_monoid, .. locally_constant.monoid,

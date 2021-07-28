@@ -1997,11 +1997,11 @@ end uniform_space
 
 namespace locally_constant
 
-variables {X Y : Type*} [topological_space X] (f : locally_constant X Y)
+variables {X Y : Type*} [topological_space X] [topological_space Y] (f : locally_constant X Y)
 
 section monoid_hom
 
-variables [monoid Y] [topological_space Y] [has_continuous_mul Y]
+variables [monoid Y] [has_continuous_mul Y]
 
 /-- The inclusion of locally-constant functions into continuous functions as a multiplicative
 monoid hom. -/
@@ -2021,8 +2021,7 @@ end monoid_hom
 section linear_map
 
 variables (R : Type*) [semiring R] [topological_space R]
-variables [add_comm_monoid Y] [module R Y]
-variables [topological_space Y] [has_continuous_add Y] [has_continuous_smul R Y]
+variables [add_comm_monoid Y] [module R Y] [has_continuous_add Y] [has_continuous_smul R Y]
 
 /-- The inclusion of locally-constant functions into continuous functions as a linear map. -/
 def to_continuous_map_linear_map : locally_constant X Y →ₗ[R] C(X, Y) :=
@@ -2039,8 +2038,7 @@ end linear_map
 section alg_hom
 
 variables (R : Type*) [comm_semiring R] [topological_space R]
-variables [semiring Y] [algebra R Y]
-variables [topological_space Y] [topological_semiring Y] [has_continuous_smul R Y]
+variables [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_smul R Y]
 
 /-- The inclusion of locally-constant functions into continuous functions as an algebra map. -/
 def to_continuous_map_alg_hom : locally_constant X Y →ₐ[R] C(X, Y) :=

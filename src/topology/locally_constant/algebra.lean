@@ -170,8 +170,8 @@ instance : algebra R (locally_constant X Y) :=
   commutes'   := by { intros, ext, exact algebra.commutes' _ _, },
   smul_def'   := by { intros, ext, exact algebra.smul_def' _ _, }, }
 
-@[simp] lemma coe_algebra_map :
-  (algebra_map R _ : R → locally_constant X Y) = (const X) ∘ (algebra_map R Y) :=
+@[simp] lemma coe_algebra_map (r : R) :
+  ⇑(algebra_map R (locally_constant X Y) r) = algebra_map R (X → Y) r :=
 rfl
 
 end algebra

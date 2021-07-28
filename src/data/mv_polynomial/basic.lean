@@ -159,16 +159,12 @@ lemma C_injective (σ : Type*) (R : Type*) [comm_semiring R] :
   function.injective (C : R → mv_polynomial σ R) :=
 finsupp.single_injective _
 
-lemma C_surjective {R : Type*} [comm_semiring R] (σ : Type*) (hσ : ¬ nonempty σ) :
+lemma C_surjective {R : Type*} [comm_semiring R] (σ : Type*) [is_empty σ] :
   function.surjective (C : R → mv_polynomial σ R) :=
 begin
   refine λ p, ⟨p.to_fun 0, finsupp.ext (λ a, _)⟩,
-  simpa [(finsupp.ext (λ x, absurd (nonempty.intro x) hσ) : a = 0), C_apply, monomial],
+  simpa [(finsupp.ext is_empty_elim : a = 0), C_apply, monomial],
 end
-
-lemma C_surjective_fin_0 {R : Type*} [comm_ring R] :
-  function.surjective (mv_polynomial.C : R → mv_polynomial (fin 0) R) :=
-C_surjective (fin 0) (λ h, let ⟨n⟩ := h in fin_zero_elim n)
 
 @[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_semiring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
@@ -423,7 +419,7 @@ begin
   rw mul_def,
   -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij_ne_zero`,
   -- so we need to turn both sides into a sum over a product.
-  have := @finset.sum_product (σ →₀ ℕ) R _ _ p.support q.support
+  have := @finset.sum_product R (σ →₀ ℕ) _ _ p.support q.support
     (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
   convert this.symm using 1; clear this,
   { rw [coeff],

@@ -122,6 +122,11 @@ lemma submodule.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
+  s.topological_closure ≤ t.topological_closure :=
+s.topological_closure_minimal (h.trans t.submodule_topological_closure)
+  t.is_closed_topological_closure
+
 end closure
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
@@ -190,7 +195,7 @@ by { intros f g H, cases f, cases g, congr' }
   (f : M →ₗ[R] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem coe_fn_injective : @function.injective (M →L[R] M₂) (M → M₂) coe_fn :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
@@ -236,6 +241,28 @@ lemma ext_on [t2_space M₂] {s : set M} (hs : dense (submodule.span R s : set M
   (h : set.eq_on f g s) :
   f = g :=
 ext $ λ x, eq_on_closure_span h (hs x)
+
+/-- Under a continuous linear map, the image of the `topological_closure` of a submodule is
+contained in the `topological_closure` of its image. -/
+lemma _root_.submodule.topological_closure_map [topological_space R] [has_continuous_smul R M]
+  [has_continuous_add M] [has_continuous_smul R M₂] [has_continuous_add M₂] (f : M →L[R] M₂)
+  (s : submodule R M) :
+  (s.topological_closure.map ↑f) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
+image_closure_subset_closure_image f.continuous
+
+/-- Under a dense continuous linear map, a submodule whose `topological_closure` is `⊤` is sent to
+another such submodule.  That is, the image of a dense set under a map with dense range is dense.
+-/
+lemma _root_.dense_range.topological_closure_map_submodule [topological_space R]
+  [has_continuous_smul R M] [has_continuous_add M] [has_continuous_smul R M₂]
+  [has_continuous_add M₂] {f : M →L[R] M₂} (hf' : dense_range f) {s : submodule R M}
+  (hs : s.topological_closure = ⊤) :
+  (s.map (f : M →ₗ[R] M₂)).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [submodule.topological_closure_coe, submodule.top_coe, ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image f.continuous hs
+end
 
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_zero⟩⟩
@@ -745,10 +772,10 @@ end ring
 
 section smul
 
-variables {R S : Type*} [ring R] [ring S] [topological_space S]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M]
-  {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
-  {M₃ : Type*} [topological_space M₃] [add_comm_group M₃] [module R M₃]
+variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
   [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
 
 instance : has_scalar S (M →L[R] M₃) :=

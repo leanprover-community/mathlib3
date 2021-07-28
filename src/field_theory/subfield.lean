@@ -300,6 +300,12 @@ by { ext, simp }
 lemma map_field_range : f.field_range.map g = (g.comp f).field_range :=
 by simpa only [field_range_eq_map] using (⊤ : subfield K).map_map g f
 
+/-- The range of a morphism of fields is a fintype, if the domain is a fintype.
+
+Note that this instance can cause a diamond with `subtype.fintype` if `L` is also a fintype.-/
+instance fintype_field_range [fintype K] [decidable_eq L] (f : K →+* L) : fintype f.field_range :=
+set.fintype_range f
+
 end ring_hom
 
 namespace subfield

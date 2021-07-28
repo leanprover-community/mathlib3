@@ -300,6 +300,15 @@ instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
 example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
 example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
 
+lemma coe_smul {R} [monoid R] (r : R) (s : ℝ≥0) [mul_action R ℝ≥0] [has_scalar R ℝ≥0∞]
+  [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
+  (↑(r • s) : ℝ≥0∞) = r • ↑s :=
+begin
+  rw ←smul_one_smul ℝ≥0 r (s: ℝ≥0∞),
+  change ↑(r • s) = ↑(r • (1 : ℝ≥0)) * ↑s,
+  rw [←ennreal.coe_mul, smul_mul_assoc, one_mul],
+end
+
 end actions
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
@@ -1133,6 +1142,9 @@ begin
   exact h r hr
 end
 
+lemma le_of_forall_pos_nnreal_lt {x y : ℝ≥0∞} (h : ∀ r : ℝ≥0, 0 < r → ↑r < x → ↑r ≤ y) : x ≤ y :=
+le_of_forall_nnreal_lt $ λ r hr, (zero_le r).eq_or_lt.elim (λ h, h ▸ zero_le _) (λ h0, h r h0 hr)
+
 lemma eq_top_of_forall_nnreal_le {x : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r ≤ x) : x = ∞ :=
 top_unique $ le_of_forall_nnreal_lt $ λ r hr, h r
 
@@ -1406,6 +1418,16 @@ begin
   simp only [coe_eq_coe, nnreal.coe_eq, coe_to_real],
 end
 
+lemma to_real_smul (r : ℝ≥0) (s : ℝ≥0∞) :
+  (r • s).to_real = r • s.to_real :=
+begin
+  induction s using with_top.rec_top_coe,
+  { rw [show r • ∞ = (r : ℝ≥0∞) * ∞, by refl],
+    simp only [ennreal.to_real_mul_top, ennreal.top_to_real, smul_zero] },
+  { rw [← coe_smul, ennreal.coe_to_real, ennreal.coe_to_real],
+    refl }
+end
+
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/
 def to_nnreal_hom : ℝ≥0∞ →* ℝ≥0 :=
 { to_fun := ennreal.to_nnreal,
@@ -1519,20 +1541,36 @@ finset.induction_on s (by simp) $ assume a s ha ih,
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
 
+/-- If `x ≠ 0` and `x ≠ ∞`, then right multiplication by `x` maps infimum to infimum.
+See also `ennreal.infi_mul` that assumes `[nonempty ι]` but does not require `x ≠ 0`. -/
+lemma infi_mul_of_ne {ι} {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h0 : x ≠ 0) (h : x ≠ ∞) :
+  infi f * x = ⨅ i, f i * x :=
+le_antisymm
+  mul_right_mono.map_infi_le
+  ((div_le_iff_le_mul (or.inl h0) $ or.inl h).mp $ le_infi $
+    λ i, (div_le_iff_le_mul (or.inl h0) $ or.inl h).mpr $ infi_le _ _)
 
+/-- If `x ≠ ∞`, then right multiplication by `x` maps infimum over a nonempty type to infimum. See
+also `ennreal.infi_mul_of_ne` that assumes `x ≠ 0` but does not require `[nonempty ι]`. -/
 lemma infi_mul {ι} [nonempty ι] {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h : x ≠ ∞) :
-  infi f * x = ⨅i, f i * x :=
+  infi f * x = ⨅ i, f i * x :=
 begin
-  by_cases h2 : x = 0, simp only [h2, mul_zero, infi_const],
-  refine le_antisymm
-    (le_infi $ λ i, mul_right_mono $ infi_le _ _)
-    ((div_le_iff_le_mul (or.inl h2) $ or.inl h).mp $ le_infi $
-      λ i, (div_le_iff_le_mul (or.inl h2) $ or.inl h).mpr $ infi_le _ _)
+  by_cases h0 : x = 0,
+  { simp only [h0, mul_zero, infi_const] },
+  { exact infi_mul_of_ne h0 h }
 end
 
+/-- If `x ≠ ∞`, then left multiplication by `x` maps infimum over a nonempty type to infimum. See
+also `ennreal.mul_infi_of_ne` that assumes `x ≠ 0` but does not require `[nonempty ι]`. -/
 lemma mul_infi {ι} [nonempty ι] {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h : x ≠ ∞) :
-  x * infi f = ⨅i, x * f i :=
-by { rw [mul_comm, infi_mul h], simp only [mul_comm], assumption }
+  x * infi f = ⨅ i, x * f i :=
+by simpa only [mul_comm] using infi_mul h
+
+/-- If `x ≠ 0` and `x ≠ ∞`, then left multiplication by `x` maps infimum to infimum.
+See also `ennreal.mul_infi` that assumes `[nonempty ι]` but does not require `x ≠ 0`. -/
+lemma mul_infi_of_ne {ι} {f : ι → ℝ≥0∞} {x : ℝ≥0∞} (h0 : x ≠ 0) (h : x ≠ ∞) :
+  x * infi f = ⨅ i, x * f i :=
+by simpa only [mul_comm] using infi_mul_of_ne h0 h
 
 /-! `supr_mul`, `mul_supr` and variants are in `topology.instances.ennreal`. -/
 

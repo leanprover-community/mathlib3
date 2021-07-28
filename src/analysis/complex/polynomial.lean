@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import analysis.special_functions.pow
 import field_theory.algebraic_closure
-import topology.algebra.polynomial
 
 /-!
 # The fundamental theorem of algebra

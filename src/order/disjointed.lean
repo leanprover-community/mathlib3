@@ -33,7 +33,7 @@ def disjointed (f : ℕ → α) : ℕ → α
 | 0       := f 0
 | (n + 1) := f (n + 1) \ (partial_sups f n)
 
-lemma disjointed_zero (f : ℕ → α) : disjointed f 0 = f 0 := rfl
+@[simp] lemma disjointed_zero (f : ℕ → α) : disjointed f 0 = f 0 := rfl
 
 lemma disjointed_succ (f : ℕ → α) (n : ℕ) :
   disjointed f (n + 1) = f (n + 1) \ (partial_sups f n) :=
@@ -61,27 +61,29 @@ end
 
 /-- An induction principle for `disjointed`. To define/prove something on `disjointed f n`, it's
 enough to define/prove it for `f n` and being able to extend through diffs. -/
-def disjointed_induct {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i)) :
+def disjointed_rec {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i)) :
   ∀ ⦃n⦄, p (f n) → p (disjointed f n)
 | 0       := id
 | (n + 1) := λ h,
   begin
-    rw disjointed_succ,
     suffices H : ∀ k, p (f (n + 1) \ partial_sups f k),
     { exact H n },
     rintro k,
     induction k with k ih,
-    { rw partial_sups_zero,
-      exact hdiff h },
+    { exact hdiff h },
+    convert hdiff ih using 1,
     rw [partial_sups_succ, ←sdiff_sdiff_left],
-    exact hdiff ih,
   end
+
+@[simp] lemma disjointed_rec_zero {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i))
+  {n : ℕ} (h₀ : p (f 0)) :
+  disjointed_rec hdiff h₀ = h₀ := rfl
 
 lemma monotone.disjointed_eq {f : ℕ → α} (hf : monotone f) (n : ℕ) :
   disjointed f (n + 1) = f (n + 1) \ f n :=
 by rw [disjointed_succ, hf.partial_sups_eq]
 
-lemma partial_sups_disjointed (f : ℕ → α) :
+@[simp] lemma partial_sups_disjointed (f : ℕ → α) :
   partial_sups (disjointed f) = partial_sups f :=
 begin
   ext n,
@@ -118,7 +120,7 @@ variables [complete_boolean_algebra α]
 lemma le_supr_disjointed (f : ℕ → α) (n : ℕ) : f n ≤ ⨆ i ≤ n, disjointed f i :=
 by { rw [←partial_sups_eq_supr, partial_sups_disjointed], exact le_partial_sups _ _ }
 
-lemma supr_disjointed_eq (f : ℕ → α) : (⨆ n, disjointed f n) = (⨆ n, f n) :=
+lemma supr_disjointed (f : ℕ → α) : (⨆ n, disjointed f n) = (⨆ n, f n) :=
 (supr_le_supr (λ n, disjointed_le f n)).antisymm
   (supr_le (λ i, (le_supr_disjointed _ _).trans (bsupr_le_supr _ _)))
 
@@ -143,4 +145,4 @@ lemma disjointed_subset (f : ℕ → set α) (n : ℕ) : disjointed f n ⊆ f n 
 disjointed_le f n
 
 lemma Union_disjointed {f : ℕ → set α} : (⋃ n, disjointed f n) = (⋃ n, f n) :=
-supr_disjointed_eq f
+supr_disjointed f

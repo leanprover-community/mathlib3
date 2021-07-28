@@ -593,7 +593,7 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
       rw measure_Union,
       { assume m n hmn,
         exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
-          (disjoint_disjointed m n hmn), },
+          (disjoint_disjointed _ m n hmn), },
       { exact (λ n, hA.inter (C_meas n)) } },
     have : ∀ n, ∃ U, is_open U ∧ (A ∩ C n ⊆ U) ∧ (μ U ≤ μ (A ∩ C n) + δ n),
     { assume n,

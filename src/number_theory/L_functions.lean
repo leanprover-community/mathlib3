@@ -44,8 +44,6 @@ locally_constant.to_continuous_map
 abbreviation inclusion' (A : Type*) [normed_comm_ring A]: locally_constant X A →ₗ[A] C(X, A) :=
 locally_constant.to_continuous_map_linear_map A
 
-open classical
-
 noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R]
   (U : clopen_sets X) : locally_constant X R :=
 {
@@ -59,10 +57,6 @@ noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topologica
         rintros y hy, rw set.mem_compl_iff at h, rw set.mem_compl_iff at hy, simp [h, hy], },
     end,
 }
-
-open_locale topological_space filter
-
-open topological_space.is_topological_basis
 
 lemma is_basis_iff_cover' {H : Type*} [topological_space H] {B : set (set H)}
   (h : topological_space.is_topological_basis B) : ∀ (U : set H) (hU : is_open U),

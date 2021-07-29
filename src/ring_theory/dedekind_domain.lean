@@ -416,7 +416,7 @@ lemma exists_not_mem_one_of_ne_bot [is_dedekind_domain A]
   (hNF : ¬ is_field A) {I : ideal A} (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) :
   ∃ x : K, x ∈ (I⁻¹ : fractional_ideal A⁰ K) ∧ x ∉ (1 : fractional_ideal A⁰ K) :=
 begin
-  -- WlOG, let `I` be maximal.
+  -- WLOG, let `I` be maximal.
   suffices : ∀ {M : ideal A} (hM : M.is_maximal),
     ∃ x : K, x ∈ (M⁻¹ : fractional_ideal A⁰ K) ∧ x ∉ (1 : fractional_ideal A⁰ K),
   { obtain ⟨M, hM, hIM⟩ : ∃ (M : ideal A), is_maximal M ∧ I ≤ M := ideal.exists_le_maximal I hI1,

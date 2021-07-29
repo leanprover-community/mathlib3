@@ -203,8 +203,6 @@ end of_le
 /--
 When X is discrete, there is a `semilattice_inf_bot` instance on `discrete_quotient X`
 -/
--- variables [discrete_topology X]
-
 instance [discrete_topology X] : semilattice_inf_bot (discrete_quotient X) :=
 { bot :=
   { rel := λ a b , a = b,

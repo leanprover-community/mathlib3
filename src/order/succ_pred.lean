@@ -18,7 +18,7 @@ import order.bounded_lattice
 (succ_le_of_lt : ∀ {a b}, a < b → succ a ≤ b)
 (le_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b)
 
-open succ_order
+open function succ_order
 
 variables {α : Type*}
 
@@ -51,30 +51,12 @@ begin
     maximal_of_succ_le (hba.trans h) (((le_succ b).trans hba).trans_lt hc)),
 end
 
-end preorder
-
-section partial_order
-variables [partial_order α]
-
-lemma le_le_succ_iff [succ_order α] {a b : α} : a ≤ b ∧ b ≤ succ a ↔ b = a ∨ b = succ a :=
-begin
-  split,
-  { rintro h,
-    rw or_iff_not_imp_left,
-    exact λ hba, h.2.antisymm (succ_le_of_lt $ h.1.lt_of_ne $ ne.symm hba) },
-  rintro (rfl | rfl),
-  { exact ⟨le_rfl, le_succ b⟩ },
-  { exact ⟨le_succ a, le_rfl⟩ }
-end
-
-end partial_order
-
 section no_top_order
-variables [preorder α] [no_top_order α] [succ_order α]
+variables [no_top_order α]
 
 lemma lt_succ (a : α) :
   a < succ a :=
-(le_succ a).lt_of_not_le (λ h, not_exists.mpr (maximal_of_succ_le h) (no_top a))
+(le_succ a).lt_of_not_le (λ h, not_exists.2 (maximal_of_succ_le h) (no_top a))
 
 lemma lt_succ_iff_le {a b : α} :
   a < succ b ↔ a ≤ b :=
@@ -86,13 +68,68 @@ lemma lt_iff_succ_le {a b : α} :
 
 @[simp] lemma succ_le_succ_iff {a b : α} :
   succ a ≤ succ b ↔ a ≤ b :=
-⟨λ h, le_of_lt_succ ((lt_succ a).trans_le h), λ h, succ_le_of_lt (h.trans_lt (lt_succ b))⟩
+⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
 
 @[simp] lemma succ_lt_succ_iff {a b : α} :
   succ a < succ b ↔ a < b :=
 by simp_rw [lt_iff_le_not_le, succ_le_succ_iff]
 
 end no_top_order
+
+end preorder
+
+section partial_order
+variables [partial_order α]
+
+instance : subsingleton (succ_order α) :=
+begin
+  refine subsingleton.intro (λ h₀ h₁, _),
+  ext a,
+  by_cases ha : @succ _ _ h₀ a ≤ a,
+  { refine (ha.trans (@le_succ _ _ h₁ a)).antisymm _,
+    by_contra H,
+    exact @maximal_of_succ_le _ _ h₀ _ ha _
+      ((@le_succ _ _ h₁ a).lt_of_not_le $ λ h, H $ h.trans $ @le_succ _ _ h₀ a) },
+  exact (@succ_le_of_lt _ _ h₀ _ _ $ (@le_succ _ _ h₁ a).lt_of_not_le $ λ h,
+    @maximal_of_succ_le _ _ h₁ _ h _ $ (@le_succ _ _ h₀ a).lt_of_not_le ha).antisymm
+    (@succ_le_of_lt _ _ h₁ _ _ $ (@le_succ _ _ h₀ a).lt_of_not_le ha),
+end
+
+variables [succ_order α]
+
+lemma le_le_succ_iff {a b : α} : a ≤ b ∧ b ≤ succ a ↔ b = a ∨ b = succ a :=
+begin
+  split,
+  { rintro h,
+    rw or_iff_not_imp_left,
+    exact λ hba, h.2.antisymm (succ_le_of_lt $ h.1.lt_of_ne $ ne.symm hba) },
+  rintro (rfl | rfl),
+  { exact ⟨le_rfl, le_succ b⟩ },
+  { exact ⟨le_succ a, le_rfl⟩ }
+end
+
+section no_top_order
+variables[no_top_order α]
+
+lemma succ_injective :
+  injective (succ : α → α) :=
+begin
+  rintro a b,
+  simp_rw [eq_iff_le_not_lt, succ_le_succ_iff, succ_lt_succ_iff],
+  exact id,
+end
+
+lemma succ_eq_succ_iff {a b : α} :
+  succ a = succ b ↔ a = b :=
+succ_injective.eq_iff
+
+lemma succ_ne_succ_iff {a b : α} :
+  succ a ≠ succ b ↔ a ≠ b :=
+succ_injective.ne_iff
+
+end no_top_order
+
+end partial_order
 
 section order_top
 variables [order_top α] [succ_order α]
@@ -126,6 +163,27 @@ begin
 end
 
 end order_bot
+
+section linear_order
+variables [linear_order α] [succ_order α]
+
+@[simp] lemma max_succ_succ {a b : α} :
+  max (succ a) (succ b) = succ (max a b) :=
+begin
+  obtain h | h := le_total a b,
+  { rw [max_eq_right h, max_eq_right (succ_le_succ_of_le h)] },
+  { rw [max_eq_left h, max_eq_left (succ_le_succ_of_le h)] }
+end
+
+@[simp] lemma min_succ_succ {a b : α} :
+  min (succ a) (succ b) = succ (min a b) :=
+begin
+  obtain h | h := le_total a b,
+  { rw [min_eq_left h, min_eq_left (succ_le_succ_of_le h)] },
+  { rw [min_eq_right h, min_eq_right (succ_le_succ_of_le h)] }
+end
+
+end linear_order
 
 /-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b` and `∀ a b, a < b + 1 ↔ a ≤ b`. -/
 class succ_eq_add_one_order (α : Type*) [preorder α] [has_add α] [has_one α] extends

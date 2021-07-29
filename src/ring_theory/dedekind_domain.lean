@@ -376,6 +376,12 @@ end is_dedekind_domain_inv
 
 variables [algebra A K] [is_fraction_ring A K]
 
+/-- Specialization of `exists_prime_spectrum_prod_le_and_ne_bot_of_domain` to Dedekind domains:
+Let `I : ideal A` be a nonzero ideal, where `A` is a Dedekind domain that is not a field.
+Then `exists_prime_spectrum_prod_le_and_ne_bot_of_domain` states we can find a product of prime
+ideals that is contained within `I`. This lemma extends that result by making the product minimal:
+let `M` be a maximal ideal that contains `I`, then the product including `M` is contained within `I`
+and the product excluding `M` is not contained within `I`. -/
 lemma exists_multiset_prod_cons_le_and_prod_not_le [is_dedekind_domain A]
   (hNF : ¬ is_field A) {I M : ideal A} (hI0 : I ≠ ⊥) (hIM : I ≤ M) [hM : M.is_maximal] :
   ∃ (Z : multiset (prime_spectrum A)),

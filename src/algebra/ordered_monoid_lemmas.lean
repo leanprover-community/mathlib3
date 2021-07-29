@@ -713,7 +713,7 @@ end right
 /--  The product of two strictly monotone functions is strictly monotone. -/
 @[to_additive
 "The sum of two strictly monotone functions is strictly monotone."]
-lemma strict_mono.mul_strict_mono [has_lt β] [preorder α]
+lemma strict_mono.mul' [has_lt β] [preorder α]
   [covariant_class α α (*) (<)] [covariant_class α α (function.swap (*)) (<)]
   (hf : strict_mono f) (hg : strict_mono g) :
   strict_mono (λ x, f x * g x) :=

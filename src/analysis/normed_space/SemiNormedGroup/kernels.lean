@@ -105,6 +105,7 @@ begin
   simp,
 end
 
+/-- Auxiliary definition for `has_cokernels SemiNormedGroup`. -/
 def is_colimit_cokernel_cocone {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
   is_colimit (cokernel_cocone f) :=
 is_colimit_aux _ (cokernel_lift f)
@@ -198,7 +199,6 @@ lemma explicit_cokernel_desc_norm_le {X Y Z : SemiNormedGroup.{u}}
 explicit_cokernel_desc_norm_le_of_norm_le w ∥ g ∥₊ (le_refl _)
 
 /-- The explicit cokernel is isomorphic to the usual cokernel. -/
-@[simps hom inv]
 def explicit_cokernel_iso {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
   explicit_cokernel f ≅ cokernel f :=
 (is_colimit_cokernel_cocone f).cocone_point_unique_up_to_iso (colimit.is_colimit _)
@@ -206,12 +206,12 @@ def explicit_cokernel_iso {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
 @[simp]
 lemma explicit_cokernel_iso_hom_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
   explicit_cokernel_π f ≫ (explicit_cokernel_iso f).hom = cokernel.π _ :=
-by simp [explicit_cokernel_π]
+by simp [explicit_cokernel_π, explicit_cokernel_iso]
 
 @[simp]
 lemma explicit_cokernel_iso_inv_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
   cokernel.π f ≫ (explicit_cokernel_iso f).inv = explicit_cokernel_π f :=
-by simp [explicit_cokernel_π]
+by simp [explicit_cokernel_π, explicit_cokernel_iso]
 
 @[simp]
 lemma explicit_cokernel_iso_hom_desc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y} {g : Y ⟶ Z}
@@ -219,7 +219,7 @@ lemma explicit_cokernel_iso_hom_desc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y}
   (explicit_cokernel_iso f).hom ≫ cokernel.desc f g w = explicit_cokernel_desc w :=
 begin
   ext1,
-  simp [explicit_cokernel_desc, explicit_cokernel_π],
+  simp [explicit_cokernel_desc, explicit_cokernel_π, explicit_cokernel_iso],
 end
 
 end explicit_cokernel

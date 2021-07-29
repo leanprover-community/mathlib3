@@ -693,6 +693,11 @@ eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
 
+/-- Group homomorphisms preserve division. -/
+@[simp, to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
+theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) : f (g / h) = (f g) / (f h) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul_inv g h]
+
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial.
 For the iff statement on the triviality of the kernel, see `monoid_hom.injective_iff'`.  -/
 @[to_additive /-" A homomorphism from an additive group to an additive monoid is injective iff
@@ -725,6 +730,7 @@ def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G 
 omit mM
 
 /-- Makes a group homomorphism from a proof that the map preserves right division `λ x y, x * y⁻¹`.
+See also `monoid_hom.of_map_div` for a version using `λ x y, x / y`.
 -/
 @[to_additive "Makes an additive group homomorphism from a proof that the map preserves
 the operation `λ a b, a + -b`. See also `add_monoid_hom.of_map_sub` for a version using
@@ -739,6 +745,16 @@ calc f (x * y) = f x * (f $ 1 * 1⁻¹ * y⁻¹)⁻¹ : by simp only [one_mul, o
 @[simp, to_additive] lemma coe_of_map_mul_inv {H : Type*} [group H] (f : G → H)
   (map_div : ∀ a b : G, f (a * b⁻¹) = f a * (f b)⁻¹) :
   ⇑(of_map_mul_inv f map_div) = f :=
+rfl
+
+/-- Define a morphism of additive groups given a map which respects ratios. -/
+@[to_additive /-"Define a morphism of additive groups given a map which respects difference."-/]
+def of_map_div {H : Type*} [group H] (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) : G →* H :=
+of_map_mul_inv f (by simpa only [div_eq_mul_inv] using hf)
+
+@[simp, to_additive]
+lemma coe_of_map_div {H : Type*} [group H] (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) :
+  ⇑(of_map_div f hf) = f :=
 rfl
 
 /-- If `f` is a monoid homomorphism to a commutative group, then `f⁻¹` is the homomorphism sending
@@ -777,20 +793,6 @@ add_decl_doc add_monoid_hom.has_sub
 @[simp, to_additive] lemma div_apply {M G} {mM : mul_one_class M} {gG : comm_group G}
   (f g : M →* G) (x : M) :
   (f / g) x = f x / g x := rfl
-
-/-- Group homomorphisms preserve division. -/
-@[simp, to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
-theorem map_div (f : G →* H) (g h : G) : f (g / h) = (f g) / (f h) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul_inv g h]
-
-/-- Define a morphism of additive groups given a map which respects ratios. -/
-@[to_additive /-"Define a morphism of additive groups given a map which respects difference."-/]
-def of_map_div (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) : G →* H :=
-of_map_mul_inv f (by simpa only [div_eq_mul_inv] using hf)
-
-@[simp, to_additive] lemma coe_of_map_div (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) :
-  ⇑(of_map_div f hf) = f :=
-rfl
 
 end monoid_hom
 

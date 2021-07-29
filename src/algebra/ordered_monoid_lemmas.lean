@@ -711,7 +711,7 @@ lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
 end right
 
 /--  The product of two strictly monotone functions is strictly monotone. -/
-@[to_additive
+@[to_additive strict_mono.add
 "The sum of two strictly monotone functions is strictly monotone."]
 lemma strict_mono.mul' [has_lt β] [preorder α]
   [covariant_class α α (*) (<)] [covariant_class α α (function.swap (*)) (<)]

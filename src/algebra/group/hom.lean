@@ -778,25 +778,21 @@ add_decl_doc add_monoid_hom.has_sub
   (f g : M →* G) (x : M) :
   (f / g) x = f x / g x := rfl
 
-end monoid_hom
+/-- Group homomorphisms preserve division. -/
+@[simp, to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
+theorem map_div (f : G →* H) (g h : G) : f (g / h) = (f g) / (f h) :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul_inv g h]
 
-namespace add_monoid_hom
+/-- Define a morphism of additive groups given a map which respects ratios. -/
+@[to_additive /-"Define a morphism of additive groups given a map which respects difference."-/]
+def of_map_div (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) : G →* H :=
+of_map_mul_inv f (by simpa only [div_eq_mul_inv] using hf)
 
-variables {A B : Type*} [add_zero_class A] [add_comm_group B] [add_group G] [add_group H]
-
-/-- Additive group homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, f.map_add_neg g h]
-
-/-- Define a morphism of additive groups given a map which respects difference. -/
-def of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) : G →+ H :=
-of_map_add_neg f (by simpa only [sub_eq_add_neg] using hf)
-
-@[simp] lemma coe_of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) :
-  ⇑(of_map_sub f hf) = f :=
+@[simp, to_additive] lemma coe_of_map_div (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) :
+  ⇑(of_map_div f hf) = f :=
 rfl
 
-end add_monoid_hom
+end monoid_hom
 
 section commute
 

@@ -114,7 +114,7 @@ rfl
 
 @[to_additive]
 lemma map_one₂ {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
-  (f : M →* N →* P) (m₁ m₂ : M) (n : N) : f 1 n = 1 :=
+  (f : M →* N →* P) (n : N) : f 1 n = 1 :=
 (flip f n).map_one
 
 @[to_additive]

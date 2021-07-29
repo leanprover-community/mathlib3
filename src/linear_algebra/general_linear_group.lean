@@ -66,14 +66,14 @@ end
 def GL_mul_equiv_general_linear_group : (GL n R) ≃* (linear_map.general_linear_group R ( n → R)) :=
 units.map_equiv to_lin_alg_equiv'.to_mul_equiv
 
-/--Given a matrix with unit determinant we get an element of `GL n R`-/
-noncomputable def GL.mk' (A: matrix n n R) (h: is_unit (det A)): GL n R:=
-⟨A, nonsing_inv A, by { apply mul_nonsing_inv, apply h,}, by  {apply nonsing_inv_mul, apply h, }⟩
 
 /--Given a matrix with invertible determinant we get an element of `GL n R`-/
- def GL.mk'' (A: matrix n n R) (h: invertible (det A)): GL n R:=
+ def GL.mk' (A: matrix n n R) (h: invertible (det A)): GL n R:=
 unit_of_det_invertible A
 
+/--Given a matrix with unit determinant we get an element of `GL n R`-/
+noncomputable def GL.mk'' (A: matrix n n R) (h: is_unit (det A)): GL n R:=
+nonsing_inv_unit A h
 
 
 end
@@ -173,8 +173,7 @@ end
 
 
 noncomputable instance SL_to_GL: has_coe (special_linear_group n R) (GL n R):=
- ⟨λ A,  ⟨A.1, nonsing_inv A.1, by {apply mul_nonsing_inv, apply sl_det_is_unit A,},
-  by  {apply nonsing_inv_mul, apply sl_det_is_unit A, } ⟩ ⟩
+⟨λ A, nonsing_inv_unit A (sl_det_is_unit A)⟩
 
 
 

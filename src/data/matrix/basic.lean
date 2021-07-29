@@ -1265,7 +1265,7 @@ end
 
 @[simp] lemma update_column_subsingleton [subsingleton m] (A : matrix n m R)
   (i : m) (b : n → R) :
-  A.update_column i b = λ i _, b i :=
+  A.update_column i b = (col b).minor id (function.const m ()) :=
 begin
   ext x y,
   have : i = y := by simp,
@@ -1274,7 +1274,7 @@ end
 
 @[simp] lemma update_row_subsingleton [subsingleton n] (A : matrix n m R)
   (i : n) (b : m → R)  :
-  A.update_row i b = λ _, b :=
+  A.update_row i b = (row b).minor (function.const n ()) id :=
 begin
   ext x y,
   have : i = x := by simp,

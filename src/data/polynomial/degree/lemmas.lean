@@ -165,6 +165,34 @@ lemma degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* 
   0 < degree p :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_eval₂_root hp f hz inj)
 
+/--  An induction principle for non-constant polynomials. -/
+@[elab_as_eliminator] lemma nat_degree_ne_zero_induction_on {M : polynomial R → Prop}
+  {f : polynomial R} (f0 : f.nat_degree ≠ 0) (h_C_add : ∀ a q, M q → M (C a + q))
+  (h_add : ∀ p q, M p → M q → M (p + q))
+  (h_monomial : ∀ (n : ℕ) (a : R), a ≠ 0 → n ≠ 0 → M (monomial n a)) :
+  M f :=
+suffices f.nat_degree = 0 ∨ M f, from or.dcases_on this (λ h, (f0 h).elim) id,
+begin
+  apply f.induction_on,
+  { exact λ a, or.inl (nat_degree_C _) },
+  { rintros p q (hp | hp) (hq | hq),
+    { refine or.inl _,
+      rw [eq_C_of_nat_degree_eq_zero hp, eq_C_of_nat_degree_eq_zero hq, ← C_add, nat_degree_C] },
+    { refine or.inr _,
+      rw [eq_C_of_nat_degree_eq_zero hp],
+      exact h_C_add _ _ hq },
+    { refine or.inr _,
+      rw [eq_C_of_nat_degree_eq_zero hq, add_comm],
+      exact h_C_add _ _ hp },
+    { exact or.inr (h_add _ _ hp hq) } },
+  { intros n a hi,
+    by_cases a0 : a = 0,
+    { exact or.inl (by rw [a0, C_0, zero_mul, nat_degree_zero]) },
+    { refine or.inr _,
+      rw C_mul_X_pow_eq_monomial,
+      exact h_monomial _ _ a0 n.succ_ne_zero } }
+end
+
 section injective
 open function
 variables {f : R →+* S} (hf : injective f)

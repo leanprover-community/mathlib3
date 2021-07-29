@@ -107,7 +107,7 @@ lemma algebra.biprod_apply [is_scalar_tower α R β] [is_scalar_tower α S β] (
 
 variables (R S β)
 
-@[simps]
+@[simps?]
 def kronecker_biprod [is_scalar_tower α R β] [is_scalar_tower α S β] :
   (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) β :=
 kronecker_map_linear $ algebra.biprod α β
@@ -136,8 +136,10 @@ theorem kronecker_biprod_mul (A : matrix l m R) (B : matrix m n R) (A' : matrix 
     (kronecker_biprod α R S β A A') ⬝ (kronecker_biprod α R S β B B') :=
 begin
   ext ⟨i, i'⟩ ⟨j, j'⟩,
-  simp only [mul_apply, kronecker_biprod, algebra_map_eq_smul_one, mul_one, algebra.mul_smul_comm,
-    linear_map.coe_mk, algebra.smul_mul_assoc, ← finset.univ_product_univ, finset.sum_product],
+  simp only [mul_apply, kronecker_biprod_apply_apply, algebra_map_eq_smul_one, mul_one,
+    algebra.mul_smul_comm,
+    linear_map.coe_mk, algebra.smul_mul_assoc, ← finset.univ_product_univ, finset.sum_product,
+    kronecker_map, algebra.biprod_apply],
   simp_rw [finset.sum_smul, finset.smul_sum, ← smul_eq_mul],
   repeat {apply finset.sum_congr, refl, intros _ _,},
   rw [is_scalar_tower.smul_assoc, id.smul_eq_mul (A' i' x_1) (B' x_1 j')],
@@ -153,11 +155,12 @@ theorem kronecker_biprod_assoc {T : Type*} [comm_semiring T] [algebra α T] [alg
     kronecker_biprod α R β β A (kronecker_biprod α S T β B C)
     :=
 begin
-  simp only [matrix.linear_equiv_index_assoc, kronecker_biprod, linear_map.coe_mk, id.map_eq_self,
+  simp only [matrix.linear_equiv_index_assoc, kronecker_biprod_apply_apply, linear_map.coe_mk,
+    id.map_eq_self,
     reindex_apply, linear_equiv.coe_mk],
   ext i j,
   simp only [equiv.prod_assoc_symm_apply, reindex_linear_equiv_apply, minor_apply, reindex_apply,
-    mul_assoc],
+    mul_assoc, kronecker_map, algebra.biprod_apply, id.map_eq_self],
 end
 
 end matrix_bialgebra

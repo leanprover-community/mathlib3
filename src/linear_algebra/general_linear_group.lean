@@ -1,4 +1,7 @@
 /-
+Copyright (c) 2020 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Birkbeck
 
 The Genera Linear group $GL(n, R)$
 -/
@@ -17,7 +20,7 @@ consisting of all invertible `n` by `n` `R`-matrices.
 
 ## Main definitions
 
- * `matrix.GL` is the type of matrices over R with unit determinant
+ * `matrix.general_linear_group` is the type of matrices over R with unit determinant
  * `matrix.GL.group` gives the group structure (under multiplication)
  * `matrix.GL_plus.GL_pos` gives the subgroup of matrices with
  positive determinant (over a linear ordered ring)
@@ -46,9 +49,9 @@ variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices
 -/
-abbreviation GL (R : Type*) [comm_ring R] :  Type* := units (matrix n n R )
+abbreviation general_linear_group (R : Type*) [comm_ring R] :  Type* := units (matrix n n R )
 
-
+notation `GL`:= general_linear_group
 
 
 
@@ -65,18 +68,20 @@ units.map_equiv to_lin_alg_equiv'.to_mul_equiv
 
 /--Given a matrix with unit determinant we get an element of `GL n R`-/
 noncomputable def GL.mk' (A: matrix n n R) (h: is_unit (det A)): GL n R:=
-⟨A, nonsing_inv A, by {apply mul_nonsing_inv, apply h,}, by  {apply nonsing_inv_mul, apply h, }⟩
+⟨A, nonsing_inv A, by { apply mul_nonsing_inv, apply h,}, by  {apply nonsing_inv_mul, apply h, }⟩
+
+/--Given a matrix with invertible determinant we get an element of `GL n R`-/
+ def GL.mk'' (A: matrix n n R) (h: invertible (det A)): GL n R:=
+unit_of_det_invertible A
+
+
 
 end
-namespace GL
+namespace general_linear_group
 
 
 
 variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
-
-instance coe_matrix : has_coe (GL n R) (matrix n n R) :=
-⟨λ A, A.val⟩
-
 
 instance coe_fun : has_coe_to_fun (GL n R) :=
 { F   := λ _, n → n → R,
@@ -93,7 +98,7 @@ dsimp at *, fsplit, work_on_goal 0 { intros a i j, induction a, refl }, intros a
 end
 
 @[ext] lemma ext (A B : GL n R) : (∀ i j, A i j = B i j) → A = B :=
-(GL.ext_iff A B).mpr
+(ext_iff A B).mpr
 
 
 
@@ -128,7 +133,7 @@ matrix.to_lin'_one
 
 
 
-noncomputable instance:  has_inv (GL n R):=
+noncomputable instance :  has_inv (GL n R):=
 ⟨λ A, ⟨nonsing_inv A, A, by {simp, apply nonsing_inv_mul, apply GL.is_unit_det _ _ A,},
 by { simp, apply mul_nonsing_inv, apply GL.is_unit_det _ _ A, }, ⟩⟩
 
@@ -155,7 +160,7 @@ noncomputable instance : group (GL n R) :=
   mul_one := λ u,  mul_one u,
   one_mul := λ u,  one_mul u,
   mul_assoc := λ u₁ u₂ u₃,  mul_assoc u₁ u₂ u₃,
-  inv := GL.has_inv.inv,
+  inv := general_linear_group.has_inv.inv,
   mul_left_inv := λ u,  by {apply is_left_inv,} }
 
 
@@ -190,7 +195,7 @@ rw h at this, simp at *, exact this,
 
 
 
-end GL
+end general_linear_group
 
 namespace GL_plus
 
@@ -200,7 +205,7 @@ variables  (n : Type u) [decidable_eq n] [fintype n] (R : Type v)
 
 lemma one_in_GL_pos : 0 < det (1:GL n R ) :=
 begin
-simp only [det_one, gt_iff_lt, GL.one_apply,zero_lt_one],
+simp only [det_one, gt_iff_lt, general_linear_group.one_apply,zero_lt_one],
 end
 
 

@@ -362,17 +362,27 @@ lemma is_clopen_discrete {α : Type*} [topological_space α] [discrete_topology 
   is_clopen ({b} : set α) :=
  ⟨is_open_discrete _, is_closed_discrete _⟩
 
-def clopen_basis' :=
+def clopen_from (n : ℕ) (a : zmod (d * (p^n))) : clopen_sets (zmod d × ℤ_[p]) :=
+⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+    is_clopen_prod (is_clopen_discrete (a : zmod d))
+      (proj_lim_preimage_clopen p d n a) ⟩
+
+@[reducible] def clopen_basis' :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
   x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
     is_clopen_prod (is_clopen_discrete (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩ }
 
-lemma mem_clopen_basis' (U : clopen_sets ((zmod d) × ℤ_[p])) (hU : U ∈ clopen_basis' p d) :
-  ∃ (n : ℕ) (a : zmod (d * (p^n))),
-  U = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
-    is_clopen_prod (is_clopen_discrete (a : zmod d))
-      (proj_lim_preimage_clopen p d n a) ⟩ := sorry
+example (n : ℕ) (a : zmod (d * (p^n))) : clopen_basis' p d :=
+⟨clopen_from p d n a, ⟨n, a, rfl⟩⟩
+
+example (U : clopen_basis' p d) : clopen_sets (zmod d × ℤ_[p]) := U.val
+
+-- lemma mem_clopen_basis' (U : clopen_sets ((zmod d) × ℤ_[p])) (hU : U ∈ clopen_basis' p d) :
+--   ∃ (n : ℕ) (a : zmod (d * (p^n))),
+--   U = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+--     is_clopen_prod (is_clopen_discrete (a : zmod d))
+--       (proj_lim_preimage_clopen p d n a) ⟩ := sorry
 
 /-def clopen_basis' : set (clopen_sets ((zmod d) × ℤ_[p])) :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) | ∃ (n : ℕ) (a : zmod (p^n)) (b : zmod d),
@@ -537,37 +547,55 @@ end
 --ℤ_[p] is now profinite!
 --instance sigh : totally_disconnected_space (zmod d × ℤ_[p]) := infer_instance
 
+
+
+/-
+@[reducible] def clopen_basis' :=
+{x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
+  x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+    is_clopen_prod (is_clopen_discrete (a : zmod d))
+      (proj_lim_preimage_clopen p d n a) ⟩ }
+-/
 variables [fact (0 < d)]
 def bernoulli_measure (hc : gcd c p = 1) :=
 {x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
-  ∀ U : (clopen_basis' p d), x (char_fn (zmod d × ℤ_[p]) U.val) =
-    E_c p d hc (classical.some U.prop) (classical.some (classical.some_spec U.prop)) }
+  ∀ (n : ℕ) (a : zmod (d * (p^n))), x (char_fn (zmod d × ℤ_[p]) ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+    is_clopen_prod (is_clopen_discrete (a : zmod d))
+      (proj_lim_preimage_clopen p d n a) ⟩) =
+    E_c p d hc n a }
 
+/-
+@[reducible] def clopen_basis' :=
+{x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
+  x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+    is_clopen_prod (is_clopen_discrete (a : zmod d))
+      (proj_lim_preimage_clopen p d n a) ⟩ }
+-/
 variables (d)
 
 open_locale big_operators
 
-lemma what_to_do (f : locally_constant (zmod d × ℤ_[p]) R) : ∃ (s : finset ℕ)
-  (j : s → R) (i : s → (clopen_basis' p d)), f = ∑ k : s, j(k) • (char_fn (zmod d × ℤ_[p]) (i k)) :=
-begin
-  sorry,
-end
+-- lemma what_to_do (f : locally_constant (zmod d × ℤ_[p]) R) : ∃ (s : finset ℕ)
+--   (j : s → R) (i : s → (clopen_basis' p d)), f = ∑ k : s, j(k) • (char_fn (zmod d × ℤ_[p]) (i k)) :=
+-- begin
+--   sorry,
+-- end
 
-/-- To define a linear map on locally constant functions, it is sufficient to define it for
-  characteristic functions on the topological basis `clopen_basis'`. -/
-noncomputable lemma pls_work (f : clopen_basis' p d → R) : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R :=
-begin
-constructor, swap 3,
-{ intro g,
-  set s := classical.some (what_to_do p d R g) with hs,
- --     have hs := classical.some_spec (what_to_do p d R f),
-  set i := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R g))) with hi,
-  set j := classical.some (classical.some_spec (what_to_do p d R g)) with hj,
-  have hs' := classical.some_spec (classical.some_spec (classical.some_spec (what_to_do p d R g))),
-  exact ∑ k : s, j(k) * f(i(k)), },
-  { sorry, },
-  sorry,
-end
+-- /-- To define a linear map on locally constant functions, it is sufficient to define it for
+--   characteristic functions on the topological basis `clopen_basis'`. -/
+-- noncomputable lemma pls_work (f : clopen_basis' p d → R) : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R :=
+-- begin
+-- constructor, swap 3,
+-- { intro g,
+--   set s := classical.some (what_to_do p d R g) with hs,
+--  --     have hs := classical.some_spec (what_to_do p d R f),
+--   set i := classical.some (classical.some_spec (classical.some_spec (what_to_do p d R g))) with hi,
+--   set j := classical.some (classical.some_spec (what_to_do p d R g)) with hj,
+--   have hs' := classical.some_spec (classical.some_spec (classical.some_spec (what_to_do p d R g))),
+--   exact ∑ k : s, j(k) * f(i(k)), },
+--   { sorry, },
+--   sorry,
+-- end
 
 --import linear_algebra.finsupp
 variables (R' M N : Type*) [ring R'] [add_comm_group M] [add_comm_group N]
@@ -575,10 +603,7 @@ variables (R' M N : Type*) [ring R'] [add_comm_group M] [add_comm_group N]
 
 lemma mem_nonempty {α : Type*} {s : set α} {x : α} (h : x ∈ s) : nonempty s := ⟨⟨x, h⟩⟩
 
-def clopen_from (n : ℕ) (a : zmod (d * (p^n))) : clopen_basis' p d :=
-begin
-  fconstructor, constructor, swap, sorry, sorry, sorry,
-end
+
 
 instance : is_absolute_value (norm : R → ℝ) :=
 begin
@@ -622,7 +647,15 @@ noncomputable def g (hc : gcd c p = 1) (f : locally_constant (zmod d × ℤ_[p])
 lemma g_def (hc : gcd c p = 1) (f : locally_constant (zmod d × ℤ_[p]) R) (n : ℕ) :
   (g p d R hc f).to_seq n = ∑ a in (finset.range (d * p^n)),f(a) • ((E_c p d hc n a) : R) := rfl
 
-example (U : clopen_basis' p d) : clopen_sets (zmod d × ℤ_[p]) := ↑U
+/-
+def clopen_basis' :=
+{x : clopen_sets ((zmod d) × ℤ_[p]) // ∃ (n : ℕ) (a : zmod (d * (p^n))),
+  x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
+    is_clopen_prod (is_clopen_discrete (a : zmod d))
+      (proj_lim_preimage_clopen p d n a) ⟩ }
+-/
+example (U : clopen_basis' p d) : clopen_sets (zmod d × ℤ_[p]) := U
+
 
 lemma char_fn_clopen_basis' (U : clopen_basis' p d) :
   char_fn _ U.val (coe (classical.some (classical.some_spec U.prop))) = (1 : R) :=
@@ -630,43 +663,35 @@ sorry
 
 example {α : Type*} (s : set α) : s = {x : α | x ∈ s} := by simp only [set.set_of_mem_eq]
 
-lemma ideally_not_needed (x : clopen_sets (zmod d × ℤ_[p])) (h : x ∈ clopen_basis' p d) :
-  clopen_basis' p d := ⟨x, h⟩
+-- lemma ideally_not_needed (x : clopen_sets (zmod d × ℤ_[p])) (h : x ∈ clopen_basis' p d) :
+--   clopen_basis' p d := ⟨x, h⟩
 
 example (a b : R) (h : a + b = a) : b = 0 := add_right_eq_self.mp (congr_fun (congr_arg has_add.add h) b)
 
-example : clopen_basis' p d = {x // x ∈ clopen_basis' p d}
+--example : clopen_basis' p d = {x // x ∈ clopen_basis' p d}
 
-lemma blahs : has_lift_t (clopen_basis' p d) (clopen_sets (zmod d × ℤ_[p])) :=
+--lemma blahs : has_lift_t (clopen_basis' p d) (clopen_sets (zmod d × ℤ_[p])) :=
 
-example (U : clopen_sets (zmod d × ℤ_[p])) (hU : U ∈ clopen_basis' p d) : clopen_basis' p d := ⟨U, hU⟩
+--example (U : clopen_sets (zmod d × ℤ_[p])) (hU : U ∈ clopen_basis' p d) : clopen_basis' p d := ⟨U, hU⟩
 
 instance : semilattice_sup ℕ := infer_instance
 
-set_option pp.proofs true
+-- set_option pp.proofs true
 
 -- can hd be removed?
 lemma bernoulli_measure_nonempty (hc : gcd c p = 1) [hd : ∀ n : ℕ, fact (0 < d * p^n)] :
   nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
 begin
   refine mem_nonempty _,
-  { constructor, swap 3,
-    { intro f, --refine monotonic_sequence_limit _,
-      --set g := λ (n : ℕ), ∑ a in (finset.range (p^n)),f(a) • ((E_c p d hc n a) : R) with hg,
-      refine sequence_limit (g p d R hc f),
---      refine lim filter.at_top (g p d R hc f),
---      refine filter.tendsto (g p d R hc f) filter.at_top,
---      constructor, swap, use (sequence_limit g),
---      rintros a b h, rw hg, simp, sorry,
---      have : is_cau_seq norm g, sorry,
-    --refine cau_seq.lim ⟨g, this⟩,
-    },
+  refine { to_fun := λ f, sequence_limit (g p d R hc f),
+  map_add' := _,
+  map_smul' := _ },
   { rintros,
     set n := (sequence_limit_index' (g p d R hc (x + y))) ⊔ (sequence_limit_index' (g p d R hc x))
       ⊔ (sequence_limit_index' (g p d R hc y)) with hn,
     --rw sequence_limit_eq (g p d R hc (x + y)) n _,
     repeat { rw sequence_limit_eq (g p d R hc _) n _, },
-    { repeat { rw g_def p d R hc _ n, }, simp, rw ←finset.sum_add_distrib,
+    { repeat { rw g_def p d R hc _ n, }, simp only [algebra.id.smul_eq_mul, pi.add_apply, locally_constant.coe_add], rw ←finset.sum_add_distrib,
       apply finset.sum_congr, refl,
       rintros, rw add_mul, },
     { rw le_sup_iff, right, apply le_refl, },
@@ -676,16 +701,17 @@ begin
     set n := (sequence_limit_index' (g p d R hc x)) ⊔ (sequence_limit_index' (g p d R hc (m • x)))
       with hn,
     repeat { rw sequence_limit_eq (g p d R hc _) n _, },
-    { repeat { rw g_def p d R hc _ n, }, simp, rw finset.mul_sum,
+    { repeat { rw g_def p d R hc _ n, }, simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply], rw finset.mul_sum,
       apply finset.sum_congr, refl,
       rintros, rw mul_assoc, },
     { rw le_sup_iff, left, apply le_refl, },
-    { rw le_sup_iff, right, apply le_refl, }, }, }, --there has to be a less repetitive way of doing this
-    { rw bernoulli_measure, simp, rintros U,
+    { rw le_sup_iff, right, apply le_refl, }, }, --there has to be a less repetitive way of doing this
+    { rw bernoulli_measure, simp only [le_refl, algebra.id.smul_eq_mul, pi.add_apply, locally_constant.coe_add, linear_map.coe_mk, locally_constant.coe_smul,
+  subtype.forall, le_sup_iff, set.mem_set_of_eq, pi.smul_apply, subtype.coe_mk, set.singleton_prod, subtype.val_eq_coe],
+  intros n a,
 --      set V : clopen_basis' p d := ⟨U, hU⟩ with hV,
       --set V :=  with hV,
 --      have : U = V.val, rw hV, simp,
-      rcases? U,
 --      set n := classical.some U.prop with hn,
 --      set a := classical.some (classical.some_spec U.prop) with ha,
 --      set n' := classical.some (mem_clopen_basis' p d U hU) with hn,
@@ -699,16 +725,16 @@ begin
       rw ←hn, rw ←ha,
       show _ = E_c p d hc n a, -/
 --      change' _ = E_c p d hc n _,
-      rw sequence_limit_eq (g p d R hc _) (classical.some U.prop) _,
-      { rw g_def p d R hc _ (classical.some U.prop),
-        rw finset.sum_eq_add_sum_diff_singleton, swap 3, exact (classical.some (classical.some_spec U.prop)).val,
+      rw sequence_limit_eq (g p d R hc _) n _,
+      { rw g_def p d R hc _ n,
+        rw finset.sum_eq_add_sum_diff_singleton, swap 3, exact a.val,
         swap, simp,
-        have := @zmod.val_lt (d * p^(classical.some U.prop)) (hd (classical.some U.prop)) (classical.some (classical.some_spec U.prop)),
+        have := @zmod.val_lt (d * p^(n)) (hd n) a,
         sorry,
-        rw zmod.nat_cast_val (classical.some (classical.some_spec U.prop)), rw zmod.nat_cast_val (classical.some (classical.some_spec U.prop)),
+        rw zmod.nat_cast_val a, rw zmod.nat_cast_val a,
 --        convert_to _ = E_c p d hc n a,
 
-        conv_lhs { congr, congr, rw ←@subtype.val_eq_coe _ _ U, rw char_fn_clopen_basis' p d R U, },
+        conv_lhs { congr, congr, rw char_fn_clopen_basis' p d R, },
         rw one_smul,
         --rw ha, rw hn,
 --        rw add_right_eq_self,

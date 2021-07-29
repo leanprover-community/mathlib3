@@ -125,11 +125,10 @@ instance : order_bot ℕ+ :=
 
 @[simp] lemma bot_eq_zero : (⊥ : ℕ+) = 1 := rfl
 
-instance : succ_eq_add_one_order ℕ+ :=
+instance : add_succ_order ℕ+ :=
 { succ := λ a, a + 1,
-  lt_iff_succ_le := λ a b, iff.rfl,
-  lt_succ_iff_le := λ a b, nat.lt_succ_iff,
-  succ_eq_add_one := λ a, rfl }
+  succ_eq_add_one := λ a, rfl,
+  ..succ_order_of_lt_iff_succ_le (λ a : ℕ+, a + 1) (λ a b, iff.rfl) (λ a b, pred_le_pred) }
 
 instance : inhabited ℕ+ := ⟨1⟩
 

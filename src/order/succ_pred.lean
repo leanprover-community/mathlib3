@@ -215,6 +215,20 @@ end
 
 end linear_order
 
+section complete_lattice
+variables [complete_lattice α] [succ_order α]
+
+lemma succ_eq_infi (a : α) : succ a = ⨅ (b : α) (h : a < b), b :=
+begin
+  refine le_antisymm (le_infi (λ b, le_infi succ_le_of_lt)) _,
+  obtain rfl | ha := eq_or_ne a ⊤,
+  { rw succ_top,
+    exact le_top },
+  exact binfi_le _ (lt_succ_iff_ne_top.2 ha),
+end
+
+end complete_lattice
+
 /-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b` and `∀ a b, a < b + 1 ↔ a ≤ b`. `succ_order` with
 additive notation. -/
 class add_succ_order (α : Type*) [preorder α] [has_add α] [has_one α] extends

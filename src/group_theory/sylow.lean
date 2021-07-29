@@ -234,6 +234,23 @@ begin
   exact (card_modeq_card_fixed_points _ hH).symm
 end
 
+/-- If `H` is a subgroup of `G` of cardinality `p ^ n`, then the cardinality of the
+  normalizer of `H` is congruent mod `p ^ (n + 1)` to the cardinality of `G`.  -/
+lemma card_normalizer_modeq_card [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
+  {H : subgroup G} (hH : fintype.card H = p ^ n) :
+  card (normalizer H) ≡ card G [MOD p ^ (n + 1)] :=
+have subgroup.comap ((normalizer H).subtype : normalizer H →* G) H ≃ H,
+  from set.bij_on.equiv (normalizer H).subtype
+    ⟨λ _, id, λ _ _ _ _ h, subtype.val_injective h,
+      λ x hx, ⟨⟨x, le_normalizer hx⟩, hx, rfl⟩⟩,
+begin
+  rw [card_eq_card_quotient_mul_card_subgroup H,
+      card_eq_card_quotient_mul_card_subgroup
+        (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H),
+      fintype.card_congr this, hH, pow_succ],
+  exact nat.modeq.modeq_mul_right' _ (card_quotient_normalizer_modeq_card_quotient hH)
+end
+
 /-- If `H` is a `p`-subgroup but not a Sylow `p`-subgroup, then `p` divides the
   index of `H` inside its normalizer. -/
 lemma prime_dvd_card_quotient_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
@@ -256,16 +273,8 @@ nat.dvd_of_mod_eq_zero
 lemma prime_pow_dvd_card_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ (n + 1) ∣ card G) {H : subgroup G} (hH : fintype.card H = p ^ n) :
   p ^ (n + 1) ∣ card (normalizer H) :=
-have subgroup.comap ((normalizer H).subtype : normalizer H →* G) H ≃ H,
-  from set.bij_on.equiv (normalizer H).subtype
-    ⟨λ _, id, λ _ _ _ _ h, subtype.val_injective h,
-      λ x hx, ⟨⟨x, le_normalizer hx⟩, hx, rfl⟩⟩,
-begin
-  rw [pow_succ, card_eq_card_quotient_mul_card_subgroup
-    (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H),
-    fintype.card_congr this, hH],
-  exact mul_dvd_mul_right (prime_dvd_card_quotient_normalizer hdvd hH) (p ^ n)
-end
+nat.modeq.modeq_zero_iff.1 ((card_normalizer_modeq_card hH).trans
+  (nat.modeq.modeq_zero_iff.2 hdvd))
 
 /-- If `H` is a subgroup of `G` of cardinality `p ^ n`,
   then `H` is contained in a subgroup of cardinality `p ^ (n + 1)`

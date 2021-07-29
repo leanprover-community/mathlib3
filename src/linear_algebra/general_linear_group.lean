@@ -19,7 +19,8 @@ consisting of all invertible `n` by `n` `R`-matrices.
 
  * `matrix.GL` is the type of matrices over R with unit determinant
  * `matrix.GL.group` gives the group structure (under multiplication)
- * `matrix.GL_plus.GL_pos` gives the subgroup of matrices with positive determinant (over a linear ordered ring)
+ * `matrix.GL_plus.GL_pos` gives the subgroup of matrices with
+ positive determinant (over a linear ordered ring)
 
 ## Implementation notes
 
@@ -42,7 +43,7 @@ section
 
 variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
 
-/-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant. 
+/-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices
 -/
 abbreviation GL (R : Type*) [comm_ring R] :  Type* := units (matrix n n R )
@@ -64,7 +65,7 @@ units.map_equiv to_lin_alg_equiv'.to_mul_equiv
 
 /--Given a matrix with unit determinant we get an element of `GL n R`-/
 noncomputable def GL.mk' (A: matrix n n R) (h: is_unit (det A)): GL n R:=
-⟨A, nonsing_inv A, by {apply mul_nonsing_inv, apply h,}, by  {apply nonsing_inv_mul, apply h, }⟩ 
+⟨A, nonsing_inv A, by {apply mul_nonsing_inv, apply h,}, by  {apply nonsing_inv_mul, apply h, }⟩
 
 end
 namespace GL
@@ -87,7 +88,7 @@ def to_lin' (A : GL n R) := matrix.to_lin' A
 
 lemma ext_iff (A B : GL n R) : A = B ↔ (∀ i j, A i j = B i j) :=
 begin
-dsimp at *, fsplit, work_on_goal 0 { intros ᾰ i j, induction ᾰ, refl }, intros ᾰ,
+dsimp at *, fsplit, work_on_goal 0 { intros a i j, induction a, refl }, intros a,
  ext1, dsimp at *, ext1, solve_by_elim,
 end
 
@@ -167,23 +168,25 @@ end
 
 
 noncomputable instance SL_to_GL: has_coe (special_linear_group n R) (GL n R):=
- ⟨λ A,  ⟨A.1, nonsing_inv A.1, by {apply mul_nonsing_inv, apply sl_det_is_unit A,}, by  {apply nonsing_inv_mul, apply sl_det_is_unit A, } ⟩ ⟩
+ ⟨λ A,  ⟨A.1, nonsing_inv A.1, by {apply mul_nonsing_inv, apply sl_det_is_unit A,},
+  by  {apply nonsing_inv_mul, apply sl_det_is_unit A, } ⟩ ⟩
 
 
 
 
 @[simp] lemma GL_vals (A : GL n R): ∀ i j, A i j = A.1 i j:=
 begin
-unfold_coes, intros i j, 
+unfold_coes, intros i j,
 refl,
-end  
+end
 
 
 
 lemma det_not_zero [nontrivial R] (A: GL n R): det A ≠ 0:=
 begin
-have:=GL.is_unit_det _ _ A, simp, by_contradiction, unfold_coes at *, rw h at this, simp at *, exact this,
- end  
+have:=GL.is_unit_det _ _ A, simp, by_contradiction, unfold_coes at *,
+rw h at this, simp at *, exact this,
+ end
 
 
 

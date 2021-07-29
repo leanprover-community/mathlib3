@@ -209,7 +209,7 @@ instance [discrete_topology X] : semilattice_inf_bot (discrete_quotient X) :=
     equiv := ⟨λ a, rfl, λ a b h, h.symm, λ a b c h1 h2, h1.trans h2⟩,
     clopen := λ x, ⟨is_open_discrete _, is_closed_discrete _⟩ },
   bot_le := by { rintro S a b (h : a = b), rw h, exact S.refl _ },
-  ..(by apply_instance : semilattice_inf _) }
+  ..(infer_instance : semilattice_inf _) }
 
 lemma proj_bot_injective [discrete_topology X] :
   function.injective (⊥ : discrete_quotient X).proj := λ a b h, quotient.exact' h

@@ -71,52 +71,46 @@ lemma kronecker_map_smul_right [has_scalar R β] [has_scalar R γ] (f : α → �
   kronecker_map f A (r • B) = r • kronecker_map f A B :=
 ext $ λ i j, hf _ _ _
 
+@[simps]
+def kronecker_map_linear [comm_semiring R]
+  [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
+  [module R α] [module R β] [module R γ]
+  (f : α →ₗ[R] β →ₗ[R] γ) :
+  matrix l m α →ₗ[R] matrix n p β →ₗ[R] matrix (l × n) (m × p) γ :=
+linear_map.mk₂ R
+  (kronecker_map (λ r s, f r s))
+  (kronecker_map_add_left _ $ f.map_add₂)
+  (kronecker_map_smul_left _ $ f.map_smul₂)
+  (kronecker_map_add_right _ $ λ a, (f a).map_add)
+  (kronecker_map_smul_right _ $ λ r a, (f a).map_smul r)
+
 end
 
 
-variables (α : Type*) [comm_semiring α]
-variables (R : Type*) [comm_semiring R]
-variables (S : Type*) [comm_semiring S]
-variables (β : Type*) [comm_semiring β]
+variables {α R S β : Type*} [comm_semiring α] [comm_semiring R] [comm_semiring S] [comm_semiring β]
 variables [algebra α R] [algebra α S] [algebra α β] [algebra R β] [algebra S β]
 variables {l m n p l' m' n' p' : Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
+variables (α β)
+
+-- TODO: move this
+def algebra.biprod [is_scalar_tower α R β] [is_scalar_tower α S β] :
+  R →ₗ[α] S →ₗ[α] β :=
+((algebra.lmul α β).to_linear_map.compl₂ ((algebra.linear_map S β).restrict_scalars α)).comp
+  ((algebra.linear_map R β).restrict_scalars α)
+
+@[simp]
+lemma algebra.biprod_apply [is_scalar_tower α R β] [is_scalar_tower α S β] (r : R) (s : S) :
+  algebra.biprod α β r s = algebra_map R β r * algebra_map S β s := rfl
+
+variables (R S β)
+
+@[simps]
 def kronecker_biprod [is_scalar_tower α R β] [is_scalar_tower α S β] :
   (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) β :=
-linear_map.mk₂ α
-  (kronecker_map (λ r s, algebra_map R β r * algebra_map S β s))
-  (kronecker_map_add_left _ $ _)
-  (kronecker_map_smul_left _ $ _)
-  (kronecker_map_add_right _ $ _)
-  (kronecker_map_smul_right _ $ _)
--- { to_fun := λ A,
---   { to_fun := kronecker_map (λ r s, algebra_map R β r * algebra_map S β s) A,
---     map_add' := λ B₁ B₂, kronecker_map_add_right _ (by simp [mul_add]) _ _ _,
---     map_smul' := λ B₁, kronecker_map_smul_right _ sorry _ _,
---     },
---   -- begin
---   --   intro A,
---   --   use λ B, λ i j, (algebra_map R β (A i.1 j.1)) * (algebra_map S β (B i.2 j.2)),
---   --   all_goals {intros x y, ext},
---   --   { simp only [pi.add_apply, mul_add, ring_hom.map_add, dmatrix.add_apply] },
---   --   { simp only [pi.smul_apply],
---   --     rw [← is_scalar_tower.algebra_map_smul S x, id.smul_eq_mul, ring_hom.map_mul,
---   --       smul_def, (is_scalar_tower.algebra_map_apply α S β x).symm],
---   --     ring,
---   --     all_goals {exact is_scalar_tower.right} },
---   -- end,
---   map_add' := λ A₁ A₂, linear_map.ext $ λ B, begin
---     dsimp,
---     refine kronecker_map_add_left _ _ A₁ A₂ B,
---     sorry
---   end,
---   map_smul' := λ r A, linear_map.ext $ λ B, begin
---     --by {simp_rw [pi.smul_apply, ← smul_def, is_scalar_tower.smul_assoc],
---     -- refl},
---   end
---   }
+kronecker_map_linear $ algebra.biprod α β
 
 lemma kronecker_biprod_reindex_left (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R)
   (B : matrix n p S) [is_scalar_tower α R β] [is_scalar_tower α S β] :

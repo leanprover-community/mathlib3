@@ -223,6 +223,17 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
   (by intros; refl)
 
+/-- If `H` is a `p`-subgroup of `G`, then the index of `H` inside its normalizer is congruent
+  mod `p` to the index of `H`.  -/
+lemma card_quotient_normalizer_modeq_card_quotient [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
+  {H : subgroup G} (hH : fintype.card H = p ^ n) :
+  card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H))
+  ≡ card (quotient H) [MOD p] :=
+begin
+  rw [← fintype.card_congr (fixed_points_mul_left_cosets_equiv_quotient H)],
+  exact (card_modeq_card_fixed_points _ hH).symm
+end
+
 /-- If `H` is a `p`-subgroup but not a Sylow `p`-subgroup, then `p` divides the
   index of `H` inside its normalizer. -/
 lemma prime_dvd_card_quotient_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
@@ -236,8 +247,7 @@ have hcard : card (quotient H) = s * p :=
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
-  card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
-    @card_modeq_card_fixed_points _ _ _ _ _ _ _ p _ hp hH,
+  hcard ▸ (card_quotient_normalizer_modeq_card_quotient hH).symm,
 nat.dvd_of_mod_eq_zero
   (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm)
 

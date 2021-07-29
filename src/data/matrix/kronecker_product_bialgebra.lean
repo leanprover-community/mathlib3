@@ -116,7 +116,7 @@ variables {l m n p l' m' n' p' : Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
-def kronecker_prod [is_scalar_tower R R R] (A : matrix l m R) (B : matrix n p R) :
+def kronecker_prod (A : matrix l m R) (B : matrix n p R) :
   matrix (l × n) (m × p) R := kronecker_biprod R R R R A B
 
 localized "infix ` ⊗ₖ  `:100 := kronecker_prod R _" in kronecker_product

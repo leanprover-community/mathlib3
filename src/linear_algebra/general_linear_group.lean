@@ -131,7 +131,8 @@ matrix.to_lin'_mul A B
 matrix.to_lin'_one
 
 
-
+end coe_lemmas
+/-
 
 noncomputable instance :  has_inv (GL n R):=
 ⟨λ A, ⟨nonsing_inv A, A, by {simp, apply nonsing_inv_mul, apply GL.is_unit_det _ _ A,},
@@ -141,7 +142,6 @@ by { simp, apply mul_nonsing_inv, apply GL.is_unit_det _ _ A, }, ⟩⟩
 
 @[simp] lemma inv_apply : ⇑(A⁻¹) = nonsing_inv A := rfl
 
-end coe_lemmas
 
 lemma is_left_inv (A : GL n R): A⁻¹ *  A = 1:=
 
@@ -163,6 +163,8 @@ noncomputable instance : group (GL n R) :=
   inv := general_linear_group.has_inv.inv,
   mul_left_inv := λ u,  by {apply is_left_inv,} }
 
+-/
+ instance : group (GL n R) :=infer_instance
 
 lemma sl_det_is_unit (A: special_linear_group n R ): is_unit (det A):=
 begin
@@ -222,7 +224,7 @@ have h0:=(GL.is_unit_det _ _ A),
 have h1:=is_unit_nonsing_inv_det A h0,
 have h2:= nonsing_inv_det A h0,
 have h3: 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith}, unfold_coes at *,
-convert (zero_lt_mul_left h).mp h3,
+convert (zero_lt_mul_left h).mp h3, sorry,
 end
 
 

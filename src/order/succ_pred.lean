@@ -4,11 +4,41 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.bounded_lattice
+import order.galois_connection
 
 /-!
 # Successor and predecessor
 
+## Typeclasses
+
+* `succ_order`: Order equipped with a sensible successor function.
+* `add_succ_order`: Syntax-agreement typeclass stating that the `succ` of a `succ_order`
+  coincides with `λ a, a + 1`.
+* `pred_order`: Order equipped with a sensible predecessor function.
+* `add_pred_order`: Syntax-agreement typeclass stating that the `pred` of a `pred_order`
+  coincides with `λ a, a _ 1`.
+
+## Implementation notes
+
+Maximal elements don't have a sensible successor. Thus the naïve typeclass
+```lean
+class naive_succ_order (α : Type*) [preorder α] :=
+(succ : α → α)
+(succ_le_iff_lt : ∀ {a b}, a < b ↔ succ a ≤ b)
+(lt_succ_iff_le : ∀ {a b}, a < succ b ↔ a ≤ b)
+```
+can't apply to an `order_top` because plugging in `a = b = ⊤` into either of `succ_le_iff_lt` and
+`lt_succ_iff_le` yields `⊤ < ⊤`.
+The solution taken here is to remove the implications `≤ → <` and instead require that `a < succ a`
+for all non maximal elements (enforced by the combination of `le_succ` and the contrapositive of
+`maximal_of_succ_le`).
+The stricter condition of every element having a sensible successor can be obtained through the
+combination of `succ_order α` and `no_top_order α`.
+
+The previous discussion also applies to `preorder`s with a maximal element.
 -/
+
+/-! ### Successor order -/
 
 /-- Order equipped with a sensible successor function. -/
 @[ext] class succ_order (α : Type*) [preorder α] :=
@@ -22,21 +52,21 @@ open function succ_order
 
 variables {α : Type*}
 
-/-- A constructor taking -/
-def succ_order_of_lt_succ_iff_le_of_lt_iff_succ_le [preorder α] {succ : α → α}
+/-- A constructor for `succ_order α` usable when `α` has no maximal element. -/
+def succ_order_of_lt_iff_succ_le [preorder α] (succ : α → α)
   (hlt_iff_succ_le : ∀ {a b}, a < b ↔ succ a ≤ b)
-  (hlt_succ_iff_le : ∀ {a b}, a < succ b ↔ a ≤ b) :
+  (hle_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b) :
   succ_order α :=
 { succ := succ,
-  le_succ := λ a, (hlt_succ_iff_le.2 le_rfl).le,
+  le_succ := λ a, (hlt_iff_succ_le.2 le_rfl).le,
   maximal_of_succ_le := λ a ha, (lt_irrefl a (hlt_iff_succ_le.2 ha)).elim,
   succ_le_of_lt := λ a b, hlt_iff_succ_le.1,
-  le_of_lt_succ := λ a b, hlt_succ_iff_le.1 }
+  le_of_lt_succ := λ a b, hle_of_lt_succ }
 
 section preorder
 variables [preorder α] [succ_order α]
 
-@[simp] lemma succ_le_succ_of_le {a b : α} (h : a ≤ b) :
+@[simp] lemma succ_mono {a b : α} (h : a ≤ b) :
   succ a ≤ succ b :=
 begin
   by_cases ha : ∀ ⦃c⦄, ¬a < c,
@@ -60,7 +90,7 @@ lemma lt_succ (a : α) :
 
 lemma lt_succ_iff_le {a b : α} :
   a < succ b ↔ a ≤ b :=
-⟨le_of_lt_succ, λ h, h.trans_lt (lt_succ b)⟩
+⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ b⟩
 
 lemma lt_iff_succ_le {a b : α} :
   a < b ↔ succ a ≤ b :=
@@ -109,7 +139,7 @@ begin
 end
 
 section no_top_order
-variables[no_top_order α]
+variables [no_top_order α]
 
 lemma succ_injective :
   injective (succ : α → α) :=
@@ -171,31 +201,46 @@ variables [linear_order α] [succ_order α]
   max (succ a) (succ b) = succ (max a b) :=
 begin
   obtain h | h := le_total a b,
-  { rw [max_eq_right h, max_eq_right (succ_le_succ_of_le h)] },
-  { rw [max_eq_left h, max_eq_left (succ_le_succ_of_le h)] }
+  { rw [max_eq_right h, max_eq_right (succ_mono h)] },
+  { rw [max_eq_left h, max_eq_left (succ_mono h)] }
 end
 
 @[simp] lemma min_succ_succ {a b : α} :
   min (succ a) (succ b) = succ (min a b) :=
 begin
   obtain h | h := le_total a b,
-  { rw [min_eq_left h, min_eq_left (succ_le_succ_of_le h)] },
-  { rw [min_eq_right h, min_eq_right (succ_le_succ_of_le h)] }
+  { rw [min_eq_left h, min_eq_left (succ_mono h)] },
+  { rw [min_eq_right h, min_eq_right (succ_mono h)] }
 end
 
 end linear_order
 
-/-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b` and `∀ a b, a < b + 1 ↔ a ≤ b`. -/
-class succ_eq_add_one_order (α : Type*) [preorder α] [has_add α] [has_one α] extends
+/-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b` and `∀ a b, a < b + 1 ↔ a ≤ b`. `succ_order` with
+additive notation. -/
+class add_succ_order (α : Type*) [preorder α] [has_add α] [has_one α] extends
   succ_order α :=
 (succ_eq_add_one : ∀ a, succ a = a + 1)
 
 lemma lt_iff_add_one_le [preorder α] [no_top_order α] [has_add α] [has_one α]
-  [succ_eq_add_one_order α] {a b : α} :
+  [add_succ_order α] {a b : α} :
   a < b ↔ a + 1 ≤ b :=
-by { rw ←succ_eq_add_one_order.succ_eq_add_one, exact lt_iff_succ_le }
+by { rw ←add_succ_order.succ_eq_add_one, exact lt_iff_succ_le }
 
 lemma lt_add_one_iff_le [preorder α] [no_top_order α] [has_add α] [has_one α]
-  [succ_eq_add_one_order α] {a b : α} :
+  [add_succ_order α] {a b : α} :
   a < b + 1 ↔ a ≤ b :=
-by { rw ←succ_eq_add_one_order.succ_eq_add_one, exact lt_succ_iff_le }
+by { rw ←add_succ_order.succ_eq_add_one, exact lt_succ_iff_le }
+
+/-! ### Predecessor order -/
+
+/-- Order equipped with a sensible predecessor function. -/
+@[ext] class pred_order (α : Type*) [preorder α] :=
+(pred : α → α)
+(pred_le : ∀ a, pred a ≤ a)
+(minimal_of_le_pred : ∀ ⦃a⦄, a ≤ pred a → ∀ ⦃b⦄, ¬b < a)
+(le_pred_of_lt : ∀ {a b}, a < b → a ≤ pred b)
+(le_of_pred_lt : ∀ {a b}, pred a < b → a ≤ b)
+
+open pred_order
+
+/-! ### Successor-predecessor order -/

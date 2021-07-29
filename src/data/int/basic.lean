@@ -134,6 +134,11 @@ def succ (a : ℤ) := a + 1
 /-- Immediate predecessor of an integer: `pred n = n - 1` -/
 def pred (a : ℤ) := a - 1
 
+instance : add_succ_order ℤ :=
+{ succ := succ,
+  succ_eq_add_one := λ a, rfl,
+  ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) (λ a b, le_of_lt_add_one) }
+
 theorem nat_succ_eq_int_succ (n : ℕ) : (nat.succ n : ℤ) = int.succ n := rfl
 
 theorem pred_succ (a : ℤ) : pred (succ a) = a := add_sub_cancel _ _
@@ -202,12 +207,6 @@ begin
       { convert hn _ n_ih using 1, simp [sub_eq_neg_add] } },
     exact this (i + 1) }
 end
-
-instance : succ_eq_add_one_order ℤ :=
-{ succ := succ,
-  lt_iff_succ_le := λ a b, iff.rfl,
-  lt_succ_iff_le := λ a b, add_le_add_iff_right _,
-  succ_eq_add_one := λ a, rfl }
 
 /-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
   than `b`, and the `pred` of a number less than `b`. -/

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.ordered_ring
+import order.succ_pred
 
 /-!
 # Basic operations on the natural numbers
@@ -272,6 +273,11 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
 
+instance : add_succ_order ℕ :=
+{ succ := succ,
+  succ_eq_add_one := λ a, rfl,
+  ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) (λ a b, pred_le_pred) }
+
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
@@ -343,12 +349,6 @@ H.lt_or_eq_dec.imp le_of_lt_succ id
 
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
-
-instance : succ_eq_add_one_order ℕ :=
-{ succ := λ a, a + 1,
-  lt_iff_succ_le := λ a b, iff.rfl,
-  lt_succ_iff_le := λ a b, lt_add_one_iff,
-  succ_eq_add_one := λ a, rfl }
 
 @[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
 lt_succ_iff.trans le_zero_iff

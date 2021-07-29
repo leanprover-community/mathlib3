@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio
 -/
 
+import data.matrix.reindex
 import linear_algebra.matrix
 
 /-!
@@ -20,13 +21,7 @@ Two main definitions:
 For both products, we prove that it is associative (in theorems `kronecker_biprod_assoc` and
 `kronecker_prod_assoc`, respectively) as well as the so-called `mixed-product property (in theorems
 `kronecker_biprod_mul` and `kronecker_prod_mul`, respectively).
-
-I (FAE) wonder if this file should be in `linear_algebra/matrix` or rather in `data/matrix`.
 -/
-
--- For mathlib
-
-universes u v v' u'
 
 namespace matrix_bialgebra
 
@@ -64,13 +59,13 @@ def kronecker_biprod (h_Rβ : is_scalar_tower α R β) (h_Sβ : is_scalar_tower 
 variables (h_Rβ : is_scalar_tower α R β) (h_Sβ : is_scalar_tower α S β)
 
 lemma kronecker_biprod_reindex_left (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R)
-  (B : matrix n p S) : kronecker_biprod h_Rβ h_Sβ (reindex_linear_equiv eₗ eₘ A) B =
-  reindex_linear_equiv (eₗ.prod_congr (equiv.refl _)) (eₘ.prod_congr (equiv.refl _))
+  (B : matrix n p S) : kronecker_biprod h_Rβ h_Sβ (reindex_linear_equiv α R eₗ eₘ A) B =
+  reindex_linear_equiv α _ (eₗ.prod_congr (equiv.refl _)) (eₘ.prod_congr (equiv.refl _))
   (kronecker_biprod h_Rβ h_Sβ A B) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
 lemma kronecker_biprod_reindex_right (eₙ : n ≃ n') (eₚ : p ≃ p') (A : matrix l m R)
-  (B : matrix n p S) : kronecker_biprod h_Rβ h_Sβ A (reindex_linear_equiv eₙ eₚ B) =
-  reindex_linear_equiv ((equiv.refl _).prod_congr eₙ) ((equiv.refl _).prod_congr eₚ)
+  (B : matrix n p S) : kronecker_biprod h_Rβ h_Sβ A (reindex_linear_equiv α _ eₙ eₚ B) =
+  reindex_linear_equiv α _ ((equiv.refl _).prod_congr eₙ) ((equiv.refl _).prod_congr eₚ)
   (kronecker_biprod h_Rβ h_Sβ A B) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
 lemma kronecker_biprod_one_one [decidable_eq m] [decidable_eq n] :
@@ -99,14 +94,15 @@ variables (A : matrix m m' R) (B : matrix n n' S) (C : matrix p p' T)
 theorem kronecker_biprod_assoc {T : Type*} [comm_semiring T] [algebra α T] [algebra T β]
   (h_Tβ : is_scalar_tower α T β) (h_ββ : is_scalar_tower α β β) (A : matrix m m' R)
   (B : matrix n n' S) (C : matrix p p' T) :
-  @matrix.linear_equiv_index_assoc m n p _ _ _ β α m' n' p' _ _ _ _ _ _
+  @matrix.linear_equiv_index_assoc m n p _ _ _ m' n' p' _ _ _ β α _ _ _
   (kronecker_biprod h_ββ h_Tβ (kronecker_biprod h_Rβ h_Sβ A B) C) =
     kronecker_biprod h_Rβ h_ββ A (kronecker_biprod h_Sβ h_Tβ B C) :=
 begin
   simp only [matrix.linear_equiv_index_assoc, kronecker_biprod, linear_map.coe_mk, id.map_eq_self,
     reindex_apply, linear_equiv.coe_mk],
   ext i j,
-  simp only [minor_apply, equiv.prod_assoc_symm_apply, mul_assoc],
+  simp only [equiv.prod_assoc_symm_apply, reindex_linear_equiv_apply, minor_apply, reindex_apply,
+    mul_assoc],
 end
 
 end matrix_bialgebra

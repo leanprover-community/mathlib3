@@ -33,6 +33,51 @@ namespace matrix_bialgebra
 open algebra matrix function
 open_locale matrix big_operators
 
+section
+
+variables {R α β γ : Type*} {l m n p : Type*} [fintype l] [fintype m] [fintype n] [fintype p]
+
+/-- Produce a matrix with `f` applied to every pair of elements from `A` and `B` -/
+@[simp] def kronecker_map (f : α → β → γ) (A : matrix l m α) (B : matrix n p β) :
+  matrix (l × n) (m × p) γ
+| i j := f (A i.1 j.1) (B i.2 j.2)
+
+lemma kronecker_map_zero_left [has_zero α] [has_zero γ] (f : α → β → γ) (hf : ∀ b, f 0 b = 0)
+  (B : matrix n p β) :
+  kronecker_map f (0 : matrix l m α) B = 0:=
+ext $ λ i j,hf _
+
+lemma kronecker_map_zero_right [has_zero β] [has_zero γ] (f : α → β → γ) (hf : ∀ a, f a 0 = 0)
+  (A : matrix l m α) :
+  kronecker_map f A (0 : matrix n p β) = 0 :=
+ext $ λ i j, hf _
+
+lemma kronecker_map_add_left [has_add α] [has_add γ] (f : α → β → γ)
+  (hf : ∀ a₁ a₂ b, f (a₁ + a₂) b = f a₁ b + f a₂ b)
+  (A₁ A₂ : matrix l m α) (B : matrix n p β) :
+  kronecker_map f (A₁ + A₂) B = kronecker_map f A₁ B + kronecker_map f A₂ B :=
+ext $ λ i j, hf _ _ _
+
+lemma kronecker_map_add_right [has_add β] [has_add γ] (f : α → β → γ)
+  (hf : ∀ a b₁ b₂, f a (b₁ + b₂) = f a b₁ + f a b₂)
+  (A : matrix l m α) (B₁ B₂ : matrix n p β) :
+  kronecker_map f A (B₁ + B₂) = kronecker_map f A B₁ + kronecker_map f A B₂ :=
+ext $ λ i j, hf _ _ _
+
+lemma kronecker_map_smul_left [has_scalar R α] [has_scalar R γ] (f : α → β → γ)
+  (hf : ∀ (r : R) a b, f (r • a) b = r • f a b) (r : R)
+  (A : matrix l m α) (B : matrix n p β) :
+  kronecker_map f (r • A) B = r • kronecker_map f A B :=
+ext $ λ i j, hf _ _ _
+
+lemma kronecker_map_smul_right [has_scalar R β] [has_scalar R γ] (f : α → β → γ)
+  (hf : ∀ (r : R) a b, f a (r • b) = r • f a b) (r : R)
+  (A : matrix l m α) (B : matrix n p β) :
+  kronecker_map f A (r • B) = r • kronecker_map f A B :=
+ext $ λ i j, hf _ _ _
+
+end
+
 variables {α : Type*} [comm_semiring α]
 variables {R : Type*} [comm_semiring R]
 variables {S : Type*} [comm_semiring S]
@@ -44,22 +89,38 @@ variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
 def kronecker_biprod (h_Rβ : is_scalar_tower α R β) (h_Sβ : is_scalar_tower α S β) :
   (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) β :=
-{ to_fun :=
-  begin
-    intro A,
-    use λ B, λ i j, (algebra_map R β (A i.1 j.1)) * (algebra_map S β (B i.2 j.2)),
-    all_goals {intros x y, ext},
-    { simp only [pi.add_apply, mul_add, ring_hom.map_add, dmatrix.add_apply] },
-    { simp only [pi.smul_apply],
-      rw [← is_scalar_tower.algebra_map_smul S x, id.smul_eq_mul, ring_hom.map_mul,
-        smul_def, (is_scalar_tower.algebra_map_apply α S β x).symm],
-      ring,
-      all_goals {exact is_scalar_tower.right} },
-  end,
-  map_add' := λ _ _, by {simp only [add_mul, ring_hom.map_add, dmatrix.add_apply], refl},
-  map_smul' := λ _ _, by {simp_rw [pi.smul_apply, ← smul_def, is_scalar_tower.smul_assoc],
-    refl},
-  }
+linear_map.mk₂ α
+  (kronecker_map (λ r s, algebra_map R β r * algebra_map S β s))
+  (kronecker_map_add_left _ $ _)
+  (kronecker_map_smul_left _ $ _)
+  (kronecker_map_add_right _ $ _)
+  (kronecker_map_smul_right _ $ _)
+-- { to_fun := λ A,
+--   { to_fun := kronecker_map (λ r s, algebra_map R β r * algebra_map S β s) A,
+--     map_add' := λ B₁ B₂, kronecker_map_add_right _ (by simp [mul_add]) _ _ _,
+--     map_smul' := λ B₁, kronecker_map_smul_right _ sorry _ _,
+--     },
+--   -- begin
+--   --   intro A,
+--   --   use λ B, λ i j, (algebra_map R β (A i.1 j.1)) * (algebra_map S β (B i.2 j.2)),
+--   --   all_goals {intros x y, ext},
+--   --   { simp only [pi.add_apply, mul_add, ring_hom.map_add, dmatrix.add_apply] },
+--   --   { simp only [pi.smul_apply],
+--   --     rw [← is_scalar_tower.algebra_map_smul S x, id.smul_eq_mul, ring_hom.map_mul,
+--   --       smul_def, (is_scalar_tower.algebra_map_apply α S β x).symm],
+--   --     ring,
+--   --     all_goals {exact is_scalar_tower.right} },
+--   -- end,
+--   map_add' := λ A₁ A₂, linear_map.ext $ λ B, begin
+--     dsimp,
+--     refine kronecker_map_add_left _ _ A₁ A₂ B,
+--     sorry
+--   end,
+--   map_smul' := λ r A, linear_map.ext $ λ B, begin
+--     --by {simp_rw [pi.smul_apply, ← smul_def, is_scalar_tower.smul_assoc],
+--     -- refl},
+--   end
+--   }
 
 variables (h_Rβ : is_scalar_tower α R β) (h_Sβ : is_scalar_tower α S β)
 

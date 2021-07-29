@@ -16,7 +16,7 @@ Two main definitions:
   the bilinear Kronecker product
   kronecker_biprod : matrix (l n R) →ₗ[α] (matrix m p S) →ₗ[α] (matrix (l × m) (n × p) (β).
 * In the special case when R=α=S=β, we define kronecker_prod, denoted by ⊗ₖ as the R-linear map
-  ⊗ₖ  : matrix (l n R) →ₗ[R] (matrix m p R) →ₗ[R] (matrix (l × m) (n × p) R).
+  ⊗ₖ : matrix (l n R) →ₗ[R] (matrix m p R) →ₗ[R] (matrix (l × m) (n × p) R).
 
 For both products, we prove that it is associative (in theorems `kronecker_biprod_assoc` and
 `kronecker_prod_assoc`, respectively) as well as the so-called `mixed-product property (in theorems
@@ -107,7 +107,7 @@ lemma algebra.biprod_apply [is_scalar_tower α R β] [is_scalar_tower α S β] (
 
 variables (R S β)
 
-@[simps?]
+@[simps]
 def kronecker_biprod [is_scalar_tower α R β] [is_scalar_tower α S β] :
   (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) β :=
 kronecker_map_linear $ algebra.biprod α β

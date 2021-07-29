@@ -71,6 +71,7 @@ lemma kronecker_map_smul_right [has_scalar R β] [has_scalar R γ] (f : α → �
   kronecker_map f A (r • B) = r • kronecker_map f A B :=
 ext $ λ i j, hf _ _ _
 
+/-- When `f` is bilinear then `matrix.kronecker_map f` is also bilinear. -/
 @[simps]
 def kronecker_map_linear [comm_semiring R]
   [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]

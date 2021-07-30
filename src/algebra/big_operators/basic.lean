@@ -1355,7 +1355,7 @@ by rw [univ_unique, prod_singleton]
 lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] (f : α → β) (a : α) :
   (∏ x : α, f x) = f a :=
 begin
-  haveI : unique α := { default := a, uniq := λ _, subsingleton.elim _ _ },
+  haveI : unique α := unique_of_subsingleton a,
   convert prod_unique f
 end
 

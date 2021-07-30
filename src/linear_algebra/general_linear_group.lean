@@ -2,14 +2,11 @@
 Copyright (c) 2021 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
-
-The General Linear group $GL(n, R)$
 -/
 import linear_algebra.matrix
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
 import linear_algebra.determinant
-
 
 /-!
 # The General Linear group $GL(n, R)$
@@ -66,7 +63,7 @@ def to_lin : (GL n R) ≃* (linear_map.general_linear_group R (n → R)) :=
 units.map_equiv to_lin_alg_equiv'.to_mul_equiv
 
 /--Given a matrix with invertible determinant we get an element of `GL n R`-/
- def mk' (A : matrix n n R) (h : invertible (det A)) : GL n R :=
+def mk' (A : matrix n n R) (h : invertible (det A)) : GL n R :=
 unit_of_det_invertible A
 
 /--Given a matrix with unit determinant we get an element of `GL n R`-/
@@ -148,7 +145,7 @@ variables  (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [linear_ordere
 
 lemma one_in_GL_pos : 0 < det (1 : GL n R) :=
 begin
-simp only [det_one, gt_iff_lt, general_linear_group.one_apply,zero_lt_one],
+simp only [det_one, general_linear_group.coe_fn_eq_coe, general_linear_group.one_val, zero_lt_one],
 end
 
 lemma mul_in_GL_pos (A B : GL n R) (h1 : 0 < det A) (h2 : 0 < det B) : 0 < det (A*B) :=

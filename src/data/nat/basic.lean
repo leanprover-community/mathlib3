@@ -276,7 +276,7 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 instance : add_succ_order ℕ :=
 { succ := succ,
   succ_eq_add_one := λ a, rfl,
-  ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) (λ a b, pred_le_pred) }
+  ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) }
 
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
@@ -305,15 +305,6 @@ succ_lt_succ $ succ_pos n
 
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
-
-theorem max_succ_succ {m n : ℕ} :
-  max (succ m) (succ n) = succ (max m n) :=
-begin
-  by_cases h1 : m ≤ n,
-  rw [max_eq_right h1, max_eq_right (succ_le_succ h1)],
-  { rw not_le at h1, have h2 := le_of_lt h1,
-    rw [max_eq_left h2, max_eq_left (succ_le_succ h2)] }
-end
 
 lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
 not_lt_of_ge (nat.le_succ _)

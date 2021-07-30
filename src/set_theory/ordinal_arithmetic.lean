@@ -145,6 +145,11 @@ by induction n with n ih; [rw [nat.cast_zero, add_zero, add_zero],
 theorem add_right_cancel {a b : ordinal} (n : ℕ) : a + n = b + n ↔ a = b :=
 by simp only [le_antisymm_iff, add_le_add_iff_right]
 
+instance : succ_order ordinal :=
+{ succ := succ,
+  succ_eq_add_one := λ a, rfl,
+  ..succ_order_of_lt_iff_succ_le succ (λ a b, succ_le.symm) }
+
 /-! ### The zero ordinal -/
 
 @[simp] theorem card_eq_zero {o} : card o = 0 ↔ o = 0 :=

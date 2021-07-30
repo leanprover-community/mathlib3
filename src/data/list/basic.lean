@@ -1583,12 +1583,12 @@ theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) 
 | n         0        l      := by rw [min_zero, take_zero, take_nil]
 | 0         m        l      := by rw [zero_min, take_zero, take_zero]
 | (succ n)  (succ m) nil    := by simp only [take_nil]
-| (succ n)  (succ m) (a::l) := by simp only [take, min_succ_succ, take_take n m l]; split; refl
+| (succ n)  (succ m) (a::l) := by simp only [take, nat.min_succ_succ, take_take n m l]; split; refl
 
 theorem take_repeat (a : α) : ∀ (n m : ℕ), take n (repeat a m) = repeat a (min n m)
 | n        0        := by simp
 | 0        m        := by simp
-| (succ n) (succ m) := by simp [min_succ_succ, take_repeat]
+| (succ n) (succ m) := by simp [nat.min_succ_succ, take_repeat]
 
 lemma map_take {α β : Type*} (f : α → β) :
   ∀ (L : list α) (i : ℕ), (L.take i).map f = (L.map f).take i

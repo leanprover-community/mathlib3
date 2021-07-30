@@ -52,8 +52,11 @@ open function succ_order
 
 variables {α : Type*}
 
+section preorder
+variables [preorder α]
+
 /-- A constructor for `succ_order α` usable when `α` has no maximal element. -/
-def succ_order_of_lt_iff_succ_le [preorder α] (succ : α → α)
+def succ_order_of_lt_iff_succ_le_of_succ_le_succ (succ : α → α)
   (hlt_iff_succ_le : ∀ {a b}, a < b ↔ succ a ≤ b)
   (hle_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b) :
   succ_order α :=
@@ -63,8 +66,7 @@ def succ_order_of_lt_iff_succ_le [preorder α] (succ : α → α)
   succ_le_of_lt := λ a b, hlt_iff_succ_le.1,
   le_of_lt_succ := λ a b, hle_of_lt_succ }
 
-section preorder
-variables [preorder α] [succ_order α]
+variables [succ_order α]
 
 @[simp] lemma succ_mono {a b : α} (h : a ≤ b) :
   succ a ≤ succ b :=
@@ -149,6 +151,39 @@ begin
   exact id,
 end
 
+instance : succ_order (with_top α) :=
+{ succ := λ a, match a with
+    | ⊤        := ⊤
+    | (some a) := some (succ a)
+  end,
+  le_succ := λ a, begin
+    cases a,
+    exact le_top,
+    exact with_top.some_le_some.2 (le_succ a),
+  end,
+  maximal_of_succ_le := begin
+    rintro a ha b h,
+    cases a,
+    exact le_top.not_lt h,
+    exact not_exists.2 (maximal_of_succ_le (with_top.some_le_some.1 ha)) (no_top a),
+  end,
+  succ_le_of_lt := begin
+    rintro a b h,
+    cases a,
+    exact (le_top.not_lt h).elim,
+    cases b,
+    exact le_top,
+    exact with_top.some_le_some.2 (succ_le_of_lt $ with_top.some_lt_some.1 h),
+  end,
+  le_of_lt_succ := begin
+    rintro a b h,
+    cases a,
+    exact (le_top.not_lt h).elim,
+    cases b,
+    exact le_top,
+    exact with_top.some_le_some.2 (le_of_lt_succ $ with_top.some_lt_some.1 h),
+  end }
+
 lemma succ_eq_succ_iff {a b : α} :
   succ a = succ b ↔ a = b :=
 succ_injective.eq_iff
@@ -181,8 +216,9 @@ end
 end order_top
 
 section order_bot
+variables [order_bot α] [succ_order α]
 
-lemma bot_lt_succ [order_bot α] [nontrivial α] [succ_order α] (a : α) :
+lemma bot_lt_succ [nontrivial α] (a : α) :
   ⊥ < succ a :=
 begin
   obtain ⟨b, hb⟩ := exists_ne (⊥ : α),
@@ -192,10 +228,56 @@ begin
   exact maximal_of_succ_le h.le (bot_lt_iff_ne_bot.2 hb),
 end
 
+instance : succ_order (with_bot α) :=
+{ succ := λ a, match a with
+    | ⊥        := some ⊥
+    | (some a) := some (succ a)
+  end,
+  le_succ := λ a, match a with
+    | ⊥        := bot_le
+    | (some a) := with_bot.some_le_some.2 (le_succ a)
+  end,
+  maximal_of_succ_le := begin
+    rintro a ha b h,
+    cases a,
+    exact (with_bot.bot_lt_some (⊥ : α)).not_le ha,
+    cases b,
+    exact h.not_le bot_le,
+    exact maximal_of_succ_le (with_bot.some_le_some.1 ha) (with_bot.some_lt_some.1 h),
+  end,
+  succ_le_of_lt := begin
+    rintro a b h,
+    cases b,
+    exact (bot_le.not_lt h).elim,
+    cases a,
+    exact with_bot.some_le_some.2 bot_le,
+    exact with_bot.some_le_some.2 (succ_le_of_lt $ with_bot.some_lt_some.1 h),
+  end,
+  le_of_lt_succ := begin
+    rintro a b h,
+    cases a,
+    exact bot_le,
+    cases b,
+    exact (bot_le.not_lt $ with_bot.some_lt_some.1 h).elim,
+    exact with_bot.some_le_some.2 (le_of_lt_succ $ with_bot.some_lt_some.1 h),
+  end }
+
 end order_bot
 
 section linear_order
-variables [linear_order α] [succ_order α]
+variables [linear_order α]
+
+/-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
+def succ_order_of_lt_iff_succ_le (succ : α → α)
+  (hlt_iff_succ_le : ∀ {a b}, a < b ↔ succ a ≤ b) :
+  succ_order α :=
+{ succ := succ,
+  le_succ := λ a, (hlt_iff_succ_le.2 le_rfl).le,
+  maximal_of_succ_le := λ a ha, (lt_irrefl a (hlt_iff_succ_le.2 ha)).elim,
+  succ_le_of_lt := λ a b, hlt_iff_succ_le.1,
+  le_of_lt_succ := λ a b h, le_of_not_lt ((not_congr hlt_iff_succ_le).2 h.not_le) }
+
+variables [succ_order α]
 
 @[simp] lemma max_succ_succ {a b : α} :
   max (succ a) (succ b) = succ (max a b) :=

@@ -641,11 +641,10 @@ class canonically_linear_ordered_monoid (α : Type*)
       extends canonically_ordered_monoid α, linear_order α
 
 section canonically_linear_ordered_monoid
-variables
+variables [canonically_linear_ordered_monoid α]
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_monoid.semilattice_sup_bot
-  [canonically_linear_ordered_monoid α] : semilattice_sup_bot α :=
+instance canonically_linear_ordered_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
 
 instance with_top.canonically_linear_ordered_add_monoid
@@ -654,8 +653,8 @@ instance with_top.canonically_linear_ordered_add_monoid
 { .. (infer_instance : canonically_ordered_add_monoid (with_top α)),
   .. (infer_instance : linear_order (with_top α)) }
 
-@[to_additive] lemma min_mul_distrib [canonically_linear_ordered_monoid α] (a b c : α) :
-  min a (b * c) = min a (min a b * min a c) :=
+@[to_additive]
+lemma min_mul_distrib (a b c : α) : min a (b * c) = min a (min a b * min a c) :=
 begin
   cases le_total a b with hb hb,
   { simp [hb, le_mul_right] },
@@ -664,321 +663,19 @@ begin
     { simp [hb, hc] } }
 end
 
-@[to_additive] lemma min_mul_distrib' [canonically_linear_ordered_monoid α] (a b c : α) :
-  min (a * b) c = min (min a c * min b c) c :=
+@[to_additive]
+lemma min_mul_distrib'  (a b c : α) : min (a * b) c = min (min a c * min b c) c :=
 by simpa [min_comm _ c] using min_mul_distrib c a b
 
+@[to_additive]
+lemma one_min (a : α) : min 1 a = 1 :=
+min_eq_left (one_le a)
+
+@[to_additive]
+lemma min_one (a : α) : min a 1 = 1 :=
+min_eq_right (one_le a)
+
 end canonically_linear_ordered_monoid
-
-/-- A ordered additive monoid that has a canonical subtraction defined by `a - b ≤ c ↔ a ≤ b + c`.
-
-Many results about this subtraction are primed, to not conflict with similar lemmas about ordered
-groups.
--/
-class has_canonical_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
-(sub_le_iff_left : ∀ a b c : α, a - b ≤ c ↔ a ≤ b + c)
-
-section has_canonical_sub
-
-section ordered_add_comm_monoid
-variables {a b c d : α} [partial_order α] [add_comm_monoid α] [has_sub α] [has_canonical_sub α]
-
-lemma sub_le_iff_left : a - b ≤ c ↔ a ≤ b + c :=
-has_canonical_sub.sub_le_iff_left a b c
-
-lemma le_add_sub : b ≤ a + (b - a) :=
-sub_le_iff_left.mp le_rfl
-
-/-- See also `add_sub_left_eq` for a stronger statement if `contravariant_class α α (+) (≤)`. -/
-lemma add_sub_left_le : a + b - a ≤ b :=
-sub_le_iff_left.mpr le_rfl
-
-/-- See also `add_sub_right_eq` for a stronger statement if `contravariant_class α α (+) (≤)`. -/
-lemma add_sub_right_le : a + b - b ≤ a :=
-by { rw add_comm, exact add_sub_left_le }
-
-lemma sub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
-by rw [sub_le_iff_left, add_comm]
-
-lemma le_sub_add : b ≤ (b - a) + a :=
-sub_le_iff_right.mp le_rfl
-
-lemma sub_le_sub_right' (h : a ≤ b) (c : α) : a - c ≤ b - c :=
-sub_le_iff_left.mpr $ h.trans le_add_sub
-
-lemma sub_le_of_sub_le (h : a - b ≤ c) : a - c ≤ b :=
-by { rw [sub_le_iff_left] at h ⊢, rwa [add_comm] }
-
-section cov
-variable [covariant_class α α (+) (≤)]
-
-lemma sub_le_sub_left' (h : a ≤ b) (c : α) : c - b ≤ c - a :=
-sub_le_iff_left.mpr $ le_add_sub.trans $ add_le_add_right h _
-
-lemma sub_le_sub' (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
-(sub_le_sub_right' hab _).trans $ sub_le_sub_left' hcd _
-
-lemma sub_add_eq_sub_sub' : a - (b + c) = a - b - c :=
-begin
-  refine le_antisymm (sub_le_iff_left.mpr _)
-    (sub_le_iff_left.mpr $ sub_le_iff_left.mpr _),
-  { rw [add_assoc], refine le_trans le_add_sub (add_le_add_left le_add_sub _) },
-  { rw [← add_assoc], apply le_add_sub }
-end
-
-lemma sub_add_eq_sub_sub_swap' : a - (b + c) = a - c - b :=
-by { rw [add_comm], exact sub_add_eq_sub_sub' }
-
-lemma add_le_add_add_sub : a + b ≤ (a + c) + (b - c) :=
-by { rw [add_assoc], exact add_le_add_left le_add_sub a }
-
-lemma sub_right_comm' : a - b - c = a - c - b :=
-by simp_rw [← sub_add_eq_sub_sub', add_comm]
-
-lemma le_sub_add_add : a + b ≤ (a - c) + (b + c) :=
-by { rw [add_comm a, add_comm (a - c)], exact add_le_add_add_sub }
-
-lemma sub_le_sub_add_sub : a - c ≤ (a - b) + (b - c) :=
-begin
-  rw [sub_le_iff_left, ← add_assoc, add_right_comm],
-  refine le_add_sub.trans (add_le_add_right le_add_sub _),
-end
-
-lemma sub_sub_sub_le_sub : (c - a) - (c - b) ≤ b - a :=
-begin
-  rw [sub_le_iff_left, sub_le_iff_left, add_left_comm],
-  refine le_sub_add.trans (add_le_add_left le_add_sub _),
-end
-
-end cov
-
-section contra
-variable [contravariant_class α α (+) (≤)]
-
-lemma le_add_sub' : a ≤ b + a - b :=
-le_of_add_le_add_left le_add_sub
-
-lemma sub_eq_of_eq_add'' (h : a = b + c) : a - b = c :=
-le_antisymm (sub_le_iff_left.mpr h.le) $
-  by { rw h, exact le_add_sub' }
-
-lemma eq_sub_of_add_eq'' (h : a + c = b) : a = b - c :=
-(sub_eq_of_eq_add'' $ by rw [add_comm, h]).symm
-
-lemma add_sub_cancel_right' : a + b - b = a :=
-sub_eq_of_eq_add'' $ by rw [add_comm]
-
-lemma add_sub_cancel_left' : a + b - a = b :=
-sub_eq_of_eq_add'' rfl
-
-lemma le_sub_left_of_add_le' (h : a + b ≤ c) : b ≤ c - a :=
-le_of_add_le_add_left $ h.trans le_add_sub
-
-lemma le_sub_right_of_add_le' (h : a + b ≤ c) : a ≤ c - b :=
-le_of_add_le_add_right $ h.trans le_sub_add
-
-@[simp]
-lemma add_sub_left_eq : a + b - a = b :=
-le_antisymm (sub_le_iff_left.mpr le_rfl) le_add_sub'
-
-@[simp]
-lemma add_sub_right_eq : a + b - b = a :=
-by { rw add_comm, exact add_sub_left_eq }
-
-lemma lt_add_of_sub_left_lt' (h : a - b < c) : a < b + c :=
-begin
-  rw [lt_iff_le_and_ne, ← sub_le_iff_left],
-  refine ⟨h.le, _⟩,
-  rintro rfl,
-  simpa using h,
-end
-
-lemma lt_add_of_sub_right_lt' (h : a - c < b) : a < b + c :=
-begin
-  rw [lt_iff_le_and_ne, ← sub_le_iff_right],
-  refine ⟨h.le, _⟩,
-  rintro rfl,
-  simpa using h,
-end
-
-
--- lemma add_lt_of_lt_sub_left (h : b < c - a) : a + b < c :=
--- begin
---   apply
--- end
-
--- lemma lt_sub_left_of_add_lt (h : a + b < c) : b < c - a :=
--- begin
-
--- end
-
--- lemma add_lt_of_lt_sub_right (h : a < c - b) : a + b < c :=
--- begin
-
--- end
-
--- lemma lt_sub_right_of_add_lt (h : a + b < c) : a < c - b :=
--- begin
---   have h := add_lt_add_right h (-b),
---   rwa add_neg_cancel_right at h
--- end
-
--- lemma sub_right_lt_of_lt_add (h : a < b + c) : a - c < b :=
--- begin
---   have h := add_lt_add_right h (-c),
---   rwa add_neg_cancel_right at h
--- end
-
--- lemma sub_lt_sub_left' (h : a < b) (c : α) : c - b < c - a :=
-
--- lemma sub_lt_sub_right' (h : a < b) (c : α) : a - c < b - c :=
-
--- lemma sub_lt_sub' (hab : a < b) (hcd : c < d) : a - d < b - c :=
-
--- lemma sub_lt_sub_of_le_of_lt' (hab : a ≤ b) (hcd : c < d) : a - d < b - c :=
-
--- lemma sub_lt_sub_of_lt_of_le' (hab : a < b) (hcd : c ≤ d) : a - d < b - c :=
-
-
--- lemma le_sub_iff_add_le' : b ≤ c - a ↔ a + b ≤ c :=
-
--- lemma le_sub_iff_add_le : a ≤ c - b ↔ a + b ≤ c :=
-
--- lemma sub_le_iff_le_add' : a - b ≤ c ↔ a ≤ b + c :=
-
--- lemma sub_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
-
--- @[simp] lemma neg_le_sub_iff_le_add : -b ≤ a - c ↔ c ≤ a + b :=
-
--- lemma neg_le_sub_iff_le_add' : -a ≤ b - c ↔ c ≤ a + b :=
-
--- lemma sub_le : a - b ≤ c ↔ a - c ≤ b :=
-
--- lemma le_sub : a ≤ b - c ↔ c ≤ b - a :=
-
--- lemma lt_sub_iff_add_lt' : b < c - a ↔ a + b < c :=
-
--- lemma lt_sub_iff_add_lt : a < c - b ↔ a + b < c :=
-
--- lemma sub_lt_iff_lt_add' : a - b < c ↔ a < b + c :=
-
--- lemma sub_lt_iff_lt_add : a - c < b ↔ a < b + c :=
-
--- @[simp] lemma neg_lt_sub_iff_lt_add : -b < a - c ↔ c < a + b :=
-
--- lemma neg_lt_sub_iff_lt_add' : -a < b - c ↔ c < a + b :=
-
--- lemma sub_lt : a - b < c ↔ a - c < b :=
-
--- lemma lt_sub : a < b - c ↔ c < b - a :=
--- lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
-
--- lemma sub_le_self_iff (a : α) {b : α} : a - b ≤ a ↔ 0 ≤ b :=
--- sub_le_iff_le_add'.trans (le_add_iff_nonneg_left _)
-
--- lemma sub_lt_self_iff (a : α) {b : α} : a - b < a ↔ 0 < b :=
--- sub_lt_iff_lt_add'.trans (lt_add_iff_pos_left _)
-
-end contra
-
-section both
-variables [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
-
-lemma add_sub_add_right_eq_sub' : (a + c) - (b + c) = a - b :=
-begin
-  apply le_antisymm,
-  { rw [sub_le_iff_left, add_right_comm], exact add_le_add_right le_add_sub c },
-  { rw [sub_le_iff_left, add_comm b],
-    apply le_of_add_le_add_right,
-    rw [add_assoc],
-    exact le_sub_add }
-end
-
-end both
-
-end ordered_add_comm_monoid
-
-section canonically_ordered_add_monoid
-variables [canonically_ordered_add_monoid α] [has_sub α] [has_canonical_sub α] {a b c d : α}
-
-lemma add_sub_eq_of_le (h : a ≤ b) : a + (b - a) = b :=
-begin
-  refine le_antisymm _ le_add_sub,
-  obtain ⟨c, hc⟩ := le_iff_exists_add.1 h,
-  conv_rhs { rw [hc] },
-  apply add_le_add_left (sub_le_iff_left.mpr hc.le)
-end
-
-lemma sub_add_eq (h : a ≤ b) : b - a + a = b :=
-by { rw [add_comm], exact add_sub_eq_of_le h }
-
-lemma add_sub_eq_iff : a + (b - a) = b ↔ a ≤ b :=
-⟨λ h, le_iff_exists_add.mpr ⟨b - a, h.symm⟩, add_sub_eq_of_le⟩
-
-lemma sub_add_eq_iff : b - a + a = b ↔ a ≤ b :=
-by { rw [add_comm], exact add_sub_eq_iff }
-
-lemma sub_pos_of_lt' (h : a < b) : 0 < b - a :=
-begin
-  refine pos_iff_ne_zero.2 (λ h2, _),
-  have := add_sub_eq_iff.mpr h.le,
-  rw [h2, add_zero] at this,
-  exact h.ne this
-end
-
-lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
-by rw [← nonpos_iff_eq_zero, sub_le_iff_left, add_zero]
-
-lemma sub_self' : a - a = 0 :=
-sub_eq_zero_iff_le.mpr le_rfl
-
-lemma sub_le_self' : a - b ≤ a :=
-sub_le_iff_left.mpr $ le_add_left le_rfl
-
-lemma sub_zero' : a - 0 = a :=
-le_antisymm sub_le_self' $ le_add_sub.trans_eq $ zero_add _
-
-lemma sub_pos_iff_not_le : 0 < a - b ↔ ¬ a ≤ b :=
-by rw [pos_iff_ne_zero, ne.def, sub_eq_zero_iff_le]
-
-
-
-
-section contra
-variable [contravariant_class α α (+) (≤)]
-
-lemma le_sub_iff (h : a ≤ c) : b ≤ c - a ↔ a + b ≤ c :=
-⟨λ h2, (add_le_add_left h2 a).trans_eq $ add_sub_eq_of_le h, λ h2, le_sub_left_of_add_le' h2⟩
-
-
-lemma eq_sub_iff_add_eq_of_le (h : c ≤ b) : a = b - c ↔ a + c = b :=
-begin
-  split,
-  { rintro rfl, exact sub_add_eq h },
-  { rintro rfl, exact add_sub_right_eq.symm }
-end
-
-lemma sub_eq_iff_eq_add_of_le (h : b ≤ a) : a - b = c ↔ a = c + b :=
-by rw [eq_comm, eq_sub_iff_add_eq_of_le h, eq_comm]
-
-@[simp] lemma add_sub_sub_cancel' (h : c ≤ a) : (a + b) - (a - c) = b + c :=
-(sub_eq_iff_eq_add_of_le $ sub_le_self'.trans le_self_add).mpr $
-  by rw [add_assoc, add_sub_eq_of_le h, add_comm]
-
-end contra
-
-end canonically_ordered_add_monoid
-
-section canonically_linear_ordered_add_monoid
-variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_canonical_sub α] {a b c : α}
-
-lemma sub_pos_iff_lt : 0 < a - b ↔ b < a :=
-by rw [sub_pos_iff_not_le, not_le]
-
-end canonically_linear_ordered_add_monoid
-
-
-end has_canonical_sub
 
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,

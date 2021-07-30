@@ -468,7 +468,7 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 
 /-! ### `sub`
 
-Todo: remove lemmas that are proven in general for `has_canonical_sub`. -/
+Todo: remove lemmas that are proven in general for `has_ordered_sub`. -/
 
 theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
 begin
@@ -477,7 +477,7 @@ begin
   { simp [sub_succ, succ_add, ih, pred_le_iff] }
 end
 
-instance : has_canonical_sub ℕ :=
+instance : has_ordered_sub ℕ :=
 ⟨λ n m k, sub_le_left_iff_le_add⟩
 
 protected theorem le_sub_add (n m : ℕ) : n ≤ n - m + m :=

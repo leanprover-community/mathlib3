@@ -617,7 +617,7 @@ variables [module R α] [module R β] [module R γ]
 
 /-- The `linear_equiv` between spaces of matrices induced by an `linear_equiv` between their
 coefficients. This is `matrix.map` as an `linear_equiv`. -/
-@[simps]
+@[simps apply]
 def map_matrix (f : α ≃ₗ[R] β) : matrix m n α ≃ₗ[R] matrix m n β :=
 { to_fun := λ M, M.map f,
   inv_fun := λ M, M.map f.symm,

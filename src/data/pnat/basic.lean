@@ -128,7 +128,7 @@ instance : order_bot ℕ+ :=
 instance : add_succ_order ℕ+ :=
 { succ := λ a, a + 1,
   succ_eq_add_one := λ a, rfl,
-  ..succ_order_of_lt_iff_succ_le (λ a : ℕ+, a + 1) (λ a b, iff.rfl) (λ a b, pred_le_pred) }
+  ..succ_order_of_lt_iff_succ_le (λ a : ℕ+, a + 1) (λ a b, iff.rfl) }
 
 instance : inhabited ℕ+ := ⟨1⟩
 

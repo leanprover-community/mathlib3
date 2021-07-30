@@ -151,3 +151,15 @@ protected def injective.unique [inhabited α] [subsingleton β] (hf : injective 
 @unique.mk' _ _ hf.subsingleton
 
 end function
+
+section has_elem
+
+@[simp] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
+  default α = 1 :=
+unique.default_eq 1
+
+@[simp] lemma unique_has_zero {α : Type*} [unique α] [has_zero α] :
+  default α = 0 :=
+unique.default_eq 0
+
+end has_elem

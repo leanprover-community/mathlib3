@@ -310,8 +310,8 @@ begin
   exact h.ne this
 end
 
--- lemma sub_cancel (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : b - a = c - a) : b = c :=
--- by rw [←sub_add_cancel h₁, ←sub_add_cancel h₂, h₃]
+lemma sub_cancel (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : b - a = c - a) : b = c :=
+by rw [← sub_add_cancel_of_le h₁, ← sub_add_cancel_of_le h₂, h₃]
 
 -- lemma sub_sub_sub_cancel_right (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
 -- by rw [sub_sub, ←add_sub_assoc h₂, add_sub_cancel_left]
@@ -324,7 +324,7 @@ end
 
 -- lemma sub_sub_assoc (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
 -- (sub_eq_iff_eq_add (le_trans (sub_le _ _) h₁)).2 $
--- by rw [add_right_comm, add_assoc, sub_add_cancel h₂, sub_add_cancel h₁]
+-- by rw [add_right_comm, add_assoc, sub_add_cancel_of_le h₂, sub_add_cancel_of_le h₁]
 
 -- lemma lt_of_sub_pos (h : 0 < a - b) : a < b :=
 

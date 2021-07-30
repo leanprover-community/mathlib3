@@ -63,7 +63,13 @@ comp_assoc_right _ _ _
 
 end semigroup
 
-attribute [to_additive unique_has_zero] unique_has_one
+section has_elem
+
+@[to_additive, simp] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
+  default α = 1 :=
+unique.default_eq 1
+
+end has_elem
 
 section mul_one_class
 variables {M : Type u} [mul_one_class M]

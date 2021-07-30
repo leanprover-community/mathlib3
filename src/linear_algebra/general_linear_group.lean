@@ -37,16 +37,16 @@ universes u v
 open_locale matrix
 open linear_map
 
-namespace general_linear_group
-
-variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
-
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices-/
 abbreviation general_linear_group (n : Type u) (R : Type v)
   [decidable_eq n] [fintype n] [comm_ring R] : Type* := units (matrix n n R)
 
 notation `GL` := general_linear_group
+
+namespace general_linear_group
+
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 /-- The determinant of a unit matrix is itself a unit. -/
 @[simps]

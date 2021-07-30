@@ -9,6 +9,7 @@ import topology.algebra.module
 import algebra.indicator_function
 import data.equiv.encodable.lattice
 import data.nat.parity
+import algebra.big_operators.nat_antidiagonal
 import order.filter.at_top_bot
 
 /-!
@@ -1259,75 +1260,58 @@ section cauchy_product
 
 variables {f : ℕ → α} {g : ℕ → α}
 
-/-- The equivalence behind the Cauchy product formula. It maps `(n, k)` with `k ≤ n` to
-    the pair `(k, n-k)`, which allows us to show (under appropriate summability assumptions) that
-    `(∑' z : ℕ × ℕ, f z.1 * g z.2) = ∑' n : ℕ, ∑ k in range (n+1), f n * g (n - k)`
-    by rearranging terms. -/
-def cauchy_product_equiv : (Σ (n : ℕ), fin (n+1)) ≃ ℕ × ℕ :=
-{ to_fun := λ x, ⟨x.2, x.1 - x.2⟩,
-  inv_fun := λ x, ⟨x.1 + x.2, ⟨x.1, nat.lt_add_one_iff.mpr $ self_le_add_right _ _⟩⟩,
-  left_inv :=
-    begin
-      intros x,
-      ext,
-      { exact nat.add_sub_cancel' (nat.lt_add_one_iff.mp x.2.2) },
-      { refl }
-    end,
-  right_inv :=
-    begin
-      intros x,
-      ext,
-      { refl },
-      { exact nat.add_sub_cancel_left _ _ }
-    end }
-
-lemma comp_cauchy_product_equiv {f : ℕ → α} {g : ℕ → α} [has_mul α] :
-  (λ x : ℕ × ℕ, f x.1 * g x.2) ∘ cauchy_product_equiv =
-  (λ x : Σ (n : ℕ), fin (n+1), f x.2 * g (x.1 - x.2)) :=
-rfl
-
-lemma comp_cauchy_product_equiv' {f : ℕ → α} {g : ℕ → α} [has_mul α] :
-  (λ x : Σ (n : ℕ), fin (n+1), f (cauchy_product_equiv x).1 * g (cauchy_product_equiv x).2) =
-  (λ x : Σ (n : ℕ), fin (n+1), f x.2 * g (x.1 - x.2)) :=
-rfl
+open finset
 
 variables [topological_space α] [semiring α]
 
 lemma summable_mul_iff_summable_cauchy_product_sigma {f g : ℕ → α} :
   summable (λ x : ℕ × ℕ, f x.1 * g x.2) ↔
-  summable (λ x : (Σ (n : ℕ), fin (n+1)), f x.2 * g (x.1 - x.2)) :=
-by rw [← comp_cauchy_product_equiv, cauchy_product_equiv.summable_iff]
+  summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f x.2.1.1 * g x.2.1.2) :=
+nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
 
 variables [regular_space α] [topological_semiring α]
 
-lemma summable_cauchy_product_fin_of_summable_mul {f g : ℕ → α}
+lemma summable_cauchy_product_antidiagonal_of_summable_mul {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
-  summable (λ n, ∑ (k : fin $ n+1), f k * g (n - k)) :=
+  summable (λ n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
 begin
   rw summable_mul_iff_summable_cauchy_product_sigma at h,
-  have := h.sigma' (λ n, (has_sum_fintype _).summable),
-  simp_rw tsum_fintype at this,
-  exact this
+  conv {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
+  exact h.sigma' (λ n, (has_sum_fintype _).summable),
 end
 
-lemma summable_cauchy_product_range_of_summable_mul {f g : ℕ → α}
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
+    expressed by summing on `finset.nat.antidiagonal`.
+    See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`
+    if `f` and `g` are abolutely summable. -/
+lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal (hf : summable f) (hg : summable g)
+  (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
+  (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
+begin
+  conv_rhs {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
+  rw [tsum_mul_tsum hf hg hfg, ← nat.sigma_antidiagonal_equiv_prod.tsum_eq (_ : ℕ × ℕ → α)],
+  exact tsum_sigma' (λ n, (has_sum_fintype _).summable)
+    (summable_mul_iff_summable_cauchy_product_sigma.mp hfg)
+end
+
+lemma summable_cauchy_product_range_of_summable_mul' {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
   summable (λ n, ∑ k in range (n+1), f k * g (n - k)) :=
 begin
-  simp_rw ← fin.sum_univ_eq_sum_range,
-  exact summable_cauchy_product_fin_of_summable_mul h
+  conv {congr, funext, rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l)},
+  exact summable_cauchy_product_antidiagonal_of_summable_mul h
 end
 
-/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`.
-    See also `tsum_mul_tsum_nat_of_summable_norm` if `f` and `g` are abolutely summable. -/
-lemma tsum_mul_tsum_nat (hf : summable f) (hg : summable g)
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
+    expressed by summing on `finset.range`.
+    See also `tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`
+    if `f` and `g` are abolutely summable. -/
+lemma tsum_mul_tsum_eq_tsum_sum_range (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
   (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ k in range (n+1), f k * g (n - k)) :=
 begin
-  simp_rw [← fin.sum_univ_eq_sum_range, ← tsum_fintype],
-  rw [tsum_mul_tsum hf hg hfg, ← cauchy_product_equiv.tsum_eq (_ : ℕ × ℕ → α),
-      comp_cauchy_product_equiv', tsum_sigma' (λ n, (has_sum_fintype _).summable)
-        (summable_mul_iff_summable_cauchy_product_sigma.mp hfg)]
+  conv_rhs {congr, funext, rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l)},
+  exact tsum_mul_tsum_eq_tsum_sum_antidiagonal hf hg hfg
 end
 
 end cauchy_product

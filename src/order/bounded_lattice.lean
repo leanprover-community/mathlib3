@@ -449,6 +449,9 @@ instance : inhabited (with_bot α) := ⟨⊥⟩
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
+@[simp] theorem bot_ne_coe (a : α) : ⊥ ≠ (a : with_bot α) .
+@[simp] theorem coe_ne_bot (a : α) : (a : with_bot α) ≠ ⊥ .
+
 /-- Recursor for `with_bot` using the preferred forms `⊥` and `↑a`. -/
 @[elab_as_eliminator]
 def rec_bot_coe {C : with_bot α → Sort*} (h₁ : C ⊥) (h₂ : Π (a : α), C a) :

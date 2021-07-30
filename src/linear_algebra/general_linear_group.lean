@@ -46,8 +46,7 @@ section
 variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
 
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
-Defined as a subtype of matrices
--/
+Defined as a subtype of matrices-/
 abbreviation general_linear_group (R : Type*) [comm_ring R] : Type* := units (matrix n n R)
 
 notation `GL` := general_linear_group

@@ -653,9 +653,8 @@ begin
   apply nat.factors_unique,
   { apply list.prod_repeat },
   { intros q hq,
-  rw (list.mem_repeat.1 hq).right,
-  exact fact_iff.symm.2 hp,
-  },
+    rw (list.mem_repeat.1 hq).right,
+    exact fact_iff.symm.2 hp },
 end
 
 end

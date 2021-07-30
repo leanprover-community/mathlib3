@@ -63,6 +63,8 @@ comp_assoc_right _ _ _
 
 end semigroup
 
+attribute [to_additive unique_has_zero] unique_has_one
+
 section mul_one_class
 variables {M : Type u} [mul_one_class M]
 

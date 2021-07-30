@@ -5,7 +5,7 @@ Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 -/
 import data.fintype.basic
 import data.set.finite
-import data.sym2
+import data.sym.sym2
 
 /-!
 # Simple graphs

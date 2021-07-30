@@ -319,33 +319,6 @@ by rw [← f.map_add_int, zero_add]
   f (fract x) - fract x = f x - x :=
 by conv_rhs { rw [← fract_add_floor x, f.map_add_int, add_sub_comm, sub_self, add_zero] }
 
-/-- Two `circle_deg1_lift` maps define the same self-map of the circle if they differ by an
-integer translation. -/
-def same_circle_map : con circle_deg1_lift :=
-((units.coe_hom _).comp (translate.comp
-  (subgroup.gpowers (multiplicative.of_add (1:ℝ))).subtype)).con_range_of_commute $
-  by { rintro f ⟨_, ⟨m, rfl⟩⟩, by simp [f.commute_translate_int m] }
-
-lemma same_circle_map_iff {f g : circle_deg1_lift} :
-  same_circle_map f g ↔ ∃ m : ℤ, f = translate (multiplicative.of_add ↑m) * g :=
-by simp [same_circle_map, monoid_hom.con_range_of_commute]
-
-lemma same_circle_map_iff' {f g : circle_deg1_lift} :
-  same_circle_map f g ↔ ∃ m : ℤ, ∀ x, f x = m + g x :=
-same_circle_map_iff.trans $ exists_congr $ λ m, ext_iff
-
-@[simp] lemma coe_circle_translate_int (m : ℤ) :
-  ((translate (multiplicative.of_add ↑m) : circle_deg1_lift) : same_circle_map.quotient) = 1 :=
-same_circle_map.eq.2 $ same_circle_map_iff.2 ⟨m, rfl⟩
-
-noncomputable def same_circle_units_equiv :
-  (same_circle_map.comap coe units.coe_mul).quotient ≃* units same_circle_map.quotient :=
-monoid_hom.con_range_of_commute_units_equiv _ _
-
-@[simp] lemma coe_same_circle_units_equiv_coe (f : units circle_deg1_lift) :
-  (same_circle_units_equiv f : same_circle_map.quotient) = (f : circle_deg1_lift) :=
-rfl
-
 /-!
 ### Pointwise order on circle maps
 -/
@@ -462,41 +435,6 @@ lemma dist_map_zero_lt_of_semiconj_by {f g₁ g₂ : circle_deg1_lift} (h : semi
   dist (g₁ 0) (g₂ 0) < 2 :=
 dist_map_zero_lt_of_semiconj $ semiconj_by_iff_semiconj.1 h
 
-noncomputable def euler_cocycle (f g : same_circle_map.quotient) : ℤ :=
-con.lift_on₂ f g (λ f g, ⌊f (g 0)⌋ - ⌊f 0⌋ - ⌊g 0⌋) $ λ f₁ f₂ g₁ g₂ h₁ h₂,
-  begin
-    rcases ⟨same_circle_map_iff'.1 h₁, same_circle_map_iff'.1 h₂⟩ with ⟨⟨m₁, hm₁⟩, ⟨m₂, hm₂⟩⟩,
-    simp only [hm₁, hm₂, floor_int_add, g₁.map_int_add],
-    abel
-  end
-
-@[simp] lemma euler_cocycle_coe (f g : circle_deg1_lift) :
-  euler_cocycle f g = ⌊f (g 0)⌋ - ⌊f 0⌋ - ⌊g 0⌋ := rfl
-
-lemma euler_cocycle_nonneg (f g : same_circle_map.quotient) :
-  0 ≤ euler_cocycle f g :=
-begin
-  rcases ⟨f, g⟩ with ⟨⟨f⟩, ⟨g⟩⟩,
-  change 0 ≤ ⌊f (g 0)⌋ - ⌊f 0⌋ - ⌊g 0⌋,
-  rw [sub_nonneg, le_sub_iff_add_le'],
-  exact f.le_floor_map_map_zero g
-end
-
-lemma euler_cocycle_le_one (f g : same_circle_map.quotient) :
-  euler_cocycle f g ≤ 1 :=
-begin
-  rcases ⟨f, g⟩ with ⟨⟨f⟩, ⟨g⟩⟩,
-  change ⌊f (g 0)⌋ - ⌊f 0⌋ - ⌊g 0⌋ ≤ 1,
-  rw [sub_le_iff_le_add', sub_le_iff_le_add'],
-  refine (f.floor_map_map_zero_le g).trans (add_le_add_left _ _),
-  exact ceil_le_floor_add_one (g 0)
-end
-
-lemma euler_cocycle_mem_zero_one (f g : same_circle_map.quotient) :
-  euler_cocycle f g ∈ ({0, 1} : set ℤ) :=
-(euler_cocycle_nonneg f g).eq_or_lt.imp eq.symm $
-  le_antisymm (euler_cocycle_le_one f g)
-
 /-!
 ### Limits at infinities and continuity
 -/
@@ -563,95 +501,16 @@ coe_inj $ (f * g).is_order_right_adjoint_inv.unique
   (f⁻¹ : circle_deg1_lift) = ↑(f⁻¹) :=
 by simpa using inv_mul_units 1 f
 
-noncomputable instance has_inv_circle : has_inv same_circle_map.quotient :=
-⟨λ f, con.lift_on f (λ f, (↑(f⁻¹) : same_circle_map.quotient)) $ λ f g H,
-  begin
-    rcases same_circle_map_iff.1 H with ⟨n, rfl⟩,
-    refine (con.eq _).2 (same_circle_map_iff.2 ⟨-n, _⟩),
-    simpa using ((g⁻¹).commute_translate_int _).units_inv_right.eq
-  end⟩
-
 lemma semiconj_by_inv_symm {h : circle_deg1_lift} {f g : units circle_deg1_lift}
   (H : semiconj_by h f g) : semiconj_by h⁻¹ g f :=
 have semiconj h (to_order_iso f) (to_order_iso g).to_order_embedding,
   from semiconj_by_iff_semiconj.1 H,
 semiconj_by_iff_semiconj.2 $ this.symm_adjoint h.is_order_right_adjoint_inv
-  
+
 def semiconj_setoid : setoid (units circle_deg1_lift) :=
-semiconj_by_setoid_of_symm' (coe : units circle_deg1_lift → circle_deg1_lift) $
-  λ h f g H, ⟨h⁻¹, semiconj_by_inv_symm H⟩
-
-lemma semiconj_by_coe_iff {f g h : circle_deg1_lift} :
-  semiconj_by (h : same_circle_map.quotient) f g ↔
-    ∃ m : ℤ, semiconj_by h f (translate (multiplicative.of_add ↑m) * g) :=
-begin
-  split,
-  { intro H, rcases same_circle_map_iff.1 ((con.eq _).1 H) with ⟨m, hm⟩,
-    rw ← mul_assoc at hm,
-    exact ⟨m, hm⟩ },
-  { rintro ⟨m, hm⟩,
-    simpa using hm.map same_circle_map.mk' }
-end
-
-lemma semiconj_by_inv_symm_circle {h : same_circle_map.quotient}
-  {f g : units same_circle_map.quotient} (H : semiconj_by h f g) :
-  semiconj_by h⁻¹ g f :=
-begin
-  rcases same_circle_units_equiv.surjective f with ⟨⟨f⟩, rfl⟩,
-  rcases same_circle_units_equiv.surjective g with ⟨⟨g⟩, rfl⟩,
-  rcases h with ⟨h⟩,
-  dsimp at *,
-  rcases semiconj_by_coe_iff.1 H with ⟨m, hm⟩,
-end
-
-def semiconj_circle_setoid : setoid (units same_circle_map.quotient) :=
-{ r := λ f g, ∃ h : same_circle_map.quotient, semiconj_by h f g,
-  iseqv := 
-}
-
-/-def _root_.con.quotient_units_equiv {M : Type*} [monoid M] (c : con M) :
-  (c.comap (coe : units M → M) units.coe_mul).quotient ≃* units c.quotient :=
-{ to_fun := con.lift _ (units.map c.mk') $
-    begin
-      intros f g h, rw con.comap_rel at h,
-      simpa only [con.ker_rel, units.ext_iff, units.coe_map, con.coe_mk', c.eq]
-    end,
-  inv_fun := _ }
-
-def quotient_units_equiv :
-  (con.comap (coe : units circle_deg1_lift → circle_deg1_lift)
-    units.coe_mul same_circle_map).quotient ≃* units same_circle_map.quotient :=
-{ to_fun := con.lift _ (units.map same_circle_map.mk') $
-    begin
-      intros f g h,
-      rw [con.comap_rel, same_circle_map_iff'] at h, norm_cast at h,
-      rcases h with ⟨m, rfl⟩,
-      simp only [con.ker_rel, units.ext_iff, units.coe_map,
-        units.coe_one, units.coe_mul, con.coe_mk', con.eq, same_circle_map_iff'],
-      exact ⟨m, rfl⟩
-    end,
-  inv_fun :=  }-/
-    
-def semiconj_setoid : setoid (units same_circle_map.quotient) :=
-{ 
-}
-
-def semiconj_lift_sup_same_circle_aux : setoid (units circle_deg1_lift) :=
-{ r := λ f g, ∃ (n : ℤ) (h : circle_deg1_lift),
-         semiconj_by h f (translate (multiplicative.of_add (n : ℝ)) * g),
-  iseqv :=
-    begin
-      refine ⟨_, _, _⟩,
-      { refine λ f, ⟨0, 1, _⟩, simp },
-      { rintro f₁ f₂ ⟨n, h, H⟩,
-        rw [← units.coe_mul] at H,
-        refine ⟨-n, h⁻¹, _⟩,
-        simpa using ((h⁻¹).commute_translate_int (-n)).semiconj_by.mul_right
-          (semiconj_by_inv_symm H) },
-      { rintro f₁ f₂ f₃ ⟨n₁₂, h₁₂, H₁₂⟩ ⟨n₂₃, h₂₃, H₂₃⟩,
-        refine ⟨n₁₂ + n₂₃, h₂₃ * h₁₂, _⟩,
-        simpa using ((h₂₃.commute_translate_int n₁₂).semiconj_by.mul_right H₂₃).mul_left H₁₂ }
-    end }
+{ r := λ f g, ∃ h : circle_deg1_lift, semiconj_by h f g,
+  iseqv := ⟨semiconj_by.reflexive.comap coe, λ f g ⟨h, H⟩, ⟨h⁻¹, semiconj_by_inv_symm H⟩,
+    semiconj_by.transitive.comap coe⟩ }
 
 /-!
 ### Estimates on `(f^n) x`
@@ -1019,14 +878,6 @@ begin
   rw [eq_div_iff, mul_comm, ← translation_number_pow]; [skip, exact ne_of_gt (nat.cast_pos.2 hn)],
   exact (f^n).translation_number_eq_int_iff (f.continuous_pow hf n)
 end
-
-lemma semiconj_of_group_action_of_forall_translation_number_eq'
-  {G : Type*} [group G] (f₁ f₂ : G → units (circle_deg1_lift)) (n₁ n₂ : G → G → ℤ)
-  (Hmul₁ : ∀ g₁ g₂ x, f₁ (g₁ * g₂) x = f₁ g₁ (f₁ g₂ x) + n₁ g₁ g₂)
-  (Hmul₂ : ∀ g₁ g₂ x, f₂ (g₁ * g₂) x = f₂ g₁ (f₂ g₂ x) + n₁ g₁ g₂)
-  (h : ∀ g, τ (f₁ g) = τ (f₂ g)) :
-  ∃ F : circle_deg1_lift, ∀ g, semiconj F (f₁ g) (f₂ g) :=
-sorry
 
 /-- Consider two actions `f₁ f₂ : G →* circle_deg1_lift` of a group on the real line by lifts of
 orientation preserving circle homeomorphisms. Suppose that for each `g : G` the homeomorphisms

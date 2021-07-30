@@ -57,7 +57,7 @@ lemma length_set : ∀ {m : ℕ} {as : list α},
 | 0 []          := rfl
 | 0 (a::as)     := by {rw max_eq_left, refl, simp [nat.le_add_right]}
 | (m+1) []      := by simp only [set, nat.zero_max, length, @length_set m]
-| (m+1) (a::as) := by simp only [set, nat.max_succ_succ, length, @length_set m]
+| (m+1) (a::as) := by simp only [set, max_succ_succ, length, @length_set m]
 
 @[simp] lemma get_nil {k : ℕ} : get k [] = default α :=
 by {cases k; refl}
@@ -257,8 +257,7 @@ lemma length_pointwise {f : α → β → γ} :
   by simp only [pointwise, length, length_map,
      max_eq_left (nat.zero_le (length as + 1))]
 | (a::as) (b::bs) :=
-  by simp only [pointwise, length,
-     nat.max_succ_succ, @length_pointwise as bs]
+  by simp only [pointwise, length, max_succ_succ, @length_pointwise as bs]
 
 end func
 

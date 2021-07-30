@@ -37,19 +37,20 @@ universes u v
 open_locale matrix
 open linear_map
 
-section
+namespace general_linear_group
 
-variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices-/
-abbreviation general_linear_group (R : Type*) [comm_ring R] : Type* := units (matrix n n R)
+abbreviation general_linear_group (n : Type u) (R : Type v)
+  [decidable_eq n] [fintype n] [comm_ring R] : Type* := units (matrix n n R)
 
 notation `GL` := general_linear_group
 
 /-- The determinant of a unit matrix is itself a unit. -/
 @[simps]
-def general_linear_group.det : GL n R →* units R :=
+def det : GL n R →* units R :=
 { to_fun := λ A,
   { val := (↑A : matrix n n R).det,
     inv := (↑(A⁻¹) : matrix n n R).det,
@@ -57,11 +58,6 @@ def general_linear_group.det : GL n R →* units R :=
     inv_val := by rw [←det_mul, ←mul_eq_mul, A.inv_mul, det_one]},
   map_one' := units.ext det_one,
   map_mul' := λ A B, units.ext $ det_mul _ _ }
-
-end
-namespace general_linear_group
-
-variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 /--The `GL n R` and `general_linear_group R n` groups are multiplicatively equivalent-/
 def to_lin : (GL n R) ≃* (linear_map.general_linear_group R (n → R)) :=
@@ -114,16 +110,6 @@ end coe_lemmas
 instance SL_to_GL : has_coe (special_linear_group n R) (GL n R) :=
 ⟨λ A, ⟨↑A, ↑(A⁻¹), congr_arg coe (mul_right_inv A), congr_arg coe (mul_left_inv A)⟩⟩
 
-lemma det_not_zero [nontrivial R] (A : GL n R) : det A ≠ 0 :=
-begin
-  have := GL_is_unit_det _ _ A, simp,
-  by_contradiction,
-  unfold_coes at *,
-  rw h at this,
-  simp at *,
-  exact this,
-end
-
 end general_linear_group
 
 namespace GL_plus
@@ -143,10 +129,9 @@ end
 
 lemma inv_det_pos  (A : GL n R) (h : 0 < det A) :  0 < det (A⁻¹).1 :=
 begin
-  have h0 := (GL_is_unit_det _ _ A),
-  have h1 := is_unit_nonsing_inv_det A h0,
-  have h2 := nonsing_inv_det A h0,
-  have h3 : 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith},
+  have h1 := is_unit_nonsing_inv_det A,
+  have h2 := nonsing_inv_det A,
+  have h3 : 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith, simp,sorry,},
   unfold_coes at *,
   convert (zero_lt_mul_left h).mp h3,
   have := general_linear_group.coe_inv A,

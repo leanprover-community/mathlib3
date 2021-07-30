@@ -469,6 +469,14 @@ begin
     rwa nat.coprime_primes hp.1 hq.1, },
 end
 
+lemma valuation_prime_pow_eq_pow {p y : ℕ} [fact p.prime] : y = padic_val_nat p (p ^ y) :=
+begin
+  rw padic_val_nat_eq_factors_count p,
+  rw prime_pow_factors,
+  { symmetry,
+    apply list.count_repeat },
+end
+
 open_locale big_operators
 
 lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :

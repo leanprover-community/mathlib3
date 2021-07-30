@@ -82,13 +82,6 @@ lemma ext ⦃A B : GL n R⦄ (h : ∀ i j, (A : matrix n n R) i j = (B : matrix 
   A = B :=
 units.ext $ matrix.ext h
 
-/-- Applying `matrix.nonsing_inv` to the coercion is the same as coercing the group inverse. -/
-lemma nonsing_inv_coe_eq_coe_inv (A : GL n R) : (↑A : matrix n n R)⁻¹ = ↑(A⁻¹) :=
-begin
-  letI := A.invertible,
-  exact (inv_eq_nonsing_inv_of_invertible ↑A).symm,
-end
-
 section coe_lemmas
 
 variables (A B : GL n R)
@@ -99,12 +92,10 @@ variables (A B : GL n R)
 
 @[simp] lemma one_val : ↑(1 : GL n R) = (1 : matrix n n R) := rfl
 
-@[simp] lemma inv_val : ↑(A⁻¹) = nonsing_inv A :=
+@[simp] lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
 begin
-  have:=nonsing_inv_coe_eq_coe_inv A,
-  unfold_coes at *,
-  rw ← this,
-  refl,
+  letI := A.invertible,
+  exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
 end
 
 @[simp] lemma to_lin'_mul : to_lin' (A * B) = (to_lin' A).comp (to_lin' B) :=
@@ -153,7 +144,7 @@ begin
   have h3 : 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith},
   unfold_coes at *,
   convert (zero_lt_mul_left h).mp h3,
-  have := general_linear_group.nonsing_inv_coe_eq_coe_inv A,
+  have := general_linear_group.coe_inv A,
   unfold_coes  at this,
   simp_rw this,
 end

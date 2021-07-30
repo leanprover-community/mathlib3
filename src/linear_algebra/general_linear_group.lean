@@ -100,7 +100,14 @@ end
 @[ext] lemma ext (A B : GL n R) : (∀ i j, A i j = B i j) → A = B :=
 (ext_iff A B).mpr
 
+ instance : group (GL n R) :=infer_instance
 
+/-- Applying `matrix.nonsing_inv` to the coercion is the same as coercing the group inverse. -/
+lemma nonsing_inv_coe_eq_coe_inv (A : GL n R) : (↑A : matrix n n R)⁻¹ = ↑(A⁻¹) :=
+begin
+  letI := A.invertible,
+  exact (inv_eq_nonsing_inv_of_invertible ↑A).symm,
+end
 
 section coe_lemmas
 
@@ -122,6 +129,16 @@ variables (A B : GL n R)
 @[simp] lemma one_apply : ⇑(1 : GL n R) = (1 : matrix n n R) := rfl
 
 
+@[simp] lemma inv_val : ↑(A⁻¹) = nonsing_inv A :=
+begin
+ have:=nonsing_inv_coe_eq_coe_inv A, unfold_coes at *, rw ← this, refl,
+end
+
+@[simp] lemma inv_apply : ⇑(A⁻¹) = nonsing_inv A :=
+begin
+ have:=nonsing_inv_coe_eq_coe_inv A, unfold_coes at *, rw ← this, refl,
+end
+
 @[simp] lemma to_lin'_mul :
   to_lin' (A * B) = (to_lin' A).comp (to_lin' B) :=
 matrix.to_lin'_mul A B
@@ -132,46 +149,7 @@ matrix.to_lin'_one
 
 
 end coe_lemmas
-/-
 
-noncomputable instance :  has_inv (GL n R):=
-⟨λ A, ⟨nonsing_inv A, A, by {simp, apply nonsing_inv_mul, apply GL.is_unit_det _ _ A,},
-by { simp, apply mul_nonsing_inv, apply GL.is_unit_det _ _ A, }, ⟩⟩
-
-@[simp] lemma inv_val : ↑(A⁻¹) = nonsing_inv A := rfl
-
-@[simp] lemma inv_apply : ⇑(A⁻¹) = nonsing_inv A := rfl
-
-
-lemma is_left_inv (A : GL n R): A⁻¹ *  A = 1:=
-
-begin
- have h0:= GL.is_unit_det _ _ A,
-have:=nonsing_inv_mul A h0, rw ← mul_eq_mul at this, ext, dsimp,rw nonsing_inv,
-cases h0, dsimp at *, solve_by_elim,
-end
-
-
-noncomputable instance : group (GL n R) :=
-{ mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
-    by rw [mul_assoc, ← mul_assoc u₂.val, units.val_inv, one_mul, units.val_inv],
-    by rw [mul_assoc, ← mul_assoc u₁.inv, units.inv_val, one_mul, units.inv_val]⟩,
-  one := ⟨1, 1, one_mul 1, one_mul 1⟩,
-  mul_one := λ u,  mul_one u,
-  one_mul := λ u,  one_mul u,
-  mul_assoc := λ u₁ u₂ u₃,  mul_assoc u₁ u₂ u₃,
-  inv := general_linear_group.has_inv.inv,
-  mul_left_inv := λ u,  by {apply is_left_inv,} }
-
--/
- instance : group (GL n R) :=infer_instance
-
-/-- Applying `matrix.nonsing_inv` to the coercion is the same as coercing the group inverse. -/
-lemma nonsing_inv_coe_eq_coe_inv (A : GL n R) : (A : matrix n n R)⁻¹ = ↑(A⁻¹) :=
-begin
-  letI := A.invertible,
-  exact (inv_eq_nonsing_inv_of_invertible (A : matrix n n R)).symm,
-end
 
 
 instance SL_to_GL : has_coe (special_linear_group n R) (GL n R):=
@@ -224,7 +202,8 @@ have h0:=(GL.is_unit_det _ _ A),
 have h1:=is_unit_nonsing_inv_det A h0,
 have h2:= nonsing_inv_det A h0,
 have h3: 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith}, unfold_coes at *,
-convert (zero_lt_mul_left h).mp h3,  sorry,
+convert (zero_lt_mul_left h).mp h3,
+ have:= general_linear_group.nonsing_inv_coe_eq_coe_inv A,  unfold_coes  at this, simp_rw this,
 end
 
 
@@ -233,7 +212,7 @@ end
 linear ordered ring and positive determinant-/
 
 
-noncomputable def GL_pos : subgroup (GL n R) :=
+ def GL_pos : subgroup (GL n R) :=
 {carrier:={M  | 0 < det M},
  one_mem':=one_in_GL_pos _ _ ,
  mul_mem':=λ A B h1 h2, mul_in_GL_pos _ _ A B h1 h2,
@@ -259,7 +238,7 @@ have:=A.2, simp only [gt_iff_lt, subtype.val_eq_coe],
  simp only [subtype.val_eq_coe] at this,  rw this,linarith,
 end
 
-noncomputable instance SL_to_GL_pos: has_coe (special_linear_group n R) (GL_pos n R):=
+ instance SL_to_GL_pos: has_coe (special_linear_group n R) (GL_pos n R):=
 ⟨λ A, ⟨(A : GL n R), by {simp, apply SL_det_pos' _ _ A}, ⟩⟩
 
 end GL_plus

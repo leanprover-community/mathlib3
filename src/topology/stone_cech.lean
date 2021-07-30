@@ -230,6 +230,10 @@ def stone_cech_unit (x : α) : stone_cech α := ⟦pure x⟧
 lemma dense_range_stone_cech_unit : dense_range (stone_cech_unit : α → stone_cech α) :=
 dense_range_pure.quotient
 
+lemma stone_cech_unit_dense :
+  closure (set.range (stone_cech_unit : α → stone_cech α)) = set.univ :=
+dense.closure_eq dense_range_stone_cech_unit
+
 section extension
 
 variables {γ : Type u} [topological_space γ] [t2_space γ] [compact_space γ]

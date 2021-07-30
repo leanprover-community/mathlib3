@@ -14,8 +14,14 @@ import topology.category.CompHaus
 An extremally disconnected topological space is a space
 in which the closure of every open set is open.
 Such spaces are also called Stonean spaces.
-They are the projective objects in the category of compact Hausdorff spaces;
-this fact is proven in `TODO`.
+They are the projective objects in the category of compact Hausdorff spaces.
+
+Lemma `extremally_disconnected_of_projective` shows that compact Hausdorff spaces that are
+projective are extremally disconnected.  The converse is missing.
+
+# TODO
+
+Prove that a compact, Hausdorff, extremally disconnected space is projective.
 
 ## References
 
@@ -34,10 +40,7 @@ variables (X : Type u) [topological_space X]
 open function
 
 /-- An extremally disconnected topological space is a space
-in which the closure of every open set is open.
-Such spaces are also called Stonean spaces.
-They are the projective objects in the category of compact Hausdorff spaces;
-this fact is proven in `TODO`. -/
+in which the closure of every open set is open. -/
 class extremally_disconnected : Prop :=
 (open_closure : ∀ U : set X, is_open U → is_open (closure U))
 
@@ -50,17 +53,13 @@ there exists a continuous lift `h : X → Y`, such that `f = g ∘ h`. -/
 def compact_t2.projective : Prop :=
   Π {Y Z : Type u} [topological_space Y] [topological_space Z],
   by exactI Π [compact_space Y] [t2_space Y] [compact_space Z] [t2_space Z],
-  by exactI Π {f : X → Z} {g : Y → Z} (hf : continuous f) (hg : continuous g)
+  by exact Π {f : X → Z} {g : Y → Z} (hf : continuous f) (hg : continuous g)
     (g_sur : surjective g),
   ∃ h : X → Y, continuous h ∧ g ∘ h = f
 
 end
 
 variable {X}
-
-lemma stone_cech_unit_dense {X : Type u} [topological_space X] :
-  closure (set.range (stone_cech_unit : X → stone_cech X)) = set.univ :=
-dense.closure_eq dense_range_stone_cech_unit
 
 lemma stone_cech.projective [discrete_topology X] : compact_t2.projective (stone_cech X) :=
 begin
@@ -124,50 +123,3 @@ begin
     replace hfstφ := congr_fun hfstφ x, rw comp_apply at hfstφ,
     rw hfstφ at hx, exact hx.1 }
 end
-
-section CompHaus
-
-section CompHaus_projective
-
-variable (X)
-include X
-def CompHaus.projective : Prop :=
-  Π {Y Z : CompHaus.{u}},
-  by exactI Π {f : X → Z} {g : Y → Z} (hf : continuous f) (hg : continuous g)
-    (g_sur : surjective g),
-  ∃ h : X → Y, continuous h ∧ g ∘ h = f
-
-end CompHaus_projective
-
-lemma stone_cech.projective_1 [discrete_topology X] : CompHaus.projective (stone_cech X) :=
-λ Y Z f g, stone_cech.projective
-
-lemma extremally_disconnected_of_projective_1 (X : CompHaus)
-  (h : CompHaus.projective X) :
-  extremally_disconnected X :=
-begin
-  apply extremally_disconnected_of_projective,
-
-  intros Y Z tY tZ cY t2Y cZ t2Z f g hf hg g_sur,
-  let YY : Top := ⟨Y, tY⟩,
-  haveI : compact_space YY := cY,
-  haveI : t2_space YY := t2Y,
-  have cYY : CompHaus := CompHaus.mk YY,
-  let ZZ : Top := ⟨Z, tZ⟩,
-  haveI : compact_space ZZ := cZ,
-  haveI : t2_space ZZ := t2Z,
-  have cZZ : CompHaus := CompHaus.mk ZZ,
-  let f' : X → cZZ := by {
-      intros x,
-      have ff : Z → cZZ, intros z, unfold_coes,casesI cZZ,casesI cZZ_to_Top,convert z,simp,hint,
-      unfold_coes,casesI cZZ,casesI cZZ_to_Top,
-      dsimp,
-      casesI ZZ,
-
-      simp at *,
-  },
---  have : CompHaus.mk YY,unfold_coes,simp at *,sorry,
-  obtain F := @h X cYY ,
-end
-
-end CompHaus

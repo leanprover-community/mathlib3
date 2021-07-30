@@ -85,7 +85,7 @@ section equiv_prod
     begin
       rintros ⟨n, ⟨k, l⟩, h⟩,
       rw mem_antidiagonal at h,
-      ext; refl <|> assumption
+      exact sigma.subtype_ext h rfl,
     end,
   right_inv := λ x, rfl }
 

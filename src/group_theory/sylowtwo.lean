@@ -6,6 +6,7 @@ Authors: Anna Wright
 import data.zmod.basic
 import data.fintype.card
 import number_theory.padics.padic_norm
+import data.nat.prime
 
 open fintype subgroup
 universe u
@@ -52,8 +53,7 @@ begin
   congr,
   rw padic_val_nat.mul p _ _,
   {
-    rw [padic_val_nat_of_not_dvd hy3, add_zero],
-    rw padic_val_nat_eq_factors_count,
+    rw [padic_val_nat_of_not_dvd hy3, add_zero, padic_val_nat_eq_factors_count],
 
     sorry, },
   {  exact pow_ne_zero _ (nat.prime.ne_zero (fact.out _)) },
@@ -62,6 +62,7 @@ begin
     rw hy2 at h,
     exact right_ne_zero_of_mul (ne.symm h) }
 end
+
 
 end is_sylow_subgroup
 

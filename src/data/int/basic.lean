@@ -137,7 +137,7 @@ def pred (a : ℤ) := a - 1
 instance : add_succ_order ℤ :=
 { succ := succ,
   succ_eq_add_one := λ a, rfl,
-  ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) (λ a b, le_of_lt_add_one) }
+  ..succ_order_of_lt_iff_succ_le succ (λ a b, iff.rfl) }
 
 theorem nat_succ_eq_int_succ (n : ℕ) : (nat.succ n : ℤ) = int.succ n := rfl
 

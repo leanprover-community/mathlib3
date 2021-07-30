@@ -120,13 +120,6 @@ end coe_lemmas
 instance SL_to_GL : has_coe (special_linear_group n R) (GL n R) :=
 ⟨λ A, ⟨↑A, ↑(A⁻¹), congr_arg coe (mul_right_inv A), congr_arg coe (mul_left_inv A)⟩⟩
 
-@[simp] lemma GL_vals (A : GL n R) : ∀ i j, A i j = A.1 i j :=
-begin
-unfold_coes,
-intros i j,
-refl,
-end
-
 lemma det_not_zero [nontrivial R] (A : GL n R) : det A ≠ 0 :=
 begin
   have := GL.is_unit_det _ _ A, simp,

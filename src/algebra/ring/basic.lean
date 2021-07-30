@@ -885,6 +885,9 @@ lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
+/-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
+The general theory of such `k` is elaborated by `is_left_regular`.
+The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
 lemma mul_left_cancel_of_non_zero_divisor [ring α] (k : α)
   (h : ∀ (x : α), k * x = 0 → x = 0) {x y : α} (h' : k * x = k * y) : x = y :=
 begin
@@ -893,6 +896,9 @@ begin
   rw [mul_sub, sub_eq_zero, h']
 end
 
+/-- Right `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
+The general theory of such `k` is elaborated by `is_right_regular`.
+The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
 lemma mul_right_cancel_of_non_zero_divisor [ring α] (k : α)
   (h : ∀ (x : α), x * k = 0 → x = 0) {x y : α} (h' : x * k = y * k) : x = y :=
 begin

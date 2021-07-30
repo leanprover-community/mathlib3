@@ -125,7 +125,7 @@ begin
 end
 
 -- this is `general_linear_group.det` which is always a unit!
-lemma inv_det_pos (A : GL n R) (h : (0 : R) < (A).det) : (0 : R) < A⁻¹.det :=
+lemma inv_det_pos (A : GL n R) (h : (0 : R) < A.det) : (0 : R) < A⁻¹.det :=
 begin
   have : (0 : R) < (A * A⁻¹).det := by simp,
   rw [monoid_hom.map_mul, units.coe_mul] at this,

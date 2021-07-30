@@ -101,20 +101,13 @@ section coe_lemmas
 
 variables (A B : GL n R)
 
-@[simp] lemma mul_val : ↑(A * B) = A ⬝ B := rfl
+@[simp] lemma coe_fn_eq_coe : ⇑A = (↑A : matrix n n R) := rfl
 
-@[simp] lemma mul_apply : ⇑(A * B) = (A ⬝ B) := rfl
+@[simp] lemma mul_val : ↑(A * B) = A ⬝ B := rfl
 
 @[simp] lemma one_val : ↑(1 : GL n R) = (1 : matrix n n R) := rfl
 
-@[simp] lemma one_apply : ⇑(1 : GL n R) = (1 : matrix n n R) := rfl
-
 @[simp] lemma inv_val : ↑(A⁻¹) = nonsing_inv A :=
-begin
-  have:=nonsing_inv_coe_eq_coe_inv A, unfold_coes at *, rw ← this, refl,
-end
-
-@[simp] lemma inv_apply : ⇑(A⁻¹) = nonsing_inv A :=
 begin
   have:=nonsing_inv_coe_eq_coe_inv A, unfold_coes at *, rw ← this, refl,
 end

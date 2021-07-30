@@ -12,13 +12,26 @@ This file defines the way to make a sequence of elements into a sequence of disj
 the same partial sups.
 
 For a sequence `f : ℕ → α`, this new sequence will be `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ⊔ f 1)`.
-It is actually unique, as
+It is actually unique, as `disjointed_unique` shows.
 
 ## Main declarations
 
 * `disjointed f`: The sequence `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ⊔ f 1)`.
-* `partial_sups_disjointed`: `disjointed f` has the same partial sups as `f`
+* `partial_sups_disjointed`: `disjointed f` has the same partial sups as `f`.
 * `disjoint_disjointed`: The elements of `disjointed f` are pairwise disjoint.
+* `disjointed_unique`: `disjointed f` is the only pairwise disjoint sequence having the same partial
+  sups as `f`.
+* `supr_disjointed`: `disjointed f` has the same supremum as `f`. Limiting case of
+  `partial_sups_disjointed`.
+
+We also provide set notation variants of some lemmas.
+
+## TODO
+
+Find a useful statement of `disjointed_rec_succ`.
+
+One could generalize `partial_sups` to arbitrary locally finite bot preorders. See the TODO in
+`order.partial_sups`.
 -/
 
 variables {α β : Type*}
@@ -51,10 +64,9 @@ lemma disjointed_le (f : ℕ → α) : disjointed f ≤ f := disjointed_le_id f
 
 lemma disjoint_disjointed (f : ℕ → α) : pairwise (disjoint on disjointed f) :=
 begin
-  rw symmetric.pairwise_on disjoint.symm, swap, apply_instance,
-  rintro m n h,
+  refine (symmetric.pairwise_on disjoint.symm _).2 (λ m n h, _),
   cases n,
-  { exact (h.not_le (nat.zero_le _)).elim },
+  { exact (nat.not_lt_zero _ h).elim },
   exact disjoint_sdiff_self_right.mono_left ((disjointed_le f m).trans
     (le_partial_sups_of_le f (nat.lt_add_one_iff.1 h))),
 end
@@ -71,12 +83,12 @@ def disjointed_rec {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p
     rintro k,
     induction k with k ih,
     { exact hdiff h },
-    convert hdiff ih using 1,
     rw [partial_sups_succ, ←sdiff_sdiff_left],
+    exact hdiff ih,
   end
 
 @[simp] lemma disjointed_rec_zero {f : ℕ → α} {p : α → Sort*} (hdiff : ∀ ⦃t i⦄, p t → p (t \ f i))
-  {n : ℕ} (h₀ : p (f 0)) :
+  (h₀ : p (f 0)) :
   disjointed_rec hdiff h₀ = h₀ := rfl
 
 -- TODO: Find a useful statement of `disjointed_rec_succ`.
@@ -119,12 +131,8 @@ end generalized_boolean_algebra
 section complete_boolean_algebra
 variables [complete_boolean_algebra α]
 
-lemma le_supr_disjointed (f : ℕ → α) (n : ℕ) : f n ≤ ⨆ i ≤ n, disjointed f i :=
-by { rw [←partial_sups_eq_supr, partial_sups_disjointed], exact le_partial_sups _ _ }
-
 lemma supr_disjointed (f : ℕ → α) : (⨆ n, disjointed f n) = (⨆ n, f n) :=
-(supr_le_supr (λ n, disjointed_le f n)).antisymm
-  (supr_le (λ i, (le_supr_disjointed _ _).trans (bsupr_le_supr _ _)))
+supr_eq_supr_of_partial_sups_eq_partial_sups (partial_sups_disjointed f)
 
 lemma disjointed_eq_inf_compl (f : ℕ → α) (n : ℕ) :
   disjointed f n = f n ⊓ (⨅ i < n, (f i)ᶜ) :=

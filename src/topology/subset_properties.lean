@@ -763,7 +763,7 @@ end
 section tychonoff
 variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
 
-/-- Tychonoff's theorem -/
+/-- **Tychonoff's theorem** -/
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
   (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
@@ -975,6 +975,9 @@ monotone_accumulate h
 
 variable {α}
 
+lemma exists_mem_compact_covering (x : α) : ∃ n, x ∈ compact_covering α n :=
+Union_eq_univ_iff.mp (Union_compact_covering α) x
+
 /-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have
 only countably many elements, `set.countable` version. -/
 lemma locally_finite.countable_of_sigma_compact {ι : Type*} {f : ι → set α} (hf : locally_finite f)
@@ -988,19 +991,32 @@ begin
   exact mem_Union.2 ⟨n, x, hx, hn⟩
 end
 
+/-- In a topological space with sigma compact topology, if `f` is a function that sends each point
+`x` of a closed set `s` to a neighborhood of `x` within `s`, then for some countable set `t ⊆ s`,
+the neighborhoods `f x`, `x ∈ t`, cover the whole set `s`. -/
+lemma countable_cover_nhds_within_of_sigma_compact {f : α → set α} {s : set α} (hs : is_closed s)
+  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ ⋃ x ∈ t, f x :=
+begin
+  simp only [nhds_within, mem_inf_principal] at hf,
+  choose t ht hsub using λ n, ((is_compact_compact_covering α n).inter_right hs).elim_nhds_subcover
+    _ (λ x hx, hf x hx.right),
+  refine ⟨⋃ n, (t n : set α), Union_subset $ λ n x hx, (ht n x hx).2,
+    countable_Union $ λ n, (t n).countable_to_set, λ x hx, mem_bUnion_iff.2 _⟩,
+  rcases exists_mem_compact_covering x with ⟨n, hn⟩,
+  rcases mem_bUnion_iff.1 (hsub n ⟨hn, hx⟩) with ⟨y, hyt : y ∈ t n, hyf : x ∈ s → x ∈ f y⟩,
+  exact ⟨y, mem_Union.2 ⟨n, hyt⟩, hyf hx⟩
+end
+
 /-- In a topological space with sigma compact topology, if `f` is a function that sends each
 point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
 `x ∈ s`, cover the whole space. -/
 lemma countable_cover_nhds_of_sigma_compact {f : α → set α}
   (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
 begin
-  choose t ht hsub using λ n, (is_compact_compact_covering α n).elim_nhds_subcover f (λ x _, hf x),
-  refine ⟨⋃ n, (t n : set α), countable_Union $ λ n, (t n).countable_to_set, _⟩,
-  simp only [eq_univ_iff_forall, mem_Union, exists_prop],
-  intro x,
-  rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
-  rcases mem_bUnion_iff.1 (hsub n hn) with ⟨c, hct, hfx⟩,
-  exact ⟨c, ⟨n, hct⟩, hfx⟩
+  simp only [← nhds_within_univ] at hf,
+  rcases countable_cover_nhds_within_of_sigma_compact is_closed_univ (λ x _, hf x)
+    with ⟨s, -, hsc, hsU⟩,
+  exact ⟨s, hsc, univ_subset_iff.1 hsU⟩
 end
 
 end compact

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 import measure_theory.measurable_space_def
 import measure_theory.tactic
+import data.tprod
 
 
 /-!
@@ -186,7 +187,7 @@ lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :
 λ s hs, @subsingleton.measurable_set α _ _ _
 
 @[measurability]
-lemma measurable.piecewise {s : set α} {_ : decidable_pred s} {f g : α → β}
+lemma measurable.piecewise {s : set α} {_ : decidable_pred (∈ s)} {f g : α → β}
   (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
   measurable (piecewise s f g) :=
 begin

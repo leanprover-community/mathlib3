@@ -129,7 +129,7 @@ protected lemma uniform_continuous (hf : lipschitz_with K f) :
   uniform_continuous f :=
 begin
   refine emetric.uniform_continuous_iff.2 (λε εpos, _),
-  use [ε/K, canonically_ordered_semiring.mul_pos.2 ⟨εpos, ennreal.inv_pos.2 $ ennreal.coe_ne_top⟩],
+  use [ε / K, ennreal.div_pos_iff.2 ⟨ne_of_gt εpos, ennreal.coe_ne_top⟩],
   assume x y Dxy,
   apply lt_of_le_of_lt (hf.edist_le_mul x y),
   rw [mul_comm],
@@ -152,6 +152,10 @@ lipschitz_with.of_edist_le $ assume x y, le_refl _
 
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
+
+protected lemma eval {α : ι → Type u} [Π i, pseudo_emetric_space (α i)] [fintype ι] (i : ι) :
+  lipschitz_with 1 (function.eval i : (Π i, α i) → α i) :=
+lipschitz_with.of_edist_le $ λ f g, by convert edist_le_pi_edist f g i
 
 protected lemma restrict (hf : lipschitz_with K f) (s : set α) :
   lipschitz_with K (s.restrict f) :=

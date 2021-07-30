@@ -177,6 +177,10 @@ lemma mem_supported' {s : set α}  (p : α →₀ M) :
 by haveI := classical.dec_pred (λ (x : α), x ∈ s);
    simp [mem_supported, set.subset_def, not_imp_comm]
 
+lemma mem_supported_support (p : α →₀ M) :
+  p ∈ finsupp.supported M R (p.support : set α) :=
+by rw finsupp.mem_supported
+
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
 set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
@@ -433,6 +437,22 @@ theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l (default α) • v (default α) :=
 by rw [← total_single, ← unique_single l]
 
+lemma total_surjective (h : function.surjective v) : function.surjective (finsupp.total α M R v) :=
+begin
+  intro x,
+  obtain ⟨y, hy⟩ := h x,
+  exact ⟨finsupp.single y 1, by simp [hy]⟩
+end
+
+theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
+range_eq_top.2 $ total_surjective R h
+
+/-- Any module is a quotient of a free module. This is stated as surjectivity of
+`finsupp.total M M R id : (M →₀ R) →ₗ[R] M`. -/
+lemma total_id_surjective (M) [add_comm_monoid M] [module R M] :
+  function.surjective (finsupp.total M M R id) :=
+total_surjective R function.surjective_id
+
 lemma range_total : (finsupp.total α M R v).range = span R (range v) :=
 begin
   ext x,
@@ -457,7 +477,7 @@ theorem lmap_domain_total (f : α → α') (g : M →ₗ[R] M') (h : ∀ i, g (v
   (finsupp.total α' M' R v').comp (lmap_domain R R f) = g.comp (finsupp.total α M R v) :=
 by ext l; simp [total_apply, finsupp.sum_map_domain_index, add_smul, h]
 
-theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
+@[simp] theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
   (finsupp.total α' M' R v') (emb_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
 by simp [total_apply, finsupp.sum, support_emb_domain, emb_domain_apply]
 
@@ -470,6 +490,10 @@ begin
   rw this,
   apply total_emb_domain R ⟨f, hf⟩ l
 end
+
+@[simp] theorem total_equiv_map_domain (f : α ≃ α') (l : α →₀ R) :
+  (finsupp.total α' M' R v') (equiv_map_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
+by rw [equiv_map_domain_eq_map_domain, total_map_domain _ _ f.injective]
 
 /-- A version of `finsupp.range_total` which is useful for going in the other direction -/
 theorem span_eq_range_total (s : set M) :
@@ -770,6 +794,28 @@ end finsupp
 variables {R : Type*} {M : Type*} {N : Type*}
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
 
+section
+variables (R)
+/--
+Pick some representation of `x : span R w` as a linear combination in `w`,
+using the axiom of choice.
+-/
+def span.repr (w : set M) (x : span R w) :
+  w →₀ R :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some
+
+@[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
+  finsupp.total w M R coe (span.repr R w x) = x :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+
+attribute [irreducible] span.repr
+
+end
+
+lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : submodule R M) (f : ι →₀ β)
+  (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+S.to_add_submonoid.finsupp_sum_mem f g h
+
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
   f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
@@ -801,6 +847,13 @@ begin
   have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
   exact hN i hi (hg _),
 end
+
+/-- `submodule.exists_finset_of_mem_supr` as an `iff` -/
+lemma submodule.mem_supr_iff_exists_finset
+  {ι : Sort*} {p : ι → submodule R M} {m : M} :
+  (m ∈ ⨆ i, p i) ↔ ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+⟨submodule.exists_finset_of_mem_supr p,
+ λ ⟨_, hs⟩, supr_le_supr (λ i, (supr_const_le : _ ≤ p i)) hs⟩
 
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=

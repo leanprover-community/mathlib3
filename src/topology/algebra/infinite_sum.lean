@@ -71,7 +71,12 @@ lemma has_sum.summable (h : has_sum f a) : summable f := ⟨a, h⟩
 lemma has_sum_zero : has_sum (λb, 0 : β → α) 0 :=
 by simp [has_sum, tendsto_const_nhds]
 
+lemma has_sum_empty [is_empty β] : has_sum f 0 :=
+by convert has_sum_zero
+
 lemma summable_zero : summable (λb, 0 : β → α) := has_sum_zero.summable
+
+lemma summable_empty [is_empty β] : summable f := has_sum_empty.summable
 
 lemma tsum_eq_zero_of_not_summable (h : ¬ summable f) : ∑'b, f b = 0 :=
 by simp [tsum, h]
@@ -337,6 +342,8 @@ iff.intro has_sum.tsum_eq (assume eq, eq ▸ h.has_sum)
 
 @[simp] lemma tsum_zero : ∑'b:β, (0:α) = 0 := has_sum_zero.tsum_eq
 
+@[simp] lemma tsum_empty [is_empty β] : ∑'b, f b = 0 := has_sum_empty.tsum_eq
+
 lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   ∑' b, f b = ∑ b in s, f b :=
 (has_sum_sum_of_ne_finset_zero hf).tsum_eq
@@ -347,6 +354,9 @@ congr_arg tsum (funext hfg)
 
 lemma tsum_fintype [fintype β] (f : β → α) : ∑'b, f b = ∑ b, f b :=
 (has_sum_fintype f).tsum_eq
+
+lemma tsum_bool (f : bool → α) : ∑' i : bool, f i = f false + f true :=
+by { rw [tsum_fintype, finset.sum_eq_add]; simp }
 
 @[simp] lemma finset.tsum_subtype (s : finset β) (f : β → α) :
   ∑' x : {x // x ∈ s}, f x = ∑ x in s, f x :=
@@ -725,9 +735,9 @@ end topological_semiring
 
 section has_continuous_smul
 variables {R : Type*}
-[semiring R] [topological_space R]
+[monoid R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
-[module R α] [has_continuous_smul R α]
+[distrib_mul_action R α] [has_continuous_smul R α]
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
@@ -748,6 +758,9 @@ variables [division_ring α] [topological_space α] [topological_semiring α]
 
 lemma has_sum.div_const (h : has_sum f a) (b : α) : has_sum (λ x, f x / b) (a / b) :=
 by simp only [div_eq_mul_inv, h.mul_right b⁻¹]
+
+lemma summable.div_const (h : summable f) (b : α) : summable (λ x, f x / b) :=
+(h.has_sum.div_const b).summable
 
 lemma has_sum_mul_left_iff (h : a₂ ≠ 0) : has_sum f a₁ ↔ has_sum (λb, a₂ * f b) (a₂ * a₁) :=
 ⟨has_sum.mul_left _, λ H, by simpa only [inv_mul_cancel_left' h] using H.mul_left a₂⁻¹⟩

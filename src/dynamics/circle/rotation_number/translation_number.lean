@@ -300,9 +300,6 @@ f.commute_add_int m x
 @[simp] lemma map_sub_int (x : ℝ) (n : ℤ) : f (x - n) = f x - n :=
 f.commute_sub_int n x
 
-@[simp] lemma map_sub_one (x : ℝ) : f (x - 1) = f x - 1 :=
-by exact_mod_cast f.map_sub_int x 1
-
 @[simp] lemma map_add_nat (x : ℝ) (n : ℕ) : f (x + n) = f x + n :=
 f.map_add_int x n
 
@@ -311,6 +308,9 @@ f.map_int_add n x
 
 @[simp] lemma map_sub_nat (x : ℝ) (n : ℕ) : f (x - n) = f x - n :=
 f.map_sub_int x n
+
+@[simp] lemma map_sub_one (x : ℝ) : f (x - 1) = f x - 1 :=
+by simpa only [nat.cast_one] using f.map_sub_nat x 1
 
 lemma map_int_of_map_zero (n : ℤ) : f n = f 0 + n :=
 by rw [← f.map_add_int, zero_add]

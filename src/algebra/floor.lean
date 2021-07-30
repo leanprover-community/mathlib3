@@ -86,15 +86,27 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 @[simp] theorem floor_one : ⌊(1:α)⌋ = 1 :=
 by rw [← int.cast_one, floor_coe]
 
-theorem floor_mono {a b : α} (h : a ≤ b) : ⌊a⌋ ≤ ⌊b⌋ :=
+@[mono] theorem floor_mono {a b : α} (h : a ≤ b) : ⌊a⌋ ≤ ⌊b⌋ :=
 le_floor.2 (le_trans (floor_le _) h)
 
 @[simp] theorem floor_add_int (x : α) (z : ℤ) : ⌊x + z⌋ = ⌊x⌋ + z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor,
   ← sub_le_iff_le_add, ← sub_le_iff_le_add, le_floor, int.cast_sub]
 
-theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
+@[simp] theorem floor_int_add (z : ℤ) (x : α) : ⌊↑z + x⌋ = z + ⌊x⌋ :=
+by simpa only [add_comm] using floor_add_int x z
+
+@[simp] theorem floor_add_nat (x : α) (n : ℕ) : ⌊x + n⌋ = ⌊x⌋ + n :=
+floor_add_int x n
+
+@[simp] theorem floor_nat_add (n : ℕ) (x : α) : ⌊↑n + x⌋ = n + ⌊x⌋ :=
+floor_int_add n x
+
+@[simp] theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
+
+@[simp] theorem floor_sub_nat (x : α) (n : ℕ) : ⌊x - n⌋ = ⌊x⌋ - n :=
+floor_sub_int x n
 
 lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α]
   [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=

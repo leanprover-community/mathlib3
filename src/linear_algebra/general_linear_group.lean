@@ -47,7 +47,7 @@ abbreviation general_linear_group (R : Type*) [comm_ring R] : Type* := units (ma
 
 notation `GL` := general_linear_group
 
-lemma GL.is_unit_det  (A : GL n R) : is_unit ((A : matrix n n R).det) :=
+lemma GL_is_unit_det  (A : GL n R) : is_unit ((A : matrix n n R).det) :=
 begin
   rw ←matrix.is_unit_iff_is_unit_det,
   exact units.is_unit _
@@ -111,7 +111,7 @@ instance SL_to_GL : has_coe (special_linear_group n R) (GL n R) :=
 
 lemma det_not_zero [nontrivial R] (A : GL n R) : det A ≠ 0 :=
 begin
-  have := GL.is_unit_det _ _ A, simp,
+  have := GL_is_unit_det _ _ A, simp,
   by_contradiction,
   unfold_coes at *,
   rw h at this,
@@ -138,7 +138,7 @@ end
 
 lemma inv_det_pos  (A : GL n R) (h : 0 < det A) :  0 < det (A⁻¹).1 :=
 begin
-  have h0 := (GL.is_unit_det _ _ A),
+  have h0 := (GL_is_unit_det _ _ A),
   have h1 := is_unit_nonsing_inv_det A h0,
   have h2 := nonsing_inv_det A h0,
   have h3 : 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith},

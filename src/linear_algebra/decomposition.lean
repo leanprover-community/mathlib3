@@ -14,7 +14,6 @@ universes u v w
 
 open_locale direct_sum classical big_operators
 open classical linear_map dfinsupp direct_sum
-noncomputable theory
 
 namespace submodule
 
@@ -33,8 +32,7 @@ which phased out of the `set` design because of problems with it.
 structure decomposition (ι : Type u) (R : Type v) (M : Type w)
   [semiring R] [add_comm_monoid M] [module R M] : Type (max u v w) :=
 (factors : ι → submodule R M)
-(factors_ind : complete_lattice.independent factors)
-(factors_supr : supr factors = ⊤)
+(is_internal : submodule_is_internal factors)
 
 
 namespace decomposition
@@ -48,7 +46,7 @@ variables [semiring R] [add_comm_monoid M] [module R M]
 /--
 Given an `ι`-indexed collection of submodules, build the map of their direct sum into `M`.
 -/
-def to_direct_sum_map (p : ι → submodule R M) :
+def to_direct_sum_map [dec_ι : decidable_eq ι] (p : ι → submodule R M) :
   (⨁ i, p i) →ₗ[R] (supr p : submodule R M) :=
 (direct_sum.to_module R ι _ (λ i, submodule.of_le (le_supr p i : p i ≤ supr p)))
 
@@ -56,7 +54,7 @@ def to_direct_sum_map (p : ι → submodule R M) :
   to_direct_sum_map p x = ∑ i in x.support, ⟨(x i).1, (le_supr p i : p i ≤ supr p) (x i).2⟩ :=
 begin
   simp only [to_direct_sum_map, direct_sum.to_module, sum_add_hom_apply, to_add_monoid_hom_coe,
-    linear_map.coe_mk, dfinsupp.lsum_apply, subtype.val_eq_coe],
+    linear_map.coe_mk, dfinsupp.lsum_apply_apply, subtype.val_eq_coe],
   refine finset.sum_congr rfl (λ i hi, _),
   congr,
 end
@@ -146,7 +144,7 @@ Given an indexed collection of submodules `p i : submodule R M` and
 a proof that they are independent, build the obvious equivalence between
 the direct sum of the `p i`'s and `supr p : submodule R M`.
 -/
-def direct_sum_equiv_of_independent
+noncomputable def direct_sum_equiv_of_independent
   (p : ι → submodule R M) (h : complete_lattice.independent p) :
   (⨁ i, p i) ≃ₗ[R] (supr p : submodule R M) :=
 begin
@@ -169,17 +167,13 @@ variables {R M}
 /--
 Given an decomposition `D`, build an equivalence between the direct sum of `D.factors` and `M`.
 -/
-def to_equiv (D : decomposition ι R M) : (⨁ i, D.factors i) ≃ₗ[R] M :=
-((direct_sum_equiv_of_independent D.factors D.factors_ind).trans
-  (linear_equiv.of_eq _ _ D.factors_supr)).trans (submodule.top_equiv_self)
+noncomputable def to_equiv (D : decomposition ι R M) : (⨁ i, D.factors i) ≃ₗ[R] M :=
+submodule_is_internal.to_equiv _ D.is_internal
 
 lemma to_equiv_apply (D : decomposition ι R M) (x : ⨁ i, D.factors i) :
   D.to_equiv x = ∑ i in x.support, x i :=
 begin
-  rw [to_equiv],
-  rw linear_equiv.trans_apply,
-  rw linear_equiv.trans_apply,
-  simp [submodule.top_equiv_self],
+  rw [to_equiv, submodule_is_internal.to_equiv_apply, submodule_is_internal.apply],
 end
 
 lemma to_equiv_apply' (D : decomposition ι R M) (x : ⨁ i, D.factors i) :
@@ -197,64 +191,62 @@ begin
   rw [linear_equiv.apply_symm_apply],
   rw to_equiv_apply,
   by_cases h : x = 0,
-  { rw dfinsupp.support_single_eq_zero,
-    rwa finset.sum_empty,
-    rwa ← submodule.coe_eq_zero },
+  { have h₀ : subtype.mk x hx = 0, { rwa ← submodule.coe_eq_zero },
+    rwa [h₀, single_zero, support_zero, finset.sum_empty] },
   rw [support_single_ne_zero, finset.sum_singleton, single_eq_same, submodule.coe_mk],
   refine λ h', h _,
   rw [← submodule.coe_eq_zero.mpr h', submodule.coe_mk]
 end
 
-lemma is_internal (D : decomposition ι R M) :
-  direct_sum.submodule_is_internal D.factors :=
+lemma injective_of_independent (p : ι → submodule R M) (h_ind : complete_lattice.independent p) :
+  function.injective ⇑(to_module R ι M (λ (i : ι), (p i).subtype)) :=
 begin
-  rw direct_sum.submodule_is_internal,
-  convert D.to_equiv.bijective using 1, ext,
-  rw to_equiv_apply',
+  letI : add_comm_group (⨁ i, p i) := direct_sum.add_comm_group (λ i, p i),
+  rw ← ker_eq_bot,
+  rw ker_eq_bot',
+  intros x hx,
+  ext i,
+  rw [submodule_is_internal.apply] at hx,
+  rw [dfinsupp.zero_apply, coe_zero, coe_eq_zero],
+  revert i,
+  by_contra,
+  push_neg at h,
+  cases h with j hj,
+  have : j ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hj },
+  rw ← finset.sum_erase' _ this at hx,
+  simp only [submodule.coe_zero, subtype.val_eq_coe, ← neg_eq_iff_add_eq_zero] at hx,
+  simp only [← hx, pi.zero_apply, submodule.coe_zero] at hj,
+  have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h_ind j) (x j) (x j).2,
+  have h2 : ∑ (k : ι) in (dfinsupp.support x).erase j,
+    ↑(x k) ∈ ⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k,
+  { apply submodule.sum_mem_bsupr,
+    intros c hc,
+    exact (x c).2, },
+  have h3 : (⨆ (k : ι) (H : k ∈ (dfinsupp.support x).erase j), p k : submodule R M) ≤
+    ⨆ (k : ι) (H : k ≠ j), p k,
+    { refine bsupr_le_bsupr' (λ i hi, finset.ne_of_mem_erase hi), },
+  have h4 := h3 h2,
+  rw ← submodule.neg_mem_iff at h4,
+  rw hx at h4,
+  have h5 := submodule.coe_eq_zero.1 (this h4),
+  contradiction
+end
+
+lemma surjective_of_supr_eq_top (p : ι → submodule R M) (h_supr : supr p = ⊤) :
+  function.surjective ⇑(to_module R ι M (λ (i : ι), (p i).subtype)) :=
+begin
+  rwa [to_module, ← range_eq_top, ← supr_eq_range_dfinsupp_lsum p],
 end
 
 /--
 Given an indexed collection of submodules of `M` and a proof that they form an internal
 direct sum, construct a decomposition.
 -/
-def of_is_internal (p : ι → submodule R M) (hp : direct_sum.submodule_is_internal p) :
+def of_factors_independent_and_supr_eq_top
+  (p : ι → submodule R M) (h_ind : complete_lattice.independent p) (h_supr : supr p = ⊤) :
   decomposition ι R M :=
 { factors := p,
-  factors_ind := begin
-    rw complete_lattice.independent_def,
-    refine λ i, submodule.disjoint_def.mpr (λ x hi hSup, _),
-    apply_fun (submodule_is_internal.to_equiv p hp).symm using linear_equiv.injective _,
-    rw linear_equiv.map_zero,
-    -- now we unfold the info from `hSup`
-    obtain ⟨v, hv, hsum, hzero⟩ := (mem_bsupr _ _).mp hSup,
-    simp only [forall_eq, not_not] at hzero,
-    apply_fun (submodule_is_internal.to_equiv p hp).symm at hsum,
-    rw linear_equiv.map_sum at hsum,
-    have key := λ i, submodule_is_internal.to_equiv_symm_single_apply p hp i (v i) (hv i),
-    simp only [key] at hsum,
-    -- do casework on `i = j`
-    ext j, by_cases h : i = j,
-    { rw [← h, ← hsum, direct_sum.zero_apply, coe_zero, coe_eq_zero, finset_sum_apply],
-      simp only [single_apply, finset.sum_dite_eq', finsupp.mem_support_iff, ne.def,
-        mk_eq_zero, not_imp_self, ite_eq_right_iff, hzero], },
-    rw [submodule_is_internal.to_equiv_symm_single_apply p hp i x hi, single_eq_of_ne], refl,
-    exact h
-  end,
-  factors_supr := begin
-    rw eq_top_iff, intros x y, clear y,
-    rw mem_supr',
-    let v' := (submodule_is_internal.to_equiv p hp).symm x,
-    let v : ι →₀ M := ⟨v'.support, λ i, (v' i).1, λ i, _⟩,
-    { refine ⟨v, λ i, (v' i).2, _⟩,
-      simp only [v, subtype.val_eq_coe, finsupp.coe_mk],
-      apply_fun (submodule_is_internal.to_equiv p hp).symm using linear_equiv.injective _,
-      rw linear_equiv.map_sum,
-      have key := λ i, submodule_is_internal.to_equiv_symm_single_apply p hp i (v' i) (v' i).2,
-      simp only [key, set_like.eta],
-      change v'.sum (single : Π i, p i → (⨁ i, p i)) = v',
-      exact sum_single },
-    simp only [mem_support_iff, ne.def, subtype.val_eq_coe, coe_eq_zero]
-  end }
+  is_internal := ⟨injective_of_independent p h_ind, surjective_of_supr_eq_top p h_supr⟩ }
 
 end group
 

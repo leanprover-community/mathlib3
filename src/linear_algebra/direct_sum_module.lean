@@ -178,8 +178,8 @@ lemma submodule_is_internal.apply
   (A : ι → submodule R M) [Π i (x : A i), decidable (x ≠ 0)] (x : ⨁ i, A i) :
   direct_sum.to_module R ι M (λ i, (A i).subtype) x = ∑ i in x.support, x i :=
 begin
-  simp only [direct_sum.to_module, dfinsupp.sum_add_hom_apply, linear_map.to_add_monoid_hom_coe,
-    linear_map.coe_mk, dfinsupp.lsum_apply, submodule.subtype],
+  simp only [to_module, dfinsupp.sum_add_hom_apply, linear_map.to_add_monoid_hom_coe,
+    linear_map.coe_mk, submodule.subtype, dfinsupp.lsum_apply_apply],
   refine finset.sum_congr rfl (λ x hx, rfl),
 end
 
@@ -220,12 +220,39 @@ begin
     dfinsupp.single_eq_same, submodule.coe_mk],
   refine λ h', h _,
   rw [← submodule.coe_eq_zero.mpr h', submodule.coe_mk]
+end
+
 lemma submodule_is_internal.supr_eq_top {R M : Type*}
   [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M)
   (h : submodule_is_internal A) : supr A = ⊤ :=
 begin
   rw [submodule.supr_eq_range_dfinsupp_lsum, linear_map.range_eq_top],
   exact function.bijective.surjective h,
+end
+
+lemma submodule_is_internal.independent
+  {R : Type u} {M : Type w} [ring R] [add_comm_group M] [module R M]
+  (A : ι → submodule R M) [Π i (x : A i), decidable (x ≠ 0)] (hA : submodule_is_internal A) :
+  complete_lattice.independent A :=
+begin
+  rw complete_lattice.independent_def,
+  refine λ i, submodule.disjoint_def.mpr (λ x hi hSup, _),
+  apply_fun (submodule_is_internal.to_equiv A hA).symm using linear_equiv.injective _,
+  rw linear_equiv.map_zero,
+  -- now we unfold the info from `hSup`
+  obtain ⟨v, hv, hsum, hzero⟩ := (submodule.mem_bsupr _ _).mp hSup,
+  simp only [forall_eq, not_not] at hzero,
+  apply_fun (submodule_is_internal.to_equiv A hA).symm at hsum,
+  rw linear_equiv.map_sum at hsum,
+  have key := λ i, submodule_is_internal.to_equiv_symm_single_apply A hA i (v i) (hv i),
+  simp only [key] at hsum,
+  -- do casework on `i = j`
+  ext j, by_cases h : i = j,
+  { rw [← h, ← hsum, direct_sum.zero_apply, submodule.coe_zero, submodule.coe_eq_zero, dfinsupp.finset_sum_apply],
+    simp only [dfinsupp.single_apply, finset.sum_dite_eq', finsupp.mem_support_iff, ne.def,
+      submodule.mk_eq_zero, not_imp_self, ite_eq_right_iff, hzero], },
+  rw [submodule_is_internal.to_equiv_symm_single_apply A hA i x hi, dfinsupp.single_eq_of_ne], refl,
+  exact h
 end
 
 end direct_sum

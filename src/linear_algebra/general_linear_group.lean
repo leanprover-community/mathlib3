@@ -114,7 +114,7 @@ end general_linear_group
 
 namespace GL_plus
 
-variables  (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [linear_ordered_comm_ring R ]
+variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
 
 lemma one_in_GL_pos : 0 < det (1 : GL n R) :=
 begin
@@ -127,30 +127,31 @@ begin
   apply mul_pos h1 h2,
 end
 
-lemma inv_det_pos  (A : GL n R) (h : 0 < det A) :  0 < det (A⁻¹).1 :=
+-- this is `general_linear_group.det` which is always a unit!
+lemma inv_det_pos (A : GL n R) (h : (0 : R) < (A).det) : (0 : R) < A⁻¹.det :=
 begin
-  have h1 := is_unit_nonsing_inv_det A,
-  have h2 := nonsing_inv_det A,
-  have h3 : 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith, simp,sorry,},
-  unfold_coes at *,
-  convert (zero_lt_mul_left h).mp h3,
-  have := general_linear_group.coe_inv A,
-  unfold_coes  at this,
-  simp_rw this,
+  have : (0 : R) < (A * A⁻¹).det := by simp,
+  rw [monoid_hom.map_mul, units.coe_mul] at this,
+  exact (zero_lt_mul_left h).mp this,
 end
+
+section
+variables (n R)
 
 /-- This is the subgroup of `nxn` matrices with entries over a
 linear ordered ring and positive determinant. -/
 def GL_pos : subgroup (GL n R) :=
 { carrier := {M  | 0 < det M},
-  one_mem' := one_in_GL_pos _ _ ,
-  mul_mem' := λ A B h1 h2, mul_in_GL_pos _ _ A B h1 h2,
+  one_mem' := one_in_GL_pos  ,
+  mul_mem' := λ A B h1 h2, mul_in_GL_pos  A B h1 h2,
   inv_mem' := λ A h1, begin
-    have:= inv_det_pos _ _ A h1,
     simp only [set.mem_set_of_eq] at *,
+    have:= inv_det_pos  A h1,
     unfold_coes at *,
     convert this,
   end }
+
+end
 
 @[simp] lemma mem_GL_pos (A : GL n R) : A  ∈ (GL_pos n R)  ↔ 0 < A.1.det := iff.rfl
 
@@ -163,7 +164,7 @@ begin
 end
 
 instance SL_to_GL_pos : has_coe (special_linear_group n R) (GL_pos n R) :=
-⟨λ A, ⟨(A : GL n R), by {simp, apply SL_det_pos' _ _ A}, ⟩⟩
+⟨λ A, ⟨(A : GL n R), by {simp, apply SL_det_pos' A}, ⟩⟩
 
 end GL_plus
 end matrix

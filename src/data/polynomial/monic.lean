@@ -101,7 +101,7 @@ by rwa [monic, leading_coeff_add_of_degree_lt hpq]
 namespace monic
 
 @[simp]
-lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
+lemma nat_degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
   p.nat_degree = 0 ↔ p = 1 :=
 begin
   split; intro h,
@@ -112,12 +112,43 @@ begin
   rw this, convert C_1, rw ← h, apply hp,
 end
 
+@[simp]
+lemma degree_le_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
+  p.degree ≤ 0 ↔ p = 1 :=
+by rw [←hp.nat_degree_eq_zero_iff_eq_one, nat_degree_eq_zero_iff_degree_le_zero]
+
 lemma nat_degree_mul {p q : polynomial R} (hp : p.monic) (hq : q.monic) :
   (p * q).nat_degree = p.nat_degree + q.nat_degree :=
 begin
   nontriviality R,
   apply nat_degree_mul',
   simp [hp.leading_coeff, hq.leading_coeff]
+end
+
+lemma degree_mul_comm {p : polynomial R} (hp : p.monic) (q : polynomial R) :
+  (p * q).degree = (q * p).degree :=
+begin
+  by_cases h : q = 0,
+  { simp [h] },
+  rw [degree_mul', hp.degree_mul],
+  { exact add_comm _ _ },
+  { rwa [hp.leading_coeff, one_mul, leading_coeff_ne_zero] }
+end
+
+lemma nat_degree_mul' {p q : polynomial R} (hp : p.monic) (hq : q ≠ 0) :
+  (p * q).nat_degree = p.nat_degree + q.nat_degree :=
+begin
+  rw [nat_degree_mul', add_comm],
+  simpa [hp.leading_coeff, leading_coeff_ne_zero]
+end
+
+lemma nat_degree_mul_comm {p : polynomial R} (hp : p.monic) (q : polynomial R) :
+  (p * q).nat_degree = (q * p).nat_degree :=
+begin
+  by_cases h : q = 0,
+  { simp [h] },
+  rw [hp.nat_degree_mul' h, polynomial.nat_degree_mul', add_comm],
+  simpa [hp.leading_coeff, leading_coeff_ne_zero]
 end
 
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
@@ -270,41 +301,57 @@ section not_zero_divisor
 
 variables [semiring R] {p : polynomial R}
 
-lemma monic.mul_lt_degree_iff_ne_one_and_mul_eq_zero (h : monic p) {q : polynomial R} :
-  (p * q).nat_degree < p.nat_degree ↔ p ≠ 1 ∧ q = 0 :=
+lemma monic.mul_left_ne_zero (hp : monic p) {q : polynomial R} (hq : q ≠ 0) :
+  q * p ≠ 0 :=
 begin
-  split,
-  { intro hl,
-    by_cases hp : p = 1,
-    { rw ←h.degree_eq_zero_iff_eq_one at hp,
-      rw hp at hl,
-      exact absurd hl (not_lt_of_le (nat.zero_le _)) },
-    refine ⟨hp, _⟩,
-    by_cases hq : leading_coeff q = 0,
-    { simpa using hq },
-    rw nat_degree_mul' at hl,
-    { simpa using hl },
-    { simpa [h.leading_coeff] using hq } },
-  { rintro ⟨hp, hq⟩,
-    rw [ne.def, ←h.degree_eq_zero_iff_eq_one, eq_comm] at hp,
-    simpa [hq, mul_zero, nat_degree_zero] using lt_of_le_of_ne (nat.zero_le _) hp }
+  have : ∀ (m n : with_bot ℕ), m + n = ⊥ ↔ m = ⊥ ∨ n = ⊥,
+  { sorry },
+  by_cases h : p = 1,
+  { simpa [h] },
+  rw [ne.def, ←degree_eq_bot, hp.degree_mul, this, not_or_distrib, degree_eq_bot],
+  refine ⟨hq, _⟩,
+  rw [←hp.degree_le_zero_iff_eq_one, not_le] at h,
+  refine (lt_trans _ h).ne',
+  simp
 end
 
-lemma monic.not_zero_divisor_iff (h : monic p) {q : polynomial R} :
+lemma monic.mul_right_ne_zero (hp : monic p) {q : polynomial R} (hq : q ≠ 0) :
+  p * q ≠ 0 :=
+begin
+  have : ∀ (m n : with_bot ℕ), m + n = ⊥ ↔ m = ⊥ ∨ n = ⊥,
+  { sorry },
+  by_cases h : p = 1,
+  { simpa [h] },
+  rw [ne.def, ←degree_eq_bot, hp.degree_mul_comm, hp.degree_mul, this, not_or_distrib,
+      degree_eq_bot],
+  refine ⟨hq, _⟩,
+  rw [←hp.degree_le_zero_iff_eq_one, not_le] at h,
+  refine (lt_trans _ h).ne',
+  simp
+end
+
+lemma monic.mul_nat_degree_lt_iff (h : monic p) {q : polynomial R} :
+  (p * q).nat_degree < p.nat_degree ↔ p ≠ 1 ∧ q = 0 :=
+begin
+  by_cases hq : q = 0,
+  { suffices : 0 < p.nat_degree ↔ p.nat_degree ≠ 0,
+    { simpa [hq, ←h.nat_degree_eq_zero_iff_eq_one] },
+    exact ⟨λ h, h.ne', λ h, lt_of_le_of_ne (nat.zero_le _) h.symm ⟩ },
+  { simp [h.nat_degree_mul', hq] }
+end
+
+lemma monic.mul_right_eq_zero_iff (h : monic p) {q : polynomial R} :
   p * q = 0 ↔ q = 0 :=
 begin
-  refine ⟨λ hq, _, λ hq, _⟩,
-  { by_cases hp : p = 1,
-    { rw [hp] at hq,
-      simpa using hq },
-    suffices : nat_degree (p * q) < nat_degree p,
-    { rw monic.mul_lt_degree_iff_ne_one_and_mul_eq_zero h at this,
-      exact this.right },
-    rw [←h.degree_eq_zero_iff_eq_one, eq_comm] at hp,
-    rw [hq],
-    simpa using lt_of_le_of_ne (nat.zero_le _) hp },
-  { rw [hq],
-    simp }
+  by_cases hq : q = 0;
+  simp [h.mul_right_ne_zero, hq]
+end
+
+lemma monic.mul_left_eq_zero_iff (h : monic p) {q : polynomial R} :
+  q * p = 0 ↔ q = 0 :=
+begin
+  by_cases hq : q = 0;
+  simp [h.mul_left_ne_zero, hq]
 end
 
 end not_zero_divisor

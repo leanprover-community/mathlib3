@@ -53,8 +53,7 @@ there exists a continuous lift `h : X → Y`, such that `f = g ∘ h`. -/
 def compact_t2.projective : Prop :=
   Π {Y Z : Type u} [topological_space Y] [topological_space Z],
   by exactI Π [compact_space Y] [t2_space Y] [compact_space Z] [t2_space Z],
-  by exact Π {f : X → Z} {g : Y → Z} (hf : continuous f) (hg : continuous g)
-    (g_sur : surjective g),
+  Π {f : X → Z} {g : Y → Z} (hf : continuous f) (hg : continuous g) (g_sur : surjective g),
   ∃ h : X → Y, continuous h ∧ g ∘ h = f
 
 end

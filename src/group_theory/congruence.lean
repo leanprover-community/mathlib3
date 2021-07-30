@@ -678,7 +678,7 @@ def lift (H : c ≤ ker f) : c.quotient →* P :=
 variables {c f}
 
 /-- The diagram describing the universal property for quotients of monoids commutes. -/
-@[simp, to_additive "The diagram describing the universal property for quotients of `add_monoid`s
+@[to_additive "The diagram describing the universal property for quotients of `add_monoid`s
 commutes."]
 lemma lift_mk' (H : c ≤ ker f) (x) :
   c.lift f H (c.mk' x) = f x := rfl

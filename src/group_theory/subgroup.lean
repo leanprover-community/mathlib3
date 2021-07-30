@@ -1081,7 +1081,8 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
 variables {N : Type*} [group N]
 
 /-- The preimage of the normalizer is contained in the normalizer of the preimage. -/
-@[to_additive] lemma le_normalizer_comap (f : N →* G) :
+@[to_additive "The preimage of the normalizer is contained in the normalizer of the preimage."]
+lemma le_normalizer_comap (f : N →* G) :
   H.normalizer.comap f ≤ (H.comap f).normalizer :=
 λ x, begin
   simp only [mem_normalizer_iff, mem_comap],
@@ -1090,7 +1091,8 @@ variables {N : Type*} [group N]
 end
 
 /-- The image of the normalizer is contained in the normalizer of the image. -/
-@[to_additive] lemma le_normalizer_map (f : G →* N) :
+@[to_additive "The image of the normalizer is contained in the normalizer of the image."]
+lemma le_normalizer_map (f : G →* N) :
   H.normalizer.map f ≤ (H.map f).normalizer :=
 λ _, begin
   simp only [and_imp, exists_prop, mem_map, exists_imp_distrib, mem_normalizer_iff],
@@ -1644,7 +1646,9 @@ noncomputable def equiv_map_of_injective (H : subgroup G)
 
 /-- The preimage of the normalizer is equal to the normalizer of the preimage of a surjective
   function. -/
-@[to_additive] lemma comap_normalizer_eq_of_surjective (H : subgroup G)
+@[to_additive "The preimage of the normalizer is equal to the normalizer of the preimage of
+a surjective function."]
+lemma comap_normalizer_eq_of_surjective (H : subgroup G)
   {f : N →* G} (hf : function.surjective f) :
   H.normalizer.comap f = (H.comap f).normalizer :=
 le_antisymm (le_normalizer_comap f)
@@ -1657,7 +1661,9 @@ le_antisymm (le_normalizer_comap f)
   end
 
 /-- The image of the normalizer is equal to the normalizer of the image of an isomorphism. -/
-@[to_additive] lemma map_equiv_normalizer_eq (H : subgroup G)
+@[to_additive "The image of the normalizer is equal to the normalizer of the image of an
+isomorphism."]
+lemma map_equiv_normalizer_eq (H : subgroup G)
   (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map f.to_monoid_hom).normalizer :=
 begin
   ext x,
@@ -1668,7 +1674,9 @@ end
 
 /-- The image of the normalizer is equal to the normalizer of the image of a bijective
   function. -/
-@[to_additive] lemma map_normalizer_eq_of_bijective (H : subgroup G)
+@[to_additive "The image of the normalizer is equal to the normalizer of the image of a bijective
+  function."]
+lemma map_normalizer_eq_of_bijective (H : subgroup G)
   {f : G →* N} (hf : function.bijective f) :
   H.normalizer.map f = (H.map f).normalizer :=
 map_equiv_normalizer_eq H (mul_equiv.of_bijective f hf)

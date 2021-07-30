@@ -76,7 +76,11 @@ begin
     apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
 end
 
-/- Extra instances to short-circuit type class resolution -/
+/-! Extra instances to short-circuit type class resolution.
+
+ These short-circuits have an additional property of ensuring that a computable path is found; if
+ `field ℝ` is found first, then decaying it to these typeclasses would result in a `noncomputable`
+ version of them. -/
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
 instance : semiring ℝ           := by apply_instance
@@ -93,6 +97,7 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ            := by apply_instance
+instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
@@ -472,7 +477,7 @@ lemma lt_Inf_add_pos {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {ε : ℝ
   ∃ a ∈ s, a < Inf s + ε :=
 (Inf_lt _ h' h).1 $ lt_add_of_pos_right _ hε
 
-lemma add_pos_lt_Sup {s : set ℝ} (h : bdd_above s) (h' : s.nonempty) {ε : ℝ} (hε : ε < 0) :
+lemma add_neg_lt_Sup {s : set ℝ} (h : bdd_above s) (h' : s.nonempty) {ε : ℝ} (hε : ε < 0) :
   ∃ a ∈ s, Sup s + ε < a :=
 (real.lt_Sup _ h' h).1 $ add_lt_iff_neg_left.mpr hε
 
@@ -496,7 +501,7 @@ begin
     exact sub_lt_iff_lt_add.mp (lt_cSup_of_lt h x_in hx) }
 end
 
-theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
+@[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
 dif_neg $ assume h, hs h.2
@@ -504,7 +509,7 @@ dif_neg $ assume h, hs h.2
 theorem Sup_univ : Sup (@set.univ ℝ) = 0 :=
 real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
 
-theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
+@[simp] theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
 by simp [Inf_def, Sup_empty]
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
@@ -520,7 +525,7 @@ suffices to show that `S` is bounded below by `0` to show that `0 ≤ Inf S`.
 lemma Sup_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Sup S :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | ⟨y, hy⟩,
-  { simp [Sup_empty] },
+  { exact Sup_empty.ge },
   { apply dite _ (λ h, le_cSup_of_le h hy $ hS y hy) (λ h, (Sup_of_not_bdd_above h).ge) }
 end
 
@@ -531,8 +536,7 @@ bounded above by `0` to show that `Sup S ≤ 0`.
 lemma Sup_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Sup S ≤ 0 :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | hS₂,
-  { simp [Sup_empty] },
-  { apply Sup_le_ub _ hS₂ hS, }
+  exacts [Sup_empty.le, Sup_le_ub _ hS₂ hS],
 end
 
 /--
@@ -542,8 +546,7 @@ bounded below by `0` to show that `0 ≤ Inf S`.
 lemma Inf_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | hS₂,
-  { simp [Inf_empty] },
-  { apply lb_le_Inf S hS₂ hS }
+  exacts [Inf_empty.ge, lb_le_Inf S hS₂ hS]
 end
 
 /--
@@ -553,8 +556,15 @@ suffices to show that `S` is bounded above by `0` to show that `Inf S ≤ 0`.
 lemma Inf_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Inf S ≤ 0 :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | ⟨y, hy⟩,
-  { simp [Inf_empty] },
+  { exact Inf_empty.le },
   { apply dite _ (λ h, cInf_le_of_le h hy $ hS y hy) (λ h, (Inf_of_not_bdd_below h).le) }
+end
+
+lemma Inf_le_Sup (s : set ℝ) (h₁ : bdd_below s) (h₂ : bdd_above s) : Inf s ≤ Sup s :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | hne,
+  { rw [Inf_empty, Sup_empty] },
+  { exact cInf_le_cSup h₁ h₂ hne }
 end
 
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=

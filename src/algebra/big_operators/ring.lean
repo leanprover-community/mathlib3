@@ -34,6 +34,11 @@ lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
 (s.sum_hom _).symm
 
+lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
+  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
+  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
+by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
+
 end semiring
 
 section semiring
@@ -87,11 +92,6 @@ begin
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
-
-lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
-  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
-  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
-by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 open_locale classical
 
@@ -212,25 +212,12 @@ end
 
 /-- A product over `powerset s` is equal to the double product over
 sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+@[to_additive]
 lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
   ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
 begin
   classical,
   rw [powerset_card_bUnion, prod_bUnion],
-  intros i hi j hj hij,
-  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
-  intros x hx hc hnc,
-  apply hij,
-  rwa ← hc,
-end
-
-/-- A sum over `powerset s` is equal to the double sum over
-sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
-lemma sum_powerset [add_comm_monoid β] (s : finset α) (f : finset α → β) :
-  ∑ t in powerset s, f t = ∑ j in range (card s + 1), ∑ t in powerset_len j s, f t :=
-begin
-  classical,
-  rw [powerset_card_bUnion, sum_bUnion],
   intros i hi j hj hij,
   rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
   intros x hx hc hnc,

@@ -33,6 +33,8 @@ Notation used here:
 
 * `instance : complete_lattice (subring R)` : the complete lattice structure on the subrings.
 
+* `subring.center` : the center of a ring `R`
+
 * `subring.closure` : subring closure of a set, i.e., the smallest subring that includes the set.
 
 * `subring.gi` : `closure : set M → subring M` and coercion `coe : subring M → set M`
@@ -485,6 +487,67 @@ instance : complete_lattice (subring R) :=
 
 lemma eq_top_iff' (A : subring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
+
+/-! # Center of a ring -/
+
+variable (R)
+
+/--
+  The center of a ring `R` is the set of elements of `R` which commute with everything
+  under multiplication.
+-/
+def center : subring R :=
+{ carrier := {a | ∀ r, a * r = r * a},
+  one_mem' := by simp,
+  mul_mem' := λ a b (ha : ∀ r, a * r = r * a) (hb : ∀ r, b * r = r * b) s,
+    by rw [mul_assoc, ha, mul_assoc, hb, mul_assoc],
+  zero_mem' := by simp,
+  add_mem' := λ a b (ha : ∀ r, a * r = r * a) (hb : ∀ r, b * r = r * b) s,
+    by rw [add_mul, mul_add, ha, hb],
+  neg_mem' := λ a (ha : ∀ r, a * r = r * a) s,
+    by rw [←neg_mul_eq_mul_neg, ←neg_mul_eq_neg_mul, ha] }
+
+variable {R}
+
+instance : comm_ring (center R) :=
+{ mul_comm := begin
+    rintro ⟨a, ha : ∀ r, a * r = r * a⟩ ⟨b, hb : ∀ r, b * r = r * b⟩,
+    apply subtype.ext, simp only [subring.coe_mul, subtype.coe_mk, ha],
+  end
+  ..subring.to_ring (center R) }
+
+section division_ring
+
+variables {K : Type u} [division_ring K]
+
+instance : field (center K) :=
+{ inv := λ ⟨a, ha⟩, ⟨a⁻¹, λ r, begin
+    by_cases ha0 : a = 0,
+    { simp [ha0] },
+    calc a⁻¹ * r = a⁻¹ * r * a * a ⁻¹ : by rw [mul_assoc, mul_inv_cancel ha0, mul_one]
+             ... = r * a⁻¹ : by rw [mul_assoc _ r, ←ha r, ←mul_assoc, ←ha a⁻¹,
+                                    mul_inv_cancel ha0, one_mul],
+  end⟩,
+  exists_pair_ne := ⟨0, 1, λ h, @zero_ne_one K _ _ $ congr_arg subtype.val h⟩,
+  mul_inv_cancel := λ ⟨a, ha⟩ h, subtype.ext $ show a * a⁻¹ = 1, from mul_inv_cancel $
+    λ hc, h $ subtype.ext hc,
+  inv_zero := subtype.ext inv_zero,
+  ..center.comm_ring }
+
+end division_ring
+
+section comm_ring
+
+variables {R₁ : Type u} [comm_ring R₁]
+
+lemma center_eq_top : center R₁ = ⊤ :=
+begin
+  rw eq_top_iff,
+  intros x hx r,
+  rw mul_comm,
+end
+
+end comm_ring
 
 /-! # subring closure of a subset -/
 

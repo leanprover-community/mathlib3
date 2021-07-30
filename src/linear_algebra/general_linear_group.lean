@@ -192,7 +192,7 @@ begin
   simp only [subtype.val_eq_coe] at this,  rw this,linarith,
 end
 
-instance SL_to_GL_pos: has_coe (special_linear_group n R) (GL_pos n R) :=
+instance SL_to_GL_pos : has_coe (special_linear_group n R) (GL_pos n R) :=
 ⟨λ A, ⟨(A : GL n R), by {simp, apply SL_det_pos' _ _ A}, ⟩⟩
 
 end GL_plus

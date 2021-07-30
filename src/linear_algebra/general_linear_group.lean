@@ -80,8 +80,10 @@ instance coe_fun : has_coe_to_fun (GL n R) :=
 
 lemma ext_iff (A B : GL n R) : A = B ↔ (∀ i j, A i j = B i j) :=
 begin
-  dsimp at *, fsplit, work_on_goal 0 { intros a i j, induction a, refl }, intros a,
-  ext1, dsimp at *, ext1, solve_by_elim,
+  dsimp at *, fsplit, work_on_goal 0 { intros a i j, induction a, refl },
+  intros a,
+  ext,
+  solve_by_elim,
 end
 
 @[ext] lemma ext (A B : GL n R) : (∀ i j, A i j = B i j) → A = B :=
@@ -129,13 +131,19 @@ instance SL_to_GL : has_coe (special_linear_group n R) (GL n R) :=
 
 @[simp] lemma GL_vals (A : GL n R) : ∀ i j, A i j = A.1 i j :=
 begin
-unfold_coes, intros i j,refl,
+unfold_coes,
+intros i j,
+refl,
 end
 
 lemma det_not_zero [nontrivial R] (A : GL n R) : det A ≠ 0 :=
 begin
-  have := GL.is_unit_det _ _ A, simp, by_contradiction, unfold_coes at *,
-  rw h at this, simp at *, exact this,
+  have := GL.is_unit_det _ _ A, simp,
+  by_contradiction,
+  unfold_coes at *,
+  rw h at this,
+  simp at *,
+  exact this,
 end
 
 end general_linear_group
@@ -151,7 +159,8 @@ end
 
 lemma mul_in_GL_pos (A B : GL n R) (h1 : 0 < det A) (h2 : 0 < det B) : 0 < det (A*B) :=
 begin
-  simp only [gt_iff_lt, det_mul, mul_eq_mul], apply mul_pos h1 h2,
+  simp only [gt_iff_lt, det_mul, mul_eq_mul],
+  apply mul_pos h1 h2,
 end
 
 lemma inv_det_pos  (A : GL n R) (h : 0 < det A) :  0 < det (A⁻¹).1 :=
@@ -159,9 +168,12 @@ begin
   have h0 := (GL.is_unit_det _ _ A),
   have h1 := is_unit_nonsing_inv_det A h0,
   have h2 := nonsing_inv_det A h0,
-  have h3 : 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith}, unfold_coes at *,
+  have h3 : 0 < det ⇑A*  det (⇑A)⁻¹ , by {rw mul_comm, rw h2, linarith},
+  unfold_coes at *,
   convert (zero_lt_mul_left h).mp h3,
-  have := general_linear_group.nonsing_inv_coe_eq_coe_inv A,  unfold_coes  at this, simp_rw this,
+  have := general_linear_group.nonsing_inv_coe_eq_coe_inv A,
+  unfold_coes  at this,
+  simp_rw this,
 end
 
 /-- This is the subgroup of `nxn` matrices with entries over a
@@ -182,7 +194,9 @@ def GL_pos : subgroup (GL n R) :=
 lemma SL_det_pos' (A : special_linear_group n R) : 0 < (A).1.det :=
 begin
   have := A.2, simp only [gt_iff_lt, subtype.val_eq_coe],
-  simp only [subtype.val_eq_coe] at this,  rw this,linarith,
+  simp only [subtype.val_eq_coe] at this,
+  rw this,
+  linarith,
 end
 
 instance SL_to_GL_pos : has_coe (special_linear_group n R) (GL_pos n R) :=

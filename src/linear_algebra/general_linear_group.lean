@@ -101,7 +101,10 @@ variables (A B : GL n R)
 
 @[simp] lemma inv_val : ↑(A⁻¹) = nonsing_inv A :=
 begin
-  have:=nonsing_inv_coe_eq_coe_inv A, unfold_coes at *, rw ← this, refl,
+  have:=nonsing_inv_coe_eq_coe_inv A,
+  unfold_coes at *,
+  rw ← this,
+  refl,
 end
 
 @[simp] lemma to_lin'_mul : to_lin' (A * B) = (to_lin' A).comp (to_lin' B) :=

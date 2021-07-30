@@ -99,9 +99,6 @@ begin
   exact inv_eq_nonsing_inv_of_invertible (↑A : matrix n n R),
 end
 
-@[simp] lemma to_lin'_mul : to_lin' (A * B) = (to_lin' A).comp (to_lin' B) :=
-matrix.to_lin'_mul A B
-
 @[simp] lemma to_lin'_one : to_lin' (1 : GL n R).1 = linear_map.id :=
 matrix.to_lin'_one
 
@@ -168,3 +165,4 @@ instance SL_to_GL_pos : has_coe (special_linear_group n R) (GL_pos n R) :=
 
 end GL_plus
 end matrix
+#lint

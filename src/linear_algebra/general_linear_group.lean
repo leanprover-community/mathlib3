@@ -74,18 +74,13 @@ instance coe_fun : has_coe_to_fun (GL n R) :=
 { F   := λ _, n → n → R,
   coe := λ A, A.val }
 
-lemma ext_iff (A B : GL n R) : A = B ↔ (∀ i j, A i j = B i j) :=
-begin
-  dsimp at *,
-  fsplit,
-  work_on_goal 0 { intros a i j, induction a, refl },
-  intros a,
-  ext,
-  solve_by_elim,
-end
+lemma ext_iff (A B : GL n R) : A = B ↔ (∀ i j, (A : matrix n n R) i j = (B : matrix n n R) i j) :=
+units.ext_iff.trans matrix.ext_iff.symm
 
-@[ext] lemma ext (A B : GL n R) : (∀ i j, A i j = B i j) → A = B :=
-(ext_iff A B).mpr
+/-- Not marked `@[ext]` as the `ext` tactic already solves this. -/
+lemma ext ⦃A B : GL n R⦄ (h : ∀ i j, (A : matrix n n R) i j = (B : matrix n n R) i j) :
+  A = B :=
+units.ext $ matrix.ext h
 
 /-- Applying `matrix.nonsing_inv` to the coercion is the same as coercing the group inverse. -/
 lemma nonsing_inv_coe_eq_coe_inv (A : GL n R) : (↑A : matrix n n R)⁻¹ = ↑(A⁻¹) :=

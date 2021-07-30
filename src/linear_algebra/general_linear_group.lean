@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2020 Chris Birkbeck. All rights reserved.
+Copyright (c) 2021 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 
@@ -165,16 +165,18 @@ begin
   have := general_linear_group.nonsing_inv_coe_eq_coe_inv A,  unfold_coes  at this, simp_rw this,
 end
 
-/-- This is the subgroup of `nxn` matrices with  entries over a
-linear ordered ring and positive determinant-/
-
- def GL_pos : subgroup (GL n R) :=
+/-- This is the subgroup of `nxn` matrices with entries over a
+linear ordered ring and positive determinant. -/
+def GL_pos : subgroup (GL n R) :=
 { carrier := {M  | 0 < det M},
   one_mem' := one_in_GL_pos _ _ ,
   mul_mem' := λ A B h1 h2, mul_in_GL_pos _ _ A B h1 h2,
-  inv_mem' := λ A h1, by {have:= inv_det_pos _ _ A h1, simp only [set.mem_set_of_eq] at *,
-  unfold_coes at *, convert this, }
-}
+  inv_mem' := λ A h1, begin
+    have:= inv_det_pos _ _ A h1,
+    simp only [set.mem_set_of_eq] at *,
+    unfold_coes at *,
+    convert this,
+  end }
 
 @[simp] lemma mem_GL_pos (A : GL n R) : A  ∈ (GL_pos n R)  ↔ 0 < A.1.det := iff.rfl
 

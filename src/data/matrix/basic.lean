@@ -1268,8 +1268,7 @@ end
   A.update_column i b = (col b).minor id (function.const m ()) :=
 begin
   ext x y,
-  have : i = y := by simp,
-  simp [update_column_apply, this]
+  simp [update_column_apply, subsingleton.elim i y]
 end
 
 @[simp] lemma update_row_subsingleton [subsingleton n] (A : matrix n m R)
@@ -1277,8 +1276,7 @@ end
   A.update_row i b = (row b).minor (function.const n ()) id :=
 begin
   ext x y,
-  have : i = x := by simp,
-  simp [update_column_apply, this]
+  simp [update_column_apply, subsingleton.elim i x]
 end
 
 lemma map_update_row [decidable_eq n] (f : α → β) :

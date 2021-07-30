@@ -1340,7 +1340,7 @@ lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
 by rw [univ_unique, prod_singleton]
 
 @[to_additive]
-lemma prod_subsingleton_univ {α β : Type*} [comm_monoid β] [subsingleton α] (f : α → β) (a : α) :
+lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] (f : α → β) (a : α) :
   (∏ x : α, f x) = f a :=
 begin
   haveI : unique α := { default := a, uniq := λ _, subsingleton.elim _ _ },

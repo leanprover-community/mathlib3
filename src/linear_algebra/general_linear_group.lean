@@ -21,7 +21,6 @@ consisting of all invertible `n` by `n` `R`-matrices.
 ## Main definitions
 
  * `matrix.general_linear_group` is the type of matrices over R with unit determinant
- * `matrix.GL.group` gives the group structure (under multiplication)
  * `matrix.GL_plus.GL_pos` gives the subgroup of matrices with
  positive determinant (over a linear ordered ring)
 
@@ -59,16 +58,16 @@ begin
   exact units.is_unit _
 end
 
-/--The `GL n R` and `general_linear_group R n` are multiplicatively equivalent-/
-def GL_mul_equiv_general_linear_group : (GL n R) ≃* (linear_map.general_linear_group R (n → R)) :=
+/--The `GL n R` and `general_linear_group R n` groups are multiplicatively equivalent-/
+def general_linear_group.to_lin : (GL n R) ≃* (linear_map.general_linear_group R (n → R)) :=
 units.map_equiv to_lin_alg_equiv'.to_mul_equiv
 
 /--Given a matrix with invertible determinant we get an element of `GL n R`-/
- def GL.mk' (A : matrix n n R) (h : invertible (det A)) : GL n R :=
+ def general_linear_group.mk' (A : matrix n n R) (h : invertible (det A)) : GL n R :=
 unit_of_det_invertible A
 
 /--Given a matrix with unit determinant we get an element of `GL n R`-/
-noncomputable def GL.mk'' (A : matrix n n R) (h : is_unit (det A)) : GL n R :=
+noncomputable def general_linear_group.mk'' (A : matrix n n R) (h : is_unit (det A)) : GL n R :=
 nonsing_inv_unit A h
 
 end
@@ -155,13 +154,12 @@ begin
 simp only [det_one, gt_iff_lt, general_linear_group.one_apply,zero_lt_one],
 end
 
-lemma mul_in_GL_pos (A B : GL n R) (h1 : 0 <  det A) (h2 : 0 <  det B) : 0 < det (A*B) :=
+lemma mul_in_GL_pos (A B : GL n R) (h1 : 0 < det A) (h2 : 0 < det B) : 0 < det (A*B) :=
 begin
   simp only [gt_iff_lt, det_mul, mul_eq_mul], apply mul_pos h1 h2,
 end
 
 lemma inv_det_pos  (A : GL n R) (h : 0 < det A) :  0 < det (A⁻¹).1 :=
-
 begin
   have h0 := (GL.is_unit_det _ _ A),
   have h1 := is_unit_nonsing_inv_det A h0,
@@ -183,8 +181,6 @@ linear ordered ring and positive determinant-/
 }
 
 @[simp] lemma mem_GL_pos (A : GL n R) : A  ∈ (GL_pos n R)  ↔ 0 < A.1.det := iff.rfl
-
-instance GL_pos_to_GL : has_coe (GL_pos n R)  (GL n R) := ⟨λ A, A.val⟩
 
 lemma SL_det_pos' (A : special_linear_group n R) : 0 < (A).1.det :=
 begin

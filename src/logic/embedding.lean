@@ -28,21 +28,44 @@ initialize_simps_projections embedding (to_fun → apply)
 
 end function
 
-/-- Convert an `α ≃ β` to `α ↪ β`. -/
-@[simps]
-protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
-⟨f, f.injective⟩
+section equiv
+
+variables {α : Sort u} {β : Sort v} (f : α ≃ β)
+
+/-- Convert an `α ≃ β` to `α ↪ β`.
+
+This is also available as a coercion `equiv.coe_embedding`.
+The explicit `equiv.to_embedding` version is preferred though, since the coercion can have issues
+inferring the type of the resulting embedding. For example:
+
+```lean
+-- Works:
+example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f.to_embedding = s.map f := by simp
+-- Error, `f` has type `fin 3 ≃ fin 3` but is expected to have type `fin 3 ↪ ?m_1 : Type ?`
+example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f = s.map f.to_embedding := by simp
+```
+-/
+@[simps] protected def equiv.to_embedding : α ↪ β := ⟨f, f.injective⟩
+
+instance equiv.coe_embedding : has_coe (α ≃ β) (α ↪ β) := ⟨equiv.to_embedding⟩
+
+@[reducible]
+instance equiv.perm.coe_embedding : has_coe (equiv.perm α) (α ↪ α) := equiv.coe_embedding
+
+@[simp] lemma equiv.coe_eq_to_embedding  : ↑f = f.to_embedding := rfl
 
 /-- Given an equivalence to a subtype, produce an embedding to the elements of the corresponding
 set. -/
 @[simps]
-def equiv.as_embedding {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) : α ↪ β :=
+def equiv.as_embedding {p : β → Prop} (e : α ≃ subtype p) : α ↪ β :=
 ⟨coe ∘ e, subtype.coe_injective.comp e.injective⟩
 
 @[simp]
 lemma equiv.as_embedding_range {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) :
   set.range e.as_embedding = set_of p :=
 set.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ subtype.coe_prop (e y), λ hs, ⟨e.symm ⟨x, hs⟩, by simp⟩⟩
+
+end equiv
 
 namespace function
 namespace embedding
@@ -65,6 +88,9 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 by { ext, simp }
 
 theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
+
+@[simp] lemma apply_eq_iff_eq {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
+f.injective.eq_iff
 
 @[refl, simps {simp_rhs := tt}]
 protected def refl (α : Sort*) : α ↪ α :=

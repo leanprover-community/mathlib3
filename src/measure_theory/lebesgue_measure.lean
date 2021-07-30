@@ -17,7 +17,7 @@ basic properties.
 noncomputable theory
 open classical set filter measure_theory
 open ennreal (of_real)
-open_locale big_operators ennreal topological_space
+open_locale big_operators ennreal nnreal topological_space
 
 /-!
 ### Definition of the Lebesgue measure and lengths of intervals
@@ -127,6 +127,31 @@ lemma volume_pi_Ico {a b : ι → ℝ} :
 @[simp] lemma volume_pi_Ico_to_real {a b : ι → ℝ} (h : a ≤ b) :
   (volume (pi univ (λ i, Ico (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
 by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+lemma volume_le_diam (s : set ℝ) : volume s ≤ emetric.diam s :=
+begin
+  by_cases hs : metric.bounded s,
+  { rw [real.ediam_eq hs, ← volume_Icc],
+    exact volume.mono (real.subset_Icc_Inf_Sup_of_bounded hs) },
+  { rw metric.ediam_of_unbounded hs, exact le_top }
+end
+
+lemma volume_pi_le_prod_diam (s : set (ι → ℝ)) :
+  volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) :=
+calc volume s ≤ volume (pi univ (λ i, closure (function.eval i '' s))) :
+  volume.mono $ subset.trans (subset_pi_eval_image univ s) $ pi_mono $ λ i hi, subset_closure
+          ... = ∏ i, volume (closure $ function.eval i '' s) :
+  volume_pi_pi _ $ λ i, measurable_set_closure
+          ... ≤ ∏ i : ι, emetric.diam (function.eval i '' s) :
+  finset.prod_le_prod' $ λ i hi, (volume_le_diam _).trans_eq (emetric.diam_closure _)
+
+lemma volume_pi_le_diam_pow (s : set (ι → ℝ)) :
+  volume s ≤ emetric.diam s ^ fintype.card ι :=
+calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le_prod_diam s
+          ... ≤ ∏ i : ι, (1 : ℝ≥0) * emetric.diam s                      :
+  finset.prod_le_prod' $ λ i hi, (lipschitz_with.eval i).ediam_image_le s
+          ... = emetric.diam s ^ fintype.card ι              :
+  by simp only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
 
 /-!
 ### Images of the Lebesgue measure under translation/multiplication/...

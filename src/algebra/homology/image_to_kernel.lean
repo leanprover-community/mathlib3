@@ -264,3 +264,64 @@ def homology.congr (pf : f = f') (pg : g = g') : homology f g w ≅ homology f' 
   end, }
 
 end
+
+/-!
+We provide a variant `image_to_kernel' : image f ⟶ kernel g`,
+and use this to give alternative formulas for `homology f g w`.
+-/
+section image_to_kernel'
+variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0)
+  [has_kernels V] [has_images V]
+
+/--
+While `image_to_kernel f g w` provides a morphism
+`image_subobject f ⟶ kernel_subobject g`
+in terms of the subobject API,
+this variant provides a morphism
+`image f ⟶ kernel g`,
+which is sometimes more convenient.
+-/
+def image_to_kernel' (w : f ≫ g = 0) : image f ⟶ kernel g :=
+kernel.lift g (image.ι f) (by { ext, simpa using w, })
+
+@[simp] lemma image_subobject_iso_image_to_kernel' (w : f ≫ g = 0) :
+  (image_subobject_iso f).hom ≫ image_to_kernel' f g w =
+    image_to_kernel f g w ≫ (kernel_subobject_iso g).hom :=
+by { ext, simp [image_to_kernel'], }
+
+@[simp] lemma image_to_kernel'_kernel_subobject_iso (w : f ≫ g = 0) :
+  image_to_kernel' f g w ≫ (kernel_subobject_iso g).inv =
+    (image_subobject_iso f).inv ≫ image_to_kernel f g w :=
+by { ext, simp [image_to_kernel'], }
+
+variables [has_cokernels V]
+
+/--
+`homology f g w` can be computed as the cokernel of `image_to_kernel' f g w`.
+-/
+def homology_iso_cokernel_image_to_kernel' (w : f ≫ g = 0) :
+  homology f g w ≅ cokernel (image_to_kernel' f g w) :=
+{ hom := cokernel.map _ _ (image_subobject_iso f).hom (kernel_subobject_iso g).hom (by tidy),
+  inv := cokernel.map _ _ (image_subobject_iso f).inv (kernel_subobject_iso g).inv (by tidy),
+  hom_inv_id' := begin
+    apply coequalizer.hom_ext,
+    simp only [iso.hom_inv_id_assoc, cokernel.π_desc, cokernel.π_desc_assoc, category.assoc,
+      coequalizer_as_cokernel],
+    exact (category.comp_id _).symm,
+  end, }
+
+variables [has_equalizers V]
+
+/--
+`homology f g w` can be computed as the cokernel of `kernel.lift g f w`.
+-/
+def homology_iso_cokernel_lift (w : f ≫ g = 0) :
+  homology f g w ≅ cokernel (kernel.lift g f w) :=
+begin
+  refine homology_iso_cokernel_image_to_kernel' f g w ≪≫ _,
+  have p : factor_thru_image f ≫ image_to_kernel' f g w = kernel.lift g f w,
+  { ext, simp [image_to_kernel'], },
+  exact (cokernel_epi_comp _ _).symm ≪≫ cokernel_iso_of_eq p,
+end
+
+end image_to_kernel'

@@ -298,7 +298,7 @@ def to_measurable_space (h_inter : ∀ s₁ s₂, d.has s₁ → d.has s₂ → 
     begin
       rw ←Union_disjointed,
       exact d.has_Union (disjoint_disjointed _)
-        (λ n, disjointed_induct (λ t i h, h_inter _ _ h $ d.has_compl $ hf i) (hf n)),
+        (λ n, disjointed_rec (λ t i h, h_inter _ _ h $ d.has_compl $ hf i) (hf n)),
     end }
 
 lemma of_measurable_space_to_measurable_space

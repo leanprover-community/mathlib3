@@ -1080,7 +1080,7 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
 
 variables {N : Type*} [group N]
 
-/-- The preimage of the normalizer is contained in the normalizer of the preimage -/
+/-- The preimage of the normalizer is contained in the normalizer of the preimage. -/
 @[to_additive] lemma le_normalizer_comap (f : N →* G) :
   H.normalizer.comap f ≤ (H.comap f).normalizer :=
 λ x, begin
@@ -1089,7 +1089,7 @@ variables {N : Type*} [group N]
   simp [h (f n)]
 end
 
-/-- The image of the normalizer is contained in the normalizer of the image -/
+/-- The image of the normalizer is contained in the normalizer of the image. -/
 @[to_additive] lemma le_normalizer_map (f : G →* N) :
   H.normalizer.map f ≤ (H.map f).normalizer :=
 λ _, begin
@@ -1643,7 +1643,7 @@ noncomputable def equiv_map_of_injective (H : subgroup G)
   (equiv_map_of_injective H f hf h : N) = f h := rfl
 
 /-- The preimage of the normalizer is equal to the normalizer of the preimage of a surjective
-  function -/
+  function. -/
 @[to_additive] lemma comap_normalizer_eq_of_surjective (H : subgroup G)
   {f : N →* G} (hf : function.surjective f) :
   H.normalizer.comap f = (H.comap f).normalizer :=
@@ -1656,7 +1656,7 @@ le_antisymm (le_normalizer_comap f)
     simp [hx y]
   end
 
-/-- The image of the normalizer is equal to the normalizer of the image of an isomorphism -/
+/-- The image of the normalizer is equal to the normalizer of the image of an isomorphism. -/
 @[to_additive] lemma map_equiv_normalizer_eq (H : subgroup G)
   (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map f.to_monoid_hom).normalizer :=
 begin
@@ -1667,7 +1667,7 @@ begin
 end
 
 /-- The image of the normalizer is equal to the normalizer of the image of a bijective
-  function -/
+  function. -/
 @[to_additive] lemma map_normalizer_eq_of_bijective (H : subgroup G)
   {f : G →* N} (hf : function.bijective f) :
   H.normalizer.map f = (H.map f).normalizer :=

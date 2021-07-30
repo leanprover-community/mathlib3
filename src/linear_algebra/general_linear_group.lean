@@ -79,10 +79,6 @@ instance coe_fun : has_coe_to_fun (GL n R) :=
 { F   := λ _, n → n → R,
   coe := λ A, A.val }
 
-/--Given a element of `GL n R` it gives the associated linear map-/
-
-def to_lin' (A : GL n R) := matrix.to_lin' A
-
 lemma ext_iff (A B : GL n R) : A = B ↔ (∀ i j, A i j = B i j) :=
 begin
   dsimp at *, fsplit, work_on_goal 0 { intros a i j, induction a, refl }, intros a,
@@ -124,7 +120,7 @@ end
 @[simp] lemma to_lin'_mul : to_lin' (A * B) = (to_lin' A).comp (to_lin' B) :=
 matrix.to_lin'_mul A B
 
-@[simp] lemma to_lin'_one : to_lin' (1 : GL n R) = linear_map.id :=
+@[simp] lemma to_lin'_one : to_lin' (1 : GL n R).1 = linear_map.id :=
 matrix.to_lin'_one
 
 end coe_lemmas

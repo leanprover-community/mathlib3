@@ -670,6 +670,17 @@ quot.induction_on s $ λ l, rfl
 
 lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
+lemma map_eq_singleton {f : α → β} {s : multiset α} {b : β} :
+  map f s = b ::ₘ 0 ↔ ∃ a : α, s = a ::ₘ 0 ∧ f a = b :=
+begin
+  split,
+  { rcases s with ⟨⟨_, _⟩⟩,
+    { simp },
+    { simp [singleton_coe] {contextual := tt} } },
+  { rintro ⟨_, rfl, rfl⟩,
+    simp }
+end
+
 theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
 { induction k, simp, simpa }
 

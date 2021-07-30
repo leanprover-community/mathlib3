@@ -93,17 +93,6 @@ lemma is_cycle.cycle_type {σ : perm α} (hσ : is_cycle σ) : σ.cycle_type = [
 cycle_type_eq [σ] (mul_one σ) (λ τ hτ, (congr_arg is_cycle (list.mem_singleton.mp hτ)).mpr hσ)
   (pairwise_singleton disjoint σ)
 
-lemma multiset.map_eq_singleton {α β : Type*} {f : α → β} {s : multiset α} {b : β} :
-  map f s = b ::ₘ 0 ↔ ∃ a : α, s = a ::ₘ 0 ∧ f a = b :=
-begin
-  split,
-  { rcases s with ⟨⟨_, _⟩⟩,
-    { simp },
-    { simp [singleton_coe] {contextual := tt} } },
-  { rintro ⟨_, rfl, rfl⟩,
-    simp }
-end
-
 lemma card_cycle_type_eq_one {σ : perm α} : σ.cycle_type.card = 1 ↔ σ.is_cycle :=
 begin
   rw card_eq_one,

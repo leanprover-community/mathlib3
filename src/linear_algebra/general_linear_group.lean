@@ -20,7 +20,7 @@ consisting of all invertible `n` by `n` `R`-matrices.
 
 ## Main definitions
 
- * `matrix.general_linear_group` is the type of matrices over R with unit determinant
+ * `matrix.general_linear_group` is the type of matrices over R which are units in the matrix ring.
  * `matrix.GL_plus.GL_pos` gives the subgroup of matrices with
  positive determinant (over a linear ordered ring)
 

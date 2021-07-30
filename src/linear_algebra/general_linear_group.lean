@@ -47,11 +47,16 @@ abbreviation general_linear_group (R : Type*) [comm_ring R] : Type* := units (ma
 
 notation `GL` := general_linear_group
 
-lemma GL_is_unit_det  (A : GL n R) : is_unit ((A : matrix n n R).det) :=
-begin
-  rw ←matrix.is_unit_iff_is_unit_det,
-  exact units.is_unit _
-end
+/-- The determinant of a unit matrix is itself a unit. -/
+@[simps]
+def general_linear_group.det : GL n R →* units R :=
+{ to_fun := λ A,
+  { val := (↑A : matrix n n R).det,
+    inv := (↑(A⁻¹) : matrix n n R).det,
+    val_inv := by rw [←det_mul, ←mul_eq_mul, A.mul_inv, det_one],
+    inv_val := by rw [←det_mul, ←mul_eq_mul, A.inv_mul, det_one]},
+  map_one' := units.ext det_one,
+  map_mul' := λ A B, units.ext $ det_mul _ _ }
 
 end
 namespace general_linear_group
@@ -63,11 +68,11 @@ def to_lin : (GL n R) ≃* (linear_map.general_linear_group R (n → R)) :=
 units.map_equiv to_lin_alg_equiv'.to_mul_equiv
 
 /--Given a matrix with invertible determinant we get an element of `GL n R`-/
-def mk' (A : matrix n n R) (h : invertible (det A)) : GL n R :=
+def mk' (A : matrix n n R) (h : invertible (matrix.det A)) : GL n R :=
 unit_of_det_invertible A
 
 /--Given a matrix with unit determinant we get an element of `GL n R`-/
-noncomputable def mk'' (A : matrix n n R) (h : is_unit (det A)) : GL n R :=
+noncomputable def mk'' (A : matrix n n R) (h : is_unit (matrix.det A)) : GL n R :=
 nonsing_inv_unit A h
 
 instance coe_fun : has_coe_to_fun (GL n R) :=

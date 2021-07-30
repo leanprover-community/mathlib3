@@ -132,6 +132,10 @@ protected lemma trans : ∀ {x y z}, c x y → c y z → c x z :=
 protected lemma mul : ∀ {w x y z}, c w x → c y z → c (w * y) (x * z) :=
 λ _ _ _ _ h1 h2, c.3 h1 h2
 
+@[simp, to_additive] lemma rel_mk {r : M → M → Prop} {h₁ h₂ a b} :
+  con.mk r h₁ h₂ a b ↔ r a b :=
+iff.rfl
+
 /-- Given a type `M` with a multiplication, a congruence relation `c` on `M`, and elements of `M`
     `x, y`, `(x, y) ∈ M × M` iff `x` is related to `y` by `c`. -/
 @[to_additive "Given a type `M` with an addition, `x, y ∈ M`, and an additive congruence relation
@@ -215,6 +219,10 @@ instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 
+@[simp, to_additive] lemma quot_mk_eq_coe {M : Type*} [has_mul M] (c : con M) (x : M) :
+  quot.mk c x = (x : c.quotient) :=
+rfl
+
 /-- The function on the quotient by a congruence relation `c` induced by a function that is
     constant on `c`'s equivalence classes. -/
 @[elab_as_eliminator, to_additive "The function on the quotient by a congruence relation `c`
@@ -228,6 +236,20 @@ protected def lift_on {β} {c : con M} (q : c.quotient) (f : M → β)
 induced by a binary function that is constant on `c`'s equivalence classes."]
 protected def lift_on₂ {β} {c : con M} (q r : c.quotient) (f : M → M → β)
   (h : ∀ a₁ a₂ b₁ b₂, c a₁ b₁ → c a₂ b₂ → f a₁ a₂ = f b₁ b₂) : β := quotient.lift_on₂' q r f h
+
+/-- A version of `quotient.hrec_on₂'` for quotients by `con`. -/
+@[to_additive "A version of `quotient.hrec_on₂'` for quotients by `add_con`."]
+protected def hrec_on₂ {cM : con M} {cN : con N} {φ : cM.quotient → cN.quotient → Sort*}
+  (a : cM.quotient) (b : cN.quotient)
+  (f : Π (x : M) (y : N), φ x y) (h : ∀ x y x' y', cM x x' → cN y y' → f x y == f x' y') :
+  φ a b :=
+quotient.hrec_on₂' a b f h
+
+@[simp, to_additive] lemma hrec_on₂_coe {cM : con M} {cN : con N}
+  {φ : cM.quotient → cN.quotient → Sort*} (a : M) (b : N)
+  (f : Π (x : M) (y : N), φ x y) (h : ∀ x y x' y', cM x x' → cN y y' → f x y == f x' y') :
+  con.hrec_on₂ ↑a ↑b f h = f a b :=
+rfl
 
 variables {c}
 
@@ -902,4 +924,122 @@ instance group : group c.quotient :=
 
 end groups
 
+section units
+
+variables {α : Type*} [monoid M] {c : con M}
+
+/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
+that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
+of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
+@[to_additive lift_on_add_units] def lift_on_units (u : units c.quotient)
+  (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
+  (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx') :
+  α :=
+begin
+  refine @con.hrec_on₂ M M _ _ c c (λ x y, x * y = 1 → y * x = 1 → α)
+    (u : c.quotient) (↑u⁻¹ : c.quotient)
+    (λ (x y : M) (hxy : (x * y : c.quotient) = 1) (hyx : (y * x : c.quotient) = 1),
+    f x y (c.eq.1 hxy) (c.eq.1 hyx)) (λ x y x' y' hx hy, _) u.3 u.4,
+  ext1, { rw [c.eq.2 hx, c.eq.2 hy] },
+  rintro Hxy Hxy' -,
+  ext1, { rw [c.eq.2 hx, c.eq.2 hy] },
+  rintro Hyx Hyx' -,
+  exact heq_of_eq (Hf _ _ _ _ _ _ _ _ hx hy)
+end
+
+/-- In order to define a function `units (con.quotient c) → α` on the units of `con.quotient c`,
+where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
+that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
+of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
+add_decl_doc add_con.lift_on_add_units
+
+@[simp, to_additive]
+lemma lift_on_units_mk (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
+  (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx')
+  (x y : M) (hxy hyx) :
+  lift_on_units ⟨(x : c.quotient), y, hxy, hyx⟩ f Hf = f x y (c.eq.1 hxy) (c.eq.1 hyx) :=
+rfl
+
+@[elab_as_eliminator, to_additive induction_on_add_units]
+lemma induction_on_units {p : units c.quotient → Prop} (u : units c.quotient)
+  (H : ∀ (x y : M) (hxy : c (x * y) 1) (hyx : c (y * x) 1), p ⟨x, y, c.eq.2 hxy, c.eq.2 hyx⟩) :
+  p u :=
+begin
+  rcases u with ⟨⟨x⟩, ⟨y⟩, h₁, h₂⟩,
+  exact H x y (c.eq.1 h₁) (c.eq.1 h₂)
+end
+
+@[to_additive comap_add_units_hom]
+def comap_units_hom (c : con M) : (c.comap coe units.coe_mul).quotient →* units c.quotient :=
+con.lift _ (units.map c.mk') $
+  begin
+    intros f g h, rw con.comap_rel at h,
+    simpa only [con.ker_rel, units.ext_iff, units.coe_map, con.coe_mk', c.eq]
+  end
+
+@[simp, to_additive coe_comap_add_units_hom]
+lemma coe_comap_units_hom (c : con M) (u : units M) :
+  (c.comap_units_hom u : c.quotient) = (u : M) :=
+rfl
+
+@[simp, to_additive coe_neg_comap_add_units_hom]
+lemma coe_inv_comap_units_hom (c : con M) (u : units M) :
+  (↑(c.comap_units_hom u)⁻¹ : c.quotient) = (↑u⁻¹ : M) :=
+rfl
+
+@[simp, to_additive comap_add_units_hom_mk]
+lemma comap_units_hom_mk (c : con M) (x y : M) (hxy : x * y = 1) (hyx : y * x = 1) :
+  c.comap_units_hom (units.mk x y hxy hyx) =
+    ⟨x, y, by rw [← con.coe_mul, hxy, con.coe_one], by rw [← con.coe_mul, hyx, con.coe_one]⟩ :=
+rfl
+
+@[to_additive]
+def quotient_units_equiv_units_quotient (c : con M)
+  (f_inv : Π x y : M, c (x * y) 1 → c (y * x) 1 → {u : units M // c u x}) :
+  (c.comap coe units.coe_mul).quotient ≃* units c.quotient :=
+{ to_fun := c.comap_units_hom,
+  inv_fun := λ u, con.lift_on_units u (λ x y h₁ h₂, ↑(f_inv x y h₁ h₂ : units M)) $
+    λ x y hxy hyx x' y' hxy' hyx' hx hy, (con.eq _).2 $ (con.comap_rel _).2 $
+    c.trans (f_inv x y _ _).2 $ c.trans hx $ c.symm (f_inv x' y' _ _).2,
+  left_inv := λ u', con.induction_on u' $ λ ⟨x, y, hxy, hyx⟩,
+    by simpa using (f_inv x y _ _).2,
+  right_inv := λ u, con.induction_on_units u $ λ x y hxy hyx, units.ext $
+    by simpa using (f_inv x y _ _).2,
+  .. c.comap_units_hom }
+
+end units
+
 end con
+
+namespace monoid_hom
+
+variables {G : Type*} [monoid M] [group G]
+
+def con_range_of_commute (f : G →* M) (hc : ∀ (a : M) (b : G), commute a (f b)) : con M :=
+{ r := λ a b, ∃ x : G, a = f x * b,
+  iseqv := ⟨λ a, ⟨1, by rw [f.map_one, one_mul]⟩,
+    λ a b ⟨c , hc⟩, ⟨c⁻¹, by rw [hc, ← mul_assoc, ← f.map_mul, inv_mul_self, f.map_one, one_mul]⟩,
+    λ a b c ⟨ab, hab⟩ ⟨bc, hbc⟩, ⟨ab * bc, by rw [hab, hbc, f.map_mul, mul_assoc]⟩⟩,
+  mul' := λ a a' b b' ⟨x, hx⟩ ⟨y, hy⟩,
+    ⟨x * y, by rw [hx, hy, f.map_mul, mul_assoc, (hc a' y).left_comm, mul_assoc]⟩ }
+
+noncomputable def con_range_of_commute_units_equiv (f : G →* M)
+  (hc : ∀ (a : M) (b : G), commute a (f b)) :
+  ((f.con_range_of_commute hc).comap coe units.coe_mul).quotient ≃*
+    units (f.con_range_of_commute hc).quotient :=
+con.quotient_units_equiv_units_quotient _ $ λ x y hxy hyx,
+  classical.indefinite_description _ $
+  begin
+    rcases ⟨hxy, hyx⟩ with ⟨⟨g, hg⟩, g', hg'⟩, rw mul_one at hg hg',
+    set a := f g⁻¹ * x,
+    have A : a * y = 1, by rw [mul_assoc, hg, ← f.map_mul, inv_mul_self, f.map_one],
+    have B : y * a = f (g' * g⁻¹), by rw [f.map_mul, ← hg', mul_assoc, (hc x g⁻¹).eq],
+    refine ⟨⟨a, y, A, _⟩, g⁻¹, rfl⟩,
+    calc y * a = a * y * (y * a) : by rw [A, one_mul]
+           ... = a * (y * a) * y : by rw [B, (hc _ _).right_comm]
+           ... = a * y * (a * y) : by simp only [mul_assoc]
+           ... = 1               : by rw [A, one_mul],
+  end
+
+end monoid_hom

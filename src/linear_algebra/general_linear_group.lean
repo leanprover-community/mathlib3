@@ -40,7 +40,6 @@ universes u v
 open_locale matrix
 open linear_map
 
-
 section
 
 variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
@@ -57,22 +56,22 @@ begin
   exact units.is_unit _
 end
 
-/--The `GL n R` and `general_linear_group R n` groups are multiplicatively equivalent-/
-def general_linear_group.to_lin : (GL n R) ≃* (linear_map.general_linear_group R (n → R)) :=
-units.map_equiv to_lin_alg_equiv'.to_mul_equiv
-
-/--Given a matrix with invertible determinant we get an element of `GL n R`-/
- def general_linear_group.mk' (A : matrix n n R) (h : invertible (det A)) : GL n R :=
-unit_of_det_invertible A
-
-/--Given a matrix with unit determinant we get an element of `GL n R`-/
-noncomputable def general_linear_group.mk'' (A : matrix n n R) (h : is_unit (det A)) : GL n R :=
-nonsing_inv_unit A h
-
 end
 namespace general_linear_group
 
 variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
+
+/--The `GL n R` and `general_linear_group R n` groups are multiplicatively equivalent-/
+def to_lin : (GL n R) ≃* (linear_map.general_linear_group R (n → R)) :=
+units.map_equiv to_lin_alg_equiv'.to_mul_equiv
+
+/--Given a matrix with invertible determinant we get an element of `GL n R`-/
+ def mk' (A : matrix n n R) (h : invertible (det A)) : GL n R :=
+unit_of_det_invertible A
+
+/--Given a matrix with unit determinant we get an element of `GL n R`-/
+noncomputable def mk'' (A : matrix n n R) (h : is_unit (det A)) : GL n R :=
+nonsing_inv_unit A h
 
 instance coe_fun : has_coe_to_fun (GL n R) :=
 { F   := λ _, n → n → R,

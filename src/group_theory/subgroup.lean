@@ -521,7 +521,7 @@ show s ≤ Sup S, from le_Sup hs
 Unfortunately the `mem_sup` down below only works with `comm_(add)group G`,
 so for now we must bear with the confusing names.
 -/
-@[to_additive "Unfortunately the `mem_sup` down below only works with `comm_addgroup G`,
+@[to_additive "Unfortunately the `mem_sup` down below only works with `add_comm_group G`,
 so for now we must bear with the confusing names."]
 lemma mem_sup_iff {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
   g ∈ H ⊔ K ↔ ∃ x y, x ∈ H ∧ y ∈ K ∧ x * y = g :=
@@ -531,11 +531,11 @@ set.ext_iff.1 h g
 Unfortunately the `mem_sup'` down below only works with `comm_group G`,
 so for now we must bear with the confusing names.
 -/
-@[to_additive "Unfortunately the `mem_sup'` down below only works with `comm_addgroup G`,
+@[to_additive "Unfortunately the `mem_sup'` down below only works with `add_comm_group G`,
 so for now we must bear with the confusing names."]
 lemma mem_sup_iff' {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
   g ∈ H ⊔ K ↔ ∃ (x : H) (y : K), (x * y : G) = g :=
-(mem_sup_iff h).trans
+(set.ext_iff.1 h g).trans
   ⟨λ ⟨a, b, ha, hb, h⟩, ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩,
   λ ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩, ⟨a, b, ha, hb, h⟩⟩
 
@@ -2017,7 +2017,7 @@ begin
     rw [inf_of_le_right (sup_le hA hA'), inf_of_le_right hA', inf_of_le_right hA] },
 end
 
-@[to_additive] lemma normal_subgroup_mul
+@[to_additive] lemma coe_sup_of_normal_left
   {A B C : subgroup G} (hA : A ≤ C) [hN : (A.subgroup_of C).normal] (hB : B ≤ C) :
   ((A ⊔ B : subgroup G) : set G) = A * B :=
 begin

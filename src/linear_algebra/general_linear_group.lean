@@ -165,4 +165,3 @@ instance SL_to_GL_pos : has_coe (special_linear_group n R) (GL_pos n R) :=
 
 end GL_plus
 end matrix
-#lint

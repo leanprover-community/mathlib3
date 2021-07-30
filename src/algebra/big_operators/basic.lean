@@ -1347,24 +1347,6 @@ begin
   convert prod_unique f
 end
 
-lemma prod_unique_has_one {α β : Type*} [unique α] [has_one α] [comm_monoid β]
-  (f : α → β) :
-  ∏ x : α, f x = f 1 :=
-by rw [prod_unique f, unique_has_one]
-
-lemma sum_unique_has_one {α β : Type*} [unique α] [has_one α] [add_comm_monoid β]
-  (f : α → β) :
-  ∑ x : α, f x = f 1 :=
-by rw [sum_unique f, unique_has_one]
-
-attribute [to_additive sum_unique_has_one] prod_unique_has_one
-
-@[to_additive]
-lemma prod_unique_has_zero {α β : Type*} [unique α] [has_zero α] [comm_monoid β]
-  (f : α → β) :
-  ∏ x : α, f x = f 0 :=
-by rw [prod_unique f, unique_has_zero]
-
 end fintype
 
 namespace list

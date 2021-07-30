@@ -80,7 +80,9 @@ instance coe_fun : has_coe_to_fun (GL n R) :=
 
 lemma ext_iff (A B : GL n R) : A = B ↔ (∀ i j, A i j = B i j) :=
 begin
-  dsimp at *, fsplit, work_on_goal 0 { intros a i j, induction a, refl },
+  dsimp at *,
+  fsplit,
+  work_on_goal 0 { intros a i j, induction a, refl },
   intros a,
   ext,
   solve_by_elim,

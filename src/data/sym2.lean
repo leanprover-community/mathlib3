@@ -3,7 +3,6 @@ Copyright (c) 2020 Kyle Miller All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import algebra.big_operators.basic
 import data.sym
 import tactic.linarith
 
@@ -448,16 +447,13 @@ begin
   refl,
 end
 
-lemma other_invol {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other ∈ z):
+lemma other_invol [decidable_eq α] {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other ∈ z):
   hb.other = a :=
 begin
-  classical,
   rw other_eq_other' at hb ⊢,
   convert other_invol' ha hb,
   rw other_eq_other',
 end
-
-end decidable
 
 lemma filter_image_quotient_mk [decidable_eq α] (s : finset α) :
   ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
@@ -474,47 +470,6 @@ begin
     exact ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩ }
 end
 
-lemma prod_quotient_sym2_not_diag [decidable_eq α] (s : finset α) :
-  (((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag)).card =
-    s.card.choose 2 :=
-begin
-  rw [filter_image_quotient_mk, nat.choose_two_right, nat.mul_sub_left_distrib, mul_one,
-    ←finset.off_diag_card],
-  refine (nat.div_eq_of_eq_mul_right zero_lt_two _).symm,
-  rw [finset.card_eq_sum_card_fiberwise
-    (λ x, mem_image_of_mem _ : ∀ x ∈ s.off_diag, quotient.mk x ∈ s.off_diag.image quotient.mk),
-    finset.sum_const_nat (quotient.ind _), mul_comm],
-  rintro ⟨x, y⟩ hxy,
-  simp_rw [mem_image, exists_prop, mem_off_diag, quotient.eq] at hxy,
-  obtain ⟨a, ⟨ha₁, ha₂, ha⟩, h⟩ := hxy,
-  obtain ⟨hx, hy, hxy⟩ : x ∈ s ∧ y ∈ s ∧ x ≠ y,
-  { cases h; have := ha.symm; exact ⟨‹_›, ‹_›, ‹_›⟩ },
-  have hxy' : y ≠ x := hxy.symm,
-  have : s.off_diag.filter (λ z, ⟦z⟧ = ⟦(x, y)⟧) = ({(x, y), (y, x)} : finset _),
-  { ext ⟨x₁, y₁⟩,
-    rw [mem_filter, mem_insert, mem_singleton, sym2.eq_iff, prod.mk.inj_iff, prod.mk.inj_iff,
-      and_iff_right_iff_imp],
-    rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩); rw finset.mem_off_diag; exact ⟨‹_›, ‹_›, ‹_›⟩ },
-  rw [this, card_insert_of_not_mem, card_singleton],
-  simp only [not_and, prod.mk.inj_iff, mem_singleton],
-  exact λ _, hxy',
-end
-
-lemma card_sym2_not_diag [decidable_eq α] [fintype α] :
-  (univ.filter (λ (a : sym2 α), ¬a.is_diag)).card = (card α).choose 2 :=
-prod_quotient_sym2_not_diag (univ : finset α)
-
-protected lemma card [decidable_eq α] [fintype α] :
-  card (sym2 α) = card α * (card α + 1) / 2 :=
-begin
-  have h : univ.filter (is_diag : sym2 α → Prop) = univ.image sym2.diag,
-  { ext x,
-    rw [mem_filter, mem_image, is_diag_iff_mem_range_diag, set.mem_range],
-    exact ⟨λ ⟨_, a, ha⟩, ⟨a, mem_univ _, ha⟩, λ ⟨a, _, ha⟩, ⟨mem_univ _, a, ha⟩⟩ },
-  rw [←finset.card_univ, ←finset.filter_card_add_filter_neg_card_eq_card sym2.is_diag, h,
-    card_image_of_injective _ sym2.diag.injective, card_sym2_not_diag,
-    nat.choose_two_right, finset.card_univ, add_comm, ←nat.triangle_succ, nat.succ_sub_one,
-    mul_comm],
-end
+end decidable
 
 end sym2

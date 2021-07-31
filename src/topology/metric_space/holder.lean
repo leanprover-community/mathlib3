@@ -183,7 +183,7 @@ lemma comp_holder_on_with {Cg rg : ℝ≥0} {g : Y → Z} (hg : holder_with Cg r
   holder_on_with (Cg * Cf ^ (rg : ℝ)) (rg * rf) (g ∘ f) s :=
 (hg.holder_on_with univ).comp hf (λ _ _, trivial)
 
-/-- A Hölder continuouf sunction is uniformly continuous -/
+/-- A Hölder continuous function is uniformly continuous -/
 protected lemma uniform_continuous (hf : holder_with C r f) (h0 : 0 < r) : uniform_continuous f :=
 uniform_continuous_on_univ.mp $ (hf.holder_on_with univ).uniform_continuous_on h0
 

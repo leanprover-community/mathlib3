@@ -98,7 +98,7 @@ begin
   push_neg at h,
   cases h with j hj,
   have : j ∈ dfinsupp.support x, { rw dfinsupp.mem_support_iff, exact_mod_cast hj },
-  rw ← finset.sum_erase' _ this at hx,
+  rw ← finset.sum_erase_add _ _ this at hx,
   simp only [submodule.coe_zero, subtype.val_eq_coe, ← neg_eq_iff_add_eq_zero] at hx,
   simp only [← hx, pi.zero_apply, submodule.coe_zero] at hj,
   have := submodule.disjoint_def.mp (complete_lattice.independent_def.mp h j) (x j) (x j).2,

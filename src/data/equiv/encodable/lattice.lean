@@ -5,7 +5,7 @@ Authors: Floris van Doorn
 -/
 import data.equiv.encodable.basic
 import data.finset.basic
-import data.set.disjointed
+import data.set.pairwise
 
 /-!
 # Lattice operations on encodable types

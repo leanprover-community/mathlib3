@@ -525,10 +525,12 @@ begin
 end
 
 /-- Let `s` be a convex set in a real normed vector space `E`, let `f : E → G` be a function
-differentiable within `s` in a neighborhood of `x : E` with derivative `f'`. Suppose that `f'`
-is continuous within `s` at `x`. Then for any number `K : ℝ≥0` larger than `∥f' x∥₊`, `f` is
-`K`-Lipschitz on some neighborhood of `x` within `s`. -/
-lemma convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_continuous_within_at
+differentiable within `s` in a neighborhood of `x : E` with derivative `f'`. Suppose that `f'` is
+continuous within `s` at `x`. Then for any number `K : ℝ≥0` larger than `∥f' x∥₊`, `f` is
+`K`-Lipschitz on some neighborhood of `x` within `s`. See also
+`convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at` for a version that claims
+existence of `K` instead of an explicit estimate. -/
+lemma convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt
   (hs : convex s) {f : E → G} (hder : ∀ᶠ y in 𝓝[s] x, has_fderiv_within_at f (f' y) s y)
   (hcont : continuous_within_at f' s x) (K : ℝ≥0) (hK : ∥f' x∥₊ < K) :
   ∃ t ∈ 𝓝[s] x, lipschitz_on_with K f t :=
@@ -541,6 +543,19 @@ begin
   exact (hs.inter (convex_ball _ _)).lipschitz_on_with_of_nnnorm_has_fderiv_within_le
     (λ y hy, (hε hy).1.mono (inter_subset_left _ _)) (λ y hy, (hε hy).2.le)
 end
+
+/-- Let `s` be a convex set in a real normed vector space `E`, let `f : E → G` be a function
+differentiable within `s` in a neighborhood of `x : E` with derivative `f'`. Suppose that `f'` is
+continuous within `s` at `x`. Then for any number `K : ℝ≥0` larger than `∥f' x∥₊`, `f` is Lipschitz
+on some neighborhood of `x` within `s`. See also
+`convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt` for a version
+with an explicit estimate on the Lipschitz constant. -/
+lemma convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at
+  (hs : convex s) {f : E → G} (hder : ∀ᶠ y in 𝓝[s] x, has_fderiv_within_at f (f' y) s y)
+  (hcont : continuous_within_at f' s x) :
+  ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
+(no_top _).imp $
+  hs.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt hder hcont
 
 /-- The mean value theorem on a convex set: if the derivative of a function within this set is
 bounded by `C`, then the function is `C`-Lipschitz. Version with `fderiv_within`. -/

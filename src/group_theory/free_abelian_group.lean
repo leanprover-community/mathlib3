@@ -171,6 +171,9 @@ begin
     ac_refl }
 end
 
+/-- If `g : free_abelian_group X` and `A` is an abelian group then `lift_add_group_hom g`
+is the additive group homomorphism sending a function `X → A` to the term of type `A`
+corresponding to the evaluation of the induced map `free_abelian_group X → A` at `g`. -/
 @[simps]
 def lift_add_group_hom {α} (β) [add_comm_group β] (a : free_abelian_group α) : (α → β) →+ β :=
 add_monoid_hom.mk' (λ f, lift f a) (lift.add' a)

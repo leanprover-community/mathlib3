@@ -83,6 +83,8 @@ begin
   { exact sup_le_sup ih (h _) }
 end
 
+/-- `partial_sups` forms a Galois insertion with the coercion from monotone functions to functions.
+-/
 def partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →ₘ α) coe_fn :=
 { choice := λ f h, ⟨f, begin
     convert (partial_sups f).monotone,

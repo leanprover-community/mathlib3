@@ -1375,7 +1375,8 @@ such that `f x = 0`"]
 def ker (f : G →* M) : subgroup G :=
 { carrier := {x | f x = 1},
   one_mem' := f.map_one,
-  mul_mem' := λ a b (ha : f a = 1) (hb : f b = 1), show f (a * b) = 1, by rw [f.map_mul, ha, hb, one_mul],
+  mul_mem' := λ a b (ha : f a = 1) (hb : f b = 1),
+    show f (a * b) = 1, by rw [f.map_mul, ha, hb, one_mul],
   inv_mem' := λ x (hx : f x = 1), show f x⁻¹ = 1, from
     calc f x⁻¹ = f x * f x⁻¹ : by rw [hx, one_mul]
            ... = f (x * x⁻¹) : by rw [f.map_mul]

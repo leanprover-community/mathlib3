@@ -43,13 +43,13 @@ section comap
 
 variables {r : β → β → Prop}
 
-lemma reflexive.comap (h : reflexive r) (f : α → β) : reflexive (λ a b, r (f a) (f b)) :=
+lemma reflexive.comap (h : reflexive r) (f : α → β) : reflexive (r on f) :=
 λ a, h (f a)
 
-lemma symmetric.comap (h : symmetric r) (f : α → β) : symmetric (λ a b, r (f a) (f b)) :=
+lemma symmetric.comap (h : symmetric r) (f : α → β) : symmetric (r on f) :=
 λ a b hab, h hab
 
-lemma transitive.comap (h : transitive r) (f : α → β) : transitive (λ a b, r (f a) (f b)) :=
+lemma transitive.comap (h : transitive r) (f : α → β) : transitive (r on f) :=
 λ a b c hab hbc, h hab hbc
 
 end comap

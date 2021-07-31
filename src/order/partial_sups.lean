@@ -20,14 +20,12 @@ Equivalence with those definitions is shown by `partial_sups_eq_sup_range` and
 
 ## Notes
 
-One might dispute whether this sequence should start at `f 0` or `⊥`.
-`λ f n, (finset.range n).sup f` is already effectively the sequence starting at `⊥`.
-If we started at `⊥` we wouldn't have the galois insertion mentioned in TODO.
+One might dispute whether this sequence should start at `f 0` or `⊥`. We choose the former because :
+* Starting at `⊥` requires... having a bottom element.
+* `λ f n, (finset.range n).sup f` is already effectively the sequence starting at `⊥`.
+* If we started at `⊥` we wouldn't have the galois insertion mentioned in TODO.
 
 ## TODO
-
-It might be nice to prove that `partial_sups` forms a `galois_insertion`
-with the forgetful map from monotone sequences to sequences.
 
 One could generalize `partial_sups` to arbitrary locally finite bot preorders.
 -/
@@ -76,6 +74,27 @@ begin
   { refl },
   { rw [partial_sups_succ, ih, sup_eq_right.2 (hf (nat.le_succ _))] }
 end
+
+lemma partial_sups_mono : monotone (partial_sups : (ℕ → α) → ℕ →ₘ α) :=
+begin
+  rintro f g h n,
+  induction n with n ih,
+  { exact h 0 },
+  { exact sup_le_sup ih (h _) }
+end
+
+lemma partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →ₘ α) coe_fn :=
+{ choice := λ f h, ⟨f, begin
+    convert (partial_sups f).monotone,
+    exact (le_partial_sups f).antisymm h,
+  end⟩,
+  gc := λ f g, begin
+    refine ⟨(le_partial_sups f).trans, λ h, _⟩,
+    convert partial_sups_mono h,
+    exact preorder_hom.ext _ _ g.monotone.partial_sups_eq.symm,
+  end,
+  le_l_u := λ f, le_partial_sups f,
+  choice_eq := λ f h, preorder_hom.ext _ _ ((le_partial_sups f).antisymm h) }
 
 end semilattice_sup
 

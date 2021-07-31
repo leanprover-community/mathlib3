@@ -7,6 +7,9 @@ import linear_algebra.matrix
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.special_linear_group
 import linear_algebra.determinant
+import algebra.ordered_ring
+import ring_theory.subsemiring
+import group_theory.subgroup
 
 /-!
 # The General Linear group $GL(n, R)$
@@ -27,6 +30,8 @@ consisting of all invertible `n` by `n` `R`-matrices.
 ## References
 
 
+
+
 ## Tags
 
 matrix group, group, matrix inverse
@@ -36,6 +41,17 @@ namespace matrix
 universes u v
 open_locale matrix
 open linear_map
+
+--TODO: Move this somewhere else.
+def pos_submonoid {R : Type*} [ordered_semiring R] [nontrivial R] : submonoid R :=
+{ carrier := {x | 0 < x},
+  one_mem' := show (0 : R) < 1, from zero_lt_one,
+  mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
+
+def units.pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R] : subgroup (units R) :=
+{ carrier := {x | (0 : R) < x},
+  inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
+  ..pos_submonoid.comap (units.coe_hom R)}
 
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices-/
@@ -138,15 +154,7 @@ variables (n R)
 /-- This is the subgroup of `nxn` matrices with entries over a
 linear ordered ring and positive determinant. -/
 def GL_pos : subgroup (GL n R) :=
-{ carrier := {M  | 0 < det M},
-  one_mem' := one_in_GL_pos  ,
-  mul_mem' := λ A B h1 h2, mul_in_GL_pos  A B h1 h2,
-  inv_mem' := λ A h1, begin
-    simp only [set.mem_set_of_eq] at *,
-    have:= inv_det_pos  A h1,
-    unfold_coes at *,
-    convert this,
-  end }
+units.pos_subgroup.comap general_linear_group.det
 
 end
 

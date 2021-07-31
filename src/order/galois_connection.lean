@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.complete_lattice
 import order.rel_iso
+import order.order_dual
 /-!
 # Galois connections, insertions and coinsertions
 
@@ -67,10 +68,10 @@ lemma monotone_intro (hu : monotone u) (hl : monotone l)
 
 include gc
 
-protected lemma dual [pα : preorder α] [pβ : preorder β]
-  {l : α → β} {u : β → α} (gc : galois_connection l u) :
-  @galois_connection (order_dual β) (order_dual α) _ _ u l :=
-λ a b, (gc _ _).symm
+protected lemma dual {l : α → β} {u : β → α} (gc : galois_connection l u) :
+  galois_connection (order_dual.to_dual ∘ u ∘ order_dual.of_dual)
+    (order_dual.to_dual ∘ l ∘ order_dual.of_dual) :=
+λ a b, (gc b a).symm
 
 lemma l_le {a : α} {b : β} : a ≤ u b → l a ≤ b :=
 (gc _ _).mpr

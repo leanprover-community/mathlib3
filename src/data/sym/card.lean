@@ -61,7 +61,7 @@ begin
   exact λ _, hxy',
 end
 
-lemma card_sym2_not_diag [decidable_eq α] [fintype α] :
+lemma card_sym2_not_diag [fintype α] :
   (univ.filter (λ (a : sym2 α), ¬a.is_diag)).card = (card α).choose 2 :=
 begin
   convert card_image_off_diag (univ : finset α),
@@ -69,7 +69,7 @@ begin
   congr,
 end
 
-protected lemma card [decidable_eq α] [fintype α] :
+protected lemma card [fintype α] :
   card (sym2 α) = card α * (card α + 1) / 2 :=
 begin
   have h : univ.filter (is_diag : sym2 α → Prop) = univ.image sym2.diag,

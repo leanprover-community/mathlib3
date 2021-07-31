@@ -444,9 +444,10 @@ begin
   refl,
 end
 
-lemma other_invol [decidable_eq α] {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other ∈ z):
+lemma other_invol {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other ∈ z):
   hb.other = a :=
 begin
+  classical,
   rw other_eq_other' at hb ⊢,
   convert other_invol' ha hb,
   rw other_eq_other',

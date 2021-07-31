@@ -83,7 +83,7 @@ begin
   { exact sup_le_sup ih (h _) }
 end
 
-lemma partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →ₘ α) coe_fn :=
+def partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →ₘ α) coe_fn :=
 { choice := λ f h, ⟨f, begin
     convert (partial_sups f).monotone,
     exact (le_partial_sups f).antisymm h,

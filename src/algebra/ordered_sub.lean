@@ -18,6 +18,16 @@ to not conflict with similar lemmas about ordered groups.
 
 TODO: maybe we should make a multiplicative version of this, so that we can replace lemmas about
 `ordered_[add_]comm_group` about subtraction with these.
+
+## Remark
+
+When thinking about this operation, some general examples are
+* `dfinsupp` for non-linearly ordered examples
+* if `α` is linearly ordered and `β : α → Type*` is a family of ordered add_comm_monoids,then
+  `Σ i : α, β i`, ordered lexicographically, with addition given by
+  - `x + y = max x y` if `x.1 ≠ y.1`
+  - `x + y = ⟨x.1, x.2 + y.2⟩` if `x.1 = y.1`.
+
 -/
 
 /-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ b + c`.
@@ -469,3 +479,21 @@ begin
 end
 
 end canonically_linear_ordered_add_monoid
+
+class nice (α : Type*) [has_le α] [has_add α] :=
+(is_nice : ∀ ⦃a b c : α⦄, a + b = a + c → b = c ∨ a + b = a)
+
+instance [ordered_add_comm_monoid α] [nice α] : nice (with_top α) :=
+begin
+  constructor, intros a b c h,
+  cases a,
+  { simp [with_top.none_eq_top] },
+  { simp [with_top.some_eq_coe] at h,
+    cases b; cases c; simp [with_top.none_eq_top, with_top.some_eq_coe, ← with_top.coe_add] at h;
+    try {contradiction},
+    { left, refl },
+    rw [with_top.coe_eq_coe] at h,
+    rcases nice.is_nice h with h'|h',
+    { left, rw h' },
+    { right, simp [with_top.some_eq_coe, h', ← with_top.coe_add] } }
+end

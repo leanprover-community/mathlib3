@@ -183,11 +183,6 @@ open finset
   fintype.card (sigma β) = ∑ a, fintype.card (β a) :=
 card_sigma _ _
 
--- FIXME ouch, this should be in the main file.
-@[simp] theorem fintype.card_sum (α β : Type*) [fintype α] [fintype β] :
-  fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-by simp [sum.fintype, fintype.of_equiv_card]
-
 @[simp] lemma finset.card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :
   (s.pi t).card = ∏ a in s, card (t a) :=

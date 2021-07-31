@@ -43,11 +43,13 @@ open_locale matrix
 open linear_map
 
 --TODO: Move this somewhere else.
+/--Submonoid of positive elements of an ordered semiring-/
 def pos_submonoid {R : Type*} [ordered_semiring R] [nontrivial R] : submonoid R :=
 { carrier := {x | 0 < x},
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
+/--The subgroup of positive units of a linear ordered commutative ring-/
 def units.pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R] :
 subgroup (units R) :=
 { carrier := {x | (0 : R) < x},
@@ -127,27 +129,7 @@ instance SL_to_GL : has_coe (special_linear_group n R) (GL n R) :=
 end general_linear_group
 
 namespace GL_plus
-
 variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
-
-lemma one_in_GL_pos : 0 < det (1 : GL n R) :=
-begin
-simp only [det_one, general_linear_group.coe_fn_eq_coe, general_linear_group.one_val, zero_lt_one],
-end
-
-lemma mul_in_GL_pos (A B : GL n R) (h1 : 0 < det A) (h2 : 0 < det B) : 0 < det (A*B) :=
-begin
-  simp only [gt_iff_lt, det_mul, mul_eq_mul],
-  apply mul_pos h1 h2,
-end
-
--- this is `general_linear_group.det` which is always a unit!
-lemma inv_det_pos (A : GL n R) (h : (0 : R) < A.det) : (0 : R) < A⁻¹.det :=
-begin
-  have : (0 : R) < (A * A⁻¹).det := by simp,
-  rw [monoid_hom.map_mul, units.coe_mul] at this,
-  exact (zero_lt_mul_left h).mp this,
-end
 
 section
 variables (n R)
@@ -159,7 +141,7 @@ units.pos_subgroup.comap general_linear_group.det
 
 end
 
-@[simp] lemma mem_GL_pos (A : GL n R) : A  ∈ (GL_pos n R)  ↔ 0 < A.1.det := iff.rfl
+@[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < ((A.det): R) := iff.rfl
 
 lemma SL_det_pos' (A : special_linear_group n R) : 0 < A.1.det :=
 begin

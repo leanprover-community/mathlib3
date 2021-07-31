@@ -107,6 +107,17 @@ end
 nodup_iff_nth_le_inj.1 H _ _ _ h $
 index_of_nth_le $ index_of_lt_length.2 $ nth_le_mem _ _ _
 
+@[simp] lemma index_of_eq_iff [decidable_eq α] {l : list α} {x : α} (hn : nodup l) {n : ℕ} :
+  index_of x l = n ↔ (x ∉ l ∧ n = l.length) ∨ ∃ (h : n < l.length), l.nth_le n h = x :=
+begin
+  split,
+  { rintro rfl,
+    by_cases hx : x ∈ l;
+    simp [hx, index_of_lt_length] },
+  { rintro (⟨hx, rfl⟩|⟨hx, rfl⟩);
+    simp [hx, hn] }
+end
+
 theorem nodup_iff_count_le_one [decidable_eq α] {l : list α} : nodup l ↔ ∀ a, count a l ≤ 1 :=
 nodup_iff_sublist.trans $ forall_congr $ λ a,
 have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_repeat_sublist _ _ a l 2).symm,

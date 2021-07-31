@@ -48,7 +48,8 @@ def pos_submonoid {R : Type*} [ordered_semiring R] [nontrivial R] : submonoid R 
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
-def units.pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R] : subgroup (units R) :=
+def units.pos_subgroup {R : Type*} [linear_ordered_comm_ring R] [nontrivial R] :
+subgroup (units R) :=
 { carrier := {x | (0 : R) < x},
   inv_mem' := λ x (hx : (0 : R) < x), (zero_lt_mul_left hx).mp $ x.mul_inv.symm ▸ zero_lt_one,
   ..pos_submonoid.comap (units.coe_hom R)}

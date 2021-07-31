@@ -519,10 +519,10 @@ end contra
 
 end canonically_linear_ordered_add_monoid
 
-class nice (α : Type*) [has_le α] [has_add α] :=
+class nice (α : Type*) [has_add α] :=
 (is_nice : ∀ ⦃a b c : α⦄, a + b = a + c → b = c ∨ a + b = a)
 
-instance [ordered_add_comm_monoid α] [nice α] : nice (with_top α) :=
+instance with_top.nice [add_monoid α] [nice α] : nice (with_top α) :=
 begin
   constructor, intros a b c h,
   cases a,
@@ -536,3 +536,7 @@ begin
     { left, rw h' },
     { right, simp [with_top.some_eq_coe, h', ← with_top.coe_add] } }
 end
+
+instance nice_of_left_cancel_semigroup [left_cancel_semigroup α] :
+  nice α :=
+by { constructor, intros a b c h, left, exact add_left_cancel h }

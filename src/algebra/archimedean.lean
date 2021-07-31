@@ -37,7 +37,7 @@ class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 
 instance order_dual.archimedean [ordered_add_comm_group α] [archimedean α] :
   archimedean (order_dual α) :=
-⟨λ x y hy, let ⟨n, hn⟩ := @archimedean.arch α _ _ (-x) (-y) (neg_pos.2 hy) in
+⟨λ x y hy, let ⟨n, hn⟩ := archimedean.arch (-x : α) (neg_pos.2 hy) in
   ⟨n, by rwa [neg_nsmul, neg_le_neg_iff] at hn⟩⟩
 
 namespace linear_ordered_add_comm_group

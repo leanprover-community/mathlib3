@@ -143,16 +143,22 @@ end
 
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < ((A.det): R) := iff.rfl
 
-lemma SL_det_pos' (A : special_linear_group n R) : 0 < A.1.det :=
-begin
-  have := A.2, simp only [gt_iff_lt, subtype.val_eq_coe],
-  simp only [subtype.val_eq_coe] at this,
-  rw this,
-  linarith,
-end
-
-instance SL_to_GL_pos : has_coe (special_linear_group n R) (GL_pos n R) :=
-⟨λ A, ⟨(A : GL n R), by {simp, apply SL_det_pos' A}, ⟩⟩
-
 end GL_plus
+namespace special_linear_group
+
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [linear_ordered_comm_ring R]
+
+open GL_plus
+
+/-- `special_linear_group n R` embeds into `GL_pos n R` -/
+def to_GL_pos : special_linear_group n R →* GL_pos n R :=
+{ to_fun := λ A, ⟨(A : GL n R), show 0 < (↑A : matrix n n R).det, from A.prop.symm ▸ zero_lt_one⟩,
+  map_one' := subtype.ext $ units.ext $ rfl,
+  map_mul' := λ A₁ A₂, subtype.ext $ units.ext $ rfl }
+
+instance : has_coe (special_linear_group n R) (GL_pos n R) := ⟨to_GL_pos⟩
+
+lemma coe_eq_to_GL_pos : (coe : special_linear_group n R → GL_pos n R) = to_GL_pos := rfl
+
+end special_linear_group
 end matrix

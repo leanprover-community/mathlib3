@@ -166,7 +166,6 @@ begin
   simpa using h,
 end
 
-
 -- lemma add_lt_of_lt_sub_left (h : b < c - a) : a + b < c :=
 -- begin
 --   apply
@@ -269,6 +268,16 @@ end ordered_add_comm_monoid
 section linear_order
 variables {a b c d : α} [linear_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
 
+lemma lt_of_sub_lt_sub_right : a - c < b - c → a < b :=
+lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_right' h c)
+
+section cov
+variable [covariant_class α α (+) (≤)]
+
+lemma lt_of_sub_lt_sub_left : a - b < a - c → c < b :=
+lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_left' h a)
+
+end cov
 
 end linear_order
 
@@ -309,52 +318,19 @@ by rw [sub_le_iff_right, sub_add_cancel_of_le h]
 lemma sub_self_add (a b : α) : a - (a + b) = 0 :=
 by { rw [sub_eq_zero_iff_le], apply self_le_add_right }
 
+lemma sub_cancel (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : b - a = c - a) : b = c :=
+by rw [← sub_add_cancel_of_le h₁, ← sub_add_cancel_of_le h₂, h₃]
+
 lemma sub_pos_iff_not_le : 0 < a - b ↔ ¬ a ≤ b :=
 by rw [pos_iff_ne_zero, ne.def, sub_eq_zero_iff_le]
 
 lemma sub_pos_of_lt' (h : a < b) : 0 < b - a :=
-begin
-  refine pos_iff_ne_zero.2 (λ h2, _),
-  have := add_sub_cancel_iff_le.mpr h.le,
-  rw [h2, add_zero] at this,
-  exact h.ne this
-end
+sub_pos_iff_not_le.mpr h.not_le
 
-lemma sub_cancel (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : b - a = c - a) : b = c :=
-by rw [← sub_add_cancel_of_le h₁, ← sub_add_cancel_of_le h₂, h₃]
 
--- lemma sub_sub_sub_cancel_right (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
--- by rw [sub_sub, ←add_sub_assoc h₂, add_sub_cancel_left]
 
--- lemma add_sub_cancel_right (a b c : α) : a + (b + c) - c = a + b :=
--- by { rw [add_sub_assoc, add_sub_cancel], apply k.le_add_left }
 
--- lemma sub_add_eq_add_sub (h : b ≤ a) : (a - b) + c = (a + c) - b :=
--- by rw [add_comm a, add_sub_assoc h, add_comm]
-
--- lemma sub_sub_assoc (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
--- (sub_eq_iff_eq_add (le_trans (sub_le _ _) h₁)).2 $
--- by rw [add_right_comm, add_assoc, sub_add_cancel_of_le h₂, sub_add_cancel_of_le h₁]
-
--- lemma lt_of_sub_pos (h : 0 < a - b) : a < b :=
-
--- lemma lt_of_sub_lt_sub_right : a - b < c - b → a < b :=
--- lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_right h _)
-
--- lemma lt_of_sub_lt_sub_left : a - b < a - c → c < b :=
--- lt_imp_lt_of_le_imp_le (sub_le_sub_left _)
-
--- lemma sub_lt_self (h₁ : 0 < a) (h₂ : 0 < b) : a - b < a :=
-
--- lemma le_sub_right_of_add_le (h : a + c ≤ n) : a ≤ b - c :=
--- by rw ← add_sub_cancel a k; exact sub_le_sub_right h k
-
--- lemma le_sub_left_of_add_le (h : c + a ≤ n) : a ≤ b - c :=
--- le_sub_right_of_add_le (by rwa add_comm at h)
-
--- lemma lt_sub_right_of_add_lt (h : a + c < n) : a < b - c :=
-
--- lemma lt_sub_left_of_add_lt (h : c + a < n) : a < b - c :=
+-- lemma lt_sub_left_of_add_lt (h : c + a < b) : a < b - c :=
 -- lt_sub_right_of_add_lt (by rwa add_comm at h)
 
 -- lemma add_lt_of_lt_sub_right (h : a < b - c) : a + c < b :=
@@ -363,7 +339,7 @@ by rw [← sub_add_cancel_of_le h₁, ← sub_add_cancel_of_le h₂, h₃]
 -- lemma add_lt_of_lt_sub_left (h : a < b - c) : c + a < b :=
 -- by rw add_comm; exact add_lt_of_lt_sub_right h
 
--- lemma le_add_of_sub_le_right : b - c ≤ a → b ≤ a + c :=
+-- lemma le_add_of_sub_le_right (h : b - c ≤ a) : b ≤ a + c :=
 -- le_imp_le_of_lt_imp_lt lt_sub_right_of_add_lt
 
 -- lemma le_add_of_sub_le_left : b - c ≤ a → b ≤ c + a :=
@@ -381,13 +357,13 @@ by rw [← sub_add_cancel_of_le h₁, ← sub_add_cancel_of_le h₂, h₃]
 -- lemma sub_le_right_of_le_add : b ≤ a + c → b - c ≤ a :=
 -- le_imp_le_of_lt_imp_lt add_lt_of_lt_sub_right
 
--- lemma sub_lt_left_iff_lt_add (H : b ≤ k) : c - b < a ↔ c < b + a :=
+-- lemma sub_lt_left_iff_lt_add (H : b ≤ c) : c - b < a ↔ c < b + a :=
 -- ⟨lt_add_of_sub_lt_left, _⟩
 
--- lemma le_sub_left_iff_add_le (H : a ≤ k) : b ≤ c - a ↔ a + b ≤ c :=
+-- lemma le_sub_left_iff_add_le (H : a ≤ c) : b ≤ c - a ↔ a + b ≤ c :=
 -- le_iff_le_iff_lt_iff_lt.2 (sub_lt_left_iff_lt_add H)
 
--- lemma le_sub_right_iff_add_le (H : b ≤ k) : a ≤ c - b ↔ a + b ≤ c :=
+-- lemma le_sub_right_iff_add_le (H : b ≤ c) : a ≤ c - b ↔ a + b ≤ c :=
 -- by rw [le_sub_left_iff_add_le H, add_comm]
 
 -- lemma lt_sub_left_iff_add_lt : b < c - a ↔ a + b < c :=
@@ -404,7 +380,7 @@ by rw [← sub_add_cancel_of_le h₁, ← sub_add_cancel_of_le h₂, h₃]
 
 -- lemma sub_le_sub_left_iff (H : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
 -- ⟨λ h,
---   have c + (m - k) - b ≤ a - k, by rwa add_sub_cancel' H,
+--   have c + (m - c) - b ≤ a - k, by rwa add_sub_cancel' H,
 --   le_of_add_le_add_right (le_add_of_sub_le_left this),
 -- sub_le_sub_left _⟩
 
@@ -451,15 +427,50 @@ begin
   rw [add_sub_cancel_left, add_comm c, ← add_assoc, add_sub_cancel_right]
 end
 
-/-- This lemma also holds for `ennreal`, but this proof doesn't. -/
+lemma sub_add_eq_add_sub' (h : b ≤ a) : a - b + c = a + c - b :=
+by rw [add_comm a, add_sub_assoc_of_le h, add_comm]
+
+lemma sub_sub_assoc (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
+by rw [sub_eq_iff_eq_add_of_le (sub_le_self'.trans h₁), add_assoc, add_sub_cancel_of_le h₂,
+  sub_add_cancel_of_le h₁]
+
+/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
 lemma sub_add_sub_cancel'' (hab : b ≤ a) (hbc : c ≤ b) :
   (a - b) + (b - c) = a - c :=
 begin
-  refine le_antisymm _ sub_le_sub_add_sub,
   obtain ⟨d, rfl⟩ := le_iff_exists_add.1 hab,
   obtain ⟨e, rfl⟩ := le_iff_exists_add.1 hbc,
   rw [add_sub_cancel_left, add_sub_cancel_left, add_assoc, add_sub_cancel_left, add_comm]
 end
+
+/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
+lemma sub_sub_sub_cancel_right' (h : c ≤ b) : (a - c) - (b - c) = a - b :=
+by { obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h, rw [add_sub_cancel_left, sub_sub'] }
+#print has_le.le.lt_iff_ne
+example : a < b ↔ ∃ c > 0, b = a + c :=
+begin
+  simp_rw [lt_iff_le_and_ne, and_comm, le_iff_exists_add, ← exists_and_distrib_left, exists_prop],
+  apply exists_congr, intro c,
+  rw [and.congr_left_iff], rintro rfl,
+  rw [gt_iff_lt, ← (self_le_add_right a c).lt_iff_ne],
+end
+
+example : covariant_class α α (+) (<) :=
+begin
+  constructor,
+  intros a b c h,
+  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h.le,
+  rw [← add_assoc],
+end
+
+/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
+lemma lt_sub_right_of_add_lt (h : a + c < b) : a < b - c :=
+begin
+  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h.le,
+  rw [add_right_comm, add_sub_cancel_right],
+  refine (lt_add_iff_pos_right a).mpr _,
+end
+
 
 end contra
 
@@ -477,6 +488,34 @@ begin
   { rw [min_eq_left h, sub_self', sub_eq_zero_iff_le.mpr h] },
   { rw [min_eq_right h] },
 end
+
+section contra
+variable [covariant_class α α (+) (<)]
+
+example : contravariant_class α α (+) (≤) := by apply_instance
+
+lemma sub_lt_self' (h₁ : 0 < a) (h₂ : 0 < b) : a - b < a :=
+begin
+  haveI := contravariant_add_le_of_covariant_add_lt α,
+  refine sub_le_self'.lt_of_ne _,
+  intro h,
+  rw [← h, sub_pos_iff_lt] at h₁,
+  have := h.ge,
+  rw [le_sub_iff h₁.le, add_le_iff_nonpos_left] at this,
+  exact h₂.not_le this,
+end
+
+#print instances covariant_class
+example : covariant_class α α (+) (<) :=
+begin
+  constructor,
+  intros a b c h,
+  refine lt_imp_lt_of_le_imp_le le_of_add_le_add_left h
+end
+
+end contra
+
+
 
 end canonically_linear_ordered_add_monoid
 

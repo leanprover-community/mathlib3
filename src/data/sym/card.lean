@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
-import data.sym2
+import data.sym.sym2
 
 /-!
 # Stars and bars

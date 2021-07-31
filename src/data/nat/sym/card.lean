@@ -77,7 +77,7 @@ begin
     rw [mem_filter, mem_image, is_diag_iff_mem_range_diag, set.mem_range],
     exact ⟨λ ⟨_, a, ha⟩, ⟨a, mem_univ _, ha⟩, λ ⟨a, _, ha⟩, ⟨mem_univ _, a, ha⟩⟩ },
   rw [←card_univ, ←filter_card_add_filter_neg_card_eq_card sym2.is_diag, h,
-    card_image_of_injective _ sym2.diag.injective, card_sym2_not_diag,
+    card_image_of_injective _ sym2.diag_injective, card_sym2_not_diag,
     nat.choose_two_right, card_univ, add_comm, ←nat.triangle_succ, nat.succ_sub_one,
     mul_comm],
 end

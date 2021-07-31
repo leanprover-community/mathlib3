@@ -217,11 +217,8 @@ of this diagonal in `sym2 α`.
 -/
 def diag (x : α) : sym2 α := ⟦(x, x)⟧
 
-lemma diag.injective : function.injective (sym2.diag : α → sym2 α) :=
-begin
-  rintro x y (h : ⟦_⟧ = ⟦_⟧),
-  rwa [sym2.eq_iff, or_self, and_self] at h,
-end
+lemma diag_injective : function.injective (sym2.diag : α → sym2 α) :=
+λ x y h, by cases quotient.exact h; refl
 
 /--
 A predicate for testing whether an element of `sym2 α` is on the diagonal.

@@ -118,6 +118,16 @@ circle homeomorphism, rotation number
 open filter set function (hiding commute)
 open_locale topological_space classical
 
+@[to_additive, simps apply { simp_rhs := true, fully_applied := false }]
+def mul_equiv.of_involutive {M : Type*} [monoid M] (f : M →* M) (Hf : involutive f) :
+  M ≃* M :=
+{ .. f, .. Hf.to_equiv f }
+
+@[simp, to_additive]
+lemma mul_equiv.of_involutive_symm {M : Type*} [monoid M] (f : M →* M) (Hf : involutive f) :
+  (mul_equiv.of_involutive f Hf).symm = mul_equiv.of_involutive f Hf :=
+rfl
+
 /-!
 ### Definition and monoid structure
 -/
@@ -126,6 +136,12 @@ open_locale topological_space classical
 structure circle_deg1_lift : Type :=
 (to_fun : ℝ → ℝ)
 (monotone' : monotone to_fun)
+(map_add_one' : ∀ x, to_fun (x + 1) = to_fun x + 1)
+
+structure circle_homeomorph_lift : Type :=
+(to_fun : ℝ → ℝ)
+(mono' : strict_mono to_fun)
+(continuous' : continuous to_fun)
 (map_add_one' : ∀ x, to_fun (x + 1) = to_fun x + 1)
 
 namespace circle_deg1_lift
@@ -137,8 +153,6 @@ instance : has_coe_to_fun circle_deg1_lift := ⟨λ _, ℝ → ℝ, circle_deg1_
 variables (f g : circle_deg1_lift)
 
 protected lemma monotone  : monotone f := f.monotone'
-
-@[mono] lemma mono {x y} (h : x ≤ y) : f x ≤ f y := f.monotone h
 
 lemma strict_mono_iff_injective : strict_mono f ↔ injective f :=
 f.monotone.strict_mono_iff_injective
@@ -168,54 +182,11 @@ instance : monoid circle_deg1_lift :=
 
 instance : inhabited circle_deg1_lift := ⟨1⟩
 
-@[simp] lemma coe_mul : ⇑(f * g) = f ∘ g := rfl
+@[simp, norm_cast] lemma coe_mul : ⇑(f * g) = f ∘ g := rfl
 
 lemma mul_apply (x) : (f * g) x = f (g x) := rfl
 
-@[simp] lemma coe_one : ⇑(1 : circle_deg1_lift) = id := rfl
-
-instance units_has_coe_to_fun : has_coe_to_fun (units circle_deg1_lift) :=
-⟨λ _, ℝ → ℝ, λ f, ⇑(f : circle_deg1_lift)⟩
-
-@[simp, norm_cast] lemma units_coe (f : units circle_deg1_lift) : ⇑(f : circle_deg1_lift) = f := rfl
-
-@[simp] lemma units_inv_apply_apply (f : units circle_deg1_lift) (x : ℝ) :
-  (f⁻¹ : units circle_deg1_lift) (f x) = x :=
-by simp only [← units_coe, ← mul_apply, f.inv_mul, coe_one, id]
-
-@[simp] lemma units_apply_inv_apply (f : units circle_deg1_lift) (x : ℝ) :
-  f ((f⁻¹ : units circle_deg1_lift) x) = x :=
-by simp only [← units_coe, ← mul_apply, f.mul_inv, coe_one, id]
-
-/-- If a lift of a circle map is bijective, then it is an order automorphism of the line. -/
-def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
-{ to_fun := λ f,
-    { to_fun := f,
-      inv_fun := ⇑(f⁻¹),
-      left_inv := units_inv_apply_apply f,
-      right_inv := units_apply_inv_apply f,
-      map_rel_iff' := λ x y, ⟨λ h, by simpa using mono ↑(f⁻¹) h, mono f⟩ },
-  map_one' := rfl,
-  map_mul' := λ f g, rfl }
-
-@[simp] lemma coe_to_order_iso (f : units circle_deg1_lift) : ⇑(to_order_iso f) = f := rfl
-
-@[simp] lemma coe_to_order_iso_symm (f : units circle_deg1_lift) :
-  ⇑(to_order_iso f).symm = (f⁻¹ : units circle_deg1_lift) := rfl
-
-@[simp] lemma coe_to_order_iso_inv (f : units circle_deg1_lift) :
-  ⇑(to_order_iso f)⁻¹ = (f⁻¹ : units circle_deg1_lift) := rfl
-
-lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :=
-⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, units.is_unit
-  { val := f,
-    inv := { to_fun := (equiv.of_bijective f h).symm,
-             monotone' := λ x y hxy, (f.strict_mono_iff_injective.2 h.1).le_iff_le.1
-               (by simp only [equiv.of_bijective_apply_symm_apply f h, hxy]),
-             map_add_one' := λ x, h.1 $
-               by simp only [equiv.of_bijective_apply_symm_apply f, f.map_add_one] },
-    val_inv := ext $ equiv.of_bijective_apply_symm_apply f h,
-    inv_val := ext $ equiv.of_bijective_symm_apply_apply f h }⟩
+@[simp, norm_cast] lemma coe_one : ⇑(1 : circle_deg1_lift) = id := rfl
 
 lemma coe_pow : ∀ n : ℕ, ⇑(f^n) = (f^[n])
 | 0 := rfl
@@ -228,36 +199,6 @@ ext_iff
 lemma commute_iff_commute {f g : circle_deg1_lift} :
   commute f g ↔ function.commute f g :=
 ext_iff
-
-/-!
-### Translate by a constant
--/
-
-/-- The map `y ↦ x + y` as a `circle_deg1_lift`. More precisely, we define a homomorphism from
-`multiplicative ℝ` to `units circle_deg1_lift`, so the translation by `x` is
-`translation (multiplicative.of_add x)`. -/
-def translate : multiplicative ℝ →* units circle_deg1_lift :=
-by refine (units.map _).comp to_units.to_monoid_hom; exact
-{ to_fun := λ x, ⟨λ y, x.to_add + y, λ y₁ y₂ h, add_le_add_left h _, λ y, (add_assoc _ _ _).symm⟩,
-  map_one' := ext $ zero_add,
-  map_mul' := λ x y, ext $ add_assoc _ _ }
-
-@[simp] lemma translate_apply (x y : ℝ) : translate (multiplicative.of_add x) y = x + y := rfl
-
-@[simp]
-lemma translate_inv_apply (x y : ℝ) : (translate $ multiplicative.of_add x)⁻¹ y = -x + y := rfl
-
-@[simp] lemma translate_gpow (x : ℝ) (n : ℤ) :
-  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
-by simp only [← gsmul_eq_mul, of_add_gsmul, monoid_hom.map_gpow]
-
-@[simp] lemma translate_pow (x : ℝ) (n : ℕ) :
-  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
-translate_gpow x n
-
-@[simp] lemma translate_iterate (x : ℝ) (n : ℕ) :
-  (translate (multiplicative.of_add x))^[n] = translate (multiplicative.of_add $ ↑n * x) :=
-by rw [← units_coe, ← coe_pow, ← units.coe_pow, translate_pow, units_coe]
 
 /-!
 ### Commutativity with integer translations
@@ -289,9 +230,6 @@ lemma commute_sub_int (n : ℤ) : function.commute f (λ x, x - n) :=
 by simpa only [sub_eq_add_neg] using
   (f.commute_add_int n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
 
-lemma commute_translate_int (n : ℤ) : commute f (translate (multiplicative.of_add ↑n)) :=
-ext $ f.commute_int_add n
-
 @[simp] lemma map_int_add (m : ℤ) (x : ℝ) : f (m + x) = m + f x :=
 f.commute_int_add m x
 
@@ -320,102 +258,13 @@ by rw [← f.map_add_int, zero_add]
   f (fract x) - fract x = f x - x :=
 by conv_rhs { rw [← fract_add_floor x, f.map_add_int, add_sub_comm, sub_self, add_zero] }
 
-/-!
-### Pointwise order on circle maps
--/
-
-/-- Monotone circle maps form a lattice with respect to the pointwise order -/
-noncomputable instance : lattice circle_deg1_lift :=
-{ sup := λ f g,
-  { to_fun := λ x, max (f x) (g x),
-    monotone' := λ x y h, max_le_max (f.mono h) (g.mono h), -- TODO: generalize to `monotone.max`
-    map_add_one' := λ x, by simp [max_add_add_right] },
-  le := λ f g, ∀ x, f x ≤ g x,
-  le_refl := λ f x, le_refl (f x),
-  le_trans := λ f₁ f₂ f₃ h₁₂ h₂₃ x, le_trans (h₁₂ x) (h₂₃ x),
-  le_antisymm := λ f₁ f₂ h₁₂ h₂₁, ext $ λ x, le_antisymm (h₁₂ x) (h₂₁ x),
-  le_sup_left := λ f g x, le_max_left (f x) (g x),
-  le_sup_right := λ f g x, le_max_right (f x) (g x),
-  sup_le := λ f₁ f₂ f₃ h₁ h₂ x, max_le (h₁ x) (h₂ x),
-  inf := λ f g,
-  { to_fun := λ x, min (f x) (g x),
-    monotone' := λ x y h, min_le_min (f.mono h) (g.mono h),
-    map_add_one' := λ x, by simp [min_add_add_right] },
-  inf_le_left := λ f g x, min_le_left (f x) (g x),
-  inf_le_right := λ f g x, min_le_right (f x) (g x),
-  le_inf := λ f₁ f₂ f₃ h₂ h₃ x, le_min (h₂ x) (h₃ x) }
-
-@[simp] lemma sup_apply (x : ℝ) : (f ⊔ g) x = max (f x) (g x) := rfl
-
-@[simp] lemma inf_apply (x : ℝ) : (f ⊓ g) x = min (f x) (g x) := rfl
-
-@[simp, norm_cast] lemma coe_le_coe {f g : circle_deg1_lift} : (f : ℝ → ℝ) ≤ g ↔ f ≤ g := iff.rfl
-
-lemma monotone_apply (x : ℝ) : monotone (λ f : circle_deg1_lift, f x) := λ f g h, h x
-
-/-- An auxiliary definition for `circle_deg1_lift.has_Sup`. -/
-noncomputable def Sup_aux (s : set circle_deg1_lift) (Hne : s.nonempty)
-  (H : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)) :
-  circle_deg1_lift :=
-{ to_fun := λ x, ⨆ f : s, f x,
-  monotone' := λ x y h, csupr_le_csupr (by simpa only [image_eq_range] using H y)
-    (λ f, f.1.monotone h),
-  map_add_one' := λ x,
-    begin
-      haveI := Hne.to_subtype,
-      simp only [coe_fn_coe_base, map_add_one, image_eq_range] at H ⊢,
-      exact (real.supr_add (H x) _).symm
-    end }
-
-lemma le_Sup_aux (s : set circle_deg1_lift) (hf : f ∈ s)
-  (H : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)) :
-  f ≤ Sup_aux s ⟨f, hf⟩ H :=
-λ x, by { have := H x, rw image_eq_range at this, exact le_csupr this ⟨f, hf⟩ }
-
-lemma bdd_above_tfae (s : set circle_deg1_lift) :
-  tfae [bdd_above s,
-    ∀ x, bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
-    ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s),
-    ∃ x, bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
-    ∃ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)] :=
-begin
-  tfae_have : 1 ↔ 3,
-  { refine ⟨λ H x, (monotone_apply x).map_bdd_above H, λ H, _⟩,
-    rcases s.eq_empty_or_nonempty with rfl|hne, { exact bdd_above_empty },
-    exact ⟨Sup_aux s hne H, λ f hf, f.le_Sup_aux _ hf _⟩ },
-  have : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s) ↔
-    bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
-  { intro x,
-    rw [← (order_iso.add_right (-x)).bdd_above_image, image_image],
-    refl },
-  tfae_have : 3 ↔ 2, from forall_congr this,
-  tfae_have : 5 ↔ 4, from exists_congr this,
-  tfae_have : 3 ↔ 5,
-  { simp only [image_eq_range],
-    exact forall_bdd_above_iff_exists_of_mono_of_map_add_le zero_lt_one (λ f, f.1.monotone)
-      (monotone_id.add_const 1) (λ f x, (f.1.map_add_one x).le) },
-  tfae_finish
-end
-
-noncomputable instance : has_Sup circle_deg1_lift :=
-⟨λ s, if hs : s.nonempty ∧ bdd_above s
-  then Sup_aux s hs.1 (((bdd_above_tfae s).out 0 2).mp hs.2) else 1⟩
-
-lemma Sup_apply (s : set circle_deg1_lift) (hne : s.nonempty) (hbdd : bdd_above s) (x : ℝ) :
-  Sup s x = ⨆ f : s, f x :=
-by { dsimp only [circle_deg1_lift.has_Sup], rw dif_pos (and.intro hne hbdd), refl }
-
-lemma iterate_monotone (n : ℕ) : monotone (λ f : circle_deg1_lift, f^[n]) :=
-λ f g h, f.monotone.iterate_le_of_le h _
-
-lemma iterate_mono {f g : circle_deg1_lift} (h : f ≤ g) (n : ℕ) : f^[n] ≤ (g^[n]) :=
-iterate_monotone n h
-
-lemma pow_mono {f g : circle_deg1_lift} (h : f ≤ g) (n : ℕ) : f^n ≤ g^n :=
-λ x, by simp only [coe_pow, iterate_mono h n x]
-
-lemma pow_monotone (n : ℕ) : monotone (λ f : circle_deg1_lift, f^n) :=
-λ f g h, pow_mono h n
+def conj_neg : circle_deg1_lift ≃* circle_deg1_lift :=
+mul_equiv.of_involutive
+  { to_fun := λ f, ⟨λ x, -f (-x), λ x y h, neg_le_neg $ f.monotone (neg_le_neg h), λ x,
+      by rw [neg_add, ← sub_eq_add_neg, f.map_sub_one, neg_sub, sub_eq_neg_add]⟩,
+    map_one' := ext $ λ x, by simp,
+    map_mul' := λ f g, ext $ λ x, by simp } $
+  λ f, ext $ λ x, by simp
 
 /-!
 ### Estimates on `(f * g) 0`
@@ -535,19 +384,282 @@ lemma inv_def (y : ℝ) : f⁻¹ y = Sup {x | f x ≤ y} := rfl
 
 lemma is_order_right_adjoint_inv : is_order_right_adjoint f ⇑f⁻¹ := f.right_adjoint_aux
 
-@[simp] lemma inv_units_mul (f : units circle_deg1_lift) (g : circle_deg1_lift) :
+end circle_deg1_lift
+
+namespace circle_homeomorph_lift
+
+instance : has_coe_to_fun circle_homeomorph_lift := ⟨λ _, ℝ → ℝ, to_fun⟩
+instance : has_coe_t circle_homeomorph_lift circle_deg1_lift :=
+⟨λ f, ⟨f, f.mono'.monotone, f.map_add_one'⟩⟩
+
+variables (f g : circle_homeomorph_lift)
+
+@[simp, norm_cast] lemma coe_coe : ⇑(f : circle_deg1_lift) = f := rfl
+
+instance : has_one circle_homeomorph_lift :=
+⟨⟨id, strict_mono_id, continuous_id, λ x, rfl⟩⟩
+
+protected lemma strict_mono : strict_mono f := f.mono'
+protected lemma continuous : continuous f := f.continuous'
+protected lemma monotone : monotone f := f.strict_mono.monotone
+protected lemma injective : injective f := f.strict_mono.injective
+
+protected lemma surjective : surjective f :=
+(f : circle_deg1_lift).continuous_iff_surjective.1 f.continuous
+
+protected lemma bijective : bijective f := ⟨f.injective, f.surjective⟩
+
+@[simp] lemma map_add_one (x : ℝ) : f (x + 1) = f x + 1 := f.map_add_one' x
+
+instance : has_mul circle_homeomorph_lift :=
+⟨λ f g, ⟨f ∘ g, f.strict_mono.comp g.strict_mono, f.continuous.comp g.continuous,
+  λ x, by simp only [(∘), map_add_one]⟩⟩
+
+theorem coe_fn_inj : ∀ ⦃f g : circle_homeomorph_lift ⦄, (f : ℝ → ℝ) = g → f = g :=
+assume ⟨f, fm, fc, fd⟩ ⟨g, gm, gc, gd⟩ h, by congr; exact h
+
+@[ext] theorem ext ⦃f g : circle_homeomorph_lift⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_fn_inj $ funext h
+
+theorem ext_iff {f g : circle_homeomorph_lift} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
+
+theorem coe_inj : injective (coe : circle_homeomorph_lift → circle_deg1_lift) :=
+λ f g h, ext (circle_deg1_lift.ext_iff.1 h)
+
+@[simp, norm_cast] lemma coe_one : ((1 : circle_homeomorph_lift) : circle_deg1_lift) = 1 := rfl
+@[simp, norm_cast] lemma coe_fn_one : ⇑(1 : circle_deg1_lift) = id := rfl
+@[simp, norm_cast] lemma coe_mul : ↑(f * g) = (f * g : circle_deg1_lift) := rfl
+@[simp, norm_cast] lemma coe_fn_mul : ⇑(f * g) = f ∘ g := rfl
+
+instance : monoid circle_homeomorph_lift := coe_inj.monoid coe coe_one coe_mul
+
+def coe_hom : circle_homeomorph_lift →* circle_deg1_lift := ⟨coe, coe_one, coe_mul⟩
+
+@[simp, norm_cast] lemma coe_pow (n : ℕ) : ↑(f ^ n) = (f ^ n : circle_deg1_lift) :=
+coe_hom.map_pow f n
+
+@[simp, norm_cast] lemma coe_fn_pow (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
+by exact_mod_cast (f : circle_deg1_lift).coe_pow n
+
+noncomputable def to_order_iso : circle_homeomorph_lift →* ℝ ≃o ℝ :=
+{ to_fun := λ f, f.strict_mono.order_iso_of_surjective f f.surjective,
+  map_one' := by { ext x, refl },
+  map_mul' := λ f g, by { ext x, refl } }
+
+@[simp] lemma coe_to_order_iso : ⇑f.to_order_iso = f := rfl
+
+noncomputable instance : has_inv circle_homeomorph_lift :=
+⟨λ f, ⟨f.to_order_iso.symm, order_iso.strict_mono _, order_iso.continuous _,
+  λ x, by rw [order_iso.symm_apply_eq, coe_to_order_iso, f.map_add_one, ← coe_to_order_iso,
+    order_iso.apply_symm_apply]⟩⟩
+
+@[simp] lemma inv_apply_apply (x : ℝ) : f⁻¹ (f x) = x :=
+f.to_order_iso.symm_apply_apply x
+
+@[simp] lemma apply_inv_apply (x : ℝ) : f (f⁻¹ x) = x :=
+f.to_order_iso.apply_symm_apply x
+
+@[simp] lemma inv_apply_eq {x y : ℝ} : f⁻¹ x = y ↔ x = f y :=
+f.to_order_iso.symm_apply_eq
+
+@[simp, norm_cast] lemma coe_inv : ↑f⁻¹ = (f⁻¹ : circle_deg1_lift) :=
+circle_deg1_lift.coe_inj $ f.to_order_iso.is_order_right_adjoint_self_symm.unique $
+  (f : circle_deg1_lift).is_order_right_adjoint_inv
+
+@[simp] lemma to_order_iso_symm : f.to_order_iso.symm = f⁻¹.to_order_iso :=
+rel_iso.coe_fn_injective rfl
+
+noncomputable instance : group circle_homeomorph_lift :=
+{ mul_left_inv := λ f, ext f.inv_apply_apply,
+  .. circle_homeomorph_lift.monoid, .. circle_homeomorph_lift.has_inv }
+
+@[simp] lemma coe_mul_inv_coe : (f : circle_deg1_lift) * f⁻¹ = 1 :=
+by rw [← coe_inv, ← coe_mul, mul_inv_self, coe_one]
+
+@[simp] lemma inv_coe_mul_coe : (f⁻¹ * f : circle_deg1_lift) = 1 :=
+by rw [← coe_inv, ← coe_mul, inv_mul_self, coe_one]
+
+/-!
+### Translate by a constant
+-/
+
+/-- The map `y ↦ x + y` as a `circle_deg1_lift`. More precisely, we define a homomorphism from
+`multiplicative ℝ` to `units circle_deg1_lift`, so the translation by `x` is
+`translation (multiplicative.of_add x)`. -/
+def translate : multiplicative ℝ →* circle_homeomorph_lift :=
+{ to_fun := λ x, ⟨λ y, multiplicative.to_add x + y, strict_mono_id.const_add _,
+    continuous_const.add continuous_id, λ y, (add_assoc _ _ _).symm⟩,
+  map_one' := ext $ zero_add,
+  map_mul' := λ x y, ext $ add_assoc _ _ }
+
+@[simp] lemma translate_apply (x y : ℝ) : translate (multiplicative.of_add x) y = x + y := rfl
+
+@[simp] lemma translate_inv_apply (x y : ℝ) : (translate $ multiplicative.of_add x)⁻¹ y = -x + y :=
+by simp
+
+@[simp] lemma translate_gpow (x : ℝ) (n : ℤ) :
+  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
+by simp only [← gsmul_eq_mul, of_add_gsmul, monoid_hom.map_gpow]
+
+@[simp] lemma translate_pow (x : ℝ) (n : ℕ) :
+  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
+translate_gpow x n
+
+@[simp] lemma translate_iterate (x : ℝ) (n : ℕ) :
+  (translate (multiplicative.of_add x))^[n] = translate (multiplicative.of_add $ ↑n * x) :=
+by rw [← coe_fn_pow, translate_pow]
+
+end circle_homeomorph_lift
+
+namespace circle_deg1_lift
+
+variables (f g : circle_deg1_lift)
+
+def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
+{ to_fun := λ u, equiv.to_order_iso ⟨u.1, u.2, λ x, by rw [← mul_apply, u.4, coe_one, id],
+    λ x, by rw [← mul_apply, u.3, coe_one, id]⟩ u.1.monotone u.2.monotone,
+  map_one' := rfl,
+  map_mul' := λ u₁ u₂, rfl }
+
+lemma is_unit_tfae :
+  tfae [is_unit f,
+    strict_mono f ∧ continuous f,
+    bijective f,
+    ∃ F : circle_homeomorph_lift, ↑F = f] :=
+begin
+  tfae_have : 2 ↔ 3, by rw [bijective, strict_mono_iff_injective, continuous_iff_surjective],
+  tfae_have : 2 → 4, from λ H, ⟨⟨f, H.1, H.2, f.map_add_one⟩, coe_inj rfl⟩,
+  tfae_have : 1 → 3, from λ ⟨u, hu⟩, hu ▸ (to_order_iso u).bijective,
+  tfae_have : 4 → 1, from λ ⟨F, hF⟩, hF ▸ ⟨⟨F, F⁻¹, F.coe_mul_inv_coe, F.inv_coe_mul_coe⟩, rfl⟩,
+  tfae_finish
+end
+
+lemma is_unit_iff_bijective (f : circle_deg1_lift) : is_unit f ↔ bijective f :=
+(is_unit_tfae f).out 0 2
+
+/-!
+### Pointwise order on circle maps
+-/
+
+/-- Monotone circle maps form a lattice with respect to the pointwise order -/
+noncomputable instance : lattice circle_deg1_lift :=
+{ sup := λ f g,
+  { to_fun := λ x, max (f x) (g x),
+    -- TODO: generalize to `monotone.max`
+    monotone' := λ x y h, max_le_max (f.monotone h) (g.monotone h),
+    map_add_one' := λ x, by simp [max_add_add_right] },
+  le := λ f g, ∀ x, f x ≤ g x,
+  le_refl := λ f x, le_refl (f x),
+  le_trans := λ f₁ f₂ f₃ h₁₂ h₂₃ x, le_trans (h₁₂ x) (h₂₃ x),
+  le_antisymm := λ f₁ f₂ h₁₂ h₂₁, ext $ λ x, le_antisymm (h₁₂ x) (h₂₁ x),
+  le_sup_left := λ f g x, le_max_left (f x) (g x),
+  le_sup_right := λ f g x, le_max_right (f x) (g x),
+  sup_le := λ f₁ f₂ f₃ h₁ h₂ x, max_le (h₁ x) (h₂ x),
+  inf := λ f g,
+  { to_fun := λ x, min (f x) (g x),
+    monotone' := λ x y h, min_le_min (f.monotone h) (g.monotone h),
+    map_add_one' := λ x, by simp [min_add_add_right] },
+  inf_le_left := λ f g x, min_le_left (f x) (g x),
+  inf_le_right := λ f g x, min_le_right (f x) (g x),
+  le_inf := λ f₁ f₂ f₃ h₂ h₃ x, le_min (h₂ x) (h₃ x) }
+
+@[simp] lemma sup_apply (x : ℝ) : (f ⊔ g) x = max (f x) (g x) := rfl
+
+@[simp] lemma inf_apply (x : ℝ) : (f ⊓ g) x = min (f x) (g x) := rfl
+
+@[simp, norm_cast] lemma coe_le_coe {f g : circle_deg1_lift} : (f : ℝ → ℝ) ≤ g ↔ f ≤ g := iff.rfl
+
+lemma monotone_apply (x : ℝ) : monotone (λ f : circle_deg1_lift, f x) := λ f g h, h x
+
+/-- An auxiliary definition for `circle_deg1_lift.has_Sup`. -/
+noncomputable def Sup_aux (s : set circle_deg1_lift) (Hne : s.nonempty)
+  (H : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)) :
+  circle_deg1_lift :=
+{ to_fun := λ x, ⨆ f : s, f x,
+  monotone' := λ x y h, csupr_le_csupr (by simpa only [image_eq_range] using H y)
+    (λ f, f.1.monotone h),
+  map_add_one' := λ x,
+    begin
+      haveI := Hne.to_subtype,
+      simp only [coe_fn_coe_base, map_add_one, image_eq_range] at H ⊢,
+      exact (real.supr_add (H x) _).symm
+    end }
+
+lemma le_Sup_aux (s : set circle_deg1_lift) (hf : f ∈ s)
+  (H : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)) :
+  f ≤ Sup_aux s ⟨f, hf⟩ H :=
+λ x, by { have := H x, rw image_eq_range at this, exact le_csupr this ⟨f, hf⟩ }
+
+lemma bdd_above_tfae (s : set circle_deg1_lift) :
+  tfae [bdd_above s,
+    ∀ x, bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
+    ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s),
+    ∃ x, bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
+    ∃ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)] :=
+begin
+  tfae_have : 1 ↔ 3,
+  { refine ⟨λ H x, (monotone_apply x).map_bdd_above H, λ H, _⟩,
+    rcases s.eq_empty_or_nonempty with rfl|hne, { exact bdd_above_empty },
+    exact ⟨Sup_aux s hne H, λ f hf, f.le_Sup_aux _ hf _⟩ },
+  have : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s) ↔
+    bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
+  { intro x,
+    rw [← (order_iso.add_right (-x)).bdd_above_image, image_image],
+    refl },
+  tfae_have : 3 ↔ 2, from forall_congr this,
+  tfae_have : 5 ↔ 4, from exists_congr this,
+  tfae_have : 3 ↔ 5,
+  { simp only [image_eq_range],
+    exact forall_bdd_above_iff_exists_of_mono_of_map_add_le zero_lt_one (λ f, f.1.monotone)
+      (monotone_id.add_const 1) (λ f x, (f.1.map_add_one x).le) },
+  tfae_finish
+end
+
+noncomputable instance : has_Sup circle_deg1_lift :=
+⟨λ s, if hs : s.nonempty ∧ bdd_above s
+  then Sup_aux s hs.1 (((bdd_above_tfae s).out 0 2).mp hs.2) else 1⟩
+
+lemma Sup_apply (s : set circle_deg1_lift) (hne : s.nonempty) (hbdd : bdd_above s) (x : ℝ) :
+  Sup s x = ⨆ f : s, f x :=
+by { dsimp only [circle_deg1_lift.has_Sup], rw dif_pos (and.intro hne hbdd), refl }
+
+private lemma Sup_le (s : set circle_deg1_lift) (hne : s.nonempty) (hle : ∀ g ∈ s, g ≤ f) :
+  Sup s ≤ f :=
+have hbdd : bdd_above s := ⟨f, hle⟩,
+λ x, by { rw Sup_apply s hne hbdd, haveI := hne.to_subtype, exact csupr_le (λ g, hle g g.2 x) }
+
+noncomputable instance : conditionally_complete_lattice circle_deg1_lift :=
+{ Inf := λ s, conj_neg (Sup $ conj_neg ⁻¹' s),
+  le_cSup := λ s f hbdd hfs x, by { haveI : nonempty s := ⟨⟨f, hfs⟩⟩,
+    exact (le_csupr _ _).trans_eq (Sup_apply _ _ _ _).symm },
+.. circle_deg1_lift.lattice, .. circle_deg1_lift.has_Sup }
+
+lemma iterate_monotone (n : ℕ) : monotone (λ f : circle_deg1_lift, f^[n]) :=
+λ f g h, f.monotone.iterate_le_of_le h _
+
+lemma iterate_mono {f g : circle_deg1_lift} (h : f ≤ g) (n : ℕ) : f^[n] ≤ (g^[n]) :=
+iterate_monotone n h
+
+lemma pow_mono {f g : circle_deg1_lift} (h : f ≤ g) (n : ℕ) : f^n ≤ g^n :=
+λ x, by simp only [coe_pow, iterate_mono h n x]
+
+lemma pow_monotone (n : ℕ) : monotone (λ f : circle_deg1_lift, f^n) :=
+λ f g h, pow_mono h n
+
+end circle_deg1_lift
+
+namespace circle_homeomorph_lift
+
+@[simp] lemma inv_coe_mul (f : circle_homeomorph_lift) (g : circle_deg1_lift) :
   (↑f * g)⁻¹ = g⁻¹ * ↑f⁻¹ :=
-coe_inj $ (↑f * g).is_order_right_adjoint_inv.unique
-  (g.is_order_right_adjoint_inv.order_iso_comp (to_order_iso f))
+circle_deg1_lift.coe_inj $ (↑f * g).is_order_right_adjoint_inv.unique
+  (g.is_order_right_adjoint_inv.order_iso_comp f.to_order_iso)
 
-@[simp] lemma inv_mul_units (f : circle_deg1_lift) (g : units circle_deg1_lift) :
+@[simp] lemma inv_mul_coe (f : circle_deg1_lift) (g : circle_homeomorph_lift) :
   (f * g)⁻¹ = ↑g⁻¹ * f⁻¹ :=
-coe_inj $ (f * g).is_order_right_adjoint_inv.unique
-  (f.is_order_right_adjoint_inv.comp_order_iso (to_order_iso g))
-
-@[simp, norm_cast] lemma units_coe_inv (f : units circle_deg1_lift) :
-  (f⁻¹ : circle_deg1_lift) = ↑(f⁻¹) :=
-by simpa using inv_mul_units 1 f
+circle_deg1_lift.coe_inj $ (f * g).is_order_right_adjoint_inv.unique
+  (f.is_order_right_adjoint_inv.comp_order_iso g.to_order_iso)
 
 lemma semiconj_by_inv_symm {h : circle_deg1_lift} {f g : units circle_deg1_lift}
   (H : semiconj_by h f g) : semiconj_by h⁻¹ g f :=
@@ -1004,3 +1116,6 @@ semiconj_of_is_unit_of_translation_number_eq
   (is_unit_iff_bijective.2 h₁) (is_unit_iff_bijective.2 h₂) h
 
 end circle_deg1_lift
+
+lemma commute_translate_int (n : ℤ) : commute f (translate (multiplicative.of_add ↑n)) :=
+ext $ f.commute_int_add n

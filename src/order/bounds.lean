@@ -720,6 +720,17 @@ h.exists_between' h₂ $ sub_lt_self _ hε
 
 end linear_ordered_add_comm_group
 
+lemma is_lub_pi {π : α → Type*} [Π a, preorder (π a)] (s : set (Π a, π a)) (f : Π a, π a)
+  (hs : ∀ a, is_lub (function.eval a '' s) (f a)) :
+  is_lub s f :=
+⟨λ g hg a, (hs a).1 (mem_image_of_mem _ hg),
+  λ g hg a, (hs a).2 $ λ y ⟨g', hg', hy⟩, hy ▸ hg hg' a⟩
+
+lemma is_glb_pi {π : α → Type*} [Π a, preorder (π a)] (s : set (Π a, π a)) (f : Π a, π a)
+  (hs : ∀ a, is_glb (function.eval a '' s) (f a)) :
+  is_glb s f :=
+@is_lub_pi α (λ a, order_dual (π a)) _ s f hs
+
 /-!
 ### Images of upper/lower bounds under monotone functions
 -/
@@ -782,16 +793,32 @@ variables [preorder α] [preorder β]
 ⟨λ h, is_lub.of_image (λ _ _, f.le_iff_le) ((f.apply_symm_apply x).symm ▸ h),
   λ h, is_lub.of_image (λ _ _, f.symm.le_iff_le) $ (f.symm_image_image s).symm ▸ h⟩
 
+lemma is_lub_image' (f : α ≃o β) {s : set α} {x : α} :
+  is_lub (f '' s) (f x) ↔ is_lub s x :=
+by rw [is_lub_image, f.symm_apply_apply]
+
 @[simp] lemma is_glb_image (f : α ≃o β) {s : set α} {x : β} :
   is_glb (f '' s) x ↔ is_glb s (f.symm x) :=
 f.dual.is_lub_image
+
+lemma is_glb_image' (f : α ≃o β) {s : set α} {x : α} :
+  is_glb (f '' s) (f x) ↔ is_glb s x :=
+f.dual.is_lub_image'
 
 @[simp] lemma is_lub_preimage (f : α ≃o β) {s : set β} {x : α} :
   is_lub (f ⁻¹' s) x ↔ is_lub s (f x) :=
 by rw [← f.symm_symm, ← image_eq_preimage, is_lub_image]
 
+lemma is_lub_preimage' (f : α ≃o β) {s : set β} {x : β} :
+  is_lub (f ⁻¹' s) (f.symm x) ↔ is_lub s x :=
+by rw [is_lub_preimage, f.apply_symm_apply]
+
 @[simp] lemma is_glb_preimage (f : α ≃o β) {s : set β} {x : α} :
   is_glb (f ⁻¹' s) x ↔ is_glb s (f x) :=
 f.dual.is_lub_preimage
+
+lemma is_glb_preimage' (f : α ≃o β) {s : set β} {x : β} :
+  is_glb (f ⁻¹' s) (f.symm x) ↔ is_glb s x :=
+f.dual.is_lub_preimage'
 
 end order_iso

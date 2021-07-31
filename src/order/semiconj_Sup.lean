@@ -50,6 +50,8 @@ lemma is_order_right_adjoint_cSup [conditionally_complete_lattice α] [preorder 
 
 namespace is_order_right_adjoint
 
+protected lemma id [preorder α] : is_order_right_adjoint (@id α) id := λ x, is_lub_Iic
+
 protected lemma unique [partial_order α] [preorder β] {f : α → β} {g₁ g₂ : β → α}
   (h₁ : is_order_right_adjoint f g₁) (h₂ : is_order_right_adjoint f g₂) :
   g₁ = g₂ :=
@@ -76,6 +78,18 @@ begin
 end
 
 end is_order_right_adjoint
+
+namespace order_iso
+
+variables [preorder α] [preorder β]
+
+lemma is_order_right_adjoint_self_symm (e : α ≃o β) : is_order_right_adjoint e e.symm :=
+is_order_right_adjoint.id.comp_order_iso e
+
+lemma is_order_right_adjoint_symm_self (e : α ≃o β) : is_order_right_adjoint e.symm e :=
+e.symm.is_order_right_adjoint_self_symm
+
+end order_iso
 
 namespace function
 

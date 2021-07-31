@@ -415,6 +415,10 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)]
   le_refl  := λ a i, le_refl (a i),
   le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
 
+lemma function.monotone_eval {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] (i : ι) :
+  monotone (function.eval i : (Π i, α i) → α i) :=
+λ f g H, H i
+
 lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x ≤ y ↔ ∀ i, x i ≤ y i :=
 iff.rfl

@@ -1,5 +1,10 @@
 import dynamics.circle.rotation_number.translation_number
 
+open filter set function (hiding commute)
+open_locale topological_space classical
+
+namespace circle_deg1_lift
+
 /-- Two `circle_deg1_lift` maps define the same self-map of the circle if they differ by an
 integer translation. -/
 def same_circle_map : con circle_deg1_lift :=
@@ -15,7 +20,17 @@ lemma same_circle_map_iff' {f g : circle_deg1_lift} :
   same_circle_map f g ↔ ∃ m : ℤ, ∀ x, f x = m + g x :=
 same_circle_map_iff.trans $ exists_congr $ λ m, ext_iff
 
-@[simp] lemma coe_circle_translate_int (m : ℤ) :
+end circle_deg1_lift
+
+def circle_deg1_map : Type := circle_deg1_lift.same_circle_map.quotient
+
+instance : has_coe_t circle_deg1_lift circle_deg1_map := con.quotient.has_coe_t _
+
+namespace circle_deg1_map
+
+
+
+@[simp] lemma coe_translate_int (m : ℤ) :
   ((translate (multiplicative.of_add ↑m) : circle_deg1_lift) : same_circle_map.quotient) = 1 :=
 same_circle_map.eq.2 $ same_circle_map_iff.2 ⟨m, rfl⟩
 

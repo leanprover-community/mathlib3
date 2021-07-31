@@ -457,7 +457,9 @@ lemma filter_image_quotient_mk [decidable_eq α] (s : finset α) :
   ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
     s.off_diag.image quotient.mk :=
 begin
-  ext ⟨x, y⟩,
+  ext z,
+  induction z using quotient.induction_on,
+  rcases z with ⟨x, y⟩,
   simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,

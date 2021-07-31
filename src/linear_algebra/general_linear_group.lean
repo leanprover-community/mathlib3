@@ -144,6 +144,7 @@ end
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < ((A.det): R) := iff.rfl
 
 end GL_plus
+
 namespace special_linear_group
 
 variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [linear_ordered_comm_ring R]

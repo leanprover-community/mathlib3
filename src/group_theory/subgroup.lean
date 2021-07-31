@@ -1364,24 +1364,38 @@ noncomputable def of_injective {f : G →* N} (hf : function.injective f) : G �
 lemma of_injective_apply {f : G →* N} (hf : function.injective f) {x : G} :
   ↑(of_injective hf x) = f x := rfl
 
+section ker
+
+variables {M : Type*} [monoid M]
+
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/
 @[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_subgroup` of elements
 such that `f x = 0`"]
-def ker (f : G →* N) := (⊥ : subgroup N).comap f
+def ker (f : G →* M) : subgroup G :=
+{ carrier := {x | f x = 1},
+  one_mem' := f.map_one,
+  mul_mem' := λ a b (ha : f a = 1) (hb : f b = 1), show f (a * b) = 1, by rw [f.map_mul, ha, hb, one_mul],
+  inv_mem' := λ x (hx : f x = 1), show f x⁻¹ = 1, from
+    calc f x⁻¹ = f x * f x⁻¹ : by rw [hx, one_mul]
+           ... = f (x * x⁻¹) : by rw [f.map_mul]
+           ... = f 1 :         by rw [mul_right_inv]
+           ... = 1 :           f.map_one }
+
+lemma ker_eq_comap (f : G →* N) : f.ker = (⊥ : subgroup N).comap f := rfl
 
 @[to_additive]
-lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
+lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
-lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
+lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
 
 @[to_additive]
 lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
 by rw [f.mem_ker, f.map_mul, f.map_inv, inv_mul_eq_one, eq_comm]
 
 @[to_additive]
-instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
+instance decidable_mem_ker [decidable_eq M] (f : G →* M) :
   decidable_pred (∈ f.ker) :=
 λ x, decidable_of_iff (f x = 1) f.mem_ker
 
@@ -1399,7 +1413,7 @@ begin
 end
 
 @[simp, to_additive]
-lemma ker_one : (1 : G →* N).ker = ⊤ :=
+lemma ker_one : (1 : G →* M).ker = ⊤ :=
 by { ext, simp [mem_ker] }
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
@@ -1419,10 +1433,9 @@ set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 @[to_additive]
 lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
   (prod_map f g).ker = f.ker.prod g.ker :=
-begin
-  dsimp only [ker],
-  rw [←prod_map_comap_prod, bot_prod_bot],
-end
+by rw [ker_eq_comap, ker_eq_comap, ker_eq_comap, ←prod_map_comap_prod, bot_prod_bot],
+
+end ker
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]

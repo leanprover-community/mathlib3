@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.specific_limits
+import algebra.archimedean_bdd_iff
 import order.iterate
 import order.semiconj_Sup
 import algebra.iterate_hom
@@ -342,20 +343,67 @@ noncomputable instance : lattice circle_deg1_lift :=
     map_add_one' := λ x, by simp [min_add_add_right] },
   inf_le_left := λ f g x, min_le_left (f x) (g x),
   inf_le_right := λ f g x, min_le_right (f x) (g x),
-  le_inf := λ f₁ f₂ f₃ h₂ h₃ x, le_min (h₂ x) (h₃ x),
-  -- Sup := λ s,
-  -- { to_fun := λ x, (⨆ f : s, f x - x) + x,
-  --   monotone' := λ x y h,
-  --     begin
-  --       by_cases hs : bdd_above (range $ λ f : s, f x - x),
-  --       {  }
-  --     end,
-  --   map_add_one' := _ }
-}
+  le_inf := λ f₁ f₂ f₃ h₂ h₃ x, le_min (h₂ x) (h₃ x) }
 
 @[simp] lemma sup_apply (x : ℝ) : (f ⊔ g) x = max (f x) (g x) := rfl
 
 @[simp] lemma inf_apply (x : ℝ) : (f ⊓ g) x = min (f x) (g x) := rfl
+
+@[simp, norm_cast] lemma coe_le_coe {f g : circle_deg1_lift} : (f : ℝ → ℝ) ≤ g ↔ f ≤ g := iff.rfl
+
+lemma monotone_apply (x : ℝ) : monotone (λ f : circle_deg1_lift, f x) := λ f g h, h x
+
+/-- An auxiliary definition for `circle_deg1_lift.has_Sup`. -/
+noncomputable def Sup_aux (s : set circle_deg1_lift) (Hne : s.nonempty)
+  (H : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)) :
+  circle_deg1_lift :=
+{ to_fun := λ x, ⨆ f : s, f x,
+  monotone' := λ x y h, csupr_le_csupr (by simpa only [image_eq_range] using H y)
+    (λ f, f.1.monotone h),
+  map_add_one' := λ x,
+    begin
+      haveI := Hne.to_subtype,
+      simp only [coe_fn_coe_base, map_add_one, image_eq_range] at H ⊢,
+      exact (real.supr_add (H x) _).symm
+    end }
+
+lemma le_Sup_aux (s : set circle_deg1_lift) (hf : f ∈ s)
+  (H : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)) :
+  f ≤ Sup_aux s ⟨f, hf⟩ H :=
+λ x, by { have := H x, rw image_eq_range at this, exact le_csupr this ⟨f, hf⟩ }
+
+lemma bdd_above_tfae (s : set circle_deg1_lift) :
+  tfae [bdd_above s,
+    ∀ x, bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
+    ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s),
+    ∃ x, bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
+    ∃ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)] :=
+begin
+  tfae_have : 1 ↔ 3,
+  { refine ⟨λ H x, (monotone_apply x).map_bdd_above H, λ H, _⟩,
+    rcases s.eq_empty_or_nonempty with rfl|hne, { exact bdd_above_empty },
+    exact ⟨Sup_aux s hne H, λ f hf, f.le_Sup_aux _ hf _⟩ },
+  have : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s) ↔
+    bdd_above ((λ f : circle_deg1_lift, f x - x) '' s),
+  { intro x,
+    rw [← (order_iso.add_right (-x)).bdd_above_image, image_image],
+    refl },
+  tfae_have : 3 ↔ 2, from forall_congr this,
+  tfae_have : 5 ↔ 4, from exists_congr this,
+  tfae_have : 3 ↔ 5,
+  { simp only [image_eq_range],
+    exact forall_bdd_above_iff_exists_of_mono_of_map_add_le zero_lt_one (λ f, f.1.monotone)
+      (monotone_id.add_const 1) (λ f x, (f.1.map_add_one x).le) },
+  tfae_finish
+end
+
+noncomputable instance : has_Sup circle_deg1_lift :=
+⟨λ s, if hs : s.nonempty ∧ bdd_above s
+  then Sup_aux s hs.1 (((bdd_above_tfae s).out 0 2).mp hs.2) else 1⟩
+
+lemma Sup_apply (s : set circle_deg1_lift) (hne : s.nonempty) (hbdd : bdd_above s) (x : ℝ) :
+  Sup s x = ⨆ f : s, f x :=
+by { dsimp only [circle_deg1_lift.has_Sup], rw dif_pos (and.intro hne hbdd), refl }
 
 lemma iterate_monotone (n : ℕ) : monotone (λ f : circle_deg1_lift, f^[n]) :=
 λ f g h, f.monotone.iterate_le_of_le h _

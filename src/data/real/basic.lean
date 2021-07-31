@@ -518,6 +518,18 @@ have bdd_above {x | -x ∈ s} → bdd_below s, from
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
 
+lemma supr_add {ι : Type*} [nonempty ι] {f : ι → ℝ} (hf : bdd_above (set.range f)) (a : ℝ) :
+  (⨆ i, f i) + a = ⨆ i, f i + a :=
+(order_iso.add_right a).map_csupr hf
+
+lemma supr_sub {ι : Type*} [nonempty ι] {f : ι → ℝ} (hf : bdd_above (set.range f)) (a : ℝ) :
+  (⨆ i, f i) - a = ⨆ i, f i - a :=
+by simp only [sub_eq_add_neg, supr_add hf]
+
+lemma add_supr {ι : Type*} [nonempty ι] {f : ι → ℝ} (hf : bdd_above (set.range f)) (a : ℝ) :
+  a + (⨆ i, f i) = ⨆ i, a + f i :=
+by simp only [supr_add hf, add_comm a]
+
 /--
 As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it
 suffices to show that `S` is bounded below by `0` to show that `0 ≤ Inf S`.

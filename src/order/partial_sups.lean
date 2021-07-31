@@ -10,10 +10,10 @@ import order.preorder_hom
 /-!
 # The monotone sequence of partial supremums of a sequence.
 
-We define `partial_sups : (ℕ → α) → (ℕ →ₘ α)` inductively. TFor `f : ℕ → α`, `partial_sups f` is
-the sequence `f 0 `he point of this definition is that
+We define `partial_sups : (ℕ → α) → ℕ →ₘ α` inductively. For `f : ℕ → α`, `partial_sups f` is
+the sequence `f 0 `, `f 0 ⊔ f 1`, `f 0 ⊔ f 1 ⊔ f 2`, ... The point of this definition is that
 * it doesn't need a `⨆`, as opposed to `⨆ (i ≤ n), f i`.
-* it doesn't need a `⊥`, as opposed to `partial_sups f n = (finset.range (n + 1)).sup f`.
+* it doesn't need a `⊥`, as opposed to `(finset.range (n + 1)).sup f`.
 
 Equivalence with those definitions is shown by `partial_sups_eq_sup_range` and
 `partial_sups_eq_supr` respectively.
@@ -23,11 +23,11 @@ Equivalence with those definitions is shown by `partial_sups_eq_sup_range` and
 One might dispute whether this sequence should start at `f 0` or `⊥`. We choose the former because :
 * Starting at `⊥` requires... having a bottom element.
 * `λ f n, (finset.range n).sup f` is already effectively the sequence starting at `⊥`.
-* If we started at `⊥` we wouldn't have the galois insertion mentioned in TODO.
+* If we started at `⊥` we wouldn't have the Galois insertion. See `partial_sups.gi`.
 
 ## TODO
 
-One could generalize `partial_sups` to arbitrary locally finite bot preorders.
+One could generalize `partial_sups` to locally finite bot preorder domains.
 -/
 
 variables {α : Type*}
@@ -42,7 +42,7 @@ def partial_sups (f : ℕ → α) : ℕ →ₘ α :=
 
 @[simp] lemma partial_sups_zero (f : ℕ → α) : partial_sups f 0 = f 0 := rfl
 @[simp] lemma partial_sups_succ (f : ℕ → α) (n : ℕ) :
-  partial_sups f (n+1) = partial_sups f n ⊔ f (n+1) := rfl
+  partial_sups f (n+1) = partial_sups f n ⊔ f (n+1) := rflT
 
 lemma le_partial_sups_of_le (f : ℕ → α) {m n : ℕ} (h : m ≤ n) :
   f m ≤ partial_sups f n :=

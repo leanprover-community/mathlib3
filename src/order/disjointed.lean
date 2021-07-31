@@ -30,8 +30,8 @@ We also provide set notation variants of some lemmas.
 
 Find a useful statement of `disjointed_rec_succ`.
 
-One could generalize `partial_sups` to arbitrary locally finite bot preorders. See the TODO in
-`order.partial_sups`.
+One could generalize `disjointed` to any locally finite bot preorder domain, in place of `ℕ`.
+Related to the TODO in `order.partial_sups`.
 -/
 
 variables {α β : Type*}
@@ -141,7 +141,7 @@ begin
   { rw [disjointed_zero, eq_comm, inf_eq_left],
     simp_rw le_infi_iff,
     exact λ i hi, (i.not_lt_zero hi).elim },
-  simp_rw [disjointed_succ, partial_sups_eq_supr, sdiff_eq, compl_supr],
+  simp_rw [disjointed_succ, partial_sups_eq_bsupr, sdiff_eq, compl_supr],
   congr,
   ext i,
   rw nat.lt_succ_iff,

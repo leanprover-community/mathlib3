@@ -8,7 +8,7 @@ import data.set.pairwise
 import order.preorder_hom
 
 /-!
-# The monotone sequence of partial supremums of a sequence.
+# The monotone sequence of partial supremums of a sequence
 
 We define `partial_sups : (ℕ → α) → ℕ →ₘ α` inductively. For `f : ℕ → α`, `partial_sups f` is
 the sequence `f 0 `, `f 0 ⊔ f 1`, `f 0 ⊔ f 1 ⊔ f 2`, ... The point of this definition is that
@@ -16,7 +16,7 @@ the sequence `f 0 `, `f 0 ⊔ f 1`, `f 0 ⊔ f 1 ⊔ f 2`, ... The point of this
 * it doesn't need a `⊥`, as opposed to `(finset.range (n + 1)).sup f`.
 
 Equivalence with those definitions is shown by `partial_sups_eq_sup_range` and
-`partial_sups_eq_supr` respectively.
+`partial_sups_eq_bsupr` respectively.
 
 ## Notes
 
@@ -27,7 +27,8 @@ One might dispute whether this sequence should start at `f 0` or `⊥`. We choos
 
 ## TODO
 
-One could generalize `partial_sups` to locally finite bot preorder domains.
+One could generalize `partial_sups` to any locally finite bot preorder domain, in place of `ℕ`.
+Necessary for the TODO in `order.disjointed`.
 -/
 
 variables {α : Type*}
@@ -37,12 +38,12 @@ variables [semilattice_sup α]
 
 /-- The monotone sequence whose value at `n` is the supremum of the `f m` where `m ≤ n`. -/
 def partial_sups (f : ℕ → α) : ℕ →ₘ α :=
-⟨@nat.rec (λ _, α) (f 0) (λ (n : ℕ) (a : α), a ⊔ f (n+1)),
+⟨@nat.rec (λ _, α) (f 0) (λ (n : ℕ) (a : α), a ⊔ f (n + 1)),
   monotone_of_monotone_nat (λ n, le_sup_left)⟩
 
 @[simp] lemma partial_sups_zero (f : ℕ → α) : partial_sups f 0 = f 0 := rfl
 @[simp] lemma partial_sups_succ (f : ℕ → α) (n : ℕ) :
-  partial_sups f (n+1) = partial_sups f n ⊔ f (n+1) := rflT
+  partial_sups f (n + 1) = partial_sups f n ⊔ f (n + 1) := rfl
 
 lemma le_partial_sups_of_le (f : ℕ → α) {m n : ℕ} (h : m ≤ n) :
   f m ≤ partial_sups f n :=
@@ -63,7 +64,7 @@ lemma partial_sups_le (f : ℕ → α) (n : ℕ)
 begin
   induction n with n ih,
   { apply w 0 le_rfl, },
-  { exact sup_le (ih (λ m p, w m (nat.le_succ_of_le p))) (w (n+1) le_rfl) }
+  { exact sup_le (ih (λ m p, w m (nat.le_succ_of_le p))) (w (n + 1) le_rfl) }
 end
 
 lemma monotone.partial_sups_eq {f : ℕ → α} (hf : monotone f) :
@@ -107,9 +108,9 @@ begin
     rw [finset.range_succ, finset.sup_insert, sup_comm, ih] }
 end
 
--- Note this lemma requires a distributive lattice,
--- so is not useful (or true) in situations such as submodules.
--- Can be generalized to (the yet inexistent) `distrib_lattice_bot`.
+/- Note this lemma requires a distributive lattice, so is not useful (or true) in situations such as
+submodules.
+Can be generalized to (the yet inexistent) `distrib_lattice_bot`. -/
 lemma partial_sups_disjoint_of_disjoint [bounded_distrib_lattice α]
   (f : ℕ → α) (h : pairwise (disjoint on f)) {m n : ℕ} (hmn : m < n) :
   disjoint (partial_sups f m) (f n) :=
@@ -123,7 +124,7 @@ end
 section complete_lattice
 variables [complete_lattice α]
 
-lemma partial_sups_eq_supr (f : ℕ → α) (n : ℕ) :
+lemma partial_sups_eq_bsupr (f : ℕ → α) (n : ℕ) :
   partial_sups f n = ⨆ (i ≤ n), f i :=
 begin
   rw [partial_sups_eq_sup_range, finset.sup_eq_supr],
@@ -136,7 +137,7 @@ lemma supr_partial_sups_eq (f : ℕ → α) :
   (⨆ n, partial_sups f n) = ⨆ n, f n :=
 begin
   refine (supr_le $ λ n, _).antisymm (supr_le_supr $ le_partial_sups f),
-  rw partial_sups_eq_supr,
+  rw partial_sups_eq_bsupr,
   exact bsupr_le_supr _ _,
 end
 

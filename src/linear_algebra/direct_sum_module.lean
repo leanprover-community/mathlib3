@@ -248,10 +248,12 @@ begin
   simp only [key] at hsum,
   -- do casework on `i = j`
   ext j, by_cases h : i = j,
-  { rw [← h, ← hsum, direct_sum.zero_apply, submodule.coe_zero, submodule.coe_eq_zero, dfinsupp.finset_sum_apply],
+  { rw [← h, ← hsum, direct_sum.zero_apply, submodule.coe_zero, submodule.coe_eq_zero,
+      dfinsupp.finset_sum_apply],
     simp only [dfinsupp.single_apply, finset.sum_dite_eq', finsupp.mem_support_iff, ne.def,
       submodule.mk_eq_zero, not_imp_self, ite_eq_right_iff, hzero], },
-  rw [submodule_is_internal.to_equiv_symm_single_apply A hA i x hi, dfinsupp.single_eq_of_ne], refl,
+  rw [submodule_is_internal.to_equiv_symm_single_apply A hA i x hi, dfinsupp.single_eq_of_ne],
+  refl,
   exact h
 end
 

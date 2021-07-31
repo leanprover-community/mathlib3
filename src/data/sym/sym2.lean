@@ -3,7 +3,7 @@ Copyright (c) 2020 Kyle Miller All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.sym
+import data.sym.basic
 import tactic.linarith
 
 /-!
@@ -13,7 +13,7 @@ This file defines the symmetric square, which is `α × α` modulo
 swapping.  This is also known as the type of unordered pairs.
 
 More generally, the symmetric square is the second symmetric power
-(see `data.sym`). The equivalence is `sym2.equiv_sym`.
+(see `data.sym.basic`). The equivalence is `sym2.equiv_sym`.
 
 From the point of view that an unordered pair is equivalent to a
 multiset of cardinality two (see `sym2.equiv_multiset`), there is a

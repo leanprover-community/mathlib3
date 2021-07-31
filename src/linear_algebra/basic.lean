@@ -748,12 +748,15 @@ lemma range_map_nonempty (N : submodule R M) :
 
 /-- The pushforward of a submodule by an injective linear map is
 linearly equivalent to the original submodule. -/
-@[simps]
 noncomputable def equiv_map_of_injective (f : M →ₗ[R] M₂) (i : injective f) (p : submodule R M) :
   p ≃ₗ[R] p.map f :=
 { map_add' := by { intros, simp, refl, },
   map_smul' := by { intros, simp, refl, },
   ..(equiv.set.image f p i) }
+
+@[simp] lemma coe_equiv_map_of_injective_apply (f : M →ₗ[R] M₂) (i : injective f)
+  (p : submodule R M) (x : p) :
+  (equiv_map_of_injective f i p x : M₂) = f x := rfl
 
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
@@ -1496,7 +1499,12 @@ lemma coe_finsupp_sum (t : ι →₀ γ) (g : ι → γ → M →ₗ[R] M₂) :
 end finsupp
 
 section dfinsupp
-variables {γ : ι → Type*} [decidable_eq ι] [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
+open dfinsupp
+variables {γ : ι → Type*} [decidable_eq ι]
+
+section sum
+
+variables [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
 
 @[simp] lemma map_dfinsupp_sum (f : M →ₗ[R] M₂) {t : Π₀ i, γ i} {g : Π i, γ i → M} :
   f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
@@ -1506,6 +1514,18 @@ lemma coe_dfinsupp_sum (t : Π₀ i, γ i) (g : Π i, γ i → M →ₗ[R] M₂)
 
 @[simp] lemma dfinsupp_sum_apply (t : Π₀ i, γ i) (g : Π i, γ i → M →ₗ[R] M₂) (b : M) :
   (t.sum g) b = t.sum (λ i d, g i d b) := sum_apply _ _ _
+
+end sum
+
+section sum_add_hom
+
+variables [Π i, add_zero_class (γ i)]
+
+@[simp] lemma map_dfinsupp_sum_add_hom (f : M →ₗ[R] M₂) {t : Π₀ i, γ i} {g : Π i, γ i →+ M} :
+  f (sum_add_hom g t) = sum_add_hom (λ i, f.to_add_monoid_hom.comp (g i)) t :=
+f.to_add_monoid_hom.map_dfinsupp_sum_add_hom _ _
+
+end sum_add_hom
 
 end dfinsupp
 
@@ -2117,6 +2137,30 @@ def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R 
 
 end
 
+section finsupp
+variables {γ : Type*} [module R M] [module R M₂] [has_zero γ]
+
+@[simp] lemma map_finsupp_sum (f : M ≃ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum _
+
+end finsupp
+
+section dfinsupp
+open dfinsupp
+
+variables {γ : ι → Type*} [decidable_eq ι] [module R M] [module R M₂]
+
+@[simp] lemma map_dfinsupp_sum [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
+  (f : M ≃ₗ[R] M₂) (t : Π₀ i, γ i) (g : Π i, γ i → M) :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum _
+
+@[simp] lemma map_dfinsupp_sum_add_hom [Π i, add_zero_class (γ i)] (f : M ≃ₗ[R] M₂) (t : Π₀ i, γ i)
+  (g : Π i, γ i →+ M) :
+  f (sum_add_hom g t) = sum_add_hom (λ i, f.to_add_equiv.to_add_monoid_hom.comp (g i)) t :=
+f.to_add_equiv.map_dfinsupp_sum_add_hom _ _
+
+end dfinsupp
+
 section uncurry
 
 variables (V V₂ R)
@@ -2544,6 +2588,14 @@ begin
   { rintros ⟨y, hy, hx⟩, simp [←hx, hy], },
   { intros hx, refine ⟨e.symm x, hx, by simp⟩, },
 end
+
+lemma map_equiv_eq_comap_symm (e : M ≃ₗ[R] M₂) (K : submodule R M) :
+  K.map (e : M →ₗ[R] M₂) = K.comap e.symm :=
+submodule.ext (λ _, by rw [mem_map_equiv, mem_comap, linear_equiv.coe_coe])
+
+lemma comap_equiv_eq_map_symm (e : M ≃ₗ[R] M₂) (K : submodule R M₂) :
+  K.comap (e : M →ₗ[R] M₂) = K.map e.symm :=
+(map_equiv_eq_comap_symm e.symm K).symm
 
 lemma comap_le_comap_smul (f : M →ₗ[R] M₂) (c : R) :
   comap f q ≤ comap (c • f) q :=

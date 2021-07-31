@@ -306,6 +306,10 @@ succ_lt_succ $ succ_pos n
 theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
 
+theorem max_succ_succ {m n : ℕ} :
+  max (succ m) (succ n) = succ (max m n) :=
+max_succ_succ
+
 lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
 not_lt_of_ge (nat.le_succ _)
 

@@ -152,7 +152,7 @@ end
 
 @[simp] lemma mem_GL_pos (A : GL n R) : A  ∈ (GL_pos n R)  ↔ 0 < A.1.det := iff.rfl
 
-lemma SL_det_pos' (A : special_linear_group n R) : 0 < (A).1.det :=
+lemma SL_det_pos' (A : special_linear_group n R) : 0 < A.1.det :=
 begin
   have := A.2, simp only [gt_iff_lt, subtype.val_eq_coe],
   simp only [subtype.val_eq_coe] at this,

@@ -1383,6 +1383,7 @@ def ker (f : G →* M) : subgroup G :=
            ... = f 1 :         by rw [mul_right_inv]
            ... = 1 :           f.map_one }
 
+@[to_additive]
 lemma ker_eq_comap (f : G →* N) : f.ker = (⊥ : subgroup N).comap f := rfl
 
 @[to_additive]
@@ -1434,7 +1435,7 @@ set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 @[to_additive]
 lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
   (prod_map f g).ker = f.ker.prod g.ker :=
-by rw [ker_eq_comap, ker_eq_comap, ker_eq_comap, ←prod_map_comap_prod, bot_prod_bot],
+by rw [ker_eq_comap, ker_eq_comap, ker_eq_comap, ←prod_map_comap_prod, bot_prod_bot]
 
 end ker
 
@@ -1536,7 +1537,11 @@ lemma map_le_range (H : subgroup G) : map f H ≤ f.range :=
 
 @[to_additive]
 lemma ker_le_comap (H : subgroup N) : f.ker ≤ comap f H :=
-comap_mono bot_le
+begin
+  rw ker_eq_comap,
+  exact comap_mono bot_le
+end
+
 
 @[to_additive]
 lemma map_comap_le (H : subgroup N) : map f (comap f H) ≤ H :=
@@ -1756,7 +1761,7 @@ instance subgroup.normal_comap {H : subgroup N}
 
 @[priority 100, to_additive]
 instance monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
-by rw [monoid_hom.ker]; apply_instance
+by rw [monoid_hom.ker_eq_comap]; apply_instance
 
 @[priority 100, to_additive]
 instance subgroup.normal_inf (H N : subgroup G) [hN : N.normal] :

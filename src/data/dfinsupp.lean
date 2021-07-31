@@ -24,6 +24,8 @@ namespace dfinsupp
 
 variable [Π i, has_zero (β i)]
 
+/-- An auxiliary structure used in the definition of of `dfinsupp`,
+the type used to make infinite direct sum of modules over a ring. -/
 structure pre : Type (max u v) :=
 (to_fun : Π i, β i)
 (pre_support : multiset ι)
@@ -576,6 +578,9 @@ ext $ λ i, by simp only [neg_apply, mk_apply]; split_ifs; [refl, rw neg_zero]
   mk s (x - y) = mk s x - mk s y :=
 ext $ λ i, by simp only [sub_apply, mk_apply]; split_ifs; [refl, rw sub_zero]
 
+-- can I do this and get LaTeX in the docs?
+/-- If `s` is a subset of `ι` then `mk_add_group_hom s` is the canonical additive
+group homomorphism from $$\Prod_{i\in s}\beta\_i\to\Prod_{\mathtt{i : \io}}\beta_i$$.-/
 def mk_add_group_hom [Π i, add_group (β i)] (s : finset ι) :
   (Π (i : (s : set ι)), β ↑i) →+ (Π₀ (i : ι), β i) :=
 { to_fun := mk s,
@@ -684,7 +689,11 @@ lemma support_map_range {f : Π i, β₁ i → β₂ i} {hf : ∀ i, f i 0 = 0} 
   (map_range f hf g).support ⊆ g.support :=
 by simp [map_range_def]
 
-lemma zip_with_def {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0}
+lemma zip_with_def {ι : Type u} {β : ι → Type v} {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
+  [dec : decidable_eq ι] [Π (i : ι), has_zero (β i)] [Π (i : ι), has_zero (β₁ i)]
+  [Π (i : ι), has_zero (β₂ i)] [Π (i : ι) (x : β₁ i), decidable (x ≠ 0)]
+  [Π (i : ι) (x : β₂ i), decidable (x ≠ 0)]
+  {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0}
   {g₁ : Π₀ i, β₁ i} {g₂ : Π₀ i, β₂ i} :
   zip_with f hf g₁ g₂ = mk (g₁.support ∪ g₂.support) (λ i, f i.1 (g₁ i.1) (g₂ i.1)) :=
 begin

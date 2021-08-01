@@ -226,6 +226,9 @@ is_lub.cSup_eq (image_eq_range f s ▸ H) (image_eq_range f s ▸ Hne.image f)
 lemma is_greatest.cSup_eq (H : is_greatest s a) : Sup s = a :=
 H.is_lub.cSup_eq H.nonempty
 
+lemma is_greatest.Sup_mem (H : is_greatest s a) : Sup s ∈ s :=
+H.cSup_eq.symm ▸ H.1
+
 lemma is_glb.cInf_eq (H : is_glb s a) (ne : s.nonempty) : Inf s = a :=
 (is_glb_cInf ne ⟨a, H.1⟩).unique H
 
@@ -239,6 +242,9 @@ is_glb.cInf_eq (image_eq_range f s ▸ H) (image_eq_range f s ▸ Hne.image f)
 /-- A least element of a set is the infimum of this set. -/
 lemma is_least.cInf_eq (H : is_least s a) : Inf s = a :=
 H.is_glb.cInf_eq H.nonempty
+
+lemma is_least.Inf_mem (H : is_least s a) : Inf s ∈ s :=
+H.cInf_eq.symm ▸ H.1
 
 lemma subset_Icc_cInf_cSup (hb : bdd_below s) (ha : bdd_above s) :
   s ⊆ Icc (Inf s) (Sup s) :=

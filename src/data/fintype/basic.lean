@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
-import data.sym
+import data.sym.basic
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog

@@ -75,6 +75,9 @@ lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn
 @[ext] lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
 coe_fn_injective (funext H)
 
+lemma ext_iff {f g : Π₀ i, β i} : f = g ↔ ∀ i, f i = g i :=
+coe_fn_injective.eq_iff.symm.trans function.funext_iff
+
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
   `map_range f hf g : Π₀ i, β₂ i`, well defined when `f 0 = 0`.
 
@@ -384,7 +387,7 @@ begin
     simp only [mk_apply, dif_neg h, dif_neg h1] }
 end
 
-@[simp] lemma single_zero {i} : (single i 0 : Π₀ i, β i) = 0 :=
+@[simp] lemma single_zero (i) : (single i 0 : Π₀ i, β i) = 0 :=
 quotient.sound $ λ j, if H : j ∈ ({i} : finset _)
 then by dsimp only; rw [dif_pos H]; cases finset.mem_singleton.1 H; refl
 else dif_neg H
@@ -420,6 +423,12 @@ begin
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
 
+@[simp] lemma single_eq_zero {i : ι} {xi : β i} : single i xi = 0 ↔ xi = 0 :=
+begin
+  rw [←single_zero i, single_eq_single_iff],
+  simp,
+end
+
 /-- Equality of sigma types is sufficient (but not necessary) to show equality of `dfinsupp`s. -/
 lemma single_eq_of_sigma_eq
   {i j} {xi : β i} {xj : β j} (h : (⟨i, xi⟩ : sigma β) = ⟨j, xj⟩) :
@@ -449,7 +458,7 @@ section add_monoid
 
 variable [Π i, add_zero_class (β i)]
 
-@[simp] lemma single_add {i : ι} {b₁ b₂ : β i} : single i (b₁ + b₂) = single i b₁ + single i b₂ :=
+@[simp] lemma single_add (i : ι) (b₁ b₂ : β i) : single i (b₁ + b₂) = single i b₁ + single i b₂ :=
 ext $ assume i',
 begin
   by_cases h : i = i',
@@ -461,7 +470,7 @@ variables (β)
 
 /-- `dfinsupp.single` as an `add_monoid_hom`. -/
 @[simps] def single_add_hom (i : ι) : β i →+ Π₀ i, β i :=
-{ to_fun := single i, map_zero' := single_zero, map_add' := λ _ _, single_add }
+{ to_fun := single i, map_zero' := single_zero i, map_add' := single_add i }
 
 variables {β}
 

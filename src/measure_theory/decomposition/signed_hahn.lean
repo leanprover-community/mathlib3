@@ -84,70 +84,119 @@ namespace measure_theory
 
 namespace vector_measure
 
-/-- A set `i` is positive with respect to a vector measure if for all
-measurable set `j`, `j ⊆ i`, `j` has non-negative measure. -/
+/-- A set `i` is positive with respect to a vector measure `v` if `v` restricted
+on`i` is non-negative, i.e. `0 ≤ v.restrict i`. -/
 def positive (v : vector_measure α M) (i : set α) : Prop :=
-∀ ⦃j⦄, j ⊆ i → measurable_set j → 0 ≤ v j
+0 ≤ v.restrict i
 
-/-- A set `i` is negative with respect to a vector measure if for all
-measurable set `j`, `j ⊆ i`, `j` has non-positive measure. -/
+lemma positive_iff {v : vector_measure α M} {i : set α} (hi : measurable_set i) :
+  positive v i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → 0 ≤ v j :=
+⟨λ h j hj₁ hj₂, (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj₂) ▸ h j hj₁,
+ λ h, le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
+   h (hj.inter hi) (set.inter_subset_right j i))⟩
+
+/-- A set `i` is negative with respect to a vector measure `v` if `v` restricted
+on`i` is non-positive, i.e. `v.restrict i ≤ 0`. -/
 def negative (v : vector_measure α M) (i : set α) : Prop :=
-∀ ⦃j⦄, j ⊆ i → measurable_set j → v j ≤ 0
+v.restrict i ≤ 0
+
+lemma negative_iff {v : vector_measure α M} {i : set α} (hi : measurable_set i) :
+  negative v i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ 0 :=
+⟨λ h j hj₁ hj₂, (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj₂) ▸ h j hj₁,
+ λ h, le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
+   h (hj.inter hi) (set.inter_subset_right j i))⟩
 
 variables {v : signed_measure α} {i j : set α}
 
 lemma empty_positive : v.positive ∅ :=
 begin
-  intros j hj _,
-  rw [set.subset_eq_empty hj rfl, v.empty],
+  intros j hj,
+  rw restrict_empty,
 end
 
 lemma empty_negative : v.negative ∅ :=
 begin
-  intros j hj _,
-  rw [set.subset_eq_empty hj rfl, v.empty],
+  intros j hj,
+  rw restrict_empty,
 end
 
-lemma positive_nonneg_measure (hi₁ : measurable_set i) (hi₂ : v.positive i) :
+lemma positive_nonneg_measure (hi₂ : v.positive i) :
   0 ≤ v i :=
-hi₂ set.subset.rfl hi₁
+begin
+  by_cases hi₁ : measurable_set i,
+  { exact (positive_iff hi₁).1 hi₂ hi₁ set.subset.rfl },
+  { rw v.not_measurable hi₁ },
+end
 
-lemma negative_nonpos_measure (hi₁ : measurable_set i) (hi₂ : v.negative i) :
+lemma negative_nonpos_measure (hi₂ : v.negative i) :
   v i ≤ 0 :=
-hi₂ set.subset.rfl hi₁
+begin
+  by_cases hi₁ : measurable_set i,
+  { exact (negative_iff hi₁).1 hi₂ hi₁ set.subset.rfl },
+  { rw v.not_measurable hi₁ }
+end
 
-lemma positive_subset_positive (hi : v.positive i) (hij : j ⊆ i) :
+lemma positive_of_not_measurable (hi : ¬ measurable_set i) :
+  v.positive i :=
+begin
+  rw [positive, restrict, dif_neg hi],
+  exact le_refl _,
+end
+
+lemma negative_of_not_measurable (hi : ¬ measurable_set i) :
+  v.negative i :=
+begin
+  rw [negative, restrict, dif_neg hi],
+  exact le_refl _,
+end
+
+lemma measurable_of_not_positive (hi : ¬ v.positive i) : measurable_set i :=
+not.imp_symm positive_of_not_measurable hi
+
+lemma measurable_of_not_negative (hi : ¬ v.negative i) : measurable_set i :=
+not.imp_symm negative_of_not_measurable hi
+
+lemma positive_subset_positive (hi₁ : measurable_set i) (hi₂ : v.positive i) (hij : j ⊆ i) :
   v.positive j :=
 begin
-  intros k hk,
-  exact hi (set.subset.trans hk hij),
+  by_cases hj : measurable_set j,
+  { rw positive_iff hj,
+    intros k hk₁ hk₂,
+    exact (positive_iff hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij) },
+  { exact positive_of_not_measurable hj },
 end
 
-lemma negative_subset_negative (hi : v.negative i) (hij : j ⊆ i) :
+lemma negative_subset_negative (hi₁ : measurable_set i) (hi₂ : v.negative i) (hij : j ⊆ i) :
   v.negative j :=
 begin
-  intros k hk,
-  exact hi (set.subset.trans hk hij),
+  by_cases hj : measurable_set j,
+  { rw negative_iff hj,
+    intros k hk₁ hk₂,
+    exact (negative_iff hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij) },
+  { exact negative_of_not_measurable hj },
 end
 
-lemma not_positive_subset (hi : ¬ v.positive i) (h : i ⊆ j) : ¬ v.positive j :=
-λ h', hi $ positive_subset_positive h' h
+lemma not_positive_subset (hi : ¬ v.positive i) (h : i ⊆ j) (hj : measurable_set j) :
+  ¬ v.positive j :=
+λ h', hi $ positive_subset_positive hj h' h
 
-lemma not_negative_subset (hi : ¬ v.negative i) (h : i ⊆ j) : ¬ v.negative j :=
-λ h', hi $ negative_subset_negative h' h
+lemma not_negative_subset (hi : ¬ v.negative i) (h : i ⊆ j) (hj : measurable_set j) :
+  ¬ v.negative j :=
+λ h', hi $ negative_subset_negative hj h' h
 
 lemma positive_union_positive
   (hi₁ : measurable_set i) (hi₂ : v.positive i)
   (hj₁ : measurable_set j) (hj₂ : v.positive j) : v.positive (i ∪ j) :=
 begin
+  rw positive_iff (hi₁.union hj₁),
   intros a ha₁ ha₂,
-  have h₁ := ha₂.inter hi₁,
-  have h₂ := (ha₂.inter hj₁).diff h₁,
+  have h₁ := ha₁.inter hi₁,
   have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
     { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
-  rw [← this, of_union disjoint_sdiff_self_right h₁ h₂],
-  refine add_nonneg (hi₂ (a.inter_subset_right i) h₁) _,
-  exact hj₂ (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)) h₂,
+  rw [← this, of_union disjoint_sdiff_self_right h₁ ((ha₁.inter hj₁).diff h₁)],
+  refine add_nonneg ((positive_iff hi₁).1 hi₂ h₁ (a.inter_subset_right i)) _,
+  exact (positive_iff hj₁).1 hj₂ ((ha₁.inter hj₁).diff h₁)
+    (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)),
   apply_instance
 end
 
@@ -155,28 +204,30 @@ lemma positive_Union_positive {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.positive (f n)) :
   v.positive ⋃ n, f n :=
 begin
+  rw positive_iff (measurable_set.Union hf₁),
   intros a ha₁ ha₂,
-  rw [← set.Union_inter_disjointed_eq ha₁,
+  rw [← set.Union_inter_disjointed_eq ha₂,
       v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
-  refine tsum_nonneg (λ n, hf₂ n _ _),
+  refine tsum_nonneg (λ n, (positive_iff (hf₁ n)).1 (hf₂ n) _ _),
+  { exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
   { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
-  { exact (ha₂.inter (measurable_set.disjointed hf₁ n)) },
   { intro n,
-    exact (ha₂.inter (measurable_set.disjointed hf₁ n)) }
+    exact (ha₁.inter (measurable_set.disjointed hf₁ n)) }
 end
 
 lemma negative_union_negative
   (hi₁ : measurable_set i) (hi₂ : v.negative i)
   (hj₁ : measurable_set j) (hj₂ : v.negative j) : v.negative (i ∪ j) :=
 begin
+  rw negative_iff (hi₁.union hj₁),
   intros a ha₁ ha₂,
-  have h₁ := ha₂.inter hi₁,
-  have h₂ := (ha₂.inter hj₁).diff h₁,
+  have h₁ := ha₁.inter hi₁,
   have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
     { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
-  rw [← this, of_union disjoint_sdiff_self_right h₁ h₂],
-  refine add_nonpos (hi₂ (a.inter_subset_right i) h₁) _,
-  exact hj₂ (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)) h₂,
+  rw [← this, of_union disjoint_sdiff_self_right h₁ ((ha₁.inter hj₁).diff h₁)],
+  refine add_nonpos ((negative_iff hi₁).1 hi₂ h₁ (a.inter_subset_right i)) _,
+  exact (negative_iff hj₁).1 hj₂ ((ha₁.inter hj₁).diff h₁)
+    (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)),
   apply_instance
 end
 
@@ -184,20 +235,22 @@ lemma negative_Union_negative {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.negative (f n)) :
   v.negative ⋃ n, f n :=
 begin
+  rw negative_iff (measurable_set.Union hf₁),
   intros a ha₁ ha₂,
-  rw [← set.Union_inter_disjointed_eq ha₁,
+  rw [← set.Union_inter_disjointed_eq ha₂,
       v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
-  refine tsum_nonpos (λ n, hf₂ n _ _),
+  refine tsum_nonpos (λ n, (negative_iff (hf₁ n)).1 (hf₂ n) _ _),
+  { exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
   { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
-  { exact (ha₂.inter (measurable_set.disjointed hf₁ n)) },
   { intro n,
-    exact (ha₂.inter (measurable_set.disjointed hf₁ n)) }
+    exact (ha₁.inter (measurable_set.disjointed hf₁ n)) }
 end
 
 lemma exists_pos_measure_of_not_negative (hi : ¬ v.negative i) :
-  ∃ (j : set α) (hj₁ : j ⊆ i) (hj₂ : measurable_set j), 0 < v j :=
+  ∃ (j : set α) (hj₁ : measurable_set j) (hj₂ : j ⊆ i) , 0 < v j :=
 begin
-  rw negative at hi,
+  have hi₁ : measurable_set i := measurable_of_not_negative hi,
+  rw [negative_iff hi₁] at hi,
   push_neg at hi,
   obtain ⟨j, hj₁, hj₂, hj⟩ := hi,
   exact ⟨j, hj₁, hj₂, hj⟩,
@@ -219,7 +272,7 @@ private def p (s : signed_measure α) (i j : set α) (n : ℕ) : Prop :=
 private lemma exists_nat_one_div_lt_measure_of_not_negative (hi : ¬ s.negative (i \ j)) :
   ∃ (n : ℕ), p s i j n :=
 let ⟨k, hj₁, hj₂, hj⟩ := exists_pos_measure_of_not_negative hi in
-let ⟨n, hn⟩ := exists_nat_one_div_lt hj in ⟨n, k, hj₁, hj₂, hn⟩
+let ⟨n, hn⟩ := exists_nat_one_div_lt hj in ⟨n, k, hj₂, hj₁, hn⟩
 
 private def aux₀ (s : signed_measure α) (i j : set α) : ℕ :=
 if hi : ¬ s.negative (i \ j) then nat.find (exists_nat_one_div_lt_measure_of_not_negative hi) else 0
@@ -305,11 +358,13 @@ begin
   { rw aux_succ,
     have h₁ : ¬ s.negative (i \ ⋃ (k : ℕ) (H : k ≤ n), aux s i k),
     { apply not_negative_subset hn,
-      apply set.diff_subset_diff_right,
-      intros x,
-      simp_rw [set.mem_Union],
-      rintro ⟨n, hn₁, hn₂⟩,
-      refine ⟨n, nat.lt_succ_iff.mpr hn₁, hn₂⟩ },
+      { apply set.diff_subset_diff_right,
+        intros x,
+        simp_rw [set.mem_Union],
+        rintro ⟨n, hn₁, hn₂⟩,
+        exact ⟨n, nat.lt_succ_iff.mpr hn₁, hn₂⟩ },
+      { convert measurable_of_not_negative hn,
+        exact funext (λ x, by rw nat.lt_succ_iff) } },
     rcases aux₁_spec h₁ with ⟨_, _, h⟩,
     exact (lt_trans nat.one_div_pos_of_nat h) }
 end
@@ -354,21 +409,21 @@ begin
   { push_neg at hn,
     set k := nat.find hn with hk₁,
     have hk₂ : s.negative (i \ ⋃ l < k, aux s i l) := nat.find_spec hn,
-    have hmeas : measurable_set (⋃ (l : ℕ) (H : l < k), aux s i l),
-      exact (measurable_set.Union $ λ _,
-        measurable_set.Union_Prop (λ _, aux_measurable_set _)),
+    have hmeas : measurable_set (⋃ (l : ℕ) (H : l < k), aux s i l) :=
+      (measurable_set.Union $ λ _, measurable_set.Union_Prop (λ _, aux_measurable_set _)),
     refine ⟨i \ ⋃ l < k, aux s i l, hi₁.diff hmeas, set.diff_subset _ _, hk₂, _⟩,
     rw [of_diff hmeas hi₁, s.of_disjoint_Union_nat],
     { have h₁ : ∀ l < k, 0 ≤ s (aux s i l),
       { intros l hl,
-        exact le_of_lt (measure_of_aux h _
-          (not_negative_subset (nat.find_min hn hl) (set.subset.refl _))) },
+        refine le_of_lt (measure_of_aux h _ _),
+        refine (not_negative_subset (nat.find_min hn hl) (set.subset.refl _)) (hi₁.diff _),
+        exact (measurable_set.Union $ λ _, measurable_set.Union_Prop (λ _, aux_measurable_set _)) },
       suffices : 0 ≤ ∑' (l : ℕ), s (⋃ (H : l < k), aux s i l),
         linarith,
       refine tsum_nonneg _,
       intro l, by_cases l < k,
       { convert h₁ _ h,
-        ext,
+        ext x,
         rw [set.mem_Union, exists_prop, and_iff_right_iff_imp],
         exact λ _, h },
       { convert le_of_eq s.empty.symm,
@@ -422,11 +477,11 @@ begin
       have h₄ : tendsto (λ n, (bdd n : ℝ)) at_top at_top,
       { convert at_top.tendsto_at_top_add_const_right (-1) h₃, simp },
 
-      refine ⟨A, _, _, _, _⟩,
+      refine ⟨A, _, set.diff_subset _ _, _, _⟩,
       { exact hi₁.diff (measurable_set.Union (λ _, aux_measurable_set _)) },
-      { exact set.diff_subset _ _ },
       { by_contra hnn,
-        rw negative at hnn, push_neg at hnn,
+        have hA₁ : measurable_set A := measurable_of_not_negative hnn,
+        rw negative_iff hA₁ at hnn, push_neg at hnn,
         obtain ⟨E, hE₁, hE₂, hE₃⟩ := hnn,
         have : ∃ k, 1 ≤ bdd k ∧ 1 / (bdd k : ℝ) < s E,
         { rw tendsto_at_top_at_top at h₄,
@@ -437,8 +492,7 @@ begin
             exact hle },
           { have : 1 / s E < bdd k, linarith [le_of_max_le_left (hk k le_rfl)],
             rw one_div at this ⊢,
-            rwa inv_lt (lt_trans (inv_pos.2 hE₃) this) hE₃,
-          } },
+            rwa inv_lt (lt_trans (inv_pos.2 hE₃) this) hE₃ } },
         obtain ⟨k, hk₁, hk₂⟩ := this,
         have hA' : A ⊆ i \ ⋃ l ≤ k, aux s i l,
         { rw hA,
@@ -446,8 +500,7 @@ begin
           intro x, simp only [set.mem_Union],
           rintro ⟨n, _, hn₂⟩,
           exact ⟨n, hn₂⟩ },
-        refine aux₀_min (hn' k) (buffer.lt_aux_2 hk₁) _,
-        refine ⟨E, set.subset.trans hE₁ hA', hE₂, _⟩,
+        refine aux₀_min (hn' k) (buffer.lt_aux_2 hk₁) ⟨E, set.subset.trans hE₂ hA', hE₁, _⟩,
         convert hk₂, norm_cast,
         exact nat.sub_add_cancel hk₁ },
       { exact lt_of_le_of_lt h₂ hi₂ } },
@@ -483,8 +536,8 @@ begin
         of_union (disjoint.comm.1 set.disjoint_diff) _ (hmeas n)],
     { refine add_le_of_nonpos_left _,
       have : s.negative A := negative_Union_negative hmeas (λ m, let ⟨_, h⟩ := (hB m).1 in h),
-      refine negative_nonpos_measure _ (negative_subset_negative this (set.diff_subset _ _)),
-      exact (measurable_set.Union hmeas).diff (hmeas n) },
+      refine negative_nonpos_measure (negative_subset_negative _ this (set.diff_subset _ _)),
+      exact measurable_set.Union hmeas },
     { apply_instance },
     { exact (measurable_set.Union hmeas).diff (hmeas n) } },
   suffices : ¬ ∀ n : ℕ, s A ≤ -n,
@@ -520,20 +573,21 @@ begin
       of_union (disjoint.comm.1 set.disjoint_diff) _ (hB₁ n)],
       { refine add_le_of_nonpos_left _,
         have : s.negative A := negative_Union_negative hB₁ (λ m, let ⟨_, h⟩ := (hB m).1 in h),
-        refine negative_nonpos_measure _ (negative_subset_negative this (set.diff_subset _ _)),
-        exact (measurable_set.Union hB₁).diff (hB₁ n) },
+        refine negative_nonpos_measure (negative_subset_negative _ this (set.diff_subset _ _)),
+        exact measurable_set.Union hB₁ },
       { apply_instance },
       { exact (measurable_set.Union hB₁).diff (hB₁ n) } },
     { exact real.Inf_le _ measure_of_negatives_bdd_below ⟨A, ⟨hA₁, hA₂⟩, rfl⟩ } },
 
   refine ⟨Aᶜ, A, hA₁.compl, _, hA₁, hA₂,
           disjoint_compl_left, (set.union_comm A Aᶜ) ▸ set.union_compl_self A⟩,
+  rw positive_iff hA₁.compl,
   intros C hC hC₁,
   by_contra hC₂, push_neg at hC₂,
-  rcases exists_negative_set hC₁ hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
+  rcases exists_negative_set hC hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
 
   have : s (A ∪ D) < Inf s.measure_of_negatives,
-  { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC)
+  { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC₁)
         disjoint_compl_right) hA₁ hD₁],
     linarith, apply_instance },
   refine not_le.2 this _,
@@ -560,13 +614,14 @@ lemma of_symm_diff_compl_positive_negative {s : signed_measure α}
   (hi' : s.positive i ∧ s.negative iᶜ) (hj' : s.positive j ∧ s.negative jᶜ) :
   s (i Δ j) = 0 ∧ s (iᶜ Δ jᶜ) = 0 :=
 begin
+  rw [positive_iff, negative_iff] at hi' hj',
   split,
   { rw [symm_diff_def, set.diff_eq_compl_inter, set.diff_eq_compl_inter,
         set.sup_eq_union, of_union,
-        le_antisymm (hi'.2 (set.inter_subset_left _ _) (hi.compl.inter hj))
-          (hj'.1 (set.inter_subset_right _ _) (hi.compl.inter hj)),
-        le_antisymm (hj'.2 (set.inter_subset_left _ _) (hj.compl.inter hi))
-          (hi'.1 (set.inter_subset_right _ _) (hj.compl.inter hi)), add_zero],
+        le_antisymm (hi'.2 (hi.compl.inter hj) (set.inter_subset_left _ _))
+          (hj'.1 (hi.compl.inter hj) (set.inter_subset_right _ _)),
+        le_antisymm (hj'.2 (hj.compl.inter hi) (set.inter_subset_left _ _))
+          (hi'.1 (hj.compl.inter hi) (set.inter_subset_right _ _)), add_zero],
     { exact set.disjoint_of_subset_left (set.inter_subset_left _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _)
         (disjoint.comm.1 (is_compl.disjoint is_compl_compl))) },
@@ -574,15 +629,16 @@ begin
     { exact hi.compl.inter hj } },
   { rw [symm_diff_def, set.diff_eq_compl_inter, set.diff_eq_compl_inter,
         compl_compl, compl_compl, set.sup_eq_union, of_union,
-        le_antisymm (hi'.2 (set.inter_subset_right _ _) (hj.inter hi.compl))
-          (hj'.1 (set.inter_subset_left _ _) (hj.inter hi.compl)),
-        le_antisymm (hj'.2 (set.inter_subset_right _ _) (hi.inter hj.compl))
-          (hi'.1 (set.inter_subset_left _ _) (hi.inter hj.compl)), add_zero],
+        le_antisymm (hi'.2 (hj.inter hi.compl) (set.inter_subset_right _ _))
+          (hj'.1 (hj.inter hi.compl) (set.inter_subset_left _ _)),
+        le_antisymm (hj'.2 (hi.inter hj.compl) (set.inter_subset_right _ _))
+          (hi'.1 (hi.inter hj.compl) (set.inter_subset_left _ _)), add_zero],
     { exact set.disjoint_of_subset_left (set.inter_subset_left _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _)
         (is_compl.disjoint is_compl_compl)) },
     { exact hj.inter hi.compl },
-    { exact hi.inter hj.compl } }
+    { exact hi.inter hj.compl } },
+  all_goals { measurability },
 end
 
 end signed_measure

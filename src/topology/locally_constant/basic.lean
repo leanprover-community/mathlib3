@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import topology.subset_properties
 import topology.connected
 import topology.algebra.monoid
+import topology.continuous_function.basic
 import tactic.tfae
 import tactic.fin_cases
 
@@ -222,13 +223,34 @@ coe_injective (funext h)
 theorem ext_iff {f g : locally_constant X Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-protected lemma continuous [topological_space Y] (f : locally_constant X Y) : continuous f :=
-f.is_locally_constant.continuous
+section codomain_topological_space
+
+variables [topological_space Y] (f : locally_constant X Y)
+
+protected lemma continuous : continuous f := f.is_locally_constant.continuous
+
+/-- We can turn a locally-constant function into a bundled `continuous_map`. -/
+def to_continuous_map : C(X, Y) := ⟨f, f.continuous⟩
+
+/-- As a shorthand, `locally_constant.to_continuous_map` is available as a coercion -/
+instance : has_coe (locally_constant X Y) C(X, Y) := ⟨to_continuous_map⟩
+
+@[simp] lemma to_continuous_map_eq_coe : f.to_continuous_map = f := rfl
+
+@[simp] lemma coe_continuous_map : ((f : C(X, Y)) : X → Y) = (f : X → Y) := rfl
+
+lemma to_continuous_map_injective :
+  function.injective (to_continuous_map : locally_constant X Y → C(X, Y)) :=
+λ _ _ h, ext (continuous_map.congr_fun h)
+
+end codomain_topological_space
 
 /-- The constant locally constant function on `X` with value `y : Y`. -/
 def const (X : Type*) {Y : Type*} [topological_space X] (y : Y) :
   locally_constant X Y :=
 ⟨function.const X y, is_locally_constant.const _⟩
+
+@[simp] lemma coe_const (y : Y) : (const X y : X → Y) = function.const X y := rfl
 
 /-- The locally constant function to `fin 2` associated to a clopen set. -/
 def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x ∈ U)]

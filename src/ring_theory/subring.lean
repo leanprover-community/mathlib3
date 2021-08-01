@@ -373,6 +373,17 @@ set.image_subset_iff
 lemma gc_map_comap (f : R →+* S) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
 
+/-- A subring is isomorphic to its image under an injective function -/
+noncomputable def equiv_map_of_injective
+  (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
+  map_add' := λ _ _, subtype.ext (f.map_add _ _),
+  ..equiv.set.image f s hf  }
+
+@[simp] lemma coe_equiv_map_of_injective_apply
+  (f : R →+* S) (hf : function.injective f) (x : s) :
+  (equiv_map_of_injective s f hf x : S) = f x := rfl
+
 end subring
 
 namespace ring_hom
@@ -667,6 +678,18 @@ end
 lemma coe_Sup_of_directed_on {S : set (subring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
   (↑(Sup S) : set R) = ⋃ s ∈ S, ↑s :=
 set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
+
+lemma mem_map_equiv {f : R ≃+* S} {K : subring R} {x : S} :
+  x ∈ K.map (f : R →+* S) ↔ f.symm x ∈ K :=
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
+
+lemma map_equiv_eq_comap_symm (f : R ≃+* S) (K : subring R) :
+  K.map (f : R →+* S) = K.comap f.symm :=
+set_like.coe_injective (f.to_equiv.image_eq_preimage K)
+
+lemma comap_equiv_eq_map_symm (f : R ≃+* S) (K : subring S) :
+  K.comap (f : R →+* S) = K.map f.symm :=
+(map_equiv_eq_comap_symm f.symm K).symm
 
 end subring
 

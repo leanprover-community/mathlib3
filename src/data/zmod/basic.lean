@@ -6,7 +6,6 @@ Authors: Chris Hughes
 
 import data.int.modeq
 import algebra.char_p.basic
-import data.nat.totient
 import ring_theory.ideal.operations
 import tactic.fin_cases
 
@@ -586,7 +585,7 @@ def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
   right_inv := λ ⟨_, _⟩, by simp }
 
 /-- The **Chinese remainder theorem**. For a pair of coprime natural numbers, `m` and `n`,
-  the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic. 
+  the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic.
 
 See `ideal.quotient_inf_ring_equiv_pi_quotient` for the Chinese remainder theorem for ideals in any
 ring.
@@ -632,29 +631,6 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
   map_add' := ring_hom.map_add _,
   left_inv := inv.1,
   right_inv := inv.2 }
-
-section totient
-open_locale nat
-
-@[simp] lemma card_units_eq_totient (n : ℕ) [fact (0 < n)] :
-  fintype.card (units (zmod n)) = φ n :=
-calc fintype.card (units (zmod n)) = fintype.card {x : zmod n // x.val.coprime n} :
-  fintype.card_congr zmod.units_equiv_coprime
-... = φ n :
-begin
-  apply finset.card_congr (λ (a : {x : zmod n // x.val.coprime n}) _, a.1.val),
-  { intro a, simp [(a : zmod n).val_lt, a.prop.symm] {contextual := tt} },
-  { intros _ _ _ _ h, rw subtype.ext_iff_val, apply val_injective, exact h, },
-  { intros b hb,
-    rw [finset.mem_filter, finset.mem_range] at hb,
-    refine ⟨⟨b, _⟩, finset.mem_univ _, _⟩,
-    { let u := unit_of_coprime b hb.2.symm,
-      exact val_coe_unit_coprime u },
-    { show zmod.val (b : zmod n) = b,
-      rw [val_nat_cast, nat.mod_eq_of_lt hb.1], } }
-end
-
-end totient
 
 instance subsingleton_units : subsingleton (units (zmod 2)) :=
 ⟨λ x y, begin

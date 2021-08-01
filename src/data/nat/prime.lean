@@ -506,7 +506,7 @@ begin
     { exact (hpb (dvd_mul_right _ _)).elim } }
 end
 
-lemma _root_.nat.prime.pow_dvd_of_dvd_mul_left {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
+lemma prime.pow_dvd_of_dvd_mul_left {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
   (hpb : ¬ p ∣ a) : p ^ n ∣ b :=
 by rw [mul_comm] at h; exact hp.pow_dvd_of_dvd_mul_right h hpb
 

@@ -655,6 +655,9 @@ e.to_order_embedding.lt_iff_lt
 lemma le_symm_apply (e : α ≃o β) {x : α} {y : β} : x ≤ e.symm y ↔ e x ≤ y :=
 e.rel_symm_apply
 
+lemma symm_apply_le (e : α ≃o β) {x : α} {y : β} : e.symm y ≤ x ↔ y ≤ e x :=
+e.symm_apply_rel
+
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
 def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)
@@ -677,6 +680,24 @@ def set.univ : (set.univ : set α) ≃o α :=
   map_rel_iff' := λ x y, iff.rfl }
 
 end order_iso
+
+namespace equiv
+
+variables [preorder α] [preorder β]
+
+/-- If `e` is an equivalence with monotone forward and inverse maps, then `e` is an
+order isomorphism. -/
+def to_order_iso (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
+  α ≃o β :=
+⟨e, λ x y, ⟨λ h, by simpa only [e.symm_apply_apply] using h₂ h, λ h, h₁ h⟩⟩
+
+@[simp] lemma coe_to_order_iso (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
+  ⇑(e.to_order_iso h₁ h₂) = e := rfl
+
+@[simp] lemma to_order_iso_to_equiv (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
+  (e.to_order_iso h₁ h₂).to_equiv = e := rfl
+
+end equiv
 
 /-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism
 between `s` and its image. -/

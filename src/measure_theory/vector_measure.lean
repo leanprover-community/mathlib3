@@ -482,6 +482,9 @@ if hi : measurable_set i then
     { rw [Union_inter, if_pos (measurable_set.Union hf₁)] }
   end } else 0
 
+lemma restrict_not_measurable {i : set α} (hi : ¬ measurable_set i) : v.restrict i = 0 :=
+dif_neg hi
+
 lemma restrict_apply {i : set α} (hi : measurable_set i)
   {j : set α} (hj : measurable_set j) : v.restrict i j = v (j ∩ i) :=
 by { rw [restrict, dif_pos hi], exact if_pos hj }
@@ -616,6 +619,33 @@ begin
   by_cases hi : measurable_set i,
   { exact h i hi },
   { rw [v.not_measurable hi, w.not_measurable hi] }
+end
+
+lemma restrict_le_restrict_iff (v w : vector_measure α M) {i : set α} (hi : measurable_set i) :
+  v.restrict i ≤ w.restrict i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j :=
+⟨λ h j hj₁ hj₂, (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj₂) ▸
+  (@restrict_eq_self _ _ _ _ _ w _ hi _ hj₁ hj₂) ▸ h j hj₁,
+ λ h, le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
+  (@restrict_apply _ _ _ _ _ w i hi j hj).symm ▸ h (hj.inter hi) (set.inter_subset_right j i))⟩
+
+lemma subset_le_of_restrict_le_restrict (v w : vector_measure α M) {i : set α}
+  (hi : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) : ∀ ⦃j⦄, j ⊆ i → v j ≤ w j :=
+begin
+  intros j hj,
+  by_cases hj₁ : measurable_set j,
+  { exact (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj) ▸
+      (@restrict_eq_self _ _ _ _ _ w _ hi _ hj₁ hj) ▸ hi₂ j hj₁ },
+  { rw [v.not_measurable hj₁, w.not_measurable hj₁] },
+end
+
+lemma restrict_le_restrict_of_subset_le (v w : vector_measure α M) {i : set α}
+  (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j) : v.restrict i ≤ w.restrict i :=
+begin
+  by_cases hi : measurable_set i,
+  { exact le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
+      (@restrict_apply _ _ _ _ _ w i hi j hj).symm ▸ h (hj.inter hi) (set.inter_subset_right j i)) },
+  { rw [restrict_not_measurable hi, restrict_not_measurable hi],
+    exact le_refl _ },
 end
 
 end

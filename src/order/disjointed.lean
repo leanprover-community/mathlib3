@@ -16,7 +16,7 @@ It is actually unique, as `disjointed_unique` shows.
 
 ## Main declarations
 
-* `disjointed f`: The sequence `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ⊔ f 1)`.
+* `disjointed f`: The sequence `f 0`, `f 1 \ f 0`, `f 2 \ (f 0 ⊔ f 1)`, ....
 * `partial_sups_disjointed`: `disjointed f` has the same partial sups as `f`.
 * `disjoint_disjointed`: The elements of `disjointed f` are pairwise disjoint.
 * `disjointed_unique`: `disjointed f` is the only pairwise disjoint sequence having the same partial
@@ -31,7 +31,7 @@ We also provide set notation variants of some lemmas.
 Find a useful statement of `disjointed_rec_succ`.
 
 One could generalize `disjointed` to any locally finite bot preorder domain, in place of `ℕ`.
-Related to the TODO in `order.partial_sups`.
+Related to the TODO in the module docstring of `order.partial_sups`.
 -/
 
 variables {α β : Type*}

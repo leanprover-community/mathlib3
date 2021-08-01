@@ -29,7 +29,7 @@ One might dispute whether this sequence should start at `f 0` or `⊥`. We choos
 ## TODO
 
 One could generalize `partial_sups` to any locally finite bot preorder domain, in place of `ℕ`.
-Necessary for the TODO in `order.disjointed`.
+Necessary for the TODO in the module docstring of `order.disjointed`.
 -/
 
 variables {α : Type*}

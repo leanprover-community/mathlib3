@@ -30,6 +30,27 @@ When thinking about this operation, some general examples are
 
 -/
 
+
+/--
+An element `a : α` is `regular` (name subject to change) if `x ↦ a + x` is order-reflecting.
+We will make a separate version of lemmas that require `[contravariant_class α α (+) (≤)]` with
+`regular` assumptions instead. These can then be easily instantiated to specific types, like
+`ennreal`, where we can replace the assumption `regular x` by `x ≠ ∞`.
+These lemmas are named with `_of_reg` appended to the name;
+removing `_of_reg` (and potentially adding a prime) gives the lemma for the contravariant case.
+-/
+def regular {α} [has_le α] [has_add α] (a : α) : Prop :=
+∀ ⦃x y⦄, a + x ≤ a + y → x ≤ y
+
+lemma contravariant.regular {α} [has_le α] [has_add α] [contravariant_class α α (+) (≤)] {a : α} :
+  regular a :=
+λ x y, le_of_add_le_add_left
+
+-- todo
+instance {α β} [linear_order β] (f : α → β → β) [contravariant_class α β f (≤)] :
+  covariant_class α β f (<) :=
+⟨(covariant_lt_iff_contravariant_le α β f).mpr contravariant_class.elim⟩
+
 /-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ b + c`.
 
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
@@ -126,17 +147,6 @@ by { rw [sub_le_iff_left, add_left_comm], exact add_le_add_left le_add_sub a }
 
 end cov
 
-/--
-An element `a : α` is `regular` (name subject to change) if `x ↦ a + x` is order-reflecting.
-We will make a separate version of lemmas that require `[contravariant_class α α (+) (≤)]` with
-`regular` assumptions instead. These can then be easily instantiated to specific types, like
-`ennreal`, where we can replace the assumption `regular x` by `x ≠ ∞`.
-These lemmas are named with `_of_reg` appended to the name;
-removing `_of_reg` (and potentially adding a prime) gives the lemma for the contravariant case.
--/
-def regular {α} [has_le α] [has_add α] (a : α) : Prop :=
-∀ ⦃x y⦄, a + x ≤ a + y → x ≤ y
-
 lemma le_add_sub_of_reg (hb : regular b) : a ≤ b + a - b :=
 hb le_add_sub
 
@@ -179,9 +189,6 @@ end
 
 section contra
 variable [contravariant_class α α (+) (≤)]
-
-lemma contravariant.regular : regular a :=
-λ x y, le_of_add_le_add_left
 
 lemma le_add_sub' : a ≤ b + a - b :=
 le_add_sub_of_reg contravariant.regular
@@ -282,6 +289,18 @@ lemma add_sub_cancel_iff_le : a + (b - a) = b ↔ a ≤ b :=
 lemma sub_add_cancel_iff_le : b - a + a = b ↔ a ≤ b :=
 by { rw [add_comm], exact add_sub_cancel_iff_le }
 
+lemma add_le_of_le_sub_right_of_le (h : b ≤ c) (h2 : a ≤ c - b) : a + b ≤ c :=
+(add_le_add_right h2 b).trans_eq $ sub_add_cancel_of_le h
+
+lemma add_le_of_le_sub_left_of_le (h : a ≤ c) (h2 : b ≤ c - a) : a + b ≤ c :=
+(add_le_add_left h2 a).trans_eq $ add_sub_cancel_of_le h
+
+lemma sub_le_sub_iff_right' (h : c ≤ b) : a - c ≤ b - c ↔ a ≤ b :=
+by rw [sub_le_iff_right, sub_add_cancel_of_le h]
+
+lemma lt_of_sub_lt_sub_right_of_le (h : c ≤ b) (h2 : a - c < b - c) : a < b :=
+by { refine ((sub_le_sub_iff_right' h).mp h2.le).lt_of_ne _, rintro rfl, exact h2.false }
+
 lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by rw [← nonpos_iff_eq_zero, sub_le_iff_left, add_zero]
 
@@ -293,9 +312,6 @@ sub_le_iff_left.mpr $ le_add_left le_rfl
 
 @[simp] lemma sub_zero' : a - 0 = a :=
 le_antisymm sub_le_self' $ le_add_sub.trans_eq $ zero_add _
-
-lemma sub_le_sub_iff_right' (h : c ≤ b) : a - c ≤ b - c ↔ a ≤ b :=
-by rw [sub_le_iff_right, sub_add_cancel_of_le h]
 
 lemma sub_self_add (a b : α) : a - (a + b) = 0 :=
 by { rw [sub_eq_zero_iff_le], apply self_le_add_right }
@@ -318,8 +334,6 @@ end
 lemma sub_sub_sub_cancel_right' (h : c ≤ b) : (a - c) - (b - c) = a - b :=
 by rw [sub_sub', add_sub_cancel_of_le h]
 
-
-
 -- lemma sub_lt_sub_iff_left (H : b ≤ a) : a - b < a - c ↔ c < b :=
 -- lt_iff_lt_of_le_iff_le (sub_le_sub_iff_left H)
 
@@ -330,7 +344,7 @@ by rw [sub_sub', add_sub_cancel_of_le h]
 -- (sub_lt_iff_left_lt_add h₁).trans (sub_lt_iff_right_lt_add h₂).symm
 
 lemma le_sub_iff_left_of_reg (ha : regular a) (h : a ≤ c) : b ≤ c - a ↔ a + b ≤ c :=
-⟨λ h2, (add_le_add_left h2 a).trans_eq $ add_sub_cancel_of_le h, le_sub_of_add_le_left_of_reg ha⟩
+⟨add_le_of_le_sub_left_of_le h, le_sub_of_add_le_left_of_reg ha⟩
 
 lemma le_sub_iff_right_of_reg (ha : regular a) (h : a ≤ c) : b ≤ c - a ↔ b + a ≤ c :=
 by { rw [add_comm], exact le_sub_iff_left_of_reg ha h }
@@ -459,17 +473,20 @@ by { apply lt_sub_of_add_lt_left, rwa [add_sub_cancel_of_le h] }
 --   rw [add_zero]
 -- end
 
-lemma add_lt_of_lt_sub_right (h : c ≤ b) (h2 : a < b - c) : a + c < b :=
+/-- See `lt_sub_iff_right` for a stronger statement in a linear order. -/
+lemma lt_sub_iff_right_of_le (h : c ≤ b) : a < b - c ↔ a + c < b :=
 begin
-  rw [← add_sub_cancel_of_le h, ← add_sub_cancel_of_le h2.le, ← add_assoc, add_comm a],
-  convert add_lt_add_left (sub_pos_of_lt' h2) (c + a) using 1,
-  rw [add_zero]
+  refine ⟨_, lt_sub_of_add_lt_right⟩,
+  intro h2,
+  refine (add_le_of_le_sub_right_of_le h h2.le).lt_of_ne _,
+  rintro rfl,
+  apply h2.not_le,
+  rw [add_sub_cancel_right]
 end
 
-
--- todo
-lemma lt_of_sub_lt_sub_right_of_le (h : c ≤ a) (h2 : a - c < b - c) : a < b :=
-by { rwa [← add_sub_cancel_of_le h], sorry }
+/-- See `lt_sub_iff_left` for a stronger statement in a linear order. -/
+lemma lt_sub_iff_left_of_le (h : c ≤ b) : a < b - c ↔ c + a < b :=
+by { rw [add_comm], exact lt_sub_iff_right_of_le h }
 
 end both
 
@@ -491,15 +508,13 @@ end
 section contra
 variable [contravariant_class α α (+) (≤)]
 
--- todo
-instance : covariant_class α α (+) (<) :=
-⟨(covariant_lt_iff_contravariant_le α α (+)).mpr contravariant_class.elim⟩
-
-/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
+/-- See `lt_sub_iff_right_of_le` for a weaker statement in a partial order.
+This lemma also holds for `ennreal`, but we need a different proof for that. -/
 lemma lt_sub_iff_right : a < b - c ↔ a + c < b :=
 ⟨lt_imp_lt_of_le_imp_le sub_le_iff_right.mpr, lt_sub_of_add_lt_right⟩
 
-/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
+/-- See `lt_sub_iff_left_of_le` for a weaker statement in a partial order.
+This lemma also holds for `ennreal`, but we need a different proof for that. -/
 lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
 ⟨lt_imp_lt_of_le_imp_le sub_le_iff_left.mpr, lt_sub_of_add_lt_left⟩
 
@@ -527,7 +542,8 @@ begin
   exact h.false
 end
 
-
 end contra
 
 end canonically_linear_ordered_add_monoid
+
+-- #lint

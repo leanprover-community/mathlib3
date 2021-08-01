@@ -22,7 +22,6 @@ instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : 
 instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 instance [has_sub α] : has_sub (completion α) := ⟨completion.map₂ has_sub.sub⟩
 
--- TODO: switch sides once #1103 is fixed
 @[norm_cast]
 lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
 end group
@@ -81,7 +80,7 @@ instance : uniform_add_group (completion α) :=
 ⟨uniform_continuous_map₂ has_sub.sub⟩
 
 /-- The map from a group to its completion as a group hom. -/
-def to_compl : α →+ completion α :=
+@[simps] def to_compl : α →+ completion α :=
 { to_fun := coe,
   map_add' := coe_add,
   map_zero' := coe_zero }
@@ -126,6 +125,7 @@ lemma add_monoid_hom.extension_coe [complete_space β] [separated_space β] (f :
   (hf : continuous f) (a : α) : f.extension hf a = f a :=
 extension_coe (uniform_continuous_of_continuous hf) a
 
+@[continuity]
 lemma add_monoid_hom.continuous_extension [complete_space β] [separated_space β] (f : α →+ β)
   (hf : continuous f) : continuous (f.extension hf) :=
 continuous_extension
@@ -134,6 +134,7 @@ continuous_extension
 def add_monoid_hom.completion (f : α →+ β) (hf : continuous f) : completion α →+ completion β :=
 (to_compl.comp f).extension (continuous_to_compl.comp hf)
 
+@[continuity]
 lemma add_monoid_hom.continuous_completion (f : α →+ β)
   (hf : continuous f) : continuous (f.completion hf : completion α → completion β) :=
 continuous_map
@@ -153,8 +154,8 @@ begin
 end
 
 lemma add_monoid_hom.completion_add {γ : Type*} [add_comm_group γ] [uniform_space γ]
-  [uniform_add_group γ]  (f g : α →+ γ) (hf : continuous f) (hg : continuous g) :
-(f + g).completion (hf.add hg) = f.completion hf + g.completion hg :=
+  [uniform_add_group γ] (f g : α →+ γ) (hf : continuous f) (hg : continuous g) :
+  (f + g).completion (hf.add hg) = f.completion hf + g.completion hg :=
 begin
   have hfg := hf.add hg,
   ext x,

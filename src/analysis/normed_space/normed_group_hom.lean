@@ -196,6 +196,13 @@ lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * �
   ∥f∥ ≤ M :=
 real.Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
+lemma op_norm_eq_of_bounds {M : ℝ} (M_nonneg : 0 ≤ M)
+  (h_above : ∀ x, ∥f x∥ ≤ M*∥x∥) (h_below : ∀ N ≥ 0, (∀ x, ∥f x∥ ≤ N*∥x∥) → M ≤ N) :
+  ∥f∥ = M :=
+le_antisymm (f.op_norm_le_bound M_nonneg h_above)
+  ((le_cInf_iff normed_group_hom.bounds_bdd_below ⟨M, M_nonneg, h_above⟩).mpr $
+   λ N ⟨N_nonneg, hN⟩, h_below N N_nonneg hN)
+
 theorem op_norm_le_of_lipschitz {f : normed_group_hom V₁ V₂} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0

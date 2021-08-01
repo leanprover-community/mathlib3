@@ -81,7 +81,7 @@ lemma normed_group_hom.completion_coe (f : normed_group_hom G H) (g : G) : f.com
 completion.map_coe f.uniform_continuous _
 
 /-- Completion of normed group homs as a normed group hom. -/
-def normed_group_hom_completion_hom :
+@[simps] def normed_group_hom_completion_hom :
   normed_group_hom G H →+ normed_group_hom (completion G) (completion H) :=
 { to_fun := normed_group_hom.completion,
   map_zero' := begin
@@ -125,6 +125,10 @@ lemma normed_group_hom.completion_sub (f g : normed_group_hom G H) :
   (f - g).completion = f.completion - g.completion :=
 normed_group_hom_completion_hom.map_sub f g
 
+@[simp]
+lemma normed_group_hom.zero_completion : (0 : normed_group_hom G H).completion = 0 :=
+normed_group_hom_completion_hom.map_zero
+
 /-- The map from a normed group to its completion, as a normed group hom. -/
 def normed_group.to_compl : normed_group_hom G (completion G) :=
 { to_fun := coe,
@@ -135,16 +139,6 @@ open normed_group
 
 lemma normed_group.norm_to_compl (x : G) : ∥to_compl x∥ = ∥x∥ :=
 completion.norm_coe x
-
-@[simp]
-lemma normed_group_hom.zero_completion : (0 : normed_group_hom G H).completion = 0 :=
-begin
-  ext,
-  apply completion.induction_on x,
-  { apply is_closed_eq,
-    continuity },
-  { simp [normed_group_hom.mem_ker, completion.coe_zero] }
-end
 
 lemma normed_group.dense_range_to_compl : dense_range (to_compl : G → completion G) :=
 completion.dense_inducing_coe.dense
@@ -158,15 +152,19 @@ begin
   simpa
 end
 
-lemma normed_group_hom.norm_completion_le (f : normed_group_hom G H) : ∥f.completion∥ ≤ ∥f∥ :=
+@[simp] lemma normed_group_hom.norm_completion (f : normed_group_hom G H) : ∥f.completion∥ = ∥f∥ :=
 begin
-  apply f.completion.op_norm_le_bound (norm_nonneg _),
-  intro x,
-  apply completion.induction_on x,
-  { apply is_closed_le,
-    continuity },
-  { intro g,
-    simp [f.le_op_norm  g] },
+  apply f.completion.op_norm_eq_of_bounds (norm_nonneg _),
+  { intro x,
+    apply completion.induction_on x,
+    { apply is_closed_le,
+      continuity },
+    { intro g,
+      simp [f.le_op_norm  g] } },
+  { intros N N_nonneg hN,
+    apply f.op_norm_le_bound N_nonneg,
+    intro x,
+    simpa using hN x },
 end
 
 lemma normed_group_hom.ker_le_ker_completion (f : normed_group_hom G H) :
@@ -234,9 +232,7 @@ begin
         ... = ∥f.completion g - (f.completion hatg)∥ : by rw [(f.completion.mem_ker _).mp hatg_in]
         ... = ∥f.completion (g - hatg)∥ : by rw [f.completion.map_sub]
         ... ≤ ∥f.completion∥ * ∥(g :completion G) - hatg∥ : f.completion.le_op_norm _
-        ... = ∥f.completion∥ * ∥hatg - g∥ : by rw norm_sub_rev
-        ... ≤ ∥f∥ * ∥hatg - g∥ : mul_le_mul_of_nonneg_right
-          (normed_group_hom.norm_completion_le f) (norm_nonneg _),
+        ... = ∥f∥ * ∥hatg - g∥ : by rw [norm_sub_rev, f.norm_completion],
     have : ∥(g' : completion G)∥ ≤ C*∥f∥*∥hatg - g∥,
     calc
     ∥(g' : completion G)∥ = ∥g'∥ : completion.norm_coe _

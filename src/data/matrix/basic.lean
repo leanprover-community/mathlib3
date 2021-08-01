@@ -8,6 +8,7 @@ import algebra.module.pi
 import algebra.module.linear_map
 import algebra.big_operators.ring
 import algebra.star.pi
+import algebra.algebra.basic
 import data.equiv.ring
 import data.fintype.card
 import data.matrix.dmatrix
@@ -518,6 +519,32 @@ map_zero f.map_zero
   (0 : matrix n n α).map f = 0 :=
 map_zero f.map_zero
 
+section algebra
+
+variables [comm_semiring R] [semiring α] [algebra R α] [semiring β] [algebra R β]
+
+/-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_one [decidable_eq n]
+  (f : α →ₐ[R] β) : (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_one [decidable_eq n]
+  (f : α ≃ₐ[R] β) : (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_zero
+  (f : α →ₐ[R] β) : (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_zero
+  (f : α ≃ₐ[R] β) : (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+end algebra
+
 end homs
 
 end matrix
@@ -629,6 +656,14 @@ end semiring
 
 section comm_semiring
 variables [comm_semiring α]
+
+instance [decidable_eq n] : algebra α (matrix n n α) :=
+{ commutes' := by { intros, simp [matrix.scalar], },
+  smul_def' := by { intros, simp [matrix.scalar], },
+  ..(matrix.scalar n) }
+
+@[simp] lemma matrix.algebra_map_eq_smul [decidable_eq n] (r : α) :
+  (algebra_map α (matrix n n α)) r = r • 1 := rfl
 
 lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
   a • M = M ⬝ diagonal (λ _, a) :=

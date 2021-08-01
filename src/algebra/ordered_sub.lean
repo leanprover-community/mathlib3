@@ -295,7 +295,7 @@ sub_le_iff_left.mpr $ le_add_left le_rfl
 @[simp] lemma sub_zero' : a - 0 = a :=
 le_antisymm sub_le_self' $ le_add_sub.trans_eq $ zero_add _
 
-lemma sub_le_sub_iff_right (h : c ≤ b) : a - c ≤ b - c ↔ a ≤ b :=
+lemma sub_le_sub_iff_right' (h : c ≤ b) : a - c ≤ b - c ↔ a ≤ b :=
 by rw [sub_le_iff_right, sub_add_cancel_of_le h]
 
 lemma sub_self_add (a b : α) : a - (a + b) = 0 :=
@@ -413,7 +413,7 @@ sub_lt_iff_left_of_reg contravariant.regular hbc
 lemma sub_lt_iff_right (hbc : b ≤ a) : a - b < c ↔ a < c + b :=
 sub_lt_iff_right_of_reg contravariant.regular hbc
 
-lemma sub_le_sub_iff_left (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
+lemma sub_le_sub_iff_left' (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
 sub_le_sub_iff_left_of_reg contravariant.regular contravariant.regular h
 
 @[simp] lemma add_sub_sub_cancel' (h : c ≤ a) : (a + b) - (a - c) = b + c :=
@@ -455,7 +455,7 @@ by { apply lt_sub_of_add_lt_left, rwa [add_sub_cancel_of_le h] }
 
 -- todo
 lemma lt_of_sub_lt_sub_right_of_le (h : c ≤ a) (h2 : a - c < b - c) : a < b :=
-by { rwa [← add_sub_cancel_of_le h], }
+by { rwa [← add_sub_cancel_of_le h], sorry }
 
 end both
 
@@ -490,7 +490,7 @@ lemma lt_sub_iff_left : a < b - c ↔ c + a < b :=
 ⟨lt_imp_lt_of_le_imp_le sub_le_iff_left.mpr, lt_sub_of_add_lt_left⟩
 
 /-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma sub_lt_sub_iff_right (h : c ≤ a) : a - c < b - c ↔ a < b :=
+lemma sub_lt_sub_iff_right' (h : c ≤ a) : a - c < b - c ↔ a < b :=
 by rw [lt_sub_iff_left, add_sub_cancel_of_le h]
 
 lemma sub_lt_self' (h₁ : 0 < a) (h₂ : 0 < b) : a - b < a :=
@@ -503,7 +503,7 @@ begin
   exact h₂.not_le this,
 end
 
-lemma sub_lt_self_iff : a - b < a ↔ 0 < a ∧ 0 < b :=
+lemma sub_lt_self_iff' : a - b < a ↔ 0 < a ∧ 0 < b :=
 begin
   refine ⟨_, λ h, sub_lt_self' h.1 h.2⟩,
   intro h,

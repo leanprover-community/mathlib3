@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.ordered_ring
+import algebra.ordered_sub
 
 /-!
 # Basic operations on the natural numbers
@@ -470,7 +471,7 @@ lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
 
 Todo: remove lemmas that are proven in general for `has_ordered_sub`. -/
 
-theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
+protected theorem sub_le_iff_right : m - n ≤ k ↔ m ≤ k + n :=
 begin
   induction n with n ih generalizing k,
   { simp },
@@ -478,13 +479,13 @@ begin
 end
 
 instance : has_ordered_sub ℕ :=
-⟨λ n m k, sub_le_left_iff_le_add⟩
+⟨λ n m k, nat.sub_le_iff_right⟩
 
 protected theorem le_sub_add (n m : ℕ) : n ≤ n - m + m :=
 le_sub_add
 
 protected theorem add_sub_cancel' {n m : ℕ} (h : m ≤ n) : m + (n - m) = n :=
-add_sub_eq_of_le h
+add_sub_cancel_of_le h
 
 protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
   (a - b) + (b - c) = a - c :=
@@ -588,8 +589,11 @@ protected theorem lt_sub_left_iff_add_lt : n < k - m ↔ m + n < k :=
 protected theorem lt_sub_right_iff_add_lt : m < k - n ↔ m + n < k :=
 by rw [nat.lt_sub_left_iff_add_lt, add_comm]
 
+theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
+sub_le_iff_left
+
 theorem sub_le_right_iff_le_add : m - k ≤ n ↔ m ≤ n + k :=
-by rw [nat.sub_le_left_iff_le_add, add_comm]
+sub_le_iff_right
 
 protected theorem sub_lt_right_iff_lt_add (H : k ≤ m) : m - k < n ↔ m < n + k :=
 by rw [nat.sub_lt_left_iff_lt_add H, add_comm]

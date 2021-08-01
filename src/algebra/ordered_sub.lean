@@ -35,6 +35,7 @@ When thinking about this operation, some general examples are
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
 in canonically ordered monoids.
 -/
+
 class has_ordered_sub (α : Type*) [preorder α] [has_add α] [has_sub α] :=
 (sub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
 -- (lt_sub_iff_add_lt : ∀ a b c : α, a < b - c ↔ a + c < b)
@@ -123,6 +124,49 @@ lemma add_sub_le_assoc : a + b - c ≤ a + (b - c) :=
 by { rw [sub_le_iff_left, add_left_comm], exact add_le_add_left le_add_sub a }
 
 end cov
+
+def regular {α} [has_le α] [has_add α] (a : α) : Prop :=
+∀ ⦃x y⦄, a + x ≤ a + y → x ≤ y
+
+lemma le_add_sub_of_reg (hb : regular b) : a ≤ b + a - b :=
+hb le_add_sub
+
+lemma sub_eq_of_eq_add_of_reg (hb : regular b) (h : a = b + c) : a - b = c :=
+le_antisymm (sub_le_iff_left.mpr h.le) $
+  by { rw h, exact le_add_sub_of_reg hb }
+
+lemma eq_sub_of_add_eq_of_reg (hc : regular c) (h : a + c = b) : a = b - c :=
+(sub_eq_of_eq_add_of_reg hc $ by rw [add_comm, h]).symm
+
+@[simp]
+lemma add_sub_cancel_right_of_reg (hb : regular b) : a + b - b = a :=
+sub_eq_of_eq_add_of_reg hb $ by rw [add_comm]
+
+@[simp]
+lemma add_sub_cancel_left_of_reg (ha : regular a) : a + b - a = b :=
+sub_eq_of_eq_add_of_reg ha rfl
+
+lemma le_sub_left_of_add_le_of_reg (ha : regular a) (h : a + b ≤ c) : b ≤ c - a :=
+ha $ h.trans le_add_sub
+
+lemma le_sub_right_of_add_le_of_reg (hb : regular b) (h : a + b ≤ c) : a ≤ c - b :=
+le_sub_left_of_add_le_of_reg hb $ by rwa [add_comm]
+
+lemma lt_add_of_sub_left_lt_of_reg (hb : regular b) (h : a - b < c) : a < b + c :=
+begin
+  rw [lt_iff_le_and_ne, ← sub_le_iff_left],
+  refine ⟨h.le, _⟩,
+  rintro rfl,
+  simpa [hb] using h,
+end
+
+lemma lt_add_of_sub_right_lt_of_reg (hc : regular c) (h : a - c < b) : a < b + c :=
+begin
+  rw [lt_iff_le_and_ne, ← sub_le_iff_right],
+  refine ⟨h.le, _⟩,
+  rintro rfl,
+  simpa [hc] using h,
+end
 
 section contra
 variable [contravariant_class α α (+) (≤)]
@@ -481,12 +525,8 @@ instance : covariant_class α α (+) (<) :=
 
 /-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
 lemma lt_sub_right_of_add_lt (h : a + c < b) : a < b - c :=
-begin
-  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h.le,
-  rw [add_right_comm, add_sub_cancel_right, lt_add_iff_pos_right, pos_iff_ne_zero],
-  rintro rfl,
-  exact h.ne (add_zero _).symm
-end
+by rwa [← add_sub_cancel_of_le h.le, add_right_comm, add_sub_cancel_right, lt_add_iff_pos_right,
+    sub_pos_iff_lt]
 
 lemma sub_lt_self' (h₁ : 0 < a) (h₂ : 0 < b) : a - b < a :=
 begin

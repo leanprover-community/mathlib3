@@ -902,6 +902,17 @@ end
 lemma closure_inter_open' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
 by simpa only [inter_comm] using closure_inter_open h
 
+lemma mem_closure_of_mem_closure_union {s₁ s₂ : set α} {x : α} (h : x ∈ closure (s₁ ∪ s₂))
+  (h₁ : s₁ᶜ ∈ 𝓝 x) : x ∈ closure s₂ :=
+begin
+  rw mem_closure_iff_nhds_ne_bot at *,
+  rwa ← calc
+    𝓝 x ⊓ principal (s₁ ∪ s₂) = 𝓝 x ⊓ (principal s₁ ⊔ principal s₂) : by rw sup_principal
+    ... = (𝓝 x ⊓ principal s₁) ⊔ (𝓝 x ⊓ principal s₂) : inf_sup_left
+    ... = ⊥ ⊔ 𝓝 x ⊓ principal s₂ : by rw inf_principal_eq_bot.mpr h₁
+    ... = 𝓝 x ⊓ principal s₂ : bot_sup_eq
+end
+
 /-- The intersection of an open dense set with a dense set is a dense set. -/
 lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
   dense (s ∩ t) :=
@@ -1183,6 +1194,19 @@ lemma continuous_iff_is_closed {f : α → β} :
 lemma is_closed.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_closed s) :
   is_closed (f ⁻¹' s) :=
 continuous_iff_is_closed.mp hf s h
+
+lemma mem_closure_image {f : α → β} {x : α} {s : set α} (hf : continuous_at f x)
+  (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
+begin
+  rw [mem_closure_iff_nhds_ne_bot] at hx ⊢,
+  rw ← bot_lt_iff_ne_bot,
+  haveI : ne_bot _ := ⟨hx⟩,
+  calc
+    ⊥   < map f (𝓝 x ⊓ principal s) : bot_lt_iff_ne_bot.mpr ne_bot.ne'
+    ... ≤ (map f $ 𝓝 x) ⊓ (map f $ principal s) : map_inf_le
+    ... = (map f $ 𝓝 x) ⊓ (principal $ f '' s) : by rw map_principal
+    ... ≤ 𝓝 (f x) ⊓ (principal $ f '' s) : inf_le_inf hf le_rfl
+end
 
 lemma continuous_at_iff_ultrafilter {f : α → β} {x} : continuous_at f x ↔
   ∀ g : ultrafilter α, ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=

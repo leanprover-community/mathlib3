@@ -32,7 +32,7 @@ conformal
 ## Warning
 
 The definition of conformality in this file does NOT require the maps to be orientation-preserving.
-Maps such as the complex conjugate is considered as a conformal map.
+Maps such as the complex conjugate are considered to be conformal.
 -/
 
 noncomputable theory

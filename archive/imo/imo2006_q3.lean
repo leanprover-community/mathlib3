@@ -30,7 +30,7 @@ It involves making the substitution
 open real
 
 /-- Replacing `x` and `y` with their average increases the left side. -/
-lemma rhs₁ {x y : ℝ} (hxy : 0 ≤ x * y) :
+lemma lhs_ineq {x y : ℝ} (hxy : 0 ≤ x * y) :
   16 * x ^ 2 * y ^ 2 * (x + y) ^ 2 ≤ ((x + y) ^ 2) ^ 3 :=
 begin
   conv_rhs { rw pow_succ' },
@@ -45,8 +45,8 @@ end
 
 lemma four_pow_four_pos : (0 : ℝ) < 4 ^ 4 := pow_pos zero_lt_four _
 
-lemma rhs₂ {s t : ℝ} :
-   s * t ^ 3 ≤ (3 * t + s) ^ 4 / 4^4 :=
+lemma mid_ineq {s t : ℝ} :
+  s * t ^ 3 ≤ (3 * t + s) ^ 4 / 4 ^ 4 :=
 (le_div_iff four_pow_four_pos).mpr $ le_of_sub_nonneg $
   calc  (3 * t + s) ^ 4 - s * t ^ 3 * 4 ^ 4
       = (s - t) ^ 2 * ((s + 7 * t) ^ 2 + 2 * (4 * t) ^ 2)
@@ -55,7 +55,7 @@ lemma rhs₂ {s t : ℝ} :
               mul_nonneg zero_le_two (sq_nonneg _)
 
 /-- Replacing `x` and `y` with their average decreases the right side. -/
-lemma rhs₃ {x y : ℝ} :
+lemma rhs_ineq {x y : ℝ} :
   3 * (x + y) ^ 2 ≤ 2 * (x ^ 2 + y ^ 2 + (x + y) ^ 2) :=
 le_of_sub_nonneg $
   calc _ = (x - y) ^ 2 : by ring
@@ -70,11 +70,11 @@ have hs : 0 ≤ 2 * s ^ 2 := mul_nonneg zero_le_two (sq_nonneg s),
 have this : _ :=
   calc  (2 * s^2) * (16 * x^2 * y^2 * (x + y)^2)
       ≤ (3 * (x + y)^2 + 2 * s^2)^4 / 4^4 :
-          le_trans (mul_le_mul_of_nonneg_left (rhs₁ hxy) hs) rhs₂
+          le_trans (mul_le_mul_of_nonneg_left (lhs_ineq hxy) hs) mid_ineq
   ... ≤ (2 * (x^2 + y^2 + (x + y)^2) + 2 * s^2)^4 / 4^4 :
           div_le_div_of_le four_pow_four_pos.le $ pow_le_pow_of_le_left
             (add_nonneg (mul_nonneg zero_lt_three.le (sq_nonneg _)) hs)
-            (add_le_add_right rhs₃ _) _,
+            (add_le_add_right rhs_ineq _) _,
 le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
   calc  (32 * abs (x * y * z * s)) ^ 2
       = 32 * ((2 * s^2) * (16 * x^2 * y^2 * (x + y)^2)) :

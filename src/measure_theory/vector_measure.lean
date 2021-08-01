@@ -436,7 +436,7 @@ section
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {v : vector_measure α M}
 
-/-- The pushforward of a vector measure along a measurable function. -/
+/-- The pushforward of a vector measure along a function. -/
 def map (v : vector_measure α M) (f : α → β) :
   vector_measure β M :=
 if hf : measurable f then
@@ -466,7 +466,7 @@ begin
   { exact dif_neg hf }
 end
 
-/-- The restriction of a vector measure on some measurable set-/
+/-- The restriction of a vector measure on some set. -/
 def restrict (v : vector_measure α M) (i : set α) :
   vector_measure α M :=
 if hi : measurable_set i then
@@ -518,7 +518,7 @@ begin
 end
 
 /-- `vector_measure.map` as an additive monoid homomorphism. -/
-@[simps] def map' (f : α → β) : vector_measure α M →+ vector_measure β M :=
+@[simps] def map_gm (f : α → β) : vector_measure α M →+ vector_measure β M :=
 { to_fun := λ v, v.map f,
   map_zero' := map_zero f,
   map_add' := λ _ _, map_add _ _ f }
@@ -533,7 +533,7 @@ begin
 end
 
 /--`vector_measure.restrict` as an additive monoid homomorphism. -/
-@[simps] def restrict' (i : set α) : vector_measure α M →+ vector_measure α M :=
+@[simps] def restrict_gm (i : set α) : vector_measure α M →+ vector_measure α M :=
 { to_fun := λ v, v.restrict i,
   map_zero' := restrict_zero,
   map_add' := λ _ _, restrict_add _ _ i }
@@ -579,13 +579,13 @@ variables {R : Type*} [semiring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M] [has_continuous_add M]
 
 /-- `vector_measure.map` as a linear map. -/
-@[simps] def map'' (f : α → β) : vector_measure α M →ₗ[R] vector_measure β M :=
+@[simps] def mapₗ (f : α → β) : vector_measure α M →ₗ[R] vector_measure β M :=
 { to_fun := λ v, v.map f,
   map_add' := λ _ _, map_add _ _ f,
   map_smul' := λ _ _, map_smul _ }
 
 /-- `vector_measure.restrict` as an additive monoid homomorphism. -/
-@[simps] def restrict'' (i : set α) : vector_measure α M →ₗ[R] vector_measure α M :=
+@[simps] def restrictₗ (i : set α) : vector_measure α M →ₗ[R] vector_measure α M :=
 { to_fun := λ v, v.restrict i,
   map_add' := λ _ _, restrict_add _ _ i,
   map_smul' := λ _ _, restrict_smul _ }

@@ -10,7 +10,7 @@ import order.symm_diff
 # Hahn decomposition
 
 This file defines positive and negative sets with respect to a vector measure and
-prove the Hahn decomposition (signed version).
+prove the Hahn decomposition theorem (signed version).
 
 ## Main definitions
 
@@ -27,7 +27,7 @@ prove the Hahn decomposition (signed version).
 
 ## Tags
 
-positive, negative, Hahn decomposition
+positive, negative, Hahn decomposition theorem
 -/
 
 noncomputable theory

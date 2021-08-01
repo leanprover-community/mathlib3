@@ -1775,11 +1775,11 @@ iff.rfl
 
 @[simp] lemma forall_gpowers {x : G} {p : gpowers x → Prop} :
   (∀ g, p g) ↔ ∀ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
-⟨λ H m, H _, λ H ⟨y, m, hy⟩, by { subst y, apply H }⟩
+set.forall_subtype_range_iff
 
 @[simp] lemma exists_gpowers {x : G} {p : gpowers x → Prop} :
   (∃ g, p g) ↔ ∃ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
-⟨λ ⟨⟨y, m, hm⟩, hy⟩, ⟨m, by { subst y, exact hy }⟩, λ ⟨m, h⟩, ⟨_, h⟩⟩
+set.exists_subtype_range_iff
 
 lemma forall_mem_gpowers {x : G} {p : G → Prop} :
   (∀ g ∈ gpowers x, p g) ↔ ∀ m : ℤ, p (x ^ m) :=

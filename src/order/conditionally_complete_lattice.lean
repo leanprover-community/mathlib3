@@ -79,9 +79,9 @@ class conditionally_complete_lattice (α : Type*) extends lattice α, has_Sup α
 /-- Construct a conditionally complete lattice from a `lattice` structure, a `Sup` function
 such that `is_lub s (Sup s)` for any nonempty bounded above set `s`, and an order-reversing
 isomorphism `e`. We put `Inf s = e (Sup $ e ⁻¹' s)`. -/
-def conditionally_complete_lattice_of_Sup_of_rel_iso {α : Type*}
-  [lattice α] (e : α ≃o order_dual α) (f : set α → α)
-  (hf : ∀ s : set α, s.nonempty → bdd_above s → is_lub s (f s)) :
+def conditionally_complete_lattice_of_Sup_of_rel_iso {α : Type*} [lattice α]
+  (f : set α → α) (hf : ∀ s : set α, s.nonempty → bdd_above s → is_lub s (f s))
+  (e : α ≃o order_dual α) :
   conditionally_complete_lattice α :=
 { Sup := f,
   Inf := λ s, e (f (e ⁻¹' s)),
@@ -89,6 +89,23 @@ def conditionally_complete_lattice_of_Sup_of_rel_iso {α : Type*}
   is_glb_cInf := λ s hne hbdd, e.is_lub_preimage.1 $
     hf _ (e.surjective.nonempty_preimage.2 hne) (e.bdd_above_preimage.2 hbdd),
   .. ‹lattice α› }
+
+section
+
+open_locale classical
+
+/-- Construct a conditionally complete lattice from a `lattice` structure, a proof of the fact that
+every nonempty bounded above set has the least upper bound, a default value for supermum of the
+empty set and of unbounded sets, and an order-reversing isomorphism `e`. We put
+`Inf s = e (Sup $ e ⁻¹' s)`. -/
+noncomputable def conditionally_complete_lattice_of_is_lub_of_rel_iso {α : Type*} [lattice α]
+  (H : ∀ s : set α, s.nonempty → bdd_above s → ∃ a, is_lub s a) (d : α) (e : α ≃o order_dual α) :
+  conditionally_complete_lattice α :=
+conditionally_complete_lattice_of_Sup_of_rel_iso
+  (λ s, if h : s.nonempty ∧ bdd_above s then (H s h.1 h.2).some else d)
+  (λ s hne hbdd, by { rw dif_pos (and.intro hne hbdd), apply Exists.some_spec, }) e
+
+end
 
 /-- A conditionally complete linear order is a linear order in which
 every nonempty subset which is bounded above has a supremum, and

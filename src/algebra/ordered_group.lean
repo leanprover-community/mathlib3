@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
 import order.rel_iso
+import order.order_dual
 
 /-!
 # Ordered groups
@@ -274,6 +275,12 @@ lemma inv_le_inv_iff : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by { rw [← mul_le_mul_iff_left a, ← mul_le_mul_iff_right b], simp }
 
 alias neg_le_neg_iff ↔ le_of_neg_le_neg _
+
+/-- `x ↦ x⁻¹` as an order-reversing equivalence. -/
+@[to_additive "`x ↦ -x` as an order-reversing equivalence.", simps]
+def inv_order_iso : α ≃o order_dual α :=
+{ to_equiv := (equiv.inv α).trans order_dual.to_dual,
+  map_rel_iff' := λ a b, @inv_le_inv_iff α _ _ _ _ _ _ }
 
 @[to_additive]
 lemma inv_le_of_inv_le (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=

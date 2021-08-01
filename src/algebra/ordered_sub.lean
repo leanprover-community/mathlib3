@@ -46,7 +46,7 @@ lemma contravariant.regular {α} [has_le α] [has_add α] [contravariant_class �
   regular a :=
 λ x y, le_of_add_le_add_left
 
--- todo
+-- move
 instance {α β} [linear_order β] (f : α → β → β) [contravariant_class α β f (≤)] :
   covariant_class α β f (<) :=
 ⟨(covariant_lt_iff_contravariant_le α β f).mpr contravariant_class.elim⟩
@@ -242,9 +242,11 @@ end both
 
 end ordered_add_comm_monoid
 
+/-! Lemmas in a linearly ordered monoid. -/
 section linear_order
 variables {a b c d : α} [linear_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
 
+/-- See `lt_of_sub_lt_sub_right_of_le` for a weaker statement in a partial order. -/
 lemma lt_of_sub_lt_sub_right (h : a - c < b - c) : a < b :=
 lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_right' h c) h
 
@@ -258,6 +260,8 @@ lt_imp_lt_of_le_imp_le (λ h, sub_le_sub_left' h a) h
 end cov
 
 end linear_order
+
+/-! Lemmas in a canonically ordered monoid. -/
 
 section canonically_ordered_add_monoid
 variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
@@ -287,6 +291,7 @@ lemma add_le_of_le_sub_left_of_le (h : a ≤ c) (h2 : b ≤ c - a) : a + b ≤ c
 lemma sub_le_sub_iff_right' (h : c ≤ b) : a - c ≤ b - c ↔ a ≤ b :=
 by rw [sub_le_iff_right, sub_add_cancel_of_le h]
 
+/-- See `lt_of_sub_lt_sub_right` for a stronger statement in a linear order. -/
 lemma lt_of_sub_lt_sub_right_of_le (h : c ≤ b) (h2 : a - c < b - c) : a < b :=
 by { refine ((sub_le_sub_iff_right' h).mp h2.le).lt_of_ne _, rintro rfl, exact h2.false }
 
@@ -468,7 +473,7 @@ section both
 variables [covariant_class α α (+) (<)] [contravariant_class α α (+) (≤)]
 
 /-- This lemma also holds for `ennreal`, but we need a different proof for that.
-  Maybe add as field? -/
+  Maybe add this lemma as field to `has_ordered_sub`? -/
 lemma lt_sub_of_add_lt_right (h : a + c < b) : a < b - c :=
 begin
   rwa [← add_sub_cancel_of_le h.le, add_right_comm, add_sub_cancel_right, lt_add_iff_pos_right],
@@ -500,6 +505,8 @@ by { rw [add_comm], exact lt_sub_iff_right_of_le h }
 end both
 
 end canonically_ordered_add_monoid
+
+/-! Lemmas in a linearly canonically ordered monoid. -/
 
 section canonically_linear_ordered_add_monoid
 variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
@@ -560,6 +567,24 @@ lt_iff_lt_of_le_iff_le $ sub_le_sub_iff_left' h
 
 end contra
 
-end canonically_linear_ordered_add_monoid
+lemma sub_add_eq_max (a b : α) : a - b + b = max a b :=
+begin
+  cases le_total a b with h h,
+  { rw [max_eq_right h, sub_eq_zero_iff_le.mpr h, zero_add] },
+  { rw [max_eq_left h, sub_add_cancel_of_le h] }
+end
 
--- #lint
+lemma add_sub_eq_max (a b : α) : a + (b - a) = max a b :=
+by rw [add_comm, max_comm, sub_add_eq_max]
+
+lemma sub_min (a b : α) : a - min a b = a - b :=
+begin
+  cases le_total a b with h h,
+  { rw [min_eq_left h, sub_self', sub_eq_zero_iff_le.mpr h] },
+  { rw [min_eq_right h] }
+end
+
+lemma sub_add_min (a b : α) : a - b + min a b = a :=
+by { rw [← sub_min, sub_add_cancel_of_le], apply min_le_left }
+
+end canonically_linear_ordered_add_monoid

@@ -580,7 +580,7 @@ ext $ λ i, by simp only [sub_apply, mk_apply]; split_ifs; [refl, rw sub_zero]
 
 -- can I do this and get LaTeX in the docs?
 /-- If `s` is a subset of `ι` then `mk_add_group_hom s` is the canonical additive
-group homomorphism from $$\Prod_{i\in s}\beta\_i\to\Prod_{\mathtt{i : \io}}\beta_i$$.-/
+group homomorphism from $$\prod_{i\in s}\beta\_i\to\prod_{\mathtt{i : \iota}}\beta_i.$$-/
 def mk_add_group_hom [Π i, add_group (β i)] (s : finset ι) :
   (Π (i : (s : set ι)), β ↑i) →+ (Π₀ (i : ι), β i) :=
 { to_fun := mk s,

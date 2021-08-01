@@ -22,7 +22,7 @@ TODO: maybe we should make a multiplicative version of this, so that we can repl
 ## Remark
 
 When thinking about this operation, some general examples are
-* `dfinsupp` for non-linearly ordered examples
+* `dfinsupp`;
 * if `α` is linearly ordered and `β : α → Type*` is a family of ordered add_comm_monoids,then
   `Σ i : α, β i`, ordered lexicographically, with addition given by
   - `x + y = max x y` if `x.1 ≠ y.1`
@@ -35,7 +35,6 @@ When thinking about this operation, some general examples are
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
 in canonically ordered monoids.
 -/
-
 class has_ordered_sub (α : Type*) [preorder α] [has_add α] [has_sub α] :=
 (sub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
 
@@ -452,6 +451,21 @@ by { apply lt_sub_of_add_lt_right, rwa add_comm }
 -- todo
 lemma sub_lt_sub_right_of_le (h : c ≤ a) (h2 : a < b) : a - c < b - c :=
 by { apply lt_sub_of_add_lt_left, rwa [add_sub_cancel_of_le h] }
+
+-- lemma add_lt_of_lt_sub_right (h : c ≤ b) (h2 : a < b - c) : a + c < b :=
+-- begin
+--   rw [← add_sub_cancel_of_le h, ← add_sub_cancel_of_le h2.le, ← add_assoc, add_comm a],
+--   convert add_lt_add_left (sub_pos_of_lt' h2) (c + a) using 1,
+--   rw [add_zero]
+-- end
+
+lemma add_lt_of_lt_sub_right (h : c ≤ b) (h2 : a < b - c) : a + c < b :=
+begin
+  rw [← add_sub_cancel_of_le h, ← add_sub_cancel_of_le h2.le, ← add_assoc, add_comm a],
+  convert add_lt_add_left (sub_pos_of_lt' h2) (c + a) using 1,
+  rw [add_zero]
+end
+
 
 -- todo
 lemma lt_of_sub_lt_sub_right_of_le (h : c ≤ a) (h2 : a - c < b - c) : a < b :=

@@ -510,7 +510,6 @@ theorem bInter_union (s t : set α) (u : α → set β) :
   (⋂ x ∈ s ∪ t, u x) = (⋂ x ∈ s, u x) ∩ (⋂ x ∈ t, u x) :=
 infi_union
 
--- TODO(Jeremy): simp [insert_eq, bInter_union] doesn't work
 theorem bInter_insert (a : α) (s : set α) (t : α → set β) :
   (⋂ x ∈ insert a s, t x) = t a ∩ (⋂ x ∈ s, t x) :=
 by simp

@@ -282,19 +282,17 @@ def order_iso.inv : α ≃o order_dual α :=
 { to_equiv := (equiv.inv α).trans order_dual.to_dual,
   map_rel_iff' := λ a b, @inv_le_inv_iff α _ _ _ _ _ _ }
 
-@[to_additive]
-lemma inv_le_of_inv_le (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
-inv_le_inv_iff.mp (
-  calc  a⁻¹ ≤ b     : h
-        ... = b⁻¹⁻¹ : (inv_inv _).symm)
-
 @[to_additive neg_le]
 lemma inv_le' : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv_iff, inv_inv]
+order_iso.inv.symm_apply_le
+
+@[to_additive]
+lemma inv_le_of_inv_le (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
+inv_le'.1 h
 
 @[to_additive le_neg]
 lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv_iff, inv_inv]
+order_iso.inv.le_symm_apply
 
 @[to_additive]
 lemma mul_inv_le_inv_mul_iff : a * b⁻¹ ≤ d⁻¹ * c ↔ d * a ≤ c * b :=
@@ -316,18 +314,6 @@ variables [has_lt α] [covariant_class α α (*) (<)] [covariant_class α α (fu
 lemma inv_lt_inv_iff : a⁻¹ < b⁻¹ ↔ b < a :=
 by { rw [← mul_lt_mul_iff_left a, ← mul_lt_mul_iff_right b], simp }
 
-@[to_additive]
-lemma lt_inv_of_lt_inv (h : a < b⁻¹) : b < a⁻¹ :=
-inv_lt_inv_iff.mp (
-  calc  a⁻¹⁻¹ = a   : inv_inv a
-          ... < b⁻¹ : h)
-
-@[to_additive]
-lemma inv_lt_of_inv_lt (h : a⁻¹ < b) : b⁻¹ < a :=
-inv_lt_inv_iff.mp (
-    calc  a⁻¹ < b : h
-          ... = b⁻¹⁻¹   : (inv_inv b).symm)
-
 @[to_additive neg_lt]
 lemma inv_lt' : a⁻¹ < b ↔ b⁻¹ < a :=
 by rw [← inv_lt_inv_iff, inv_inv]
@@ -335,6 +321,14 @@ by rw [← inv_lt_inv_iff, inv_inv]
 @[to_additive lt_neg]
 lemma lt_inv' : a < b⁻¹ ↔ b < a⁻¹ :=
 by rw [← inv_lt_inv_iff, inv_inv]
+
+@[to_additive]
+lemma lt_inv_of_lt_inv (h : a < b⁻¹) : b < a⁻¹ :=
+lt_inv'.1 h
+
+@[to_additive]
+lemma inv_lt_of_inv_lt (h : a⁻¹ < b) : b⁻¹ < a :=
+inv_lt'.1 h
 
 @[to_additive]
 lemma mul_inv_lt_inv_mul_iff : a * b⁻¹ < d⁻¹ * c ↔ d * a < c * b :=

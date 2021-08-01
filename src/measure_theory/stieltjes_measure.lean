@@ -226,15 +226,15 @@ begin
     (f.length_mono $ inter_subset_inter_left _ h)
     (f.length_mono $ diff_subset_diff_left h)) _,
   cases le_total a c with hac hac; cases le_total b c with hbc hbc,
-  { simp only [Ioc_inter_Ioi, f.length_Ioc, hac, sup_eq_max, hbc, le_refl,
-      Ioc_eq_empty, max_eq_right, min_eq_left, Ioc_diff_Ioi, f.length_empty, zero_add] },
+  { simp only [Ioc_inter_Ioi, f.length_Ioc, hac, sup_eq_max, hbc, le_refl, Ioc_eq_empty,
+      max_eq_right, min_eq_left, Ioc_diff_Ioi, f.length_empty, zero_add, not_lt] },
   { simp only [hac, hbc, Ioc_inter_Ioi, Ioc_diff_Ioi, f.length_Ioc, min_eq_right,
       sup_eq_max, ←ennreal.of_real_add, f.mono hac, f.mono hbc, sub_nonneg, sub_add_sub_cancel,
       le_refl, max_eq_right] },
   { simp only [hbc, le_refl, Ioc_eq_empty, Ioc_inter_Ioi, min_eq_left, Ioc_diff_Ioi,
-      f.length_empty, zero_add, or_true, le_sup_iff, f.length_Ioc] },
+      f.length_empty, zero_add, or_true, le_sup_iff, f.length_Ioc, not_lt] },
   { simp only [hac, hbc, Ioc_inter_Ioi, Ioc_diff_Ioi, f.length_Ioc, min_eq_right,
-      sup_eq_max, le_refl, Ioc_eq_empty, add_zero, max_eq_left, f.length_empty] }
+      sup_eq_max, le_refl, Ioc_eq_empty, add_zero, max_eq_left, f.length_empty, not_lt] }
 end
 
 theorem outer_trim : f.outer.trim = f.outer :=
@@ -315,7 +315,7 @@ begin
   { have A : disjoint {a} (Ioc a b), by simp,
     simp [← Icc_union_Ioc_eq_Icc le_rfl hab, -singleton_union, ← ennreal.of_real_add, f.left_lim_le,
       measure_union A (measurable_set_singleton a) measurable_set_Ioc, f.mono hab] },
-  { simp only [hab, measure_empty, Icc_eq_empty],
+  { simp only [hab, measure_empty, Icc_eq_empty, not_le],
     symmetry,
     simp [ennreal.of_real_eq_zero, f.le_left_lim hab] }
 end
@@ -324,7 +324,7 @@ end
   f.measure (Ioo a b) = of_real (f.left_lim b - f a) :=
 begin
   rcases le_or_lt b a with hab|hab,
-  { simp only [hab, measure_empty, Ioo_eq_empty],
+  { simp only [hab, measure_empty, Ioo_eq_empty, not_lt],
     symmetry,
     simp [ennreal.of_real_eq_zero, f.left_lim_le hab] },
   { have A : disjoint (Ioo a b) {b}, by simp,
@@ -341,7 +341,7 @@ end
 @[simp] lemma measure_Ico (a b : ℝ) : f.measure (Ico a b) = of_real (f.left_lim b - f.left_lim a) :=
 begin
   rcases le_or_lt b a with hab|hab,
-  { simp only [hab, measure_empty, Ico_eq_empty],
+  { simp only [hab, measure_empty, Ico_eq_empty, not_lt],
     symmetry,
     simp [ennreal.of_real_eq_zero, f.left_lim_le_left_lim hab] },
   { have A : disjoint {a} (Ioo a b) := by simp,

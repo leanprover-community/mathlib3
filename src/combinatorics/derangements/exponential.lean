@@ -3,16 +3,16 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson, Patrick Massot
 -/
+import combinatorics.derangements.finite
 import analysis.complex.basic
 import data.complex.exponential
-import data.equiv.derangements.finite
 import topology.metric_space.cau_seq_filter
 
 /-!
 # Derangement exponential series
 
 This file proves that the probability of a permutation on n elements being a derangement is 1/e.
-The specific lemma is `num_derangements_tendsto_e`.
+The specific lemma is `num_derangements_tendsto_inv_e`.
 -/
 open filter
 open finset
@@ -39,7 +39,7 @@ begin
   convert complex.tendsto_exp_series x; simp,
 end
 
-theorem num_derangements_tendsto_e :
+theorem num_derangements_tendsto_inv_e :
   tendsto (λ n, (num_derangements n : ℝ) / n.factorial) at_top
   (𝓝 (real.exp (-1))) :=
 begin

@@ -3,8 +3,8 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
+import combinatorics.derangements.basic
 import data.equiv.basic
-import data.equiv.derangements.basic
 import data.fintype.basic
 import data.fintype.card
 import data.set.finite
@@ -32,7 +32,7 @@ This file contains lemmas that describe the cardinality of `derangements α` whe
     factorials.
 -/
 
-open equiv fintype perm
+open derangements equiv fintype
 open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] [fintype α]
@@ -50,7 +50,7 @@ lemma card_derangements_invariant {α β : Type*} [fintype α] [decidable_eq α]
   card (derangements α) = card (derangements β) :=
 begin
   apply card_eq.mpr,  -- card_eq because we don't need the specific equivalence
-  use derangements_congr (equiv_of_card_eq h),
+  use derangements.congr (equiv_of_card_eq h),
 end
 
 lemma card_derangements_fin_succ_succ (n : ℕ) :

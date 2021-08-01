@@ -27,7 +27,7 @@ We also define:
 
 open equiv
 
-namespace perm
+namespace derangements
 
 section definitions
 
@@ -45,7 +45,7 @@ end definitions
 section simple_lemmas
 
 /-- If `α` is equivalent to `β`, then `derangements α` is equivalent to `derangements β`. -/
-def derangements_congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ derangements β) :=
+protected def congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ derangements β) :=
 subtype_equiv (perm_congr e) $ λ f, e.forall_congr $ λ x, by simp
 
 end simple_lemmas
@@ -194,4 +194,4 @@ end
 
 end option
 
-end perm
+end derangements

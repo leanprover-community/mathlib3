@@ -66,20 +66,4 @@ end
 
 end is_sylow_subgroup
 
-lemma exists_sylow_subgroup [fintype G] {p : ℕ} [fact p.prime]
-: ∃ L : subgroup G, is_sylow_subgroup p L :=
-begin
-  -- establish m and n exist st card G = p ^ n * m from uniqueness of factors
-  -- n and m only unique when ¬ p ∣ m as this maximises n
-  -- need to show an L exists st card L = p ^ n
-  -- what theorem guarantees this existence?
-  sorry,
-end
-
-
 end sylow
-
-#lint
-
--- will eventually need some lemma enforcing uniqueness of m and n
--- otherwise my sylow two proof won't work

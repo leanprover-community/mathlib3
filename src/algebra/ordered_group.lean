@@ -286,9 +286,8 @@ def order_iso.inv : α ≃o order_dual α :=
 lemma inv_le' : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
 order_iso.inv.symm_apply_le
 
-@[to_additive]
-lemma inv_le_of_inv_le (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
-inv_le'.1 h
+alias inv_le' ↔ inv_le_of_inv_le _
+attribute [to_additive] inv_le_of_inv_le
 
 @[to_additive le_neg]
 lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
@@ -322,13 +321,11 @@ by rw [← inv_lt_inv_iff, inv_inv]
 lemma lt_inv' : a < b⁻¹ ↔ b < a⁻¹ :=
 by rw [← inv_lt_inv_iff, inv_inv]
 
-@[to_additive]
-lemma lt_inv_of_lt_inv (h : a < b⁻¹) : b < a⁻¹ :=
-lt_inv'.1 h
+alias lt_inv' ↔ lt_inv_of_lt_inv _
+attribute [to_additive] lt_inv_of_lt_inv
 
-@[to_additive]
-lemma inv_lt_of_inv_lt (h : a⁻¹ < b) : b⁻¹ < a :=
-inv_lt'.1 h
+alias inv_lt' ↔ inv_lt_of_inv_lt _
+attribute [to_additive] inv_lt_of_inv_lt
 
 @[to_additive]
 lemma mul_inv_lt_inv_mul_iff : a * b⁻¹ < d⁻¹ * c ↔ d * a < c * b :=

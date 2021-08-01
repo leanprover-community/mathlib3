@@ -107,13 +107,9 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
-lemma set_integral_congr_set_ae (hs : measurable_set s) (ht : measurable_set t)
-  (hst : s =ᵐ[μ] t) :
+lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
   ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
-begin
-  rw [← integral_indicator hs, ← integral_indicator ht],
-  exact integral_congr_ae (indicator_ae_eq_of_ae_eq_set hst)
-end
+by rw restrict_congr_set hst
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]

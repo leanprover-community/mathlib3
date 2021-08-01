@@ -308,9 +308,6 @@ by { rw [sub_eq_zero_iff_le], apply self_le_add_right }
 lemma sub_cancel_right (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : b - a = c - a) : b = c :=
 by rw [← sub_add_cancel_of_le h₁, ← sub_add_cancel_of_le h₂, h₃]
 
-lemma sub_cancel_left (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : a - b = a - c) : b = c :=
-sorry
-
 lemma sub_pos_iff_not_le : 0 < a - b ↔ ¬ a ≤ b :=
 by rw [pos_iff_ne_zero, ne.def, sub_eq_zero_iff_le]
 
@@ -436,11 +433,15 @@ begin
   exact lt_of_add_lt_add_left (lt_add_of_sub_lt_right' h),
 end
 
-lemma sub_lt_sub_iff_left' (h : c ≤ a) : a - b < a - c ↔ c < b :=
+lemma sub_cancel_left (h₁ : b ≤ a) (h₂ : c ≤ a) (h₃ : a - b = a - c) : b = c :=
+by { apply add_left_cancel'', rw [sub_add_cancel_of_le h₁, h₃, sub_add_cancel_of_le h₂] }
+
+/-- See `sub_lt_sub_iff_left_of_le` for a stronger statement in a linear order. -/
+lemma sub_lt_sub_iff_left_of_le_of_le (h₁ : b ≤ a) (h₂ : c ≤ a) : a - b < a - c ↔ c < b :=
 begin
-  refine ⟨lt_of_sub_lt_sub_left_of_le h, _⟩,
-  intro h2, refine (sub_le_sub_left' h2.le _).lt_of_ne _,
-  intro h, sorry
+  refine ⟨lt_of_sub_lt_sub_left_of_le h₂, _⟩,
+  intro h, refine (sub_le_sub_left' h.le _).lt_of_ne _,
+  rintro h2, exact h.ne' (sub_cancel_left h₁ h₂ h2)
 end
 
 @[simp] lemma add_sub_sub_cancel' (h : c ≤ a) : (a + b) - (a - c) = b + c :=
@@ -552,6 +553,10 @@ begin
   rw [sub_zero'] at h,
   exact h.false
 end
+
+/-- See `lt_sub_iff_left_of_le_of_le` for a weaker statement in a partial order. -/
+lemma sub_lt_sub_iff_left_of_le (h : b ≤ a) : a - b < a - c ↔ c < b :=
+lt_iff_lt_of_le_iff_le $ sub_le_sub_iff_left' h
 
 end contra
 

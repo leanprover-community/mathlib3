@@ -657,14 +657,6 @@ end semiring
 section comm_semiring
 variables [comm_semiring α]
 
-instance [decidable_eq n] : algebra α (matrix n n α) :=
-{ commutes' := by { intros, simp [matrix.scalar], },
-  smul_def' := by { intros, simp [matrix.scalar], },
-  ..(matrix.scalar n) }
-
-@[simp] lemma matrix.algebra_map_eq_smul [decidable_eq n] (r : α) :
-  (algebra_map α (matrix n n α)) r = r • 1 := rfl
-
 lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
   a • M = M ⬝ diagonal (λ _, a) :=
 by { ext, simp [mul_comm] }
@@ -675,6 +667,14 @@ mul_smul M a N
 
 lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (scalar n r) M :=
 by simp [commute, semiconj_by]
+
+instance [decidable_eq n] : algebra α (matrix n n α) :=
+{ commutes' := scalar.commute,
+  smul_def' := λ r M, by simp [matrix.scalar],
+  to_ring_hom := matrix.scalar n }
+
+@[simp] lemma matrix.algebra_map_eq_smul [decidable_eq n] (r : α) :
+  (algebra_map α (matrix n n α)) r = r • 1 := rfl
 
 end comm_semiring
 

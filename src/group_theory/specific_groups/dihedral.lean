@@ -113,7 +113,10 @@ instance : nontrivial (dihedral_group n) := ⟨⟨r 0, sr 0, dec_trivial⟩⟩
 If `0 < n`, then `dihedral_group n` has `2n` elements.
 -/
 lemma card [fact (0 < n)] : fintype.card (dihedral_group n) = 2 * n :=
-by rw [← fintype.card_eq.mpr ⟨fintype_helper⟩, fintype.card_sum, zmod.card, two_mul]
+begin
+  rw [← fintype.card_eq.mpr ⟨fintype_helper⟩, fintype.card_sum, zmod.card, two_mul],
+  apply_instance
+end
 
 @[simp] lemma r_one_pow (k : ℕ) : (r 1 : dihedral_group n) ^ k = r k :=
 begin

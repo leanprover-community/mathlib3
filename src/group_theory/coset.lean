@@ -361,7 +361,6 @@ by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgr
 lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (λ a, a ∈ s)]
   [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s]
-#where
 
 open fintype
 

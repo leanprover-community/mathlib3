@@ -587,7 +587,6 @@ ext $ λ i, by simp only [neg_apply, mk_apply]; split_ifs; [refl, rw neg_zero]
   mk s (x - y) = mk s x - mk s y :=
 ext $ λ i, by simp only [sub_apply, mk_apply]; split_ifs; [refl, rw sub_zero]
 
--- can I do this and get LaTeX in the docs?
 /-- If `s` is a subset of `ι` then `mk_add_group_hom s` is the canonical additive
 group homomorphism from $\prod_{i\in s}\beta_i$ to $\prod_{\mathtt{i : \iota}}\beta_i.$-/
 def mk_add_group_hom [Π i, add_group (β i)] (s : finset ι) :

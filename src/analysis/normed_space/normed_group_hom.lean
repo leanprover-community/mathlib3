@@ -136,6 +136,9 @@ at most `C`. -/
 def surjective_on_with (f : normed_group_hom V₁ V₂) (K : add_subgroup V₂) (C : ℝ) : Prop :=
   ∀ h ∈ K, ∃ g, f g = h ∧ ∥g∥ ≤ C*∥h∥
 
+lemma surjective_on_with.surj_on {f : normed_group_hom V₁ V₂} {K : add_subgroup V₂} {C : ℝ}
+  (h : f.surjective_on_with K C) : set.surj_on f set.univ K :=
+λ x hx, (h x hx).imp $ λ a ⟨ha, _⟩, ⟨set.mem_univ _, ha⟩
 
 /-! ### The operator norm -/
 

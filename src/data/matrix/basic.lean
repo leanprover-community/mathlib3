@@ -686,8 +686,8 @@ begin
   split_ifs with h; simp [h, matrix.one_apply_ne],
 end
 
-@[simp] lemma algebra_map_eq_smul [decidable_eq n] (r : R) :
-  (algebra_map R (matrix n n R)) r = r • (1 : matrix n n R) := rfl
+@[simp] lemma algebra_map_eq_smul (r : R) :
+  algebra_map R (matrix n n R) r = r • (1 : matrix n n R) := rfl
 
 end algebra
 

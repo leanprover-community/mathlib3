@@ -35,8 +35,9 @@ When thinking about this operation, some general examples are
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction
 in canonically ordered monoids.
 -/
-class has_ordered_sub (α : Type*) [has_le α] [has_add α] [has_sub α] :=
+class has_ordered_sub (α : Type*) [preorder α] [has_add α] [has_sub α] :=
 (sub_le_iff_right : ∀ a b c : α, a - b ≤ c ↔ a ≤ c + b)
+-- (lt_sub_iff_add_lt : ∀ a b c : α, a < b - c ↔ a + c < b)
 
 variables {α : Type*}
 
@@ -49,7 +50,7 @@ has_ordered_sub.sub_le_iff_right a b c
 lemma sub_le_iff_left : a - b ≤ c ↔ a ≤ b + c :=
 by rw [sub_le_iff_right, add_comm]
 
-lemma le_add_sub : b ≤ a + (b - a) :=
+lemma le_add_sub : a ≤ b + (a - b) :=
 sub_le_iff_left.mp le_rfl
 
 /-- See `add_sub_cancel_left` for the equality if `contravariant_class α α (+) (≤)`. -/
@@ -303,13 +304,13 @@ by { rw [add_comm], exact add_sub_cancel_iff_le }
 lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by rw [← nonpos_iff_eq_zero, sub_le_iff_left, add_zero]
 
-lemma sub_self' : a - a = 0 :=
+@[simp] lemma sub_self' : a - a = 0 :=
 sub_eq_zero_iff_le.mpr le_rfl
 
 lemma sub_le_self' : a - b ≤ a :=
 sub_le_iff_left.mpr $ le_add_left le_rfl
 
-lemma sub_zero' : a - 0 = a :=
+@[simp] lemma sub_zero' : a - 0 = a :=
 le_antisymm sub_le_self' $ le_add_sub.trans_eq $ zero_add _
 
 lemma sub_le_sub_right_iff (h : c ≤ b) : a - c ≤ b - c ↔ a ≤ b :=
@@ -327,6 +328,14 @@ by rw [pos_iff_ne_zero, ne.def, sub_eq_zero_iff_le]
 lemma sub_pos_of_lt' (h : a < b) : 0 < b - a :=
 sub_pos_iff_not_le.mpr h.not_le
 
+lemma sub_add_sub_cancel'' (hab : b ≤ a) (hbc : c ≤ b) : (a - b) + (b - c) = a - c :=
+begin
+  convert sub_add_cancel_of_le (sub_le_sub_right' hab c) using 2,
+  rw [sub_sub', add_sub_cancel_of_le hbc],
+end
+
+lemma sub_sub_sub_cancel_right' (h : c ≤ b) : (a - c) - (b - c) = a - b :=
+by rw [sub_sub', add_sub_cancel_of_le h]
 
 
 
@@ -422,10 +431,7 @@ by rw [eq_comm, eq_sub_iff_add_eq_of_le h, eq_comm]
 
 /-- See `add_sub_le_assoc` for an inequality. -/
 lemma add_sub_assoc_of_le (h : c ≤ b) (a : α) : a + b - c = a + (b - c) :=
-begin
-  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h,
-  rw [add_sub_cancel_left, add_comm c, ← add_assoc, add_sub_cancel_right]
-end
+by conv_lhs { rw [← add_sub_cancel_of_le h, add_comm c, ← add_assoc, add_sub_cancel_right] }
 
 lemma sub_add_eq_add_sub' (h : b ≤ a) : a - b + c = a + c - b :=
 by rw [add_comm a, add_sub_assoc_of_le h, add_comm]
@@ -434,45 +440,22 @@ lemma sub_sub_assoc (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c 
 by rw [sub_eq_iff_eq_add_of_le (sub_le_self'.trans h₁), add_assoc, add_sub_cancel_of_le h₂,
   sub_add_cancel_of_le h₁]
 
-/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma sub_add_sub_cancel'' (hab : b ≤ a) (hbc : c ≤ b) :
-  (a - b) + (b - c) = a - c :=
-begin
-  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 hab,
-  obtain ⟨e, rfl⟩ := le_iff_exists_add.1 hbc,
-  rw [add_sub_cancel_left, add_sub_cancel_left, add_assoc, add_sub_cancel_left, add_comm]
-end
+end contra
 
-/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma sub_sub_sub_cancel_right' (h : c ≤ b) : (a - c) - (b - c) = a - b :=
-by { obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h, rw [add_sub_cancel_left, sub_sub'] }
-#print has_le.le.lt_iff_ne
+section cov_lt
+variable [covariant_class α α (+) (<)]
+
 example : a < b ↔ ∃ c > 0, b = a + c :=
 begin
   simp_rw [lt_iff_le_and_ne, and_comm, le_iff_exists_add, ← exists_and_distrib_left, exists_prop],
   apply exists_congr, intro c,
-  rw [and.congr_left_iff], rintro rfl,
-  rw [gt_iff_lt, ← (self_le_add_right a c).lt_iff_ne],
+  rw [and.congr_left_iff, gt_iff_lt], rintro rfl,
+  split,
+  { rw [pos_iff_ne_zero], apply mt, rintro rfl, rw [add_zero] },
+  { rw [← (self_le_add_right a c).lt_iff_ne], apply lt_add_of_pos_right }
 end
 
-example : covariant_class α α (+) (<) :=
-begin
-  constructor,
-  intros a b c h,
-  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h.le,
-  rw [← add_assoc],
-end
-
-/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
-lemma lt_sub_right_of_add_lt (h : a + c < b) : a < b - c :=
-begin
-  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h.le,
-  rw [add_right_comm, add_sub_cancel_right],
-  refine (lt_add_iff_pos_right a).mpr _,
-end
-
-
-end contra
+end cov_lt
 
 end canonically_ordered_add_monoid
 
@@ -490,13 +473,23 @@ begin
 end
 
 section contra
-variable [covariant_class α α (+) (<)]
+variable [contravariant_class α α (+) (≤)]
 
-example : contravariant_class α α (+) (≤) := by apply_instance
+-- todo
+instance : covariant_class α α (+) (<) :=
+⟨(covariant_lt_iff_contravariant_le α α (+)).mpr contravariant_class.elim⟩
+
+/-- This lemma also holds for `ennreal`, but we need a different proof for that. -/
+lemma lt_sub_right_of_add_lt (h : a + c < b) : a < b - c :=
+begin
+  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 h.le,
+  rw [add_right_comm, add_sub_cancel_right, lt_add_iff_pos_right, pos_iff_ne_zero],
+  rintro rfl,
+  exact h.ne (add_zero _).symm
+end
 
 lemma sub_lt_self' (h₁ : 0 < a) (h₂ : 0 < b) : a - b < a :=
 begin
-  haveI := contravariant_add_le_of_covariant_add_lt α,
   refine sub_le_self'.lt_of_ne _,
   intro h,
   rw [← h, sub_pos_iff_lt] at h₁,
@@ -505,38 +498,6 @@ begin
   exact h₂.not_le this,
 end
 
-#print instances covariant_class
-example : covariant_class α α (+) (<) :=
-begin
-  constructor,
-  intros a b c h,
-  refine lt_imp_lt_of_le_imp_le le_of_add_le_add_left h
-end
-
 end contra
 
-
-
 end canonically_linear_ordered_add_monoid
-
-class nice (α : Type*) [has_add α] :=
-(is_nice : ∀ ⦃a b c : α⦄, a + b = a + c → b = c ∨ a + b = a)
-
-instance with_top.nice [add_monoid α] [nice α] : nice (with_top α) :=
-begin
-  constructor, intros a b c h,
-  cases a,
-  { simp [with_top.none_eq_top] },
-  { simp [with_top.some_eq_coe] at h,
-    cases b; cases c; simp [with_top.none_eq_top, with_top.some_eq_coe, ← with_top.coe_add] at h;
-    try {contradiction},
-    { left, refl },
-    rw [with_top.coe_eq_coe] at h,
-    rcases nice.is_nice h with h'|h',
-    { left, rw h' },
-    { right, simp [with_top.some_eq_coe, h', ← with_top.coe_add] } }
-end
-
-instance nice_of_left_cancel_semigroup [left_cancel_semigroup α] :
-  nice α :=
-by { constructor, intros a b c h, left, exact add_left_cancel h }

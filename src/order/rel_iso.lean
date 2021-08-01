@@ -697,10 +697,6 @@ def to_order_iso (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
 @[simp] lemma to_order_iso_to_equiv (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
   (e.to_order_iso h₁ h₂).to_equiv = e := rfl
 
-@[simp] lemma to_order_iso_symm (e : α ≃ β) (h₁ : monotone e) (h₂ : monotone e.symm) :
-  (e.to_order_iso h₁ h₂).symm = e.symm.to_order_iso h₂ h₁ :=
-rfl
-
 end equiv
 
 /-- If a function `f` is strictly monotone on a set `s`, then it defines an order isomorphism

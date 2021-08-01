@@ -90,7 +90,7 @@ def positive (v : vector_measure α M) (i : set α) : Prop :=
 0 ≤ v.restrict i
 
 lemma positive_iff {v : vector_measure α M} {i : set α} (hi : measurable_set i) :
-  positive v i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → 0 ≤ v j :=
+  v.positive i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → 0 ≤ v j :=
 ⟨λ h j hj₁ hj₂, (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj₂) ▸ h j hj₁,
  λ h, le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
    h (hj.inter hi) (set.inter_subset_right j i))⟩
@@ -101,7 +101,7 @@ def negative (v : vector_measure α M) (i : set α) : Prop :=
 v.restrict i ≤ 0
 
 lemma negative_iff {v : vector_measure α M} {i : set α} (hi : measurable_set i) :
-  negative v i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ 0 :=
+  v.negative i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ 0 :=
 ⟨λ h j hj₁ hj₂, (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj₂) ▸ h j hj₁,
  λ h, le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
    h (hj.inter hi) (set.inter_subset_right j i))⟩
@@ -148,6 +148,44 @@ lemma negative_of_not_measurable (hi : ¬ measurable_set i) :
 begin
   rw [negative, restrict, dif_neg hi],
   exact le_refl _,
+end
+
+-- The following two lemmas are slightly stronger than `positive_iff`
+lemma subset_nonneg_of_positive {i : set α}
+  (hi : measurable_set i) (hi₂ : v.positive i) : ∀ ⦃j⦄, j ⊆ i → 0 ≤ v j :=
+begin
+  intros j hj,
+  by_cases hj₁ : measurable_set j,
+  { exact (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj) ▸ hi₂ j hj₁ },
+  { rw v.not_measurable hj₁ }
+end
+
+lemma positive_of_subset_nonneg {i : set α}
+  (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → 0 ≤ v j) : v.positive i :=
+begin
+  by_cases hi : measurable_set i,
+  { exact le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
+      h (hj.inter hi) (set.inter_subset_right j i)) },
+  { exact positive_of_not_measurable hi }
+end
+
+-- The following two lemmas are slightly stronger than `negative_iff`
+lemma subset_nonpos_of_negative {i : set α}
+  (hi : measurable_set i) (hi₂ : v.negative i) : ∀ ⦃j⦄, j ⊆ i → v j ≤ 0 :=
+begin
+  intros j hj,
+  by_cases hj₁ : measurable_set j,
+  { exact (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj) ▸ hi₂ j hj₁ },
+  { rw v.not_measurable hj₁ }
+end
+
+lemma negative_of_subset_nonpos {i : set α}
+  (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ 0) : v.negative i :=
+begin
+  by_cases hi : measurable_set i,
+  { exact le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
+      h (hj.inter hi) (set.inter_subset_right j i)) },
+  { exact negative_of_not_measurable hi }
 end
 
 lemma measurable_of_not_positive (hi : ¬ v.positive i) : measurable_set i :=

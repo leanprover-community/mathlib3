@@ -34,7 +34,7 @@ variables [uniform_add_group α]
 
 lemma continuous_mul : continuous (λ p : completion α × completion α, p.1 * p.2) :=
 begin
-let m := (add_monoid_hom.mul : α →+ α →+ α).compr₂ to_compl,
+  let m := (add_monoid_hom.mul : α →+ α →+ α).compr₂ to_compl,
   have : continuous (λ p : α × α, m p.1 p.2),
   from (continuous_coe α).comp continuous_mul,
   have di : dense_inducing (to_compl : α → completion α),

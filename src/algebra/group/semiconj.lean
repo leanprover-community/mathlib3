@@ -76,7 +76,11 @@ lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_
 @[simp, to_additive]
 lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x
 
-@[to_additive] protected lemma reflexive : reflexive (λ a b : M, ∃ c, semiconj_by c a b) :=
+/-- The relation “there exists an element that semiconjugates `a` to `b`” on a monoid (or, more
+generally, on ` mul_one_class` type) is reflexive. -/
+@[to_additive "The relation “there exists an element that semiconjugates `a` to `b`” on an additive
+monoid (or, more generally, on a `add_zero_class` type) is reflexive."]
+protected lemma reflexive : reflexive (λ a b : M, ∃ c, semiconj_by c a b) :=
 λ a, ⟨1, one_left a⟩
 
 end mul_one_class

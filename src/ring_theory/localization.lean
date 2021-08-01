@@ -608,7 +608,7 @@ is_localization.lift $ λ (y : submonoid.powers x), show is_unit (g y.1),
 begin
   obtain ⟨n, hn⟩ := y.2,
   rw [←hn, g.map_pow],
-  exact is_unit.map (monoid_hom.of $ ((^ n) : P → P)) hg,
+  exact is_unit.map (pow_monoid_hom n) hg,
 end
 
 @[simp] lemma away_map.lift_eq (hg : is_unit (g x)) (a : R) :
@@ -1011,6 +1011,11 @@ submodule.map_mono h
 
 @[simp] lemma coe_submodule_top : coe_submodule S (⊤ : ideal R) = 1 :=
 by rw [coe_submodule, submodule.map_top, submodule.one_eq_range]
+
+lemma coe_submodule_fg
+  (hS : function.injective (algebra_map R S)) (I : ideal R) :
+  submodule.fg (coe_submodule S I) ↔ submodule.fg I :=
+⟨submodule.fg_of_fg_map _ (linear_map.ker_eq_bot.mpr hS), submodule.fg_map⟩
 
 variables {g : R →+* P}
 variables {T : submonoid P} (hy : M ≤ T.comap g) {Q : Type*} [comm_ring Q]

@@ -148,6 +148,12 @@ eq_some_iff.2 (by simpa)
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 roption.eq_none_iff'
 
+lemma ne_top_iff_finite {a b : α} : multiplicity a b ≠ ⊤ ↔ finite a b :=
+by rw [ne.def, eq_top_iff_not_finite, not_not]
+
+lemma lt_top_iff_finite {a b : α} : multiplicity a b < ⊤ ↔ finite a b :=
+by rw [lt_top_iff_ne_top, ne_top_iff_finite]
+
 open_locale classical
 
 lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ multiplicity c d ↔

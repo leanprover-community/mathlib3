@@ -388,8 +388,6 @@ apply_nolint is_subfield doc_blame
 -- deprecated/subgroup.lean
 apply_nolint add_group.closure doc_blame
 apply_nolint add_group.in_closure doc_blame
-apply_nolint gmultiples doc_blame
-apply_nolint gpowers doc_blame
 apply_nolint group.in_closure doc_blame
 apply_nolint is_add_group_hom.ker doc_blame
 apply_nolint is_add_subgroup.add_center doc_blame

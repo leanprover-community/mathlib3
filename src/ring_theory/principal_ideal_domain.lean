@@ -160,6 +160,10 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
       exact ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩, λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 end
 
+lemma is_field.is_principal_ideal_ring {R : Type*} [integral_domain R] (h : is_field R) :
+  is_principal_ideal_ring R :=
+@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
+
 namespace principal_ideal_ring
 open is_principal_ideal_ring
 

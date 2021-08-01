@@ -395,16 +395,16 @@ end
 
 noncomputable instance : has_Sup ℝ :=
 ⟨λ S, if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-  then classical.some (exists_sup S h.1 h.2) else 0⟩
+  then classical.some (exists_is_lub S h.1 h.2) else 0⟩
 
 lemma Sup_def (S : set ℝ) :
   Sup S = if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-    then classical.some (exists_sup S h.1 h.2) else 0 := rfl
+    then classical.some (exists_is_lub S h.1 h.2) else 0 := rfl
 
 theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : Sup S ≤ y ↔ ∀ z ∈ S, z ≤ y :=
-by simp [Sup_def, h₁, h₂]; exact
-classical.some_spec (exists_sup S h₁ h₂) y
+by simp only [Sup_def, dif_pos (and.intro h₁ h₂)]; exact
+is_lub_le_iff (classical.some_spec (exists_is_lub S h₁ h₂))
 
 theorem lt_Sup (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : y < Sup S ↔ ∃ z ∈ S, y < z :=

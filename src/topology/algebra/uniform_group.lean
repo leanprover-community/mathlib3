@@ -137,7 +137,7 @@ lemma add_monoid_hom.uniform_continuous_of_continuous_at_zero
   [uniform_space β] [add_group β] [uniform_add_group β]
   (f : α →+ β) (hf : continuous_at f 0) :
   uniform_continuous f :=
-uniform_continuous_of_tendsto_zero f.is_add_group_hom (by simpa using hf.tendsto)
+uniform_continuous_of_tendsto_zero (by simpa using hf.tendsto)
 
 lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [uniform_add_group β]
   {f : α →+ β} (h : continuous f) : uniform_continuous f :=
@@ -288,7 +288,7 @@ begin
   let ee := λ u : β × β, (e u.1, e u.2),
 
   have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (comap e Nx ×ᶠ comap e Nx) (𝓝 (0, y₁)),
-  { have := tendsto.prod_mk (tendsto_sub_comap_self he de x₀)
+  { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀)
       (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
     rw [nhds_prod_eq, prod_comap_comap_eq, ←nhds_prod_eq],
     exact (this : _) },
@@ -315,7 +315,7 @@ begin
     ((comap ee $ 𝓝 (x₀, x₀)) ×ᶠ (comap ff $ 𝓝 (y₀, y₀))) (𝓝 0),
   { have lim_sub_sub :  tendsto (λ (p : (β × β) × δ × δ), (p.1.2 - p.1.1, p.2.2 - p.2.1))
       ((comap ee (𝓝 (x₀, x₀))) ×ᶠ (comap ff (𝓝 (y₀, y₀)))) (𝓝 0 ×ᶠ 𝓝 0),
-    { have := filter.prod_mono (tendsto_sub_comap_self he de x₀) (tendsto_sub_comap_self hf df y₀),
+    { have := filter.prod_mono (tendsto_sub_comap_self de x₀) (tendsto_sub_comap_self df y₀),
       rwa prod_map_map_eq at this },
     rw ← nhds_prod_eq at lim_sub_sub,
     exact tendsto.comp lim_φ lim_sub_sub },
@@ -387,7 +387,7 @@ begin
 
     intros W' W'_nhd,
 
-    have key := extend_Z_bilin_key he de hf df hφ W'_nhd x₀ y₀,
+    have key := extend_Z_bilin_key de df hφ W'_nhd x₀ y₀,
     rcases key with ⟨U, U_nhd, V, V_nhd, h⟩,
     rw mem_comap_sets at U_nhd,
     rcases U_nhd with ⟨U', U'_nhd, U'_sub⟩,

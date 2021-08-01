@@ -52,7 +52,7 @@ else with_bot.coe_le_coe.1 $
 lemma degree_map_eq_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
   (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
 le_antisymm (degree_map_le f _) $
-  have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, is_semiring_hom.map_zero f] using hf,
+  have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, f.map_zero] using hf,
   begin
     rw [degree_eq_nat_degree hp0],
     refine le_degree_of_ne_zero _,
@@ -173,7 +173,7 @@ include hf
 lemma degree_map_eq_of_injective (p : polynomial R) : degree (p.map f) = degree p :=
 if h : p = 0 then by simp [h]
 else degree_map_eq_of_leading_coeff_ne_zero _
-  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
+  (by rw [← f.map_zero]; exact mt hf.eq_iff.1
     (mt leading_coeff_eq_zero.1 h))
 
 lemma degree_map' (p : polynomial R) :

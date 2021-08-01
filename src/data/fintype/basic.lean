@@ -534,7 +534,7 @@ arbitrary `fintype` instances, use either `fintype.card_le_one_iff_subsingleton`
   fintype.card α = 1 :=
 subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 
-@[simp] lemma fintype.card_subtype_eq (y : α) [fintype {x // x = y}] :
+@[simp] lemma card_subtype_eq (y : α) [fintype {x // x = y}] :
   fintype.card {x // x = y} = 1 :=
 begin
   convert fintype.card_unique,

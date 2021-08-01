@@ -6,14 +6,13 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.special_functions.exp_log
 import analysis.special_functions.pow
 import combinatorics.simple_graph.basic
-import data.sym2
+
+/-! # Things that belong to mathlib -/
 
 universe u
 
 open_locale big_operators
 open finset fintype function
-
-/-! # Things that belong to mathlib -/
 
 variable {α : Type u}
 
@@ -83,7 +82,7 @@ lemma card_sym2 [decidable_eq α] [fintype α] :
 begin
   have : univ.filter (λ (x : sym2 α), x.is_diag) = univ.image sym2.diag,
   { ext,
-    simp [sym2.is_diag] },
+    sorry },
   rw [←finset.card_univ, ←filter_union_filter_neg_eq sym2.is_diag (univ : finset (sym2 α)),
     card_disjoint_union, this, card_image_of_injective _ sym2.diag.injective, card_sym2_not_diag,
     nat.choose_two_right, finset.card_univ, add_comm, ←nat.triangle_succ, nat.succ_sub_one,

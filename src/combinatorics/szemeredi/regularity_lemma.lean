@@ -934,7 +934,7 @@ begin
   exact finpartition_on.card_eq_of_mem_parts_mk_equitable _ hA,
 end
 
-lemma m_le_card_of_mem_chunk_increment_part {A : finset α}
+lemma m_le_card_of_mem_chunk_increment_parts {A : finset α}
   (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
   (m : ℝ) ≤ A.card :=
 begin
@@ -942,38 +942,51 @@ begin
   exact nat.cast_le.2 (nat.le_succ _),
 end
 
-lemma le_sum_card_subset_chunk_increment_parts {A : finset (finset α)}
+lemma card_le_m_add_one_of_mem_chunk_increment_parts {A : finset α}
+  (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
+  (A.card : ℝ) ≤ m + 1 :=
+begin
+  obtain h | h := card_eq_of_mem_parts_chunk_increment hA; rw h,
+  { exact nat.cast_le.2 (nat.le_succ _) },
+  { rw nat.cast_add_one }
+end
+
+lemma le_sum_card_subset_chunk_increment_parts (m_pos : 0 < m) {A : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) {u : finset α} (hu : u ∈ A) :
   (A.card : ℝ) * u.card ≤ (∑ W in A, W.card)/(m/(m + 1)) :=
 begin
-  have m_le_card : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts → (m : ℝ) ≤ W.card := sorry,
-  have card_le_m_add_one : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts →
-    ((W : finset _).card : ℝ) ≤ m + 1 := sorry,
+  rw le_div_iff, swap,
+  { exact div_pos (nat.cast_pos.2 m_pos) (nat.cast_add_one_pos _) },
   calc
-    (A.card : ℝ) * m/(m + 1) * u.card
-        = A.card * m * (u.card/(m + 1)) : by rw [div_mul_eq_mul_div, mul_div_assoc]
-    ... ≤ A.card * m : mul_le_of_le_one_right
-          (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) ((div_le_one (by exact
-          nat.cast_add_one_pos _)).2 (card_le_m_add_one (hA hu)))
-    ... = ∑ W in A, (m : ℝ) : by rw [sum_const, nsmul_eq_mul]
-    ... ≤ ∑ W in A, W.card : sum_le_sum (λ W hW, m_le_card (hA hW)),
+    (A.card : ℝ) * u.card * (m/(m + 1))
+        = A.card * m * (u.card/(m + 1))
+        : by rw [←mul_div_assoc, mul_right_comm, mul_div_assoc]
+    ... ≤ A.card * m
+        : mul_le_of_le_one_right
+          (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) ((div_le_one $ by exact
+          nat.cast_add_one_pos _).2 $ card_le_m_add_one_of_mem_chunk_increment_parts $ hA hu)
+    ... = ∑ W in A, (m : ℝ)
+        : by rw [sum_const, nsmul_eq_mul]
+    ... ≤ ∑ W in A, W.card
+        : sum_le_sum (λ W hW, m_le_card_of_mem_chunk_increment_parts $ hA hW)
 end
 
-lemma sum_card_subset_chunk_increment_parts_le (hm : 0 < m) {A : finset (finset α)}
+lemma sum_card_subset_chunk_increment_parts_le (m_pos : 0 < m) {A : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) {u : finset α} (hu : u ∈ A) :
   (∑ W in A, (W.card : ℝ))/((m + 1)/m) ≤ A.card * u.card :=
 begin
-  have m_le_card : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts → (m : ℝ) ≤ W.card := sorry,
-  have card_le_m_add_one : ∀ ⦃W⦄, W ∈ (hP.chunk_increment G ε hU).parts →
-    ((W : finset _).card : ℝ) ≤ m + 1 := sorry,
+  rw div_le_iff, swap,
+  { exact div_pos (nat.cast_add_one_pos _) (nat.cast_pos.2 m_pos) },
   calc
     ∑ W in A, (W.card : ℝ)
-        ≤ ∑ W in A, (m + 1) : sum_le_sum (λ W hW, card_le_m_add_one (hA hW))
+        ≤ ∑ W in A, (m + 1)
+        : sum_le_sum (λ W hW, card_le_m_add_one_of_mem_chunk_increment_parts $ hA hW)
     ... = A.card * (m + 1) : by rw [sum_const, nsmul_eq_mul]
     ... ≤ A.card * (m + 1) * (u.card/m) : le_mul_of_one_le_right (mul_nonneg (nat.cast_nonneg _)
-          (nat.cast_add_one_pos _).le) ((one_le_div (by exact nat.cast_pos.2 hm)).2
-          (m_le_card (hA hu)))
-    ... = A.card * (m + 1)/m * u.card : by rw [div_mul_eq_mul_div, mul_div_assoc],
+          (nat.cast_add_one_pos _).le) ((one_le_div (by exact nat.cast_pos.2 m_pos)).2
+          (m_le_card_of_mem_chunk_increment_parts $ hA hu))
+    ... = A.card * u.card * ((m + 1)/m)
+        : by rw [←mul_div_assoc, mul_right_comm, mul_div_assoc]
 end
 
 lemma one_sub_le_m_div_m_add_one_sq [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
@@ -1003,13 +1016,13 @@ lemma m_add_one_div_m_le_one_add [nonempty α] (hPα : P.size * 16^P.size ≤ ca
   (hPε : 100 ≤ 4^P.size * ε^5) (hm : 25 ≤ m) :
   ((m + 1 : ℝ)/m)^2 ≤ 1 + ε^5/49 :=
 begin
-  have hm' : (0 : ℝ) < m,
+  have m_pos : (0 : ℝ) < m,
   { rw ←nat.cast_zero,
     exact lt_of_lt_of_le (by norm_num) (nat.cast_le.2 hm) },
   rw [←sub_le_iff_le_add', add_comm],
   calc
     ((1 + m : ℝ)/m)^2 - 1
-        = 1/m/m + 2/m : by rw [add_div, div_self hm'.ne', add_sq, div_pow, one_pow, mul_one,
+        = 1/m/m + 2/m : by rw [add_div, div_self m_pos.ne', add_sq, div_pow, one_pow, mul_one,
           mul_one_div, sq, ←div_div_eq_div_mul, add_sub_cancel]
     ... ≤ 1/25/m + 2/m : begin
       refine add_le_add_right (div_le_div_of_le_of_nonneg (div_le_div_of_le_left zero_le_one
@@ -1022,26 +1035,28 @@ begin
     ... ≤ ε^5/49 : begin
       rw div_right_comm,
       refine div_le_div_of_le_of_nonneg _ (by norm_num),
-      rw [div_le_iff hm', mul_comm, ←div_le_iff
+      rw [div_le_iff m_pos, mul_comm, ←div_le_iff
         (pos_of_mul_pos_left (lt_of_lt_of_le (by norm_num) hPε) (pow_nonneg (by norm_num) _))],
       exact hundred_div_ε_pow_five_le_m hPα hPε,
     end
 end
 
 lemma density_sub_eps_le_sum_density_div_card [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
-  (hPε : 100 ≤ 4^P.size * ε^5)
+  (hPε : 100 ≤ 4^P.size * ε^5) (m_pos : 0 < m)
   {U W : finset α} {hU : U ∈ P.parts} {hW : W ∈ P.parts} {A B : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hW).parts) :
   G.edge_density (A.bUnion id) (B.bUnion id) - ε^5/50 ≤
   (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) :=
 begin
+  have hε : 0 < ε^5 := pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε)
+    (pow_nonneg (by norm_num) _),
   calc
     G.edge_density (A.bUnion id) (B.bUnion id) - ε^5/50
         ≤ (1 - ε^5/50) * G.edge_density (A.bUnion id) (B.bUnion id)
         : begin
             rw [sub_mul, one_mul],
-            exact sub_le_sub_left (mul_le_of_le_one_right (div_nonneg (pow_nonneg hε _)
-              (by norm_num)) (G.edge_density_le_one _ _)) _,
+            exact sub_le_sub_left (mul_le_of_le_one_right (div_nonneg hε.le (by norm_num))
+              (G.edge_density_le_one _ _)) _,
           end
     ... ≤ (m/(m + 1))^2 * G.edge_density (A.bUnion id) (B.bUnion id)
         : mul_le_mul_of_nonneg_right (one_sub_le_m_div_m_add_one_sq hPα hPε)
@@ -1071,8 +1086,8 @@ begin
               refine mul_pos (mul_pos _ _) (mul_pos _ _); rw card_pos,
               exacts [⟨x.1, hx.1⟩, nonempty_of_mem_parts _ (hA hx.1), ⟨x.2, hx.2⟩,
                 nonempty_of_mem_parts _ (hB hx.2)] },
-            refine mul_le_mul (le_sum_card_subset_chunk_increment_parts hA hx.1)
-              (le_sum_card_subset_chunk_increment_parts hB hx.2) _
+            refine mul_le_mul (le_sum_card_subset_chunk_increment_parts m_pos hA hx.1)
+              (le_sum_card_subset_chunk_increment_parts m_pos hB hx.2) _
               (div_nonneg _ (div_nonneg _ _));
             norm_cast; exact nat.zero_le _,
           end
@@ -1083,7 +1098,7 @@ begin
             simp_rw div_div_eq_div_mul,
             refine finset.sum_congr rfl (λ x _, _),
             rw [mul_comm (B.card : ℝ), ←mul_assoc, ←mul_assoc, mul_comm _ (A.card : ℝ), ←mul_assoc],
-          end,
+          end
 end
 
 lemma sum_density_div_card_le_density_add_eps [nonempty α] (hPα : P.size * 16^P.size ≤ card α)
@@ -1093,8 +1108,11 @@ lemma sum_density_div_card_le_density_add_eps [nonempty α] (hPα : P.size * 16^
   (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) ≤
   G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49 :=
 begin
+  have hε : 0 < ε^5 := pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε)
+    (pow_nonneg (by norm_num) _),
+  have m_pos : 0 < m := (by norm_num : 0 < 25).trans_le hm,
   have m_add_one_div_m_pos : (0 : ℝ) < (m + 1)/m :=
-    div_pos (nat.cast_add_one_pos _) (nat.cast_pos.2 hm),
+    div_pos (nat.cast_add_one_pos _) (nat.cast_pos.2 m_pos),
   calc
     (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card)
         = ∑ ab in A.product B, pairs_count G.adj ab.1 ab.2/(A.card * ab.1.card *
@@ -1111,11 +1129,14 @@ begin
         : begin
             refine sum_le_sum (λ x hx, div_le_div_of_le_left (nat.cast_nonneg _) _ _);
             rw mem_product at hx,
-            { refine mul_pos (div_pos sorry m_add_one_div_m_pos)
-              (div_pos sorry m_add_one_div_m_pos),
-              },
-            refine mul_le_mul (sum_card_subset_chunk_increment_parts_le hm hA hx.1)
-              (sum_card_subset_chunk_increment_parts_le hm hB hx.2)
+            { refine mul_pos (div_pos _ m_add_one_div_m_pos)
+                (div_pos _ m_add_one_div_m_pos); norm_cast,
+              { exact (card_pos.2 $ finpartition_on.nonempty_of_mem_parts _ $
+                hA hx.1).trans_le (single_le_sum (λ _ _, nat.zero_le _) hx.1) },
+              { refine (card_pos.2 $ finpartition_on.nonempty_of_mem_parts _ $
+                hB hx.2).trans_le (single_le_sum (λ _ _, nat.zero_le _) hx.2) } },
+            refine mul_le_mul (sum_card_subset_chunk_increment_parts_le m_pos hA hx.1)
+              (sum_card_subset_chunk_increment_parts_le m_pos hB hx.2)
               (div_nonneg _ (div_nonneg _ _)) _; norm_cast; exact nat.zero_le _,
           end
     ... = pairs_count G.adj (A.bUnion id) (B.bUnion id) /
@@ -1123,7 +1144,7 @@ begin
         : begin
             rw [relation.pairs_count_finpartition hA.finpartition_on hB.finpartition_on,
               ←hA.finpartition_on.sum_card_parts, ←hB.finpartition_on.sum_card_parts],
-            simp only [sum_nat_cast],
+            simp only [nat.cast_sum],
             rw [eq_comm, sum_div, hA.finpartition_on_parts, hB.finpartition_on_parts],
           end
     ... = ((m + 1)/m)^2 * G.edge_density (A.bUnion id) (B.bUnion id)
@@ -1139,8 +1160,8 @@ begin
     ... ≤ G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49
         : begin
             rw [add_mul, one_mul],
-            exact add_le_add_left (mul_le_of_le_one_right (div_nonneg (pow_nonneg hε _)
-              (by norm_num)) (G.edge_density_le_one _ _)) _,
+            exact add_le_add_left (mul_le_of_le_one_right (div_nonneg hε.le (by norm_num))
+              (G.edge_density_le_one _ _)) _,
           end,
 end
 
@@ -1165,7 +1186,7 @@ protected lemma size (hP : P.is_equipartition) (hPα : P.size * 16^P.size ≤ ca
 begin
   have hPα' : exp_bound P.size ≤ card α :=
     (nat.mul_le_mul_of_nonneg_left $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα,
-  have hPpos : 0 < exp_bound P.size := exp_bound_pos ((nat.eq_zero_or_pos _).resolve_left $ λ h,
+  have hPpos : 0 < exp_bound P.size := exp_bound_pos.2 ((nat.eq_zero_or_pos _).resolve_left $ λ h,
     hPG $ finpartition_on.empty_is_uniform (by rw [←finset.card_eq_zero, ←finpartition_on.size, h])
     _ _),
   rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
@@ -1188,7 +1209,7 @@ begin
   rw [mem_coe, increment, mem_bind_parts] at hA,
   obtain ⟨U, hU, hA⟩ := hA,
   exact card_eq_of_mem_parts_chunk_increment hA,
-end
+end.
 
 protected lemma index (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPα : P.size * 16^P.size ≤ card α) (hPG : ¬P.is_uniform G ε) :
@@ -1199,6 +1220,8 @@ begin
         ≤ index G P - ε^5/25 + 1/P.size^2 * ε * (P.size.choose 2) * ε^4/3 : sorry
     ... ≤ index G (hP.increment G ε) : sorry,
 end
+
+#exit
 
 end increment
 
@@ -1290,9 +1313,9 @@ begin
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
   refine ⟨hP₁.increment G ε, increment.is_equipartition hP₁ G ε, _, _,
     or.inr (le_trans _ (increment.index hP₁ hεl' hPα huniform))⟩,
-  { rw increment.size hP₁ hεl' hPα huniform,
+  { rw increment.size hP₁ hPα huniform,
     exact hP₂.trans (le_exp_bound _) },
-  { rw [increment.size hP₁ hεl' hPα huniform, function.iterate_succ_apply'],
+  { rw [increment.size hP₁ hPα huniform, function.iterate_succ_apply'],
     exact exp_bound_mono hP₃ },
   rw [nat.cast_succ, mul_add, mul_one],
   exact add_le_add_right hP₄ _,

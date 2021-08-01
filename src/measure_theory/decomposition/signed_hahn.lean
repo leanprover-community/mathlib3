@@ -150,7 +150,10 @@ begin
   exact le_refl _,
 end
 
--- The following two lemmas are slightly stronger than `positive_iff`
+/-- This lemma is similar to the forward direction of `vector_measure.positive_iff` except it
+does not have a measurability condition on `j`.
+
+This is useful when we are using the property that a set is positive. -/
 lemma subset_nonneg_of_positive {i : set α}
   (hi : measurable_set i) (hi₂ : v.positive i) : ∀ ⦃j⦄, j ⊆ i → 0 ≤ v j :=
 begin
@@ -160,6 +163,10 @@ begin
   { rw v.not_measurable hj₁ }
 end
 
+/-- This lemma is similar to the backward direction of `vector_measure.positive_iff` except it
+does not require `i` to be measurable.
+
+This is useful when we are proving a set is positive. -/
 lemma positive_of_subset_nonneg {i : set α}
   (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → 0 ≤ v j) : v.positive i :=
 begin
@@ -169,7 +176,10 @@ begin
   { exact positive_of_not_measurable hi }
 end
 
--- The following two lemmas are slightly stronger than `negative_iff`
+/-- This lemma is similar to the forward direction of `vector_measure.negative_iff` except it
+does not have a measurability condition on `j`.
+
+This is useful when we are using the property that a set is negative. -/
 lemma subset_nonpos_of_negative {i : set α}
   (hi : measurable_set i) (hi₂ : v.negative i) : ∀ ⦃j⦄, j ⊆ i → v j ≤ 0 :=
 begin
@@ -179,6 +189,10 @@ begin
   { rw v.not_measurable hj₁ }
 end
 
+/-- This lemma is similar to the backward direction of `vector_measure.negative_iff` except it
+does not require `i` to be measurable.
+
+This is useful when we are proving a set is negative. -/
 lemma negative_of_subset_nonpos {i : set α}
   (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ 0) : v.negative i :=
 begin

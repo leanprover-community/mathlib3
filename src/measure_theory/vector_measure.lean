@@ -624,18 +624,16 @@ end
 
 lemma restrict_le_restrict_iff (v w : vector_measure α M) {i : set α} (hi : measurable_set i) :
   v.restrict i ≤ w.restrict i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j :=
-⟨λ h j hj₁ hj₂, (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj₂) ▸
-  (@restrict_eq_self _ _ _ _ _ w _ hi _ hj₁ hj₂) ▸ h j hj₁,
- λ h, le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
-  (@restrict_apply _ _ _ _ _ w i hi j hj).symm ▸ h (hj.inter hi) (set.inter_subset_right j i))⟩
+⟨λ h j hj₁ hj₂, (restrict_eq_self v hi hj₁ hj₂) ▸ (restrict_eq_self w hi hj₁ hj₂) ▸ h j hj₁,
+ λ h, le_iff.1 (λ j hj, (restrict_apply v hi hj).symm ▸ (restrict_apply w hi hj).symm ▸
+   h (hj.inter hi) (set.inter_subset_right j i))⟩
 
 lemma subset_le_of_restrict_le_restrict (v w : vector_measure α M) {i : set α}
   (hi : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) : ∀ ⦃j⦄, j ⊆ i → v j ≤ w j :=
 begin
   intros j hj,
   by_cases hj₁ : measurable_set j,
-  { exact (@restrict_eq_self _ _ _ _ _ v _ hi _ hj₁ hj) ▸
-      (@restrict_eq_self _ _ _ _ _ w _ hi _ hj₁ hj) ▸ hi₂ j hj₁ },
+  { exact (restrict_eq_self v hi hj₁ hj) ▸ (restrict_eq_self w hi hj₁ hj) ▸ hi₂ j hj₁ },
   { rw [v.not_measurable hj₁, w.not_measurable hj₁] },
 end
 

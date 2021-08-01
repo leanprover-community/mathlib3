@@ -250,11 +250,17 @@ variables [complete_space 𝔸]
 --
 --end
 
-lemma exp_add_of_commute_of_mem_ball {x y : 𝔸} (hxy : commute x y)
+lemma exp_add_of_commute_of_le_radius {x y : 𝔸} (hxy : commute x y)
   (hcv : ↑∥x∥₊ + ↑∥y∥₊ < (exp_series 𝕂 𝔸).radius) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 begin
   rw exp_eq_tsum,
+  dsimp only,
+  rw tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm,
+  conv_lhs {congr, funext, rw [hxy.add_pow' _, finset.smul_sum]},
+  refine tsum_congr (λ n, finset.sum_congr rfl $ λ kl hkl, _),
+  rw [nsmul_eq_smul_cast 𝕂, smul_smul, smul_mul_smul, nat.choose_eq_factorial_div_factorial],
+  congr,
 
 end
 

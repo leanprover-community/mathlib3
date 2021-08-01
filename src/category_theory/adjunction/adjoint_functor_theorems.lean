@@ -21,7 +21,7 @@ This file proves the (general) adjoint functor theorem, in the form:
 We show that the converse holds, i.e. that if `G` has a left adjoint then it satisfies the solution
 set condition (`category_theory/adjunction/limits` already shows it preserves limits).
 
-We define the solution set condition for the functor `G : D ⥤ C` to mean, for every object `A : C`,
+We define the *solution set condition* for the functor `G : D ⥤ C` to mean, for every object `A : C`,
 there is a set-indexed family ${f_i : A ⟶ G (B_i)}$ such that any morphism `A ⟶ G X` factors
 through one of the `f_i`.
 
@@ -49,7 +49,7 @@ def solution_set_condition {D : Type u} [category.{v} D] (G : D ⥤ C) : Prop :=
 
 variables {D : Type u} [category.{v} D]
 
-section gaft
+section general_adjoint_functor_theorem
 
 variables (G : D ⥤ C)
 
@@ -85,8 +85,6 @@ begin
   apply has_initial_of_weakly_initial_and_has_wide_equalizers hT,
 end
 
-
-
-end gaft
+end general_adjoint_functor_theorem
 
 end category_theory

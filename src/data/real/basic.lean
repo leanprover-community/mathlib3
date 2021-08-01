@@ -395,7 +395,7 @@ end
 
 noncomputable instance : conditionally_complete_linear_order ℝ :=
 { ..real.linear_order,
-  .. conditionally_complete_lattice_of_is_lub_of_rel_iso exists_is_lub 0 neg_order_iso }
+  .. conditionally_complete_lattice_of_is_lub_of_rel_iso exists_is_lub 0 order_iso.neg }
 
 lemma Sup_def (S : set ℝ) :
   Sup S = if h : S.nonempty ∧ bdd_above S then (exists_is_lub S h.1 h.2).some else 0 := rfl

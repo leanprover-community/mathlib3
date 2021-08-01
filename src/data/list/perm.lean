@@ -690,6 +690,103 @@ theorem perm_iff_count {l₁ l₂ : list α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     by_cases b = a; simp [h] at H ⊢; assumption }
 end⟩
 
+lemma subperm.cons_right {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
+h.trans (sublist_cons x l').subperm
+
+lemma subperm.cons_left [decidable_eq α] {l₁ l₂ : list α} (h : l₁ <+~ l₂)
+  (x : α) (hx : count x l₁ < count x l₂) :
+  x :: l₁ <+~ l₂  :=
+begin
+  obtain ⟨l, hl, h⟩ := h,
+  induction h with lx ly y h IH lx ly y h IH generalizing l₁,
+  { simpa using hx },
+  { by_cases hxy : x = y,
+    { subst hxy,
+      rw subperm_cons,
+      exact hl.symm.subperm.trans h.subperm },
+    { rw count_cons_of_ne hxy at hx,
+      exact (IH hx hl).cons_right _ } },
+  { rw cons_perm_iff_perm_erase at hl,
+    by_cases hxy : x = y,
+    { subst hxy,
+      rw subperm_cons,
+      refine (subperm_cons_erase _ _).trans (IH _ hl.right),
+      rw count_erase_self,
+      refine (nat.pred_lt (count_pos.mpr hl.left).ne').trans_le _,
+      simpa [nat.lt_succ_iff] using hx, },
+    { rw count_cons_of_ne hxy at hx,
+      have : y :: x :: l₁.erase y ~ x :: l₁,
+      { rw cons_perm_iff_perm_erase,
+        refine ⟨mem_cons_of_mem _ hl.left, _⟩,
+        rw [erase_cons, if_neg hxy] },
+      refine this.symm.subperm.trans _,
+      rw subperm_cons,
+      refine IH _ hl.right,
+      rwa count_erase_of_ne hxy } }
+end
+
+theorem subperm_ext [decidable_eq α] {l₁ l₂ : list α}
+  (h : ∀ x ∈ l₁, count x l₁ = count x l₂) : l₁ <+~ l₂ :=
+begin
+  induction l₁ with a l IH generalizing l₂,
+  { exact nil_subperm },
+  { cases l₂ with b l',
+    { have : a ∈ nil,
+      { rw [←count_pos],
+        simp [←h] },
+      simpa using this },
+    { by_cases hb : b ∈ (a :: l),
+      { rw mem_cons_iff at hb,
+        by_cases hba : b = a,
+        { subst a,
+          rw subperm_cons,
+          refine IH (λ x hx, _),
+          by_cases hxb : x = b,
+          { subst x,
+            rw [←nat.succ_inj', ←count_cons_self, ←count_cons_self, h _ (mem_cons_self _ _)] },
+          { rw [←count_cons_of_ne hxb, h _ (mem_cons_of_mem _ hx), count_cons_of_ne hxb] } },
+        { have hla : l <+~ (b :: l').erase a,
+          { refine IH (λ x hx, _),
+            specialize h x (mem_cons_of_mem _ hx),
+            by_cases hxa : x = a,
+            { subst x,
+              rw [count_erase_self, ←h, count_cons_self, nat.pred_succ] },
+            { rw [count_erase_of_ne hxa, ←h, count_cons_of_ne hxa] } },
+          rw ←subperm_cons a at hla,
+          refine hla.trans (perm_cons_erase _).symm.subperm,
+          rw [←count_pos, ←h a (mem_cons_self _ _)],
+          simp } },
+      { refine subperm.cons_right _ _,
+        simp only [not_or_distrib, mem_cons_iff] at hb,
+        by_cases ha : a ∈ l,
+        { specialize @IH (l'.erase a) (λ x hx, _),
+          { specialize h x (mem_cons_of_mem _ hx),
+            have : x ≠ b,
+            { rintro rfl,
+              exact hb.right hx },
+            rw count_cons_of_ne this at h,
+            by_cases hx : x = a,
+            { subst x,
+              rw [count_erase_self, ←h, count_cons_self, nat.pred_succ] },
+            { rw [count_erase_of_ne hx, ←h, count_cons_of_ne hx] } },
+          rw ←subperm_cons a at IH,
+          refine IH.trans (perm_cons_erase _).symm.subperm,
+          rw [←count_pos, ←count_cons_of_ne (ne.symm hb.left), ←h a (mem_cons_self _ _)],
+          simp },
+        { refine subperm.cons_left (IH (λ x hx, _)) _ _,
+          { specialize h x (mem_cons_of_mem _ hx),
+            have : x ≠ b,
+            { rintro rfl,
+              exact hb.right hx },
+            rw count_cons_of_ne this at h,
+            rw [←h, count_cons_of_ne],
+            rintro rfl,
+            exact ha hx },
+          { rw [count_eq_zero_of_not_mem ha, ←count_cons_of_ne (ne.symm hb.left),
+                ←h _ (mem_cons_self _ _)],
+            simp } } } } }
+end
+
 instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)
 | []      []      := is_true $ perm.refl _
 | []      (b::l₂) := is_false $ λ h, by have := h.nil_eq; contradiction

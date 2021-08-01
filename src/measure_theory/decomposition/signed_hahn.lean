@@ -14,10 +14,10 @@ prove the Hahn decomposition theorem (signed version).
 
 ## Main definitions
 
-* `vector_measure.positive` : a set `i` is positive with respect to a vector measure if for all
-  measurable sets `j` contained in `i`, the measure of `j` is non-negative.
-* `vector_measure.negative` : a set `i` is negative with respect to a vector measure if for all
-  measurable sets `j` contained in `i`, the measure of `j` is non-positive.
+* `vector_measure.positive` : a set `i` is positive with respect to a vector measure `v` if `v`
+  restricted on `i` is non-negative, i.e. `0 ≤ v.restrict i`.
+* `vector_measure.negative` : a set `i` is negative with respect to a vector measure `v` if `v`
+  restricted on `i` is non-positive, i.e. `v.restrict i ≤ 0`.
 
 ## Main results
 

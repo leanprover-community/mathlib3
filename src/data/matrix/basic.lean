@@ -668,15 +668,28 @@ mul_smul M a N
 lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (scalar n r) M :=
 by simp [commute, semiconj_by]
 
-instance [decidable_eq n] : algebra α (matrix n n α) :=
-{ commutes' := scalar.commute,
-  smul_def' := λ r M, by simp [matrix.scalar],
-  to_ring_hom := matrix.scalar n }
-
-@[simp] lemma matrix.algebra_map_eq_smul [decidable_eq n] (r : α) :
-  (algebra_map α (matrix n n α)) r = r • 1 := rfl
-
 end comm_semiring
+
+section algebra
+variables [comm_semiring R] [semiring α] [algebra R α] [decidable_eq n]
+
+instance : algebra R (matrix n n α) :=
+{ commutes' := λ r x, begin
+    ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes, smul_ite], end,
+  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
+  ..((matrix.scalar n).comp (algebra_map R α)) }
+
+lemma algebra_map_matrix_apply {r : R} {i j : n} :
+  algebra_map R (matrix n n α) r i j = if i = j then algebra_map R α r else 0 :=
+begin
+  dsimp [algebra_map, algebra.to_ring_hom, matrix.scalar],
+  split_ifs with h; simp [h, matrix.one_apply_ne],
+end
+
+@[simp] lemma algebra_map_eq_smul [decidable_eq n] (r : R) :
+  (algebra_map R (matrix n n R)) r = r • (1 : matrix n n R) := rfl
+
+end algebra
 
 /-- For two vectors `w` and `v`, `vec_mul_vec w v i j` is defined to be `w i * v j`.
     Put another way, `vec_mul_vec w v` is exactly `col w ⬝ row v`. -/

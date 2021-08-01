@@ -356,7 +356,7 @@ section group
 variables [group G] [add_group A] {x a} {i : ℤ}
 
 @[to_additive add_order_of_dvd_iff_gsmul_eq_zero]
-lemma order_of_dvd_iff_gpow_eq_one : x ^ i = 1 ↔ (order_of x : ℤ) ∣ i :=
+lemma order_of_dvd_iff_gpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
 begin
   rcases int.eq_coe_or_neg i with ⟨i, rfl|rfl⟩,
   { rw [int.coe_nat_dvd, order_of_dvd_iff_pow_eq_one, gpow_coe_nat] },

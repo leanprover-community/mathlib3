@@ -237,14 +237,11 @@ lemma positive_Union_positive {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.positive (f n)) :
   v.positive ⋃ n, f n :=
 begin
-  refine positive_of_subset_nonneg (λ a ha₁ ha₂, _),
-  rw [← set.Union_inter_disjointed_eq ha₂,
-      v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
-  refine tsum_nonneg (λ n, (positive_iff (hf₁ n)).1 (hf₂ n) _ _),
-  { exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
-  { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
+  convert restrict_le_restrict_Union 0 v hf₁ _,
+  { rw restrict_zero, refl },
   { intro n,
-    exact (ha₁.inter (measurable_set.disjointed hf₁ n)) }
+    rw restrict_zero,
+    exact hf₂ n }
 end
 
 lemma negative_union_negative
@@ -266,14 +263,11 @@ lemma negative_Union_negative {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.negative (f n)) :
   v.negative ⋃ n, f n :=
 begin
-  refine negative_of_subset_nonpos (λ a ha₁ ha₂, _),
-  rw [← set.Union_inter_disjointed_eq ha₂,
-      v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
-  refine tsum_nonpos (λ n, (negative_iff (hf₁ n)).1 (hf₂ n) _ _),
-  { exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
-  { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
+  convert restrict_le_restrict_Union v 0 hf₁ _,
+  { rw restrict_zero, refl },
   { intro n,
-    exact (ha₁.inter (measurable_set.disjointed hf₁ n)) }
+    rw restrict_zero,
+    exact hf₂ n }
 end
 
 lemma exists_pos_measure_of_not_negative (hi : ¬ v.negative i) :

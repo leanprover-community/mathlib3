@@ -482,28 +482,29 @@ if hi : measurable_set i then
     { rw [Union_inter, if_pos (measurable_set.Union hf₁)] }
   end } else 0
 
-lemma restrict_not_measurable {i : set α} (hi : ¬ measurable_set i) : v.restrict i = 0 :=
+lemma restrict_not_measurable (v : vector_measure α M) {i : set α} (hi : ¬ measurable_set i) :
+  v.restrict i = 0 :=
 dif_neg hi
 
-lemma restrict_apply {i : set α} (hi : measurable_set i)
+lemma restrict_apply (v :vector_measure α M) {i : set α} (hi : measurable_set i)
   {j : set α} (hj : measurable_set j) : v.restrict i j = v (j ∩ i) :=
 by { rw [restrict, dif_pos hi], exact if_pos hj }
 
-lemma restrict_eq_self {i : set α} (hi : measurable_set i)
+lemma restrict_eq_self (v :vector_measure α M) {i : set α} (hi : measurable_set i)
   {j : set α} (hj : measurable_set j) (hij : j ⊆ i) : v.restrict i j = v j :=
-by rw [restrict_apply hi hj, inter_eq_left_iff_subset.2 hij]
+by rw [restrict_apply v hi hj, inter_eq_left_iff_subset.2 hij]
 
 @[simp] lemma restrict_empty : v.restrict ∅ = 0 :=
-ext (λ i hi, by rw [restrict_apply measurable_set.empty hi, inter_empty, v.empty, zero_apply])
+ext (λ i hi, by rw [restrict_apply v measurable_set.empty hi, inter_empty, v.empty, zero_apply])
 
 @[simp] lemma restrict_univ : v.restrict univ = v :=
-ext (λ i hi, by rw [restrict_apply measurable_set.univ hi, inter_univ])
+ext (λ i hi, by rw [restrict_apply v measurable_set.univ hi, inter_univ])
 
 @[simp] lemma restrict_zero {i : set α} :
   (0 : vector_measure α M).restrict i = 0 :=
 begin
   by_cases hi : measurable_set i,
-  { ext j hj, rw [restrict_apply hi hj], refl },
+  { ext j hj, rw [restrict_apply 0 hi hj], refl },
   { exact dif_neg hi }
 end
 
@@ -531,8 +532,8 @@ lemma restrict_add (v w : vector_measure α M) (i : set α) :
 begin
   by_cases hi : measurable_set i,
   { ext j hj,
-    simp [restrict_apply hi hj] },
-  { simp [restrict, dif_neg hi] }
+    simp [restrict_apply _ hi hj] },
+  { simp [restrict_not_measurable _ hi] }
 end
 
 /--`vector_measure.restrict` as an additive monoid homomorphism. -/
@@ -567,8 +568,8 @@ end
 begin
   by_cases hi : measurable_set i,
   { ext j hj,
-    simp [restrict_apply hi hj] },
-  { simp only [restrict, dif_neg hi],
+    simp [restrict_apply _ hi hj] },
+  { simp only [restrict_not_measurable _ hi],
     -- `smul_zero` does not work since we do not require `has_continuous_add`
     ext j hj, simp }
 end
@@ -642,10 +643,43 @@ lemma restrict_le_restrict_of_subset_le (v w : vector_measure α M) {i : set α}
   (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j) : v.restrict i ≤ w.restrict i :=
 begin
   by_cases hi : measurable_set i,
-  { exact le_iff.1 (λ j hj, (@restrict_apply _ _ _ _ _ v i hi j hj).symm ▸
-      (@restrict_apply _ _ _ _ _ w i hi j hj).symm ▸ h (hj.inter hi) (set.inter_subset_right j i)) },
-  { rw [restrict_not_measurable hi, restrict_not_measurable hi],
+  { exact le_iff.1 (λ j hj, (restrict_apply v hi hj).symm ▸ (restrict_apply w hi hj).symm ▸
+      h (hj.inter hi) (set.inter_subset_right j i)) },
+  { rw [restrict_not_measurable v hi, restrict_not_measurable w hi],
     exact le_refl _ },
+end
+
+lemma restrict_le_restrict_subset (v w : vector_measure α M) {i j : set α}
+  (hi₁ : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) (hij : j ⊆ i) :
+  v.restrict j ≤ w.restrict j :=
+restrict_le_restrict_of_subset_le v w (λ k hk₁ hk₂,
+  subset_le_of_restrict_le_restrict v w hi₁ hi₂ (set.subset.trans hk₂ hij))
+
+end
+
+section
+
+variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M] [order_closed_topology M]
+
+lemma restrict_le_restrict_Union (v w : vector_measure α M) {f : ℕ → set α}
+  (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.restrict (f n) ≤ w.restrict (f n)) :
+  v.restrict (⋃ n, f n) ≤ w.restrict (⋃ n, f n) :=
+begin
+  refine restrict_le_restrict_of_subset_le v w (λ a ha₁ ha₂, _),
+  rw [← set.Union_inter_disjointed_eq ha₂,
+      v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed,
+      w.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
+  refine tsum_le_tsum (λ n, (restrict_le_restrict_iff v w (hf₁ n)).1 (hf₂ n) _ _) _ _,
+  { exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
+  { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
+  { refine (v.m_Union (λ n, _) _).summable,
+    { exact ha₁.inter (measurable_set.disjointed hf₁ n) },
+    { exact pairwise_disjoint_on_inter disjoint_disjointed } },
+  { refine (w.m_Union (λ n, _) _).summable,
+    { exact ha₁.inter (measurable_set.disjointed hf₁ n) },
+    { exact pairwise_disjoint_on_inter disjoint_disjointed } },
+  { intro n, exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
+  { exact λ n, ha₁.inter (measurable_set.disjointed hf₁ n) }
 end
 
 end

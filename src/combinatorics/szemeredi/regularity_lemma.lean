@@ -1211,13 +1211,28 @@ begin
   exact card_eq_of_mem_parts_chunk_increment hA,
 end.
 
-protected lemma index (hP : P.is_equipartition)
+protected lemma index [nonempty α] (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPα : P.size * 16^P.size ≤ card α) (hPG : ¬P.is_uniform G ε) :
   P.index G + ε^5 / 8 ≤ (hP.increment G ε).index G :=
 begin
   calc
     index G P + ε^5/8
-        ≤ index G P - ε^5/25 + 1/P.size^2 * ε * (P.size.choose 2) * ε^4/3 : sorry
+        ≤ index G P - ε^5/25 + 1/P.size^2 * ε * (P.size.choose 2) * ε^4/3
+        : begin
+          rw [sub_eq_add_neg, add_assoc, ←neg_div],
+          refine add_le_add_left _ _,
+          calc
+            - ε^5/25 + 1/P.size^2 * ε * (P.size.choose 2) * ε^4/3
+                = ε^5 * ((P.size.choose 2)/P.size^2/3 - 1/25)
+                : by ring
+            ... = ε^5 * ((1 - 1/P.size)/6 - 1/25)
+                : begin
+                  have : (P.size.choose 2 : ℝ)/P.size^2 = (1 - 1/P.size)/2,
+                  rw [nat.choose_eq_factorial_div_factorial'],
+                end
+            ... ≥ ε^5/8
+                : sorry
+        end
     ... ≤ index G (hP.increment G ε) : sorry,
 end
 

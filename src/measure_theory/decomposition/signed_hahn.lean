@@ -210,23 +210,11 @@ not.imp_symm negative_of_not_measurable hi
 
 lemma positive_subset_positive (hi₁ : measurable_set i) (hi₂ : v.positive i) (hij : j ⊆ i) :
   v.positive j :=
-begin
-  by_cases hj : measurable_set j,
-  { rw positive_iff hj,
-    intros k hk₁ hk₂,
-    exact (positive_iff hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij) },
-  { exact positive_of_not_measurable hj },
-end
+positive_of_subset_nonneg (λ k hk₁ hk₂, (positive_iff hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij))
 
 lemma negative_subset_negative (hi₁ : measurable_set i) (hi₂ : v.negative i) (hij : j ⊆ i) :
   v.negative j :=
-begin
-  by_cases hj : measurable_set j,
-  { rw negative_iff hj,
-    intros k hk₁ hk₂,
-    exact (negative_iff hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij) },
-  { exact negative_of_not_measurable hj },
-end
+negative_of_subset_nonpos (λ k hk₁ hk₂, (negative_iff hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij))
 
 lemma not_positive_subset (hi : ¬ v.positive i) (h : i ⊆ j) (hj : measurable_set j) :
   ¬ v.positive j :=
@@ -240,8 +228,7 @@ lemma positive_union_positive
   (hi₁ : measurable_set i) (hi₂ : v.positive i)
   (hj₁ : measurable_set j) (hj₂ : v.positive j) : v.positive (i ∪ j) :=
 begin
-  rw positive_iff (hi₁.union hj₁),
-  intros a ha₁ ha₂,
+  refine positive_of_subset_nonneg (λ a ha₁ ha₂, _),
   have h₁ := ha₁.inter hi₁,
   have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
     { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
@@ -256,8 +243,7 @@ lemma positive_Union_positive {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.positive (f n)) :
   v.positive ⋃ n, f n :=
 begin
-  rw positive_iff (measurable_set.Union hf₁),
-  intros a ha₁ ha₂,
+  refine positive_of_subset_nonneg (λ a ha₁ ha₂, _),
   rw [← set.Union_inter_disjointed_eq ha₂,
       v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
   refine tsum_nonneg (λ n, (positive_iff (hf₁ n)).1 (hf₂ n) _ _),
@@ -271,8 +257,7 @@ lemma negative_union_negative
   (hi₁ : measurable_set i) (hi₂ : v.negative i)
   (hj₁ : measurable_set j) (hj₂ : v.negative j) : v.negative (i ∪ j) :=
 begin
-  rw negative_iff (hi₁.union hj₁),
-  intros a ha₁ ha₂,
+  refine negative_of_subset_nonpos (λ a ha₁ ha₂, _),
   have h₁ := ha₁.inter hi₁,
   have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
     { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
@@ -287,8 +272,7 @@ lemma negative_Union_negative {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.negative (f n)) :
   v.negative ⋃ n, f n :=
 begin
-  rw negative_iff (measurable_set.Union hf₁),
-  intros a ha₁ ha₂,
+  refine negative_of_subset_nonpos (λ a ha₁ ha₂, _),
   rw [← set.Union_inter_disjointed_eq ha₂,
       v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
   refine tsum_nonpos (λ n, (negative_iff (hf₁ n)).1 (hf₂ n) _ _),

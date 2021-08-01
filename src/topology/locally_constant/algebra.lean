@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import topology.locally_constant.basic
+import topology.continuous_function.algebra
+import algebra.algebra.basic
 
 /-!
 # Algebraic structure on locally constant functions
@@ -54,6 +56,13 @@ def coe_fn_monoid_hom [mul_one_class Y] : locally_constant X Y →* (X → Y) :=
 { to_fun   := coe_fn,
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
+
+/-- The constant-function embedding, as a multiplicative monoid hom. -/
+@[to_additive "The constant-function embedding, as an additive monoid hom.", simps]
+def const_monoid_hom [mul_one_class Y] : Y →* locally_constant X Y :=
+{ to_fun   := const X,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl, }
 
 instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
 { zero_mul := by { intros, ext, simp only [mul_apply, zero_apply, zero_mul] },
@@ -115,6 +124,12 @@ instance [non_unital_semiring Y] : non_unital_semiring (locally_constant X Y) :=
 instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
 { .. locally_constant.mul_one_class, .. locally_constant.non_unital_non_assoc_semiring }
 
+/-- The constant-function embedding, as a ring hom.  -/
+@[simps] def const_ring_hom [non_assoc_semiring Y] : Y →+* locally_constant X Y :=
+{ to_fun    := const X,
+  .. const_monoid_hom,
+  .. const_add_monoid_hom, }
+
 instance [semiring Y] : semiring (locally_constant X Y) :=
 { .. locally_constant.add_comm_monoid, .. locally_constant.monoid,
   .. locally_constant.distrib, .. locally_constant.mul_zero_class }
@@ -150,5 +165,20 @@ function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective (λ _ 
 
 instance [semiring R] [add_comm_monoid Y] [module R Y] : module R (locally_constant X Y) :=
 function.injective.module R coe_fn_add_monoid_hom coe_injective (λ _ _, rfl)
+
+section algebra
+
+variables [comm_semiring R] [semiring Y] [algebra R Y]
+
+instance : algebra R (locally_constant X Y) :=
+{ to_ring_hom := const_ring_hom.comp $ algebra_map R Y,
+  commutes'   := by { intros, ext, exact algebra.commutes' _ _, },
+  smul_def'   := by { intros, ext, exact algebra.smul_def' _ _, }, }
+
+@[simp] lemma coe_algebra_map (r : R) :
+  ⇑(algebra_map R (locally_constant X Y) r) = algebra_map R (X → Y) r :=
+rfl
+
+end algebra
 
 end locally_constant

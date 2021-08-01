@@ -965,6 +965,10 @@ begin
   exact exists_swap
 end
 
+lemma image_bUnion {f : α → β} {s : ι → set α} {p : ι → Prop} :
+  f '' (⋃ i (hi : p i), s i) = (⋃ i (hi : p i), f '' s i) :=
+by simp only [image_Union]
+
 lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃x (h : p x), {⟨x, h⟩})  :=
 set.ext $ assume ⟨x, h⟩, by simp [h]
 

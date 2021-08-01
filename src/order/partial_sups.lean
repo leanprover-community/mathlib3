@@ -14,9 +14,10 @@ We define `partial_sups : (ℕ → α) → ℕ →ₘ α` inductively. For `f : 
 the sequence `f 0 `, `f 0 ⊔ f 1`, `f 0 ⊔ f 1 ⊔ f 2`, ... The point of this definition is that
 * it doesn't need a `⨆`, as opposed to `⨆ (i ≤ n), f i`.
 * it doesn't need a `⊥`, as opposed to `(finset.range (n + 1)).sup f`.
+* it avoids needing to prove that `finset.range (n + 1)` is nonempty to use `finset.sup'`.
 
-Equivalence with those definitions is shown by `partial_sups_eq_sup_range` and
-`partial_sups_eq_bsupr` respectively.
+Equivalence with those definitions is shown by `partial_sups_eq_bsupr`, `partial_sups_eq_sup_range`,
+`partial_sups_eq_sup'_range` and respectively.
 
 ## Notes
 
@@ -84,7 +85,9 @@ begin
   { exact sup_le_sup ih (h _) }
 end
 
-lemma partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →ₘ α) coe_fn :=
+/-- `partial_sups` forms a Galois insertion with the coercion from monotone functions to functions.
+-/
+def partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ →ₘ α) coe_fn :=
 { choice := λ f h, ⟨f, begin
     convert (partial_sups f).monotone,
     exact (le_partial_sups f).antisymm h,
@@ -96,6 +99,16 @@ lemma partial_sups.gi : galois_insertion (partial_sups : (ℕ → α) → ℕ �
   end,
   le_l_u := λ f, le_partial_sups f,
   choice_eq := λ f h, preorder_hom.ext _ _ ((le_partial_sups f).antisymm h) }
+
+lemma partial_sups_eq_sup'_range (f : ℕ → α) (n : ℕ) :
+  partial_sups f n = (finset.range (n + 1)).sup' ⟨n, finset.self_mem_range_succ n⟩ f :=
+begin
+  induction n with n ih,
+  { simp },
+  { dsimp [partial_sups] at ih ⊢,
+    simp_rw @finset.range_succ n.succ,
+    rw [ih, finset.sup'_insert, sup_comm] }
+end
 
 end semilattice_sup
 
@@ -133,7 +146,7 @@ begin
   exact supr_congr_Prop (by rw [finset.mem_range, nat.lt_succ_iff]) (λ _, rfl),
 end
 
-lemma supr_partial_sups_eq (f : ℕ → α) :
+@[simp] lemma supr_partial_sups_eq (f : ℕ → α) :
   (⨆ n, partial_sups f n) = ⨆ n, f n :=
 begin
   refine (supr_le $ λ n, _).antisymm (supr_le_supr $ le_partial_sups f),

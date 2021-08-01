@@ -629,9 +629,8 @@ lemma restrict_le_restrict_iff (v w : vector_measure α M) {i : set α} (hi : me
    h (hj.inter hi) (set.inter_subset_right j i))⟩
 
 lemma subset_le_of_restrict_le_restrict (v w : vector_measure α M) {i : set α}
-  (hi : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) : ∀ ⦃j⦄, j ⊆ i → v j ≤ w j :=
+  (hi : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) {j : set α} (hj : j ⊆ i) : v j ≤ w j :=
 begin
-  intros j hj,
   by_cases hj₁ : measurable_set j,
   { exact (restrict_eq_self v hi hj₁ hj) ▸ (restrict_eq_self w hi hj₁ hj) ▸ hi₂ j hj₁ },
   { rw [v.not_measurable hj₁, w.not_measurable hj₁] },

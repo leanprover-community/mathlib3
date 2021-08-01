@@ -159,9 +159,8 @@ does not have a measurability condition on `j`.
 
 This is useful when we are using the property that a set is positive. -/
 lemma subset_nonneg_of_positive {i : set α}
-  (hi : measurable_set i) (hi₂ : v.positive i) : ∀ ⦃j⦄, j ⊆ i → 0 ≤ v j :=
+  (hi : measurable_set i) (hi₂ : v.positive i) {j : set α} (hj : j ⊆ i) : 0 ≤ v j :=
 begin
-  intros j hj,
   rw ← zero_apply j,
   refine subset_le_of_restrict_le_restrict 0 v hi _ hj,
   rwa restrict_zero
@@ -180,9 +179,8 @@ does not have a measurability condition on `j`.
 
 This is useful when we are using the property that a set is negative. -/
 lemma subset_nonpos_of_negative {i : set α}
-  (hi : measurable_set i) (hi₂ : v.negative i) : ∀ ⦃j⦄, j ⊆ i → v j ≤ 0 :=
+  (hi : measurable_set i) (hi₂ : v.negative i) {j : set α} (hj : j ⊆ i) : v j ≤ 0 :=
 begin
-  intros j hj,
   rw ← zero_apply j,
   refine subset_le_of_restrict_le_restrict v 0 hi _ hj,
   rwa restrict_zero

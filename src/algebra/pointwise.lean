@@ -313,6 +313,12 @@ instance [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
 
 @[simp, to_additive]
+lemma inv_empty [has_inv α] : (∅ : set α)⁻¹ = ∅ := rfl
+
+@[simp, to_additive]
+lemma inv_univ [has_inv α] : (univ : set α)⁻¹ = univ := rfl
+
+@[simp, to_additive]
 lemma mem_inv [has_inv α] : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
 
 @[to_additive]

@@ -19,7 +19,7 @@ namespace set
 ### Complete lattice and boolean algebra instances
 -/
 
-instance : has_Inf (set α) := ⟨λs, {a | ∀ t ∈ s, a ∈ t }⟩
+instance : has_Inf (set α) := ⟨λs, {a | ∀ t ∈ s, a ∈ t}⟩
 instance : has_Sup (set α) := ⟨sUnion⟩
 
 /-- Intersection of a set of sets. -/

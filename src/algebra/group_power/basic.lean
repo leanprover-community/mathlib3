@@ -225,8 +225,6 @@ variables [comm_monoid M] [add_comm_monoid A]
 theorem mul_pow (a b : M) (n : ℕ) : (a * b)^n = a^n * b^n :=
 (commute.all a b).mul_pow n
 
--- at the time of writing, the call to `simps` below generates `pow_add_monoid_hom_apply`
--- instead of `nsmul_add_monoid_hom_apply`
 
 /-- The `n`th power map on a commutative monoid for a natural `n`, considered as a morphism of
 monoids. -/

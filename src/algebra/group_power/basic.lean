@@ -231,7 +231,7 @@ theorem mul_pow (a b : M) (n : ℕ) : (a * b)^n = a^n * b^n :=
 /-- The `n`th power map on a commutative monoid for a natural `n`, considered as a morphism of
 monoids. -/
 @[to_additive nsmul_add_monoid_hom "Multiplication by a natural `n` on a commutative additive
-monoid, considered as a morphism of additive monoids."]
+monoid, considered as a morphism of additive monoids.", simps]
 def pow_monoid_hom (n : ℕ) : M →* M :=
 { to_fun := (^ n),
   map_one' := one_pow _,

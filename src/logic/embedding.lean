@@ -325,6 +325,8 @@ section subtype
 
 variable {α : Type*}
 
+/-- A subtype `{x // p x ∨ q x}` over a disjunction of `p q : α → Prop` can be injectively split
+into a sum of subtypes `{x // p x} ⊕ {x // q x}` such that `¬ p x` is sent to the right. -/
 def subtype_or_embedding (p q : α → Prop) [decidable_pred p] :
   {x // p x ∨ q x} ↪ {x // p x} ⊕ {x // q x} :=
 ⟨λ x, if h : p x then sum.inl ⟨x, h⟩ else sum.inr ⟨x, x.prop.resolve_left h⟩,
@@ -341,10 +343,15 @@ lemma subtype_or_embedding_apply_left {p q : α → Prop} [decidable_pred p] (x 
 lemma subtype_or_embedding_apply_right {p q : α → Prop} [decidable_pred p] (x : {x // p x ∨ q x})
   (hx : ¬ p x) : subtype_or_embedding p q x = sum.inr ⟨x, x.prop.resolve_left hx⟩ := dif_neg hx
 
+/-- A subtype `{x // p x}` can be injectively sent to into a subtype `{x // q x}`,
+if `p x → q x` for all `x : α`. -/
 @[simps] def subtype.imp_embedding (p q : α → Prop) (h : p ≤ q) :
   {x // p x} ↪ {x // q x} :=
 ⟨λ x, ⟨x, h x x.prop⟩, λ x y, by simp [subtype.ext_iff]⟩
 
+/-- A subtype `{x // p x ∨ q x}` over a disjunction of `p q : α → Prop` is equivalent to a sum of
+subtypes `{x // p x} ⊕ {x // q x}` such that `¬ p x` is sent to the right, when
+`disjoint p q`. -/
 def subtype_or_equiv (p q : α → Prop) [decidable_pred p] (h : disjoint p q) :
   {x // p x ∨ q x} ≃ {x // p x} ⊕ {x // q x} :=
 { to_fun := subtype_or_embedding p q,

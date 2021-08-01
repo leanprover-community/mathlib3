@@ -353,7 +353,7 @@ instance [has_mul α] [add_comm_monoid α] : has_mul (matrix n n α) := ⟨matri
 @[simp] theorem mul_eq_mul [has_mul α] [add_comm_monoid α] (M N : matrix n n α) :
   M * N = M ⬝ N := rfl
 
-theorem mul_apply' [has_mul α] [add_comm_monoid α] {M N : matrix n n α} {i k} :
+theorem mul_apply' [has_mul α] [add_comm_monoid α] {M : matrix l m α} {N : matrix m n α} {i k} :
   (M ⬝ N) i k = dot_product (λ j, M i j) (λ j, N j k) := rfl
 
 @[simp] theorem diagonal_neg [decidable_eq n] [add_group α] (d : n → α) :
@@ -1261,6 +1261,22 @@ begin
   by_cases j' = j,
   { rw [h, update_column_self, if_pos rfl] },
   { rwa [update_column_ne h, if_neg h] }
+end
+
+@[simp] lemma update_column_subsingleton [subsingleton m] (A : matrix n m R)
+  (i : m) (b : n → R) :
+  A.update_column i b = (col b).minor id (function.const m ()) :=
+begin
+  ext x y,
+  simp [update_column_apply, subsingleton.elim i y]
+end
+
+@[simp] lemma update_row_subsingleton [subsingleton n] (A : matrix n m R)
+  (i : n) (b : m → R)  :
+  A.update_row i b = (row b).minor (function.const n ()) id :=
+begin
+  ext x y,
+  simp [update_column_apply, subsingleton.elim i x]
 end
 
 lemma map_update_row [decidable_eq n] (f : α → β) :

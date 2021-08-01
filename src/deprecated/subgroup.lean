@@ -121,39 +121,6 @@ lemma is_subgroup_Union_of_directed {ι : Type*} [hι : nonempty ι]
     set.mem_Union.2 ⟨i, is_subgroup.inv_mem hi⟩,
   to_is_submonoid := is_submonoid_Union_of_directed s directed }
 
-def gpowers (x : G) : set G := set.range ((^) x : ℤ → G)
-def gmultiples (x : A) : set A := set.range (λ i, gsmul i x)
-attribute [to_additive gmultiples] gpowers
-
-instance gpowers.is_subgroup (x : G) : is_subgroup (gpowers x) :=
-{ one_mem := ⟨(0:ℤ), by simp⟩,
-  mul_mem := assume x₁ x₂ ⟨i₁, h₁⟩ ⟨i₂, h₂⟩, ⟨i₁ + i₂, by simp [gpow_add, *]⟩,
-  inv_mem := assume x₀ ⟨i, h⟩, ⟨-i, by simp [h.symm]⟩ }
-
-instance gmultiples.is_add_subgroup (x : A) : is_add_subgroup (gmultiples x) :=
-multiplicative.is_subgroup_iff.1 $ gpowers.is_subgroup _
-attribute [to_additive] gpowers.is_subgroup
-
-lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : ∀{i:ℤ}, a ^ i ∈ s
-| (n : ℕ) := by { rw [gpow_coe_nat], exact is_submonoid.pow_mem h }
-| -[1+ n] := by { rw [gpow_neg_succ_of_nat], exact is_subgroup.inv_mem (is_submonoid.pow_mem h) }
-
-lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] :
-  a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
-@is_subgroup.gpow_mem (multiplicative A) _ _ _ (multiplicative.is_subgroup _)
-
-lemma gpowers_subset {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : gpowers a ⊆ s :=
-λ x hx, match x, hx with _, ⟨i, rfl⟩ := is_subgroup.gpow_mem h end
-
-lemma gmultiples_subset {a : A} {s : set A} [is_add_subgroup s] (h : a ∈ s) : gmultiples a ⊆ s :=
-@gpowers_subset (multiplicative A) _ _ _ (multiplicative.is_subgroup _) h
-
-attribute [to_additive gmultiples_subset] gpowers_subset
-
-lemma mem_gpowers {a : G} : a ∈ gpowers a := ⟨1, by simp⟩
-lemma mem_gmultiples {a : A} : a ∈ gmultiples a := ⟨1, by simp⟩
-attribute [to_additive mem_gmultiples] mem_gpowers
-
 end group
 
 namespace is_subgroup
@@ -575,12 +542,6 @@ begin
     refine ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, _⟩,
     rw [mul_assoc, mul_assoc, mul_left_comm yt] }
 end
-
-@[to_additive gmultiples_eq_closure]
-theorem gpowers_eq_closure {a : G} : gpowers a = closure {a} :=
-subset.antisymm
-  (gpowers_subset $ mem_closure $ by simp)
-  (closure_subset $ by simp [mem_gpowers])
 
 end group
 

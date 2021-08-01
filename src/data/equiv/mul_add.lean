@@ -405,16 +405,23 @@ h.to_add_monoid_hom.map_sub x y
 
 /-- A group is isomorphic to its group of units. -/
 @[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
-def to_units {G} [group G] : G ≃* units G :=
+def to_units [group G] : G ≃* units G :=
 { to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,
   left_inv := λ x, rfl,
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
+@[simp, to_additive coe_to_add_units] lemma coe_to_units [group G] (g : G) :
+  (to_units g : G) = g := rfl
+
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
+
+@[simp, to_additive] lemma coe_inv [group G] (u : units G) :
+  ↑u⁻¹ = (u⁻¹ : G) :=
+to_units.symm.map_inv u
 
 variables [monoid M] [monoid N] [monoid P]
 

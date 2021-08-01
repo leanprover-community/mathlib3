@@ -729,6 +729,17 @@ le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
 
+lemma map_erase [decidable_eq α] [decidable_eq β]
+  (f : α → β) (hf : function.injective f) (x : α) (s : multiset α) :
+  (s.erase x).map f = (s.map f).erase (f x) :=
+begin
+  induction s using multiset.induction_on with y s ih,
+  { simp },
+  by_cases hxy : y = x,
+  { cases hxy, simp },
+  { rw [s.erase_cons_tail hxy, map_cons, map_cons, (s.map f).erase_cons_tail (hf.ne hxy), ih] }
+end
+
 /-! ### `multiset.fold` -/
 
 /-- `foldl f H b s` is the lift of the list operation `foldl f b l`,

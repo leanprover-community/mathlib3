@@ -23,11 +23,7 @@ open_locale topological_space
 lemma complex.tendsto_iff_real (u : ℕ → ℝ) (x : ℝ) :
   tendsto (λ n, u n) at_top (𝓝 x) ↔
   tendsto (λ n, (u n : ℂ)) at_top (𝓝 (x : ℂ)) :=
-begin
-  split,
-  { exact λ h, (complex.continuous_of_real.tendsto x).comp h },
-  { exact λ h, (complex.continuous_re.tendsto x).comp h },
-end
+  ⟨(complex.continuous_of_real.tendsto x).comp, (complex.continuous_re.tendsto x).comp⟩
 
 lemma complex.tendsto_exp_series (z : ℂ) :
   tendsto (λ n, ∑ k in range n, z^k / k.factorial) at_top (𝓝 z.exp) :=
@@ -47,25 +43,25 @@ theorem num_derangements_tendsto_e :
   tendsto (λ n, (num_derangements n : ℝ) / n.factorial) at_top
   (𝓝 (real.exp (-1))) :=
 begin
-  -- useful shorthand function
+  -- we show that d(n)/n! is the partial sum of exp(-1), but offset by 1.
+  -- this isn't entirely obvious, since we have to ensure that asc_factorial and
+  -- factorial interact in the right way, e.g., that k ≤ n always
   let s : ℕ → ℝ := λ n, ∑ k in finset.range n, (-1 : ℝ)^k / k.factorial,
-  -- this isn't entirely obvious, since we have to ensure that desc_fac and factorial interact in
-  -- the right way, e.g. that k stays less than n
-  have : ∀ n : ℕ, (num_derangements n : ℝ) / n.factorial = s(n+1),
-  { intro n,
-    rw num_derangements_sum,
-    push_cast,
-    rw finset.sum_div,
-    refine finset.sum_congr (refl _) _,
-    intros k hk,
-    have h_le : k ≤ n := finset.mem_range_succ_iff.mp hk,
-    rw [nat.asc_factorial_eq_div, nat.add_sub_cancel' h_le],
-    push_cast [nat.factorial_dvd_factorial h_le],
-    field_simp [nat.factorial_ne_zero],
-    ring,
-  },
-  simp_rw this,
-  -- now we shift the function by 1, and use the power series lemma
-  rw tendsto_add_at_top_iff_nat 1,
-  exact real.tendsto_exp_series (-1),
+  suffices : ∀ n : ℕ, (num_derangements n : ℝ) / n.factorial = s(n+1),
+  { simp_rw this,
+    -- shift the function by 1, and use the power series lemma
+    rw tendsto_add_at_top_iff_nat 1,
+    exact real.tendsto_exp_series (-1) },
+  intro n,
+  rw [← int.cast_coe_nat, num_derangements_sum],
+  push_cast,
+  rw finset.sum_div,
+  -- get down to individual terms
+  refine finset.sum_congr (refl _) _,
+  intros k hk,
+  have h_le : k ≤ n := finset.mem_range_succ_iff.mp hk,
+  rw [nat.asc_factorial_eq_div, nat.add_sub_cancel' h_le],
+  push_cast [nat.factorial_dvd_factorial h_le],
+  field_simp [nat.factorial_ne_zero],
+  ring,
 end

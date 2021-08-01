@@ -19,14 +19,14 @@ This file contains lemmas that describe the cardinality of `derangements α` whe
 
 # Main definitions
 
-  - `num_derangements n`: The number of derangements on an n-element set. For concreteness, `fin n`
-    is used.
-
-  - `num_derangements_invariant`: A lemma stating that the number of derangements on a type `α`
+  - `card_derangements_invariant`: A lemma stating that the number of derangements on a type `α`
     depends only on the cardinality of `α`.
 
-  - `num_derangements_recursive`: A lemma giving a recursive expression for `num_derangements (n+2)`
-    in terms of `num_derangements n` and `num_derangements (n+1)`.
+  - `num_derangements n`: The number of derangements on an n-element set, defined in a computation-
+    friendly way.
+
+  - `card_derangements_eq_num_derangements`: Proof that `num_derangements` really does compute the
+    number of derangements.
 
   - `num_derangements_sum`: A lemma giving an expression for `num_derangements n` in terms of
     factorials.
@@ -82,21 +82,25 @@ begin
 end
 
 /-- The number of derangements on an `n`-element set. -/
-def num_derangements : ℕ → ℤ
+def num_derangements : ℕ → ℕ
 | 0 := 1
-| (n + 1) := (n + 1) * num_derangements n - (-1 : ℤ)^n
+| 1 := 0
+| (n + 2) := (n + 1) * (num_derangements n + num_derangements (n+1))
 
-lemma num_derangements_succ_succ {n : ℕ} :
-  num_derangements (n+2) = (n+1) * num_derangements n + (n+1) * num_derangements (n+1) :=
+lemma num_derangements_succ {n : ℕ} :
+  (num_derangements (n+1) : ℤ) = (n + 1) * (num_derangements n : ℤ) - (-1)^n :=
 begin
-  repeat { rw num_derangements },
-  rw pow_succ,
-  push_cast,
-  ring,
+  induction n with n hn,
+  { refl },
+  { rw num_derangements,
+    push_cast,
+    rw hn,
+    rw pow_succ,
+    ring }
 end
 
-lemma card_derangements_eq_num_derangements_fin {n : ℕ} :
-  (card (derangements (fin n)) : ℤ) = num_derangements n :=
+lemma card_derangements_fin_eq_num_derangements {n : ℕ} :
+  card (derangements (fin n)) = num_derangements n :=
 begin
   apply nat.strong_induction_on n,
   clear n, -- to avoid confusion with the n in the hypothesis
@@ -106,36 +110,30 @@ begin
   cases n, { refl },
   -- now we have n ≥ 2. rewrite everything in terms of card_derangements, so that we can use
   -- `card_derangements_fin_succ_succ`
-  rw num_derangements_succ_succ,
+  rw num_derangements,
   have n_le : n < n + 2 := nat.lt_succ_of_le (nat.le_succ _),
   have n_succ_le : n + 1 < n + 2 := lt_add_one _,
   rw [← hyp n n_le, ← hyp n.succ n_succ_le],
   rw card_derangements_fin_succ_succ,
-  norm_cast,
+  rw mul_add,
 end
 
 lemma card_derangements_eq_num_derangements (α : Type*) [fintype α] [decidable_eq α] :
-  (card (derangements α) : ℤ) = num_derangements (card α) :=
+  card (derangements α) = num_derangements (card α) :=
 begin
   let n := card α,
   have key : card α = card (fin n) := by simp,
   rw card_derangements_invariant key,
-  exact card_derangements_eq_num_derangements_fin,
-end
-
-lemma num_derangements_nonneg (n : ℕ) : 0 ≤ num_derangements n :=
-begin
-  rw ← card_derangements_eq_num_derangements_fin,
-  exact int.coe_zero_le _,
+  exact card_derangements_fin_eq_num_derangements,
 end
 
 theorem num_derangements_sum (n : ℕ) :
-  num_derangements n = ∑ k in finset.range (n + 1),
+  (num_derangements n : ℤ) = ∑ k in finset.range (n + 1),
   (-1 : ℤ)^k * nat.asc_factorial k (n - k) :=
 begin
   induction n with n hn,
   { refl },
-  { rw [finset.sum_range_succ, num_derangements, hn, finset.mul_sum, sub_eq_add_neg],
+  { rw [finset.sum_range_succ, num_derangements_succ, hn, finset.mul_sum, sub_eq_add_neg],
     congr' 1,
     -- show that (n + 1) * (-1)^x * desc_fac x (n - x) = (-1)^x * desc_fac x (n.succ - x)
     { refine finset.sum_congr (refl _) _,

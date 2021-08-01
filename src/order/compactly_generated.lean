@@ -422,7 +422,7 @@ end, λ _, and.left⟩⟩
 
 /-- This encapsulates some of the general information one can get out of an atomistic lattice.
 For more specific data, e.g. the existence of a maximal independent set of atoms, see below. -/
-lemma exists_set_independent_Sup_atoms_eq_compl
+lemma exists_set_independent_is_compl_Sup_atoms
   (h : Sup {a : α | is_atom a} = ⊤) (b : α) :
   ∃ s : set α, complete_lattice.set_independent s ∧ is_compl b (Sup s) ∧ ∀ a ∈ s, is_atom a :=
 begin
@@ -475,21 +475,20 @@ begin
       exact (hc1 sc).2.2 a as } }
 end
 
+lemma exists_set_independent_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) :
+  ∃ s : set α, complete_lattice.set_independent s ∧ Sup s = ⊤ ∧ ∀ a ∈ s, is_atom a :=
+begin
+  obtain ⟨s, s_ind, s_top, s_atoms⟩ := exists_set_independent_is_compl_Sup_atoms h (⊥ : α),
+  refine ⟨s, s_ind, eq_top_of_is_compl_bot (is_compl.symm s_top), s_atoms⟩,
+end
+
 /-- See Theorem 6.6, Călugăreanu -/
 lemma is_complemented_of_Sup_atoms_eq_top
   (h : Sup {a : α | is_atom a} = ⊤) : is_complemented α :=
 ⟨λ b, begin
-  obtain ⟨s, s_ind, s_top, s_atoms⟩ := exists_set_independent_Sup_atoms_eq_compl h b,
+  obtain ⟨s, s_ind, s_top, s_atoms⟩ := exists_set_independent_is_compl_Sup_atoms h b,
   refine ⟨Sup s, s_top⟩
 end⟩
-
-lemma is_atomistic.exist_set_independent_Sup_eq_top (h : Sup {a : α | is_atom a} = ⊤) :
-  ∃ s : set α, complete_lattice.set_independent s ∧ Sup s = ⊤ ∧ ∀ a ∈ s, is_atom a :=
-begin
-  obtain ⟨s, s_ind, s_top, s_atoms⟩ := exists_set_independent_Sup_atoms_eq_compl h (⊥ : α),
-  refine ⟨s, s_ind, eq_top_of_is_compl_bot (is_compl.symm s_top), s_atoms⟩,
-end
-
 
 /-- See Theorem 6.6, Călugăreanu -/
 theorem is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=

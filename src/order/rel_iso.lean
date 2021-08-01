@@ -641,22 +641,28 @@ end has_le
 
 open set
 
-variables [preorder α] [preorder β] [preorder γ]
+section le
 
-protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
-
-protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
+variables [has_le α] [has_le β] [has_le γ]
 
 @[simp] lemma le_iff_le (e : α ≃o β) {x y : α} : e x ≤ e y ↔ x ≤ y := e.map_rel_iff
-
-@[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
-e.to_order_embedding.lt_iff_lt
 
 lemma le_symm_apply (e : α ≃o β) {x : α} {y : β} : x ≤ e.symm y ↔ e x ≤ y :=
 e.rel_symm_apply
 
 lemma symm_apply_le (e : α ≃o β) {x : α} {y : β} : e.symm y ≤ x ↔ y ≤ e x :=
 e.symm_apply_rel
+
+end le
+
+variables [preorder α] [preorder β] [preorder γ]
+
+protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
+
+protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
+
+@[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
+e.to_order_embedding.lt_iff_lt
 
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/

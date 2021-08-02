@@ -8,6 +8,7 @@ import algebra.module.pi
 import algebra.module.linear_map
 import algebra.big_operators.ring
 import algebra.star.pi
+import algebra.algebra.basic
 import data.equiv.ring
 import data.fintype.card
 import data.matrix.dmatrix
@@ -517,6 +518,32 @@ map_zero _ f.map_zero
   (0 : matrix n n α).map f = 0 :=
 map_zero _ f.map_zero
 
+section algebra
+
+variables [comm_semiring R] [semiring α] [algebra R α] [semiring β] [algebra R β]
+
+/-- A version of `matrix.map_one` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_one [decidable_eq n]
+  (f : α →ₐ[R] β) : (1 : matrix n n α).map f = 1 :=
+map_one _ f.map_zero f.map_one
+
+/-- A version of `matrix.map_one` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_one [decidable_eq n]
+  (f : α ≃ₐ[R] β) : (1 : matrix n n α).map f = 1 :=
+map_one _ f.map_zero f.map_one
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_zero
+  (f : α →ₐ[R] β) : (0 : matrix n n α).map f = 0 :=
+map_zero _ f.map_zero
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_zero
+  (f : α ≃ₐ[R] β) : (0 : matrix n n α).map f = 0 :=
+map_zero _ f.map_zero
+
+end algebra
+
 end homs
 
 end matrix
@@ -799,6 +826,27 @@ lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (sc
 by simp [commute, semiconj_by]
 
 end comm_semiring
+
+section algebra
+variables [comm_semiring R] [semiring α] [algebra R α] [decidable_eq n]
+
+instance : algebra R (matrix n n α) :=
+{ commutes' := λ r x, begin
+    ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes, smul_ite], end,
+  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
+  ..((matrix.scalar n).comp (algebra_map R α)) }
+
+lemma algebra_map_matrix_apply {r : R} {i j : n} :
+  algebra_map R (matrix n n α) r i j = if i = j then algebra_map R α r else 0 :=
+begin
+  dsimp [algebra_map, algebra.to_ring_hom, matrix.scalar],
+  split_ifs with h; simp [h, matrix.one_apply_ne],
+end
+
+@[simp] lemma algebra_map_eq_smul (r : R) :
+  algebra_map R (matrix n n R) r = r • (1 : matrix n n R) := rfl
+
+end algebra
 
 /-- For two vectors `w` and `v`, `vec_mul_vec w v i j` is defined to be `w i * v j`.
     Put another way, `vec_mul_vec w v` is exactly `col w ⬝ row v`. -/

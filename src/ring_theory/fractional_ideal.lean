@@ -368,7 +368,7 @@ lemma sup_eq_add (I J : fractional_ideal S P) : I ⊔ J = I + J := rfl
 lemma coe_add (I J : fractional_ideal S P) : (↑(I + J) : submodule R P) = I + J := rfl
 
 @[simp, norm_cast]
-lemma coe_ideal_add (I J : ideal R) : (↑(I + J) : fractional_ideal S P) = I + J :=
+lemma coe_ideal_sup (I J : ideal R) : (↑(I ⊔ J) : fractional_ideal S P) = I + J :=
 coe_to_submodule_injective $ coe_submodule_sup _ _ _
 
 lemma fractional_mul (I J : fractional_ideal S P) : is_fractional S (I * J : submodule R P) :=
@@ -545,7 +545,7 @@ variables (S P)
 @[simps]
 def coe_ideal_hom : ideal R →+* fractional_ideal S P :=
 { to_fun := coe,
-  map_add' := coe_ideal_add,
+  map_add' := coe_ideal_sup,
   map_mul' := coe_ideal_mul,
   map_one' := by rw [ideal.one_eq_top, coe_ideal_top],
   map_zero' := coe_to_fractional_ideal_bot }

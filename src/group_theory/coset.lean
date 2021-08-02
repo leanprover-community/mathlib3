@@ -368,10 +368,9 @@ variables {H : Type*} [group H]
 
 lemma card_dvd_of_injective [fintype α] [fintype H] (f : α →* H) (hf : function.injective f) :
   card α ∣ card H :=
-by classical; exact
-calc card α = card (f.range : subgroup H) :
-  card_congr (equiv.of_injective f hf)
-... ∣ card H : card_subgroup_dvd_card _
+by classical;
+calc card α = card (f.range : subgroup H) : card_congr (equiv.of_injective f hf)
+...∣ card H : card_subgroup_dvd_card _
 
 lemma card_dvd_of_le {H K : subgroup α} [fintype H] [fintype K] (hHK : H ≤ K) : card H ∣ card K :=
 card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
@@ -380,11 +379,10 @@ lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
   (f : α →* H) [fintype (K.comap f)] (hf : function.injective f) :
   fintype.card (K.comap f) ∣ fintype.card K :=
 by haveI : fintype ((K.comap f).map f) :=
-  fintype.of_equiv _ (equiv_map_of_injective _ _ hf).to_equiv; exact
-calc fintype.card (K.comap f)
-        = fintype.card ((K.comap f).map f) :
-          fintype.card_congr (equiv_map_of_injective _ _ hf).to_equiv
-    ... ∣ _ : card_dvd_of_le (map_comap_le _ _)
+  fintype.of_equiv _ (equiv_map_of_injective _ _ hf).to_equiv;
+calc fintype.card (K.comap f) = fintype.card ((K.comap f).map f) :
+       fintype.card_congr (equiv_map_of_injective _ _ hf).to_equiv
+... ∣ fintype.card K : card_dvd_of_le (map_comap_le _ _)
 
 end subgroup
 

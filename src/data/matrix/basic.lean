@@ -160,8 +160,10 @@ Note that bundled versions exist as:
 * `matrix.diagonal_add_monoid_hom`
 * `matrix.diagonal_linear_map`
 * `matrix.diagonal_ring_hom`
+* `matrix.diagonal_alg_hom`
 -/
-def diagonal [has_zero α] (d : n → α) : matrix n n α := λ i j, if i = j then d i else 0
+def diagonal [has_zero α] (d : n → α) : matrix n n α
+| i j := if i = j then d i else 0
 
 @[simp] theorem diagonal_apply_eq [has_zero α] {d : n → α} (i : n) : (diagonal d) i i = d i :=
 by simp [diagonal]
@@ -176,7 +178,7 @@ lemma diagonal_injective [has_zero α] : function.injective (diagonal : (n → �
 λ d₁ d₂ h, funext $ λ i, by simpa using matrix.ext_iff.mpr h i i
 
 @[simp] theorem diagonal_zero [has_zero α] : (diagonal (λ _, 0) : matrix n n α) = 0 :=
-by simp [diagonal]; refl
+by { ext, simp [diagonal] }
 
 @[simp] lemma diagonal_transpose [has_zero α] (v : n → α) :
   (diagonal v)ᵀ = diagonal v :=
@@ -889,6 +891,15 @@ end
 
 @[simp] lemma algebra_map_eq_smul (r : R) :
   algebra_map R (matrix n n R) r = r • (1 : matrix n n R) := rfl
+
+variables (R)
+
+/-- `matrix.diagonal` as an `alg_hom`. -/
+@[simps]
+def diagonal_alg_hom [decidable_eq n] : (n → α) →ₐ[R] matrix n n α :=
+{ to_fun := diagonal,
+  commutes' := λ r, by { ext, rw [algebra_map_matrix_apply, diagonal, pi.algebra_map_apply] },
+  .. diagonal_ring_hom n α }
 
 end algebra
 

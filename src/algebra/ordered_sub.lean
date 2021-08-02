@@ -554,7 +554,8 @@ protected lemma lt_sub_iff_right (hc : add_le_cancellable c) : a < b - c ↔ a +
 protected lemma lt_sub_iff_left (hc : add_le_cancellable c) : a < b - c ↔ c + a < b :=
 ⟨lt_imp_lt_of_le_imp_le sub_le_iff_left.mpr, hc.lt_sub_of_add_lt_left⟩
 
-protected lemma sub_lt_sub_iff_right (hc : add_le_cancellable c) (h : c ≤ a) : a - c < b - c ↔ a < b :=
+protected lemma sub_lt_sub_iff_right (hc : add_le_cancellable c) (h : c ≤ a) :
+  a - c < b - c ↔ a < b :=
 by rw [hc.lt_sub_iff_left, add_sub_cancel_of_le h]
 
 protected lemma lt_sub_iff_lt_sub (ha : add_le_cancellable a) (hc : add_le_cancellable c) :

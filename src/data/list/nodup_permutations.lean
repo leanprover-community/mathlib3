@@ -1,5 +1,24 @@
+/-
+Copyright (c) 2021 Yakov Pechersky. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yakov Pechersky
+-/
 import data.list.nodup_equiv_fin
 import data.fintype.basic
+
+/-!
+# Isomorphism between `{l' // l ~ l'}` and `equiv.perm (fin l.length)`
+
+Given a list `l : list α`,
+
+* if `l` has no duplicates, then `list.perm_perm` is the bijection between
+  lists `l' : list α` such that `l ~ l'`, that is, they are permutations of each other,
+  and `equiv.perm (fin l.length)`, the permutation of indices of `l` such that
+  permuting them gives `l'`.
+
+* if `l` has no duplicates then neither does `l.permutations`.
+
+-/
 
 namespace list
 
@@ -50,6 +69,10 @@ begin
     exact fintype.card_le_of_embedding f }
 end
 
+/-- Given `l : list α` and `nodup l`, `list.perm_perm` is the bijection between
+lists `l' : list α` such that `l ~ l'`, that is, they are permutations of each other,
+and `equiv.perm (fin l.length)`, the permutation of indices of `l` such that
+permuting them gives `l'`. -/
 def perm_perm [decidable_eq α] (l : list α) (hn : nodup l) :
   {l' : list α // l ~ l'} ≃ equiv.perm (fin l.length) :=
 { to_fun := λ l',

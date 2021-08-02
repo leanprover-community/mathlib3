@@ -24,12 +24,12 @@ this file.
 
 noncomputable theory
 
+open complex linear_isometry linear_isometry_equiv continuous_linear_map
+     finite_dimensional linear_map
+
 section complex_conformal_linear_map
 
 variables {f : ℂ → ℂ} {z : ℂ} {g : ℂ →L[ℝ] ℂ}
-
-open complex linear_isometry linear_isometry_equiv continuous_linear_map
-     finite_dimensional linear_map
 
 lemma differentiable_at_iff_exists_linear_map (hf : differentiable_at ℝ f z) :
   differentiable_at ℂ f z ↔ ∃ (g' : ℂ →L[ℂ] ℂ), g'.restrict_scalars ℝ = fderiv ℝ f z :=
@@ -127,6 +127,12 @@ iff.intro
     $ is_conformal_map_of_eq_conj_linear h.2)
   (λ h, ⟨is_complex_or_conj_complex_linear h, h.ne_zero⟩)
 
+end complex_conformal_linear_map
+
+section complex_conformal_map
+
+variables {f : ℂ → ℂ} {z : ℂ}
+
 lemma conformal_at_iff_holomorphic_or_antiholomorph_aux (hf : differentiable_at ℝ f z) :
   conformal_at f z ↔
   (differentiable_at ℂ f z ∨ differentiable_at ℂ (conj ∘ f) z) ∧ fderiv ℝ f z ≠ 0 :=
@@ -146,4 +152,4 @@ iff.intro
         by_contra (λ w, h.2 $ fderiv_zero_of_not_differentiable_at w),
       exact (conformal_at_iff_holomorphic_or_antiholomorph_aux this).mpr h, } )
 
-end complex_conformal_linear_map
+end complex_conformal_map

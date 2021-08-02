@@ -848,7 +848,7 @@ that `sum.inr` is an injection, but there's no clear inverse if `β` is empty. -
 noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] : fintype β :=
 fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
 
-@[simp] theorem fintype.card_sum [fintype α] [fintype β] [fintype (α ⊕ β)] :
+@[simp] theorem fintype.card_sum [fintype α] [fintype β] :
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
 begin
   classical,

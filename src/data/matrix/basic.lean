@@ -896,7 +896,7 @@ variables (R)
 
 /-- `matrix.diagonal` as an `alg_hom`. -/
 @[simps]
-def diagonal_alg_hom [decidable_eq n] : (n → α) →ₐ[R] matrix n n α :=
+def diagonal_alg_hom : (n → α) →ₐ[R] matrix n n α :=
 { to_fun := diagonal,
   commutes' := λ r, by { ext, rw [algebra_map_matrix_apply, diagonal, pi.algebra_map_apply] },
   .. diagonal_ring_hom n α }

@@ -365,6 +365,10 @@ lemma sup_eq_add (I J : fractional_ideal S P) : I ⊔ J = I + J := rfl
 @[simp, norm_cast]
 lemma coe_add (I J : fractional_ideal S P) : (↑(I + J) : submodule R P) = I + J := rfl
 
+@[simp, norm_cast]
+lemma coe_ideal_add (I J : ideal R) : (↑(I + J) : fractional_ideal S P) = I + J :=
+coe_to_submodule_injective $ coe_submodule_sup _ _ _
+
 lemma fractional_mul (I J : fractional_ideal S P) : is_fractional S (I * J : submodule R P) :=
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
@@ -408,6 +412,10 @@ instance : has_mul (fractional_ideal S P) := ⟨λ I J, mul I J⟩
 
 @[simp, norm_cast]
 lemma coe_mul (I J : fractional_ideal S P) : (↑(I * J) : submodule R P) = I * J := rfl
+
+@[simp, norm_cast]
+lemma coe_ideal_mul (I J : ideal R) : (↑(I * J) : fractional_ideal S P) = I * J :=
+coe_to_submodule_injective $ coe_submodule_mul _ _ _
 
 lemma mul_left_mono (I : fractional_ideal S P) : monotone ((*) I) :=
 λ J J' h, mul_le.mpr (λ x hx y hy, mul_mem_mul hx (h hy))
@@ -528,6 +536,17 @@ begin
     rw ← hI,
     apply coe_ideal_le_one },
 end
+
+variables (S P)
+
+/-- `coe_ideal_hom (S : submonoid R) P` is `coe : ideal R → fractional_ideal S P` as a ring hom -/
+@[simps]
+def coe_ideal_hom : ideal R →+* fractional_ideal S P :=
+{ to_fun := coe,
+  map_add' := coe_ideal_add,
+  map_mul' := coe_ideal_mul,
+  map_one' := by rw [ideal.one_eq_top, coe_ideal_top],
+  map_zero' := coe_to_fractional_ideal_bot }
 
 end order
 

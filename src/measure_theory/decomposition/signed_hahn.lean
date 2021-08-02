@@ -43,39 +43,41 @@ namespace vector_measure
 /-- A set `i` is positive with respect to a vector measure `v` if `v` restricted
 on`i` is non-negative, i.e. `0 ≤ v.restrict i`. -/
 def positive (v : vector_measure α M) (i : set α) : Prop :=
-0 ≤ v.restrict i
+restrict 0 i ≤ v.restrict i
+
+lemma positive_def (v : vector_measure α M) (i : set α) :
+  v.positive i ↔ 0 ≤ v.restrict i :=
+by { rw [positive, restrict_zero] }
 
 lemma positive_iff {v : vector_measure α M} {i : set α} (hi : measurable_set i) :
   v.positive i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → 0 ≤ v j :=
-begin
-  convert restrict_le_restrict_iff 0 v hi,
-  rw restrict_zero, refl,
-end
+restrict_le_restrict_iff 0 v hi
 
 /-- A set `i` is negative with respect to a vector measure `v` if `v` restricted
 on`i` is non-positive, i.e. `v.restrict i ≤ 0`. -/
 def negative (v : vector_measure α M) (i : set α) : Prop :=
-v.restrict i ≤ 0
+v.restrict i ≤ restrict 0 i
+
+lemma negative_def (v : vector_measure α M) (i : set α) :
+  v.negative i ↔ v.restrict i ≤ 0 :=
+by { rw [negative, restrict_zero] }
 
 lemma negative_iff {v : vector_measure α M} {i : set α} (hi : measurable_set i) :
   v.negative i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ 0 :=
-begin
-  convert restrict_le_restrict_iff v 0 hi,
-  rw restrict_zero, refl,
-end
+restrict_le_restrict_iff v 0 hi
 
 variables {v : signed_measure α} {i j : set α}
 
 lemma empty_positive : v.positive ∅ :=
 begin
   intros j hj,
-  rw restrict_empty,
+  rw [restrict_empty, restrict_empty]
 end
 
 lemma empty_negative : v.negative ∅ :=
 begin
   intros j hj,
-  rw restrict_empty,
+  rw [restrict_empty, restrict_empty]
 end
 
 lemma positive_nonneg_measure (hi₂ : v.positive i) :
@@ -97,14 +99,14 @@ end
 lemma positive_of_not_measurable (hi : ¬ measurable_set i) :
   v.positive i :=
 begin
-  rw [positive, restrict, dif_neg hi],
+  rw [positive, restrict_zero, restrict_not_measurable _ hi],
   exact le_refl _,
 end
 
 lemma negative_of_not_measurable (hi : ¬ measurable_set i) :
   v.negative i :=
 begin
-  rw [negative, restrict, dif_neg hi],
+  rw [negative, restrict_zero, restrict_not_measurable _ hi],
   exact le_refl _,
 end
 
@@ -114,11 +116,7 @@ does not have a measurability condition on `j`.
 This is useful when we are using the property that a set is positive. -/
 lemma subset_nonneg_of_positive {i : set α}
   (hi : measurable_set i) (hi₂ : v.positive i) {j : set α} (hj : j ⊆ i) : 0 ≤ v j :=
-begin
-  rw ← zero_apply j,
-  refine subset_le_of_restrict_le_restrict 0 v hi _ hj,
-  rwa restrict_zero
-end
+subset_le_of_restrict_le_restrict 0 v hi hi₂ hj
 
 /-- This lemma is similar to the backward direction of `vector_measure.positive_iff` except it
 does not require `i` to be measurable.
@@ -126,7 +124,7 @@ does not require `i` to be measurable.
 This is useful when we are proving a set is positive. -/
 lemma positive_of_subset_nonneg {i : set α}
   (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → 0 ≤ v j) : v.positive i :=
-λ j hj, (@restrict_zero α _ ℝ _ _ i) ▸ restrict_le_restrict_of_subset_le 0 v h _ hj
+restrict_le_restrict_of_subset_le 0 v h
 
 /-- This lemma is similar to the forward direction of `vector_measure.negative_iff` except it
 does not have a measurability condition on `j`.
@@ -134,11 +132,7 @@ does not have a measurability condition on `j`.
 This is useful when we are using the property that a set is negative. -/
 lemma subset_nonpos_of_negative {i : set α}
   (hi : measurable_set i) (hi₂ : v.negative i) {j : set α} (hj : j ⊆ i) : v j ≤ 0 :=
-begin
-  rw ← zero_apply j,
-  refine subset_le_of_restrict_le_restrict v 0 hi _ hj,
-  rwa restrict_zero
-end
+subset_le_of_restrict_le_restrict v 0 hi hi₂ hj
 
 /-- This lemma is similar to the backward direction of `vector_measure.negative_iff` except it
 does not require `i` to be measurable.
@@ -146,7 +140,7 @@ does not require `i` to be measurable.
 This is useful when we are proving a set is negative. -/
 lemma negative_of_subset_nonpos {i : set α}
   (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ 0) : v.negative i :=
-λ j hj, (@restrict_zero α _ ℝ _ _ i) ▸ restrict_le_restrict_of_subset_le v 0 h _ hj
+restrict_le_restrict_of_subset_le v 0 h
 
 lemma measurable_of_not_positive (hi : ¬ v.positive i) : measurable_set i :=
 not.imp_symm positive_of_not_measurable hi
@@ -173,44 +167,22 @@ lemma not_negative_subset (hi : ¬ v.negative i) (h : i ⊆ j) (hj : measurable_
 lemma positive_union_positive
   (hi₁ : measurable_set i) (hi₂ : v.positive i)
   (hj₁ : measurable_set j) (hj₂ : v.positive j) : v.positive (i ∪ j) :=
-begin
-  convert restrict_le_restrict_union 0 v hi₁ _ hj₁ _,
-  { rw restrict_zero, refl },
-  { rwa restrict_zero },
-  { rwa restrict_zero }
-end
+restrict_le_restrict_union 0 v hi₁ hi₂ hj₁ hj₂
 
 lemma positive_Union_positive {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.positive (f n)) :
   v.positive ⋃ n, f n :=
-begin
-  convert restrict_le_restrict_Union 0 v hf₁ _,
-  { rw restrict_zero, refl },
-  { intro n,
-    rw restrict_zero,
-    exact hf₂ n }
-end
+restrict_le_restrict_Union 0 v hf₁ hf₂
 
 lemma negative_union_negative
   (hi₁ : measurable_set i) (hi₂ : v.negative i)
   (hj₁ : measurable_set j) (hj₂ : v.negative j) : v.negative (i ∪ j) :=
-begin
-  convert restrict_le_restrict_union v 0 hi₁ _ hj₁ _,
-  { rw restrict_zero, refl },
-  { rwa restrict_zero },
-  { rwa restrict_zero }
-end
+restrict_le_restrict_union v 0 hi₁ hi₂ hj₁ hj₂
 
 lemma negative_Union_negative {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.negative (f n)) :
   v.negative ⋃ n, f n :=
-begin
-  convert restrict_le_restrict_Union v 0 hf₁ _,
-  { rw restrict_zero, refl },
-  { intro n,
-    rw restrict_zero,
-    exact hf₂ n }
-end
+restrict_le_restrict_Union v 0 hf₁ hf₂
 
 lemma exists_pos_measure_of_not_negative (hi : ¬ v.negative i) :
   ∃ (j : set α) (hj₁ : measurable_set j) (hj₂ : j ⊆ i) , 0 < v j :=

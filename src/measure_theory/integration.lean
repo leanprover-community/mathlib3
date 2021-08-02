@@ -1856,12 +1856,12 @@ begin
   refl,
 end
 
-lemma finite_measure_with_density [finite_measure μ] {f : α → ℝ≥0∞}
+lemma finite_measure_with_density {f : α → ℝ≥0∞}
   (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ.with_density f) :=
 { measure_univ_lt_top :=
     by rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] }
 
-lemma with_density_absolutely_continuous [measurable_space α]
+lemma with_density_absolutely_continuous
   (μ : measure α) (f : α → ℝ≥0∞) : μ.with_density f ≪ μ :=
 begin
   refine absolutely_continuous.mk (λ s hs₁ hs₂, _),

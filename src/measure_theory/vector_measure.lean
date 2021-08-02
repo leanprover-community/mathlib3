@@ -434,7 +434,7 @@ variables [measurable_space β]
 section
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {v : vector_measure α M}
+variables (v : vector_measure α M)
 
 /-- The pushforward of a vector measure along a function. -/
 def map (v : vector_measure α M) (f : α → β) :
@@ -456,13 +456,13 @@ lemma map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : measurabl
 by { rw [map, dif_pos hf], exact if_pos hs }
 
 @[simp] lemma map_id : v.map id = v :=
-ext (λ i hi, by rw [map_apply measurable_id hi, preimage_id])
+ext (λ i hi, by rw [map_apply v measurable_id hi, preimage_id])
 
 @[simp] lemma map_zero (f : α → β) : (0 : vector_measure α M).map f = 0 :=
 begin
   by_cases hf : measurable f,
   { ext i hi,
-    rw [map_apply hf hi, zero_apply, zero_apply] },
+    rw [map_apply _ hf hi, zero_apply, zero_apply] },
   { exact dif_neg hf }
 end
 
@@ -482,15 +482,15 @@ if hi : measurable_set i then
     { rw [Union_inter, if_pos (measurable_set.Union hf₁)] }
   end } else 0
 
-lemma restrict_not_measurable (v : vector_measure α M) {i : set α} (hi : ¬ measurable_set i) :
+lemma restrict_not_measurable {i : set α} (hi : ¬ measurable_set i) :
   v.restrict i = 0 :=
 dif_neg hi
 
-lemma restrict_apply (v :vector_measure α M) {i : set α} (hi : measurable_set i)
+lemma restrict_apply {i : set α} (hi : measurable_set i)
   {j : set α} (hj : measurable_set j) : v.restrict i j = v (j ∩ i) :=
 by { rw [restrict, dif_pos hi], exact if_pos hj }
 
-lemma restrict_eq_self (v :vector_measure α M) {i : set α} (hi : measurable_set i)
+lemma restrict_eq_self {i : set α} (hi : measurable_set i)
   {j : set α} (hj : measurable_set j) (hij : j ⊆ i) : v.restrict i j = v j :=
 by rw [restrict_apply v hi hj, inter_eq_left_iff_subset.2 hij]
 
@@ -517,7 +517,7 @@ lemma map_add (v w : vector_measure α M) (f : α → β) :
 begin
   by_cases hf : measurable f,
   { ext i hi,
-    simp [map_apply hf hi] },
+    simp [map_apply _ hf hi] },
   { simp [map, dif_neg hf] }
 end
 
@@ -557,7 +557,7 @@ variables [topological_space R] [has_continuous_smul R M]
 begin
   by_cases hf : measurable f,
   { ext i hi,
-    simp [map_apply hf hi] },
+    simp [map_apply _ hf hi] },
   { simp only [map, dif_neg hf],
     -- `smul_zero` does not work since we do not require `has_continuous_add`
     ext i hi, simp }
@@ -629,7 +629,8 @@ lemma restrict_le_restrict_iff (v w : vector_measure α M) {i : set α} (hi : me
    h (hj.inter hi) (set.inter_subset_right j i))⟩
 
 lemma subset_le_of_restrict_le_restrict (v w : vector_measure α M) {i : set α}
-  (hi : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) {j : set α} (hj : j ⊆ i) : v j ≤ w j :=
+  (hi : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) {j : set α} (hj : j ⊆ i) :
+  v j ≤ w j :=
 begin
   by_cases hj₁ : measurable_set j,
   { exact (restrict_eq_self v hi hj₁ hj) ▸ (restrict_eq_self w hi hj₁ hj) ▸ hi₂ j hj₁ },

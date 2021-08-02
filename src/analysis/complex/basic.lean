@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import data.complex.module
 import data.complex.is_R_or_C
-import analysis.calculus.fderiv
 
 /-!
 # Normed space structure on `ℂ`.
@@ -190,38 +189,3 @@ by simp [is_R_or_C.norm_sq, complex.norm_sq]
 by simp [is_R_or_C.abs, complex.abs]
 
 end is_R_or_C
-
-section complex_fderiv_properties
-
-open complex continuous_linear_map
-
-variables {f : ℂ → ℂ} {z : ℂ}
-
-lemma has_fderiv_at_conj (z : ℂ) : has_fderiv_at conj conj_cle.to_continuous_linear_map z :=
-conj_cle.has_fderiv_at
-
-lemma conj_fderiv_eq_fderiv_conj {z : ℂ} (h : differentiable_at ℝ f z) :
-  conj_cle.to_continuous_linear_map.comp (fderiv ℝ f z) = fderiv ℝ (conj ∘ f) z :=
-begin
-  rw fderiv.comp z (has_fderiv_at_conj $ f z).differentiable_at h,
-  simp only [function.app, continuous_linear_map.coe_comp'],
-  simp only [(has_fderiv_at_conj $ f z).fderiv,
-             continuous_linear_equiv.coe_def_rev, continuous_linear_equiv.coe_coe],
-end
-
-lemma antiholomorph_iff_exists_conj_complex_linear (hf : differentiable_at ℝ f z) :
-  differentiable_at ℂ (conj ∘ f) z ↔
-  ∃ (g' : ℂ →L[ℂ] ℂ), g'.restrict_scalars ℝ =
-  conj_cle.to_continuous_linear_map.comp (fderiv ℝ f z) :=
-begin
-  split,
-  { intros h,
-    rcases (differentiable_at_iff_exists_linear_map ℝ $
-      (has_fderiv_at_conj $ f z).differentiable_at.comp z hf).mp h with ⟨f', hf'⟩,
-    rw ← conj_fderiv_eq_fderiv_conj hf at hf',
-    exact ⟨f', hf'⟩, },
-  { rintros ⟨g', hg'⟩,
-    exact ⟨g', has_fderiv_at_of_eq ℝ ((has_fderiv_at_conj $ f z).comp z hf.has_fderiv_at) hg'⟩, },
-end
-
-end complex_fderiv_properties

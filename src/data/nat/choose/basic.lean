@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta
 -/
 import data.nat.factorial
-import tactic.ring
 
 /-!
 # Binomial coefficients
@@ -118,14 +117,16 @@ begin
   calc
     n.choose k * k.choose s * ((n - k)! * (k - s)! * s!)
         = n.choose k * (k.choose s * s! * (k - s)!) * (n - k)!
-        : by ring
+        : by rw [mul_assoc, mul_assoc, mul_assoc, mul_assoc _ s!, mul_assoc, mul_comm (n - k)!,
+            mul_comm s!]
     ... = n!
         : by rw [choose_mul_factorial_mul_factorial hsk, choose_mul_factorial_mul_factorial hkn]
     ... = n.choose s * s! * ((n - s).choose (k - s) * (k - s)! * (n - s - (k - s))!)
         : by rw [choose_mul_factorial_mul_factorial (nat.sub_le_sub_right hkn _),
           choose_mul_factorial_mul_factorial (hsk.trans hkn)]
     ... = n.choose s * (n - s).choose (k - s) * ((n - k)! * (k - s)! * s!)
-        : by { rw sub_sub_sub_cancel_right hsk, ring }
+        : by rw [sub_sub_sub_cancel_right hsk, mul_assoc, mul_left_comm s!, mul_assoc,
+          mul_comm (k - s)!, mul_comm s!, mul_right_comm, ←mul_assoc]
 end
 
 theorem choose_eq_factorial_div_factorial {n k : ℕ} (hk : k ≤ n) :

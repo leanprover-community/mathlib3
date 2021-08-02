@@ -8,7 +8,6 @@ import data.matrix.basic
 import data.equiv.ring_aut
 import linear_algebra.tensor_product
 import ring_theory.subring
-import deprecated.subring
 import algebra.opposites
 import algebra.iterate_hom
 
@@ -284,33 +283,6 @@ lemma coe_algebra_map_of_subring {R : Type*} [comm_ring R] (S : subring R) :
 
 lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x : S) :
   algebra_map S R x = x := rfl
-
-section
-local attribute [instance] subset.comm_ring
-
-/-- Algebra over a set that is closed under the ring operations. -/
-local attribute [instance]
-def of_is_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  (S : set R) [is_subring S] : algebra S A :=
-algebra.of_subring S.to_subring
-
-lemma is_subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
-  (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
-
-lemma is_subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
-  (algebra_map S R : S → R) = subtype.val := rfl
-
-lemma is_subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
-  algebra_map S R x = x := rfl
-
-lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
-  set.range (algebra_map T₁ R) ⊆ T₂ :=
-begin
-  rintros x ⟨⟨t, ht⟩, rfl⟩,
-  exact hyp ht,
-end
-
-end
 
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
@@ -1202,7 +1174,9 @@ variables {R}
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
 
 variables (R A)
-/-- The multiplication in an algebra is a bilinear map. -/
+/-- The multiplication in an algebra is a bilinear map.
+
+A weaker version of this for semirings exists as `add_monoid_hom.mul`. -/
 def lmul : A →ₐ[R] (End R A) :=
 { map_one' := by { ext a, exact one_mul a },
   map_mul' := by { intros a b, ext c, exact mul_assoc a b c },

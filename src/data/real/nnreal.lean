@@ -331,8 +331,8 @@ lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s)
 instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 { cSup_empty := (function.funext_iff.1
     (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
-  .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _,
-  .. nnreal.linear_ordered_semiring, .. lattice_of_linear_order, .. nnreal.order_bot }
+  .. nnreal.order_bot,
+  .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
 
 lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
 eq.symm $ @subset_Sup_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $

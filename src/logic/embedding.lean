@@ -357,7 +357,7 @@ subtypes `{x // p x} ⊕ {x // q x}` such that `¬ p x` is sent to the right, wh
 `disjoint p q`.
 
 See also `equiv.sum_compl`, for when `is_compl p q`.  -/
-@[simps?] def subtype_or_equiv (p q : α → Prop) [decidable_pred p] (h : disjoint p q) :
+@[simps] def subtype_or_equiv (p q : α → Prop) [decidable_pred p] (h : disjoint p q) :
   {x // p x ∨ q x} ≃ {x // p x} ⊕ {x // q x} :=
 { to_fun := subtype_or_left_embedding p q,
   inv_fun := sum.elim

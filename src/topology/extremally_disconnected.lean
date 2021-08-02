@@ -13,15 +13,21 @@ import topology.category.CompHaus
 
 An extremally disconnected topological space is a space
 in which the closure of every open set is open.
+The `class` of extremally disconnected spaces is called `extremally_disconnected`.
 Such spaces are also called Stonean spaces.
 They are the projective objects in the category of compact Hausdorff spaces.
+
+The definition `compact_t2.projective` corresponds to the mathematical statement that
+a topological space `X` is a projective object in the category of compact Hausdorff spaces.
+
 
 Lemma `extremally_disconnected_of_projective` shows that compact Hausdorff spaces that are
 projective are extremally disconnected.  The converse is missing.
 
 # TODO
 
-Prove that a compact, Hausdorff, extremally disconnected space is projective.
+Prove that a compact, Hausdorff, extremally disconnected space is a projective object in the
+category of compact Hausdorff spaces.
 
 ## References
 

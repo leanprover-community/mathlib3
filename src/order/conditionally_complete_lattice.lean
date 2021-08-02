@@ -641,6 +641,23 @@ protected lemma is_least_Inf {s : set ℕ} (h : s.nonempty) : is_least s (Inf s)
 protected lemma is_lub_Sup {s : set ℕ} (h : bdd_above s) : is_lub s (Sup s) :=
 nat.is_least_Inf h
 
+lemma is_greatest_of_is_lub {s : set ℕ} {n : ℕ} (h : is_lub s n) (hne : s.nonempty ∨ n ≠ 0) :
+  is_greatest s n :=
+begin
+  refine ⟨_, h.1⟩,
+  cases n,
+  { rcases hne.resolve_right (λ h, h rfl) with ⟨m, hm⟩,
+    convert ← hm,
+    exact nonpos_iff_eq_zero.mp (h.1 hm) },
+  { rcases h.exists_between n.lt_succ_self with ⟨m, hms, hlt, hle⟩,
+    convert hms,
+    exact le_antisymm hlt hle }
+end
+
+protected lemma is_greatest_Sup {s : set ℕ} (hne : s.nonempty) (hbd : bdd_above s) :
+  is_greatest s (Sup s) :=
+is_greatest_of_is_lub (nat.is_lub_Sup hbd) (or.inl hne)
+
 lemma nonempty_of_pos_Inf {s : set ℕ} (h : 0 < Inf s) : s.nonempty :=
 begin
   by_contradiction contra, rw set.not_nonempty_iff_eq_empty at contra,

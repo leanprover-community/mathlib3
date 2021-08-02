@@ -85,15 +85,12 @@ begin
     have up : u p ∈ Icc (u n) (Sup S) := ⟨hmono.monotone hp, le_cSup hS' (I p)⟩,
     have : Ico (u n) (Sup S) ⊆ s n,
       by { cases n, { exact (hf 0 t ht).2.1 }, { exact (hf n.succ (u n) (I n)).2.1 } },
-    exact this ⟨up.1, lt_of_le_of_ne up.2 (λ h, hSup (h ▸ I p))⟩ }
+    exact this ⟨up.1, hlt _ (I p)⟩ }
 end
 
 lemma exists_seq_tendsto_Inf {S : set α} (hS : S.nonempty) (hS' : bdd_below S) :
   ∃ (u : ℕ → α) (hu : ∀ n, u n ∈ S), tendsto u at_top (𝓝 (Inf S)) :=
-begin
-  haveI : first_countable_topology (order_dual α) := sorry,
-  exact @exists_seq_tendsto_Sup (order_dual α) _ _ _ _ _ hS hS',
-end
+@exists_seq_tendsto_Sup (order_dual α) _ _ _ _inst_4 _ hS hS'
 
 end lemmas
 

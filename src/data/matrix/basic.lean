@@ -154,8 +154,16 @@ section diagonal
 variables [decidable_eq n]
 
 /-- `diagonal d` is the square matrix such that `(diagonal d) i i = d i` and `(diagonal d) i j = 0`
-if `i ≠ j`. -/
-def diagonal [has_zero α] (d : n → α) : matrix n n α := λ i j, if i = j then d i else 0
+if `i ≠ j`.
+
+Note that bundled versions exist as:
+* `matrix.diagonal_add_monoid_hom`
+* `matrix.diagonal_linear_map`
+* `matrix.diagonal_ring_hom`
+* `matrix.diagonal_alg_hom`
+-/
+def diagonal [has_zero α] (d : n → α) : matrix n n α
+| i j := if i = j then d i else 0
 
 @[simp] theorem diagonal_apply_eq [has_zero α] {d : n → α} (i : n) : (diagonal d) i i = d i :=
 by simp [diagonal]
@@ -166,8 +174,11 @@ by simp [diagonal]
 theorem diagonal_apply_ne' [has_zero α] {d : n → α} {i j : n} (h : j ≠ i) :
   (diagonal d) i j = 0 := diagonal_apply_ne h.symm
 
+lemma diagonal_injective [has_zero α] : function.injective (diagonal : (n → α) → matrix n n α) :=
+λ d₁ d₂ h, funext $ λ i, by simpa using matrix.ext_iff.mpr h i i
+
 @[simp] theorem diagonal_zero [has_zero α] : (diagonal (λ _, 0) : matrix n n α) = 0 :=
-by simp [diagonal]; refl
+by { ext, simp [diagonal] }
 
 @[simp] lemma diagonal_transpose [has_zero α] (v : n → α) :
   (diagonal v)ᵀ = diagonal v :=
@@ -178,9 +189,34 @@ begin
   { simp [h, transpose, diagonal_apply_ne' h] }
 end
 
-@[simp] theorem diagonal_add [add_monoid α] (d₁ d₂ : n → α) :
+@[simp] theorem diagonal_add [add_zero_class α] (d₁ d₂ : n → α) :
   diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
 by ext i j; by_cases h : i = j; simp [h]
+
+@[simp] theorem diagonal_smul [monoid R] [add_monoid α] [distrib_mul_action R α] (r : R)
+  (d : n → α) :
+  diagonal (r • d) = r • diagonal d :=
+by ext i j; by_cases h : i = j; simp [h]
+
+variables (n α)
+
+/-- `matrix.diagonal` as an `add_monoid_hom`. -/
+@[simps]
+def diagonal_add_monoid_hom [add_zero_class α] : (n → α) →+ matrix n n α :=
+{ to_fun := diagonal,
+  map_zero' := diagonal_zero,
+  map_add' := λ x y, (diagonal_add x y).symm,}
+
+variables (R)
+
+/-- `matrix.diagonal` as a `linear_map`. -/
+@[simps]
+def diagonal_linear_map [semiring R] [add_comm_monoid α] [module R α] :
+  (n → α) →ₗ[R] matrix n n α :=
+{ map_smul' := diagonal_smul,
+  .. diagonal_add_monoid_hom n α,}
+
+variables {n α R}
 
 @[simp] lemma diagonal_map [has_zero α] [has_zero β] {f : α → β} (h : f 0 = 0) {d : n → α} :
   (diagonal d).map f = diagonal (λ m, f (d m)) :=
@@ -354,7 +390,7 @@ theorem mul_apply' [has_mul α] [add_comm_monoid α] {M : matrix l m α} {N : ma
 
 @[simp] theorem diagonal_neg [decidable_eq n] [add_group α] (d : n → α) :
   -diagonal d = diagonal (λ i, -d i) :=
-by ext i j; by_cases i = j; simp [h]
+((diagonal_add_monoid_hom n α).map_neg d).symm
 
 lemma sum_apply [add_comm_monoid α] (i : m) (j : n)
   (s : finset β) (g : β → matrix m n α) :
@@ -445,6 +481,16 @@ instance [decidable_eq n] : non_assoc_semiring (matrix n n α) :=
 lemma map_mul {L : matrix m n α} {M : matrix n o α} [non_assoc_semiring β] {f : α →+* β} :
   (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
+
+variables (α n)
+
+/-- `matrix.diagonal` as a `ring_hom`. -/
+@[simps]
+def diagonal_ring_hom [decidable_eq n] : (n → α) →+* matrix n n α :=
+{ to_fun := diagonal,
+  map_one' := diagonal_one,
+  map_mul' := λ _ _, (diagonal_mul_diagonal' _ _).symm,
+  .. diagonal_add_monoid_hom n α }
 
 end non_assoc_semiring
 
@@ -767,6 +813,15 @@ end
 
 @[simp] lemma algebra_map_eq_smul (r : R) :
   algebra_map R (matrix n n R) r = r • (1 : matrix n n R) := rfl
+
+variables (R)
+
+/-- `matrix.diagonal` as an `alg_hom`. -/
+@[simps]
+def diagonal_alg_hom : (n → α) →ₐ[R] matrix n n α :=
+{ to_fun := diagonal,
+  commutes' := λ r, by { ext, rw [algebra_map_matrix_apply, diagonal, pi.algebra_map_apply] },
+  .. diagonal_ring_hom n α }
 
 end algebra
 

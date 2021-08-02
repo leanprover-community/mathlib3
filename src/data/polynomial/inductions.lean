@@ -1,19 +1,15 @@
 /-
-Copyright (c) 2018 Chris Hughes. All rights reserved.
+Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
+Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Damiano Testa, Jens Wagemaker
 -/
 import data.polynomial.degree.definitions
 import data.finset.intervals
---import ring_theory.euclidean_domain
---import ring_theory.multiplicity
 
 /-!
-# Division of univariate polynomials
+# Induction on polynomials
 
-The main defs are `div_by_monic` and `mod_by_monic`.
-The compatibility between these is given by `mod_by_monic_add_div`.
-We also define `root_multiplicity`.
+This file contains lemmas dealing with different flavours of induction on polynomials.
 -/
 
 noncomputable theory
@@ -105,12 +101,14 @@ by rw [← div_X_mul_X_add p] at *;
     else MX (div_X p) hpX0 (rec_on_horner _ M0 MC MX))
 using_well_founded {dec_tac := tactic.assumption}
 
-/--  A property holds for all polynomials of positive degree with coefficients in a semiring `R`
+/--  A property holds for all polynomials of positive `degree` with coefficients in a semiring `R`
 if it holds for
 * `a * X`, with `a ∈ R`,
 * `p * X`, with `p ∈ R[X]`,
 * `p + a`, with `a ∈ R`, `p ∈ R[X]`,
 with appropriate restrictions on each term.
+
+See `nat_degree_ne_zero_induction_on` for a similar statement involving no explicit multiplication.
  -/
 @[elab_as_eliminator] lemma degree_pos_induction_on
   {P : polynomial R → Prop} (p : polynomial R) (h0 : 0 < degree p)
@@ -132,11 +130,22 @@ rec_on_horner p
         by simpa [h, nat.not_lt_zero] using h0'))
   h0
 
-/--  An induction principle for non-constant polynomials. -/
+/--  A property holds for all polynomials of non-zero `nat_degree` with coefficients in a
+semiring `R` if it holds for
+* `p + a`, with `a ∈ R`, `p ∈ R[X]`,
+* `p + q`, with `p, q ∈ R[X]`,
+* monomials with nonzero coefficient and non-zero exponent,
+with appropriate restrictions on each term.
+
+Note that multiplication is "hidden" in the assumption on monomials, so there is no explicit
+multiplication in the statement.
+
+See `degree_pos_induction_on` for a similar statement involving more explicit multiplications.
+ -/
 @[elab_as_eliminator] lemma nat_degree_ne_zero_induction_on {M : polynomial R → Prop}
-  {f : polynomial R} (f0 : f.nat_degree ≠ 0) (h_C_add : ∀ a q, M q → M (C a + q))
-  (h_add : ∀ p q, M p → M q → M (p + q))
-  (h_monomial : ∀ (n : ℕ) (a : R), a ≠ 0 → n ≠ 0 → M (monomial n a)) :
+  {f : polynomial R} (f0 : f.nat_degree ≠ 0) (h_C_add : ∀ {a p}, M p → M (C a + p))
+  (h_add : ∀ {p q}, M p → M q → M (p + q))
+  (h_monomial : ∀ {n : ℕ} {a : R}, a ≠ 0 → n ≠ 0 → M (monomial n a)) :
   M f :=
 suffices f.nat_degree = 0 ∨ M f, from or.dcases_on this (λ h, (f0 h).elim) id,
 begin
@@ -147,17 +156,17 @@ begin
       rw [eq_C_of_nat_degree_eq_zero hp, eq_C_of_nat_degree_eq_zero hq, ← C_add, nat_degree_C] },
     { refine or.inr _,
       rw [eq_C_of_nat_degree_eq_zero hp],
-      exact h_C_add _ _ hq },
+      exact h_C_add hq },
     { refine or.inr _,
       rw [eq_C_of_nat_degree_eq_zero hq, add_comm],
-      exact h_C_add _ _ hp },
-    { exact or.inr (h_add _ _ hp hq) } },
+      exact h_C_add hp },
+    { exact or.inr (h_add hp hq) } },
   { intros n a hi,
     by_cases a0 : a = 0,
     { exact or.inl (by rw [a0, C_0, zero_mul, nat_degree_zero]) },
     { refine or.inr _,
       rw C_mul_X_pow_eq_monomial,
-      exact h_monomial _ _ a0 n.succ_ne_zero } }
+      exact h_monomial a0 n.succ_ne_zero } }
 end
 
 end semiring

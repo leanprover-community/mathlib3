@@ -734,8 +734,6 @@ lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
 
 end strict_mono
 
-
-
 /--
 An element `a : α` is `mul_le_cancellable` if `x ↦ a * x` is order-reflecting.
 We will make a separate version of many lemmas that require `[contravariant_class α α (*) (≤)]` with

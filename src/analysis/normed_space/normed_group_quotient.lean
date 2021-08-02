@@ -133,7 +133,7 @@ by rw [show x - y = -(y - x), by abel, quotient_norm_neg]
 lemma quotient_norm_mk_le (S : add_subgroup M) (m : M) :
   ∥mk' S m∥ ≤ ∥m∥ :=
 begin
-  apply real.Inf_le,
+  apply cInf_le,
   use 0,
   { rintros _ ⟨n, h, rfl⟩,
     apply norm_nonneg },
@@ -485,7 +485,7 @@ lemma is_quotient.norm_le {f : normed_group_hom M N} (hquot : is_quotient f) (m 
   ∥f m∥ ≤ ∥m∥ :=
 begin
   rw hquot.norm,
-  apply real.Inf_le,
+  apply cInf_le,
   { use 0,
     rintros _ ⟨m', hm', rfl⟩,
     apply norm_nonneg },

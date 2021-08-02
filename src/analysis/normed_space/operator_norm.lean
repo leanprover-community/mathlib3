@@ -195,7 +195,7 @@ instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
 
 lemma norm_def : ∥f∥ = Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥} := rfl
 
--- So that invocations of `real.Inf_le` make sense: we show that the set of
+-- So that invocations of `cInf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : E →L[𝕜] F} :
   ∃ c, c ∈ { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
@@ -293,7 +293,7 @@ theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
 
 /-- The norm of the `0` operator is `0`. -/
 theorem op_norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
-le_antisymm (real.Inf_le _ bounds_bdd_below
+le_antisymm (cInf_le bounds_bdd_below
     ⟨ge_of_eq rfl, λ _, le_of_eq (by { rw [zero_mul], exact norm_zero })⟩)
     (op_norm_nonneg _)
 

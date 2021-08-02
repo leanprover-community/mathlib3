@@ -154,6 +154,13 @@ def pi.eval_monoid_hom (i : I) : (Π i, f i) →* f i :=
   map_one' := pi.one_apply i,
   map_mul' := λ x y, pi.mul_apply _ _ i, }
 
+/-- `function.const` as a `monoid_hom`. -/
+@[to_additive "`function.const` as an `add_monoid_hom`.", simps]
+def pi.const_monoid_hom (α β : Type*) [mul_one_class β] : β →* (α → β) :=
+{ to_fun := function.const α,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
 /-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
 
 See also `monoid_hom.eval`. -/

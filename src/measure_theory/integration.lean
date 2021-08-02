@@ -1309,7 +1309,7 @@ by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
 @[simp] lemma lintegral_zero_measure (f : α → ℝ≥0∞) : ∫⁻ a, f a ∂0 = 0 :=
 bot_unique $ by simp [lintegral]
 
-lemma lintegral_in_measure_zero {s : set α} {f : α → ℝ≥0∞} (hs' : μ s = 0) :
+lemma lintegral_in_measure_zero (s : set α) (f : α → ℝ≥0∞) (hs' : μ s = 0) :
   ∫⁻ x in s, f x ∂μ = 0 :=
 begin
   convert lintegral_zero_measure _,
@@ -1866,7 +1866,7 @@ lemma with_density_absolutely_continuous [measurable_space α]
 begin
   refine absolutely_continuous.mk (λ s hs₁ hs₂, _),
   rw with_density_apply _ hs₁,
-  exact lintegral_in_measure_zero hs₂
+  exact lintegral_in_measure_zero _ _ hs₂
 end
 
 end lintegral

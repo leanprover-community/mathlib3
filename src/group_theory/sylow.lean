@@ -222,7 +222,7 @@ let ⟨a, ha⟩ := this in
   (hp.1.2 _ (order_of_dvd_of_pow_eq_one this)).resolve_left
     (λ h, ha1 (order_of_eq_one_iff.1 h))⟩
 
-open subgroup submonoid is_group_hom mul_action
+open subgroup submonoid mul_action
 
 lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
   [fintype ((H : set G) : Type u)] {x : G} :

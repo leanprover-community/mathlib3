@@ -3,10 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.lattice
 import data.option.basic
-import tactic.pi_instances
 import logic.nontrivial
+import order.lattice
+import tactic.pi_instances
 
 /-!
 # ⊤ and ⊥, bounded lattices and variants
@@ -23,6 +23,8 @@ instances for `Prop` and `fun`.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
   combinations). Typical examples include `ℕ`.
 * `bounded_lattice α`: Lattice with a top and bottom element.
+* `distrib_lattice_bot α`: Bounded and distributive lattice. Typical examples include `Prop` and
+  `set α`.
 * `bounded_distrib_lattice α`: Bounded and distributive lattice. Typical examples include `Prop` and
   `set α`.
 * `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
@@ -279,6 +281,9 @@ begin
   casesI A, casesI B,
   injection H1; injection H2; injection H3; congr'
 end
+
+/-- A `distrib_lattice_bot` is a distributive lattice with a least element. -/
+class distrib_lattice_bot α extends distrib_lattice α, semilattice_inf_bot α, semilattice_sup_bot α
 
 /-- A bounded distributive lattice is exactly what it sounds like. -/
 class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
@@ -1065,12 +1070,8 @@ end
 
 end bounded_lattice
 
-section bounded_distrib_lattice
-/-
-TODO: these lemmas don't require the existence of `⊤` and should be generalized to
-distrib_lattice_with_bot (which doesn't exist yet).
--/
-variables [bounded_distrib_lattice α] {a b c : α}
+section distrib_lattice_bot
+variables [distrib_lattice_bot α] {a b c : α}
 
 @[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=
 by simp only [disjoint_iff, inf_sup_right, sup_eq_bot_iff]
@@ -1091,7 +1092,7 @@ lemma disjoint.left_le_of_le_sup_left {a b c : α} (h : a ≤ c ⊔ b) (hd : dis
 @le_of_inf_le_sup_le _ _ a b c ((disjoint_iff.mp hd).symm ▸ bot_le)
   ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
 
-end bounded_distrib_lattice
+end distrib_lattice_bot
 
 end disjoint
 

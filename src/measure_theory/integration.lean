@@ -1309,6 +1309,13 @@ by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
 @[simp] lemma lintegral_zero_measure (f : α → ℝ≥0∞) : ∫⁻ a, f a ∂0 = 0 :=
 bot_unique $ by simp [lintegral]
 
+lemma lintegral_in_measure_zero {s : set α} {f : α → ℝ≥0∞} (hs' : μ s = 0) :
+  ∫⁻ x in s, f x ∂μ = 0 :=
+begin
+  convert lintegral_zero_measure _,
+  exact measure.restrict_eq_zero.2 hs',
+end
+
 lemma lintegral_finset_sum (s : finset β) {f : β → α → ℝ≥0∞} (hf : ∀ b ∈ s, measurable (f b)) :
   (∫⁻ a, ∑ b in s, f b a ∂μ) = ∑ b in s, ∫⁻ a, f b a ∂μ :=
 begin
@@ -1830,6 +1837,37 @@ measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, 
 @[simp] lemma with_density_apply (f : α → ℝ≥0∞) {s : set α} (hs : measurable_set s) :
   μ.with_density f s = ∫⁻ a in s, f a ∂μ :=
 measure.of_measurable_apply s hs
+
+lemma with_density_add {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
+  μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
+begin
+  refine measure_theory.measure.ext (λ s hs, _),
+  rw [with_density_apply _ hs, measure.coe_add, pi.add_apply,
+      with_density_apply _ hs, with_density_apply _ hs, ← lintegral_add hf hg],
+  refl,
+end
+
+lemma with_density_smul (r : ℝ≥0∞) {f : α → ℝ≥0∞} (hf : measurable f) :
+  μ.with_density (r • f) = r • μ.with_density f :=
+begin
+  refine measure_theory.measure.ext (λ s hs, _),
+  rw [with_density_apply _ hs, measure.coe_smul, pi.smul_apply,
+      with_density_apply _ hs, smul_eq_mul, ← lintegral_const_mul r hf],
+  refl,
+end
+
+lemma finite_measure_with_density [finite_measure μ] {f : α → ℝ≥0∞}
+  (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ.with_density f) :=
+{ measure_univ_lt_top :=
+    by rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] }
+
+lemma with_density_absolutely_continuous [measurable_space α]
+  (μ : measure α) (f : α → ℝ≥0∞) : μ.with_density f ≪ μ :=
+begin
+  refine absolutely_continuous.mk (λ s hs₁ hs₂, _),
+  rw with_density_apply _ hs₁,
+  exact lintegral_in_measure_zero hs₂
+end
 
 end lintegral
 

@@ -543,6 +543,27 @@ lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
 lemma map_monic_ne_zero (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
 λ h, f.map_one_ne_zero ((map_monic_eq_zero_iff hp).mp h _)
 
+lemma degree_map_eq_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
+  (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
+le_antisymm (degree_map_le f _) $
+  have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, is_semiring_hom.map_zero f] using hf,
+  begin
+    rw [degree_eq_nat_degree hp0],
+    refine le_degree_of_ne_zero _,
+    rw [coeff_map], exact hf
+  end
+
+lemma nat_degree_map_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
+  (hf : f (leading_coeff p) ≠ 0) : nat_degree (p.map f) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f hf)
+
+lemma leading_coeff_map_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
+  (hf : f (leading_coeff p) ≠ 0) : leading_coeff (p.map f) = f (leading_coeff p) :=
+begin
+  unfold leading_coeff,
+  rw [coeff_map, nat_degree_map_of_leading_coeff_ne_zero f hf],
+end
+
 variables (f)
 
 open is_semiring_hom

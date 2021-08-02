@@ -19,11 +19,11 @@ noncomputable theory
 open_locale classical big_operators
 
 open finset
-
 namespace polynomial
 universes u v w z
 variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ}
 
+/-
 section semiring
 variables [semiring R] {p q : polynomial R}
 
@@ -79,7 +79,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
               (le_refl _),
     by rw [degree_add_eq_left_of_degree_lt this];
       exact degree_lt_degree_mul_X hXp0
-... = p.degree : by rw div_X_mul_X_add
+... = p.degree : congr_arg _ (div_X_mul_X_add _)
 
 /-- An induction principle for polynomials, valued in Sort* instead of Prop. -/
 @[elab_as_eliminator] noncomputable def rec_on_horner
@@ -104,27 +104,8 @@ by rw [← div_X_mul_X_add p] at *;
     else MX (div_X p) hpX0 (rec_on_horner _ M0 MC MX))
 using_well_founded {dec_tac := tactic.assumption}
 
-@[elab_as_eliminator] lemma degree_pos_induction_on
-  {P : polynomial R → Prop} (p : polynomial R) (h0 : 0 < degree p)
-  (hC : ∀ {a}, a ≠ 0 → P (C a * X))
-  (hX : ∀ {p}, 0 < degree p → P p → P (p * X))
-  (hadd : ∀ {p} {a}, 0 < degree p → P p → P (p + C a)) : P p :=
-rec_on_horner p
-  (λ h, by rw degree_zero at h; exact absurd h dec_trivial)
-  (λ p a _ _ ih h0,
-    have 0 < degree p,
-      from lt_of_not_ge (λ h, (not_lt_of_ge degree_C_le) $
-        by rwa [eq_C_of_degree_le_zero h, ← C_add] at h0),
-    hadd this (ih this))
-  (λ p _ ih h0',
-    if h0 : 0 < degree p
-    then hX h0 (ih h0)
-    else by rw [eq_C_of_degree_le_zero (le_of_not_gt h0)] at *;
-      exact hC (λ h : coeff p 0 = 0,
-        by simpa [h, nat.not_lt_zero] using h0'))
-  h0
-
 end semiring
+-/
 
 section comm_semiring
 variables [comm_semiring R]

@@ -56,7 +56,7 @@ begin
   rw [monic, leading_coeff, coeff_map],
   suffices : p.coeff (map f p).nat_degree = 1, simp [this],
   suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
-  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero _ _),
+  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f _)
 end
 
 lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
@@ -237,6 +237,34 @@ open function
 variables [semiring S] {f : R →+* S} (hf : injective f)
 include hf
 
+lemma degree_map_eq_of_injective (p : polynomial R) : degree (p.map f) = degree p :=
+if h : p = 0 then by simp [h]
+else degree_map_eq_of_leading_coeff_ne_zero _
+  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
+    (mt leading_coeff_eq_zero.1 h))
+
+lemma degree_map' (p : polynomial R) :
+  degree (p.map f) = degree p :=
+p.degree_map_eq_of_injective hf
+
+lemma nat_degree_map' (p : polynomial R) :
+  nat_degree (p.map f) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_map' hf p)
+
+lemma leading_coeff_map' (p : polynomial R) :
+  leading_coeff (p.map f) = f (leading_coeff p) :=
+begin
+  unfold leading_coeff,
+  rw [coeff_map, nat_degree_map' hf p],
+end
+
+lemma next_coeff_map (p : polynomial R) :
+  (p.map f).next_coeff = f p.next_coeff :=
+begin
+  unfold next_coeff,
+  rw nat_degree_map' hf,
+  split_ifs; simp
+end
 
 lemma leading_coeff_of_injective (p : polynomial R) :
   leading_coeff (p.map f) = f (leading_coeff p) :=

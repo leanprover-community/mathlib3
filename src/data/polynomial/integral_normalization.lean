@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.algebra_map
 import data.polynomial.monic
+import data.polynomial.degree.lemmas
 
 /-!
 # Theory of monic polynomials

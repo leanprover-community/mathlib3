@@ -5,7 +5,6 @@ Authors: Damiano Testa
 -/
 import data.polynomial.erase_lead
 import data.polynomial.eval
---import data.polynomial.degree
 
 /-!
 # Reverse of a univariate polynomial

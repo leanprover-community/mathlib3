@@ -494,19 +494,13 @@ by norm_cast
 lemma coe_bit1 [add_semigroup α] [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
 by norm_cast
 
-@[simp] lemma bot_add [add_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
+@[simp] lemma bot_add [add_semigroup α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
 
-@[simp] lemma add_bot [add_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
+@[simp] lemma add_bot [add_semigroup α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
 
-@[simp] lemma add_eq_bot_iff [add_monoid α] {m n : with_bot α} :
+@[simp] lemma add_eq_bot [add_semigroup α] {m n : with_bot α} :
   m + n = ⊥ ↔ m = ⊥ ∨ n = ⊥ :=
-begin
-  induction m using with_bot.rec_bot_coe,
-  { simp },
-  induction n using with_bot.rec_bot_coe,
-  { simp },
-  { simp [←with_bot.coe_add] }
-end
+with_top.add_eq_top
 
 end with_bot
 

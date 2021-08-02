@@ -3,9 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
 import algebra.field_power
 import data.rat
+import data.int.least_greatest
 
 /-!
 # Archimedean groups and fields.
@@ -34,6 +34,11 @@ variables {α : Type*}
 such that `0 < y` there exists a natural number `n` such that `x ≤ n • y`. -/
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
+
+instance order_dual.archimedean [ordered_add_comm_group α] [archimedean α] :
+  archimedean (order_dual α) :=
+⟨λ x y hy, let ⟨n, hn⟩ := archimedean.arch (-x : α) (neg_pos.2 hy) in
+  ⟨n, by rwa [neg_nsmul, neg_le_neg_iff] at hn⟩⟩
 
 namespace linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] [archimedean α]

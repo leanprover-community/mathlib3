@@ -110,12 +110,12 @@ instance pi.complete_boolean_algebra {ι : Type*} {π : ι → Type*}
   [∀ i, complete_boolean_algebra (π i)] : complete_boolean_algebra (Π i, π i) :=
 { .. pi.boolean_algebra, .. pi.complete_distrib_lattice }
 
-instance : complete_boolean_algebra Prop :=
+instance Prop.complete_boolean_algebra : complete_boolean_algebra Prop :=
 { infi_sup_le_sup_Inf := λ p s, iff.mp $
     by simp only [forall_or_distrib_left, complete_lattice.Inf, infi_Prop_eq, sup_Prop_eq],
   inf_Sup_le_supr_inf := λ p s, iff.mp $
     by simp only [complete_lattice.Sup, exists_and_distrib_left, inf_Prop_eq, supr_Prop_eq],
-  .. boolean_algebra_Prop, .. complete_lattice_Prop }
+  .. Prop.boolean_algebra, .. Prop.complete_lattice }
 
 section complete_boolean_algebra
 variables [complete_boolean_algebra α] {a b : α} {s : set α} {f : ι → α}

@@ -595,8 +595,7 @@ noncomputable instance fractional_ideal.comm_group_with_zero
 
 noncomputable instance ideal.comm_cancel_monoid_with_zero
   [is_dedekind_domain A] : comm_cancel_monoid_with_zero (ideal A) :=
-{ .. function.injective.cancel_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
-       coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _),
-  .. (infer_instance : comm_monoid_with_zero (ideal A)) }
+function.injective.comm_cancel_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
+  coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
 
 end inverse

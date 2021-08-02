@@ -431,7 +431,7 @@ library_note "custom simps projection"
     except that it doesn't print information about the found projections.
   * if `add_additive` is `some nm` then `@[to_additive]` is added to the generated lemma. This
     option is automatically set to `tt` when the original declaration was tagged with
-    `@[to_additive]`, where `nm` is the additive name of the original declaration.
+    `@[to_additive, simps]` (in that order), where `nm` is the additive name of the original declaration.
 -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
 (attrs         := [`simp])

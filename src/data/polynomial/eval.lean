@@ -389,8 +389,8 @@ eval₂_monomial _ _
 @[simp] lemma mul_X_comp : (p * X).comp r = p.comp r * r :=
 begin
   apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq, add_mul], },
-  { intros n b, simp [pow_succ', mul_assoc], }
+  { intros p q hp hq, simp only [hp, hq, add_mul, add_comp] },
+  { intros n b, simp only [pow_succ', mul_assoc, monomial_mul_X, monomial_comp] }
 end
 
 @[simp] lemma X_pow_comp {k : ℕ} : (X^k).comp p = p^k :=
@@ -540,7 +540,7 @@ lemma map_monic_ne_zero (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
 lemma degree_map_eq_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
   (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
 le_antisymm (degree_map_le f _) $
-  have hp0 : p ≠ 0, from λ hp0, by simpa [hp0, is_semiring_hom.map_zero f] using hf,
+  have hp0 : p ≠ 0, from λ hp0, by simpa only [hp0, f.map_zero, leading_coeff_zero] using hf,
   begin
     rw [degree_eq_nat_degree hp0],
     refine le_degree_of_ne_zero _,
@@ -609,9 +609,11 @@ lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
 
 lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
 polynomial.induction_on p
-  (by simp)
-  (by simp {contextual := tt})
-  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
+  (by simp only [map_C, forall_const, C_comp, eq_self_iff_true])
+  (by simp only [map_add, add_comp, forall_const, implies_true_iff, eq_self_iff_true]
+        {contextual := tt})
+  (by simp only [pow_succ', ←mul_assoc, comp, forall_const, eval₂_mul_X, implies_true_iff,
+        eq_self_iff_true, map_X, map_mul] {contextual := tt})
 
 @[simp]
 lemma eval_zero_map (f : R →+* S) (p : polynomial R) :
@@ -623,8 +625,8 @@ lemma eval_one_map (f : R →+* S) (p : polynomial R) :
   (p.map f).eval 1 = f (p.eval 1) :=
 begin
   apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, simp, }
+  { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
+  { intros n r, simp only [one_pow, mul_one, eval_monomial, map_monomial] }
 end
 
 @[simp]
@@ -632,8 +634,9 @@ lemma eval_nat_cast_map (f : R →+* S) (p : polynomial R) (n : ℕ) :
   (p.map f).eval n = f (p.eval n) :=
 begin
   apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, simp, }
+  { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
+  { intros n r, simp only [ring_hom.map_nat_cast, eval_monomial, map_monomial, ring_hom.map_pow,
+      ring_hom.map_mul] }
 end
 
 @[simp]
@@ -642,8 +645,9 @@ lemma eval_int_cast_map {R S : Type*} [ring R] [ring S]
   (p.map f).eval i = f (p.eval i) :=
 begin
   apply polynomial.induction_on' p,
-  { intros p q hp hq, simp [hp, hq], },
-  { intros n r, simp, }
+  { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
+  { intros n r, simp only [ring_hom.map_int_cast, eval_monomial, map_monomial, ring_hom.map_pow,
+      ring_hom.map_mul] }
 end
 
 end map
@@ -752,7 +756,6 @@ begin
   intros x,
   simp only [mem_support_iff],
   contrapose!,
-  change p.coeff x = 0 → (map f p).coeff x = 0,
   rw coeff_map,
   intro hx,
   rw hx,

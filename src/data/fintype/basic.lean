@@ -1201,7 +1201,7 @@ begin
   simp
 end
 
-lemma fintype.card_subtype_or (p q : α → Prop) [decidable_pred p] [decidable_pred q]
+lemma fintype.card_subtype_or (p q : α → Prop) [decidable_pred p]
   [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
   fintype.card {x // p x ∨ q x} ≤ fintype.card {x // p x} + fintype.card {x // q x} :=
 begin
@@ -1209,10 +1209,8 @@ begin
   rw fintype.card_sum
 end
 
-lemma fintype.card_subtype_or_disjoint (p q : α → Prop)
-  (h : disjoint p q)
-  [decidable_pred p] [decidable_pred q]
-  [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
+lemma fintype.card_subtype_or_disjoint (p q : α → Prop) (h : disjoint p q)
+  [decidable_pred p] [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
   fintype.card {x // p x ∨ q x} = fintype.card {x // p x} + fintype.card {x // q x} :=
 begin
   convert fintype.card_congr (subtype_or_equiv p q h),

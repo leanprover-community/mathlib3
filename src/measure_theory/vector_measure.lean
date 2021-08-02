@@ -429,10 +429,9 @@ end measure
 
 namespace vector_measure
 
-variables [measurable_space β]
-
 section
 
+variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables (v : vector_measure α M)
 
@@ -548,6 +547,7 @@ end
 
 section
 
+variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M]
 variables [topological_space R] [has_continuous_smul R M]
@@ -578,6 +578,7 @@ end
 
 section
 
+variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M] [has_continuous_add M]

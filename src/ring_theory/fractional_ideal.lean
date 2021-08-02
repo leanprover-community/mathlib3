@@ -165,6 +165,8 @@ end
 This is a bundled version of `is_localization.coe_submodule : ideal R → submodule R P`,
 which is not to be confused with the `coe : fractional_ideal S P → submodule R P`,
 also called `coe_to_submodule` in theorem names.
+
+This map is available as a ring hom, called `fractional_ideal.coe_ideal_hom`.
 -/
 instance coe_to_fractional_ideal : has_coe (ideal R) (fractional_ideal S P) :=
 ⟨λ I, ⟨coe_submodule P I, is_fractional_of_le_one _

@@ -1079,22 +1079,22 @@ variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [al
 /-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
 @[simp] lemma alg_hom_map_one [decidable_eq n]
   (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
+map_one _ f.map_zero f.map_one
 
 /-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
 @[simp] lemma alg_equiv_map_one [decidable_eq n]
   (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
+map_one _ f.map_zero f.map_one
 
 /-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
 @[simp] lemma alg_hom_map_zero
   (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 /-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
 @[simp] lemma alg_equiv_map_zero
   (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 end semiring
 

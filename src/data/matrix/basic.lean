@@ -29,7 +29,7 @@ m → n → α
 variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
 variables {m' : o → Type*} [∀ i, fintype (m' i)]
 variables {n' : o → Type*} [∀ i, fintype (n' i)]
-variables {R : Type*} {S : Type*} {α : Type v} {β : Type w}
+variables {R : Type*} {S : Type*} {α : Type v} {β : Type w} {γ : Type*}
 
 namespace matrix
 
@@ -44,7 +44,17 @@ ext_iff.mp
 
 end ext
 
-/-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`. -/
+/-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`.
+
+This is available in bundled forms as:
+* `add_monoid_hom.map_matrix`
+* `linear_map.map_matrix`
+* `ring_hom.map_matrix`
+* `equiv.map_matrix`
+* `add_equiv.map_matrix`
+* `linear_equiv.map_matrix`
+* `ring_equiv.map_matrix`
+-/
 def map (M : matrix m n α) (f : α → β) : matrix m n β := λ i j, f (M i j)
 
 @[simp]
@@ -52,9 +62,13 @@ lemma map_apply {M : matrix m n α} {f : α → β} {i : m} {j : n} :
   M.map f i j = f (M i j) := rfl
 
 @[simp]
+lemma map_id (M : matrix m n α) : M.map id = M :=
+by { ext, refl, }
+
+@[simp]
 lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ} :
   (M.map f).map g = M.map (g ∘ f) :=
-by { ext, simp, }
+by { ext, refl, }
 
 /-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
@@ -81,6 +95,7 @@ instance [has_add α] : has_add (matrix m n α) := pi.has_add
 instance [add_semigroup α] : add_semigroup (matrix m n α) := pi.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) := pi.add_comm_semigroup
 instance [has_zero α] : has_zero (matrix m n α) := pi.has_zero
+instance [add_zero_class α] : add_zero_class (matrix m n α) := pi.add_zero_class
 instance [add_monoid α] : add_monoid (matrix m n α) := pi.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) := pi.add_comm_monoid
 instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
@@ -104,21 +119,21 @@ instance [monoid R] [add_monoid α] [distrib_mul_action R α] :
 instance [semiring R] [add_comm_monoid α] [module R α] :
   module R (matrix m n α) := pi.module _ _ _
 
-@[simp] lemma map_zero [has_zero α] [has_zero β] {f : α → β} (h : f 0 = 0) :
+@[simp] lemma map_zero [has_zero α] [has_zero β] (f : α → β) (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=
 by { ext, simp [h], }
 
-lemma map_add [add_monoid α] [add_monoid β] (f : α →+ β)
+lemma map_add [has_add α] [has_add β] (f : α → β) (hf : ∀ a₁ a₂, f (a₁ + a₂) = f a₁ + f a₂)
   (M N : matrix m n α) : (M + N).map f = M.map f + N.map f :=
-by { ext, simp, }
+ext $ λ _ _, hf _ _
 
-lemma map_sub [add_group α] [add_group β] (f : α →+ β)
+lemma map_sub [has_sub α] [has_sub β] (f : α → β) (hf : ∀ a₁ a₂, f (a₁ - a₂) = f a₁ - f a₂)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
-by { ext, simp }
+ext $ λ _ _, hf _ _
 
-lemma map_smul [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
-  (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
-by { ext, simp, }
+lemma map_smul [has_scalar R α] [has_scalar R β] (f : α → β) (r : R)
+  (hf : ∀ a, f (r • a) = r • f a) (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
+ext $ λ _ _, hf _
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
@@ -129,26 +144,6 @@ lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
 end matrix
-
-/-- The `add_monoid_hom` between spaces of matrices induced by an `add_monoid_hom` between their
-coefficients. -/
-def add_monoid_hom.map_matrix [add_monoid α] [add_monoid β] (f : α →+ β) :
-  matrix m n α →+ matrix m n β :=
-{ to_fun := λ M, M.map f,
-  map_zero' := by simp,
-  map_add' := matrix.map_add f, }
-
-@[simp] lemma add_monoid_hom.map_matrix_apply [add_monoid α] [add_monoid β]
-  (f : α →+ β) (M : matrix m n α) : f.map_matrix M = M.map f := rfl
-
-/-- The `linear_map` between spaces of matrices induced by a `linear_map` between their
-coefficients. -/
-@[simps]
-def linear_map.map_matrix [semiring R] [add_comm_monoid α] [add_comm_monoid β]
-  [module R α] [module R β] (f : α →ₗ[R] β) : matrix m n α →ₗ[R] matrix m n β :=
-{ to_fun := λ M, M.map f,
-  map_add' := matrix.map_add f.to_add_monoid_hom,
-  map_smul' := matrix.map_smul f.to_mul_action_hom, }
 
 open_locale matrix
 
@@ -207,8 +202,8 @@ diagonal_apply_ne
 theorem one_apply_ne' {i j} : j ≠ i → (1 : matrix n n α) i j = 0 :=
 diagonal_apply_ne'
 
-@[simp] lemma one_map [has_zero β] [has_one β]
-  {f : α → β} (h₀ : f 0 = 0) (h₁ : f 1 = 1) :
+@[simp] lemma map_one [has_zero β] [has_one β]
+  (f : α → β) (h₀ : f 0 = 0) (h₁ : f 1 = 1) :
   (1 : matrix n n α).map f = (1 : matrix n n β) :=
 by { ext, simp only [one_apply, map_apply], split_ifs; simp [h₀, h₁], }
 
@@ -475,66 +470,224 @@ end semiring
 section homs
 
 -- TODO: there should be a way to avoid restating these for each `foo_hom`.
-/-- A version of `one_map` where `f` is a ring hom. -/
+/-- A version of `map_one` where `f` is a ring hom. -/
 @[simp] lemma ring_hom_map_one [decidable_eq n] [semiring α] [semiring β] (f : α →+* β) :
   (1 : matrix n n α).map f = 1 :=
-one_map f.map_zero f.map_one
+map_one _ f.map_zero f.map_one
 
-/-- A version of `one_map` where `f` is a `ring_equiv`. -/
+/-- A version of `map_one` where `f` is a `ring_equiv`. -/
 @[simp] lemma ring_equiv_map_one [decidable_eq n]  [semiring α] [semiring β] (f : α ≃+* β) :
   (1 : matrix n n α).map f = 1 :=
-one_map f.map_zero f.map_one
+map_one _ f.map_zero f.map_one
 
 /-- A version of `map_zero` where `f` is a `zero_hom`. -/
 @[simp] lemma zero_hom_map_zero [has_zero α] [has_zero β] (f : zero_hom α β) :
   (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 /-- A version of `map_zero` where `f` is a `add_monoid_hom`. -/
 @[simp] lemma add_monoid_hom_map_zero [add_monoid α] [add_monoid β] (f : α →+ β) :
   (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 /-- A version of `map_zero` where `f` is a `add_equiv`. -/
 @[simp] lemma add_equiv_map_zero [add_monoid α] [add_monoid β] (f : α ≃+ β) :
   (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 /-- A version of `map_zero` where `f` is a `linear_map`. -/
 @[simp] lemma linear_map_map_zero [semiring R] [add_comm_monoid α] [add_comm_monoid β]
   [module R α] [module R β] (f : α →ₗ[R] β) :
   (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 /-- A version of `map_zero` where `f` is a `linear_equiv`. -/
 @[simp] lemma linear_equiv_map_zero [semiring R] [add_comm_monoid α] [add_comm_monoid β]
   [module R α] [module R β] (f : α ≃ₗ[R] β) :
   (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 /-- A version of `map_zero` where `f` is a `ring_hom`. -/
 @[simp] lemma ring_hom_map_zero [semiring α] [semiring β] (f : α →+* β) :
   (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 /-- A version of `map_zero` where `f` is a `ring_equiv`. -/
 @[simp] lemma ring_equiv_map_zero [semiring α] [semiring β] (f : α ≃+* β) :
   (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 end homs
 
 end matrix
 
-/-- The `ring_hom` between spaces of square matrices induced by a `ring_hom` between their
-coefficients. -/
+/-!
+### Bundled versions of `matrix.map`
+-/
+
+namespace equiv
+
+/-- The `equiv` between spaces of matrices induced by an `equiv` between their
+coefficients. This is `matrix.map` as an `equiv`. -/
+@[simps apply]
+def map_matrix (f : α ≃ β) : matrix m n α ≃ matrix m n β :=
+{ to_fun := λ M, M.map f,
+  inv_fun := λ M, M.map f.symm,
+  left_inv := λ M, matrix.ext $ λ _ _, f.symm_apply_apply _,
+  right_inv := λ M, matrix.ext $ λ _ _, f.apply_symm_apply _, }
+
+@[simp] lemma map_matrix_refl : (equiv.refl α).map_matrix = equiv.refl (matrix m n α) :=
+rfl
+
+@[simp] lemma map_matrix_symm (f : α ≃ β) :
+  f.map_matrix.symm = (f.symm.map_matrix : matrix m n β ≃ _) :=
+rfl
+
+@[simp] lemma map_matrix_trans (f : α ≃ β) (g : β ≃ γ) :
+  f.map_matrix.trans g.map_matrix = ((f.trans g).map_matrix : matrix m n α ≃ _) :=
+rfl
+
+end equiv
+
+namespace add_monoid_hom
+variables [add_zero_class α] [add_zero_class β] [add_zero_class γ]
+
+/-- The `add_monoid_hom` between spaces of matrices induced by an `add_monoid_hom` between their
+coefficients. This is `matrix.map` as an `add_monoid_hom`. -/
 @[simps]
-def ring_hom.map_matrix [decidable_eq m] [semiring α] [semiring β] (f : α →+* β) :
-  matrix m m α →+* matrix m m β :=
+def map_matrix (f : α →+ β) : matrix m n α →+ matrix m n β :=
+{ to_fun := λ M, M.map f,
+  map_zero' := matrix.map_zero f f.map_zero,
+  map_add' := matrix.map_add f f.map_add }
+
+@[simp] lemma map_matrix_id : (add_monoid_hom.id α).map_matrix = add_monoid_hom.id (matrix m n α) :=
+rfl
+
+@[simp] lemma map_matrix_comp (f : β →+ γ) (g : α →+ β) :
+  f.map_matrix.comp g.map_matrix = ((f.comp g).map_matrix : matrix m n α →+ _) :=
+rfl
+
+end add_monoid_hom
+
+namespace add_equiv
+variables [has_add α] [has_add β] [has_add γ]
+
+/-- The `add_equiv` between spaces of matrices induced by an `add_equiv` between their
+coefficients. This is `matrix.map` as an `add_equiv`. -/
+@[simps apply]
+def map_matrix (f : α ≃+ β) : matrix m n α ≃+ matrix m n β :=
+{ to_fun := λ M, M.map f,
+  inv_fun := λ M, M.map f.symm,
+  map_add' := matrix.map_add f f.map_add,
+  .. f.to_equiv.map_matrix }
+
+@[simp] lemma map_matrix_refl : (add_equiv.refl α).map_matrix = add_equiv.refl (matrix m n α) :=
+rfl
+
+@[simp] lemma map_matrix_symm (f : α ≃+ β) :
+  f.map_matrix.symm = (f.symm.map_matrix : matrix m n β ≃+ _) :=
+rfl
+
+@[simp] lemma map_matrix_trans (f : α ≃+ β) (g : β ≃+ γ) :
+  f.map_matrix.trans g.map_matrix = ((f.trans g).map_matrix : matrix m n α ≃+ _) :=
+rfl
+
+end add_equiv
+
+namespace linear_map
+variables [semiring R] [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
+variables [module R α] [module R β] [module R γ]
+
+/-- The `linear_map` between spaces of matrices induced by a `linear_map` between their
+coefficients. This is `matrix.map` as a `linear_map`. -/
+@[simps]
+def map_matrix (f : α →ₗ[R] β) : matrix m n α →ₗ[R] matrix m n β :=
+{ to_fun := λ M, M.map f,
+  map_add' := matrix.map_add f f.map_add,
+  map_smul' := λ r, matrix.map_smul f r (f.map_smul r), }
+
+@[simp] lemma map_matrix_id : linear_map.id.map_matrix = (linear_map.id : matrix m n α →ₗ[R] _) :=
+rfl
+
+@[simp] lemma map_matrix_comp (f : β →ₗ[R] γ) (g : α →ₗ[R] β) :
+  f.map_matrix.comp g.map_matrix = ((f.comp g).map_matrix : matrix m n α →ₗ[R] _) :=
+rfl
+
+end linear_map
+
+namespace linear_equiv
+variables [semiring R] [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
+variables [module R α] [module R β] [module R γ]
+
+/-- The `linear_equiv` between spaces of matrices induced by an `linear_equiv` between their
+coefficients. This is `matrix.map` as an `linear_equiv`. -/
+@[simps apply]
+def map_matrix (f : α ≃ₗ[R] β) : matrix m n α ≃ₗ[R] matrix m n β :=
+{ to_fun := λ M, M.map f,
+  inv_fun := λ M, M.map f.symm,
+  .. f.to_equiv.map_matrix,
+  .. f.to_linear_map.map_matrix }
+
+@[simp] lemma map_matrix_refl :
+  (linear_equiv.refl R α).map_matrix = linear_equiv.refl R (matrix m n α) :=
+rfl
+
+@[simp] lemma map_matrix_symm (f : α ≃ₗ[R] β) :
+  f.map_matrix.symm = (f.symm.map_matrix : matrix m n β ≃ₗ[R] _) :=
+rfl
+
+@[simp] lemma map_matrix_trans (f : α ≃ₗ[R] β) (g : β ≃ₗ[R] γ) :
+  f.map_matrix.trans g.map_matrix = ((f.trans g).map_matrix : matrix m n α ≃ₗ[R] _) :=
+rfl
+
+end linear_equiv
+
+namespace ring_hom
+variables [decidable_eq m] [non_assoc_semiring α] [non_assoc_semiring β] [non_assoc_semiring γ]
+
+/-- The `ring_hom` between spaces of square matrices induced by a `ring_hom` between their
+coefficients. This is `matrix.map` as a `ring_hom`. -/
+@[simps]
+def map_matrix (f : α →+* β) : matrix m m α →+* matrix m m β :=
 { to_fun := λ M, M.map f,
   map_one' := by simp,
   map_mul' := λ L M, matrix.map_mul,
-  ..(f.to_add_monoid_hom).map_matrix }
+  .. f.to_add_monoid_hom.map_matrix }
+
+@[simp] lemma map_matrix_id : (ring_hom.id α).map_matrix = ring_hom.id (matrix m m α) :=
+rfl
+
+@[simp] lemma map_matrix_comp (f : β →+* γ) (g : α →+* β) :
+  f.map_matrix.comp g.map_matrix = ((f.comp g).map_matrix : matrix m m α →+* _) :=
+rfl
+
+end ring_hom
+
+namespace ring_equiv
+variables [decidable_eq m] [non_assoc_semiring α] [non_assoc_semiring β] [non_assoc_semiring γ]
+
+/-- The `ring_equiv` between spaces of square matrices induced by a `ring_equiv` between their
+coefficients. This is `matrix.map` as a `ring_equiv`. -/
+@[simps apply]
+def map_matrix (f : α ≃+* β) : matrix m m α ≃+* matrix m m β :=
+{ to_fun := λ M, M.map f,
+  inv_fun := λ M, M.map f.symm,
+  .. f.to_ring_hom.map_matrix,
+  .. f.to_add_equiv.map_matrix }
+
+@[simp] lemma map_matrix_refl :
+  (ring_equiv.refl α).map_matrix = ring_equiv.refl (matrix m m α) :=
+rfl
+
+@[simp] lemma map_matrix_symm (f : α ≃+* β) :
+  f.map_matrix.symm = (f.symm.map_matrix : matrix m m β ≃+* _) :=
+rfl
+
+@[simp] lemma map_matrix_trans (f : α ≃+* β) (g : β ≃+* γ) :
+  f.map_matrix.trans g.map_matrix = ((f.trans g).map_matrix : matrix m m α ≃+* _) :=
+rfl
+
+end ring_equiv
 
 open_locale matrix
 

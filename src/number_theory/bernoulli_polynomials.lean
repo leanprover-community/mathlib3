@@ -100,9 +100,9 @@ begin
   simp_rw [polynomial.smul_monomial, mul_comm (bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
-      rw [choose_mul ((nat.le_sub_left_iff_add_le (mem_range_le H)).1 (mem_range_le H_1))
-        (le.intro rfl), add_comm x x_1, nat.add_sub_cancel, mul_assoc, mul_comm, ←smul_eq_mul,
-        ←polynomial.smul_monomial], },
+      rw [←nat.cast_mul,choose_mul ((nat.le_sub_left_iff_add_le $ mem_range_le H).1
+        $ mem_range_le H_1) (le.intro rfl), nat.cast_mul, add_comm x x_1, nat.add_sub_cancel,
+        mul_assoc, mul_comm, ←smul_eq_mul, ←polynomial.smul_monomial] },
     rw [←sum_smul], },
   rw [sum_range_succ_comm],
   simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, nat.add_sub_cancel_left,

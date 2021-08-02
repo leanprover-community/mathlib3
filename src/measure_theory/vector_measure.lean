@@ -680,6 +680,30 @@ begin
   { exact λ n, ha₁.inter (measurable_set.disjointed hf₁ n) }
 end
 
+lemma restrict_le_restrict_encodable_Union [encodable β] (v w : vector_measure α M) {f : β → set α}
+  (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v.restrict (f b) ≤ w.restrict (f b)) :
+  v.restrict (⋃ b, f b) ≤ w.restrict (⋃ b, f b) :=
+begin
+  rw ← encodable.Union_decode₂,
+  refine restrict_le_restrict_Union v w _ _,
+  { intro n, measurability },
+  { intro n,
+    cases encodable.decode₂ β n with b,
+    { simp },
+    { simp [hf₂ b] } }
+end
+
+lemma restrict_le_restrict_union (v w : vector_measure α M) {i j : set α}
+  (hi₁ : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i)
+  (hj₁ : measurable_set j) (hj₂ : v.restrict j ≤ w.restrict j) :
+  v.restrict (i ∪ j) ≤ w.restrict (i ∪ j) :=
+begin
+  rw union_eq_Union,
+  refine restrict_le_restrict_encodable_Union v w _ _,
+  { measurability },
+  { rintro (_ | _); simpa }
+end
+
 end
 
 section

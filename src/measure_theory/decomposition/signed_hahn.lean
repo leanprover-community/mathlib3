@@ -174,15 +174,10 @@ lemma positive_union_positive
   (hi₁ : measurable_set i) (hi₂ : v.positive i)
   (hj₁ : measurable_set j) (hj₂ : v.positive j) : v.positive (i ∪ j) :=
 begin
-  refine positive_of_subset_nonneg (λ a ha₁ ha₂, _),
-  have h₁ := ha₁.inter hi₁,
-  have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
-    { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
-  rw [← this, of_union disjoint_sdiff_self_right h₁ ((ha₁.inter hj₁).diff h₁)],
-  refine add_nonneg ((positive_iff hi₁).1 hi₂ h₁ (a.inter_subset_right i)) _,
-  exact (positive_iff hj₁).1 hj₂ ((ha₁.inter hj₁).diff h₁)
-    (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)),
-  apply_instance
+  convert restrict_le_restrict_union 0 v hi₁ _ hj₁ _,
+  { rw restrict_zero, refl },
+  { rwa restrict_zero },
+  { rwa restrict_zero }
 end
 
 lemma positive_Union_positive {f : ℕ → set α}
@@ -200,15 +195,10 @@ lemma negative_union_negative
   (hi₁ : measurable_set i) (hi₂ : v.negative i)
   (hj₁ : measurable_set j) (hj₂ : v.negative j) : v.negative (i ∪ j) :=
 begin
-  refine negative_of_subset_nonpos (λ a ha₁ ha₂, _),
-  have h₁ := ha₁.inter hi₁,
-  have : a ∩ i ∪ a ∩ j \ (a ∩ i) = a,
-    { rwa [set.union_diff_self, ← set.inter_union_distrib_left, set.inter_eq_left_iff_subset] },
-  rw [← this, of_union disjoint_sdiff_self_right h₁ ((ha₁.inter hj₁).diff h₁)],
-  refine add_nonpos ((negative_iff hi₁).1 hi₂ h₁ (a.inter_subset_right i)) _,
-  exact (negative_iff hj₁).1 hj₂ ((ha₁.inter hj₁).diff h₁)
-    (set.subset.trans ((a ∩ j).diff_subset (a ∩ i)) (a.inter_subset_right j)),
-  apply_instance
+  convert restrict_le_restrict_union v 0 hi₁ _ hj₁ _,
+  { rw restrict_zero, refl },
+  { rwa restrict_zero },
+  { rwa restrict_zero }
 end
 
 lemma negative_Union_negative {f : ℕ → set α}

@@ -342,21 +342,18 @@ int.exists_greatest_of_bdd
     int.cast_le.1 $ le_trans h' $ le_of_lt hn⟩)
   (let ⟨n, hn⟩ := exists_int_lt x in ⟨n, le_of_lt hn⟩)
 
-theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y ≤ x) →
-  ∃ x, ∀ y, x ≤ y ↔ ∀ z ∈ S, z ≤ y
-| ⟨L, hL⟩ ⟨U, hU⟩ := begin
-  choose f hf using begin
-    refine λ d : ℕ, @int.exists_greatest_of_bdd
-      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _,
-    { cases exists_int_gt U with k hk,
-      refine ⟨k * d, λ z h, _⟩,
-      rcases h with ⟨y, yS, hy⟩,
-      refine int.cast_le.1 (le_trans hy _),
-      simp,
-      exact mul_le_mul_of_nonneg_right
-        (le_trans (hU _ yS) (le_of_lt hk)) (nat.cast_nonneg _) },
-    { exact ⟨⌊L * d⌋, L, hL, floor_le _⟩ }
-  end,
+theorem exists_is_lub (S : set ℝ) (hne : S.nonempty) (hbdd : bdd_above S) :
+  ∃ x, is_lub S x :=
+begin
+  rcases ⟨hne, hbdd⟩ with ⟨⟨L, hL⟩, ⟨U, hU⟩⟩,
+  have : ∀ d : ℕ, bdd_above {m : ℤ | ∃ y ∈ S, (m : ℝ) ≤ y * d},
+  { cases exists_int_gt U with k hk,
+    refine λ d, ⟨k * d, λ z h, _⟩,
+    rcases h with ⟨y, yS, hy⟩,
+    refine int.cast_le.1 (hy.trans _),
+    push_cast,
+    exact mul_le_mul_of_nonneg_right ((hU yS).trans hk.le) d.cast_nonneg },
+  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, floor_le _⟩,
   have hf₁ : ∀ n > 0, ∃ y ∈ S, ((f n / n:ℚ):ℝ) ≤ y := λ n n0,
     let ⟨y, yS, hy⟩ := (hf n).1 in
     ⟨y, yS, by simpa using (div_le_iff ((nat.cast_pos.2 n0):((_:ℝ) < _))).2 hy⟩,
@@ -367,8 +364,23 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     simp [-sub_eq_add_neg],
     rwa [lt_div_iff ((nat.cast_pos.2 n0):((_:ℝ) < _)), sub_mul, _root_.inv_mul_cancel],
     exact ne_of_gt (nat.cast_pos.2 n0) },
-  suffices hg, let g : cau_seq ℚ abs := ⟨λ n, f n / n, hg⟩,
-  refine ⟨mk g, λ y, ⟨λ h x xS, le_trans _ h, λ h, _⟩⟩,
+  have hg : is_cau_seq abs (λ n, f n / n : ℕ → ℚ),
+  { intros ε ε0,
+    suffices : ∀ j k ≥ nat_ceil ε⁻¹, (f j / j - f k / k : ℚ) < ε,
+    { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
+      rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
+    intros j k ij ik,
+    replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
+    replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
+    have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
+    have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
+    rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
+    refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
+      ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
+    simpa using sub_lt_iff_lt_add'.2
+      (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS) },
+  let g : cau_seq ℚ abs := ⟨λ n, f n / n, hg⟩,
+  refine ⟨mk g, ⟨λ x xS, _, λ y h, _⟩⟩,
   { refine le_of_forall_ge_of_dense (λ z xz, _),
     cases exists_nat_gt (x - z)⁻¹ with K hK,
     refine le_mk_of_forall_le ⟨K, λ n nK, _⟩,
@@ -378,35 +390,21 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     refine le_trans _ (le_of_lt $ hf₂ _ n0 _ xS),
     rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
   { exact mk_le_of_forall_le ⟨1, λ n n1,
-      let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h _ xS)⟩ },
-  intros ε ε0,
-  suffices : ∀ j k ≥ nat_ceil ε⁻¹, (f j / j - f k / k : ℚ) < ε,
-  { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
-    rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
-  intros j k ij ik,
-  replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
-  replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
-  have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
-  have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
-  rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
-  refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
-    ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
-  simpa using sub_lt_iff_lt_add'.2
-    (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS)
+      let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
 end
 
 noncomputable instance : has_Sup ℝ :=
 ⟨λ S, if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-  then classical.some (exists_sup S h.1 h.2) else 0⟩
+  then classical.some (exists_is_lub S h.1 h.2) else 0⟩
 
 lemma Sup_def (S : set ℝ) :
   Sup S = if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-    then classical.some (exists_sup S h.1 h.2) else 0 := rfl
+    then classical.some (exists_is_lub S h.1 h.2) else 0 := rfl
 
 theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : Sup S ≤ y ↔ ∀ z ∈ S, z ≤ y :=
-by simp [Sup_def, h₁, h₂]; exact
-classical.some_spec (exists_sup S h₁ h₂) y
+by simp only [Sup_def, dif_pos (and.intro h₁ h₂)]; exact
+is_lub_le_iff (classical.some_spec (exists_is_lub S h₁ h₂))
 
 theorem lt_Sup (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : y < Sup S ↔ ∃ z ∈ S, y < z :=

@@ -735,6 +735,11 @@ theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
+/-- A ring homomorphism is injective iff its kernel is trivial. -/
+theorem injective_iff' {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
+  function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
+(f : α →+ β).injective_iff'
+
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [non_assoc_semiring α] [ring γ] (f : α →* γ)
   (map_add : ∀ a b : α, f (a + b) = f a + f b) :

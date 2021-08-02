@@ -690,10 +690,10 @@ theorem perm_iff_count {l₁ l₂ : list α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     by_cases b = a; simp [h] at H ⊢; assumption }
 end⟩
 
-lemma subperm.cons_right {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
+lemma subperm.cons_right {α : Type*} {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
 h.trans (sublist_cons x l').subperm
 
-lemma subperm.cons_left [decidable_eq α] {l₁ l₂ : list α} (h : l₁ <+~ l₂)
+lemma subperm.cons_left {l₁ l₂ : list α} (h : l₁ <+~ l₂)
   (x : α) (hx : count x l₁ < count x l₂) :
   x :: l₁ <+~ l₂  :=
 begin
@@ -725,7 +725,7 @@ begin
       rwa count_erase_of_ne hxy } }
 end
 
-theorem subperm_ext [decidable_eq α] {l₁ l₂ : list α}
+theorem subperm_ext {l₁ l₂ : list α}
   (h : ∀ x ∈ l₁, count x l₁ = count x l₂) : l₁ <+~ l₂ :=
 begin
   induction l₁ with a l IH generalizing l₂,

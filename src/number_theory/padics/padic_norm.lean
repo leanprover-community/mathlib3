@@ -409,7 +409,7 @@ begin
     { apply_instance } }
 end
 
-lemma pow_succ_padic_val_nat_not_dvd (p : ℕ) {n : ℕ} [hp : fact (nat.prime p)] (hn : 0 < n) :
+lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn : 0 < n) :
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
   { rw multiplicity.pow_dvd_iff_le_multiplicity,

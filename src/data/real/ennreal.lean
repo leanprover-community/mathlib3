@@ -1093,6 +1093,21 @@ begin
   exact (div_le_iff_le_mul (or.inl h0) (or.inl hinf)).2 h
 end
 
+lemma div_le_of_le_mul' (h : a ≤ b * c) : a / b ≤ c :=
+div_le_of_le_mul $ mul_comm b c ▸ h
+
+lemma mul_le_of_le_div (h : a ≤ b / c) : a * c ≤ b :=
+begin
+  rcases _root_.em (c = 0 ∧ b = 0 ∨ c = ∞ ∧ b = ∞) with (⟨rfl, rfl⟩|⟨rfl, rfl⟩)|H,
+  { rw [mul_zero], exact le_rfl },
+  { exact le_top },
+  { simp only [not_or_distrib, not_and_distrib] at H,
+    rwa ← le_div_iff_mul_le H.1 H.2 }
+end
+
+lemma mul_le_of_le_div' (h : a ≤ b / c) : c * a ≤ b :=
+mul_comm a c ▸ mul_le_of_le_div h
+
 protected lemma div_lt_iff (h0 : b ≠ 0 ∨ c ≠ 0) (ht : b ≠ ∞ ∨ c ≠ ∞) :
   c / b < a ↔ c < a * b :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le h0 ht

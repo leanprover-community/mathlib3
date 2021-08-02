@@ -109,6 +109,24 @@ section order_topology
 variable (α)
 variables [topological_space α] [second_countable_topology α] [linear_order α] [order_topology α]
 
+lemma is_pi_system_Ioo_mem {α : Type*} [linear_order α] (s t : set α) :
+  is_pi_system {S | ∃ (l ∈ s) (u ∈ t), l < u ∧ Ioo l u = S} :=
+begin
+  rintro _ _ ⟨l₁, hls₁, u₁, hut₁, hlu₁, rfl⟩ ⟨l₂, hls₂, u₂, hut₂, hlu₂, rfl⟩
+    ⟨x, ⟨hlx₁ : l₁ < x, hxu₁ : x < u₁⟩, ⟨hlx₂ : l₂ < x, hxu₂ : x < u₂⟩⟩,
+  refine ⟨l₁ ⊔ l₂, sup_ind l₁ l₂ hls₁ hls₂, u₁ ⊓ u₂, inf_ind u₁ u₂ hut₁ hut₂, _,
+    Ioo_inter_Ioo.symm⟩,
+  simp [hlx₂.trans hxu₁, hlx₁.trans hxu₂, *]
+end
+
+lemma is_pi_system_Ioo {α β : Type*} [linear_order β] (f : α → β) :
+  @is_pi_system β (⋃ l u (h : f l < f u), {Ioo (f l) (f u)})  :=
+begin
+  convert is_pi_system_Ioo_mem (range f) (range f),
+  ext s,
+  simp [@eq_comm _ _ s]
+end
+
 lemma borel_eq_generate_Iio : borel α = generate_from (range Iio) :=
 begin
   refine le_antisymm _ (generate_from_le _),
@@ -284,6 +302,18 @@ begin
     (is_open_of_mem_countable_basis hv).measurable_set
 end
 
+variables {α' : Type*} [topological_space α'] [measurable_space α']
+
+lemma meas_interior_of_null_bdry {μ : measure α'} {s : set α'}
+  (h_nullbdry : μ (frontier s) = 0) : μ (interior s) = μ s :=
+meas_eq_meas_smaller_of_between_null_diff
+  interior_subset subset_closure h_nullbdry
+
+lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
+  (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=
+(meas_eq_meas_larger_of_between_null_diff
+  interior_subset subset_closure h_nullbdry).symm
+
 section preorder
 variables [preorder α] [order_closed_topology α] {a b : α}
 
@@ -351,16 +381,35 @@ instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
 
-variables [second_countable_topology α]
-
 @[measurability]
-lemma measurable_set_lt' : measurable_set {p : α × α | p.1 < p.2} :=
+lemma measurable_set_lt' [second_countable_topology α] : measurable_set {p : α × α | p.1 < p.2} :=
 (is_open_lt continuous_fst continuous_snd).measurable_set
 
 @[measurability]
-lemma measurable_set_lt {f g : δ → α} (hf : measurable f) (hg : measurable g) :
-  measurable_set {a | f a < g a} :=
+lemma measurable_set_lt [second_countable_topology α] {f g : δ → α} (hf : measurable f)
+  (hg : measurable g) : measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
+
+lemma set.ord_connected.measurable_set (h : ord_connected s) : measurable_set s :=
+begin
+  let u := ⋃ (x ∈ s) (y ∈ s), Ioo x y,
+  have huopen : is_open u := is_open_bUnion (λ x hx, is_open_bUnion (λ y hy, is_open_Ioo)),
+  have humeas : measurable_set u := huopen.measurable_set,
+  have hfinite : (s \ u).finite,
+  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
+    by_contra h,
+    push_neg at h,
+    exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,
+      mem_bUnion_iff.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+  have : u ⊆ s :=
+    bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
+  rw ← union_diff_cancel this,
+  exact humeas.union hfinite.measurable_set
+end
+
+lemma is_preconnected.measurable_set
+  (h : is_preconnected s) : measurable_set s :=
+h.ord_connected.measurable_set
 
 end linear_order
 
@@ -749,6 +798,30 @@ begin
   exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
+lemma measurable_of_monotone [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : monotone f) : measurable f :=
+suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
+  from measurable_of_Ioi (λ x, (h x).measurable_set),
+λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
+
+alias measurable_of_monotone ← monotone.measurable
+
+lemma ae_measurable_restrict_of_monotone_on [linear_order β] [order_closed_topology β]
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
+  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) : ae_measurable f (μ.restrict s) :=
+have this : monotone (f ∘ coe : s → α), from λ ⟨x, hx⟩ ⟨y, hy⟩ (hxy : x ≤ y), hf hx hy hxy,
+ae_measurable_restrict_of_measurable_subtype hs this.measurable
+
+lemma measurable_of_antimono [linear_order β] [order_closed_topology β] {f : β → α}
+  (hf : ∀ ⦃x y : β⦄, x ≤ y → f y ≤ f x) :
+  measurable f :=
+@measurable_of_monotone (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
+
+lemma ae_measurable_restrict_of_antimono_on [linear_order β] [order_closed_topology β]
+  {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α}
+  (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) : ae_measurable f (μ.restrict s) :=
+@ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
+
 end linear_order
 
 @[measurability]
@@ -860,7 +933,7 @@ end complete_linear_order
 
 section conditionally_complete_linear_order
 
-variables [conditionally_complete_linear_order α] [second_countable_topology α] [order_topology α]
+variables [conditionally_complete_linear_order α] [order_topology α] [second_countable_topology α]
 
 lemma measurable_cSup {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above ((λ i, f i x) '' s)) :
@@ -1013,38 +1086,40 @@ lemma borel_eq_generate_from_Ioo_rat :
   borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_Ioo_rat.borel_eq_generate_from
 
+lemma is_pi_system_Ioo_rat : @is_pi_system ℝ (⋃ (a b : ℚ) (h : a < b), {Ioo a b})  :=
+by simpa using is_pi_system_Ioo (coe : ℚ → ℝ)
+
+/-- The intervals `(-(n + 1), (n + 1))` form a finite spanning sets in the set of open intervals
+with rational endpoints for a locally finite measure `μ` on `ℝ`. -/
+def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_finite_measure μ] :
+  μ.finite_spanning_sets_in (⋃ (a b : ℚ) (h : a < b), {Ioo a b}) :=
+{ set := λ n, Ioo (-(n + 1)) (n + 1),
+  set_mem := λ n,
+    begin
+      simp only [mem_Union, mem_singleton_iff],
+      refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
+      exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
+    end,
+  finite := λ n,
+    calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
+                 ... < ∞           : is_compact_Icc.finite_measure,
+  spanning := Union_eq_univ_iff.2 $ λ x,
+    ⟨nat_floor (abs x), neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
+      (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
+
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
-begin
-  refine measure.ext_of_generate_from_of_cover_subset borel_eq_generate_from_Ioo_rat _
-    (subset.refl _) _ _ _ _,
-  { simp only [is_pi_system, mem_Union, mem_singleton_iff],
-    rintros _ _ ⟨a₁, b₁, h₁, rfl⟩ ⟨a₂, b₂, h₂, rfl⟩ ne,
-    simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min,
-      nonempty_Ioo] at ne ⊢,
-    refine ⟨_, _, _, rfl⟩,
-    assumption_mod_cast },
-  { exact countable_Union (λ a, (countable_encodable _).bUnion $ λ _ _, countable_singleton _) },
-  { exact is_topological_basis_Ioo_rat.sUnion_eq },
-  { simp only [mem_Union, mem_singleton_iff],
-    rintros _ ⟨a, b, h, rfl⟩,
-    refine (measure_mono subset_closure).trans_lt _,
-    rw [closure_Ioo],
-    exacts [is_compact_Icc.finite_measure, rat.cast_lt.2 h] },
-  { simp only [mem_Union, mem_singleton_iff],
-    rintros _ ⟨a, b, hab, rfl⟩,
-    exact h a b }
-end
+(finite_spanning_sets_in_Ioo_rat μ).ext borel_eq_generate_from_Ioo_rat is_pi_system_Ioo_rat $
+  by { simp only [mem_Union, mem_singleton_iff], rintro _ ⟨a, b, -, rfl⟩, apply h }
 
 lemma borel_eq_generate_from_Iio_rat :
   borel ℝ = generate_from (⋃ a : ℚ, {Iio a}) :=
 begin
-  let g, swap,
-  apply le_antisymm (_ : _ ≤ g) (measurable_space.generate_from_le (λ t, _)),
+  let g : measurable_space ℝ := generate_from (⋃ a : ℚ, {Iio a}),
+  apply le_antisymm _ (measurable_space.generate_from_le (λ t, _)),
   { rw borel_eq_generate_from_Ioo_rat,
     refine generate_from_le (λ t, _),
-    simp only [mem_Union], rintro ⟨a, b, h, H⟩,
-    rw [mem_singleton_iff.1 H],
+    simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
     rw (set.ext (λ x, _) : Ioo (a : ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
     { have hg : ∀ q : ℚ, g.measurable_set' (Iio q) :=
         λ q, generate_measurable.basic (Iio q) (by { simp, exact ⟨_, rfl⟩ }),
@@ -1055,7 +1130,7 @@ begin
       refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
       rcases exists_rat_btwn h with ⟨c, ac, cx⟩,
       exact ⟨c, rat.cast_lt.1 ac, cx.le⟩ } },
-  { simp, rintro r rfl, exact is_open_Iio.measurable_set }
+  { simp only [mem_Union, mem_singleton_iff], rintro ⟨r, rfl⟩, exact measurable_set_Iio }
 end
 
 end real

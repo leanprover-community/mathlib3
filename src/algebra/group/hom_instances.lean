@@ -112,6 +112,26 @@ def flip {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P} (f :
   f.flip y x = f x y :=
 rfl
 
+@[to_additive]
+lemma map_one₂ {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
+  (f : M →* N →* P) (n : N) : f 1 n = 1 :=
+(flip f n).map_one
+
+@[to_additive]
+lemma map_mul₂ {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
+  (f : M →* N →* P) (m₁ m₂ : M) (n : N) : f (m₁ * m₂) n = f m₁ n * f m₂ n :=
+(flip f n).map_mul _ _
+
+@[to_additive]
+lemma map_inv₂ {mM : group M} {mN : mul_one_class N} {mP : comm_group P}
+  (f : M →* N →* P) (m : M) (n : N) : f m⁻¹ n = (f m n)⁻¹ :=
+(flip f n).map_inv _
+
+@[to_additive]
+lemma map_div₂ {mM : group M} {mN : mul_one_class N} {mP : comm_group P}
+  (f : M →* N →* P) (m₁ m₂ : M) (n : N) : f (m₁ / m₂) n = f m₁ n / f m₂ n :=
+(flip f n).map_div _ _
+
 /-- Evaluation of a `monoid_hom` at a point as a monoid homomorphism. See also `monoid_hom.apply`
 for the evaluation of any function at a point. -/
 @[to_additive "Evaluation of an `add_monoid_hom` at a point as an additive monoid homomorphism.

@@ -265,7 +265,7 @@ instance : has_mul (ideal R) := ⟨(•)⟩
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
 @[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
-by erw [submodule.one_eq_map_top, submodule.map_id]
+by erw [submodule.one_eq_range, linear_map.range_id]
 
 theorem mul_mem_mul {r s} (hr : r ∈ I) (hs : s ∈ J) : r * s ∈ I * J :=
 submodule.smul_mem_smul hr hs
@@ -324,14 +324,18 @@ end
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
 
-theorem prod_le_inf {s : finset ι} {f : ι → ideal R} : s.prod f ≤ s.inf f :=
+theorem multiset_prod_le_inf {s : multiset (ideal R)} :
+  s.prod ≤ s.inf :=
 begin
   classical, refine s.induction_on _ _,
-  { rw [finset.prod_empty, finset.inf_empty], exact le_top },
-  intros a s has ih,
-  rw [finset.prod_insert has, finset.inf_insert],
+  { rw [multiset.inf_zero], exact le_top },
+  intros a s ih,
+  rw [multiset.prod_cons, multiset.inf_cons],
   exact le_trans mul_le_inf (inf_le_inf (le_refl _) ih)
 end
+
+theorem prod_le_inf {s : finset ι} {f : ι → ideal R} : s.prod f ≤ s.inf f :=
+multiset_prod_le_inf
 
 theorem mul_eq_inf_of_coprime (h : I ⊔ J = ⊤) : I * J = I ⊓ J :=
 le_antisymm mul_le_inf $ λ r ⟨hri, hrj⟩,
@@ -515,33 +519,41 @@ theorem is_prime.inf_le {I J P : ideal R} (hp : is_prime P) :
 ⟨λ h, hp.mul_le.1 $ le_trans mul_le_inf h,
 λ h, or.cases_on h (le_trans inf_le_left) (le_trans inf_le_right)⟩
 
-theorem is_prime.prod_le {s : finset ι} {f : ι → ideal R} {P : ideal R}
-  (hp : is_prime P) (hne: s.nonempty) :
-  s.prod f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
-suffices s.prod f ≤ P → ∃ i ∈ s, f i ≤ P,
-  from ⟨this, λ ⟨i, his, hip⟩, le_trans prod_le_inf $ le_trans (finset.inf_le his) hip⟩,
+theorem is_prime.multiset_prod_le {s : multiset (ideal R)} {P : ideal R}
+  (hp : is_prime P) (hne : s ≠ 0) :
+  s.prod ≤ P ↔ ∃ I ∈ s, I ≤ P :=
+suffices s.prod ≤ P → ∃ I ∈ s, I ≤ P,
+  from ⟨this, λ ⟨i, his, hip⟩, le_trans multiset_prod_le_inf $
+    le_trans (multiset.inf_le his) hip⟩,
 begin
   classical,
-  obtain ⟨b, hb⟩ : ∃ b, b ∈ s := hne.bex,
-  obtain ⟨t, hbt, rfl⟩ : ∃ t, b ∉ t ∧ s = insert b t,
-  from ⟨s.erase b, s.not_mem_erase b, (finset.insert_erase hb).symm⟩,
-  revert hbt,
+  obtain ⟨b, hb⟩ : ∃ b, b ∈ s := multiset.exists_mem_of_ne_zero hne,
+  obtain ⟨t, rfl⟩ : ∃ t, s = b ::ₘ t,
+  from ⟨s.erase b, (multiset.cons_erase hb).symm⟩,
   refine t.induction_on _ _,
-  { simp only [finset.not_mem_empty, insert_emptyc_eq, exists_prop, finset.prod_singleton,
-      imp_self, exists_eq_left, not_false_iff, finset.mem_singleton] },
-  intros a s has ih hbs h,
-  have : a ∉ insert b s,
-  { contrapose! has,
-    apply finset.mem_of_mem_insert_of_ne has,
-    rintro rfl,
-    contradiction },
-  rw [finset.insert.comm, finset.prod_insert this, hp.mul_le] at h,
-  rw finset.insert.comm,
+  { simp only [mul_top, exists_prop, imp_self, multiset.prod_cons, one_eq_top, exists_eq_left,
+      multiset.prod_zero, multiset.mem_singleton] },
+  intros a s ih h,
+  rw [multiset.cons_swap, multiset.prod_cons, hp.mul_le] at h,
+  rw multiset.cons_swap,
   cases h,
-  { exact ⟨a, finset.mem_insert_self a _, h⟩ },
-  obtain ⟨i, hi, ih⟩ : ∃ i ∈ insert b s, f i ≤ P := ih (mt finset.mem_insert_of_mem hbs) h,
-  exact ⟨i, finset.mem_insert_of_mem hi, ih⟩
+  { exact ⟨a, multiset.mem_cons_self a _, h⟩ },
+  obtain ⟨I, hI, ih⟩ : ∃ I ∈ b ::ₘ s, I ≤ P := ih h,
+  exact ⟨I, multiset.mem_cons_of_mem hI, ih⟩
 end
+
+theorem is_prime.multiset_prod_map_le {s : multiset ι} (f : ι → ideal R) {P : ideal R}
+  (hp : is_prime P) (hne : s ≠ 0) :
+  (s.map f).prod ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
+begin
+  rw hp.multiset_prod_le (mt multiset.map_eq_zero.mp hne),
+  simp_rw [exists_prop, multiset.mem_map, exists_exists_and_eq_and],
+end
+
+theorem is_prime.prod_le {s : finset ι} {f : ι → ideal R} {P : ideal R}
+  (hp : is_prime P) (hne : s.nonempty) :
+  s.prod f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
+hp.multiset_prod_map_le f (mt finset.val_eq_zero.mp hne.ne_empty)
 
 theorem is_prime.inf_le' {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P)
   (hsne: s.nonempty) :
@@ -1104,15 +1116,15 @@ def ker : ideal R := ideal.comap f ⊥
 lemma mem_ker {r} : r ∈ ker f ↔ f r = 0 :=
 by rw [ker, ideal.mem_comap, submodule.mem_bot]
 
-lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
+lemma ker_eq : ((ker f) : set R) = set.preimage f {0} := rfl
 
 lemma ker_eq_comap_bot (f : R →+* S) : f.ker = ideal.comap f ⊥ := rfl
 
 lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by rw [set_like.ext'_iff, ker_eq]; exact is_add_group_hom.injective_iff_trivial_ker f
+by { rw [set_like.ext'_iff, ker_eq, set.ext_iff], exact f.injective_iff' }
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
-by rw [set_like.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
+by { rw [← f.injective_iff, injective_iff_ker_eq_bot] }
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
@@ -1304,7 +1316,7 @@ surjective_quot_mk _
 
 /-- The kernel of `A →ₐ[R] I.quotient` is `I`. -/
 @[simp]
-lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I).to_ring_hom.ker = I :=
+lemma quotient.mkₐ_ker (I : ideal A) : (quotient.mkₐ R I : A →+* I.quotient).ker = I :=
 ideal.mk_ker
 
 variables {R} {B : Type*} [comm_ring B] [algebra R B]

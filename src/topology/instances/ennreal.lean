@@ -143,6 +143,8 @@ nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 lemma nhds_top' : 𝓝 ∞ = ⨅ r : ℝ≥0, 𝓟 (Ioi r) :=
 nhds_top.trans $ infi_ne_top _
 
+lemma nhds_top_basis : (𝓝 ∞).has_basis (λ a, a < ∞) (λ a, Ioi a) := nhds_top_basis
+
 lemma tendsto_nhds_top_iff_nnreal {m : α → ℝ≥0∞} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ≥0, ∀ᶠ a in f, ↑x < m a :=
 by simp only [nhds_top', tendsto_infi, tendsto_principal, mem_Ioi]
@@ -168,6 +170,10 @@ by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+
+lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) (λ a, Iio a) := nhds_bot_basis
+
+lemma nhds_zero_basis_Iic : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) Iic := nhds_bot_basis_Iic
 
 @[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
@@ -438,7 +444,7 @@ begin
       pos_iff_ne_zero.1 (lt_of_lt_of_le (pos_iff_ne_zero.2 hx0) (le_Sup hx)),
     have : Sup ((λb, a * b) '' s) = a * Sup s :=
       is_lub.Sup_eq ((is_lub_Sup s).is_lub_of_tendsto
-        (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
+        (assume x _ y _ h, mul_le_mul_left' h _)
         ⟨x, hx⟩
         (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
@@ -449,6 +455,9 @@ by rw [← Sup_range, mul_Sup, supr_range]
 
 lemma supr_mul {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f * a = ⨆i, f i * a :=
 by rw [mul_comm, mul_supr]; congr; funext; rw [mul_comm]
+
+lemma supr_div {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f / a = ⨆i, f i / a :=
+supr_mul
 
 protected lemma tendsto_coe_sub : ∀{b:ℝ≥0∞}, tendsto (λb:ℝ≥0∞, ↑r - b) (𝓝 b) (𝓝 (↑r - b)) :=
 begin
@@ -663,6 +672,27 @@ begin
   exact ennreal.tendsto_of_real h,
 end
 
+lemma tsum_coe_ne_top_iff_summable_coe {f : α → ℝ≥0} :
+  ∑' a, (f a : ℝ≥0∞) ≠ ∞ ↔ summable (λ a, (f a : ℝ)) :=
+begin
+  rw nnreal.summable_coe,
+  exact tsum_coe_ne_top_iff_summable,
+end
+
+lemma tsum_coe_eq_top_iff_not_summable_coe {f : α → ℝ≥0} :
+  ∑' a, (f a : ℝ≥0∞) = ∞ ↔ ¬ summable (λ a, (f a : ℝ)) :=
+begin
+  rw [← @not_not (∑' a, ↑(f a) = ⊤)],
+  exact not_congr tsum_coe_ne_top_iff_summable_coe
+end
+
+lemma summable_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
+  summable (λ x, (f x).to_real) :=
+begin
+  lift f to α → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hsum,
+  rwa ennreal.tsum_coe_ne_top_iff_summable_coe at hsum,
+end
+
 end ennreal
 
 namespace nnreal
@@ -800,6 +830,18 @@ by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 end nnreal
 
 namespace ennreal
+
+lemma tsum_to_real_eq
+  {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+  (∑' a, f a).to_real = ∑' a, (f a).to_real :=
+begin
+  lift f to α → ℝ≥0 using hf,
+  have : (∑' (a : α), (f a : ℝ≥0∞)).to_real =
+    ((∑' (a : α), (f a : ℝ≥0∞)).to_nnreal : ℝ≥0∞).to_real,
+  { rw [ennreal.coe_to_real], refl },
+  rw [this, ← nnreal.tsum_eq_to_nnreal_tsum, ennreal.coe_to_real],
+  exact nnreal.coe_tsum
+end
 
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
@@ -985,7 +1027,7 @@ begin
           ... ≤ f y + C * edist x y : h x y
           ... = f y + C * edist y x : by simp [edist_comm]
           ... ≤ f y + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
+            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
           ... < f y + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I,
         show e < f y, from
           (ennreal.add_lt_add_iff_right ‹ε < ⊤›).1 this }},
@@ -1008,7 +1050,7 @@ begin
       show f y < e, from calc
         f y ≤ f x + C * edist y x : h y x
         ... ≤ f x + C * (C⁻¹ * (ε/2)) :
-            add_le_add_left (canonically_ordered_semiring.mul_le_mul (le_refl _) (le_of_lt hy)) _
+            add_le_add_left (mul_le_mul_left' (le_of_lt hy) _) _
         ... < f x + ε : (ennreal.add_lt_add_iff_left (lt_top_iff_ne_top.2 htop)).2 I
         ... ≤ f x + (e - f x) : add_le_add_left (min_le_left _ _) _
         ... = e : by simp [le_of_lt he] },
@@ -1053,6 +1095,35 @@ begin
   have : edist x y ∈ closure (Iic (diam s)),
     from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
   rwa closure_Iic at this
+end
+
+@[simp] lemma metric.diam_closure {α : Type*} [pseudo_metric_space α] (s : set α) :
+  metric.diam (closure s) = diam s :=
+by simp only [metric.diam, emetric.diam_closure]
+
+/-- For a bounded set `s : set ℝ`, its `emetric.diam` is equal to `Sup s - Inf s` reinterpreted as
+`ℝ≥0∞`. -/
+lemma real.ediam_eq {s : set ℝ} (h : bounded s) :
+  emetric.diam s = ennreal.of_real (Sup s - Inf s) :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|hne, { simp },
+  refine le_antisymm (metric.ediam_le_of_forall_dist_le $ λ x hx y hy, _) _,
+  { have := real.subset_Icc_Inf_Sup_of_bounded h,
+    exact real.dist_le_of_mem_Icc (this hx) (this hy) },
+  { apply ennreal.of_real_le_of_le_to_real,
+    rw [← metric.diam, ← metric.diam_closure],
+    have h' := real.bounded_iff_bdd_below_bdd_above.1 h,
+    calc Sup s - Inf s ≤ dist (Sup s) (Inf s) : le_abs_self _
+                   ... ≤ diam (closure s)     :
+      dist_le_diam_of_mem h.closure (cSup_mem_closure hne h'.2) (cInf_mem_closure hne h'.1) }
+end
+
+/-- For a bounded set `s : set ℝ`, its `metric.diam` is equal to `Sup s - Inf s`. -/
+lemma real.diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
+begin
+  rw [metric.diam, real.ediam_eq h, ennreal.to_real_of_real],
+  rw real.bounded_iff_bdd_below_bdd_above at h,
+  exact sub_nonneg.2 (real.Inf_le_Sup s h.1 h.2)
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,

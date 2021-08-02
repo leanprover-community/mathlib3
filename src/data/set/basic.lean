@@ -210,9 +210,7 @@ lemma set_of_app_iff {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.r
 
 theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 
-instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a ∈ s) := H
-
-instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred {a | p a} := H
+instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred (∈ {a | p a}) := H
 
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} :
   {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
@@ -375,6 +373,14 @@ theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ := subset_
 theorem eq_empty_of_not_nonempty (h : ¬nonempty α) (s : set α) : s = ∅ :=
 eq_empty_of_subset_empty $ λ x hx, h ⟨x⟩
 
+theorem eq_empty_of_is_empty [is_empty α] (s : set α) : s = ∅ :=
+eq_empty_of_subset_empty $ λ x hx, is_empty_elim x
+
+/-- There is exactly one set of a type that is empty. -/
+-- TODO[gh-6025]: make this an instance once safe to do so
+def unique_empty [is_empty α] : unique (set α) :=
+{ default := ∅, uniq := eq_empty_of_is_empty }
+
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 
@@ -431,7 +437,7 @@ eq_univ_of_univ_subset $ hs ▸ h
 lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : set α)
 | ⟨x⟩ := ⟨x, trivial⟩
 
-instance univ_decidable : decidable_pred (@set.univ α) :=
+instance univ_decidable : decidable_pred (∈ @set.univ α) :=
 λ x, is_true trivial
 
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
@@ -1577,10 +1583,16 @@ begin
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
 
+/-- The preimage of a subsingleton under an injective map is a subsingleton. -/
+theorem subsingleton.preimage {s : set β} (hs : s.subsingleton) {f : α → β}
+  (hf : function.injective f) :
+  (f ⁻¹' s).subsingleton :=
+λ a ha b hb, hf $ hs ha hb
+
 /-- `s` is a subsingleton, if its image of an injective function is. -/
 theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
   (s : set α) (hs : (f '' s).subsingleton) : s.subsingleton :=
-λ a ha b hb, hf $ hs (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
+(hs.preimage hf).mono $ subset_preimage_image _ _
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
@@ -1603,12 +1615,20 @@ def range (f : ι → α) : set α := {x | ∃y, f y = x}
 theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
 by simp
 
+theorem forall_subtype_range_iff {p : range f → Prop} :
+  (∀ a : range f, p a) ↔ ∀ i, p ⟨f i, mem_range_self _⟩ :=
+⟨λ H i, H _, λ H ⟨y, i, hi⟩, by { subst hi, apply H }⟩
+
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 by simp
 
 lemma exists_range_iff' {p : α → Prop} :
   (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=
 by simpa only [exists_prop] using exists_range_iff
+
+lemma exists_subtype_range_iff {p : range f → Prop} :
+  (∃ a : range f, p a) ↔ ∃ i, p ⟨f i, mem_range_self _⟩ :=
+⟨λ ⟨⟨a, i, hi⟩, ha⟩, by { subst a, exact ⟨i, ha⟩}, λ ⟨i, hi⟩, ⟨_, hi⟩⟩
 
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
@@ -1761,6 +1781,9 @@ lemma range_factorization_eq {f : ι → β} :
   subtype.val ∘ range_factorization f = f :=
 funext $ λ i, rfl
 
+@[simp] lemma range_factorization_coe (f : ι → β) (a : ι) :
+  (range_factorization f a : β) = f a := rfl
+
 lemma surjective_onto_range : surjective (range_factorization f) :=
 λ ⟨_, ⟨i, rfl⟩⟩, ⟨i, rfl⟩
 
@@ -1810,6 +1833,26 @@ lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
   range f \ f '' s = f '' sᶜ :=
 subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
   ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
+
+/-- We can use the axiom of choice to pick a preimage for every element of `range f`. -/
+noncomputable def range_splitting (f : α → β) : range f → α := λ x, x.2.some
+
+-- This can not be a `@[simp]` lemma because the head of the left hand side is a variable.
+lemma apply_range_splitting (f : α → β) (x : range f) : f (range_splitting f x) = x :=
+x.2.some_spec
+
+attribute [irreducible] range_splitting
+
+@[simp] lemma comp_range_splitting (f : α → β) : f ∘ range_splitting f = coe :=
+by { ext, simp only [function.comp_app], apply apply_range_splitting, }
+
+-- When `f` is injective, see also `equiv.of_injective`.
+lemma left_inverse_range_splitting (f : α → β) :
+  left_inverse (range_factorization f) (range_splitting f) :=
+λ x, by { ext, simp only [range_factorization_coe], apply apply_range_splitting, }
+
+lemma range_splitting_injective (f : α → β) : injective (range_splitting f) :=
+(left_inverse_range_splitting f).injective
 
 end range
 
@@ -2181,6 +2224,11 @@ ext $ by simp [range]
 theorem prod_univ_range_eq {α β δ} {m₂ : β → δ} :
   (univ : set α).prod (range m₂) = range (λp:α×β, (p.1, m₂ p.2)) :=
 ext $ by simp [range]
+
+lemma range_pair_subset {α β γ : Type*} (f : α → β) (g : α → γ) :
+  range (λ x, (f x, g x)) ⊆ (range f).prod (range g) :=
+have (λ x, (f x, g x)) = prod.map f g ∘ (λ x, (x, x)), from funext (λ x, rfl),
+by { rw [this, ← range_prod_map], apply range_comp_subset_range }
 
 theorem nonempty.prod : s.nonempty → t.nonempty → (s.prod t).nonempty
 | ⟨x, hx⟩ ⟨y, hy⟩ := ⟨(x, y), ⟨hx, hy⟩⟩

@@ -8,7 +8,6 @@ import data.matrix.basic
 import data.equiv.ring_aut
 import linear_algebra.tensor_product
 import ring_theory.subring
-import deprecated.subring
 import algebra.opposites
 import algebra.iterate_hom
 
@@ -89,7 +88,10 @@ variables {R : Type u} {S : Type v} {A : Type w} {B : Type*}
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
-over `R`. -/
+over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module' [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x : A), (r • 1) * x = r • x)
   (h₂ : ∀ (r : R) (x : A), x * (r • 1) = r • x) : algebra R A :=
@@ -103,7 +105,10 @@ def of_module' [comm_semiring R] [semiring A] [module R A]
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • x) * y = x * (r • y) = r • (x * y)` for all `r : R` and `x y : A`, then `A`
-is an `algebra` over `R`. -/
+is an `algebra` over `R`.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def of_module [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x y : A), (r • x) * y = r • (x * y))
   (h₂ : ∀ (r : R) (x y : A), x * (r • y) = r • (x * y)) : algebra R A :=
@@ -196,14 +201,18 @@ smul_mul_assoc r x y
 section
 variables {r : R} {a : A}
 
-@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = r • 2 :=
+@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = bit0 (r • (1 : A)) :=
+by simp [bit0, add_smul]
+lemma bit0_smul_one' : bit0 r • (1 : A) = r • 2 :=
 by simp [bit0, add_smul, smul_add]
 @[simp] lemma bit0_smul_bit0 : bit0 r • bit0 a = r • (bit0 (bit0 a)) :=
 by simp [bit0, add_smul, smul_add]
 @[simp] lemma bit0_smul_bit1 : bit0 r • bit1 a = r • (bit0 (bit1 a)) :=
 by simp [bit0, add_smul, smul_add]
-@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = r • 2 + 1 :=
-by simp [bit1, add_smul, smul_add]
+@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = bit1 (r • (1 : A)) :=
+by simp [bit1, add_smul]
+lemma bit1_smul_one' : bit1 r • (1 : A) = r • 2 + 1 :=
+by simp [bit1, bit0, add_smul, smul_add]
 @[simp] lemma bit1_smul_bit0 : bit1 r • bit0 a = r • (bit0 (bit0 a)) + bit0 a :=
 by simp [bit1, add_smul, smul_add]
 @[simp] lemma bit1_smul_bit1 : bit1 r • bit1 a = r • (bit0 (bit1 a)) + bit1 a :=
@@ -274,33 +283,6 @@ lemma coe_algebra_map_of_subring {R : Type*} [comm_ring R] (S : subring R) :
 
 lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x : S) :
   algebra_map S R x = x := rfl
-
-section
-local attribute [instance] subset.comm_ring
-
-/-- Algebra over a set that is closed under the ring operations. -/
-local attribute [instance]
-def of_is_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  (S : set R) [is_subring S] : algebra S A :=
-algebra.of_subring S.to_subring
-
-lemma is_subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
-  (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
-
-lemma is_subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
-  (algebra_map S R : S → R) = subtype.val := rfl
-
-lemma is_subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
-  algebra_map S R x = x := rfl
-
-lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
-  set.range (algebra_map T₁ R) ⊆ T₂ :=
-begin
-  rintros x ⟨⟨t, ht⟩, rfl⟩,
-  exact hyp ht,
-end
-
-end
 
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
@@ -449,6 +431,9 @@ instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑
 @[simp, norm_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
   ⇑(⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := rfl
 
+-- make the coercion the simp-normal form
+@[simp] lemma to_ring_hom_eq_coe (f : A →ₐ[R] B) : f.to_ring_hom = f := rfl
+
 @[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
 
 -- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
@@ -526,10 +511,6 @@ lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
 @[simp] lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) :=
 φ.to_ring_hom.map_bit1 x
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton [subsingleton A] : subsingleton (A →ₐ[R] B) :=
-⟨λ f g, alg_hom.ext $ λ x, subsingleton.elim 0 x ▸ f.map_zero.trans g.map_zero.symm⟩
-
 /-- If a `ring_hom` is `R`-linear, then it is an `alg_hom`. -/
 def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[R] B :=
 { to_fun := f,
@@ -584,11 +565,36 @@ def to_linear_map : A →ₗ B :=
 
 @[simp] lemma to_linear_map_apply (p : A) : φ.to_linear_map p = φ p := rfl
 
-theorem to_linear_map_inj {φ₁ φ₂ : A →ₐ[R] B} (H : φ₁.to_linear_map = φ₂.to_linear_map) : φ₁ = φ₂ :=
-ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
+theorem to_linear_map_injective : function.injective (to_linear_map : _ → (A →ₗ[R] B)) :=
+λ φ₁ φ₂ h, ext $ linear_map.congr_fun h
 
 @[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
+
+@[simp] lemma to_linear_map_id : to_linear_map (alg_hom.id R A) = linear_map.id :=
+linear_map.ext $ λ _, rfl
+
+/-- Promote a `linear_map` to an `alg_hom` by supplying proofs about the behavior on `1` and `*`. -/
+@[simps]
+def of_linear_map (f : A →ₗ[R] B) (map_one : f 1 = 1) (map_mul : ∀ x y, f (x * y) = f x * f y) :
+  A →ₐ[R] B :=
+{ to_fun := f,
+  map_one' := map_one,
+  map_mul' := map_mul,
+  commutes' := λ c, by simp only [algebra.algebra_map_eq_smul_one, f.map_smul, map_one],
+  .. f.to_add_monoid_hom }
+
+@[simp] lemma of_linear_map_to_linear_map (map_one) (map_mul) :
+  of_linear_map φ.to_linear_map map_one map_mul = φ :=
+by { ext, refl }
+
+@[simp] lemma to_linear_map_of_linear_map (f : A →ₗ[R] B) (map_one) (map_mul) :
+  to_linear_map (of_linear_map f map_one map_mul) = f :=
+by { ext, refl }
+
+@[simp] lemma of_linear_map_id (map_one) (map_mul) :
+  of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
+ext $ λ _, rfl
 
 lemma map_list_prod (s : list A) :
   φ s.prod = (s.map φ).prod :=
@@ -732,14 +738,8 @@ rfl
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
 @[simp] lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 
-lemma coe_ring_equiv_injective : function.injective (λ e : A₁ ≃ₐ[R] A₂, (e : A₁ ≃+* A₂)) :=
-begin
-  intros f g w,
-  ext,
-  replace w : ((f : A₁ ≃+* A₂) : A₁ → A₂) = ((g : A₁ ≃+* A₂) : A₁ → A₂) :=
-    congr_arg (λ e : A₁ ≃+* A₂, (e : A₁ → A₂)) w,
-  exact congr_fun w a,
-end
+lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
+λ e₁ e₂ h, ext $ ring_equiv.congr_fun h
 
 @[simp] lemma map_add : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
 
@@ -774,6 +774,9 @@ instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂
 
 @[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
 rfl
+
+lemma coe_alg_hom_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ →ₐ[R] A₂)) :=
+λ e₁ e₂ h, ext $ alg_hom.congr_fun h
 
 /-- The two paths coercion can take to a `ring_hom` are equivalent -/
 lemma coe_ring_hom_commutes : ((e : A₁ →ₐ[R] A₂) : A₁ →+* A₂) = ((e : A₁ ≃+* A₂) : A₁ →+* A₂) :=
@@ -894,10 +897,21 @@ by { ext, refl }
 /-- If an algebra morphism has an inverse, it is a algebra isomorphism. -/
 def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂)
   (h₂ : g.comp f = alg_hom.id R A₁) : A₁ ≃ₐ[R] A₂ :=
-{ inv_fun   := g,
+{ to_fun    := f,
+  inv_fun   := g,
   left_inv  := alg_hom.ext_iff.1 h₂,
   right_inv := alg_hom.ext_iff.1 h₁,
   ..f }
+
+lemma coe_alg_hom_of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ h₂) :
+  ↑(of_alg_hom f g h₁ h₂) = f := alg_hom.ext $ λ _, rfl
+
+@[simp]
+lemma of_alg_hom_coe_alg_hom (f : A₁ ≃ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ h₂) :
+  of_alg_hom ↑f g h₁ h₂ = f := ext $ λ _, rfl
+
+lemma of_alg_hom_symm (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ h₂) :
+  (of_alg_hom f g h₁ h₂).symm = of_alg_hom g f h₂ h₁ := rfl
 
 /-- Promotes a bijective algebra homomorphism to an algebra equivalence. -/
 noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijective f) : A₁ ≃ₐ[R] A₂ :=
@@ -919,9 +933,8 @@ noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijectiv
 @[simp] lemma to_linear_equiv_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
   (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv := rfl
 
-theorem to_linear_equiv_inj {e₁ e₂ : A₁ ≃ₐ[R] A₂} (H : e₁.to_linear_equiv = e₂.to_linear_equiv) :
-  e₁ = e₂ :=
-ext $ λ x, show e₁.to_linear_equiv x = e₂.to_linear_equiv x, by rw H
+theorem to_linear_equiv_injective : function.injective (to_linear_equiv : _ → (A₁ ≃ₗ[R] A₂)) :=
+λ e₁ e₂ h, ext $ linear_equiv.congr_fun h
 
 /-- Interpret an algebra equivalence as a linear map. -/
 def to_linear_map : A₁ →ₗ[R] A₂ :=
@@ -935,9 +948,8 @@ e.to_alg_hom.to_linear_map
 
 @[simp] lemma to_linear_map_apply (x : A₁) : e.to_linear_map x = e x := rfl
 
-theorem to_linear_map_inj {e₁ e₂ : A₁ ≃ₐ[R] A₂} (H : e₁.to_linear_map = e₂.to_linear_map) :
-  e₁ = e₂ :=
-ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
+theorem to_linear_map_injective : function.injective (to_linear_map : _ → (A₁ →ₗ[R] A₂)) :=
+λ e₁ e₂ h, ext $ linear_map.congr_fun h
 
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
   (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
@@ -952,12 +964,20 @@ variables (l : A₁ ≃ₗ[R] A₂)
 Upgrade a linear equivalence to an algebra equivalence,
 given that it distributes over multiplication and action of scalars.
 -/
+@[simps apply]
 def of_linear_equiv : A₁ ≃ₐ[R] A₂ :=
 { to_fun := l,
   inv_fun := l.symm,
   map_mul' := map_mul,
   commutes' := commutes,
   ..l }
+
+@[simp]
+lemma of_linear_equiv_symm :
+  (of_linear_equiv l map_mul commutes).symm = of_linear_equiv l.symm
+    ((of_linear_equiv l map_mul commutes).symm.map_mul)
+    ((of_linear_equiv l map_mul commutes).symm.commutes) :=
+rfl
 
 @[simp] lemma of_linear_equiv_to_linear_equiv (map_mul) (commutes) :
   of_linear_equiv e.to_linear_equiv map_mul commutes = e :=
@@ -966,8 +986,6 @@ by { ext, refl }
 @[simp] lemma to_linear_equiv_of_linear_equiv :
   to_linear_equiv (of_linear_equiv l map_mul commutes) = l :=
 by { ext, refl }
-
-@[simp] lemma of_linear_equiv_apply (x : A₁) : of_linear_equiv l map_mul commutes x = l x := rfl
 
 end of_linear_equiv
 
@@ -1061,22 +1079,22 @@ variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [al
 /-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
 @[simp] lemma alg_hom_map_one [decidable_eq n]
   (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
+map_one _ f.map_zero f.map_one
 
 /-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
 @[simp] lemma alg_equiv_map_one [decidable_eq n]
   (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
+map_one _ f.map_zero f.map_one
 
 /-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
 @[simp] lemma alg_hom_map_zero
   (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 /-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
 @[simp] lemma alg_equiv_map_zero
   (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
+map_zero _ f.map_zero
 
 end semiring
 
@@ -1156,7 +1174,9 @@ variables {R}
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
 
 variables (R A)
-/-- The multiplication in an algebra is a bilinear map. -/
+/-- The multiplication in an algebra is a bilinear map.
+
+A weaker version of this for semirings exists as `add_monoid_hom.mul`. -/
 def lmul : A →ₐ[R] (End R A) :=
 { map_one' := by { ext a, exact one_mul a },
   map_mul' := by { intros a b, ext c, exact mul_assoc a b c },

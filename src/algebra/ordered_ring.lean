@@ -998,6 +998,19 @@ calc a < -a ↔ -(-a) < -a : by rw neg_neg
 
 @[simp] lemma abs_eq_neg_self : abs a = -a ↔ a ≤ 0 := by simp [abs]
 
+/-- For an element `a` of a linear ordered ring, either `abs a = a` and `0 ≤ a`,
+    or `abs a = -a` and `a < 0`.
+    Use cases on this lemma to automate linarith in inequalities -/
+lemma abs_cases (a : α) : (abs a = a ∧ 0 ≤ a) ∨ (abs a = -a ∧ a < 0) :=
+begin
+  by_cases 0 ≤ a,
+  { left,
+    exact ⟨abs_eq_self.mpr h, h⟩ },
+  { right,
+    push_neg at h,
+    exact ⟨abs_eq_neg_self.mpr (le_of_lt h), h⟩ }
+end
+
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
 have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
 have h2 : -(c * b) < -(c * a), from neg_lt_neg h,
@@ -1320,29 +1333,21 @@ class canonically_ordered_comm_semiring (α : Type*) extends
   canonically_ordered_add_monoid α, comm_semiring α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
-namespace canonically_ordered_semiring
+namespace canonically_ordered_comm_semiring
 variables [canonically_ordered_comm_semiring α] {a b : α}
 
-open canonically_ordered_add_monoid (le_iff_exists_add)
-
 @[priority 100] -- see Note [lower instance priority]
-instance canonically_ordered_comm_semiring.to_no_zero_divisors :
-  no_zero_divisors α :=
+instance to_no_zero_divisors : no_zero_divisors α :=
 ⟨canonically_ordered_comm_semiring.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
-lemma mul_le_mul {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) : a * c ≤ b * d :=
+@[priority 100] -- see Note [lower instance priority]
+instance to_covariant_mul_le : covariant_class α α (*) (≤) :=
 begin
-  rcases (le_iff_exists_add _ _).1 hab with ⟨b, rfl⟩,
-  rcases (le_iff_exists_add _ _).1 hcd with ⟨d, rfl⟩,
-  suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul, add_assoc],
-  exact (le_iff_exists_add _ _).2 ⟨_, rfl⟩
+  refine ⟨λ a b c h, _⟩,
+  rcases le_iff_exists_add.1 h with ⟨c, rfl⟩,
+  rw mul_add,
+  apply self_le_add_right
 end
-
-lemma mul_le_mul_left' {b c : α} (h : b ≤ c) (a : α) : a * b ≤ a * c :=
-mul_le_mul le_rfl h
-
-lemma mul_le_mul_right' {b c : α} (h : b ≤ c) (a : α) : b * a ≤ c * a :=
-mul_le_mul h le_rfl
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
@@ -1350,7 +1355,7 @@ lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_o
 lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
 by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
-end canonically_ordered_semiring
+end canonically_ordered_comm_semiring
 
 /-! ### Structures involving `*` and `0` on `with_top` and `with_bot`
 

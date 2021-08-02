@@ -156,14 +156,28 @@ end function
 
 namespace monotone
 
-variables [preorder α] {f g : α → α}
-
 open function
+
+section
+
+variables {β : Type*} [preorder β] {f : α → α} {g : β → β} {h : α → β}
+
+lemma le_iterate_comp_of_le (hg : monotone g) (H : ∀ x, h (f x) ≤ g (h x)) (n : ℕ) (x : α) :
+  h (f^[n] x) ≤ (g^[n] (h x)) :=
+by refine hg.seq_le_seq n _ (λ k hk, _) (λ k hk, _); simp [iterate_succ', H _]
+
+lemma iterate_comp_le_of_le (hg : monotone g) (H : ∀ x, g (h x) ≤ h (f x)) (n : ℕ) (x : α) :
+  g^[n] (h x) ≤ h (f^[n] x) :=
+hg.order_dual.le_iterate_comp_of_le H n x
+
+end
+
+variables [preorder α] {f g : α → α}
 
 /-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
 lemma iterate_le_of_le (hf : monotone f) (h : f ≤ g) (n : ℕ) :
   f^[n] ≤ (g^[n]) :=
-λ x, by refine hf.seq_le_seq n _ (λ k hk, _) (λ k hk, _); simp [iterate_succ', h _]
+hf.iterate_comp_le_of_le h n
 
 /-- If `f ≤ g` and `f` is monotone, then `f^[n] ≤ g^[n]`. -/
 lemma iterate_ge_of_ge (hg : monotone g) (h : f ≤ g) (n : ℕ) :

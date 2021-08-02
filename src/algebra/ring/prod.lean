@@ -141,4 +141,24 @@ ring_hom.ext $ λ _, rfl
   (ring_hom.snd S R).comp ↑(prod_comm : R × S ≃+* S × R) = ring_hom.fst R S :=
 ring_hom.ext $ λ _, rfl
 
+variables (R S) [subsingleton S]
+
+/-- A ring `R` is isomorphic to `R × S` when `S` is the zero ring -/
+@[simps] def prod_zero_ring : R ≃+* R × S :=
+{ to_fun := λ x, (x, 0),
+  inv_fun := prod.fst,
+  map_add' := by simp,
+  map_mul' := by simp,
+  left_inv := λ x, rfl,
+  right_inv := λ x, by cases x; simp }
+
+/-- A ring `R` is isomorphic to `S × R` when `S` is the zero ring -/
+@[simps] def zero_ring_prod : R ≃+* S × R :=
+{ to_fun := λ x, (0, x),
+  inv_fun := prod.snd,
+  map_add' := by simp,
+  map_mul' := by simp,
+  left_inv := λ x, rfl,
+  right_inv := λ x, by cases x; simp }
+
 end ring_equiv

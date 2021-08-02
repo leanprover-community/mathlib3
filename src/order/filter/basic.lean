@@ -533,8 +533,17 @@ nonempty_of_exists $ nonempty_of_mem_sets (univ_mem_sets : univ ∈ f)
 lemma compl_not_mem_sets {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) : sᶜ ∉ f :=
 λ hsc, (nonempty_of_mem_sets (inter_mem_sets h hsc)).ne_empty $ inter_compl_self s
 
+lemma filter_eq_bot_of_is_empty [is_empty α] (f : filter α) : f = ⊥ :=
+empty_in_sets_eq_bot.mp $ univ_mem_sets' is_empty_elim
+
 lemma filter_eq_bot_of_not_nonempty (f : filter α) (ne : ¬ nonempty α) : f = ⊥ :=
 empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
+
+/-- There is exactly one filter on an empty type. --/
+-- TODO[gh-6025]: make this globally an instance once safe to do so
+local attribute [instance]
+protected def unique [is_empty α] : unique (filter α) :=
+{ default := ⊥, uniq := filter_eq_bot_of_is_empty }
 
 lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
@@ -542,7 +551,7 @@ lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
 
 lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
 ⟨λ ⟨⟨f, g, hfg⟩⟩, by_contra $
-  λ h, hfg $ (filter_eq_bot_of_not_nonempty f h).trans (filter_eq_bot_of_not_nonempty g h).symm,
+  λ h, hfg $ by haveI : is_empty α := not_nonempty_iff.1 h; exact subsingleton.elim _ _,
   λ ⟨x⟩, ⟨⟨⊤, ⊥, ne_bot.ne $ forall_sets_nonempty_iff_ne_bot.1 $ λ s hs,
     by rwa [mem_top_sets.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
 
@@ -1535,6 +1544,29 @@ le_antisymm
   (assume c ⟨b, hb, (h : preimage (n ∘ m) b ⊆ c)⟩, ⟨preimage n b, preimage_mem_comap hb, h⟩)
   (assume c ⟨b, ⟨a, ha, (h₁ : preimage n a ⊆ b)⟩, (h₂ : preimage m b ⊆ c)⟩,
     ⟨a, ha, show preimage m (preimage n a) ⊆ c, from subset.trans (preimage_mono h₁) h₂⟩)
+
+section comm
+variables  {δ : Type*}
+
+/-!
+The variables in the following lemmas are used as in this diagram:
+```
+    φ
+  α → β
+θ ↓   ↓ ψ
+  γ → δ
+    ρ
+```
+-/
+variables {φ : α → β} {θ : α → γ} {ψ : β → δ} {ρ : γ → δ} (H : ψ ∘ φ = ρ ∘ θ)
+include H
+
+lemma map_comm (F : filter α) : map ψ (map φ F) = map ρ (map θ F) :=
+by rw [filter.map_map, H, ← filter.map_map]
+
+lemma comap_comm (G : filter δ) : comap φ (comap ψ G) = comap θ (comap ρ G) :=
+by rw [filter.comap_comap, H, ← filter.comap_comap]
+end comm
 
 @[simp] theorem comap_principal {t : set β} : comap m (𝓟 t) = 𝓟 (m ⁻¹' t) :=
 filter_eq $ set.ext $ assume s,

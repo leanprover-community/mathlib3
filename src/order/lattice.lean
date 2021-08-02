@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.rel_classes
+import tactic.simps
 
 /-!
 # (Semi-)lattices
@@ -66,9 +67,9 @@ end
 /- TODO: automatic construction of dual definitions / theorems -/
 
 /-- Typeclass for the `⊔` (`\lub`) notation -/
-class has_sup (α : Type u) := (sup : α → α → α)
+@[notation_class] class has_sup (α : Type u) := (sup : α → α → α)
 /-- Typeclass for the `⊓` (`\glb`) notation -/
-class has_inf (α : Type u) := (inf : α → α → α)
+@[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
 
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf

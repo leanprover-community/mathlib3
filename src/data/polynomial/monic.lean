@@ -310,8 +310,7 @@ lemma monic.mul_left_ne_zero (hp : monic p) {q : polynomial R} (hq : q ≠ 0) :
 begin
   by_cases h : p = 1,
   { simpa [h] },
-  rw [ne.def, ←degree_eq_bot, hp.degree_mul, with_bot.add_eq_bot_iff, not_or_distrib,
-      degree_eq_bot],
+  rw [ne.def, ←degree_eq_bot, hp.degree_mul, with_bot.add_eq_bot, not_or_distrib, degree_eq_bot],
   refine ⟨hq, _⟩,
   rw [←hp.degree_le_zero_iff_eq_one, not_le] at h,
   refine (lt_trans _ h).ne',
@@ -323,7 +322,7 @@ lemma monic.mul_right_ne_zero (hp : monic p) {q : polynomial R} (hq : q ≠ 0) :
 begin
   by_cases h : p = 1,
   { simpa [h] },
-  rw [ne.def, ←degree_eq_bot, hp.degree_mul_comm, hp.degree_mul, with_bot.add_eq_bot_iff,
+  rw [ne.def, ←degree_eq_bot, hp.degree_mul_comm, hp.degree_mul, with_bot.add_eq_bot,
       not_or_distrib, degree_eq_bot],
   refine ⟨hq, _⟩,
   rw [←hp.degree_le_zero_iff_eq_one, not_le] at h,

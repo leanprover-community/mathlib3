@@ -43,6 +43,10 @@ structure is_regular (c : R) : Prop :=
 (left : is_left_regular c)
 (right : is_right_regular c)
 
+protected lemma is_left_regular [has_mul R] [partial_order R] {a : R} (ha : mul_le_cancellable a) :
+  is_left_regular a :=
+ha.injective
+
 end has_mul
 
 section semigroup

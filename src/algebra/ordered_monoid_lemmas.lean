@@ -363,12 +363,12 @@ end mul_one_class
 
 @[to_additive]
 lemma mul_left_cancel'' [semigroup α] [partial_order α]
-  [contravariant_class α α ((*) : α → α → α) (≤)] {a b c : α} (h : a * b = a * c) : b = c :=
+  [contravariant_class α α (*) (≤)] {a b c : α} (h : a * b = a * c) : b = c :=
 (le_of_mul_le_mul_left' h.le).antisymm (le_of_mul_le_mul_left' h.ge)
 
 @[to_additive]
 lemma mul_right_cancel'' [semigroup α] [partial_order α]
-  [contravariant_class α α (function.swap (*) : α → α → α) (≤)] {a b c : α} (h : a * b = c * b) :
+  [contravariant_class α α (function.swap (*)) (≤)] {a b c : α} (h : a * b = c * b) :
   a = c :=
 le_antisymm (le_of_mul_le_mul_right' h.le) (le_of_mul_le_mul_right' h.ge)
 
@@ -380,7 +380,7 @@ to the appropriate `covariant_class`. -/
 "An additive semigroup with a partial order and satisfying `left_cancel_add_semigroup`
 (i.e. `c + a < c + b → a < b`) is a `left_cancel add_semigroup`."]
 def contravariant.to_left_cancel_semigroup [semigroup α] [partial_order α]
-  [contravariant_class α α ((*) : α → α → α) (≤)] :
+  [contravariant_class α α (*) (≤)] :
   left_cancel_semigroup α :=
 { mul_left_cancel := λ a b c, mul_left_cancel''
   ..‹semigroup α› }
@@ -393,7 +393,7 @@ to the appropriate `covariant_class`. -/
 "An additive semigroup with a partial order and satisfying `right_cancel_add_semigroup`
 (`a + c < b + c → a < b`) is a `right_cancel add_semigroup`."]
 def contravariant.to_right_cancel_semigroup [semigroup α] [partial_order α]
-  [contravariant_class α α (function.swap (*) : α → α → α) (≤)] :
+  [contravariant_class α α (function.swap (*)) (≤)] :
   right_cancel_semigroup α :=
 { mul_right_cancel := λ a b c, mul_right_cancel''
   ..‹semigroup α› }
@@ -759,6 +759,11 @@ namespace mul_le_cancellable
 protected lemma inj [has_mul α] [partial_order α] {a b c : α} (ha : mul_le_cancellable a)
   (h : a * b = a * c) : b = c :=
 le_antisymm (ha h.le) (ha h.ge)
+
+@[to_additive]
+protected lemma injective [has_mul α] [partial_order α] {a : α} (ha : mul_le_cancellable a) :
+  function.injective ((*) a) :=
+λ b c, ha.inj
 
 variable [has_le α]
 

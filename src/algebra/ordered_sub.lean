@@ -8,7 +8,7 @@ import algebra.ordered_monoid
 # Ordered Subtraction
 
 This file proves lemmas relating (truncated) subtraction with an order. We provide a class
- `has_ordered_sub` stating that `a - b ≤ c ↔ a ≤ b + c`.
+ `has_ordered_sub` stating that `a - b ≤ c ↔ a ≤ c + b`.
 
 The subtraction discussed here could both be normal subtraction in an additive group or truncated
 subtraction on a canonically ordered monoid (`ℕ`, `multiset`, `enat`, `ennreal`, ...)
@@ -37,7 +37,7 @@ lemmas about subtraction/division in `ordered_[add_]comm_group` with these.
 
 variables {α : Type*}
 
-/-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ b + c`.
+/-- `has_ordered_sub α` means that `α` has a subtraction characterized by `a - b ≤ c ↔ a ≤ c + b`.
 In other words, `a - b` is the least `c` such that `a ≤ b + c`.
 
 This is satisfied both by the subtraction in additive ordered groups and by truncated subtraction

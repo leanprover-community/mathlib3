@@ -1087,7 +1087,7 @@ lemma borel_eq_generate_from_Ioo_rat :
 is_topological_basis_Ioo_rat.borel_eq_generate_from
 
 lemma is_pi_system_Ioo_rat : @is_pi_system ℝ (⋃ (a b : ℚ) (h : a < b), {Ioo a b})  :=
-by simpa [Union] using is_pi_system_Ioo (coe : ℚ → ℝ)
+by simpa using is_pi_system_Ioo (coe : ℚ → ℝ)
 
 /-- The intervals `(-(n + 1), (n + 1))` form a finite spanning sets in the set of open intervals
 with rational endpoints for a locally finite measure `μ` on `ℝ`. -/

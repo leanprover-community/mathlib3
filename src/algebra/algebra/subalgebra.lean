@@ -131,15 +131,15 @@ theorem sum_mem {ι : Type w} {t : finset ι} {f : ι → A}
   (h : ∀ x ∈ t, f x ∈ S) : ∑ x in t, f x ∈ S :=
 S.to_subsemiring.sum_mem h
 
-instance {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
-  (S : subalgebra R A) : is_add_submonoid (S : set A) :=
-{ zero_mem := S.zero_mem,
-  add_mem := λ _ _, S.add_mem }
+/-- The projection from a subalgebra of `A` to an additive submonoid of `A`. -/
+def to_add_submonoid {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
+  (S : subalgebra R A) : add_submonoid A :=
+S.to_subsemiring.to_add_submonoid
 
-instance {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
-  (S : subalgebra R A) : is_submonoid (S : set A) :=
-{ one_mem := S.one_mem,
-  mul_mem := λ _ _, S.mul_mem }
+/-- The projection from a subalgebra of `A` to a submonoid of `A`. -/
+def to_submonoid {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
+  (S : subalgebra R A) : submonoid A :=
+S.to_subsemiring.to_submonoid
 
 /-- A subalgebra over a ring is also a `subring`. -/
 def to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S : subalgebra R A) :
@@ -152,10 +152,6 @@ def to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S
 
 @[simp] lemma coe_to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   (S : subalgebra R A) : (↑S.to_subring : set A) = S := rfl
-
-instance {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S : subalgebra R A) :
-  is_subring (S : set A) :=
-{ neg_mem := λ _, S.neg_mem }
 
 instance : inhabited S := ⟨(0 : S.to_subsemiring)⟩
 
@@ -264,9 +260,6 @@ def to_submodule : submodule R A :=
   smul_mem' := λ c x hx, (algebra.smul_def c x).symm ▸
     (⟨algebra_map R A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
 
-instance to_submodule.is_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
-  (S : subalgebra R A) : is_subring (S.to_submodule : set A) := S.is_subring
-
 @[simp] lemma mem_to_submodule {x} : x ∈ S.to_submodule ↔ x ∈ S := iff.rfl
 
 @[simp] lemma coe_to_submodule (S : subalgebra R A) : (↑S.to_submodule : set A) = S := rfl
@@ -351,7 +344,7 @@ instance no_zero_smul_divisors_top {R A : Type*} [comm_semiring R] [comm_semirin
 
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
-@subring.domain A _ S _
+subring.integral_domain S.to_subring
 
 end subalgebra
 
@@ -738,18 +731,10 @@ def subalgebra_of_subring (S : subring R) : subalgebra ℤ R :=
     exact S.sub_mem ih S.one_mem }),
   .. S }
 
-/-- A subset closed under the ring operations is a `ℤ`-subalgebra. -/
-def subalgebra_of_is_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
-subalgebra_of_subring S.to_subring
-
 variables {S : Type*} [semiring S]
 
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : subring R} :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
-iff.rfl
-
-@[simp] lemma mem_subalgebra_of_is_subring {x : R} {S : set R} [is_subring S] :
-  x ∈ subalgebra_of_is_subring S ↔ x ∈ S :=
 iff.rfl
 
 end int

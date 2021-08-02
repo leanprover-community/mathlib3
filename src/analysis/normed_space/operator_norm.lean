@@ -206,7 +206,7 @@ lemma bounds_bdd_below {f : E →L[𝕜] F} :
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
-lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
+le_cInf bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
 /-- The fundamental property of the operator norm: `∥f x∥ ≤ ∥f∥ * ∥x∥`. -/
 theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=

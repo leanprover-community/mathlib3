@@ -163,7 +163,7 @@ lemma quotient_norm_nonneg (S : add_subgroup M) : ∀ x : quotient S, 0 ≤ ∥x
 begin
   rintros ⟨m⟩,
   change 0 ≤ ∥mk' S m∥,
-  apply real.lb_le_Inf _ (image_norm_nonempty _),
+  apply le_cInf (image_norm_nonempty _),
   rintros _ ⟨n, h, rfl⟩,
   apply norm_nonneg
 end

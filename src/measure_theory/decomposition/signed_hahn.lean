@@ -39,42 +39,60 @@ variables {α : Type*}
 
 open_locale topological_space
 
-open set filter
+open set filter topological_space
 
-lemma exists_tendsto_Inf {S : set ℝ} (hS : S.nonempty) (hS' : bdd_below S) :
-  ∃ (f : ℕ → ℝ) (hf : ∀ n, f n ∈ S), tendsto f at_top (𝓝 (Inf S)) :=
+-- from #8266
+lemma strict_mono_of_strict_mono_nat [preorder α] {f : ℕ → α} (hf : ∀n, f n < f (n + 1)) :
+  strict_mono f | n m h :=
 begin
-  have : ∀ n : ℕ, ∃ t ∈ S, t < Inf S + 1 / (n + 1 : ℝ),
-  { exact λ n, (real.Inf_lt _ hS hS').1 ((lt_add_iff_pos_right _).2 nat.one_div_pos_of_nat) },
-  choose f hf using this,
-  refine ⟨f, λ n, (hf n).1, _⟩,
-  rw tendsto_iff_dist_tendsto_zero,
-  refine squeeze_zero_norm _ tendsto_one_div_add_at_top_nhds_0_nat,
-  intro n,
-  obtain ⟨hf₁, hf₂⟩ := hf n,
-  rw [real.dist_eq, real.norm_eq_abs, abs_abs,
-      abs_of_nonneg (sub_nonneg.2 (real.Inf_le S hS' hf₁))],
-  linarith,
+  induction h,
+  { exact hf _ },
+  { transitivity, assumption, exact hf _ }
 end
 
-lemma exists_tendsto_Sup {S : set ℝ} (hS : S.nonempty) (hS' : bdd_above S) :
-  ∃ (f : ℕ → ℝ) (hf : ∀ n, f n ∈ S), tendsto f at_top (𝓝 (Sup S)) :=
+variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
+  [first_countable_topology α]
+
+lemma exists_seq_tendsto_Sup {S : set α} (hS : S.nonempty) (hS' : bdd_above S) :
+  ∃ (u : ℕ → α) (hu : ∀ n, u n ∈ S), tendsto u at_top (𝓝 (Sup S)) :=
 begin
-  have : ∀ n : ℕ, ∃ t ∈ S, Sup S - 1 / (n + 1 : ℝ) < t,
-  { intro n,
-    apply (real.lt_Sup _ hS hS').1,
-    rw [sub_lt, _root_.sub_self],
-    exact nat.one_div_pos_of_nat },
-  choose f hf using this,
-  refine ⟨f, λ n, (hf n).1, _⟩,
-  rw tendsto_iff_dist_tendsto_zero,
-  refine squeeze_zero_norm _ tendsto_one_div_add_at_top_nhds_0_nat,
-  intro n,
-  obtain ⟨hf₁, hf₂⟩ := hf n,
-  rw [real.dist_eq, real.norm_eq_abs, abs_abs, abs_of_nonpos],
-  { linarith },
-  { rw [sub_le, _root_.sub_zero],
-    exact real.le_Sup S hS' hf₁ },
+  by_cases hSup : Sup S ∈ S,
+  { exact ⟨λ n, Sup S, λ _, hSup, tendsto_const_nhds⟩ },
+  { have hlt : ∀ s ∈ S, s < Sup S,
+    { exact λ s hs, lt_of_le_of_ne (le_cSup hS' hs) (λ h, hSup (h ▸ hs)) },
+    obtain ⟨s, hs⟩ : ∃ s : ℕ → set α, (𝓝 (Sup S)).has_basis (λ (_x : ℕ), true) s :=
+      let ⟨s, hs⟩ := (is_countably_generated_nhds (Sup S)).exists_antimono_basis in
+        ⟨s, hs.to_has_basis⟩,
+    have : ∀ n k, k ∈ S → ∃ y ∈ S, Ico y (Sup S) ⊆ s n ∧ k < y,
+    { intros n k hk,
+      obtain ⟨L, hL, h⟩ : ∃ (L : α) (hL : L ∈ Ico k (Sup S)), Ioc L (Sup S) ⊆ s n :=
+        exists_Ioc_subset_of_mem_nhds' (hs.mem_of_mem trivial) (hlt _ hk),
+      obtain ⟨y, hy⟩ : ∃ y ∈ S, L < y := exists_lt_of_lt_cSup hS hL.2,
+      exact ⟨y, (exists_prop.1 hy).1, λ z hz, h ⟨(exists_prop.1 hy).2.trans_le hz.1,
+              le_of_lt hz.2⟩, hL.1.trans_lt (exists_prop.1 hy).2⟩ },
+    choose! f hf using this,
+    obtain ⟨t, ht⟩ := hS,
+    let u : ℕ → α := λ n, nat.rec_on n (f 0 t) (λ n h, f n.succ h),
+    have I : ∀ n, u n ∈ S,
+    { intro n,
+      induction n with n IH,
+      { exact (hf 0 t ht).1 },
+      { exact (hf n.succ _ IH).1 } },
+    have hmono : strict_mono u := strict_mono_of_strict_mono_nat (λ n, (hf n.succ _ (I n)).2.2),
+    refine ⟨u, I, hs.tendsto_right_iff.2 (λ n _, _)⟩,
+    simp only [ge_iff_le, eventually_at_top],
+    refine ⟨n, λ p hp, _⟩,
+    have up : u p ∈ Icc (u n) (Sup S) := ⟨hmono.monotone hp, le_cSup hS' (I p)⟩,
+    have : Ico (u n) (Sup S) ⊆ s n,
+      by { cases n, { exact (hf 0 t ht).2.1 }, { exact (hf n.succ (u n) (I n)).2.1 } },
+    exact this ⟨up.1, lt_of_le_of_ne up.2 (λ h, hSup (h ▸ I p))⟩ }
+end
+
+lemma exists_seq_tendsto_Inf {S : set α} (hS : S.nonempty) (hS' : bdd_below S) :
+  ∃ (u : ℕ → α) (hu : ∀ n, u n ∈ S), tendsto u at_top (𝓝 (Inf S)) :=
+begin
+  haveI : first_countable_topology (order_dual α) := sorry,
+  exact @exists_seq_tendsto_Sup (order_dual α) _ _ _ _ _ hS hS',
 end
 
 end lemmas
@@ -577,7 +595,7 @@ theorem exists_disjoint_positive_negative_union_eq (s : signed_measure α) :
                   (hj₁ : measurable_set j) (hj₂ : s.negative j),
   disjoint i j ∧ i ∪ j = set.univ :=
 begin
-  obtain ⟨f, hf₁, hf₂⟩ := exists_tendsto_Inf
+  obtain ⟨f, hf₁, hf₂⟩ := exists_seq_tendsto_Inf
     ⟨0, @zero_mem_measure_of_negatives _ _ s⟩ measure_of_negatives_bdd_below,
 
   choose B hB using hf₁,

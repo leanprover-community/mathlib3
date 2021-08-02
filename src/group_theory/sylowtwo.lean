@@ -10,19 +10,19 @@ import data.nat.prime
 
 open fintype subgroup
 universe u
-variables {G : Type u} [group G]
+variables {G : Type u} [group G] [fintype G]
 
 open_locale classical
 
 namespace sylow
 
 /-- define a sylow subgroup given a prime p, and subgroup L -/
-def is_sylow_subgroup [fintype G] (p : ℕ) [fact p.prime] (L : subgroup G)  :=
+def is_sylow_subgroup (p : ℕ) [fact p.prime] (L : subgroup G)  :=
   ∃ m n : ℕ, card L = p ^ n ∧ card G = p ^ n * m ∧ ¬ p ∣ m
 
 namespace is_sylow_subgroup
 
-variables (G) [fintype G] {L : subgroup G} (p : ℕ) [fact p.prime] (h : is_sylow_subgroup p L)
+variables {p : ℕ} [fact p.prime]
 
 /-- unique n which characterises sylow subgroup p -/
 local notation `n` := padic_val_nat p (card G)

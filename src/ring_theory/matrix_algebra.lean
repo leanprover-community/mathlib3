@@ -3,8 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import ring_theory.tensor_product
 import data.matrix.basic
+import ring_theory.tensor_product
 
 /-!
 We show `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.

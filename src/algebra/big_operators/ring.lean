@@ -29,10 +29,10 @@ section semiring
 variables [non_unital_non_assoc_semiring β]
 
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
-(s.sum_hom (λ x, x * b)).symm
+add_monoid_hom.map_sum (add_monoid_hom.mul_right b) _ s
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
-(s.sum_hom _).symm
+add_monoid_hom.map_sum (add_monoid_hom.mul_left b) _ s
 
 lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
   (f₁ : ι₁ → β) (f₂ : ι₂ → β) :

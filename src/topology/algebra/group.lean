@@ -679,8 +679,12 @@ begin
     { simp only [inv_mul_cancel_right] } }
 end
 
-@[to_additive]
-lemma nhds_is_mul_hom : is_mul_hom (λx:G, 𝓝 x) := ⟨λ_ _, nhds_mul _ _⟩
+/-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
+@[to_additive "On an additive topological group, `𝓝 : G → filter G` can be promoted to an
+`add_hom`.", simps]
+def nhds_mul_hom : mul_hom G (filter G) :=
+{ to_fun := 𝓝,
+  map_mul' := λ_ _, nhds_mul _ _ }
 
 end
 

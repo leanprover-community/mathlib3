@@ -944,6 +944,33 @@ by rw [map_div, map_one]
 
 end quotient
 
+section field
+
+variables {R₁ K L : Type*} [integral_domain R₁] [field K] [field L]
+variables [algebra R₁ K] [is_fraction_ring R₁ K] [algebra K L] [is_fraction_ring K L]
+
+lemma eq_zero_or_one (I : fractional_ideal K⁰ L) : I = 0 ∨ I = 1 :=
+begin
+  rw or_iff_not_imp_left,
+  intro hI,
+  simp_rw [@set_like.ext_iff _ _ _ I 1, fractional_ideal.mem_one_iff],
+  intro x,
+  split,
+  { intro x_mem,
+    obtain ⟨n, d, rfl⟩ := is_localization.mk'_surjective K⁰ x,
+    refine ⟨n / d, _⟩,
+    rw [ring_hom.map_div, is_fraction_ring.mk'_eq_div] },
+  { rintro ⟨x, rfl⟩,
+    obtain ⟨y, y_ne, y_mem⟩ := fractional_ideal.exists_ne_zero_mem_is_integer hI,
+    rw [← div_mul_cancel x y_ne, ring_hom.map_mul, ← algebra.smul_def],
+    exact submodule.smul_mem I _ y_mem }
+end
+
+lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
+by { letI : field R₁ := hF.to_field R₁, exact eq_zero_or_one I }
+
+end field
+
 section principal_ideal_ring
 
 variables {R₁ : Type*} [integral_domain R₁] {K : Type*} [field K]
@@ -1014,7 +1041,7 @@ lemma span_singleton_mul_span_singleton (x y : P) :
   span_singleton S x * span_singleton S y = span_singleton S (x * y) :=
 begin
   apply coe_to_submodule_injective,
-  simp_rw [coe_mul, coe_span_singleton, span_mul_span, singleton.is_mul_hom.map_mul]
+  simp only [coe_mul, coe_span_singleton, span_mul_span, singleton_mul_singleton],
 end
 
 @[simp]

@@ -1615,12 +1615,20 @@ def range (f : ι → α) : set α := {x | ∃y, f y = x}
 theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
 by simp
 
+theorem forall_subtype_range_iff {p : range f → Prop} :
+  (∀ a : range f, p a) ↔ ∀ i, p ⟨f i, mem_range_self _⟩ :=
+⟨λ H i, H _, λ H ⟨y, i, hi⟩, by { subst hi, apply H }⟩
+
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 by simp
 
 lemma exists_range_iff' {p : α → Prop} :
   (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=
 by simpa only [exists_prop] using exists_range_iff
+
+lemma exists_subtype_range_iff {p : range f → Prop} :
+  (∃ a : range f, p a) ↔ ∃ i, p ⟨f i, mem_range_self _⟩ :=
+⟨λ ⟨⟨a, i, hi⟩, ha⟩, by { subst a, exact ⟨i, ha⟩}, λ ⟨i, hi⟩, ⟨_, hi⟩⟩
 
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall

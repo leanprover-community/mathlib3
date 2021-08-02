@@ -6,7 +6,6 @@ Authors: Kyle Miller
 
 import data.multiset.basic
 import data.vector2
-import tactic.tidy
 
 /-!
 # Symmetric powers
@@ -16,9 +15,9 @@ consists of homogeneous n-tuples modulo permutations by the symmetric
 group.
 
 The special case of 2-tuples is called the symmetric square, which is
-addressed in more detail in `data.sym2`.
+addressed in more detail in `data.sym.sym2`.
 
-TODO: This was created as supporting material for `data.sym2`; it
+TODO: This was created as supporting material for `sym2`; it
 needs a fleshed-out interface.
 
 ## Tags

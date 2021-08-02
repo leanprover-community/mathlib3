@@ -31,21 +31,24 @@ variables {f : ℂ → ℂ} {z : ℂ} {g : ℂ →L[ℝ] ℂ}
 open complex linear_isometry linear_isometry_equiv continuous_linear_map
      finite_dimensional linear_map
 
-lemma is_complex_linear_iff_holomorph (hf : differentiable_at ℝ f z) :
-  differentiable_at ℂ f z ↔ is_linear_map ℂ (fderiv ℝ f z) :=
+lemma differentiable_at_iff_exists_linear_map (hf : differentiable_at ℝ f z) :
+  differentiable_at ℂ f z ↔ ∃ (g' : ℂ →L[ℂ] ℂ), g'.restrict_scalars ℝ = fderiv ℝ f z :=
 sorry
 
-lemma is_conj_complex_linear_iff_antiholomorph (hf : differentiable_at ℝ f z) :
-  differentiable_at ℂ (conj ∘ f) z ↔ is_linear_map ℂ (conj ∘ (fderiv ℝ f z)) :=
+lemma antiholomorph_iff_exists_conj_complex_linear (hf : differentiable_at ℝ f z) :
+  differentiable_at ℂ (conj ∘ f) z ↔
+  ∃ (g' : ℂ →L[ℂ] ℂ), g'.restrict_scalars ℝ =
+  conj_cle.to_continuous_linear_map.comp (fderiv ℝ f z) :=
 sorry
 
-lemma is_conformal_map_of_complex_linear (nonzero : g ≠ 0)
-  (h : is_linear_map ℂ g) : is_conformal_map g :=
+lemma is_conformal_map_of_eq_complex_linear (nonzero : g ≠ 0)
+  (H : ∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) : is_conformal_map g :=
 begin
+  rcases H with ⟨map, h⟩,
   have minor₀ : ∀ x, g x = x • g 1,
   { intro x,
     nth_rewrite 0 ← mul_one x,
-    rw [← smul_eq_mul, h.map_smul], },
+    rw [← smul_eq_mul, ← h, coe_restrict_scalars', map.map_smul], },
   have minor₁ : ∥g 1∥ ≠ 0,
   { contrapose! nonzero with w,
     ext1 x,
@@ -62,8 +65,9 @@ begin
   exact ⟨∥g 1∥, minor₁, rot.to_linear_isometry, key⟩,
 end
 
-lemma is_conformal_map_of_conj_linear (nonzero : g ≠ 0)
-  (h : is_linear_map ℂ (conj ∘ g)) : is_conformal_map g :=
+lemma is_conformal_map_of_eq_conj_linear (nonzero : g ≠ 0)
+  (h : ∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = conj_cle.to_continuous_linear_map.comp g) :
+  is_conformal_map g :=
 begin
   have nonzero' : conj_cle.to_continuous_linear_map.comp g ≠ 0,
   { contrapose! nonzero with w,
@@ -72,7 +76,7 @@ begin
                continuous_linear_equiv.coe_def_rev, continuous_linear_equiv.coe_apply,
                conj_cle_apply, conj_eq_zero] at w,
     exact continuous_linear_map.ext w, },
-  rcases is_conformal_map_of_complex_linear nonzero' h with ⟨c, hc, li, hg'⟩,
+  rcases is_conformal_map_of_eq_complex_linear nonzero' h with ⟨c, hc, li, hg'⟩,
   refine ⟨c, hc, conj_lie.to_linear_isometry.comp li, _⟩,
   have key : (g : ℂ → ℂ) = conj_lie ∘ (c • li),
   { rw ← hg',
@@ -81,42 +85,46 @@ begin
                continuous_linear_equiv.coe_def_rev, continuous_linear_equiv.coe_apply,
                conj_lie_apply, conj_cle_apply, conj_conj], },
   funext,
-  simp only [function.comp_app, conj_cle_apply, pi.smul_apply,
+  simp only [conj_cle_apply, pi.smul_apply,
              linear_isometry.coe_comp, coe_to_linear_isometry],
   rw [key, function.comp_app, pi.smul_apply],
-  exact conj_lie.map_smul' c (li x),
+  exact conj_lie.map_smul' _ _,
 end
 
 lemma is_complex_or_conj_complex_linear (h : is_conformal_map g) :
-  is_linear_map ℂ g ∨ is_linear_map ℂ (conj ∘ g) :=
+  (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
+  (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = conj_cle.to_continuous_linear_map.comp g) :=
 begin
   rcases h with ⟨c, hc, li, hg⟩,
   rcases linear_isometry_complex (li.to_linear_isometry_equiv rfl) with ⟨a, ha⟩,
   cases ha,
-  { have : is_linear_map ℂ g :=
-    { map_add := g.map_add,
-      map_smul := λ c₁ x₁, by { rw [hg, ← li.coe_to_linear_isometry_equiv, ha],
-        simp only [pi.smul_apply, rotation_apply, smul_eq_mul, smul_coe], ring, }, },
-    exact or.intro_left _ this, },
+  { refine or.intro_left _ ⟨c • rotation_clm a, _⟩,
+    ext1,
+    simp only [coe_restrict_scalars', continuous_linear_map.smul_apply, coe_rotation_clm, ← ha,
+               li.coe_to_linear_isometry_equiv, hg, pi.smul_apply], },
   { let map := (conj c) • (rotation_clm a⁻¹),
-    have : conj ∘ g = map,
-    { funext,
-      rw [hg, ← li.coe_to_linear_isometry_equiv, ha],
-      simp only [function.comp_app, pi.smul_apply, linear_isometry_equiv.coe_trans,
-                 conj_lie_apply, rotation_apply, map],
-      simp only [smul_coe, smul_eq_mul, function.comp_app, continuous_linear_map.smul_apply,
-                 rotation_clm_apply, linear_map.coe_to_continuous_linear_map',
-                 rotation_apply, conj.map_mul, coe_inv_circle_eq_conj, conj_conj], },
-    rw this,
-    exact or.intro_right _ map.to_linear_map.is_linear, },
+    refine or.intro_right _ ⟨map, _⟩,
+    ext1,
+    rw [continuous_linear_map.coe_comp', hg, ← li.coe_to_linear_isometry_equiv, ha],
+    simp only [coe_restrict_scalars', function.comp_app, pi.smul_apply,
+                linear_isometry_equiv.coe_trans, conj_lie_apply,
+                rotation_apply, map, continuous_linear_equiv.coe_def_rev,
+                continuous_linear_equiv.coe_apply, conj_cle_apply],
+    simp only [smul_coe, smul_eq_mul, function.comp_app, continuous_linear_map.smul_apply,
+                rotation_clm_apply, linear_map.coe_to_continuous_linear_map',
+                rotation_apply, conj.map_mul, coe_inv_circle_eq_conj, conj_conj], },
 end
 
 /-- A real continuous linear map is conformal if and only if the map or its conjugate is complex
     linear, and the map is nonvanishing. -/
 lemma is_complex_or_conj_complex_linear_iff_is_conformal_map :
-  (is_linear_map ℂ g ∨ is_linear_map ℂ (conj ∘ g)) ∧ g ≠ 0 ↔ is_conformal_map g :=
+  ((∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
+   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = conj_cle.to_continuous_linear_map.comp g))
+  ∧ g ≠ 0 ↔ is_conformal_map g :=
 iff.intro
-  (λ h, h.1.rec_on (is_conformal_map_of_complex_linear h.2) (is_conformal_map_of_conj_linear h.2))
+  (λ h, h.1.rec_on
+    (is_conformal_map_of_eq_complex_linear h.2)
+    $ is_conformal_map_of_eq_conj_linear h.2)
   (λ h, ⟨is_complex_or_conj_complex_linear h, h.ne_zero⟩)
 
 lemma conformal_at_iff_holomorphic_or_antiholomorph_aux (hf : differentiable_at ℝ f z) :
@@ -124,7 +132,7 @@ lemma conformal_at_iff_holomorphic_or_antiholomorph_aux (hf : differentiable_at 
   (differentiable_at ℂ f z ∨ differentiable_at ℂ (conj ∘ f) z) ∧ fderiv ℝ f z ≠ 0 :=
 by rw [conformal_at_iff_is_conformal_map_fderiv,
        ← is_complex_or_conj_complex_linear_iff_is_conformal_map,
-       is_complex_linear_iff_holomorph hf, is_conj_complex_linear_iff_antiholomorph hf]
+       differentiable_at_iff_exists_linear_map hf, antiholomorph_iff_exists_conj_complex_linear hf]
 
 /-- A complex function is conformal if and only if the function is holomorphic or antiholomorphic
     with a nonvanishing differential. -/

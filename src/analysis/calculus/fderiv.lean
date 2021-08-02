@@ -391,12 +391,6 @@ begin
   exact unique_diff_within_at_univ.eq h₀ h₁
 end
 
-lemma has_fderiv_at_of_eq {𝕜' : Type*} [nondiscrete_normed_field 𝕜']
-  [normed_space 𝕜' E] [normed_space 𝕜' F] {g' : E →L[𝕜'] F}
-  (h : has_fderiv_at f f' x) (h' : (f' : E → F) = g') :
-  has_fderiv_at f g' x :=
-by { simp only [has_fderiv_at, has_fderiv_at_filter] at h ⊢, rwa ← h', }
-
 lemma has_fderiv_within_at_inter' (h : t ∈ 𝓝[s] x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
 by simp [has_fderiv_within_at, nhds_within_restrict'' s h]
@@ -2873,9 +2867,36 @@ lemma differentiable.restrict_scalars (h : differentiable 𝕜' f) :
   differentiable 𝕜 f :=
 λx, (h x).restrict_scalars 𝕜
 
+lemma has_fderiv_within_at_of_eq {s : set E} {g' : E →L[𝕜] F} (h : has_fderiv_within_at f g' s x)
+  (H : f'.restrict_scalars 𝕜 = g') : has_fderiv_within_at f f' s x :=
+by { simp only [has_fderiv_within_at, has_fderiv_at_filter] at h ⊢,
+     rwa [← f'.coe_restrict_scalars', H] }
+
+lemma has_fderiv_at_of_eq {g' : E →L[𝕜] F} (h : has_fderiv_at f g' x)
+  (H : f'.restrict_scalars 𝕜 = g') : has_fderiv_at f f' x :=
+by simp only [has_fderiv_at, has_fderiv_at_filter] at h ⊢; rwa [← f'.coe_restrict_scalars', H]
+
 lemma fderiv_eq_fderiv (h : differentiable_at 𝕜' f x) :
   (fderiv 𝕜 f x : E → F) = fderiv 𝕜' f x :=
 by rw [(h.restrict_scalars 𝕜).has_fderiv_at.unique (h.has_fderiv_at.restrict_scalars 𝕜),
        coe_restrict_scalars']
+
+lemma differentiable_within_at_iff_exists_linear_map {s : set E}
+  (hf : differentiable_within_at 𝕜 f s x) (hs : unique_diff_within_at 𝕜 s x) :
+  differentiable_within_at 𝕜' f s x ↔
+  ∃ (g' : E →L[𝕜'] F), g'.restrict_scalars 𝕜 = fderiv_within 𝕜 f s x :=
+begin
+  split,
+  { rintros ⟨g', hg'⟩,
+    exact ⟨g', hs.eq (hg'.restrict_scalars 𝕜) hf.has_fderiv_within_at⟩, },
+  { rintros ⟨f', hf'⟩,
+    exact ⟨f', has_fderiv_within_at_of_eq 𝕜 hf.has_fderiv_within_at hf'⟩, },
+end
+
+lemma differentiable_at_iff_exists_linear_map (hf : differentiable_at 𝕜 f x) :
+  differentiable_at 𝕜' f x ↔ ∃ (g' : E →L[𝕜'] F), g'.restrict_scalars 𝕜 = fderiv 𝕜 f x :=
+by { rw [← differentiable_within_at_univ, ← fderiv_within_univ],
+     exact differentiable_within_at_iff_exists_linear_map 𝕜
+     hf.differentiable_within_at unique_diff_within_at_univ, }
 
 end restrict_scalars

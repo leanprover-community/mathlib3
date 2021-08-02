@@ -529,10 +529,10 @@ nat_degree_le_nat_degree (degree_map_le f p)
 variables {f}
 
 lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
-⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp [hp]
-                ... = f x * (p.map f).coeff p.nat_degree : by { congr, apply (coeff_map _ _).symm }
-                ... = 0 : by simp [hfp],
-  λ h, ext (λ n, by simp [h]) ⟩
+⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp only [mul_one, hp.leading_coeff, f.map_one]
+                ... = f x * (p.map f).coeff p.nat_degree : congr_arg _ (coeff_map _ _).symm
+                ... = 0 : by simp only [hfp, mul_zero, coeff_zero],
+  λ h, ext (λ n, by simp only [h, coeff_map, coeff_zero]) ⟩
 
 lemma map_monic_ne_zero (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
 λ h, f.map_one_ne_zero ((map_monic_eq_zero_iff hp).mp h _)
@@ -540,7 +540,7 @@ lemma map_monic_ne_zero (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
 lemma degree_map_eq_of_leading_coeff_ne_zero (f : R →+* S)
   (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
 le_antisymm (degree_map_le f _) $
-  have hp0 : p ≠ 0, from λ hp0, by simpa only [hp0, f.map_zero, leading_coeff_zero] using hf,
+  have hp0 : p ≠ 0, from leading_coeff_ne_zero.mp (λ hp0, hf (trans (congr_arg _ hp0) f.map_zero)),
   begin
     rw [degree_eq_nat_degree hp0],
     refine le_degree_of_ne_zero _,
@@ -669,7 +669,7 @@ variables (f : R →+* S) (g : S →+* T) (p)
 lemma hom_eval₂ (x : S) : g (p.eval₂ f x) = p.eval₂ (g.comp f) (g x) :=
 begin
   apply polynomial.induction_on p; clear p,
-  { intros a, rw [eval₂_C, eval₂_C], refl, },
+  { simp only [forall_const, eq_self_iff_true, eval₂_C, ring_hom.coe_comp] },
   { intros p q hp hq, simp only [hp, hq, eval₂_add, g.map_add] },
   { intros n a ih,
     simpa only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow] }

@@ -240,7 +240,7 @@ include hf
 lemma degree_map_eq_of_injective (p : polynomial R) : degree (p.map f) = degree p :=
 if h : p = 0 then by simp [h]
 else degree_map_eq_of_leading_coeff_ne_zero _
-  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
+  (by rw [← f.map_zero]; exact mt hf.eq_iff.1
     (mt leading_coeff_eq_zero.1 h))
 
 lemma degree_map' (p : polynomial R) :

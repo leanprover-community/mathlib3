@@ -112,14 +112,14 @@ lemma injective {f' : M →L[R] N} (h : is_conformal_map f') : function.injectiv
 let ⟨c, hc, li, hf'⟩ := h in by simp only [hf', pi.smul_def];
   exact (smul_left_injective _ hc).comp li.injective
 
-lemma ne_zero [h : nontrivial M] {f' : M →L[R] N} (hf' : is_conformal_map f') :
+lemma ne_zero [nontrivial M] {f' : M →L[R] N} (hf' : is_conformal_map f') :
   f' ≠ 0 :=
 begin
   intros w,
-  rcases nontrivial_iff.mp h with ⟨a, b, hab⟩,
-  have : f' a = f' b,
+  rcases exists_ne (0 : M) with ⟨a, ha⟩,
+  have : f' a = f' 0,
   { simp_rw [w, continuous_linear_map.zero_apply], },
-  exact hab (hf'.injective this),
+  exact ha (hf'.injective this),
 end
 
 lemma preserves_angle {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :

@@ -59,6 +59,10 @@ begin
   rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero _ _),
 end
 
+lemma monic_C_mul_of_mul_leading_coeff_eq_one [nontrivial R] {b : R}
+  (hp : b * p.leading_coeff = 1) : monic (C b * p) :=
+by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+
 lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
   (hp : p.leading_coeff * b = 1) : monic (p * C b) :=
 by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
@@ -349,6 +353,84 @@ lemma monic.mul_left_eq_zero_iff (h : monic p) {q : polynomial R} :
 begin
   by_cases hq : q = 0;
   simp [h.mul_left_ne_zero, hq]
+end
+
+lemma degree_smul_of_non_zero_divisor {S : Type*} [monoid S] [distrib_mul_action S R]
+  (p : polynomial R) (k : S) (h : ∀ (x : R), k • x = 0 → x = 0) :
+  (k • p).degree = p.degree :=
+begin
+  refine le_antisymm _ _,
+  { rw degree_le_iff_coeff_zero,
+    intros m hm,
+    rw degree_lt_iff_coeff_zero at hm,
+    simp [hm m le_rfl] },
+  { rw degree_le_iff_coeff_zero,
+    intros m hm,
+    rw degree_lt_iff_coeff_zero at hm,
+    refine h _ _,
+    simpa using hm m le_rfl },
+end
+
+lemma nat_degree_smul_of_non_zero_divisor {S : Type*} [monoid S] [distrib_mul_action S R]
+  (p : polynomial R) (k : S) (h : ∀ (x : R), k • x = 0 → x = 0) :
+  (k • p).nat_degree = p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp] },
+  rw [←with_bot.coe_eq_coe, ←degree_eq_nat_degree hp, ←degree_eq_nat_degree,
+      degree_smul_of_non_zero_divisor _ _ h],
+  contrapose! hp,
+  rw polynomial.ext_iff at hp ⊢,
+  simp only [coeff_smul, coeff_zero] at hp,
+  intro n,
+  simp [h _ (hp n)]
+end
+
+lemma leading_coeff_smul_of_non_zero_divisor {S : Type*} [monoid S] [distrib_mul_action S R]
+  (p : polynomial R) (k : S) (h : ∀ (x : R), k • x = 0 → x = 0) :
+  (k • p).leading_coeff = k • p.leading_coeff :=
+by rw [leading_coeff, leading_coeff, coeff_smul, nat_degree_smul_of_non_zero_divisor _ _ h]
+
+lemma monic_of_is_unit_leading_coeff_inv_smul (h : is_unit p.leading_coeff) :
+  monic (h.unit⁻¹ • p) :=
+begin
+  rw [monic.def, leading_coeff_smul_of_non_zero_divisor, units.smul_def],
+  { obtain ⟨k, hk⟩ := h,
+    simp only [←hk, smul_eq_mul, ←units.coe_mul, units.coe_eq_one, inv_mul_eq_iff_eq_mul],
+    simp [units.ext_iff, is_unit.unit_spec] },
+  { simp [smul_eq_zero_iff_eq] }
+end
+
+lemma is_unit_leading_coeff_mul_right_eq_zero_iff (h : is_unit p.leading_coeff) {q : polynomial R} :
+  p * q = 0 ↔ q = 0 :=
+begin
+  split,
+  { intro hp,
+    rw ←smul_eq_zero_iff_eq (h.unit)⁻¹ at hp,
+    { have : (h.unit)⁻¹ • (p * q) = ((h.unit)⁻¹ • p) * q,
+      { ext,
+        simp only [units.smul_def, coeff_smul, coeff_mul, smul_eq_mul, mul_sum],
+        refine sum_congr rfl (λ x hx, _),
+        rw ←mul_assoc },
+      rwa [this, monic.mul_right_eq_zero_iff] at hp,
+      exact monic_of_is_unit_leading_coeff_inv_smul _ } },
+  { rintro rfl,
+    simp }
+end
+
+lemma is_unit_leading_coeff_mul_left_eq_zero_iff (h : is_unit p.leading_coeff) {q : polynomial R} :
+  q * p = 0 ↔ q = 0 :=
+begin
+  split,
+  { intro hp,
+    replace hp := congr_arg (* C ↑(h.unit)⁻¹) hp,
+    simp only [zero_mul] at hp,
+    rwa [mul_assoc, monic.mul_left_eq_zero_iff] at hp,
+    nontriviality,
+    refine monic_mul_C_of_leading_coeff_mul_eq_one _,
+    simp [units.mul_inv_eq_iff_eq_mul, is_unit.unit_spec] },
+  { rintro rfl,
+    rw zero_mul }
 end
 
 end not_zero_divisor

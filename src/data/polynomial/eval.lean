@@ -537,7 +537,7 @@ lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
 lemma map_monic_ne_zero (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
 λ h, f.map_one_ne_zero ((map_monic_eq_zero_iff hp).mp h _)
 
-lemma degree_map_eq_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
+lemma degree_map_eq_of_leading_coeff_ne_zero (f : R →+* S)
   (hf : f (leading_coeff p) ≠ 0) : degree (p.map f) = degree p :=
 le_antisymm (degree_map_le f _) $
   have hp0 : p ≠ 0, from λ hp0, by simpa only [hp0, f.map_zero, leading_coeff_zero] using hf,
@@ -547,11 +547,11 @@ le_antisymm (degree_map_le f _) $
     rw [coeff_map], exact hf
   end
 
-lemma nat_degree_map_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
+lemma nat_degree_map_of_leading_coeff_ne_zero (f : R →+* S)
   (hf : f (leading_coeff p) ≠ 0) : nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f hf)
 
-lemma leading_coeff_map_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
+lemma leading_coeff_map_of_leading_coeff_ne_zero (f : R →+* S)
   (hf : f (leading_coeff p) ≠ 0) : leading_coeff (p.map f) = f (leading_coeff p) :=
 begin
   unfold leading_coeff,
@@ -596,8 +596,9 @@ begin
     (nat_degree_map_le _ _).trans_lt (nat.lt_succ_self _),
   conv_lhs { rw [eval₂_eq_sum], },
   rw [sum_over_range' _ _ _ A],
-  { simp [coeff_map, eval₂_eq_sum, sum_over_range] },
-  { simp }
+  { simp only [coeff_map, eval₂_eq_sum, sum_over_range, forall_const, zero_mul, ring_hom.map_zero,
+      function.comp_app, ring_hom.coe_comp] },
+  { simp only [forall_const, zero_mul, ring_hom.map_zero] }
 end
 
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
@@ -671,8 +672,7 @@ begin
   { intros a, rw [eval₂_C, eval₂_C], refl, },
   { intros p q hp hq, simp only [hp, hq, eval₂_add, g.map_add] },
   { intros n a ih,
-    simp only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow],
-    refl, }
+    simpa only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow] }
 end
 
 end hom_eval₂

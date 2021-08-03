@@ -7,7 +7,16 @@ import data.zmod.basic
 import data.fintype.card
 import number_theory.padics.padic_norm
 import data.nat.prime
+/-!
+# Sylow theorems
 
+## Main statements
+
+## TODO
+
+* Prove the second and third of the Sylow theorems.
+* Sylow theorems for infinite groups
+-/
 open fintype subgroup
 universe u
 variables {G : Type u} [group G] [fintype G]

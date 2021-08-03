@@ -1170,6 +1170,60 @@ See note [partially-applied ext lemmas]. -/
   f = g :=
 ring_hom_ext (ring_hom.congr_fun h₁) (monoid_hom.congr_fun h_of)
 
+section opposite
+
+variables {I : Type*} [semiring R]
+
+open finsupp opposite
+
+-- simps doesn't do well here, but we could add some lemmas
+-- about `support` and `coe_fn` that are true by rfl
+/-- The opposite of an `add_monoid_algebra R I` is additively equivalent to
+the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
+noncomputable def add_monoid_algebra.op_add_equiv :
+  (add_monoid_algebra R I)ᵒᵖ ≃+ add_monoid_algebra Rᵒᵖ I :=
+opposite.op_add_equiv.symm.trans
+{ to_fun := λ p, ⟨p.support, op ∘ (p : I → R), λ i, mem_support_iff.trans (op_ne_zero_iff _).symm⟩,
+  inv_fun := λ p, ⟨p.support, unop ∘ p, λ i, mem_support_iff.trans (unop_ne_zero_iff _).symm⟩,
+  left_inv := λ p, finsupp.ext $ λ i, rfl,
+  right_inv := λ p, finsupp.ext $ λ i, rfl,
+  map_add' := λ p q, finsupp.ext $ λ i, rfl }
+
+@[simp]
+lemma add_monoid_algebra.op_add_equiv_single (i : I) (r : R):
+  add_monoid_algebra.op_add_equiv (op (single i r)) = single i (op r) :=
+begin
+  ext j,
+  classical,
+  simp [add_monoid_algebra.op_add_equiv, single_apply, apply_ite op],
+end
+
+@[ext]
+lemma add_monoid_hom.op_ext {A B : Type*} [add_zero_class A] [add_zero_class B]
+  (f g : Aᵒᵖ →+ B)
+  (h : f.comp (op_add_equiv : A ≃+ Aᵒᵖ).to_add_monoid_hom =
+       g.comp (op_add_equiv : A ≃+ Aᵒᵖ).to_add_monoid_hom) : f = g :=
+add_monoid_hom.ext $ λ x, (add_monoid_hom.congr_fun h : _) x.unop
+
+/-- The opposite of an `add_monoid_algebra R I` is ring equivalent to
+the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite.
+For the case where the index type `I` is not `[add_comm_monoid I]`, see
+`add_monoid_algebra.op_add_equiv`. -/
+noncomputable def add_monoid_algebra.op_ring_equiv [add_comm_monoid I] :
+  (add_monoid_algebra R I)ᵒᵖ ≃+* add_monoid_algebra Rᵒᵖ I :=
+{ map_mul' := begin
+    dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],
+    rw add_monoid_hom.map_mul_iff,
+    ext,
+    dsimp,
+    rw ←op_mul,
+    simp only [add_monoid_algebra.single_mul_single, add_monoid_algebra.op_add_equiv_single,
+      ←op_mul, add_comm],
+  end,
+  ..add_monoid_algebra.op_add_equiv }
+
+end opposite
+
 /--
 The instance `algebra R (add_monoid_algebra k G)` whenever we have `algebra R k`.
 

@@ -1856,6 +1856,15 @@ begin
   refl,
 end
 
+lemma with_density_smul' (r : ℝ≥0∞) (f : α → ℝ≥0∞) (hr : r ≠ ∞) :
+  μ.with_density (r • f) = r • μ.with_density f :=
+begin
+  refine measure_theory.measure.ext (λ s hs, _),
+  rw [with_density_apply _ hs, measure.coe_smul, pi.smul_apply,
+      with_density_apply _ hs, smul_eq_mul, ← lintegral_const_mul' r f hr],
+  refl,
+end
+
 lemma finite_measure_with_density {f : α → ℝ≥0∞}
   (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ.with_density f) :=
 { measure_univ_lt_top :=

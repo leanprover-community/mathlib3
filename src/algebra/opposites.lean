@@ -414,3 +414,37 @@ def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
 /-- The 'unopposite' of a ring hom `αᵒᵖ →+* βᵒᵖ`. Inverse to `ring_hom.op`. -/
 @[simp] def ring_hom.unop {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
   (αᵒᵖ →+* βᵒᵖ) ≃ (α →+* β) := ring_hom.op.symm
+
+/-- A iso `α ≃+ β` can equivalently be viewed as an iso `αᵒᵖ ≃+ βᵒᵖ`. -/
+@[simps]
+def add_equiv.op {α β} [has_add α] [has_add β] :
+  (α ≃+ β) ≃ (αᵒᵖ ≃+ βᵒᵖ) :=
+{ to_fun    := λ f, op_add_equiv.symm.trans (f.trans op_add_equiv),
+  inv_fun   := λ f, op_add_equiv.trans (f.trans op_add_equiv.symm),
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of an iso `αᵒᵖ ≃+ βᵒᵖ`. Inverse to `add_equiv.op`. -/
+@[simp] def add_equiv.unop {α β} [has_add α] [has_add β] :
+  (αᵒᵖ ≃+ βᵒᵖ) ≃ (α ≃+ β) := add_equiv.op.symm
+
+/-- A iso `α ≃* β` can equivalently be viewed as an iso `αᵒᵖ ≃+ βᵒᵖ`. -/
+@[simps]
+def mul_equiv.op {α β} [has_mul α] [has_mul β] :
+  (α ≃* β) ≃ (αᵒᵖ ≃* βᵒᵖ) :=
+{ to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
+                      inv_fun  := op ∘ f.symm ∘ unop,
+                      left_inv := λ _, by simp,
+                      right_inv := λ _, by simp,
+                      map_mul' := λ x y, unop_injective (f.map_mul y.unop x.unop) },
+  inv_fun   := λ f, { to_fun   := unop ∘ f ∘ op,
+                      inv_fun  := unop ∘ f.symm ∘ op,
+                      left_inv := λ _, by simp,
+                      right_inv := λ _, by simp,
+                      map_mul' := λ x y, congr_arg unop (f.map_mul (op y) (op x)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of an iso `αᵒᵖ ≃* βᵒᵖ`. Inverse to `mul_equiv.op`. -/
+@[simp] def mul_equiv.unop {α β} [has_mul α] [has_mul β] :
+  (αᵒᵖ ≃* βᵒᵖ) ≃ (α ≃* β) := mul_equiv.op.symm

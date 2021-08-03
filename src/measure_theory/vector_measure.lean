@@ -18,6 +18,13 @@ Similarly, when `M = ℂ`, we call the measure a complex measure and write `comp
 
 * `vector_measure` is a vector valued, σ-additive function that maps the empty
   and non-measurable set to zero.
+* `vector_measure.map` is the pushforward of a vector measure along a function.
+* `vector_measure.restrict` is the restriction of a vector measure on some set.
+
+## Notation
+
+* `v ≤[i] w` denotes the vector measure `v` restricted on the set `i` is less equal to the
+  vector measure `w` restricted on `i`, i.e. `v.restrict i ≤ w.restrict i`.
 
 ## Implementation notes
 

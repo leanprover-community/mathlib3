@@ -33,6 +33,9 @@ noncomputable theory
 
 open complex continuous_linear_map
 
+lemma is_conformal_map_conj : is_conformal_map (conj_lie : ℂ →L[ℝ] ℂ) :=
+(conj_lie.to_linear_isometry).is_conformal_map
+
 section conformal_into_complex_normed
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
@@ -62,9 +65,6 @@ begin
   simp only [minor₂, li', pi.smul_apply, continuous_linear_map.smul_apply, smul_smul],
   field_simp [minor₁],
 end
-
-lemma is_conformal_map_conj : is_conformal_map (conj_lie : ℂ →L[ℝ] ℂ) :=
-(conj_lie.to_linear_isometry).is_conformal_map
 
 lemma is_conformal_map_complex_linear_conj
   {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) :

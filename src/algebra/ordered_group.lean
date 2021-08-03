@@ -27,9 +27,7 @@ variable {α : Type u}
 @[to_additive]
 instance group.covariant_class_le.to_contravariant_class_le
   [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
-{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
-                          ... ≤ a⁻¹ * (a * c) : mul_le_mul_left' bc a⁻¹
-                          ... = c             : inv_mul_cancel_left a c }
+group.covconv
 
 @[to_additive]
 instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]

@@ -1175,6 +1175,9 @@ begin
     exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩ }
 end
 
+@[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=
+⟨is_open_discrete _, is_closed_discrete _⟩
+
 end clopen
 
 section preirreducible

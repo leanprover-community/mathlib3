@@ -20,6 +20,9 @@ namespace sylow
 def is_sylow_subgroup (p : ℕ) [fact p.prime] (L : subgroup G)  :=
   ∃ m n : ℕ, card L = p ^ n ∧ card G = p ^ n * m ∧ ¬ p ∣ m
 
+lemma subgroup.is_sylow_def (p : ℕ) [fact p.prime] (L : subgroup G) :
+is_sylow_subgroup p L ↔ ∃ m n : ℕ, card L = p ^ n ∧ card G = p ^ n * m ∧ ¬ p ∣ m := iff.rfl
+
 namespace is_sylow_subgroup
 
 variables (p : ℕ) [fact p.prime] (G)
@@ -30,12 +33,10 @@ local notation `n` := padic_val_nat p (card G)
 /-- unique m which characterises sylow subgroup p -/
 local notation `m` := card G / p ^ n
 
-
 lemma card_G : card G = p ^ n * m :=
 begin
   rw ← nat.div_eq_iff_eq_mul_right (pow_pos (nat.prime.pos (fact.out _ )) n) pow_padic_val_nat_dvd,
 end
-
 
 lemma not_p_div_m : ¬ p ∣ m :=
 begin
@@ -47,15 +48,10 @@ begin
   exact pow_succ_padic_val_nat_not_dvd (card_pos_iff.2 has_one.nonempty) h,
 end
 
-#check @padic_val_nat.mul
-#check pow_ne_zero
-example (x : ℕ) : 0 < x → 0 ≠ x := ne_of_lt
-
-
 lemma card_L {L : subgroup G} (h : is_sylow_subgroup p L) : card L = p ^ n :=
 begin
   rcases h with ⟨x, y, hy1, hy2, hy3⟩,
-  rw [hy2, hy1],
+  rw [hy1, hy2],
   congr,
   have h : 0 ≠ card G := ne_of_lt (card_pos_iff.2 has_one.nonempty),
   rw hy2 at h,

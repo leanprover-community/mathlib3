@@ -652,7 +652,7 @@ begin
   rw ← list.repeat_perm,
   apply nat.factors_unique (list.prod_repeat p y),
   { intros q hq,
-    rwa (list.mem_repeat.1 hq).right },
+    rwa eq_of_mem_repeat hq },
 end
 
 end

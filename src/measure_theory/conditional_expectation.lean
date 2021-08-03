@@ -386,9 +386,10 @@ begin
   { rw h, exact ennreal.coe_lt_top, },
 end
 
-/-- Use `ae_nonneg_of_forall_set_ℝ` instead. -/
-private lemma ae_nonneg_of_forall_set_ℝ_of_measurable {f : α → ℝ} (hf : integrable f μ)
-  (hfm : measurable f) (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
+/-- Use `ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure` instead. -/
+private lemma ae_nonneg_of_forall_set_ℝ_of_measurable_of_finite_measure [finite_measure μ]
+  {f : α → ℝ} (hfm : measurable f) (hf : integrable f μ)
+  (hf_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in s, f x ∂μ) :
   0 ≤ᵐ[μ] f :=
 begin
   simp_rw [eventually_le, pi.zero_apply],
@@ -396,61 +397,78 @@ begin
   intros b hb_neg,
   let s := {x | f x ≤ b},
   have hs : measurable_set s, from measurable_set_le hfm measurable_const,
-  have hfs : ∀ x ∈ s, f x ≤ b, from λ x hxs, hxs,
-  have hμs_lt_top : μ s < ∞,
-  { refine measure_lt_top_of_integrable_on hf.integrable_on hs (∥b∥₊ : ℝ≥0∞) _
-      (eventually_of_forall _),
-    { rwa [← of_real_norm_eq_coe_nnnorm, ennreal.of_real_pos, real.norm_eq_abs,
-      abs_eq_neg_self.mpr hb_neg.le, lt_neg, neg_zero], },
-    { simp_rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs],
-      refine λ x hx, ennreal.of_real_le_of_real _,
-      rw [abs_eq_neg_self.mpr hb_neg.le, abs_eq_neg_self.mpr ((hfs x hx).trans hb_neg.le)],
-      exact neg_le_neg (hfs x hx), }, },
-  have h_int_gt : μ s ≠ 0 → ∫ x in s, f x ∂μ ≤ b * (μ s).to_real,
-  { intro h_ne_zero,
-    have h_const_le : ∫ x in s, f x ∂μ ≤ ∫ x in s, b ∂μ,
+  have h_int_gt : ∫ x in s, f x ∂μ ≤ b * (μ s).to_real,
+  { have h_const_le : ∫ x in s, f x ∂μ ≤ ∫ x in s, b ∂μ,
     { refine set_integral_mono_ae_restrict hf.integrable_on
-        (integrable_on_const.mpr (or.inr hμs_lt_top)) _,
+        (integrable_on_const.mpr (or.inr (measure_lt_top μ s))) _,
       rw [eventually_le, ae_restrict_iff hs],
-      exact eventually_of_forall hfs, },
+      exact eventually_of_forall (λ x hxs, hxs), },
     rwa [set_integral_const, smul_eq_mul, mul_comm] at h_const_le, },
   by_contra,
-  refine (lt_self_iff_false (∫ x in s, f x ∂μ)).mp ((h_int_gt h).trans_lt _),
-  refine (mul_neg_iff.mpr (or.inr ⟨hb_neg, _⟩)).trans_le (hf_zero s hs hμs_lt_top),
+  refine (lt_self_iff_false (∫ x in s, f x ∂μ)).mp (h_int_gt.trans_lt _),
+  refine (mul_neg_iff.mpr (or.inr ⟨hb_neg, _⟩)).trans_le _,
+  swap, { simp_rw measure.restrict_restrict hs, exact hf_zero s hs, },
   refine (ennreal.to_real_nonneg).lt_of_ne (λ h_eq, h _),
-  cases (ennreal.to_real_eq_zero_iff _).mp h_eq.symm with hμs_to_real hμs_to_real,
-  { exact hμs_to_real, },
-  { exact absurd hμs_to_real hμs_lt_top.ne, },
+  cases (ennreal.to_real_eq_zero_iff _).mp h_eq.symm with hμs_eq_zero hμs_eq_top,
+  { exact hμs_eq_zero, },
+  { exact absurd hμs_eq_top (measure_lt_top μ s).ne, },
 end
 
-lemma ae_nonneg_of_forall_set_integral_nonneg {f : α → ℝ} (hf : integrable f μ)
-  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
+lemma ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure [finite_measure μ]
+  {f : α → ℝ} (hf : integrable f μ) (hf_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in s, f x ∂μ) :
   0 ≤ᵐ[μ] f :=
 begin
   rcases hf with ⟨⟨f', hf'_meas, hf_ae⟩, hf_finite_int⟩,
   have hf'_integrable : integrable f' μ,
     from integrable.congr ⟨⟨f', hf'_meas, hf_ae⟩, hf_finite_int⟩ hf_ae,
-  have hf'_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f' x ∂μ,
+  have hf'_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in s, f' x ∂μ,
   { intros s hs,
     rw set_integral_congr_ae hs (hf_ae.mono (λ x hx hxs, hx.symm)),
     exact hf_zero s hs, },
-  exact (ae_nonneg_of_forall_set_ℝ_of_measurable hf'_integrable hf'_meas hf'_zero).trans
-    hf_ae.symm.le,
+  exact (ae_nonneg_of_forall_set_ℝ_of_measurable_of_finite_measure hf'_meas
+    hf'_integrable hf'_zero).trans hf_ae.symm.le,
 end
 
-lemma ae_eq_zero_of_forall_set_integral_eq_zero_ℝ {f : α → ℝ} (hf : integrable f μ)
-  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
-  f =ᵐ[μ] 0 :=
+lemma ae_nonneg_of_forall_set_integral_nonneg' {f : α → ℝ}
+  {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) (hf : integrable_on f t μ)
+  (hf_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in (s ∩ t), f x ∂μ) :
+  0 ≤ᵐ[μ.restrict t] f :=
 begin
-  suffices h_and : f ≤ᵐ[μ] 0 ∧ 0 ≤ᵐ[μ] f,
+  haveI : fact (μ t < ∞) := ⟨lt_top_iff_ne_top.mpr hμt⟩,
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure hf (λ s hs, _),
+  simp_rw measure.restrict_restrict hs,
+  exact hf_zero s hs,
+end
+
+lemma ae_nonneg_restrict_of_forall_set_integral_nonneg {f : α → ℝ}
+  (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
+  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ)
+  {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
+  0 ≤ᵐ[μ.restrict t] f :=
+begin
+  refine ae_nonneg_of_forall_set_integral_nonneg' ht hμt
+    (hf_int_finite t ht (lt_top_iff_ne_top.mpr hμt)) (λ s hs, _),
+  refine (hf_zero (s ∩ t) (hs.inter ht) _),
+  exact (measure_mono (set.inter_subset_right s t)).trans_lt (lt_top_iff_ne_top.mpr hμt),
+end
+
+lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero_ℝ {f : α → ℝ}
+  (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
+  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
+  {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
+  f =ᵐ[μ.restrict t] 0 :=
+begin
+  suffices h_and : f ≤ᵐ[μ.restrict t] 0 ∧ 0 ≤ᵐ[μ.restrict t] f,
     from h_and.1.mp (h_and.2.mono (λ x hx1 hx2, le_antisymm hx2 hx1)),
-  refine ⟨_, ae_nonneg_of_forall_set_integral_nonneg hf (λ s hs hμs, (hf_zero s hs hμs).symm.le)⟩,
-  suffices h_neg : 0 ≤ᵐ[μ] -f,
+  refine ⟨_, ae_nonneg_restrict_of_forall_set_integral_nonneg hf_int_finite
+    (λ s hs hμs, (hf_zero s hs hμs).symm.le) ht hμt⟩,
+  suffices h_neg : 0 ≤ᵐ[μ.restrict t] -f,
   { refine h_neg.mono (λ x hx, _),
     rw pi.neg_apply at hx,
     refine le_of_neg_le_neg _,
     simpa using hx, },
-  refine ae_nonneg_of_forall_set_integral_nonneg hf.neg (λ s hs hμs, _),
+  refine ae_nonneg_restrict_of_forall_set_integral_nonneg (λ s hs hμs, (hf_int_finite s hs hμs).neg)
+    (λ s hs hμs, _) ht hμt,
   simp_rw pi.neg_apply,
   rw [integral_neg, neg_nonneg],
   exact (hf_zero s hs hμs).le,
@@ -463,15 +481,11 @@ lemma ae_eq_zero_of_forall_inner_ae_eq_zero {𝕜' : Type*} [is_R_or_C 𝕜'] [m
 begin
   let s := dense_seq γ,
   have hs : dense_range s := dense_range_dense_seq γ,
-  have hfs : ∀ n : ℕ, ∀ᵐ x ∂μ, inner (s n) (f x) = (0 : 𝕜'),
-  { exact λ n, hf (s n), },
-  have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, inner (s n) (f x) = (0 : 𝕜'),
-  { rwa ae_all_iff, },
+  have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, inner (s n) (f x) = (0 : 𝕜'), from ae_all_iff.mpr (λ n, hf (s n)),
   refine hf'.mono (λ x hx, _),
   rw [pi.zero_apply, ← inner_self_eq_zero],
   have h_closed : is_closed {c : γ | inner c (f x) = (0 : 𝕜')},
-  { refine is_closed_eq _ continuous_const,
-    exact continuous.inner continuous_id continuous_const, },
+    from is_closed_eq (continuous_id.inner continuous_const) continuous_const,
   exact @is_closed_property ℕ γ _ s (λ c, inner c (f x) = (0 : 𝕜')) hs h_closed (λ n, hx n) _,
 end
 
@@ -512,6 +526,147 @@ begin
   rw is_R_or_C.norm_eq_abs,
   refine (abs_inner_le_norm _ _).trans _,
   simp,
+end
+
+lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero [is_scalar_tower ℝ 𝕜 E'] (f : α → E')
+  (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
+  (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
+  {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
+  f =ᵐ[μ.restrict t] 0 :=
+begin
+  refine ae_eq_zero_of_forall_inner_ae_eq_zero (λ c, _),
+  suffices h_re_im : (∀ᵐ x ∂(μ.restrict t), is_R_or_C.re ⟪c, f x⟫' = 0)
+    ∧ ∀ᵐ x ∂(μ.restrict t), is_R_or_C.im ⟪c, f x⟫' = 0,
+  { rw ← eventually_and at h_re_im,
+    refine h_re_im.mono (λ x hx, _),
+    rwa [is_R_or_C.ext_iff, add_monoid_hom.map_zero, add_monoid_hom.map_zero], },
+  have hf_inner_re : ∀ s, measurable_set s → μ s < ∞ →
+      integrable_on (λ x, is_R_or_C.re ⟪c, f x⟫') s μ,
+    from λ s hs hμs, integrable.re (integrable.const_inner (hf_int_finite s hs hμs) c),
+  have hf_inner_im : ∀ s, measurable_set s → μ s < ∞ →
+      integrable_on (λ x, is_R_or_C.im ⟪c, f x⟫') s μ,
+    from λ s hs hμs, integrable.im (integrable.const_inner (hf_int_finite s hs hμs) c),
+  have hf_zero_inner : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, ⟪c, f x⟫' ∂μ = 0,
+  { intros s hs hμs,
+    rw integral_inner (hf_int_finite s hs hμs) c,
+    simp [hf_zero s hs hμs], },
+  have hf_zero_inner_re : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, is_R_or_C.re ⟪c, f x⟫' ∂μ = 0,
+  { intros s hs hμs,
+    rw [integral_re (integrable.const_inner (hf_int_finite s hs hμs) c), hf_zero_inner s hs hμs,
+      is_R_or_C.zero_re'], },
+  have hf_zero_inner_im : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, is_R_or_C.im ⟪c, f x⟫' ∂μ = 0,
+  { intros s hs hμs,
+    rw [integral_im (integrable.const_inner (hf_int_finite s hs hμs) c), hf_zero_inner s hs hμs],
+    simp only [add_monoid_hom.map_zero], },
+  exact ⟨ae_eq_zero_restrict_of_forall_set_integral_eq_zero_ℝ hf_inner_re hf_zero_inner_re ht hμt,
+    ae_eq_zero_restrict_of_forall_set_integral_eq_zero_ℝ hf_inner_im hf_zero_inner_im ht hμt⟩,
+end
+
+lemma ae_eq_zero_of_forall_set_integral_eq_zero' [is_scalar_tower ℝ 𝕜 E'] (f : α → E')
+  (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
+  (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
+  {t : set α} {S : ℕ → set α} (hS_meas : ∀ n, measurable_set (S n)) (hSμ : ∀ n, μ (S n) < ∞)
+  (htS : t = ⋃ n, S n) :
+  f =ᵐ[μ.restrict t] 0 :=
+begin
+  rw [eventually_eq, ae_iff, measure.restrict_apply'],
+  swap, { rw htS, exact measurable_set.Union hS_meas, },
+  simp_rw [htS, set.inter_Union],
+  refine le_antisymm _ (zero_le _),
+  refine (measure_Union_le _).trans _,
+  suffices h_all_zero : ∀ i, μ ({a : α | ¬f a = 0} ∩ S i) = 0, by simp [h_all_zero],
+  intro i,
+  rw ← measure.restrict_apply' (hS_meas i),
+  exact ae_eq_zero_restrict_of_forall_set_integral_eq_zero f hf_int_finite hf_zero (hS_meas i)
+    (hSμ i).ne,
+end
+
+lemma univ_eq_Union_lt (f : α → H) :
+  set.univ = ⋃ (n : ℕ), ({x | f x = 0} ∪ {x | ((1:ℝ)/n) ≤ ∥f x∥}) :=
+begin
+  sorry,
+end
+
+lemma ae_eq_zero_of_forall_set_integral_eq_zero_of_measurable [is_scalar_tower ℝ 𝕜 E'] {f : α → E'}
+  (hf : integrable f μ) (hfm : measurable f)
+  (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
+  f =ᵐ[μ] 0 :=
+begin
+  rw ← @measure.restrict_univ _ _ μ,
+  refine ae_eq_zero_of_forall_set_integral_eq_zero' f (λ s hs hμs, hf.integrable_on) hf_zero
+    _ _ (univ_eq_Union_lt f),
+  { intro n,
+    refine measurable_set.union _ (measurable_set_le measurable_const hfm.norm),
+    exact measurable_set_eq_fun hfm measurable_const, },
+end
+
+/-- Use `ae_nonneg_of_forall_set_ℝ` instead. -/
+private lemma ae_nonneg_of_forall_set_ℝ_of_measurable {f : α → ℝ} (hf : integrable f μ)
+  (hfm : measurable f) (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
+  0 ≤ᵐ[μ] f :=
+begin
+  simp_rw [eventually_le, pi.zero_apply],
+  rw ae_const_le_iff_forall_lt_measure_zero,
+  intros b hb_neg,
+  let s := {x | f x ≤ b},
+  have hs : measurable_set s, from measurable_set_le hfm measurable_const,
+  have hfs : ∀ x ∈ s, f x ≤ b, from λ x hxs, hxs,
+  have hμs_lt_top : μ s < ∞,
+  { refine measure_lt_top_of_integrable_on hf.integrable_on hs (∥b∥₊ : ℝ≥0∞) _
+      (eventually_of_forall _),
+    { rwa [← of_real_norm_eq_coe_nnnorm, ennreal.of_real_pos, real.norm_eq_abs,
+      abs_eq_neg_self.mpr hb_neg.le, lt_neg, neg_zero], },
+    { simp_rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs],
+      refine λ x hx, ennreal.of_real_le_of_real _,
+      rw [abs_eq_neg_self.mpr hb_neg.le, abs_eq_neg_self.mpr ((hfs x hx).trans hb_neg.le)],
+      exact neg_le_neg (hfs x hx), }, },
+  have h_int_gt : ∫ x in s, f x ∂μ ≤ b * (μ s).to_real,
+  { have h_const_le : ∫ x in s, f x ∂μ ≤ ∫ x in s, b ∂μ,
+    { refine set_integral_mono_ae_restrict hf.integrable_on
+        (integrable_on_const.mpr (or.inr hμs_lt_top)) _,
+      rw [eventually_le, ae_restrict_iff hs],
+      exact eventually_of_forall hfs, },
+    rwa [set_integral_const, smul_eq_mul, mul_comm] at h_const_le, },
+  by_contra,
+  refine (lt_self_iff_false (∫ x in s, f x ∂μ)).mp (h_int_gt.trans_lt _),
+  refine (mul_neg_iff.mpr (or.inr ⟨hb_neg, _⟩)).trans_le (hf_zero s hs hμs_lt_top),
+  refine (ennreal.to_real_nonneg).lt_of_ne (λ h_eq, h _),
+  cases (ennreal.to_real_eq_zero_iff _).mp h_eq.symm with hμs_to_real hμs_to_real,
+  { exact hμs_to_real, },
+  { exact absurd hμs_to_real hμs_lt_top.ne, },
+end
+
+lemma ae_nonneg_of_forall_set_integral_nonneg {f : α → ℝ} (hf : integrable f μ)
+  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
+  0 ≤ᵐ[μ] f :=
+begin
+  rcases hf with ⟨⟨f', hf'_meas, hf_ae⟩, hf_finite_int⟩,
+  have hf'_integrable : integrable f' μ,
+    from integrable.congr ⟨⟨f', hf'_meas, hf_ae⟩, hf_finite_int⟩ hf_ae,
+  have hf'_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f' x ∂μ,
+  { intros s hs,
+    rw set_integral_congr_ae hs (hf_ae.mono (λ x hx hxs, hx.symm)),
+    exact hf_zero s hs, },
+  exact (ae_nonneg_of_forall_set_ℝ_of_measurable hf'_integrable hf'_meas hf'_zero).trans
+    hf_ae.symm.le,
+end
+
+lemma ae_eq_zero_of_forall_set_integral_eq_zero_ℝ {f : α → ℝ} (hf : integrable f μ)
+  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
+  f =ᵐ[μ] 0 :=
+begin
+  suffices h_and : f ≤ᵐ[μ] 0 ∧ 0 ≤ᵐ[μ] f,
+    from h_and.1.mp (h_and.2.mono (λ x hx1 hx2, le_antisymm hx2 hx1)),
+  refine ⟨_, ae_nonneg_of_forall_set_integral_nonneg hf (λ s hs hμs, (hf_zero s hs hμs).symm.le)⟩,
+  suffices h_neg : 0 ≤ᵐ[μ] -f,
+  { refine h_neg.mono (λ x hx, _),
+    rw pi.neg_apply at hx,
+    refine le_of_neg_le_neg _,
+    simpa using hx, },
+  refine ae_nonneg_of_forall_set_integral_nonneg hf.neg (λ s hs hμs, _),
+  simp_rw pi.neg_apply,
+  rw [integral_neg, neg_nonneg],
+  exact (hf_zero s hs hμs).le,
 end
 
 lemma ae_eq_zero_of_forall_set_integral_eq_zero [is_scalar_tower ℝ 𝕜 E'] (f : α → E')
@@ -634,6 +789,12 @@ begin
   simp only [mem_Lp_meas_iff_ae_measurable'.mpr hg, orthogonal_projection_inner_eq_zero],
 end
 
+section restrict
+
+
+
+end restrict
+
 section real
 
 lemma integral_condexp_L2_eq_of_fin_meas (hm : m ≤ m0) (f : Lp 𝕜 2 μ) {s : set α}
@@ -714,10 +875,23 @@ end
 
 end real
 
+lemma norm_inner_le (a b : E) : ∥⟪a, b⟫∥ ≤ ∥a∥ * ∥b∥ :=
+(is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm _ _)
+
 lemma mem_ℒp_const_inner (p : ℝ≥0∞) (c : E) {f : α → E} (hf : mem_ℒp f p μ) :
   mem_ℒp (λ a, ⟪c, f a⟫) p μ :=
 begin
-  sorry,
+  refine ⟨ae_measurable.inner ae_measurable_const hf.1, _⟩,
+  have snorm_norm_inner_le : snorm (λ x, ⟪c, f x⟫) p μ ≤ snorm (λ x, ∥c∥ * ∥f x∥) p μ,
+  { refine snorm_mono_ae (eventually_of_forall (λ x, _)),
+    simp only [normed_field.norm_mul, norm_norm],
+    exact norm_inner_le _ _, },
+  refine snorm_norm_inner_le.trans_lt _,
+  simp_rw ← smul_eq_mul ℝ,
+  rw [← pi.smul_def, @snorm_const_smul _ _ _ p μ _ _ _ _ (λ x, ∥f x∥) (∥c∥)],
+  refine ennreal.mul_lt_top ennreal.coe_lt_top _,
+  rw snorm_norm,
+  exact hf.snorm_lt_top,
 end
 
 lemma condexp_const_inner (hm : m ≤ m0) (f : Lp E' 2 μ) (c : E') :

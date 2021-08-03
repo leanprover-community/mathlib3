@@ -181,7 +181,7 @@ by rw [← integral_inner (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_
 
 variables {𝕜}
 
-/-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs (1 : ℝ)` and
+/-- The inner product in `L2` of the indicator of a set `indicator_const_Lp 2 hs hμs (1 : 𝕜)` and
 a real function `f` is equal to the integral of `f` over `s`. -/
 lemma inner_indicator_const_Lp_one (hs : measurable_set s) (hμs : μ s ≠ ∞) (f : Lp 𝕜 2 μ) :
   inner (indicator_const_Lp 2 hs hμs (1 : 𝕜)) f = ∫ x in s, f x ∂μ :=

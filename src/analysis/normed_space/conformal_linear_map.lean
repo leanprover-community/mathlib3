@@ -58,6 +58,10 @@ lemma is_conformal_map_id : is_conformal_map (id R M) :=
 lemma is_conformal_map_const_smul {c : R} (hc : c ≠ 0) : is_conformal_map (c • (id R M)) :=
 ⟨c, hc, id, by ext; simp⟩
 
+lemma is_conformal_map_linear_isometry (f' : E →ₗᵢ[ℝ] F) :
+  is_conformal_map f'.to_continuous_linear_map :=
+⟨1, one_ne_zero, f', by ext; simp⟩
+
 lemma is_conformal_map_iff (f' : E →L[ℝ] F) :
   is_conformal_map f' ↔ ∃ (c : ℝ), 0 < c ∧
   ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫ :=
@@ -97,7 +101,7 @@ end
 namespace is_conformal_map
 
 lemma comp {f' : M →L[R] N} {g' : N →L[R] G}
-  (hf' : is_conformal_map f') (hg' : is_conformal_map g') :
+  (hg' : is_conformal_map g') (hf' : is_conformal_map f') :
   is_conformal_map (g'.comp f') :=
 begin
   rcases hf' with ⟨cf, hcf, lif, hlif⟩,

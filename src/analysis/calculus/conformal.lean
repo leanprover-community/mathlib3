@@ -106,7 +106,7 @@ lemma comp {f : X → Y} {g : Y → Z} (x : X)
 begin
   rcases hf with ⟨f', hf₁, cf⟩,
   rcases hg with ⟨g', hg₁, cg⟩,
-  exact ⟨g'.comp f', hg₁.comp x hf₁, cf.comp cg⟩,
+  exact ⟨g'.comp f', hg₁.comp x hf₁, cg.comp cf⟩,
 end
 
 lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_at f x) :

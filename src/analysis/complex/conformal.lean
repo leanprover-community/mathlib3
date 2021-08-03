@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
 import analysis.complex.isometry
-import analysis.calculus.conformal
+import analysis.normed_space.conformal_linear_map
 
 /-!
 # Conformal maps between complex vector spaces
 
-We prove the sufficient and necessary conditions for a complex function to be conformal.
+We prove the sufficient and necessary conditions for a real-linear map to be conformal.
 
 ## Main results
 
@@ -68,7 +68,7 @@ lemma is_conformal_map_conj : is_conformal_map conj_cle.to_continuous_linear_map
 lemma is_conformal_map_complex_linear_conj
   {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) :
   is_conformal_map ((map.restrict_scalars ℝ).comp conj_cle.to_continuous_linear_map) :=
-is_conformal_map_conj.comp (is_conformal_map_complex_linear nonzero)
+(is_conformal_map_complex_linear nonzero).comp is_conformal_map_conj
 
 end conformal_into_complex_normed
 

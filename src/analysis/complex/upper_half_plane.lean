@@ -37,16 +37,16 @@ localized "notation `ℍ` := upper_half_plane" in upper_half_plane
 namespace upper_half_plane
 
 /-- Imaginary part -/
-def im (z : ℍ) := z.1.im
+def im (z : ℍ) := (z : ℂ).im
 
 /-- Real part -/
-def re (z : ℍ) := z.1.re
+def re (z : ℍ) := (z : ℂ).re
 
 @[simp] lemma coe_point (z : ℍ) : z.1 = (z:ℂ) := rfl
 
-@[simp] lemma coe_im (z : ℍ) : (z:ℂ).im = z.im := rfl
+@[simp] lemma coe_im (z : ℍ) : (z : ℂ).im = z.im := rfl
 
-@[simp] lemma coe_re (z : ℍ) : (z:ℂ).re = z.re := rfl
+@[simp] lemma coe_re (z : ℍ) : (z : ℂ).re = z.re := rfl
 
 lemma im_pos (z : ℍ) : 0 < z.im := z.2
 
@@ -59,7 +59,7 @@ begin
   simp [← complex.zero_im, ← h]
 end
 
-lemma norm_sq_pos (z: ℍ) : 0 < complex.norm_sq (z : ℂ) :=
+lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
 begin
   rw complex.norm_sq_pos,
   exact z.ne_zero
@@ -157,7 +157,7 @@ lemma im_smul_eq_div_norm_sq (g : SL(2, ℝ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (bottom g z)) :=
 im_smul_eq_div_norm_sq' g z
 
-@[simp] lemma smul_neg (g : SL(2,ℝ)) (z : ℍ) : -g • z = g • z :=
+@[simp] lemma neg_smul (g : SL(2,ℝ)) (z : ℍ) : -g • z = g • z :=
 begin
   ext1,
   change _ / _ = _ / _,

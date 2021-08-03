@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import tactic.nth_rewrite
-import data.matrix.basic
 import data.equiv.ring_aut
 import linear_algebra.tensor_product
 import ring_theory.subring
@@ -385,15 +384,6 @@ lemma algebra_map_End_eq_smul_id (a : R) :
 linear_map.ker_smul _ _ ha
 
 end module
-
-instance matrix_algebra (n : Type u) (R : Type v)
-  [decidable_eq n] [fintype n] [comm_semiring R] : algebra R (matrix n n R) :=
-{ commutes' := by { intros, simp [matrix.scalar], },
-  smul_def' := by { intros, simp [matrix.scalar], },
-  ..(matrix.scalar n) }
-
-@[simp] lemma matrix.algebra_map_eq_smul (n : Type u) {R : Type v} [decidable_eq n] [fintype n]
-  [comm_semiring R] (r : R) : (algebra_map R (matrix n n R)) r = r • 1 := rfl
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
@@ -1061,44 +1051,6 @@ e.to_alg_hom.map_div x y
 end division_ring
 
 end alg_equiv
-
-namespace matrix
-
-/-! ### `matrix` section
-
-Specialize `matrix.one_map` and `matrix.zero_map` to `alg_hom` and `alg_equiv`.
-TODO: there should be a way to avoid restating these for each `foo_hom`.
--/
-
-variables {R A₁ A₂ n : Type*} [fintype n]
-
-section semiring
-
-variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [algebra R A₂]
-
-/-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
-@[simp] lemma alg_hom_map_one [decidable_eq n]
-  (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_one [decidable_eq n]
-  (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
-@[simp] lemma alg_hom_map_zero
-  (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_zero
-  (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
-
-end semiring
-
-end matrix
 
 section nat
 

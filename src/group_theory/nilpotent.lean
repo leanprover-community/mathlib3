@@ -15,10 +15,47 @@ reaches `⊥`.
 
 ## Main definitions
 
+Recall that if `H K : subgroup G` then `⁅H, K⁆ : subgroup G` is the subgroup of `G` generated
+by the commutators. Recall also Lean's conventions that `⊤` denotes the subgroup `G` of `G`,
+and `⊥` denotes the trivial subgroup `{1}`.
+
 * `upper_central_series G : ℕ → subgroup G` : the upper central series of a group `G`.
-    This is an increasing sequence of normal subgroups `H n` of `G` with the property
-    that `H (n + 1) / H n` is the centre of `G / H n`.
-* `general_commutator H₁ H₂` : the commutator of the subgroups `H₁` and `H₂`
+     This is an increasing sequence of normal subgroups `H n` of `G` starting at `⊥` and
+     with the property that `H (n + 1) / H n` is the centre of `G / H n`.
+* `lower_central_series G : ℕ → subgroup G` : the lower central series of a group `G`.
+     This is a decreasing sequence of subgroups `H n` of `G` starting at `⊤` and
+     with the property that `H (n + 1) = ⁅H n, G⁆`.
+* `is_nilpotent` : A group G is nilpotent if its upper central series reaches `⊤`, or
+    equivalently if its lower central series reaches `⊥`.
+* `nilpotency_class` : the length of the upper central series of a nilpotent group.
+* `is_ascending_central_series (H : ℕ → subgroup G) : Prop` and
+* `is_descending_central_series (H : ℕ → subgroup G) : Prop` : Note that in the literature
+  a "central series" for a group is usually defined to be a *finite* sequence of normal subgroups
+  `H 0`, `H 1`, ..., starting at `⊤`, finishing at `⊥`, and with each `H n / H (n + 1)`
+  central in `G / H (n + 1)`. In this formalisation it is convenient to have two weaker predicates
+  on an infinite sequence of subgroups `H n` of `G`: we say this sequence is a descending central
+  series if it starts at `G` and `⁅H n, ⊤⁆ ⊆ H (n + 1)` for all `n`. Note that this series
+  may not terminate at `⊥`, and the `H i` need not be normal. Similarly a sequence is an ascending
+  central series if `H 0 = ⊥` and `⁅H (n + 1), ⊤⁆ ⊆ H n` for all `n`, with no requirement
+  that the series reaches `⊤` or that the `H i` are normal.
+
+## Main theorems
+
+Recall that `G` is *defined* to be nilpotent if the upper central series reaches `⊤`.
+* `nilpotent_iff_finite_ascending_central_series` : `G` is nilpotent iff some ascending central
+    series reaches `⊤`.
+* `nilpotent_iff_finite_descending_central_series` : `G` is nilpotent iff some descending central
+    series reaches `⊥`.
+* `nilpotent_iff_lower` : `G` is nilpotent iff the lower central series reaches `⊥`.
+
+## Warning
+
+A "central series" is usually defined to be a finite sequence of normal subgroups going
+from `⊥` to `⊤` with the property that each subquotient is contained within the centre of
+the associated quotient of `G`. This means that if `G` is not nilpotent, then
+none of what we have called `upper_central_series G`, `lower_central_series G` or
+the sequences satisfying `is_ascending_central_series` or `is_descending_central_series`
+are actually central series.
 
 -/
 variables (G : Type*) [group G]
@@ -36,7 +73,8 @@ instance (G : Type*) [group G] : ∀ (n : ℕ), normal (upper_central_series G n
 
 lemma upper_central_series_zero_def (G : Type*) [group G] : upper_central_series G 0 = ⊥ := rfl
 
-def upper_central_series_aux : ℕ → subgroup G
+/-- An auxiliary definition, which ultimately will equal the upper central series. -/
+private def upper_central_series_aux : ℕ → subgroup G
 | 0 := ⊥
 | (n+1) :=
   { carrier := {x : G | ∀ y : G, x * y * x⁻¹ * y⁻¹ ∈ upper_central_series G n},
@@ -55,7 +93,7 @@ def upper_central_series_aux : ℕ → subgroup G
       exact subgroup.normal.mem_comm infer_instance hx,
     end }
 
-instance upper_central_series_aux_normal (G : Type*) [group G] :
+private def upper_central_series_aux_normal (G : Type*) [group G] :
   ∀ (n : ℕ), normal (upper_central_series_aux G n)
 | 0 := subgroup.bot_normal
 | (n+1) := ⟨begin
@@ -67,7 +105,9 @@ instance upper_central_series_aux_normal (G : Type*) [group G] :
   group,
 end⟩
 
-lemma upper_central_series_eq_aux {G : Type*} [group G] (n : ℕ) :
+local attribute [instance] upper_central_series_aux_normal
+
+private lemma upper_central_series_eq_aux {G : Type*} [group G] (n : ℕ) :
   upper_central_series G n = upper_central_series_aux G n :=
 begin
   cases n,
@@ -76,6 +116,8 @@ begin
     refl },
 end
 
+/-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
+that `⁅x,G⁆ ⊆ H n`-/
 lemma mem_upper_central_series_succ_iff {G : Type*} [group G] (n : ℕ) (x : G) :
   x ∈ upper_central_series G (n + 1) ↔
   ∀ y : G, x * y * x⁻¹ * y⁻¹ ∈ upper_central_series G n :=
@@ -92,7 +134,7 @@ section classical
 
 open_locale classical
 
-/-- The nilpotenct class of a nilpotent group is the small natural `n` such that
+/-- The nilpotency class of a nilpotent group is the small natural `n` such that
 the `n`'th term of the upper central series is `G`. -/
 noncomputable def nilpotency_class (G : Type*) [group G] [is_nilpotent G] : ℕ :=
 nat.find (is_nilpotent.nilpotent G)
@@ -102,12 +144,12 @@ end classical
 variable {G}
 
 /-- A sequence of subgroups of `G` is an ascending central series if `H 0` is trivial and
-  `⁅H (n + 1), G⁆ ⊆ H n` for all `n`. -/
+  `⁅H (n + 1), G⁆ ⊆ H n` for all `n`. Note that we do not require that `H n = G` for some `n`. -/
 def is_ascending_central_series (H : ℕ → subgroup G) := H 0 = ⊥ ∧
   ∀ (x : G) (n : ℕ), x ∈ H (n + 1) → ∀ g, x * g * x⁻¹ * g⁻¹ ∈ H n
 
 /-- A sequence of subgroups of `G` is a descending central series if `H 0` is `G` and
-  `⁅H n, G⁆ ⊆ H (n + 1)` for all `n`. -/
+  `⁅H n, G⁆ ⊆ H (n + 1)` for all `n`. Note that we do not requre that `H n = {1}` for some `n`. -/
 def is_descending_central_series (H : ℕ → subgroup G) := H 0 = ⊤ ∧
   ∀ (x : G) (n : ℕ), x ∈ H n → ∀ g, x * g * x⁻¹ * g⁻¹ ∈ H (n + 1)
 
@@ -137,7 +179,7 @@ begin
   exact id,
 end
 
-/-- A group G is nilpotent iff there exists an ascending central series which reaches `G` in
+/-- A group `G` is nilpotent iff there exists an ascending central series which reaches `G` in
   finitely many steps. -/
 theorem nilpotent_iff_finite_ascending_central_series :
   is_nilpotent G ↔ ∃ H : ℕ → subgroup G, is_ascending_central_series H ∧ ∃ n : ℕ, H n = ⊤ :=
@@ -154,7 +196,7 @@ begin
     exact eq_top_iff.mpr this }
 end
 
-/-- A group G is nilpotent iff there exists a descending central series which reaches the
+/-- A group `G` is nilpotent iff there exists a descending central series which reaches the
   trivial group in a finite time. -/
 theorem nilpotent_iff_finite_descending_central_series :
   is_nilpotent G ↔ ∃ H : ℕ → subgroup G, is_descending_central_series H ∧ ∃ n : ℕ, H n = ⊥ :=
@@ -206,7 +248,7 @@ def lower_central_series (G : Type*) [group G] : ℕ → subgroup G
 
 variable {G}
 
-/-- The lower central series is a descending central series. -/
+/-- The lower central series of a group is a descending central series. -/
 theorem lower_central_series_is_descending_central_series :
   is_descending_central_series (lower_central_series G) :=
 begin
@@ -215,7 +257,7 @@ begin
   exact general_commutator_containment _ _ hxn (subgroup.mem_top g),
 end
 
-/-- Any descending central series is bounded below by the lower central series. -/
+/-- Any descending central series for a group is bounded below by the lower central series. -/
 lemma descending_central_series_ge_lower (H : ℕ → subgroup G)
   (hH : is_descending_central_series H) : ∀ n : ℕ, lower_central_series G n ≤ H n
 | 0 := hH.1.symm ▸ le_refl ⊤

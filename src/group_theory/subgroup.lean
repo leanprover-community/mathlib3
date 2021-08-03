@@ -1373,18 +1373,12 @@ variables {M : Type*} [monoid M]
 @[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_subgroup` of elements
 such that `f x = 0`"]
 def ker (f : G →* M) : subgroup G :=
-{ carrier := {x | f x = 1},
-  one_mem' := f.map_one,
-  mul_mem' := λ a b (ha : f a = 1) (hb : f b = 1),
-    show f (a * b) = 1, by rw [f.map_mul, ha, hb, one_mul],
-  inv_mem' := λ x (hx : f x = 1), show f x⁻¹ = 1, from
+{ inv_mem' := λ x (hx : f x = 1), show f x⁻¹ = 1, from
     calc f x⁻¹ = f x * f x⁻¹ : by rw [hx, one_mul]
            ... = f (x * x⁻¹) : by rw [f.map_mul]
            ... = f 1 :         by rw [mul_right_inv]
-           ... = 1 :           f.map_one }
-
-@[to_additive]
-lemma ker_eq_comap (f : G →* N) : f.ker = (⊥ : subgroup N).comap f := rfl
+           ... = 1 :           f.map_one,
+  ..f.mker }
 
 @[to_additive]
 lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
@@ -1435,7 +1429,7 @@ set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 @[to_additive]
 lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
   (prod_map f g).ker = f.ker.prod g.ker :=
-by rw [ker_eq_comap, ker_eq_comap, ker_eq_comap, ←prod_map_comap_prod, bot_prod_bot]
+by rw [←comap_bot, ←comap_bot, ←comap_bot, ←prod_map_comap_prod, bot_prod_bot]
 
 end ker
 
@@ -1538,7 +1532,7 @@ lemma map_le_range (H : subgroup G) : map f H ≤ f.range :=
 @[to_additive]
 lemma ker_le_comap (H : subgroup N) : f.ker ≤ comap f H :=
 begin
-  rw ker_eq_comap,
+  rw ←comap_bot,
   exact comap_mono bot_le
 end
 
@@ -1761,7 +1755,7 @@ instance subgroup.normal_comap {H : subgroup N}
 
 @[priority 100, to_additive]
 instance monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
-by rw [monoid_hom.ker_eq_comap]; apply_instance
+by rw [←f.comap_bot]; apply_instance
 
 @[priority 100, to_additive]
 instance subgroup.normal_inf (H N : subgroup G) [hN : N.normal] :

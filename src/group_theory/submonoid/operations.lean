@@ -651,6 +651,61 @@ lemma coe_mrange_restrict {N} [mul_one_class N] (f : M →* N) (x : M) :
   (f.mrange_restrict x : N) = f x :=
 rfl
 
+/-- The multiplicative kernel of a monoid homomorphism is the submonoid of elements `x : G` such that
+`f x = 1` -/
+@[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_submonoid` of elements
+such that `f x = 0`"]
+def mker (f : M →* N) : submonoid M := (⊥ : submonoid N).comap f
+
+@[to_additive]
+lemma mem_mker (f : M →* N) {x : M} : x ∈ f.mker ↔ f x = 1 := iff.rfl
+
+@[to_additive]
+lemma coe_mker (f : M →* N) : (f.mker : set M) = (f : M → N) ⁻¹' {1} := rfl
+
+@[to_additive]
+instance decidable_mem_mker [decidable_eq N] (f : M →* N) :
+  decidable_pred (∈ f.mker) :=
+λ x, decidable_of_iff (f x = 1) f.mem_mker
+
+@[to_additive]
+lemma comap_mker (g : N →* P) (f : M →* N) : g.mker.comap f = (g.comp f).mker := rfl
+
+@[simp, to_additive] lemma comap_bot' (f : M →* N) :
+  (⊥ : submonoid N).comap f = f.mker := rfl
+
+@[to_additive] lemma range_restrict_mker  (f : M →* N) : mker (mrange_restrict f) = mker f :=
+begin
+  ext,
+  change (⟨f x, _⟩ : mrange f) = ⟨1, _⟩ ↔ f x = 1,
+  simp only [],
+end
+
+@[simp, to_additive]
+lemma mker_one : (1 : M →* N).mker = ⊤ :=
+by { ext, simp [mem_mker] }
+
+-- TODO: Is this true?
+-- @[to_additive] lemma mker_eq_bot_iff (f : M →* N) : f.mker = ⊥ ↔ function.injective f :=
+-- begin
+--   split,
+--   { intros h x y hxy,
+--     rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
+--   { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
+-- end
+
+@[to_additive]
+-- TODO: check naming
+lemma prod_map_comap_prod' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N']
+  (f : M →* N) (g : M' →* N') (S : submonoid N) (S' : submonoid N') :
+  (S.prod S').comap (prod_map f g) = (S.comap f).prod (S'.comap g) :=
+set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
+
+@[to_additive]
+lemma ker_prod_map' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N'] (f : M →* N) (g : M' →* N') :
+  (prod_map f g).mker = f.mker.prod g.mker :=
+by rw [←comap_bot', ←comap_bot', ←comap_bot', ←prod_map_comap_prod', bot_prod_bot]
+
 end monoid_hom
 
 namespace submonoid

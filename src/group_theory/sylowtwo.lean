@@ -20,7 +20,7 @@ namespace sylow
 def is_sylow_subgroup (p : ℕ) [fact p.prime] (L : subgroup G)  :=
   ∃ m n : ℕ, card L = p ^ n ∧ card G = p ^ n * m ∧ ¬ p ∣ m
 
-lemma subgroup.is_sylow_def (p : ℕ) [fact p.prime] (L : subgroup G) :
+lemma is_sylow_def (p : ℕ) [fact p.prime] (L : subgroup G) :
 is_sylow_subgroup p L ↔ ∃ m n : ℕ, card L = p ^ n ∧ card G = p ^ n * m ∧ ¬ p ∣ m := iff.rfl
 
 namespace is_sylow_subgroup

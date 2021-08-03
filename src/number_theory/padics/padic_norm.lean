@@ -470,6 +470,7 @@ begin
 end
 
 lemma valuation_prime_pow_eq_pow (p y : ℕ) [hp : fact p.prime] : padic_val_nat p (p ^ y) = y :=
+-- lemma valuation_prime_pow_eq_pow (p y : ℕ) [hp : fact p.prime] : padic_val_nat p (p ^ y) = y :=
 begin
   rw [padic_val_nat_eq_factors_count p, prime.factors_pow (fact.out p.prime)],
   exact list.count_repeat p y,

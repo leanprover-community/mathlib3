@@ -651,10 +651,10 @@ lemma coe_mrange_restrict {N} [mul_one_class N] (f : M →* N) (x : M) :
   (f.mrange_restrict x : N) = f x :=
 rfl
 
-/-- The multiplicative kernel of a monoid homomorphism is the submonoid of elements `x : G` such that
-`f x = 1` -/
-@[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_submonoid` of elements
-such that `f x = 0`"]
+/-- The multiplicative kernel of a monoid homomorphism is the submonoid of elements `x : G` such
+that `f x = 1` -/
+@[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_submonoid` of
+elements such that `f x = 0`"]
 def mker (f : M →* N) : submonoid M := (⊥ : submonoid N).comap f
 
 @[to_additive]
@@ -702,8 +702,8 @@ lemma prod_map_comap_prod' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one
 set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 
 @[to_additive]
-lemma ker_prod_map' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N'] (f : M →* N) (g : M' →* N') :
-  (prod_map f g).mker = f.mker.prod g.mker :=
+lemma ker_prod_map' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N'] (f : M →* N)
+  (g : M' →* N') : (prod_map f g).mker = f.mker.prod g.mker :=
 by rw [←comap_bot', ←comap_bot', ←comap_bot', ←prod_map_comap_prod', bot_prod_bot]
 
 end monoid_hom

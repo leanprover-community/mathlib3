@@ -1313,6 +1313,24 @@ def eval_alg_hom {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (
   (Π i, f i) →ₐ[R] f i :=
 { to_fun := λ f, f i, commutes' := λ r, rfl, .. pi.eval_ring_hom f i}
 
+variables (A B : Type*) [comm_semiring R] [semiring B] [algebra R B]
+
+/-- `function.const` as an `alg_hom`. The name matches `pi.const_ring_hom`, `pi.const_monoid_hom`,
+etc. -/
+@[simps]
+def const_alg_hom : B →ₐ[R] (A → B) :=
+{ to_fun := function.const _,
+  commutes' := λ r, rfl,
+  .. pi.const_ring_hom A B}
+
+/-- When `R` is commutative and permits an `algebra_map`, `pi.const_ring_hom` is equal to that
+map. -/
+@[simp] lemma const_ring_hom_eq_algebra_map : const_ring_hom A R = algebra_map R (A → R) :=
+rfl
+
+@[simp] lemma const_alg_hom_eq_algebra_of_id : const_alg_hom R A R = algebra.of_id R (A → R) :=
+rfl
+
 end pi
 
 section is_scalar_tower

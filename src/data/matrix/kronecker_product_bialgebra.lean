@@ -128,8 +128,7 @@ lemma kronecker_biprod_reindex_right (eₙ : n ≃ n') (eₚ : p ≃ p') (A : ma
 lemma kronecker_biprod_one_one [decidable_eq m] [decidable_eq n] [is_scalar_tower α R β]
   [is_scalar_tower α S β] : kronecker_biprod α R S β (1 : matrix m m R)
     (1 : matrix n n S) = (1 : matrix (m × n) (m × n) β) :=
-    by { ext ⟨i, i'⟩ ⟨j, j'⟩, simp [kronecker_biprod, one_apply, algebra_map_eq_smul_one, ite_smul,
-      ite_and] }
+kronecker_map_one_one _ (by simp) (by simp) (by simp)
 
 theorem kronecker_biprod_mul (A : matrix l m R) (B : matrix m n R) (A' : matrix l' m' S)
   (B' : matrix m' n' S) [is_scalar_tower α R β] [is_scalar_tower α S β] :

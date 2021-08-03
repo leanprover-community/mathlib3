@@ -1366,7 +1366,7 @@ lemma of_injective_apply {f : G →* N} (hf : function.injective f) {x : G} :
 
 section ker
 
-variables {M : Type*} [monoid M]
+variables {M : Type*} [mul_one_class M]
 
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/

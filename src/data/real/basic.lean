@@ -394,46 +394,24 @@ begin
 end
 
 noncomputable instance : has_Sup ℝ :=
-⟨λ S, if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
+⟨λ S, if h : S.nonempty ∧ bdd_above S
   then classical.some (exists_is_lub S h.1 h.2) else 0⟩
 
 lemma Sup_def (S : set ℝ) :
-  Sup S = if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
+  Sup S = if h : S.nonempty ∧ bdd_above S
     then classical.some (exists_is_lub S h.1 h.2) else 0 := rfl
 
-theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
-  {y} : Sup S ≤ y ↔ ∀ z ∈ S, z ≤ y :=
-by simp only [Sup_def, dif_pos (and.intro h₁ h₂)]; exact
-is_lub_le_iff (classical.some_spec (exists_is_lub S h₁ h₂))
-
-theorem lt_Sup (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
-  {y} : y < Sup S ↔ ∃ z ∈ S, y < z :=
-by simpa [not_forall] using not_congr (@Sup_le S h₁ h₂ y)
-
-theorem le_Sup (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x) {x} (xS : x ∈ S) : x ≤ Sup S :=
-(Sup_le S ⟨_, xS⟩ h₂).1 (le_refl _) _ xS
-
-theorem Sup_le_ub (S : set ℝ) (h₁ : ∃ x, x ∈ S) {ub} (h₂ : ∀ y ∈ S, y ≤ ub) : Sup S ≤ ub :=
-(Sup_le S h₁ ⟨_, h₂⟩).2 h₂
-
-protected lemma is_lub_Sup {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ upper_bounds s) :
-  is_lub s (Sup s) :=
-⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs,
- λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩
+private theorem is_lub_Sup {S : set ℝ} (h₁ : S.nonempty) (h₂ : bdd_above S) : is_lub S (Sup S) :=
+by { simp only [Sup_def, dif_pos (and.intro h₁ h₂)], apply classical.some_spec }
 
 noncomputable instance : has_Inf ℝ := ⟨λ S, -Sup {x | -x ∈ S}⟩
 
 lemma Inf_def (S : set ℝ) : Inf S = -Sup {x | -x ∈ S} := rfl
 
-theorem le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y)
-  {y} : y ≤ Inf S ↔ ∀ z ∈ S, y ≤ z :=
+theorem is_glb_Inf {S : set ℝ} (h₁ : S.nonempty) (h₂ : bdd_below S) :
+  is_glb S (Inf S) :=
 begin
-  refine le_neg.trans ((Sup_le _ _ _).trans _),
-  { cases h₁ with x xS, exact ⟨-x, by simp [xS]⟩ },
-  { cases h₂ with ub h, exact ⟨-ub, λ y hy, le_neg.1 $ h _ hy⟩ },
-  split; intros H z hz,
-  { exact neg_le_neg_iff.1 (H _ $ by simp [hz]) },
-  { exact le_neg.2 (H _ hz) }
+  rw [Inf_def],
 end
 
 section

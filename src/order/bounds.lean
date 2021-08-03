@@ -725,6 +725,17 @@ h.exists_between' h₂ $ sub_lt_self _ hε
 
 end linear_ordered_add_comm_group
 
+lemma is_lub_pi {π : α → Type*} [Π a, preorder (π a)] (s : set (Π a, π a)) (f : Π a, π a)
+  (hs : ∀ a, is_lub (function.eval a '' s) (f a)) :
+  is_lub s f :=
+⟨λ g hg a, (hs a).1 (mem_image_of_mem _ hg),
+  λ g hg a, (hs a).2 $ λ y ⟨g', hg', hy⟩, hy ▸ hg hg' a⟩
+
+lemma is_glb_pi {π : α → Type*} [Π a, preorder (π a)] (s : set (Π a, π a)) (f : Π a, π a)
+  (hs : ∀ a, is_glb (function.eval a '' s) (f a)) :
+  is_glb s f :=
+@is_lub_pi α (λ a, order_dual (π a)) _ s f hs
+
 /-!
 ### Images of upper/lower bounds under monotone functions
 -/

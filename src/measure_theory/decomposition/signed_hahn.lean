@@ -331,7 +331,7 @@ theorem exists_disjoint_positive_negative_union_eq (s : signed_measure α) :
                   (hj₁ : measurable_set j) (hj₂ : s ≤[j] 0),
   disjoint i j ∧ i ∪ j = set.univ :=
 begin
-  obtain ⟨f, hf₁, hf₂⟩ := exists_seq_tendsto_Inf
+  obtain ⟨f, _, hf₂, hf₁⟩ := exists_seq_tendsto_Inf
     ⟨0, @zero_mem_measure_of_negatives _ _ s⟩ measure_of_negatives_bdd_below,
 
   choose B hB using hf₁,

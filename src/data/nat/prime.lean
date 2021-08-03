@@ -645,6 +645,18 @@ have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
 end,
 perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@prime_of_mem_factors _)
 
+lemma prime.factors_pow {p : ℕ} (hp : p.prime) (y : ℕ) :
+  (p ^ y).factors = list.repeat p y :=
+begin
+  symmetry,
+  rw ← list.repeat_perm,
+  apply nat.factors_unique,
+  { apply list.prod_repeat },
+  { intros q hq,
+    rw (list.mem_repeat.1 hq).right,
+    exact hp },
+end
+
 end
 
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m n k l : ℕ}

@@ -64,7 +64,7 @@ begin
 end
 
 lemma is_conformal_map_conj : is_conformal_map (conj_lie : ℂ →L[ℝ] ℂ) :=
-is_conformal_map_linear_isometry (conj_lie.to_linear_isometry)
+(conj_lie.to_linear_isometry).is_conformal_map
 
 lemma is_conformal_map_complex_linear_conj
   {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) :

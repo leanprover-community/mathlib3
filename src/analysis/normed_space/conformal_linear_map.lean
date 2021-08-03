@@ -58,7 +58,7 @@ lemma is_conformal_map_id : is_conformal_map (id R M) :=
 lemma is_conformal_map_const_smul {c : R} (hc : c ≠ 0) : is_conformal_map (c • (id R M)) :=
 ⟨c, hc, id, by ext; simp⟩
 
-lemma is_conformal_map_linear_isometry (f' : E →ₗᵢ[ℝ] F) :
+lemma linear_isometry.is_conformal_map (f' : E →ₗᵢ[ℝ] F) :
   is_conformal_map f'.to_continuous_linear_map :=
 ⟨1, one_ne_zero, f', by ext; simp⟩
 

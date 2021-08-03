@@ -388,7 +388,7 @@ lemma mem_of_mem_span {H : set ι} {x : M} (hmem : x ∈ submodule.span R (e '' 
   ∀ i : ι, ε i x ≠ 0 → i ∈ H :=
 begin
   intros i hi,
-  rcases (finsupp.mem_span_iff_total _).mp hmem with ⟨l, supp_l, rfl⟩,
+  rcases (finsupp.mem_span_image_iff_total _).mp hmem with ⟨l, supp_l, rfl⟩,
   apply not_imp_comm.mp ((finsupp.mem_supported' _ _).mp supp_l i),
   rwa [← lc_def, h.dual_lc] at hi
 end

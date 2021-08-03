@@ -210,10 +210,8 @@ See Note [use has_coe_t]. -/
 relation", priority 0]
 instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
-/-- The quotient of a type with decidable equality by a congruence relation also has
-    decidable equality. -/
-@[to_additive "The quotient of a type with decidable equality by an additive congruence relation
-also has decidable equality."]
+/-- The quotient by a decidable congruence relation has decidable equality. -/
+@[to_additive "The quotient by a decidable additive congruence relation has decidable equality."]
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 
@@ -512,6 +510,11 @@ def comap (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (c : con N) : con M
 { mul' := λ w x y z h1 h2, show c (f (w * y)) (f (x * z)), by rw [H, H]; exact c.mul h1 h2,
   ..c.to_setoid.comap f }
 
+@[simp, to_additive] lemma comap_rel {f : M → N} (H : ∀ x y, f (x * y) = f x * f y)
+  {c : con N} {x y : M} :
+  comap f H c x y ↔ c (f x) (f y) :=
+iff.rfl
+
 section
 open quotient
 
@@ -608,7 +611,7 @@ lemma le_iff {c d : con M} : c ≤ d ↔ (c : submonoid (M × M)) ≤ d :=
 def ker (f : M →* P) : con M := mul_ker f f.3
 
 /-- The definition of the congruence relation defined by a monoid homomorphism's kernel. -/
-@[to_additive "The definition of the additive congruence relation defined by an `add_monoid`
+@[simp, to_additive "The definition of the additive congruence relation defined by an `add_monoid`
 homomorphism's kernel."]
 lemma ker_rel (f : M →* P) {x y} : ker f x y ↔ f x = f y := iff.rfl
 
@@ -639,10 +642,9 @@ variables {c}
 @[to_additive "The natural homomorphism from an `add_monoid` to its quotient by a congruence
 relation is surjective."]
 lemma mk'_surjective : surjective c.mk' :=
-λ x, by rcases x; exact ⟨x, rfl⟩
+quotient.surjective_quotient_mk'
 
-@[simp, to_additive] lemma comp_mk'_apply (g : c.quotient →* P) {x} :
-  g.comp c.mk' x = g x := rfl
+@[simp, to_additive] lemma coe_mk' : (c.mk' : M → c.quotient) = coe := rfl
 
 /-- The elements related to `x ∈ M`, `M` a monoid, by the kernel of a monoid homomorphism are
     those in the preimage of `f(x)` under `f`. -/
@@ -676,7 +678,7 @@ def lift (H : c ≤ ker f) : c.quotient →* P :=
 variables {c f}
 
 /-- The diagram describing the universal property for quotients of monoids commutes. -/
-@[simp, to_additive "The diagram describing the universal property for quotients of `add_monoid`s
+@[to_additive "The diagram describing the universal property for quotients of `add_monoid`s
 commutes."]
 lemma lift_mk' (H : c ≤ ker f) (x) :
   c.lift f H (c.mk' x) = f x := rfl
@@ -718,7 +720,7 @@ end
 @[to_additive "The uniqueness part of the universal property for quotients of `add_monoid`s."]
 theorem lift_unique (H : c ≤ ker f) (g : c.quotient →* P)
   (Hg : g.comp c.mk' = f) : g = c.lift f H :=
-lift_funext g (c.lift f H) $ λ x, by rw [lift_coe H, ←comp_mk'_apply, Hg]
+lift_funext g (c.lift f H) $ λ x, by { subst f, refl }
 
 /-- Given a congruence relation `c` on a monoid and a homomorphism `f` constant on `c`'s
     equivalence classes, `f` has the same image as the homomorphism that `f` induces on the
@@ -809,14 +811,30 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
         ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
-/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
+/-- The first isomorphism theorem for monoids in the case of a homomorphism with right inverse. -/
+@[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a homomorphism
+with right inverse.", simps]
+def quotient_ker_equiv_of_right_inverse (f : M →* P) (g : P → M)
+  (hf : function.right_inverse g f) :
+  (ker f).quotient ≃* P :=
+{ to_fun := ker_lift f,
+  inv_fun := coe ∘ g,
+  left_inv := λ x, ker_lift_injective _ (by rw [function.comp_app, ker_lift_mk, hf]),
+  right_inv := hf,
+  .. ker_lift f }
+
+/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism.
+
+For a `computable` version, see `con.quotient_ker_equiv_of_right_inverse`.
+-/
 @[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a surjective
-homomorphism."]
+homomorphism.
+
+For a `computable` version, see `add_con.quotient_ker_equiv_of_right_inverse`.
+"]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
   (ker f).quotient ≃* P :=
-{ map_mul' := monoid_hom.map_mul _,
-  ..equiv.of_bijective (ker_lift f)
-      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+quotient_ker_equiv_of_right_inverse _ _ hf.has_right_inverse.some_spec
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]

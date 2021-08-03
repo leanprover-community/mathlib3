@@ -103,8 +103,8 @@ begin
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
   { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
       (cardinal.lt_omega_iff_finite.1 oJ) v.linear_independent.to_subtype_range _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_to_finset,
-        cardinal.finset_card, set.finite.coe_to_finset] at hi, },
+    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_sort_to_finset,
+           cardinal.finset_card, set.finite.coe_sort_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
 end
 
@@ -161,12 +161,18 @@ theorem {m} basis.mk_eq_dim' (v : basis ι K V) :
 by simpa using v.mk_eq_dim
 
 theorem dim_le {n : ℕ}
-  (H : ∀ s : finset V, linear_independent K (λ i : (↑s : set V), (i : V)) → s.card ≤ n) :
+  (H : ∀ s : finset V, linear_independent K (λ i : s, (i : V)) → s.card ≤ n) :
   module.rank K V ≤ n :=
-(basis.of_vector_space K V).mk_eq_dim'' ▸
-cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype.val_injective⟩ s ▸
-H _ (by { refine (of_vector_space_index.linear_independent K V).mono (λ y h, _),
-          rw [finset.mem_coe, finset.mem_map] at h, rcases h with ⟨x, hx, rfl⟩, exact x.2 }))
+begin
+  rw ← (basis.of_vector_space K V).mk_eq_dim'',
+  refine cardinal.card_le_of (λ s, _),
+  rw ← finset.card_map ⟨_, subtype.val_injective⟩,
+  apply H,
+  refine (of_vector_space_index.linear_independent K V).mono (λ y (h : y ∈ (s.map _).1), _),
+  rw [← finset.mem_def, finset.mem_map] at h,
+  rcases h with ⟨x, hx, rfl⟩,
+  exact x.2
+end
 
 /-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
 lemma basis.nonempty_fintype_index_of_dim_lt_omega {ι : Type*}
@@ -255,9 +261,12 @@ theorem linear_equiv.nonempty_equiv_iff_dim_eq :
 ⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
 
 @[simp] lemma dim_bot : module.rank K (⊥ : submodule K V) = 0 :=
-by letI := classical.dec_eq V;
-  rw [← cardinal.lift_inj, ← (basis.empty (⊥ : submodule K V) not_nonempty_pempty).mk_eq_dim,
-    cardinal.mk_pempty]
+begin
+  letI := classical.dec_eq V,
+  rw [← cardinal.lift_inj, ← (basis.empty (⊥ : submodule K V)).mk_eq_dim,
+    cardinal.mk_pempty],
+  apply_instance,
+end
 
 @[simp] lemma dim_top : module.rank K (⊤ : submodule K V) = module.rank K V :=
 linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
@@ -310,7 +319,7 @@ end
 lemma dim_span_of_finset (s : finset V) :
   module.rank K (span K (↑s : set V)) < cardinal.omega :=
 calc module.rank K (span K (↑s : set V)) ≤ cardinal.mk (↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw ←cardinal.finset_card
+                             ... = s.card : by rw [cardinal.finset_card, finset.coe_sort_coe]
                              ... < cardinal.omega : cardinal.nat_lt_omega _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
@@ -574,31 +583,20 @@ dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 
 /-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
 
-See also `basis.of_dim_eq_zero'` and `finite_dimensional.fin_basis`.
+See also `finite_dimensional.fin_basis`.
 -/
-def basis.of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι) (hV : module.rank K V = 0) :
+def basis.of_dim_eq_zero {ι : Type*} [is_empty ι] (hV : module.rank K V = 0) :
   basis ι K V :=
 begin
   haveI : subsingleton V := dim_zero_iff.1 hV,
-  exact basis.empty _ h
+  exact basis.empty _
 end
 
-@[simp] lemma basis.of_dim_eq_zero_apply {ι : Type*} (h : ¬ nonempty ι)
-  (hV : module.rank K V = 0) (i) :
-  basis.of_dim_eq_zero h hV i = 0 :=
+@[simp] lemma basis.of_dim_eq_zero_apply {ι : Type*} [is_empty ι]
+  (hV : module.rank K V = 0) (i : ι) :
+  basis.of_dim_eq_zero hV i = 0 :=
 rfl
 
-/-- The `fin 0` indexed basis on `V`, where `V` is zero-dimensional.
-
-See also `basis.of_dim_eq_zero` and `finite_dimensional.fin_basis`.
--/
-def basis.of_dim_eq_zero' (hV : module.rank K V = 0) :
-  basis (fin 0) K V :=
-basis.of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
-
-@[simp] lemma basis.of_dim_eq_zero'_apply (hV : module.rank K V = 0) (i) :
-  basis.of_dim_eq_zero' hV i = 0 :=
-rfl
 
 lemma dim_pos_iff_exists_ne_zero : 0 < module.rank K V ↔ ∃ x : V, x ≠ 0 :=
 begin

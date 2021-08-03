@@ -227,7 +227,7 @@ if h : n ≤ 1
     let m := n / 2 in
     have h₀ : m ≤ k, from le_trans (le_of_lt this) hn,
     have h₃ : 0 < m,
-      by simp only [m, lt_iff_add_one_le, zero_add]; rw [le_div_iff_mul_le]; linarith,
+      by simp only [m, lt_iff_add_one_le, zero_add]; rw [nat.le_div_iff_mul_le]; linarith,
     have h₁ : k - m < k,
       from nat.sub_lt (lt_of_lt_of_le h₂ hn) h₃,
     nat.shrink' m h₀ (⟨k - m, h₁⟩ :: ls)
@@ -442,7 +442,7 @@ begin
 end
 
 lemma list.one_le_sizeof (xs : list α) : 1 ≤ sizeof xs :=
-by cases xs; unfold_wf; [refl, linarith]
+by cases xs; unfold_wf; linarith
 
 /--
 `list.shrink_removes` shrinks a list by removing chunks of size `k` in
@@ -514,7 +514,7 @@ instance list.sampleable : sampleable_functor list.{u} :=
   shrink := λ α Iα shr_α, @list.shrink_with _ Iα shr_α,
   p_repr := @list.has_repr }
 
-instance prop.sampleable_ext : sampleable_ext Prop :=
+instance Prop.sampleable_ext : sampleable_ext Prop :=
 { proxy_repr := bool,
   interp := coe,
   sample := choose_any bool,

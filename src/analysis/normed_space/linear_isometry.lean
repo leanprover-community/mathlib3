@@ -3,7 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.metric_space.isometry
+import analysis.normed_space.basic
+import linear_algebra.finite_dimensional
 
 /-!
 # Linear isometries
@@ -205,6 +206,9 @@ def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
 @[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
 
+lemma range_eq_univ (e : E ≃ₗᵢ[R] F) : set.range e = set.univ :=
+by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+
 /-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
 def to_homeomorph : E ≃ₜ F := e.to_isometric.to_homeomorph
 
@@ -216,6 +220,13 @@ protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous
 
 protected lemma continuous_within_at {s x} : continuous_within_at e s x :=
 e.continuous.continuous_within_at
+
+/-- Interpret a `linear_isometry_equiv` as a continuous linear equiv. -/
+def to_continuous_linear_equiv : E ≃L[R] F :=
+{ .. e.to_linear_isometry.to_continuous_linear_map,
+  .. e.to_homeomorph }
+
+@[simp] lemma coe_to_continuous_linear_equiv : ⇑e.to_continuous_linear_equiv = e := rfl
 
 variables (R E)
 
@@ -337,3 +348,28 @@ lemma linear_isometry.id_to_linear_map :
   (linear_isometry.id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
 
 end linear_isometry_equiv
+
+namespace linear_isometry
+
+open finite_dimensional linear_map
+
+variables {R₁ : Type*} [field R₁] [module R₁ E₁] [module R₁ F]
+  [finite_dimensional R₁ E₁] [finite_dimensional R₁ F]
+
+/-- A linear isometry between finite dimensional spaces of equal dimension can be upgraded
+    to a linear isometry equivalence. -/
+noncomputable def to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) : E₁ ≃ₗᵢ[R₁] F :=
+{ to_linear_equiv := li.to_linear_map.linear_equiv_of_ker_eq_bot
+    (ker_eq_bot_of_injective li.injective) h,
+  norm_map' := li.norm_map' }
+
+@[simp] lemma coe_to_linear_isometry_equiv
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) :
+  (li.to_linear_isometry_equiv h : E₁ → F) = li := rfl
+
+@[simp] lemma to_linear_isometry_equiv_apply
+  (li : E₁ →ₗᵢ[R₁] F) (h : finrank R₁ E₁ = finrank R₁ F) (x : E₁) :
+  (li.to_linear_isometry_equiv h) x = li x := rfl
+
+end linear_isometry

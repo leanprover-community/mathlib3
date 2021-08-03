@@ -8,6 +8,8 @@ import topology.algebra.uniform_group
 import topology.algebra.ring
 import ring_theory.subring
 import group_theory.archimedean
+import algebra.periodic
+
 /-!
 # Topological properties of ℝ
 -/
@@ -109,7 +111,7 @@ instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 instance : proper_space ℝ :=
-{ compact_ball := λx r, by { rw closed_ball_Icc, apply compact_Icc } }
+{ compact_ball := λx r, by { rw closed_ball_Icc, apply is_compact_Icc } }
 
 instance : second_countable_topology ℝ := second_countable_of_proper
 
@@ -263,23 +265,60 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
   assume bdd,
   rcases (bounded_iff_subset_ball 0).1 bdd with ⟨r, hr⟩, -- hr : s ⊆ closed_ball 0 r
   rw closed_ball_Icc at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
-  exact ⟨⟨-r, λy hy, by simpa using (hr hy).1⟩, ⟨r, λy hy, by simpa using (hr hy).2⟩⟩
+  exact ⟨bdd_below_Icc.mono hr, bdd_above_Icc.mono hr⟩
 end,
 begin
-  rintros ⟨⟨m, hm⟩, ⟨M, hM⟩⟩,
-  have I : s ⊆ Icc m M := λx hx, ⟨hm hx, hM hx⟩,
-  have : Icc m M = closed_ball ((m+M)/2) ((M-m)/2) :=
-    by rw closed_ball_Icc; congr; ring,
-  rw this at I,
-  exact bounded.subset I bounded_closed_ball
+  intro h,
+  rcases bdd_below_bdd_above_iff_subset_Icc.1 h with ⟨m, M, I : s ⊆ Icc m M⟩,
+  exact (bounded_Icc m M).subset I
 end⟩
+
+lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :
+  s ⊆ Icc (Inf s) (Sup s) :=
+subset_Icc_cInf_cSup (real.bounded_iff_bdd_below_bdd_above.1 h).1
+  (real.bounded_iff_bdd_below_bdd_above.1 h).2
 
 lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
   f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
-  (compact_Icc.image_of_continuous_on h)
+  (is_compact_Icc.image_of_continuous_on h)
 
 end
+
+section periodic
+
+namespace function
+
+lemma periodic.compact_of_continuous' [topological_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : 0 < c) (hf : continuous f) :
+  is_compact (range f) :=
+begin
+  convert is_compact_Icc.image hf,
+  ext x,
+  refine ⟨_, mem_range_of_mem_image f (Icc 0 c)⟩,
+  rintros ⟨y, h1⟩,
+  obtain ⟨z, hz, h2⟩ := hp.exists_mem_Ico hc y,
+  exact ⟨z, mem_Icc_of_Ico hz, h2.symm.trans h1⟩,
+end
+
+/-- A continuous, periodic function has compact range. -/
+lemma periodic.compact_of_continuous [topological_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : c ≠ 0) (hf : continuous f) :
+  is_compact (range f) :=
+begin
+  cases lt_or_gt_of_ne hc with hneg hpos,
+  exacts [hp.neg.compact_of_continuous' (neg_pos.mpr hneg) hf, hp.compact_of_continuous' hpos hf],
+end
+
+/-- A continuous, periodic function is bounded. -/
+lemma periodic.bounded_of_continuous [pseudo_metric_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : c ≠ 0) (hf : continuous f) :
+  bounded (range f) :=
+(hp.compact_of_continuous hc hf).bounded
+
+end function
+
+end periodic
 
 section subgroups
 
@@ -292,7 +331,7 @@ begin
   push_neg at H',
   intros x,
   suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
-    by simpa only [real.mem_closure_iff, abs_sub],
+    by simpa only [real.mem_closure_iff, abs_sub_comm],
   intros ε ε_pos,
   obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G ∧ 0 < g₁,
   { cases lt_or_gt_of_ne g₀_ne with Hg₀ Hg₀,

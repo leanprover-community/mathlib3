@@ -10,7 +10,6 @@ import data.list.basic
 import data.int.cast
 import data.equiv.basic
 import data.equiv.mul_add
-import deprecated.group
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -34,18 +33,6 @@ variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 add_monoid_hom.eq_nat_cast
   ⟨λ n, n • (1 : A), zero_nsmul _, λ _ _, add_nsmul _ _ _⟩
   (one_nsmul _)
-
-@[simp, priority 500]
-theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
-begin
-  induction n with n ih,
-  { rw pow_zero, refl },
-  { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
-end
-
-@[simp, priority 500]
-theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n • a :=
-@list.prod_repeat (multiplicative A) _
 
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
@@ -84,10 +71,6 @@ begin
 end
 
 end monoid
-
-theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
-by induction m with m ih; [rw [zero_nsmul, zero_mul],
-  rw [succ_nsmul', ih, nat.succ_mul]]
 
 section group
 variables [group G] [group H] [add_group A] [add_group B]
@@ -557,6 +540,15 @@ lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_s
 
 alias int.le_self_sq ← int.le_self_pow_two
 
+lemma pow_right_injective {x : ℤ} (h : 1 < x.nat_abs) : function.injective ((^) x : ℕ → ℤ) :=
+begin
+  suffices : function.injective (nat_abs ∘ ((^) x : ℕ → ℤ)),
+  { exact function.injective.of_comp this },
+  convert nat.pow_right_injective h,
+  ext n,
+  rw [function.comp_app, nat_abs_pow]
+end
+
 end int
 
 variables (M G A)
@@ -836,8 +828,10 @@ lemma conj_pow (u : units M) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u 
 lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
 (u⁻¹).conj_pow x n
 
-open opposite
+end units
 
+namespace opposite
+variables [monoid M]
 /-- Moving to the opposite monoid commutes with taking powers. -/
 @[simp] lemma op_pow (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
 begin
@@ -853,4 +847,4 @@ begin
   { rw [pow_succ', unop_mul, h, pow_succ] }
 end
 
-end units
+end opposite

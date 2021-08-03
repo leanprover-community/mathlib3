@@ -73,7 +73,7 @@ theorem induction_on {C : adjoin_root f → Prop} (x : adjoin_root f)
 quotient.induction_on' x ih
 
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
-def of : R →+* adjoin_root f := (mk f).comp (ring_hom.of C)
+def of : R →+* adjoin_root f := (mk f).comp C
 
 instance : algebra R (adjoin_root f) := (of f).to_algebra
 
@@ -230,9 +230,8 @@ begin
     rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
         with_bot.coe_le_coe, deg_f'],
     apply nat_degree_le_of_dvd,
-    { rw [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem],
-      change mk f q = 0,
-      rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero] },
+    { have : mk f q = 0, by rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero],
+      rwa [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem] },
     { exact q_monic.ne_zero } },
   apply @basis.mk _ _ _ (λ (i : fin f.nat_degree), (root f ^ i.val)),
   { rw [←deg_f', minpoly_eq],

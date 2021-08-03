@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.continuous_on
-import data.indicator_function
+import algebra.indicator_function
 import topology.algebra.group
 import topology.algebra.ordered.liminf_limsup
 import topology.instances.ennreal
@@ -34,6 +34,9 @@ We build a basic API using dot notation around these notions, and we prove that
 * `indicator s (λ _, y)` is lower semicontinuous when `s` is open and `0 ≤ y`, or when `s` is closed
   and `y ≤ 0`;
 * continuous functions are lower semicontinuous;
+* composition with a continuous monotone functions maps lower semicontinuous functions to lower
+  semicontinuous functions. If the function is anti-monotone, it instead maps lower semicontinuous
+  functions to upper semicontinuous functions;
 * a sum of two (or finitely many) lower semicontinuous functions is lower semicontinuous;
 * a supremum of a family of lower semicontinuous functions is lower semicontinuous;
 * An infinite sum of `ℝ≥0∞`-valued lower semicontinuous functions is lower semicontinuous.
@@ -56,9 +59,7 @@ open set
 variables {α : Type*} [topological_space α] {β : Type*} [preorder β]
 {f g : α → β} {x : α} {s t : set α} {y z : β}
 
-/-!
-### Lower semicontinuous functions
--/
+/-! ### Main definitions -/
 
 /-- A real function `f` is lower semicontinuous at `x` within a set `s` if, for any `ε > 0`, for all
 `x'` close enough to `x` in  `s`, then `f x'` is at least `f x - ε`. We formulate this in a general
@@ -83,6 +84,34 @@ enough to `x`, then `f x'` is at least `f x - ε`. We formulate this in a genera
 using an arbitrary `y < f x` instead of `f x - ε`. -/
 def lower_semicontinuous (f : α → β) :=
 ∀ x, lower_semicontinuous_at f x
+
+/-- A real function `f` is upper semicontinuous at `x` within a set `s` if, for any `ε > 0`, for all
+`x'` close enough to `x` in  `s`, then `f x'` is at most `f x + ε`. We formulate this in a general
+preordered space, using an arbitrary `y > f x` instead of `f x + ε`. -/
+def upper_semicontinuous_within_at (f : α → β) (s : set α) (x : α) :=
+∀ y, f x < y → ∀ᶠ x' in 𝓝[s] x, f x' < y
+
+/-- A real function `f` is upper semicontinuous on a set `s` if, for any `ε > 0`, for any `x ∈ s`,
+for all `x'` close enough to `x` in `s`, then `f x'` is at most `f x + ε`. We formulate this in a
+general preordered space, using an arbitrary `y > f x` instead of `f x + ε`.-/
+def upper_semicontinuous_on (f : α → β) (s : set α) :=
+∀ x ∈ s, upper_semicontinuous_within_at f s x
+
+/-- A real function `f` is upper semicontinuous at `x` if, for any `ε > 0`, for all `x'` close
+enough to `x`, then `f x'` is at most `f x + ε`. We formulate this in a general preordered space,
+using an arbitrary `y > f x` instead of `f x + ε`. -/
+def upper_semicontinuous_at (f : α → β) (x : α) :=
+∀ y, f x < y → ∀ᶠ x' in 𝓝 x, f x' < y
+
+/-- A real function `f` is upper semicontinuous if, for any `ε > 0`, for any `x`, for all `x'`
+close enough to `x`, then `f x'` is at most `f x + ε`. We formulate this in a general preordered
+space, using an arbitrary `y > f x` instead of `f x + ε`.-/
+def upper_semicontinuous (f : α → β) :=
+∀ x, upper_semicontinuous_at f x
+
+/-!
+### Lower semicontinuous functions
+-/
 
 /-! #### Basic dot notation interface for lower semicontinuity -/
 
@@ -224,6 +253,69 @@ lemma continuous_on.lower_semicontinuous_on {f : α → γ}
 lemma continuous.lower_semicontinuous {f : α → γ}
   (h : continuous f) : lower_semicontinuous f :=
 λ x, h.continuous_at.lower_semicontinuous_at
+
+end
+
+/-! ### Composition -/
+
+section
+variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
+variables {δ : Type*} [linear_order δ] [topological_space δ] [order_topology δ]
+
+lemma continuous_at.comp_lower_semicontinuous_within_at
+  {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_within_at f s x)
+  (gmon : monotone g) : lower_semicontinuous_within_at (g ∘ f) s x :=
+begin
+  assume y hy,
+  by_cases h : ∃ l, l < f x,
+  { obtain ⟨z, zlt, hz⟩ : ∃ z < f x, Ioc z (f x) ⊆ g ⁻¹' (Ioi y) :=
+      exists_Ioc_subset_of_mem_nhds (hg (Ioi_mem_nhds hy)) h,
+    filter_upwards [hf z zlt],
+    assume a ha,
+    calc y < g (min (f x) (f a)) : hz (by simp [zlt, ha, le_refl])
+    ... ≤ g (f a) : gmon (min_le_right _ _) },
+  { simp only [not_exists, not_lt] at h,
+    exact filter.eventually_of_forall (λ a, hy.trans_le (gmon (h (f a)))) }
+end
+
+lemma continuous_at.comp_lower_semicontinuous_at
+  {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_at f x)
+  (gmon : monotone g) : lower_semicontinuous_at (g ∘ f) x :=
+begin
+  simp only [← lower_semicontinuous_within_at_univ_iff] at hf ⊢,
+  exact hg.comp_lower_semicontinuous_within_at hf gmon
+end
+
+lemma continuous.comp_lower_semicontinuous_on
+  {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous_on f s)
+  (gmon : monotone g) : lower_semicontinuous_on (g ∘ f) s :=
+λ x hx, (hg.continuous_at).comp_lower_semicontinuous_within_at (hf x hx) gmon
+
+lemma continuous.comp_lower_semicontinuous
+  {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous f)
+  (gmon : monotone g) : lower_semicontinuous (g ∘ f) :=
+λ x, (hg.continuous_at).comp_lower_semicontinuous_at (hf x) gmon
+
+lemma continuous_at.comp_lower_semicontinuous_within_at_antimono
+  {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_within_at f s x)
+  (gmon : ∀ x y, x ≤ y → g y ≤ g x) : upper_semicontinuous_within_at (g ∘ f) s x :=
+@continuous_at.comp_lower_semicontinuous_within_at α _ x s γ _ _ _ (order_dual δ) _ _ _
+  g f hg hf gmon
+
+lemma continuous_at.comp_lower_semicontinuous_at_antimono
+  {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_at f x)
+  (gmon : ∀ x y, x ≤ y → g y ≤ g x) : upper_semicontinuous_at (g ∘ f) x :=
+@continuous_at.comp_lower_semicontinuous_at α _ x γ _ _ _ (order_dual δ) _ _ _ g f hg hf gmon
+
+lemma continuous.comp_lower_semicontinuous_on_antimono
+  {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous_on f s)
+  (gmon : ∀ x y, x ≤ y → g y ≤ g x) : upper_semicontinuous_on (g ∘ f) s :=
+λ x hx, (hg.continuous_at).comp_lower_semicontinuous_within_at_antimono (hf x hx) gmon
+
+lemma continuous.comp_lower_semicontinuous_antimono
+  {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous f)
+  (gmon : ∀ x y, x ≤ y → g y ≤ g x) : upper_semicontinuous (g ∘ f) :=
+λ x, (hg.continuous_at).comp_lower_semicontinuous_at_antimono (hf x) gmon
 
 end
 
@@ -482,30 +574,6 @@ end
 ### Upper semicontinuous functions
 -/
 
-/-- A real function `f` is upper semicontinuous at `x` within a set `s` if, for any `ε > 0`, for all
-`x'` close enough to `x` in  `s`, then `f x'` is at most `f x + ε`. We formulate this in a general
-preordered space, using an arbitrary `y > f x` instead of `f x + ε`. -/
-def upper_semicontinuous_within_at (f : α → β) (s : set α) (x : α) :=
-∀ y, f x < y → ∀ᶠ x' in 𝓝[s] x, f x' < y
-
-/-- A real function `f` is upper semicontinuous on a set `s` if, for any `ε > 0`, for any `x ∈ s`,
-for all `x'` close enough to `x` in `s`, then `f x'` is at most `f x + ε`. We formulate this in a
-general preordered space, using an arbitrary `y > f x` instead of `f x + ε`.-/
-def upper_semicontinuous_on (f : α → β) (s : set α) :=
-∀ x ∈ s, upper_semicontinuous_within_at f s x
-
-/-- A real function `f` is upper semicontinuous at `x` if, for any `ε > 0`, for all `x'` close
-enough to `x`, then `f x'` is at most `f x + ε`. We formulate this in a general preordered space,
-using an arbitrary `y > f x` instead of `f x + ε`. -/
-def upper_semicontinuous_at (f : α → β) (x : α) :=
-∀ y, f x < y → ∀ᶠ x' in 𝓝 x, f x' < y
-
-/-- A real function `f` is upper semicontinuous if, for any `ε > 0`, for any `x`, for all `x'`
-close enough to `x`, then `f x'` is at most `f x + ε`. We formulate this in a general preordered
-space, using an arbitrary `y > f x` instead of `f x + ε`.-/
-def upper_semicontinuous (f : α → β) :=
-∀ x, upper_semicontinuous_at f x
-
 /-! #### Basic dot notation interface for upper semicontinuity -/
 
 lemma upper_semicontinuous_within_at.mono (h : upper_semicontinuous_within_at f s x)
@@ -631,6 +699,57 @@ lemma continuous_on.upper_semicontinuous_on {f : α → γ}
 lemma continuous.upper_semicontinuous {f : α → γ}
   (h : continuous f) : upper_semicontinuous f :=
 λ x, h.continuous_at.upper_semicontinuous_at
+
+end
+
+/-! ### Composition -/
+
+section
+variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
+variables {δ : Type*} [linear_order δ] [topological_space δ] [order_topology δ]
+
+lemma continuous_at.comp_upper_semicontinuous_within_at
+  {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_within_at f s x)
+  (gmon : monotone g) : upper_semicontinuous_within_at (g ∘ f) s x :=
+@continuous_at.comp_lower_semicontinuous_within_at α _ x s (order_dual γ) _ _ _
+  (order_dual δ) _ _ _ g f hg hf (λ x y hxy, gmon hxy)
+
+lemma continuous_at.comp_upper_semicontinuous_at
+  {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_at f x)
+  (gmon : monotone g) : upper_semicontinuous_at (g ∘ f) x :=
+@continuous_at.comp_lower_semicontinuous_at α _ x (order_dual γ) _ _ _
+  (order_dual δ) _ _ _ g f hg hf (λ x y hxy, gmon hxy)
+
+lemma continuous.comp_upper_semicontinuous_on
+  {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous_on f s)
+  (gmon : monotone g) : upper_semicontinuous_on (g ∘ f) s :=
+λ x hx, (hg.continuous_at).comp_upper_semicontinuous_within_at (hf x hx) gmon
+
+lemma continuous.comp_upper_semicontinuous
+  {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous f)
+  (gmon : monotone g) : upper_semicontinuous (g ∘ f) :=
+λ x, (hg.continuous_at).comp_upper_semicontinuous_at (hf x) gmon
+
+lemma continuous_at.comp_upper_semicontinuous_within_at_antimono
+  {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_within_at f s x)
+  (gmon : ∀ x y, x ≤ y → g y ≤ g x) : lower_semicontinuous_within_at (g ∘ f) s x :=
+@continuous_at.comp_upper_semicontinuous_within_at α _ x s γ _ _ _ (order_dual δ) _ _ _
+  g f hg hf gmon
+
+lemma continuous_at.comp_upper_semicontinuous_at_antimono
+  {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_at f x)
+  (gmon : ∀ x y, x ≤ y → g y ≤ g x) : lower_semicontinuous_at (g ∘ f) x :=
+@continuous_at.comp_upper_semicontinuous_at α _ x γ _ _ _ (order_dual δ) _ _ _ g f hg hf gmon
+
+lemma continuous.comp_upper_semicontinuous_on_antimono
+  {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous_on f s)
+  (gmon : ∀ x y, x ≤ y → g y ≤ g x) : lower_semicontinuous_on (g ∘ f) s :=
+λ x hx, (hg.continuous_at).comp_upper_semicontinuous_within_at_antimono (hf x hx) gmon
+
+lemma continuous.comp_upper_semicontinuous_antimono
+  {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous f)
+  (gmon : ∀ x y, x ≤ y → g y ≤ g x) : lower_semicontinuous (g ∘ f) :=
+λ x, (hg.continuous_at).comp_upper_semicontinuous_at_antimono (hf x) gmon
 
 end
 

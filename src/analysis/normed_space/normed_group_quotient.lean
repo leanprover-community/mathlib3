@@ -24,7 +24,7 @@ are isomorphic to the canonical projection onto a normed group quotient.
 ## Main definitions
 
 
-We use `M` and `N` to denote semi normed groups and `S : add_subgroup M`.
+We use `M` and `N` to denote seminormed groups and `S : add_subgroup M`.
 All the following definitions are in the `add_subgroup` namespace. Hence we can access
 `add_subgroup.normed_mk S` as `S.normed_mk`.
 
@@ -434,7 +434,7 @@ def lift {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   normed_group_hom (quotient S) N :=
 { bound' :=
   begin
-    obtain ⟨c : ℝ≥0, hcpos : (0 : ℝ) < c, hc : f.bound_by c⟩ := f.bound,
+    obtain ⟨c : ℝ, hcpos : (0 : ℝ) < c, hc : ∀ x, ∥f x∥ ≤ c * ∥x∥⟩ := f.bound,
     refine ⟨c, λ mbar, le_of_forall_pos_le_add (λ ε hε, _)⟩,
     obtain ⟨m : M, rfl : mk' S m = mbar, hmnorm : ∥m∥ < ∥mk' S m∥ + ε/c⟩ :=
       norm_mk_lt mbar (div_pos hε hcpos),
@@ -444,7 +444,7 @@ def lift {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   end,
   .. quotient_add_group.lift S f.to_add_monoid_hom hf }
 
-lemma lift_mk  {N : Type*} [semi_normed_group N] (S : add_subgroup M)
+lemma lift_mk {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0) (m : M) :
   lift S f hf (S.normed_mk m) = f m := rfl
 
@@ -470,7 +470,7 @@ begin
   obtain ⟨m, rfl⟩ := hquot.surjective n,
   have nonemp : ((λ m', ∥m + m'∥) '' f.ker).nonempty,
   { rw set.nonempty_image_iff,
-    exact ⟨0, is_add_submonoid.zero_mem⟩ },
+    exact ⟨0, f.ker.zero_mem⟩ },
   have bdd : bdd_below ((λ m', ∥m + m'∥) '' f.ker),
   { use 0,
     rintro _ ⟨x, hx, rfl⟩,
@@ -490,6 +490,43 @@ begin
     rintros _ ⟨m', hm', rfl⟩,
     apply norm_nonneg },
   { exact ⟨0, f.ker.zero_mem, by simp⟩ }
+end
+
+lemma lift_norm_le {N : Type*} [semi_normed_group N] (S : add_subgroup M)
+  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
+  {c : ℝ≥0} (fb : ∥f∥ ≤ c) :
+  ∥lift S f hf∥ ≤ c :=
+begin
+  apply op_norm_le_bound _ c.coe_nonneg,
+  intros x,
+  by_cases hc : c = 0,
+  { simp only [hc, nnreal.coe_zero, zero_mul] at fb ⊢,
+    obtain ⟨x, rfl⟩ := surjective_quot_mk _ x,
+    show ∥f x∥ ≤ 0,
+    calc ∥f x∥ ≤ 0 * ∥x∥ : f.le_of_op_norm_le fb x
+          ... = 0 : zero_mul _ },
+  { replace hc : 0 < c := pos_iff_ne_zero.mpr hc,
+    apply le_of_forall_pos_le_add,
+    intros ε hε,
+    have aux : 0 < (ε / c) := div_pos hε hc,
+    obtain ⟨x, rfl, Hx⟩ : ∃ x', S.normed_mk x' = x ∧ ∥x'∥ < ∥x∥ + (ε / c) :=
+      (is_quotient_quotient _).norm_lift aux _,
+    rw lift_mk,
+    calc ∥f x∥ ≤ c * ∥x∥ : f.le_of_op_norm_le fb x
+          ... ≤ c * (∥S.normed_mk x∥ + ε / c) : (mul_le_mul_left _).mpr Hx.le
+          ... = c * _ + ε : _,
+    { exact_mod_cast hc },
+    { rw [mul_add, mul_div_cancel'], exact_mod_cast hc.ne' } },
+end
+
+lemma lift_norm_noninc {N : Type*} [semi_normed_group N] (S : add_subgroup M)
+  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
+  (fb : f.norm_noninc) :
+  (lift S f hf).norm_noninc :=
+λ x,
+begin
+  have fb' : ∥f∥ ≤ (1 : ℝ≥0) := norm_noninc.norm_noninc_iff_norm_le_one.mp fb,
+  simpa using le_of_op_norm_le _ (f.lift_norm_le _ _ fb') _,
 end
 
 end normed_group_hom

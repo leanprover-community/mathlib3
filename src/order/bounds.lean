@@ -260,7 +260,7 @@ then `a ⊔ b` is the least upper bound of `s ∪ t`. -/
 lemma is_lub.union [semilattice_sup γ] {a b : γ} {s t : set γ}
   (hs : is_lub s a) (ht : is_lub t b) :
   is_lub (s ∪ t) (a ⊔ b) :=
-⟨assume c h, h.cases_on (λ h, le_sup_left_of_le $ hs.left h) (λ h, le_sup_right_of_le $ ht.left h),
+⟨λ c h, h.cases_on (λ h, le_sup_of_le_left $ hs.left h) (λ h, le_sup_of_le_right $ ht.left h),
   assume c hc, sup_le
     (hs.right $ assume d hd, hc $ or.inl hd) (ht.right $ assume d hd, hc $ or.inr hd)⟩
 
@@ -772,3 +772,26 @@ lemma is_lub.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y
   {s : set α} {x : α} (hx : is_lub (f '' s) (f x)) :
   is_lub s x :=
 @is_glb.of_image (order_dual α) (order_dual β) _ _ f (λ x y, hf) _ _ hx
+
+namespace order_iso
+
+variables [preorder α] [preorder β]
+
+@[simp] lemma is_lub_image (f : α ≃o β) {s : set α} {x : β} :
+  is_lub (f '' s) x ↔ is_lub s (f.symm x) :=
+⟨λ h, is_lub.of_image (λ _ _, f.le_iff_le) ((f.apply_symm_apply x).symm ▸ h),
+  λ h, is_lub.of_image (λ _ _, f.symm.le_iff_le) $ (f.symm_image_image s).symm ▸ h⟩
+
+@[simp] lemma is_glb_image (f : α ≃o β) {s : set α} {x : β} :
+  is_glb (f '' s) x ↔ is_glb s (f.symm x) :=
+f.dual.is_lub_image
+
+@[simp] lemma is_lub_preimage (f : α ≃o β) {s : set β} {x : α} :
+  is_lub (f ⁻¹' s) x ↔ is_lub s (f x) :=
+by rw [← f.symm_symm, ← image_eq_preimage, is_lub_image]
+
+@[simp] lemma is_glb_preimage (f : α ≃o β) {s : set β} {x : α} :
+  is_glb (f ⁻¹' s) x ↔ is_glb s (f x) :=
+f.dual.is_lub_preimage
+
+end order_iso

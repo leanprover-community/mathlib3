@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
-import measure_theory.measurable_space
 import measure_theory.pi_system
 import data.matrix.notation
 import topology.algebra.infinite_sum
@@ -980,6 +979,9 @@ def extend (s : α) : ℝ≥0∞ := ⨅ h : P s, m s h
 lemma extend_eq {s : α} (h : P s) : extend m s = m s h :=
 by simp [extend, h]
 
+lemma extend_eq_top {s : α} (h : ¬P s) : extend m s = ∞ :=
+by simp [extend, h]
+
 lemma le_extend {s : α} (h : P s) : m s h ≤ extend m s :=
 by { simp only [extend, le_infi_iff], intro, refl' }
 
@@ -1039,10 +1041,10 @@ lemma extend_Union {β} [encodable β] {f : β → set α}
   (hd : pairwise (disjoint on f)) (hm : ∀i, P (f i)) :
   extend m (⋃i, f i) = ∑'i, extend m (f i) :=
 begin
-  rw [← encodable.Union_decode2, ← tsum_Union_decode2],
+  rw [← encodable.Union_decode₂, ← tsum_Union_decode₂],
   { exact extend_Union_nat PU
-      (λ n, encodable.Union_decode2_cases P0 hm)
-      (mU _ (encodable.Union_decode2_disjoint_on hd)) },
+      (λ n, encodable.Union_decode₂_cases P0 hm)
+      (mU _ (encodable.Union_decode₂_disjoint_on hd)) },
   { exact extend_empty P0 m0 }
 end
 
@@ -1070,7 +1072,7 @@ le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 /-- If `P u` is `false` for any set `u` that has nonempty intersection both with `s` and `t`, then
 `μ (s ∪ t) = μ s + μ t`, where `μ = induced_outer_measure m P0 m0`.
 
-E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that 
+E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that
 `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s` and `y ∈ t`. -/
 lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :

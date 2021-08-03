@@ -212,8 +212,8 @@ lemma fpow_strict_mono {x : K} (hx : 1 < x) :
   strict_mono (λ n:ℤ, x ^ n) :=
 λ m n h, show x ^ m < x ^ n,
 begin
-  have xpos : 0 < x := by linarith,
-  have h₀ : x ≠ 0 := by linarith,
+  have xpos : 0 < x := zero_lt_one.trans hx,
+  have h₀ : x ≠ 0 := xpos.ne',
   have hxm : 0 < x^m := fpow_pos_of_pos xpos m,
   have hxm₀ : x^m ≠ 0 := ne_of_gt hxm,
   suffices : 1 < x^(n-m),

@@ -7,7 +7,7 @@ import analysis.complex.isometry
 import analysis.calculus.conformal
 
 /-!
-# Complex Conformal Maps
+# Conformal maps between complex vector spaces
 
 We prove the sufficient and necessary conditions for a complex function to be conformal.
 

@@ -434,13 +434,13 @@ def mul_equiv.op {α β} [has_mul α] [has_mul β] :
   (α ≃* β) ≃ (αᵒᵖ ≃* βᵒᵖ) :=
 { to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
                       inv_fun  := op ∘ f.symm ∘ unop,
-                      left_inv := λ _, by simp,
-                      right_inv := λ _, by simp,
+                      left_inv := λ x, unop_injective (f.symm_apply_apply x.unop),
+                      right_inv := λ x, unop_injective (f.apply_symm_apply x.unop),
                       map_mul' := λ x y, unop_injective (f.map_mul y.unop x.unop) },
   inv_fun   := λ f, { to_fun   := unop ∘ f ∘ op,
                       inv_fun  := unop ∘ f.symm ∘ op,
-                      left_inv := λ _, by simp,
-                      right_inv := λ _, by simp,
+                      left_inv := λ x, op_injective (f.symm_apply_apply (op x)),
+                      right_inv := λ x, op_injective (f.apply_symm_apply (op x)),
                       map_mul' := λ x y, congr_arg unop (f.map_mul (op y) (op x)) },
   left_inv  := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }

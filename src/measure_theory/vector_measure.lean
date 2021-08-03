@@ -669,7 +669,7 @@ end
 section
 
 variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M] [order_closed_topology M]
-variables (v w : vector_measure α M)
+variables (v w : vector_measure α M) {i j : set α}
 
 lemma restrict_le_restrict_Union {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.restrict (f n) ≤ w.restrict (f n)) :
@@ -705,8 +705,6 @@ begin
     { simp [hf₂ b] } }
 end
 
-variables {i j : set α}
-
 lemma restrict_le_restrict_union
   (hi₁ : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i)
   (hj₁ : measurable_set j) (hj₂ : v.restrict j ≤ w.restrict j) :
@@ -717,6 +715,13 @@ begin
   { measurability },
   { rintro (_ | _); simpa }
 end
+
+end
+
+section
+
+variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M]
+variables (v w : vector_measure α M) {i j : set α}
 
 lemma zero_le_restrict_empty : 0 ≤[∅] v :=
 begin
@@ -789,7 +794,6 @@ end
 section
 
 variables {M : Type*} [topological_space M] [linear_ordered_add_comm_monoid M]
-  [order_closed_topology M]
 variables (v w : vector_measure α M) {i j : set α}
 
 lemma exists_pos_measure_of_not_restrict_le_zero (hi : ¬ v ≤[i] 0) :

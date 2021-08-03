@@ -2,10 +2,31 @@
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-Extends `tendsto` to relations and partial functions.
 -/
 import order.filter.basic
+
+/-!
+# `tendsto` for relations and partial functions
+
+This file generalizes `filter` definitions from functions to partial functions and relations.
+
+## Considering functions and partials functions as relations
+
+A function `f : α → β` can be considered as the relation `rel α β` which relates `x` and `f x` for
+all `x`, and nothing else. This relation is called `function.graph f`.
+
+A partial function `f : α →. β` can be considered as the relation `rel α β` which relates `x` and
+`f x` for all `x` for which `f x` exists, and nothing else. This relation is called
+`pfun.graph' f`.
+
+In this regard, a function is a relation for which every element in `α` is related to exactly one
+element in `β` and a partial function is a relation for which every element in `α` is related to at
+most one element in `β`. This file leverages this analogy to generalize `filter` definitions from
+functions to partial functions and relations.
+
+In this context, the correct generalization of `function.preimage` is `rel.core`, not
+`rel.preimage`.
+-/
 
 universes u v w
 namespace filter
@@ -13,17 +34,16 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 open_locale filter
 
-/-
-Relations.
--/
+/-! ### Relations -/
 
-def rmap (r : rel α β) (f : filter α) : filter β :=
-{ sets             := {s | r.core s ∈ f},
+/-- Analogue of `filter.map` for relations. -/
+def rmap (r : rel α β) (l : filter α) : filter β :=
+{ sets             := {s | r.core s ∈ l},
   univ_sets        := by simp,
-  sets_of_superset := assume s t hs st, mem_sets_of_superset hs $ rel.core_mono _ st,
+  sets_of_superset := λ s t hs st, mem_sets_of_superset hs $ rel.core_mono _ st,
   inter_sets       := λ s t hs ht, by simp [rel.core_inter, inter_mem_sets hs ht] }
 
-theorem rmap_sets (r : rel α β) (f : filter α) : (rmap r f).sets = r.core ⁻¹' f.sets := rfl
+theorem rmap_sets (r : rel α β) (l : filter α) : (l.rmap r).sets = r.core ⁻¹' l.sets := rfl
 
 @[simp]
 theorem mem_rmap (r : rel α β) (l : filter α) (s : set β) :
@@ -40,6 +60,7 @@ by simp [rmap_sets, set.preimage, rel.core_comp]
 lemma rmap_compose (r : rel α β) (s : rel β γ) : rmap s ∘ rmap r = rmap (r.comp s) :=
 funext $ rmap_rmap _ _
 
+/-- The equivalent of `filter.tendsto` for relations. -/
 def rtendsto (r : rel α β) (l₁ : filter α) (l₂ : filter β) := l₁.rmap r ≤ l₂
 
 theorem rtendsto_def (r : rel α β) (l₁ : filter α) (l₂ : filter β) :
@@ -49,11 +70,10 @@ iff.rfl
 def rcomap (r : rel α β) (f : filter β) : filter α :=
 { sets             := rel.image (λ s t, r.core s ⊆ t) f.sets,
   univ_sets        := ⟨set.univ, univ_mem_sets, set.subset_univ _⟩,
-  sets_of_superset := assume a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', set.subset.trans ma'a ab⟩,
-  inter_sets       := assume a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
+  sets_of_superset := λ a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', set.subset.trans ma'a ab⟩,
+  inter_sets       := λ a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
                         ⟨a' ∩ b', inter_mem_sets ha₁ hb₁,
-                          set.subset.trans (by rw rel.core_inter)
-                                           (set.inter_subset_inter ha₂ hb₂)⟩ }
+                          (rel.core_inter r a' b').subset.trans (set.inter_subset_inter ha₂ hb₂)⟩ }
 
 theorem rcomap_sets (r : rel α β) (f : filter β) :
   (rcomap r f).sets = rel.image (λ s t, r.core s ⊆ t) f.sets := rfl
@@ -64,10 +84,10 @@ theorem rcomap_rcomap (r : rel α β) (s : rel β γ) (l : filter γ) :
 filter_eq $
 begin
   ext t, simp [rcomap_sets, rel.image, rel.core_comp], split,
-  { rintros ⟨u, ⟨v, vsets, hv⟩, h⟩,
-    exact ⟨v, vsets, set.subset.trans (rel.core_mono _ hv) h⟩ },
-  rintros ⟨t, tsets, ht⟩,
-  exact ⟨rel.core s t, ⟨t, tsets, set.subset.refl _⟩, ht⟩
+  { rintro ⟨u, ⟨v, vsets, hv⟩, h⟩,
+    exact ⟨v, vsets, (rel.core_mono _ hv).trans h⟩ },
+  rintro ⟨t, tsets, ht⟩,
+  exact ⟨rel.core s t, ⟨t, tsets, set.subset.rfl⟩, ht⟩
 end
 
 @[simp]
@@ -93,8 +113,8 @@ end
 def rcomap' (r : rel α β) (f : filter β) : filter α :=
 { sets             := rel.image (λ s t, r.preimage s ⊆ t) f.sets,
   univ_sets        := ⟨set.univ, univ_mem_sets, set.subset_univ _⟩,
-  sets_of_superset := assume a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', set.subset.trans ma'a ab⟩,
-  inter_sets       := assume a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
+  sets_of_superset := λ a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', set.subset.trans ma'a ab⟩,
+  inter_sets       := λ a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
                         ⟨a' ∩ b', inter_mem_sets ha₁ hb₁,
                           set.subset.trans (@rel.preimage_inter _ _ r _ _)
                                            (set.inter_subset_inter ha₂ hb₂)⟩ }
@@ -113,9 +133,9 @@ theorem rcomap'_rcomap' (r : rel α β) (s : rel β γ) (l : filter γ) :
 filter_eq $
 begin
   ext t, simp [rcomap'_sets, rel.image, rel.preimage_comp], split,
-  { rintros ⟨u, ⟨v, vsets, hv⟩, h⟩,
+  { rintro ⟨u, ⟨v, vsets, hv⟩, h⟩,
     exact ⟨v, vsets, set.subset.trans (rel.preimage_mono _ hv) h⟩ },
-  rintros ⟨t, tsets, ht⟩,
+  rintro ⟨t, tsets, ht⟩,
   exact ⟨rel.preimage s t, ⟨t, tsets, set.subset.refl _⟩, ht⟩
 end
 
@@ -141,10 +161,9 @@ theorem tendsto_iff_rtendsto' (l₁ : filter α) (l₂ : filter β) (f : α → 
   tendsto f l₁ l₂ ↔ rtendsto' (function.graph f) l₁ l₂ :=
 by { simp [tendsto_def, function.graph, rtendsto'_def, rel.preimage_def, set.preimage] }
 
-/-
-Partial functions.
--/
+/-! ### Partial functions -/
 
+/-- Analogue of `filter.map` for partial functions. -/
 def pmap (f : α →. β) (l : filter α) : filter β :=
 filter.rmap f.graph' l
 
@@ -152,6 +171,7 @@ filter.rmap f.graph' l
 lemma mem_pmap (f : α →. β) (l : filter α) (s : set β) : s ∈ l.pmap f ↔ f.core s ∈ l :=
 iff.rfl
 
+/-- Analogue of `filter.tendsto` for partial functions. -/
 def ptendsto (f : α →. β) (l₁ : filter α) (l₂ : filter β) := l₁.pmap f ≤ l₂
 
 theorem ptendsto_def (f : α →. β) (l₁ : filter α) (l₂ : filter β) :
@@ -185,6 +205,7 @@ by { rw ← tendsto_iff_ptendsto, simp [principal_univ] }
 def pcomap' (f : α →. β) (l : filter β) : filter α :=
 filter.rcomap' f.graph' l
 
+/-- Analogue of `filter.tendsto` for partial functions. -/
 def ptendsto' (f : α →. β) (l₁ : filter α) (l₂ : filter β) := l₁ ≤ l₂.rcomap' f.graph'
 
 theorem ptendsto'_def (f : α →. β) (l₁ : filter α) (l₂ : filter β) :
@@ -195,17 +216,15 @@ theorem ptendsto_of_ptendsto' {f : α →. β} {l₁ : filter α} {l₂ : filter
   ptendsto' f l₁ l₂ → ptendsto f l₁ l₂ :=
 begin
   rw [ptendsto_def, ptendsto'_def],
-  assume h s sl₂,
-  exacts mem_sets_of_superset (h s sl₂) (pfun.preimage_subset_core _ _),
+  exact λ h s sl₂, mem_sets_of_superset (h s sl₂) (pfun.preimage_subset_core _ _),
 end
 
 theorem ptendsto'_of_ptendsto {f : α →. β} {l₁ : filter α} {l₂ : filter β} (h : f.dom ∈ l₁) :
   ptendsto f l₁ l₂ → ptendsto' f l₁ l₂ :=
 begin
   rw [ptendsto_def, ptendsto'_def],
-  assume h' s sl₂,
+  rintro h' s sl₂,
   rw pfun.preimage_eq,
-  show pfun.core f s ∩ pfun.dom f ∈ l₁,
   exact inter_mem_sets (h' s sl₂) h
 end
 

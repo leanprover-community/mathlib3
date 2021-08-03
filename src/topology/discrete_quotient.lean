@@ -205,8 +205,8 @@ When X is discrete, there is a `semilattice_inf_bot` instance on `discrete_quoti
 -/
 instance [discrete_topology X] : semilattice_inf_bot (discrete_quotient X) :=
 { bot :=
-  { rel := λ a b , a = b,
-    equiv := ⟨λ a, rfl, λ a b h, h.symm, λ a b c h1 h2, h1.trans h2⟩,
+  { rel := (=),
+    equiv := eq_equivalence,
     clopen := λ x, ⟨is_open_discrete _, is_closed_discrete _⟩ },
   bot_le := by { rintro S a b (h : a = b), rw h, exact S.refl _ },
   ..(infer_instance : semilattice_inf _) }

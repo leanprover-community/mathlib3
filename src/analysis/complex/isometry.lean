@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François Sunatori
 -/
 import analysis.complex.circle
-import analysis.normed_space.conformal_linear_map
 
 /-!
 # Isometries of the Complex Plane

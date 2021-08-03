@@ -667,7 +667,7 @@ for computing the determinant of a matrix given in the `![...]` notation.
 det_eq_one_of_card_eq_zero (fintype.card_fin _)
 
 /-- Determinant of 1x1 matrix -/
-alias det_unique ← det_fin_one
+lemma det_fin_one (A : matrix (fin 1) (fin 1) R) : det A = A 0 0  := det_unique A
 
 /-- Determinant of 2x2 matrix -/
 lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :

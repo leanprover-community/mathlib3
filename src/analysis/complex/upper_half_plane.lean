@@ -24,7 +24,7 @@ noncomputable theory
 
 open matrix matrix.special_linear_group
 
-open_locale classical big_operators
+open_locale classical big_operators matrix_groups
 
 local attribute [instance] fintype.card_fin_even
 
@@ -41,8 +41,6 @@ def im (z : ℍ) := (z : ℂ).im
 
 /-- Real part -/
 def re (z : ℍ) := (z : ℂ).re
-
-@[simp] lemma coe_point (z : ℍ) : z.1 = (z:ℂ) := rfl
 
 @[simp] lemma coe_im (z : ℍ) : (z : ℂ).im = z.im := rfl
 
@@ -67,8 +65,6 @@ end
 
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := ne_of_gt (norm_sq_pos z)
 
-local notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
-
 /-- Numerator of the formula for a fractional linear transformation -/
 @[simp] def top (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
 
@@ -92,11 +88,11 @@ end
 lemma bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠ 0 :=
 linear_ne_zero (g 1) z (g.row_ne_zero 1)
 
-lemma normsq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=
-ne_of_gt (complex.norm_sq_pos.mpr (bottom_ne_zero g z))
-
 lemma normsq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (bottom g z) :=
 complex.norm_sq_pos.mpr (bottom_ne_zero g z)
+
+lemma normsq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=
+ne_of_gt (normsq_bottom_pos g z)
 
 /-- Fractional linear transformation -/
 def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z

@@ -81,7 +81,7 @@ begin
       rw le_div_iff,
       { apply (mul_le_mul_left zero_lt_two).mp (hk₂ x) },
       { exact trans zero_lt_one hneg } },
-    apply real.Sup_le_ub _ h₁,
+    apply cSup_le h₁,
     rintros y' ⟨yy, rfl⟩,
     exact h₂ yy },
 

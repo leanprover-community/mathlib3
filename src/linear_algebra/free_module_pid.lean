@@ -259,8 +259,6 @@ open submodule.is_principal set submodule
 variables {ι : Type*} {R : Type*} [integral_domain R] [is_principal_ideal_ring R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
-open_locale matrix
-
 /-- A submodule of a free `R`-module of finite rank is also a free `R`-module of finite rank,
 if `R` is a principal ideal domain. -/
 noncomputable def submodule.basis_of_pid {ι : Type*} [fintype ι]

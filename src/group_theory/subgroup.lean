@@ -1773,6 +1773,22 @@ lemma mem_gpowers_iff {g h : G} :
   h ∈ gpowers g ↔ ∃ (k : ℤ), g ^ k = h :=
 iff.rfl
 
+@[simp] lemma forall_gpowers {x : G} {p : gpowers x → Prop} :
+  (∀ g, p g) ↔ ∀ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
+set.forall_subtype_range_iff
+
+@[simp] lemma exists_gpowers {x : G} {p : gpowers x → Prop} :
+  (∃ g, p g) ↔ ∃ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
+set.exists_subtype_range_iff
+
+lemma forall_mem_gpowers {x : G} {p : G → Prop} :
+  (∀ g ∈ gpowers x, p g) ↔ ∀ m : ℤ, p (x ^ m) :=
+set.forall_range_iff
+
+lemma exists_mem_gpowers {x : G} {p : G → Prop} :
+  (∃ g ∈ gpowers x, p g) ↔ ∃ m : ℤ, p (x ^ m) :=
+set.exists_range_iff
+
 end subgroup
 
 namespace add_subgroup
@@ -1781,19 +1797,10 @@ namespace add_subgroup
 def gmultiples (a : A) : add_subgroup A :=
 add_subgroup.copy (gmultiples_hom A a).range (set.range ((• a) : ℤ → A)) rfl
 
-@[simp] lemma mem_gmultiples (a : A) : a ∈ gmultiples a := ⟨1, one_gsmul _⟩
-
-lemma gmultiples_eq_closure (a : A) : gmultiples a = closure {a} :=
-by { ext, exact mem_closure_singleton.symm }
-
 @[simp] lemma range_gmultiples_hom (a : A) : (gmultiples_hom A a).range = gmultiples a := rfl
 
 lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples a ≤ B :=
 @subgroup.gpowers_subset (multiplicative A) _ _ (B.to_subgroup) h
-
-lemma mem_gmultiples_iff {a b : A} :
-  b ∈ add_subgroup.gmultiples a ↔ ∃ (k : ℤ), k • a = b :=
-iff.rfl
 
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers
@@ -1801,6 +1808,10 @@ attribute [to_additive add_subgroup.gmultiples_eq_closure] subgroup.gpowers_eq_c
 attribute [to_additive add_subgroup.range_gmultiples_hom] subgroup.range_gpowers_hom
 attribute [to_additive add_subgroup.gmultiples_subset] subgroup.gpowers_subset
 attribute [to_additive add_subgroup.mem_gmultiples_iff] subgroup.mem_gpowers_iff
+attribute [to_additive add_subgroup.forall_gmultiples] subgroup.forall_gpowers
+attribute [to_additive add_subgroup.forall_mem_gmultiples] subgroup.forall_mem_gpowers
+attribute [to_additive add_subgroup.exists_gmultiples] subgroup.exists_gpowers
+attribute [to_additive add_subgroup.exists_mem_gmultiples] subgroup.exists_mem_gpowers
 
 end add_subgroup
 

@@ -25,6 +25,7 @@ and the appropriate definition of instances:
  * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
    in the statement, and could thus be removed by using `classical` in the proof.
  * `linter.has_coe_to_fun` checks whether necessary `has_coe_to_fun` instances are declared.
+ * `linter.check_reducibility` checks whether non-instances with a class as type are reducible.
 -/
 
 open tactic
@@ -354,3 +355,31 @@ pure $ format.to_string $
   errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
 You should add a `has_coe_to_fun` instance for the following types.
 See Note [function coercion]." }
+
+/-- Checks whether non-instances with a class as type are reducible. -/
+meta def check_reducible_non_instances (d : declaration) : tactic (option string) := do
+  let nm := d.to_name,
+  ff ← is_instance nm | return none,
+  tt ← has_attribute' `class d.type.pi_codomain.get_app_fn.const_name | return none,
+  ff ← is_prop d.type | return none,
+  ff ← has_attribute' `reducible nm | return none,
+  e ← get_env,
+  ff ← return $ e.is_constructor nm | return none,
+  return $ some "make reducible"
+
+/-- A linter that checks whether non-instances with a class as type are reducible. -/
+@[linter]
+meta def linter.check_reducibility : linter :=
+{ test := check_reducible_non_instances,
+  auto_decls := ff,
+  no_errors_found :=
+    "All non-instances are reducible.",
+  errors_found := "THE FOLLOWING DEFINITIONS ARE NOT INSTANCES BUT ALSO NOT REDUCIBLE.
+This means that if we define an instance using these definitions, type-class inference cannot " ++
+"compute the fields of these instances, which means that type-class inference might fail to " ++
+"unify found instances with another instance, causing unexpected errors when this class occurs " ++
+"as an *argument* to a type-class problem.
+Feel free to give this a `@[nolint]` tag if one of the following holds:
+(1) no instance will ever be defined using this definition.
+(2) no type-class will ever take this type-class as an *argument*.",
+  is_fast := tt }

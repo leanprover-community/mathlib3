@@ -1841,7 +1841,7 @@ measure.of_measurable_apply s hs
 lemma with_density_add {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
   μ.with_density (f + g) = μ.with_density f + μ.with_density g :=
 begin
-  refine measure_theory.measure.ext (λ s hs, _),
+  refine measure.ext (λ s hs, _),
   rw [with_density_apply _ hs, measure.coe_add, pi.add_apply,
       with_density_apply _ hs, with_density_apply _ hs, ← lintegral_add hf hg],
   refl,
@@ -1850,7 +1850,7 @@ end
 lemma with_density_smul (r : ℝ≥0∞) {f : α → ℝ≥0∞} (hf : measurable f) :
   μ.with_density (r • f) = r • μ.with_density f :=
 begin
-  refine measure_theory.measure.ext (λ s hs, _),
+  refine measure.ext (λ s hs, _),
   rw [with_density_apply _ hs, measure.coe_smul, pi.smul_apply,
       with_density_apply _ hs, smul_eq_mul, ← lintegral_const_mul r hf],
   refl,
@@ -1859,7 +1859,7 @@ end
 lemma with_density_smul' (r : ℝ≥0∞) (f : α → ℝ≥0∞) (hr : r ≠ ∞) :
   μ.with_density (r • f) = r • μ.with_density f :=
 begin
-  refine measure_theory.measure.ext (λ s hs, _),
+  refine measure.ext (λ s hs, _),
   rw [with_density_apply _ hs, measure.coe_smul, pi.smul_apply,
       with_density_apply _ hs, smul_eq_mul, ← lintegral_const_mul' r f hr],
   refl,

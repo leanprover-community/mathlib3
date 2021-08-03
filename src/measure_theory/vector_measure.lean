@@ -623,7 +623,8 @@ begin
   { rw [v.not_measurable hi, w.not_measurable hi] }
 end
 
-notation v ` ≤[`:25 i:25 `] `:0 w:25 := v.restrict i ≤ w.restrict i
+notation v ` ≤[`:50 i:50 `] `:0 w:50 :=
+measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i
 
 lemma restrict_le_restrict_iff (v w : vector_measure α M) {i : set α} (hi : measurable_set i) :
   v ≤[i] w ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j :=
@@ -661,8 +662,9 @@ end
 section
 
 variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M] [order_closed_topology M]
+variables (v w : vector_measure α M)
 
-lemma restrict_le_restrict_Union (v w : vector_measure α M) {f : ℕ → set α}
+lemma restrict_le_restrict_Union {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.restrict (f n) ≤ w.restrict (f n)) :
   v ≤[⋃ n, f n] w :=
 begin
@@ -683,7 +685,7 @@ begin
   { exact λ n, ha₁.inter (measurable_set.disjointed hf₁ n) }
 end
 
-lemma restrict_le_restrict_encodable_Union [encodable β] (v w : vector_measure α M) {f : β → set α}
+lemma restrict_le_restrict_encodable_Union [encodable β] {f : β → set α}
   (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v.restrict (f b) ≤ w.restrict (f b)) :
   v ≤[⋃ b, f b] w :=
 begin
@@ -696,7 +698,9 @@ begin
     { simp [hf₂ b] } }
 end
 
-lemma restrict_le_restrict_union (v w : vector_measure α M) {i j : set α}
+variables {i j : set α}
+
+lemma restrict_le_restrict_union
   (hi₁ : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i)
   (hj₁ : measurable_set j) (hj₂ : v.restrict j ≤ w.restrict j) :
   v ≤[i ∪ j] w :=
@@ -705,6 +709,89 @@ begin
   refine restrict_le_restrict_encodable_Union v w _ _,
   { measurability },
   { rintro (_ | _); simpa }
+end
+
+lemma zero_le_restrict_empty : 0 ≤[∅] v :=
+begin
+  intros j hj,
+  rw [restrict_empty, restrict_empty]
+end
+
+lemma restrict_empty_le_zero : v ≤[∅] 0 :=
+begin
+  intros j hj,
+  rw [restrict_empty, restrict_empty]
+end
+
+lemma nonneg_of_zero_le_restrict (hi₂ : 0 ≤[i] v) :
+  0 ≤ v i :=
+begin
+  by_cases hi₁ : measurable_set i,
+  { exact (restrict_le_restrict_iff _ _ hi₁).1 hi₂ hi₁ set.subset.rfl },
+  { rw v.not_measurable hi₁ },
+end
+
+lemma nonpos_of_restrict_le_zero (hi₂ : v ≤[i] 0) :
+  v i ≤ 0 :=
+begin
+  by_cases hi₁ : measurable_set i,
+  { exact (restrict_le_restrict_iff _ _ hi₁).1 hi₂ hi₁ set.subset.rfl },
+  { rw v.not_measurable hi₁ }
+end
+
+lemma zero_le_restrict_not_measurable (hi : ¬ measurable_set i) :
+  0 ≤[i] v :=
+begin
+  rw [restrict_zero, restrict_not_measurable _ hi],
+  exact le_refl _,
+end
+
+lemma restrict_le_zero_of_not_measurable (hi : ¬ measurable_set i) :
+  v ≤[i] 0 :=
+begin
+  rw [restrict_zero, restrict_not_measurable _ hi],
+  exact le_refl _,
+end
+
+lemma measurable_of_not_zero_le_restrict (hi : ¬ 0 ≤[i] v) : measurable_set i :=
+not.imp_symm (zero_le_restrict_not_measurable _) hi
+
+lemma measurable_of_not_restrict_le_zero (hi : ¬ v ≤[i] 0) : measurable_set i :=
+not.imp_symm (restrict_le_zero_of_not_measurable _) hi
+
+lemma zero_le_restrict_subset (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] v) (hij : j ⊆ i) :
+  0 ≤[j] v :=
+restrict_le_restrict_of_subset_le _ _
+  (λ k hk₁ hk₂, (restrict_le_restrict_iff _ _ hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij))
+
+lemma restrict_le_zero_subset (hi₁ : measurable_set i) (hi₂ : v ≤[i] 0) (hij : j ⊆ i) :
+  v ≤[j] 0 :=
+restrict_le_restrict_of_subset_le _ _
+  (λ k hk₁ hk₂, (restrict_le_restrict_iff _ _ hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij))
+
+lemma not_zero_le_restrict_subset (hi : ¬ 0 ≤[i] v) (h : i ⊆ j) (hj : measurable_set j) :
+  ¬ 0 ≤[j] v :=
+λ h', hi $ (zero_le_restrict_subset _) hj h' h
+
+lemma not_restrict_le_zero_subset (hi : ¬ v ≤[i] 0) (h : i ⊆ j) (hj : measurable_set j) :
+  ¬ v ≤[j] 0 :=
+λ h', hi $ (restrict_le_zero_subset _) hj h' h
+
+end
+
+section
+
+variables {M : Type*} [topological_space M] [linear_ordered_add_comm_monoid M] [order_closed_topology M]
+variables (v w : vector_measure α M) {i j : set α}
+
+lemma exists_pos_measure_of_not_restrict_le_zero (hi : ¬ v ≤[i] 0) :
+  ∃ (j : set α) (hj₁ : measurable_set j) (hj₂ : j ⊆ i) , 0 < v j :=
+begin
+  have hi₁ : measurable_set i := measurable_of_not_restrict_le_zero _ hi,
+  rw [restrict_le_restrict_iff _ _ hi₁] at hi,
+  push_neg at hi,
+  obtain ⟨j, hj₁, hj₂, hj⟩ := hi,
+  exact ⟨j, hj₁, hj₂, hj⟩,
 end
 
 end

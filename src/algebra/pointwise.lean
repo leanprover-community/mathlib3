@@ -323,6 +323,13 @@ lemma inv_empty [has_inv α] : (∅ : set α)⁻¹ = ∅ := rfl
 lemma inv_univ [has_inv α] : (univ : set α)⁻¹ = univ := rfl
 
 @[simp, to_additive]
+lemma nonempty_inv [group α] {s : set α} : s⁻¹.nonempty ↔ s.nonempty :=
+inv_involutive.surjective.nonempty_preimage
+
+@[to_additive] lemma nonempty.inv [group α] {s : set α} (h : s.nonempty) : s⁻¹.nonempty :=
+nonempty_inv.2 h
+
+@[simp, to_additive]
 lemma mem_inv [has_inv α] : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
 
 @[to_additive]

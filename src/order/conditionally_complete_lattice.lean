@@ -76,37 +76,6 @@ class conditionally_complete_lattice (α : Type*) extends lattice α, has_Sup α
 (is_lub_cSup : ∀ s : set α, s.nonempty → bdd_above s → is_lub s (Sup s))
 (is_glb_cInf : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (Inf s))
 
-/-- Construct a conditionally complete lattice from a `lattice` structure, a `Sup` function
-such that `is_lub s (Sup s)` for any nonempty bounded above set `s`, and an order-reversing
-isomorphism `e`. We put `Inf s = e (Sup $ e ⁻¹' s)`. -/
-def conditionally_complete_lattice_of_Sup_of_rel_iso {α : Type*} [lattice α]
-  (f : set α → α) (hf : ∀ s : set α, s.nonempty → bdd_above s → is_lub s (f s))
-  (e : α ≃o order_dual α) :
-  conditionally_complete_lattice α :=
-{ Sup := f,
-  Inf := λ s, e (f (e ⁻¹' s)),
-  is_lub_cSup := hf,
-  is_glb_cInf := λ s hne hbdd, e.is_lub_preimage.1 $
-    hf _ (e.surjective.nonempty_preimage.2 hne) (e.bdd_above_preimage.2 hbdd),
-  .. ‹lattice α› }
-
-section
-
-open_locale classical
-
-/-- Construct a conditionally complete lattice from a `lattice` structure, a proof of the fact that
-every nonempty bounded above set has the least upper bound, a default value for supermum of the
-empty set and of unbounded sets, and an order-reversing isomorphism `e`. We put
-`Inf s = e (Sup $ e ⁻¹' s)`. -/
-noncomputable def conditionally_complete_lattice_of_is_lub_of_rel_iso {α : Type*} [lattice α]
-  (H : ∀ s : set α, s.nonempty → bdd_above s → ∃ a, is_lub s a) (d : α) (e : α ≃o order_dual α) :
-  conditionally_complete_lattice α :=
-conditionally_complete_lattice_of_Sup_of_rel_iso
-  (λ s, if h : s.nonempty ∧ bdd_above s then (H s h.1 h.2).some else d)
-  (λ s hne hbdd, by { rw dif_pos (and.intro hne hbdd), apply Exists.some_spec, }) e
-
-end
-
 /-- A conditionally complete linear order is a linear order in which
 every nonempty subset which is bounded above has a supremum, and
 every nonempty subset which is bounded below has an infimum.
@@ -145,6 +114,63 @@ instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α
 instance conditionally_complete_linear_order_of_complete_linear_order [complete_linear_order α]:
   conditionally_complete_linear_order α :=
 { ..conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
+
+/-- Construct a `conditionally_complete_lattice` from a `lattice` structure and a function `Inf`
+such that `is_glb s (Inf s)` for any nonempty bounded below set `s`. We put
+`Sup s = Inf (upper_bounds s)`. See also `conditionally_complete_lattice_of_exists_is_glb`. -/
+def conditionally_complete_lattice_of_Inf {α : Type*} [lattice α]
+  (f : set α → α) (H : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (f s)) :
+  conditionally_complete_lattice α :=
+{ Inf := f, Sup := λ s, f (upper_bounds s),
+  is_glb_cInf := H,
+  is_lub_cSup := λ s hne hbdd,
+    have s ⊆ lower_bounds (upper_bounds s), from λ x hx y hy, hy hx,
+    ⟨λ x hx, (H _ hbdd (hne.mono this)).2 (this hx), (H _ hbdd (hne.mono this)).1⟩,
+  .. ‹lattice α› }
+
+section classical
+
+open_locale classical
+
+variables [lattice α]
+
+/-- Construct a `conditionally_complete_lattice` from a `lattice` structure, a proof of the fact
+that every nonempty bounded below set has the greatest lower bound, and the default value for the
+empty set and for unbounded sets. We put `Inf s` to be this greatest lower bound if `s` is nonempty
+and bounded below, and `Inf s = d` otherwise. We put `Sup s = Inf (upper_bounds s)`.
+
+This constructor is used in `mathlib` for all non-constructive instances of
+`conditionally_complete_lattice`. -/
+noncomputable def conditionally_complete_lattice_of_exists_is_glb
+  (H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a) (d : α) :
+  conditionally_complete_lattice α :=
+conditionally_complete_lattice_of_Inf
+  (λ s, if h : s.nonempty ∧ bdd_below s then (H s h.1 h.2).some else d)
+  (λ s hne hbdd, by { rw dif_pos (and.intro hne hbdd), apply Exists.some_spec } )
+
+variables {H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a} {d : α} {s : set α}
+
+@[simp] lemma cInf_empty :
+  @Inf α (@conditionally_complete_lattice.to_has_Inf _ $
+    conditionally_complete_lattice_of_exists_is_glb H d) ∅ = d :=
+dif_neg $ by simp
+
+lemma cInf_of_not_bdd_below (h : ¬ bdd_below s) :
+  @Inf α (@conditionally_complete_lattice.to_has_Inf _ $
+    conditionally_complete_lattice_of_exists_is_glb H d) s = d :=
+dif_neg $ by simp [h]
+
+lemma cSup_of_not_bdd_above (h : ¬ bdd_above s) :
+  @Sup α (@conditionally_complete_lattice.to_has_Sup _ $
+    conditionally_complete_lattice_of_exists_is_glb H d) s = d :=
+dif_neg $ by { dunfold bdd_above at h, simp [h] }
+
+@[simp] lemma cSup_empty' [no_bot_order α] :
+  @Sup α (@conditionally_complete_lattice.to_has_Sup _ $
+    conditionally_complete_lattice_of_exists_is_glb H d) ∅ = d :=
+dif_neg $ by simp
+
+end classical
 
 section order_dual
 
@@ -600,40 +626,48 @@ end conditionally_complete_linear_order_bot
 
 namespace nat
 
+/-- This instance is necessary, otherwise the lattice operations would be derived via
+conditionally_complete_linear_order_bot and marked as noncomputable. -/
+instance : lattice ℕ := lattice_of_linear_order
+
 open_locale classical
 
-noncomputable instance : has_Inf ℕ :=
-⟨λs, if h : s.nonempty then @nat.find (λn, n ∈ s) _ h else 0⟩
+lemma is_least_find {s : set ℕ} (h : s.nonempty) : is_least s (nat.find h) :=
+⟨nat.find_spec h, λ _, nat.find_min' h⟩
 
-noncomputable instance : has_Sup ℕ :=
-⟨λs, Inf (upper_bounds s)⟩
+lemma is_glb_find {s : set ℕ} (h : s.nonempty) : is_glb s (nat.find h) :=
+(is_least_find h).is_glb
+
+noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
+{ cSup_empty := (dif_pos $ by simp).trans $ is_glb.unique (Exists.some_spec _) $
+    by simpa using is_glb_univ,
+  .. (infer_instance : order_bot ℕ), .. nat.lattice, .. (infer_instance : linear_order ℕ),
+  .. conditionally_complete_lattice_of_exists_is_glb
+    (λ s hne hbdd, ⟨nat.find hne, is_glb_find hne⟩) 0 }
+
 
 lemma Inf_def {s : set ℕ} (h : s.nonempty) : Inf s = @nat.find (λn, n ∈ s) _ h :=
-dif_pos _
+(is_least_find h).cInf_eq
 
 lemma Sup_def {s : set ℕ} (h : bdd_above s) :
   Sup s = @nat.find (λn, ∀a∈s, a ≤ n) _ h :=
-dif_pos _
+Inf_def h
 
 @[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
 begin
   rcases eq_empty_or_nonempty s with rfl|h,
-  { simp only [Inf, has_Inf.Inf, dif_neg not_nonempty_empty, eq_self_iff_true, or_true] },
+  { simp only [cInf_empty, eq_self_iff_true, or_true] },
   { simp only [nat.Inf_def h, nat.find_eq_zero, h.ne_empty, or_false] }
 end
 
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
-by { rw [nat.Inf_def h], exact nat.find_spec h }
-
-lemma not_mem_of_lt_Inf {s : set ℕ} {m : ℕ} (hm : m < Inf s) : m ∉ s :=
-begin
-  cases eq_empty_or_nonempty s,
-  { subst h, apply not_mem_empty },
-  { rw [nat.Inf_def h] at hm, exact nat.find_min h hm }
-end
+(is_least_find h).Inf_mem
 
 protected lemma Inf_le {s : set ℕ} {m : ℕ} (hm : m ∈ s) : Inf s ≤ m :=
-by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
+cInf_le (order_bot.bdd_below _) hm
+
+lemma not_mem_of_lt_Inf {s : set ℕ} {m : ℕ} (hm : m < Inf s) : m ∉ s :=
+mt nat.Inf_le hm.not_le
 
 protected lemma is_least_Inf {s : set ℕ} (h : s.nonempty) : is_least s (Inf s) :=
 ⟨Inf_mem h, λ m, nat.Inf_le⟩
@@ -660,9 +694,10 @@ is_greatest_of_is_lub (nat.is_lub_Sup hbd) (or.inl hne)
 
 lemma nonempty_of_pos_Inf {s : set ℕ} (h : 0 < Inf s) : s.nonempty :=
 begin
-  by_contradiction contra, rw set.not_nonempty_iff_eq_empty at contra,
-  have h' : Inf s ≠ 0, { exact ne_of_gt h, }, apply h',
-  rw nat.Inf_eq_zero, right, assumption,
+  contrapose! h,
+  rw set.not_nonempty_iff_eq_empty at h,
+  subst h,
+  exact cInf_empty.le
 end
 
 lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=
@@ -684,23 +719,6 @@ begin
     rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
     exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
 end
-
-/-- This instance is necessary, otherwise the lattice operations would be derived via
-conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := lattice_of_linear_order
-
-noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
-{ Sup := Sup, Inf := Inf,
-  is_glb_cInf := λ s hne hb, (nat.is_least_Inf hne).is_glb,
-  is_lub_cSup := λ s hne hb, nat.is_lub_Sup hb,
-  cSup_empty :=
-  begin
-    rw [Sup_def bdd_above_empty],
-    apply bot_unique (nat.find_min' _ _),
-    exact λ _, false.elim
-  end,
-  .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
-  .. (infer_instance : linear_order ℕ) }
 
 end nat
 

@@ -27,9 +27,7 @@ variable {α : Type u}
 @[to_additive]
 instance group.covariant_class_le.to_contravariant_class_le
   [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
-{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
-                          ... ≤ a⁻¹ * (a * c) : mul_le_mul_left' bc a⁻¹
-                          ... = c             : inv_mul_cancel_left a c }
+group.covconv
 
 @[to_additive]
 instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
@@ -276,22 +274,28 @@ by { rw [← mul_le_mul_iff_left a, ← mul_le_mul_iff_right b], simp }
 
 alias neg_le_neg_iff ↔ le_of_neg_le_neg _
 
+section
+
+variable (α)
+
 /-- `x ↦ x⁻¹` as an order-reversing equivalence. -/
 @[to_additive "`x ↦ -x` as an order-reversing equivalence.", simps]
 def order_iso.inv : α ≃o order_dual α :=
 { to_equiv := (equiv.inv α).trans order_dual.to_dual,
   map_rel_iff' := λ a b, @inv_le_inv_iff α _ _ _ _ _ _ }
 
+end
+
 @[to_additive neg_le]
 lemma inv_le' : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-order_iso.inv.symm_apply_le
+(order_iso.inv α).symm_apply_le
 
 alias inv_le' ↔ inv_le_of_inv_le _
 attribute [to_additive] inv_le_of_inv_le
 
 @[to_additive le_neg]
 lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-order_iso.inv.le_symm_apply
+(order_iso.inv α).le_symm_apply
 
 @[to_additive]
 lemma mul_inv_le_inv_mul_iff : a * b⁻¹ ≤ d⁻¹ * c ↔ d * a ≤ c * b :=

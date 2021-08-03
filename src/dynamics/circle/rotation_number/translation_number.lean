@@ -484,9 +484,9 @@ by rw [← coe_inv, ← coe_mul, inv_mul_self, coe_one]
 ### Translate by a constant
 -/
 
-/-- The map `y ↦ x + y` as a `circle_deg1_lift`. More precisely, we define a homomorphism from
-`multiplicative ℝ` to `units circle_deg1_lift`, so the translation by `x` is
-`translation (multiplicative.of_add x)`. -/
+/-- The map `y ↦ x + y` as a `circle_homeomorph_lift`. More precisely, we define a homomorphism from
+`multiplicative ℝ` to `circle_homeomorph_lift`, so the translation by `x` is
+`translate (multiplicative.of_add x)`. -/
 def translate : multiplicative ℝ →* circle_homeomorph_lift :=
 { to_fun := λ x, ⟨λ y, multiplicative.to_add x + y, strict_mono_id.const_add _,
     continuous_const.add continuous_id, λ y, (add_assoc _ _ _).symm⟩,
@@ -572,6 +572,11 @@ noncomputable instance : lattice circle_deg1_lift :=
 
 lemma monotone_apply (x : ℝ) : monotone (λ f : circle_deg1_lift, f x) := λ f g h, h x
 
+def conj_neg_order_iso : circle_deg1_lift ≃o order_dual circle_deg1_lift :=
+{ to_equiv := conj_neg.to_equiv.trans order_dual.to_dual,
+  map_rel_iff' := λ f g, ⟨λ H, (equiv.neg _).surjective.forall.2 $
+    λ x, neg_le_neg_iff.1 (H x), λ H x, neg_le_neg (H (-x))⟩ }
+
 /-- An auxiliary definition for `circle_deg1_lift.has_Sup`. -/
 noncomputable def Sup_aux (s : set circle_deg1_lift) (Hne : s.nonempty)
   (H : ∀ x, bdd_above ((λ f : circle_deg1_lift, f x) '' s)) :
@@ -616,6 +621,10 @@ begin
   tfae_finish
 end
 
+noncomputable instance : conditionally_complete_lattice circle_deg1_lift :=
+conditionally_complete_lattice_of_is_lub_of_rel_iso
+  (λ s hne hbdd, _) 1 conj_neg_order_iso
+
 noncomputable instance : has_Sup circle_deg1_lift :=
 ⟨λ s, if hs : s.nonempty ∧ bdd_above s
   then Sup_aux s hs.1 (((bdd_above_tfae s).out 0 2).mp hs.2) else 1⟩
@@ -629,11 +638,11 @@ private lemma Sup_le (s : set circle_deg1_lift) (hne : s.nonempty) (hle : ∀ g 
 have hbdd : bdd_above s := ⟨f, hle⟩,
 λ x, by { rw Sup_apply s hne hbdd, haveI := hne.to_subtype, exact csupr_le (λ g, hle g g.2 x) }
 
-noncomputable instance : conditionally_complete_lattice circle_deg1_lift :=
+/-
 { Inf := λ s, conj_neg (Sup $ conj_neg ⁻¹' s),
   le_cSup := λ s f hbdd hfs x, by { haveI : nonempty s := ⟨⟨f, hfs⟩⟩,
     exact (le_csupr _ _).trans_eq (Sup_apply _ _ _ _).symm },
-.. circle_deg1_lift.lattice, .. circle_deg1_lift.has_Sup }
+.. circle_deg1_lift.lattice, .. circle_deg1_lift.has_Sup }-/
 
 lemma iterate_monotone (n : ℕ) : monotone (λ f : circle_deg1_lift, f^[n]) :=
 λ f g h, f.monotone.iterate_le_of_le h _

@@ -468,17 +468,16 @@ by simp only [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici,
 ### Univ
 -/
 
-lemma order_top.upper_bounds_univ [order_top γ] : upper_bounds (univ : set γ) = {⊤} :=
-set.ext $ λ b, iff.trans ⟨λ hb, top_unique $ hb trivial, λ hb x hx, hb.symm ▸ le_top⟩
-  mem_singleton_iff.symm
-
 lemma is_greatest_univ [order_top γ] : is_greatest (univ : set γ) ⊤ :=
-by simp only [is_greatest, order_top.upper_bounds_univ, mem_univ, mem_singleton, true_and]
+⟨mem_univ _, λ x hx, le_top⟩
+
+@[simp] lemma order_top.upper_bounds_univ [order_top γ] : upper_bounds (univ : set γ) = {⊤} :=
+by rw [is_greatest_univ.upper_bounds_eq, Ici_top]
 
 lemma is_lub_univ [order_top γ] : is_lub (univ : set γ) ⊤ :=
 is_greatest_univ.is_lub
 
-lemma order_bot.lower_bounds_univ [order_bot γ] : lower_bounds (univ : set γ) = {⊥} :=
+@[simp] lemma order_bot.lower_bounds_univ [order_bot γ] : lower_bounds (univ : set γ) = {⊥} :=
 @order_top.upper_bounds_univ (order_dual γ) _
 
 lemma is_least_univ [order_bot γ] : is_least (univ : set γ) ⊥ :=
@@ -487,12 +486,18 @@ lemma is_least_univ [order_bot γ] : is_least (univ : set γ) ⊥ :=
 lemma is_glb_univ [order_bot γ] : is_glb (univ : set γ) ⊥ :=
 is_least_univ.is_glb
 
-lemma no_top_order.upper_bounds_univ [no_top_order α] : upper_bounds (univ : set α) = ∅ :=
+@[simp] lemma no_top_order.upper_bounds_univ [no_top_order α] : upper_bounds (univ : set α) = ∅ :=
 eq_empty_of_subset_empty $ λ b hb, let ⟨x, hx⟩ := no_top b in
 not_le_of_lt hx (hb trivial)
 
-lemma no_bot_order.lower_bounds_univ [no_bot_order α] : lower_bounds (univ : set α) = ∅ :=
+@[simp] lemma no_bot_order.lower_bounds_univ [no_bot_order α] : lower_bounds (univ : set α) = ∅ :=
 @no_top_order.upper_bounds_univ (order_dual α) _ _
+
+@[simp] lemma not_bdd_above_univ [no_top_order α] : ¬bdd_above (univ : set α) :=
+by simp [bdd_above]
+
+@[simp] lemma not_bdd_below_univ [no_bot_order α] : ¬bdd_below (univ : set α) :=
+@not_bdd_above_univ (order_dual α) _ _
 
 /-!
 ### Empty set

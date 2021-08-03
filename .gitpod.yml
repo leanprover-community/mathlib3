@@ -6,4 +6,5 @@ vscode:
     - jroesch.lean
 
 tasks:
-  - command: . /home/gitpod/.profile && leanproject get-mathlib-cache
+  # if getting the cache for the current commit fails, try the closest common ancestor between this branch and master
+  - command: . /home/gitpod/.profile && (leanproject get-mathlib-cache || leanproject get-cache --rev $(git merge-base origin/master HEAD))

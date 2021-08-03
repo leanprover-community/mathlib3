@@ -725,7 +725,7 @@ begin
       rwa count_erase_of_ne hxy } }
 end
 
-theorem subperm_ext {l₁ l₂ : list α}
+lemma subperm_ext {l₁ l₂ : list α}
   (h : ∀ x ∈ l₁, count x l₁ ≤ count x l₂) : l₁ <+~ l₂ :=
 begin
   induction l₁ with a l IH generalizing l₂,
@@ -787,6 +787,15 @@ begin
           { rw [count_eq_zero_of_not_mem ha, ←count_cons_of_ne (ne.symm hb.left)],
             refine lt_of_lt_of_le _ (h _ (mem_cons_self _ _)),
             simp } } } } }
+end
+
+lemma subperm_ext_iff {l₁ l₂ : list α} :
+  l₁ <+~ l₂ ↔ ∀ x ∈ l₁, count x l₁ ≤ count x l₂ :=
+begin
+  refine ⟨λ h x hx, _, subperm_ext⟩,
+  rcases h with ⟨l, hl, h⟩,
+  rw (perm.symm hl).count_eq x,
+  exact count_le_of_sublist x h
 end
 
 instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)

@@ -285,7 +285,7 @@ def equiv_fun {X Y : Sort*} (A : Sort*) (e : X ≃ Y) : (A → X) ≃ (A → Y) 
 -- Cassels-Froehlich `P i` is our instance below but with `i.succ`
 -- for some reason
 -- introducing the notation at all
-noncomputable instance {G : Type*} [group G] (i : ℕ) :
+noncomputable instance foo {G : Type*} [group G] (i : ℕ) :
   distrib_mul_action G ((fin i → G) →₀ ℤ) :=
 { smul := λ s c, finsupp.equiv_congr (equiv_fun (fin i) (equiv.mul_left s⁻¹ : G ≃ G)) c,
   -- it could be equiv.mul_right s, I didn't check carefully

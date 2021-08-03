@@ -8,6 +8,7 @@ import topology.instances.real
 import topology.algebra.module
 import algebra.indicator_function
 import data.equiv.encodable.lattice
+import data.fintype.card
 import data.nat.parity
 import order.filter.at_top_bot
 

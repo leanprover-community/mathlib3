@@ -13,10 +13,14 @@ We prove the sufficient and necessary conditions for a complex function to be co
 
 ## Main results
 
-* `conformal_at_of_holomorph_or_antiholomorph_at`: a holomorphic or antiholomorphic maps with
-                                                   a nonzero differential into an arbitrary complex
-                                                   normed space is conformal.
-* `conformal_at_iff_holomorphic_or_antiholomorphic_at`: the main theorem for complex functions.
+* `is_conformal_map_complex_linear`: a nonzero complex linear map into an arbitrary complex
+                                     normed space is conformal.
+* `is_conformal_map_complex_linear_conj`: the composition of a nonzero complex linear map with
+                                          `conj` is complex linear.
+* `is_complex_or_conj_complex_linear_iff_is_conformal_map`: a real linear map between the complex
+                                                            plane is conformal iff it's complex
+                                                            linear or the composition of
+                                                            some complex linear map and `conj`.
 
 ## Warning
 

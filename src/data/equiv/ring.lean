@@ -178,7 +178,7 @@ open opposite
 
 /-- A ring iso `α ≃+* β` can equivalently be viewed as a ring iso `αᵒᵖ ≃+* βᵒᵖ`. -/
 @[simps]
-def ring_equiv.op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
+protected def op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
   (α ≃+* β) ≃ (αᵒᵖ ≃+* βᵒᵖ) :=
 { to_fun    := λ f, { ..f.to_add_equiv.op, ..f.to_mul_equiv.op},
   inv_fun   := λ f, { ..(add_equiv.op.symm f.to_add_equiv), ..(mul_equiv.op.symm f.to_mul_equiv) },
@@ -186,7 +186,7 @@ def ring_equiv.op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
   right_inv := λ f, by { ext, refl } }
 
 /-- The 'unopposite' of a ring iso `αᵒᵖ ≃+* βᵒᵖ`. Inverse to `ring_equiv.op`. -/
-@[simp] def ring_equiv.unop {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
+@[simp] protected def unop {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
   (αᵒᵖ ≃+* βᵒᵖ) ≃ (α ≃+* β) := ring_equiv.op.symm
 
 section comm_semiring

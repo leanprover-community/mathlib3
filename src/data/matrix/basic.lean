@@ -890,6 +890,8 @@ rfl
 
 end alg_equiv
 
+open_locale matrix
+
 namespace matrix
 
 /-- For two vectors `w` and `v`, `vec_mul_vec w v i j` is defined to be `w i * v j`.

@@ -494,9 +494,13 @@ by norm_cast
 lemma coe_bit1 [add_semigroup α] [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
 by norm_cast
 
-@[simp] lemma bot_add [ordered_add_comm_monoid α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
+@[simp] lemma bot_add [add_semigroup α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
 
-@[simp] lemma add_bot [ordered_add_comm_monoid α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
+@[simp] lemma add_bot [add_semigroup α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
+
+@[simp] lemma add_eq_bot [add_semigroup α] {m n : with_bot α} :
+  m + n = ⊥ ↔ m = ⊥ ∨ n = ⊥ :=
+with_top.add_eq_top
 
 end with_bot
 
@@ -835,12 +839,53 @@ namespace order_dual
 instance [h : has_mul α] : has_mul (order_dual α) := h
 
 @[to_additive]
+instance contravariant_class_mul_le [has_le α] [has_mul α] [c : contravariant_class α α (*) (≤)] :
+  contravariant_class (order_dual α) (order_dual α) (*) (≤) :=
+⟨c.1.flip⟩
+
+@[to_additive]
+instance covariant_class_mul_le [has_le α] [has_mul α] [c : covariant_class α α (*) (≤)] :
+  covariant_class (order_dual α) (order_dual α) (*) (≤) :=
+⟨c.1.flip⟩
+
+@[to_additive] instance contravariant_class_swap_mul_le [has_le α] [has_mul α]
+  [c : contravariant_class α α (function.swap (*)) (≤)] :
+  contravariant_class (order_dual α) (order_dual α) (function.swap (*)) (≤) :=
+⟨c.1.flip⟩
+
+@[to_additive]
+instance covariant_class_swap_mul_le [has_le α] [has_mul α]
+  [c : covariant_class α α (function.swap (*)) (≤)] :
+  covariant_class (order_dual α) (order_dual α) (function.swap (*)) (≤) :=
+⟨c.1.flip⟩
+
+@[to_additive]
+instance contravariant_class_mul_lt [has_lt α] [has_mul α] [c : contravariant_class α α (*) (<)] :
+  contravariant_class (order_dual α) (order_dual α) (*) (<) :=
+⟨c.1.flip⟩
+
+@[to_additive]
+instance covariant_class_mul_lt [has_lt α] [has_mul α] [c : covariant_class α α (*) (<)] :
+  covariant_class (order_dual α) (order_dual α) (*) (<) :=
+⟨c.1.flip⟩
+
+@[to_additive] instance contravariant_class_swap_mul_lt [has_lt α] [has_mul α]
+  [c : contravariant_class α α (function.swap (*)) (<)] :
+  contravariant_class (order_dual α) (order_dual α) (function.swap (*)) (<) :=
+⟨c.1.flip⟩
+
+@[to_additive]
+instance covariant_class_swap_mul_lt [has_lt α] [has_mul α]
+  [c : covariant_class α α (function.swap (*)) (<)] :
+  covariant_class (order_dual α) (order_dual α) (function.swap (*)) (<) :=
+⟨c.1.flip⟩
+
+@[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
-{ mul_le_mul_left := λ a b h c, show (id c : α) * b ≤ c * a, from mul_le_mul_left' h _,
-  lt_of_mul_lt_mul_left := λ a b c h, by
-    apply lt_of_mul_lt_mul_left' (by convert h : (id a : α) * c < a * b),
+{ mul_le_mul_left := λ a b h c, mul_le_mul_left' h c,
+  lt_of_mul_lt_mul_left := λ a b c, lt_of_mul_lt_mul_left',
   ..order_dual.partial_order α,
-  ..show comm_monoid α, by apply_instance }
+  ..(infer_instance : comm_monoid α) }
 
 @[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
 instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :

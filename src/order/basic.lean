@@ -386,6 +386,10 @@ begin
     apply h _ _ k }
 end
 
+lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
+  (h : ∀ {x y}, f x ≤ f y → x ≤ y) : injective f :=
+λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
+
 lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
   (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
 λ a b h,
@@ -410,6 +414,10 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)]
 { le       := λ x y, ∀ i, x i ≤ y i,
   le_refl  := λ a i, le_refl (a i),
   le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
+
+lemma function.monotone_eval {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] (i : ι) :
+  monotone (function.eval i : (Π i, α i) → α i) :=
+λ f g H, H i
 
 lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x ≤ y ↔ ∀ i, x i ≤ y i :=

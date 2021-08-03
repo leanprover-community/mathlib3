@@ -181,14 +181,28 @@ end
 
 instance [linear_order α] : is_trichotomous (finset.colex α) (<) := ⟨lt_trichotomy⟩
 
--- It should be possible to do this computably but it doesn't seem to make any difference for now.
-noncomputable instance [linear_order α] : linear_order (finset.colex α) :=
+instance decidable_lt [linear_order α] : ∀ {A B : finset.colex α}, decidable (A < B) :=
+show ∀ A B : finset α, decidable (A.to_colex < B.to_colex),
+from λ A B, decidable_of_iff'
+  (∃ (k ∈ B), (∀ x ∈ A ∪ B, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A)
+  begin
+    rw colex.lt_def,
+    apply exists_congr,
+    simp only [mem_union, exists_prop, or_imp_distrib, and_comm (_ ∈ B), and_assoc],
+    intro k,
+    refine and_congr_left' (forall_congr _),
+    tauto,
+  end
+
+instance [linear_order α] : linear_order (finset.colex α) :=
 { le_refl := λ A, or.inr rfl,
   le_trans := le_trans,
   le_antisymm := λ A B AB BA, AB.elim (λ k, BA.elim (λ t, (asymm k t).elim) (λ t, t.symm)) id,
   le_total := λ A B,
           (lt_trichotomy A B).elim3 (or.inl ∘ or.inl) (or.inl ∘ or.inr) (or.inr ∘ or.inl),
-  decidable_le := classical.dec_rel _,
+  decidable_le := λ A B, by apply_instance,
+  decidable_lt := λ A B, by apply_instance,
+  decidable_eq := λ A B, by apply_instance,
   lt_iff_le_not_le := λ A B,
   begin
     split,
@@ -197,7 +211,7 @@ noncomputable instance [linear_order α] : linear_order (finset.colex α) :=
       rintro (i | rfl),
       { apply asymm_of _ t i },
       { apply irrefl _ t } },
-    rintro ⟨(h₁ | rfl), h₂⟩,
+    rintro ⟨h₁ | rfl, h₂⟩,
     { apply h₁ },
     apply h₂.elim (or.inr rfl),
   end,
@@ -340,13 +354,19 @@ instance [linear_order α] : order_bot (finset.colex α) :=
   bot_le := λ x, empty_to_colex_le,
   ..(by apply_instance : partial_order (finset.colex α)) }
 
-noncomputable instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
+instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
 { ..finset.colex.order_bot,
   ..(by apply_instance : semilattice_inf (finset.colex α)) }
 
-noncomputable instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
+instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
 { ..finset.colex.order_bot,
   ..(by apply_instance : semilattice_sup (finset.colex α)) }
+
+instance [linear_order α] [fintype α] : bounded_lattice (finset.colex α) :=
+{ top := finset.univ.to_colex,
+  le_top := λ x, colex_le_of_subset (subset_univ _),
+  ..(by apply_instance : semilattice_sup (finset.colex α)),
+  ..(by apply_instance : semilattice_inf_bot (finset.colex α)) }
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :

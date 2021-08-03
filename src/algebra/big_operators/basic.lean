@@ -374,11 +374,6 @@ begin
 end
 
 @[to_additive]
-lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} (g : β → γ) [is_monoid_hom g] :
-  (∏ x in s, g (f x)) = g (∏ x in s, f x) :=
-((monoid_hom.of g).map_prod f s).symm
-
-@[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
   (h₁ : r 1 1) (h₂ : ∀ a b c, r b c → r (f a * b) (g a * c)) : r (∏ x in s, f x) (∏ x in s, g x) :=
 by { delta finset.prod, apply multiset.prod_hom_rel; assumption }
@@ -1068,6 +1063,20 @@ begin
     exact h }
 end
 
+/-- Taking a product over `s : finset α` is the same as multiplying the value on a single element
+`f a` by the product of `s.erase a`. -/
+@[to_additive "Taking a sum over `s : finset α` is the same as adding the value on a single element
+`f a` to the the sum over `s.erase a`."]
+lemma mul_prod_erase [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
+  f a * (∏ x in s.erase a, f x) = ∏ x in s, f x :=
+by rw [← prod_insert (not_mem_erase a s), insert_erase h]
+
+/-- A variant of `finset.mul_prod_erase` with the multiplication swapped. -/
+@[to_additive "A variant of `finset.add_sum_erase` with the addition swapped."]
+lemma prod_erase_mul [decidable_eq α] (s : finset α) (f : α → β) {a : α} (h : a ∈ s) :
+  (∏ x in s.erase a, f x) * f a = ∏ x in s, f x :=
+by rw [mul_comm, mul_prod_erase s f h]
+
 /-- If a function applied at a point is 1, a product is unchanged by
 removing that point, if present, from a `finset`. -/
 @[to_additive "If a function applied at a point is 0, a sum is unchanged by
@@ -1182,7 +1191,7 @@ variables [comm_group β]
 
 @[simp, to_additive]
 lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
-s.prod_hom has_inv.inv
+(monoid_hom.map_prod (comm_group.inv_monoid_hom : β →* β) f s).symm
 
 end comm_group
 
@@ -1216,9 +1225,9 @@ theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α)
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
 card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
 
-lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
+lemma gsmul_sum (α β : Type) [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=
-(s.sum_hom (gsmul z)).symm
+add_monoid_hom.map_sum (gsmul_add_group_hom z : β →+ β) f s
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
@@ -1228,9 +1237,7 @@ section prod_eq_zero
 variables [comm_monoid_with_zero β]
 
 lemma prod_eq_zero (ha : a ∈ s) (h : f a = 0) : (∏ x in s, f x) = 0 :=
-by haveI := classical.dec_eq α;
-calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
-                 ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
+by { haveI := classical.dec_eq α, rw [←prod_erase_mul _ _ ha, h, mul_zero] }
 
 lemma prod_boole {s : finset α} {p : α → Prop} [decidable_pred p] :
   ∏ i in s, ite (p i) (1 : β) (0 : β) = ite (∀ i ∈ s, p i) 1 0 :=

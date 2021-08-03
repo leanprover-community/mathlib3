@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
 import order.rel_iso
+import order.order_dual
 
 /-!
 # Ordered groups
@@ -26,9 +27,7 @@ variable {α : Type u}
 @[to_additive]
 instance group.covariant_class_le.to_contravariant_class_le
   [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
-{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
-                          ... ≤ a⁻¹ * (a * c) : mul_le_mul_left' bc a⁻¹
-                          ... = c             : inv_mul_cancel_left a c }
+group.covconv
 
 @[to_additive]
 instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
@@ -275,19 +274,22 @@ by { rw [← mul_le_mul_iff_left a, ← mul_le_mul_iff_right b], simp }
 
 alias neg_le_neg_iff ↔ le_of_neg_le_neg _
 
-@[to_additive]
-lemma inv_le_of_inv_le (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
-inv_le_inv_iff.mp (
-  calc  a⁻¹ ≤ b     : h
-        ... = b⁻¹⁻¹ : (inv_inv _).symm)
+/-- `x ↦ x⁻¹` as an order-reversing equivalence. -/
+@[to_additive "`x ↦ -x` as an order-reversing equivalence.", simps]
+def order_iso.inv : α ≃o order_dual α :=
+{ to_equiv := (equiv.inv α).trans order_dual.to_dual,
+  map_rel_iff' := λ a b, @inv_le_inv_iff α _ _ _ _ _ _ }
 
 @[to_additive neg_le]
 lemma inv_le' : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv_iff, inv_inv]
+order_iso.inv.symm_apply_le
+
+alias inv_le' ↔ inv_le_of_inv_le _
+attribute [to_additive] inv_le_of_inv_le
 
 @[to_additive le_neg]
 lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv_iff, inv_inv]
+order_iso.inv.le_symm_apply
 
 @[to_additive]
 lemma mul_inv_le_inv_mul_iff : a * b⁻¹ ≤ d⁻¹ * c ↔ d * a ≤ c * b :=
@@ -309,18 +311,6 @@ variables [has_lt α] [covariant_class α α (*) (<)] [covariant_class α α (fu
 lemma inv_lt_inv_iff : a⁻¹ < b⁻¹ ↔ b < a :=
 by { rw [← mul_lt_mul_iff_left a, ← mul_lt_mul_iff_right b], simp }
 
-@[to_additive]
-lemma lt_inv_of_lt_inv (h : a < b⁻¹) : b < a⁻¹ :=
-inv_lt_inv_iff.mp (
-  calc  a⁻¹⁻¹ = a   : inv_inv a
-          ... < b⁻¹ : h)
-
-@[to_additive]
-lemma inv_lt_of_inv_lt (h : a⁻¹ < b) : b⁻¹ < a :=
-inv_lt_inv_iff.mp (
-    calc  a⁻¹ < b : h
-          ... = b⁻¹⁻¹   : (inv_inv b).symm)
-
 @[to_additive neg_lt]
 lemma inv_lt' : a⁻¹ < b ↔ b⁻¹ < a :=
 by rw [← inv_lt_inv_iff, inv_inv]
@@ -328,6 +318,12 @@ by rw [← inv_lt_inv_iff, inv_inv]
 @[to_additive lt_neg]
 lemma lt_inv' : a < b⁻¹ ↔ b < a⁻¹ :=
 by rw [← inv_lt_inv_iff, inv_inv]
+
+alias lt_inv' ↔ lt_inv_of_lt_inv _
+attribute [to_additive] lt_inv_of_lt_inv
+
+alias inv_lt' ↔ inv_lt_of_inv_lt _
+attribute [to_additive] inv_lt_of_inv_lt
 
 @[to_additive]
 lemma mul_inv_lt_inv_mul_iff : a * b⁻¹ < d⁻¹ * c ↔ d * a < c * b :=
@@ -565,20 +561,28 @@ alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
-/-- `equiv.mul_right` as an order_iso. -/
-@[simps {simp_rhs := tt}]
+/-- `equiv.mul_right` as an `order_iso`. -/
+@[to_additive "`equiv.add_right` as an `order_iso`.", simps to_equiv apply {simp_rhs := tt}]
 def order_iso.mul_right (a : α) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_iff_right a, ..equiv.mul_right a }
+{ map_rel_iff' := λ _ _, mul_le_mul_iff_right a, to_equiv := equiv.mul_right a }
+
+@[simp, to_additive] lemma order_iso.mul_right_symm (a : α) :
+  (order_iso.mul_right a).symm = order_iso.mul_right a⁻¹ :=
+by { ext x, refl }
 
 end right
 
 section left
 variables [covariant_class α α (*) (≤)]
 
-/-- `equiv.mul_left` as an order_iso. -/
-@[simps {simp_rhs := tt}]
+/-- `equiv.mul_left` as an `order_iso`. -/
+@[to_additive "`equiv.add_left` as an `order_iso`.", simps to_equiv apply  {simp_rhs := tt}]
 def order_iso.mul_left (a : α) : α ≃o α :=
-{ map_rel_iff' := λ _ _, mul_le_mul_iff_left a, ..equiv.mul_left a }
+{ map_rel_iff' := λ _ _, mul_le_mul_iff_left a, to_equiv := equiv.mul_left a }
+
+@[simp, to_additive] lemma order_iso.mul_left_symm (a : α) :
+  (order_iso.mul_left a).symm = order_iso.mul_left a⁻¹ :=
+by { ext x, refl }
 
 variables [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
 

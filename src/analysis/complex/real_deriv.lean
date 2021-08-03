@@ -64,7 +64,7 @@ times_cont_diff_iff_times_cont_diff_at.2 $ λ x,
 end real_deriv_of_complex
 
 section complex_fderiv_properties
-/-! ## Antiholomorphy of complex functions -/
+/-! ### Antiholomorphy of complex functions -/
 open complex continuous_linear_map
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
@@ -81,7 +81,6 @@ begin
   rw [conj_conj, (has_fderiv_at_conj $ conj z).fderiv] at p,
   exact p.symm,
 end
-
 
 /-- A (real-differentiable) complex function `f` is antiholomorphic if and only if there exists some
     complex linear map `g'` that equals to the composition of `f`'s differential and the conjugate

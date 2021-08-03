@@ -9,7 +9,8 @@ import algebra.pointwise
 /-!
 # Upper/lower bounds in ordered monoids and groups
 
-In this file we prove a few facts like “`-s` is bounded above iff `s` is bounded below” (`bdd_above_neg`).
+In this file we prove a few facts like “`-s` is bounded above iff `s` is bounded below”
+(`bdd_above_neg`).
 -/
 
 open set

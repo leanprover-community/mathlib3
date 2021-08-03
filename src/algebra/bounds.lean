@@ -67,8 +67,7 @@ forall_image2_iff.2 $ λ x hx y hy, mul_le_mul' (ha hx) (hb hy)
 image2_subset_iff.2 $ λ x hx y hy, mul_mem_upper_bounds_mul hx hy
 
 @[to_additive] lemma mul_mem_lower_bounds_mul {s t : set M} {a b : M} (ha : a ∈ lower_bounds s)
-  (hb : b ∈ lower_bounds t) :
-  a * b ∈ lower_bounds (s * t) :=
+  (hb : b ∈ lower_bounds t) : a * b ∈ lower_bounds (s * t) :=
 @mul_mem_upper_bounds_mul (order_dual M) _ _ _ _ _ _ _ _ ha hb
 
 @[to_additive] lemma subset_lower_bounds_mul (s t : set M) :

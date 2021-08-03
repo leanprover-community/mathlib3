@@ -1,9 +1,31 @@
-import group_theory.solvable -- too strong -- need to move general_commutator stuff out of this file
+/-
+Copyright (c) 2021 Kevin Buzzard. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Buzzard
+-/
 
+import group_theory.general_commutator
+
+/-
+
+# Nilpotent groups
+
+A basic API for nilpotent groups, that is, groups for which the upper central series
+reaches `⊥`.
+
+## Main definitions
+
+* `upper_central_series G : ℕ → subgroup G` : the upper central series of a group `G`.
+    This is an increasing sequence of normal subgroups `H n` of `G` with the property
+    that `H (n + 1) / H n` is the centre of `G / H n`.
+* `general_commutator H₁ H₂` : the commutator of the subgroups `H₁` and `H₂`
+
+-/
 variables (G : Type*) [group G]
 
 open subgroup
 
+/-- `upper_central_series G n` is the `n`th term in the upper central series of `G`. -/
 def upper_central_series : ℕ → subgroup G
 | 0 := ⊥
 | (n+1) := subgroup.normal_closure {x : G | ∀ y : G, x * y * x⁻¹ * y⁻¹ ∈ upper_central_series n}
@@ -45,7 +67,7 @@ instance upper_central_series_aux_normal (G : Type*) [group G] :
   group,
 end⟩
 
-lemma upper_central_series_def_aux {G : Type*} [group G] (n : ℕ) :
+lemma upper_central_series_eq_aux {G : Type*} [group G] (n : ℕ) :
   upper_central_series G n = upper_central_series_aux G n :=
 begin
   cases n,
@@ -58,7 +80,7 @@ lemma mem_upper_central_series_succ_iff {G : Type*} [group G] (n : ℕ) (x : G) 
   x ∈ upper_central_series G (n + 1) ↔
   ∀ y : G, x * y * x⁻¹ * y⁻¹ ∈ upper_central_series G n :=
 begin
-  rw upper_central_series_def_aux,
+  rw upper_central_series_eq_aux,
   refl,
 end
 
@@ -66,19 +88,30 @@ end
 class is_nilpotent (G : Type*) [group G] : Prop :=
 (nilpotent [] : ∃ n : ℕ, upper_central_series G n = ⊤)
 
+section classical
+
 open_locale classical
 
+/-- The nilpotenct class of a nilpotent group is the small natural `n` such that
+the `n`'th term of the upper central series is `G`. -/
 noncomputable def nilpotency_class (G : Type*) [group G] [is_nilpotent G] : ℕ :=
 nat.find (is_nilpotent.nilpotent G)
 
+end classical
+
 variable {G}
 
-def is_ascending_central_series (H : ℕ → subgroup G) := H 0 = ⊥ ∧ ∀ (x : G) (n : ℕ), x ∈ H (n + 1) →
-  ∀ g, x * g * x⁻¹ * g⁻¹ ∈ H n
+/-- A sequence of subgroups of `G` is an ascending central series if `H 0` is trivial and
+  `⁅H (n + 1), G⁆ ⊆ H n` for all `n`. -/
+def is_ascending_central_series (H : ℕ → subgroup G) := H 0 = ⊥ ∧
+  ∀ (x : G) (n : ℕ), x ∈ H (n + 1) → ∀ g, x * g * x⁻¹ * g⁻¹ ∈ H n
 
-def is_descending_central_series (H : ℕ → subgroup G) := H 0 = ⊤ ∧ ∀ (x : G) (n : ℕ), x ∈ H n →
-  ∀ g, x * g * x⁻¹ * g⁻¹ ∈ H (n + 1)
+/-- A sequence of subgroups of `G` is a descending central series if `H 0` is `G` and
+  `⁅H n, G⁆ ⊆ H (n + 1)` for all `n`. -/
+def is_descending_central_series (H : ℕ → subgroup G) := H 0 = ⊤ ∧
+  ∀ (x : G) (n : ℕ), x ∈ H n → ∀ g, x * g * x⁻¹ * g⁻¹ ∈ H (n + 1)
 
+/-- Any ascending central series for a group is bounded above by the upper central series. -/
 lemma ascending_central_series_le_upper (H : ℕ → subgroup G) (hH : is_ascending_central_series H) :
   ∀ n : ℕ, H n ≤ upper_central_series G n
 | 0 := hH.1.symm ▸ le_refl ⊥
@@ -94,15 +127,18 @@ end
 
 variable (G)
 
+/-- The upper central series of a group is an ascending central series. -/
 lemma upper_central_series_is_ascending_central_series :
   is_ascending_central_series (upper_central_series G) :=
 begin
   split, refl,
   intros x n,
-  rw upper_central_series_def_aux,
+  rw upper_central_series_eq_aux,
   exact id,
 end
 
+/-- A group G is nilpotent iff there exists an ascending central series which reaches `G` in
+  finitely many steps. -/
 theorem nilpotent_iff_finite_ascending_central_series :
   is_nilpotent G ↔ ∃ H : ℕ → subgroup G, is_ascending_central_series H ∧ ∃ n : ℕ, H n = ⊤ :=
 begin
@@ -118,6 +154,8 @@ begin
     exact eq_top_iff.mpr this }
 end
 
+/-- A group G is nilpotent iff there exists a descending central series which reaches the
+  trivial group in a finite time. -/
 theorem nilpotent_iff_finite_descending_central_series :
   is_nilpotent G ↔ ∃ H : ℕ → subgroup G, is_descending_central_series H ∧ ∃ n : ℕ, H n = ⊥ :=
 begin
@@ -138,8 +176,7 @@ begin
         apply hH,
         convert hx,
         rw nat.sub_succ,
-        apply nat.succ_pred_eq_of_pos,
-        exact nat.sub_pos_of_lt hm } },
+        exact nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt hm) } },
     { use n,
       rwa nat.sub_self } },
   { rintro ⟨H, ⟨h0, hH⟩, n, hn⟩,
@@ -153,22 +190,23 @@ begin
         rw [hnm, h0],
         exact mem_top _ },
       { push_neg at hm,
-        dsimp,
+        dsimp only,
         convert hH x _ hx g,
         rw nat.sub_succ,
-        apply (nat.succ_pred_eq_of_pos _).symm,
-        exact nat.sub_pos_of_lt hm } },
+        exact (nat.succ_pred_eq_of_pos (nat.sub_pos_of_lt hm)).symm } },
     { use n,
       rwa nat.sub_self } },
 end
 
-
+/-- The lower central series of a group `G` is a sequence `H n` of subgroups of `G`, defined
+  by `H 0` is all of `G` and for `n≥1`, `H (n + 1) = ⁅H n, G⁆` -/
 def lower_central_series (G : Type*) [group G] : ℕ → subgroup G
 | 0 := ⊤
 | (n+1) := ⁅lower_central_series n, ⊤⁆
 
 variable {G}
 
+/-- The lower central series is a descending central series. -/
 theorem lower_central_series_is_descending_central_series :
   is_descending_central_series (lower_central_series G) :=
 begin
@@ -177,6 +215,7 @@ begin
   exact general_commutator_containment _ _ hxn (subgroup.mem_top g),
 end
 
+/-- Any descending central series is bounded below by the lower central series. -/
 lemma descending_central_series_ge_lower (H : ℕ → subgroup G)
   (hH : is_descending_central_series H) : ∀ n : ℕ, lower_central_series G n ≤ H n
 | 0 := hH.1.symm ▸ le_refl ⊤
@@ -187,6 +226,8 @@ lemma descending_central_series_ge_lower (H : ℕ → subgroup G)
   exact hH.2 x n (descending_central_series_ge_lower hx) q,
 end
 
+/-- A group is nilpotent if and only if its lower central series eventually reaches
+  the trivial subgroup. -/
 theorem nilpotent_iff_lower : is_nilpotent G ↔ ∃ n, lower_central_series G n = ⊥ :=
 begin
   rw nilpotent_iff_finite_descending_central_series,

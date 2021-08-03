@@ -3,7 +3,6 @@ Copyright (c) 2021 Yourong Zang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
-import geometry.euclidean.basic
 import analysis.normed_space.inner_product
 
 /-!
@@ -120,22 +119,6 @@ begin
   have : f' a = f' 0,
   { simp_rw [w, continuous_linear_map.zero_apply], },
   exact ha (hf'.injective this),
-end
-
-lemma preserves_angle {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
-  inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
-begin
-  obtain ⟨c, hc, li, hcf⟩ := h,
-  suffices : c * (c * inner u v) / (∥c∥ * ∥u∥ * (∥c∥ * ∥v∥)) = inner u v / (∥u∥ * ∥v∥),
-  { simp [this, inner_product_geometry.angle, hcf, norm_smul, inner_smul_left, inner_smul_right] },
-  by_cases hu : ∥u∥ = 0,
-  { simp [norm_eq_zero.mp hu] },
-  by_cases hv : ∥v∥ = 0,
-  { simp [norm_eq_zero.mp hv] },
-  have hc : ∥c∥ ≠ 0 := λ w, hc (norm_eq_zero.mp w),
-  field_simp,
-  have : c * c = ∥c∥ * ∥c∥ := by simp [real.norm_eq_abs, abs_mul_abs_self],
-  convert congr_arg (λ x, x * ⟪u, v⟫ * ∥u∥ * ∥v∥) this using 1; ring,
 end
 
 end is_conformal_map

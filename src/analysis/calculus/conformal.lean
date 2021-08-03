@@ -132,13 +132,6 @@ lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} {x : E} {f' : E →L[
   ⟪f' u, f' v⟫ = (conformal_factor_at H : ℝ) * ⟪u, v⟫ :=
 (H.differentiable_at.has_fderiv_at.unique h) ▸ conformal_factor_at_inner_eq_mul_inner' H u v
 
-/-- If a real differentiable map `f` is conformal at a point `x`,
-    then it preserves the angles at that point. -/
-lemma preserves_angle {f : E → F} {x : E} {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
-  inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
-let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ c.preserves_angle u v
-
 end conformal_at
 
 end loc_conformality

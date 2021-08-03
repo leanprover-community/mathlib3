@@ -320,8 +320,7 @@ begin
     simp [ennreal.of_real_eq_zero, f.le_left_lim hab] }
 end
 
-@[simp] lemma measure_Ioo {a b : ℝ} :
-  f.measure (Ioo a b) = of_real (f.left_lim b - f a) :=
+@[simp] lemma measure_Ioo {a b : ℝ} : f.measure (Ioo a b) = of_real (f.left_lim b - f a) :=
 begin
   rcases le_or_lt b a with hab|hab,
   { simp only [hab, measure_empty, Ioo_eq_empty, not_lt],

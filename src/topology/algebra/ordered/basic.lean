@@ -1162,12 +1162,6 @@ mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
 lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
 mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
 
-end linear_order
-
-section linear_order
-
-variables [topological_space α] [linear_order α] [order_topology α]
-
 section pi
 
 /-!

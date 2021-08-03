@@ -756,14 +756,24 @@ lemma contravariant.mul_le_cancellable [has_mul α] [has_le α] [contravariant_c
 namespace mul_le_cancellable
 
 @[to_additive]
-protected lemma inj [has_mul α] [partial_order α] {a b c : α} (ha : mul_le_cancellable a)
-  (h : a * b = a * c) : b = c :=
-le_antisymm (ha h.le) (ha h.ge)
-
-@[to_additive]
 protected lemma injective [has_mul α] [partial_order α] {a : α} (ha : mul_le_cancellable a) :
   function.injective ((*) a) :=
-λ b c, ha.inj
+λ b c h, le_antisymm (ha h.le) (ha h.ge)
+
+@[to_additive]
+protected lemma inj [has_mul α] [partial_order α] {a b c : α} (ha : mul_le_cancellable a) :
+  a * b = a * c ↔ b = c :=
+ha.injective.eq_iff
+
+@[to_additive]
+protected lemma injective_left [comm_semigroup α] [partial_order α] {a : α}
+  (ha : mul_le_cancellable a) : function.injective (* a) :=
+λ b c h, ha.injective $ by rwa [mul_comm a, mul_comm a]
+
+@[to_additive]
+protected lemma inj_left [comm_semigroup α] [partial_order α] {a b c : α}
+  (hc : mul_le_cancellable c) : a * c = b * c ↔ a = b :=
+hc.injective_left.eq_iff
 
 variable [has_le α]
 

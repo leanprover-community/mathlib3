@@ -492,10 +492,10 @@ protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ 
 sub_add_sub_cancel''  hab hbc
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
-sub_eq_of_eq_add'' h
+sub_eq_of_eq_add'' $ by rw [add_comm, h]
 
 theorem sub_cancel {a b c : ℕ} (h₁ : a ≤ b) (h₂ : a ≤ c) (w : b - a = c - a) : b = c :=
-sub_cancel_right h₁ h₂ w
+sub_inj_left h₁ h₂ w
 
 lemma sub_sub_sub_cancel_right {a b c : ℕ} (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
 sub_sub_sub_cancel_right' h₂

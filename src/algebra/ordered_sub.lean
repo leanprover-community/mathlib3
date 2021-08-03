@@ -49,7 +49,7 @@ class has_ordered_sub (α : Type*) [preorder α] [has_add α] [has_sub α] :=
 section ordered_add_comm_monoid
 variables {a b c d : α} [partial_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
 
-lemma sub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
+@[simp] lemma sub_le_iff_right : a - b ≤ c ↔ a ≤ c + b :=
 has_ordered_sub.sub_le_iff_right a b c
 
 lemma sub_le_iff_left : a - b ≤ c ↔ a ≤ b + c :=
@@ -82,6 +82,10 @@ begin
   { rw [sub_le_iff_left, add_assoc, ← sub_le_iff_left, ← sub_le_iff_left] }
 end
 
+/-- See `sub_sub_cancel_of_le` for the equality. -/
+lemma sub_sub_le : b - (b - a) ≤ a :=
+sub_le_iff_right.mpr le_add_sub
+
 section cov
 variable [covariant_class α α (+) (≤)]
 
@@ -108,6 +112,10 @@ by { rw [add_assoc], exact add_le_add_left le_add_sub a }
 lemma sub_right_comm' : a - b - c = a - c - b :=
 by simp_rw [← sub_add_eq_sub_sub', add_comm]
 
+/-- See `add_sub_assoc_of_le` for the equality. -/
+lemma add_sub_le_assoc : a + b - c ≤ a + (b - c) :=
+by { rw [sub_le_iff_left, add_left_comm], exact add_le_add_left le_add_sub a }
+
 lemma le_sub_add_add : a + b ≤ (a - c) + (b + c) :=
 by { rw [add_comm a, add_comm (a - c)], exact add_le_add_add_sub }
 
@@ -123,24 +131,23 @@ begin
   refine le_sub_add.trans (add_le_add_left le_add_sub _),
 end
 
-/-- See `add_sub_assoc_of_le` for the equality. -/
-lemma add_sub_le_assoc : a + b - c ≤ a + (b - c) :=
-by { rw [sub_le_iff_left, add_left_comm], exact add_le_add_left le_add_sub a }
-
 end cov
 
 /-! Lemmas that assume that an element is `add_le_cancellable`. -/
 namespace add_le_cancellable
 
-protected lemma le_add_sub (hb : add_le_cancellable b) : a ≤ b + a - b :=
+protected lemma le_add_sub_swap (hb : add_le_cancellable b) : a ≤ b + a - b :=
 hb le_add_sub
 
-protected lemma sub_eq_of_eq_add (hb : add_le_cancellable b) (h : a = b + c) : a - b = c :=
-le_antisymm (sub_le_iff_left.mpr h.le) $
+protected lemma le_add_sub (hb : add_le_cancellable b) : a ≤ a + b - b :=
+by { rw [add_comm], exact hb.le_add_sub_swap }
+
+protected lemma sub_eq_of_eq_add (hb : add_le_cancellable b) (h : a = c + b) : a - b = c :=
+le_antisymm (sub_le_iff_right.mpr h.le) $
   by { rw h, exact hb.le_add_sub }
 
 protected lemma eq_sub_of_add_eq (hc : add_le_cancellable c) (h : a + c = b) : a = b - c :=
-(hc.sub_eq_of_eq_add $ by rw [add_comm, h]).symm
+(hc.sub_eq_of_eq_add h.symm).symm
 
 @[simp]
 protected lemma add_sub_cancel_right (hb : add_le_cancellable b) : a + b - b = a :=
@@ -148,7 +155,7 @@ hb.sub_eq_of_eq_add $ by rw [add_comm]
 
 @[simp]
 protected lemma add_sub_cancel_left (ha : add_le_cancellable a) : a + b - a = b :=
-ha.sub_eq_of_eq_add rfl
+ha.sub_eq_of_eq_add $ add_comm a b
 
 protected lemma le_sub_of_add_le_left (ha : add_le_cancellable a) (h : a + b ≤ c) : b ≤ c - a :=
 ha $ h.trans le_add_sub
@@ -179,10 +186,13 @@ end add_le_cancellable
 section contra
 variable [contravariant_class α α (+) (≤)]
 
-lemma le_add_sub' : a ≤ b + a - b :=
+lemma le_add_sub_swap : a ≤ b + a - b :=
+contravariant.add_le_cancellable.le_add_sub_swap
+
+lemma le_add_sub' : a ≤ a + b - b :=
 contravariant.add_le_cancellable.le_add_sub
 
-lemma sub_eq_of_eq_add'' (h : a = b + c) : a - b = c :=
+lemma sub_eq_of_eq_add'' (h : a = c + b) : a - b = c :=
 contravariant.add_le_cancellable.sub_eq_of_eq_add h
 
 lemma eq_sub_of_add_eq'' (h : a + c = b) : a = b - c :=
@@ -279,6 +289,9 @@ lemma add_le_of_le_sub_left_of_le (h : a ≤ c) (h2 : b ≤ c - a) : a + b ≤ c
 lemma sub_le_sub_iff_right' (h : c ≤ b) : a - c ≤ b - c ↔ a ≤ b :=
 by rw [sub_le_iff_right, sub_add_cancel_of_le h]
 
+lemma sub_left_inj' (h1 : c ≤ a) (h2 : c ≤ b) : a - c = b - c ↔ a = b :=
+by simp_rw [le_antisymm_iff, sub_le_sub_iff_right' h1, sub_le_sub_iff_right' h2]
+
 /-- See `lt_of_sub_lt_sub_right` for a stronger statement in a linear order. -/
 lemma lt_of_sub_lt_sub_right_of_le (h : c ≤ b) (h2 : a - c < b - c) : a < b :=
 by { refine ((sub_le_sub_iff_right' h).mp h2.le).lt_of_ne _, rintro rfl, exact h2.false }
@@ -289,16 +302,19 @@ by rw [← nonpos_iff_eq_zero, sub_le_iff_left, add_zero]
 @[simp] lemma sub_self' : a - a = 0 :=
 sub_eq_zero_iff_le.mpr le_rfl
 
-lemma sub_le_self' : a - b ≤ a :=
+@[simp] lemma sub_le_self' : a - b ≤ a :=
 sub_le_iff_left.mpr $ le_add_left le_rfl
 
 @[simp] lemma sub_zero' : a - 0 = a :=
 le_antisymm sub_le_self' $ le_add_sub.trans_eq $ zero_add _
 
+@[simp] lemma zero_sub' : 0 - a = 0 :=
+sub_eq_zero_iff_le.mpr $ zero_le a
+
 lemma sub_self_add (a b : α) : a - (a + b) = 0 :=
 by { rw [sub_eq_zero_iff_le], apply self_le_add_right }
 
-lemma sub_cancel_right (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : b - a = c - a) : b = c :=
+lemma sub_inj_left (h₁ : a ≤ b) (h₂ : a ≤ c) (h₃ : b - a = c - a) : b = c :=
 by rw [← sub_add_cancel_of_le h₁, ← sub_add_cancel_of_le h₂, h₃]
 
 lemma sub_pos_iff_not_le : 0 < a - b ↔ ¬ a ≤ b :=
@@ -413,26 +429,34 @@ begin
   apply ha,
 end
 
+protected lemma sub_right_inj (ha : add_le_cancellable a) (hb : add_le_cancellable b)
+  (hc : add_le_cancellable c) (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :=
+by simp_rw [le_antisymm_iff, ha.sub_le_sub_iff_left hb hba, ha.sub_le_sub_iff_left hc hca, and_comm]
+
 protected lemma sub_lt_sub_right_of_le (hc : add_le_cancellable c) (h : c ≤ a) (h2 : a < b) :
   a - c < b - c :=
 by { apply hc.lt_sub_of_add_lt_left, rwa [add_sub_cancel_of_le h] }
 
-protected lemma sub_cancel_left (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a) (h₂ : c ≤ a)
+protected lemma sub_inj_right (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a) (h₂ : c ≤ a)
   (h₃ : a - b = a - c) : b = c :=
-by { apply hab.inj, rw [sub_add_cancel_of_le h₁, h₃, sub_add_cancel_of_le h₂] }
+by { rw ← hab.inj, rw [sub_add_cancel_of_le h₁, h₃, sub_add_cancel_of_le h₂] }
 
 protected lemma sub_lt_sub_iff_left_of_le_of_le (hb : add_le_cancellable b)
   (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a) (h₂ : c ≤ a) : a - b < a - c ↔ c < b :=
 begin
   refine ⟨hb.lt_of_sub_lt_sub_left_of_le h₂, _⟩,
   intro h, refine (sub_le_sub_left' h.le _).lt_of_ne _,
-  rintro h2, exact h.ne' (hab.sub_cancel_left h₁ h₂ h2)
+  rintro h2, exact h.ne' (hab.sub_inj_right h₁ h₂ h2)
 end
 
 @[simp] protected lemma add_sub_sub_cancel (hac : add_le_cancellable (a - c)) (h : c ≤ a) :
   (a + b) - (a - c) = b + c :=
 (hac.sub_eq_iff_eq_add_of_le $ sub_le_self'.trans le_self_add).mpr $
   by rw [add_assoc, add_sub_cancel_of_le h, add_comm]
+
+protected lemma sub_sub_cancel_of_le (hba : add_le_cancellable (b - a)) (h : a ≤ b) :
+  b - (b - a) = a :=
+by rw [hba.sub_eq_iff_eq_add_of_le sub_le_self', add_sub_cancel_of_le h]
 
 end add_le_cancellable
 
@@ -498,11 +522,15 @@ contravariant.add_le_cancellable.lt_of_sub_lt_sub_left_of_le hca h
 lemma sub_le_sub_iff_left' (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
 contravariant.add_le_cancellable.sub_le_sub_iff_left contravariant.add_le_cancellable h
 
+lemma sub_right_inj' (hba : b ≤ a) (hca : c ≤ a) : a - b = a - c ↔ b = c :=
+contravariant.add_le_cancellable.sub_right_inj contravariant.add_le_cancellable
+  contravariant.add_le_cancellable hba hca
+
 lemma sub_lt_sub_right_of_le (h : c ≤ a) (h2 : a < b) : a - c < b - c :=
 contravariant.add_le_cancellable.sub_lt_sub_right_of_le h h2
 
-lemma sub_cancel_left (h₁ : b ≤ a) (h₂ : c ≤ a) (h₃ : a - b = a - c) : b = c :=
-contravariant.add_le_cancellable.sub_cancel_left h₁ h₂ h₃
+lemma sub_inj_right (h₁ : b ≤ a) (h₂ : c ≤ a) (h₃ : a - b = a - c) : b = c :=
+contravariant.add_le_cancellable.sub_inj_right h₁ h₂ h₃
 
 /-- See `sub_lt_sub_iff_left_of_le` for a stronger statement in a linear order. -/
 lemma sub_lt_sub_iff_left_of_le_of_le (h₁ : b ≤ a) (h₂ : c ≤ a) : a - b < a - c ↔ c < b :=
@@ -511,6 +539,10 @@ contravariant.add_le_cancellable.sub_lt_sub_iff_left_of_le_of_le
 
 @[simp] lemma add_sub_sub_cancel' (h : c ≤ a) : (a + b) - (a - c) = b + c :=
 contravariant.add_le_cancellable.add_sub_sub_cancel h
+
+/-- See `sub_sub_le` for an inequality. -/
+lemma sub_sub_cancel_of_le (h : a ≤ b) : b - (b - a) = a :=
+contravariant.add_le_cancellable.sub_sub_cancel_of_le h
 
 end contra
 
@@ -625,24 +657,24 @@ end contra
 
 /-! Lemmas about `max` and `min`. -/
 
-lemma sub_add_eq_max (a b : α) : a - b + b = max a b :=
+lemma sub_add_eq_max : a - b + b = max a b :=
 begin
   cases le_total a b with h h,
   { rw [max_eq_right h, sub_eq_zero_iff_le.mpr h, zero_add] },
   { rw [max_eq_left h, sub_add_cancel_of_le h] }
 end
 
-lemma add_sub_eq_max (a b : α) : a + (b - a) = max a b :=
+lemma add_sub_eq_max : a + (b - a) = max a b :=
 by rw [add_comm, max_comm, sub_add_eq_max]
 
-lemma sub_min (a b : α) : a - min a b = a - b :=
+lemma sub_min : a - min a b = a - b :=
 begin
   cases le_total a b with h h,
   { rw [min_eq_left h, sub_self', sub_eq_zero_iff_le.mpr h] },
   { rw [min_eq_right h] }
 end
 
-lemma sub_add_min (a b : α) : a - b + min a b = a :=
+lemma sub_add_min : a - b + min a b = a :=
 by { rw [← sub_min, sub_add_cancel_of_le], apply min_le_left }
 
 end canonically_linear_ordered_add_monoid

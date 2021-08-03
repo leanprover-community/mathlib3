@@ -18,7 +18,7 @@ Let `S` be a submonoid of an integral domain `R`, `P` the localization of `R` at
 natural ring hom from `R` to `P`.
  * `is_fractional` defines which `R`-submodules of `P` are fractional ideals
  * `fractional_ideal S P` is the type of fractional ideals in `P`
- * `has_coe (ideal R) (fractional_ideal S P)` instance
+ * `has_coe_t (ideal R) (fractional_ideal S P)` instance
  * `comm_semiring (fractional_ideal S P)` instance:
    the typical ideal operations generalized to fractional ideals
  * `lattice (fractional_ideal S P)` instance
@@ -166,7 +166,8 @@ This is a bundled version of `is_localization.coe_submodule : ideal R → submod
 which is not to be confused with the `coe : fractional_ideal S P → submodule R P`,
 also called `coe_to_submodule` in theorem names.
 -/
-instance coe_to_fractional_ideal : has_coe (ideal R) (fractional_ideal S P) :=
+-- Is a `coe_t` rather than `coe` to speed up failing inference, see library note [use has_coe_t]
+instance coe_to_fractional_ideal : has_coe_t (ideal R) (fractional_ideal S P) :=
 ⟨λ I, ⟨coe_submodule P I, is_fractional_of_le_one _
   (by simpa using coe_submodule_mono P (le_top : I ≤ ⊤))⟩⟩
 

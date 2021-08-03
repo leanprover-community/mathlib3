@@ -64,12 +64,11 @@ begin
   congr,
   have h : 0 ≠ card G := ne_of_lt (card_pos_iff.2 has_one.nonempty),
   rw hy2 at h,
-  rw padic_val_nat.mul p _ (right_ne_zero_of_mul (ne.symm h)),
+  rw padic_val_nat.mul p (pow_ne_zero y (nat.prime.ne_zero (fact.out p.prime))),
   { rw [padic_val_nat_of_not_dvd hy3, add_zero],
   exact (valuation_prime_pow_eq_pow p y).symm, },
-  exact pow_ne_zero _ (nat.prime.ne_zero (fact.out _)),
+  exact right_ne_zero_of_mul (ne.symm h),
 end
 
 end is_sylow_subgroup
-
 end sylow

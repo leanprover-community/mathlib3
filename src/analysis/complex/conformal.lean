@@ -14,6 +14,9 @@ We prove the sufficient and necessary conditions for a complex function to be co
 
 ## Main results
 
+* `conformal_at_of_holomorph_or_antiholomorph_at`: a holomorphic or antiholomorphic maps with
+                                                   a nonzero differential into an arbitrary complex
+                                                   normed space is conformal.
 * `conformal_at_iff_holomorphic_or_antiholomorphic_at`: the main theorem for complex functions.
 
 ## Warning
@@ -30,28 +33,6 @@ section into_complex_normed_space
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
   [is_scalar_tower ℝ ℂ E] {z : ℂ} {f : ℂ → E}
-
-/-- A (real-differentiable) complex function `f` is antiholomorphic if and only if there exists some
-    complex linear map `g'` that equals to the composition of `f`'s differential and the conjugate
-    function -/
-lemma antiholomorph_at_iff_exists_complex_linear_conj
-  (hf : differentiable_at ℝ f z) : differentiable_at ℂ (f ∘ conj) (conj z) ↔
-  ∃ (g' : ℂ →L[ℂ] E), g'.restrict_scalars ℝ =
-  (fderiv ℝ f z).comp conj_cle.to_continuous_linear_map :=
-begin
-  split,
-  { intros h,
-    rw ← conj_conj z at hf,
-    rcases (differentiable_at_iff_exists_linear_map ℝ $
-      hf.comp (conj z) (has_fderiv_at_conj $ conj z).differentiable_at).mp h with ⟨f', hf'⟩,
-    rw conj_conj at hf,
-    rw ← fderiv_conj_eq_conj_fderiv hf at hf',
-    exact ⟨f', hf'⟩, },
-  { rintros ⟨g', hg'⟩,
-    rw ← conj_conj z at hf hg',
-    exact ⟨g', has_fderiv_at_of_eq ℝ
-      (hf.has_fderiv_at.comp (conj z) $ has_fderiv_at_conj $ conj z) hg'⟩, },
-end
 
 /-- A real differentiable function of the complex plane into some complex normed space `E` is
     conformal at a point `z` if it is holomorphic or antiholomorphic at that point -/

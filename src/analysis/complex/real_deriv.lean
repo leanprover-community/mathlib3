@@ -81,4 +81,27 @@ begin
   exact p.symm,
 end
 
+/-- A (real-differentiable) complex function `f` is antiholomorphic if and only if there exists some
+    complex linear map `g'` that equals to the composition of `f`'s differential and the conjugate
+    function -/
+lemma antiholomorph_at_iff_exists_complex_linear_conj
+  [normed_space ℂ E] [is_scalar_tower ℝ ℂ E]
+  (hf : differentiable_at ℝ f z) : differentiable_at ℂ (f ∘ conj) (conj z) ↔
+  ∃ (g' : ℂ →L[ℂ] E), g'.restrict_scalars ℝ =
+  (fderiv ℝ f z).comp conj_cle.to_continuous_linear_map :=
+begin
+  split,
+  { intros h,
+    rw ← conj_conj z at hf,
+    rcases (differentiable_at_iff_exists_linear_map ℝ $
+      hf.comp (conj z) (has_fderiv_at_conj $ conj z).differentiable_at).mp h with ⟨f', hf'⟩,
+    rw conj_conj at hf,
+    rw ← fderiv_conj_eq_conj_fderiv hf at hf',
+    exact ⟨f', hf'⟩, },
+  { rintros ⟨g', hg'⟩,
+    rw ← conj_conj z at hf hg',
+    exact ⟨g', has_fderiv_at_of_eq ℝ
+      (hf.has_fderiv_at.comp (conj z) $ has_fderiv_at_conj $ conj z) hg'⟩, },
+end
+
 end complex_fderiv_properties

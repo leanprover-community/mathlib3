@@ -160,6 +160,8 @@ end conformal_into_complex_normed
 
 section conformal_into_complex_plane
 
+open continuous_linear_map
+
 variables {f : ℂ → ℂ} {z : ℂ} {g : ℂ →L[ℝ] ℂ}
 
 lemma is_complex_or_conj_complex_linear (h : is_conformal_map g) :

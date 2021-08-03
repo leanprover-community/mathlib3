@@ -24,7 +24,71 @@ this file.
 
 noncomputable theory
 
-section complex_conformal_map
+open complex continuous_linear_map
+
+section into_complex_normed_space
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
+  [is_scalar_tower ℝ ℂ E] {z : ℂ} {f : ℂ → E}
+
+/-- A (real-differentiable) complex function `f` is antiholomorphic if and only if there exists some
+    complex linear map `g'` that equals to the composition of `f`'s differential and the conjugate
+    function -/
+lemma antiholomorph_at_iff_exists_complex_linear_conj
+  (hf : differentiable_at ℝ f z) : differentiable_at ℂ (f ∘ conj) (conj z) ↔
+  ∃ (g' : ℂ →L[ℂ] E), g'.restrict_scalars ℝ =
+  (fderiv ℝ f z).comp conj_cle.to_continuous_linear_map :=
+begin
+  split,
+  { intros h,
+    rw ← conj_conj z at hf,
+    rcases (differentiable_at_iff_exists_linear_map ℝ $
+      hf.comp (conj z) (has_fderiv_at_conj $ conj z).differentiable_at).mp h with ⟨f', hf'⟩,
+    rw conj_conj at hf,
+    rw ← fderiv_conj_eq_conj_fderiv hf at hf',
+    exact ⟨f', hf'⟩, },
+  { rintros ⟨g', hg'⟩,
+    rw ← conj_conj z at hf hg',
+    exact ⟨g', has_fderiv_at_of_eq ℝ
+      (hf.has_fderiv_at.comp (conj z) $ has_fderiv_at_conj $ conj z) hg'⟩, },
+end
+
+/-- A real differentiable function of the complex plane into some complex normed space `E` is
+    conformal at a point `z` if it is holomorphic or antiholomorphic at that point -/
+lemma conformal_at_of_holomorph_or_antiholomorph_at
+  (hf : differentiable_at ℝ f z) (hf' : fderiv ℝ f z ≠ 0)
+  (h : differentiable_at ℂ f z ∨ differentiable_at ℂ (f ∘ conj) (conj z)) :
+  conformal_at f z :=
+begin
+  rw [conformal_at_iff_is_conformal_map_fderiv],
+  cases h with h₁ h₂,
+  { rw [differentiable_at_iff_exists_linear_map ℝ hf] at h₁;
+       [skip, apply_instance, apply_instance, apply_instance],
+    rcases h₁ with ⟨map, hmap⟩,
+    rw ← hmap,
+    refine is_conformal_map_complex_linear _,
+    contrapose! hf' with w,
+    ext1,
+    simp only [← hmap, coe_restrict_scalars', w, continuous_linear_map.zero_apply], },
+  { rw [antiholomorph_at_iff_exists_complex_linear_conj hf] at h₂,
+    rcases h₂ with ⟨map, hmap⟩,
+    have minor₁ : fderiv ℝ f z = (map.restrict_scalars ℝ).comp conj_cle.to_continuous_linear_map,
+    { ext1,
+      rw hmap,
+      simp only [coe_comp', function.comp_app, conj_cle.coe_def_rev, conj_cle.coe_coe,
+                 conj_cle_apply, conj_conj], },
+    rw minor₁,
+    refine is_conformal_map_complex_linear_conj _,
+    contrapose! hf' with w,
+    rw minor₁,
+    ext1,
+    simp only [coe_comp', function.comp_app, conj_cle.coe_def_rev, conj_cle.coe_coe,
+               conj_cle_apply, coe_restrict_scalars', w, continuous_linear_map.zero_apply], },
+end
+
+end into_complex_normed_space
+
+section into_the_complex_plane
 
 variables {f : ℂ → ℂ} {z : ℂ}
 
@@ -48,4 +112,4 @@ iff.intro
         by_contra (λ w, h.2 $ fderiv_zero_of_not_differentiable_at w),
       exact (conformal_at_iff_holomorphic_or_antiholomorph_at_aux this).mpr h, } )
 
-end complex_conformal_map
+end into_the_complex_plane

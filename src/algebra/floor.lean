@@ -31,6 +31,9 @@ We define `floor`, `ceil`, `nat_floor`and `nat_ceil` functions on linear ordered
 - `⌊x⌋₊` is `nat_floor x`.
 - `⌈x⌉₊` is `nat_ceil x`.
 
+The index `₊` in the notations for `nat_floor` and `nat_ceil` is used in analogy to the notation
+for `nnnorm`.
+
 ## Tags
 
 rounding, floor, ceil
@@ -54,7 +57,7 @@ instance : floor_ring ℤ := { floor := id, le_floor := λ _ _, by rw int.cast_i
 
 variables [linear_ordered_ring α] [floor_ring α]
 
-/-- `floor x` is the greatest integer `z` such that `z ≤ x` -/
+/-- `floor x` is the greatest integer `z` such that `z ≤ x`. It is denoted with `⌊x⌋`. -/
 def floor : α → ℤ := floor_ring.floor
 
 notation `⌊` x `⌋` := floor x
@@ -209,7 +212,7 @@ begin
   abel
 end
 
-/-- `ceil x` is the smallest integer `z` such that `x ≤ z` -/
+/-- `ceil x` is the smallest integer `z` such that `x ≤ z`. It is denoted with `⌈x⌉`. -/
 def ceil (x : α) : ℤ := -⌊-x⌋
 
 notation `⌈` x `⌉` := ceil x
@@ -270,7 +273,7 @@ section nat
 variables {a : α} {n : ℕ}
 
 /-- `nat_floor x` is the greatest natural `n` that is less than `x`.
-It is equal to `⌊q⌋` when `q ≥ 0`, and is `0` otherwise. -/
+It is equal to `⌊x⌋` when `x ≥ 0`, and is `0` otherwise. It is denoted with `⌊x⌋₊`.-/
 def nat_floor (a : α) : ℕ := int.to_nat ⌊a⌋
 
 notation `⌊` x `⌋₊` := nat_floor x
@@ -348,7 +351,7 @@ begin
 end
 
 /-- `nat_ceil x` is the least natural `n` that is greater than `x`.
-It is equal to `⌈q⌉` when `q ≥ 0`, and is `0` otherwise. -/
+It is equal to `⌈x⌉` when `x ≥ 0`, and is `0` otherwise. It is denoted with `⌈x⌉₊`. -/
 def nat_ceil (a : α) : ℕ := int.to_nat ⌈a⌉
 
 notation `⌈` x `⌉₊` := nat_ceil x
@@ -381,7 +384,7 @@ end
 
 theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_nat_ceil.1 $ by rw (
-  show nat_ceil (a + 1) = ⌈a⌉₊ + 1, by exact_mod_cast (nat_ceil_add_nat a_nonneg 1));
+  show ⌈a + 1⌉₊ = ⌈a⌉₊ + 1, by exact_mod_cast (nat_ceil_add_nat a_nonneg 1));
   apply nat.lt_succ_self
 
 lemma lt_of_nat_ceil_lt {x : α} {n : ℕ} (h : ⌈x⌉₊ < n) : x < n :=

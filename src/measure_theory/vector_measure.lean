@@ -781,7 +781,8 @@ end
 
 section
 
-variables {M : Type*} [topological_space M] [linear_ordered_add_comm_monoid M] [order_closed_topology M]
+variables {M : Type*} [topological_space M] [linear_ordered_add_comm_monoid M]
+  [order_closed_topology M]
 variables (v w : vector_measure α M) {i j : set α}
 
 lemma exists_pos_measure_of_not_restrict_le_zero (hi : ¬ v ≤[i] 0) :

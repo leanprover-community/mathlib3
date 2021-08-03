@@ -623,14 +623,16 @@ begin
   { rw [v.not_measurable hi, w.not_measurable hi] }
 end
 
+notation v ` ≤[`:25 i:25 `] `:0 w:25 := v.restrict i ≤ w.restrict i
+
 lemma restrict_le_restrict_iff (v w : vector_measure α M) {i : set α} (hi : measurable_set i) :
-  v.restrict i ≤ w.restrict i ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j :=
+  v ≤[i] w ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j :=
 ⟨λ h j hj₁ hj₂, (restrict_eq_self v hi hj₁ hj₂) ▸ (restrict_eq_self w hi hj₁ hj₂) ▸ h j hj₁,
  λ h, le_iff.1 (λ j hj, (restrict_apply v hi hj).symm ▸ (restrict_apply w hi hj).symm ▸
    h (hj.inter hi) (set.inter_subset_right j i))⟩
 
 lemma subset_le_of_restrict_le_restrict (v w : vector_measure α M) {i : set α}
-  (hi : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) {j : set α} (hj : j ⊆ i) :
+  (hi : measurable_set i) (hi₂ : v ≤[i] w) {j : set α} (hj : j ⊆ i) :
   v j ≤ w j :=
 begin
   by_cases hj₁ : measurable_set j,
@@ -639,7 +641,7 @@ begin
 end
 
 lemma restrict_le_restrict_of_subset_le (v w : vector_measure α M) {i : set α}
-  (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j) : v.restrict i ≤ w.restrict i :=
+  (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j) : v ≤[i] w :=
 begin
   by_cases hi : measurable_set i,
   { exact le_iff.1 (λ j hj, (restrict_apply v hi hj).symm ▸ (restrict_apply w hi hj).symm ▸
@@ -649,7 +651,7 @@ begin
 end
 
 lemma restrict_le_restrict_subset (v w : vector_measure α M) {i j : set α}
-  (hi₁ : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i) (hij : j ⊆ i) :
+  (hi₁ : measurable_set i) (hi₂ : v ≤[i] w) (hij : j ⊆ i) :
   v.restrict j ≤ w.restrict j :=
 restrict_le_restrict_of_subset_le v w (λ k hk₁ hk₂,
   subset_le_of_restrict_le_restrict v w hi₁ hi₂ (set.subset.trans hk₂ hij))
@@ -662,7 +664,7 @@ variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M] [order_c
 
 lemma restrict_le_restrict_Union (v w : vector_measure α M) {f : ℕ → set α}
   (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.restrict (f n) ≤ w.restrict (f n)) :
-  v.restrict (⋃ n, f n) ≤ w.restrict (⋃ n, f n) :=
+  v ≤[⋃ n, f n] w :=
 begin
   refine restrict_le_restrict_of_subset_le v w (λ a ha₁ ha₂, _),
   rw [← set.Union_inter_disjointed_eq ha₂,
@@ -683,7 +685,7 @@ end
 
 lemma restrict_le_restrict_encodable_Union [encodable β] (v w : vector_measure α M) {f : β → set α}
   (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v.restrict (f b) ≤ w.restrict (f b)) :
-  v.restrict (⋃ b, f b) ≤ w.restrict (⋃ b, f b) :=
+  v ≤[⋃ b, f b] w :=
 begin
   rw ← encodable.Union_decode₂,
   refine restrict_le_restrict_Union v w _ _,
@@ -697,7 +699,7 @@ end
 lemma restrict_le_restrict_union (v w : vector_measure α M) {i j : set α}
   (hi₁ : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i)
   (hj₁ : measurable_set j) (hj₂ : v.restrict j ≤ w.restrict j) :
-  v.restrict (i ∪ j) ≤ w.restrict (i ∪ j) :=
+  v ≤[i ∪ j] w :=
 begin
   rw union_eq_Union,
   refine restrict_le_restrict_encodable_Union v w _ _,

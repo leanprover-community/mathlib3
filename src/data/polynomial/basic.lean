@@ -165,7 +165,7 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
 
 /-- Ring isomorphism between `(polynomial R)ᵒᵖ` and `polynomial Rᵒᵖ`. -/
 @[simps]
-def op_ring_equiv (polynomial R)ᵒᵖ ≃+* polynomial Rᵒᵖ :=
+def op_ring_equiv : (polynomial R)ᵒᵖ ≃+* polynomial Rᵒᵖ :=
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
 variable {R}

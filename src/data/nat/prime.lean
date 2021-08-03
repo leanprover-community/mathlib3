@@ -650,11 +650,9 @@ lemma prime.factors_pow {p : ℕ} (hp : p.prime) (y : ℕ) :
 begin
   symmetry,
   rw ← list.repeat_perm,
-  apply nat.factors_unique,
-  { apply list.prod_repeat },
+  apply nat.factors_unique (list.prod_repeat p y),
   { intros q hq,
-    rw (list.mem_repeat.1 hq).right,
-    exact hp },
+    rwa eq_of_mem_repeat hq },
 end
 
 end

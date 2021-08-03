@@ -203,11 +203,15 @@ end of_le
 /--
 When X is discrete, there is a `semilattice_inf_bot` instance on `discrete_quotient X`
 -/
+
+@[simp] lemma is_clopen_discrete [discrete_topology X] (x : set X) : is_clopen x :=
+  ⟨is_open_discrete _, is_closed_discrete _⟩
+
 instance [discrete_topology X] : semilattice_inf_bot (discrete_quotient X) :=
 { bot :=
   { rel := (=),
     equiv := eq_equivalence,
-    clopen := λ x, ⟨is_open_discrete _, is_closed_discrete _⟩ },
+    clopen := λ x, is_clopen_discrete _ },
   bot_le := by { rintro S a b (h : a = b), rw h, exact S.refl _ },
   ..(infer_instance : semilattice_inf _) }
 

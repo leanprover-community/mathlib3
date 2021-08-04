@@ -296,9 +296,10 @@ def measure_of_negatives (s : signed_measure α) : set ℝ :=
 lemma zero_mem_measure_of_negatives : (0 : ℝ) ∈ s.measure_of_negatives :=
 ⟨∅, ⟨measurable_set.empty, restrict_empty_le_zero _⟩, s.empty⟩
 
-lemma measure_of_negatives_bdd_below :
-  ∃ x, ∀ y ∈ s.measure_of_negatives, x ≤ y :=
+lemma bdd_below_measure_of_negatives :
+  bdd_below s.measure_of_negatives :=
 begin
+  simp_rw [bdd_below, set.nonempty, lower_bounds, set.mem_set_of_eq],
   by_contra, push_neg at h,
   have h' : ∀ n : ℕ, ∃ y : ℝ, y ∈ s.measure_of_negatives ∧ y < -n := λ n, h (-n),
   choose f hf using h',
@@ -336,7 +337,7 @@ theorem exists_disjoint_positive_negative_union_eq (s : signed_measure α) :
   disjoint i j ∧ i ∪ j = set.univ :=
 begin
   obtain ⟨f, _, hf₂, hf₁⟩ := exists_seq_tendsto_Inf
-    ⟨0, @zero_mem_measure_of_negatives _ _ s⟩ measure_of_negatives_bdd_below,
+    ⟨0, @zero_mem_measure_of_negatives _ _ s⟩ bdd_below_measure_of_negatives,
 
   choose B hB using hf₁,
   have hB₁ : ∀ n, measurable_set (B n) := λ n, let ⟨h, _⟩ := (hB n).1 in h,
@@ -359,7 +360,7 @@ begin
         exact measurable_set.Union hB₁ },
       { apply_instance },
       { exact (measurable_set.Union hB₁).diff (hB₁ n) } },
-    { exact real.Inf_le _ measure_of_negatives_bdd_below ⟨A, ⟨hA₁, hA₂⟩, rfl⟩ } },
+    { exact real.Inf_le _ bdd_below_measure_of_negatives ⟨A, ⟨hA₁, hA₂⟩, rfl⟩ } },
 
   refine ⟨Aᶜ, A, hA₁.compl, _, hA₁, hA₂,
           disjoint_compl_left, (set.union_comm A Aᶜ) ▸ set.union_compl_self A⟩,
@@ -373,7 +374,7 @@ begin
         disjoint_compl_right) hA₁ hD₁],
     linarith, apply_instance },
   refine not_le.2 this _,
-  refine real.Inf_le _ measure_of_negatives_bdd_below ⟨A ∪ D, ⟨_, _⟩, rfl⟩,
+  refine real.Inf_le _ bdd_below_measure_of_negatives ⟨A ∪ D, ⟨_, _⟩, rfl⟩,
   { exact hA₁.union hD₁ },
   { exact restrict_le_restrict_union _ _ hA₁ hA₂ hD₁ hD₂ }
 end

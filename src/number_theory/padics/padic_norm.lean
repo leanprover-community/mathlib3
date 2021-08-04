@@ -373,6 +373,15 @@ begin
     exact_mod_cast split_frac, }
 end
 
+/-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
+protected lemma pow (p q y : ℕ) [fact p.prime] (hq : q ≠ 0) :
+  padic_val_nat p (q ^ y) = y * padic_val_nat p q :=
+begin
+  apply @nat.cast_injective ℤ,
+  push_cast,
+  exact padic_val_rat.pow _ (cast_ne_zero.mpr hq),
+end
+
 end padic_val_nat
 
 section padic_val_nat
@@ -467,15 +476,6 @@ begin
   { suffices : p.coprime q,
     { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },
     rwa nat.coprime_primes hp.1 hq.1, },
-end
-
-/-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
-protected lemma padic_val_nat.pow (p q y : ℕ) [fact p.prime] (hq : q ≠ 0) :
-  padic_val_nat p (q ^ y) = y * padic_val_nat p q :=
-begin
-  apply @nat.cast_injective ℤ,
-  push_cast,
-  exact padic_val_rat.pow _ (cast_ne_zero.mpr hq),
 end
 
 @[simp] lemma padic_val_nat.self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=

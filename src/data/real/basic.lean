@@ -366,7 +366,7 @@ begin
     exact ne_of_gt (nat.cast_pos.2 n0) },
   have hg : is_cau_seq abs (λ n, f n / n : ℕ → ℚ),
   { intros ε ε0,
-    suffices : ∀ j k ≥ nat_ceil ε⁻¹, (f j / j - f k / k : ℚ) < ε,
+    suffices : ∀ j k ≥ ⌈ε⁻¹⌉₊, (f j / j - f k / k : ℚ) < ε,
     { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
       rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
     intros j k ij ik,

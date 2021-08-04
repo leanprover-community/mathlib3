@@ -469,10 +469,25 @@ begin
     rwa nat.coprime_primes hp.1 hq.1, },
 end
 
-lemma valuation_prime_pow_eq_pow (p y : ℕ) [hp : fact p.prime] : padic_val_nat p (p ^ y) = y :=
+/-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
+protected lemma padic_val_nat.pow (p q y : ℕ) [fact p.prime] (hq : q ≠ 0) :
+  padic_val_nat p (q ^ y) = y * padic_val_nat p q :=
 begin
-  rw [padic_val_nat_eq_factors_count p, prime.factors_pow (fact.out p.prime)],
-  exact list.count_repeat p y,
+  apply @nat.cast_injective ℤ,
+  push_cast,
+  exact padic_val_rat.pow _ (cast_ne_zero.mpr hq),
+end
+
+lemma padic_val_nat.self (p : ℕ) : padic_val_nat p p = 1 :=
+begin
+  sorry,
+end
+
+lemma padic_val_nat.prime_pow (p y : ℕ) [fact p.prime] : padic_val_nat p (p ^ y) = y :=
+begin
+  suffices : padic_val_nat p (p ^ y) = y * padic_val_nat p p,
+  { simpa [padic_val_nat.self p] },
+  { exact padic_val_nat.pow p p y (ne_of_gt (nat.prime.pos (fact.out p.prime))) }
 end
 
 open_locale big_operators

@@ -3,8 +3,8 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
+
 import algebra.group.defs
-import order.basic
 
 /-!
 
@@ -121,10 +121,7 @@ lemma contravariant.flip (h : contravariant M N μ r) : contravariant M N μ (fl
 end flip
 
 section covariant
-variables {M N μ r}
-
-
-variables [covariant_class M N μ r]
+variables {M N μ r} [covariant_class M N μ r]
 
 lemma act_rel_act_of_rel (m : M) {a b : N} (ab : r a b) :
   r (μ m a) (μ m b) :=

@@ -503,7 +503,7 @@ lemma csupr_mem_Inter_Icc_of_mono_decr_Icc_nat
   {f g : ℕ → α} (h : ∀ n, Icc (f (n + 1)) (g (n + 1)) ⊆ Icc (f n) (g n)) (h' : ∀ n, f n ≤ g n) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 csupr_mem_Inter_Icc_of_mono_decr_Icc
-  (@monotone_of_monotone_nat (order_dual $ set α) _ (λ n, Icc (f n) (g n)) h) h'
+  (@monotone_nat_of_le_succ (order_dual $ set α) _ (λ n, Icc (f n) (g n)) h) h'
 
 end conditionally_complete_lattice
 

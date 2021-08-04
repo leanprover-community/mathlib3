@@ -44,7 +44,7 @@ variables {s : signed_measure α} {i j : set α}
 section exists_negative_set
 
 private def p (s : signed_measure α) (i j : set α) (n : ℕ) : Prop :=
-∃ (k : set α) (hj₁ : k ⊆ i \ j) (hj₂ : measurable_set k), (1 / (n + 1) : ℝ) < s k
+∃ k : set α, k ⊆ i \ j ∧ measurable_set k ∧ (1 / (n + 1) : ℝ) < s k
 
 private lemma exists_nat_one_div_lt_measure_of_not_negative (hi : ¬ s ≤[i \ j] 0) :
   ∃ (n : ℕ), p s i j n :=
@@ -71,7 +71,7 @@ private def aux₁ (s : signed_measure α) (i j : set α) : set α :=
 if hi : ¬ s ≤[i \ j] 0 then classical.some (aux₀_spec hi) else ∅
 
 private lemma aux₁_spec (hi : ¬ s ≤[i \ j] 0) :
-  ∃ (hj₁ : (aux₁ s i j) ⊆ i \ j) (hj₂ : measurable_set (aux₁ s i j)),
+  (aux₁ s i j) ⊆ i \ j ∧ measurable_set (aux₁ s i j) ∧
   (1 / (aux₀ s i j + 1) : ℝ) < s (aux₁ s i j) :=
 begin
   rw [aux₁, dif_pos hi],
@@ -179,7 +179,7 @@ end
 
 private lemma exists_negative_set' (hi₁ : measurable_set i) (hi₂ : s i < 0)
   (hn : ¬ ∀ n : ℕ, ¬ s ≤[i \ ⋃ l < n, aux s i l] 0) :
-  ∃ (j : set α) (hj₁ : measurable_set j) (hj₂ : j ⊆ i), s ≤[j] 0 ∧ s j < 0 :=
+  ∃ j : set α, measurable_set j ∧ j ⊆ i ∧ s ≤[j] 0 ∧ s j < 0 :=
 begin
   by_cases s ≤[i] 0,
   { exact ⟨i, hi₁, set.subset.refl _, h, hi₂⟩ },
@@ -221,7 +221,7 @@ end .
 
 /-- A measurable set of negative measure has a negative subset of negative measure. -/
 theorem exists_negative_set (hi₁ : measurable_set i) (hi₂ : s i < 0) :
-  ∃ (j : set α) (hj₁ : measurable_set j) (hj₂ : j ⊆ i), s ≤[j] 0 ∧ s j < 0 :=
+  ∃ j : set α, measurable_set j ∧ j ⊆ i ∧ s ≤[j] 0 ∧ s j < 0 :=
 begin
   by_cases s ≤[i] 0,
   { exact ⟨i, hi₁, set.subset.refl _, h, hi₂⟩ },
@@ -291,7 +291,7 @@ end exists_negative_set
 
 /-- The set of measures of the set of measurable negative sets. -/
 def measure_of_negatives (s : signed_measure α) : set ℝ :=
-  s '' { B | ∃ (hB₁ : measurable_set B), s ≤[B] 0 }
+  s '' { B | measurable_set B ∧ s ≤[B] 0 }
 
 lemma zero_mem_measure_of_negatives : (0 : ℝ) ∈ s.measure_of_negatives :=
 ⟨∅, ⟨measurable_set.empty, restrict_empty_le_zero _⟩, s.empty⟩
@@ -302,7 +302,7 @@ begin
   by_contra, push_neg at h,
   have h' : ∀ n : ℕ, ∃ y : ℝ, y ∈ s.measure_of_negatives ∧ y < -n := λ n, h (-n),
   choose f hf using h',
-  have hf' : ∀ n : ℕ, ∃ B ∈ { B | ∃ (hB₁ : measurable_set B), s ≤[B] 0 }, s B < -n,
+  have hf' : ∀ n : ℕ, ∃ B ∈ { B | measurable_set B ∧ s ≤[B] 0 }, s B < -n,
   { intro n,
     rcases hf n with ⟨⟨B, hB₁, hB₂⟩, hlt⟩,
     exact ⟨B, hB₁, hB₂.symm ▸ hlt⟩ },
@@ -332,8 +332,7 @@ end
 disjoint measurable sets `i`, `j` such that `i` is positive, `j` is negative
 and `i ∪ j = set.univ`.  -/
 theorem exists_disjoint_positive_negative_union_eq (s : signed_measure α) :
-  ∃ (i j : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s)
-                  (hj₁ : measurable_set j) (hj₂ : s ≤[j] 0),
+  ∃ i j : set α, measurable_set i ∧ 0 ≤[i] s ∧ measurable_set j ∧ s ≤[j] 0 ∧
   disjoint i j ∧ i ∪ j = set.univ :=
 begin
   obtain ⟨f, _, hf₂, hf₁⟩ := exists_seq_tendsto_Inf
@@ -381,7 +380,7 @@ end
 
 /-- Alternative formulation of `exists_disjoint_positive_negative_union_eq` using complements. -/
 lemma exists_compl_positive_negative (s : signed_measure α) :
-  ∃ (i : set α) (hi₁ : measurable_set i), 0 ≤[i] s ∧ s ≤[iᶜ] 0 :=
+  ∃ i : set α, measurable_set i ∧ 0 ≤[i] s ∧ s ≤[iᶜ] 0 :=
 begin
   obtain ⟨i, j, hi₁, hi₂, _, hj₂, hdisj, huniv⟩ :=
     s.exists_disjoint_positive_negative_union_eq,

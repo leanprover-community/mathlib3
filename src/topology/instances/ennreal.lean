@@ -293,14 +293,13 @@ lemma tendsto_finset_prod_of_ne_top {ι : Type*} {f : ι → α → ℝ≥0∞} 
   tendsto (λ b, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
 begin
   induction s using finset.induction with a s has IH, { simp [tendsto_const_nhds] },
-  simp [finset.prod_insert has],
+  simp only [finset.prod_insert has],
   apply tendsto.mul (h _ (finset.mem_insert_self _ _)),
   { right,
     exact (prod_lt_top (λ i hi, lt_top_iff_ne_top.2 (h' _ (finset.mem_insert_of_mem hi)))).ne },
   { exact IH (λ i hi, h _ (finset.mem_insert_of_mem hi))
       (λ i hi, h' _ (finset.mem_insert_of_mem hi)) },
-  { right,
-    exact h' _ (finset.mem_insert_self _ _) }
+  { exact or.inr (h' _ (finset.mem_insert_self _ _)) }
 end
 
 protected lemma continuous_at_const_mul {a b : ℝ≥0∞} (h : a ≠ ⊤ ∨ b ≠ 0) :

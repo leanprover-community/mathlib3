@@ -6,7 +6,9 @@ Authors: Yury Kudryashov
 import algebra.big_operators.finprod
 import topology.urysohns_lemma
 import topology.paracompact
+import topology.shrinking_lemma
 import topology.continuous_function.algebra
+import set_theory.ordinal
 
 /-!
 # Continuous partition of unity

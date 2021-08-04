@@ -9,23 +9,31 @@ import order.symm_diff
 /-!
 # Hahn decomposition
 
-This file prove the Hahn decomposition theorem (signed version).
+This file prove the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
+states that, given a signed measure `s`, there exist disjoint, measurable sets `i` and `j`,
+such that `i ∪ j = set.univ` and `i` is positive and `j` is negative with repsect to `s`;
+that is, `s` restricted on `i` is non-negative and `s` restricted on `j` is non-positive.
+
+The Hahn decomposition theorem leads to many other results in measure theory, most notably,
+the Jordan decomposition theorem, the Lebesgue decomposition theorem and the Radon-Nikodym theorem.
 
 ## Main results
 
 * `signed_measure.exists_disjoint_positive_negative_union_eq` : the Hahn decomposition theorem.
-* `signed_measure.exists_subset_restrict_nonpos` : A measurable set of negative measure contains at least
-  one negative subset.
+* `signed_measure.exists_subset_restrict_nonpos` : A measurable set of negative measure contains
+  a negative subset.
 
 ## Notation
 
-We use the notations `0 ≤[i] v` and `v ≤[i] 0` to denote the usual definitions of a set `i`
-being positive/negative with respect to the signed measure `v`.
+We use the notations `0 ≤[i] s` and `s ≤[i] 0` to denote the usual definitions of a set `i`
+being positive/negative with respect to the signed measure `s`.
 
 ## Tags
 
 Hahn decomposition theorem
 -/
+
+#exit
 
 noncomputable theory
 open_locale classical big_operators nnreal ennreal

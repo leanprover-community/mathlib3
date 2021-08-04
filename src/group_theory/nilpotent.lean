@@ -6,7 +6,7 @@ Authors: Kevin Buzzard
 
 import group_theory.general_commutator
 
-/-
+/-!
 
 # Nilpotent groups
 

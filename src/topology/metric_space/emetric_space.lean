@@ -794,6 +794,16 @@ diam_le $ λa ha b hb, calc
 lemma diam_ball {r : ℝ≥0∞} : diam (ball x r) ≤ 2 * r :=
 le_trans (diam_mono ball_subset_closed_ball) diam_closed_ball
 
+lemma diam_pi_le_of_le {π : β → Type*} [fintype β] [∀ b, pseudo_emetric_space (π b)]
+  {s : Π (b : β), set (π b)} {c : ℝ≥0∞} (h : ∀ b, diam (s b) ≤ c) :
+  diam (set.pi univ s) ≤ c :=
+begin
+  apply diam_le (λ x hx y hy, _),
+  simp only [mem_univ_pi] at hx hy,
+  simp only [edist_pi_def, finset.mem_univ, finset.sup_le_iff, forall_true_left],
+  exact λ b, diam_le_iff.1 (h b) (x b) (hx b) (y b) (hy b),
+end
+
 end diam
 
 end emetric --namespace

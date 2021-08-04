@@ -288,6 +288,21 @@ protected lemma tendsto.mul_const {f : filter α} {m : α → ℝ≥0∞} {a b :
   (hm : tendsto m f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) : tendsto (λx, m x * b) f (𝓝 (a * b)) :=
 by simpa only [mul_comm] using ennreal.tendsto.const_mul hm ha
 
+lemma tendsto_finset_prod_of_ne_top {ι : Type*} {f : ι → α → ℝ≥0∞} {x : filter α} {a : ι → ℝ≥0∞}
+  (s : finset ι) (h : ∀ i ∈ s, tendsto (f i) x (𝓝 (a i))) (h' : ∀ i ∈ s, a i ≠ ∞):
+  tendsto (λ b, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
+begin
+  induction s using finset.induction with a s has IH, { simp [tendsto_const_nhds] },
+  simp [finset.prod_insert has],
+  apply tendsto.mul (h _ (finset.mem_insert_self _ _)),
+  { right,
+    exact (prod_lt_top (λ i hi, lt_top_iff_ne_top.2 (h' _ (finset.mem_insert_of_mem hi)))).ne },
+  { exact IH (λ i hi, h _ (finset.mem_insert_of_mem hi))
+      (λ i hi, h' _ (finset.mem_insert_of_mem hi)) },
+  { right,
+    exact h' _ (finset.mem_insert_self _ _) }
+end
+
 protected lemma continuous_at_const_mul {a b : ℝ≥0∞} (h : a ≠ ⊤ ∨ b ≠ 0) :
   continuous_at ((*) a) b :=
 tendsto.const_mul tendsto_id h.symm
@@ -1116,6 +1131,39 @@ begin
     calc Sup s - Inf s ≤ dist (Sup s) (Inf s) : le_abs_self _
                    ... ≤ diam (closure s)     :
       dist_le_diam_of_mem h.closure (cSup_mem_closure hne h'.2) (cInf_mem_closure hne h'.1) }
+end
+
+@[simp] lemma real.ediam_Icc (a b : ℝ) :
+  emetric.diam (Icc a b) = ennreal.of_real (b - a) :=
+begin
+  rcases le_or_lt a b with h|h,
+  { rw [real.ediam_eq (bounded_Icc _ _), cSup_Icc h, cInf_Icc h] },
+  { simp [h, ennreal.of_real_eq_zero.2 (sub_neg.2 h).le] }
+end
+
+@[simp] lemma real.ediam_Ico (a b : ℝ) :
+  emetric.diam (Ico a b) = ennreal.of_real (b - a) :=
+begin
+  rcases le_or_lt b a with h|h,
+  { simp [h, ennreal.of_real_eq_zero.2 (sub_nonpos.2 h)] },
+  { rw [real.ediam_eq (bounded_Ico _ _), cSup_Ico h, cInf_Ico h] }
+end
+
+@[simp] lemma real.ediam_Ioc (a b : ℝ) :
+  emetric.diam (Ioc a b) = ennreal.of_real (b - a) :=
+begin
+  rcases le_or_lt b a with h|h,
+  { simp [h, ennreal.of_real_eq_zero.2 (sub_nonpos.2 h)] },
+  { rw [real.ediam_eq (bounded_Ioc _ _), cSup_Ioc h, cInf_Ioc h] }
+end
+
+@[simp] lemma real.ediam_Ioo (a b : ℝ) :
+  emetric.diam (Ioo a b) = ennreal.of_real (b - a) :=
+begin
+  rcases lt_trichotomy a b with h|rfl|h,
+  { rw [real.ediam_eq (bounded_Ioo _ _), cSup_Ioo h, cInf_Ioo h] },
+  { simp only [emetric.diam_empty, Ioo_self, ennreal.of_real_zero, sub_self] },
+  { simp [h.le, ennreal.of_real_eq_zero.2 (sub_neg.2 h).le] }
 end
 
 /-- For a bounded set `s : set ℝ`, its `metric.diam` is equal to `Sup s - Inf s`. -/

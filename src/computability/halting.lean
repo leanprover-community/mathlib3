@@ -247,7 +247,7 @@ begin
     exact (vector_m_of_fn (λ i, hg i)).bind (hf.comp snd) },
   case nat.partrec'.rfind : n f _ hf {
     have := ((primrec.eq.comp primrec.id (primrec.const 0)).to_comp.comp
-      (hf.comp (vector_cons.comp snd fst))).to₂.part,
+      (hf.comp (vector_cons.comp snd fst))).to₂.partrec₂,
     exact this.rfind },
 end
 

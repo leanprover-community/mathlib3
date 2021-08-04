@@ -414,3 +414,14 @@ def ring_hom.op {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
 /-- The 'unopposite' of a ring hom `αᵒᵖ →+* βᵒᵖ`. Inverse to `ring_hom.op`. -/
 @[simp] def ring_hom.unop {α β} [non_assoc_semiring α] [non_assoc_semiring β] :
   (αᵒᵖ →+* βᵒᵖ) ≃ (α →+* β) := ring_hom.op.symm
+
+section ext
+
+@[ext]
+lemma add_monoid_hom.op_ext {α β} [add_zero_class α] [add_zero_class β]
+  (f g : αᵒᵖ →+ β)
+  (h : f.comp (op_add_equiv : α ≃+ αᵒᵖ).to_add_monoid_hom =
+       g.comp (op_add_equiv : α ≃+ αᵒᵖ).to_add_monoid_hom) : f = g :=
+add_monoid_hom.ext $ λ x, (add_monoid_hom.congr_fun h : _) x.unop
+
+end ext

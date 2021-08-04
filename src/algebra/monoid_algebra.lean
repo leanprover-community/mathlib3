@@ -1182,12 +1182,7 @@ open finsupp opposite
 the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
 protected noncomputable def op_add_equiv :
   (add_monoid_algebra R I)ᵒᵖ ≃+ add_monoid_algebra Rᵒᵖ I :=
-opposite.op_add_equiv.symm.trans
-{ to_fun := λ p, ⟨p.support, op ∘ (p : I → R), λ i, mem_support_iff.trans (op_ne_zero_iff _).symm⟩,
-  inv_fun := λ p, ⟨p.support, unop ∘ p, λ i, mem_support_iff.trans (unop_ne_zero_iff _).symm⟩,
-  left_inv := λ p, finsupp.ext $ λ i, rfl,
-  right_inv := λ p, finsupp.ext $ λ i, rfl,
-  map_add' := λ p q, finsupp.ext $ λ i, rfl }
+opposite.op_add_equiv.symm.trans (finsupp.map_range.add_equiv opposite.op_add_equiv)
 
 @[simp]
 lemma op_add_equiv_single (i : I) (r : R):
@@ -1197,13 +1192,6 @@ begin
   classical,
   simp [add_monoid_algebra.op_add_equiv, single_apply, apply_ite op],
 end
-
-@[ext]
-lemma op_ext {A B : Type*} [add_zero_class A] [add_zero_class B]
-  (f g : Aᵒᵖ →+ B)
-  (h : f.comp (op_add_equiv : A ≃+ Aᵒᵖ).to_add_monoid_hom =
-       g.comp (op_add_equiv : A ≃+ Aᵒᵖ).to_add_monoid_hom) : f = g :=
-add_monoid_hom.ext $ λ x, (add_monoid_hom.congr_fun h : _) x.unop
 
 /-- The opposite of an `add_monoid_algebra R I` is ring equivalent to
 the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite.

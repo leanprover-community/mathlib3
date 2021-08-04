@@ -43,6 +43,7 @@ variables {c₁ c₂ : R}
 
 namespace basis
 
+/-- Since `k` is redundant, it is not necessary to show `q₁.k = q₂.k` when showing `q₁ = q₂`. -/
 @[ext]
 protected lemma ext ⦃q₁ q₂ : basis A c₁ c₂⦄ (hi : q₁.i = q₂.i) (hj : q₁.j = q₂.j) :
   q₁ = q₂ :=

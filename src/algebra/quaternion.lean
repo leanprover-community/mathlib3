@@ -158,6 +158,27 @@ instance : algebra R ℍ[R, c₁, c₂] :=
 
 lemma algebra_map_eq (r : R) : algebra_map R ℍ[R,c₁,c₂] r = ⟨r, 0, 0, 0⟩ := rfl
 
+section
+variables (R c₁ c₂)
+
+/-- `quaternion_algebra.re` as a `linear_map`-/
+@[simps] def re_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := re, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_i` as a `linear_map`-/
+@[simps] def im_i_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_i, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_j` as a `linear_map`-/
+@[simps] def im_j_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_j, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.im_k` as a `linear_map`-/
+@[simps] def im_k_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
+{ to_fun := im_k, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+end
+
 @[norm_cast, simp] lemma coe_add : ((x + y : R) : ℍ[R, c₁, c₂]) = x + y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_add x y
 

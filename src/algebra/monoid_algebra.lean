@@ -1180,7 +1180,7 @@ open finsupp opposite
 -- about `support` and `coe_fn` that are true by rfl
 /-- The opposite of an `add_monoid_algebra R I` is additively equivalent to
 the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
-noncomputable def op_add_equiv :
+protected noncomputable def op_add_equiv :
   (add_monoid_algebra R I)ᵒᵖ ≃+ add_monoid_algebra Rᵒᵖ I :=
 opposite.op_add_equiv.symm.trans
 { to_fun := λ p, ⟨p.support, op ∘ (p : I → R), λ i, mem_support_iff.trans (op_ne_zero_iff _).symm⟩,
@@ -1209,7 +1209,7 @@ add_monoid_hom.ext $ λ x, (add_monoid_hom.congr_fun h : _) x.unop
 the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite.
 For the case where the index type `I` is not `[add_comm_monoid I]`, see
 `add_monoid_algebra.op_add_equiv`. -/
-noncomputable def op_ring_equiv [add_comm_monoid I] :
+protected noncomputable def op_ring_equiv [add_comm_monoid I] :
   (add_monoid_algebra R I)ᵒᵖ ≃+* add_monoid_algebra Rᵒᵖ I :=
 { map_mul' := begin
     dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],

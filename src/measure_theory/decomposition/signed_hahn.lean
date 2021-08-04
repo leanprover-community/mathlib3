@@ -33,8 +33,6 @@ being positive/negative with respect to the signed measure `s`.
 Hahn decomposition theorem
 -/
 
-#exit
-
 noncomputable theory
 open_locale classical big_operators nnreal ennreal
 

@@ -1,7 +1,461 @@
 import .all
 run_cmd tactic.skip
 
--- computability/partrec.lean
+-- algebra\algebra\basic.lean
+apply_nolint algebra.semiring_to_ring check_reducibility
+apply_nolint ring_hom.to_algebra check_reducibility
+apply_nolint ring_hom.to_algebra' check_reducibility
+
+-- algebra\archimedean.lean
+apply_nolint archimedean.floor_ring check_reducibility
+
+-- algebra\associated.lean
+apply_nolint associated.setoid check_reducibility
+
+-- algebra\category\Group\abelian.lean
+apply_nolint AddCommGroup.normal_epi check_reducibility
+apply_nolint AddCommGroup.normal_mono check_reducibility
+
+-- algebra\category\Module\abelian.lean
+apply_nolint Module.normal_epi check_reducibility
+apply_nolint Module.normal_mono check_reducibility
+
+-- algebra\char_p\invertible.lean
+apply_nolint invertible_of_char_p_not_dvd check_reducibility
+apply_nolint invertible_of_ring_char_not_dvd check_reducibility
+
+-- algebra\direct_limit.lean
+apply_nolint field.direct_limit.field check_reducibility
+
+-- algebra\direct_sum_graded.lean
+apply_nolint direct_sum.gcomm_monoid.of_add_subgroups check_reducibility
+apply_nolint direct_sum.gcomm_monoid.of_add_submonoids check_reducibility
+apply_nolint direct_sum.gcomm_monoid.of_submodules check_reducibility
+apply_nolint direct_sum.ghas_mul.of_add_subgroups check_reducibility
+apply_nolint direct_sum.ghas_mul.of_add_submonoids check_reducibility
+apply_nolint direct_sum.ghas_mul.of_submodules check_reducibility
+apply_nolint direct_sum.ghas_mul.to_sigma_has_mul check_reducibility
+apply_nolint direct_sum.ghas_one.of_add_subgroups check_reducibility
+apply_nolint direct_sum.ghas_one.of_add_submonoids check_reducibility
+apply_nolint direct_sum.ghas_one.of_submodules check_reducibility
+apply_nolint direct_sum.ghas_one.to_sigma_has_one check_reducibility
+apply_nolint direct_sum.gmonoid.of_add_subgroups check_reducibility
+apply_nolint direct_sum.gmonoid.of_add_submonoids check_reducibility
+apply_nolint direct_sum.gmonoid.of_submodules check_reducibility
+
+-- algebra\field.lean
+apply_nolint division_ring_of_is_unit_or_eq_zero check_reducibility
+apply_nolint field_of_is_unit_or_eq_zero check_reducibility
+apply_nolint is_field.to_field check_reducibility
+
+-- algebra\free_algebra.lean
+apply_nolint free_algebra.pre.has_add check_reducibility
+apply_nolint free_algebra.pre.has_coe_generator check_reducibility
+apply_nolint free_algebra.pre.has_coe_semiring check_reducibility
+apply_nolint free_algebra.pre.has_mul check_reducibility
+apply_nolint free_algebra.pre.has_one check_reducibility
+apply_nolint free_algebra.pre.has_scalar check_reducibility
+apply_nolint free_algebra.pre.has_zero check_reducibility
+
+-- algebra\gcd_monoid.lean
+apply_nolint gcd_monoid_of_exists_gcd check_reducibility
+apply_nolint gcd_monoid_of_exists_lcm check_reducibility
+apply_nolint gcd_monoid_of_gcd check_reducibility
+apply_nolint gcd_monoid_of_lcm check_reducibility
+apply_nolint normalization_monoid_of_monoid_hom_right_inverse check_reducibility
+
+-- algebra\group\conj.lean
+apply_nolint is_conj.setoid check_reducibility
+
+-- algebra\group\defs.lean
+apply_nolint add_group.to_add_monoid check_reducibility
+apply_nolint group.to_monoid check_reducibility
+
+-- algebra\group\units.lean
+apply_nolint comm_group_of_is_unit check_reducibility
+apply_nolint group_of_is_unit check_reducibility
+
+-- algebra\group_power\lemmas.lean
+apply_nolint invertible_of_pow_eq_one check_reducibility
+apply_nolint invertible_of_pow_succ_eq_one check_reducibility
+
+-- algebra\group_with_zero\basic.lean
+apply_nolint comm_group_with_zero_of_is_unit_or_eq_zero check_reducibility
+apply_nolint function.surjective.comm_group_with_zero check_reducibility
+apply_nolint group_with_zero_of_is_unit_or_eq_zero check_reducibility
+apply_nolint unique_of_zero_eq_one check_reducibility
+
+-- algebra\invertible.lean
+apply_nolint invertible.copy check_reducibility
+apply_nolint invertible.map check_reducibility
+apply_nolint invertible_div check_reducibility
+apply_nolint invertible_inv check_reducibility
+apply_nolint invertible_mul check_reducibility
+apply_nolint invertible_neg check_reducibility
+apply_nolint invertible_of_group check_reducibility
+apply_nolint invertible_of_nonzero check_reducibility
+apply_nolint invertible_one check_reducibility
+apply_nolint is_unit.invertible check_reducibility
+apply_nolint units.invertible check_reducibility
+
+-- algebra\lie\non_unital_non_assoc_algebra.lean
+apply_nolint lie_ring.to_non_unital_non_assoc_semiring check_reducibility
+
+-- algebra\lie\quotient.lean
+apply_nolint lie_submodule.quotient.action_as_endo_map_bracket check_reducibility
+
+-- algebra\module\basic.lean
+apply_nolint add_comm_group.int_module.unique check_reducibility
+apply_nolint add_comm_monoid.nat_module.unique check_reducibility
+apply_nolint function.surjective.module check_reducibility
+apply_nolint module.add_comm_monoid_to_add_comm_group check_reducibility
+apply_nolint module.of_core check_reducibility
+apply_nolint ring_hom.to_module check_reducibility
+
+-- algebra\order.lean
+apply_nolint linear_order_of_compares check_reducibility
+
+-- algebra\ordered_group.lean
+apply_nolint nonneg_add_comm_group.to_linear_ordered_add_comm_group check_reducibility
+
+-- algebra\ordered_monoid.lean
+apply_nolint with_zero.ordered_add_comm_monoid check_reducibility
+
+-- algebra\ordered_monoid_lemmas.lean
+apply_nolint contravariant.to_left_cancel_add_semigroup check_reducibility
+apply_nolint contravariant.to_left_cancel_semigroup check_reducibility
+apply_nolint contravariant.to_right_cancel_add_semigroup check_reducibility
+apply_nolint contravariant.to_right_cancel_semigroup check_reducibility
+
+-- algebra\ordered_ring.lean
+apply_nolint linear_nonneg_ring.to_linear_order check_reducibility
+apply_nolint linear_nonneg_ring.to_linear_ordered_comm_ring check_reducibility
+apply_nolint linear_nonneg_ring.to_linear_ordered_ring check_reducibility
+apply_nolint nonneg_ring.to_linear_nonneg_ring check_reducibility
+
+-- algebra\pointwise.lean
+apply_nolint set.fintype_add check_reducibility
+apply_nolint set.fintype_mul check_reducibility
+
+-- algebra\ring\basic.lean
+apply_nolint is_integral_domain.to_integral_domain check_reducibility
+
+-- algebra\ring\boolean_ring.lean
+apply_nolint boolean_ring.has_bot check_reducibility
+apply_nolint boolean_ring.has_inf check_reducibility
+apply_nolint boolean_ring.has_sdiff check_reducibility
+apply_nolint boolean_ring.has_sup check_reducibility
+apply_nolint boolean_ring.to_boolean_algebra check_reducibility
+
+-- algebra\ring_quot.lean
+apply_nolint ring_quot.star_ring check_reducibility
+
+-- algebra\smul_with_zero.lean
+apply_nolint mul_action_with_zero.comp_hom check_reducibility
+apply_nolint smul_with_zero.comp_hom check_reducibility
+
+-- algebra\star\basic.lean
+apply_nolint star_ring_of_comm check_reducibility
+
+-- analysis\convex\cone.lean
+apply_nolint convex_cone.to_ordered_add_comm_group check_reducibility
+apply_nolint convex_cone.to_partial_order check_reducibility
+apply_nolint convex_cone.to_preorder check_reducibility
+
+-- analysis\normed_space\add_torsor.lean
+apply_nolint metric_space_of_normed_group_of_add_torsor check_reducibility
+apply_nolint pseudo_metric_space_of_normed_group_of_add_torsor check_reducibility
+
+-- analysis\normed_space\basic.lean
+apply_nolint normed_group.of_add_dist check_reducibility
+apply_nolint normed_group.of_core check_reducibility
+apply_nolint normed_space.restrict_scalars check_reducibility
+apply_nolint semi_normed_group.of_add_dist check_reducibility
+apply_nolint semi_normed_group.of_add_dist' check_reducibility
+apply_nolint semi_normed_group.of_core check_reducibility
+apply_nolint semi_normed_space.restrict_scalars check_reducibility
+
+-- analysis\normed_space\enorm.lean
+apply_nolint enorm.emetric_space check_reducibility
+
+-- analysis\normed_space\inner_product.lean
+apply_nolint has_inner.is_R_or_C_to_real check_reducibility
+apply_nolint inner_product_space.is_R_or_C_to_real check_reducibility
+apply_nolint inner_product_space.of_core check_reducibility
+apply_nolint inner_product_space.of_core.to_has_inner check_reducibility
+apply_nolint inner_product_space.of_core.to_has_norm check_reducibility
+apply_nolint inner_product_space.of_core.to_normed_group check_reducibility
+apply_nolint inner_product_space.of_core.to_normed_space check_reducibility
+
+-- analysis\normed_space\pi_Lp.lean
+apply_nolint pi_Lp.emetric_aux check_reducibility
+apply_nolint pi_Lp.pseudo_emetric_aux check_reducibility
+
+-- category_theory\abelian\basic.lean
+apply_nolint category_theory.abelian.non_preadditive_abelian check_reducibility
+apply_nolint category_theory.non_preadditive_abelian.abelian check_reducibility
+
+-- category_theory\abelian\non_preadditive.lean
+apply_nolint category_theory.non_preadditive_abelian.has_add check_reducibility
+apply_nolint category_theory.non_preadditive_abelian.has_neg check_reducibility
+apply_nolint category_theory.non_preadditive_abelian.has_sub check_reducibility
+apply_nolint category_theory.non_preadditive_abelian.preadditive check_reducibility
+
+-- category_theory\abelian\pseudoelements.lean
+apply_nolint category_theory.abelian.pseudoelement.hom_to_fun check_reducibility
+apply_nolint category_theory.abelian.pseudoelement.object_to_sort check_reducibility
+apply_nolint category_theory.abelian.pseudoelement.over_to_sort check_reducibility
+apply_nolint category_theory.abelian.pseudoelement.setoid check_reducibility
+
+-- category_theory\adjunction\basic.lean
+apply_nolint category_theory.adjunction.is_right_adjoint_to_is_equivalence check_reducibility
+apply_nolint category_theory.adjunction.left_adjoint_of_nat_iso check_reducibility
+apply_nolint category_theory.adjunction.right_adjoint_of_nat_iso check_reducibility
+
+-- category_theory\adjunction\fully_faithful.lean
+apply_nolint category_theory.L_full_of_unit_is_iso check_reducibility
+apply_nolint category_theory.R_full_of_counit_is_iso check_reducibility
+
+-- category_theory\adjunction\lifting.lean
+apply_nolint category_theory.adjoint_square_lift check_reducibility
+apply_nolint category_theory.adjoint_triangle_lift check_reducibility
+apply_nolint category_theory.monadic_adjoint_square_lift check_reducibility
+apply_nolint category_theory.monadic_adjoint_triangle_lift check_reducibility
+
+-- category_theory\adjunction\limits.lean
+apply_nolint category_theory.adjunction.functoriality_is_left_adjoint check_reducibility
+apply_nolint category_theory.adjunction.functoriality_is_right_adjoint check_reducibility
+apply_nolint category_theory.adjunction.left_adjoint_preserves_colimits check_reducibility
+apply_nolint category_theory.adjunction.right_adjoint_preserves_limits check_reducibility
+
+-- category_theory\closed\functor.lean
+apply_nolint category_theory.cartesian_closed_functor_of_left_adjoint_preserves_binary_products check_reducibility
+
+-- category_theory\closed\ideal.lean
+apply_nolint category_theory.preserves_binary_products_of_exponential_ideal check_reducibility
+apply_nolint category_theory.preserves_finite_products_of_exponential_ideal check_reducibility
+
+-- category_theory\closed\monoidal.lean
+apply_nolint category_theory.unit_closed check_reducibility
+
+-- category_theory\closed\zero.lean
+apply_nolint category_theory.unique_homset_of_initial_iso_terminal check_reducibility
+apply_nolint category_theory.unique_homset_of_zero check_reducibility
+
+-- category_theory\concrete_category\basic.lean
+apply_nolint category_theory.concrete_category.has_coe_to_fun check_reducibility
+apply_nolint category_theory.concrete_category.has_coe_to_sort check_reducibility
+apply_nolint category_theory.has_forget₂.mk' check_reducibility
+
+-- category_theory\concrete_category\bundled_hom.lean
+apply_nolint category_theory.bundled_hom.map check_reducibility
+apply_nolint category_theory.bundled_hom.mk_has_forget₂ check_reducibility
+
+-- category_theory\concrete_category\unbundled_hom.lean
+apply_nolint category_theory.unbundled_hom.mk_has_forget₂ check_reducibility
+
+-- category_theory\enriched\basic.lean
+apply_nolint category_theory.category_of_enriched_category_Type check_reducibility
+apply_nolint category_theory.enriched_category_Type_of_category check_reducibility
+
+-- category_theory\epi_mono.lean
+apply_nolint category_theory.groupoid.of_trunc_split_mono check_reducibility
+
+-- category_theory\equivalence.lean
+apply_nolint category_theory.equivalence.of_fully_faithfully_ess_surj check_reducibility
+apply_nolint category_theory.is_equivalence.mk check_reducibility
+
+-- category_theory\fin_category.lean
+apply_nolint category_theory.fin_category_opposite check_reducibility
+
+-- category_theory\fully_faithful.lean
+apply_nolint category_theory.full.of_iso check_reducibility
+
+-- category_theory\functorial.lean
+apply_nolint category_theory.functorial_comp check_reducibility
+
+-- category_theory\groupoid.lean
+apply_nolint category_theory.groupoid.of_is_iso check_reducibility
+
+-- category_theory\is_connected.lean
+apply_nolint category_theory.zigzag.setoid check_reducibility
+
+-- category_theory\isomorphism_classes.lean
+apply_nolint category_theory.is_isomorphic_setoid check_reducibility
+
+-- category_theory\lifting_properties.lean
+apply_nolint category_theory.right_lifting_subcategory check_reducibility
+
+-- category_theory\limits\connected.lean
+apply_nolint category_theory.prod_preserves_connected_limits check_reducibility
+
+-- category_theory\limits\constructions\finite_products_of_binary_products.lean
+apply_nolint category_theory.preserves_fin_of_preserves_binary_and_initial check_reducibility
+apply_nolint category_theory.preserves_fin_of_preserves_binary_and_terminal check_reducibility
+apply_nolint category_theory.preserves_finite_coproducts_of_preserves_binary_and_initial check_reducibility
+apply_nolint category_theory.preserves_finite_products_of_preserves_binary_and_terminal check_reducibility
+apply_nolint category_theory.preserves_ulift_fin_of_preserves_binary_and_initial check_reducibility
+apply_nolint category_theory.preserves_ulift_fin_of_preserves_binary_and_terminal check_reducibility
+
+-- category_theory\limits\constructions\limits_of_products_and_equalizers.lean
+apply_nolint category_theory.limits.preserves_colimit_of_preserves_coequalizers_and_coproduct check_reducibility
+apply_nolint category_theory.limits.preserves_colimits_of_preserves_coequalizers_and_coproducts check_reducibility
+apply_nolint category_theory.limits.preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts check_reducibility
+apply_nolint category_theory.limits.preserves_finite_limits_of_preserves_equalizers_and_finite_products check_reducibility
+apply_nolint category_theory.limits.preserves_limit_of_preserves_equalizers_and_product check_reducibility
+apply_nolint category_theory.limits.preserves_limits_of_preserves_equalizers_and_products check_reducibility
+
+-- category_theory\limits\creates.lean
+apply_nolint category_theory.creates_colimit_of_iso_diagram check_reducibility
+apply_nolint category_theory.creates_colimit_of_nat_iso check_reducibility
+apply_nolint category_theory.creates_colimit_of_reflects_iso check_reducibility
+apply_nolint category_theory.creates_colimits_of_nat_iso check_reducibility
+apply_nolint category_theory.creates_colimits_of_shape_of_nat_iso check_reducibility
+apply_nolint category_theory.creates_limit_of_fully_faithful_of_iso check_reducibility
+apply_nolint category_theory.creates_limit_of_fully_faithful_of_lift check_reducibility
+apply_nolint category_theory.creates_limit_of_iso_diagram check_reducibility
+apply_nolint category_theory.creates_limit_of_nat_iso check_reducibility
+apply_nolint category_theory.creates_limit_of_reflects_iso check_reducibility
+apply_nolint category_theory.creates_limits_of_nat_iso check_reducibility
+apply_nolint category_theory.creates_limits_of_shape_of_nat_iso check_reducibility
+
+-- category_theory\limits\preserves\basic.lean
+apply_nolint category_theory.limits.fully_faithful_reflects_colimits check_reducibility
+apply_nolint category_theory.limits.fully_faithful_reflects_limits check_reducibility
+apply_nolint category_theory.limits.preserves_colimit_of_iso_diagram check_reducibility
+apply_nolint category_theory.limits.preserves_colimit_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.preserves_colimit_of_preserves_colimit_cocone check_reducibility
+apply_nolint category_theory.limits.preserves_colimit_of_reflects_of_preserves check_reducibility
+apply_nolint category_theory.limits.preserves_colimits_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.preserves_colimits_of_reflects_of_preserves check_reducibility
+apply_nolint category_theory.limits.preserves_colimits_of_shape_of_equiv check_reducibility
+apply_nolint category_theory.limits.preserves_colimits_of_shape_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.preserves_colimits_of_shape_of_reflects_of_preserves check_reducibility
+apply_nolint category_theory.limits.preserves_limit_of_iso_diagram check_reducibility
+apply_nolint category_theory.limits.preserves_limit_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.preserves_limit_of_preserves_limit_cone check_reducibility
+apply_nolint category_theory.limits.preserves_limit_of_reflects_of_preserves check_reducibility
+apply_nolint category_theory.limits.preserves_limits_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.preserves_limits_of_reflects_of_preserves check_reducibility
+apply_nolint category_theory.limits.preserves_limits_of_shape_of_equiv check_reducibility
+apply_nolint category_theory.limits.preserves_limits_of_shape_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.preserves_limits_of_shape_of_reflects_of_preserves check_reducibility
+apply_nolint category_theory.limits.reflects_colimit_of_iso_diagram check_reducibility
+apply_nolint category_theory.limits.reflects_colimit_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.reflects_colimit_of_reflects_isomorphisms check_reducibility
+apply_nolint category_theory.limits.reflects_colimits_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.reflects_colimits_of_reflects_isomorphisms check_reducibility
+apply_nolint category_theory.limits.reflects_colimits_of_shape_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.reflects_colimits_of_shape_of_reflects_isomorphisms check_reducibility
+apply_nolint category_theory.limits.reflects_limit_of_iso_diagram check_reducibility
+apply_nolint category_theory.limits.reflects_limit_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.reflects_limit_of_reflects_isomorphisms check_reducibility
+apply_nolint category_theory.limits.reflects_limits_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.reflects_limits_of_reflects_isomorphisms check_reducibility
+apply_nolint category_theory.limits.reflects_limits_of_shape_of_nat_iso check_reducibility
+apply_nolint category_theory.limits.reflects_limits_of_shape_of_reflects_isomorphisms check_reducibility
+
+-- category_theory\limits\preserves\functor_category.lean
+apply_nolint category_theory.functor_category.prod_preserves_colimits check_reducibility
+
+-- category_theory\limits\preserves\shapes\binary_products.lean
+apply_nolint category_theory.limits.preserves_colimit_pair.of_iso_coprod_comparison check_reducibility
+apply_nolint category_theory.limits.preserves_limit_pair.of_iso_prod_comparison check_reducibility
+
+-- category_theory\limits\preserves\shapes\equalizers.lean
+apply_nolint category_theory.limits.of_iso_comparison check_reducibility
+apply_nolint category_theory.limits.preserves_equalizer.of_iso_comparison check_reducibility
+
+-- category_theory\limits\preserves\shapes\products.lean
+apply_nolint category_theory.limits.preserves_coproduct.of_iso_comparison check_reducibility
+apply_nolint category_theory.limits.preserves_product.of_iso_comparison check_reducibility
+
+-- category_theory\limits\preserves\shapes\pullbacks.lean
+apply_nolint category_theory.limits.preserves_pullback.of_iso_comparison check_reducibility
+
+-- category_theory\limits\preserves\shapes\terminal.lean
+apply_nolint category_theory.limits.preserves_terminal.of_iso_comparison check_reducibility
+apply_nolint category_theory.limits.preserves_terminal_of_is_iso check_reducibility
+apply_nolint category_theory.limits.preserves_terminal_of_iso check_reducibility
+
+-- category_theory\limits\presheaf.lean
+apply_nolint category_theory.is_left_adjoint_of_preserves_colimits check_reducibility
+apply_nolint category_theory.is_left_adjoint_of_preserves_colimits_aux check_reducibility
+
+-- category_theory\limits\shapes\normal_mono.lean
+apply_nolint category_theory.equivalence_reflects_normal_epi check_reducibility
+apply_nolint category_theory.equivalence_reflects_normal_mono check_reducibility
+apply_nolint category_theory.normal_epi_of_normal_mono_unop check_reducibility
+apply_nolint category_theory.normal_mono_of_normal_epi_unop check_reducibility
+apply_nolint category_theory.normal_of_is_pullback_fst_of_normal check_reducibility
+apply_nolint category_theory.normal_of_is_pullback_snd_of_normal check_reducibility
+apply_nolint category_theory.normal_of_is_pushout_fst_of_normal check_reducibility
+apply_nolint category_theory.normal_of_is_pushout_snd_of_normal check_reducibility
+
+-- category_theory\limits\shapes\regular_mono.lean
+apply_nolint category_theory.regular_of_is_pullback_fst_of_regular check_reducibility
+apply_nolint category_theory.regular_of_is_pullback_snd_of_regular check_reducibility
+apply_nolint category_theory.regular_of_is_pushout_fst_of_regular check_reducibility
+apply_nolint category_theory.regular_of_is_pushout_snd_of_regular check_reducibility
+
+-- category_theory\limits\shapes\terminal.lean
+apply_nolint category_theory.limits.is_initial.split_epi_to check_reducibility
+apply_nolint category_theory.limits.is_terminal.split_mono_from check_reducibility
+
+-- category_theory\limits\shapes\zero.lean
+apply_nolint category_theory.limits.has_zero_object.has_zero check_reducibility
+apply_nolint category_theory.limits.has_zero_object.zero_morphisms_of_zero_object check_reducibility
+apply_nolint category_theory.limits.has_zero_object_of_has_initial_object check_reducibility
+apply_nolint category_theory.limits.has_zero_object_of_has_terminal_object check_reducibility
+
+-- category_theory\monad\limits.lean
+apply_nolint category_theory.left_adjoint_preserves_terminal_of_reflective check_reducibility
+apply_nolint category_theory.monadic_creates_colimit_of_preserves_colimit check_reducibility
+apply_nolint category_theory.monadic_creates_colimits_of_preserves_colimits check_reducibility
+apply_nolint category_theory.monadic_creates_colimits_of_shape_of_preserves_colimits_of_shape check_reducibility
+apply_nolint category_theory.monadic_creates_limits check_reducibility
+
+-- category_theory\monad\monadicity.lean
+apply_nolint category_theory.monad.creates_G_split_coequalizers_of_monadic check_reducibility
+apply_nolint category_theory.monad.monadic_of_creates_G_split_coequalizers check_reducibility
+apply_nolint category_theory.monad.monadic_of_has_preserves_G_split_coequalizers_of_reflects_isomorphisms check_reducibility
+apply_nolint category_theory.monad.monadic_of_has_preserves_reflects_G_split_coequalizers check_reducibility
+apply_nolint category_theory.monad.monadic_of_has_preserves_reflexive_coequalizers_of_reflects_isomorphisms check_reducibility
+
+-- category_theory\monoidal\End.lean
+apply_nolint category_theory.endofunctor_monoidal_category check_reducibility
+
+-- category_theory\monoidal\of_chosen_finite_products.lean
+apply_nolint category_theory.monoidal_of_chosen_finite_products check_reducibility
+apply_nolint category_theory.symmetric_of_chosen_finite_products check_reducibility
+
+-- category_theory\monoidal\of_has_finite_products.lean
+apply_nolint category_theory.monoidal_of_has_finite_coproducts check_reducibility
+apply_nolint category_theory.monoidal_of_has_finite_products check_reducibility
+apply_nolint category_theory.symmetric_of_has_finite_coproducts check_reducibility
+apply_nolint category_theory.symmetric_of_has_finite_products check_reducibility
+
+-- category_theory\monoidal\skeleton.lean
+apply_nolint category_theory.comm_monoid_of_skeletal_braided check_reducibility
+apply_nolint category_theory.monoid_of_skeletal_monoidal check_reducibility
+
+-- category_theory\monoidal\transport.lean
+apply_nolint category_theory.monoidal.transport check_reducibility
+
+-- category_theory\over.lean
+apply_nolint category_theory.over.coe_from_hom check_reducibility
+
+-- category_theory\thin.lean
+apply_nolint category_theory.thin_category check_reducibility
+
+-- combinatorics\quiver.lean
+apply_nolint quiver.arborescence_mk check_reducibility
+apply_nolint quiver.zigzag_setoid check_reducibility
+
+-- combinatorics\simple_graph\subgraph.lean
+apply_nolint simple_graph.subgraph.finite_at_of_subgraph check_reducibility
+
+-- computability\partrec.lean
 apply_nolint computable doc_blame
 apply_nolint computable₂ doc_blame
 apply_nolint nat.partrec doc_blame
@@ -11,7 +465,7 @@ apply_nolint nat.rfind_x doc_blame
 apply_nolint partrec doc_blame
 apply_nolint partrec₂ doc_blame
 
--- computability/partrec_code.lean
+-- computability\partrec_code.lean
 apply_nolint nat.partrec.code doc_blame
 apply_nolint nat.partrec.code.const doc_blame
 apply_nolint nat.partrec.code.curry doc_blame
@@ -21,15 +475,18 @@ apply_nolint nat.partrec.code.evaln doc_blame
 apply_nolint nat.partrec.code.id doc_blame
 apply_nolint nat.partrec.code.of_nat_code doc_blame
 
--- computability/primrec.lean
+-- computability\primrec.lean
 apply_nolint nat.cases doc_blame
 apply_nolint nat.elim doc_blame
 apply_nolint nat.primrec'.vec doc_blame
 apply_nolint nat.unpaired doc_blame
-apply_nolint primcodable.of_equiv doc_blame
-apply_nolint primcodable.subtype doc_blame
+apply_nolint primcodable.of_equiv doc_blame check_reducibility
+apply_nolint primcodable.subtype doc_blame check_reducibility
 
--- control/basic.lean
+-- computability\turing_machine.lean
+apply_nolint turing.blank_rel.setoid check_reducibility
+
+-- control\basic.lean
 apply_nolint is_comm_applicative doc_blame
 apply_nolint list.mmap_accuml doc_blame
 apply_nolint list.mmap_accumr doc_blame
@@ -40,18 +497,18 @@ apply_nolint mzip_with' doc_blame
 apply_nolint succeeds doc_blame
 apply_nolint sum.bind doc_blame
 
--- control/bifunctor.lean
+-- control\bifunctor.lean
 apply_nolint bifunctor doc_blame
 apply_nolint bifunctor.fst doc_blame
 apply_nolint bifunctor.snd doc_blame
 apply_nolint is_lawful_bifunctor doc_blame
 
--- control/bitraversable/basic.lean
+-- control\bitraversable\basic.lean
 apply_nolint bisequence doc_blame
 apply_nolint bitraversable doc_blame
 apply_nolint is_lawful_bitraversable doc_blame
 
--- control/bitraversable/instances.lean
+-- control\bitraversable\instances.lean
 apply_nolint bicompl.bitraverse doc_blame
 apply_nolint bicompr.bitraverse doc_blame
 apply_nolint const.bitraverse doc_blame unused_arguments
@@ -59,7 +516,7 @@ apply_nolint flip.bitraverse doc_blame
 apply_nolint prod.bitraverse doc_blame
 apply_nolint sum.bitraverse doc_blame
 
--- control/fold.lean
+-- control\fold.lean
 apply_nolint monoid.foldl.get doc_blame
 apply_nolint monoid.foldl.mk doc_blame
 apply_nolint monoid.foldl.of_free_monoid doc_blame
@@ -86,7 +543,7 @@ apply_nolint traversable.mfoldl doc_blame
 apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
 apply_nolint traversable.mfoldr doc_blame
 
--- control/monad/cont.lean
+-- control\monad\cont.lean
 apply_nolint cont doc_blame
 apply_nolint cont_t doc_blame has_inhabited_instance
 apply_nolint cont_t.map doc_blame
@@ -109,7 +566,7 @@ apply_nolint writer_t.call_cc doc_blame
 apply_nolint writer_t.mk_label doc_blame
 apply_nolint writer_t.monad_cont unused_arguments
 
--- control/monad/writer.lean
+-- control\monad\writer.lean
 apply_nolint except_t.pass_aux doc_blame
 apply_nolint option_t.pass_aux doc_blame
 apply_nolint swap_right doc_blame
@@ -126,7 +583,7 @@ apply_nolint writer_t.pass doc_blame
 apply_nolint writer_t.pure doc_blame
 apply_nolint writer_t.tell doc_blame
 
--- control/traversable/derive.lean
+-- control\traversable\derive.lean
 apply_nolint tactic.interactive.derive_functor doc_blame
 apply_nolint tactic.interactive.derive_lawful_functor doc_blame
 apply_nolint tactic.interactive.derive_lawful_traversable doc_blame
@@ -151,13 +608,25 @@ apply_nolint tactic.interactive.traverse_constructor unused_arguments
 apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
 
--- data/analysis/filter.lean
+-- control\traversable\equiv.lean
+apply_nolint equiv.functor check_reducibility
+apply_nolint equiv.is_lawful_traversable check_reducibility
+apply_nolint equiv.is_lawful_traversable' check_reducibility
+apply_nolint equiv.traversable check_reducibility
+
+-- control\uliftable.lean
+apply_nolint cont_t.uliftable' check_reducibility
+apply_nolint reader_t.uliftable' check_reducibility
+apply_nolint state_t.uliftable' check_reducibility
+apply_nolint writer_t.uliftable' check_reducibility
+
+-- data\analysis\filter.lean
 apply_nolint cfilter has_inhabited_instance
 apply_nolint cfilter.to_realizer doc_blame
 apply_nolint filter.realizer has_inhabited_instance
 apply_nolint filter.realizer.of_eq doc_blame
 
--- data/analysis/topology.lean
+-- data\analysis\topology.lean
 apply_nolint compact.realizer doc_blame unused_arguments has_inhabited_instance
 apply_nolint ctop has_inhabited_instance
 apply_nolint ctop.realizer has_inhabited_instance
@@ -167,14 +636,119 @@ apply_nolint ctop.realizer.nhds_F unused_arguments
 apply_nolint ctop.realizer.nhds_σ unused_arguments
 apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
+apply_nolint ctop.to_topsp check_reducibility
 apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
 
--- data/equiv/list.lean
+-- data\complex\basic.lean
+apply_nolint complex.complex_order check_reducibility
+apply_nolint complex.complex_ordered_comm_ring check_reducibility
+apply_nolint complex.complex_star_ordered_ring check_reducibility
+
+-- data\equiv\basic.lean
+apply_nolint equiv.inhabited check_reducibility
+apply_nolint equiv.unique check_reducibility
+
+-- data\equiv\denumerable.lean
+apply_nolint denumerable.mk' check_reducibility
+apply_nolint denumerable.of_encodable_of_infinite check_reducibility
+apply_nolint denumerable.of_equiv check_reducibility
+apply_nolint nat.subtype.denumerable check_reducibility
+
+-- data\equiv\encodable\basic.lean
+apply_nolint encodable.of_equiv check_reducibility
+apply_nolint encodable.of_inj check_reducibility
+apply_nolint encodable.of_left_injection check_reducibility
+apply_nolint encodable.of_left_inverse check_reducibility
+apply_nolint encodable_quotient check_reducibility
+
+-- data\equiv\list.lean
+apply_nolint encodable.encodable_of_list check_reducibility
 apply_nolint encodable.fintype_arrow doc_blame
 apply_nolint encodable.fintype_pi doc_blame
 apply_nolint encodable.trunc_encodable_of_fintype doc_blame
+apply_nolint fintype.encodable check_reducibility
 
--- data/fp/basic.lean
+-- data\equiv\ring.lean
+apply_nolint ring_equiv.integral_domain check_reducibility
+
+-- data\equiv\transfer_instance.lean
+apply_nolint equiv.add_comm_group check_reducibility
+apply_nolint equiv.add_comm_monoid check_reducibility
+apply_nolint equiv.add_comm_semigroup check_reducibility
+apply_nolint equiv.add_group check_reducibility
+apply_nolint equiv.add_monoid check_reducibility
+apply_nolint equiv.add_semigroup check_reducibility
+apply_nolint equiv.add_zero_class check_reducibility
+apply_nolint equiv.comm_group check_reducibility
+apply_nolint equiv.comm_monoid check_reducibility
+apply_nolint equiv.comm_ring check_reducibility
+apply_nolint equiv.comm_semigroup check_reducibility
+apply_nolint equiv.comm_semiring check_reducibility
+apply_nolint equiv.division_ring check_reducibility
+apply_nolint equiv.domain check_reducibility
+apply_nolint equiv.field check_reducibility
+apply_nolint equiv.group check_reducibility
+apply_nolint equiv.has_add check_reducibility
+apply_nolint equiv.has_div check_reducibility
+apply_nolint equiv.has_inv check_reducibility
+apply_nolint equiv.has_mul check_reducibility
+apply_nolint equiv.has_neg check_reducibility
+apply_nolint equiv.has_one check_reducibility
+apply_nolint equiv.has_scalar check_reducibility
+apply_nolint equiv.has_sub check_reducibility
+apply_nolint equiv.has_zero check_reducibility
+apply_nolint equiv.integral_domain check_reducibility
+apply_nolint equiv.monoid check_reducibility
+apply_nolint equiv.mul_action check_reducibility
+apply_nolint equiv.mul_one_class check_reducibility
+apply_nolint equiv.mul_zero_class check_reducibility
+apply_nolint equiv.mul_zero_one_class check_reducibility
+apply_nolint equiv.non_assoc_semiring check_reducibility
+apply_nolint equiv.non_unital_non_assoc_semiring check_reducibility
+apply_nolint equiv.non_unital_semiring check_reducibility
+apply_nolint equiv.ring check_reducibility
+apply_nolint equiv.semigroup check_reducibility
+apply_nolint equiv.semigroup_with_zero check_reducibility
+apply_nolint equiv.semiring check_reducibility
+
+-- data\fin_enum.lean
+apply_nolint fin_enum.of_equiv check_reducibility
+apply_nolint fin_enum.of_injective check_reducibility
+apply_nolint fin_enum.of_list check_reducibility
+apply_nolint fin_enum.of_nodup_list check_reducibility
+apply_nolint fin_enum.of_surjective check_reducibility
+
+-- data\finset\powerset.lean
+apply_nolint finset.decidable_exists_of_decidable_ssubsets' check_reducibility
+apply_nolint finset.decidable_exists_of_decidable_subsets' check_reducibility
+apply_nolint finset.decidable_forall_of_decidable_ssubsets' check_reducibility
+apply_nolint finset.decidable_forall_of_decidable_subsets' check_reducibility
+
+-- data\finsupp\basic.lean
+apply_nolint finsupp.comap_distrib_mul_action check_reducibility
+apply_nolint finsupp.comap_distrib_mul_action_self check_reducibility
+apply_nolint finsupp.comap_has_scalar check_reducibility
+apply_nolint finsupp.comap_mul_action check_reducibility
+
+-- data\fintype\basic.lean
+apply_nolint fintype.of_bijective check_reducibility
+apply_nolint fintype.of_equiv check_reducibility
+apply_nolint fintype.of_finset check_reducibility
+apply_nolint fintype.of_injective check_reducibility
+apply_nolint fintype.of_list check_reducibility
+apply_nolint fintype.of_multiset check_reducibility
+apply_nolint fintype.of_subsingleton check_reducibility
+apply_nolint fintype.of_surjective check_reducibility
+apply_nolint fintype.prod_left check_reducibility
+apply_nolint fintype.prod_right check_reducibility
+apply_nolint fintype.subtype check_reducibility
+apply_nolint fintype.sum_left check_reducibility
+apply_nolint fintype.sum_right check_reducibility
+apply_nolint fintype_of_not_infinite check_reducibility
+apply_nolint fintype_perm check_reducibility
+apply_nolint set_fintype check_reducibility
+
+-- data\fp\basic.lean
 apply_nolint fp.div_nat_lt_two_pow doc_blame unused_arguments
 apply_nolint fp.emax doc_blame
 apply_nolint fp.emin doc_blame
@@ -204,7 +778,7 @@ apply_nolint fp.to_rat doc_blame
 apply_nolint fp.valid_finite doc_blame
 apply_nolint int.shift2 doc_blame
 
--- data/holor.lean
+-- data\holor.lean
 apply_nolint holor.assoc_left doc_blame
 apply_nolint holor.assoc_right doc_blame
 apply_nolint holor_index has_inhabited_instance
@@ -213,7 +787,10 @@ apply_nolint holor_index.assoc_right doc_blame
 apply_nolint holor_index.drop doc_blame
 apply_nolint holor_index.take doc_blame
 
--- data/list/defs.lean
+-- data\list\cycle.lean
+apply_nolint cycle.decidable_nontrivial_coe check_reducibility
+
+-- data\list\defs.lean
 apply_nolint list.permutations_aux doc_blame
 apply_nolint list.permutations_aux.rec doc_blame
 apply_nolint list.permutations_aux2 doc_blame
@@ -222,7 +799,7 @@ apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
 apply_nolint list.traverse doc_blame
 
--- data/list/func.lean
+-- data\list\func.lean
 apply_nolint list.func.add doc_blame
 apply_nolint list.func.equiv doc_blame
 apply_nolint list.func.get doc_blame
@@ -231,12 +808,15 @@ apply_nolint list.func.pointwise doc_blame
 apply_nolint list.func.set doc_blame
 apply_nolint list.func.sub doc_blame
 
--- data/list/sigma.lean
+-- data\list\rotate.lean
+apply_nolint list.is_rotated.setoid check_reducibility
+
+-- data\list\sigma.lean
 apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
 apply_nolint list.nodupkeys doc_blame
 
--- data/mllist.lean
+-- data\mllist.lean
 apply_nolint tactic.mllist.append unused_arguments
 apply_nolint tactic.mllist.enum_from unused_arguments
 apply_nolint tactic.mllist.filter unused_arguments
@@ -255,35 +835,39 @@ apply_nolint tactic.mllist.of_list unused_arguments
 apply_nolint tactic.mllist.take unused_arguments
 apply_nolint tactic.mllist.uncons unused_arguments
 
--- data/multiset/basic.lean
-apply_nolint multiset.decidable_exists_multiset doc_blame
-apply_nolint multiset.decidable_forall_multiset doc_blame
+-- data\multiset\basic.lean
+apply_nolint multiset.decidable_exists_multiset doc_blame check_reducibility
+apply_nolint multiset.decidable_forall_multiset doc_blame check_reducibility
 apply_nolint multiset.rec_on doc_blame
 apply_nolint multiset.strong_induction_on doc_blame
 apply_nolint multiset.sum doc_blame
 
--- data/multiset/functor.lean
+-- data\multiset\functor.lean
 apply_nolint multiset.traverse doc_blame
 
--- data/num/bitwise.lean
+-- data\nat\prime.lean
+apply_nolint nat.decidable_prime_1 check_reducibility
+
+-- data\num\bitwise.lean
 apply_nolint snum.cadd doc_blame
 
--- data/opposite.lean
+-- data\opposite.lean
 apply_nolint opposite.op_induction doc_blame
 apply_nolint tactic.interactive.op_induction doc_blame
 apply_nolint tactic.op_induction doc_blame
 apply_nolint tactic.op_induction' doc_blame
 
--- data/option/defs.lean
+-- data\option\defs.lean
+apply_nolint option.decidable_eq_none check_reducibility
 apply_nolint option.traverse doc_blame
 
--- data/pequiv.lean
+-- data\pequiv.lean
 apply_nolint pequiv has_inhabited_instance
 apply_nolint pequiv.refl doc_blame
 apply_nolint pequiv.symm doc_blame
 apply_nolint pequiv.trans doc_blame
 
--- data/pfun.lean
+-- data\pfun.lean
 apply_nolint pfun.core doc_blame
 apply_nolint pfun.fix doc_blame
 apply_nolint pfun.fix_induction doc_blame
@@ -295,7 +879,7 @@ apply_nolint roption.equiv_option doc_blame
 apply_nolint roption.get_or_else doc_blame
 apply_nolint roption.restrict doc_blame
 
--- data/pnat/xgcd.lean
+-- data\pnat\xgcd.lean
 apply_nolint pnat.gcd_a' doc_blame
 apply_nolint pnat.gcd_b' doc_blame
 apply_nolint pnat.gcd_d doc_blame
@@ -319,21 +903,37 @@ apply_nolint pnat.xgcd_type.v doc_blame
 apply_nolint pnat.xgcd_type.w doc_blame
 apply_nolint pnat.xgcd_type.z doc_blame
 
--- data/polynomial/identities.lean
+-- data\polynomial\div.lean
+apply_nolint polynomial.decidable_dvd_monic check_reducibility
+
+-- data\polynomial\identities.lean
 apply_nolint polynomial.binom_expansion doc_blame
 apply_nolint polynomial.eval_sub_factor doc_blame
 apply_nolint polynomial.pow_add_expansion doc_blame
 apply_nolint polynomial.pow_sub_pow_factor doc_blame
 
--- data/real/cau_seq_completion.lean
+-- data\qpf\multivariate\constructions\fix.lean
+apply_nolint mvqpf.W_setoid check_reducibility
+
+-- data\qpf\multivariate\constructions\quot.lean
+apply_nolint mvqpf.quot1.mvfunctor check_reducibility
+apply_nolint mvqpf.quotient_qpf check_reducibility
+apply_nolint mvqpf.rel_quot check_reducibility
+
+-- data\qpf\univariate\basic.lean
+apply_nolint qpf.W_setoid check_reducibility
+apply_nolint qpf.comp check_reducibility
+apply_nolint qpf.quotient_qpf check_reducibility
+
+-- data\real\cau_seq_completion.lean
 apply_nolint cau_seq.completion.Cauchy doc_blame
-apply_nolint cau_seq.completion.field doc_blame
+apply_nolint cau_seq.completion.field doc_blame check_reducibility
 apply_nolint cau_seq.completion.mk doc_blame
 apply_nolint cau_seq.completion.of_rat doc_blame
 apply_nolint cau_seq.is_complete doc_blame
 apply_nolint cau_seq.lim doc_blame
 
--- data/seq/computation.lean
+-- data\seq\computation.lean
 apply_nolint computation.bind.F doc_blame
 apply_nolint computation.bind.G doc_blame
 apply_nolint computation.bisim_o doc_blame
@@ -346,19 +946,19 @@ apply_nolint computation.mem doc_blame
 apply_nolint computation.mem_rec_on doc_blame
 apply_nolint computation.terminates_rec_on doc_blame
 
--- data/seq/parallel.lean
+-- data\seq\parallel.lean
 apply_nolint computation.parallel.aux1 doc_blame
 apply_nolint computation.parallel.aux2 doc_blame
 apply_nolint computation.parallel_rec doc_blame
 
--- data/seq/seq.lean
+-- data\seq\seq.lean
 apply_nolint seq.bisim_o doc_blame
 apply_nolint seq.cases_on doc_blame
 apply_nolint seq.corec.F doc_blame
 apply_nolint seq.is_bisimulation doc_blame
 apply_nolint seq.mem doc_blame
 
--- data/seq/wseq.lean
+-- data\seq\wseq.lean
 apply_nolint wseq.bisim_o doc_blame
 apply_nolint wseq.cases_on doc_blame
 apply_nolint wseq.destruct_append.aux doc_blame
@@ -369,7 +969,34 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/vector2.lean
+-- data\set\basic.lean
+apply_nolint set.unique_empty check_reducibility
+
+-- data\set\countable.lean
+apply_nolint set.countable.to_encodable check_reducibility
+
+-- data\set\finite.lean
+apply_nolint set.decidable_mem_of_fintype check_reducibility
+apply_nolint set.finite.fintype check_reducibility
+apply_nolint set.fintype_bUnion check_reducibility
+apply_nolint set.fintype_bind check_reducibility
+apply_nolint set.fintype_insert' check_reducibility
+apply_nolint set.fintype_of_fintype_image check_reducibility
+apply_nolint set.fintype_of_univ_finite check_reducibility
+apply_nolint set.fintype_subset check_reducibility
+
+-- data\setoid\basic.lean
+apply_nolint setoid.comap check_reducibility
+apply_nolint setoid.ker check_reducibility
+apply_nolint setoid.map check_reducibility
+apply_nolint setoid.map_of_surjective check_reducibility
+apply_nolint setoid.prod check_reducibility
+
+-- data\setoid\partition.lean
+apply_nolint setoid.mk_classes check_reducibility
+apply_nolint setoid.setoid_of_disjoint_union check_reducibility
+
+-- data\vector2.lean
 apply_nolint vector.insert_nth doc_blame
 apply_nolint vector.m_of_fn doc_blame
 apply_nolint vector.mmap doc_blame
@@ -378,22 +1005,101 @@ apply_nolint vector.to_array doc_blame
 apply_nolint vector.traverse doc_blame
 apply_nolint vector.traverse_def unused_arguments
 
--- deprecated/subfield.lean
+-- deprecated\subfield.lean
 apply_nolint is_subfield doc_blame
 
--- deprecated/subring.lean
+-- deprecated\subring.lean
 apply_nolint ring.closure doc_blame
 
--- field_theory/finite/polynomial.lean
+-- field_theory\adjoin.lean
+apply_nolint intermediate_field.fintype_of_alg_hom_adjoin_integral check_reducibility
+
+-- field_theory\finite\polynomial.lean
 apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame
 apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
 
--- group_theory/sylow.lean
+-- field_theory\finiteness.lean
+apply_nolint is_noetherian.fintype_basis_index check_reducibility
+
+-- field_theory\polynomial_galois_group.lean
+apply_nolint polynomial.gal.unique_gal_of_splits check_reducibility
+
+-- geometry\manifold\charted_space.lean
+apply_nolint charted_space_core.to_charted_space check_reducibility
+apply_nolint charted_space_core.to_topological_space check_reducibility
+apply_nolint local_homeomorph.singleton_charted_space check_reducibility
+apply_nolint open_embedding.singleton_charted_space check_reducibility
+
+-- group_theory\congruence.lean
+apply_nolint add_con.to_setoid check_reducibility
+apply_nolint con.to_setoid check_reducibility
+
+-- group_theory\coset.lean
+apply_nolint quotient_add_group.left_rel check_reducibility
+apply_nolint quotient_add_group.right_rel check_reducibility
+apply_nolint quotient_group.left_rel check_reducibility
+apply_nolint quotient_group.right_rel check_reducibility
+
+-- group_theory\eckmann_hilton.lean
+apply_nolint eckmann_hilton.add_comm_group check_reducibility
+apply_nolint eckmann_hilton.add_comm_monoid check_reducibility
+apply_nolint eckmann_hilton.comm_group check_reducibility
+apply_nolint eckmann_hilton.comm_monoid check_reducibility
+
+-- group_theory\group_action\basic.lean
+apply_nolint mul_action.orbit_rel check_reducibility
+
+-- group_theory\group_action\group.lean
+apply_nolint arrow_action check_reducibility
+
+-- group_theory\is_free_group.lean
+apply_nolint is_free_group.of_mul_equiv check_reducibility
+
+-- group_theory\nielsen_schreier.lean
+apply_nolint is_free_groupoid.spanning_tree.End_is_free check_reducibility
+
+-- group_theory\perm\sign.lean
+apply_nolint equiv.perm.mod_swap check_reducibility
+
+-- group_theory\specific_groups\cyclic.lean
+apply_nolint comm_group_of_cycle_center_quotient check_reducibility
+apply_nolint is_cyclic.comm_group check_reducibility
+
+-- group_theory\sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 
--- logic/embedding.lean
+-- linear_algebra\basic.lean
+apply_nolint submodule.quotient_rel check_reducibility
+
+-- linear_algebra\basis.lean
+apply_nolint module.fintype_of_fintype check_reducibility
+
+-- linear_algebra\dimension.lean
+apply_nolint basis.fintype_index_of_dim_lt_omega check_reducibility
+
+-- linear_algebra\finite_dimensional.lean
+apply_nolint field_of_finite_dimensional check_reducibility
+apply_nolint finite_dimensional.fintype_of_fintype check_reducibility
+
+-- linear_algebra\matrix\nonsingular_inverse.lean
+apply_nolint matrix.det_invertible_of_invertible check_reducibility
+apply_nolint matrix.det_invertible_of_left_inverse check_reducibility
+apply_nolint matrix.det_invertible_of_right_inverse check_reducibility
+apply_nolint matrix.invertible_of_det_invertible check_reducibility
+apply_nolint matrix.invertible_of_is_unit_det check_reducibility
+apply_nolint matrix.invertible_of_left_inverse check_reducibility
+apply_nolint matrix.invertible_of_right_inverse check_reducibility
+
+-- logic\basic.lean
+apply_nolint classical.dec check_reducibility
+apply_nolint classical.inhabited_of_nonempty' check_reducibility
+apply_nolint decidable_of_bool check_reducibility
+apply_nolint decidable_of_iff check_reducibility
+apply_nolint decidable_of_iff' check_reducibility
+
+-- logic\embedding.lean
 apply_nolint function.embedding.Pi_congr_right doc_blame
 apply_nolint function.embedding.arrow_congr_left doc_blame
 apply_nolint function.embedding.arrow_congr_right doc_blame
@@ -403,7 +1109,7 @@ apply_nolint function.embedding.refl doc_blame
 apply_nolint function.embedding.subtype_map doc_blame
 apply_nolint function.embedding.trans doc_blame
 
--- logic/relator.lean
+-- logic\relator.lean
 apply_nolint relator.bi_total doc_blame
 apply_nolint relator.bi_unique doc_blame
 apply_nolint relator.left_total doc_blame
@@ -412,7 +1118,41 @@ apply_nolint relator.lift_fun doc_blame
 apply_nolint relator.right_total doc_blame
 apply_nolint relator.right_unique doc_blame
 
--- meta/coinductive_predicates.lean
+-- logic\unique.lean
+apply_nolint function.injective.unique check_reducibility
+apply_nolint function.surjective.unique check_reducibility
+apply_nolint unique.mk' check_reducibility
+apply_nolint unique_prop check_reducibility
+
+-- measure_theory\ae_eq_fun.lean
+apply_nolint measure_theory.measure.ae_eq_setoid check_reducibility
+
+-- measure_theory\borel_space.lean
+apply_nolint borel check_reducibility
+
+-- measure_theory\measurable_space.lean
+apply_nolint measurable_space.comap check_reducibility
+apply_nolint measurable_space.map check_reducibility
+
+-- measure_theory\measurable_space_def.lean
+apply_nolint measurable_space.generate_from check_reducibility
+apply_nolint measurable_space.mk_of_closure check_reducibility
+
+-- measure_theory\measure_space.lean
+apply_nolint null_measurable check_reducibility
+
+-- measure_theory\outer_measure.lean
+apply_nolint measure_theory.outer_measure.caratheodory check_reducibility
+
+-- measure_theory\pi_system.lean
+apply_nolint measurable_space.dynkin_system.to_measurable_space check_reducibility
+
+-- measure_theory\simple_func_dense.lean
+apply_nolint measure_theory.Lp.simple_func.has_scalar check_reducibility
+apply_nolint measure_theory.Lp.simple_func.module check_reducibility
+apply_nolint measure_theory.Lp.simple_func.normed_space check_reducibility
+
+-- meta\coinductive_predicates.lean
 apply_nolint monotonicity doc_blame
 apply_nolint tactic.add_coinductive_predicate doc_blame
 apply_nolint tactic.add_coinductive_predicate.coind_pred doc_blame
@@ -437,28 +1177,67 @@ apply_nolint tactic.coinductive_predicate doc_blame
 apply_nolint tactic.interactive.coinduction doc_blame
 apply_nolint tactic.mono doc_blame
 
--- number_theory/dioph.lean
+-- number_theory\dioph.lean
 apply_nolint poly has_inhabited_instance
 apply_nolint vector3 has_inhabited_instance
 apply_nolint vector3.cons_elim doc_blame
 apply_nolint vector3.nil_elim doc_blame
 apply_nolint vector3.rec_on doc_blame
 
--- number_theory/pell.lean
+-- number_theory\pell.lean
 apply_nolint pell.az unused_arguments
 apply_nolint pell.x_sub_y_dvd_pow_lem unused_arguments
 
--- number_theory/zsqrtd/basic.lean
+-- number_theory\zsqrtd\basic.lean
 apply_nolint zsqrtd.le doc_blame
 apply_nolint zsqrtd.lt doc_blame
 apply_nolint zsqrtd.norm doc_blame
 
--- number_theory/zsqrtd/gaussian_int.lean
+-- number_theory\zsqrtd\gaussian_int.lean
 apply_nolint gaussian_int doc_blame
 apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 
--- order/filter/partial.lean
+-- order\atoms.lean
+apply_nolint is_simple_lattice.boolean_algebra check_reducibility
+apply_nolint is_simple_lattice.complete_boolean_algebra check_reducibility
+apply_nolint is_simple_lattice.complete_lattice check_reducibility
+
+-- order\boolean_algebra.lean
+apply_nolint boolean_algebra.of_core check_reducibility
+
+-- order\bounded_lattice.lean
+apply_nolint subtype.semilattice_inf_bot check_reducibility
+apply_nolint subtype.semilattice_inf_top check_reducibility
+apply_nolint subtype.semilattice_sup_bot check_reducibility
+apply_nolint subtype.semilattice_sup_top check_reducibility
+
+-- order\complete_lattice.lean
+apply_nolint complete_lattice_of_Inf check_reducibility
+apply_nolint complete_lattice_of_Sup check_reducibility
+apply_nolint complete_lattice_of_complete_semilattice_Inf check_reducibility
+apply_nolint complete_lattice_of_complete_semilattice_Sup check_reducibility
+
+-- order\conditionally_complete_lattice.lean
+apply_nolint subset_conditionally_complete_linear_order check_reducibility
+apply_nolint subset_has_Inf check_reducibility
+apply_nolint subset_has_Sup check_reducibility
+
+-- order\copy.lean
+apply_nolint bounded_lattice.copy check_reducibility
+apply_nolint complete_distrib_lattice.copy check_reducibility
+apply_nolint complete_lattice.copy check_reducibility
+apply_nolint conditionally_complete_lattice.copy check_reducibility
+apply_nolint distrib_lattice.copy check_reducibility
+
+-- order\filter\basic.lean
+apply_nolint filter.monad check_reducibility
+apply_nolint filter.unique check_reducibility
+
+-- order\filter\germ.lean
+apply_nolint filter.germ_setoid check_reducibility
+
+-- order\filter\partial.lean
 apply_nolint filter.pcomap' doc_blame
 apply_nolint filter.pmap doc_blame
 apply_nolint filter.ptendsto doc_blame
@@ -469,19 +1248,110 @@ apply_nolint filter.rmap doc_blame
 apply_nolint filter.rtendsto doc_blame
 apply_nolint filter.rtendsto' doc_blame
 
--- order/fixed_points.lean
+-- order\fixed_points.lean
+apply_nolint fixed_points.complete_lattice check_reducibility
 apply_nolint fixed_points.next doc_blame
 apply_nolint fixed_points.next_fixed doc_blame
 apply_nolint fixed_points.prev doc_blame
 apply_nolint fixed_points.prev_fixed doc_blame
 
--- set_theory/cofinality.lean
+-- order\galois_connection.lean
+apply_nolint galois_coinsertion.lift_bounded_lattice check_reducibility
+apply_nolint galois_coinsertion.lift_complete_lattice check_reducibility
+apply_nolint galois_coinsertion.lift_lattice check_reducibility
+apply_nolint galois_coinsertion.lift_order_bot check_reducibility
+apply_nolint galois_coinsertion.lift_semilattice_inf check_reducibility
+apply_nolint galois_coinsertion.lift_semilattice_sup check_reducibility
+apply_nolint galois_connection.lift_order_bot check_reducibility
+apply_nolint galois_connection.lift_order_top check_reducibility
+apply_nolint galois_insertion.lift_bounded_lattice check_reducibility
+apply_nolint galois_insertion.lift_complete_lattice check_reducibility
+apply_nolint galois_insertion.lift_lattice check_reducibility
+apply_nolint galois_insertion.lift_order_top check_reducibility
+apply_nolint galois_insertion.lift_semilattice_inf check_reducibility
+apply_nolint galois_insertion.lift_semilattice_sup check_reducibility
+
+-- order\lattice.lean
+apply_nolint lattice.mk' check_reducibility
+apply_nolint semilattice_inf.mk' check_reducibility
+apply_nolint semilattice_sup.mk' check_reducibility
+apply_nolint subtype.lattice check_reducibility
+apply_nolint subtype.semilattice_inf check_reducibility
+apply_nolint subtype.semilattice_sup check_reducibility
+
+-- order\lattice_intervals.lean
+apply_nolint set.Icc.bounded_lattice check_reducibility
+apply_nolint set.Icc.order_bot check_reducibility
+apply_nolint set.Icc.order_top check_reducibility
+apply_nolint set.Icc.semilattice_inf_bot check_reducibility
+apply_nolint set.Icc.semilattice_inf_top check_reducibility
+apply_nolint set.Icc.semilattice_sup_bot check_reducibility
+apply_nolint set.Icc.semilattice_sup_top check_reducibility
+apply_nolint set.Ico.order_bot check_reducibility
+apply_nolint set.Ico.semilattice_inf_bot check_reducibility
+apply_nolint set.Ioc.order_top check_reducibility
+apply_nolint set.Ioc.semilattice_sup_top check_reducibility
+
+-- order\omega_complete_partial_order.lean
+apply_nolint omega_complete_partial_order.subtype check_reducibility
+
+-- order\pilex.lean
+apply_nolint pilex.linear_order check_reducibility
+
+-- order\preorder_hom.lean
+apply_nolint preorder_hom.unique check_reducibility
+
+-- order\rel_classes.lean
+apply_nolint is_well_order.linear_order check_reducibility
+apply_nolint linear_order_of_STO' check_reducibility
+apply_nolint partial_order_of_SO check_reducibility
+
+-- ring_theory\algebra_tower.lean
+apply_nolint is_scalar_tower.invertible.algebra_tower check_reducibility
+apply_nolint is_scalar_tower.invertible_algebra_coe_nat check_reducibility
+
+-- ring_theory\ideal\basic.lean
+apply_nolint ideal.quotient.field check_reducibility
+
+-- ring_theory\integral_domain.lean
+apply_nolint field_of_integral_domain check_reducibility
+
+-- ring_theory\localization.lean
+apply_nolint is_fraction_ring.to_field check_reducibility
+apply_nolint is_fraction_ring.to_integral_domain check_reducibility
+apply_nolint is_localization.integral_domain_localization check_reducibility
+apply_nolint is_localization.integral_domain_of_le_non_zero_divisors check_reducibility
+apply_nolint localization_algebra check_reducibility
+
+-- ring_theory\polynomial\basic.lean
+apply_nolint mv_polynomial.integral_domain_fintype check_reducibility
+
+-- ring_theory\unique_factorization_domain.lean
+apply_nolint unique_factorization_monoid.normalization_monoid check_reducibility
+apply_nolint unique_factorization_monoid.to_gcd_monoid check_reducibility
+
+-- ring_theory\valuation\basic.lean
+apply_nolint add_valuation.to_preorder check_reducibility
+apply_nolint valuation.to_preorder check_reducibility
+
+-- set_theory\cofinality.lean
 apply_nolint strict_order.cof doc_blame
 
--- set_theory/game.lean
+-- set_theory\game.lean
+apply_nolint game.game_partial_order check_reducibility
+apply_nolint game.ordered_add_comm_group_game check_reducibility
 apply_nolint pgame.inv_ty has_inhabited_instance
 
--- set_theory/lists.lean
+-- set_theory\game\short.lean
+apply_nolint pgame.fintype_left check_reducibility
+apply_nolint pgame.fintype_right check_reducibility
+apply_nolint pgame.move_left_short' check_reducibility
+apply_nolint pgame.move_right_short' check_reducibility
+apply_nolint pgame.short.mk' check_reducibility
+apply_nolint pgame.short_of_equiv_empty check_reducibility
+apply_nolint pgame.short_of_relabelling check_reducibility
+
+-- set_theory\lists.lean
 apply_nolint finsets doc_blame
 apply_nolint lists doc_blame
 apply_nolint lists' doc_blame
@@ -496,25 +1366,25 @@ apply_nolint lists.of' doc_blame
 apply_nolint lists.of_list doc_blame
 apply_nolint lists.to_list doc_blame
 
--- set_theory/pgame.lean
+-- set_theory\pgame.lean
 apply_nolint pgame.left_moves has_inhabited_instance
 apply_nolint pgame.relabelling has_inhabited_instance
 apply_nolint pgame.restricted has_inhabited_instance
 apply_nolint pgame.right_moves has_inhabited_instance
 
--- set_theory/surreal.lean
+-- set_theory\surreal.lean
 apply_nolint pgame.add_lt_add unused_arguments
 apply_nolint pgame.numeric.lt_move_right unused_arguments
 apply_nolint pgame.numeric.move_left_lt unused_arguments
 
--- set_theory/zfc.lean
+-- set_theory\zfc.lean
 apply_nolint Class doc_blame
 apply_nolint Set.map_definable_aux unused_arguments
 apply_nolint Set.mem doc_blame
 apply_nolint Set.mk doc_blame
 apply_nolint Set.subset doc_blame
-apply_nolint classical.all_definable doc_blame
-apply_nolint pSet.definable.eq_mk doc_blame
+apply_nolint classical.all_definable doc_blame check_reducibility
+apply_nolint pSet.definable.eq_mk doc_blame check_reducibility
 apply_nolint pSet.definable.resp doc_blame
 apply_nolint pSet.resp.equiv doc_blame
 apply_nolint pSet.resp.eval_aux doc_blame
@@ -522,7 +1392,10 @@ apply_nolint pSet.resp.f doc_blame
 apply_nolint pSet.subset doc_blame
 apply_nolint pSet.type has_inhabited_instance
 
--- tactic/abel.lean
+-- system\random\basic.lean
+apply_nolint random_fin_of_pos check_reducibility
+
+-- tactic\abel.lean
 apply_nolint tactic.abel.add_g doc_blame
 apply_nolint tactic.abel.cache doc_blame
 apply_nolint tactic.abel.cache.app doc_blame
@@ -553,7 +1426,7 @@ apply_nolint tactic.abel.term doc_blame
 apply_nolint tactic.abel.termg doc_blame
 apply_nolint tactic.interactive.abel.mode doc_blame
 
--- tactic/alias.lean
+-- tactic\alias.lean
 apply_nolint tactic.alias.alias_attr doc_blame
 apply_nolint tactic.alias.alias_direct doc_blame
 apply_nolint tactic.alias.alias_iff doc_blame
@@ -562,13 +1435,13 @@ apply_nolint tactic.alias.get_lambda_body doc_blame
 apply_nolint tactic.alias.make_left_right doc_blame
 apply_nolint tactic.alias.mk_iff_mp_app doc_blame
 
--- tactic/chain.lean
+-- tactic\chain.lean
 apply_nolint tactic.abstract_if_success doc_blame
 apply_nolint tactic.chain doc_blame
 apply_nolint tactic.chain_core doc_blame
 apply_nolint tactic.trace_output doc_blame unused_arguments
 
--- tactic/converter/binders.lean
+-- tactic\converter\binders.lean
 apply_nolint binder_eq_elim doc_blame
 apply_nolint binder_eq_elim.check doc_blame
 apply_nolint binder_eq_elim.check_eq doc_blame unused_arguments
@@ -591,7 +1464,7 @@ apply_nolint old_conv.head_beta doc_blame
 apply_nolint old_conv.propext' doc_blame
 apply_nolint supr_eq_elim doc_blame
 
--- tactic/converter/interactive.lean
+-- tactic\converter\interactive.lean
 apply_nolint conv.discharge_eq_lhs doc_blame
 apply_nolint conv.interactive.erw doc_blame
 apply_nolint conv.replace_lhs doc_blame
@@ -610,7 +1483,7 @@ apply_nolint tactic.interactive.conv_rhs doc_blame
 apply_nolint tactic.interactive.find doc_blame
 apply_nolint tactic.interactive.old_conv doc_blame
 
--- tactic/converter/old_conv.lean
+-- tactic\converter\old_conv.lean
 apply_nolint old_conv doc_blame
 apply_nolint old_conv.apply_lemmas doc_blame
 apply_nolint old_conv.apply_lemmas_core doc_blame
@@ -650,14 +1523,17 @@ apply_nolint old_conv.trace_lhs doc_blame
 apply_nolint old_conv.whnf doc_blame
 apply_nolint old_conv_result doc_blame
 
--- tactic/core.lean
+-- tactic\core.lean
 apply_nolint tactic.symmetry_hyp unused_arguments
 
--- tactic/elide.lean
+-- tactic\derive_fintype.lean
+apply_nolint derive_fintype.mk_fintype check_reducibility
+
+-- tactic\elide.lean
 apply_nolint tactic.elide.replace doc_blame
 apply_nolint tactic.elide.unelide doc_blame
 
--- tactic/explode.lean
+-- tactic\explode.lean
 apply_nolint tactic.explode doc_blame
 apply_nolint tactic.explode.append_dep doc_blame
 apply_nolint tactic.explode.args doc_blame
@@ -674,7 +1550,7 @@ apply_nolint tactic.explode.pad_right doc_blame
 apply_nolint tactic.explode.status doc_blame
 apply_nolint tactic.explode_expr doc_blame
 
--- tactic/ext.lean
+-- tactic\ext.lean
 apply_nolint equiv_type_constr doc_blame
 apply_nolint ext_param doc_blame
 apply_nolint ext_param_type doc_blame
@@ -682,11 +1558,11 @@ apply_nolint get_ext_subject doc_blame
 apply_nolint opt_minus doc_blame
 apply_nolint saturate_fun doc_blame
 
--- tactic/find.lean
+-- tactic\find.lean
 apply_nolint expr.get_pis doc_blame
 apply_nolint pexpr.get_uninst_pis doc_blame
 
--- tactic/finish.lean
+-- tactic\finish.lean
 apply_nolint auto.add_simps doc_blame
 apply_nolint auto.case_hyp doc_blame
 apply_nolint auto.case_option doc_blame
@@ -702,7 +1578,11 @@ apply_nolint auto.preprocess_goal doc_blame
 apply_nolint auto.whnf_reducible doc_blame
 apply_nolint tactic.interactive.revert_all doc_blame
 
--- tactic/interactive.lean
+-- tactic\has_variable_names.lean
+apply_nolint has_variable_names.make_inheriting_instance check_reducibility
+apply_nolint has_variable_names.make_listlike_instance check_reducibility
+
+-- tactic\interactive.lean
 apply_nolint tactic.interactive.collect_struct doc_blame
 apply_nolint tactic.interactive.collect_struct' doc_blame
 apply_nolint tactic.interactive.compact_decl_aux doc_blame
@@ -717,7 +1597,7 @@ apply_nolint tactic.interactive.refine_recursively doc_blame
 apply_nolint tactic.interactive.return_cast doc_blame
 apply_nolint tactic.interactive.source_fields doc_blame
 
--- tactic/local_cache.lean
+-- tactic\local_cache.lean
 apply_nolint tactic.local_cache.internal.block_local.clear doc_blame
 apply_nolint tactic.local_cache.internal.block_local.get_name doc_blame
 apply_nolint tactic.local_cache.internal.block_local.present doc_blame
@@ -745,10 +1625,10 @@ apply_nolint tactic.local_cache.internal.poke_data doc_blame
 apply_nolint tactic.local_cache.internal.run_once_under_name doc_blame
 apply_nolint tactic.local_cache.internal.save_data doc_blame unused_arguments
 
--- tactic/localized.lean
+-- tactic\localized.lean
 apply_nolint localized_attr doc_blame
 
--- tactic/monotonicity/basic.lean
+-- tactic\monotonicity\basic.lean
 apply_nolint tactic.interactive.compare doc_blame
 apply_nolint tactic.interactive.filter_instances doc_blame
 apply_nolint tactic.interactive.find_one_difference doc_blame
@@ -766,7 +1646,7 @@ apply_nolint tactic.interactive.monotonicity.check_rel doc_blame
 apply_nolint tactic.interactive.same_operator doc_blame
 apply_nolint tactic.interactive.side doc_blame
 
--- tactic/monotonicity/interactive.lean
+-- tactic\monotonicity\interactive.lean
 apply_nolint tactic.interactive.ac_mono_ctx doc_blame
 apply_nolint tactic.interactive.ac_mono_ctx' doc_blame
 apply_nolint tactic.interactive.ac_mono_ctx'.map doc_blame
@@ -821,10 +1701,10 @@ apply_nolint tactic.interactive.side_conditions doc_blame
 apply_nolint tactic.interactive.solve_mvar doc_blame
 apply_nolint tactic.interactive.unify_with_instance doc_blame
 
--- tactic/obviously.lean
+-- tactic\obviously.lean
 apply_nolint obviously.attr doc_blame
 
--- tactic/omega/eq_elim.lean
+-- tactic\omega\eq_elim.lean
 apply_nolint omega.cancel doc_blame
 apply_nolint omega.coeffs_reduce doc_blame
 apply_nolint omega.ee.repr doc_blame
@@ -834,33 +1714,33 @@ apply_nolint omega.sym_sym doc_blame
 apply_nolint omega.symdiv doc_blame
 apply_nolint omega.symmod doc_blame
 
--- tactic/omega/find_ees.lean
+-- tactic\omega\find_ees.lean
 apply_nolint omega.abort doc_blame
 apply_nolint omega.eqelim doc_blame
 apply_nolint omega.run doc_blame
 
--- tactic/omega/int/dnf.lean
+-- tactic\omega\int\dnf.lean
 apply_nolint omega.int.dnf_core doc_blame
 apply_nolint omega.int.is_nnf doc_blame
 
--- tactic/omega/int/form.lean
+-- tactic\omega\int\form.lean
 apply_nolint omega.int.preform.repr doc_blame
 
--- tactic/omega/int/main.lean
+-- tactic\omega\int\main.lean
 apply_nolint omega.int.desugar doc_blame
 apply_nolint omega.int.intro_ints doc_blame
 apply_nolint simp_attr.sugar doc_blame
 
--- tactic/omega/int/preterm.lean
+-- tactic\omega\int\preterm.lean
 apply_nolint omega.int.preterm.add_one doc_blame
 apply_nolint omega.int.preterm.repr doc_blame
 
--- tactic/omega/main.lean
+-- tactic\omega\main.lean
 apply_nolint omega.goal_domain_aux doc_blame
 apply_nolint omega.select_domain doc_blame
 apply_nolint omega.type_domain doc_blame
 
--- tactic/omega/nat/dnf.lean
+-- tactic\omega\nat\dnf.lean
 apply_nolint omega.nat.bools.or doc_blame
 apply_nolint omega.nat.dnf_core doc_blame
 apply_nolint omega.nat.nonneg_consts doc_blame
@@ -868,22 +1748,22 @@ apply_nolint omega.nat.nonneg_consts_core doc_blame
 apply_nolint omega.nat.nonnegate doc_blame
 apply_nolint omega.nat.term.vars_core doc_blame
 
--- tactic/omega/nat/form.lean
+-- tactic\omega\nat\form.lean
 apply_nolint omega.nat.preform.repr doc_blame
 
--- tactic/omega/nat/main.lean
+-- tactic\omega\nat\main.lean
 apply_nolint omega.nat.desugar doc_blame
 apply_nolint omega.nat.intro_nats doc_blame
 apply_nolint simp_attr.sugar_nat doc_blame
 
--- tactic/omega/nat/neg_elim.lean
+-- tactic\omega\nat\neg_elim.lean
 apply_nolint omega.nat.neg_elim_core doc_blame
 
--- tactic/omega/nat/preterm.lean
+-- tactic\omega\nat\preterm.lean
 apply_nolint omega.nat.preterm.add_one doc_blame
 apply_nolint omega.nat.preterm.repr doc_blame
 
--- tactic/omega/term.lean
+-- tactic\omega\term.lean
 apply_nolint omega.term.add doc_blame
 apply_nolint omega.term.div doc_blame
 apply_nolint omega.term.mul doc_blame
@@ -891,17 +1771,17 @@ apply_nolint omega.term.neg doc_blame
 apply_nolint omega.term.sub doc_blame
 apply_nolint omega.term.to_string doc_blame
 
--- tactic/push_neg.lean
+-- tactic\push_neg.lean
 apply_nolint push_neg.normalize_negations doc_blame
 apply_nolint push_neg.push_neg_at_goal doc_blame
 apply_nolint push_neg.push_neg_at_hyp doc_blame
 apply_nolint push_neg.whnf_reducible doc_blame
 
--- tactic/reassoc_axiom.lean
+-- tactic\reassoc_axiom.lean
 apply_nolint tactic.calculated_Prop doc_blame unused_arguments
 apply_nolint tactic.derive_reassoc_proof doc_blame
 
--- tactic/replacer.lean
+-- tactic\replacer.lean
 apply_nolint tactic.mk_replacer doc_blame
 apply_nolint tactic.mk_replacer₁ doc_blame
 apply_nolint tactic.mk_replacer₂ doc_blame
@@ -912,7 +1792,7 @@ apply_nolint tactic.replacer_core doc_blame
 apply_nolint tactic.unprime doc_blame
 apply_nolint tactic.valid_types doc_blame
 
--- tactic/rewrite.lean
+-- tactic\rewrite.lean
 apply_nolint tactic.assoc_refl doc_blame
 apply_nolint tactic.assoc_refl' doc_blame
 apply_nolint tactic.assoc_rewrite doc_blame
@@ -935,7 +1815,7 @@ apply_nolint tactic.mk_assoc_pattern' doc_blame
 apply_nolint tactic.mk_eq_proof doc_blame
 apply_nolint tactic.unify_prefix doc_blame
 
--- tactic/rewrite_all/basic.lean
+-- tactic\rewrite_all\basic.lean
 apply_nolint side doc_blame
 apply_nolint side.other doc_blame
 apply_nolint side.to_string doc_blame
@@ -946,7 +1826,7 @@ apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_lhs doc_blame
 apply_nolint tactic.rewrite_all.tracked_rewrite.replace_target_rhs doc_blame
 
--- tactic/ring2.lean
+-- tactic\ring2.lean
 apply_nolint conv.interactive.ring2 doc_blame
 apply_nolint tactic.ring2.horner_expr.add doc_blame
 apply_nolint tactic.ring2.horner_expr.add_aux doc_blame
@@ -959,10 +1839,10 @@ apply_nolint tactic.ring2.horner_expr.neg doc_blame
 apply_nolint tactic.ring2.horner_expr.pow doc_blame
 apply_nolint tactic.ring2.horner_expr.to_string doc_blame
 
--- tactic/scc.lean
+-- tactic\scc.lean
 apply_nolint tactic.prove_eqv_target doc_blame
 
--- tactic/slice.lean
+-- tactic\slice.lean
 apply_nolint conv.repeat_count doc_blame
 apply_nolint conv.repeat_with_results doc_blame
 apply_nolint conv.slice doc_blame
@@ -971,17 +1851,17 @@ apply_nolint conv.slice_rhs doc_blame
 apply_nolint tactic.repeat_count doc_blame
 apply_nolint tactic.repeat_with_results doc_blame
 
--- tactic/split_ifs.lean
+-- tactic\split_ifs.lean
 apply_nolint tactic.find_if_cond doc_blame
 apply_nolint tactic.find_if_cond_at doc_blame
 apply_nolint tactic.reduce_ifs_at doc_blame
 apply_nolint tactic.split_if1 doc_blame
 apply_nolint tactic.split_ifs doc_blame
 
--- tactic/subtype_instance.lean
+-- tactic\subtype_instance.lean
 apply_nolint tactic.derive_field_subtype doc_blame
 
--- tactic/tauto.lean
+-- tactic\tauto.lean
 apply_nolint tactic.add_edge doc_blame
 apply_nolint tactic.add_refl doc_blame
 apply_nolint tactic.assumption_symm doc_blame
@@ -993,14 +1873,14 @@ apply_nolint tactic.modify_ref doc_blame
 apply_nolint tactic.tauto_state doc_blame
 apply_nolint tactic.tautology doc_blame
 
--- tactic/tfae.lean
+-- tactic\tfae.lean
 apply_nolint tactic.interactive.parse_list doc_blame
 apply_nolint tactic.interactive.tfae_have unused_arguments
 apply_nolint tactic.tfae.arrow doc_blame
 apply_nolint tactic.tfae.mk_implication doc_blame
 apply_nolint tactic.tfae.mk_name doc_blame
 
--- tactic/tidy.lean
+-- tactic\tidy.lean
 apply_nolint tactic.tidy doc_blame
 apply_nolint tactic.tidy.cfg doc_blame
 apply_nolint tactic.tidy.core doc_blame
@@ -1008,48 +1888,148 @@ apply_nolint tactic.tidy.default_tactics doc_blame
 apply_nolint tactic.tidy.ext1_wrapper doc_blame
 apply_nolint tactic.tidy.run_tactics doc_blame
 
--- tactic/transfer.lean
+-- tactic\transfer.lean
 apply_nolint tactic.transfer doc_blame
 apply_nolint transfer.analyse_decls doc_blame
 apply_nolint transfer.compute_transfer doc_blame
 
--- tactic/wlog.lean
+-- tactic\wlog.lean
 apply_nolint tactic.wlog doc_blame
 
--- topology/category/Top/open_nhds.lean
+-- testing\slim_check\sampleable.lean
+apply_nolint slim_check.int.has_sizeof check_reducibility
+apply_nolint slim_check.sampleable.lift check_reducibility
+apply_nolint slim_check.sampleable_char check_reducibility
+
+-- testing\slim_check\testable.lean
+apply_nolint slim_check.combine_testable check_reducibility
+
+-- topology\algebra\field.lean
+apply_nolint topological_ring.topological_space_units check_reducibility
+
+-- topology\algebra\ordered\basic.lean
+apply_nolint preorder.topology check_reducibility
+
+-- topology\algebra\uniform_group.lean
+apply_nolint topological_add_group.to_uniform_space check_reducibility
+
+-- topology\basic.lean
+apply_nolint topological_space.of_closed check_reducibility
+
+-- topology\category\Compactum.lean
+apply_nolint Compactum_to_CompHaus.full check_reducibility
+apply_nolint Compactum_to_CompHaus.is_equivalence check_reducibility
+
+-- topology\category\Profinite\default.lean
+apply_nolint Fintype.discrete_topology check_reducibility
+
+-- topology\category\TopCommRing.lean
+apply_nolint TopCommRing has_inhabited_instance
+
+-- topology\category\Top\open_nhds.lean
 apply_nolint topological_space.open_nhds doc_blame has_inhabited_instance
 apply_nolint topological_space.open_nhds.inclusion doc_blame
 apply_nolint topological_space.open_nhds.inclusion_map_iso doc_blame
 apply_nolint topological_space.open_nhds.map doc_blame
 
--- topology/category/TopCommRing.lean
-apply_nolint TopCommRing has_inhabited_instance
-
--- topology/category/UniformSpace.lean
+-- topology\category\UniformSpace.lean
 apply_nolint CpltSepUniformSpace.to_UniformSpace doc_blame
 
--- topology/compact_open.lean
+-- topology\compact_open.lean
 apply_nolint continuous_map.coev doc_blame
 apply_nolint continuous_map.compact_open.gen doc_blame
 apply_nolint continuous_map.ev doc_blame
 apply_nolint continuous_map.induced doc_blame
 
--- topology/maps.lean
+-- topology\connected.lean
+apply_nolint connected_component_setoid check_reducibility
+
+-- topology\discrete_quotient.lean
+apply_nolint discrete_quotient.setoid check_reducibility
+
+-- topology\fiber_bundle.lean
+apply_nolint topological_fiber_prebundle.total_space_topology check_reducibility
+
+-- topology\instances\ennreal.lean
+apply_nolint metric_space_emetric_ball check_reducibility
+
+-- topology\maps.lean
 apply_nolint inducing doc_blame
 
--- topology/opens.lean
+-- topology\metric_space\basic.lean
+apply_nolint emetric_space.to_metric_space check_reducibility
+apply_nolint emetric_space.to_metric_space_of_dist check_reducibility
+apply_nolint metric.of_t2_pseudo_metric_space check_reducibility
+apply_nolint metric_space.induced check_reducibility
+apply_nolint metric_space.replace_uniformity check_reducibility
+apply_nolint pseudo_emetric_space.to_pseudo_metric_space check_reducibility
+apply_nolint pseudo_emetric_space.to_pseudo_metric_space_of_dist check_reducibility
+apply_nolint pseudo_metric.dist_setoid check_reducibility
+apply_nolint pseudo_metric_space.induced check_reducibility
+apply_nolint pseudo_metric_space.replace_uniformity check_reducibility
+apply_nolint uniform_space_of_dist check_reducibility
+
+-- topology\metric_space\emetric_space.lean
+apply_nolint emetric.edist_lt_top_setoid check_reducibility
+apply_nolint emetric_of_t2_pseudo_emetric_space check_reducibility
+apply_nolint emetric_space.induced check_reducibility
+apply_nolint emetric_space.replace_uniformity check_reducibility
+apply_nolint pseudo_emetric_space.induced check_reducibility
+apply_nolint pseudo_emetric_space.replace_uniformity check_reducibility
+apply_nolint uniform_space_of_edist check_reducibility
+
+-- topology\metric_space\gluing.lean
+apply_nolint metric.glue_metric_approx check_reducibility
+apply_nolint metric.glue_premetric check_reducibility
+apply_nolint metric.inductive_premetric check_reducibility
+apply_nolint metric.metric_space_sum check_reducibility
+
+-- topology\metric_space\gromov_hausdorff_realized.lean
+apply_nolint Gromov_Hausdorff.premetric_optimal_GH_dist check_reducibility
+
+-- topology\opens.lean
 apply_nolint topological_space.opens.is_basis doc_blame
 
--- topology/sheaves/presheaf.lean
+-- topology\order.lean
+apply_nolint mk_of_closure check_reducibility
+apply_nolint tmp_complete_lattice check_reducibility
+apply_nolint tmp_order check_reducibility
+apply_nolint topological_space.coinduced check_reducibility
+apply_nolint topological_space.generate_from check_reducibility
+apply_nolint topological_space.induced check_reducibility
+apply_nolint topological_space.mk_of_nhds check_reducibility
+apply_nolint topological_space.nhds_adjoint check_reducibility
+
+-- topology\path_connected.lean
+apply_nolint path_setoid check_reducibility
+
+-- topology\sheaves\presheaf.lean
 apply_nolint Top.presheaf doc_blame has_inhabited_instance
 apply_nolint Top.presheaf.pushforward.comp doc_blame
 apply_nolint Top.presheaf.pushforward.id doc_blame
 apply_nolint Top.presheaf.pushforward_eq doc_blame
 
--- topology/sheaves/stalks.lean
+-- topology\sheaves\stalks.lean
 apply_nolint Top.presheaf.stalk_pushforward doc_blame
 
--- topology/uniform_space/completion.lean
+-- topology\subset_properties.lean
+apply_nolint fintype_of_compact_of_discrete check_reducibility
+apply_nolint locally_finite.fintype_of_compact check_reducibility
+
+-- topology\uniform_space\absolute_value.lean
+apply_nolint is_absolute_value.uniform_space check_reducibility
+
+-- topology\uniform_space\basic.lean
+apply_nolint uniform_space.comap check_reducibility
+apply_nolint uniform_space.core.to_topological_space check_reducibility
+apply_nolint uniform_space.mk' check_reducibility
+apply_nolint uniform_space.of_core check_reducibility
+apply_nolint uniform_space.of_core_eq check_reducibility
+
+-- topology\uniform_space\compact_separated.lean
+apply_nolint uniform_space_of_compact_t2 check_reducibility
+
+-- topology\uniform_space\completion.lean
 apply_nolint Cauchy.extend doc_blame
 apply_nolint Cauchy.gen doc_blame
 apply_nolint uniform_space.completion.completion_separation_quotient_equiv doc_blame
@@ -1057,6 +2037,9 @@ apply_nolint uniform_space.completion.cpkg doc_blame
 apply_nolint uniform_space.completion.extension₂ doc_blame
 apply_nolint uniform_space.completion.map₂ doc_blame
 
--- topology/uniform_space/uniform_embedding.lean
+-- topology\uniform_space\separation.lean
+apply_nolint uniform_space.separation_setoid check_reducibility
+
+-- topology\uniform_space\uniform_embedding.lean
 apply_nolint uniform_embedding doc_blame
 apply_nolint uniform_inducing doc_blame

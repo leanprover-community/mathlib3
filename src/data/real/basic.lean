@@ -424,7 +424,7 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
   le_cInf := λ s a hs ha, (real.is_glb_Inf s hs ⟨a, ha⟩).2 ha,
  ..real.linear_order, ..real.lattice}
 
-lemma lt_Inf_add_pos {s : set ℝ}  (h : s.nonempty) {ε : ℝ} (hε : 0 < ε) :
+lemma lt_Inf_add_pos {s : set ℝ} (h : s.nonempty) {ε : ℝ} (hε : 0 < ε) :
   ∃ a ∈ s, a < Inf s + ε :=
 exists_lt_of_cInf_lt h $ lt_add_of_pos_right _ hε
 

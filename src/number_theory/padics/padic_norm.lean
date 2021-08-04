@@ -478,11 +478,11 @@ begin
     rwa nat.coprime_primes hp.1 hq.1, },
 end
 
-@[simp] lemma padic_val_nat.self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
+@[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
 by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
 
-@[simp] lemma padic_val_nat.prime_pow (p y : ℕ) [fact p.prime] : padic_val_nat p (p ^ y) = y :=
-by rw [padic_val_nat.pow p _ _ (fact.out p.prime).ne_zero, padic_val_nat.self p, mul_one]
+@[simp] lemma padic_val_nat_prime_pow (p y : ℕ) [fact p.prime] : padic_val_nat p (p ^ y) = y :=
+by rw [padic_val_nat.pow p _ _ (fact.out p.prime).ne_zero, padic_val_nat_self p, mul_one]
 
 open_locale big_operators
 

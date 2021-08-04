@@ -274,7 +274,7 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
 
-lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
+lemma succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
 by rw [nat.succ_eq_add_one, nat.add_comm]
 
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=

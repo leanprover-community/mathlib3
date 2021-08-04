@@ -78,7 +78,7 @@ To implement this in Lean, we define several auxilary definitions.
 - lastly, given the set `i`, `restrict_nonpos_seq s i` is the sequence of sets defined inductively
   where
     `restrict_nonpos_seq s i 0 = some_exists_one_div_lt s i ∅` and
-    `restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s i ⋃ k ≤ n, restrict_nonpos_seq k`.
+    `restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq k)`.
   This definition represents the sequence $(A_n)$ in the proof as described above.
 
 With these definitions, we are able consider the case where the sequence terminates seperately,

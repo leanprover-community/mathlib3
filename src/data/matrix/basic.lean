@@ -514,6 +514,106 @@ instance [decidable_eq n] : semiring (matrix n n α) :=
 
 end semiring
 
+section ring
+variables [ring α]
+
+@[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
+  (-M) ⬝ N = -(M ⬝ N) :=
+by { ext, apply neg_dot_product }
+
+@[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
+  M ⬝ (-N) = -(M ⬝ N) :=
+by { ext, apply dot_product_neg }
+
+protected theorem sub_mul (M M' : matrix m n α) (N : matrix n o α) :
+  (M - M') ⬝ N = M ⬝ N - M' ⬝ N :=
+by rw [sub_eq_add_neg, matrix.add_mul, neg_mul, sub_eq_add_neg]
+
+protected theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
+  M ⬝ (N - N') = M ⬝ N - M ⬝ N' :=
+by rw [sub_eq_add_neg, matrix.mul_add, mul_neg, sub_eq_add_neg]
+
+end ring
+
+instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
+{ ..matrix.semiring, ..matrix.add_comm_group }
+
+section semiring
+variables [semiring α]
+
+lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
+  a • M = diagonal (λ _, a) ⬝ M :=
+by { ext, simp }
+
+@[simp] lemma smul_mul [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
+  (a : R) (M : matrix m n α) (N : matrix n l α) :
+  (a • M) ⬝ N = a • M ⬝ N :=
+by { ext, apply smul_dot_product }
+
+/-- This instance enables use with `smul_mul_assoc`. -/
+instance semiring.is_scalar_tower [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α] :
+  is_scalar_tower R (matrix n n α) (matrix n n α) :=
+⟨λ r m n, matrix.smul_mul r m n⟩
+
+@[simp] lemma mul_smul [monoid R] [distrib_mul_action R α] [smul_comm_class R α α]
+  (M : matrix m n α) (a : R) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
+by { ext, apply dot_product_smul }
+
+/-- This instance enables use with `mul_smul_comm`. -/
+instance semiring.smul_comm_class [monoid R] [distrib_mul_action R α] [smul_comm_class R α α] :
+  smul_comm_class R (matrix n n α) (matrix n n α) :=
+⟨λ r m n, (matrix.mul_smul m r n).symm⟩
+
+@[simp] lemma mul_mul_left (M : matrix m n α) (N : matrix n o α) (a : α) :
+  (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
+smul_mul a M N
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring α]
+
+lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
+  a • M = M ⬝ diagonal (λ _, a) :=
+by { ext, simp [mul_comm] }
+
+@[simp] lemma mul_mul_right (M : matrix m n α) (N : matrix n o α) (a : α) :
+  M ⬝ (λ i j, a * N i j) = a • (M ⬝ N) :=
+mul_smul M a N
+
+end comm_semiring
+
+section algebra
+variables [comm_semiring R] [semiring α] [algebra R α] [decidable_eq n]
+
+instance : algebra R (matrix n n α) :=
+{ commutes' := λ r x, begin
+    dsimp,
+    ext i j,
+    rw [diagonal_mul, mul_diagonal, pi.algebra_map_apply, pi.algebra_map_apply, algebra.commutes],
+  end,
+  smul_def' := λ r x, begin ext, simp [algebra.smul_def'' r], end,
+  to_ring_hom := (diagonal_ring_hom n α).comp (algebra_map R _) }
+
+lemma algebra_map_eq_diagonal_ring_hom_comp :
+  algebra_map R (matrix n n α) = (diagonal_ring_hom n α).comp (algebra_map R _) :=
+rfl
+
+lemma algebra_map_eq_diagonal (r : R) :
+  algebra_map R (matrix n n α) r = diagonal (λ _ : n, algebra_map R α r) :=
+rfl
+
+variables (R)
+
+/-- `matrix.diagonal` as an `alg_hom`. -/
+@[simps]
+def diagonal_alg_hom : (n → α) →ₐ[R] matrix n n α :=
+{ to_fun := diagonal,
+  commutes' := λ r, rfl,
+  .. diagonal_ring_hom n α }
+
+end algebra
+
 end matrix
 
 /-!
@@ -687,106 +787,6 @@ end ring_equiv
 open_locale matrix
 
 namespace matrix
-
-section ring
-variables [ring α]
-
-@[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
-  (-M) ⬝ N = -(M ⬝ N) :=
-by { ext, apply neg_dot_product }
-
-@[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
-  M ⬝ (-N) = -(M ⬝ N) :=
-by { ext, apply dot_product_neg }
-
-protected theorem sub_mul (M M' : matrix m n α) (N : matrix n o α) :
-  (M - M') ⬝ N = M ⬝ N - M' ⬝ N :=
-by rw [sub_eq_add_neg, matrix.add_mul, neg_mul, sub_eq_add_neg]
-
-protected theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
-  M ⬝ (N - N') = M ⬝ N - M ⬝ N' :=
-by rw [sub_eq_add_neg, matrix.mul_add, mul_neg, sub_eq_add_neg]
-
-end ring
-
-instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
-{ ..matrix.semiring, ..matrix.add_comm_group }
-
-section semiring
-variables [semiring α]
-
-lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
-  a • M = diagonal (λ _, a) ⬝ M :=
-by { ext, simp }
-
-@[simp] lemma smul_mul [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
-  (a : R) (M : matrix m n α) (N : matrix n l α) :
-  (a • M) ⬝ N = a • M ⬝ N :=
-by { ext, apply smul_dot_product }
-
-/-- This instance enables use with `smul_mul_assoc`. -/
-instance semiring.is_scalar_tower [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α] :
-  is_scalar_tower R (matrix n n α) (matrix n n α) :=
-⟨λ r m n, matrix.smul_mul r m n⟩
-
-@[simp] lemma mul_smul [monoid R] [distrib_mul_action R α] [smul_comm_class R α α]
-  (M : matrix m n α) (a : R) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
-by { ext, apply dot_product_smul }
-
-/-- This instance enables use with `mul_smul_comm`. -/
-instance semiring.smul_comm_class [monoid R] [distrib_mul_action R α] [smul_comm_class R α α] :
-  smul_comm_class R (matrix n n α) (matrix n n α) :=
-⟨λ r m n, (matrix.mul_smul m r n).symm⟩
-
-@[simp] lemma mul_mul_left (M : matrix m n α) (N : matrix n o α) (a : α) :
-  (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
-smul_mul a M N
-
-end semiring
-
-section comm_semiring
-variables [comm_semiring α]
-
-lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
-  a • M = M ⬝ diagonal (λ _, a) :=
-by { ext, simp [mul_comm] }
-
-@[simp] lemma mul_mul_right (M : matrix m n α) (N : matrix n o α) (a : α) :
-  M ⬝ (λ i j, a * N i j) = a • (M ⬝ N) :=
-mul_smul M a N
-
-end comm_semiring
-
-section algebra
-variables [comm_semiring R] [semiring α] [algebra R α] [decidable_eq n]
-
-instance : algebra R (matrix n n α) :=
-{ commutes' := λ r x, begin
-    dsimp,
-    ext i j,
-    rw [diagonal_mul, mul_diagonal, pi.algebra_map_apply, pi.algebra_map_apply, algebra.commutes],
-  end,
-  smul_def' := λ r x, begin ext, simp [algebra.smul_def'' r], end,
-  to_ring_hom := (diagonal_ring_hom n α).comp (algebra_map R _) }
-
-lemma algebra_map_eq_diagonal_ring_hom_comp :
-  algebra_map R (matrix n n α) = (diagonal_ring_hom n α).comp (algebra_map R _) :=
-rfl
-
-lemma algebra_map_eq_diagonal (r : R) :
-  algebra_map R (matrix n n α) r = diagonal (λ _ : n, algebra_map R α r) :=
-rfl
-
-variables (R)
-
-/-- `matrix.diagonal` as an `alg_hom`. -/
-@[simps]
-def diagonal_alg_hom : (n → α) →ₐ[R] matrix n n α :=
-{ to_fun := diagonal,
-  commutes' := λ r, rfl,
-  .. diagonal_ring_hom n α }
-
-end algebra
 
 /-- For two vectors `w` and `v`, `vec_mul_vec w v i j` is defined to be `w i * v j`.
     Put another way, `vec_mul_vec w v` is exactly `col w ⬝ row v`. -/

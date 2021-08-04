@@ -482,11 +482,7 @@ end
 by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
 
 lemma padic_val_nat.prime_pow (p y : ℕ) [fact p.prime] : padic_val_nat p (p ^ y) = y :=
-begin
-  suffices : padic_val_nat p (p ^ y) = y * padic_val_nat p p,
-  { simpa, },
-  { exact padic_val_nat.pow p p y (fact.out p.prime).ne_zero }
-end
+by rw [padic_val_nat.pow p _ _ (fact.out p.prime).ne_zero, padic_val_nat.self p, mul_one]
 
 open_locale big_operators
 

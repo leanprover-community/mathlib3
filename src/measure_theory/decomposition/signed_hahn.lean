@@ -220,11 +220,13 @@ begin
 end .
 
 /-- A measurable set of negative measure has a negative subset of negative measure. -/
-theorem exists_negative_set (hi₁ : measurable_set i) (hi₂ : s i < 0) :
+theorem exists_negative_set (hi : s i < 0) :
   ∃ j : set α, measurable_set j ∧ j ⊆ i ∧ s ≤[j] 0 ∧ s j < 0 :=
 begin
+  have hi₁ :  measurable_set i :=
+    classical.by_contradiction (λ h, ne_of_lt hi $ s.not_measurable h),
   by_cases s ≤[i] 0,
-  { exact ⟨i, hi₁, set.subset.refl _, h, hi₂⟩ },
+  { exact ⟨i, hi₁, set.subset.refl _, h, hi⟩ },
   { by_cases hn : ∀ n : ℕ, ¬ s ≤[i \ ⋃ l < n, aux s i l] 0,
     { set A := i \ ⋃ l, aux s i l with hA,
       set bdd : ℕ → ℕ := λ n, aux₀ s i (⋃ k ≤ n, aux s i k) with hbdd,
@@ -283,8 +285,8 @@ begin
         refine aux₀_min (hn' k) (buffer.lt_aux_2 hk₁) ⟨E, set.subset.trans hE₂ hA', hE₁, _⟩,
         convert hk₂, norm_cast,
         exact nat.sub_add_cancel hk₁ },
-      { exact lt_of_le_of_lt h₂ hi₂ } },
-    { exact exists_negative_set' hi₁ hi₂ hn } }
+      { exact lt_of_le_of_lt h₂ hi } },
+    { exact exists_negative_set' hi₁ hi hn } }
 end .
 
 end exists_negative_set
@@ -367,7 +369,7 @@ begin
   rw restrict_le_restrict_iff _ _ hA₁.compl,
   intros C hC hC₁,
   by_contra hC₂, push_neg at hC₂,
-  rcases exists_negative_set hC hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
+  rcases exists_negative_set hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
 
   have : s (A ∪ D) < Inf s.measure_of_negatives,
   { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC₁)

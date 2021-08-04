@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.complete_lattice
 import order.rel_iso
+import order.order_dual
 /-!
 # Galois connections, insertions and coinsertions
 
@@ -67,6 +68,11 @@ lemma monotone_intro (hu : monotone u) (hl : monotone l)
 
 include gc
 
+protected lemma dual {l : α → β} {u : β → α} (gc : galois_connection l u) :
+  galois_connection (order_dual.to_dual ∘ u ∘ order_dual.of_dual)
+    (order_dual.to_dual ∘ l ∘ order_dual.of_dual) :=
+λ a b, (gc b a).symm
+
 lemma l_le {a : α} {b : β} : a ≤ u b → l a ≤ b :=
 (gc _ _).mpr
 
@@ -83,21 +89,26 @@ lemma monotone_u : monotone u :=
 λ a b H, gc.le_u ((gc.l_u_le a).trans H)
 
 lemma monotone_l : monotone l :=
-λ a b H, gc.l_le (H.trans (gc.le_u_l b))
+gc.dual.monotone_u.order_dual
 
-lemma upper_bounds_l_image_subset {s : set α} : upper_bounds (l '' s) ⊆ u ⁻¹' upper_bounds s :=
-λ b hb c hc, gc.le_u (hb (mem_image_of_mem _ hc))
+lemma upper_bounds_l_image (s : set α) : upper_bounds (l '' s) = u ⁻¹' upper_bounds s :=
+set.ext $ λ b, by simp [upper_bounds, gc _ _]
 
-lemma lower_bounds_u_image_subset {s : set β} : lower_bounds (u '' s) ⊆ l ⁻¹' lower_bounds s :=
-λ a ha c hc, gc.l_le (ha (mem_image_of_mem _ hc))
+lemma lower_bounds_u_image (s : set β) : lower_bounds (u '' s) = l ⁻¹' lower_bounds s :=
+gc.dual.upper_bounds_l_image s
+
+lemma bdd_above_l_image {s : set α} : bdd_above (l '' s) ↔ bdd_above s :=
+⟨λ ⟨x, hx⟩, ⟨u x, by rwa [gc.upper_bounds_l_image] at hx⟩, gc.monotone_l.map_bdd_above⟩
+
+lemma bdd_below_u_image {s : set β} : bdd_below (u '' s) ↔ bdd_below s :=
+gc.dual.bdd_above_l_image
 
 lemma is_lub_l_image {s : set α} {a : α} (h : is_lub s a) : is_lub (l '' s) (l a) :=
-⟨gc.monotone_l.mem_upper_bounds_image $ and.elim_left ‹is_lub s a›,
-  λ b hb, gc.l_le $ and.elim_right ‹is_lub s a› $ gc.upper_bounds_l_image_subset hb⟩
+⟨gc.monotone_l.mem_upper_bounds_image h.left,
+  λ b hb, gc.l_le $ h.right $ by rwa [gc.upper_bounds_l_image] at hb⟩
 
 lemma is_glb_u_image {s : set β} {b : β} (h : is_glb s b) : is_glb (u '' s) (u b) :=
-⟨gc.monotone_u.mem_lower_bounds_image $ and.elim_left ‹is_glb s b›,
-  λ a ha, gc.le_u $ and.elim_right ‹is_glb s b› $ gc.lower_bounds_u_image_subset ha⟩
+gc.dual.is_lub_l_image h
 
 lemma is_glb_l {a : α} : is_glb { b | a ≤ u b } (l a) :=
 ⟨λ b, gc.l_le, λ b h, h $ gc.le_u_l _⟩
@@ -206,11 +217,6 @@ protected lemma compose [preorder α] [preorder β] [preorder γ]
   galois_connection (l2 ∘ l1) (u1 ∘ u2) :=
 by intros a b; rw [gc2, gc1]
 
-protected lemma dual [pα : preorder α] [pβ : preorder β]
-  {l : α → β} {u : β → α} (gc : galois_connection l u) :
-  @galois_connection (order_dual β) (order_dual α) _ _ u l :=
-λ a b, (gc _ _).symm
-
 protected lemma dfun {ι : Type u} {α : ι → Type v} {β : ι → Type w}
   [∀ i, preorder (α i)] [∀ i, preorder (β i)]
   (l : Πi, α i → β i) (u : Πi, β i → α i) (gc : ∀ i, galois_connection (l i) (u i)) :
@@ -220,6 +226,32 @@ protected lemma dfun {ι : Type u} {α : ι → Type v} {β : ι → Type w}
 end constructions
 
 end galois_connection
+
+namespace order_iso
+
+variables [preorder α] [preorder β]
+
+@[simp] lemma upper_bounds_image (e : α ≃o β) (s : set α) :
+  upper_bounds (e '' s) = e.symm ⁻¹' upper_bounds s :=
+e.to_galois_connection.upper_bounds_l_image s
+
+@[simp] lemma lower_bounds_image (e : α ≃o β) (s : set α) :
+  lower_bounds (e '' s) = e.symm ⁻¹' lower_bounds s :=
+e.dual.upper_bounds_image s
+
+@[simp] lemma bdd_above_image (e : α ≃o β) {s : set α} : bdd_above (e '' s) ↔ bdd_above s :=
+e.to_galois_connection.bdd_above_l_image
+
+@[simp] lemma bdd_below_image (e : α ≃o β) {s : set α} : bdd_below (e '' s) ↔ bdd_below s :=
+e.dual.bdd_above_image
+
+@[simp] lemma bdd_above_preimage (e : α ≃o β) {s : set β} : bdd_above (e ⁻¹' s) ↔ bdd_above s :=
+by rw [← e.bdd_above_image, e.image_preimage]
+
+@[simp] lemma bdd_below_preimage (e : α ≃o β) {s : set β} : bdd_below (e ⁻¹' s) ↔ bdd_below s :=
+by rw [← e.bdd_below_image, e.image_preimage]
+
+end order_iso
 
 namespace nat
 
@@ -248,7 +280,7 @@ def galois_insertion.monotone_intro {α β : Type*} [preorder α] [preorder β] 
   choice_eq := λ _ _, rfl }
 
 /-- Makes a Galois insertion from an order-preserving bijection. -/
-protected def rel_iso.to_galois_insertion [preorder α] [preorder β] (oi : α ≃o β) :
+protected def order_iso.to_galois_insertion [preorder α] [preorder β] (oi : α ≃o β) :
 @galois_insertion α β _ _ (oi) (oi.symm) :=
 { choice := λ b h, oi b,
   gc := oi.to_galois_connection,

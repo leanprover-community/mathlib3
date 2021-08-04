@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 import measure_theory.measurable_space_def
 import measure_theory.tactic
+import data.tprod
 
 
 /-!

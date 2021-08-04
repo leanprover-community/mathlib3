@@ -2,13 +2,24 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Hahn decomposition theorem
-
-TODO:
-* show general for signed measures (into ℝ)
 -/
 import measure_theory.measure_space
+
+/-!
+# Unsigned Hahn decomposition theorem
+
+This file proves the unsigned version of the Hahn decomposition theorem.
+
+## Main statements
+
+* `hahn_decomposition` : Given two finite measures `μ` and `ν`, there exists a measurable set `s`
+    such that any measurable set `t` included in `s` satisfies `ν t ≤ μ t`, and any
+    measurable set `u` included in the complement of `s` satisfies `μ u ≤ ν u`.
+
+## Tags
+
+Hahn decomposition
+-/
 
 open set filter
 open_locale classical topological_space ennreal
@@ -22,6 +33,7 @@ private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
   γ - 2 * (1 / 2) ^ m + (1 / 2) ^ m ≤ d :=
 by linarith
 
+/-- **Hahn decomposition theorem** -/
 lemma hahn_decomposition [finite_measure μ] [finite_measure ν] :
   ∃s, measurable_set s ∧
     (∀t, measurable_set t → t ⊆ s → ν t ≤ μ t) ∧

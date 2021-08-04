@@ -230,6 +230,10 @@ def subgroup.topological_closure (s : subgroup G) : subgroup G :=
   inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
   ..s.to_submonoid.topological_closure }
 
+@[simp, to_additive] lemma subgroup.topological_closure_coe {s : subgroup G} :
+  (s.topological_closure : set G) = closure s :=
+rfl
+
 @[to_additive]
 instance subgroup.topological_closure_topological_group (s : subgroup G) :
   topological_group (s.topological_closure) :=
@@ -241,18 +245,28 @@ instance subgroup.topological_closure_topological_group (s : subgroup G) :
   end
   ..s.to_submonoid.topological_closure_has_continuous_mul}
 
-lemma subgroup.subgroup_topological_closure (s : subgroup G) :
+@[to_additive] lemma subgroup.subgroup_topological_closure (s : subgroup G) :
   s ≤ s.topological_closure :=
 subset_closure
 
-lemma subgroup.is_closed_topological_closure (s : subgroup G) :
+@[to_additive] lemma subgroup.is_closed_topological_closure (s : subgroup G) :
   is_closed (s.topological_closure : set G) :=
 by convert is_closed_closure
 
-lemma subgroup.topological_closure_minimal
+@[to_additive] lemma subgroup.topological_closure_minimal
   (s : subgroup G) {t : subgroup G} (h : s ≤ t) (ht : is_closed (t : set G)) :
   s.topological_closure ≤ t :=
 closure_minimal h ht
+
+@[to_additive] lemma dense_range.topological_closure_map_subgroup [group H] [topological_space H]
+  [topological_group H] {f : G →* H} (hf : continuous f) (hf' : dense_range f) {s : subgroup G}
+  (hs : s.topological_closure = ⊤) :
+  (s.map f).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [subgroup.topological_closure_coe, subgroup.coe_top, ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image hf hs
+end
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
@@ -622,7 +636,8 @@ end
 
 /-- Every locally compact separable topological group is σ-compact.
   Note: this is not true if we drop the topological group hypothesis. -/
-@[priority 100] instance separable_locally_compact_group.sigma_compact_space
+@[priority 100, to_additive separable_locally_compact_add_group.sigma_compact_space]
+instance separable_locally_compact_group.sigma_compact_space
   [separable_space G] [locally_compact_space G] : sigma_compact_space G :=
 begin
   obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
@@ -664,8 +679,12 @@ begin
     { simp only [inv_mul_cancel_right] } }
 end
 
-@[to_additive]
-lemma nhds_is_mul_hom : is_mul_hom (λx:G, 𝓝 x) := ⟨λ_ _, nhds_mul _ _⟩
+/-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
+@[to_additive "On an additive topological group, `𝓝 : G → filter G` can be promoted to an
+`add_hom`.", simps]
+def nhds_mul_hom : mul_hom G (filter G) :=
+{ to_fun := 𝓝,
+  map_mul' := λ_ _, nhds_mul _ _ }
 
 end
 

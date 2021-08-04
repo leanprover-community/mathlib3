@@ -169,10 +169,6 @@ apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
 apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
 
--- data/dfinsupp.lean
-apply_nolint dfinsupp.pre doc_blame
-apply_nolint dfinsupp.zip_with_def unused_arguments
-
 -- data/equiv/list.lean
 apply_nolint encodable.fintype_arrow doc_blame
 apply_nolint encodable.fintype_pi doc_blame
@@ -384,22 +380,6 @@ apply_nolint vector.traverse_def unused_arguments
 
 -- deprecated/subfield.lean
 apply_nolint is_subfield doc_blame
-
--- deprecated/subgroup.lean
-apply_nolint add_group.closure doc_blame
-apply_nolint add_group.in_closure doc_blame
-apply_nolint gmultiples doc_blame
-apply_nolint gpowers doc_blame
-apply_nolint group.in_closure doc_blame
-apply_nolint is_add_group_hom.ker doc_blame
-apply_nolint is_add_subgroup.add_center doc_blame
-apply_nolint is_add_subgroup.add_normalizer doc_blame
-apply_nolint is_add_subgroup.trivial doc_blame
-apply_nolint is_group_hom.ker doc_blame
-apply_nolint is_subgroup.center doc_blame
-apply_nolint is_subgroup.normalizer doc_blame
-apply_nolint normal_add_subgroup doc_blame
-apply_nolint normal_subgroup doc_blame
 
 -- deprecated/subring.lean
 apply_nolint ring.closure doc_blame

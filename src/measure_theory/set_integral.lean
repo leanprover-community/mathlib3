@@ -65,7 +65,6 @@ variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} 
 
 variables [complete_space E] [normed_space ℝ E]
 
-
 lemma set_integral_congr_ae (hs : measurable_set s) (h : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
   ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
 integral_congr_ae ((ae_restrict_iff' hs).2 h)
@@ -107,6 +106,10 @@ begin
       (integral_congr_ae (indicator_ae_eq_restrict_compl hs))
   ... = ∫ x in s, f x ∂μ : by simp
 end
+
+lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
+by rw restrict_congr_set hst
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
@@ -576,6 +579,24 @@ begin
     rw [integral_undef hf, integral_undef, zero_smul],
     simp_rw [integrable_smul_const hc, hf, not_false_iff] }
 end
+
+section inner
+
+variables {E' : Type*} [inner_product_space 𝕜 E'] [measurable_space E'] [borel_space E']
+  [second_countable_topology E'] [complete_space E'] [normed_space ℝ E'] [is_scalar_tower ℝ 𝕜 E']
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
+
+lemma integral_inner {f : α → E'} (hf : integrable f μ) (c : E') :
+  ∫ x, ⟪c, f x⟫ ∂μ = ⟪c, ∫ x, f x ∂μ⟫ :=
+((@inner_right 𝕜 E' _ _ c).restrict_scalars ℝ).integral_comp_comm hf
+
+lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : integrable f μ)
+  (hf_int : ∀ (c : E'), ∫ x, ⟪c, f x⟫ ∂μ = 0) :
+  ∫ x, f x ∂μ = 0 :=
+by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
+
+end inner
 
 end
 

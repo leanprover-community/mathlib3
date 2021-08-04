@@ -54,6 +54,14 @@ def add_action.to_perm_hom (α : Type*) [add_group α] [add_action α β] :
   map_zero' := equiv.ext $ zero_vadd α,
   map_add' := λ a₁ a₂, equiv.ext $ add_vadd a₁ a₂ }
 
+/-- The tautological action by `equiv.perm α` on `α`. -/
+instance mul_action.perm (α : Type*) : mul_action (equiv.perm α) α :=
+{ smul := λ f a, f a,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] lemma equiv.perm.smul_def {α : Type*} (f : equiv.perm α) (a : α) : f • a = f a := rfl
+
 variables {α} {β}
 
 @[to_additive] lemma inv_smul_eq_iff {a : α} {x y : β} : a⁻¹ • x = y ↔ x = a • y :=

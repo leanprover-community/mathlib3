@@ -265,16 +265,18 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
   assume bdd,
   rcases (bounded_iff_subset_ball 0).1 bdd with ⟨r, hr⟩, -- hr : s ⊆ closed_ball 0 r
   rw closed_ball_Icc at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
-  exact ⟨⟨-r, λy hy, by simpa using (hr hy).1⟩, ⟨r, λy hy, by simpa using (hr hy).2⟩⟩
+  exact ⟨bdd_below_Icc.mono hr, bdd_above_Icc.mono hr⟩
 end,
 begin
-  rintros ⟨⟨m, hm⟩, ⟨M, hM⟩⟩,
-  have I : s ⊆ Icc m M := λx hx, ⟨hm hx, hM hx⟩,
-  have : Icc m M = closed_ball ((m+M)/2) ((M-m)/2) :=
-    by rw closed_ball_Icc; congr; ring,
-  rw this at I,
-  exact bounded.subset I bounded_closed_ball
+  intro h,
+  rcases bdd_below_bdd_above_iff_subset_Icc.1 h with ⟨m, M, I : s ⊆ Icc m M⟩,
+  exact (bounded_Icc m M).subset I
 end⟩
+
+lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :
+  s ⊆ Icc (Inf s) (Sup s) :=
+subset_Icc_cInf_cSup (real.bounded_iff_bdd_below_bdd_above.1 h).1
+  (real.bounded_iff_bdd_below_bdd_above.1 h).2
 
 lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
   f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=

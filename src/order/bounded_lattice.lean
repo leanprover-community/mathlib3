@@ -39,9 +39,9 @@ universes u v
 variables {α : Type u} {β : Type v}
 
 /-- Typeclass for the `⊤` (`\top`) notation -/
-class has_top (α : Type u) := (top : α)
+@[notation_class] class has_top (α : Type u) := (top : α)
 /-- Typeclass for the `⊥` (`\bot`) notation -/
-class has_bot (α : Type u) := (bot : α)
+@[notation_class] class has_bot (α : Type u) := (bot : α)
 
 notation `⊤` := has_top.top
 notation `⊥` := has_bot.bot
@@ -295,7 +295,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
       ... = ⊥ : h₂⟩
 
 /-- Propositions form a bounded distributive lattice. -/
-instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
+instance Prop.bounded_distrib_lattice : bounded_distrib_lattice Prop :=
 { le           := λ a b, a → b,
   le_refl      := λ _, id,
   le_trans     := λ a b c f g, g ∘ f,
@@ -448,6 +448,9 @@ instance : inhabited (with_bot α) := ⟨⊥⟩
 
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
+
+@[simp] theorem bot_ne_coe (a : α) : ⊥ ≠ (a : with_bot α) .
+@[simp] theorem coe_ne_bot (a : α) : (a : with_bot α) ≠ ⊥ .
 
 /-- Recursor for `with_bot` using the preferred forms `⊥` and `↑a`. -/
 @[elab_as_eliminator]
@@ -1092,6 +1095,24 @@ lemma disjoint.left_le_of_le_sup_left {a b c : α} (h : a ≤ c ⊔ b) (hd : dis
   ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
 
 end bounded_distrib_lattice
+
+section semilattice_inf_bot
+
+variables [semilattice_inf_bot α] {a b : α} (c : α)
+
+lemma disjoint.inf_left (h : disjoint a b) : disjoint (a ⊓ c) b :=
+h.mono_left inf_le_left
+
+lemma disjoint.inf_left' (h : disjoint a b) : disjoint (c ⊓ a) b :=
+h.mono_left inf_le_right
+
+lemma disjoint.inf_right (h : disjoint a b) : disjoint a (b ⊓ c) :=
+h.mono_right inf_le_left
+
+lemma disjoint.inf_right' (h : disjoint a b) : disjoint a (c ⊓ b) :=
+h.mono_right inf_le_right
+
+end semilattice_inf_bot
 
 end disjoint
 

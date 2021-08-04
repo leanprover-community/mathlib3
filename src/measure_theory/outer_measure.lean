@@ -125,7 +125,7 @@ begin
   refine tendsto_nhds_bot_mono' (ennreal.tendsto_sum_nat_add _ h0) (λ n, _),
   refine (m.mono _).trans (m.Union _),
   /- Current goal: `(⋃ k, s k) \ s n ⊆ ⋃ k, s (k + n + 1) \ s (k + n)` -/
-  have h' : monotone s := @monotone_of_monotone_nat (set α) _ _ h_mono,
+  have h' : monotone s := @monotone_nat_of_le_succ (set α) _ _ h_mono,
   simp only [diff_subset_iff, Union_subset_iff],
   intros i x hx,
   rcases nat.find_x ⟨i, hx⟩ with ⟨j, hj, hlt⟩, clear hx i,

@@ -97,7 +97,7 @@ end
 
 end nat
 
-lemma strict_mono.nat_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
+lemma strict_mono_nat_of_lt_succ_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
   strict_mono (λ m, (f m) ^ n) :=
 (nat.pow_left_strict_mono hn).comp hf
 

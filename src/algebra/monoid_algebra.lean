@@ -1187,11 +1187,7 @@ opposite.op_add_equiv.symm.trans (finsupp.map_range.add_equiv opposite.op_add_eq
 @[simp]
 lemma op_add_equiv_single (i : I) (r : R):
   add_monoid_algebra.op_add_equiv (op (single i r)) = single i (op r) :=
-begin
-  ext j,
-  classical,
-  simp [add_monoid_algebra.op_add_equiv, single_apply, apply_ite op],
-end
+by simp [add_monoid_algebra.op_add_equiv]
 
 /-- The opposite of an `add_monoid_algebra R I` is ring equivalent to
 the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite.

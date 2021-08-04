@@ -374,6 +374,20 @@ variable {I}
 
 namespace smooth_partition_of_unity
 
+/-- A `smooth_partition_of_unity` that consists of a single function, uniformly equal to one,
+defined as an example for `inhabited` instance. -/
+def single (i : ι) (s : set M) : smooth_partition_of_unity ι I M s :=
+(bump_covering.single i s).to_smooth_partition_of_unity $ λ j,
+  begin
+    rcases eq_or_ne j i with rfl|h,
+    { simp only [smooth_one, continuous_map.coe_one, bump_covering.coe_single, pi.single_eq_same] },
+    { simp only [smooth_zero, bump_covering.coe_single, pi.single_eq_of_ne h,
+        continuous_map.coe_zero] }
+  end
+
+instance [inhabited ι] (s : set M) : inhabited (smooth_partition_of_unity ι I M s) :=
+⟨single (default ι) s⟩
+
 variables [t2_space M] [sigma_compact_space M]
 
 /-- If `X` is a paracompact normal topological space and `U` is an open covering of a closed set
@@ -392,19 +406,5 @@ begin
     rcases exists_smooth_zero_one_of_closed I hs ht hd with ⟨f, hf⟩,
     exact ⟨f, f.smooth, hf⟩ }
 end
-
-/-- A `smooth_partition_of_unity` that consists of a single function, uniformly equal to one,
-defined as an example for `inhabited` instance. -/
-def single (i : ι) (s : set M) : smooth_partition_of_unity ι I M s :=
-(bump_covering.single i s).to_smooth_partition_of_unity $ λ j,
-  begin
-    rcases eq_or_ne j i with rfl|h,
-    { simp only [smooth_one, continuous_map.coe_one, bump_covering.coe_single, pi.single_eq_same] },
-    { simp only [smooth_zero, bump_covering.coe_single, pi.single_eq_of_ne h,
-        continuous_map.coe_zero] }
-  end
-
-instance [inhabited ι] (s : set M) : inhabited (smooth_partition_of_unity ι I M s) :=
-⟨single (default ι) s⟩
 
 end smooth_partition_of_unity

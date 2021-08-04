@@ -43,6 +43,41 @@ variables {s : signed_measure α} {i j : set α}
 
 section exists_subset_restrict_nonpos
 
+/-! ### exists_subset_restrict_nonpos
+
+In this section we will prove that a set `i` whose measure is negative contains a negative subset
+`j` with respect to the signed measure `s` (i.e. `s ≤[j] 0`), whose measure is negative. This lemma
+is used to prove the Hahn decomposition theorem.
+
+To prove this lemma, we will construct a sequence of measurable sets $(A_n)_{n \in \mathbb{N}}$,
+such that, for all $n$, $A_{n + 1} \subseteq i \setminus \bigcup_{k \le n} A_k$ and
+$\frac{1}{a_n + 1} < s(A_{n + 1})$ for some sequence $a_n \to \infty$.
+
+This sequence does not necessarily exist. However, if this sequence terminates, that is there
+does not exists any sets satisfying the property, the last $A_n$ will be a negative subset of
+negative measure, hence proving our claim.
+
+In the case that the sequence does not terminate, it is easy to see that
+$i \setminus \bigcup_{k = 0}^\infty A_k$ is the required set.
+
+To implement this in Lean, we define several auxilary definitions.
+
+- given sets `i`, `j` and the natural number `n`, `exists_one_div_lt s i j n` is the property that
+  there exists a measurable set `k ⊆ i \ j` such that `1 / (n + 1) < s k`.
+- given sets `i`, `j` and that `i \ j` is not negative, `find_exists_one_div_lt s i j` is the
+  least natural number `n` such that `exists_one_div_lt s i j n`. This definition provide the
+  sequence $(a_n)$ in the proof as described above.
+- given sets `i`, `j` and that `i \ j` is not negative, `some_exists_one_div_lt` chooses the set
+  `k` from `exists_one_div_lt s i j (find_exists_one_div_lt s i j)`.
+- lastly, given set `i`, `restrict_nonpos_seq s i` is the sequence of sets defined inductively where
+  `restrict_nonpos_seq s i 0 = some_exists_one_div_lt s i ∅` and
+  `restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s i ⋃ k ≤ n, restrict_nonpos_seq k`.
+  This definition representing the sequence $(A_n)$ in the proof as described above.
+
+With these definitions, we are able consider the case where the sequence terminates seperately,
+allowing us to prove `exists_subset_restrict_nonpos`.
+-/
+
 private def exists_one_div_lt (s : signed_measure α) (i j : set α) (n : ℕ) : Prop :=
 ∃ k : set α, k ⊆ i \ j ∧ measurable_set k ∧ (1 / (n + 1) : ℝ) < s k
 

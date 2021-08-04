@@ -734,7 +734,8 @@ namespace bundle
 
 variable (E : B → Type*)
 
-attribute [mfld_simps] proj total_space_mk coe_fst coe_snd_map_apply coe_snd_map_smul
+attribute [mfld_simps] proj total_space_mk coe_fst coe_snd coe_snd_map_apply coe_snd_map_smul
+  total_space_mk_cast
 
 instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
 

@@ -161,3 +161,15 @@ lemma function.injective.prod_map {f : α → γ} {g : β → δ} (hf : injectiv
 lemma function.surjective.prod_map {f : α → γ} {g : β → δ} (hf : surjective f) (hg : surjective g) :
   surjective (prod.map f g) :=
 λ p, let ⟨x, hx⟩ := hf p.1 in let ⟨y, hy⟩ := hg p.2 in ⟨(x, y), prod.ext hx hy⟩
+
+section cast
+
+lemma cast_fst {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+  (h1 : (α × γ) = (β × δ)) (h2 : α = β) (h3 : γ = δ) (a : α) (g : γ) :
+  (cast h1 (a, g)).fst = cast h2 a := by { subst h2, subst h3, refl }
+
+lemma cast_snd {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+  (h1 : (α × γ) = (β × δ)) (h2 : α = β) (h3 : γ = δ) (a : α) (g : γ) :
+  (cast h1 (a, g)).snd = cast h3 g := by { subst h2, subst h3, refl }
+
+end cast

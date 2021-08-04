@@ -42,6 +42,7 @@ instance [inhabited B] [inhabited (E (default B))] :
 instance {x : B} : has_coe_t (E x) (total_space E) := ⟨sigma.mk x⟩
 
 @[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
+@[simp] lemma coe_snd {x : B} {y : E x} : (y : total_space E).snd = y := rfl
 
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 
@@ -52,6 +53,10 @@ instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
+
+@[simp] lemma total_space_mk_cast {x : B} (y : total_space E) (h : y.1 = x) :
+  total_space_mk E x (cast (congr_arg E h) y.2) = y :=
+by { ext, exact h.symm, simp only [cast_heq], }
 
 section fiber_structures
 

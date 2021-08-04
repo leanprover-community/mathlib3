@@ -10,7 +10,6 @@ import data.list.basic
 import data.int.cast
 import data.equiv.basic
 import data.equiv.mul_add
-import deprecated.group
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -50,15 +49,14 @@ lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
-lemma is_unit_pow_iff_pos {M : Type*} [comm_monoid M] {m : M} {n : ℕ} (h : 0 < n) :
+lemma is_unit_pos_pow_iff {M : Type*} [comm_monoid M] {m : M} {n : ℕ} (h : 0 < n) :
   is_unit (m ^ n) ↔ is_unit m :=
 begin
-  cases n,
-  { exact absurd h (lt_irrefl _) },
+  obtain ⟨p, rfl⟩ := nat.exists_eq_succ_of_ne_zero h.ne',
   refine ⟨λ h, _, is_unit.pow _⟩,
   obtain ⟨⟨k, k', hk, hk'⟩, h⟩ := h,
   rw [units.coe_mk] at h,
-  refine ⟨⟨m, m ^ n * k', _, _⟩, _⟩,
+  refine ⟨⟨m, m ^ p * k', _, _⟩, _⟩,
   { rw [←mul_assoc, ←pow_succ, ←h, hk] },
   { rw [mul_right_comm, ←pow_succ', ←h, hk] },
   { exact units.coe_mk _ _ _ _ }
@@ -554,6 +552,15 @@ alias int.abs_le_self_sq ← int.abs_le_self_pow_two
 lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_sq _)
 
 alias int.le_self_sq ← int.le_self_pow_two
+
+lemma pow_right_injective {x : ℤ} (h : 1 < x.nat_abs) : function.injective ((^) x : ℕ → ℤ) :=
+begin
+  suffices : function.injective (nat_abs ∘ ((^) x : ℕ → ℤ)),
+  { exact function.injective.of_comp this },
+  convert nat.pow_right_injective h,
+  ext n,
+  rw [function.comp_app, nat_abs_pow]
+end
 
 end int
 

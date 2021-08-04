@@ -3,9 +3,9 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-
-import analysis.calculus.local_extr
+import analysis.convex.basic
 import topology.algebra.affine
+import topology.local_extr
 
 /-!
 # Minima and maxima of convex functions

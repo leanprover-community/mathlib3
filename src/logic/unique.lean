@@ -56,8 +56,10 @@ attribute [class] unique
 /-- Given an explicit `a : α` with `[subsingleton α]`, we can construct
 a `[unique α]` instance. This is a def because the typeclass search cannot
 arbitrarily invent the `a : α` term. Nevertheless, these instances are all
-equivalent by `unique.subsingleton.unique`. -/
-def unique_of_subsingleton {α : Type*} [subsingleton α] (a : α) : unique α :=
+equivalent by `unique.subsingleton.unique`.
+
+See note [reducible non-instances]. -/
+@[reducible] def unique_of_subsingleton {α : Sort*} [subsingleton α] (a : α) : unique α :=
 { default := a,
   uniq := λ _, subsingleton.elim _ _ }
 

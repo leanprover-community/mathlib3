@@ -40,14 +40,17 @@ rfl
 
 @[simp] theorem eval_basis_self (x : F) : (basis s x).eval x = 1 :=
 begin
-  rw [basis, ← (s.erase x).prod_hom (eval x), finset.prod_eq_one],
+  rw [basis, ← coe_eval_ring_hom, (eval_ring_hom x).map_prod, coe_eval_ring_hom,
+    finset.prod_eq_one],
   intros y hy, simp_rw [eval_mul, eval_sub, eval_C, eval_X],
   exact inv_mul_cancel (sub_ne_zero_of_ne (finset.ne_of_mem_erase hy).symm)
 end
 
 @[simp] theorem eval_basis_ne (x y : F) (h1 : y ∈ s) (h2 : y ≠ x) : (basis s x).eval y = 0 :=
 begin
-  rw [basis, ← (s.erase x).prod_hom (eval y), finset.prod_eq_zero (finset.mem_erase.2 ⟨h2, h1⟩)],
+  rw [basis,
+  ← coe_eval_ring_hom, (eval_ring_hom y).map_prod, coe_eval_ring_hom,
+    finset.prod_eq_zero (finset.mem_erase.2 ⟨h2, h1⟩)],
   simp_rw [eval_mul, eval_sub, eval_C, eval_X, sub_self, mul_zero]
 end
 
@@ -87,7 +90,9 @@ rfl
 
 @[simp] theorem eval_interpolate (x) (H : x ∈ s) : eval x (interpolate s f) = f ⟨x, H⟩ :=
 begin
-  rw [interpolate, ← finset.sum_hom _ (eval x), finset.sum_eq_single (⟨x, H⟩ : { x // x ∈ s })],
+  rw [interpolate,
+  ← coe_eval_ring_hom, (eval_ring_hom x).map_sum, coe_eval_ring_hom,
+      finset.sum_eq_single (⟨x, H⟩ : { x // x ∈ s })],
   { rw [eval_mul, eval_C, subtype.coe_mk, eval_basis_self, mul_one] },
   { rintros ⟨y, hy⟩ _ hyx, rw [eval_mul, subtype.coe_mk, eval_basis_ne s y x H, mul_zero],
     { rintros rfl, exact hyx rfl } },

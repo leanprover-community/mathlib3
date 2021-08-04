@@ -730,10 +730,10 @@ begin
 end
 
 theorem nat_abs_dvd {a b : ℤ} : (a.nat_abs : ℤ) ∣ b ↔ a ∣ b :=
-(nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd_iff_dvd, ← e])
+(nat_abs_eq a).elim (λ e, by rw ← e) (λ e, by rw [← neg_dvd, ← e])
 
 theorem dvd_nat_abs {a b : ℤ} : a ∣ b.nat_abs ↔ a ∣ b :=
-(nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg_iff_dvd, ← e])
+(nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg, ← e])
 
 instance decidable_dvd : @decidable_rel ℤ (∣) :=
 assume a n, decidable_of_decidable_of_iff (by apply_instance) (dvd_iff_mod_eq_zero _ _).symm
@@ -1369,66 +1369,6 @@ congr_arg coe (nat.one_shiftl _)
 | -[1+ n] := congr_arg coe (nat.zero_shiftr _)
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 := zero_shiftl _
-
-/-! ### Least upper bound property for integers -/
-
-/-- A computable version of `exists_least_of_bdd`: given a decidable predicate on the
-integers, with an explicit lower bound and a proof that it is somewhere true, return
-the least value for which the predicate is true. -/
-def least_of_bdd {P : ℤ → Prop} [decidable_pred P]
-  (b : ℤ) (Hb : ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
-  {lb : ℤ // P lb ∧ (∀ z : ℤ, P z → lb ≤ z)} :=
-have EX : ∃ n : ℕ, P (b + n), from
-  let ⟨elt, Helt⟩ := Hinh in
-  match elt, le.dest (Hb _ Helt), Helt with
-  | ._, ⟨n, rfl⟩, Hn := ⟨n, Hn⟩
-  end,
-⟨b + (nat.find EX : ℤ), nat.find_spec EX, λ z h,
-  match z, le.dest (Hb _ h), h with
-  | ._, ⟨n, rfl⟩, h := add_le_add_left
-    (int.coe_nat_le.2 $ nat.find_min' _ h) _
-  end⟩
-
-theorem exists_least_of_bdd {P : ℤ → Prop}
-  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
-  ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
-by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := least_of_bdd b Hb Hinh in ⟨lb, H⟩
-
-lemma coe_least_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
-  {b b' : ℤ} (Hb : ∀ z : ℤ, P z → b ≤ z) (Hb' : ∀ z : ℤ, P z → b' ≤ z) (Hinh : ∃ z : ℤ, P z) :
-  (least_of_bdd b Hb Hinh : ℤ) = least_of_bdd b' Hb' Hinh :=
-begin
-  rcases least_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
-  rcases least_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
-  exact le_antisymm (h2n _ hn') (h2n' _ hn),
-end
-
-/-- A computable version of `exists_greatest_of_bdd`: given a decidable predicate on the
-integers, with an explicit upper bound and a proof that it is somewhere true, return
-the greatest value for which the predicate is true. -/
-def greatest_of_bdd {P : ℤ → Prop} [decidable_pred P]
-  (b : ℤ) (Hb : ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
-  {ub : ℤ // P ub ∧ (∀ z : ℤ, P z → z ≤ ub)} :=
-have Hbdd' : ∀ (z : ℤ), P (-z) → -b ≤ z, from λ z h, neg_le.1 (Hb _ h),
-have Hinh' : ∃ z : ℤ, P (-z), from
-let ⟨elt, Helt⟩ := Hinh in ⟨-elt, by rw [neg_neg]; exact Helt⟩,
-let ⟨lb, Plb, al⟩ := least_of_bdd (-b) Hbdd' Hinh' in
-⟨-lb, Plb, λ z h, le_neg.1 $ al _ $ by rwa neg_neg⟩
-
-theorem exists_greatest_of_bdd {P : ℤ → Prop}
-  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
-  ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
-by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := greatest_of_bdd b Hb Hinh in ⟨lb, H⟩
-
-lemma coe_greatest_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
-  {b b' : ℤ} (Hb : ∀ z : ℤ, P z → z ≤ b) (Hb' : ∀ z : ℤ, P z → z ≤ b') (Hinh : ∃ z : ℤ, P z) :
-  (greatest_of_bdd b Hb Hinh : ℤ) = greatest_of_bdd b' Hb' Hinh :=
-begin
-  rcases greatest_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
-  rcases greatest_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
-  exact le_antisymm (h2n' _ hn) (h2n _ hn'),
-end
-
 
 end int
 

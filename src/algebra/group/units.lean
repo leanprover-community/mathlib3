@@ -110,8 +110,8 @@ by rw [←units.coe_one, eq_iff]
 
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
 
-@[norm_cast, to_additive] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
-attribute [norm_cast] add_units.coe_neg
+@[norm_cast, to_additive] lemma coe_inv'' : ((a⁻¹ : units α) : α) = a.inv := rfl
+attribute [norm_cast] add_units.coe_neg''
 
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
@@ -165,7 +165,7 @@ calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
       ... = a : by rw [u.inv_mul, one_mul]
 
 lemma inv_unique {u₁ u₂ : units α} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
-suffices ↑u₁ * (↑u₂⁻¹ : α) = 1, by exact inv_eq_of_mul_eq_one this, by rw [h, u₂.mul_inv]
+inv_eq_of_mul_eq_one $ by rw [h, u₂.mul_inv]
 
 end units
 

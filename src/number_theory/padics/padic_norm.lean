@@ -479,9 +479,7 @@ begin
 end
 
 @[simp] lemma padic_val_nat.self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
-begin
-  simp [padic_val_nat_def (ne_of_gt (nat.prime.pos (fact.out p.prime)))],
-end
+by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
 
 lemma padic_val_nat.prime_pow (p y : ℕ) [fact p.prime] : padic_val_nat p (p ^ y) = y :=
 begin

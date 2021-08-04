@@ -1,5 +1,17 @@
-import order.conditionally_complete_lattice
+/-
+Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov
+-/
+import order.galois_connection
 import algebra.pointwise
+
+/-!
+# Upper/lower bounds in ordered monoids and groups
+
+In this file we prove a few facts like “`-s` is bounded above iff `s` is bounded below”
+(`bdd_above_neg`).
+-/
 
 open set
 
@@ -55,8 +67,7 @@ forall_image2_iff.2 $ λ x hx y hy, mul_le_mul' (ha hx) (hb hy)
 image2_subset_iff.2 $ λ x hx y hy, mul_mem_upper_bounds_mul hx hy
 
 @[to_additive] lemma mul_mem_lower_bounds_mul {s t : set M} {a b : M} (ha : a ∈ lower_bounds s)
-  (hb : b ∈ lower_bounds t) :
-  a * b ∈ lower_bounds (s * t) :=
+  (hb : b ∈ lower_bounds t) : a * b ∈ lower_bounds (s * t) :=
 @mul_mem_upper_bounds_mul (order_dual M) _ _ _ _ _ _ _ _ ha hb
 
 @[to_additive] lemma subset_lower_bounds_mul (s t : set M) :

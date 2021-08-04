@@ -7,6 +7,7 @@ import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 import algebra.star.basic
+import algebra.bounds
 
 /-!
 # Real numbers from Cauchy sequences
@@ -366,7 +367,7 @@ begin
     exact ne_of_gt (nat.cast_pos.2 n0) },
   have hg : is_cau_seq abs (λ n, f n / n : ℕ → ℚ),
   { intros ε ε0,
-    suffices : ∀ j k ≥ nat_ceil ε⁻¹, (f j / j - f k / k : ℚ) < ε,
+    suffices : ∀ j k ≥ ⌈ε⁻¹⌉₊, (f j / j - f k / k : ℚ) < ε,
     { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
       rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
     intros j k ij ik,
@@ -442,10 +443,7 @@ real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.
 by simp [Inf_def, Sup_empty]
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
-have bdd_above {x | -x ∈ s} → bdd_below s, from
-  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb $ by simp [hxs]⟩,
-have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
-neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
+neg_eq_zero.2 $ Sup_of_not_bdd_above $ mt bdd_above_neg.1 hs
 
 lemma supr_add {ι : Type*} [nonempty ι] {f : ι → ℝ} (hf : bdd_above (set.range f)) (a : ℝ) :
   (⨆ i, f i) + a = ⨆ i, f i + a :=

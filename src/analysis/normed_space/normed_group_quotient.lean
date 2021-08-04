@@ -202,7 +202,7 @@ lemma norm_mk_lt {S : add_subgroup M} (x : quotient S) {ε : ℝ} (hε : 0 < ε)
   ∃ (m : M), mk' S m = x ∧ ∥m∥ < ∥x∥ + ε :=
 begin
   obtain ⟨_, ⟨m : M, H : mk' S m = x, rfl⟩, hnorm : ∥m∥ < ∥x∥ + ε⟩ :=
-    real.lt_Inf_add_pos (bdd_below_image_norm _) (image_norm_nonempty x) hε,
+    real.lt_Inf_add_pos (image_norm_nonempty x) hε,
   subst H,
   exact ⟨m, rfl, hnorm⟩,
 end
@@ -471,11 +471,7 @@ begin
   have nonemp : ((λ m', ∥m + m'∥) '' f.ker).nonempty,
   { rw set.nonempty_image_iff,
     exact ⟨0, f.ker.zero_mem⟩ },
-  have bdd : bdd_below ((λ m', ∥m + m'∥) '' f.ker),
-  { use 0,
-    rintro _ ⟨x, hx, rfl⟩,
-    apply norm_nonneg },
-  rcases real.lt_Inf_add_pos bdd nonemp hε with
+  rcases real.lt_Inf_add_pos nonemp hε with
     ⟨_, ⟨⟨x, hx, rfl⟩, H : ∥m + x∥ < Inf ((λ (m' : M), ∥m + m'∥) '' f.ker) + ε⟩⟩,
   exact ⟨m+x, by rw [f.map_add,(normed_group_hom.mem_ker f x).mp hx, add_zero],
                by rwa hquot.norm⟩,

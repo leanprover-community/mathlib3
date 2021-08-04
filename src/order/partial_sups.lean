@@ -39,7 +39,7 @@ variables [semilattice_sup α]
 /-- The monotone sequence whose value at `n` is the supremum of the `f m` where `m ≤ n`. -/
 def partial_sups (f : ℕ → α) : ℕ →ₘ α :=
 ⟨@nat.rec (λ _, α) (f 0) (λ (n : ℕ) (a : α), a ⊔ f (n + 1)),
-  monotone_of_monotone_nat (λ n, le_sup_left)⟩
+  monotone_nat_of_le_succ (λ n, le_sup_left)⟩
 
 @[simp] lemma partial_sups_zero (f : ℕ → α) : partial_sups f 0 = f 0 := rfl
 @[simp] lemma partial_sups_succ (f : ℕ → α) (n : ℕ) :

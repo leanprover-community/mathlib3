@@ -568,7 +568,7 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
       exact le_supr (λ K : {K // is_compact K ∧ K ⊆ U}, μ K)
         ⟨B n ∩ F, is_compact.inter_right (B.is_compact n) F_closed,
           subset.trans (inter_subset_right _ _) FU⟩ },
-    { apply (monotone_of_monotone_nat (λ n, _)).directed_le,
+    { apply (monotone_nat_of_le_succ (λ n, _)).directed_le,
       exact inter_subset_inter_left _ (B.subset_succ n) },
   end,
   outer_regular :=

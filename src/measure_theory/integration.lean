@@ -1490,7 +1490,7 @@ calc
   ... = ⨆n, (∫⁻ a, g n a ∂μ) :
   lintegral_supr
     (assume n, measurable_const.piecewise hs.2.1 (hf n))
-    (monotone_of_monotone_nat $ assume n a, classical.by_cases
+    (monotone_nat_of_le_succ $ assume n a, classical.by_cases
       (assume h : a ∈ s, by simp [g, if_pos h])
       (assume h : a ∉ s,
       begin

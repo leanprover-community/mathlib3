@@ -83,3 +83,33 @@ image2_subset_iff.2 $ λ x hx y hy, mul_mem_upper_bounds_mul hx hy
 (hs.mul ht).mono (subset_lower_bounds_mul s t)
 
 end mul_add
+
+section conditionally_complete_lattice
+
+variables {G : Type*} [linear_ordered_add_comm_group G]
+  {H : ∀ s : set G, s.nonempty → bdd_below s → ∃ a, is_glb s a}
+
+@[simp] lemma cInf_neg [no_bot_order G] (s : set G) :
+  @Inf G (@conditionally_complete_lattice.to_has_Inf G $
+    conditionally_complete_lattice_of_exists_is_glb H 0) (-s) =
+    -@Sup G (@conditionally_complete_lattice.to_has_Sup G $
+    conditionally_complete_lattice_of_exists_is_glb H 0) s :=
+begin
+  letI : conditionally_complete_linear_order G :=
+    { .. ‹linear_ordered_add_comm_group G›, .. lattice_of_linear_order,
+      .. conditionally_complete_lattice_of_exists_is_glb H 0 },
+  rcases s.eq_empty_or_nonempty with rfl|hne, { simp },
+  by_cases hbdd : bdd_above s,
+  { exact (is_lub_cSup hne hbdd).neg.cInf_eq hne.neg },
+  { rw [cInf_of_not_bdd_below, cSup_of_not_bdd_above hbdd, neg_zero],
+    exact mt bdd_below_neg.1 hbdd }
+end
+
+@[simp] lemma cSup_neg [no_bot_order G] (s : set G) :
+  @Sup G (@conditionally_complete_lattice.to_has_Sup G $
+    conditionally_complete_lattice_of_exists_is_glb H 0) (-s) =
+    -@Inf G (@conditionally_complete_lattice.to_has_Inf G $
+    conditionally_complete_lattice_of_exists_is_glb H 0) s :=
+by rw [← neg_neg (Sup _), ← cInf_neg, set.neg_neg]
+
+end conditionally_complete_lattice

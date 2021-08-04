@@ -28,7 +28,7 @@ open norm_num
 /-- `normalize_fin n a b` means that `a : fin n` is equivalent to `b : ℕ` in the modular sense -
 that is, `↑a ≡ b (mod n)`. This is used for translating the algebraic operations: addition,
 multiplication, zero and one, which use modulo for reduction. -/
-def normalize_fin (n : ℕ) (a : fin n) (b : ℕ) := a.1 = b % n
+def normalize_fin (n : ℕ) (a : fin n) (b : ℤ) := ↑a = b % n
 
 /-- `normalize_fin_lt n a b` means that `a : fin n` is equivalent to `b : ℕ` in the embedding
 sense - that is, `↑a = b`. This is used for operations that treat `fin n` as the subset
@@ -36,96 +36,115 @@ sense - that is, `↑a = b`. This is used for operations that treat `fin n` as t
 function, but it does not lift to a map `zmod n → zmod (n+1)`; this addition only makes sense if
 the input is strictly less than `n`.
 
-`normalize_fin_lt n a b` is equivalent to `normalize_fin n a b ∧ b < n`. -/
-def normalize_fin_lt (n : ℕ) (a : fin n) (b : ℕ) := a.1 = b
+`normalize_fin_lt n a b` is equivalent to `normalize_fin n a b ∧ b < n ∧ 0 ≤ b`. -/
+def normalize_fin_lt (n : ℕ) (a : fin n) (b : ℤ) := ↑a = b
 
-theorem normalize_fin_lt.coe {n} {a : fin n} {b : ℕ} (h : normalize_fin_lt n a b) : ↑a = b := h
+def normalize_fin_lt.coe {n a b} (h : normalize_fin_lt n a b) : ↑a = b := h
 
-theorem normalize_fin_iff {n} [fact (0 < n)] {a b} :
-  normalize_fin n a b ↔ a = fin.of_nat' b :=
-iff.symm (fin.eq_iff_veq _ _)
 
 theorem normalize_fin_lt.mk {n a b n'} (hn : n = n')
-  (h : normalize_fin n a b) (h2 : b < n') : normalize_fin_lt n a b :=
-h.trans $ nat.mod_eq_of_lt $ by rw hn; exact h2
+  (h : normalize_fin n a (b : ℕ)) (h1 : 0 ≤ b) (h2 : b < n') : normalize_fin_lt n a b :=
+h.trans $ int.mod_eq_of_lt (by exact_mod_cast h1) (hn.symm ▸ by exact_mod_cast h2)
 
 theorem normalize_fin_lt.lt {n a b} (h : normalize_fin_lt n a b) : b < n :=
-by rw ← h.coe; exact a.2
+by rw ← h.coe; exact_mod_cast a.2
+
+theorem normalize_fin_lt.nonneg {n a b} (h : normalize_fin_lt n a b) : 0 ≤ b :=
+by rw ← h.coe; simp only [int.coe_nat_nonneg, coe_coe]
 
 theorem normalize_fin_lt.of {n a b} (h : normalize_fin_lt n a b) : normalize_fin n a b :=
-h.trans $ eq.symm $ nat.mod_eq_of_lt h.lt
+h.trans $ eq.symm $ int.mod_eq_of_lt h.nonneg h.lt
 
 theorem normalize_fin.zero (n) : normalize_fin (n+1) 0 0 := by { rw normalize_fin, norm_num }
 theorem normalize_fin_lt.zero (n) : normalize_fin_lt (n+1) 0 0 := refl _
 theorem normalize_fin.one (n) : normalize_fin (n+1) 1 1 := refl _
-theorem normalize_fin.add {n} {a b : fin n} {a' b' c' : ℕ}
+theorem normalize_fin.add {n} {a b : fin n} {a' b' c' : ℤ}
   (ha : normalize_fin n a a') (hb : normalize_fin n b b')
   (h : a' + b' = c') : normalize_fin n (a + b) c' :=
-by simp only [normalize_fin, ← h] at *; rw [nat.add_mod, ← ha, ← hb, fin.add_def]
-theorem normalize_fin.mul {n} {a b : fin n} {a' b' c' : ℕ}
+by {
+  simp only [normalize_fin, ← h, coe_coe] at *,
+  rw [fin.coe_add, int.coe_nat_mod, int.coe_nat_add, int.add_mod a', ← ha, ← hb]
+}
+theorem normalize_fin.sub {n} {a b : fin n} {a' b' c' : ℤ}
+  (ha : normalize_fin n a a') (hb : normalize_fin n b b')
+  (h : a' - b' = c') : normalize_fin n (a - b) c' :=
+by {
+  simp only [normalize_fin, ← h, coe_coe] at *,
+  rw [fin.coe_sub, int.coe_nat_mod, int.coe_nat_add, int.coe_nat_sub, int.sub_mod, ← ha, ← hb],
+  sorry,
+  sorry,
+}
+theorem normalize_fin.neg {n} {a : fin n} {a' c' : ℤ}
+  (ha : normalize_fin n a a')
+  (h : - a' = c') : normalize_fin n (-a) c' :=
+by {
+  simp only [normalize_fin, ← h] at *,
+  sorry
+}
+theorem normalize_fin.mul {n} {a b : fin n} {a' b' c' : ℤ}
   (ha : normalize_fin n a a') (hb : normalize_fin n b b')
   (h : a' * b' = c') : normalize_fin n (a * b) c' :=
-by simp only [normalize_fin, ← h] at *; rw [nat.mul_mod, ← ha, ← hb, fin.mul_def]
-theorem normalize_fin.bit0 {n} {a : fin n} {a' : ℕ}
+by simp only [normalize_fin, ← h] at *; sorry -- rw [nat.mul_mod, ← ha, ← hb, fin.mul_def]
+theorem normalize_fin.bit0 {n} {a : fin n} {a' : ℤ}
   (h : normalize_fin n a a') : normalize_fin n (bit0 a) (bit0 a') := h.add h rfl
-theorem normalize_fin.bit1 {n} {a : fin (n+1)} {a' : ℕ}
+theorem normalize_fin.bit1 {n} {a : fin (n+1)} {a' : ℤ}
   (h : normalize_fin (n+1) a a') : normalize_fin (n+1) (bit1 a) (bit1 a') :=
 h.bit0.add (normalize_fin.one _) rfl
 
-theorem normalize_fin_lt.succ {n} {a : fin n} {a' b : ℕ}
+theorem normalize_fin_lt.succ {n} {a : fin n} {a' b : ℤ}
   (h : normalize_fin_lt n a a') (e : a' + 1 = b) : normalize_fin_lt n.succ (fin.succ a) b :=
 by simpa [normalize_fin_lt, ← e] using h
 
-theorem normalize_fin_lt.cast_lt {n m} {a : fin m} {ha} {a' : ℕ}
+theorem normalize_fin_lt.cast_lt {n m} {a : fin m} {ha} {a' : ℤ}
   (h : normalize_fin_lt m a a') : normalize_fin_lt n (fin.cast_lt a ha) a' :=
 by simpa [normalize_fin_lt] using h
 
-theorem normalize_fin_lt.cast_le {n m} {nm} {a : fin m} {a' : ℕ}
+theorem normalize_fin_lt.cast_le {n m} {nm} {a : fin m} {a' : ℤ}
   (h : normalize_fin_lt m a a') : normalize_fin_lt n (fin.cast_le nm a) a' :=
 by simpa [normalize_fin_lt] using h
 
-theorem normalize_fin_lt.cast {n m} {nm} {a : fin m} {a' : ℕ}
+theorem normalize_fin_lt.cast {n m} {nm} {a : fin m} {a' : ℤ}
   (h : normalize_fin_lt m a a') : normalize_fin_lt n (fin.cast nm a) a' :=
 by simpa [normalize_fin_lt] using h
 
-theorem normalize_fin.cast {n m} {nm} {a : fin m} {a' : ℕ}
+theorem normalize_fin.cast {n m} {nm} {a : fin m} {a' : ℤ}
   (h : normalize_fin m a a') : normalize_fin n (fin.cast nm a) a' :=
 by convert ← normalize_fin_lt.cast h
 
-theorem normalize_fin_lt.cast_add {n m} {a : fin n} {a' : ℕ}
+theorem normalize_fin_lt.cast_add {n m} {a : fin n} {a' : ℤ}
   (h : normalize_fin_lt n a a') : normalize_fin_lt (n + m) (fin.cast_add m a) a' :=
 by simpa [normalize_fin_lt] using h
 
-theorem normalize_fin_lt.cast_succ {n} {a : fin n} {a' : ℕ}
+theorem normalize_fin_lt.cast_succ {n} {a : fin n} {a' : ℤ}
   (h : normalize_fin_lt n a a') : normalize_fin_lt (n+1) (fin.cast_succ a) a' :=
 normalize_fin_lt.cast_add h
 
-theorem normalize_fin_lt.add_nat {n m m'} (hm : m = m') {a : fin n} {a' b : ℕ}
-  (h : normalize_fin_lt n a a') (e : a' + m' = b) :
+theorem normalize_fin_lt.add_nat {n m m'} (hm : m = m') {a : fin n} {a' b : ℤ}
+  (h : normalize_fin_lt n a a') (e : a' + ↑m' = b) :
   normalize_fin_lt (n+m) (@fin.add_nat n m a) b :=
 by simpa [normalize_fin_lt, ← e, ← hm] using h
 
-theorem normalize_fin_lt.nat_add {n m n'} (hn : n = n') {a : fin m} {a' b : ℕ}
-  (h : normalize_fin_lt m a a') (e : n' + a' = b) :
+theorem normalize_fin_lt.nat_add {n m n'} (hn : n = n') {a : fin m} {a' b : ℤ}
+  (h : normalize_fin_lt m a a') (e : ↑n' + a' = b) :
   normalize_fin_lt (n+m) (@fin.nat_add n m a) b :=
 by simpa [normalize_fin_lt, ← e, ← hn] using h
 
-theorem normalize_fin.reduce {n} {a : fin n} {n' a' b k nk : ℕ}
-  (hn : n = n') (h : normalize_fin n a a') (e1 : n' * k = nk) (e2 : nk + b = a') :
+theorem normalize_fin.reduce {n} {a : fin n} {n'} {a' b : ℤ} {k nk : ℕ}
+  (hn : n = n') (h : normalize_fin n a a') (e1 : n' * k = nk) (e2 : ↑nk + b = a') :
   normalize_fin n a b :=
 by rwa [← e2, ← e1, ← hn, normalize_fin, add_comm, nat.add_mul_mod_self_left] at h
 
-theorem normalize_fin_lt.reduce {n} {a : fin n} {n' a' b k nk : ℕ}
+theorem normalize_fin_lt.reduce {n} {a : fin n} {n'} {a' b : ℤ} {k nk : ℕ}
   (hn : n = n') (h : normalize_fin n a a') (e1 : n' * k = nk) (e2 : nk + b = a') (hl : b < n') :
   normalize_fin_lt n a b :=
 normalize_fin_lt.mk hn (h.reduce hn e1 e2) hl
 
-theorem normalize_fin.eq {n} {a b : fin n} {c : ℕ}
+theorem normalize_fin.eq {n} {a b : fin n} {c : ℤ}
   (ha : normalize_fin n a c) (hb : normalize_fin n b c) : a = b := fin.eq_of_veq $ ha.trans hb.symm
-theorem normalize_fin.lt {n} {a b : fin n} {a' b' : ℕ}
+theorem normalize_fin.lt {n} {a b : fin n} {a' b' : ℤ}
   (ha : normalize_fin n a a') (hb : normalize_fin_lt n b b') (h : a' < b') : a < b :=
 by have ha' := normalize_fin_lt.mk rfl ha (h.trans hb.lt); rwa [← hb.coe, ← ha'.coe] at h
-theorem normalize_fin.le {n} {a b : fin n} {a' b' : ℕ}
+theorem normalize_fin.le {n} {a b : fin n} {a' b' : ℤ}
   (ha : normalize_fin n a a') (hb : normalize_fin_lt n b b') (h : a' ≤ b') : a ≤ b :=
 by have ha' := normalize_fin_lt.mk rfl ha (h.trans_lt hb.lt); rwa [← hb.coe, ← ha'.coe] at h
 
@@ -182,6 +201,8 @@ meta inductive match_fin_result
 | zero (n : expr)            -- `(0 : fin (n+1))`
 | one (n : expr)             -- `(1 : fin (n+1))`
 | add (n a b : expr)         -- `(a + b : fin n)`
+| sub (n a b : expr)         -- `(a - b : fin n)`
+| neg (n a : expr)           -- `(-a : fin n)`
 | mul (n a b : expr)         -- `(a * b : fin n)`
 | bit0 (n a : expr)          -- `(bit0 a : fin n)`
 | bit1 (n a : expr)          -- `(bit1 a : fin (n+1))`
@@ -214,6 +235,8 @@ meta def match_fin : expr → option match_fin_result
 | `(@has_zero.zero ._ (@fin.has_zero %%n)) := some (zero n)
 | `(@has_one.one ._ (@fin.has_one %%n)) := some (one n)
 | `(@has_add.add (fin %%n) ._ %%a %%b) := some (add n a b)
+| `(@has_sub.sub (fin %%n) ._ %%a %%b) := some (sub n a b)
+| `(@has_neg.neg (fin %%n) ._ %%a) := some (neg n a)
 | `(@has_mul.mul (fin %%n) ._ %%a %%b) := some (mul n a b)
 | `(@_root_.bit0 (fin %%n) ._ %%a) := some (bit0 n a)
 | `(@_root_.bit1 ._ (@fin.has_one %%n) ._ %%a) := some (bit1 n a)
@@ -305,24 +328,33 @@ meta def eval_fin : expr → eval_fin_m (expr × expr)
 | a := do
   m ← match_fin a,
   match m with
-  | match_fin_result.zero n := pure (`(0 : ℕ), `(normalize_fin.zero).mk_app [n])
-  | match_fin_result.one n := pure (`(1 : ℕ), `(normalize_fin.one).mk_app [n])
+  | match_fin_result.zero n := pure (`(0 : ℤ), `(normalize_fin.zero).mk_app [n])
+  | match_fin_result.one n := pure (`(1 : ℤ), `(normalize_fin.one).mk_app [n])
   | match_fin_result.add n a b := do
     (a', pa) ← eval_fin a,
     (b', pb) ← eval_fin b,
-    (c, pc) ← eval_fin_m.lift_ic (λ ic, prove_add_nat' ic a' b'),
+    (c, pc) ← eval_fin_m.lift_ic (λ ic, prove_add_int' ic a' b'),
     pure (c, `(@normalize_fin.add).mk_app [n, a, b, a', b', c, pa, pb, pc])
+  | match_fin_result.sub n a b := do
+    (a', pa) ← eval_fin a,
+    (b', pb) ← eval_fin b,
+    (c, pc) ← eval_fin_m.lift_ic (λ ic, prove_sub_int' ic a' b'),
+    pure (c, `(@normalize_fin.sub).mk_app [n, a, b, a', b', c, pa, pb, pc])
+  | match_fin_result.neg n a := do
+    (a', pa) ← eval_fin a,
+    (c, pc) ← eval_fin_m.lift_ic (λ ic, prove_neg_int' ic a'),
+    pure (c, `(@normalize_fin.neg).mk_app [n, a, a', c, pa, pc])
   | match_fin_result.mul n a b := do
     (a', pa) ← eval_fin a,
     (b', pb) ← eval_fin b,
-    (c, pc) ← eval_fin_m.lift_ic (λ ic, prove_mul_nat ic a' b'),
+    (c, pc) ← eval_fin_m.lift_ic (λ ic, prove_mul_int ic a' b'),
     pure (c, `(@normalize_fin.mul).mk_app [n, a, b, a', b', c, pa, pb, pc])
   | match_fin_result.bit0 n a := do
     (a', pa) ← eval_fin a,
-    pure (`(@bit0 ℕ _).mk_app [a'], `(@normalize_fin.bit0).mk_app [n, a, a', pa])
+    pure (`(@bit0 ℤ _).mk_app [a'], `(@normalize_fin.bit0).mk_app [n, a, a', pa])
   | match_fin_result.bit1 n a := do
     (a', pa) ← eval_fin a,
-    pure (`(@bit1 ℕ _ _).mk_app [a'], `(@normalize_fin.bit1).mk_app [n, a, a', pa])
+    pure (`(@bit1 ℤ _ _).mk_app [a'], `(@normalize_fin.bit1).mk_app [n, a, a', pa])
   | match_fin_result.cast m n nm a := do
     (a', pa) ← (eval_fin a).reset,
     pure (a', `(@normalize_fin.cast).mk_app [n, m, nm, a, a', pa])

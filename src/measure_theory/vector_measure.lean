@@ -659,8 +659,7 @@ begin
 end
 
 lemma restrict_le_restrict_subset (v w : vector_measure α M) {i j : set α}
-  (hi₁ : measurable_set i) (hi₂ : v ≤[i] w) (hij : j ⊆ i) :
-  v.restrict j ≤ w.restrict j :=
+  (hi₁ : measurable_set i) (hi₂ : v ≤[i] w) (hij : j ⊆ i) : v ≤[j] w :=
 restrict_le_restrict_of_subset_le v w (λ k hk₁ hk₂,
   subset_le_of_restrict_le_restrict v w hi₁ hi₂ (set.subset.trans hk₂ hij))
 
@@ -672,7 +671,7 @@ variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M] [order_c
 variables (v w : vector_measure α M) {i j : set α}
 
 lemma restrict_le_restrict_Union {f : ℕ → set α}
-  (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v.restrict (f n) ≤ w.restrict (f n)) :
+  (hf₁ : ∀ n, measurable_set (f n)) (hf₂ : ∀ n, v ≤[f n] w) :
   v ≤[⋃ n, f n] w :=
 begin
   refine restrict_le_restrict_of_subset_le v w (λ a ha₁ ha₂, _),
@@ -693,7 +692,7 @@ begin
 end
 
 lemma restrict_le_restrict_encodable_Union [encodable β] {f : β → set α}
-  (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v.restrict (f b) ≤ w.restrict (f b)) :
+  (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v ≤[f b] w) :
   v ≤[⋃ b, f b] w :=
 begin
   rw ← encodable.Union_decode₂,
@@ -706,8 +705,8 @@ begin
 end
 
 lemma restrict_le_restrict_union
-  (hi₁ : measurable_set i) (hi₂ : v.restrict i ≤ w.restrict i)
-  (hj₁ : measurable_set j) (hj₂ : v.restrict j ≤ w.restrict j) :
+  (hi₁ : measurable_set i) (hi₂ : v ≤[i] w)
+  (hj₁ : measurable_set j) (hj₂ : v ≤[j] w) :
   v ≤[i ∪ j] w :=
 begin
   rw union_eq_Union,

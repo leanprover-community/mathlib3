@@ -7,6 +7,7 @@ import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 import algebra.star.basic
+import algebra.bounds
 
 /-!
 # Real numbers from Cauchy sequences
@@ -442,10 +443,7 @@ real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.
 by simp [Inf_def, Sup_empty]
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
-have bdd_above {x | -x ∈ s} → bdd_below s, from
-  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb $ by simp [hxs]⟩,
-have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
-neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
+neg_eq_zero.2 $ Sup_of_not_bdd_above $ mt bdd_above_neg.1 hs
 
 /--
 As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it

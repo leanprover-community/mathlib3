@@ -17,6 +17,11 @@ This file prove the Hahn decomposition theorem (signed version).
 * `signed_measure.exists_negative_set` : A measurable set of negative measure contains at least
   one negative subset.
 
+## Notation
+
+We use the notations `0 ≤[i] v` and `v ≤[i] 0` to denote the usual definitions of a set `i`
+being positive/negative with respect to the signed measure `v`.
+
 ## Tags
 
 Hahn decomposition theorem

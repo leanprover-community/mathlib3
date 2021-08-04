@@ -37,8 +37,12 @@ The term is motivated by the smooth case.
 
 If `f` is a bump function covering indexed by a linearly ordered type, then
 `g i x = f i x * ∏ᶠ j < i, (1 - f j x)` is a partition of unity, see
-`bump_covering.to_partition_of_unity`. We use `well_ordering_rel j i` instead of `j < i` in the
-actual definition to avoid a `[linear_order ι]` assumption.
+`bump_covering.to_partition_of_unity`. Note that only finitely many terms `1 - f j x` are not equal
+to one, so this product is well-defined.
+
+Note that `g i x = ∏ᶠ j ≤ i, (1 - f j x) - ∏ᶠ j < i, (1 - f j x)`, so most terms in the sum
+`∑ᶠ i, g i x` cancel, and we get `∑ᶠ i, g i x = 1 - ∏ᶠ i, (1 - f i x)`, and the latter product
+equals zero because one of `f i x` is equal to one.
 
 We say that a partition of unity or a bump function covering `f` is *subordinate* to a family of
 sets `U i`, `i : ι`, if the closure of the support of each `f i` is included in `U i`. We use
@@ -53,13 +57,17 @@ We also provide two slightly more general versions of these lemmas,
 `bump_covering.exists_is_subordinate_of_prop`, to be used later in the construction of a smooth
 partition of unity.
 
-** Implementation notes
+## Implementation notes
 
 Most (if not all) books only define a partition of unity of the whole space. However, quite a few
 proofs only deal with `f i` such that `closure (support (f i))` meets a specific closed subset, and
 it is easier to formalize these proofs if we don't have other functions right away.
 
-** Tags
+We use `well_ordering_rel j i` instead of `j < i` in the definition of
+`bump_covering.to_partition_of_unity` to avoid a `[linear_order ι]` assumption. While
+`well_ordering_rel j i` is a well order, not only a strict linear order, we never use this property.
+
+## Tags
 
 partition of unity, bump function, Urysohn's lemma, normal space, paracompact space
 -/
@@ -158,7 +166,7 @@ lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x
 
 lemma le_one (i : ι) (x : X) : f i x ≤ 1 := f.le_one' i x
 
-/-- A `bump_covering` that consists of a single function, uniformly equal to one, defined as an 
+/-- A `bump_covering` that consists of a single function, uniformly equal to one, defined as an
 example for `inhabited` instance. -/
 protected def single (i : ι) (s : set X) : bump_covering ι X s :=
 { to_fun := pi.single i 1,
@@ -173,6 +181,8 @@ protected def single (i : ι) (s : set X) : bump_covering ι X s :=
   nonneg' := le_update_iff.2 ⟨λ x, zero_le_one, λ _ _, le_rfl⟩,
   le_one' := update_le_iff.2 ⟨le_rfl, λ _ _ _, zero_le_one⟩,
   eventually_eq_one' := λ x _, ⟨i, by simp⟩ }
+
+@[simp] lemma coe_single (i : ι) (s : set X) : ⇑(bump_covering.single i s) = pi.single i 1 := rfl
 
 instance [inhabited ι] : inhabited (bump_covering ι X s) :=
 ⟨bump_covering.single (default ι) s⟩
@@ -266,8 +276,16 @@ lemma eventually_eq_one (x : X) (hx : x ∈ s) : f (f.ind x hx) =ᶠ[𝓝 x] 1 :
 lemma ind_apply (x : X) (hx : x ∈ s) : f (f.ind x hx) x = 1 :=
 (f.eventually_eq_one x hx).eq_of_nhds
 
-/-- Partition of unity defined by a `bump_covering`. Use `bump_function.to_partition_of_unity`
-instead. -/
+/-- Partition of unity defined by a `bump_covering`. We use this auxiliary definition to prove some
+properties of the new family of functions before bundling it into a `partition_of_unity`. Do not use
+this definition, use `bump_function.to_partition_of_unity` instead.
+
+The partition of unity is given by the formula `g i x = f i x * ∏ᶠ j < i, (1 - f j x)`. In other
+words, `g i x = ∏ᶠ j < i, (1 - f j x) - ∏ᶠ j ≤ i, (1 - f j x)`, so
+`∑ᶠ i, g i x = 1 - ∏ᶠ j, (1 - f j x)`. If `x ∈ s`, then one of `f j x` equals one, hence the product
+of `1 - f j x` vanishes, and `∑ᶠ i, g i x = 1`.
+
+In order to avoid an assumption `linear_order ι`, we use `well_ordering_rel` instead of `(<)`. -/
 def to_pou_fun (i : ι) (x : X) : ℝ :=
 f i x * ∏ᶠ j (hj : well_ordering_rel j i), (1 - f j x)
 
@@ -329,7 +347,14 @@ begin
   exact f.locally_finite
 end
 
-/-- The partition of unity defined by a `bump_covering`. -/
+/-- The partition of unity defined by a `bump_covering`.
+
+The partition of unity is given by the formula `g i x = f i x * ∏ᶠ j < i, (1 - f j x)`. In other
+words, `g i x = ∏ᶠ j < i, (1 - f j x) - ∏ᶠ j ≤ i, (1 - f j x)`, so
+`∑ᶠ i, g i x = 1 - ∏ᶠ j, (1 - f j x)`. If `x ∈ s`, then one of `f j x` equals one, hence the product
+of `1 - f j x` vanishes, and `∑ᶠ i, g i x = 1`.
+
+In order to avoid an assumption `linear_order ι`, we use `well_ordering_rel` instead of `(<)`. -/
 def to_partition_of_unity : partition_of_unity ι X s :=
 { to_fun := λ i, ⟨f.to_pou_fun i, f.continuous_to_pou_fun i⟩,
   locally_finite' := f.locally_finite.subset f.support_to_pou_fun_subset,

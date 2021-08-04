@@ -105,6 +105,7 @@ private def upper_central_series_aux_normal (G : Type*) [group G] :
   group,
 end⟩
 
+-- `upper_central_series_aux` is not supposed to be used outside this file
 local attribute [instance] upper_central_series_aux_normal
 
 private lemma upper_central_series_eq_aux {G : Type*} [group G] (n : ℕ) :
@@ -126,9 +127,12 @@ begin
   refl,
 end
 
+-- is_nilpotent is already defined in the root namespace (for elements of rings).
 /-- A group `G` is nilpotent if its upper central series is eventually `G`. -/
-class is_nilpotent (G : Type*) [group G] : Prop :=
+class group.is_nilpotent (G : Type*) [group G] : Prop :=
 (nilpotent [] : ∃ n : ℕ, upper_central_series G n = ⊤)
+
+open group
 
 section classical
 
@@ -136,7 +140,7 @@ open_locale classical
 
 /-- The nilpotency class of a nilpotent group is the small natural `n` such that
 the `n`'th term of the upper central series is `G`. -/
-noncomputable def nilpotency_class (G : Type*) [group G] [is_nilpotent G] : ℕ :=
+noncomputable def group.nilpotency_class (G : Type*) [group G] [is_nilpotent G] : ℕ :=
 nat.find (is_nilpotent.nilpotent G)
 
 end classical
@@ -270,7 +274,7 @@ end
 
 /-- A group is nilpotent if and only if its lower central series eventually reaches
   the trivial subgroup. -/
-theorem nilpotent_iff_lower : is_nilpotent G ↔ ∃ n, lower_central_series G n = ⊥ :=
+theorem nilpotent_iff_lower_central_series : is_nilpotent G ↔ ∃ n, lower_central_series G n = ⊥ :=
 begin
   rw nilpotent_iff_finite_descending_central_series,
   split,

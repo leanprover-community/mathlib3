@@ -478,7 +478,7 @@ begin
   exact padic_val_rat.pow _ (cast_ne_zero.mpr hq),
 end
 
-lemma padic_val_nat.self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
+@[simp] lemma padic_val_nat.self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
 begin
   simp [padic_val_nat_def (ne_of_gt (nat.prime.pos (fact.out p.prime)))],
 end

@@ -5,6 +5,10 @@ Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
 import data.equiv.basic
 
+/-!
+# Partial values of a type
+-/
+
 /-- `part α` is the type of "partial values" of type `α`. It
   is similar to `option α` except the domain condition can be an
   arbitrary proposition, not necessarily decidable. -/
@@ -15,7 +19,7 @@ structure {u} part (α : Type u) : Type u :=
 namespace part
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-/-- Convert an `part α` with a decidable domain to an option -/
+/-- Convert a `part α` with a decidable domain to an option -/
 def to_option (o : part α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
 
@@ -126,6 +130,8 @@ by { congr, exact h }
 instance none_decidable : decidable (@none α).dom := decidable.false
 instance some_decidable (a : α) : decidable (some a).dom := decidable.true
 
+/-- Retrieves the value of `a : part α` if it exists, and return the provided default value
+otherwise. -/
 def get_or_else (a : part α) [decidable a.dom] (d : α) :=
 if ha : a.dom then a.get ha else d
 
@@ -144,7 +150,7 @@ begin
   { exact mt Exists.fst h }
 end
 
-/-- Convert an `option α` into an `part α` -/
+/-- Converts an `option α` into a `part α`. -/
 def of_option : option α → part α
 | option.none     := none
 | (option.some a) := some a
@@ -185,11 +191,14 @@ by cases o; refl
 @[simp] theorem of_to_option (o : part α) [decidable o.dom] : of_option (to_option o) = o :=
 ext $ λ a, mem_of_option.trans mem_to_option
 
+/-- When the domains of all elements in `part α` are decidable, `part α` is equivalent to
+`option α`. Proven unconditionally by going classical. -/
 noncomputable def equiv_option : part α ≃ option α :=
 by haveI := classical.dec; exact
 ⟨λ o, to_option o, of_option, λ o, of_to_option o,
  λ o, eq.trans (by dsimp; congr) (to_of_option o)⟩
 
+/-- We give `part α` the order where everything is greater than `none`. -/
 instance : order_bot (part α) :=
 { le := λ x y, ∀ i, i ∈ x → i ∈ y,
   le_refl := λ x y, id,
@@ -350,7 +359,7 @@ end
 instance : monad_fail part :=
 { fail := λ_ _, none, ..part.monad }
 
-/- `restrict p o h` replaces the domain of `o` with `p`, and is well defined when
+/-- `restrict p o h` replaces the domain of `o` with `p`, and is well defined when
   `p` implies `o` is defined. -/
 def restrict (p : Prop) : ∀ (o : part α), (p → o.dom) → part α
 | ⟨d, f⟩ H := ⟨p, λh, f (H h)⟩
@@ -364,8 +373,7 @@ begin
   rintro ⟨h₀, h₁, h₂⟩, exact ⟨h₀, h₂⟩
 end
 
-/-- `unwrap o` gets the value at `o`, ignoring the condition.
-  (This function is unsound.) -/
+/-- `unwrap o` gets the value at `o`, ignoring the condition. This function is unsound. -/
 meta def unwrap (o : part α) : α := o.get undefined
 
 theorem assert_defined {p : Prop} {f : p → part α} :

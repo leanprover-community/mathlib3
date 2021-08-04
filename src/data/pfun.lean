@@ -6,6 +6,10 @@ Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 import data.part
 import data.rel
 
+/-!
+# Partial functions
+-/
+
 /-- `pfun α β`, or `α →. β`, is the type of partial functions from
   `α` to `β`. It is defined as `α → part β`. -/
 def pfun (α : Type*) (β : Type*) := α → part β

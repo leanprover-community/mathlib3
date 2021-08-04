@@ -674,7 +674,7 @@ lemma comap_mker (g : N →* P) (f : M →* N) : g.mker.comap f = (g.comp f).mke
 @[simp, to_additive] lemma comap_bot' (f : M →* N) :
   (⊥ : submonoid N).comap f = f.mker := rfl
 
-@[to_additive] lemma range_restrict_mker  (f : M →* N) : mker (mrange_restrict f) = mker f :=
+@[to_additive] lemma range_restrict_mker (f : M →* N) : mker (mrange_restrict f) = mker f :=
 begin
   ext,
   change (⟨f x, _⟩ : mrange f) = ⟨1, _⟩ ↔ f x = 1,
@@ -685,17 +685,7 @@ end
 lemma mker_one : (1 : M →* N).mker = ⊤ :=
 by { ext, simp [mem_mker] }
 
--- TODO: Is this true?
--- @[to_additive] lemma mker_eq_bot_iff (f : M →* N) : f.mker = ⊥ ↔ function.injective f :=
--- begin
---   split,
---   { intros h x y hxy,
---     rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
---   { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
--- end
-
 @[to_additive]
--- TODO: check naming
 lemma prod_map_comap_prod' {M' : Type*} {N' : Type*} [mul_one_class M'] [mul_one_class N']
   (f : M →* N) (g : M' →* N') (S : submonoid N) (S' : submonoid N') :
   (S.prod S').comap (prod_map f g) = (S.comap f).prod (S'.comap g) :=

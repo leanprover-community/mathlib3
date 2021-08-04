@@ -1531,11 +1531,7 @@ lemma map_le_range (H : subgroup G) : map f H ≤ f.range :=
 
 @[to_additive]
 lemma ker_le_comap (H : subgroup N) : f.ker ≤ comap f H :=
-begin
-  rw ←comap_bot,
-  exact comap_mono bot_le
-end
-
+(comap_bot f) ▸ comap_mono bot_le
 
 @[to_additive]
 lemma map_comap_le (H : subgroup N) : map f (comap f H) ≤ H :=
@@ -1755,7 +1751,7 @@ instance subgroup.normal_comap {H : subgroup N}
 
 @[priority 100, to_additive]
 instance monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
-by rw [←f.comap_bot]; apply_instance
+by { rw [←f.comap_bot], apply_instance }
 
 @[priority 100, to_additive]
 instance subgroup.normal_inf (H N : subgroup G) [hN : N.normal] :

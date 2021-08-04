@@ -191,8 +191,7 @@ by cases o; refl
 @[simp] theorem of_to_option (o : part α) [decidable o.dom] : of_option (to_option o) = o :=
 ext $ λ a, mem_of_option.trans mem_to_option
 
-/-- When the domains of all elements in `part α` are decidable, `part α` is equivalent to
-`option α`. Proven unconditionally by going classical. -/
+/-- `part α` is (classically) equivalent to `option α`. -/
 noncomputable def equiv_option : part α ≃ option α :=
 by haveI := classical.dec; exact
 ⟨λ o, to_option o, of_option, λ o, of_to_option o,

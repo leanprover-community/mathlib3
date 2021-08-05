@@ -161,9 +161,16 @@ lemma kronecker_apply [has_mul α] (A : matrix l m α) (B : matrix n p α) (i₁
   (A ⊗ₖ B) (i₁, i₂) (j₁, j₂) = A i₁ j₁ * B i₂ j₂ := rfl
 
 /-- `matrix.kronecker` as a bilinear map. -/
-lemma kronecker_linear [comm_semiring R] [semiring α] [algebra R α] :
+def kronecker_linear [comm_semiring R] [semiring α] [algebra R α] :
   matrix l m α →ₗ[R] matrix n p α →ₗ[R] matrix (l × n) (m × p) α :=
 kronecker_map_linear (algebra.lmul R α).to_linear_map
+
+/-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma except the ones about
+`matrix.map` which would end up with overly confusing. -/
+
+lemma transpose_kronecker_transpose [has_mul α] (A : matrix l m α) (B : matrix n p α) :
+  Aᵀ ⊗ₖ Bᵀ = (A ⊗ₖ B)ᵀ :=
+kronecker_map_transpose _ _ _
 
 lemma zero_kronecker [mul_zero_class α] (B : matrix n p α) : (0 : matrix l m α) ⊗ₖ B = 0 :=
 kronecker_map_zero_left _ zero_mul B
@@ -179,6 +186,22 @@ lemma kronecker_add [distrib α] (A : matrix l m α) (B₁ B₂ : matrix n p α)
   A ⊗ₖ (B₁ + B₂) = A ⊗ₖ B₁ + A ⊗ₖ B₂ :=
 kronecker_map_add_right _ mul_add _ _ _
 
+lemma smul_kronecker [monoid R] [monoid α] [mul_action R α] [is_scalar_tower R α α]
+  (r : R) (A : matrix l m α) (B : matrix n p α) :
+  (r • A) ⊗ₖ B = r • (A ⊗ₖ B) :=
+kronecker_map_smul_left _ (λ _ _ _, smul_mul_assoc _ _ _) _ _ _
+
+lemma kronecker_smul [monoid R] [monoid α] [mul_action R α] [smul_comm_class R α α]
+  (r : R) (A : matrix l m α) (B : matrix n p α) :
+  A ⊗ₖ (r • B) = r • (A ⊗ₖ B) :=
+kronecker_map_smul_right _ (λ _ _ _, mul_smul_comm _ _ _) _ _ _
+
+lemma diagonal_kronecker_diagonal [mul_zero_class α]
+  [decidable_eq m] [decidable_eq n]
+  (a : m → α) (b : n → α):
+  (diagonal a) ⊗ₖ (diagonal b) = diagonal (λ mn, (a mn.1) * (b mn.2)) :=
+kronecker_map_diagonal_diagonal _ zero_mul mul_zero _ _
+
 @[simp] lemma one_kronecker_one [mul_zero_one_class α] [decidable_eq m] [decidable_eq n] :
   (1 : matrix m m α) ⊗ₖ (1 : matrix n n α) = 1 :=
 kronecker_map_one_one _ zero_mul mul_zero (one_mul _)
@@ -187,6 +210,8 @@ lemma mul_kronecker_mul [comm_semiring α]
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' α) (B' : matrix m' n' α) :
   (A ⬝ B) ⊗ₖ (A' ⬝ B') = (A ⊗ₖ A') ⬝ (B ⊗ₖ B') :=
 kronecker_map_linear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_comm A B A' B'
+
+-- insert lemmas specific to `kronecker` below this line
 
 end kronecker
 

@@ -76,7 +76,7 @@ lemma has_faithful_scalar_at {α : Type*}
 end⟩
 
 instance has_faithful_scalar {α : Type*}
-  [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_scalar α (f i)]:
+  [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_scalar α (f i)] :
   has_faithful_scalar α (Π i, f i) :=
 let ⟨i⟩ := ‹nonempty I› in has_faithful_scalar_at i
 

@@ -66,7 +66,7 @@ begin
   exact (ext_chart_at I (f.c _)).inj_on (f.mem_ext_chart_at_ind_source x hx) this h₁
 end
 
-lemma embedding_pi_tangent_injective [fintype ι] (f : smooth_bump_covering ι I M) :
+lemma embedding_pi_tangent_injective (f : smooth_bump_covering ι I M) :
   injective f.embedding_pi_tangent :=
 injective_iff_inj_on_univ.2 f.embedding_pi_tangent_inj_on
 
@@ -104,7 +104,7 @@ linear_map.ker_eq_bot.1 (f.embedding_pi_tangent_ker_mfderiv x hx)
 /-- Baby version of the Whitney weak embedding theorem: if `M` admits a finite covering by
 supports of bump functions, then for some `n` it can be immersed into the `n`-dimensional
 Euclidean space. -/
-lemma exists_immersion_euclidean [fintype ι] (f : smooth_bump_covering ι I M) :
+lemma exists_immersion_euclidean (f : smooth_bump_covering ι I M) :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
     injective e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
 begin

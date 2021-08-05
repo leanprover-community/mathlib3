@@ -534,13 +534,6 @@ arbitrary `fintype` instances, use either `fintype.card_le_one_iff_subsingleton`
   fintype.card α = 1 :=
 subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 
-@[simp] lemma card_subtype_eq (y : α) [fintype {x // x = y}] :
-  fintype.card {x // x = y} = 1 :=
-begin
-  convert fintype.card_unique,
-  exact unique.subtype_eq _
-end
-
 @[priority 100] -- see Note [lower instance priority]
 instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
 
@@ -722,11 +715,30 @@ since that relies on a subsingleton elimination for `unique`. -/
 instance fintype.subtype_eq (y : α) : fintype {x // x = y} :=
 fintype.subtype {y} (by simp)
 
+/-- Short-circuit instance to decrease search for `unique.fintype`,
+since that relies on a subsingleton elimination for `unique`. -/
+instance fintype.subtype_eq' (y : α) : fintype {x // y = x} :=
+fintype.subtype {y} (by simp [eq_comm])
+
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 
 @[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
 finset.ext is_empty_elim
+
+@[simp] lemma fintype.card_subtype_eq (y : α)  :
+  fintype.card {x // x = y} = 1 :=
+begin
+  convert fintype.card_unique,
+  exact unique.subtype_eq _
+end
+
+@[simp] lemma fintype.card_subtype_eq' (y : α) :
+  fintype.card {x // y = x} = 1 :=
+begin
+  convert fintype.card_unique,
+  exact unique.subtype_eq' _
+end
 
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
 

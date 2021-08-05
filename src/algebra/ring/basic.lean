@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland
 -/
 import algebra.divisibility
+import algebra.regular.basic
 import data.set.basic
 
 /-!
@@ -886,22 +887,23 @@ lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
 /-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
-The general theory of such `k` is elaborated by `is_left_regular`.
 The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma mul_left_cancel_of_non_zero_divisor [ring α] (k : α)
-  (h : ∀ (x : α), k * x = 0 → x = 0) {x y : α} (h' : k * x = k * y) : x = y :=
+lemma is_left_regular_of_non_zero_divisor [ring α] (k : α)
+  (h : ∀ (x : α), k * x = 0 → x = 0) : is_left_regular k :=
 begin
+  intros x y h',
   rw ←sub_eq_zero,
   refine h _ _,
   rw [mul_sub, sub_eq_zero, h']
 end
 
 /-- Right `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
-The general theory of such `k` is elaborated by `is_right_regular`.
 The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma mul_right_cancel_of_non_zero_divisor [ring α] (k : α)
-  (h : ∀ (x : α), x * k = 0 → x = 0) {x y : α} (h' : x * k = y * k) : x = y :=
+lemma is_right_regular_of_non_zero_divisor [ring α] (k : α)
+  (h : ∀ (x : α), x * k = 0 → x = 0) : is_right_regular k :=
 begin
+  intros x y h',
+  simp only at h',
   rw ←sub_eq_zero,
   refine h _ _,
   rw [sub_mul, sub_eq_zero, h']
@@ -920,12 +922,24 @@ variable [domain α]
 instance domain.to_no_zero_divisors : no_zero_divisors α :=
 ⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
+lemma ring.is_regular [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) : is_regular k :=
+⟨is_left_regular_of_non_zero_divisor k
+  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
+  is_right_regular_of_non_zero_divisor k
+  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
+
+lemma domain.is_regular [domain α] {k : α} (hk : k ≠ 0) : is_regular k :=
+⟨is_left_regular_of_non_zero_divisor k
+  (λ x h, (domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h).resolve_left hk),
+  is_right_regular_of_non_zero_divisor k
+  (λ x h, (domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h).resolve_right hk)⟩
+
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
-     mul_left_cancel_of_non_zero_divisor a (by simp [ha]),
+     @is_regular.left _ _ _ (domain.is_regular ha) _ _,
   mul_right_cancel_of_ne_zero := λ a b c hb,
-     mul_right_cancel_of_non_zero_divisor b (by simp [hb]),
+     @is_regular.right _ _ _ (domain.is_regular hb) _ _,
   .. (infer_instance : semiring α) }
 
 /-- Pullback a `domain` instance along an injective function.

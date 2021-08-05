@@ -118,7 +118,7 @@ instance conditionally_complete_linear_order_of_complete_linear_order [complete_
 /-- Construct a `conditionally_complete_lattice` from a `lattice` structure and a function `Inf`
 such that `is_glb s (Inf s)` for any nonempty bounded below set `s`. We put
 `Sup s = Inf (upper_bounds s)`. See also `conditionally_complete_lattice_of_exists_is_glb`. -/
-def conditionally_complete_lattice_of_Inf {α : Type*} [lattice α]
+@[reducible] def conditionally_complete_lattice_of_Inf {α : Type*} [lattice α]
   (f : set α → α) (H : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (f s)) :
   conditionally_complete_lattice α :=
 { Inf := f, Sup := λ s, f (upper_bounds s),
@@ -141,7 +141,7 @@ and bounded below, and `Inf s = d` otherwise. We put `Sup s = Inf (upper_bounds 
 
 This constructor is used in `mathlib` for all non-constructive instances of
 `conditionally_complete_lattice`. -/
-noncomputable def conditionally_complete_lattice_of_exists_is_glb
+@[reducible] noncomputable def conditionally_complete_lattice_of_exists_is_glb
   (H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a) (d : α) :
   conditionally_complete_lattice α :=
 conditionally_complete_lattice_of_Inf

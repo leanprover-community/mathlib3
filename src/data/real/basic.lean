@@ -343,65 +343,51 @@ int.exists_greatest_of_bdd
     int.cast_le.1 $ le_trans h' $ le_of_lt hn⟩)
   (let ⟨n, hn⟩ := exists_int_lt x in ⟨n, le_of_lt hn⟩)
 
-theorem exists_is_lub (S : set ℝ) (hne : S.nonempty) (hbdd : bdd_above S) :
-  ∃ x, is_lub S x :=
+/-- Every nonempty bounded below set of real numbers has the greatest lower bound. This is an
+auxiliary lemma for the definition of a `conditionally_complete_linear_order` structure on `ℝ`.
+Use `Inf s` and lemmas with `cInf` in their names instead of this lemma.  -/
+theorem exists_is_glb (S : set ℝ) (hne : S.nonempty) (hbdd : bdd_below S) :
+  ∃ x, is_glb S x :=
 begin
-  rcases ⟨hne, hbdd⟩ with ⟨⟨L, hL⟩, ⟨U, hU⟩⟩,
-  have : ∀ d : ℕ, bdd_above {m : ℤ | ∃ y ∈ S, (m : ℝ) ≤ y * d},
-  { cases exists_int_gt U with k hk,
-    refine λ d, ⟨k * d, λ z h, _⟩,
-    rcases h with ⟨y, yS, hy⟩,
-    refine int.cast_le.1 (hy.trans _),
-    push_cast,
-    exact mul_le_mul_of_nonneg_right ((hU yS).trans hk.le) d.cast_nonneg },
-  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, floor_le _⟩,
-  have hf₁ : ∀ n > 0, ∃ y ∈ S, ((f n / n:ℚ):ℝ) ≤ y := λ n n0,
-    let ⟨y, yS, hy⟩ := (hf n).1 in
-    ⟨y, yS, by simpa using (div_le_iff ((nat.cast_pos.2 n0):((_:ℝ) < _))).2 hy⟩,
-  have hf₂ : ∀ (n > 0) (y ∈ S), (y - (n:ℕ)⁻¹ : ℝ) < (f n / n:ℚ),
-  { intros n n0 y yS,
-    have := lt_of_lt_of_le (sub_one_lt_floor _)
-      (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, floor_le _⟩),
-    simp [-sub_eq_add_neg],
-    rwa [lt_div_iff ((nat.cast_pos.2 n0):((_:ℝ) < _)), sub_mul, _root_.inv_mul_cancel],
-    exact ne_of_gt (nat.cast_pos.2 n0) },
-  have hg : is_cau_seq abs (λ n, f n / n : ℕ → ℚ),
-  { intros ε ε0,
-    suffices : ∀ j k ≥ ⌈ε⁻¹⌉₊, (f j / j - f k / k : ℚ) < ε,
-    { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
-      rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
-    intros j k ij ik,
-    replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
-    replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
-    have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
-    have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
-    rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
-    refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
-      ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
-    simpa using sub_lt_iff_lt_add'.2
-      (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS) },
-  let g : cau_seq ℚ abs := ⟨λ n, f n / n, hg⟩,
-  refine ⟨mk g, ⟨λ x xS, _, λ y h, _⟩⟩,
-  { refine le_of_forall_ge_of_dense (λ z xz, _),
-    cases exists_nat_gt (x - z)⁻¹ with K hK,
-    refine le_mk_of_forall_le ⟨K, λ n nK, _⟩,
-    replace xz := sub_pos.2 xz,
-    replace hK := le_trans (le_of_lt hK) (nat.cast_le.2 nK),
-    have n0 : 0 < n := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 xz) hK),
-    refine le_trans _ (le_of_lt $ hf₂ _ n0 _ xS),
-    rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
-  { exact mk_le_of_forall_le ⟨1, λ n n1,
-      let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
+  rcases ⟨hne, hbdd⟩ with ⟨⟨x, hxS⟩, ⟨L, hL⟩⟩,
+  set s : ℕ → set ℤ := λ n, {m | (m / (n + 1) : ℝ) ∈ lower_bounds S},
+  have hdiv : ∀ {n : ℕ} {x y : ℝ}, x / (n + 1) ≤ y ↔ x ≤ y * (n + 1) :=
+    λ d x y, div_le_iff d.cast_add_one_pos,
+  have : ∀ n, ∃ m : ℤ, is_greatest (s n) m,
+  { refine λ n, int.exists_greatest_of_bdd ⟨⌊x * (n + 1)⌋, λ z hz, _⟩ ⟨⌊L * (n + 1)⌋, λ y hy, _⟩,
+    { have := hz hxS, rwa [hdiv, ← le_floor] at this },
+    { exact hdiv.2 ((floor_le _).trans (mul_le_mul_of_nonneg_right (hL hy)
+        n.cast_add_one_pos.le)) } },
+  choose f hf,
+  set g : ℕ → ℚ := λ n, f n / (n + 1),
+  have g_le : ∀ n (y ∈ S), (g n : ℝ) ≤ y,
+  { intros n y hy, rw [rat.cast_div], exact_mod_cast (hf n).1 hy },
+  have lt_g : ∀ n, ∃ y ∈ S, (y : ℝ) < g n + (n + 1)⁻¹,
+  { intro n,
+    have : f n + 1 ∉ s n, from λ hn, ((hf n).2 hn).not_lt (lt_add_one _),
+    simpa [s, mem_lower_bounds, add_div] using this },
+  have sub_le : ∀ k n, g k - g n ≤ (n + 1)⁻¹,
+  { intros k n, rcases lt_g n with ⟨y, hyS, hy⟩,
+    rw [← @rat.cast_le ℝ, rat.cast_sub, rat.cast_inv, rat.cast_add, rat.cast_one, rat.cast_coe_nat],
+    exact sub_le_iff_le_add'.2 ((g_le _ _ hyS).trans hy.le) },
+  have abs_sub_le : ∀ k n, n ≤ k → abs (g k - g n) ≤ (n + 1)⁻¹,
+    from λ k n hle, abs_sub_le_iff.2 ⟨sub_le _ _, (sub_le _ _).trans $
+      inv_le_inv_of_le n.cast_add_one_pos (add_le_add_right (nat.cast_le.2 hle) _)⟩,
+  have hg_cau : is_cau_seq abs g,
+  { refine λ ε (ε0 : 0 < ε), ⟨⌊ε⁻¹⌋₊, λ j hj, (abs_sub_le _ _ hj).trans_lt _⟩,
+    exact inv_lt_of_inv_lt' ε0 (lt_nat_floor_add_one _) },
+  refine ⟨mk ⟨g, hg_cau⟩, ⟨λ x xS, mk_le_of_forall_le ⟨0, λ n _, g_le n x xS⟩, λ y h, _⟩⟩,
+  refine le_of_forall_pos_sub_le (λ ε ε0, le_mk_of_forall_le ⟨⌈ε⁻¹⌉₊, λ n hn, _⟩),
+  rcases lt_g n with ⟨y', hy'S, hy'⟩,
+  replace hn : ((n + 1)⁻¹ : ℝ) ≤ ε :=
+    inv_le_of_inv_le' ε0 ((nat_ceil_le.1 hn).trans (lt_add_one _).le),
+  calc y - ε ≤ g n + (n + 1)⁻¹ - ε : sub_le_sub_right ((h hy'S).trans hy'.le) _
+         ... ≤ g n                 : by simp [add_sub_assoc, hn],
 end
 
 noncomputable instance : conditionally_complete_linear_order ℝ :=
-{ ..real.linear_order,
-  .. conditionally_complete_lattice_of_is_lub_of_rel_iso exists_is_lub 0 order_iso.neg }
-
-lemma Sup_def (S : set ℝ) :
-  Sup S = if h : S.nonempty ∧ bdd_above S then (exists_is_lub S h.1 h.2).some else 0 := rfl
-
-lemma Inf_def (S : set ℝ) : Inf S = -Sup (-S) := rfl
+{ ..real.linear_order, .. lattice_of_linear_order,
+  .. conditionally_complete_lattice_of_exists_is_glb exists_is_glb 0 }
 
 lemma lt_Inf_add_pos {s : set ℝ} (h : s.nonempty) {ε : ℝ} (hε : 0 < ε) :
   ∃ a ∈ s, a < Inf s + ε :=
@@ -434,16 +420,18 @@ end
 @[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
-dif_neg $ assume h, hs h.2
+cSup_of_not_bdd_above hs
 
-theorem Sup_univ : Sup (@set.univ ℝ) = 0 :=
-real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
+@[simp] theorem Sup_univ : Sup (@set.univ ℝ) = 0 :=
+real.Sup_of_not_bdd_above not_bdd_above_univ
 
-@[simp] theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
-by simp [Inf_def, Sup_empty]
+@[simp] theorem Inf_empty : Inf (∅ : set ℝ) = 0 := cInf_empty
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
-neg_eq_zero.2 $ Sup_of_not_bdd_above $ mt bdd_above_neg.1 hs
+cInf_of_not_bdd_below hs
+
+@[simp] theorem Inf_univ : Inf (@set.univ ℝ) = 0 :=
+real.Inf_of_not_bdd_below not_bdd_below_univ
 
 /--
 As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it

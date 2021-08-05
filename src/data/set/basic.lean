@@ -1957,6 +1957,10 @@ image_preimage_eq s hf
 lemma surjective.image_surjective (hf : surjective f) : surjective (image f) :=
 by { intro s, use f ⁻¹' s, rw hf.image_preimage }
 
+lemma surjective.nonempty_preimage (hf : surjective f) {s : set β} :
+  (f ⁻¹' s).nonempty ↔ s.nonempty :=
+by rw [← nonempty_image_iff, hf.image_preimage]
+
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
 

@@ -7,10 +7,6 @@ import algebra.ordered_group
 import algebra.invertible
 import data.set.intervals.basic
 
--- This should probably go into Lean core.
-lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
-by rw [nat.succ_eq_add_one, nat.add_comm]
-
 set_option old_structure_cmd true
 
 universe u

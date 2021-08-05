@@ -23,13 +23,22 @@ it would be equal to `finrank R M` if `R` is a field and `M` is a vector space.
 
 ## Main results
 
- - `submodule.induction_on_rank`: if `M` is free and finitely generated,
-   if `P` holds for `⊥ : submodule R M` and if `P N` follows from `P N'`
-   for all `N'` that are of lower rank, then `P` holds on all submodules
+In this section, `M` is a free and finitely generated `R`-module, and
+`N` is a submodule of `M`.
 
- - `submodule.exists_basis_of_pid`: if `M` is free and finitely generated
-   and `R` is a PID, then `N : submodule R M` is free and finitely generated.
-   This is the first part of the structure theorem for modules.
+ - `submodule.induction_on_rank`: if `P` holds for `⊥ : submodule R M` and if
+  `P N` follows from `P N'` for all `N'` that are of lower rank, then `P` holds
+   on all submodules
+
+ - `submodule.exists_basis_of_pid`: if `R` is a PID, then `N : submodule R M` is
+   free and finitely generated. This is the first part of the structure theorem
+   for modules.
+
+- `submodule.exists_smith_normal_form`: if `R` is a PID, then `M` has a basis
+  `bM` and `N` has a basis `bN` such that `bN i = a i • bM i`.
+  Equivalently, a linear map `f : M →ₗ M` with `range f = N` can be written as
+  a matrix in Smith normal form, a diagonal matrix with the coefficients `a i`
+  along the diagonal.
 
 ## Tags
 
@@ -79,11 +88,32 @@ begin
   exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ ⟨x, hx, rfl⟩
 end
 
+lemma eq_bot_of_generator_maximal_range_eq_zero {N O : submodule R M} (b : basis ι R O)
+  (hNO : N ≤ O)
+  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), (ϕ.comp $ of_le hNO).range ≤ (ψ.comp $ of_le hNO).range →
+    (ψ.comp $ of_le hNO).range = (ϕ.comp (of_le hNO)).range)
+  [(ϕ.comp (of_le hNO)).range.is_principal] (hgen : generator (ϕ.comp (of_le hNO)).range = 0) :
+  N = ⊥ :=
+begin
+  rw submodule.eq_bot_iff,
+  intros x hx,
+  refine congr_arg coe (show (⟨x, hNO hx⟩ : O) = 0, from b.ext_elem (λ i, _)),
+  rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
+  rw [linear_equiv.map_zero, finsupp.zero_apply],
+  exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ ⟨⟨x, hx⟩, rfl⟩
+end
+
 -- Note that the converse may not hold if `ϕ` is not injective.
 lemma generator_map_dvd_of_mem {N : submodule R M}
   (ϕ : M →ₗ[R] R) [(N.map ϕ).is_principal] {x : M} (hx : x ∈ N) :
   generator (N.map ϕ) ∣ ϕ x :=
 by { rw [← mem_iff_generator_dvd, submodule.mem_map], exact ⟨x, hx, rfl⟩ }
+
+-- Note that the converse may not hold if `ϕ` is not injective.
+lemma generator_range_dvd_of_mem {N O : submodule R M} (hNO : N ≤ O)
+  (ϕ : O →ₗ[R] R) [(ϕ.comp (of_le hNO)).range.is_principal] {x : M} (hx : x ∈ N) :
+  generator (ϕ.comp (of_le hNO)).range ∣ ϕ ⟨x, hNO hx⟩ :=
+by { rw [← mem_iff_generator_dvd, linear_map.mem_range], exact ⟨⟨x, hx⟩, rfl⟩ }
 
 end comm_ring
 
@@ -230,6 +260,21 @@ begin
   exact basis.card_le_card_of_linear_independent_aux (fintype.card ι) _ hv,
 end
 
+lemma basis.card_le_card_of_submodule
+  {R : Type*} [integral_domain R] [module R M] (N : submodule R M)
+  {ι : Type*} [fintype ι] (b : basis ι R M)
+  {ι' : Type*} [fintype ι'] (b' : basis ι' R N) :
+  fintype.card ι' ≤ fintype.card ι :=
+b.card_le_card_of_linear_independent (b'.linear_independent.map' N.subtype N.ker_subtype)
+
+lemma basis.card_le_card_of_le
+  {R : Type*} [integral_domain R] [module R M] {N O : submodule R M} (hNO : N ≤ O)
+  {ι : Type*} [fintype ι] (b : basis ι R O)
+  {ι' : Type*} [fintype ι'] (b' : basis ι' R N) :
+  fintype.card ι' ≤ fintype.card ι :=
+b.card_le_card_of_linear_independent
+  (b'.linear_independent.map' (submodule.of_le hNO) (N.ker_of_le O _))
+
 /-- If we have two bases on the same space, their indices are in bijection. -/
 noncomputable def basis.index_equiv {R ι ι' : Type*} [integral_domain R] [module R M]
   [fintype ι] [fintype ι'] (b : basis ι R M) (b' : basis ι' R M) :
@@ -248,8 +293,6 @@ def submodule.induction_on_rank [fintype ι] (b : basis ι R M) (P : submodule R
 submodule.induction_on_rank_aux b P ih (fintype.card ι) N (λ s hs hli,
   by simpa using b.card_le_card_of_linear_independent hli)
 
-open submodule.is_principal
-
 end integral_domain
 
 section principal_ideal_domain
@@ -259,81 +302,240 @@ open submodule.is_principal set submodule
 variables {ι : Type*} {R : Type*} [integral_domain R] [is_principal_ideal_ring R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
+open submodule.is_principal
+
+lemma dvd_generator_iff {I : ideal R} [I.is_principal] {x : R} (hx : x ∈ I) :
+  x ∣ generator I ↔ I = ideal.span {x} :=
+begin
+  conv_rhs { rw [← span_singleton_generator I] },
+  erw [ideal.span_singleton_eq_span_singleton, ← dvd_dvd_iff_associated, ← mem_iff_generator_dvd],
+  exact ⟨λ h, ⟨hx, h⟩, λ h, h.2⟩
+end
+
+lemma generator_maximal_range_dvd {N O : submodule R M} (hNO : N ≤ O)
+  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), (ϕ.comp $ of_le hNO).range ≤ (ψ.comp $ of_le hNO).range →
+    (ψ.comp $ of_le hNO).range = (ϕ.comp (of_le hNO)).range)
+  [(ϕ.comp (of_le hNO)).range.is_principal]
+  (y : M) (yN : y ∈ N) (ϕy_eq : ϕ ⟨y, hNO yN⟩ = generator (ϕ.comp (of_le hNO)).range)
+  (ψ : O →ₗ[R] R) : generator (ϕ.comp (of_le hNO)).range ∣ ψ ⟨y, hNO yN⟩ :=
+begin
+  let a : R := generator (ϕ.comp (of_le hNO)).range,
+  let d : R := is_principal.generator (submodule.span R {a, ψ ⟨y, hNO yN⟩}),
+  have d_dvd_left : d ∣ a := (mem_iff_generator_dvd _).mp
+    (subset_span (mem_insert _ _)),
+  have d_dvd_right : d ∣ ψ ⟨y, hNO yN⟩ := (mem_iff_generator_dvd _).mp
+    (subset_span (mem_insert_of_mem _ (mem_singleton _))),
+  refine dvd_trans _ d_dvd_right,
+  rw [dvd_generator_iff, ideal.span,
+      ← span_singleton_generator (submodule.span R {a, ψ ⟨y, hNO yN⟩})],
+  obtain ⟨r₁, r₂, d_eq⟩ : ∃ r₁ r₂ : R, d = r₁ * a + r₂ * ψ ⟨y, hNO yN⟩,
+  { obtain ⟨r₁, r₂', hr₂', hr₁⟩ := mem_span_insert.mp (is_principal.generator_mem
+      (submodule.span R {a, ψ ⟨y, hNO yN⟩})),
+    obtain ⟨r₂, rfl⟩ := mem_span_singleton.mp hr₂',
+    exact ⟨r₁, r₂, hr₁⟩ },
+  let ψ' : O →ₗ[R] R := r₁ • ϕ + r₂ • ψ,
+  have : span R {d} ≤ (ψ'.comp (of_le hNO)).range,
+  { rw [span_le, singleton_subset_iff, set_like.mem_coe, linear_map.mem_range],
+    refine ⟨⟨y, yN⟩, _⟩,
+    change r₁ * ϕ ⟨y, hNO yN⟩ + r₂ * ψ ⟨y, hNO yN⟩ = d,
+    rw [d_eq, ϕy_eq] },
+  refine le_antisymm (this.trans (le_of_eq _))
+    (ideal.span_singleton_le_span_singleton.mpr d_dvd_left),
+  rw span_singleton_generator,
+  refine hϕ ψ' (le_trans _ this),
+  rw [← span_singleton_generator (ϕ.comp (of_le hNO)).range],
+  exact ideal.span_singleton_le_span_singleton.mpr d_dvd_left,
+  { exact subset_span (mem_insert _ _) }
+end
+
+/-- The induction hypothesis of `submodule.basis_of_pid` and `submodule.exists_smith_normal_form`.
+
+Basically, it says: let `N ≤ M` be a pair of submodules, then we can find a pair of
+submodules `N' ≤ M'` of strictly smaller rank, whose basis we can extend to get a basis
+of `N` and `M`. Moreover, if the basis for `M'` is up to scalars a basis for `N'`,
+then the basis we find for `M` is up to scalars a basis for `N`.
+
+For `basis_of_pid` we only need the first half and can fix `M = ⊤`,
+for `exists_smith_normal_form` we need the full statement,
+but must also feed in a basis for `M` using `basis_of_pid` to keep the induction going.
+-/
+lemma submodule.basis_of_pid_aux [fintype ι] {O : Type*} [add_comm_group O] [module R O]
+  (M N : submodule R O) (b'M : basis ι R M) (N_bot : N ≠ ⊥) (N_le_M : N ≤ M) :
+  ∃ (y ∈ M) (a : R) (hay : a • y ∈ N) (M' ≤ M) (N' ≤ N) (N'_le_M' : N' ≤ M')
+    (y_ortho_M' : ∀ (c : R) (z : O), z ∈ M' → c • y + z = 0 → c = 0)
+    (ay_ortho_N' : ∀ (c : R) (z : O), z ∈ N' → c • a • y + z = 0 → c = 0),
+  ∀ (n') (bN' : basis (fin n') R N'), ∃ (bN : basis (fin (n' + 1)) R N),
+  ∀ (m') (hn'm' : n' ≤ m') (bM' : basis (fin m') R M'),
+  ∃ (hnm : (n' + 1) ≤ (m' + 1)) (bM : basis (fin (m' + 1)) R M),
+  ∀ (as : fin n' → R) (h : ∀ (i : fin n'), (bN' i : O) = as i • (bM' (fin.cast_le hn'm' i) : O)),
+  ∃ (as' : fin (n' + 1) → R),
+  ∀ (i : fin (n' + 1)), (bN i : O) = as' i • (bM (fin.cast_le hnm i) : O) :=
+begin
+  let inc : N →ₗ[R] M := submodule.of_le N_le_M,
+
+  -- Let `ϕ` be a maximal projection of `M` onto `R`, in the sense that there is
+  -- no `ψ` whose image of `N` is larger than `ϕ`'s image of `N`.
+  have : ∃ ϕ : M →ₗ[R] R, ∀ (ψ : M →ₗ[R] R),
+    (ϕ.comp inc).range ≤ (ψ.comp inc).range → (ψ.comp inc).range = (ϕ.comp inc).range,
+  { obtain ⟨P, P_eq, P_max⟩ := set_has_maximal_iff_noetherian.mpr
+        (infer_instance : is_noetherian R R) _
+        (show (set.range (λ ψ : M →ₗ[R] R, (ψ.comp inc).range)).nonempty,
+         from ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩),
+    obtain ⟨ϕ, rfl⟩ := set.mem_range.mp P_eq,
+    use ϕ,
+    intros ψ hψ,
+    exact P_max _ ⟨_, rfl⟩ hψ },
+  let ϕ := this.some,
+  have ϕ_max := this.some_spec,
+  -- Since the range of `ϕ` is a `R`-submodule of the PID `R`,
+  -- it is principal and generated by some `a`.
+  let a := generator (ϕ.comp inc).range,
+  have a_mem : a ∈ (ϕ.comp inc).range := generator_mem _,
+
+  -- If `a` is zero, then the submodule is trivial. So let's assume `a ≠ 0`, `N ≠ ⊥`.
+  by_cases a_zero : a = 0,
+  { have := eq_bot_of_generator_maximal_range_eq_zero b'M N_le_M ϕ_max a_zero,
+    contradiction },
+
+  -- We claim that `ϕ⁻¹ a = y` can be taken as basis element of `N`.
+  have ϕy_eq := a_mem.some_spec,
+  cases a_mem.some with y yN,
+  have ϕy_eq : ϕ ⟨y, N_le_M yN⟩ = a := ϕy_eq,
+  have ϕy_ne_zero : ϕ ⟨y, N_le_M yN⟩ ≠ 0 := λ h, a_zero (ϕy_eq.symm.trans h),
+  -- Write `y` as `a • y'` for some `y'`.
+  have hdvd : ∀ i, a ∣ b'M.coord i ⟨y, N_le_M yN⟩ :=
+    λ i, generator_maximal_range_dvd N_le_M ϕ_max y yN ϕy_eq (b'M.coord i),
+  choose c hc using hdvd,
+  let y' : O := ∑ i, c i • b'M i,
+  have y'M : y' ∈ M := M.sum_mem (λ i _, M.smul_mem (c i) (b'M i).2),
+  have mk_y' : (⟨y', y'M⟩ : M) = ∑ i, c i • b'M i :=
+    subtype.ext (show y' = M.subtype _,
+      by { simp only [linear_map.map_sum, linear_map.map_smul], refl }),
+  have a_smul_y' : a • y' = y,
+  { refine congr_arg coe (show (a • ⟨y', y'M⟩ : M) = ⟨y, N_le_M yN⟩, from _),
+    rw [← b'M.sum_repr ⟨y, N_le_M yN⟩, mk_y', finset.smul_sum],
+    refine finset.sum_congr rfl (λ i _, _),
+    rw [← mul_smul, ← hc], refl },
+  -- We found an `y` and an `a`!
+  refine ⟨y', y'M, a, a_smul_y'.symm ▸ yN, _⟩,
+
+  have ϕy'_eq : ϕ ⟨y', y'M⟩ = 1 := mul_left_cancel' a_zero
+  (calc a • ϕ ⟨y', y'M⟩ = ϕ ⟨a • y', _⟩ : (ϕ.map_smul a ⟨y', y'M⟩).symm
+                    ... = ϕ ⟨y, N_le_M yN⟩ : by simp only [a_smul_y']
+                    ... = a : ϕy_eq
+                    ... = a * 1 : (mul_one a).symm),
+  have ϕy'_ne_zero : ϕ ⟨y', y'M⟩ ≠ 0 := by simpa only [ϕy'_eq] using one_ne_zero,
+
+  -- `M' := ker (ϕ : M → R)` is smaller than `M` and `N' := ker (ϕ : N → R)` is smaller than `N`.
+  let M' : submodule R O := ϕ.ker.map M.subtype,
+  let N' : submodule R O := (ϕ.comp inc).ker.map N.subtype,
+  have M'_le_M : M' ≤ M := M.map_subtype_le ϕ.ker,
+  have N'_le_M' : N' ≤ M',
+  { intros x hx,
+    simp only [mem_map, linear_map.mem_ker] at hx ⊢,
+    obtain ⟨⟨x, xN⟩, hx, rfl⟩ := hx,
+    exact ⟨⟨x, N_le_M xN⟩, hx, rfl⟩ },
+  have N'_le_N : N' ≤ N := N.map_subtype_le (ϕ.comp inc).ker,
+  -- So fill in those results as well.
+  refine ⟨M', M'_le_M, N', N'_le_N, N'_le_M', _⟩,
+
+  -- Note that `y'` is orthogonal to `M'`.
+  have y'_ortho_M' : ∀ (c : R) z ∈ M', c • y' + z = 0 → c = 0,
+  { intros c x xM' hc,
+    obtain ⟨⟨x, xM⟩, hx', rfl⟩ := submodule.mem_map.mp xM',
+    rw linear_map.mem_ker at hx',
+    have hc' : (c • ⟨y', y'M⟩ + ⟨x, xM⟩ : M) = 0 := subtype.coe_injective hc,
+    simpa only [linear_map.map_add, linear_map.map_zero, linear_map.map_smul, smul_eq_mul, add_zero,
+                mul_eq_zero, ϕy'_ne_zero, hx', or_false] using congr_arg ϕ hc' },
+  -- And `a • y'` is orthogonal to `N'`.
+  have ay'_ortho_N' : ∀ (c : R) z ∈ N', c • a • y' + z = 0 → c = 0,
+  { intros c z zN' hc,
+    refine (mul_eq_zero.mp (y'_ortho_M' (a * c) z (N'_le_M' zN') _)).resolve_left a_zero,
+    rw [mul_comm, mul_smul, hc] },
+
+  -- So we can extend a basis for `N'` with `y`
+  refine ⟨y'_ortho_M', ay'_ortho_N', λ n' bN', ⟨_, _⟩⟩,
+  { refine basis.mk_fin_cons_of_le y yN bN' N'_le_N _ _,
+    { intros c z zN' hc,
+      refine ay'_ortho_N' c z zN' _,
+      rwa ← a_smul_y' at hc },
+    { intros z zN,
+      obtain ⟨b, hb⟩ : _ ∣ ϕ ⟨z, N_le_M zN⟩ := generator_range_dvd_of_mem N_le_M ϕ zN,
+      refine ⟨-b, submodule.mem_map.mpr ⟨⟨_, N.sub_mem zN (N.smul_mem b yN)⟩, _, _⟩⟩,
+      { refine linear_map.mem_ker.mpr (show ϕ (⟨z, N_le_M zN⟩ - b • ⟨y, N_le_M yN⟩) = 0, from _),
+        rw [linear_map.map_sub, linear_map.map_smul, hb, ϕy_eq, smul_eq_mul,
+            mul_comm, sub_self] },
+      { simp only [sub_eq_add_neg, neg_smul], refl } } },
+  -- And extend a basis for `M'` with `y'`
+  intros m' hn'm' bM',
+  refine ⟨nat.succ_le_succ hn'm', _, _⟩,
+  { refine basis.mk_fin_cons_of_le y' y'M bM' M'_le_M y'_ortho_M' _,
+    intros z zM,
+    refine ⟨-ϕ ⟨z, zM⟩, ⟨⟨z, zM⟩ - (ϕ ⟨z, zM⟩) • ⟨y', y'M⟩, linear_map.mem_ker.mpr _, _⟩⟩,
+    { rw [linear_map.map_sub, linear_map.map_smul, ϕy'_eq, smul_eq_mul, mul_one, sub_self] },
+    { rw [linear_map.map_sub, linear_map.map_smul, sub_eq_add_neg, neg_smul], refl } },
+
+  -- It remains to show the extended bases are compatible with each other.
+  intros as h,
+  refine ⟨fin.cons a as, _⟩,
+  intro i,
+  rw [basis.coe_mk_fin_cons_of_le, basis.coe_mk_fin_cons_of_le],
+  refine fin.cases _ (λ i, _) i,
+  { simp only [fin.cons_zero, fin.cast_le_zero],
+    exact a_smul_y'.symm },
+  { rw fin.cast_le_succ, simp only [fin.cons_succ, coe_of_le, h i] }
+end
+
 /-- A submodule of a free `R`-module of finite rank is also a free `R`-module of finite rank,
-if `R` is a principal ideal domain. -/
-noncomputable def submodule.basis_of_pid {ι : Type*} [fintype ι]
+if `R` is a principal ideal domain.
+
+This is a `lemma` to make the induction a bit easier. To actually access the basis,
+see `submodule.basis_of_pid`.
+
+See also the stronger version `submodule.exists_smith_normal_form`.
+-/
+lemma submodule.nonempty_basis_of_pid {ι : Type*} [fintype ι]
   (b : basis ι R M) (N : submodule R M) :
-  Σ (n : ℕ), basis (fin n) R N :=
+  ∃ (n : ℕ), nonempty (basis (fin n) R N) :=
 begin
   haveI := classical.dec_eq M,
   refine N.induction_on_rank b _ _,
   intros N ih,
+  let b' := (b.reindex (fintype.equiv_fin ι)).map (linear_equiv.of_top _ rfl).symm,
+  by_cases N_bot : N = ⊥,
+  { subst N_bot, exact ⟨0, ⟨basis.empty _⟩⟩ },
+  obtain ⟨y, -, a, hay, M', -, N', N'_le_N, -, -, ay_ortho, h'⟩ :=
+    submodule.basis_of_pid_aux ⊤ N b' N_bot le_top,
+  obtain ⟨n', ⟨bN'⟩⟩ := ih N' N'_le_N _ hay ay_ortho,
+  obtain ⟨bN, hbN⟩ := h' n' bN',
+  exact ⟨n' + 1, ⟨bN⟩⟩
+end
 
-  -- Let `ϕ` be a maximal projection of `M` onto `R`, in the sense that there is
-  -- no `ψ` whose image of `N` is larger than `ϕ`'s image of `N`.
-  have : ∃ ϕ : M →ₗ[R] R, ∀ (ψ : M →ₗ[R] R), N.map ϕ ≤ N.map ψ → N.map ψ = N.map ϕ,
-  { obtain ⟨P, P_eq, P_max⟩ := set_has_maximal_iff_noetherian.mpr
-        (infer_instance : is_noetherian R R) _ (submodule.range_map_nonempty N),
-    obtain ⟨ϕ, rfl⟩ := set.mem_range.mp P_eq,
-    existsi ϕ,
-    intros ψ hψ,
-    exact P_max (N.map ψ) ⟨_, rfl⟩ hψ },
-  let ϕ := this.some,
-  have ϕ_max := this.some_spec,
-  -- Since `N.map ϕ` is a `R`-submodule of the PID `R`, it is principal and generated by some `a`.
-  have a_mem : generator (N.map ϕ) ∈ N.map ϕ := generator_mem _,
+/-- A submodule of a free `R`-module of finite rank is also a free `R`-module of finite rank,
+if `R` is a principal ideal domain.
 
-  -- If `a` is zero, then the submodule is trivial. So let's assume `a ≠ 0`, `N ≠ ⊥`
-  by_cases a_zero : generator (N.map ϕ) = 0,
-  { rw eq_bot_of_generator_maximal_map_eq_zero b ϕ_max a_zero,
-    exact ⟨0, basis.empty _⟩ },
+See also the stronger version `submodule.exists_smith_normal_form`.
+-/
+noncomputable def submodule.basis_of_pid {ι : Type*} [fintype ι]
+  (b : basis ι R M) (N : submodule R M) :
+  Σ (n : ℕ), (basis (fin n) R N) :=
+⟨_, (N.nonempty_basis_of_pid b).some_spec.some⟩
 
-  -- We claim that `ϕ⁻¹ a = y` can be taken as basis element of `N`.
-  let y := a_mem.some,
-  obtain ⟨y_mem, ϕy_eq⟩ := a_mem.some_spec,
-  have ϕy_ne_zero := λ h, a_zero (ϕy_eq.symm.trans h),
-
-  -- If `N'` is `ker (ϕ : N → R)`, it is smaller than `N` so by the induction hypothesis,
-  -- it has a basis `bN'`.
-  have N'_le_ker : (ϕ.ker ⊓ N) ≤ ϕ.ker := inf_le_left,
-  have N'_le_N : (ϕ.ker ⊓ N) ≤ N := inf_le_right,
-  -- Note that `y` is orthogonal to `N'`.
-  have y_ortho_N' : ∀ (c : R) (z : M), z ∈ ϕ.ker ⊓ N → c • y + z = 0 → c = 0,
-  { intros c x hx hc,
-    have hx' : x ∈ ϕ.ker := (inf_le_left : _ ⊓ N ≤ _) hx,
-    rw linear_map.mem_ker at hx',
-    simpa [ϕy_ne_zero, hx'] using congr_arg ϕ hc },
-  obtain ⟨nN', bN'⟩ := ih (ϕ.ker ⊓ N) N'_le_N y y_mem y_ortho_N',
-  use nN'.succ,
-
-  -- Extend `bN'` with `y`, we'll show it's linear independent and spans `N`.
-  let bN'y : fin (nN'.succ) → N := fin.cons ⟨y, y_mem⟩ (submodule.of_le N'_le_N ∘ bN'),
-  refine @basis.mk _ _ _ bN'y _ _ _ _ _,
-  { apply (bN'.linear_independent
-          .map' (submodule.of_le N'_le_N) (submodule.ker_of_le _ _ _))
-          .fin_cons' _ _ _,
-    intros c z hc,
-    apply y_ortho_N' c z (submodule.mem_inf.mpr ⟨_, z.1.2⟩) (congr_arg coe hc),
-    have : submodule.span R (set.range (submodule.of_le N'_le_N ∘ bN')) ≤ (ϕ.dom_restrict N).ker,
-    { rw submodule.span_le,
-      rintros _ ⟨i, rfl⟩,
-      exact N'_le_ker (bN' i).2 },
-    exact this z.2 },
-  { rw eq_top_iff,
-    rintro x -,
-    rw [fin.range_cons, set.range_comp, submodule.mem_span_insert, submodule.span_image],
-    obtain ⟨b, hb⟩ : _ ∣ ϕ x := generator_map_dvd_of_mem ϕ x.2,
-    refine ⟨b, x - b • ⟨_, y_mem⟩, _, _⟩,
-    { rw submodule.mem_map,
-      refine ⟨⟨x - b • _, _⟩, bN'.mem_span _, rfl⟩,
-      refine submodule.mem_inf.mpr ⟨linear_map.mem_ker.mpr _, N.sub_mem x.2 (N.smul_mem _ y_mem)⟩,
-      dsimp only,
-      rw [linear_map.map_sub, linear_map.map_smul, hb, ϕy_eq, smul_eq_mul, mul_comm, sub_self] },
-    { ext, simp only [ϕy_eq, add_sub_cancel'_right] } },
+lemma submodule.basis_of_pid_bot {ι : Type*} [fintype ι] (b : basis ι R M) :
+  submodule.basis_of_pid b ⊥ = ⟨0, basis.empty _⟩ :=
+begin
+  obtain ⟨n, b'⟩ := submodule.basis_of_pid b ⊥,
+  let e : fin n ≃ fin 0 := b'.index_equiv (basis.empty _ : basis (fin 0) R (⊥ : submodule R M)),
+  have : n = 0 := by simpa using fintype.card_eq.mpr ⟨e⟩,
+  subst this,
+  exact sigma.eq rfl (basis.eq_of_apply_eq $ fin_zero_elim)
 end
 
 /-- A submodule inside a free `R`-submodule of finite rank is also a free `R`-module of finite rank,
-if `R` is a principal ideal domain. -/
+if `R` is a principal ideal domain.
+
+See also the stronger version `submodule.exists_smith_normal_form_of_le`.
+-/
 noncomputable def submodule.basis_of_pid_of_le {ι : Type*} [fintype ι]
   {N O : submodule R M} (hNO : N ≤ O) (b : basis ι R O) :
   Σ (n : ℕ), basis (fin n) R N :=
@@ -403,6 +605,110 @@ noncomputable def module.free_of_finite_type_torsion_free' [module.finite R M]
   [no_zero_smul_divisors R M] :
   Σ (n : ℕ), basis (fin n) R M :=
 module.free_of_finite_type_torsion_free module.finite.exists_fin.some_spec.some_spec
+
+/-- If `M` is finite free over a PID `R`, then any submodule `N` is free
+and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix.
+
+This is a strengthening of `submodule.basis_of_pid_of_le`.
+-/
+theorem submodule.exists_smith_normal_form_of_le [fintype ι]
+  (b : basis ι R M) (N O : submodule R M) (N_le_O : N ≤ O) :
+  ∃ (n o : ℕ) (hno : n ≤ o) (bO : basis (fin o) R O) (bN : basis (fin n) R N) (a : fin n → R),
+    ∀ i, (bN i : M) = a i • bO (fin.cast_le hno i) :=
+begin
+  revert N,
+  refine induction_on_rank b _ _ O,
+  intros M ih N N_le_M,
+  obtain ⟨m, b'M⟩ := M.basis_of_pid b,
+  by_cases N_bot : N = ⊥,
+  { subst N_bot,
+    exact ⟨0, m, nat.zero_le _, b'M, basis.empty _, fin_zero_elim, fin_zero_elim⟩ },
+
+  obtain ⟨y, hy, a, hay, M', M'_le_M, N', N'_le_N, N'_le_M', y_ortho, ay_ortho, h⟩ :=
+    submodule.basis_of_pid_aux M N b'M N_bot N_le_M,
+  obtain ⟨n', m', hn'm', bM', bN', as', has'⟩ := ih M' M'_le_M y hy y_ortho N' N'_le_M',
+  obtain ⟨bN, h'⟩ := h n' bN',
+  obtain ⟨hmn, bM, h''⟩ := h' m' hn'm' bM',
+  obtain ⟨as, has⟩ := h'' as' has',
+  exact ⟨_, _, hmn, bM, bN, as, has⟩
+end
+
+/-- If `M` is finite free over a PID `R`, then any submodule `N` is free
+and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix.
+
+This is a strengthening of `submodule.basis_of_pid`.
+
+See also `ideal.exists_smith_normal_form`, which moreover proves that the dimension of
+an ideal is the same as the dimension of the whole ring.
+-/
+theorem submodule.exists_smith_normal_form [fintype ι] (b : basis ι R M) (N : submodule R M) :
+  ∃ (n : ℕ) (bM : basis ι R M) (bN : basis (fin n) R N) (f : fin n → ι) (a : fin n → R),
+    ∀ i, (bN i : M) = a i • bM (f i) :=
+begin
+  obtain ⟨n, m, hnm, b', bN, a, h⟩ := submodule.exists_smith_normal_form_of_le b N ⊤ le_top,
+  let b'' : basis _ R M := b'.map (linear_equiv.of_top _ rfl),
+  refine ⟨n, b''.reindex (b''.index_equiv b), bN, b''.index_equiv b ∘ fin.cast_le hnm, a, _⟩,
+  intros i,
+  rw [h, function.comp_app, basis.reindex_apply, equiv.symm_apply_apply, basis.map_apply,
+      linear_equiv.of_top_apply]
+end
+
+/-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
+then the rank of an ideal `I` of `S` over `R` is the same as the rank of `S`.
+-/
+lemma ideal.rank_eq {S : Type*} [integral_domain S] [algebra R S]
+  {n m : Type*} [fintype n] [fintype m]
+  (b : basis n R S) {I : ideal S} (hI : I ≠ ⊥) (c : basis m R I) :
+  fintype.card m = fintype.card n :=
+begin
+  obtain ⟨a, ha⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr hI),
+  have : linear_independent R (λ i, b i • a),
+  { have hb := b.linear_independent,
+    rw fintype.linear_independent_iff at ⊢ hb,
+    intros g hg,
+    apply hb g,
+    simp only [← smul_assoc, ← finset.sum_smul, smul_eq_zero] at hg,
+    exact hg.resolve_right ha },
+  exact le_antisymm
+    (b.card_le_card_of_linear_independent (c.linear_independent.map' (submodule.subtype I)
+      (linear_map.ker_eq_bot.mpr subtype.coe_injective)))
+    (c.card_le_card_of_linear_independent this),
+end
+
+/-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
+then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
+find a basis for `S` and `I` such that the inclusion map is a square diagonal
+matrix.
+
+This is a strengthening of `submodule.basis_of_pid`.
+-/
+theorem ideal.exists_smith_normal_form [fintype ι] {S : Type*} [integral_domain S] [algebra R S]
+  (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
+  ∃ (b' : basis ι R S) (a : ι → R) (ab' : basis ι R I),
+  ∀ i, (ab' i : S) = a i • b' i :=
+begin
+  obtain ⟨n, b', ab', g', a', ab_eq⟩ := submodule.exists_smith_normal_form b (I.restrict_scalars R),
+  let ab : basis (fin n) R I := ab'.map ((restrict_scalars_equiv R S S I).restrict_scalars _),
+  have g'_inj : function.injective g',
+  { intros i j h,
+    refine ab'.linear_independent.eq_of_smul_apply_eq_smul_apply (a' j) (a' i) i j _ _,
+    { rintro ha,
+      refine ab'.ne_zero j _,
+      ext,
+      simp [ab_eq, ha] },
+    { ext,
+      simp [ab_eq, h, ← mul_action.mul_smul, mul_comm] } },
+  have g'_bij := (fintype.bijective_iff_injective_and_card g').mpr ⟨g'_inj, ideal.rank_eq b' hI ab⟩,
+  let g : fin n ≃ ι := equiv.of_bijective g' g'_bij,
+  have g_apply : ∀ i, g i = g' i := λ i, rfl,
+  let a : ι → R := a' ∘ g.symm,
+  have a_apply : ∀ i, a i = a' (g.symm i) := λ i, rfl,
+  use [b', a, ab.reindex g],
+  intro i,
+  rw [← g.apply_symm_apply i, a_apply, g.symm_apply_apply, basis.reindex_apply, g.symm_apply_apply],
+  simp only [ab_eq, ab'.map_apply, restrict_scalars_equiv_apply, linear_equiv.to_fun_eq_coe,
+      linear_equiv.refl_apply, linear_equiv.restrict_scalars_apply, equiv.of_bijective_apply],
+end
 
 end principal_ideal_domain
 

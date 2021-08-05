@@ -10,9 +10,9 @@ import order.symm_diff
 # Hahn decomposition
 
 This file prove the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
-states that, given a signed measure `s`, there exist disjoint, measurable sets `i` and `j`,
-such that `i ∪ j = set.univ` and `i` is positive and `j` is negative with repsect to `s`;
-that is, `s` restricted on `i` is non-negative and `s` restricted on `j` is non-positive.
+states that, given a signed measure `s`, there exist complement, measurable sets `i` and `j`,
+such that `i` is positive and `j` is negative with repsect to `s`; that is, `s` restricted on `i`
+is non-negative and `s` restricted on `j` is non-positive.
 
 The Hahn decomposition theorem leads to many other results in measure theory, most notably,
 the Jordan decomposition theorem, the Lebesgue decomposition theorem and the Radon-Nikodym theorem.
@@ -386,12 +386,10 @@ begin
   exact ⟨n, neg_lt.1 hn⟩,
 end
 
-/-- **The Hahn decomposition thoerem**: Given a signed measure `s`, there exist
-disjoint measurable sets `i`, `j` such that `i` is positive, `j` is negative
-and `i ∪ j = set.univ`.  -/
-theorem exists_disjoint_positive_negative_union_eq (s : signed_measure α) :
-  ∃ i j : set α, measurable_set i ∧ 0 ≤[i] s ∧ measurable_set j ∧ s ≤[j] 0 ∧
-  disjoint i j ∧ i ∪ j = set.univ :=
+/-- Alternative formulation of `exists_disjoint_positive_negative_union_eq` (the Hahn decomposition
+theorem) using set complements. -/
+lemma exists_compl_positive_negative (s : signed_measure α) :
+  ∃ i : set α, measurable_set i ∧ 0 ≤[i] s ∧ s ≤[iᶜ] 0 :=
 begin
   obtain ⟨f, _, hf₂, hf₁⟩ := exists_seq_tendsto_Inf
     ⟨0, @zero_mem_measure_of_negatives _ _ s⟩ bdd_below_measure_of_negatives,
@@ -419,34 +417,29 @@ begin
       { exact (measurable_set.Union hB₁).diff (hB₁ n) } },
     { exact real.Inf_le _ bdd_below_measure_of_negatives ⟨A, ⟨hA₁, hA₂⟩, rfl⟩ } },
 
-  refine ⟨Aᶜ, A, hA₁.compl, _, hA₁, hA₂,
-          disjoint_compl_left, (set.union_comm A Aᶜ) ▸ set.union_compl_self A⟩,
+  refine ⟨Aᶜ, hA₁.compl, _, (compl_compl A).symm ▸ hA₂⟩,
   rw restrict_le_restrict_iff _ _ hA₁.compl,
   intros C hC hC₁,
   by_contra hC₂, push_neg at hC₂,
-  rcases exists_subset_restrict_nonpos hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
 
+  rcases exists_subset_restrict_nonpos hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
   have : s (A ∪ D) < Inf s.measure_of_negatives,
   { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC₁)
         disjoint_compl_right) hA₁ hD₁],
     linarith, apply_instance },
+
   refine not_le.2 this _,
   refine real.Inf_le _ bdd_below_measure_of_negatives ⟨A ∪ D, ⟨_, _⟩, rfl⟩,
   { exact hA₁.union hD₁ },
-  { exact restrict_le_restrict_union _ _ hA₁ hA₂ hD₁ hD₂ }
+  { exact restrict_le_restrict_union _ _ hA₁ hA₂ hD₁ hD₂ },
 end
 
-/-- Alternative formulation of `exists_disjoint_positive_negative_union_eq` using complements. -/
-lemma exists_compl_positive_negative (s : signed_measure α) :
-  ∃ i : set α, measurable_set i ∧ 0 ≤[i] s ∧ s ≤[iᶜ] 0 :=
-begin
-  obtain ⟨i, j, hi₁, hi₂, _, hj₂, hdisj, huniv⟩ :=
-    s.exists_disjoint_positive_negative_union_eq,
-  refine ⟨i, hi₁, hi₂, _⟩,
-  rw [set.compl_eq_univ_diff, ← huniv,
-      set.union_diff_cancel_left (set.disjoint_iff.mp hdisj)],
-  exact hj₂,
-end
+/-- **The Hahn decomposition thoerem**: Given a signed measure `s`, there exist
+complement measurable sets `i` and `j` such that `i` is positive, `j` is negative. -/
+theorem exists_is_compl_positive_negative (s : signed_measure α) :
+  ∃ i j : set α, measurable_set i ∧ 0 ≤[i] s ∧ measurable_set j ∧ s ≤[j] 0 ∧ is_compl i j :=
+let ⟨i, hi₁, hi₂, hi₃⟩ := exists_compl_positive_negative s in
+  ⟨i, iᶜ, hi₁, hi₂, hi₁.compl, hi₃, is_compl_compl⟩
 
 /-- The symmetric difference of two Hahn decompositions have measure zero. -/
 lemma of_symm_diff_compl_positive_negative {s : signed_measure α}

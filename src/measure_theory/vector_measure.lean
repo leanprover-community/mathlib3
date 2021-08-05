@@ -675,9 +675,11 @@ lemma restrict_le_restrict_Union {f : ℕ → set α}
   v ≤[⋃ n, f n] w :=
 begin
   refine restrict_le_restrict_of_subset_le v w (λ a ha₁ ha₂, _),
-  rw [← set.Union_inter_disjointed_eq ha₂,
-      v.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed,
-      w.of_disjoint_Union_nat _ set.pairwise_disjoint_on_inter_disjointed],
+  have ha₃ : (⋃ n, a ∩ disjointed f n) = a,
+  { rwa [← inter_Union, set.Union_disjointed, inter_eq_left_iff_subset] },
+  have ha₄ : pairwise (disjoint on (λ n, a ∩ disjointed f n)),
+  { exact pairwise_disjoint_on_inter disjoint_disjointed },
+  rw [← ha₃, v.of_disjoint_Union_nat _ ha₄, w.of_disjoint_Union_nat _ ha₄],
   refine tsum_le_tsum (λ n, (restrict_le_restrict_iff v w (hf₁ n)).1 (hf₂ n) _ _) _ _,
   { exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
   { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },

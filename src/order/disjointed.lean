@@ -87,12 +87,4 @@ lemma Union_disjointed_of_mono (hf : monotone f) (n : ℕ) :
 subset.antisymm (bUnion_subset $ λ k hk, subset.trans disjointed_subset $ hf $ nat.lt_succ_iff.1 hk)
   subset_Union_disjointed
 
-lemma Union_inter_disjointed_eq {a : set α} (ha : a ⊆ ⋃ n, f n) :
-  (⋃ n, a ∩ disjointed f n) = a :=
-by rwa [← inter_Union, set.Union_disjointed, inter_eq_left_iff_subset]
-
-lemma pairwise_disjoint_on_inter_disjointed {a : set α} :
-  pairwise $ disjoint on (λ n, a ∩ disjointed f n) :=
-pairwise_disjoint_on_inter disjoint_disjointed
-
 end set

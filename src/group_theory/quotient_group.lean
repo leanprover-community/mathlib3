@@ -132,6 +132,18 @@ lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 @[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_gpow a n
 
+omit nN
+
+@[simp] lemma coe_gsmul {G' : Type*} [add_group G'] (N : add_subgroup G') [N.normal] (a : G') (n : ℤ) :
+  ((n • a : G') : quotient_add_group.quotient N) = n • a :=
+(quotient_add_group.mk' N).map_gsmul a n
+
+@[simp] lemma coe_nsmul {G' : Type*} [add_group G'] (N : add_subgroup G') [N.normal] (a : G') (n : ℕ) :
+  ((n • a : G') : quotient_add_group.quotient N) = n • a :=
+(quotient_add_group.mk' N).map_nsmul a n
+
+include nN
+
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
 group homomorphism `G/N →* H`. -/
 @[to_additive quotient_add_group.lift "An `add_group` homomorphism `φ : G →+ H` with `N ⊆ ker(φ)`

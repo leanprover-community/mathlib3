@@ -215,15 +215,20 @@ begin
   rwa real.norm_of_nonneg (mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg n))
 end
 
-lemma summable_of_nnnorm_lt_radius (p : formal_multilinear_series 𝕜 E F) [complete_space F]
-  {x : E} (h : (∥x∥₊ : ℝ≥0∞) < p.radius) : summable (λ n, p n (λ i, x)) :=
+lemma summable_norm_of_nnnorm_lt_radius (p : formal_multilinear_series 𝕜 E F)
+  {x : E} (h : (∥x∥₊ : ℝ≥0∞) < p.radius) : summable (λ n, ∥p n (λ i, x)∥) :=
 begin
-  refine summable_of_norm_bounded (λ n, ∥p n∥ * ∥x∥₊^n) (p.summable_norm_of_lt_radius h) _,
+  have : summable (λ n, ∥p n∥ * ∥x∥₊^n) := p.summable_norm_of_lt_radius h,
+  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) _ this,
   intros n,
   calc ∥(p n) (λ (i : fin n), x)∥
       ≤ ∥p n∥ * (∏ i : fin n, ∥x∥) : continuous_multilinear_map.le_op_norm _ _
       ... = ∥p n∥ * ∥x∥₊^n : by simp
 end
+
+lemma summable_of_nnnorm_lt_radius (p : formal_multilinear_series 𝕜 E F) [complete_space F]
+  {x : E} (h : (∥x∥₊ : ℝ≥0∞) < p.radius) : summable (λ n, p n (λ i, x)) :=
+summable_of_summable_norm (p.summable_norm_of_nnnorm_lt_radius h)
 
 lemma radius_eq_top_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
   (hs : ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n)) : p.radius = ∞ :=

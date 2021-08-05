@@ -22,6 +22,12 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 section mul_action
 
+/-- `monoid.to_mul_action` is faithful on cancellative monoids. -/
+@[to_additive /-" `add_monoid.to_add_action` is faithful on additive cancellative monoids. "-/]
+instance right_cancel_monoid.to_has_faithful_scalar [right_cancel_monoid α] :
+  has_faithful_scalar α α :=
+⟨λ x y h, mul_right_cancel (h 1)⟩
+
 section group
 variables [group α] [mul_action α β]
 

@@ -56,6 +56,23 @@ class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
 infix ` +ᵥ `:65 := has_vadd.vadd
 infixr ` • `:73 := has_scalar.smul
 
+/-- Typeclass for faithful actions. -/
+@[to_additive has_faithful_vadd]
+class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
+(eq_of_vadd_eq_vadd : ∀ {g₁ g₂ : G}, (∀ p : P, g₁ +ᵥ p = g₂ +ᵥ p) → g₁ = g₂)
+
+/-- Typeclass for faithful actions. -/
+@[to_additive has_faithful_vadd]
+class has_faithful_scalar (M : Type*) (α : Type*) [has_scalar M α] : Prop :=
+(eq_of_smul_eq_smul : ∀ {m₁ m₂ : M}, (∀ a : α, m₁ • a = m₂ • a) → m₁ = m₂)
+
+export has_faithful_scalar (eq_of_smul_eq_smul) has_faithful_vadd (eq_of_vadd_eq_vadd)
+
+@[to_additive]
+lemma smul_left_injective' [has_scalar M α] [has_faithful_scalar M α] :
+  function.injective ((•) : M → α → α) :=
+λ m₁ m₂ h, has_faithful_scalar.eq_of_smul_eq_smul (congr_fun h)
+
 /-- See also `monoid.to_mul_action` and `mul_zero_class.to_smul_with_zero`. -/
 @[priority 910, to_additive] -- see Note [lower instance priority]
 instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := ⟨(*)⟩

@@ -107,6 +107,10 @@ lemma integrable_on.mono_set_ae (h : integrable_on f t μ) (hst : s ≤ᵐ[μ] t
   integrable_on f s μ :=
 h.integrable.mono_measure $ restrict_mono_ae hst
 
+lemma integrable_on.congr_set_ae (h : integrable_on f t μ) (hst : s =ᵐ[μ] t) :
+  integrable_on f s μ :=
+h.mono_set_ae hst.le
+
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
 h.mono_measure $ measure.restrict_le_self
 
@@ -286,7 +290,7 @@ end normed_group
 
 end measure_theory
 
-open measure_theory asymptotics metric
+open measure_theory
 
 variables [measurable_space E] [normed_group E]
 
@@ -403,3 +407,50 @@ lemma measure_theory.integrable_on.continuous_on_mul
   (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
   integrable_on (λ x, g x * f x) s μ :=
 by simpa [mul_comm] using hf.mul_continuous_on hg hs
+
+section monotone
+
+variables
+  [topological_space α] [borel_space α] [borel_space E]
+  [conditionally_complete_linear_order α] [conditionally_complete_linear_order E]
+  [order_topology α] [order_topology E] [second_countable_topology E]
+  {μ : measure α} [locally_finite_measure μ] {s : set α} (hs : is_compact s) {f : α → E}
+
+include hs
+
+lemma integrable_on_compact_of_monotone_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
+  integrable_on f s μ :=
+begin
+  by_cases h : s.nonempty,
+  { have hbelow : bdd_below (f '' s) :=
+      ⟨f (Inf s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono (hs.Inf_mem h) hy (cInf_le hs.bdd_below hy)⟩,
+    have habove : bdd_above (f '' s) :=
+      ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
+    have : metric.bounded (f '' s) := metric.bounded_of_bdd_above_of_bdd_below habove hbelow,
+    rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
+    exact integrable.mono' (continuous_const.integrable_on_compact hs)
+      (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono)
+      ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
+        λ y hy, hC (f y) (mem_image_of_mem f hy)) },
+  { rw set.not_nonempty_iff_eq_empty at h,
+    rw h,
+    exact integrable_on_empty }
+end
+
+lemma integrable_on_compact_of_antimono_on (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+  integrable_on f s μ :=
+@integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
+  hmono
+
+lemma integrable_on_compact_of_monotone (hmono : monotone f) :
+  integrable_on f s μ :=
+integrable_on_compact_of_monotone_on hs (λ x y _ _ hxy, hmono hxy)
+
+alias integrable_on_compact_of_monotone ← monotone.integrable_on_compact
+
+lemma integrable_on_compact_of_antimono (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
+  integrable_on f s μ :=
+@integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ ‹_› _ _ _ _ ‹_› _ _ _ hs _
+  hmono
+
+end monotone

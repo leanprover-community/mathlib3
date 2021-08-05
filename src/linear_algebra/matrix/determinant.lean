@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.pequiv
+import data.matrix.block
 import data.fintype.card
 import group_theory.perm.fin
 import group_theory.perm.sign
@@ -85,20 +86,15 @@ end
 @[simp] lemma det_one : det (1 : matrix n n R) = 1 :=
 by rw [← diagonal_one]; simp [-diagonal_one]
 
+@[simp]
+lemma det_is_empty [is_empty n] {A : matrix n n R} : det A = 1 :=
+by simp [det_apply]
+
 lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
 begin
-  have perm_eq : (univ : finset (perm n)) = {1} :=
-  univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
-  simp [det_apply, card_eq_zero.mp h, perm_eq],
+  haveI : is_empty n := fintype.card_eq_zero_iff.mp h,
+  exact det_is_empty,
 end
-
-/-- Specialize `det_eq_one_of_card_eq_zero` to `fin 0`.
-
-This is especially useful in combination with the `det_succ_` lemmas,
-for computing the determinant of a matrix given in the `![...]` notation.
--/
-@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
-det_eq_one_of_card_eq_zero (fintype.card_fin _)
 
 /-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
 Although `unique` implies `decidable_eq` and `fintype`, the instances might
@@ -111,11 +107,8 @@ by simp [det_apply, univ_unique]
 lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
   det A = A k k :=
 begin
-  have h1 : (univ : finset (perm n)) = {1},
-  { apply univ_eq_singleton_of_card_one (1 : perm n),
-    simp [card_univ, fintype.card_perm, h] },
-  have h2 := univ_eq_singleton_of_card_one k h,
-  simp [det_apply, h1, h2],
+  casesI fintype.card_eq_one_iff_nonempty_unique.mp h,
+  convert det_unique A,
 end
 
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
@@ -162,9 +155,13 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
       by { simp_rw [equiv.coe_mul_right, h], simp only [this] }))
 ... = det M * det N : by simp only [det_apply', finset.mul_sum, mul_comm, mul_left_comm]
 
-instance : is_monoid_hom (det : matrix n n R → R) :=
-{ map_one := det_one,
-  map_mul := det_mul }
+/-- The determinant of a matrix, as a monoid homomorphism. -/
+def det_monoid_hom : matrix n n R →* R :=
+{ to_fun := det,
+  map_one' := det_one,
+  map_mul' := det_mul }
+
+@[simp] lemma coe_det_monoid_hom : (det_monoid_hom : matrix n n R → R) = det := rfl
 
 /-- On square matrices, `mul_comm` applies under `det`. -/
 lemma det_mul_comm (M N : matrix m m R) : det (M ⬝ N) = det (N ⬝ M) :=
@@ -251,6 +248,9 @@ the product of the `v`s. -/
 lemma det_mul_column (v : n → R) (A : matrix n n R) :
   det (λ i j, v i * A i j) = (∏ i, v i) * det A :=
 multilinear_map.map_smul_univ _ v A
+
+@[simp] lemma det_pow (M : matrix m m R) (n : ℕ) : det (M ^ n) = (det M) ^ n :=
+(det_monoid_hom : matrix m m R →* R).map_pow M n
 
 section hom_map
 
@@ -484,7 +484,7 @@ begin
     simp only [prod_congr_left_apply] },
   { intros σ _,
     rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
-    simp only [sign_prod_congr_left, units.coe_prod, int.coe_prod, block_diagonal_apply_eq,
+    simp only [sign_prod_congr_left, units.coe_prod, int.cast_prod, block_diagonal_apply_eq,
       prod_congr_left_apply] },
   { intros σ σ' _ _ eq,
     ext x hx k,

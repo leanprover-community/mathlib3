@@ -6,7 +6,6 @@ Authors: Chris Hughes
 
 import data.int.modeq
 import algebra.char_p.basic
-import data.nat.totient
 import ring_theory.ideal.operations
 import tactic.fin_cases
 
@@ -83,7 +82,7 @@ instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 | 0     h := false.elim $ nat.not_lt_zero 0 h.1
 | (n+1) _ := fin.fintype (n+1)
 
-lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
+@[simp] lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
@@ -175,6 +174,14 @@ def cast : Π {n : ℕ}, zmod n → R
 
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by { cases n; refl }
+
+variables {S : Type*} [has_zero S] [has_one S] [has_add S] [has_neg S]
+
+@[simp] lemma _root_.prod.fst_zmod_cast (a : zmod n) : (a : R × S).fst = a :=
+by cases n; simp
+
+@[simp] lemma _root_.prod.snd_zmod_cast (a : zmod n) : (a : R × S).snd = a :=
+by cases n; simp
 
 end
 
@@ -577,28 +584,53 @@ def units_equiv_coprime {n : ℕ} [fact (0 < n)] :
   left_inv := λ ⟨_, _, _, _⟩, units.ext (nat_cast_zmod_val _),
   right_inv := λ ⟨_, _⟩, by simp }
 
-section totient
-open_locale nat
+/-- The **Chinese remainder theorem**. For a pair of coprime natural numbers, `m` and `n`,
+  the rings `zmod (m * n)` and `zmod m × zmod n` are isomorphic.
 
-@[simp] lemma card_units_eq_totient (n : ℕ) [fact (0 < n)] :
-  fintype.card (units (zmod n)) = φ n :=
-calc fintype.card (units (zmod n)) = fintype.card {x : zmod n // x.val.coprime n} :
-  fintype.card_congr zmod.units_equiv_coprime
-... = φ n :
-begin
-  apply finset.card_congr (λ (a : {x : zmod n // x.val.coprime n}) _, a.1.val),
-  { intro a, simp [(a : zmod n).val_lt, a.prop.symm] {contextual := tt} },
-  { intros _ _ _ _ h, rw subtype.ext_iff_val, apply val_injective, exact h, },
-  { intros b hb,
-    rw [finset.mem_filter, finset.mem_range] at hb,
-    refine ⟨⟨b, _⟩, finset.mem_univ _, _⟩,
-    { let u := unit_of_coprime b hb.2.symm,
-      exact val_coe_unit_coprime u },
-    { show zmod.val (b : zmod n) = b,
-      rw [val_nat_cast, nat.mod_eq_of_lt hb.1], } }
-end
-
-end totient
+See `ideal.quotient_inf_ring_equiv_pi_quotient` for the Chinese remainder theorem for ideals in any
+ring.
+-/
+def chinese_remainder {m n : ℕ} (h : m.coprime n) :
+  zmod (m * n) ≃+* zmod m × zmod n :=
+let to_fun : zmod (m * n) → zmod m × zmod n :=
+  zmod.cast_hom (show m.lcm n ∣ m * n, by simp [nat.lcm_dvd_iff]) (zmod m × zmod n) in
+let inv_fun : zmod m × zmod n → zmod (m * n) :=
+  λ x, if m * n = 0
+    then if m = 1
+      then ring_hom.snd _ _ x
+      else ring_hom.fst _ _ x
+    else nat.modeq.chinese_remainder h x.1.val x.2.val in
+have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_fun to_fun :=
+  if hmn0 : m * n = 0
+    then begin
+      rcases h.eq_of_mul_eq_zero hmn0 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩;
+      simp [inv_fun, to_fun, function.left_inverse, function.right_inverse,
+        ring_hom.eq_int_cast, prod.ext_iff]
+    end
+    else
+      begin
+        haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
+        haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
+        haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
+        have left_inv : function.left_inverse inv_fun to_fun,
+        { intro x,
+          dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],
+          conv_rhs { rw ← zmod.nat_cast_zmod_val x },
+          rw [if_neg hmn0, zmod.eq_iff_modeq_nat, ← nat.modeq.modeq_and_modeq_iff_modeq_mul h,
+            prod.fst_zmod_cast, prod.snd_zmod_cast],
+          refine
+            ⟨(nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.left.trans _,
+            (nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.right.trans _⟩,
+          { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
+          { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] } },
+        exact ⟨left_inv, fintype.right_inverse_of_left_inverse_of_card_le left_inv (by simp)⟩,
+      end,
+{ to_fun := to_fun,
+  inv_fun := inv_fun,
+  map_mul' := ring_hom.map_mul _,
+  map_add' := ring_hom.map_add _,
+  left_inv := inv.1,
+  right_inv := inv.2 }
 
 instance subsingleton_units : subsingleton (units (zmod 2)) :=
 ⟨λ x y, begin

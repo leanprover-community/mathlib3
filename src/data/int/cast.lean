@@ -202,6 +202,19 @@ end cast
 
 end int
 
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+  [has_zero β] [has_one β] [has_add β] [has_neg β]
+
+@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
+
 open int
 
 namespace add_monoid_hom

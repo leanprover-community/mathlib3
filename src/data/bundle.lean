@@ -54,7 +54,7 @@ instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
 
-@[simp] lemma total_space_mk_cast {x : B} (y : total_space E) (h : y.1 = x) :
+@[simp] lemma total_space_mk_cast {E} {x : B} (y : total_space E) (h : y.1 = x) :
   total_space_mk E x (cast (congr_arg E h) y.2) = y :=
 by { ext, exact h.symm, simp only [cast_heq], }
 

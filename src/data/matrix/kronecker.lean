@@ -233,6 +233,8 @@ variables (R)
 open tensor_product
 open_locale matrix tensor_product
 
+section module
+
 variables [comm_semiring R] [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β]
 
 /-- The Kronecker tensor product. This is just a shorthand for `kronecker_map (⊗ₜ)`.
@@ -287,6 +289,26 @@ lemma diagonal_kronecker_tmul_diagonal
   (a : m → α) (b : n → α):
   (diagonal a) ⊗ₖₜ[R] (diagonal b) = diagonal (λ mn, a mn.1 ⊗ₜ b mn.2) :=
 kronecker_map_diagonal_diagonal _ (zero_tmul _) (tmul_zero _) _ _
+
+end module
+
+section algebra
+variables [comm_semiring R] [semiring α] [semiring β] [algebra R α] [algebra R β]
+
+open_locale kronecker
+open algebra.tensor_product
+
+@[simp] lemma one_kronecker_tmul_one [decidable_eq m] [decidable_eq n] :
+  (1 : matrix m m α) ⊗ₖₜ[R] (1 : matrix n n α) = 1 :=
+kronecker_map_one_one _ (zero_tmul _) (tmul_zero _) rfl
+
+lemma mul_kronecker_tmul_mul
+  (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
+  (A ⬝ B) ⊗ₖₜ[R] (A' ⬝ B') = (A ⊗ₖₜ A') ⬝ (B ⊗ₖₜ B') :=
+kronecker_map_linear_mul_mul (tensor_product.mk R α β) tmul_mul_tmul A B A' B'
+
+
+end algebra
 
 -- insert lemmas specific to `kronecker_tmul` below this line
 

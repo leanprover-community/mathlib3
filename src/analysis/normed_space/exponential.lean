@@ -87,7 +87,7 @@ begin
   simp [h]
 end
 
-section analytic
+section complete_algebra
 
 variables [complete_space 𝔸]
 
@@ -113,7 +113,7 @@ begin
 end
 
 lemma has_strict_fderiv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
-  has_strict_fderiv_at (exp 𝕂 𝔸) (continuous_linear_map.id 𝕂 𝔸) 0 :=
+  has_strict_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
 begin
   convert (exp_has_fpower_series_at_zero_of_radius_pos h).has_strict_fderiv_at,
   ext x,
@@ -122,10 +122,24 @@ begin
 end
 
 lemma has_fderiv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
-  has_fderiv_at (exp 𝕂 𝔸) (continuous_linear_map.id 𝕂 𝔸) 0 :=
+  has_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
 (has_strict_fderiv_at_exp_zero_of_radius_pos h).has_fderiv_at
 
-end analytic
+end complete_algebra
+
+section complete_field
+
+variables [complete_space 𝕂]
+
+lemma has_strict_deriv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝕂).radius) :
+  has_strict_deriv_at (exp 𝕂 𝕂) 1 0 :=
+(has_strict_fderiv_at_exp_zero_of_radius_pos h).has_strict_deriv_at
+
+lemma has_deriv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝕂).radius) :
+  has_deriv_at (exp 𝕂 𝕂) 1 0 :=
+(has_strict_deriv_at_exp_zero_of_radius_pos h).has_deriv_at
+
+end complete_field
 
 lemma exp_add_of_commute_of_lt_radius [complete_space 𝔸] [char_zero 𝕂]
   {x y : 𝔸} (hxy : commute x y)
@@ -160,21 +174,8 @@ lemma exp_add_of_lt_radius [char_zero 𝕂] {x y : 𝔸}
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_commute_of_lt_radius (commute.all x y) hx hy
 
--- TODO : strict
---lemma has_strict_fderiv_at_of_lt_radius {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
---  has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • continuous_linear_map.id 𝕂 𝔸) x :=
---begin
---  have := has_strict_fderiv_at_exp_zero_of_radius_pos
---    (show 0 < (exp_series 𝕂 𝔸).radius, from sorry),
---  rw ← sub_self x at this,
---  change has_strict_fderiv_at _ _ ((λ t, t - x) x) at this,
---  have key : has_strict_fderiv_at (λ t, t - x) (continuous_linear_map.id 𝕂 𝔸) x :=
---    (has_strict_fderiv_at_id x).sub_const x,
---  have := this.comp _ key,
---end
-
-lemma has_fderiv_at_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
-  has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • continuous_linear_map.id 𝕂 𝔸) x :=
+lemma has_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
+  has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 begin
   have hpos : 0 < (exp_series 𝕂 𝔸).radius := (ennreal.coe_nonneg.mpr $ zero_le _).trans_lt hx,
   rw has_fderiv_at_iff_is_o_nhds_zero,
@@ -192,12 +193,29 @@ begin
   ring
 end
 
-lemma has_strict_fderiv_at_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
-  has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • continuous_linear_map.id 𝕂 𝔸) x :=
+lemma has_strict_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
+  has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 let ⟨p, hp⟩ := exp_analytic_at_of_mem_ball x (by rwa ← edist_eq_coe_nnnorm at hx) in
-hp.has_fderiv_at.unique (has_fderiv_at_of_lt_radius hx) ▸ hp.has_strict_fderiv_at
+hp.has_fderiv_at.unique (has_fderiv_at_exp_of_lt_radius hx) ▸ hp.has_strict_fderiv_at
 
 end any_field_comm_algebra
+
+section any_field
+
+variables {𝕂 : Type*} [nondiscrete_normed_field 𝕂] [complete_space 𝕂]
+
+lemma has_strict_deriv_at_of_lt_radius [char_zero 𝕂] {x : 𝕂} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝕂).radius) :
+  has_strict_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
+begin
+  convert (has_strict_fderiv_at_exp_of_lt_radius hx).has_strict_deriv_at,
+  simp
+end
+
+lemma has_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝕂).radius) :
+  has_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
+(has_strict_deriv_at_of_lt_radius hx).has_deriv_at
+
+end any_field
 
 section is_R_or_C
 

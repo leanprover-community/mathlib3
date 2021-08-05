@@ -655,10 +655,8 @@ ring_hom.ext algebra_map_eq_diagonal
   (algebra_map R (matrix n n α) r).map f = algebra_map R (matrix n n β) r :=
 begin
   rw [algebra_map_eq_diagonal, algebra_map_eq_diagonal, diagonal_map hf],
-  congr' 1,
-  dsimp,
-  simp_rw hf₂,
-  refl,
+  congr' 1 with x,
+  simp only [hf₂, pi.algebra_map_apply]
 end
 
 variables (R)

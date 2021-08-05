@@ -104,11 +104,21 @@ lemma det_unique {n : Type*} [unique n] [decidable_eq n] [fintype n] (A : matrix
   det A = A (default n) (default n) :=
 by simp [det_apply, univ_unique]
 
+lemma det_eq_elem_of_subsingleton [subsingleton n] (A : matrix n n R) (k : n) :
+  det A = A k k :=
+begin
+  rw det_apply,
+  suffices : ∏ (i : n), A i i = A k k,
+  { simpa },
+  convert fintype.prod_unique _,
+  exact unique_of_subsingleton k
+end
+
 lemma det_eq_elem_of_card_eq_one {A : matrix n n R} (h : fintype.card n = 1) (k : n) :
   det A = A k k :=
 begin
-  casesI fintype.card_eq_one_iff_nonempty_unique.mp h,
-  convert det_unique A,
+  haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
+  exact det_eq_elem_of_subsingleton _ _
 end
 
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
@@ -162,9 +172,6 @@ def det_monoid_hom : matrix n n R →* R :=
   map_mul' := det_mul }
 
 @[simp] lemma coe_det_monoid_hom : (det_monoid_hom : matrix n n R → R) = det := rfl
-
-@[simp] lemma det_pow (M : matrix m m R) (n : ℕ) : det (M ^ n) = (det M) ^ n :=
-is_monoid_hom.map_pow det M n
 
 /-- On square matrices, `mul_comm` applies under `det`. -/
 lemma det_mul_comm (M N : matrix m m R) : det (M ⬝ N) = det (N ⬝ M) :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
-import linear_algebra.matrix.determinant
+import linear_algebra.matrix.polynomial
 import tactic.linarith
 import tactic.ring_exp
 
@@ -117,46 +117,9 @@ begin
   simp [matrix.one_apply],
 end
 
-@[simp] lemma update_column_subsingleton_apply [subsingleton n] (A : matrix n n α)
-  (b : n → α) (i : n) :
-  A.update_column i b = λ _, b :=
-begin
-  ext x y,
-  have : x = y := by simp,
-  simp [update_column_apply, this]
-end
-
-@[simp] lemma prod_perm_singleton {n α : Type*} [subsingleton n] [comm_monoid α]
-  (f : perm n → α) :
-  ∏ (σ : perm n), f σ = f 1 :=
-begin
-  have : (finset.univ : finset (perm n)) = {1},
-  { ext, simp },
-  simp [this]
-end
-
-@[simp] lemma sum_perm_singleton {n α : Type*} [subsingleton n] [add_comm_monoid α]
-  (f : perm n → α) :
-  ∑ (σ : perm n), f σ = f 1 :=
-begin
-  have : (finset.univ : finset (perm n)) = {1},
-  { ext, simp },
-  simp [this]
-end
-
-attribute [to_additive] prod_perm_singleton
-
 @[simp] lemma cramer_subsingleton_apply [subsingleton n] (A : matrix n n α) (b : n → α) (i : n) :
   cramer A b i = b i :=
-begin
-  rw cramer_apply,
-  rw [det_apply],
-  convert sum_perm_singleton _,
-  { have : (finset.univ : finset n) = {i},
-    { ext, simp },
-    simp [this] },
-  { apply_instance }
-end
+by rw [cramer_apply, det_eq_elem_of_subsingleton _ i, update_column_self]
 
 lemma cramer_zero [nontrivial n] : cramer (0 : matrix n n α) = 0 :=
 begin
@@ -282,11 +245,16 @@ lemma det_adjugate_of_cancel {A : matrix n n α}
 h (adjugate A).det (calc A.det * (adjugate A).det = (A ⬝ adjugate A).det   : (det_mul _ _).symm
                                               ... = A.det ^ fintype.card n : by simp [mul_adjugate])
 
+lemma adjugate_subsingleton [subsingleton n] (A : matrix n n α) : adjugate A = 1 :=
+begin
+  ext i j,
+  simp [subsingleton.elim i j, adjugate_apply, det_eq_elem_of_subsingleton _ i]
+end
+
 lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
 begin
   haveI : subsingleton n := fintype.card_le_one_iff_subsingleton.mp h.le,
-  ext i j,
-  simp [subsingleton.elim i j, adjugate_apply, det_eq_elem_of_card_eq_one h j],
+  exact adjugate_subsingleton _
 end
 
 @[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
@@ -404,6 +372,19 @@ calc (A⁻¹)⁻¹ = 1 ⬝ (A⁻¹)⁻¹        : by rw matrix.one_mul
          ... = A                  : by { rw [matrix.mul_assoc,
                                          (A⁻¹).mul_nonsing_inv (A.is_unit_nonsing_inv_det h),
                                          matrix.mul_one], }
+
+@[simp] lemma is_unit_nonsing_inv_det_iff {A : matrix n n α} :
+  is_unit A⁻¹.det ↔ is_unit A.det :=
+begin
+  refine ⟨λ h, _, is_unit_nonsing_inv_det _⟩,
+  nontriviality α,
+  casesI is_empty_or_nonempty n,
+  { simp },
+  contrapose! h,
+  rw [nonsing_inv_apply_not_is_unit _ h, det_zero],
+  { simp },
+  { apply_instance }
+end
 
 /-- If `A.det` has a constructive inverse, produce one for `A`. -/
 def invertible_of_det_invertible [invertible A.det] : invertible A :=
@@ -524,7 +505,9 @@ def invertible_of_left_inverse (h: B ⬝ A = 1) : invertible A :=
 def invertible_of_right_inverse (h: A ⬝ B = 1) : invertible A :=
 ⟨B, nonsing_inv_left_right h, h⟩
 
-variables {C: matrix n n α}
+section inv_eq_inv
+
+variables {C : matrix n n α}
 
 /-- The left inverse of matrix A is unique when existing. -/
 lemma left_inv_eq_left_inv (h: B ⬝ A = 1) (g: C ⬝ A = 1) : B = C :=
@@ -537,6 +520,16 @@ by rw [←(inv_eq_right_inv h), ←(inv_eq_right_inv g)]
 /-- The right inverse of matrix A equals the left inverse of A when they exist. -/
 lemma right_inv_eq_left_inv (h: A ⬝ B = 1) (g: C ⬝ A = 1) : B = C :=
 by rw [←(inv_eq_right_inv h), ←(inv_eq_left_inv g)]
+
+lemma inv_inj (h : A⁻¹ = B⁻¹) (h' : is_unit A.det) : A = B :=
+begin
+  refine left_inv_eq_left_inv (mul_nonsing_inv _ h') _,
+  rw h,
+  refine mul_nonsing_inv _ _,
+  rwa [←is_unit_nonsing_inv_det_iff, ←h, is_unit_nonsing_inv_det_iff]
+end
+
+end inv_eq_inv
 
 variable (A)
 
@@ -563,14 +556,156 @@ end
 @[simp] lemma inv_one : (1 : matrix n n α)⁻¹ = 1 :=
 inv_eq_left_inv (by simp)
 
-@[simp] lemma inv_smul (k : α) [invertible k] : (k • A)⁻¹ = ⅟k • A⁻¹ :=
+lemma inv_smul (k : α) [invertible k] (h : is_unit A.det) : (k • A)⁻¹ = ⅟k • A⁻¹ :=
+inv_eq_left_inv (by simp [h, smul_smul])
+
+lemma inv_smul' (k : units α) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
+inv_eq_left_inv (by simp [h, smul_smul])
+
+lemma _root_.is_unit.coe_inv_mul {α : Type*} [monoid α] {a : α} (h : is_unit a) :
+  ↑(h.unit)⁻¹ * a = 1 :=
+begin
+  convert units.mul_inv _,
+  simp [h.unit_spec]
+end
+
+lemma _root_.is_unit.mul_coe_inv {α : Type*} [monoid α] {a : α} (h : is_unit a) :
+  a * ↑(h.unit)⁻¹ = 1 :=
+begin
+  convert units.mul_inv _,
+  simp [h.unit_spec]
+end
+
+lemma _root_.is_unit.inv_smul {α : Type*} [monoid α] {a : α} (h : is_unit a) :
+  (h.unit)⁻¹ • a = 1 :=
+h.coe_inv_mul
+
+lemma inv_adjugate (A : matrix n n α) (h : is_unit A.det) :
+  (adjugate A)⁻¹ = h.unit⁻¹ • A :=
+begin
+  refine inv_eq_left_inv _,
+  rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
+end
+
+@[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=
 begin
   by_cases h : is_unit A.det,
+  { rw [nonsing_inv_nonsing_inv _ h] },
+  { simp [nonsing_inv_apply_not_is_unit _ h] }
+end
+
+lemma mul_inv_rev (A B : matrix n n α) : (A ⬝ B)⁻¹ = B⁻¹ ⬝ A⁻¹ :=
+begin
+  by_cases h : is_unit (A ⬝ B).det,
   { refine inv_eq_left_inv _,
-    simp [mul_smul, smul_mul, h, nonsing_inv_mul, smul_smul] },
-  { have h' : ¬ is_unit (k • A).det,
-    { simp [h] },
-    simp [nonsing_inv_apply_not_is_unit, h, h'] }
+    rw det_mul at h,
+    rw [←matrix.mul_assoc, matrix.mul_assoc _ _ A, nonsing_inv_mul _ (is_unit_of_mul_is_unit_left h),
+        matrix.mul_one, nonsing_inv_mul _ (is_unit_of_mul_is_unit_right h)] },
+  { rw nonsing_inv_apply_not_is_unit _ h,
+    rw det_mul at h,
+    have : ¬ is_unit A.det ∨ ¬ is_unit B.det,
+    { contrapose! h,
+      exact h.left.mul h.right },
+    cases this with h' h';
+    simp [nonsing_inv_apply_not_is_unit _ h'] }
+end
+
+lemma ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
+  (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
+begin
+  ext i k,
+  have : (λ (j : n), ite (i = j) (1 : S) 0) = f ∘ (λ (j : n), ite (i = j) 1 0),
+  { ext,
+    simp [apply_ite f] },
+  rw [adjugate_apply, ring_hom.map_matrix_apply, map_apply, ring_hom.map_matrix_apply,
+      this, ←map_update_row, ←ring_hom.map_matrix_apply, ←ring_hom.map_det, ←adjugate_apply]
+end
+
+section cancel
+
+lemma smul_cancel_of_non_zero_divisor {α : Type*} [ring α] {m : Type*} [fintype m]
+  (k : α) (h : ∀ (x : α), k * x = 0 → x = 0) {A B : matrix n m α} (h' : k • A = k • B) :
+  A = B :=
+begin
+  ext i j,
+  refine mul_left_cancel_of_non_zero_divisor k h _,
+  simp [←smul_eq_mul, ←pi.smul_apply, h']
+end
+
+lemma mul_left_cancel_of_non_zero_divisor_det (A : matrix n n α)
+  (h : ∀ (x : α), A.det * x = 0 → x = 0) {B C : matrix n n α} (h' : A ⬝ B = A ⬝ C) :
+  B = C :=
+begin
+  refine smul_cancel_of_non_zero_divisor A.det h _,
+  rw [←matrix.one_mul B, ←matrix.one_mul C, ←matrix.smul_mul, ←matrix.smul_mul, ←adjugate_mul,
+      matrix.mul_assoc, matrix.mul_assoc, h'],
+end
+
+lemma mul_right_cancel_of_non_zero_divisor_det (A : matrix n n α)
+  (h : ∀ (x : α), A.det * x = 0 → x = 0) {B C : matrix n n α} (h' : B ⬝ A = C ⬝ A) :
+  B = C :=
+begin
+  refine smul_cancel_of_non_zero_divisor A.det h _,
+  rw [←matrix.mul_one B, ←matrix.mul_one C, ←matrix.mul_smul, ←matrix.mul_smul, ←mul_adjugate,
+      ←matrix.mul_assoc, ←matrix.mul_assoc, h']
+end
+
+end cancel
+
+lemma adjugate_mul_distrib_aux (A B : matrix n n α)
+  (hA : ∀ (x : α), A.det * x = 0 → x = 0)
+  (hB : ∀ (x : α), B.det * x = 0 → x = 0) :
+  adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
+begin
+  have hAB : ∀ (x : α), (A ⬝ B).det * x = 0 → x = 0,
+  { intros x hx,
+    rw [det_mul, mul_assoc] at hx,
+    exact hB _ (hA _ hx) },
+  refine mul_left_cancel_of_non_zero_divisor_det _ hAB _,
+  rw [mul_adjugate, matrix.mul_assoc, ←matrix.mul_assoc B, mul_adjugate, smul_mul, matrix.one_mul,
+      mul_smul, mul_adjugate, smul_smul, mul_comm, ←det_mul]
+end
+
+/--
+Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Section 5.3
+-/
+lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
+begin
+  casesI (subsingleton_or_nontrivial α),
+  { simp },
+  let g : matrix n n α → matrix n n (polynomial α) :=
+    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
+  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  have f'_inv : ∀ M, f' (g M) = M,
+  { intro,
+    ext,
+    simp [f', g], },
+  have f'_det : ∀ (M : matrix n n α), polynomial.eval_ring_hom 0 (det (g M)) = det M,
+  { intro,
+    rw [ring_hom.map_det, f'_inv] },
+  have f'_adj : ∀ (M : matrix n n α), f' (adjugate (g M)) = adjugate M,
+  { intro,
+    rw [ring_hom.map_adjugate, f'_inv] },
+  have f'_g_mul : ∀ (M N : matrix n n α), f' (g M ⬝ g N) = M ⬝ N,
+  { intros,
+    rw [←mul_eq_mul, ring_hom.map_mul, f'_inv, f'_inv, mul_eq_mul] },
+  have hu : ∀ (M : matrix n n α) (x : polynomial α), (g M).det * x = 0 → x = 0,
+  { intros M x,
+    suffices : polynomial.monic (g M).det,
+    { exact this.mul_right_eq_zero_iff.mp },
+    simp only [g, polynomial.monic.def],
+    simp [←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
+  rw [←f'_adj, ←f'_adj, ←f'_adj, ←mul_eq_mul (f' (adjugate (g B))), ←f'.map_mul, mul_eq_mul,
+      ←adjugate_mul_distrib_aux _ _ (hu A) (hu B), ring_hom.map_adjugate, ring_hom.map_adjugate,
+      f'_inv, f'_g_mul]
+end
+
+@[simp] lemma adjugate_pow (A : matrix n n α) (k : ℕ) :
+  adjugate (A ^ k) = (adjugate A) ^ k :=
+begin
+  induction k with k IH,
+  { simp },
+  { rw [pow_succ', mul_eq_mul, adjugate_mul_distrib, IH, ←mul_eq_mul, pow_succ] }
 end
 
 end inv
@@ -579,9 +714,8 @@ end inv
 @[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
   A.det • A⁻¹.mul_vec b = cramer A b :=
 begin
-  rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc],
-  conv_lhs { congr, congr, rw ← h.unit_spec, },
-  rw [←units.smul_def, smul_inv_smul],
+  rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc, units.smul_def,
+      smul_smul, h.mul_coe_inv, one_smul]
 end
 
 /-- A stronger form of **Cramer's rule** that allows us to solve some instances of `A ⬝ x = b` even

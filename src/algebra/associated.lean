@@ -163,7 +163,7 @@ begin
   exact H _ o.1 _ o.2 h.symm
 end
 
-lemma prime.irreducible [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
+protected lemma prime.irreducible [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
   irreducible p :=
 ⟨hp.not_unit, λ a b hab,
   (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ (dvd_refl _))).elim

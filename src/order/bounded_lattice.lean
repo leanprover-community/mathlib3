@@ -413,9 +413,22 @@ by refine_struct { sup := (⊔), top := ⊤, .. pi.partial_order }; tactic.pi_in
 instance pi.lattice {ι : Type*} {α : ι → Type*} [Π i, lattice (α i)] : lattice (Π i, α i) :=
 { .. pi.semilattice_sup, .. pi.semilattice_inf }
 
+instance pi.distrib_lattice {ι : Type*} {α : ι → Type*} [Π i, distrib_lattice (α i)] :
+  distrib_lattice (Π i, α i) :=
+by refine_struct {  .. pi.lattice }; tactic.pi_instance_derive_field
+
 instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_lattice (α i)] :
   bounded_lattice (Π i, α i) :=
 { .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }
+
+instance pi.distrib_lattice_bot {ι : Type*} {α : ι → Type*} [Π i, distrib_lattice_bot (α i)] :
+  distrib_lattice_bot (Π i, α i) :=
+{ .. pi.distrib_lattice, .. pi.order_bot }
+
+instance pi.bounded_distrib_lattice {ι : Type*} {α : ι → Type*}
+  [Π i, bounded_distrib_lattice (α i)] :
+  bounded_distrib_lattice (Π i, α i) :=
+{ .. pi.bounded_lattice, .. pi.distrib_lattice }
 
 lemma eq_bot_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = ⊤) (x : α) :
   x = (⊥ : α) :=
@@ -967,6 +980,9 @@ instance [semilattice_sup_top α] : semilattice_inf_bot (order_dual α) :=
 instance [bounded_lattice α] : bounded_lattice (order_dual α) :=
 { .. order_dual.lattice α, .. order_dual.order_top α, .. order_dual.order_bot α }
 
+/- If you define `distrib_lattice_top`, add the `order_dual` instances between `distrib_lattice_bot`
+and `distrib_lattice_top` here -/
+
 instance [bounded_distrib_lattice α] : bounded_distrib_lattice (order_dual α) :=
 { .. order_dual.bounded_lattice α, .. order_dual.distrib_lattice α }
 
@@ -1000,6 +1016,10 @@ instance [semilattice_inf_bot α] [semilattice_inf_bot β] : semilattice_inf_bot
 
 instance [bounded_lattice α] [bounded_lattice β] : bounded_lattice (α × β) :=
 { .. prod.lattice α β, .. prod.order_top α β, .. prod.order_bot α β }
+
+instance [distrib_lattice_bot α] [distrib_lattice_bot β] :
+  distrib_lattice_bot (α × β) :=
+{ .. prod.distrib_lattice α β, .. prod.order_bot α β }
 
 instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
   bounded_distrib_lattice (α × β) :=

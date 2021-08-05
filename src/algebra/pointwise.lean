@@ -317,6 +317,19 @@ instance [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
 
 @[simp, to_additive]
+lemma inv_empty [has_inv α] : (∅ : set α)⁻¹ = ∅ := rfl
+
+@[simp, to_additive]
+lemma inv_univ [has_inv α] : (univ : set α)⁻¹ = univ := rfl
+
+@[simp, to_additive]
+lemma nonempty_inv [group α] {s : set α} : s⁻¹.nonempty ↔ s.nonempty :=
+inv_involutive.surjective.nonempty_preimage
+
+@[to_additive] lemma nonempty.inv [group α] {s : set α} (h : s.nonempty) : s⁻¹.nonempty :=
+nonempty_inv.2 h
+
+@[simp, to_additive]
 lemma mem_inv [has_inv α] : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
 
 @[to_additive]
@@ -678,7 +691,7 @@ begin
     rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
     exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
   have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
-  monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
+  monotone_nat_of_le_succ (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
   convert card_pow_eq_card_pow_card_univ_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
     (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
   { simp only [finset.filter_congr_decidable, fintype.card_of_finset] },

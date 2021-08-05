@@ -30,6 +30,8 @@ The type `discrete_quotient X` is endowed with an instance of a `semilattice_inf
 The partial ordering `A ≤ B` mathematically means that `B.proj` factors through `A.proj`.
 The top element `⊤` is the trivial quotient, meaning that every element of `X` is collapsed
 to a point. Given `h : A ≤ B`, the map `A → B` is `discrete_quotient.of_le h`.
+Whenever `X` is discrete, the type `discrete_quotient X` is also endowed with an instance of a
+`semilattice_inf_bot`, where the bot element `⊥` is `X` itself.
 
 Given `f : X → Y` and `h : continuous f`, we define a predicate `le_comap h A B` for
 `A : discrete_quotient X` and `B : discrete_quotient Y`, asserting that `f` descends to `A → B`.
@@ -197,6 +199,23 @@ lemma of_le_proj_apply {A B : discrete_quotient X} (h : A ≤ B) (x : X) :
   of_le h (A.proj x) = B.proj x := by { change (of_le h ∘ A.proj) x = _, simp }
 
 end of_le
+
+/--
+When X is discrete, there is a `semilattice_inf_bot` instance on `discrete_quotient X`
+-/
+instance [discrete_topology X] : semilattice_inf_bot (discrete_quotient X) :=
+{ bot :=
+  { rel := (=),
+    equiv := eq_equivalence,
+    clopen := λ x, is_clopen_discrete _ },
+  bot_le := by { rintro S a b (h : a = b), rw h, exact S.refl _ },
+  ..(infer_instance : semilattice_inf _) }
+
+lemma proj_bot_injective [discrete_topology X] :
+  function.injective (⊥ : discrete_quotient X).proj := λ a b h, quotient.exact' h
+
+lemma proj_bot_bijective [discrete_topology X] :
+  function.bijective (⊥ : discrete_quotient X).proj := ⟨proj_bot_injective, proj_surjective _⟩
 
 section map
 

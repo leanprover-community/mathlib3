@@ -16,14 +16,15 @@ import category_theory.punit
 
 This file proves the (general) adjoint functor theorem, in the form:
 * If `G : D ⥤ C` preserves limits and `D` has limits, and satisfies the solution set condition,
-  then it has a left adjoint.
+  then it has a left adjoint: `is_right_adjoint_of_preserves_limits_of_solution_set_condition`.
 
 We show that the converse holds, i.e. that if `G` has a left adjoint then it satisfies the solution
-set condition (`category_theory/adjunction/limits` already shows it preserves limits).
+set condition, see `solution_set_condition_of_is_right_adjoint`
+(the file `category_theory/adjunction/limits` already shows it preserves limits).
 
-We define the *solution set condition* for the functor `G : D ⥤ C` to mean, for every object `A : C`,
-there is a set-indexed family ${f_i : A ⟶ G (B_i)}$ such that any morphism `A ⟶ G X` factors
-through one of the `f_i`.
+We define the *solution set condition* for the functor `G : D ⥤ C` to mean, for every object
+`A : C`, there is a set-indexed family ${f_i : A ⟶ G (B_i)}$ such that any morphism `A ⟶ G X`
+factors through one of the `f_i`.
 
 -/
 universes v u
@@ -65,7 +66,7 @@ begin
 end
 
 /--
-The general adjoint functor theorem says that if `G : D ⥤ C` preserves limits and `D` has them, 
+The general adjoint functor theorem says that if `G : D ⥤ C` preserves limits and `D` has them,
 if `G` satisfies the solution set condition then `G` is a right adjoint.
 -/
 noncomputable def is_right_adjoint_of_preserves_limits_of_solution_set_condition

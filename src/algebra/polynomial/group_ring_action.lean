@@ -43,14 +43,6 @@ noncomputable instance [mul_semiring_action M R] : mul_semiring_action M (polyno
   smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_ring_hom M R m),
   ..polynomial.distrib_mul_action }
 
-instance [mul_semiring_action M R] [has_faithful_scalar M R] :
-  has_faithful_scalar M (polynomial R) :=
-{ eq_of_smul_eq_smul := λ m₁ m₂ h, eq_of_smul_eq_smul $ λ s, C_inj.1 $
-    calc  C (m₁ • s)
-        = m₁ • C s : (smul_C _ _).symm
-    ... = m₂ • C s : h (C s)
-    ... = C (m₂ • s) : smul_C _ _ }
-
 variables {M R}
 
 variables [mul_semiring_action M R]

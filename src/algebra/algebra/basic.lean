@@ -851,6 +851,21 @@ theorem left_inverse_symm (e : A₁ ≃ₐ[R] A₂) : function.left_inverse e.sy
 
 theorem right_inverse_symm (e : A₁ ≃ₐ[R] A₂) : function.right_inverse e.symm e := e.right_inv
 
+-- TODO: decide on a simp-normal form so that only one of these two lemmas is needed
+@[simp] lemma coe_ring_equiv_refl : ↑(alg_equiv.refl : A₁ ≃ₐ[R] A₁) = ring_equiv.refl A₁ := rfl
+@[simp] lemma to_ring_equiv_refl :
+  (alg_equiv.refl : A₁ ≃ₐ[R] A₁).to_ring_equiv = ring_equiv.refl A₁ := rfl
+
+-- TODO: decide on a simp-normal form so that only one of these two lemmas is needed
+@[simp, norm_cast] lemma coe_ring_equiv_symm : (e : A₁ ≃+* A₂).symm = ↑e.symm := rfl
+@[simp] lemma to_ring_equiv_symm : e.to_ring_equiv.symm = e.symm.to_ring_equiv := rfl
+
+-- TODO: decide on a simp-normal form so that only one of these two lemmas is needed
+@[simp] lemma coe_ring_equiv_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
+  ↑(e₁.trans e₂) = ring_equiv.trans (e₁ : A₁ ≃+* A₂) (e₂ : A₂ ≃+* A₃) := rfl
+@[simp] lemma to_ring_equiv_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
+  (e₁.trans e₂).to_ring_equiv = e₁.to_ring_equiv.trans e₂.to_ring_equiv := rfl
+
 /-- If `A₁` is equivalent to `A₁'` and `A₂` is equivalent to `A₂'`, then the type of maps
 `A₁ →ₐ[R] A₂` is equivalent to the type of maps `A₁' →ₐ[R] A₂'`. -/
 def arrow_congr {A₁' A₂' : Type*} [semiring A₁'] [semiring A₂'] [algebra R A₁'] [algebra R A₂']

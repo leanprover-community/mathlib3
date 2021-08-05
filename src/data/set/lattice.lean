@@ -18,7 +18,8 @@ for `set α`, and some more set constructions.
 * `set.Union`: Union of an indexed family of sets.
 * `set.Inter`: Intersection of an indexed family of sets.
 * `set.sInter`: **s**et **Inter**. Intersection of sets belonging to a set of sets.
-* `set.sUnion`: **s**et **Union**. Intersection of sets belonging to a set of sets.
+* `set.sUnion`: **s**et **Union**. Intersection of sets belonging to a set of sets. This is actually
+  defined in core Lean.
 * `set.sInter_eq_bInter`, `set.sUnion_eq_bInter`: Shows that `⋂₀ s = ⋂ x ∈ s, x` and
   `⋃₀ s = ⋃ x ∈ s, x`.
 * `set.complete_boolean_algebra`: `set α` is a `complete_boolean_algebra` with `≤ = ⊆`, `< = ⊂`,
@@ -47,9 +48,7 @@ variables {α β γ : Type*} {ι ι' ι₂ : Sort*}
 
 namespace set
 
-/-!
-### Complete lattice and boolean algebra instances
--/
+/-! ### Complete lattice and complete Boolean algebra instances -/
 
 instance : has_Inf (set α) := ⟨λ s, {a | ∀ t ∈ s, a ∈ t}⟩
 instance : has_Sup (set α) := ⟨sUnion⟩
@@ -119,7 +118,7 @@ variables {f : α → β}
 protected lemma image_preimage : galois_connection (image f) (preimage f) :=
 λ a b, image_subset_iff
 
-/-- `kern_image f s` is the set of `y` such that `f ⁻¹ y ⊆ s` -/
+/-- `kern_image f s` is the set of `y` such that `f ⁻¹ y ⊆ s`. -/
 def kern_image (f : α → β) (s : set α) : set β := {y | ∀ ⦃x⦄, f x = y → x ∈ s}
 
 protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=
@@ -129,7 +128,7 @@ protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image
 
 end galois_connection
 
-/- union and intersection over a family of sets indexed by a type -/
+/-! ### Union and intersection over an indexed family of sets -/
 
 @[congr] theorem Union_congr_Prop {p q : Prop} {f₁ : p → set α} {f₂ : q → set α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Union f₁ = Union f₂ :=
@@ -205,8 +204,8 @@ theorem subset_Inter_iff {t : set β} {s : ι → set β} : t ⊆ (⋂ i, s i) �
 
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
 
--- This rather trivial consequence is convenient with `apply`,
--- and has `i` explicit for this use case.
+/-- This rather trivial consequence of `subset_Union`is convenient with `apply`, and has `i`
+explicit for this purpose. -/
 theorem subset_subset_Union
   {A : set β} {s : ι → set β} (i : ι) (h : A ⊆ s i) : A ⊆ ⋃ (i : ι), s i :=
 h.trans (subset_Union s i)
@@ -332,9 +331,7 @@ supr_option s
 lemma Inter_option {ι} (s : option ι → set α) : (⋂ o, s o) = s none ∩ ⋂ i, s (some i) :=
 infi_option s
 
-/-!
-### Intersections and unions indexes by `h : p`, `p : Prop`
--/
+/-! ### Unions and intersections indexed by `Prop` -/
 
 @[simp] theorem Inter_false {s : false → set α} : Inter s = univ := infi_false
 
@@ -1315,9 +1312,11 @@ hf.infi_comp g
 end surjective
 end function
 
-/-! ### Disjoint sets
+/-!
+### Disjoint sets
 
-We define some lemmas in the `disjoint` namespace to be able to use projection notation. -/
+We define some lemmas in the `disjoint` namespace to be able to use projection notation.
+-/
 
 section disjoint
 
@@ -1435,7 +1434,7 @@ begin
   intro h, apply hxy, apply congr_arg f, exact subtype.eq h
 end
 
-/- classical -/
+-- classical
 lemma pairwise_disjoint.elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
   (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
 not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩

@@ -398,7 +398,7 @@ lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ
   add_val R r = n :=
 by rw [add_val, add_valuation_apply, hr,
     eq_of_associated_left (associated_of_irreducible R hϖ
-      ((classical.some_spec (exists_prime R)).irreducible)),
+      (classical.some_spec (exists_prime R)).irreducible),
     eq_of_associated_right (associated.symm ⟨u, mul_comm _ _⟩),
     multiplicity_pow_self_of_prime (principal_ideal_ring.irreducible_iff_prime.1 hϖ)]
 

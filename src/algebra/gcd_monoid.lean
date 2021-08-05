@@ -90,16 +90,16 @@ def normalize : monoid_with_zero_hom α α :=
   classical.by_cases (λ hy : y = 0, by rw [hy, mul_zero, zero_mul, mul_zero]) $ λ hy,
   by simp only [norm_unit_mul hx hy, units.coe_mul]; simp only [mul_assoc, mul_left_comm y], }
 
-theorem associated_normalize {x : α} : associated x (normalize x) :=
+theorem associated_normalize (x : α) : associated x (normalize x) :=
 ⟨_, rfl⟩
 
-theorem normalize_associated {x : α} : associated (normalize x) x :=
-associated_normalize.symm
+theorem normalize_associated (x : α) : associated (normalize x) x :=
+(associated_normalize _).symm
 
-lemma associates.mk_normalize {x : α} : associates.mk (normalize x) = associates.mk x :=
-associates.mk_eq_mk_iff_associated.2 normalize_associated
+lemma associates.mk_normalize (x : α) : associates.mk (normalize x) = associates.mk x :=
+associates.mk_eq_mk_iff_associated.2 (normalize_associated _)
 
-@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
+@[simp] lemma normalize_apply (x : α) : normalize x = x * norm_unit x := rfl
 
 @[simp] lemma normalize_zero : normalize (0 : α) = 0 := normalize.map_zero
 
@@ -108,7 +108,7 @@ associates.mk_eq_mk_iff_associated.2 normalize_associated
 lemma normalize_coe_units (u : units α) : normalize (u : α) = 1 := by simp
 
 lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
-⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize,
+⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize _,
   by rintro rfl; exact normalize_zero⟩
 
 lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
@@ -324,15 +324,15 @@ gcd_dvd_gcd (dvd_refl _) (dvd_mul_left _ _)
 theorem gcd_dvd_gcd_mul_right_right (m n k : α) : gcd m n ∣ gcd m (n * k) :=
 gcd_dvd_gcd (dvd_refl _) (dvd_mul_right _ _)
 
-theorem gcd_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : gcd m k = gcd n k :=
+theorem associated.gcd_eq_left {m n : α} (h : associated m n) (k : α) : gcd m k = gcd n k :=
 dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
-  (gcd_dvd_gcd (dvd_of_associated h) (dvd_refl _))
-  (gcd_dvd_gcd (dvd_of_associated h.symm) (dvd_refl _))
+  (gcd_dvd_gcd h.dvd (dvd_refl _))
+  (gcd_dvd_gcd h.symm.dvd (dvd_refl _))
 
-theorem gcd_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : gcd k m = gcd k n :=
+theorem associated.gcd_eq_right {m n : α} (h : associated m n) (k : α) : gcd k m = gcd k n :=
 dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
-  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
-  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
+  (gcd_dvd_gcd (dvd_refl _) h.dvd)
+  (gcd_dvd_gcd (dvd_refl _) h.symm.dvd)
 
 lemma dvd_gcd_mul_of_dvd_mul {m n k : α} (H : k ∣ m * n) : k ∣ (gcd k m) * n :=
 begin
@@ -570,13 +570,13 @@ lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
 
 theorem lcm_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : lcm m k = lcm n k :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
-  (lcm_dvd_lcm (dvd_of_associated h) (dvd_refl _))
-  (lcm_dvd_lcm (dvd_of_associated h.symm) (dvd_refl _))
+  (lcm_dvd_lcm h.dvd (dvd_refl _))
+  (lcm_dvd_lcm h.symm.dvd (dvd_refl _))
 
 theorem lcm_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : lcm k m = lcm k n :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
-  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h))
-  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h.symm))
+  (lcm_dvd_lcm (dvd_refl _) h.dvd)
+  (lcm_dvd_lcm (dvd_refl _) h.symm.dvd)
 
 end lcm
 
@@ -588,14 +588,14 @@ begin
   cases hi.is_unit_or_is_unit hy with hu hu; cases hu with u hu,
   { right, transitivity (gcd (x * b) (a * b)), apply dvd_gcd (dvd_mul_right x b) h,
     rw gcd_mul_right, rw ← hu,
-    apply dvd_of_associated, transitivity (normalize b), symmetry, use u, apply mul_comm,
+    apply associated.dvd, transitivity (normalize b), symmetry, use u, apply mul_comm,
     apply normalize_associated, },
   { left, rw [hy, ← hu],
-    transitivity, {apply dvd_of_associated, symmetry, use u}, apply gcd_dvd_right, }
+    transitivity, { apply associated.dvd, symmetry, use u }, apply gcd_dvd_right, }
 end ⟩⟩
 
 theorem irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
-⟨prime_of_irreducible, irreducible_of_prime⟩
+⟨prime_of_irreducible, prime.irreducible⟩
 
 end gcd_monoid
 end gcd_monoid
@@ -751,7 +751,7 @@ let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.in
   gcd_dvd_left := λ a b, by {
     split_ifs,
     { rw h, apply dvd_zero },
-    { apply dvd_of_associated normalize_associated },
+    { exact (normalize_associated _).dvd },
     have h0 : lcm a b ≠ 0,
     { intro con,
       have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl),
@@ -762,7 +762,7 @@ let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.in
     apply dvd_lcm_right },
   gcd_dvd_right := λ a b, by {
     split_ifs,
-    { apply dvd_of_associated normalize_associated },
+    { exact (normalize_associated _).dvd },
     { rw h_1, apply dvd_zero },
     have h0 : lcm a b ≠ 0,
     { intro con,

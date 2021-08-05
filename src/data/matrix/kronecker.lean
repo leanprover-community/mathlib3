@@ -253,7 +253,7 @@ lemma kronecker_tmul_apply (A : matrix l m α) (B : matrix n p β) (i₁ i₂ j�
   (A ⊗ₖₜ B) (i₁, i₂) (j₁, j₂) = A i₁ j₁ ⊗ₜ[R] B i₂ j₂ := rfl
 
 /-- `matrix.kronecker` as a bilinear map. -/
-def kronecker_tmul_linear  [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β] :
+def kronecker_tmul_linear :
   matrix l m α →ₗ[R] matrix n p β →ₗ[R] matrix (l × n) (m × p) (α ⊗[R] β) :=
 kronecker_map_linear (tensor_product.mk R α β)
 

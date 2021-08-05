@@ -568,41 +568,6 @@ instance semiring.smul_comm_class [monoid R] [distrib_mul_action R α] [smul_com
   (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
 smul_mul a M N
 
-/--
-The ring homomorphism `α →+* matrix n n α`
-sending `a` to the diagonal matrix with `a` on the diagonal.
--/
-def scalar (n : Type u) [decidable_eq n] [fintype n] : α →+* matrix n n α :=
-{ to_fun := λ a, a • 1,
-  map_one' := by simp,
-  map_mul' := by { intros, ext, simp [mul_assoc], },
-  .. (smul_add_hom α _).flip (1 : matrix n n α) }
-
-section scalar
-
-variable [decidable_eq n]
-
-@[simp] lemma coe_scalar : (scalar n : α → matrix n n α) = λ a, a • 1 := rfl
-
-lemma scalar_apply_eq (a : α) (i : n) :
-  scalar n a i i = a :=
-by simp only [coe_scalar, smul_eq_mul, mul_one, one_apply_eq, pi.smul_apply]
-
-lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
-  scalar n a i j = 0 :=
-by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, pi.smul_apply, smul_zero]
-
-lemma scalar_inj [nonempty n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
-begin
-  split,
-  { intro h,
-    inhabit n,
-    rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h] },
-  { rintro rfl, refl }
-end
-
-end scalar
-
 end semiring
 
 section comm_semiring
@@ -616,9 +581,6 @@ by { ext, simp [mul_comm] }
   M ⬝ (λ i j, a * N i j) = a • (M ⬝ N) :=
 mul_smul M a N
 
-lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (scalar n r) M :=
-by simp [commute, semiconj_by]
-
 end comm_semiring
 
 section algebra
@@ -626,19 +588,20 @@ variables [comm_semiring R] [semiring α] [algebra R α] [decidable_eq n]
 
 instance : algebra R (matrix n n α) :=
 { commutes' := λ r x, begin
-    ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes, smul_ite], end,
-  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
-  ..((matrix.scalar n).comp (algebra_map R α)) }
+    dsimp,
+    ext i j,
+    rw [diagonal_mul, mul_diagonal, pi.algebra_map_apply, pi.algebra_map_apply, algebra.commutes],
+  end,
+  smul_def' := λ r x, begin ext, simp [algebra.smul_def'' r], end,
+  to_ring_hom := (diagonal_ring_hom n α).comp (algebra_map R _) }
 
-lemma algebra_map_matrix_apply {r : R} {i j : n} :
-  algebra_map R (matrix n n α) r i j = if i = j then algebra_map R α r else 0 :=
-begin
-  dsimp [algebra_map, algebra.to_ring_hom, matrix.scalar],
-  split_ifs with h; simp [h, matrix.one_apply_ne],
-end
+lemma algebra_map_eq_diagonal_ring_hom_comp :
+  algebra_map R (matrix n n α) = (diagonal_ring_hom n α).comp (algebra_map R _) :=
+rfl
 
-@[simp] lemma algebra_map_eq_smul (r : R) :
-  algebra_map R (matrix n n R) r = r • (1 : matrix n n R) := rfl
+lemma algebra_map_eq_diagonal (r : R) :
+  algebra_map R (matrix n n α) r = diagonal (λ _ : n, algebra_map R α r) :=
+rfl
 
 variables (R)
 
@@ -646,7 +609,7 @@ variables (R)
 @[simps]
 def diagonal_alg_hom : (n → α) →ₐ[R] matrix n n α :=
 { to_fun := diagonal,
-  commutes' := λ r, by { ext, rw [algebra_map_matrix_apply, diagonal, pi.algebra_map_apply] },
+  commutes' := λ r, rfl,
   .. diagonal_ring_hom n α }
 
 end algebra

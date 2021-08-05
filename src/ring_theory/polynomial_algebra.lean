@@ -218,8 +218,8 @@ variables {n : Type w} [decidable_eq n] [fintype n]
 The algebra isomorphism stating "matrices of polynomials are the same as polynomials of matrices".
 
 (You probably shouldn't attempt to use this underlying definition ---
-it's an algebra equivalence, and characterised extensionally by the lemma
-`mat_poly_equiv_coeff_apply` below.)
+it's an algebra equivalence, and characterised extensionally by the lemmas
+`mat_poly_equiv_coeff_apply` and `mat_poly_equiv_coeff_eq_map` below.)
 -/
 noncomputable def mat_poly_equiv :
   matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R) :=
@@ -259,7 +259,7 @@ begin
     split_ifs; { funext, simp, }, }
 end
 
-@[simp] lemma mat_poly_equiv_coeff_apply
+lemma mat_poly_equiv_coeff_apply
   (m : matrix n n (polynomial R)) (k : ℕ) (i j : n) :
   coeff (mat_poly_equiv m) k i j = coeff (m i j) k :=
 begin
@@ -274,6 +274,14 @@ begin
     { simp [std_basis_matrix, h], }, },
 end
 
+@[simp] lemma mat_poly_equiv_coeff_eq_map
+  (m : matrix n n (polynomial R)) (k : ℕ) :
+  coeff (mat_poly_equiv m) k = m.map (λ p, coeff p k) :=
+begin
+  ext i j,
+  exact mat_poly_equiv_coeff_apply _ _ _ _,
+end
+
 @[simp] lemma mat_poly_equiv_symm_apply_coeff
   (p : polynomial (matrix n n R)) (i j : n) (k : ℕ) :
   coeff (mat_poly_equiv.symm p i j) k = coeff p k i j :=
@@ -284,13 +292,20 @@ begin
   simp only [mat_poly_equiv_coeff_apply],
 end
 
+lemma mat_poly_equiv_algebra_map (p : polynomial R) :
+  mat_poly_equiv (algebra_map _ _ p) = p.map (algebra_map R (matrix n n R)) :=
+begin
+  ext m : 1,
+  rw mat_poly_equiv_coeff_eq_map,
+  simp only [matrix.algebra_map_eq_diagonal, polynomial.coeff_map, matrix.diagonal_map,
+    algebra.id.map_eq_self, coeff_zero],
+end
+
 lemma mat_poly_equiv_smul_one (p : polynomial R) :
   mat_poly_equiv (p • 1) = p.map (algebra_map R (matrix n n R)) :=
 begin
-  ext m i j,
-  simp only [coeff_map, one_apply, algebra_map_matrix_apply, mul_boole,
-    pi.smul_apply, mat_poly_equiv_coeff_apply],
-  split_ifs; simp,
+  rw ←algebra.algebra_map_eq_smul_one,
+  exact mat_poly_equiv_algebra_map p,
 end
 
 lemma support_subset_support_mat_poly_equiv

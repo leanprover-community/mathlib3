@@ -127,14 +127,14 @@ end
 
 -- I feel like this should use polynomial.alg_hom_eval₂_algebra_map
 lemma mat_poly_equiv_eval (M : matrix n n (polynomial R)) (r : R) (i j : n) :
-  (mat_poly_equiv M).eval ((scalar n) r) i j = (M i j).eval r :=
+  (mat_poly_equiv M).eval (algebra_map _ _ r) i j = (M i j).eval r :=
 begin
   unfold polynomial.eval, unfold eval₂,
   transitivity polynomial.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),
-    (a * (scalar n) r ^ e) i j),
+    (a * algebra_map _ _ r ^ e) i j),
   { unfold polynomial.sum, rw matrix.sum_apply, dsimp, refl },
-  { simp_rw [←ring_hom.map_pow, ←(matrix.scalar.commute _ _).eq],
-    simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
+  { simp_rw [←ring_hom.map_pow, ←algebra.commutes],
+    simp only [algebra.algebra_map_eq_smul_one, matrix.one_mul, ring_hom.id_apply,
       pi.smul_apply, smul_eq_mul, mul_eq_mul, algebra.smul_mul_assoc],
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
     simp only [polynomial.sum, mat_poly_equiv_coeff_apply, mul_comm],
@@ -144,11 +144,16 @@ begin
     simp only [h'n, zero_mul] }
 end
 
+lemma mat_poly_equiv_eval_eq_map (M : matrix n n (polynomial R)) (r : R) :
+  (mat_poly_equiv M).eval (algebra_map _ _ r) = M.map (eval r) :=
+matrix.ext $ mat_poly_equiv_eval M r
+
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
-  polynomial.eval r M.det = (polynomial.eval (matrix.scalar n r) (mat_poly_equiv M)).det :=
+  polynomial.eval r M.det = (polynomial.eval (algebra_map _ _ r) (mat_poly_equiv M)).det :=
 begin
   rw [polynomial.eval, ← coe_eval₂_ring_hom, ring_hom.map_det],
-  apply congr_arg det, ext, symmetry, convert mat_poly_equiv_eval _ _ _ _,
+  apply congr_arg det,
+  exact (mat_poly_equiv_eval_eq_map M r).symm,
 end
 
 theorem det_eq_sign_char_poly_coeff (M : matrix n n R) :

@@ -683,19 +683,19 @@ lemma restrict_le_restrict_Union {f : ℕ → set α}
 begin
   refine restrict_le_restrict_of_subset_le v w (λ a ha₁ ha₂, _),
   have ha₃ : (⋃ n, a ∩ disjointed f n) = a,
-  { rwa [← inter_Union, set.Union_disjointed, inter_eq_left_iff_subset] },
+  { rwa [← inter_Union, Union_disjointed, inter_eq_left_iff_subset] },
   have ha₄ : pairwise (disjoint on (λ n, a ∩ disjointed f n)),
-  { exact disjoint_disjointed.mono (λ i j, disjoint.mono inf_le_right inf_le_right) },
+  { exact (disjoint_disjointed _).mono (λ i j, disjoint.mono inf_le_right inf_le_right) },
   rw [← ha₃, v.of_disjoint_Union_nat _ ha₄, w.of_disjoint_Union_nat _ ha₄],
   refine tsum_le_tsum (λ n, (restrict_le_restrict_iff v w (hf₁ n)).1 (hf₂ n) _ _) _ _,
   { exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
-  { exact set.subset.trans (set.inter_subset_right _ _) set.disjointed_subset },
+  { exact set.subset.trans (set.inter_subset_right _ _) (disjointed_subset _ _) },
   { refine (v.m_Union (λ n, _) _).summable,
     { exact ha₁.inter (measurable_set.disjointed hf₁ n) },
-    { exact disjoint_disjointed.mono (λ i j, disjoint.mono inf_le_right inf_le_right) } },
+    { exact (disjoint_disjointed _).mono (λ i j, disjoint.mono inf_le_right inf_le_right) } },
   { refine (w.m_Union (λ n, _) _).summable,
     { exact ha₁.inter (measurable_set.disjointed hf₁ n) },
-    { exact disjoint_disjointed.mono (λ i j, disjoint.mono inf_le_right inf_le_right) } },
+    { exact (disjoint_disjointed _).mono (λ i j, disjoint.mono inf_le_right inf_le_right) } },
   { intro n, exact (ha₁.inter (measurable_set.disjointed hf₁ n)) },
   { exact λ n, ha₁.inter (measurable_set.disjointed hf₁ n) }
 end
@@ -779,23 +779,15 @@ not.imp_symm (zero_le_restrict_not_measurable _) hi
 lemma measurable_of_not_restrict_le_zero (hi : ¬ v ≤[i] 0) : measurable_set i :=
 not.imp_symm (restrict_le_zero_of_not_measurable _) hi
 
-lemma zero_le_restrict_subset (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] v) (hij : j ⊆ i) :
+lemma zero_le_restrict_subset (hi₁ : measurable_set i) (hij : j ⊆ i) (hi₂ : 0 ≤[i] v):
   0 ≤[j] v :=
 restrict_le_restrict_of_subset_le _ _
   (λ k hk₁ hk₂, (restrict_le_restrict_iff _ _ hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij))
 
-lemma restrict_le_zero_subset (hi₁ : measurable_set i) (hi₂ : v ≤[i] 0) (hij : j ⊆ i) :
+lemma restrict_le_zero_subset (hi₁ : measurable_set i) (hij : j ⊆ i) (hi₂ : v ≤[i] 0):
   v ≤[j] 0 :=
 restrict_le_restrict_of_subset_le _ _
   (λ k hk₁ hk₂, (restrict_le_restrict_iff _ _ hi₁).1 hi₂ hk₁ (set.subset.trans hk₂ hij))
-
-lemma not_zero_le_restrict_subset (hi : ¬ 0 ≤[i] v) (h : i ⊆ j) (hj : measurable_set j) :
-  ¬ 0 ≤[j] v :=
-λ h', hi $ (zero_le_restrict_subset _) hj h' h
-
-lemma not_restrict_le_zero_subset (hi : ¬ v ≤[i] 0) (h : i ⊆ j) (hj : measurable_set j) :
-  ¬ v ≤[j] 0 :=
-λ h', hi $ (restrict_le_zero_subset _) hj h' h
 
 end
 

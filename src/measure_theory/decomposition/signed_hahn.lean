@@ -182,14 +182,14 @@ begin
     exact (lt_trans nat.one_div_pos_of_nat h) },
   { rw restrict_nonpos_seq_succ,
     have h₁ : ¬ s ≤[i \ ⋃ (k : ℕ) (H : k ≤ n), restrict_nonpos_seq s i k] 0,
-    { apply not_restrict_le_zero_subset _ hn,
+    { refine mt (restrict_le_zero_subset _ _ _) hn,
+       { convert measurable_of_not_restrict_le_zero _ hn,
+        exact funext (λ x, by rw nat.lt_succ_iff) },
       { apply set.diff_subset_diff_right,
         intros x,
         simp_rw [set.mem_Union],
         rintro ⟨n, hn₁, hn₂⟩,
-        exact ⟨n, nat.lt_succ_iff.mpr hn₁, hn₂⟩ },
-      { convert measurable_of_not_restrict_le_zero _ hn,
-        exact funext (λ x, by rw nat.lt_succ_iff) } },
+        exact ⟨n, nat.lt_succ_iff.mpr hn₁, hn₂⟩ } },
     rcases some_exists_one_div_lt_spec h₁ with ⟨_, _, h⟩,
     exact (lt_trans nat.one_div_pos_of_nat h) }
 end
@@ -243,8 +243,8 @@ begin
     rw [of_diff hmeas hi₁, s.of_disjoint_Union_nat],
     { have h₁ : ∀ l < k, 0 ≤ s (restrict_nonpos_seq s i l),
       { intros l hl,
-        refine le_of_lt (measure_of_restrict_nonpos_seq h _ ((not_restrict_le_zero_subset _
-          (nat.find_min hn hl) (set.subset.refl _)) (hi₁.diff _))),
+        refine le_of_lt (measure_of_restrict_nonpos_seq h _ _),
+        refine mt (restrict_le_zero_subset _ (hi₁.diff _) (set.subset.refl _)) (nat.find_min hn hl),
         exact (measurable_set.Union $ λ _, measurable_set.Union_Prop
           (λ _, restrict_nonpos_seq_measurable_set _)) },
       suffices : 0 ≤ ∑' (l : ℕ), s (⋃ (H : l < k), restrict_nonpos_seq s i l),
@@ -373,7 +373,7 @@ begin
         of_union (disjoint.comm.1 set.disjoint_diff) _ (hmeas n)],
     { refine add_le_of_nonpos_left _,
       have : s ≤[A] 0 := restrict_le_restrict_Union _ _ hmeas hr,
-      refine nonpos_of_restrict_le_zero _ (restrict_le_zero_subset _ _ this (set.diff_subset _ _)),
+      refine nonpos_of_restrict_le_zero _ (restrict_le_zero_subset _ _ (set.diff_subset _ _) this),
       exact measurable_set.Union hmeas },
     { apply_instance },
     { exact (measurable_set.Union hmeas).diff (hmeas n) } },
@@ -409,11 +409,11 @@ begin
         have : s ≤[A] 0 :=
           restrict_le_restrict_Union _ _ hB₁ (λ m, let ⟨_, h⟩ := (hB m).1 in h),
         refine nonpos_of_restrict_le_zero _
-          (restrict_le_zero_subset _ _ this (set.diff_subset _ _)),
+          (restrict_le_zero_subset _ _ (set.diff_subset _ _) this),
         exact measurable_set.Union hB₁ },
       { apply_instance },
       { exact (measurable_set.Union hB₁).diff (hB₁ n) } },
-    { exact real.Inf_le _ bdd_below_measure_of_negatives ⟨A, ⟨hA₁, hA₂⟩, rfl⟩ } },
+    { exact cInf_le bdd_below_measure_of_negatives ⟨A, ⟨hA₁, hA₂⟩, rfl⟩ } },
 
   refine ⟨Aᶜ, hA₁.compl, _, (compl_compl A).symm ▸ hA₂⟩,
   rw restrict_le_restrict_iff _ _ hA₁.compl,
@@ -427,7 +427,7 @@ begin
     linarith, apply_instance },
 
   refine not_le.2 this _,
-  refine real.Inf_le _ bdd_below_measure_of_negatives ⟨A ∪ D, ⟨_, _⟩, rfl⟩,
+  refine cInf_le bdd_below_measure_of_negatives ⟨A ∪ D, ⟨_, _⟩, rfl⟩,
   { exact hA₁.union hD₁ },
   { exact restrict_le_restrict_union _ _ hA₁ hA₂ hD₁ hD₂ },
 end

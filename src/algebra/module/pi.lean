@@ -66,7 +66,7 @@ instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
 
 /-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is
 not an instance as `i` cannot be inferred. -/
-def has_faithful_scalar_at {α : Type*}
+lemma has_faithful_scalar_at {α : Type*}
   [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_scalar α (f i)] :
   has_faithful_scalar α (Π i, f i) :=
 ⟨λ x y h, eq_of_smul_eq_smul $ λ a : f i, begin

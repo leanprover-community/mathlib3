@@ -6,17 +6,17 @@ Authors: Johannes Hölzl
 import order.complete_lattice
 
 /-!
-# Completely distributive lattices and boolean algebras
+# Completely distributive lattices and Boolean algebras
 
-In this file there is definition and APi for completely distributive lattices and
-completely distributive boolean algebras.
+In this file there are definitions and an API for completely distributive lattices and completely
+distributive Boolean algebras.
 
 ## Typeclasses
 
 * `complete_distrib_lattice`: Completely distributive lattices: A complete lattice whose `⊓` and `⊔`
-  distribute over `⨆` and `⨅ ` respectively.
-* `complete_boolean_algebra`: Completely distributive boolean algebra: A boolean algebra whose `⊓`
-  and `⊔` distribute over `⨆` and `⨅ ` respectively.
+  distribute over `⨆` and `⨅` respectively.
+* `complete_boolean_algebra`: Completely distributive Boolean algebra: A Boolean algebra whose `⊓`
+  and `⊔` distribute over `⨆` and `⨅` respectively.
 -/
 
 set_option old_structure_cmd true
@@ -115,7 +115,7 @@ instance complete_distrib_lattice.bounded_distrib_lattice [d : complete_distrib_
 { le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
   ..d }
 
-/-- A complete boolean algebra is a completely distributive boolean algebra. -/
+/-- A complete Boolean algebra is a completely distributive Boolean algebra. -/
 class complete_boolean_algebra α extends boolean_algebra α, complete_distrib_lattice α
 
 instance pi.complete_boolean_algebra {ι : Type*} {π : ι → Type*}

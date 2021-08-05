@@ -6,6 +6,7 @@ Authors: Filippo A. E. Nuccio, Eric Wieser
 
 import data.matrix.basic
 import linear_algebra.tensor_product
+import ring_theory.tensor_product
 
 /-!
 # Kronecker product of matrices
@@ -17,10 +18,22 @@ This defines the [Kronecker product](https://en.wikipedia.org/wiki/Kronecker_pro
 * `matrix.kronecker_map`: A generalization of the Kronecker product, defined such that
   `kronecker_map f A B (i₁, i₂) (j₁, j₂) = f (A i₁ j₁) (B i₁ j₂)`.
 * `matrix.kronecker_map_linear`: when `f` is bilinear, so is `kronecker_map f`.
-* `matrix.kronecker`: A version of `kronecker_map` for when `f = (*)`. We provide the notation
-  `A ⊗ₖ B` for `A.kronecker B` behind the locale `kronecker`.
-* `matrix.kronecker_linear`: A version of `kronecker_map` for when `f = (*)`. We provide the notation
-  `A ⊗ₖ B` for `A.kronecker B` behind the locale `kronecker`.
+
+## Specializations
+
+* `matrix.kronecker`: An alias of `kronecker_map (*)`. Prefer using the notation.
+* `matrix.kronecker_linear`: `matrix.kronecker` is bilinear
+
+* `matrix.kronecker_tmul`: An alias of `kronecker_map (⊗ₜ)`. Prefer using the notation.
+* `matrix.kronecker_tmul_linear`: `matrix.tmul_kronecker` is bilinear
+
+## Notations
+
+These require `open_locale kronecker`:
+
+* `A ⊗ₖ B` for `kronecker_map (*) A B`
+* `A ⊗ₖₜ B` and `A ⊗ₖₜ[R] B` for `kronecker_map (⊗ₜ) A B`
+
 -/
 
 namespace matrix
@@ -150,11 +163,12 @@ variables (R)
 
 open_locale matrix
 
-/-- The Kronecker product, with notation `⊗ₖ`. -/
-def kronecker [has_mul α] :  matrix l m α → matrix n p α → matrix (l × n) (m × p) α :=
+/-- The Kronecker product. This is just a shorthand for `kronecker_map (*)`. Prefer the notation
+`⊗ₖ` rather than this definition. -/
+@[simp] def kronecker [has_mul α] : matrix l m α → matrix n p α → matrix (l × n) (m × p) α :=
 kronecker_map (*)
 
-localized "infix ` ⊗ₖ `:100 := kronecker_map (*)" in kronecker
+localized "infix ` ⊗ₖ `:100 := matrix.kronecker_map (*)" in kronecker
 
 @[simp]
 lemma kronecker_apply [has_mul α] (A : matrix l m α) (B : matrix n p α) (i₁ i₂ j₁ j₂) :
@@ -165,12 +179,8 @@ def kronecker_linear [comm_semiring R] [semiring α] [algebra R α] :
   matrix l m α →ₗ[R] matrix n p α →ₗ[R] matrix (l × n) (m × p) α :=
 kronecker_map_linear (algebra.lmul R α).to_linear_map
 
-/-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma except the ones about
-`matrix.map` which would end up with overly confusing. -/
-
-lemma transpose_kronecker_transpose [has_mul α] (A : matrix l m α) (B : matrix n p α) :
-  Aᵀ ⊗ₖ Bᵀ = (A ⊗ₖ B)ᵀ :=
-kronecker_map_transpose _ _ _
+/-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
+hypothese which can be filled by properties of `*`. -/
 
 lemma zero_kronecker [mul_zero_class α] (B : matrix n p α) : (0 : matrix l m α) ⊗ₖ B = 0 :=
 kronecker_map_zero_left _ zero_mul B
@@ -214,5 +224,72 @@ kronecker_map_linear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_com
 -- insert lemmas specific to `kronecker` below this line
 
 end kronecker
+
+/-! ### Specialization to `matrix.kronecker_map (⊗ₜ)` -/
+
+section kronecker_tmul
+
+variables (R)
+open tensor_product
+open_locale matrix tensor_product
+
+variables [comm_semiring R] [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β]
+
+/-- The Kronecker tensor product. This is just a shorthand for `kronecker_map (⊗ₜ)`.
+Prefer the notation `⊗ₖₜ` rather than this definition. -/
+@[simp] def kronecker_tmul :
+  matrix l m α → matrix n p β → matrix (l × n) (m × p) (α ⊗[R] β) :=
+kronecker_map (⊗ₜ)
+
+localized "infix ` ⊗ₖₜ `:100 := matrix.kronecker_map (⊗ₜ)" in kronecker
+localized
+  "notation x ` ⊗ₖₜ[`:100 R `] `:0 y:100 := matrix.kronecker_map (tensor_product.tmul R) x y"
+    in kronecker
+
+@[simp]
+lemma kronecker_tmul_apply (A : matrix l m α) (B : matrix n p β) (i₁ i₂ j₁ j₂) :
+  (A ⊗ₖₜ B) (i₁, i₂) (j₁, j₂) = A i₁ j₁ ⊗ₜ[R] B i₂ j₂ := rfl
+
+/-- `matrix.kronecker` as a bilinear map. -/
+def kronecker_tmul_linear  [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β] :
+  matrix l m α →ₗ[R] matrix n p β →ₗ[R] matrix (l × n) (m × p) (α ⊗[R] β) :=
+kronecker_map_linear (tensor_product.mk R α β)
+
+/-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
+hypothese which can be filled by properties of `*`. -/
+
+lemma zero_kronecker_tmul (B : matrix n p β) : (0 : matrix l m α) ⊗ₖₜ[R] B = 0 :=
+kronecker_map_zero_left _ (zero_tmul α) B
+
+lemma kronecker_tmul_zero (A : matrix l m α) : A ⊗ₖₜ[R] (0 : matrix n p β) = 0 :=
+kronecker_map_zero_right _ (tmul_zero β) A
+
+lemma add_kronecker_tmul (A₁ A₂ : matrix l m α) (B : matrix n p α) :
+  (A₁ + A₂) ⊗ₖₜ[R] B = A₁ ⊗ₖₜ B + A₂ ⊗ₖₜ B :=
+kronecker_map_add_left _ add_tmul _ _ _
+
+lemma kronecker_tmul_add (A : matrix l m α) (B₁ B₂ : matrix n p α) :
+  A ⊗ₖₜ[R] (B₁ + B₂) = A ⊗ₖₜ B₁ + A ⊗ₖₜ B₂ :=
+kronecker_map_add_right _ tmul_add _ _ _
+
+lemma smul_kronecker_tmul
+  (r : R) (A : matrix l m α) (B : matrix n p α) :
+  (r • A) ⊗ₖₜ[R] B = r • (A ⊗ₖₜ B) :=
+kronecker_map_smul_left _ (λ _ _ _, smul_tmul' _ _ _) _ _ _
+
+lemma kronecker_tmul_smul
+  (r : R) (A : matrix l m α) (B : matrix n p α) :
+  A ⊗ₖₜ[R] (r • B) = r • (A ⊗ₖₜ B) :=
+kronecker_map_smul_right _ (λ _ _ _, tmul_smul _ _ _) _ _ _
+
+lemma diagonal_kronecker_tmul_diagonal
+  [decidable_eq m] [decidable_eq n]
+  (a : m → α) (b : n → α):
+  (diagonal a) ⊗ₖₜ[R] (diagonal b) = diagonal (λ mn, a mn.1 ⊗ₜ b mn.2) :=
+kronecker_map_diagonal_diagonal _ (zero_tmul _) (tmul_zero _) _ _
+
+-- insert lemmas specific to `kronecker_tmul` below this line
+
+end kronecker_tmul
 
 end matrix

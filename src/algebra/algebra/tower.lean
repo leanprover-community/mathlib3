@@ -122,29 +122,6 @@ ring_hom.ext $ λ _, rfl
 @[simp] lemma coe_to_alg_hom' : (to_alg_hom R S A : S → A) = algebra_map S A :=
 rfl
 
-section biproduct
-
-variables {T : Type*} [comm_semiring S] [comm_semiring A] [comm_semiring B] [comm_semiring T]
-variables [algebra S A] [algebra S B] [algebra S T] [algebra A T] [algebra B T]
-variables {A B}
-variables (S T)
-
-
--- TODO: move this
-def algebra.biprod [is_scalar_tower S A T] [is_scalar_tower S B T] :
-  A →ₗ[S] B →ₗ[S] T := sorry
--- ((algebra.lmul S T).to_linear_map.compl₂ ((algebra.linear_map B T).restrict_scalars S)).comp
---   ((algebra.linear_map A T).restrict_scalars S)
-
--- @[simp]
-lemma algebra.biprod_apply [is_scalar_tower S A T] [is_scalar_tower S B T] (a : A) (b : B) :
-  algebra.biprod S T a b = algebra_map A T a * algebra_map B T b := sorry
-  --rfl
-
-variables (R) {S A B}
-
-end biproduct
-
 
 -- conflicts with is_scalar_tower.subalgebra
 @[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
@@ -286,6 +263,30 @@ from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (al
 by { ext z, exact ⟨λ ⟨⟨x, y, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, hy⟩, rfl⟩⟩ }
 
 end is_scalar_tower
+
+section biproduct
+
+open is_scalar_tower
+
+variables {T : Type*} [comm_semiring S] [comm_semiring A] [comm_semiring B] [comm_semiring T]
+variables [algebra S A] [algebra S B] [algebra S T] [algebra A T] [algebra B T]
+variables {A B}
+variables (S T)
+
+
+-- TODO: move this
+def algebra.biprod [is_scalar_tower S A T] [is_scalar_tower S B T] :
+  A →ₗ[S] B →ₗ[S] T :=
+((algebra.lmul S T).to_linear_map.compl₂ ((algebra.linear_map B T).restrict_scalars S)).comp
+  ((algebra.linear_map A T).restrict_scalars S)
+
+@[simp]
+lemma algebra.biprod_apply [is_scalar_tower S A T] [is_scalar_tower S B T] (a : A) (b : B) :
+  algebra.biprod S T a b = algebra_map A T a * algebra_map B T b := rfl
+
+variables (R) {S A B}
+
+end biproduct
 
 section semiring
 

@@ -115,9 +115,9 @@ variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
 -- TODO: move this
 -- def algebra.biprod [is_scalar_tower α R β] [is_scalar_tower α S β] :
---   R →ₗ[α] S →ₗ[α] β := assume
--- -- ((algebra.lmul α β).to_linear_map.compl₂ ((algebra.linear_map S β).restrict_scalars α)).comp
--- --   ((algebra.linear_map R β).restrict_scalars α)
+--   R →ₗ[α] S →ₗ[α] β :=
+-- ((algebra.lmul α β).to_linear_map.compl₂ ((algebra.linear_map S β).restrict_scalars α)).comp
+--   ((algebra.linear_map R β).restrict_scalars α)
 
 -- @[simp]
 -- lemma algebra.biprod_apply [is_scalar_tower α R β] [is_scalar_tower α S β] (r : R) (s : S) :

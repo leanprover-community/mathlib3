@@ -515,7 +515,7 @@ instance list.sampleable : sampleable_functor list.{u} :=
   shrink := λ α Iα shr_α, @list.shrink_with _ Iα shr_α,
   p_repr := @list.has_repr }
 
-instance prop.sampleable_ext : sampleable_ext Prop :=
+instance Prop.sampleable_ext : sampleable_ext Prop :=
 { proxy_repr := bool,
   interp := coe,
   sample := choose_any bool,

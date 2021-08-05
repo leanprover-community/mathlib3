@@ -34,10 +34,10 @@ import data.prod
 
 ## Main theorems
 
-- `monotone_of_monotone_nat`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
+- `monotone_nat_of_le_succ`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
   monotone.
-- `strict_mono.nat`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is strictly
-  monotone.
+- `strict_mono_nat_of_lt_succ`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is
+  strictly monotone.
 
 ## TODO
 
@@ -128,7 +128,7 @@ protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone 
 protected theorem monotone.iterate {f : α → α} (hf : monotone f) (n : ℕ) : monotone (f^[n]) :=
 nat.rec_on n monotone_id (λ n ihn, ihn.comp hf)
 
-lemma monotone_of_monotone_nat {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
+lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
   monotone f | n m h :=
 begin
   induction h,
@@ -361,15 +361,16 @@ H.le_iff_le.mp (h_bot (f x))
 
 end
 
-protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀ n, f n < f (n + 1)) : strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact ih.trans (h _) }
-
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
 lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
 λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (@H _ _)) (by rintro rfl; refl)
 
 end strict_mono
+
+lemma strict_mono_nat_of_lt_succ {β} [preorder β] {f : ℕ → β} (h : ∀ n, f n < f (n + 1)) :
+  strict_mono f :=
+by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact ih.trans (h _) }
 
 section
 open function
@@ -385,6 +386,10 @@ begin
   { rw eq_comm,
     apply h _ _ k }
 end
+
+lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
+  (h : ∀ {x y}, f x ≤ f y → x ≤ y) : injective f :=
+λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
 
 lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
   (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
@@ -410,6 +415,10 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)]
 { le       := λ x y, ∀ i, x i ≤ y i,
   le_refl  := λ a i, le_refl (a i),
   le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
+
+lemma function.monotone_eval {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] (i : ι) :
+  monotone (function.eval i : (Π i, α i) → α i) :=
+λ f g H, H i
 
 lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x ≤ y ↔ ∀ i, x i ≤ y i :=

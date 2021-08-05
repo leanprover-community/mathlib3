@@ -3,7 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import data.sigma.basic
 import order.complete_boolean_algebra
 import order.directed
 import order.galois_connection
@@ -16,14 +15,14 @@ for `set α`, and some more set constructions.
 
 ## Main declarations
 
-* `set.lattice_set`: `set α` is a `complete_lattice` with `< = ⊂`, `≤ = ⊆`, `⊓ = ∩`, `⊔ = ∪`. See
-  `set.boolean_algebra` for more.
 * `set.Union`: Union of an indexed family of sets.
 * `set.Inter`: Intersection of an indexed family of sets.
 * `set.sInter`: **s**et **Inter**. Intersection of sets belonging to a set of sets.
 * `set.sUnion`: **s**et **Union**. Intersection of sets belonging to a set of sets.
 * `set.sInter_eq_bInter`, `set.sUnion_eq_bInter`: Shows that `⋂₀ s = ⋂ x ∈ s, x` and
   `⋃₀ s = ⋃ x ∈ s, x`.
+* `set.complete_boolean_algebra`: `set α` is a `complete_boolean_algebra` with `≤ = ⊆`, `< = ⊂`,
+  `⊓ = ∩`, `⊔ = ∪`, `⨅ = ⋂`, `⨆ = ⋃` and `\` as the set difference. See `set.boolean_algebra`.
 * `set.kern_image`: For a function `f : α → β`, `s.kern_image f` is the set of `y` such that
   `f ⁻¹ y ⊆ s`.
 * `set.seq`: Union of the image of a set under a **seq**uence of functions. `seq s t` is the union
@@ -149,7 +148,7 @@ begin
 end
 
 @[simp]
-lemma Union_prop_pos {p : ι → Prop} {i : ι} (hi : p i) (f : ι → set α)  :
+lemma Union_prop_pos {p : ι → Prop} {i : ι} (hi : p i) (f : ι → set α) :
   (⋃ (h : p i), f i) = f i :=
 begin
   classical,
@@ -158,7 +157,7 @@ begin
 end
 
 @[simp]
-lemma Union_prop_neg {p : ι → Prop} {i : ι} (hi : ¬ p i) (f : ι → set α)  :
+lemma Union_prop_neg {p : ι → Prop} {i : ι} (hi : ¬ p i) (f : ι → set α) :
   (⋃ (h : p i), f i) = ∅ :=
 begin
   classical,
@@ -872,9 +871,8 @@ begin
 end
 
 section function
-/-!
-### `maps_to`
--/
+
+/-! ### `maps_to` -/
 
 lemma maps_to_sUnion {S : set (set α)} {t : set β} {f : α → β} (H : ∀ s ∈ S, maps_to f s t) :
   maps_to f (⋃₀ S) t :=
@@ -934,9 +932,7 @@ lemma image_sInter_subset (S : set (set α)) (f : α → β) :
   f '' (⋂₀ S) ⊆ ⋂ s ∈ S, f '' s :=
 by { rw sInter_eq_bInter, apply image_bInter_subset }
 
-/-!
-### `inj_on`
--/
+/-! ### `inj_on` -/
 
 lemma inj_on.image_Inter_eq [nonempty ι] {s : ι → set α} {f : α → β} (h : inj_on f (⋃ i, s i)) :
   f '' (⋂ i, s i) = ⋂ i, f '' (s i) :=
@@ -974,9 +970,7 @@ begin
   exact hf k (hi hx) (hj hy) hxy
 end
 
-/-!
-### `surj_on`
--/
+/-! ### `surj_on` -/
 
 lemma surj_on_sUnion {s : set α} {T : set (set β)} {f : α → β} (H : ∀ t ∈ T, surj_on f s t) :
   surj_on f s (⋃₀ T) :=
@@ -1015,9 +1009,7 @@ lemma surj_on_Inter_Inter [hi : nonempty ι] {s : ι → set α} {t : ι → set
   surj_on f (⋂ i, s i) (⋂ i, t i) :=
 surj_on_Inter (λ i, (H i).mono (subset.refl _) (Inter_subset _ _)) Hinj
 
-/-!
-### `bij_on`
--/
+/-! ### `bij_on` -/
 
 lemma bij_on_Union {s : ι → set α} {t : ι → set β} {f : α → β} (H : ∀ i, bij_on f (s i) (t i))
   (Hinj : inj_on f (⋃ i, s i)) :
@@ -1042,6 +1034,8 @@ bij_on_Inter H $ inj_on_Union_of_directed hs (λ i, (H i).inj_on)
 
 end function
 
+/-! ### `image`, `preimage` -/
+
 section image
 
 lemma image_Union {f : α → β} {s : ι → set α} : f '' (⋃ i, s i) = (⋃ i, f '' s i) :=
@@ -1055,7 +1049,7 @@ lemma image_bUnion {f : α → β} {s : ι → set α} {p : ι → Prop} :
   f '' (⋃ i (hi : p i), s i) = (⋃ i (hi : p i), f '' s i) :=
 by simp only [image_Union]
 
-lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃ x (h : p x), {⟨x, h⟩})  :=
+lemma univ_subtype {p : α → Prop} : (univ : set (subtype p)) = (⋃ x (h : p x), {⟨x, h⟩}) :=
 set.ext $ λ ⟨x, h⟩, by simp [h]
 
 lemma range_eq_Union {ι} (f : ι → α) : range f = (⋃ i, {f i}) :=
@@ -1245,6 +1239,8 @@ by { ext, simp }
 
 end seq
 
+/-! ### `set` as a monad -/
+
 instance : monad set :=
 { pure       := λ (α : Type u) a, {a},
   bind       := λ (α β : Type u) s f, ⋃ i ∈ s, f i,
@@ -1319,15 +1315,15 @@ hf.infi_comp g
 end surjective
 end function
 
-/-! ### Disjoint sets -/
+/-! ### Disjoint sets
+
+We define some lemmas in the `disjoint` namespace to be able to use projection notation. -/
 
 section disjoint
 
 variables {s t u : set α}
 
 namespace disjoint
-
-/-! We define some lemmas in the `disjoint` namespace to be able to use projection notation. -/
 
 theorem union_left (hs : disjoint s u) (ht : disjoint t u) : disjoint (s ∪ t) u :=
 hs.sup_left ht
@@ -1424,7 +1420,7 @@ end disjoint
 namespace set
 
 /-- A collection of sets is `pairwise_disjoint`, if any two different sets in this collection
-are disjoint.  -/
+are disjoint. -/
 def pairwise_disjoint (s : set (set α)) : Prop :=
 pairwise_on s disjoint
 

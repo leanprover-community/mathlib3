@@ -142,6 +142,8 @@ end
 
 end kronecker_map
 
+/-! ### Specialization to `matrix.kronecker_map (*)` -/
+
 section kronecker
 
 variables (R)
@@ -163,20 +165,18 @@ lemma kronecker_linear [comm_semiring R] [semiring α] [algebra R α] :
   matrix l m α →ₗ[R] matrix n p α →ₗ[R] matrix (l × n) (m × p) α :=
 kronecker_map_linear (algebra.lmul R α).to_linear_map
 
-lemma zero_kronecker [mul_zero_class α] (B : matrix n p α) :
-  kronecker (0 : matrix l m α) B = 0 :=
+lemma zero_kronecker [mul_zero_class α] (B : matrix n p α) : (0 : matrix l m α) ⊗ₖ B = 0 :=
 kronecker_map_zero_left _ zero_mul B
 
-lemma kronecker_zero [mul_zero_class α] (A : matrix l m α) :
-  kronecker A (0 : matrix n p α) = 0 :=
+lemma kronecker_zero [mul_zero_class α] (A : matrix l m α) : A ⊗ₖ (0 : matrix n p α) = 0 :=
 kronecker_map_zero_right _ mul_zero A
 
 lemma add_kronecker [distrib α] (A₁ A₂ : matrix l m α) (B : matrix n p α) :
-  kronecker (A₁ + A₂) B = kronecker A₁ B + kronecker A₂ B :=
+  (A₁ + A₂) ⊗ₖ B = A₁ ⊗ₖ B + A₂ ⊗ₖ B :=
 kronecker_map_add_left _ add_mul _ _ _
 
 lemma kronecker_add [distrib α] (A : matrix l m α) (B₁ B₂ : matrix n p α) :
-  kronecker A (B₁ + B₂) = kronecker A B₁ + kronecker A B₂ :=
+  A ⊗ₖ (B₁ + B₂) = A ⊗ₖ B₁ + A ⊗ₖ B₂ :=
 kronecker_map_add_right _ mul_add _ _ _
 
 @[simp] lemma one_kronecker_one [mul_zero_one_class α] [decidable_eq m] [decidable_eq n] :

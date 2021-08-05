@@ -192,6 +192,10 @@ by { rw [←tensor_comp], simp }
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
 
+@[reassoc] lemma tensor_sliding (f : W ⟶ X) (g : Y ⟶ Z) :
+  (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) :=
+(tensor_id_comp_id_tensor _ _).trans (id_tensor_comp_tensor_id _ _).symm
+
 @[reassoc]
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (λ_ X').inv = (λ_ X).inv ≫ (𝟙 _ ⊗ f) :=
@@ -316,7 +320,27 @@ by rw [←tensor_left_iff, ←cancel_epi (α_ (𝟙_ C) (𝟙_ _) (𝟙_ _)).hom
        triangle, ←right_unitor_tensor, right_unitor_naturality]
 
 lemma unitors_inv_equal : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv :=
-by { ext, simp [←unitors_equal], }
+by { ext, simp [←unitors_equal] }
+
+@[reassoc]
+lemma right_unitor_inv_comp_tensor (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
+  (ρ_ _).inv ≫ (f ⊗ g) = f ≫ (ρ_ _).inv ≫ (𝟙 _ ⊗ g) :=
+by {slice_rhs 1 2 { rw right_unitor_inv_naturality }, simp }
+
+@[reassoc]
+lemma right_unitor_inv_sliding_right (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
+  f ≫ (ρ_ _).inv ≫ (𝟙 _ ⊗ g) = (ρ_ _).inv ≫ (𝟙 _ ⊗ g) ≫ (f ⊗ 𝟙 _) :=
+by { rw ←right_unitor_inv_comp_tensor, simp }
+
+@[reassoc]
+lemma left_unitor_inv_comp_tensor (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
+  (λ_ _).inv ≫ (g ⊗ f) = f ≫ (λ_ _).inv ≫ (g ⊗ 𝟙 _) :=
+by {slice_rhs 1 2 { rw left_unitor_inv_naturality }, simp }
+
+@[reassoc]
+lemma left_unitor_inv_sliding_right (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
+  f ≫ (λ_ _).inv ≫ (g ⊗ 𝟙 _) = (λ_ _).inv ≫ (g ⊗ 𝟙 _) ≫ (𝟙 _ ⊗ f) :=
+by { rw ←left_unitor_inv_comp_tensor, simp }
 
 @[simp, reassoc]
 lemma hom_inv_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :

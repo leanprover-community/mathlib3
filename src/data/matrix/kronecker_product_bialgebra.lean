@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Filippo A. E. Nuccio
 -/
 
+import algebra.algebra.tower
 import data.matrix.reindex
 import linear_algebra.matrix
 
@@ -110,24 +111,24 @@ variables {l m n p l' m' n' p' : Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
-variables (α β)
+-- variables (α β)
 
 -- TODO: move this
-def algebra.biprod [is_scalar_tower α R β] [is_scalar_tower α S β] :
-  R →ₗ[α] S →ₗ[α] β :=
-((algebra.lmul α β).to_linear_map.compl₂ ((algebra.linear_map S β).restrict_scalars α)).comp
-  ((algebra.linear_map R β).restrict_scalars α)
+-- def algebra.biprod [is_scalar_tower α R β] [is_scalar_tower α S β] :
+--   R →ₗ[α] S →ₗ[α] β := assume
+-- -- ((algebra.lmul α β).to_linear_map.compl₂ ((algebra.linear_map S β).restrict_scalars α)).comp
+-- --   ((algebra.linear_map R β).restrict_scalars α)
 
-@[simp]
-lemma algebra.biprod_apply [is_scalar_tower α R β] [is_scalar_tower α S β] (r : R) (s : S) :
-  algebra.biprod α β r s = algebra_map R β r * algebra_map S β s := rfl
+-- @[simp]
+-- lemma algebra.biprod_apply [is_scalar_tower α R β] [is_scalar_tower α S β] (r : R) (s : S) :
+--   algebra.biprod α β r s = algebra_map R β r * algebra_map S β s := rfl
 
 variables (R S β)
 
 @[simps]
 def kronecker_biprod [is_scalar_tower α R β] [is_scalar_tower α S β] :
   (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) β :=
-kronecker_map_linear $ algebra.biprod α β
+kronecker_map_linear $ is_scalar_tower.algebra.biprod α β
 
 lemma kronecker_biprod_reindex_left (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R)
   (B : matrix n p S) [is_scalar_tower α R β] [is_scalar_tower α S β] :

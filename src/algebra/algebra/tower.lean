@@ -122,7 +122,29 @@ ring_hom.ext $ λ _, rfl
 @[simp] lemma coe_to_alg_hom' : (to_alg_hom R S A : S → A) = algebra_map S A :=
 rfl
 
+section biproduct
+
+variables {T : Type*} [comm_semiring S] [comm_semiring A] [comm_semiring B] [comm_semiring T]
+variables [algebra S A] [algebra S B] [algebra S T] [algebra A T] [algebra B T]
+variables {A B}
+variables (S T)
+
+
+-- TODO: move this
+def algebra.biprod [is_scalar_tower S A T] [is_scalar_tower S B T] :
+  A →ₗ[S] B →ₗ[S] T := sorry
+-- ((algebra.lmul S T).to_linear_map.compl₂ ((algebra.linear_map B T).restrict_scalars S)).comp
+--   ((algebra.linear_map A T).restrict_scalars S)
+
+-- @[simp]
+lemma algebra.biprod_apply [is_scalar_tower S A T] [is_scalar_tower S B T] (a : A) (b : B) :
+  algebra.biprod S T a b = algebra_map A T a * algebra_map B T b := sorry
+  --rfl
+
 variables (R) {S A B}
+
+end biproduct
+
 
 -- conflicts with is_scalar_tower.subalgebra
 @[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
@@ -143,6 +165,8 @@ instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_s
 by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
 
 end semiring
+
+
 
 section division_ring
 variables [field R] [division_ring S] [algebra R S] [char_zero R] [char_zero S]

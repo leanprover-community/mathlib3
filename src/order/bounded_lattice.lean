@@ -23,13 +23,18 @@ instances for `Prop` and `fun`.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
   combinations). Typical examples include `ℕ`.
 * `bounded_lattice α`: Lattice with a top and bottom element.
-* `distrib_lattice_bot α`: Bounded and distributive lattice. Typically, `finset α` for any
-  (potentially infinite) type `α`.
+* `distrib_lattice_bot α`: Distributive lattice with a bottom element. It captures the properties
+  of `disjoint` that are common to `generalized_boolean_algebra` and `bounded_distrib_lattice`.
 * `bounded_distrib_lattice α`: Bounded and distributive lattice. Typical examples include `Prop` and
   `set α`.
 * `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
 * `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
+
+## Implementation notes
+
+We didn't define `distrib_lattice_top` because the dual notion of `disjoint` isn't really used
+anywhere.
 -/
 
 /-! ### Top, bottom element -/

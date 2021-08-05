@@ -71,6 +71,22 @@ lemma kronecker_map_smul_right [has_scalar R β] [has_scalar R γ] (f : α → �
   kronecker_map f A (r • B) = r • kronecker_map f A B :=
 ext $ λ i j, hf _ _ _
 
+lemma kronecker_map_diagonal_diagonal [has_zero α] [has_zero β] [has_zero γ]
+  [decidable_eq m] [decidable_eq n]
+  (f : α → β → γ) (hf₁ : ∀ b, f 0 b = 0) (hf₂ : ∀ a, f a 0 = 0) (a : m → α) (b : n → β):
+  kronecker_map f (diagonal a) (diagonal b) = diagonal (λ mn, f (a mn.1) (b mn.2)) :=
+begin
+  ext ⟨i₁, i₂⟩ ⟨j₁, j₂⟩,
+  simp [diagonal, apply_ite f, ite_and, ite_apply, apply_ite (f (a i₁)), hf₁, hf₂],
+end
+
+lemma kronecker_map_one_one [has_zero α] [has_zero β] [has_zero γ]
+  [has_one α] [has_one β] [has_one γ]
+  [decidable_eq m] [decidable_eq n]
+  (f : α → β → γ) (hf₁ : ∀ b, f 0 b = 0) (hf₂ : ∀ a, f a 0 = 0) (hf₃ : f 1 1 = 1) :
+  kronecker_map f (1 : matrix m m α) (1 : matrix n n β) = 1 :=
+(kronecker_map_diagonal_diagonal _ hf₁ hf₂ _ _).trans $ by simp only [hf₃, diagonal_one]
+
 /-- When `f` is bilinear then `matrix.kronecker_map f` is also bilinear. -/
 @[simps]
 def kronecker_map_linear [comm_semiring R]

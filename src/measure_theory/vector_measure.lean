@@ -630,8 +630,15 @@ begin
   { rw [v.not_measurable hi, w.not_measurable hi] }
 end
 
-notation v ` ≤[`:50 i:50 `] `:0 w:50 :=
-measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i
+end
+
+localized "notation v ` ≤[`:50 i:50 `] `:0 w:50 :=
+measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
+in measure_theory
+
+section
+
+variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
 
 lemma restrict_le_restrict_iff (v w : vector_measure α M) {i : set α} (hi : measurable_set i) :
   v ≤[i] w ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j :=

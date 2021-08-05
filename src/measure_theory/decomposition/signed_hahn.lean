@@ -34,7 +34,7 @@ Hahn decomposition theorem
 -/
 
 noncomputable theory
-open_locale classical big_operators nnreal ennreal
+open_locale classical big_operators nnreal ennreal measure_theory
 
 variables {α β : Type*} [measurable_space α]
 variables {M : Type*} [add_comm_monoid M] [topological_space M] [ordered_add_comm_monoid M]

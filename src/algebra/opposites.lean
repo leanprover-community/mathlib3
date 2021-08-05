@@ -126,8 +126,20 @@ instance [mul_one_class α] : mul_one_class (opposite α) :=
 instance [monoid α] : monoid (opposite α) :=
 { .. opposite.semigroup α, .. opposite.mul_one_class α }
 
+instance [right_cancel_monoid α] : left_cancel_monoid (opposite α) :=
+{ .. opposite.left_cancel_semigroup α, ..opposite.monoid α }
+
+instance [left_cancel_monoid α] : right_cancel_monoid (opposite α) :=
+{ .. opposite.right_cancel_semigroup α, ..opposite.monoid α }
+
+instance [cancel_monoid α] : cancel_monoid (opposite α) :=
+{ .. opposite.right_cancel_monoid α, ..opposite.left_cancel_monoid α }
+
 instance [comm_monoid α] : comm_monoid (opposite α) :=
 { .. opposite.monoid α, .. opposite.comm_semigroup α }
+
+instance [cancel_comm_monoid α] : cancel_comm_monoid (opposite α) :=
+{ .. opposite.cancel_monoid α, ..opposite.comm_monoid α }
 
 instance [has_inv α] : has_inv (opposite α) :=
 { inv := λ x, op $ (unop x)⁻¹ }
@@ -211,7 +223,7 @@ instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   ..opposite.mul_action α R }
 
 /-- Like `monoid.to_mul_action`, but multiplies on the right. -/
-instance monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
+instance _root_.monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
 { smul := λ c x, x * c.unop,
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
@@ -221,6 +233,11 @@ instance monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α
 example [monoid α] : monoid.to_mul_action (opposite α) = opposite.mul_action α (opposite α) := rfl
 
 lemma op_smul_eq_mul [monoid α] {a a' : α} : op a • a' = a' * a := rfl
+
+/-- `monoid.to_monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
+instance left_cancel_monoid.to_has_faithful_scalar [left_cancel_monoid α] :
+  has_faithful_scalar (opposite α) α :=
+⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl

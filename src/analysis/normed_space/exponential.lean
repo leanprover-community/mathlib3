@@ -9,7 +9,7 @@ import data.complex.exponential
 import analysis.complex.basic
 import topology.metric_space.cau_seq_filter
 
-open filter is_R_or_C continuous_multilinear_map normed_field
+open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
 open_locale nat topological_space big_operators ennreal
 
 section move_me
@@ -29,10 +29,6 @@ begin
   use kl.1,
   rwa [finset.nat.mem_antidiagonal, eq_comm, add_comm] at hlk
 end
-
-lemma tendsto_nnnorm_zero {α : Type*} [semi_normed_group α] :
-  tendsto (λ g : α, ∥g∥₊) (𝓝 0) (𝓝 0) :=
-by simpa using continuous_nnnorm.tendsto (0 : α)
 
 end move_me
 
@@ -78,8 +74,12 @@ funext exp_series_sum_eq_field
 lemma exp_zero : exp 𝕂 𝔸 0 = 1 :=
 begin
   suffices : (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
-  { rw [exp_eq_tsum, this],
-    sorry },
+  { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
+    { rintros n hn,
+      rw finset.not_mem_singleton at hn,
+      rw if_neg hn },
+    rw [exp_eq_tsum, this, tsum_eq_sum key, finset.sum_singleton],
+    simp },
   dsimp only,
   congr,
   ext n,
@@ -160,8 +160,6 @@ lemma exp_add_of_lt_radius [char_zero 𝕂] {x y : 𝔸}
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_commute_of_lt_radius (commute.all x y) hx hy
 
-#check has_strict_fderiv_at.comp
-
 -- TODO : strict
 --lemma has_strict_fderiv_at_of_lt_radius {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
 --  has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • continuous_linear_map.id 𝕂 𝔸) x :=
@@ -175,24 +173,29 @@ exp_add_of_commute_of_lt_radius (commute.all x y) hx hy
 --  have := this.comp _ key,
 --end
 
-open asymptotics
-
 lemma has_fderiv_at_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
   has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • continuous_linear_map.id 𝕂 𝔸) x :=
 begin
+  have hpos : 0 < (exp_series 𝕂 𝔸).radius := (ennreal.coe_nonneg.mpr $ zero_le _).trans_lt hx,
   rw has_fderiv_at_iff_is_o_nhds_zero,
   suffices : (λ ε, exp 𝕂 𝔸 x * (exp 𝕂 𝔸 (0 + ε) - exp 𝕂 𝔸 0 - continuous_linear_map.id 𝕂 𝔸 ε))
     =ᶠ[𝓝 0] (λ ε, exp 𝕂 𝔸 (x + ε) - exp 𝕂 𝔸 x - exp 𝕂 𝔸 x • continuous_linear_map.id 𝕂 𝔸 ε),
   { refine (is_o.const_mul_left _ _).congr' this (eventually_eq.refl _ _),
     rw ← has_fderiv_at_iff_is_o_nhds_zero,
-    exact has_fderiv_at_exp_zero_of_radius_pos sorry },
+    exact has_fderiv_at_exp_zero_of_radius_pos hpos },
   have : ∀ᶠ ε : 𝔸 in 𝓝 0, ↑∥ε∥₊ < (exp_series 𝕂 𝔸).radius,
-  { sorry },
+  { simp_rw ← edist_eq_coe_nnnorm,
+    exact emetric.ball_mem_nhds _ hpos, },
   filter_upwards [this],
   intros ε hε,
   rw [exp_add_of_lt_radius hx hε, exp_zero, zero_add, continuous_linear_map.id_apply, smul_eq_mul],
   ring
 end
+
+lemma has_strict_fderiv_at_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
+  has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • continuous_linear_map.id 𝕂 𝔸) x :=
+let ⟨p, hp⟩ := exp_analytic_at_of_mem_ball x (by rwa ← edist_eq_coe_nnnorm at hx) in
+hp.has_fderiv_at.unique (has_fderiv_at_of_lt_radius hx) ▸ hp.has_strict_fderiv_at
 
 end any_field_comm_algebra
 

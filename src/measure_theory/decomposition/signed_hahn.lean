@@ -356,25 +356,23 @@ lemma zero_mem_measure_of_negatives : (0 : ℝ) ∈ s.measure_of_negatives :=
 lemma bdd_below_measure_of_negatives :
   bdd_below s.measure_of_negatives :=
 begin
-  simp_rw [bdd_below, set.nonempty, lower_bounds, set.mem_set_of_eq],
+  simp_rw [bdd_below, set.nonempty, mem_lower_bounds],
   by_contra, push_neg at h,
   have h' : ∀ n : ℕ, ∃ y : ℝ, y ∈ s.measure_of_negatives ∧ y < -n := λ n, h (-n),
   choose f hf using h',
-  have hf' : ∀ n : ℕ, ∃ B ∈ { B | measurable_set B ∧ s ≤[B] 0 }, s B < -n,
+  have hf' : ∀ n : ℕ, ∃ B, measurable_set B ∧ s ≤[B] 0 ∧ s B < -n,
   { intro n,
-    rcases hf n with ⟨⟨B, hB₁, hB₂⟩, hlt⟩,
-    exact ⟨B, hB₁, hB₂.symm ▸ hlt⟩ },
-  choose B hB using hf',
-  have hmeas : ∀ n, measurable_set (B n) := λ n, let ⟨h, _⟩ := (hB n).1 in h,
+    rcases hf n with ⟨⟨B, ⟨hB₁, hBr⟩, hB₂⟩, hlt⟩,
+    exact ⟨B, hB₁, hBr, hB₂.symm ▸ hlt⟩ },
+  choose B hmeas hr h_lt using hf',
   set A := ⋃ n, B n with hA,
   have hfalse : ∀ n : ℕ, s A ≤ -n,
   { intro n,
-    refine le_trans _ (le_of_lt (hB n).2),
+    refine le_trans _ (le_of_lt (h_lt _)),
     rw [hA, ← set.diff_union_of_subset (set.subset_Union _ n),
         of_union (disjoint.comm.1 set.disjoint_diff) _ (hmeas n)],
     { refine add_le_of_nonpos_left _,
-      have : s ≤[A] 0 :=
-        restrict_le_restrict_Union _ _ hmeas (λ m, let ⟨_, h⟩ := (hB m).1 in h),
+      have : s ≤[A] 0 := restrict_le_restrict_Union _ _ hmeas hr,
       refine nonpos_of_restrict_le_zero _ (restrict_le_zero_subset _ _ this (set.diff_subset _ _)),
       exact measurable_set.Union hmeas },
     { apply_instance },
@@ -386,7 +384,7 @@ begin
   exact ⟨n, neg_lt.1 hn⟩,
 end
 
-/-- Alternative formulation of `exists_disjoint_positive_negative_union_eq` (the Hahn decomposition
+/-- Alternative formulation of `exists_is_compl_positive_negative` (the Hahn decomposition
 theorem) using set complements. -/
 lemma exists_compl_positive_negative (s : signed_measure α) :
   ∃ i : set α, measurable_set i ∧ 0 ≤[i] s ∧ s ≤[iᶜ] 0 :=
@@ -402,7 +400,7 @@ begin
   have hA₁ : measurable_set A := measurable_set.Union hB₁,
   have hA₂ : s ≤[A] 0 := restrict_le_restrict_Union _ _ hB₁ hB₂,
   have hA₃ : s A = Inf s.measure_of_negatives,
-  { apply has_le.le.antisymm,
+  { apply le_antisymm,
     { refine le_of_tendsto_of_tendsto tendsto_const_nhds hf₂ (eventually_of_forall _),
       intro n,
       rw [← (hB n).2, hA, ← set.diff_union_of_subset (set.subset_Union _ n),

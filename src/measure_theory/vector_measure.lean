@@ -798,7 +798,7 @@ variables {M : Type*} [topological_space M] [linear_ordered_add_comm_monoid M]
 variables (v w : vector_measure α M) {i j : set α}
 
 lemma exists_pos_measure_of_not_restrict_le_zero (hi : ¬ v ≤[i] 0) :
-  ∃ (j : set α) (hj₁ : measurable_set j) (hj₂ : j ⊆ i) , 0 < v j :=
+  ∃ j : set α, measurable_set j ∧ j ⊆ i ∧ 0 < v j :=
 begin
   have hi₁ : measurable_set i := measurable_of_not_restrict_le_zero _ hi,
   rw [restrict_le_restrict_iff _ _ hi₁] at hi,

@@ -59,7 +59,3 @@ theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set 
 
 theorem pairwise_disjoint_fiber (f : α → β) : pairwise (disjoint on (λ y : β, f ⁻¹' {y})) :=
 set.pairwise_on_univ.1 $ pairwise_on_disjoint_fiber f univ
-
-lemma pairwise_disjoint_on_inter [semilattice_inf_bot α] {f : β → α} {a : α}
-  (hf : pairwise (disjoint on f)) : pairwise (disjoint on (λ n, a ⊓ f n)) :=
-hf.mono $ λ i j, disjoint.mono inf_le_right inf_le_right

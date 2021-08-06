@@ -2869,8 +2869,7 @@ lemma differentiable.restrict_scalars (h : differentiable 𝕜' f) :
 
 lemma has_fderiv_within_at_of_eq {s : set E} {g' : E →L[𝕜] F} (h : has_fderiv_within_at f g' s x)
   (H : f'.restrict_scalars 𝕜 = g') : has_fderiv_within_at f f' s x :=
-by { simp only [has_fderiv_within_at, has_fderiv_at_filter] at h ⊢,
-     rwa [← f'.coe_restrict_scalars', H] }
+by { rw ← H at h, exact h }
 
 lemma has_fderiv_at_of_eq {g' : E →L[𝕜] F} (h : has_fderiv_at f g' x)
   (H : f'.restrict_scalars 𝕜 = g') : has_fderiv_at f f' x :=

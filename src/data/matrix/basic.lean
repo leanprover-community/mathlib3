@@ -39,6 +39,7 @@ instance [has_add α] : has_add (matrix m n α) := pi.has_add
 instance [add_semigroup α] : add_semigroup (matrix m n α) := pi.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) := pi.add_comm_semigroup
 instance [has_zero α] : has_zero (matrix m n α) := pi.has_zero
+instance [add_zero_class α] : add_zero_class (matrix m n α) := pi.add_zero_class
 instance [add_monoid α] : add_monoid (matrix m n α) := pi.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) := pi.add_comm_monoid
 instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
@@ -108,35 +109,6 @@ def col (w : m → α) : matrix m unit α
 /-- `matrix.row u` is the row matrix whose entries are given by `u`. -/
 def row (v : n → α) : matrix unit n α
 | x y := v y
-
-instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
-instance [has_add α] : has_add (matrix m n α) := pi.has_add
-instance [add_semigroup α] : add_semigroup (matrix m n α) := pi.add_semigroup
-instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) := pi.add_comm_semigroup
-instance [has_zero α] : has_zero (matrix m n α) := pi.has_zero
-instance [add_zero_class α] : add_zero_class (matrix m n α) := pi.add_zero_class
-instance [add_monoid α] : add_monoid (matrix m n α) := pi.add_monoid
-instance [add_comm_monoid α] : add_comm_monoid (matrix m n α) := pi.add_comm_monoid
-instance [has_neg α] : has_neg (matrix m n α) := pi.has_neg
-instance [has_sub α] : has_sub (matrix m n α) := pi.has_sub
-instance [add_group α] : add_group (matrix m n α) := pi.add_group
-instance [add_comm_group α] : add_comm_group (matrix m n α) := pi.add_comm_group
-instance [unique α] : unique (matrix m n α) := pi.unique
-instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
-instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
-function.nontrivial
-
-instance [has_scalar R α] : has_scalar R (matrix m n α) := pi.has_scalar
-instance [has_scalar R α] [has_scalar S α] [smul_comm_class R S α] :
-  smul_comm_class R S (matrix m n α) := pi.smul_comm_class
-instance [has_scalar R S] [has_scalar R α] [has_scalar S α] [is_scalar_tower R S α] :
-  is_scalar_tower R S (matrix m n α) := pi.is_scalar_tower
-instance [monoid R] [mul_action R α] :
-  mul_action R (matrix m n α) := pi.mul_action _
-instance [monoid R] [add_monoid α] [distrib_mul_action R α] :
-  distrib_mul_action R (matrix m n α) := pi.distrib_mul_action _
-instance [semiring R] [add_comm_monoid α] [module R α] :
-  module R (matrix m n α) := pi.module _ _ _
 
 @[simp] lemma map_zero [has_zero α] [has_zero β] (f : α → β) (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=

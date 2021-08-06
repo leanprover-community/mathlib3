@@ -619,7 +619,7 @@ open topological_space topological_vector_bundle
 
 variables {R F E} {B' : Type*} [topological_space B'] [topological_space (total_space E)]
 
-@[priority 90]
+@[priority 90, nolint unused_arguments]
 instance pullback.total_space.topological_space {f : B' → B} :
   topological_space (total_space (E ∘ f)) :=
 induced (pullback_total_space_embedding E f) prod.topological_space

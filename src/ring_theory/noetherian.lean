@@ -578,6 +578,11 @@ class is_noetherian_ring (R) [ring R] extends is_noetherian R R : Prop
 theorem is_noetherian_ring_iff {R} [ring R] : is_noetherian_ring R ↔ is_noetherian R R :=
 ⟨λ h, h.1, @is_noetherian_ring.mk _ _⟩
 
+/-- A commutative ring is Noetherian if and only if all its ideals are finitely-generated. -/
+lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [comm_ring R] :
+  is_noetherian_ring R ↔ ∀ I : ideal R, I.fg :=
+is_noetherian_ring_iff.trans ⟨λ h, h.noetherian, is_noetherian.mk⟩
+
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M :=

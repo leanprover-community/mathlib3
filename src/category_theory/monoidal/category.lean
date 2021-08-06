@@ -271,6 +271,10 @@ lemma right_unitor_tensor_inv (X Y : C) :
 eq_of_inv_eq_inv (by simp)
 
 @[reassoc]
+lemma id_tensor_right_unitor_inv (X Y : C) : 𝟙 X ⊗ (ρ_ Y).inv = (ρ_ _).inv ≫ (α_ _ _ _).hom :=
+by simp only [right_unitor_tensor_inv, category.comp_id, iso.inv_hom_id, category.assoc]
+
+@[reassoc]
 lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
   (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
 by { rw [comp_inv_eq, assoc, associator_naturality], simp }
@@ -361,6 +365,16 @@ by rw [←tensor_comp, f.hom_inv_id]
 lemma tensor_inv_hom_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ f.inv) ≫ (h ⊗ f.hom) = (g ≫ h) ⊗ 𝟙 W :=
 by rw [←tensor_comp, f.inv_hom_id]
+
+lemma pentagon_hom_inv {W X Y Z : C} :
+  (α_ W X (Y ⊗ Z)).hom ≫ (𝟙 W ⊗ (α_ X Y Z).inv)
+  = (α_ (W ⊗ X) Y Z).inv ≫ ((α_ W X Y).hom ⊗ 𝟙 Z) ≫ (α_ W (X ⊗ Y) Z).hom :=
+begin
+  have pent := pentagon W X Y Z,
+  rw ←iso.comp_inv_eq at pent,
+  rw [iso.eq_inv_comp, ←pent],
+  simp only [tensor_hom_inv_id, iso.inv_hom_id_assoc, tensor_id, category.comp_id, category.assoc],
+end
 
 end
 

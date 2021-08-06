@@ -660,7 +660,7 @@ by { rw [← det_transpose, det_succ_row _ j],
 
 /-- Determinant of 0x0 matrix -/
 @[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
-det_eq_one_of_card_eq_zero (fintype.card_fin _)
+det_is_empty
 
 /-- Determinant of 1x1 matrix -/
 lemma det_fin_one (A : matrix (fin 1) (fin 1) R) : det A = A 0 0  := det_unique A

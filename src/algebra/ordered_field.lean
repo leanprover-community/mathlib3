@@ -254,6 +254,8 @@ by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv']
 lemma inv_lt_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b⁻¹ ↔ b < a :=
 lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
 
+/-- In a linear ordered field, for positive `a` and `b` we have `a⁻¹ < b ↔ b⁻¹ < a`.
+See also `inv_lt_of_inv_lt` for a one-sided implication with one fewer assumption. -/
 lemma inv_lt (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b ↔ b⁻¹ < a :=
 lt_iff_lt_of_le_iff_le (le_inv hb ha)
 

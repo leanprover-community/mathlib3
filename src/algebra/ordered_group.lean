@@ -89,9 +89,11 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
 
-@[to_additive] instance [has_inv α] : has_inv (order_dual α) := ‹has_inv α›
-@[to_additive] instance [group α] : group (order_dual α) := ‹group α›
-@[to_additive] instance [comm_group α] : comm_group (order_dual α) := ‹comm_group α›
+@[to_additive] instance [h : has_inv α] : has_inv (order_dual α) := h
+@[to_additive] instance [h : has_div α] : has_div (order_dual α) := h
+@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
+@[to_additive] instance [h : group α] : group (order_dual α) := h
+@[to_additive] instance [h : comm_group α] : comm_group (order_dual α) := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group (order_dual α) :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }

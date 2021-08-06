@@ -2876,9 +2876,8 @@ lemma has_fderiv_at_of_eq {g' : E →L[𝕜] F} (h : has_fderiv_at f g' x)
 by simp only [has_fderiv_at, has_fderiv_at_filter] at h ⊢; rwa [← f'.coe_restrict_scalars', H]
 
 lemma fderiv_eq_fderiv (h : differentiable_at 𝕜' f x) :
-  (fderiv 𝕜 f x : E → F) = fderiv 𝕜' f x :=
-by rw [(h.restrict_scalars 𝕜).has_fderiv_at.unique (h.has_fderiv_at.restrict_scalars 𝕜),
-       coe_restrict_scalars']
+  fderiv 𝕜 f x = (fderiv 𝕜' f x).restrict_scalars 𝕜 :=
+(h.has_fderiv_at.restrict_scalars 𝕜).fderiv
 
 lemma differentiable_within_at_iff_exists_linear_map {s : set E}
   (hf : differentiable_within_at 𝕜 f s x) (hs : unique_diff_within_at 𝕜 s x) :

@@ -24,12 +24,6 @@ class has_sbtw (α : Type*) :=
 
 export has_sbtw (sbtw)
 
-/-alias lt_of_le_of_lt  ← has_le.le.trans_lt
-alias btw_antisymm     ← has_btw.btw.antisymm
-alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
-alias lt_of_le_not_le ← has_le.le.lt_of_not_le
-alias lt_or_eq_of_le  ← has_le.le.lt_or_eq-/
-
 /-! ### Circular preorders -/
 
 class circular_preorder (α : Type*) extends has_btw α, has_sbtw α :=
@@ -68,6 +62,12 @@ lemma not_btw_of_sbtw {a b c : α} (h : sbtw a b c) : ¬btw c b a :=
 lemma has_sbtw.sbtw.not_btw {a b c : α} (h : sbtw a b c) : ¬btw c b a :=
 not_btw_of_sbtw h
 
+lemma not_sbtw_of_btw {a b c : α} (h : btw a b c) : ¬sbtw c b a :=
+λ h', h'.not_btw h
+--alias not_btw_of_sbtw        ← has_sbtw.sbtw.not_btw
+lemma has_btw.btw.not_sbtw {a b c : α} (h : btw a b c) : ¬sbtw c b a :=
+not_sbtw_of_btw h
+
 lemma sbtw_of_btw_not_btw {a b c : α} (habc : btw a b c) (hcba : ¬btw c b a) : sbtw a b c :=
 sbtw_iff_btw_not_btw.2 ⟨habc, hcba⟩
 --alias sbtw_of_btw_not_btw        ← has_btw.btw.sbtw_of_not_btw
@@ -91,6 +91,12 @@ sbtw_cyclic_right h
 lemma sbtw_cyclic {a b c : α} : sbtw a b c ↔ sbtw c a b :=
 ⟨sbtw_cyclic_right, sbtw_cyclic_left⟩
 
+lemma sbtw_asymm {a b c : α} (h : sbtw a b c) : ¬ sbtw c b a :=
+h.btw.not_sbtw
+--alias sbtw_asymm        ← has_sbtw.sbtw.not_sbtw
+lemma has_sbtw.sbtw.not_sbtw {a b c : α} (h : sbtw a b c) : ¬ sbtw c b a :=
+sbtw_asymm h
+
 lemma btw_self_right_of_btw_self_left {a b : α} (h : btw a a b) : btw b a a :=
 begin
   sorry
@@ -100,50 +106,26 @@ lemma not_sbtw_same_left {a b : α} : ¬ sbtw a a b :=
 begin
   rw sbtw_iff_btw_not_btw,
   exact λ h, h.2 (btw_self_right_of_btw_self_left h.1),
-
 end
 
 lemma not_sbtw_same_left_right {a b : α} (h : sbtw a b a) : false :=
 h.not_btw h.btw
-
-/-- Circular interval closed-closed -/
-def cIcc (a b : α) : set α := {x | btw a x b}
-
-/-- Circular interval closed-open -/
-def cIco (a b : α) : set α := {x | btw a x b ∧ ¬btw a b x}
-
-/-- Circular interval open-closed -/
-def cIoc (a b : α) : set α := {x | btw a x b ∧ ¬btw x a b}
-
-/-- Circular interval open-open -/
-def cIoo (a b : α) : set α := {x | btw a x b ∧ ¬btw a b x ∧ ¬btw x a b}
 
 end circular_preorder
 
 /-! ### Circular partial orders -/
 
 class circular_partial_order (α : Type*) extends circular_preorder α :=
-(btw_antisymm : ∀ a b c, btw a b c → btw a c b → b = c)
-(eq_of_btw_same_left_right : ∀ a b, btw a b a → a = b)
+(btw_antisymm : ∀ a b c, btw a b c → btw c b a → a = c)
 
 section circular_partial_order
 variables {α : Type*} [circular_partial_order α]
 
-lemma btw_antisymm : ∀ {a b c : α}, btw a b c → btw a c b → b = c :=
+lemma btw_antisymm : ∀ {a b c : α}, btw a b c → btw c b a → a = c :=
 circular_partial_order.btw_antisymm
 --alias btw_antisymm        ← has_btw.btw.antisymm
-lemma has_btw.btw.antisymm {a b c : α} (h : btw a b c) : btw a c b → b = c :=
+lemma has_btw.btw.antisymm {a b c : α} (h : btw a b c) : btw c b a → a = c :=
 btw_antisymm h
-
-lemma eq_of_btw_same_left_right : ∀ {a b : α}, btw a b a → a = b :=
-circular_partial_order.eq_of_btw_same_left_right
-
-lemma btw_same_left_right_iff {a b : α} : btw a b a ↔ a = b :=
-begin
-  refine ⟨eq_of_btw_same_left_right, _⟩,
-  rintro rfl,
-  exact btw_rfl,
-end
 
 end circular_partial_order
 
@@ -157,6 +139,15 @@ export circular_order (btw_total)
 section circular_order
 variables {α : Type*} [circular_order α]
 
+lemma btw_left_right (a b : α) : btw a b a :=
+(or_self _).1 (btw_total a b a)
+
+lemma sbtw_iff_not_btw {a b c : α} : sbtw a b c ↔ ¬ btw c b a :=
+begin
+  rw sbtw_iff_btw_not_btw,
+  exact and_iff_right_of_imp (btw_total _ _ _).resolve_left,
+end
+
 lemma btw_refl_right (a b : α) : btw a a b :=
 begin
   have := btw_total a a b,
@@ -167,6 +158,30 @@ end
 
 end circular_order
 
+/-! ### Circular intervals -/
+
+section circular_preorder
+variables {α : Type*} [circular_preorder α]
+
+/-- Circular interval closed-closed -/
+def cIcc (a b : α) : set α := {x | btw a x b}
+
+/-- Circular interval closed-open -/
+def cIco (a b : α) : set α := {x | btw a x b ∧ ¬btw a b x}
+
+/-- Circular interval open-closed -/
+def cIoc (a b : α) : set α := {x | btw a x b ∧ ¬btw x a b}
+
+/-- Circular interval open-open -/
+def cIoo (a b : α) : set α := {x | sbtw a x b}
+
+lemma left_mem_cIcc (a b : α) : a ∈ cIcc a b :=
+
+
+end circular_preorder
+
+/-! ### Dual constructions -/
+
 section order_dual
 
 instance (α : Type*) [has_btw α] : has_btw (order_dual α) := ⟨λ a b c : α, btw c b a⟩
@@ -174,14 +189,14 @@ instance (α : Type*) [has_sbtw α] : has_sbtw (order_dual α) := ⟨λ a b c : 
 
 instance (α : Type*) [h : circular_preorder α] : circular_preorder (order_dual α) :=
 { btw_refl := btw_refl,
-  btw_trans := λ a b c d habc hacd, sorry,
-  sbtw_cyclic_left := sorry,
+  btw_trans := λ a b c d habc hacd, begin end,
+  sbtw_cyclic_left := λ a b c, sbtw_cyclic_right,
   sbtw_iff_btw_not_btw := λ a b c, @sbtw_iff_btw_not_btw α _ c b a,
   .. order_dual.has_btw α,
   .. order_dual.has_sbtw α }
 
 instance (α : Type*) [circular_partial_order α] : circular_partial_order (order_dual α) :=
-{ btw_antisymm := λ a b c habc hacb, sorry, --@btw_antisymm α _ _ _ _ hacb habc,
+{ btw_antisymm := λ a b c habc hcba, @btw_antisymm α _ _ _ _ hcba habc,
   .. order_dual.circular_preorder α }
 
 instance (α : Type*) [circular_order α] : circular_order (order_dual α) :=

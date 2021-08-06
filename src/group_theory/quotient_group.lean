@@ -153,9 +153,9 @@ monoid_hom.mk'
   (λ q : Q, q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
   (calc φ a = φ a * 1           : (mul_one _).symm
   ...       = φ a * φ (a⁻¹ * b) : HN (a⁻¹ * b) hab ▸ rfl
-  ...       = φ (a * (a⁻¹ * b)) : (is_mul_hom.map_mul φ a (a⁻¹ * b)).symm
+  ...       = φ (a * (a⁻¹ * b)) : (φ.map_mul a (a⁻¹ * b)).symm
   ...       = φ b               : by rw mul_inv_cancel_left))
-  (λ q r, quotient.induction_on₂' q r $ is_mul_hom.map_mul φ)
+  (λ q r, quotient.induction_on₂' q r $ φ.map_mul)
 
 @[simp, to_additive quotient_add_group.lift_mk]
 lemma lift_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
@@ -216,7 +216,7 @@ lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
-  is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
+  φ.map_mul, ← h, φ.map_inv, inv_mul_self]
 
 -- Note that `ker φ` isn't definitionally `ker (φ.range_restrict)`
 -- so there is a bit of annoying code duplication here
@@ -285,6 +285,37 @@ def equiv_quotient_of_eq {M N : subgroup G} [M.normal] [N.normal] (h : M = N) :
   left_inv := λ x, x.induction_on' $ by { intro, refl },
   right_inv := λ x, x.induction_on' $ by { intro, refl },
   map_mul' := λ x y, by rw map_mul }
+
+/-- Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
+then there is a map `A / (A' ⊓ A) →* B / (B' ⊓ B)` induced by the inclusions. -/
+@[to_additive "Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
+then there is a map `A / (A' ⊓ A) →+ B / (B' ⊓ B)` induced by the inclusions."]
+def quotient_map_subgroup_of_of_le {A' A B' B : subgroup G}
+  [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
+  (h' : A' ≤ B') (h : A ≤ B) :
+  quotient (A'.subgroup_of A) →* quotient (B'.subgroup_of B) :=
+map _ _ (subgroup.inclusion h) $
+  by simp [subgroup.subgroup_of, subgroup.comap_comap]; exact subgroup.comap_mono h'
+
+/-- Let `A', A, B', B` be subgroups of `G`.
+If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic. 
+
+Applying this equiv is nicer than rewriting along the equalities, since the type of
+`(A'.subgroup_of A : subgroup A)` depends on on `A`.
+-/
+@[to_additive "Let `A', A, B', B` be subgroups of `G`.
+If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic.
+
+Applying this equiv is nicer than rewriting along the equalities, since the type of
+`(A'.add_subgroup_of A : add_subgroup A)` depends on on `A`.
+"]
+def equiv_quotient_subgroup_of_of_eq {A' A B' B : subgroup G}
+  [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
+  (h' : A' = B') (h : A = B) :
+  quotient (A'.subgroup_of A) ≃* quotient (B'.subgroup_of B) :=
+by apply monoid_hom.to_mul_equiv
+    (quotient_map_subgroup_of_of_le h'.le h.le) (quotient_map_subgroup_of_of_le h'.ge h.ge);
+  { ext ⟨x⟩, simp [quotient_map_subgroup_of_of_le, map, lift, mk', subgroup.inclusion], refl }
 
 section snd_isomorphism_thm
 

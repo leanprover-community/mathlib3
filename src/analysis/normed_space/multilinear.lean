@@ -288,7 +288,7 @@ instance has_op_norm : has_norm (continuous_multilinear_map 𝕜 E G) := ⟨op_n
 
 lemma norm_def : ∥f∥ = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * ∏ i, ∥m i∥} := rfl
 
--- So that invocations of `real.Inf_le` make sense: we show that the set of
+-- So that invocations of `le_cInf` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : continuous_multilinear_map 𝕜 E G} :
   ∃ c, c ∈ {c | 0 ≤ c ∧ ∀ m, ∥f m∥ ≤ c * ∏ i, ∥m i∥} :=
@@ -299,7 +299,7 @@ lemma bounds_bdd_below {f : continuous_multilinear_map 𝕜 E G} :
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
-lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
+le_cInf bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
 /-- The fundamental property of the operator norm of a continuous multilinear map:
 `∥f m∥` is bounded by `∥f∥` times the product of the `∥m i∥`. -/
@@ -313,7 +313,7 @@ begin
     rw [this, norm_zero],
     exact mul_nonneg (op_norm_nonneg f) A },
   { rw [← div_le_iff hlt],
-    apply (le_Inf _ bounds_nonempty bounds_bdd_below).2,
+    apply le_cInf bounds_nonempty,
     rintro c ⟨_, hc⟩, rw [div_le_iff hlt], apply hc }
 end
 
@@ -335,11 +335,11 @@ calc
 /-- If one controls the norm of every `f x`, then one controls the norm of `f`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ m, ∥f m∥ ≤ M * ∏ i, ∥m i∥) :
   ∥f∥ ≤ M :=
-Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
+cInf_le bounds_bdd_below ⟨hMp, hM⟩
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-Inf_le _ bounds_bdd_below
+cInf_le bounds_bdd_below
   ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
     exact norm_add_le_of_le (le_op_norm _ _) (le_op_norm _ _) }⟩
 
@@ -694,26 +694,25 @@ calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι
   multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
 ... = _ : if_pos ‹_›
 
-lemma norm_mk_pi_algebra_of_empty (h : ¬nonempty ι) :
+lemma norm_mk_pi_algebra_of_empty [is_empty ι] :
   ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ = ∥(1 : A)∥ :=
 begin
   apply le_antisymm,
   calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι then 1 else ∥(1 : A)∥ :
     multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
-  ... = ∥(1 : A)∥ : if_neg ‹_›,
-  convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
-  simp [eq_empty_of_not_nonempty h univ]
+  ... = ∥(1 : A)∥ : if_neg (not_nonempty_iff.mpr ‹_›),
+  convert ratio_le_op_norm _ (λ _, (1 : A)),
+  simp [eq_empty_of_is_empty (univ : finset ι)],
 end
 
 @[simp] lemma norm_mk_pi_algebra [norm_one_class A] :
   ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ = 1 :=
 begin
-  by_cases hι : nonempty ι,
-  { resetI,
-    refine le_antisymm norm_mk_pi_algebra_le _,
+  casesI is_empty_or_nonempty ι,
+  { simp [norm_mk_pi_algebra_of_empty] },
+  { refine le_antisymm norm_mk_pi_algebra_le _,
     convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
     simp },
-  { simp [norm_mk_pi_algebra_of_empty hι] }
 end
 
 end
@@ -1432,13 +1431,13 @@ end
 
 section
 
-variables (𝕜 G G') {k l : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+variables (𝕜 G G') {k l : ℕ} {s : finset (fin n)}
 
 /-- If `s : finset (fin n)` is a finite set of cardinality `k` and its complement has cardinality
 `l`, then the space of continuous multilinear maps `G [×n]→L[𝕜] G'` of `n` variables is isomorphic
 to the space of continuous multilinear maps `G [×k]→L[𝕜] G [×l]→L[𝕜] G'` of `k` variables taking
 values in the space of continuous multilinear maps of `l` variables. -/
-def curry_fin_finset {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+def curry_fin_finset {k l n : ℕ} {s : finset (fin n)}
   (hk : s.card = k) (hl : sᶜ.card = l) :
   (G [×n]→L[𝕜] G') ≃ₗᵢ[𝕜] (G [×k]→L[𝕜] G [×l]→L[𝕜] G') :=
 (dom_dom_congr 𝕜 G G' (fin_sum_equiv_of_finset hk hl).symm).trans

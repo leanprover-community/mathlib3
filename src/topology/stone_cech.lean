@@ -75,7 +75,7 @@ begin
 end
 
 instance ultrafilter_compact : compact_space (ultrafilter α) :=
-⟨compact_iff_ultrafilter_le_nhds.mpr $ assume f _,
+⟨is_compact_iff_ultrafilter_le_nhds.mpr $ assume f _,
    ⟨mjoin f, trivial, ultrafilter_converges_iff.mpr rfl⟩⟩
 
 instance ultrafilter.t2_space : t2_space (ultrafilter α) :=

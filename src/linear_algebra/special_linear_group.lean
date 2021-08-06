@@ -5,8 +5,8 @@ Authors: Anne Baanen
 
 The Special Linear group $SL(n, R)$
 -/
-import linear_algebra.matrix
-import linear_algebra.nonsingular_inverse
+import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.to_lin
 
 /-!
 # The Special Linear group $SL(n, R)$

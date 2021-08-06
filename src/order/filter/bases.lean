@@ -218,6 +218,12 @@ def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
 lemma has_basis.mem_iff (hl : l.has_basis p s) : t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 hl.mem_iff' t
 
+lemma has_basis.eq_of_same_basis (hl : l.has_basis p s) (hl' : l'.has_basis p s) : l = l' :=
+begin
+  ext t,
+  rw [hl.mem_iff, hl'.mem_iff]
+end
+
 lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 ⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
 
@@ -754,7 +760,7 @@ begin
   have x_mono : ∀ n : ℕ, s (x n.succ) ⊆ s (x n) :=
     λ n, subset.trans (hs.set_index_subset _) (inter_subset_right _ _),
   replace x_mono : ∀ ⦃i j⦄, i ≤ j → s (x j) ≤ s (x i),
-  { refine @monotone_of_monotone_nat (order_dual $ set α) _ _ _,
+  { refine @monotone_nat_of_le_succ (order_dual $ set α) _ _ _,
     exact x_mono },
   have x_subset : ∀ i, s (x i) ⊆ x' i,
   { rintro (_|i),

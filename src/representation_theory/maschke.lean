@@ -5,13 +5,13 @@ Authors: Scott Morrison
 -/
 import algebra.monoid_algebra
 import algebra.char_p.invertible
+import algebra.regular
 import linear_algebra.basis
-import ring_theory.simple_module
 
 /-!
 # Maschke's theorem
 
-We prove Maschke's theorem for finite groups,
+We prove **Maschke's theorem** for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
 when `k` is a field with `invertible (fintype.card G : k)`.
 
@@ -35,7 +35,7 @@ of a finite group is semisimple (i.e. a direct sum of irreducibles).
 universes u
 
 noncomputable theory
-open semimodule
+open module
 open monoid_algebra
 open_locale big_operators
 

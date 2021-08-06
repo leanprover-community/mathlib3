@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import data.fintype.basic
 import category_theory.discrete_category
+import category_theory.opposites
 
 /-!
 # Finite categories
@@ -41,5 +42,16 @@ attribute [instance] fin_category.decidable_eq_obj fin_category.fintype_obj
 instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J] [fintype J] :
   fin_category (discrete J) :=
 { }
+
+open opposite
+
+/--
+The opposite of a finite category is finite.
+-/
+def fin_category_opposite {J : Type v} [small_category J] [fin_category J] : fin_category Jᵒᵖ :=
+{ decidable_eq_obj := equiv.decidable_eq equiv_to_opposite.symm,
+  fintype_obj := fintype.of_equiv _ equiv_to_opposite,
+  decidable_eq_hom := λ j j', equiv.decidable_eq (op_equiv j j'),
+  fintype_hom := λ j j', fintype.of_equiv _ (op_equiv j j').symm, }
 
 end category_theory

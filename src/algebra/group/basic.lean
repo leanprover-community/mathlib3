@@ -63,8 +63,8 @@ comp_assoc_right _ _ _
 
 end semigroup
 
-section monoid
-variables {M : Type u} [monoid M]
+section mul_one_class
+variables {M : Type u} [mul_one_class M]
 
 @[to_additive]
 lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
@@ -75,7 +75,13 @@ by { by_cases h : P; simp [h], }
 lemma eq_one_iff_eq_one_of_mul_eq_one {a b : M} (h : a * b = 1) : a = 1 ↔ b = 1 :=
 by split; { rintro rfl, simpa using h }
 
-end monoid
+@[to_additive]
+lemma one_mul_eq_id : ((*) (1 : M)) = id := funext one_mul
+
+@[to_additive]
+lemma mul_one_eq_id : (* (1 : M)) = id := funext mul_one
+
+end mul_one_class
 
 section comm_semigroup
 variables {G : Type u} [comm_semigroup G]
@@ -315,6 +321,14 @@ by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 lemma div_right_injective : function.injective (λ a, b / a) :=
 by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
+-- The unprimed version is used by `group_with_zero`.  This is the preferred choice.
+-- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60div_one'.60
+@[simp, to_additive sub_zero]
+lemma div_one' (a : G) : a / 1 = a :=
+calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
+          ... = a * 1 : congr_arg _ one_inv
+          ... = a     : mul_one a
+
 end group
 
 section add_group
@@ -335,9 +349,6 @@ by rw [sub_eq_add_neg, add_assoc, ←sub_eq_add_neg]
 lemma eq_of_sub_eq_zero (h : a - b = 0) : a = b :=
 calc a = a - b + b : (sub_add_cancel a b).symm
    ... = b         : by rw [h, zero_add]
-
-@[simp] lemma sub_zero (a : G) : a - 0 = a :=
-by rw [sub_eq_add_neg, neg_zero, add_zero]
 
 lemma sub_ne_zero_of_ne (h : a ≠ b) : a - b ≠ 0 :=
 mt eq_of_sub_eq_zero h

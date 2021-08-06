@@ -15,8 +15,8 @@ case when the point space and vector space are the same.
 
 variables {R E F : Type*}
   [ring R]
-  [add_comm_group E] [semimodule R E] [topological_space E]
-  [add_comm_group F] [semimodule R F] [topological_space F] [topological_add_group F]
+  [add_comm_group E] [module R E] [topological_space E]
+  [add_comm_group F] [module R F] [topological_space F] [topological_add_group F]
 
 namespace affine_map
 
@@ -40,6 +40,7 @@ begin
 end
 
 /-- The line map is continuous. -/
+@[continuity]
 lemma line_map_continuous [topological_space R] [has_continuous_smul R F] {p v : F} :
   continuous ⇑(line_map p v : R →ᵃ[R] F) :=
 continuous_iff.mpr $ (continuous_id.smul continuous_const).add $

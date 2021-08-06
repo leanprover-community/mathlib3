@@ -43,7 +43,7 @@ end
 
 /-- Let `{x | p x}` be an additive subsemigroup of an additive commutative monoid `M`. Let `f : M →
 N` be a map subadditive on `{x | p x}`, i.e., `p x → p y → f (x + y) ≤ f x + f y`. Let `g i`, `i ∈
-s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then 
+s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
 `f (∑ i in s, g i) ≤ ∏ i in s, f (g i)`. -/
 add_decl_doc le_sum_nonempty_of_subadditive_on_pred
 
@@ -135,6 +135,11 @@ calc (∏ i in s, f i) ≤ (∏ i in t \ s, f i) * (∏ i in s, f i) :
 @[to_additive sum_mono_set_of_nonneg]
 lemma prod_mono_set_of_one_le' (hf : ∀ x, 1 ≤ f x) : monotone (λ s, ∏ x in s, f x) :=
 λ s t hst, prod_le_prod_of_subset_of_one_le' hst $ λ x _ _, hf x
+
+@[to_additive sum_le_univ_sum_of_nonneg]
+lemma prod_le_univ_prod_of_one_le' [fintype ι] {s : finset ι} (w : ∀ x, 1 ≤ f x) :
+  ∏ x in s, f x ≤ ∏ x, f x :=
+prod_le_prod_of_subset_of_one_le' (subset_univ s) (λ a _ _, w a)
 
 @[to_additive sum_eq_zero_iff_of_nonneg]
 lemma prod_eq_one_iff_of_one_le' : (∀ i ∈ s, 1 ≤ f i) → (∏ i in s, f i = 1 ↔ ∀ i ∈ s, f i = 1) :=
@@ -239,7 +244,7 @@ by classical;
 calc ∏ x in s, f x = (∏ x in s.filter (λ x, f x = 1), f x) * ∏ x in s.filter (λ x, f x ≠ 1), f x :
     by rw [← prod_union, filter_union_filter_neg_eq];
        exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
-  ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le'
+  ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le
       (prod_le_one' $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (prod_le_prod_of_subset' $ by simpa only [subset_iff, mem_filter, and_imp])
 
@@ -400,7 +405,7 @@ begin
   induction s using finset.induction with a s has ih h,
   { simp },
   { rw [finset.prod_insert has, finset.prod_insert has],
-    apply canonically_ordered_semiring.mul_le_mul,
+    apply mul_le_mul',
     { exact h _ (finset.mem_insert_self a s) },
     { exact ih (λ i hi, h _ (finset.mem_insert_of_mem hi)) } }
 end
@@ -413,9 +418,9 @@ lemma prod_add_prod_le' (hi : i ∈ s) (h2i : g i + h i ≤ f i)
   ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
 begin
   classical, simp_rw [prod_eq_mul_prod_diff_singleton hi],
-  refine le_trans _ (canonically_ordered_semiring.mul_le_mul_right' h2i _),
+  refine le_trans _ (mul_le_mul_right' h2i _),
   rw [right_distrib],
-  apply add_le_add; apply canonically_ordered_semiring.mul_le_mul_left'; apply prod_le_prod';
+  apply add_le_add; apply mul_le_mul_left'; apply prod_le_prod';
   simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption
 end
 

@@ -447,6 +447,12 @@ lemma ball_subset_of_comp_subset {V W : set (β × β)} {x y} (h : x ∈ ball y 
 lemma ball_mono {V W : set (β × β)} (h : V ⊆ W) (x : β) : ball x V ⊆ ball x W :=
 by tauto
 
+lemma ball_inter_left (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x V :=
+ball_mono (inter_subset_left V W) x
+
+lemma ball_inter_right (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x W :=
+ball_mono (inter_subset_right V W) x
+
 lemma mem_ball_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x y} :
   x ∈ ball y V ↔ y ∈ ball x V :=
 show (x, y) ∈ prod.swap ⁻¹' V ↔ (x, y) ∈ V, by { unfold symmetric_rel at hV, rw hV }
@@ -485,12 +491,12 @@ end
 lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
 ⟨ begin
-    simp only [mem_nhds_sets_iff, is_open_uniformity, and_imp, exists_imp_distrib],
+    simp only [mem_nhds_iff, is_open_uniformity, and_imp, exists_imp_distrib],
     exact assume t ts ht xt, by filter_upwards [ht x xt] assume ⟨x', y⟩ h eq, ts $ h eq
   end,
 
   assume hs,
-  mem_nhds_sets_iff.mpr ⟨{x | {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α},
+  mem_nhds_iff.mpr ⟨{x | {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α},
     assume x' hx', refl_mem_uniformity hx' rfl,
     is_open_uniformity.mpr $ assume x' hx',
       let ⟨t, ht, tr⟩ := comp_mem_uniformity_sets hx' in
@@ -567,6 +573,24 @@ lemma uniform_space.has_basis_nhds (x : α) :
 
 open uniform_space
 
+lemma uniform_space.mem_closure_iff_symm_ball {s : set α} {x} :
+  x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (s ∩ ball x V).nonempty :=
+begin
+  simp [mem_closure_iff_nhds_basis (has_basis_nhds x)],
+  tauto,
+end
+
+lemma uniform_space.mem_closure_iff_ball {s : set α} {x} :
+  x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → (ball x V ∩ s).nonempty :=
+begin
+  simp_rw [mem_closure_iff_nhds, uniform_space.mem_nhds_iff],
+  split,
+  { intros h V V_in,
+    exact h (ball x V) ⟨V, V_in, subset.refl _⟩ },
+  { rintros h t ⟨V, V_in, Vt⟩,
+    exact nonempty.mono (inter_subset_inter_left s Vt) (h V_in) },
+end
+
 lemma uniform_space.has_basis_nhds_prod (x y : α) :
   has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, (ball x s).prod (ball y s) :=
 begin
@@ -574,7 +598,7 @@ begin
   apply (has_basis_nhds x).prod' (has_basis_nhds y),
   rintro U V ⟨U_in, U_symm⟩ ⟨V_in, V_symm⟩,
   exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, symmetric_rel_inter U_symm V_symm⟩,
-         ball_mono (inter_subset_left U V) x, ball_mono (inter_subset_right U V) y⟩,
+         ball_inter_left x U V, ball_inter_right y U V⟩,
 end
 
 lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (ball x) :=
@@ -641,7 +665,7 @@ lemma nhdset_of_mem_uniformity {d : set (α×α)} (s : set (α×α)) (hd : d ∈
   ∃(t : set (α×α)), is_open t ∧ s ⊆ t ∧ t ⊆ {p | ∃x y, (p.1, x) ∈ d ∧ (x, y) ∈ s ∧ (y, p.2) ∈ d} :=
 let cl_d := {p:α×α | ∃x y, (p.1, x) ∈ d ∧ (x, y) ∈ s ∧ (y, p.2) ∈ d} in
 have ∀p ∈ s, ∃t ⊆ cl_d, is_open t ∧ p ∈ t, from
-  assume ⟨x, y⟩ hp, mem_nhds_sets_iff.mp $
+  assume ⟨x, y⟩ hp, _root_.mem_nhds_iff.mp $
   show cl_d ∈ 𝓝 (x, y),
   begin
     rw [nhds_eq_uniformity_prod, mem_lift'_sets],
@@ -816,7 +840,7 @@ lemma uniformity_has_basis_open_symmetric :
 begin
   simp only [← and_assoc],
   refine uniformity_has_basis_open.restrict (λ s hs, ⟨symmetrize_rel s, _⟩),
-  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open_inter hs.2 (hs.2.preimage continuous_swap)⟩,
+  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open.inter hs.2 (hs.2.preimage continuous_swap)⟩,
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
 end
 
@@ -847,6 +871,10 @@ iff.rfl
 theorem uniform_continuous_iff_eventually [uniform_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ r ∈ 𝓤 β, ∀ᶠ (x : α × α) in 𝓤 α, (f x.1, f x.2) ∈ r :=
 iff.rfl
+
+theorem uniform_continuous_on_univ [uniform_space β] {f : α → β} :
+  uniform_continuous_on f univ ↔ uniform_continuous f :=
+by rw [uniform_continuous_on, uniform_continuous, univ_prod_univ, principal_univ, inf_top_eq]
 
 lemma uniform_continuous_of_const [uniform_space β] {c : α → β} (h : ∀a b, c a = c b) :
   uniform_continuous c :=
@@ -1065,7 +1093,7 @@ lemma to_topological_space_inf {u v : uniform_space α} :
 by rw [to_topological_space_Inf, infi_pair]
 
 instance : uniform_space empty := ⊥
-instance : uniform_space unit := ⊥
+instance : uniform_space punit := ⊥
 instance : uniform_space bool := ⊥
 instance : uniform_space ℕ := ⊥
 instance : uniform_space ℤ := ⊥
@@ -1102,7 +1130,7 @@ lemma tendsto_of_uniform_continuous_subtype
   [uniform_space α] [uniform_space β] {f : α → β} {s : set α} {a : α}
   (hf : uniform_continuous (λx:s, f x.val)) (ha : s ∈ 𝓝 a) :
   tendsto f (𝓝 a) (𝓝 (f a)) :=
-by rw [(@map_nhds_subtype_coe_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
+by rw [(@map_nhds_subtype_coe_eq α _ s a (mem_of_mem_nhds ha) ha).symm]; exact
 tendsto_map' (continuous_iff_continuous_at.mp hf.continuous _)
 
 lemma uniform_continuous_on.continuous_on [uniform_space α] [uniform_space β] {f : α → β}
@@ -1282,14 +1310,14 @@ lemma uniformity_sum_of_open_aux {s : set (α ⊕ β)} (hs : is_open s) {x : α 
 begin
   cases x,
   { refine mem_sets_of_superset
-      (union_mem_uniformity_sum (mem_nhds_uniformity_iff_right.1 (mem_nhds_sets hs.1 xs))
+      (union_mem_uniformity_sum (mem_nhds_uniformity_iff_right.1 (is_open.mem_nhds hs.1 xs))
         univ_mem_sets)
       (union_subset _ _);
     rintro _ ⟨⟨_, b⟩, h, ⟨⟩⟩ ⟨⟩,
     exact h rfl },
   { refine mem_sets_of_superset
       (union_mem_uniformity_sum univ_mem_sets (mem_nhds_uniformity_iff_right.1
-        (mem_nhds_sets hs.2 xs)))
+        (is_open.mem_nhds hs.2 xs)))
       (union_subset _ _);
     rintro _ ⟨⟨a, _⟩, h, ⟨⟩⟩ ⟨⟩,
     exact h rfl },
@@ -1385,12 +1413,12 @@ variables [uniform_space α]
 theorem tendsto_nhds_right {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ tendsto (λ x, (a, u x)) f (𝓤 α)  :=
 ⟨λ H, tendsto_left_nhds_uniformity.comp H,
-λ H s hs, by simpa [mem_of_nhds hs] using H (mem_nhds_uniformity_iff_right.1 hs)⟩
+λ H s hs, by simpa [mem_of_mem_nhds hs] using H (mem_nhds_uniformity_iff_right.1 hs)⟩
 
 theorem tendsto_nhds_left {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ tendsto (λ x, (u x, a)) f (𝓤 α)  :=
 ⟨λ H, tendsto_right_nhds_uniformity.comp H,
-λ H s hs, by simpa [mem_of_nhds hs] using H (mem_nhds_uniformity_iff_left.1 hs)⟩
+λ H s hs, by simpa [mem_of_mem_nhds hs] using H (mem_nhds_uniformity_iff_left.1 hs)⟩
 
 theorem continuous_at_iff'_right [topological_space β] {f : β → α} {b : β} :
   continuous_at f b ↔ tendsto (λ x, (f b, f x)) (𝓝 b) (𝓤 α) :=

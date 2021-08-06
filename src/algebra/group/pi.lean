@@ -25,6 +25,10 @@ namespace pi
 instance semigroup [∀ i, semigroup $ f i] : semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 
+instance semigroup_with_zero [∀ i, semigroup_with_zero $ f i] :
+  semigroup_with_zero (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+
 @[to_additive]
 instance comm_semigroup [∀ i, comm_semigroup $ f i] : comm_semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
@@ -37,6 +41,14 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
 tactic.pi_instance_derive_field
+
+@[simp]
+lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
 
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
@@ -52,12 +64,12 @@ instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
+  npow := λ n x i, npow n (x i), gpow := λ n x i, gpow n (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
+  npow := λ n x i, npow n (x i), gpow := λ n x i, gpow n (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
@@ -129,20 +141,18 @@ end pi
 
 section monoid_hom
 
-variables (f) [Π i, monoid (f i)]
+variables (f) [Π i, mul_one_class (f i)]
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
-homomorphism. -/
-@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point
-is an additive monoid homomorphism."]
-def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
+homomorphism.
+This is `function.eval i` as a `monoid_hom`. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a
+point is an additive monoid homomorphism.
+This is `function.eval i` as an `add_monoid_hom`.", simps]
+def pi.eval_monoid_hom (i : I) : (Π i, f i) →* f i :=
 { to_fun := λ g, g i,
-  map_one' := rfl,
-  map_mul' := λ x y, rfl, }
-
-@[simp, to_additive]
-lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) :
-  (monoid_hom.apply f i) g = g i := rfl
+  map_one' := pi.one_apply i,
+  map_mul' := λ x y, pi.mul_apply _ _ i, }
 
 /-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
 
@@ -154,6 +164,17 @@ def monoid_hom.coe_fn (α β : Type*) [mul_one_class α] [comm_monoid β] : (α 
 { to_fun := λ g, g,
   map_one' := rfl,
   map_mul' := λ x y, rfl, }
+
+/-- Monoid homomorphism between the function spaces `I → α` and `I → β`, induced by a monoid
+homomorphism `f` between `α` and `β`. -/
+@[to_additive "Additive monoid homomorphism between the function spaces `I → α` and `I → β`,
+induced by an additive monoid homomorphism `f` between `α` and `β`", simps]
+protected def monoid_hom.comp_left {α β : Type*} [mul_one_class α] [mul_one_class β] (f : α →* β)
+  (I : Type*) :
+  (I → α) →* (I → β) :=
+{ to_fun := λ h, f ∘ h,
+  map_one' := by ext; simp,
+  map_mul' := λ _ _, by ext; simp }
 
 end monoid_hom
 

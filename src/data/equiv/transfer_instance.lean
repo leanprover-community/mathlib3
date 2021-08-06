@@ -124,6 +124,11 @@ protected def semigroup [semigroup β] : semigroup α :=
 let mul := e.has_mul in
 by resetI; apply e.injective.semigroup _; intros; exact e.apply_symm_apply _
 
+/-- Transfer `semigroup_with_zero` across an `equiv` -/
+protected def semigroup_with_zero [semigroup_with_zero β] : semigroup_with_zero α :=
+let mul := e.has_mul, zero := e.has_zero in
+by resetI; apply e.injective.semigroup_with_zero _; intros; exact e.apply_symm_apply _
+
 /-- Transfer `comm_semigroup` across an `equiv` -/
 @[to_additive "Transfer `add_comm_semigroup` across an `equiv`"]
 protected def comm_semigroup [comm_semigroup β] : comm_semigroup α :=
@@ -169,6 +174,22 @@ by resetI; apply e.injective.group _; intros; exact e.apply_symm_apply _
 protected def comm_group [comm_group β] : comm_group α :=
 let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div in
 by resetI; apply e.injective.comm_group _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_unital_non_assoc_semiring` across an `equiv` -/
+protected def non_unital_non_assoc_semiring [non_unital_non_assoc_semiring β] :
+  non_unital_non_assoc_semiring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+by resetI; apply e.injective.non_unital_non_assoc_semiring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_unital_semiring` across an `equiv` -/
+protected def non_unital_semiring [non_unital_semiring β] :  non_unital_semiring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+by resetI; apply e.injective.non_unital_semiring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_assoc_semiring` across an `equiv` -/
+protected def non_assoc_semiring [non_assoc_semiring β] : non_assoc_semiring α :=
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.non_assoc_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `semiring` across an `equiv` -/
 protected def semiring [semiring β] : semiring α :=
@@ -253,18 +274,18 @@ end
 section
 variables [semiring R]
 
-/-- Transfer `semimodule` across an `equiv` -/
-protected def semimodule (e : α ≃ β) [add_comm_monoid β] :
+/-- Transfer `module` across an `equiv` -/
+protected def module (e : α ≃ β) [add_comm_monoid β] :
   begin
     letI := equiv.add_comm_monoid e,
-    exact Π [semimodule R β], semimodule R α
+    exact Π [module R β], module R α
   end :=
 begin
   introsI,
   exact (
   { zero_smul := by simp [zero_def, smul_def],
     add_smul := by simp [add_def, smul_def, add_smul],
-    ..equiv.distrib_mul_action R e } : semimodule R α)
+    ..equiv.distrib_mul_action R e } : module R α)
 end
 
 /--
@@ -272,10 +293,10 @@ An equivalence `e : α ≃ β` gives a linear equivalence `α ≃ₗ[R] β`
 where the `R`-module structure on `α` is
 the one obtained by transporting an `R`-module structure on `β` back along `e`.
 -/
-def linear_equiv (e : α ≃ β) [add_comm_monoid β] [semimodule R β] :
+def linear_equiv (e : α ≃ β) [add_comm_monoid β] [module R β] :
   begin
     letI := equiv.add_comm_monoid e,
-    letI := equiv.semimodule R e,
+    letI := equiv.module R e,
     exact α ≃ₗ[R] β
   end :=
 begin

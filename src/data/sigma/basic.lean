@@ -90,13 +90,27 @@ begin
   exact ⟨⟨i, x⟩, rfl⟩
 end
 
-/-- Interpret a function on `Σ x : α, β x` as a dependent function with two arguments. -/
+/-- Interpret a function on `Σ x : α, β x` as a dependent function with two arguments.
+
+This also exists as an `equiv` as `equiv.Pi_curry γ`. -/
 def sigma.curry {γ : Π a, β a → Type*} (f : Π x : sigma β, γ x.1 x.2) (x : α) (y : β x) : γ x y :=
 f ⟨x,y⟩
 
-/-- Interpret a dependent function with two arguments as a function on `Σ x : α, β x` -/
+/-- Interpret a dependent function with two arguments as a function on `Σ x : α, β x`.
+
+This also exists as an `equiv` as `(equiv.Pi_curry γ).symm`. -/
 def sigma.uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) (x : sigma β) : γ x.1 x.2 :=
 f x.1 x.2
+
+@[simp]
+lemma sigma.uncurry_curry {γ : Π a, β a → Type*} (f : Π x : sigma β, γ x.1 x.2) :
+  sigma.uncurry (sigma.curry f) = f :=
+funext $ λ ⟨i, j⟩, rfl
+
+@[simp]
+lemma sigma.curry_uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) :
+  sigma.curry (sigma.uncurry f) = f :=
+rfl
 
 /-- Convert a product type to a Σ-type. -/
 @[simp]

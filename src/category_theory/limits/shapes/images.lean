@@ -426,6 +426,17 @@ end
 
 variables [has_equalizers C]
 
+/--
+`image.pre_comp f g` is an epimorphism when `f` is an epimorphism
+(we need `C` to have equalizers to prove this).
+-/
+instance image.pre_comp_epi_of_epi [has_image g] [has_image (f ≫ g)] [epi f] :
+  epi (image.pre_comp f g) :=
+begin
+  apply epi_of_epi_fac (image.factor_thru_image_pre_comp _ _),
+  exact epi_comp _ _
+end
+
 instance has_image_iso_comp [is_iso f] [has_image g] : has_image (f ≫ g) :=
 has_image.mk
 { F := (image.mono_factorisation g).iso_comp f,

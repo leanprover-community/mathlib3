@@ -309,6 +309,13 @@ nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
 
 end
 
+instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
+{ reflects := λ Y Z f t, by exactI
+  ⟨⟨under.hom_mk (inv ((under.forget X).map f)) ((is_iso.comp_inv_eq _).2 (under.w f).symm),
+    by tidy⟩⟩ }
+
+instance forget_faithful : faithful (forget X) := {}.
+
 section
 variables {D : Type u₂} [category.{v₂} D]
 

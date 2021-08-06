@@ -132,7 +132,7 @@ variable (K)
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
   haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
-  letI : vector_space (zmod p) K := { .. (zmod.cast_hom (dvd_refl _) K).to_semimodule },
+  letI : module (zmod p) K := { .. (zmod.cast_hom (dvd_refl _) K).to_module },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
   refine ⟨⟨n, _⟩, hp.1, h⟩,
@@ -241,11 +241,11 @@ namespace zmod
 
 open finite_field polynomial
 
-lemma sum_two_squares (p : ℕ) [hp : fact p.prime] (x : zmod p) :
+lemma sq_add_sq (p : ℕ) [hp : fact p.prime] (x : zmod p) :
   ∃ a b : zmod p, a^2 + b^2 = x :=
 begin
   cases hp.1.eq_two_or_odd with hp2 hp_odd,
-  { substI p, revert x, exact dec_trivial },
+  { substI p, change fin 2 at x, fin_cases x, { use 0, simp }, { use [0, 1], simp } },
   let f : polynomial (zmod p) := X^2,
   let g : polynomial (zmod p) := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=
@@ -260,11 +260,11 @@ end zmod
 
 namespace char_p
 
-lemma sum_two_squares (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+lemma sq_add_sq (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
   haveI := char_is_prime_of_pos R p,
-  obtain ⟨a, b, hab⟩ := zmod.sum_two_squares p x,
+  obtain ⟨a, b, hab⟩ := zmod.sq_add_sq p x,
   refine ⟨a.val, b.val, _⟩,
   simpa using congr_arg (zmod.cast_hom (dvd_refl _) R) hab
 end
@@ -274,12 +274,12 @@ end char_p
 open_locale nat
 open zmod
 
-/-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
+/-- The **Fermat-Euler totient theorem**. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
 @[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : units (zmod n)) : x ^ φ n = 1 :=
 by rw [← card_units_eq_totient, pow_card_eq_one]
 
-/-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
+/-- The **Fermat-Euler totient theorem**. `zmod.pow_totient` is an alternative statement
   of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
@@ -306,12 +306,12 @@ by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
 @[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
 by rw [card_units, card]
 
-/-- Fermat's Little Theorem: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
+/-- **Fermat's Little Theorem**: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
 theorem units_pow_card_sub_one_eq_one (p : ℕ) [fact p.prime] (a : units (zmod p)) :
   a ^ (p - 1) = 1 :=
 by rw [← card_units p, pow_card_eq_one]
 
-/-- Fermat's Little Theorem: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
+/-- **Fermat's Little Theorem**: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
 theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }

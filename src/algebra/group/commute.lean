@@ -44,6 +44,8 @@ variables {S : Type*} [has_mul S]
 @[symm, to_additive] protected theorem symm {a b : S} (h : commute a b) : commute b a :=
 eq.symm h
 
+@[to_additive] protected theorem semiconj_by {a b : S} (h : commute a b) : semiconj_by a b b := h
+
 @[to_additive]
 protected theorem symm_iff {a b : S} : commute a b ↔ commute b a :=
 ⟨commute.symm, commute.symm⟩
@@ -77,12 +79,18 @@ end semigroup
 @[to_additive]
 protected theorem all {S : Type*} [comm_semigroup S] (a b : S) : commute a b := mul_comm a b
 
-section monoid
+section mul_one_class
 
-variables {M : Type*} [monoid M]
+variables {M : Type*} [mul_one_class M]
 
 @[simp, to_additive] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
 @[simp, to_additive] theorem one_left (a : M) : commute 1 a := semiconj_by.one_left a
+
+end mul_one_class
+
+section monoid
+
+variables {M : Type*} [monoid M]
 
 @[to_additive] theorem units_inv_right {a : M} {u : units M} : commute a u → commute a ↑u⁻¹ :=
 semiconj_by.units_inv_right

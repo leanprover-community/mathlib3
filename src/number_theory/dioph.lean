@@ -352,7 +352,8 @@ instance : comm_ring (poly α) := by refine_struct
   one   := 1,
   sub   := has_sub.sub,
   npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩ };
+  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨neg⟩ };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 
@@ -753,6 +754,7 @@ let D_pell := @reindex_dioph _ (fin2 4) _ pell_dioph [&2, &3, &1, &0] in D∃3 D
 (dioph_pfun_vec _).2 $ dioph.ext this $ λv, ⟨λ⟨y, h, xe, ye⟩, ⟨h, xe⟩, λ⟨h, xe⟩, ⟨_, h, xe, rfl⟩⟩
 
 include df dg
+/-- A version of **Matiyasevic's theorem** -/
 theorem pow_dioph : dioph_fn (λv, f v ^ g v) :=
 have dioph {v : vector3 ℕ 3 |
 v &2 = 0 ∧ v &0 = 1 ∨ 0 < v &2 ∧

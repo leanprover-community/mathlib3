@@ -125,7 +125,7 @@ end
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
 
-lemma coe_fn_injective : function.injective (λ (f : P1 →ᵃ[k] P2) (x : P1), f x) :=
+lemma coe_fn_injective : @function.injective (P1 →ᵃ[k] P2) (P1 → P2) coe_fn :=
 λ f g H, ext $ congr_fun H
 
 protected lemma congr_arg (f : P1 →ᵃ[k] P2) {x y : P1} (h : x = y) : f x = f y :=
@@ -417,7 +417,7 @@ end
 section
 
 variables {ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [Π i, add_comm_group (V i)]
-  [Π i, semimodule k (V i)] [Π i, add_torsor (V i) (P i)]
+  [Π i, module k (V i)] [Π i, add_torsor (V i) (P i)]
 
 include V
 

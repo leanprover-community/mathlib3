@@ -912,7 +912,7 @@ If `t : cone F` is a limit cone, then `t.op : cocone F.op` is a colimit cocone.
 -/
 def is_limit.op {t : cone F} (P : is_limit t) : is_colimit t.op :=
 { desc := λ s, (P.lift s.unop).op,
-  fac' := λ s j, congr_arg has_hom.hom.op (P.fac s.unop (unop j)),
+  fac' := λ s j, congr_arg quiver.hom.op (P.fac s.unop (unop j)),
   uniq' := λ s m w,
   begin
     rw ← P.uniq s.unop m.unop,
@@ -925,7 +925,7 @@ If `t : cocone F` is a colimit cocone, then `t.op : cone F.op` is a limit cone.
 -/
 def is_colimit.op {t : cocone F} (P : is_colimit t) : is_limit t.op :=
 { lift := λ s, (P.desc s.unop).op,
-  fac' := λ s j, congr_arg has_hom.hom.op (P.fac s.unop (unop j)),
+  fac' := λ s j, congr_arg quiver.hom.op (P.fac s.unop (unop j)),
   uniq' := λ s m w,
   begin
     rw ← P.uniq s.unop m.unop,
@@ -938,7 +938,7 @@ If `t : cone F.op` is a limit cone, then `t.unop : cocone F` is a colimit cocone
 -/
 def is_limit.unop {t : cone F.op} (P : is_limit t) : is_colimit t.unop :=
 { desc := λ s, (P.lift s.op).unop,
-  fac' := λ s j, congr_arg has_hom.hom.unop (P.fac s.op (op j)),
+  fac' := λ s j, congr_arg quiver.hom.unop (P.fac s.op (op j)),
   uniq' := λ s m w,
   begin
     rw ← P.uniq s.op m.op,
@@ -951,7 +951,7 @@ If `t : cocone F.op` is a colimit cocone, then `t.unop : cone F.` is a limit con
 -/
 def is_colimit.unop {t : cocone F.op} (P : is_colimit t) : is_limit t.unop :=
 { lift := λ s, (P.desc s.op).unop,
-  fac' := λ s j, congr_arg has_hom.hom.unop (P.fac s.op (op j)),
+  fac' := λ s j, congr_arg quiver.hom.unop (P.fac s.op (op j)),
   uniq' := λ s m w,
   begin
     rw ← P.uniq s.op m.op,

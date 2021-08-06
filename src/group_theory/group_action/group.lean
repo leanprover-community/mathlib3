@@ -115,6 +115,11 @@ lemma inv_smul_eq_iff' {a : α} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔
 lemma eq_inv_smul_iff' {a : α} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
 (mul_action.to_perm (units.mk0 a ha)).eq_symm_apply
 
+/-- `monoid.to_mul_action` is faithful on groups with zero. -/
+instance group_with_zero.to_has_faithful_scalar [group_with_zero α] :
+  has_faithful_scalar α α :=
+⟨λ x y h, mul_left_injective' one_ne_zero (h 1)⟩
+
 end gwz
 
 end mul_action

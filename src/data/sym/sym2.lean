@@ -453,7 +453,24 @@ begin
   rw other_eq_other',
 end
 
-lemma filter_image_quotient_mk [decidable_eq α] (s : finset α) :
+lemma filter_image_quotient_mk_is_diag [decidable_eq α] (s : finset α) :
+  ((s.product s).image quotient.mk).filter is_diag =
+    s.diag.image quotient.mk :=
+begin
+  ext z,
+  induction z using quotient.induction_on,
+  rcases z with ⟨x, y⟩,
+  simp only [mem_image, mem_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  split,
+  { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
+    rw [←h, sym2.is_diag_iff_eq] at hab,
+    exact ⟨a, b, ⟨ha, hab⟩, h⟩ },
+  { rintro ⟨a, b, ⟨ha, rfl⟩, h⟩,
+    rw ←h,
+    exact ⟨⟨a, a, ⟨ha, ha⟩, rfl⟩, rfl⟩ }
+end
+
+lemma filter_image_quotient_mk_not_is_diag [decidable_eq α] (s : finset α) :
   ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
     s.off_diag.image quotient.mk :=
 begin

@@ -64,9 +64,9 @@ attribute [instance] has_left_dual.exact
 
 open exact_pairing has_right_dual has_left_dual monoidal_category
 
-reserve prefix `*^`:80
+reserve prefix `*^`:1025
 notation `*^` X := left_dual X
-reserve postfix `^*`:80
+reserve postfix `^*`:1025
 notation X `^*` := right_dual X
 
 instance has_right_dual_unit : has_right_dual (𝟙_ C) :=
@@ -104,7 +104,51 @@ theorem comp_eq_comp_congr_left {X Y Z : C} {f : X ⟶ Y} {g g' : Y ⟶ Z} :
 theorem comp_eq_comp_congr_right {X Y Z : C} {f f' : X ⟶ Y} {g : Y ⟶ Z} :
   f = f' → f ≫ g = f' ≫ g := λ h, by subst h
 
+theorem coeval_tensor_comp_tensor_coeval {X Y Z : C} [has_right_dual Y]
+  (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (λ_ X).inv ≫ (η_ Y Y^* ⊗ f) ≫ (α_ _ _ _).hom ≫ (g ⊗ ε_ Y Y^*) ≫ (ρ_ Z).hom = f ≫ g :=
+begin
+  rw ←id_tensor_comp_tensor_id,
+  rw ←id_tensor_comp_tensor_id _ g,
+  slice_lhs 3 5 { rw evaluation_coevaluation },
+  slice_lhs 1 3 { rw left_unitor_conjugation },
+  simp only [right_unitor_conjugation, category.assoc],
+end
+
+theorem right_adjoint_mate_comp {X Y Z : C} [has_right_dual X]
+  [has_right_dual Y] {f : X ⟶ Y} {g : X^* ⟶ Z} :
+  f^* ≫ g
+  = (ρ_ _).inv ≫ (𝟙 _ ⊗ η_ X X^*) ≫ (𝟙 _ ⊗ f ⊗ g)
+    ≫ (α_ _ _ _).inv ≫ (ε_ _ _ ⊗ 𝟙 _) ≫ (λ_ _).hom :=
+begin
+  dunfold right_adjoint_mate,
+  slice_lhs 3 4 { rw associator_inv_naturality },
+  slice_rhs 3 4 { rw associator_inv_naturality },
+  rw ←tensor_id_comp_id_tensor g,
+  slice_rhs 5 6 { rw id_tensor_comp_tensor_id },
+  slice_lhs 6 7 { rw ←left_unitor_naturality },
+  rw tensor_id_comp_id_tensor_assoc
+end
+
+theorem comp_right_adjoint_mate {X Y Z : C}
+  [has_right_dual X] [has_right_dual Y] [has_right_dual Z] {f : X ⟶ Y} {g : Y ⟶ Z} :
+  (f ≫ g)^* = g^* ≫ f^* :=
+begin
+  rw right_adjoint_mate_comp,
+  simp only [right_adjoint_mate, comp_tensor_id, iso.cancel_iso_inv_left, id_tensor_comp, category.assoc],
+  symmetry, iterate 5 { transitivity, rw [←category.id_comp g, tensor_comp] },
+  rw [←category.assoc],
+  symmetry, iterate 2 { transitivity, rw ←category.assoc }, apply comp_eq_comp_congr_right,
+  repeat { rw ←id_tensor_comp }, apply congr_arg (λ f, 𝟙 Z^* ⊗ f),
+  slice_rhs 7 8 { rw ←id_tensor_comp_tensor_id },
+  slice_rhs 0 6 {}, apply comp_eq_comp_congr_right,
+  --slice_rhs 4 5 { rw [←tensor_comp, associator_inv_naturality, tensor_comp] },
+  slice_rhs 1 2 { },
+  sorry
+end
+
 --set_option pp.all true
+#exit
 theorem right_adjoint_mate_comp {X Y Z : C}
   [has_right_dual X] [has_right_dual Y] [has_right_dual Z] {f : X ⟶ Y} {g : Y ⟶ Z} :
   (f ≫ g)^* = g^* ≫ f^* :=

@@ -636,8 +636,7 @@ lemma eval_nat_cast_map (f : R →+* S) (p : polynomial R) (n : ℕ) :
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
-  { intros n r, simp only [ring_hom.map_nat_cast, eval_monomial, map_monomial, ring_hom.map_pow,
-      ring_hom.map_mul] }
+  { intros n r, simp only [f.map_nat_cast, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
 end
 
 @[simp]
@@ -647,8 +646,7 @@ lemma eval_int_cast_map {R S : Type*} [ring R] [ring S]
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
-  { intros n r, simp only [ring_hom.map_int_cast, eval_monomial, map_monomial, ring_hom.map_pow,
-      ring_hom.map_mul] }
+  { intros n r, simp only [f.map_int_cast, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
 end
 
 end map
@@ -671,8 +669,7 @@ begin
   apply polynomial.induction_on p; clear p,
   { simp only [forall_const, eq_self_iff_true, eval₂_C, ring_hom.coe_comp] },
   { intros p q hp hq, simp only [hp, hq, eval₂_add, g.map_add] },
-  { intros n a ih,
-    simpa only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow] }
+  { intros n a ih, simpa only [eval₂_mul, eval₂_C, eval₂_X_pow, g.map_mul, g.map_pow] }
 end
 
 end hom_eval₂

@@ -2012,8 +2012,6 @@ section nat
 
 open finset.nat
 
-#check summable.mul_of_nonneg
-
 lemma summable_norm_cauchy_product_antidiagonal_of_summable_norm {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ n, ∥∑ kl in antidiagonal n, f kl.1 * g kl.2∥) :=

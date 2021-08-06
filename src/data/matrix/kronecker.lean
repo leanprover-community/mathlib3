@@ -15,7 +15,9 @@ This defines the [Kronecker product](https://en.wikipedia.org/wiki/Kronecker_pro
 
 ## Main definitions
 
-* `matrix.kronecker_map`: A generalization of the Kronecker product, defined such that
+* `matrix.kronecker_map`: A generalization of the Kronecker product: given a map `f : α   → β → γ`
+  and matrices `A` and `B` with coefficients in `α` and `β`, respectively, it is defined as the
+  matrix with coefficients in `γ` such that
   `kronecker_map f A B (i₁, i₂) (j₁, j₂) = f (A i₁ j₁) (B i₁ j₂)`.
 * `matrix.kronecker_map_linear`: when `f` is bilinear, so is `kronecker_map f`.
 

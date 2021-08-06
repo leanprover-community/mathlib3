@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.subalgebra
+import data.matrix.basic
 import order.liminf_limsup
 import topology.algebra.group_completion
 import topology.instances.nnreal

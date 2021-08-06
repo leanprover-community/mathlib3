@@ -287,13 +287,7 @@ begin
     rcases this with ⟨x, hx, y, hy, hne, hsub⟩,
     use ⟨x - y, hsub⟩,
     split,
-    {
-      intro a, /- TODO this should be easier -/
-      apply hne,
-      simp at a,
-      change x - y = 0 at a,
-      rwa sub_eq_zero at a,
-    },
+    { simpa only [sub_eq_zero, subtype.mk_eq_mk, ne.def], },
     have : ∀ t ∈ halfS, -t ∈ halfS :=
     begin
       intros t ht,

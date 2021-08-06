@@ -1027,13 +1027,13 @@ by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
 @[simp] lemma vec_mul_one [decidable_eq m] (v : m → α) : vec_mul v 1 = v :=
 by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
 
-@[simp] lemma mul_vec_one (A : matrix m n α) : mul_vec A 1 = λ i, ∑ j, A i j :=
+lemma mul_vec_one (A : matrix m n α) : mul_vec A 1 = λ i, ∑ j, A i j :=
 by ext; simp [mul_vec, dot_product]
 
 lemma mul_vec_one' (A : matrix m n α) : mul_vec A (λ i, 1) = λ i, ∑ j, A i j :=
 by ext; simp [mul_vec, dot_product]
 
-@[simp] lemma vec_one_mul (A : matrix m n α) : vec_mul 1 A = λ j, ∑ i, A i j :=
+lemma vec_one_mul (A : matrix m n α) : vec_mul 1 A = λ j, ∑ i, A i j :=
 by ext; simp [vec_mul, dot_product]
 
 lemma vec_one_mul' (A : matrix m n α) : vec_mul (λ j, 1 : m → α) A = λ j, ∑ i, A i j :=

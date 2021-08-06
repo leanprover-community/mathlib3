@@ -1087,7 +1087,7 @@ lemma borel_eq_generate_from_Ioo_rat :
 is_topological_basis_Ioo_rat.borel_eq_generate_from
 
 lemma is_pi_system_Ioo_rat : @is_pi_system ℝ (⋃ (a b : ℚ) (h : a < b), {Ioo a b})  :=
-by simpa [Union] using is_pi_system_Ioo (coe : ℚ → ℝ)
+by simpa using is_pi_system_Ioo (coe : ℚ → ℝ)
 
 /-- The intervals `(-(n + 1), (n + 1))` form a finite spanning sets in the set of open intervals
 with rational endpoints for a locally finite measure `μ` on `ℝ`. -/
@@ -1104,7 +1104,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_finite_measure �
     calc μ (Ioo _ _) ≤ μ (Icc _ _) : μ.mono Ioo_subset_Icc_self
                  ... < ∞           : is_compact_Icc.finite_measure,
   spanning := Union_eq_univ_iff.2 $ λ x,
-    ⟨nat_floor (abs x), neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
+    ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
 
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]

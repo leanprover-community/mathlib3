@@ -357,7 +357,7 @@ subtypes `{x // p x} ⊕ {x // q x}` such that `¬ p x` is sent to the right, wh
 `disjoint p q`.
 
 See also `equiv.sum_compl`, for when `is_compl p q`.  -/
-@[simps] def subtype_or_equiv (p q : α → Prop) [decidable_pred p] (h : disjoint p q) :
+@[simps apply] def subtype_or_equiv (p q : α → Prop) [decidable_pred p] (h : disjoint p q) :
   {x // p x ∨ q x} ≃ {x // p x} ⊕ {x // q x} :=
 { to_fun := subtype_or_left_embedding p q,
   inv_fun := sum.elim
@@ -384,5 +384,13 @@ See also `equiv.sum_compl`, for when `is_compl p q`.  -/
         intro hp,
         simpa using h x ⟨hp, x.prop⟩ } }
   end }
+
+@[simp] lemma subtype_or_equiv_symm_inl (p q : α → Prop) [decidable_pred p] (h : disjoint p q)
+  (x : {x // p x}) : (subtype_or_equiv p q h).symm (sum.inl x) = ⟨x, or.inl x.prop⟩ :=
+rfl
+
+@[simp] lemma subtype_or_equiv_symm_inr (p q : α → Prop) [decidable_pred p] (h : disjoint p q)
+  (x : {x // q x}) : (subtype_or_equiv p q h).symm (sum.inr x) = ⟨x, or.inr x.prop⟩ :=
+rfl
 
 end subtype

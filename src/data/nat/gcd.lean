@@ -342,6 +342,18 @@ theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (
 theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m) (l ^ n) :=
 (H1.pow_left _).pow_right _
 
+lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+  nat.coprime (a ^ n) b ↔ nat.coprime a b :=
+begin
+  obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn.ne',
+  rw [pow_succ, nat.coprime_mul_iff_left],
+  exact ⟨and.left, λ hab, ⟨hab, hab.pow_left _⟩⟩
+end
+
+lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+  nat.coprime a (b ^ n) ↔ nat.coprime a b :=
+by rw [nat.coprime_comm, coprime_pow_left_iff hn, nat.coprime_comm]
+
 theorem coprime.eq_one_of_dvd {k m : ℕ} (H : coprime k m) (d : k ∣ m) : k = 1 :=
 by rw [← H.gcd_eq_one, gcd_eq_left d]
 

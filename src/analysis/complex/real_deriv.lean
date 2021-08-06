@@ -119,16 +119,11 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
 lemma conformal_at_of_holomorph (hf' : fderiv ℝ f z ≠ 0) (h : differentiable_at ℂ f z) :
   conformal_at f z :=
 begin
-  have : differentiable_at ℝ f z := h.restrict_scalars ℝ,
-  rw [conformal_at_iff_is_conformal_map_fderiv],
-  rw [differentiable_at_iff_exists_linear_map ℝ this] at h;
-    [skip, apply_instance, apply_instance, apply_instance],
-  rcases h with ⟨map, hmap⟩,
-  rw ← hmap,
-  refine is_conformal_map_complex_linear _,
+  rw conformal_at_iff_is_conformal_map_fderiv,
+  rw (h.has_fderiv_at.restrict_scalars ℝ).fderiv at ⊢ hf',
+  apply is_conformal_map_complex_linear,
   contrapose! hf' with w,
-  ext1,
-  simp only [← hmap, coe_restrict_scalars', w, continuous_linear_map.zero_apply],
+  simp [w]
 end
 
 /-- A real differentiable function of the complex plane into some complex normed space `E` is

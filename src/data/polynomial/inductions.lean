@@ -24,7 +24,7 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section semiring
 variables [semiring R] {p q : polynomial R}
 
-/-- `div_X p` return a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
+/-- `div_X p` returns a polynomial `q` such that `q * X + C (p.coeff 0) = p`.
   It can be used in a semiring where the usual division algorithm is not possible -/
 def div_X (p : polynomial R) : polynomial R :=
 ∑ n in Ico 0 p.nat_degree, monomial n (p.coeff (n + 1))

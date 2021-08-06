@@ -32,25 +32,28 @@ More details of the construction can be found on pages 66-69 of Katz-Mazur.
 
 The definition in this file makes sense for all commutative rings `R`, but it only gives
 a type which can be beefed up to a category which is equivalent to the category of elliptic
-curves over `Spec R` in the case that `R` has trivial Picard group (or equivalently, all
-invertible `R`-modules are trivial).
+curves over `Spec R` in the case that `R` has trivial Picard group or, slightly more generally,
+when the 12-torsion of Pic(R) is trivial.
 
 ## TODO
 
 Define the R-points (or even A-points if A is an R-algebra). Care will be needed
-at infinity if R is not a field. Define the group law on the R-points.
+at infinity if R is not a field. Define the group law on the R-points. (hard) prove associativity.
 
 -/
+
+def EllipticCurve.disc_aux {R : Type*} [comm_ring R] (a1 a2 a3 a4 a6 : R) :=
+-432*a6^2 + ((288*a2 + 72*a1^2)*a4 + (-216*a3^2 + (144*a1*a2 + 36*a1^3)*a3 + (-64*a2^3 -
+48*a1^2*a2^2 - 12*a1^4*a2 - a1^6)))*a6 + (-64*a4^3 + (-96*a1*a3 + (16*a2^2 + 8*a1^2*a2 + a1^4))*a4^2
++ ((72*a2 - 30*a1^2)*a3^2 + (16*a1*a2^2 + 8*a1^3*a2 + a1^5)*a3)*a4 + (-27*a3^4 + (36*a1*a2 +
+a1^3)*a3^3 + (-16*a2^3 - 8*a1^2*a2^2 - a1^4*a2)*a3^2))
 
 /-- The category of elliptic curves over `R` (note that this definition is only mathematically
 correct when `R` has trivial Picard group, for example if `R` is a field or a PID). -/
 structure EllipticCurve (R : Type*) [comm_ring R] :=
 (a1 a2 a3 a4 a6 : R)
 (disc_unit : units R)
-(disc_unit_eq : (disc_unit : R) = -432*a6^2 + ((288*a2 + 72*a1^2)*a4 + (-216*a3^2 + (144*a1*a2 +
-  36*a1^3)*a3 + (-64*a2^3 - 48*a1^2*a2^2 - 12*a1^4*a2 - a1^6)))*a6 + (-64*a4^3 + (-96*a1*a3 +
-  (16*a2^2 + 8*a1^2*a2 + a1^4))*a4^2 + ((72*a2 - 30*a1^2)*a3^2 + (16*a1*a2^2 + 8*a1^3*a2 +
-  a1^5)*a3)*a4 + (-27*a3^4 + (36*a1*a2 + a1^3)*a3^3 + (-16*a2^3 - 8*a1^2*a2^2 - a1^4*a2)*a3^2)))
+(disc_unit_eq : (disc_unit : R) = EllipticCurve.disc_aux a1 a2 a3 a4 a6)
 
 namespace EllipticCurve
 
@@ -58,11 +61,7 @@ variables {R : Type*} [comm_ring R] (E : EllipticCurve R)
 
 /-- The discriminant of an elliptic curve. Sometimes only defined up to sign in the literature;
   we choose the sign used by the LMFDB. -/
-def disc := -432*E.a6^2 + ((288*E.a2 + 72*E.a1^2)*E.a4 + (-216*E.a3^2 + (144*E.a1*E.a2 +
-  36*E.a1^3)*E.a3 + (-64*E.a2^3 - 48*E.a1^2*E.a2^2 - 12*E.a1^4*E.a2 - E.a1^6)))*E.a6 + (-64*E.a4^3 +
-  (-96*E.a1*E.a3 + (16*E.a2^2 + 8*E.a1^2*E.a2 + E.a1^4))*E.a4^2 + ((72*E.a2 - 30*E.a1^2)*E.a3^2 +
-  (16*E.a1*E.a2^2 + 8*E.a1^3*E.a2 + E.a1^5)*E.a3)*E.a4 + (-27*E.a3^4 + (36*E.a1*E.a2 +
-  E.a1^3)*E.a3^3 + (-16*E.a2^3 - 8*E.a1^2*E.a2^2 - E.a1^4*E.a2)*E.a3^2))
+def disc := disc_aux E.a1 E.a2 E.a3 E.a4 E.a6
 
 lemma disc_is_unit : is_unit E.disc :=
 begin
@@ -70,6 +69,7 @@ begin
   exact E.disc_unit_eq.symm
 end
 
+/-- The j-invariant of an elliptic curve. -/
 def j := (-48*E.a4 + (-24*E.a1*E.a3 + (16*E.a2^2 + 8*E.a1^2*E.a2 + E.a1^4)))^3 *
   (E.disc_unit⁻¹ : units R)
 

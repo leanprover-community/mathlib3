@@ -3,10 +3,10 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
+import data.nat.basic
 import order.complete_boolean_algebra
-import data.sigma.basic
-import order.galois_connection
 import order.directed
+import order.galois_connection
 
 open function tactic set auto
 
@@ -514,6 +514,13 @@ theorem bInter_insert (a : α) (s : set α) (t : α → set β) :
   (⋂ x ∈ insert a s, t x) = t a ∩ (⋂ x ∈ s, t x) :=
 by simp
 
+lemma bInter_lt_succ (f : ℕ → set α) (n : ℕ) : (⋂ i < n.succ, f i) = f n ∩ (⋂ i < n, f i) :=
+ext $ λ a, begin
+  rw mem_inter_iff,
+  simp_rw [mem_Inter, nat.lt_succ_iff_lt_or_eq, or_imp_distrib],
+  rw [forall_and_distrib, forall_eq, and_comm],
+end
+
 -- TODO(Jeremy): another example of where an annotation is needed
 
 theorem bInter_pair (a b : α) (s : α → set β) :
@@ -559,6 +566,13 @@ supr_union
 theorem bUnion_insert (a : α) (s : set α) (t : α → set β) :
   (⋃ x ∈ insert a s, t x) = t a ∪ (⋃ x ∈ s, t x) :=
 by simp
+
+lemma bUnion_lt_succ (f : ℕ → set α) (n : ℕ) : (⋃ i < n.succ, f i) = f n ∪ (⋃ i < n, f i) :=
+ext $ λ a, begin
+  rw mem_union,
+  simp_rw [mem_Union, exists_prop, nat.lt_succ_iff_lt_or_eq, or_and_distrib_right],
+  rw [exists_or_distrib, exists_eq_left, or_comm],
+end
 
 theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
@@ -1300,6 +1314,18 @@ hs.sup_left ht
 
 theorem union_right (ht : disjoint s t) (hu : disjoint s u) : disjoint s (t ∪ u) :=
 ht.sup_right hu
+
+lemma inter_left (u : set α) (h : disjoint s t) : disjoint (s ∩ u) t :=
+inf_left _ h
+
+lemma inter_left' (u : set α) (h : disjoint s t) : disjoint (u ∩ s) t :=
+inf_left' _ h
+
+lemma inter_right (u : set α) (h : disjoint s t) : disjoint s (t ∩ u) :=
+inf_right _ h
+
+lemma inter_right' (u : set α) (h : disjoint s t) : disjoint s (u ∩ t) :=
+inf_right' _ h
 
 lemma preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) : disjoint (f ⁻¹' s) (f ⁻¹' t) :=
 λ x hx, h hx

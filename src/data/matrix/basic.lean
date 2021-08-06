@@ -157,12 +157,6 @@ lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
 lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
-lemma empty_eq_empty_left [c: is_empty m] (M N: matrix m n α) : M = N :=
-by {ext, exfalso, apply is_empty_iff.mp c i}
-
-lemma empty_eq_empty_right [c: is_empty n] (M N: matrix m n α) : M = N :=
-by {ext, exfalso, apply is_empty_iff.mp c j}
-
 end matrix
 
 open_locale matrix

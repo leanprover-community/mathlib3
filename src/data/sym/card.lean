@@ -9,7 +9,7 @@ import data.sym.sym2
 /-!
 # Stars and bars
 
-In this file, we prove the case `k = 2` of stars and bars.
+In this file, we prove the case `n = 2` of stars and bars.
 
 ## Informal statement
 

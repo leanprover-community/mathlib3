@@ -130,45 +130,6 @@ rec_on_horner p
         by simpa [h, nat.not_lt_zero] using h0'))
   h0
 
-/--  A property holds for all polynomials of non-zero `nat_degree` with coefficients in a
-semiring `R` if it holds for
-* `p + a`, with `a ∈ R`, `p ∈ R[X]`,
-* `p + q`, with `p, q ∈ R[X]`,
-* monomials with nonzero coefficient and non-zero exponent,
-with appropriate restrictions on each term.
-
-Note that multiplication is "hidden" in the assumption on monomials, so there is no explicit
-multiplication in the statement.
-
-See `degree_pos_induction_on` for a similar statement involving more explicit multiplications.
- -/
-@[elab_as_eliminator] lemma nat_degree_ne_zero_induction_on {M : polynomial R → Prop}
-  {f : polynomial R} (f0 : f.nat_degree ≠ 0) (h_C_add : ∀ {a p}, M p → M (C a + p))
-  (h_add : ∀ {p q}, M p → M q → M (p + q))
-  (h_monomial : ∀ {n : ℕ} {a : R}, a ≠ 0 → n ≠ 0 → M (monomial n a)) :
-  M f :=
-suffices f.nat_degree = 0 ∨ M f, from or.dcases_on this (λ h, (f0 h).elim) id,
-begin
-  apply f.induction_on,
-  { exact λ a, or.inl (nat_degree_C _) },
-  { rintros p q (hp | hp) (hq | hq),
-    { refine or.inl _,
-      rw [eq_C_of_nat_degree_eq_zero hp, eq_C_of_nat_degree_eq_zero hq, ← C_add, nat_degree_C] },
-    { refine or.inr _,
-      rw [eq_C_of_nat_degree_eq_zero hp],
-      exact h_C_add hq },
-    { refine or.inr _,
-      rw [eq_C_of_nat_degree_eq_zero hq, add_comm],
-      exact h_C_add hp },
-    { exact or.inr (h_add hp hq) } },
-  { intros n a hi,
-    by_cases a0 : a = 0,
-    { exact or.inl (by rw [a0, C_0, zero_mul, nat_degree_zero]) },
-    { refine or.inr _,
-      rw C_mul_X_pow_eq_monomial,
-      exact h_monomial a0 n.succ_ne_zero } }
-end
-
 end semiring
 
 end polynomial

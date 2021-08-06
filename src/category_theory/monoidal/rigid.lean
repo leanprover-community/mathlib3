@@ -145,6 +145,15 @@ begin
   rw [unitors_equal, ←category.assoc, ←category.assoc], simp
 end
 
+/- This theorem shows that right duals are isomorphic, which is almost trivial due to the
+  previous theorem. -/
+theorem right_dual_iso {X Y₁ Y₂ : C} (p₁ : exact_pairing X Y₁) (p₂ : exact_pairing X Y₂) :
+  Y₁ ≅ Y₂ :=
+{ hom := @right_adjoint_mate C _ _ X X ⟨Y₂⟩ ⟨Y₁⟩ (𝟙 X),
+  inv := @right_adjoint_mate C _ _ X X ⟨Y₁⟩ ⟨Y₂⟩ (𝟙 X),
+  hom_inv_id' := by rw [←comp_right_adjoint_mate, category.comp_id, right_adjoint_mate_id],
+  inv_hom_id' := by rw [←comp_right_adjoint_mate, category.comp_id, right_adjoint_mate_id] }
+
 /- A right rigid monoidal category is one in which every object has a right dual. -/
 class right_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
   (dual : Π (X : C), has_right_dual X)

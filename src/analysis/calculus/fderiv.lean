@@ -2867,7 +2867,8 @@ lemma differentiable.restrict_scalars (h : differentiable 𝕜' f) :
   differentiable 𝕜 f :=
 λx, (h x).restrict_scalars 𝕜
 
-lemma has_fderiv_within_at_of_restrict_scalars {s : set E} {g' : E →L[𝕜] F} (h : has_fderiv_within_at f g' s x)
+lemma has_fderiv_within_at_of_restrict_scalars {s : set E}
+  {g' : E →L[𝕜] F} (h : has_fderiv_within_at f g' s x)
   (H : f'.restrict_scalars 𝕜 = g') : has_fderiv_within_at f f' s x :=
 by { rw ← H at h, exact h }
 

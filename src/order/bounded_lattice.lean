@@ -449,6 +449,9 @@ instance : inhabited (with_bot α) := ⟨⊥⟩
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
+@[simp] theorem bot_ne_coe (a : α) : ⊥ ≠ (a : with_bot α) .
+@[simp] theorem coe_ne_bot (a : α) : (a : with_bot α) ≠ ⊥ .
+
 /-- Recursor for `with_bot` using the preferred forms `⊥` and `↑a`. -/
 @[elab_as_eliminator]
 def rec_bot_coe {C : with_bot α → Sort*} (h₁ : C ⊥) (h₂ : Π (a : α), C a) :
@@ -898,28 +901,36 @@ end with_top
 
 namespace subtype
 
-/-- A subtype forms a `⊔`-`⊥`-semilattice if `⊥` and `⊔` preserve the property. -/
+/-- A subtype forms a `⊔`-`⊥`-semilattice if `⊥` and `⊔` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_sup_bot [semilattice_sup_bot α] {P : α → Prop}
   (Pbot : P ⊥) (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) : semilattice_sup_bot {x : α // P x} :=
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_sup Psup }
 
-/-- A subtype forms a `⊓`-`⊥`-semilattice if `⊥` and `⊓` preserve the property. -/
+/-- A subtype forms a `⊓`-`⊥`-semilattice if `⊥` and `⊓` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_inf_bot [semilattice_inf_bot α] {P : α → Prop}
   (Pbot : P ⊥) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) : semilattice_inf_bot {x : α // P x} :=
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_inf Pinf }
 
-/-- A subtype forms a `⊔`-`⊤`-semilattice if `⊤` and `⊔` preserve the property. -/
+/-- A subtype forms a `⊔`-`⊤`-semilattice if `⊤` and `⊔` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_sup_top [semilattice_sup_top α] {P : α → Prop}
   (Ptop : P ⊤) (Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)) : semilattice_sup_top {x : α // P x} :=
 { top := ⟨⊤, Ptop⟩,
   le_top := λ x, @le_top α _ x,
   ..subtype.semilattice_sup Psup }
 
-/-- A subtype forms a `⊓`-`⊤`-semilattice if `⊤` and `⊓` preserve the property. -/
+/-- A subtype forms a `⊓`-`⊤`-semilattice if `⊤` and `⊓` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_inf_top [semilattice_inf_top α] {P : α → Prop}
   (Ptop : P ⊤) (Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)) : semilattice_inf_top {x : α // P x} :=
 { top := ⟨⊤, Ptop⟩,
@@ -1092,6 +1103,24 @@ lemma disjoint.left_le_of_le_sup_left {a b c : α} (h : a ≤ c ⊔ b) (hd : dis
   ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
 
 end bounded_distrib_lattice
+
+section semilattice_inf_bot
+
+variables [semilattice_inf_bot α] {a b : α} (c : α)
+
+lemma disjoint.inf_left (h : disjoint a b) : disjoint (a ⊓ c) b :=
+h.mono_left inf_le_left
+
+lemma disjoint.inf_left' (h : disjoint a b) : disjoint (c ⊓ a) b :=
+h.mono_left inf_le_right
+
+lemma disjoint.inf_right (h : disjoint a b) : disjoint a (b ⊓ c) :=
+h.mono_right inf_le_left
+
+lemma disjoint.inf_right' (h : disjoint a b) : disjoint a (c ⊓ b) :=
+h.mono_right inf_le_right
+
+end semilattice_inf_bot
 
 end disjoint
 

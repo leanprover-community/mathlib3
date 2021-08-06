@@ -245,6 +245,12 @@ e.to_galois_connection.bdd_above_l_image
 @[simp] lemma bdd_below_image (e : α ≃o β) {s : set α} : bdd_below (e '' s) ↔ bdd_below s :=
 e.dual.bdd_above_image
 
+@[simp] lemma bdd_above_preimage (e : α ≃o β) {s : set β} : bdd_above (e ⁻¹' s) ↔ bdd_above s :=
+by rw [← e.bdd_above_image, e.image_preimage]
+
+@[simp] lemma bdd_below_preimage (e : α ≃o β) {s : set β} : bdd_below (e ⁻¹' s) ↔ bdd_below s :=
+by rw [← e.bdd_below_image, e.image_preimage]
+
 end order_iso
 
 namespace nat

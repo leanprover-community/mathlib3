@@ -3,10 +3,11 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
-import analysis.calculus.tangent_cone
-import analysis.normed_space.units
-import analysis.asymptotics.asymptotic_equivalent
 import analysis.analytic.basic
+import analysis.asymptotics.asymptotic_equivalent
+import analysis.calculus.tangent_cone
+import analysis.normed_space.bounded_linear_maps
+import analysis.normed_space.units
 
 /-!
 # The Fréchet derivative
@@ -350,6 +351,25 @@ end
 protected lemma has_strict_fderiv_at.differentiable_at (hf : has_strict_fderiv_at f f' x) :
   differentiable_at 𝕜 f x :=
 hf.has_fderiv_at.differentiable_at
+
+/-- If `f` is strictly differentiable at `x` with derivative `f'` and `K > ∥f'∥₊`, then `f` is
+`K`-Lipschitz in a neighborhood of `x`. -/
+lemma has_strict_fderiv_at.exists_lipschitz_on_with_of_nnnorm_lt (hf : has_strict_fderiv_at f f' x)
+  (K : ℝ≥0) (hK : ∥f'∥₊ < K) : ∃ s ∈ 𝓝 x, lipschitz_on_with K f s :=
+begin
+  have := hf.add_is_O_with (f'.is_O_with_comp _ _) hK,
+  simp only [sub_add_cancel, is_O_with] at this,
+  rcases exists_nhds_square this with ⟨U, Uo, xU, hU⟩,
+  exact ⟨U, Uo.mem_nhds xU, lipschitz_on_with_iff_norm_sub_le.2 $
+    λ x hx y hy, hU (mk_mem_prod hx hy)⟩
+end
+
+/-- If `f` is strictly differentiable at `x` with derivative `f'`, then `f` is Lipschitz in a
+neighborhood of `x`. See also `has_strict_fderiv_at.exists_lipschitz_on_with_of_nnnorm_lt` for a
+more precise statement. -/
+lemma has_strict_fderiv_at.exists_lipschitz_on_with (hf : has_strict_fderiv_at f f' x) :
+  ∃ K (s ∈ 𝓝 x), lipschitz_on_with K f s :=
+(no_top _).imp hf.exists_lipschitz_on_with_of_nnnorm_lt
 
 /-- Directional derivative agrees with `has_fderiv`. -/
 lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α → 𝕜}
@@ -827,6 +847,16 @@ end
 
 lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 (differentiable_const _).differentiable_on
+
+lemma has_fderiv_at_of_subsingleton {R X Y : Type*} [nondiscrete_normed_field R]
+  [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y] [h : subsingleton X]
+  (f : X → Y) (x : X) :
+  has_fderiv_at f (0 : X →L[R] Y) x :=
+begin
+  rw subsingleton_iff at h,
+  have key : function.const X (f 0) = f := by ext x'; rw h x' 0,
+  exact key ▸ (has_fderiv_at_const (f 0) _),
+end
 
 end const
 

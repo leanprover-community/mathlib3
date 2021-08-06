@@ -392,7 +392,7 @@ variables {α : Type u} [metric_space α]
 edistance between two such sets is finite. -/
 instance nonempty_compacts.metric_space : metric_space (nonempty_compacts α) :=
 emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_nonempty_of_bounded x.2.1 y.2.1
-  (bounded_of_compact x.2.2) (bounded_of_compact y.2.2)
+  x.2.2.bounded y.2.2.bounded
 
 /-- The distance on `nonempty_compacts α` is the Hausdorff distance, by construction -/
 lemma nonempty_compacts.dist_eq {x y : nonempty_compacts α} :

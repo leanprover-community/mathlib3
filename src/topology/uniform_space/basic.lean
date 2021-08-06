@@ -872,6 +872,10 @@ theorem uniform_continuous_iff_eventually [uniform_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ r ∈ 𝓤 β, ∀ᶠ (x : α × α) in 𝓤 α, (f x.1, f x.2) ∈ r :=
 iff.rfl
 
+theorem uniform_continuous_on_univ [uniform_space β] {f : α → β} :
+  uniform_continuous_on f univ ↔ uniform_continuous f :=
+by rw [uniform_continuous_on, uniform_continuous, univ_prod_univ, principal_univ, inf_top_eq]
+
 lemma uniform_continuous_of_const [uniform_space β] {c : α → β} (h : ∀a b, c a = c b) :
   uniform_continuous c :=
 have (λ (x : α × α), (c (x.fst), c (x.snd))) ⁻¹' id_rel = univ, from

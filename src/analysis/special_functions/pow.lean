@@ -1692,4 +1692,12 @@ begin
     exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
 end
 
+lemma tendsto_const_mul_rpow_nhds_zero_of_pos {c : ℝ≥0∞} (hc : c ≠ ∞) {y : ℝ} (hy : 0 < y) :
+  tendsto (λ x : ℝ≥0∞, c * x ^ y) (𝓝 0) (𝓝 0) :=
+begin
+  convert ennreal.tendsto.const_mul (ennreal.continuous_rpow_const.tendsto 0) _,
+  { simp [hy] },
+  { exact or.inr hc }
+end
+
 end ennreal

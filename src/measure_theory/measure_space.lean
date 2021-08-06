@@ -176,6 +176,31 @@ begin
   rw [← measure_union disjoint_diff h₂ (h₁.diff h₂), union_diff_cancel h]
 end
 
+lemma meas_eq_meas_of_null_diff {s t : set α}
+  (hst : s ⊆ t) (h_nulldiff : μ (t.diff s) = 0) : μ s = μ t :=
+by { rw [←diff_diff_cancel_left hst, ←@measure_diff_null _ _ _ t _ h_nulldiff], refl, }
+
+lemma meas_eq_meas_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃ \ s₁) = 0) :
+  (μ s₁ = μ s₂) ∧ (μ s₂ = μ s₃) :=
+begin
+  have le12 : μ s₁ ≤ μ s₂ := measure_mono h12,
+  have le23 : μ s₂ ≤ μ s₃ := measure_mono h23,
+  have key : μ s₃ ≤ μ s₁ := calc
+    μ s₃ = μ ((s₃ \ s₁) ∪ s₁)  : by rw (diff_union_of_subset (h12.trans h23))
+     ... ≤ μ (s₃ \ s₁) + μ s₁  : measure_union_le _ _
+     ... = μ s₁                : by simp only [h_nulldiff, zero_add],
+  exact ⟨le12.antisymm (le23.trans key), le23.antisymm (key.trans le12)⟩,
+end
+
+lemma meas_eq_meas_smaller_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₁ = μ s₂ :=
+(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).1
+
+lemma meas_eq_meas_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
+  (h12 : s₁ ⊆ s₂) (h23 : s₂ ⊆ s₃) (h_nulldiff : μ (s₃.diff s₁) = 0) : μ s₂ = μ s₃ :=
+(meas_eq_meas_of_between_null_diff h12 h23 h_nulldiff).2
+
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s < ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) measurable_set.univ h₁ h_fin }
 
@@ -225,12 +250,12 @@ begin
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
   have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
     measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
-  rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union disjoint_disjointed this,
+  rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union (disjoint_disjointed _) this,
     ennreal.tsum_eq_supr_nat],
-  simp only [← measure_bUnion_finset (disjoint_disjointed.pairwise_on _) (λ n _, this n)],
+  simp only [← measure_bUnion_finset ((disjoint_disjointed _).pairwise_on _) (λ n _, this n)],
   refine supr_le (λ n, _),
   refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
-  exact measure_mono (bUnion_subset_bUnion_right (λ k hk, disjointed_subset)),
+  exact measure_mono (bUnion_subset_bUnion_right (λ k hk, disjointed_subset _ _)),
   simp only [← finset.set_bUnion_option_to_finset, ← finset.set_bUnion_bUnion],
   generalize : (finset.range n).bUnion (λ k, (encodable.decode₂ ι k).to_finset) = t,
   rcases hd.finset_le t with ⟨i, hi⟩,
@@ -307,7 +332,7 @@ that ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, measurable_set (s i))
   (hs' : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
 begin
-  rw limsup_eq_infi_supr_of_nat',
+  simp only [limsup_eq_infi_supr_of_nat', set.infi_eq_Inter, set.supr_eq_Union],
   -- We will show that both `μ (⨅ n, ⨆ i, s (i + n))` and `0` are the limit of `μ (⊔ i, s (i + n))`
   -- as `n` tends to infinity. For the former, we use continuity from above.
   refine tendsto_nhds_unique
@@ -440,6 +465,12 @@ rfl
 
 /-! ### The complete lattice of measures -/
 
+/-- Measures are partially ordered.
+
+The definition of less equal here is equivalent to the definition without the
+measurable set condition, and this is shown by `measure.le_iff'`. It is defined
+this way since, to prove `μ ≤ ν`, we may simply `intros s hs` instead of rewriting followed
+by `intros s hs`. -/
 instance : partial_order (measure α) :=
 { le          := λ m₁ m₂, ∀ s, measurable_set s → m₁ s ≤ m₂ s,
   le_refl     := assume m s hs, le_refl _,
@@ -1432,6 +1463,15 @@ lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measur
   (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
+lemma summable_measure_to_real [hμ : finite_measure μ]
+  {f : ℕ → set α} (hf₁ : ∀ (i : ℕ), measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
+  summable (λ x, (μ (f x)).to_real) :=
+begin
+  apply ennreal.summable_to_real,
+  rw ← measure_theory.measure_Union hf₂ hf₁,
+  exact ne_of_lt (measure_lt_top _ _)
+end
+
 end finite_measure
 
 section probability_measure
@@ -1475,6 +1515,11 @@ export has_no_atoms (measure_singleton)
 attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
+
+lemma measure_subsingleton (hs : s.subsingleton) : μ s = 0 :=
+hs.induction_on measure_empty measure_singleton
+
+alias measure_subsingleton ← set.subsingleton.measure_eq
 
 @[simp] lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=
@@ -1692,7 +1737,7 @@ end
 instance sum.sigma_finite {ι} [fintype ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
   sigma_finite (sum μ) :=
 begin
-  haveI : encodable ι := (encodable.trunc_encodable_of_fintype ι).out,
+  haveI : encodable ι := fintype.encodable ι,
   have : ∀ n, measurable_set (⋂ (i : ι), spanning_sets (μ i) n) :=
     λ n, measurable_set.Inter (λ i, measurable_spanning_sets (μ i) n),
   refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, this, λ n, _, _⟩⟩⟩,
@@ -2507,7 +2552,7 @@ lemma metric.bounded.finite_measure [metric_space α] [proper_space α]
 
 section piecewise
 
-variables [measurable_space α] {μ : measure α} {s : set α} {f g : α → β}
+variables [measurable_space α] {μ : measure α} {s t : set α} {f g : α → β}
 
 lemma piecewise_ae_eq_restrict (hs : measurable_set s) : piecewise s f g =ᵐ[μ.restrict s] f :=
 begin
@@ -2522,11 +2567,19 @@ begin
   exact (piecewise_eq_on_compl s f g).eventually_eq.filter_mono inf_le_right
 end
 
+lemma piecewise_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.piecewise f g =ᵐ[μ] t.piecewise f g :=
+begin
+  filter_upwards [hst],
+  intros x hx,
+  replace hx : x ∈ s ↔ x ∈ t := iff_of_eq hx,
+  by_cases h : x ∈ s; have h' := h; rw hx at h'; simp [h, h']
+end
+
 end piecewise
 
 section indicator_function
 
-variables [measurable_space α] {μ : measure α} {s : set α} {f : α → β}
+variables [measurable_space α] {μ : measure α} {s t : set α} {f : α → β}
 
 lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
   ae_measurable f (μ.restrict s) :=
@@ -2539,6 +2592,9 @@ piecewise_ae_eq_restrict hs
 
 lemma indicator_ae_eq_restrict_compl (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
 piecewise_ae_eq_restrict_compl hs
+
+lemma indicator_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.indicator f =ᵐ[μ] t.indicator f :=
+piecewise_ae_eq_of_ae_eq_set hst
 
 variables [measurable_space β]
 
@@ -2564,14 +2620,3 @@ lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_se
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end indicator_function
-
-namespace measurable_set
-
-variables [measurable_space α]
-
-@[measurability]
-lemma cond {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
-  {i : bool} : measurable_set (cond i A B) :=
-by { cases i, exacts [hB, hA] }
-
-end measurable_set

@@ -3,11 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import tactic.tfae
 import algebra.group_with_zero.power
 import data.set.intervals.pi
-import topology.algebra.group
 import order.filter.interval
+import topology.algebra.group
+import tactic.linarith
+import tactic.tfae
 
 /-!
 # Theory of topology on ordered spaces
@@ -108,6 +109,10 @@ class order_closed_topology (α : Type*) [topological_space α] [preorder α] : 
 
 instance : Π [topological_space α], topological_space (order_dual α) := id
 
+instance [topological_space α] [h : first_countable_topology α] :
+  first_countable_topology (order_dual α) := h
+
+
 @[to_additive]
 instance [topological_space α] [has_mul α] [h : has_continuous_mul α] :
   has_continuous_mul (order_dual α) := h
@@ -117,6 +122,16 @@ section order_closed_topology
 section preorder
 variables [topological_space α] [preorder α] [t : order_closed_topology α]
 include t
+
+namespace subtype
+
+instance {p : α → Prop} : order_closed_topology (subtype p) :=
+have this : continuous (λ (p : (subtype p) × (subtype p)), ((p.fst : α), (p.snd : α))) :=
+  (continuous_subtype_coe.comp continuous_fst).prod_mk
+  (continuous_subtype_coe.comp continuous_snd),
+order_closed_topology.mk (t.is_closed_le'.preimage this)
+
+end subtype
 
 lemma is_closed_le_prod : is_closed {p : α × α | p.1 ≤ p.2} :=
 t.is_closed_le'
@@ -939,6 +954,18 @@ lemma nhds_bot_basis [topological_space α] [semilattice_inf_bot α] [is_total �
   [order_topology α] [nontrivial α] :
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a : α, Iio a) :=
 @nhds_top_basis (order_dual α) _ _ _ _ _
+
+lemma nhds_top_basis_Ici [topological_space α] [semilattice_sup_top α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] [densely_ordered α] :
+  (𝓝 ⊤).has_basis (λ a : α, a < ⊤) Ici :=
+nhds_top_basis.to_has_basis
+  (λ a ha, let ⟨b, hab, hb⟩ := exists_between ha in ⟨b, hb, Ici_subset_Ioi.mpr hab⟩)
+  (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩)
+
+lemma nhds_bot_basis_Iic [topological_space α] [semilattice_inf_bot α] [is_total α has_le.le]
+  [order_topology α] [nontrivial α] [densely_ordered α] :
+  (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) Iic :=
+@nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _
 
 lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
   {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
@@ -2013,9 +2040,21 @@ lemma is_lub_of_mem_nhds {s : set α} {a : α} {f : filter α}
   have b < b, from lt_of_lt_of_le hxb $ hb hxs,
   lt_irrefl b this⟩
 
+lemma is_lub_of_mem_closure {s : set α} {a : α} (hsa : a ∈ upper_bounds s) (hsf : a ∈ closure s) :
+  is_lub s a :=
+begin
+  rw [mem_closure_iff_cluster_pt, cluster_pt, inf_comm] at hsf,
+  haveI : (𝓟 s ⊓ 𝓝 a).ne_bot := hsf,
+  exact is_lub_of_mem_nhds hsa (mem_principal_self s),
+end
+
 lemma is_glb_of_mem_nhds : ∀ {s : set α} {a : α} {f : filter α},
   a ∈ lower_bounds s → s ∈ f → ne_bot (f ⊓ 𝓝 a) → is_glb s a :=
 @is_lub_of_mem_nhds (order_dual α) _ _ _
+
+lemma is_glb_of_mem_closure {s : set α} {a : α} (hsa : a ∈ lower_bounds s) (hsf : a ∈ closure s) :
+  is_glb s a :=
+@is_lub_of_mem_closure (order_dual α) _ _ _ s a hsa hsf
 
 lemma is_lub.mem_upper_bounds_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
@@ -2095,6 +2134,123 @@ sc.closure_subset $ ha.mem_closure hs
 
 alias is_glb.mem_of_is_closed ← is_closed.is_glb_mem
 
+/-!
+### Existence of sequences tending to Inf or Sup of a given set
+-/
+
+lemma is_lub.exists_seq_strict_mono_tendsto_of_not_mem' {t : set α} {x : α}
+  (htx : is_lub t x) (not_mem : x ∉ t) (ht : t.nonempty) (hx : is_countably_generated (𝓝 x)) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
+begin
+  rcases ht with ⟨l, hl⟩,
+  have hl : l < x,
+  { rcases lt_or_eq_of_le (htx.1 hl) with h|rfl,
+    { exact h },
+    { exact (not_mem hl).elim } },
+  obtain ⟨s, hs⟩ : ∃ s : ℕ → set α, (𝓝 x).has_basis (λ (_x : ℕ), true) s :=
+    let ⟨s, hs⟩ := hx.exists_antimono_basis in ⟨s, hs.to_has_basis⟩,
+  have : ∀ n k, k < x → ∃ y, Icc y x ⊆ s n ∧ k < y ∧ y < x ∧ y ∈ t,
+  { assume n k hk,
+    obtain ⟨L, hL, h⟩ : ∃ (L : α) (hL : L ∈ Ico k x), Ioc L x ⊆ s n :=
+      exists_Ioc_subset_of_mem_nhds' (hs.mem_of_mem trivial) hk,
+    obtain ⟨y, hy⟩ : ∃ (y : α), L < y ∧ y < x ∧ y ∈ t,
+    { rcases htx.exists_between' not_mem hL.2 with ⟨y, yt, hy⟩,
+      refine ⟨y, hy.1, hy.2, yt⟩ },
+    exact ⟨y, λ z hz, h ⟨hy.1.trans_le hz.1, hz.2⟩, hL.1.trans_lt hy.1, hy.2⟩ },
+  choose! f hf using this,
+  let u : ℕ → α := λ n, nat.rec_on n (f 0 l) (λ n h, f n.succ h),
+  have I : ∀ n, u n < x,
+  { assume n,
+    induction n with n IH,
+    { exact (hf 0 l hl).2.2.1 },
+    { exact (hf n.succ _ IH).2.2.1 } },
+  have S : strict_mono u := strict_mono_nat_of_lt_succ (λ n, (hf n.succ _ (I n)).2.1),
+  refine ⟨u, S, I, hs.tendsto_right_iff.2 (λ n _, _), (λ n, _)⟩,
+  { simp only [ge_iff_le, eventually_at_top],
+    refine ⟨n, λ p hp, _⟩,
+    have up : u p ∈ Icc (u n) x := ⟨S.monotone hp, (I p).le⟩,
+    have : Icc (u n) x ⊆ s n,
+      by { cases n, { exact (hf 0 l hl).1 }, { exact (hf n.succ (u n) (I n)).1 } },
+    exact this up },
+  { cases n,
+    { exact (hf 0 l hl).2.2.2 },
+    { exact (hf n.succ _ (I n)).2.2.2 } }
+end
+
+lemma is_lub.exists_seq_monotone_tendsto' {t : set α} {x : α}
+  (htx : is_lub t x) (ht : t.nonempty) (hx : is_countably_generated (𝓝 x)) :
+  ∃ u : ℕ → α, monotone u ∧ (∀ n, u n ≤ x) ∧ tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
+begin
+  by_cases h : x ∈ t,
+  { exact ⟨λ n, x, monotone_const, λ n, le_rfl, tendsto_const_nhds, λ n, h⟩ },
+  { rcases htx.exists_seq_strict_mono_tendsto_of_not_mem' h ht hx with ⟨u, hu⟩,
+    exact ⟨u, hu.1.monotone, λ n, (hu.2.1 n).le, hu.2.2⟩ }
+end
+
+lemma is_lub.exists_seq_strict_mono_tendsto_of_not_mem [first_countable_topology α]
+  {t : set α} {x : α} (htx : is_lub t x) (ht : t.nonempty) (not_mem : x ∉ t) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
+htx.exists_seq_strict_mono_tendsto_of_not_mem' not_mem ht (is_countably_generated_nhds x)
+
+lemma is_lub.exists_seq_monotone_tendsto [first_countable_topology α]
+  {t : set α} {x : α} (htx : is_lub t x) (ht : t.nonempty) :
+  ∃ u : ℕ → α, monotone u ∧ (∀ n, u n ≤ x) ∧ tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
+htx.exists_seq_monotone_tendsto' ht (is_countably_generated_nhds x)
+
+lemma exists_seq_strict_mono_tendsto [densely_ordered α] [no_bot_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
+begin
+  have hx : x ∉ Iio x := λ h, (lt_irrefl x h).elim,
+  have ht : set.nonempty (Iio x) := nonempty_Iio,
+  rcases is_lub_Iio.exists_seq_strict_mono_tendsto_of_not_mem ht hx with ⟨u, hu⟩,
+  exact ⟨u, hu.1, hu.2.1, hu.2.2.1⟩,
+end
+
+lemma exists_seq_tendsto_Sup {α : Type*} [conditionally_complete_linear_order α]
+  [topological_space α] [order_topology α] [first_countable_topology α]
+  {S : set α} (hS : S.nonempty) (hS' : bdd_above S) :
+  ∃ (u : ℕ → α), monotone u ∧ tendsto u at_top (𝓝 (Sup S)) ∧ (∀ n, u n ∈ S) :=
+begin
+  rcases (is_lub_cSup hS hS').exists_seq_monotone_tendsto hS with ⟨u, hu⟩,
+  exact ⟨u, hu.1, hu.2.2⟩,
+end
+
+lemma is_glb.exists_seq_strict_mono_tendsto_of_not_mem' {t : set α} {x : α}
+  (htx : is_glb t x) (not_mem : x ∉ t) (ht : t.nonempty) (hx : is_countably_generated (𝓝 x)) :
+  ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧
+                        tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
+@is_lub.exists_seq_strict_mono_tendsto_of_not_mem' (order_dual α) _ _ _ t x htx not_mem ht hx
+
+lemma is_glb.exists_seq_monotone_tendsto' {t : set α} {x : α}
+  (htx : is_glb t x) (ht : t.nonempty) (hx : is_countably_generated (𝓝 x)) :
+  ∃ u : ℕ → α, (∀ m n, m ≤ n → u n ≤ u m) ∧ (∀ n, x ≤ u n) ∧
+                        tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
+@is_lub.exists_seq_monotone_tendsto' (order_dual α) _ _ _ t x htx ht hx
+
+lemma is_glb.exists_seq_strict_mono_tendsto_of_not_mem [first_countable_topology α]
+  {t : set α} {x : α} (htx : is_glb t x) (ht : t.nonempty) (not_mem : x ∉ t) :
+  ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧
+                        tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
+htx.exists_seq_strict_mono_tendsto_of_not_mem' not_mem ht (is_countably_generated_nhds x)
+
+lemma is_glb.exists_seq_monotone_tendsto [first_countable_topology α]
+  {t : set α} {x : α} (htx : is_glb t x) (ht : t.nonempty) :
+  ∃ u : ℕ → α, (∀ m n, m ≤ n → u n ≤ u m) ∧ (∀ n, x ≤ u n) ∧
+                        tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
+htx.exists_seq_monotone_tendsto' ht (is_countably_generated_nhds x)
+
+lemma exists_seq_strict_antimono_tendsto [densely_ordered α] [no_top_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
+@exists_seq_strict_mono_tendsto (order_dual α) _ _ _ _ _ _ x
+
+lemma exists_seq_tendsto_Inf {α : Type*} [conditionally_complete_linear_order α]
+  [topological_space α] [order_topology α] [first_countable_topology α]
+  {S : set α} (hS : S.nonempty) (hS' : bdd_below S) :
+  ∃ (u : ℕ → α), (∀ m n, m ≤ n → u n ≤ u m) ∧ tendsto u at_top (𝓝 (Inf S)) ∧ (∀ n, u n ∈ S) :=
+@exists_seq_tendsto_Sup (order_dual α) _ _ _ _ S hS hS'
+
 /-- A compact set is bounded below -/
 lemma is_compact.bdd_below {α : Type u} [topological_space α] [linear_order α]
   [order_closed_topology α] [nonempty α] {s : set α} (hs : is_compact s) : bdd_below s :=
@@ -2116,9 +2272,10 @@ lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α
 
 end order_topology
 
-section linear_order
+section densely_ordered
 
 variables [topological_space α] [linear_order α] [order_topology α] [densely_ordered α]
+{a b : α} {s : set α}
 
 /-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`, unless `a` is a top
 element. -/
@@ -2266,13 +2423,6 @@ lemma left_nhds_within_Ioo_ne_bot {a b : α} (H : a < b) : ne_bot (𝓝[Ioo a b]
 lemma right_nhds_within_Ioo_ne_bot {a b : α} (H : a < b) : ne_bot (𝓝[Ioo a b] b) :=
 (is_lub_Ioo H).nhds_within_ne_bot (nonempty_Ioo.2 H)
 
-end linear_order
-
-section linear_order
-
-variables [topological_space α] [linear_order α] [order_topology α] [densely_ordered α]
-  {a b : α} {s : set α}
-
 lemma comap_coe_nhds_within_Iio_of_Ioo_subset (hb : s ⊆ Iio b)
   (hs : s.nonempty → ∃ a < b, Ioo a b ⊆ s) :
   comap (coe : s → α) (𝓝[Iio b] b) = at_top :=
@@ -2397,7 +2547,7 @@ by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[Iio a] a) :=
 by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
 
-end linear_order
+end densely_ordered
 
 section complete_linear_order
 

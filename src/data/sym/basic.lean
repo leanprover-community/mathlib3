@@ -6,7 +6,6 @@ Authors: Kyle Miller
 
 import data.multiset.basic
 import data.vector2
-import tactic.tidy
 
 /-!
 # Symmetric powers
@@ -16,9 +15,9 @@ consists of homogeneous n-tuples modulo permutations by the symmetric
 group.
 
 The special case of 2-tuples is called the symmetric square, which is
-addressed in more detail in `data.sym2`.
+addressed in more detail in `data.sym.sym2`.
 
-TODO: This was created as supporting material for `data.sym2`; it
+TODO: This was created as supporting material for `sym2`; it
 needs a fleshed-out interface.
 
 ## Tags
@@ -39,7 +38,10 @@ def sym (α : Type u) (n : ℕ) := {s : multiset α // s.card = n}
 
 /--
 This is the `list.perm` setoid lifted to `vector`.
+
+See note [reducible non-instances].
 -/
+@[reducible]
 def vector.perm.is_setoid (α : Type u) (n : ℕ) : setoid (vector α n) :=
 { r := λ a b, list.perm a.1 b.1,
   iseqv := by { rcases list.perm.eqv α with ⟨hr, hs, ht⟩, tidy, } }

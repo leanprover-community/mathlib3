@@ -2867,19 +2867,19 @@ lemma differentiable.restrict_scalars (h : differentiable 𝕜' f) :
   differentiable 𝕜 f :=
 λx, (h x).restrict_scalars 𝕜
 
-lemma has_fderiv_within_at_of_eq {s : set E} {g' : E →L[𝕜] F} (h : has_fderiv_within_at f g' s x)
+lemma has_fderiv_within_at_of_restrict_scalars {s : set E} {g' : E →L[𝕜] F} (h : has_fderiv_within_at f g' s x)
   (H : f'.restrict_scalars 𝕜 = g') : has_fderiv_within_at f f' s x :=
 by { rw ← H at h, exact h }
 
-lemma has_fderiv_at_of_eq {g' : E →L[𝕜] F} (h : has_fderiv_at f g' x)
+lemma has_fderiv_at_of_restrict_scalars {g' : E →L[𝕜] F} (h : has_fderiv_at f g' x)
   (H : f'.restrict_scalars 𝕜 = g') : has_fderiv_at f f' x :=
-by simp only [has_fderiv_at, has_fderiv_at_filter] at h ⊢; rwa [← f'.coe_restrict_scalars', H]
+by { rw ← H at h, exact h }
 
-lemma fderiv_eq_fderiv (h : differentiable_at 𝕜' f x) :
+lemma differentiable_at.fderiv_restrict_scalars (h : differentiable_at 𝕜' f x) :
   fderiv 𝕜 f x = (fderiv 𝕜' f x).restrict_scalars 𝕜 :=
 (h.has_fderiv_at.restrict_scalars 𝕜).fderiv
 
-lemma differentiable_within_at_iff_exists_linear_map {s : set E}
+lemma differentiable_within_at_iff_restrict_scalars {s : set E}
   (hf : differentiable_within_at 𝕜 f s x) (hs : unique_diff_within_at 𝕜 s x) :
   differentiable_within_at 𝕜' f s x ↔
   ∃ (g' : E →L[𝕜'] F), g'.restrict_scalars 𝕜 = fderiv_within 𝕜 f s x :=
@@ -2888,13 +2888,15 @@ begin
   { rintros ⟨g', hg'⟩,
     exact ⟨g', hs.eq (hg'.restrict_scalars 𝕜) hf.has_fderiv_within_at⟩, },
   { rintros ⟨f', hf'⟩,
-    exact ⟨f', has_fderiv_within_at_of_eq 𝕜 hf.has_fderiv_within_at hf'⟩, },
+    exact ⟨f', has_fderiv_within_at_of_restrict_scalars 𝕜 hf.has_fderiv_within_at hf'⟩, },
 end
 
-lemma differentiable_at_iff_exists_linear_map (hf : differentiable_at 𝕜 f x) :
+lemma differentiable_at_iff_restrict_scalars (hf : differentiable_at 𝕜 f x) :
   differentiable_at 𝕜' f x ↔ ∃ (g' : E →L[𝕜'] F), g'.restrict_scalars 𝕜 = fderiv 𝕜 f x :=
-by { rw [← differentiable_within_at_univ, ← fderiv_within_univ],
-     exact differentiable_within_at_iff_exists_linear_map 𝕜
-     hf.differentiable_within_at unique_diff_within_at_univ, }
+begin
+  rw [← differentiable_within_at_univ, ← fderiv_within_univ],
+  exact differentiable_within_at_iff_restrict_scalars 𝕜
+    hf.differentiable_within_at unique_diff_within_at_univ,
+end
 
 end restrict_scalars

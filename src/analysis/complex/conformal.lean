@@ -115,12 +115,10 @@ begin
     { have minor₁ : g = (map.restrict_scalars ℝ).comp ↑conj_cle,
       { ext1,
         simp [hmap] },
-      rw minor₁,
+      rw minor₁ at ⊢ h₂,
       refine is_conformal_map_complex_linear_conj _,
       contrapose! h₂ with w,
-      ext1,
-      simp only [minor₁, coe_comp', coe_restrict_scalars', w,
-                 function.comp_app, continuous_linear_map.zero_apply], }, },
+      simp [w] } }
 end
 
 end conformal_into_complex_plane

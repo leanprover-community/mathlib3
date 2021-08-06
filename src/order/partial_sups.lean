@@ -122,9 +122,8 @@ begin
 end
 
 /- Note this lemma requires a distributive lattice, so is not useful (or true) in situations such as
-submodules.
-Can be generalized to (the yet inexistent) `distrib_lattice_bot`. -/
-lemma partial_sups_disjoint_of_disjoint [bounded_distrib_lattice α]
+submodules. -/
+lemma partial_sups_disjoint_of_disjoint [distrib_lattice_bot α]
   (f : ℕ → α) (h : pairwise (disjoint on f)) {m n : ℕ} (hmn : m < n) :
   disjoint (partial_sups f m) (f n) :=
 begin

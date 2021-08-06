@@ -169,11 +169,18 @@ by rw [conformal_at_iff_is_conformal_map_fderiv,
 lemma conformal_at_iff_holomorphic_or_antiholomorphic_at :
   conformal_at f z ↔
   (differentiable_at ℂ f z ∨ differentiable_at ℂ (f ∘ conj) (conj z)) ∧ fderiv ℝ f z ≠ 0 :=
-iff.intro
-  (λ h, (conformal_at_iff_holomorphic_or_antiholomorph_at_aux h.differentiable_at).mp h)
-  (λ h, by
-    { have : differentiable_at ℝ f z :=
-        by_contra (λ w, h.2 $ fderiv_zero_of_not_differentiable_at w),
-      exact (conformal_at_iff_holomorphic_or_antiholomorph_at_aux this).mpr h, } )
-
+begin
+  rw conformal_at_iff_is_conformal_map_fderiv,
+  rw is_complex_or_conj_complex_linear_iff_is_conformal_map,
+  apply and_congr_left,
+  intros h,
+  have h_diff := h.imp_symm fderiv_zero_of_not_differentiable_at,
+  apply or_congr,
+  { rw differentiable_at_iff_exists_linear_map ℝ h_diff },
+  rw ← conj_conj z at h_diff,
+  rw differentiable_at_iff_exists_linear_map ℝ (h_diff.comp _ conj_cle.differentiable_at),
+  refine exists_congr (λ g, rfl.congr _),
+  have : fderiv ℝ conj (conj z) = _ := conj_cle.fderiv,
+  simp [fderiv.comp _ h_diff conj_cle.differentiable_at, this, conj_conj],
+end
 end into_the_complex_plane

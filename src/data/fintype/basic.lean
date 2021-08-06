@@ -646,10 +646,6 @@ lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = finset.fin_range n := r
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
 
--- this `fact` is needed as an instance when working with SL₂, for example
-lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
-⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
-
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 

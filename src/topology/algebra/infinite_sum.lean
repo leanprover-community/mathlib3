@@ -1237,7 +1237,7 @@ have this : ∀ b : β, has_sum (λ c : γ, f b * g c) (f b * t),
   from λ b, hg.mul_left (f b),
 have key₂ : has_sum (λ b, f b * t) u,
   from has_sum.prod_fiberwise hfg this,
-has_sum.unique key₁ key₂
+key₁.unique key₂
 
 lemma has_sum.mul (hf : has_sum f s) (hg : has_sum g t)
   (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
@@ -1266,7 +1266,7 @@ variables [topological_space α] [semiring α]
 
 lemma summable_mul_iff_summable_cauchy_product_sigma {f g : ℕ → α} :
   summable (λ x : ℕ × ℕ, f x.1 * g x.2) ↔
-  summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f x.2.1.1 * g x.2.1.2) :=
+  summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=
 nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
 
 variables [regular_space α] [topological_semiring α]
@@ -1283,7 +1283,7 @@ end
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
     expressed by summing on `finset.nat.antidiagonal`.
     See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`
-    if `f` and `g` are abolutely summable. -/
+    if `f` and `g` are absolutely summable. -/
 lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
   (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
@@ -1298,19 +1298,19 @@ lemma summable_cauchy_product_range_of_summable_mul' {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
   summable (λ n, ∑ k in range (n+1), f k * g (n - k)) :=
 begin
-  conv {congr, funext, rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l)},
+  simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
   exact summable_cauchy_product_antidiagonal_of_summable_mul h
 end
 
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
     expressed by summing on `finset.range`.
     See also `tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`
-    if `f` and `g` are abolutely summable. -/
+    if `f` and `g` are absolutely summable. -/
 lemma tsum_mul_tsum_eq_tsum_sum_range (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
   (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ k in range (n+1), f k * g (n - k)) :=
 begin
-  conv_rhs {congr, funext, rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l)},
+  simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
   exact tsum_mul_tsum_eq_tsum_sum_antidiagonal hf hg hfg
 end
 

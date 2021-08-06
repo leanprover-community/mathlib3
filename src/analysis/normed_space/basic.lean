@@ -1963,9 +1963,10 @@ We first establish results about arbitrary index types, `β` and `γ`, and then 
 
 variables {ι' : Type*} [normed_ring α]
 
+open finset
 open_locale classical
 
-lemma real.summable_mul_of_summable_of_nonneg {f : ι → ℝ} {g : ι' → ℝ}
+lemma summable.mul_of_nonneg {f : ι → ℝ} {g : ι' → ℝ}
   (hf : summable f) (hg : summable g) (hf' : 0 ≤ f) (hg' : 0 ≤ g) :
   summable (λ (x : ι × ι'), f x.1 * g x.2) :=
 let ⟨s, hf⟩ := hf in
@@ -1975,60 +1976,61 @@ suffices this : ∀ u : finset (ι × ι'), ∑ x in u, f x.1 * g x.2 ≤ s*t,
 assume u,
 calc  ∑ x in u, f x.1 * g x.2
     ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), f x.1 * g x.2 :
-      finset.sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) finset.subset_product
-... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : finset.sum_product
+      sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) subset_product
+... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : sum_product
 ... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :
-      finset.sum_congr rfl (λ x _, finset.mul_sum.symm)
+      sum_congr rfl (λ x _, mul_sum.symm)
 ... ≤ ∑ x in u.image prod.fst, f x * t :
-      finset.sum_le_sum
+      sum_le_sum
         (λ x _, mul_le_mul_of_nonneg_left (sum_le_has_sum _ (λ _ _, hg' _) hg) (hf' _))
-... = (∑ x in u.image prod.fst, f x) * t : finset.sum_mul.symm
+... = (∑ x in u.image prod.fst, f x) * t : sum_mul.symm
 ... ≤ s * t :
       mul_le_mul_of_nonneg_right (sum_le_has_sum _ (λ _ _, hf' _) hf) (hg.nonneg $ λ _, hg' _)
 
-lemma summable_norm_mul_of_summable_norm {f : ι → α} {g : ι' → α}
+lemma summable.mul_norm {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ (x : ι × ι'), ∥f x.1 * g x.2∥) :=
 summable_of_nonneg_of_le (λ x, norm_nonneg (f x.1 * g x.2)) (λ x, norm_mul_le (f x.1) (g x.2))
-  (@real.summable_mul_of_summable_of_nonneg _ _ (λ x, ∥f x∥) (λ x, ∥g x∥) hf hg
-    (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x))
+  (@summable.mul_of_nonneg _ _ _ _ hf hg (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x))
 
 lemma summable_mul_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ (x : ι × ι'), f x.1 * g x.2) :=
-summable_of_summable_norm (summable_norm_mul_of_summable_norm hf hg)
+summable_of_summable_norm (hf.mul_norm hg)
 
 /-- Product of two infinites sums indexed by arbitrary types.
-    See also `tsum_mul_tsum` if `f` and `g` are *not* abolutely summable. -/
+    See also `tsum_mul_tsum` if `f` and `g` are *not* absolutely summable. -/
 lemma tsum_mul_tsum_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   (∑' x, f x) * (∑' y, g y) = (∑' z : ι × ι', f z.1 * g z.2) :=
 tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
   (summable_mul_of_summable_norm hf hg)
 
-/-! ### `ℕ`-indexed families (cauchy product) -/
+/-! ### `ℕ`-indexed families (Cauchy product) -/
 
 section nat
 
 open finset.nat
+
+#check summable.mul_of_nonneg
 
 lemma summable_norm_cauchy_product_antidiagonal_of_summable_norm {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ n, ∥∑ kl in antidiagonal n, f kl.1 * g kl.2∥) :=
 begin
   have := summable_cauchy_product_antidiagonal_of_summable_mul
-    (real.summable_mul_of_summable_of_nonneg hf hg (λ _, norm_nonneg _) (λ _, norm_nonneg _)),
+    (summable.mul_of_nonneg hf hg (λ _, norm_nonneg _) (λ _, norm_nonneg _)),
   refine summable_of_nonneg_of_le (λ _, norm_nonneg _) _ this,
   intros n,
   calc  ∥∑ kl in antidiagonal n, f kl.1 * g kl.2∥
       ≤ ∑ kl in antidiagonal n, ∥f kl.1 * g kl.2∥ : norm_sum_le _ _
-  ... ≤ ∑ kl in antidiagonal n, ∥f kl.1∥ * ∥g kl.2∥ : finset.sum_le_sum (λ i _, norm_mul_le _ _)
+  ... ≤ ∑ kl in antidiagonal n, ∥f kl.1∥ * ∥g kl.2∥ : sum_le_sum (λ i _, norm_mul_le _ _)
 end
 
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
     expressed by summing on `finset.nat.antidiagonal`.
     See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal` if `f` and `g` are
-    *not* abolutely summable. -/
+    *not* absolutely summable. -/
 lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm [complete_space α] {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ kl in antidiagonal n, f kl.1 * g kl.2 :=
@@ -2037,21 +2039,21 @@ tsum_mul_tsum_eq_tsum_sum_antidiagonal (summable_of_summable_norm hf) (summable_
 
 lemma summable_norm_cauchy_product_range_of_summable_norm {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
-  summable (λ n, ∥∑ k in finset.range (n+1), f k * g (n - k)∥) :=
+  summable (λ n, ∥∑ k in range (n+1), f k * g (n - k)∥) :=
 begin
-  conv {congr, funext, rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l)},
+  simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
   exact summable_norm_cauchy_product_antidiagonal_of_summable_norm hf hg
 end
 
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
     expressed by summing on `finset.range`.
     See also `tsum_mul_tsum_eq_tsum_sum_range` if `f` and `g` are
-    *not* abolutely summable. -/
+    *not* absolutely summable. -/
 lemma tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm [complete_space α] {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
-  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in finset.range (n+1), f k * g (n - k) :=
+  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in range (n+1), f k * g (n - k) :=
 begin
-  conv_rhs {congr, funext, rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l)},
+  simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
   exact tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm hf hg
 end
 

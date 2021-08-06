@@ -1135,7 +1135,7 @@ begin
 end
 
 /-- For a bounded set `s : set ℝ`, its `metric.diam` is equal to `Sup s - Inf s`. -/
-lemma real.diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
+lemma diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
 begin
   rw [metric.diam, real.ediam_eq h, ennreal.to_real_of_real],
   rw real.bounded_iff_bdd_below_bdd_above at h,

@@ -662,17 +662,14 @@ begin
   simp only [induced_compose, inf_le_right],
 end
 
-variables [∀ x, inhabited (E x)]
-
 /-- A vector bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
 def topological_vector_bundle.trivialization.pullback (e : trivialization R F E) (f : C(B', B)) :
   trivialization R F (λ y, E (f y)) := --WEEIIRD... composition?
 { to_fun := λ z, (z.1, (e (total_space_mk E (f z.1) z.2)).2),
-  inv_fun := λ y,
+  inv_fun := λ y, total_space_mk _ y.1 $
     if h : f y.1 ∈ e.base_set then
-      total_space_mk _ y.1 (cast (congr_arg E (e.symm_coe_fst' h))
-      (e.to_local_homeomorph.symm (f y.1, y.2)).2)
-    else ↑(default ((E ∘ f) y.1)),
+      (cast (congr_arg E (e.symm_coe_fst' h)) (e.to_local_homeomorph.symm (f y.1, y.2)).2)
+    else 0,
   source := (λ z, (z.1, (total_space_mk E (f z.1) z.2)).2) ⁻¹' e.source,
   base_set := f ⁻¹' e.base_set,
   target := (f ⁻¹' e.base_set).prod univ,
@@ -700,7 +697,6 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization R F E)
     ext,
     { refl },
     { dsimp only [total_space_mk],
-      rw [dif_pos h],
       have : x.snd = (f x.fst, x.snd).snd := rfl,
       rw this,
       congr,
@@ -769,7 +765,7 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization R F E)
 
 @[priority 90]
 instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle R F E] {f : C(B', B)} :
-  topological_vector_bundle R F (λ x : B', E (f x)) :=
+  topological_vector_bundle R F (E ∘ f) :=
 { total_space_mk_inducing := λ x, inducing_of_inducing_compose
     (pullback.continuous_total_space_mk R F) pullback.continuous_lift
     (topological_vector_bundle.total_space_mk_inducing R F E (f x)),

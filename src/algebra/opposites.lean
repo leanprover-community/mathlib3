@@ -234,10 +234,15 @@ example [monoid α] : monoid.to_mul_action (opposite α) = opposite.mul_action �
 
 lemma op_smul_eq_mul [monoid α] {a a' : α} : op a • a' = a' * a := rfl
 
-/-- `monoid.to_monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
+/-- `monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
 instance left_cancel_monoid.to_has_faithful_scalar [left_cancel_monoid α] :
   has_faithful_scalar (opposite α) α :=
 ⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
+
+/-- `monoid.to_opposite_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
+instance cancel_monoid_with_zero.to_has_faithful_opposite_scalar
+  [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_scalar (opposite α) α :=
+⟨λ x y h, unop_injective $ mul_left_cancel' one_ne_zero (h 1)⟩
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl

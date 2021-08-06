@@ -909,6 +909,13 @@ begin
   rw [sub_mul, sub_eq_zero, h']
 end
 
+lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) :
+  is_regular k :=
+⟨is_left_regular_of_non_zero_divisor k
+  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
+  is_right_regular_of_non_zero_divisor k
+  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -922,24 +929,12 @@ variable [domain α]
 instance domain.to_no_zero_divisors : no_zero_divisors α :=
 ⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
-lemma ring.is_regular [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) : is_regular k :=
-⟨is_left_regular_of_non_zero_divisor k
-  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
-  is_right_regular_of_non_zero_divisor k
-  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
-
-lemma domain.is_regular [domain α] {k : α} (hk : k ≠ 0) : is_regular k :=
-⟨is_left_regular_of_non_zero_divisor k
-  (λ x h, (domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h).resolve_left hk),
-  is_right_regular_of_non_zero_divisor k
-  (λ x h, (domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h).resolve_right hk)⟩
-
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
-     @is_regular.left _ _ _ (domain.is_regular ha) _ _,
+     @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
   mul_right_cancel_of_ne_zero := λ a b c hb,
-     @is_regular.right _ _ _ (domain.is_regular hb) _ _,
+     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
 /-- Pullback a `domain` instance along an injective function.

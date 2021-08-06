@@ -60,35 +60,13 @@ begin
   simpa [c_eq_zero, d_eq_zero] using p.is_coprime
 end
 
-lemma junk (x y z w :ℂ) (h: ![x,y]=![z,w]) : x=z :=
+lemma ne_zero' (p : coprime_ints) : ![(p.c:ℝ),p.d] ≠ 0 :=
 begin
-  sorry,
-/-  simp [vec_cons, vec_empty, fin_zero_elim] at h,
-  rw vec_cons at h,
-  rw vec_cons at h,
-  rw vec_cons at h,
-  rw vec_cons at h,
-  rw vec_empty at h,
-  -/
--- library_search,
-end
-
-lemma junk1 (x y :ℂ) (h1 : ![x,y]=![0,0]) : x=0 := junk x y 0 0 h1
-
-lemma ne_zero' (p : coprime_ints) : ![(p.c:ℂ ),p.d] ≠ 0 :=
-begin
-  by_contra,
-  push_neg at h,
-  have cd_eq_z: p.c=0 ∧ p.d=0,
-  {
-    split,
-    have := junk1 (p.c:ℂ ) (p.d:ℂ ) ,
---    have := this h,
-   -- have := h 1,
-    sorry,
-    sorry,
-  },
-  exact not_and_distrib.mpr (ne_zero p) (cd_eq_z)
+  intros h,
+  have c_eq_zero : (p.c:ℝ )=0 := congr_arg (λ (v: fin 2 → ℝ ), v 0) h,
+  have d_eq_zero : (p.d:ℝ )=0 := congr_arg (λ (v: fin 2 → ℝ ), v 1) h,
+  norm_cast at c_eq_zero d_eq_zero,
+  exact not_and_distrib.mpr (ne_zero p) ⟨c_eq_zero, d_eq_zero⟩,
 end
 
 lemma sum_sq_ne_zero (p : coprime_ints) : p.c ^ 2 + p.d ^ 2 ≠ 0 :=
@@ -281,7 +259,7 @@ begin
   use ((p.d:ℂ )* z - p.c) /
     ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d)),
   have nonZ1 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0 := by exact_mod_cast p.sum_sq_ne_zero,
-  have nonZ2 : (p.c : ℂ) * z + p.d ≠ 0 := by simpa using (linear_ne_zero (![p.c,p.d]) z sorry),-- z (p.ne_zero')),
+  have nonZ2 : (p.c : ℂ) * z + p.d ≠ 0 := by simpa using linear_ne_zero _ z p.ne_zero',
   intro g,
   let acbdpg := acbd p ((((g: SL(2,ℤ)) : SL(2,ℝ )) : matrix (fin 2) (fin 2) ℝ)),
   field_simp [nonZ1, nonZ2, bottom_ne_zero, -upper_half_plane.bottom_def],
@@ -377,10 +355,10 @@ by simp [matrix.det_succ_row_zero, fin.sum_univ_succ] }
 
 
 def fundamental_domain : set ℍ :=
-{ z | 1 ≤ (complex.norm_sq z) ∧ |(complex.re z)| ≤ (1 :ℝ)/ 2 }
+{z | 1 ≤ (complex.norm_sq z) ∧ |z.re| ≤ (1 : ℝ) / 2}
 
 def fundamental_domain_open : set ℍ :=
-{ z | 1 < (complex.norm_sq z) ∧ |(complex.re z)| < (1 :ℝ)/ 2 }
+{z | 1 < (complex.norm_sq z) ∧ |z.re| < (1 : ℝ) / 2}
 
 notation `𝒟` := fundamental_domain
 
@@ -467,48 +445,239 @@ begin
         upper_half_plane.top_def, zero_add, zero_mul] } }
 end
 
-lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : (z -- :ℂ
-) = (g • z) :=
+
+/-- MOVE TO INT SOMEWHERE -/
+lemma int.eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
+int.is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
+
+lemma int.eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) : (z = 1 ∧ w = 1) ∨
+(z = -1 ∧ w = -1) :=
+begin
+  have := int.eq_one_or_neg_one_of_mul_eq_one,
+  sorry, -- ALEX HOMEWORK
+--int.is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
+end
+
+lemma int.le_one_zero (z : ℤ) (h: _root_.abs z < 1) : z = 0 :=
+begin
+  have int.eq_zero_iff_abs_lt_one.mp,
+end
+
+lemma int.ne_zero_ge_one {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
+begin
+--  library_search,
+  by_contra,
+  push_neg at h,
+  exact h₀ (int.eq_zero_iff_abs_lt_one.mp h),
+end
+
+lemma junk (z w : ℂ ) (h: w = z) : w.re = z.re :=
+begin
+  exact congr_arg re h,
+end
+
+lemma move_by_large {x y : ℝ} (h : |x| < 1/2) (h₁ : |x+y|<1/2) (h₂ : 1≤ |y|) : false :=
+begin
+  cases abs_cases x;
+  cases abs_cases y;
+  cases abs_cases (x+y);
+  linarith,
+end
+
+
+lemma junk1 ( x y : ℝ ): (0 < x) → (0 < y) → 0 < x*y :=
+begin
+  intros,
+  exact mul_pos ᾰ ᾰ_1,
+end
+
+
+
+
+lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :
+  (3 : ℝ)/4 < 4/ (3* (g 1 0)^4) :=
+begin
+  have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
+  {
+    intros w hw,
+    have : 1 < w.re * w.re + w.im * w.im := by simpa [complex.norm_sq_apply] using hw.1,
+    have := hw.2,
+    cases abs_cases w.re; nlinarith,
+  },
+
+  have czPdGecy : (g 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (bottom g z) :=
+    calc
+    (g 1 0 : ℝ)^2 * (z.im)^2 ≤ (g 1 0 : ℝ)^2 * (z.im)^2 + (g 1 0 * z.re + g 1 1)^2 : by nlinarith
+    ... = norm_sq (bottom g z) : by simp [norm_sq, bottom]; ring,
+
+  have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
+
+  calc
+  (3 : ℝ)/4 < ((g • z).im)^2 : ImGeInD _ hg
+  ... = (z.im)^2 / (norm_sq (bottom g z))^2 : _
+  ... ≤ (1 : ℝ)/((g 1 0)^4 * (z.im)^2) : _
+  ... < (4 : ℝ)/ (3* (g 1 0)^4) : _,
+
+  {
+    convert congr_arg (λ (x:ℝ), x^2) (im_smul_int_eq_div_norm_sq g z) using 1,
+    exact (div_pow _ _ 2).symm,
+  },
+
+  {
+    rw div_le_div_iff,
+    convert pow_le_pow_of_le_left _ czPdGecy 2 using 1;
+    ring,
+    { nlinarith, },
+    {
+      exact pow_two_pos_of_ne_zero _ (normsq_bottom_ne_zero g z),
+    },
+
+    refine mul_pos (pow_even_pos _ (by norm_num : even 4))
+      (pow_two_pos_of_ne_zero _ (im_nonzero z)),
+    exact_mod_cast c_ne_z,
+
+  },
+
+  rw div_lt_div_iff,
+  sorry, -- ALEX HOMEWORK
+
+end
+
+lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
 begin
 /-
   either c=0 in which case, translation, in which case translation by 0
   or im (y) > Sqrt(3)/2 -> c=±1 and compute...
 -/
   -- ext,
-  have g_det : g.val.det = (g 0 0)*(g 1 1)-(g 1 0)*(g 0 1),
+  have g_det : matrix.det g = (g 0 0)*(g 1 1)-(g 1 0)*(g 0 1),
   {
-    simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
-    ring,
+    sorry,
   },
 
-  by_cases (g 0 1 = 0),
+  by_cases (g 1 0 = 0),
   {
-    have : ∃ (n:ℤ), g = ⟨![![1,n],![0,1]],_⟩ ∨ g = ⟨![![-1,n],![0,-1]],_⟩,
+    have := g_det,
+    rw h at this,
+    rw g.det_coe_fun at this,
+    simp at this,
+    have := int.eq_one_or_neg_one_of_mul_eq_one' (this.symm),
+    have gzIs : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → ↑(gg • z : ℍ) = (z : ℂ) + gg 0 1,
     {
-      use (g 0 1),
-      ext,
-      have := g.2,
-      rw [g_det, h, h₁.1, h₁.2] at this,
-
-      have := g.det_coe_fun,
-      sorry,
+      intros gg h₀ h₁ h₂,
+      simp [h₀, h₁, h₂],
     },
-    --obtain ⟨ n, hn⟩ := this,
-    -- have : ((g • z):ℂ ) = z+n,
-
-    suffices h₁ : (g 0 0 = 1 ∧ g 1 1 = 1) ∨ (g 0 0 = -1 ∧ g 1 1 = -1),
+    have gIsId : ∀ (gg : SL(2,ℤ)), gg • z ∈ 𝒟ᵒ → gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg = 1,
     {
-      cases h₁,
-
+      intros gg hh h₀ h₁ h₂,
+      ext i,
+      fin_cases i;
+      fin_cases j,
+      simp [h₁],
+      {
+        simp,
+--        apply int.eq_zero_iff_abs_lt_one.mp,
+        by_contra hhh,
+        have reZ : |z.re| < 1/2,
+        {
+          exact_mod_cast hz.2,
+        },
+        have reGz : |((gg • z):ℍ ).re| < 1/2,
+        {
+          exact_mod_cast hh.2,
+        },
+        have reZpN : |z.re + gg 0 1| < 1/2,
+        {
+          convert reGz using 2,
+--          apply congr_arg _root_.abs,
+          rw (by simp : z.re + gg 0 1 = ((z:ℂ )+ gg 0 1).re),
+          apply congr_arg complex.re,
+          exact_mod_cast (gzIs gg h₀ h₁ h₂).symm,
+        },
+        have := int.ne_zero_ge_one hhh,
+        refine move_by_large reZ reZpN _,
+        exact_mod_cast this,
+      },
+      simp [h₀],
+      simp [h₂],
     },
-    -- want to argue that g=± (1 n),(0,1), so gz=z+n, and n=0
-    have := g.2,
-
-    sorry,
+    have zIsGz : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg • z ∈ 𝒟ᵒ → z = gg • z,
+    {
+      intros gg h₀ h₁ h₂ hh,
+      have := gIsId gg hh h₀ h₁ h₂,
+      rw this,
+      simp,
+    },
+    cases this,
+    { -- case a = d = 1
+      exact zIsGz g h this_1.1 this_1.2 hg,
+    },
+    { -- case a = d = -1
+      rw ← smul_neg_int,
+      apply zIsGz; simp [h, this_1],
+      exact hg,
+    },
   },
   {
     -- want to argue first that c=± 1
     -- then show this is impossible
+    have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
+    {
+      intros w hw,
+      have : 1 < (w.re)^2+(w.im)^2,
+      {
+        have : norm_sq w = (w.re)^2+(w.im)^2,
+        {
+          simp [norm_sq],
+          ring,
+        },
+        have hw1 := hw.1,
+        rw this at hw1,
+        linarith,
+      },
+      have : (w.re)^2 < 1/4,
+      {
+        convert sq_lt_sq hw.2 using 1,
+        field_simp,
+        ring,
+      },
+      linarith,
+    },
+
+    have czPdGecy : (g 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (bottom g z) :=
+      calc
+      (g 1 0 : ℝ)^2 * (z.im)^2 ≤ (g 1 0 : ℝ)^2 * (z.im)^2 + (g 1 0 * z.re + g 1 1)^2 : by nlinarith
+      ... = norm_sq (bottom g z) : by simp [norm_sq, bottom]; ring,
+
+    have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
+    have gzIm : (3 : ℝ) / 4 < ((g • z).im)^2 := ImGeInD _ hg,
+    have gzImIs : (g • z).im = z.im/ norm_sq (bottom g z),
+    {
+      sorry,
+    },
+
+    have cBnd : (3 : ℝ)/4 < 4/ (3* (g 1 0)^4),
+    {
+      calc
+      (3 : ℝ)/4 < ((g • z).im)^2 : ImGeInD _ hg
+      ... = (z.im)^2 / (norm_sq (bottom g z))^2 : _
+      ... ≤ (1 : ℝ)/((g 1 0)^4 * (z.im)^2) : _
+      ... < (4 : ℝ)/ (3* (g 1 0)^4) : _,
+
+      convert congr_arg (λ (x:ℝ), x^2) gzImIs using 1,
+      exact (div_pow _ _ 2).symm,
+
+      {
+      --  field_simp,
+        sorry,
+      },
+
+
+
+      sorry,
+    },
+
+
     sorry,
   },
  -- ALEX homework

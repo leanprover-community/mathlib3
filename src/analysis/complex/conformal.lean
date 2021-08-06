@@ -47,7 +47,7 @@ begin
   have minor₀ : ∀ (x : ℂ), x = x • 1 := λ x, by rw [smul_eq_mul, mul_one],
   have minor₁ : ∥map 1∥ ≠ 0,
   { simpa [ext_ring_iff] using nonzero },
-  refine ⟨∥map 1∥, minor₁, _⟩,
+  refine ⟨∥map 1∥, minor₁, ⟨∥map 1∥⁻¹ • map, _⟩, _⟩,
   let li' := ∥map 1∥⁻¹ • map,
   have key : ∀ (x : ℂ), ∥li' x∥ = ∥x∥,
   { intros x,

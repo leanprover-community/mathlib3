@@ -17,12 +17,12 @@ with some additional properties. The former structure is mostly useful as an int
 the construction of a smooth partition of unity but some proofs that traditionally deal with a
 partition of unity can use a `smooth_bump_covering` as well.
 
-Given a real manifold `M` and its subset `s`, a `smooth_bump_covering I M s` is a collection of
-`smooth_bump_function`s `f i` indexed by `i : f.ι` such that
+Given a real manifold `M` and its subset `s`, a `smooth_bump_covering ι I M s` is a collection of
+`smooth_bump_function`s `f i` indexed by `i : ι` such that
 
 * the center of each `f i` belongs to `s`;
 * the family of sets `support (f i)` is locally finite;
-* for each `x ∈ s`, there exists `i : f.ι` such that `f i =ᶠ[𝓝 x] 1`.
+* for each `x ∈ s`, there exists `i : ι` such that `f i =ᶠ[𝓝 x] 1`.
 In the same settings, a `smooth_partition_of_unity ι I M s` is a collection of smooth nonnegative
 functions `f i : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯`, `i : ι`, such that
 
@@ -30,13 +30,13 @@ functions `f i : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯`, `i : ι`, such that
 * for each `x ∈ s`, the sum `∑ᶠ i, f i x` equals one;
 * for each `x`, the sum `∑ᶠ i, f i x` is less than or equal to one.
 
-We say that `f : smooth_bump_covering I M s` is *subordinate* to a map `U : M → set M` if for each
+We say that `f : smooth_bump_covering ι I M s` is *subordinate* to a map `U : M → set M` if for each
 index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
 depends on `x`.
 
 We prove that on a smooth finitely dimensional real manifold with `σ`-compact Hausdorff topology,
-for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I M s`
+for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering ι I M s`
 subordinate to `U`. Then we use this fact to prove a similar statement about smooth partitions of
 unity.
 
@@ -69,17 +69,16 @@ variables {ι : Type uι}
 /-!
 ### Covering by supports of smooth bump functions
 
-In this section we define `smooth_bump_covering I M s` to be a collection of `smooth_bump_function`s
-such that their supports is a locally finite family of sets and for each `x ∈ s` some function `f i`
-from the collection is equal to `1` in a neighborhood of `x`. A covering of this type is useful to
-construct a smooth partition of unity and can be used instead of a partition of unity in some
-proofs.
+In this section we define `smooth_bump_covering ι I M s` to be a collection of
+`smooth_bump_function`s such that their supports is a locally finite family of sets and for each `x
+∈ s` some function `f i` from the collection is equal to `1` in a neighborhood of `x`. A covering of
+this type is useful to construct a smooth partition of unity and can be used instead of a partition
+of unity in some proofs.
 
-We prove that on a smooth finite dimensional real manifold with `σ`-compact Hausdorff topology,
-for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I M s`
+We prove that on a smooth finite dimensional real manifold with `σ`-compact Hausdorff topology, for
+any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering ι I M s`
 subordinate to `U`. Then we use this fact to prove a version of the Whitney embedding theorem: any
-compact real manifold can be embedded into `ℝ^n` for large enough `n`.
--/
+compact real manifold can be embedded into `ℝ^n` for large enough `n`.  -/
 
 variables (ι M)
 
@@ -103,6 +102,7 @@ structure smooth_bump_covering (s : set M := univ) :=
 (c_mem' : ∀ i, c i ∈ s)
 (locally_finite' : locally_finite (λ i, support (to_fun i)))
 (eventually_eq_one' : ∀ x ∈ s, ∃ i, to_fun i =ᶠ[𝓝 x] 1)
+
 /-- We say that that a collection of functions form a smooth partition of unity on a set `s` if
 
 * all functions are infinitely smooth and nonnegative;
@@ -213,7 +213,7 @@ instance : has_coe_to_fun (smooth_bump_covering ι I M s) := ⟨_, to_fun⟩
 rfl
 
 /--
-We say that `f : smooth_bump_covering I M s` is *subordinate* to a map `U : M → set M` if for each
+We say that `f : smooth_bump_covering ι I M s` is *subordinate* to a map `U : M → set M` if for each
 index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
 depends on `x`.

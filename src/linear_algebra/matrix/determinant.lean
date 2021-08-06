@@ -658,11 +658,7 @@ by { rw [← det_transpose, det_succ_row _ j],
      rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
 
 
-/-- Specialize `det_eq_one_of_card_eq_zero` to `fin 0`.
-
-This is especially useful in combination with the `det_succ_` lemmas,
-for computing the determinant of a matrix given in the `![...]` notation.
--/
+/-- Determinant of 0x0 matrix -/
 @[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
 det_eq_one_of_card_eq_zero (fintype.card_fin _)
 

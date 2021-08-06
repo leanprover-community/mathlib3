@@ -33,6 +33,23 @@ If multiplication is associative, `invertible` is a subsingleton anyway.
 The `simp` normal form tries to normalize `⅟a` to `a ⁻¹`. Otherwise, it pushes
 `⅟` inside the expression as much as possible.
 
+Since `invertible a` is not a `Prop` (but it is a `subsingleton`), we have to be careful about
+coherence issues: we should avoid having multiple non-defeq instances for `invertible a` in the
+same context.  This file plays it safe and uses `def` rather than `instance` for most definitions,
+users can choose which instances to use at the point of use.
+
+For example, here's how you can use an `invertible 1` instance:
+```lean
+variables {α : Type*} [monoid α]
+
+def something_that_needs_inverses (x : α) [invertible x] := sorry
+
+section
+local attribute [instance] invertible_one
+def something_one := something_that_needs_inverses 1
+end
+```
+
 ## Tags
 
 invertible, inverse element, inv_of, a half, one half, a third, one third, ½, ⅓
@@ -95,17 +112,12 @@ def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = 
   mul_inv_of_self := by rw [hs, mul_inv_of_self] }
 
 /-- An `invertible` element is a unit. -/
+@[simps]
 def unit_of_invertible [monoid α] (a : α) [invertible a] : units α :=
 { val     := a,
   inv     := ⅟a,
   val_inv := by simp,
   inv_val := by simp, }
-
-@[simp] lemma unit_of_invertible_val [monoid α] (a : α) [invertible a] :
-  (unit_of_invertible a : α) = a := rfl
-
-@[simp] lemma unit_of_invertible_inv [monoid α] (a : α) [invertible a] :
-  (↑(unit_of_invertible a)⁻¹ : α) = ⅟a := rfl
 
 lemma is_unit_of_invertible [monoid α] (a : α) [invertible a] : is_unit a :=
 ⟨unit_of_invertible a, rfl⟩

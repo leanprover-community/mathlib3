@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
-import algebra.floor
-import analysis.specific_limits
 
 /-!
 # Bernstein approximations and Weierstrass' theorem

@@ -73,7 +73,7 @@ theorem induction_on {C : adjoin_root f → Prop} (x : adjoin_root f)
 quotient.induction_on' x ih
 
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
-def of : R →+* adjoin_root f := (mk f).comp (ring_hom.of C)
+def of : R →+* adjoin_root f := (mk f).comp C
 
 instance : algebra R (adjoin_root f) := (of f).to_algebra
 

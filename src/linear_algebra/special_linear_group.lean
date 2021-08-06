@@ -57,6 +57,8 @@ def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end
 
+localized "notation `SL(` n `,` R `)`:= special_linear_group (fin n) R" in matrix_groups
+
 namespace special_linear_group
 
 variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
@@ -126,6 +128,14 @@ matrix.to_lin'_mul A B
 @[simp] lemma to_lin'_one :
   to_lin' (1 : special_linear_group n R) = linear_map.id :=
 matrix.to_lin'_one
+
+lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
+  det g ≠ 0 :=
+by { rw g.det_coe_fun, norm_num }
+
+lemma row_ne_zero [nontrivial R] (g : special_linear_group n R) (i : n):
+  g i ≠ 0 :=
+λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simp [h]
 
 end coe_lemmas
 
@@ -242,12 +252,12 @@ instance {R : Type*} [comm_ring R] [_i : fact (even (fintype.card n))] :
     simp [nat.neg_one_pow_of_even _i.elim] }
 end⟩⟩
 
-@[simp] lemma special_linear_group.has_neg_coe_mat {R : Type*} [comm_ring R]
+@[simp] lemma has_neg_coe_mat {R : Type*} [comm_ring R]
   (g : (special_linear_group n R)) [_i : fact (even (fintype.card n))] :
   @coe _ (matrix n n R) _ (- g) = - (@coe _ (matrix n n R) _ g) :=
 rfl
 
-@[simp] lemma special_linear_group.has_neg_coe_fn {R : Type*} [comm_ring R]
+@[simp] lemma has_neg_coe_fn {R : Type*} [comm_ring R]
   (g : (special_linear_group n R)) [_i : fact (even (fintype.card n))] :
   @coe_fn _ _ (- g) = - (@coe_fn _ _ g) :=
 rfl

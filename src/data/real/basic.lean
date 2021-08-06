@@ -76,7 +76,11 @@ begin
     apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
 end
 
-/- Extra instances to short-circuit type class resolution -/
+/-! Extra instances to short-circuit type class resolution.
+
+ These short-circuits have an additional property of ensuring that a computable path is found; if
+ `field ℝ` is found first, then decaying it to these typeclasses would result in a `noncomputable`
+ version of them. -/
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
 instance : semiring ℝ           := by apply_instance
@@ -93,6 +97,7 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ            := by apply_instance
+instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
@@ -337,21 +342,18 @@ int.exists_greatest_of_bdd
     int.cast_le.1 $ le_trans h' $ le_of_lt hn⟩)
   (let ⟨n, hn⟩ := exists_int_lt x in ⟨n, le_of_lt hn⟩)
 
-theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y ≤ x) →
-  ∃ x, ∀ y, x ≤ y ↔ ∀ z ∈ S, z ≤ y
-| ⟨L, hL⟩ ⟨U, hU⟩ := begin
-  choose f hf using begin
-    refine λ d : ℕ, @int.exists_greatest_of_bdd
-      (λ n, ∃ y ∈ S, (n:ℝ) ≤ y * d) _ _,
-    { cases exists_int_gt U with k hk,
-      refine ⟨k * d, λ z h, _⟩,
-      rcases h with ⟨y, yS, hy⟩,
-      refine int.cast_le.1 (le_trans hy _),
-      simp,
-      exact mul_le_mul_of_nonneg_right
-        (le_trans (hU _ yS) (le_of_lt hk)) (nat.cast_nonneg _) },
-    { exact ⟨⌊L * d⌋, L, hL, floor_le _⟩ }
-  end,
+theorem exists_is_lub (S : set ℝ) (hne : S.nonempty) (hbdd : bdd_above S) :
+  ∃ x, is_lub S x :=
+begin
+  rcases ⟨hne, hbdd⟩ with ⟨⟨L, hL⟩, ⟨U, hU⟩⟩,
+  have : ∀ d : ℕ, bdd_above {m : ℤ | ∃ y ∈ S, (m : ℝ) ≤ y * d},
+  { cases exists_int_gt U with k hk,
+    refine λ d, ⟨k * d, λ z h, _⟩,
+    rcases h with ⟨y, yS, hy⟩,
+    refine int.cast_le.1 (hy.trans _),
+    push_cast,
+    exact mul_le_mul_of_nonneg_right ((hU yS).trans hk.le) d.cast_nonneg },
+  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, floor_le _⟩,
   have hf₁ : ∀ n > 0, ∃ y ∈ S, ((f n / n:ℚ):ℝ) ≤ y := λ n n0,
     let ⟨y, yS, hy⟩ := (hf n).1 in
     ⟨y, yS, by simpa using (div_le_iff ((nat.cast_pos.2 n0):((_:ℝ) < _))).2 hy⟩,
@@ -362,8 +364,23 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     simp [-sub_eq_add_neg],
     rwa [lt_div_iff ((nat.cast_pos.2 n0):((_:ℝ) < _)), sub_mul, _root_.inv_mul_cancel],
     exact ne_of_gt (nat.cast_pos.2 n0) },
-  suffices hg, let g : cau_seq ℚ abs := ⟨λ n, f n / n, hg⟩,
-  refine ⟨mk g, λ y, ⟨λ h x xS, le_trans _ h, λ h, _⟩⟩,
+  have hg : is_cau_seq abs (λ n, f n / n : ℕ → ℚ),
+  { intros ε ε0,
+    suffices : ∀ j k ≥ nat_ceil ε⁻¹, (f j / j - f k / k : ℚ) < ε,
+    { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
+      rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
+    intros j k ij ik,
+    replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
+    replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
+    have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
+    have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
+    rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
+    refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
+      ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
+    simpa using sub_lt_iff_lt_add'.2
+      (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS) },
+  let g : cau_seq ℚ abs := ⟨λ n, f n / n, hg⟩,
+  refine ⟨mk g, ⟨λ x xS, _, λ y h, _⟩⟩,
   { refine le_of_forall_ge_of_dense (λ z xz, _),
     cases exists_nat_gt (x - z)⁻¹ with K hK,
     refine le_mk_of_forall_le ⟨K, λ n nK, _⟩,
@@ -373,35 +390,21 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     refine le_trans _ (le_of_lt $ hf₂ _ n0 _ xS),
     rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
   { exact mk_le_of_forall_le ⟨1, λ n n1,
-      let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h _ xS)⟩ },
-  intros ε ε0,
-  suffices : ∀ j k ≥ nat_ceil ε⁻¹, (f j / j - f k / k : ℚ) < ε,
-  { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
-    rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
-  intros j k ij ik,
-  replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
-  replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
-  have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
-  have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
-  rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
-  refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
-    ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
-  simpa using sub_lt_iff_lt_add'.2
-    (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS)
+      let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
 end
 
 noncomputable instance : has_Sup ℝ :=
 ⟨λ S, if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-  then classical.some (exists_sup S h.1 h.2) else 0⟩
+  then classical.some (exists_is_lub S h.1 h.2) else 0⟩
 
 lemma Sup_def (S : set ℝ) :
   Sup S = if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-    then classical.some (exists_sup S h.1 h.2) else 0 := rfl
+    then classical.some (exists_is_lub S h.1 h.2) else 0 := rfl
 
 theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : Sup S ≤ y ↔ ∀ z ∈ S, z ≤ y :=
-by simp [Sup_def, h₁, h₂]; exact
-classical.some_spec (exists_sup S h₁ h₂) y
+by simp only [Sup_def, dif_pos (and.intro h₁ h₂)]; exact
+is_lub_le_iff (classical.some_spec (exists_is_lub S h₁ h₂))
 
 theorem lt_Sup (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : y < Sup S ↔ ∃ z ∈ S, y < z :=
@@ -472,7 +475,7 @@ lemma lt_Inf_add_pos {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {ε : ℝ
   ∃ a ∈ s, a < Inf s + ε :=
 (Inf_lt _ h' h).1 $ lt_add_of_pos_right _ hε
 
-lemma add_pos_lt_Sup {s : set ℝ} (h : bdd_above s) (h' : s.nonempty) {ε : ℝ} (hε : ε < 0) :
+lemma add_neg_lt_Sup {s : set ℝ} (h : bdd_above s) (h' : s.nonempty) {ε : ℝ} (hε : ε < 0) :
   ∃ a ∈ s, Sup s + ε < a :=
 (real.lt_Sup _ h' h).1 $ add_lt_iff_neg_left.mpr hε
 
@@ -496,7 +499,7 @@ begin
     exact sub_lt_iff_lt_add.mp (lt_cSup_of_lt h x_in hx) }
 end
 
-theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
+@[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
 dif_neg $ assume h, hs h.2
@@ -504,7 +507,7 @@ dif_neg $ assume h, hs h.2
 theorem Sup_univ : Sup (@set.univ ℝ) = 0 :=
 real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
 
-theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
+@[simp] theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
 by simp [Inf_def, Sup_empty]
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
@@ -520,7 +523,7 @@ suffices to show that `S` is bounded below by `0` to show that `0 ≤ Inf S`.
 lemma Sup_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Sup S :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | ⟨y, hy⟩,
-  { simp [Sup_empty] },
+  { exact Sup_empty.ge },
   { apply dite _ (λ h, le_cSup_of_le h hy $ hS y hy) (λ h, (Sup_of_not_bdd_above h).ge) }
 end
 
@@ -531,8 +534,7 @@ bounded above by `0` to show that `Sup S ≤ 0`.
 lemma Sup_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Sup S ≤ 0 :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | hS₂,
-  { simp [Sup_empty] },
-  { apply Sup_le_ub _ hS₂ hS, }
+  exacts [Sup_empty.le, Sup_le_ub _ hS₂ hS],
 end
 
 /--
@@ -542,8 +544,7 @@ bounded below by `0` to show that `0 ≤ Inf S`.
 lemma Inf_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | hS₂,
-  { simp [Inf_empty] },
-  { apply lb_le_Inf S hS₂ hS }
+  exacts [Inf_empty.ge, lb_le_Inf S hS₂ hS]
 end
 
 /--
@@ -553,8 +554,15 @@ suffices to show that `S` is bounded above by `0` to show that `Inf S ≤ 0`.
 lemma Inf_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Inf S ≤ 0 :=
 begin
   rcases S.eq_empty_or_nonempty with rfl | ⟨y, hy⟩,
-  { simp [Inf_empty] },
+  { exact Inf_empty.le },
   { apply dite _ (λ h, cInf_le_of_le h hy $ hS y hy) (λ h, (Inf_of_not_bdd_below h).le) }
+end
+
+lemma Inf_le_Sup (s : set ℝ) (h₁ : bdd_below s) (h₂ : bdd_above s) : Inf s ≤ Sup s :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl | hne,
+  { rw [Inf_empty, Sup_empty] },
+  { exact cInf_le_cSup h₁ h₂ hne }
 end
 
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=

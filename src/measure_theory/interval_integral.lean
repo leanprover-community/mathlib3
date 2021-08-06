@@ -322,6 +322,39 @@ hu.continuous_on.interval_integrable
 
 end
 
+section
+
+variables {ι : Type*} [topological_space ι] [conditionally_complete_linear_order ι]
+  [order_topology ι] [measurable_space ι] [borel_space ι] {μ : measure ι} [locally_finite_measure μ]
+  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
+  [borel_space E]
+
+lemma interval_integrable_of_monotone_on {u : ι → E} {a b : ι}
+  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u x ≤ u y) :
+  interval_integrable u μ a b :=
+begin
+  rw interval_integrable_iff,
+  exact (integrable_on_compact_of_monotone_on is_compact_interval hu).mono_set Ioc_subset_Icc_self,
+end
+
+lemma interval_integrable_of_antimono_on {u : ι → E} {a b : ι}
+  (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u y ≤ u x) :
+  interval_integrable u μ a b :=
+@interval_integrable_of_monotone_on (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+
+lemma interval_integrable_of_monotone {u : ι → E} {a b : ι} (hu : monotone u) :
+  interval_integrable u μ a b :=
+interval_integrable_of_monotone_on (λ x y _ _ hxy, hu hxy)
+
+alias interval_integrable_of_monotone ← monotone.interval_integrable
+
+lemma interval_integrable_of_antimono {u : ι → E} {a b : ι}
+  (hu : ∀ ⦃x y⦄, x ≤ y → u y ≤ u x) :
+  interval_integrable u μ a b :=
+@interval_integrable_of_monotone (order_dual E) _ ‹_› ι _ _ _ _ _ _ _ _ _ ‹_› ‹_› u a b hu
+
+end
+
 /-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`
 eventually includes `Ioc u v` as both `u` and `v` tend to `l`. Let `μ` be a measure finite at `l'`.
 
@@ -721,7 +754,7 @@ begin
   cases le_total a b with hab hab,
   { rw [integral_of_le hab, ← integral_indicator measurable_set_Ioc, indicator_eq_self.2 h];
     apply_instance },
-  { rw [Ioc_eq_empty hab, subset_empty_iff, function.support_eq_empty_iff] at h,
+  { rw [Ioc_eq_empty hab.not_lt, subset_empty_iff, function.support_eq_empty_iff] at h,
     simp [h] }
 end
 
@@ -907,18 +940,18 @@ lemma continuous_on_primitive {f : α → E} {a b : α} [has_no_atoms μ]
   (h_int : integrable_on f (Icc a b) μ) :
   continuous_on (λ x, ∫ t in Ioc a x, f t ∂ μ) (Icc a b) :=
 begin
-  cases le_or_lt a b with H H,
+  by_cases h : a ≤ b,
   { have : ∀ x ∈ Icc a b, ∫ (t : α) in Ioc a x, f t ∂μ = ∫ (t : α) in a..x, f t ∂μ,
     { intros x x_in,
-      simp_rw [← interval_oc_of_le H, integral_of_le x_in.1] },
+      simp_rw [← interval_oc_of_le h, integral_of_le x_in.1] },
     rw continuous_on_congr this,
     intros x₀ hx₀,
     refine continuous_within_at_primitive (measure_singleton x₀) _,
     rw interval_integrable_iff,
-    simp only [H, max_eq_right, min_eq_left],
+    simp only [h, max_eq_right, min_eq_left],
     exact h_int.mono Ioc_subset_Icc_self le_rfl },
-  { rw Icc_eq_empty H,
-    apply continuous_on_empty },
+  { rw Icc_eq_empty h,
+    exact continuous_on_empty _ },
 end
 
 lemma continuous_on_primitive' {f : α → E} {a b : α} [has_no_atoms μ]
@@ -968,7 +1001,7 @@ lemma integral_eq_zero_iff_of_nonneg_ae
   ∫ x in a..b, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] 0 :=
 begin
   cases le_total a b with hab hab;
-    simp only [Ioc_eq_empty hab, empty_union, union_empty] at hf ⊢,
+    simp only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
   { exact integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi },
   { rw [integral_symm, neg_eq_zero, integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm] }
 end
@@ -977,13 +1010,16 @@ lemma integral_pos_iff_support_of_nonneg_ae'
   (hf : 0 ≤ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (function.support f ∩ Ioc a b) :=
 begin
-  cases le_total a b with hab hab;
-    simp only [integral_of_le, integral_of_ge, Ioc_eq_empty, hab, union_empty, empty_union] at hf ⊢,
-  { rw [set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, iff.comm, and_iff_right_iff_imp],
-    contrapose!,
-    intro h,
-    rw [Ioc_eq_empty h, inter_empty, measure_empty, nonpos_iff_eq_zero] },
-  { simp [integral_nonneg_of_ae hf] }
+  obtain hab | hab := le_total b a;
+    simp only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
+  { rw [←not_iff_not, not_and_distrib, not_lt, not_lt, integral_of_ge hab, neg_nonpos],
+    exact iff_of_true (integral_nonneg_of_ae hf) (or.intro_left _ hab) },
+  rw [integral_of_le hab, set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, iff.comm,
+    and_iff_right_iff_imp],
+  contrapose!,
+  intro h,
+  rw [Ioc_eq_empty h.not_lt, inter_empty, measure_empty],
+  exact le_refl 0,
 end
 
 lemma integral_pos_iff_support_of_nonneg_ae

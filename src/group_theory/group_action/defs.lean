@@ -57,7 +57,6 @@ infix ` +ᵥ `:65 := has_vadd.vadd
 infixr ` • `:73 := has_scalar.smul
 
 /-- Typeclass for faithful actions. -/
-@[to_additive has_faithful_vadd]
 class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
 (eq_of_vadd_eq_vadd : ∀ {g₁ g₂ : G}, (∀ p : P, g₁ +ᵥ p = g₂ +ᵥ p) → g₁ = g₂)
 

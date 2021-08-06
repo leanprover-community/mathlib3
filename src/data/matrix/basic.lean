@@ -439,13 +439,7 @@ variables [non_unital_non_assoc_semiring α]
 @[simp] protected theorem mul_zero (M : matrix m n α) : M ⬝ (0 : matrix n o α) = 0 :=
 by { ext i j, apply dot_product_zero }
 
-@[simp] protected theorem mul_zero' (M : matrix m n α) : M ⬝ (λ i j , 0 : matrix n o α) = 0 :=
-by { ext i j, apply dot_product_zero }
-
 @[simp] protected theorem zero_mul (M : matrix m n α) : (0 : matrix l m α) ⬝ M = 0 :=
-by { ext i j, apply zero_dot_product }
-
-@[simp] protected theorem zero_mul' (M : matrix m n α) : (λ i j , 0 : matrix l m α) ⬝ M = 0 :=
 by { ext i j, apply zero_dot_product }
 
 protected theorem mul_add (L : matrix m n α) (M N : matrix n o α) : L ⬝ (M + N) = L ⬝ M + L ⬝ N :=

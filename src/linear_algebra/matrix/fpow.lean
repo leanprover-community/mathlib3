@@ -44,18 +44,6 @@ noncomputable instance : div_inv_monoid M :=
 { ..(show monoid M, by apply_instance),
   ..(show has_inv M, by apply_instance) }
 
--- /-- A matrix raised to an integer power `k`.
--- It is equal to the matrix raised to the natural power, if `0 ≤ k`,
--- or the `matrix.nonsing_inv` raised to the natural power, if `k < 0`.
--- If the matrix is not invertible, negative powers give zero. -/
--- def fpow (A : M) (k : ℤ) : M :=
--- int.rec_on k (λ n, npow_rec n A) (λ n, npow_rec n.succ A)
-
--- lemma gpow_eq_fpow (A : M) (z : ℤ) : A ^ z = fpow A z := rfl
-
-
--- noncomputable example : has_pow M ℤ := by apply_instance
-
 section nat_pow
 
 @[simp] theorem inv_pow' (A : M) (n : ℕ) : (A⁻¹) ^ n = (A ^ n)⁻¹ :=
@@ -393,8 +381,9 @@ by rw [sub_eq_add_neg, fpow_add ha, fpow_neg ha, div_eq_mul_inv]
 lemma commute.mul_fpow {a b : M} (h : commute a b) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
 | (n : ℕ) := by simp [h.mul_pow n, -mul_eq_mul]
-| -[1+n]  := by rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, mul_eq_mul (_⁻¹),
-                    ←mul_inv_rev, ←mul_eq_mul, h.mul_pow n.succ, (h.pow_pow _ _).eq]
+| -[1+n]  := by rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, gpow_neg_succ_of_nat,
+                    mul_eq_mul (_⁻¹), ←mul_inv_rev, ←mul_eq_mul, h.mul_pow n.succ,
+                    (h.pow_pow _ _).eq]
 
 theorem fpow_bit0' (a : M) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
 (fpow_bit0 a n).trans (commute.mul_fpow (commute.refl a) n).symm

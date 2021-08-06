@@ -463,6 +463,8 @@ include rα
 instance : inhabited (α →+* α) := ⟨id α⟩
 
 @[simp] lemma id_apply (x : α) : ring_hom.id α x = x := rfl
+@[simp] lemma coe_add_monoid_hom_id : (id α : α →+ α) = add_monoid_hom.id α := rfl
+@[simp] lemma coe_monoid_hom_id : (id α : α →* α) = monoid_hom.id α := rfl
 
 variable {rγ : non_assoc_semiring γ}
 include rβ rγ
@@ -733,6 +735,11 @@ namespace ring_hom
 theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
+
+/-- A ring homomorphism is injective iff its kernel is trivial. -/
+theorem injective_iff' {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
+  function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
+(f : α →+ β).injective_iff'
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [non_assoc_semiring α] [ring γ] (f : α →* γ)

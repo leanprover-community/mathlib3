@@ -141,17 +141,19 @@ localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
 /-- Proposition `matrix.is_sym`. `A.is_sym` means `Aᵀ = A`. -/
 protected def is_sym (A : matrix m m α) : Prop := Aᵀ = A
 
-/-- Proposition `matrix.is_skewsym`. `A.is_skewsym` means `-Aᵀ = A` if `[has_neg α]` -/
+/-- Proposition `matrix.is_skewsym`. `A.is_skewsym` means `-Aᵀ = A` if `[has_neg α]`. -/
 protected def is_skewsym [has_neg α] (A : matrix m m α) : Prop := -Aᵀ = A
 
-/-- Proposition `matrix.is_Hermitian`. `A.is_Hermitian` means `Aᴴ = A` if `[has_star α]` -/
+/-- Proposition `matrix.is_Hermitian`. `A.is_Hermitian` means `Aᴴ = A` if `[has_star α]`. -/
 protected def is_Hermitian [has_star α] (A : matrix m m α) : Prop := Aᴴ = A
 
 -- TODO[gh-6025]: make this an instance once safe to do so
+/-- Should be used by adding `local attribute [instance] subsingleton_of_empty_left`. -/
 lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim i }⟩
 
 -- TODO[gh-6025]: make this an instance once safe to do so
+/-- Should be used by adding `local attribute [instance] subsingleton_of_empty_right`. -/
 lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim j }⟩
 

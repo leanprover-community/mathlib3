@@ -7,7 +7,6 @@ import data.matrix.block
 import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
-import ring_theory.matrix_algebra
 
 /-!
 # Linear maps and matrices

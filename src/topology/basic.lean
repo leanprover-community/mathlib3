@@ -902,6 +902,17 @@ end
 lemma closure_inter_open' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
 by simpa only [inter_comm] using closure_inter_open h
 
+lemma mem_closure_of_mem_closure_union {s₁ s₂ : set α} {x : α} (h : x ∈ closure (s₁ ∪ s₂))
+  (h₁ : s₁ᶜ ∈ 𝓝 x) : x ∈ closure s₂ :=
+begin
+  rw mem_closure_iff_nhds_ne_bot at *,
+  rwa ← calc
+    𝓝 x ⊓ principal (s₁ ∪ s₂) = 𝓝 x ⊓ (principal s₁ ⊔ principal s₂) : by rw sup_principal
+    ... = (𝓝 x ⊓ principal s₁) ⊔ (𝓝 x ⊓ principal s₂) : inf_sup_left
+    ... = ⊥ ⊔ 𝓝 x ⊓ principal s₂ : by rw inf_principal_eq_bot.mpr h₁
+    ... = 𝓝 x ⊓ principal s₂ : bot_sup_eq
+end
+
 /-- The intersection of an open dense set with a dense set is a dense set. -/
 lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
   dense (s ∩ t) :=
@@ -1041,21 +1052,18 @@ end
 
 lemma locally_finite.is_closed_Union {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
-is_open_compl_iff.1 $ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
-  have ∀i, a ∈ (f i)ᶜ,
-    from assume i hi, h $ mem_Union.2 ⟨i, hi⟩,
-  have ∀i, (f i)ᶜ ∈ (𝓝 a),
-    by simp only [mem_nhds_iff]; exact assume i,
-      ⟨(f i)ᶜ, subset.refl _, (h₂ i).is_open_compl, this i⟩,
-  let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
-  calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) : by simp *
-  ... ≤ 𝓟 (⋃i, f i)ᶜ :
-  begin
-    simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,
-      mem_Inter, mem_set_of_eq, mem_Union, and_imp, not_exists,
-      exists_imp_distrib, ne_empty_iff_nonempty, set.nonempty],
-    exact assume x xt ht i xfi, ht i x xfi xt xfi
-  end
+begin
+  simp only [← is_open_compl_iff, compl_Union, is_open_iff_mem_nhds, mem_Inter],
+  intros a ha,
+  replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, (h₂ i).is_open_compl.mem_nhds (ha i),
+  rcases h₁ a with ⟨t, h_nhds, h_fin⟩,
+  have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
+    from inter_mem_sets h_nhds ((bInter_mem_sets h_fin).2 (λ i _, ha i)),
+  filter_upwards [this],
+  simp only [mem_inter_eq, mem_Inter],
+  rintros b ⟨hbt, hn⟩ i hfb,
+  exact hn i ⟨b, hfb, hbt⟩ hfb
+end
 
 lemma locally_finite.closure_Union {f : β → set α} (h : locally_finite f) :
   closure (⋃ i, f i) = ⋃ i, closure (f i) :=
@@ -1186,6 +1194,19 @@ lemma continuous_iff_is_closed {f : α → β} :
 lemma is_closed.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_closed s) :
   is_closed (f ⁻¹' s) :=
 continuous_iff_is_closed.mp hf s h
+
+lemma mem_closure_image {f : α → β} {x : α} {s : set α} (hf : continuous_at f x)
+  (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
+begin
+  rw [mem_closure_iff_nhds_ne_bot] at hx ⊢,
+  rw ← bot_lt_iff_ne_bot,
+  haveI : ne_bot _ := ⟨hx⟩,
+  calc
+    ⊥   < map f (𝓝 x ⊓ principal s) : bot_lt_iff_ne_bot.mpr ne_bot.ne'
+    ... ≤ (map f $ 𝓝 x) ⊓ (map f $ principal s) : map_inf_le
+    ... = (map f $ 𝓝 x) ⊓ (principal $ f '' s) : by rw map_principal
+    ... ≤ 𝓝 (f x) ⊓ (principal $ f '' s) : inf_le_inf hf le_rfl
+end
 
 lemma continuous_at_iff_ultrafilter {f : α → β} {x} : continuous_at f x ↔
   ∀ g : ultrafilter α, ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=

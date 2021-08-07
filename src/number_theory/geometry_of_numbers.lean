@@ -183,7 +183,6 @@ begin
     exact L.sub_mem p₂.mem p₁.mem,
   end,
   rw ← volume_subtype_univ F.hF at h,
-  let s := λ p : L, (λ a, ((+ (p : fin n → ℝ)) '' S) a.val : set F.F),
   have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure subtype.measure_space.volume
     (_ : (∀ p : L, measurable_set (λ a, ((+ ↑p) '' S) a.val : set F.F))) _,
   { rcases this with ⟨i, j, hij, t, ht⟩,
@@ -191,8 +190,7 @@ begin
     simp only [and_true, set.mem_inter_eq, set.mem_preimage, subtype.coe_prop],
     exact ht, },
   { intros,
-    dsimp [s],
-    suffices : measurable_set (λ (a : ↥(F.F)), (S) ↑a),
+    suffices : measurable_set (λ (a : ↥(F.F)), S ↑a),
     { simp only [set.image_add_right],
       refine measurable_set_preimage _ hS,
       refine measurable.add_const _ (-↑p),
@@ -209,12 +207,6 @@ begin
         rw set.inter_comm, },
       rw ← measure_Union _ _,
       { congr,
-        -- conv_lhs {
-        --   congr,
-        --   funext,
-        --   rw [← set.image_inter (add_left_injective _), ← set.image_comp],
-        --   simp [add_neg_cancel_right, function.comp_app, set.image_id'], -- TODO nonterminal but can't squeeze
-        --   rw set.inter_comm, },
         rw [← set.Union_inter, set.inter_eq_self_of_subset_right],
         convert set.subset_univ _,
         rw set.eq_univ_iff_forall,
@@ -227,10 +219,7 @@ begin
       { apply_instance, },
       { intros x y hxy,
         suffices : (disjoint on λ (i : ↥(L)), (λ (_x : fin n → ℝ), _x + -↑i) '' F.F) x y,
-        {
-          -- conv in (_ '' (_ ∩ _))
-          -- { rw [← set.image_inter (add_left_injective (-(i : fin n → ℝ))), ← set.image_comp], },
-          simp only [comp_add_right, add_zero, add_right_neg,
+        { simp only [comp_add_right, add_zero, add_right_neg,
             set.image_add_right, neg_neg, set.image_id'] at this ⊢,
           rintros z ⟨⟨hzx, hzS⟩, ⟨hzy, hzS⟩⟩,
           apply this,
@@ -243,9 +232,6 @@ begin
         suffices : -x = -y, by simpa using this,
         apply exists_unique.unique (F.exists_unique t) _ _; simpa, },
     { intro l,
-      -- rw [← set.image_inter (add_left_injective (-(l : fin n → ℝ))), ← set.image_comp],
-      -- simp only [comp_add_right, add_zero, add_right_neg, set.image_add_right,
-      --   neg_neg, set.image_id'],
       apply measurable_set.inter _ hS,
       refine measurable_set_preimage _ F.hF,
       exact measurable_add_const ↑l, }, },

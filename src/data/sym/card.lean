@@ -83,7 +83,7 @@ lemma card_image_off_diag (s : finset α) :
 by rw [nat.choose_two_right, nat.mul_sub_left_distrib, mul_one, ←off_diag_card,
   nat.div_eq_of_eq_mul_right zero_lt_two (two_mul_card_image_off_diag s).symm]
 
-lemma card_sym2_diag [fintype α] :
+lemma card_subtype_diag [fintype α] :
   card {a : sym2 α // a.is_diag} = card α :=
 begin
   convert card_image_diag (univ : finset α),
@@ -94,7 +94,7 @@ begin
   exact and_iff_right ⟨a, mem_univ _, ha⟩,
 end
 
-lemma card_sym2_not_diag [fintype α] :
+lemma card_subtype_not_diag [fintype α] :
   card {a : sym2 α // ¬a.is_diag} = (card α).choose 2 :=
 begin
   convert card_image_off_diag (univ : finset α),
@@ -108,7 +108,7 @@ end
 protected lemma card [fintype α] :
   card (sym2 α) = card α * (card α + 1) / 2 :=
 by rw [←fintype.card_congr (@equiv.sum_compl _ is_diag (sym2.is_diag.decidable_pred α)),
-  fintype.card_sum, card_sym2_diag, card_sym2_not_diag, nat.choose_two_right, add_comm,
+  fintype.card_sum, card_subtype_diag, card_subtype_not_diag, nat.choose_two_right, add_comm,
   ←nat.triangle_succ, nat.succ_sub_one, mul_comm]
 
 end sym2

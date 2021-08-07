@@ -78,13 +78,13 @@ end (begin rintro y₁ y₂ ⟨ᾰ_w, ⟨ᾰ_h_left_w, ᾰ_h_left_h_left, rfl⟩
 -- instance {F : fundamental_domain $ L n} (hF : measurable_set F.F) :
 --   measurable_space F.F := subtype.measurable_space
 
-instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} (hmp : measurable_set p) :
+instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
 measure_space (subtype p) :=
 { volume := measure.comap subtype.val volume,
   ..subtype.measurable_space }
 
 lemma volume_subtype_univ {V : Type*} [measure_space V] {p : set V} (hmp : measurable_set p) :
-  @volume _ (subtype.measure_space hmp) (set.univ : set (subtype p)) = volume p :=
+  @volume _ subtype.measure_space (set.univ : set (subtype p)) = volume p :=
 begin
   dsimp [measure_space.volume],
   rw [measure.comap_apply _ subtype.val_injective, set.image_univ],
@@ -133,7 +133,7 @@ end
   }-/
 
 include trans_inv
-lemma exists_diff_lattice_of_one_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
+lemma exists_diff_lattice_of_volume_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
   (S : set (fin n → ℝ)) (hS : measurable_set S) (F : fundamental_domain L)
   (h : volume F.F < volume S) :
 ∃ (x y : fin n → ℝ) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
@@ -157,13 +157,12 @@ begin
   end,
   rw ← volume_subtype_univ F.hF at h,
   let s := λ p : L, (λ a, ((+ (p : fin n → ℝ)) '' S) a.val : set F.F),
-  have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure (subtype.measure_space _).volume
+  have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure subtype.measure_space.volume
     (_ : (∀ p : L, measurable_set (λ a, ((+ ↑p) '' S) a.val : set F.F))) _,
   { rcases this with ⟨i, j, hij, t, ht⟩,
     use [i, j, hij, t],
     simp only [and_true, set.mem_inter_eq, set.mem_preimage, subtype.coe_prop],
     exact ht, },
-  { exact F.hF, },
   { intros,
     dsimp [s],
     suffices : measurable_set (λ (a : ↥(F.F)), (S) ↑a),
@@ -228,9 +227,8 @@ begin
       rw [trans_inv (-↑ l) _], }, },
   convert this,
   ext1 l,
-  dsimp [s],
   simp only [set.image_add_right],
-  dsimp [subtype.measure_space],
+  dsimp only [subtype.measure_space],
   rw measure.comap_apply _ subtype.val_injective _ _ _,
   { congr,
     ext1 v,
@@ -304,7 +302,7 @@ begin
       exact symmetric _ ht, },
     use [x, -y, hx, this _ hy],
     refl, },
-  { exact exists_diff_lattice_of_one_le_volume trans_inv L halfS mhalf F h2, }
+  { exact exists_diff_lattice_of_volume_le_volume trans_inv L halfS mhalf F h2, }
 end
 
 #lint

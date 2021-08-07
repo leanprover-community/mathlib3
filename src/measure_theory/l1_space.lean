@@ -374,7 +374,7 @@ variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 
 /-- `integrable f μ` means that `f` is measurable and that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
   `integrable f` means `integrable f volume`. -/
-def integrable (f : α → β) (μ : measure α . volume_tac) : Prop :=
+def integrable {α} {m : measurable_space α} (f : α → β) (μ : measure α . volume_tac) : Prop :=
 ae_measurable f μ ∧ has_finite_integral f μ
 
 lemma integrable.ae_measurable {f : α → β} (hf : integrable f μ) : ae_measurable f μ := hf.1
@@ -603,7 +603,7 @@ variables {H α' : Type*} [normed_group H] [measurable_space H]
 
 lemma integrable.trim (hm : m ≤ m0) [opens_measurable_space H] {f : α' → H}
   (hf_int : integrable f μ') (hf : @measurable _ _ m _ f) :
-  @integrable _ _ m _ _ f (μ'.trim hm) :=
+  integrable f (μ'.trim hm) :=
 begin
   refine ⟨@measurable.ae_measurable α' _ m _ f (μ'.trim hm) hf, _⟩,
   rw [has_finite_integral, lintegral_trim hm _],
@@ -612,7 +612,7 @@ begin
 end
 
 lemma integrable_of_integrable_trim (hm : m ≤ m0) [opens_measurable_space H]
-  {f : α' → H} (hf_int : @integrable α' H m _ _ f (μ'.trim hm)) :
+  {f : α' → H} (hf_int : integrable f (μ'.trim hm)) :
   integrable f μ' :=
 begin
   obtain ⟨hf_meas_ae, hf⟩ := hf_int,
@@ -836,7 +836,7 @@ end measure_theory
 open measure_theory
 
 lemma integrable_zero_measure [measurable_space β] {f : α → β} :
-  integrable f 0 :=
+  integrable f (0 : measure α) :=
 begin
   apply (integrable_zero _ _ _).congr,
   change (0 : measure α) {x | 0 ≠ f x} = 0,

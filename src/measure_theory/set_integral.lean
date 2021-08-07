@@ -187,8 +187,8 @@ begin
 end
 
 lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
-  (hf_meas : @measurable _ _ m _ f) {s : set α} (hs : @measurable_set α m s) :
-  ∫ x in s, f x ∂μ = @integral α E m _ _ _ _ _ _ (@measure.restrict _ m (μ.trim hm) s) f :=
+  (hf_meas : @measurable _ _ m _ f) {s : set α} (hs : measurable_set[m] s) :
+  ∫ x in s, f x ∂μ = ∫ x in s, f x ∂(μ.trim hm) :=
 by rwa [integral_trim hm hf_meas, restrict_trim hm μ]
 
 end normed_group

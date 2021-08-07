@@ -136,14 +136,14 @@ variables {ι : Type*} {m m0 : measurable_space α} {μ : measure α}
 /-- If `f` belongs to `Lp_meas F 𝕜 m p μ`, then the measurable function it is almost everywhere
 equal to (given by `ae_measurable.mk`) belongs to `ℒp` for the measure `μ.trim hm`. -/
 lemma mem_ℒp_trim_of_mem_Lp_meas (hm : m ≤ m0) (f : Lp F p μ) (hf_meas : f ∈ Lp_meas F 𝕜 m p μ) :
-  @mem_ℒp α F m _ _ (mem_Lp_meas_iff_ae_measurable'.mp hf_meas).some p (μ.trim hm) :=
+  mem_ℒp (mem_Lp_meas_iff_ae_measurable'.mp hf_meas).some p (μ.trim hm) :=
 begin
   have hf : ae_measurable' m f μ, from (mem_Lp_meas_iff_ae_measurable'.mp hf_meas),
   let g := hf.some,
   obtain ⟨hg, hfg⟩ := hf.some_spec,
-  change @mem_ℒp α F m _ _ g p (μ.trim hm),
+  change mem_ℒp g p (μ.trim hm),
   refine ⟨@measurable.ae_measurable _ _ m _ g (μ.trim hm) hg, _⟩,
-  have h_snorm_fg : @snorm α _ m _ g p (μ.trim hm) = snorm f p μ,
+  have h_snorm_fg : snorm g p (μ.trim hm) = snorm f p μ,
     by { rw snorm_trim hm hg, exact snorm_congr_ae hfg.symm, },
   rw h_snorm_fg,
   exact Lp.snorm_lt_top f,
@@ -151,37 +151,33 @@ end
 
 /-- If `f` belongs to `Lp` for the measure `μ.trim hm`, then it belongs to the subspace
 `Lp_meas F 𝕜 m p μ`. -/
-lemma mem_Lp_meas_to_Lp_of_trim (hm : m ≤ m0) (f : @Lp α F m _ _ _ _ p (μ.trim hm)) :
-  (mem_ℒp_of_mem_ℒp_trim hm (@Lp.mem_ℒp _ _ m _ _ _ _ _ _ f)).to_Lp f ∈ Lp_meas F 𝕜 m p μ :=
+lemma mem_Lp_meas_to_Lp_of_trim (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
+  (mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f ∈ Lp_meas F 𝕜 m p μ :=
 begin
-  let hf_mem_ℒp := mem_ℒp_of_mem_ℒp_trim hm (@Lp.mem_ℒp _ _ m _ _ _ _ _ _ f),
+  let hf_mem_ℒp := mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f),
   rw mem_Lp_meas_iff_ae_measurable',
   refine ae_measurable'.congr _ (mem_ℒp.coe_fn_to_Lp hf_mem_ℒp).symm,
   refine ae_measurable'_of_ae_measurable'_trim hm _,
-  exact (@Lp.ae_measurable _ _ m _ _ _ _ _ _ f),
+  exact (Lp.ae_measurable f),
 end
 
 variables (F 𝕜 p μ)
 /-- Map from `Lp_meas` to `Lp F p (μ.trim hm)`. -/
-def Lp_meas_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) : @Lp α F m _ _ _ _ p (μ.trim hm) :=
-@mem_ℒp.to_Lp _ _ m p (μ.trim hm) _ _ _ _ (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some
-  (mem_ℒp_trim_of_mem_Lp_meas hm f f.mem)
+def Lp_meas_to_Lp_trim (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) : Lp F p (μ.trim hm) :=
+mem_ℒp.to_Lp (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some (mem_ℒp_trim_of_mem_Lp_meas hm f f.mem)
 
 /-- Map from `Lp F p (μ.trim hm)` to `Lp_meas`, inverse of `Lp_meas_to_Lp_trim`. -/
-def Lp_trim_to_Lp_meas (hm : m ≤ m0) (f : @Lp α F m _ _ _ _ p (μ.trim hm)) :
-  Lp_meas F 𝕜 m p μ :=
-⟨(mem_ℒp_of_mem_ℒp_trim hm (@Lp.mem_ℒp _ _ m _ _ _ _ _ _ f)).to_Lp f,
-  mem_Lp_meas_to_Lp_of_trim hm f⟩
+def Lp_trim_to_Lp_meas (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) : Lp_meas F 𝕜 m p μ :=
+⟨(mem_ℒp_of_mem_ℒp_trim hm (Lp.mem_ℒp f)).to_Lp f, mem_Lp_meas_to_Lp_of_trim hm f⟩
 
 variables {F 𝕜 p μ}
 
 lemma Lp_meas_to_Lp_trim_ae_eq (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) :
   Lp_meas_to_Lp_trim F 𝕜 p μ hm f =ᵐ[μ] f :=
-(ae_eq_of_ae_eq_trim
-    (@mem_ℒp.coe_fn_to_Lp _ _ m _ _ _ _ _ _ _ (mem_ℒp_trim_of_mem_Lp_meas hm ↑f f.mem))).trans
+(ae_eq_of_ae_eq_trim (mem_ℒp.coe_fn_to_Lp (mem_ℒp_trim_of_mem_Lp_meas hm ↑f f.mem))).trans
   (mem_Lp_meas_iff_ae_measurable'.mp f.mem).some_spec.2.symm
 
-lemma Lp_trim_to_Lp_meas_ae_eq (hm : m ≤ m0) (f : @Lp α F m _ _ _ _ p (μ.trim hm)) :
+lemma Lp_trim_to_Lp_meas_ae_eq (hm : m ≤ m0) (f : Lp F p (μ.trim hm)) :
   Lp_trim_to_Lp_meas F 𝕜 p μ hm f =ᵐ[μ] f :=
 mem_ℒp.coe_fn_to_Lp _
 
@@ -191,10 +187,8 @@ lemma Lp_meas_to_Lp_trim_right_inv (hm : m ≤ m0) :
 begin
   intro f,
   ext1,
-  refine ae_eq_trim_of_measurable hm _ _ _,
-  { exact @Lp.measurable _ _ m _ _ _ _ _ _ _, },
-  { exact @Lp.measurable _ _ m _ _ _ _ _ _ _, },
-  { exact (Lp_meas_to_Lp_trim_ae_eq hm _).trans (Lp_trim_to_Lp_meas_ae_eq hm _), },
+  refine ae_eq_trim_of_measurable hm (Lp.measurable _) (Lp.measurable _) _,
+  exact (Lp_meas_to_Lp_trim_ae_eq hm _).trans (Lp_trim_to_Lp_meas_ae_eq hm _),
 end
 
 /-- `Lp_trim_to_Lp_meas` is a left inverse of `Lp_meas_to_Lp_trim`. -/
@@ -213,28 +207,24 @@ lemma Lp_meas_to_Lp_trim_add (hm : m ≤ m0) (f g : Lp_meas F 𝕜 m p μ) :
     = Lp_meas_to_Lp_trim F 𝕜 p μ hm f + Lp_meas_to_Lp_trim F 𝕜 p μ hm g :=
 begin
   ext1,
-  refine eventually_eq.trans _ (@Lp.coe_fn_add _ _ m _ _ _ _ _ _ _ _).symm,
-  refine ae_eq_trim_of_measurable hm _ _ _,
-  { exact @Lp.measurable _ _ m _ _ _ _ _ _ _, },
-  { exact @measurable.add _ _ _ _ m _ _ _ (@Lp.measurable _ _ m _ _ _ _ _ _ _)
-      (@Lp.measurable _ _ m _ _ _ _ _ _ _), },
+  refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
+  refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
+  { exact @measurable.add _ _ _ _ m _ _ _ (Lp.measurable _) (Lp.measurable _), },
   refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
   refine eventually_eq.trans _
     (eventually_eq.add (Lp_meas_to_Lp_trim_ae_eq hm f).symm (Lp_meas_to_Lp_trim_ae_eq hm g).symm),
   refine (Lp.coe_fn_add _ _).trans _,
   simp_rw Lp_meas_coe,
-  refine eventually_of_forall (λ x, _),
-  refl,
+  refine eventually_of_forall (λ x, by refl),
 end
 
 lemma Lp_meas_to_Lp_trim_smul (hm : m ≤ m0) (c : 𝕜) (f : Lp_meas F 𝕜 m p μ) :
   Lp_meas_to_Lp_trim F 𝕜 p μ hm (c • f) = c • Lp_meas_to_Lp_trim F 𝕜 p μ hm f :=
 begin
   ext1,
-  refine eventually_eq.trans _ (@Lp.coe_fn_smul _ _ m _ _ _ _ _ _ _ _ _ _ _ _ _).symm,
-  refine ae_eq_trim_of_measurable hm _ _ _,
-  { exact @Lp.measurable _ _ m _ _ _ _ _ _ _, },
-  { exact @measurable.const_smul _ _ _ _ _ _ m _ _ (@Lp.measurable _ _ m _ _ _ _ _ _ _) c, },
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
+  { exact @measurable.const_smul _ _ _ _ _ _ m _ _ (Lp.measurable _) c, },
   refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
   refine (Lp.coe_fn_smul c _).trans _,
   refine (Lp_meas_to_Lp_trim_ae_eq hm f).mono (λ x hx, _),
@@ -246,7 +236,7 @@ end
 lemma Lp_meas_to_Lp_trim_norm_map [hp : fact (1 ≤ p)] (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) :
   ∥Lp_meas_to_Lp_trim F 𝕜 p μ hm f∥ = ∥f∥ :=
 begin
-  rw [norm_def, snorm_trim hm (@Lp.measurable _ _ m _ _ _ _ _ _ _)],
+  rw [norm_def, snorm_trim hm (Lp.measurable _)],
   swap, { apply_instance, },
   rw [snorm_congr_ae (Lp_meas_to_Lp_trim_ae_eq hm _), Lp_meas_coe, ← norm_def],
   congr,
@@ -255,7 +245,7 @@ end
 variables (F 𝕜 p μ)
 /-- A linear isometry equivalence between `Lp_meas` and `Lp F p (μ.trim hm)`. -/
 def Lp_meas_to_Lp_trim_lie [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
-  Lp_meas F 𝕜 m p μ ≃ₗᵢ[𝕜] @Lp α F m _ _ _ _ p (μ.trim hm) :=
+  Lp_meas F 𝕜 m p μ ≃ₗᵢ[𝕜] Lp F p (μ.trim hm) :=
 { to_fun    := Lp_meas_to_Lp_trim F 𝕜 p μ hm,
   map_add'  := Lp_meas_to_Lp_trim_add hm,
   map_smul' := Lp_meas_to_Lp_trim_smul hm,

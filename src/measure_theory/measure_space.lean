@@ -663,7 +663,7 @@ begin
 end
 
 /-- Restrict a measure `μ` to a set `s`. -/
-def restrict (μ : measure α) (s : set α) : measure α := restrictₗ s μ
+def restrict {α} {m : measurable_space α} (μ : measure α) (s : set α) : measure α := restrictₗ s μ
 
 @[simp] lemma restrictₗ_apply (s : set α) (μ : measure α) :
   restrictₗ s μ = μ.restrict s :=
@@ -1412,7 +1412,8 @@ le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 section finite_measure
 
 /-- A measure `μ` is called finite if `μ univ < ∞`. -/
-class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
+class finite_measure {α} {m : measurable_space α} (μ : measure α) : Prop :=
+(measure_univ_lt_top : μ univ < ∞)
 
 instance restrict.finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
   finite_measure (μ.restrict s) :=
@@ -1629,7 +1630,7 @@ open measure
 
 /-- A measure `μ` is called σ-finite if there is a countable collection of sets
   `{ A i | i ∈ ℕ }` such that `μ (A i) < ∞` and `⋃ i, A i = s`. -/
-class sigma_finite (μ : measure α) : Prop :=
+class sigma_finite {α} {m : measurable_space α} (μ : measure α) : Prop :=
 (out' : nonempty (μ.finite_spanning_sets_in {s | measurable_set s}))
 
 theorem sigma_finite_iff {μ : measure α} : sigma_finite μ ↔
@@ -1811,7 +1812,7 @@ lemma ext_on_measurable_space_of_generate_finite {α} (m₀ : measurable_space �
   (h_univ : μ set.univ = ν set.univ) {s : set α} (hs : m.measurable_set' s) :
   μ s = ν s :=
 begin
-  haveI : @finite_measure _ m₀ ν := begin
+  haveI : finite_measure ν := begin
      constructor,
      rw ← h_univ,
      apply finite_measure.measure_univ_lt_top,
@@ -2360,7 +2361,7 @@ begin
     trim_measurable_set_eq hm (@measurable_set.inter α m t s ht hs)],
 end
 
-instance finite_measure_trim (hm : m ≤ m0) [finite_measure μ] : @finite_measure α m (μ.trim hm) :=
+instance finite_measure_trim (hm : m ≤ m0) [finite_measure μ] : finite_measure (μ.trim hm) :=
 { measure_univ_lt_top :=
     by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
 

@@ -659,7 +659,7 @@ variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [c
   [measurable_space F] [borel_space F]
 
 /-- The Bochner integral -/
-def integral {α} {m : measurable_space α} (μ : measure α) (f : α → E) : E :=
+def integral {m : measurable_space α} (μ : measure α) (f : α → E) : E :=
 if hf : integrable f μ then L1.integral (hf.to_L1 f) else 0
 
 /-! In the notation for integrals, an expression like `∫ x, g ∥x∥ ∂μ` will not be parsed correctly,

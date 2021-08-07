@@ -922,7 +922,8 @@ notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 :=
   lintegral (measure.restrict μ s) r
 notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, lintegral (measure.restrict volume s) f) := r
 
-theorem simple_func.lintegral_eq_lintegral {m : measurable_space α} (f : α →ₛ ℝ≥0∞) (μ : measure α) :
+theorem simple_func.lintegral_eq_lintegral {m : measurable_space α} (f : α →ₛ ℝ≥0∞)
+  (μ : measure α) :
   ∫⁻ a, f a ∂ μ = f.lintegral μ :=
 le_antisymm
   (bsupr_le $ λ g hg, lintegral_mono hg $ le_refl _)

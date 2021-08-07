@@ -131,7 +131,10 @@ lemma set_integral_map_of_closed_embedding [topological_space α] [borel_space �
   {β} [measurable_space β] [topological_space β] [borel_space β]
   {g : α → β} {f : β → E} {s : set β} (hs : measurable_set s) (hg : closed_embedding g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
-by rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg]
+begin
+  rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg],
+  apply_instance,
+end
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :

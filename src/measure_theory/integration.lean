@@ -2011,16 +2011,10 @@ begin
 end
 
 lemma lintegral_trim_ae {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
-  {f : α → ℝ≥0∞} (hf : @ae_measurable _ _ m _ f (μ.trim hm)) :
+  {f : α → ℝ≥0∞} (hf : ae_measurable f (μ.trim hm)) :
   @lintegral _ m (μ.trim hm) f = ∫⁻ a, f a ∂μ :=
-begin
-  let f' := @ae_measurable.mk _ _ m _ _ _ hf,
-  have hff'_m : eventually_eq (@measure.ae  _ m (μ.trim hm)) f' f,
-    from (@ae_measurable.ae_eq_mk _ _ m _ _ _ hf).symm,
-  have hff' : f' =ᵐ[μ] f, from ae_eq_of_ae_eq_trim hff'_m,
-  rw [lintegral_congr_ae hff'.symm, @lintegral_congr_ae _ m _ _ _ hff'_m.symm,
-    lintegral_trim hm (@ae_measurable.measurable_mk _ _ m _ _ _ hf)],
-end
+by rw [lintegral_congr_ae (ae_eq_of_ae_eq_trim hf.ae_eq_mk),
+  @lintegral_congr_ae _ m _ _ _ hf.ae_eq_mk, lintegral_trim hm hf.measurable_mk]
 
 section sigma_finite
 

@@ -142,7 +142,7 @@ begin
   let g := hf.some,
   obtain ⟨hg, hfg⟩ := hf.some_spec,
   change mem_ℒp g p (μ.trim hm),
-  refine ⟨@measurable.ae_measurable _ _ m _ g (μ.trim hm) hg, _⟩,
+  refine ⟨hg.ae_measurable, _⟩,
   have h_snorm_fg : snorm g p (μ.trim hm) = snorm f p μ,
     by { rw snorm_trim hm hg, exact snorm_congr_ae hfg.symm, },
   rw h_snorm_fg,

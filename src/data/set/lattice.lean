@@ -754,10 +754,10 @@ lemma sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂ (i : s), i) :=
 by simp only [←sInter_range, subtype.range_coe]
 
 lemma union_eq_Union {s₁ s₂ : set α} : s₁ ∪ s₂ = ⋃ b : bool, cond b s₁ s₂ :=
-(@supr_bool_eq _ _ (λ b, cond b s₁ s₂)).symm
+sup_eq_supr s₁ s₂
 
 lemma inter_eq_Inter {s₁ s₂ : set α} : s₁ ∩ s₂ = ⋂ b : bool, cond b s₁ s₂ :=
-(@infi_bool_eq _ _ (λ b, cond b s₁ s₂)).symm
+inf_eq_infi s₁ s₂
 
 lemma sInter_union_sInter {S T : set (set α)} :
   (⋂₀S) ∪ (⋂₀T) = (⋂p ∈ S.prod T, (p : (set α) × (set α)).1 ∪ p.2) :=

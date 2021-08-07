@@ -70,9 +70,19 @@ begin
   use -l,
   exact L.neg_mem hl,
   simpa [hl, add_comm] using lh,
-end (begin rintro y₁ y₂ ⟨ᾰ_w, ⟨ᾰ_h_left_w, ᾰ_h_left_h_left, rfl⟩, ᾰ_h_right⟩ ⟨ᾰ_1_w,
- ⟨ᾰ_1_h_left_w, ᾰ_1_h_left_h_left, ᾰ_1_h_left_h_right⟩,
- ᾰ_1_h_right⟩, simp at *, sorry end)
+end
+begin
+  rintro ⟨y₁_val, y₁_property⟩ ⟨y₂_val, y₂_property⟩ ⟨a, ha, rfl⟩ ⟨c, hc, h⟩,
+  simp only [subtype.mk_eq_mk, add_subgroup.coe_mk] at *,
+  rw [← sub_eq_iff_eq_add, add_sub_assoc] at h,
+  have := F.disjoint (y₁_val - y₂_val) (L.sub_mem y₁_property y₂_property),
+  contrapose! this,
+  rw sub_ne_zero,
+  simp only [this, true_and, neg_sub, not_false_iff, set.image_add_right, ne.def],
+  intro hd,
+  apply hd ⟨_, hc⟩,
+  simpa [h],
+end
 
 /- TODO do I want to use this instance instead -/
 -- instance {F : fundamental_domain $ L n} (hF : measurable_set F.F) :
@@ -255,24 +265,26 @@ lemma exists_nonzero_lattice_of_two_dim_le_volume (L : add_subgroup (fin n → �
 ∃ (x : L) (h : x ≠ 0), ↑x ∈ S :=
 begin
   have mhalf : measurable_set ((1/2 : ℝ) • S),
-  { convert measurable_const_smul (2:ℝ) hS,
+  { convert measurable_const_smul (2 : ℝ) hS,
     ext x,
     simp only [one_div, set.mem_preimage],
     exact mem_inv_smul_set_iff two_ne_zero S x, },
   have : volume ((1/2 : ℝ) • S) * 2^n = volume S,
   {
+    suffices : volume ((1/2 : ℝ) • S) = (1 / 2)^n * volume S,
+    { rw [this, mul_comm _ (volume S), mul_assoc, ← mul_pow, one_div,
+        ennreal.inv_mul_cancel two_ne_zero two_ne_top, one_pow, mul_one], },
+
     sorry, -- rescaling measures
   },
   have h2 : volume F.F < volume ((1/2 : ℝ) • S),
   { rw ← ennreal.mul_lt_mul_right (pow_ne_zero n two_ne_zero') (pow_ne_top two_ne_top),
     convert h, },
 
-  --  { v | ∃ (v₁ v₂ : fin n → ℝ) (hv₁ : v₁ ∈ ((1/2 : ℝ) • S)) (hv₂ : v₂ ∈ ((1/2 : ℝ) • S)), v₁ + v₂ = v},
   have : (1/2 : ℝ) • S + (1/2 : ℝ) • S = S,
   { ext,
     split; intro h,
     { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
-      -- rcases h with ⟨v₁, v₂, h₁, h₂, rfl⟩,
       have := convex h₁₂ h₂₂ (le_of_lt one_half_pos) (le_of_lt one_half_pos) (by linarith),
       rw [← inv_eq_one_div] at this,
       suffices hv : ∀ v : fin n → ℝ, v = (2⁻¹:ℝ) • (2 * v),

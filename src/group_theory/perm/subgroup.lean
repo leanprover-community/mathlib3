@@ -24,7 +24,7 @@ namespace perm
 
 universes u
 
-instance sum_congr_hom.decidable_mem_range {α H : Type*}
+instance sum_congr_hom.decidable_mem_range {α β : Type*}
   [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   decidable_pred (∈ (sum_congr_hom α β).range) :=
 λ x, infer_instance

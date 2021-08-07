@@ -35,7 +35,7 @@ variables [preorder α] [preorder β] {s t : set α} {a b : α}
 -/
 
 /-- The set of upper bounds of a set. -/
-def upper_bounds (s : set α) : set α := { x | ∀ ⦃a⦄, a ∈ s →  a ≤ x }
+def upper_bounds (s : set α) : set α := { x | ∀ ⦃a⦄, a ∈ s → a ≤ x }
 /-- The set of lower bounds of a set. -/
 def lower_bounds (s : set α) : set α := { x | ∀ ⦃a⦄, a ∈ s → x ≤ a }
 

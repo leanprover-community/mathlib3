@@ -239,7 +239,8 @@ lemma snorm'_measure_zero_of_pos {f : α → F} (hq_pos : 0 < q) :
   snorm' f q (0 : measure α) = 0 :=
 by simp [snorm', hq_pos]
 
-lemma snorm'_measure_zero_of_exponent_zero {f : α → F} : snorm' f 0 (0 : measure α) = 1 := by simp [snorm']
+lemma snorm'_measure_zero_of_exponent_zero {f : α → F} : snorm' f 0 (0 : measure α) = 1 :=
+by simp [snorm']
 
 lemma snorm'_measure_zero_of_neg {f : α → F} (hq_neg : q < 0) : snorm' f q (0 : measure α) = ∞ :=
 by simp [snorm', hq_neg]

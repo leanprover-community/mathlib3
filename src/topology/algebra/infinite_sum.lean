@@ -1273,18 +1273,18 @@ variables [topological_space α] [semiring α]
 
 /- The family `(k, l) : ℕ × ℕ ↦ f k * g l` is summable if and only if the family
 `(n, k, l) : Σ (n : ℕ), nat.antidiagonal n ↦ f k * g l` is summable. -/
-lemma summable_mul_iff_summable_cauchy_product_sigma {f g : ℕ → α} :
+lemma summable_mul_prod_iff_summable_mul_sigma_antidiagonal {f g : ℕ → α} :
   summable (λ x : ℕ × ℕ, f x.1 * g x.2) ↔
   summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=
 nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
 
 variables [regular_space α] [topological_semiring α]
 
-lemma summable_cauchy_product_antidiagonal_of_summable_mul {f g : ℕ → α}
+lemma summable_sum_mul_antidiagonal_of_summable_mul {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
   summable (λ n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
 begin
-  rw summable_mul_iff_summable_cauchy_product_sigma at h,
+  rw summable_mul_prod_iff_summable_mul_sigma_antidiagonal at h,
   conv {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
   exact h.sigma' (λ n, (has_sum_fintype _).summable),
 end
@@ -1300,15 +1300,15 @@ begin
   conv_rhs {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
   rw [tsum_mul_tsum hf hg hfg, ← nat.sigma_antidiagonal_equiv_prod.tsum_eq (_ : ℕ × ℕ → α)],
   exact tsum_sigma' (λ n, (has_sum_fintype _).summable)
-    (summable_mul_iff_summable_cauchy_product_sigma.mp hfg)
+    (summable_mul_prod_iff_summable_mul_sigma_antidiagonal.mp hfg)
 end
 
-lemma summable_cauchy_product_range_of_summable_mul' {f g : ℕ → α}
+lemma summable_sum_mul_range_of_summable_mul {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
   summable (λ n, ∑ k in range (n+1), f k * g (n - k)) :=
 begin
   simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
-  exact summable_cauchy_product_antidiagonal_of_summable_mul h
+  exact summable_sum_mul_antidiagonal_of_summable_mul h
 end
 
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,

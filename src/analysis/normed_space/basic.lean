@@ -2021,11 +2021,11 @@ section nat
 
 open finset.nat
 
-lemma summable_norm_cauchy_product_antidiagonal_of_summable_norm {f g : ℕ → α}
+lemma summable_norm_sum_mul_antidiagonal_of_summable_norm {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ n, ∥∑ kl in antidiagonal n, f kl.1 * g kl.2∥) :=
 begin
-  have := summable_cauchy_product_antidiagonal_of_summable_mul
+  have := summable_sum_mul_antidiagonal_of_summable_mul
     (summable.mul_of_nonneg hf hg (λ _, norm_nonneg _) (λ _, norm_nonneg _)),
   refine summable_of_nonneg_of_le (λ _, norm_nonneg _) _ this,
   intros n,
@@ -2044,12 +2044,12 @@ lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm [complete_space α
 tsum_mul_tsum_eq_tsum_sum_antidiagonal (summable_of_summable_norm hf) (summable_of_summable_norm hg)
   (summable_mul_of_summable_norm hf hg)
 
-lemma summable_norm_cauchy_product_range_of_summable_norm {f g : ℕ → α}
+lemma summable_norm_sum_mul_range_of_summable_norm {f g : ℕ → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ n, ∥∑ k in range (n+1), f k * g (n - k)∥) :=
 begin
   simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
-  exact summable_norm_cauchy_product_antidiagonal_of_summable_norm hf hg
+  exact summable_norm_sum_mul_antidiagonal_of_summable_norm hf hg
 end
 
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,

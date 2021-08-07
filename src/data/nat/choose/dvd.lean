@@ -5,7 +5,7 @@ Authors: Chris Hughes, Patrick Stevens
 -/
 import data.nat.choose.basic
 import data.nat.prime
-import data.rat.floor
+
 /-!
 # Divisibility properties of binomial coefficients
 -/
@@ -38,28 +38,14 @@ end
 
 end prime
 
-lemma cast_choose {α : Type*} [field α] [char_zero α] {a b : ℕ}
-  (hab : a ≤ b) : (b.choose a : α) = b! / (a! * (b - a)!) :=
+lemma cast_choose {α : Type*} [field α] [char_zero α] {a b : ℕ} (hab : a ≤ b) :
+  (b.choose a : α) = b! / (a! * (b - a)!) :=
 begin
   rw [eq_comm, div_eq_iff],
   norm_cast,
   rw [←mul_assoc, choose_mul_factorial_mul_factorial hab],
   { exact mul_ne_zero (nat.cast_ne_zero.2 $ factorial_ne_zero _)
-    (nat.cast_ne_zero.2 $ factorial_ne_zero _) },
-end
-
-lemma choose_mul {α : Type*} [field α] [char_zero α] {n k s : ℕ} (hn : k ≤ n) (hs : s ≤ k) :
-  (n.choose k : α) * k.choose s = n.choose s * (n - s).choose (k - s) :=
-begin
-  rw [nat.cast_choose hn, nat.cast_choose hs,
-    nat.cast_choose (hs.trans hn), nat.cast_choose (nat.sub_le_sub_right hn s),
-    sub_sub_sub_cancel_right hs],
-  rw [←div_div_eq_div_mul, div_right_comm, div_mul_div_cancel, ←div_div_eq_div_mul,
-    ←div_div_eq_div_mul, div_mul_div_cancel,←div_div_eq_div_mul],
-  ring,
-  { exact nat.cast_ne_zero.2 (factorial_ne_zero _) },
-  { exact nat.cast_ne_zero.2 (factorial_ne_zero _) },
-  all_goals { apply_instance },
+    (nat.cast_ne_zero.2 $ factorial_ne_zero _) }
 end
 
 end nat

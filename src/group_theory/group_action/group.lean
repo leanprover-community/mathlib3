@@ -22,6 +22,12 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 section mul_action
 
+/-- `monoid.to_mul_action` is faithful on cancellative monoids. -/
+@[to_additive /-" `add_monoid.to_add_action` is faithful on additive cancellative monoids. "-/]
+instance right_cancel_monoid.to_has_faithful_scalar [right_cancel_monoid α] :
+  has_faithful_scalar α α :=
+⟨λ x y h, mul_right_cancel (h 1)⟩
+
 section group
 variables [group α] [mul_action α β]
 
@@ -62,6 +68,10 @@ instance mul_action.perm (α : Type*) : mul_action (equiv.perm α) α :=
 
 @[simp] lemma equiv.perm.smul_def {α : Type*} (f : equiv.perm α) (a : α) : f • a = f a := rfl
 
+/-- `mul_action.perm` is faithful. -/
+instance equiv.perm.has_faithful_scalar (α : Type*) : has_faithful_scalar (equiv.perm α) α :=
+⟨λ x y, equiv.ext⟩
+
 variables {α} {β}
 
 @[to_additive] lemma inv_smul_eq_iff {a : α} {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
@@ -91,6 +101,11 @@ mul_action.injective g h
 (mul_action.to_perm g).apply_eq_iff_eq_symm_apply
 
 end group
+
+/-- `monoid.to_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
+instance cancel_monoid_with_zero.to_has_faithful_scalar [cancel_monoid_with_zero α] [nontrivial α] :
+  has_faithful_scalar α α :=
+⟨λ x y h, mul_left_injective' one_ne_zero (h 1)⟩
 
 section gwz
 variables [group_with_zero α] [mul_action α β]

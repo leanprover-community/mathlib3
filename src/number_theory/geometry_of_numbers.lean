@@ -1,13 +1,26 @@
 import measure_theory.lebesgue_measure
 import group_theory.subgroup
 import analysis.convex.basic
+import measure_theory.haar_measure
 import tactic
 
 open measure_theory
 variables {n : ℕ}
 noncomputable theory
 
-variables (trans_inv : ∀ (v : fin n → ℝ) (S : set (fin n → ℝ)), volume S = volume ((+ v) '' S))
+lemma trans_inv (v : fin n → ℝ) (S : set (fin n → ℝ)) (hS : measurable_set S) :
+volume S = volume ((+ (-v)) '' S) :=
+begin
+  simp only [set.image_add_left, add_comm],
+  set K : topological_space.positive_compacts (fin n → ℝ) := { val := ({x | ∀ n, x n ∈ set.Icc (0 : ℝ) 1} : set (fin n → ℝ)),
+      property := begin sorry end },
+  suffices : volume = measure.add_haar_measure K,
+  { rw [this],
+    simp only [set.image_add_right, neg_neg],
+    simp_rw add_comm,
+    rw [measure.is_add_left_invariant_add_haar_measure K v hS], },
+  sorry,
+end
 
 /-- Blichfeldt's Principle --/
 -- def L (n : ℕ) : add_subgroup (fin n → ℝ) := set.range (monoid_hom.comp {to_fun := (coe : ℤ → ℝ),
@@ -142,7 +155,6 @@ end
   trimmed := _ }
   }-/
 
-include trans_inv
 lemma exists_diff_lattice_of_volume_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
   {S : set (fin n → ℝ)} (hS : measurable_set S) (F : fundamental_domain L)
   (h : volume F.F < volume S) :
@@ -234,7 +246,11 @@ begin
       exact measurable_add_const ↑l, }, },
     { congr,
       ext1 l,
-      rw [trans_inv (-↑ l) _], }, },
+      rw [trans_inv (↑ l) _ _],
+      apply measurable_set.inter _ F.hF, -- TODO is this a dup goal?
+      simp only [set.image_add_right],
+      refine measurable_set_preimage _ hS,
+      exact measurable_add_const (-↑l), }, },
   convert this,
   ext1 l,
   simp only [set.image_add_right],
@@ -316,7 +332,7 @@ begin
       exact set.smul_mem_smul_set (symmetric _ hv), },
     use [x, -y, hx, this _ hy],
     refl, },
-  { exact exists_diff_lattice_of_volume_le_volume trans_inv L mhalf F h2, }
+  { exact exists_diff_lattice_of_volume_le_volume L mhalf F h2, }
 end
 
 #lint

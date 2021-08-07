@@ -1430,15 +1430,14 @@ begin
   exact tendsto_nhds_unique h_lim_1 h_lim_2,
 end
 
-lemma integral_trim_ae (hm : m ≤ m0) {f : β → F} (hf : @ae_measurable β F m _ f (μ.trim hm)) :
+lemma integral_trim_ae (hm : m ≤ m0) {f : β → F} (hf : ae_measurable f (μ.trim hm)) :
   ∫ x, f x ∂μ = ∫ x, f x ∂(μ.trim hm) :=
 begin
-  let f' := @ae_measurable.mk _ _ m _ _ f hf,
-  have hf'_eq_trim : f =ᶠ[@measure.ae _ m (μ.trim hm)] f',
-    from @ae_measurable.ae_eq_mk _ _ m _ f _ hf,
+  let f' := hf.mk f,
+  have hf'_eq_trim : f =ᵐ[μ.trim hm] f', from hf.ae_eq_mk,
   have hf'_eq : f =ᵐ[μ] f' := ae_eq_of_ae_eq_trim hf'_eq_trim,
   rw [integral_congr_ae hf'_eq, integral_congr_ae hf'_eq_trim],
-  exact integral_trim hm (@ae_measurable.measurable_mk _ _ m _ f _ hf),
+  exact integral_trim hm hf.measurable_mk,
 end
 
 lemma ae_eq_trim_of_measurable [measurable_space γ] [add_group γ] [measurable_singleton_class γ]

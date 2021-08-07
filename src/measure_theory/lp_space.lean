@@ -595,14 +595,11 @@ begin
   simpa only [snorm_eq_snorm' h0 h_top] using snorm'_trim hm hf,
 end
 
-lemma snorm_trim_ae (hm : m ≤ m0) {f : α → E} (hf : @ae_measurable _ _ m _ f (ν.trim hm)) :
+lemma snorm_trim_ae (hm : m ≤ m0) {f : α → E} (hf : ae_measurable f (ν.trim hm)) :
   snorm f p (ν.trim hm) = snorm f p ν :=
 begin
-  let g := @ae_measurable.mk _ _ m _ _ _ hf,
-  have hg_meas : @measurable _ _ m _ g, from @ae_measurable.measurable_mk _ _ m _ _ _ hf,
-  have hfg := @ae_measurable.ae_eq_mk _ _ m _ _ _ hf,
-  rw [snorm_congr_ae hfg, snorm_congr_ae (ae_eq_of_ae_eq_trim hfg)],
-  exact snorm_trim hm hg_meas,
+  rw [snorm_congr_ae hf.ae_eq_mk, snorm_congr_ae (ae_eq_of_ae_eq_trim hf.ae_eq_mk)],
+  exact snorm_trim hm hf.measurable_mk,
 end
 
 lemma mem_ℒp_of_mem_ℒp_trim (hm : m ≤ m0) {f : α → E} (hf : mem_ℒp f p (ν.trim hm)) :

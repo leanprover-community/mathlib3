@@ -252,7 +252,7 @@ lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s�
 /-! ### The almost everywhere filter -/
 
 /-- The “almost everywhere” filter of co-null sets. -/
-def measure.ae (μ : measure α) : filter α :=
+def measure.ae {α} {m : measurable_space α} (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ = 0},
   univ_sets := by simp,
   inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of_eq];
@@ -385,12 +385,13 @@ function. We define this property, called `ae_measurable f μ`. It's properties 
 `measure_theory.measure_space`.
 -/
 
-variables [measurable_space α] [measurable_space β]
+variables {m : measurable_space α} [measurable_space β]
   {f g : α → β} {μ ν : measure α}
 
 /-- A function is almost everywhere measurable if it coincides almost everywhere with a measurable
 function. -/
-def ae_measurable (f : α → β) (μ : measure α . measure_theory.volume_tac) : Prop :=
+def ae_measurable {m : measurable_space α} (f : α → β) (μ : measure α . measure_theory.volume_tac) :
+  Prop :=
 ∃ g : α → β, measurable g ∧ f =ᵐ[μ] g
 
 lemma measurable.ae_measurable (h : measurable f) : ae_measurable f μ :=

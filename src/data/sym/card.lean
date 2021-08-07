@@ -69,7 +69,7 @@ begin
   { ext ⟨x₁, y₁⟩,
     rw [mem_filter, mem_insert, mem_singleton, sym2.eq_iff, prod.mk.inj_iff, prod.mk.inj_iff,
       and_iff_right_iff_imp],
-    rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩); rw mem_off_diag; exact ⟨‹_›, ‹_›, ‹_›⟩ }, -- `hxy'` is used here
+    rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩); rw mem_off_diag; exact ⟨‹_›, ‹_›, ‹_›⟩ }, -- hxy' is used here
   rw [this, card_insert_of_not_mem, card_singleton],
   simp only [not_and, prod.mk.inj_iff, mem_singleton],
   exact λ _, hxy',

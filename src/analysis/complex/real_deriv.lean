@@ -24,8 +24,8 @@ only if it's holomorphic or antiholomorphic at that point.
 ## TODO
 
 * The classical form of Cauchy-Riemann equations
-* A function is holomorphic or antiholomorphic on a domain `u` if it's conformal at every point in
-that domain.
+* On a connected open set `u`, a function which is `conformal_at` each point is either holomorphic
+throughout or antiholomorphic throughout.
 
 ## Warning
 

@@ -563,11 +563,10 @@ begin
 end
 
 lemma limsup_trim (hm : m ≤ m0) {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
-  (@measure.ae _ m (ν.trim hm)).limsup f = ν.ae.limsup f :=
+  (ν.trim hm).ae.limsup f = ν.ae.limsup f :=
 begin
   simp_rw limsup_eq,
-  suffices h_set_eq : {a : ℝ≥0∞ | filter.eventually (λ n, f n ≤ a) (@measure.ae _ m (ν.trim hm))}
-      = {a : ℝ≥0∞ | ∀ᵐ n ∂ν, f n ≤ a},
+  suffices h_set_eq : {a : ℝ≥0∞ | ∀ᵐ n ∂(ν.trim hm), f n ≤ a} = {a : ℝ≥0∞ | ∀ᵐ n ∂ν, f n ≤ a},
     by rw h_set_eq,
   ext1 a,
   suffices h_meas_eq : ν {x | ¬ f x ≤ a} = ν.trim hm {x | ¬ f x ≤ a},

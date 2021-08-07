@@ -1441,10 +1441,9 @@ begin
 end
 
 lemma ae_eq_trim_of_measurable [measurable_space γ] [add_group γ] [measurable_singleton_class γ]
-  [has_measurable_sub₂ γ]
-  (hm : m ≤ m0) {f g : β → γ} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
-  (hfg : f =ᵐ[μ] g) :
-  f =ᶠ[@measure.ae β m (μ.trim hm)] g :=
+  [has_measurable_sub₂ γ] (hm : m ≤ m0) {f g : β → γ} (hf : @measurable _ _ m _ f)
+  (hg : @measurable _ _ m _ g) (hfg : f =ᵐ[μ] g) :
+  f =ᵐ[μ.trim hm] g :=
 begin
   rwa [eventually_eq, ae_iff, trim_measurable_set_eq hm _],
   exact (@measurable_set.compl β _ m (@measurable_set_eq_fun β m γ _ _ _ _ _ _ hf hg)),
@@ -1453,7 +1452,7 @@ end
 lemma ae_eq_trim_iff [measurable_space γ] [add_group γ] [measurable_singleton_class γ]
   [has_measurable_sub₂ γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g) :
-  f =ᶠ[@measure.ae β m (μ.trim hm)] g ↔ f =ᵐ[μ] g :=
+  f =ᵐ[μ.trim hm] g ↔ f =ᵐ[μ] g :=
 ⟨ae_eq_of_ae_eq_trim, ae_eq_trim_of_measurable hm hf hg⟩
 
 end integral_trim

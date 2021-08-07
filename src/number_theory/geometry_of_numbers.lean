@@ -10,9 +10,11 @@ noncomputable theory
 variables (trans_inv : ∀ (v : fin n → ℝ) (S : set (fin n → ℝ)), volume S = volume ((+ v) '' S))
 
 /-- Blichfeldt's Principle --/
--- def L (n : ℕ) : add_subgroup (fin n → ℝ) := set.range (monoid_hom.comp {to_fun := (coe : ℤ → ℝ), map_one' := int.cast_one, map_mul' := int.cast_mul})
+-- def L (n : ℕ) : add_subgroup (fin n → ℝ) := set.range (monoid_hom.comp {to_fun := (coe : ℤ → ℝ),
+-- map_one' := int.cast_one, map_mul' := int.cast_mul})
 
--- instance : is_add_group_hom ((∘) (coe : ℤ → ℝ) : (fin n → ℤ) → (fin n → ℝ)) := { map_add := λ x y, by ext;
+-- instance : is_add_group_hom ((∘) (coe : ℤ → ℝ) : (fin n → ℤ) → (fin n → ℝ)) :=
+-- { map_add := λ x y, by ext;
 --   exact int.cast_add (x x_1) (y x_1), }
 -- instance : is_add_subgroup (L n) := is_add_group_hom.range_add_subgroup ((∘) coe)
 /- this can be generalized any range of a morphism is a subgroup -/
@@ -21,7 +23,7 @@ variables (trans_inv : ∀ (v : fin n → ℝ) (S : set (fin n → ℝ)), volume
 
 structure fundamental_domain (L : add_subgroup (fin n → ℝ)) := /- this is _just_ a coset right? -/
   (F : set (fin n → ℝ))
-  [hF : measurable_set F]
+  (hF : measurable_set F)
   (disjoint : ∀ (l : fin n → ℝ) (hl : l ∈ L) (h : l ≠ 0), disjoint ((+ l) '' F) F)
   (covers : ∀ (x : fin n → ℝ), ∃ (l : fin n → ℝ) (hl : l ∈ L), l + x ∈ F)
 
@@ -41,7 +43,8 @@ structure fundamental_domain (L : add_subgroup (fin n → ℝ)) := /- this is _j
 --     have : (-1 : ℤ) < w m := by exact_mod_cast ltw,
 --     linarith,
 --   end)),
---   covers := λ x, ⟨-(coe ∘ floor ∘ x), ⟨is_add_subgroup.neg_mem (set.mem_range_self (floor ∘ x)), begin
+--   covers := λ x, ⟨-(coe ∘ floor ∘ x), ⟨is_add_subgroup.neg_mem (set.mem_range_self (floor ∘ x)),
+--   begin
 --     intro,
 --     simp only [int.cast_zero, pi.add_apply, pi.zero_apply, pi.neg_apply,
 --       function.comp_app, zero_add, neg_add_lt_iff_lt_add],
@@ -94,7 +97,7 @@ begin
   exact measurable_set.univ,
 end
 
-/-instance {F : fundamental_domain $ L n} (hF : measure_space.to_measurable_space.measurable_set F.F) : measure_space F.F :=
+/-instance {F : fundamental_domain $ L n} : measure_space F.F :=
 { measurable_set := λ s, measure_space.to_measurable_space.measurable_set (subtype.val '' s),
   measurable_set_empty := by rw [set.image_empty];
                           exact measure_space.to_measurable_space.is_measurable_empty,
@@ -102,7 +105,8 @@ end
     have : subtype.val '' (-S) = -(subtype.val '' S) ∩ F.F :=
     begin
       ext,
-      simp only [not_exists, set.mem_image, set.mem_inter_eq, exists_and_distrib_right, exists_eq_right, subtype.exists,
+      simp only [not_exists, set.mem_image, set.mem_inter_eq, exists_and_distrib_right,
+      exists_eq_right, subtype.exists,
  set.mem_compl_eq], /- TODO is this a logic lemma now ? -/
       split; intro; cases a,
       split,
@@ -131,17 +135,16 @@ end
 include trans_inv
 lemma exists_diff_lattice_of_one_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
   (S : set (fin n → ℝ)) (hS : measurable_set S) (F : fundamental_domain L)
-  (h : volume F.F < volume S) (hF : measurable_set F.F) :
-∃ (x ∈ S) (y ∈ S) (hne : x ≠ y), (x - y) ∈ L :=
+  (h : volume F.F < volume S) :
+∃ (x y : fin n → ℝ) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
 begin
   suffices : ∃ (p₁ p₂ : L) (hne : p₁ ≠ p₂),
     (((+ ↑p₁) '' S ∩ F.F) ∩ ((+ ↑p₂) '' S ∩ F.F)).nonempty,
   begin
     rcases this with ⟨p₁, p₂, hne, u, ⟨⟨q₁, ⟨hS₁, ht₁⟩⟩, hu⟩, ⟨⟨q₂, ⟨hS₂, ht₂⟩⟩, hu⟩⟩,
-    use u - p₁,
+    use [u - p₁, u - p₂],
     split,
     { rwa [← ht₁, add_sub_cancel], },
-    use u - p₂,
     split,
     { rwa [← ht₂, add_sub_cancel], },
     rw (by abel : u - p₁ - (u - p₂) = p₂ - p₁),
@@ -152,7 +155,7 @@ begin
       exact subtype.eq a, },
     exact L.sub_mem p₂.mem p₁.mem,
   end,
-  rw ← volume_subtype_univ hF at h,
+  rw ← volume_subtype_univ F.hF at h,
   let s := λ p : L, (λ a, ((+ (p : fin n → ℝ)) '' S) a.val : set F.F),
   have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure (subtype.measure_space _).volume
     (_ : (∀ p : L, measurable_set (λ a, ((+ ↑p) '' S) a.val : set F.F))) _,
@@ -160,7 +163,7 @@ begin
     use [i, j, hij, t],
     simp only [and_true, set.mem_inter_eq, set.mem_preimage, subtype.coe_prop],
     exact ht, },
-  { exact hF, },
+  { exact F.hF, },
   { intros,
     dsimp [s],
     suffices : measurable_set (λ (a : ↥(F.F)), (S) ↑a),
@@ -171,10 +174,12 @@ begin
     exact ⟨S, ⟨hS, rfl⟩⟩, },
   convert h,
   have : (∑' (i : L), volume ((+ (i : fin n → ℝ)) '' S ∩ F.F)) = volume S,
-  { rw (_ : (∑' (i : L), volume ((+ ↑i) '' S ∩ F.F)) = ∑' (i : L), volume ((+ (-↑i)) '' ((+ ↑i) '' S ∩ F.F))),
+  { rw (_ : ∑' (i : L), volume ((+ ↑i) '' S ∩ F.F) =
+        ∑' (i : L), volume ((+ (-↑i)) '' ((+ ↑i) '' S ∩ F.F))),
     { conv in (_ '' (_ ∩ _)) {
         rw [← set.image_inter (add_left_injective _), ← set.image_comp],
-        simp [add_neg_cancel_right, function.comp_app, set.image_id'], -- TODO nonterminal but can't squeeze
+        simp only [add_neg_cancel_right, function.comp_app, set.image_id',
+          comp_add_right, add_zero, add_right_neg, set.image_add_right, neg_neg],
         rw set.inter_comm, },
       rw ← measure_Union _ _,
       { congr,
@@ -216,7 +221,7 @@ begin
       -- simp only [comp_add_right, add_zero, add_right_neg, set.image_add_right,
       --   neg_neg, set.image_id'],
       apply measurable_set.inter _ hS,
-      refine measurable_set_preimage _ hF,
+      refine measurable_set_preimage _ F.hF,
       exact measurable_add_const ↑l, }, },
     { congr,
       ext1 l,
@@ -236,7 +241,7 @@ begin
       ennreal.some_eq_coe, add_subgroup.coe_mk],
     split; { intros a, cases a, split; assumption, }, },
   { intros X hX,
-    convert measurable_set.subtype_image hF hX, },
+    convert measurable_set.subtype_image F.hF hX, },
   { refine measurable_set_preimage _ hS,
     refine measurable.add_const _ (-↑l),
     exact measurable_subtype_coe, },
@@ -245,20 +250,25 @@ end
 -- how to apply to the usual lattice
     -- exact set.countable.to_encodable (set.countable_range (function.comp coe)),
 
+open ennreal
 lemma exists_nonzero_lattice_of_two_dim_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
-  (F : fundamental_domain L) (S : set (fin n → ℝ)) (h : 2^n < volume S)
-  (symmetric : ∀ x ∈ S, -x ∈ S) (convex : convex S) : ∃ (x : L) (h : x ≠ ⟨0, L.zero_mem⟩), ↑x ∈ S :=
+  (F : fundamental_domain L) (S : set (fin n → ℝ)) (h : volume F.F * 2 ^ n < volume S)
+  (symmetric : ∀ x ∈ S, -x ∈ S) (convex : convex S) : ∃ (x : L) (h : x ≠ 0), ↑x ∈ S :=
 begin
-  let halfS : set (fin n → ℝ) := {v | 2 * v ∈ S},
-  have : 2^n * volume halfS = volume S := begin
-    sorry,
-  end,
-  have h2 : 1 < volume halfS := sorry,
+  let halfS : set (fin n → ℝ) := {v | 2 * v ∈ S}, -- TODO factor out into a rescale function and API
+  have mhalf : measurable_set halfS, sorry,
+  have : volume halfS * 2^n = volume S,
+  {
+    sorry, -- rescaling measures
+  },
+  have h2 : volume F.F < volume halfS,
+  { rw ← ennreal.mul_lt_mul_right (pow_ne_zero n two_ne_zero') (pow_ne_top two_ne_top),
+    convert h, },
 
-  let C : set (fin n → ℝ) := { v | ∃ (v₁ v₂ : fin n → ℝ) (hv₁ : v₁ ∈ halfS) (hv₂ : v₂ ∈ halfS), v₁ + v₂ = v},
-  have : C = S :=
-  begin
-    ext,
+  let C : set (fin n → ℝ) :=
+    { v | ∃ (v₁ v₂ : fin n → ℝ) (hv₁ : v₁ ∈ halfS) (hv₂ : v₂ ∈ halfS), v₁ + v₂ = v},
+  have : C = S,
+  { ext,
     split; intro h,
     { rcases h with ⟨v₁, v₂, h₁, h₂, rfl⟩,
       have := convex h₁ h₂ (le_of_lt one_half_pos) (le_of_lt one_half_pos) (by linarith),
@@ -279,25 +289,22 @@ begin
         rw ← mul_assoc,
         norm_num, },
       { rw ← add_smul,
-        norm_num, }, },
-  end,
+        norm_num, }, }, },
   rw ← this,
-  suffices : ∃ (x : fin n → ℝ) (hx : x ∈ halfS) (y : fin n → ℝ) (hy : y ∈ halfS) (hne : x ≠ y), x - y ∈ L,
-  {
-    rcases this with ⟨x, hx, y, hy, hne, hsub⟩,
+  suffices : ∃ (x y : fin n → ℝ) (hx : x ∈ halfS) (hy : y ∈ halfS) (hne : x ≠ y),
+    x - y ∈ L,
+  { rcases this with ⟨x, y, hx, hy, hne, hsub⟩,
     use ⟨x - y, hsub⟩,
     split,
-    { simpa only [sub_eq_zero, subtype.mk_eq_mk, ne.def], },
-    have : ∀ t ∈ halfS, -t ∈ halfS :=
-    begin
-      intros t ht,
+    { apply subtype.ne_of_val_ne,
+      simp [sub_eq_zero, hne], },
+    have : ∀ t ∈ halfS, -t ∈ halfS,
+    { intros t ht,
       simp only [mul_neg_eq_neg_mul_symm, set.mem_set_of_eq],
-      exact symmetric _ ht,
-    end,
+      exact symmetric _ ht, },
     use [x, -y, hx, this _ hy],
-    refl,
-  },
-  {
-    exact exists_diff_lattice_of_one_le_volume trans_inv L _ halfS sorry _ sorry,
-  }
+    refl, },
+  { exact exists_diff_lattice_of_one_le_volume trans_inv L halfS mhalf F h2, }
 end
+
+#lint

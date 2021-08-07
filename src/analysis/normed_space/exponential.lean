@@ -30,9 +30,13 @@ begin
   rwa [finset.nat.mem_antidiagonal, eq_comm, add_comm] at hlk
 end
 
+lemma metric.eball_top {α : Type*} [pseudo_metric_space α] (x : α) :
+  emetric.ball x ∞ = set.univ :=
+set.eq_univ_iff_forall.mpr (λ y, edist_lt_top y x)
+
 end move_me
 
-section any_field_noncomm_algebra
+section any_field_any_algebra
 
 variables (𝕂 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
 
@@ -131,14 +135,6 @@ section complete_field
 
 variables [complete_space 𝕂]
 
-lemma has_strict_deriv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝕂).radius) :
-  has_strict_deriv_at (exp 𝕂 𝕂) 1 0 :=
-(has_strict_fderiv_at_exp_zero_of_radius_pos h).has_strict_deriv_at
-
-lemma has_deriv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝕂).radius) :
-  has_deriv_at (exp 𝕂 𝕂) 1 0 :=
-(has_strict_deriv_at_exp_zero_of_radius_pos h).has_deriv_at
-
 end complete_field
 
 lemma exp_add_of_commute_of_lt_radius [complete_space 𝔸] [char_zero 𝕂]
@@ -162,7 +158,7 @@ begin
   field_simp [this]
 end
 
-end any_field_noncomm_algebra
+end any_field_any_algebra
 
 section any_field_comm_algebra
 
@@ -193,18 +189,20 @@ begin
   ring
 end
 
-lemma has_strict_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
+lemma has_strict_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸}
+  (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
   has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 let ⟨p, hp⟩ := exp_analytic_at_of_mem_ball x (by rwa ← edist_eq_coe_nnnorm at hx) in
 hp.has_fderiv_at.unique (has_fderiv_at_exp_of_lt_radius hx) ▸ hp.has_strict_fderiv_at
 
 end any_field_comm_algebra
 
-section any_field
+section deriv
 
 variables {𝕂 : Type*} [nondiscrete_normed_field 𝕂] [complete_space 𝕂]
 
-lemma has_strict_deriv_at_of_lt_radius [char_zero 𝕂] {x : 𝕂} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝕂).radius) :
+lemma has_strict_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂}
+  (hx : ↑∥x∥₊ < (exp_series 𝕂 𝕂).radius) :
   has_strict_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
 begin
   convert (has_strict_fderiv_at_exp_of_lt_radius hx).has_strict_deriv_at,
@@ -213,15 +211,26 @@ end
 
 lemma has_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝕂).radius) :
   has_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
-(has_strict_deriv_at_of_lt_radius hx).has_deriv_at
+(has_strict_deriv_at_exp_of_lt_radius hx).has_deriv_at
 
-end any_field
+lemma has_strict_deriv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝕂).radius) :
+  has_strict_deriv_at (exp 𝕂 𝕂) 1 0 :=
+(has_strict_fderiv_at_exp_zero_of_radius_pos h).has_strict_deriv_at
+
+lemma has_deriv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝕂).radius) :
+  has_deriv_at (exp 𝕂 𝕂) 1 0 :=
+(has_strict_deriv_at_exp_zero_of_radius_pos h).has_deriv_at
+
+end deriv
 
 section is_R_or_C
 
-variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [complete_space 𝔸]
+section any_algebra
 
-lemma real.summable_pow_div_factorial (x : ℝ) : summable (λ n : ℕ, x^n / n!) :=
+variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+
+-- This is private because one can use the more general `exp_series_summable_field` intead.
+private lemma real.summable_pow_div_factorial (x : ℝ) : summable (λ n : ℕ, x^n / n!) :=
 begin
   by_cases h : x = 0,
   { refine summable_of_norm_bounded_eventually 0 summable_zero _,
@@ -250,10 +259,12 @@ begin
     ... = ∥x∥ / ∥((n+1 : ℕ) : ℝ)∥ : by rw [mul_one, mul_one, ← div_eq_mul_inv] }
 end
 
+variables (𝕂 𝔸)
+
 lemma exp_series_radius_eq_top : (exp_series 𝕂 𝔸).radius = ∞ :=
 begin
   refine (exp_series 𝕂 𝔸).radius_eq_top_of_summable_norm (λ r, _),
-  refine summable_of_norm_bounded_eventually _ (r : ℝ).summable_pow_div_factorial _,
+  refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial r) _,
   filter_upwards [eventually_cofinite_ne 0],
   intros n hn,
   rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_div, norm_one, norm_pow,
@@ -262,6 +273,18 @@ begin
     norm_mk_pi_algebra_fin_le_of_pos (nat.pos_of_ne_zero hn),
   exact mul_le_of_le_one_right (div_nonneg (pow_nonneg r.coe_nonneg n) n!.cast_nonneg) this
 end
+
+lemma exp_series_radius_pos : 0 < (exp_series 𝕂 𝔸).radius :=
+begin
+  rwa exp_series_radius_eq_top,
+  exact with_top.zero_lt_top
+end
+
+variables {𝕂 𝔸}
+
+section complete_algebra
+
+variables [complete_space 𝔸]
 
 lemma exp_series_summable (x : 𝔸) : summable (λ n, exp_series 𝕂 𝔸 n (λ _, x)) :=
 begin
@@ -301,6 +324,88 @@ begin
   exact exp_series_has_sum_exp x
 end
 
+lemma exp_has_fpower_series_on_ball :
+  has_fpower_series_on_ball (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 ∞ :=
+begin
+  rw ← exp_series_radius_eq_top 𝕂 𝔸,
+  exact exp_has_fpower_series_on_ball_of_radius_pos (exp_series_radius_pos _ _)
+end
+
+lemma exp_has_fpower_series_at_zero :
+  has_fpower_series_at (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 :=
+exp_has_fpower_series_on_ball.has_fpower_series_at
+
+lemma exp_continuous :
+  continuous (exp 𝕂 𝔸) :=
+begin
+  rw [continuous_iff_continuous_on_univ, ← metric.eball_top (0 : 𝔸),
+      ← exp_series_radius_eq_top 𝕂 𝔸],
+  exact exp_continuous_on_ball
+end
+
+lemma exp_analytic (x : 𝔸) :
+  analytic_at 𝕂 (exp 𝕂 𝔸) x :=
+exp_analytic_at_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
+lemma has_strict_fderiv_at_exp_zero :
+  has_strict_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
+has_strict_fderiv_at_exp_zero_of_radius_pos (exp_series_radius_pos 𝕂 𝔸)
+
+lemma has_fderiv_at_exp_zero :
+  has_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
+has_strict_fderiv_at_exp_zero.has_fderiv_at
+
+end complete_algebra
+
+lemma exp_add_of_commute [complete_space 𝔸] [char_zero 𝕂]
+  {x y : 𝔸} (hxy : commute x y) :
+  exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
+exp_add_of_commute_of_lt_radius hxy
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
+
+end any_algebra
+
+section comm_algebra
+
+variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸][complete_space 𝔸]
+
+lemma exp_add {x y : 𝔸} : exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
+@exp_add_of_lt_radius 𝕂 𝔸 _ _ _ _ char_zero_R_or_C x y
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
+
+lemma has_strict_fderiv_at_exp {x : 𝔸} :
+  has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
+@has_strict_fderiv_at_exp_of_lt_radius 𝕂 𝔸 _ _ _ _ char_zero_R_or_C x
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
+
+lemma has_fderiv_at_exp {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
+  has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
+has_strict_fderiv_at_exp.has_fderiv_at
+
+end comm_algebra
+
+section deriv
+
+variables {𝕂 : Type*} [is_R_or_C 𝕂]
+
+lemma has_strict_deriv_at_exp {x : 𝕂} : has_strict_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
+@has_strict_deriv_at_exp_of_lt_radius 𝕂 _ _ char_zero_R_or_C x
+  ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ ennreal.coe_lt_top)
+
+lemma has_deriv_at_exp {x : 𝕂} : has_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
+has_strict_deriv_at_exp.has_deriv_at
+
+lemma has_strict_deriv_at_exp_zero : has_strict_deriv_at (exp 𝕂 𝕂) 1 0 :=
+has_strict_deriv_at_exp_zero_of_radius_pos (exp_series_radius_pos 𝕂 𝕂)
+
+lemma has_deriv_at_exp_zero :
+  has_deriv_at (exp 𝕂 𝕂) 1 0 :=
+has_strict_deriv_at_exp_zero.has_deriv_at
+
+end deriv
+
 end is_R_or_C
 
 section scalar_tower
@@ -311,7 +416,7 @@ variables (𝕂 𝕂' 𝔸 : Type) [nondiscrete_normed_field 𝕂] [nondiscrete_
 
 include p
 
-private lemma exp_series_eq_exp_series (n : ℕ) (x : 𝔸) :
+lemma exp_series_eq_exp_series_of_field_extension (n : ℕ) (x : 𝔸) :
   (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
 begin
   rw [exp_series, exp_series,
@@ -338,7 +443,7 @@ begin
   ext,
   rw [exp, exp],
   refine tsum_congr (λ n, _),
-  rw exp_series_eq_exp_series 𝕂 𝕂' 𝔸 p n x
+  rw exp_series_eq_exp_series_of_field_extension 𝕂 𝕂' 𝔸 p n x
 end
 
 end scalar_tower
@@ -354,7 +459,7 @@ begin
 end
 
 lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : exp ℝ ℂ = exp ℂ ℂ :=
-exp_eq_exp_of_field_extension _ _ _ 0
+exp_eq_exp_of_field_extension ℝ ℂ ℂ 0
 
 end complex
 

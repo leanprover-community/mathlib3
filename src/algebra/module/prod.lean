@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import algebra.module.basic
-import algebra.opposites
+import group_theory.group_action.prod
+
 /-!
 # Prod instances for module and multiplicative actions
 

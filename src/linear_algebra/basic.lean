@@ -4,13 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.big_operators.pi
-import algebra.module.hom
 import algebra.module.prod
 import algebra.module.submodule_lattice
-import algebra.group.prod
-import data.finsupp.basic
 import data.dfinsupp
-import algebra.pointwise
+import data.finsupp.basic
 import order.compactly_generated
 import order.omega_complete_partial_order
 

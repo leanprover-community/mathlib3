@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
-import algebra.group.hom
-import group_theory.group_action.group
 import algebra.smul_with_zero
+import group_theory.group_action.group
 
 /-!
 # Modules over a ring

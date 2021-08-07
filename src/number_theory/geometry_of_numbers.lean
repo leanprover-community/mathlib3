@@ -134,7 +134,7 @@ end
 
 include trans_inv
 lemma exists_diff_lattice_of_volume_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
-  (S : set (fin n → ℝ)) (hS : measurable_set S) (F : fundamental_domain L)
+  {S : set (fin n → ℝ)} (hS : measurable_set S) (F : fundamental_domain L)
   (h : volume F.F < volume S) :
 ∃ (x y : fin n → ℝ) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
 begin
@@ -250,59 +250,61 @@ end
 
 open ennreal
 lemma exists_nonzero_lattice_of_two_dim_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
-  (F : fundamental_domain L) (S : set (fin n → ℝ)) (h : volume F.F * 2 ^ n < volume S)
-  (symmetric : ∀ x ∈ S, -x ∈ S) (convex : convex S) : ∃ (x : L) (h : x ≠ 0), ↑x ∈ S :=
+  (F : fundamental_domain L) (S : set (fin n → ℝ)) (hS : measurable_set S)
+  (h : volume F.F * 2 ^ n < volume S) (symmetric : ∀ x ∈ S, -x ∈ S) (convex : convex S) :
+∃ (x : L) (h : x ≠ 0), ↑x ∈ S :=
 begin
-  let halfS : set (fin n → ℝ) := {v | 2 * v ∈ S}, -- TODO factor out into a rescale function and API
-  have mhalf : measurable_set halfS, sorry,
-  have : volume halfS * 2^n = volume S,
+  have mhalf : measurable_set ((1/2 : ℝ) • S),
+  { convert measurable_const_smul (2:ℝ) hS,
+    ext x,
+    simp only [one_div, set.mem_preimage],
+    exact mem_inv_smul_set_iff two_ne_zero S x, },
+  have : volume ((1/2 : ℝ) • S) * 2^n = volume S,
   {
     sorry, -- rescaling measures
   },
-  have h2 : volume F.F < volume halfS,
+  have h2 : volume F.F < volume ((1/2 : ℝ) • S),
   { rw ← ennreal.mul_lt_mul_right (pow_ne_zero n two_ne_zero') (pow_ne_top two_ne_top),
     convert h, },
 
-  let C : set (fin n → ℝ) :=
-    { v | ∃ (v₁ v₂ : fin n → ℝ) (hv₁ : v₁ ∈ halfS) (hv₂ : v₂ ∈ halfS), v₁ + v₂ = v},
-  have : C = S,
+  --  { v | ∃ (v₁ v₂ : fin n → ℝ) (hv₁ : v₁ ∈ ((1/2 : ℝ) • S)) (hv₂ : v₂ ∈ ((1/2 : ℝ) • S)), v₁ + v₂ = v},
+  have : (1/2 : ℝ) • S + (1/2 : ℝ) • S = S,
   { ext,
     split; intro h,
-    { rcases h with ⟨v₁, v₂, h₁, h₂, rfl⟩,
-      have := convex h₁ h₂ (le_of_lt one_half_pos) (le_of_lt one_half_pos) (by linarith),
+    { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
+      -- rcases h with ⟨v₁, v₂, h₁, h₂, rfl⟩,
+      have := convex h₁₂ h₂₂ (le_of_lt one_half_pos) (le_of_lt one_half_pos) (by linarith),
       rw [← inv_eq_one_div] at this,
       suffices hv : ∀ v : fin n → ℝ, v = (2⁻¹:ℝ) • (2 * v),
-      { convert this,
-        all_goals {exact hv _}, },
+      { convert this;
+        exact one_div 2, },
       intro,
       suffices : v = ((2⁻¹:ℝ) * 2) • v,
       { conv_lhs { rw this, },
         exact mul_assoc _ _ _, },
       norm_num, },
-    { use [(2⁻¹ : ℝ) • x, (2⁻¹ : ℝ) • x],
-      simp only [exists_prop, and_self_left, set.mem_set_of_eq],
+    { use [(1/2 : ℝ) • x, (1/2 : ℝ) • x],
+      simp only [and_self_left],
       split,
-      { convert h, ext,
-        change 2 * (2⁻¹ * x x_1) = x x_1,
-        rw ← mul_assoc,
-        norm_num, },
+      { exact set.smul_mem_smul_set h, },
       { rw ← add_smul,
         norm_num, }, }, },
   rw ← this,
-  suffices : ∃ (x y : fin n → ℝ) (hx : x ∈ halfS) (hy : y ∈ halfS) (hne : x ≠ y),
+  suffices : ∃ (x y : fin n → ℝ) (hx : x ∈ (1/2 : ℝ) • S) (hy : y ∈ (1/2 : ℝ) • S) (hne : x ≠ y),
     x - y ∈ L,
   { rcases this with ⟨x, y, hx, hy, hne, hsub⟩,
     use ⟨x - y, hsub⟩,
     split,
     { apply subtype.ne_of_val_ne,
       simp [sub_eq_zero, hne], },
-    have : ∀ t ∈ halfS, -t ∈ halfS,
+    have : ∀ t ∈ (1/2 : ℝ) • S, -t ∈ (1/2 : ℝ) • S,
     { intros t ht,
-      simp only [mul_neg_eq_neg_mul_symm, set.mem_set_of_eq],
-      exact symmetric _ ht, },
+      rcases ht with ⟨v, hv, rfl⟩,
+      rw ← smul_neg,
+      exact set.smul_mem_smul_set (symmetric _ hv), },
     use [x, -y, hx, this _ hy],
     refl, },
-  { exact exists_diff_lattice_of_volume_le_volume trans_inv L halfS mhalf F h2, }
+  { exact exists_diff_lattice_of_volume_le_volume trans_inv L mhalf F h2, }
 end
 
 #lint

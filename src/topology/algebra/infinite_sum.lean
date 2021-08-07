@@ -1218,7 +1218,7 @@ space, you may want to use the analogous lemmas in `analysis/normed_space/basic`
 (e.g `tsum_mul_tsum_of_summable_norm`).
 
 We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
-`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_nat`).
+`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_eq_tsum_sum_antidiagonal`).
 
 ### Arbitrary index types
 -/
@@ -1256,7 +1256,14 @@ end tsum_mul_tsum
 
 section cauchy_product
 
-/-! ### `ℕ`-indexed families (cauchy product) -/
+/-! ### `ℕ`-indexed families (Cauchy product)
+
+We prove two versions of the Cauchy product formula. The first one is
+`tsum_mul_tsum_eq_tsum_sum_range`, where the `n`-th term is a sum over `finset.range (n+1)`
+involving `nat` substraction.
+In order to avoid `nat` substraction, we also provide `tsum_mul_tsum_eq_tsum_sum_antidiagonal`,
+where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
+`finset` `finset.nat.antidiagonal n` -/
 
 variables {f : ℕ → α} {g : ℕ → α}
 
@@ -1264,6 +1271,8 @@ open finset
 
 variables [topological_space α] [semiring α]
 
+/- The family `(k, l) : ℕ × ℕ ↦ f k * g l` is summable if and only if the family
+`(n, k, l) : Σ (n : ℕ), nat.antidiagonal n ↦ f k * g l` is summable. -/
 lemma summable_mul_iff_summable_cauchy_product_sigma {f g : ℕ → α} :
   summable (λ x : ℕ × ℕ, f x.1 * g x.2) ↔
   summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=

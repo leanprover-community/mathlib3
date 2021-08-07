@@ -1956,7 +1956,8 @@ ring. There are similar results proven in `topology/algebra/infinite_sum` (e.g `
 but in a normed ring we get summability results which aren't true in general.
 
 We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
-`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_nat_of_summable_norm`).
+`β = γ = ℕ` to prove the Cauchy product formula
+(see `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`).
 
 ### Arbitrary index types
 -/
@@ -2006,7 +2007,15 @@ lemma tsum_mul_tsum_of_summable_norm [complete_space α] {f : ι → α} {g : ι
 tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
   (summable_mul_of_summable_norm hf hg)
 
-/-! ### `ℕ`-indexed families (Cauchy product) -/
+/-! ### `ℕ`-indexed families (Cauchy product)
+
+We prove two versions of the Cauchy product formula. The first one is
+`tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`, where the `n`-th term is a sum over
+`finset.range (n+1)` involving `nat` substraction.
+In order to avoid `nat` substraction, we also provide
+`tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`,
+where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
+`finset` `finset.nat.antidiagonal n`. -/
 
 section nat
 

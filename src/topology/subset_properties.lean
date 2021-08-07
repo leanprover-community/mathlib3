@@ -613,7 +613,7 @@ hs.image_of_continuous_on hf.continuous_on
 /-- The comap of the cocompact filter on `β` by a continuous function `f : α → β` is less than or
 equal to the cocompact filter on `α`.
 This is a reformulation of the fact that images of compact sets are compact. -/
-lemma filter.comap_cocompact [topological_space β] {f : α → β} (hf : continuous f) :
+lemma filter.comap_cocompact {f : α → β} (hf : continuous f) :
   (filter.cocompact β).comap f ≤ filter.cocompact α :=
 begin
   rw (filter.has_basis_cocompact.comap f).le_basis_iff filter.has_basis_cocompact,

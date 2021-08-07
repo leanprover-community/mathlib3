@@ -263,8 +263,8 @@ rfl
 rfl
 
 @[simp]
-lemma special_linear_group.has_neg_cast {R : Type*} [comm_ring R] (g : (special_linear_group n ℤ))
-  (h : even (fintype.card n)) [_i : fact (even (fintype.card n))] :
+lemma has_neg_cast {R : Type*} [comm_ring R] (g : (special_linear_group n ℤ))
+  [_i : fact (even (fintype.card n))] :
   @coe _ (special_linear_group n R) _ (- g) = - (@coe _ (special_linear_group n R) _ g) :=
 subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg g
 

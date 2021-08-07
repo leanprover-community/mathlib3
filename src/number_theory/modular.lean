@@ -89,22 +89,14 @@ end
 
 end coprime_ints
 
-lemma det_SL2ℤ (g : SL(2,ℤ)) : g 0 0 * g 1 1 - g 0 1 * g 1 0 = 1 :=
-begin
-    calc _ = matrix.det g : _
-    ... = 1 : by rw g.det_coe_fun,
-    simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
-    ring,
-end
-
 @[simps] def bottom_row (g : SL(2, ℤ)) : coprime_ints :=
 { c := g 1 0,
   d := g 1 1,
   is_coprime := begin
-    rw is_coprime,
-    use [( - g 0 1), (g 0 0)],
-    convert det_SL2ℤ g using 1,
-    ring,
+    use [- g 0 1, g 0 0],
+    have := det_fin_two g,
+    have := g.det_coe_fun,
+    linarith
   end }
 
 
@@ -262,15 +254,12 @@ begin
     fin_cases i; refl }
 end
 
-lemma something2 (p : coprime_ints) (z : ℍ) :
-  ∃ (w : ℂ), ∀ g : bottom_row ⁻¹' {p},
-  ↑((g : SL(2, ℤ)) • z) = ((acbd p ↑(↑g : SL(2, ℝ))) : ℂ ) / (p.c ^ 2 + p.d ^ 2) + w :=
+lemma something2 (p : coprime_ints) (z : ℍ) (g : bottom_row ⁻¹' {p}) :
+  ↑((g : SL(2, ℤ)) • z) = ((acbd p ↑(↑g : SL(2, ℝ))) : ℂ ) / (p.c ^ 2 + p.d ^ 2)
+    + ((p.d:ℂ )* z - p.c) / ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d)) :=
 begin
-  use ((p.d:ℂ )* z - p.c) /
-    ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d)),
   have nonZ1 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0 := by exact_mod_cast p.sum_sq_ne_zero,
   have nonZ2 : (p.c : ℂ) * z + p.d ≠ 0 := by simpa using linear_ne_zero _ z p.ne_zero',
-  intro g,
   let acbdpg := acbd p ((((g: SL(2,ℤ)) : SL(2,ℝ )) : matrix (fin 2) (fin 2) ℝ)),
   field_simp [nonZ1, nonZ2, bottom_ne_zero, -upper_half_plane.bottom],
   rw (_ : (p.d:ℂ)*z - p.c = ((p.d)*z - p.c)*(g 0 0 * g 1 1 - g 0 1 * g 1 0)),
@@ -278,7 +267,6 @@ begin
   rw (_ : p.c = g 1 0),
   rw (_ : p.d = g 1 1),
   simp only [coe_fn_coe_base],
-  -- simp,
   ring,
   { convert bottom_row_d g,
     have : p = bottom_row g := g.2.symm,
@@ -287,21 +275,10 @@ begin
     have : p = bottom_row g := g.2.symm,
     exact this },
   { rw (_ : (g 0 0 : ℂ) * ↑(g 1 1) - ↑(g 0 1) * ↑(g 1 0) = 1),
-    ring,
+    { ring },
     norm_cast,
-    convert det_SL2ℤ g using 1 },
-end
-
-lemma something1 (p : coprime_ints) (z : ℍ) :
-  ∃ w, ∀ g : bottom_row ⁻¹' {p},
-  ((g : SL(2, ℤ)) • z).re = (acbd p ↑(↑g : SL(2, ℝ))) / (p.c ^ 2 + p.d ^ 2) + w :=
-begin
-  obtain ⟨w, hw⟩ := something2 p z,
-  use w.re,
-  intros g,
-  have := hw g,
-  apply_fun complex.re at this,
-  exact_mod_cast this,
+    rw ← det_fin_two g,
+    exact (g : SL(2, ℤ)).det_coe_fun },
 end
 
 /- final filter lemma, deduce from previous two results -/
@@ -310,15 +287,16 @@ lemma something' (z:ℍ) (p : coprime_ints) :
 begin
   suffices : tendsto (λ g : bottom_row ⁻¹' {p}, (((g : SL(2, ℤ)) • z).re)) cofinite (cocompact ℝ),
   { exact tendsto_norm_cocompact_at_top.comp this },
-  obtain ⟨w, hw⟩ := something1 p z,
   have : ((p.c : ℝ) ^ 2 + p.d ^ 2)⁻¹ ≠ 0,
   { apply inv_ne_zero,
     exact_mod_cast p.sum_sq_ne_zero },
   let f := homeomorph.mul_right' _ this,
-  let ff := homeomorph.add_right w,
+  let ff := homeomorph.add_right (((p.d:ℂ)* z - p.c) / ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d))).re,
   convert ((f.trans ff).closed_embedding.tendsto_cocompact).comp (big_thm p),
   ext g,
-  convert hw g,
+  change ((g : SL(2, ℤ)) • z).re = (acbd p ↑(↑g : SL(2, ℝ))) / (p.c ^ 2 + p.d ^ 2)
+  + (((p.d:ℂ )* z - p.c) / ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d))).re,
+  exact_mod_cast (congr_arg complex.re (something2 p z g))
 end
 
 end tendsto_lemmas

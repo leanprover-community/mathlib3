@@ -18,7 +18,7 @@ to be conformal.
                                      normed space is conformal.
 * `is_conformal_map_complex_linear_conj`: the composition of a nonzero complex linear map with
                                           `conj` is complex linear.
-* `is_complex_or_conj_complex_linear_iff_is_conformal_map`: a real linear map between the complex
+* `is_conformal_map_iff_is_complex_or_conj_linear`: a real linear map between the complex
                                                             plane is conformal iff it's complex
                                                             linear or the composition of
                                                             some complex linear map and `conj`.
@@ -72,7 +72,7 @@ open continuous_linear_map
 
 variables {f : ℂ → ℂ} {z : ℂ} {g : ℂ →L[ℝ] ℂ}
 
-lemma is_complex_or_conj_complex_linear (h : is_conformal_map g) :
+lemma is_conformal_map.is_complex_or_conj_linear (h : is_conformal_map g) :
   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g.comp ↑conj_cle) :=
 begin
@@ -97,13 +97,13 @@ end
 
 /-- A real continuous linear map on the complex plane is conformal if and only if the map or its
     conjugate is complex linear, and the map is nonvanishing. -/
-lemma is_complex_or_conj_complex_linear_iff_is_conformal_map :
+lemma is_conformal_map_iff_is_complex_or_conj_linear:
   is_conformal_map g ↔
   ((∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
    (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g.comp ↑conj_cle)) ∧ g ≠ 0 :=
 begin
   split,
-  { exact λ h, ⟨is_complex_or_conj_complex_linear h, h.ne_zero⟩, },
+  { exact λ h, ⟨h.is_complex_or_conj_linear, h.ne_zero⟩, },
   { rintros ⟨⟨map, rfl⟩ | ⟨map, hmap⟩, h₂⟩,
     { refine is_conformal_map_complex_linear _,
       contrapose! h₂ with w,

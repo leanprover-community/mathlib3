@@ -12,6 +12,24 @@ import analysis.calculus.conformal
 `has_deriv_at.real_of_complex` expresses that, if a function on `ℂ` is differentiable (over `ℂ`),
 then its restriction to `ℝ` is differentiable over `ℝ`, with derivative the real part of the
 complex derivative.
+
+`differentiable_at.conformal_at` states that a real-differentiable function with a nonvanishing
+differential from the complex plane into an arbitrary complex-normed space is conformal at a point
+if it's holomorphic at that point. This is a version of Cauchy-Riemann equations.
+
+`conformal_at_iff_differentiable_at_or_differentiable_at_comp_conj` proves that a real-differential
+function with a nonvanishing differential between the complex plane is conformal at a point if and
+only if it's holomorphic or antiholomorphic at that point.
+
+## TODO
+
+* The classical form of Cauchy-Riemann equations
+* A function is holomorphic or antiholomorphic on a domain `u` if it's conformal at every point in
+that domain.
+
+## Warning
+
+We do NOT require conformal functions to be orientation-preserving in this file.
 -/
 
 section real_deriv_of_complex
@@ -70,8 +88,9 @@ open complex continuous_linear_map
 variables
 
 /-- A real differentiable function of the complex plane into some complex normed space `E` is
-    conformal at a point `z` if it is holomorphic at that point -/
-lemma conformal_at_of_holomorph {E : Type*}
+    conformal at a point `z` if it is holomorphic at that point with a nonvanishing differential.
+    This is a version of the Cauchy-Riemann equations. -/
+lemma differentiable_at.conformal_at {E : Type*}
   [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
   [is_scalar_tower ℝ ℂ E] {z : ℂ} {f : ℂ → E}
   (hf' : fderiv ℝ f z ≠ 0) (h : differentiable_at ℂ f z) :
@@ -86,12 +105,12 @@ end
 
 /-- A complex function is conformal if and only if the function is holomorphic or antiholomorphic
     with a nonvanishing differential. -/
-lemma conformal_at_iff_holomorphic_or_antiholomorphic_at {f : ℂ → ℂ} {z : ℂ} :
+lemma conformal_at_iff_differentiable_at_or_differentiable_at_comp_conj {f : ℂ → ℂ} {z : ℂ} :
   conformal_at f z ↔
   (differentiable_at ℂ f z ∨ differentiable_at ℂ (f ∘ conj) (conj z)) ∧ fderiv ℝ f z ≠ 0 :=
 begin
   rw conformal_at_iff_is_conformal_map_fderiv,
-  rw is_complex_or_conj_complex_linear_iff_is_conformal_map,
+  rw is_conformal_map_iff_is_complex_or_conj_linear,
   apply and_congr_left,
   intros h,
   have h_diff := h.imp_symm fderiv_zero_of_not_differentiable_at,

@@ -16,17 +16,28 @@ The main property of those functions is `strongly_measurable.exists_set_sigma_fi
 a measurable set such that  `f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`.
 As a consequence, we can prove some results for those functions as if the measure was sigma-finite.
 
-## Main results
+## Main definitions
 
-- `strongly_measurable.exists_set_sigma_finite` : if a function `f` is strongly measurable with
-respect to a measure `μ`, then there exists a measurable set `t` such that `f =ᵐ[μ.restrict tᶜ] 0`
-and `sigma_finite (μ.restrict t)`.
-- `mem_ℒp.ae_strongly_measurable` : if `mem_ℒp f p μ` with `0 < p < ∞`, then
-`∃ g, strongly_measurable g μ ∧ f =ᵐ[μ] g`.
-- `Lp.strongly_measurable` : for `0 < p < ∞`, `Lp` functions are strongly measurable.
+* `strongly_measurable f μ` : `f : α → γ` is the limit of a sequence `fs : ℕ → simple_func α γ`
+  such that for all `n ∈ ℕ`, the measure of the support of `fs n` is finite.
+
+## Main statements
+
+* `stongly_measurable.measurable` : a stongly measurable function is measurable.
+* `strongly_measurable.exists_set_sigma_finite` : if a function `f` is strongly measurable with
+  respect to a measure `μ`, then there exists a measurable set `t` such that `f =ᵐ[μ.restrict tᶜ] 0`
+  and `sigma_finite (μ.restrict t)`.
+* `mem_ℒp.ae_strongly_measurable` : if `mem_ℒp f p μ` with `0 < p < ∞`, then
+  `∃ g, strongly_measurable g μ ∧ f =ᵐ[μ] g`.
+* `Lp.strongly_measurable` : for `0 < p < ∞`, `Lp` functions are strongly measurable.
 
 TODO: prove that constant non-zero functions are stongly measurable with respect to a measure `μ`
 iff `μ` is sigma finite.
+
+## References
+
+* Hytönen, Tuomas, Jan Van Neerven, Mark Veraar, and Lutz Weis. Analysis in Banach spaces.
+  Springer, 2016.
 
 -/
 

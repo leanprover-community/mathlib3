@@ -56,8 +56,8 @@ In this section we will prove that a set `i` whose measure is negative contains 
 is used to prove the Hahn decomposition theorem.
 
 To prove this lemma, we will construct a sequence of measurable sets $(A_n)_{n \in \mathbb{N}}$,
-such that, for all $n$, $A_{n + 1} \subseteq i \setminus \bigcup_{k \le n} A_k$ and
-$\frac{1}{a_n + 1} < s(A_{n + 1})$ for some sequence $a_n \to \infty$.
+such that, for all $n$, $s(A_{n + 1})$ is close to maximal among subsets of
+$i \setminus \bigcup_{k \le n} A_k$.
 
 This sequence of sets does not necessarily exist. However, if this sequence terminates; that is,
 there does not exists any sets satisfying the property, the last $A_n$ will be a negative subset
@@ -71,8 +71,7 @@ To implement this in Lean, we define several auxilary definitions.
 - given sets `i`, `j` and the natural number `n`, `exists_one_div_lt s i j n` is the property that
   there exists a measurable set `k ⊆ i \ j` such that `1 / (n + 1) < s k`.
 - given sets `i`, `j` and that `i \ j` is not negative, `find_exists_one_div_lt s i j` is the
-  least natural number `n` such that `exists_one_div_lt s i j n`. This definition provides the
-  sequence $(a_n)$ in the proof as described above.
+  least natural number `n` such that `exists_one_div_lt s i j n`.
 - given sets `i`, `j` and that `i \ j` is not negative, `some_exists_one_div_lt` chooses the set
   `k` from `exists_one_div_lt s i j (find_exists_one_div_lt s i j)`.
 - lastly, given the set `i`, `restrict_nonpos_seq s i` is the sequence of sets defined inductively

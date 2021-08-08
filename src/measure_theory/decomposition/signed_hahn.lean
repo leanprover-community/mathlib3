@@ -84,6 +84,8 @@ With these definitions, we are able consider the case where the sequence termina
 allowing us to prove `exists_subset_restrict_nonpos`.
 -/
 
+/-- Given sets `i`, `j` and the natural number `n`, `exists_one_div_lt s i j n` is the property that
+there exists a measurable set `k ⊆ i \ j` such that `1 / (n + 1) < s k`. -/
 private def exists_one_div_lt (s : signed_measure α) (i j : set α) (n : ℕ) : Prop :=
 ∃ k : set α, k ⊆ i \ j ∧ measurable_set k ∧ (1 / (n + 1) : ℝ) < s k
 
@@ -92,6 +94,8 @@ private lemma exists_nat_one_div_lt_measure_of_not_negative (hi : ¬ s ≤[i \ j
 let ⟨k, hj₁, hj₂, hj⟩ := exists_pos_measure_of_not_restrict_le_zero s hi in
 let ⟨n, hn⟩ := exists_nat_one_div_lt hj in ⟨n, k, hj₂, hj₁, hn⟩
 
+/-- Given sets `i`, `j`, if `i \ j` is not negative, `find_exists_one_div_lt s i j` is the
+least natural number `n` such that `exists_one_div_lt s i j n`, otherwise, it returns 0. -/
 private def find_exists_one_div_lt (s : signed_measure α) (i j : set α) : ℕ :=
 if hi : ¬ s ≤[i \ j] 0 then nat.find (exists_nat_one_div_lt_measure_of_not_negative hi) else 0
 
@@ -109,6 +113,9 @@ begin
   exact nat.find_min _ hm
 end
 
+/-- Given sets `i`, `j`, if `i \ j` is not negative, `some_exists_one_div_lt` chooses the set
+`k` from `exists_one_div_lt s i j (find_exists_one_div_lt s i j)`, otherwise, it returns the
+empty set. -/
 private def some_exists_one_div_lt (s : signed_measure α) (i j : set α) : set α :=
 if hi : ¬ s ≤[i \ j] 0 then classical.some (find_exists_one_div_lt_spec hi) else ∅
 
@@ -144,6 +151,12 @@ private lemma some_exists_one_div_lt_lt (hi : ¬ s ≤[i \ j] 0) :
   (1 / (find_exists_one_div_lt s i j + 1) : ℝ) < s (some_exists_one_div_lt s i j) :=
 let ⟨_, _, h⟩ := some_exists_one_div_lt_spec hi in h
 
+/-- Given the set `i`, `restrict_nonpos_seq s i` is the sequence of sets defined inductively where
+  `restrict_nonpos_seq s i 0 = some_exists_one_div_lt s i ∅` and
+  `restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq k)`.
+
+For each `n : ℕ`,`s (restrict_nonpos_seq s i n)` is close to maximal among all subsets of
+`i \ ⋃ k ≤ n, restrict_nonpos_seq s i k`. -/
 private def restrict_nonpos_seq (s : signed_measure α) (i : set α) : ℕ → set α
 | 0 := some_exists_one_div_lt s i ∅
 | (n + 1) := some_exists_one_div_lt s i (⋃ k ≤ n,

@@ -421,93 +421,99 @@ end
 
 end arzela_ascoli
 
-section has_lipschitz_mul
-/- In this section, if β is a monoid whose multiplication operation is Lipschitz, then we show that
-the space of bounded continuous functions from α to β inherits a topological monoid structure, by
-using pointwise operations and checking that they are compatible with the uniform distance. -/
+section has_lipschitz_add
+/- In this section, if `β` is an `add_monoid` whose addition operation is Lipschitz, then we show
+that the space of bounded continuous functions from `α` to `β` inherits a topological `add_monoid`
+structure, by using pointwise operations and checking that they are compatible with the uniform
+distance.
 
-variables [topological_space α] [metric_space β] [monoid β] [has_lipschitz_mul β]
+Implementation note: The material in this section could have been written for `has_lipschitz_mul`
+and transported by `@[to_additive]`.  We choose not to do this because this causes a few lemma
+names (for example, `coe_mul`) to conflict with latter lemma names for normed rings; this is only a
+trivial inconvenience, but in any case there are no obvious applications of the multiplicative
+version. -/
+
+variables [topological_space α] [metric_space β] [add_monoid β] [has_lipschitz_add β]
 
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
-@[to_additive] instance : has_one (α →ᵇ β) := ⟨const α 1⟩
+instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
 
-@[simp, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
+@[simp] lemma coe_zero : ((0 : α →ᵇ β) : α → β) = 0 := rfl
 
-@[to_additive] lemma forall_coe_one_iff_one : (∀x, f x = 1) ↔ f = 1 :=
-(@ext_iff _ _ _ _ f 1).symm
+lemma forall_coe_zero_iff_zero : (∀x, f x = 0) ↔ f = 0 := (@ext_iff _ _ _ _ f 0).symm
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
-@[to_additive] instance : has_mul (α →ᵇ β) :=
-{ mul := λ f g,
-    bounded_continuous_function.mk_of_bound (f.to_continuous_map * g.to_continuous_map)
-    (↑(has_lipschitz_mul.C β) * max (classical.some f.bounded) (classical.some g.bounded))
+instance : has_add (α →ᵇ β) :=
+{ add := λ f g,
+    bounded_continuous_function.mk_of_bound (f.to_continuous_map + g.to_continuous_map)
+    (↑(has_lipschitz_add.C β) * max (classical.some f.bounded) (classical.some g.bounded))
     begin
       intros x y,
-      refine le_trans (lipschitz_with_lipschitz_const_mul ⟨f x, g x⟩ ⟨f y, g y⟩) _,
+      refine le_trans (lipschitz_with_lipschitz_const_add ⟨f x, g x⟩ ⟨f y, g y⟩) _,
       rw prod.dist_eq,
-      refine mul_le_mul_of_nonneg_left _ (has_lipschitz_mul.C β).coe_nonneg,
+      refine mul_le_mul_of_nonneg_left _ (has_lipschitz_add.C β).coe_nonneg,
       apply max_le_max,
       exact classical.some_spec f.bounded x y,
       exact classical.some_spec g.bounded x y,
     end }
 
-@[simp, to_additive] lemma coe_mul : ⇑(f * g) = f * g := rfl
-@[to_additive] lemma mul_apply : (f * g) x = f x * g x := rfl
+@[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
+lemma add_apply : (f + g) x = f x + g x := rfl
 
-@[to_additive] instance : monoid (α →ᵇ β) :=
-{ mul_assoc      := assume f g h, by ext; simp [mul_assoc],
-  one_mul       := assume f, by ext; simp,
-  mul_one       := assume f, by ext; simp,
-  .. bounded_continuous_function.has_mul,
-  .. bounded_continuous_function.has_one }
+instance : add_monoid (α →ᵇ β) :=
+{ add_assoc      := assume f g h, by ext; simp [add_assoc],
+  zero_add       := assume f, by ext; simp,
+  add_zero       := assume f, by ext; simp,
+  .. bounded_continuous_function.has_add,
+  .. bounded_continuous_function.has_zero }
 
-@[to_additive] instance : has_lipschitz_mul (α →ᵇ β) :=
-{ lipschitz_mul := ⟨has_lipschitz_mul.C β, begin
-    have C_nonneg := (has_lipschitz_mul.C β).coe_nonneg,
+instance : has_lipschitz_add (α →ᵇ β) :=
+{ lipschitz_add := ⟨has_lipschitz_add.C β, begin
+    have C_nonneg := (has_lipschitz_add.C β).coe_nonneg,
     rw lipschitz_with_iff_dist_le_mul,
     rintros ⟨f₁, g₁⟩ ⟨f₂, g₂⟩,
     rw dist_le (mul_nonneg C_nonneg dist_nonneg),
     intros x,
-    refine le_trans (lipschitz_with_lipschitz_const_mul ⟨f₁ x, g₁ x⟩ ⟨f₂ x, g₂ x⟩) _,
+    refine le_trans (lipschitz_with_lipschitz_const_add ⟨f₁ x, g₁ x⟩ ⟨f₂ x, g₂ x⟩) _,
     refine mul_le_mul_of_nonneg_left _ C_nonneg,
     apply max_le_max; exact dist_coe_le_dist x,
   end⟩ }
 
-/-- Coercion of a `normed_group_hom` is an `monoid_hom`. Similar to `monoid_hom.coe_fn` -/
-@[to_additive, simps] def coe_fn_mul_hom : (α →ᵇ β) →* (α → β) :=
-{ to_fun := coe_fn, map_one' := coe_one, map_mul' := coe_mul}
+/-- Coercion of a `normed_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
+@[simps] def coe_fn_add_hom : (α →ᵇ β) →+ (α → β) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
 
 variables (α β)
 
-/-- The multiplicative map forgetting that a bounded continuous function is bounded.
+/-- The additive map forgetting that a bounded continuous function is bounded.
 -/
-@[to_additive, simps] def forget_boundedness_mul_hom : (α →ᵇ β) →* C(α, β) :=
+@[simps] def forget_boundedness_mul_hom : (α →ᵇ β) →+ C(α, β) :=
 { to_fun := forget_boundedness α β,
-  map_one' := by { ext, simp, },
-  map_mul' := by { intros, ext, simp, }, }
+  map_zero' := by { ext, simp, },
+  map_add' := by { intros, ext, simp, }, }
 
-end has_lipschitz_mul
+end has_lipschitz_add
 
-section comm_has_lipschitz_mul
+section comm_has_lipschitz_add
 
-variables [topological_space α] [metric_space β] [comm_monoid β] [has_lipschitz_mul β]
+variables [topological_space α] [metric_space β] [add_comm_monoid β] [has_lipschitz_add β]
 
-@[to_additive] instance : comm_monoid (α →ᵇ β) :=
-{ mul_comm      := assume f g, by ext; simp [mul_comm],
-  .. bounded_continuous_function.monoid }
+@[to_additive] instance : add_comm_monoid (α →ᵇ β) :=
+{ add_comm      := assume f g, by ext; simp [add_comm],
+  .. bounded_continuous_function.add_monoid }
 
 open_locale big_operators
 
-@[simp, to_additive] lemma coe_prod {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) :
-  ⇑(∏ i in s, f i) = (∏ i in s, (f i : α → β)) :=
-(@coe_fn_mul_hom α β _ _ _ _).map_prod f s
+@[simp] lemma coe_sum {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) :
+  ⇑(∑ i in s, f i) = (∑ i in s, (f i : α → β)) :=
+(@coe_fn_add_hom α β _ _ _ _).map_sum f s
 
-@[to_additive] lemma prod_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
-  (∏ i in s, f i) a = (∏ i in s, f i a) :=
+lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → (α →ᵇ β)) (a : α) :
+  (∑ i in s, f i) a = (∑ i in s, f i a) :=
 by simp
 
-end comm_has_lipschitz_mul
+end comm_has_lipschitz_add
 
 section normed_group
 /- In this section, if β is a normed group, then we show that the space of bounded
@@ -833,8 +839,8 @@ instance : ring (α →ᵇ R) :=
   right_distrib := λ f₁ f₂ f₃, ext $ λ x, right_distrib _ _ _,
   .. bounded_continuous_function.add_comm_group }
 
-@[simp] lemma normed_ring.coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
-lemma normed_ring.mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
+@[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
+lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
 instance : normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,

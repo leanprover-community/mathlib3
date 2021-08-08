@@ -14,22 +14,6 @@ open_locale nat topological_space big_operators ennreal
 
 section move_me
 
-lemma finset.nat.antidiagonal.fst_le {n : ℕ} {kl : ℕ × ℕ} (hlk : kl ∈ finset.nat.antidiagonal n) :
-  kl.1 ≤ n :=
-begin
-  rw le_iff_exists_add,
-  use kl.2,
-  rwa [finset.nat.mem_antidiagonal, eq_comm] at hlk
-end
-
-lemma finset.nat.antidiagonal.snd_le {n : ℕ} {kl : ℕ × ℕ} (hlk : kl ∈ finset.nat.antidiagonal n) :
-  kl.2 ≤ n :=
-begin
-  rw le_iff_exists_add,
-  use kl.1,
-  rwa [finset.nat.mem_antidiagonal, eq_comm, add_comm] at hlk
-end
-
 lemma metric.eball_top {α : Type*} [pseudo_metric_space α] (x : α) :
   emetric.ball x ∞ = set.univ :=
 set.eq_univ_iff_forall.mpr (λ y, edist_lt_top y x)

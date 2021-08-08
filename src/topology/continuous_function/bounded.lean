@@ -686,39 +686,62 @@ sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
 
 end normed_group
 
-section normed_space
+section has_bounded_smul
 /-!
-### Normed space structure
+### `has_bounded_smul` (in particular, topological module) structure
 
-In this section, if `β` is a normed space, then we show that the space of bounded
-continuous functions from `α` to `β` inherits a normed space structure, by using
-pointwise operations and checking that they are compatible with the uniform distance. -/
+In this section, if `β` is a metric space and a `𝕜`-module whose addition and scalar multiplication
+are compatible with the metric structure, then we show that the space of bounded continuous
+functions from `α` to `β` inherits a so-called `has_bounded_smul` structure (in particular, a
+`has_continuous_mul` structure, which is the mathlib formulation of being a topological module), by
+using pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*}
-variables [topological_space α] [normed_group β]
+variables {𝕜 : Type*} [metric_space 𝕜] [semiring 𝕜]
+variables [topological_space α] [metric_space β] [add_comm_monoid β]
+  [module 𝕜 β] [has_bounded_smul 𝕜 β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
-section normed_field
-variables [normed_field 𝕜] [normed_space 𝕜 β]
-
 instance : has_scalar 𝕜 (α →ᵇ β) :=
-⟨λ c f, of_normed_group (c • f) (f.continuous.const_smul c) (∥c∥ * ∥f∥) $ λ x,
-  trans_rel_right _ (norm_smul _ _)
-    (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))⟩
+⟨λ c f,
+  bounded_continuous_function.mk_of_bound
+    (c • f.to_continuous_map)
+    (dist c 0 * (classical.some f.bounded))
+    begin
+      intros x y,
+      refine (dist_smul_pair c (f x) (f y)).trans _,
+      refine mul_le_mul_of_nonneg_left _ dist_nonneg,
+      exact classical.some_spec f.bounded x y
+    end ⟩
 
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
 
+variables [has_lipschitz_add β]
+
 instance : module 𝕜 (α →ᵇ β) :=
-module.of_core $
 { smul     := (•),
   smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
   add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
-  one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
+  one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x),
+  smul_zero := λ c, ext $ λ x, smul_zero c,
+  zero_smul := λ f, ext $ λ x, zero_smul 𝕜 (f x),
+  .. bounded_continuous_function.add_comm_monoid }
 
-instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
-  (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
+instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
+{ dist_smul_pair' := λ c f₁ f₂, begin
+    rw dist_le (mul_nonneg dist_nonneg dist_nonneg),
+    intros x,
+    refine (dist_smul_pair c (f₁ x) (f₂ x)).trans _,
+    exact mul_le_mul_of_nonneg_left (dist_coe_le_dist x) dist_nonneg
+  end,
+  dist_pair_smul' := λ c₁ c₂ f, begin
+    rw dist_le (mul_nonneg dist_nonneg dist_nonneg),
+    intros x,
+    refine (dist_pair_smul c₁ c₂ (f x)).trans _,
+    convert mul_le_mul_of_nonneg_left (dist_coe_le_dist x) dist_nonneg,
+    simp
+  end }
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/
@@ -739,12 +762,30 @@ def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
   map_smul' := by { intros, ext, simp, },
   map_add' := by { intros, ext, simp, }, }
 
-end normed_field
+end has_bounded_smul
+
+section normed_space
+/-!
+### Normed space structure
+
+In this section, if `β` is a normed space, then we show that the space of bounded
+continuous functions from `α` to `β` inherits a normed space structure, by using
+pointwise operations and checking that they are compatible with the uniform distance. -/
+
+variables {𝕜 : Type*}
+variables [topological_space α] [normed_group β]
+variables {f g : α →ᵇ β} {x : α} {C : ℝ}
+
+instance [normed_field 𝕜] [normed_space 𝕜 β] : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, begin
+  refine norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  exact (λ x, trans_rel_right _ (norm_smul _ _)
+    (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))) end⟩
 
 variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
 variables [normed_group γ] [normed_space 𝕜 γ]
 
 variables (α)
+-- TODO does this work in the `has_bounded_smul` setting, too?
 /--
 Postcomposition of bounded continuous functions into a normed module by a continuous linear map is
 a continuous linear map.

@@ -3,13 +3,14 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
+import topology.algebra.module
 import topology.metric_space.lipschitz
 
 /-!
 # Compatibility of algebraic operations with metric space structures
 
 In this file we define mixin typeclasses `has_lipschitz_mul`, `has_lipschitz_add`,
-`has_lipschitz_smul` expressing compatibility of multiplication, addition and scalar-multiplication
+`has_bounded_smul` expressing compatibility of multiplication, addition and scalar-multiplication
 operations with an underlying metric space structure.  The intended use case is to abstract certain
 properties shared by normed groups and by `R≥0`.
 
@@ -25,7 +26,7 @@ open_locale nnreal
 
 noncomputable theory
 
-variables (β : Type*) [pseudo_metric_space β]
+variables (α β : Type*) [pseudo_metric_space α] [pseudo_metric_space β]
 
 section has_lipschitz_mul
 
@@ -92,3 +93,60 @@ instance nnreal.has_lipschitz_add : has_lipschitz_add ℝ≥0 :=
   end⟩ }
 
 end has_lipschitz_mul
+
+section has_bounded_smul
+
+class has_bounded_smul [has_zero α] [has_zero β] [has_scalar α β] : Prop :=
+( dist_smul_pair' : ∀ x : α, ∀ y₁ y₂ : β, dist (x • y₁) (x • y₂) ≤ dist x 0 * dist y₁ y₂ )
+( dist_pair_smul' : ∀ x₁ x₂ : α, ∀ y : β, dist (x₁ • y) (x₂ • y) ≤ dist x₁ x₂ * dist y 0 )
+
+variables {α β}
+
+lemma dist_smul_pair [has_zero α] [has_zero β] [has_scalar α β] [has_bounded_smul α β] (x : α) (y₁ y₂ : β) :
+  dist (x • y₁) (x • y₂) ≤ dist x 0 * dist y₁ y₂ :=
+has_bounded_smul.dist_smul_pair' x y₁ y₂
+
+lemma dist_pair_smul [has_zero α] [has_zero β] [has_scalar α β] [has_bounded_smul α β] (x₁ x₂ : α) (y : β) :
+  dist (x₁ • y) (x₂ • y) ≤ dist x₁ x₂ * dist y 0 :=
+has_bounded_smul.dist_pair_smul' x₁ x₂ y
+
+instance has_bounded_smul.has_continuous_smul [has_zero α] [has_zero β] [has_scalar α β]
+  [has_bounded_smul α β] : has_continuous_smul α β :=
+{ continuous_smul := begin
+    rw continuous_iff_continuous_at,
+    rintros ⟨a, b⟩,
+    change filter.tendsto _ _ _,
+    rw metric.nhds_basis_ball.tendsto_iff metric.nhds_basis_ball,
+    simp,
+    intros ε hε,
+    let δ : ℝ := sorry,
+    have hδ_pos : 0 < δ := sorry,
+    have hδ : δ * (dist a 0 + dist b 0 + δ) < ε := sorry,
+    refine ⟨δ, hδ_pos, _⟩,
+    rintros a' b' hab',
+    refine lt_of_le_of_lt _ hδ,
+    have := dist_triangle (a' • b') (a • b') (a • b),
+    have := dist_smul_pair a b' b,
+    have := dist_pair_smul a a' b',
+    have := dist_comm (a • b') (a' • b'),
+    have := dist_comm a a',
+    have := dist_triangle b' b 0,
+    have := lt_of_le_of_lt (le_max_left _ _) hab',
+    have := lt_of_le_of_lt (le_max_right _ _) hab',
+    have : 0 ≤ dist a 0 := dist_nonneg,
+    have : 0 ≤ dist b 0 := dist_nonneg,
+    have : 0 ≤ dist a' a := dist_nonneg,
+    nlinarith,
+  end }
+
+-- this instance could be deduced from `normed_space.has_bounded_smul`, but we prove it separately
+-- here so that it is available earlier in the hierarchy
+instance real.has_bounded_smul : has_bounded_smul ℝ ℝ :=
+{ dist_smul_pair' := λ x y₁ y₂, by simpa [real.dist_eq, mul_sub] using (abs_mul x (y₁ - y₂)).le,
+  dist_pair_smul' := λ x₁ x₂ y, by simpa [real.dist_eq, sub_mul] using (abs_mul (x₁ - x₂) y).le }
+
+instance nnreal.has_bounded_mul : has_bounded_smul ℝ≥0 ℝ≥0 :=
+{ dist_smul_pair' := λ x y₁ y₂, by convert dist_smul_pair (x:ℝ) (y₁:ℝ) y₂ using 1,
+  dist_pair_smul' := λ x₁ x₂ y, by convert dist_pair_smul (x₁:ℝ) x₂ (y:ℝ) using 1 }
+
+end has_bounded_smul

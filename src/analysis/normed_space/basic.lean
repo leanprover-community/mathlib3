@@ -1462,6 +1462,12 @@ end prio
 
 variables [normed_field α] [semi_normed_group β]
 
+instance normed_space.has_bounded_smul [semi_normed_space α β] : has_bounded_smul α β :=
+{ dist_smul_pair' := λ x y₁ y₂,
+    by simpa [dist_eq_norm, smul_sub] using semi_normed_space.norm_smul_le x (y₁ - y₂),
+  dist_pair_smul' := λ x₁ x₂ y,
+    by simpa [dist_eq_norm, sub_smul] using semi_normed_space.norm_smul_le (x₁ - x₂) y }
+
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
 
@@ -1495,23 +1501,6 @@ lemma norm_smul_of_nonneg [semi_normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x
 
 variables {E : Type*} [semi_normed_group E] [semi_normed_space α E]
 variables {F : Type*} [semi_normed_group F] [semi_normed_space α F]
-
-@[priority 100] -- see Note [lower instance priority]
-instance semi_normed_space.has_continuous_smul : has_continuous_smul α E :=
-begin
-  refine { continuous_smul := continuous_iff_continuous_at.2 $
-    λ p, tendsto_iff_norm_tendsto_zero.2 _ },
-  refine squeeze_zero (λ _, norm_nonneg _) _ _,
-  { exact λ q, ∥q.1 - p.1∥ * ∥q.2∥ + ∥p.1∥ * ∥q.2 - p.2∥ },
-  { intro q,
-    rw [← sub_add_sub_cancel, ← norm_smul, ← norm_smul, smul_sub, sub_smul],
-    exact norm_add_le _ _ },
-  { conv { congr, skip, skip, congr, rw [← zero_add (0:ℝ)], congr,
-      rw [← zero_mul ∥p.2∥], skip, rw [← mul_zero ∥p.1∥] },
-    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul
-      (continuous_snd.tendsto p).norm).add
-        (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
-end
 
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=

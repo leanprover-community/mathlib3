@@ -68,104 +68,104 @@ $i \setminus \bigcup_{k = 0}^\infty A_k$ is the required negative set.
 
 To implement this in Lean, we define several auxilary definitions.
 
-- given sets `i`, `j` and the natural number `n`, `exists_one_div_lt s i j n` is the property that
-  there exists a measurable set `k ⊆ i \ j` such that `1 / (n + 1) < s k`.
-- given sets `i`, `j` and that `i \ j` is not negative, `find_exists_one_div_lt s i j` is the
-  least natural number `n` such that `exists_one_div_lt s i j n`.
-- given sets `i`, `j` and that `i \ j` is not negative, `some_exists_one_div_lt` chooses the set
-  `k` from `exists_one_div_lt s i j (find_exists_one_div_lt s i j)`.
+- given the sets `i` and the natural number `n`, `exists_one_div_lt s i n` is the property that
+  there exists a measurable set `k ⊆ i` such that `1 / (n + 1) < s k`.
+- given the sets `i` and that `i` is not negative, `find_exists_one_div_lt s i` is the
+  least natural number `n` such that `exists_one_div_lt s i n`.
+- given the sets `i` and that `i` is not negative, `some_exists_one_div_lt` chooses the set
+  `k` from `exists_one_div_lt s i (find_exists_one_div_lt s i)`.
 - lastly, given the set `i`, `restrict_nonpos_seq s i` is the sequence of sets defined inductively
   where
-    `restrict_nonpos_seq s i 0 = some_exists_one_div_lt s i ∅` and
-    `restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq k)`.
+  `restrict_nonpos_seq s i 0 = some_exists_one_div_lt s (i \ ∅)` and
+  `restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s (i \ ⋃ k ≤ n, restrict_nonpos_seq k)`.
   This definition represents the sequence $(A_n)$ in the proof as described above.
 
 With these definitions, we are able consider the case where the sequence terminates separately,
 allowing us to prove `exists_subset_restrict_nonpos`.
 -/
 
-/-- Given sets `i`, `j` and the natural number `n`, `exists_one_div_lt s i j n` is the property that
-there exists a measurable set `k ⊆ i \ j` such that `1 / (n + 1) < s k`. -/
-private def exists_one_div_lt (s : signed_measure α) (i j : set α) (n : ℕ) : Prop :=
-∃ k : set α, k ⊆ i \ j ∧ measurable_set k ∧ (1 / (n + 1) : ℝ) < s k
+/-- Given the set `i` and the natural number `n`, `exists_one_div_lt s i j` is the property that
+there exists a measurable set `k ⊆ i` such that `1 / (n + 1) < s k`. -/
+private def exists_one_div_lt (s : signed_measure α) (i : set α) (n : ℕ) : Prop :=
+∃ k : set α, k ⊆ i ∧ measurable_set k ∧ (1 / (n + 1) : ℝ) < s k
 
-private lemma exists_nat_one_div_lt_measure_of_not_negative (hi : ¬ s ≤[i \ j] 0) :
-  ∃ (n : ℕ), exists_one_div_lt s i j n :=
+private lemma exists_nat_one_div_lt_measure_of_not_negative (hi : ¬ s ≤[i] 0) :
+  ∃ (n : ℕ), exists_one_div_lt s i n :=
 let ⟨k, hj₁, hj₂, hj⟩ := exists_pos_measure_of_not_restrict_le_zero s hi in
 let ⟨n, hn⟩ := exists_nat_one_div_lt hj in ⟨n, k, hj₂, hj₁, hn⟩
 
-/-- Given sets `i`, `j`, if `i \ j` is not negative, `find_exists_one_div_lt s i j` is the
-least natural number `n` such that `exists_one_div_lt s i j n`, otherwise, it returns 0. -/
-private def find_exists_one_div_lt (s : signed_measure α) (i j : set α) : ℕ :=
-if hi : ¬ s ≤[i \ j] 0 then nat.find (exists_nat_one_div_lt_measure_of_not_negative hi) else 0
+/-- Given the set `i`, if `i` is not negative, `find_exists_one_div_lt s i` is the
+least natural number `n` such that `exists_one_div_lt s i n`, otherwise, it returns 0. -/
+private def find_exists_one_div_lt (s : signed_measure α) (i : set α) : ℕ :=
+if hi : ¬ s ≤[i] 0 then nat.find (exists_nat_one_div_lt_measure_of_not_negative hi) else 0
 
-private lemma find_exists_one_div_lt_spec (hi : ¬ s ≤[i \ j] 0) :
-  exists_one_div_lt s i j (find_exists_one_div_lt s i j) :=
+private lemma find_exists_one_div_lt_spec (hi : ¬ s ≤[i] 0) :
+  exists_one_div_lt s i (find_exists_one_div_lt s i) :=
 begin
   rw [find_exists_one_div_lt, dif_pos hi],
   convert nat.find_spec _,
 end
 
-private lemma find_exists_one_div_lt_min (hi : ¬ s ≤[i \ j] 0) {m : ℕ}
-  (hm : m < find_exists_one_div_lt s i j) : ¬ exists_one_div_lt s i j m :=
+private lemma find_exists_one_div_lt_min (hi : ¬ s ≤[i] 0) {m : ℕ}
+  (hm : m < find_exists_one_div_lt s i) : ¬ exists_one_div_lt s i m :=
 begin
   rw [find_exists_one_div_lt, dif_pos hi] at hm,
   exact nat.find_min _ hm
 end
 
-/-- Given sets `i`, `j`, if `i \ j` is not negative, `some_exists_one_div_lt` chooses the set
-`k` from `exists_one_div_lt s i j (find_exists_one_div_lt s i j)`, otherwise, it returns the
+/-- Given the set `i`, if `i \ j` is not negative, `some_exists_one_div_lt` chooses the set
+`k` from `exists_one_div_lt s i (find_exists_one_div_lt s i)`, otherwise, it returns the
 empty set. -/
-private def some_exists_one_div_lt (s : signed_measure α) (i j : set α) : set α :=
-if hi : ¬ s ≤[i \ j] 0 then classical.some (find_exists_one_div_lt_spec hi) else ∅
+private def some_exists_one_div_lt (s : signed_measure α) (i : set α) : set α :=
+if hi : ¬ s ≤[i] 0 then classical.some (find_exists_one_div_lt_spec hi) else ∅
 
-private lemma some_exists_one_div_lt_spec (hi : ¬ s ≤[i \ j] 0) :
-  (some_exists_one_div_lt s i j) ⊆ i \ j ∧ measurable_set (some_exists_one_div_lt s i j) ∧
-  (1 / (find_exists_one_div_lt s i j + 1) : ℝ) < s (some_exists_one_div_lt s i j) :=
+private lemma some_exists_one_div_lt_spec (hi : ¬ s ≤[i] 0) :
+  (some_exists_one_div_lt s i) ⊆ i ∧ measurable_set (some_exists_one_div_lt s i) ∧
+  (1 / (find_exists_one_div_lt s i + 1) : ℝ) < s (some_exists_one_div_lt s i) :=
 begin
   rw [some_exists_one_div_lt, dif_pos hi],
   exact classical.some_spec (find_exists_one_div_lt_spec hi),
 end
 
-private lemma some_exists_one_div_lt_subset : some_exists_one_div_lt s i j ⊆ i \ j :=
+private lemma some_exists_one_div_lt_subset : some_exists_one_div_lt s i ⊆ i :=
 begin
-  by_cases hi : ¬ s ≤[i \ j] 0,
+  by_cases hi : ¬ s ≤[i] 0,
   { exact let ⟨h, _⟩ := some_exists_one_div_lt_spec hi in h },
   { rw [some_exists_one_div_lt, dif_neg hi],
     exact set.empty_subset _ },
 end
 
-private lemma some_exists_one_div_lt_subset' : some_exists_one_div_lt s i j ⊆ i :=
+private lemma some_exists_one_div_lt_subset' : some_exists_one_div_lt s (i \ j) ⊆ i :=
 set.subset.trans some_exists_one_div_lt_subset (set.diff_subset _ _)
 
 private lemma some_exists_one_div_lt_measurable_set :
-  measurable_set (some_exists_one_div_lt s i j) :=
+  measurable_set (some_exists_one_div_lt s i) :=
 begin
-  by_cases hi : ¬ s ≤[i \ j] 0,
+  by_cases hi : ¬ s ≤[i] 0,
   { exact let ⟨_, h, _⟩ := some_exists_one_div_lt_spec hi in h },
   { rw [some_exists_one_div_lt, dif_neg hi],
     exact measurable_set.empty }
 end
 
-private lemma some_exists_one_div_lt_lt (hi : ¬ s ≤[i \ j] 0) :
-  (1 / (find_exists_one_div_lt s i j + 1) : ℝ) < s (some_exists_one_div_lt s i j) :=
+private lemma some_exists_one_div_lt_lt (hi : ¬ s ≤[i] 0) :
+  (1 / (find_exists_one_div_lt s i + 1) : ℝ) < s (some_exists_one_div_lt s i) :=
 let ⟨_, _, h⟩ := some_exists_one_div_lt_spec hi in h
 
 /-- Given the set `i`, `restrict_nonpos_seq s i` is the sequence of sets defined inductively where
-  `restrict_nonpos_seq s i 0 = some_exists_one_div_lt s i ∅` and
-  `restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq k)`.
+`restrict_nonpos_seq s i 0 = some_exists_one_div_lt s (i \ ∅)` and
+`restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s (i \ ⋃ k ≤ n, restrict_nonpos_seq k)`.
 
 For each `n : ℕ`,`s (restrict_nonpos_seq s i n)` is close to maximal among all subsets of
 `i \ ⋃ k ≤ n, restrict_nonpos_seq s i k`. -/
 private def restrict_nonpos_seq (s : signed_measure α) (i : set α) : ℕ → set α
-| 0 := some_exists_one_div_lt s i ∅
-| (n + 1) := some_exists_one_div_lt s i (⋃ k ≤ n,
+| 0 := some_exists_one_div_lt s (i \ ∅) -- I used `i \ ∅` instead of `i` to simplify some proofs
+| (n + 1) := some_exists_one_div_lt s (i \ ⋃ k ≤ n,
   have k < n + 1 := nat.lt_succ_iff.mpr H,
   restrict_nonpos_seq k)
 
 private lemma restrict_nonpos_seq_succ (n : ℕ) :
   restrict_nonpos_seq s i n.succ =
-  some_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq s i k) :=
+  some_exists_one_div_lt s (i \ ⋃ k ≤ n, restrict_nonpos_seq s i k) :=
 by rw restrict_nonpos_seq
 
 private lemma restrict_nonpos_seq_subset (n : ℕ) :
@@ -177,7 +177,7 @@ end
 
 private lemma restrict_nonpos_seq_lt
   (n : ℕ) (hn : ¬ s ≤[i \ ⋃ k ≤ n, restrict_nonpos_seq s i k] 0) :
-  (1 / (find_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq s i k) + 1) : ℝ)
+  (1 / (find_exists_one_div_lt s (i \ ⋃ k ≤ n, restrict_nonpos_seq s i k) + 1) : ℝ)
   < s (restrict_nonpos_seq s i n.succ) :=
 begin
   rw restrict_nonpos_seq_succ,
@@ -294,7 +294,7 @@ begin
   { by_cases hn : ∀ n : ℕ, ¬ s ≤[i \ ⋃ l < n, restrict_nonpos_seq s i l] 0,
     { set A := i \ ⋃ l, restrict_nonpos_seq s i l with hA,
       set bdd : ℕ → ℕ := λ n,
-        find_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq s i k) with hbdd,
+        find_exists_one_div_lt s (i \ ⋃ k ≤ n, restrict_nonpos_seq s i k) with hbdd,
       have hn' : ∀ n : ℕ, ¬ s ≤[i \ ⋃ l ≤ n, restrict_nonpos_seq s i l] 0,
       { intro n,
         convert hn (n + 1);

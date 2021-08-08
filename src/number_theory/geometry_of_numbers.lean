@@ -9,22 +9,213 @@ import analysis.convex.basic
 import measure_theory.haar_measure
 import tactic
 
+-- TODO change fin n to iota
 open measure_theory
 variables {n : ℕ}
 noncomputable theory
+section floris
+/-
+from floris
+-/
+
+open measure_theory measure_theory.measure topological_space set
+#check real.map_volume_add_left
+def is_add_left_invariant_real_volume : is_add_left_invariant (volume : measure ℝ) :=
+by simp [← map_add_left_eq_self, real.map_volume_add_left]
+def is_add_left_invariant_pi_volume (ι : Type*) [fintype ι] :
+is_add_left_invariant (volume : measure (ι → ℝ)) :=
+begin
+  simp only [←map_add_left_eq_self],
+  intro v,
+  refine (pi_eq_generate_from (λ i, real.borel_eq_generate_from_Ioo_rat.symm)
+    (λ i, real.is_pi_system_Ioo_rat) (λ i, real.finite_spanning_sets_in_Ioo_rat _)
+    _).symm,
+  intros s hS,
+  simp only [exists_prop, mem_Union, mem_singleton_iff] at hS,
+  choose a b H using hS,
+  obtain rfl : s = λ i, Ioo (a i) (b i), from funext (λ i, (H i).2), replace H := λ i, (H i).1,
+  simp only [real.volume_Ioo] at *,
+  rw [map_apply, volume_pi],
+  rw (_ : has_add.add v ⁻¹' set.pi set.univ (λ (i : ι), Ioo ↑(a i) ↑(b i))
+    = set.pi set.univ (λ (i : ι), Ioo (↑(a i) - v i) (↑(b i) - v i))),
+  rw pi_pi,
+  have : ∀ (i : ι), measure_space.volume (Ioo (↑(a i) - v i) (↑(b i) - v i))
+    = measure_space.volume (Ioo (↑(a i) : ℝ) (↑(b i))),
+  { intro i,
+    simp only [real.volume_Ioo],
+    congr' 1,
+    abel, },
+  simp only [real.volume_Ioo] at this,
+  simp [this],
+  { exact (λ i, measurable_set_Ioo), },
+  { ext,
+    simp [sub_lt_iff_lt_add', lt_sub_iff_add_lt'], },
+  { refine measurable_const_add v, },
+  { rw measurable_set_pi (finite_univ.countable : (univ : set ι).countable),
+    left,
+    intros i hi,
+    exact measurable_set_Ioo, },
+end
+
+def Icc01 : positive_compacts ℝ :=
+⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
+
+def unit_cube (ι) [fintype ι] : positive_compacts (ι → ℝ) :=
+⟨Icc 0 1, begin
+  simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
+  exact is_compact_univ_pi (λ i, is_compact_Icc),
+end,
+begin
+  simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
+  have : pi univ (λ i : ι, interior (Icc 0 1)) ⊆ interior (pi univ (λ i : ι, Icc (0 : ℝ) 1)),
+  -- TODO weird dot notation fail?
+  { rw subset_interior_iff_subset_of_open,
+    { exact pi_mono (λ i hi, interior_subset), },
+    { rw [interior_Icc],
+      exact is_open_set_pi finite_univ (λ i hi, is_open_Ioo), }, },-- TODO general lemma?
+  have ok : (pi univ (λ i : ι, interior (Icc (0 : ℝ) 1))).nonempty,
+  { rw [interior_Icc, univ_pi_nonempty_iff],
+    exact (λ i, nonempty_Ioo.mpr zero_lt_one) },
+  exact nonempty.mono this ok,
+end⟩
+
+lemma haar_measure_eq_lebesgue_measure : add_haar_measure Icc01 = volume :=
+begin
+  convert (add_haar_measure_unique _ Icc01).symm,
+  { simp [Icc01] },
+  { apply_instance },
+  { exact is_add_left_invariant_real_volume }
+end
+
+lemma pi_haar_measure_eq_lebesgue_measure (ι) [fintype ι] :
+add_haar_measure (unit_cube ι) = volume :=
+begin
+  convert (add_haar_measure_unique _ (unit_cube ι)).symm,
+  { rw [unit_cube],
+    suffices : measure_space.volume (Icc (0 : ι → ℝ) 1) = 1,
+    { rw [this, one_smul], },
+    simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
+    rw [volume_pi_pi, real.volume_Icc, sub_zero, ennreal.of_real_one, finset.prod_const_one],
+    exact (λ i, measurable_set_Icc), },
+  { apply_instance },
+  { exact is_add_left_invariant_pi_volume ι }
+end
+end floris
+
+
+/-- In the space `ι → ℝ`, Hausdorff measure coincides exactly with Lebesgue measure. -/
+-- theorem hausdorff_measure_pi_real {ι : Type*} [fintype ι] [nonempty ι] :
+--   (μH[fintype.card ι] : measure (ι → ℝ)) = volume :=
+-- begin
+--   classical,
+--   -- it suffices to check that the two measures coincide on products of rational intervals
+--   refine (pi_eq_generate_from (λ i, real.borel_eq_generate_from_Ioo_rat.symm)
+--     (λ i, real.is_pi_system_Ioo_rat) (λ i, real.finite_spanning_sets_in_Ioo_rat _)
+--     _).symm,
+--   simp only [mem_Union, mem_singleton_iff],
+--   -- fix such a product `s` of rational intervals, of the form `Π (a i, b i)`.
+--   intros s hs,
+--   choose a b H using hs,
+--   obtain rfl : s = λ i, Ioo (a i) (b i), from funext (λ i, (H i).2), replace H := λ i, (H i).1,
+--   apply le_antisymm _,
+--   -- first check that `volume s ≤ μH s`
+--   { have Hle : volume ≤ (μH[fintype.card ι] : measure (ι → ℝ)),
+--     { refine le_hausdorff_measure _ _ ∞ ennreal.coe_lt_top (λ s h₁ h₂, _),
+--       rw [ennreal.rpow_nat_cast],
+--       exact real.volume_pi_le_diam_pow s },
+--     rw [← volume_pi_pi (λ i, Ioo (a i : ℝ) (b i)) (λ i, measurable_set_Ioo)],
+--     exact measure.le_iff'.1 Hle _ },
+--   /- For the other inequality `μH s ≤ volume s`, we use a covering of `s` by sets of small diameter
+--   `1/n`, namely cubes with left-most point of the form `a i + f i / n` with `f i` ranging between
+--   `0` and `⌈(b i - a i) * n⌉`. Their number is asymptotic to `n^d * Π (b i - a i)`. -/
+--   have Hpos' : 0 < fintype.card ι := fintype.card_pos_iff.2 ‹nonempty ι›,
+--   have Hpos : 0 < (fintype.card ι : ℝ), by simp only [Hpos', nat.cast_pos],
+--   have I : ∀ i, 0 ≤ (b i : ℝ) - a i := λ i, by simpa only [sub_nonneg, rat.cast_le] using (H i).le,
+--   let γ := λ (n : ℕ), (Π (i : ι), fin ⌈((b i : ℝ) - a i) * n⌉₊),
+--   haveI : ∀ n, encodable (γ n) := λ n, (fintype_pi ι (λ (i : ι), fin _)).out,
+--   let t : Π (n : ℕ), γ n → set (ι → ℝ) :=
+--     λ n f, set.pi univ (λ i, Icc (a i + f i / n) (a i + (f i + 1) / n)),
+--   have A : tendsto (λ (n : ℕ), 1/(n : ℝ≥0∞)) at_top (𝓝 0),
+--     by simp only [one_div, ennreal.tendsto_inv_nat_nhds_zero],
+--   have B : ∀ᶠ n in at_top, ∀ (i : γ n), diam (t n i) ≤ 1 / n,
+--   { apply eventually_at_top.2 ⟨1, λ n hn, _⟩,
+--     assume f,
+--     apply diam_pi_le_of_le (λ b, _),
+--     simp only [real.ediam_Icc, add_div, ennreal.of_real_div_of_pos (nat.cast_pos.mpr hn), le_refl,
+--       add_sub_add_left_eq_sub, add_sub_cancel', ennreal.of_real_one, ennreal.of_real_coe_nat] },
+--   have C : ∀ᶠ n in at_top, set.pi univ (λ (i : ι), Ioo (a i : ℝ) (b i)) ⊆ ⋃ (i : γ n), t n i,
+--   { apply eventually_at_top.2 ⟨1, λ n hn, _⟩,
+--     have npos : (0 : ℝ) < n := nat.cast_pos.2 hn,
+--     assume x hx,
+--     simp only [mem_Ioo, mem_univ_pi] at hx,
+--     simp only [mem_Union, mem_Ioo, mem_univ_pi, coe_coe],
+--     let f : γ n := λ i, ⟨⌊(x i - a i) * n⌋₊,
+--     begin
+--       apply nat_floor_lt_nat_ceil_of_lt_of_pos,
+--       { refine (mul_lt_mul_right npos).2 _,
+--         simp only [(hx i).right, sub_lt_sub_iff_right] },
+--       { refine mul_pos _ npos,
+--         simpa only [rat.cast_lt, sub_pos] using H i }
+--     end⟩,
+--     refine ⟨f, λ i, ⟨_, _⟩⟩,
+--     { calc (a i : ℝ) + ⌊(x i - a i) * n⌋₊ / n
+--       ≤ (a i : ℝ) + ((x i - a i) * n) / n :
+--           begin
+--             refine add_le_add le_rfl ((div_le_div_right npos).2 _),
+--             exact nat_floor_le (mul_nonneg (sub_nonneg.2 (hx i).1.le) npos.le),
+--           end
+--       ... = x i : by field_simp [npos.ne'] },
+--     { calc x i
+--       = (a i : ℝ) + ((x i - a i) * n) / n : by field_simp [npos.ne']
+--       ... ≤ (a i : ℝ) + (⌊(x i - a i) * n⌋₊ + 1) / n :
+--         add_le_add le_rfl ((div_le_div_right npos).2 (lt_nat_floor_add_one _).le) } },
+--   calc μH[fintype.card ι] (set.pi univ (λ (i : ι), Ioo (a i : ℝ) (b i)))
+--     ≤ liminf at_top (λ (n : ℕ), ∑' (i : γ n), diam (t n i) ^ ↑(fintype.card ι)) :
+--       hausdorff_measure_le Hpos (set.pi univ (λ i, Ioo (a i : ℝ) (b i)))
+--         (λ (n : ℕ), 1/(n : ℝ≥0∞)) A t B C
+--   ... ≤ liminf at_top (λ (n : ℕ), ∑' (i : γ n), (1/n) ^ (fintype.card ι)) :
+--     begin
+--       refine liminf_le_liminf _ (by is_bounded_default),
+--       filter_upwards [B],
+--       assume n hn,
+--       apply ennreal.tsum_le_tsum (λ i, _),
+--       simp only [← ennreal.rpow_nat_cast],
+--       exact ennreal.rpow_le_rpow (hn i) Hpos.le,
+--     end
+--   ... = liminf at_top (λ (n : ℕ), ∏ (i : ι), (⌈((b i : ℝ) - a i) * n⌉₊ : ℝ≥0∞) / n) :
+--   begin
+--     congr' 1,
+--     ext1 n,
+--     simp only [tsum_fintype, finset.card_univ, nat.cast_prod, one_div, fintype.card_fin,
+--       finset.sum_const, nsmul_eq_mul, fintype.card_pi],
+--     simp_rw [← finset.card_univ, ← finset.prod_const, ← finset.prod_mul_distrib],
+--     refl,
+--   end
+--   ... = ∏ (i : ι), volume (Ioo (a i : ℝ) (b i)) :
+--   begin
+--     simp only [real.volume_Ioo],
+--     apply tendsto.liminf_eq,
+--     refine ennreal.tendsto_finset_prod_of_ne_top _ (λ i hi, _) (λ i hi, _),
+--     { apply tendsto.congr' _ ((ennreal.continuous_of_real.tendsto _).comp
+--         ((tendsto_nat_ceil_mul_div_at_top (I i)).comp tendsto_coe_nat_at_top_at_top)),
+--       apply eventually_at_top.2 ⟨1, λ n hn, _⟩,
+--       simp only [ennreal.of_real_div_of_pos (nat.cast_pos.mpr hn), comp_app,
+--         ennreal.of_real_coe_nat] },
+--     { simp only [ennreal.of_real_ne_top, ne.def, not_false_iff] }
+--   end
+-- end
+
 
 lemma trans_inv (v : fin n → ℝ) (S : set (fin n → ℝ)) (hS : measurable_set S) :
 volume S = volume ((+ (-v)) '' S) :=
 begin
   simp only [set.image_add_left, add_comm],
-  set K : topological_space.positive_compacts (fin n → ℝ) := { val := ({x | ∀ n, x n ∈ set.Icc (0 : ℝ) 1} : set (fin n → ℝ)),
-      property := begin sorry end },
-  suffices : volume = measure.add_haar_measure K,
+  suffices : volume = measure.add_haar_measure (unit_cube _),
   { rw [this],
     simp only [set.image_add_right, neg_neg],
     simp_rw add_comm,
-    rw [measure.is_add_left_invariant_add_haar_measure K v hS], },
-  sorry,
+    rw [measure.is_add_left_invariant_add_haar_measure (unit_cube _) v hS], },
+  rw pi_haar_measure_eq_lebesgue_measure,
 end
 
 /-- Blichfeldt's Principle --/

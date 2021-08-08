@@ -12,14 +12,6 @@ import topology.metric_space.cau_seq_filter
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
 open_locale nat topological_space big_operators ennreal
 
-section move_me
-
-lemma metric.eball_top {α : Type*} [pseudo_metric_space α] (x : α) :
-  emetric.ball x ∞ = set.univ :=
-set.eq_univ_iff_forall.mpr (λ y, edist_lt_top y x)
-
-end move_me
-
 section any_field_any_algebra
 
 variables (𝕂 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
@@ -346,7 +338,7 @@ exp_has_fpower_series_on_ball.has_fpower_series_at
 lemma exp_continuous :
   continuous (exp 𝕂 𝔸) :=
 begin
-  rw [continuous_iff_continuous_on_univ, ← metric.eball_top (0 : 𝔸),
+  rw [continuous_iff_continuous_on_univ, ← metric.eball_top_eq_univ (0 : 𝔸),
       ← exp_series_radius_eq_top 𝕂 𝔸],
   exact continuous_on_exp
 end

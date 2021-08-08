@@ -1462,7 +1462,7 @@ end prio
 
 variables [normed_field α] [semi_normed_group β]
 
-instance normed_space.has_bounded_smul [semi_normed_space α β] : has_bounded_smul α β :=
+instance semi_normed_space.has_bounded_smul [semi_normed_space α β] : has_bounded_smul α β :=
 { dist_smul_pair' := λ x y₁ y₂,
     by simpa [dist_eq_norm, smul_sub] using semi_normed_space.norm_smul_le x (y₁ - y₂),
   dist_pair_smul' := λ x₁ x₂ y,

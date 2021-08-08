@@ -445,7 +445,7 @@ lemma has_strict_fderiv_at_exp {x : 𝔸} :
 
 /-- The exponential map in a commutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has
 Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x`. -/
-lemma has_fderiv_at_exp {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
+lemma has_fderiv_at_exp {x : 𝔸} :
   has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 has_strict_fderiv_at_exp.has_fderiv_at
 

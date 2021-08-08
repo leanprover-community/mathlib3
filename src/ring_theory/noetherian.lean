@@ -339,6 +339,7 @@ variables [module R M] [module R P]
 open is_noetherian
 include R
 
+/-- An R-module is Noetherian iff all its submodules are finitely-generated. -/
 lemma is_noetherian_def : is_noetherian R M ↔ ∀ (s : submodule R M), s.fg :=
 ⟨λ h, h.noetherian, is_noetherian.mk⟩
 

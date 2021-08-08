@@ -19,10 +19,11 @@ from floris
 
 open measure_theory measure_theory.measure topological_space set
 
-def is_add_left_invariant_real_volume : is_add_left_invariant (volume : measure ℝ) :=
+lemma is_add_left_invariant_real_volume : is_add_left_invariant (⇑(volume : measure ℝ)) :=
 by simp [← map_add_left_eq_self, real.map_volume_add_left]
-def is_add_left_invariant_pi_volume (ι : Type*) [fintype ι] :
-is_add_left_invariant (volume : measure (ι → ℝ)) :=
+
+lemma is_add_left_invariant_pi_volume (ι : Type*) [fintype ι] :
+is_add_left_invariant (⇑(volume : measure (ι → ℝ))) :=
 begin
   simp only [←map_add_left_eq_self],
   intro v,
@@ -347,19 +348,21 @@ begin
     refine measurable.add_const _ (-↑l),
     exact measurable_subtype_coe, },
 end
-#check measure.map
+
 -- how to apply to the usual lattice
     -- exact set.countable.to_encodable (set.countable_range (function.comp coe)),
 open measure_theory measure_theory.measure topological_space set
 lemma smul_Ioo {a b r : ℝ} (hr : 0 < r) : r • Ioo a b = Ioo (r • a) (r • b) :=
 begin
-  ext,
-  simp [mem_smul_set],
+  ext x,
+  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioo],
   split,
-  { rintro ⟨ᾰ_w, ⟨ᾰ_h_left_left, ᾰ_h_left_right⟩, rfl⟩, split,
-    exact (mul_lt_mul_left hr).mpr ᾰ_h_left_left, exact (mul_lt_mul_left hr).mpr ᾰ_h_left_right, },
-  { rintro ⟨ᾰ_left, ᾰ_right⟩, use x / r, split, split, exact (lt_div_iff' hr).mpr ᾰ_left,
-    exact (div_lt_iff' hr).mpr ᾰ_right, rw mul_div_cancel', exact ne_of_gt hr, }
+  { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
+    exact (mul_lt_mul_left hr).mpr a_h_left_left, exact (mul_lt_mul_left hr).mpr a_h_left_right, },
+  { rintro ⟨a_left, a_right⟩,
+    use x / r,
+    refine ⟨⟨(lt_div_iff' hr).mpr a_left, (div_lt_iff' hr).mpr a_right⟩, _⟩,
+    rw mul_div_cancel' _ (ne_of_gt hr), }
 end
 
 lemma preimage_smul {α β : Type*} [field α] {a : α} (ha : a ≠ 0) [mul_action α β] {t : set β} :

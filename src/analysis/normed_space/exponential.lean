@@ -13,8 +13,8 @@ import topology.metric_space.cau_seq_filter
 # Exponential in a Banach algebra
 
 In this file, we define `exp 𝕂 𝔸`, the exponential map in a normed algebra `𝔸` over a nondiscrete
-normed field `𝕂`. Although the definition doesn't require `𝔸` to be complete, we need to assume it for most
-results.
+normed field `𝕂`. Although the definition doesn't require `𝔸` to be complete, we need to assume it
+for most results.
 
 We then prove basic results, as described below.
 

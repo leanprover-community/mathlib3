@@ -7,7 +7,6 @@ import measure_theory.lebesgue_measure
 import group_theory.subgroup
 import analysis.convex.basic
 import measure_theory.haar_measure
-import tactic
 
 -- TODO change fin n to iota
 open measure_theory

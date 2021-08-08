@@ -159,6 +159,9 @@ begin
   simp,
 end
 
+lemma summable.trans_is_equivalent (hu : summable u) (huv : u ~[cofinite] v) : summable v :=
+hu.trans_sub (summable_of_is_O u)
+
 end normed_group
 
 open_locale asymptotics

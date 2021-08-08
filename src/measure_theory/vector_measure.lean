@@ -23,8 +23,8 @@ Similarly, when `M = ℂ`, we call the measure a complex measure and write `comp
 
 ## Notation
 
-* `v ≤[i] w` denotes the vector measure `v` restricted on the set `i` is less equal to the
-  vector measure `w` restricted on `i`, i.e. `v.restrict i ≤ w.restrict i`.
+* `v ≤[i] w` means that the vector measure `v` restricted on the set `i` is less than or equal 
+  to the vector measure `w` restricted on `i`, i.e. `v.restrict i ≤ w.restrict i`.
 
 ## Implementation notes
 

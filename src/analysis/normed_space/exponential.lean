@@ -9,6 +9,59 @@ import data.complex.exponential
 import analysis.complex.basic
 import topology.metric_space.cau_seq_filter
 
+/-!
+# Exponential in a Banach algebra
+
+In this file, we define `exp 𝕂 𝔸`, the exponential map in a normed algebra `𝔸` over a nondiscrete
+normed field `𝕂`. Although the definition doesn't require `𝔸` to be complete, we need to assume it for most
+results.
+
+We then prove basic results, as described below.
+
+## Main result
+
+We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂 = ℝ` or `𝕂 = ℂ`.
+
+### General case
+
+- `has_strict_fderiv_at_exp_zero_of_radius_pos` : `exp 𝕂 𝔸` has strict Fréchet-derivative
+  `1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero
+  (see also `has_strict_deriv_at_exp_zero_of_radius_pos` for the case `𝔸 = 𝕂`)
+- `exp_add_of_commute_of_lt_radius` : if `𝕂` has characteristic zero, then given two commuting
+  elements `x` and `y` in the disk of convergence, we have
+  `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
+- `exp_add_of_lt_radius` : if `𝕂` has characteristic zero and `𝔸` is commutative, then given two
+  elements `x` and `y` in the disk of convergence, we have
+  `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
+- `has_strict_fderiv_at_exp_of_lt_radius` : if `𝕂` has characteristic zero and `𝔸` is commutative,
+  then given a point `x` in the disk of convergence, `exp 𝕂 𝔸` as strict Fréchet-derivative
+  `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at x (see also `has_strict_deriv_at_exp_of_lt_radius` for the case
+  `𝔸 = 𝕂`)
+
+### `𝕂 = ℝ` or `𝕂 = ℂ`
+
+- `exp_series_radius_eq_top` : the `formal_multilinear_series` defining `exp 𝕂 𝔸` has infinite
+  radius of convergence
+- `has_strict_fderiv_at_exp_zero` : `exp 𝕂 𝔸` has strict Fréchet-derivative `1 : 𝔸 →L[𝕂] 𝔸` at zero
+  (see also `has_strict_deriv_at_exp_zero` for the case `𝔸 = 𝕂`)
+- `exp_add_of_commute` : given two commuting elements `x` and `y`, we have
+  `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
+- `exp_add` : if `𝔸` is commutative, then we have `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
+  for any `x` and `y`
+- `has_strict_fderiv_at_exp` : if `𝔸` is commutative, then given any point `x`, `exp 𝕂 𝔸` as strict
+  Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at x (see also `has_strict_deriv_at_exp` for the
+  case `𝔸 = 𝕂`)
+
+### Other useful compatibility results
+
+- `exp_eq_exp_of_field_extension` : given `𝕂' / 𝕂` a normed field extension (that is, an instance
+  of `normed_algebra 𝕂 𝕂'`) and a normed algebra `𝔸` over both `𝕂` and `𝕂'`, if `𝕂` and `𝕂'` have
+  the same characteristic and have compatible actions on `𝔸`, then `exp 𝕂 𝔸 = exp 𝕂' 𝔸`
+- `complex.exp_eq_exp_ℂ_ℂ` : `complex.exp = exp ℂ ℂ`
+- `real.exp_eq_exp_ℝ_ℝ` : `real.exp = exp ℝ ℝ`
+
+-/
+
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
 open_locale nat topological_space big_operators ennreal
 
@@ -116,7 +169,7 @@ lemma has_fderiv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radiu
 (has_strict_fderiv_at_exp_zero_of_radius_pos h).has_fderiv_at
 
 /-- In a Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero, if `x` and `y` are
-in th disk of convergence and commute, then `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
+in the disk of convergence and commute, then `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
 lemma exp_add_of_commute_of_lt_radius [char_zero 𝕂]
   {x y : 𝔸} (hxy : commute x y)
   (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) (hy : ↑∥y∥₊ < (exp_series 𝕂 𝔸).radius) :
@@ -348,13 +401,13 @@ lemma exp_analytic (x : 𝔸) :
 analytic_at_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 /-- The exponential in a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has strict Fréchet-derivative
-`1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero. -/
+`1 : 𝔸 →L[𝕂] 𝔸` at zero. -/
 lemma has_strict_fderiv_at_exp_zero :
   has_strict_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
 has_strict_fderiv_at_exp_zero_of_radius_pos (exp_series_radius_pos 𝕂 𝔸)
 
 /-- The exponential in a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has Fréchet-derivative
-`1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero. -/
+`1 : 𝔸 →L[𝕂] 𝔸` at zero. -/
 lemma has_fderiv_at_exp_zero :
   has_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
 has_strict_fderiv_at_exp_zero.has_fderiv_at

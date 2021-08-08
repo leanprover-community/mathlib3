@@ -113,7 +113,7 @@ begin
   exact nat.find_min _ hm
 end
 
-/-- Given the set `i`, if `i \ j` is not negative, `some_exists_one_div_lt` chooses the set
+/-- Given the set `i`, if `i` is not negative, `some_exists_one_div_lt` chooses the set
 `k` from `exists_one_div_lt s i (find_exists_one_div_lt s i)`, otherwise, it returns the
 empty set. -/
 private def some_exists_one_div_lt (s : signed_measure α) (i : set α) : set α :=

@@ -40,9 +40,15 @@ section any_field_any_algebra
 
 variables (𝕂 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
 
+/-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp_series 𝕂 𝔸` is the
+`formal_multilinear_series` whose `n`-th term is the map `(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`.
+Its sum is the exponential map `exp 𝕂 𝔸 : 𝔸 → 𝔸`. -/
 def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
   λ n, (1/n! : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
 
+/-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp 𝕂 𝔸 : 𝔸 → 𝔸` is the exponential map
+determined by the action of `𝕂` on `𝔸`.
+It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
 noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 
 variables {𝕂 𝔸}
@@ -95,49 +101,47 @@ section complete_algebra
 
 variables [complete_space 𝔸]
 
-lemma exp_has_fpower_series_on_ball_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
+lemma has_fpower_series_on_ball_exp_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
   has_fpower_series_on_ball (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 (exp_series 𝕂 𝔸).radius :=
 (exp_series 𝕂 𝔸).has_fpower_series_on_ball h
 
-lemma exp_has_fpower_series_at_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
+lemma has_fpower_series_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
   has_fpower_series_at (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 :=
-(exp_has_fpower_series_on_ball_of_radius_pos h).has_fpower_series_at
+(has_fpower_series_on_ball_exp_of_radius_pos h).has_fpower_series_at
 
-lemma exp_continuous_on_ball :
+lemma continuous_on_exp :
   continuous_on (exp 𝕂 𝔸) (emetric.ball 0 (exp_series 𝕂 𝔸).radius) :=
 formal_multilinear_series.continuous_on
 
-lemma exp_analytic_at_of_mem_ball (x : 𝔸) (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+lemma analytic_at_exp_of_mem_ball (x : 𝔸) (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   analytic_at 𝕂 (exp 𝕂 𝔸) x:=
 begin
   by_cases h : (exp_series 𝕂 𝔸).radius = 0,
   { rw h at hx, exact (ennreal.not_lt_zero hx).elim },
   { have h := pos_iff_ne_zero.mpr h,
-    exact (exp_has_fpower_series_on_ball_of_radius_pos h).analytic_at_of_mem hx }
+    exact (has_fpower_series_on_ball_exp_of_radius_pos h).analytic_at_of_mem hx }
 end
 
+/-- The exponential in a Banach-algebra `𝔸` over a normed field `𝕂` has strict Fréchet-derivative
+`1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero. -/
 lemma has_strict_fderiv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
   has_strict_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
 begin
-  convert (exp_has_fpower_series_at_zero_of_radius_pos h).has_strict_fderiv_at,
+  convert (has_fpower_series_at_exp_zero_of_radius_pos h).has_strict_fderiv_at,
   ext x,
   change x = exp_series 𝕂 𝔸 1 (λ _, x),
   simp [exp_series_apply_eq]
 end
 
+/-- The exponential in a Banach-algebra `𝔸` over a normed field `𝕂` has Fréchet-derivative
+`1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero. -/
 lemma has_fderiv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
   has_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
 (has_strict_fderiv_at_exp_zero_of_radius_pos h).has_fderiv_at
 
-end complete_algebra
-
-section complete_field
-
-variables [complete_space 𝕂]
-
-end complete_field
-
-lemma exp_add_of_commute_of_lt_radius [complete_space 𝔸] [char_zero 𝕂]
+/-- In a Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero, if `x` and `y` are
+in th disk of convergence and commute, then `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
+lemma exp_add_of_commute_of_lt_radius [char_zero 𝕂]
   {x y : 𝔸} (hxy : commute x y)
   (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) (hy : ↑∥y∥₊ < (exp_series 𝕂 𝔸).radius) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
@@ -158,6 +162,8 @@ begin
   field_simp [this]
 end
 
+end complete_algebra
+
 end any_field_any_algebra
 
 section any_field_comm_algebra
@@ -165,11 +171,16 @@ section any_field_comm_algebra
 variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
+/-- In a commutative Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero,
+`exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)` for all `x`, `y` in the disk of convergence. -/
 lemma exp_add_of_lt_radius [char_zero 𝕂] {x y : 𝔸}
   (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) (hy : ↑∥y∥₊ < (exp_series 𝕂 𝔸).radius) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_commute_of_lt_radius (commute.all x y) hx hy
 
+/-- The exponential map in a commutative Banach-algebra `𝔸` over a normed field `𝕂` of
+characteristic zero has Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x` in the
+disk of convergence. -/
 lemma has_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
   has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 begin
@@ -189,10 +200,13 @@ begin
   ring
 end
 
+/-- The exponential map in a commutative Banach-algebra `𝔸` over a normed field `𝕂` of
+characteristic zero has strict Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x` in
+the disk of convergence. -/
 lemma has_strict_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸}
   (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
   has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
-let ⟨p, hp⟩ := exp_analytic_at_of_mem_ball x (by rwa ← edist_eq_coe_nnnorm at hx) in
+let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball x (by rwa ← edist_eq_coe_nnnorm at hx) in
 hp.has_fderiv_at.unique (has_fderiv_at_exp_of_lt_radius hx) ▸ hp.has_strict_fderiv_at
 
 end any_field_comm_algebra
@@ -201,6 +215,8 @@ section deriv
 
 variables {𝕂 : Type*} [nondiscrete_normed_field 𝕂] [complete_space 𝕂]
 
+/-- The exponential map in a complete normed field `𝕂` of characteristic zero has strict derivative
+`exp 𝕂 𝕂 x` at any point `x` in the disk of convergence. -/
 lemma has_strict_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂}
   (hx : ↑∥x∥₊ < (exp_series 𝕂 𝕂).radius) :
   has_strict_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
@@ -209,14 +225,20 @@ begin
   simp
 end
 
+/-- The exponential map in a complete normed field `𝕂` of characteristic zero has derivative
+`exp 𝕂 𝕂 x` at any point `x` in the disk of convergence. -/
 lemma has_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝕂).radius) :
   has_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
 (has_strict_deriv_at_exp_of_lt_radius hx).has_deriv_at
 
+/-- The exponential map in a complete normed field `𝕂` of characteristic zero has strict derivative
+`1` at zero, as long as it converges on a neighborhood of zero. -/
 lemma has_strict_deriv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝕂).radius) :
   has_strict_deriv_at (exp 𝕂 𝕂) 1 0 :=
 (has_strict_fderiv_at_exp_zero_of_radius_pos h).has_strict_deriv_at
 
+/-- The exponential map in a complete normed field `𝕂` of characteristic zero has derivative
+`1` at zero, as long as it converges on a neighborhood of zero. -/
 lemma has_deriv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝕂).radius) :
   has_deriv_at (exp 𝕂 𝕂) 1 0 :=
 (has_strict_deriv_at_exp_zero_of_radius_pos h).has_deriv_at
@@ -261,6 +283,8 @@ end
 
 variables (𝕂 𝔸)
 
+/-- In a normed algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, the series defining the exponential map
+has an infinite radius of convergence. -/
 lemma exp_series_radius_eq_top : (exp_series 𝕂 𝔸).radius = ∞ :=
 begin
   refine (exp_series 𝕂 𝔸).radius_eq_top_of_summable_norm (λ r, _),
@@ -328,7 +352,7 @@ lemma exp_has_fpower_series_on_ball :
   has_fpower_series_on_ball (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 ∞ :=
 begin
   rw ← exp_series_radius_eq_top 𝕂 𝔸,
-  exact exp_has_fpower_series_on_ball_of_radius_pos (exp_series_radius_pos _ _)
+  exact has_fpower_series_on_ball_exp_of_radius_pos (exp_series_radius_pos _ _)
 end
 
 lemma exp_has_fpower_series_at_zero :
@@ -340,23 +364,29 @@ lemma exp_continuous :
 begin
   rw [continuous_iff_continuous_on_univ, ← metric.eball_top (0 : 𝔸),
       ← exp_series_radius_eq_top 𝕂 𝔸],
-  exact exp_continuous_on_ball
+  exact continuous_on_exp
 end
 
 lemma exp_analytic (x : 𝔸) :
   analytic_at 𝕂 (exp 𝕂 𝔸) x :=
-exp_analytic_at_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+analytic_at_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
+/-- The exponential in a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has strict Fréchet-derivative
+`1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero. -/
 lemma has_strict_fderiv_at_exp_zero :
   has_strict_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
 has_strict_fderiv_at_exp_zero_of_radius_pos (exp_series_radius_pos 𝕂 𝔸)
 
+/-- The exponential in a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has Fréchet-derivative
+`1 : 𝔸 →L[𝕂] 𝔸` at zero, as long as it converges on a neighborhood of zero. -/
 lemma has_fderiv_at_exp_zero :
   has_fderiv_at (exp 𝕂 𝔸) (1 : 𝔸 →L[𝕂] 𝔸) 0 :=
 has_strict_fderiv_at_exp_zero.has_fderiv_at
 
 end complete_algebra
 
+/-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if `x` and `y` commute, then
+`exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
 lemma exp_add_of_commute [complete_space 𝔸] [char_zero 𝕂]
   {x y : 𝔸} (hxy : commute x y) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
@@ -368,18 +398,24 @@ end any_algebra
 
 section comm_algebra
 
-variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸][complete_space 𝔸]
+variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸] [complete_space 𝔸]
 
+/-- In a comutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`,
+`exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
 lemma exp_add {x y : 𝔸} : exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 @exp_add_of_lt_radius 𝕂 𝔸 _ _ _ _ char_zero_R_or_C x y
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
 
+/-- The exponential map in a commutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has strict
+Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x`. -/
 lemma has_strict_fderiv_at_exp {x : 𝔸} :
   has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 @has_strict_fderiv_at_exp_of_lt_radius 𝕂 𝔸 _ _ _ _ char_zero_R_or_C x
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
 
+/-- The exponential map in a commutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has
+Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x`. -/
 lemma has_fderiv_at_exp {x : 𝔸} (hx : ↑∥x∥₊ < (exp_series 𝕂 𝔸).radius) :
   has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 has_strict_fderiv_at_exp.has_fderiv_at
@@ -390,16 +426,21 @@ section deriv
 
 variables {𝕂 : Type*} [is_R_or_C 𝕂]
 
+/-- The exponential map in `𝕂 = ℝ` or `𝕂 = ℂ` has strict derivative `exp 𝕂 𝕂 x` at any point
+`x`. -/
 lemma has_strict_deriv_at_exp {x : 𝕂} : has_strict_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
 @has_strict_deriv_at_exp_of_lt_radius 𝕂 _ _ char_zero_R_or_C x
   ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ ennreal.coe_lt_top)
 
+/-- The exponential map in `𝕂 = ℝ` or `𝕂 = ℂ` has derivative `exp 𝕂 𝕂 x` at any point `x`. -/
 lemma has_deriv_at_exp {x : 𝕂} : has_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
 has_strict_deriv_at_exp.has_deriv_at
 
+/-- The exponential map in `𝕂 = ℝ` or `𝕂 = ℂ` has strict derivative `1` at zero. -/
 lemma has_strict_deriv_at_exp_zero : has_strict_deriv_at (exp 𝕂 𝕂) 1 0 :=
 has_strict_deriv_at_exp_zero_of_radius_pos (exp_series_radius_pos 𝕂 𝕂)
 
+/-- The exponential map in `𝕂 = ℝ` or `𝕂 = ℂ` has derivative `1` at zero. -/
 lemma has_deriv_at_exp_zero :
   has_deriv_at (exp 𝕂 𝕂) 1 0 :=
 has_strict_deriv_at_exp_zero.has_deriv_at
@@ -438,6 +479,9 @@ begin
     field_simp [h, h'] }
 end
 
+/-- Given `𝕂' / 𝕂` a normed field extension (that is, an instance of `normed_algebra 𝕂 𝕂'`) and a
+normed algebra `𝔸` over both `𝕂` and `𝕂'`, if `𝕂` and `𝕂'` have the same characteristic and have
+compatible actions on `𝔸`, then `exp 𝕂 𝔸 = exp 𝕂' 𝔸`. -/
 lemma exp_eq_exp_of_field_extension : exp 𝕂 𝔸 = exp 𝕂' 𝔸 :=
 begin
   ext,

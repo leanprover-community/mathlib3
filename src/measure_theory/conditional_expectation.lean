@@ -47,18 +47,6 @@ begin
   exact ⟨f' + g', @measurable.add α m _ _ _ _ f' g' h_f'_meas h_g'_meas, hff'.add hgg'⟩,
 end
 
-lemma const_smul [has_scalar 𝕜 β] [has_measurable_smul 𝕜 β] (c : 𝕜) (hf : ae_measurable' m f μ) :
-  ae_measurable' m (c • f) μ :=
-begin
-  rcases hf with ⟨f', h_f'_meas, hff'⟩,
-  refine ⟨c • f', @measurable.const_smul α m _ _ _ _ _ _ f' h_f'_meas c, _⟩,
-  exact eventually_eq.fun_comp hff' (λ x, c • x),
-end
-
-lemma restrict {f : α → β} (hfm : ae_measurable' m f μ) (t : set α) :
-  ae_measurable' m f (μ.restrict t) :=
-by { rcases hfm with ⟨f', hf'_meas, hf_ae⟩, exact ⟨f', hf'_meas, ae_restrict_of_ae hf_ae⟩, }
-
 lemma neg [has_neg β] [has_measurable_neg β] {f : α → β}
   (hfm : ae_measurable' m f μ) :
   ae_measurable' m (-f) μ :=
@@ -81,6 +69,14 @@ begin
   rw [hx1, hx2],
 end
 
+lemma const_smul [has_scalar 𝕜 β] [has_measurable_smul 𝕜 β] (c : 𝕜) (hf : ae_measurable' m f μ) :
+  ae_measurable' m (c • f) μ :=
+begin
+  rcases hf with ⟨f', h_f'_meas, hff'⟩,
+  refine ⟨c • f', @measurable.const_smul α m _ _ _ _ _ _ f' h_f'_meas c, _⟩,
+  exact eventually_eq.fun_comp hff' (λ x, c • x),
+end
+
 lemma const_inner [is_R_or_C 𝕜] [borel_space 𝕜] [inner_product_space 𝕜 β]
   [second_countable_topology β] [opens_measurable_space β]
   {f : α → β} (hfm : ae_measurable' m f μ) (c : β) :
@@ -93,6 +89,10 @@ begin
   dsimp only,
   rw hx,
 end
+
+lemma restrict {f : α → β} (hfm : ae_measurable' m f μ) (t : set α) :
+  ae_measurable' m f (μ.restrict t) :=
+by { rcases hfm with ⟨f', hf'_meas, hf_ae⟩, exact ⟨f', hf'_meas, ae_restrict_of_ae hf_ae⟩, }
 
 end ae_measurable'
 

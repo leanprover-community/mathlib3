@@ -76,6 +76,14 @@ class conditionally_complete_lattice (α : Type*) extends lattice α, has_Sup α
 (is_lub_cSup : ∀ s : set α, s.nonempty → bdd_above s → is_lub s (Sup s))
 (is_glb_cInf : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (Inf s))
 
+/-- A conditionally complete lattice with default value is a conditionally complete lattice
+such that `Sup ∅ = Inf ∅ = default α`, `Sup s = default α` for a set `s` that is not bounded above,
+and `Inf s = default α` for a set `s` that is not bounded below. -/
+class conditionally_complete_lattice_with_default (α : Type*) (d : out_param α)
+  extends conditionally_complete_lattice α :=
+(cSup_eq_default : ∀ s : set α, ¬(s.nonempty ∧ bdd_above s) → Sup s = d)
+(cInf_eq_default : ∀ s : set α, ¬(s.nonempty ∧ bdd_below s) → Inf s = d)
+
 /-- A conditionally complete linear order is a linear order in which
 every nonempty subset which is bounded above has a supremum, and
 every nonempty subset which is bounded below has an infimum.
@@ -87,6 +95,9 @@ hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_linear_order (α : Type*)
   extends conditionally_complete_lattice α, linear_order α
+
+class conditionally_complete_linear_order_with_default (α : Type*) (d : out_param α)
+  extends conditionally_complete_linear_order α, conditionally_complete_lattice_with_default α d
 
 /-- A conditionally complete linear order with `bot` is a linear order with least element, in which
 every nonempty subset which is bounded above has a supremum, and every nonempty subset (necessarily
@@ -102,7 +113,6 @@ class conditionally_complete_linear_order_bot (α : Type*)
 
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/
-
 @[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
   conditionally_complete_lattice α :=
@@ -141,12 +151,15 @@ and bounded below, and `Inf s = d` otherwise. We put `Sup s = Inf (upper_bounds 
 
 This constructor is used in `mathlib` for all non-constructive instances of
 `conditionally_complete_lattice`. -/
-@[reducible] noncomputable def conditionally_complete_lattice_of_exists_is_glb
+@[reducible] noncomputable def conditionally_complete_lattice_with_default_of_exists_is_glb
   (H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a) (d : α) :
-  conditionally_complete_lattice α :=
-conditionally_complete_lattice_of_Inf
-  (λ s, if h : s.nonempty ∧ bdd_below s then (H s h.1 h.2).some else d)
-  (λ s hne hbdd, by { rw dif_pos (and.intro hne hbdd), apply Exists.some_spec } )
+  conditionally_complete_lattice_with_default α d :=
+{ Inf := λ s, if h : s.nonempty ∧ bdd_below s then (H s h.1 h.2).some else d,
+  is_glb_cInf := λ s hne hbdd, by { rw dif_pos (and.intro hne hbdd), apply Exists.some_spec },
+  Sup := λ s, if h : s.nonempty ∧ bdd_above s
+    then (H _ h.2 $ h.1.mono $ λ x hx y hy, hy hx).some else d,
+  is_lub_cSup := λ s hne hbdd, _,
+  .. ‹lattice α› }
 
 variables {H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a} {d : α} {s : set α}
 

@@ -465,7 +465,7 @@ by simp only [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici,
   bdd_above_iff_subset_Iic, exists_and_distrib_left, exists_and_distrib_right]
 
 /-!
-### Univ
+#### Univ
 -/
 
 lemma is_greatest_univ [order_top γ] : is_greatest (univ : set γ) ⊤ :=
@@ -500,7 +500,7 @@ by simp [bdd_above]
 @not_bdd_above_univ (order_dual α) _ _
 
 /-!
-### Empty set
+#### Empty set
 -/
 
 @[simp] lemma upper_bounds_empty : upper_bounds (∅ : set α) = univ :=
@@ -537,7 +537,7 @@ lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonem
 @nonempty_of_not_bdd_above (order_dual α) _ _ _ h
 
 /-!
-### insert
+#### insert
 -/
 
 /-- Adding a point to a set preserves its boundedness above. -/
@@ -591,7 +591,7 @@ by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 ⟨⊥, assume a ha, order_bot.bot_le a⟩
 
 /-!
-### Pair
+#### Pair
 -/
 
 lemma is_lub_pair [semilattice_sup γ] {a b : γ} : is_lub {a, b} (a ⊔ b) :=
@@ -607,6 +607,14 @@ lemma is_greatest_pair [linear_order γ] {a b : γ} : is_greatest {a, b} (max a 
 is_greatest_singleton.insert _
 
 end
+
+/-!
+#### Lower/upper bounds
+-/
+
+@[simp] lemma is_lub_lower_bounds [preorder α] {s : set α} {a : α} :
+  is_lub (lower_bounds s) a ↔ is_glb s a :=
+⟨λ H, ⟨λ x hx, _, H.1⟩, is_greatest.is_lub⟩
 
 /-!
 ### (In)equalities with the least upper bound and the greatest lower bound

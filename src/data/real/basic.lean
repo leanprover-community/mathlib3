@@ -375,12 +375,12 @@ begin
       inv_le_inv_of_le n.cast_add_one_pos (add_le_add_right (nat.cast_le.2 hle) _)⟩,
   have hg_cau : is_cau_seq abs g,
   { refine λ ε (ε0 : 0 < ε), ⟨⌊ε⁻¹⌋₊, λ j hj, (abs_sub_le _ _ hj).trans_lt _⟩,
-    exact inv_lt_of_inv_lt' ε0 (lt_nat_floor_add_one _) },
+    exact inv_lt_of_inv_lt ε0 (lt_nat_floor_add_one _) },
   refine ⟨mk ⟨g, hg_cau⟩, ⟨λ x xS, mk_le_of_forall_le ⟨0, λ n _, g_le n x xS⟩, λ y h, _⟩⟩,
   refine le_of_forall_pos_sub_le (λ ε ε0, le_mk_of_forall_le ⟨⌈ε⁻¹⌉₊, λ n hn, _⟩),
   rcases lt_g n with ⟨y', hy'S, hy'⟩,
   replace hn : ((n + 1)⁻¹ : ℝ) ≤ ε :=
-    inv_le_of_inv_le' ε0 ((nat_ceil_le.1 hn).trans (lt_add_one _).le),
+    inv_le_of_inv_le ε0 ((nat_ceil_le.1 hn).trans (lt_add_one _).le),
   calc y - ε ≤ g n + (n + 1)⁻¹ - ε : sub_le_sub_right ((h hy'S).trans hy'.le) _
          ... ≤ g n                 : by simp [add_sub_assoc, hn],
 end
@@ -396,26 +396,6 @@ exists_lt_of_cInf_lt h $ lt_add_of_pos_right _ hε
 lemma add_neg_lt_Sup {s : set ℝ} (h : s.nonempty) {ε : ℝ} (hε : ε < 0) :
   ∃ a ∈ s, Sup s + ε < a :=
 exists_lt_of_lt_cSup h $ add_lt_iff_neg_left.2 hε
-
-lemma Inf_le_iff {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {a : ℝ} :
-  Inf s ≤ a ↔ ∀ ε, 0 < ε → ∃ x ∈ s, x < a + ε :=
-begin
-  rw le_iff_forall_pos_lt_add,
-  split; intros H ε ε_pos,
-  { exact exists_lt_of_cInf_lt h' (H ε ε_pos) },
-  { rcases H ε ε_pos with ⟨x, x_in, hx⟩,
-    exact cInf_lt_of_lt h x_in hx }
-end
-
-lemma le_Sup_iff {s : set ℝ} (h : bdd_above s) (h' : s.nonempty) {a : ℝ} :
-  a ≤ Sup s ↔ ∀ ε, ε < 0 → ∃ x ∈ s, a + ε < x :=
-begin
-  rw le_iff_forall_pos_lt_add,
-  refine ⟨λ H ε ε_neg, _, λ H ε ε_pos, _⟩,
-  { exact exists_lt_of_lt_cSup h' (lt_sub_iff_add_lt.mp (H _ (neg_pos.mpr ε_neg))) },
-  { rcases H _ (neg_lt_zero.mpr ε_pos) with ⟨x, x_in, hx⟩,
-    exact sub_lt_iff_lt_add.mp (lt_cSup_of_lt h x_in hx) }
-end
 
 @[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 

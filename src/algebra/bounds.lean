@@ -112,4 +112,40 @@ end
     conditionally_complete_lattice_of_exists_is_glb H 0) s :=
 by rw [← neg_neg (Sup _), ← cInf_neg, set.neg_neg]
 
+lemma cSup_nonneg [no_bot_order G] (s : set G) (hs : ∀ x ∈ s, (0 : G) ≤ x) :
+  0 ≤ @Sup G (@conditionally_complete_lattice.to_has_Sup G $
+    conditionally_complete_lattice_of_exists_is_glb H 0) s :=
+begin
+  letI := conditionally_complete_lattice_of_exists_is_glb H 0,
+  rcases s.eq_empty_or_nonempty with rfl|⟨y, hy⟩, { exact cSup_empty'.ge },
+  by_cases h : bdd_above s,
+  { exact le_cSup_of_le h hy (hs y hy) },
+  { exact (cSup_of_not_bdd_above h).ge }
+end
+
+lemma cSup_nonpos [no_bot_order G] (s : set G) (hs : ∀ x ∈ s, (x : G) ≤ 0) :
+  @Sup G (@conditionally_complete_lattice.to_has_Sup G $
+    conditionally_complete_lattice_of_exists_is_glb H 0) s ≤ 0 :=
+begin
+  letI := conditionally_complete_lattice_of_exists_is_glb H 0,
+  rcases s.eq_empty_or_nonempty with rfl|h, { exact cSup_empty'.le }
+end
+
 end conditionally_complete_lattice
+
+section conditionally_complete_linear_order
+
+variables {G : Type*} [conditionally_complete_linear_order G] [group G]
+  [covariant_class G G (*) (≤)] {s : set G} {a : G}
+
+@[to_additive]
+lemma cInf_le_iff_forall_one_lt (h : s.nonempty) (h' : bdd_below s) :
+  Inf s ≤ a ↔ ∀ ε, 1 < ε → ∃ x ∈ s, x < a * ε :=
+by simp only [le_iff_forall_one_lt_lt_mul, is_glb_lt_iff (is_glb_cInf h h')]
+
+@[to_additive]
+lemma le_cSup_iff_forall_lt_one (h : s.nonempty) (h' : bdd_above s) :
+  a ≤ Sup s ↔ ∀ ε < 1, ∃ x ∈ s, a * ε < x :=
+@cInf_le_iff_forall_one_lt (order_dual G) _ _ _ _ _ h h'
+
+end conditionally_complete_linear_order

@@ -81,7 +81,7 @@ To implement this in Lean, we define several auxilary definitions.
     `restrict_nonpos_seq s i (n + 1) = some_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq k)`.
   This definition represents the sequence $(A_n)$ in the proof as described above.
 
-With these definitions, we are able consider the case where the sequence terminates seperately,
+With these definitions, we are able consider the case where the sequence terminates separately,
 allowing us to prove `exists_subset_restrict_nonpos`.
 -/
 
@@ -147,13 +147,13 @@ let ⟨_, _, h⟩ := some_exists_one_div_lt_spec hi in h
 
 private def restrict_nonpos_seq (s : signed_measure α) (i : set α) : ℕ → set α
 | 0 := some_exists_one_div_lt s i ∅
-| (n + 1) := some_exists_one_div_lt s i ⋃ k ≤ n,
+| (n + 1) := some_exists_one_div_lt s i (⋃ k ≤ n,
   have k < n + 1 := nat.lt_succ_iff.mpr H,
-  restrict_nonpos_seq k
+  restrict_nonpos_seq k)
 
 private lemma restrict_nonpos_seq_succ (n : ℕ) :
   restrict_nonpos_seq s i n.succ =
-  some_exists_one_div_lt s i ⋃ k ≤ n, restrict_nonpos_seq s i k :=
+  some_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq s i k) :=
 by rw restrict_nonpos_seq
 
 private lemma restrict_nonpos_seq_subset (n : ℕ) :
@@ -164,7 +164,7 @@ begin
 end
 
 private lemma restrict_nonpos_seq_lt
-  (n : ℕ) (hn :¬ s ≤[i \ ⋃ l ≤ n, restrict_nonpos_seq s i l] 0) :
+  (n : ℕ) (hn : ¬ s ≤[i \ ⋃ k ≤ n, restrict_nonpos_seq s i k] 0) :
   (1 / (find_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq s i k) + 1) : ℝ)
   < s (restrict_nonpos_seq s i n.succ) :=
 begin
@@ -283,7 +283,6 @@ begin
     { set A := i \ ⋃ l, restrict_nonpos_seq s i l with hA,
       set bdd : ℕ → ℕ := λ n,
         find_exists_one_div_lt s i (⋃ k ≤ n, restrict_nonpos_seq s i k) with hbdd,
-
       have hn' : ∀ n : ℕ, ¬ s ≤[i \ ⋃ l ≤ n, restrict_nonpos_seq s i l] 0,
       { intro n,
         convert hn (n + 1);
@@ -311,7 +310,6 @@ begin
         exact summable.tendsto_top_of_pos h₃' (λ n, nat.cast_add_one_pos (bdd n)) },
       have h₄ : tendsto (λ n, (bdd n : ℝ)) at_top at_top,
       { convert at_top.tendsto_at_top_add_const_right (-1) h₃, simp },
-
       refine ⟨A, _, set.diff_subset _ _, _, _⟩,
       { exact hi₁.diff (measurable_set.Union (λ _, restrict_nonpos_seq_measurable_set _)) },
       { by_contra hnn,
@@ -391,11 +389,9 @@ lemma exists_compl_positive_negative (s : signed_measure α) :
 begin
   obtain ⟨f, _, hf₂, hf₁⟩ := exists_seq_tendsto_Inf
     ⟨0, @zero_mem_measure_of_negatives _ _ s⟩ bdd_below_measure_of_negatives,
-
   choose B hB using hf₁,
   have hB₁ : ∀ n, measurable_set (B n) := λ n, let ⟨h, _⟩ := (hB n).1 in h,
   have hB₂ : ∀ n, s ≤[B n] 0 := λ n, let ⟨_, h⟩ := (hB n).1 in h,
-
   set A := ⋃ n, B n with hA,
   have hA₁ : measurable_set A := measurable_set.Union hB₁,
   have hA₂ : s ≤[A] 0 := restrict_le_restrict_Union _ _ hB₁ hB₂,
@@ -414,18 +410,15 @@ begin
       { apply_instance },
       { exact (measurable_set.Union hB₁).diff (hB₁ n) } },
     { exact cInf_le bdd_below_measure_of_negatives ⟨A, ⟨hA₁, hA₂⟩, rfl⟩ } },
-
   refine ⟨Aᶜ, hA₁.compl, _, (compl_compl A).symm ▸ hA₂⟩,
   rw restrict_le_restrict_iff _ _ hA₁.compl,
   intros C hC hC₁,
   by_contra hC₂, push_neg at hC₂,
-
   rcases exists_subset_restrict_nonpos hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
   have : s (A ∪ D) < Inf s.measure_of_negatives,
   { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC₁)
         disjoint_compl_right) hA₁ hD₁],
     linarith, apply_instance },
-
   refine not_le.2 this _,
   refine cInf_le bdd_below_measure_of_negatives ⟨A ∪ D, ⟨_, _⟩, rfl⟩,
   { exact hA₁.union hD₁ },

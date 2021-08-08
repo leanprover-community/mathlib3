@@ -69,16 +69,15 @@ def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
 
 section
 
-variables (S : set (units R)) [is_subgroup S] [fintype S]
-local attribute [instance] subtype.group
+variables (S : subgroup (units R)) [fintype S]
 
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
 begin
   refine is_cyclic_of_subgroup_integral_domain ⟨(coe : S → R), _, _⟩
     (units.ext.comp subtype.val_injective),
-  { simp only [is_submonoid.coe_one, units.coe_one, coe_coe] },
-  { intros, simp only [is_submonoid.coe_mul, units.coe_mul, coe_coe] },
+  { simp },
+  { intros, simp },
 end
 
 end
@@ -99,14 +98,13 @@ begin
       mul_inv_cancel_right, inv_mul_cancel_right], }
 end
 
-section
-local attribute [instance] subtype.group subtype.monoid range.is_submonoid
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero.
 -/
 lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
 begin
   classical,
-  obtain ⟨x, hx⟩ : ∃ x : set.range f.to_hom_units, ∀ y : set.range f.to_hom_units, y ∈ powers x,
+  obtain ⟨x, hx⟩ : ∃ x : monoid_hom.range f.to_hom_units,
+    ∀ y : monoid_hom.range f.to_hom_units, y ∈ submonoid.powers x,
     from is_cyclic.exists_monoid_generator,
   have hx1 : x ≠ 1,
   { rintro rfl,
@@ -115,7 +113,6 @@ begin
     rw [monoid_hom.one_apply],
     cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
     rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
-      is_submonoid.coe_pow, units.coe_pow, is_submonoid.coe_one, units.coe_one,
       one_pow, eq_comm] at hn, },
   replace hx1 : (x : R) - 1 ≠ 0,
     from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
@@ -126,10 +123,9 @@ begin
     (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : units R → R) f.to_hom_units
   ... = ∑ u : units R in univ.image f.to_hom_units, c • u :
     sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
-  ... = ∑ b : set.range f.to_hom_units, c • ↑b : finset.sum_subtype _
-      (by simp only [mem_image, set.mem_range, forall_const, iff_self, mem_univ,
-                     exists_prop_of_true]) _
-  ... = c • ∑ b : set.range f.to_hom_units, (b : R) : smul_sum.symm
+  ... = ∑ b : monoid_hom.range f.to_hom_units, c • ↑b : finset.sum_subtype _
+      (by simp ) _
+  ... = c • ∑ b : monoid_hom.range f.to_hom_units, (b : R) : smul_sum.symm
   ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below
   ... = 0 : smul_zero _,
   { -- remaining goal 1
@@ -138,13 +134,12 @@ begin
     { simpa only [mem_image, mem_univ, exists_prop_of_true, set.mem_range] using hu, },
     { exact ⟨1, f.to_hom_units.map_one⟩ } },
   -- remaining goal 2
-  show ∑ b : set.range f.to_hom_units, (b : R) = 0,
-  calc ∑ b : set.range f.to_hom_units, (b : R)
+  show ∑ b : monoid_hom.range f.to_hom_units, (b : R) = 0,
+  calc ∑ b : monoid_hom.range f.to_hom_units, (b : R)
       = ∑ n in range (order_of x), x ^ n :
     eq.symm $ sum_bij (λ n _, x ^ n)
       (by simp only [mem_univ, forall_true_iff])
-      (by simp only [is_submonoid.coe_pow, eq_self_iff_true, units.coe_pow, coe_coe,
-                     forall_true_iff])
+      (by simp only [implies_true_iff, eq_self_iff_true, subgroup.coe_pow, units.coe_pow, coe_coe])
       (λ m n hm hn, pow_injective_of_lt_order_of _
         (by simpa only [mem_range] using hm)
         (by simpa only [mem_range] using hn))
@@ -153,8 +148,7 @@ begin
   ... = 0 : _,
   rw [← mul_left_inj' hx1, zero_mul, ← geom_sum, geom_sum_mul, coe_coe],
   norm_cast,
-  rw [pow_order_of_eq_one, is_submonoid.coe_one, units.coe_one, sub_self],
-end
+  simp [pow_order_of_eq_one],
 end
 
 /-- In an integral domain, a sum indexed by a homomorphism from a finite group is zero,

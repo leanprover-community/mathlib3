@@ -422,6 +422,16 @@ begin
   congr
 end
 
+@[to_additive] lemma eq_top_of_le_card [fintype H] [fintype G]
+  (h : fintype.card G ≤ fintype.card H) : H = ⊤ :=
+eq_top_of_card_eq H (le_antisymm (fintype.card_le_of_injective coe subtype.coe_injective) h)
+
+@[to_additive] lemma eq_bot_of_card_le [fintype H] (h : fintype.card H ≤ 1) : H = ⊥ :=
+let _ := fintype.card_le_one_iff_subsingleton.mp h in by exactI eq_bot_of_subsingleton H
+
+@[to_additive] lemma eq_bot_of_card_eq [fintype H] (h : fintype.card H = 1) : H = ⊥ :=
+H.eq_bot_of_card_le (le_of_eq h)
+
 @[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) :
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
 subtype.nontrivial_iff_exists_ne (λ x, x ∈ H) (1 : H)
@@ -804,6 +814,21 @@ lemma map_map (g : N →* P) (f : G →* N) : (K.map f).map g = K.map (g.comp f)
 set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
+lemma mem_map_equiv {f : G ≃* N} {K : subgroup G} {x : N} :
+  x ∈ K.map f.to_monoid_hom ↔ f.symm x ∈ K :=
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
+
+@[to_additive]
+lemma map_equiv_eq_comap_symm (f : G ≃* N) (K : subgroup G) :
+  K.map f.to_monoid_hom = K.comap f.symm.to_monoid_hom :=
+set_like.coe_injective (f.to_equiv.image_eq_preimage K)
+
+@[to_additive]
+lemma comap_equiv_eq_map_symm (f : N ≃* G) (K : subgroup G) :
+  K.comap f.to_monoid_hom = K.map f.symm.to_monoid_hom :=
+(map_equiv_eq_comap_symm f.symm K).symm
+
+@[to_additive]
 lemma map_le_iff_le_comap {f : G →* N} {K : subgroup G} {H : subgroup N} :
   K.map f ≤ H ↔ K ≤ H.comap f :=
 image_subset_iff
@@ -1052,6 +1077,28 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
 λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
   λ yH, by simpa [mem_comap, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
+
+variable (H)
+
+/-- Commutivity of a subgroup -/
+structure is_commutative : Prop :=
+(is_comm : _root_.is_commutative H (*))
+
+attribute [class] is_commutative
+
+/-- Commutivity of an additive subgroup -/
+structure _root_.add_subgroup.is_commutative (H : add_subgroup A) : Prop :=
+(is_comm : _root_.is_commutative H (+))
+
+attribute [to_additive add_subgroup.is_commutative] subgroup.is_commutative
+attribute [class] add_subgroup.is_commutative
+
+/-- A commutative subgroup is commutative -/
+@[to_additive] instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
+{ mul_comm := h.is_comm.comm, .. H.to_group }
+
+instance center.is_commutative : (center G).is_commutative :=
+⟨⟨λ a b, subtype.ext (b.2 a)⟩⟩
 
 end subgroup
 
@@ -1415,6 +1462,32 @@ le_antisymm
     (gclosure_preimage_le _ _))
   ((closure_le _).2 $ set.image_subset _ subset_closure)
 
+-- this instance can't go just after the definition of `mrange` because `fintype` is
+-- not imported at that stage
+
+/-- The range of a finite monoid under a monoid homomorphism is finite.
+Note: this instance can form a diamond with `subtype.fintype` in the
+presence of `fintype N`. -/
+@[to_additive "The range of a finite additive monoid under an additive monoid homomorphism is
+finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`."]
+instance fintype_mrange {M N : Type*} [monoid M] [monoid N] [fintype M] [decidable_eq N]
+  (f : M →* N) : fintype (mrange f) :=
+set.fintype_range f
+
+/-- The range of a finite group under a group homomorphism is finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`. -/
+@[to_additive "The range of a finite additive group under an additive group homomorphism is finite.
+
+Note: this instance can form a diamond with `subtype.fintype` or `subgroup.fintype` in the
+presence of `fintype N`."]
+instance fintype_range  [fintype G] [decidable_eq N] (f : G →* N) : fintype (range f) :=
+set.fintype_range f
+
 end monoid_hom
 
 namespace subgroup
@@ -1531,6 +1604,16 @@ begin
            ... ≤ comap f H ⊔ comap f K : le_sup_left, },
   exact ker_le_comap _ _,
 end
+
+/-- A subgroup is isomorphic to its image under an injective function -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+noncomputable def equiv_map_of_injective (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
+
+@[simp, to_additive] lemma coe_equiv_map_of_injective_apply (H : subgroup G)
+  (f : G →* N) (hf : function.injective f) (h : H) :
+  (equiv_map_of_injective H f hf h : N) = f h := rfl
 
 end subgroup
 
@@ -1690,6 +1773,22 @@ lemma mem_gpowers_iff {g h : G} :
   h ∈ gpowers g ↔ ∃ (k : ℤ), g ^ k = h :=
 iff.rfl
 
+@[simp] lemma forall_gpowers {x : G} {p : gpowers x → Prop} :
+  (∀ g, p g) ↔ ∀ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
+set.forall_subtype_range_iff
+
+@[simp] lemma exists_gpowers {x : G} {p : gpowers x → Prop} :
+  (∃ g, p g) ↔ ∃ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
+set.exists_subtype_range_iff
+
+lemma forall_mem_gpowers {x : G} {p : G → Prop} :
+  (∀ g ∈ gpowers x, p g) ↔ ∀ m : ℤ, p (x ^ m) :=
+set.forall_range_iff
+
+lemma exists_mem_gpowers {x : G} {p : G → Prop} :
+  (∃ g ∈ gpowers x, p g) ↔ ∃ m : ℤ, p (x ^ m) :=
+set.exists_range_iff
+
 end subgroup
 
 namespace add_subgroup
@@ -1698,19 +1797,10 @@ namespace add_subgroup
 def gmultiples (a : A) : add_subgroup A :=
 add_subgroup.copy (gmultiples_hom A a).range (set.range ((• a) : ℤ → A)) rfl
 
-@[simp] lemma mem_gmultiples (a : A) : a ∈ gmultiples a := ⟨1, one_gsmul _⟩
-
-lemma gmultiples_eq_closure (a : A) : gmultiples a = closure {a} :=
-by { ext, exact mem_closure_singleton.symm }
-
 @[simp] lemma range_gmultiples_hom (a : A) : (gmultiples_hom A a).range = gmultiples a := rfl
 
 lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples a ≤ B :=
 @subgroup.gpowers_subset (multiplicative A) _ _ (B.to_subgroup) h
-
-lemma mem_gmultiples_iff {a b : A} :
-  b ∈ add_subgroup.gmultiples a ↔ ∃ (k : ℤ), k • a = b :=
-iff.rfl
 
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers
@@ -1718,6 +1808,10 @@ attribute [to_additive add_subgroup.gmultiples_eq_closure] subgroup.gpowers_eq_c
 attribute [to_additive add_subgroup.range_gmultiples_hom] subgroup.range_gpowers_hom
 attribute [to_additive add_subgroup.gmultiples_subset] subgroup.gpowers_subset
 attribute [to_additive add_subgroup.mem_gmultiples_iff] subgroup.mem_gpowers_iff
+attribute [to_additive add_subgroup.forall_gmultiples] subgroup.forall_gpowers
+attribute [to_additive add_subgroup.forall_mem_gmultiples] subgroup.forall_mem_gpowers
+attribute [to_additive add_subgroup.exists_gmultiples] subgroup.exists_gpowers
+attribute [to_additive add_subgroup.exists_mem_gmultiples] subgroup.exists_mem_gpowers
 
 end add_subgroup
 

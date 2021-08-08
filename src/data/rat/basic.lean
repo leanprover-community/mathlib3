@@ -744,6 +744,26 @@ begin
     coe_nat_div_self]
 end
 
+lemma num_inv_nat {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+begin
+  rw [rat.inv_def', rat.coe_nat_num, rat.coe_nat_denom],
+  suffices : (((1 : ℤ) : ℚ) / (a : ℤ)).num = 1,
+    exact_mod_cast this,
+  apply num_div_eq_of_coprime,
+  { assumption_mod_cast },
+  { simp only [nat.coprime_one_left_iff, int.nat_abs_one] }
+end
+
+lemma denom_inv_nat {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
+begin
+  rw [rat.inv_def', rat.coe_nat_num, rat.coe_nat_denom],
+  suffices : ((((1 : ℤ) : ℚ) / (a : ℤ)).denom : ℤ) = a,
+    exact_mod_cast this,
+  apply denom_div_eq_of_coprime,
+  { assumption_mod_cast },
+  { simp only [nat.coprime_one_left_iff, int.nat_abs_one] },
+end
+
 protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b) :=
 ⟨λ h _ _, h _,
   λ h q, (show q = q.num / q.denom, from by simp [rat.div_num_denom]).symm ▸ (h q.1 q.2)⟩

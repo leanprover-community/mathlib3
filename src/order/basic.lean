@@ -547,6 +547,12 @@ instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [part
     prod.ext (hac.antisymm hca) (hbd.antisymm hdb),
   .. prod.preorder α β }
 
+lemma monotone_fst {α β : Type*} [preorder α] [preorder β] : monotone (@prod.fst α β) :=
+λ x y h, h.1
+
+lemma monotone_snd {α β : Type*} [preorder α] [preorder β] : monotone (@prod.snd α β) :=
+λ x y h, h.2
+
 /-!
 ### Additional order classes
 -/

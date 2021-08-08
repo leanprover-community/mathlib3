@@ -125,24 +125,10 @@ instance conditionally_complete_linear_order_of_complete_linear_order [complete_
   conditionally_complete_linear_order α :=
 { ..conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
 
-/-- Construct a `conditionally_complete_lattice` from a `lattice` structure and a function `Inf`
-such that `is_glb s (Inf s)` for any nonempty bounded below set `s`. We put
-`Sup s = Inf (upper_bounds s)`. See also `conditionally_complete_lattice_of_exists_is_glb`. -/
-@[reducible] def conditionally_complete_lattice_of_Inf {α : Type*} [lattice α]
-  (f : set α → α) (H : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (f s)) :
-  conditionally_complete_lattice α :=
-{ Inf := f, Sup := λ s, f (upper_bounds s),
-  is_glb_cInf := H,
-  is_lub_cSup := λ s hne hbdd,
-    have s ⊆ lower_bounds (upper_bounds s), from λ x hx y hy, hy hx,
-    ⟨λ x hx, (H _ hbdd (hne.mono this)).2 (this hx), (H _ hbdd (hne.mono this)).1⟩,
-  .. ‹lattice α› }
-
 section classical
 
 open_locale classical
-
-variables [lattice α]
+noncomputable theory
 
 /-- Construct a `conditionally_complete_lattice` from a `lattice` structure, a proof of the fact
 that every nonempty bounded below set has the greatest lower bound, and the default value for the
@@ -151,41 +137,47 @@ and bounded below, and `Inf s = d` otherwise. We put `Sup s = Inf (upper_bounds 
 
 This constructor is used in `mathlib` for all non-constructive instances of
 `conditionally_complete_lattice`. -/
-@[reducible] noncomputable def conditionally_complete_lattice_with_default_of_exists_is_glb
-  (H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a) (d : α) :
+@[reducible] def conditionally_complete_lattice_with_default_of_exists_is_glb
+  [lattice α] (H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a) (d : α) :
   conditionally_complete_lattice_with_default α d :=
 { Inf := λ s, if h : s.nonempty ∧ bdd_below s then (H s h.1 h.2).some else d,
   is_glb_cInf := λ s hne hbdd, by { rw dif_pos (and.intro hne hbdd), apply Exists.some_spec },
   Sup := λ s, if h : s.nonempty ∧ bdd_above s
     then (H _ h.2 $ h.1.mono $ λ x hx y hy, hy hx).some else d,
-  is_lub_cSup := λ s hne hbdd, _,
+  is_lub_cSup := λ s hne hbdd, by { rw [dif_pos (and.intro hne hbdd), ← is_glb_upper_bounds],
+    apply Exists.some_spec },
+  cSup_eq_default := λ s hs, dif_neg hs,
+  cInf_eq_default := λ s hs, dif_neg hs,
   .. ‹lattice α› }
 
-variables {H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a} {d : α} {s : set α}
-
-@[simp] lemma cInf_empty :
-  @Inf α (@conditionally_complete_lattice.to_has_Inf _ $
-    conditionally_complete_lattice_of_exists_is_glb H d) ∅ = d :=
-dif_neg $ by simp
-
-lemma cInf_of_not_bdd_below (h : ¬ bdd_below s) :
-  @Inf α (@conditionally_complete_lattice.to_has_Inf _ $
-    conditionally_complete_lattice_of_exists_is_glb H d) s = d :=
-dif_neg $ by simp [h]
-
-lemma cSup_of_not_bdd_above (h : ¬ bdd_above s) :
-  @Sup α (@conditionally_complete_lattice.to_has_Sup _ $
-    conditionally_complete_lattice_of_exists_is_glb H d) s = d :=
-dif_neg $ by { dunfold bdd_above at h, simp [h] }
-
-@[simp] lemma cSup_empty' [no_bot_order α] :
-  @Sup α (@conditionally_complete_lattice.to_has_Sup _ $
-    conditionally_complete_lattice_of_exists_is_glb H d) ∅ = d :=
-dif_neg $ by simp
+@[reducible] def conditionally_complete_linear_order_with_default_of_exists_is_glb
+  [linear_order α] (H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a) (d : α) :
+  conditionally_complete_linear_order_with_default α d :=
+{ .. ‹linear_order α›, .. lattice_of_linear_order,
+  .. conditionally_complete_lattice_with_default_of_exists_is_glb H d }
 
 end classical
 
-section order_dual
+section with_default
+
+variables {d : α} [conditionally_complete_lattice_with_default α d] {s : set α}
+open conditionally_complete_lattice_with_default (cSup_eq_default cInf_eq_default)
+
+@[simp] lemma cInf_empty : Inf ∅ = d :=
+cInf_eq_default ∅ $ by simp
+
+@[simp] lemma cSup_empty' : Sup ∅ = d :=
+cSup_eq_default ∅ $ by simp
+
+lemma cInf_of_not_bdd_below (h : ¬ bdd_below s) : Inf s = d :=
+cInf_eq_default s $ by simp [h]
+
+lemma cSup_of_not_bdd_above (h : ¬ bdd_above s) : Sup s = d :=
+cSup_eq_default s $ by simp [h]
+
+end with_default
+
+namespace order_dual
 
 instance (α : Type*) [conditionally_complete_lattice α] :
   conditionally_complete_lattice (order_dual α) :=
@@ -199,6 +191,19 @@ instance (α : Type*) [conditionally_complete_linear_order α] :
   conditionally_complete_linear_order (order_dual α) :=
 { ..order_dual.conditionally_complete_lattice α,
   ..order_dual.linear_order α }
+
+instance conditionally_complete_lattice_with_default (α : Type*) (d : α)
+  [conditionally_complete_lattice_with_default α d] :
+  conditionally_complete_lattice_with_default (order_dual α) (order_dual.to_dual d) :=
+{ cSup_eq_default := conditionally_complete_lattice_with_default.cInf_eq_default,
+  cInf_eq_default := conditionally_complete_lattice_with_default.cSup_eq_default,
+  .. order_dual.conditionally_complete_lattice α }
+
+instance conditionally_complete_linear_order_with_default (α : Type*) (d : α)
+  [conditionally_complete_linear_order_with_default α d] :
+  conditionally_complete_linear_order_with_default (order_dual α) (order_dual.to_dual d) :=
+{ .. order_dual.conditionally_complete_linear_order α,
+  .. order_dual.conditionally_complete_lattice_with_default α d }
 
 end order_dual
 
@@ -554,6 +559,11 @@ instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
   is_glb_cInf := λ s hne h_bdd, is_glb_pi _ _ $ λ i,
     by exact is_glb_cinfi_set ((function.monotone_eval i).map_bdd_below h_bdd) hne,
   .. pi.lattice, .. pi.has_Sup, .. pi.has_Inf }
+
+instance {α β : Type*} [conditionally_complete_lattice α] [conditionally_complete_lattice β] :
+  conditionally_complete_lattice (α × β) :=
+{ is_lub_cSup := λ s hne hbdd, _,
+  .. prod.lattice α β, .. prod.has_Sup α β, .. prod.has_Inf α β }
 
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}

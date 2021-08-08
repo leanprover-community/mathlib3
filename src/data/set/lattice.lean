@@ -56,10 +56,8 @@ theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, 
 instance : complete_boolean_algebra (set α) :=
 { Sup    := Sup,
   Inf    := Inf,
-  le_Sup := assume s t t_in a a_in, ⟨t, ⟨t_in, a_in⟩⟩,
-  Sup_le := assume s t h a ⟨t', ⟨t'_in, a_in⟩⟩, h t' t'_in a_in,
-  le_Inf := assume s t h a a_in t' t'_in, h t' t'_in a_in,
-  Inf_le := assume s t t_in a h, h _ t_in,
+  is_lub_Sup := λ s, ⟨λ t ht x hx, ⟨t, ht, hx⟩, λ t ht x ⟨u, hus, hxu⟩, ht hus hxu⟩,
+  is_glb_Inf := λ s, ⟨λ t ht x hx, hx t ht, λ t ht x hx u hu, ht hu hx⟩,
   infi_sup_le_sup_Inf := λ s S x, iff.mp $ by simp [forall_or_distrib_left],
   inf_Sup_le_supr_inf := λ s S x, iff.mp $ by simp [exists_and_distrib_left],
   .. set.boolean_algebra,
@@ -609,22 +607,22 @@ le_Sup tS
 
 lemma subset_sUnion_of_subset {s : set α} (t : set (set α)) (u : set α) (h₁ : s ⊆ u)
   (h₂ : u ∈ t) : s ⊆ ⋃₀ t :=
-subset.trans h₁ (subset_sUnion_of_mem h₂)
+le_Sup_of_le h₂ h₁
 
 theorem sUnion_subset {S : set (set α)} {t : set α} (h : ∀t' ∈ S, t' ⊆ t) : (⋃₀ S) ⊆ t :=
 Sup_le h
 
 theorem sUnion_subset_iff {s : set (set α)} {t : set α} : ⋃₀ s ⊆ t ↔ ∀t' ∈ s, t' ⊆ t :=
-⟨assume h t' ht', subset.trans (subset_sUnion_of_mem ht') h, sUnion_subset⟩
+@Sup_le_iff (set α) _ s t
 
 theorem subset_sInter {S : set (set α)} {t : set α} (h : ∀t' ∈ S, t ⊆ t') : t ⊆ (⋂₀ S) :=
 le_Inf h
 
 theorem sUnion_subset_sUnion {S T : set (set α)} (h : S ⊆ T) : ⋃₀ S ⊆ ⋃₀ T :=
-sUnion_subset $ λ s hs, subset_sUnion_of_mem (h hs)
+Sup_le_Sup h
 
 theorem sInter_subset_sInter {S T : set (set α)} (h : S ⊆ T) : ⋂₀ T ⊆ ⋂₀ S :=
-subset_sInter $ λ s hs, sInter_subset_of_mem (h hs)
+Inf_le_Inf h
 
 @[simp] theorem sUnion_empty : ⋃₀ ∅ = (∅ : set α) := Sup_empty
 

@@ -98,6 +98,10 @@ section has_bounded_smul
 
 variables [has_zero α] [has_zero β] [has_scalar α β]
 
+/-- Mixin typeclass on a scalar action of a metric space `α` on a metric space `β` both with
+distinguished points `0`, requiring compatibility of the action in the sense that
+`dist (x • y₁) (x • y₂) ≤ dist x 0 * dist y₁ y₂` and
+`dist (x₁ • y) (x₂ • y) ≤ dist x₁ x₂ * dist y 0`. -/
 class has_bounded_smul : Prop :=
 ( dist_smul_pair' : ∀ x : α, ∀ y₁ y₂ : β, dist (x • y₁) (x • y₂) ≤ dist x 0 * dist y₁ y₂ )
 ( dist_pair_smul' : ∀ x₁ x₂ : α, ∀ y : β, dist (x₁ • y) (x₂ • y) ≤ dist x₁ x₂ * dist y 0 )
@@ -110,6 +114,8 @@ has_bounded_smul.dist_smul_pair' x y₁ y₂
 lemma dist_pair_smul (x₁ x₂ : α) (y : β) : dist (x₁ • y) (x₂ • y) ≤ dist x₁ x₂ * dist y 0 :=
 has_bounded_smul.dist_pair_smul' x₁ x₂ y
 
+/-- The typeclass `has_bounded_smul` on a metric-space scalar action implies continuity of the
+action. -/
 instance has_bounded_smul.has_continuous_smul : has_continuous_smul α β :=
 { continuous_smul := begin
     rw metric.continuous_iff,

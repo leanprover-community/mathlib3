@@ -96,47 +96,50 @@ end has_lipschitz_mul
 
 section has_bounded_smul
 
-class has_bounded_smul [has_zero α] [has_zero β] [has_scalar α β] : Prop :=
+variables [has_zero α] [has_zero β] [has_scalar α β]
+
+class has_bounded_smul : Prop :=
 ( dist_smul_pair' : ∀ x : α, ∀ y₁ y₂ : β, dist (x • y₁) (x • y₂) ≤ dist x 0 * dist y₁ y₂ )
 ( dist_pair_smul' : ∀ x₁ x₂ : α, ∀ y : β, dist (x₁ • y) (x₂ • y) ≤ dist x₁ x₂ * dist y 0 )
 
-variables {α β}
+variables {α β} [has_bounded_smul α β]
 
-lemma dist_smul_pair [has_zero α] [has_zero β] [has_scalar α β] [has_bounded_smul α β] (x : α) (y₁ y₂ : β) :
-  dist (x • y₁) (x • y₂) ≤ dist x 0 * dist y₁ y₂ :=
+lemma dist_smul_pair  (x : α) (y₁ y₂ : β) : dist (x • y₁) (x • y₂) ≤ dist x 0 * dist y₁ y₂ :=
 has_bounded_smul.dist_smul_pair' x y₁ y₂
 
-lemma dist_pair_smul [has_zero α] [has_zero β] [has_scalar α β] [has_bounded_smul α β] (x₁ x₂ : α) (y : β) :
-  dist (x₁ • y) (x₂ • y) ≤ dist x₁ x₂ * dist y 0 :=
+lemma dist_pair_smul (x₁ x₂ : α) (y : β) : dist (x₁ • y) (x₂ • y) ≤ dist x₁ x₂ * dist y 0 :=
 has_bounded_smul.dist_pair_smul' x₁ x₂ y
 
-instance has_bounded_smul.has_continuous_smul [has_zero α] [has_zero β] [has_scalar α β]
-  [has_bounded_smul α β] : has_continuous_smul α β :=
+instance has_bounded_smul.has_continuous_smul : has_continuous_smul α β :=
 { continuous_smul := begin
-    rw continuous_iff_continuous_at,
-    rintros ⟨a, b⟩,
-    change filter.tendsto _ _ _,
-    rw metric.nhds_basis_ball.tendsto_iff metric.nhds_basis_ball,
-    simp,
-    intros ε hε,
-    let δ : ℝ := sorry,
-    have hδ_pos : 0 < δ := sorry,
-    have hδ : δ * (dist a 0 + dist b 0 + δ) < ε := sorry,
-    refine ⟨δ, hδ_pos, _⟩,
-    rintros a' b' hab',
-    refine lt_of_le_of_lt _ hδ,
-    have := dist_triangle (a' • b') (a • b') (a • b),
-    have := dist_smul_pair a b' b,
-    have := dist_pair_smul a a' b',
-    have := dist_comm (a • b') (a' • b'),
-    have := dist_comm a a',
-    have := dist_triangle b' b 0,
-    have := lt_of_le_of_lt (le_max_left _ _) hab',
-    have := lt_of_le_of_lt (le_max_right _ _) hab',
+    rw metric.continuous_iff,
+    rintros ⟨a, b⟩ ε hε,
     have : 0 ≤ dist a 0 := dist_nonneg,
     have : 0 ≤ dist b 0 := dist_nonneg,
-    have : 0 ≤ dist a' a := dist_nonneg,
-    nlinarith,
+    let δ : ℝ := min 1 ((dist a 0 + dist b 0 + 2)⁻¹ * ε),
+    have hδ_pos : 0 < δ,
+    { refine lt_min_iff.mpr ⟨by norm_num, mul_pos _ hε⟩,
+      rw inv_pos,
+      linarith },
+    refine ⟨δ, hδ_pos, _⟩,
+    rintros ⟨a', b'⟩ hab',
+    calc _ ≤ _ : dist_triangle _ (a • b') _
+    ... ≤ δ * (dist a 0 + dist b 0 + δ) : _
+    ... < ε : _,
+    { have : 0 ≤ dist a' a := dist_nonneg,
+      have := dist_triangle b' b 0,
+      have := dist_comm (a • b') (a' • b'),
+      have := dist_comm a a',
+      have : dist a' a ≤ dist (a', b') (a, b) := le_max_left _ _,
+      have : dist b' b ≤ dist (a', b') (a, b) := le_max_right _ _,
+      have := dist_smul_pair a b' b,
+      have := dist_pair_smul a a' b',
+      nlinarith },
+    { have : δ ≤ _ := min_le_right _ _,
+      have : δ ≤ _ := min_le_left _ _,
+      have : (dist a 0 + dist b 0 + 2)⁻¹ * (ε * (dist a 0 + dist b 0 + δ)) < ε,
+      { rw inv_mul_lt_iff; nlinarith },
+      nlinarith }
   end }
 
 -- this instance could be deduced from `normed_space.has_bounded_smul`, but we prove it separately
@@ -145,7 +148,7 @@ instance real.has_bounded_smul : has_bounded_smul ℝ ℝ :=
 { dist_smul_pair' := λ x y₁ y₂, by simpa [real.dist_eq, mul_sub] using (abs_mul x (y₁ - y₂)).le,
   dist_pair_smul' := λ x₁ x₂ y, by simpa [real.dist_eq, sub_mul] using (abs_mul (x₁ - x₂) y).le }
 
-instance nnreal.has_bounded_mul : has_bounded_smul ℝ≥0 ℝ≥0 :=
+instance nnreal.has_bounded_smul : has_bounded_smul ℝ≥0 ℝ≥0 :=
 { dist_smul_pair' := λ x y₁ y₂, by convert dist_smul_pair (x:ℝ) (y₁:ℝ) y₂ using 1,
   dist_pair_smul' := λ x₁ x₂ y, by convert dist_pair_smul (x₁:ℝ) x₂ (y:ℝ) using 1 }
 

@@ -73,8 +73,10 @@ complete lattices, we prefix Inf and Sup by a c everywhere. The same statements 
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_lattice (α : Type*) extends lattice α, has_Sup α, has_Inf α :=
-(is_lub_cSup : ∀ s : set α, s.nonempty → bdd_above s → is_lub s (Sup s))
-(is_glb_cInf : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (Inf s))
+(le_cSup : ∀s a, bdd_above s → a ∈ s → a ≤ Sup s)
+(cSup_le : ∀ s a, set.nonempty s → a ∈ upper_bounds s → Sup s ≤ a)
+(cInf_le : ∀s a, bdd_below s → a ∈ s → Inf s ≤ a)
+(le_cInf : ∀s a, set.nonempty s → a ∈ lower_bounds s → a ≤ Inf s)
 
 /-- A conditionally complete linear order is a linear order in which
 every nonempty subset which is bounded above has a supremum, and
@@ -106,8 +108,10 @@ on the properties of Inf and Sup in a complete lattice.-/
 @[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
   conditionally_complete_lattice α :=
-{ is_lub_cSup := λ s _ _, is_lub_Sup s,
-  is_glb_cInf := λ s _ _, is_glb_Inf s,
+{ le_cSup := by intros; apply le_Sup; assumption,
+  cSup_le := by intros; apply Sup_le; assumption,
+  cInf_le := by intros; apply Inf_le; assumption,
+  le_cInf := by intros; apply le_Inf; assumption,
   ..‹complete_lattice α› }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -115,69 +119,14 @@ instance conditionally_complete_linear_order_of_complete_linear_order [complete_
   conditionally_complete_linear_order α :=
 { ..conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
 
-/-- Construct a `conditionally_complete_lattice` from a `lattice` structure and a function `Inf`
-such that `is_glb s (Inf s)` for any nonempty bounded below set `s`. We put
-`Sup s = Inf (upper_bounds s)`. See also `conditionally_complete_lattice_of_exists_is_glb`. -/
-def conditionally_complete_lattice_of_Inf {α : Type*} [lattice α]
-  (f : set α → α) (H : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (f s)) :
-  conditionally_complete_lattice α :=
-{ Inf := f, Sup := λ s, f (upper_bounds s),
-  is_glb_cInf := H,
-  is_lub_cSup := λ s hne hbdd,
-    have s ⊆ lower_bounds (upper_bounds s), from λ x hx y hy, hy hx,
-    ⟨λ x hx, (H _ hbdd (hne.mono this)).2 (this hx), (H _ hbdd (hne.mono this)).1⟩,
-  .. ‹lattice α› }
-
-section classical
-
-open_locale classical
-
-variables [lattice α]
-
-/-- Construct a `conditionally_complete_lattice` from a `lattice` structure, a proof of the fact
-that every nonempty bounded below set has the greatest lower bound, and the default value for the
-empty set and for unbounded sets. We put `Inf s` to be this greatest lower bound if `s` is nonempty
-and bounded below, and `Inf s = d` otherwise. We put `Sup s = Inf (upper_bounds s)`.
-
-This constructor is used in `mathlib` for all non-constructive instances of
-`conditionally_complete_lattice`. -/
-noncomputable def conditionally_complete_lattice_of_exists_is_glb
-  (H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a) (d : α) :
-  conditionally_complete_lattice α :=
-conditionally_complete_lattice_of_Inf
-  (λ s, if h : s.nonempty ∧ bdd_below s then (H s h.1 h.2).some else d)
-  (λ s hne hbdd, by { rw dif_pos (and.intro hne hbdd), apply Exists.some_spec } )
-
-variables {H : ∀ s : set α, s.nonempty → bdd_below s → ∃ a, is_glb s a} {d : α} {s : set α}
-
-@[simp] lemma cInf_empty :
-  @Inf α (@conditionally_complete_lattice.to_has_Inf _ $
-    conditionally_complete_lattice_of_exists_is_glb H d) ∅ = d :=
-dif_neg $ by simp
-
-lemma cInf_of_not_bdd_below (h : ¬ bdd_below s) :
-  @Inf α (@conditionally_complete_lattice.to_has_Inf _ $
-    conditionally_complete_lattice_of_exists_is_glb H d) s = d :=
-dif_neg $ by simp [h]
-
-lemma cSup_of_not_bdd_above (h : ¬ bdd_above s) :
-  @Sup α (@conditionally_complete_lattice.to_has_Sup _ $
-    conditionally_complete_lattice_of_exists_is_glb H d) s = d :=
-dif_neg $ by { dunfold bdd_above at h, simp [h] }
-
-@[simp] lemma cSup_empty' [no_bot_order α] :
-  @Sup α (@conditionally_complete_lattice.to_has_Sup _ $
-    conditionally_complete_lattice_of_exists_is_glb H d) ∅ = d :=
-dif_neg $ by simp
-
-end classical
-
 section order_dual
 
 instance (α : Type*) [conditionally_complete_lattice α] :
   conditionally_complete_lattice (order_dual α) :=
-{ is_lub_cSup := @conditionally_complete_lattice.is_glb_cInf α _,
-  is_glb_cInf := @conditionally_complete_lattice.is_lub_cSup α _,
+{ le_cSup := @conditionally_complete_lattice.cInf_le α _,
+  cSup_le := @conditionally_complete_lattice.le_cInf α _,
+  le_cInf := @conditionally_complete_lattice.cSup_le α _,
+  cInf_le := @conditionally_complete_lattice.le_cSup α _,
   ..order_dual.has_Inf α,
   ..order_dual.has_Sup α,
   ..order_dual.lattice α }
@@ -192,23 +141,17 @@ end order_dual
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}
 
-lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
-conditionally_complete_lattice.is_lub_cSup s ne H
-
 theorem le_cSup (h₁ : bdd_above s) (h₂ : a ∈ s) : a ≤ Sup s :=
-(is_lub_cSup ⟨a, h₂⟩ h₁).1 h₂
+conditionally_complete_lattice.le_cSup s a h₁ h₂
 
 theorem cSup_le (h₁ : s.nonempty) (h₂ : ∀b∈s, b ≤ a) : Sup s ≤ a :=
-(is_lub_cSup h₁ ⟨a, h₂⟩).2 h₂
-
-lemma is_glb_cInf (ne : s.nonempty) (H : bdd_below s) : is_glb s (Inf s) :=
-conditionally_complete_lattice.is_glb_cInf s ne H
+conditionally_complete_lattice.cSup_le s a h₁ h₂
 
 theorem cInf_le (h₁ : bdd_below s) (h₂ : a ∈ s) : Inf s ≤ a :=
-(is_glb_cInf ⟨a, h₂⟩ h₁).1 h₂
+conditionally_complete_lattice.cInf_le s a h₁ h₂
 
 theorem le_cInf (h₁ : s.nonempty) (h₂ : ∀b∈s, a ≤ b) : a ≤ Inf s :=
-(is_glb_cInf h₁ ⟨a, h₂⟩).2 h₂
+conditionally_complete_lattice.le_cInf s a h₁ h₂
 
 theorem le_cSup_of_le (_ : bdd_above s) (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
 le_trans h (le_cSup ‹bdd_above s› hb)
@@ -222,55 +165,25 @@ cSup_le ‹_› (assume (a) (ha : a ∈ s), le_cSup ‹bdd_above t› (h ha))
 theorem cInf_le_cInf (_ : bdd_below t) (_ : s.nonempty) (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_cInf ‹_› (assume (a) (ha : a ∈ s), cInf_le ‹bdd_below t› (h ha))
 
-lemma is_lub_csupr [nonempty ι] {f : ι → α} (H : bdd_above (range f)) :
-  is_lub (range f) (⨆ i, f i) :=
-is_lub_cSup (range_nonempty f) H
+lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
+⟨assume x, le_cSup H, assume x, cSup_le ne⟩
 
-lemma is_lub_csupr_set {f : β → α} {s : set β} (H : bdd_above (f '' s)) (Hne : s.nonempty) :
-  is_lub (f '' s) (⨆ i : s, f i) :=
-by { rw image_eq_range at *, haveI := Hne.to_subtype, exact is_lub_csupr H }
-
-lemma is_glb_cinfi [nonempty ι] {f : ι → α} (H : bdd_below (range f)) :
-  is_glb (range f) (⨅ i, f i) :=
-is_glb_cInf (range_nonempty f) H
-
-lemma is_glb_cinfi_set {f : β → α} {s : set β} (H : bdd_below (f '' s)) (Hne : s.nonempty) :
-  is_glb (f '' s) (⨅ i : s, f i) :=
-by { rw image_eq_range at *, haveI := Hne.to_subtype, exact is_glb_cinfi H }
+lemma is_glb_cInf (ne : s.nonempty) (H : bdd_below s) : is_glb s (Inf s) :=
+⟨assume x, cInf_le H, assume x, le_cInf ne⟩
 
 lemma is_lub.cSup_eq (H : is_lub s a) (ne : s.nonempty) : Sup s = a :=
 (is_lub_cSup ne ⟨a, H.1⟩).unique H
-
-lemma is_lub.csupr_eq [nonempty ι] {f : ι → α} (H : is_lub (range f) a) : (⨆ i, f i) = a :=
-H.cSup_eq (range_nonempty f)
-
-lemma is_lub.csupr_set_eq {s : set β} {f : β → α} (H : is_lub (f '' s) a) (Hne : s.nonempty) :
-  (⨆ i : s, f i) = a :=
-is_lub.cSup_eq (image_eq_range f s ▸ H) (image_eq_range f s ▸ Hne.image f)
 
 /-- A greatest element of a set is the supremum of this set. -/
 lemma is_greatest.cSup_eq (H : is_greatest s a) : Sup s = a :=
 H.is_lub.cSup_eq H.nonempty
 
-lemma is_greatest.Sup_mem (H : is_greatest s a) : Sup s ∈ s :=
-H.cSup_eq.symm ▸ H.1
-
 lemma is_glb.cInf_eq (H : is_glb s a) (ne : s.nonempty) : Inf s = a :=
 (is_glb_cInf ne ⟨a, H.1⟩).unique H
-
-lemma is_glb.cinfi_eq [nonempty ι] {f : ι → α} (H : is_lub (range f) a) : (⨆ i, f i) = a :=
-H.cSup_eq (range_nonempty f)
-
-lemma is_glb.cinfi_set_eq {s : set β} {f : β → α} (H : is_glb (f '' s) a) (Hne : s.nonempty) :
-  (⨅ i : s, f i) = a :=
-is_glb.cInf_eq (image_eq_range f s ▸ H) (image_eq_range f s ▸ Hne.image f)
 
 /-- A least element of a set is the infimum of this set. -/
 lemma is_least.cInf_eq (H : is_least s a) : Inf s = a :=
 H.is_glb.cInf_eq H.nonempty
-
-lemma is_least.Inf_mem (H : is_least s a) : Inf s ∈ s :=
-H.cInf_eq.symm ▸ H.1
 
 lemma subset_Icc_cInf_cSup (hb : bdd_below s) (ha : bdd_above s) :
   s ⊆ Icc (Inf s) (Sup s) :=
@@ -536,10 +449,14 @@ end conditionally_complete_lattice
 instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
   [Π i, conditionally_complete_lattice (α i)] :
   conditionally_complete_lattice (Π i, α i) :=
-{ is_lub_cSup := λ s hne h_bdd, is_lub_pi _ _ $ λ i,
-    by exact is_lub_csupr_set ((function.monotone_eval i).map_bdd_above h_bdd) hne,
-  is_glb_cInf := λ s hne h_bdd, is_glb_pi _ _ $ λ i,
-    by exact is_glb_cinfi_set ((function.monotone_eval i).map_bdd_below h_bdd) hne,
+{ le_cSup := λ s f ⟨g, hg⟩ hf i, le_cSup ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
+    ⟨⟨f, hf⟩, rfl⟩,
+  cSup_le := λ s f hs hf i, cSup_le (by haveI := hs.to_subtype; apply range_nonempty) $
+    λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
+  cInf_le := λ s f ⟨g, hg⟩ hf i, cInf_le ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
+    ⟨⟨f, hf⟩, rfl⟩,
+  le_cInf := λ s f hs hf i, le_cInf (by haveI := hs.to_subtype; apply range_nonempty) $
+    λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
   .. pi.lattice, .. pi.has_Sup, .. pi.has_Inf }
 
 section conditionally_complete_linear_order
@@ -626,78 +543,48 @@ end conditionally_complete_linear_order_bot
 
 namespace nat
 
-/-- This instance is necessary, otherwise the lattice operations would be derived via
-conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := lattice_of_linear_order
-
 open_locale classical
 
-lemma is_least_find {s : set ℕ} (h : s.nonempty) : is_least s (nat.find h) :=
-⟨nat.find_spec h, λ _, nat.find_min' h⟩
+noncomputable instance : has_Inf ℕ :=
+⟨λs, if h : ∃n, n ∈ s then @nat.find (λn, n ∈ s) _ h else 0⟩
 
-lemma is_glb_find {s : set ℕ} (h : s.nonempty) : is_glb s (nat.find h) :=
-(is_least_find h).is_glb
-
-noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
-{ cSup_empty := (dif_pos $ by simp).trans $ is_glb.unique (Exists.some_spec _) $
-    by simpa using is_glb_univ,
-  .. (infer_instance : order_bot ℕ), .. nat.lattice, .. (infer_instance : linear_order ℕ),
-  .. conditionally_complete_lattice_of_exists_is_glb
-    (λ s hne hbdd, ⟨nat.find hne, is_glb_find hne⟩) 0 }
-
+noncomputable instance : has_Sup ℕ :=
+⟨λs, if h : ∃n, ∀a∈s, a ≤ n then @nat.find (λn, ∀a∈s, a ≤ n) _ h else 0⟩
 
 lemma Inf_def {s : set ℕ} (h : s.nonempty) : Inf s = @nat.find (λn, n ∈ s) _ h :=
-(is_least_find h).cInf_eq
+dif_pos _
 
-lemma Sup_def {s : set ℕ} (h : bdd_above s) :
+lemma Sup_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
   Sup s = @nat.find (λn, ∀a∈s, a ≤ n) _ h :=
-Inf_def h
+dif_pos _
 
 @[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|h,
-  { simp only [cInf_empty, eq_self_iff_true, or_true] },
-  { simp only [nat.Inf_def h, nat.find_eq_zero, h.ne_empty, or_false] }
+  cases eq_empty_or_nonempty s,
+  { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
+      mem_empty_eq, exists_false, dif_neg, not_false_iff] },
+  { have := ne_empty_iff_nonempty.mpr h,
+    simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
 
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
-(is_least_find h).Inf_mem
-
-protected lemma Inf_le {s : set ℕ} {m : ℕ} (hm : m ∈ s) : Inf s ≤ m :=
-cInf_le (order_bot.bdd_below _) hm
+by { rw [nat.Inf_def h], exact nat.find_spec h }
 
 lemma not_mem_of_lt_Inf {s : set ℕ} {m : ℕ} (hm : m < Inf s) : m ∉ s :=
-mt nat.Inf_le hm.not_le
-
-protected lemma is_least_Inf {s : set ℕ} (h : s.nonempty) : is_least s (Inf s) :=
-⟨Inf_mem h, λ m, nat.Inf_le⟩
-
-protected lemma is_lub_Sup {s : set ℕ} (h : bdd_above s) : is_lub s (Sup s) :=
-nat.is_least_Inf h
-
-lemma is_greatest_of_is_lub {s : set ℕ} {n : ℕ} (h : is_lub s n) (hne : s.nonempty ∨ n ≠ 0) :
-  is_greatest s n :=
 begin
-  refine ⟨_, h.1⟩,
-  cases n,
-  { rcases hne.resolve_right (λ h, h rfl) with ⟨m, hm⟩,
-    convert ← hm,
-    exact nonpos_iff_eq_zero.mp (h.1 hm) },
-  { rcases h.exists_between n.lt_succ_self with ⟨m, hms, hlt, hle⟩,
-    convert hms,
-    exact le_antisymm hlt hle }
+  cases eq_empty_or_nonempty s,
+  { subst h, apply not_mem_empty },
+  { rw [nat.Inf_def h] at hm, exact nat.find_min h hm }
 end
 
-protected lemma is_greatest_Sup {s : set ℕ} (hne : s.nonempty) (hbd : bdd_above s) :
-  is_greatest s (Sup s) :=
-is_greatest_of_is_lub (nat.is_lub_Sup hbd) (or.inl hne)
+protected lemma Inf_le {s : set ℕ} {m : ℕ} (hm : m ∈ s) : Inf s ≤ m :=
+by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
 
 lemma nonempty_of_pos_Inf {s : set ℕ} (h : 0 < Inf s) : s.nonempty :=
 begin
-  contrapose! h,
-  rw set.not_nonempty_iff_eq_empty at h,
-  subst h,
-  exact cInf_empty.le
+  by_contradiction contra, rw set.not_nonempty_iff_eq_empty at contra,
+  have h' : Inf s ≠ 0, { exact ne_of_gt h, }, apply h',
+  rw nat.Inf_eq_zero, right, assumption,
 end
 
 lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=
@@ -719,6 +606,27 @@ begin
     rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
     exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
 end
+
+/-- This instance is necessary, otherwise the lattice operations would be derived via
+conditionally_complete_linear_order_bot and marked as noncomputable. -/
+instance : lattice ℕ := lattice_of_linear_order
+
+noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
+{ Sup := Sup, Inf := Inf,
+  le_cSup    := assume s a hb ha, by rw [Sup_def hb]; revert a ha; exact @nat.find_spec _ _ hb,
+  cSup_le    := assume s a hs ha, by rw [Sup_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
+  le_cInf    := assume s a hs hb,
+    by rw [Inf_def hs]; exact hb (@nat.find_spec (λn, n ∈ s) _ _),
+  cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
+  cSup_empty :=
+  begin
+    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
+      exists_const],
+    apply bot_unique (nat.find_min' _ _),
+    trivial
+  end,
+  .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
+  .. (infer_instance : linear_order ℕ) }
 
 end nat
 
@@ -754,7 +662,7 @@ begin
         { exact ⟨b, hb⟩ } },
       { intros a ha, exact some_le_some.1 (hb ha) } },
     { rintro (⟨⟩|b) hb,
-      { exact le_rfl },
+      { exact _root_.le_refl _ },
       { exfalso, apply h_1, use b, intros a ha, exact some_le_some.1 (hb ha) } } }
 end
 
@@ -763,8 +671,10 @@ begin
   cases s.eq_empty_or_nonempty with hs hs,
   { rw hs,
     show is_lub ∅ (ite _ _ _),
-    rw [if_neg (not_mem_empty _), preimage_empty, if_pos (@bdd_above_empty α _ _), cSup_empty],
-    exact is_lub_empty },
+    split_ifs,
+    { cases h },
+    { rw [preimage_empty, cSup_empty], exact is_lub_empty },
+    { exfalso, apply h_1, use ⊥, rintro a ⟨⟩ } },
   exact is_lub_Sup' hs,
 end
 
@@ -896,76 +806,6 @@ lemma le_cInf_image {s : set α} (hs : s.nonempty) {B : α} (hB: B ∈ lower_bou
 
 end monotone
 
-namespace galois_connection
-
-variables {γ : Type*} [conditionally_complete_lattice α] [conditionally_complete_lattice β]
-  [nonempty ι] {l : α → β} {u : β → α}
-
-lemma l_apply_cSup (gc : galois_connection l u) {s : set α} (hne : s.nonempty)
-  (hbdd : bdd_above s) :
-  l (Sup s) = ⨆ x : s, l x :=
-eq.symm $ is_lub.csupr_set_eq (gc.is_lub_l_image $ is_lub_cSup hne hbdd) hne
-
-lemma l_apply_csupr (gc : galois_connection l u) {f : ι → α}
-  (hf : bdd_above (range f)) :
-  l (⨆ i, f i) = ⨆ i, l (f i) :=
-by rw [supr, gc.l_apply_cSup (range_nonempty _) hf, supr_range']
-
-lemma l_apply_csupr_set (gc : galois_connection l u) {s : set γ} {f : γ → α}
-  (hf : bdd_above (f '' s)) (hne : s.nonempty) :
-  l (⨆ i : s, f i) = ⨆ i : s, l (f i) :=
-by { haveI := hne.to_subtype, rw image_eq_range at hf, exact gc.l_apply_csupr hf }
-
-lemma u_apply_cInf (gc : galois_connection l u) {s : set β} (hne : s.nonempty)
-  (hbdd : bdd_below s) :
-  u (Inf s) = ⨅ x : s, u x :=
-gc.dual.l_apply_cSup hne hbdd
-
-lemma u_apply_cinfi (gc : galois_connection l u) {f : ι → β}
-  (hf : bdd_below (range f)) :
-  u (⨅ i, f i) = ⨅ i, u (f i) :=
-gc.dual.l_apply_csupr hf
-
-lemma u_apply_cinfi_set (gc : galois_connection l u) {s : set γ} {f : γ → β}
-  (hf : bdd_below (f '' s)) (hne : s.nonempty) :
-  u (⨅ i : s, f i) = ⨅ i : s, u (f i) :=
-gc.dual.l_apply_csupr_set hf hne
-
-end galois_connection
-
-namespace order_iso
-
-variables {γ : Type*} [conditionally_complete_lattice α] [conditionally_complete_lattice β]
-  [nonempty ι]
-
-lemma map_cSup (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
-  e (Sup s) = ⨆ x : s, e x :=
-e.to_galois_connection.l_apply_cSup hne hbdd
-
-lemma map_csupr (e : α ≃o β) {f : ι → α} (hf : bdd_above (range f)) :
-  e (⨆ i, f i) = ⨆ i, e (f i) :=
-e.to_galois_connection.l_apply_csupr hf
-
-lemma map_csupr_set (e : α ≃o β) {s : set γ} {f : γ → α}
-  (hf : bdd_above (f '' s)) (hne : s.nonempty) :
-  e (⨆ i : s, f i) = ⨆ i : s, e (f i) :=
-e.to_galois_connection.l_apply_csupr_set hf hne
-
-lemma map_cInf (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_below s) :
-  e (Inf s) = ⨅ x : s, e x :=
-e.dual.map_cSup hne hbdd
-
-lemma map_cinfi (e : α ≃o β) {f : ι → α} (hf : bdd_below (range f)) :
-  e (⨅ i, f i) = ⨅ i, e (f i) :=
-e.dual.map_csupr hf
-
-lemma map_cinfi_set (e : α ≃o β) {s : set γ} {f : γ → α}
-  (hf : bdd_below (f '' s)) (hne : s.nonempty) :
-  e (⨅ i : s, f i) = ⨅ i : s, e (f i) :=
-e.dual.map_csupr_set hf hne
-
-end order_iso
-
 /-!
 ### Relation between `Sup` / `Inf` and `finset.sup'` / `finset.inf'`
 
@@ -1025,8 +865,10 @@ gives a conditionally complete lattice -/
 noncomputable instance with_top.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_top α) :=
-{ is_lub_cSup := λ S hne hbdd, with_top.is_lub_Sup' hne,
-  is_glb_cInf := λ S hne hbdd, with_top.is_glb_Inf' hbdd,
+{ le_cSup := λ S a hS haS, (with_top.is_lub_Sup' ⟨a, haS⟩).1 haS,
+  cSup_le := λ S a hS haS, (with_top.is_lub_Sup' hS).2 haS,
+  cInf_le := λ S a hS haS, (with_top.is_glb_Inf' hS).1 haS,
+  le_cInf := λ S a hS haS, (with_top.is_glb_Inf' ⟨a, haS⟩).2 haS,
   ..with_top.lattice,
   ..with_top.has_Sup,
   ..with_top.has_Inf }
@@ -1036,8 +878,10 @@ gives a conditionally complete lattice -/
 noncomputable instance with_bot.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_bot α) :=
-{ is_lub_cSup := @conditionally_complete_lattice.is_glb_cInf (with_top $ order_dual α) _,
-  is_glb_cInf := @conditionally_complete_lattice.is_lub_cSup (with_top $ order_dual α) _,
+{ le_cSup := (@with_top.conditionally_complete_lattice (order_dual α) _).cInf_le,
+  cSup_le := (@with_top.conditionally_complete_lattice (order_dual α) _).le_cInf,
+  cInf_le := (@with_top.conditionally_complete_lattice (order_dual α) _).le_cSup,
+  le_cInf := (@with_top.conditionally_complete_lattice (order_dual α) _).cSup_le,
   ..with_bot.lattice,
   ..with_bot.has_Sup,
   ..with_bot.has_Inf }
@@ -1156,16 +1000,29 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
   (h_Sup : ∀ {t : set s} (ht : t.nonempty) (h_bdd : bdd_above t), Sup (coe '' t : set α) ∈ s)
   (h_Inf : ∀ {t : set s} (ht : t.nonempty) (h_bdd : bdd_below t), Inf (coe '' t : set α) ∈ s) :
   conditionally_complete_linear_order s :=
-{ is_lub_cSup := λ t hne h_bdd, is_lub.of_image (@subtype.coe_le_coe _ _ _) $
-    begin
-      rw [← subset_Sup_of_within s (h_Sup hne h_bdd)],
-      exact is_lub_cSup (hne.image coe) ((subtype.mono_coe _).map_bdd_above h_bdd)
-    end,
-  is_glb_cInf := λ t hne h_bdd, is_glb.of_image (@subtype.coe_le_coe _ _ _) $
-    begin
-      rw [← subset_Inf_of_within s (h_Inf hne h_bdd)],
-      exact is_glb_cInf (hne.image coe) ((subtype.mono_coe _).map_bdd_below h_bdd)
-    end,
+{ le_cSup := begin
+    rintros t c h_bdd hct,
+    -- The following would be a more natural way to finish, but gives a "deep recursion" error:
+    -- simpa [subset_Sup_of_within (h_Sup t)] using
+    --   (strict_mono_coe s).monotone.le_cSup_image hct h_bdd,
+    have := (subtype.mono_coe s).le_cSup_image hct h_bdd,
+    rwa subset_Sup_of_within s (h_Sup ⟨c, hct⟩ h_bdd) at this,
+  end,
+  cSup_le := begin
+    rintros t B ht hB,
+    have := (subtype.mono_coe s).cSup_image_le ht hB,
+    rwa subset_Sup_of_within s (h_Sup ht ⟨B, hB⟩) at this,
+  end,
+  le_cInf := begin
+    intros t B ht hB,
+    have := (subtype.mono_coe s).le_cInf_image ht hB,
+    rwa subset_Inf_of_within s (h_Inf ht ⟨B, hB⟩) at this,
+  end,
+  cInf_le := begin
+    rintros t c h_bdd hct,
+    have := (subtype.mono_coe s).cInf_image_le hct h_bdd,
+    rwa subset_Inf_of_within s (h_Inf ⟨c, hct⟩ h_bdd) at this,
+  end,
   ..subset_has_Sup s,
   ..subset_has_Inf s,
   ..distrib_lattice.to_lattice s,

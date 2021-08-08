@@ -394,14 +394,35 @@ begin
       let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
 end
 
-noncomputable instance : conditionally_complete_linear_order ℝ :=
-{ ..real.linear_order,
-  .. conditionally_complete_lattice_of_is_lub_of_rel_iso exists_is_lub 0 order_iso.neg }
+noncomputable instance : has_Sup ℝ :=
+⟨λ S, if h : S.nonempty ∧ bdd_above S then classical.some (exists_is_lub S h.1 h.2) else 0⟩
 
 lemma Sup_def (S : set ℝ) :
-  Sup S = if h : S.nonempty ∧ bdd_above S then (exists_is_lub S h.1 h.2).some else 0 := rfl
+  Sup S = if h : S.nonempty ∧ bdd_above S
+    then classical.some (exists_is_lub S h.1 h.2) else 0 := rfl
+
+protected theorem is_lub_Sup (S : set ℝ) (h₁ : S.nonempty) (h₂ : bdd_above S) : is_lub S (Sup S) :=
+by { simp only [Sup_def, dif_pos (and.intro h₁ h₂)], apply classical.some_spec }
+
+noncomputable instance : has_Inf ℝ := ⟨λ S, -Sup (-S)⟩
 
 lemma Inf_def (S : set ℝ) : Inf S = -Sup (-S) := rfl
+
+protected theorem is_glb_Inf (S : set ℝ) (h₁ : S.nonempty) (h₂ : bdd_below S) :
+  is_glb S (Inf S) :=
+begin
+  rw [Inf_def, ← is_lub_neg', neg_neg],
+  exact real.is_lub_Sup _ h₁.neg h₂.neg
+end
+
+noncomputable instance : conditionally_complete_linear_order ℝ :=
+{ Sup := has_Sup.Sup,
+  Inf := has_Inf.Inf,
+  le_cSup := λ s a hs ha, (real.is_lub_Sup s ⟨a, ha⟩ hs).1 ha,
+  cSup_le := λ s a hs ha, (real.is_lub_Sup s hs ⟨a, ha⟩).2 ha,
+  cInf_le := λ s a hs ha, (real.is_glb_Inf s ⟨a, ha⟩ hs).1 ha,
+  le_cInf := λ s a hs ha, (real.is_glb_Inf s hs ⟨a, ha⟩).2 ha,
+ ..real.linear_order, ..real.lattice}
 
 lemma lt_Inf_add_pos {s : set ℝ} (h : s.nonempty) {ε : ℝ} (hε : 0 < ε) :
   ∃ a ∈ s, a < Inf s + ε :=
@@ -444,18 +465,6 @@ by simp [Inf_def, Sup_empty]
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ mt bdd_above_neg.1 hs
-
-lemma supr_add {ι : Type*} [nonempty ι] {f : ι → ℝ} (hf : bdd_above (set.range f)) (a : ℝ) :
-  (⨆ i, f i) + a = ⨆ i, f i + a :=
-(order_iso.add_right a).map_csupr hf
-
-lemma supr_sub {ι : Type*} [nonempty ι] {f : ι → ℝ} (hf : bdd_above (set.range f)) (a : ℝ) :
-  (⨆ i, f i) - a = ⨆ i, f i - a :=
-by simp only [sub_eq_add_neg, supr_add hf]
-
-lemma add_supr {ι : Type*} [nonempty ι] {f : ι → ℝ} (hf : bdd_above (set.range f)) (a : ℝ) :
-  a + (⨆ i, f i) = ⨆ i, a + f i :=
-by simp only [supr_add hf, add_comm a]
 
 /--
 As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it

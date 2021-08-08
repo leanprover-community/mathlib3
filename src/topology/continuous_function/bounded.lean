@@ -488,7 +488,7 @@ variables (α β)
 
 /-- The additive map forgetting that a bounded continuous function is bounded.
 -/
-@[simps] def forget_boundedness_mul_hom : (α →ᵇ β) →+ C(α, β) :=
+@[simps] def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
 { to_fun := forget_boundedness α β,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, }, }

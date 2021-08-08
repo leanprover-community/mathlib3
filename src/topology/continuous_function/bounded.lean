@@ -433,15 +433,16 @@ names (for example, `coe_mul`) to conflict with later lemma names for normed rin
 trivial inconvenience, but in any case there are no obvious applications of the multiplicative
 version. -/
 
-variables [topological_space α] [metric_space β] [add_monoid β] [has_lipschitz_add β]
-
-variables (f g : α →ᵇ β) {x : α} {C : ℝ}
+variables [topological_space α] [metric_space β] [add_monoid β]
 
 instance : has_zero (α →ᵇ β) := ⟨const α 0⟩
 
 @[simp] lemma coe_zero : ((0 : α →ᵇ β) : α → β) = 0 := rfl
 
-lemma forall_coe_zero_iff_zero : (∀x, f x = 0) ↔ f = 0 := (@ext_iff _ _ _ _ f 0).symm
+lemma forall_coe_zero_iff_zero (f : α →ᵇ β) : (∀x, f x = 0) ↔ f = 0 := (@ext_iff _ _ _ _ f 0).symm
+
+variables [has_lipschitz_add β]
+variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=

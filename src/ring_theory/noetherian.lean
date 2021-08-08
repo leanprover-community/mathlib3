@@ -339,6 +339,9 @@ variables [module R M] [module R P]
 open is_noetherian
 include R
 
+lemma is_noetherian_def : is_noetherian R M ↔ ∀ (s : submodule R M), s.fg :=
+⟨λ h, h.noetherian, is_noetherian.mk⟩
+
 theorem is_noetherian_submodule {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, s ≤ N → s.fg :=
 ⟨λ ⟨hn⟩, λ s hs, have s ≤ N.subtype.range, from (N.range_subtype).symm ▸ hs,
@@ -581,7 +584,7 @@ theorem is_noetherian_ring_iff {R} [ring R] : is_noetherian_ring R ↔ is_noethe
 /-- A commutative ring is Noetherian if and only if all its ideals are finitely-generated. -/
 lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [comm_ring R] :
   is_noetherian_ring R ↔ ∀ I : ideal R, I.fg :=
-is_noetherian_ring_iff.trans ⟨λ h, h.noetherian, is_noetherian.mk⟩
+is_noetherian_ring_iff.trans is_noetherian_def
 
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :

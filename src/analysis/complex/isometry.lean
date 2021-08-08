@@ -58,11 +58,9 @@ def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 lemma rotation_mul_conj_lie (a : circle): rotation a * conj_lie = conj_lie * (rotation a⁻¹) :=
 begin
  ext1 z,
- simp [conj_lie],
- left,
- rw ← coe_inv_circle a,
- rw coe_inv_circle_eq_conj a,
- rw conj_conj a,
+ suffices : (a : ℂ) = conj a⁻¹,
+ { simpa using or.inl this },
+ rw [←coe_inv_circle, coe_inv_circle_eq_conj, conj_conj],
 end
 
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
@@ -191,15 +189,18 @@ lemma mul_4 (i j : zmod m) : dihedral_to_complex hm (sr i) * dihedral_to_complex
 begin
   simp only [dihedral_to_complex],
   rw ← mul_assoc,
-  have : conj_lie * rotation (angle_to_circle ((zmod_to_angle hm) i)) * conj_lie * rotation (angle_to_circle ((zmod_to_angle hm) j)) =
-  conj_lie * (rotation (angle_to_circle ((zmod_to_angle hm) i)) * conj_lie) * rotation (angle_to_circle ((zmod_to_angle hm) j)),
+  have : conj_lie * rotation (angle_to_circle ((zmod_to_angle hm) i)) * conj_lie * 
+  rotation (angle_to_circle ((zmod_to_angle hm) j)) = conj_lie * 
+  (rotation (angle_to_circle ((zmod_to_angle hm) i)) * conj_lie) * 
+  rotation (angle_to_circle ((zmod_to_angle hm) j)),
   { simp [mul_assoc], },
   rw this,
   rw rotation_mul_conj_lie,
   rw ← mul_assoc,
   rw mul_assoc,
   rw ← rotation.map_mul,
-  have this₁ : ((angle_to_circle ((zmod_to_angle hm) i))⁻¹ * angle_to_circle ((zmod_to_angle hm) j)) =
+  have this₁ : ((angle_to_circle ((zmod_to_angle hm) i))⁻¹ * 
+  angle_to_circle ((zmod_to_angle hm) j)) = 
   (angle_to_circle ((zmod_to_angle hm) j) / angle_to_circle ((zmod_to_angle hm) i)),
   { rw mul_comm,
     refl, },
@@ -216,7 +217,8 @@ end
 /-- A homomorphism mapping the dihedral group to linear isometries of ℂ. -/
 def dihedral_to_complex_hom: dihedral_group m →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 { to_fun :=  dihedral_to_complex hm,
-  map_one' := begin change dihedral_to_complex hm (r 0) = _, ext1 z, simp [dihedral_to_complex], end,
+  map_one' := begin change dihedral_to_complex hm (r 0) = _, ext1 z, simp [dihedral_to_complex], 
+  end,
   map_mul' :=
   begin
     rintros (i | i) (j | j),

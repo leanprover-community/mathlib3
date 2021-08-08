@@ -3,11 +3,8 @@ Copyright (c) 2020 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
-
 import data.polynomial.algebra_map
-import algebra.algebra.subalgebra
-import algebra.polynomial.big_operators
-import data.polynomial.erase_lead
+import data.polynomial.div
 
 /-!
 # Polynomials that lift

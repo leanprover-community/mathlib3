@@ -1219,7 +1219,7 @@ space, you may want to use the analogous lemmas in `analysis/normed_space/basic`
 (e.g `tsum_mul_tsum_of_summable_norm`).
 
 We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
-`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_nat`).
+`β = γ = ℕ` to prove the Cauchy product formula (see `tsum_mul_tsum_eq_tsum_sum_antidiagonal`).
 
 ### Arbitrary index types
 -/
@@ -1238,7 +1238,7 @@ have this : ∀ b : β, has_sum (λ c : γ, f b * g c) (f b * t),
   from λ b, hg.mul_left (f b),
 have key₂ : has_sum (λ b, f b * t) u,
   from has_sum.prod_fiberwise hfg this,
-has_sum.unique key₁ key₂
+key₁.unique key₂
 
 lemma has_sum.mul (hf : has_sum f s) (hg : has_sum g t)
   (hfg : summable (λ (x : β × γ), f x.1 * g x.2)) :
@@ -1257,7 +1257,14 @@ end tsum_mul_tsum
 
 section cauchy_product
 
-/-! ### `ℕ`-indexed families (cauchy product) -/
+/-! ### `ℕ`-indexed families (Cauchy product)
+
+We prove two versions of the Cauchy product formula. The first one is
+`tsum_mul_tsum_eq_tsum_sum_range`, where the `n`-th term is a sum over `finset.range (n+1)`
+involving `nat` substraction.
+In order to avoid `nat` substraction, we also provide `tsum_mul_tsum_eq_tsum_sum_antidiagonal`,
+where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
+`finset` `finset.nat.antidiagonal n` -/
 
 variables {f : ℕ → α} {g : ℕ → α}
 
@@ -1265,18 +1272,20 @@ open finset
 
 variables [topological_space α] [semiring α]
 
-lemma summable_mul_iff_summable_cauchy_product_sigma {f g : ℕ → α} :
+/- The family `(k, l) : ℕ × ℕ ↦ f k * g l` is summable if and only if the family
+`(n, k, l) : Σ (n : ℕ), nat.antidiagonal n ↦ f k * g l` is summable. -/
+lemma summable_mul_prod_iff_summable_mul_sigma_antidiagonal {f g : ℕ → α} :
   summable (λ x : ℕ × ℕ, f x.1 * g x.2) ↔
-  summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f x.2.1.1 * g x.2.1.2) :=
+  summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=
 nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
 
 variables [regular_space α] [topological_semiring α]
 
-lemma summable_cauchy_product_antidiagonal_of_summable_mul {f g : ℕ → α}
+lemma summable_sum_mul_antidiagonal_of_summable_mul {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
   summable (λ n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
 begin
-  rw summable_mul_iff_summable_cauchy_product_sigma at h,
+  rw summable_mul_prod_iff_summable_mul_sigma_antidiagonal at h,
   conv {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
   exact h.sigma' (λ n, (has_sum_fintype _).summable),
 end
@@ -1284,7 +1293,7 @@ end
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
     expressed by summing on `finset.nat.antidiagonal`.
     See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`
-    if `f` and `g` are abolutely summable. -/
+    if `f` and `g` are absolutely summable. -/
 lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
   (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ kl in nat.antidiagonal n, f kl.1 * g kl.2) :=
@@ -1292,26 +1301,26 @@ begin
   conv_rhs {congr, funext, rw [← finset.sum_finset_coe, ← tsum_fintype]},
   rw [tsum_mul_tsum hf hg hfg, ← nat.sigma_antidiagonal_equiv_prod.tsum_eq (_ : ℕ × ℕ → α)],
   exact tsum_sigma' (λ n, (has_sum_fintype _).summable)
-    (summable_mul_iff_summable_cauchy_product_sigma.mp hfg)
+    (summable_mul_prod_iff_summable_mul_sigma_antidiagonal.mp hfg)
 end
 
-lemma summable_cauchy_product_range_of_summable_mul' {f g : ℕ → α}
+lemma summable_sum_mul_range_of_summable_mul {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :
   summable (λ n, ∑ k in range (n+1), f k * g (n - k)) :=
 begin
-  conv {congr, funext, rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l)},
-  exact summable_cauchy_product_antidiagonal_of_summable_mul h
+  simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
+  exact summable_sum_mul_antidiagonal_of_summable_mul h
 end
 
 /-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
     expressed by summing on `finset.range`.
     See also `tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`
-    if `f` and `g` are abolutely summable. -/
+    if `f` and `g` are absolutely summable. -/
 lemma tsum_mul_tsum_eq_tsum_sum_range (hf : summable f) (hg : summable g)
   (hfg : summable (λ (x : ℕ × ℕ), f x.1 * g x.2)) :
   (∑' n, f n) * (∑' n, g n) = (∑' n, ∑ k in range (n+1), f k * g (n - k)) :=
 begin
-  conv_rhs {congr, funext, rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l)},
+  simp_rw ← nat.sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
   exact tsum_mul_tsum_eq_tsum_sum_antidiagonal hf hg hfg
 end
 

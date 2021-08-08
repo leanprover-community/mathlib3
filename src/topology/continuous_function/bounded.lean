@@ -429,7 +429,7 @@ distance.
 
 Implementation note: The material in this section could have been written for `has_lipschitz_mul`
 and transported by `@[to_additive]`.  We choose not to do this because this causes a few lemma
-names (for example, `coe_mul`) to conflict with latter lemma names for normed rings; this is only a
+names (for example, `coe_mul`) to conflict with later lemma names for normed rings; this is only a
 trivial inconvenience, but in any case there are no obvious applications of the multiplicative
 version. -/
 

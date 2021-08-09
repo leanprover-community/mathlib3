@@ -1992,7 +1992,7 @@ lemma summable.mul_norm {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
   summable (λ (x : ι × ι'), ∥f x.1 * g x.2∥) :=
 summable_of_nonneg_of_le (λ x, norm_nonneg (f x.1 * g x.2)) (λ x, norm_mul_le (f x.1) (g x.2))
-  (@summable.mul_of_nonneg _ _ _ _ hf hg (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x))
+  (hf.mul_of_nonneg hg (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x) : _)
 
 lemma summable_mul_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
   (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :

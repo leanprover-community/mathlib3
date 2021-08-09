@@ -1623,13 +1623,7 @@ lemma comap_Sup {s : set (filter β)} {m : α → β} : comap m (Sup s) = (⨆f�
 by simp only [Sup_eq_supr, comap_supr, eq_self_iff_true]
 
 lemma comap_sup : comap m (g₁ ⊔ g₂) = comap m g₁ ⊔ comap m g₂ :=
-le_antisymm
-  (assume s ⟨⟨t₁, ht₁, hs₁⟩, ⟨t₂, ht₂, hs₂⟩⟩,
-    ⟨t₁ ∪ t₂,
-      ⟨mem_sets_of_superset ht₁ (subset_union_left _ _),
-        mem_sets_of_superset ht₂ (subset_union_right _ _)⟩,
-      union_subset hs₁ hs₂⟩)
-  ((@comap_mono _ _ m).le_map_sup _ _)
+by rw [sup_eq_supr, comap_supr, supr_bool_eq, bool.cond_tt, bool.cond_ff]
 
 lemma map_comap (f : filter β) (m : α → β) : (f.comap m).map m = f ⊓ 𝓟 (range m) :=
 begin

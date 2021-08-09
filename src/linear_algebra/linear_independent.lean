@@ -3,6 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
+import algebra.big_operators.finsupp
 import linear_algebra.finsupp
 import linear_algebra.prod
 import linear_algebra.pi
@@ -149,13 +150,8 @@ theorem fintype.linear_independent_iff' [fintype ι] :
     (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
 by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
 
-lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
-begin
- rw [linear_independent_iff],
- intros,
- ext i,
- exact false.elim (h ⟨i⟩)
-end
+lemma linear_independent_empty_type [is_empty ι] : linear_independent R v :=
+linear_independent_iff.mpr $ λ v hv, subsingleton.elim v 0
 
 lemma linear_independent.ne_zero [nontrivial R]
   (i : ι) (hv : linear_independent R v) : v i ≠ 0 :=
@@ -186,7 +182,7 @@ family of vectors. See also `linear_independent.map'` for a special case assumin
 lemma linear_independent.map (hv : linear_independent R v) {f : M →ₗ[R] M'}
   (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
 begin
-  rw [disjoint, ← set.image_univ, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
+  rw [disjoint, ← set.image_univ, finsupp.span_image_eq_map_total, map_inf_eq_map_inf_comap,
     map_le_iff_le_comap, comap_bot, finsupp.supported_univ, top_inf_eq] at hf_inj,
   unfold linear_independent at hv ⊢,
   rw [hv, le_bot_iff] at hf_inj,
@@ -446,6 +442,38 @@ theorem linear_independent.image {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
 by convert linear_independent.image_of_comp s f id hs
 
+lemma linear_independent.group_smul
+  {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : ι → M} (hv : linear_independent R v)
+  (w : ι → G) : linear_independent R (w • v) :=
+begin
+  rw linear_independent_iff'' at hv ⊢,
+  intros s g hgs hsum i,
+  refine (smul_eq_zero_iff_eq (w i)).1 _,
+  refine hv s (λ i, w i • g i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ smul_zero _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros, erw [pi.smul_apply, smul_assoc, smul_comm] },
+end
+
+-- This lemma cannot be proved with `linear_independent.group_smul` since the action of
+-- `units R` on `R` is not commutative.
+lemma linear_independent.units_smul {v : ι → M} (hv : linear_independent R v)
+  (w : ι → units R) : linear_independent R (w • v) :=
+begin
+  rw linear_independent_iff'' at hv ⊢,
+  intros s g hgs hsum i,
+  rw ← (w i).mul_left_eq_zero,
+  refine hv s (λ i, g i • w i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ zero_smul _ _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros,
+    erw [pi.smul_apply, smul_assoc],
+    refl }
+end
+
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 
@@ -453,11 +481,37 @@ lemma linear_independent.disjoint_span_image (hv : linear_independent R v) {s t 
   (hs : disjoint s t) :
   disjoint (submodule.span R $ v '' s) (submodule.span R $ v '' t) :=
 begin
-  simp only [disjoint_def, finsupp.mem_span_iff_total],
+  simp only [disjoint_def, finsupp.mem_span_image_iff_total],
   rintros _ ⟨l₁, hl₁, rfl⟩ ⟨l₂, hl₂, H⟩,
   rw [hv.injective_total.eq_iff] at H, subst l₂,
   have : l₁ = 0 := finsupp.disjoint_supported_supported hs (submodule.mem_inf.2 ⟨hl₁, hl₂⟩),
   simp [this]
+end
+
+lemma linear_independent.not_mem_span_image [nontrivial R] (hv : linear_independent R v) {s : set ι}
+  {x : ι} (h : x ∉ s) :
+  v x ∉ submodule.span R (v '' s) :=
+begin
+  have h' : v x ∈ submodule.span R (v '' {x}),
+  { rw set.image_singleton,
+    exact mem_span_singleton_self (v x), },
+  intro w,
+  apply linear_independent.ne_zero x hv,
+  refine disjoint_def.1 (hv.disjoint_span_image _) (v x) h' w,
+  simpa using h,
+end
+
+lemma linear_independent.total_ne_of_not_mem_support [nontrivial R] (hv : linear_independent R v)
+  {x : ι} (f : ι →₀ R) (h : x ∉ f.support) :
+  finsupp.total ι M R v f ≠ v x :=
+begin
+  replace h : x ∉ (f.support : set ι) := h,
+  have p := hv.not_mem_span_image h,
+  intro w,
+  rw ←w at p,
+  rw finsupp.span_image_eq_map_total at p,
+  simp only [not_exists, not_and, mem_map] at p,
+  exact p f (f.mem_supported_support R) rfl,
 end
 
 lemma linear_independent_sum {v : ι ⊕ ι' → M} :
@@ -506,22 +560,18 @@ lemma linear_independent_Union_finite_subtype {ι : Type*} {f : ι → set M}
 begin
   rw [Union_eq_Union_finset f],
   apply linear_independent_Union_of_directed,
-  apply directed_of_sup,
-  exact (assume t₁ t₂ ht, Union_subset_Union $ assume i, Union_subset_Union_const $ assume h, ht h),
-  assume t, rw [set.Union, ← finset.sup_eq_supr],
-  refine t.induction_on _ _,
-  { rw finset.sup_empty,
-    apply linear_independent_empty_type (not_nonempty_iff_imp_false.2 _),
-    exact λ x, set.not_mem_empty x (subtype.mem x) },
-  { rintros i s his ih,
-    rw [finset.sup_insert],
+  { apply directed_of_sup,
+    exact (λ t₁ t₂ ht, Union_subset_Union $ λ i, Union_subset_Union_const $ λ h, ht h) },
+  assume t,
+  induction t using finset.induction_on with i s his ih,
+  { refine (linear_independent_empty _ _).mono _,
+    simp },
+  { rw [finset.set_bUnion_insert],
     refine (hl _).union ih _,
-    rw [finset.sup_eq_supr],
-    refine (hd i _ _ his).mono_right _,
-    { simp only [(span_Union _).symm],
-      refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
-      rintros i, exact ⟨i, le_refl _⟩ },
-    { exact s.finite_to_set } }
+    refine (hd i s s.finite_to_set his).mono_right _,
+    simp only [(span_Union _).symm],
+    refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
+    exact λ i, ⟨i, le_rfl⟩ }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -558,7 +608,7 @@ variables (hv : linear_independent R v)
 
 /-- Canonical isomorphism between linear combinations and the span of linearly independent vectors.
 -/
-def linear_independent.total_equiv (hv : linear_independent R v) :
+@[simps] def linear_independent.total_equiv (hv : linear_independent R v) :
   (ι →₀ R) ≃ₗ[R] span R (range v) :=
 begin
 apply linear_equiv.of_bijective
@@ -583,7 +633,7 @@ It is simply one direction of `linear_independent.total_equiv`. -/
 def linear_independent.repr (hv : linear_independent R v) :
   span R (range v) →ₗ[R] ι →₀ R := hv.total_equiv.symm
 
-lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
+@[simp] lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
 subtype.ext_iff.1 (linear_equiv.apply_symm_apply hv.total_equiv x)
 
 lemma linear_independent.total_comp_repr :
@@ -617,11 +667,23 @@ begin
   simp [finsupp.total_single, hx]
 end
 
+lemma linear_independent.span_repr_eq [nontrivial R] (x) :
+  span.repr R (set.range v) x = (hv.repr x).equiv_map_domain (equiv.of_injective _ hv.injective) :=
+begin
+  have p : (span.repr R (set.range v) x).equiv_map_domain (equiv.of_injective _ hv.injective).symm =
+    hv.repr x,
+  { apply (linear_independent.total_equiv hv).injective,
+    ext,
+    simp, },
+  ext ⟨_, ⟨i, rfl⟩⟩,
+  simp [←p],
+end
+
 -- TODO: why is this so slow?
 lemma linear_independent_iff_not_smul_mem_span :
   linear_independent R v ↔ (∀ (i : ι) (a : R), a • (v i) ∈ span R (v '' (univ \ {i})) → a = 0) :=
 ⟨ λ hv i a ha, begin
-  rw [finsupp.span_eq_map_total, mem_map] at ha,
+  rw [finsupp.span_image_eq_map_total, mem_map] at ha,
   rcases ha with ⟨l, hl, e⟩,
   rw sub_eq_zero.1 (linear_independent_iff.1 hv (l - finsupp.single i a) (by simp [e])) at hl,
   by_contra hn,
@@ -630,7 +692,7 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
   ext i, simp only [finsupp.zero_apply],
   by_contra hn,
   refine hn (H i _ _),
-  refine (finsupp.mem_span_iff_total _).2 ⟨finsupp.single i (l i) - l, _, _⟩,
+  refine (finsupp.mem_span_image_iff_total _).2 ⟨finsupp.single i (l i) - l, _, _⟩,
   { rw finsupp.mem_supported',
     intros j hj,
     have hij : j = i :=

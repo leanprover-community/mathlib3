@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.homology.homological_complex
 import category_theory.differential_object
-import category_theory.graded_object
 
 /-!
 # Homological complexes are differential graded objects.

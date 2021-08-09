@@ -280,7 +280,7 @@ end add_submonoid
 /-! Lemmas about additive closures of `submonoid`. -/
 namespace submonoid
 
-variables {R : Type*} [semiring R] (S : submonoid R) {a b : R}
+variables {R : Type*} [non_assoc_semiring R] (S : submonoid R) {a b : R}
 
 /-- The product of an element of the additive closure of a multiplicative submonoid `M`
 and an element of `M` is contained in the additive closure of `M`. -/

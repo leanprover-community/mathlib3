@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import data.nat.basic
+import data.nat.pow
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -191,6 +191,10 @@ or.elim (eq_zero_or_pos k)
     by rw [gcd_mul_lcm, ←gcd_mul_right, mul_comm n k];
        exact dvd_gcd (mul_dvd_mul_left _ H2) (mul_dvd_mul_right H1 _))
 
+lemma lcm_dvd_iff {m n k : ℕ} : lcm m n ∣ k ↔ m ∣ k ∧ n ∣ k :=
+⟨λ h, ⟨dvd_trans (dvd_lcm_left _ _) h, dvd_trans (dvd_lcm_right _ _) h⟩,
+  and_imp.2 lcm_dvd⟩
+
 theorem lcm_assoc (m n k : ℕ) : lcm (lcm m n) k = lcm m (lcm n k) :=
 dvd_antisymm
   (lcm_dvd
@@ -338,6 +342,18 @@ theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (
 theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m) (l ^ n) :=
 (H1.pow_left _).pow_right _
 
+lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+  nat.coprime (a ^ n) b ↔ nat.coprime a b :=
+begin
+  obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn.ne',
+  rw [pow_succ, nat.coprime_mul_iff_left],
+  exact ⟨and.left, λ hab, ⟨hab, hab.pow_left _⟩⟩
+end
+
+lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+  nat.coprime a (b ^ n) ↔ nat.coprime a b :=
+by rw [nat.coprime_comm, coprime_pow_left_iff hn, nat.coprime_comm]
+
 theorem coprime.eq_one_of_dvd {k m : ℕ} (H : coprime k m) (d : k ∣ m) : k = 1 :=
 by rw [← H.gcd_eq_one, gcd_eq_left d]
 
@@ -347,6 +363,8 @@ by simp [coprime]
 @[simp] theorem coprime_zero_right (n : ℕ) : coprime n 0 ↔ n = 1 :=
 by simp [coprime]
 
+theorem not_coprime_zero_zero : ¬ coprime 0 0 := by simp
+
 @[simp] theorem coprime_one_left_iff (n : ℕ) : coprime 1 n ↔ true :=
 by simp [coprime]
 
@@ -355,6 +373,12 @@ by simp [coprime]
 
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
+
+lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) :
+  m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=
+(nat.eq_zero_of_mul_eq_zero hmn).imp
+  (λ hm, ⟨hm, n.coprime_zero_left.mp $ hm ▸ h⟩)
+  (λ hn, ⟨m.coprime_zero_left.mp $ hn ▸ h.symm, hn⟩)
 
 /-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
 def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :

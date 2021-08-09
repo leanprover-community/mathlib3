@@ -36,7 +36,7 @@ parameter (H : ∃ n, tt ∈ p n ∧ ∀ k < n, (p k).dom)
 private def wf_lbp : well_founded lbp :=
 ⟨let ⟨n, pn⟩ := H in begin
   suffices : ∀m k, n ≤ k + m → acc (lbp p) k,
-  { from λa, this _ _ (nat.le_add_left _ _) },
+  { from λ a, this _ _ (nat.le_add_left _ _) },
   intros m k kn,
   induction m with m IH generalizing k;
     refine ⟨_, λ y r, _⟩; rcases r with ⟨rfl, a⟩,
@@ -481,11 +481,11 @@ theorem nat_cases_right
     exact ⟨⟨this n, H.fst⟩, H.snd⟩ }
 end
 
-theorem bind_decode2_iff {f : α →. σ} : partrec f ↔
-  nat.partrec (λ n, roption.bind (decode2 α n) (λ a, (f a).map encode)) :=
-⟨λ hf, nat_iff.1 $ (of_option primrec.decode2.to_comp).bind $
+theorem bind_decode₂_iff {f : α →. σ} : partrec f ↔
+  nat.partrec (λ n, roption.bind (decode₂ α n) (λ a, (f a).map encode)) :=
+⟨λ hf, nat_iff.1 $ (of_option primrec.decode₂.to_comp).bind $
   (map hf (computable.encode.comp snd).to₂).comp snd,
-λ h, map_encode_iff.1 $ by simpa [encodek2]
+λ h, map_encode_iff.1 $ by simpa [encodek₂]
   using (nat_iff.2 h).comp (@computable.encode α _)⟩
 
 theorem vector_m_of_fn : ∀ {n} {f : fin n → α →. σ}, (∀ i, partrec (f i)) →

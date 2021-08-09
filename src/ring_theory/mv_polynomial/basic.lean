@@ -61,11 +61,12 @@ begin
   rw [← finsupp.sum_single p, finsupp.sum],
   -- It's not great that we need to use an `erw` here,
   -- but hopefully it will become smoother when we move entirely away from `is_semiring_hom`.
+  -- [note added later: we have moved entirely away from it but we still need the `erw` because
+  -- `finsupp.map_range ⇑↑f` is not syntactically `finsupp.map_range ⇑f` ]
   erw [finsupp.map_range_finset_sum (f : R →+ S)],
-  rw [← (finsupp.support p).sum_hom (map f)],
-  { refine finset.sum_congr rfl (assume n _, _),
-    rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial], refl, },
-  apply_instance
+  rw (map f).map_sum,
+  refine finset.sum_congr rfl (assume n _, _),
+  rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial], refl,
 end
 
 end homomorphism
@@ -117,3 +118,17 @@ rfl
 end degree
 
 end mv_polynomial
+
+
+/- this is here to avoid import cycle issues -/
+namespace polynomial
+
+/-- The monomials form a basis on `polynomial R`. -/
+noncomputable def basis_monomials : basis ℕ R (polynomial R) :=
+finsupp.basis_single_one.map (to_finsupp_iso_alg R).to_linear_equiv.symm
+
+@[simp] lemma coe_basis_monomials :
+  (basis_monomials R : ℕ → polynomial R) = λ s, monomial s 1 :=
+_root_.funext $ λ n, to_finsupp_iso_symm_single
+
+end polynomial

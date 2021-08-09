@@ -281,6 +281,18 @@ lemma liminf_le_liminf {α : Type*} [conditionally_complete_lattice β] {f : fil
   f.liminf u ≤ f.liminf v :=
 @limsup_le_limsup (order_dual β) α _ _ _ _ h hv hu
 
+lemma limsup_le_limsup_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : f ≤ g)
+  {u : α → β} (hf : f.is_cobounded_under (≤) u . is_bounded_default)
+  (hg : g.is_bounded_under (≤) u . is_bounded_default) :
+  f.limsup u ≤ g.limsup u :=
+Limsup_le_Limsup_of_le (map_mono h) hf hg
+
+lemma liminf_le_liminf_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : g ≤ f)
+  {u : α → β} (hf : f.is_bounded_under (≥) u . is_bounded_default)
+  (hg : g.is_cobounded_under (≥) u . is_bounded_default) :
+  f.liminf u ≤ g.liminf u :=
+Liminf_le_Liminf_of_le (map_mono h) hf hg
+
 theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s.nonempty) :
   (𝓟 s).Limsup = Sup s :=
 by simp [Limsup]; exact cInf_upper_bounds_eq_cSup h hs
@@ -451,6 +463,22 @@ lemma liminf_le_of_frequently_le  {α β} [conditionally_complete_linear_order �
   (hu : f.is_bounded_under (≥) u . is_bounded_default) :
   f.liminf u ≤ b :=
 @le_limsup_of_frequently_le _ (order_dual β) _ f u b hu_le hu
+
+lemma frequently_lt_of_lt_limsup {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β}
+  (hu : f.is_cobounded_under (≤) u . is_bounded_default) (h : b < f.limsup u) :
+  ∃ᶠ x in f, b < u x :=
+begin
+  contrapose! h,
+  apply Limsup_le_of_le hu,
+  simpa using h,
+end
+
+lemma frequently_lt_of_liminf_lt {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β}
+  (hu : f.is_cobounded_under (≥) u . is_bounded_default) (h : f.liminf u < b) :
+  ∃ᶠ x in f, u x < b :=
+@frequently_lt_of_lt_limsup _ (order_dual β) _ f u b hu h
 
 end conditionally_complete_linear_order
 

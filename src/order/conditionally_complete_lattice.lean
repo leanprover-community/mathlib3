@@ -203,9 +203,11 @@ lemma cInf_upper_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s.nonempty)
   Inf (upper_bounds s) = Sup s :=
 (is_glb_cInf h $ hs.mono $ λ x hx y hy, hy hx).unique (is_lub_cSup hs h).is_glb
 
-/--Introduction rule to prove that b is the supremum of s: it suffices to check that b
-is larger than all elements of s, and that this is not the case of any `w<b`.-/
-theorem cSup_intro (_ : s.nonempty) (_ : ∀a∈s, a ≤ b) (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
+/--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
+is larger than all elements of `s`, and that this is not the case of any `w<b`.
+See `Sup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in complete lattices. -/
+theorem cSup_eq_of_forall_le_of_forall_lt_exists_gt (_ : s.nonempty)
+  (_ : ∀a∈s, a ≤ b) (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
 have bdd_above s := ⟨b, by assumption⟩,
 have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (cSup_le ‹_› ‹∀a∈s, a ≤ b›),
 have ¬(Sup s < b) :=
@@ -215,10 +217,12 @@ have ¬(Sup s < b) :=
   show false, by finish [lt_irrefl (Sup s)],
 show Sup s = b, by finish
 
-/--Introduction rule to prove that b is the infimum of s: it suffices to check that b
-is smaller than all elements of s, and that this is not the case of any `w>b`.-/
-theorem cInf_intro (_ : s.nonempty) (_ : ∀a∈s, b ≤ a) (H : ∀w, b < w → (∃a∈s, a < w)) : Inf s = b :=
-@cSup_intro (order_dual α) _ _ _ ‹_› ‹_› ‹_›
+/--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
+is smaller than all elements of `s`, and that this is not the case of any `w>b`.
+See `Inf_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in complete lattices. -/
+theorem cInf_eq_of_forall_ge_of_forall_gt_exists_lt (_ : s.nonempty) (_ : ∀a∈s, b ≤ a)
+  (H : ∀w, b < w → (∃a∈s, a < w)) : Inf s = b :=
+@cSup_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ _ ‹_› ‹_› ‹_›
 
 /--b < Sup s when there is an element a in s with b < a, when s is bounded above.
 This is essentially an iff, except that the assumptions for the two implications are
@@ -306,7 +310,8 @@ theorem cInf_insert (hs : bdd_below s) (sne : s.nonempty) : Inf (insert a s) = a
 (is_glb_Ioc h).cInf_eq (nonempty_Ioc.2 h)
 
 @[simp] lemma cInf_Ioi [no_top_order α] [densely_ordered α] : Inf (Ioi a) = a :=
-cInf_intro nonempty_Ioi (λ _, le_of_lt) (λ w hw, by simpa using exists_between hw)
+cInf_eq_of_forall_ge_of_forall_gt_exists_lt nonempty_Ioi (λ _, le_of_lt)
+  (λ w hw, by simpa using exists_between hw)
 
 @[simp] lemma cInf_Ioo [densely_ordered α] (h : a < b) : Inf (Ioo a b) = a :=
 (is_glb_Ioo h).cInf_eq (nonempty_Ioo.2 h)
@@ -320,7 +325,8 @@ cInf_intro nonempty_Ioi (λ _, le_of_lt) (λ w hw, by simpa using exists_between
 @[simp] lemma cSup_Iic : Sup (Iic a) = a := is_greatest_Iic.cSup_eq
 
 @[simp] lemma cSup_Iio [no_bot_order α] [densely_ordered α] : Sup (Iio a) = a :=
-cSup_intro nonempty_Iio (λ _, le_of_lt) (λ w hw, by simpa [and_comm] using exists_between hw)
+cSup_eq_of_forall_le_of_forall_lt_exists_gt nonempty_Iio (λ _, le_of_lt)
+  (λ w hw, by simpa [and_comm] using exists_between hw)
 
 @[simp] lemma cSup_Ioc (h : a < b) : Sup (Ioc a b) = b :=
 (is_lub_Ioc h).cSup_eq (nonempty_Ioc.2 h)
@@ -395,6 +401,21 @@ by haveI := unique_prop hp; exact supr_unique
 @[simp] lemma cinfi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
 @csupr_pos (order_dual α) _ _ _ hp
 
+/--Introduction rule to prove that `b` is the supremum of `f`: it suffices to check that `b`
+is larger than `f i` for all `i`, and that this is not the case of any `w<b`.
+See `supr_eq_of_forall_le_of_forall_lt_exists_gt` for a version in complete lattices. -/
+theorem csupr_eq_of_forall_le_of_forall_lt_exists_gt [nonempty ι] {f : ι → α} (h₁ : ∀ i, f i ≤ b)
+  (h₂ : ∀ w, w < b → (∃ i, w < f i)) : (⨆ (i : ι), f i) = b :=
+cSup_eq_of_forall_le_of_forall_lt_exists_gt (range_nonempty f) (forall_range_iff.mpr h₁)
+  (λ w hw, exists_range_iff.mpr $ h₂ w hw)
+
+/--Introduction rule to prove that `b` is the infimum of `f`: it suffices to check that `b`
+is smaller than `f i` for all `i`, and that this is not the case of any `w>b`.
+See `infi_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in complete lattices. -/
+theorem cinfi_eq_of_forall_ge_of_forall_gt_exists_lt [nonempty ι] {f : ι → α} (h₁ : ∀ i, b ≤ f i)
+  (h₂ : ∀ w, b < w → (∃ i, f i < w)) : (⨅ (i : ι), f i) = b :=
+@csupr_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ _ _ ‹_› ‹_› ‹_›
+
 /-- Nested intervals lemma: if `f` is a monotonically increasing sequence, `g` is a monotonically
 decreasing sequence, and `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals
 `[f n, g n]`. -/
@@ -421,7 +442,7 @@ lemma csupr_mem_Inter_Icc_of_mono_decr_Icc_nat
   {f g : ℕ → α} (h : ∀ n, Icc (f (n + 1)) (g (n + 1)) ⊆ Icc (f n) (g n)) (h' : ∀ n, f n ≤ g n) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
 csupr_mem_Inter_Icc_of_mono_decr_Icc
-  (@monotone_of_monotone_nat (order_dual $ set α) _ (λ n, Icc (f n) (g n)) h) h'
+  (@monotone_nat_of_le_succ (order_dual $ set α) _ (λ n, Icc (f n) (g n)) h) h'
 
 end conditionally_complete_lattice
 
@@ -497,7 +518,7 @@ lemma exists_lt_of_cinfi_lt [nonempty ι] {f : ι → α} (h : infi f < a) :
 /--Introduction rule to prove that b is the supremum of s: it suffices to check that
 1) b is an upper bound
 2) every other upper bound b' satisfies b ≤ b'.-/
-theorem cSup_intro' (_ : s.nonempty)
+theorem cSup_eq_of_is_forall_le_of_forall_le_imp_ge (_ : s.nonempty)
   (h_is_ub : ∀ a ∈ s, a ≤ b) (h_b_le_ub : ∀ub, (∀ a ∈ s, a ≤ ub) → (b ≤ ub)) : Sup s = b :=
 le_antisymm
   (show Sup s ≤ b, from cSup_le ‹s.nonempty› h_is_ub)
@@ -899,6 +920,11 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   ..with_top.has_Inf,
   ..with_top.has_Sup,
   ..with_top.with_bot.bounded_lattice }
+
+noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
+  [conditionally_complete_linear_order α] : complete_linear_order (with_top (with_bot α)) :=
+{ .. with_top.with_bot.complete_lattice,
+  .. with_top.linear_order }
 
 end with_top_bot
 

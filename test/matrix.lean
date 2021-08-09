@@ -62,9 +62,10 @@ example {α : Type*} [comm_ring α] {a b c d : α} :
 begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   /-
-  Try this: simp only [matrix.det_succ_row_zero, fin.sum_univ_succ, det_fin_zero,
-      finset.sum_singleton, fin.sum_univ_zero, minor_apply, cons_val_zero, cons_val_succ,
-      fin.succ_above_zero, fin.coe_succ, fin.coe_zero],
+  Try this: simp only [det_succ_row_zero, fin.sum_univ_succ, neg_mul_eq_neg_mul_symm, mul_one,
+  fin.default_eq_zero, fin.coe_zero, one_mul, cons_val_one, fin.coe_succ, univ_unique, minor_apply,
+  pow_one, fin.zero_succ_above, fin.succ_succ_above_zero,  finset.sum_singleton, cons_val_zero,
+  cons_val_succ, det_fin_zero, pow_zero]
   -/
   ring
 end
@@ -75,10 +76,11 @@ example {α : Type*} [comm_ring α] (A : matrix (fin 3) (fin 3) α) {a b c d e f
 begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   /-
-  Try this: simp only [matrix.det_succ_row_zero, fin.sum_univ_succ, det_fin_zero,
-      finset.sum_singleton, fin.sum_univ_zero, minor_apply, cons_val_zero, cons_val_succ,
-      fin.succ_above_zero, fin.succ_succ_above_zero, fin.succ_succ_above_succ,
-      fin.coe_zero, fin.coe_succ, pow_zero, pow_add],
+  Try this: simp only [det_succ_row_zero, fin.sum_univ_succ, neg_mul_eq_neg_mul_symm, cons_append,
+  mul_one, fin.default_eq_zero, fin.coe_zero, cons_vec_bit0_eq_alt0, one_mul, cons_val_one,
+  cons_vec_alt0, fin.succ_succ_above_one, fin.coe_succ, univ_unique, minor_apply, pow_one,
+  fin.zero_succ_above, fin.succ_zero_eq_one, fin.succ_succ_above_zero, nat.neg_one_sq,
+  finset.sum_singleton, cons_val_zero, cons_val_succ, det_fin_zero, head_cons, pow_zero]
    -/
   ring
 end

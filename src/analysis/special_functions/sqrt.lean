@@ -3,9 +3,7 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import data.real.sqrt
-import analysis.calculus.inverse
-import measure_theory.borel_space
+import analysis.calculus.times_cont_diff
 
 /-!
 # Smoothness of `real.sqrt`
@@ -69,10 +67,6 @@ lemma has_deriv_at_sqrt {x : ℝ} (hx : x ≠ 0) : has_deriv_at sqrt (1 / (2 * s
 end real
 
 open real
-
-lemma measurable.sqrt {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, sqrt (f x)) :=
-continuous_sqrt.measurable.comp hf
 
 section deriv
 

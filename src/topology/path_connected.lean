@@ -138,15 +138,15 @@ def extend : ℝ → X := Icc_extend zero_le_one γ
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend
 
-@[simp] lemma extend_zero : γ.extend 0 = x :=
-(Icc_extend_left _ _).trans γ.source
-
-@[simp] lemma extend_one : γ.extend 1 = y :=
-(Icc_extend_right _ _).trans γ.target
-
 @[simp] lemma extend_extends {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) {t : ℝ} (ht : t ∈ (Icc 0 1 : set ℝ)) : γ.extend t = γ ⟨t, ht⟩ :=
 Icc_extend_of_mem _ γ ht
+
+lemma extend_zero : γ.extend 0 = x :=
+by simp
+
+lemma extend_one : γ.extend 1 = y :=
+by simp
 
 @[simp] lemma extend_extends' {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : (Icc 0 1 : set ℝ)) : γ.extend t = γ t :=

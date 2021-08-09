@@ -12,7 +12,7 @@ import measure_theory.pi
 noncomputable theory
 open classical set filter
 open ennreal (of_real)
-open_locale big_operators ennreal
+open_locale big_operators ennreal nnreal
 
 namespace measure_theory
 
@@ -33,9 +33,9 @@ begin
   refine le_antisymm (infi_le_of_le a $ binfi_le b (subset.refl _))
     (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, ennreal.coe_le_coe.2 _),
   cases le_or_lt b a with ab ab,
-  { rw nnreal.of_real_of_nonpos (sub_nonpos.2 ab), apply zero_le },
+  { rw real.to_nnreal_of_nonpos (sub_nonpos.2 ab), apply zero_le },
   cases (Ico_subset_Ico_iff ab).1 h with h₁ h₂,
-  exact nnreal.of_real_le_of_real (sub_le_sub h₂ h₁)
+  exact real.to_nnreal_le_to_nnreal (sub_le_sub h₂ h₁)
 end
 
 lemma lebesgue_length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
@@ -108,7 +108,7 @@ begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),
     (of_real (b - a) : ℝ≥0∞) ≤ ∑ i in s, of_real (d i - c i),
-  { rcases compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
+  { rcases is_compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
       @is_open_Ioo _ _ _ _ (c i) (d i)) (by simpa using ss) with ⟨s, su, hf, hs⟩,
     have e : (⋃ i ∈ (↑hf.to_finset:set ℕ),
       Ioo (c i) (d i)) = (⋃ i ∈ s, Ioo (c i) (d i)), {simp [set.ext_iff]},
@@ -336,6 +336,31 @@ lemma volume_pi_Ico {a b : ι → ℝ} :
   (volume (pi univ (λ i, Ico (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
 by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
 
+lemma volume_le_diam (s : set ℝ) : volume s ≤ emetric.diam s :=
+begin
+  by_cases hs : metric.bounded s,
+  { rw [real.ediam_eq hs, ← volume_Icc],
+    exact volume.mono (real.subset_Icc_Inf_Sup_of_bounded hs) },
+  { rw metric.ediam_of_unbounded hs, exact le_top }
+end
+
+lemma volume_pi_le_prod_diam (s : set (ι → ℝ)) :
+  volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) :=
+calc volume s ≤ volume (pi univ (λ i, closure (function.eval i '' s))) :
+  volume.mono $ subset.trans (subset_pi_eval_image univ s) $ pi_mono $ λ i hi, subset_closure
+          ... = ∏ i, volume (closure $ function.eval i '' s) :
+  volume_pi_pi _ $ λ i, measurable_set_closure
+          ... ≤ ∏ i : ι, emetric.diam (function.eval i '' s) :
+  finset.prod_le_prod' $ λ i hi, (volume_le_diam _).trans_eq (emetric.diam_closure _)
+
+lemma volume_pi_le_diam_pow (s : set (ι → ℝ)) :
+  volume s ≤ emetric.diam s ^ fintype.card ι :=
+calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le_prod_diam s
+          ... ≤ ∏ i : ι, (1 : ℝ≥0) * emetric.diam s                      :
+  finset.prod_le_prod' $ λ i hi, (lipschitz_with.eval i).ediam_image_le s
+          ... = emetric.diam s ^ fintype.card ι              :
+  by simp only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
+
 /-!
 ### Images of the Lebesgue measure under translation/multiplication/...
 -/
@@ -476,9 +501,9 @@ theorem volume_region_between_eq_integral' [sigma_finite μ]
   (hs : measurable_set s) (hfg : f ≤ᵐ[μ.restrict s] g ) :
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
-  have h : g - f =ᵐ[μ.restrict s] (λ x, nnreal.of_real (g x - f x)),
+  have h : g - f =ᵐ[μ.restrict s] (λ x, real.to_nnreal (g x - f x)),
   { apply hfg.mono,
-    simp only [nnreal.of_real, max, sub_nonneg, pi.sub_apply],
+    simp only [real.to_nnreal, max, sub_nonneg, pi.sub_apply],
     intros x hx,
     split_ifs,
     refl },

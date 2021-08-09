@@ -52,9 +52,17 @@ function.injective.add_comm_group hom.f
 
 instance : preadditive (homological_complex V c) := {}
 
+/-- The `i`-th component of a chain map, as an additive map from chain maps to morphisms. -/
+@[simps]
+def hom.f_add_monoid_hom {C₁ C₂ : homological_complex V c} (i : ι) :
+  (C₁ ⟶ C₂) →+ (C₁.X i ⟶ C₂.X i) :=
+add_monoid_hom.mk' (λ f, hom.f f i) (λ _ _, rfl)
+
 end homological_complex
 
 namespace homological_complex
+
+instance eval_additive (i : ι) : (eval V c i).additive := {}
 
 variables [has_zero_object V]
 

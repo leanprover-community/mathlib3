@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
-import measure_theory.measurable_space
 import measure_theory.pi_system
 import data.matrix.notation
 import topology.algebra.infinite_sum
@@ -126,7 +125,7 @@ begin
   refine tendsto_nhds_bot_mono' (ennreal.tendsto_sum_nat_add _ h0) (λ n, _),
   refine (m.mono _).trans (m.Union _),
   /- Current goal: `(⋃ k, s k) \ s n ⊆ ⋃ k, s (k + n + 1) \ s (k + n)` -/
-  have h' : monotone s := @monotone_of_monotone_nat (set α) _ _ h_mono,
+  have h' : monotone s := @monotone_nat_of_le_succ (set α) _ _ h_mono,
   simp only [diff_subset_iff, Union_subset_iff],
   intros i x hx,
   rcases nat.find_x ⟨i, hx⟩ with ⟨j, hj, hlt⟩, clear hx i,
@@ -690,7 +689,7 @@ by rw [h₁, set.inter_assoc, set.union_inter_cancel_left,
 lemma is_caratheodory_Union_lt {s : ℕ → set α} :
   ∀{n:ℕ}, (∀i<n, is_caratheodory (s i)) → is_caratheodory (⋃i<n, s i)
 | 0       h := by simp [nat.not_lt_zero]
-| (n + 1) h := by rw Union_lt_succ; exact is_caratheodory_union m
+| (n + 1) h := by rw bUnion_lt_succ; exact is_caratheodory_union m
   (h n (le_refl (n + 1)))
       (is_caratheodory_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
 
@@ -704,7 +703,7 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   ∀ {n}, ∑ i in finset.range n, m (t ∩ s i) = m (t ∩ ⋃i<n, s i)
 | 0            := by simp [nat.not_lt_zero, m.empty]
 | (nat.succ n) := begin
-  simp [Union_lt_succ, range_succ],
+  simp [bUnion_lt_succ, range_succ],
   rw [measure_inter_union m _ (h n), is_caratheodory_sum],
   intro a,
   simpa [range_succ] using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
@@ -980,6 +979,9 @@ def extend (s : α) : ℝ≥0∞ := ⨅ h : P s, m s h
 lemma extend_eq {s : α} (h : P s) : extend m s = m s h :=
 by simp [extend, h]
 
+lemma extend_eq_top {s : α} (h : ¬P s) : extend m s = ∞ :=
+by simp [extend, h]
+
 lemma le_extend {s : α} (h : P s) : m s h ≤ extend m s :=
 by { simp only [extend, le_infi_iff], intro, refl' }
 
@@ -1039,10 +1041,10 @@ lemma extend_Union {β} [encodable β] {f : β → set α}
   (hd : pairwise (disjoint on f)) (hm : ∀i, P (f i)) :
   extend m (⋃i, f i) = ∑'i, extend m (f i) :=
 begin
-  rw [← encodable.Union_decode2, ← tsum_Union_decode2],
+  rw [← encodable.Union_decode₂, ← tsum_Union_decode₂],
   { exact extend_Union_nat PU
-      (λ n, encodable.Union_decode2_cases P0 hm)
-      (mU _ (encodable.Union_decode2_disjoint_on hd)) },
+      (λ n, encodable.Union_decode₂_cases P0 hm)
+      (mU _ (encodable.Union_decode₂_disjoint_on hd)) },
   { exact extend_empty P0 m0 }
 end
 
@@ -1070,7 +1072,7 @@ le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 /-- If `P u` is `false` for any set `u` that has nonempty intersection both with `s` and `t`, then
 `μ (s ∪ t) = μ s + μ t`, where `μ = induced_outer_measure m P0 m0`.
 
-E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that 
+E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that
 `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s` and `y ∈ t`. -/
 lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :
@@ -1171,10 +1173,10 @@ lemma extend_Union_le_tsum_nat : ∀ (s : ℕ → set α), extend m (⋃i, s i) 
 begin
   refine extend_Union_le_tsum_nat' measurable_set.Union _, intros f h,
   simp [Union_disjointed.symm] {single_pass := tt},
-  rw [mU (measurable_set.disjointed h) disjoint_disjointed],
+  rw [mU (measurable_set.disjointed h) (disjoint_disjointed _)],
   refine ennreal.tsum_le_tsum (λ i, _),
   rw [← extend_eq m, ← extend_eq m],
-  exact extend_mono m0 mU (measurable_set.disjointed h _) (inter_subset_left _ _)
+  exact extend_mono m0 mU (measurable_set.disjointed h _) (disjointed_le f _),
 end
 
 lemma induced_outer_measure_eq_extend {s : set α} (hs : measurable_set s) :

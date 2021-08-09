@@ -3,7 +3,8 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import data.nat.basic
+import data.nat.pow
+
 /-!
 # Natural number logarithm
 
@@ -105,6 +106,6 @@ lemma log_le_log_succ {b n : ℕ} : log b n ≤ log b n.succ :=
 log_le_log_of_le $ le_succ n
 
 lemma log_mono {b : ℕ} : monotone (λ n : ℕ, log b n) :=
-monotone_of_monotone_nat $ λ n, log_le_log_succ
+monotone_nat_of_le_succ $ λ n, log_le_log_succ
 
 end nat

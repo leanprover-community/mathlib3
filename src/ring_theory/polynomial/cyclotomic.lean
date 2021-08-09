@@ -222,11 +222,11 @@ begin
   cases nat.eq_zero_or_pos k with hzero hpos,
   { use 1,
     simp only [hzero, cyclotomic'_zero, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
-    map_one, ring_hom.coe_of, and_self], },
+    coe_map_ring_hom, map_one, and_self] },
   by_cases hone : k = 1,
   { use X - 1,
     simp only [hone, cyclotomic'_one K, set.mem_univ, pnat.one_coe, subsemiring.coe_top,
-    eq_self_iff_true, map_X, map_one, ring_hom.coe_of, and_self, map_sub] },
+    eq_self_iff_true, map_X, coe_map_ring_hom, map_one, and_self, map_sub], },
   let B : polynomial K := ∏ i in nat.proper_divisors k, cyclotomic' i K,
   have Bmo : B.monic,
   { apply monic_prod_of_monic,
@@ -251,8 +251,9 @@ begin
     intro habs,
     exact (monic.ne_zero Bmo) (degree_eq_bot.1 habs) },
   replace huniq := div_mod_by_monic_unique (cyclotomic' k K) (0 : polynomial K) Bmo huniq,
-  simp only [lifts, ring_hom.coe_of, ring_hom.mem_srange],
+  simp only [lifts, ring_hom.mem_srange],
   use Q₁,
+  rw coe_map_ring_hom,
   rw [(map_div_by_monic (int.cast_ring_hom K) hB₁mo), hB₁, ← huniq.1],
   simp
 end
@@ -406,7 +407,7 @@ begin
       simp only [int.cast_injective, int.coe_cast_ring_hom] },
     apply mapinj,
     rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
-    simp only [int_cyclotomic_spec, map_pow, nat.cast_id, map_X, map_one, ring_hom.coe_of, map_sub],
+    simp only [int_cyclotomic_spec, map_pow, nat.cast_id, map_X, map_one, map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
     (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
   have coerc : X ^ n - 1 = map (int.cast_ring_hom R) (X ^ n - 1),
@@ -424,17 +425,18 @@ open_locale arithmetic_function
 
 /-- `cyclotomic n R` can be expressed as a product in a fraction field of `polynomial R`
   using Möbius inversion. -/
-lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n) (R : Type*) [comm_ring R]
-  [nontrivial R] {K : Type*} [field K] (f : fraction_map (polynomial R) K) :
-  f.to_map (cyclotomic n R) =
-    ∏ i in n.divisors_antidiagonal, (f.to_map (X ^ i.snd - 1)) ^ μ i.fst :=
+lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n)
+  (R : Type*) [comm_ring R] [nontrivial R]
+  {K : Type*} [field K] [algebra (polynomial R) K] [is_fraction_ring (polynomial R) K] :
+  algebra_map _ K (cyclotomic n R) =
+    ∏ i in n.divisors_antidiagonal, (algebra_map (polynomial R) K (X ^ i.snd - 1)) ^ μ i.fst :=
 begin
   have h : ∀ (n : ℕ), 0 < n →
-    ∏ i in nat.divisors n, f.to_map (cyclotomic i R) = f.to_map (X ^ n - 1),
+    ∏ i in nat.divisors n, algebra_map _ K (cyclotomic i R) = algebra_map _ _ (X ^ n - 1),
   { intros n hn,
     rw [← prod_cyclotomic_eq_X_pow_sub_one hn R, ring_hom.map_prod] },
   rw (prod_eq_iff_prod_pow_moebius_eq_of_nonzero (λ n hn, _) (λ n hn, _)).1 h n hpos;
-  rw [ne.def, fraction_map.to_map_eq_zero_iff],
+  rw [ne.def, is_fraction_ring.to_map_eq_zero_iff],
   { apply cyclotomic_ne_zero },
   { apply monic.ne_zero,
     apply monic_X_pow_sub_C _ (ne_of_gt hn) }
@@ -668,7 +670,7 @@ lemma minpoly_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ 
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
   minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
-  apply minpoly.integer_dvd (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
+  apply minpoly.gcd_domain_dvd ℚ (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
   simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
 end
 

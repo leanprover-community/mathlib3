@@ -48,6 +48,12 @@ instance nonempty_compacts_inhabited [inhabited α] : inhabited (nonempty_compac
 @[nolint has_inhabited_instance]
 def positive_compacts: Type* := { s : set α // is_compact s ∧ (interior s).nonempty  }
 
+/-- In a nonempty compact space, `set.univ` is a member of `positive_compacts`, the compact sets
+with nonempty interior. -/
+def positive_compacts_univ {α : Type*} [topological_space α] [compact_space α] [nonempty α] :
+  positive_compacts α :=
+⟨set.univ, compact_univ, by simp⟩
+
 variables {α}
 
 namespace compacts

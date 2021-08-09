@@ -34,6 +34,9 @@ instance : monad with_one := option.monad
 instance : has_one (with_one α) := ⟨none⟩
 
 @[to_additive]
+instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
+
+@[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
 
 @[to_additive]
@@ -75,27 +78,39 @@ protected lemma cases_on {P : with_one α → Prop} :
   ∀ (x : with_one α), P 1 → (∀ a : α, P a) → P x :=
 option.cases_on
 
+-- the `show` statements in the proofs are important, because otherwise the generated lemmas
+-- `with_one.mul_one_class._proof_{1,2}` have an ill-typed statement after `with_one` is made
+-- irreducible.
 @[to_additive]
 instance [has_mul α] : mul_one_class (with_one α) :=
-{ mul := option.lift_or_get (*),
+{ mul := (*),
   one := (1),
-  one_mul   := (option.lift_or_get_is_left_id _).1,
-  mul_one   := (option.lift_or_get_is_right_id _).1 }
+  one_mul   := show ∀ x : with_one α, 1 * x = x, from (option.lift_or_get_is_left_id _).1,
+  mul_one   := show ∀ x : with_one α, x * 1 = x, from (option.lift_or_get_is_right_id _).1 }
 
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
   ..with_one.mul_one_class }
 
+example [semigroup α] :
+  @monoid.to_mul_one_class _ (@with_one.monoid α _) = @with_one.mul_one_class α _ := rfl
+
 @[to_additive]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
 
+section
+-- workaround: we make `with_one`/`with_zero` irreducible for this definition, otherwise `simps`
+-- will unfold it in the statement of the lemma it generates.
+local attribute [irreducible] with_one with_zero
 /-- `coe` as a bundled morphism -/
 @[to_additive "`coe` as a bundled morphism", simps apply]
 def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
 { to_fun := coe, map_mul' := λ x y, rfl }
+
+end
 
 section lift
 

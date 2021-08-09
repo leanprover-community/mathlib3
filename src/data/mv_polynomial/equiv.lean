@@ -82,9 +82,9 @@ def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] polynomial R :=
   left_inv  :=
     begin
       let f : polynomial R →+* mv_polynomial punit R :=
-      ring_hom.of (polynomial.eval₂ mv_polynomial.C (X punit.star)),
+        (polynomial.eval₂_ring_hom mv_polynomial.C (X punit.star)),
       let g : mv_polynomial punit R →+* polynomial R :=
-      ring_hom.of (eval₂ polynomial.C (λu:punit, polynomial.X)),
+        (eval₂_hom polynomial.C (λu:punit, polynomial.X)),
       show ∀ p, f.comp g p = p,
       apply is_id,
       { assume a, dsimp, rw [eval₂_C, polynomial.eval₂_C] },
@@ -173,9 +173,6 @@ See `sum_ring_equiv` for the ring isomorphism.
 def sum_to_iter : mv_polynomial (S₁ ⊕ S₂) R →+* mv_polynomial S₁ (mv_polynomial S₂ R) :=
 eval₂_hom (C.comp C) (λbc, sum.rec_on bc X (C ∘ X))
 
-instance is_semiring_hom_sum_to_iter : is_semiring_hom (sum_to_iter R S₁ S₂) :=
-eval₂.is_semiring_hom _ _
-
 @[simp]
 lemma sum_to_iter_C (a : R) : sum_to_iter R S₁ S₂ (C a) = C (C a) :=
 eval₂_C _ _ a
@@ -196,7 +193,7 @@ to multivariable polynomials in the sum of the two types.
 See `sum_ring_equiv` for the ring isomorphism.
 -/
 def iter_to_sum : mv_polynomial S₁ (mv_polynomial S₂ R) →+* mv_polynomial (S₁ ⊕ S₂) R :=
-eval₂_hom (ring_hom.of (eval₂ C (X ∘ sum.inr))) (X ∘ sum.inl)
+eval₂_hom (eval₂_hom C (X ∘ sum.inr)) (X ∘ sum.inl)
 
 lemma iter_to_sum_C_C (a : R) : iter_to_sum R S₁ S₂ (C (C a)) = C a :=
 eq.trans (eval₂_C _ _ (C a)) (eval₂_C _ _ _)
@@ -259,6 +256,11 @@ def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
   end,
   ..sum_ring_equiv R S₁ S₂ }
 
+section
+
+-- this speeds up typeclass search in the lemma below
+local attribute [instance, priority 2000] is_scalar_tower.right
+
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
@@ -268,6 +270,8 @@ def option_equiv_left : mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_p
   .trans $
 (sum_alg_equiv R _ _).trans $
 (punit_alg_equiv (mv_polynomial S₁ R)).restrict_scalars R
+
+end
 
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and

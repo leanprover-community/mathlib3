@@ -303,6 +303,9 @@ end nonzero_semiring
 
 section not_zero_divisor
 
+-- TODO: using gh-8537, rephrase lemmas that involve commutation around `*` using the op-ring
+-- TODO: using gh-8561, rephrase using regular elements
+
 variables [semiring R] {p : polynomial R}
 
 lemma monic.mul_left_ne_zero (hp : monic p) {q : polynomial R} (hq : q ≠ 0) :

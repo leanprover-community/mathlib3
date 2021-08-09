@@ -20,9 +20,9 @@ open fintype equiv finset subgroup
 open_locale big_operators classical
 
 variables {G : Type*} (α : Type*) [group G] [mul_action G α] [fintype G] [fintype α]
-  [fintype (fixed_point G α)] {p n : ℕ} [fact p.prime] (h : card G = p ^ n)
+  [fintype (fixed_points G α)] {p n : ℕ} [fact p.prime] (hG : card G = p ^ n)
 
-variable (α)
+include hG
 
 /-- If `G` is a `p`-group acting on a finite set `α`, then the number of fixed points
   of the action is congruent mod `p` to the cardinality of `α` -/
@@ -42,9 +42,9 @@ begin
         simp only [quotient.eq']; congr)),
   { refine quotient.induction_on' b (λ b _ hb, _),
     have : card (orbit G b) ∣ p ^ n,
-    { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)],
+    { rw [← hG, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)],
       exact card_quotient_dvd_card _ },
-    rcases (nat.dvd_prime_pow hp.1).1 this with ⟨k, _, hk⟩,
+    rcases (nat.dvd_prime_pow (fact.out p.prime)).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
     { rw [pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmod.eq_iff_modeq_nat,
         nat.cast_zero, ← ne.def],
@@ -80,7 +80,7 @@ have hpf : p ∣ fintype.card (fixed_points G α),
     (nat.modeq.modeq_zero_iff.2 hpα),
 have hα : 1 < fintype.card (fixed_points G α),
   from lt_of_lt_of_le
-    hp.out.one_lt
+    (fact.out p.prime).one_lt
     (nat.le_of_dvd (fintype.card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
 let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
 ⟨b, hb, λ hab, hba $ by simp [hab]⟩

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
 import measure_theory.integral.set_integral
-import measure_theory.measure.lebesgue_measure
+import measure_theory.measure.lebesgue
 import analysis.calculus.fderiv_measurable
 import analysis.calculus.extend_deriv
 

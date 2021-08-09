@@ -237,9 +237,10 @@ end
 
 /-- Blichfeldt's Principle --/
 -- TODO version giving `ceiling (volume S / volume F)` points whose difference is in lattice
-lemma exists_sub_mem_lattice_of_volume_lt_volume {X : Type*} [measure_space X] [add_comm_group X] [has_measurable_add X] (L : add_subgroup X)
-  [encodable L] {S : set X} (hS : measurable_set S) (F : fundamental_domain L)
-  (hlt : volume F.F < volume S) (h_trans_inv : ∀ v (S' : set X) (hS' : measurable_set S'), volume S' = volume ((+ (-v)) '' S')) :
+lemma exists_sub_mem_lattice_of_volume_lt_volume {X : Type*} [measure_space X] [add_comm_group X]
+  [has_measurable_add X] (L : add_subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
+  (F : fundamental_domain L) (hlt : volume F.F < volume S)
+  (h_trans_inv : ∀ v (S' : set X) (hS' : measurable_set S'), volume S' = volume ((+ (-v)) '' S')) :
   ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
 begin
   suffices : ∃ (p₁ p₂ : L) (hne : p₁ ≠ p₂),

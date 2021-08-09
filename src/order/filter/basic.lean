@@ -2338,6 +2338,12 @@ lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
 by erw [comap_inf, filter.comap_comap, filter.comap_comap]
 
+lemma sup_prod (f₁ f₂ : filter α) (g : filter β) : (f₁ ⊔ f₂) ×ᶠ g = (f₁ ×ᶠ g) ⊔ (f₂ ×ᶠ g) :=
+by rw [filter.prod, comap_sup, inf_sup_right, ← filter.prod, ← filter.prod]
+
+lemma prod_sup (f : filter α) (g₁ g₂ : filter β) : f ×ᶠ (g₁ ⊔ g₂) = (f ×ᶠ g₁) ⊔ (f ×ᶠ g₂) :=
+by rw [filter.prod, comap_sup, inf_sup_left, ← filter.prod, ← filter.prod]
+
 lemma eventually_prod_iff {p : α × β → Prop} {f : filter α} {g : filter β} :
   (∀ᶠ x in f ×ᶠ g, p x) ↔ ∃ (pa : α → Prop) (ha : ∀ᶠ x in f, pa x)
     (pb : β → Prop) (hb : ∀ᶠ y in g, pb y), ∀ {x}, pa x → ∀ {y}, pb y → p (x, y) :=

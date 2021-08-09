@@ -7,6 +7,7 @@ import measure_theory.lebesgue_measure
 import group_theory.subgroup
 import analysis.convex.basic
 import measure_theory.haar_measure
+import number_theory.quadratic_reciprocity
 
 /-!
 # Geometry of numbers
@@ -16,14 +17,14 @@ studied by Hermann Minkowski.
 
 ## Main results
 
-- `exists_foo`: the main existence theorem of `foo`s.
-- `bar_of_foo`: a construction of a `bar`, given a `foo`.
+- `exists_sub_mem_lattice_of_volume_lt_volume`: Blichfeldt's principle, existence of two points
+- `exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume`: Minkowski's theorem, existence
+  of a non-zero lattice point inside a convex symmetric domain of large enough covolume.
 
 ## References
 
 See [Thales600BC] for the original account on Xyzzyology.
 -/
-
 open measure_theory measure_theory.measure topological_space set
 
 lemma smul_Ioo {K : Type*} [linear_ordered_field K] {a b r : K} (hr : 0 < r) :
@@ -67,33 +68,28 @@ begin
     rwa smul_inv_smul' ha, },
 end
 
-universe u
-variables (ι : Type u)
-noncomputable theory
-
-lemma smul_pi (ι : Type u) {r : ℝ} (t : ι → set ℝ) :
+lemma smul_pi (ι : Type*) {r : ℝ} (t : ι → set ℝ) :
   r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
 begin
   ext x,
-  simp [mem_smul_set],
+  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_univ_pi],
   split; intro h,
   { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp,
+    simp only [algebra.id.smul_eq_mul, mul_eq_mul_left_iff, pi.smul_apply],
     intro i,
-    use h_w i,
-    split,
-    exact h_h_left i,
-    left,
-    refl, },
+    refine ⟨h_w i, h_h_left i, or.inl rfl⟩, },
   { use (λ i, classical.some (h i)), -- TODO is choice necessary?
     split,
-    intro i,
-    have := classical.some_spec (h i),
-    exact this.left,
-    ext i,
-    have := classical.some_spec (h i),
-    exact this.right, }
+    { exact λ i, (classical.some_spec (h i)).left, },
+    { ext i,
+      exact (classical.some_spec (h i)).right, }, },
 end
+
+namespace geometry_of_numbers
+
+universe u
+variables (ι : Type u)
+noncomputable theory
 
 lemma is_add_left_invariant_real_volume : is_add_left_invariant (⇑(volume : measure ℝ)) :=
 by simp [← map_add_left_eq_self, real.map_volume_add_left]
@@ -133,9 +129,13 @@ begin
     exact measurable_set_Ioo, },
 end
 
+/-- The closed interval [0,1] as a positive compact set, for inducing the Haar measure equal to
+    the lebesgue measure on ℝ. -/
 def Icc01 : positive_compacts ℝ :=
 ⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
 
+/-- The closed unit cube with sides the intervals [0,1] as a positive compact set, for inducing the
+    Haar measure equal to the lebesgue measure on ℝ^n. -/
 def unit_cube [fintype ι] : positive_compacts (ι → ℝ) :=
 ⟨Icc 0 1, begin
   simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
@@ -163,6 +163,13 @@ begin
   { exact is_add_left_invariant_real_volume }
 end
 
+lemma volume_Icc [fintype ι] : volume (Icc 0 1 : set (ι → ℝ)) = 1 :=
+begin
+  simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
+  rw [volume_pi_pi, real.volume_Icc, sub_zero, ennreal.of_real_one, finset.prod_const_one],
+  exact (λ i, measurable_set_Icc),
+end
+
 lemma pi_haar_measure_eq_lebesgue_measure [fintype ι] :
   add_haar_measure (unit_cube ι) = volume :=
 begin
@@ -170,9 +177,7 @@ begin
   { rw [unit_cube],
     suffices : measure_space.volume (Icc (0 : ι → ℝ) 1) = 1,
     { rw [this, one_smul], },
-    simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
-    rw [volume_pi_pi, real.volume_Icc, sub_zero, ennreal.of_real_one, finset.prod_const_one],
-    exact (λ i, measurable_set_Icc), },
+    exact volume_Icc ι, },
   { apply_instance },
   { exact is_add_left_invariant_pi_volume ι }
 end
@@ -190,52 +195,21 @@ begin
   rw pi_haar_measure_eq_lebesgue_measure,
 end
 
-def L : add_subgroup (ι → ℝ) := add_monoid_hom.range { to_fun := λ (f : ι → ℤ), (↑f : ι → ℝ),
-  map_zero' := rfl,
-  map_add' := assume x y, begin ext, rw [pi.add_apply], exact int.cast_add (x x_1) (y x_1), end }
+-- For now we do not extend left coset even though this is essentially just a measurable coset,
+-- as the most general definition of fundamental domain may want to include measure zero boundary
+-- overlaps for instance.
+/-- A fundamental domain for a subgroup of an additive group is a measurable coset for the group -/
+structure fundamental_domain {X : Type*} [measurable_space X] [add_group X] (L : add_subgroup X) :=
+(F : set X)
+(hF : measurable_set F)
+(disjoint : ∀ (l : X) (hl : l ∈ L) (h : l ≠ 0), disjoint ((+ l) '' F) F)
+(covers : ∀ (x : X), ∃ (l : X) (hl : l ∈ L), l + x ∈ F)
 
-/- this can be generalized any range of a morphism is a subgroup -/
-
-structure fundamental_domain (L : add_subgroup (ι → ℝ)) := /- this is _just_ a coset right? -/
-  (F : set (ι → ℝ))
-  (hF : measurable_set F)
-  (disjoint : ∀ (l : ι → ℝ) (hl : l ∈ L) (h : l ≠ 0), disjoint ((+ l) '' F) F)
-  (covers : ∀ (x : ι → ℝ), ∃ (l : ι → ℝ) (hl : l ∈ L), l + x ∈ F)
-
--- def cube_fund (ι : Type*) [fintype ι] : fundamental_domain (L ι) :=
--- { F := (unit_cube ι).val,
---   hF := begin simp [unit_cube], sorry end,
---   disjoint := λ l hl h x ⟨⟨a, ha, hx₁⟩, hx₂⟩, false.elim (h (begin
---     ext m, simp [unit_cube] at ha, specialize ha m, specialize hx₂ m,
---     simp only [hx₁.symm, int.cast_zero, pi.add_apply, pi.zero_apply,
---       eq_self_iff_true, ne.def, zero_add] at ha hx₂ ⊢,
---     rcases hl with ⟨w, hw⟩,
---     rw ← hw at *,
---     dsimp,
---     have wlt : (↑(w m): ℝ) < 1 := by linarith,
---     have ltw : (-1 : ℝ) < w m := by linarith,
---     norm_cast,
---     have : w m < 1 := by exact_mod_cast wlt,
---     have : (-1 : ℤ) < w m := by exact_mod_cast ltw,
---     linarith,
---   end)),
---   covers := λ x, ⟨-(coe ∘ floor ∘ x), ⟨is_add_subgroup.neg_mem (set.mem_range_self (floor ∘ x)),
---   begin
---     intro,
---     simp only [int.cast_zero, pi.add_apply, pi.zero_apply, pi.neg_apply,
---       function.comp_app, zero_add, neg_add_lt_iff_lt_add],
---     split,
---     { linarith [floor_le (x m)], },
---     { linarith [lt_floor_add_one (x m)], }
---   end⟩⟩}
-
--- lemma cube_fund_volume : volume (cube_fund.F : set (ι → ℝ)) = 1 :=
--- begin
---   dsimp [cube_fund],
---   rw volume_pi,
---   sorry,
--- end
-
+instance : inhabited (fundamental_domain (⊤ : add_subgroup (fin 0 → ℝ))) :=
+{ default := { F := ⊤,
+  hF := subsingleton.measurable_set,
+  disjoint := λ v hv hvnz, by simp at *; assumption,
+  covers := λ v, by simp } }
 
 lemma fundamental_domain.exists_unique {L : add_subgroup (ι → ℝ)} (F : fundamental_domain L)
   (x : ι → ℝ) : ∃! (p : L), x ∈ (+ (p : ι → ℝ)) '' F.F :=
@@ -260,10 +234,6 @@ begin
   simpa [h],
 end
 
-/- TODO do I want to use this instance instead -/
--- instance {F : fundamental_domain $ L n} (hF : measurable_set F.F) :
---   measurable_space F.F := subtype.measurable_space
-
 instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
   measure_space (subtype p) :=
 { volume := measure.comap subtype.val volume,
@@ -281,45 +251,11 @@ begin
   { exact measurable_set.univ, }
 end
 
-/-instance {F : fundamental_domain $ L n} : measure_space F.F :=
-{ measurable_set := λ s, measure_space.to_measurable_space.measurable_set (subtype.val '' s),
-  measurable_set_empty := by rw [set.image_empty];
-                          exact measure_space.to_measurable_space.is_measurable_empty,
-  measurable_set_compl := λ S h, begin
-    have : subtype.val '' (-S) = -(subtype.val '' S) ∩ F.F :=
-    begin
-      ext,
-      simp only [not_exists, set.mem_image, set.mem_inter_eq, exists_and_distrib_right,
-      exists_eq_right, subtype.exists,
- set.mem_compl_eq], /- TODO is this a logic lemma now ? -/
-      split; intro; cases a,
-      split,
-      intro,
-      exact a_h,
-      exact a_w,
-      exact Exists.intro a_right (a_left a_right),
-    end,
-    rw this,
-    apply measurable_set.inter,
-    exact measurable_space.is_measurable_compl _ _ h,
-    exact hF,
-  end,
-  is_measurable_Union := λ f a, begin
-    rw set.image_Union,
-    exact measure_space.to_measurable_space.is_measurable_Union (λ (i : ℕ), subtype.val '' f i) a,
-  end,
-  μ := { measure_of := λ S, begin let l := (subtype.val '' S), exact _inst_1.μ.measure_of l, end,
-  empty := _,
-  mono := _,
-  Union_nat := _,
-  m_Union := sorry,
-  trimmed := _ }
-  }-/
 /-- Blichfeldt's Principle --/
 -- TODO version giving `ceiling (volume S / volume F)` points whose difference is in lattice
-lemma exists_sub_mem_lattice_of_volume_le_volume {ι : Type u} [fintype ι] (L : add_subgroup (ι → ℝ))
+lemma exists_sub_mem_lattice_of_volume_lt_volume {ι : Type u} [fintype ι] (L : add_subgroup (ι → ℝ))
   [encodable L] {S : set (ι → ℝ)} (hS : measurable_set S) (F : fundamental_domain L)
-  (h : volume F.F < volume S) :
+  (hlt : volume F.F < volume S) :
   ∃ (x y : ι → ℝ) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
 begin
   suffices : ∃ (p₁ p₂ : L) (hne : p₁ ≠ p₂),
@@ -339,7 +275,7 @@ begin
       exact subtype.eq a, },
     exact L.sub_mem p₂.mem p₁.mem,
   end,
-  rw ← volume_subtype_univ F.hF at h,
+  rw ← volume_subtype_univ F.hF at hlt,
   have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure subtype.measure_space.volume
     (_ : (∀ p : L, measurable_set (λ a, ((+ ↑p) '' S) a.val : set F.F))) _,
   { rcases this with ⟨i, j, hij, t, ht⟩,
@@ -353,7 +289,7 @@ begin
       refine measurable.add_const _ (-↑p),
       exact measurable_subtype_coe, },
     exact ⟨S, ⟨hS, rfl⟩⟩, },
-  convert h,
+  convert hlt,
   have : (∑' (i : L), volume ((+ (i : ι → ℝ)) '' S ∩ F.F)) = volume S,
   { rw (_ : ∑' (i : L), volume ((+ ↑i) '' S ∩ F.F) =
         ∑' (i : L), volume ((+ (-↑i)) '' ((+ ↑i) '' S ∩ F.F))),
@@ -408,10 +344,10 @@ begin
     ext1 v,
     simp only [set.mem_preimage, set.mem_image, set.mem_inter_eq, exists_and_distrib_right,
       exists_eq_right, subtype.exists, subtype.coe_mk, subtype.val_eq_coe],
-    cases l, cases h, cases h_h, cases h_w,
+    cases l, rcases hlt with ⟨⟨hlt_w_val, hlt_w_property⟩, hlt_h_w, hlt_h_h⟩,
     simp only [set.image_add_right, add_subgroup.coe_mk, option.mem_def,
       ennreal.some_eq_coe, add_subgroup.coe_mk],
-    split; { intros a, cases a, split; assumption, }, },
+    split; { intros a, rcases a with ⟨a_left, a_right⟩, split; assumption, }, },
   { intros X hX,
     convert measurable_set.subtype_image F.hF hX, },
   { refine measurable_set_preimage _ hS,
@@ -419,8 +355,6 @@ begin
     exact measurable_subtype_coe, },
 end
 
--- how to apply to the usual lattice
-    -- exact set.countable.to_encodable (set.countable_range (function.comp coe)),
 open measure_theory measure_theory.measure topological_space set
 
 lemma rescale (ι : Type*) [fintype ι] {r : ℝ} (hr : 0 < r) :
@@ -492,9 +426,10 @@ begin
 end
 open ennreal fintype
 
-lemma exists_nonzero_lattice_of_two_dim_le_volume [fintype ι] (L : add_subgroup (ι → ℝ))
-  [encodable.{u} L] (F : fundamental_domain L) (S : set (ι → ℝ)) (hS : measurable_set S)
-  (h : volume F.F * 2 ^ (card ι) < volume S) (h_symm : ∀ x ∈ S, -x ∈ S)
+-- TODO version for any real vector space in terms of dimension
+lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume [fintype ι]
+  (L : add_subgroup (ι → ℝ)) [encodable.{u} L] (F : fundamental_domain L) (S : set (ι → ℝ))
+  (hS : measurable_set S) (h : volume F.F * 2 ^ (card ι) < volume S) (h_symm : ∀ x ∈ S, -x ∈ S)
   (h_conv : convex S) : ∃ (x : L) (h : x ≠ 0), ↑x ∈ S :=
 begin
   have mhalf : measurable_set ((1/2 : ℝ) • S),
@@ -545,7 +480,7 @@ begin
       exact set.smul_mem_smul_set (h_symm _ hv), },
     use [x, -y, hx, this _ hy],
     refl, },
-  { exact exists_sub_mem_lattice_of_volume_le_volume L mhalf F h2, }
+  { exact exists_sub_mem_lattice_of_volume_lt_volume L mhalf F h2, }
 end
 
-#lint
+end geometry_of_numbers

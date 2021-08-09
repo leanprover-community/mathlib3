@@ -67,6 +67,11 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 instance has_coe_to_matrix : has_coe (special_linear_group n R) (matrix n n R) :=
 ⟨λ A, A.val⟩
 
+/- In this file, Lean often has a hard time working out the values of `n` and `R` for an expression
+like `det ↑A`. Rather than writing `(A : matrix n n R)` everywhere in this file which is annoyingly
+verbose, or `A.val` which is not the simp-normal form for subtypes, we create a local notation
+`↑ₘA`. This notation references the local `n` and `R` variables, so is not valid as a global
+notation. -/
 local prefix `↑ₘ`:1024 := @coe _ (matrix n n R) _
 
 lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, ↑ₘA i j = ↑ₘB i j) :=

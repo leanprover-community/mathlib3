@@ -363,7 +363,7 @@ begin
         λ i, (hs i _ (ennreal.div_pos_iff.2 ⟨ne_of_gt δpos, ennreal.nat_ne_top n⟩)).2,
       choose F hF using this,
       have F_disj: pairwise (disjoint on F) :=
-        pairwise.mono (λ i j hij, disjoint.mono (hF i).2.1 (hF j).2.1 hij) s_disj,
+        s_disj.mono (λ i j hij, disjoint.mono (hF i).2.1 (hF j).2.1 hij),
       refine ⟨⋃ i ∈ finset.range n, F i, _, _, _⟩,
       { exact is_closed_bUnion (by simpa using finite_lt_nat n) (λ i hi, (hF i).1) },
       { assume x hx,
@@ -568,7 +568,7 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
       exact le_supr (λ K : {K // is_compact K ∧ K ⊆ U}, μ K)
         ⟨B n ∩ F, is_compact.inter_right (B.is_compact n) F_closed,
           subset.trans (inter_subset_right _ _) FU⟩ },
-    { apply (monotone_of_monotone_nat (λ n, _)).directed_le,
+    { apply (monotone_nat_of_le_succ (λ n, _)).directed_le,
       exact inter_subset_inter_left _ (B.subset_succ n) },
   end,
   outer_regular :=
@@ -593,7 +593,7 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
       rw measure_Union,
       { assume m n hmn,
         exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
-          (disjoint_disjointed m n hmn), },
+          (disjoint_disjointed _ m n hmn), },
       { exact (λ n, hA.inter (C_meas n)) } },
     have : ∀ n, ∃ U, is_open U ∧ (A ∩ C n ⊆ U) ∧ (μ U ≤ μ (A ∩ C n) + δ n),
     { assume n,
@@ -612,8 +612,8 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
       rcases this with ⟨U, U_open, UA, νU⟩,
       refine ⟨U ∩ interior (B (n+1)), U_open.inter is_open_interior, _, _⟩,
       { simp only [UA, true_and, subset_inter_iff],
-        refine subset.trans (inter_subset_right _ _) _,
-        refine subset.trans disjointed_subset (B.subset_interior_succ _) },
+        refine (inter_subset_right _ _).trans _,
+        exact (disjointed_subset _ n).trans (B.subset_interior_succ _) },
       { simp only [hν, restrict_apply' (B.is_compact _).measurable_set] at νU,
         calc μ (U ∩ interior (B (n + 1))) ≤ μ (U ∩ B (n + 1)) :
           measure_mono (inter_subset_inter_right _ interior_subset)

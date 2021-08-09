@@ -636,7 +636,8 @@ end
 
 /-- Every locally compact separable topological group is σ-compact.
   Note: this is not true if we drop the topological group hypothesis. -/
-@[priority 100] instance separable_locally_compact_group.sigma_compact_space
+@[priority 100, to_additive separable_locally_compact_add_group.sigma_compact_space]
+instance separable_locally_compact_group.sigma_compact_space
   [separable_space G] [locally_compact_space G] : sigma_compact_space G :=
 begin
   obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
@@ -678,8 +679,12 @@ begin
     { simp only [inv_mul_cancel_right] } }
 end
 
-@[to_additive]
-lemma nhds_is_mul_hom : is_mul_hom (λx:G, 𝓝 x) := ⟨λ_ _, nhds_mul _ _⟩
+/-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
+@[to_additive "On an additive topological group, `𝓝 : G → filter G` can be promoted to an
+`add_hom`.", simps]
+def nhds_mul_hom : mul_hom G (filter G) :=
+{ to_fun := 𝓝,
+  map_mul' := λ_ _, nhds_mul _ _ }
 
 end
 

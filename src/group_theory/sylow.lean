@@ -59,8 +59,9 @@ begin
       ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
 end
 
+variable (α)
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
-  (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) :
+  {p : ℕ} {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) :
   card α ≡ card (fixed_points G α) [MOD p] :=
 calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
   card_congr (sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
@@ -90,6 +91,39 @@ begin
     rw [nat.cast_one], exact one_ne_zero }
 end
 ... = _ : by simp; refl
+
+/-- If a p-group acts on `α` and the cardinality of `α` is not a multiple
+  of `p` then the action has a fixed point. -/
+lemma nonempty_fixed_point_of_prime_not_dvd_card
+  [fintype α] [fintype G] [fintype (fixed_points G α)]
+  {p : ℕ} {n : ℕ} [hp : fact p.prime] (hG : card G = p ^ n)
+  (hp : ¬ p ∣ fintype.card α) :
+  (fixed_points G α).nonempty :=
+@set.nonempty_of_nonempty_subtype _ _ begin
+  rw [← fintype.card_pos_iff, pos_iff_ne_zero],
+  assume h,
+  have := card_modeq_card_fixed_points α hG,
+  rw [h, nat.modeq.modeq_zero_iff] at this,
+  contradiction
+end
+
+/-- If a p-group acts on `α` and the cardinality of `α` is a multiple
+  of `p`, and the action has one fixed point, then it has another fixed point. -/
+lemma exists_fixed_point_of_prime_dvd_card_of_fixed_point
+  [fintype α] [fintype G] [fintype (fixed_points G α)]
+  {p : ℕ} {n : ℕ} [hp : fact p.prime] (hG : card G = p ^ n)
+  (hpα : p ∣ fintype.card α) {a : α} (ha : a ∈ fixed_points G α) :
+  ∃ b, b ∈ fixed_points G α ∧ a ≠ b :=
+have hpf : p ∣ fintype.card (fixed_points G α),
+  from nat.modeq.modeq_zero_iff.1 $
+    (card_modeq_card_fixed_points α hG).symm.trans
+    (nat.modeq.modeq_zero_iff.2 hpα),
+have hα : 1 < fintype.card (fixed_points G α),
+  from lt_of_lt_of_le
+    hp.out.one_lt
+    (nat.le_of_dvd (fintype.card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
+let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
+⟨b, hb, λ hab, hba $ by simp [hab]⟩
 
 end mul_action
 
@@ -162,42 +196,33 @@ rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
 /-- **Cauchy's theorem** -/
 lemma exists_prime_order_of_dvd_card [fintype G] (p : ℕ) [hp : fact p.prime]
   (hdvd : p ∣ card G) : ∃ x : G, order_of x = p :=
-let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.1.one_lt⟩ in
-have hn : p = n + 1 := nat.succ_sub hp.1.pos,
-have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
-  by rw [set.ext mem_vectors_prod_eq_one_iff,
-    set.card_range_of_injective (mk_vector_prod_eq_one_injective _), card_vector],
+have hcard : card (vectors_prod_eq_one G p) = card G ^ (p - 1),
+  by conv_lhs { rw [← nat.sub_add_cancel hp.out.pos, set.ext mem_vectors_prod_eq_one_iff,
+    set.card_range_of_injective (mk_vector_prod_eq_one_injective _), card_vector] },
 have hzmod : fintype.card (multiplicative (zmod p)) = p ^ 1,
   by { rw pow_one p, exact zmod.card p },
-have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points
-  (multiplicative (zmod p)) (vectors_prod_eq_one G p) _ _ _ _ _ _ 1 hp hzmod,
-have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G (n + 1)) :=
+have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G p) :=
   calc p ∣ card G ^ 1 : by rwa pow_one
-  ... ∣ card G ^ (n : ℕ) : pow_dvd_pow _ n.2
-  ... = card (vectors_prod_eq_one G (n + 1)) : hcard.symm,
-have hdvdcard₂ : p ∣ card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)),
-  by { rw nat.dvd_iff_mod_eq_zero at hdvdcard ⊢, rwa [← hn, hmodeq] at hdvdcard },
-have hcard_pos : 0 < card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)) :=
-  fintype.card_pos_iff.2 ⟨⟨⟨vector.repeat 1 p, one_mem_vectors_prod_eq_one _⟩,
-    one_mem_fixed_points_rotate _⟩⟩,
-have hlt : 1 < card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)) :=
-  calc (1 : ℕ) < p : hp.1.one_lt
-  ... ≤ _ : nat.le_of_dvd hcard_pos hdvdcard₂,
-let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_of_one_lt_card hlt
-  ⟨_, one_mem_fixed_points_rotate p⟩ in
-have hx : x ≠ list.repeat (1 : G) p, from λ h, by simpa [h, vector.repeat] using hx₄,
+  ... ∣ card G ^ (p - 1) : pow_dvd_pow _ (nat.le_sub_left_of_add_le hp.out.two_le)
+  ... = card (vectors_prod_eq_one G p) : hcard.symm,
+let ⟨⟨⟨x, hxl⟩, hx1⟩, hx, h1x⟩ := mul_action.exists_fixed_point_of_prime_dvd_card_of_fixed_point
+  (vectors_prod_eq_one G p) hzmod hdvdcard
+  (one_mem_fixed_points_rotate _) in
 have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,
   have list.rotate x (n : zmod p).val = x :=
-    subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p))),
-  by rwa [zmod.val_nat_cast, ← hx₁, rotate_mod] at this),
+    subtype.mk.inj (subtype.mk.inj (hx (n : zmod p))),
+  by rwa [zmod.val_nat_cast, ← hxl, rotate_mod] at this),
 let ⟨a, ha⟩ := this in
-⟨a, have hx1 : x.prod = 1 := hx₂,
-  have ha1: a ≠ 1, from λ h, hx (ha.symm ▸ h ▸ hx₁ ▸ rfl),
-  have a ^ p = 1, by rwa [ha, list.prod_repeat, hx₁] at hx1,
+⟨a, have hxp1 : x.prod = 1 := hx1,
+  have ha1: a ≠ 1,
+    from λ h, h1x (subtype.ext $ subtype.ext $
+      by rw [subtype.coe_mk, subtype.coe_mk, subtype.coe_mk, ha, hxl, h,
+        vector.repeat, subtype.coe_mk]),
+  have a ^ p = 1, by rwa [ha, list.prod_repeat, hxl] at hxp1,
   (hp.1.2 _ (order_of_dvd_of_pow_eq_one this)).resolve_left
     (λ h, ha1 (order_of_eq_one_iff.1 h))⟩
 
-open subgroup submonoid is_group_hom mul_action
+open subgroup submonoid mul_action
 
 lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
   [fintype ((H : set G) : Type u)] {x : G} :
@@ -223,23 +248,22 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
   (by intros; refl)
 
-/-- The first of the **Sylow theorems** -/
-theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
-  (hdvd : p ^ n ∣ card G), ∃ H : subgroup G, fintype.card H = p ^ n
-| 0 := λ _ _, ⟨(⊥ : subgroup G), by convert card_bot⟩
-| (n+1) := λ hp hdvd,
-let ⟨H, hH2⟩ := @exists_subgroup_card_pow_prime _ hp
-  (dvd.trans (pow_dvd_pow _ (nat.le_succ _)) hdvd) in
+/-- If `H` is a subgroup of `G` of cardinality `p ^ n`,
+  then `H` is contained in a subgroup of cardinality `p ^ (n + 1)`
+  if `p ^ (n + 1)` divides the cardinality of `G` -/
+theorem exists_subgroup_card_pow_succ [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
+  (hdvd : p ^ (n + 1) ∣ card G) {H : subgroup G} (hH : fintype.card H = p ^ n) :
+  ∃ K : subgroup G, fintype.card K = p ^ (n + 1) ∧ H ≤ K :=
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
-    (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH2, hs,
+    (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
-    @card_modeq_card_fixed_points _ _ _ _ _ _ _ p _ hp hH2,
+    @card_modeq_card_fixed_points _ _ _ _ _ _ _ p _ hp hH,
 have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
@@ -247,7 +271,6 @@ let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.quotient.gr
 have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
   ⟨λ a, ⟨⟨a.1, le_normalizer a.2⟩, a.2⟩, λ a, ⟨a.1.1, a.2⟩,
     λ ⟨_, _⟩, rfl, λ ⟨⟨_, _⟩, _⟩, rfl⟩,
--- begin proof of ∃ H : subgroup G, fintype.card H = p ^ n
 ⟨subgroup.map ((normalizer H).subtype) (subgroup.comap
   (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
 begin
@@ -259,9 +282,42 @@ begin
   rw [set.card_image_of_injective
         (subgroup.comap (mk' (comap H.normalizer.subtype H)) (gpowers x) : set (H.normalizer))
         subtype.val_injective,
-      pow_succ', ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
+      pow_succ', ← hH, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
+end,
+begin
+  assume y hy,
+  simp only [exists_prop, subgroup.coe_subtype, mk'_apply, subgroup.mem_map, subgroup.mem_comap],
+  refine ⟨⟨y, le_normalizer hy⟩, ⟨0, _⟩, rfl⟩,
+  rw [gpow_zero, eq_comm, quotient_group.eq_one_iff],
+  simpa using hy
 end⟩
+
+/-- If `H` is a subgroup of `G` of cardinality `p ^ n`,
+  then `H` is contained in a subgroup of cardinality `p ^ m`
+  if `n ≤ m` and `p ^ m` divides the cardinality of `G` -/
+theorem exists_subgroup_card_pow_prime_le [fintype G] (p : ℕ) : ∀ {n m : ℕ} [hp : fact p.prime]
+  (hdvd : p ^ m ∣ card G) (H : subgroup G) (hH : card H = p ^ n) (hnm : n ≤ m),
+  ∃ K : subgroup G, card K = p ^ m ∧ H ≤ K
+| n m := λ hp hdvd H hH hnm,
+  (lt_or_eq_of_le hnm).elim
+    (λ hnm : n < m,
+      have h0m : 0 < m, from (lt_of_le_of_lt n.zero_le hnm),
+      have wf : m - 1 < m,  from nat.sub_lt h0m zero_lt_one,
+      have hnm1 : n ≤ m - 1, from nat.le_sub_right_of_add_le hnm,
+      let ⟨K, hK⟩ := @exists_subgroup_card_pow_prime_le n (m - 1) hp
+        (nat.pow_dvd_of_le_of_pow_dvd (nat.sub_le_self _ _) hdvd) H hH hnm1 in
+      have hdvd' : p ^ ((m - 1) + 1) ∣ card G, by rwa [nat.sub_add_cancel h0m],
+      let ⟨K', hK'⟩ := @exists_subgroup_card_pow_succ _ _ _ _ _ hp hdvd' K hK.1 in
+      ⟨K', by rw [hK'.1, nat.sub_add_cancel h0m], le_trans hK.2 hK'.2⟩)
+    (λ hnm : n = m, ⟨H, by simp [hH, hnm]⟩)
+
+/-- A generalisation of **Sylow's first theorem**. If `p ^ n` divides
+  the cardinality of `G`, then there is a subgroup of cardinality `p ^ n` -/
+theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) {n : ℕ} [fact p.prime]
+  (hdvd : p ^ n ∣ card G) : ∃ K : subgroup G, fintype.card K = p ^ n :=
+let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero_le in
+⟨K, hK.1⟩
 
 end sylow

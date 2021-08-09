@@ -9,6 +9,8 @@ import topology.algebra.group_completion
 import topology.instances.nnreal
 import topology.metric_space.completion
 import topology.sequences
+import topology.locally_constant.algebra
+import topology.continuous_function.algebra
 
 /-!
 # Normed spaces
@@ -401,7 +403,7 @@ end
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
 (semi)normed spaces is in `normed_space.operator_norm`. -/
-lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma add_monoid_hom.lipschitz_of_bound (f : α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (real.to_nnreal C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
@@ -412,6 +414,10 @@ by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C f s)
   {x y : α} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
+
+lemma lipschitz_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} :
+  lipschitz_with C f ↔ ∀ x y, ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+by simp only [lipschitz_with_iff_dist_le_mul, dist_eq_norm]
 
 /-- A homomorphism `f` of seminormed groups is continuous, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
@@ -542,6 +548,10 @@ lemma nnnorm_sum_le {β} : ∀(s : finset β) (f : β → α),
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 finset.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le
 
+lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : α →+ β) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
+  lipschitz_with C f :=
+@real.to_nnreal_coe C ▸ f.lipschitz_of_bound C h
+
 end nnnorm
 
 lemma lipschitz_with.neg {α : Type*} [pseudo_emetric_space α] {K : ℝ≥0} {f : α → β}
@@ -582,12 +592,20 @@ lemma antilipschitz_with.add_sub_lipschitz_with {α : Type*} [pseudo_metric_spac
   (hK : Kg < Kf⁻¹) : antilipschitz_with (Kf⁻¹ - Kg)⁻¹ g :=
 by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with hg hK
 
+/-- A group homomorphism from an `add_comm_group` to a `semi_normed_group` induces a
+`semi_normed_group` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def semi_normed_group.induced [add_comm_group γ] (f : γ →+ α) : semi_normed_group γ :=
+{ norm    := λ x, ∥f x∥,
+  dist_eq := λ x y, by simpa only [add_monoid_hom.map_sub, ← dist_eq_norm],
+  .. pseudo_metric_space.induced f semi_normed_group.to_pseudo_metric_space, }
+
 /-- A subgroup of a seminormed group is also a seminormed group,
 with the restriction of the norm. -/
-instance add_subgroup.semi_normed_group {E : Type*} [semi_normed_group E] (s : add_subgroup E) :
-  semi_normed_group s :=
-{ norm := λx, norm (x : E),
-  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+instance add_subgroup.semi_normed_group (s : add_subgroup α) : semi_normed_group s :=
+semi_normed_group.induced s.subtype
 
 /-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
 its norm in `E`. -/
@@ -897,10 +915,19 @@ end
 @[simp] lemma nnnorm_eq_zero {a : α} : ∥a∥₊ = 0 ↔ a = 0 :=
 by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 
+/-- An injective group homomorphism from an `add_comm_group` to a `normed_group` induces a
+`normed_group` structure on the domain.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def normed_group.induced [add_comm_group γ]
+  (f : γ →+ α) (h : function.injective f) : normed_group γ :=
+{ .. semi_normed_group.induced f,
+  .. metric_space.induced f h normed_group.to_metric_space, }
+
 /-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
-instance add_subgroup.normed_group {E : Type*} [normed_group E] (s : add_subgroup E) :
-  normed_group s :=
-{ ..add_subgroup.semi_normed_group s }
+instance add_subgroup.normed_group (s : add_subgroup α) : normed_group s :=
+normed_group.induced s.subtype subtype.coe_injective
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 
@@ -1728,6 +1755,25 @@ instance semi_normed_algebra.to_semi_normed_space [h : semi_normed_algebra 𝕜 
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
 
+/-- While this may appear identical to `semi_normed_algebra.to_semi_normed_space`, it contains an
+implicit argument involving `normed_ring.to_semi_normed_ring` that typeclass inference has trouble
+inferring.
+
+Specifically, the following instance cannot be found without this
+`semi_normed_algebra.to_semi_normed_space'`:
+```lean
+example
+  (𝕜 ι : Type*) (E : ι → Type*)
+  [normed_field 𝕜] [Π i, normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
+  Π i, module 𝕜 (E i) := by apply_instance
+```
+
+See `semi_normed_space.to_module'` for a similar situation. -/
+@[priority 100]
+instance semi_normed_algebra.to_semi_normed_space' (𝕜 : Type*) [normed_field 𝕜] (𝕜' : Type*)
+  [normed_ring 𝕜'] [semi_normed_algebra 𝕜 𝕜'] :
+  semi_normed_space 𝕜 𝕜' := by apply_instance
+
 @[priority 100]
 instance normed_algebra.to_normed_space (𝕜 : Type*) [normed_field 𝕜] (𝕜' : Type*)
   [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
@@ -1967,3 +2013,38 @@ instance [semi_normed_group V] : normed_group (completion V) :=
 
 end completion
 end uniform_space
+
+namespace locally_constant
+
+variables {X Y : Type*} [topological_space X] [topological_space Y] (f : locally_constant X Y)
+
+/-- The inclusion of locally-constant functions into continuous functions as a multiplicative
+monoid hom. -/
+@[to_additive "The inclusion of locally-constant functions into continuous functions as an
+additive monoid hom.", simps]
+def to_continuous_map_monoid_hom [monoid Y] [has_continuous_mul Y] :
+  locally_constant X Y →* C(X, Y) :=
+{ to_fun    := coe,
+  map_one' := by { ext, simp, },
+  map_mul'  := λ x y, by { ext, simp, }, }
+
+/-- The inclusion of locally-constant functions into continuous functions as a linear map. -/
+@[simps] def to_continuous_map_linear_map (R : Type*) [semiring R] [topological_space R]
+  [add_comm_monoid Y] [module R Y] [has_continuous_add Y] [has_continuous_smul R Y] :
+  locally_constant X Y →ₗ[R] C(X, Y) :=
+{ to_fun    := coe,
+  map_add'  := λ x y, by { ext, simp, },
+  map_smul' := λ x y, by { ext, simp, }, }
+
+/-- The inclusion of locally-constant functions into continuous functions as an algebra map. -/
+@[simps] def to_continuous_map_alg_hom (R : Type*) [comm_semiring R] [topological_space R]
+  [semiring Y] [algebra R Y] [topological_semiring Y] [has_continuous_smul R Y] :
+  locally_constant X Y →ₐ[R] C(X, Y) :=
+{ to_fun    := coe,
+  map_one'  := by { ext, simp, },
+  map_mul'  := λ x y, by { ext, simp, },
+  map_zero' := by { ext, simp, },
+  map_add'  := λ x y, by { ext, simp, },
+  commutes' := λ r, by { ext x, simp [algebra.smul_def], }, }
+
+end locally_constant

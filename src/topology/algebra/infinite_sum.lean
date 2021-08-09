@@ -8,6 +8,7 @@ import topology.instances.real
 import topology.algebra.module
 import algebra.indicator_function
 import data.equiv.encodable.lattice
+import data.fintype.card
 import data.nat.parity
 import order.filter.at_top_bot
 
@@ -1090,6 +1091,20 @@ end
 
 lemma summable.tendsto_at_top_zero {f : ℕ → G} (hf : summable f) : tendsto f at_top (𝓝 0) :=
 by { rw ←nat.cofinite_eq_at_top, exact hf.tendsto_cofinite_zero }
+
+lemma summable.tendsto_top_of_pos {α : Type*}
+  [linear_ordered_field α] [topological_space α] [order_topology α] {f : ℕ → α}
+  (hf : summable f⁻¹) (hf' : ∀ n, 0 < f n) : tendsto f at_top at_top :=
+begin
+  rw [show f = f⁻¹⁻¹, by { ext, simp }],
+  apply filter.tendsto.inv_tendsto_zero,
+  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+    (summable.tendsto_at_top_zero hf),
+  rw eventually_iff_exists_mem,
+  refine ⟨set.Ioi 0, Ioi_mem_at_top _, λ _ _, _⟩,
+  rw [set.mem_Ioi, inv_eq_one_div, one_div, pi.inv_apply, _root_.inv_pos],
+  exact hf' _,
+end
 
 end topological_group
 

@@ -210,9 +210,13 @@ begin
     exact set.mul_mem_mul ha ih },
 end
 
-@[to_additive]
-lemma singleton.is_mul_hom [has_mul α] : is_mul_hom (singleton : α → set α) :=
-{ map_mul := λ a b, singleton_mul_singleton.symm }
+/-- Under `[has_mul M]`, the `singleton` map from `M` to `set M` as a `mul_hom`, that is, a map
+which preserves multiplication. -/
+@[to_additive "Under `[has_add A]`, the `singleton` map from `A` to `set A` as an `add_hom`,
+that is, a map which preserves addition.", simps]
+def singleton_mul_hom [has_mul α] : mul_hom α (set α) :=
+{ to_fun := singleton,
+  map_mul' := λ a b, singleton_mul_singleton.symm }
 
 @[simp, to_additive]
 lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
@@ -375,6 +379,19 @@ protected def has_inv [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
 
 localized "attribute [instance] set.has_inv set.has_neg" in pointwise
+
+@[simp, to_additive]
+lemma inv_empty [has_inv α] : (∅ : set α)⁻¹ = ∅ := rfl
+
+@[simp, to_additive]
+lemma inv_univ [has_inv α] : (univ : set α)⁻¹ = univ := rfl
+
+@[simp, to_additive]
+lemma nonempty_inv [group α] {s : set α} : s⁻¹.nonempty ↔ s.nonempty :=
+inv_involutive.surjective.nonempty_preimage
+
+@[to_additive] lemma nonempty.inv [group α] {s : set α} (h : s.nonempty) : s⁻¹.nonempty :=
+nonempty_inv.2 h
 
 @[simp, to_additive]
 lemma mem_inv [has_inv α] : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
@@ -560,29 +577,28 @@ protected def mul_action_set [monoid α] [mul_action α β] : mul_action α (set
 
 localized "attribute [instance] set.mul_action_set" in pointwise
 
-section is_mul_hom
-open is_mul_hom
+section mul_hom
 
-variables [has_mul α] [has_mul β] (m : α → β) [is_mul_hom m]
+variables [has_mul α] [has_mul β] (m : mul_hom α β)
 
 @[to_additive]
 lemma image_mul : m '' (s * t) = m '' s * m '' t :=
-by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, map_mul m] }
+by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, m.map_mul] }
 
 @[to_additive]
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
-by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul _ _ _).symm ⟩ }
+by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
-end is_mul_hom
+end mul_hom
 
 /-- The image of a set under function is a ring homomorphism
 with respect to the pointwise operations on sets. -/
 def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
 { to_fun := image f,
   map_zero' := image_empty _,
-  map_one' := by simp only [← singleton_one, image_singleton, is_monoid_hom.map_one f],
+  map_one' := by simp only [← singleton_one, image_singleton, f.map_one],
   map_add' := image_union _,
-  map_mul' := λ _ _, image_mul _ }
+  map_mul' := λ _ _, image_mul f.to_mul_hom }
 
 end monoid
 
@@ -756,7 +772,7 @@ begin
     rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
     exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
   have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
-  monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
+  monotone_nat_of_le_succ (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
   convert card_pow_eq_card_pow_card_univ_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
     (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
   { simp only [finset.filter_congr_decidable, fintype.card_of_finset] },

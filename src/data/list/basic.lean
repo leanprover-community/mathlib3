@@ -3959,7 +3959,7 @@ theorem map_permutations (f : α → β) (ts : list α) :
   map (map f) (permutations ts) = permutations (map f ts) :=
 by rw [permutations, permutations, map, map_permutations_aux, map]
 
-theorem map_permutations' (f : α → β) (t : α) (ts : list α) :
+theorem map_permutations' (f : α → β) (ts : list α) :
   map (map f) (permutations' ts) = permutations' (map f ts) :=
 by induction ts with t ts ih; [refl, simp [← ih, map_bind, ← map_map_permutations'_aux, bind_map]]
 

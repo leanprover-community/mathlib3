@@ -6,6 +6,7 @@ Authors: Alex J. Best
 import measure_theory.lebesgue_measure
 import measure_theory.haar_measure
 import analysis.convex.basic
+import algebra.ordered_pointwise
 
 /-!
 # Geometry of numbers
@@ -21,21 +22,6 @@ studied by Hermann Minkowski.
 
 -/
 open measure_theory measure_theory.measure topological_space set
-
-lemma smul_Ioo {K : Type*} [linear_ordered_field K] {a b r : K} (hr : 0 < r) :
-  r • Ioo a b = Ioo (r • a) (r • b) :=
-begin
-  ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioo],
-  split,
-  { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
-    exact (mul_lt_mul_left hr).mpr a_h_left_left,
-    exact (mul_lt_mul_left hr).mpr a_h_left_right, },
-  { rintro ⟨a_left, a_right⟩,
-    use x / r,
-    refine ⟨⟨(lt_div_iff' hr).mpr a_left, (div_lt_iff' hr).mpr a_right⟩, _⟩,
-    rw mul_div_cancel' _ (ne_of_gt hr), }
-end
 
 lemma preimage_smul {α β : Type*} [group α] {a : α} [mul_action α β] {t : set β} :
   (λ x, a • x) ⁻¹' t = a⁻¹ • t :=

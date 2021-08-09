@@ -104,8 +104,8 @@ begin
   set NsqBot := (bottom g z).norm_sq,
   have : NsqBot ≠ 0 := by simp [complex.norm_sq_pos, bottom_ne_zero g z, NsqBot, -bottom],
   field_simp [smul_aux'],
-  convert congr_arg (λ x, x * z.im * NsqBot ^ 2) g.det_coe_fun using 1,
-  { rw det_fin_two g,
+  convert congr_arg (λ x, x * z.im * NsqBot ^ 2) g.det_coe using 1,
+  { rw det_fin_two ↑g,
     ring },
   { ring }
 end

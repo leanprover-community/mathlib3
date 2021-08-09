@@ -20,7 +20,7 @@ some properties inherited from `X`.
 ## Main results
 * The topological structure of `alexandroff X`
 * The connectedness of `alexandroff X` for a noncompact, preconnected `X`
-* `alexandroff X` is T₁ for a T₁ space `X`
+* `alexandroff X` is `T₁` for a T₁ space `X`
 * `alexandroff X` is Hausdorff if `X` is locally compact and Hausdorff
 -/
 
@@ -67,13 +67,13 @@ of_injective.eq_iff
 
 /-- Recursor for `alexandroff` using the preferred forms `∞` and `↑x`. -/
 @[elab_as_eliminator]
-def rec_infty_of (C : alexandroff X → Sort*) (h₁ : C infty) (h₂ : Π (x : X), C x) :
+def rec_infty_coe (C : alexandroff X → Sort*) (h₁ : C infty) (h₂ : Π (x : X), C x) :
   Π (z : alexandroff X), C z :=
 option.rec h₁ h₂
 
 lemma ne_infty_iff_exists {x : alexandroff X} :
   x ≠ ∞ ↔ ∃ (y : X), x = y :=
-by { induction x using alexandroff.rec_infty_of; simp }
+by { induction x using alexandroff.rec_infty_coe; simp }
 
 @[simp] lemma coe_mem_range_of (x : X) : (x : alexandroff X) ∈ (range_of X) :=
 by simp [range_of]
@@ -81,7 +81,7 @@ by simp [range_of]
 lemma union_infty_eq_univ : (range_of X ∪ {∞}) = univ :=
 begin
   refine le_antisymm (subset_univ _) (λ x hx, _),
-  induction x using alexandroff.rec_infty_of; simp
+  induction x using alexandroff.rec_infty_coe; simp
 end
 
 @[simp] lemma infty_not_mem_range_of : ∞ ∉ range_of X :=
@@ -89,7 +89,7 @@ by simp [range_of]
 
 @[simp] lemma not_mem_range_of_iff (x : alexandroff X) :
   x ∉ range_of X ↔ x = ∞ :=
-by { induction x using alexandroff.rec_infty_of; simp [infty_not_mem_range_of] }
+by { induction x using alexandroff.rec_infty_coe; simp [infty_not_mem_range_of] }
 
 attribute [nolint simp_nf] not_mem_range_of_iff
 
@@ -97,7 +97,7 @@ lemma infty_not_mem_image_of {s : set X} : ∞ ∉ of '' s :=
 not_mem_subset (image_subset _ $ subset_univ _) infty_not_mem_range_of
 
 lemma inter_infty_eq_empty : (range_of X) ∩ {∞} = ∅ :=
-by { ext x, induction x using alexandroff.rec_infty_of; simp }
+by { ext x, induction x using alexandroff.rec_infty_coe; simp }
 
 lemma of_preimage_infty : (of⁻¹' {∞} : set X) = ∅ :=
 by { ext, simp }
@@ -273,7 +273,7 @@ lemma connected_space_alexandroff [preconnected_space X] (h : ¬ is_compact (uni
 instance [t1_space X] : t1_space (alexandroff X) :=
 { t1 :=
   λ z, begin
-    induction z using alexandroff.rec_infty_of,
+    induction z using alexandroff.rec_infty_coe,
     { rw [← is_open_compl_iff, compl_eq_univ_diff, ← union_infty_eq_univ,
           union_diff_cancel_right (subset.antisymm_iff.mp inter_infty_eq_empty).1],
       exact is_open_range_of },
@@ -304,7 +304,7 @@ instance [locally_compact_space X] [t2_space X] : t2_space (alexandroff X) :=
       rw compl_inter_self at minor₂,
       exact eq_empty_of_subset_empty minor₂
     end,
-    induction x using alexandroff.rec_infty_of; induction y using alexandroff.rec_infty_of,
+    induction x using alexandroff.rec_infty_coe; induction y using alexandroff.rec_infty_coe,
     { simpa using hxy },
     { simpa using key y hxy.symm },
     { rcases key x hxy with ⟨u, v, hu, hv, hxu, hyv, huv⟩,

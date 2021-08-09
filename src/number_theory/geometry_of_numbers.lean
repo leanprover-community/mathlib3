@@ -24,34 +24,49 @@ studied by Hermann Minkowski.
 See [Thales600BC] for the original account on Xyzzyology.
 -/
 
-open measure_theory
-
 open measure_theory measure_theory.measure topological_space set
-lemma smul_Ioo {a b r : ℝ} (hr : 0 < r) : r • Ioo a b = Ioo (r • a) (r • b) :=
+
+lemma smul_Ioo {K : Type*} [linear_ordered_field K] {a b r : K} (hr : 0 < r) :
+  r • Ioo a b = Ioo (r • a) (r • b) :=
 begin
   ext x,
   simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioo],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
-    exact (mul_lt_mul_left hr).mpr a_h_left_left, exact (mul_lt_mul_left hr).mpr a_h_left_right, },
+    exact (mul_lt_mul_left hr).mpr a_h_left_left,
+    exact (mul_lt_mul_left hr).mpr a_h_left_right, },
   { rintro ⟨a_left, a_right⟩,
     use x / r,
     refine ⟨⟨(lt_div_iff' hr).mpr a_left, (div_lt_iff' hr).mpr a_right⟩, _⟩,
     rw mul_div_cancel' _ (ne_of_gt hr), }
 end
 
-lemma preimage_smul {α β : Type*} [group_with_zero α] {a : α} (ha : a ≠ 0) [mul_action α β]
+lemma preimage_smul {α β : Type*} [group α] {a : α} [mul_action α β] {t : set β} :
+  (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
+begin
+  ext,
+  simp only [mem_smul_set, mem_preimage],
+  split,
+  { intros h,
+    refine ⟨_, h, _⟩,
+    rw inv_smul_smul, },
+  { rintro ⟨y, hy, rfl⟩,
+    rwa smul_inv_smul, },
+end
+
+lemma preimage_smul' {α β : Type*} [group_with_zero α] {a : α} (ha : a ≠ 0) [mul_action α β]
   {t : set β} : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 begin
   ext,
-  simp, split, work_on_goal 0 { intros ᾰ, fsplit, work_on_goal 1 { split, { assumption } } }, work_on_goal 1 { rintro ⟨ᾰ_w, ᾰ_h_left, rfl⟩, },
-  { rw ← mul_smul,
-    rw inv_mul_cancel ha,
-    rw one_smul, },
-  { rw ← mul_smul,
-    rw mul_inv_cancel ha,
-    rwa one_smul, },
+  simp only [mem_smul_set, mem_preimage],
+  split,
+  { intros h,
+    refine ⟨_, h, _⟩,
+    rw inv_smul_smul' ha, },
+  { rintro ⟨y, hy, rfl⟩,
+    rwa smul_inv_smul' ha, },
 end
+
 universe u
 variables (ι : Type u)
 noncomputable theory

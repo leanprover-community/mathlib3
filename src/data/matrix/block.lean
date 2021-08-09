@@ -31,7 +31,7 @@ section vector
 open_locale big_operators
 
 lemma dot_product_block' [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :
-dot_product v w = ∑ i, v (sum.inl i) * w (sum.inl i) + ∑ j, v (sum.inr j) * w (sum.inr j) :=
+  dot_product v w = ∑ i, v (sum.inl i) * w (sum.inl i) + ∑ j, v (sum.inr j) * w (sum.inr j) :=
 by rw [dot_product, fintype.sum_sum_type]
 
 lemma dot_product_block [has_mul α] [add_comm_monoid α] (v w : m ⊕ n → α) :

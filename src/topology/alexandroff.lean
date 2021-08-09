@@ -277,9 +277,9 @@ instance [t1_space X] : t1_space (alexandroff X) :=
     { rw [← is_open_compl_iff, compl_eq_univ_diff, ← union_infty_eq_univ,
           union_diff_cancel_right (subset.antisymm_iff.mp inter_infty_eq_empty).1],
       exact is_open_range_of },
-    { have minor₂ : ∞ ∈ ({z}ᶜ : set (alexandroff X)) :=
+    { have : ∞ ∈ ({z}ᶜ : set (alexandroff X)) :=
         mem_compl (λ w, (infty_ne_coe z) (mem_singleton_iff.mp w)),
-      rw [← is_open_compl_iff, is_open_iff_of_mem minor₂],
+      rw [← is_open_compl_iff, is_open_iff_of_mem this],
       rw [preimage_compl, compl_compl, ← of_eq_coe,
           ← image_singleton, of_injective.preimage_image _],
       exact ⟨is_compact_singleton, is_closed_singleton⟩ }

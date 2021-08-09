@@ -25,8 +25,8 @@ some properties inherited from `X`.
 -/
 
 noncomputable theory
-open filter set
-open_locale classical topological_space filter
+open set
+open_locale classical topological_space
 
 section basic
 
@@ -114,46 +114,38 @@ section topology
 variables {X : Type*} [topological_space X]
 
 instance : topological_space (alexandroff X) :=
-{ is_open := λ s, if ∞ ∈ s then is_compact (of⁻¹' s)ᶜ ∧ is_open (of⁻¹' s)
-    else is_open (of⁻¹' s),
+{ is_open := λ s, (∞ ∈ s → is_compact (of⁻¹' s)ᶜ) ∧ is_open (of⁻¹' s),
   is_open_univ := by simp,
   is_open_inter :=
-  λ s t hs ht, begin
-    split_ifs at hs ht with h h' h' h' h,
-    { simpa [h, h', compl_inter] using and.intro (hs.1.union ht.1) (hs.2.inter ht.2) },
-    { simpa [h, h'] using hs.inter ht.2 },
-    { simpa [h, h'] using hs.2.inter ht },
-    { simpa [h, h'] using hs.inter ht }
+  λ s t ⟨hms, hs⟩ ⟨hmt, ht⟩, begin
+    refine ⟨_, hs.inter ht⟩,
+    rintros ⟨hms', hmt'⟩,
+    simpa [compl_inter] using (hms hms').union (hmt hmt')
   end,
   is_open_sUnion :=
   λ S ht, begin
     suffices : is_open (of⁻¹' ⋃₀S),
-    { split_ifs with h,
-      { obtain ⟨(a : set (alexandroff X)), ha, ha'⟩ := mem_sUnion.mp h,
-        specialize ht a ha,
-        rw if_pos ha' at ht,
-        refine ⟨compact_of_is_closed_subset ht.left this.is_closed_compl _, this⟩,
-        rw [compl_subset_compl, preimage_subset_iff],
-        intros y hy,
-        refine ⟨a, ha, hy⟩ },
-      { exact this } },
+    { refine ⟨_, this⟩,
+      intro h,
+      obtain ⟨(a : set (alexandroff X)), ha, ha'⟩ := mem_sUnion.mp h,
+      replace ht := (ht a ha).1 ha',
+      refine compact_of_is_closed_subset ht this.is_closed_compl _,
+      rw [compl_subset_compl, preimage_subset_iff],
+      intros y hy,
+      refine ⟨a, ha, hy⟩ },
      rw is_open_iff_forall_mem_open,
      simp only [and_imp, exists_prop, mem_Union, preimage_sUnion, mem_preimage, of_eq_coe,
                 exists_imp_distrib],
      intros y s hs hy,
      refine ⟨of ⁻¹' s, subset_subset_Union _ (subset_subset_Union hs (subset.refl _)), _,
         mem_preimage.mpr hy⟩,
-     specialize ht s hs,
-     split_ifs at ht,
-     { exact ht.right },
-     { exact ht }
+     exact (ht s hs).2
   end }
 
 variables {s : set (alexandroff X)} {s' : set X}
 
 lemma is_open_alexandroff_iff_aux :
-  is_open s ↔ if ∞ ∈ s then is_compact (of⁻¹' s)ᶜ ∧ is_open (of⁻¹' s)
-  else is_open (of⁻¹' s) :=
+  is_open s ↔ (∞ ∈ s → is_compact (of⁻¹' s)ᶜ) ∧ is_open (of⁻¹' s) :=
 iff.rfl
 
 lemma is_open_iff_of_mem' (h : ∞ ∈ s) :
@@ -168,13 +160,7 @@ lemma is_open_iff_of_not_mem (h : ∞ ∉ s) :
   is_open s ↔ is_open (of⁻¹' s) :=
 by simp [is_open_alexandroff_iff_aux, h]
 
-lemma is_open_of_is_open (h : is_open s) :
-  is_open (of⁻¹' s) :=
-begin
-  by_cases H : ∞ ∈ s,
-  { simpa using ((is_open_iff_of_mem H).mp h).2 },
-  { exact (is_open_iff_of_not_mem H).mp h }
-end
+lemma is_open_of_is_open (h : is_open s) : is_open (of⁻¹' s) := h.2
 
 end topology
 
@@ -241,8 +227,8 @@ begin
   by_cases H : ∞ ∈ s,
   { rw is_open_iff_of_mem H at hs,
     have minor₁ : s ≠ {∞},
-    { by_contra w,
-      rw [not_not.mp w, of_preimage_infty, compl_empty] at hs,
+    { rintro rfl,
+      rw [of_preimage_infty, compl_empty] at hs,
       exact h hs.1 },
     have minor₂ : of⁻¹' s ≠ ∅,
     { by_contra w,

@@ -652,7 +652,7 @@ lemma subset_le_of_restrict_le_restrict {i : set α}
   v j ≤ w j :=
 begin
   by_cases hj₁ : measurable_set j,
-  { exact (restrict_eq_self v hi hj₁ hj) ▸ (restrict_eq_self w hi hj₁ hj) ▸ hi₂ j hj₁ },
+  { exact (restrict_le_restrict_iff _ _ hi).1 hi₂ hj₁ hj },
   { rw [v.not_measurable hj₁, w.not_measurable hj₁] },
 end
 
@@ -660,8 +660,7 @@ lemma restrict_le_restrict_of_subset_le {i : set α}
   (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j) : v ≤[i] w :=
 begin
   by_cases hi : measurable_set i,
-  { exact le_iff.1 (λ j hj, (restrict_apply v hi hj).symm ▸ (restrict_apply w hi hj).symm ▸
-      h (hj.inter hi) (set.inter_subset_right j i)) },
+  { exact (restrict_le_restrict_iff _ _ hi).2 h },
   { rw [restrict_not_measurable v hi, restrict_not_measurable w hi],
     exact le_refl _ },
 end

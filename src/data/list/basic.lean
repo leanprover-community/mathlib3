@@ -2239,12 +2239,12 @@ end
 @[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},
   mfoldl f b (l₁ ++ l₂) = mfoldl f b l₁ >>= λ x, mfoldl f x l₂
 | _ []     _ := by simp only [nil_append, mfoldl_nil, pure_bind]
-| _ (_::_) _ := by simp only [cons_append, mfoldl_cons, mfoldl_append, bind_assoc]
+| _ (_::_) _ := by simp only [cons_append, mfoldl_cons, mfoldl_append, is_lawful_monad.bind_assoc]
 
 @[simp] theorem mfoldr_append {f : α → β → m β} : ∀ {b l₁ l₂},
   mfoldr f b (l₁ ++ l₂) = mfoldr f b l₂ >>= λ x, mfoldr f x l₁
 | _ []     _ := by simp only [nil_append, mfoldr_nil, bind_pure]
-| _ (_::_) _ := by simp only [mfoldr_cons, cons_append, mfoldr_append, bind_assoc]
+| _ (_::_) _ := by simp only [mfoldr_cons, cons_append, mfoldr_append, is_lawful_monad.bind_assoc]
 
 end mfoldl_mfoldr
 

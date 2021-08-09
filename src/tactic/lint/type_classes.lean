@@ -360,7 +360,10 @@ See Note [function coercion]." }
 meta def check_reducible_non_instances (d : declaration) : tactic (option string) := do
   let nm := d.to_name,
   ff ← is_instance nm | return none,
-  tt ← has_attribute' `class d.type.pi_codomain.get_app_fn.const_name | return none,
+  tt ← is_class d.type | return none,
+  -- we only check type-classes with a single argument.
+  -- Type-classes with more arguments are likely (but not always) false positives
+  1 ← return d.type.pi_codomain.get_app_num_args | return none,
   ff ← is_prop d.type | return none,
   ff ← has_attribute' `reducible nm | return none,
   e ← get_env,

@@ -438,7 +438,7 @@ by exactI nat.find (multiplicity_X_sub_C_finite a h0)
 lemma root_multiplicity_eq_multiplicity (p : polynomial R) (a : R) :
   root_multiplicity a p = if h0 : p = 0 then 0 else
   (multiplicity (X - C a) p).get (multiplicity_X_sub_C_finite a h0) :=
-by simp [multiplicity, root_multiplicity, roption.dom];
+by simp [multiplicity, root_multiplicity, part.dom];
   congr; funext; congr
 
 lemma pow_root_multiplicity_dvd (p : polynomial R) (a : R) :

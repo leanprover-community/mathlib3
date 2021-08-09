@@ -155,6 +155,22 @@ def to_GL : special_linear_group n R →* general_linear_group R (n → R) :=
 
 lemma coe_to_GL (A : special_linear_group n R) : ↑A.to_GL = A.to_lin'.to_linear_map := rfl
 
+section has_neg
+
+/-- Formal operation of negation on special linear group on even cardinality `n` given by negating
+each element. -/
+instance {R : Type*} [comm_ring R] [_i : fact (even (fintype.card n))] :
+  has_neg (special_linear_group n R) :=
+⟨λ g,
+  ⟨- g, by simpa [nat.neg_one_pow_of_even _i.elim, g.det_coe] using @det_smul _ _ _ _ _ ↑ₘg (-1)⟩⟩
+
+@[simp] lemma has_neg_coe_mat {R : Type*} [comm_ring R]
+  (g : special_linear_group n R) [fact (even (fintype.card n))] :
+  ↑(- g) = - (↑g : matrix n n R) :=
+rfl
+
+end has_neg
+
 -- this section should be last to ensure we do not use it in lemmas
 section coe_fn_instance
 
@@ -167,22 +183,6 @@ instance : has_coe_to_fun (special_linear_group n R) :=
 lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = ↑ₘs := rfl
 
 end coe_fn_instance
-
-section has_neg
-
-/-- Formal operation of negation on special linear group on even cardinality `n` given by negating
-each element. -/
-instance {R : Type*} [comm_ring R] [_i : fact (even (fintype.card n))] :
-  has_neg (special_linear_group n R) :=
-⟨λ g,
-  ⟨- g, by simpa [nat.neg_one_pow_of_even _i.elim, g.det_coe] using @det_smul _ _ _ _ _ g (-1)⟩⟩
-
-@[simp] lemma has_neg_coe_mat {R : Type*} [comm_ring R]
-  (g : special_linear_group n R) [fact (even (fintype.card n))] :
-  ↑(- g) = - (↑g : matrix n n R) :=
-rfl
-
-end has_neg
 
 end special_linear_group
 

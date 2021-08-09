@@ -40,7 +40,7 @@ variables {X : Type*} [topological_space X]
 def of : X → alexandroff X := some
 
 /-- The range of the embedding -/
-def range_of (X : Type*) [topological_space X] : set (alexandroff X) := of '' (univ : set X)
+def range_of (X : Type*) [topological_space X] : set (alexandroff X) := range (@of X _)
 
 lemma of_apply {x : X} : of x = some x := rfl
 
@@ -94,7 +94,7 @@ by { induction x using alexandroff.rec_infty_coe; simp [infty_not_mem_range_of] 
 attribute [nolint simp_nf] not_mem_range_of_iff
 
 lemma infty_not_mem_image_of {s : set X} : ∞ ∉ of '' s :=
-not_mem_subset (image_subset _ $ subset_univ _) infty_not_mem_range_of
+not_mem_subset (image_subset_range _ _) infty_not_mem_range_of
 
 lemma inter_infty_eq_empty : (range_of X) ∩ {∞} = ∅ :=
 by { ext x, induction x using alexandroff.rec_infty_coe; simp }
@@ -203,7 +203,7 @@ lemma is_open_map_of : is_open_map (@of X _) :=
 end
 
 lemma is_open_range_of : is_open (@range_of X _) :=
-is_open_map_of _ is_open_univ
+is_open_map_of.is_open_range
 
 instance : compact_space (alexandroff X) :=
 { compact_univ :=
@@ -253,11 +253,11 @@ begin
           by rw hx at hz; exact (w x) hz),
       exact minor₁ (eq_singleton_iff_unique_mem.mpr ⟨H, this⟩) },
     rcases ne_empty_iff_nonempty.mp minor₂ with ⟨x, hx⟩,
-    exact ⟨of x, hx, x, mem_univ _, rfl⟩ },
+    exact ⟨of x, hx, x, rfl⟩ },
   { rcases Hs with ⟨z, hz⟩,
     rcases ne_infty_iff_exists.mp (ne_of_mem_of_not_mem hz H) with ⟨x, hx⟩,
     rw hx at hz,
-    exact ⟨of x, hz, x, mem_univ _, rfl⟩ }
+    exact ⟨of x, hz, x, rfl⟩ }
 end
 
 lemma connected_space_alexandroff [preconnected_space X] (h : ¬ is_compact (univ : set X)) :
@@ -265,8 +265,11 @@ lemma connected_space_alexandroff [preconnected_space X] (h : ¬ is_compact (uni
 { is_preconnected_univ :=
   begin
     rw ← dense_iff_closure_eq.mp (dense_range_of h),
-    exact is_preconnected.closure
-      (is_preconnected_univ.image of continuous_of.continuous_on)
+    convert is_preconnected.closure
+      (is_preconnected_univ.image of continuous_of.continuous_on),
+    rw image_univ,
+    refl,
+    apply_instance
   end,
   to_nonempty := ⟨∞⟩ }
 

@@ -126,23 +126,21 @@ lemma coe_mul (a b : G) : ((a * b : G) : Q) = a * b := rfl
 @[simp, to_additive quotient_add_group.coe_neg]
 lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 
-@[simp, to_additive] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n :=
+@[simp, to_additive quotient_add_group.coe_nsmul] lemma coe_pow (a : G) (n : ℕ) :
+  ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_pow a n
 
-@[simp, to_additive] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
+@[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_gpow a n
 
--- omit nN
+omit nN
 
--- @[simp] lemma coe_gsmul {G' : Type*} [add_group G'] (N : add_subgroup G') [N.normal] (a : G') (n : ℤ) :
---   ((n • a : G') : quotient_add_group.quotient N) = n • a :=
--- (quotient_add_group.mk' N).map_gsmul a n
+@[simp] lemma coe_gsmul {G' : Type*} [add_group G'] (N : add_subgroup G') [N.normal] (a : G')
+(n : ℤ) :
+  ((n • a : G') : quotient_add_group.quotient N) = n • a :=
+(quotient_add_group.mk' N).map_gsmul a n
 
--- @[simp] lemma coe_nsmul {G' : Type*} [add_group G'] (N : add_subgroup G') [N.normal] (a : G') (n : ℕ) :
---   ((n • a : G') : quotient_add_group.quotient N) = n • a :=
--- (quotient_add_group.mk' N).map_nsmul a n
-
--- include nN
+include nN
 
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
 group homomorphism `G/N →* H`. -/
@@ -298,7 +296,7 @@ map _ _ (subgroup.inclusion h) $
   by simp [subgroup.subgroup_of, subgroup.comap_comap]; exact subgroup.comap_mono h'
 
 /-- Let `A', A, B', B` be subgroups of `G`.
-If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic. 
+If `A' = B'` and `A = B`, then the quotients `A / (A' ⊓ A)` and `B / (B' ⊓ B)` are isomorphic.
 
 Applying this equiv is nicer than rewriting along the equalities, since the type of
 `(A'.subgroup_of A : subgroup A)` depends on on `A`.

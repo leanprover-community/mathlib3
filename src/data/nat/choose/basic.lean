@@ -108,6 +108,27 @@ begin
   { simp [hk₁, mul_comm, choose, nat.sub_self] }
 end
 
+lemma choose_mul {n k s : ℕ} (hkn : k ≤ n) (hsk : s ≤ k) :
+  n.choose k * k.choose s = n.choose s * (n - s).choose (k - s) :=
+begin
+  have h : 0 < (n - k)! * (k - s)! * s! :=
+    mul_pos (mul_pos (factorial_pos _) (factorial_pos _)) (factorial_pos _),
+  refine eq_of_mul_eq_mul_right h _,
+  calc
+    n.choose k * k.choose s * ((n - k)! * (k - s)! * s!)
+        = n.choose k * (k.choose s * s! * (k - s)!) * (n - k)!
+        : by rw [mul_assoc, mul_assoc, mul_assoc, mul_assoc _ s!, mul_assoc, mul_comm (n - k)!,
+              mul_comm s!]
+    ... = n!
+        : by rw [choose_mul_factorial_mul_factorial hsk, choose_mul_factorial_mul_factorial hkn]
+    ... = n.choose s * s! * ((n - s).choose (k - s) * (k - s)! * (n - s - (k - s))!)
+        : by rw [choose_mul_factorial_mul_factorial (nat.sub_le_sub_right hkn _),
+              choose_mul_factorial_mul_factorial (hsk.trans hkn)]
+    ... = n.choose s * (n - s).choose (k - s) * ((n - k)! * (k - s)! * s!)
+        : by rw [sub_sub_sub_cancel_right hsk, mul_assoc, mul_left_comm s!, mul_assoc,
+              mul_comm (k - s)!, mul_comm s!, mul_right_comm, ←mul_assoc]
+end
+
 theorem choose_eq_factorial_div_factorial {n k : ℕ} (hk : k ≤ n) :
   choose n k = n! / (k! * (n - k)!) :=
 begin

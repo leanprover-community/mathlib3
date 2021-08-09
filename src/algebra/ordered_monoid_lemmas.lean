@@ -28,6 +28,8 @@ Almost no monoid is actually present in this file: most assumptions have been ge
 -- TODO: If possible, uniformize lemma names, taking special care of `'`,
 -- after the `ordered`-refactor is done.
 
+open function
+
 variables {α : Type*}
 section has_mul
 variables [has_mul α]
@@ -773,7 +775,7 @@ namespace mul_le_cancellable
 
 @[to_additive]
 protected lemma injective [has_mul α] [partial_order α] {a : α} (ha : mul_le_cancellable a) :
-  function.injective ((*) a) :=
+  injective ((*) a) :=
 λ b c h, le_antisymm (ha h.le) (ha h.ge)
 
 @[to_additive]
@@ -783,7 +785,7 @@ ha.injective.eq_iff
 
 @[to_additive]
 protected lemma injective_left [comm_semigroup α] [partial_order α] {a : α}
-  (ha : mul_le_cancellable a) : function.injective (* a) :=
+  (ha : mul_le_cancellable a) : injective (* a) :=
 λ b c h, ha.injective $ by rwa [mul_comm a, mul_comm a]
 
 @[to_additive]

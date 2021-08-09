@@ -141,7 +141,7 @@ localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
 /-- A matrix `A` is *symmetric* if `Aᵀ = A`. -/
 protected def is_sym (A : matrix m m α) : Prop := Aᵀ = A
 
-/-- Proposition `matrix.is_skewsym`. `A.is_skewsym` means `-Aᵀ = A` if `[has_neg α]`. -/
+/-- A matrix `A` is *skew symmetric* if `-Aᵀ = A`. -/
 protected def is_skewsym [has_neg α] (A : matrix m m α) : Prop := -Aᵀ = A
 
 /-- A matrix is *Hermitian* if `Aᴴ = A`. -/

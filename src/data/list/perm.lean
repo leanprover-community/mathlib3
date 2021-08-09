@@ -1084,8 +1084,9 @@ theorem perm.permutations' {s t : list α} (p : s ~ t) :
   permutations' s ~ permutations' t :=
 begin
   induction p with a s t p IH a b l s t u p₁ p₂ IH₁ IH₂, {simp},
-  { simp, exact IH.bind_right _ },
-  { simp, rw [bind_assoc, bind_assoc], apply perm.bind_left, apply perm_permutations'_aux_comm },
+  { simp only [permutations'], exact IH.bind_right _ },
+  { simp only [permutations'],
+    rw [bind_assoc, bind_assoc], apply perm.bind_left, apply perm_permutations'_aux_comm },
   { exact IH₁.trans IH₂ }
 end
 

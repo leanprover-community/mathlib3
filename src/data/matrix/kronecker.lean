@@ -175,12 +175,12 @@ lemma kronecker_apply [has_mul α] (A : matrix l m α) (B : matrix n p α) (i₁
   (A ⊗ₖ B) (i₁, i₂) (j₁, j₂) = A i₁ j₁ * B i₂ j₂ := rfl
 
 /-- `matrix.kronecker` as a bilinear map. -/
-def kronecker_linear [comm_semiring R] [semiring α] [algebra R α] :
+def kronecker_bilinear [comm_semiring R] [semiring α] [algebra R α] :
   matrix l m α →ₗ[R] matrix n p α →ₗ[R] matrix (l × n) (m × p) α :=
 kronecker_map_linear (algebra.lmul R α).to_linear_map
 
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
-hypothese which can be filled by properties of `*`. -/
+hypotheses which can be filled by properties of `*`. -/
 
 @[simp] lemma zero_kronecker [mul_zero_class α] (B : matrix n p α) : (0 : matrix l m α) ⊗ₖ B = 0 :=
 kronecker_map_zero_left _ zero_mul B
@@ -253,12 +253,12 @@ lemma kronecker_tmul_apply (A : matrix l m α) (B : matrix n p β) (i₁ i₂ j�
   (A ⊗ₖₜ B) (i₁, i₂) (j₁, j₂) = A i₁ j₁ ⊗ₜ[R] B i₂ j₂ := rfl
 
 /-- `matrix.kronecker` as a bilinear map. -/
-def kronecker_tmul_linear :
+def kronecker_tmul_bilinear :
   matrix l m α →ₗ[R] matrix n p β →ₗ[R] matrix (l × n) (m × p) (α ⊗[R] β) :=
 kronecker_map_linear (tensor_product.mk R α β)
 
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
-hypothese which can be filled by properties of `*`. -/
+hypotheses which can be filled by properties of `⊗ₜ`. -/
 
 @[simp] lemma zero_kronecker_tmul (B : matrix n p β) : (0 : matrix l m α) ⊗ₖₜ[R] B = 0 :=
 kronecker_map_zero_left _ (zero_tmul α) B

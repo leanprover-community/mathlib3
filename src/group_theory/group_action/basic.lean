@@ -195,6 +195,18 @@ lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
 (const_smul_hom β r).map_list_sum l
 
+/-- `smul` by a `k : M` over a ring is injective, if `k` is not a zero divisor.
+The general theory of such `k` is elaborated by `is_smul_regular`.
+The typeclass that restricts all terms of `M` to have this property is `no_zero_smul_divisors`. -/
+lemma smul_cancel_of_non_zero_divisor {M R : Type*} [monoid M] [ring R] [distrib_mul_action M R]
+  (k : M) (h : ∀ (x : R), k • x = 0 → x = 0) {a b : R} (h' : k • a = k • b) :
+  a = b :=
+begin
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [smul_sub, h', sub_self]
+end
+
 end
 
 section

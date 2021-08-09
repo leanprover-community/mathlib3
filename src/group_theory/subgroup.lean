@@ -1097,8 +1097,9 @@ end
 
 variables {N : Type*} [group N]
 
-/-- The preimage of the normalizer is contained in the normalizer of the preimage -/
-@[to_additive] lemma le_normalizer_comap (f : N →* G) :
+/-- The preimage of the normalizer is contained in the normalizer of the preimage. -/
+@[to_additive "The preimage of the normalizer is contained in the normalizer of the preimage."]
+lemma le_normalizer_comap (f : N →* G) :
   H.normalizer.comap f ≤ (H.comap f).normalizer :=
 λ x, begin
   simp only [mem_normalizer_iff, mem_comap],
@@ -1106,8 +1107,9 @@ variables {N : Type*} [group N]
   simp [h (f n)]
 end
 
-/-- The image of the normalizer is contained in the normalizer of the image -/
-@[to_additive] lemma le_normalizer_map (f : G →* N) :
+/-- The image of the normalizer is contained in the normalizer of the image. -/
+@[to_additive "The image of the normalizer is contained in the normalizer of the image."]
+lemma le_normalizer_map (f : G →* N) :
   H.normalizer.map f ≤ (H.map f).normalizer :=
 λ _, begin
   simp only [and_imp, exists_prop, mem_map, exists_imp_distrib, mem_normalizer_iff],
@@ -1660,8 +1662,10 @@ noncomputable def equiv_map_of_injective (H : subgroup G)
   (equiv_map_of_injective H f hf h : N) = f h := rfl
 
 /-- The preimage of the normalizer is equal to the normalizer of the preimage of a surjective
-  function -/
-@[to_additive] lemma comap_normalizer_eq_of_surjective {H : subgroup G}
+  function. -/
+@[to_additive "The preimage of the normalizer is equal to the normalizer of the preimage of
+a surjective function."]
+lemma comap_normalizer_eq_of_surjective (H : subgroup G)
   {f : N →* G} (hf : function.surjective f) :
   H.normalizer.comap f = (H.comap f).normalizer :=
 le_antisymm (le_normalizer_comap f)
@@ -1673,8 +1677,10 @@ le_antisymm (le_normalizer_comap f)
     simp [hx y]
   end
 
-/-- The image of the normalizer is equal to the normalizer of the image of an isomorphism -/
-@[to_additive] lemma map_equiv_normalizer_eq {H : subgroup G}
+/-- The image of the normalizer is equal to the normalizer of the image of an isomorphism. -/
+@[to_additive "The image of the normalizer is equal to the normalizer of the image of an
+isomorphism."]
+lemma map_equiv_normalizer_eq (H : subgroup G)
   (f : G ≃* N) : H.normalizer.map f.to_monoid_hom = (H.map f.to_monoid_hom).normalizer :=
 begin
   ext x,
@@ -1684,11 +1690,13 @@ begin
 end
 
 /-- The image of the normalizer is equal to the normalizer of the image of a bijective
-  function -/
-@[to_additive] lemma map_normalizer_eq_of_bijective {H : subgroup G}
+  function. -/
+@[to_additive "The image of the normalizer is equal to the normalizer of the image of a bijective
+  function."]
+lemma map_normalizer_eq_of_bijective (H : subgroup G)
   {f : G →* N} (hf : function.bijective f) :
   H.normalizer.map f = (H.map f).normalizer :=
-map_equiv_normalizer_eq (mul_equiv.of_bijective f hf)
+map_equiv_normalizer_eq H (mul_equiv.of_bijective f hf)
 
 end subgroup
 
@@ -2257,3 +2265,50 @@ S.to_submonoid.distrib_mul_action
 end subgroup
 
 end actions
+
+/-! ### Saturated subgroups -/
+
+section saturated
+
+namespace subgroup
+
+/-- A subgroup `H` of `G` is *saturated* if for all `n : ℕ` and `g : G` with `g^n ∈ H`
+we have `n = 0` or `g ∈ H`. -/
+@[to_additive "An additive subgroup `H` of `G` is *saturated* if
+for all `n : ℕ` and `g : G` with `n•g ∈ H` we have `n = 0` or `g ∈ H`."]
+def saturated (H : subgroup G) : Prop := ∀ ⦃n g⦄, npow n g ∈ H → n = 0 ∨ g ∈ H
+
+@[to_additive] lemma saturated_iff_npow {H : subgroup G} :
+  saturated H ↔ (∀ (n : ℕ) (g : G), g^n ∈ H → n = 0 ∨ g ∈ H) := iff.rfl
+
+@[to_additive] lemma saturated_iff_gpow {H : subgroup G} :
+  saturated H ↔ (∀ (n : ℤ) (g : G), g^n ∈ H → n = 0 ∨ g ∈ H) :=
+begin
+  split,
+  { rintros hH ⟨n⟩ g hgn,
+    { simp only [int.coe_nat_eq_zero, int.of_nat_eq_coe, gpow_coe_nat] at hgn ⊢,
+      exact hH hgn },
+    { suffices : g ^ (n+1) ∈ H,
+      { refine (hH this).imp _ id, simp only [forall_false_left, nat.succ_ne_zero], },
+      simpa only [inv_mem_iff, gpow_neg_succ_of_nat] using hgn, } },
+  { intros h n g hgn,
+    specialize h n g,
+    simp only [int.coe_nat_eq_zero, gpow_coe_nat] at h,
+    apply h hgn }
+end
+
+end subgroup
+
+namespace add_subgroup
+
+lemma ker_saturated {A₁ A₂ : Type*} [add_comm_group A₁] [add_comm_group A₂]
+  [no_zero_smul_divisors ℕ A₂] (f : A₁ →+ A₂) :
+  (f.ker).saturated :=
+begin
+  intros n g hg,
+  simpa only [f.mem_ker, nsmul_eq_smul, f.map_nsmul, smul_eq_zero] using hg
+end
+
+end add_subgroup
+
+end saturated

@@ -487,12 +487,12 @@ let ⟨C, hC⟩ := h.is_O_with in
 summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) ((summable_norm_iff.mpr hg).mul_left _)
   hC.bound
 
-lemma summable_of_is_equivalent {ι E : Type*} [normed_group E] [complete_space E] [normed_space ℝ E]
-  [finite_dimensional ℝ E] {f : ι → E} {g : ι → E}
+lemma summable_of_is_equivalent {ι E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] [complete_space E] {f : ι → E} {g : ι → E}
   (hg : summable g) (h : f ~[cofinite] g) : summable f :=
 hg.trans_sub (summable_of_is_O' g hg h.is_o.is_O)
 
-lemma is_equivalent.summable_iff {ι E : Type*} [normed_group E] [complete_space E] [normed_space ℝ E]
-  [finite_dimensional ℝ E] {f : ι → E} {g : ι → E}
+lemma is_equivalent.summable_iff {ι E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] [complete_space E] {f : ι → E} {g : ι → E}
   (h : f ~[cofinite] g) : summable f ↔ summable g :=
 ⟨λ hf, summable_of_is_equivalent hf h.symm, λ hg, summable_of_is_equivalent hg h⟩

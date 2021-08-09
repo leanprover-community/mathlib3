@@ -192,7 +192,7 @@ def opens_of_compl {s : set X} (h : is_compact s ∧ is_closed s) :
   preimage_compl, compl_compl, of_injective.preimage_image _], exact h }⟩
 
 lemma infty_mem_opens_of_compl {s : set X} (h : is_compact s ∧ is_closed s) :
-  ∞ ∈ (opens_of_compl h : set (alexandroff X)) :=
+  ∞ ∈ (opens_of_compl h) :=
 by { simp only [opens_of_compl, topological_space.opens.coe_mk],
      exact mem_compl infty_not_mem_image_of }
 

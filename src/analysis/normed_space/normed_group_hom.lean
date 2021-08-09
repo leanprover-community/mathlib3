@@ -130,7 +130,7 @@ antilipschitz_with.of_le_mul_dist $
 λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 /-- A normed group hom is surjective on the subgroup `K` with constant `C` if every element
-`x` of `K` has a preimage whose normed is bounded above by `C*∥x∥`. This is a more
+`x` of `K` has a preimage whose norm is bounded above by `C*∥x∥`. This is a more
 abstract version of `f` having a right inverse defined on `K` with operator norm
 at most `C`. -/
 def surjective_on_with (f : normed_group_hom V₁ V₂) (K : add_subgroup V₂) (C : ℝ) : Prop :=
@@ -671,8 +671,7 @@ begin
   obtain ⟨v : ℕ → H, lim_v : tendsto (λ (n : ℕ), ∑ k in range (n + 1), v k) at_top (𝓝 h),
     v_in : ∀ n, v n ∈ K, hv₀ : ∥v 0 - h∥ < b 0, hv : ∀ n > 0, ∥v n∥ < b n⟩ :=
     controlled_sum_of_mem_closure h_in b_pos,
-  have : ∀ n, ∃ m' : G, f m' = v n ∧ ∥m'∥ ≤ C * ∥v n∥,
-  exact λ (n : ℕ), hyp (v n) (v_in n),
+  have : ∀ n, ∃ m' : G, f m' = v n ∧ ∥m'∥ ≤ C * ∥v n∥ := λ (n : ℕ), hyp (v n) (v_in n),
   choose u hu hnorm_u using this,
   set s : ℕ → G := λ n, ∑ k in range (n+1), u k,
   have : cauchy_seq s,
@@ -698,23 +697,19 @@ begin
       calc ∥u 0∥ ≤ C*∥v 0∥ : hnorm_u 0
       ... ≤ C*(∥h∥ + b 0) : mul_le_mul_of_nonneg_left this hC.le
       ... = C * b 0 + C * ∥h∥ : by rw [add_comm, mul_add] },
-    have : ∑ k in range (n + 1), C * b k ≤ ε * ∥h∥,
-    { calc ∑ k in range (n + 1), C * b k = (∑ k in range (n + 1), (1 / 2) ^ k) * (ε * ∥h∥ / 2) :
+    have : ∑ k in range (n + 1), C * b k ≤ ε * ∥h∥ := calc
+      ∑ k in range (n + 1), C * b k = (∑ k in range (n + 1), (1 / 2) ^ k) * (ε * ∥h∥ / 2) :
                      by simp only [b, mul_div_cancel' _ hC.ne.symm, ← sum_mul]
       ... ≤  2 * (ε * ∥h∥ / 2) : mul_le_mul_of_nonneg_right (sum_geometric_two_le _)
                                                             (by nlinarith [hε, norm_nonneg h])
-      ... = ε * ∥h∥ : mul_div_cancel' _ two_ne_zero },
+      ... = ε * ∥h∥ : mul_div_cancel' _ two_ne_zero,
     calc ∥s n∥ ≤ ∑ k in range (n+1), ∥u k∥ : norm_sum_le _ _
     ... = ∑ k in range n, ∥u (k + 1)∥ + ∥u 0∥ : sum_range_succ' _ _
-
     ... ≤ ∑ k in range n, C*∥v (k + 1)∥ + ∥u 0∥ : add_le_add_right (sum_le_sum (λ _ _, hnorm_u _)) _
-    ... ≤ ∑ k in range n, C*b (k+1) + (C*b 0 + C*∥h∥) :  add_le_add (sum_le_sum (λ k _, _)) hnorm₀
-    ... = ∑ k in range (n+1), C*b k + C*∥h∥ :  _
-    ... ≤ (C+ε)*∥h∥ : _,
-    { exact mul_le_mul_of_nonneg_left (hv _ k.succ_pos).le hC.le },
-    { rw [← add_assoc, sum_range_succ'] },
-    { rw [add_comm, add_mul],
-      apply add_le_add_left this } }
+    ... ≤ ∑ k in range n, C*b (k+1) + (C*b 0 + C*∥h∥) : 
+      add_le_add (sum_le_sum (λ k _, mul_le_mul_of_nonneg_left (hv _ k.succ_pos).le hC.le)) hnorm₀
+    ... = ∑ k in range (n+1), C*b k + C*∥h∥ : by rw [← add_assoc, sum_range_succ']
+    ... ≤ (C+ε)*∥h∥ : by { rw [add_comm, add_mul], apply add_le_add_left this } }
 end
 
 lemma controlled_closure_range_of_complete {f : normed_group_hom G H}

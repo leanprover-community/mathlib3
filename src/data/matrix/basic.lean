@@ -144,7 +144,7 @@ protected def is_sym (A : matrix m m α) : Prop := Aᵀ = A
 /-- Proposition `matrix.is_skewsym`. `A.is_skewsym` means `-Aᵀ = A` if `[has_neg α]`. -/
 protected def is_skewsym [has_neg α] (A : matrix m m α) : Prop := -Aᵀ = A
 
-/-- Proposition `matrix.is_Hermitian`. `A.is_Hermitian` means `Aᴴ = A` if `[has_star α]`. -/
+/-- A matrix is *Hermitian* if `Aᴴ = A`. -/
 protected def is_Hermitian [has_star α] (A : matrix m m α) : Prop := Aᴴ = A
 
 -- TODO[gh-6025]: make this an instance once safe to do so

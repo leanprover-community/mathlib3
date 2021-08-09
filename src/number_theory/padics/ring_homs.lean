@@ -320,7 +320,7 @@ end
 
 lemma appr_mono (x : ℤ_[p]) : monotone x.appr :=
 begin
-  apply monotone_of_monotone_nat,
+  apply monotone_nat_of_le_succ,
   intro n,
   dsimp [appr],
   split_ifs, { refl, },

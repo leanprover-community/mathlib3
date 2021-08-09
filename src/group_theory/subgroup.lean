@@ -404,12 +404,10 @@ end
 @[to_additive] instance fintype_bot : fintype (⊥ : subgroup G) := ⟨{1},
 by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
 
-@[simp] lemma _root_.add_subgroup.card_bot : fintype.card (⊥ : add_subgroup A) = 1 :=
-fintype.card_eq_one_iff.2
-  ⟨⟨(0 : A), set.mem_singleton 0⟩, λ ⟨y, hy⟩, subtype.eq $ add_subgroup.mem_bot.1 hy⟩
-
--- `@[to_additive]` doesn't work, because it converts the `1 : ℕ` to `0`.
-@[simp] lemma card_bot : fintype.card (⊥ : subgroup G) = 1 :=
+/- curly brackets `{}` are used here instead of instance brackets `[]` because
+  the instance in a goal is often not the same as the one inferred by type class inference.  -/
+@[simp, to_additive] lemma card_bot {_ : fintype ↥(⊥ : subgroup G)} :
+  fintype.card (⊥ : subgroup G)  = 1 :=
 fintype.card_eq_one_iff.2
   ⟨⟨(1 : G), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
 
@@ -454,6 +452,11 @@ begin
   convert H.bot_or_nontrivial,
   rw nontrivial_iff_exists_ne_one
 end
+
+@[to_additive] lemma card_le_one_iff_eq_bot [fintype H] : fintype.card H ≤ 1 ↔ H = ⊥ :=
+⟨λ h, (eq_bot_iff_forall _).2
+    (λ x hx, by simpa [subtype.ext_iff] using fintype.card_le_one_iff.1 h ⟨x, hx⟩ 1),
+  λ h, by simp [h]⟩
 
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]

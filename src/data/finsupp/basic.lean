@@ -415,6 +415,7 @@ variables [has_zero M] [has_zero N] [has_zero P]
 This preserves the structure on `f`, and exists in various bundled forms for when `f` is itself
 bundled:
 
+* `finsupp.map_range.equiv`
 * `finsupp.map_range.zero_hom`
 * `finsupp.map_range.add_monoid_hom`
 * `finsupp.map_range.add_equiv`
@@ -1186,6 +1187,43 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
 
 section map_range
 
+section equiv
+variables [has_zero M] [has_zero N] [has_zero P]
+
+/-- `finsupp.map_range` as an equiv. -/
+@[simps apply]
+def map_range.equiv (f : M ≃ N) (hf : f 0 = 0) (hf' : f.symm 0 = 0) : (α →₀ M) ≃ (α →₀ N) :=
+{ to_fun := (map_range f hf : (α →₀ M) → (α →₀ N)),
+  inv_fun := (map_range f.symm hf' : (α →₀ N) → (α →₀ M)),
+  left_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw equiv.symm_comp_self,
+    { exact map_range_id _ },
+    { refl },
+  end,
+  right_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw equiv.self_comp_symm,
+    { exact map_range_id _ },
+    { refl },
+  end }
+
+@[simp]
+lemma map_range.equiv_refl :
+  map_range.equiv (equiv.refl M) rfl rfl = equiv.refl (α →₀ M) :=
+equiv.ext map_range_id
+
+lemma map_range.equiv_trans
+  (f : M ≃ N) (hf : f 0 = 0) (hf') (f₂ : N ≃ P) (hf₂ : f₂ 0 = 0) (hf₂') :
+  (map_range.equiv (f.trans f₂) (by rw [equiv.trans_apply, hf, hf₂])
+    (by rw [equiv.symm_trans_apply, hf₂', hf']) : (α →₀ _) ≃ _) =
+    (map_range.equiv f hf hf').trans (map_range.equiv f₂ hf₂ hf₂') :=
+equiv.ext $ map_range_comp _ _ _ _ _
+
+lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
+  ((map_range.equiv f hf hf').symm : (α →₀ _) ≃ _) = map_range.equiv f.symm hf' hf :=
+equiv.ext $ λ x, rfl
+
+end equiv
+
 section zero_hom
 variables [has_zero M] [has_zero N] [has_zero P]
 
@@ -1229,6 +1267,12 @@ lemma map_range.add_monoid_hom_comp (f : N →+ P) (f₂ : M →+ N) :
     (map_range.add_monoid_hom f).comp (map_range.add_monoid_hom f₂) :=
 add_monoid_hom.ext $ map_range_comp _ _ _ _ _
 
+@[simp]
+lemma map_range.add_monoid_hom_to_zero_hom (f : M →+ N) :
+  (map_range.add_monoid_hom f).to_zero_hom =
+    (map_range.zero_hom f.to_zero_hom : zero_hom (α →₀ _) _) :=
+zero_hom.ext $ λ _, rfl
+
 lemma map_range_multiset_sum (f : M →+ N) (m : multiset (α →₀ M)) :
   map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
 (map_range.add_monoid_hom f : (α →₀ _) →+ _).map_multiset_sum _
@@ -1268,6 +1312,18 @@ add_equiv.ext $ map_range_comp _ _ _ _ _
 lemma map_range.add_equiv_symm (f : M ≃+ N) :
   ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
 add_equiv.ext $ λ x, rfl
+
+@[simp]
+lemma map_range.add_equiv_to_add_monoid_hom (f : M ≃+ N) :
+  (map_range.add_equiv f : (α →₀ _) ≃+ _).to_add_monoid_hom =
+    (map_range.add_monoid_hom f.to_add_monoid_hom : (α →₀ _) →+ _) :=
+add_monoid_hom.ext $ λ _, rfl
+
+@[simp]
+lemma map_range.add_equiv_to_equiv (f : M ≃+ N) :
+  (map_range.add_equiv f).to_equiv =
+    (map_range.equiv f.to_equiv f.map_zero f.symm.map_zero : (α →₀ _) ≃ _) :=
+equiv.ext $ λ _, rfl
 
 end add_monoid_hom
 
@@ -2081,6 +2137,11 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
+
+instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_scalar R M] :
+  has_faithful_scalar R (α →₀ M) :=
+{ eq_of_smul_eq_smul := λ r₁ r₂ h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ m : M,
+    by simpa using congr_fun (h (single a m)) a }
 
 variables (α M)
 

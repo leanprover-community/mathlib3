@@ -83,8 +83,6 @@ end⟩
 instance : unique_factorization_monoid ℕ :=
 ⟨λ _, nat.irreducible_iff_prime⟩
 
-@[simp] lemma normalize_eq (n : ℕ) : normalize n = n := n.mul_one
-
 end nat
 
 /-- `ℕ` is a gcd_monoid. -/
@@ -100,9 +98,9 @@ instance : gcd_monoid ℕ :=
   lcm_zero_right := nat.lcm_zero_right,
   .. (infer_instance : normalization_monoid ℕ) }
 
-lemma nat.gcd_eq_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
+lemma gcd_eq_nat_gcd (m n : ℕ) : gcd m n = nat.gcd m n := rfl
 
-lemma nat.lcm_eq_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl
+lemma lcm_eq_nat_lcm (m n : ℕ) : lcm m n = nat.lcm m n := rfl
 
 namespace int
 

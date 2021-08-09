@@ -1,6 +1,6 @@
 /-
 Copyright (c) 2021 Eric Wieser. All rights reserved.
-Released under MIT license as described in the file LICENSE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.quaternion
@@ -25,16 +25,16 @@ open_locale quaternion
 namespace quaternion_algebra
 
 
-/-- A quaternion basis contains the information sufficient to show that a subalgebra of `A`
-is compatible with `ℍ[R,c₁,c₂]`.
+/-- A quaternion basis contains the information both sufficient and necessary to construct an
+`R`-algebra homomorphism from `ℍ[R,c₁,c₂]` to `A`; or equivalently, a surjective
+`R`-algebra homomorphism from `ℍ[R,c₁,c₂]` to an `R`-subalgebra of `A`.
+
 Note that for definitional convenience, `k` is provided as a field even though `i_mul_j` fully
 determines it. -/
 structure basis {R : Type*} (A : Type*) [comm_ring R] [ring A] [algebra R A] (c₁ c₂ : R) :=
-(i : A)
+(i j k : A)
 (i_mul_i : i * i = c₁ • 1)
-(j : A)
 (j_mul_j : j * j = c₂ • 1)
-(k : A)
 (i_mul_j : i * j = k)
 (j_mul_i : j * i = -k)
 

@@ -183,7 +183,7 @@ end
 structure fundamental_domain {X : Type*} [measurable_space X] [add_group X] (L : add_subgroup X) :=
 (F : set X)
 (hF : measurable_set F)
-(disjoint : ∀ (l : X) (hl : l ∈ L) (h : l ≠ 0), disjoint ((+ l) '' F) F)
+(disjoint : ∀ (l : X) (hl : l ∈ L) (h : l ≠ 0), disjoint (((+) l) '' F) F)
 (covers : ∀ (x : X), ∃ (l : X) (hl : l ∈ L), l + x ∈ F)
 
 instance : inhabited (fundamental_domain (⊤ : add_subgroup (fin 0 → ℝ))) :=
@@ -192,27 +192,30 @@ instance : inhabited (fundamental_domain (⊤ : add_subgroup (fin 0 → ℝ))) :
   disjoint := λ v hv hvnz, by simp at *; assumption,
   covers := λ v, by simp } }
 
-lemma fundamental_domain.exists_unique {L : add_subgroup (ι → ℝ)} (F : fundamental_domain L)
-  (x : ι → ℝ) : ∃! (p : L), x ∈ (+ (p : ι → ℝ)) '' F.F :=
+lemma fundamental_domain.exists_unique {X : Type*} [measurable_space X] [add_group X]
+  {L : add_subgroup X} (F : fundamental_domain L) (x : X) : ∃! (p : L), x ∈ ((+) (p : X)) '' F.F :=
 exists_unique_of_exists_of_unique
 begin
-  simp only [exists_prop, set.mem_preimage, set.image_add_right, exists_unique_iff_exists],
+  simp only [exists_prop, set.mem_preimage, set.image_add_left, exists_unique_iff_exists],
   obtain ⟨l, hl, lh⟩ := F.covers x,
   use -l,
   exact L.neg_mem hl,
-  simpa [hl, add_comm] using lh,
+  simpa [hl] using lh,
 end
 begin
   rintro ⟨y₁_val, y₁_property⟩ ⟨y₂_val, y₂_property⟩ ⟨a, ha, rfl⟩ ⟨c, hc, h⟩,
   simp only [subtype.mk_eq_mk, add_subgroup.coe_mk] at *,
-  rw [← sub_eq_iff_eq_add, add_sub_assoc] at h,
-  have := F.disjoint (y₁_val - y₂_val) (L.sub_mem y₁_property y₂_property),
+  replace h := h.symm,
+  rw [← neg_add_eq_iff_eq_add, ← add_assoc] at h,
+  have := F.disjoint (-y₂_val + y₁_val) (L.add_mem (L.neg_mem y₂_property) y₁_property),
   contrapose! this,
-  rw sub_ne_zero,
-  simp only [this, true_and, neg_sub, not_false_iff, set.image_add_right, ne.def],
+  simp only [neg_add_eq_iff_eq_add, add_zero, image_add_left, ne.def, neg_add_rev, neg_neg],
+  split,
+  { exact this, },
   intro hd,
   apply hd ⟨_, hc⟩,
-  simpa [h],
+  rw [← h],
+  simpa [add_assoc],
 end
 
 instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
@@ -234,10 +237,10 @@ end
 
 /-- Blichfeldt's Principle --/
 -- TODO version giving `ceiling (volume S / volume F)` points whose difference is in lattice
-lemma exists_sub_mem_lattice_of_volume_lt_volume {ι : Type u} [fintype ι] (L : add_subgroup (ι → ℝ))
-  [encodable L] {S : set (ι → ℝ)} (hS : measurable_set S) (F : fundamental_domain L)
-  (hlt : volume F.F < volume S) :
-  ∃ (x y : ι → ℝ) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
+lemma exists_sub_mem_lattice_of_volume_lt_volume {X : Type*} [measure_space X] [add_comm_group X] [has_measurable_add X] (L : add_subgroup X)
+  [encodable L] {S : set X} (hS : measurable_set S) (F : fundamental_domain L)
+  (hlt : volume F.F < volume S) (h_trans_inv : ∀ v (S' : set X) (hS' : measurable_set S'), volume S' = volume ((+ (-v)) '' S')) :
+  ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
 begin
   suffices : ∃ (p₁ p₂ : L) (hne : p₁ ≠ p₂),
     (((+ ↑p₁) '' S ∩ F.F) ∩ ((+ ↑p₂) '' S ∩ F.F)).nonempty,
@@ -271,7 +274,7 @@ begin
       exact measurable_subtype_coe, },
     exact ⟨S, ⟨hS, rfl⟩⟩, },
   convert hlt,
-  have : (∑' (i : L), volume ((+ (i : ι → ℝ)) '' S ∩ F.F)) = volume S,
+  have : (∑' (i : L), volume ((+ (i : X)) '' S ∩ F.F)) = volume S,
   { rw (_ : ∑' (i : L), volume ((+ ↑i) '' S ∩ F.F) =
         ∑' (i : L), volume ((+ (-↑i)) '' ((+ ↑i) '' S ∩ F.F))),
     { conv in (_ '' (_ ∩ _)) {
@@ -292,7 +295,7 @@ begin
         assumption, },
       { apply_instance, },
       { intros x y hxy,
-        suffices : (disjoint on λ (i : ↥(L)), (λ (_x : ι → ℝ), _x + -↑i) '' F.F) x y,
+        suffices : (disjoint on λ (i : ↥(L)), (λ (_x : X), _x + -↑i) '' F.F) x y,
         { simp only [comp_add_right, add_zero, add_right_neg,
             set.image_add_right, neg_neg, set.image_id'] at this ⊢,
           rintros z ⟨⟨hzx, hzS⟩, ⟨hzy, hzS⟩⟩,
@@ -304,14 +307,14 @@ begin
           set.image_add_right, neg_neg] at htx hty ⊢,
         apply hxy,
         suffices : -x = -y, by simpa using this,
-        apply exists_unique.unique (F.exists_unique t) _ _; simpa, },
+        apply exists_unique.unique (F.exists_unique t) _ _; simpa [add_comm], },
     { intro l,
       apply measurable_set.inter _ hS,
       refine measurable_set_preimage _ F.hF,
       exact measurable_add_const ↑l, }, },
     { congr,
       ext1 l,
-      rw [trans_inv (↑ l) _ _],
+      rw [h_trans_inv (↑ l)],
       apply measurable_set.inter _ F.hF, -- TODO is this a dup goal?
       simp only [set.image_add_right],
       refine measurable_set_preimage _ hS,
@@ -366,7 +369,7 @@ begin
   simp only [image_smul],
   rw smul_pi ι,
   conv in (r • _)
-  { rw smul_Ioo hr, },
+  { rw linear_ordered_field.smul_Ioo hr, },
   erw pi_pi,
   simp only [algebra.id.smul_eq_mul, real.volume_Ioo],
   simp_rw [← mul_sub r],
@@ -461,7 +464,7 @@ begin
       exact set.smul_mem_smul_set (h_symm _ hv), },
     use [x, -y, hx, this _ hy],
     refl, },
-  { exact exists_sub_mem_lattice_of_volume_lt_volume L mhalf F h2, }
+  { refine exists_sub_mem_lattice_of_volume_lt_volume L mhalf F h2 trans_inv, }
 end
 
 end geometry_of_numbers

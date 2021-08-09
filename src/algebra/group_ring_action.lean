@@ -38,11 +38,6 @@ class mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
 
 export mul_semiring_action (smul_one)
 
-/-- Typeclass for faithful multiplicative actions by monoids on semirings. -/
-class faithful_mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
-  extends mul_semiring_action M R :=
-(eq_of_smul_eq_smul' : ∀ {m₁ m₂ : M}, (∀ r : R, m₁ • r = m₂ • r) → m₁ = m₂)
-
 section semiring
 
 variables (M G : Type u) [monoid M] [group G]
@@ -52,11 +47,6 @@ variables {M R}
 lemma smul_mul' [mul_semiring_action M R] (g : M) (x y : R) :
   g • (x * y) = (g • x) * (g • y) :=
 mul_semiring_action.smul_mul g x y
-
-variables {M} (R)
-theorem eq_of_smul_eq_smul [faithful_mul_semiring_action M R] {m₁ m₂ : M} :
-  (∀ r : R, m₁ • r = m₂ • r) → m₁ = m₂ :=
-faithful_mul_semiring_action.eq_of_smul_eq_smul'
 
 variables (M R)
 
@@ -83,9 +73,9 @@ def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* 
   map_mul' := smul_mul' x,
   .. distrib_mul_action.to_add_monoid_hom M R x }
 
-theorem to_ring_hom_injective [faithful_mul_semiring_action M R] :
+theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R] :
   function.injective (mul_semiring_action.to_ring_hom M R) :=
-λ m₁ m₂ h, eq_of_smul_eq_smul R $ λ r, ring_hom.ext_iff.1 h r
+λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, ring_hom.ext_iff.1 h r
 
 /-- Each element of the group defines a semiring isomorphism. -/
 def mul_semiring_action.to_semiring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=

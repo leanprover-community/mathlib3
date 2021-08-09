@@ -481,7 +481,7 @@ end
 @[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
 by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
 
-@[simp] lemma padic_val_nat_prime_pow (p y : ℕ) [fact p.prime] : padic_val_nat p (p ^ y) = y :=
+@[simp] lemma padic_val_nat_prime_pow (p n : ℕ) [fact p.prime] : padic_val_nat p (p ^ n) = n :=
 by rw [padic_val_nat.pow p _ _ (fact.out p.prime).ne_zero, padic_val_nat_self p, mul_one]
 
 open_locale big_operators

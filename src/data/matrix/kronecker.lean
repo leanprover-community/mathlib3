@@ -15,7 +15,7 @@ This defines the [Kronecker product](https://en.wikipedia.org/wiki/Kronecker_pro
 
 ## Main definitions
 
-* `matrix.kronecker_map`: A generalization of the Kronecker product: given a map `f : α   → β → γ`
+* `matrix.kronecker_map`: A generalization of the Kronecker product: given a map `f : α → β → γ`
   and matrices `A` and `B` with coefficients in `α` and `β`, respectively, it is defined as the
   matrix with coefficients in `γ` such that
   `kronecker_map f A B (i₁, i₂) (j₁, j₂) = f (A i₁ j₁) (B i₁ j₂)`.
@@ -33,8 +33,9 @@ This defines the [Kronecker product](https://en.wikipedia.org/wiki/Kronecker_pro
 
 These require `open_locale kronecker`:
 
-* `A ⊗ₖ B` for `kronecker_map (*) A B`
-* `A ⊗ₖₜ B` and `A ⊗ₖₜ[R] B` for `kronecker_map (⊗ₜ) A B`
+* `A ⊗ₖ B` for `kronecker_map (*) A B`. Lemmas about this notation use the token `kronecker`.
+* `A ⊗ₖₜ B` and `A ⊗ₖₜ[R] B` for `kronecker_map (⊗ₜ) A B`.  Lemmas about this notation use the token
+  `kronecker_tmul`.
 
 -/
 
@@ -73,13 +74,13 @@ lemma kronecker_map_map (f : α → β → γ) (g : γ → γ')
   (kronecker_map f A B).map g = kronecker_map (λ a b, g (f a b)) A B :=
 ext $ λ i j, rfl
 
-lemma kronecker_map_zero_left [has_zero α] [has_zero γ] (f : α → β → γ) (hf : ∀ b, f 0 b = 0)
-  (B : matrix n p β) :
+@[simp] lemma kronecker_map_zero_left [has_zero α] [has_zero γ]
+  (f : α → β → γ) (hf : ∀ b, f 0 b = 0) (B : matrix n p β) :
   kronecker_map f (0 : matrix l m α) B = 0:=
 ext $ λ i j,hf _
 
-lemma kronecker_map_zero_right [has_zero β] [has_zero γ] (f : α → β → γ) (hf : ∀ a, f a 0 = 0)
-  (A : matrix l m α) :
+@[simp] lemma kronecker_map_zero_right [has_zero β] [has_zero γ]
+  (f : α → β → γ) (hf : ∀ a, f a 0 = 0) (A : matrix l m α) :
   kronecker_map f A (0 : matrix n p β) = 0 :=
 ext $ λ i j, hf _
 
@@ -96,16 +97,14 @@ lemma kronecker_map_add_right [has_add β] [has_add γ] (f : α → β → γ)
 ext $ λ i j, hf _ _ _
 
 lemma kronecker_map_smul_left [has_scalar R α] [has_scalar R γ] (f : α → β → γ)
-  (hf : ∀ (r : R) a b, f (r • a) b = r • f a b) (r : R)
-  (A : matrix l m α) (B : matrix n p β) :
+  (r : R) (hf : ∀ a b, f (r • a) b = r • f a b) (A : matrix l m α) (B : matrix n p β) :
   kronecker_map f (r • A) B = r • kronecker_map f A B :=
-ext $ λ i j, hf _ _ _
+ext $ λ i j, hf _ _
 
 lemma kronecker_map_smul_right [has_scalar R β] [has_scalar R γ] (f : α → β → γ)
-  (hf : ∀ (r : R) a b, f a (r • b) = r • f a b) (r : R)
-  (A : matrix l m α) (B : matrix n p β) :
+  (r : R) (hf : ∀ a b, f a (r • b) = r • f a b) (A : matrix l m α) (B : matrix n p β) :
   kronecker_map f A (r • B) = r • kronecker_map f A B :=
-ext $ λ i j, hf _ _ _
+ext $ λ i j, hf _ _
 
 lemma kronecker_map_diagonal_diagonal [has_zero α] [has_zero β] [has_zero γ]
   [decidable_eq m] [decidable_eq n]
@@ -116,9 +115,8 @@ begin
   simp [diagonal, apply_ite f, ite_and, ite_apply, apply_ite (f (a i₁)), hf₁, hf₂],
 end
 
-lemma kronecker_map_one_one [has_zero α] [has_zero β] [has_zero γ]
-  [has_one α] [has_one β] [has_one γ]
-  [decidable_eq m] [decidable_eq n]
+@[simp] lemma kronecker_map_one_one [has_zero α] [has_zero β] [has_zero γ]
+  [has_one α] [has_one β] [has_one γ] [decidable_eq m] [decidable_eq n]
   (f : α → β → γ) (hf₁ : ∀ b, f 0 b = 0) (hf₂ : ∀ a, f a 0 = 0) (hf₃ : f 1 1 = 1) :
   kronecker_map f (1 : matrix m m α) (1 : matrix n n β) = 1 :=
 (kronecker_map_diagonal_diagonal _ hf₁ hf₂ _ _).trans $ by simp only [hf₃, diagonal_one]
@@ -133,9 +131,9 @@ def kronecker_map_linear [comm_semiring R]
 linear_map.mk₂ R
   (kronecker_map (λ r s, f r s))
   (kronecker_map_add_left _ $ f.map_add₂)
-  (kronecker_map_smul_left _ $ f.map_smul₂)
+  (λ r, kronecker_map_smul_left _ _ $ f.map_smul₂ _)
   (kronecker_map_add_right _ $ λ a, (f a).map_add)
-  (kronecker_map_smul_right _ $ λ r a, (f a).map_smul r)
+  (λ r, kronecker_map_smul_right _ _ $ λ a, (f a).map_smul r)
 
 /-- `matrix.kronecker_map_linear` commutes with `⬝` if `f` commutes with `*`.
 
@@ -184,10 +182,10 @@ kronecker_map_linear (algebra.lmul R α).to_linear_map
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
 hypothese which can be filled by properties of `*`. -/
 
-lemma zero_kronecker [mul_zero_class α] (B : matrix n p α) : (0 : matrix l m α) ⊗ₖ B = 0 :=
+@[simp] lemma zero_kronecker [mul_zero_class α] (B : matrix n p α) : (0 : matrix l m α) ⊗ₖ B = 0 :=
 kronecker_map_zero_left _ zero_mul B
 
-lemma kronecker_zero [mul_zero_class α] (A : matrix l m α) : A ⊗ₖ (0 : matrix n p α) = 0 :=
+@[simp] lemma kronecker_zero [mul_zero_class α] (A : matrix l m α) : A ⊗ₖ (0 : matrix n p α) = 0 :=
 kronecker_map_zero_right _ mul_zero A
 
 lemma add_kronecker [distrib α] (A₁ A₂ : matrix l m α) (B : matrix n p α) :
@@ -201,12 +199,12 @@ kronecker_map_add_right _ mul_add _ _ _
 lemma smul_kronecker [monoid R] [monoid α] [mul_action R α] [is_scalar_tower R α α]
   (r : R) (A : matrix l m α) (B : matrix n p α) :
   (r • A) ⊗ₖ B = r • (A ⊗ₖ B) :=
-kronecker_map_smul_left _ (λ _ _ _, smul_mul_assoc _ _ _) _ _ _
+kronecker_map_smul_left _ _ (λ _ _, smul_mul_assoc _ _ _) _ _
 
 lemma kronecker_smul [monoid R] [monoid α] [mul_action R α] [smul_comm_class R α α]
   (r : R) (A : matrix l m α) (B : matrix n p α) :
   A ⊗ₖ (r • B) = r • (A ⊗ₖ B) :=
-kronecker_map_smul_right _ (λ _ _ _, mul_smul_comm _ _ _) _ _ _
+kronecker_map_smul_right _ _ (λ _ _, mul_smul_comm _ _ _) _ _
 
 lemma diagonal_kronecker_diagonal [mul_zero_class α]
   [decidable_eq m] [decidable_eq n]
@@ -279,12 +277,12 @@ kronecker_map_add_right _ tmul_add _ _ _
 lemma smul_kronecker_tmul
   (r : R) (A : matrix l m α) (B : matrix n p α) :
   (r • A) ⊗ₖₜ[R] B = r • (A ⊗ₖₜ B) :=
-kronecker_map_smul_left _ (λ _ _ _, smul_tmul' _ _ _) _ _ _
+kronecker_map_smul_left _ _ (λ _ _, smul_tmul' _ _ _) _ _
 
 lemma kronecker_tmul_smul
   (r : R) (A : matrix l m α) (B : matrix n p α) :
   A ⊗ₖₜ[R] (r • B) = r • (A ⊗ₖₜ B) :=
-kronecker_map_smul_right _ (λ _ _ _, tmul_smul _ _ _) _ _ _
+kronecker_map_smul_right _ _ (λ _ _, tmul_smul _ _ _) _ _
 
 lemma diagonal_kronecker_tmul_diagonal
   [decidable_eq m] [decidable_eq n]

@@ -6,7 +6,9 @@ Authors: Chris Hughes
 import group_theory.group_action.basic
 import data.fintype.basic
 /-!
-This file defines the conjugation action of a group on its subgroups
+# Conjugation action on subgroups
+
+This file defines the conjugation action of a group on its subgroups.
 -/
 
 open mul_action

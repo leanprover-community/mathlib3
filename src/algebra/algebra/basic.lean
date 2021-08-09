@@ -3,14 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import tactic.nth_rewrite
-import data.matrix.basic
+import algebra.iterate_hom
 import data.equiv.ring_aut
 import linear_algebra.tensor_product
-import ring_theory.subring
-import deprecated.subring
-import algebra.opposites
-import algebra.iterate_hom
+import tactic.nth_rewrite
 
 /-!
 # Algebra over Commutative Semiring
@@ -285,33 +281,6 @@ lemma coe_algebra_map_of_subring {R : Type*} [comm_ring R] (S : subring R) :
 lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x : S) :
   algebra_map S R x = x := rfl
 
-section
-local attribute [instance] subset.comm_ring
-
-/-- Algebra over a set that is closed under the ring operations. -/
-local attribute [instance]
-def of_is_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  (S : set R) [is_subring S] : algebra S A :=
-algebra.of_subring S.to_subring
-
-lemma is_subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
-  (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
-
-lemma is_subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
-  (algebra_map S R : S → R) = subtype.val := rfl
-
-lemma is_subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
-  algebra_map S R x = x := rfl
-
-lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
-  set.range (algebra_map T₁ R) ⊆ T₂ :=
-begin
-  rintros x ⟨⟨t, ht⟩, rfl⟩,
-  exact hyp ht,
-end
-
-end
-
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
 def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
@@ -413,15 +382,6 @@ lemma algebra_map_End_eq_smul_id (a : R) :
 linear_map.ker_smul _ _ ha
 
 end module
-
-instance matrix_algebra (n : Type u) (R : Type v)
-  [decidable_eq n] [fintype n] [comm_semiring R] : algebra R (matrix n n R) :=
-{ commutes' := by { intros, simp [matrix.scalar], },
-  smul_def' := by { intros, simp [matrix.scalar], },
-  ..(matrix.scalar n) }
-
-@[simp] lemma matrix.algebra_map_eq_smul (n : Type u) {R : Type v} [decidable_eq n] [fintype n]
-  [comm_semiring R] (r : R) : (algebra_map R (matrix n n R)) r = r • 1 := rfl
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
@@ -1090,44 +1050,6 @@ end division_ring
 
 end alg_equiv
 
-namespace matrix
-
-/-! ### `matrix` section
-
-Specialize `matrix.one_map` and `matrix.zero_map` to `alg_hom` and `alg_equiv`.
-TODO: there should be a way to avoid restating these for each `foo_hom`.
--/
-
-variables {R A₁ A₂ n : Type*} [fintype n]
-
-section semiring
-
-variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [algebra R A₂]
-
-/-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
-@[simp] lemma alg_hom_map_one [decidable_eq n]
-  (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_one [decidable_eq n]
-  (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
-@[simp] lemma alg_hom_map_zero
-  (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_zero
-  (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
-
-end semiring
-
-end matrix
-
 section nat
 
 variables {R : Type*} [semiring R]
@@ -1202,7 +1124,9 @@ variables {R}
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
 
 variables (R A)
-/-- The multiplication in an algebra is a bilinear map. -/
+/-- The multiplication in an algebra is a bilinear map.
+
+A weaker version of this for semirings exists as `add_monoid_hom.mul`. -/
 def lmul : A →ₐ[R] (End R A) :=
 { map_one' := by { ext a, exact one_mul a },
   map_mul' := by { intros a b, ext c, exact mul_assoc a b c },

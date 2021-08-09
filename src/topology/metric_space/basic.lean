@@ -1024,14 +1024,14 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
     use R, rintro _ ⟨⟨m, n⟩, rfl⟩, exact le_of_lt (hR m n) },
   -- Prove that it bounds the distances of points in the Cauchy sequence
   have ub : ∀ m n N, N ≤ m → N ≤ n → dist (s m) (s n) ≤ Sup (S N) :=
-    λ m n N hm hn, real.le_Sup _ (hS N) ⟨⟨_, _⟩, ⟨hm, hn⟩, rfl⟩,
+    λ m n N hm hn, le_cSup (hS N) ⟨⟨_, _⟩, ⟨hm, hn⟩, rfl⟩,
   have S0m : ∀ n, (0:ℝ) ∈ S n := λ n, ⟨⟨n, n⟩, ⟨le_refl _, le_refl _⟩, dist_self _⟩,
-  have S0 := λ n, real.le_Sup _ (hS n) (S0m n),
+  have S0 := λ n, le_cSup (hS n) (S0m n),
   -- Prove that it tends to `0`, by using the Cauchy property of `s`
   refine ⟨λ N, Sup (S N), S0, ub, metric.tendsto_at_top.2 (λ ε ε0, _)⟩,
   refine (metric.cauchy_seq_iff.1 hs (ε/2) (half_pos ε0)).imp (λ N hN n hn, _),
   rw [real.dist_0_eq_abs, abs_of_nonneg (S0 n)],
-  refine lt_of_le_of_lt (real.Sup_le_ub _ ⟨_, S0m _⟩ _) (half_lt_self ε0),
+  refine lt_of_le_of_lt (cSup_le ⟨_, S0m _⟩ _) (half_lt_self ε0),
   rintro _ ⟨⟨m', n'⟩, ⟨hm', hn'⟩, rfl⟩,
   exact le_of_lt (hN _ _ (le_trans hn hm') (le_trans hn hn'))
   end,
@@ -1709,13 +1709,13 @@ bounded_iff_ediam_ne_top.1 h
 lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=
 dist_le_diam_of_mem' h.ediam_ne_top hx hy
 
+lemma ediam_of_unbounded (h : ¬(bounded s)) : emetric.diam s = ∞ :=
+by rwa [bounded_iff_ediam_ne_top, not_not] at h
+
 /-- An unbounded set has zero diameter. If you would prefer to get the value ∞, use `emetric.diam`.
 This lemma makes it possible to avoid side conditions in some situations -/
 lemma diam_eq_zero_of_unbounded (h : ¬(bounded s)) : diam s = 0 :=
-begin
-  simp only [bounded_iff_ediam_ne_top, not_not, ne.def] at h,
-  simp [diam, h]
-end
+by rw [diam, ediam_of_unbounded h, ennreal.top_to_real]
 
 /-- If `s ⊆ t`, then the diameter of `s` is bounded by that of `t`, provided `t` is bounded. -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) (ht : bounded t) : diam s ≤ diam t :=

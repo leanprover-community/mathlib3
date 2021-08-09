@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
-import data.sym
+import data.sym.basic
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -710,11 +710,35 @@ end
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 fintype.of_subsingleton (default α)
 
+/-- Short-circuit instance to decrease search for `unique.fintype`,
+since that relies on a subsingleton elimination for `unique`. -/
+instance fintype.subtype_eq (y : α) : fintype {x // x = y} :=
+fintype.subtype {y} (by simp)
+
+/-- Short-circuit instance to decrease search for `unique.fintype`,
+since that relies on a subsingleton elimination for `unique`. -/
+instance fintype.subtype_eq' (y : α) : fintype {x // y = x} :=
+fintype.subtype {y} (by simp [eq_comm])
+
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 
 @[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
 finset.ext is_empty_elim
+
+@[simp] lemma fintype.card_subtype_eq (y : α)  :
+  fintype.card {x // x = y} = 1 :=
+begin
+  convert fintype.card_unique,
+  exact unique.subtype_eq _
+end
+
+@[simp] lemma fintype.card_subtype_eq' (y : α) :
+  fintype.card {x // y = x} = 1 :=
+begin
+  convert fintype.card_unique,
+  exact unique.subtype_eq' _
+end
 
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
 
@@ -979,6 +1003,20 @@ begin
     refine ⟨_, hf⟩,
     rwa injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
 end
+
+lemma right_inverse_of_left_inverse_of_card_le {f : α → β} {g : β → α}
+  (hfg : left_inverse f g) (hcard : card α ≤ card β) :
+  right_inverse f g :=
+have hsurj : surjective f, from surjective_iff_has_right_inverse.2 ⟨g, hfg⟩,
+right_inverse_of_injective_of_left_inverse
+  ((bijective_iff_surjective_and_card _).2
+    ⟨hsurj, le_antisymm hcard (card_le_of_surjective f hsurj)⟩ ).1
+  hfg
+
+lemma left_inverse_of_right_inverse_of_card_le {f : α → β} {g : β → α}
+  (hfg : right_inverse f g) (hcard : card β ≤ card α) :
+  left_inverse f g :=
+right_inverse_of_left_inverse_of_card_le hfg hcard
 
 end fintype
 

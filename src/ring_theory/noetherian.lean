@@ -339,6 +339,10 @@ variables [module R M] [module R P]
 open is_noetherian
 include R
 
+/-- An R-module is Noetherian iff all its submodules are finitely-generated. -/
+lemma is_noetherian_def : is_noetherian R M ↔ ∀ (s : submodule R M), s.fg :=
+⟨λ h, h.noetherian, is_noetherian.mk⟩
+
 theorem is_noetherian_submodule {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, s ≤ N → s.fg :=
 ⟨λ ⟨hn⟩, λ s hs, have s ≤ N.subtype.range, from (N.range_subtype).symm ▸ hs,
@@ -578,6 +582,11 @@ class is_noetherian_ring (R) [ring R] extends is_noetherian R R : Prop
 theorem is_noetherian_ring_iff {R} [ring R] : is_noetherian_ring R ↔ is_noetherian R R :=
 ⟨λ h, h.1, @is_noetherian_ring.mk _ _⟩
 
+/-- A commutative ring is Noetherian if and only if all its ideals are finitely-generated. -/
+lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [comm_ring R] :
+  is_noetherian_ring R ↔ ∀ I : ideal R, I.fg :=
+is_noetherian_ring_iff.trans is_noetherian_def
+
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M :=
@@ -651,16 +660,6 @@ theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
 begin
   rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H ⊢,
   exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).dual H,
-end
-
-section
-local attribute [instance] subset.comm_ring
-
-instance is_noetherian_ring_set_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)
-  [is_noetherian_ring R] : is_noetherian_ring (set.range f) :=
-is_noetherian_ring_of_surjective R (set.range f) (f.cod_restrict (set.range f) set.mem_range_self)
-  set.surjective_onto_range
-
 end
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)

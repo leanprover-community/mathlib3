@@ -39,7 +39,7 @@ instance decidable_mem_smul (g : G) (H : subgroup G) [decidable_pred (∈ H)] :
 λ h, decidable_of_iff _ (mem_smul g h H).symm
 
 /-- A subgroup is isomorphic to its conjugate -/
-noncomputable def equiv_smul [fintype G] (g : G) (H : subgroup G) : H ≃* (g • H : subgroup G) :=
+noncomputable def equiv_smul (g : G) (H : subgroup G) : H ≃* (g • H : subgroup G) :=
 H.equiv_map_of_injective (mul_aut.conj g).to_monoid_hom (mul_aut.conj g).injective
 
 @[simp] lemma card_smul [fintype G] (g : G) (H : subgroup G)

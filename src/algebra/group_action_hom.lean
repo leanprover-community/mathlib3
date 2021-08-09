@@ -320,17 +320,16 @@ ext $ λ x, by rw [comp_apply, id_apply]
 end mul_semiring_action_hom
 
 section
-variables (M) {R'} (U : set R') [is_subring U] [is_invariant_subring M U]
-local attribute [instance] subset.ring
+variables (M) {R'} (U : subring R') [is_invariant_subring M U]
 
 /-- The canonical inclusion from an invariant subring. -/
 def is_invariant_subring.subtype_hom : U →+*[M] R' :=
-{ map_smul' := λ m s, rfl, .. is_subring.subtype U }
+{ map_smul' := λ m s, rfl, ..U.subtype }
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom :
   (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom' :
-  (is_invariant_subring.subtype_hom M U : U →+* R') = is_subring.subtype U := rfl
+  (is_invariant_subring.subtype_hom M U : U →+* R') = U.subtype := rfl
 
 end

@@ -173,6 +173,8 @@ nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
 lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) (λ a, Iio a) := nhds_bot_basis
 
+lemma nhds_zero_basis_Iic : (𝓝 (0 : ℝ≥0∞)).has_basis (λ a : ℝ≥0∞, 0 < a) Iic := nhds_bot_basis_Iic
+
 @[instance] lemma nhds_within_Ioi_coe_ne_bot {r : ℝ≥0} : (𝓝[Ioi r] (r : ℝ≥0∞)).ne_bot :=
 nhds_within_Ioi_self_ne_bot' ennreal.coe_lt_top
 
@@ -285,6 +287,20 @@ by_cases
 protected lemma tendsto.mul_const {f : filter α} {m : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hm : tendsto m f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) : tendsto (λx, m x * b) f (𝓝 (a * b)) :=
 by simpa only [mul_comm] using ennreal.tendsto.const_mul hm ha
+
+lemma tendsto_finset_prod_of_ne_top {ι : Type*} {f : ι → α → ℝ≥0∞} {x : filter α} {a : ι → ℝ≥0∞}
+  (s : finset ι) (h : ∀ i ∈ s, tendsto (f i) x (𝓝 (a i))) (h' : ∀ i ∈ s, a i ≠ ∞):
+  tendsto (λ b, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
+begin
+  induction s using finset.induction with a s has IH, { simp [tendsto_const_nhds] },
+  simp only [finset.prod_insert has],
+  apply tendsto.mul (h _ (finset.mem_insert_self _ _)),
+  { right,
+    exact (prod_lt_top (λ i hi, lt_top_iff_ne_top.2 (h' _ (finset.mem_insert_of_mem hi)))).ne },
+  { exact IH (λ i hi, h _ (finset.mem_insert_of_mem hi))
+      (λ i hi, h' _ (finset.mem_insert_of_mem hi)) },
+  { exact or.inr (h' _ (finset.mem_insert_self _ _)) }
+end
 
 protected lemma continuous_at_const_mul {a b : ℝ≥0∞} (h : a ≠ ⊤ ∨ b ≠ 0) :
   continuous_at ((*) a) b :=
@@ -453,6 +469,9 @@ by rw [← Sup_range, mul_Sup, supr_range]
 
 lemma supr_mul {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f * a = ⨆i, f i * a :=
 by rw [mul_comm, mul_supr]; congr; funext; rw [mul_comm]
+
+lemma supr_div {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f / a = ⨆i, f i / a :=
+supr_mul
 
 protected lemma tendsto_coe_sub : ∀{b:ℝ≥0∞}, tendsto (λb:ℝ≥0∞, ↑r - b) (𝓝 b) (𝓝 (↑r - b)) :=
 begin
@@ -679,6 +698,13 @@ lemma tsum_coe_eq_top_iff_not_summable_coe {f : α → ℝ≥0} :
 begin
   rw [← @not_not (∑' a, ↑(f a) = ⊤)],
   exact not_congr tsum_coe_ne_top_iff_summable_coe
+end
+
+lemma summable_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
+  summable (λ x, (f x).to_real) :=
+begin
+  lift f to α → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hsum,
+  rwa ennreal.tsum_coe_ne_top_iff_summable_coe at hsum,
 end
 
 end ennreal
@@ -1084,6 +1110,65 @@ begin
     from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
   rwa closure_Iic at this
 end
+
+@[simp] lemma metric.diam_closure {α : Type*} [pseudo_metric_space α] (s : set α) :
+  metric.diam (closure s) = diam s :=
+by simp only [metric.diam, emetric.diam_closure]
+
+namespace real
+
+/-- For a bounded set `s : set ℝ`, its `emetric.diam` is equal to `Sup s - Inf s` reinterpreted as
+`ℝ≥0∞`. -/
+lemma ediam_eq {s : set ℝ} (h : bounded s) :
+  emetric.diam s = ennreal.of_real (Sup s - Inf s) :=
+begin
+  rcases eq_empty_or_nonempty s with rfl|hne, { simp },
+  refine le_antisymm (metric.ediam_le_of_forall_dist_le $ λ x hx y hy, _) _,
+  { have := real.subset_Icc_Inf_Sup_of_bounded h,
+    exact real.dist_le_of_mem_Icc (this hx) (this hy) },
+  { apply ennreal.of_real_le_of_le_to_real,
+    rw [← metric.diam, ← metric.diam_closure],
+    have h' := real.bounded_iff_bdd_below_bdd_above.1 h,
+    calc Sup s - Inf s ≤ dist (Sup s) (Inf s) : le_abs_self _
+                   ... ≤ diam (closure s)     :
+      dist_le_diam_of_mem h.closure (cSup_mem_closure hne h'.2) (cInf_mem_closure hne h'.1) }
+end
+
+/-- For a bounded set `s : set ℝ`, its `metric.diam` is equal to `Sup s - Inf s`. -/
+lemma diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
+begin
+  rw [metric.diam, real.ediam_eq h, ennreal.to_real_of_real],
+  rw real.bounded_iff_bdd_below_bdd_above at h,
+  exact sub_nonneg.2 (real.Inf_le_Sup s h.1 h.2)
+end
+
+@[simp] lemma ediam_Ioo (a b : ℝ) :
+  emetric.diam (Ioo a b) = ennreal.of_real (b - a) :=
+begin
+  rcases le_or_lt b a with h|h,
+  { simp [h] },
+  { rw [real.ediam_eq (bounded_Ioo _ _), cSup_Ioo h, cInf_Ioo h] },
+end
+
+@[simp] lemma ediam_Icc (a b : ℝ) :
+  emetric.diam (Icc a b) = ennreal.of_real (b - a) :=
+begin
+  rcases le_or_lt a b with h|h,
+  { rw [real.ediam_eq (bounded_Icc _ _), cSup_Icc h, cInf_Icc h] },
+  { simp [h, h.le] }
+end
+
+@[simp] lemma ediam_Ico (a b : ℝ) :
+  emetric.diam (Ico a b) = ennreal.of_real (b - a) :=
+le_antisymm (ediam_Icc a b ▸ diam_mono Ico_subset_Icc_self)
+  (ediam_Ioo a b ▸ diam_mono Ioo_subset_Ico_self)
+
+@[simp] lemma ediam_Ioc (a b : ℝ) :
+  emetric.diam (Ioc a b) = ennreal.of_real (b - a) :=
+le_antisymm (ediam_Icc a b ▸ diam_mono Ioc_subset_Icc_self)
+  (ediam_Ioo a b ▸ diam_mono Ioo_subset_Ioc_self)
+
+end real
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,
 then the distance from `f n` to the limit is bounded by `∑'_{k=n}^∞ d k`. -/

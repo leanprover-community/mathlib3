@@ -251,7 +251,7 @@ lemma is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed
   (Z : ℕ → set α) (hZd : ∀ i, Z (i+1) ⊆ Z i)
   (hZn : ∀ i, (Z i).nonempty) (hZ0 : is_compact (Z 0)) (hZcl : ∀ i, is_closed (Z i)) :
   (⋂ i, Z i).nonempty :=
-have Zmono : _, from @monotone_of_monotone_nat (order_dual _) _ Z hZd,
+have Zmono : _, from @monotone_nat_of_le_succ (order_dual _) _ Z hZd,
 have hZd : directed (⊇) Z, from directed_of_sup Zmono,
 have ∀ i, Z i ⊆ Z 0, from assume i, Zmono $ zero_le i,
 have hZc : ∀ i, is_compact (Z i), from assume i, compact_of_is_closed_subset hZ0 (hZcl i) (this i),
@@ -264,7 +264,9 @@ lemma is_compact.elim_finite_subcover_image {b : set β} {c : β → set α}
 begin
   rcases hs.elim_finite_subcover (λ i, c i : b → set α) _ _ with ⟨d, hd⟩;
     [skip, simpa using hc₁, simpa using hc₂],
-  refine ⟨↑(d.image coe), _, finset.finite_to_set _, _⟩; simp *
+  refine ⟨↑(d.image coe), _, finset.finite_to_set _, _⟩,
+  { simp },
+  { rwa [finset.coe_image, bUnion_image] }
 end
 
 /-- A set `s` is compact if for every family of closed sets whose intersection avoids `s`,
@@ -975,6 +977,9 @@ monotone_accumulate h
 
 variable {α}
 
+lemma exists_mem_compact_covering (x : α) : ∃ n, x ∈ compact_covering α n :=
+Union_eq_univ_iff.mp (Union_compact_covering α) x
+
 /-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have
 only countably many elements, `set.countable` version. -/
 lemma locally_finite.countable_of_sigma_compact {ι : Type*} {f : ι → set α} (hf : locally_finite f)
@@ -988,19 +993,32 @@ begin
   exact mem_Union.2 ⟨n, x, hx, hn⟩
 end
 
+/-- In a topological space with sigma compact topology, if `f` is a function that sends each point
+`x` of a closed set `s` to a neighborhood of `x` within `s`, then for some countable set `t ⊆ s`,
+the neighborhoods `f x`, `x ∈ t`, cover the whole set `s`. -/
+lemma countable_cover_nhds_within_of_sigma_compact {f : α → set α} {s : set α} (hs : is_closed s)
+  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ ⋃ x ∈ t, f x :=
+begin
+  simp only [nhds_within, mem_inf_principal] at hf,
+  choose t ht hsub using λ n, ((is_compact_compact_covering α n).inter_right hs).elim_nhds_subcover
+    _ (λ x hx, hf x hx.right),
+  refine ⟨⋃ n, (t n : set α), Union_subset $ λ n x hx, (ht n x hx).2,
+    countable_Union $ λ n, (t n).countable_to_set, λ x hx, mem_bUnion_iff.2 _⟩,
+  rcases exists_mem_compact_covering x with ⟨n, hn⟩,
+  rcases mem_bUnion_iff.1 (hsub n ⟨hn, hx⟩) with ⟨y, hyt : y ∈ t n, hyf : x ∈ s → x ∈ f y⟩,
+  exact ⟨y, mem_Union.2 ⟨n, hyt⟩, hyf hx⟩
+end
+
 /-- In a topological space with sigma compact topology, if `f` is a function that sends each
 point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
 `x ∈ s`, cover the whole space. -/
 lemma countable_cover_nhds_of_sigma_compact {f : α → set α}
   (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
 begin
-  choose t ht hsub using λ n, (is_compact_compact_covering α n).elim_nhds_subcover f (λ x _, hf x),
-  refine ⟨⋃ n, (t n : set α), countable_Union $ λ n, (t n).countable_to_set, _⟩,
-  simp only [eq_univ_iff_forall, mem_Union, exists_prop],
-  intro x,
-  rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
-  rcases mem_bUnion_iff.1 (hsub n hn) with ⟨c, hct, hfx⟩,
-  exact ⟨c, ⟨n, hct⟩, hfx⟩
+  simp only [← nhds_within_univ] at hf,
+  rcases countable_cover_nhds_within_of_sigma_compact is_closed_univ (λ x _, hf x)
+    with ⟨s, -, hsc, hsU⟩,
+  exact ⟨s, hsc, univ_subset_iff.1 hsU⟩
 end
 
 end compact
@@ -1033,7 +1051,7 @@ lemma subset_succ (n : ℕ) : K n ⊆ K (n + 1) :=
 subset.trans (K.subset_interior_succ n) interior_subset
 
 @[mono] protected lemma subset ⦃m n : ℕ⦄ (h : m ≤ n) : K m ⊆ K n :=
-show K m ≤ K n, from monotone_of_monotone_nat K.subset_succ h
+show K m ≤ K n, from monotone_nat_of_le_succ K.subset_succ h
 
 lemma subset_interior ⦃m n : ℕ⦄ (h : m < n) : K m ⊆ interior (K n) :=
 subset.trans (K.subset_interior_succ m) $ interior_mono $ K.subset h
@@ -1156,6 +1174,9 @@ begin
   { rintros x ⟨hx₁, hx₂⟩,
     exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩ }
 end
+
+@[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=
+⟨is_open_discrete _, is_closed_discrete _⟩
 
 end clopen
 

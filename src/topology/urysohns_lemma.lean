@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import analysis.normed_space.add_torsor
 import linear_algebra.affine_space.ordered
+import topology.continuous_function.basic
 
 /-!
 # Urysohn's lemma
@@ -195,7 +196,7 @@ begin
 end
 
 lemma approx_mono (c : CU X) (x : X) : monotone (λ n, c.approx n x) :=
-monotone_of_monotone_nat $ λ n, c.approx_le_succ n x
+monotone_nat_of_le_succ $ λ n, c.approx_le_succ n x
 
 /-- A continuous function `f : X → ℝ` such that
 
@@ -287,10 +288,10 @@ then there exists a continuous function `f : X → ℝ` such that
 -/
 lemma exists_continuous_zero_one_of_closed {s t : set X} (hs : is_closed s) (ht : is_closed t)
   (hd : disjoint s t) :
-  ∃ f : X → ℝ, continuous f ∧ eq_on f 0 s ∧ eq_on f 1 t ∧ ∀ x, f x ∈ Icc (0 : ℝ) 1 :=
+  ∃ f : C(X, ℝ), eq_on f 0 s ∧ eq_on f 1 t ∧ ∀ x, f x ∈ Icc (0 : ℝ) 1 :=
 begin
   -- The actual proof is in the code above. Here we just repack it into the expected format.
   set c : urysohns.CU X := ⟨s, tᶜ, hs, ht.is_open_compl, λ _, disjoint_left.1 hd⟩,
-  exact ⟨c.lim, c.continuous_lim, c.lim_of_mem_C,
+  exact ⟨⟨c.lim, c.continuous_lim⟩, c.lim_of_mem_C,
     λ x hx, c.lim_of_nmem_U _ (λ h, h hx), c.lim_mem_Icc⟩
 end

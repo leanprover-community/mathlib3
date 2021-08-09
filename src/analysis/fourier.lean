@@ -3,9 +3,9 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import measure_theory.continuous_map_dense
-import measure_theory.l2_space
-import measure_theory.haar_measure
+import measure_theory.function.continuous_map_dense
+import measure_theory.function.l2_space
+import measure_theory.measure.haar_measure
 import analysis.complex.circle
 import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass

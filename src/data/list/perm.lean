@@ -693,109 +693,50 @@ end⟩
 lemma subperm.cons_right {α : Type*} {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
 h.trans (sublist_cons x l').subperm
 
+/-- The list version of `multiset.add_sub_of_le`. -/
+lemma subperm_append_diff_self_of_count_le {l₁ l₂ : list α}
+  (h : ∀ x ∈ l₁, count x l₁ ≤ count x l₂) : l₁ ++ l₂.diff l₁ ~ l₂ :=
+begin
+  induction l₁ with hd tl IH generalizing l₂,
+  { simp },
+  { have : hd ∈ l₂,
+    { rw ←count_pos,
+      exact lt_of_lt_of_le (count_pos.mpr (mem_cons_self _ _)) (h hd (mem_cons_self _ _)) },
+    replace this : l₂ ~ hd :: l₂.erase hd := perm_cons_erase this,
+    refine perm.trans _ this.symm,
+    rw [cons_append, diff_cons, perm_cons],
+    refine IH (λ x hx, _),
+    specialize h x (mem_cons_of_mem _ hx),
+    rw (perm_iff_count.mp this) at h,
+    by_cases hx : x = hd,
+    { subst hd,
+      simpa [nat.succ_le_succ_iff] using h },
+    { simpa [hx] using h } },
+end
+
+/-- The list version of `multiset.le_iff_count`. -/
+lemma subperm_ext_iff {l₁ l₂ : list α} :
+  l₁ <+~ l₂ ↔ ∀ x ∈ l₁, count x l₁ ≤ count x l₂ :=
+begin
+  refine ⟨λ h x hx, subperm.count_le h x, λ h, _⟩,
+  suffices : l₁ <+~ (l₂.diff l₁ ++ l₁),
+  { refine this.trans (perm.subperm _),
+    exact perm_append_comm.trans (subperm_append_diff_self_of_count_le h) },
+  convert (subperm_append_right _).mpr nil_subperm using 1
+end
+
 lemma subperm.cons_left {l₁ l₂ : list α} (h : l₁ <+~ l₂)
   (x : α) (hx : count x l₁ < count x l₂) :
   x :: l₁ <+~ l₂  :=
 begin
-  obtain ⟨l, hl, h⟩ := h,
-  induction h with lx ly y h IH lx ly y h IH generalizing l₁,
-  { simpa using hx },
-  { by_cases hxy : x = y,
-    { subst hxy,
-      rw subperm_cons,
-      exact hl.symm.subperm.trans h.subperm },
-    { rw count_cons_of_ne hxy at hx,
-      exact (IH hx hl).cons_right _ } },
-  { rw cons_perm_iff_perm_erase at hl,
-    by_cases hxy : x = y,
-    { subst hxy,
-      rw subperm_cons,
-      refine (subperm_cons_erase _ _).trans (IH _ hl.right),
-      rw count_erase_self,
-      refine (nat.pred_lt (count_pos.mpr hl.left).ne').trans_le _,
-      simpa [nat.lt_succ_iff] using hx, },
-    { rw count_cons_of_ne hxy at hx,
-      have : y :: x :: l₁.erase y ~ x :: l₁,
-      { rw cons_perm_iff_perm_erase,
-        refine ⟨mem_cons_of_mem _ hl.left, _⟩,
-        rw [erase_cons, if_neg hxy] },
-      refine this.symm.subperm.trans _,
-      rw subperm_cons,
-      refine IH _ hl.right,
-      rwa count_erase_of_ne hxy } }
-end
-
-lemma subperm_ext {l₁ l₂ : list α}
-  (h : ∀ x ∈ l₁, count x l₁ ≤ count x l₂) : l₁ <+~ l₂ :=
-begin
-  induction l₁ with a l IH generalizing l₂,
-  { exact nil_subperm },
-  { cases l₂ with b l',
-    { simpa using h a (mem_cons_self _ _) },
-    { by_cases hb : b ∈ (a :: l),
-      { rw mem_cons_iff at hb,
-        by_cases hba : b = a,
-        { subst a,
-          rw subperm_cons,
-          refine IH (λ x hx, _),
-          specialize h x (mem_cons_of_mem _ hx),
-          by_cases hxb : x = b,
-          { subst x,
-            rwa [count_cons_self, count_cons_self, nat.succ_le_succ_iff] at h },
-          { rwa [count_cons_of_ne hxb, count_cons_of_ne hxb] at h } },
-        { have hla : l <+~ (b :: l').erase a,
-          { refine IH (λ x hx, _),
-            specialize h x (mem_cons_of_mem _ hx),
-            by_cases hxa : x = a,
-            { subst x,
-              rw [count_cons_self] at h,
-              rw [count_erase_self],
-              exact nat.le_pred_of_lt h },
-            { rwa [count_erase_of_ne hxa, ←count_cons_of_ne hxa] } },
-          rw ←subperm_cons a at hla,
-          refine hla.trans (perm_cons_erase _).symm.subperm,
-          rw [←count_pos],
-          refine lt_of_lt_of_le _ (h a (mem_cons_self _ _ )),
-          simp } },
-      { refine subperm.cons_right _ _,
-        simp only [not_or_distrib, mem_cons_iff] at hb,
-        by_cases ha : a ∈ l,
-        { specialize @IH (l'.erase a) (λ x hx, _),
-          { specialize h x (mem_cons_of_mem _ hx),
-            have : x ≠ b,
-            { rintro rfl,
-              exact hb.right hx },
-            rw count_cons_of_ne this at h,
-            by_cases hx : x = a,
-            { subst x,
-              rw [count_cons_self] at h,
-              rw [count_erase_self],
-              exact nat.le_pred_of_lt h },
-            { rwa [count_erase_of_ne hx, ←count_cons_of_ne hx] } },
-          rw ←subperm_cons a at IH,
-          refine IH.trans (perm_cons_erase _).symm.subperm,
-          rw [←count_pos, ←count_cons_of_ne (ne.symm hb.left)],
-          refine lt_of_lt_of_le _ (h a (mem_cons_self _ _)),
-          simp },
-        { refine subperm.cons_left (IH (λ x hx, _)) _ _,
-          { specialize h x (mem_cons_of_mem _ hx),
-            have : x ≠ b,
-            { rintro rfl,
-              exact hb.right hx },
-            rw count_cons_of_ne this at h,
-            exact (count_le_count_cons x a l).trans h },
-          { rw [count_eq_zero_of_not_mem ha, ←count_cons_of_ne (ne.symm hb.left)],
-            refine lt_of_lt_of_le _ (h _ (mem_cons_self _ _)),
-            simp } } } } }
-end
-
-lemma subperm_ext_iff {l₁ l₂ : list α} :
-  l₁ <+~ l₂ ↔ ∀ x ∈ l₁, count x l₁ ≤ count x l₂ :=
-begin
-  refine ⟨λ h x hx, _, subperm_ext⟩,
-  rcases h with ⟨l, hl, h⟩,
-  rw (perm.symm hl).count_eq x,
-  exact count_le_of_sublist x h
+  rw subperm_ext_iff at h ⊢,
+  intros y hy,
+  by_cases hy' : y = x,
+  { subst x,
+    simpa using nat.succ_le_of_lt hx },
+  { rw count_cons_of_ne hy',
+    refine h y _,
+    simpa [hy'] using hy }
 end
 
 instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)

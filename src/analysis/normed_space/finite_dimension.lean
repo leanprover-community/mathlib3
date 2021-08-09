@@ -483,16 +483,29 @@ end
 lemma summable_of_is_O' {ι E F : Type*} [normed_group E] [complete_space E] [normed_group F]
   [normed_space ℝ F] [finite_dimensional ℝ F] [complete_space F] {f : ι → E} (g : ι → F)
   (hg : summable g) (h : is_O f g cofinite) : summable f :=
-let ⟨C, hC⟩ := h.is_O_with in
-summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) ((summable_norm_iff.mpr hg).mul_left _)
-  hC.bound
+summable_of_is_O (λ x, ∥g x∥) (summable_norm_iff.mpr hg) h.norm_right
+
+lemma summable_of_is_O_nat' {E F : Type*} [normed_group E] [complete_space E] [normed_group F]
+  [normed_space ℝ F] [finite_dimensional ℝ F] [complete_space F] {f : ℕ → E} (g : ℕ → F)
+  (hg : summable g) (h : is_O f g at_top) : summable f :=
+summable_of_is_O_nat (λ x, ∥g x∥) (summable_norm_iff.mpr hg) h.norm_right
 
 lemma summable_of_is_equivalent {ι E : Type*} [normed_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] [complete_space E] {f : ι → E} {g : ι → E}
   (hg : summable g) (h : f ~[cofinite] g) : summable f :=
 hg.trans_sub (summable_of_is_O' g hg h.is_o.is_O)
 
+lemma summable_of_is_equivalent_nat {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] [complete_space E] {f : ℕ → E} {g : ℕ → E}
+  (hg : summable g) (h : f ~[at_top] g) : summable f :=
+hg.trans_sub (summable_of_is_O_nat' g hg h.is_o.is_O)
+
 lemma is_equivalent.summable_iff {ι E : Type*} [normed_group E] [normed_space ℝ E]
   [finite_dimensional ℝ E] [complete_space E] {f : ι → E} {g : ι → E}
   (h : f ~[cofinite] g) : summable f ↔ summable g :=
 ⟨λ hf, summable_of_is_equivalent hf h.symm, λ hg, summable_of_is_equivalent hg h⟩
+
+lemma is_equivalent.summable_iff_nat {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] [complete_space E] {f : ℕ → E} {g : ℕ → E}
+  (h : f ~[at_top] g) : summable f ↔ summable g :=
+⟨λ hf, summable_of_is_equivalent_nat hf h.symm, λ hg, summable_of_is_equivalent_nat hg h⟩

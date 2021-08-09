@@ -28,7 +28,7 @@ No monoid is actually present in this file: all assumptions have been generalize
 -- TODO: If possible, uniformize lemma names, taking special care of `'`,
 -- after the `ordered`-refactor is done.
 
-open functino
+open function
 
 variables {α : Type*}
 

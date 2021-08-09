@@ -9,9 +9,9 @@ import data.zmod.basic
 /-!
 # Group actions of p-groups on finite sets
 
-This file contains a proof that if `G` is a `p`-group acting on a finite set `α`, then the number of fixed points
-of the action is congruent mod `p` to the cardinality of `α`. It also contains proofs
-of some corollaries of this lemma about existence of fixed points.
+This file contains a proof that if `G` is a `p`-group acting on a finite set `α`,
+then the number of fixed points of the action is congruent mod `p` to the cardinality of `α`.
+It also contains proofs of some corollaries of this lemma about existence of fixed points.
 -/
 
 namespace mul_action

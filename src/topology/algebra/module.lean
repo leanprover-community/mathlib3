@@ -195,7 +195,7 @@ by { intros f g H, cases f, cases g, congr' }
   (f : M →ₗ[R] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem coe_fn_injective : @function.injective (M →L[R] M₂) (M → M₂) coe_fn :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
@@ -772,10 +772,10 @@ end ring
 
 section smul
 
-variables {R S : Type*} [ring R] [ring S] [topological_space S]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M]
-  {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
-  {M₃ : Type*} [topological_space M₃] [add_comm_group M₃] [module R M₃]
+variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
   [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
 
 instance : has_scalar S (M →L[R] M₃) :=

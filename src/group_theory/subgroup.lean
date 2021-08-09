@@ -2195,10 +2195,10 @@ we have `n = 0` or `g ∈ H`. -/
 for all `n : ℕ` and `g : G` with `n•g ∈ H` we have `n = 0` or `g ∈ H`."]
 def saturated (H : subgroup G) : Prop := ∀ ⦃n g⦄, npow n g ∈ H → n = 0 ∨ g ∈ H
 
-lemma saturated_iff_npow {H : subgroup G} :
+@[to_additive] lemma saturated_iff_npow {H : subgroup G} :
   saturated H ↔ (∀ (n : ℕ) (g : G), g^n ∈ H → n = 0 ∨ g ∈ H) := iff.rfl
 
-lemma saturated_iff_gpow {H : subgroup G} :
+@[to_additive] lemma saturated_iff_gpow {H : subgroup G} :
   saturated H ↔ (∀ (n : ℤ) (g : G), g^n ∈ H → n = 0 ∨ g ∈ H) :=
 begin
   split,
@@ -2226,27 +2226,6 @@ begin
   simpa only [f.mem_ker, nsmul_eq_smul, f.map_nsmul, smul_eq_zero] using hg
 end
 
-lemma saturated_iff_nsmul {H : add_subgroup A} :
-  saturated H ↔ (∀ (n : ℕ) (g : A), n • g ∈ H → n = 0 ∨ g ∈ H) := iff.rfl
-
-lemma saturated_iff_gsmul {H : add_subgroup A} :
-  saturated H ↔ (∀ (n : ℤ) (g : A), n • g ∈ H → n = 0 ∨ g ∈ H) :=
-begin
-  split,
-  { rintros hH ⟨n⟩ g hgn,
-    { simp only [int.coe_nat_eq_zero, int.of_nat_eq_coe, gsmul_coe_nat] at hgn ⊢,
-      exact hH hgn },
-    { suffices : (n+1) • g ∈ H,
-      { refine (hH this).imp _ id, simp only [forall_false_left, nat.succ_ne_zero], },
-      simpa only [neg_mem_iff, gsmul_neg_succ_of_nat] using hgn, } },
-  { intros h n g hgn,
-    specialize h n g,
-    simp only [int.coe_nat_eq_zero, gsmul_coe_nat] at h,
-    apply h hgn }
-end
-
 end add_subgroup
-
-attribute [to_additive] subgroup.saturated_iff_npow subgroup.saturated_iff_gpow
 
 end saturated

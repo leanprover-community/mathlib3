@@ -54,11 +54,7 @@ subgroup.ext (λ _, by simp [*, mul_mem_cancel_left, mul_mem_cancel_right] at *)
 smul_eq_self_of_mem x.2
 
 lemma smul_le_iff_le_smul {g : G} {H K : subgroup G} : g • H ≤ K ↔ H ≤ g⁻¹ • K :=
-begin
-  simp only [set_like.le_def, mem_smul],
-  exact ⟨λ h x hx, h (by simpa [mul_assoc] using hx),
-         λ h x hx, by simpa [mul_assoc] using h hx⟩
-end
+by rw [smul_eq_map_conj, map_le_iff_le_comap, smul_eq_comap_conj, monoid_hom.map_inv, inv_inv]
 
 section map_comap
 variables {H : Type*} [group H] (f : G →* H)

@@ -99,6 +99,10 @@ lemma orbit_eq_iff {a b : β} :
       conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
         mul_action.mul_smul, hx]}⟩⟩)⟩
 
+lemma mem_fixed_points_iff_stabilizer_eq_top (a : β) :
+  a ∈ fixed_points α β ↔ stabilizer α a = ⊤ :=
+by simp only [mem_fixed_points, subgroup.eq_top_iff', mem_stabilizer_iff]
+
 variables (α) {β}
 
 @[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=

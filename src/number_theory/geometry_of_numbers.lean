@@ -19,9 +19,6 @@ studied by Hermann Minkowski.
 - `exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume`: Minkowski's theorem, existence
   of a non-zero lattice point inside a convex symmetric domain of large enough covolume.
 
-## References
-
-See [Thales600BC] for the original account on Xyzzyology.
 -/
 open measure_theory measure_theory.measure topological_space set
 

@@ -2409,7 +2409,7 @@ end
 lemma monotone_sum_take [canonically_ordered_add_monoid α] (L : list α) :
   monotone (λ i, (L.take i).sum) :=
 begin
-  apply monotone_of_monotone_nat (λ n, _),
+  apply monotone_nat_of_le_succ (λ n, _),
   by_cases h : n < L.length,
   { rw sum_take_succ _ _ h,
     exact le_self_add },

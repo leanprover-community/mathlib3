@@ -220,7 +220,7 @@ begin
       mul_assoc, mul_assoc, mul_assoc, mul_assoc, inv_mul_cancel_left]) },
   refine eq.trans (finset.prod_bij' (λ q _, (↑g)⁻¹ * q) (λ _ _, finset.mem_univ _)
     (λ q _, subtype.ext _) (λ q _, ↑g * q) (λ _ _, finset.mem_univ _)
-    (λ q _, mul_inv_cancel_left g q) (λ q _, inv_mul_cancel_left g q)) (finset.prod_hom _ ϕ),
+    (λ q _, mul_inv_cancel_left g q) (λ q _, inv_mul_cancel_left g q)) (ϕ.map_prod _ _).symm,
   change _ * _ = g * (_ * _) * g⁻¹,
   simp_rw [smul_symm_apply_eq_mul_symm_apply_inv_smul, mul_inv_rev, mul_assoc],
   refl,

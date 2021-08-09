@@ -374,8 +374,8 @@ begin
 end
 
 /-- A version of `padic_val_rat.pow` for `padic_val_nat` -/
-protected lemma pow (p q y : ℕ) [fact p.prime] (hq : q ≠ 0) :
-  padic_val_nat p (q ^ y) = y * padic_val_nat p q :=
+protected lemma pow (p q n : ℕ) [fact p.prime] (hq : q ≠ 0) :
+  padic_val_nat p (q ^ n) = n * padic_val_nat p q :=
 begin
   apply @nat.cast_injective ℤ,
   push_cast,

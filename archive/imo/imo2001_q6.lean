@@ -37,7 +37,7 @@ begin
         = a*c * (b^2 + b*d + d^2) + b*d * (a^2 - a*c + c^2) : by ring
     ... = a*c * (b^2 + b*d + d^2) + b*d * (b^2 + b*d + d^2) : by rw equivalent_sums
     ... = (a * c + b * d) * (b ^ 2 + b * d + d ^ 2)         : by ring, },
-  -- since `a*c + b*d` is prime (by assumption), it must divide one of the two factors
+  -- since `a*b + c*d` is prime (by assumption), it must divide `a*c + b*d` or `a*d + b*c`
   obtain (h1 : a*b + c*d ∣ a*c + b*d) | (h2 : a*c + b*d ∣ a*d + b*c) :=
     left_dvd_or_dvd_right_of_dvd_prime_mul h0 dvd_mul,
   -- in both cases, we derive a contradiction

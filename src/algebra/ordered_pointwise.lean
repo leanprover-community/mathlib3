@@ -6,6 +6,12 @@ Authors: Alex J. Best
 import algebra.ordered_field
 import algebra.algebra.basic
 
+/-!
+# Pointwise operations on ordered algebraic objects
+
+This file contains lemmas about the effect of pointwise operations on sets with an order structure.
+
+-/
 namespace linear_ordered_field
 
 variables {K : Type*} [linear_ordered_field K] {a b r : K} (hr : 0 < r)

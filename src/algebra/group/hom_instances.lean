@@ -49,7 +49,7 @@ instance [add_zero_class M] [add_comm_monoid N] : add_comm_monoid (M →+ N) :=
     map_zero' := by simp [nsmul_zero],
     map_add' := λ x y, by simp [nsmul_add] },
   nsmul_zero' := λ f, by { ext x, simp [zero_nsmul], },
-  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_one_add, add_nsmul] } }
+  nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_add_one, add_comm, add_nsmul] } }
 
 attribute [to_additive] monoid_hom.comm_monoid
 
@@ -77,7 +77,7 @@ instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G)
     map_zero' := by simp,
     map_add' := λ x y, by simp [gsmul_add] },
   gsmul_zero' := λ f, by { ext x, simp },
-  gsmul_succ' := λ n f, by { ext x, simp [gsmul_of_nat, nat.succ_eq_one_add, add_nsmul] },
+  gsmul_succ' := λ n f, by { ext x, simp [gsmul_of_nat, nat.succ_eq_add_one, add_comm, add_nsmul] },
   gsmul_neg'  := λ n f, by { ext x, simp },
   ..add_monoid_hom.add_comm_monoid }
 

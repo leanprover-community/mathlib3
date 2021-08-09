@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.bounds
+import data.set.bool
 
 /-!
 # Theory of complete lattices
@@ -973,12 +974,16 @@ infi_of_empty nonempty_empty
 supr_of_empty nonempty_empty
 
 lemma supr_bool_eq {f : bool → α} : (⨆b:bool, f b) = f tt ⊔ f ff :=
-le_antisymm
-  (supr_le $ assume b, match b with tt := le_sup_left | ff := le_sup_right end)
-  (sup_le (le_supr _ _) (le_supr _ _))
+by rw [supr, bool.range_eq, Sup_pair, sup_comm]
 
 lemma infi_bool_eq {f : bool → α} : (⨅b:bool, f b) = f tt ⊓ f ff :=
 @supr_bool_eq (order_dual α) _ _
+
+lemma sup_eq_supr (x y : α) : x ⊔ y = ⨆ b : bool, cond b x y :=
+by rw [supr_bool_eq, bool.cond_tt, bool.cond_ff]
+
+lemma inf_eq_infi (x y : α) : x ⊓ y = ⨅ b : bool, cond b x y :=
+@sup_eq_supr (order_dual α) _ _ _
 
 lemma is_glb_binfi {s : set β} {f : β → α} : is_glb (f '' s) (⨅ x ∈ s, f x) :=
 by simpa only [range_comp, subtype.range_coe, infi_subtype'] using @is_glb_infi α s _ (f ∘ coe)

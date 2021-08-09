@@ -1766,6 +1766,25 @@ instance semi_normed_algebra.to_semi_normed_space [h : semi_normed_algebra 𝕜 
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
 
+/-- While this may appear identical to `semi_normed_algebra.to_semi_normed_space`, it contains an
+implicit argument involving `normed_ring.to_semi_normed_ring` that typeclass inference has trouble
+inferring.
+
+Specifically, the following instance cannot be found without this
+`semi_normed_algebra.to_semi_normed_space'`:
+```lean
+example
+  (𝕜 ι : Type*) (E : ι → Type*)
+  [normed_field 𝕜] [Π i, normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
+  Π i, module 𝕜 (E i) := by apply_instance
+```
+
+See `semi_normed_space.to_module'` for a similar situation. -/
+@[priority 100]
+instance semi_normed_algebra.to_semi_normed_space' (𝕜 : Type*) [normed_field 𝕜] (𝕜' : Type*)
+  [normed_ring 𝕜'] [semi_normed_algebra 𝕜 𝕜'] :
+  semi_normed_space 𝕜 𝕜' := by apply_instance
+
 @[priority 100]
 instance normed_algebra.to_normed_space (𝕜 : Type*) [normed_field 𝕜] (𝕜' : Type*)
   [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=

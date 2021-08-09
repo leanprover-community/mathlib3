@@ -1058,7 +1058,7 @@ begin
   { exact or.inr (or.inl m) }
 end
 
-@[simp] theorem mem_permutations (s t : list α) : s ∈ permutations t ↔ s ~ t :=
+@[simp] theorem mem_permutations {s t : list α} : s ∈ permutations t ↔ s ~ t :=
 ⟨perm_of_mem_permutations, mem_permutations_of_perm_lemma mem_permutations_aux_of_perm⟩
 
 theorem perm_permutations'_aux_comm (a b : α) (l : list α) :
@@ -1072,7 +1072,7 @@ begin
     map (cons b ∘ cons c) (permutations'_aux a l) ++
     map (cons c) ((permutations'_aux a l).bind (permutations'_aux b)),
   { intros,
-    simp [map_bind, permutations'_aux],
+    simp only [map_bind, permutations'_aux],
     refine (bind_append_perm _ (λ x, [_]) _).symm.trans _,
     rw [← map_eq_bind, ← bind_map] },
   refine (((this _ _).append_left _).trans _).trans ((this _ _).append_left _).symm,
@@ -1097,7 +1097,8 @@ begin
   refine list.reverse_rec_on ts (λ h, _) (λ ts t _ h, _) h, {simp [permutations]},
   rw [← concat_eq_append, length_concat, nat.succ_lt_succ_iff] at h,
   have IH₂ := (IH ts.reverse (by rwa [length_reverse])).trans (reverse_perm _).permutations',
-  simp [permutations_append, foldr_permutations_aux2],
+  simp only [permutations_append, foldr_permutations_aux2,
+    permutations_aux_nil, permutations_aux_cons, append_nil],
   refine (perm_append_comm.trans ((IH₂.bind_right _).append ((IH _ h).map _))).trans
     (perm.trans _ perm_append_comm.permutations'),
   rw [map_eq_bind, singleton_append, permutations'],
@@ -1105,9 +1106,18 @@ begin
   rw [permutations'_aux_eq_permutations_aux2, permutations_aux2_append]
 end
 
+@[simp] theorem mem_permutations' {s t : list α} : s ∈ permutations' t ↔ s ~ t :=
+(permutations_perm_permutations' _).symm.mem_iff.trans mem_permutations
+
 theorem perm.permutations {s t : list α} (h : s ~ t) : permutations s ~ permutations t :=
 (permutations_perm_permutations' _).trans $ h.permutations'.trans
 (permutations_perm_permutations' _).symm
+
+@[simp] theorem perm_permutations_iff {s t : list α} : permutations s ~ permutations t ↔ s ~ t :=
+⟨λ h, mem_permutations.1 $ h.mem_iff.1 $ mem_permutations.2 (perm.refl _), perm.permutations⟩
+
+@[simp] theorem perm_permutations'_iff {s t : list α} : permutations' s ~ permutations' t ↔ s ~ t :=
+⟨λ h, mem_permutations'.1 $ h.mem_iff.1 $ mem_permutations'.2 (perm.refl _), perm.permutations'⟩
 
 end permutations
 

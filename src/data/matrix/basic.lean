@@ -138,7 +138,7 @@ M.transpose.map star
 
 localized "postfix `ᴴ`:1500 := matrix.conj_transpose" in matrix
 
-/-- Proposition `matrix.is_sym`. `A.is_sym` means `Aᵀ = A`. -/
+/-- A matrix `A` is *symmetric* if `Aᵀ = A`. -/
 protected def is_sym (A : matrix m m α) : Prop := Aᵀ = A
 
 /-- Proposition `matrix.is_skewsym`. `A.is_skewsym` means `-Aᵀ = A` if `[has_neg α]`. -/

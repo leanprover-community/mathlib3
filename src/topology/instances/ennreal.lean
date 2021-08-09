@@ -1115,9 +1115,11 @@ end
   metric.diam (closure s) = diam s :=
 by simp only [metric.diam, emetric.diam_closure]
 
+namespace real
+
 /-- For a bounded set `s : set ℝ`, its `emetric.diam` is equal to `Sup s - Inf s` reinterpreted as
 `ℝ≥0∞`. -/
-lemma real.ediam_eq {s : set ℝ} (h : bounded s) :
+lemma ediam_eq {s : set ℝ} (h : bounded s) :
   emetric.diam s = ennreal.of_real (Sup s - Inf s) :=
 begin
   rcases eq_empty_or_nonempty s with rfl|hne, { simp },
@@ -1132,46 +1134,41 @@ begin
       dist_le_diam_of_mem h.closure (cSup_mem_closure hne h'.2) (cInf_mem_closure hne h'.1) }
 end
 
-@[simp] lemma real.ediam_Icc (a b : ℝ) :
-  emetric.diam (Icc a b) = ennreal.of_real (b - a) :=
-begin
-  rcases le_or_lt a b with h|h,
-  { rw [real.ediam_eq (bounded_Icc _ _), cSup_Icc h, cInf_Icc h] },
-  { simp [h, ennreal.of_real_eq_zero.2 (sub_neg.2 h).le] }
-end
-
-@[simp] lemma real.ediam_Ico (a b : ℝ) :
-  emetric.diam (Ico a b) = ennreal.of_real (b - a) :=
-begin
-  rcases le_or_lt b a with h|h,
-  { simp [h, ennreal.of_real_eq_zero.2 (sub_nonpos.2 h)] },
-  { rw [real.ediam_eq (bounded_Ico _ _), cSup_Ico h, cInf_Ico h] }
-end
-
-@[simp] lemma real.ediam_Ioc (a b : ℝ) :
-  emetric.diam (Ioc a b) = ennreal.of_real (b - a) :=
-begin
-  rcases le_or_lt b a with h|h,
-  { simp [h, ennreal.of_real_eq_zero.2 (sub_nonpos.2 h)] },
-  { rw [real.ediam_eq (bounded_Ioc _ _), cSup_Ioc h, cInf_Ioc h] }
-end
-
-@[simp] lemma real.ediam_Ioo (a b : ℝ) :
-  emetric.diam (Ioo a b) = ennreal.of_real (b - a) :=
-begin
-  rcases lt_trichotomy a b with h|rfl|h,
-  { rw [real.ediam_eq (bounded_Ioo _ _), cSup_Ioo h, cInf_Ioo h] },
-  { simp only [emetric.diam_empty, Ioo_self, ennreal.of_real_zero, sub_self] },
-  { simp [h.le, ennreal.of_real_eq_zero.2 (sub_neg.2 h).le] }
-end
-
 /-- For a bounded set `s : set ℝ`, its `metric.diam` is equal to `Sup s - Inf s`. -/
-lemma real.diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
+lemma diam_eq {s : set ℝ} (h : bounded s) : metric.diam s = Sup s - Inf s :=
 begin
   rw [metric.diam, real.ediam_eq h, ennreal.to_real_of_real],
   rw real.bounded_iff_bdd_below_bdd_above at h,
   exact sub_nonneg.2 (real.Inf_le_Sup s h.1 h.2)
 end
+
+@[simp] lemma ediam_Ioo (a b : ℝ) :
+  emetric.diam (Ioo a b) = ennreal.of_real (b - a) :=
+begin
+  rcases le_or_lt b a with h|h,
+  { simp [h] },
+  { rw [real.ediam_eq (bounded_Ioo _ _), cSup_Ioo h, cInf_Ioo h] },
+end
+
+@[simp] lemma ediam_Icc (a b : ℝ) :
+  emetric.diam (Icc a b) = ennreal.of_real (b - a) :=
+begin
+  rcases le_or_lt a b with h|h,
+  { rw [real.ediam_eq (bounded_Icc _ _), cSup_Icc h, cInf_Icc h] },
+  { simp [h, h.le] }
+end
+
+@[simp] lemma ediam_Ico (a b : ℝ) :
+  emetric.diam (Ico a b) = ennreal.of_real (b - a) :=
+le_antisymm (ediam_Icc a b ▸ diam_mono Ico_subset_Icc_self)
+  (ediam_Ioo a b ▸ diam_mono Ioo_subset_Ico_self)
+
+@[simp] lemma ediam_Ioc (a b : ℝ) :
+  emetric.diam (Ioc a b) = ennreal.of_real (b - a) :=
+le_antisymm (ediam_Icc a b ▸ diam_mono Ioc_subset_Icc_self)
+  (ediam_Ioo a b ▸ diam_mono Ioo_subset_Ioc_self)
+
+end real
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ℝ≥0∞`,
 then the distance from `f n` to the limit is bounded by `∑'_{k=n}^∞ d k`. -/

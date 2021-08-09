@@ -827,7 +827,10 @@ section sum_compl
 
 /-- For any predicate `p` on `α`,
 the sum of the two subtypes `{a // p a}` and its complement `{a // ¬ p a}`
-is naturally equivalent to `α`. -/
+is naturally equivalent to `α`.
+
+See `subtype_or_equiv` for sum types over subtypes `{x // p x}` and `{x // q x}`
+that are not necessarily `is_compl p q`.  -/
 def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
   {a // p a} ⊕ {a // ¬ p a} ≃ α :=
 { to_fun := sum.elim coe coe,

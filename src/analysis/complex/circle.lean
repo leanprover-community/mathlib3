@@ -30,6 +30,12 @@ is the kernel of the homomorphism `complex.norm_sq` from `ℂ` to `ℝ`.
 
 -/
 
+/-- Due to import hierarchy reasons, lemmas exp_map_circle_surjective, exp_map_circle_eq_one_iff, 
+and exp_map_circle_hom_ker have been moved to analysis.special_functions.trigonometric. 
+exp_map_circle_surjective proves the function exp_map_circle is surjective. 
+exp_map_circle_eq_one_iff proves when exp_map_circle of some x : ℝ = 1.
+exp_map_circle_hom_ker defines exp_map_circle_hom.ker as add_subgroup.gmultiples (2 * π). -/
+
 noncomputable theory
 
 open complex metric
@@ -100,65 +106,6 @@ groups. -/
   map_zero' := by { rw exp_map_circle, convert of_mul_one, simp },
   map_add' := λ x y, show exp_map_circle (x + y) = (exp_map_circle x) * (exp_map_circle y),
     from subtype.ext $ by simp [exp_map_circle, exp_add, add_mul] }
-
-lemma exp_map_circle_hom_ker : exp_map_circle_hom.ker = add_subgroup.gmultiples (2 * π) :=
-begin
-  ext k,
-  have a0 : (0 : additive circle) = (1 : circle) := rfl,
-  have iI : ∀ (x y : ℂ), x * I = y * I ↔ x = y :=
-    λ _ _, ⟨mul_right_cancel' I_ne_zero, λ h, congr_arg _ h⟩,
-  suffices : (∃ (n : ℤ), (k : ℂ) = n * 2 * π) ↔ ∃ (n : ℤ), (n : ℝ) * 2 * π = k,
-  { simpa [add_subgroup.mem_gmultiples_iff, add_monoid_hom.mem_ker, subtype.ext_iff,
-           a0, exp_eq_one_iff, ←mul_assoc, iI] },
-  simp_rw @eq_comm _ _ k,
-  norm_cast,
-end
-
-lemma exp_map_circle_eq_one_iff {x : ℝ} :
-  exp_map_circle x = 1 ↔ x ∈ add_subgroup.gmultiples (2 * π) :=
-begin
-  simp [add_subgroup.mem_gmultiples_iff],
-  split,
-  { simp[exp_map_circle],
-    intro h,
-    apply_fun (coe: circle → ℂ) at h,
-    simp at h,
-    rw exp_eq_one_iff at h,
-    cases h with n hn,
-    rw mul_comm at hn,
-    rw mul_comm (↑n) (2 * ↑π * I) at hn,
-    rw mul_assoc at hn,
-    rw mul_assoc at hn,
-    rw mul_comm (↑π) (I * ↑n) at hn,
-    rw mul_comm (2) (I * ↑n * ↑π) at hn,
-    rw mul_assoc at hn,
-    rw mul_assoc at hn,
-    rw mul_right_inj' I_ne_zero at hn,
-    rw mul_comm (↑π) (2 : ℂ) at hn,
-    use n,
-    apply eq.symm,
-    exact_mod_cast hn, },
-  { intro h,
-    cases h with k hk,
-    rw ← hk,
-    ext1,
-    simp[exp_map_circle],
-    rw exp_eq_one_iff,
-    use k,
-    simp[mul_assoc], },
-end
-
-lemma exp_map_circle_surjective : function.surjective exp_map_circle :=
-begin
-  intros z,
-  have : ∀ (x : ℂ), (x.im : ℂ) * I = x - x.re,
-  { simp [complex.ext_iff] },
-  have logzre : (complex.log z).re = 0,
-  { simp [complex.log_re, abs_eq_of_mem_circle] },
-  use (log z).im,
-  rw subtype.ext_iff,
-  simp [this, logzre, exp_log (nonzero_of_mem_circle z)],
-end
 
 /-- The additive-group isomorphism identifying `real.angle` with the additive version of the
 `circle` group. -/

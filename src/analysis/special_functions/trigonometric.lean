@@ -2366,6 +2366,18 @@ arg_eq_pi_iff.2 ⟨hx, rfl⟩
 
 lemma log_re (x : ℂ) : x.log.re = x.abs.log := by simp [log]
 
+lemma exp_map_circle_surjective : function.surjective exp_map_circle :=
+begin
+  intros z,
+  have : ∀ (x : ℂ), (x.im : ℂ) * I = x - x.re,
+  { simp [complex.ext_iff] },
+  have logzre : (complex.log z).re = 0,
+  { simp [complex.log_re, abs_eq_of_mem_circle] },
+  use (log z).im,
+  rw subtype.ext_iff,
+  simp [this, logzre, exp_log (nonzero_of_mem_circle z)],
+end
+
 lemma log_im (x : ℂ) : x.log.im = x.arg := by simp [log]
 
 lemma neg_pi_lt_log_im (x : ℂ) : -π < (log x).im := by simp only [log_im, neg_pi_lt_arg]
@@ -2452,6 +2464,42 @@ calc exp x = 1 ↔ (exp x).re = 1 ∧ (exp x).im = 0 : by simp [complex.ext_iff]
     ⟨λ ⟨⟨n, hn⟩, ⟨m, hm⟩, h⟩, ⟨n, by simp [complex.ext_iff, hn.symm, h]⟩,
       λ ⟨n, hn⟩, ⟨⟨n, by simp [hn]⟩, ⟨2 * n, by simp [hn, mul_comm, mul_assoc, mul_left_comm]⟩,
         by simp [hn]⟩⟩
+
+lemma exp_map_circle_hom_ker : exp_map_circle_hom.ker = add_subgroup.gmultiples (2 * π) :=
+begin
+  ext k,
+  have a0 : (0 : additive circle) = (1 : circle) := rfl,
+  have iI : ∀ (x y : ℂ), x * I = y * I ↔ x = y :=
+    λ _ _, ⟨mul_right_cancel' I_ne_zero, λ h, congr_arg _ h⟩,
+  suffices : (∃ (n : ℤ), (k : ℂ) = n * 2 * π) ↔ ∃ (n : ℤ), (n : ℝ) * 2 * π = k,
+  { simpa [add_subgroup.mem_gmultiples_iff, add_monoid_hom.mem_ker, subtype.ext_iff,
+           a0, exp_eq_one_iff, ←mul_assoc, iI] },
+  simp_rw @eq_comm _ _ k,
+  norm_cast,
+end
+
+lemma exp_map_circle_eq_one_iff {x : ℝ} :
+  exp_map_circle x = 1 ↔ x ∈ add_subgroup.gmultiples (2 * π) :=
+begin
+  simp only [add_subgroup.mem_gmultiples_iff, gsmul_eq_mul],
+  split,
+  { simp[exp_map_circle],
+    intro h,
+    apply_fun (coe: circle → ℂ) at h,
+    simp at h,
+    rw exp_eq_one_iff at h,
+    cases h with n hn,
+    use n,
+    rw [←of_real_inj, ←mul_left_inj' I_ne_zero, hn],
+    push_cast,
+    ring },
+  { rintro ⟨k, rfl⟩,
+    ext1,
+    simp[exp_map_circle],
+    rw exp_eq_one_iff,
+    use k,
+    simp[mul_assoc], },
+end
 
 lemma exp_eq_exp_iff_exp_sub_eq_one {x y : ℂ} : exp x = exp y ↔ exp (x - y) = 1 :=
 by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]

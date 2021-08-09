@@ -645,12 +645,12 @@ have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
 end,
 perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@prime_of_mem_factors _)
 
-lemma prime.factors_pow {p : ℕ} (hp : p.prime) (y : ℕ) :
-  (p ^ y).factors = list.repeat p y :=
+lemma prime.factors_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
+  (p ^ n).factors = list.repeat p n :=
 begin
   symmetry,
   rw ← list.repeat_perm,
-  apply nat.factors_unique (list.prod_repeat p y),
+  apply nat.factors_unique (list.prod_repeat p n),
   { intros q hq,
     rwa eq_of_mem_repeat hq },
 end

@@ -137,7 +137,6 @@ lemma to_lin'_apply (A : special_linear_group n R) (v : n → R) :
 lemma to_lin'_to_linear_map (A : special_linear_group n R) :
   ↑(special_linear_group.to_lin' A) = matrix.to_lin' ↑ₘA := rfl
 
--- end coe_lemmas
 lemma to_lin'_symm_apply (A : special_linear_group n R) (v : n → R) :
   A.to_lin'.symm v = matrix.to_lin' ↑ₘ(A⁻¹) v := rfl
 

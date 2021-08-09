@@ -205,6 +205,21 @@ protected def function.surjective.semiring
 
 end injective_surjective_maps
 
+section trivial
+
+/-- In the trivial ring, 0 = 1. We state it as `1 = 0` in the simplifying direction,
+because there are more lemmas where `0` is cancelling (in multiplication).
+
+This lemma could be stated in general for any `[has_zero α] [has_one α]`.
+However, unless that `α` has lemmas about it that utilize `0` and `1`, then it is not clear
+which of `0` or `1` should be preferred. Only once the distributive properties are included,
+then does `0` win out. The earliest this occurs in the hierarchy is in a `[non_assoc_semiring α]`.
+-/
+@[simp] lemma one_eq_zero_of_subsingleton [subsingleton α] [non_assoc_semiring α] :
+  (1 : α) = 0 := subsingleton.elim _ _
+
+end trivial
+
 section semiring
 variables [semiring α]
 

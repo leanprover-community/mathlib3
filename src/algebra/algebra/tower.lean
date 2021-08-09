@@ -298,18 +298,6 @@ le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul
   (λ _ _, add_mem _)
   (λ k x hx, smul_mem_span_smul' hs hx)
 
-/-- Turning `p : submodule S M` into an `R`-submodule gives the same module structure
-as turning it into a type and adding a module structure. -/
-@[simps]
-def restrict_scalars_equiv (p : submodule S A) : p.restrict_scalars R ≃ₗ[R] p :=
--- Everything is automatically defeq except scalar multiplication.
-{ to_fun := λ x, x,
-  inv_fun := λ x, x,
-  map_smul' := λ c ⟨x, hx⟩, subtype.coe_injective $
-    by rw [← is_scalar_tower.algebra_map_smul S c (⟨x, hx⟩ : p), coe_smul, coe_smul,
-           is_scalar_tower.algebra_map_smul] ,
-  .. add_equiv.refl p }
-
 end submodule
 
 end semiring

@@ -1534,6 +1534,19 @@ lemma restrict_scalars_top : restrict_scalars R (⊤ : submodule S M) = ⊤ := r
 lemma span_le_restrict_scalars (X : set M) : span R (X : set M) ≤ restrict_scalars R (span S X) :=
 submodule.span_le.mpr submodule.subset_span
 
+/-- Even though `p.restrict_scalars R` has type `submodule R M`, it is still an `S`-module. -/
+instance submodule.restrict_scalars.orig_module (p : submodule S M) : module S (p.restrict_scalars R) :=
+(by apply_instance : module S p)
+
+instance (p : submodule S M) : is_scalar_tower R S (p.restrict_scalars R) :=
+{ smul_assoc := λ r s x, subtype.ext $ smul_assoc r s (x : M) }
+
+/-- Turning `p : submodule S M` into an `R`-submodule gives the same module structure
+as turning it into a type and adding a module structure. -/
+@[simps]
+def restrict_scalars_equiv (p : submodule S M) : p.restrict_scalars R ≃ₗ[S] p :=
+{ map_smul' := λ c x, rfl, .. linear_equiv.refl R p }
+
 end submodule
 
 @[simp]

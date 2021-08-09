@@ -1409,12 +1409,6 @@ lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E}
 let ⟨C, hC⟩ := h.is_O_with in
 summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) (hg.abs.mul_left _) hC.bound
 
-lemma summable_of_is_O' {ι E} {F : Type*} [normed_group E] [complete_space E] [normed_group F]
-  [complete_space F] {f : ι → E} (g : ι → F)
-  (hg : summable g) (h : is_O f g cofinite) : summable f :=
-let ⟨C, hC⟩ := h.is_O_with in
-summable_of_norm_bounded_eventually _ _ _
-
 lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} (g : ℕ → ℝ)
   (hg : summable g) (h : is_O f g at_top) : summable f :=
 summable_of_is_O g hg $ nat.cofinite_eq_at_top.symm ▸ h

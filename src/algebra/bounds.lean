@@ -14,6 +14,7 @@ In this file we prove a few facts like “`-s` is bounded above iff `s` is bound
 -/
 
 open set
+open_locale pointwise
 
 section inv_neg
 

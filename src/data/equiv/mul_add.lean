@@ -124,6 +124,9 @@ def symm (h : M ≃* N) : N ≃* M :=
 { map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
 
+@[simp, to_additive]
+lemma inv_fun_eq_coe {f : M ≃* N} : f.inv_fun = f.symm := rfl
+
 /-- See Note [custom simps projection] -/
 -- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
 -- in the whole file.

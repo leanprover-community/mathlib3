@@ -134,8 +134,7 @@ begin
   exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
-lemma summable_coe_of_nonneg {f : α → ℝ}
-  (hf₁ : ∀ n, 0 ≤ f n) :
+lemma summable_coe_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
   @summable (ℝ≥0) _ _ _ (λ n, ⟨f n, hf₁ n⟩) ↔ summable f :=
 begin
   lift f to α → ℝ≥0, -- we can't write `lift f to α → ℝ≥0 using hf₁` since the goal uses `hf₁`

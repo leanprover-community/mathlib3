@@ -875,7 +875,7 @@ lemma to_measure_apply (hi : 0 ≤[i] s) (hi₁ : measurable_set i) (hj₁ : mea
 by { rw [to_measure, measure.of_measurable_apply _ hj₁], refl }
 
 /-- `signed_measure.to_measure` is a finite measure. -/
-lemma positive_to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
+lemma to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
   finite_measure (s.to_measure i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin

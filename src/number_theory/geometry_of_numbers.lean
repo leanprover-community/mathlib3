@@ -8,22 +8,83 @@ import group_theory.subgroup
 import analysis.convex.basic
 import measure_theory.haar_measure
 
--- TODO change fin n to iota
-open measure_theory
-variables {n : ℕ}
-noncomputable theory
-section floris
-/-
-from floris
+/-!
+# Geometry of numbers
+
+In this file we introduce prove some of the fundamental theorems in the geometry of numbers, as
+studied by Hermann Minkowski.
+
+## Main results
+
+- `exists_foo`: the main existence theorem of `foo`s.
+- `bar_of_foo`: a construction of a `bar`, given a `foo`.
+
+## References
+
+See [Thales600BC] for the original account on Xyzzyology.
 -/
 
+open measure_theory
+
 open measure_theory measure_theory.measure topological_space set
+lemma smul_Ioo {a b r : ℝ} (hr : 0 < r) : r • Ioo a b = Ioo (r • a) (r • b) :=
+begin
+  ext x,
+  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioo],
+  split,
+  { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
+    exact (mul_lt_mul_left hr).mpr a_h_left_left, exact (mul_lt_mul_left hr).mpr a_h_left_right, },
+  { rintro ⟨a_left, a_right⟩,
+    use x / r,
+    refine ⟨⟨(lt_div_iff' hr).mpr a_left, (div_lt_iff' hr).mpr a_right⟩, _⟩,
+    rw mul_div_cancel' _ (ne_of_gt hr), }
+end
+
+lemma preimage_smul {α β : Type*} [group_with_zero α] {a : α} (ha : a ≠ 0) [mul_action α β]
+  {t : set β} : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
+begin
+  ext,
+  simp, split, work_on_goal 0 { intros ᾰ, fsplit, work_on_goal 1 { split, { assumption } } }, work_on_goal 1 { rintro ⟨ᾰ_w, ᾰ_h_left, rfl⟩, },
+  { rw ← mul_smul,
+    rw inv_mul_cancel ha,
+    rw one_smul, },
+  { rw ← mul_smul,
+    rw mul_inv_cancel ha,
+    rwa one_smul, },
+end
+universe u
+variables (ι : Type u)
+noncomputable theory
+
+lemma smul_pi (ι : Type u) {r : ℝ} (t : ι → set ℝ) :
+  r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
+begin
+  ext x,
+  simp [mem_smul_set],
+  split; intro h,
+  { rcases h with ⟨h_w, h_h_left, rfl⟩,
+    simp,
+    intro i,
+    use h_w i,
+    split,
+    exact h_h_left i,
+    left,
+    refl, },
+  { use (λ i, classical.some (h i)), -- TODO is choice necessary?
+    split,
+    intro i,
+    have := classical.some_spec (h i),
+    exact this.left,
+    ext i,
+    have := classical.some_spec (h i),
+    exact this.right, }
+end
 
 lemma is_add_left_invariant_real_volume : is_add_left_invariant (⇑(volume : measure ℝ)) :=
 by simp [← map_add_left_eq_self, real.map_volume_add_left]
 
-lemma is_add_left_invariant_pi_volume (ι : Type*) [fintype ι] :
-is_add_left_invariant (⇑(volume : measure (ι → ℝ))) :=
+lemma is_add_left_invariant_pi_volume [fintype ι] :
+  is_add_left_invariant (⇑(volume : measure (ι → ℝ))) :=
 begin
   simp only [←map_add_left_eq_self],
   intro v,
@@ -60,7 +121,7 @@ end
 def Icc01 : positive_compacts ℝ :=
 ⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
 
-def unit_cube (ι) [fintype ι] : positive_compacts (ι → ℝ) :=
+def unit_cube [fintype ι] : positive_compacts (ι → ℝ) :=
 ⟨Icc 0 1, begin
   simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
   exact is_compact_univ_pi (λ i, is_compact_Icc),
@@ -87,8 +148,8 @@ begin
   { exact is_add_left_invariant_real_volume }
 end
 
-lemma pi_haar_measure_eq_lebesgue_measure (ι) [fintype ι] :
-add_haar_measure (unit_cube ι) = volume :=
+lemma pi_haar_measure_eq_lebesgue_measure [fintype ι] :
+  add_haar_measure (unit_cube ι) = volume :=
 begin
   convert (add_haar_measure_unique _ (unit_cube ι)).symm,
   { rw [unit_cube],
@@ -100,12 +161,10 @@ begin
   { apply_instance },
   { exact is_add_left_invariant_pi_volume ι }
 end
-end floris
 
-
-
-lemma trans_inv (v : fin n → ℝ) (S : set (fin n → ℝ)) (hS : measurable_set S) :
-volume S = volume ((+ (-v)) '' S) :=
+variable {ι}
+lemma trans_inv [fintype ι] (v : ι → ℝ) (S : set (ι → ℝ)) (hS : measurable_set S) :
+  volume S = volume ((+ (-v)) '' S) :=
 begin
   simp only [set.image_add_left, add_comm],
   suffices : volume = measure.add_haar_measure (unit_cube _),
@@ -116,16 +175,13 @@ begin
   rw pi_haar_measure_eq_lebesgue_measure,
 end
 
-/-- Blichfeldt's Principle --/
-def L (ι : Type*) : add_subgroup (ι → ℝ) := add_monoid_hom.range { to_fun := λ (f : ι → ℤ), (↑f : ι → ℝ),
+def L : add_subgroup (ι → ℝ) := add_monoid_hom.range { to_fun := λ (f : ι → ℤ), (↑f : ι → ℝ),
   map_zero' := rfl,
   map_add' := assume x y, begin ext, rw [pi.add_apply], exact int.cast_add (x x_1) (y x_1), end }
 
 /- this can be generalized any range of a morphism is a subgroup -/
 
-/- TODO decide wether to include measurablity in defn of a fundamental domain-/
-
-structure fundamental_domain {ι : Type*} (L : add_subgroup (ι → ℝ)) := /- this is _just_ a coset right? -/
+structure fundamental_domain (L : add_subgroup (ι → ℝ)) := /- this is _just_ a coset right? -/
   (F : set (ι → ℝ))
   (hF : measurable_set F)
   (disjoint : ∀ (l : ι → ℝ) (hl : l ∈ L) (h : l ≠ 0), disjoint ((+ l) '' F) F)
@@ -158,7 +214,7 @@ structure fundamental_domain {ι : Type*} (L : add_subgroup (ι → ℝ)) := /- 
 --     { linarith [lt_floor_add_one (x m)], }
 --   end⟩⟩}
 
--- lemma cube_fund_volume : volume (cube_fund.F : set (fin n → ℝ)) = 1 :=
+-- lemma cube_fund_volume : volume (cube_fund.F : set (ι → ℝ)) = 1 :=
 -- begin
 --   dsimp [cube_fund],
 --   rw volume_pi,
@@ -166,8 +222,8 @@ structure fundamental_domain {ι : Type*} (L : add_subgroup (ι → ℝ)) := /- 
 -- end
 
 
-lemma fundamental_domain.exists_unique {L : add_subgroup (fin n → ℝ)} (F : fundamental_domain L)
-  (x : fin n → ℝ) : ∃! (p : L), x ∈ (+ (p : fin n → ℝ)) '' F.F :=
+lemma fundamental_domain.exists_unique {L : add_subgroup (ι → ℝ)} (F : fundamental_domain L)
+  (x : ι → ℝ) : ∃! (p : L), x ∈ (+ (p : ι → ℝ)) '' F.F :=
 exists_unique_of_exists_of_unique
 begin
   simp only [exists_prop, set.mem_preimage, set.image_add_right, exists_unique_iff_exists],
@@ -194,22 +250,20 @@ end
 --   measurable_space F.F := subtype.measurable_space
 
 instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
-measure_space (subtype p) :=
+  measure_space (subtype p) :=
 { volume := measure.comap subtype.val volume,
   ..subtype.measurable_space }
 
 lemma volume_subtype_univ {V : Type*} [measure_space V] {p : set V} (hmp : measurable_set p) :
-  @volume _ subtype.measure_space (set.univ : set (subtype p)) = volume p :=
+  volume (set.univ : set (subtype p)) = volume p :=
 begin
-  dsimp [measure_space.volume],
+  dsimp only [measure_space.volume],
   rw [measure.comap_apply _ subtype.val_injective, set.image_univ],
-  congr,
-  exact subtype.range_val,
-  begin
-    intros x hx,
-    exact measurable_set.subtype_image hmp hx,
-  end,
-  exact measurable_set.univ,
+  { congr,
+    exact subtype.range_val, },
+  { intros x hx,
+    exact measurable_set.subtype_image hmp hx, },
+  { exact measurable_set.univ, }
 end
 
 /-instance {F : fundamental_domain $ L n} : measure_space F.F :=
@@ -246,11 +300,12 @@ end
   m_Union := sorry,
   trimmed := _ }
   }-/
-
-lemma exists_diff_lattice_of_volume_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
-  {S : set (fin n → ℝ)} (hS : measurable_set S) (F : fundamental_domain L)
+/-- Blichfeldt's Principle --/
+-- TODO version giving `ceiling (volume S / volume F)` points whose difference is in lattice
+lemma exists_sub_mem_lattice_of_volume_le_volume {ι : Type u} [fintype ι] (L : add_subgroup (ι → ℝ))
+  [encodable L] {S : set (ι → ℝ)} (hS : measurable_set S) (F : fundamental_domain L)
   (h : volume F.F < volume S) :
-∃ (x y : fin n → ℝ) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
+  ∃ (x y : ι → ℝ) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
 begin
   suffices : ∃ (p₁ p₂ : L) (hne : p₁ ≠ p₂),
     (((+ ↑p₁) '' S ∩ F.F) ∩ ((+ ↑p₂) '' S ∩ F.F)).nonempty,
@@ -284,7 +339,7 @@ begin
       exact measurable_subtype_coe, },
     exact ⟨S, ⟨hS, rfl⟩⟩, },
   convert h,
-  have : (∑' (i : L), volume ((+ (i : fin n → ℝ)) '' S ∩ F.F)) = volume S,
+  have : (∑' (i : L), volume ((+ (i : ι → ℝ)) '' S ∩ F.F)) = volume S,
   { rw (_ : ∑' (i : L), volume ((+ ↑i) '' S ∩ F.F) =
         ∑' (i : L), volume ((+ (-↑i)) '' ((+ ↑i) '' S ∩ F.F))),
     { conv in (_ '' (_ ∩ _)) {
@@ -305,7 +360,7 @@ begin
         assumption, },
       { apply_instance, },
       { intros x y hxy,
-        suffices : (disjoint on λ (i : ↥(L)), (λ (_x : fin n → ℝ), _x + -↑i) '' F.F) x y,
+        suffices : (disjoint on λ (i : ↥(L)), (λ (_x : ι → ℝ), _x + -↑i) '' F.F) x y,
         { simp only [comp_add_right, add_zero, add_right_neg,
             set.image_add_right, neg_neg, set.image_id'] at this ⊢,
           rintros z ⟨⟨hzx, hzS⟩, ⟨hzy, hzS⟩⟩,
@@ -352,59 +407,10 @@ end
 -- how to apply to the usual lattice
     -- exact set.countable.to_encodable (set.countable_range (function.comp coe)),
 open measure_theory measure_theory.measure topological_space set
-lemma smul_Ioo {a b r : ℝ} (hr : 0 < r) : r • Ioo a b = Ioo (r • a) (r • b) :=
-begin
-  ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioo],
-  split,
-  { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
-    exact (mul_lt_mul_left hr).mpr a_h_left_left, exact (mul_lt_mul_left hr).mpr a_h_left_right, },
-  { rintro ⟨a_left, a_right⟩,
-    use x / r,
-    refine ⟨⟨(lt_div_iff' hr).mpr a_left, (div_lt_iff' hr).mpr a_right⟩, _⟩,
-    rw mul_div_cancel' _ (ne_of_gt hr), }
-end
-
-lemma preimage_smul {α β : Type*} [field α] {a : α} (ha : a ≠ 0) [mul_action α β] {t : set β} :
-(λ x, a • x) ⁻¹' t = a⁻¹ • t :=
-begin
-  ext,
-  simp, split, work_on_goal 0 { intros ᾰ, fsplit, work_on_goal 1 { split, { assumption } } }, work_on_goal 1 { rintro ⟨ᾰ_w, ᾰ_h_left, rfl⟩, },
-  { rw ← mul_smul,
-    rw inv_mul_cancel ha,
-    rw one_smul, },
-  { rw ← mul_smul,
-    rw mul_inv_cancel ha,
-    rwa one_smul, },
-end
-
-lemma smul_pi (ι : Type*) {r : ℝ} (t : ι → set ℝ) :
-r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
-begin
-  ext x,
-  simp [mem_smul_set],
-  split; intro h,
-  { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp,
-    intro i,
-    use h_w i,
-    split,
-    exact h_h_left i,
-    left,
-    refl, },
-  { use (λ i, classical.some (h i)), -- TODO is choice necessary?
-    split,
-    intro i,
-    have := classical.some_spec (h i),
-    exact this.left,
-    ext i,
-    have := classical.some_spec (h i),
-    exact this.right, }
-end
 
 lemma rescale (ι : Type*) [fintype ι] {r : ℝ} (hr : 0 < r) :
-measure.comap ((•) r) (volume : measure (ι → ℝ)) =
-(ennreal.of_real r) ^ (fintype.card ι) • (volume : measure (ι → ℝ)) :=
+  measure.comap ((•) r) (volume : measure (ι → ℝ)) =
+  (ennreal.of_real r) ^ (fintype.card ι) • (volume : measure (ι → ℝ)) :=
 begin
   have hrzero : ennreal.of_real r ≠ 0,
   { intro h,
@@ -450,23 +456,42 @@ begin
   { exact measurable_set.univ_pi_fintype (λ i, measurable_set_Ioo), },
 end
 
-open ennreal
-lemma exists_nonzero_lattice_of_two_dim_le_volume (L : add_subgroup (fin n → ℝ)) [encodable L]
-  (F : fundamental_domain L) (S : set (fin n → ℝ)) (hS : measurable_set S)
-  (h : volume F.F * 2 ^ n < volume S) (symmetric : ∀ x ∈ S, -x ∈ S) (convex : convex S) :
-∃ (x : L) (h : x ≠ 0), ↑x ∈ S :=
+-- This is also true when p and/or q are zero
+lemma smul_set_add_smul_set {ι : Type  u} {p q : ℝ} (hp : 0 < p) (hq : 0 < q)
+  {S : set (ι → ℝ)} (h_conv : convex S) : p • S + q • S = (p + q) • S :=
+begin
+  have hpq : 0 < p + q, from add_pos hp hq,
+  ext,
+  split; intro h,
+  { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
+    have := h_conv h₁₂ h₂₂ (le_of_lt $ div_pos hp hpq) (le_of_lt $ div_pos hq hpq)
+      (by {field_simp, rw [div_self (ne_of_gt hpq)]} : p / (p + q) + q / (p + q) = 1),
+    rw mem_smul_set,
+    refine ⟨_, this, _⟩,
+    simp only [←mul_smul, smul_add],
+    congr; rw mul_div_cancel'; exact ne_of_gt hpq, },
+  { rcases h with ⟨v, hv, rfl⟩,
+    use [p • v, q • v],
+    refine ⟨smul_mem_smul_set hv, smul_mem_smul_set hv, _⟩,
+    rw add_smul, },
+end
+open ennreal fintype
+
+lemma exists_nonzero_lattice_of_two_dim_le_volume [fintype ι] (L : add_subgroup (ι → ℝ))
+  [encodable.{u} L] (F : fundamental_domain L) (S : set (ι → ℝ)) (hS : measurable_set S)
+  (h : volume F.F * 2 ^ (card ι) < volume S) (h_symm : ∀ x ∈ S, -x ∈ S)
+  (h_conv : convex S) : ∃ (x : L) (h : x ≠ 0), ↑x ∈ S :=
 begin
   have mhalf : measurable_set ((1/2 : ℝ) • S),
   { convert measurable_const_smul (2 : ℝ) hS,
     ext x,
     simp only [one_div, set.mem_preimage],
     exact mem_inv_smul_set_iff two_ne_zero S x, },
-  have : volume ((1/2 : ℝ) • S) * 2^n = volume S,
-  {
-    suffices : volume ((1/2 : ℝ) • S) = (1 / 2)^n * volume S,
+  have : volume ((1/2 : ℝ) • S) * 2 ^ (card ι) = volume S,
+  { suffices : volume ((1/2 : ℝ) • S) = (1 / 2) ^ (card ι) * volume S,
     { rw [this, mul_comm _ (volume S), mul_assoc, ← mul_pow, one_div,
         ennreal.inv_mul_cancel two_ne_zero two_ne_top, one_pow, mul_one], },
-    have := rescale (fin n) (half_pos zero_lt_one),
+    have := rescale ι (half_pos zero_lt_one),
     simp only [one_div, fintype.card_fin] at this,
     simp only [one_div],
     rw ← ennreal.of_real_inv_of_pos (by norm_num : 0 < (2 : ℝ)) at this,
@@ -482,34 +507,16 @@ begin
       apply_instance,
       apply_instance,
       exact two_ne_zero,
-      exact two_ne_zero, },
-  },
+      exact two_ne_zero, }, },
   have h2 : volume F.F < volume ((1/2 : ℝ) • S),
-  { rw ← ennreal.mul_lt_mul_right (pow_ne_zero n two_ne_zero') (pow_ne_top two_ne_top),
+  { rw ← ennreal.mul_lt_mul_right (pow_ne_zero (card ι) two_ne_zero') (pow_ne_top two_ne_top),
     convert h, },
 
-  have : (1/2 : ℝ) • S + (1/2 : ℝ) • S = S,
-  { ext,
-    split; intro h,
-    { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
-      have := convex h₁₂ h₂₂ (le_of_lt one_half_pos) (le_of_lt one_half_pos) (by linarith),
-      rw [← inv_eq_one_div] at this,
-      suffices hv : ∀ v : fin n → ℝ, v = (2⁻¹:ℝ) • (2 * v),
-      { convert this;
-        exact one_div 2, },
-      intro,
-      suffices : v = ((2⁻¹ : ℝ) * 2) • v,
-      { conv_lhs { rw this, },
-        exact mul_assoc _ _ _, },
-      norm_num, },
-    { use [(1/2 : ℝ) • x, (1/2 : ℝ) • x],
-      simp only [and_self_left],
-      split,
-      { exact set.smul_mem_smul_set h, },
-      { rw ← add_smul,
-        norm_num, }, }, },
+  have : (1/2 : ℝ) • S + (1/2 : ℝ) • S = (1 / 2 + 1 / 2 : ℝ) • S,
+  from smul_set_add_smul_set (half_pos (zero_lt_one)) (half_pos (zero_lt_one)) h_conv,
+  norm_num at this,
   rw ← this,
-  suffices : ∃ (x y : fin n → ℝ) (hx : x ∈ (1/2 : ℝ) • S) (hy : y ∈ (1/2 : ℝ) • S) (hne : x ≠ y),
+  suffices : ∃ (x y : ι → ℝ) (hx : x ∈ (1/2 : ℝ) • S) (hy : y ∈ (1/2 : ℝ) • S) (hne : x ≠ y),
     x - y ∈ L,
   { rcases this with ⟨x, y, hx, hy, hne, hsub⟩,
     use ⟨x - y, hsub⟩,
@@ -520,10 +527,10 @@ begin
     { intros t ht,
       rcases ht with ⟨v, hv, rfl⟩,
       rw ← smul_neg,
-      exact set.smul_mem_smul_set (symmetric _ hv), },
+      exact set.smul_mem_smul_set (h_symm _ hv), },
     use [x, -y, hx, this _ hy],
     refl, },
-  { exact exists_diff_lattice_of_volume_le_volume L mhalf F h2, }
+  { exact exists_sub_mem_lattice_of_volume_le_volume L mhalf F h2, }
 end
 
 #lint

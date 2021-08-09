@@ -151,7 +151,7 @@ instance : has_coe_to_fun (special_linear_group n R) :=
   coe := λ A, A.val }
 
 @[simp]
-lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = (s : matrix n n R) := rfl
+lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = ↑ₘs := rfl
 
 end coe_fn_instance
 

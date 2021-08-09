@@ -3,11 +3,9 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import data.set.intervals.ord_connected
-import data.set.intervals.image_preimage
 import data.complex.module
+import data.set.intervals.image_preimage
 import linear_algebra.affine_space.affine_map
-import algebra.module.ordered
 import order.closure
 
 /-!
@@ -265,6 +263,30 @@ convex_iff_segment_subset.1 h hx hy
 lemma convex.open_segment_subset (h : convex s) {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
   open_segment x y ⊆ s :=
 convex_iff_open_segment_subset.1 h hx hy
+
+lemma convex.add_smul_sub_mem (h : convex s) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : x + t • (y - x) ∈ s :=
+begin
+  apply h.segment_subset hx hy,
+  rw segment_eq_image',
+  apply mem_image_of_mem,
+  exact ht
+end
+
+lemma convex.add_smul_mem (h : convex s) {x y : E} (hx : x ∈ s) (hy : x + y ∈ s)
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : x + t • y ∈ s :=
+by { convert h.add_smul_sub_mem hx hy ht, abel }
+
+lemma convex.smul_mem_of_zero_mem (h : convex s) {x : E} (zero_mem : (0:E) ∈ s) (hx : x ∈ s)
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : t • x ∈ s :=
+by simpa using h.add_smul_mem zero_mem (by simpa using hx) ht
+
+lemma convex.mem_smul_of_zero_mem (h : convex s) {x : E} (zero_mem : (0:E) ∈ s) (hx : x ∈ s)
+  {t : ℝ} (ht : 1 ≤ t) : x ∈ t • s :=
+begin
+  rw mem_smul_set_iff_inv_smul_mem (zero_lt_one.trans_le ht).ne',
+  exact h.smul_mem_of_zero_mem zero_mem hx ⟨inv_nonneg.2 (zero_le_one.trans ht), inv_le_one ht⟩,
+end
 
 /-- Alternative definition of set convexity, in terms of pointwise set operations. -/
 lemma convex_iff_pointwise_add_subset:

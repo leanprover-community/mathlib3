@@ -131,15 +131,15 @@ theorem sum_mem {ι : Type w} {t : finset ι} {f : ι → A}
   (h : ∀ x ∈ t, f x ∈ S) : ∑ x in t, f x ∈ S :=
 S.to_subsemiring.sum_mem h
 
-instance {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
-  (S : subalgebra R A) : is_add_submonoid (S : set A) :=
-{ zero_mem := S.zero_mem,
-  add_mem := λ _ _, S.add_mem }
+/-- The projection from a subalgebra of `A` to an additive submonoid of `A`. -/
+def to_add_submonoid {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
+  (S : subalgebra R A) : add_submonoid A :=
+S.to_subsemiring.to_add_submonoid
 
-instance {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
-  (S : subalgebra R A) : is_submonoid (S : set A) :=
-{ one_mem := S.one_mem,
-  mul_mem := λ _ _, S.mul_mem }
+/-- The projection from a subalgebra of `A` to a submonoid of `A`. -/
+def to_submonoid {R : Type u} {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
+  (S : subalgebra R A) : submonoid A :=
+S.to_subsemiring.to_submonoid
 
 /-- A subalgebra over a ring is also a `subring`. -/
 def to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S : subalgebra R A) :
@@ -152,10 +152,6 @@ def to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S
 
 @[simp] lemma coe_to_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
   (S : subalgebra R A) : (↑S.to_subring : set A) = S := rfl
-
-instance {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] (S : subalgebra R A) :
-  is_subring (S : set A) :=
-{ neg_mem := λ _, S.neg_mem }
 
 instance : inhabited S := ⟨(0 : S.to_subsemiring)⟩
 
@@ -264,9 +260,6 @@ def to_submodule : submodule R A :=
   smul_mem' := λ c x hx, (algebra.smul_def c x).symm ▸
     (⟨algebra_map R A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
 
-instance to_submodule.is_subring {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A]
-  (S : subalgebra R A) : is_subring (S.to_submodule : set A) := S.is_subring
-
 @[simp] lemma mem_to_submodule {x} : x ∈ S.to_submodule ↔ x ∈ S := iff.rfl
 
 @[simp] lemma coe_to_submodule (S : subalgebra R A) : (↑S.to_submodule : set A) = S := rfl
@@ -351,7 +344,7 @@ instance no_zero_smul_divisors_top {R A : Type*} [comm_semiring R] [comm_semirin
 
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
-@subring.domain A _ S _
+subring.integral_domain S.to_subring
 
 end subalgebra
 
@@ -415,6 +408,12 @@ def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
+
+/-- The range of a morphism of algebras is a fintype, if the domain is a fintype.
+
+Note that this instance can cause a diamond with `subtype.fintype` if `B` is also a fintype. -/
+instance fintype_range [fintype A] [decidable_eq B] (φ : A →ₐ[R] B) : fintype φ.range :=
+set.fintype_range φ
 
 end alg_hom
 
@@ -605,15 +604,23 @@ variables (S : subalgebra R A)
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
 ⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
 
+/--
+For performance reasons this is not an instance. If you need this instance, add
+```
+local attribute [instance] alg_hom.subsingleton subalgebra.subsingleton_of_subsingleton
+```
+in the section that needs it.
+-/
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
+lemma _root_.alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
 ⟨λ f g, alg_hom.ext $ λ a,
   have a ∈ (⊥ : subalgebra R A) := subsingleton.elim (⊤ : subalgebra R A) ⊥ ▸ mem_top,
   let ⟨x, hx⟩ := set.mem_range.mp (mem_bot.mp this) in
   hx ▸ (f.commutes _).trans (g.commutes _).symm⟩
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] B) :=
+lemma _root_.alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] :
+  subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (A →ₐ[R] B) := alg_hom.subsingleton,
   exact ⟨λ f g, alg_equiv.ext
@@ -621,7 +628,8 @@ begin
 end
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
+lemma _root_.alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] :
+  subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
   exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm
@@ -723,18 +731,10 @@ def subalgebra_of_subring (S : subring R) : subalgebra ℤ R :=
     exact S.sub_mem ih S.one_mem }),
   .. S }
 
-/-- A subset closed under the ring operations is a `ℤ`-subalgebra. -/
-def subalgebra_of_is_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
-subalgebra_of_subring S.to_subring
-
 variables {S : Type*} [semiring S]
 
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : subring R} :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
-iff.rfl
-
-@[simp] lemma mem_subalgebra_of_is_subring {x : R} {S : set R} [is_subring S] :
-  x ∈ subalgebra_of_is_subring S ↔ x ∈ S :=
 iff.rfl
 
 end int

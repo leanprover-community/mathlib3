@@ -139,11 +139,25 @@ by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has
   gsmul := @gsmul_rec _ ⟨(0)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
-instance re.is_add_group_hom : is_add_group_hom complex.re :=
-{ map_add := complex.add_re }
+/-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
+instance. -/
+instance : ring ℂ := by apply_instance
 
-instance im.is_add_group_hom : is_add_group_hom complex.im :=
-{ map_add := complex.add_im }
+/-- The "real part" map, considered as an additive group homomorphism. -/
+def re_add_group_hom : ℂ →+ ℝ :=
+{ to_fun := re,
+  map_zero' := zero_re,
+  map_add' := add_re }
+
+@[simp] lemma coe_re_add_group_hom : (re_add_group_hom : ℂ → ℝ) = re := rfl
+
+/-- The "imaginary part" map, considered as an additive group homomorphism. -/
+def im_add_group_hom : ℂ →+ ℝ :=
+{ to_fun := im,
+  map_zero' := zero_im,
+  map_add' := add_im }
+
+@[simp] lemma coe_im_add_group_hom : (im_add_group_hom : ℂ → ℝ) = im := rfl
 
 @[simp] lemma I_pow_bit0 (n : ℕ) : I ^ (bit0 n) = (-1) ^ n :=
 by rw [pow_bit0', I_mul_I]
@@ -445,6 +459,9 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
 
+/--
+The **triangle inequality** for complex numbers.
+-/
 lemma abs_add (z w : ℂ) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)
   (add_nonneg (abs_nonneg _) (abs_nonneg _))).2 $

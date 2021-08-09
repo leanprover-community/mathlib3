@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-
-import data.polynomial.eval
 import algebra.algebra.tower
+import data.polynomial.eval
 
 /-!
 # Theory of univariate polynomials
@@ -327,7 +326,7 @@ lemma aeval_endomorphism {M : Type*}
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
 begin
   rw [aeval_def, eval₂],
-  exact (finset.sum_hom p.support (λ h : M →ₗ[R] M, h v)).symm
+  exact (linear_map.applyₗ v).map_sum ,
 end
 
 end polynomial

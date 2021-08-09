@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
 import data.multiset.finset_ops
-import tactic.monotonicity
 import tactic.apply
+import tactic.monotonicity
 import tactic.nth_rewrite
 
 /-!
@@ -365,6 +365,10 @@ classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 @[simp, norm_cast] lemma coe_eq_empty {s : finset α} :
   (s : set α) = ∅ ↔ s = ∅ :=
 by rw [← coe_empty, coe_inj]
+
+/-- A `finset` for an empty type is empty. -/
+lemma eq_empty_of_is_empty [is_empty α] (s : finset α) : s = ∅ :=
+finset.eq_empty_of_forall_not_mem is_empty_elim
 
 /-- A `finset` for an empty type is empty. -/
 lemma eq_empty_of_not_nonempty (h : ¬ nonempty α) (s : finset α) : s = ∅ :=
@@ -1032,6 +1036,8 @@ lemma erase_inj_on (s : finset α) : set.inj_on s.erase s :=
 /-- `s \ t` is the set consisting of the elements of `s` that are not in `t`. -/
 instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of_le (sub_le_self _ _) s₁.2⟩⟩
 
+@[simp] lemma sdiff_val (s₁ s₂ : finset α) : (s₁ \ s₂).val = s₁.val - s₂.val := rfl
+
 @[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
   a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
 
@@ -1135,6 +1141,10 @@ end
 
 @[simp] lemma sdiff_subset (s t : finset α) : s \ t ⊆ s :=
 show s \ t ≤ s, from sdiff_le
+
+lemma sdiff_ssubset {s t : finset α} (h : t ⊆ s) (ht : t.nonempty) :
+  s \ t ⊂ s :=
+sdiff_lt (le_iff_subset.2 h) ht.ne_empty
 
 lemma union_sdiff_distrib (s₁ s₂ t : finset α) : (s₁ ∪ s₂) \ t = s₁ \ t ∪ s₂ \ t :=
 sup_sdiff
@@ -2517,6 +2527,15 @@ by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
   by simp only [bUnion_insert, image_union, ih])
 
+lemma bUnion_bUnion [decidable_eq γ] (s : finset α) (f : α → finset β) (g : β → finset γ) :
+  (s.bUnion f).bUnion g = s.bUnion (λ a, (f a).bUnion g) :=
+begin
+  ext,
+  simp only [finset.mem_bUnion, exists_prop],
+  simp_rw [←exists_and_distrib_right, ←exists_and_distrib_left, and_assoc],
+  rw exists_comm,
+end
+
 theorem bind_to_finset [decidable_eq α] (s : multiset α) (t : α → multiset β) :
   (s.bind t).to_finset = s.to_finset.bUnion (λa, (t a).to_finset) :=
 ext $ λ x, by simp only [multiset.mem_to_finset, mem_bUnion, multiset.mem_bind, exists_prop]
@@ -2541,6 +2560,11 @@ begin
   apply subset.trans _ (bUnion_subset_bUnion_of_subset_left u (singleton_subset_iff.2 xs)),
   exact subset_of_eq singleton_bUnion.symm,
 end
+
+@[simp] lemma bUnion_subset_iff_forall_subset {α β : Type*} [decidable_eq β]
+  {s : finset α} {t : finset β} {f : α → finset β} : s.bUnion f ⊆ t ↔ ∀ x ∈ s, f x ⊆ t :=
+⟨λ h x hx, (subset_bUnion_of_mem f hx).trans h,
+ λ h x hx, let ⟨a, ha₁, ha₂⟩ := mem_bUnion.mp hx in h _ ha₁ ha₂⟩
 
 lemma bUnion_singleton {f : α → β} : s.bUnion (λa, {f a}) = s.image f :=
 ext $ λ x, by simp only [mem_bUnion, mem_image, mem_singleton, eq_comm]
@@ -2583,6 +2607,11 @@ theorem product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t
   s.product t = s.bUnion (λa, t.image $ λb, (a, b)) :=
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
+
+@[simp] lemma product_bUnion {β γ : Type*} [decidable_eq γ]
+  (s : finset α) (t : finset β) (f : α × β → finset γ) :
+  (s.product t).bUnion f = s.bUnion (λ a, t.bUnion (λ b, f (a, b))) :=
+by { classical, simp_rw [product_eq_bUnion, bUnion_bUnion, image_bUnion] }
 
 @[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=
 multiset.card_product _ _
@@ -2904,21 +2933,13 @@ by { ext, simp [-finset.mem_map, -equiv.trans_to_embedding] }
 
 end equiv
 
-namespace list
-variable [decidable_eq α]
-
-theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card = l.length :=
-congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
-
-end list
-
 namespace multiset
 variable [decidable_eq α]
 
 theorem to_finset_card_of_nodup {l : multiset α} (h : l.nodup) : l.to_finset.card = l.card :=
-congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
+congr_arg card $ multiset.erase_dup_eq_self.mpr h
 
-lemma disjoint_to_finset (m1 m2 : multiset α) :
+lemma disjoint_to_finset {m1 m2 : multiset α} :
   _root_.disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
 begin
   rw finset.disjoint_iff_ne,
@@ -2933,3 +2954,15 @@ begin
 end
 
 end multiset
+
+namespace list
+variable [decidable_eq α]
+
+theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card = l.length :=
+multiset.to_finset_card_of_nodup h
+
+lemma disjoint_to_finset_iff_disjoint {l l' : list α} :
+  _root_.disjoint l.to_finset l'.to_finset ↔ l.disjoint l' :=
+multiset.disjoint_to_finset
+
+end list

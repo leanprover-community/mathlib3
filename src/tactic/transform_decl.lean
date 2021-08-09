@@ -44,8 +44,9 @@ meta def additive_test (f : name → option name) (replace_all : bool) (ignore :
   (e : expr) : bool :=
 if replace_all then tt else additive_test_aux f ignore ff e
 
-private meta def transform_decl_with_prefix_fun_aux (f : name → option name) (replace_all : bool)
-  (ignore : name_map $ list ℕ) (pre tgt_pre : name) (attrs : list name) : name → command :=
+private meta def transform_decl_with_prefix_fun_aux (f : name → option name)
+  (replace_all trace : bool) (ignore reorder : name_map $ list ℕ) (pre tgt_pre : name)
+  (attrs : list name) : name → command :=
 λ src,
 do
   let tgt := src.map_prefix (λ n, if n = pre then some tgt_pre else none),
@@ -55,12 +56,13 @@ do
     (decl.type.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     is_protected ← is_protected_decl src,
-    let decl := decl.update_with_fun (name.map_prefix f) (additive_test f replace_all ignore) tgt,
+    env ← get_env,
+    let decl :=
+      decl.update_with_fun env (name.map_prefix f) (additive_test f replace_all ignore) reorder tgt,
     pp_decl ← pp decl,
+    when trace $ trace!"[to_additive] > generating\n{pp_decl}",
     decorate_error (format!"@[to_additive] failed. Type mismatch in additive declaration.
-If you want to map all identifiers to its additive counterpart, try `@[to_additive!].`
-If you want to ignore arguments of a certain function,
-give it the attribute `@[to_additive_ignore_args]`.
+For help, see the docstring of `to_additive.attr`, section `Troubleshooting`.
 Failed to add declaration\n{pp_decl}
 
 Nested error message:\n").to_string $ -- empty line is intentional
@@ -72,19 +74,19 @@ Make a new copy of a declaration,
 replacing fragments of the names of identifiers in the type and the body using the function `f`.
 This is used to implement `@[to_additive]`.
 -/
-meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all : bool)
-  (ignore : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
-do transform_decl_with_prefix_fun_aux f replace_all ignore src tgt attrs src,
+meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all trace : bool)
+  (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
+do transform_decl_with_prefix_fun_aux f replace_all trace ignore reorder src tgt attrs src,
    ls ← get_eqn_lemmas_for tt src,
-   ls.mmap' $ transform_decl_with_prefix_fun_aux f replace_all ignore src tgt attrs
+   ls.mmap' $ transform_decl_with_prefix_fun_aux f replace_all trace ignore reorder src tgt attrs
 
 /--
 Make a new copy of a declaration,
 replacing fragments of the names of identifiers in the type and the body using the dictionary `dict`.
 This is used to implement `@[to_additive]`.
 -/
-meta def transform_decl_with_prefix_dict (dict : name_map name) (replace_all : bool)
-  (ignore : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
-transform_decl_with_prefix_fun dict.find replace_all ignore src tgt attrs
+meta def transform_decl_with_prefix_dict (dict : name_map name) (replace_all trace : bool)
+  (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
+transform_decl_with_prefix_fun dict.find replace_all trace ignore reorder src tgt attrs
 
 end tactic

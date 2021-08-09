@@ -831,23 +831,6 @@ begin
   exact le_trans (by simp) (hi₂ j hj₁),
 end⟩
 
-lemma nnreal.summable_coe_of_summable {f : ℕ → ℝ}
-  (hf₁ : ∀ n, 0 ≤ f n) (hf₂ : summable f) :
-  @summable (ℝ≥0) _ _ _ (λ n, ⟨f n, hf₁ n⟩) :=
-begin
-  lift f to ℕ → ℝ≥0,
-  { exact nnreal.summable_coe.mp hf₂ },
-  { exact hf₁ }
-end
-
-lemma nnreal.tsum_coe_eq_of_nonneg {f : ℕ → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
-  (∑' n, ⟨f n, hf₁ n⟩ : ℝ≥0) = ⟨∑' n, f n, tsum_nonneg hf₁⟩ :=
-begin
-  lift f to ℕ → ℝ≥0,
-  { simp_rw [← nnreal.coe_tsum, subtype.coe_eta] },
-  { exact hf₁ }
-end
-
 /-- Given a signed measure `s` and a positive measurable set `i`, `to_measure`
 provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
 def to_measure (s : signed_measure α) (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) :
@@ -864,14 +847,14 @@ measure.of_measurable (s.to_measure' i hi₁ hi₂)
     simp_rw [to_measure', s.restrict_apply hi₁ (measurable_set.Union hf₁),
              set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
              ennreal.some_eq_coe],
-    rw [← nnreal.tsum_coe_eq_of_nonneg, ennreal.coe_tsum],
+    rw [nnreal.coe_tsum_of_nonneg, ennreal.coe_tsum],
     refine tsum_congr _,
     { intro n,
       exact s.nonneg_of_zero_le_restrict
         (s.zero_le_restrict_subset hi₁ (inter_subset_left _ _) hi₂) },
     { intro n,
       simp_rw [s.restrict_apply hi₁ (hf₁ n), set.inter_comm] },
-    { exact nnreal.summable_coe_of_summable _ (s.m_Union h₁ h₂).summable }
+    { exact (nnreal.summable_coe_of_nonneg _).2 (s.m_Union h₁ h₂).summable }
   end
 
 variables (s : signed_measure α) {i j : set α}

@@ -52,8 +52,8 @@ begin
   linarith,
 end
 
-lemma upper_bound (n l : ℕ) (hl₂ : (l : ℝ) ≤ sqrt (1 + n) - 1):
-2 * l * l + 4 * l ≤ 2 * n :=
+lemma upper_bound (n l : ℕ) (hl₂ : (l : ℝ) ≤ sqrt (1 + n) - 1) :
+ 2 * l * l + 4 * l ≤ 2 * n :=
 begin
   have h₁ : (l : ℝ) + 1 ≤ sqrt (1 + n) := by linarith,
   rw le_sqrt at h₁,
@@ -91,9 +91,8 @@ begin
   all_goals {norm_cast, linarith},
 end
 
-/-We will later make use of the fact that there exists (l : ℕ) such that
-n ≤ 2 * l * l - 4 * l and 2 * l * l + 4 * l ≤ 2 * n for n ≥ 107.
--/
+/- We will later make use of the fact that there exists (l : ℕ) such that
+n ≤ 2 * l * l - 4 * l and 2 * l * l + 4 * l ≤ 2 * n for n ≥ 107. -/
 lemma exists_numbers_in_interval (n : ℕ) (hn : n ≥ 107): ∃ (l : ℕ),
 (n + 4 * l ≤ 2 * l * l ∧ 2 * l * l + 4 * l ≤ 2 * n) :=
 begin
@@ -110,18 +109,18 @@ begin
       push_cast,
       norm_num },
     refine ⟨x, _, _⟩,
-    {   suffices : 2 * (sqrt (1 + n) - 2) ≥ 2 + sqrt (4 + 2 * n),
+    {  suffices : 2 * (sqrt (1 + n) - 2) ≥ 2 + sqrt (4 + 2 * n),
         apply le_trans this _,
         simp only [mul_le_mul_left, zero_lt_bit0, zero_lt_one],
         rw hx,
-          suffices : sqrt (1 + n) - 1 ≤ ↑⌊sqrt (1 + n) - 1⌋ + 1,
+        suffices : sqrt (1 + n) - 1 ≤ ↑⌊sqrt (1 + n) - 1⌋ + 1,
           linarith,
           have t :  (⌈sqrt (1 + n) - 1⌉:ℝ) ≤ ⌊sqrt (1 + n) - 1⌋ + 1,
           norm_cast,
           exact ceil_le_floor_add_one _,
           apply le_trans _ t,
           exact le_ceil (sqrt (1 + ↑n) - 1),
-            suffices : sqrt (4 + 2 * n) ≤ 2 * (sqrt (1 + n) - 3),
+          suffices : sqrt (4 + 2 * n) ≤ 2 * (sqrt (1 + n) - 3),
             linarith,
             exact radical_inequality hn },
     { rw hx,

@@ -825,9 +825,9 @@ open_locale measure_theory
 def to_measure' (s : signed_measure α)
   (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s)
   (j : set α) (hj₁ : measurable_set j) : ℝ≥0∞ :=
-some ⟨s (i ∩ j),
+some ⟨s.restrict i j,
 begin
-  rw [set.inter_comm, ← s.restrict_apply hi₁ hj₁],
+  rw [s.restrict_apply hi₁ hj₁, ← s.restrict_apply hi₁ hj₁],
   exact le_trans (by simp) (hi₂ j hj₁),
 end⟩
 
@@ -853,17 +853,25 @@ provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
 def to_measure (s : signed_measure α) (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) :
   measure α :=
 measure.of_measurable (s.to_measure' i hi₁ hi₂)
-  (by { simp_rw [to_measure', set.inter_empty i, s.empty], refl })
+  (by { simp_rw [to_measure', s.restrict_apply hi₁ measurable_set.empty,
+                 set.empty_inter i, s.empty], refl })
   begin
     intros f hf₁ hf₂,
-    simp_rw [to_measure', set.inter_Union],
     have h₁ : ∀ n, measurable_set (i ∩ f n) := λ n, hi₁.inter (hf₁ n),
     have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
     { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
       exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
-    simp_rw [s.of_disjoint_Union_nat h₁ h₂, ennreal.some_eq_coe,
-      ← ennreal.coe_tsum (nnreal.summable_coe_of_summable _ (s.m_Union h₁ h₂).summable)],
-    rw ← nnreal.tsum_coe_eq_of_nonneg,
+    simp_rw [to_measure', s.restrict_apply hi₁ (measurable_set.Union hf₁),
+             set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
+             ennreal.some_eq_coe],
+    rw [← nnreal.tsum_coe_eq_of_nonneg, ennreal.coe_tsum],
+    refine tsum_congr _,
+    { intro n,
+      exact s.nonneg_of_zero_le_restrict
+        (s.zero_le_restrict_subset hi₁ (inter_subset_left _ _) hi₂) },
+    { intro n,
+      simp_rw [s.restrict_apply hi₁ (hf₁ n), set.inter_comm] },
+    { exact nnreal.summable_coe_of_summable _ (s.m_Union h₁ h₂).summable }
   end
 
 variables (s : signed_measure α) {i j : set α}
@@ -872,7 +880,8 @@ lemma to_measure_apply (hi : 0 ≤[i] s) (hi₁ : measurable_set i) (hj₁ : mea
   s.to_measure i hi₁ hi j =
   some ⟨s (i ∩ j), nonneg_of_zero_le_restrict s
     (zero_le_restrict_subset s hi₁ (set.inter_subset_left _ _) hi)⟩ :=
-by { rw [to_measure, measure.of_measurable_apply _ hj₁], refl }
+by { simp_rw [to_measure, measure.of_measurable_apply _ hj₁, to_measure',
+              s.restrict_apply hi₁ hj₁, set.inter_comm] }
 
 /-- `signed_measure.to_measure` is a finite measure. -/
 lemma to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :

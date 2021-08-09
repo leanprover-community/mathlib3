@@ -811,6 +811,15 @@ theorem perm.bind_left (l : list α) {f g : α → list β} (h : ∀ a, f a ~ g 
   l.bind f ~ l.bind g :=
 by induction l with a l IH; simp; exact (h a).append IH
 
+theorem bind_append_perm (l : list α) (f g : α → list β) :
+  l.bind f ++ l.bind g ~ l.bind (λ x, f x ++ g x) :=
+begin
+  induction l with a l IH; simp,
+  refine (perm.trans _ (IH.append_left _)).append_left _,
+  rw [← append_assoc, ← append_assoc],
+  exact perm_append_comm.append_right _
+end
+
 theorem perm.product_right {l₁ l₂ : list α} (t₁ : list β) (p : l₁ ~ l₂) :
   product l₁ t₁ ~ product l₂ t₁ :=
 p.bind_right _
@@ -1051,6 +1060,53 @@ end
 
 @[simp] theorem mem_permutations (s t : list α) : s ∈ permutations t ↔ s ~ t :=
 ⟨perm_of_mem_permutations, mem_permutations_of_perm_lemma mem_permutations_aux_of_perm⟩
+
+theorem perm_permutations'_aux_comm (a b : α) (l : list α) :
+  (permutations'_aux a l).bind (permutations'_aux b) ~
+  (permutations'_aux b l).bind (permutations'_aux a) :=
+begin
+  induction l with c l ih, {simp [swap]},
+  simp [permutations'_aux], apply perm.swap',
+  have : ∀ a b,
+    (map (cons c) (permutations'_aux a l)).bind (permutations'_aux b) ~
+    map (cons b ∘ cons c) (permutations'_aux a l) ++
+    map (cons c) ((permutations'_aux a l).bind (permutations'_aux b)),
+  { intros,
+    simp [map_bind, permutations'_aux],
+    refine (bind_append_perm _ (λ x, [_]) _).symm.trans _,
+    rw [← map_eq_bind, ← bind_map] },
+  refine (((this _ _).append_left _).trans _).trans ((this _ _).append_left _).symm,
+  rw [← append_assoc, ← append_assoc],
+  exact perm_append_comm.append (ih.map _),
+end
+
+theorem perm.permutations' {s t : list α} (p : s ~ t) :
+  permutations' s ~ permutations' t :=
+begin
+  induction p with a s t p IH a b l s t u p₁ p₂ IH₁ IH₂, {simp},
+  { simp, exact IH.bind_right _ },
+  { simp, rw [bind_assoc, bind_assoc], apply perm.bind_left, apply perm_permutations'_aux_comm },
+  { exact IH₁.trans IH₂ }
+end
+
+theorem permutations_perm_permutations' (ts : list α) : ts.permutations ~ ts.permutations' :=
+begin
+  obtain ⟨n, h⟩ : ∃ n, length ts < n := ⟨_, nat.lt_succ_self _⟩,
+  induction n with n IH generalizing ts, {cases h},
+  refine list.reverse_rec_on ts (λ h, _) (λ ts t _ h, _) h, {simp [permutations]},
+  rw [← concat_eq_append, length_concat, nat.succ_lt_succ_iff] at h,
+  have IH₂ := (IH ts.reverse (by rwa [length_reverse])).trans (reverse_perm _).permutations',
+  simp [permutations_append, foldr_permutations_aux2],
+  refine (perm_append_comm.trans ((IH₂.bind_right _).append ((IH _ h).map _))).trans
+    (perm.trans _ perm_append_comm.permutations'),
+  rw [map_eq_bind, singleton_append, permutations'],
+  convert bind_append_perm _ _ _, funext ys,
+  rw [permutations'_aux_eq_permutations_aux2, permutations_aux2_append]
+end
+
+theorem perm.permutations {s t : list α} (h : s ~ t) : permutations s ~ permutations t :=
+(permutations_perm_permutations' _).trans $ h.permutations'.trans
+(permutations_perm_permutations' _).symm
 
 end permutations
 

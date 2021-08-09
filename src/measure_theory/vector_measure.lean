@@ -815,4 +815,74 @@ end
 
 end vector_measure
 
+namespace signed_measure
+
+open vector_measure
+
+open_locale measure_theory
+
+/-- The underlying function for `signed_measure.to_measure`. -/
+def to_measure' (s : signed_measure α)
+  (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s)
+  (j : set α) (hj₁ : measurable_set j) : ℝ≥0∞ :=
+some ⟨s (i ∩ j),
+begin
+  rw [set.inter_comm, ← s.restrict_apply hi₁ hj₁],
+  exact le_trans (by simp) (hi₂ j hj₁),
+end⟩
+
+lemma nnreal.summable_coe_of_summable {f : ℕ → ℝ}
+  (hf₁ : ∀ n, 0 ≤ f n) (hf₂ : summable f) :
+  @summable (ℝ≥0) _ _ _ (λ n, ⟨f n, hf₁ n⟩) :=
+begin
+  lift f to ℕ → ℝ≥0,
+  { exact nnreal.summable_coe.mp hf₂ },
+  { exact hf₁ }
+end
+
+lemma nnreal.tsum_coe_eq_of_nonneg {f : ℕ → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
+  (∑' n, ⟨f n, hf₁ n⟩ : ℝ≥0) = ⟨∑' n, f n, tsum_nonneg hf₁⟩ :=
+begin
+  lift f to ℕ → ℝ≥0,
+  { simp_rw [← nnreal.coe_tsum, subtype.coe_eta] },
+  { exact hf₁ }
+end
+
+/-- Given a signed measure `s` and a positive measurable set `i`, `to_measure`
+provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
+def to_measure (s : signed_measure α) (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) :
+  measure α :=
+measure.of_measurable (s.to_measure' i hi₁ hi₂)
+  (by { simp_rw [to_measure', set.inter_empty i, s.empty], refl })
+  begin
+    intros f hf₁ hf₂,
+    simp_rw [to_measure', set.inter_Union],
+    have h₁ : ∀ n, measurable_set (i ∩ f n) := λ n, hi₁.inter (hf₁ n),
+    have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
+    { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
+      exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
+    simp_rw [s.of_disjoint_Union_nat h₁ h₂, ennreal.some_eq_coe,
+      ← ennreal.coe_tsum (nnreal.summable_coe_of_summable _ (s.m_Union h₁ h₂).summable)],
+    rw ← nnreal.tsum_coe_eq_of_nonneg,
+  end
+
+variables (s : signed_measure α) {i j : set α}
+
+lemma to_measure_apply (hi : 0 ≤[i] s) (hi₁ : measurable_set i) (hj₁ : measurable_set j) :
+  s.to_measure i hi₁ hi j =
+  some ⟨s (i ∩ j), nonneg_of_zero_le_restrict s
+    (zero_le_restrict_subset s hi₁ (set.inter_subset_left _ _) hi)⟩ :=
+by { rw [to_measure, measure.of_measurable_apply _ hj₁], refl }
+
+/-- `signed_measure.to_measure` is a finite measure. -/
+lemma positive_to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
+  finite_measure (s.to_measure i hi₁ hi) :=
+{ measure_univ_lt_top :=
+  begin
+    rw [to_measure_apply s hi hi₁ measurable_set.univ, ennreal.some_eq_coe],
+    exact ennreal.coe_lt_top,
+  end }
+
+end signed_measure
+
 end measure_theory

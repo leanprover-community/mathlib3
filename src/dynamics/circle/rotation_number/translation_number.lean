@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.specific_limits
-import algebra.archimedean_bdd_iff
 import order.iterate
 import order.semiconj_Sup
 import algebra.iterate_hom
@@ -588,7 +587,7 @@ noncomputable def Sup_aux (s : set circle_deg1_lift) (Hne : s.nonempty)
     begin
       haveI := Hne.to_subtype,
       simp only [coe_fn_coe_base, map_add_one, image_eq_range] at H ⊢,
-      exact (real.supr_add (H x) _).symm
+      exact (csupr_add (H x) _).symm
     end }
 
 lemma le_Sup_aux (s : set circle_deg1_lift) (hf : f ∈ s)

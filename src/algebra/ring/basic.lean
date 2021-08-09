@@ -939,9 +939,9 @@ instance domain.to_no_zero_divisors : no_zero_divisors α :=
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
-     @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
+    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
   mul_right_cancel_of_ne_zero := λ a b c hb,
-     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
+    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
 /-- Pullback a `domain` instance along an injective function.

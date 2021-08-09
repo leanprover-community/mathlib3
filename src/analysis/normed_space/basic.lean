@@ -783,6 +783,7 @@ begin
   exact not_le_of_lt zero_lt_one (add_le_iff_nonpos_left.1 hy)
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance semi_normed_group.has_lipschitz_add : has_lipschitz_add α :=
 { lipschitz_add := ⟨2, lipschitz_with.prod_fst.add lipschitz_with.prod_snd⟩ }
 
@@ -792,9 +793,6 @@ continuous. -/
 instance normed_uniform_group : uniform_add_group α :=
 ⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : has_continuous_add α :=
-by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α :=
 by apply_instance -- short-circuit type class inference
@@ -1462,6 +1460,7 @@ end prio
 
 variables [normed_field α] [semi_normed_group β]
 
+@[priority 100] -- see Note [lower instance priority]
 instance semi_normed_space.has_bounded_smul [semi_normed_space α β] : has_bounded_smul α β :=
 { dist_smul_pair' := λ x y₁ y₂,
     by simpa [dist_eq_norm, smul_sub] using semi_normed_space.norm_smul_le x (y₁ - y₂),

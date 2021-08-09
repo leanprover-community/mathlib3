@@ -723,18 +723,6 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
 
-variables [has_lipschitz_add β]
-
-instance : module 𝕜 (α →ᵇ β) :=
-{ smul     := (•),
-  smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
-  add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
-  one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x),
-  smul_zero := λ c, ext $ λ x, smul_zero c,
-  zero_smul := λ f, ext $ λ x, zero_smul 𝕜 (f x),
-  .. bounded_continuous_function.add_comm_monoid }
-
 instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
 { dist_smul_pair' := λ c f₁ f₂, begin
     rw dist_le (mul_nonneg dist_nonneg dist_nonneg),
@@ -749,6 +737,18 @@ instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
     convert mul_le_mul_of_nonneg_left (dist_coe_le_dist x) dist_nonneg,
     simp
   end }
+
+variables [has_lipschitz_add β]
+
+instance : module 𝕜 (α →ᵇ β) :=
+{ smul     := (•),
+  smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
+  add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
+  mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul c₁ c₂ (f x),
+  one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x),
+  smul_zero := λ c, ext $ λ x, smul_zero c,
+  zero_smul := λ f, ext $ λ x, zero_smul 𝕜 (f x),
+  .. bounded_continuous_function.add_comm_monoid }
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/

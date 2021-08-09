@@ -42,7 +42,9 @@ in the two arguments. -/
 
 variables [monoid β]
 
-@[to_additive] def has_lipschitz_mul.C [_i : has_lipschitz_mul β] : ℝ≥0 :=
+/-- The Lipschitz constant of a monoid `β` satisfying `has_lipschitz_mul` -/
+@[to_additive "The Lipschitz constant of an `add_monoid` `β` satisfying `has_lipschitz_add`"]
+def has_lipschitz_mul.C [_i : has_lipschitz_mul β] : ℝ≥0 :=
 classical.some _i.lipschitz_mul
 
 variables {β}
@@ -60,7 +62,8 @@ begin
   exact lipschitz_with_lipschitz_const_mul_edist,
 end
 
-@[to_additive] instance has_lipschitz_mul.has_continuous_mul : has_continuous_mul β :=
+@[to_additive, priority 100] -- see Note [lower instance priority]
+instance has_lipschitz_mul.has_continuous_mul : has_continuous_mul β :=
 ⟨ lipschitz_with_lipschitz_const_mul_edist.continuous ⟩
 
 @[to_additive] instance submonoid.has_lipschitz_mul (s : submonoid β) : has_lipschitz_mul s :=
@@ -116,6 +119,7 @@ has_bounded_smul.dist_pair_smul' x₁ x₂ y
 
 /-- The typeclass `has_bounded_smul` on a metric-space scalar action implies continuity of the
 action. -/
+@[priority 100] -- see Note [lower instance priority]
 instance has_bounded_smul.has_continuous_smul : has_continuous_smul α β :=
 { continuous_smul := begin
     rw metric.continuous_iff,

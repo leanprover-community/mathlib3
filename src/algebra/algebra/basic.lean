@@ -1535,7 +1535,8 @@ lemma span_le_restrict_scalars (X : set M) : span R (X : set M) ≤ restrict_sca
 submodule.span_le.mpr submodule.subset_span
 
 /-- Even though `p.restrict_scalars R` has type `submodule R M`, it is still an `S`-module. -/
-instance submodule.restrict_scalars.orig_module (p : submodule S M) : module S (p.restrict_scalars R) :=
+instance submodule.restrict_scalars.orig_module (p : submodule S M) :
+  module S (p.restrict_scalars R) :=
 (by apply_instance : module S p)
 
 instance (p : submodule S M) : is_scalar_tower R S (p.restrict_scalars R) :=

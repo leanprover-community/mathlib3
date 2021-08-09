@@ -744,7 +744,7 @@ begin
     coe_nat_div_self]
 end
 
-lemma num_inv_nat {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+lemma inv_coe_nat_num {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
 begin
   rw [rat.inv_def', rat.coe_nat_num, rat.coe_nat_denom],
   suffices : (((1 : ℤ) : ℚ) / (a : ℤ)).num = 1,
@@ -754,7 +754,7 @@ begin
   { simp only [nat.coprime_one_left_iff, int.nat_abs_one] }
 end
 
-lemma denom_inv_nat {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
+lemma inv_coe_nat_denom {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
 begin
   rw [rat.inv_def', rat.coe_nat_num, rat.coe_nat_denom],
   suffices : ((((1 : ℤ) : ℚ) / (a : ℤ)).denom : ℤ) = a,

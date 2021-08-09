@@ -260,10 +260,10 @@ kronecker_map_linear (tensor_product.mk R α β)
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
 hypothese which can be filled by properties of `*`. -/
 
-lemma zero_kronecker_tmul (B : matrix n p β) : (0 : matrix l m α) ⊗ₖₜ[R] B = 0 :=
+@[simp] lemma zero_kronecker_tmul (B : matrix n p β) : (0 : matrix l m α) ⊗ₖₜ[R] B = 0 :=
 kronecker_map_zero_left _ (zero_tmul α) B
 
-lemma kronecker_tmul_zero (A : matrix l m α) : A ⊗ₖₜ[R] (0 : matrix n p β) = 0 :=
+@[simp] lemma kronecker_tmul_zero (A : matrix l m α) : A ⊗ₖₜ[R] (0 : matrix n p β) = 0 :=
 kronecker_map_zero_right _ (tmul_zero β) A
 
 lemma add_kronecker_tmul (A₁ A₂ : matrix l m α) (B : matrix n p α) :
@@ -306,7 +306,6 @@ lemma mul_kronecker_tmul_mul
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
   (A ⬝ B) ⊗ₖₜ[R] (A' ⬝ B') = (A ⊗ₖₜ A') ⬝ (B ⊗ₖₜ B') :=
 kronecker_map_linear_mul_mul (tensor_product.mk R α β) tmul_mul_tmul A B A' B'
-
 
 end algebra
 

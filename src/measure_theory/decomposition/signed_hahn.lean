@@ -361,7 +361,7 @@ def measure_of_negatives (s : signed_measure α) : set ℝ :=
   s '' { B | measurable_set B ∧ s ≤[B] 0 }
 
 lemma zero_mem_measure_of_negatives : (0 : ℝ) ∈ s.measure_of_negatives :=
-⟨∅, ⟨measurable_set.empty, restrict_empty_le_zero _⟩, s.empty⟩
+⟨∅, ⟨measurable_set.empty, le_restrict_empty _ _⟩, s.empty⟩
 
 lemma bdd_below_measure_of_negatives :
   bdd_below s.measure_of_negatives :=

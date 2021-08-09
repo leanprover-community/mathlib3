@@ -23,7 +23,7 @@ Similarly, when `M = ℂ`, we call the measure a complex measure and write `comp
 
 ## Notation
 
-* `v ≤[i] w` means that the vector measure `v` restricted on the set `i` is less than or equal 
+* `v ≤[i] w` means that the vector measure `v` restricted on the set `i` is less than or equal
   to the vector measure `w` restricted on `i`, i.e. `v.restrict i ≤ w.restrict i`.
 
 ## Implementation notes
@@ -639,14 +639,15 @@ in measure_theory
 section
 
 variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
+variables (v w : vector_measure α M)
 
-lemma restrict_le_restrict_iff (v w : vector_measure α M) {i : set α} (hi : measurable_set i) :
+lemma restrict_le_restrict_iff {i : set α} (hi : measurable_set i) :
   v ≤[i] w ↔ ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j :=
 ⟨λ h j hj₁ hj₂, (restrict_eq_self v hi hj₁ hj₂) ▸ (restrict_eq_self w hi hj₁ hj₂) ▸ h j hj₁,
  λ h, le_iff.1 (λ j hj, (restrict_apply v hi hj).symm ▸ (restrict_apply w hi hj).symm ▸
    h (hj.inter hi) (set.inter_subset_right j i))⟩
 
-lemma subset_le_of_restrict_le_restrict (v w : vector_measure α M) {i : set α}
+lemma subset_le_of_restrict_le_restrict {i : set α}
   (hi : measurable_set i) (hi₂ : v ≤[i] w) {j : set α} (hj : j ⊆ i) :
   v j ≤ w j :=
 begin
@@ -655,7 +656,7 @@ begin
   { rw [v.not_measurable hj₁, w.not_measurable hj₁] },
 end
 
-lemma restrict_le_restrict_of_subset_le (v w : vector_measure α M) {i : set α}
+lemma restrict_le_restrict_of_subset_le {i : set α}
   (h : ∀ ⦃j⦄, measurable_set j → j ⊆ i → v j ≤ w j) : v ≤[i] w :=
 begin
   by_cases hi : measurable_set i,
@@ -665,10 +666,16 @@ begin
     exact le_refl _ },
 end
 
-lemma restrict_le_restrict_subset (v w : vector_measure α M) {i j : set α}
+lemma restrict_le_restrict_subset {i j : set α}
   (hi₁ : measurable_set i) (hi₂ : v ≤[i] w) (hij : j ⊆ i) : v ≤[j] w :=
 restrict_le_restrict_of_subset_le v w (λ k hk₁ hk₂,
   subset_le_of_restrict_le_restrict v w hi₁ hi₂ (set.subset.trans hk₂ hij))
+
+lemma le_restrict_empty : v ≤[∅] w :=
+begin
+  intros j hj,
+  rw [restrict_empty, restrict_empty]
+end
 
 end
 
@@ -730,18 +737,6 @@ section
 
 variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M]
 variables (v w : vector_measure α M) {i j : set α}
-
-lemma zero_le_restrict_empty : 0 ≤[∅] v :=
-begin
-  intros j hj,
-  rw [restrict_empty, restrict_empty]
-end
-
-lemma restrict_empty_le_zero : v ≤[∅] 0 :=
-begin
-  intros j hj,
-  rw [restrict_empty, restrict_empty]
-end
 
 lemma nonneg_of_zero_le_restrict (hi₂ : 0 ≤[i] v) :
   0 ≤ v i :=

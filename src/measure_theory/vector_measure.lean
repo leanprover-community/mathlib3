@@ -822,16 +822,15 @@ open vector_measure
 open_locale measure_theory
 
 /-- The underlying function for `signed_measure.to_measure`. -/
-def to_measure' (s : signed_measure α)
-  (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s)
-  (j : set α) (hj₁ : measurable_set j) : ℝ≥0∞ :=
-@coe ℝ≥0 ℝ≥0∞ _ ⟨s.restrict i j, le_trans (by simp) (hi₂ j hj₁)⟩
+def to_measure' (s : signed_measure α) (i : set α) (hi : 0 ≤[i] s)
+  (j : set α) (hj : measurable_set j) : ℝ≥0∞ :=
+@coe ℝ≥0 ℝ≥0∞ _ ⟨s.restrict i j, le_trans (by simp) (hi j hj)⟩
 
 /-- Given a signed measure `s` and a positive measurable set `i`, `to_measure`
 provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
 def to_measure (s : signed_measure α) (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) :
   measure α :=
-measure.of_measurable (s.to_measure' i hi₁ hi₂)
+measure.of_measurable (s.to_measure' i hi₂)
   (by { simp_rw [to_measure', s.restrict_apply hi₁ measurable_set.empty,
                  set.empty_inter i, s.empty], refl })
   begin

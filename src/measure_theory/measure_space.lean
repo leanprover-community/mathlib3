@@ -1446,8 +1446,7 @@ section finite_measure
 include m0
 
 /-- A measure `μ` is called finite if `μ univ < ∞`. -/
-class finite_measure (μ : measure α) : Prop :=
-(measure_univ_lt_top : μ univ < ∞)
+class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ∞)
 
 instance restrict.finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
   finite_measure (μ.restrict s) :=

@@ -825,11 +825,11 @@ open_locale measure_theory
 def to_measure' (s : signed_measure α)
   (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s)
   (j : set α) (hj₁ : measurable_set j) : ℝ≥0∞ :=
-some ⟨s.restrict i j,
+(id ⟨s.restrict i j,
 begin
   rw [s.restrict_apply hi₁ hj₁, ← s.restrict_apply hi₁ hj₁],
   exact le_trans (by simp) (hi₂ j hj₁),
-end⟩
+end⟩ : ℝ≥0)
 
 /-- Given a signed measure `s` and a positive measurable set `i`, `to_measure`
 provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
@@ -844,9 +844,9 @@ measure.of_measurable (s.to_measure' i hi₁ hi₂)
     have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
     { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
       exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
-    simp_rw [to_measure', s.restrict_apply hi₁ (measurable_set.Union hf₁),
-             set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
-             ennreal.some_eq_coe],
+    simp only [to_measure', s.restrict_apply hi₁ (measurable_set.Union hf₁),
+               set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
+               ennreal.some_eq_coe, id.def],
     have h : ∀ n, 0 ≤ s (i ∩ f n),
     { exact λ n, s.nonneg_of_zero_le_restrict
           (s.zero_le_restrict_subset hi₁ (inter_subset_left _ _) hi₂) },
@@ -860,8 +860,8 @@ variables (s : signed_measure α) {i j : set α}
 
 lemma to_measure_apply (hi : 0 ≤[i] s) (hi₁ : measurable_set i) (hj₁ : measurable_set j) :
   s.to_measure i hi₁ hi j =
-  some ⟨s (i ∩ j), nonneg_of_zero_le_restrict s
-    (zero_le_restrict_subset s hi₁ (set.inter_subset_left _ _) hi)⟩ :=
+  (id ⟨s (i ∩ j), nonneg_of_zero_le_restrict s
+    (zero_le_restrict_subset s hi₁ (set.inter_subset_left _ _) hi)⟩ : ℝ≥0) :=
 by { simp_rw [to_measure, measure.of_measurable_apply _ hj₁, to_measure',
               s.restrict_apply hi₁ hj₁, set.inter_comm] }
 
@@ -870,7 +870,7 @@ instance to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
   finite_measure (s.to_measure i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin
-    rw [to_measure_apply s hi hi₁ measurable_set.univ, ennreal.some_eq_coe],
+    rw [to_measure_apply s hi hi₁ measurable_set.univ, id.def],
     exact ennreal.coe_lt_top,
   end }
 

@@ -46,6 +46,8 @@ local attribute [instance] fintype.card_fin_even
 
 namespace modular_group
 
+section upper_half_plane_action
+
 /-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
 instance : mul_action SL(2, ℤ) ℍ :=
 mul_action.comp_hom ℍ (map (int.cast_ring_hom ℝ))
@@ -63,68 +65,11 @@ lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (bottom g z)) :=
 im_smul_eq_div_norm_sq g z
 
-end modular_group
+end upper_half_plane_action
 
+section bottom_row
 
--- where does this go? logic.function.basic
-lemma function.injective.comp_left {α β γ : Type*} {f₁ f₂ : α → β} {g : β → γ}
-  (hg : function.injective g) (hgf : g ∘ f₁ = g ∘ f₂) : f₁ = f₂ :=
-begin
-  refine funext (λ i, hg _),
-  exact congr_fun hgf i,
-end
-
-/-! It is useful to develop basic theory for an object `coprime_pair`, consisting of two integers
-and a proof that they satisfy `is_coprime`. -/
-
-abbreviation coprime_pair :=
-{p : ℤ × ℤ // is_coprime p.1 p.2}
-
-/- MOVE ALL THIS ELSEWHERE ***************** -/
-namespace coprime_pair
-
-def mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : coprime_pair := subtype.mk p h
-
-@[simp] lemma mk_eq_mk (p p' : ℤ × ℤ) (h : is_coprime p.1 p.2) (h' : is_coprime p'.1 p'.2) :
-  mk p h = mk p' h' ↔ p = p' :=
-subtype.mk_eq_mk
-
-lemma coe_injective : function.injective (coe : coprime_pair → ℤ × ℤ) := subtype.coe_injective
-
-instance : inhabited coprime_pair := ⟨⟨(1, 1), is_coprime_one_left⟩⟩
-
-def c (p : coprime_pair) : ℤ := p.1.1
-def d (p : coprime_pair) : ℤ := p.1.2
-
-@[simp] lemma fst_coe (p : coprime_pair) : (p : ℤ × ℤ).1 = p.c := rfl
-@[simp] lemma snd_coe (p : coprime_pair) : (p : ℤ × ℤ).2 = p.d := rfl
-
-@[simp] lemma c_mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : (coprime_pair.mk p h).c = p.1 := rfl
-@[simp] lemma d_mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : (coprime_pair.mk p h).d = p.2 := rfl
-
-protected lemma is_coprime (p : coprime_pair) : is_coprime p.c p.d := p.2
-
-lemma ne_zero (p : coprime_pair) : ![p.c, p.d] ≠ 0 :=
-begin
-  intros h,
-  have c_eq_zero : p.c = 0 := congr_arg (λ (v: fin 2 → ℤ), v 0) h,
-  have d_eq_zero : p.d = 0 := congr_arg (λ (v: fin 2 → ℤ), v 1) h,
-  simpa [c_eq_zero, d_eq_zero] using p.is_coprime,
-end
-
-lemma sq_add_sq_ne_zero (p : coprime_pair) : p.c ^ 2 + p.d ^ 2 ≠ 0 :=
-begin
-  intros h,
-  have hc : p.c = 0 := by nlinarith,
-  have hd : p.d = 0 := by nlinarith,
-  simpa [prod.ext_iff, hc, hd] using p.is_coprime
-end
-
-end coprime_pair
-/-  ***************** -/
-
-namespace modular_group
-
+/-- The `bottom_row` of `g=[[*,*],[c,d]]` in `SL(2,ℤ)` is the `coprime_pair` `(c,d)`. -/
 def bottom_row (g : SL(2, ℤ)) : coprime_pair :=
 coprime_pair.mk
   (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g 1 0, @coe _ (matrix (fin 2) (fin 2) ℤ) _ g 1 1)
@@ -143,8 +88,7 @@ begin
   let A := ![![a, -b₀], ![cd.c, cd.d]],
   have det_A_1 : det A = 1,
   { convert gcd_eqn,
-    simp [A, matrix.det_succ_row_zero, fin.sum_univ_succ,
-      (by ring : a * cd.d + b₀ * cd.c = b₀ * cd.c + a * cd.d)] },
+    simp [A, det_fin_two, (by ring : a * cd.d + b₀ * cd.c = b₀ * cd.c + a * cd.d)] },
   use ⟨A, det_A_1⟩,
   ext; simp [A, bottom_row]
 end
@@ -157,8 +101,9 @@ lemma bottom_eq_of_bottom_row_eq {g h : SL(2,ℤ)} (z : ℍ) (bot_eq : bottom_ro
   bottom g z = bottom h z :=
 by simp [bottom_eq_mul_bottom_row_add_bottom_row, bot_eq]
 
+end bottom_row
+
 section tendsto_lemmas
-/-! This is an attempt to do the maximin argument using more abstract existence theory. -/
 
 open filter continuous_linear_map
 
@@ -261,7 +206,8 @@ begin
       refl } },
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
-  have hf₂ := (linear_equiv.closed_embedding_of_injective (acbd_extend_ker_eq_bot cd)).tendsto_cocompact,
+  have hf₂ := (linear_equiv.closed_embedding_of_injective
+    (acbd_extend_ker_eq_bot cd)).tendsto_cocompact,
   convert hf₂.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   funext g,
   obtain ⟨g, hg⟩ := g,
@@ -321,6 +267,8 @@ begin
 end
 
 end tendsto_lemmas
+
+section fundamental_domain
 
 /-- For `z : ℍ`, there is a `g : SL(2,ℤ)` maximizing `(g•z).im` -/
 lemma exists_g_with_max_im (z : ℍ) :
@@ -426,5 +374,7 @@ begin
       -- goal: `(T' • g • z).re = (g • z).re - 1`.
       simp [T', sub_eq_add_neg] } }
 end
+
+end fundamental_domain
 
 end modular_group

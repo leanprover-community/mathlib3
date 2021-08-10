@@ -92,6 +92,13 @@ lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) 
     hx ▸ hy ▸ λ hf, h hf ▸ rfl,
   λ h, h.comp hg.injective⟩
 
+lemma injective.comp_left {f₁ f₂ : α → β} {g : β → γ}
+  (hg : function.injective g) (hgf : g ∘ f₁ = g ∘ f₂) : f₁ = f₂ :=
+begin
+  refine funext (λ i, hg _),
+  exact congr_fun hgf i,
+end
+
 lemma injective_of_subsingleton [subsingleton α] (f : α → β) :
   injective f :=
 λ a b ab, subsingleton.elim _ _

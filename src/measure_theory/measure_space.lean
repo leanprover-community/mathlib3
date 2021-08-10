@@ -1248,7 +1248,46 @@ by rw [mem_cofinite, compl_compl]
 
 lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔ μ {x | ¬p x} < ∞ := iff.rfl
 
+/-! ### Mutually singular measures -/
+
+/-- Two measures `μ`, `ν` are said to be mutually singular if there exists a measurable set `s`
+such that `μ s = 0` and `ν sᶜ = 0`. -/
+def mutually_singular (μ ν : measure α) : Prop :=
+∃ (s : set α), measurable_set s ∧ μ s = 0 ∧ ν sᶜ = 0
+
+localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in measure_theory
+
+namespace mutually_singular
+
+lemma zero : μ ⊥ₘ 0 :=
+⟨∅, measurable_set.empty, measure_empty, rfl⟩
+
+lemma symm (h : ν ⊥ₘ μ) : μ ⊥ₘ ν :=
+let ⟨i, hi, his, hit⟩ := h in
+  ⟨iᶜ, measurable_set.compl hi, hit, (compl_compl i).symm ▸ his⟩
+
+lemma add (h₁ : ν₁ ⊥ₘ μ) (h₂ : ν₂ ⊥ₘ μ) : ν₁ + ν₂ ⊥ₘ μ :=
+begin
+  obtain ⟨s, hs, hs0, hs0'⟩ := h₁,
+  obtain ⟨t, ht, ht0, ht0'⟩ := h₂,
+  refine ⟨s ∩ t, hs.inter ht, _, _⟩,
+  { simp only [pi.add_apply, add_eq_zero_iff, coe_add],
+    exact ⟨measure_mono_null (inter_subset_left s t) hs0,
+           measure_mono_null (inter_subset_right s t) ht0⟩ },
+  { rw [compl_inter, ← nonpos_iff_eq_zero],
+    refine le_trans (measure_union_le _ _) _,
+    rw [hs0', ht0', zero_add],
+    exact le_refl _ }
+end
+
+lemma smul (r : ℝ≥0) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ :=
+let ⟨s, hs, hs0, hs0'⟩ := h in
+  ⟨s, hs, by simp only [coe_nnreal_smul, pi.smul_apply, hs0, smul_zero], hs0'⟩
+
+end mutually_singular
+
 end measure
+
 open measure
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=

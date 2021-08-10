@@ -825,11 +825,7 @@ open_locale measure_theory
 def to_measure' (s : signed_measure α)
   (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s)
   (j : set α) (hj₁ : measurable_set j) : ℝ≥0∞ :=
-@coe ℝ≥0 ℝ≥0∞ _ ⟨s.restrict i j,
-begin
-  rw [s.restrict_apply hi₁ hj₁, ← s.restrict_apply hi₁ hj₁],
-  exact le_trans (by simp) (hi₂ j hj₁),
-end⟩
+@coe ℝ≥0 ℝ≥0∞ _ ⟨s.restrict i j, le_trans (by simp) (hi₂ j hj₁)⟩
 
 /-- Given a signed measure `s` and a positive measurable set `i`, `to_measure`
 provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/

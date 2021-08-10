@@ -548,16 +548,7 @@ lemma mem_smul_set_iff_inv_smul_mem [group_with_zero α] [mul_action α β] {a :
 by rw [← mem_inv_smul_set_iff $ inv_ne_zero ha, inv_inv']
 
 lemma preimage_smul [group α] [mul_action α β] {a : α} {t : set β} : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
-begin
-  ext,
-  rw [mem_smul_set, mem_preimage],
-  split,
-  { intros h,
-    refine ⟨_, h, _⟩,
-    rw inv_smul_smul, },
-  { rintro ⟨y, hy, rfl⟩,
-    rwa smul_inv_smul, },
-end
+((mul_action.to_perm a).symm.image_eq_preimage _).symm
 
 lemma preimage_smul' [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) {t : set β} :
   (λ x, a • x) ⁻¹' t = a⁻¹ • t :=

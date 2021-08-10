@@ -17,6 +17,8 @@ studied by Hermann Minkowski.
 ## Main results
 
 - `exists_sub_mem_lattice_of_volume_lt_volume`: Blichfeldt's principle, existence of two points
+  within a set whose difference lies in a subgroup when the covolume of the subgroup is larger than
+  the set.
 - `exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume`: Minkowski's theorem, existence
   of a non-zero lattice point inside a convex symmetric domain of large enough covolume.
 
@@ -165,15 +167,10 @@ end
 
 variable {ι}
 lemma trans_inv [fintype ι] (v : ι → ℝ) (S : set (ι → ℝ)) (hS : measurable_set S) :
-  volume S = volume ((+ (-v)) '' S) :=
+  volume S = volume (((+) v) '' S) :=
 begin
-  simp only [set.image_add_left, add_comm],
-  suffices : volume = measure.add_haar_measure (unit_cube _),
-  { rw [this],
-    simp only [set.image_add_right, neg_neg],
-    simp_rw add_comm,
-    rw [measure.is_add_left_invariant_add_haar_measure (unit_cube _) v hS], },
-  rw pi_haar_measure_eq_lebesgue_measure,
+  rw [(pi_haar_measure_eq_lebesgue_measure _).symm, image_add_left,
+    measure.is_add_left_invariant_add_haar_measure (unit_cube _) (-v) hS],
 end
 
 -- For now we do not extend left coset even though this is essentially just a measurable coset,
@@ -236,11 +233,11 @@ begin
 end
 
 /-- Blichfeldt's Principle --/
--- TODO version giving `ceiling (volume S / volume F)` points whose difference is in lattice
+-- TODO version giving `ceiling (volume S / volume F)` points whose difference is in a subgroup
 lemma exists_sub_mem_lattice_of_volume_lt_volume {X : Type*} [measure_space X] [add_comm_group X]
   [has_measurable_add X] (L : add_subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
   (F : fundamental_domain L) (hlt : volume F.F < volume S)
-  (h_trans_inv : ∀ v (S' : set X) (hS' : measurable_set S'), volume S' = volume ((+ (-v)) '' S')) :
+  (h_trans_inv : ∀ v (S' : set X) (hS' : measurable_set S'), volume S' = volume (((+) v) '' S')) :
   ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
 begin
   suffices : ∃ (p₁ p₂ : L) (hne : p₁ ≠ p₂),
@@ -315,7 +312,8 @@ begin
       exact measurable_add_const ↑l, }, },
     { congr,
       ext1 l,
-      rw [h_trans_inv (↑ l)],
+      conv in (_ + -_) { rw [add_comm] },
+      rw [h_trans_inv (-↑ l)],
       apply measurable_set.inter _ F.hF, -- TODO is this a dup goal?
       simp only [set.image_add_right],
       refine measurable_set_preimage _ hS,

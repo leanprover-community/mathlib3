@@ -126,8 +126,6 @@ def degree_lt_equiv (F : Type*) [field F] (n : ℕ) : degree_lt F n ≃ₗ[F] (f
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
 
-local attribute [instance] subset.ring
-
 /-- The finset of nonzero coefficients of a polynomial. -/
 def frange (p : polynomial R) : finset R :=
 finset.image (λ n, p.coeff n) p.support
@@ -157,10 +155,10 @@ end
 
 /-- Given a polynomial, return the polynomial whose coefficients are in
 the ring closure of the original coefficients. -/
-def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=
+def restriction (p : polynomial R) : polynomial (subring.closure (↑p.frange : set R)) :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
-  if H : p.coeff i = 0 then H.symm ▸ is_add_submonoid.zero_mem
-  else ring.subset_closure (p.coeff_mem_frange _ H)⟩ : (ring.closure (↑p.frange : set R)))
+  if H : p.coeff i = 0 then H.symm ▸ (subring.closure _).zero_mem
+  else subring.subset_closure (p.coeff_mem_frange _ H)⟩ : (subring.closure (↑p.frange : set R)))
 
 @[simp] theorem coeff_restriction {p : polynomial R} {n : ℕ} :
   ↑(coeff (restriction p) n) = coeff p n :=
@@ -185,11 +183,8 @@ begin
   exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
 end
 
-section
-local attribute [instance] algebra.of_is_subring subring.domain subset.comm_ring
 @[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
-ext $ λ n, by rw [coeff_map, algebra.is_subring_algebra_map_apply, coeff_restriction]
-end
+ext $ λ n, by rw [coeff_map, algebra.algebra_map_of_subring_apply, coeff_restriction]
 
 @[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree :=
 by simp [degree]
@@ -200,7 +195,8 @@ by simp [nat_degree]
 
 @[simp] theorem monic_restriction {p : polynomial R} : monic (restriction p) ↔ monic p :=
 begin
-  simp_rw [monic, leading_coeff, nat_degree_restriction, ← coeff_restriction],
+  simp only [monic, leading_coeff, nat_degree_restriction],
+  rw [←@coeff_restriction _ _ p],
   exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
 end
 
@@ -213,23 +209,24 @@ ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split
 variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
-  eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
+  eval₂ f x p = eval₂ (f.comp (subring.subtype _)) x p.restriction :=
 begin
-  simp_rw [eval₂_eq_sum, sum, support_restriction, ← coeff_restriction],
-  refl
+  simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
+  refl,
 end
 
 section to_subring
-variables (p : polynomial R) (T : set R) [is_subring T]
+
+variables (p : polynomial R) (T : subring R)
 
 /-- Given a polynomial `p` and a subring `T` that contains the coefficients of `p`,
 return the corresponding polynomial whose coefficients are in `T. -/
-def to_subring (hp : ↑p.frange ⊆ T) : polynomial T :=
+def to_subring (hp : (↑p.frange : set R) ⊆ T) : polynomial T :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
-  if H : p.coeff i = 0 then H.symm ▸ is_add_submonoid.zero_mem
+  if H : p.coeff i = 0 then H.symm ▸ T.zero_mem
   else hp (p.coeff_mem_frange _ H)⟩ : T)
 
-variables (hp : ↑p.frange ⊆ T)
+variables (hp : (↑p.frange : set R) ⊆ T)
 include hp
 
 @[simp] theorem coeff_to_subring {n : ℕ} : ↑(coeff (to_subring p T hp) n) = coeff p n :=
@@ -271,15 +268,15 @@ omit hp
 by { ext i, simp }
 
 @[simp] theorem to_subring_one : to_subring (1 : polynomial R) T
-  (set.subset.trans frange_one $finset.singleton_subset_set_iff.2 is_submonoid.one_mem) = 1 :=
+  (set.subset.trans frange_one $finset.singleton_subset_set_iff.2 T.one_mem) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
 
-@[simp] theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
+@[simp] theorem map_to_subring : (p.to_subring T hp).map (subring.subtype T) = p :=
 by { ext n, simp [coeff_map] }
 
 end to_subring
 
-variables (T : set R) [is_subring T]
+variables (T : subring R)
 
 /-- Given a polynomial whose coefficients are in some subring, return
 the corresponding polynomial whose coefficients are in the ambient ring. -/
@@ -297,14 +294,14 @@ begin
 end
 
 @[simp] theorem frange_of_subring {p : polynomial T} :
-  ↑(p.of_subring T).frange ⊆ T :=
+  (↑(p.of_subring T).frange : set R) ⊆ T :=
 begin
   assume i hi,
   simp only [frange, set.mem_image, mem_support_iff, ne.def, finset.mem_coe, finset.coe_image]
     at hi,
   rcases hi with ⟨n, hn, h'n⟩,
   rw [← h'n, coeff_of_subring],
-  exact subtype.mem (coeff p n)
+  exact subtype.mem (coeff p n : T)
 end
 
 end polynomial

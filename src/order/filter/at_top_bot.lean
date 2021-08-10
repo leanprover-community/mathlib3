@@ -146,7 +146,7 @@ end
 
 @[nontriviality]
 lemma subsingleton.at_bot_eq (α) [subsingleton α] [preorder α] : (at_bot : filter α) = ⊤ :=
-subsingleton.at_top_eq (order_dual α)
+@subsingleton.at_top_eq (order_dual α) _ _
 
 lemma tendsto_at_top_pure [order_top α] (f : α → β) :
   tendsto f at_top (pure $ f ⊤) :=
@@ -238,7 +238,7 @@ lemma extraction_of_frequently_at_top' {P : ℕ → Prop} (h : ∀ N, ∃ n > N,
 begin
   choose u hu using h,
   cases forall_and_distrib.mp hu with hu hu',
-  exact ⟨u ∘ (nat.rec 0 (λ n v, u v)), strict_mono.nat (λ n, hu _), λ n, hu' _⟩,
+  exact ⟨u ∘ (nat.rec 0 (λ n v, u v)), strict_mono_nat_of_lt_succ (λ n, hu _), λ n, hu' _⟩,
 end
 
 lemma extraction_of_frequently_at_top {P : ℕ → Prop} (h : ∃ᶠ n in at_top, P n) :
@@ -259,7 +259,7 @@ begin
   choose u hu hu' using h,
   use (λ n, nat.rec_on n (u 0 0) (λ n v, u (n+1) v) : ℕ → ℕ),
   split,
-  { apply strict_mono.nat,
+  { apply strict_mono_nat_of_lt_succ,
     intro n,
     apply hu },
   { intros n,

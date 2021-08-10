@@ -32,7 +32,7 @@ conformal
 ## Warning
 
 The definition of conformality in this file does NOT require the maps to be orientation-preserving.
-Maps such as the complex conjugate is considered as a conformal map.
+Maps such as the complex conjugate are considered to be conformal.
 -/
 
 noncomputable theory
@@ -73,9 +73,7 @@ begin
       { exact ⟨(0 : X →L[ℝ] Y), has_fderiv_at_of_subsingleton f x,
         is_conformal_map_of_subsingleton 0⟩, },
       { exfalso,
-        rcases nontrivial_iff.mp w with ⟨a, b, hab⟩,
-        rw [fderiv_zero_of_not_differentiable_at h] at H,
-        exact hab (H.injective rfl), }, }, },
+        exact H.ne_zero (fderiv_zero_of_not_differentiable_at h), }, }, },
 end
 
 /-- A real differentiable map `f` is conformal at point `x` if and only if its
@@ -108,7 +106,7 @@ lemma comp {f : X → Y} {g : Y → Z} (x : X)
 begin
   rcases hf with ⟨f', hf₁, cf⟩,
   rcases hg with ⟨g', hg₁, cg⟩,
-  exact ⟨g'.comp f', hg₁.comp x hf₁, cf.comp cg⟩,
+  exact ⟨g'.comp f', hg₁.comp x hf₁, cg.comp cf⟩,
 end
 
 lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_at f x) :
@@ -133,13 +131,6 @@ lemma conformal_factor_at_inner_eq_mul_inner {f : E → F} {x : E} {f' : E →L[
   (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
   ⟪f' u, f' v⟫ = (conformal_factor_at H : ℝ) * ⟪u, v⟫ :=
 (H.differentiable_at.has_fderiv_at.unique h) ▸ conformal_factor_at_inner_eq_mul_inner' H u v
-
-/-- If a real differentiable map `f` is conformal at a point `x`,
-    then it preserves the angles at that point. -/
-lemma preserves_angle {f : E → F} {x : E} {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
-  inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
-let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ c.preserves_angle u v
 
 end conformal_at
 

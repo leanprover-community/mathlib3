@@ -464,6 +464,22 @@ lemma liminf_le_of_frequently_le  {α β} [conditionally_complete_linear_order �
   f.liminf u ≤ b :=
 @le_limsup_of_frequently_le _ (order_dual β) _ f u b hu_le hu
 
+lemma frequently_lt_of_lt_limsup {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β}
+  (hu : f.is_cobounded_under (≤) u . is_bounded_default) (h : b < f.limsup u) :
+  ∃ᶠ x in f, b < u x :=
+begin
+  contrapose! h,
+  apply Limsup_le_of_le hu,
+  simpa using h,
+end
+
+lemma frequently_lt_of_liminf_lt {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β}
+  (hu : f.is_cobounded_under (≥) u . is_bounded_default) (h : f.liminf u < b) :
+  ∃ᶠ x in f, u x < b :=
+@frequently_lt_of_lt_limsup _ (order_dual β) _ f u b hu h
+
 end conditionally_complete_linear_order
 
 end filter

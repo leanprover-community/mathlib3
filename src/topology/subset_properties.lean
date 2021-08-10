@@ -251,7 +251,7 @@ lemma is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed
   (Z : ℕ → set α) (hZd : ∀ i, Z (i+1) ⊆ Z i)
   (hZn : ∀ i, (Z i).nonempty) (hZ0 : is_compact (Z 0)) (hZcl : ∀ i, is_closed (Z i)) :
   (⋂ i, Z i).nonempty :=
-have Zmono : _, from @monotone_of_monotone_nat (order_dual _) _ Z hZd,
+have Zmono : _, from @monotone_nat_of_le_succ (order_dual _) _ Z hZd,
 have hZd : directed (⊇) Z, from directed_of_sup Zmono,
 have ∀ i, Z i ⊆ Z 0, from assume i, Zmono $ zero_le i,
 have hZc : ∀ i, is_compact (Z i), from assume i, compact_of_is_closed_subset hZ0 (hZcl i) (this i),
@@ -264,7 +264,9 @@ lemma is_compact.elim_finite_subcover_image {b : set β} {c : β → set α}
 begin
   rcases hs.elim_finite_subcover (λ i, c i : b → set α) _ _ with ⟨d, hd⟩;
     [skip, simpa using hc₁, simpa using hc₂],
-  refine ⟨↑(d.image coe), _, finset.finite_to_set _, _⟩; simp *
+  refine ⟨↑(d.image coe), _, finset.finite_to_set _, _⟩,
+  { simp },
+  { rwa [finset.coe_image, bUnion_image] }
 end
 
 /-- A set `s` is compact if for every family of closed sets whose intersection avoids `s`,
@@ -1049,7 +1051,7 @@ lemma subset_succ (n : ℕ) : K n ⊆ K (n + 1) :=
 subset.trans (K.subset_interior_succ n) interior_subset
 
 @[mono] protected lemma subset ⦃m n : ℕ⦄ (h : m ≤ n) : K m ⊆ K n :=
-show K m ≤ K n, from monotone_of_monotone_nat K.subset_succ h
+show K m ≤ K n, from monotone_nat_of_le_succ K.subset_succ h
 
 lemma subset_interior ⦃m n : ℕ⦄ (h : m < n) : K m ⊆ interior (K n) :=
 subset.trans (K.subset_interior_succ m) $ interior_mono $ K.subset h
@@ -1172,6 +1174,9 @@ begin
   { rintros x ⟨hx₁, hx₂⟩,
     exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩ }
 end
+
+@[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=
+⟨is_open_discrete _, is_closed_discrete _⟩
 
 end clopen
 

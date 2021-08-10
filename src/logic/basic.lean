@@ -1251,6 +1251,10 @@ by by_cases p; simp *
   (if p then a else b) = b ↔ (p → a = b) :=
 by by_cases p; simp *
 
+lemma ite_eq_or_eq {α} {p : Prop} [decidable p] (a b : α) :
+  ite p a b = a ∨ ite p a b = b :=
+decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
+
 /-! ### Declarations about `nonempty` -/
 
 section nonempty

@@ -65,7 +65,6 @@ variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} 
 
 variables [complete_space E] [normed_space ℝ E]
 
-
 lemma set_integral_congr_ae (hs : measurable_set s) (h : ∀ᵐ x ∂μ, x ∈ s → f x = g x) :
   ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ :=
 integral_congr_ae ((ae_restrict_iff' hs).2 h)
@@ -107,6 +106,10 @@ begin
       (integral_congr_ae (indicator_ae_eq_restrict_compl hs))
   ... = ∫ x in s, f x ∂μ : by simp
 end
+
+lemma set_integral_congr_set_ae (hst : s =ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
+by rw restrict_congr_set hst
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]

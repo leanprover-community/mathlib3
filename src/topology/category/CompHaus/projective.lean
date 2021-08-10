@@ -4,21 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import topology.category.Profinite
+import topology.category.CompHaus
 import topology.stone_cech
 import category_theory.preadditive.projective
 
 /-!
-# Profinite sets have enough projectives
+# CompHaus has enough projectives
 
-In this file we show that `Profinite` has enough projectives.
+In this file we show that `CompHaus` has enough projectives.
 
 ## Main results
 
-Let `X` be a profinite set.
+Let `X` be a compact Hausdorff space.
 
-* `Profinite.projective_ultrafilter`: the space `ultrafilter X` is a projective object
-* `Profinite.projective_presentation`: the natural map `ultrafilter X → X`
+* `CompHaus.projective_ultrafilter`: the space `ultrafilter X` is a projective object
+* `CompHaus.projective_presentation`: the natural map `ultrafilter X → X`
   is a projective presentation
 
 -/
@@ -27,7 +27,7 @@ noncomputable theory
 
 open category_theory function
 
-namespace Profinite
+namespace CompHaus
 
 instance projective_ultrafilter (X : Type*) :
   projective (of $ ultrafilter X) :=
@@ -39,19 +39,20 @@ instance projective_ultrafilter (X : Type*) :
     let h : ultrafilter X → Y := ultrafilter.extend t,
     have hh : continuous h := continuous_ultrafilter_extend _,
     use ⟨h⟩,
-    apply faithful.map_injective (forget Profinite),
+    apply faithful.map_injective (forget CompHaus),
     simp only [forget_map_eq_coe, continuous_map.coe_mk, coe_comp],
-    refine dense_range_pure.equalizer (g.continuous.comp hh) f.continuous _,
+    convert dense_range_pure.equalizer (g.continuous.comp hh) f.continuous _,
     rw [comp.assoc, ultrafilter_extend_extends, ← comp.assoc, hg'.comp_eq_id, comp.left_id],
   end }
 
-/-- For any profinite `X`, the natural map `ultrafilter X → X` is a projective presentation. -/
-def projective_presentation (X : Profinite) : projective_presentation X :=
+/-- For any compact Hausdorff space `X`,
+  the natural map `ultrafilter X → X` is a projective presentation. -/
+def projective_presentation (X : CompHaus) : projective_presentation X :=
 { P := of $ ultrafilter X,
   f :=
   { to_fun := ultrafilter.extend id,
     continuous_to_fun := continuous_ultrafilter_extend _ },
-  projective := Profinite.projective_ultrafilter X,
+  projective := CompHaus.projective_ultrafilter X,
   epi := concrete_category.epi_of_surjective _
   begin
     intro x,
@@ -59,7 +60,7 @@ def projective_presentation (X : Profinite) : projective_presentation X :=
     exact congr_fun (ultrafilter_extend_extends (𝟙 X)) x,
   end }
 
-instance : enough_projectives Profinite :=
+instance : enough_projectives CompHaus :=
 { presentation := λ X, ⟨projective_presentation X⟩ }
 
-end Profinite
+end CompHaus

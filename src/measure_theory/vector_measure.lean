@@ -847,14 +847,13 @@ measure.of_measurable (s.to_measure' i hi₁ hi₂)
     simp_rw [to_measure', s.restrict_apply hi₁ (measurable_set.Union hf₁),
              set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
              ennreal.some_eq_coe],
-    rw [nnreal.coe_tsum_of_nonneg, ennreal.coe_tsum],
-    refine tsum_congr _,
-    { intro n,
-      exact s.nonneg_of_zero_le_restrict
-        (s.zero_le_restrict_subset hi₁ (inter_subset_left _ _) hi₂) },
-    { intro n,
+    have h : ∀ n, 0 ≤ s (i ∩ f n),
+    { exact λ n, s.nonneg_of_zero_le_restrict
+          (s.zero_le_restrict_subset hi₁ (inter_subset_left _ _) hi₂) },
+    rw [nnreal.coe_tsum_of_nonneg h, ennreal.coe_tsum],
+    { refine tsum_congr (λ n, _),
       simp_rw [s.restrict_apply hi₁ (hf₁ n), set.inter_comm] },
-    { exact (nnreal.summable_coe_of_nonneg _).2 (s.m_Union h₁ h₂).summable }
+    { exact (nnreal.summable_coe_of_nonneg h).2 (s.m_Union h₁ h₂).summable }
   end
 
 variables (s : signed_measure α) {i j : set α}
@@ -867,7 +866,7 @@ by { simp_rw [to_measure, measure.of_measurable_apply _ hj₁, to_measure',
               s.restrict_apply hi₁ hj₁, set.inter_comm] }
 
 /-- `signed_measure.to_measure` is a finite measure. -/
-lemma to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
+instance to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
   finite_measure (s.to_measure i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin

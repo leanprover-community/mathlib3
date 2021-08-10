@@ -156,9 +156,6 @@ begin
   exact integrable.mono hf (ae_measurable.im hf.1) (eventually_of_forall h_norm_le),
 end
 
-lemma norm_inner_le (a b : E) : ∥⟪a, b⟫∥ ≤ ∥a∥ * ∥b∥ :=
-(is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm _ _)
-
 lemma mem_ℒp.const_inner [borel_space 𝕜] (p : ℝ≥0∞) (c : E) {f : α → E} (hf : mem_ℒp f p μ) :
   mem_ℒp (λ a, ⟪c, f a⟫) p μ :=
 begin
@@ -166,7 +163,7 @@ begin
   have snorm_norm_inner_le : snorm (λ x, ⟪c, f x⟫) p μ ≤ snorm (λ x, ∥c∥ * ∥f x∥) p μ,
   { refine snorm_mono_ae (eventually_of_forall (λ x, _)),
     simp only [normed_field.norm_mul, norm_norm],
-    exact norm_inner_le _ _, },
+    exact norm_inner_le_norm _ _, },
   refine snorm_norm_inner_le.trans_lt _,
   simp_rw ← smul_eq_mul ℝ,
   rw [← pi.smul_def, @snorm_const_smul _ _ _ p μ _ _ _ _ (λ x, ∥f x∥) (∥c∥)],

@@ -559,7 +559,7 @@ begin
     rwa smul_inv_smul, },
 end
 
-lemma preimage_smul' [group_with_zero α] {a : α} (ha : a ≠ 0) [mul_action α β] {t : set β} :
+lemma preimage_smul' [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) {t : set β} :
   (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 begin
   ext,

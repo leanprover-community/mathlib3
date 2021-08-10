@@ -160,8 +160,7 @@ begin
   exact (λ i, measurable_set_Icc),
 end
 
-lemma pi_haar_measure_eq_lebesgue_measure [fintype ι] :
-  add_haar_measure (unit_cube ι) = volume :=
+lemma pi_haar_measure_eq_lebesgue_measure [fintype ι] : add_haar_measure (unit_cube ι) = volume :=
 begin
   convert (add_haar_measure_unique _ (unit_cube ι)).symm,
   { rw [unit_cube],

@@ -78,7 +78,7 @@ else
     (by rw [← degree_eq_nat_degree h.2, ← degree_eq_nat_degree hq0];
     exact h.1),
   degree_sub_lt
-  (by rw [degree_mul_monic hq, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
+  (by rw [hq.degree_mul, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
       degree_eq_nat_degree hq0, ← with_bot.coe_add, nat.sub_add_cancel hlt])
   h.2
   (by rw [leading_coeff_mul_monic hq, leading_coeff_mul_X_pow, leading_coeff_C])

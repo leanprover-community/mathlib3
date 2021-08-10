@@ -1650,6 +1650,39 @@ begin
   exact absurd this one_ne_zero
 end
 
+/-- The additive-group isomorphism identifying `real.angle` with the additive version of the
+`circle` group. -/
+def angle_to_circle_hom : real.angle ≃+ additive circle :=
+(quotient_add_group.equiv_quotient_of_eq (by { ext x, exact exp_map_circle_eq_one_iff.symm})).trans
+(quotient_add_group.quotient_ker_equiv_of_surjective exp_map_circle_hom exp_map_circle_surjective)
+
+/-- The equivalence identifying `real.angle` with the circle group. -/
+def angle_to_circle : real.angle ≃ circle := angle_to_circle_hom.to_equiv.trans additive.to_mul
+
+@[simp] lemma angle_to_circle_add (a b : real.angle) :
+  angle_to_circle (a + b) = angle_to_circle a * angle_to_circle b :=
+angle_to_circle_hom.map_add a b
+
+@[simp] lemma angle_to_circle_sub (a b : real.angle) :
+  angle_to_circle (a - b) = angle_to_circle a / angle_to_circle b :=
+angle_to_circle_hom.map_sub a b
+
+@[simp] lemma angle_to_circle_zero :
+  angle_to_circle 0 = 1 :=
+angle_to_circle_hom.map_zero
+
+@[simp] lemma angle_to_circle_symm_mul (x y : circle) :
+  angle_to_circle.symm (x * y) = angle_to_circle.symm(x) + angle_to_circle.symm(y) :=
+angle_to_circle_hom.symm.map_add x y
+
+@[simp] lemma angle_to_circle_symm_div (x y : circle) :
+  angle_to_circle.symm(x / y) = angle_to_circle.symm(x) - angle_to_circle.symm(y) :=
+angle_to_circle_hom.symm.map_sub x y
+
+@[simp] lemma angle_to_circle_symm_zero :
+  angle_to_circle.symm 1 = 0 :=
+angle_to_circle_hom.symm.map_zero
+
 end angle
 
 /-- `real.sin` as an `order_iso` between `[-(π / 2), π / 2]` and `[-1, 1]`. -/

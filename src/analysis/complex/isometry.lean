@@ -1,10 +1,9 @@
 /-
 Copyright (c) 2021 François Sunatori. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: François Sunatori, Shadman Sakib
+Authors: François Sunatori
 -/
 import analysis.complex.circle
-import group_theory.specific_groups.dihedral
 
 /-!
 # Isometries of the Complex Plane
@@ -19,19 +18,15 @@ The proof of `linear_isometry_complex_aux` is separated in the following parts:
 2. show that I maps to either I or -I
 3. every z is a linear combination of a + b * I
 
-The definition `dihedral_to_complex_hom` provides the canonical homomorphism of the dihedral group
-into the linear isometries of ℂ.
-
 ## References
 
 * [Isometries of the Complex Plane](http://helmut.knaust.info/mediawiki/images/b/b5/Iso.pdf)
 -/
 noncomputable theory
 
-open complex dihedral_group
+open complex
 
 local notation `|` x `|` := complex.abs x
-local notation `π` := real.pi
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
 rotation. This is an auxiliary construction; use `rotation`, which has more structure, by
@@ -129,105 +124,3 @@ begin
   { simpa using eq_mul_of_inv_mul_eq h₁ },
   { exact eq_mul_of_inv_mul_eq h₂ }
 end
-
-variables {m : ℕ}
-
-/-- The additive homomorphism embedding `zmod m` in the group of real numbers modulo `2 * π`. -/
-def zmod_to_angle (hm : m ≠ 0) : zmod m →+ real.angle :=
-zmod.lift m ⟨gmultiples_hom real.angle ↑(2 * real.pi /m),
-  begin
-    suffices : m • (2 * π / ↑m) = 2 * π,
-    { simpa using congr_arg (coe : _ → real.angle) this },
-    have : (m:ℝ) ≠ 0 := by exact_mod_cast hm,
-    field_simp,
-    ring
-  end⟩
-
-/-- A function mapping `dihedral_group` to linear isometries of ℂ.
-Auxiliary construction for `dihedral_to_complex_hom`. -/
-def dihedral_to_complex (hm : m ≠ 0) : dihedral_group m → ℂ ≃ₗᵢ[ℝ] ℂ
-| (r i) := rotation (angle_to_circle (zmod_to_angle hm i))
-| (sr i) := conj_lie * rotation (angle_to_circle (zmod_to_angle hm i))
-
-variables (hm : m ≠ 0)
-
-lemma mul_1 (i j : zmod m) : dihedral_to_complex hm (r i) * dihedral_to_complex hm (r j) =
-  dihedral_to_complex hm (r (i + j)) :=
-begin
-  simp only [dihedral_to_complex],
-  rw (zmod_to_angle hm).map_add,
-  rw angle_to_circle_add,
-  rw rotation.map_mul,
-end
-
-lemma mul_2 (i j : zmod m) : dihedral_to_complex hm (r i) * dihedral_to_complex hm (sr j) =
-  dihedral_to_complex hm (sr (j - i)) :=
-begin
-  simp only [dihedral_to_complex],
-  rw ← mul_assoc,
-  rw rotation_mul_conj_lie,
-  rw mul_assoc,
-  rw (zmod_to_angle hm).map_sub,
-  rw angle_to_circle_sub,
-  rw div_eq_mul_inv,
-  rw mul_comm,
-  rw rotation.map_mul,
-end
-
-lemma mul_3 (i j : zmod m) : dihedral_to_complex hm (sr i) * dihedral_to_complex hm (r j) =
-  dihedral_to_complex hm (sr (i + j)) :=
-begin
-  simp only [dihedral_to_complex],
-  rw (zmod_to_angle hm).map_add,
-  rw angle_to_circle_add,
-  rw rotation.map_mul,
-  rw mul_assoc,
-end
-
-lemma mul_4 (i j : zmod m) : dihedral_to_complex hm (sr i) * dihedral_to_complex hm (sr j) =
-  dihedral_to_complex hm (r (j - i)) :=
-begin
-  simp only [dihedral_to_complex],
-  rw ← mul_assoc,
-  have : conj_lie * rotation (angle_to_circle ((zmod_to_angle hm) i)) * conj_lie * 
-  rotation (angle_to_circle ((zmod_to_angle hm) j)) = conj_lie * 
-  (rotation (angle_to_circle ((zmod_to_angle hm) i)) * conj_lie) * 
-  rotation (angle_to_circle ((zmod_to_angle hm) j)),
-  { simp [mul_assoc], },
-  rw this,
-  rw rotation_mul_conj_lie,
-  rw ← mul_assoc,
-  rw mul_assoc,
-  rw ← rotation.map_mul,
-  have this₁ : ((angle_to_circle ((zmod_to_angle hm) i))⁻¹ * 
-  angle_to_circle ((zmod_to_angle hm) j)) = 
-  (angle_to_circle ((zmod_to_angle hm) j) / angle_to_circle ((zmod_to_angle hm) i)),
-  { rw mul_comm,
-    refl, },
-  rw this₁,
-  rw (zmod_to_angle hm).map_sub,
-  rw ← angle_to_circle_sub,
-  have this₂ : conj_lie * conj_lie = 1,
-  { ext1 z,
-    simp[conj_lie], },
-  rw this₂,
-  rw one_mul,
-end
-
-/-- A homomorphism mapping the dihedral group to linear isometries of ℂ. -/
-def dihedral_to_complex_hom: dihedral_group m →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
-{ to_fun :=  dihedral_to_complex hm,
-  map_one' := begin change dihedral_to_complex hm (r 0) = _, ext1 z, simp [dihedral_to_complex], 
-  end,
-  map_mul' :=
-  begin
-    rintros (i | i) (j | j),
-    { rw mul_1,
-      refl, },
-    { rw mul_2,
-      refl, },
-    { rw mul_3,
-      refl, },
-    { rw mul_4,
-      refl, },
-  end }

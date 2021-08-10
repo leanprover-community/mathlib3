@@ -28,13 +28,14 @@ for example, the circle is not defeq to `{z : ℂ | abs z = 1}`, which is the ke
 considered as a homomorphism from `ℂ` to `ℝ`, nor is it defeq to `{z : ℂ | norm_sq z = 1}`, which
 is the kernel of the homomorphism `complex.norm_sq` from `ℂ` to `ℝ`.
 
+Due to import hierarchy reasons, lemmas `exp_map_circle_surjective`, `exp_map_circle_eq_one_iff`,
+and `exp_map_circle_hom_ker` have been moved to `analysis.special_functions.trigonometric`.
+`exp_map_circle_surjective` proves the function `exp_map_circle` is surjective.
+`exp_map_circle_eq_one_iff` proves when `exp_map_circle` of some `x : ℝ = 1`.
+`exp_map_circle_hom_ker` characterizes `exp_map_circle_hom.ker` as
+`add_subgroup.gmultiples (2 * π)`. Moreover, material about the equivalence `angle_to_circle` between
+`real.angle` and `circle` is in  `analysis.special_functions.trigonometric`.
 -/
-
-/-- Due to import hierarchy reasons, lemmas exp_map_circle_surjective, exp_map_circle_eq_one_iff, 
-and exp_map_circle_hom_ker have been moved to analysis.special_functions.trigonometric. 
-exp_map_circle_surjective proves the function exp_map_circle is surjective. 
-exp_map_circle_eq_one_iff proves when exp_map_circle of some x : ℝ = 1.
-exp_map_circle_hom_ker defines exp_map_circle_hom.ker as add_subgroup.gmultiples (2 * π). -/
 
 noncomputable theory
 
@@ -106,36 +107,3 @@ groups. -/
   map_zero' := by { rw exp_map_circle, convert of_mul_one, simp },
   map_add' := λ x y, show exp_map_circle (x + y) = (exp_map_circle x) * (exp_map_circle y),
     from subtype.ext $ by simp [exp_map_circle, exp_add, add_mul] }
-
-/-- The additive-group isomorphism identifying `real.angle` with the additive version of the
-`circle` group. -/
-def angle_to_circle_hom : real.angle ≃+ additive circle :=
-(quotient_add_group.equiv_quotient_of_eq (by { ext x, exact exp_map_circle_eq_one_iff.symm})).trans
-(quotient_add_group.quotient_ker_equiv_of_surjective exp_map_circle_hom exp_map_circle_surjective)
-
-/-- The equivalence identifying `real.angle` with the circle group. -/
-def angle_to_circle : real.angle ≃ circle := angle_to_circle_hom.to_equiv.trans additive.to_mul
-
-@[simp] lemma angle_to_circle_add (a b : real.angle) :
-  angle_to_circle (a + b) = angle_to_circle a * angle_to_circle b :=
-angle_to_circle_hom.map_add a b
-
-@[simp] lemma angle_to_circle_sub (a b : real.angle) :
-  angle_to_circle (a - b) = angle_to_circle a / angle_to_circle b :=
-angle_to_circle_hom.map_sub a b
-
-@[simp] lemma angle_to_circle_zero :
-  angle_to_circle 0 = 1 :=
-angle_to_circle_hom.map_zero
-
-@[simp] lemma angle_to_circle_symm_mul (x y : circle) :
-  angle_to_circle.symm (x * y) = angle_to_circle.symm(x) + angle_to_circle.symm(y) :=
-angle_to_circle_hom.symm.map_add x y
-
-@[simp] lemma angle_to_circle_symm_div (x y : circle) :
-  angle_to_circle.symm(x / y) = angle_to_circle.symm(x) - angle_to_circle.symm(y) :=
-angle_to_circle_hom.symm.map_sub x y
-
-@[simp] lemma angle_to_circle_symm_zero :
-  angle_to_circle.symm 1 = 0 :=
-angle_to_circle_hom.symm.map_zero

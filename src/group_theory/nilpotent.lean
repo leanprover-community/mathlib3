@@ -5,6 +5,7 @@ Authors: Kevin Buzzard
 -/
 
 import group_theory.general_commutator
+import group_theory.quotient_group
 
 /-!
 
@@ -81,15 +82,36 @@ def upper_central_series_step : subgroup G :=
     exact subgroup.normal.mem_comm infer_instance hx,
   end }
 
+open quotient_group
+
+/-- The proof that `upper_central_series_step H` is the preimage of the centre of `G/H` under
+the canonical surjection. -/
+lemma upper_central_series_step_eq_comap_centre :
+  upper_central_series_step H = subgroup.comap (mk' H) (center (quotient H)) :=
+begin
+  ext,
+  rw [mem_comap, mem_center_iff],
+  change (∀ y, x * y * x⁻¹ * y⁻¹ ∈ H) ↔ _,
+  split,
+  { intros h q,
+    apply induction_on q,
+    intro y,
+    change ((y * x : G) : quotient H) = (x * y : G),
+    rw [eq_comm, eq_iff_div_mem, div_eq_mul_inv],
+    convert h y using 1, group,
+  },
+  { intros h y,
+    specialize h y,
+    change ((y * x : G) : quotient H) = (x * y : G) at h,
+    rw [eq_comm, eq_iff_div_mem, div_eq_mul_inv] at h,
+    convert h using 1, group },
+end
+
 instance : normal (upper_central_series_step H) :=
-⟨begin
-  intros g hg h y,
-  specialize hg (h⁻¹ * y * h),
-  simp only [mul_assoc],
-  refine subgroup.normal.mem_comm infer_instance _,
-  convert hg using 1,
-  group,
-end⟩
+begin
+  rw upper_central_series_step_eq_comap_centre,
+  apply_instance,
+end
 
 variable (G)
 

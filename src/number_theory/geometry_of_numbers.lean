@@ -65,6 +65,26 @@ begin
       rw mul_inv_cancel_left' hr, }, },
 end
 
+-- This is also true when p and/or q are zero
+lemma smul_set_add_smul_set {E : Type*} [add_comm_group E] [module ℝ E] {p q : ℝ} (hp : 0 < p)
+  (hq : 0 < q) {S : set E} (h_conv : convex S) : p • S + q • S = (p + q) • S :=
+begin
+  have hpq : 0 < p + q, from add_pos hp hq,
+  ext,
+  split; intro h,
+  { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
+    have := h_conv h₁₂ h₂₂ (le_of_lt $ div_pos hp hpq) (le_of_lt $ div_pos hq hpq)
+      (by {field_simp, rw [div_self (ne_of_gt hpq)]} : p / (p + q) + q / (p + q) = 1),
+    rw mem_smul_set,
+    refine ⟨_, this, _⟩,
+    simp only [←mul_smul, smul_add],
+    congr; rw mul_div_cancel'; exact ne_of_gt hpq, },
+  { rcases h with ⟨v, hv, rfl⟩,
+    use [p • v, q • v],
+    refine ⟨smul_mem_smul_set hv, smul_mem_smul_set hv, _⟩,
+    rw add_smul, },
+end
+
 namespace geometry_of_numbers
 
 universe u
@@ -379,25 +399,6 @@ begin
   { exact measurable_set.univ_pi_fintype (λ i, measurable_set_Ioo), },
 end
 
--- This is also true when p and/or q are zero
-lemma smul_set_add_smul_set {ι : Type  u} {p q : ℝ} (hp : 0 < p) (hq : 0 < q)
-  {S : set (ι → ℝ)} (h_conv : convex S) : p • S + q • S = (p + q) • S :=
-begin
-  have hpq : 0 < p + q, from add_pos hp hq,
-  ext,
-  split; intro h,
-  { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
-    have := h_conv h₁₂ h₂₂ (le_of_lt $ div_pos hp hpq) (le_of_lt $ div_pos hq hpq)
-      (by {field_simp, rw [div_self (ne_of_gt hpq)]} : p / (p + q) + q / (p + q) = 1),
-    rw mem_smul_set,
-    refine ⟨_, this, _⟩,
-    simp only [←mul_smul, smul_add],
-    congr; rw mul_div_cancel'; exact ne_of_gt hpq, },
-  { rcases h with ⟨v, hv, rfl⟩,
-    use [p • v, q • v],
-    refine ⟨smul_mem_smul_set hv, smul_mem_smul_set hv, _⟩,
-    rw add_smul, },
-end
 open ennreal fintype
 
 -- TODO version for any real vector space in terms of dimension

@@ -1228,7 +1228,7 @@ begin
             ... = ε^5 * ((1 - 1/P.size)/6 - 1/25)
                 : begin
                   have : (P.size.choose 2 : ℝ)/P.size^2 = (1 - 1/P.size)/2,
-                  rw [nat.choose_eq_factorial_div_factorial'],
+                  rw [nat.cast_choose],
                 end
             ... ≥ ε^5/8
                 : sorry

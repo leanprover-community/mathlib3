@@ -1651,6 +1651,24 @@ end
 
 end semi_normed_space
 
+/-- While this may appear identical to `semi_normed_space.to_module`, it contains an implicit
+argument involving `normed_group.to_semi_normed_group` that typeclass inference has trouble
+inferring.
+
+Specifically, the following instance cannot be found without this `semi_normed_space.to_module'`:
+```lean
+example
+  (𝕜 ι : Type*) (E : ι → Type*)
+  [normed_field 𝕜] [Π i, normed_group (E i)] [Π i, semi_normed_space 𝕜 (E i)] :
+  Π i, module 𝕜 (E i) := by apply_instance
+```
+
+[This Zulip thread](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/245151099)
+gives some more context. -/
+instance semi_normed_space.to_module' {F : Type*}
+  [normed_field α] [normed_group F] [semi_normed_space α F] :
+  module α F := semi_normed_space.to_module
+
 section normed_space
 
 variables [normed_field α]

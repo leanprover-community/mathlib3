@@ -22,7 +22,7 @@ This is useful in multiple ways:
   return `none`.
 * `option` is a monad. We love monads.
 
-`roption` is an alternative to `option` that can be seen as the type of `true`/`false` values
+`part` is an alternative to `option` that can be seen as the type of `true`/`false` values
 along with a term `a : α` if the value is `true`.
 
 ## Implementation notes

@@ -26,7 +26,9 @@ that every elliptic curve is, up to isomorphism, a projective plane cubic define
 the equation `y^2+a₁xy+a₃y=x^3+a₂x^2+a₄x+a₆`, with `aᵢ : R`, and such that the discriminant
 of the aᵢ is a unit in `R`.
 
-More details of the construction can be found on pages 66-69 of Katz-Mazur.
+Some more details of the construction can be found on pages 66-69 of
+[N. Katz and B. Mazur, *Arithmetic moduli of elliptic curves*][katz_mazur] or pages
+53-56 of [P. Deligne, *Courbes elliptiques: formulaire d'après J. Tate*][deligne_formulaire].
 
 ## Warning
 
@@ -52,8 +54,9 @@ def EllipticCurve.disc_aux {R : Type*} [comm_ring R] (a1 a2 a3 a4 a6 : R) :=
 + ((72*a2 - 30*a1^2)*a3^2 + (16*a1*a2^2 + 8*a1^3*a2 + a1^5)*a3)*a4 + (-27*a3^4 + (36*a1*a2 +
 a1^3)*a3^3 + (-16*a2^3 - 8*a1^2*a2^2 - a1^4*a2)*a3^2))
 
+-- If Pic(R)[12]=0 then this definition is mathematically correct
 /-- The category of elliptic curves over `R` (note that this definition is only mathematically
-correct when `R` has trivial Picard group, for example if `R` is a field or a PID). -/
+correct for certain rings, for example if `R` is a field or a PID). -/
 structure EllipticCurve (R : Type*) [comm_ring R] :=
 (a1 a2 a3 a4 a6 : R)
 (disc_unit : units R)
@@ -67,7 +70,9 @@ instance : inhabited (EllipticCurve ℚ) := ⟨⟨0,0,1,-1,0, ⟨37, 37⁻¹, by
 variables {R : Type*} [comm_ring R] (E : EllipticCurve R)
 
 /-- The discriminant of an elliptic curve. Sometimes only defined up to sign in the literature;
-  we choose the sign used by the LMFDB. -/
+  we choose the sign used by the LMFDB. See
+  [the LMFDB page on discriminants](https://www.lmfdb.org/knowledge/show/ec.discriminant)
+  for more discussion. -/
 def disc := disc_aux E.a1 E.a2 E.a3 E.a4 E.a6
 
 lemma disc_is_unit : is_unit E.disc :=

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Lucas Allen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lucas Allen and Scott Morrison
+Authors: Lucas Allen, Scott Morrison
 -/
 import data.mllist
 import tactic.solve_by_elim
@@ -34,21 +34,39 @@ to solve a goal with head symbol `n`.
 For example, `>` is mapped to `<` because `a > b` is definitionally equal to `b < a`,
 and `not` is mapped to `false` because `¬ a` is definitionally equal to `p → false`
 The default is that the original argument is returned, so `<` is just mapped to `<`.
+
+`normalize_synonym` is called for every lemma in the library, so it needs to be fast.
 -/
 -- TODO this is a hack; if you suspect more cases here would help, please report them
 meta def normalize_synonym : name → name
 | `gt := `has_lt.lt
 | `ge := `has_le.le
+| `monotone := `has_le.le
 | `not := `false
 | n   := n
 
-/-- compute the head symbol of an expression, but normalise synonyms -/
+/--
+Compute the head symbol of an expression, then normalise synonyms.
+
+This is only used when analysing the goal, so it is okay to do more expensive analysis here.
+-/
 -- We may want to tweak this further?
-meta def head_symbol : expr → name
-| (expr.pi _ _ _ t) := head_symbol t
-| (expr.app f _) := head_symbol f
-| (expr.const n _) := normalize_synonym n
-| _ := `_
+meta def allowed_head_symbols : expr → list name
+-- We first have a various "customisations":
+--   Because in `ℕ` `a.succ ≤ b` is definitionally `a < b`,
+--   we add some special cases to allow looking for `<` lemmas even when the goal has a `≤`.
+--   Note we only do this in the `ℕ` case, for performance.
+| `(@has_le.le ℕ _ (nat.succ _) _) := [`has_le.le, `has_lt.lt]
+| `(@ge ℕ _ _ (nat.succ _)) := [`has_le.le, `has_lt.lt]
+| `(@has_le.le ℕ _ 1 _) := [`has_le.le, `has_lt.lt]
+| `(@ge ℕ _ _ 1) := [`has_le.le, `has_lt.lt]
+
+-- And then the generic cases:
+| (expr.pi _ _ _ t) := allowed_head_symbols t
+| (expr.app f _) := allowed_head_symbols f
+| (expr.const n _) := [normalize_synonym n]
+| _ := [`_]
+.
 
 /--
 A declaration can match the head symbol of the current goal in four possible ways:
@@ -71,9 +89,9 @@ def head_symbol_match.to_string : head_symbol_match → string
 | both := "iff.mp and iff.mpr"
 
 /-- Determine if, and in which way, a given expression matches the specified head symbol. -/
-meta def match_head_symbol (hs : name) : expr → option head_symbol_match
+meta def match_head_symbol (hs : name_set) : expr → option head_symbol_match
 | (expr.pi _ _ _ t) := match_head_symbol t
-| `(%%a ↔ %%b)      := if `iff = hs then some ex else
+| `(%%a ↔ %%b)      := if hs.contains `iff then some ex else
                        match (match_head_symbol a, match_head_symbol b) with
                        | (some ex, some ex) :=
                            some both
@@ -82,8 +100,8 @@ meta def match_head_symbol (hs : name) : expr → option head_symbol_match
                        | _ := none
                        end
 | (expr.app f _)    := match_head_symbol f
-| (expr.const n _)  := if hs = normalize_synonym n then some ex else none
-| _ := if hs = `_ then some ex else none
+| (expr.const n _)  := if hs.contains (normalize_synonym n) then some ex else none
+| _ := if hs.contains `_ then some ex else none
 
 /-- A package of `declaration` metadata, including the way in which its type matches the head symbol
 which we are searching for. -/
@@ -99,7 +117,7 @@ it matches the head symbol `hs` for the current goal.
 -/
 -- We used to check here for private declarations, or declarations with certain suffixes.
 -- It turns out `apply` is so fast, it's better to just try them all.
-meta def process_declaration (hs : name) (d : declaration) : option decl_data :=
+meta def process_declaration (hs : name_set) (d : declaration) : option decl_data :=
 let n := d.to_name in
 if !d.is_trusted || n.is_internal then
   none
@@ -107,8 +125,9 @@ else
   (λ m, ⟨d, n, m, n.length⟩) <$> match_head_symbol hs d.type
 
 /-- Retrieve all library definitions with a given head symbol. -/
-meta def library_defs (hs : name) : tactic (list decl_data) :=
-do env ← get_env,
+meta def library_defs (hs : name_set) : tactic (list decl_data) :=
+do trace_if_enabled `suggest format!"Looking for lemmas with head symbols {hs}.",
+   env ← get_env,
    let defs := env.decl_filter_map (process_declaration hs),
    -- Sort by length; people like short proofs
    let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
@@ -144,7 +163,7 @@ Returns the number of subgoals which were closed using `solve_by_elim`.
 meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic ℕ :=
 do
   trace_if_enabled `suggest format!"Trying to apply lemma: {e}",
-  opt.apply e,
+  apply e opt.to_apply_cfg,
   trace_if_enabled `suggest format!"Applied lemma: {e}",
   ng ← num_goals,
   -- Phase 1
@@ -182,24 +201,6 @@ do (e, t) ← decl_mk_const d.d,
    | mpr  := do l ← iff_mpr_core e t, tac l
    | both := undefined -- we use `unpack_iff_both` to ensure this isn't reachable
    end
-
-/--
-Replace any metavariables in the expression with underscores, in preparation for printing
-`refine ...` statements.
--/
-meta def replace_mvars (e : expr) : expr :=
-e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
-
-/--
-Construct a `refine ...` or `exact ...` string which would construct `g`.
--/
-meta def tactic_statement (g : expr) : tactic string :=
-do g ← instantiate_mvars g,
-   g ← head_beta g,
-   r ← pp (replace_mvars g),
-   if g.has_meta_var
-   then return (sformat!"Try this: refine {r}")
-   else return (sformat!"Try this: exact {r}")
 
 /-- An `application` records the result of a successful application of a library lemma. -/
 meta structure application :=
@@ -260,7 +261,7 @@ do g :: _ ← get_goals,
    (do
    -- Collect all definitions with the correct head symbol
    t ← infer_type g,
-   defs ← unpack_iff_both <$> library_defs (head_symbol t),
+   defs ← unpack_iff_both <$> library_defs (name_set.of_list $ allowed_head_symbols t),
 
    let defs : mllist tactic _ := mllist.of_list defs,
 
@@ -287,7 +288,8 @@ then solve new goals using `solve_by_elim`.
 It returns a list of `application`s consisting of fields:
 * `state`, a tactic state resulting from the successful application of a declaration from
   the library,
-* `script`, a string of the form `refine ...` or `exact ...` which will reproduce that tactic state,
+* `script`, a string of the form `Try this: refine ...` or `Try this: exact ...` which will
+  reproduce that tactic state,
 * `decl`, an `option declaration` indicating the declaration that was applied
   (or none, if `solve_by_elim` succeeded),
 * `num_goals`, the number of remaining goals, and
@@ -312,8 +314,9 @@ do let results := suggest_core opt,
     (d₁.num_goals = d₂.num_goals ∧ d₁.hyps_used ≥ d₂.hyps_used))
 
 /--
-Returns a list of at most `limit` strings, of the form `exact ...` or `refine ...`, which make
-progress on the current goal using a declaration from the library.
+Returns a list of at most `limit` strings, of the form `Try this: exact ...` or
+`Try this: refine ...`, which make progress on the current goal using a declaration
+from the library.
 -/
 meta def suggest_scripts (limit : option ℕ := none) (opt : opt := { }) :
   tactic (list string) :=
@@ -321,7 +324,7 @@ do L ← suggest limit opt,
    return $ L.map application.script
 
 /--
-Returns a string of the form `exact ...`, which closes the current goal.
+Returns a string of the form `Try this: exact ...`, which closes the current goal.
 -/
 meta def library_search (opt : opt := { }) : tactic string :=
 (suggest_core opt).mfirst (λ a, do guard (a.num_goals = 0), write a.state, return a.script)
@@ -334,7 +337,7 @@ open interactive.types
 open solve_by_elim
 local postfix `?`:9001 := optional
 
-declare_trace silence_suggest -- Turn off `exact/refine ...` trace messages for `suggest`
+declare_trace silence_suggest -- Turn off `Try this: exact/refine ...` trace messages for `suggest`
 
 /--
 `suggest` tries to apply suitable theorems/defs from the library, and generates
@@ -355,7 +358,7 @@ using the same syntax as for `solve_by_elim`, e.g.
 ```
 example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
-  suggest [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+  suggest [add_lt_add], -- Says: `Try this: exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 ```
 You can also use `suggest with attr` to include all lemmas with the attribute `attr`.
@@ -363,9 +366,9 @@ You can also use `suggest with attr` to include all lemmas with the attribute `a
 meta def suggest (n : parse (with_desc "n" small_nat)?)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : opt := { }) :
   tactic unit :=
-do asms ← mk_assumption_set ff hs attr_names,
+do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
    L ← tactic.suggest_scripts (n.get_or_else 50)
-     { lemma_thunks := return asms, ..opt },
+     { lemma_thunks := some lemma_thunks, ctx_thunk := ctx_thunk, ..opt },
   if is_trace_enabled_for `silence_suggest then
     skip
   else
@@ -412,14 +415,22 @@ add_tactic_doc
   decl_names  := [`tactic.interactive.suggest],
   tags        := ["search", "Try this"] }
 
-declare_trace silence_library_search -- Turn off `exact ...` trace message for `library_search
+-- Turn off `Try this: exact ...` trace message for `library_search`
+declare_trace silence_library_search
 
 /--
-`library_search` attempts to apply every definition in the library whose head symbol
-matches the goal, and then discharge any new goals using `solve_by_elim`.
+`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
+current goal by applying a lemma from the library, then discharging any new goals using
+`solve_by_elim`.
 
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
+
+Typical usage is:
+```lean
+example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
+```
 
 By default `library_search` only unfolds `reducible` definitions
 when attempting to match lemmas against the goal.
@@ -432,7 +443,7 @@ using the same syntax as for `solve_by_elim`, e.g.
 ```
 example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
-  library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+  library_search [add_lt_add], -- Says: `Try this: exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 ```
 You can also use `library_search with attr` to include all lemmas with the attribute `attr`.
@@ -440,12 +451,13 @@ You can also use `library_search with attr` to include all lemmas with the attri
 meta def library_search (semireducible : parse $ optional (tk "!"))
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=
-do asms ← mk_assumption_set ff hs attr_names,
+do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
    (tactic.library_search
      { backtrack_all_goals := tt,
-       lemma_thunks := return asms,
-       apply := λ e, tactic.apply e { md := if semireducible.is_some then
-         tactic.transparency.semireducible else tactic.transparency.reducible },
+       lemma_thunks := some lemma_thunks,
+       ctx_thunk := ctx_thunk,
+       md := if semireducible.is_some then
+         tactic.transparency.semireducible else tactic.transparency.reducible,
        ..opt } >>=
    if is_trace_enabled_for `silence_library_search then
      (λ _, skip)
@@ -473,20 +485,6 @@ Possible reasons why `library_search` failed:
 * If all else fails, ask on https://leanprover.zulipchat.com/,
   and maybe we can improve the library and/or `library_search` for next time."
 
-/--
-`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
-current goal by applying a lemma from the library, then discharging any new goals using
-`solve_by_elim`.
-
-Typical usage is:
-```lean
-example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
-```
-
-`library_search` prints a trace message showing the proof it found, shown above as a comment.
-Typically you will then copy and paste this proof, replacing the call to `library_search`.
--/
 add_tactic_doc
 { name        := "library_search",
   category    := doc_category.tactic,
@@ -517,8 +515,8 @@ nat.one_pos
   descr := "Use `library_search` to complete the goal.",
   action := λ _, do
     script ← library_search,
-    -- Is there a better API for dropping the 'exact ' prefix on this string?
-    return [((script.mk_iterator.remove 6).to_string, "by library_search")] }
+    -- Is there a better API for dropping the 'Try this: exact ' prefix on this string?
+    return [((script.get_rest "Try this: exact ").get_or_else script, "by library_search")] }
 
 add_tactic_doc
 { name        := "library_search",

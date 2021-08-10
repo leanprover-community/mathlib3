@@ -12,24 +12,61 @@ This file defines several small linters:
   - `ge_or_gt` checks that `>` and `≥` do not occur in the statement of theorems.
   - `dup_namespace` checks that no declaration has a duplicated namespace such as `list.list.monad`.
   - `unused_arguments` checks that definitions and theorems do not have unused arguments.
-  - `doc_blame` checks that every definition has a documentation string
-  - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default)
+  - `doc_blame` checks that every definition has a documentation string.
+  - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default).
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
+  - `check_type` checks that the statement of a declaration is well-typed.
 -/
 
 open tactic expr
 
-
-
 /-!
 ## Linter against use of `>`/`≥`
 -/
+/-- The names of `≥` and `>`, mostly disallowed in lemma statements -/
+private meta def illegal_ge_gt : list name := [`gt, `ge]
+
+set_option eqn_compiler.max_steps 20000
+/--
+  Checks whether `≥` and `>` occurs in an illegal way in the expression.
+  The main ways we legally use these orderings are:
+  - `f (≥)`
+  - `∃ x ≥ t, b`. This corresponds to the expression
+    `@Exists α (fun (x : α), (@Exists (x > t) (λ (H : x > t), b)))`
+  This function returns `tt` when it finds `ge`/`gt`, except in the following patterns
+  (which are the same for `gt`):
+  - `f (@ge _ _)`
+  - `f (&0 ≥ y) (λ x : t, b)`
+  - `λ H : &0 ≥ t, b`
+  Here `&0` is the 0-th de Bruijn variable.
+-/
+private meta def contains_illegal_ge_gt : expr → bool
+| (const nm us) := if nm ∈ illegal_ge_gt then tt else ff
+| (app f e@(app (app (const nm us) tp) tc)) :=
+  contains_illegal_ge_gt f || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt e
+| (app (app custom_binder (app (app (app (app (const nm us) tp) tc) (var 0)) t))
+    e@(lam var_name bi var_type body)) :=
+  contains_illegal_ge_gt e || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt e
+| (app f x) := contains_illegal_ge_gt f || contains_illegal_ge_gt x
+| (lam `H bi type@(app (app (app (app (const nm us) tp) tc) (var 0)) t) body) :=
+  contains_illegal_ge_gt body || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt type
+| (lam var_name bi var_type body) := contains_illegal_ge_gt var_type || contains_illegal_ge_gt body
+| (pi `H bi type@(app (app (app (app (const nm us) tp) tc) (var 0)) t) body) :=
+  contains_illegal_ge_gt body || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt type
+| (pi var_name bi var_type body) := contains_illegal_ge_gt var_type || contains_illegal_ge_gt body
+| (elet var_name type assignment body) :=
+  contains_illegal_ge_gt type || contains_illegal_ge_gt assignment || contains_illegal_ge_gt body
+| _ := ff
 
 /-- Checks whether a `>`/`≥` is used in the statement of `d`.
+
+It first does a quick check to see if there is any `≥` or `>` in the statement, and then does a
+slower check whether the occurrences of `≥` and `>` are allowed.
 Currently it checks only the conclusion of the declaration, to eliminate false positive from
 binders such as `∀ ε > 0, ...` -/
 private meta def ge_or_gt_in_statement (d : declaration) : tactic (option string) :=
-return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (λ n, n ∈ illegal)
+return $ if d.type.contains_constant (λ n, n ∈ illegal_ge_gt) &&
+  contains_illegal_ge_gt d.type
   then some "the type contains ≥/>. Use ≤/< instead."
   else none
 
@@ -39,7 +76,8 @@ return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (�
 -- return $ if d.type.contains_constant (λ n, (n.get_prefix = `classical ∧
 --   n.last ∈ ["prop_decidable", "dec", "dec_rel", "dec_eq"]) ∨ n ∈ [`gt, `ge])
 -- then
---   let illegal1 := [`classical.prop_decidable, `classical.dec, `classical.dec_rel, `classical.dec_eq],
+--   let illegal1 := [`classical.prop_decidable, `classical.dec, `classical.dec_rel,
+--     `classical.dec_eq],
 --       illegal2 := [`gt, `ge],
 --       occur1 := illegal1.filter (λ n, d.type.contains_constant (eq n)),
 --       occur2 := illegal2.filter (λ n, d.type.contains_constant (eq n)) in
@@ -52,16 +90,21 @@ return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (�
 @[linter] meta def linter.ge_or_gt : linter :=
 { test := ge_or_gt_in_statement,
   auto_decls := ff,
-  no_errors_found := "Not using ≥/> in declarations",
-  errors_found := "USING ≥/> IN DECLARATIONS",
+  no_errors_found := "Not using ≥/> in declarations.",
+  errors_found := "The following declarations use ≥/>, probably in a way where we would prefer
+  to use ≤/< instead. See note [nolint_ge] for more information.",
   is_fast := ff }
 
 /--
 Currently, the linter forbids the use of `>` and `≥` in definitions and
-statements, as they cause problems in rewrites. However, we still allow them in some contexts,
-for instance when expressing properties of the operator (as in `cobounded (≥)`), or in quantifiers
-such as `∀ ε > 0`. Such statements should be marked with the attribute `nolint` to avoid linter
-failures.
+statements, as they cause problems in rewrites.
+They are still allowed in statements such as `bounded (≥)` or `∀ ε > 0` or `⨆ n ≥ m`,
+and the linter allows that.
+If you write a pattern where you bind two or more variables, like `∃ n m > 0`, the linter will
+flag this as illegal, but it is also allowed. In this case, add the line
+```
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+```
 -/
 library_note "nolint_ge"
 
@@ -80,8 +123,8 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 @[linter] meta def linter.dup_namespace : linter :=
 { test := dup_namespace,
   auto_decls := ff,
-  no_errors_found := "No declarations have a duplicate namespace",
-  errors_found := "DUPLICATED NAMESPACES IN NAME" }
+  no_errors_found := "No declarations have a duplicate namespace.",
+  errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
 
 
@@ -89,7 +132,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 ## Linter for unused arguments
 -/
 
-/-- Auxilliary definition for `check_unused_arguments` -/
+/-- Auxiliary definition for `check_unused_arguments` -/
 private meta def check_unused_arguments_aux : list ℕ → ℕ → ℕ → expr → list ℕ | l n n_max e :=
 if n > n_max then l else
 if ¬ is_lambda e ∧ ¬ is_pi e then l else
@@ -131,8 +174,8 @@ private meta def unused_arguments (d : declaration) : tactic (option string) := 
 @[linter] meta def linter.unused_arguments : linter :=
 { test := unused_arguments,
   auto_decls := ff,
-  no_errors_found := "No unused arguments",
-  errors_found := "UNUSED ARGUMENTS" }
+  no_errors_found := "No unused arguments.",
+  errors_found := "UNUSED ARGUMENTS." }
 
 attribute [nolint unused_arguments] imp_intro
 
@@ -159,14 +202,14 @@ private meta def doc_blame_report_thm : declaration → tactic (option string)
     (doc_blame_report_defn d) (return none),
   auto_decls := ff,
   no_errors_found := "No definitions are missing documentation.",
-  errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
+  errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:" }
 
 /-- A linter for checking theorem doc strings. This is not in the default linter set. -/
 meta def linter.doc_blame_thm : linter :=
 { test := doc_blame_report_thm,
   auto_decls := ff,
   no_errors_found := "No theorems are missing documentation.",
-  errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
+  errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:",
   is_fast := ff }
 
 
@@ -188,17 +231,38 @@ private meta def incorrect_def_lemma (d : declaration) : tactic (option string) 
     is_instance_d ← is_instance d.to_name,
     if is_instance_d then return none else do
       -- the following seems to be a little quicker than `is_prop d.type`.
-      expr.sort n ← infer_type d.type, return $
-      if d.is_theorem ↔ n = level.zero then none
-      else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
-      else "is a lemma/theorem, should be a def"
+      expr.sort n ← infer_type d.type,
+      is_pattern ← has_attribute' `pattern d.to_name,
+      return $
+        if d.is_theorem ↔ n = level.zero then none
+        else if d.is_theorem then "is a lemma/theorem, should be a def"
+        else if is_pattern then none -- declarations with `@[pattern]` are allowed to be a `def`.
+        else "is a def, should be a lemma/theorem"
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/
 @[linter] meta def linter.def_lemma : linter :=
 { test := incorrect_def_lemma,
   auto_decls := ff,
-  no_errors_found := "All declarations correctly marked as def/lemma",
-  errors_found := "INCORRECT DEF/LEMMA" }
+  no_errors_found := "All declarations correctly marked as def/lemma.",
+  errors_found := "INCORRECT DEF/LEMMA:" }
 
 attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
+
+/-- Checks whether the statement of a declaration is well-typed. -/
+meta def check_type (d : declaration) : tactic (option string) :=
+(type_check d.type >> return none) <|> return "The statement doesn't type-check"
+
+/-- A linter for missing checking whether statements of declarations are well-typed. -/
+@[linter]
+meta def linter.check_type : linter :=
+{ test := check_type,
+  auto_decls := ff,
+  no_errors_found :=
+    "The statements of all declarations type-check with default reducibility settings.",
+  errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK.
+Some definitions in the statement are marked `@[irreducible]`, which means that the statement " ++
+"is now ill-formed. It is likely that these definitions were locally marked as `@[reducible]` " ++
+"or `@[semireducible]`. This can especially cause problems with type class inference or " ++
+"`@[simps]`.",
+  is_fast := tt }

@@ -20,14 +20,14 @@ example (m n p q : nat) (h : m + n = p) : true :=
 begin
   have : m + n = q,
   { generalize_hyp h' : m + n = x at h,
-    guard_hyp h' := m + n = x,
-    guard_hyp h := x = p,
+    guard_hyp h' : m + n = x,
+    guard_hyp h : x = p,
     guard_target m + n = q,
     admit },
   have : m + n = q,
   { generalize_hyp h' : m + n = x at h ⊢,
-    guard_hyp h' := m + n = x,
-    guard_hyp h := x = p,
+    guard_hyp h' : m + n = x,
+    guard_hyp h : x = p,
     guard_target x = q,
     admit },
   trivial
@@ -52,39 +52,13 @@ end
 example (x y : ℕ) (p q : Prop) (h : x = y) (h' : p ↔ q) : true :=
 begin
   symmetry' at h,
-  guard_hyp' h := y = x,
-  guard_hyp' h' := p ↔ q,
+  guard_hyp' h : y = x,
+  guard_hyp' h' : p ↔ q,
   symmetry' at *,
-  guard_hyp' h := x = y,
-  guard_hyp' h' := q ↔ p,
+  guard_hyp' h : x = y,
+  guard_hyp' h' : q ↔ p,
   trivial
 end
-
-section apply_rules
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
-
-@[user_attribute]
-meta def mono_rules : user_attribute :=
-{ name := `mono_rules,
-  descr := "lemmas usable to prove monotonicity" }
-attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules [mono_rules]
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules mono_rules
-
-end apply_rules
 
 section h_generalize
 
@@ -99,7 +73,7 @@ begin
   guard_hyp_nums 16,
   h_generalize hp : a == p with hh,
   guard_hyp_nums 19,
-  guard_hyp' hh := β = α,
+  guard_hyp' hh : β = α,
   guard_target f x y x z = f p (cast h₀ b) p (eq.mpr h₂ a),
   h_generalize hq : _ == q,
   guard_hyp_nums 21,
@@ -126,7 +100,7 @@ begin
   { guard_hyp_nums 11,
     h_generalize : a == p with _,
     guard_hyp_nums 13,
-    guard_hyp' h := β = α,
+    guard_hyp' h : β = α,
     guard_target f x x = f p (cast h₁ a),
     h_generalize! : a == q ,
     guard_hyp_nums 13,
@@ -227,33 +201,6 @@ end
 
 end clear_aux_decl
 
-section congr
-
-example (c : Prop → Prop → Prop → Prop) (x x' y z z' : Prop)
-  (h₀ : x ↔ x')
-  (h₁ : z ↔ z') :
-  c x y z ↔ c x' y z' :=
-begin
-  congr',
-  { guard_target x = x', ext, assumption },
-  { guard_target z = z', ext, assumption },
-end
-
-end congr
-
-section convert_to
-
-example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
-by {convert_to c + d = _ using 2, from H, from H', rw[add_comm]}
-
-example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
-by {convert_to c + d = _ using 0, congr' 2, from H, from H', rw[add_comm]}
-
-example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ a + d + e + f + c + g + b :=
-by {ac_change a + d + e + f + c + g + b ≤ _, refl}
-
-end convert_to
-
 section swap
 
 example {α₁ α₂ α₃ : Type} : true :=
@@ -261,64 +208,6 @@ by {have : α₁, have : α₂, have : α₃, swap, swap,
     rotate, rotate, rotate, rotate 2, rotate 2, triv, recover}
 
 end swap
-
-section lift
-
-example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u)
-  (h : k + n = 2 + x) (f : false) :
-  k + n = m + x :=
-begin
-  lift n to ℕ using le_of_lt hn,
-    guard_target (k + ↑n = m + x), guard_hyp hn := (0 : ℤ) < ↑n,
-  lift m to ℕ,
-    guard_target (k + ↑n = ↑m + x), tactic.swap, guard_target (0 ≤ m), tactic.swap,
-    tactic.num_goals >>= λ n, guard (n = 2),
-  lift (k + n) to ℕ using hk with l hl,
-    guard_hyp l := ℕ, guard_hyp hl := ↑l = k + ↑n, guard_target (↑l = ↑m + x),
-    tactic.success_if_fail (tactic.get_local `hk),
-  lift x to ℕ with y hy,
-    guard_hyp y := ℕ, guard_hyp hy := ↑y = x, guard_target (↑l = ↑m + x),
-  lift z to ℕ with w,
-    guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
-  lift u to ℕ using hu with u rfl hu,
-    guard_hyp hu := (0 : ℤ) ≤ ↑u,
-
-  all_goals { exfalso, assumption },
-end
-
--- test lift of functions
-example (α : Type*) (f : α → ℤ) (hf : ∀ a, 0 ≤ f a) (hf' : ∀ a, f a < 1) (a : α) : 0 ≤ 2 * f a :=
-begin
-  lift f to α → ℕ using hf,
-    guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
-    guard_hyp hf' := ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
-  trivial
-end
-
-instance can_lift_unit : can_lift unit unit :=
-⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
-
-/- test whether new instances of `can_lift` are added as simp lemmas -/
-run_cmd do l ← can_lift_attr.get_cache, guard (`can_lift_unit ∈ l)
-
-/- test error messages -/
-example (n : ℤ) (hn : 0 < n) : true :=
-begin
-  success_if_fail_with_msg {lift n to ℕ using hn} "lift tactic failed. The type of\n  hn\nis
-  0 < n\nbut it is expected to be\n  0 ≤ n",
-  success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
-    "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
-  trivial
-end
-
-example (n : ℤ) : ℕ :=
-begin
-  success_if_fail_with_msg {lift n to ℕ}
-    "lift tactic failed. Tactic is only applicable when the target is a proposition.",
-  exact 0
-end
-
-end lift
 
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with
@@ -416,12 +305,12 @@ example : x + y + z ≤ w :=
 begin
   elide 0 at h,
   elide 2 at h',
-  guard_hyp h := @hidden _ (x + y + z ≤ w),
-  guard_hyp h' := x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
+  guard_hyp h : @hidden _ (x + y + z ≤ w),
+  guard_hyp h' : x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
                                    (@hidden ℕ (y + z)) (@hidden ℕ w),
   unelide at h,
   unelide at h',
-  guard_hyp h' := x ≤ y + z + w,
+  guard_hyp h' : x ≤ y + z + w,
   exact h, -- there was a universe problem in `elide`. `exact h` lets the kernel check
            -- the consistency of the universes
 end
@@ -529,7 +418,12 @@ begin
     "No such hypothesis 1 + 2." },
   revert_deps k, tactic.intron 5, guard_target unit,
   revert_after n, tactic.intron 7, guard_target unit,
-  do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
+  do {
+    e ← get_local `k,
+    tactic.revert_reverse_dependencies_of_hyp e,
+    l ← local_context,
+    guard $ e ∈ l,
+    intros },
   exact unit.star
 end
 
@@ -554,6 +448,7 @@ begin
   success_if_fail_with_msg {clear_value k}
     "Cannot clear the body of k. The resulting goal is not type correct.",
   clear_value k f,
+  get_local `k, -- test that `k` is not renamed.
   exact unit.star
 end
 
@@ -565,4 +460,68 @@ begin
   exact unit.star
 end
 
+/-- test `clear_value` and the preservation of naming -/
+example : ∀ x y : ℤ, let z := x + y in x = z - y → x = y - z → true :=
+begin
+  introv h h,
+  guard_hyp x : ℤ,
+  guard_hyp y : ℤ,
+  guard_hyp z : ℤ := x + y,
+  guard_hyp h : x = y - z,
+  suffices : true, -- test the type of the second assumption named `h`
+  { clear h,
+    guard_hyp h : x = z - y,
+    assumption },
+  do { to_expr ```(z) >>= is_local_def },
+  clear_value z,
+  guard_hyp z : ℤ,
+  success_if_fail { do { to_expr ```(z) >>= is_local_def } },
+  guard_hyp h : x = y - z,
+  suffices : true,
+  { clear h,
+    guard_hyp h : x = z - y,
+    assumption },
+  trivial
+end
+
+/- Test whether generalize' always uses the exact name stated by the user, even if that name already
+  exists. -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
+/- Test that `generalize'` works correctly with argument `h`, when the expression occurs in the
+  target -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' h : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
 end local_definitions
+
+section set_attribute
+
+open tactic
+
+@[user_attribute] meta def my_user_attribute : user_attribute unit bool :=
+{ name := `my_attr,
+  descr := "",
+  parser := return ff }
+
+run_cmd do nm ← get_user_attribute_name `library_note, guard $ nm = `library_note_attr
+run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.higher_order_attr
+run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
+
+run_cmd set_attribute `norm `prod.map tt
+run_cmd set_attribute `my_attr `prod.map
+run_cmd set_attribute `to_additive `has_mul
+run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
+run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
+run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
+
+end set_attribute

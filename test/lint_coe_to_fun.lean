@@ -16,7 +16,7 @@ instance {α β} : has_coe (sparkling_equiv α β) (equiv α β) :=
 
 -- should complain
 open tactic
-#eval do
+run_cmd do
 decl ← get_decl ``sparkling_equiv,
 res ← linter.has_coe_to_fun.test decl,
 -- linter complains
@@ -26,7 +26,7 @@ instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
 ⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
 
 -- prima!
-#eval do
+run_cmd do
 decl ← get_decl ``sparkling_equiv,
 res ← linter.has_coe_to_fun.test decl,
 -- linter doesn't complain
@@ -52,7 +52,7 @@ instance {α β} [nonempty α] : has_coe (sparkling_equiv α β) (equiv α β) :
 
 -- should complain
 open tactic
-#eval do
+run_cmd do
 decl ← get_decl ``sparkling_equiv,
 res ← linter.has_coe_to_fun.test decl,
 -- linter complains

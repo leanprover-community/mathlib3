@@ -69,21 +69,19 @@ end
 
 lemma cau_seq.cauchy_seq (f : cau_seq β norm) : cauchy_seq f :=
 begin
-  apply cauchy_iff.2,
+  refine cauchy_iff.2 ⟨by apply_instance, λ s hs, _⟩,
+  rcases mem_uniformity_dist.1 hs with ⟨ε, ⟨hε, hεs⟩⟩,
+  cases cau_seq.cauchy₂ f hε with N hN,
+  existsi {n | n ≥ N}.image f,
+  simp only [exists_prop, mem_at_top_sets, mem_map, mem_image, ge_iff_le, mem_set_of_eq],
   split,
-  { exact map_ne_bot at_top_ne_bot },
-  { intros s hs,
-    rcases mem_uniformity_dist.1 hs with ⟨ε, ⟨hε, hεs⟩⟩,
-    cases cau_seq.cauchy₂ f hε with N hN,
-    existsi {n | n ≥ N}.image f,
-    simp, split,
-    { existsi N, intros b hb, existsi b, simp [hb] },
-    { rintros ⟨a, b⟩ ⟨⟨a', ⟨ha'1, ha'2⟩⟩, ⟨b', ⟨hb'1, hb'2⟩⟩⟩,
-      dsimp at ha'1 ha'2 hb'1 hb'2,
-      rw [←ha'2, ←hb'2],
-      apply hεs,
-      rw dist_eq_norm,
-      apply hN; assumption }},
+  { existsi N, intros b hb, existsi b, simp [hb] },
+  { rintros ⟨a, b⟩ ⟨⟨a', ⟨ha'1, ha'2⟩⟩, ⟨b', ⟨hb'1, hb'2⟩⟩⟩,
+    dsimp at ha'1 ha'2 hb'1 hb'2,
+    rw [←ha'2, ←hb'2],
+    apply hεs,
+    rw dist_eq_norm,
+    apply hN; assumption }
 end
 
 /-- In a normed field, `cau_seq` coincides with the usual notion of Cauchy sequences. -/

@@ -130,7 +130,7 @@ pure $ ncoes - count_head_coes e
 Classifies a declaration of type `ty` as a `norm_cast` rule.
 -/
 meta def classify_type (ty : expr) : tactic label := do
-(_, ty) ← mk_local_pis ty,
+(_, ty) ← open_pis ty,
 (lhs, rhs) ← match ty with
   | `(%%lhs = %%rhs) := pure (lhs, rhs)
   | `(%%lhs ↔ %%rhs) := pure (lhs, rhs)
@@ -323,7 +323,7 @@ end
 ```
 -/
 meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
-tactic.interactive.simp none tt hs [`push_cast] l
+tactic.interactive.simp none none tt hs [`push_cast] l
 
 
 end tactic.interactive
@@ -333,8 +333,8 @@ open tactic expr
 
 /-- Prove `a = b` using the given simp set. -/
 meta def prove_eq_using (s : simp_lemmas) (a b : expr) : tactic expr := do
-(a', a_a') ← simplify s [] a {fail_if_unchanged := ff},
-(b', b_b') ← simplify s [] b {fail_if_unchanged := ff},
+(a', a_a', _) ← simplify s [] a {fail_if_unchanged := ff},
+(b', b_b', _) ← simplify s [] b {fail_if_unchanged := ff},
 on_exception (trace_norm_cast "failed: " (to_expr ``(%%a' = %%b') >>= pp)) $
   is_def_eq a' b' reducible,
 b'_b ← mk_eq_symm b_b',
@@ -514,7 +514,7 @@ do
   trace_norm_cast "after upward_and_elim: " e2,
 
   -- step 3: casts are squashed
-  (e3, pr3) ← simplify cache.squash [] e2 cfg,
+  (e3, pr3, _) ← simplify cache.squash [] e2 cfg,
   trace_norm_cast "after squashing: " e3,
 
   -- step 4: post-processing of numerals
@@ -535,7 +535,8 @@ A small variant of `push_cast` suited for non-interactive use.
 -/
 meta def derive_push_cast (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
 do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
-   simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff}
+   (e, prf, _) ← simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff},
+   return (e, prf)
 
 end norm_cast
 
@@ -557,7 +558,8 @@ match e with
   get_local `this
 end
 
-/-- `exact_mod_cast e` runs `norm_cast` on the goal and `e`, and tries to use `e` to close the goal. -/
+/-- `exact_mod_cast e` runs `norm_cast` on the goal and `e`, and tries to use `e` to close the
+goal. -/
 meta def exact_mod_cast (e : expr) : tactic unit :=
 decorate_error "exact_mod_cast failed:" $ do
   new_e ← aux_mod_cast e,
@@ -662,6 +664,11 @@ end conv.interactive
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
 
+@[norm_cast] lemma dite_cast {α β} [has_lift_t α β]
+  {c : Prop} [decidable c] {a : c → α} {b : ¬ c → α} :
+  ↑(dite c a b) = dite c (λ h, (↑(a h) : β)) (λ h, (↑(b h) : β)) :=
+by by_cases h : c; simp [h]
+
 add_hint_tactic "norm_cast at *"
 
 /--
@@ -748,8 +755,8 @@ Examples:
 @[norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1
 ```
 
-Lemmas tagged with `@[norm_cast]` are classified into three categories: `move`, `elim`, and `squash`.
-They are classified roughly as follows:
+Lemmas tagged with `@[norm_cast]` are classified into three categories: `move`, `elim`, and
+`squash`. They are classified roughly as follows:
 
 * elim lemma:   LHS has 0 head coes and ≥ 1 internal coe
 * move lemma:   LHS has 1 head coe and 0 internal coes,    RHS has 0 head coes and ≥ 1 internal coes

@@ -1,8 +1,13 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
-Linear natural number arithmetic preformulas in pre-normalized preform. -/
+/-
+Linear natural number arithmetic preformulas in pre-normalized preform.
+-/
+
 import tactic.omega.nat.preterm
 
 namespace omega
@@ -170,7 +175,7 @@ lemma univ_close_of_valid {p : preform} :
 lemma valid_of_unsat_not {p : preform} : (¬*p).unsat → p.valid :=
 begin
   simp only [preform.sat, preform.unsat, preform.valid, preform.holds],
-  rw classical.not_exists_not, intro h, assumption
+  rw not_exists_not, intro h, assumption
 end
 
 /-- Tactic for setting up proof by induction over preforms. -/

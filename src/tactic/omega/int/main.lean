@@ -1,8 +1,13 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
-Main procedure for linear integer arithmetic. -/
+/-
+Main procedure for linear integer arithmetic.
+-/
+
 import tactic.omega.prove_unsats
 import tactic.omega.int.dnf
 
@@ -22,8 +27,8 @@ attribute [sugar]
   ge gt mul_add add_mul
   one_mul mul_one
   mul_comm sub_eq_add_neg
-  classical.imp_iff_not_or
-  classical.iff_iff_not_or_and_or_not
+  imp_iff_not_or
+  iff_iff_not_or_and_or_not
 
 meta def desugar := `[try {simp only with sugar}]
 

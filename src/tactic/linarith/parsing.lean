@@ -36,6 +36,9 @@ namespace linarith
 /-- Variables (represented by natural numbers) map to their power. -/
 @[reducible] meta def monom : Type := rb_map ℕ ℕ
 
+/-- `1` is represented by the empty monomial, the product of no variables. -/
+meta def monom.one : monom := rb_map.mk _ _
+
 /-- Compare monomials by first comparing their keys and then their powers. -/
 @[reducible] meta def monom.lt : monom → monom → Prop :=
 λ a b, (a.keys < b.keys) || ((a.keys = b.keys) && (a.values < b.values))
@@ -45,6 +48,9 @@ meta instance : has_lt monom := ⟨monom.lt⟩
 /-- Linear combinations of monomials are represented by mapping monomials to coefficients. -/
 @[reducible] meta def sum : Type := rb_map monom ℤ
 
+/-- `1` is represented as the singleton sum of the monomial `monom.one` with coefficient 1. -/
+meta def sum.one : sum := rb_map.of_list [(monom.one, 1)]
+
 /-- `sum.scale_by_monom s m` multiplies every monomial in `s` by `m`. -/
 meta def sum.scale_by_monom (s : sum) (m : monom) : sum :=
 s.fold mk_rb_map $ λ m' coeff sm, sm.insert (m.add m') coeff
@@ -52,6 +58,11 @@ s.fold mk_rb_map $ λ m' coeff sm, sm.insert (m.add m') coeff
 /-- `sum.mul s1 s2` distributes the multiplication of two sums.` -/
 meta def sum.mul (s1 s2 : sum) : sum :=
 s1.fold mk_rb_map $ λ mn coeff sm, sm.add $ (s2.scale_by_monom mn).scale coeff
+
+/-- The `n`th power of `s : sum` is the `n`-fold product of `s`, with `s.pow 0 = sum.one`. -/
+meta def sum.pow (s : sum) : ℕ → sum
+| 0 := sum.one
+| (k+1) := s.mul (sum.pow k)
 
 /-- `sum_of_monom m` lifts `m` to a sum with coefficient `1`. -/
 meta def sum_of_monom (m : monom) : sum :=
@@ -72,6 +83,15 @@ mk_rb_map.insert (mk_rb_map.insert n 1) 1
 /-! ### Parsing algorithms -/
 
 local notation `exmap` := list (expr × ℕ)
+
+/--
+`linear_form_of_atom red map e` is the atomic case for `linear_form_of_expr`.
+If `e` appears with index `k` in `map`, it returns the singleton sum `var k`.
+Otherwise it updates `map`, adding `e` with index `n`, and returns the singleton sum `var n`.
+-/
+meta def linear_form_of_atom (red : transparency) (m : exmap) (e : expr) : tactic (exmap × sum) :=
+(do (_, k) ← m.find_defeq red e, return (m, var k)) <|>
+(let n := m.length + 1 in return ((e, n)::m, var n))
 
 /--
 `linear_form_of_expr red map e` computes the linear form of `e`.
@@ -97,13 +117,18 @@ meta def linear_form_of_expr (red : transparency) : exmap → expr → tactic (e
       (m', comp2) ← linear_form_of_expr m' e2,
       return (m', comp1.add (comp2.scale (-1)))
 | m `(-%%e) := do (m', comp) ← linear_form_of_expr m e, return (m', comp.scale (-1))
+| m p@`(@has_pow.pow _ ℕ _ %%e %%n) :=
+  match n.to_nat with
+  | some k :=
+    do (m', comp) ← linear_form_of_expr m e,
+    return (m', comp.pow k)
+  | none := linear_form_of_atom red m p
+  end
 | m e :=
   match e.to_int with
   | some 0 := return ⟨m, mk_rb_map⟩
   | some z := return ⟨m, scalar z⟩
-  | none :=
-    (do (_, k) ← m.find_defeq red e, return (m, var k)) <|>
-    (let n := m.length + 1 in return ((e, n)::m, var n))
+  | none := linear_form_of_atom red m e
   end
 
 /--

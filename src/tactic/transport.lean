@@ -27,7 +27,8 @@ It's probably best not to adjust it without understanding the algorithm used by 
 
 attribute [transport_simps]
   eq_rec_constant
-  eq_mpr_rfl
+  eq_mp_eq_cast
+  cast_eq
   equiv.to_fun_as_coe
   equiv.arrow_congr'_apply
   equiv.symm_apply_apply

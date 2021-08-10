@@ -5,7 +5,7 @@ Authors: Sean Leather, Mario Carneiro
 -/
 import data.list.alist
 import data.finset.basic
-import data.pfun
+import data.part
 /-!
 # Finite maps over `multiset`
 -/
@@ -67,8 +67,8 @@ open alist
   {γ} (s : finmap β) (f : alist β → γ)
   (H : ∀ a b : alist β, a.entries ~ b.entries → f a = f b) : γ :=
 begin
-  refine (quotient.lift_on s.1 (λ l, (⟨_, λ nd, f ⟨l, nd⟩⟩ : roption γ))
-    (λ l₁ l₂ p, roption.ext' (perm_nodupkeys p) _) : roption γ).get _,
+  refine (quotient.lift_on s.1 (λ l, (⟨_, λ nd, f ⟨l, nd⟩⟩ : part γ))
+    (λ l₁ l₂ p, part.ext' (perm_nodupkeys p) _) : part γ).get _,
   { exact λ h₁ h₂, H _ _ (by exact p) },
   { have := s.nodupkeys, rcases s.entries with ⟨l⟩, exact id }
 end
@@ -249,11 +249,11 @@ m.entries.foldl (λ d s, f d s.1 s.2) (λ d s t, H _ _ _ _ _) d
 
 /-- `any f s` returns `tt` iff there exists a value `v` in `s` such that `f v = tt`. -/
 def any (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∨ f y z) (by simp [or_assoc]; intros; congr' 2; rw or_comm) ff
+s.foldl (λ x y z, x ∨ f y z) (by { intros,  simp [or.right_comm] }) ff
 
 /-- `all f s` returns `tt` iff `f v = tt` for all values `v` in `s`. -/
 def all (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∧ f y z) (by simp [and_assoc]; intros; congr' 2; rw and_comm) ff
+s.foldl (λ x y z, x ∧ f y z) (by { intros, simp [and.right_comm] }) ff
 
 /-! ### erase -/
 
@@ -314,7 +314,7 @@ lift_on s (λ t, ⟦insert a b t⟧) $
   insert a b ⟦s⟧ = ⟦s.insert a b⟧ := by simp [insert]
 
 theorem insert_entries_of_neg {a : α} {b : β a} {s : finmap β} : a ∉ s →
-  (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
+  (insert a b s).entries = ⟨a, b⟩ ::ₘ s.entries :=
 induction_on s $ λ s h,
 by simp [insert_entries_of_neg (mt mem_to_finmap.1 h)]
 

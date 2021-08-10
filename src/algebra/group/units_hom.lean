@@ -3,7 +3,6 @@ Copyright (c) 2018 Johan Commelin All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
 -/
-import algebra.group.units
 import algebra.group.hom
 /-!
 # Lift monoid homomorphisms to group homomorphisms of their units subgroups.
@@ -24,6 +23,10 @@ monoid_hom.mk'
   (λ x y, ext (f.map_mul x y))
 
 @[simp, to_additive] lemma coe_map (f : M →* N) (x : units M) : ↑(map f x) = f x := rfl
+
+@[simp, to_additive] lemma coe_map_inv (f : M →* N) (u : units M) :
+  ↑(map f u)⁻¹ = f ↑u⁻¹ :=
+rfl
 
 @[simp, to_additive]
 lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
@@ -89,7 +92,7 @@ variables {M : Type*} {N : Type*}
 
 @[to_additive] lemma is_unit.map [monoid M] [monoid N]
   (f : M →* N) {x : M} (h : is_unit x) : is_unit (f x) :=
-by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)
+by rcases h with ⟨y, rfl⟩; exact (units.map f y).is_unit
 
 /-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
 to `f : M →* units N`. See also `units.lift_right` for a computable version. -/

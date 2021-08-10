@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Bhavik Mehta.
+Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.discrete_category
 
@@ -11,7 +11,7 @@ import category_theory.discrete_category
 Defines a category structure on `pempty`, and the unique functor `pempty ⥤ C` for any category `C`.
 -/
 
-universes v u w -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u w -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 namespace functor

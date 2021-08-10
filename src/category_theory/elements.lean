@@ -3,20 +3,24 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.comma
+import category_theory.structured_arrow
 import category_theory.groupoid
+import category_theory.punit
 
 /-!
 # The category of elements
 
-This file defines the category of elements, also known as (a special case of) the Grothendieck construction.
+This file defines the category of elements, also known as (a special case of) the Grothendieck
+construction.
 
 Given a functor `F : C ⥤ Type`, an object of `F.elements` is a pair `(X : C, x : F.obj X)`.
 A morphism `(X, x) ⟶ (Y, y)` is a morphism `f : X ⟶ Y` in `C`, so `F.map f` takes `x` to `y`.
 
 ## Implementation notes
-This construction is equivalent to a special case of a comma construction, so this is mostly just
-a more convenient API. We prove the equivalence in `category_theory.category_of_elements.comma_equivalence`.
+
+This construction is equivalent to a special case of a comma construction, so this is mostly just a
+more convenient API. We prove the equivalence in
+`category_theory.category_of_elements.structured_arrow_equivalence`.
 
 ## References
 * [Emily Riehl, *Category Theory in Context*, Section 2.4][riehl2017]
@@ -60,7 +64,9 @@ subtype.ext_val w
 
 end category_of_elements
 
-instance groupoid_of_elements {G : Type u} [groupoid.{v} G] (F : G ⥤ Type w) : groupoid F.elements :=
+noncomputable
+instance groupoid_of_elements {G : Type u} [groupoid.{v} G] (F : G ⥤ Type w) :
+  groupoid F.elements :=
 { inv := λ p q f, ⟨inv f.val,
       calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
                              ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : by simp
@@ -75,37 +81,45 @@ def π : F.elements ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.val }
 
-/-- The forward direction of the equivalence `F.elements ≅ (*, F)`. -/
-def to_comma : F.elements ⥤ comma (functor.from_punit punit) F :=
-{ obj := λ X, { left := punit.star, right := X.1, hom := λ _, X.2 },
-  map := λ X Y f, { right := f.val } }
+/--
+A natural transformation between functors induces a functor between the categories of elements.
+-/
+@[simps]
+def map {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : F₁.elements ⥤ F₂.elements :=
+{ obj := λ t, ⟨t.1, α.app t.1 t.2⟩,
+  map := λ t₁ t₂ k, ⟨k.1, by simpa [←k.2] using (functor_to_types.naturality _ _ α k.1 t₁.2).symm⟩ }
 
-@[simp] lemma to_comma_obj (X) :
-  (to_comma F).obj X = { left := punit.star, right := X.1, hom := λ _, X.2 } := rfl
-@[simp] lemma to_comma_map {X Y} (f : X ⟶ Y) :
-  (to_comma F).map f = { right := f.val } := rfl
+@[simp] lemma map_π {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : map α ⋙ π F₂ = π F₁ := rfl
+
+/-- The forward direction of the equivalence `F.elements ≅ (*, F)`. -/
+def to_structured_arrow : F.elements ⥤ structured_arrow punit F :=
+{ obj := λ X, structured_arrow.mk (λ _, X.2),
+  map := λ X Y f, structured_arrow.hom_mk f.val (by tidy) }
+
+@[simp] lemma to_structured_arrow_obj (X) :
+  (to_structured_arrow F).obj X = { left := punit.star, right := X.1, hom := λ _, X.2 } := rfl
+@[simp] lemma to_comma_map_right {X Y} (f : X ⟶ Y) :
+  ((to_structured_arrow F).map f).right = f.val := rfl
 
 /-- The reverse direction of the equivalence `F.elements ≅ (*, F)`. -/
-def from_comma : comma (functor.from_punit punit) F ⥤ F.elements :=
+def from_structured_arrow : structured_arrow punit F ⥤ F.elements :=
 { obj := λ X, ⟨X.right, X.hom (punit.star)⟩,
   map := λ X Y f, ⟨f.right, congr_fun f.w'.symm punit.star⟩ }
 
-@[simp] lemma from_comma_obj (X) :
-  (from_comma F).obj X = ⟨X.right, X.hom (punit.star)⟩ := rfl
-@[simp] lemma from_comma_map {X Y} (f : X ⟶ Y) :
-  (from_comma F).map f = ⟨f.right, congr_fun f.w'.symm punit.star⟩ := rfl
+@[simp] lemma from_structured_arrow_obj (X) :
+  (from_structured_arrow F).obj X = ⟨X.right, X.hom (punit.star)⟩ := rfl
+@[simp] lemma from_structured_arrow_map {X Y} (f : X ⟶ Y) :
+  (from_structured_arrow F).map f = ⟨f.right, congr_fun f.w'.symm punit.star⟩ := rfl
 
 /-- The equivalence between the category of elements `F.elements`
     and the comma category `(*, F)`. -/
-def comma_equivalence : F.elements ≌ comma (functor.from_punit punit) F :=
-equivalence.mk (to_comma F) (from_comma F)
+@[simps]
+def structured_arrow_equivalence : F.elements ≌ structured_arrow punit F :=
+equivalence.mk (to_structured_arrow F) (from_structured_arrow F)
   (nat_iso.of_components (λ X, eq_to_iso (by tidy)) (by tidy))
   (nat_iso.of_components
     (λ X, { hom := { right := 𝟙 _ }, inv := { right := 𝟙 _ } })
     (by tidy))
-
-@[simp] lemma comma_equivalence_functor : (comma_equivalence F).functor = to_comma F := rfl
-@[simp] lemma comma_equivalence_inverse : (comma_equivalence F).inverse = from_comma F := rfl
 
 end category_of_elements
 end category_theory

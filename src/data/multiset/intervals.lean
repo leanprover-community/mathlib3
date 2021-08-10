@@ -58,10 +58,10 @@ congr_arg coe $ list.Ico.bag_inter_consecutive n m l
 @[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
 congr_arg coe $ list.Ico.succ_singleton
 
-theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = m :: Ico n m :=
+theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = m ::ₘ Ico n m :=
 by rw [Ico, list.Ico.succ_top h, ← coe_add, add_comm]; refl
 
-theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n :: Ico (n + 1) m :=
+theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n ::ₘ Ico (n + 1) m :=
 congr_arg coe $ list.Ico.eq_cons h
 
 @[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = {m - 1} :=
@@ -75,6 +75,9 @@ congr_arg coe $ list.Ico.filter_lt_of_top_le hml
 
 lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = ∅ :=
 congr_arg coe $ list.Ico.filter_lt_of_le_bot hln
+
+lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = {n} :=
+congr_arg coe $ list.Ico.filter_le_of_bot hnm
 
 lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
 congr_arg coe $ list.Ico.filter_lt_of_ge hlm

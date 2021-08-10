@@ -26,3 +26,15 @@ inductive test.is_true (p : Prop) : Prop
 | triviality : p → test.is_true
 
 mk_iff_of_inductive_prop test.is_true test.is_true_iff
+
+@[mk_iff] structure foo (m n : ℕ) : Prop :=
+(equal : m = n)
+(sum_eq_two : m + n = 2)
+
+example (m n : ℕ) : foo m n ↔ m = n ∧ m + n = 2 := foo_iff m n
+
+@[mk_iff bar] structure foo2 (m n : ℕ) : Prop :=
+(equal : m = n)
+(sum_eq_two : m + n = 2)
+
+example (m n : ℕ) : foo2 m n ↔ m = n ∧ m + n = 2 := bar m n

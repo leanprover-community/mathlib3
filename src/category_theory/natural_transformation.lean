@@ -15,7 +15,8 @@ import category_theory.functor
 
 namespace category_theory
 
-universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
@@ -35,6 +36,9 @@ restate_axiom nat_trans.naturality'
 -- Rather arbitrarily, we say that the 'simpler' form is
 -- components of natural transfomations moving earlier.
 attribute [simp, reassoc] nat_trans.naturality
+
+lemma congr_app {F G : C ⥤ D} {α β : nat_trans F G} (h : α = β) (X : C) : α.app X = β.app X :=
+congr_fun (congr_arg nat_trans.app h) X
 
 namespace nat_trans
 

@@ -3,11 +3,11 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
-import tactic.ring
-import algebra.big_operators
+import algebra.big_operators.basic
 import data.fintype.basic
 import data.int.gcd
-import data.set.disjointed
+import data.set.pairwise
+import tactic.ring
 
 /-!
 # Coprime elements of a ring
@@ -60,6 +60,9 @@ theorem is_coprime_zero_left : is_coprime 0 x ↔ is_unit x :=
 theorem is_coprime_zero_right : is_coprime x 0 ↔ is_unit x :=
 is_coprime_comm.trans is_coprime_zero_left
 
+lemma not_coprime_zero_zero [nontrivial R] : ¬ is_coprime (0 : R) 0 :=
+mt is_coprime_zero_right.mp not_is_unit_zero
+
 theorem is_coprime_one_left : is_coprime 1 x :=
 ⟨1, 0, by rw [one_mul, zero_mul, add_zero]⟩
 
@@ -104,14 +107,23 @@ begin
     exact dvd_mul_of_dvd_left (mul_dvd_mul_right H1 _) _ }
 end
 
-theorem finset.prod_dvd_of_coprime (Hs : pairwise (is_coprime on s)) (Hs1 : ∀ i, s i ∣ z) :
+theorem finset.prod_dvd_of_coprime :
+  ∀ (Hs : set.pairwise_on (↑t : set I) (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
   ∏ x in t, s x ∣ z :=
-finset.induction_on t (one_dvd z) (λ a r har ih, by { rw finset.prod_insert har,
-exact (is_coprime.prod_right $ λ i hir, Hs a i $ λ hai, har $ hai.symm ▸ hir).mul_dvd (Hs1 a) ih })
+finset.induction_on t (λ _ _, one_dvd z)
+begin
+  intros a r har ih Hs Hs1,
+  rw finset.prod_insert har,
+  have aux1 : a ∈ (↑(insert a r) : set I) := finset.mem_insert_self a r,
+  refine (is_coprime.prod_right $ λ i hir, Hs a aux1 i _ (by { rintro rfl, exact har hir })).mul_dvd
+    (Hs1 a aux1) (ih (Hs.mono _) $ λ i hi, Hs1 i (finset.mem_insert_of_mem hi)),
+  { exact finset.mem_insert_of_mem hir },
+  { simp only [finset.coe_insert, set.subset_insert] }
+end
 
 theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s))
   (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
-finset.prod_dvd_of_coprime Hs Hs1
+finset.prod_dvd_of_coprime (Hs.pairwise_on _) (λ i _, Hs1 i)
 
 theorem is_coprime.of_mul_left_left (H : is_coprime (x * y) z) : is_coprime x z :=
 let ⟨a, b, h⟩ := H in ⟨a * y, b, by rwa [mul_right_comm, mul_assoc]⟩
@@ -157,9 +169,36 @@ by { rw [← finset.card_range n, ← finset.prod_const], exact is_coprime.prod_
 theorem is_coprime.pow (H : is_coprime x y) : is_coprime (x ^ m) (y ^ n) :=
 H.pow_left.pow_right
 
+theorem is_coprime.pow_left_iff (hm : 0 < m) : is_coprime (x ^ m) y ↔ is_coprime x y :=
+begin
+  refine ⟨λ h, _, is_coprime.pow_left⟩,
+  rw [← finset.card_range m, ← finset.prod_const] at h,
+  exact h.of_prod_left 0 (finset.mem_range.mpr hm),
+end
+
+theorem is_coprime.pow_right_iff (hm : 0 < m) : is_coprime x (y ^ m) ↔ is_coprime x y :=
+is_coprime_comm.trans $ (is_coprime.pow_left_iff hm).trans $ is_coprime_comm
+
+theorem is_coprime.pow_iff (hm : 0 < m) (hn : 0 < n) :
+  is_coprime (x ^ m) (y ^ n) ↔ is_coprime x y :=
+(is_coprime.pow_left_iff hm).trans $ is_coprime.pow_right_iff hn
+
+theorem is_coprime.of_coprime_of_dvd_left (h : is_coprime y z) (hdvd : x ∣ y) : is_coprime x z :=
+begin
+  obtain ⟨d, rfl⟩ := hdvd,
+  exact is_coprime.of_mul_left_left h
+end
+
+theorem is_coprime.of_coprime_of_dvd_right (h : is_coprime z y) (hdvd : x ∣ y) : is_coprime z x :=
+(h.symm.of_coprime_of_dvd_left hdvd).symm
+
 theorem is_coprime.is_unit_of_dvd (H : is_coprime x y) (d : x ∣ y) : is_unit x :=
 let ⟨k, hk⟩ := d in is_coprime_self.1 $ is_coprime.of_mul_right_left $
 show is_coprime x (x * k), from hk ▸ H
+
+theorem is_coprime.is_unit_of_dvd' {a b x : R} (h : is_coprime a b) (ha : x ∣ a) (hb : x ∣ b) :
+  is_unit x :=
+(h.of_coprime_of_dvd_left ha).is_unit_of_dvd hb
 
 theorem is_coprime.map (H : is_coprime x y) {S : Type v} [comm_semiring S] (f : R →+* S) :
   is_coprime (f x) (f y) :=
@@ -248,6 +287,28 @@ lemma mul_add_left_right_iff {x y z : R} : is_coprime x (x * z + y) ↔ is_copri
 
 lemma mul_add_right_right_iff {x y z : R} : is_coprime x (z * x + y) ↔ is_coprime x y :=
 ⟨of_mul_add_right_right, λ h, h.mul_add_right_right z⟩
+
+lemma neg_left {x y : R} (h : is_coprime x y) : is_coprime (-x) y :=
+begin
+  obtain ⟨a, b, h⟩ := h,
+  use [-a, b],
+  rwa neg_mul_neg,
+end
+
+lemma neg_left_iff (x y : R) : is_coprime (-x) y ↔ is_coprime x y :=
+⟨λ h, neg_neg x ▸ h.neg_left, neg_left⟩
+
+lemma neg_right {x y : R} (h : is_coprime x y) : is_coprime x (-y) :=
+h.symm.neg_left.symm
+
+lemma neg_right_iff (x y : R) : is_coprime x (-y) ↔ is_coprime x y :=
+⟨λ h, neg_neg y ▸ h.neg_right, neg_right⟩
+
+lemma neg_neg {x y : R} (h : is_coprime x y) : is_coprime (-x) (-y) :=
+h.neg_left.neg_right
+
+lemma neg_neg_iff (x y : R) : is_coprime (-x) (-y) ↔ is_coprime x y :=
+(neg_left_iff _ _).trans (neg_right_iff _ _)
 
 end comm_ring
 

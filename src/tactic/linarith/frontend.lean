@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Robert Y. Lewis
+Authors: Robert Y. Lewis
 -/
 
 import tactic.linarith.verification
@@ -49,6 +49,10 @@ numbers are cast into inequalities about integers, and rational division by nume
 into multiplication. We do this so that we can guarantee the coefficients in the certificate are
 natural numbers, which allows the tactic to solve goals over types that are not fields.
 
+Preprocessors are allowed to branch, that is, to case split on disjunctions. `linarith` will succeed
+overall if it succeeds in all cases. This leads to exponential blowup in the number of `linarith`
+calls, and should be used sparingly. The default preprocessor set does not include case splits.
+
 ## Fourier-Motzkin elimination
 
 The oracle implemented to search for certificates uses Fourier-Motzkin variable elimination.
@@ -75,10 +79,10 @@ disequality hypotheses, since this would lead to a number of runs exponential in
 disequalities in the context.
 
 The Fourier-Motzkin oracle is very modular. It can easily be replaced with another function of type
-`list comp → ℕ → option (rb_map ℕ ℕ)`, which takes a list of comparisons and the largest variable
+`certificate_oracle := list comp → ℕ → tactic (rb_map ℕ ℕ)`,
+which takes a list of comparisons and the largest variable
 index appearing in those comparisons, and returns a map from comparison indices to coefficients.
-Because we do not expect another oracle to be available any time soon, there is no convenient hook
-to replace it, but doing so requires only a few lines of code to change.
+An alternate oracle can be specified in the `linarith_config` object.
 
 A variant, `nlinarith`, adds an extra preprocessing step to handle some basic nonlinear goals.
 There is a hook in the `linarith_config` configuration object to add custom preprocessing routines.
@@ -149,7 +153,8 @@ Otherwise returns `none`.
 meta def apply_contr_lemma : tactic (option (expr × expr)) :=
 do t ← target,
    match get_contr_lemma_name_and_type t with
-   | some (nm, tp) := do refine ((expr.const nm []) pexpr.mk_placeholder), v ← intro1, return $ some (tp, v)
+   | some (nm, tp) :=
+     do refine ((expr.const nm []) pexpr.mk_placeholder), v ← intro1, return $ some (tp, v)
    | none := return none
    end
 
@@ -172,14 +177,16 @@ meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) :
 /--
 Given a list `hyps` of proofs of comparisons, `run_linarith_on_pfs cfg hyps pref_type`
 preprocesses `hyps` according to the list of preprocessors in `cfg`.
-It then partitions the resulting list of hypotheses by type, and runs `linarith` on each class
-in the partition.
+This results in a list of branches (typically only one),
+each of which must succeed in order to close the goal.
 
+In each branch, we partition the  list of hypotheses by type, and run `linarith` on each class
+in the partition; one of these must succeed in order for `linarith` to succeed on this branch.
 If `pref_type` is given, it will first use the class of proofs of comparisons over that type.
 -/
 meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
-  tactic expr :=
-do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyps,
+  tactic unit :=
+let single_process := λ hyps : list expr, do
    linarith_trace_proofs
      ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
    hyp_set ← partition_by_type hyps,
@@ -188,7 +195,11 @@ do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyp
    | some t := prove_false_by_linarith cfg (hyp_set.ifind t) <|>
                try_linarith_on_lists cfg (rb_map.values (hyp_set.erase t))
    | none := try_linarith_on_lists cfg (rb_map.values hyp_set)
-   end
+   end in
+let preprocessors := cfg.preprocessors.get_or_else default_preprocessors,
+    preprocessors := if cfg.split_ne then linarith.remove_ne::preprocessors else preprocessors in
+do hyps ← preprocess preprocessors hyps,
+hyps.mmap' $ λ hs, do set_goals [hs.1], single_process hs.2 >>= exact
 
 /--
 `filter_hyps_to_type restr_type hyps` takes a list of proofs of comparisons `hyps`, and filters it
@@ -226,29 +237,34 @@ expressions.
 -/
 meta def tactic.linarith (reduce_semi : bool) (only_on : bool) (hyps : list pexpr)
   (cfg : linarith_config := {}) : tactic unit :=
+focus1 $
 do t ← target,
 -- if the target is an equality, we run `linarith` twice, to prove ≤ and ≥.
 if t.is_eq.is_some then
   linarith_trace "target is an equality: splitting" >>
     seq' (applyc ``eq_of_not_lt_of_not_gt) tactic.linarith else
-do when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try auto.split_hyps),
+do hyps ← hyps.mmap $ λ e, i_to_expr e >>= note_anon none,
+   when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try auto.split_hyps),
 /- If we are proving a comparison goal (and not just `false`), we consider the type of the
    elements in the comparison to be the "preferred" type. That is, if we find comparison
    hypotheses in multiple types, we will run `linarith` on the goal type first.
    In this case we also recieve a new variable from moving the goal to a hypothesis.
-   Otherwise, there is no preferred type and no new variable; we simply change the goal to `false`. -/
+   Otherwise, there is no preferred type and no new variable; we simply change the goal to `false`.
+-/
    pref_type_and_new_var_from_tgt ← apply_contr_lemma,
    when pref_type_and_new_var_from_tgt.is_none $
      if cfg.exfalso then linarith_trace "using exfalso" >> exfalso
      else fail "linarith failed: target is not a valid comparison",
    let cfg := cfg.update_reducibility reduce_semi,
-   let (pref_type, new_var) := pref_type_and_new_var_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
+   let (pref_type, new_var) :=
+     pref_type_and_new_var_from_tgt.elim (none, none) (λ ⟨a, b⟩, (some a, some b)),
    -- set up the list of hypotheses, considering the `only_on` and `restrict_type` options
-   hyps ← hyps.mmap i_to_expr,
-   hyps ← if only_on then return (new_var.elim [] singleton ++ hyps) else (++ hyps) <$> local_context,
-   hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|> return hyps,
+   hyps ← if only_on then return (new_var.elim [] singleton ++ hyps)
+          else (++ hyps) <$> local_context,
+   hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|>
+     return hyps,
    linarith_trace_proofs "linarith is running on the following hypotheses:" hyps,
-   run_linarith_on_pfs cfg hyps pref_type >>= exact
+   run_linarith_on_pfs cfg hyps pref_type
 
 setup_tactic_parser
 

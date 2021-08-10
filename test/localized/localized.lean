@@ -1,9 +1,10 @@
 import tactic.localized
+import algebra.group_power
 
 open tactic
 local infix ` ⊹ `:59 := nat.mul
-local infix ` ↓ `:59 := nat.pow
-local infix ` ⊖ `:59 := nat.pow
+local infix ` ↓ `:59 := pow
+local infix ` ⊖ `:59 := pow
 example : 2 ⊹ 3 = 6 := rfl
 example : 2 ↓ 3 = 8 := rfl
 example : 2 ⊖ 3 = 8 := rfl

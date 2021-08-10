@@ -5,7 +5,7 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.products.basic
 
-/-#
+/-!
 The associator functor `((C × D) × E) ⥤ (C × (D × E))` and its inverse form an equivalence.
 -/
 
@@ -22,16 +22,14 @@ variables (C : Type u₁) [category.{v₁} C]
 /--
 The associator functor `(C × D) × E ⥤ C × (D × E)`.
 -/
--- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for,
--- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.
-@[simps obj map] def associator : (C × D) × E ⥤ C × (D × E) :=
+@[simps] def associator : (C × D) × E ⥤ C × (D × E) :=
 { obj := λ X, (X.1.1, (X.1.2, X.2)),
   map := λ _ _ f, (f.1.1, (f.1.2, f.2)) }
 
 /--
 The inverse associator functor `C × (D × E) ⥤ (C × D) × E `.
 -/
-@[simps obj map] def inverse_associator : C × (D × E) ⥤ (C × D) × E :=
+@[simps] def inverse_associator : C × (D × E) ⥤ (C × D) × E :=
 { obj := λ X, ((X.1, X.2.1), X.2.2),
   map := λ _ _ f, ((f.1, f.2.1), f.2.2) }
 

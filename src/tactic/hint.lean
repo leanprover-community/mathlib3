@@ -54,7 +54,9 @@ add_tactic_doc
 add_hint_tactic "refl"
 add_hint_tactic "exact dec_trivial"
 add_hint_tactic "assumption"
-add_hint_tactic "intro" -- tidy does something better here: it suggests the actual "intros X Y f" string; perhaps add a wrapper?
+-- tidy does something better here: it suggests the actual "intros X Y f" string.
+-- perhaps add a wrapper?
+add_hint_tactic "intro"
 add_hint_tactic "apply_auto_param"
 add_hint_tactic "dsimp at *"
 add_hint_tactic "simp at *" -- TODO hook up to squeeze_simp?

@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis, Heather Macbeth
 -/
 
+import analysis.complex.basic
+import analysis.normed_space.bounded_linear_maps
+import analysis.special_functions.sqrt
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
-import data.complex.is_R_or_C
-import analysis.special_functions.sqrt
-import analysis.complex.basic
 
 /-!
 # Inner Product Space

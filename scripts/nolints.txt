@@ -291,9 +291,6 @@ apply_nolint pfun.graph' doc_blame
 apply_nolint pfun.image doc_blame
 apply_nolint pfun.preimage doc_blame
 apply_nolint pfun.res doc_blame
-apply_nolint roption.equiv_option doc_blame
-apply_nolint roption.get_or_else doc_blame
-apply_nolint roption.restrict doc_blame
 
 -- data/pnat/xgcd.lean
 apply_nolint pnat.gcd_a' doc_blame

@@ -3,7 +3,7 @@ Copyright (c) 2021 . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set_like.basic.basic
+import data.set_like.basic
 import data.fintype.basic
 /-!
 # Set-like fintype

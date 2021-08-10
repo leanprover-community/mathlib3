@@ -11,8 +11,8 @@ import group_theory.quotient_group
 
 # Nilpotent groups
 
-A basic API for nilpotent groups, that is, groups for which the upper central series
-reaches `⊥`.
+An API for nilpotent groups, that is, groups for which the upper central series
+reaches `⊤`.
 
 ## Main definitions
 

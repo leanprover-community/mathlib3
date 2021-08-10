@@ -88,11 +88,43 @@ begin
   exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ ⟨x, hx, rfl⟩
 end
 
-lemma eq_bot_of_generator_maximal_range_eq_zero {N O : submodule R M} (b : basis ι R O)
+/-- `(ϕ : O →ₗ M').submodule_image N` is `ϕ(N)` as a submodule of `M'` -/
+def linear_map.submodule_image {M' : Type*} [add_comm_group M'] [module R M']
+  {O : submodule R M} (ϕ : O →ₗ[R] M') (N : submodule R M) : submodule R M' :=
+(N.comap O.subtype).map ϕ
+
+@[simp] lemma linear_map.mem_submodule_image {M' : Type*} [add_comm_group M'] [module R M']
+  {O : submodule R M} {ϕ : O →ₗ[R] M'} {N : submodule R M} {x : M'} :
+  x ∈ ϕ.submodule_image N ↔ ∃ y (yO : y ∈ O) (yN : y ∈ N), ϕ ⟨y, yO⟩ = x :=
+begin
+  refine submodule.mem_map.trans ⟨_, _⟩; simp_rw submodule.mem_comap,
+  { rintro ⟨⟨y, yO⟩, (yN : y ∈ N), h⟩,
+    exact ⟨y, yO, yN, h⟩ },
+  { rintro ⟨y, yO, yN, h⟩,
+    exact ⟨⟨y, yO⟩, yN, h⟩ }
+end
+
+lemma linear_map.mem_submodule_image_of_le {M' : Type*} [add_comm_group M'] [module R M']
+  {O : submodule R M} {ϕ : O →ₗ[R] M'} {N : submodule R M} (hNO : N ≤ O) {x : M'} :
+  x ∈ ϕ.submodule_image N ↔ ∃ y (yN : y ∈ N), ϕ ⟨y, hNO yN⟩ = x :=
+begin
+  refine linear_map.mem_submodule_image.trans ⟨_, _⟩,
+  { rintro ⟨y, yO, yN, h⟩,
+    exact ⟨y, yN, h⟩ },
+  { rintro ⟨y, yN, h⟩,
+    exact ⟨y, hNO yN, yN, h⟩ }
+end
+
+lemma linear_map.submodule_image_apply_of_le {M' : Type*} [add_comm_group M'] [module R M']
+  {O : submodule R M} (ϕ : O →ₗ[R] M') (N : submodule R M) (hNO : N ≤ O) :
+  ϕ.submodule_image N = (ϕ.comp (of_le hNO)).range :=
+by rw [linear_map.submodule_image, linear_map.range_comp, range_of_le]
+
+lemma eq_bot_of_generator_maximal_submodule_image_eq_zero {N O : submodule R M} (b : basis ι R O)
   (hNO : N ≤ O)
-  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), (ϕ.comp $ of_le hNO).range ≤ (ψ.comp $ of_le hNO).range →
-    (ψ.comp $ of_le hNO).range = (ϕ.comp (of_le hNO)).range)
-  [(ϕ.comp (of_le hNO)).range.is_principal] (hgen : generator (ϕ.comp (of_le hNO)).range = 0) :
+  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), ϕ.submodule_image N ≤ ψ.submodule_image N →
+    ψ.submodule_image N = ϕ.submodule_image N)
+  [(ϕ.submodule_image N).is_principal] (hgen : generator (ϕ.submodule_image N) = 0) :
   N = ⊥ :=
 begin
   rw submodule.eq_bot_iff,
@@ -100,7 +132,8 @@ begin
   refine congr_arg coe (show (⟨x, hNO hx⟩ : O) = 0, from b.ext_elem (λ i, _)),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
-  exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ ⟨⟨x, hx⟩, rfl⟩
+  refine (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i).comp b.repr) bot_le) _ _,
+  exact (linear_map.mem_submodule_image_of_le hNO).mpr ⟨x, hx, rfl⟩
 end
 
 -- Note that the converse may not hold if `ϕ` is not injective.
@@ -110,10 +143,10 @@ lemma generator_map_dvd_of_mem {N : submodule R M}
 by { rw [← mem_iff_generator_dvd, submodule.mem_map], exact ⟨x, hx, rfl⟩ }
 
 -- Note that the converse may not hold if `ϕ` is not injective.
-lemma generator_range_dvd_of_mem {N O : submodule R M} (hNO : N ≤ O)
-  (ϕ : O →ₗ[R] R) [(ϕ.comp (of_le hNO)).range.is_principal] {x : M} (hx : x ∈ N) :
-  generator (ϕ.comp (of_le hNO)).range ∣ ϕ ⟨x, hNO hx⟩ :=
-by { rw [← mem_iff_generator_dvd, linear_map.mem_range], exact ⟨⟨x, hx⟩, rfl⟩ }
+lemma generator_submodule_image_dvd_of_mem {N O : submodule R M} (hNO : N ≤ O)
+  (ϕ : O →ₗ[R] R) [(ϕ.submodule_image N).is_principal] {x : M} (hx : x ∈ N) :
+  generator (ϕ.submodule_image N) ∣ ϕ ⟨x, hNO hx⟩ :=
+by { rw [← mem_iff_generator_dvd, linear_map.mem_submodule_image_of_le hNO], exact ⟨x, hx, rfl⟩ }
 
 end comm_ring
 
@@ -313,13 +346,13 @@ begin
 end
 
 lemma generator_maximal_range_dvd {N O : submodule R M} (hNO : N ≤ O)
-  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), (ϕ.comp $ of_le hNO).range ≤ (ψ.comp $ of_le hNO).range →
-    (ψ.comp $ of_le hNO).range = (ϕ.comp (of_le hNO)).range)
-  [(ϕ.comp (of_le hNO)).range.is_principal]
-  (y : M) (yN : y ∈ N) (ϕy_eq : ϕ ⟨y, hNO yN⟩ = generator (ϕ.comp (of_le hNO)).range)
-  (ψ : O →ₗ[R] R) : generator (ϕ.comp (of_le hNO)).range ∣ ψ ⟨y, hNO yN⟩ :=
+  {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), ϕ.submodule_image N ≤ ψ.submodule_image N →
+    ψ.submodule_image N = ϕ.submodule_image N)
+  [(ϕ.submodule_image N).is_principal]
+  (y : M) (yN : y ∈ N) (ϕy_eq : ϕ ⟨y, hNO yN⟩ = generator (ϕ.submodule_image N))
+  (ψ : O →ₗ[R] R) : generator (ϕ.submodule_image N) ∣ ψ ⟨y, hNO yN⟩ :=
 begin
-  let a : R := generator (ϕ.comp (of_le hNO)).range,
+  let a : R := generator (ϕ.submodule_image N),
   let d : R := is_principal.generator (submodule.span R {a, ψ ⟨y, hNO yN⟩}),
   have d_dvd_left : d ∣ a := (mem_iff_generator_dvd _).mp
     (subset_span (mem_insert _ _)),
@@ -334,16 +367,16 @@ begin
     obtain ⟨r₂, rfl⟩ := mem_span_singleton.mp hr₂',
     exact ⟨r₁, r₂, hr₁⟩ },
   let ψ' : O →ₗ[R] R := r₁ • ϕ + r₂ • ψ,
-  have : span R {d} ≤ (ψ'.comp (of_le hNO)).range,
-  { rw [span_le, singleton_subset_iff, set_like.mem_coe, linear_map.mem_range],
-    refine ⟨⟨y, yN⟩, _⟩,
+  have : span R {d} ≤ ψ'.submodule_image N,
+  { rw [span_le, singleton_subset_iff, set_like.mem_coe, linear_map.mem_submodule_image_of_le hNO],
+    refine ⟨y, yN, _⟩,
     change r₁ * ϕ ⟨y, hNO yN⟩ + r₂ * ψ ⟨y, hNO yN⟩ = d,
     rw [d_eq, ϕy_eq] },
   refine le_antisymm (this.trans (le_of_eq _))
     (ideal.span_singleton_le_span_singleton.mpr d_dvd_left),
   rw span_singleton_generator,
   refine hϕ ψ' (le_trans _ this),
-  rw [← span_singleton_generator (ϕ.comp (of_le hNO)).range],
+  rw [← span_singleton_generator (ϕ.submodule_image N)],
   exact ideal.span_singleton_le_span_singleton.mpr d_dvd_left,
   { exact subset_span (mem_insert _ _) }
 end
@@ -371,15 +404,13 @@ lemma submodule.basis_of_pid_aux [fintype ι] {O : Type*} [add_comm_group O] [mo
   ∃ (as' : fin (n' + 1) → R),
   ∀ (i : fin (n' + 1)), (bN i : O) = as' i • (bM (fin.cast_le hnm i) : O) :=
 begin
-  let inc : N →ₗ[R] M := submodule.of_le N_le_M,
-
   -- Let `ϕ` be a maximal projection of `M` onto `R`, in the sense that there is
   -- no `ψ` whose image of `N` is larger than `ϕ`'s image of `N`.
   have : ∃ ϕ : M →ₗ[R] R, ∀ (ψ : M →ₗ[R] R),
-    (ϕ.comp inc).range ≤ (ψ.comp inc).range → (ψ.comp inc).range = (ϕ.comp inc).range,
+    ϕ.submodule_image N ≤ ψ.submodule_image N → ψ.submodule_image N = ϕ.submodule_image N,
   { obtain ⟨P, P_eq, P_max⟩ := set_has_maximal_iff_noetherian.mpr
         (infer_instance : is_noetherian R R) _
-        (show (set.range (λ ψ : M →ₗ[R] R, (ψ.comp inc).range)).nonempty,
+        (show (set.range (λ ψ : M →ₗ[R] R, ψ.submodule_image N)).nonempty,
          from ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩),
     obtain ⟨ϕ, rfl⟩ := set.mem_range.mp P_eq,
     use ϕ,
@@ -389,18 +420,16 @@ begin
   have ϕ_max := this.some_spec,
   -- Since the range of `ϕ` is a `R`-submodule of the PID `R`,
   -- it is principal and generated by some `a`.
-  let a := generator (ϕ.comp inc).range,
-  have a_mem : a ∈ (ϕ.comp inc).range := generator_mem _,
+  let a := generator (ϕ.submodule_image N),
+  have a_mem : a ∈ ϕ.submodule_image N := generator_mem _,
 
   -- If `a` is zero, then the submodule is trivial. So let's assume `a ≠ 0`, `N ≠ ⊥`.
   by_cases a_zero : a = 0,
-  { have := eq_bot_of_generator_maximal_range_eq_zero b'M N_le_M ϕ_max a_zero,
+  { have := eq_bot_of_generator_maximal_submodule_image_eq_zero b'M N_le_M ϕ_max a_zero,
     contradiction },
 
   -- We claim that `ϕ⁻¹ a = y` can be taken as basis element of `N`.
-  have ϕy_eq := a_mem.some_spec,
-  cases a_mem.some with y yN,
-  have ϕy_eq : ϕ ⟨y, N_le_M yN⟩ = a := ϕy_eq,
+  obtain ⟨y, yN, ϕy_eq⟩ := (linear_map.mem_submodule_image_of_le N_le_M).mp a_mem,
   have ϕy_ne_zero : ϕ ⟨y, N_le_M yN⟩ ≠ 0 := λ h, a_zero (ϕy_eq.symm.trans h),
   -- Write `y` as `a • y'` for some `y'`.
   have hdvd : ∀ i, a ∣ b'M.coord i ⟨y, N_le_M yN⟩ :=
@@ -428,14 +457,14 @@ begin
 
   -- `M' := ker (ϕ : M → R)` is smaller than `M` and `N' := ker (ϕ : N → R)` is smaller than `N`.
   let M' : submodule R O := ϕ.ker.map M.subtype,
-  let N' : submodule R O := (ϕ.comp inc).ker.map N.subtype,
+  let N' : submodule R O := (ϕ.comp (submodule.of_le N_le_M)).ker.map N.subtype,
   have M'_le_M : M' ≤ M := M.map_subtype_le ϕ.ker,
   have N'_le_M' : N' ≤ M',
   { intros x hx,
     simp only [mem_map, linear_map.mem_ker] at hx ⊢,
     obtain ⟨⟨x, xN⟩, hx, rfl⟩ := hx,
     exact ⟨⟨x, N_le_M xN⟩, hx, rfl⟩ },
-  have N'_le_N : N' ≤ N := N.map_subtype_le (ϕ.comp inc).ker,
+  have N'_le_N : N' ≤ N := N.map_subtype_le (ϕ.comp (submodule.of_le N_le_M)).ker,
   -- So fill in those results as well.
   refine ⟨M', M'_le_M, N', N'_le_N, N'_le_M', _⟩,
 
@@ -460,7 +489,7 @@ begin
       refine ay'_ortho_N' c z zN' _,
       rwa ← a_smul_y' at hc },
     { intros z zN,
-      obtain ⟨b, hb⟩ : _ ∣ ϕ ⟨z, N_le_M zN⟩ := generator_range_dvd_of_mem N_le_M ϕ zN,
+      obtain ⟨b, hb⟩ : _ ∣ ϕ ⟨z, N_le_M zN⟩ := generator_submodule_image_dvd_of_mem N_le_M ϕ zN,
       refine ⟨-b, submodule.mem_map.mpr ⟨⟨_, N.sub_mem zN (N.smul_mem b yN)⟩, _, _⟩⟩,
       { refine linear_map.mem_ker.mpr (show ϕ (⟨z, N_le_M zN⟩ - b • ⟨y, N_le_M yN⟩) = 0, from _),
         rw [linear_map.map_sub, linear_map.map_smul, hb, ϕy_eq, smul_eq_mul,

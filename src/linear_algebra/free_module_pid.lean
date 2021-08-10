@@ -607,7 +607,8 @@ noncomputable def module.free_of_finite_type_torsion_free' [module.finite R M]
 module.free_of_finite_type_torsion_free module.finite.exists_fin.some_spec.some_spec
 
 /-- If `M` is finite free over a PID `R`, then any submodule `N` is free
-and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix.
+and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix
+in Smith normal form.
 
 This is a strengthening of `submodule.basis_of_pid_of_le`.
 -/
@@ -634,7 +635,8 @@ begin
 end
 
 /-- If `M` is finite free over a PID `R`, then any submodule `N` is free
-and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix.
+and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix
+in Smith normal form.
 
 This is a strengthening of `submodule.basis_of_pid`.
 

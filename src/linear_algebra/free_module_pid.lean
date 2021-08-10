@@ -606,9 +606,20 @@ noncomputable def module.free_of_finite_type_torsion_free' [module.finite R M]
   Σ (n : ℕ), basis (fin n) R M :=
 module.free_of_finite_type_torsion_free module.finite.exists_fin.some_spec.some_spec
 
+section smith_normal
+
+/-- A Smith normal form basis for a submodule `N` of a module `M` consists of bases for `M` and `N`
+such that the inclusion map `N → M` can be written as a diagonal matrix in Smith normal form. -/
+structure basis.smith_normal_form (N : submodule R M) (ι : Type*) (n : ℕ) :=
+(bM : basis ι R M) (bN : basis (fin n) R N) (f : fin n ↪ ι)
+(a : fin n → R) (snf : ∀ i, (bN i : M) = a i • bM (f i))
+
 /-- If `M` is finite free over a PID `R`, then any submodule `N` is free
 and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix
 in Smith normal form.
+
+See `submodule.smith_normal_form_of_le` for a version of this theorem that returns
+a `basis.smith_normal_form`.
 
 This is a strengthening of `submodule.basis_of_pid_of_le`.
 -/
@@ -638,22 +649,42 @@ end
 and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix
 in Smith normal form.
 
+See `submodule.exists_smith_normal_form_of_le` for a version of this theorem that doesn't
+need to map `N` into a submodule of `O`.
+
+This is a strengthening of `submodule.basis_of_pid_of_le`.
+-/
+noncomputable def submodule.smith_normal_form_of_le [fintype ι]
+  (b : basis ι R M) (N O : submodule R M) (N_le_O : N ≤ O) :
+  Σ (o n : ℕ), basis.smith_normal_form (N.comap O.subtype) (fin o) n :=
+begin
+  choose n o hno bO bN a snf using N.exists_smith_normal_form_of_le b O N_le_O,
+  refine ⟨o, n, bO, bN.map (comap_subtype_equiv_of_le N_le_O).symm, (fin.cast_le hno).to_embedding,
+          a, λ i, _⟩,
+  ext,
+  simp only [snf, basis.map_apply, submodule.comap_subtype_equiv_of_le_symm_apply_coe_coe,
+      submodule.coe_smul_of_tower, rel_embedding.coe_fn_to_embedding]
+end
+
+/-- If `M` is finite free over a PID `R`, then any submodule `N` is free
+and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix
+in Smith normal form.
+
 This is a strengthening of `submodule.basis_of_pid`.
 
 See also `ideal.exists_smith_normal_form`, which moreover proves that the dimension of
 an ideal is the same as the dimension of the whole ring.
 -/
-theorem submodule.exists_smith_normal_form [fintype ι] (b : basis ι R M) (N : submodule R M) :
-  ∃ (n : ℕ) (bM : basis ι R M) (bN : basis (fin n) R N) (f : fin n → ι) (a : fin n → R),
-    ∀ i, (bN i : M) = a i • bM (f i) :=
-begin
-  obtain ⟨n, m, hnm, b', bN, a, h⟩ := submodule.exists_smith_normal_form_of_le b N ⊤ le_top,
-  let b'' : basis _ R M := b'.map (linear_equiv.of_top _ rfl),
-  refine ⟨n, b''.reindex (b''.index_equiv b), bN, b''.index_equiv b ∘ fin.cast_le hnm, a, _⟩,
-  intros i,
-  rw [h, function.comp_app, basis.reindex_apply, equiv.symm_apply_apply, basis.map_apply,
-      linear_equiv.of_top_apply]
-end
+noncomputable def submodule.smith_normal_form [fintype ι] (b : basis ι R M) (N : submodule R M) :
+  Σ (n : ℕ), basis.smith_normal_form N ι n :=
+let ⟨m, n, bM, bN, f, a, snf⟩ := N.smith_normal_form_of_le b ⊤ le_top,
+    bM' := bM.map (linear_equiv.of_top _ rfl),
+    e := bM'.index_equiv b in
+⟨n, bM'.reindex e, bN.map (comap_subtype_equiv_of_le le_top), f.trans e.to_embedding, a,
+ λ i, by simp only [snf, basis.map_apply, linear_equiv.of_top_apply, submodule.coe_smul_of_tower,
+                    submodule.comap_subtype_equiv_of_le_apply_coe, coe_coe, basis.reindex_apply,
+                    equiv.to_embedding_apply, function.embedding.trans_apply,
+                    equiv.symm_apply_apply]⟩
 
 /-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
 then the rank of an ideal `I` of `S` over `R` is the same as the rank of `S`.
@@ -682,35 +713,42 @@ then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
 find a basis for `S` and `I` such that the inclusion map is a square diagonal
 matrix.
 
+See `ideal.exists_smith_normal_form` for a version of this theorem that doesn't
+need to map `I` into a submodule of `R`.
+
 This is a strengthening of `submodule.basis_of_pid`.
+-/
+noncomputable def ideal.smith_normal_form [fintype ι] {S : Type*} [integral_domain S] [algebra R S]
+  (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
+  basis.smith_normal_form (I.restrict_scalars R) ι (fintype.card ι) :=
+let ⟨n, bS, bI, f, a, snf⟩ := (I.restrict_scalars R).smith_normal_form b in
+have eq : _ := ideal.rank_eq bS hI (bI.map ((restrict_scalars_equiv R S S I).restrict_scalars _)),
+let e : fin n ≃ fin (fintype.card ι) := fintype.equiv_of_card_eq (by rw [eq, fintype.card_fin]) in
+⟨bS, bI.reindex e, e.symm.to_embedding.trans f, a ∘ e.symm, λ i,
+  by simp only [snf, basis.coe_reindex, function.embedding.trans_apply, equiv.to_embedding_apply]⟩
+
+/-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
+then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
+find a basis for `S` and `I` such that the inclusion map is a square diagonal
+matrix.
+
+See also `ideal.smith_normal_form` for a version of this theorem that returns
+a `basis.smith_normal_form`.
 -/
 theorem ideal.exists_smith_normal_form [fintype ι] {S : Type*} [integral_domain S] [algebra R S]
   (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
   ∃ (b' : basis ι R S) (a : ι → R) (ab' : basis ι R I),
   ∀ i, (ab' i : S) = a i • b' i :=
-begin
-  obtain ⟨n, b', ab', g', a', ab_eq⟩ := submodule.exists_smith_normal_form b (I.restrict_scalars R),
-  let ab : basis (fin n) R I := ab'.map ((restrict_scalars_equiv R S S I).restrict_scalars _),
-  have g'_inj : function.injective g',
-  { intros i j h,
-    refine ab'.linear_independent.eq_of_smul_apply_eq_smul_apply (a' j) (a' i) i j _ _,
-    { rintro ha,
-      refine ab'.ne_zero j _,
-      ext,
-      simp [ab_eq, ha] },
-    { ext,
-      simp [ab_eq, h, ← mul_action.mul_smul, mul_comm] } },
-  have g'_bij := (fintype.bijective_iff_injective_and_card g').mpr ⟨g'_inj, ideal.rank_eq b' hI ab⟩,
-  let g : fin n ≃ ι := equiv.of_bijective g' g'_bij,
-  have g_apply : ∀ i, g i = g' i := λ i, rfl,
-  let a : ι → R := a' ∘ g.symm,
-  have a_apply : ∀ i, a i = a' (g.symm i) := λ i, rfl,
-  use [b', a, ab.reindex g],
-  intro i,
-  rw [← g.apply_symm_apply i, a_apply, g.symm_apply_apply, basis.reindex_apply, g.symm_apply_apply],
-  simp only [ab_eq, ab'.map_apply, restrict_scalars_equiv_apply, linear_equiv.to_fun_eq_coe,
-      linear_equiv.refl_apply, linear_equiv.restrict_scalars_apply, equiv.of_bijective_apply],
-end
+let ⟨bS, bI, f, a, snf⟩ := I.smith_normal_form b hI,
+    e : fin (fintype.card ι) ≃ ι := equiv.of_bijective f
+      ((fintype.bijective_iff_injective_and_card f).mpr ⟨f.injective, fintype.card_fin _⟩) in
+have fe : ∀ i, f (e.symm i) = i := e.apply_symm_apply,
+⟨bS, a ∘ e.symm, (bI.reindex e).map ((restrict_scalars_equiv _ _ _ _).restrict_scalars R), λ i,
+  by simp only [snf, fe, basis.map_apply, linear_equiv.refl_apply,
+    linear_equiv.restrict_scalars_apply, submodule.restrict_scalars_equiv_apply, basis.coe_reindex,
+    linear_equiv.to_fun_eq_coe]⟩
+
+end smith_normal
 
 end principal_ideal_domain
 

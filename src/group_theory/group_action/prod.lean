@@ -3,7 +3,6 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
-import group_theory.group_action.defs
 import algebra.group.prod
 
 /-!

@@ -3,12 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.group_action.defs
-import algebra.group.units
-import algebra.group_with_zero
-import data.equiv.mul_add
 import data.equiv.mul_add_aut
-import group_theory.perm.basic
 import group_theory.group_action.units
 
 /-!
@@ -38,11 +33,16 @@ by rw [smul_smul, mul_left_inv, one_smul]
 by rw [smul_smul, mul_right_inv, one_smul]
 
 /-- Given an action of a group `α` on `β`, each `g : α` defines a permutation of `β`. -/
-@[to_additive] def mul_action.to_perm (a : α) : equiv.perm β :=
+@[to_additive, simps] def mul_action.to_perm (a : α) : equiv.perm β :=
 ⟨λ x, a • x, λ x, a⁻¹ • x, inv_smul_smul a, smul_inv_smul a⟩
 
 /-- Given an action of an additive group `α` on `β`, each `g : α` defines a permutation of `β`. -/
 add_decl_doc add_action.to_perm
+
+/-- `mul_action.to_perm` is injective on faithful actions. -/
+@[to_additive] lemma mul_action.to_perm_injective [has_faithful_scalar α β] :
+  function.injective (mul_action.to_perm : α → equiv.perm β) :=
+(show function.injective (equiv.to_fun ∘ mul_action.to_perm), from smul_left_injective').of_comp
 
 variables (α) (β)
 

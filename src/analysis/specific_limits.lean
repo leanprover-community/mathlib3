@@ -935,10 +935,15 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
 ### Ceil and floor
 -/
 
-lemma tendsto_nat_floor_mul_div_at_top {a : ℝ} (ha : 0 ≤ a) :
-  tendsto (λ x, (⌊a * x⌋₊ : ℝ) / x) at_top (𝓝 a) :=
+section
+
+variables {R : Type*} [topological_space R] [linear_ordered_field R] [order_topology R]
+[floor_ring R]
+
+lemma tendsto_nat_floor_mul_div_at_top {a : R} (ha : 0 ≤ a) :
+  tendsto (λ x, (⌊a * x⌋₊ : R) / x) at_top (𝓝 a) :=
 begin
-  have A : tendsto (λ (x : ℝ), a - x⁻¹) at_top (𝓝 (a - 0)) :=
+  have A : tendsto (λ (x : R), a - x⁻¹) at_top (𝓝 (a - 0)) :=
     tendsto_const_nhds.sub tendsto_inv_at_top_zero,
   rw sub_zero at A,
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le' A tendsto_const_nhds,
@@ -952,10 +957,10 @@ begin
     simp [nat_floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
 end
 
-lemma tendsto_nat_ceil_mul_div_at_top {a : ℝ} (ha : 0 ≤ a) :
-  tendsto (λ x, (⌈a * x⌉₊ : ℝ) / x) at_top (𝓝 a) :=
+lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
+  tendsto (λ x, (⌈a * x⌉₊ : R) / x) at_top (𝓝 a) :=
 begin
-  have A : tendsto (λ (x : ℝ), a + x⁻¹) at_top (𝓝 (a + 0)) :=
+  have A : tendsto (λ (x : R), a + x⁻¹) at_top (𝓝 (a + 0)) :=
     tendsto_const_nhds.add tendsto_inv_at_top_zero,
   rw add_zero at A,
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds A,
@@ -965,4 +970,6 @@ begin
   { refine eventually_at_top.2 ⟨1, λ x hx, _⟩,
     simp [div_le_iff (zero_lt_one.trans_le hx), inv_mul_cancel (zero_lt_one.trans_le hx).ne',
       (nat_ceil_lt_add_one ((mul_nonneg ha (zero_le_one.trans hx)))).le, add_mul] }
+end
+
 end

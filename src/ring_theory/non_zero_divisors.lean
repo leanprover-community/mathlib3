@@ -57,11 +57,23 @@ lemma map_ne_zero_of_mem_non_zero_divisors [nontrivial M]
   {x : M} (h : x ∈ non_zero_divisors M) : g x ≠ 0 :=
 λ h0, one_ne_zero (h 1 ((one_mul x).symm ▸ (hg (trans h0 g.map_zero.symm))))
 
+lemma ring_hom.map_ne_zero_of_mem_non_zero_divisors {R R' : Type*} [semiring R] [semiring R']
+  [nontrivial R]
+  {g : R →+* R'} (hg : function.injective g)
+  {x : R} (h : x ∈ non_zero_divisors R) : g x ≠ 0 :=
+show g.to_monoid_with_zero_hom x ≠ 0, from map_ne_zero_of_mem_non_zero_divisors hg h
+
 lemma map_mem_non_zero_divisors [nontrivial M] [no_zero_divisors M']
   {g : monoid_with_zero_hom M M'} (hg : function.injective g)
   {x : M} (h : x ∈ non_zero_divisors M) : g x ∈ non_zero_divisors M' :=
 λ z hz, eq_zero_of_ne_zero_of_mul_right_eq_zero
   (map_ne_zero_of_mem_non_zero_divisors hg h) hz
+
+lemma ring_hom.map_mem_non_zero_divisors {R R' : Type*} [semiring R] [semiring R']
+  [nontrivial R] [no_zero_divisors R']
+  {g : R →+* R'} (hg : function.injective g)
+  {x : R} (h : x ∈ non_zero_divisors R) : g x ∈ non_zero_divisors R' :=
+show g.to_monoid_with_zero_hom x ∈ _, from map_mem_non_zero_divisors hg h
 
 lemma le_non_zero_divisors_of_no_zero_divisors [no_zero_divisors M] {S : submonoid M}
   (hS : (0 : M) ∉ S) : S ≤ non_zero_divisors M :=
@@ -77,6 +89,12 @@ lemma map_le_non_zero_divisors_of_injective [nontrivial M] [no_zero_divisors M']
   {S : submonoid M} (hS : S ≤ non_zero_divisors M) : S.map ↑f ≤ non_zero_divisors M' :=
 le_non_zero_divisors_of_no_zero_divisors (λ h, let ⟨x, hx, hx0⟩ := h in
   zero_ne_one (hS (hf (trans hx0 (f.map_zero.symm)) ▸ hx : 0 ∈ S) 1 (mul_zero 1)).symm)
+
+lemma ring_hom.map_le_non_zero_divisors_of_injective {R R' : Type*} [semiring R] [semiring R']
+  [nontrivial R] [no_zero_divisors R']
+  {f : R →+* R'} (hf : function.injective f)
+  {S : submonoid R} (hS : S ≤ non_zero_divisors R) : S.map ↑f ≤ non_zero_divisors R' :=
+show S.map ↑(f.to_monoid_with_zero_hom) ≤ _, from map_le_non_zero_divisors_of_injective hf hS
 
 lemma prod_zero_iff_exists_zero [no_zero_divisors M₁] [nontrivial M₁]
   {s : multiset M₁} : s.prod = 0 ↔ ∃ (r : M₁) (hr : r ∈ s), r = 0 :=

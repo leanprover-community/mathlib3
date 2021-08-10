@@ -117,8 +117,7 @@ lemma scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero
 begin
   convert scale_roots_eval₂_eq_zero f hr,
   rw [←mul_div_assoc, mul_comm, mul_div_cancel],
-  show f.to_monoid_with_zero_hom s ≠ 0,
-  exact map_ne_zero_of_mem_non_zero_divisors hf hs
+  exact ring_hom.map_ne_zero_of_mem_non_zero_divisors hf hs
 end
 
 lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]

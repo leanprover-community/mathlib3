@@ -1151,7 +1151,8 @@ end
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   (hM : M ≤ non_zero_divisors R) {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R S x ≠ 0 :=
-map_ne_zero_of_mem_non_zero_divisors (is_localization.injective S hM) hx
+show (algebra_map R S).to_monoid_with_zero_hom x ≠ 0,
+from map_ne_zero_of_mem_non_zero_divisors (is_localization.injective S hM) hx
 
 variables (S Q M)
 
@@ -1215,7 +1216,8 @@ The localization of an integral domain at the complement of a prime ideal is an 
 -/
 instance integral_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
   integral_domain (localization.at_prime P) :=
-integral_domain_localization (le_non_zero_divisors_of_domain (by simpa only [] using P.zero_mem))
+integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors
+  (not_not_intro P.zero_mem))
 
 namespace at_prime
 
@@ -1347,7 +1349,7 @@ lemma localization_map_bijective_of_field {R Rₘ : Type*} [integral_domain R] [
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
-  refine ⟨is_localization.injective _ (le_non_zero_divisors_of_domain hM), λ x, _⟩,
+  refine ⟨is_localization.injective _ (le_non_zero_divisors_of_no_zero_divisors hM), λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,
   obtain ⟨n, hn⟩ := hR.mul_inv_cancel (λ hm0, hM (hm0 ▸ hm) : m ≠ 0),
   exact ⟨r * n,
@@ -1467,7 +1469,8 @@ mk'_mk_eq_div s.2
 
 lemma is_unit_map_of_injective (hg : function.injective g)
   (y : non_zero_divisors A) : is_unit (g y) :=
-is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg y.2
+is_unit.mk0 (g y) $ show g.to_monoid_with_zero_hom y ≠ 0,
+  from map_ne_zero_of_mem_non_zero_divisors hg y.2
 
 /-- Given an integral domain `A` with field of fractions `K`,
 and an injective ring hom `g : A →+* L` where `L` is a field, we get a
@@ -1487,7 +1490,7 @@ begin
   erw submonoid.localization_map.mul_inv_left
   (λ y : non_zero_divisors A, show is_unit (g.to_monoid_hom y), from
     is_unit_map_of_injective hg y),
-  exact (mul_div_cancel' _ (map_ne_zero_of_mem_non_zero_divisors hg y.2)).symm,
+  exact (mul_div_cancel' _ (ring_hom.map_ne_zero_of_mem_non_zero_divisors hg y.2)).symm,
 end
 
 /-- Given integral domains `A, B` with fields of fractions `K`, `L`
@@ -1497,7 +1500,7 @@ such that `z = f x * (f y)⁻¹`. -/
 noncomputable def map [algebra B L] [is_fraction_ring B L] {j : A →+* B} (hj : injective j) :
   K →+* L :=
 map L j (show non_zero_divisors A ≤ (non_zero_divisors B).comap j,
-         from λ y hy, map_mem_non_zero_divisors hj hy)
+         from λ y hy, ring_hom.map_mem_non_zero_divisors hj hy)
 
 /-- Given integral domains `A, B` and localization maps to their fields of fractions
 `f : A →+* K, g : B →+* L`, an isomorphism `j : A ≃+* B` induces an isomorphism of

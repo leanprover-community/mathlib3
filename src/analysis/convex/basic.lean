@@ -458,7 +458,9 @@ begin
       rw mem_smul_set,
       refine ⟨_, this, _⟩,
       simp only [← mul_smul, smul_add],
-      congr; rw mul_div_cancel'; exact ne_of_gt hpq, },
+      congr;
+      rw mul_div_cancel';
+      exact ne_of_gt hpq, },
     { rcases h with ⟨v, hv, rfl⟩,
       use [p • v, q • v],
       refine ⟨smul_mem_smul_set hv, smul_mem_smul_set hv, _⟩,

@@ -64,6 +64,22 @@ instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
   [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
 
+/-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is
+not an instance as `i` cannot be inferred. -/
+lemma has_faithful_scalar_at {α : Type*}
+  [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_scalar α (f i)] :
+  has_faithful_scalar α (Π i, f i) :=
+⟨λ x y h, eq_of_smul_eq_smul $ λ a : f i, begin
+  classical,
+  have := congr_fun (h $ function.update (λ j, classical.choice (‹Π i, nonempty (f i)› j)) i a) i,
+  simpa using this,
+end⟩
+
+instance has_faithful_scalar {α : Type*}
+  [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_scalar α (f i)] :
+  has_faithful_scalar α (Π i, f i) :=
+let ⟨i⟩ := ‹nonempty I› in has_faithful_scalar_at i
+
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
   @mul_action α (Π i : I, f i) m :=
 { smul := (•),

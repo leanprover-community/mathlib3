@@ -3,9 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import algebra.group.hom
 import algebra.group.type_tags
-import algebra.group.units_hom
 import algebra.group_with_zero
 
 /-!
@@ -513,6 +511,31 @@ variable {G}
 
 @[simp, to_additive]
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
+
+/-- A version of `equiv.mul_left a b⁻¹` that is defeq to `a / b`. -/
+@[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. "-/, simps]
+protected def div_left (a : G) : G ≃ G :=
+{ to_fun := λ b, a / b,
+  inv_fun := λ b, b⁻¹ * a,
+  left_inv := λ b, by simp [div_eq_mul_inv],
+  right_inv := λ b, by simp [div_eq_mul_inv] }
+
+@[to_additive]
+lemma div_left_eq_inv_trans_mul_left (a : G) :
+  equiv.div_left a = (equiv.inv G).trans (equiv.mul_left a) :=
+ext $ λ _, div_eq_mul_inv _ _
+
+/-- A version of `equiv.mul_right a⁻¹ b` that is defeq to `b / a`. -/
+@[to_additive /-" A version of `equiv.add_right (-a) b` that is defeq to `b - a`. "-/, simps]
+protected def div_right (a : G) : G ≃ G :=
+{ to_fun := λ b, b / a,
+  inv_fun := λ b, b * a,
+  left_inv := λ b, by simp [div_eq_mul_inv],
+  right_inv := λ b, by simp [div_eq_mul_inv] }
+
+@[to_additive]
+lemma div_right_eq_mul_right_inv (a : G) : equiv.div_right a = equiv.mul_right a⁻¹ :=
+ext $ λ _, div_eq_mul_inv _ _
 
 end group
 

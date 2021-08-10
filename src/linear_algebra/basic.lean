@@ -4,15 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.big_operators.pi
-import algebra.module.hom
-import algebra.module.pi
 import algebra.module.prod
-import algebra.module.submodule
 import algebra.module.submodule_lattice
-import algebra.group.prod
-import data.finsupp.basic
 import data.dfinsupp
-import algebra.pointwise
+import data.finsupp.basic
 import order.compactly_generated
 import order.omega_complete_partial_order
 
@@ -223,10 +218,11 @@ instance : add_comm_monoid (M →ₗ[R] M₂) :=
   nsmul_zero' := λ f, by { ext x, simp },
   nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_one_add, add_nsmul] } }
 
-instance linear_map_apply_is_add_monoid_hom (a : M) :
-  is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
-{ map_add := λ f g, linear_map.add_apply f g a,
-  map_zero := rfl }
+/-- Evaluation of an `R`-linear map at a fixed `a`, as an `add_monoid_hom`. -/
+def eval_add_monoid_hom (a : M) : (M →ₗ[R] M₂) →+ M₂ :=
+{ to_fun := λ f, f a,
+  map_add' := λ f g, linear_map.add_apply f g a,
+  map_zero' := rfl }
 
 lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
   (h + g).comp f = h.comp f + g.comp f := rfl
@@ -234,9 +230,15 @@ lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
 lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
   h.comp (f + g) = h.comp f + h.comp g := by { ext, simp }
 
+/-- `linear_map.to_add_monoid_hom` promoted to an `add_monoid_hom` -/
+def to_add_monoid_hom' : (M →ₗ[R] M₂) →+ (M →+ M₂) :=
+{ to_fun := to_add_monoid_hom,
+  map_zero' := by ext; refl,
+  map_add' := by intros; ext; refl }
+
 lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
-(t.sum_hom (λ g : M →ₗ[R] M₂, g b)).symm
+add_monoid_hom.map_sum ((add_monoid_hom.eval b).comp to_add_monoid_hom') f _
 
 section smul_right
 
@@ -422,10 +424,6 @@ by refine
   gsmul_neg' := _,
   .. linear_map.add_comm_monoid };
 intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
-
-instance linear_map_apply_is_add_group_hom (a : M) :
-  is_add_group_hom (λ f : M →ₗ[R] M₂, f a) :=
-{ map_add := λ f g, linear_map.add_apply f g a }
 
 end add_comm_group
 
@@ -2833,10 +2831,13 @@ instance automorphism_group : group (M ≃ₗ[R] M) :=
   one_mul := λ f, by {ext, refl},
   mul_left_inv := λ f, by {ext, exact f.left_inv x} }
 
-instance automorphism_group.to_linear_map_is_monoid_hom :
-  is_monoid_hom (linear_equiv.to_linear_map : (M ≃ₗ[R] M) → (M →ₗ[R] M)) :=
-{ map_one := rfl,
-  map_mul := λ f g, rfl }
+/-- Restriction from `R`-linear automorphisms of `M` to `R`-linearendomorphisms of `M`,
+promoted to a monoid hom. -/
+def automorphism_group.to_linear_map_monoid_hom :
+  (M ≃ₗ[R] M) →* (M →ₗ[R] M) :=
+{ to_fun := coe,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
 /-- The group of invertible linear maps from `M` to itself -/
 @[reducible] def general_linear_group := units (M →ₗ[R] M)

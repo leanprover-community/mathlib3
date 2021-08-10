@@ -14,8 +14,8 @@ This file defines pairwise relations.
 ## Main declarations
 
 * `pairwise p`: States that `p i j` for all `i ≠ j`.
-
 -/
+
 open set
 
 universes u v w x
@@ -34,7 +34,7 @@ theorem set.pairwise_on.on_injective {s : set α} {r : α → α → Prop} (hs :
   pairwise (r on f) :=
 λ i j hij, hs _ (hfs i) _ (hfs j) (hf.ne hij)
 
-theorem pairwise.mono {p q : α → α → Prop} (h : ∀ ⦃i j⦄, p i j → q i j) (hp : pairwise p) :
+theorem pairwise.mono {p q : α → α → Prop} (hp : pairwise p) (h : ∀ ⦃i j⦄, p i j → q i j) :
   pairwise q :=
 λ i j hij, h (hp i j hij)
 
@@ -46,13 +46,17 @@ theorem pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
 pairwise_on_bool disjoint.symm
 
-theorem pairwise_on_nat {r} (hr : symmetric r) (f : ℕ → α) :
-  pairwise (r on f) ↔ ∀ (m n) (h : m < n), r (f m) (f n) :=
-⟨λ p m n w, p m n w.ne, λ p m n w, by { wlog w' : m ≤ n, exact p m n ((ne.le_iff_lt w).mp w'), }⟩
+lemma symmetric.pairwise_on [linear_order β] {r} (hr : symmetric r) (f : β → α) :
+  pairwise (r on f) ↔ ∀ m n, m < n → r (f m) (f n) :=
+⟨λ h m n hmn, h m n hmn.ne, λ h m n hmn, begin
+  obtain hmn' | hmn' := hmn.lt_or_lt,
+  { exact h _ _ hmn' },
+  { exact hr (h _ _ hmn') }
+end⟩
 
-theorem pairwise_disjoint_on_nat [semilattice_inf_bot α] (f : ℕ → α) :
-  pairwise (disjoint on f) ↔ ∀ (m n) (h : m < n), disjoint (f m) (f n) :=
-pairwise_on_nat disjoint.symm f
+theorem pairwise_disjoint_on [semilattice_inf_bot α] [linear_order β] (f : β → α) :
+  pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
+symmetric.pairwise_on disjoint.symm f
 
 theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
 λ x hx y hy, h x y

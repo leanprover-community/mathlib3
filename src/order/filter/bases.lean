@@ -760,7 +760,7 @@ begin
   have x_mono : ∀ n : ℕ, s (x n.succ) ⊆ s (x n) :=
     λ n, subset.trans (hs.set_index_subset _) (inter_subset_right _ _),
   replace x_mono : ∀ ⦃i j⦄, i ≤ j → s (x j) ≤ s (x i),
-  { refine @monotone_of_monotone_nat (order_dual $ set α) _ _ _,
+  { refine @monotone_nat_of_le_succ (order_dual $ set α) _ _ _,
     exact x_mono },
   have x_subset : ∀ i, s (x i) ⊆ x' i,
   { rintro (_|i),

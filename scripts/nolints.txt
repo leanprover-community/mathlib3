@@ -169,10 +169,6 @@ apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
 apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
 
--- data/dfinsupp.lean
-apply_nolint dfinsupp.pre doc_blame
-apply_nolint dfinsupp.zip_with_def unused_arguments
-
 -- data/equiv/list.lean
 apply_nolint encodable.fintype_arrow doc_blame
 apply_nolint encodable.fintype_pi doc_blame
@@ -295,9 +291,6 @@ apply_nolint pfun.graph' doc_blame
 apply_nolint pfun.image doc_blame
 apply_nolint pfun.preimage doc_blame
 apply_nolint pfun.res doc_blame
-apply_nolint roption.equiv_option doc_blame
-apply_nolint roption.get_or_else doc_blame
-apply_nolint roption.restrict doc_blame
 
 -- data/pnat/xgcd.lean
 apply_nolint pnat.gcd_a' doc_blame
@@ -384,20 +377,6 @@ apply_nolint vector.traverse_def unused_arguments
 
 -- deprecated/subfield.lean
 apply_nolint is_subfield doc_blame
-
--- deprecated/subgroup.lean
-apply_nolint add_group.closure doc_blame
-apply_nolint add_group.in_closure doc_blame
-apply_nolint group.in_closure doc_blame
-apply_nolint is_add_group_hom.ker doc_blame
-apply_nolint is_add_subgroup.add_center doc_blame
-apply_nolint is_add_subgroup.add_normalizer doc_blame
-apply_nolint is_add_subgroup.trivial doc_blame
-apply_nolint is_group_hom.ker doc_blame
-apply_nolint is_subgroup.center doc_blame
-apply_nolint is_subgroup.normalizer doc_blame
-apply_nolint normal_add_subgroup doc_blame
-apply_nolint normal_subgroup doc_blame
 
 -- deprecated/subring.lean
 apply_nolint ring.closure doc_blame

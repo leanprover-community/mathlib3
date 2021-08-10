@@ -161,3 +161,15 @@ protected def injective.unique [inhabited α] [subsingleton β] (hf : injective 
 @unique.mk' _ _ hf.subsingleton
 
 end function
+
+section subtype
+
+instance unique.subtype_eq (y : α) : unique {x // x = y} :=
+{ default := ⟨y, rfl⟩,
+  uniq := λ ⟨x, hx⟩, by simpa using hx }
+
+instance unique.subtype_eq' (y : α) : unique {x // y = x} :=
+{ default := ⟨y, rfl⟩,
+  uniq := λ ⟨x, hx⟩, by simpa using hx.symm }
+
+end subtype

@@ -550,7 +550,7 @@ by rw [← mem_inv_smul_set_iff $ inv_ne_zero ha, inv_inv']
 lemma preimage_smul [group α] [mul_action α β] (a : α) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 ((mul_action.to_perm a).symm.image_eq_preimage _).symm
 
-lemma preimage_smul' [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) {t : set β} :
+lemma preimage_smul' [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) (t : set β) :
   (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 preimage_smul (units.mk0 a ha) t
 

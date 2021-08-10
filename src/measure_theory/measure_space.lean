@@ -1280,7 +1280,7 @@ begin
     exact le_refl _ }
 end
 
-lemma smul (h : ν ⊥ₘ μ) (r : ℝ≥0) : r • ν ⊥ₘ μ :=
+lemma smul (r : ℝ≥0) (h : ν ⊥ₘ μ) : r • ν ⊥ₘ μ :=
 let ⟨s, hs, hs0, hs0'⟩ := h in
   ⟨s, hs, by simp only [coe_nnreal_smul, pi.smul_apply, hs0, smul_zero], hs0'⟩
 

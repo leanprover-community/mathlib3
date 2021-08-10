@@ -83,9 +83,10 @@ begin
   { have : filter.tendsto (λ h, h * (∥v∥ + ∥w∥)) (𝓝[Ioi (0:ℝ)] 0) (𝓝 (0 * (∥v∥ + ∥w∥))) :=
       (continuous_id.mul continuous_const).continuous_within_at,
     apply (tendsto_order.1 this).2 δ,
-    simpa using δpos },
+    simpa only [zero_mul] using δpos},
   have E2 : ∀ᶠ h in 𝓝[Ioi (0:ℝ)] 0, (h : ℝ) < 1 :=
-    mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(1 : ℝ), by simp, λ x hx, hx.2⟩,
+    mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
+      ⟨(1 : ℝ), by simp only [mem_Ioi, zero_lt_one], λ x hx, hx.2⟩,
   filter_upwards [E1, E2, self_mem_nhds_within],
   -- we consider `h` small enough that all points under consideration belong to this ball,
   -- and also with `0 < h < 1`.
@@ -178,7 +179,7 @@ begin
     ... = ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2 :
       by { simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, hpos.le], ring } },
   -- conclude using the mean value inequality
-  have I : ∥g 1 - g 0∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2, by simpa using
+  have I : ∥g 1 - g 0∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2, by simpa only [mul_one, sub_zero] using
     norm_image_sub_le_of_norm_deriv_le_segment' g_deriv g'_bound 1 (right_mem_Icc.2 zero_le_one),
   convert I using 1,
   { congr' 1,

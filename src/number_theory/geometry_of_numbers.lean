@@ -94,39 +94,27 @@ noncomputable theory
 lemma is_add_left_invariant_real_volume : is_add_left_invariant (⇑(volume : measure ℝ)) :=
 by simp [← map_add_left_eq_self, real.map_volume_add_left]
 
-lemma is_add_left_invariant_pi_volume [fintype ι] :
-  is_add_left_invariant (⇑(volume : measure (ι → ℝ))) :=
+lemma is_add_left_invariant_pi_volume [fintype ι] {K : Type*} [measure_space K] [has_add K]
+  [topological_space K] [has_continuous_add K] [has_measurable_add K] [borel_space (ι → K)]
+  [sigma_finite (volume : measure K)] (h : is_add_left_invariant ⇑(volume : measure K)) :
+  is_add_left_invariant (⇑(volume : measure (ι → K))) :=
 begin
-  simp only [←map_add_left_eq_self],
+  rw [← map_add_left_eq_self],
   intro v,
-  refine (pi_eq_generate_from (λ i, real.borel_eq_generate_from_Ioo_rat.symm)
-    (λ i, real.is_pi_system_Ioo_rat) (λ i, real.finite_spanning_sets_in_Ioo_rat _)
-    _).symm,
+  refine (pi_eq _).symm,
   intros s hS,
-  simp only [exists_prop, mem_Union, mem_singleton_iff] at hS,
-  choose a b H using hS,
-  obtain rfl : s = λ i, Ioo (a i) (b i), from funext (λ i, (H i).2), replace H := λ i, (H i).1,
-  simp only [real.volume_Ioo] at *,
   rw [map_apply, volume_pi],
-  rw (_ : has_add.add v ⁻¹' set.pi set.univ (λ (i : ι), Ioo ↑(a i) ↑(b i))
-    = set.pi set.univ (λ (i : ι), Ioo (↑(a i) - v i) (↑(b i) - v i))),
-  rw pi_pi,
-  have : ∀ (i : ι), measure_space.volume (Ioo (↑(a i) - v i) (↑(b i) - v i))
-    = measure_space.volume (Ioo (↑(a i) : ℝ) (↑(b i))),
-  { intro i,
-    simp only [real.volume_Ioo],
-    congr' 1,
-    abel, },
-  simp only [real.volume_Ioo] at this,
-  simp [this],
-  { exact (λ i, measurable_set_Ioo), },
-  { ext,
-    simp [sub_lt_iff_lt_add', lt_sub_iff_add_lt'], },
-  { refine measurable_const_add v, },
-  { rw measurable_set_pi (finite_univ.countable : (univ : set ι).countable),
-    left,
-    intros i hi,
-    exact measurable_set_Ioo, },
+  rw (_ : has_add.add v ⁻¹' set.pi set.univ (s)
+    = set.pi set.univ (λ (i : ι), (has_add.add (v i)) ⁻¹' (s i))),
+  { rw pi_pi,
+    { congr',
+      ext i :1,
+      rw h _ (hS i), },
+    { intro i,
+      exact measurable_set_preimage (measurable_const_add (v i)) (hS i), }, },
+   { refl, },
+   { exact measurable_const_add v, },
+   { exact measurable_set.univ_pi_fintype hS, },
 end
 
 /-- The closed interval [0,1] as a positive compact set, for inducing the Haar measure equal to
@@ -179,7 +167,7 @@ begin
     { rw [this, one_smul], },
     exact volume_Icc ι, },
   { apply_instance },
-  { exact is_add_left_invariant_pi_volume ι }
+  { exact is_add_left_invariant_pi_volume ι (is_add_left_invariant_real_volume), },
 end
 
 variable {ι}

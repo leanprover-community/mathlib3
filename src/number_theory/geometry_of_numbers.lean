@@ -25,32 +25,6 @@ studied by Hermann Minkowski.
 -/
 open measure_theory measure_theory.measure topological_space set
 
-lemma preimage_smul {α β : Type*} [group α] {a : α} [mul_action α β] {t : set β} :
-  (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
-begin
-  ext,
-  simp only [mem_smul_set, mem_preimage],
-  split,
-  { intros h,
-    refine ⟨_, h, _⟩,
-    rw inv_smul_smul, },
-  { rintro ⟨y, hy, rfl⟩,
-    rwa smul_inv_smul, },
-end
-
-lemma preimage_smul' {α β : Type*} [group_with_zero α] {a : α} (ha : a ≠ 0) [mul_action α β]
-  {t : set β} : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
-begin
-  ext,
-  simp only [mem_smul_set, mem_preimage],
-  split,
-  { intros h,
-    refine ⟨_, h, _⟩,
-    rw inv_smul_smul' ha, },
-  { rintro ⟨y, hy, rfl⟩,
-    rwa smul_inv_smul' ha, },
-end
-
 lemma smul_pi (ι : Type*) {r : ℝ} (t : ι → set ℝ) :
   r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
 begin

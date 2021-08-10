@@ -43,62 +43,71 @@ end upper_half_plane
 
 open upper_half_plane
 
+-- where does this go?
+lemma function.injective.comp_left {α β γ : Type*} {f₁ f₂ : α → β} {g : β → γ}
+  (hg : function.injective g) (hgf : g ∘ f₁ = g ∘ f₂) : f₁ = f₂ :=
+begin
+  refine funext (λ i, hg _),
+  exact congr_fun hgf i,
+end
+
 /-! It is useful to develop basic theory for an object `coprime_ints`, consisting of two integers
 and a proof that they satisfy `is_coprime`. -/
 
-@[ext] structure coprime_ints :=
-(c : ℤ)
-(d : ℤ)
-(is_coprime : is_coprime c d)
+abbreviation coprime_ints :=
+{p : ℤ × ℤ // is_coprime p.1 p.2}
 
 namespace coprime_ints
 
-instance : has_coe coprime_ints (ℤ × ℤ) := ⟨λ p, (p.c, p.d)⟩
+def mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : coprime_ints := subtype.mk p h
 
-instance : nonempty coprime_ints := ⟨⟨1, 1, is_coprime_one_left⟩⟩
+@[simp] lemma mk_eq_mk (p p' : ℤ × ℤ) (h : is_coprime p.1 p.2) (h' : is_coprime p'.1 p'.2) :
+  mk p h = mk p' h' ↔ p = p' :=
+subtype.mk_eq_mk
+
+lemma coe_injective : function.injective (coe : coprime_ints → ℤ × ℤ) := subtype.coe_injective
+
+instance : inhabited coprime_ints := ⟨⟨(1, 1), is_coprime_one_left⟩⟩
+
+def c (p : coprime_ints) : ℤ := p.1.1
+def d (p : coprime_ints) : ℤ := p.1.2
 
 @[simp] lemma fst_coe (p : coprime_ints) : (p : ℤ × ℤ).1 = p.c := rfl
 @[simp] lemma snd_coe (p : coprime_ints) : (p : ℤ × ℤ).2 = p.d := rfl
 
-lemma coe_injective : function.injective (coe : coprime_ints → ℤ × ℤ) :=
-λ p q hpq, ext p q (by simpa using congr_arg prod.fst hpq) (by simpa using congr_arg prod.snd hpq)
+@[simp] lemma c_mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : (coprime_ints.mk p h).c = p.1 := rfl
+@[simp] lemma d_mk (p : ℤ × ℤ) (h : is_coprime p.1 p.2) : (coprime_ints.mk p h).d = p.2 := rfl
 
-lemma ne_zero (p : coprime_ints) : p.c ≠ 0 ∨ p.d ≠ 0 :=
-begin
-  rw ← not_and_distrib,
-  rintros ⟨c_eq_zero, d_eq_zero⟩,
-  simpa [c_eq_zero, d_eq_zero] using p.is_coprime
-end
+protected lemma is_coprime (p : coprime_ints) : is_coprime p.c p.d := p.2
 
-lemma ne_zero' (p : coprime_ints) : ![(p.c:ℝ),p.d] ≠ 0 :=
+lemma ne_zero (p : coprime_ints) : ![p.c, p.d] ≠ 0 :=
 begin
   intros h,
-  have c_eq_zero : (p.c:ℝ )=0 := congr_arg (λ (v: fin 2 → ℝ ), v 0) h,
-  have d_eq_zero : (p.d:ℝ )=0 := congr_arg (λ (v: fin 2 → ℝ ), v 1) h,
-  norm_cast at c_eq_zero d_eq_zero,
-  exact not_and_distrib.mpr (ne_zero p) ⟨c_eq_zero, d_eq_zero⟩,
+  have c_eq_zero : p.c = 0 := congr_arg (λ (v: fin 2 → ℤ), v 0) h,
+  have d_eq_zero : p.d = 0 := congr_arg (λ (v: fin 2 → ℤ), v 1) h,
+  simpa [c_eq_zero, d_eq_zero] using p.is_coprime,
 end
 
 lemma sum_sq_ne_zero (p : coprime_ints) : p.c ^ 2 + p.d ^ 2 ≠ 0 :=
 begin
   intros h,
-  have c_eq_zero : p.c = 0 := by nlinarith,
-  have d_eq_zero : p.d = 0 := by nlinarith,
-  cases p.ne_zero with hc hd; contradiction
+  have hc : p.c = 0 := by nlinarith,
+  have hd : p.d = 0 := by nlinarith,
+  simpa [prod.ext_iff, hc, hd] using p.is_coprime
 end
 
 end coprime_ints
 
-@[simps] def bottom_row (g : SL(2, ℤ)) : coprime_ints :=
-{ c := @coe _ (matrix (fin 2) (fin 2) ℤ) _ g 1 0,
-  d := @coe _ (matrix (fin 2) (fin 2) ℤ) _ g 1 1,
-  is_coprime := begin
+def bottom_row (g : SL(2, ℤ)) : coprime_ints :=
+coprime_ints.mk
+  (@coe _ (matrix (fin 2) (fin 2) ℤ) _ g 1 0, @coe _ (matrix (fin 2) (fin 2) ℤ) _ g 1 1)
+  begin
     use [- g 0 1, g 0 0],
     have := det_fin_two g,
     have := g.det_coe,
     simp only [coe_fn_eq_coe] at *,
     linarith
-  end }
+  end
 
 lemma bottom_row_surj : function.surjective bottom_row :=
 begin
@@ -110,12 +119,16 @@ begin
     simp [A, matrix.det_succ_row_zero, fin.sum_univ_succ,
       (by ring : a * cd.d + b₀ * cd.c = b₀ * cd.c + a * cd.d)] },
   use ⟨A, det_A_1⟩,
-  ext; simp [bottom_row_c, bottom_row_d, A]
+  ext; simp [A, bottom_row]
 end
+
+lemma bottom_eq_mul_bottom_row_add_bottom_row (g : SL(2, ℤ)) (z : ℍ) :
+  bottom g z = (bottom_row g).c * z + (bottom_row g).d :=
+by simp [bottom_row]
 
 lemma bottom_eq_of_bottom_row_eq {g h : SL(2,ℤ)} (z : ℍ) (bot_eq : bottom_row g = bottom_row h) :
   bottom g z = bottom h z :=
-by simp [← bottom_row_c, ← bottom_row_d, bot_eq]
+by simp [bottom_eq_mul_bottom_row_add_bottom_row, bot_eq]
 
 section tendsto_lemmas
 /-! This is an attempt to do the maximin argument using more abstract existence theory. -/
@@ -149,16 +162,13 @@ begin
 end
 
 
-/- generalize to arbitrary matrix index sets and move to matrix file -/
-def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
-(linear_map.proj j : (fin 2 → ℝ) →ₗ[ℝ] _).comp (linear_map.proj i)
 
 def acbd (p : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
-p.c • matrix.coord 0 0 + p.d • matrix.coord 0 1
+(p.c • linear_map.proj 0 + p.d • linear_map.proj 1 : (fin 2 → ℝ) →ₗ[ℝ] ℝ).comp (linear_map.proj 0)
 
-@[simp]lemma acbd_apply (p : coprime_ints) (g : matrix (fin 2) (fin 2) ℝ) :
+@[simp] lemma acbd_apply (p : coprime_ints) (g : matrix (fin 2) (fin 2) ℝ) :
   acbd p g = p.c * g 0 0 + p.d * g 0 1 :=
-by simp [acbd, matrix.coord]
+by simp [acbd]
 
 
 /-- Map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)`.
@@ -221,30 +231,17 @@ begin
   convert hf₂.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   funext g,
   obtain ⟨g, hg⟩ := g,
-  simp [mB, f₁, line_map, matrix.coord],
+  simp [mB, f₁, line_map],
   simp [bottom_row] at hg,
   split,
   { ext i,
     fin_cases i,
-    { simp only [add_left_inj, add_zero, eq_self_iff_true, fin.succ_zero_eq_one,
-        function.comp_app, function.eval_apply, gsmul_eq_mul, int.cast_eq_zero, int.cast_inj,
-        linear_map.add_apply, linear_map.coe_comp, linear_map.coe_proj, linear_map.smul_apply,
-        matrix.cons_dot_product, matrix.cons_mul_vec, matrix.cons_val_zero,
-        matrix.dot_product_empty, matrix.empty_mul_vec, matrix.map_apply, mul_eq_mul_left_iff,
-        neg_mul_eq_neg_mul_symm, true_or, acbd, matrix.coord, matrix.vec_head,
-        matrix.vec_tail] },
-    { simp only [← hg, vec_head, vec_tail, add_zero, function.comp_app, gsmul_eq_mul,
-        linear_map.add_apply, linear_map.smul_apply, matrix.cons_dot_product, matrix.cons_mul_vec,
-        matrix.cons_val_fin_one, matrix.cons_val_one, matrix.dot_product_empty,
-        matrix.empty_mul_vec, matrix.map_apply, acbd],
-      norm_cast,
-      convert g.det_coe.symm using 1,
-      simp only [fin.coe_succ, fin.coe_zero, fin.default_eq_zero, fin.succ_succ_above_zero,
-        fin.succ_zero_eq_one, fin.sum_univ_succ, fin.zero_succ_above, finset.sum_singleton,
-        matrix.det_fin_zero, matrix.det_succ_row_zero, matrix.minor_apply, matrix.minor_empty,
-        mul_one, ne.def, neg_mul_eq_neg_mul_symm,
-        one_mul, pow_one, pow_zero, univ_unique, zero_add],
-      ring } },
+    { simp [vec_head, vec_tail] },
+    { have : (1:ℝ) = ↑(g 1 1) * ↑(g 0 0) + -(↑(g 1 0) * ↑(g 0 1)),
+      { norm_cast,
+        simp only [← g.det_coe, det_fin_two, coe_fn_eq_coe],
+        ring },
+      simpa [← hg, vec_head, vec_tail] using this } },
   { rw ← hg,
     ext i,
     fin_cases i; refl }
@@ -255,18 +252,15 @@ lemma something2 (p : coprime_ints) (z : ℍ) (g : bottom_row ⁻¹' {p}) :
     + ((p.d:ℂ )* z - p.c) / ((p.c ^ 2 + p.d ^ 2) * (p.c * z + p.d)) :=
 begin
   have nonZ1 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0 := by exact_mod_cast p.sum_sq_ne_zero,
-  have nonZ2 : (p.c : ℂ) * z + p.d ≠ 0 := by simpa using linear_ne_zero _ z p.ne_zero',
+  have : (coe : ℤ → ℝ) ∘ ![p.c, p.d] ≠ 0 :=
+    λ h, (p.ne_zero ∘ (@int.cast_injective ℝ _ _ _).comp_left) h,
+  have nonZ2 : (p.c : ℂ) * z + p.d ≠ 0 := by simpa using linear_ne_zero _ z this,
   field_simp [nonZ1, nonZ2, bottom_ne_zero, -upper_half_plane.bottom],
   rw (by simp : (p.d:ℂ) * z - p.c = ((p.d) * z - p.c) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
-  have hc : p.c = g 1 0,
-  { convert bottom_row_c g,
-    exact g.2.symm },
-  have hd : p.d = g 1 1,
-  { convert bottom_row_d g,
-    exact g.2.symm },
+  have hc : p.c = _ := congr_arg coprime_ints.c g.2.symm,
+  have hd : p.d = _ := congr_arg coprime_ints.d g.2.symm,
   rw [hc, hd, det_fin_two],
-  push_cast,
-  simp,
+  simp [bottom_row],
   ring,
 end
 
@@ -368,24 +362,24 @@ begin
     split,
     { contrapose! hg',
       refine ⟨T * g, _, _⟩,
-      { -- `bottom_row (T * g) = bottom_row g`.  Prove by a big (slow) `simp`
-        simp [bottom_row, T, vec_head, vec_tail] },
+      { -- `bottom_row (T * g) = bottom_row g`.
+        simp [bottom_row, T, vec_head, vec_tail], },
       rw mul_action.mul_smul,
       change (g • z).re < _ at hg',
       have : |(g • z).re + 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
       convert this,
-      -- `(T • g • z).re = (g • z).re + 1`.  Prove by a big (slow) `simp`
+      -- `(T • g • z).re = (g • z).re + 1`.
       simp [T] },
     { contrapose! hg',
       refine ⟨T' * g, _, _⟩,
-      { -- `bottom_row (T' * g) = bottom_row g`.  Prove by a big (slow) `simp`
+      { -- `bottom_row (T' * g) = bottom_row g`.
         simp [bottom_row, T', vec_head, vec_tail] },
       rw mul_action.mul_smul,
       change _ < (g • z).re at hg',
       have : |(g • z).re - 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,
       convert this,
-      -- `(T' • g • z).re = (g • z).re - 1`.  Prove by a big (slow) `simp`
+      -- `(T' • g • z).re = (g • z).re - 1`.
       simp [T', sub_eq_add_neg] } }
 end

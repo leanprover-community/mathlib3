@@ -870,6 +870,31 @@ instance to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
     exact ennreal.coe_lt_top,
   end }
 
+lemma to_measure_to_signed_measure (hs : 0 ≤[univ] s) :
+  (s.to_measure univ measurable_set.univ hs).to_signed_measure = s :=
+begin
+  ext i hi,
+  simp [measure.to_signed_measure_apply_measurable hi, to_measure_apply _ _ _ hi],
+end
+
 end signed_measure
+
+namespace measure
+
+open vector_measure
+
+lemma to_signed_measure_to_measure (μ : measure α) [finite_measure μ] :
+  μ.to_signed_measure.to_measure univ measurable_set.univ
+    (restrict_le_restrict_of_subset_le _ _ (λ j hj₁ _,
+      by simp only [measure.to_signed_measure_apply_measurable hj₁, coe_zero, pi.zero_apply,
+                    ennreal.to_real_nonneg, vector_measure.coe_zero])) = μ :=
+begin
+  refine measure.ext (λ i hi, _),
+  lift μ i to ℝ≥0 using (measure_lt_top _ _).ne with m hm,
+  simp [signed_measure.to_measure_apply _ _ _ hi,
+        measure.to_signed_measure_apply_measurable hi, ← hm],
+end
+
+end measure
 
 end measure_theory

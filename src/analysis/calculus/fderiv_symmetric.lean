@@ -83,7 +83,7 @@ begin
   { have : filter.tendsto (λ h, h * (∥v∥ + ∥w∥)) (𝓝[Ioi (0:ℝ)] 0) (𝓝 (0 * (∥v∥ + ∥w∥))) :=
       (continuous_id.mul continuous_const).continuous_within_at,
     apply (tendsto_order.1 this).2 δ,
-    simpa only [zero_mul] using δpos},
+    simpa only [zero_mul] using δpos },
   have E2 : ∀ᶠ h in 𝓝[Ioi (0:ℝ)] 0, (h : ℝ) < 1 :=
     mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
       ⟨(1 : ℝ), by simp only [mem_Ioi, zero_lt_one], λ x hx, hx.2⟩,

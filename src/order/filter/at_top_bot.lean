@@ -1124,7 +1124,8 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
       begin
         cases k,
         exact (lt_irrefl _ hk).elim,
-        simp [mul_add, add_mul, nat.succ_add, nat.lt_succ_iff]
+        rw [add_mul, one_mul, nat.succ_sub_succ_eq_sub,
+          nat.sub_zero, nat.add_succ, nat.lt_succ_iff],
       end)
   (assume b _,
     calc b = (b * k) / k : by rw [nat.mul_div_cancel b hk]

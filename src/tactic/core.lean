@@ -149,6 +149,8 @@ end format
 namespace tactic
 open function
 
+export interaction_monad (get_state set_state run_with_state)
+
 /-- Private work function for `add_local_consts_as_local_hyps`: given
     `mappings : list (expr × expr)` corresponding to pairs `(var, hyp)` of variables and the local
     hypothesis created as a result and `(var :: rest) : list expr` of more local variables we

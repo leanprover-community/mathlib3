@@ -165,31 +165,12 @@ variables {S : Type*} [comm_ring S]
 `special_linear_group n R` to `special_linear_group n S`. -/
 def map (f : R →+* S) : monoid_hom (special_linear_group n R) (special_linear_group n S) :=
 { to_fun := λ g, ⟨f.map_matrix ↑g, ring_hom.map_det_one f g.2⟩,
-  map_one' := sorry, --by simpa,
-  map_mul' := λ x y, sorry } --by simpa }
+  map_one' := subtype.ext $ f.map_matrix.map_one,
+  map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul' x y }
 
 @[simp] lemma coe_matrix_map (f : R →+* S) (g : special_linear_group n R) :
   (map f g : matrix n n S) = f.map_matrix ↑g :=
 rfl
-
--- section matrix_notation
-
--- variables {m : ℕ}
-
--- lemma cons_apply_zero
---   (M : matrix (fin m) (fin m.succ) R) (v : (fin m.succ) → R) (hM : det (vec_cons v M) = 1) :
---   (@has_coe.coe _ _ special_linear_group.has_coe_to_matrix (⟨vec_cons v M, hM⟩ :
---     special_linear_group (fin m.succ) R)) 0 = v :=
--- rfl
-
--- lemma cons_apply_one
---   (M : matrix (fin m.succ) (fin m.succ.succ) R) (v : (fin m.succ.succ) → R)
---   (hM : det (vec_cons v M) = 1) :
---   (@has_coe.coe _ _ special_linear_group.has_coe_to_matrix (⟨vec_cons v M, hM⟩ :
---     special_linear_group (fin m.succ.succ) R)) 1 = M 0 :=
--- cons_val_one v M
-
--- end matrix_notation
 
 section cast
 

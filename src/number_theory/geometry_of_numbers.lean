@@ -53,10 +53,9 @@ begin
     intros i hi,
     refine ⟨h_w i, h_h_left i hi, rfl⟩, },
   classical,
-  { existsi (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ * x i),
+  { use (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ * x i),
     split,
     { intros i hiS,
-      dsimp only,
       split_ifs,
       exact (classical.some_spec (h i hiS)).left, },
     { ext i,
@@ -164,12 +163,6 @@ begin
 end
 
 variable {ι}
-lemma trans_inv [fintype ι] (v : ι → ℝ) (S : set (ι → ℝ)) (hS : measurable_set S) :
-  volume S = volume (((+) v) '' S) :=
-begin
-  rw [(pi_haar_measure_eq_lebesgue_measure _).symm, image_add_left,
-    measure.is_add_left_invariant_add_haar_measure (unit_cube _) (-v) hS],
-end
 
 -- For now we do not extend left coset even though this is essentially just a measurable coset,
 -- as the most general definition of fundamental domain may want to include measure zero boundary
@@ -235,7 +228,7 @@ end
 lemma exists_sub_mem_lattice_of_volume_lt_volume {X : Type*} [measure_space X] [add_comm_group X]
   [has_measurable_add X] (L : add_subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
   (F : fundamental_domain L) (hlt : volume F.F < volume S)
-  (h_trans_inv : ∀ v (S' : set X) (hS' : measurable_set S'), volume S' = volume (((+) v) '' S')) :
+  (h_add_left : is_add_left_invariant ⇑(volume : measure X)) :
   ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
 begin
   suffices : ∃ (p₁ p₂ : L) (hne : p₁ ≠ p₂),
@@ -310,8 +303,10 @@ begin
       exact measurable_add_const ↑l, }, },
     { congr,
       ext1 l,
-      conv in (_ + -_) { rw [add_comm] },
-      rw [h_trans_inv (-↑ l)],
+      simp only [add_comm _ (-↑l)],
+      conv_rhs {rw [image_add_left],},
+      simp only [neg_neg],
+      rw h_add_left (↑l),
       apply measurable_set.inter _ F.hF, -- TODO is this a dup goal?
       simp only [set.image_add_right],
       refine measurable_set_preimage _ hS,
@@ -459,7 +454,9 @@ begin
       exact set.smul_mem_smul_set (h_symm _ hv), },
     use [x, -y, hx, this _ hy],
     refl, },
-  { refine exists_sub_mem_lattice_of_volume_lt_volume L mhalf F h2 trans_inv, }
+  { refine exists_sub_mem_lattice_of_volume_lt_volume L mhalf F h2 _,
+    rw [← pi_haar_measure_eq_lebesgue_measure _],
+    exact measure.is_add_left_invariant_add_haar_measure (unit_cube _), }
 end
 
 end geometry_of_numbers

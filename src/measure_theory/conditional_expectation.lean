@@ -215,7 +215,7 @@ begin
     (eventually_eq.add (Lp_meas_to_Lp_trim_ae_eq hm f).symm (Lp_meas_to_Lp_trim_ae_eq hm g).symm),
   refine (Lp.coe_fn_add _ _).trans _,
   simp_rw Lp_meas_coe,
-  refine eventually_of_forall (λ x, by refl),
+  exact eventually_of_forall (λ x, by refl),
 end
 
 lemma Lp_meas_to_Lp_trim_smul (hm : m ≤ m0) (c : 𝕜) (f : Lp_meas F 𝕜 m p μ) :

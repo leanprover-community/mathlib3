@@ -552,16 +552,7 @@ lemma preimage_smul [group α] [mul_action α β] (a : α) (t : set β) : (λ x,
 
 lemma preimage_smul' [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) {t : set β} :
   (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
-begin
-  ext,
-  rw [mem_smul_set, mem_preimage],
-  split,
-  { intros h,
-    refine ⟨_, h, _⟩,
-    rw inv_smul_smul' ha, },
-  { rintro ⟨y, hy, rfl⟩,
-    rwa smul_inv_smul' ha, },
-end
+preimage_smul (units.mk0 a ha) t
 
 end
 

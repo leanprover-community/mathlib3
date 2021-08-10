@@ -111,10 +111,15 @@ variables {σ : R →+* S}
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
 { map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
 
-instance : add_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
+instance : add_monoid_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
 { coe := linear_map.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_add := linear_map.map_add' }
+  map_add := linear_map.map_add',
+  map_zero := λ f, show f.to_fun 0 = 0, by { rw [← zero_smul R (0 : M), map_smul'], simp } }
+
+/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+-/
+instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : M →ₛₗ[σ] M₃} : f.to_fun = (f : M → M₃) := rfl
 
@@ -126,8 +131,6 @@ protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) 
 { to_fun := f',
   map_add' := h.symm ▸ f.map_add',
   map_smul' := h.symm ▸ f.map_smul' }
-
-instance {σ : R →+* S} : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
 
 initialize_simps_projections linear_map (to_fun → apply)
 
@@ -162,13 +165,13 @@ theorem coe_injective : @injective (M →ₛₗ[σ] M₃) (M → M₃) coe_fn :=
 fun_like.coe_injective
 
 -- TODO: can be replaced with `fun_like.congr_arg`
-protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x' :=
-fun_like.congr_arg
+protected lemma congr_arg {x x' : M} : x = x' → f x = f x' :=
+fun_like.congr_arg f
 
 -- TODO: can be replaced with `fun_like.congr_fun`
 /-- If two linear maps are equal, they are equal at each point. -/
 protected lemma congr_fun (h : f = g) (x : M) : f x = g x :=
-fun_like.congr_fun
+fun_like.congr_fun h x
 
 -- TODO: can be replaced with `fun_like.ext_iff`
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
@@ -179,7 +182,7 @@ fun_like.ext_iff
 
 variables (fₗ gₗ f g)
 
-protected lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
+protected lemma map_add (x y : M) : f (x + y) = f x + f y := map_add f x y
 
 @[simp] lemma map_smulₛₗ (c : R) (x : M) : f (c • x) = (σ c) • f x := f.map_smul' c x
 
@@ -189,9 +192,9 @@ lemma map_smul_inv {σ' : S →+* R} [ring_hom_inv_pair σ σ'] (c : S) (x : M) 
   c • f x = f (σ' c • x) :=
 by simp
 
-@[simp] lemma map_zero : f 0 = 0 :=
-by { rw [←zero_smul R (0 : M), map_smulₛₗ], simp }
+protected lemma map_zero : f 0 = 0 := map_zero f
 
+-- TODO: generalize to `zero_hom_class`
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
 
@@ -329,11 +332,9 @@ variables [semiring R] [semiring S] [add_comm_group M] [add_comm_group M₂]
 variables {module_M : module R M} {module_M₂ : module S M₂} {σ : R →+* S}
 variables (f : M →ₛₗ[σ] M₂)
 
-@[simp] lemma map_neg (x : M) : f (- x) = - f x :=
-f.to_add_monoid_hom.map_neg x
+protected lemma map_neg (x : M) : f (- x) = - f x := map_neg f x
 
-@[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
-f.to_add_monoid_hom.map_sub x y
+protected lemma map_sub (x y : M) : f (x - y) = f x - f y := map_sub f x y
 
 instance compatible_smul.int_module
   {S : Type*} [semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
@@ -341,7 +342,7 @@ instance compatible_smul.int_module
   induction c using int.induction_on,
   case hz : { simp },
   case hp : n ih { simp [add_smul, ih] },
-  case hn : n ih { simp [sub_smul, ih] }
+  case hn : n ih { simp [sub_smul, ih, map_neg] }
 end⟩
 
 instance compatible_smul.units {R S : Type*}

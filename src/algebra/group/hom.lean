@@ -272,15 +272,14 @@ eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive]
-theorem map_div [group G] [group H] (f : G →* H) (g h : G) :
-  f (g / h) = f g / f h :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul, map_inv]
+theorem map_mul_inv [group G] [group H] [monoid_hom_class F G H]
+  (f : F) (g h : G) : f (g * h⁻¹) = f g * (f h)⁻¹ :=
+by rw [map_mul, map_inv]
 
 /-- Group homomorphisms preserve division. -/
-@[simp, to_additive]
-theorem map_mul_inv [group G] [group H] (f : G →* H) (g h : G) :
-  f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
-by rw [map_mul, map_inv]
+@[simp, to_additive] lemma map_div [group G] [group H] [monoid_hom_class F G H]
+  (f : F) (x y : G) : f (x / y) = f x / f y :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
 end mul_one
 

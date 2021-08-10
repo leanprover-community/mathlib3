@@ -98,6 +98,10 @@ section coe_lemmas
 
 variables (A B : special_linear_group n R)
 
+@[simp] lemma coe_mk (A : matrix n n R) (h : det A = 1) :
+  ↑(⟨A, h⟩ : special_linear_group n R) = A :=
+rfl
+
 @[simp] lemma coe_inv : ↑ₘ(A⁻¹) = adjugate A := rfl
 
 @[simp] lemma coe_mul : ↑ₘ(A * B) = ↑ₘA ⬝ ↑ₘB := rfl
@@ -160,13 +164,32 @@ variables {S : Type*} [comm_ring S]
 /-- A ring homomorphism from `R` to `S` induces a group homomorphism from
 `special_linear_group n R` to `special_linear_group n S`. -/
 def map (f : R →+* S) : monoid_hom (special_linear_group n R) (special_linear_group n S) :=
-{ to_fun := λ g, ⟨f.map_matrix g, ring_hom.map_det_one f g.2⟩,
-  map_one' := by simpa,
-  map_mul' := λ x y, by simpa }
+{ to_fun := λ g, ⟨f.map_matrix ↑g, ring_hom.map_det_one f g.2⟩,
+  map_one' := sorry, --by simpa,
+  map_mul' := λ x y, sorry } --by simpa }
 
 @[simp] lemma coe_matrix_map (f : R →+* S) (g : special_linear_group n R) :
-  @coe _ (matrix n n S) _ (map f g) = f.map_matrix g :=
+  (map f g : matrix n n S) = f.map_matrix ↑g :=
 rfl
+
+-- section matrix_notation
+
+-- variables {m : ℕ}
+
+-- lemma cons_apply_zero
+--   (M : matrix (fin m) (fin m.succ) R) (v : (fin m.succ) → R) (hM : det (vec_cons v M) = 1) :
+--   (@has_coe.coe _ _ special_linear_group.has_coe_to_matrix (⟨vec_cons v M, hM⟩ :
+--     special_linear_group (fin m.succ) R)) 0 = v :=
+-- rfl
+
+-- lemma cons_apply_one
+--   (M : matrix (fin m.succ) (fin m.succ.succ) R) (v : (fin m.succ.succ) → R)
+--   (hM : det (vec_cons v M) = 1) :
+--   (@has_coe.coe _ _ special_linear_group.has_coe_to_matrix (⟨vec_cons v M, hM⟩ :
+--     special_linear_group (fin m.succ.succ) R)) 1 = M 0 :=
+-- cons_val_one v M
+
+-- end matrix_notation
 
 section cast
 
@@ -175,8 +198,8 @@ instance : has_coe (special_linear_group n ℤ) (special_linear_group n R) :=
 ⟨λ x, map (int.cast_ring_hom R) x⟩
 
 @[simp] lemma coe_matrix_coe (g : special_linear_group n ℤ) :
-  @coe _ (matrix n n R) _ (@coe _ (special_linear_group n R) _ g)
-  = (@coe _ (matrix n n ℤ) _ g).map (int.cast_ring_hom R) :=
+  ↑(g : special_linear_group n R)
+  = (↑g : matrix n n ℤ).map (int.cast_ring_hom R) :=
 coe_matrix_map (int.cast_ring_hom R) g
 
 end cast
@@ -198,8 +221,8 @@ rfl
 @[simp]
 lemma has_neg_cast {R : Type*} [comm_ring R] (g : (special_linear_group n ℤ))
   [_i : fact (even (fintype.card n))] :
-  @coe _ (special_linear_group n R) _ (- g) = - (@coe _ (special_linear_group n R) _ g) :=
-subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg g
+  ↑(-g) = (-↑g : special_linear_group n R) :=
+subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g
 
 end has_neg
 

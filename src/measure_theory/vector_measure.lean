@@ -825,11 +825,11 @@ open_locale measure_theory
 def to_measure' (s : signed_measure α)
   (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s)
   (j : set α) (hj₁ : measurable_set j) : ℝ≥0∞ :=
-(id ⟨s.restrict i j,
+@coe ℝ≥0 ℝ≥0∞ _ ⟨s.restrict i j,
 begin
   rw [s.restrict_apply hi₁ hj₁, ← s.restrict_apply hi₁ hj₁],
   exact le_trans (by simp) (hi₂ j hj₁),
-end⟩ : ℝ≥0)
+end⟩
 
 /-- Given a signed measure `s` and a positive measurable set `i`, `to_measure`
 provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
@@ -860,8 +860,8 @@ variables (s : signed_measure α) {i j : set α}
 
 lemma to_measure_apply (hi : 0 ≤[i] s) (hi₁ : measurable_set i) (hj₁ : measurable_set j) :
   s.to_measure i hi₁ hi j =
-  (id ⟨s (i ∩ j), nonneg_of_zero_le_restrict s
-    (zero_le_restrict_subset s hi₁ (set.inter_subset_left _ _) hi)⟩ : ℝ≥0) :=
+  @coe ℝ≥0 ℝ≥0∞ _ ⟨s (i ∩ j), nonneg_of_zero_le_restrict s
+    (zero_le_restrict_subset s hi₁ (set.inter_subset_left _ _) hi)⟩ :=
 by { simp_rw [to_measure, measure.of_measurable_apply _ hj₁, to_measure',
               s.restrict_apply hi₁ hj₁, set.inter_comm] }
 
@@ -870,7 +870,7 @@ instance to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
   finite_measure (s.to_measure i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin
-    rw [to_measure_apply s hi hi₁ measurable_set.univ, id.def],
+    rw [to_measure_apply s hi hi₁ measurable_set.univ],
     exact ennreal.coe_lt_top,
   end }
 

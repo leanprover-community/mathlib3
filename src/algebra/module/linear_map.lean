@@ -107,15 +107,15 @@ variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
 variables [module R M] [module R M₂] [module S M₃]
 variables {σ : R →+* S}
 
-/-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
-def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
-{ map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
-
 instance : add_monoid_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
 { coe := linear_map.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_add := linear_map.map_add',
-  map_zero := λ f, show f.to_fun 0 = 0, by { rw [← zero_smul R (0 : M), map_smul'], simp } }
+  map_zero := λ f, show f.to_fun 0 = 0, by { rw [← zero_smul R (0 : M), f.map_smul'], simp } }
+
+/-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
+def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
+{ map_zero' := show f 0 = 0, from map_zero f, ..f }
 
 /-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
 -/

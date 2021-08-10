@@ -48,6 +48,10 @@ extensionality and simp lemmas.
 
 -/
 
+-- This instance should have low priority, to ensure we follow the chain
+-- `fun_like → to_fun → has_coe_to_fun`
+attribute [instance, priority 10] coe_fn_trans
+
 /-- The class `fun_like F α β` expresses that terms of type `F` have an
 injective coercion to functions from `α` to `β`.
 
@@ -66,7 +70,8 @@ variables [i : fun_like F α β]
 
 include i
 
-@[priority 100] -- see note [lower instance priority]
+@[priority 100, -- Give this a priority between `coe_fn_trans` and the default priority
+  nolint dangerous_instance] -- `α` and `β` are out_params, so this instance should not be dangerous
 instance : has_coe_to_fun F (λ _, α → β) := { coe := fun_like.coe }
 
 -- Unfortunately, the elaborator is not smart enough that we can write this as

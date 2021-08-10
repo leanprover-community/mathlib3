@@ -904,19 +904,20 @@ left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
   h.symm ▸ g.map_mul_eq_one $ mul_inv_self x
 
 /-- Group homomorphisms preserve inverse. -/
-@[to_additive]
+@[to_additive, protected]
 theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
 map_inv f g
 
 /-- Group homomorphisms preserve division. -/
-@[to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
-theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) : f (g / h) = (f g) / (f h) :=
+@[protected, to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
+theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
+  f (g / h) = f g / f h :=
 map_div f g h
 
 /-- Group homomorphisms preserve division. -/
-@[to_additive]
+@[protected, to_additive]
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
-f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
+  f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 map_mul_inv f g h
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial.
@@ -998,7 +999,7 @@ by { ext, simp only [function.comp_app, inv_apply, coe_comp] }
 
 @[simp, to_additive] lemma comp_inv {M A B} {mM : mul_one_class M} {mA : comm_group A}
   {mB : comm_group B} (φ : A →* B) (ψ : M →* A) : φ.comp ψ⁻¹ = (φ.comp ψ)⁻¹ :=
-by { ext, simp only [function.comp_app, inv_apply, map_inv, coe_comp] }
+by { ext, simp only [function.comp_app, inv_apply, _root_.map_inv, coe_comp] }
 
 /-- If `f` and `g` are monoid homomorphisms to a commutative group, then `f / g` is the homomorphism
 sending `x` to `(f x) / (g x)`. -/

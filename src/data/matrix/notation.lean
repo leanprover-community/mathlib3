@@ -166,14 +166,6 @@ by { fin_cases i, refl }
 lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
 funext (cons_val_fin_one x u)
 
-lemma comp_cons {β : Type*} (x : α) (u : (fin n) → α) (f : α → β) :
-  f ∘ (vec_cons x u) = vec_cons (f x) (f ∘ u) :=
-funext $ by { apply fin.cases; simp }
-
-lemma map_cons {β ι : Type*} [fintype ι] {v : ι → α} {M : matrix (fin n) ι α} {f : α → β} :
-  map (vec_cons v M) f = vec_cons (f ∘ v) (M.map f) :=
-comp_cons v M (λ w, f ∘ w)
-
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
 numeral-indexed element of a vector given with matrix notation to

@@ -341,7 +341,7 @@ begin
     nlinarith },
   convert this,
   simp only [im_smul_int_eq_div_norm_sq],
-  field_simp [normsq_bottom_ne_zero, norm_sq_ne_zero, S, bottom, map_cons, comp_cons]
+  field_simp [normsq_bottom_ne_zero, norm_sq_ne_zero, S]
 end
 
 lemma fun_dom_lemma₁ (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=

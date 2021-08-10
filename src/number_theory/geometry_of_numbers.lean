@@ -25,21 +25,45 @@ studied by Hermann Minkowski.
 -/
 open measure_theory measure_theory.measure topological_space set
 
-lemma smul_pi (ι : Type*) {r : ℝ} (t : ι → set ℝ) :
+lemma smul_univ_pi {K : Type*} [has_mul K] (ι : Type*) {r : K} (t : ι → set K) :
   r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_univ_pi],
+  simp only [mem_smul_set, mem_univ_pi],
   split; intro h,
   { rcases h with ⟨h_w, h_h_left, rfl⟩,
-    simp only [algebra.id.smul_eq_mul, mul_eq_mul_left_iff, pi.smul_apply],
+    simp only [pi.smul_apply],
     intro i,
-    refine ⟨h_w i, h_h_left i, or.inl rfl⟩, },
-  { use (λ i, classical.some (h i)), -- TODO is choice necessary?
+    refine ⟨h_w i, h_h_left i, rfl⟩, },
+  { use (λ i, classical.some (h i)),
     split,
     { exact λ i, (classical.some_spec (h i)).left, },
     { ext i,
       exact (classical.some_spec (h i)).right, }, },
+end
+
+lemma smul_pi {K : Type*} [group_with_zero K] (ι : Type*) {r : K} (t : ι → set K) (S : set ι)
+  (hr : r ≠ 0) : r • S.pi t = S.pi (λ (i : ι), r • t i) :=
+begin
+  ext x,
+  simp only [mem_smul_set, mem_pi],
+  split; intro h,
+  { rcases h with ⟨h_w, h_h_left, rfl⟩,
+    simp only [mul_eq_mul_left_iff, pi.smul_apply],
+    intros i hi,
+    refine ⟨h_w i, h_h_left i hi, rfl⟩, },
+  classical,
+  { existsi (λ i, if hiS : i ∈ S then classical.some (h i hiS) else r⁻¹ * x i),
+    split,
+    { intros i hiS,
+      dsimp only,
+      split_ifs,
+      exact (classical.some_spec (h i hiS)).left, },
+    { ext i,
+      rw [pi.smul_apply, smul_eq_mul],
+      split_ifs with hiS,
+      exact (classical.some_spec (h i hiS)).right,
+      rw mul_inv_cancel_left' hr, }, },
 end
 
 namespace geometry_of_numbers
@@ -338,9 +362,7 @@ begin
   obtain rfl : s = λ i, Ioo (a i) (b i), from funext (λ i, (H i).2), replace H := λ i, (H i).1,
   simp only [real.volume_Ioo, one_div, algebra.id.smul_eq_mul, real.volume_Ioo, coe_smul,
     pi.smul_apply] at *,
-  rw comap_apply,
-  simp only [image_smul],
-  rw smul_pi ι,
+  rw [comap_apply, image_smul, smul_univ_pi ι],
   conv in (r • _)
   { rw linear_ordered_field.smul_Ioo hr, },
   erw pi_pi,

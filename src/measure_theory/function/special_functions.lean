@@ -76,6 +76,16 @@ measurable.ite (is_closed_le continuous_const continuous_re).measurable_set A $
 
 end complex
 
+namespace is_R_or_C
+
+variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+
+@[measurability] lemma measurable_re : measurable (re : 𝕜 → ℝ) := continuous_re.measurable
+
+@[measurability] lemma measurable_im : measurable (im : 𝕜 → ℝ) := continuous_im.measurable
+
+end is_R_or_C
+
 section real_composition
 open real
 variables {α : Type*} [measurable_space α] {f : α → ℝ} (hf : measurable f)
@@ -132,6 +142,27 @@ measurable_arg.comp hf
 measurable_log.comp hf
 
 end complex_composition
+
+section is_R_or_C_composition
+
+variables {α 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜] {f : α → 𝕜} {μ : measure_theory.measure α}
+
+@[measurability] lemma measurable.re (hf : measurable f) : measurable (λ x, is_R_or_C.re (f x)) :=
+is_R_or_C.measurable_re.comp hf
+
+@[measurability] lemma ae_measurable.re (hf : ae_measurable f μ) :
+  ae_measurable (λ x, is_R_or_C.re (f x)) μ :=
+is_R_or_C.measurable_re.comp_ae_measurable hf
+
+@[measurability] lemma measurable.im (hf : measurable f) : measurable (λ x, is_R_or_C.im (f x)) :=
+is_R_or_C.measurable_im.comp hf
+
+@[measurability] lemma ae_measurable.im (hf : ae_measurable f μ) :
+  ae_measurable (λ x, is_R_or_C.im (f x)) μ :=
+is_R_or_C.measurable_im.comp_ae_measurable hf
+
+end is_R_or_C_composition
 
 section pow_instances
 

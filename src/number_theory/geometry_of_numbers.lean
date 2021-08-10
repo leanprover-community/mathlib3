@@ -94,10 +94,12 @@ noncomputable theory
 lemma is_add_left_invariant_real_volume : is_add_left_invariant (⇑(volume : measure ℝ)) :=
 by simp [← map_add_left_eq_self, real.map_volume_add_left]
 
-lemma is_add_left_invariant_pi_volume [fintype ι] {K : Type*} [measure_space K] [has_add K]
-  [topological_space K] [has_continuous_add K] [has_measurable_add K] [borel_space (ι → K)]
-  [sigma_finite (volume : measure K)] (h : is_add_left_invariant ⇑(volume : measure K)) :
-  is_add_left_invariant (⇑(volume : measure (ι → K))) :=
+lemma is_add_left_invariant_pi_volume [fintype ι] {K : ι → Type*} [∀ i, measure_space (K i)]
+  [∀ i, has_add (K i)] [∀ i, topological_space (K i)] [∀ i, has_continuous_add (K i)]
+  [∀ i, has_measurable_add (K i)] [borel_space (Π i, K i)]
+  [∀ i, sigma_finite (volume : measure (K i))]
+  (h : ∀ i, is_add_left_invariant ⇑(volume : measure (K i))) :
+  is_add_left_invariant (⇑(volume : measure (Π i, K i))) :=
 begin
   rw [← map_add_left_eq_self],
   intro v,
@@ -109,7 +111,7 @@ begin
   { rw pi_pi,
     { congr',
       ext i :1,
-      rw h _ (hS i), },
+      rw h _ _ (hS i), },
     { intro i,
       exact measurable_set_preimage (measurable_const_add (v i)) (hS i), }, },
    { refl, },
@@ -167,7 +169,7 @@ begin
     { rw [this, one_smul], },
     exact volume_Icc ι, },
   { apply_instance },
-  { exact is_add_left_invariant_pi_volume ι (is_add_left_invariant_real_volume), },
+  { exact is_add_left_invariant_pi_volume ι (λ i, is_add_left_invariant_real_volume), },
 end
 
 variable {ι}

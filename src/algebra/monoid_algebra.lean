@@ -726,10 +726,8 @@ open finsupp opposite
 
 variables [semiring k]
 
-/-- The opposite of an `monoid_algebra R I` is ring equivalent to
-the `monoid_algebra Rᵒᵖ Iᵒᵖ` over the opposite ring, taking elements to their opposite.
-For the case where the index type `G` is not `[monoid G]`, see
-`monoid_algebra.op_add_equiv`. -/
+/-- The opposite of an `monoid_algebra R I` equivalent as a ring to
+the `monoid_algebra Rᵒᵖ Iᵒᵖ` over the opposite ring, taking elements to their opposite. -/
 @[simps apply {simp_rhs := tt}] protected noncomputable def op_ring_equiv [monoid G] :
   (monoid_algebra k G)ᵒᵖ ≃+* monoid_algebra kᵒᵖ Gᵒᵖ :=
 { map_mul' := begin

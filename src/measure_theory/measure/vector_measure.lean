@@ -693,6 +693,22 @@ end
 
 section
 
+variables {M : Type*} [topological_space M] [ordered_add_comm_group M] [topological_add_group M]
+variables (v w : vector_measure α M)
+
+lemma neg_le_neg {i : set α} (hi : measurable_set i) (h : v ≤[i] w) : -w ≤[i] -v :=
+begin
+  intros j hj₁,
+  rw [restrict_apply _ hi hj₁, restrict_apply _ hi hj₁, neg_apply, neg_apply],
+  refine neg_le_neg _,
+  rw [← restrict_apply _ hi hj₁, ← restrict_apply _ hi hj₁],
+  exact h j hj₁,
+end
+
+end
+
+section
+
 variables {M : Type*} [topological_space M] [ordered_add_comm_monoid M] [order_closed_topology M]
 variables (v w : vector_measure α M) {i j : set α}
 
@@ -834,17 +850,17 @@ open vector_measure
 
 open_locale measure_theory
 
-/-- The underlying function for `signed_measure.to_measure`. -/
-def to_measure' (s : signed_measure α) (i : set α) (hi : 0 ≤[i] s)
+/-- The underlying function for `signed_measure.to_measure_of_zero_le`. -/
+def to_measure_of_zero_le' (s : signed_measure α) (i : set α) (hi : 0 ≤[i] s)
   (j : set α) (hj : measurable_set j) : ℝ≥0∞ :=
 @coe ℝ≥0 ℝ≥0∞ _ ⟨s.restrict i j, le_trans (by simp) (hi j hj)⟩
 
-/-- Given a signed measure `s` and a positive measurable set `i`, `to_measure`
+/-- Given a signed measure `s` and a positive measurable set `i`, `to_measure_of_zero_le`
 provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
-def to_measure (s : signed_measure α) (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) :
+def to_measure_of_zero_le (s : signed_measure α) (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) :
   measure α :=
-measure.of_measurable (s.to_measure' i hi₂)
-  (by { simp_rw [to_measure', s.restrict_apply hi₁ measurable_set.empty,
+measure.of_measurable (s.to_measure_of_zero_le' i hi₂)
+  (by { simp_rw [to_measure_of_zero_le', s.restrict_apply hi₁ measurable_set.empty,
                  set.empty_inter i, s.empty], refl })
   begin
     intros f hf₁ hf₂,
@@ -852,7 +868,7 @@ measure.of_measurable (s.to_measure' i hi₂)
     have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
     { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
       exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
-    simp only [to_measure', s.restrict_apply hi₁ (measurable_set.Union hf₁),
+    simp only [to_measure_of_zero_le', s.restrict_apply hi₁ (measurable_set.Union hf₁),
                set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
                ennreal.some_eq_coe, id.def],
     have h : ∀ n, 0 ≤ s (i ∩ f n),
@@ -866,27 +882,62 @@ measure.of_measurable (s.to_measure' i hi₂)
 
 variables (s : signed_measure α) {i j : set α}
 
-lemma to_measure_apply (hi : 0 ≤[i] s) (hi₁ : measurable_set i) (hj₁ : measurable_set j) :
-  s.to_measure i hi₁ hi j =
+lemma to_measure_of_zero_le_apply (hi : 0 ≤[i] s)
+  (hi₁ : measurable_set i) (hj₁ : measurable_set j) :
+  s.to_measure_of_zero_le i hi₁ hi j =
   @coe ℝ≥0 ℝ≥0∞ _ ⟨s (i ∩ j), nonneg_of_zero_le_restrict s
     (zero_le_restrict_subset s hi₁ (set.inter_subset_left _ _) hi)⟩ :=
-by { simp_rw [to_measure, measure.of_measurable_apply _ hj₁, to_measure',
+by { simp_rw [to_measure_of_zero_le, measure.of_measurable_apply _ hj₁, to_measure_of_zero_le',
               s.restrict_apply hi₁ hj₁, set.inter_comm] }
 
-/-- `signed_measure.to_measure` is a finite measure. -/
-instance to_measure_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
-  finite_measure (s.to_measure i hi₁ hi) :=
+/-- Given a signed measure `s` and a negative measurable set `i`, `to_measure_of_le_zero`
+provides the measure, mapping measurable sets `j` to `-s (i ∩ j)`. -/
+def to_measure_of_le_zero (s : signed_measure α) (i : set α) (hi₁ : measurable_set i)
+  (hi₂ : s ≤[i] 0) : measure α :=
+to_measure_of_zero_le (-s) i hi₁ $ (@neg_zero (vector_measure α ℝ) _) ▸ neg_le_neg _ _ hi₁ hi₂
+
+lemma to_measure_of_le_zero_apply (hi : s ≤[i] 0)
+  (hi₁ : measurable_set i) (hj₁ : measurable_set j) :
+  s.to_measure_of_le_zero i hi₁ hi j =
+  @coe ℝ≥0 ℝ≥0∞ _ ⟨-s (i ∩ j), neg_apply s (i ∩ j) ▸ nonneg_of_zero_le_restrict _
+    (zero_le_restrict_subset _ hi₁ (set.inter_subset_left _ _)
+    ((@neg_zero (vector_measure α ℝ) _) ▸ neg_le_neg _ _ hi₁ hi))⟩ :=
+begin
+  erw [to_measure_of_zero_le_apply],
+  { simp },
+  { assumption },
+end
+
+/-- `signed_measure.to_measure_of_zero_le` is a finite measure. -/
+instance to_measure_of_zero_le_finite (hi : 0 ≤[i] s) (hi₁ : measurable_set i) :
+  finite_measure (s.to_measure_of_zero_le i hi₁ hi) :=
 { measure_univ_lt_top :=
   begin
-    rw [to_measure_apply s hi hi₁ measurable_set.univ],
+    rw [to_measure_of_zero_le_apply s hi hi₁ measurable_set.univ],
     exact ennreal.coe_lt_top,
   end }
 
-lemma to_measure_to_signed_measure (hs : 0 ≤[univ] s) :
-  (s.to_measure univ measurable_set.univ hs).to_signed_measure = s :=
+/-- `signed_measure.to_measure_of_le_zero` is a finite measure. -/
+instance to_measure_of_le_zero_finite (hi : s ≤[i] 0) (hi₁ : measurable_set i) :
+  finite_measure (s.to_measure_of_le_zero i hi₁ hi) :=
+{ measure_univ_lt_top :=
+  begin
+    rw [to_measure_of_le_zero_apply s hi hi₁ measurable_set.univ],
+    exact ennreal.coe_lt_top,
+  end }
+
+lemma to_measure_of_zero_le_to_signed_measure (hs : 0 ≤[univ] s) :
+  (s.to_measure_of_zero_le univ measurable_set.univ hs).to_signed_measure = s :=
 begin
   ext i hi,
-  simp [measure.to_signed_measure_apply_measurable hi, to_measure_apply _ _ _ hi],
+  simp [measure.to_signed_measure_apply_measurable hi, to_measure_of_zero_le_apply _ _ _ hi],
+end
+
+lemma to_measure_of_le_zero_to_signed_measure (hs : s ≤[univ] 0) :
+  (s.to_measure_of_le_zero univ measurable_set.univ hs).to_signed_measure = -s :=
+begin
+  ext i hi,
+  simp [measure.to_signed_measure_apply_measurable hi, to_measure_of_le_zero_apply _ _ _ hi],
 end
 
 end signed_measure
@@ -905,13 +956,13 @@ begin
              ennreal.to_real_nonneg, vector_measure.coe_zero]
 end
 
-lemma to_signed_measure_to_measure :
-  μ.to_signed_measure.to_measure univ measurable_set.univ
+lemma to_signed_measure_to_measure_of_zero_le :
+  μ.to_signed_measure.to_measure_of_zero_le univ measurable_set.univ
     ((le_iff_le_restrict_univ _ _).2 (zero_le_to_signed_measure μ)) = μ :=
 begin
   refine measure.ext (λ i hi, _),
   lift μ i to ℝ≥0 using (measure_lt_top _ _).ne with m hm,
-  simp [signed_measure.to_measure_apply _ _ _ hi,
+  simp [signed_measure.to_measure_of_zero_le_apply _ _ _ hi,
         measure.to_signed_measure_apply_measurable hi, ← hm],
 end
 

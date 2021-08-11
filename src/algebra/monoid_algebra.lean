@@ -1217,20 +1217,8 @@ open finsupp opposite
 
 variables [semiring k]
 
-/-- The opposite of an `add_monoid_algebra R I` is additively equivalent to
-the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
-@[simps apply symm_apply] protected noncomputable def op_add_equiv :
-  (add_monoid_algebra k G)ᵒᵖ ≃+ add_monoid_algebra kᵒᵖ G :=
-opposite.op_add_equiv.symm.trans (finsupp.map_range.add_equiv opposite.op_add_equiv)
-
-lemma op_add_equiv_single (i : G) (r : k):
-  add_monoid_algebra.op_add_equiv (op (single i r)) = single i (op r) :=
-by simp
-
 /-- The opposite of an `add_monoid_algebra R I` is ring equivalent to
-the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite.
-For the case where the index type `I` is not `[add_comm_monoid I]`, see
-`add_monoid_algebra.op_add_equiv`. -/
+the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
 @[simps {simp_rhs := tt}] protected noncomputable def op_ring_equiv [add_comm_monoid G] :
   (add_monoid_algebra k G)ᵒᵖ ≃+* add_monoid_algebra kᵒᵖ G :=
 { map_mul' := begin
@@ -1240,7 +1228,8 @@ For the case where the index type `I` is not `[add_comm_monoid I]`, see
     dsimp,
     simp only [map_range_single, single_mul_single, ←op_mul, add_comm]
   end,
-  ..add_monoid_algebra.op_add_equiv }
+  ..opposite.op_add_equiv.symm.trans
+    (finsupp.map_range.add_equiv (opposite.op_add_equiv : k ≃+ kᵒᵖ))}
 
 @[simp] lemma op_ring_equiv_single [add_comm_monoid G] (r : k) (x : G) :
   add_monoid_algebra.op_ring_equiv (op (single x r)) = single x (op r) :=

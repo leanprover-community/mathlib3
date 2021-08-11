@@ -112,7 +112,7 @@ begin
   apply continuous_induced_rng,
   apply continuous_pi_iff.mpr,
   intros z,
-  exact (normed_space.evaluate_dual_at z).continuous,
+  exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
 
 def normed_space.dual.continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=

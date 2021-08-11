@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.monic
-import ring_theory.euclidean_domain
 import ring_theory.multiplicity
 
 /-!
@@ -79,7 +78,7 @@ else
     (by rw [← degree_eq_nat_degree h.2, ← degree_eq_nat_degree hq0];
     exact h.1),
   degree_sub_lt
-  (by rw [degree_mul_monic hq, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
+  (by rw [hq.degree_mul, degree_C_mul_X_pow _ hp, degree_eq_nat_degree h.2,
       degree_eq_nat_degree hq0, ← with_bot.coe_add, nat.sub_add_cancel hlt])
   h.2
   (by rw [leading_coeff_mul_monic hq, leading_coeff_mul_X_pow, leading_coeff_C])
@@ -439,7 +438,7 @@ by exactI nat.find (multiplicity_X_sub_C_finite a h0)
 lemma root_multiplicity_eq_multiplicity (p : polynomial R) (a : R) :
   root_multiplicity a p = if h0 : p = 0 then 0 else
   (multiplicity (X - C a) p).get (multiplicity_X_sub_C_finite a h0) :=
-by simp [multiplicity, root_multiplicity, roption.dom];
+by simp [multiplicity, root_multiplicity, part.dom];
   congr; funext; congr
 
 lemma pow_root_multiplicity_dvd (p : polynomial R) (a : R) :

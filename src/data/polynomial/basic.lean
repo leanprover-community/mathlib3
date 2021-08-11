@@ -3,11 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import tactic.ring_exp
-import tactic.chain
 import algebra.monoid_algebra
-import data.finset.sort
-import tactic.ring
 
 /-!
 # Theory of univariate polynomials

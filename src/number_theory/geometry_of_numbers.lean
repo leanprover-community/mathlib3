@@ -104,6 +104,15 @@ end
 def Icc01 : positive_compacts ℝ :=
 ⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
 
+
+
+
+lemma interior_pi {ι} [fintype ι] {α : ι → Type*} (s : set ι) (t : Π (i : ι), set (α i))
+  [Π (i : ι), topological_space (α i)] : s.pi (λ i : ι, interior (t i)) ⊆ interior (s.pi t) :=
+(subset_interior_iff_subset_of_open (is_open_set_pi (finite.of_fintype s)
+  (λ (i : ι) hi, (is_open_interior : is_open (interior (t i)))))).mpr
+    (pi_mono (λ i hi, interior_subset))
+
 /-- The closed unit cube with sides the intervals [0,1] as a positive compact set, for inducing the
     Haar measure equal to the lebesgue measure on ℝ^n. -/
 def unit_cube [fintype ι] : positive_compacts (ι → ℝ) :=
@@ -113,24 +122,18 @@ def unit_cube [fintype ι] : positive_compacts (ι → ℝ) :=
 end,
 begin
   simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
-  have : pi univ (λ i : ι, interior (Icc 0 1)) ⊆ interior (pi univ (λ i : ι, Icc (0 : ℝ) 1)),
-  -- TODO weird dot notation fail?
-  { rw subset_interior_iff_subset_of_open,
-    { exact pi_mono (λ i hi, interior_subset), },
-    { rw [interior_Icc],
-      exact is_open_set_pi finite_univ (λ i hi, is_open_Ioo), }, },-- TODO general lemma?
   have ok : (pi univ (λ i : ι, interior (Icc (0 : ℝ) 1))).nonempty,
   { rw [interior_Icc, univ_pi_nonempty_iff],
     exact (λ i, nonempty_Ioo.mpr zero_lt_one) },
-  exact nonempty.mono this ok,
+  exact nonempty.mono (interior_pi univ (λ (i : ι), Icc 0 1)) ok,
 end⟩
 
 lemma haar_measure_eq_lebesgue_measure : add_haar_measure Icc01 = volume :=
 begin
   convert (add_haar_measure_unique _ Icc01).symm,
-  { simp [Icc01] },
-  { apply_instance },
-  { exact is_add_left_invariant_real_volume }
+  { simp [Icc01], },
+  { apply_instance, },
+  { exact is_add_left_invariant_real_volume, },
 end
 
 lemma volume_Icc [fintype ι] : volume (Icc 0 1 : set (ι → ℝ)) = 1 :=
@@ -303,7 +306,7 @@ begin
   convert this,
   ext1 l,
   simp only [set.image_add_right],
-  dsimp only [subtype.measure_space],
+  dsimp only [subtype.measure_space], -- TODO lemma
   rw measure.comap_apply _ subtype.val_injective _ _ _,
   { congr,
     ext1 v,
@@ -334,30 +337,31 @@ begin
   suffices : (1 / ennreal.of_real r) ^ (fintype.card ι) •
     measure.comap ((•) r) (volume : measure (ι → ℝ)) = (volume : measure (ι → ℝ)),
   { conv_rhs { rw ← this, },
-    simp only [one_div],
-    rw [smul_smul, ← mul_pow, ennreal.mul_inv_cancel hrzero hrtop],
+    rw [one_div, smul_smul, ← mul_pow, ennreal.mul_inv_cancel hrzero hrtop],
     simp only [one_pow, one_smul], },
-  refine (pi_eq_generate_from (λ i, real.borel_eq_generate_from_Ioo_rat.symm)
-    (λ i, real.is_pi_system_Ioo_rat) (λ i, real.finite_spanning_sets_in_Ioo_rat _)
-    _).symm,
+  refine (pi_eq _).symm,
   intros s hS,
-  simp only [exists_prop, mem_Union, mem_singleton_iff] at hS,
-  choose a b H using hS,
-  obtain rfl : s = λ i, Ioo (a i) (b i), from funext (λ i, (H i).2), replace H := λ i, (H i).1,
-  simp only [real.volume_Ioo, one_div, algebra.id.smul_eq_mul, real.volume_Ioo, coe_smul,
-    pi.smul_apply] at *,
+  simp only [one_div, algebra.id.smul_eq_mul, coe_smul, pi.smul_apply],
   rw [comap_apply, image_smul, smul_univ_pi ι],
-  conv in (r • _)
-  { rw linear_ordered_field.smul_Ioo hr, },
   erw pi_pi,
-  simp only [algebra.id.smul_eq_mul, real.volume_Ioo],
-  simp_rw [← mul_sub r],
-  simp_rw ennreal.of_real_mul (hr.le),
-  rw finset.prod_mul_distrib,
-  simp only [finset.prod_const],
-  rw [fintype.card, ← mul_assoc, ← mul_pow, ennreal.inv_mul_cancel hrzero hrtop, one_pow, one_mul],
+  conv in (r • _)
+  { rw ← inv_inv' r, },
+  conv in (volume (r⁻¹⁻¹ • _))
+  { rw ← preimage_smul' (inv_ne_zero (ne_of_gt hr)), },
+  simp only [algebra.id.smul_eq_mul],
+  rw [fintype.card, ← finset.prod_const, ← finset.prod_mul_distrib],
+  congr,
+  ext i :1,
+  erw ← measure.map_apply _ _,
+  conv_rhs { rw [← real.smul_map_volume_mul_left (inv_ne_zero (ne_of_gt hr))], },
+  congr,
+  rw ennreal.of_real_inv_of_pos hr,
+  rw abs_of_pos (inv_pos.mpr hr),
+  exact measurable_const_mul r⁻¹,
+  exact hS i,
   { intro i,
-    exact measurable_set_Ioo, },
+    rw [← inv_inv' r, ← preimage_smul' (inv_ne_zero (ne_of_gt hr))],
+    exact measurable_const_smul _ (hS i), },
   { exact smul_left_injective (ι → ℝ) (ne_of_gt hr), },
   { intros S hS,
     rw [image_smul, ← inv_inv' r, ← preimage_smul' (ne_of_gt (inv_pos.mpr hr))],
@@ -365,7 +369,7 @@ begin
     rw measurable_const_smul_iff' (ne_of_gt (inv_pos.mpr hr)),
     exact measurable_id',
     apply_instance, },
-  { exact measurable_set.univ_pi_fintype (λ i, measurable_set_Ioo), },
+  { exact measurable_set.univ_pi_fintype hS, },
 end
 
 open ennreal fintype
@@ -407,7 +411,7 @@ begin
     convert h, },
 
   have : (1/2 : ℝ) • S + (1/2 : ℝ) • S = (1 / 2 + 1 / 2 : ℝ) • S,
-  from h_conv.smul_add_smul (half_pos (zero_lt_one)) (half_pos (zero_lt_one)),
+  from h_conv.smul_add_smul (by norm_num) (by norm_num),
   norm_num at this,
   rw ← this,
   suffices : ∃ (x y : ι → ℝ) (hx : x ∈ (1/2 : ℝ) • S) (hy : y ∈ (1/2 : ℝ) • S) (hne : x ≠ y),

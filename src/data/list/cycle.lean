@@ -619,19 +619,20 @@ fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
   (by simp)
 
 /--
-The `finset` of lists that can make the cycle.
+The `multiset` of lists that can make the cycle.
 -/
-def lists (s : cycle α) : finset (list α) :=
-quotient.lift_on' s (λ l, (l.permutations.filter (λ (l' : list α), (l' : cycle α) = s)).to_finset) $
-  λ l₁ l₂ (h : l₁ ~r l₂),
-  begin
-    induction s using quotient.induction_on',
-    ext,
-    simp only [mem_filter, coe_eq_coe, mk'_eq_coe, and.congr_left_iff, mem_permutations,
-               mem_to_finset],
-    intro,
-    exact ⟨λ H, H.trans h.perm, λ H, H.trans h.perm.symm⟩
-  end
+def lists (s : cycle α) : multiset (list α) :=
+quotient.lift_on' s
+  (λ l, (l.permutations.filter (λ (l' : list α), (l' : cycle α) = s) : multiset (list α))) $
+  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using perm.filter _ h.perm.permutations
+
+@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
+  l ∈ s.lists ↔ (l : cycle α) = s :=
+begin
+  induction s using quotient.induction_on',
+  rw [lists, quotient.lift_on'_mk'],
+  simpa using is_rotated.perm
+end
 
 /--
 The `s : cycle α` as a `finset α`.

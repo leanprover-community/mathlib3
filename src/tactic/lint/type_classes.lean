@@ -383,6 +383,6 @@ This means that if we define an instance using these definitions, type-class inf
 "unify found instances with another instance, causing unexpected errors when this class occurs " ++
 "as an *argument* to a type-class problem. See note [reducible non-instances].
 Feel free to give this a `@[nolint]` tag if one of the following holds:
-(1) no instance will ever be defined using this definition.
+(1) no instance will ever be defined using this definition;
 (2) no type-class will ever take this type-class as an *argument*.",
   is_fast := tt }

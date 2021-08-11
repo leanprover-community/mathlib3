@@ -13,6 +13,8 @@ open interactive interactive.types
 section ext
 open lean.parser nat tactic
 
+declare_trace ext
+
 /--
 `derive_struct_ext_lemma n` generates two extensionality lemmas based on
 the equality of all non-propositional projections.
@@ -418,14 +420,19 @@ meta def ext1_core (cfg : apply_cfg := {}) : state_t ext_state tactic unit :=
 do ⟨patts, trace_msg, _⟩ ← get,
    (new_msgs) ← state_t.lift $ focus1 $
    do { m ← get_ext_lemmas,
-         subject ← (target >>= get_ext_subject),
+         tgt ← target,
+         when_tracing `ext $ trace!"[ext] goal: {tgt}",
+         subject ← get_ext_subject tgt,
          new_trace_msg ←
            do { rule ← (m.find subject),
+                when_tracing `ext $ trace!"[ext] matched goal to rule: {rule}",
                 (applyc rule cfg),
                 pure (["apply " ++ rule.to_string]) } <|>
              do { ls ← get_ext_lemma_names,
                   let nms := ls.map name.to_string,
-                  rule ← (ls.any_of (λ n, applyc n cfg *> pure n)),
+                  rule ← (ls.any_of (λ n,
+                    when_tracing `ext (trace!"[ext] trying to apply ext lemma: {n}") >>
+                    applyc n cfg *> pure n)),
                   pure (["apply " ++ rule.to_string]) } <|>
                (fail format!"no applicable extensionality rule found for {subject}"),
          pure new_trace_msg },

@@ -16,8 +16,9 @@ Functions in `Lp` for `0 < p < ∞` are strongly measurable.
 If the measure is sigma-finite, measurable and strongly measurable are equivalent.
 
 The main property of strongly measurable functions is `strongly_measurable.exists_set_sigma_finite`:
-there exists a measurable set such that `f` is supported on `t` and `μ.restrict t` is sigma-finite.
-As a consequence, we can prove some results for those functions as if the measure was sigma-finite.
+there exists a measurable set `t` such that `f` is supported on `t` and `μ.restrict t` is
+sigma-finite. As a consequence, we can prove some results for those functions as if the measure was
+sigma-finite.
 
 ## Main definitions
 

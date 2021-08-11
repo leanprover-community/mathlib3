@@ -96,9 +96,9 @@ theorem rcomap_sets (r : rel α β) (f : filter β) :
 @[simp]
 theorem rcomap_rcomap (r : rel α β) (s : rel β γ) (l : filter γ) :
   rcomap r (rcomap s l) = rcomap (r.comp s) l :=
-filter_eq $
+filter.ext $ λ t,
 begin
-  ext t, simp [rcomap_sets, rel.image, rel.core_comp], split,
+  simp [rcomap_sets, rel.image, rel.core_comp], split,
   { rintro ⟨u, ⟨v, vsets, hv⟩, h⟩,
     exact ⟨v, vsets, (rel.core_mono _ hv).trans h⟩ },
   rintro ⟨t, tsets, ht⟩,
@@ -115,10 +115,8 @@ begin
   rw rtendsto_def,
   change (∀ (s : set β), s ∈ l₂.sets → r.core s ∈ l₁) ↔ l₁ ≤ rcomap r l₂,
   simp [filter.le_def, rcomap, rel.mem_image], split,
-  intros h s t tl₂ h',
-  { exact mem_sets_of_superset (h t tl₂) h' },
-  intros h t tl₂,
-  apply h _ t tl₂ set.subset.rfl,
+  { exact λ h s t tl₂, mem_sets_of_superset (h t tl₂) },
+  { exact λ h t tl₂, h _ t tl₂ set.subset.rfl }
 end
 
 -- Interestingly, there does not seem to be a way to express this relation using a forward map.
@@ -146,9 +144,9 @@ theorem rcomap'_sets (r : rel α β) (f : filter β) :
 @[simp]
 theorem rcomap'_rcomap' (r : rel α β) (s : rel β γ) (l : filter γ) :
   rcomap' r (rcomap' s l) = rcomap' (r.comp s) l :=
-filter_eq $
+filter.ext $ λ t,
 begin
-  ext t, simp [rcomap'_sets, rel.image, rel.preimage_comp], split,
+  simp [rcomap'_sets, rel.image, rel.preimage_comp], split,
   { rintro ⟨u, ⟨v, vsets, hv⟩, h⟩,
     exact ⟨v, vsets, (rel.preimage_mono _ hv).trans h⟩ },
   rintro ⟨t, tsets, ht⟩,
@@ -168,8 +166,8 @@ theorem rtendsto'_def (r : rel α β) (l₁ : filter α) (l₂ : filter β) :
   rtendsto' r l₁ l₂ ↔ ∀ s ∈ l₂, r.preimage s ∈ l₁ :=
 begin
   unfold rtendsto' rcomap', simp [le_def, rel.mem_image], split,
-  { intros h s hs, apply h _ _ hs set.subset.rfl },
-  intros h s t ht, apply mem_sets_of_superset (h t ht)
+  { exact λ h s hs, h _ _ hs set.subset.rfl },
+  { exact λ h s t ht, mem_sets_of_superset (h t ht) }
 end
 
 theorem tendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α → β) :
@@ -206,9 +204,9 @@ iff.rfl
 
 theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
   pmap (pfun.res f s) l = map f (l ⊓ 𝓟 s) :=
-filter_eq $
+filter.ext $ λ t,
 begin
-  apply set.ext, intro t, simp [pfun.core_res], split,
+  simp [pfun.core_res], split,
   { intro h, constructor, split, { exact h },
     constructor, split, { reflexivity },
     simp [set.inter_distrib_right], apply set.inter_subset_left },

@@ -43,7 +43,7 @@ instance weak_dual.has_coe_to_fun :
 
 instance weak_dual.topology :
   topological_space (weak_dual 𝕜 E) :=
-topological_space.induced (λ (x' : (weak_dual 𝕜 E)), (λ (z : E), x' z)) Pi.topological_space
+topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topological_space
 
 lemma weak_dual.test_continuous' :
   continuous (λ (x' : (weak_dual 𝕜 E)), (λ (z : E), x' z)) :=

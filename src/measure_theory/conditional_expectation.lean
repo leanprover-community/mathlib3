@@ -146,7 +146,7 @@ variables [measurable_space α] {μ : measure α}
 
 lemma integrable.const_inner [borel_space 𝕜] {f : α → E} (hf : integrable f μ) (c : E) :
   integrable (λ x, ⟪c, f x⟫) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner 1 c, }
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner c, }
 
 lemma sub_ae_eq_zero [add_group γ] (f g : α → γ) : f - g =ᵐ[μ] 0 ↔ f =ᵐ[μ] g :=
 begin
@@ -1136,12 +1136,12 @@ end
 end real
 
 lemma condexp_const_inner [is_scalar_tower ℝ 𝕜 E'] (hm : m ≤ m0) (f : Lp E' 2 μ) (c : E') :
-  condexp_L2 𝕜 hm (((Lp.mem_ℒp f).const_inner 2 c).to_Lp (λ a, ⟪c, f a⟫') )
+  condexp_L2 𝕜 hm (((Lp.mem_ℒp f).const_inner c).to_Lp (λ a, ⟪c, f a⟫') )
     =ᵐ[μ] λ a, ⟪c, condexp_L2 𝕜 hm f a⟫' :=
 begin
   rw Lp_meas_coe,
   have h_mem_Lp : mem_ℒp (λ a, ⟪c, condexp_L2 𝕜 hm f a⟫') 2 μ,
-  { refine mem_ℒp.const_inner 2 _ _,
+  { refine mem_ℒp.const_inner _ _,
     rw Lp_meas_coe,
     exact Lp.mem_ℒp _, },
   let inner_condexp_Lp := h_mem_Lp.to_Lp _,
@@ -1163,7 +1163,7 @@ begin
       ← inner_condexp_L2_left_eq_right, condexp_L2_indicator_of_measurable,
       L2.inner_indicator_const_Lp_eq_set_integral_inner f (hm s hs) c hμs.ne,
       set_integral_congr_ae (hm s hs)
-        ((mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).const_inner 2 c)).mono (λ x hx hxs, hx))], },
+        ((mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).const_inner c)).mono (λ x hx hxs, hx))], },
   { rw ← Lp_meas_coe,
     exact Lp_meas.ae_measurable' _, },
   { refine ae_measurable'.congr _ h_eq.symm,
@@ -1190,7 +1190,7 @@ begin
   swap,
   { refine integrable.const_inner _ c,
     exact integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs, },
-  have h_ae_eq_f := mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).const_inner 2 c),
+  have h_ae_eq_f := mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).const_inner c),
   rw [sub_eq_zero,
     ← set_integral_congr_ae (hm s hs) ((condexp_const_inner hm f c).mono (λ x hx _, hx)),
     ← set_integral_congr_ae (hm s hs) (h_ae_eq_f.mono (λ x hx _, hx))],

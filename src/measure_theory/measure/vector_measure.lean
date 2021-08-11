@@ -857,8 +857,8 @@ def to_measure_of_zero_le' (s : signed_measure α) (i : set α) (hi : 0 ≤[i] s
 
 /-- Given a signed measure `s` and a positive measurable set `i`, `to_measure_of_zero_le`
 provides the measure, mapping measurable sets `j` to `s (i ∩ j)`. -/
-def to_measure_of_zero_le (s : signed_measure α) (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) :
-  measure α :=
+def to_measure_of_zero_le (s : signed_measure α) (i : set α)
+  (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) : measure α :=
 measure.of_measurable (s.to_measure_of_zero_le' i hi₂)
   (by { simp_rw [to_measure_of_zero_le', s.restrict_apply hi₁ measurable_set.empty,
                  set.empty_inter i, s.empty], refl })

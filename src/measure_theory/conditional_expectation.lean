@@ -1130,8 +1130,8 @@ begin
   have h_eq : inner_condexp_Lp =ᵐ[μ] λ a, ⟪c, condexp_L2 𝕜 hm f a⟫',
     from h_mem_Lp.coe_fn_to_Lp,
   refine eventually_eq.trans _ h_eq,
-  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ ennreal.zero_lt_two ennreal.coe_ne_top
-    _ _ _ _ _,
+  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ _ ennreal.coe_ne_top _ _ _ _ _,
+  { simp only [ennreal.bit0_eq_zero_iff, ne.def, not_false_iff, one_ne_zero], },
   { exact λ s hs hμs, integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _, },
   { intros s hs hμs,
     rw [integrable_on, integrable_congr (ae_restrict_of_ae h_eq)],

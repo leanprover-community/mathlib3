@@ -473,6 +473,9 @@ def mul_equiv.op {α β} [has_mul α] [has_mul β] :
 
 section ext
 
+/-- This ext lemma change equalities on `αᵒᵖ →+ β` to equalities on `α →+ β`.
+This is useful because there are often ext lemmas for specific `α`s that will apply
+to an equality of `α →+ β` such as `finsupp.add_hom_ext'`. -/
 @[ext]
 lemma add_monoid_hom.op_ext {α β} [add_zero_class α] [add_zero_class β]
   (f g : αᵒᵖ →+ β)

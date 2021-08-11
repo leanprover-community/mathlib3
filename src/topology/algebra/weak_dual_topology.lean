@@ -47,8 +47,7 @@ topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topologi
 
 lemma weak_dual.test_continuous' :
   continuous (λ (x' : (weak_dual 𝕜 E)), (λ (z : E), x' z)) :=
-@continuous_induced_dom (weak_dual 𝕜 E) (Π (x : E), 𝕜)
-    (λ (x' : (weak_dual 𝕜 E)), (λ (x : E), x' x)) Pi.topological_space
+continuous_induced_dom
 
 lemma weak_dual.test_continuous (z : E) : continuous (λ (x' : weak_dual 𝕜 E), x' z) :=
 (continuous_pi_iff.mp (weak_dual.test_continuous' 𝕜 E)) z

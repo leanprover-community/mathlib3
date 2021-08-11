@@ -16,6 +16,7 @@ namespace set_like
 
 /-- TODO: It should be possible to obtain a computable version of this for most
 set_like objects. If we add those instances, we should remove this one. -/
+@[nolint dangerous_instance]
 noncomputable instance {A B : Type*} [fintype B] [set_like A B] : fintype A :=
 fintype.of_injective coe set_like.coe_injective
 

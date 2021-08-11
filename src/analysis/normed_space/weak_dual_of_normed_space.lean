@@ -116,10 +116,8 @@ begin
 end
 
 def normed_space.dual.continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=
-{ to_fun := (λ (x' : dual 𝕜 E), x'.to_weak_dual),
-  map_add' := (@linequiv_to_weak_dual 𝕜 _ E _ _).map_add',
-  map_smul' := (@linequiv_to_weak_dual 𝕜 _ E _ _).map_smul',
-  cont := to_weak_dual_continuous, }
+{ cont := to_weak_dual_continuous,
+  .. linequiv_to_weak_dual }
 
 -- This is a relatively straightforward statement of the fact that the weak-star topology is
 -- coarser than the dual-norm topology, without abusing definitional equality.

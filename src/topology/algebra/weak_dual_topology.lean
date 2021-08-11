@@ -1,22 +1,71 @@
 /-
 Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kalle Kytölä and Heather Macbeth
+Authors: Kalle Kytölä, Heather Macbeth
 -/
 import topology.algebra.module
+
+/-!
+# Weak dual topology
+
+This file defines the weak-* topology on duals of suitable topological modules `E` over suitable
+topological semirings `𝕜`. The (weak) dual consists of continuous linear functionals `E →L[𝕜] 𝕜`
+from `E` to scalars `𝕜`. The weak-* topology is the coarsest topology on this dual
+`weak_dual 𝕜 E := (E →L[𝕜] 𝕜)` w.r.t. which the evaluation maps at all `z : E` are continuous.
+
+The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
+
+## Main definitions
+
+The main definitions are the type `weak_dual 𝕜 E` and a topology instance on it.
+
+ * `weak_dual 𝕜 E` is a type synonym for `dual 𝕜 E` (when the latter is defined), both are equal to
+   the type `E →L[𝕜] 𝕜` of continuous linear maps from a module `E` over `𝕜` to the ring `𝕜`.
+ * `weak_dual_topology` is the topology instance on `weak_dual 𝕜 E`, the weak-* topology, i.e.,
+   the coarsest topology making the evaluation maps at all `z : E` are continuous.
+
+## Main results
+
+The results in this file primarily concern the characterization of the weak-* topology.
+
+## Notations
+
+No new notation is introduced.
+
+## Implementation notes
+
+The weak-* topology is defined as the induced topology under the mapping that associates to a dual
+element `x'` the functional `E → 𝕜`, when the space `E → 𝕜` of functionals is equipped with the
+topology of pointwise convergence (product topology).
+
+The general definition assumes that `𝕜` is a topological semiring in the sense of the typeclasses
+ `topological_space 𝕜`, `semiring 𝕜`, `has_continuous_add 𝕜`, `has_continuous_mul 𝕜`,
+and that the space `E` is a topological module over `𝕜` in the sense of the typeclasses
+`topological_space E`, `add_comm_monoid E`, `has_continuous_add E`, `module 𝕜 E`,
+`has_continuous_smul 𝕜 E`.
+
+## References
+
+* https://en.wikipedia.org/wiki/Weak_topology#Weak-*_topology
+
+## Tags
+
+weak-star, weak dual
+
+-/
 
 noncomputable theory
 open filter
 open_locale topological_space
 
 section weak_star_topology
-
 /-!
 ### Weak star topology on duals of topological modules
 In this section, we define the weak-* topology on duals of suitable topological modules `E` over
-suitable topological semirings `𝕜`. The (weak) dual consists of continuous linear functionals
-`E →L[𝕜] 𝕜` from `E` to scalars `𝕜`. The weak-* topology is the coarsest topology on this dual
-`weak_dual 𝕜 E := (E →L[𝕜] 𝕜)` w.r.t. which the evaluation maps at all `z : E` are continuous.
+suitable topological semirings `𝕜`. The (weak) dual `weak_dual 𝕜 E` consists of continuous linear
+functionals `E →L[𝕜] 𝕜` from `E` to scalars `𝕜`. The weak-* topology is the coarsest topology on
+this dual `weak_dual 𝕜 E := (E →L[𝕜] 𝕜)` w.r.t. which the evaluation maps at all `z : E` are
+continuous.
 
 The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 -/

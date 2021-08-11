@@ -7,6 +7,52 @@ import topology.algebra.weak_dual_topology
 import analysis.normed_space.dual
 import analysis.normed_space.operator_norm
 
+/-!
+# Weak dual of normed space
+
+This file proves properties of the weak-* topology on the dual of a normed space.
+
+It is shown that the canconical mapping `dual 𝕜 E → weak_dual 𝕜 E` is continuous, and as a
+consequence the weak-* topology is coarser than the topology induced by the dual norm (operator
+norm).
+
+## Main definitions
+
+The main definitions concern the canconical mapping `dual 𝕜 E → weak_dual 𝕜 E`.
+
+* `normed_space.dual.to_weak_dual` is a linear equivalence from `dual 𝕜 E`to `weak_dual 𝕜 E`.
+* `normed_space.dual.continuous_linear_map_to_weak_dual` is a continuous linear mapping from
+  `dual 𝕜 E` to `weak_dual 𝕜 E`.
+
+## Main results
+
+The main results concern the comparison of the operator norm topology on `dual 𝕜 E` and the weak-*
+topology on (it type synonym) `weak_dual 𝕜 E`.
+
+* `dual_norm_topology_le_weak_dual_topology` is the statement that the weak-* topology on the dual
+  of a normed space is coarser (not necessarily strictly) than the operator norm topology.
+
+## Notations
+
+No new notation is introduced.
+
+## Implementation notes
+
+Weak-* topology is defined generally in the file <topology.algebra.weak_dual_topology>.
+
+When `E` is a normed space, the duals `dual 𝕜 E` and `weak_dual 𝕜 E` are type synonyms with
+different topology instances.
+
+## References
+
+* https://en.wikipedia.org/wiki/Weak_topology#Weak-*_topology
+
+## Tags
+
+weak-star, weak dual
+
+-/
+
 noncomputable theory
 open filter
 open_locale topological_space
@@ -54,10 +100,8 @@ def normed_space.dual.continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜
 { cont := to_weak_dual_continuous,
   .. normed_space.dual.to_weak_dual, }
 
--- This is a relatively straightforward statement of the fact that the weak-star topology is
--- coarser than the dual-norm topology, without abusing definitional equality.
 /-- The weak-star topology is coarser than the dual-norm topology: all weak-star open sets are
-    norm-topology open. -/
+    open in the operator norm topology. -/
 lemma open_set_of_weak_dual_open_set (s : set (dual 𝕜 E))
   (s_weak_dual_open : is_open (normed_space.dual.to_weak_dual '' s)) : is_open s :=
 begin
@@ -69,7 +113,7 @@ begin
 end
 
 -- TODO: The proof below may be abusing definitional equality... And it looks like it needs golf.
-private lemma linequiv_to_weak_dual_image (s : set (dual 𝕜 E)) :
+private lemma to_weak_dual_image (s : set (dual 𝕜 E)) :
   (normed_space.dual.to_weak_dual '' s) = s :=
 begin
   ext x',
@@ -90,7 +134,7 @@ theorem dual_norm_topology_le_weak_dual_topology :
 begin
   intros U hU,
   apply open_set_of_weak_dual_open_set U,
-  rwa linequiv_to_weak_dual_image,
+  rwa to_weak_dual_image,
 end
 
 end weak_star_topology_for_duals_of_normed_spaces

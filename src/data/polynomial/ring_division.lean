@@ -135,8 +135,8 @@ theorem prime_X_sub_C (r : R) : prime (X - C r) :=
 theorem prime_X : prime (X : polynomial R) :=
 by { convert (prime_X_sub_C (0 : R)), simp }
 
-lemma prime_of_degree_eq_one_of_monic (hp1 : degree p = 1)
-  (hm : monic p) : prime p :=
+lemma monic.prime_of_degree_eq_one (hp1 : degree p = 1) (hm : monic p) :
+  prime p :=
 have p = X - C (- p.coeff 0),
   by simpa [hm.leading_coeff] using eq_X_add_C_of_degree_eq_one hp1,
 this.symm ▸ prime_X_sub_C _
@@ -147,9 +147,9 @@ theorem irreducible_X_sub_C (r : R) : irreducible (X - C r) :=
 theorem irreducible_X : irreducible (X : polynomial R) :=
 prime.irreducible prime_X
 
-lemma irreducible_of_degree_eq_one_of_monic (hp1 : degree p = 1)
-  (hm : monic p) : irreducible p :=
-(prime_of_degree_eq_one_of_monic hp1 hm).irreducible
+lemma monic.irreducible_of_degree_eq_one (hp1 : degree p = 1) (hm : monic p) :
+  irreducible p :=
+(hm.prime_of_degree_eq_one hp1).irreducible
 
 theorem eq_of_monic_of_associated (hp : p.monic) (hq : q.monic) (hpq : associated p q) : p = q :=
 begin

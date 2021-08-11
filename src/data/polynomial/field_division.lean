@@ -344,7 +344,7 @@ lemma degree_normalize : degree (normalize p) = degree p := by simp
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),
-  from prime_of_degree_eq_one_of_monic (hp1 ▸ degree_normalize)
+  from monic.prime_of_degree_eq_one (hp1 ▸ degree_normalize)
     (monic_normalize (λ hp0, absurd hp1 (hp0.symm ▸ by simp; exact dec_trivial))),
 (normalize_associated _).prime this
 

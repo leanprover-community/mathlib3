@@ -297,10 +297,10 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
 end
 
-lemma gsmul_left_injective {m : ℤ} (hm : 0 ≠ m) : function.injective ((•) m : A → A) :=
+lemma gsmul_left_injective {m : ℤ} (hm : m ≠ 0) : function.injective ((•) m : A → A) :=
 λ a b, begin
   suffices : ∀ n : ℤ, 0 < n → n • a = n • b → a = b,
-  { cases hm.lt_or_lt,
+  { cases hm.symm.lt_or_lt,
     { exact this _ h, },
     { intro hab,
       refine this _ (neg_pos.mpr h) _,
@@ -314,7 +314,7 @@ lemma gsmul_left_injective {m : ℤ} (hm : 0 ≠ m) : function.injective ((•) 
     exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hn },
 end
 
-lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : 0 ≠ m) : m • a = m • b ↔ a = b :=
+lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
 (gsmul_left_injective hm).eq_iff
 
 end linear_ordered_add_comm_group

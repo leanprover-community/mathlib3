@@ -109,7 +109,7 @@ theorem to_weak_dual_continuous :
 begin
   apply weak_dual.continuous_of_continuous_eval,
   intros z,
-  exact (inclusion_in_double_dual 𝕜 E z).continuous,
+  exact (normed_space.evaluate_dual_at z).continuous,
 end
 
 def normed_space.dual.continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=

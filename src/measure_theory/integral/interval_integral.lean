@@ -7,7 +7,7 @@ import measure_theory.integral.set_integral
 import measure_theory.measure.lebesgue
 import analysis.calculus.fderiv_measurable
 import analysis.calculus.extend_deriv
-import measure_theory.vitali_caratheodory
+import measure_theory.integral.vitali_caratheodory
 import analysis.normed_space.dual
 
 

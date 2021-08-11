@@ -1619,13 +1619,7 @@ lemma comap_Sup {s : set (filter β)} {m : α → β} : comap m (Sup s) = (⨆ f
 by simp only [Sup_eq_supr, comap_supr, eq_self_iff_true]
 
 lemma comap_sup : comap m (g₁ ⊔ g₂) = comap m g₁ ⊔ comap m g₂ :=
-le_antisymm
-  (λ s ⟨⟨t₁, ht₁, hs₁⟩, t₂, ht₂, hs₂⟩,
-    ⟨t₁ ∪ t₂,
-      ⟨mem_sets_of_superset ht₁ (subset_union_left _ _),
-        mem_sets_of_superset ht₂ (subset_union_right _ _)⟩,
-      union_subset hs₁ hs₂⟩)
-  ((@comap_mono _ _ m).le_map_sup _ _)
+by rw [sup_eq_supr, comap_supr, supr_bool_eq, bool.cond_tt, bool.cond_ff]
 
 lemma map_comap (f : filter β) (m : α → β) : (f.comap m).map m = f ⊓ 𝓟 (range m) :=
 begin
@@ -2333,6 +2327,12 @@ end
 lemma comap_prod (f : α → β × γ) (b : filter β) (c : filter γ) :
   comap f (b ×ᶠ c) = (comap (prod.fst ∘ f) b) ⊓ (comap (prod.snd ∘ f) c) :=
 by erw [comap_inf, filter.comap_comap, filter.comap_comap]
+
+lemma sup_prod (f₁ f₂ : filter α) (g : filter β) : (f₁ ⊔ f₂) ×ᶠ g = (f₁ ×ᶠ g) ⊔ (f₂ ×ᶠ g) :=
+by rw [filter.prod, comap_sup, inf_sup_right, ← filter.prod, ← filter.prod]
+
+lemma prod_sup (f : filter α) (g₁ g₂ : filter β) : f ×ᶠ (g₁ ⊔ g₂) = (f ×ᶠ g₁) ⊔ (f ×ᶠ g₂) :=
+by rw [filter.prod, comap_sup, inf_sup_left, ← filter.prod, ← filter.prod]
 
 lemma eventually_prod_iff {p : α × β → Prop} {f : filter α} {g : filter β} :
   (∀ᶠ x in f ×ᶠ g, p x) ↔ ∃ (pa : α → Prop) (ha : ∀ᶠ x in f, pa x)

@@ -106,6 +106,6 @@ lemma log_le_log_succ {b n : ℕ} : log b n ≤ log b n.succ :=
 log_le_log_of_le $ le_succ n
 
 lemma log_mono {b : ℕ} : monotone (λ n : ℕ, log b n) :=
-monotone_of_monotone_nat $ λ n, log_le_log_succ
+monotone_nat_of_le_succ $ λ n, log_le_log_succ
 
 end nat

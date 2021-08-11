@@ -607,6 +607,22 @@ integrable.mono hf hf.1.im (eventually_of_forall (λ a, is_R_or_C.norm_im_le_nor
 
 end is_R_or_C
 
+section inner_product
+variables {𝕜 E : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  [inner_product_space 𝕜 E]
+  [measurable_space E] [opens_measurable_space E] [second_countable_topology E]
+  {f : α → E}
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+
+lemma integrable.const_inner (c : E) (hf : integrable f μ) : integrable (λ x, ⟪c, f x⟫) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner c, }
+
+lemma integrable.inner_const (hf : integrable f μ) (c : E) : integrable (λ x, ⟪f x, c⟫) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.inner_const c, }
+
+end inner_product
+
 section trim
 
 variables {H α' : Type*} [normed_group H] [measurable_space H]

@@ -144,10 +144,6 @@ section tools
 
 variables [measurable_space α] {μ : measure α}
 
-lemma integrable.const_inner [borel_space 𝕜] {f : α → E} (hf : integrable f μ) (c : E) :
-  integrable (λ x, ⟪c, f x⟫) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner c, }
-
 lemma sub_ae_eq_zero [add_group γ] (f g : α → γ) : f - g =ᵐ[μ] 0 ↔ f =ᵐ[μ] g :=
 begin
   refine ⟨λ h, h.mono (λ x hx, _), λ h, h.mono (λ x hx, _)⟩,

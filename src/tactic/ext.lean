@@ -492,6 +492,9 @@ ext1 xs {} trace.is_some $> ()
   This will destruct the introduced local constant.
 - Placing a `?` after `ext` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
   a sequence of tactic applications that can replace the call to `ext`.
+- `set_option trace.ext true` will trace every attempted lemma application,
+  along with the time it takes for the application to succeed or fail.
+  This is useful for debugging slow `ext` calls.
 
 When trying to prove:
 
@@ -561,6 +564,9 @@ meta def interactive.ext :
   This will destruct the introduced local constant.
 - Placing a `?` after `ext`/`ext1` (e.g. `ext? i ⟨a,b⟩ : 3`) will display
   a sequence of tactic applications that can replace the call to `ext`/`ext1`.
+- `set_option trace.ext true` will trace every attempted lemma application,
+  along with the time it takes for the application to succeed or fail.
+  This is useful for debugging slow `ext` calls.
 
 When trying to prove:
 

@@ -54,7 +54,7 @@ lemma weak_dual.test_continuous (z : E) : continuous (λ (x' : weak_dual 𝕜 E)
 
 theorem weak_dual.tendsto_iff_forall_test_tendsto {γ : Type*} {F : filter γ}
   {ψs : γ → weak_dual 𝕜 E} {ψ : weak_dual 𝕜 E} :
-  tendsto ψs F (𝓝 ψ) ↔ ∀ (z : E), tendsto (λ i, (ψs(i)) z) F (𝓝 (ψ z)) :=
+  tendsto ψs F (𝓝 ψ) ↔ ∀ z : E, tendsto (λ i, ψs i z) F (𝓝 (ψ z)) :=
 begin
   split,
   { intros weak_star_conv,

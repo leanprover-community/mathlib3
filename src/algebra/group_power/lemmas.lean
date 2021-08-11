@@ -297,16 +297,25 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
 end
 
-lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : 0 < m) : m • a = m • b ↔ a = b :=
-begin
-  refine ⟨λ hab, _, congr_arg _⟩,
+lemma gsmul_left_injective {m : ℤ} (hm : 0 ≠ m) : function.injective ((•) m : A → A) :=
+λ a b, begin
+  suffices : ∀ n : ℤ, 0 < n → n • a = n • b → a = b,
+  { cases hm.lt_or_lt,
+    { exact this _ h, },
+    { intro hab,
+      refine this _ (neg_pos.mpr h) _,
+      rw [neg_gsmul, neg_gsmul, hab], }, },
+  intros n hn hab,
   contrapose hab,
   obtain hab' | hab' := ne_iff_lt_or_gt.mp hab,
   { apply ne_of_lt,
-    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm },
+    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hn },
   { apply ne_of_gt,
-    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm }
+    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hn },
 end
+
+lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : 0 ≠ m) : m • a = m • b ↔ a = b :=
+(gsmul_left_injective hm).eq_iff
 
 end linear_ordered_add_comm_group
 

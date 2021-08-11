@@ -55,7 +55,7 @@ namespace alexandroff
 
 instance : has_coe_t X (alexandroff X) := ⟨of⟩
 
-instance : inhabited(alexandroff X) := ⟨∞⟩
+instance : inhabited (alexandroff X) := ⟨∞⟩
 
 @[norm_cast]
 lemma coe_eq_coe {x y : X} : (x : alexandroff X) = y ↔ x = y :=

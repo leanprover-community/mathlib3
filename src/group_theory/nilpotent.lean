@@ -86,7 +86,7 @@ open quotient_group
 
 /-- The proof that `upper_central_series_step H` is the preimage of the centre of `G/H` under
 the canonical surjection. -/
-lemma upper_central_series_step_eq_comap_centre :
+lemma upper_central_series_step_eq_comap_center :
   upper_central_series_step H = subgroup.comap (mk' H) (center (quotient H)) :=
 begin
   ext,

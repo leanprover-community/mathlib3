@@ -10,6 +10,7 @@ import topology.subset_properties
 import topology.locally_constant.basic
 import category_theory.adjunction.reflective
 import category_theory.monad.limits
+import category_theory.limits.constructions.epi_mono
 import category_theory.Fintype
 
 /-!
@@ -280,6 +281,17 @@ begin
     exact top_ne_bot H },
   { rw ← category_theory.epi_iff_surjective,
     apply faithful_reflects_epi (forget Profinite) },
+end
+
+lemma mono_iff_injective {X Y : Profinite.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
+begin
+  split,
+  { intro h,
+    haveI : limits.preserves_limits Profinite_to_CompHaus := infer_instance,
+    haveI : mono (Profinite_to_CompHaus.map f) := infer_instance,
+    rwa ← CompHaus.mono_iff_injective },
+  { rw ← category_theory.mono_iff_injective,
+    apply faithful_reflects_mono (forget Profinite) }
 end
 
 end Profinite

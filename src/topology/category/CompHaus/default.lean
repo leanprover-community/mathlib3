@@ -231,4 +231,18 @@ begin
     apply faithful_reflects_epi (forget CompHaus) },
 end
 
+lemma mono_iff_injective {X Y : CompHaus.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
+begin
+  split,
+  { introsI hf x₁ x₂ h,
+    let g₁ : of punit ⟶ X := ⟨λ _, x₁, continuous_of_discrete_topology⟩,
+    let g₂ : of punit ⟶ X := ⟨λ _, x₂, continuous_of_discrete_topology⟩,
+    have : g₁ ≫ f = g₂ ≫ f, by { ext, exact h },
+    rw cancel_mono at this,
+    apply_fun (λ e, e punit.star) at this,
+    exact this },
+  { rw ← category_theory.mono_iff_injective,
+    apply faithful_reflects_mono (forget CompHaus) }
+end
+
 end CompHaus

@@ -1279,7 +1279,7 @@ lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔
 
 /-- Two measures `μ`, `ν` are said to be mutually singular if there exists a measurable set `s`
 such that `μ s = 0` and `ν sᶜ = 0`. -/
-def mutually_singular (μ ν : measure α) : Prop :=
+def mutually_singular {m0 : measurable_space α} (μ ν : measure α) : Prop :=
 ∃ (s : set α), measurable_set s ∧ μ s = 0 ∧ ν sᶜ = 0
 
 localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in measure_theory

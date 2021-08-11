@@ -19,10 +19,10 @@ The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 
 The main definitions are the type `weak_dual 𝕜 E` and a topology instance on it.
 
- * `weak_dual 𝕜 E` is a type synonym for `dual 𝕜 E` (when the latter is defined), both are equal to
-   the type `E →L[𝕜] 𝕜` of continuous linear maps from a module `E` over `𝕜` to the ring `𝕜`.
- * `weak_dual_topology` is the topology instance on `weak_dual 𝕜 E`, the weak-* topology, i.e.,
-   the coarsest topology making the evaluation maps at all `z : E` are continuous.
+* `weak_dual 𝕜 E` is a type synonym for `dual 𝕜 E` (when the latter is defined), both are equal to
+  the type `E →L[𝕜] 𝕜` of continuous linear maps from a module `E` over `𝕜` to the ring `𝕜`.
+* `weak_dual_topology` is the topology instance on `weak_dual 𝕜 E`, the weak-* topology, i.e.,
+  the coarsest topology making the evaluation maps at all `z : E` are continuous.
 
 ## Main results
 
@@ -83,6 +83,10 @@ def weak_dual := E →L[𝕜] 𝕜
 
 namespace weak_dual
 
+/-- The weak-* topology instance `weak_dual_topology` on the dual of a topological module `E` over
+a topological semiring `𝕜` is defined as the induced topology under the mapping that associates to
+a dual element `x' : weak_dual 𝕜 E` the functional `E → 𝕜`, when the space `E → 𝕜` of functionals
+is equipped with the topology of pointwise convergence (product topology). -/
 instance weak_dual_topology :
   topological_space (weak_dual 𝕜 E) :=
 topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topological_space
@@ -110,8 +114,7 @@ begin
     rwa [nhds_induced, tendsto_comap_iff], },
 end
 
-/-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is (an additive
-    commutative monoid and moreover) a module over `𝕜`. -/
+/-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`. -/
 instance weak_dual_module (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]

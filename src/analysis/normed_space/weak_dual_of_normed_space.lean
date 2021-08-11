@@ -71,11 +71,14 @@ open normed_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-/-- For normed spaces `E`, there is a canonical map `dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E`. -/
+/-- For normed spaces `E`, there is a canonical map `dual 𝕜 E → weak_dual 𝕜 E` (the "identity"
+    mapping). It is a linear equivalence. -/
 def normed_space.dual.to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E :=
 linear_equiv.refl 𝕜 (E →L[𝕜] 𝕜)
 
-/-- For normed spaces `E`, there is a canonical map `weak_dual 𝕜 E → dual 𝕜 E`. -/
+/-- For normed spaces `E`, there is a canonical map `weak_dual 𝕜 E → dual 𝕜 E` (the "identity"
+    mapping). It is a linear equivalence. Here it is implemented as the inverse of the linear
+    equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
 def weak_dual.to_original_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E :=
 normed_space.dual.to_weak_dual.symm
 
@@ -96,12 +99,15 @@ begin
   exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
 
+/-- For a normed space `E`, according to `to_weak_dual_continuous` the "identity mapping"
+`dual 𝕜 E → weak_dual 𝕜 E` is continuous. The following definition implements it as a continuous
+linear map. -/
 def normed_space.dual.continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=
 { cont := to_weak_dual_continuous,
   .. normed_space.dual.to_weak_dual, }
 
-/-- The weak-star topology is coarser than the dual-norm topology: all weak-star open sets are
-    open in the operator norm topology. -/
+/-- The weak-star topology is coarser than the dual-norm topology: all weak-star open sets are open
+in the operator norm topology. -/
 lemma open_set_of_weak_dual_open_set (s : set (dual 𝕜 E))
   (s_weak_dual_open : is_open (normed_space.dual.to_weak_dual '' s)) : is_open s :=
 begin

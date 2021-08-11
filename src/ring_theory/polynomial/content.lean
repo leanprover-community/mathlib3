@@ -415,7 +415,7 @@ begin
   rw [ne.def, ← leading_coeff_eq_zero, ← C_eq_zero] at hC0,
   rw [sub_add_cancel, ← rprim.dvd_prim_part_iff_dvd (mul_ne_zero hC0 s0)] at h,
   rcases is_unit_prim_part_C r.leading_coeff with ⟨u, hu⟩,
-  apply dvd.trans h (associated.symm ⟨u, _⟩).dvd,
+  apply h.trans (associated.symm ⟨u, _⟩).dvd,
   rw [prim_part_mul (mul_ne_zero hC0 s0), hu, mul_comm],
 end
 

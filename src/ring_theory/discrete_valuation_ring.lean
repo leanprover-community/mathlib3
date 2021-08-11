@@ -447,7 +447,7 @@ begin
     obtain ⟨n, ha⟩ := associated_pow_irreducible ha0 hp.irreducible,
     rw [add_val, add_valuation_apply, add_valuation_apply,
       multiplicity_le_multiplicity_iff] at h,
-    exact dvd.trans ha.dvd (h n ha.symm.dvd), },
+    exact ha.dvd.trans (h n ha.symm.dvd), },
   { rw [add_val, add_valuation_apply, add_valuation_apply],
     exact multiplicity_le_multiplicity_of_dvd_right h }
 end

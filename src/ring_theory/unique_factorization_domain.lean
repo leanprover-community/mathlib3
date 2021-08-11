@@ -102,7 +102,7 @@ wf_dvd_monoid.induction_on_irreducible a
     let ⟨s, hs⟩ := ih ha0 in
     ⟨i ::ₘ s, ⟨by clear _let_match; finish,
       by { rw multiset.prod_cons,
-           exact (associated.refl _).mul_mul hs.2 }⟩⟩)
+           exact hs.2.mul_left _ }⟩⟩)
 
 end wf_dvd_monoid
 
@@ -182,7 +182,7 @@ by haveI := classical.dec_eq α; exact
     let ⟨b, hbg, hb⟩ := exists_associated_mem_of_dvd_prod
       (irreducible_iff_prime.1 (hf p (by simp)))
       (λ q hq, irreducible_iff_prime.1 (hg _ hq)) $
-        (hfg.dvd_iff_dvd_right).1
+        hfg.dvd_iff_dvd_right.1
           (show p ∣ (p ::ₘ f).prod, by simp) in
     begin
       rw ← multiset.cons_erase hbg,
@@ -335,7 +335,7 @@ theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [comm_cancel_
             { exact λ i hi, (multiset.mem_add.1 hi).elim (hfa.1 _) (hfb.1 _), },
             calc multiset.prod (p ::ₘ fx)
                   ~ᵤ a * b : by rw [hx, multiset.prod_cons];
-                    exact (associated.refl _).mul_mul hfx.2
+                    exact hfx.2.mul_left _
               ... ~ᵤ (fa).prod * (fb).prod :
                 hfa.2.symm.mul_mul hfb.2.symm
               ... = _ : by rw multiset.prod_add, },
@@ -424,8 +424,7 @@ have multiset.rel associated (p ::ₘ factors b) (factors a),
     (associated.symm $ calc multiset.prod (factors a) ~ᵤ a : factors_prod ha0
       ... = p * b : hb
       ... ~ᵤ multiset.prod (p ::ₘ factors b) :
-        by rw multiset.prod_cons; exact (associated.refl _).mul_mul
-          (associated.symm (factors_prod hb0))),
+        by rw multiset.prod_cons; exact (factors_prod hb0).symm.mul_left _)
 multiset.exists_mem_of_rel_of_mem this (by simp)
 
 @[simp] lemma factors_zero : factors (0 : α) = 0 := dif_pos rfl
@@ -459,8 +458,8 @@ begin
     exact irreducible_of_factor x hx },
   { exact irreducible_of_factor },
   { rw multiset.prod_add,
-    exact associated.trans ((factors_prod hx).mul_mul (factors_prod hy))
-      (factors_prod (mul_ne_zero hx hy)).symm, }
+    exact ((factors_prod hx).mul_mul (factors_prod hy)).trans
+      (factors_prod (mul_ne_zero hx hy)).symm }
 end
 
 @[simp] lemma factors_pow {x : α} (n : ℕ) :
@@ -616,8 +615,7 @@ begin
   { rw [multiset.le_iff_exists_add],
     rintro ⟨u, hu⟩,
     rw [← (factors_prod hb).dvd_iff_dvd_right, hu, prod_add, prod_repeat],
-    apply dvd.trans ((associated.pow_pow _).dvd) (dvd.intro u.prod rfl),
-    apply associated_normalize }
+    exact (associated.pow_pow $ associated_normalize _).dvd.trans (dvd.intro u.prod rfl) }
 end
 
 lemma multiplicity_eq_count_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0) :

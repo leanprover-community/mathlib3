@@ -3,10 +3,10 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import data.matrix.block
 import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
-import ring_theory.matrix_algebra
 
 /-!
 # Linear maps and matrices

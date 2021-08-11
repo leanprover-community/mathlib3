@@ -72,17 +72,17 @@ end
 
 end cancel_add_monoid
 
-namespace canonically_ordered_semiring
+namespace canonically_ordered_comm_semiring
 variable [canonically_ordered_comm_semiring R]
 
 theorem pow_pos {a : R} (H : 0 < a) : ∀ n : ℕ, 0 < a ^ n
-| 0     := by { nontriviality, rw pow_zero, exact canonically_ordered_semiring.zero_lt_one }
-| (n+1) := by { rw pow_succ, exact canonically_ordered_semiring.mul_pos.2 ⟨H, pow_pos n⟩ }
+| 0     := by { nontriviality, rw pow_zero, exact zero_lt_one }
+| (n+1) := by { rw pow_succ, exact mul_pos.2 ⟨H, pow_pos n⟩ }
 
 @[mono] lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := by { rw [pow_succ, pow_succ],
-    exact canonically_ordered_semiring.mul_le_mul hab (pow_le_pow_of_le_left k) }
+    exact mul_le_mul' hab (pow_le_pow_of_le_left k) }
 
 theorem one_le_pow_of_one_le {a : R} (H : 1 ≤ a) (n : ℕ) : 1 ≤ a ^ n :=
 by simpa only [one_pow] using pow_le_pow_of_le_left H n
@@ -90,7 +90,7 @@ by simpa only [one_pow] using pow_le_pow_of_le_left H n
 theorem pow_le_one {a : R} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1:=
 by simpa only [one_pow] using pow_le_pow_of_le_left H n
 
-end canonically_ordered_semiring
+end canonically_ordered_comm_semiring
 
 section ordered_semiring
 variable [ordered_semiring R]
@@ -142,7 +142,7 @@ theorem one_le_pow_of_one_le {a : R} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
     zero_le_one (le_trans zero_le_one H) }
 
 lemma pow_mono {a : R} (h : 1 ≤ a) : monotone (λ n : ℕ, a ^ n) :=
-monotone_of_monotone_nat $ λ n,
+monotone_nat_of_le_succ $ λ n,
   by { rw pow_succ, exact le_mul_of_one_le_left (pow_nonneg (zero_le_one.trans h) _) h }
 
 theorem pow_le_pow {a : R} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
@@ -150,7 +150,7 @@ pow_mono ha h
 
 lemma strict_mono_pow {a : R} (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
 have 0 < a := zero_le_one.trans_lt h,
-strict_mono.nat $ λ n, by simpa only [one_mul, pow_succ]
+strict_mono_nat_of_lt_succ $ λ n, by simpa only [one_mul, pow_succ]
   using mul_lt_mul h (le_refl (a ^ n)) (pow_pos this _) this.le
 
 lemma pow_lt_pow {a : R} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=

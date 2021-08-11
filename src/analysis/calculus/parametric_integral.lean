@@ -3,7 +3,7 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import measure_theory.set_integral
+import measure_theory.integral.set_integral
 import analysis.calculus.mean_value
 
 /-!
@@ -196,11 +196,10 @@ begin
   have : ∀ᵐ a ∂μ, lipschitz_on_with (real.nnabs (bound a)) (λ x, F x a) (ball x₀ ε),
   { apply (h_diff.and h_bound).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
-    have bound_nonneg : 0 ≤ bound a := (norm_nonneg (F' x₀ a)).trans (ha_bound x₀ x₀_in),
-    rw show real.nnabs (bound a) = real.to_nnreal (bound a), by simp [bound_nonneg],
-    apply convex.lipschitz_on_with_of_norm_has_fderiv_within_le _ ha_bound (convex_ball _ _),
-    intros x x_in,
-    exact (ha_deriv x x_in).has_fderiv_within_at, },
+    refine (convex_ball _ _).lipschitz_on_with_of_nnnorm_has_fderiv_within_le
+      (λ x x_in, (ha_deriv x x_in).has_fderiv_within_at) (λ x x_in, _),
+    rw [← nnreal.coe_le_coe, coe_nnnorm, nnreal.coe_nnabs],
+    exact (ha_bound x x_in).trans (le_abs_self _) },
   exact (has_fderiv_at_of_dominated_loc_of_lip ε_pos hF_meas hF_int
                                                hF'_meas this bound_integrable diff_x₀).2
 end
@@ -225,11 +224,12 @@ begin
     h_diff with hF'_int key,
   replace hF'_int : integrable F' μ,
   { rw [← integrable_norm_iff hm] at hF'_int,
-    simpa only [integrable_norm_iff, hF'_meas, one_mul, continuous_linear_map.norm_id_field',
+    simpa only [integrable_norm_iff, hF'_meas, one_mul, norm_one,
                 continuous_linear_map.norm_smul_rightL_apply] using hF'_int},
   refine ⟨hF'_int, _⟩,
   simp_rw has_deriv_at_iff_has_fderiv_at at h_diff ⊢,
   rwa continuous_linear_map.integral_comp_comm _ hF'_int at key,
+  all_goals { apply_instance, },
 end
 
 /-- Derivative under integral of `x ↦ ∫ F x a` at a given point `x₀ : ℝ`, assuming
@@ -253,10 +253,10 @@ begin
   have : ∀ᵐ a ∂μ, lipschitz_on_with (real.nnabs (bound a)) (λ (x : ℝ), F x a) (ball x₀ ε),
   { apply (h_diff.and h_bound).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
-    have bound_nonneg : 0 ≤ bound a := (norm_nonneg (F' x₀ a)).trans (ha_bound x₀ x₀_in),
-    rw show real.nnabs (bound a) = real.to_nnreal (bound a), by simp [bound_nonneg],
-    apply convex.lipschitz_on_with_of_norm_has_deriv_within_le (convex_ball _ _)
-    (λ x x_in, (ha_deriv x x_in).has_deriv_within_at) ha_bound },
+    refine (convex_ball _ _).lipschitz_on_with_of_nnnorm_has_deriv_within_le
+      (λ x x_in, (ha_deriv x x_in).has_deriv_within_at) (λ x x_in, _),
+    rw [← nnreal.coe_le_coe, coe_nnnorm, nnreal.coe_nnabs],
+    exact (ha_bound x x_in).trans (le_abs_self _) },
   exact has_deriv_at_of_dominated_loc_of_lip ε_pos hF_meas hF_int hF'_meas this
         bound_integrable diff_x₀
 end

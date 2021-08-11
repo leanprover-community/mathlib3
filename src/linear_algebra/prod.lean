@@ -143,6 +143,16 @@ theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext; simp
   (f.coprod g).comp (f'.prod g') = f.comp f' + g.comp g' :=
 rfl
 
+@[simp]
+lemma coprod_map_prod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (S : submodule R M)
+  (S' : submodule R M₂) :
+  (submodule.prod S S').map (linear_map.coprod f g) = S.map f ⊔ S'.map g :=
+set_like.coe_injective $ begin
+  simp only [linear_map.coprod_apply, submodule.coe_sup, submodule.map_coe],
+  rw [←set.image2_add, set.image2_image_left, set.image2_image_right],
+  exact set.image_prod (λ m m₂, f m + g m₂),
+end
+
 /-- Taking the product of two maps with the same codomain is equivalent to taking the product of
 their domains.
 
@@ -539,7 +549,7 @@ Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of 
 all isomorphic to `M`.
 -/
 def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →ₘ order_dual (submodule R M) :=
-⟨λ n, (tunnel' f i n).1, monotone_of_monotone_nat (λ n, begin
+⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],
     apply submodule.map_subtype_le,

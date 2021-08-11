@@ -72,7 +72,7 @@ instance weak_dual.add_comm_monoid (𝕜 : Type*) [topological_space 𝕜] [comm
   (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]
   [module 𝕜 E] [has_continuous_smul 𝕜 E] :
   add_comm_monoid (weak_dual 𝕜 E) :=
-restrict_scalars.add_comm_monoid 𝕜 𝕜 (E →L[𝕜] 𝕜)
+continuous_linear_map.add_comm_monoid
 
 /-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is (an additive
     commutative monoid and moreover) a module over `𝕜`. -/

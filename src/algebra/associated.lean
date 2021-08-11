@@ -321,13 +321,13 @@ protected lemma associated.prime [comm_monoid_with_zero α] {p q : α} (h : p ~�
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
       hu ▸ by { simp [units.mul_right_dvd], intros a b, exact hp.dvd_or_dvd }⟩⟩
 
-lemma associated_of_irreducible_of_dvd [cancel_monoid_with_zero α] {p q : α}
+lemma irreducible.associated_of_dvd [cancel_monoid_with_zero α] {p q : α}
   (p_irr : irreducible p) (q_irr : irreducible q) (dvd : p ∣ q) : associated p q :=
 associated_of_dvd_dvd dvd (p_irr.dvd_symm q_irr dvd)
 
-lemma associated_of_prime_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
+lemma prime.associated_of_dvd [comm_cancel_monoid_with_zero α] {p q : α}
   (p_prime : prime p) (q_prime : prime q) (dvd : p ∣ q) : associated p q :=
-associated_of_irreducible_of_dvd p_prime.irreducible q_prime.irreducible dvd
+p_prime.irreducible.associated_of_dvd q_prime.irreducible dvd
 
 lemma associated.prime_iff [comm_monoid_with_zero α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=

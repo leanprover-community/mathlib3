@@ -755,7 +755,6 @@ end
 lemma inv_coe_nat_num {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
 inv_coe_int_num (by exact_mod_cast ha0 : 0 < (a : ℤ))
 
-
 lemma inv_coe_int_denom {a : ℤ} (ha0 : 0 < a) : ((a : ℚ)⁻¹.denom : ℤ) = a :=
 begin
   rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],

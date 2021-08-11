@@ -90,10 +90,7 @@ begin
   rw hx,
 end
 
-lemma restrict {f : α → β} (hfm : ae_measurable' m f μ) (t : set α) :
-  ae_measurable' m f (μ.restrict t) :=
-by { rcases hfm with ⟨f', hf'_meas, hf_ae⟩, exact ⟨f', hf'_meas, ae_restrict_of_ae hf_ae⟩, }
-
+/-- A m-measurable function almost everywhere equal to `f`. -/
 def mk (f : α → β) (hfm : ae_measurable' m f μ) : α → β := hfm.some
 
 lemma measurable_mk {f : α → β} (hfm : ae_measurable' m f μ) : measurable[m] (hfm.mk f) :=
@@ -114,6 +111,15 @@ lemma measurable.ae_measurable' {α β} {m m0 : measurable_space α} [measurable
   {μ : measure α} {f : α → β} (hf : measurable[m] f) :
   ae_measurable' m f μ :=
 ⟨f, hf, ae_eq_refl _⟩
+
+lemma ae_eq_trim_iff_of_ae_measurable' {α β} [add_group β] [measurable_space β]
+  [measurable_singleton_class β] [has_measurable_sub₂ β]
+  {m m0 : measurable_space α} {μ : measure α} {f g : α → β}
+  (hm : m ≤ m0) (hfm : ae_measurable' m f μ) (hgm : ae_measurable' m g μ):
+  hfm.mk f =ᶠ[@measure.ae _ m (μ.trim hm)] hgm.mk g ↔ f =ᵐ[μ] g :=
+(ae_eq_trim_iff hm hfm.measurable_mk hgm.measurable_mk).trans
+⟨λ h, hfm.ae_eq_mk.trans (h.trans hgm.ae_eq_mk.symm),
+  λ h, hfm.ae_eq_mk.symm.trans (h.trans hgm.ae_eq_mk)⟩
 
 variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
   [is_R_or_C 𝕜] [measurable_space 𝕜] -- 𝕜 for ℝ or ℂ, together with a measurable_space
@@ -487,13 +493,6 @@ begin
 end
 
 section real_finite_measure
-
-lemma ae_eq_trim_iff_of_ae_measurable' {f g : α → G} (hm : m ≤ m0) (hfm : ae_measurable' m f μ)
-  (hgm : ae_measurable' m g μ):
-  hfm.mk f =ᶠ[@measure.ae _ m (μ.trim hm)] hgm.mk g ↔ f =ᵐ[μ] g :=
-(ae_eq_trim_iff hm hfm.measurable_mk hgm.measurable_mk).trans
-⟨λ h, hfm.ae_eq_mk.trans (h.trans hgm.ae_eq_mk.symm),
-  λ h, hfm.ae_eq_mk.symm.trans (h.trans hgm.ae_eq_mk)⟩
 
 variables [finite_measure μ] {f : α → ℝ}
 

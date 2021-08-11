@@ -23,16 +23,15 @@ As a consequence, we can prove some results for those functions as if the measur
 
 ## Main statements
 
-* `stongly_measurable.measurable` : a stongly measurable function is measurable.
-* `strongly_measurable.exists_set_sigma_finite` : if a function `f` is strongly measurable with
+* `strongly_measurable.exists_set_sigma_finite`: if a function `f` is strongly measurable with
   respect to a measure `μ`, then there exists a measurable set `t` such that `f =ᵐ[μ.restrict tᶜ] 0`
   and `sigma_finite (μ.restrict t)`.
-* `mem_ℒp.ae_strongly_measurable` : if `mem_ℒp f p μ` with `0 < p < ∞`, then
+* `mem_ℒp.ae_strongly_measurable`: if `mem_ℒp f p μ` with `0 < p < ∞`, then
   `∃ g, strongly_measurable g μ ∧ f =ᵐ[μ] g`.
-* `Lp.strongly_measurable` : for `0 < p < ∞`, `Lp` functions are strongly measurable.
-
-TODO: prove that constant non-zero functions are stongly measurable with respect to a measure `μ`
-iff `μ` is sigma finite.
+* `Lp.strongly_measurable`: for `0 < p < ∞`, `Lp` functions are strongly measurable.
+* `stongly_measurable.measurable`: a stongly measurable function is measurable.
+* `measurable.strongly_measurable`: if a measure is sigma-finite, then all measurable functions are
+  strongly measurable.
 
 ## References
 
@@ -48,7 +47,7 @@ namespace measure_theory
 
 /-- A function is `strongly_measurable` with respect to a measure if it is the limit of simple
   functions with support with finite measure. -/
-def strongly_measurable {α γ} [semi_normed_group γ] {m0 : measurable_space α}
+def strongly_measurable {α γ} [topological_space γ] [has_zero γ] {m0 : measurable_space α}
   [decidable_pred (λ (y : γ), y ≠ 0)] (f : α → γ) (μ : measure α) : Prop :=
 ∃ fs : ℕ → simple_func α γ,
   (∀ n, μ (⋃ y ∈ finset.filter (λ (y : γ), y ≠ 0) (fs n).range, (fs n) ⁻¹' {y}) < ∞)
@@ -82,14 +81,11 @@ begin
         set.mem_singleton_iff, not_exists_not, exists_eq_right', finset.mem_filter,
         set.mem_compl_eq, simple_func.mem_range, exists_apply_eq_apply] at hxt,
       exact hxt n, },
-    simp_rw eventually_eq at h_fs_zero,
-    rw ← ae_all_iff at h_fs_zero,
+    simp_rw [eventually_eq, ← ae_all_iff] at h_fs_zero,
     refine h_fs_zero.mono (λ x hx, _),
-    have h_approx_zero : tendsto (λ (n : ℕ), fs n x) at_top (𝓝 0),
-    { have : (λ (n : ℕ), fs n x) = λ n, 0, by { ext1 n, exact hx n, },
-      rw this,
-      exact tendsto_const_nhds, },
-    exact tendsto_nhds_unique (h_approx x) h_approx_zero, },
+    refine tendsto_nhds_unique (h_approx x) _,
+    rw funext (λ n, hx n),
+    exact tendsto_const_nhds, },
   { refine measure.finite_spanning_sets_in.sigma_finite _ _,
     { exact set.range (λ n, tᶜ ∪ T n), },
     { refine ⟨λ n, tᶜ ∪ T n, λ n, set.mem_range_self _, λ n, _, _⟩,
@@ -122,8 +118,50 @@ hf.exists_set_sigma_finite.some_spec.2.2
 
 end strongly_measurable
 
+/-- If the measure is sigma-finite, all measurable functions are strongly measurable. -/
+lemma measurable.strongly_measurable {α G : Type*} [measurable_space G] [emetric_space G]
+  [has_zero G] [second_countable_topology G] [opens_measurable_space G]
+  [decidable_pred (λ (y : G), y ≠ 0)]
+  {m0 : measurable_space α} {f : α → G} (hf : measurable f) (μ : measure α) [sigma_finite μ]  :
+  strongly_measurable f μ :=
+begin
+  let S := spanning_sets μ,
+  have hS_meas : ∀ n, measurable_set (S n), from measurable_spanning_sets μ,
+  let f_approx := simple_func.approx_on f hf set.univ 0 (set.mem_univ _),
+  let fs := λ n, simple_func.restrict (f_approx n) (S n),
+  refine ⟨fs, _, λ x, _⟩,
+  { refine λ n, (measure_bUnion_finset_le _ _).trans_lt _,
+    refine ennreal.sum_lt_top_iff.mpr (λ y hy, _),
+    rw simple_func.restrict_preimage_singleton _ (hS_meas n) (finset.mem_filter.mp hy).2,
+    refine (measure_mono (set.inter_subset_left _ _)).trans_lt _,
+    exact measure_spanning_sets_lt_top μ n, },
+  { have h : tendsto (λ n, (simple_func.approx_on f hf set.univ 0 _ n) x) at_top (𝓝 (f x)),
+      from simple_func.tendsto_approx_on hf (set.mem_univ 0) (by simp),
+    obtain ⟨n₁, hn₁⟩ : ∃ n, ∀ m, n ≤ m → fs m x = f_approx m x,
+    { obtain ⟨n, hn⟩ : ∃ n, ∀ m, n ≤ m → x ∈ S m,
+      { suffices : ∃ n, x ∈ S n,
+        { rcases this with ⟨n, hn⟩,
+          exact ⟨n, λ m hnm, monotone_spanning_sets μ hnm hn⟩, },
+        rw [← set.mem_Union, Union_spanning_sets μ],
+        trivial, },
+      refine ⟨n, λ m hnm, _⟩,
+      simp_rw [fs, simple_func.restrict_apply _ (hS_meas m), set.indicator_of_mem (hn m hnm)], },
+    rw tendsto_at_top' at h ⊢,
+    intros s hs,
+    obtain ⟨n₂, hn₂⟩ := h s hs,
+    refine ⟨max n₁ n₂, λ m hm, _⟩,
+    rw hn₁ m ((le_max_left _ _).trans hm.le),
+    exact hn₂ m ((le_max_right _ _).trans hm.le), },
+end
+
 variables {α G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
   [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
+
+/-- If the measure is sigma-finite, strongly measurable and measurable are equivalent. -/
+lemma strongly_measurable_iff_measurable [decidable_pred (λ (y : G), y ≠ 0)]
+  {m0 : measurable_space α} (μ : measure α) [sigma_finite μ] {f : α → G} :
+  strongly_measurable f μ ↔ measurable f :=
+⟨λ h, h.measurable, λ h, measurable.strongly_measurable h μ⟩
 
 lemma mem_ℒp.strongly_measurable_of_measurable [decidable_pred (λ (y : G), y ≠ 0)] {f : α → G}
   (hf : mem_ℒp f p μ) (hf_meas : measurable f) (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
@@ -136,8 +174,7 @@ begin
     refine λ n, (measure_bUnion_finset_le _ _).trans_lt _,
     refine ennreal.sum_lt_top_iff.mpr (λ y hy, _),
     refine simple_func.measure_preimage_lt_top_of_mem_ℒp hp_pos hp_ne_top (fs n) (h_fs_Lp n) _ _,
-    rw finset.mem_filter at hy,
-    exact hy.2, },
+    exact (finset.mem_filter.mp hy).2, },
   { exact λ x, simple_func.tendsto_approx_on hf_meas (set.mem_univ 0)
       (by { rw [closure_univ], exact set.mem_univ (f x), }), },
 end
@@ -145,19 +182,15 @@ end
 lemma mem_ℒp.ae_strongly_measurable [decidable_pred (λ (y : G), y ≠ 0)] {f : α → G}
   (hf : mem_ℒp f p μ) (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
   ∃ g, strongly_measurable g μ ∧ f =ᵐ[μ] g :=
-begin
-  obtain ⟨f', hf'_meas, hff'⟩ := hf.ae_measurable,
-  exact ⟨f', ((mem_ℒp_congr_ae hff').mp hf).strongly_measurable_of_measurable hf'_meas hp_pos
-    hp_ne_top, hff'⟩,
-end
+⟨hf.ae_measurable.mk f,
+  ((mem_ℒp_congr_ae hf.ae_measurable.ae_eq_mk).mp hf).strongly_measurable_of_measurable
+    hf.ae_measurable.measurable_mk hp_pos hp_ne_top,
+  hf.ae_measurable.ae_eq_mk⟩
 
 lemma integrable.ae_strongly_measurable [decidable_pred (λ (y : G), y ≠ 0)] {f : α → G}
   (hf : integrable f μ) :
   ∃ g, strongly_measurable g μ ∧ f =ᵐ[μ] g :=
-begin
-  rw ← mem_ℒp_one_iff_integrable at hf,
-  exact hf.ae_strongly_measurable ennreal.zero_lt_one ennreal.coe_ne_top,
-end
+(mem_ℒp_one_iff_integrable.mpr hf).ae_strongly_measurable ennreal.zero_lt_one ennreal.coe_ne_top
 
 lemma Lp.strongly_measurable [decidable_pred (λ (y : G), y ≠ 0)] (f : Lp G p μ)
   (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
@@ -176,8 +209,8 @@ lemma exists_set_sigma_finite_of_ae_strongly_measurable [decidable_pred (λ (y :
   ∃ t, measurable_set t ∧ f =ᵐ[μ.restrict tᶜ] 0 ∧ sigma_finite (μ.restrict t) :=
 begin
   rcases hf with ⟨g, hg, hfg⟩,
-  obtain ⟨t, ht, hg_zero, htμ⟩ := hg.exists_set_sigma_finite,
-  exact ⟨t, ht, eventually_eq.trans (ae_restrict_of_ae hfg) hg_zero, htμ⟩,
+  exact ⟨hg.sigma_finite_set, hg.measurable_set,
+    eventually_eq.trans (ae_restrict_of_ae hfg) hg.ae_eq_zero_compl, hg.sigma_finite_restrict⟩,
 end
 
 lemma exists_set_sigma_finite_of_ae_strongly_measurable' [decidable_pred (λ (y : G), y ≠ 0)]
@@ -185,13 +218,12 @@ lemma exists_set_sigma_finite_of_ae_strongly_measurable' [decidable_pred (λ (y 
   ∃ t, measurable_set[m] t ∧ f =ᵐ[μ.restrict tᶜ] 0 ∧ @sigma_finite _ m ((μ.restrict t).trim hm) :=
 begin
   rcases hf with ⟨g, hg, hfg⟩,
-  obtain ⟨t, ht, hg_zero, htμ⟩ := hg.exists_set_sigma_finite,
-  refine ⟨t, ht, _, _⟩,
-  { have hfg_eq : f =ᵐ[μ.restrict tᶜ] g, from ae_restrict_of_ae hfg,
-    refine hfg_eq.trans _,
-    rw restrict_trim hm μ (@measurable_set.compl _ _ m ht) at hg_zero,
-    exact measure_eq_zero_of_trim_eq_zero hm hg_zero, },
-  { rwa restrict_trim hm μ ht at htμ, },
+  refine ⟨hg.sigma_finite_set, hg.measurable_set, _, _⟩,
+  { have hfg_eq : f =ᵐ[μ.restrict hg.sigma_finite_setᶜ] g, from ae_restrict_of_ae hfg,
+    have hg_zero := hg.ae_eq_zero_compl,
+    refine hfg_eq.trans (measure_eq_zero_of_trim_eq_zero hm _),
+    rwa restrict_trim hm μ (@measurable_set.compl _ _ m hg.measurable_set) at hg_zero, },
+  { exact (restrict_trim hm μ hg.measurable_set).subst hg.sigma_finite_restrict, },
 end
 
 end measure_theory

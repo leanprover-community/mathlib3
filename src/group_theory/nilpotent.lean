@@ -109,7 +109,7 @@ end
 
 instance : normal (upper_central_series_step H) :=
 begin
-  rw upper_central_series_step_eq_comap_centre,
+  rw upper_central_series_step_eq_comap_center,
   apply_instance,
 end
 

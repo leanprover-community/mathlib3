@@ -452,7 +452,11 @@ begin
   { have hpq : 0 < p + q, from add_pos hp hq,
     ext,
     split; intro h,
-    { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
+    { rcases h with ⟨v, hv, rfl⟩,
+      use [p • v, q • v],
+      refine ⟨smul_mem_smul_set hv, smul_mem_smul_set hv, _⟩,
+      rw add_smul, },
+     { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
       have := h_conv h₁₂ h₂₂ (le_of_lt $ div_pos hp hpq) (le_of_lt $ div_pos hq hpq)
         (by {field_simp, rw [div_self (ne_of_gt hpq)]} : p / (p + q) + q / (p + q) = 1),
       rw mem_smul_set,
@@ -460,11 +464,7 @@ begin
       simp only [← mul_smul, smul_add],
       congr;
       rw mul_div_cancel';
-      exact ne_of_gt hpq, },
-    { rcases h with ⟨v, hv, rfl⟩,
-      use [p • v, q • v],
-      refine ⟨smul_mem_smul_set hv, smul_mem_smul_set hv, _⟩,
-      rw add_smul, }, },
+      exact ne_of_gt hpq, }, },
   all_goals { rcases s.eq_empty_or_nonempty with rfl | hne,
     { simp, },
     rw zero_smul_set hne,

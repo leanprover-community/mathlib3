@@ -424,7 +424,7 @@ have multiset.rel associated (p ::ₘ factors b) (factors a),
     (associated.symm $ calc multiset.prod (factors a) ~ᵤ a : factors_prod ha0
       ... = p * b : hb
       ... ~ᵤ multiset.prod (p ::ₘ factors b) :
-        by rw multiset.prod_cons; exact (factors_prod hb0).symm.mul_left _)
+        by rw multiset.prod_cons; exact (factors_prod hb0).symm.mul_left _),
 multiset.exists_mem_of_rel_of_mem this (by simp)
 
 @[simp] lemma factors_zero : factors (0 : α) = 0 := dif_pos rfl
@@ -615,7 +615,7 @@ begin
   { rw [multiset.le_iff_exists_add],
     rintro ⟨u, hu⟩,
     rw [← (factors_prod hb).dvd_iff_dvd_right, hu, prod_add, prod_repeat],
-    exact (associated.pow_pow $ associated_normalize _).dvd.trans (dvd.intro u.prod rfl) }
+    exact dvd.trans (associated.pow_pow $ associated_normalize a).dvd (dvd.intro u.prod rfl) }
 end
 
 lemma multiplicity_eq_count_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0) :

@@ -27,8 +27,9 @@ open normed_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-/-- For normed spaces `E`, there is a canonical map `dual 𝕜 E → weak_dual 𝕜 E`. -/
-def normed_space.dual.to_weak_dual : dual 𝕜 E → weak_dual 𝕜 E := id
+/-- For normed spaces `E`, there is a canonical map `dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E`. -/
+def normed_space.dual.to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E :=
+linear_equiv.refl 𝕜 (E →L[𝕜] 𝕜)
 
 /-- For normed spaces `E`, there is a canonical map `weak_dual 𝕜 E → dual 𝕜 E`. -/
 def weak_dual.to_original_dual : weak_dual 𝕜 E → dual 𝕜 E := id

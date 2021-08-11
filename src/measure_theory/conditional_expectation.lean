@@ -144,26 +144,6 @@ section tools
 
 variables [measurable_space α] {μ : measure α}
 
-lemma integrable.re [opens_measurable_space 𝕜] {f : α → 𝕜} (hf : integrable f μ) :
-  integrable (λ x, is_R_or_C.re (f x)) μ :=
-begin
-  have h_norm_le : ∀ a, ∥is_R_or_C.re (f a)∥ ≤ ∥f a∥,
-  { intro a,
-    rw [is_R_or_C.norm_eq_abs, is_R_or_C.norm_eq_abs, is_R_or_C.abs_to_real],
-    exact is_R_or_C.abs_re_le_abs _, },
-  exact integrable.mono hf (ae_measurable.re hf.1) (eventually_of_forall h_norm_le),
-end
-
-lemma integrable.im [opens_measurable_space 𝕜] {f : α → 𝕜} (hf : integrable f μ) :
-  integrable (λ x, is_R_or_C.im (f x)) μ :=
-begin
-  have h_norm_le : ∀ a, ∥is_R_or_C.im (f a)∥ ≤ ∥f a∥,
-  { intro a,
-    rw [is_R_or_C.norm_eq_abs, is_R_or_C.norm_eq_abs, is_R_or_C.abs_to_real],
-    exact is_R_or_C.abs_im_le_abs _, },
-  exact integrable.mono hf (ae_measurable.im hf.1) (eventually_of_forall h_norm_le),
-end
-
 lemma mem_ℒp.const_inner [borel_space 𝕜] (p : ℝ≥0∞) (c : E) {f : α → E} (hf : mem_ℒp f p μ) :
   mem_ℒp (λ a, ⟪c, f a⟫) p μ :=
 begin

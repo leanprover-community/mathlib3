@@ -45,7 +45,8 @@ instance : comm_semiring nat :=
   mul_comm       := nat.mul_comm,
   nsmul          := λ m n, m * n,
   nsmul_zero'    := nat.zero_mul,
-  nsmul_succ'    := λ n x, by rw [nat.succ_eq_one_add, nat.right_distrib, nat.one_mul] }
+  nsmul_succ'    := λ n x,
+    by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul] }
 
 instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
@@ -98,7 +99,7 @@ instance : canonically_linear_ordered_add_monoid ℕ :=
 { .. (infer_instance : canonically_ordered_add_monoid ℕ),
   .. nat.linear_order }
 
-instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
+instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
   semilattice_sup_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
   bot_le := λ x, nat.find_min' _ x.2,
@@ -273,6 +274,9 @@ eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
 
+lemma succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
+by rw [nat.succ_eq_add_one, nat.add_comm]
+
 theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
 have h3 : a ≤ b, from le_of_lt_succ h1,
 or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
@@ -314,7 +318,7 @@ lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
 not_lt_of_ge (nat.le_succ _)
 
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
-succ_le_succ_iff
+⟨le_of_lt_succ, lt_succ_of_le⟩
 
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 ⟨lt_of_succ_le, succ_le_of_lt⟩
@@ -343,6 +347,9 @@ H.lt_or_eq_dec.imp le_of_lt_succ id
 
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
+
+@[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
+lt_succ_iff.trans le_zero_iff
 
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin

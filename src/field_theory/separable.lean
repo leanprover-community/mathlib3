@@ -48,6 +48,12 @@ lemma separable_def' (f : polynomial R) :
   f.separable ↔ ∃ a b : polynomial R, a * f + b * f.derivative = 1 :=
 iff.rfl
 
+lemma not_separable_zero [nontrivial R] : ¬ separable (0 : polynomial R) :=
+begin
+  rintro ⟨x, y, h⟩,
+  simpa only [derivative_zero, mul_zero, add_zero, zero_ne_one] using h,
+end
+
 lemma separable_one : (1 : polynomial R).separable :=
 is_coprime_one_left
 

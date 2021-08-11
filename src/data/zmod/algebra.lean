@@ -4,7 +4,7 @@ Authors: Johan Commelin
 -/
 
 import data.zmod.basic
-import ring_theory.algebra
+import algebra.algebra.basic
 
 
 namespace zmod

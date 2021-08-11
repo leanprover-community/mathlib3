@@ -123,8 +123,8 @@ calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K
 lemma pow_card (a : K) : a ^ q = a :=
 begin
   have pos : 0 < fintype.card K := lt_trans zero_lt_one fintype.one_lt_card,
-  by_cases h : a = 0, { rw h, apply zero_pow hp },
-  rw [← nat.succ_pred_eq_of_pos hp, pow_succ, nat.pred_eq_sub_one,
+  by_cases h : a = 0, { rw h, apply zero_pow pos },
+  rw [← nat.succ_pred_eq_of_pos pos, pow_succ, nat.pred_eq_sub_one,
     pow_card_sub_one_eq_one a h, mul_one],
 end
 
@@ -218,29 +218,56 @@ section is_splitting_field
 open polynomial
 variables (p : ℕ) [fact p.prime] [char_p K p]
 
-lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ :=
+lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ.val :=
 begin
+  classical,
   have aux : (X^q - X : polynomial K) ≠ 0,
   { apply ne_zero_of_degree_gt (_ : 1 < degree _), rw [degree_sub_eq_left_of_degree_lt],
     all_goals
-    { simp only [nat.cast_with_bot, nsmul_one, degree_pow_eq, degree_X],
+    { simp only [nat.cast_with_bot, nsmul_one, degree_pow, degree_X],
       norm_cast, exact fintype.one_lt_card, }, },
-  simp_rw [eq_univ_iff_forall, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero],
-  exact pow_card_eq_self,
+  have : (roots (X^q - X : polynomial K)).to_finset = finset.univ,
+  { rw eq_univ_iff_forall,
+    intro x,
+    rw [multiset.mem_to_finset, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero,
+      pow_card] },
+  rw [←this, multiset.to_finset_val, eq_comm, multiset.erase_dup_eq_self],
+  apply nodup_roots,
+  rw separable_def,
+  convert is_coprime_one_right.neg_right,
+  rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
+    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub],
 end
 
 instance : is_splitting_field (zmod p) K (X^q - X) :=
 { splits :=
   begin
-    -- build lemma `splits_of_degree_eq_card_roots`
-    -- that says: f has degree q and q distinct roots, hence splits
-    sorry
+    have hp : 1 < p,
+    { apply nat.prime.one_lt,
+      apply fact_iff.mp,
+      assumption },
+    have h1 : (-X : polynomial K).degree < (X ^ q : polynomial K).degree,
+    { rw [degree_X_pow, degree_neg, degree_X],
+      exact_mod_cast fintype.one_lt_card,
+      apply_instance },
+
+    have h2 : roots (X^q - X : polynomial K) = finset.univ.val := roots_X_pow_card_sub_X _,
+    have h3 : (X^q - X : polynomial K).roots.card = q,
+    { rw [h2, ←finset.card_def, finset.card_univ] },
+    have h4 : (X^q - X : polynomial K).nat_degree = q,
+    { convert nat_degree_eq_of_degree_eq (degree_add_eq_left_of_degree_lt h1),
+      rw nat_degree_X_pow },
+    have h5 := splits_iff_card_roots.mpr (h3.trans h4.symm),
+    refine (splits_id_iff_splits (algebra_map (zmod p) K)).mp _,
+    convert h5,
+    rw [polynomial.map_sub, polynomial.map_pow, polynomial.map_X],
   end,
   adjoin_roots :=
   begin
-    transitivity algebra.adjoin (zmod p) ↑(roots (X^q - X : polynomial K)),
-    { simp only [map_pow, map_X, map_sub], },
-    { rw [roots_X_pow_card_sub_X, coe_univ, algebra.adjoin_univ], }
+    classical,
+    transitivity algebra.adjoin (zmod p) ((roots (X^q - X : polynomial K)).to_finset : set K),
+    { simp only [map_pow, map_X, map_sub], convert rfl },
+    { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 
 end is_splitting_field
@@ -326,22 +353,19 @@ end
 
 section
 
-variables {V : Type*} [add_comm_group V] [vector_space K V]
+variables {V : Type*} [add_comm_group V] [module K V]
 
 noncomputable def fintype_of_finite_dimensional [finite_dimensional K V] : fintype V :=
-begin
-  have b := classical.some_spec (finite_dimensional.exists_is_basis_finset K V),
-  apply module.fintype_of_fintype b,
-end
+finite_dimensional.fintype_of_fintype K V
 
 -- should this go in a namespace?
 -- finite_dimensional would be natural,
 -- but we don't assume it...
 lemma card_eq_pow_findim [fintype V] :
-  fintype.card V = q ^ (finite_dimensional.findim K V) :=
+  fintype.card V = q ^ (finite_dimensional.finrank K V) :=
 begin
-  have b := classical.some_spec (finite_dimensional.exists_is_basis_finset K V),
-  rw [module.card_fintype b, ← finite_dimensional.findim_eq_card_basis b],
+  let b := is_noetherian.finset_basis K V,
+  rw [module.card_fintype b, ← finite_dimensional.finrank_eq_card_basis b],
 end
 
 end

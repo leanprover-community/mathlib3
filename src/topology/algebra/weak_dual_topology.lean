@@ -59,7 +59,7 @@ begin
   split,
   { intros weak_star_conv,
     exact tendsto_pi.mp
-      (tendsto.comp (continuous.tendsto (weak_dual.test_continuous' 𝕜 E) ψ) weak_star_conv), },
+      (((weak_dual.test_continuous' 𝕜 E).tendsto ψ).comp weak_star_conv) },
   { intro h_lim_forall,
     have h_lim := tendsto_pi.mpr h_lim_forall,
     rwa [nhds_induced, tendsto_comap_iff], },

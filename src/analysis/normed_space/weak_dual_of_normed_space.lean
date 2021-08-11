@@ -25,8 +25,9 @@ open normed_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-/-- For normed spaces `E`, there is a canonical map `dual 𝕜 E → weak_dual 𝕜 E`. -/
-def normed_space.dual.to_weak_dual : dual 𝕜 E → weak_dual 𝕜 E := id
+/-- For normed spaces `E`, there is a canonical map `dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E`. -/
+def normed_space.dual.to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E :=
+linear_equiv.refl 𝕜 (E →L[𝕜] 𝕜)
 
 /-- For normed spaces `E`, there is a canonical map `weak_dual 𝕜 E → dual 𝕜 E`. -/
 def weak_dual.to_original_dual : weak_dual 𝕜 E → dual 𝕜 E := id
@@ -108,14 +109,12 @@ theorem to_weak_dual_continuous :
 begin
   apply weak_dual.continuous_of_continuous_eval,
   intros z,
-  exact (normed_space.evaluate_dual_at z).continuous,
+  exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
 
 def normed_space.dual.continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=
-{ to_fun := (λ (x' : dual 𝕜 E), x'.to_weak_dual),
-  map_add' := (@linequiv_to_weak_dual 𝕜 _ E _ _).map_add',
-  map_smul' := (@linequiv_to_weak_dual 𝕜 _ E _ _).map_smul',
-  cont := to_weak_dual_continuous, }
+{ cont := to_weak_dual_continuous,
+  .. linequiv_to_weak_dual }
 
 -- This is a relatively straightforward statement of the fact that the weak-star topology is
 -- coarser than the dual-norm topology, without abusing definitional equality.

@@ -205,6 +205,14 @@ calc n • a = n • a + 0 : (add_zero _).symm
   ... < n • a + (m - n) • a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
   ... = m • a : by { rw [← add_gsmul], simp }
 
+lemma gsmul_lt_gsmul_of_lt_right_of_pos {a b : A} {m : ℤ} (hab : a < b) (hm : 0 < m) :
+  m • a < m • b :=
+begin
+  rw ← sub_pos at hab,
+  rw [← sub_pos, ← gsmul_sub],
+  exact gsmul_pos hab hm,
+end
+
 lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
   abs (n • a) = n • abs a :=
 begin
@@ -287,6 +295,17 @@ begin
   refine ⟨λ h, _, nsmul_lt_nsmul ha⟩,
   by_contra H,
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
+end
+
+lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : 0 < m) : m • a = m • b ↔ a = b :=
+begin
+  refine ⟨λ hab, _, congr_arg _⟩,
+  contrapose hab,
+  obtain hab' | hab' := ne_iff_lt_or_gt.mp hab,
+  { apply ne_of_lt,
+    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm },
+  { apply ne_of_gt,
+    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm }
 end
 
 end linear_ordered_add_comm_group

@@ -81,6 +81,6 @@ instance weak_dual.module (𝕜 : Type*) [topological_space 𝕜] [comm_semiring
   (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]
   [module 𝕜 E] [has_continuous_smul 𝕜 E] :
   module 𝕜 (weak_dual 𝕜 E) :=
-restrict_scalars.module 𝕜 𝕜 (E →L[𝕜] 𝕜)
+continuous_linear_map.module
 
 end weak_star_topology

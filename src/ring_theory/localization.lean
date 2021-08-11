@@ -266,6 +266,16 @@ lemma mk'_spec' (x) (y : M) :
   algebra_map R S y * mk' S x y = algebra_map R S x :=
 (to_localization_map M S).mk'_spec' _ _
 
+@[simp]
+lemma mk'_spec_mk (x) (y : R) (hy : y ∈ M) :
+  mk' S x ⟨y, hy⟩ * algebra_map R S y = algebra_map R S x :=
+mk'_spec S x ⟨y, hy⟩
+
+@[simp]
+lemma mk'_spec'_mk (x) (y : R) (hy : y ∈ M) :
+  algebra_map R S y * mk' S x ⟨y, hy⟩ = algebra_map R S x :=
+mk'_spec' S x ⟨y, hy⟩
+
 variables {S}
 
 theorem eq_mk'_iff_mul_eq {x} {y : M} {z} :

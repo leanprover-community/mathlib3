@@ -3,7 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov, Sébastien Gouëzel
 -/
-import measure_theory.borel_space
+import measure_theory.constructions.borel_space
 
 /-!
 # Stieltjes measures on the real line

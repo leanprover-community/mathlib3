@@ -580,8 +580,8 @@ dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
 
 end lcm
 
-namespace gcd_monoid
-theorem prime_of_irreducible {x : α} (hi: irreducible x) : prime x :=
+-- TODO: generalize this to Schreier domains, if those are defined
+theorem irreducible.prime {x : α} (hi: irreducible x) : prime x :=
 ⟨hi.ne_zero, ⟨hi.1, λ a b h,
 begin
   cases gcd_dvd_left x a with y hy,
@@ -594,10 +594,10 @@ begin
     transitivity, { apply associated.dvd, symmetry, use u }, apply gcd_dvd_right, }
 end ⟩⟩
 
+-- TODO: generalize this to Schreier domains, if those are defined
 theorem irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
-⟨prime_of_irreducible, prime.irreducible⟩
+⟨irreducible.prime, prime.irreducible⟩
 
-end gcd_monoid
 end gcd_monoid
 
 section unique_unit

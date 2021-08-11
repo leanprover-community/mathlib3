@@ -425,14 +425,18 @@ do ⟨patts, trace_msg, _⟩ ← get,
          subject ← get_ext_subject tgt,
          new_trace_msg ←
            do { rule ← (m.find subject),
-                when_tracing `ext $ trace!"[ext] matched goal to rule: {rule}",
-                (applyc rule cfg),
+                if is_trace_enabled_for `ext then
+                  trace!"[ext] matched goal to rule: {rule}" >>
+                  timetac "[ext] application attempt time" (applyc rule cfg)
+                else applyc rule cfg,
                 pure (["apply " ++ rule.to_string]) } <|>
              do { ls ← get_ext_lemma_names,
                   let nms := ls.map name.to_string,
                   rule ← (ls.any_of (λ n,
-                    when_tracing `ext (trace!"[ext] trying to apply ext lemma: {n}") >>
-                    applyc n cfg *> pure n)),
+                    (if is_trace_enabled_for `ext then
+                      trace!"[ext] trying to apply ext lemma: {n}" >>
+                      timetac "[ext] application attempt time" (applyc n cfg)
+                    else applyc n cfg) *> pure n)),
                   pure (["apply " ++ rule.to_string]) } <|>
                (fail format!"no applicable extensionality rule found for {subject}"),
          pure new_trace_msg },

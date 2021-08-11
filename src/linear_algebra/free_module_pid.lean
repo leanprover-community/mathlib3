@@ -326,6 +326,38 @@ def submodule.induction_on_rank [fintype ι] (b : basis ι R M) (P : submodule R
 submodule.induction_on_rank_aux b P ih (fintype.card ι) N (λ s hs hli,
   by simpa using b.card_le_card_of_linear_independent hli)
 
+open submodule.is_principal set submodule
+
+lemma dvd_generator_iff {I : ideal R} [I.is_principal] {x : R} (hx : x ∈ I) :
+  x ∣ generator I ↔ I = ideal.span {x} :=
+begin
+  conv_rhs { rw [← span_singleton_generator I] },
+  erw [ideal.span_singleton_eq_span_singleton, ← dvd_dvd_iff_associated, ← mem_iff_generator_dvd],
+  exact ⟨λ h, ⟨hx, h⟩, λ h, h.2⟩
+end
+
+/-- If `S` a finite-dimensional ring extension of `R` which is free as an `R`-module,
+then the rank of an ideal `I` of `S` over `R` is the same as the rank of `S`.
+-/
+lemma ideal.rank_eq {S : Type*} [domain S] [algebra R S]
+  {n m : Type*} [fintype n] [fintype m]
+  (b : basis n R S) {I : ideal S} (hI : I ≠ ⊥) (c : basis m R I) :
+  fintype.card m = fintype.card n :=
+begin
+  obtain ⟨a, ha⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr hI),
+  have : linear_independent R (λ i, b i • a),
+  { have hb := b.linear_independent,
+    rw fintype.linear_independent_iff at ⊢ hb,
+    intros g hg,
+    apply hb g,
+    simp only [← smul_assoc, ← finset.sum_smul, smul_eq_zero] at hg,
+    exact hg.resolve_right ha },
+  exact le_antisymm
+    (b.card_le_card_of_linear_independent (c.linear_independent.map' (submodule.subtype I)
+      (linear_map.ker_eq_bot.mpr subtype.coe_injective)))
+    (c.card_le_card_of_linear_independent this),
+end
+
 end integral_domain
 
 section principal_ideal_domain
@@ -336,14 +368,6 @@ variables {ι : Type*} {R : Type*} [integral_domain R] [is_principal_ideal_ring 
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
 
 open submodule.is_principal
-
-lemma dvd_generator_iff {I : ideal R} [I.is_principal] {x : R} (hx : x ∈ I) :
-  x ∣ generator I ↔ I = ideal.span {x} :=
-begin
-  conv_rhs { rw [← span_singleton_generator I] },
-  erw [ideal.span_singleton_eq_span_singleton, ← dvd_dvd_iff_associated, ← mem_iff_generator_dvd],
-  exact ⟨λ h, ⟨hx, h⟩, λ h, h.2⟩
-end
 
 lemma generator_maximal_submodule_image_dvd {N O : submodule R M} (hNO : N ≤ O)
   {ϕ : O →ₗ[R] R} (hϕ : ∀ (ψ : O →ₗ[R] R), ϕ.submodule_image N ≤ ψ.submodule_image N →
@@ -714,28 +738,6 @@ let ⟨m, n, bM, bN, f, a, snf⟩ := N.smith_normal_form_of_le b ⊤ le_top,
                     submodule.comap_subtype_equiv_of_le_apply_coe, coe_coe, basis.reindex_apply,
                     equiv.to_embedding_apply, function.embedding.trans_apply,
                     equiv.symm_apply_apply]⟩
-
-/-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
-then the rank of an ideal `I` of `S` over `R` is the same as the rank of `S`.
--/
-lemma ideal.rank_eq {S : Type*} [integral_domain S] [algebra R S]
-  {n m : Type*} [fintype n] [fintype m]
-  (b : basis n R S) {I : ideal S} (hI : I ≠ ⊥) (c : basis m R I) :
-  fintype.card m = fintype.card n :=
-begin
-  obtain ⟨a, ha⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr hI),
-  have : linear_independent R (λ i, b i • a),
-  { have hb := b.linear_independent,
-    rw fintype.linear_independent_iff at ⊢ hb,
-    intros g hg,
-    apply hb g,
-    simp only [← smul_assoc, ← finset.sum_smul, smul_eq_zero] at hg,
-    exact hg.resolve_right ha },
-  exact le_antisymm
-    (b.card_le_card_of_linear_independent (c.linear_independent.map' (submodule.subtype I)
-      (linear_map.ker_eq_bot.mpr subtype.coe_injective)))
-    (c.card_le_card_of_linear_independent this),
-end
 
 /-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
 then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can

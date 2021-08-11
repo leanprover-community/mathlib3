@@ -1222,7 +1222,7 @@ ext $ λn, if h₁ : n < length l₁
   then by rw [nth_le_nth, nth_le_nth, h n h₁ (by rwa [← hl])]
   else let h₁ := le_of_not_gt h₁ in by { rw [nth_len_le h₁, nth_len_le], rwa [←hl], }
 
-lemma injective_append_left (l : list α) : function.injective (list.append l) :=
+lemma injective_append_left (l : list α) : function.injective ((++) l) :=
 begin
   induction l with hd tl IH,
   { convert function.injective_id },
@@ -1435,7 +1435,7 @@ variable {a : α}
 
 @[simp] lemma insert_nth_succ_nil (n : ℕ) (a : α) : insert_nth (n + 1) a [] = [] := rfl
 
-@[simp] lemma insert_nth_succ (s : list α) (hd x : α) (n : ℕ) :
+@[simp] lemma insert_nth_succ_cons (s : list α) (hd x : α) (n : ℕ) :
   insert_nth (n + 1) x (hd :: s) = hd :: (insert_nth n x s) := rfl
 
 lemma length_insert_nth : ∀n as, n ≤ length as → length (insert_nth n a as) = length as + 1
@@ -1484,7 +1484,7 @@ lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.leng
     ← or.assoc, or_comm (a = a'), or.assoc]
 end
 
-lemma injective_insert_nth_index_of_not_mem (l : list α) (x : α) (hx : x ∉ l) :
+lemma inj_on_insert_nth_index_of_not_mem (l : list α) (x : α) (hx : x ∉ l) :
   set.inj_on (λ k, insert_nth k x l) {n | n ≤ l.length} :=
 begin
   induction l with hd tl IH,
@@ -1500,7 +1500,7 @@ begin
     { refl },
     { simpa [hx.left] using h },
     { simpa [ne.symm hx.left] using h },
-    { simp only [true_and, eq_self_iff_true, insert_nth_succ] at h,
+    { simp only [true_and, eq_self_iff_true, insert_nth_succ_cons] at h,
       rw nat.succ_inj',
       refine IH hx.right _ _ h,
       { simpa [nat.succ_le_succ_iff] using hn },

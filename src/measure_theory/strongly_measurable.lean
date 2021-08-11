@@ -12,8 +12,10 @@ import measure_theory.simple_func_dense
 A function `f` is said to be strongly measurable with respect to a measure `μ` if `f` is the
 sequential limit of simple functions whose support has finite measure.
 
-The main property of those functions is `strongly_measurable.exists_set_sigma_finite`: there exists
-a measurable set such that  `f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`.
+If the measure is sigma-finite, measurable and strongly measurable are equivalent.
+
+The main property of strongly measurable functions is `strongly_measurable.exists_set_sigma_finite`:
+there exists a measurable set such that  `f =ᵐ[μ.restrict tᶜ] 0` and `sigma_finite (μ.restrict t)`.
 As a consequence, we can prove some results for those functions as if the measure was sigma-finite.
 
 ## Main definitions

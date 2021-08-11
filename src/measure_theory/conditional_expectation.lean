@@ -378,26 +378,10 @@ section strongly_measurable
 variables {m m0 : measurable_space α} {μ : measure α}
 
 lemma Lp_meas.ae_strongly_measurable [decidable_pred (λ (y : F), y ≠ 0)] (hm : m ≤ m0)
-  (f : Lp_meas F 𝕜 m p μ) (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+  (f : Lp_meas F 𝕜 m p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   ∃ g, strongly_measurable g (μ.trim hm) ∧ f =ᵐ[μ] g :=
-⟨Lp_meas_to_Lp_trim F 𝕜 p μ hm f, Lp.strongly_measurable _ hp_pos hp_ne_top,
+⟨Lp_meas_to_Lp_trim F 𝕜 p μ hm f, Lp.strongly_measurable _ hp_ne_zero hp_ne_top,
   (Lp_meas_to_Lp_trim_ae_eq hm f).symm⟩
-
-include 𝕜
-variables (𝕜)
-lemma Lp.exists_set_sigma_finite' (hm : m ≤ m0) (f : Lp F p μ)
-  (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) (hf : ae_measurable' m f μ) :
-  ∃ t, measurable_set[m] t ∧ f =ᵐ[μ.restrict tᶜ] 0 ∧ @sigma_finite _ m ((μ.restrict t).trim hm) :=
-begin
-  haveI : decidable_pred (λ (y : F), y ≠ 0) := classical.dec_pred _,
-  refine exists_set_sigma_finite_of_ae_strongly_measurable' hm _,
-  let f_meas : Lp_meas F 𝕜 m p μ := ⟨f, hf⟩,
-  obtain ⟨g, g_sm, g_ae_eq⟩ := Lp_meas.ae_strongly_measurable hm f_meas hp_pos hp_ne_top,
-  refine ⟨g, g_sm, eventually_eq.trans _ g_ae_eq⟩,
-  simp only [coe_fn_coe_base, subtype.coe_mk],
-end
-variables {𝕜}
-omit 𝕜
 
 end strongly_measurable
 
@@ -582,11 +566,11 @@ lemma strongly_measurable.ae_nonneg_of_forall_set_integral_nonneg {f : α → �
   (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
   0 ≤ᵐ[μ] f :=
 begin
-  obtain ⟨t, ht, hg_zero, htμ⟩ := hf.exists_set_sigma_finite,
-  suffices : 0 ≤ᵐ[μ.restrict t] f,
-  { refine ae_of_ae_restrict_of_ae_restrict_compl ht this (hg_zero.mono (λ x hx, le_of_eq _)),
-    rw hx, },
-  haveI : sigma_finite (μ.restrict t) := htμ,
+  let t := hf.sigma_finite_set,
+  have ht : measurable_set t, from hf.measurable_set,
+  suffices : 0 ≤ᵐ[μ.restrict hf.sigma_finite_set] f,
+    from ae_of_ae_restrict_of_ae_restrict_compl ht this hf.ae_eq_zero_compl.symm.le,
+  haveI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
   refine ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite (λ s hs hμts, _)
     (λ s hs hμts, _),
   { rw [integrable_on, measure.restrict_restrict hs],
@@ -735,20 +719,21 @@ lemma strongly_measurable.ae_eq_zero_of_forall_set_integral_eq_zero [is_scalar_t
   (hf : strongly_measurable f μ) :
   f =ᵐ[μ] 0 :=
 begin
-  obtain ⟨t, ht_meas, htf_zero, htμ⟩ := strongly_measurable.exists_set_sigma_finite hf,
+  let t := hf.sigma_finite_set,
+  have ht : measurable_set t, from hf.measurable_set,
   have hf_meas : measurable f, from hf.measurable,
   suffices : f =ᵐ[μ.restrict t] 0,
-  { exact ae_of_ae_restrict_of_ae_restrict_compl ht_meas this htf_zero, },
-  haveI : sigma_finite (μ.restrict t) := htμ,
+  { exact ae_of_ae_restrict_of_ae_restrict_compl ht this hf.ae_eq_zero_compl, },
+  haveI : sigma_finite (μ.restrict t) := hf.sigma_finite_restrict,
   refine ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite _ _,
   { intros s hs hμs,
     rw [integrable_on, measure.restrict_restrict hs],
     rw [measure.restrict_apply hs] at hμs,
-    exact hf_int_finite _ (hs.inter ht_meas) hμs, },
+    exact hf_int_finite _ (hs.inter ht) hμs, },
   { intros s hs hμs,
     rw [measure.restrict_restrict hs],
     rw [measure.restrict_apply hs] at hμs,
-    exact hf_zero _ (hs.inter ht_meas) hμs, },
+    exact hf_zero _ (hs.inter ht) hμs, },
 end
 
 lemma ae_eq_zero_of_forall_set_integral_eq_of_strongly_measurable' [is_scalar_tower ℝ 𝕜 E']
@@ -758,7 +743,10 @@ lemma ae_eq_zero_of_forall_set_integral_eq_of_strongly_measurable' [is_scalar_to
   (hf : strongly_measurable f (μ.trim hm)) :
   f =ᵐ[μ] 0 :=
 begin
-  obtain ⟨t, ht_meas, htf_zero_trim, htμ⟩ := strongly_measurable.exists_set_sigma_finite hf,
+  let t := hf.sigma_finite_set,
+  have ht_meas : measurable_set[m] t, from hf.measurable_set,
+  have htf_zero_trim := hf.ae_eq_zero_compl,
+  have htμ := hf.sigma_finite_restrict,
   have htf_zero : f =ᵐ[μ.restrict tᶜ] 0,
   { rw restrict_trim hm μ (@measurable_set.compl _ _ m ht_meas) at htf_zero_trim,
     exact measure_eq_zero_of_trim_eq_zero hm htf_zero_trim, },
@@ -784,13 +772,13 @@ begin
 end
 
 lemma Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero [is_scalar_tower ℝ 𝕜 E']
-  (hm : m ≤ m0) (f : Lp_meas E' 𝕜 m p μ) (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞)
+  (hm : m ≤ m0) (f : Lp_meas E' 𝕜 m p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
   f =ᵐ[μ] 0 :=
 begin
   haveI : decidable_pred (λ (y : E'), y ≠ 0) := classical.dec_pred _,
-  obtain ⟨g, hg_sm, hfg⟩ := Lp_meas.ae_strongly_measurable hm f hp_pos hp_ne_top,
+  obtain ⟨g, hg_sm, hfg⟩ := Lp_meas.ae_strongly_measurable hm f hp_ne_zero hp_ne_top,
   refine hfg.trans _,
   refine ae_eq_zero_of_forall_set_integral_eq_of_strongly_measurable' hm _ _ hg_sm,
   { intros s hs hμs,
@@ -804,7 +792,7 @@ begin
 end
 
 lemma Lp.ae_eq_zero_of_forall_set_integral_eq_zero' [is_scalar_tower ℝ 𝕜 E']
-  (hm : m ≤ m0) (f : Lp E' p μ) (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞)
+  (hm : m ≤ m0) (f : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
   (hf_meas : ae_measurable' m f μ) :
@@ -814,7 +802,7 @@ begin
   let f_meas : Lp_meas E' 𝕜 m p μ := ⟨f, hf_meas⟩,
   have hf_f_meas : f =ᵐ[μ] f_meas, by simp only [coe_fn_coe_base, subtype.coe_mk],
   refine hf_f_meas.trans _,
-  refine Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero hm f_meas hp_pos hp_ne_top _ _,
+  refine Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero hm f_meas hp_ne_zero hp_ne_top _ _,
   { intros s hs hμs,
     have hfg_restrict : f =ᵐ[μ.restrict s] f_meas, from ae_restrict_of_ae hf_f_meas,
     rw [integrable_on, integrable_congr hfg_restrict.symm],
@@ -826,18 +814,18 @@ begin
 end
 
 lemma Lp.ae_eq_zero_of_forall_set_integral_eq_zero [is_scalar_tower ℝ 𝕜 E']
-  (f : Lp E' p μ) (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞)
+  (f : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
   f =ᵐ[μ] 0 :=
 begin
   haveI : decidable_pred (λ (y : E'), y ≠ 0) := classical.dec_pred _,
   exact strongly_measurable.ae_eq_zero_of_forall_set_integral_eq_zero hf_int_finite hf_zero
-    (Lp.strongly_measurable _ hp_pos hp_ne_top),
+    (Lp.strongly_measurable _ hp_ne_zero hp_ne_top),
 end
 
 lemma Lp.ae_eq_of_forall_set_integral_eq [is_scalar_tower ℝ 𝕜 E']
-  (f g : Lp E' p μ) (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞)
+  (f g : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hg_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on g s μ)
   (hfg : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ) :
@@ -855,12 +843,12 @@ begin
   { intros s hs hμs,
     rw [integrable_on, integrable_congr (ae_restrict_of_ae (Lp.coe_fn_sub f g))],
     exact (hf_int_finite s hs hμs).sub (hg_int_finite s hs hμs), },
-  exact Lp.ae_eq_zero_of_forall_set_integral_eq_zero (f-g) hp_pos hp_ne_top hfg_int hfg',
+  exact Lp.ae_eq_zero_of_forall_set_integral_eq_zero (f-g) hp_ne_zero hp_ne_top hfg_int hfg',
 end
 
 /-- **Unicity of the conditional expectation**. -/
 lemma Lp.ae_eq_of_forall_set_integral_eq' [is_scalar_tower ℝ 𝕜 E']
-  (hm : m ≤ m0) (f g : Lp E' p μ) (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞)
+  (hm : m ≤ m0) (f g : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
   (hg_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on g s μ)
   (hfg : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ)
@@ -881,7 +869,7 @@ begin
     exact (hf_int_finite s hs hμs).sub (hg_int_finite s hs hμs), },
   have hfg_meas : ae_measurable' m ⇑(f - g) μ,
     from ae_measurable'.congr (hf_meas.sub hg_meas) (Lp.coe_fn_sub f g).symm,
-  exact Lp.ae_eq_zero_of_forall_set_integral_eq_zero' hm (f-g) hp_pos hp_ne_top hfg_int hfg'
+  exact Lp.ae_eq_zero_of_forall_set_integral_eq_zero' hm (f-g) hp_ne_zero hp_ne_top hfg_int hfg'
     hfg_meas,
 end
 
@@ -950,8 +938,7 @@ begin
   let f_Lp := hf_Lp.to_Lp f,
   have hf_f_Lp : f =ᵐ[μ] f_Lp, from (mem_ℒp.coe_fn_to_Lp hf_Lp).symm,
   refine hf_f_Lp.trans _,
-  refine Lp.ae_eq_zero_of_forall_set_integral_eq_zero f_Lp ennreal.zero_lt_one ennreal.coe_ne_top _
-    _,
+  refine Lp.ae_eq_zero_of_forall_set_integral_eq_zero f_Lp one_ne_zero ennreal.coe_ne_top _ _,
   { exact λ s hs hμs, integrable.integrable_on (L1.integrable_coe_fn _), },
   { intros s hs hμs,
     rw integral_congr_ae (ae_restrict_of_ae hf_f_Lp.symm),

@@ -290,7 +290,7 @@ theorem unique' [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)
   (hp2 : polynomial.aeval x p = 0) (hp3 : p.monic) : p = minpoly A x :=
 let ⟨q, hq⟩ := dvd A x hp2 in
 eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
-mul_one (minpoly A x) ▸ hq.symm ▸ (associated.refl _).mul_mul $
+mul_one (minpoly A x) ▸ hq.symm ▸ associated.mul_left _ $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 
 lemma unique'' [nontrivial B] {p : polynomial A}

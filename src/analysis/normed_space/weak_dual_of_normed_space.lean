@@ -1,9 +1,8 @@
 /-
 Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kalle Kytölä and Heather Macbeth
+Authors: Kalle Kytölä, Heather Macbeth
 -/
-import tactic
 import topology.algebra.weak_dual_topology
 import analysis.normed_space.dual
 import analysis.normed_space.operator_norm
@@ -13,7 +12,6 @@ open filter
 open_locale topological_space
 
 section weak_star_topology_for_duals_of_normed_spaces
-
 /-!
 ### Weak star topology on duals of normed spaces
 In this section, we prove properties about the weak-* topology on duals of normed spaces.
@@ -108,8 +106,7 @@ def normed_space.evaluate_dual_at (z : E) : (dual 𝕜 E) →L[𝕜] 𝕜 :=
 theorem to_weak_dual_continuous :
   continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
 begin
-  apply continuous_induced_rng,
-  apply continuous_pi_iff.mpr,
+  apply weak_dual.continuous_of_continuous_eval,
   intros z,
   exact (normed_space.evaluate_dual_at z).continuous,
 end

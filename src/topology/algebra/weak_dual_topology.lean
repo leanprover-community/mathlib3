@@ -3,7 +3,6 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä and Heather Macbeth
 -/
-import tactic
 import topology.algebra.module
 
 noncomputable theory
@@ -53,25 +52,26 @@ lemma weak_dual.test_continuous' :
 lemma weak_dual.test_continuous (z : E) : continuous (λ (x' : weak_dual 𝕜 E), x' z) :=
 (continuous_pi_iff.mp (weak_dual.test_continuous' 𝕜 E)) z
 
+lemma weak_dual.continuous_of_continuous_eval {α : Type*} [topological_space α] {g : α → weak_dual 𝕜 E}
+  (h : ∀ z, continuous (λ a, g a z)) : continuous g :=
+continuous_induced_rng (continuous_pi_iff.mpr h)
+
 theorem weak_dual.tendsto_iff_forall_test_tendsto {γ : Type*} {F : filter γ}
   {ψs : γ → weak_dual 𝕜 E} {ψ : weak_dual 𝕜 E} :
   tendsto ψs F (𝓝 ψ) ↔ ∀ (z : E), tendsto (λ i, (ψs(i)) z) F (𝓝 (ψ z)) :=
 begin
+  rw ←tendsto_pi,
   split,
   { intros weak_star_conv,
-    exact tendsto_pi.mp
-      (tendsto.comp (continuous.tendsto (weak_dual.test_continuous' 𝕜 E) ψ) weak_star_conv), },
+    exact tendsto.comp (continuous.tendsto (weak_dual.test_continuous' 𝕜 E) ψ) weak_star_conv, },
   { intro h_lim_forall,
-    have h_lim := tendsto_pi.mpr h_lim_forall,
     rwa [nhds_induced, tendsto_comap_iff], },
 end
 
+-- TODO: Just derive under the earlier assumtions! (So remove this verbose instance.)
 /-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is an additive commutative
     monoid (and in fact moreover a module over `𝕜`). -/
-instance weak_dual.add_comm_monoid (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
-  [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
-  (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]
-  [module 𝕜 E] [has_continuous_smul 𝕜 E] :
+instance weak_dual.add_comm_monoid  :
   add_comm_monoid (weak_dual 𝕜 E) :=
 restrict_scalars.add_comm_monoid 𝕜 𝕜 (E →L[𝕜] 𝕜)
 

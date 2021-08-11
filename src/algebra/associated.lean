@@ -246,13 +246,13 @@ lemma associated.mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)
 | ⟨c₁, h₁⟩ ⟨c₂, h₂⟩ := ⟨c₁ * c₂, by simp [h₁.symm, h₂.symm, mul_assoc, mul_comm, mul_left_comm]⟩
 
-lemma associated.mul_left [comm_monoid α] (a₁ : α) {a₂ b₂ : α} (h : a₂ ~ᵤ b₂) :
-  (a₁ * a₂) ~ᵤ (a₁ * b₂) :=
-(associated.refl a₁).mul_mul h
+lemma associated.mul_left [comm_monoid α] (a : α) {b c : α} (h : b ~ᵤ c) :
+  (a * b) ~ᵤ (a * c) :=
+(associated.refl a).mul_mul h
 
-lemma associated.mul_right [comm_monoid α] {a₁ b₁ : α} (h : a₁ ~ᵤ b₁) (a₂ : α) :
-  (a₁ * a₂) ~ᵤ (b₁ * a₂) :=
-h.mul_mul (associated.refl a₂)
+lemma associated.mul_right [comm_monoid α] {a b : α} (h : a ~ᵤ b) (c : α) :
+  (a * c) ~ᵤ (b * c) :=
+h.mul_mul (associated.refl c)
 
 lemma associated.pow_pow [comm_monoid α] {a b : α} {n : ℕ} (h : a ~ᵤ b) :
   a ^ n ~ᵤ b ^ n :=

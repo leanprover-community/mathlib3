@@ -744,25 +744,28 @@ begin
     coe_nat_div_self]
 end
 
-lemma inv_coe_nat_num {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+lemma inv_coe_int_num {a : ℤ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
 begin
-  rw [rat.inv_def', rat.coe_nat_num, rat.coe_nat_denom],
-  suffices : (((1 : ℤ) : ℚ) / (a : ℤ)).num = 1,
-    exact_mod_cast this,
-  apply num_div_eq_of_coprime,
-  { assumption_mod_cast },
-  { simp only [nat.coprime_one_left_iff, int.nat_abs_one] }
+  rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],
+  apply num_div_eq_of_coprime ha0,
+  rw int.nat_abs_one,
+  exact nat.coprime_one_left _,
+end
+
+lemma inv_coe_nat_num {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.num = 1 :=
+inv_coe_int_num (by exact_mod_cast ha0 : 0 < (a : ℤ))
+
+
+lemma inv_coe_int_denom {a : ℤ} (ha0 : 0 < a) : ((a : ℚ)⁻¹.denom : ℤ) = a :=
+begin
+  rw [rat.inv_def', rat.coe_int_num, rat.coe_int_denom, nat.cast_one, ←int.cast_one],
+  apply denom_div_eq_of_coprime ha0,
+  rw int.nat_abs_one,
+  exact nat.coprime_one_left _,
 end
 
 lemma inv_coe_nat_denom {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
-begin
-  rw [rat.inv_def', rat.coe_nat_num, rat.coe_nat_denom],
-  suffices : ((((1 : ℤ) : ℚ) / (a : ℤ)).denom : ℤ) = a,
-    exact_mod_cast this,
-  apply denom_div_eq_of_coprime,
-  { assumption_mod_cast },
-  { simp only [nat.coprime_one_left_iff, int.nat_abs_one] },
-end
+by exact_mod_cast inv_coe_int_denom (by exact_mod_cast ha0 : 0 < (a : ℤ))
 
 protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b) :=
 ⟨λ h _ _, h _,

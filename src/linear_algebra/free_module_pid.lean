@@ -34,7 +34,7 @@ In this section, `M` is a free and finitely generated `R`-module, and
    free and finitely generated. This is the first part of the structure theorem
    for modules.
 
-- `submodule.exists_smith_normal_form`: if `R` is a PID, then `M` has a basis
+- `submodule.smith_normal_form`: if `R` is a PID, then `M` has a basis
   `bM` and `N` has a basis `bN` such that `bN i = a i • bM i`.
   Equivalently, a linear map `f : M →ₗ M` with `range f = N` can be written as
   a matrix in Smith normal form, a diagonal matrix with the coefficients `a i`
@@ -405,7 +405,7 @@ begin
   { exact subset_span (mem_insert _ _) }
 end
 
-/-- The induction hypothesis of `submodule.basis_of_pid` and `submodule.exists_smith_normal_form`.
+/-- The induction hypothesis of `submodule.basis_of_pid` and `submodule.smith_normal_form`.
 
 Basically, it says: let `N ≤ M` be a pair of submodules, then we can find a pair of
 submodules `N' ≤ M'` of strictly smaller rank, whose basis we can extend to get a basis
@@ -413,7 +413,7 @@ of `N` and `M`. Moreover, if the basis for `M'` is up to scalars a basis for `N'
 then the basis we find for `M` is up to scalars a basis for `N`.
 
 For `basis_of_pid` we only need the first half and can fix `M = ⊤`,
-for `exists_smith_normal_form` we need the full statement,
+for `smith_normal_form` we need the full statement,
 but must also feed in a basis for `M` using `basis_of_pid` to keep the induction going.
 -/
 lemma submodule.basis_of_pid_aux [fintype ι] {O : Type*} [add_comm_group O] [module R O]
@@ -545,7 +545,7 @@ if `R` is a principal ideal domain.
 This is a `lemma` to make the induction a bit easier. To actually access the basis,
 see `submodule.basis_of_pid`.
 
-See also the stronger version `submodule.exists_smith_normal_form`.
+See also the stronger version `submodule.smith_normal_form`.
 -/
 lemma submodule.nonempty_basis_of_pid {ι : Type*} [fintype ι]
   (b : basis ι R M) (N : submodule R M) :
@@ -567,7 +567,7 @@ end
 /-- A submodule of a free `R`-module of finite rank is also a free `R`-module of finite rank,
 if `R` is a principal ideal domain.
 
-See also the stronger version `submodule.exists_smith_normal_form`.
+See also the stronger version `submodule.smith_normal_form`.
 -/
 noncomputable def submodule.basis_of_pid {ι : Type*} [fintype ι]
   (b : basis ι R M) (N : submodule R M) :
@@ -587,7 +587,7 @@ end
 /-- A submodule inside a free `R`-submodule of finite rank is also a free `R`-module of finite rank,
 if `R` is a principal ideal domain.
 
-See also the stronger version `submodule.exists_smith_normal_form_of_le`.
+See also the stronger version `submodule.smith_normal_form_of_le`.
 -/
 noncomputable def submodule.basis_of_pid_of_le {ι : Type*} [fintype ι]
   {N O : submodule R M} (hNO : N ≤ O) (b : basis ι R O) :
@@ -725,7 +725,7 @@ in Smith normal form.
 
 This is a strengthening of `submodule.basis_of_pid`.
 
-See also `ideal.exists_smith_normal_form`, which moreover proves that the dimension of
+See also `ideal.smith_normal_form`, which moreover proves that the dimension of
 an ideal is the same as the dimension of the whole ring.
 -/
 noncomputable def submodule.smith_normal_form [fintype ι] (b : basis ι R M) (N : submodule R M) :

@@ -206,7 +206,7 @@ section principal
 def principal (s : set α) : filter α :=
 { sets             := {t | s ⊆ t},
   univ_sets        := subset_univ s,
-  sets_of_superset := λ x y hx hy, hx.trans hy,
+  sets_of_superset := λ x y hx, subset.trans hx,
   inter_sets       := λ x y, subset_inter }
 
 localized "notation `𝓟` := filter.principal" in filter
@@ -242,9 +242,9 @@ section lattice
 
 instance : partial_order (filter α) :=
 { le            := λ f g, ∀ ⦃U : set α⦄, U ∈ g → U ∈ f,
-  le_antisymm   := λ a b h₁ h₂, filter_eq $ h₂.antisymm h₁,
+  le_antisymm   := λ a b h₁ h₂, filter_eq $ subset.antisymm h₂ h₁,
   le_refl       := λ a, subset.rfl,
-  le_trans      := λ a b c h₁ h₂, h₂.trans h₁ }
+  le_trans      := λ a b c h₁ h₂, subset.trans h₂ h₁ }
 
 theorem le_def {f g : filter α} : f ≤ g ↔ ∀ x ∈ g, x ∈ f := iff.rfl
 
@@ -2198,11 +2198,11 @@ by simp only [tendsto, le_inf_iff, iff_self]
 
 lemma tendsto_inf_left {f : α → β} {x₁ x₂ : filter α} {y : filter β}
   (h : tendsto f x₁ y) : tendsto f (x₁ ⊓ x₂) y  :=
-(map_mono inf_le_left).trans h
+le_trans (map_mono inf_le_left) h
 
 lemma tendsto_inf_right {f : α → β} {x₁ x₂ : filter α} {y : filter β}
   (h : tendsto f x₂ y) : tendsto f (x₁ ⊓ x₂) y  :=
-(map_mono inf_le_right).trans h
+le_trans (map_mono inf_le_right) h
 
 lemma tendsto.inf {f : α → β} {x₁ x₂ : filter α} {y₁ y₂ : filter β}
   (h₁ : tendsto f x₁ y₁) (h₂ : tendsto f x₂ y₂) : tendsto f (x₁ ⊓ x₂) (y₁ ⊓ y₂) :=

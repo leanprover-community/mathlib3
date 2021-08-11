@@ -93,16 +93,16 @@ def rcomap (r : rel α β) (f : filter β) : filter α :=
 theorem rcomap_sets (r : rel α β) (f : filter β) :
   (rcomap r f).sets = rel.image (λ s t, r.core s ⊆ t) f.sets := rfl
 
-@[simp]
+
 theorem rcomap_rcomap (r : rel α β) (s : rel β γ) (l : filter γ) :
   rcomap r (rcomap s l) = rcomap (r.comp s) l :=
-filter.ext $ λ t,
+filter_eq $
 begin
-  simp [rcomap_sets, rel.image, rel.core_comp], split,
-  { rintro ⟨u, ⟨v, vsets, hv⟩, h⟩,
-    exact ⟨v, vsets, (rel.core_mono _ hv).trans h⟩ },
-  rintro ⟨t, tsets, ht⟩,
-  exact ⟨s.core t, ⟨t, tsets, set.subset.rfl⟩, ht⟩
+  ext t, simp [rcomap_sets, rel.image, rel.core_comp], split,
+  { rintros ⟨u, ⟨v, vsets, hv⟩, h⟩,
+    exact ⟨v, vsets, set.subset.trans (rel.core_mono _ hv) h⟩ },
+  rintros ⟨t, tsets, ht⟩,
+  exact ⟨rel.core s t, ⟨t, tsets, set.subset.refl _⟩, ht⟩
 end
 
 @[simp]

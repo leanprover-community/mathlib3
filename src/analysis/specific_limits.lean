@@ -431,7 +431,7 @@ lemma summable_norm_pow_mul_geometric_of_norm_lt_1 {R : Type*} [normed_ring R]
   (k : ℕ) {r : R} (hr : ∥r∥ < 1) : summable (λ n : ℕ, ∥(n ^ k * r ^ n : R)∥) :=
 begin
   rcases exists_between hr with ⟨r', hrr', h⟩,
-  exact summable_of_is_O_nat _ (summable_geometric_of_lt_1 ((norm_nonneg _).trans hrr'.le) h)
+  exact summable_of_is_O_nat (summable_geometric_of_lt_1 ((norm_nonneg _).trans hrr'.le) h)
     (is_o_pow_const_mul_const_pow_const_pow_of_norm_lt _ hrr').is_O.norm_left
 end
 

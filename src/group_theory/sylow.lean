@@ -9,7 +9,7 @@ import group_theory.order_of_element
 import data.zmod.basic
 import data.fintype.card
 import data.list.rotate
-import group_theory.group_action.p_group
+import group_theory.p_group
 
 /-!
 # Sylow theorems

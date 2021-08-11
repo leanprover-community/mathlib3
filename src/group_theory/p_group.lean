@@ -7,7 +7,7 @@ import group_theory.group_action.basic
 import data.fintype.card
 import data.zmod.basic
 /-!
-# Group actions of p-groups on finite sets
+# p-groups
 
 This file contains a proof that if `G` is a `p`-group acting on a finite set `α`,
 then the number of fixed points of the action is congruent mod `p` to the cardinality of `α`.

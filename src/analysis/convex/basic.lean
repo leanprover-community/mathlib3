@@ -444,8 +444,8 @@ lemma convex.sub {t : set E}  (hs : convex s) (ht : convex t) :
   convex ((λx : E × E, x.1 - x.2) '' (s.prod t)) :=
 (hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
 
-lemma convex.smul_add_smul (h_conv : convex s) {p q : ℝ} (hple : 0 ≤ p) (hqle : 0 ≤ q) :
-  p • s + q • s = (p + q) • s :=
+lemma convex.add_smul (h_conv : convex s) {p q : ℝ} (hple : 0 ≤ p) (hqle : 0 ≤ q) :
+  (p + q) • s = p • s + q • s :=
 begin
   rcases hple.lt_or_eq with hp | rfl,
   rcases hqle.lt_or_eq with hq | rfl,

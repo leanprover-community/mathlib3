@@ -2290,6 +2290,12 @@ protected def congr {ra : setoid α} {rb : setoid β} (e : α ≃ β)
   quotient ra ≃ quotient rb :=
 quot.congr e eq
 
+@[simp]
+lemma congr_mk {ra : setoid α} {rb : setoid β} (e : α ≃ β)
+  (eq : ∀ (a₁ a₂ : α), setoid.r a₁ a₂ ↔ setoid.r (e a₁) (e a₂)) (a : α):
+  quotient.congr e eq (quotient.mk a) = quotient.mk (e a) :=
+@quot.congr_mk _ _ (setoid.r) (setoid.r) e eq a
+
 /-- Quotients are congruent on equivalences under equality of their relation.
 An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
 protected def congr_right {r r' : setoid α}

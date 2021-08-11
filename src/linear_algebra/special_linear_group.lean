@@ -163,7 +163,7 @@ variables {S : Type*} [comm_ring S]
 
 /-- A ring homomorphism from `R` to `S` induces a group homomorphism from
 `special_linear_group n R` to `special_linear_group n S`. -/
-def map (f : R →+* S) : monoid_hom (special_linear_group n R) (special_linear_group n S) :=
+def map (f : R →+* S) : special_linear_group n R →* special_linear_group n S :=
 { to_fun := λ g, ⟨f.map_matrix ↑g, ring_hom.map_det_one f g.2⟩,
   map_one' := subtype.ext $ f.map_matrix.map_one,
   map_mul' := λ x y, subtype.ext $ f.map_matrix.map_mul' x y }

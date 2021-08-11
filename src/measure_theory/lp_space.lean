@@ -986,8 +986,26 @@ end
 
 end monotonicity
 
-section inner_product
+section is_R_or_C
+variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜] {f : α → 𝕜}
 
+lemma mem_ℒp.re (hf : mem_ℒp f p μ) : mem_ℒp (λ x, is_R_or_C.re (f x)) p μ :=
+begin
+  have : ∀ x, ∥is_R_or_C.re (f x)∥ ≤ 1 * ∥f x∥,
+    by { intro x, rw one_mul, exact is_R_or_C.norm_re_le_norm (f x), },
+  exact hf.of_le_mul hf.1.re (eventually_of_forall this),
+end
+
+lemma mem_ℒp.im (hf : mem_ℒp f p μ) : mem_ℒp (λ x, is_R_or_C.im (f x)) p μ :=
+begin
+  have : ∀ x, ∥is_R_or_C.im (f x)∥ ≤ 1 * ∥f x∥,
+    by { intro x, rw one_mul, exact is_R_or_C.norm_im_le_norm (f x), },
+  exact hf.of_le_mul hf.1.im (eventually_of_forall this),
+end
+
+end is_R_or_C
+
+section inner_product
 variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   [inner_product_space 𝕜 E']
   [measurable_space E'] [opens_measurable_space E'] [second_countable_topology E']

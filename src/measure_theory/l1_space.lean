@@ -600,10 +600,10 @@ section is_R_or_C
 variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜] {f : α → 𝕜}
 
 lemma integrable.re (hf : integrable f μ) : integrable (λ x, is_R_or_C.re (f x)) μ :=
-integrable.mono hf hf.1.re (eventually_of_forall (λ a, is_R_or_C.norm_re_le_norm (f a)))
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.re, }
 
 lemma integrable.im (hf : integrable f μ) : integrable (λ x, is_R_or_C.im (f x)) μ :=
-integrable.mono hf hf.1.im (eventually_of_forall (λ a, is_R_or_C.norm_im_le_norm (f a)))
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
 
 end is_R_or_C
 

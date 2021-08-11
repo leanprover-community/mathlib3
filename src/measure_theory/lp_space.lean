@@ -986,6 +986,26 @@ end
 
 end monotonicity
 
+section inner_product
+
+variables {E' 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  [inner_product_space 𝕜 E']
+  [measurable_space E'] [opens_measurable_space E'] [second_countable_topology E']
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E' _ x y
+
+lemma mem_ℒp.const_inner (c : E') {f : α → E'} (hf : mem_ℒp f p μ) :
+  mem_ℒp (λ a, ⟪c, f a⟫) p μ :=
+hf.of_le_mul (ae_measurable.inner ae_measurable_const hf.1)
+  (eventually_of_forall (λ x, norm_inner_le_norm _ _))
+
+lemma mem_ℒp.inner_const {f : α → E'} (hf : mem_ℒp f p μ) (c : E') :
+  mem_ℒp (λ a, ⟪f a, c⟫) p μ :=
+hf.of_le_mul (ae_measurable.inner hf.1 ae_measurable_const)
+  (eventually_of_forall (λ x, by { rw mul_comm, exact norm_inner_le_norm _ _, }))
+
+end inner_product
+
 end ℒp
 
 /-!

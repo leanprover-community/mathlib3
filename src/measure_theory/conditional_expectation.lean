@@ -144,22 +144,6 @@ section tools
 
 variables [measurable_space α] {μ : measure α}
 
-lemma mem_ℒp.const_inner [borel_space 𝕜] (p : ℝ≥0∞) (c : E) {f : α → E} (hf : mem_ℒp f p μ) :
-  mem_ℒp (λ a, ⟪c, f a⟫) p μ :=
-begin
-  refine ⟨ae_measurable.inner ae_measurable_const hf.1, _⟩,
-  have snorm_norm_inner_le : snorm (λ x, ⟪c, f x⟫) p μ ≤ snorm (λ x, ∥c∥ * ∥f x∥) p μ,
-  { refine snorm_mono_ae (eventually_of_forall (λ x, _)),
-    simp only [normed_field.norm_mul, norm_norm],
-    exact norm_inner_le_norm _ _, },
-  refine snorm_norm_inner_le.trans_lt _,
-  simp_rw ← smul_eq_mul ℝ,
-  rw [← pi.smul_def, @snorm_const_smul _ _ _ p μ _ _ _ _ (λ x, ∥f x∥) (∥c∥)],
-  refine ennreal.mul_lt_top ennreal.coe_lt_top _,
-  rw snorm_norm,
-  exact hf.snorm_lt_top,
-end
-
 lemma integrable.const_inner [borel_space 𝕜] {f : α → E} (hf : integrable f μ) (c : E) :
   integrable (λ x, ⟪c, f x⟫) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner 1 c, }

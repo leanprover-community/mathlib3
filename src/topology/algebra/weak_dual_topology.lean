@@ -30,7 +30,7 @@ variables [module 𝕜 E] [has_continuous_smul 𝕜 E]
 /-- The (weak) dual of a topological module `E` over a topological semiring `𝕜` consists of
 continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the original
 dual, but will be equipped with a different topology. -/
-def weak_dual : Type* := (E →L[𝕜] 𝕜)
+@[derive [inhabited, has_coe_to_fun]] def weak_dual := E →L[𝕜] 𝕜
 
 instance [inhabited 𝕜] : inhabited (weak_dual 𝕜 E) :=
 { default := { to_fun := (λ (x : E) , 0),

@@ -55,12 +55,14 @@ instance : Π [fintype G], fintype (conj G) := id
 
 @[simp] lemma card [fintype G] : fintype.card (conj G) = fintype.card G := rfl
 
+@[simp] lemma forall_conj (p : conj G → Prop) :
+  (∀ (x : conj G), p x) ↔ ∀ x : G, p (to_conj x) := iff.rfl
+
 /-- The set of fixed points of the conjugation action of `G` on itself is the center of `G`. -/
 lemma fixed_points_eq_center : fixed_points (conj G) G = center G :=
 begin
   ext x,
-  simp only [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul, set_like.mem_coe, mem_fixed_points],
-  refl
+  simp [mem_center_iff, smul_def, mul_inv_eq_iff_eq_mul]
 end
 
 end conj

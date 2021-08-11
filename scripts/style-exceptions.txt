@@ -44,7 +44,6 @@ src/data/int/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too l
 src/data/list/func.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/of_fn.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/list/sigma.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/data/pfun.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/pfunctor/multivariate/M.lean : line 43 : ERR_LIN : Line has more than 100 characters
 src/data/pfunctor/multivariate/W.lean : line 42 : ERR_LIN : Line has more than 100 characters
 src/data/pnat/intervals.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -218,7 +217,7 @@ src/testing/slim_check/testable.lean : line 601 : ERR_LIN : Line has more than 1
 src/testing/slim_check/testable.lean : line 606 : ERR_LIN : Line has more than 100 characters
 src/testing/slim_check/testable.lean : line 741 : ERR_LIN : Line has more than 100 characters
 src/topology/algebra/floor_ring.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/topology/algebra/group_completion.lean : line 11 : ERR_MOD : Module docstring missing, or too late
+src/topology/algebra/group_completion.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/open_subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/uniform_ring.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/topology/category/Top/open_nhds.lean : line 9 : ERR_MOD : Module docstring missing, or too late

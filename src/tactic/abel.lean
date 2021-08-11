@@ -129,13 +129,8 @@ meta def eval_add (c : cache) : normal_expr → normal_expr → tactic (normal_e
   p ← mk_app ``add_zero [e₁],
   return (e₁, p)
 | he₁@(nterm e₁ n₁ x₁ a₁) he₂@(nterm e₂ n₂ x₂ a₂) :=
-  if expr.lex_lt x₁ x₂ then do
-    (a', h) ← eval_add a₁ he₂,
-    return (term' c n₁ x₁ a', c.iapp ``term_add_const [n₁.1, x₁, a₁, e₂, a', h])
-  else if x₁ ≠ x₂ then do
-    (a', h) ← eval_add he₁ a₂,
-    return (term' c n₂ x₂ a', c.iapp ``const_add_term [e₁, n₂.1, x₂, a₂, a', h])
-  else do
+  (do
+    is_def_eq x₁ x₂,
     (n', h₁) ← mk_app ``has_add.add [n₁.1, n₂.1] >>= norm_num.eval_field,
     (a', h₂) ← eval_add a₁ a₂,
     let k := n₁.2 + n₂.2,
@@ -143,7 +138,13 @@ meta def eval_add (c : cache) : normal_expr → normal_expr → tactic (normal_e
     if k = 0 then do
       p ← mk_eq_trans p₁ (c.iapp ``zero_term [x₁, a']),
       return (a', p)
-    else return (term' c (n', k) x₁ a', p₁)
+    else return (term' c (n', k) x₁ a', p₁))
+  <|> if expr.lex_lt x₁ x₂ then do
+    (a', h) ← eval_add a₁ he₂,
+    return (term' c n₁ x₁ a', c.iapp ``term_add_const [n₁.1, x₁, a₁, e₂, a', h])
+  else do
+    (a', h) ← eval_add he₁ a₂,
+    return (term' c n₂ x₂ a', c.iapp ``const_add_term [e₁, n₂.1, x₂, a₂, a', h])
 
 theorem term_neg {α} [add_comm_group α] (n x a n' a')
   (h₁ : -n = n') (h₂ : -a = a') :

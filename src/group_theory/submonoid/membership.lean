@@ -222,24 +222,11 @@ def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=
 nat.find $ (mem_powers_iff n p).mp p.prop
 
 @[simp] theorem pow_log_eq_self [decidable_eq M] {n : M} (p : powers n) : pow n (log p) = p :=
-begin
-  rw [pow, log],
-  rcases p with ⟨_, hp⟩,
-  congr,
-  exact nat.find_spec hp,
-end
+subtype.ext $ nat.find_spec p.prop
 
 lemma pow_right_injective_iff_pow_injective {n : M} :
   function.injective (λ m : ℕ, n ^ m) ↔ function.injective (pow n) :=
-begin
-  split; simp only []; intros h₁ _ _ h₂,
-  { simp only [pow, subtype.mk_eq_mk] at h₂,
-    exact h₁ h₂ },
-  { dsimp only [function.injective, pow] at h₁,
-    apply h₁,
-    congr,
-    exact h₂ }
-end
+subtype.coe_injective.of_comp_iff (pow n)
 
 theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
   log (pow n m) = m := pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _

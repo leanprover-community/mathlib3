@@ -2263,6 +2263,13 @@ protected def congr {ra : α → α → Prop} {rb : β → β → Prop} (e : α 
   left_inv := by { rintros ⟨a⟩, dunfold quot.map, simp only [equiv.symm_apply_apply] },
   right_inv := by { rintros ⟨a⟩, dunfold quot.map, simp only [equiv.apply_symm_apply] } }
 
+/-- A lemma for simplifying the equivalence between quotient spaces as stated just above -/
+@[simp]
+lemma congr_map_simp {α : Sort u} {β : Sort v} {ra : α → α → Prop} {rb : β → β → Prop} (e : α ≃ β)
+  (eq : ∀ (a₁ a₂ : α), ra a₁ a₂ ↔ rb (e a₁) (e a₂)) (a : α) :
+  (quot.congr e eq).to_fun (quot.mk ra a) = quot.mk rb (e a)
+  := by unfold quot.congr quot.map
+
 /-- Quotients are congruent on equivalences under equality of their relation.
 An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
 protected def congr_right {r r' : α → α → Prop} (eq : ∀a₁ a₂, r a₁ a₂ ↔ r' a₁ a₂) :

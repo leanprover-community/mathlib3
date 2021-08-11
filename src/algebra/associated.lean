@@ -352,7 +352,7 @@ protected lemma associated.irreducible_iff [monoid α] {p q : α} (h : p ~ᵤ q)
   irreducible p ↔ irreducible q :=
 ⟨h.irreducible, h.symm.irreducible⟩
 
-lemma associated_mul_left_cancel [comm_cancel_monoid_with_zero α] {a b c d : α}
+lemma associated.of_mul_left [comm_cancel_monoid_with_zero α] {a b c d : α}
   (h : a * b ~ᵤ c * d) (h₁ : a ~ᵤ c) (ha : a ≠ 0) : b ~ᵤ d :=
 let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
 ⟨u * (v : units α), mul_left_cancel' ha
@@ -361,9 +361,9 @@ let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
     simp [hv.symm, mul_assoc, mul_comm, mul_left_comm]
   end⟩
 
-lemma associated_mul_right_cancel [comm_cancel_monoid_with_zero α] {a b c d : α} :
+lemma associated.of_mul_right [comm_cancel_monoid_with_zero α] {a b c d : α} :
   a * b ~ᵤ c * d → b ~ᵤ d → b ≠ 0 → a ~ᵤ c :=
-by rw [mul_comm a, mul_comm c]; exact associated_mul_left_cancel
+by rw [mul_comm a, mul_comm c]; exact associated.of_mul_left
 
 section unique_units
 variables [monoid α] [unique (units α)]

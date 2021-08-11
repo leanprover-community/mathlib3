@@ -188,7 +188,7 @@ by haveI := classical.dec_eq α; exact
       rw ← multiset.cons_erase hbg,
       exact multiset.rel.cons hb (ih (λ q hq, hf _ (by simp [hq]))
         (λ q (hq : q ∈ g.erase b), hg q (multiset.mem_of_mem_erase hq))
-        (associated_mul_left_cancel
+        (associated.of_mul_left
           (by rwa [← multiset.prod_cons, ← multiset.prod_cons, multiset.cons_erase hbg]) hb
         (hf p (by simp)).ne_zero))
     end)
@@ -215,7 +215,7 @@ by haveI := classical.dec_eq α; exact
       rw ← multiset.cons_erase hbg,
       exact multiset.rel.cons hb (ih (λ q hq, hf _ (by simp [hq]))
         (λ q (hq : q ∈ g.erase b), hg q (multiset.mem_of_mem_erase hq))
-        (associated_mul_left_cancel
+        (associated.of_mul_left
           (by rwa [← multiset.prod_cons, ← multiset.prod_cons, multiset.cons_erase hbg]) hb
         (hf p (by simp)).ne_zero)),
     end)

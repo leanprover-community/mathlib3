@@ -663,6 +663,7 @@ section smith_normal
 
 /-- A Smith normal form basis for a submodule `N` of a module `M` consists of bases for `M` and `N`
 such that the inclusion map `N → M` can be written as a diagonal matrix in Smith normal form. -/
+@[nolint has_inhabited_instance]
 structure basis.smith_normal_form (N : submodule R M) (ι : Type*) (n : ℕ) :=
 (bM : basis ι R M) (bN : basis (fin n) R N) (f : fin n ↪ ι)
 (a : fin n → R) (snf : ∀ i, (bN i : M) = a i • bM (f i))

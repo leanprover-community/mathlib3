@@ -206,7 +206,7 @@ by { cases i, exacts [h₂, h₁] }
 
 @[simp] lemma measurable_set.disjointed {f : ℕ → set α} (h : ∀ i, measurable_set (f i)) (n) :
   measurable_set (disjointed f n) :=
-disjointed_induct (h n) (assume t i ht, measurable_set.diff ht $ h _)
+disjointed_rec (λ t i ht, measurable_set.diff ht $ h _) (h n)
 
 @[simp] lemma measurable_set.const (p : Prop) : measurable_set {a : α | p} :=
 by { by_cases p; simp [h, measurable_set.empty]; apply measurable_set.univ }

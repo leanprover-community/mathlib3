@@ -360,7 +360,7 @@ lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supporte
   f' j k hjk (lift (λ ix : s, f' ix.1.1 j (hj ix ix.2) ix.1.2) (restriction s x)) =
   lift (λ ix : t, f' ix.1.1 k (hk ix ix.2) ix.1.2) (restriction t x) :=
 begin
-  refine ring.in_closure.rec_on hxs _ _ _ _,
+  refine subring.in_closure.rec_on hxs _ _ _ _,
   { rw [(restriction _).map_one, (free_comm_ring.lift _).map_one, (f' j k hjk).map_one,
         (restriction _).map_one, (free_comm_ring.lift _).map_one] },
   { rw [(restriction _).map_neg, (restriction _).map_one,

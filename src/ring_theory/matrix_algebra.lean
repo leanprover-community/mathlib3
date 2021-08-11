@@ -3,11 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.matrix.basic
 import ring_theory.tensor_product
 
 /-!
-We provide the `R`-algebra structure on `matrix n n A` when `A` is an `R`-algebra,
-and show `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
+We show `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
 -/
 
 universes u v w
@@ -23,22 +23,6 @@ variables {R : Type u} [comm_semiring R]
 variables {A : Type v} [semiring A] [algebra R A]
 variables {n : Type w} [fintype n]
 
-section
-variables [decidable_eq n]
-
-instance : algebra R (matrix n n A) :=
-{ commutes' := λ r x, begin
-    ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes, smul_ite], end,
-  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
-  ..((matrix.scalar n).comp (algebra_map R A)) }
-
-lemma algebra_map_matrix_apply {r : R} {i j : n} :
-  algebra_map R (matrix n n A) r i j = if i = j then algebra_map R A r else 0 :=
-begin
-  dsimp [algebra_map, algebra.to_ring_hom, matrix.scalar],
-  split_ifs with h; simp [h, matrix.one_apply_ne],
-end
-end
 
 variables (R A n)
 namespace matrix_equiv_tensor

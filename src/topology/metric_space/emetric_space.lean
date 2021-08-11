@@ -457,6 +457,14 @@ lemma edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
 lemma edist_pi_const [nonempty β] (a b : α) :
   edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
 
+lemma edist_le_pi_edist [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) (b : β) :
+  edist (f b) (g b) ≤ edist f g :=
+finset.le_sup (finset.mem_univ b)
+
+lemma edist_pi_le_iff [Π b, pseudo_emetric_space (π b)] {f g : Π b, π b} {d : ℝ≥0∞} :
+  edist f g ≤ d ↔ ∀ b, edist (f b) (g b) ≤ d :=
+finset.sup_le_iff.trans $ by simp only [finset.mem_univ, forall_const]
+
 end pi
 
 namespace emetric
@@ -789,6 +797,15 @@ diam_le $ λa ha b hb, calc
 
 lemma diam_ball {r : ℝ≥0∞} : diam (ball x r) ≤ 2 * r :=
 le_trans (diam_mono ball_subset_closed_ball) diam_closed_ball
+
+lemma diam_pi_le_of_le {π : β → Type*} [fintype β] [∀ b, pseudo_emetric_space (π b)]
+  {s : Π (b : β), set (π b)} {c : ℝ≥0∞} (h : ∀ b, diam (s b) ≤ c) :
+  diam (set.pi univ s) ≤ c :=
+begin
+  apply diam_le (λ x hx y hy, edist_pi_le_iff.mpr _),
+  rw [mem_univ_pi] at hx hy,
+  exact λ b, diam_le_iff.1 (h b) (x b) (hx b) (y b) (hy b),
+end
 
 end diam
 

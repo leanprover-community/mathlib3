@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
+import data.sym.basic
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -169,6 +170,14 @@ lemma univ_filter_mem_range (f : α → β) [fintype β]
   [decidable_pred (λ y, y ∈ set.range f)] [decidable_eq β] :
   finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
 univ_filter_exists f
+
+/-- A special case of `finset.sup_eq_supr` that omits the useless `x ∈ univ` binder. -/
+lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f = supr f :=
+(sup_eq_supr _ f).trans $ congr_arg _ $ funext $ λ a, supr_pos (mem_univ _)
+
+/-- A special case of `finset.inf_eq_infi` that omits the useless `x ∈ univ` binder. -/
+lemma inf_univ_eq_infi [complete_lattice β] (f : α → β) : finset.univ.inf f = infi f :=
+sup_univ_eq_supr (by exact f : α → order_dual β)
 
 end finset
 
@@ -701,11 +710,35 @@ end
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 fintype.of_subsingleton (default α)
 
+/-- Short-circuit instance to decrease search for `unique.fintype`,
+since that relies on a subsingleton elimination for `unique`. -/
+instance fintype.subtype_eq (y : α) : fintype {x // x = y} :=
+fintype.subtype {y} (by simp)
+
+/-- Short-circuit instance to decrease search for `unique.fintype`,
+since that relies on a subsingleton elimination for `unique`. -/
+instance fintype.subtype_eq' (y : α) : fintype {x // y = x} :=
+fintype.subtype {y} (by simp [eq_comm])
+
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 
 @[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
 finset.ext is_empty_elim
+
+@[simp] lemma fintype.card_subtype_eq (y : α)  :
+  fintype.card {x // x = y} = 1 :=
+begin
+  convert fintype.card_unique,
+  exact unique.subtype_eq _
+end
+
+@[simp] lemma fintype.card_subtype_eq' (y : α) :
+  fintype.card {x // y = x} = 1 :=
+begin
+  convert fintype.card_unique,
+  exact unique.subtype_eq' _
+end
 
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
 
@@ -971,6 +1004,20 @@ begin
     rwa injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
 end
 
+lemma right_inverse_of_left_inverse_of_card_le {f : α → β} {g : β → α}
+  (hfg : left_inverse f g) (hcard : card α ≤ card β) :
+  right_inverse f g :=
+have hsurj : surjective f, from surjective_iff_has_right_inverse.2 ⟨g, hfg⟩,
+right_inverse_of_injective_of_left_inverse
+  ((bijective_iff_surjective_and_card _).2
+    ⟨hsurj, le_antisymm hcard (card_le_of_surjective f hsurj)⟩ ).1
+  hfg
+
+lemma left_inverse_of_right_inverse_of_card_le {f : α → β} {g : β → α}
+  (hfg : right_inverse f g) (hcard : card β ≤ card α) :
+  left_inverse f g :=
+right_inverse_of_left_inverse_of_card_le hfg hcard
+
 end fintype
 
 lemma fintype.coe_image_univ [fintype α] [decidable_eq β] {f : α → β} :
@@ -1115,6 +1162,12 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
 @[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
+
+instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym.sym' α n) :=
+quotient.fintype _
+
+instance [decidable_eq α] [fintype α] {n : ℕ} : fintype (sym α n) :=
+fintype.of_equiv _ sym.sym_equiv_sym'.symm
 
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=

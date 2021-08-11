@@ -497,7 +497,7 @@ def decreasing_sequence (k : ℕ) : order_dual ℝ :=
 (cs (sequence_of_cubes h k).1).w
 
 lemma strict_mono_sequence_of_cubes : strict_mono $ decreasing_sequence h :=
-strict_mono.nat $
+strict_mono_nat_of_lt_succ $
 begin
   intro k, let v := (sequence_of_cubes h k).2, dsimp only [decreasing_sequence, sequence_of_cubes],
   apply w_lt_w h v (mi_mem_bcubes : mi h v ∈ _),

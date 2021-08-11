@@ -2164,7 +2164,7 @@ begin
     induction n with n IH,
     { exact (hf 0 l hl).2.2.1 },
     { exact (hf n.succ _ IH).2.2.1 } },
-  have S : strict_mono u := strict_mono.nat (λ n, (hf n.succ _ (I n)).2.1),
+  have S : strict_mono u := strict_mono_nat_of_lt_succ (λ n, (hf n.succ _ (I n)).2.1),
   refine ⟨u, S, I, hs.tendsto_right_iff.2 (λ n _, _), (λ n, _)⟩,
   { simp only [ge_iff_le, eventually_at_top],
     refine ⟨n, λ p hp, _⟩,

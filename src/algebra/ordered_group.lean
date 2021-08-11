@@ -73,7 +73,7 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
 { mul_le_mul_left := λ a b h c, (mul_le_mul_left' (h : (a : α) ≤ b) _ :  (c : α) * a ≤ c * b),
   .. units.partial_order,
-  .. (infer_instance : comm_group (units α)) }
+  .. units.comm_group }
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
@@ -88,6 +88,15 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   [ordered_comm_group α] :
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
+
+@[to_additive] instance [h : has_inv α] : has_inv (order_dual α) := h
+@[to_additive] instance [h : has_div α] : has_div (order_dual α) := h
+@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
+@[to_additive] instance [h : group α] : group (order_dual α) := h
+@[to_additive] instance [h : comm_group α] : comm_group (order_dual α) := h
+
+@[to_additive] instance [ordered_comm_group α] : ordered_comm_group (order_dual α) :=
+{ .. order_dual.ordered_comm_monoid, .. order_dual.group }
 
 section group
 variables [group α]
@@ -290,8 +299,8 @@ end
 lemma inv_le' : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
 (order_iso.inv α).symm_apply_le
 
-alias inv_le' ↔ inv_le_of_inv_le _
-attribute [to_additive] inv_le_of_inv_le
+alias inv_le' ↔ inv_le_of_inv_le' _
+attribute [to_additive neg_le_of_neg_le] inv_le_of_inv_le'
 
 @[to_additive le_neg]
 lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
@@ -328,8 +337,8 @@ by rw [← inv_lt_inv_iff, inv_inv]
 alias lt_inv' ↔ lt_inv_of_lt_inv _
 attribute [to_additive] lt_inv_of_lt_inv
 
-alias inv_lt' ↔ inv_lt_of_inv_lt _
-attribute [to_additive] inv_lt_of_inv_lt
+alias inv_lt' ↔ inv_lt_of_inv_lt' _
+attribute [to_additive neg_lt_of_neg_lt] inv_lt_of_inv_lt'
 
 @[to_additive]
 lemma mul_inv_lt_inv_mul_iff : a * b⁻¹ < d⁻¹ * c ↔ d * a < c * b :=
@@ -824,11 +833,24 @@ variables [densely_ordered α] {a b c : α}
 lemma le_of_forall_one_lt_le_mul (h : ∀ ε : α, 1 < ε → a ≤ b * ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,
 calc a ≤ b * (b⁻¹ * c) : h _ (lt_inv_mul_iff_lt.mpr hc)
-   ... = c            : mul_inv_cancel_left b c
+   ... = c             : mul_inv_cancel_left b c
+
+@[to_additive]
+lemma le_of_forall_lt_one_mul_le (h : ∀ ε < 1, a * ε ≤ b) : a ≤ b :=
+@le_of_forall_one_lt_le_mul (order_dual α) _ _ _ _ _ _ h
+
+@[to_additive]
+lemma le_of_forall_one_lt_div_le (h : ∀ ε : α, 1 < ε → a / ε ≤ b) : a ≤ b :=
+le_of_forall_lt_one_mul_le $ λ ε ε1,
+  by simpa only [div_eq_mul_inv, inv_inv]  using h ε⁻¹ (left.one_lt_inv_iff.2 ε1)
 
 @[to_additive]
 lemma le_iff_forall_one_lt_le_mul : a ≤ b ↔ ∀ ε, 1 < ε → a ≤ b * ε :=
 ⟨λ h ε ε_pos, le_mul_of_le_of_one_le h ε_pos.le, le_of_forall_one_lt_le_mul⟩
+
+@[to_additive]
+lemma le_iff_forall_lt_one_mul_le : a ≤ b ↔ ∀ ε < 1, a * ε ≤ b :=
+@le_iff_forall_one_lt_le_mul (order_dual α) _ _ _ _ _ _
 
 end densely_ordered
 
@@ -857,6 +879,10 @@ commutative group with a linear order in which
 multiplication is monotone. -/
 @[protect_proj, ancestor ordered_comm_group linear_order, to_additive]
 class linear_ordered_comm_group (α : Type u) extends ordered_comm_group α, linear_order α
+
+@[to_additive] instance [linear_ordered_comm_group α] :
+  linear_ordered_comm_group (order_dual α) :=
+{ .. order_dual.ordered_comm_group, .. order_dual.linear_order α }
 
 section linear_ordered_comm_group
 variables [linear_ordered_comm_group α] {a b c : α}
@@ -1237,22 +1263,6 @@ def to_linear_ordered_add_comm_group
   ..@nonneg_add_comm_group.to_ordered_add_comm_group _ s }
 
 end nonneg_add_comm_group
-
-namespace order_dual
-
-instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
-{ add_left_neg := λ a : α, add_left_neg a,
-  sub := λ a b, (a - b : α),
-  ..order_dual.ordered_add_comm_monoid,
-  ..show add_comm_group α, by apply_instance }
-
-instance [linear_ordered_add_comm_group α] :
-  linear_ordered_add_comm_group (order_dual α) :=
-{ add_le_add_left := λ a b h c, by exact add_le_add_left h _,
-  ..order_dual.linear_order α,
-  ..show add_comm_group α, by apply_instance }
-
-end order_dual
 
 namespace prod
 

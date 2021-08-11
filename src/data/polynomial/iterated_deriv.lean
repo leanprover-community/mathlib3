@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.polynomial.derivative
-import logic.function.iterate
 import data.finset.intervals
-import tactic.ring
+import data.polynomial.derivative
 import tactic.linarith
 
 /-!

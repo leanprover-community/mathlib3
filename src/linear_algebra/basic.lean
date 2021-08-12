@@ -2573,6 +2573,11 @@ def quot_equiv_of_eq (h : p = q) : p.quotient ≃ₗ[R] q.quotient :=
   ..@quotient.congr _ _ (quotient_rel p) (quotient_rel q) (equiv.refl _) $
     λ a b, by { subst h, refl } }
 
+@[simp]
+lemma quot_equiv_of_eq_mk (h : p = q) (x : M) :
+  submodule.quot_equiv_of_eq p q h (submodule.quotient.mk x) = submodule.quotient.mk x :=
+rfl
+
 end submodule
 
 namespace submodule

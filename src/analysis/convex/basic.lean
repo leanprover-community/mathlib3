@@ -461,7 +461,7 @@ begin
         (by {field_simp, rw [div_self (ne_of_gt hpq)]} : p / (p + q) + q / (p + q) = 1),
       rw mem_smul_set,
       refine ⟨_, this, _⟩,
-      simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne'], },
+      simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne'], }, },
   all_goals { rcases s.eq_empty_or_nonempty with rfl | hne,
     { simp, },
     rw zero_smul_set hne,

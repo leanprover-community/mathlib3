@@ -15,8 +15,8 @@ The Jordan decomposition theorem for measures is a corollary of the Hahn decompo
 is useful for the Lebesgue decomposition theorem.
 
 ## Main results
-* `signed_measure.exists_mutually_sigular_eq_sub` : the Jordan decomposition theorem.
-* `signed_measure.mutually_sigular_eq_sub_unique` : the Jordan decomposition of a signed measure
+* `signed_measure.exists_mutually_singular_eq_sub` : the Jordan decomposition theorem.
+* `signed_measure.mutually_singular_eq_sub_unique` : the Jordan decomposition of a signed measure
   is unique.
 
 ## Tags
@@ -35,16 +35,16 @@ namespace signed_measure
 
 open measure vector_measure
 
-variables {s : signed_measure α} {μ ν : measure α} [hμ : finite_measure μ] [hν : finite_measure ν]
+variables {s : signed_measure α} {μ ν : measure α} [finite_measure μ] [finite_measure ν]
 
 /-- **The Jordan decomposition theorem**: Given a signed measure `s`, there exists
 a pair of mutually singular measures `μ` and `ν` such that `s = μ - ν`.
 
 Note that we use `measure.sub_to_signed_measure μ ν` to represent the signed measure corresponding
 to `μ - ν`. -/
-theorem exists_mutually_sigular_eq_sub (s : signed_measure α) :
-  ∃ (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν],
-    μ ⊥ₘ ν ∧ s = @sub_to_signed_measure _ _ μ ν hμ hν :=
+theorem exists_mutually_singular_eq_sub (s : signed_measure α) :
+  ∃ (μ ν : measure α) [finite_measure μ] [finite_measure ν],
+    by exactI μ ⊥ₘ ν ∧ s = sub_to_signed_measure μ ν :=
 begin
   obtain ⟨i, hi₁, hi₂, hi₃⟩ := s.exists_compl_positive_negative,
   have hi₄ := measurable_set.compl hi₁,
@@ -65,8 +65,8 @@ begin
 end
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
-lemma exists_compl_positive_negative_of_exists_mutually_sigular_sub
-  (h : μ ⊥ₘ ν ∧ s = @sub_to_signed_measure _ _ μ ν hμ hν) :
+lemma exists_compl_positive_negative_of_exists_mutually_singular_sub
+  (h : by exactI μ ⊥ₘ ν ∧ s = sub_to_signed_measure μ ν) :
   ∃ S : set α, measurable_set S ∧ s ≤[S] 0 ∧ 0 ≤[Sᶜ] s ∧ μ S = 0 ∧ ν Sᶜ = 0 :=
 begin
   obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, h₁⟩ := h,
@@ -215,17 +215,16 @@ end
 end
 
 /-- The Jordan decomposition of a signed measure is unique. -/
-theorem mutually_sigular_eq_sub_unique {s : signed_measure α} {μ₁ ν₁ μ₂ ν₂ : measure α}
-  [hμ₁ : finite_measure μ₁] [hν₁ : finite_measure ν₁]
-  [hμ₂ : finite_measure μ₂] [hν₂ : finite_measure ν₂]
-  (h₁ : μ₁ ⊥ₘ ν₁ ∧ s = @sub_to_signed_measure _ _ μ₁ ν₁ hμ₁ hν₁)
-  (h₂ : μ₂ ⊥ₘ ν₂ ∧ s = @sub_to_signed_measure _ _ μ₂ ν₂ hμ₂ hν₂) :
+theorem mutually_singular_eq_sub_unique {s : signed_measure α} {μ₁ ν₁ μ₂ ν₂ : measure α}
+  [finite_measure μ₁] [finite_measure ν₁] [finite_measure μ₂] [finite_measure ν₂]
+  (h₁ : by exactI μ₁ ⊥ₘ ν₁ ∧ s = sub_to_signed_measure μ₁ ν₁)
+  (h₂ : by exactI μ₂ ⊥ₘ ν₂ ∧ s = sub_to_signed_measure μ₂ ν₂) :
   μ₁ = μ₂ ∧ ν₁ = ν₂ :=
 begin
   obtain ⟨S, hS₁, hS₂, hS₃, hS₄, hS₅⟩ :=
-    exists_compl_positive_negative_of_exists_mutually_sigular_sub h₁,
+    exists_compl_positive_negative_of_exists_mutually_singular_sub h₁,
   obtain ⟨T, hT₁, hT₂, hT₃, hT₄, hT₅⟩ :=
-    exists_compl_positive_negative_of_exists_mutually_sigular_sub h₂,
+    exists_compl_positive_negative_of_exists_mutually_singular_sub h₂,
   obtain ⟨hST₁, hST₂⟩ := of_symm_diff_compl_positive_negative hS₁.compl hT₁.compl
     ⟨hS₃, (compl_compl S).symm ▸ hS₂⟩ ⟨hT₃, (compl_compl T).symm ▸ hT₂⟩,
   rw [compl_compl, compl_compl] at hST₂,

@@ -68,8 +68,7 @@ end
 lemma exists_compl_positive_negative_of_exists_mutually_sigular_sub
   {s : signed_measure α} {μ ν : measure α} [hμ : finite_measure μ] [hν : finite_measure ν]
   (h : μ ⊥ₘ ν ∧ s = @sub_to_signed_measure _ _ μ ν hμ hν) :
-  ∃ S (hS₁ : measurable_set S) (hS₄: s ≤[S] 0) (hS₅: 0 ≤[Sᶜ] s),
-  μ S = 0 ∧ ν Sᶜ = 0 :=
+  ∃ S : set α, measurable_set S ∧ s ≤[S] 0 ∧ 0 ≤[Sᶜ] s ∧ μ S = 0 ∧ ν Sᶜ = 0 :=
 begin
   obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, h₁⟩ := h,
   refine ⟨S, hS₁, _, _, hS₂, hS₃⟩,

@@ -55,7 +55,7 @@ instance : Π [fintype G], fintype (conj G) := id
 
 @[simp] lemma card [fintype G] : fintype.card (conj G) = fintype.card G := rfl
 
-@[simp] lemma forall_conj (p : conj G → Prop) :
+@[simp] lemma «forall» (p : conj G → Prop) :
   (∀ (x : conj G), p x) ↔ ∀ x : G, p (to_conj x) := iff.rfl
 
 /-- The set of fixed points of the conjugation action of `G` on itself is the center of `G`. -/

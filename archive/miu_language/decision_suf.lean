@@ -10,7 +10,7 @@ import tactic.linarith
 # Decision procedure - sufficient condition and decidability
 
 We give a sufficient condition for a string to be derivable in the MIU language. Together with the
-necessary condition, we use this to prove that `derivable` is an instance of `decicdable_pred`.
+necessary condition, we use this to prove that `derivable` is an instance of `decidable_pred`.
 
 Let `count I st` and `count U st` denote the number of `I`s (respectively `U`s) in `st : miustr`.
 
@@ -161,7 +161,7 @@ begin
         change 2^2 with (1+3), rw [mul_add (2^g) 1 3, mul_one],
         linarith [hkg, one_le_two_pow g], },
       { rw [pow_add,←mul_one c],
-        exact modeq.modeq_mul hgmod rfl, }, }, },
+        exact modeq_mul hgmod rfl, }, }, },
 end
 
 /--
@@ -206,7 +206,7 @@ begin
     convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
     rw nat.mul_div_cancel',
     { exact add_sub_of_le hm.1, },
-    { exact (modeq.modeq_iff_dvd' hm.1).mp hm.2.symm, }, },
+    { exact (modeq_iff_dvd' hm.1).mp hm.2.symm, }, },
   rw [append_assoc, ←repeat_add _ _] at hw₃,
   cases add_mod2 ((2^m-c)/3) with t ht,
   rw ht at hw₃,
@@ -230,7 +230,7 @@ begin
     convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
     rw nat.mul_div_cancel',
     { exact add_sub_of_le hm.1, },
-    { exact (modeq.modeq_iff_dvd' hm.1).mp hm.2.symm, }, },
+    { exact (modeq_iff_dvd' hm.1).mp hm.2.symm, }, },
   rw [append_assoc, ←repeat_add _ _] at hw₃,
   cases add_mod2 ((2^m-c)/3) with t ht,
   rw ht at hw₃,

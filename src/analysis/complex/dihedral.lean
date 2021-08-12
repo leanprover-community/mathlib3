@@ -3,7 +3,6 @@ Copyright (c) 2021 Shadman Sakib. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shadman Sakib
 -/
-
 import group_theory.specific_groups.dihedral
 import analysis.special_functions.trigonometric
 
@@ -26,9 +25,9 @@ zmod.lift m ⟨gmultiples_hom real.angle ↑(2 * π /m),
   begin
     suffices : m • (2 * π / ↑m) = 2 * π,
     { simpa using congr_arg (coe : _ → real.angle) this },
-    have : (m:ℝ) ≠ 0 := by exact_mod_cast (fact.out _).ne',
+    have : (m:ℝ) ≠ 0 := by exact_mod_cast (fact.out _ : 0 < m).ne',
     field_simp,
-    ring
+    ring,
   end⟩
 
 /-- A function mapping `dihedral_group` to linear isometries of ℂ.

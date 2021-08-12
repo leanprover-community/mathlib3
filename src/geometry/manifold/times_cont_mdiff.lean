@@ -654,7 +654,7 @@ begin
     refine ⟨v, _, _⟩,
     show v ∈ 𝓝[insert x s] x,
     { rw nhds_within_restrict _ xo o_open,
-      refine filter.inter_mem_sets self_mem_nhds_within _,
+      refine filter.inter_mem self_mem_nhds_within _,
       suffices : u ∈ 𝓝[(ext_chart_at I x) '' (insert x s ∩ o)] (ext_chart_at I x x),
         from (ext_chart_at_continuous_at I x).continuous_within_at.preimage_mem_nhds_within' this,
       apply nhds_within_mono _ _ u_nhds,
@@ -782,13 +782,15 @@ begin
   have A : {y | y ∈ e.target ∧ f (e.symm y) ∈ t ∧ f (e.symm y) ∈ e'.source ∧
     g (f (e.symm y)) ∈ e''.source} ∈ 𝓝[e.symm ⁻¹' s ∩ range I] e x,
   { simp only [← ext_chart_at_map_nhds_within, mem_map, mem_preimage],
+    change {x_1 : M | (ext_chart_at I x) x_1 ∈ {y : E | y ∈ e.target ∧
+            f (e.symm y) ∈ t ∧ f (e.symm y) ∈ e'.source ∧ g (f (e.symm y)) ∈ e''.source}} ∈ 𝓝[s] x,
     filter_upwards [hf.1.tendsto (ext_chart_at_source_mem_nhds I' (f x)),
       (hg.1.comp hf.1 st).tendsto (ext_chart_at_source_mem_nhds I'' (g (f x))),
       (inter_mem_nhds_within s (ext_chart_at_source_mem_nhds I x))],
     rintros x' (hfx' : f x' ∈ _) (hgfx' : g (f x') ∈ _) ⟨hx's, hx'⟩,
     simp only [e.map_source hx', mem_preimage, true_and, e.left_inv hx', st hx's, *] },
   refine ((hg.2.comp _ (hf.2.mono (inter_subset_right _ _)) (inter_subset_left _ _)).mono_of_mem
-    (inter_mem_sets _ self_mem_nhds_within)).congr_of_eventually_eq _ _,
+    (inter_mem _ self_mem_nhds_within)).congr_of_eventually_eq _ _,
   { filter_upwards [A],
     rintro x' ⟨hx', ht, hfx', hgfx'⟩,
     simp only [*, mem_preimage, written_in_ext_chart_at, (∘), mem_inter_eq, e'.left_inv, true_and],

@@ -219,7 +219,7 @@ calc (∀ᶠ x in residual α, p x) ↔
   ∀ᶠ x in ⨅ (t : set α) (ht : is_Gδ t ∧ dense t), 𝓟 t, p x :
     by simp only [residual, infi_and]
 ... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x :
-  mem_binfi (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩,
+  mem_binfi_of_directed (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩,
     by simp⟩) ⟨univ, is_Gδ_univ, dense_univ⟩
 ... ↔ _ : by simp [and_assoc]
 

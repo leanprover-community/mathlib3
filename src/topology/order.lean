@@ -91,10 +91,10 @@ by rw [nhds_generate_from]; exact
 /-- Construct a topology on α given the filter of neighborhoods of each point of α. -/
 protected def mk_of_nhds (n : α → filter α) : topological_space α :=
 { is_open        := λs, ∀a∈s, s ∈ n a,
-  is_open_univ   := assume x h, univ_mem_sets,
-  is_open_inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem_sets (hs x hxs) (ht x hxt),
+  is_open_univ   := assume x h, univ_mem,
+  is_open_inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem (hs x hxs) (ht x hxt),
   is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩,
-    mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
+    mem_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
 
 lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
   (h₀ : pure ≤ n) (h₁ : ∀{a s}, s ∈ n a → ∃ t ∈ n a, t ⊆ s ∧ ∀a' ∈ t, s ∈ n a') :
@@ -102,12 +102,12 @@ lemma nhds_mk_of_nhds (n : α → filter α) (a : α)
 begin
   letI := topological_space.mk_of_nhds n,
   refine le_antisymm (assume s hs, _) (assume s hs, _),
-  { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
+  { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure.1 $ h₀ b hb,
     have h₁ : {b | s ∈ n b} ∈ 𝓝 a,
     { refine is_open.mem_nhds (assume b (hb : s ∈ n b), _) hs,
       rcases h₁ hb with ⟨t, ht, hts, h⟩,
-      exact mem_sets_of_superset ht h },
-    exact mem_sets_of_superset h₁ h₀ },
+      exact mem_of_superset ht h },
+    exact mem_of_superset h₁ h₀ },
   { rcases (@mem_nhds_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
     exact (n a).sets_of_superset (ht _ hat) hts },
 end
@@ -437,9 +437,9 @@ end
   to its neighborhood filter at a fixed point `a : α`. -/
 protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
 { is_open        := λs, a ∈ s → s ∈ f,
-  is_open_univ   := assume s, univ_mem_sets,
-  is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem_sets (hs has) (ht hat),
-  is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_sets_of_superset (hk u hu hau)
+  is_open_univ   := assume s, univ_mem,
+  is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem (hs has) (ht hat),
+  is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_of_superset (hk u hu hau)
     (subset_sUnion_of_mem hu) }
 
 lemma gc_nhds (a : α) :
@@ -605,7 +605,7 @@ end
 
 theorem nhds_induced [T : topological_space α] (f : β → α) (a : β) :
   @nhds β (topological_space.induced f T) a = comap f (𝓝 (f a)) :=
-by { ext s, rw [mem_nhds_induced, mem_comap_sets] }
+by { ext s, rw [mem_nhds_induced, mem_comap] }
 
 lemma induced_iff_nhds_eq [tα : topological_space α] [tβ : topological_space β] (f : β → α) :
 tβ = tα.induced f ↔ ∀ b, 𝓝 b = comap f (𝓝 $ f b) :=

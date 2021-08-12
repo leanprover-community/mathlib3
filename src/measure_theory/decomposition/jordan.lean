@@ -35,7 +35,7 @@ namespace signed_measure
 
 open measure vector_measure
 
-variables {μ ν : measure α}
+variables {s : signed_measure α} {μ ν : measure α} [hμ : finite_measure μ] [hν : finite_measure ν]
 
 /-- **The Jordan decomposition theorem**: Given a signed measure `s`, there exists
 a pair of mutually singular measures `μ` and `ν` such that `s = μ - ν`.
@@ -66,7 +66,6 @@ end
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
 lemma exists_compl_positive_negative_of_exists_mutually_sigular_sub
-  {s : signed_measure α} {μ ν : measure α} [hμ : finite_measure μ] [hν : finite_measure ν]
   (h : μ ⊥ₘ ν ∧ s = @sub_to_signed_measure _ _ μ ν hμ hν) :
   ∃ S : set α, measurable_set S ∧ s ≤[S] 0 ∧ 0 ≤[Sᶜ] s ∧ μ S = 0 ∧ ν Sᶜ = 0 :=
 begin
@@ -86,39 +85,41 @@ end
 
 section
 
-/-- A subset `s` of a null-set `t` has zero measure if `t` is a subset of a positive set `u`. -/
-lemma subset_positive_null_set {s : signed_measure α} {u w t : set α}
-  (hu : measurable_set u) (hw : measurable_set w) (ht : measurable_set t)
-  (hsu : 0 ≤[u] s) (ht₁ : s t = 0) (ht₂ : t ⊆ u) (hwt : w ⊆ t) : s w = 0 :=
+variables {u v w : set α}
+
+/-- A subset `v` of a null-set `w` has zero measure if `w` is a subset of a positive set `u`. -/
+lemma subset_positive_null_set
+  (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
+  (hsu : 0 ≤[u] s) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
-  have : s w + s (t \ w) = 0,
-  { rw [← ht₁, ← of_union set.disjoint_diff hw (ht.diff hw),
+  have : s v + s (w \ v) = 0,
+  { rw [← hw₁, ← of_union set.disjoint_diff hv (hw.diff hv),
         set.union_diff_self, set.union_eq_self_of_subset_left hwt],
     apply_instance },
-  have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans ht₂)),
+  have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),
   have h₂ := nonneg_of_zero_le_restrict _
-    (restrict_le_restrict_subset _ _ hu hsu ((t.diff_subset w).trans ht₂)),
+    (restrict_le_restrict_subset _ _ hu hsu ((w.diff_subset v).trans hw₂)),
   linarith,
 end
 
-/-- A subset `s` of a null-set `t` has zero measure if `t` is a subset of a negative set `u`. -/
-lemma subset_negative_null_set {s : signed_measure α} {u w t : set α}
-  (hu : measurable_set u) (hw : measurable_set w) (ht : measurable_set t)
-  (hsu : s ≤[u] 0) (ht₁ : s t = 0) (ht₂ : t ⊆ u) (hwt : w ⊆ t) : s w = 0 :=
+/-- A subset `v` of a null-set `w` has zero measure if `w` is a subset of a negative set `u`. -/
+lemma subset_negative_null_set
+  (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
+  (hsu : s ≤[u] 0) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
-  have : s w + s (t \ w) = 0,
-  { rw [← ht₁, ← of_union set.disjoint_diff hw (ht.diff hw),
+  have : s v + s (w \ v) = 0,
+  { rw [← hw₁, ← of_union set.disjoint_diff hv (hw.diff hv),
         set.union_diff_self, set.union_eq_self_of_subset_left hwt],
     apply_instance },
-  have h₁ := nonpos_of_restrict_le_zero _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans ht₂)),
+  have h₁ := nonpos_of_restrict_le_zero _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),
   have h₂ := nonpos_of_restrict_le_zero _
-    (restrict_le_restrict_subset _ _ hu hsu ((t.diff_subset w).trans ht₂)),
+    (restrict_le_restrict_subset _ _ hu hsu ((w.diff_subset v).trans hw₂)),
   linarith,
 end
 
 /-- If the symmetric difference of two positive sets is a null-set, then so are the differences
 between the two sets. -/
-lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive {s : signed_measure α} {u v : set α}
+lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive
   (hu : measurable_set u) (hv : measurable_set v)
   (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
@@ -135,7 +136,7 @@ end
 
 /-- If the symmetric difference of two negative sets is a null-set, then so are the differences
 between the two sets. -/
-lemma of_diff_eq_zero_of_symm_diff_eq_zero_negative {s : signed_measure α} {u v : set α}
+lemma of_diff_eq_zero_of_symm_diff_eq_zero_negative
   (hu : measurable_set u) (hv : measurable_set v)
   (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
@@ -150,7 +151,7 @@ begin
   all_goals { linarith <|> apply_instance <|> assumption },
 end
 
-lemma of_diff_of_diff_eq_zero {s : signed_measure α} {u v : set α}
+lemma of_diff_of_diff_eq_zero
   (hu : measurable_set u) (hv : measurable_set v) (h' : s (v \ u) = 0) :
   s (u \ v) + s v = s u :=
 begin
@@ -171,7 +172,7 @@ begin
   by { rw [set.union_comm, set.inter_comm, set.diff_union_inter] }
 end
 
-lemma of_inter_eq_of_symm_diff_eq_zero_positive {s : signed_measure α} {u v w : set α}
+lemma of_inter_eq_of_symm_diff_eq_zero_positive
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
   (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=
@@ -191,7 +192,7 @@ begin
   rw [← of_diff_of_diff_eq_zero (hw.inter hu) (hw.inter hv) hvu, huv, zero_add]
 end
 
-lemma of_inter_eq_of_symm_diff_eq_zero_negative {s : signed_measure α} {u v w : set α}
+lemma of_inter_eq_of_symm_diff_eq_zero_negative
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
   (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=

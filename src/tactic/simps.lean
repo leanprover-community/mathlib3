@@ -102,7 +102,7 @@ used by the `@[simps]` attribute.
   user_attribute unit (list name × list projection_data) :=
 { name := `_simps_str,
   descr := "An attribute specifying the projection of the given structure.",
-  parser := do e ← texpr, eval_pexpr _ e }
+  parser := failed }
 
 /--
   The `@[notation_class]` attribute specifies that this is a notation class,

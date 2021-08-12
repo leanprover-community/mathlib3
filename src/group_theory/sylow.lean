@@ -82,7 +82,7 @@ begin
       exact card_quotient_dvd_card _ },
     rcases (nat.dvd_prime_pow hp.1).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
-    { rw [pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmod.eq_iff_modeq_nat,
+    { rw [pow_one, ← hk, ← nat.modeq_zero_iff_dvd, ← zmod.eq_iff_modeq_nat,
         nat.cast_zero, ← ne.def],
       exact eq.mpr (by simp only [quotient.eq']; congr) hb },
     have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (pow_dvd_pow p) hb'))),
@@ -103,7 +103,7 @@ lemma nonempty_fixed_point_of_prime_not_dvd_card
   rw [← fintype.card_pos_iff, pos_iff_ne_zero],
   assume h,
   have := card_modeq_card_fixed_points α hG,
-  rw [h, nat.modeq.modeq_zero_iff] at this,
+  rw [h, nat.modeq_zero_iff_dvd] at this,
   contradiction
 end
 
@@ -115,9 +115,7 @@ lemma exists_fixed_point_of_prime_dvd_card_of_fixed_point
   (hpα : p ∣ fintype.card α) {a : α} (ha : a ∈ fixed_points G α) :
   ∃ b, b ∈ fixed_points G α ∧ a ≠ b :=
 have hpf : p ∣ fintype.card (fixed_points G α),
-  from nat.modeq.modeq_zero_iff.1 $
-    (card_modeq_card_fixed_points α hG).symm.trans
-    (nat.modeq.modeq_zero_iff.2 hpα),
+  from nat.modeq_zero_iff_dvd.1 ((card_modeq_card_fixed_points α hG).symm.trans hpα.modeq_zero_nat),
 have hα : 1 < fintype.card (fixed_points G α),
   from lt_of_lt_of_le
     hp.out.one_lt
@@ -273,7 +271,7 @@ begin
       card_eq_card_quotient_mul_card_subgroup
         (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H),
       fintype.card_congr this, hH, pow_succ],
-  exact nat.modeq.modeq_mul_right' _ (card_quotient_normalizer_modeq_card_quotient hH)
+  exact nat.modeq_mul_right' _ (card_quotient_normalizer_modeq_card_quotient hH)
 end
 
 /-- If `H` is a `p`-subgroup but not a Sylow `p`-subgroup, then `p` divides the
@@ -298,8 +296,8 @@ nat.dvd_of_mod_eq_zero
 lemma prime_pow_dvd_card_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ (n + 1) ∣ card G) {H : subgroup G} (hH : fintype.card H = p ^ n) :
   p ^ (n + 1) ∣ card (normalizer H) :=
-nat.modeq.modeq_zero_iff.1 ((card_normalizer_modeq_card hH).trans
-  (nat.modeq.modeq_zero_iff.2 hdvd))
+nat.modeq_zero_iff_dvd.1 ((card_normalizer_modeq_card hH).trans
+  (nat.modeq_zero_iff_dvd.2 hdvd))
 
 /-- If `H` is a subgroup of `G` of cardinality `p ^ n`,
   then `H` is contained in a subgroup of cardinality `p ^ (n + 1)`

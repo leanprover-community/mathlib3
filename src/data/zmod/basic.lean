@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
-import data.int.modeq
 import algebra.char_p.basic
 import ring_theory.ideal.operations
 import tactic.fin_cases
@@ -412,26 +411,26 @@ lemma nat_coe_eq_nat_coe_iff (a b c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a ≡ b [MOD c] :=
 begin
   convert zmod.int_coe_eq_int_coe_iff a b c,
-  simp [nat.modeq.modeq_iff_dvd, int.modeq.modeq_iff_dvd],
+  simp [nat.modeq_iff_dvd, int.modeq_iff_dvd],
 end
 
 lemma int_coe_zmod_eq_zero_iff_dvd (a : ℤ) (b : ℕ) : (a : zmod b) = 0 ↔ (b : ℤ) ∣ a :=
 begin
   change (a : zmod b) = ((0 : ℤ) : zmod b) ↔ (b : ℤ) ∣ a,
-  rw [zmod.int_coe_eq_int_coe_iff, int.modeq.modeq_zero_iff],
+  rw [zmod.int_coe_eq_int_coe_iff, int.modeq_zero_iff_dvd],
 end
 
 lemma nat_coe_zmod_eq_zero_iff_dvd (a b : ℕ) : (a : zmod b) = 0 ↔ b ∣ a :=
 begin
   change (a : zmod b) = ((0 : ℕ) : zmod b) ↔ b ∣ a,
-  rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq.modeq_zero_iff],
+  rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq_zero_iff_dvd],
 end
 
 @[push_cast, simp]
 lemma int_cast_mod (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
 begin
   rw zmod.int_coe_eq_int_coe_iff,
-  apply int.modeq.mod_modeq,
+  apply int.mod_modeq,
 end
 
 lemma ker_int_cast_add_hom (n : ℕ) :
@@ -545,7 +544,7 @@ lemma val_coe_unit_coprime {n : ℕ} (u : units (zmod n)) :
 begin
   cases n,
   { rcases int.units_eq_one_or u with rfl|rfl; simp },
-  apply nat.modeq.coprime_of_mul_modeq_one ((u⁻¹ : units (zmod (n+1))) : zmod (n+1)).val,
+  apply nat.coprime_of_mul_modeq_one ((u⁻¹ : units (zmod (n+1))) : zmod (n+1)).val,
   have := units.ext_iff.1 (mul_right_inv u),
   rw [units.coe_one] at this,
   rw [← eq_iff_modeq_nat, nat.cast_one, ← this], clear this,
@@ -599,7 +598,7 @@ let inv_fun : zmod m × zmod n → zmod (m * n) :=
     then if m = 1
       then ring_hom.snd _ _ x
       else ring_hom.fst _ _ x
-    else nat.modeq.chinese_remainder h x.1.val x.2.val in
+    else nat.chinese_remainder h x.1.val x.2.val in
 have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_fun to_fun :=
   if hmn0 : m * n = 0
     then begin
@@ -616,11 +615,11 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
         { intro x,
           dsimp only [dvd_mul_left, dvd_mul_right, zmod.cast_hom_apply, coe_coe, inv_fun, to_fun],
           conv_rhs { rw ← zmod.nat_cast_zmod_val x },
-          rw [if_neg hmn0, zmod.eq_iff_modeq_nat, ← nat.modeq.modeq_and_modeq_iff_modeq_mul h,
+          rw [if_neg hmn0, zmod.eq_iff_modeq_nat, ← nat.modeq_and_modeq_iff_modeq_mul h,
             prod.fst_zmod_cast, prod.snd_zmod_cast],
           refine
-            ⟨(nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.left.trans _,
-            (nat.modeq.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.right.trans _⟩,
+            ⟨(nat.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.left.trans _,
+            (nat.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.right.trans _⟩,
           { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
           { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] } },
         exact ⟨left_inv, fintype.right_inverse_of_left_inverse_of_card_le left_inv (by simp)⟩,
@@ -693,7 +692,7 @@ begin
   have : ((-a).val + a.val) % n = (n - a.val + a.val) % n,
   { rw [←val_add, add_left_neg, nat.sub_add_cancel (le_of_lt a.val_lt), nat.mod_self, val_zero], },
   calc (-a).val = val (-a)    % n : by rw nat.mod_eq_of_lt ((-a).val_lt)
-            ... = (n - val a) % n : nat.modeq.modeq_add_cancel_right rfl this
+            ... = (n - val a) % n : nat.modeq_add_cancel_right rfl this
 end
 
 lemma neg_val {n : ℕ} [fact (0 < n)] (a : zmod n) : (-a).val = if a = 0 then 0 else n - a.val :=
@@ -814,7 +813,7 @@ by { rw [zmod.val_min_abs_def_pos], split_ifs; simp only [add_zero, sub_add_canc
 
 lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p ≠ q) :
   (q : zmod p) ≠ 0 :=
-by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
+by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq_zero_iff_dvd,
   ← hp.1.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
 
 end zmod

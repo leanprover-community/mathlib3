@@ -22,7 +22,7 @@ integers which are a multiple of 3.
 ## Intermediate lemmas
 -/
 
-open nat.modeq
+open nat
 
 lemma two_pow_three_mul_mod_seven (m : ℕ) : 2 ^ (3 * m) ≡ 1 [MOD 7] :=
 begin
@@ -82,7 +82,7 @@ end
 theorem imo1964_q1b (n : ℕ) : ¬ (7 ∣ 2 ^ n + 1) :=
 begin
   let t := n % 3,
-  rw [← modeq_zero_iff, (show n = 3 * (n / 3) + t, from (nat.div_add_mod n 3).symm)],
+  rw [← modeq_zero_iff_dvd, (show n = 3 * (n / 3) + t, from (nat.div_add_mod n 3).symm)],
   have ht : t < 3 := nat.mod_lt _ dec_trivial,
   interval_cases t with hr; rw hr,
   { rw add_zero,

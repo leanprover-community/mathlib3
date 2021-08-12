@@ -659,7 +659,7 @@ by { rw [← det_transpose, det_succ_row _ j],
 
 
 /-- Determinant of 0x0 matrix -/
-@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
+@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R} : det A = 1 :=
 det_is_empty
 
 /-- Determinant of 1x1 matrix -/

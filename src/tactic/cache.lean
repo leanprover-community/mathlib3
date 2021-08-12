@@ -67,9 +67,7 @@ meta def introsI (p : parse ident_*) : tactic unit :=
 intros p >> reset_instance_cache
 
 /-- Used to add typeclasses to the context so that they can
-be used in typeclass inference. The syntax is the same as `have`,
-but the proof-omitted version is not supported. For
-this one must write `have : t, { <proof> }, resetI, <proof>`. -/
+be used in typeclass inference. The syntax is the same as `have`. -/
 meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse (tk ":=" *> texpr)?) :
   tactic unit :=
 do h ← match h with
@@ -136,10 +134,7 @@ by its variant `haveI` described below.
 * `substI`: like `subst`, but can also substitute in type-class arguments
 
 * `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
-  to the context so that they can be used in typeclass inference. The syntax
-  `haveI := <proof>` and `haveI : t := <proof>` is supported, but
-  `haveI : t, from _` and `haveI : t, { <proof> }` are not; in these cases
-  use `have : t, { <proof> }, resetI` directly.
+  to the context so that they can be used in typeclass inference.
 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.

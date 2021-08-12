@@ -333,9 +333,6 @@ coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
 @[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
 coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
 
-instance : is_monoid_hom norm :=
-{ map_one := norm_one, map_mul := norm_mul }
-
 lemma norm_nonneg (hd : d ≤ 0) (n : ℤ√d) : 0 ≤ n.norm :=
 add_nonneg (mul_self_nonneg _)
   (by rw [mul_assoc, neg_mul_eq_neg_mul];
@@ -373,7 +370,7 @@ begin
     rw [norm_def, sub_eq_add_neg, mul_assoc] at h,
     have left := mul_self_nonneg z.re,
     have right := neg_nonneg.mpr (mul_nonpos_of_nonpos_of_nonneg hd.le (mul_self_nonneg z.im)),
-    obtain ⟨ha, hb⟩ := (add_eq_zero_iff_eq_zero_of_nonneg left right).mp h,
+    obtain ⟨ha, hb⟩ := (add_eq_zero_iff' left right).mp h,
     split; apply eq_zero_of_mul_self_eq_zero,
     { exact ha },
     { rw [neg_eq_zero, mul_eq_zero] at hb,

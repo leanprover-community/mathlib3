@@ -97,7 +97,8 @@ begin
     refine ⟨range s, finite_range s, hs⟩ },
 end
 
-/-- Nakayama's Lemma. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2, Stacks 00DV -/
+/-- **Nakayama's Lemma**. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2,
+[Stacks 00DV](https://stacks.math.columbia.edu/tag/00VL) -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
   {M : Type*} [add_comm_group M] [module R M]
   (I : ideal R) (N : submodule R M) (hn : N.fg) (hin : N ≤ I • N) :
@@ -288,7 +289,7 @@ begin
   letI : algebra R S := ring_hom.to_algebra f,
   letI : algebra R A := ring_hom.to_algebra (g.comp f),
   letI : algebra S A := ring_hom.to_algebra g,
-  letI : is_scalar_tower R S A := restrict_scalars.is_scalar_tower R S A,
+  letI : is_scalar_tower R S A := _root_.restrict_scalars.is_scalar_tower R S A,
   let f₁ := algebra.linear_map R S,
   let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
   exact fg_ker_comp f₁ g₁ hf (fg_restrict_scalars g.ker hg hsur) hsur
@@ -337,6 +338,10 @@ variables [ring R] [add_comm_group M] [add_comm_group P]
 variables [module R M] [module R P]
 open is_noetherian
 include R
+
+/-- An R-module is Noetherian iff all its submodules are finitely-generated. -/
+lemma is_noetherian_def : is_noetherian R M ↔ ∀ (s : submodule R M), s.fg :=
+⟨λ h, h.noetherian, is_noetherian.mk⟩
 
 theorem is_noetherian_submodule {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, s ≤ N → s.fg :=
@@ -389,22 +394,17 @@ instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
   [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=
 begin
   haveI := classical.dec_eq ι,
-  suffices : ∀ s : finset ι, is_noetherian R (Π i : (↑s : set ι), M i),
-  { letI := this finset.univ,
-    refine @is_noetherian_of_linear_equiv _ _ _ _ _ _ _ _
-      ⟨_, _, _, _, _, _⟩ (this finset.univ),
-    { exact λ f i, f ⟨i, finset.mem_univ _⟩ },
-    { intros, ext, refl },
-    { intros, ext, refl },
-    { exact λ f i, f i.1 },
-    { intro, ext ⟨⟩, refl },
-    { intro, ext i, refl } },
+  suffices on_finset : ∀ s : finset ι, is_noetherian R (Π i : s, M i),
+  { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,
+    letI : is_noetherian R (Π i : finset.univ, M (coe_e i)) := on_finset finset.univ,
+    exact is_noetherian_of_linear_equiv (linear_equiv.Pi_congr_left R M coe_e), },
   intro s,
   induction s using finset.induction with a s has ih,
   { split, intro s, convert submodule.fg_bot, apply eq_bot_iff.2,
     intros x hx, refine (submodule.mem_bot R).2 _, ext i, cases i.2 },
   refine @is_noetherian_of_linear_equiv _ _ _ _ _ _ _ _
-    ⟨_, _, _, _, _, _⟩ (@is_noetherian_prod _ (M a) _ _ _ _ _ _ _ ih),
+    _ (@is_noetherian_prod _ (M a) _ _ _ _ _ _ _ ih),
+  fconstructor,
   { exact λ f i, or.by_cases (finset.mem_insert.1 i.2)
       (λ h : i.1 = a, show M i.1, from (eq.rec_on h.symm f.1))
       (λ h : i.1 ∈ s, show M i.1, from f.2 ⟨i.1, h⟩) },
@@ -427,9 +427,9 @@ begin
       rw [dif_neg this, dif_pos his] } },
   { intro f, ext ⟨i, hi⟩,
     rcases finset.mem_insert.1 hi with rfl | h,
-    { simp only [or.by_cases, dif_pos], refl },
+    { simp only [or.by_cases, dif_pos], },
     { have : ¬i = a, { rintro rfl, exact has h },
-      simp only [or.by_cases, dif_neg this, dif_pos h], refl } }
+      simp only [or.by_cases, dif_neg this, dif_pos h], } }
 end
 
 end
@@ -582,6 +582,11 @@ class is_noetherian_ring (R) [ring R] extends is_noetherian R R : Prop
 theorem is_noetherian_ring_iff {R} [ring R] : is_noetherian_ring R ↔ is_noetherian R R :=
 ⟨λ h, h.1, @is_noetherian_ring.mk _ _⟩
 
+/-- A commutative ring is Noetherian if and only if all its ideals are finitely-generated. -/
+lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [comm_ring R] :
+  is_noetherian_ring R ↔ ∀ I : ideal R, I.fg :=
+is_noetherian_ring_iff.trans is_noetherian_def
+
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M :=
@@ -655,16 +660,6 @@ theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
 begin
   rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H ⊢,
   exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).dual H,
-end
-
-section
-local attribute [instance] subset.comm_ring
-
-instance is_noetherian_ring_set_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)
-  [is_noetherian_ring R] : is_noetherian_ring (set.range f) :=
-is_noetherian_ring_of_surjective R (set.range f) (f.cod_restrict (set.range f) set.mem_range_self)
-  set.surjective_onto_range
-
 end
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)

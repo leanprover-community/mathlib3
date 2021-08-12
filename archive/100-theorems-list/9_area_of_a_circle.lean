@@ -3,7 +3,7 @@ Copyright (c) 2021 James Arthur, Benjamin Davidson, Andrew Souther. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
-import measure_theory.interval_integral
+import measure_theory.integral.interval_integral
 import analysis.special_functions.sqrt
 
 /-!
@@ -71,7 +71,7 @@ end
 theorem measurable_set_disc : measurable_set (disc r) :=
 by apply measurable_set_lt; apply continuous.measurable; continuity
 
-/-- The area of a disc with radius `r` is `π * r ^ 2`. -/
+/-- **Area of a Circle**: The area of a disc with radius `r` is `π * r ^ 2`. -/
 theorem area_disc : volume (disc r) = nnreal.pi * r ^ 2 :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),

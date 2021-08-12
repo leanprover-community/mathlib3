@@ -798,6 +798,15 @@ begin
     metric.mem_closed_ball, dist_zero_right]
 end
 
+theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} (hc : c ≠ 0) :
+  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
+begin
+  rw is_o_const_iff hc,
+  refine ⟨λ h, tendsto_nhds_unique tendsto_const_nhds h, _⟩,
+  rintros rfl,
+  exact tendsto_const_nhds,
+end
+
 lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
   is_o (λ (x : E'), x) (λ x, c) (𝓝 0) :=
 (is_o_const_iff hc).mpr (continuous_id.tendsto 0)
@@ -1395,14 +1404,14 @@ end asymptotics
 
 open asymptotics
 
-lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E} (g : ι → ℝ)
+lemma summable_of_is_O {ι E} [normed_group E] [complete_space E] {f : ι → E} {g : ι → ℝ}
   (hg : summable g) (h : is_O f g cofinite) : summable f :=
 let ⟨C, hC⟩ := h.is_O_with in
 summable_of_norm_bounded_eventually (λ x, C * ∥g x∥) (hg.abs.mul_left _) hC.bound
 
-lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} (g : ℕ → ℝ)
+lemma summable_of_is_O_nat {E} [normed_group E] [complete_space E] {f : ℕ → E} {g : ℕ → ℝ}
   (hg : summable g) (h : is_O f g at_top) : summable f :=
-summable_of_is_O g hg $ nat.cofinite_eq_at_top.symm ▸ h
+summable_of_is_O hg $ nat.cofinite_eq_at_top.symm ▸ h
 
 namespace local_homeomorph
 

@@ -70,10 +70,10 @@ lemma unique_uniformity_of_compact_t2 {α : Type*} [t : topological_space α] [c
 begin
   apply uniform_space_eq,
   change uniformity _ = uniformity _,
-  haveI : @compact_space α u.to_topological_space := by rw h ; assumption,
-  haveI : @compact_space α u'.to_topological_space := by rw h' ; assumption,
-  haveI : @separated_space α u := by rwa [separated_iff_t2, h],
-  haveI : @separated_space α u' :=  by rwa [separated_iff_t2, h'],
+  haveI : @compact_space α u.to_topological_space, { rw h ; assumption },
+  haveI : @compact_space α u'.to_topological_space, { rw h' ; assumption },
+  haveI : @separated_space α u, { rwa [separated_iff_t2, h] },
+  haveI : @separated_space α u', { rwa [separated_iff_t2, h'] },
   rw [compact_space_uniformity, compact_space_uniformity, h, h']
 end
 

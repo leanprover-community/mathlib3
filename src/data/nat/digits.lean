@@ -420,7 +420,7 @@ begin
 end
 
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
-monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
+monotone_nat_of_le_succ (digits_len_le_digits_len_succ b) h
 
 lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 : l.last hl ≠ 0):
   (b + 2) ^ l.length ≤ (b + 2) * of_digits (b+2) l :=
@@ -556,6 +556,7 @@ begin
   rw [nat.dvd_iff_mod_eq_zero, nat.dvd_iff_mod_eq_zero, of_digits_mod, h],
 end
 
+/-- **Divisibility by 3 Rule** -/
 lemma three_dvd_iff (n : ℕ) : 3 ∣ n ↔ 3 ∣ (digits 10 n).sum :=
 dvd_iff_dvd_digits_sum 3 10 (by norm_num) n
 

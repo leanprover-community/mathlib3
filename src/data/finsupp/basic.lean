@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import data.finset.preimage
 import algebra.indicator_function
+import algebra.group_action_hom
 
 /-!
 # Type of functions with finite support
@@ -414,6 +415,7 @@ variables [has_zero M] [has_zero N] [has_zero P]
 This preserves the structure on `f`, and exists in various bundled forms for when `f` is itself
 bundled:
 
+* `finsupp.map_range.equiv`
 * `finsupp.map_range.zero_hom`
 * `finsupp.map_range.add_monoid_hom`
 * `finsupp.map_range.add_equiv`
@@ -698,6 +700,11 @@ lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
     (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 1) :
   (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
 finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
+
+@[to_additive]
+lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g : α → M → N)
+  (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
+S.prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
 
 end sum_prod
 
@@ -1172,13 +1179,50 @@ end
 
 lemma multiset_map_sum [has_zero M] {f : α →₀ M} {m : β → γ} {h : α → M → multiset β} :
   multiset.map m (f.sum h) = f.sum (λa b, (h a b).map m) :=
-(f.support.sum_hom _).symm
+(multiset.map_add_monoid_hom m).map_sum _ f.support
 
 lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : α → M → multiset N} :
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
-(f.support.sum_hom multiset.sum).symm
+(multiset.sum_add_monoid_hom : multiset N →+ N).map_sum _ f.support
 
 section map_range
+
+section equiv
+variables [has_zero M] [has_zero N] [has_zero P]
+
+/-- `finsupp.map_range` as an equiv. -/
+@[simps apply]
+def map_range.equiv (f : M ≃ N) (hf : f 0 = 0) (hf' : f.symm 0 = 0) : (α →₀ M) ≃ (α →₀ N) :=
+{ to_fun := (map_range f hf : (α →₀ M) → (α →₀ N)),
+  inv_fun := (map_range f.symm hf' : (α →₀ N) → (α →₀ M)),
+  left_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw equiv.symm_comp_self,
+    { exact map_range_id _ },
+    { refl },
+  end,
+  right_inv := λ x, begin
+    rw ←map_range_comp _ _ _ _; simp_rw equiv.self_comp_symm,
+    { exact map_range_id _ },
+    { refl },
+  end }
+
+@[simp]
+lemma map_range.equiv_refl :
+  map_range.equiv (equiv.refl M) rfl rfl = equiv.refl (α →₀ M) :=
+equiv.ext map_range_id
+
+lemma map_range.equiv_trans
+  (f : M ≃ N) (hf : f 0 = 0) (hf') (f₂ : N ≃ P) (hf₂ : f₂ 0 = 0) (hf₂') :
+  (map_range.equiv (f.trans f₂) (by rw [equiv.trans_apply, hf, hf₂])
+    (by rw [equiv.symm_trans_apply, hf₂', hf']) : (α →₀ _) ≃ _) =
+    (map_range.equiv f hf hf').trans (map_range.equiv f₂ hf₂ hf₂') :=
+equiv.ext $ map_range_comp _ _ _ _ _
+
+lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
+  ((map_range.equiv f hf hf').symm : (α →₀ _) ≃ _) = map_range.equiv f.symm hf' hf :=
+equiv.ext $ λ x, rfl
+
+end equiv
 
 section zero_hom
 variables [has_zero M] [has_zero N] [has_zero P]
@@ -1223,6 +1267,12 @@ lemma map_range.add_monoid_hom_comp (f : N →+ P) (f₂ : M →+ N) :
     (map_range.add_monoid_hom f).comp (map_range.add_monoid_hom f₂) :=
 add_monoid_hom.ext $ map_range_comp _ _ _ _ _
 
+@[simp]
+lemma map_range.add_monoid_hom_to_zero_hom (f : M →+ N) :
+  (map_range.add_monoid_hom f).to_zero_hom =
+    (map_range.zero_hom f.to_zero_hom : zero_hom (α →₀ _) _) :=
+zero_hom.ext $ λ _, rfl
+
 lemma map_range_multiset_sum (f : M →+ N) (m : multiset (α →₀ M)) :
   map_range f f.map_zero m.sum = (m.map $ λx, map_range f f.map_zero x).sum :=
 (map_range.add_monoid_hom f : (α →₀ _) →+ _).map_multiset_sum _
@@ -1262,6 +1312,18 @@ add_equiv.ext $ map_range_comp _ _ _ _ _
 lemma map_range.add_equiv_symm (f : M ≃+ N) :
   ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
 add_equiv.ext $ λ x, rfl
+
+@[simp]
+lemma map_range.add_equiv_to_add_monoid_hom (f : M ≃+ N) :
+  (map_range.add_equiv f : (α →₀ _) ≃+ _).to_add_monoid_hom =
+    (map_range.add_monoid_hom f.to_add_monoid_hom : (α →₀ _) →+ _) :=
+add_monoid_hom.ext $ λ _, rfl
+
+@[simp]
+lemma map_range.add_equiv_to_equiv (f : M ≃+ N) :
+  (map_range.add_equiv f).to_equiv =
+    (map_range.equiv f.to_equiv f.map_zero f.symm.map_zero : (α →₀ _) ≃ _) :=
+equiv.ext $ λ _, rfl
 
 end add_monoid_hom
 
@@ -1656,9 +1718,11 @@ variables [add_zero_class M] {p : α → Prop} {v v' : α →₀ M}
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ _, rfl
 
-instance subtype_domain.is_add_monoid_hom :
-  is_add_monoid_hom (subtype_domain p : (α →₀ M) → subtype p →₀ M) :=
-{ map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
+/-- `subtype_domain` but as an `add_monoid_hom`. -/
+def subtype_domain_add_monoid_hom : (α →₀ M) →+ subtype p →₀ M :=
+{ to_fun := subtype_domain p,
+  map_zero' := subtype_domain_zero,
+  map_add' := λ _ _, subtype_domain_add }
 
 /-- `finsupp.filter` as an `add_monoid_hom`. -/
 def filter_add_hom (p : α → Prop) : (α →₀ M) →+ (α →₀ M) :=
@@ -1676,7 +1740,7 @@ variables [add_comm_monoid M] {p : α → Prop}
 
 lemma subtype_domain_sum {s : finset ι} {h : ι → α →₀ M} :
   (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
-eq.symm (s.sum_hom _)
+(subtype_domain_add_monoid_hom : _ →+ subtype p →₀ M).map_sum _ s
 
 lemma subtype_domain_finsupp_sum [has_zero N] {s : β →₀ N} {h : β → N → α →₀ M} :
   (s.sum h).subtype_domain p = s.sum (λc d, (h c d).subtype_domain p) :=
@@ -1765,8 +1829,8 @@ begin
   { rw [to_multiset_zero, multiset.map_zero, map_domain_zero, to_multiset_zero] },
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.map_add, ih, map_domain_add, map_domain_single,
-      to_multiset_single, to_multiset_add, to_multiset_single,
-      is_add_monoid_hom.map_nsmul (multiset.map g)],
+        to_multiset_single, to_multiset_add, to_multiset_single,
+        ← multiset.coe_map_add_monoid_hom, (multiset.map_add_monoid_hom g).map_nsmul],
     refl }
 end
 
@@ -1801,7 +1865,7 @@ end
 @[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
 calc f.to_multiset.count a = f.sum (λx n, (n • {x} : multiset α).count a) :
-    (f.support.sum_hom $ multiset.count a).symm
+  (multiset.count_add_monoid_hom a).map_sum _ f.support
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_nsmul]
   ... = f.sum (λx n, n * (x ::ₘ 0 : multiset α).count a) : rfl
   ... = f a * (a ::ₘ 0 : multiset α).count a : sum_eq_single _
@@ -2074,6 +2138,11 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
 lemma smul_apply {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
 
+instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_scalar R M] :
+  has_faithful_scalar R (α →₀ M) :=
+{ eq_of_smul_eq_smul := λ r₁ r₂ h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ m : M,
+    by simpa using congr_fun (h (single a m)) a }
+
 variables (α M)
 
 instance [monoid R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action R (α →₀ M) :=
@@ -2171,6 +2240,33 @@ instance [semiring R] [add_comm_monoid M] [module R M] {ι : Type*}
   [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=
 ⟨λ c f h, or_iff_not_imp_left.mpr (λ hc, finsupp.ext
   (λ i, (smul_eq_zero.mp (finsupp.ext_iff.mp h i)).resolve_left hc))⟩
+
+section distrib_mul_action_hom
+
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid N] [distrib_mul_action R M] [distrib_mul_action R N]
+
+/-- `finsupp.single` as a `distrib_mul_action_hom`.
+
+See also `finsupp.lsingle` for the version as a linear map. -/
+def distrib_mul_action_hom.single (a : α) : M →+[R] (α →₀ M) :=
+{ map_smul' :=
+    λ k m, by simp only [add_monoid_hom.to_fun_eq_coe, single_add_hom_apply, smul_single],
+  .. single_add_hom a }
+
+lemma distrib_mul_action_hom_ext {f g : (α →₀ M) →+[R] N}
+  (h : ∀ (a : α) (m : M), f (single a m) = g (single a m)) :
+  f = g :=
+distrib_mul_action_hom.to_add_monoid_hom_injective $ add_hom_ext h
+
+/-- See note [partially-applied ext lemmas]. -/
+@[ext] lemma distrib_mul_action_hom_ext' {f g : (α →₀ M) →+[R] N}
+  (h : ∀ (a : α), f.comp (distrib_mul_action_hom.single a) =
+                  g.comp (distrib_mul_action_hom.single a)) :
+  f = g :=
+distrib_mul_action_hom_ext $ λ a, distrib_mul_action_hom.congr_fun (h a)
+
+end distrib_mul_action_hom
 
 section
 variables [has_zero R]

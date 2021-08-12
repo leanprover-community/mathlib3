@@ -50,7 +50,7 @@ open_locale classical topological_space big_operators ennreal measure_theory nnr
 
 open set filter topological_space ennreal emetric measure_theory
 
-variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
+variables {α β γ δ : Type*} {m : measurable_space α} {μ ν : measure α}
 variables [normed_group β]
 variables [normed_group γ]
 
@@ -92,7 +92,7 @@ by simp only [pi.neg_apply, nnnorm_neg]
 
 /-- `has_finite_integral f μ` means that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
   `has_finite_integral f` means `has_finite_integral f volume`. -/
-def has_finite_integral (f : α → β) (μ : measure α . volume_tac) : Prop :=
+def has_finite_integral {m : measurable_space α} (f : α → β) (μ : measure α . volume_tac) : Prop :=
 ∫⁻ a, nnnorm (f a) ∂μ < ∞
 
 lemma has_finite_integral_iff_norm (f : α → β) :
@@ -196,7 +196,8 @@ begin
   exact mul_lt_top hc h
 end
 
-@[simp] lemma has_finite_integral_zero_measure (f : α → β) : has_finite_integral f 0 :=
+@[simp] lemma has_finite_integral_zero_measure {m : measurable_space α} (f : α → β) :
+  has_finite_integral f (0 : measure α) :=
 by simp only [has_finite_integral, lintegral_zero_measure, with_top.zero_lt_top]
 
 variables (α β μ)
@@ -374,7 +375,7 @@ variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 
 /-- `integrable f μ` means that `f` is measurable and that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
   `integrable f` means `integrable f volume`. -/
-def integrable (f : α → β) (μ : measure α . volume_tac) : Prop :=
+def integrable {α} {m : measurable_space α} (f : α → β) (μ : measure α . volume_tac) : Prop :=
 ae_measurable f μ ∧ has_finite_integral f μ
 
 lemma integrable.ae_measurable {f : α → β} (hf : integrable f μ) : ae_measurable f μ := hf.1
@@ -598,40 +599,38 @@ end normed_space_over_complete_field
 
 section trim
 
-variables {H α' : Type*} [normed_group H] [measurable_space H]
-  {m m0 : measurable_space α'} {μ' : measure α'}
+variables {H : Type*} [normed_group H] [measurable_space H] [opens_measurable_space H]
+  {m0 : measurable_space α} {μ' : measure α} {f : α → H}
 
-lemma integrable.trim (hm : m ≤ m0) [opens_measurable_space H] {f : α' → H}
-  (hf_int : integrable f μ') (hf : @measurable _ _ m _ f) :
-  @integrable _ _ m _ _ f (μ'.trim hm) :=
+lemma integrable.trim (hm : m ≤ m0) (hf_int : integrable f μ') (hf : @measurable _ _ m _ f) :
+  integrable f (μ'.trim hm) :=
 begin
-  refine ⟨@measurable.ae_measurable α' _ m _ f (μ'.trim hm) hf, _⟩,
+  refine ⟨measurable.ae_measurable hf, _⟩,
   rw [has_finite_integral, lintegral_trim hm _],
   { exact hf_int.2, },
-  { exact @measurable.coe_nnreal_ennreal α' m _ (@measurable.nnnorm _ α' _ _ _ m _ hf), },
+  { exact @measurable.coe_nnreal_ennreal α m _ (@measurable.nnnorm _ α _ _ _ m _ hf), },
 end
 
-lemma integrable_of_integrable_trim (hm : m ≤ m0) [opens_measurable_space H]
-  {f : α' → H} (hf_int : @integrable α' H m _ _ f (μ'.trim hm)) :
+lemma integrable_of_integrable_trim (hm : m ≤ m0) (hf_int : integrable f (μ'.trim hm)) :
   integrable f μ' :=
 begin
   obtain ⟨hf_meas_ae, hf⟩ := hf_int,
   refine ⟨ae_measurable_of_ae_measurable_trim hm hf_meas_ae, _⟩,
   rw has_finite_integral at hf ⊢,
   rwa lintegral_trim_ae hm _ at hf,
-  exact @ae_measurable.coe_nnreal_ennreal α' m _ _
-    (@ae_measurable.nnnorm H α' _ _ _ m _ _ hf_meas_ae),
+  exact @ae_measurable.coe_nnreal_ennreal α m _ _
+    (@ae_measurable.nnnorm H α _ _ _ m _ _ hf_meas_ae),
 end
 
 end trim
 
 section sigma_finite
 
-variables {α' E : Type*} {m m0 : measurable_space α'} [normed_group E] [measurable_space E]
+variables {E : Type*} {m0 : measurable_space α} [normed_group E] [measurable_space E]
   [opens_measurable_space E]
 
-lemma integrable_of_forall_fin_meas_le' {μ : measure α'} (hm : m ≤ m0)
-  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) (hC : C < ∞) {f : α' → E} (hf_meas : ae_measurable f μ)
+lemma integrable_of_forall_fin_meas_le' {μ : measure α} (hm : m ≤ m0)
+  [sigma_finite (μ.trim hm)] (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_measurable f μ)
   (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
   integrable f μ :=
 ⟨hf_meas,
@@ -835,8 +834,8 @@ end measure_theory
 
 open measure_theory
 
-lemma integrable_zero_measure [measurable_space β] {f : α → β} :
-  integrable f 0 :=
+lemma integrable_zero_measure {m : measurable_space α} [measurable_space β] {f : α → β} :
+  integrable f (0 : measure α) :=
 begin
   apply (integrable_zero _ _ _).congr,
   change (0 : measure α) {x | 0 ≠ f x} = 0,

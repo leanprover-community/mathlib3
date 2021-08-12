@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.monomial
 import data.nat.with_bot
 import data.polynomial.induction
+import data.polynomial.monomial
 
 /-!
 # Theory of univariate polynomials
@@ -655,6 +655,18 @@ begin
   rw [nat_degree_mul' h, coeff_mul_degree_add_degree],
   refl
 end
+
+lemma monomial_nat_degree_leading_coeff_eq_self (h : p.support.card ≤ 1) :
+  monomial p.nat_degree p.leading_coeff = p :=
+begin
+  rcases card_support_le_one_iff_monomial.1 h with ⟨n, a, rfl⟩,
+  by_cases ha : a = 0;
+  simp [ha]
+end
+
+lemma C_mul_X_pow_eq_self (h : p.support.card ≤ 1) :
+  C p.leading_coeff * X^p.nat_degree = p :=
+by rw [C_mul_X_pow_eq_monomial, monomial_nat_degree_leading_coeff_eq_self h]
 
 lemma leading_coeff_pow' : leading_coeff p ^ n ≠ 0 →
   leading_coeff (p ^ n) = leading_coeff p ^ n :=

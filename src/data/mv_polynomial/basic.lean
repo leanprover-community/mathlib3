@@ -104,6 +104,9 @@ instance [comm_semiring R] : inhabited (mv_polynomial σ R) := ⟨0⟩
 instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] :
   distrib_mul_action R (mv_polynomial σ S₁) :=
 add_monoid_algebra.distrib_mul_action
+instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithful_scalar R S₁] :
+  has_faithful_scalar R (mv_polynomial σ S₁) :=
+add_monoid_algebra.has_faithful_scalar
 instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
 add_monoid_algebra.module
 instance [monoid R] [monoid S₁] [comm_semiring S₂]

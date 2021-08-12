@@ -13,18 +13,18 @@ import geometry.manifold.instances.real
 In this file we define `smooth_bump_function I c` to be a bundled smooth "bump" function centered at
 `c`. It is a structure that consists of two real numbers `0 < r < R` with small enough `R`. We
 define a coercion to function for this type, and for `f : smooth_bump_function I c`, the function
-`⇑f` written in the extended chart at `f.c` has the following properties:
+`⇑f` written in the extended chart at `c` has the following properties:
 
-* `f x = 1` in the closed euclidean ball of radius `f.r` centered at `f.c`;
-* `f x = 0` outside of the euclidean ball of radius `f.R` centered at `f.c`;
+* `f x = 1` in the closed euclidean ball of radius `f.r` centered at `c`;
+* `f x = 0` outside of the euclidean ball of radius `f.R` centered at `c`;
 * `0 ≤ f x ≤ 1` for all `x`.
 
-The actual statements involve (pre)images under `ext_chart_at I f.c` and are given as lemmas in the
+The actual statements involve (pre)images under `ext_chart_at I f` and are given as lemmas in the
 `smooth_bump_function` namespace.
 
 ## Tags
 
-manifold, smooth bump function, partition of unity, Whitney theorem
+manifold, smooth bump function
 -/
 
 universes uE uF uH uM
@@ -54,7 +54,7 @@ In this section we define a structure for a bundled smooth bump function and pro
 
 The structure contains data required to construct a function with these properties. The function is
 available as `⇑f` or `f x`. Formal statements of the properties listed above involve some
-(pre)images under `ext_chart_at I f.c` and are given as lemmas in the `msmooth_bump_function`
+(pre)images under `ext_chart_at I f.c` and are given as lemmas in the `smooth_bump_function`
 namespace. -/
 structure smooth_bump_function (c : M) extends times_cont_diff_bump (ext_chart_at I c c) :=
 (closed_ball_subset :
@@ -306,6 +306,8 @@ begin
 end
 
 protected lemma smooth_at {x} : smooth_at I 𝓘(ℝ) f x := f.smooth.smooth_at
+
+protected lemma continuous : continuous f := f.smooth.continuous
 
 /-- If `f : smooth_bump_function I c` is a smooth bump function and `g : M → G` is a function smooth
 on the source of the chart at `c`, then `f • g` is smooth on the whole manifold. -/

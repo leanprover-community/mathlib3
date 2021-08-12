@@ -240,8 +240,13 @@ by rwa [← one_div a, le_div_iff' ha, ← div_eq_mul_inv, div_le_iff (ha.trans_
 lemma inv_le_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by rw [← one_div, div_le_iff ha, ← div_eq_inv_mul, le_div_iff hb, one_mul]
 
+/-- In a linear ordered field, for positive `a` and `b` we have `a⁻¹ ≤ b ↔ b⁻¹ ≤ a`.
+See also `inv_le_of_inv_le` for a one-sided implication with one fewer assumption. -/
 lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
 by rw [← inv_le_inv hb (inv_pos.2 ha), inv_inv']
+
+lemma inv_le_of_inv_le (ha : 0 < a) (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
+(inv_le ha ((inv_pos.2 ha).trans_le h)).1 h
 
 lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
 by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv']
@@ -249,8 +254,13 @@ by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv']
 lemma inv_lt_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b⁻¹ ↔ b < a :=
 lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
 
+/-- In a linear ordered field, for positive `a` and `b` we have `a⁻¹ < b ↔ b⁻¹ < a`.
+See also `inv_lt_of_inv_lt` for a one-sided implication with one fewer assumption. -/
 lemma inv_lt (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b ↔ b⁻¹ < a :=
 lt_iff_lt_of_le_iff_le (le_inv hb ha)
+
+lemma inv_lt_of_inv_lt (ha : 0 < a) (h : a⁻¹ < b) : b⁻¹ < a :=
+(inv_lt ha ((inv_pos.2 ha).trans h)).1 h
 
 lemma lt_inv (ha : 0 < a) (hb : 0 < b) : a < b⁻¹ ↔ b < a⁻¹ :=
 lt_iff_lt_of_le_iff_le (inv_le hb ha)

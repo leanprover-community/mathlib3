@@ -197,7 +197,7 @@ protected lemma countable.prod {s : set α} {t : set β} (hs : countable s) (ht 
 begin
   haveI : encodable s := hs.to_encodable,
   haveI : encodable t := ht.to_encodable,
-  haveI : encodable (s × t) := by apply_instance,
+  haveI : encodable (s × t), { apply_instance },
   have : range (prod.map coe coe : s × t → α × β) = set.prod s t,
     by rw [range_prod_map, subtype.range_coe, subtype.range_coe],
   rw ← this,

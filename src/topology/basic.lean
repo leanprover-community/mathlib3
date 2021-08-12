@@ -429,6 +429,17 @@ hs.nonempty_iff.2 h
 lemma dense.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
 λ x, closure_mono h (hd x)
 
+/-- Complement to a singleton is dense if and only if the singleton is not an open set. -/
+lemma dense_compl_singleton {x : α} : dense ({x}ᶜ : set α) ↔ ¬is_open ({x} : set α) :=
+begin
+  fsplit,
+  { intros hd ho,
+    exact (hd.inter_open_nonempty _ ho (singleton_nonempty _)).ne_empty (inter_compl_self _) },
+  { refine λ ho, dense_iff_inter_open.2 (λ U hU hne, inter_compl_nonempty_iff.2 $ λ hUx, _),
+    obtain rfl : U = {x}, from eq_singleton_iff_nonempty_unique_mem.2 ⟨hne, hUx⟩,
+    exact ho hU }
+end
+
 /-!
 ### Frontier of a set
 -/

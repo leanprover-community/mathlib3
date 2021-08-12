@@ -5,7 +5,7 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 -/
 import analysis.normed_space.indicator_function
 import analysis.normed_space.normed_group_hom
-import measure_theory.ess_sup
+import measure_theory.function.ess_sup
 import measure_theory.function.ae_eq_fun
 import measure_theory.integral.mean_inequalities
 import topology.continuous_function.compact

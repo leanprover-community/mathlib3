@@ -5,7 +5,7 @@ Authors: Heather Macbeth
 -/
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
-import measure_theory.measure.haar_measure
+import measure_theory.measure.haar
 import analysis.complex.circle
 import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass

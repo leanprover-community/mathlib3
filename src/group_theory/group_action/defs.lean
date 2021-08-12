@@ -148,6 +148,8 @@ class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_s
   (x • y) • z = x • y • z :=
 is_scalar_tower.smul_assoc x y z
 
+instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
+
 section
 variables [monoid M] [mul_action M α]
 

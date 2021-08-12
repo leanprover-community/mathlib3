@@ -67,7 +67,7 @@ liminf_le_liminf hfg
 
 lemma ess_sup_const (c : β) (hμ : μ ≠ 0) : ess_sup (λ x : α, c) μ = c :=
 begin
-  haveI hμ_ne_bot : μ.ae.ne_bot := by rwa [ne_bot_iff, ne.def, ae_eq_bot],
+  haveI hμ_ne_bot : μ.ae.ne_bot, { rwa [ne_bot_iff, ne.def, ae_eq_bot] },
   exact limsup_const c,
 end
 

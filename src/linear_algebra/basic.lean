@@ -1919,6 +1919,14 @@ def mkq : M →ₗ[R] p.quotient :=
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
 
+/-- Two `linear_map`s from a quotient module are equal if their compositions with
+`submodule.mkq` are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma linear_map_qext ⦃f g : p.quotient →ₗ[R] M₂⦄ (h : f.comp p.mkq = g.comp p.mkq) : f = g :=
+linear_map.ext $ λ x, quotient.induction_on' x $ (linear_map.congr_fun h : _)
+
 /-- The map from the quotient of `M` by a submodule `p` to `M₂` induced by a linear map `f : M → M₂`
 vanishing on `p`, as a linear map. -/
 def liftq (f : M →ₗ[R] M₂) (h : p ≤ f.ker) : p.quotient →ₗ[R] M₂ :=

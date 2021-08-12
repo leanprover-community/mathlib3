@@ -11,7 +11,6 @@ the definition of conjugation as a homomorphism into the automorphism group.
 
 ## Main definitions
 A type alias `conj G` is introduced for a group `G`. The group `conj G` acts on `G` by conjugation.
-
 -/
 
 variables (G : Type*)
@@ -25,6 +24,7 @@ open mul_action subgroup
 variable {G}
 
 instance : Π [group G], group (conj G) := id
+instance : Π [fintype G], fintype (conj G) := id
 
 variable [group G]
 
@@ -53,8 +53,6 @@ instance : mul_action (conj G) G :=
   mul_smul := by simp [mul_assoc] }
 
 lemma smul_def (g : conj G) (h : G) : g • h = of_conj g * h * (of_conj g)⁻¹ := rfl
-
-instance : Π [fintype G], fintype (conj G) := id
 
 @[simp] lemma card [fintype G] : fintype.card (conj G) = fintype.card G := rfl
 

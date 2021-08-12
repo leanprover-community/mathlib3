@@ -31,20 +31,19 @@ open_locale classical topological_space
 section basic
 
 /-- The Alexandroff extension of an arbitrary topological space `X` -/
-@[nolint unused_arguments]
-def alexandroff (X : Type*) [topological_space X] := option X
+def alexandroff (X : Type*) := option X
 
-variables {X : Type*} [topological_space X]
+variables {X : Type*}
 
 /-- The embedding of `X` to its Alexandroff extension -/
 def of : X → alexandroff X := some
 
 /-- The range of the embedding -/
-def range_of (X : Type*) [topological_space X] : set (alexandroff X) := range (@of X _)
+def range_of (X : Type*) : set (alexandroff X) := range (@of X)
 
 lemma of_apply {x : X} : of x = some x := rfl
 
-lemma of_injective : function.injective (@of X _) :=
+lemma of_injective : function.injective (@of X) :=
 option.some_injective X
 
 /-- The point at infinity -/
@@ -55,7 +54,7 @@ namespace alexandroff
 
 instance : has_coe_t X (alexandroff X) := ⟨of⟩
 
-instance : inhabited(alexandroff X) := ⟨∞⟩
+instance : inhabited (alexandroff X) := ⟨∞⟩
 
 @[norm_cast]
 lemma coe_eq_coe {x y : X} : (x : alexandroff X) = y ↔ x = y :=
@@ -168,7 +167,7 @@ section topological_prop
 
 variables {X : Type*} [topological_space X]
 
-@[continuity] lemma continuous_of : continuous (@of X _) :=
+@[continuity] lemma continuous_of : continuous (@of X) :=
 continuous_def.mpr (λ s hs, is_open_of_is_open hs)
 
 /-- An open set in `alexandroff X` constructed from a closed compact set in `X` -/
@@ -182,13 +181,13 @@ lemma infty_mem_opens_of_compl {s : set X} (h : is_compact s ∧ is_closed s) :
 by { simp only [opens_of_compl, topological_space.opens.coe_mk],
      exact mem_compl infty_not_mem_image_of }
 
-lemma is_open_map_of : is_open_map (@of X _) :=
+lemma is_open_map_of : is_open_map (@of X) :=
 λ s hs, begin
   rw [← preimage_image_eq s of_injective] at hs,
   rwa is_open_iff_of_not_mem infty_not_mem_image_of
 end
 
-lemma is_open_range_of : is_open (@range_of X _) :=
+lemma is_open_range_of : is_open (@range_of X) :=
 is_open_map_of.is_open_range
 
 instance : compact_space (alexandroff X) :=
@@ -221,7 +220,7 @@ instance : compact_space (alexandroff X) :=
       simpa [hy] using hyi }
   end }
 
-lemma dense_range_of (h : ¬ is_compact (univ : set X)) : dense (@range_of X _) :=
+lemma dense_range_of (h : ¬ is_compact (univ : set X)) : dense (@range_of X) :=
 begin
   refine dense_iff_inter_open.mpr (λ s hs Hs, _),
   by_cases H : ∞ ∈ s,

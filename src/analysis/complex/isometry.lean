@@ -49,6 +49,32 @@ def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 
 @[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
 
+lemma reflection_rotation (a : circle) : rotation a ≠ conj_lie :=
+begin
+  intros h,
+  by_cases hu: (a:ℂ).re = -1,
+  { have : rotation a 1 = conj_lie 1,
+    { rw h, },
+    simp only [rotation_apply, ne.def, conj_lie_apply, mul_one, ring_hom.map_one] at this,
+    rw [this, one_re] at hu,
+    linarith, },
+  { have : rotation a I = conj_lie I,
+    { rw h, },
+    apply hu,
+    have : (a : ℂ) * I = -1 * I,
+    { simpa using this, },
+    rw mul_left_inj' I_ne_zero at this,
+    simp [this], },
+end
+
+lemma rotation_injective : function.injective rotation :=
+begin
+  intros a b h,
+  suffices : rotation a 1 = rotation b 1,
+  { simpa using this, },
+  { rw h, },
+end
+
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
   (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 by simpa [ext_iff, add_re, add_im, conj_re, conj_im, ←two_mul,

@@ -139,7 +139,7 @@ noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
   .. X.to_SheafedSpace.restrict f h }
 
 /--
-The map from the restriction of a presheafed space.
+The map from the restriction of a locally ringed space.
 -/
 def of_restrict (U : Top) (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) :
@@ -150,7 +150,7 @@ begin
 end
 
 /--
-The map to the restriction of a presheafed space along the canonical inclusion from the top
+The map to the restriction of a locally ringed space along the canonical inclusion from the top
 subspace.
 -/
 @[simps]

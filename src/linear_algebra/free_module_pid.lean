@@ -666,8 +666,11 @@ bases for `M` and `N` such that the inclusion map `N → M` can be written as a
 (rectangular) matrix with `a` along the diagonal: in Smith normal form. -/
 @[nolint has_inhabited_instance]
 structure basis.smith_normal_form (N : submodule R M) (ι : Type*) (n : ℕ) :=
-(bM : basis ι R M) (bN : basis (fin n) R N) (f : fin n ↪ ι)
-(a : fin n → R) (snf : ∀ i, (bN i : M) = a i • bM (f i))
+(bM : basis ι R M)
+(bN : basis (fin n) R N)
+(f : fin n ↪ ι)
+(a : fin n → R)
+(snf : ∀ i, (bN i : M) = a i • bM (f i))
 
 /-- If `M` is finite free over a PID `R`, then any submodule `N` is free
 and we can find a basis for `M` and `N` such that the inclusion map is a diagonal matrix

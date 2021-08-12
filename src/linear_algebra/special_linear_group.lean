@@ -158,8 +158,7 @@ section has_neg
 
 /-- Formal operation of negation on special linear group on even cardinality `n` given by negating
 each element. -/
-instance {R : Type*} [comm_ring R] [_i : fact (even (fintype.card n))] :
-  has_neg (special_linear_group n R) :=
+instance [_i : fact (even (fintype.card n))] : has_neg (special_linear_group n R) :=
 ⟨λ g,
   ⟨- g, by simpa [nat.neg_one_pow_of_even _i.elim, g.det_coe] using @det_smul _ _ _ _ _ ↑ₘg (-1)⟩⟩
 

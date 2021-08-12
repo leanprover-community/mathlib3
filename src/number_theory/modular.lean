@@ -375,6 +375,346 @@ begin
       simp [T', sub_eq_add_neg] } }
 end
 
+
+
+
+
+/-- MOVE TO INT SOMEWHERE -/
+lemma int.eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
+int.is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
+
+lemma int.eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) : (z = 1 ∧ w = 1) ∨
+(z = -1 ∧ w = -1) :=
+begin
+  have := int.eq_one_or_neg_one_of_mul_eq_one,
+  sorry, -- ALEX HOMEWORK
+--int.is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
+end
+
+lemma int.le_one_zero (z : ℤ) (h: _root_.abs z < 1) : z = 0 :=
+begin
+  have int.eq_zero_iff_abs_lt_one.mp,
+end
+
+lemma int.ne_zero_ge_one {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
+begin
+--  library_search,
+  by_contra,
+  push_neg at h,
+  exact h₀ (int.eq_zero_iff_abs_lt_one.mp h),
+end
+
+lemma junk (z w : ℂ ) (h: w = z) : w.re = z.re :=
+begin
+  exact congr_arg re h,
+end
+
+lemma move_by_large {x y : ℝ} (h : |x| < 1/2) (h₁ : |x+y|<1/2) (h₂ : 1≤ |y|) : false :=
+begin
+  cases abs_cases x;
+  cases abs_cases y;
+  cases abs_cases (x+y);
+  linarith,
+end
+
+
+lemma junk1 ( x y : ℝ ): (0 < x) → (0 < y) → 0 < x*y :=
+begin
+  intros,
+  exact mul_pos ᾰ ᾰ_1,
+end
+
+
+
+
+lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :
+  (3 : ℝ)/4 < 4/ (3* (g 1 0)^4) :=
+begin
+  have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
+  {
+    intros w hw,
+    have : 1 < w.re * w.re + w.im * w.im := by simpa [complex.norm_sq_apply] using hw.1,
+    have := hw.2,
+    cases abs_cases w.re; nlinarith,
+  },
+
+  have czPdGecy : (g 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (bottom g z) :=
+    calc
+    (g 1 0 : ℝ)^2 * (z.im)^2 ≤ (g 1 0 : ℝ)^2 * (z.im)^2 + (g 1 0 * z.re + g 1 1)^2 : by nlinarith
+    ... = norm_sq (bottom g z) : by simp [norm_sq, bottom]; ring,
+
+  have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
+
+  calc
+  (3 : ℝ)/4 < ((g • z).im)^2 : ImGeInD _ hg
+  ... = (z.im)^2 / (norm_sq (bottom g z))^2 : _
+  ... ≤ (1 : ℝ)/((g 1 0)^4 * (z.im)^2) : _
+  ... < (4 : ℝ)/ (3* (g 1 0)^4) : _,
+
+  {
+    convert congr_arg (λ (x:ℝ), x^2) (im_smul_int_eq_div_norm_sq g z) using 1,
+    exact (div_pow _ _ 2).symm,
+  },
+
+  {
+    rw div_le_div_iff,
+    convert pow_le_pow_of_le_left _ czPdGecy 2 using 1;
+    ring,
+    { nlinarith, },
+    {
+      exact pow_two_pos_of_ne_zero _ (normsq_bottom_ne_zero g z),
+    },
+
+    refine mul_pos (pow_even_pos _ (by norm_num : even 4))
+      (pow_two_pos_of_ne_zero _ (im_nonzero z)),
+    exact_mod_cast c_ne_z,
+
+  },
+
+  rw div_lt_div_iff,
+  sorry, -- ALEX HOMEWORK
+
+end
+
+lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
+begin
+/-
+  either c=0 in which case, translation, in which case translation by 0
+  or im (y) > Sqrt(3)/2 -> c=±1 and compute...
+-/
+  -- ext,
+  have g_det : matrix.det g = (g 0 0)*(g 1 1)-(g 1 0)*(g 0 1),
+  {
+    sorry,
+  },
+
+  by_cases (g 1 0 = 0),
+  {
+    have := g_det,
+    rw h at this,
+    rw g.det_coe_fun at this,
+    simp at this,
+    have := int.eq_one_or_neg_one_of_mul_eq_one' (this.symm),
+    have gzIs : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → ↑(gg • z : ℍ) = (z : ℂ) + gg 0 1,
+    {
+      intros gg h₀ h₁ h₂,
+      simp [h₀, h₁, h₂],
+    },
+    have gIsId : ∀ (gg : SL(2,ℤ)), gg • z ∈ 𝒟ᵒ → gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg = 1,
+    {
+      intros gg hh h₀ h₁ h₂,
+      ext i,
+      fin_cases i;
+      fin_cases j,
+      simp [h₁],
+      {
+        simp,
+--        apply int.eq_zero_iff_abs_lt_one.mp,
+        by_contra hhh,
+        have reZ : |z.re| < 1/2,
+        {
+          exact_mod_cast hz.2,
+        },
+        have reGz : |((gg • z):ℍ ).re| < 1/2,
+        {
+          exact_mod_cast hh.2,
+        },
+        have reZpN : |z.re + gg 0 1| < 1/2,
+        {
+          convert reGz using 2,
+--          apply congr_arg _root_.abs,
+          rw (by simp : z.re + gg 0 1 = ((z:ℂ )+ gg 0 1).re),
+          apply congr_arg complex.re,
+          exact_mod_cast (gzIs gg h₀ h₁ h₂).symm,
+        },
+        have := int.ne_zero_ge_one hhh,
+        refine move_by_large reZ reZpN _,
+        exact_mod_cast this,
+      },
+      simp [h₀],
+      simp [h₂],
+    },
+    have zIsGz : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg • z ∈ 𝒟ᵒ → z = gg • z,
+    {
+      intros gg h₀ h₁ h₂ hh,
+      have := gIsId gg hh h₀ h₁ h₂,
+      rw this,
+      simp,
+    },
+    cases this,
+    { -- case a = d = 1
+      exact zIsGz g h this_1.1 this_1.2 hg,
+    },
+    { -- case a = d = -1
+      rw ← smul_neg_int,
+      apply zIsGz; simp [h, this_1],
+      exact hg,
+    },
+  },
+  {
+    -- want to argue first that c=± 1
+    -- then show this is impossible
+    have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
+    {
+      intros w hw,
+      have : 1 < (w.re)^2+(w.im)^2,
+      {
+        have : norm_sq w = (w.re)^2+(w.im)^2,
+        {
+          simp [norm_sq],
+          ring,
+        },
+        have hw1 := hw.1,
+        rw this at hw1,
+        linarith,
+      },
+      have : (w.re)^2 < 1/4,
+      {
+        convert sq_lt_sq hw.2 using 1,
+        field_simp,
+        ring,
+      },
+      linarith,
+    },
+
+    have czPdGecy : (g 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (bottom g z) :=
+      calc
+      (g 1 0 : ℝ)^2 * (z.im)^2 ≤ (g 1 0 : ℝ)^2 * (z.im)^2 + (g 1 0 * z.re + g 1 1)^2 : by nlinarith
+      ... = norm_sq (bottom g z) : by simp [norm_sq, bottom]; ring,
+
+    have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
+    have gzIm : (3 : ℝ) / 4 < ((g • z).im)^2 := ImGeInD _ hg,
+    have gzImIs : (g • z).im = z.im/ norm_sq (bottom g z),
+    {
+      sorry,
+    },
+
+    have cBnd : (3 : ℝ)/4 < 4/ (3* (g 1 0)^4),
+    {
+      calc
+      (3 : ℝ)/4 < ((g • z).im)^2 : ImGeInD _ hg
+      ... = (z.im)^2 / (norm_sq (bottom g z))^2 : _
+      ... ≤ (1 : ℝ)/((g 1 0)^4 * (z.im)^2) : _
+      ... < (4 : ℝ)/ (3* (g 1 0)^4) : _,
+
+      convert congr_arg (λ (x:ℝ), x^2) gzImIs using 1,
+      exact (div_pow _ _ 2).symm,
+
+      {
+      --  field_simp,
+        sorry,
+      },
+
+
+
+      sorry,
+    },
+
+
+    sorry,
+  },
+ -- ALEX homework
+end
+
+
+
+
+ lemma namedIsZ (c :ℤ  ) (h: c≤ 1) (h2: 0≤ c) :  c=0 ∨ c=1 :=
+    begin
+         lift n to ℕ using hn
+      lift c to ℕ using h2,
+      norm_cast,
+      refine namedIs _ _ ,
+      exact_mod_cast h,
+    end
+
+
+    lemma fundom_no_repeats (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟) (hz' : z' ∈ 𝒟) :
+      (z = z') ∨
+      (z.val.re = -1/2 ∧ z' = T • z) ∨
+      (z'.val.re = -1/2 ∧ z = T • z') ∨
+      (z.val.abs = 1 ∧ z'.val.abs = 1 ∧ z' = S • z ∧ z = S • z') :=
+    begin
+      wlog hwlog : z.val.im ≤ z'.val.im,
+      {
+        by_cases hne : z = z', tauto,
+        right,
+        replace h := sign_coef h,
+        obtain ⟨g, hcpos, hac, hg⟩ := h,
+        set a := g.1 0 0,
+        set b := g.1 0 1,
+        set c := g.1 1 0 with ←cdf,
+        set d := g.1 1 1 with ←ddf,
+        have hcd : complex.norm_sq (c * z + d) ≤ 1,
+        {
+          have himzpos : 0 < z.val.im := im_pos_of_in_H',
+          have hnz : 0 < complex.norm_sq (c * z + d),
+          {
+            rw norm_sq_pos,
+            intro hcontra,
+            rw [← cdf, ← ddf, ← bottom_def] at hcontra,
+            exact czPd_nonZ_CP (ne.symm (ne_of_lt himzpos)) hcontra,
+          },
+          suffices: z.val.im * complex.norm_sq (c * z + d) ≤ z.val.im, nlinarith,
+          rw [hg, im_smul_SL',cdf,ddf, le_div_iff hnz] at hwlog,
+          exact hwlog,
+        },
+        have hc : _root_.abs c ≤ 1,
+        {
+          sorry
+        },
+        replace hc : c = 0 ∨ c = 1,
+        {
+
+          rw abs_le at hc,
+          exact namedIsZ c hc.2 hcpos,
+        },
+        rcases hc with  hc | hc ,
+        {     case c = 0
+          have ha : a = 1 := (hac hc).2,
+          have hd : d = 1 := (hac hc).1,
+          have hgT : g = T^b,
+          {
+            rw T_pow,
+            apply subtype.eq,
+            simp,
+            tauto,
+          },
+          have hb : _root_.abs c ≤ 1,
+          {
+            sorry
+          },
+          replace hb : b = -1 ∨ b = 0 ∨ b = 1,
+          {
+            sorry
+          },
+          rcases hb with hb | hb | hb,
+          all_goals {rw hb at hgT, rw hgT at hg, clear hb, clear hgT, simp at hg},
+          {
+            right, left,
+            rw ←inv_smul_eq_iff at hg,
+            rw ←hg at hz,
+            rw fundom_aux_1 hz' hz,
+            tauto,
+          },
+          { tauto },
+          {
+            left,
+            rw hg at hz',
+            rw fundom_aux_1 hz hz',
+            tauto,
+          }
+        },
+        {     case c = 1
+          sorry
+        }
+      },
+      obtain ⟨g, hg⟩ := h,
+      have hh : ∃ g : SL(2,ℤ), z = g • z' := ⟨g⁻¹, by {simp [eq_inv_smul_iff, hg]}⟩,
+      specialize this hh hz' hz,
+      tauto,
+    end
+
 end fundamental_domain
 
 end modular_group

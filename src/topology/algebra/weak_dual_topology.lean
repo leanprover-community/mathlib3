@@ -96,7 +96,7 @@ lemma eval_continuous' :
 continuous_induced_dom
 
 lemma eval_continuous (z : E) : continuous (λ (x' : weak_dual 𝕜 E), x' z) :=
-(continuous_pi_iff.mp (weak_dual.eval_continuous' 𝕜 E)) z
+(continuous_pi_iff.mp (eval_continuous' 𝕜 E)) z
 
 lemma continuous_of_continuous_eval {α : Type*} [topological_space α]
   {g : α → weak_dual 𝕜 E} (h : ∀ z, continuous (λ a, g a z)) : continuous g :=

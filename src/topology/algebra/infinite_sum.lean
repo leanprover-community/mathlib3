@@ -570,6 +570,14 @@ by { simp only [sub_eq_add_neg], exact hf.add hg.neg }
 lemma summable.sub (hf : summable f) (hg : summable g) : summable (λb, f b - g b) :=
 (hf.has_sum.sub hg.has_sum).summable
 
+lemma summable.trans_sub (hg : summable g) (hfg : summable (λb, f b - g b)) :
+  summable f :=
+by simpa only [sub_add_cancel] using hfg.add hg
+
+lemma summable_iff_of_summable_sub (hfg : summable (λb, f b - g b)) :
+  summable f ↔ summable g :=
+⟨λ hf, hf.trans_sub $ by simpa only [neg_sub] using hfg.neg, λ hg, hg.trans_sub hfg⟩
+
 lemma has_sum.update (hf : has_sum f a₁) (b : β) [decidable_eq β] (a : α) :
   has_sum (update f b a) (a - f b + a₁) :=
 begin

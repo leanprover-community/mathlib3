@@ -676,7 +676,7 @@ begin
   rw [restrict_empty, restrict_empty]
 end
 
-lemma le_iff_le_restrict_univ : v ≤[univ] w ↔ v ≤ w :=
+lemma le_restrict_univ_iff_le : v ≤[univ] w ↔ v ≤ w :=
 begin
   split,
   { intros h s hs,
@@ -704,6 +704,10 @@ begin
   rw [← restrict_apply _ hi hj₁, ← restrict_apply _ hi hj₁],
   exact h j hj₁,
 end
+
+@[simp]
+lemma neg_le_neg_iff {i : set α} (hi : measurable_set i) : -w ≤[i] -v ↔ v ≤[i] w :=
+⟨λ h, neg_neg v ▸ neg_neg w ▸ neg_le_neg _ _ hi h, λ h, neg_le_neg _ _ hi h⟩
 
 end
 
@@ -950,7 +954,7 @@ variables (μ : measure α) [finite_measure μ]
 
 lemma zero_le_to_signed_measure : 0 ≤ μ.to_signed_measure :=
 begin
-  rw ← le_iff_le_restrict_univ,
+  rw ← le_restrict_univ_iff_le,
   refine restrict_le_restrict_of_subset_le _ _ (λ j hj₁ _, _),
   simp only [measure.to_signed_measure_apply_measurable hj₁, coe_zero, pi.zero_apply,
              ennreal.to_real_nonneg, vector_measure.coe_zero]
@@ -958,7 +962,7 @@ end
 
 lemma to_signed_measure_to_measure_of_zero_le :
   μ.to_signed_measure.to_measure_of_zero_le univ measurable_set.univ
-    ((le_iff_le_restrict_univ _ _).2 (zero_le_to_signed_measure μ)) = μ :=
+    ((le_restrict_univ_iff_le _ _).2 (zero_le_to_signed_measure μ)) = μ :=
 begin
   refine measure.ext (λ i hi, _),
   lift μ i to ℝ≥0 using (measure_lt_top _ _).ne with m hm,

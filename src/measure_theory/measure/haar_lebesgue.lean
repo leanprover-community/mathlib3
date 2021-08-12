@@ -9,13 +9,13 @@ import measure_theory.measure.haar
 /-!
 # Relationship between the Haar and Lebesgue measures
 
-We prove that the Haar measur and Lebesgue measure are equal on `ℝ`.
+We prove that the Haar measure and Lebesgue measure are equal on `ℝ`.
 -/
 namespace measure_theory
 
 open measure topological_space set
 
-lemma is_add_left_invariant_real_volume : is_add_left_invariant (volume : measure ℝ) :=
+lemma is_add_left_invariant_real_volume : is_add_left_invariant ⇑(volume : measure ℝ) :=
 by simp [← map_add_left_eq_self, real.map_volume_add_left]
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
@@ -31,4 +31,4 @@ begin
   { exact is_add_left_invariant_real_volume }
 end
 
-end measure
+end measure_theory

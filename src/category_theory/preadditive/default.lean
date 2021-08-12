@@ -123,11 +123,11 @@ map_sub (right_comp P g) f f'
 map_sub (left_comp R f) g g'
 
 @[simp, reassoc] lemma neg_comp : (-f) ≫ g = -(f ≫ g) :=
-map_neg (right_comp _ _) _
+map_neg (right_comp P g) f
 
 /- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
 @[reassoc, simp] lemma comp_neg : f ≫ (-g) = -(f ≫ g) :=
-map_neg (left_comp _ _) _
+map_neg (left_comp R f) g
 
 @[reassoc] lemma neg_comp_neg : (-f) ≫ (-g) = f ≫ g :=
 by simp

@@ -916,6 +916,12 @@ lemma summable_sigma_of_nonneg {β : Π x : α, Type*} {f : (Σ x, β x) → ℝ
   summable f ↔ (∀ x, summable (λ y, f ⟨x, y⟩)) ∧ summable (λ x, ∑' y, f ⟨x, y⟩) :=
 by { lift f to (Σ x, β x) → ℝ≥0 using hf, exact_mod_cast nnreal.summable_sigma }
 
+lemma summable_of_sum_le {ι : Type*} {f : ι → ℝ} {c : ℝ} (hf : 0 ≤ f)
+  (h : ∀ u : finset ι, ∑ x in u, f x ≤ c) :
+  summable f :=
+⟨ ⨆ u : finset ι, ∑ x in u, f x,
+  tendsto_at_top_csupr (finset.sum_mono_set_of_nonneg hf) ⟨c, λ y ⟨u, hu⟩, hu ▸ h u⟩ ⟩
+
 lemma summable_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n)
   (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : summable f :=
 begin

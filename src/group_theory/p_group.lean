@@ -65,7 +65,7 @@ lemma nonempty_fixed_point_of_prime_not_dvd_card
   rw [← fintype.card_pos_iff, pos_iff_ne_zero],
   assume h,
   have := card_modeq_card_fixed_points α hG,
-  rw [h, nat.modeq.modeq_zero_iff] at this,
+  rw [h, nat.modeq_zero_iff_dvd] at this,
   contradiction
 end
 
@@ -75,13 +75,9 @@ lemma exists_fixed_point_of_prime_dvd_card_of_fixed_point
   (hpα : p ∣ fintype.card α) {a : α} (ha : a ∈ fixed_points G α) :
   ∃ b, b ∈ fixed_points G α ∧ a ≠ b :=
 have hpf : p ∣ fintype.card (fixed_points G α),
-  from nat.modeq.modeq_zero_iff.1 $
-    (card_modeq_card_fixed_points α hG).symm.trans
-    (nat.modeq.modeq_zero_iff.2 hpα),
+  from nat.modeq_zero_iff_dvd.1 ((card_modeq_card_fixed_points α hG).symm.trans hpα.modeq_zero_nat),
 have hα : 1 < fintype.card (fixed_points G α),
-  from lt_of_lt_of_le
-    (fact.out p.prime).one_lt
-    (nat.le_of_dvd (fintype.card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
+  from (fact.out p.prime).one_lt.trans_le (nat.le_of_dvd (fintype.card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
 let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
 ⟨b, hb, λ hab, hba $ by simp [hab]⟩
 

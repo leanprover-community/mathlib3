@@ -9,8 +9,8 @@ import topology.opens
 /-!
 # The Alexandroff Compactification
 
-We construct the Alexandroff compactification of an arbitrary topological space `X` and prove
-some properties inherited from `X`.
+We construct the Alexandroff compactification (the one-point compactification) of an arbitrary
+topological space `X` and prove some properties inherited from `X`.
 
 ## Main defintion
 
@@ -359,7 +359,8 @@ begin
   { exact separated_by_open_embedding open_embedding_coe (mt coe_eq_coe.mpr hxy) }
 end
 
-/-- If `X` is not a compact space, then `alexandroff X` is a connected space. -/
+/-- If `X` is not a compact space, then `alexandroff X` is a connected space. This statement cannot
+be an `instance` because it needs a non-class argument `¬is_compact (univ : set X)`. -/
 lemma connected_space_alexandroff [preconnected_space X] (h : ¬ is_compact (univ : set X)) :
   connected_space (alexandroff X) :=
 { to_preconnected_space := (dense_embedding_coe h).to_dense_inducing.preconnected_space,

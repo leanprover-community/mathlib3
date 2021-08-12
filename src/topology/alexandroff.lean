@@ -63,8 +63,6 @@ coe_injective.eq_iff
 
 @[simp] lemma coe_ne_infty (x : X) : (x : alexandroff X) ≠ ∞  .
 @[simp] lemma infty_ne_coe (x : X) : ∞ ≠ (x : alexandroff X) .
-@[simp] lemma some_eq_coe (x : X) : some x = (x : alexandroff X) := rfl
-@[simp] lemma none_eq_infty : none = (∞ : alexandroff X) := rfl
 
 /-- Recursor for `alexandroff` using the preferred forms `∞` and `↑x`. -/
 @[elab_as_eliminator]

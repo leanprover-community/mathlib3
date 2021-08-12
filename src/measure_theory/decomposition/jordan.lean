@@ -66,7 +66,7 @@ end
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
 lemma exists_compl_positive_negative_of_exists_mutually_singular_sub
-  (h : by exactI μ ⊥ₘ ν ∧ s = sub_to_signed_measure μ ν) :
+  (h : μ ⊥ₘ ν ∧ s = sub_to_signed_measure μ ν) :
   ∃ S : set α, measurable_set S ∧ s ≤[S] 0 ∧ 0 ≤[Sᶜ] s ∧ μ S = 0 ∧ ν Sᶜ = 0 :=
 begin
   obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, h₁⟩ := h,
@@ -217,8 +217,8 @@ end
 /-- The Jordan decomposition of a signed measure is unique. -/
 theorem mutually_singular_eq_sub_unique {s : signed_measure α} {μ₁ ν₁ μ₂ ν₂ : measure α}
   [finite_measure μ₁] [finite_measure ν₁] [finite_measure μ₂] [finite_measure ν₂]
-  (h₁ : by exactI μ₁ ⊥ₘ ν₁ ∧ s = sub_to_signed_measure μ₁ ν₁)
-  (h₂ : by exactI μ₂ ⊥ₘ ν₂ ∧ s = sub_to_signed_measure μ₂ ν₂) :
+  (h₁ : μ₁ ⊥ₘ ν₁ ∧ s = sub_to_signed_measure μ₁ ν₁)
+  (h₂ : μ₂ ⊥ₘ ν₂ ∧ s = sub_to_signed_measure μ₂ ν₂) :
   μ₁ = μ₂ ∧ ν₁ = ν₂ :=
 begin
   obtain ⟨S, hS₁, hS₂, hS₃, hS₄, hS₅⟩ :=

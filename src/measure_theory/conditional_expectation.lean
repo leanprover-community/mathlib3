@@ -6,6 +6,8 @@ Authors: Rémy Degenne
 
 import measure_theory.l2_space
 import measure_theory.strongly_measurable
+import analysis.normed_space.dual
+import analysis.normed_space.hahn_banach
 
 /-! # Conditional expectation
 
@@ -143,23 +145,12 @@ variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
   -- H for measurable space and normed group (hypotheses of mem_ℒp)
   [measurable_space H] [normed_group H]
 
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
-local notation `⟪`x`, `y`⟫'` := @inner 𝕜 E' _ x y
-
 section tools
 
-variables [measurable_space α] {μ : measure α}
+variables {m : measurable_space α} {μ : measure α} {𝕜' : Type*} [is_R_or_C 𝕜']
 
-lemma sub_ae_eq_zero [add_group γ] (f g : α → γ) : f - g =ᵐ[μ] 0 ↔ f =ᵐ[μ] g :=
-begin
-  refine ⟨λ h, h.mono (λ x hx, _), λ h, h.mono (λ x hx, _)⟩,
-  { rwa [pi.sub_apply, pi.zero_apply, sub_eq_zero] at hx, },
-  { rwa [pi.sub_apply, pi.zero_apply, sub_eq_zero], },
-end
-
-lemma ae_eq_zero_of_forall_inner_ae_eq_zero {𝕜' : Type*} [is_R_or_C 𝕜']
-  [inner_product_space 𝕜' γ] [second_countable_topology γ]
-  {μ : measure α} {f : α → γ} (hf : ∀ c : γ, ∀ᵐ x ∂μ, inner c (f x) = (0 : 𝕜')) :
+lemma ae_eq_zero_of_forall_inner [inner_product_space 𝕜' γ] [second_countable_topology γ]
+  {f : α → γ} (hf : ∀ c : γ, ∀ᵐ x ∂μ, inner c (f x) = (0 : 𝕜')) :
   f =ᵐ[μ] 0 :=
 begin
   let s := dense_seq γ,
@@ -172,19 +163,47 @@ begin
   exact @is_closed_property ℕ γ _ s (λ c, inner c (f x) = (0 : 𝕜')) hs h_closed (λ n, hx n) _,
 end
 
-lemma ae_of_ae_restrict_of_ae_restrict_compl {t : set α} (ht_meas : measurable_set t) {p : α → Prop}
-  (ht : ∀ᵐ x ∂(μ.restrict t), p x) (htc : ∀ᵐ x ∂(μ.restrict tᶜ), p x) :
-  ∀ᵐ x ∂μ, p x :=
+local notation `⟪`x`, `y`⟫` := y x
+open normed_space
+
+variables (𝕜)
+lemma eq_zero_of_forall_dual [normed_group γ] [normed_space 𝕜' γ] {x : γ}
+  (h : ∀ c : dual 𝕜' γ, ⟪x, c⟫ = (0 : 𝕜')) :
+  x = 0 :=
 begin
-  rw ae_restrict_iff' ht_meas at ht,
-  rw ae_restrict_iff' ht_meas.compl at htc,
-  refine ht.mp (htc.mono (λ x hx1 hx2, _)),
-  by_cases hxt : x ∈ t,
-  { exact hx2 hxt, },
-  { exact hx1 hxt, },
+  by_cases hγ : nontrivial γ,
+  { haveI : nontrivial γ := hγ,
+    obtain ⟨g, norm_g, gx_eq⟩ := @exists_dual_vector' 𝕜' _ _ _ _ _ x,
+    rw h at gx_eq,
+    exact norm_eq_zero.mp ((@is_R_or_C.of_real_eq_zero 𝕜' _ _).mp gx_eq.symm), },
+  { haveI : subsingleton γ := not_nontrivial_iff_subsingleton.mp hγ,
+    exact subsingleton.elim x 0, },
+end
+variables {𝕜}
+
+lemma ae_eq_zero_of_forall_dual [normed_group γ] [normed_space 𝕜' γ]
+  [second_countable_topology (dual 𝕜' γ)]
+  {f : α → γ} (hf : ∀ c : dual 𝕜' γ, ∀ᵐ x ∂μ, ⟪f x, c⟫ = (0 : 𝕜')) :
+  f =ᵐ[μ] 0 :=
+begin
+  let s := dense_seq (dual 𝕜' γ),
+  have hs : dense_range s := dense_range_dense_seq _,
+  have hfs : ∀ n : ℕ, ∀ᵐ x ∂μ, ⟪f x, s n⟫ = (0 : 𝕜'), from λ n, hf (s n),
+  have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, ⟪f x, s n⟫ = (0 : 𝕜'), by rwa ae_all_iff,
+  refine hf'.mono (λ x hx, eq_zero_of_forall_dual_eq_zero 𝕜' (λ c, _)),
+  have h_closed : is_closed {c : dual 𝕜' γ | ⟪f x, c⟫ = (0 : 𝕜')},
+  { refine is_closed_eq _ continuous_const,
+    have h_fun_eq : (λ (c : dual 𝕜' γ), ⟪f x, c⟫) = inclusion_in_double_dual' 𝕜' γ (f x),
+      by { ext1 c, rw ← dual_def 𝕜' γ (f x) c, },
+    rw h_fun_eq,
+    continuity, },
+  exact @is_closed_property ℕ (dual 𝕜' γ) _ s (λ c, ⟪f x, c⟫ = (0 : 𝕜')) hs h_closed (λ n, hx n) c,
 end
 
 end tools
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+local notation `⟪`x`, `y`⟫'` := @inner 𝕜 E' _ x y
 
 section Lp_meas
 
@@ -667,7 +686,7 @@ lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero [is_scalar_tower ℝ �
   {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
   f =ᵐ[μ.restrict t] 0 :=
 begin
-  refine ae_eq_zero_of_forall_inner_ae_eq_zero (λ c, _),
+  refine ae_eq_zero_of_forall_inner (λ c, _),
   refine ae_eq_zero_restrict_of_forall_set_integral_eq_zero_𝕜 _ _ ht hμt,
   { exact λ s hs hμs, (hf_int_finite s hs hμs).const_inner c, },
   { intros s hs hμs,

@@ -59,94 +59,104 @@ begin
     exact ennreal.to_real_nonneg },
 end
 
--- lemma subset_positive_null_set {s : signed_measure α} {u w t : set α}
---   (hw : measurable_set w) (ht : measurable_set t)
---   (hsu : s.positive u) (ht₁ : s t = 0) (ht₂ : t ⊆ u) (hwt : w ⊆ t) : s w = 0 :=
--- begin
---   have : s w + s (t \ w) = 0,
---   { rw [← ht₁, ← measure_of_union set.disjoint_diff hw (ht.diff hw),
---         set.union_diff_self, set.union_eq_self_of_subset_left hwt] },
---   rw add_eq_zero_iff' at this,
---   exacts [this.1, hsu _ (hwt.trans ht₂) hw, hsu _ ((t.diff_subset w).trans ht₂) (ht.diff hw)],
--- end
+lemma subset_positive_null_set {s : signed_measure α} {u w t : set α}
+  (hu : measurable_set u) (hw : measurable_set w) (ht : measurable_set t)
+  (hsu : 0 ≤[u] s) (ht₁ : s t = 0) (ht₂ : t ⊆ u) (hwt : w ⊆ t) : s w = 0 :=
+begin
+  have : s w + s (t \ w) = 0,
+  { rw [← ht₁, ← of_union set.disjoint_diff hw (ht.diff hw),
+        set.union_diff_self, set.union_eq_self_of_subset_left hwt],
+    apply_instance },
+  have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans ht₂)),
+  have h₂ := nonneg_of_zero_le_restrict _
+    (restrict_le_restrict_subset _ _ hu hsu ((t.diff_subset w).trans ht₂)),
+  linarith,
+end
 
--- lemma subset_negative_null_set {s : signed_measure α} {u w t : set α}
---   (hw : measurable_set w) (ht : measurable_set t)
---   (hsu : s.negative u) (ht₁ : s t = 0) (ht₂ : t ⊆ u) (hwt : w ⊆ t) : s w = 0 :=
--- begin
---   have : s w + s (t \ w) = 0,
---   { rw [← ht₁, ← measure_of_union set.disjoint_diff hw (ht.diff hw),
---         set.union_diff_self, set.union_eq_self_of_subset_left hwt] },
---   linarith [hsu _ (hwt.trans ht₂) hw, hsu _ ((t.diff_subset w).trans ht₂) (ht.diff hw)]
--- end
+lemma subset_negative_null_set {s : signed_measure α} {u w t : set α}
+  (hu : measurable_set u) (hw : measurable_set w) (ht : measurable_set t)
+  (hsu : s ≤[u] 0) (ht₁ : s t = 0) (ht₂ : t ⊆ u) (hwt : w ⊆ t) : s w = 0 :=
+begin
+  have : s w + s (t \ w) = 0,
+  { rw [← ht₁, ← of_union set.disjoint_diff hw (ht.diff hw),
+        set.union_diff_self, set.union_eq_self_of_subset_left hwt],
+    apply_instance },
+  have h₁ := nonpos_of_restrict_le_zero _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans ht₂)),
+  have h₂ := nonpos_of_restrict_le_zero _
+    (restrict_le_restrict_subset _ _ hu hsu ((t.diff_subset w).trans ht₂)),
+  linarith,
+end
 
--- lemma set.diff_disjoint_diff (u v : set α) : disjoint (u \ v) (v \ u) :=
--- set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff
+lemma set.diff_disjoint_diff (u v : set α) : disjoint (u \ v) (v \ u) :=
+set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff
 
--- lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive {s : signed_measure α} {u v : set α}
---   (hu : measurable_set u) (hv : measurable_set v)
---   (hsu : s.positive u) (hsv : s.positive v) (hs : s (u Δ v) = 0) :
---   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
--- begin
---   rwa [← add_eq_zero_iff' (hsu _ (u.diff_subset v) (hu.diff hv))
---            (hsv _ (v.diff_subset u) (hv.diff hu)),
---        ← measure_of_union (set.diff_disjoint_diff u v) (hu.diff hv) (hv.diff hu)]
--- end
+lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive {s : signed_measure α} {u v : set α}
+  (hu : measurable_set u) (hv : measurable_set v)
+  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
+  s (u \ v) = 0 ∧ s (v \ u) = 0 :=
+begin
+  rw restrict_le_restrict_iff at hsu hsv,
+  have a := hsu (hu.diff hv) (u.diff_subset v),
+  have b := hsv (hv.diff hu) (v.diff_subset u),
+  erw [of_union (set.diff_disjoint_diff u v) (hu.diff hv) (hv.diff hu)] at hs,
+  rw zero_apply at a b,
+  split,
+  all_goals { linarith <|> apply_instance <|> assumption },
+end
 
--- lemma of_diff_eq_zero_of_symm_diff_eq_zero_negative {s : signed_measure α} {u v : set α}
---   (hu : measurable_set u) (hv : measurable_set v)
---   (hsu : s.negative u) (hsv : s.negative v) (hs : s (u Δ v) = 0) :
---   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
--- begin
---   have a := hsu _ (u.diff_subset v) (hu.diff hv),
---   have b := hsv _ (v.diff_subset u) (hv.diff hu),
---   erw [measure_of_union (set.diff_disjoint_diff u v) (hu.diff hv) (hv.diff hu)] at hs,
---   split; linarith,
--- end
+lemma of_diff_eq_zero_of_symm_diff_eq_zero_negative {s : signed_measure α} {u v : set α}
+  (hu : measurable_set u) (hv : measurable_set v)
+  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
+  s (u \ v) = 0 ∧ s (v \ u) = 0 :=
+begin
+  rw restrict_le_restrict_iff at hsu hsv,
+  have a := hsu (hu.diff hv) (u.diff_subset v),
+  have b := hsv (hv.diff hu) (v.diff_subset u),
+  erw [of_union (set.diff_disjoint_diff u v) (hu.diff hv) (hv.diff hu)] at hs,
+  rw zero_apply at a b,
+  split,
+  all_goals { linarith <|> apply_instance <|> assumption },
+end
 
--- probably dont need this
--- lemma of_diff_of_symm_diff_eq_zero {s : signed_measure α} {u v : set α}
---   (hu : measurable_set u) (hv : measurable_set v)
---   (h : s (u Δ v) = 0) (h' : s (v \ u) = 0) : s (u \ v) + s v = s u :=
--- begin
---   symmetry,
---   calc s u = s (u \ v ∪ u ∩ v) : by simp only [set.diff_union_inter]
---        ... = s (u \ v) + s (u ∩ v) :
---   by { rw measure_of_union,
---        { rw disjoint.comm,
---          exact set.disjoint_of_subset_left (u.inter_subset_right v) set.disjoint_diff },
---        { exact hu.diff hv },
---        { exact hu.inter hv } }
---        ... = s (u \ v) + s (u ∩ v ∪ v \ u) :
---   by { rw [measure_of_union, h', add_zero],
---        { exact set.disjoint_of_subset_left (u.inter_subset_left v) set.disjoint_diff },
---        { exact hu.inter hv },
---        { exact hv.diff hu } }
---        ... = s (u \ v) + s v :
---   by { rw [set.union_comm, set.inter_comm, set.diff_union_inter] }
--- end
+lemma of_diff_of_symm_diff_eq_zero {s : signed_measure α} {u v : set α}
+  (hu : measurable_set u) (hv : measurable_set v)
+  (h : s (u Δ v) = 0) (h' : s (v \ u) = 0) : s (u \ v) + s v = s u :=
+begin
+  symmetry,
+  calc s u = s (u \ v ∪ u ∩ v) : by simp only [set.diff_union_inter]
+       ... = s (u \ v) + s (u ∩ v) :
+  by { rw of_union,
+       { rw disjoint.comm,
+         exact set.disjoint_of_subset_left (u.inter_subset_right v) set.disjoint_diff },
+       { exact hu.diff hv },
+       { exact hu.inter hv } }
+       ... = s (u \ v) + s (u ∩ v ∪ v \ u) :
+  by { rw [of_union, h', add_zero],
+       { exact set.disjoint_of_subset_left (u.inter_subset_left v) set.disjoint_diff },
+       { exact hu.inter hv },
+       { exact hv.diff hu } }
+       ... = s (u \ v) + s v :
+  by { rw [set.union_comm, set.inter_comm, set.diff_union_inter] }
+end
 
--- probably have this already
 lemma of_inter_eq_of_symm_diff_eq_zero_positive {s : signed_measure α} {u v w : set α}
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
   (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=
 begin
-  sorry
-  -- have hwuv : s ((w ∩ u) Δ (w ∩ v)) = 0,
-  -- { refine subset_positive_null_set _ _ (positive_union_positive hu hsu hv hsv) hs _ _,
-  --   { exact (hw.inter hu).symm_diff (hw.inter hv) },
-  --   { exact hu.symm_diff hv },
-  --   { exact symm_diff_le_sup u v },
-  --   { rintro x (⟨⟨hxw, hxu⟩, hx⟩ | ⟨⟨hxw, hxv⟩, hx⟩);
-  --     rw [set.mem_inter_eq, not_and] at hx,
-  --     { exact or.inl ⟨hxu, hx hxw⟩ },
-  --     { exact or.inr ⟨hxv, hx hxw⟩ } } },
-  -- obtain ⟨huv, hvu⟩ := of_diff_eq_zero_of_symm_diff_eq_zero_positive
-  --   (hw.inter hu) (hw.inter hv)
-  --   (positive_subset_positive hsu (w.inter_subset_right u))
-  --   (positive_subset_positive hsv (w.inter_subset_right v)) hwuv,
-  -- rw [← of_diff_of_symm_diff_eq_zero (hw.inter hu) (hw.inter hv) hwuv hvu, huv, zero_add]
+  have hwuv : s ((w ∩ u) Δ (w ∩ v)) = 0,
+  { refine subset_positive_null_set (hu.union hv) ((hw.inter hu).symm_diff (hw.inter hv))
+      (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs _ _,
+    { exact symm_diff_le_sup u v },
+    { rintro x (⟨⟨hxw, hxu⟩, hx⟩ | ⟨⟨hxw, hxv⟩, hx⟩);
+      rw [set.mem_inter_eq, not_and] at hx,
+      { exact or.inl ⟨hxu, hx hxw⟩ },
+      { exact or.inr ⟨hxv, hx hxw⟩ } } },
+  obtain ⟨huv, hvu⟩ := of_diff_eq_zero_of_symm_diff_eq_zero_positive
+    (hw.inter hu) (hw.inter hv)
+    (restrict_le_restrict_subset _ _ hu hsu (w.inter_subset_right u))
+    (restrict_le_restrict_subset _ _ hv hsv (w.inter_subset_right v)) hwuv,
+  rw [← of_diff_of_symm_diff_eq_zero (hw.inter hu) (hw.inter hv) hwuv hvu, huv, zero_add]
 end
 
 lemma of_inter_eq_of_symm_diff_eq_zero_negative {s : signed_measure α} {u v w : set α}
@@ -154,21 +164,19 @@ lemma of_inter_eq_of_symm_diff_eq_zero_negative {s : signed_measure α} {u v w :
   (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=
 begin
-  sorry
-  -- have hwuv : s ((w ∩ u) Δ (w ∩ v)) = 0,
-  -- { refine subset_negative_null_set _ _ (negative_union_negative hu hsu hv hsv) hs _ _,
-  --   { exact (hw.inter hu).symm_diff (hw.inter hv) },
-  --   { exact hu.symm_diff hv },
-  --   { exact symm_diff_le_sup u v },
-  --   { rintro x (⟨⟨hxw, hxu⟩, hx⟩ | ⟨⟨hxw, hxv⟩, hx⟩);
-  --     rw [set.mem_inter_eq, not_and] at hx,
-  --     { exact or.inl ⟨hxu, hx hxw⟩ },
-  --     { exact or.inr ⟨hxv, hx hxw⟩ } } },
-  -- obtain ⟨huv, hvu⟩ := of_diff_eq_zero_of_symm_diff_eq_zero_negative
-  --   (hw.inter hu) (hw.inter hv)
-  --   (negative_subset_negative hsu (w.inter_subset_right u))
-  --   (negative_subset_negative hsv (w.inter_subset_right v)) hwuv,
-  -- rw [← of_diff_of_symm_diff_eq_zero (hw.inter hu) (hw.inter hv) hwuv hvu, huv, zero_add]
+  have hwuv : s ((w ∩ u) Δ (w ∩ v)) = 0,
+  { refine subset_negative_null_set (hu.union hv) ((hw.inter hu).symm_diff (hw.inter hv))
+      (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs _ _,
+    { exact symm_diff_le_sup u v },
+    { rintro x (⟨⟨hxw, hxu⟩, hx⟩ | ⟨⟨hxw, hxv⟩, hx⟩);
+      rw [set.mem_inter_eq, not_and] at hx,
+      { exact or.inl ⟨hxu, hx hxw⟩ },
+      { exact or.inr ⟨hxv, hx hxw⟩ } } },
+  obtain ⟨huv, hvu⟩ := of_diff_eq_zero_of_symm_diff_eq_zero_negative
+    (hw.inter hu) (hw.inter hv)
+    (restrict_le_restrict_subset _ _ hu hsu (w.inter_subset_right u))
+    (restrict_le_restrict_subset _ _ hv hsv (w.inter_subset_right v)) hwuv,
+  rw [← of_diff_of_symm_diff_eq_zero (hw.inter hu) (hw.inter hv) hwuv hvu, huv, zero_add]
 end
 
 /-- The Jordan decomposition of a signed measure is unique. -/

@@ -314,8 +314,13 @@ lemma gsmul_left_injective {m : ℤ} (hm : m ≠ 0) : function.injective ((•) 
     exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hn },
 end
 
-lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
+lemma gsmul_inj {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
 (gsmul_left_injective hm).eq_iff
+
+/-- Alias of `gsmul_inj`, for ease of discovery alongside `gsmul_le_gsmul_iff` and
+`gsmul_lt_gsmul_iff`. -/
+lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
+gsmul_inj hm
 
 end linear_ordered_add_comm_group
 

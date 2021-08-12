@@ -162,7 +162,7 @@ instance [_i : fact (even (fintype.card n))] : has_neg (special_linear_group n R
 ⟨λ g,
   ⟨- g, by simpa [nat.neg_one_pow_of_even _i.elim, g.det_coe] using @det_smul _ _ _ _ _ ↑ₘg (-1)⟩⟩
 
-@[simp] lemma has_neg_coe_mat {R : Type*} [comm_ring R]
+@[simp] lemma coe_neg
   (g : special_linear_group n R) [fact (even (fintype.card n))] :
   ↑(- g) = - (↑g : matrix n n R) :=
 rfl

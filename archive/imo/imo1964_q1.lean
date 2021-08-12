@@ -28,20 +28,20 @@ lemma two_pow_three_mul_mod_seven (m : ℕ) : 2 ^ (3 * m) ≡ 1 [MOD 7] :=
 begin
   rw pow_mul,
   have h : 8 ≡ 1 [MOD 7] := modeq_of_dvd (by {use -1, norm_num }),
-  convert modeq_pow _ h,
+  convert h.pow _,
   simp,
 end
 
 lemma two_pow_three_mul_add_one_mod_seven (m : ℕ) : 2 ^ (3 * m + 1) ≡ 2 [MOD 7] :=
 begin
   rw pow_add,
-  exact modeq_mul (two_pow_three_mul_mod_seven m) (show 2 ^ 1 ≡ 2 [MOD 7], by refl),
+  exact (two_pow_three_mul_mod_seven m).mul_right _,
 end
 
 lemma two_pow_three_mul_add_two_mod_seven (m : ℕ) : 2 ^ (3 * m + 2) ≡ 4 [MOD 7] :=
 begin
   rw pow_add,
-  exact modeq_mul (two_pow_three_mul_mod_seven m) (show 2 ^ 2 ≡ 4 [MOD 7], by refl),
+  exact (two_pow_three_mul_mod_seven m).mul_right _,
 end
 
 /-!
@@ -87,15 +87,15 @@ begin
   interval_cases t with hr; rw hr,
   { rw add_zero,
     intro h,
-    have := h.symm.trans (modeq_add (two_pow_three_mul_mod_seven _) (nat.modeq.refl _)),
+    have := h.symm.trans ((two_pow_three_mul_mod_seven _).add_right _),
     rw modeq_iff_dvd at this,
     norm_num at this },
   { intro h,
-    have := h.symm.trans (modeq_add (two_pow_three_mul_add_one_mod_seven _) (nat.modeq.refl _)),
+    have := h.symm.trans ((two_pow_three_mul_add_one_mod_seven _).add_right _),
     rw modeq_iff_dvd at this,
     norm_num at this },
   { intro h,
-    have := h.symm.trans (modeq_add (two_pow_three_mul_add_two_mod_seven _) (nat.modeq.refl _)),
+    have := h.symm.trans ((two_pow_three_mul_add_two_mod_seven _).add_right _),
     rw modeq_iff_dvd at this,
     norm_num at this },
 end

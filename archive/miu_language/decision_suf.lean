@@ -152,16 +152,15 @@ begin
   { use (c+1),
     cases h with hc hc;
     { rw hc, norm_num }, },
-  { rcases hk with ⟨g, hkg, hgmod⟩,
-    by_cases hp : (c + 3*(k+1) ≤ 2 ^g),
-    { use g, exact ⟨hp,hgmod⟩ },
-    use (g+2),
-    { split,
-      { rw [mul_succ, ←add_assoc, pow_add],
-        change 2^2 with (1+3), rw [mul_add (2^g) 1 3, mul_one],
-        linarith [hkg, one_le_two_pow g], },
-      { rw [pow_add,←mul_one c],
-        exact modeq_mul hgmod rfl, }, }, },
+  rcases hk with ⟨g, hkg, hgmod⟩,
+  by_cases hp : (c + 3*(k+1) ≤ 2 ^g),
+  { use g, exact ⟨hp, hgmod⟩ },
+  refine ⟨g + 2, _, _⟩,
+  { rw [mul_succ, ←add_assoc, pow_add],
+    change 2^2 with (1+3), rw [mul_add (2^g) 1 3, mul_one],
+    linarith [hkg, one_le_two_pow g], },
+  { rw [pow_add, ←mul_one c],
+    exact modeq.mul hgmod rfl }
 end
 
 /--

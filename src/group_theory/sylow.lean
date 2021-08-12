@@ -117,8 +117,7 @@ lemma exists_fixed_point_of_prime_dvd_card_of_fixed_point
 have hpf : p ∣ fintype.card (fixed_points G α),
   from nat.modeq_zero_iff_dvd.1 ((card_modeq_card_fixed_points α hG).symm.trans hpα.modeq_zero_nat),
 have hα : 1 < fintype.card (fixed_points G α),
-  from lt_of_lt_of_le
-    hp.out.one_lt
+  from hp.out.one_lt.trans_le
     (nat.le_of_dvd (fintype.card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
 let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
 ⟨b, hb, λ hab, hba $ by simp [hab]⟩
@@ -271,7 +270,7 @@ begin
       card_eq_card_quotient_mul_card_subgroup
         (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H),
       fintype.card_congr this, hH, pow_succ],
-  exact nat.modeq_mul_right' _ (card_quotient_normalizer_modeq_card_quotient hH)
+  exact (card_quotient_normalizer_modeq_card_quotient hH).mul_right' _
 end
 
 /-- If `H` is a `p`-subgroup but not a Sylow `p`-subgroup, then `p` divides the
@@ -297,7 +296,7 @@ lemma prime_pow_dvd_card_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : fact p
   (hdvd : p ^ (n + 1) ∣ card G) {H : subgroup G} (hH : fintype.card H = p ^ n) :
   p ^ (n + 1) ∣ card (normalizer H) :=
 nat.modeq_zero_iff_dvd.1 ((card_normalizer_modeq_card hH).trans
-  (nat.modeq_zero_iff_dvd.2 hdvd))
+  hdvd.modeq_zero_nat)
 
 /-- If `H` is a subgroup of `G` of cardinality `p ^ n`,
   then `H` is contained in a subgroup of cardinality `p ^ (n + 1)`

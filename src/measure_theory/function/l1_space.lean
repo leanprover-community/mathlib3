@@ -597,6 +597,33 @@ begin
 end
 end normed_space_over_complete_field
 
+section is_R_or_C
+variables {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [opens_measurable_space 𝕜] {f : α → 𝕜}
+
+lemma integrable.re (hf : integrable f μ) : integrable (λ x, is_R_or_C.re (f x)) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.re, }
+
+lemma integrable.im (hf : integrable f μ) : integrable (λ x, is_R_or_C.im (f x)) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.im, }
+
+end is_R_or_C
+
+section inner_product
+variables {𝕜 E : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+  [inner_product_space 𝕜 E]
+  [measurable_space E] [opens_measurable_space E] [second_countable_topology E]
+  {f : α → E}
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+
+lemma integrable.const_inner (c : E) (hf : integrable f μ) : integrable (λ x, ⟪c, f x⟫) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.const_inner c, }
+
+lemma integrable.inner_const (hf : integrable f μ) (c : E) : integrable (λ x, ⟪f x, c⟫) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.inner_const c, }
+
+end inner_product
+
 section trim
 
 variables {H : Type*} [normed_group H] [measurable_space H] [opens_measurable_space H]

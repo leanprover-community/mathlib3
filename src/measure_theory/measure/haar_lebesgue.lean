@@ -11,16 +11,17 @@ import measure_theory.measure.haar
 
 We prove that the Haar measure and Lebesgue measure are equal on `ℝ`.
 -/
+
+/-- The interval `[0,1]` as a compact set with non-empty interior. -/
+def positive_compacts.Icc01 : positive_compacts ℝ :=
+⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
+
 namespace measure_theory
 
 open measure topological_space set
 
 lemma is_add_left_invariant_real_volume : is_add_left_invariant ⇑(volume : measure ℝ) :=
 by simp [← map_add_left_eq_self, real.map_volume_add_left]
-
-/-- The interval `[0,1]` as a compact set with non-empty interior. -/
-def Icc01 : positive_compacts ℝ :=
-⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
 lemma haar_measure_eq_lebesgue_measure : add_haar_measure Icc01 = volume :=

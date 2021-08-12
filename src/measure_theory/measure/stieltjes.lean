@@ -39,6 +39,8 @@ namespace stieltjes_function
 
 instance : has_coe_to_fun stieltjes_function := ⟨_, to_fun⟩
 
+initialize_simps_projections stieltjes_function (to_fun → apply)
+
 variable (f : stieltjes_function)
 
 lemma mono : monotone f := f.mono'
@@ -76,12 +78,10 @@ begin
 end
 
 /-- The identity of `ℝ` as a Stieltjes function, used to construct Lebesgue measure. -/
-protected def id : stieltjes_function :=
+@[simps] protected def id : stieltjes_function :=
 { to_fun := id,
   mono' := λ x y, id,
   right_continuous' := λ x, continuous_within_at_id }
-
-@[simp] lemma id_apply (x : ℝ) : stieltjes_function.id x = x := rfl
 
 @[simp] lemma id_left_lim (x : ℝ) : stieltjes_function.id.left_lim x = x :=
 tendsto_nhds_unique (stieltjes_function.id.tendsto_left_lim x) $

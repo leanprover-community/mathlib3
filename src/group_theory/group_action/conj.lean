@@ -6,7 +6,8 @@ Authors: Chris Hughes
 import group_theory.group_action.basic
 /-!
 # Conjugation action of a group on itself
-This file defines the conjugation action of a group on itself
+This file defines the conjugation action of a group on itself. See also `mul_aut.conj` for
+the definition of conjugation as a homomorphism into the automorphism group.
 
 ## Main definitions
 A type alias `conj G` is introduced for a group `G`. The group `conj G` acts on `G` by conjugation.

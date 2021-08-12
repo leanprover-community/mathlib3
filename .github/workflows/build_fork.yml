@@ -147,12 +147,19 @@ jobs:
           ./scripts/mk_all.sh
           lean --run scripts/lint_mathlib.lean
 
-      - name: upload nolint.txt
+      - name: try upload nolint.txt 1
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: nolint.txt
-          path: nolint.txt
+          path: ./nolint.txt
+
+      - name: try upload nolint.txt 2
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: nolint.txt
+          path: scripts/nolint.txt
 
   tests:
     name: Run tests (fork)

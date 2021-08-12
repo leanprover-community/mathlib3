@@ -23,6 +23,7 @@ elements in those boxes corresponds to choosing how many of each element of `α`
 of card `n`. `sym α n` being the subtype of `multiset α` of multisets of card `n`, writing stars
 and bars using types gives
 ```lean
+-- TODO: this lemma is not yet proven
 lemma stars_and_bars {α : Type*} [fintype α] (n : ℕ) :
   card (sym α n) = (card α + n - 1).choose (card α) := sorry
 ```

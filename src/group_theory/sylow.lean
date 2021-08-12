@@ -123,7 +123,7 @@ have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G p) :=
   calc p ∣ card G ^ 1 : by rwa pow_one
   ... ∣ card G ^ (p - 1) : pow_dvd_pow _ (nat.le_sub_left_of_add_le hp.out.two_le)
   ... = card (vectors_prod_eq_one G p) : hcard.symm,
-let ⟨⟨⟨x, hxl⟩, hx1⟩, hx, h1x⟩ := mul_action.exists_fixed_point_of_prime_dvd_card_of_fixed_point
+let ⟨⟨⟨x, hxl⟩, hx1⟩, hx, h1x⟩ := p_group.exists_fixed_point_of_prime_dvd_card_of_fixed_point
   (vectors_prod_eq_one G p) hzmod hdvdcard
   (one_mem_fixed_points_rotate _) in
 have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,

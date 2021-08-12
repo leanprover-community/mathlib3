@@ -86,7 +86,8 @@ normed_space.dual.to_weak_dual.symm
   (x'.to_weak_dual : E → 𝕜) = x' := rfl
 
 @[simp] lemma to_weak_dual_inj_iff (x' y' : dual 𝕜 E) :
-  x'.to_weak_dual = y'.to_weak_dual ↔ x' = y' := iff.rfl
+  x'.to_weak_dual = y'.to_weak_dual ↔ x' = y' :=
+normed_space.dual.to_weak_dual.injective.eq_iff
 
 @[simp] lemma to_original_dual_inj_iff (x' y' : weak_dual 𝕜 E) :
   x'.to_original_dual = y'.to_original_dual ↔ x' = y' := iff.rfl

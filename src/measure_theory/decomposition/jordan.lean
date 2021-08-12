@@ -38,7 +38,10 @@ open measure vector_measure
 variables {μ ν : measure α}
 
 /-- **The Jordan decomposition theorem**: Given a signed measure `s`, there exists
-a pair of mutually singular measures `μ` and `ν` such that `s = μ - ν`. -/
+a pair of mutually singular measures `μ` and `ν` such that `s = μ - ν`.
+
+Note that we use `measure.sub_to_signed_measure μ ν` to represent the signed measure corresponding
+to `μ - ν`. -/
 theorem exists_mutually_sigular_eq_sub (s : signed_measure α) :
   ∃ (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν],
     μ ⊥ₘ ν ∧ s = @sub_to_signed_measure _ _ μ ν hμ hν :=

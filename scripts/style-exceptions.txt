@@ -55,7 +55,6 @@ src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/wseq.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/set/lattice.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/sigma/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/subtype.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/ulift.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -179,7 +178,7 @@ src/tactic/tauto.lean : line 35 : ERR_LIN : Line has more than 100 characters
 src/tactic/tauto.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/tfae.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/tactic/tidy.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/tactic/tidy.lean : line 45 : ERR_LIN : Line has more than 100 characters
+src/tactic/tidy.lean : line 43 : ERR_LIN : Line has more than 100 characters
 src/tactic/transfer.lean : line 101 : ERR_LIN : Line has more than 100 characters
 src/tactic/transfer.lean : line 111 : ERR_LIN : Line has more than 100 characters
 src/tactic/transfer.lean : line 112 : ERR_LIN : Line has more than 100 characters

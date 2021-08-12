@@ -1,7 +1,31 @@
+/-
+Copyright (c) 2021 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
 import measure_theory.decomposition.signed_hahn
 
+/-!
+# Jordan decomposition
+
+This file proves the existence and uniqueness of the Jordan decomposition of signed measures.
+The Jordan decomposition theorem states that, given a signed measure `s`, there exists a
+unique pair of mutually singular measures `μ` and `ν`, such that `s = μ - ν`.
+The Jordan decomposition theorem for measure is a corollary of the Hahn decomposition theorem and
+is useful for the Lebesgue decomposition theorem.
+
+## Main results
+* `signed_measure.exists_mutually_sigular_eq_sub` : the Jordan decomposition theorem.
+* `signed_measure.mutually_sigular_eq_sub_unique` : the Jordan decomposition of a signed measure
+  is unique.
+
+## Tags
+
+Jordan decomposition theorem
+-/
+
 noncomputable theory
-open_locale classical big_operators nnreal ennreal measure_theory
+open_locale classical measure_theory
 
 variables {α β : Type*} [measurable_space α]
 
@@ -13,7 +37,7 @@ open measure vector_measure
 
 variables {μ ν : measure α}
 
-/-- The Jordan decomposition theorem: Given a signed measure `s`, there exists
+/-- **The Jordan decomposition theorem**: Given a signed measure `s`, there exists
 a pair of mutually singular measures `μ` and `ν` such that `s = μ - ν`. -/
 theorem exists_mutually_sigular_eq_sub (s : signed_measure α) :
   ∃ (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν],
@@ -39,8 +63,7 @@ end
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
 lemma exists_compl_positive_negative_of_exists_mutually_sigular_sub
-  {s : signed_measure α} {μ ν : measure α}
-  [hμ : finite_measure μ] [hν : finite_measure ν]
+  {s : signed_measure α} {μ ν : measure α} [hμ : finite_measure μ] [hν : finite_measure ν]
   (h : μ ⊥ₘ ν ∧ s = @sub_to_signed_measure _ _ μ ν hμ hν) :
   ∃ S (hS₁ : measurable_set S) (hS₄: s ≤[S] 0) (hS₅: 0 ≤[Sᶜ] s),
   μ S = 0 ∧ ν Sᶜ = 0 :=
@@ -59,6 +82,9 @@ begin
     exact ennreal.to_real_nonneg },
 end
 
+section
+
+/-- A subset `s` of a null-set `t` has zero measure if `t` is a subset of a positive set `u`. -/
 lemma subset_positive_null_set {s : signed_measure α} {u w t : set α}
   (hu : measurable_set u) (hw : measurable_set w) (ht : measurable_set t)
   (hsu : 0 ≤[u] s) (ht₁ : s t = 0) (ht₂ : t ⊆ u) (hwt : w ⊆ t) : s w = 0 :=
@@ -73,6 +99,7 @@ begin
   linarith,
 end
 
+/-- A subset `s` of a null-set `t` has zero measure if `t` is a subset of a negative set `u`. -/
 lemma subset_negative_null_set {s : signed_measure α} {u w t : set α}
   (hu : measurable_set u) (hw : measurable_set w) (ht : measurable_set t)
   (hsu : s ≤[u] 0) (ht₁ : s t = 0) (ht₂ : t ⊆ u) (hwt : w ⊆ t) : s w = 0 :=
@@ -87,6 +114,8 @@ begin
   linarith,
 end
 
+/-- If the symmetric difference of two positive sets is a null-set, then so are the differences
+between the two sets. -/
 lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive {s : signed_measure α} {u v : set α}
   (hu : measurable_set u) (hv : measurable_set v)
   (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
@@ -102,6 +131,8 @@ begin
   all_goals { linarith <|> apply_instance <|> assumption },
 end
 
+/-- If the symmetric difference of two negative sets is a null-set, then so are the differences
+between the two sets. -/
 lemma of_diff_eq_zero_of_symm_diff_eq_zero_negative {s : signed_measure α} {u v : set α}
   (hu : measurable_set u) (hv : measurable_set v)
   (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
@@ -117,9 +148,9 @@ begin
   all_goals { linarith <|> apply_instance <|> assumption },
 end
 
-lemma of_diff_of_symm_diff_eq_zero {s : signed_measure α} {u v : set α}
-  (hu : measurable_set u) (hv : measurable_set v)
-  (h : s (u Δ v) = 0) (h' : s (v \ u) = 0) : s (u \ v) + s v = s u :=
+lemma of_diff_of_diff_eq_zero {s : signed_measure α} {u v : set α}
+  (hu : measurable_set u) (hv : measurable_set v) (h' : s (v \ u) = 0) :
+  s (u \ v) + s v = s u :=
 begin
   symmetry,
   calc s u = s (u \ v ∪ u ∩ v) : by simp only [set.diff_union_inter]
@@ -155,7 +186,7 @@ begin
     (hw.inter hu) (hw.inter hv)
     (restrict_le_restrict_subset _ _ hu hsu (w.inter_subset_right u))
     (restrict_le_restrict_subset _ _ hv hsv (w.inter_subset_right v)) hwuv,
-  rw [← of_diff_of_symm_diff_eq_zero (hw.inter hu) (hw.inter hv) hwuv hvu, huv, zero_add]
+  rw [← of_diff_of_diff_eq_zero (hw.inter hu) (hw.inter hv) hvu, huv, zero_add]
 end
 
 lemma of_inter_eq_of_symm_diff_eq_zero_negative {s : signed_measure α} {u v w : set α}
@@ -175,7 +206,9 @@ begin
     (hw.inter hu) (hw.inter hv)
     (restrict_le_restrict_subset _ _ hu hsu (w.inter_subset_right u))
     (restrict_le_restrict_subset _ _ hv hsv (w.inter_subset_right v)) hwuv,
-  rw [← of_diff_of_symm_diff_eq_zero (hw.inter hu) (hw.inter hv) hwuv hvu, huv, zero_add]
+  rw [← of_diff_of_diff_eq_zero (hw.inter hu) (hw.inter hv) hvu, huv, zero_add]
+end
+
 end
 
 /-- The Jordan decomposition of a signed measure is unique. -/

@@ -121,6 +121,8 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
+@[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
+
 theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
 
 theorem maps_to.image_subset (h : maps_to f s t) : f '' s ⊆ t :=

@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import combinatorics.partition
-import ring_theory.int.basic
 import algebra.gcd_monoid.multiset
-import tactic.linarith
+import combinatorics.partition
 import group_theory.perm.cycles
 import group_theory.sylow
+import ring_theory.int.basic
+import tactic.linarith
 
 /-!
 # Cycle Types

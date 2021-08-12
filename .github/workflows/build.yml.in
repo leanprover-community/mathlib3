@@ -128,6 +128,7 @@ jobs:
           lean --run scripts/lint_mathlib.lean
 
       - name: upload nolint.txt
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: nolint.txt

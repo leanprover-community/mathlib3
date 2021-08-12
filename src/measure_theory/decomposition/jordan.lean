@@ -87,9 +87,6 @@ begin
   linarith,
 end
 
-lemma set.diff_disjoint_diff (u v : set α) : disjoint (u \ v) (v \ u) :=
-set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff
-
 lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive {s : signed_measure α} {u v : set α}
   (hu : measurable_set u) (hv : measurable_set v)
   (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
@@ -98,7 +95,8 @@ begin
   rw restrict_le_restrict_iff at hsu hsv,
   have a := hsu (hu.diff hv) (u.diff_subset v),
   have b := hsv (hv.diff hu) (v.diff_subset u),
-  erw [of_union (set.diff_disjoint_diff u v) (hu.diff hv) (hv.diff hu)] at hs,
+  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff)
+        (hu.diff hv) (hv.diff hu)] at hs,
   rw zero_apply at a b,
   split,
   all_goals { linarith <|> apply_instance <|> assumption },
@@ -112,7 +110,8 @@ begin
   rw restrict_le_restrict_iff at hsu hsv,
   have a := hsu (hu.diff hv) (u.diff_subset v),
   have b := hsv (hv.diff hu) (v.diff_subset u),
-  erw [of_union (set.diff_disjoint_diff u v) (hu.diff hv) (hv.diff hu)] at hs,
+  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff)
+        (hu.diff hv) (hv.diff hu)] at hs,
   rw zero_apply at a b,
   split,
   all_goals { linarith <|> apply_instance <|> assumption },
@@ -180,7 +179,7 @@ begin
 end
 
 /-- The Jordan decomposition of a signed measure is unique. -/
-theorem singular_sub_unique {s : signed_measure α} {μ₁ ν₁ μ₂ ν₂ : measure α}
+theorem mutually_sigular_eq_sub_unique {s : signed_measure α} {μ₁ ν₁ μ₂ ν₂ : measure α}
   [hμ₁ : finite_measure μ₁] [hν₁ : finite_measure ν₁]
   [hμ₂ : finite_measure μ₂] [hν₂ : finite_measure ν₂]
   (h₁ : μ₁ ⊥ₘ ν₁ ∧ s = @sub_to_signed_measure _ _ μ₁ ν₁ hμ₁ hν₁)
@@ -193,7 +192,6 @@ begin
     exists_compl_positive_negative_of_exists_mutually_sigular_sub h₂,
   obtain ⟨hST₁, hST₂⟩ := of_symm_diff_compl_positive_negative hS₁.compl hT₁.compl
     ⟨hS₃, (compl_compl S).symm ▸ hS₂⟩ ⟨hT₃, (compl_compl T).symm ▸ hT₂⟩,
-
   rw [compl_compl, compl_compl] at hST₂,
   split,
   { refine measure_theory.measure.ext (λ i hi, _),
@@ -225,7 +223,6 @@ begin
         hμ₁, hμ₂],
     exact of_inter_eq_of_symm_diff_eq_zero_positive hS₁.compl hT₁.compl hi hS₃ hT₃ hST₁,
     all_goals { apply_instance } },
-
   { refine measure_theory.measure.ext (λ i hi, _),
     have hν₁ : (ν₁ i).to_real = - s (i ∩ S),
     { rw [h₁.2, sub_to_signed_measure_apply (hi.inter hS₁),

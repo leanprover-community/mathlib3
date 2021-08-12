@@ -515,29 +515,28 @@ monoid_with_zero_hom.ext $ λ _, rfl
 
 end coes
 
-@[protected, to_additive]
-lemma one_hom.map_one [has_one M] [has_one N] (f : one_hom M N) : f 1 = 1 := f.map_one'
+@[to_additive]
+protected lemma one_hom.map_one [has_one M] [has_one N] (f : one_hom M N) : f 1 = 1 := f.map_one'
 /-- If `f` is a monoid homomorphism then `f 1 = 1`. -/
-@[protected, to_additive]
-lemma monoid_hom.map_one [mul_one_class M] [mul_one_class N] (f : M →* N) : f 1 = 1 := f.map_one'
-@[protected]
-lemma monoid_with_zero_hom.map_one [mul_zero_one_class M] [mul_zero_one_class N]
+@[to_additive]
+protected lemma monoid_hom.map_one [mul_one_class M] [mul_one_class N] (f : M →* N) :
+  f 1 = 1 := f.map_one'
+protected lemma monoid_with_zero_hom.map_one [mul_zero_one_class M] [mul_zero_one_class N]
   (f : monoid_with_zero_hom M N) : f 1 = 1 := f.map_one'
 
 /-- If `f` is an additive monoid homomorphism then `f 0 = 0`. -/
 add_decl_doc add_monoid_hom.map_zero
-@[protected]
-lemma monoid_with_zero_hom.map_zero [mul_zero_one_class M] [mul_zero_one_class N]
+protected lemma monoid_with_zero_hom.map_zero [mul_zero_one_class M] [mul_zero_one_class N]
   (f : monoid_with_zero_hom M N) : f 0 = 0 := f.map_zero'
 
-@[protected, to_additive]
-lemma mul_hom.map_mul [has_mul M] [has_mul N]
+@[to_additive]
+protected lemma mul_hom.map_mul [has_mul M] [has_mul N]
   (f : mul_hom M N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 /-- If `f` is a monoid homomorphism then `f (a * b) = f a * f b`. -/
-@[protected, to_additive]
-lemma monoid_hom.map_mul [mul_one_class M] [mul_one_class N]
+@[to_additive]
+protected lemma monoid_hom.map_mul [mul_one_class M] [mul_one_class N]
   (f : M →* N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
-lemma monoid_with_zero_hom.map_mul [mul_zero_one_class M] [mul_zero_one_class N]
+protected lemma monoid_with_zero_hom.map_mul [mul_zero_one_class M] [mul_zero_one_class N]
   (f :  monoid_with_zero_hom M N) (a b : M) : f (a * b) = f a * f b := f.map_mul' a b
 
 /-- If `f` is an additive monoid homomorphism then `f (a + b) = f a + f b`. -/

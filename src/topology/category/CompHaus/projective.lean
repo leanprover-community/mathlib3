@@ -38,7 +38,7 @@ instance projective_ultrafilter (X : Type*) :
     let t : X → Y := g' ∘ f ∘ (pure : X → ultrafilter X),
     let h : ultrafilter X → Y := ultrafilter.extend t,
     have hh : continuous h := continuous_ultrafilter_extend _,
-    use ⟨h⟩,
+    use ⟨h, hh⟩,
     apply faithful.map_injective (forget CompHaus),
     simp only [forget_map_eq_coe, continuous_map.coe_mk, coe_comp],
     convert dense_range_pure.equalizer (g.continuous.comp hh) f.continuous _,
@@ -49,16 +49,10 @@ instance projective_ultrafilter (X : Type*) :
   the natural map `ultrafilter X → X` is a projective presentation. -/
 def projective_presentation (X : CompHaus) : projective_presentation X :=
 { P := of $ ultrafilter X,
-  f :=
-  { to_fun := ultrafilter.extend id,
-    continuous_to_fun := continuous_ultrafilter_extend _ },
+  f := ⟨_, continuous_ultrafilter_extend id⟩,
   projective := CompHaus.projective_ultrafilter X,
-  epi := concrete_category.epi_of_surjective _
-  begin
-    intro x,
-    use (pure x : ultrafilter X),
-    exact congr_fun (ultrafilter_extend_extends (𝟙 X)) x,
-  end }
+  epi := concrete_category.epi_of_surjective _ $
+    λ x, ⟨(pure x : ultrafilter X), congr_fun (ultrafilter_extend_extends (𝟙 X)) x⟩ }
 
 instance : enough_projectives CompHaus :=
 { presentation := λ X, ⟨projective_presentation X⟩ }

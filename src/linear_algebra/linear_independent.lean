@@ -476,7 +476,7 @@ end
 
 /-- Linear independent families are injective, even if you multiply either side. -/
 lemma linear_independent.eq_of_smul_apply_eq_smul_apply {M : Type*} [add_comm_group M] [module R M]
-  [nontrivial R] {v : ι → M} (li : linear_independent R v) (c d : R) (i j : ι)
+  {v : ι → M} (li : linear_independent R v) (c d : R) (i j : ι)
   (hc : c ≠ 0) (h : c • v i = d • v j) : i = j :=
 begin
   let l : ι →₀ R := finsupp.single i c - finsupp.single j d,

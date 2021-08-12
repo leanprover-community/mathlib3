@@ -24,68 +24,6 @@ Recall that `∑` and `∏` are notation for `finset.sum` and `finset.prod` resp
   the second coefficient of the characteristic polynomial.
 -/
 
-lemma list.maximum_eq_coe_foldr_max_of_ne_nil (l : list ℕ) (h : l ≠ []) :
-  l.maximum = (l.foldr max 0 : ℕ) :=
-begin
-  induction l with hd tl IH,
-  { contradiction },
-  { rw [list.maximum_cons, list.foldr, with_bot.coe_max],
-    by_cases h : tl = [],
-    { simp [list.maximum_eq_none.mpr h, h] },
-    { simp [IH h] } }
-end
-
-lemma list.prod_le_of_forall_le (l : list ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
-  l.prod ≤ n ^ l.length :=
-begin
-  induction l with y l IH,
-  { simp },
-  { specialize IH (λ x hx, h x (list.mem_cons_of_mem _ hx)),
-    have hy : y ≤ n := h y (list.mem_cons_self _ _),
-    simpa [pow_succ] using mul_le_mul' hy IH }
-end
-
-lemma list.sum_le_of_forall_le (l : list ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
-  l.sum ≤ n * l.length :=
-begin
-  induction l with y l IH,
-  { simp },
-  { specialize IH (λ x hx, h x (list.mem_cons_of_mem _ hx)),
-    have hy : y ≤ n := h y (list.mem_cons_self _ _),
-    simpa [mul_add, add_comm] using add_le_add hy IH }
-end
-
-lemma list.max_le_of_forall_le (l : list ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
-  l.foldr max 0 ≤ n :=
-begin
-  induction l with y l IH,
-  { simp },
-  { specialize IH (λ x hx, h x (list.mem_cons_of_mem _ hx)),
-    have hy : y ≤ n := h y (list.mem_cons_self _ _),
-    simp [hy, IH] }
-end
-
-lemma multiset.prod_le_of_forall_le (l : multiset ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
-  l.prod ≤ n ^ l.card :=
-begin
-  induction l using quotient.induction_on,
-  simpa using list.prod_le_of_forall_le _ _ h
-end
-
-lemma multiset.sum_le_of_forall_le (l : multiset ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
-  l.sum ≤ n * l.card :=
-begin
-  induction l using quotient.induction_on,
-  simpa using list.sum_le_of_forall_le _ _ h
-end
-
-lemma multiset.max_le_of_forall_le (l : multiset ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
-  l.foldr max max_left_comm 0 ≤ n :=
-begin
-  induction l using quotient.induction_on,
-  simpa using list.max_le_of_forall_le _ _ h
-end
-
 open finset
 open multiset
 
@@ -136,6 +74,7 @@ begin
     { rw this,
       simpa [this] using nat_degree_list_sum_le l },
     rw list.maximum_eq_coe_foldr_max_of_ne_nil,
+    { congr },
     contrapose! h,
     rw [list.map_eq_nil] at h,
     simp [h] }
@@ -160,7 +99,7 @@ begin
     rw [add_mul, one_mul, add_comm, ←IH hl', mul_comm tl.length],
     have h : nat_degree tl.prod ≤ n * tl.length,
     { refine (nat_degree_list_prod_le _).trans _,
-      rw ←tl.length_map nat_degree,
+      rw [←tl.length_map nat_degree, mul_comm],
       refine list.sum_le_of_forall_le _ _ _,
       simpa using hl' },
     have hdn : nat_degree hd ≤ n := hl _ (list.mem_cons_self _ _),

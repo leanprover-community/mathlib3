@@ -415,6 +415,13 @@ by cases o; refl
   get_or_else (o.map f) (f x) = f (get_or_else o x) :=
 by cases o; refl
 
+/-- `option α` is a `subsingleton` if and only if `α` is empty. -/
+lemma subsingleton_iff_is_empty : subsingleton (option α) ↔ is_empty α :=
+⟨λ h, ⟨λ x, some_ne_none x $ @subsingleton.elim _ h _ _⟩,
+  λ h, ⟨λ x y, option.cases_on x (option.cases_on y rfl (λ x, h.elim x)) (λ x, h.elim x)⟩⟩
+
+instance [is_empty α] : subsingleton (option α) := subsingleton_iff_is_empty.2 ‹_›
+
 section
 open_locale classical
 
@@ -439,11 +446,10 @@ lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempt
 begin
   fsplit,
   { intro h, exact ⟨option.get h⟩, },
-  { rintro ⟨a⟩,
-    dsimp [choice],
-    rw dif_pos,
-    fsplit,
-    exact ⟨a⟩, },
+  { intro h,
+    dsimp only [choice],
+    rw dif_pos h,
+    exact is_some_some },
 end
 
 end

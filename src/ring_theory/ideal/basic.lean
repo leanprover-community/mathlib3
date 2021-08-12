@@ -480,7 +480,8 @@ compositions with `ideal.quotient.mk'` are equal.
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
-lemma ring_hom_ext ⦃f g : I.quotient →+* β (h : f.comp I.mk = g.comp I.mk) : f = g :=
+lemma ring_hom_ext [non_assoc_semiring β] ⦃f g : I.quotient →+* β⦄
+  (h : f.comp (mk I) = g.comp (mk I)) : f = g :=
 ring_hom.ext $ λ x, quotient.induction_on' x $ (ring_hom.congr_fun h : _)
 
 instance : inhabited (quotient I) := ⟨mk I 37⟩

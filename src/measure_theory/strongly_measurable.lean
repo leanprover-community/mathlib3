@@ -108,11 +108,7 @@ lemma eq_zero_compl (hf : strongly_measurable f μ) : ∀ x ∈ hf.sigma_finite_
 hf.exists_set_sigma_finite.some_spec.2.1
 
 lemma ae_eq_zero_compl (hf : strongly_measurable f μ) : f =ᵐ[μ.restrict hf.sigma_finite_setᶜ] 0 :=
-begin
-  rw [eventually_eq, ae_restrict_iff' hf.measurable_set.compl],
-  refine eventually_of_forall (λ x hx, _),
-  exact hf.eq_zero_compl x hx,
-end
+(ae_restrict_iff' hf.measurable_set.compl).mpr (eventually_of_forall hf.eq_zero_compl)
 
 lemma sigma_finite_restrict (hf : strongly_measurable f μ) :
   sigma_finite (μ.restrict hf.sigma_finite_set) :=

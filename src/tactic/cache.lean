@@ -70,14 +70,14 @@ intros p >> reset_instance_cache
 be used in typeclass inference. The syntax is the same as `have`,
 but the proof-omitted version is not supported. For
 this one must write `have : t, { <proof> }, resetI, <proof>`. -/
-meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse (tk ":=" *> texpr)) :
+meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse (tk ":=" *> texpr)?) :
   tactic unit :=
 do h ← match h with
   | none   := get_unused_name "_inst"
   | some a := return a
   end,
-  «have» (some h) q₁ (some q₂),
-  match q₁ with
+  «have» (some h) q₁ q₂,
+  match q₂ with
   | none    := swap >> reset_instance_cache >> swap
   | some p₂ := reset_instance_cache
   end

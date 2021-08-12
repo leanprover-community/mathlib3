@@ -2636,8 +2636,8 @@ def compatible_maps : submodule R (M →ₗ[R] M₂) :=
 natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
 def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
-  map_add'  := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
-  map_smul' := λ c f, by { ext m', apply quotient.induction_on' m', intros m, refl, } }
+  map_add'  := λ x y, by { ext, refl, },
+  map_smul' := λ c f, by { ext, refl, } }
 
 end submodule
 

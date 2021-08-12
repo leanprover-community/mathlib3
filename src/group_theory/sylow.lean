@@ -174,7 +174,7 @@ lemma card_quotient_normalizer_modeq_card_quotient [fintype G] {p : ℕ} {n : �
   ≡ card (quotient H) [MOD p] :=
 begin
   rw [← fintype.card_congr (fixed_points_mul_left_cosets_equiv_quotient H)],
-  exact (card_modeq_card_fixed_points _ hH).symm
+  exact (p_group.card_modeq_card_fixed_points _ hH).symm
 end
 
 /-- If `H` is a subgroup of `G` of cardinality `p ^ n`, then the cardinality of the
@@ -234,7 +234,7 @@ have hcard : card (quotient H) = s * p :=
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
-    @card_modeq_card_fixed_points _ _ _ _ _ _ _ p _ hp hH,
+    p_group.card_modeq_card_fixed_points _ hH,
 have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),

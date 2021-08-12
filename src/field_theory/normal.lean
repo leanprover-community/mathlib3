@@ -128,7 +128,7 @@ lemma normal.of_is_splitting_field (p : polynomial F) [hFEp : is_splitting_field
   normal F E :=
 begin
   by_cases hp : p = 0,
-  { haveI : is_splitting_field F F p := by { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
+  { haveI : is_splitting_field F F p, { rw hp, exact ⟨splits_zero _, subsingleton.elim _ _⟩ },
     exactI (alg_equiv.transfer_normal ((is_splitting_field.alg_equiv F p).trans
       (is_splitting_field.alg_equiv E p).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),

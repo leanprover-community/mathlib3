@@ -103,6 +103,18 @@ lemma mem_fixed_points_iff_stabilizer_eq_top (a : β) :
   a ∈ fixed_points α β ↔ stabilizer α a = ⊤ :=
 by simp only [mem_fixed_points, subgroup.eq_top_iff', mem_stabilizer_iff]
 
+lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
+  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
+begin
+  rw [fintype.card_eq_one_iff, mem_fixed_points],
+  split,
+  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
+  { assume h x,
+    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
+    exact calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
+      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
+end
+
 variables (α) {β}
 
 @[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=

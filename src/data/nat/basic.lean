@@ -644,6 +644,9 @@ begin
     exact nat.le_of_pred_lt h', },
 end
 
+@[simp] lemma add_sub_sub_cancel {a c : ℕ} (h : c ≤ a) (b : ℕ) : a + b - (a - c) = b + c :=
+by rw [add_comm, nat.add_sub_assoc (nat.sub_le_self _ _), nat.sub_sub_self h]
+
 /-! ### `mul` -/
 
 lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=
@@ -942,6 +945,12 @@ by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2]
 
 protected theorem mul_div_cancel_left' {a b : ℕ} (Hd :  a ∣ b) : a * (b / a) = b :=
 by rw [mul_comm,nat.div_mul_cancel Hd]
+
+/-- Alias of `nat.mul_div_mul` -/ --TODO: Update `nat.mul_div_mul` in the core?
+protected lemma mul_div_mul_left (a b : ℕ) {c : ℕ} (hc : 0 < c) : c * a / (c * b) = a / b :=
+nat.mul_div_mul a b hc
+protected lemma mul_div_mul_right (a b : ℕ) {c : ℕ} (hc : 0 < c) : a * c / (b * c) = a / b :=
+by rw [mul_comm, mul_comm b, a.mul_div_mul_left b hc]
 
 /-! ### `mod`, `dvd` -/
 

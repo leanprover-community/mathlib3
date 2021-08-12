@@ -38,8 +38,6 @@ noncomputable theory
 
 open complex metric
 
-local notation `π` := real.pi
-
 /-- The unit circle in `ℂ`, here given the structure of a submonoid of `ℂ`. -/
 def circle : submonoid ℂ :=
 { carrier := sphere (0:ℂ) 1,

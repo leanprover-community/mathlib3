@@ -250,7 +250,9 @@ fractional_ideal.div_one
 A Dedekind domain is an integral domain such that every fractional ideal has an inverse.
 
 This is equivalent to `is_dedekind_domain`.
-TODO: prove the equivalence.
+In particular we provide a `fractional_ideal.comm_group_with_zero` instance,
+assuming `is_dedekind_domain A`, which implies `is_dedekind_domain_inv`. For **integral** ideals,
+`is_dedekind_domain`(`_inv`) implies only `ideal.comm_cancel_monoid_with_zero`.
 -/
 def is_dedekind_domain_inv : Prop :=
 ∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * I⁻¹ = 1
@@ -591,5 +593,10 @@ noncomputable instance fractional_ideal.comm_group_with_zero
     (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
   .. fractional_ideal.comm_semiring }
+
+noncomputable instance ideal.comm_cancel_monoid_with_zero
+  [is_dedekind_domain A] : comm_cancel_monoid_with_zero (ideal A) :=
+function.injective.comm_cancel_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
+  coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
 
 end inverse

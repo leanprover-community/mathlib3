@@ -2313,7 +2313,7 @@ do n ← ident,
    d ← parser.pexpr,
    d ← to_expr ``(%%d : option string),
    descr ← eval_expr (option string) d,
-   with_list ← types.with_ident_list,
+   with_list ← (tk "with" *> many ident) <|> return [],
    mk_simp_attr n with_list,
    add_doc_string (name.append `simp_attr n) $ descr.get_or_else $ "simp set for " ++ to_string n
 

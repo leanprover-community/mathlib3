@@ -63,7 +63,7 @@ begin
   exact z.ne_zero
 end
 
-lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := ne_of_gt (norm_sq_pos z)
+lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
 
 /-- Numerator of the formula for a fractional linear transformation -/
 @[simp] def top (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)

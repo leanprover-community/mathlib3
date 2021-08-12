@@ -134,12 +134,26 @@ begin
   exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
+lemma summable_coe_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
+  @summable (ℝ≥0) _ _ _ (λ n, ⟨f n, hf₁ n⟩) ↔ summable f :=
+begin
+  lift f to α → ℝ≥0 using hf₁ with f rfl hf₁,
+  simp only [summable_coe, subtype.coe_eta]
+end
+
 open_locale classical
 
 @[norm_cast] lemma coe_tsum {f : α → ℝ≥0} : ↑∑'a, f a = ∑'a, (f a : ℝ) :=
 if hf : summable f
 then (eq.symm $ (has_sum_coe.2 $ hf.has_sum).tsum_eq)
 else by simp [tsum, hf, mt summable_coe.1 hf]
+
+lemma coe_tsum_of_nonneg {f : α → ℝ} (hf₁ : ∀ n, 0 ≤ f n) :
+  (⟨∑' n, f n, tsum_nonneg hf₁⟩ : ℝ≥0) = (∑' n, ⟨f n, hf₁ n⟩ : ℝ≥0) :=
+begin
+  lift f to α → ℝ≥0 using hf₁ with f rfl hf₁,
+  simp_rw [← nnreal.coe_tsum, subtype.coe_eta]
+end
 
 lemma tsum_mul_left (a : ℝ≥0) (f : α → ℝ≥0) : ∑' x, a * f x = a * ∑' x, f x :=
 nnreal.eq $ by simp only [coe_tsum, nnreal.coe_mul, tsum_mul_left]

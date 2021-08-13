@@ -153,6 +153,23 @@ begin
   simp_rw [f.map_sum, linear_map.sum_apply, linear_map.map_sum, h_comm],
 end
 
+lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω')
+  (g' : β → δ → ξ) {q r : Type*} [fintype q] [fintype r] (A : matrix l m α) (B : matrix n p β)
+  (D : matrix q r δ) (φ : ω ≃ ω') :
+  (reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)).trans (equiv.map_matrix φ)
+    (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
+begin
+  ext i j,
+  simp only [equiv.prod_assoc_symm_apply, function.comp_app, minor_apply, equiv.map_matrix_apply,
+    map_apply, reindex_apply, equiv.coe_trans, kronecker_map],
+  -- simp only [matrix.linear_equiv_index_assoc, kronecker_biprod_apply_apply, linear_map.coe_mk,
+  --   id.map_eq_self,
+  --   reindex_apply, linear_equiv.coe_mk],
+  -- ext i j,
+  -- simp only [equiv.prod_assoc_symm_apply, reindex_linear_equiv_apply, minor_apply, reindex_apply,
+  --   mul_assoc, kronecker_map, algebra.biprod_apply, id.map_eq_self],
+end
+
 end kronecker_map
 
 /-! ### Specialization to `matrix.kronecker_map (*)` -/
@@ -221,7 +238,10 @@ lemma mul_kronecker_mul [comm_semiring α]
   (A ⬝ B) ⊗ₖ (A' ⬝ B') = (A ⊗ₖ A') ⬝ (B ⊗ₖ B') :=
 kronecker_map_linear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_comm A B A' B'
 
--- insert lemmas specific to `kronecker` below this line
+lemma kronecker_assoc [comm_semiring α] {q r : Type*} [fintype q] [fintype r]
+  (A : matrix l m α) (B : matrix n p α) (C : matrix q r α) :
+  reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r) ((A ⊗ₖ B) ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C):=
+kronecker_map_assoc _ _ _ _ A B C (equiv.cast rfl)
 
 end kronecker
 

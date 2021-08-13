@@ -47,7 +47,7 @@ open measure vector_measure
 
 variable (j : jordan_decomposition α)
 
-instance jordan_decomposition_inhabited : inhabited (jordan_decomposition α) :=
+instance : inhabited (jordan_decomposition α) :=
 { default := ⟨0, 0, mutually_singular.zero⟩ }
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/

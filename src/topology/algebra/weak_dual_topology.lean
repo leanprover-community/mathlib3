@@ -83,24 +83,20 @@ The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 -/
 
 variables (𝕜 : Type*) [topological_space 𝕜] [semiring 𝕜]
-variables [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
 variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
-variables [has_continuous_add E]
-variables [has_continuous_smul 𝕜 E]
+--variables [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
+--variables [has_continuous_add E]
+--variables [has_continuous_smul 𝕜 E]
 
 /-- The (weak) dual of a topological module `E` over a topological semiring `𝕜` consists of
 continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the original
 dual, but will be equipped with a different topology. -/
-@[derive [inhabited, has_coe_to_fun, add_comm_monoid]]
+@[derive [inhabited, has_coe_to_fun]]
 def weak_dual := E →L[𝕜] 𝕜
 
-<<<<<<< HEAD
-=======
 instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) :=
 continuous_linear_map.add_comm_monoid
 
-
->>>>>>> kkytola/weak_star_topology_temp_20210813
 namespace weak_dual
 
 /-- The weak-* topology instance `weak_dual_topology` on the dual of a topological module `E` over
@@ -134,7 +130,7 @@ begin
 end
 
 /-- Addition in `weak_dual 𝕜 E` is continuous. -/
-instance : has_continuous_add (weak_dual 𝕜 E) :=
+instance [has_continuous_add 𝕜] : has_continuous_add (weak_dual 𝕜 E) :=
 { continuous_add := begin
     apply continuous_of_continuous_eval,
     intros z,
@@ -159,8 +155,7 @@ instance : has_continuous_add (weak_dual 𝕜 E) :=
 /-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`. -/
 instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
-  (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]
-  [module 𝕜 E] [has_continuous_smul 𝕜 E] :
+  (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
   module 𝕜 (weak_dual 𝕜 E) :=
 continuous_linear_map.module
 
@@ -168,8 +163,8 @@ continuous_linear_map.module
 semiring). -/
 instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
-  (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]
-  [module 𝕜 E] [has_continuous_smul 𝕜 E] :
+  (E : Type*) [topological_space E] [add_comm_group E]
+  [module 𝕜 E] :
   has_continuous_smul 𝕜 (weak_dual 𝕜 E) :=
 { continuous_smul := begin
     apply continuous_of_continuous_eval,

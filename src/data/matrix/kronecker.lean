@@ -162,6 +162,8 @@ begin
   ext i j,
   simp only [equiv.prod_assoc_symm_apply, function.comp_app, minor_apply, equiv.map_matrix_apply,
     map_apply, reindex_apply, equiv.coe_trans, kronecker_map],
+  sorry,
+
   -- simp only [matrix.linear_equiv_index_assoc, kronecker_biprod_apply_apply, linear_map.coe_mk,
   --   id.map_eq_self,
   --   reindex_apply, linear_equiv.coe_mk],

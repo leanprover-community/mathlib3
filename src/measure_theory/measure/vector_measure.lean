@@ -184,7 +184,7 @@ begin
 end
 
 lemma of_diff_of_diff_eq_zero {A B : set α}
-  (hu : measurable_set A) (hv : measurable_set B) (h' : v (B \ A) = 0) :
+  (hA : measurable_set A) (hB : measurable_set B) (h' : v (B \ A) = 0) :
   v (A \ B) + v B = v A :=
 begin
   symmetry,
@@ -193,13 +193,13 @@ begin
   by { rw of_union,
        { rw disjoint.comm,
          exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_diff },
-       { exact hu.diff hv },
-       { exact hu.inter hv } }
+       { exact hA.diff hB },
+       { exact hA.inter hB } }
        ... = v (A \ B) + v (A ∩ B ∪ B \ A) :
   by { rw [of_union, h', add_zero],
        { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_diff },
-       { exact hu.inter hv },
-       { exact hv.diff hu } }
+       { exact hA.inter hB },
+       { exact hB.diff hA } }
        ... = v (A \ B) + v B :
   by { rw [set.union_comm, set.inter_comm, set.diff_union_inter] }
 end

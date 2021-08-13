@@ -328,8 +328,9 @@ namespace signed_measure
 
 open jordan_decomposition
 
-/-- `signed_measure.to_jordan_decomposition` forms a `equiv` between
-`signed_measure α` and `jordan_decomposition α` -/
+/-- `measure_theory.signed_measure.to_jordan_decomposition` and
+`measure_theory.jordan_decomposition.to_signed_measure` form a `equiv`. -/
+@[simps apply symm_apply]
 def to_jordan_decomposition_equiv (α : Type*) [measurable_space α] :
   signed_measure α ≃ jordan_decomposition α :=
 { to_fun := to_jordan_decomposition,

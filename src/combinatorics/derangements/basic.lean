@@ -173,18 +173,14 @@ end
 def derangements_equiv_sigma_opfp :
   derangements (option α) ≃ Σ a : α, {f : perm α | only_possible_fixed_point f a} :=
 begin
-  have fiber_is_some : ∀ a : option α, (remove_none.fiber a) → a.is_some,
-  { rintro ⟨a⟩,
-    { rw remove_none.fiber_none_eq_empty, simp },
-    { intro _, simp } },
+  have fiber_none_is_false : (remove_none.fiber (@none α)) -> false,
+  { rw remove_none.fiber_none_eq_empty, exact is_empty.false },
 
   calc derangements (option α)
       ≃ equiv.perm.decompose_option '' derangements (option α)   : equiv.image _ _
   ... ≃ Σ (a : option α), ↥(remove_none.fiber a)                 : set_prod_equiv_sigma _
-  ... ≃ Σ (a : {a' : option α // a'.is_some}), ↥(remove_none.fiber a.val)
-          : (sigma_subtype_equiv_of_subset _ _ fiber_is_some).symm
   ... ≃ Σ (a : α), ↥(remove_none.fiber (some a))
-          : sigma_congr_left' (option_is_some_equiv α)
+          : sigma_option_equiv_of_some _ fiber_none_is_false
   ... ≃ Σ (a : α), {f : perm α | only_possible_fixed_point f a}
           : by simp_rw remove_none.fiber_eq_opfp,
 end

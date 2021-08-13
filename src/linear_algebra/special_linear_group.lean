@@ -167,7 +167,7 @@ each element. -/
 instance : has_neg (special_linear_group n R) :=
 ⟨λ g,
   ⟨- g, by simpa [nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), g.det_coe] using
-  @det_smul _ _ _ _ _ ↑ₘg (-1)⟩⟩
+  det_smul ↑ₘg (-1)⟩⟩
 
 @[simp] lemma coe_neg (g : special_linear_group n R) :
   ↑(- g) = - (↑g : matrix n n R) :=

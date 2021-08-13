@@ -323,8 +323,19 @@ end
 instance : is_alg_closed (algebraic_closure k) :=
 is_alg_closed.of_exists_root _ $ λ f, exists_root k
 
-instance : algebra k (algebraic_closure k) :=
-(of_step k 0).to_algebra
+instance {R : Type*} [comm_semiring R] [alg : algebra R k] :
+  algebra R (algebraic_closure k) :=
+((of_step k 0).comp (@algebra_map _ _ _ _ alg)).to_algebra
+
+lemma algebra_map_def {R : Type*} [comm_semiring R] [alg : algebra R k] :
+  algebra_map R (algebraic_closure k) = ((of_step k 0 : k →+* _).comp (@algebra_map _ _ _ _ alg)) :=
+rfl
+
+instance {R S : Type*} [comm_semiring R] [comm_semiring S]
+  [algebra R S] [algebra S k] [algebra R k] [is_scalar_tower R S k] :
+  is_scalar_tower R S (algebraic_closure k) :=
+is_scalar_tower.of_algebra_map_eq (λ x,
+  ring_hom.congr_arg _ (is_scalar_tower.algebra_map_apply R S k x : _))
 
 /-- Canonical algebra embedding from the `n`th step to the algebraic closure. -/
 def of_step_hom (n) : step k n →ₐ[k] algebraic_closure k :=

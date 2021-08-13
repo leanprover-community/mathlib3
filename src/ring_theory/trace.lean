@@ -7,6 +7,8 @@ Authors: Anne Baanen
 import linear_algebra.bilinear_form
 import linear_algebra.char_poly.coeff
 import linear_algebra.trace
+import field_theory.adjoin
+import field_theory.algebraic_closure
 import ring_theory.power_basis
 
 /-!
@@ -161,14 +163,16 @@ by { ext, rw [trace_form_to_matrix, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
 
 end trace_form
 
-section eq_prod_roots
+end algebra
 
-open polynomial
+section eq_sum_roots
+
+open algebra polynomial
 
 variables {F : Type*} [field F]
 variables [algebra K S] [algebra K F]
 
-lemma trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
+lemma power_basis.trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (trace K S pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.sum :=
@@ -193,6 +197,41 @@ begin
     intros, apply monic_X_sub_C },
 end
 
-end eq_prod_roots
+namespace intermediate_field.adjoin_simple
+
+open intermediate_field
+
+lemma trace_gen_eq_zero {x : L} (hx : ¬ is_integral K x) :
+  algebra.trace K K⟮x⟯ (adjoin_simple.gen K x) = 0 :=
+begin
+  rw [trace_eq_zero_of_not_exists_basis, linear_map.zero_apply],
+  contrapose! hx,
+  obtain ⟨s, ⟨b⟩⟩ := hx,
+  refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_finset_basis b) },
+  { exact subset_adjoin K _ (set.mem_singleton x) }
+end
+
+lemma trace_gen_eq_sum_roots (x : L)
+  (hf : (minpoly K x).splits (algebra_map K F)) :
+  algebra_map K F (trace K K⟮x⟯ (adjoin_simple.gen K x)) =
+    ((minpoly K x).map (algebra_map K F)).roots.sum :=
+begin
+  have injKKx : function.injective (algebra_map K K⟮x⟯) := ring_hom.injective _,
+  have injKxL : function.injective (algebra_map K⟮x⟯ L) := ring_hom.injective _,
+  by_cases hx : is_integral K x, swap,
+  { simp [minpoly.eq_zero hx, trace_gen_eq_zero hx], },
+  have hx' : is_integral K (adjoin_simple.gen K x),
+  { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
+    apply_instance },
+  rw [← adjoin.power_basis.gen_eq hx, (adjoin.power_basis hx).trace_gen_eq_sum_roots];
+    rw [adjoin.power_basis.gen_eq hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
+    try { simp only [adjoin_simple.algebra_map_gen _ _] },
+  exact hf
+end
+
+end intermediate_field.adjoin_simple
+
+end eq_sum_roots
 
 end algebra

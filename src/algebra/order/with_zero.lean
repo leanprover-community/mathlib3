@@ -188,7 +188,7 @@ theorem map_neg_one : f (-1) = 1 :=
               ... = f ((-1) * - 1) : (f.map_mul _ _).symm
               ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)
               ... = f 1            : congr_arg _ (neg_neg _)
-              ... = 1              : map_one f
+              ... = 1              : map_one R f
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=
 calc f (-x) = f (-1 * x)   : congr_arg _ (neg_one_mul _).symm

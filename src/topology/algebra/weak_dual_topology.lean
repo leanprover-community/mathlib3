@@ -159,7 +159,8 @@ instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   module 𝕜 (weak_dual 𝕜 E) :=
 continuous_linear_map.module
 
-/-- Scalar multiplication in `weak_dual 𝕜 E` is continuous (when `𝕜` are a commutative semiring). -/
+/-- Scalar multiplication in `weak_dual 𝕜 E` is continuous (when `𝕜` are a commutative
+semiring). -/
 instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]

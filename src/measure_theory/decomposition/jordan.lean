@@ -71,6 +71,12 @@ instance : inhabited (jordan_decomposition α) :=
 instance : has_neg (jordan_decomposition α) :=
 { neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩ }
 
+@[simp] lemma zero_pos_part : (0 : jordan_decomposition α).pos_part = 0 := rfl
+@[simp] lemma zero_neg_part : (0 : jordan_decomposition α).neg_part = 0 := rfl
+
+@[simp] lemma neg_pos_part : (-j).pos_part = j.neg_part := rfl
+@[simp] lemma neg_neg_part : (-j).neg_part = j.pos_part := rfl
+
 /-- The signed measure associated with a Jordan decomposition. -/
 def to_signed_measure : signed_measure α :=
 j.pos_part.to_signed_measure - j.neg_part.to_signed_measure

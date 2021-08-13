@@ -28,7 +28,7 @@ inductive perm : list α → list α → Prop
 
 open perm (swap)
 
-infix ~ := perm
+infix ` ~ `:50 := perm
 
 @[refl] protected theorem perm.refl : ∀ (l : list α), l ~ l
 | []      := perm.nil

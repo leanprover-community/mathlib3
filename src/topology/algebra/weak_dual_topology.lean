@@ -138,8 +138,6 @@ instance : has_continuous_add (weak_dual 𝕜 E) :=
     exact rect_sub_W key,
   end, }
 
---instance : has_continuous_smul 𝕜 (weak_dual 𝕜 E) := sorry
-
 /-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`. -/
 instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
@@ -147,6 +145,31 @@ instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   [module 𝕜 E] [has_continuous_smul 𝕜 E] :
   module 𝕜 (weak_dual 𝕜 E) :=
 continuous_linear_map.module
+
+instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
+  [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
+  (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]
+  [module 𝕜 E] [has_continuous_smul 𝕜 E] :
+  has_continuous_smul 𝕜 (weak_dual 𝕜 E) :=
+{ continuous_smul := begin
+    apply continuous_of_continuous_eval,
+    intros z,
+    rw continuous_iff_continuous_at,
+    intros p,
+    set pz := (⟨p.fst, p.snd z⟩ : 𝕜 × 𝕜) with h_pz,
+    intros V V_nhd,
+    have W_nhd := continuous_iff_continuous_at.mp (‹has_continuous_mul 𝕜›.continuous_mul) pz V_nhd,
+    have rect := mem_nhds_prod_iff.mp W_nhd,
+    rcases rect with ⟨W₁, hW₁, W₂, ⟨hW₂, rect_sub_W⟩⟩,
+    have evat_cont_at := continuous_iff_continuous_at.mp (eval_continuous 𝕜 E z),
+    have nhd₂ := evat_cont_at p.snd hW₂,
+    have nhd := prod_mem_nhds_iff.mpr ⟨hW₁, nhd₂⟩,
+    rw prod.mk.eta at nhd,
+    apply mem_sets_of_superset nhd,
+    intros q hq,
+    have key : (⟨q.fst, q.snd z⟩ : 𝕜 × 𝕜) ∈ W₁.prod W₂ := hq,
+    exact rect_sub_W key,
+  end, }
 
 end weak_dual
 

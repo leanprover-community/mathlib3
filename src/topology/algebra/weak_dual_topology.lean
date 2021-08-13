@@ -71,24 +71,26 @@ The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 -/
 
 variables (𝕜 : Type*) [topological_space 𝕜] [semiring 𝕜]
-variables [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
-variables (E : Type*) [topological_space E] [add_comm_monoid E] [has_continuous_add E]
-variables [module 𝕜 E] [has_continuous_smul 𝕜 E]
+variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
 
 /-- The (weak) dual of a topological module `E` over a topological semiring `𝕜` consists of
 continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the original
 dual, but will be equipped with a different topology. -/
-@[derive [inhabited, has_coe_to_fun, add_comm_monoid]]
+@[derive [inhabited, has_coe_to_fun]]
 def weak_dual := E →L[𝕜] 𝕜
 
+instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) := continuous_linear_map.add_comm_monoid
+
 namespace weak_dual
+
+variables [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
+variables [has_continuous_add E] [has_continuous_smul 𝕜 E]
 
 /-- The weak-* topology instance `weak_dual_topology` on the dual of a topological module `E` over
 a topological semiring `𝕜` is defined as the induced topology under the mapping that associates to
 a dual element `x' : weak_dual 𝕜 E` the functional `E → 𝕜`, when the space `E → 𝕜` of functionals
 is equipped with the topology of pointwise convergence (product topology). -/
-instance weak_dual_topology :
-  topological_space (weak_dual 𝕜 E) :=
+instance : topological_space (weak_dual 𝕜 E) :=
 topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topological_space
 
 lemma eval_continuous' :
@@ -114,8 +116,35 @@ begin
     rwa [nhds_induced, tendsto_comap_iff], },
 end
 
+instance : has_continuous_add (weak_dual 𝕜 E) :=
+{ continuous_add := begin
+    apply continuous_of_continuous_eval,
+    intros z,
+    rw continuous_def,
+    intros V V_open,
+    have W_open := continuous_def.mp (‹has_continuous_add 𝕜›.continuous_add) _ V_open,
+    set W := ((λ (p : 𝕜 × 𝕜), p.fst + p.snd) ⁻¹' V) with h_W,
+    --simp at whee,
+
+    --rw continuous_iff_continuous_at,
+    --intros p,
+
+    --rw continuous_iff_ultrafilter,
+    --intros p F h_F,
+    --have whee := tendsto.prod_mk_nhds,
+
+    --rw tendsto.prod_mk_nhds,
+    --have whee := continuous_at.tendsto,
+    --have whee := continuous_pi_iff,
+    --rw continuous_iff_tends
+    --have key := continuous.prod_map,
+    sorry,
+  end, }
+
+--instance : has_continuous_smul 𝕜 (weak_dual 𝕜 E) := sorry
+
 /-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`. -/
-instance weak_dual_module (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
+instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [has_continuous_add E]
   [module 𝕜 E] [has_continuous_smul 𝕜 E] :

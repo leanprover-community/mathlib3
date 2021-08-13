@@ -63,7 +63,11 @@ open measure vector_measure
 variable (j : jordan_decomposition α)
 
 instance : inhabited (jordan_decomposition α) :=
-{ default := ⟨0, 0, mutually_singular.zero⟩ }
+instance : has_zero (jordan_decomposition α) :=
+{ zero := ⟨0, 0, mutually_singular.zero⟩ }
+
+instance : inhabited (jordan_decomposition α) :=
+{ default := 0 }
 
 instance : has_neg (jordan_decomposition α) :=
 { neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩ }

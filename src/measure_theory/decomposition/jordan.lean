@@ -35,9 +35,9 @@ namespace measure_theory
 finite measures. -/
 @[ext] structure jordan_decomposition (α : Type*) [measurable_space α] :=
 (μ ν : measure α)
-[μ_finite' : finite_measure μ]
-[ν_finite' : finite_measure ν]
-(mutually_singular' : μ ⊥ₘ ν)
+[μ_finite : finite_measure μ]
+[ν_finite : finite_measure ν]
+(mutually_singular : μ ⊥ₘ ν)
 
 namespace jordan_decomposition
 
@@ -48,10 +48,8 @@ variable (j : jordan_decomposition α)
 instance jordan_decomposition_inhabited : inhabited (jordan_decomposition α) :=
 { default := ⟨0, 0, mutually_singular.zero⟩ }
 
-instance μ_finite : finite_measure j.μ := j.μ_finite'
-instance ν_finite : finite_measure j.ν := j.ν_finite'
-
-lemma mutually_singular : j.μ ⊥ₘ j.ν := j.mutually_singular'
+attribute [instance] μ_finite
+attribute [instance] ν_finite
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
 lemma exists_compl_positive_negative

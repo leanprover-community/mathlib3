@@ -97,6 +97,7 @@ def weak_dual := E →L[𝕜] 𝕜
 instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) :=
 continuous_linear_map.add_comm_monoid
 
+
 namespace weak_dual
 
 /-- The weak-* topology instance `weak_dual_topology` on the dual of a topological module `E` over

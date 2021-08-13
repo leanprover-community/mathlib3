@@ -94,6 +94,13 @@ dual, but will be equipped with a different topology. -/
 @[derive [inhabited, has_coe_to_fun, add_comm_monoid]]
 def weak_dual := E →L[𝕜] 𝕜
 
+<<<<<<< HEAD
+=======
+instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) :=
+continuous_linear_map.add_comm_monoid
+
+
+>>>>>>> kkytola/weak_star_topology_temp_20210813
 namespace weak_dual
 
 /-- The weak-* topology instance `weak_dual_topology` on the dual of a topological module `E` over

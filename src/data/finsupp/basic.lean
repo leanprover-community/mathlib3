@@ -1509,7 +1509,7 @@ by { ext b, simp [single_apply], }
 lemma prod_option_index [add_comm_monoid M] [comm_monoid N]
   (f : option α →₀ M) (b : option α → M → N) (h_zero : ∀ o, b o 0 = 1)
   (h_add : ∀ o m₁ m₂, b o (m₁ + m₂) = b o m₁ * b o m₂) :
-  f.prod (λ a, b a) = b none (f none) * f.some.prod (λ a, b (option.some a)) :=
+  f.prod b = b none (f none) * f.some.prod (λ a, b (option.some a)) :=
 begin
   apply induction_linear f,
   { simp [h_zero], },

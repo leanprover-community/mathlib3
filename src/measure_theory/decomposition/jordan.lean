@@ -39,7 +39,7 @@ Jordan decomposition theorem
 -/
 
 noncomputable theory
-open_locale classical measure_theory
+open_locale classical measure_theory ennreal
 
 variables {α β : Type*} [measurable_space α]
 
@@ -74,6 +74,12 @@ instance : has_neg (jordan_decomposition α) :=
 /-- The signed measure associated with a Jordan decomposition. -/
 def to_signed_measure : signed_measure α :=
 j.pos_part.to_signed_measure - j.neg_part.to_signed_measure
+
+lemma to_signed_measure_zero : (0 : jordan_decomposition α).to_signed_measure = 0 :=
+begin
+  ext1 i hi,
+  erw [to_signed_measure, to_signed_measure_sub_apply hi, sub_self, zero_apply],
+end
 
 lemma to_signed_measure_neg : (-j).to_signed_measure = - j.to_signed_measure :=
 begin

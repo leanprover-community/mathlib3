@@ -491,6 +491,25 @@ by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     by { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH } ]
 
+lemma prime.pow_dvd_of_dvd_mul_right {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
+  (hpb : ¬ p ∣ b) : p ^ n ∣ a :=
+begin
+  induction n with n ih,
+  { simp },
+  { rw [pow_succ'] at *,
+    rcases ih (dvd_trans (dvd_mul_right _ _) h) with ⟨c, rfl⟩,
+    rw [mul_assoc] at h,
+    rcases hp.dvd_mul.1 (nat.dvd_of_mul_dvd_mul_left (pow_pos hp.pos _) h)
+      with ⟨d, rfl⟩|⟨d, rfl⟩,
+    { rw [← mul_assoc],
+      exact dvd_mul_right _ _ },
+    { exact (hpb (dvd_mul_right _ _)).elim } }
+end
+
+lemma prime.pow_dvd_of_dvd_mul_left {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
+  (hpb : ¬ p ∣ a) : p ^ n ∣ b :=
+by rw [mul_comm] at h; exact hp.pow_dvd_of_dvd_mul_right h hpb
+
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
 λ hp, (hp.2 x $ dvd_trans ⟨x, sq _⟩ (pow_dvd_pow _ hn)).elim
   (λ hx1, hp.ne_one $ hx1.symm ▸ one_pow _)
@@ -644,6 +663,16 @@ have hn : 0 < n := nat.pos_of_ne_zero $ λ h, begin
       (hi (λ p hp, h₂ p (mem_cons_of_mem _ hp))) h₁ }
 end,
 perm_of_prod_eq_prod (by rwa prod_factors hn) h₂ (@prime_of_mem_factors _)
+
+lemma prime.factors_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
+  (p ^ n).factors = list.repeat p n :=
+begin
+  symmetry,
+  rw ← list.repeat_perm,
+  apply nat.factors_unique (list.prod_repeat p n),
+  { intros q hq,
+    rwa eq_of_mem_repeat hq },
+end
 
 end
 

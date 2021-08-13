@@ -130,7 +130,7 @@ begin
   apply le_antisymm,
   { exact double_dual_bound 𝕜 E x },
   { rw continuous_linear_map.norm_def,
-    apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
+    apply le_cInf continuous_linear_map.bounds_nonempty,
     rintros c ⟨hc1, hc2⟩,
     exact norm_le_dual_bound 𝕜 x hc1 hc2 },
 end

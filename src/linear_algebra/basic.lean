@@ -2535,8 +2535,9 @@ by { cases x, refl }
 
 /-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
 of `t.subtype`. -/
+@[simps]
 def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
-comap q.subtype p ≃ₗ[R] p :=
+  comap q.subtype p ≃ₗ[R] p :=
 { to_fun := λ x, ⟨x, x.2⟩,
   inv_fun := λ x, ⟨⟨x, hpq x.2⟩, x.2⟩,
   left_inv := λ x, by simp only [coe_mk, set_like.eta, coe_coe],

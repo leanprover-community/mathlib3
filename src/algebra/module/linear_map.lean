@@ -585,7 +585,7 @@ symm_bijective.injective $ ext $ λ x, rfl
     ..(⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm } := rfl
 
 @[simp] lemma coe_symm_mk [module R M] [module R M₂]
-  {to_fun inv_fun map_add map_smul left_inv right_inv } :
+  {to_fun inv_fun map_add map_smul left_inv right_inv} :
   ⇑((⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂).symm) = inv_fun :=
 rfl
 

@@ -573,6 +573,10 @@ begin
   exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
 
+@[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
+  cast_le h i.succ = (cast_le (nat.succ_le_succ_iff.mp h) i).succ :=
+by simp [fin.eq_iff_veq]
+
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
 { to_equiv := ⟨cast_le eq.le, cast_le eq.symm.le, λ a, eq_of_veq rfl, λ a, eq_of_veq rfl⟩,
@@ -602,7 +606,7 @@ lemma cast_eq_cast (h : n = m) : (cast h : fin n → fin m) = _root_.cast (h ▸
 by { subst h, ext, simp }
 
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
-def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
+def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
 

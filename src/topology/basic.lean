@@ -429,6 +429,17 @@ hs.nonempty_iff.2 h
 lemma dense.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
 λ x, closure_mono h (hd x)
 
+/-- Complement to a singleton is dense if and only if the singleton is not an open set. -/
+lemma dense_compl_singleton {x : α} : dense ({x}ᶜ : set α) ↔ ¬is_open ({x} : set α) :=
+begin
+  fsplit,
+  { intros hd ho,
+    exact (hd.inter_open_nonempty _ ho (singleton_nonempty _)).ne_empty (inter_compl_self _) },
+  { refine λ ho, dense_iff_inter_open.2 (λ U hU hne, inter_compl_nonempty_iff.2 $ λ hUx, _),
+    obtain rfl : U = {x}, from eq_singleton_iff_nonempty_unique_mem.2 ⟨hne, hUx⟩,
+    exact ho hU }
+end
+
 /-!
 ### Frontier of a set
 -/
@@ -902,6 +913,11 @@ end
 lemma closure_inter_open' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
 by simpa only [inter_comm] using closure_inter_open h
 
+lemma dense.open_subset_closure_inter {s t : set α} (hs : dense s) (ht : is_open t) :
+  t ⊆ closure (t ∩ s) :=
+calc t = t ∩ closure s   : by rw [hs.closure_eq, inter_univ]
+   ... ⊆ closure (t ∩ s) : closure_inter_open ht
+
 lemma mem_closure_of_mem_closure_union {s₁ s₂ : set α} {x : α} (h : x ∈ closure (s₁ ∪ s₂))
   (h₁ : s₁ᶜ ∈ 𝓝 x) : x ∈ closure s₂ :=
 begin
@@ -1314,6 +1330,12 @@ lemma dense_range.dense_image {f : α → β} (hf' : dense_range f) (hf : contin
   {s : set α} (hs : dense s) :
   dense (f '' s)  :=
 (hf'.mono $ hf.range_subset_closure_image_dense hs).of_closure
+
+/-- If `f` has dense range and `s` is an open set in the codomain of `f`, then the image of the
+preimage of `s` under `f` is dense in `s`. -/
+lemma dense_range.subset_closure_image_preimage_of_is_open (hf : dense_range f) {s : set β}
+  (hs : is_open s) : s ⊆ closure (f '' (f ⁻¹' s)) :=
+by { rw image_preimage_eq_inter_range, exact hf.open_subset_closure_inter hs }
 
 /-- If a continuous map with dense range maps a dense set to a subset of `t`, then `t` is a dense
 set. -/

@@ -62,7 +62,6 @@ open measure vector_measure
 
 variable (j : jordan_decomposition α)
 
-instance : inhabited (jordan_decomposition α) :=
 instance : has_zero (jordan_decomposition α) :=
 { zero := ⟨0, 0, mutually_singular.zero⟩ }
 

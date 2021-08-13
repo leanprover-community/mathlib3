@@ -232,6 +232,39 @@ end
 
 end intermediate_field.adjoin_simple
 
+lemma trace_eq_sum_roots [finite_dimensional K L]
+  {x : L} (hx : _root_.is_integral K x) (hF : (minpoly K x).splits (algebra_map K F)) :
+  algebra_map K F (algebra.trace K L x) =
+    finrank K⟮x⟯ L • ((minpoly K x).map (algebra_map K _)).roots.sum :=
+begin
+  haveI : finite_dimensional K⟮x⟯ L := finite_dimensional.right K _ L,
+  rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
+  conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
+  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
+      smul_eq_mul, ring_hom.map_mul, ← is_scalar_tower.algebra_map_apply ℕ K _, ← smul_def,
+      intermediate_field.adjoin_simple.trace_gen_eq_sum_roots _ hF],
+  all_goals { apply_instance }
+end
+
 end eq_sum_roots
 
-end algebra
+variables {F : Type*} [field F]
+variables [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
+
+open polynomial
+
+lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
+  _root_.is_integral R (algebra.trace L F x) :=
+begin
+  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  rw ← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
+  rw trace_eq_sum_roots hx',
+  { refine (is_integral.multiset_sum _).nsmul _,
+    intros y hy,
+    rw mem_roots_map (minpoly.ne_zero hx') at hy,
+    use [minpoly R x, minpoly.monic hx],
+    rw ← aeval_def at ⊢ hy,
+    exact minpoly.aeval_of_is_scalar_tower R x y hy },
+  { apply is_alg_closed.splits_codomain },
+  { apply_instance }
+end

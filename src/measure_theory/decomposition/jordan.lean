@@ -151,27 +151,6 @@ begin
   all_goals { linarith <|> apply_instance <|> assumption },
 end
 
-lemma of_diff_of_diff_eq_zero
-  (hu : measurable_set u) (hv : measurable_set v) (h' : s (v \ u) = 0) :
-  s (u \ v) + s v = s u :=
-begin
-  symmetry,
-  calc s u = s (u \ v ∪ u ∩ v) : by simp only [set.diff_union_inter]
-       ... = s (u \ v) + s (u ∩ v) :
-  by { rw of_union,
-       { rw disjoint.comm,
-         exact set.disjoint_of_subset_left (u.inter_subset_right v) set.disjoint_diff },
-       { exact hu.diff hv },
-       { exact hu.inter hv } }
-       ... = s (u \ v) + s (u ∩ v ∪ v \ u) :
-  by { rw [of_union, h', add_zero],
-       { exact set.disjoint_of_subset_left (u.inter_subset_left v) set.disjoint_diff },
-       { exact hu.inter hv },
-       { exact hv.diff hu } }
-       ... = s (u \ v) + s v :
-  by { rw [set.union_comm, set.inter_comm, set.diff_union_inter] }
-end
-
 lemma of_inter_eq_of_symm_diff_eq_zero_positive
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
   (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :

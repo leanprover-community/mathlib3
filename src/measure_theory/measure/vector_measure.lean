@@ -183,6 +183,27 @@ begin
   apply_instance,
 end
 
+lemma of_diff_of_diff_eq_zero {A B : set α}
+  (hu : measurable_set A) (hv : measurable_set B) (h' : v (B \ A) = 0) :
+  v (A \ B) + v B = v A :=
+begin
+  symmetry,
+  calc v A = v (A \ B ∪ A ∩ B) : by simp only [set.diff_union_inter]
+       ... = v (A \ B) + v (A ∩ B) :
+  by { rw of_union,
+       { rw disjoint.comm,
+         exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_diff },
+       { exact hu.diff hv },
+       { exact hu.inter hv } }
+       ... = v (A \ B) + v (A ∩ B ∪ B \ A) :
+  by { rw [of_union, h', add_zero],
+       { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_diff },
+       { exact hu.inter hv },
+       { exact hv.diff hu } }
+       ... = v (A \ B) + v B :
+  by { rw [set.union_comm, set.inter_comm, set.diff_union_inter] }
+end
+
 lemma of_Union_nonneg {M : Type*} [topological_space M]
   [ordered_add_comm_monoid M] [order_closed_topology M]
   {v : vector_measure α M} (hf₁ : ∀ i, measurable_set (f i))

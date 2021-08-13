@@ -26,6 +26,11 @@ variable {G}
 instance : Π [group G], group (conj G) := id
 instance : Π [fintype G], fintype (conj G) := id
 
+@[simp] lemma card [fintype G] : fintype.card (conj G) = fintype.card G := rfl
+
+@[simp] lemma «forall» (p : conj G → Prop) :
+  (∀ (x : conj G), p x) ↔ ∀ x : G, p (to_conj x) := iff.rfl
+
 variable [group G]
 
 instance : inhabited (conj G) := ⟨1⟩
@@ -53,11 +58,6 @@ instance : mul_action (conj G) G :=
   mul_smul := by simp [mul_assoc] }
 
 lemma smul_def (g : conj G) (h : G) : g • h = of_conj g * h * (of_conj g)⁻¹ := rfl
-
-@[simp] lemma card [fintype G] : fintype.card (conj G) = fintype.card G := rfl
-
-@[simp] lemma «forall» (p : conj G → Prop) :
-  (∀ (x : conj G), p x) ↔ ∀ x : G, p (to_conj x) := iff.rfl
 
 lemma smul_eq_conj (g : conj G) (h : G) : g • h = mul_aut.conj g h := rfl
 

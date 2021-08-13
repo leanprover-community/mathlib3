@@ -87,7 +87,7 @@ begin
   erw [to_signed_measure, to_signed_measure_sub_apply hi, sub_self, zero_apply],
 end
 
-lemma to_signed_measure_neg : (-j).to_signed_measure = - j.to_signed_measure :=
+lemma to_signed_measure_neg : (-j).to_signed_measure = -j.to_signed_measure :=
 begin
   ext1 i hi,
   rw [neg_apply, to_signed_measure, to_signed_measure,
@@ -149,6 +149,16 @@ begin
   set i := some s.exists_compl_positive_negative,
   obtain ⟨hi₁, hi₂, hi₃⟩ := some_spec s.exists_compl_positive_negative,
   exact ⟨i, hi₁, hi₂, hi₃, rfl, rfl⟩,
+end
+
+lemma to_jordan_decomposition_zero : (0 : signed_measure α).to_jordan_decomposition = 0 :=
+begin
+  obtain ⟨_, _, _, _, hμ, hν⟩ := to_jordan_decomposition_spec (0 : signed_measure α),
+  apply measure_theory.jordan_decomposition.ext,
+  { refine measure.ext (λ k hk, _),
+    rw [hμ, to_measure_of_zero_le_apply _ _ _ hk], simpa },
+  { refine measure.ext (λ k hk, _),
+    rw [hν, to_measure_of_le_zero_apply _ _ _ hk], simpa },
 end
 
 /-- **The Jordan decomposition theorem**: Given a signed measure `s`, there exists a pair of
@@ -381,6 +391,13 @@ def to_jordan_decomposition_equiv (α : Type*) [measurable_space α] :
   inv_fun := to_signed_measure,
   left_inv := to_signed_measure_to_jordan_decomposition,
   right_inv := to_jordan_decomposition_to_signed_measure }
+
+lemma to_jordan_decomposition_neg (s : signed_measure α) :
+  (-s).to_jordan_decomposition = -s.to_jordan_decomposition :=
+begin
+  apply to_signed_measure_injective,
+  simp [to_signed_measure_neg],
+end
 
 end signed_measure
 

@@ -331,7 +331,7 @@ begin
   let f' := λ i, bernoulli' i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
   suffices : ∑ k in Ico 1 n.succ, ↑k ^ p.succ = ∑ i in range p.succ.succ, f' i, { convert this },
   -- prove some algebraic facts that will make things easier for us later on
-  have hle := le_add_left 1 n,
+  have hle := nat.le_add_left 1 n,
   have hne : (p + 1 + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero p.succ,
   have h1 : ∀ r : ℚ, r * (p + 1 + 1) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
     λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],

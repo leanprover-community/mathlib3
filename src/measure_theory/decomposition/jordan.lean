@@ -82,7 +82,7 @@ variables {s : signed_measure α} {μ ν : measure α} [finite_measure μ] [fini
 
 /-- Given a signed measure `s`, `s.to_jordan_decomposition` is the Jordan decomposition `j`,
 such that `s = j.to_signed_measure`. This property is known as the Jordan decomposition
-theorem, and is shown by `signed_measure.to_jordan_decomposition_to_signed_measure_eq`. -/
+theorem, and is shown by `signed_measure.to_signed_measure_to_jordan_decomposition`. -/
 def to_jordan_decomposition (s : signed_measure α) : jordan_decomposition α :=
 let i := some s.exists_compl_positive_negative in
 let hi := some_spec s.exists_compl_positive_negative in
@@ -113,7 +113,7 @@ and `ν` are given by `s.to_jordan_decomposition.μ` and `s.to_jordan_decomposit
 
 Note that we use `jordan_decomposition.to_signed_measure` to represent the signed measure
 corresponding to `s.to_jordan_decomposition.μ - s.to_jordan_decomposition.ν`. -/
-@[simp] lemma to_jordan_decomposition_to_signed_measure_eq (s : signed_measure α) :
+@[simp] lemma to_signed_measure_to_jordan_decomposition (s : signed_measure α) :
   s.to_jordan_decomposition.to_signed_measure = s :=
 begin
   obtain ⟨i, hi₁, hi₂, hi₃, hμ, hν⟩ := s.to_jordan_decomposition_spec,
@@ -318,7 +318,7 @@ begin
 end
 
 @[simp]
-lemma to_signed_measure_to_jordan_decomposition_eq (j : jordan_decomposition α) :
+lemma to_jordan_decomposition_to_signed_measure (j : jordan_decomposition α) :
   (j.to_signed_measure).to_jordan_decomposition = j :=
 (@to_signed_measure_injective _ _ j (j.to_signed_measure).to_jordan_decomposition (by simp)).symm
 
@@ -334,8 +334,8 @@ def to_jordan_decomposition_equiv (α : Type*) [measurable_space α] :
   signed_measure α ≃ jordan_decomposition α :=
 { to_fun := to_jordan_decomposition,
   inv_fun := to_signed_measure,
-  left_inv := to_jordan_decomposition_to_signed_measure_eq,
-  right_inv := to_signed_measure_to_jordan_decomposition_eq }
+  left_inv := to_signed_measure_to_jordan_decomposition,
+  right_inv := to_jordan_decomposition_to_signed_measure }
 
 end signed_measure
 

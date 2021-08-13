@@ -1556,6 +1556,7 @@ noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fi
 section
 open_locale classical
 
+/-- Any type is (classically) either a `fintype`, or `infinite`. -/
 noncomputable def fintype_or_infinite (α : Type*) : psum (fintype α) (infinite α) :=
 if h : infinite α then psum.inr h else psum.inl (fintype_of_not_infinite h)
 

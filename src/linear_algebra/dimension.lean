@@ -269,7 +269,7 @@ end invariant_basis_number
 
 section rank_condition
 
-variables {R : Type u} [ring R] [nontrivial R] [rank_condition R]
+variables {R : Type u} [ring R] [rank_condition R]
 variables {M : Type v} [add_comm_group M] [module R M]
 
 /--
@@ -293,6 +293,8 @@ begin
     rw [←linear_map.range_eq_top, finsupp.range_total],
     simpa using s, },
 end
+
+variables [nontrivial R]
 
 /--
 Another auxiliary lemma for `basis.le_span`, which does not require assuming the basis is finite,

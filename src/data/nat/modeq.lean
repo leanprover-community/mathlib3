@@ -137,6 +137,14 @@ theorem modeq_one : a ≡ b [MOD 1] := modeq_of_dvd (one_dvd _)
 lemma modeq_sub (h : b ≤ a) : a ≡ b [MOD a - b] :=
 (modeq_of_dvd $ by rw [int.coe_nat_sub h]).symm
 
+@[simp] lemma modeq_zero_iff {a b : ℕ} : a ≡ b [MOD 0] ↔ a = b :=
+by rw [nat.modeq, nat.mod_zero, nat.mod_zero]
+
+@[simp] lemma add_modeq_left {a n : ℕ} : n + a ≡ a [MOD n] :=
+by rw [nat.modeq, nat.add_mod_left]
+@[simp] lemma add_modeq_right {a n : ℕ} : a + n ≡ a [MOD n] :=
+by rw [nat.modeq, nat.add_mod_right]
+
 local attribute [semireducible] int.nonneg
 
 /-- The natural number less than `lcm n m` congruent to `a` mod `n` and `b` mod `m` -/

@@ -83,7 +83,10 @@ The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 -/
 
 variables (𝕜 : Type*) [topological_space 𝕜] [semiring 𝕜]
+variables [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
 variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
+variables [has_continuous_add E]
+variables [has_continuous_smul 𝕜 E]
 
 /-- The (weak) dual of a topological module `E` over a topological semiring `𝕜` consists of
 continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the original
@@ -94,9 +97,6 @@ def weak_dual := E →L[𝕜] 𝕜
 instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) := continuous_linear_map.add_comm_monoid
 
 namespace weak_dual
-
-variables [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
-variables [has_continuous_add E] [has_continuous_smul 𝕜 E]
 
 /-- The weak-* topology instance `weak_dual_topology` on the dual of a topological module `E` over
 a topological semiring `𝕜` is defined as the induced topology under the mapping that associates to

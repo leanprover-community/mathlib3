@@ -52,30 +52,14 @@ di.dense.closure_range
 lemma preconnected_space [preconnected_space α] (di : dense_inducing i) : preconnected_space β :=
 di.dense.preconnected_space di.continuous
 
-lemma self_subset_closure_image_preimage_of_open {s : set β} (di : dense_inducing i) :
-  is_open s → s ⊆ closure (i '' (i ⁻¹' s)) :=
+lemma closure_image_mem_nhds {s : set α} {a : α} (di : dense_inducing i) (hs : s ∈ 𝓝 a) :
+  closure (i '' s) ∈ 𝓝 (i a) :=
 begin
-  intros s_op b b_in_s,
-  rw [image_preimage_eq_inter_range, mem_closure_iff],
-  intros U U_op b_in,
-  rw ←inter_assoc,
-  exact di.dense.inter_open_nonempty _ (U_op.inter s_op) ⟨b, b_in, b_in_s⟩
-end
-
-lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :
-  s ∈ 𝓝 a → closure (i '' s) ∈ 𝓝 (i a) :=
-begin
-  rw [di.nhds_eq_comap a, mem_comap_sets],
-  intro h,
-  rcases h with ⟨t, t_nhd, sub⟩,
-  rw mem_nhds_iff at t_nhd,
-  rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩,
-  have := calc i ⁻¹' U ⊆ i⁻¹' t : preimage_mono U_sub
-                   ... ⊆ s      : sub,
-  have := calc U ⊆ closure (i '' (i ⁻¹' U)) : self_subset_closure_image_preimage_of_open di U_op
-             ... ⊆ closure (i '' s)         : closure_mono (image_subset i this),
-  have U_nhd : U ∈ 𝓝 (i a) := is_open.mem_nhds U_op e_a_in_U,
-  exact (𝓝 (i a)).sets_of_superset U_nhd this
+  rw [di.nhds_eq_comap a, ((nhds_basis_opens _).comap _).mem_iff] at hs,
+  rcases hs with ⟨U, ⟨haU, hUo⟩, sub : i ⁻¹' U ⊆ s⟩,
+  refine mem_sets_of_superset (hUo.mem_nhds haU) _,
+  calc U ⊆ closure (i '' (i ⁻¹' U)) : di.dense.subset_closure_image_preimage_of_is_open hUo
+     ... ⊆ closure (i '' s)         : closure_mono (image_subset i sub)
 end
 
 /-- The product of two dense inducings is a dense inducing -/

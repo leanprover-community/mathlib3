@@ -1001,7 +1001,7 @@ theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ}
 begin
   change sub_nat_nat _ _ = _,
   have h' : n.succ - m = 0,
-  apply sub_eq_zero_of_le h,
+  apply nat.sub_eq_zero_of_le h,
   simp [*, sub_nat_nat]
 end
 

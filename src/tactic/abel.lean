@@ -29,6 +29,7 @@ meta structure context :=
 (is_group : bool)
 (inst : expr)
 
+/-- Populate a `context` object for evaluating `e`, up to reducibility level `red`. -/
 meta def mk_context (red : transparency) (e : expr) : tactic context :=
 do α ← infer_type e,
    c ← mk_app ``add_comm_monoid [α] >>= mk_instance,
@@ -42,24 +43,44 @@ do α ← infer_type e,
    | _ := return ⟨red, α, u, α0, ff, c⟩
    end
 
+/-- Apply the function `n : ∀ {α} [inst : add_whatever α], _` to the
+implicit parameters in the context, and the given list of arguments. -/
 meta def context.app (c : context) (n : name) (inst : expr) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α inst).mk_app
 
+/-- Apply the function `n : ∀ {α} [inst α], _` to the implicit parameters in the
+context, and the given list of arguments.
+
+Compared to `context.app`, this takes the name of the typeclass, rather than an
+inferred typeclass instance.
+-/
 meta def context.mk_app (c : context) (n inst : name) (l : list expr) : tactic expr :=
 do m ← mk_instance ((expr.const inst [c.univ] : expr) c.α), return $ c.app n m l
 
+/-- Add the letter "g" to the end of the name, e.g. turning `term` into `termg`.
+
+This is used to choose between declarations taking `add_comm_monoid` and those
+taking `add_comm_group` instances.
+-/
 meta def add_g : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "g") p
 | n := n
 
+/-- Applyy the function `n : ∀ {α} [add_comm_{monoid,group} α]` to the given
+list of arguments.
+
+Will use the `add_comm_{monoid,group}` instance that has been cached in the context.
+-/
 meta def context.iapp (c : context) (n : name) : list expr → expr :=
 c.app (if c.is_group then add_g n else n) c.inst
 
 def term {α} [add_comm_monoid α] (n : ℕ) (x a : α) : α := n • x + a
 def termg {α} [add_comm_group α] (n : ℤ) (x a : α) : α := n • x + a
 
+/-- Evaluate a term with coefficient `n`, atom `x` and successor terms `a`. -/
 meta def context.mk_term (c : context) (n x a : expr) : expr := c.iapp ``term [n, x, a]
 
+/-- Interpret an integer as a coefficient to a term. -/
 meta def context.int_to_expr (c : context) (n : ℤ) : tactic expr :=
 expr.of_int (if c.is_group then `(ℤ) else `(ℕ)) n
 

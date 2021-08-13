@@ -173,8 +173,23 @@ e.to_equiv.image_eq_preimage s
 
 end basic
 
-section comm_semiring
+section opposite
 open opposite
+
+/-- A ring iso `α ≃+* β` can equivalently be viewed as a ring iso `αᵒᵖ ≃+* βᵒᵖ`. -/
+@[simps]
+protected def op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
+  (α ≃+* β) ≃ (αᵒᵖ ≃+* βᵒᵖ) :=
+{ to_fun    := λ f, { ..f.to_add_equiv.op, ..f.to_mul_equiv.op},
+  inv_fun   := λ f, { ..(add_equiv.op.symm f.to_add_equiv), ..(mul_equiv.op.symm f.to_mul_equiv) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
+
+/-- The 'unopposite' of a ring iso `αᵒᵖ ≃+* βᵒᵖ`. Inverse to `ring_equiv.op`. -/
+@[simp] protected def unop {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
+  (αᵒᵖ ≃+* βᵒᵖ) ≃ (α ≃+* β) := ring_equiv.op.symm
+
+section comm_semiring
 
 variables (R) [comm_semiring R]
 
@@ -191,6 +206,8 @@ lemma to_opposite_apply (r : R) : to_opposite R r = op r := rfl
 lemma to_opposite_symm_apply (r : Rᵒᵖ) : (to_opposite R).symm r = unop r := rfl
 
 end comm_semiring
+
+end opposite
 
 section non_unital_semiring
 

@@ -300,6 +300,15 @@ instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
 example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
 example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
 
+lemma coe_smul {R} [monoid R] (r : R) (s : ℝ≥0) [mul_action R ℝ≥0] [has_scalar R ℝ≥0∞]
+  [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
+  (↑(r • s) : ℝ≥0∞) = r • ↑s :=
+begin
+  rw ←smul_one_smul ℝ≥0 r (s: ℝ≥0∞),
+  change ↑(r • s) = ↑(r • (1 : ℝ≥0)) * ↑s,
+  rw [←ennreal.coe_mul, smul_mul_assoc, one_mul],
+end
+
 end actions
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
@@ -1084,6 +1093,21 @@ begin
   exact (div_le_iff_le_mul (or.inl h0) (or.inl hinf)).2 h
 end
 
+lemma div_le_of_le_mul' (h : a ≤ b * c) : a / b ≤ c :=
+div_le_of_le_mul $ mul_comm b c ▸ h
+
+lemma mul_le_of_le_div (h : a ≤ b / c) : a * c ≤ b :=
+begin
+  rcases _root_.em (c = 0 ∧ b = 0 ∨ c = ∞ ∧ b = ∞) with (⟨rfl, rfl⟩|⟨rfl, rfl⟩)|H,
+  { rw [mul_zero], exact le_rfl },
+  { exact le_top },
+  { simp only [not_or_distrib, not_and_distrib] at H,
+    rwa ← le_div_iff_mul_le H.1 H.2 }
+end
+
+lemma mul_le_of_le_div' (h : a ≤ b / c) : c * a ≤ b :=
+mul_comm a c ▸ mul_le_of_le_div h
+
 protected lemma div_lt_iff (h0 : b ≠ 0 ∨ c ≠ 0) (ht : b ≠ ∞ ∨ c ≠ ∞) :
   c / b < a ↔ c < a * b :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le h0 ht
@@ -1325,6 +1349,9 @@ by simp [ennreal.of_real]
 @[simp] lemma of_real_eq_zero {p : ℝ} : ennreal.of_real p = 0 ↔ p ≤ 0 :=
 by simp [ennreal.of_real]
 
+@[simp] lemma zero_eq_of_real {p : ℝ} : 0 = ennreal.of_real p ↔ p ≤ 0 :=
+eq_comm.trans of_real_eq_zero
+
 lemma of_real_le_iff_le_to_real {a : ℝ} {b : ℝ≥0∞} (hb : b ≠ ∞) :
   ennreal.of_real a ≤ b ↔ a ≤ ennreal.to_real b :=
 begin
@@ -1407,6 +1434,16 @@ begin
   lift a to ℝ≥0 using ha.ne,
   lift b to ℝ≥0 using hb.ne,
   simp only [coe_eq_coe, nnreal.coe_eq, coe_to_real],
+end
+
+lemma to_real_smul (r : ℝ≥0) (s : ℝ≥0∞) :
+  (r • s).to_real = r • s.to_real :=
+begin
+  induction s using with_top.rec_top_coe,
+  { rw [show r • ∞ = (r : ℝ≥0∞) * ∞, by refl],
+    simp only [ennreal.to_real_mul_top, ennreal.top_to_real, smul_zero] },
+  { rw [← coe_smul, ennreal.coe_to_real, ennreal.coe_to_real],
+    refl }
 end
 
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/

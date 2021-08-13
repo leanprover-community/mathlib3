@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.polynomial.monic
+import data.polynomial.algebra_map
 import algebra.group_ring_action
 import algebra.group_action_hom
+
 
 /-!
 # Group action on rings applied to polynomials
@@ -22,14 +24,14 @@ variables (R : Type*) [semiring R]
 variables {M}
 
 lemma smul_eq_map [mul_semiring_action M R] (m : M) :
-  ((•) m) = map (mul_semiring_action.to_semiring_hom M R m) :=
+  ((•) m) = map (mul_semiring_action.to_ring_hom M R m) :=
 begin
   suffices :
     distrib_mul_action.to_add_monoid_hom M (polynomial R) m =
-      (map_ring_hom (mul_semiring_action.to_semiring_hom M R m)).to_add_monoid_hom,
+      (map_ring_hom (mul_semiring_action.to_ring_hom M R m)).to_add_monoid_hom,
   { ext1 r, exact add_monoid_hom.congr_fun this r, },
   ext n r : 2,
-  change m • monomial n r = map (mul_semiring_action.to_semiring_hom M R m) (monomial n r),
+  change m • monomial n r = map (mul_semiring_action.to_ring_hom M R m) (monomial n r),
   simpa only [polynomial.map_monomial, polynomial.smul_monomial],
 end
 
@@ -37,18 +39,9 @@ variables (M)
 
 noncomputable instance [mul_semiring_action M R] : mul_semiring_action M (polynomial R) :=
 { smul := (•),
-  smul_one := λ m, (smul_eq_map R m).symm ▸ map_one (mul_semiring_action.to_semiring_hom M R m),
-  smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_semiring_hom M R m),
+  smul_one := λ m, (smul_eq_map R m).symm ▸ map_one (mul_semiring_action.to_ring_hom M R m),
+  smul_mul := λ m p q, (smul_eq_map R m).symm ▸ map_mul (mul_semiring_action.to_ring_hom M R m),
   ..polynomial.distrib_mul_action }
-
-noncomputable instance [faithful_mul_semiring_action M R] :
-  faithful_mul_semiring_action M (polynomial R) :=
-{ eq_of_smul_eq_smul' := λ m₁ m₂ h, eq_of_smul_eq_smul R $ λ s, C_inj.1 $
-    calc  C (m₁ • s)
-        = m₁ • C s : (smul_C _ _).symm
-    ... = m₂ • C s : h (C s)
-    ... = C (m₂ • s) : smul_C _ _,
-  .. polynomial.mul_semiring_action M R }
 
 variables {M R}
 
@@ -95,10 +88,10 @@ theorem prod_X_sub_smul.monic (x : R) : (prod_X_sub_smul G R x).monic :=
 polynomial.monic_prod_of_monic _ _ $ λ g _, polynomial.monic_X_sub_C _
 
 theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
-(finset.prod_hom _ (polynomial.eval x)).symm.trans $
+(monoid_hom.map_prod
+  ((polynomial.aeval x).to_ring_hom.to_monoid_hom : polynomial R →* R) _ _).trans $
   finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
-  by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X,
-    polynomial.eval_C, sub_self]
+  by simp
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=

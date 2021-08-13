@@ -5,6 +5,7 @@ Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import algebra.module.basic
 import group_theory.group_action.prod
+
 /-!
 # Prod instances for module and multiplicative actions
 

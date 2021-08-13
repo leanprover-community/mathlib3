@@ -18,7 +18,7 @@ norm).
 
 ## Main definitions
 
-The main definitions concern the canconical mapping `dual 𝕜 E → weak_dual 𝕜 E`.
+The main definitions concern the canonical mapping `dual 𝕜 E → weak_dual 𝕜 E`.
 
 * `to_weak_dual` is a linear equivalence from `dual 𝕜 E`to `weak_dual 𝕜 E`.
 * `continuous_linear_map_to_weak_dual` is a continuous linear mapping from

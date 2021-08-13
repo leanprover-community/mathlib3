@@ -31,56 +31,106 @@ variables {α β : Type*} [measurable_space α]
 
 namespace measure_theory
 
-namespace signed_measure
+/-- A Jordan decomposition of a measurable space is a pair of mutually singular,
+finite measures. -/
+@[ext] structure jordan_decomposition (α : Type*) [measurable_space α] :=
+(μ ν : measure α)
+[μ_finite' : finite_measure μ]
+[ν_finite' : finite_measure ν]
+(mutually_singular' : μ ⊥ₘ ν)
+
+namespace jordan_decomposition
 
 open measure vector_measure
 
-variables {s : signed_measure α} {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+variable (j : jordan_decomposition α)
 
-/-- **The Jordan decomposition theorem**: Given a signed measure `s`, there exists
-a pair of mutually singular measures `μ` and `ν` such that `s = μ - ν`.
+instance jordan_decomposition_inhabited : inhabited (jordan_decomposition α) :=
+{ default := ⟨0, 0, mutually_singular.zero⟩ }
 
-Note that we use `measure.sub_to_signed_measure μ ν` to represent the signed measure corresponding
-to `μ - ν`. -/
-theorem exists_mutually_singular_eq_sub (s : signed_measure α) :
-  ∃ (μ ν : measure α) [finite_measure μ] [finite_measure ν],
-    by exactI μ ⊥ₘ ν ∧ s = sub_to_signed_measure μ ν :=
-begin
-  obtain ⟨i, hi₁, hi₂, hi₃⟩ := s.exists_compl_positive_negative,
-  have hi₄ := measurable_set.compl hi₁,
-  refine ⟨s.to_measure_of_zero_le i hi₁ hi₂, s.to_measure_of_le_zero iᶜ hi₄ hi₃, _⟩,
-  refine ⟨infer_instance, infer_instance, _, _⟩,
-  { refine ⟨iᶜ, hi₄, _, _⟩,
-    { rw [to_measure_of_zero_le_apply _ _ hi₁ hi₄], simpa },
-    { rw [to_measure_of_le_zero_apply _ _ hi₄ (measurable_set.compl hi₄)], simpa } },
-  { ext k hk,
-    rw [sub_to_signed_measure_apply hk, to_measure_of_zero_le_apply _ hi₂ hi₁ hk,
-        to_measure_of_le_zero_apply _ hi₃ hi₄ hk],
-    simp only [ennreal.coe_to_real, subtype.coe_mk, ennreal.some_eq_coe, sub_neg_eq_add],
-    rw [← of_union _ (measurable_set.inter hi₁ hk) (measurable_set.inter hi₄ hk),
-        set.inter_comm i, set.inter_comm iᶜ, set.inter_union_compl _ _],
-    { apply_instance },
-    { rintro x ⟨⟨hx₁, _⟩, hx₂, _⟩,
-      exact false.elim (hx₂ hx₁) } }
-end
+instance μ_finite : finite_measure j.μ := j.μ_finite'
+instance ν_finite : finite_measure j.ν := j.ν_finite'
+
+lemma mutually_singular : j.μ ⊥ₘ j.ν := j.mutually_singular'
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
-lemma exists_compl_positive_negative_of_exists_mutually_singular_sub
-  (h : μ ⊥ₘ ν ∧ s = sub_to_signed_measure μ ν) :
-  ∃ S : set α, measurable_set S ∧ s ≤[S] 0 ∧ 0 ≤[Sᶜ] s ∧ μ S = 0 ∧ ν Sᶜ = 0 :=
+lemma exists_compl_positive_negative
+  (s : signed_measure α) (hs : j.μ.sub_to_signed_measure j.ν = s):
+  ∃ S : set α, measurable_set S ∧ s ≤[S] 0 ∧ 0 ≤[Sᶜ] s ∧ j.μ S = 0 ∧ j.ν Sᶜ = 0 :=
 begin
-  obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, h₁⟩ := h,
+  obtain ⟨S, hS₁, hS₂, hS₃⟩ := j.mutually_singular,
   refine ⟨S, hS₁, _, _, hS₂, hS₃⟩,
   { refine restrict_le_restrict_of_subset_le _ _ (λ A hA hA₁, _),
-    rw [h₁, sub_to_signed_measure_apply hA,
-        show μ A = 0, by exact nonpos_iff_eq_zero.1 (hS₂ ▸ measure_mono hA₁),
+    rw [← hs, sub_to_signed_measure_apply hA,
+        show j.μ A = 0, by exact nonpos_iff_eq_zero.1 (hS₂ ▸ measure_mono hA₁),
         ennreal.zero_to_real, zero_sub, neg_le, zero_apply, neg_zero],
     exact ennreal.to_real_nonneg },
   { refine restrict_le_restrict_of_subset_le _ _ (λ A hA hA₁, _),
-    rw [h₁, sub_to_signed_measure_apply hA,
-        show ν A = 0, by exact nonpos_iff_eq_zero.1 (hS₃ ▸ measure_mono hA₁),
+    rw [← hs, sub_to_signed_measure_apply hA,
+        show j.ν A = 0, by exact nonpos_iff_eq_zero.1 (hS₃ ▸ measure_mono hA₁),
         ennreal.zero_to_real, sub_zero],
     exact ennreal.to_real_nonneg },
+end
+
+end jordan_decomposition
+
+namespace signed_measure
+
+open measure vector_measure jordan_decomposition classical
+
+variables {s : signed_measure α} {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+
+/-- Given a signed measure `s`, `s.to_jordan_decomposition` is the Jordan decomposition `j`,
+such that `s = j.μ.sub_to_signed_measure j.ν`. This property is known as the Jordan decomposition
+theorem, and is shown by `signed_measure.to_jordan_decomposition_sub`. -/
+def to_jordan_decomposition (s : signed_measure α) : jordan_decomposition α :=
+let i := some s.exists_compl_positive_negative in
+{ μ := s.to_measure_of_zero_le i
+    (some_spec s.exists_compl_positive_negative).1
+    (some_spec s.exists_compl_positive_negative).2.1,
+  ν := s.to_measure_of_le_zero iᶜ
+    (some_spec s.exists_compl_positive_negative).1.compl
+    (some_spec s.exists_compl_positive_negative).2.2,
+  μ_finite' := infer_instance,
+  ν_finite' := infer_instance,
+  mutually_singular' :=
+  begin
+    have hi : measurable_set i := (some_spec s.exists_compl_positive_negative).1,
+    refine ⟨iᶜ, hi.compl, _, _⟩,
+    { rw [to_measure_of_zero_le_apply _ _ hi hi.compl], simpa },
+    { rw [to_measure_of_le_zero_apply _ _ hi.compl hi.compl.compl], simpa }
+  end }
+
+lemma to_jordan_decomposition_spec (s : signed_measure α) :
+  ∃ (i : set α) (hi₁ : measurable_set i) (hi₂ : 0 ≤[i] s) (hi₃ : s ≤[iᶜ] 0),
+    s.to_jordan_decomposition.μ = s.to_measure_of_zero_le i hi₁ hi₂ ∧
+    s.to_jordan_decomposition.ν = s.to_measure_of_le_zero iᶜ hi₁.compl hi₃ :=
+begin
+  set i := some s.exists_compl_positive_negative,
+  obtain ⟨hi₁, hi₂, hi₃⟩ := some_spec s.exists_compl_positive_negative,
+  exact ⟨i, hi₁, hi₂, hi₃, rfl, rfl⟩,
+end
+
+/-- **The Jordan decomposition theorem**: Given a signed measure `s`, there exists a pair of
+mutually singular measures `μ` and `ν` such that `s = μ - ν`. In this case, the measures `μ`
+and `ν` are given by `s.to_jordan_decomposition.μ` and `s.to_jordan_decomposition.ν` respectively.
+
+Note that we use `measure.sub_to_signed_measure μ ν` to represent the signed measure corresponding
+to `μ - ν`. -/
+@[simp] lemma to_jordan_decomposition_sub (s : signed_measure α) :
+  s.to_jordan_decomposition.μ.sub_to_signed_measure s.to_jordan_decomposition.ν = s :=
+begin
+  obtain ⟨i, hi₁, hi₂, hi₃, hμ, hν⟩ := s.to_jordan_decomposition_spec,
+  simp only [hμ, hν],
+  ext k hk,
+  rw [sub_to_signed_measure_apply hk, to_measure_of_zero_le_apply _ hi₂ hi₁ hk,
+      to_measure_of_le_zero_apply _ hi₃ hi₁.compl hk],
+  simp only [ennreal.coe_to_real, subtype.coe_mk, ennreal.some_eq_coe, sub_neg_eq_add],
+  rw [← of_union _ (measurable_set.inter hi₁ hk) (measurable_set.inter hi₁.compl hk),
+      set.inter_comm i, set.inter_comm iᶜ, set.inter_union_compl _ _],
+  { apply_instance },
+  { rintro x ⟨⟨hx₁, _⟩, hx₂, _⟩,
+    exact false.elim (hx₂ hx₁) }
 end
 
 section
@@ -194,40 +244,37 @@ end
 end
 
 /-- The Jordan decomposition of a signed measure is unique. -/
-theorem mutually_singular_eq_sub_unique {s : signed_measure α} {μ₁ ν₁ μ₂ ν₂ : measure α}
-  [finite_measure μ₁] [finite_measure ν₁] [finite_measure μ₂] [finite_measure ν₂]
-  (h₁ : μ₁ ⊥ₘ ν₁ ∧ s = sub_to_signed_measure μ₁ ν₁)
-  (h₂ : μ₂ ⊥ₘ ν₂ ∧ s = sub_to_signed_measure μ₂ ν₂) :
-  μ₁ = μ₂ ∧ ν₁ = ν₂ :=
+theorem jordan_decomposition_eq_sub_unique
+  (s : signed_measure α) (j₁ j₂ : jordan_decomposition α)
+  (hj₁ : j₁.μ.sub_to_signed_measure j₁.ν = s)
+  (hj₂ : j₂.μ.sub_to_signed_measure j₂.ν = s) : j₁ = j₂ :=
 begin
-  obtain ⟨S, hS₁, hS₂, hS₃, hS₄, hS₅⟩ :=
-    exists_compl_positive_negative_of_exists_mutually_singular_sub h₁,
-  obtain ⟨T, hT₁, hT₂, hT₃, hT₄, hT₅⟩ :=
-    exists_compl_positive_negative_of_exists_mutually_singular_sub h₂,
+  obtain ⟨S, hS₁, hS₂, hS₃, hS₄, hS₅⟩ := j₁.exists_compl_positive_negative s hj₁,
+  obtain ⟨T, hT₁, hT₂, hT₃, hT₄, hT₅⟩ := j₂.exists_compl_positive_negative s hj₂,
   obtain ⟨hST₁, hST₂⟩ := of_symm_diff_compl_positive_negative hS₁.compl hT₁.compl
     ⟨hS₃, (compl_compl S).symm ▸ hS₂⟩ ⟨hT₃, (compl_compl T).symm ▸ hT₂⟩,
   rw [compl_compl, compl_compl] at hST₂,
-  split,
+  refine jordan_decomposition.ext _ _ _ _,
   { refine measure_theory.measure.ext (λ i hi, _),
-    have hμ₁ : (μ₁ i).to_real = s (i ∩ Sᶜ),
-    { rw [h₁.2, sub_to_signed_measure_apply (hi.inter hS₁.compl),
-          show ν₁ (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1
+    have hμ₁ : (j₁.μ i).to_real = s (i ∩ Sᶜ),
+    { rw [← hj₁, sub_to_signed_measure_apply (hi.inter hS₁.compl),
+          show j₁.ν (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1
             (hS₅ ▸ measure_mono (set.inter_subset_right _ _)),
           ennreal.zero_to_real, sub_zero],
       conv_lhs { rw ← set.inter_union_compl i S },
-      rw [measure_union, show μ₁ (i ∩ S) = 0, by exact nonpos_iff_eq_zero.1
+      rw [measure_union, show j₁.μ (i ∩ S) = 0, by exact nonpos_iff_eq_zero.1
             (hS₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
       { refine set.disjoint_of_subset_left (set.inter_subset_right _ _)
           (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
       { exact hi.inter hS₁ },
       { exact hi.inter hS₁.compl } },
-    have hμ₂ : (μ₂ i).to_real = s (i ∩ Tᶜ),
-    { rw [h₂.2, sub_to_signed_measure_apply (hi.inter hT₁.compl),
-          show ν₂ (i ∩ Tᶜ) = 0, by exact nonpos_iff_eq_zero.1
+    have hμ₂ : (j₂.μ i).to_real = s (i ∩ Tᶜ),
+    { rw [← hj₂, sub_to_signed_measure_apply (hi.inter hT₁.compl),
+          show j₂.ν (i ∩ Tᶜ) = 0, by exact nonpos_iff_eq_zero.1
             (hT₅ ▸ measure_mono (set.inter_subset_right _ _)),
           ennreal.zero_to_real, sub_zero],
       conv_lhs { rw ← set.inter_union_compl i T },
-      rw [measure_union, show μ₂ (i ∩ T) = 0, by exact nonpos_iff_eq_zero.1
+      rw [measure_union, show j₂.μ (i ∩ T) = 0, by exact nonpos_iff_eq_zero.1
             (hT₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
       { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
           (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
@@ -238,25 +285,25 @@ begin
     exact of_inter_eq_of_symm_diff_eq_zero_positive hS₁.compl hT₁.compl hi hS₃ hT₃ hST₁,
     all_goals { apply_instance } },
   { refine measure_theory.measure.ext (λ i hi, _),
-    have hν₁ : (ν₁ i).to_real = - s (i ∩ S),
-    { rw [h₁.2, sub_to_signed_measure_apply (hi.inter hS₁),
-          show μ₁ (i ∩ S) = 0, by exact nonpos_iff_eq_zero.1
+    have hν₁ : (j₁.ν i).to_real = - s (i ∩ S),
+    { rw [← hj₁, sub_to_signed_measure_apply (hi.inter hS₁),
+          show j₁.μ (i ∩ S) = 0, by exact nonpos_iff_eq_zero.1
             (hS₄ ▸ measure_mono (set.inter_subset_right _ _)),
           ennreal.zero_to_real, zero_sub],
       conv_lhs { rw ← set.inter_union_compl i S },
-      rw [measure_union, show ν₁ (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1
+      rw [measure_union, show j₁.ν (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1
             (hS₅ ▸ measure_mono (set.inter_subset_right _ _)), add_zero, neg_neg],
       { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
           (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
       { exact hi.inter hS₁ },
       { exact hi.inter hS₁.compl } },
-    have hν₂ : (ν₂ i).to_real = - s (i ∩ T),
-    { rw [h₂.2, sub_to_signed_measure_apply (hi.inter hT₁),
-          show μ₂ (i ∩ T) = 0, by exact nonpos_iff_eq_zero.1
+    have hν₂ : (j₂.ν i).to_real = - s (i ∩ T),
+    { rw [← hj₂, sub_to_signed_measure_apply (hi.inter hT₁),
+          show j₂.μ (i ∩ T) = 0, by exact nonpos_iff_eq_zero.1
             (hT₄ ▸ measure_mono (set.inter_subset_right _ _)),
           ennreal.zero_to_real, zero_sub],
       conv_lhs { rw ← set.inter_union_compl i T },
-      rw [measure_union, show ν₂ (i ∩ Tᶜ) = 0, by exact nonpos_iff_eq_zero.1
+      rw [measure_union, show j₂.ν (i ∩ Tᶜ) = 0, by exact nonpos_iff_eq_zero.1
             (hT₅ ▸ measure_mono (set.inter_subset_right _ _)), add_zero, neg_neg],
       { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
           (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
@@ -267,6 +314,27 @@ begin
     exact eq.symm (of_inter_eq_of_symm_diff_eq_zero_negative hS₁ hT₁ hi hS₂ hT₂ hST₂),
     all_goals { apply_instance } }
 end
+
+lemma sub_to_signed_measure_to_jordan_decomposition (j : jordan_decomposition α) :
+  (j.μ.sub_to_signed_measure j.ν).to_jordan_decomposition = j :=
+(jordan_decomposition_eq_sub_unique (j.μ.sub_to_signed_measure j.ν)
+  j (j.μ.sub_to_signed_measure j.ν).to_jordan_decomposition rfl (by simp)).symm
+
+lemma to_jordan_decomposition_bijective :
+  function.bijective $ @to_jordan_decomposition α _ :=
+begin
+  split,
+  { intros s t hst,
+    rw [← to_jordan_decomposition_sub s, hst, to_jordan_decomposition_sub t] },
+  { intro j,
+    exact ⟨j.μ.sub_to_signed_measure j.ν, sub_to_signed_measure_to_jordan_decomposition _⟩ }
+end
+
+/-- `signed_measure.to_jordan_decomposition` forms a `equiv` between
+`signed_measure α` and `jordan_decomposition α` -/
+def to_jordan_decomposition_equiv (α : Type*) [measurable_space α] :
+  signed_measure α ≃ jordan_decomposition α :=
+equiv.of_bijective to_jordan_decomposition to_jordan_decomposition_bijective
 
 end signed_measure
 

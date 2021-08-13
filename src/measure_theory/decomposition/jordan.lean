@@ -64,8 +64,19 @@ variable (j : jordan_decomposition α)
 instance : inhabited (jordan_decomposition α) :=
 { default := ⟨0, 0, mutually_singular.zero⟩ }
 
+instance : has_neg (jordan_decomposition α) :=
+{ neg := λ j, ⟨j.ν, j.μ, j.mutually_singular.symm⟩ }
+
 /-- The signed measure associated with a Jordan decomposition. -/
 def to_signed_measure : signed_measure α := j.μ.to_signed_measure - j.ν.to_signed_measure
+
+lemma to_signed_measure_neg : (-j).to_signed_measure = - j.to_signed_measure :=
+begin
+  ext1 i hi,
+  rw [neg_apply, to_signed_measure, to_signed_measure,
+      to_signed_measure_sub_apply hi, to_signed_measure_sub_apply hi, neg_sub],
+  refl,
+end
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
 lemma exists_compl_positive_negative :

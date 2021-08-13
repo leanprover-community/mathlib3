@@ -690,6 +690,55 @@ theorem perm_iff_count {l₁ l₂ : list α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     by_cases b = a; simp [h] at H ⊢; assumption }
 end⟩
 
+lemma subperm.cons_right {α : Type*} {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
+h.trans (sublist_cons x l').subperm
+
+/-- The list version of `multiset.add_sub_of_le`. -/
+lemma subperm_append_diff_self_of_count_le {l₁ l₂ : list α}
+  (h : ∀ x ∈ l₁, count x l₁ ≤ count x l₂) : l₁ ++ l₂.diff l₁ ~ l₂ :=
+begin
+  induction l₁ with hd tl IH generalizing l₂,
+  { simp },
+  { have : hd ∈ l₂,
+    { rw ←count_pos,
+      exact lt_of_lt_of_le (count_pos.mpr (mem_cons_self _ _)) (h hd (mem_cons_self _ _)) },
+    replace this : l₂ ~ hd :: l₂.erase hd := perm_cons_erase this,
+    refine perm.trans _ this.symm,
+    rw [cons_append, diff_cons, perm_cons],
+    refine IH (λ x hx, _),
+    specialize h x (mem_cons_of_mem _ hx),
+    rw (perm_iff_count.mp this) at h,
+    by_cases hx : x = hd,
+    { subst hd,
+      simpa [nat.succ_le_succ_iff] using h },
+    { simpa [hx] using h } },
+end
+
+/-- The list version of `multiset.le_iff_count`. -/
+lemma subperm_ext_iff {l₁ l₂ : list α} :
+  l₁ <+~ l₂ ↔ ∀ x ∈ l₁, count x l₁ ≤ count x l₂ :=
+begin
+  refine ⟨λ h x hx, subperm.count_le h x, λ h, _⟩,
+  suffices : l₁ <+~ (l₂.diff l₁ ++ l₁),
+  { refine this.trans (perm.subperm _),
+    exact perm_append_comm.trans (subperm_append_diff_self_of_count_le h) },
+  convert (subperm_append_right _).mpr nil_subperm using 1
+end
+
+lemma subperm.cons_left {l₁ l₂ : list α} (h : l₁ <+~ l₂)
+  (x : α) (hx : count x l₁ < count x l₂) :
+  x :: l₁ <+~ l₂  :=
+begin
+  rw subperm_ext_iff at h ⊢,
+  intros y hy,
+  by_cases hy' : y = x,
+  { subst x,
+    simpa using nat.succ_le_of_lt hx },
+  { rw count_cons_of_ne hy',
+    refine h y _,
+    simpa [hy'] using hy }
+end
+
 instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)
 | []      []      := is_true $ perm.refl _
 | []      (b::l₂) := is_false $ λ h, by have := h.nil_eq; contradiction

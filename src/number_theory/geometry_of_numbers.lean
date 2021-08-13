@@ -7,6 +7,7 @@ import measure_theory.lebesgue_measure
 import measure_theory.haar_measure
 import analysis.convex.basic
 import algebra.ordered_pointwise
+import topology.bases
 
 /-!
 # Geometry of numbers
@@ -104,15 +105,6 @@ end
 def Icc01 : positive_compacts ℝ :=
 ⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
 
-
-
-
-lemma interior_pi {ι} [fintype ι] {α : ι → Type*} (s : set ι) (t : Π (i : ι), set (α i))
-  [Π (i : ι), topological_space (α i)] : s.pi (λ i : ι, interior (t i)) ⊆ interior (s.pi t) :=
-(subset_interior_iff_subset_of_open (is_open_set_pi (finite.of_fintype s)
-  (λ (i : ι) hi, (is_open_interior : is_open (interior (t i)))))).mpr
-    (pi_mono (λ i hi, interior_subset))
-
 /-- The closed unit cube with sides the intervals [0,1] as a positive compact set, for inducing the
     Haar measure equal to the lebesgue measure on ℝ^n. -/
 def unit_cube [fintype ι] : positive_compacts (ι → ℝ) :=
@@ -121,11 +113,10 @@ def unit_cube [fintype ι] : positive_compacts (ι → ℝ) :=
   exact is_compact_univ_pi (λ i, is_compact_Icc),
 end,
 begin
+  -- rw interior_Icc,
   simp_rw [← pi_univ_Icc, pi.zero_apply, pi.one_apply],
-  have ok : (pi univ (λ i : ι, interior (Icc (0 : ℝ) 1))).nonempty,
-  { rw [interior_Icc, univ_pi_nonempty_iff],
-    exact (λ i, nonempty_Ioo.mpr zero_lt_one) },
-  exact nonempty.mono (interior_pi univ (λ (i : ι), Icc 0 1)) ok,
+  rw [interior_pi_set, interior_Icc, univ_pi_nonempty_iff],
+  exact (λ i, nonempty_Ioo.mpr zero_lt_one),
 end⟩
 
 lemma haar_measure_eq_lebesgue_measure : add_haar_measure Icc01 = volume :=

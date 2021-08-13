@@ -487,6 +487,12 @@ by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg (im z)) (abs_nonneg _),
        abs_mul_abs_self, mul_self_abs];
    apply im_sq_le_norm_sq
 
+lemma norm_re_le_norm (z : K) : ∥re z∥ ≤ ∥z∥ :=
+by { rw [is_R_or_C.norm_eq_abs, real.norm_eq_abs], exact is_R_or_C.abs_re_le_abs _, }
+
+lemma norm_im_le_norm (z : K) : ∥im z∥ ≤ ∥z∥ :=
+by { rw [is_R_or_C.norm_eq_abs, real.norm_eq_abs], exact is_R_or_C.abs_im_le_abs _, }
+
 lemma re_le_abs (z : K) : re z ≤ abs z :=
 (abs_le.1 (abs_re_le_abs _)).2
 

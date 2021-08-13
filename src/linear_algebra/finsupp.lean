@@ -177,6 +177,10 @@ lemma mem_supported' {s : set α}  (p : α →₀ M) :
 by haveI := classical.dec_pred (λ (x : α), x ∈ s);
    simp [mem_supported, set.subset_def, not_imp_comm]
 
+lemma mem_supported_support (p : α →₀ M) :
+  p ∈ finsupp.supported M R (p.support : set α) :=
+by rw finsupp.mem_supported
+
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
 set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
@@ -473,7 +477,7 @@ theorem lmap_domain_total (f : α → α') (g : M →ₗ[R] M') (h : ∀ i, g (v
   (finsupp.total α' M' R v').comp (lmap_domain R R f) = g.comp (finsupp.total α M R v) :=
 by ext l; simp [total_apply, finsupp.sum_map_domain_index, add_smul, h]
 
-theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
+@[simp] theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
   (finsupp.total α' M' R v') (emb_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
 by simp [total_apply, finsupp.sum, support_emb_domain, emb_domain_apply]
 
@@ -486,6 +490,10 @@ begin
   rw this,
   apply total_emb_domain R ⟨f, hf⟩ l
 end
+
+@[simp] theorem total_equiv_map_domain (f : α ≃ α') (l : α →₀ R) :
+  (finsupp.total α' M' R v') (equiv_map_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
+by rw [equiv_map_domain_eq_map_domain, total_map_domain _ _ f.injective]
 
 /-- A version of `finsupp.range_total` which is useful for going in the other direction -/
 theorem span_eq_range_total (s : set M) :
@@ -627,6 +635,12 @@ lemma map_range.linear_map_comp (f : N →ₗ[R] P) (f₂ : M →ₗ[R] N) :
     (map_range.linear_map f).comp (map_range.linear_map f₂) :=
 linear_map.ext $ map_range_comp _ _ _ _ _
 
+@[simp]
+lemma map_range.linear_map_to_add_monoid_hom (f : M →ₗ[R] N) :
+  (map_range.linear_map f).to_add_monoid_hom =
+    (map_range.add_monoid_hom f.to_add_monoid_hom : (α →₀ M) →+ _):=
+add_monoid_hom.ext $ λ _, rfl
+
 /-- `finsupp.map_range` as a `linear_equiv`. -/
 @[simps apply]
 def map_range.linear_equiv (e : M ≃ₗ[R] N) : (α →₀ M) ≃ₗ[R] (α →₀ N) :=
@@ -650,6 +664,18 @@ lemma map_range.linear_equiv_symm (f : M ≃ₗ[R] N) :
   ((map_range.linear_equiv f).symm : (α →₀ _) ≃ₗ[R] _) = map_range.linear_equiv f.symm :=
 linear_equiv.ext $ λ x, rfl
 
+@[simp]
+lemma map_range.linear_equiv_to_add_equiv (f : M ≃ₗ[R] N) :
+  (map_range.linear_equiv f).to_add_equiv =
+    (map_range.add_equiv f.to_add_equiv : (α →₀ M) ≃+ _):=
+add_equiv.ext $ λ _, rfl
+
+@[simp]
+lemma map_range.linear_equiv_to_linear_map (f : M ≃ₗ[R] N) :
+  (map_range.linear_equiv f).to_linear_map =
+    (map_range.linear_map f.to_linear_map : (α →₀ M) →ₗ[R] _):=
+linear_map.ext $ λ _, rfl
+
 /-- An equivalence of domain and a linear equivalence of codomain induce a linear equivalence of the
 corresponding finitely supported functions. -/
 def lcongr {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) : (ι →₀ M) ≃ₗ[R] (κ →₀ N) :=
@@ -661,15 +687,7 @@ by simp [lcongr]
 
 @[simp] lemma lcongr_apply_apply {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (f : ι →₀ M) (k : κ) :
   lcongr e₁ e₂ f k = e₂ (f (e₁.symm k)) :=
-begin
-  apply finsupp.induction_linear f,
-  { simp, },
-  { intros f g hf hg, simp [map_add, hf, hg], },
-  { intros i m,
-    simp only [finsupp.lcongr_single],
-    simp only [finsupp.single, equiv.eq_symm_apply, finsupp.coe_mk],
-    split_ifs; simp, },
-end
+rfl
 
 theorem lcongr_symm_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (k : κ) (n : N) :
   (lcongr e₁ e₂).symm (finsupp.single k n) = finsupp.single (e₁.symm k) (e₂.symm n) :=
@@ -785,6 +803,24 @@ end finsupp
 
 variables {R : Type*} {M : Type*} {N : Type*}
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+
+section
+variables (R)
+/--
+Pick some representation of `x : span R w` as a linear combination in `w`,
+using the axiom of choice.
+-/
+def span.repr (w : set M) (x : span R w) :
+  w →₀ R :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some
+
+@[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
+  finsupp.total w M R coe (span.repr R w x) = x :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+
+attribute [irreducible] span.repr
+
+end
 
 lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : submodule R M) (f : ι →₀ β)
   (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=

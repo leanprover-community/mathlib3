@@ -293,7 +293,7 @@ instance : inhabited (algebraic_closure k) := ⟨37⟩
 
 /-- The canonical ring embedding from the `n`th step to the algebraic closure. -/
 def of_step (n : ℕ) : step k n →+* algebraic_closure k :=
-ring_hom.of $ ring.direct_limit.of _ _ _
+ring.direct_limit.of _ _ _
 
 instance algebra_of_step (n) : algebra (step k n) (algebraic_closure k) :=
 (of_step k n).to_algebra

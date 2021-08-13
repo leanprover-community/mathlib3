@@ -478,6 +478,23 @@ begin
     refl }
 end
 
+/-- Linear independent families are injective, even if you multiply either side. -/
+lemma linear_independent.eq_of_smul_apply_eq_smul_apply {M : Type*} [add_comm_group M] [module R M]
+  {v : ι → M} (li : linear_independent R v) (c d : R) (i j : ι)
+  (hc : c ≠ 0) (h : c • v i = d • v j) : i = j :=
+begin
+  let l : ι →₀ R := finsupp.single i c - finsupp.single j d,
+  have h_total : finsupp.total ι M R v l = 0,
+  { simp_rw [linear_map.map_sub, finsupp.total_apply],
+    simp [h] },
+  have h_single_eq : finsupp.single i c = finsupp.single j d,
+  { rw linear_independent_iff at li,
+    simp [eq_add_of_sub_eq' (li l h_total)] },
+  rcases (finsupp.single_eq_single_iff _ _ _ _).mp h_single_eq with ⟨this, _⟩ | ⟨hc, _⟩,
+  { exact this },
+  { contradiction },
+end
+
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 
@@ -490,6 +507,32 @@ begin
   rw [hv.injective_total.eq_iff] at H, subst l₂,
   have : l₁ = 0 := finsupp.disjoint_supported_supported hs (submodule.mem_inf.2 ⟨hl₁, hl₂⟩),
   simp [this]
+end
+
+lemma linear_independent.not_mem_span_image [nontrivial R] (hv : linear_independent R v) {s : set ι}
+  {x : ι} (h : x ∉ s) :
+  v x ∉ submodule.span R (v '' s) :=
+begin
+  have h' : v x ∈ submodule.span R (v '' {x}),
+  { rw set.image_singleton,
+    exact mem_span_singleton_self (v x), },
+  intro w,
+  apply linear_independent.ne_zero x hv,
+  refine disjoint_def.1 (hv.disjoint_span_image _) (v x) h' w,
+  simpa using h,
+end
+
+lemma linear_independent.total_ne_of_not_mem_support [nontrivial R] (hv : linear_independent R v)
+  {x : ι} (f : ι →₀ R) (h : x ∉ f.support) :
+  finsupp.total ι M R v f ≠ v x :=
+begin
+  replace h : x ∉ (f.support : set ι) := h,
+  have p := hv.not_mem_span_image h,
+  intro w,
+  rw ←w at p,
+  rw finsupp.span_image_eq_map_total at p,
+  simp only [not_exists, not_and, mem_map] at p,
+  exact p f (f.mem_supported_support R) rfl,
 end
 
 lemma linear_independent_sum {v : ι ⊕ ι' → M} :
@@ -538,21 +581,18 @@ lemma linear_independent_Union_finite_subtype {ι : Type*} {f : ι → set M}
 begin
   rw [Union_eq_Union_finset f],
   apply linear_independent_Union_of_directed,
-  apply directed_of_sup,
-  exact (assume t₁ t₂ ht, Union_subset_Union $ assume i, Union_subset_Union_const $ assume h, ht h),
-  assume t, rw [set.Union, ← finset.sup_eq_supr],
-  refine t.induction_on _ _,
-  { rw finset.sup_empty,
-    apply linear_independent_empty_type, },
-  { rintros i s his ih,
-    rw [finset.sup_insert],
+  { apply directed_of_sup,
+    exact (λ t₁ t₂ ht, Union_subset_Union $ λ i, Union_subset_Union_const $ λ h, ht h) },
+  assume t,
+  induction t using finset.induction_on with i s his ih,
+  { refine (linear_independent_empty _ _).mono _,
+    simp },
+  { rw [finset.set_bUnion_insert],
     refine (hl _).union ih _,
-    rw [finset.sup_eq_supr],
-    refine (hd i _ _ his).mono_right _,
-    { simp only [(span_Union _).symm],
-      refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
-      rintros i, exact ⟨i, le_refl _⟩ },
-    { exact s.finite_to_set } }
+    refine (hd i s s.finite_to_set his).mono_right _,
+    simp only [(span_Union _).symm],
+    refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
+    exact λ i, ⟨i, le_rfl⟩ }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -589,7 +629,7 @@ variables (hv : linear_independent R v)
 
 /-- Canonical isomorphism between linear combinations and the span of linearly independent vectors.
 -/
-def linear_independent.total_equiv (hv : linear_independent R v) :
+@[simps] def linear_independent.total_equiv (hv : linear_independent R v) :
   (ι →₀ R) ≃ₗ[R] span R (range v) :=
 begin
 apply linear_equiv.of_bijective
@@ -614,7 +654,7 @@ It is simply one direction of `linear_independent.total_equiv`. -/
 def linear_independent.repr (hv : linear_independent R v) :
   span R (range v) →ₗ[R] ι →₀ R := hv.total_equiv.symm
 
-lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
+@[simp] lemma linear_independent.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
 subtype.ext_iff.1 (linear_equiv.apply_symm_apply hv.total_equiv x)
 
 lemma linear_independent.total_comp_repr :
@@ -646,6 +686,18 @@ lemma linear_independent.repr_eq_single (i) (x) (hx : ↑x = v i) :
 begin
   apply hv.repr_eq,
   simp [finsupp.total_single, hx]
+end
+
+lemma linear_independent.span_repr_eq [nontrivial R] (x) :
+  span.repr R (set.range v) x = (hv.repr x).equiv_map_domain (equiv.of_injective _ hv.injective) :=
+begin
+  have p : (span.repr R (set.range v) x).equiv_map_domain (equiv.of_injective _ hv.injective).symm =
+    hv.repr x,
+  { apply (linear_independent.total_equiv hv).injective,
+    ext,
+    simp, },
+  ext ⟨_, ⟨i, rfl⟩⟩,
+  simp [←p],
 end
 
 -- TODO: why is this so slow?

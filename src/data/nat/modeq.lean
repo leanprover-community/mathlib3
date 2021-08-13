@@ -168,6 +168,14 @@ end)
 
 end modeq
 
+@[simp] lemma modeq_zero_iff {a b : ℕ} : a ≡ b [MOD 0] ↔ a = b :=
+by rw [nat.modeq, nat.mod_zero, nat.mod_zero]
+
+@[simp] lemma add_modeq_left {a n : ℕ} : n + a ≡ a [MOD n] :=
+by rw [nat.modeq, nat.add_mod_left]
+@[simp] lemma add_modeq_right {a n : ℕ} : a + n ≡ a [MOD n] :=
+by rw [nat.modeq, nat.add_mod_right]
+
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=
 modeq.modeq_of_modeq_mul_right _ (modeq.mod_modeq _ _)
 

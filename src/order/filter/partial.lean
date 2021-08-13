@@ -164,7 +164,6 @@ iff.rfl
 
 theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
   pmap (pfun.res f s) l = map f (l ⊓ 𝓟 s) :=
-
 begin
   ext t,
   simp only [pfun.core_res, exists_prop, mem_map, mem_principal, mem_pmap],

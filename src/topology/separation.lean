@@ -426,8 +426,7 @@ begin
   refine eq_of_nhds_ne_bot ⟨λ this : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h.ne _⟩,
   obtain ⟨t₁, (ht₁ : t₁ ∈ 𝓝 a₁), t₂, (ht₂ : t₂ ∈ 𝓝 a₂), (h' : t₁ ∩ t₂ = ∅)⟩ :=
     inf_eq_bot_iff.1 this,
-  rw inf_principal_eq_bot,
-  rw [nhds_prod_eq],
+  rw [inf_principal_eq_bot, nhds_prod_eq],
   apply mem_of_superset (prod_mem_prod ht₁ ht₂),
   rintro ⟨x, y⟩ ⟨x_in, y_in⟩ (heq : x = y),
   rw ← heq at *,

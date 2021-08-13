@@ -11,10 +11,23 @@ import measure_theory.decomposition.signed_hahn
 This file proves the existence and uniqueness of the Jordan decomposition for signed measures.
 The Jordan decomposition theorem states that, given a signed measure `s`, there exists a
 unique pair of mutually singular measures `μ` and `ν`, such that `s = μ - ν`.
+
 The Jordan decomposition theorem for measures is a corollary of the Hahn decomposition theorem and
 is useful for the Lebesgue decomposition theorem.
 
+## Main definitions
+
+* `measure_theory.jordan_decomposition`: a Jordan decomposition of a measurable space is a
+  pair of mutually singular finite measures. We say `j` is a Jordan decomposition of a signed
+  meausre `s` if `s = j.μ - j.ν`.
+* `measure_theory.signed_measure.to_jordan_decomposition`: the Jordan decomposition of a
+  signed measure.
+* `measure_theory.signed_measure.to_jordan_decomposition_equiv`: is the `equiv` between
+  `measure_theory.signed_measure` and `measure_theory.jordan_decomposition` formed by
+  `measure_theory.signed_measure.to_jordan_decomposition`.
+
 ## Main results
+
 * `measure_theory.signed_measure.to_signed_measure_to_jordan_decomposition` : the Jordan
   decomposition theorem.
 * `measure_thoery.signed_measure.to_signed_measure_injective` : the Jordan decomposition of a

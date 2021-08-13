@@ -178,6 +178,8 @@ instance one_hom.one_hom_class : one_hom_class (one_hom M N) M N :=
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_one := one_hom.map_one' }
 
+variables (M) -- Can't always infer `M` from `F`
+
 @[simp, to_additive] lemma map_one [one_hom_class F M N] (f : F) : f 1 = 1 :=
 one_hom_class.map_one f
 
@@ -257,7 +259,7 @@ instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
 
 @[to_additive]
 instance [monoid_hom_class F M N] : has_coe_t F (M →* N) :=
-⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
+⟨λ f, { to_fun := f, map_one' := map_one _ f, map_mul' := map_mul f }⟩
 
 @[to_additive]
 lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) :

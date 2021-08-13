@@ -161,8 +161,8 @@ instance {P Q : C} {f : P ⟶ Q} [mono f] : mono (-f) :=
 @[priority 100]
 instance preadditive_has_zero_morphisms : has_zero_morphisms C :=
 { has_zero := infer_instance,
-  comp_zero' := λ P Q f R, map_zero $ left_comp R f,
-  zero_comp' := λ P Q R f, map_zero $ right_comp P f }
+  comp_zero' := λ P Q f R, map_zero (Q ⟶ R) (left_comp R f),
+  zero_comp' := λ P Q R f, map_zero (P ⟶ Q) (right_comp P f) }
 
 lemma mono_of_cancel_zero {Q R : C} (f : Q ⟶ R) (h : ∀ {P : C} (g : P ⟶ Q), g ≫ f = 0 → g = 0) :
   mono f :=

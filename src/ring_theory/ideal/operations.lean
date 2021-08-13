@@ -710,6 +710,27 @@ begin
       rwa finset.exists_mem_insert } }
 end
 
+section dvd
+
+/-- If `I` divides `J`, then `I` contans `J`.
+
+In a Dedekind domain, to divide and contain are equivalent, see `ideal.dvd_iff_le`.
+-/
+lemma le_of_dvd {I J : ideal R} : I ∣ J → J ≤ I
+| ⟨K, h⟩ := h.symm ▸ le_trans mul_le_inf inf_le_left
+
+lemma is_unit_iff {I : ideal R} :
+  is_unit I ↔ I = ⊤ :=
+is_unit_iff_dvd_one.trans ((@one_eq_top R _).symm ▸
+ ⟨λ h, eq_top_iff.mpr (ideal.le_of_dvd h), λ h, ⟨⊤, by rw [mul_top, h]⟩⟩)
+
+instance unique_units : unique (units (ideal R)) :=
+{ default := 1,
+  uniq := λ u, units.ext
+    (show (u : ideal R) = 1, by rw [is_unit_iff.mp u.is_unit, one_eq_top]) }
+
+end dvd
+
 end mul_and_radical
 
 section map_and_comap

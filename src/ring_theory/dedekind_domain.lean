@@ -611,16 +611,6 @@ noncomputable instance ideal.comm_cancel_monoid_with_zero :
 function.injective.comm_cancel_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
   coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
 
-/-- If `I` divides `J`, then `I` contans `J`.
-
-In a Dedekind domain, to divide and contain are equivalent, see `ideal.dvd_iff_le`.
--/
-lemma ideal.le_of_dvd {I J : ideal R} (hIJ : I ∣ J) : J ≤ I :=
-begin
-  rcases hIJ with ⟨K, rfl⟩,
-  exact le_trans mul_le_inf inf_le_left
-end
-
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
 lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=
 ⟨ideal.le_of_dvd,
@@ -639,10 +629,6 @@ lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=
       (show (J : fractional_ideal A⁰ (fraction_ring A)) = _, from _),
     rw [fractional_ideal.coe_ideal_mul, hH, ← mul_assoc, mul_inv_cancel hI', one_mul]
 end⟩
-
-lemma ideal.is_unit_iff {I : ideal A} :
-  is_unit I ↔ I = ⊤ :=
-by rw [is_unit_iff_dvd_one, ideal.one_eq_top, ideal.dvd_iff_le, eq_top_iff]
 
 lemma ideal.dvd_not_unit_iff_lt {I J : ideal A} :
   dvd_not_unit I J ↔ J < I :=
@@ -676,5 +662,8 @@ instance ideal.unique_factorization_monoid :
     end⟩,
      λ h, irreducible_of_prime h⟩,
   .. ideal.wf_dvd_monoid }
+
+noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
+normalization_monoid_of_unique_units
 
 end is_dedekind_domain

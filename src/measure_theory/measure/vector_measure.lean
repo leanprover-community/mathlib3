@@ -439,17 +439,11 @@ begin
       to_ennreal_vector_measure_apply_measurable hi, to_ennreal_vector_measure_apply_measurable hi]
 end
 
-/-- Given two finite measures `μ, ν`, `sub_to_signed_measure μ ν` is the signed measure
-corresponding to the function `μ - ν`. -/
-def sub_to_signed_measure (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν] :
-  signed_measure α :=
-μ.to_signed_measure - ν.to_signed_measure
-
-lemma sub_to_signed_measure_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+lemma to_signed_measure_sub_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
   {i : set α} (hi : measurable_set i) :
-  μ.sub_to_signed_measure ν i = (μ i).to_real - (ν i).to_real :=
+  (μ.to_signed_measure - ν.to_signed_measure) i = (μ i).to_real - (ν i).to_real :=
 begin
-  rw [sub_to_signed_measure, vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
+  rw [vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       measure.to_signed_measure_apply_measurable hi, sub_eq_add_neg]
 end
 

@@ -65,7 +65,7 @@ instance : inhabited (jordan_decomposition α) :=
 { default := ⟨0, 0, mutually_singular.zero⟩ }
 
 /-- The signed measure associated with a Jordan decomposition. -/
-def to_signed_measure : signed_measure α := j.μ.sub_to_signed_measure j.ν
+def to_signed_measure : signed_measure α := j.μ.to_signed_measure - j.ν.to_signed_measure
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
 lemma exists_compl_positive_negative :
@@ -75,12 +75,12 @@ begin
   obtain ⟨S, hS₁, hS₂, hS₃⟩ := j.mutually_singular,
   refine ⟨S, hS₁, _, _, hS₂, hS₃⟩,
   { refine restrict_le_restrict_of_subset_le _ _ (λ A hA hA₁, _),
-    rw [to_signed_measure, sub_to_signed_measure_apply hA,
+    rw [to_signed_measure, to_signed_measure_sub_apply hA,
         show j.μ A = 0, by exact nonpos_iff_eq_zero.1 (hS₂ ▸ measure_mono hA₁),
         ennreal.zero_to_real, zero_sub, neg_le, zero_apply, neg_zero],
     exact ennreal.to_real_nonneg },
   { refine restrict_le_restrict_of_subset_le _ _ (λ A hA hA₁, _),
-    rw [to_signed_measure, sub_to_signed_measure_apply hA,
+    rw [to_signed_measure, to_signed_measure_sub_apply hA,
         show j.ν A = 0, by exact nonpos_iff_eq_zero.1 (hS₃ ▸ measure_mono hA₁),
         ennreal.zero_to_real, sub_zero],
     exact ennreal.to_real_nonneg },
@@ -134,7 +134,7 @@ begin
   obtain ⟨i, hi₁, hi₂, hi₃, hμ, hν⟩ := s.to_jordan_decomposition_spec,
   simp only [jordan_decomposition.to_signed_measure, hμ, hν],
   ext k hk,
-  rw [sub_to_signed_measure_apply hk, to_measure_of_zero_le_apply _ hi₂ hi₁ hk,
+  rw [to_signed_measure_sub_apply hk, to_measure_of_zero_le_apply _ hi₂ hi₁ hk,
       to_measure_of_le_zero_apply _ hi₃ hi₁.compl hk],
   simp only [ennreal.coe_to_real, subtype.coe_mk, ennreal.some_eq_coe, sub_neg_eq_add],
   rw [← of_union _ (measurable_set.inter hi₁ hk) (measurable_set.inter hi₁.compl hk),
@@ -274,7 +274,7 @@ begin
   refine jordan_decomposition.ext _ _ _ _,
   { refine measure_theory.measure.ext (λ i hi, _),
     have hμ₁ : (j₁.μ i).to_real = j₁.to_signed_measure (i ∩ Sᶜ),
-    { rw [to_signed_measure, sub_to_signed_measure_apply (hi.inter hS₁.compl),
+    { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hS₁.compl),
           show j₁.ν (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1
             (hS₅ ▸ measure_mono (set.inter_subset_right _ _)),
           ennreal.zero_to_real, sub_zero],
@@ -286,7 +286,7 @@ begin
       { exact hi.inter hS₁ },
       { exact hi.inter hS₁.compl } },
     have hμ₂ : (j₂.μ i).to_real = j₂.to_signed_measure (i ∩ Tᶜ),
-    { rw [to_signed_measure, sub_to_signed_measure_apply (hi.inter hT₁.compl),
+    { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hT₁.compl),
           show j₂.ν (i ∩ Tᶜ) = 0, by exact nonpos_iff_eq_zero.1
             (hT₅ ▸ measure_mono (set.inter_subset_right _ _)),
           ennreal.zero_to_real, sub_zero],
@@ -303,7 +303,7 @@ begin
     all_goals { apply_instance } },
   { refine measure_theory.measure.ext (λ i hi, _),
     have hν₁ : (j₁.ν i).to_real = - j₁.to_signed_measure (i ∩ S),
-    { rw [to_signed_measure, sub_to_signed_measure_apply (hi.inter hS₁),
+    { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hS₁),
           show j₁.μ (i ∩ S) = 0, by exact nonpos_iff_eq_zero.1
             (hS₄ ▸ measure_mono (set.inter_subset_right _ _)),
           ennreal.zero_to_real, zero_sub],
@@ -315,7 +315,7 @@ begin
       { exact hi.inter hS₁ },
       { exact hi.inter hS₁.compl } },
     have hν₂ : (j₂.ν i).to_real = - j₂.to_signed_measure (i ∩ T),
-    { rw [to_signed_measure, sub_to_signed_measure_apply (hi.inter hT₁),
+    { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hT₁),
           show j₂.μ (i ∩ T) = 0, by exact nonpos_iff_eq_zero.1
             (hT₄ ▸ measure_mono (set.inter_subset_right _ _)),
           ennreal.zero_to_real, zero_sub],

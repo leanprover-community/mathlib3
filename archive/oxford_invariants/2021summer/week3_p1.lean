@@ -60,8 +60,8 @@ hypothesis, where `b` is the previous sum, `∑ᵢ₌₀ⁿ⁻¹ a₀aₙ/aᵢa�
                         = aₙ₊₂/aₙ₊₁ * b + a₀/aₙ₊₁
                         = (aₙ + aₙ₊₂)/aₙ₊₁ * b - (aₙ * b - a₀)/aₙ₊₁
     ```
-    which is a natural because `(aₙ + aₙ₊₂)/aₙ₊₁`, `b` and `(aₙ * b - a₀)/aₙ₊₁` are (plus an annoying
-    inequality, or the fact that the original sum is positive because its terms are).
+    which is a natural because `(aₙ + aₙ₊₂)/aₙ₊₁`, `b` and `(aₙ * b - a₀)/aₙ₊₁` are (plus an
+    annoying inequality, or the fact that the original sum is positive because its terms are).
   * Divisibility condition:
     `aₙ₊₁ * ((aₙ + aₙ₊₂)/aₙ₊₁ * b - (aₙ * b - a₀)/aₙ₊₁) - a₀ = aₙ₊₁aₙ₊₂b` is divisible by `aₙ₊₂`.
 -/

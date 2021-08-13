@@ -376,6 +376,133 @@ begin
   exact ⟨λ ⟨n, hn, h⟩, ⟨n, nat.lt_succ_of_le hn, h⟩, λ ⟨n, hn, h⟩, ⟨n, nat.le_of_lt_succ hn, h⟩⟩
 end
 
+def cyclic_permutations : list α → list (list α)
+| []       := [[]]
+| (x :: l) := tail (zip_with (++) (tails (x :: l)) (inits (x :: l)))
+
+@[simp] lemma cyclic_permutations_nil : cyclic_permutations ([] : list α) = [[]] := rfl
+
+@[simp] lemma cyclic_permutations_cons (x : α) (l : list α) :
+  cyclic_permutations (x :: l) = tail (zip_with (++) (tails (x :: l)) (inits (x :: l))) := rfl
+
+lemma length_cyclic_permutations_cons (x : α) (l : list α) :
+  length (cyclic_permutations (x :: l)) = length l + 1 :=
+by simp
+
+@[simp] lemma nth_le_cyclic_permutations (l : list α) (n : ℕ)
+  (hn : n < length (cyclic_permutations l)) :
+  nth_le (cyclic_permutations l) n hn = l.rotate (n + 1) :=
+begin
+  cases l with x l,
+  { simp },
+  { simp only [rotate_cons_succ, tails, cyclic_permutations_cons, nth_le_zip_with,
+               zip_with_cons_cons, inits, nth_le_map', tail, nth_le_tails, nth_le_inits],
+    replace hn : n ≤ length l,
+    { simpa [nat.lt_succ_iff] using hn },
+    rw [rotate_eq_drop_append_take (hn.trans _), drop_append_of_le_length hn,
+        take_append_of_le_length hn, append_assoc, singleton_append],
+    simp }
+end
+
+lemma mem_cyclic_permutations_self (l : list α) :
+  l ∈ cyclic_permutations l :=
+begin
+  cases l with x l,
+  { simp },
+  { rw mem_iff_nth_le,
+    refine ⟨l.length, by simp, _⟩,
+    simp }
+end
+
+lemma length_mem_cyclic_permutations (l : list α) (h : l' ∈ cyclic_permutations l) :
+  length l' = length l :=
+begin
+  obtain ⟨k, hk, rfl⟩ := nth_le_of_mem h,
+  simp
+end
+
+lemma mem_cyclic_permutations_iff {l l' : list α} :
+  l ∈ cyclic_permutations l' ↔ l ~r l' :=
+begin
+  split,
+  { intro h,
+    obtain ⟨k, hk, rfl⟩ := nth_le_of_mem h,
+    simp },
+  { intro h,
+    obtain ⟨k, rfl⟩ := h.symm,
+    rw mem_iff_nth_le,
+    simp only [exists_prop, nth_le_cyclic_permutations],
+    cases l' with x l,
+    { simp },
+    cases k,
+    { refine ⟨length l, by simp, _⟩,
+      rw [←length_cons x, rotate_length, rotate_zero] },
+    { refine ⟨k % (length l + 1), (nat.mod_lt _ (by simp)).trans_le (by simp), _⟩,
+      rw [rotate_cons_succ _ _ k, ←rotate_mod _ k, length_append],
+      simp } }
+end
+
+theorem nodup.rotate_eq_self_iff {l : list α} (hl : l.nodup) {n : ℕ} :
+  l.rotate n = l ↔ n % l.length = 0 ∨ l = [] :=
+begin
+  split,
+  { intro h,
+    cases l.length.zero_le.eq_or_lt with hl' hl',
+    { simp [←length_eq_zero, ←hl'] },
+    left,
+    rw nodup_iff_nth_le_inj at hl,
+    refine hl _ _ (mod_lt _ hl') hl' _,
+    rw ←nth_le_rotate' _ n,
+    simp_rw [h, nat.sub_add_cancel (mod_lt _ hl').le, mod_self] },
+  { rintro (h|h),
+    { rw [←rotate_mod, h],
+      exact rotate_zero l },
+    { simp [h] } }
+end
+
+lemma nodup.cyclic_permutations {l : list α} (hn : nodup l) :
+  nodup (cyclic_permutations l) :=
+begin
+  cases l with x l,
+  { simp },
+  rw nodup_iff_nth_le_inj,
+  intros i j hi hj h,
+  simp only [tails, length_inits, cyclic_permutations_cons, zip_with_cons_cons, inits, tail,
+             min_eq_right, length_map, length_zip_with, length_tails, lt_succ_iff] at hi hj,
+  rw [nth_le_cyclic_permutations, nth_le_cyclic_permutations, rotate_eq_iff, rotate_rotate,
+      eq_comm, hn.rotate_eq_self_iff, length_rotate] at h,
+  simp only [length_rotate, length, or_false] at h,
+  obtain ⟨a, ha⟩ := exists_eq_add_of_le hi,
+  obtain ⟨b, hb⟩ := exists_eq_add_of_le hj,
+  have ha' : i = l.length - a,
+  { rw [ha, nat.add_sub_cancel] },
+  subst i,
+  rcases a.zero_le.eq_or_lt with rfl|ha',
+  { simp only [mod_self, nat.sub_zero, add_mod_right, hb, add_right_comm j b 1] at h,
+    rcases b.zero_le.eq_or_lt with rfl|hb',
+    { simpa using hb },
+    { rw mod_eq_of_lt at h,
+      { simpa using h },
+      { simpa using hb' } } },
+  have hal : a ≤ l.length,
+  { contrapose! ha,
+    rw ←zero_add a at ha,
+    intro H,
+    rw H at ha,
+    simpa using ha },
+  rw nat.sub_add_eq_add_sub hal at h,
+  have ha' : length l + 1 - a < length l + 1,
+  { exact nat.sub_lt_self (nat.zero_lt_succ _) ha' },
+  rw hb at *,
+  rw [mod_eq_of_lt ha', nat.sub_sub_self (le_add_right hal), add_right_comm] at h,
+  rcases lt_trichotomy a b with H|rfl|H,
+  { rw mod_eq_of_lt at h,
+    { simpa using h },
+    { simpa using H } },
+  { simp },
+  { sorry },
+end
+
 section decidable
 
 variables [decidable_eq α]

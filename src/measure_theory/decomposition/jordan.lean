@@ -337,7 +337,6 @@ def to_jordan_decomposition_equiv (α : Type*) [measurable_space α] :
   left_inv := to_jordan_decomposition_to_signed_measure_eq,
   right_inv := to_signed_measure_to_jordan_decomposition_eq }
 
-
 end signed_measure
 
 end measure_theory

@@ -94,7 +94,8 @@ dual, but will be equipped with a different topology. -/
 @[derive [inhabited, has_coe_to_fun]]
 def weak_dual := E →L[𝕜] 𝕜
 
-instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) := continuous_linear_map.add_comm_monoid
+instance [has_continuous_add 𝕜] : add_comm_monoid (weak_dual 𝕜 E) :=
+continuous_linear_map.add_comm_monoid
 
 namespace weak_dual
 

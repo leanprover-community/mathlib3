@@ -111,8 +111,8 @@ end
 mutually singular measures `μ` and `ν` such that `s = μ - ν`. In this case, the measures `μ`
 and `ν` are given by `s.to_jordan_decomposition.μ` and `s.to_jordan_decomposition.ν` respectively.
 
-Note that we use `measure.sub_to_signed_measure μ ν` to represent the signed measure corresponding
-to `μ - ν`. -/
+Note that we use `jordan_decomposition.to_signed_measure` to represent the signed measure
+corresponding to `s.to_jordan_decomposition.μ - s.to_jordan_decomposition.ν`. -/
 @[simp] lemma to_jordan_decomposition_sub (s : signed_measure α) :
   s.to_jordan_decomposition.to_signed_measure = s :=
 begin
@@ -317,25 +317,19 @@ begin
     all_goals { apply_instance } }
 end
 
+@[simp]
 lemma sub_to_signed_measure_to_jordan_decomposition (j : jordan_decomposition α) :
   (j.to_signed_measure).to_jordan_decomposition = j :=
 (@to_signed_measure_injective _ _ j (j.to_signed_measure).to_jordan_decomposition (by simp)).symm
-
-lemma to_jordan_decomposition_bijective :
-  bijective $ @to_jordan_decomposition α _ :=
-begin
-  split,
-  { intros s t hst,
-    rw [← to_jordan_decomposition_sub s, hst, to_jordan_decomposition_sub t] },
-  { intro j,
-    exact ⟨j.to_signed_measure, sub_to_signed_measure_to_jordan_decomposition _⟩ }
-end
 
 /-- `signed_measure.to_jordan_decomposition` forms a `equiv` between
 `signed_measure α` and `jordan_decomposition α` -/
 def to_jordan_decomposition_equiv (α : Type*) [measurable_space α] :
   signed_measure α ≃ jordan_decomposition α :=
-equiv.of_bijective to_jordan_decomposition to_jordan_decomposition_bijective
+{ to_fun := to_jordan_decomposition,
+  inv_fun := to_signed_measure,
+  left_inv := to_jordan_decomposition_sub,
+  right_inv := sub_to_signed_measure_to_jordan_decomposition }
 
 end jordan_decomposition
 

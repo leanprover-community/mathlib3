@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kalle Kytölä, Heather Macbeth
+Authors: Kalle Kytölä
 -/
 import topology.algebra.weak_dual_topology
 import analysis.normed_space.dual
@@ -26,11 +26,18 @@ The main definitions concern the canconical mapping `dual 𝕜 E → weak_dual �
 
 ## Main results
 
-The main results concern the comparison of the operator norm topology on `dual 𝕜 E` and the weak-*
-topology on (it type synonym) `weak_dual 𝕜 E`.
+The file is a stub.
 
+The first main results concern the comparison of the operator norm topology on `dual 𝕜 E` and the
+weak-* topology on (it type synonym) `weak_dual 𝕜 E`:
 * `dual_norm_topology_le_weak_dual_topology` is the statement that the weak-* topology on the dual
   of a normed space is coarser (not necessarily strictly) than the operator norm topology.
+
+TODOs:
+* Add Banach-Alaoglu theorem.
+* Add metrizability of the dual unit ball (more generally bounded subsets) of `weak_dual 𝕜 E`
+  under the assumption of separability of `E`. This would in particular give the sequential
+  Banach-Alaoglu theorem from the general one.
 
 ## Notations
 

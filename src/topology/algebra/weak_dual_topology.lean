@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kalle Kytölä, Heather Macbeth
+Authors: Kalle Kytölä
 -/
 import topology.algebra.module
 
@@ -26,7 +26,19 @@ The main definitions are the type `weak_dual 𝕜 E` and a topology instance on 
 
 ## Main results
 
-The results in this file primarily concern the characterization of the weak-* topology.
+We establish that `weak_dual 𝕜 E` has the following structure:
+* The addition in `weak_dual 𝕜 E` is continuous, i.e. we have `has_continuous_add (weak_dual 𝕜 E)`.
+* If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`.
+* If the scalars `𝕜` are a commutative semiring, then the scalar multiplication by `𝕜` in
+  `weak_dual 𝕜 E` is continuous, i.e. we have `has_continuous_smul 𝕜 (weak_dual 𝕜 E)`.
+
+We prove the following results characterizing the weak-* topology:
+* `eval_continuous` shows that for any `z : E`, the evaluation mapping `weak_dual 𝕜 E → 𝕜`
+  taking `x'`to `x' z` is continuous.
+* `continuous_of_continuous_eval` shows that for a mapping to `weak_dual 𝕜 E → 𝕜` to be continuous,
+  it is sufficient that its compositions with evaluations at all points `z : E` are continuous
+* `tendsto_iff_forall_eval_tendsto` is a characterization of convergence in `weak_dual 𝕜 E` in
+  terms of convergence of the evaluations at all points `z : E`
 
 ## Notations
 
@@ -111,7 +123,7 @@ begin
   rw ←tendsto_pi,
   split,
   { intros weak_star_conv,
-    exact tendsto.comp (continuous.tendsto (weak_dual.eval_continuous' 𝕜 E) ψ) weak_star_conv, },
+    exact (((eval_continuous' 𝕜 E).tendsto ψ).comp weak_star_conv), },
   { intro h_lim_forall,
     rwa [nhds_induced, tendsto_comap_iff], },
 end

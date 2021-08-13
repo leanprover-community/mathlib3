@@ -57,7 +57,7 @@ lemma closure_image_mem_nhds {s : set α} {a : α} (di : dense_inducing i) (hs :
 begin
   rw [di.nhds_eq_comap a, ((nhds_basis_opens _).comap _).mem_iff] at hs,
   rcases hs with ⟨U, ⟨haU, hUo⟩, sub : i ⁻¹' U ⊆ s⟩,
-  refine mem_sets_of_superset (hUo.mem_nhds haU) _,
+  refine mem_of_superset (hUo.mem_nhds haU) _,
   calc U ⊆ closure (i '' (i ⁻¹' U)) : di.dense.subset_closure_image_preimage_of_is_open hUo
      ... ⊆ closure (i '' s)         : closure_mono (image_subset i sub)
 end
@@ -159,7 +159,7 @@ begin
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
                             (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
-  { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
+  { filter_upwards [inter_mem V₁_in V₂_in], exact this },
   rintros x ⟨x_in₁, x_in₂⟩,
   have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
@@ -169,7 +169,7 @@ end
 
 lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing i)
   (hf : ∀b, ∃c, tendsto f (comap i (𝓝 b)) (𝓝 c)) : continuous (di.extend f) :=
-continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem_sets' hf
+continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem' hf
 
 lemma mk'
   (i : α → β)

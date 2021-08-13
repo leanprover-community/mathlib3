@@ -1044,7 +1044,7 @@ def sigma_equiv_sigma_pi (n : ℕ) :
     { blocks := (of_fn (λ j, (i.2 j).blocks)).join,
       blocks_pos :=
       begin
-        simp only [and_imp, mem_join, exists_imp_distrib, forall_mem_of_fn_iff],
+        simp only [and_imp, list.mem_join, exists_imp_distrib, forall_mem_of_fn_iff],
         exact λ i j hj, composition.blocks_pos _ hj
       end,
       blocks_sum := by simp [sum_of_fn, composition.blocks_sum, composition.sum_blocks_fun] },

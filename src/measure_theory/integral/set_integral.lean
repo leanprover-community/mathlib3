@@ -673,13 +673,13 @@ lemma integral_on_nonneg_of_ae {f : α → ℝ} (hf : ∀ᵐ a, a ∈ s → 0 �
 integral_nonneg_of_ae $ by { filter_upwards [hf] λ a h, indicator_nonneg' h }
 
 lemma integral_on_nonneg {f : α → ℝ} (hf : ∀ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
-integral_on_nonneg_of_ae $ univ_mem_sets' hf
+integral_on_nonneg_of_ae $ univ_mem' hf
 
 lemma integral_on_nonpos_of_ae {f : α → ℝ} (hf : ∀ᵐ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
 integral_nonpos_of_nonpos_ae $ by { filter_upwards [hf] λ a h, indicator_nonpos' h }
 
 lemma integral_on_nonpos {f : α → ℝ} (hf : ∀ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
-integral_on_nonpos_of_ae $ univ_mem_sets' hf
+integral_on_nonpos_of_ae $ univ_mem' hf
 
 lemma tendsto_integral_on_of_monotone {s : ℕ → set α} {f : α → β} (hsm : ∀i, measurable_set (s i))
   (h_mono : monotone s) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
@@ -732,12 +732,12 @@ begin
   refine tendsto_integral_filter_of_dominated_convergence _ _ _ _ _ _ _,
   { exact indicator (Union s) (λ a, ∥f a∥) },
   { exact is_countably_generated_at_top_finset_nat },
-  { refine univ_mem_sets' (λ n, _),
+  { refine univ_mem' (λ n, _),
     simp only [mem_set_of_eq],
     refine hfm.subset (measurable_set.Union (λ i, measurable_set.Union_Prop (λh, hm _)))
       (bUnion_subset_Union _ _), },
   { assumption },
-  { refine univ_mem_sets' (λ n, univ_mem_sets' $ _),
+  { refine univ_mem' (λ n, univ_mem' $ _),
     simp only [mem_set_of_eq],
     assume a,
     rw ← norm_indicator_eq_indicator_norm,

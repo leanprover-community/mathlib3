@@ -410,10 +410,10 @@ lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) �
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
  assume h, ⟨assume x y xy,
    have 𝓝 x ⊓ 𝓝 y = ⊥ := not_ne_bot.1 $ mt h xy,
-   let ⟨u', hu', v', hv', u'v'⟩ := empty_in_sets_eq_bot.mpr this,
+   let ⟨u', hu', v', hv', u'v'⟩ := empty_mem_iff_bot.mpr this,
        ⟨u, uu', uo, hu⟩ := mem_nhds_iff.mp hu',
        ⟨v, vv', vo, hv⟩ := mem_nhds_iff.mp hv' in
-   ⟨u, v, uo, vo, hu, hv, disjoint.eq_bot $ disjoint.mono uu' vv' u'v'⟩⟩⟩
+   ⟨u, v, uo, vo, hu, hv, by { rw [← subset_empty_iff, u'v'], exact inter_subset_inter uu' vv' }⟩⟩⟩
 
 lemma t2_iff_ultrafilter :
   t2_space α ↔ ∀ {x y : α} (f : ultrafilter α), ↑f ≤ 𝓝 x → ↑f ≤ 𝓝 y → x = y :=
@@ -424,13 +424,14 @@ begin
   refine is_closed_iff_cluster_pt.mpr _,
   rintro ⟨a₁, a₂⟩ h,
   refine eq_of_nhds_ne_bot ⟨λ this : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h.ne _⟩,
-  obtain ⟨t₁, (ht₁ : t₁ ∈ 𝓝 a₁), t₂, (ht₂ : t₂ ∈ 𝓝 a₂), (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
-    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this,
-  rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
-  apply filter.sets_of_superset,
-  apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
-  exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
-    show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
+  obtain ⟨t₁, (ht₁ : t₁ ∈ 𝓝 a₁), t₂, (ht₂ : t₂ ∈ 𝓝 a₂), (h' : t₁ ∩ t₂ = ∅)⟩ :=
+    inf_eq_bot_iff.1 this,
+  rw [inf_principal_eq_bot, nhds_prod_eq],
+  apply mem_of_superset (prod_mem_prod ht₁ ht₂),
+  rintro ⟨x, y⟩ ⟨x_in, y_in⟩ (heq : x = y),
+  rw ← heq at *,
+  have : x ∈ t₁ ∩ t₂ := ⟨x_in, y_in⟩,
+  rwa h' at this
 end
 
 lemma t2_iff_is_closed_diagonal : t2_space α ↔ is_closed (diagonal α) :=
@@ -806,7 +807,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
    mem_nhds_iff.mpr
      ⟨v, subset_compl_iff_disjoint.mpr vw, vo, singleton_subset_iff.mp xv⟩,
   ⟨k \ w,
-   filter.inter_mem_sets kx wn,
+   filter.inter_mem kx wn,
    subset.trans (diff_subset_comm.mp kuw) un,
    kc.diff wo⟩⟩
 
@@ -853,14 +854,14 @@ have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨tᶜ,
-  mem_sets_of_eq_bot $ by rwa [compl_compl],
+  mem_of_eq_bot $ by rwa [compl_compl],
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
 
 lemma closed_nhds_basis [regular_space α] (a : α) :
   (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_closed s) id :=
 ⟨λ t, ⟨λ t_in, let ⟨s, s_in, h_st, h⟩ := nhds_is_closed t_in in ⟨s, ⟨s_in, h⟩, h_st⟩,
-       λ ⟨s, ⟨s_in, hs⟩, hst⟩, mem_sets_of_superset s_in hst⟩⟩
+       λ ⟨s, ⟨s_in, hs⟩, hst⟩, mem_of_superset s_in hst⟩⟩
 
 instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_space (subtype p) :=
 ⟨begin
@@ -877,10 +878,10 @@ instance regular_space.t2_space [regular_space α] : t2_space α :=
 ⟨λ x y hxy,
 let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
     (mt mem_singleton_iff.1 hxy),
-  ⟨t, hxt, u, hsu, htu⟩ := empty_in_sets_eq_bot.2 hxs,
+  ⟨t, hxt, u, hsu, htu⟩ := empty_mem_iff_bot.2 hxs,
   ⟨v, hvt, hv, hxv⟩ := mem_nhds_iff.1 hxt in
 ⟨v, s, hv, hs, hxv, singleton_subset_iff.1 hys,
-eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
+eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, by { rw htu, exact ⟨hvt hzv, hsu hzs⟩ }⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance regular_space.t2_5_space [regular_space α] : t2_5_space α :=
@@ -904,8 +905,8 @@ begin
   rcases t2_separation h with ⟨U₁, U₂, U₁_op, U₂_op, x_in, y_in, H⟩,
   rcases nhds_is_closed (is_open.mem_nhds U₁_op x_in) with ⟨V₁, V₁_in, h₁, V₁_closed⟩,
   rcases nhds_is_closed (is_open.mem_nhds U₂_op y_in) with ⟨V₂, V₂_in, h₂, V₂_closed⟩,
-  use [U₁, V₁, mem_sets_of_superset V₁_in h₁, V₁_in,
-       U₂, V₂, mem_sets_of_superset V₂_in h₂, V₂_in],
+  use [U₁, V₁, mem_of_superset V₁_in h₁, V₁_in,
+       U₂, V₂, mem_of_superset V₂_in h₂, V₂_in],
   tauto
 end
 
@@ -942,9 +943,9 @@ instance normal_space.regular_space [normal_space α] : regular_space α :=
 { regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ :=
     normal_separation hs is_closed_singleton
       (λ _ ⟨hx, hy⟩, hxs $ mem_of_eq_of_mem (eq_of_mem_singleton hy).symm hx) in
-    ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
+    ⟨u, hu, hsu, filter.empty_mem_iff_bot.1 $ filter.mem_inf_iff.2
       ⟨v, is_open.mem_nhds hv (singleton_subset_iff.1 hxv), u, filter.mem_principal_self u,
-        inter_comm u v ▸ huv⟩⟩ }
+       by rwa [eq_comm, inter_comm, ← disjoint_iff_inter_eq_empty]⟩⟩ }
 
 -- We can't make this an instance because it could cause an instance loop.
 lemma normal_of_compact_t2 [compact_space α] [t2_space α] : normal_space α :=

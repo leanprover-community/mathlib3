@@ -39,6 +39,8 @@ finite measures. -/
 [ν_finite : finite_measure ν]
 (mutually_singular : μ ⊥ₘ ν)
 
+attribute [instance] jordan_decomposition.μ_finite jordan_decomposition.ν_finite
+
 namespace jordan_decomposition
 
 open measure vector_measure
@@ -47,8 +49,6 @@ variable (j : jordan_decomposition α)
 
 instance jordan_decomposition_inhabited : inhabited (jordan_decomposition α) :=
 { default := ⟨0, 0, mutually_singular.zero⟩ }
-
-attribute [instance] μ_finite ν_finite
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
 lemma exists_compl_positive_negative

@@ -48,8 +48,7 @@ variable (j : jordan_decomposition α)
 instance jordan_decomposition_inhabited : inhabited (jordan_decomposition α) :=
 { default := ⟨0, 0, mutually_singular.zero⟩ }
 
-attribute [instance] μ_finite
-attribute [instance] ν_finite
+attribute [instance] μ_finite ν_finite
 
 /-- A Jordan decomposition provides a Hahn decomposition. -/
 lemma exists_compl_positive_negative
@@ -89,9 +88,9 @@ let i := some s.exists_compl_positive_negative in
   ν := s.to_measure_of_le_zero iᶜ
     (some_spec s.exists_compl_positive_negative).1.compl
     (some_spec s.exists_compl_positive_negative).2.2,
-  μ_finite' := infer_instance,
-  ν_finite' := infer_instance,
-  mutually_singular' :=
+  μ_finite := infer_instance,
+  ν_finite := infer_instance,
+  mutually_singular :=
   begin
     have hi : measurable_set i := (some_spec s.exists_compl_positive_negative).1,
     refine ⟨iᶜ, hi.compl, _, _⟩,

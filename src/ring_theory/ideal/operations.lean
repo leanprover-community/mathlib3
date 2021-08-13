@@ -712,7 +712,7 @@ end
 
 section dvd
 
-/-- If `I` divides `J`, then `I` contans `J`.
+/-- If `I` divides `J`, then `I` contains `J`.
 
 In a Dedekind domain, to divide and contain are equivalent, see `ideal.dvd_iff_le`.
 -/

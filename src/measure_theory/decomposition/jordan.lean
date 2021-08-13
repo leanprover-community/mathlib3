@@ -15,9 +15,10 @@ The Jordan decomposition theorem for measures is a corollary of the Hahn decompo
 is useful for the Lebesgue decomposition theorem.
 
 ## Main results
-* `signed_measure.exists_mutually_singular_eq_sub` : the Jordan decomposition theorem.
-* `signed_measure.mutually_singular_eq_sub_unique` : the Jordan decomposition of a signed measure
-  is unique.
+* `measure_theory.signed_measure.to_signed_measure_to_jordan_decomposition` : the Jordan
+  decomposition theorem.
+* `measure_thoery.signed_measure.to_signed_measure_injective` : the Jordan decomposition of a
+  signed measure is unique.
 
 ## Tags
 
@@ -82,7 +83,8 @@ variables {s : signed_measure α} {μ ν : measure α} [finite_measure μ] [fini
 
 /-- Given a signed measure `s`, `s.to_jordan_decomposition` is the Jordan decomposition `j`,
 such that `s = j.to_signed_measure`. This property is known as the Jordan decomposition
-theorem, and is shown by `signed_measure.to_signed_measure_to_jordan_decomposition`. -/
+theorem, and is shown by
+`measure_theory.signed_measure.to_signed_measure_to_jordan_decomposition`. -/
 def to_jordan_decomposition (s : signed_measure α) : jordan_decomposition α :=
 let i := some s.exists_compl_positive_negative in
 let hi := some_spec s.exists_compl_positive_negative in
@@ -111,8 +113,8 @@ end
 mutually singular measures `μ` and `ν` such that `s = μ - ν`. In this case, the measures `μ`
 and `ν` are given by `s.to_jordan_decomposition.μ` and `s.to_jordan_decomposition.ν` respectively.
 
-Note that we use `jordan_decomposition.to_signed_measure` to represent the signed measure
-corresponding to `s.to_jordan_decomposition.μ - s.to_jordan_decomposition.ν`. -/
+Note that we use `measure_theory.jordan_decomposition.to_signed_measure` to represent the
+signed measure corresponding to `s.to_jordan_decomposition.μ - s.to_jordan_decomposition.ν`. -/
 @[simp] lemma to_signed_measure_to_jordan_decomposition (s : signed_measure α) :
   s.to_jordan_decomposition.to_signed_measure = s :=
 begin

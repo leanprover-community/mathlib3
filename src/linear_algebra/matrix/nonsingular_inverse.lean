@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
 import algebra.associated
+import algebra.regular.smul
 import linear_algebra.matrix.polynomial
 import tactic.linarith
 import tactic.ring_exp
@@ -624,47 +625,45 @@ end
 
 section cancel
 
-lemma smul_cancel_of_non_zero_divisor {α : Type*} [ring α] {m : Type*} [fintype m]
-  (k : α) (h : ∀ (x : α), k * x = 0 → x = 0) {A B : matrix n m α} (h' : k • A = k • B) :
-  A = B :=
+lemma is_regular.is_smul_regular {α : Type*} [ring α] {m : Type*} [fintype m] {k : α}
+  (hk : is_regular k) : is_smul_regular (matrix n m α) k :=
 begin
+  intros A B h,
   ext i j,
-  refine mul_left_cancel_of_non_zero_divisor k h _,
-  simp [←smul_eq_mul, ←pi.smul_apply, h']
+  refine hk.left _,
+  simp [←smul_eq_mul, ←pi.smul_apply, h]
 end
 
-lemma mul_left_cancel_of_non_zero_divisor_det (A : matrix n n α)
-  (h : ∀ (x : α), A.det * x = 0 → x = 0) {B C : matrix n n α} (h' : A ⬝ B = A ⬝ C) :
-  B = C :=
+lemma is_regular_of_is_regular_det {A : matrix n n α} (hA : is_regular A.det) :
+  is_regular A :=
 begin
-  refine smul_cancel_of_non_zero_divisor A.det h _,
-  rw [←matrix.one_mul B, ←matrix.one_mul C, ←matrix.smul_mul, ←matrix.smul_mul, ←adjugate_mul,
-      matrix.mul_assoc, matrix.mul_assoc, h'],
-end
-
-lemma mul_right_cancel_of_non_zero_divisor_det (A : matrix n n α)
-  (h : ∀ (x : α), A.det * x = 0 → x = 0) {B C : matrix n n α} (h' : B ⬝ A = C ⬝ A) :
-  B = C :=
-begin
-  refine smul_cancel_of_non_zero_divisor A.det h _,
-  rw [←matrix.mul_one B, ←matrix.mul_one C, ←matrix.mul_smul, ←matrix.mul_smul, ←mul_adjugate,
-      ←matrix.mul_assoc, ←matrix.mul_assoc, h']
+  split,
+  { intros B C h,
+    refine is_regular.is_smul_regular hA _,
+    rw [←matrix.one_mul B, ←matrix.one_mul C, ←matrix.smul_mul, ←matrix.smul_mul, ←adjugate_mul,
+        matrix.mul_assoc, matrix.mul_assoc, ←mul_eq_mul A, h, mul_eq_mul] },
+  { intros B C h,
+    simp only [mul_eq_mul] at h,
+    refine is_regular.is_smul_regular hA _,
+    rw [←matrix.mul_one B, ←matrix.mul_one C, ←matrix.mul_smul, ←matrix.mul_smul, ←mul_adjugate,
+        ←matrix.mul_assoc, ←matrix.mul_assoc, h] }
 end
 
 end cancel
 
 lemma adjugate_mul_distrib_aux (A B : matrix n n α)
-  (hA : ∀ (x : α), A.det * x = 0 → x = 0)
-  (hB : ∀ (x : α), B.det * x = 0 → x = 0) :
+  (hA : is_regular A.det)
+  (hB : is_regular B.det) :
   adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  have hAB : ∀ (x : α), (A ⬝ B).det * x = 0 → x = 0,
-  { intros x hx,
-    rw [det_mul, mul_assoc] at hx,
-    exact hB _ (hA _ hx) },
-  refine mul_left_cancel_of_non_zero_divisor_det _ hAB _,
-  rw [mul_adjugate, matrix.mul_assoc, ←matrix.mul_assoc B, mul_adjugate, smul_mul, matrix.one_mul,
-      mul_smul, mul_adjugate, smul_smul, mul_comm, ←det_mul]
+  have hAB : is_regular (A ⬝ B).det,
+  { rw [det_mul],
+    split,
+    { exact hA.left.mul hB.left },
+    { exact hA.right.mul hB.right } },
+  refine (is_regular_of_is_regular_det hAB).left _,
+  rw [mul_eq_mul, mul_adjugate, mul_eq_mul, matrix.mul_assoc, ←matrix.mul_assoc B, mul_adjugate,
+      smul_mul, matrix.one_mul, mul_smul, mul_adjugate, smul_smul, mul_comm, ←det_mul]
 end
 
 /--
@@ -690,10 +689,10 @@ begin
   have f'_g_mul : ∀ (M N : matrix n n α), f' (g M ⬝ g N) = M ⬝ N,
   { intros,
     rw [←mul_eq_mul, ring_hom.map_mul, f'_inv, f'_inv, mul_eq_mul] },
-  have hu : ∀ (M : matrix n n α) (x : polynomial α), (g M).det * x = 0 → x = 0,
-  { intros M x,
+  have hu : ∀ (M : matrix n n α), is_regular (g M).det,
+  { intros M,
     suffices : polynomial.monic (g M).det,
-    { exact this.mul_right_eq_zero_iff.mp },
+    { exact this.is_regular },
     simp only [g, polynomial.monic.def],
     simp [←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
   rw [←f'_adj, ←f'_adj, ←f'_adj, ←mul_eq_mul (f' (adjugate (g B))), ←f'.map_mul, mul_eq_mul,

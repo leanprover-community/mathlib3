@@ -269,13 +269,12 @@ theorem semiconj_by.fpow_right {a x y : M} (hx : is_unit x.det) (hy : is_unit y.
     exact hy.pow n.succ },
   rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, nonsing_inv_apply _ hx', nonsing_inv_apply _ hy',
       semiconj_by],
-  refine mul_left_cancel_of_non_zero_divisor_det (y ^ n.succ) _ _,
-  { intros k,
-    exact (is_unit.mul_right_eq_zero hy').mp },
-  { rw [mul_eq_mul _ a, ←matrix.mul_assoc, mul_smul, mul_adjugate, units.smul_def, units.smul_def,
-        ←mul_eq_mul, ←mul_assoc, ←(h.pow_right n.succ).eq, mul_eq_mul, mul_eq_mul, mul_smul,
-        matrix.mul_assoc, mul_adjugate, ←mul_eq_mul, ←smul_mul_assoc, smul_mul_smul, smul_smul,
-        hx'.coe_inv_mul, hy'.coe_inv_mul, one_smul, one_smul, mul_one, matrix.one_mul] }
+  refine (is_regular_of_is_regular_det hy'.is_regular).left _,
+  rw [←mul_assoc, ←(h.pow_right n.succ).eq, mul_assoc, mul_eq_mul (x ^ _), mul_smul, mul_adjugate,
+      mul_eq_mul, mul_eq_mul, mul_eq_mul, ←matrix.mul_assoc, mul_smul (y ^ _), mul_adjugate,
+      units.smul_def, units.smul_def, smul_smul, smul_smul, hx'.coe_inv_mul, hy'.coe_inv_mul,
+      one_smul, matrix.mul_one, matrix.one_mul],
+  apply_instance -- TODO: why is this necessary?
 end
 
 theorem commute.fpow_right {a b : M} (h : commute a b) (m : ℤ) : commute a (b^m) :=

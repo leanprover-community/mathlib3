@@ -3,6 +3,7 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
+import dynamics.fixed_points.basic
 import group_theory.perm.option
 
 /-!
@@ -24,28 +25,20 @@ We also define:
     sigma-type `Σ a : α, {f : perm α // only_possible_fixed_point f a}`.
 -/
 
-open equiv
-
-namespace derangements
-
-section definitions
+open equiv function
 
 /-- A permutation is a derangement if it has no fixed points. -/
 def derangements (α : Type*) : set (perm α) := {f : perm α | ∀ x : α, f x ≠ x}
 
-/-- The permutation `f` has at most one fixed point, `a`. -/
-def only_possible_fixed_point {α : Type*} (f : perm α) (a : α) : Prop := ∀ x : α, f x = x → x = a
+def equiv.derangements_congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ derangements β) :=
+subtype_equiv (perm_congr e) $ λ f, e.forall_congr $ λ x, by simp
 
-/-- The permutation `f` has exactly one fixed point, `a`. -/
-def exactly_one_fixed_point {α : Type*} (f : perm α) (a : α) : Prop := ∀ x : α, f x = x ↔ x = a
-
-end definitions
+namespace derangements
 
 section simple_lemmas
 
 /-- If `α` is equivalent to `β`, then `derangements α` is equivalent to `derangements β`. -/
-protected def congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ derangements β) :=
-subtype_equiv (perm_congr e) $ λ f, e.forall_congr $ λ x, by simp
+protected
 
 end simple_lemmas
 
@@ -53,31 +46,22 @@ section fixed_points
 
 variables {α : Type*} [decidable_eq α]
 
-lemma eofp_iff_opfp_and_eq (a : α) (f : perm α) :
-  exactly_one_fixed_point f a ↔ only_possible_fixed_point f a ∧ f a = a :=
-⟨λ h, ⟨λ x, (h x).mp, (h a).mpr rfl⟩, λ h x, ⟨h.1 x, forall_eq.mpr h.2 x⟩⟩
-
-lemma mem_derangements_iff_opfp_and_ne (a : α) (f : perm α) :
-  f ∈ derangements α ↔ only_possible_fixed_point f a ∧ f a ≠ a :=
-begin
-  refine ⟨λ h_derangement, ⟨λ x x_fixed, (h_derangement x x_fixed).elim, h_derangement a⟩, _⟩,
-  rintros ⟨h_opfp, fa_ne_a⟩ x x_fixed,
-  specialize h_opfp x x_fixed,
-  rw h_opfp at x_fixed,
-  exact fa_ne_a x_fixed
-end
+lemma mem_derangements_iff_fixed_points_eq_empty {f : perm α} :
+  f ∈ derangements α ↔ fixed_points f = ∅ :=
+set.eq_empty_iff_forall_not_mem.symm
 
 /-- The set of permutations fixing `a` is the same as the set of permutations on `{a}ᶜ`. -/
-def discard_fixed_pt (a : α) : {f : perm α | f a = a} ≃ perm ({a}ᶜ : set α) :=
+def discard_fixed_pt (s : set α) [decidable_pred (∈ s)] :
+  {f : perm α | ∀ a ∈ s, f a = a} ≃ perm sᶜ :=
 begin
-  refine (subtype_equiv_right _).trans (equiv.set.compl (equiv.refl _)),
+  refine (subtype_equiv_right _).trans _,
   simp
 end
 
 /-- The set of permutations with `a` the only fixed point is equivalent to the set of derangements
     on `{a}ᶜ`. -/
-def eofp_equiv_derangements_except_for (a : α) :
-  {f : perm α // exactly_one_fixed_point f a} ≃ derangements ({a}ᶜ : set α) :=
+protected def compl_equiv (a : α) :
+  {f : perm α // exactly_one_fixed_point f a} ≃ derangements (sᶜ : set α) :=
 begin
   transitivity {f : {f : perm α // f a = a} // only_possible_fixed_point f.val a},
   { refine (subtype_equiv_right _).trans (subtype_subtype_equiv_subtype_exists _ _).symm,

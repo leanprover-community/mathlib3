@@ -770,8 +770,7 @@ show (⨅i, f i) ≤ f i, from infi_le _ _
 @[elab_as_eliminator]
 lemma infi_sets_induct {f : ι → filter α} {s : set α} (hs : s ∈ infi f) {p : set α → Prop}
   (uni : p univ)
-  (ins : ∀{i s₁ s₂}, s₁ ∈ f i → p s₂ → p (s₁ ∩ s₂))
-  (upw : ∀{s₁ s₂}, s₁ ⊆ s₂ → p s₁ → p s₂) : p s :=
+  (ins : ∀{i s₁ s₂}, s₁ ∈ f i → p s₂ → p (s₁ ∩ s₂)) : p s :=
 begin
   rw [mem_infi_finite'] at hs,
   simp only [← finset.inf_eq_infi] at hs,

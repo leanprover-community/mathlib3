@@ -204,8 +204,7 @@ le_antisymm
       from assume t ht, infi_sets_induct ht
         (let ⟨i⟩ := hι in infi_le_of_le i $ infi_le_of_le univ $ infi_le _ univ_mem)
         (assume i s₁ s₂ hs₁ hs₂,
-          @hg s₁ s₂ ▸ le_inf (infi_le_of_le i $ infi_le_of_le s₁ $ infi_le _ hs₁) hs₂)
-        (assume s₁ s₂ hs₁ hs₂, le_trans hs₂ $ g_mono hs₁),
+          @hg s₁ s₂ ▸ le_inf (infi_le_of_le i $ infi_le_of_le s₁ $ infi_le _ hs₁) hs₂),
     begin
       simp only [mem_lift_sets g_mono,  exists_imp_distrib],
       exact assume t ht hs, this t ht hs

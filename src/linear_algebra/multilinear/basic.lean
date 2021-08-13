@@ -109,7 +109,7 @@ coe_injective (funext H)
 theorem ext_iff {f g : multilinear_map R M₁ M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-@[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
+@[simp] protected lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.map_add' m i x y
 

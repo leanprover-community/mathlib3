@@ -331,12 +331,7 @@ instance : has_inf (filter α) := ⟨λf g : filter α,
     rintros x y ⟨a, ha, b, hb, rfl⟩ xy,
     refine ⟨a ∪ y, mem_of_superset ha (subset_union_left a y),
             b ∪ y, mem_of_superset hb (subset_union_left b y), _⟩,
-    ext z,
-    split,
-    { intro y_in,
-      split ; right ; exact y_in },
-    { rintros ⟨za|hzy, zb|zy⟩ ; try { assumption },
-      exact xy ⟨za, zb⟩ }
+    rw [← inter_union_distrib_right, union_eq_self_of_subset_left xy]
   end,
   inter_sets       := begin
     rintros x y ⟨a, ha, b, hb, rfl⟩ ⟨c, hc, d, hd, rfl⟩,
@@ -355,11 +350,16 @@ lemma mem_inf_of_right {f g : filter α} {s : set α} (h : s ∈ g) : s ∈ f �
 
 lemma inter_mem_inf {α : Type u} {f g : filter α} {s t : set α}
   (hs : s ∈ f) (ht : t ∈ g) : s ∩ t ∈ f ⊓ g :=
-inter_mem (mem_inf_of_left hs) (mem_inf_of_right ht)
+⟨s, hs, t, ht, rfl⟩
 
 lemma mem_inf_of_inter {f g : filter α} {s t u : set α} (hs : s ∈ f) (ht : t ∈ g) (h : s ∩ t ⊆ u) :
   u ∈ f ⊓ g :=
 mem_of_superset (inter_mem_inf hs ht) h
+
+lemma mem_inf_iff_superset {f g : filter α} {s : set α} :
+  s ∈ f ⊓ g ↔ ∃ t₁ ∈ f, ∃ t₂ ∈ g, t₁ ∩ t₂ ⊆ s :=
+⟨λ ⟨t₁, h₁, t₂, h₂, eq⟩, ⟨t₁, h₁, t₂, h₂, eq ▸ subset.rfl⟩,
+  λ ⟨t₁, h₁, t₂, h₂, sub⟩, mem_inf_of_inter h₁ h₂ sub⟩
 
 instance : has_top (filter α) :=
 ⟨{ sets            := {s | ∀x, x ∈ s},
@@ -571,17 +571,6 @@ lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
   λ ⟨x⟩, ⟨⟨⊤, ⊥, ne_bot.ne $ forall_mem_nonempty_iff_ne_bot.1 $ λ s hs,
     by rwa [mem_top.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
 
-lemma mem_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ 𝓟 sᶜ = ⊥) : s ∈ f :=
-begin
-  have : ∅ ∈ f ⊓ 𝓟 sᶜ, from h.symm ▸ mem_bot,
-  obtain ⟨s₁, hs₁, s₂, (hs₂ : sᶜ ⊆ s₂), (hs : ∅ = s₁ ∩ s₂)⟩ := this,
-  filter_upwards [hs₁],
-  intros a a_in,
-  by_contradiction hs',
-  have : a ∈ s₁ ∩ s₂ := ⟨a_in, hs₂ hs'⟩,
-  rwa ← hs at this,
-end
-
 lemma eq_Inf_of_mem_iff_exists_mem {S : set (filter α)} {l : filter α}
   (h : ∀ {s}, s ∈ l ↔ ∃ f ∈ S, s ∈ f) : l = Inf S :=
 le_antisymm (le_Inf $ λ f hf s hs, h.2 ⟨f, hf, hs⟩)
@@ -788,7 +777,7 @@ end
 
 @[simp] lemma inf_principal {s t : set α} : 𝓟 s ⊓ 𝓟 t = 𝓟 (s ∩ t) :=
 le_antisymm
-  (by simp [mem_inf_iff]; exact ⟨s, subset.rfl, t, subset.rfl, by simp⟩)
+  (by simp only [le_principal_iff, mem_inf_iff]; exact ⟨s, subset.rfl, t, subset.rfl, rfl⟩)
   (by simp [le_inf_iff, inter_subset_left, inter_subset_right])
 
 @[simp] lemma sup_principal {s t : set α} : 𝓟 s ⊔ 𝓟 t = 𝓟 (s ∪ t) :=
@@ -819,6 +808,9 @@ end
 lemma inf_principal_eq_bot {f : filter α} {s : set α} : f ⊓ 𝓟 s = ⊥ ↔ sᶜ ∈ f :=
 by { rw [← empty_mem_iff_bot, mem_inf_principal], refl }
 
+lemma mem_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ 𝓟 sᶜ = ⊥) : s ∈ f :=
+by rwa [inf_principal_eq_bot, compl_compl] at h
+
 lemma diff_mem_inf_principal_compl {f : filter α} {s : set α} (hs : s ∈ f) (t : set α) :
   s \ t ∈ f ⊓ 𝓟 tᶜ :=
 begin
@@ -838,15 +830,9 @@ end
 @[simp] lemma infi_principal_finset {ι : Type w} (s : finset ι) (f : ι → set α) :
   (⨅i∈s, 𝓟 (f i)) = 𝓟 (⋂i∈s, f i) :=
 begin
-  ext t,
-  simp only [mem_infi_finset, mem_principal],
-  split,
-  { rintros ⟨p, hp, rfl⟩,
-    exact bInter_mono hp },
-  { assume h,
-    refine ⟨λ i, f i ∪ t, λ i hi, subset_union_left (f i) t, _⟩,
-    erw ← set.union_distrib_bInter_right,
-    exact (union_eq_self_of_subset_left h).symm }
+  induction s using finset.induction_on with i s hi hs,
+  { simp },
+  { rw [finset.infi_insert, finset.set_bInter_insert, hs, inf_principal] },
 end
 
 @[simp] lemma infi_principal_fintype {ι : Type w} [fintype ι] (f : ι → set α) :
@@ -998,14 +984,7 @@ iff.rfl
 
 lemma eventually_inf {f g : filter α} {p : α → Prop} :
   (∀ᶠ x in f ⊓ g, p x) ↔ ∃ (s ∈ f) (t ∈ g), ∀ x ∈ s ∩ t, p x :=
-begin
-  split,
-  { rw [filter.eventually, mem_inf_iff],
-    rintros ⟨s, s_in, t, t_in, H⟩,
-    exact ⟨s, s_in, t, t_in, λ x x_in, by rwa ← H at x_in⟩ },
-  { rintros ⟨s, s_in, t, t_in, H⟩,
-    exact mem_inf_of_inter s_in t_in H },
-end
+mem_inf_iff_superset
 
 theorem eventually_inf_principal {f : filter α} {p : α → Prop} {s : set α} :
   (∀ᶠ x in f ⊓ 𝓟 s, p x) ↔ ∀ᶠ x in f, x ∈ s → p x :=

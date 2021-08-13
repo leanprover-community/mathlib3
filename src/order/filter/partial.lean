@@ -166,16 +166,8 @@ theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
   pmap (pfun.res f s) l = map f (l ⊓ 𝓟 s) :=
 begin
   ext t,
-  simp only [pfun.core_res, exists_prop, mem_map, mem_principal, mem_pmap],
-  split,
-  { intro h,
-    apply mem_inf_of_inter h (mem_principal_self s),
-    simp only [set.inter_distrib_right, set.compl_inter_self, set.empty_union],
-    apply set.inter_subset_left },
-  { rintro ⟨t₁, h₁, t₂, h₂ : s ⊆ t₂, h₃ : f ⁻¹' t = _⟩,
-    apply mem_of_superset h₁,
-    rw [← set.inter_subset, h₃],
-    exact set.inter_subset_inter_right t₁ h₂ }
+  simp only [pfun.core_res, mem_pmap, mem_map, mem_inf_principal, imp_iff_not_or],
+  refl
 end
 
 theorem tendsto_iff_ptendsto (l₁ : filter α) (l₂ : filter β) (s : set α) (f : α → β) :

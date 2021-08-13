@@ -140,7 +140,8 @@ lemma add_choose (i j : ℕ) : (i + j).choose j = (i + j)! / (i! * j!) :=
 by rw [choose_eq_factorial_div_factorial (nat.le_add_left j i), nat.add_sub_cancel, mul_comm]
 
 lemma add_choose_mul_factorial_mul_factorial (i j : ℕ) : (i + j).choose j * i! * j! = (i + j)! :=
-by rw [← choose_mul_factorial_mul_factorial (nat.le_add_left _ _), nat.add_sub_cancel, mul_right_comm]
+by rw [← choose_mul_factorial_mul_factorial (nat.le_add_left _ _),
+  nat.add_sub_cancel, mul_right_comm]
 
 theorem factorial_mul_factorial_dvd_factorial {n k : ℕ} (hk : k ≤ n) : k! * (n - k)! ∣ n! :=
 by rw [←choose_mul_factorial_mul_factorial hk, mul_assoc]; exact dvd_mul_left _ _

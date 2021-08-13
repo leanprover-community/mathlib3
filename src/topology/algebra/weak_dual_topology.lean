@@ -120,25 +120,22 @@ instance : has_continuous_add (weak_dual 𝕜 E) :=
 { continuous_add := begin
     apply continuous_of_continuous_eval,
     intros z,
-    rw continuous_def,
-    intros V V_open,
-    have W_open := continuous_def.mp (‹has_continuous_add 𝕜›.continuous_add) _ V_open,
-    set W := ((λ (p : 𝕜 × 𝕜), p.fst + p.snd) ⁻¹' V) with h_W,
-    --simp at whee,
-
-    --rw continuous_iff_continuous_at,
-    --intros p,
-
-    --rw continuous_iff_ultrafilter,
-    --intros p F h_F,
-    --have whee := tendsto.prod_mk_nhds,
-
-    --rw tendsto.prod_mk_nhds,
-    --have whee := continuous_at.tendsto,
-    --have whee := continuous_pi_iff,
-    --rw continuous_iff_tends
-    --have key := continuous.prod_map,
-    sorry,
+    rw continuous_iff_continuous_at,
+    intros p,
+    set pz := (⟨p.fst z, p.snd z⟩ : 𝕜 × 𝕜)  with h_pz,
+    intros V V_nhd,
+    have W_nhd := continuous_iff_continuous_at.mp (‹has_continuous_add 𝕜›.continuous_add) pz V_nhd,
+    have rect := mem_nhds_prod_iff.mp W_nhd,
+    rcases rect with ⟨W₁, hW₁, W₂, ⟨hW₂, rect_sub_W⟩⟩,
+    have evat_cont_at := continuous_iff_continuous_at.mp (eval_continuous 𝕜 E z),
+    have nhd₁ := evat_cont_at p.fst hW₁,
+    have nhd₂ := evat_cont_at p.snd hW₂,
+    have nhd := prod_mem_nhds_iff.mpr ⟨nhd₁, nhd₂⟩,
+    rw prod.mk.eta at nhd,
+    apply mem_sets_of_superset nhd,
+    intros q hq,
+    have key : (⟨q.fst z, q.snd z⟩ : 𝕜 × 𝕜) ∈ W₁.prod W₂ := hq,
+    exact rect_sub_W key,
   end, }
 
 --instance : has_continuous_smul 𝕜 (weak_dual 𝕜 E) := sorry

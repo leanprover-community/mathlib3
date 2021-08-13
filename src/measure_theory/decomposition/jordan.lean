@@ -82,20 +82,16 @@ such that `s = j.μ.sub_to_signed_measure j.ν`. This property is known as the J
 theorem, and is shown by `signed_measure.to_jordan_decomposition_sub`. -/
 def to_jordan_decomposition (s : signed_measure α) : jordan_decomposition α :=
 let i := some s.exists_compl_positive_negative in
-{ μ := s.to_measure_of_zero_le i
-    (some_spec s.exists_compl_positive_negative).1
-    (some_spec s.exists_compl_positive_negative).2.1,
-  ν := s.to_measure_of_le_zero iᶜ
-    (some_spec s.exists_compl_positive_negative).1.compl
-    (some_spec s.exists_compl_positive_negative).2.2,
+let hi := some_spec s.exists_compl_positive_negative in
+{ μ := s.to_measure_of_zero_le i hi.1 hi.2.1,
+  ν := s.to_measure_of_le_zero iᶜ hi.1.compl hi.2.2,
   μ_finite := infer_instance,
   ν_finite := infer_instance,
   mutually_singular :=
   begin
-    have hi : measurable_set i := (some_spec s.exists_compl_positive_negative).1,
-    refine ⟨iᶜ, hi.compl, _, _⟩,
-    { rw [to_measure_of_zero_le_apply _ _ hi hi.compl], simpa },
-    { rw [to_measure_of_le_zero_apply _ _ hi.compl hi.compl.compl], simpa }
+    refine ⟨iᶜ, hi.1.compl, _, _⟩,
+    { rw [to_measure_of_zero_le_apply _ _ hi.1 hi.1.compl], simpa },
+    { rw [to_measure_of_le_zero_apply _ _ hi.1.compl hi.1.compl.compl], simpa }
   end }
 
 lemma to_jordan_decomposition_spec (s : signed_measure α) :

@@ -1021,7 +1021,7 @@ affine_isometry_equiv.mk'
       rw vadd_vsub },
     have : p = v +ᵥ ↑(classical.arbitrary s) := (vsub_vadd p ↑(classical.arbitrary s)).symm,
     simpa only [coe_vadd, reflection_apply, affine_map.map_vadd, orthogonal_projection_linear,
-      orthogonal_projection_mem_subspace_eq_self, continuous_linear_equiv.coe_apply, vadd_vsub,
+      orthogonal_projection_mem_subspace_eq_self, continuous_linear_equiv.coe_coe, vadd_vsub,
       this] using key,
   end
 

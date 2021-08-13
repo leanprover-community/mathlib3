@@ -2290,7 +2290,7 @@ def reflection : E ≃ₗᵢ[𝕜] E :=
 variables {K}
 
 /-- The result of reflecting. -/
-@[simp] lemma reflection_apply (p : E) :
+lemma reflection_apply (p : E) :
   reflection K p = (↑(orthogonal_projection K p) -ᵥ p) +ᵥ orthogonal_projection K p :=
 begin
   simp [bit0, reflection],

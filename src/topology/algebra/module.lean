@@ -185,8 +185,6 @@ instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, 
 @[simp] lemma coe_mk (f : M →ₗ[R] M₂) (h) : (mk f h : M →ₗ[R] M₂) = f := rfl
 @[simp] lemma coe_mk' (f : M →ₗ[R] M₂) (h) : (mk f h : M → M₂) = f := rfl
 
-@[simp] lemma apply_coe (f : M →L[R] M₂) (x : M) : (f : M →ₗ[R] M₂) x = f x := rfl
-
 @[continuity]
 protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 

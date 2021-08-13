@@ -207,4 +207,68 @@ begin
     (fourier_add_half_inv_index hij)
 end
 
+
+
+
+
+---------------------------- POISSON SUMMATION ---------------
+
+@[derive add_comm_group] def real.angle' := quotient_add_group.quotient (add_subgroup.gmultiples (1:ℝ))
+
+--open_locale tsum
+
+
+--@[derive has_coe_to_fun]
+def Schwarz := {f : ℝ → ℝ // asymptotics.is_O f  (λ x : ℝ, 1/(1+x^2)) (filter.cocompact ℝ) ∧
+  times_cont_diff ℝ 2 f }
+
+instance : add_comm_monoid Schwarz := sorry
+
+instance : module ℝ Schwarz := sorry
+
+instance : has_coe Schwarz (ℝ → ℝ) := coe_subtype
+
+instance : has_coe_to_fun Schwarz := ⟨ _ , (λ f, (f : ℝ → ℝ ))⟩
+
+def Fourier_transform : Schwarz →ₗ[ℝ] Schwarz := sorry
+
+
+def automorphic_point_pair_invariant' : Schwarz → (ℝ → ℝ) :=
+ λ f, λ x, ∑' (m:ℤ), f (x+m)
+
+def auto_descend' : Schwarz → (real.angle' → ℝ)  :=
+λ f, @quotient.lift _ _ (quotient_add_group.left_rel _) (automorphic_point_pair_invariant' f)
+--(add_subgroup.gmultiples (2*real.pi))
+begin
+  intros a b hab,
+  cases hab with n hn,
+  sorry, -- ALEX HOMEWORK
+
+--  dsimp [quotient_add_group.left_rel] at hab,
+end
+
+def auto_descend : Schwarz → (real.angle' × real.angle' → ℝ)  := λ f, λ ⟨x, y⟩ ,
+(auto_descend' f) (x-y)
+
+
+def expm : real.angle' ≃ circle := sorry
+
+def auto_descend'' : Schwarz → real.angle' → circle → ℝ  := λ f, λ x, λ  y,
+(auto_descend f) ⟨ x, expm.symm y⟩
+
+
+def auto_descend''' : Schwarz → real.angle' → Lp ℂ 2 haar_circle   :=  sorry
+--λ f, λ x, λ  y,
+--(auto_descend f) ⟨ x,y⟩
+
+
+def cof : Schwarz → real.angle' → ℤ → ℂ := λ f, λ θ, λ m, ⟪ auto_descend''' f θ , fourier_Lp 2 m ⟫
+
+theorem Poisson_summation (f : Schwarz) : ∑' (n:ℤ), f n = ∑' (m:ℤ), (Fourier_transform f) m :=
+begin
+--  let K := (auto_descend f) ∘ (expm × expm) ,
+
+  sorry,
+end
+
 end fourier

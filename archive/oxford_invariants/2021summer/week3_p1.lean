@@ -64,24 +64,6 @@ previous sum, `∑ᵢ₌₀ⁿ⁻¹ a₀aₙ/aᵢaᵢ₊₁`, as a natural) to t
 
 open_locale big_operators
 
-lemma nat.modeq_zero_iff {a b : ℕ} : a ≡ b [MOD 0] ↔ a = b :=
-by rw [nat.modeq, nat.mod_zero, nat.mod_zero]
-
-@[simp] lemma nat.add_modeq_left {a n : ℕ} : n + a ≡ a [MOD n] :=
-by rw [nat.modeq, nat.add_mod_left]
-@[simp] lemma nat.add_modeq_right {a n : ℕ} : a + n ≡ a [MOD n] :=
-by rw [nat.modeq, nat.add_mod_right]
-
-
-/-- Duplicate of `nat.mul_div_mul` -/
-lemma nat.mul_div_mul_left (a b : ℕ) {c : ℕ} (hc : 0 < c) : c * a / (c * b) = a / b :=
-nat.mul_div_mul a b hc
-lemma nat.mul_div_mul_right (a b : ℕ) {c : ℕ} (hc : 0 < c) : a * c / (b * c) = a / b :=
-by rw [mul_comm, mul_comm b, nat.mul_div_mul_left a b hc]
-
-@[simp] lemma nat.add_sub_sub_cancel {a c : ℕ} (h : c ≤ a) (b : ℕ) : a + b - (a - c) = b + c :=
-by rw [add_comm, nat.add_sub_assoc (nat.sub_le_self _ _), nat.sub_sub_self h]
-
 theorem week3_p1_aux (n : ℕ) (a : ℕ → ℕ) (a_pos : ∀ i, 0 < a i)
   (ha : ∀ i < n, a (i + 1) ∣ a i + a (i + 2)) :
   ∃ b : ℕ, (b : ℚ) = ∑ i in finset.range (n + 1), (a 0 * a (n + 1))/(a i * a (i + 1)) :=

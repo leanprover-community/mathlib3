@@ -874,15 +874,22 @@ lemma map_range_add [add_zero_class N]
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
+/-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
+def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ (β →₀ M) :=
+{ to_fun := λ v, emb_domain f v,
+  map_zero' := by simp,
+  map_add' := λ v w,
+  begin
+    ext b,
+    by_cases h : b ∈ set.range f,
+    { rcases h with ⟨a, rfl⟩,
+      simp, },
+    { simp [emb_domain_notin_range, h], },
+  end, }
+
 @[simp] lemma emb_domain_add (f : α ↪ β) (v w : α →₀ M) :
   emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
-begin
-  ext b,
-  by_cases h : b ∈ set.range f,
-  { rcases h with ⟨a, rfl⟩,
-    simp, },
-  { simp [emb_domain_notin_range, h], },
-end
+(emb_domain.add_monoid_hom f).map_add v w
 
 end add_zero_class
 

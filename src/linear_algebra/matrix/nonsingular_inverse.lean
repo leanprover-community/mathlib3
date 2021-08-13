@@ -625,7 +625,7 @@ end
 
 section cancel
 
-lemma is_regular.is_smul_regular {α : Type*} [ring α] {m : Type*} [fintype m] {k : α}
+lemma is_regular.is_smul_regular {α n m : Type*} [ring α] [fintype n] [fintype m] {k : α}
   (hk : is_regular k) : is_smul_regular (matrix n m α) k :=
 begin
   intros A B h,

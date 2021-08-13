@@ -82,35 +82,37 @@ begin
   { intro i, exact (h i).map_zero },
 end
 
-variable (R)
+variables (α : Type*) [fintype α]
+variables (R M) [add_comm_monoid M] [semiring R] [module R M]
 
 /-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
 `α →₀ β` and `α → β`. -/
-@[simps apply] noncomputable def linear_equiv_fun_on_fintype {α} [fintype α] [add_comm_monoid M]
-  [semiring R] [module R M] :
+@[simps apply] noncomputable def linear_equiv_fun_on_fintype :
   (α →₀ M) ≃ₗ[R] (α → M) :=
 { to_fun := coe_fn,
   map_add' := λ f g, by { ext, refl },
   map_smul' := λ c f, by { ext, refl },
   .. equiv_fun_on_fintype }
 
-@[simp] lemma linear_equiv_fun_on_fintype_single {α} [decidable_eq α] [fintype α]
-  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
-  (@linear_equiv_fun_on_fintype R M α _ _ _ _) (single x m) = pi.single x m :=
+@[simp] lemma linear_equiv_fun_on_fintype_single [decidable_eq α] (x : α) (m : M) :
+  (linear_equiv_fun_on_fintype R M α) (single x m) = pi.single x m :=
 begin
   ext a,
   change (equiv_fun_on_fintype (single x m)) a = _,
   convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
 end
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_single {α} [decidable_eq α] [fintype α]
-  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
-  (@linear_equiv_fun_on_fintype R M α _ _ _ _).symm (pi.single x m) = single x m :=
+@[simp] lemma linear_equiv_fun_on_fintype_symm_single [decidable_eq α]
+  (x : α) (m : M) : (linear_equiv_fun_on_fintype R M α).symm (pi.single x m) = single x m :=
 begin
   ext a,
   change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
   convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
 end
+
+@[simp] lemma linear_equiv_fun_on_fintype_symm_coe (f : α →₀ M) :
+  (linear_equiv_fun_on_fintype R M α).symm f = f :=
+by { ext, simp [linear_equiv_fun_on_fintype], }
 
 end finsupp
 
@@ -2535,8 +2537,9 @@ by { cases x, refl }
 
 /-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
 of `t.subtype`. -/
+@[simps]
 def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
-comap q.subtype p ≃ₗ[R] p :=
+  comap q.subtype p ≃ₗ[R] p :=
 { to_fun := λ x, ⟨x, x.2⟩,
   inv_fun := λ x, ⟨⟨x, hpq x.2⟩, x.2⟩,
   left_inv := λ x, by simp only [coe_mk, set_like.eta, coe_coe],

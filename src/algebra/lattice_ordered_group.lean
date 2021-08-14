@@ -427,11 +427,15 @@ begin
     rw sup_le_iff,
     split,
     { nth_rewrite 0 ← add_zero a,
-      apply add_le_add  (lattice_ordered_add_comm_group.le_pos a) (lattice_ordered_add_comm_group.neg_pos a)
+      apply add_le_add
+        (lattice_ordered_add_comm_group.le_pos a)
+        (lattice_ordered_add_comm_group.neg_pos a)
     },
     {
       nth_rewrite 0 ← zero_add (-a),
-      apply add_le_add  (lattice_ordered_add_comm_group.pos_pos a) (lattice_ordered_add_comm_group.le_neg a)
+      apply add_le_add
+        (lattice_ordered_add_comm_group.pos_pos a)
+        (lattice_ordered_add_comm_group.le_neg a)
     }
   },
   {
@@ -464,7 +468,9 @@ begin
     rw zero_add,
     rw ← mod_eq_pos,
     apply sup_le,
-    apply and.left (iff.elim_left (le_iff_pos_le_neg_ge _ _) (lattice_ordered_add_comm_group.le_abs a)),
+    apply and.left
+      (iff.elim_left (le_iff_pos_le_neg_ge _ _)
+      (lattice_ordered_add_comm_group.le_abs a)),
     rw neg_eq_pos_neg,
     apply and.left
       (iff.elim_left (le_iff_pos_le_neg_ge _ _)
@@ -572,8 +578,8 @@ begin
 end
 
 /--
-Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is equal
-to its positive component `a⁺`.
+Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is
+equal to its positive component `a⁺`.
 -/
 lemma pos_pos_id (a : α) (h : 0≤ a): a⁺ = a :=
 begin
@@ -613,7 +619,9 @@ lemma lattice_ordered_add_comm_group.abs_pos (a : α) : 0 ≤ |a| :=
 begin
   rw pos_add_neg,
   rw ← add_zero (0:α),
-  apply add_le_add (lattice_ordered_add_comm_group.pos_pos a) (lattice_ordered_add_comm_group.neg_pos a),
+  apply add_le_add
+    (lattice_ordered_add_comm_group.pos_pos a)
+    (lattice_ordered_add_comm_group.neg_pos a),
 end
 
 /--
@@ -658,7 +666,9 @@ inequality.
 lemma abs_triangle  (a b : α) : |a+b| ≤ |a|+|b| :=
 begin
   apply sup_le,
-  { apply add_le_add, apply lattice_ordered_add_comm_group.le_abs, apply lattice_ordered_add_comm_group.le_abs, },
+  { apply add_le_add,
+    apply lattice_ordered_add_comm_group.le_abs,
+    apply lattice_ordered_add_comm_group.le_abs, },
   {
     rw neg_add,
     apply add_le_add,

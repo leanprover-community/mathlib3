@@ -10,7 +10,8 @@ This file defines the conjugation action of a group on itself. See also `mul_aut
 the definition of conjugation as a homomorphism into the automorphism group.
 
 ## Main definitions
-A type alias `conj_acy G` is introduced for a group `G`. The group `conj_act G` acts on `G` by conjugation.
+A type alias `conj_act G` is introduced for a group `G`. The group `conj_act G` acts on `G`
+by conjugation.
 -/
 
 variables (G : Type*)

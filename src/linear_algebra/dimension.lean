@@ -586,9 +586,6 @@ lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
   s.finite :=
 b.nonempty_fintype_index_of_dim_lt_omega h
 
-lemma dim_of_ring : module.rank R R = 1 :=
-by rw [←cardinal.lift_inj, ← (basis.singleton punit R).mk_eq_dim, cardinal.mk_punit]
-
 lemma dim_span {v : ι → M} (hv : linear_independent R v) :
   module.rank R ↥(span R (range v)) = cardinal.mk (range v) :=
 by rw [←cardinal.lift_inj, ← (basis.span hv).mk_eq_dim,
@@ -597,6 +594,11 @@ by rw [←cardinal.lift_inj, ← (basis.span hv).mk_eq_dim,
 lemma dim_span_set {s : set M} (hs : linear_independent R (λ x, x : s → M)) :
   module.rank R ↥(span R s) = cardinal.mk s :=
 by { rw [← @set_of_mem_eq _ s, ← subtype.range_coe_subtype], exact dim_span hs }
+
+variables (R)
+
+lemma dim_of_ring : module.rank R R = 1 :=
+by rw [←cardinal.lift_inj, ← (basis.singleton punit R).mk_eq_dim, cardinal.mk_punit]
 
 end strong_rank_condition
 

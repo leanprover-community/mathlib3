@@ -237,17 +237,6 @@ begin
   simp only [← ennreal.coe_sub, ennreal.coe_to_real, nnreal.coe_sub (ennreal.coe_le_coe.mp h)],
 end
 
-lemma ennreal.lt_add_of_pos_right {a b : ℝ≥0∞} (hb : 0 < b) (ha : a ≠ ∞): a < a + b :=
-begin
-  lift a to ℝ≥0 using ha,
-  by_cases b = ⊤,
-  { rw [h, ennreal.add_top],
-    exact ennreal.coe_lt_top },
-  { lift b to ℝ≥0 using h,
-    rw [← ennreal.coe_add, ennreal.coe_lt_coe],
-    refine lt_add_of_pos_right a (ennreal.coe_pos.mp hb) }
-end
-
 /-- **The Lebesgue decomposition theorem**: Given finite measures `μ` and `ν`, there exists
 measures `ν₁`, `ν₂` such that `ν₁` is mutually singular to `μ` and there exists some
 `f : α → ℝ≥0∞` such that `ν₂ = μ.with_density f`. -/
@@ -367,9 +356,9 @@ begin
       refine not_lt.2 this _,
       rw [hζ₁, lintegral_add hζm (measurable.indicator (measurable_const) hE₁),
           lintegral_indicator _ hE₁, set_lintegral_const],
-      refine ennreal.lt_add_of_pos_right (ennreal.mul_pos.2 ⟨ennreal.coe_pos.2 hε₁, hE₂⟩) _,
+      refine ennreal.lt_add_right _ (ennreal.mul_pos.2 ⟨ennreal.coe_pos.2 hε₁, hE₂⟩),
 
-      have := ne_of_lt (measure_lt_top (μ.with_density ζ) set.univ),
+      have := measure_lt_top (μ.with_density ζ) set.univ,
       rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] at this } },
 end
 

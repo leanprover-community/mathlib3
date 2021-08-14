@@ -1292,18 +1292,10 @@ end
 
 
 -- TODO why does sub_add_assoc not exist?
--- TODO move this lemma to another file
-lemma sum_geometric_half (j : ℕ) :
-  ∑ (x : ℕ) in (range j), ((1:ℝ) / 2) ^ (x) = 2 - 2 * ((1 : ℝ)/2)^(j) :=
-begin
-  induction j,
-    {simp,},
-    { rw [finset.sum_range_succ, j_ih, pow_succ],
-      simp only [one_div, inv_pow', mul_inv_cancel_left'],
-      rw <-mul_assoc,
-      simp only [one_mul, mul_inv_cancel],
-      ring_nf,},
-end
+-- TODO src/analysis/specific_limits sum_geometric_two_le accomplishes what we want here
+-- Nevertheless, the more general algebra.geom_sum should be improved.
+-- There exists a geom_sum_Ico there, why not an analogous geom_sum?
+-- Perhaps because there is a definition by that name. I'm not sure why that exists.
 
 private lemma sum_geometric_half' (j n : ℕ) (h : n ≤ j) :
   ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ) / 2) ^ (x - n) ≤ (2 : ℝ) :=
@@ -1316,17 +1308,25 @@ begin
           congr, funext, congr,
           exact norm_num.sub_nat_pos (n + k) n k rfl,
         end
-  ... = 2 - 2 * ((1 : ℝ)/2)^(j-n) : sum_geometric_half (j - n)
+  ... = 2 - 2 * ((1 : ℝ)/2)^(j-n) :
+        begin
+          rw finset.range_eq_Ico,
+          rw geom_sum_Ico,
+          ring,
+          simp only [one_div, ne.def, inv_eq_one'],
+          linarith,
+          linarith,
+        end
   ... ≤ 2 :
         begin
-          simp only [one_div, sub_le_self_iff, inv_nonneg, inv_pow', pow_nonneg],
+          rw sub_le_self_iff,
           apply mul_nonneg,
           linarith,
-          apply inv_nonneg.2,
           apply pow_nonneg,
           linarith,
         end
 end
+
 
 lemma exp_bound' {x : ℂ} {n : ℕ} (hx : abs x ≤ n / 2) :
   abs (exp x - ∑ m in range n, x ^ m / m!) ≤ 2 * abs x ^ n * (n!)⁻¹ :=
@@ -1367,9 +1367,8 @@ begin
               rw mul_one_div,
               exact hx,
               simp only [one_div, zero_lt_bit0, zero_lt_one, inv_pos],
-              simp only [nat.cast_nonneg],
-              apply pow_nonneg,
-              simp only [nat.cast_nonneg],
+              exact n!.cast_nonneg,
+              apply pow_nonneg (n.cast_nonneg),
             end
       ... ≤ ↑m! :
             begin
@@ -1388,36 +1387,21 @@ begin
       exact nat.factorial_pos n,
       apply pow_nonneg,
       exact abs_nonneg x,
-
-      -- refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
-      -- exact nat.cast_pos.2 (nat.factorial_pos _),
-      -- rw abv_pow abs,
-      -- exact (pow_le_one _ (abs_nonneg _) hx),
-      -- exact pow_nonneg (abs_nonneg _) _
     end
   ... ≤ 2 * abs x ^ n * (↑n!)⁻¹ :
     begin
-      rw <-mul_sum,
-      rw <-sum_div,
-      rw div_eq_mul_inv,
-      rw <-mul_assoc,
+      rw [<-mul_sum, <-sum_div, div_eq_mul_inv, <-mul_assoc],
       apply mul_le_mul,
       rw mul_comm,
-      apply mul_le_mul,
-      apply sum_geometric_half',
-      exact hj,
-      exact le_refl (abs x ^ n),
-      apply pow_nonneg,
-      exact abs_nonneg x,
-      exact zero_le_two,
+      apply mul_le_mul_of_nonneg_right,
+      exact sum_geometric_half' j n hj,
+      apply pow_nonneg (abs_nonneg x),
       apply le_refl,
-      apply inv_nonneg.2,
-      exact n!.cast_nonneg,
+      exact inv_nonneg.2 (n!.cast_nonneg),
       apply mul_nonneg,
       linarith,
       apply pow_nonneg,
       exact abs_nonneg x,
-
     end,
 end
 

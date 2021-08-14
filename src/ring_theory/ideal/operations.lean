@@ -1611,10 +1611,10 @@ variables {R : Type u} [comm_ring R] (I J : ideal R)
 lemma add_comm : I+J = J+I := _root_.add_comm I J
 
 -- a few lemmas to help shorten the proofs later
-def left_proj_quot_add_mk (x :R) (hx : x ∈ I) : ideal.quotient.mk (I+J) x = 0 :=
+lemma left_proj_quot_add_mk (x :R) (hx : x ∈ I) : ideal.quotient.mk (I+J) x = 0 :=
 ideal.quotient.eq_zero_iff_mem.2 (ideal.mem_sup_left hx)
 
-def right_proj_quot_add_mk (x : R) (hx : x ∈ J) :  ideal.quotient.mk (I+J) x = 0 :=
+lemma right_proj_quot_add_mk (x : R) (hx : x ∈ J) :  ideal.quotient.mk (I+J) x = 0 :=
 ideal.quotient.eq_zero_iff_mem.2 (ideal.mem_sup_right hx)
 
 lemma in_ker_proj_to_add_left : I.map(ideal.quotient.mk(I+J)) = ⊥ :=
@@ -1633,7 +1633,7 @@ def quot_left_to_quot_sum : I.quotient →+* (I+J).quotient :=
 ideal.quotient.lift I (ideal.quotient.mk (I+J)) (left_proj_quot_add_mk I J)
 
 /-- This will be used to lift `quot_left_to_quot_sum` to a map `(R/I)/J' → R/(I+J)`-/
-def img_left_in_ker (x : I.quotient) (hx : x ∈ J.map(ideal.quotient.mk I)) :
+lemma img_left_in_ker (x : I.quotient) (hx : x ∈ J.map(ideal.quotient.mk I)) :
   quot_left_to_quot_sum I J x = 0 :=
 begin
   have hIJmap: ((quot_left_to_quot_sum I J).comp(ideal.quotient.mk I) '' J) =
@@ -1682,7 +1682,7 @@ def double_quot_mk := ring_hom.comp (ideal.quotient.mk (J.map (ideal.quotient.mk
 
 -- Another short result for lifting map `ring_to_double_quot` to a map `R/(I+J) → (R/I)/J'`
 --shorter and easier proof using ker_g₁ from
-def mem_add_double_quot_mk (x : R) (hx : x ∈ I+J) : double_quot_mk I J x = 0 :=
+lemma mem_add_double_quot_mk (x : R) (hx : x ∈ I+J) : double_quot_mk I J x = 0 :=
 begin
   have hIJtoJ : (I+J).map(ideal.quotient.mk I) = J.map(ideal.quotient.mk I) := by {
     rw [ideal.add_eq_sup, ideal.map_sup, ideal.map_quotient_self],
@@ -1696,12 +1696,12 @@ begin
   exact hx,
 end
 
--- define `lift_add_double_qot_mk` to be the induced map `R/(I+J) → (R/I)/J' `
+/-- define `lift_add_double_qot_mk` to be the induced map `R/(I+J) → (R/I)/J' ` -/
 def lift_add_double_qot_mk (I J : ideal R) := ideal.quotient.lift (I+J) (double_quot_mk I J)
   (mem_add_double_quot_mk I J)
 
--- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms
-theorem double_quot_equiv_quot_add : (J.map (ideal.quotient.mk I)).quotient ≃+* (I + J).quotient :=
+/-- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/
+def double_quot_equiv_quot_add : (J.map (ideal.quotient.mk I)).quotient ≃+* (I + J).quotient :=
 ring_equiv.of_hom_inv (double_quot_to_quot_add I J) (lift_add_double_qot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
 

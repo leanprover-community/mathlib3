@@ -24,14 +24,6 @@ consisting of all invertible `n` by `n` `R`-matrices.
 * `matrix.GL_plus.GL_pos` gives the subgroup of matrices with
   positive determinant (over a linear ordered ring).
 
-## Implementation notes
-
-
-## References
-
-
-
-
 ## Tags
 
 matrix group, group, matrix inverse

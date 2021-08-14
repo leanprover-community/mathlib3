@@ -127,21 +127,14 @@ instance lattice_ordered_comm_group.to_lattice_ordered_group (α : Type u)
     nth_rewrite 1 mul_comm,
     apply s.mul_le_mul_left,
     exact h,
-  end
-}
+  end }
 
 
 -- A linearly ordered additive commutative group is a lattice ordered commutative group
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_lattice_ordered_comm_group (α : Type u)
  [s : linear_ordered_comm_group α] : lattice_ordered_comm_group α :=
-{ mul_le_mul_left :=
-  begin
-    rintros a b h c,
-    apply s.mul_le_mul_left,
-    exact h,
-  end
-}
+{ mul_le_mul_left := s.mul_le_mul_left, }
 
 variables {α : Type u} [lattice_ordered_add_comm_group α]
 
@@ -157,8 +150,7 @@ begin
   { rw [← add_le_add_iff_left (-c), ← add_assoc, neg_add_self, zero_add, sup_le_iff],
     split,
     { simp, },
-    { simp, }
-  },
+    { simp, } },
   { rw ← add_le_add_iff_left (-c), simp,  }
 end
 
@@ -174,13 +166,11 @@ begin
   { rw le_inf_iff,
     split,
     { rw neg_le_neg_iff, apply le_sup_left, },
-    { rw neg_le_neg_iff, apply le_sup_right, }
-  },
+    { rw neg_le_neg_iff, apply le_sup_right, } },
   { rw ← neg_le_neg_iff, simp,
     split,
     { rw ← neg_le_neg_iff, simp, },
-    { rw ← neg_le_neg_iff, simp, }
-  }
+    { rw ← neg_le_neg_iff, simp, } }
 end
 
 /--
@@ -198,12 +188,10 @@ Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in
 $$a⊓b + (a⊔b) = a + b.$$
 -/
 lemma add_eq_meet_add_join (a b : α) : a⊓b + (a⊔b) = a + b :=
-begin
 calc a⊓b + (a⊔b) = a⊓b + ((a + b) + ((-b)⊔(-a))) :
   by {  rw add_join_eq_add_join_add (-b) (-a) (a+b), simp,  }
 ... = a⊓b + ((a + b) + -(a⊓b)) : by { rw [← join_neg_eq_neg_meet, sup_comm], }
 ... = a + b                    : by { simp, },
-end
 
 -- Bourbaki A.VI.12 Definition 4
 /--
@@ -332,11 +320,7 @@ begin
 end
 
 -- Hack to work around rewrite not working if lhs is a variable
-@[nolint doc_blame_thm] lemma pos_sub_neg' (a : α) :  a⁺ - a⁻ = a :=
-begin
-  symmetry,
-  apply pos_sub_neg,
-end
+@[nolint doc_blame_thm] lemma pos_sub_neg' (a : α) :  a⁺ - a⁻ = a := (pos_sub_neg _).symm
 
 -- Bourbaki A.VI.12  Prop 9 a)
 /--
@@ -349,7 +333,7 @@ begin
   rw ←add_right_inj (-a⁻),
   rw add_meet_eq_add_meet_add,
   rw neg_add_eq_sub,
-  simp,
+  simp only [add_zero, add_left_neg],
   rw pos_sub_neg',
   rw neg_eq_neg_inf_zero,
   simp,
@@ -362,10 +346,8 @@ Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in 
 $$a⊔b = b + (a - b)⁺.$$
 -/
 lemma join_eq_add_pos_sub (a b : α) : a⊔b = b + (a - b)⁺ :=
-begin
   calc  a⊔b = (b+(a-b))⊔(b+0) : by {rw add_zero b, rw add_sub_cancel'_right, }
   ... = b + ((a-b)⊔0) : by { rw ← add_join_eq_add_join_add (a-b) 0 b},
-end
 
 -- Bourbaki A.VI.12 (with a and b swapped)
 /--
@@ -374,13 +356,11 @@ Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in 
 $$a⊓b = a - (a - b)⁺.$$
 -/
 lemma meet_eq_sub_pos_sub (a b : α) : a⊓b = a - (a - b)⁺ :=
-begin
   calc a⊓b = (a+0)⊓(a+(b-a)) : by { rw add_zero a, rw add_sub_cancel'_right, }
   ... = a + (0⊓(b-a))        : by {rw ← add_meet_eq_add_meet_add 0 (b-a) a}
   ... = a + ((b-a)⊓0)        : by { rw inf_comm }
   ... = a + (-(a-b)⊓-0 )     : by { rw neg_zero, rw neg_sub }
   ... = a - ((a-b)⊔0)        : by  { rw ← neg_join_eq_neg_meet_neg, rw ← sub_eq_add_neg, }
-end
 
 -- Bourbaki A.VI.12 Prop 9 c)
 -- Can we rewrite `lattice_ordered_add_comm_group.le_pos b` as `b.le_pos`?
@@ -396,19 +376,15 @@ begin
     split,
     { apply sup_le
       (le_trans h (lattice_ordered_add_comm_group.le_pos b))
-      (lattice_ordered_add_comm_group.pos_pos b),
-    },
+      (lattice_ordered_add_comm_group.pos_pos b), },
     { rw ← neg_le_neg_iff at h,
       apply sup_le
       (le_trans h (lattice_ordered_add_comm_group.le_neg a))
-      (lattice_ordered_add_comm_group.neg_pos a),
-    }
+      (lattice_ordered_add_comm_group.neg_pos a), }
   },
   { intro h,
-    rw ← pos_sub_neg' a,
-    rw ← pos_sub_neg' b,
-    apply sub_le_sub h.1 h.2,
-  }
+    rw [← pos_sub_neg' a, ← pos_sub_neg' b ],
+    apply sub_le_sub h.1 h.2, }
 end
 
 -- The proof from Bourbaki A.VI.12 Prop 9 d)
@@ -427,44 +403,31 @@ begin
     { nth_rewrite 0 ← add_zero a,
       apply add_le_add
         (lattice_ordered_add_comm_group.le_pos a)
-        (lattice_ordered_add_comm_group.neg_pos a)
-    },
-    {
-      nth_rewrite 0 ← zero_add (-a),
+        (lattice_ordered_add_comm_group.neg_pos a) },
+    { nth_rewrite 0 ← zero_add (-a),
       apply add_le_add
         (lattice_ordered_add_comm_group.pos_pos a)
-        (lattice_ordered_add_comm_group.le_neg a)
-    }
+        (lattice_ordered_add_comm_group.le_neg a) }
   },
-  {
-    have mod_eq_pos: |a|⁺ = |a| :=
+  { have mod_eq_pos: |a|⁺ = |a| :=
     begin
       nth_rewrite 1 ← pos_sub_neg' (|a|),
       rw sub_eq_add_neg,
       symmetry,
-      rw add_right_eq_self,
-      rw neg_eq_zero,
-      rw le_antisymm_iff,
+      rw [add_right_eq_self, neg_eq_zero, le_antisymm_iff ],
       split,
       { rw ← pos_meet_neg_eq_zero a,
         apply le_inf,
         { rw pos_eq_neg_neg,
           apply and.right
             (iff.elim_left (le_iff_pos_le_neg_ge _ _)
-            (lattice_ordered_add_comm_group.neg_le_abs a)),
-        },
+            (lattice_ordered_add_comm_group.neg_le_abs a)), },
         { apply and.right
             (iff.elim_left (le_iff_pos_le_neg_ge _ _)
-            (lattice_ordered_add_comm_group.le_abs a)),
-        }
-      },
+            (lattice_ordered_add_comm_group.le_abs a)), } },
       { apply lattice_ordered_add_comm_group.neg_pos, }
-
     end,
-    rw ← add_eq_meet_add_join,
-    rw pos_meet_neg_eq_zero,
-    rw zero_add,
-    rw ← mod_eq_pos,
+    rw [← add_eq_meet_add_join, pos_meet_neg_eq_zero, zero_add, ← mod_eq_pos ],
     apply sup_le,
     apply and.left
       (iff.elim_left (le_iff_pos_le_neg_ge _ _)
@@ -472,8 +435,7 @@ begin
     rw neg_eq_pos_neg,
     apply and.left
       (iff.elim_left (le_iff_pos_le_neg_ge _ _)
-      (lattice_ordered_add_comm_group.neg_le_abs a)),
-  }
+      (lattice_ordered_add_comm_group.neg_le_abs a)), }
 end
 
 /--
@@ -484,7 +446,7 @@ $$a⊔b - (a⊓b) = |b-a|.$$
 lemma join_sub_meet_eq_abs_sub (a b : α) : a⊔b - (a⊓b) = |b-a| :=
 begin
   rw [join_eq_add_pos_sub, inf_comm, meet_eq_sub_pos_sub],
-  simp,
+  simp only [add_sub_sub_cancel],
   rw [pos_eq_neg_neg, add_comm, neg_sub, pos_add_neg],
 end
 
@@ -520,30 +482,20 @@ Every lattice ordered commutative group is a distributive lattice
 @[priority 100] -- see Note [lower instance priority]
 instance lattice_ordered_add_comm_group.to_distrib_lattice (α : Type u)
   [s : lattice_ordered_add_comm_group α] : distrib_lattice α :=
-{
-  le_sup_inf :=
+{ le_sup_inf :=
   begin
     intros,
-    rw ← add_le_add_iff_left (x⊓y⊓z),
-    rw inf_assoc,
-    rw add_eq_meet_add_join x (y⊓z),
-    rw ← neg_add_le_iff_le_add,
-    rw le_inf_iff,
+    rw [← add_le_add_iff_left (x⊓y⊓z), inf_assoc, add_eq_meet_add_join x (y⊓z),
+      ← neg_add_le_iff_le_add, le_inf_iff ],
     split,
-    {
-      rw neg_add_le_iff_le_add,
-      rw ← add_eq_meet_add_join x y,
+    { rw [neg_add_le_iff_le_add, ← add_eq_meet_add_join x y ],
       apply add_le_add,
       { apply inf_le_inf_left, apply inf_le_left, },
-      { apply inf_le_left, }
-    },
-    {
-      rw neg_add_le_iff_le_add,
-      rw ← add_eq_meet_add_join x z,
+      { apply inf_le_left, } },
+    { rw [neg_add_le_iff_le_add, ← add_eq_meet_add_join x z ],
       apply add_le_add,
       { apply inf_le_inf_left, apply inf_le_right, },
-      { apply inf_le_right, },
-    }
+      { apply inf_le_right, }, }
   end,
   ..s
 }
@@ -558,22 +510,20 @@ $$|a⊔c-(b⊔c)| + |a⊓c-b⊓c| = |a-b|.$$
 -/
 theorem abs_diff_sup_add_abs_diff_inf (a b c : α) :
 |a⊔c-(b⊔c)| + |a⊓c-b⊓c| = |a-b| :=
-begin
   calc |a⊔c-(b⊔c)| + |a⊓c-b⊓c| =
     (b⊔c)⊔(a⊔c) - (b⊔c)⊓(a⊔c) + |a⊓c-b⊓c|       : by {rw ← join_sub_meet_eq_abs_sub, }
     ... = (b⊔c)⊔(a⊔c) - (b⊔c)⊓(a⊔c) + (b⊓c⊔a⊓c - b⊓c⊓(a⊓c)) : by {rw ←join_sub_meet_eq_abs_sub, }
     ... = b⊔a⊔c - ((b⊓a)⊔c) + ((b⊔a)⊓c - b⊓a⊓c) : by {
-      rw ← sup_inf_right,
-      rw ← inf_sup_right,
-      rw sup_assoc, nth_rewrite 1 sup_comm, rw sup_right_idem, rw sup_assoc,
-      rw inf_assoc, nth_rewrite 3 inf_comm, rw inf_right_idem, rw inf_assoc,
-    }
+      rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
+      nth_rewrite 1 sup_comm,
+      rw [sup_right_idem, sup_assoc, inf_assoc ],
+      nth_rewrite 3 inf_comm,
+      rw [inf_right_idem, inf_assoc], }
     ... = b⊔a⊔c + (b⊔a)⊓c -(((b⊓a)⊔c)+b⊓a⊓c)    : by {abel,}
     ... = b⊔a + c -(b⊓a+c)                      :
       by {rw [add_comm, add_eq_meet_add_join, add_comm (b ⊓ a ⊔ c), add_eq_meet_add_join] }
     ... = b⊔a - b⊓a                             : by { simp, }
     ... = |a-b|                                 : by { rw join_sub_meet_eq_abs_sub, },
-end
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is
@@ -592,21 +542,9 @@ equal to its absolute value `|a|`.
 lemma abs_pos_eq (a : α) (h: 0≤a) : |a| = a :=
 begin
   unfold has_abs.abs,
-  rw join_eq_add_pos_sub,
-  rw sub_neg_eq_add,
-  rw neg_add_eq_sub,
-  rw ←add_left_inj a,
-  rw sub_add_cancel,
-  rw ← two_smul ℕ,
-  rw pos_pos_id,
-  -- I feel there ought to be a simpler way of finishing from here?
-  have t: a+0 ≤ 2•a :=
-  begin
-    rw two_smul,
-    apply add_le_add_left h a,
-  end,
-  rw add_zero at t,
-  apply le_trans h t,
+  rw [join_eq_add_pos_sub, sub_neg_eq_add, neg_add_eq_sub, ←add_left_inj a, sub_add_cancel,
+    ← two_smul ℕ, pos_pos_id ],
+  exact nsmul_nonneg h 2,
 end
 
 /--
@@ -615,8 +553,7 @@ value `|a|` of `a` is positive.
 -/
 lemma lattice_ordered_add_comm_group.abs_pos (a : α) : 0 ≤ |a| :=
 begin
-  rw pos_add_neg,
-  rw ← add_zero (0:α),
+  rw [pos_add_neg, ← add_zero (0:α)],
   apply add_le_add
     (lattice_ordered_add_comm_group.pos_pos a)
     (lattice_ordered_add_comm_group.neg_pos a),
@@ -644,16 +581,12 @@ theorem Birkhoff_inequalities (a b c : α) :
 begin
   rw sup_le_iff,
   split,
-  {
-    apply le_of_add_le_of_nonneg_left,
+  { apply le_of_add_le_of_nonneg_left,
     rw abs_diff_sup_add_abs_diff_inf,
-    apply lattice_ordered_add_comm_group.abs_pos,
-  },
-  {
-    apply le_of_add_le_of_nonneg_right,
+    apply lattice_ordered_add_comm_group.abs_pos, },
+  { apply le_of_add_le_of_nonneg_right,
     rw abs_diff_sup_add_abs_diff_inf,
-    apply lattice_ordered_add_comm_group.abs_pos,
-  }
+    apply lattice_ordered_add_comm_group.abs_pos, }
 end
 
 -- Banasiak Proposition 2.12, Zaanen 2nd lecture
@@ -667,10 +600,8 @@ begin
   { apply add_le_add,
     apply lattice_ordered_add_comm_group.le_abs,
     apply lattice_ordered_add_comm_group.le_abs, },
-  {
-    rw neg_add,
+  { rw neg_add,
     apply add_le_add,
     apply lattice_ordered_add_comm_group.neg_le_abs,
-    apply lattice_ordered_add_comm_group.neg_le_abs,
-  }
+    apply lattice_ordered_add_comm_group.neg_le_abs, }
 end

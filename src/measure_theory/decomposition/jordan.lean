@@ -157,7 +157,8 @@ and `ν` are given by `s.to_jordan_decomposition.pos_part` and
 `s.to_jordan_decomposition.neg_part` respectively.
 
 Note that we use `measure_theory.jordan_decomposition.to_signed_measure` to represent the
-signed measure corresponding to `s.to_jordan_decomposition.μ - s.to_jordan_decomposition.ν`. -/
+signed measure corresponding to
+`s.to_jordan_decomposition.pos_part - s.to_jordan_decomposition.neg_part`. -/
 @[simp] lemma to_signed_measure_to_jordan_decomposition (s : signed_measure α) :
   s.to_jordan_decomposition.to_signed_measure = s :=
 begin

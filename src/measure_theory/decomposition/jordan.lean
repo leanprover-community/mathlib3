@@ -293,9 +293,9 @@ end
 theorem to_signed_measure_injective :
   injective $ @jordan_decomposition.to_signed_measure α _ :=
 begin
-  /- The main idea is that two Jordan decompositions of a signed measure provides two
+  /- The main idea is that two Jordan decompositions of a signed measure provide two
   Hahn decompositions for that measure. Then, from `of_symm_diff_compl_positive_negative`,
-  the symmetric difference the two Hahn decompositions have measure zero, thus, allowing us to
+  the symmetric difference of the two Hahn decompositions has measure zero, thus, allowing us to
   show the equality of the underlying measures of the Jordan decompositions. -/
   intros j₁ j₂ hj,
   -- obtain the two Hahn decompositions from the Jordan decompositions

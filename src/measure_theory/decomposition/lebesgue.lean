@@ -124,16 +124,16 @@ variables {μ ν : measure α}
 lemma zero_mem_measurable_le : (0 : α → ℝ≥0∞) ∈ measurable_le μ ν :=
 ⟨measurable_zero, λ A hA, by simp⟩
 
-lemma min_mem_measurable_le (f g : α → ℝ≥0∞)
-  (hf : f ∈ measurable_le μ ν) (hg : measurable g) :
-  (λ a, min (f a) (g a)) ∈ measurable_le μ ν :=
-⟨measurable.min hf.1 hg,
-  λ A hA, le_trans (lintegral_mono (λ _, min_le_left _ _)) (hf.2 A hA)⟩
+-- lemma min_mem_measurable_le (f g : α → ℝ≥0∞)
+--   (hf : f ∈ measurable_le μ ν) (hg : measurable g) :
+--   (λ a, min (f a) (g a)) ∈ measurable_le μ ν :=
+-- ⟨measurable.min hf.1 hg,
+--   λ A hA, le_trans (lintegral_mono (λ _, min_le_left _ _)) (hf.2 A hA)⟩
 
-lemma min_mem_measurable_le' (f g : α → ℝ≥0∞)
-  (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν) :
-  (λ a, min (f a) (g a)) ∈ measurable_le μ ν :=
-min_mem_measurable_le f g hf hg.1
+-- lemma min_mem_measurable_le' (f g : α → ℝ≥0∞)
+--   (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν) :
+--   (λ a, min (f a) (g a)) ∈ measurable_le μ ν :=
+-- min_mem_measurable_le f g hf hg.1
 
 lemma max_mem_measurable_le (f g : α → ℝ≥0∞)
   (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν)
@@ -253,17 +253,6 @@ lemma supr_le_le (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : k ≤ n) :
 
 def M (μ ν : measure α) := (λ f : α → ℝ≥0∞, ∫⁻ x, f x ∂μ) '' measurable_le μ ν
 
-lemma M_bdd_above : bdd_above (M μ ν) :=
--- Sup (M μ ν) ≤ ν set.univ :=
-begin
-  exact order_top.bdd_above (M μ ν),
-  -- refine Sup_le _,
-  -- rintro _ ⟨f, ⟨hf₁, hf₂⟩, rfl⟩,
-  -- simp only,
-  -- rw ← @measure.restrict_univ _ _ μ,
-  -- exact hf₂ set.univ measurable_set.univ,
-end
-
 end
 
 variables {μ ν : measure α} [finite_measure μ] [finite_measure ν]
@@ -280,21 +269,12 @@ tendsto_at_top_supr (supr_monotone' f x)
 
 end
 
--- lemma finite_measure_of_finite_lintegral
---   {f : α → ℝ≥0∞} (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ . f) :=
--- { measure_univ_lt_top := by rwa [with_density_apply _ measurable_set.univ, lintegral_univ_eq] }
-
 lemma ennreal.to_real_sub_of_le {a b : ℝ≥0∞} (h : b ≤ a) (ha : a ≠ ∞):
   (a - b).to_real = a.to_real - b.to_real :=
 begin
   lift b to ℝ≥0 using ne_top_of_le_ne_top ha h,
   lift a to ℝ≥0 using ha,
   simp only [← ennreal.coe_sub, ennreal.coe_to_real, nnreal.coe_sub (ennreal.coe_le_coe.mp h)],
-end
-
-example (a b c : ℝ) (h : b = c) : b + a = c + a :=
-begin
-  exact congr_fun (congr_arg has_add.add h) a,
 end
 
 lemma ennreal.lt_add_of_pos_right {a b : ℝ≥0∞} (hb : 0 < b) (ha : a ≠ ⊤): a < a + b :=
@@ -437,12 +417,10 @@ lemma measure.eq_of_sub_measure_eq_zero (μ ν : measure α) [finite_measure μ]
   (h : μ.to_signed_measure - ν.to_signed_measure = 0) : μ = ν :=
 by rwa [← to_signed_measure_eq_to_signed_measure_iff, ← sub_eq_zero]
 
--- duplicated `measure.with_density_absolutely_continuous` in `conditional`
+-- remove
 lemma with_density.absolutely_continuous (f : α → ℝ≥0∞) : μ . f ≪ μ :=
 begin
-  refine measure.absolutely_continuous.mk (λ A hA h, _),
-  rw with_density_apply _ hA,
-  exact (measure.restrict_eq_zero.2 h).symm ▸ lintegral_zero_measure _,
+  exact with_density_absolutely_continuous μ f,
 end
 
 #exit

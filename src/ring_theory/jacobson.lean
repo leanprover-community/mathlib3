@@ -131,7 +131,7 @@ begin
       (comap (algebra_map R S) P) (comap_is_prime _ _)), comap_jacobson],
     refine Inf_le_Inf (λ J hJ, _),
     simp only [true_and, set.mem_image, bot_le, set.mem_set_of_eq],
-    haveI : J.is_maximal := by simpa using hJ,
+    haveI : J.is_maximal, { simpa using hJ },
     exact exists_ideal_over_maximal_of_is_integral (is_integral_quotient_of_is_integral hRS) J
       (comap_bot_le_of_injective _ algebra_map_quotient_injective) }
 end

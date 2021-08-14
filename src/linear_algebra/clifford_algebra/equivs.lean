@@ -62,7 +62,7 @@ clifford_algebra.lift Q ⟨linear_map.to_span_singleton _ _ complex.I, λ r, beg
 end⟩
 
 @[simp]
-lemma to_complex_ι (r : ℝ) : to_complex (clifford_algebra.ι Q r) = r • complex.I :=
+lemma to_complex_ι (r : ℝ) : to_complex (ι Q r) = r • complex.I :=
 clifford_algebra.lift_ι_apply _ _ r
 
 /-- The clifford algebras over `clifford_algebra_complex.Q` is isomorphic as an `ℝ`-algebra to

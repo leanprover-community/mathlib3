@@ -3,10 +3,9 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.normed_space.affine_isometry
 import analysis.special_functions.trigonometric
 import algebra.quadratic_discriminant
-import analysis.normed_space.add_torsor
+import analysis.normed_space.affine_isometry
 import data.matrix.notation
 import linear_algebra.affine_space.finite_dimensional
 import tactic.fin_cases

@@ -676,5 +676,3 @@ begin
     apply lattice_ordered_add_comm_group.neg_le_abs,
   }
 end
-
-#lint doc_blame_thm

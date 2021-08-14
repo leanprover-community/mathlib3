@@ -11,13 +11,14 @@ import linear_algebra.affine_space.affine_subspace
 # Affine isometries
 
 In this file we define `affine_isometry 𝕜 P P₂` (notation: `P →ᵃⁱ[𝕜] P₂`) to be a affine isometric
-embedding of `P` into `P₂` and `affine_isometry_equiv` (notation: `P ≃ᵃⁱ[𝕜] P₂`) to be a affine
-isometric equivalence between `P` and `P₂`.
+embedding of normed add-torsors `P` into `P₂` over normed `𝕜`-spaces and `affine_isometry_equiv`
+(notation: `P ≃ᵃⁱ[𝕜] P₂`) to be a affine isometric equivalence between `P` and `P₂`.
 
-We also prove some trivial lemmas and provide convenience constructors.
+We also prove basic lemmas and provide convenience constructors.  The choice of these lemmas and
+constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
-Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory for `semi_normed_add_torsor` and we specialize to `normed_add_torsor` when needed.
+Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
+`semi_normed_add_torsor` and specialize to `normed_add_torsor` only when needed.
 -/
 open function set
 
@@ -65,7 +66,7 @@ include V V₂
 lemma to_affine_map_injective : injective (to_affine_map : (P →ᵃⁱ[𝕜] P₂) → (P →ᵃ[𝕜] P₂))
 | ⟨f, _⟩ ⟨g, _⟩ rfl := rfl
 
-lemma coe_fn_injective : injective (λ (f : P →ᵃⁱ[𝕜] P₂) (x : P), f x) :=
+lemma coe_fn_injective : @injective (P →ᵃⁱ[𝕜] P₂) (P → P₂) coe_fn :=
 affine_map.coe_fn_injective.comp to_affine_map_injective
 
 @[ext] lemma ext {f g : P →ᵃⁱ[𝕜] P₂} (h : ∀ x, f x = g x) : f = g :=

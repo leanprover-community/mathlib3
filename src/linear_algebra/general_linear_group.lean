@@ -108,9 +108,9 @@ variables (A B : GL n R)
 
 @[simp] lemma coe_fn_eq_coe : ⇑A = (↑A : matrix n n R) := rfl
 
-@[simp] lemma mul_val : ↑(A * B) = A ⬝ B := rfl
+@[simp] lemma mul_val : ↑(A * B) = (↑A : matrix n n R) ⬝ (↑B : matrix n n R) := rfl
 
-@[simp] lemma one_val : ↑(1 : GL n R) = (1 : matrix n n R) := rfl
+@[simp] lemma coe_one : ↑(1 : GL n R) = (1 : matrix n n R) := rfl
 
 @[simp] lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
 begin

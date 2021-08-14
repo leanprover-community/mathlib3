@@ -1014,14 +1014,14 @@ affine_isometry_equiv.mk'
     let v := p -ᵥ ↑(classical.arbitrary s),
     let a : V := _root_.orthogonal_projection s.direction v,
     let b : P := ↑(classical.arbitrary s),
-    have key : a +ᵥ b -ᵥ (v +ᵥ b) +ᵥ (a +ᵥ b) = a -ᵥ v +ᵥa +ᵥ (b -ᵥ b +ᵥ b),
-    { rw [← add_vadd, vsub_vadd_eq_vsub_sub, vsub_vadd],
-      congr,
-      rw vadd_vsub },
+    have key : a +ᵥ b -ᵥ (v +ᵥ b) +ᵥ (a +ᵥ b) = a + a - v +ᵥ (b -ᵥ b +ᵥ b),
+    { rw [← add_vadd, vsub_vadd_eq_vsub_sub, vsub_vadd, vadd_vsub],
+      congr' 1,
+      abel },
     have : p = v +ᵥ ↑(classical.arbitrary s) := (vsub_vadd p ↑(classical.arbitrary s)).symm,
     simpa only [coe_vadd, reflection_apply, affine_map.map_vadd, orthogonal_projection_linear,
-      orthogonal_projection_mem_subspace_eq_self, continuous_linear_equiv.coe_coe, vadd_vsub,
-      this] using key,
+      orthogonal_projection_mem_subspace_eq_self, vadd_vsub, continuous_linear_map.coe_coe,
+      continuous_linear_equiv.coe_coe, this] using key,
   end
 
 /-- The result of reflecting. -/

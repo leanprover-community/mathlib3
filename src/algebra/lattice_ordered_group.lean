@@ -26,7 +26,7 @@ This file develops the basic theory, concentrating on the commutative case writt
 
 ## Main statements
 
-- `pos_sub_neg`: Every element a of a `lattice_ordered_add_comm_group` has a decomposition a⁺-a⁻
+- `pos_sub_neg`: Every element `a` of a `lattice_ordered_add_comm_group` has a decomposition `a⁺-a⁻`
    into the difference of the positive and negative component.
 - `pos_meet_neg_eq_zero`: The positive and negative components are coprime.
 - `abs_triangle`: The absolute value operation satisfies the triangle inequality.
@@ -36,9 +36,9 @@ number of equations and inequalities.
 
 ## Notations
 
-- `a⁺ = a ⊔ 0`: The *positive component* of an element a of a `lattice_ordered_add_comm_group`
-- `a⁻ = (-a) ⊔ 0`: The *negative component* of an element a of a `lattice_ordered_add_comm_group`
-* `|a| = a⊔(-a)`: The *absolute value* of an element a of a `lattice_ordered_add_comm_group`
+- `a⁺ = a ⊔ 0`: The *positive component* of an element `a` of a `lattice_ordered_add_comm_group`
+- `a⁻ = (-a) ⊔ 0`: The *negative component* of an element `a` of a `lattice_ordered_add_comm_group`
+* `|a| = a⊔(-a)`: The *absolute value* of an element `a` of a `lattice_ordered_add_comm_group`
 
 ## Implementation notes
 
@@ -68,8 +68,8 @@ lattice, ordered, group
 universe u
 
 /--
-A group (α,*), equipped with a partial order ≤, making α into a lattice, such that, given elements
-a and b of type α satisfying a ≤ b, for all elements c and d of type α,
+A group `(α,*)`, equipped with a partial order `≤`, making `α` into a lattice, such that, given
+elements `a` and `b` of type `α` satisfying `a ≤ b`, for all elements `c` and `d` of `type α`,
 $$c * a * d ≤ c * b * d,$$
 is said to be a *lattice ordered group*.
 -/
@@ -86,8 +86,8 @@ class lattice_ordered_comm_group (α : Type u)
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
 /--
-A group (α,+), equipped with a partial order ≤, making α into a lattice, such that, given elements
-a and b of type α satisfying a ≤ b, for all elements c and d of type α,
+A group `(α,+)`, equipped with a partial order `≤`, making `α` into a lattice, such that, given
+elements `a` and `b` of type `α` satisfying `a ≤ b`, for all elements `c` and `d` of type `α`,
 $$c + a + d ≤ c + b + d,$$
 is said to be a *lattice ordered (additive) group*.
 -/
@@ -147,7 +147,7 @@ variables {α : Type u} [lattice_ordered_add_comm_group α]
 
 -- Special case of Bourbaki A.VI.9 (1)
 /--
-Let α be a lattice ordered commutative group. For all elements a, b and c in α,
+Let `α` be a lattice ordered commutative group. For all elements `a`, `b` and `c` in `α`,
 $$c + (a⊔b) = (c+a)⊔(c+b).$$
 -/
 lemma add_join_eq_add_join_add (a b c : α) : c + (a⊔b) = (c+a)⊔(c+b) :=
@@ -164,7 +164,7 @@ end
 
 -- Special case of Bourbaki A.VI.9 (2)
 /--
-Let α be a lattice ordered commutative group. For all elements a and b in α,
+Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
 $$-(a⊔b)=(-a)⊓(-b).$$
 -/
 lemma neg_join_eq_neg_meet_neg (a b : α) : -(a⊔b)=(-a)⊓(-b) :=
@@ -184,7 +184,7 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group. For all elements a and b in α,
+Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
 $$-a⊔-b = -(a⊓b).$$
 -/
 @[simp] lemma join_neg_eq_neg_meet (a b : α) : -a⊔-b = -(a⊓b) :=
@@ -194,7 +194,7 @@ end
 
 -- Bourbaki A.VI.10 Prop 7
 /--
-Let α be a lattice ordered commutative group. For all elements a and b in α,
+Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
 $$a⊓b + (a⊔b) = a + b.$$
 -/
 lemma add_eq_meet_add_join (a b : α) : a⊓b + (a⊔b) = a + b :=
@@ -207,16 +207,16 @@ end
 
 -- Bourbaki A.VI.12 Definition 4
 /--
-Let α be a lattice ordered commutative group with identity 0. For an element a of type α, the
-element a ⊔ 0 is said to be the *positive component* of a, denoted a⁺.
+Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
+the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
 -/
 def lattice_ordered_add_comm_group.pos (a : α) : α :=  a ⊔ 0
 reserve postfix `⁺`:100
 postfix `⁺` := lattice_ordered_add_comm_group.pos
 
 /--
-Let α be a lattice ordered commutative group with identity 0. For an element a of type α, the
-element (-a) ⊔ 0 is said to be the *negative component* of a, denoted a⁻.
+Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
+the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
 -/
 def lattice_ordered_add_comm_group.neg (a : α) : α :=  (-a) ⊔ 0
 reserve postfix `⁻`:100
@@ -233,40 +233,40 @@ instance lattice_ordered_add_comm_group_has_abs : has_abs (α)  := ⟨λa, a⊔-
 namespace lattice_ordered_add_comm_group
 
 /--
-Let α be a lattice ordered commutative group and let a be an element in α with absolute value |a|.
-Then,
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
+`|a|`. Then,
 $$a ≤ |a|.$$
 -/
 lemma le_abs (a : α) : a ≤ |a| := le_sup_left
 
 /--
-Let α be a lattice ordered commutative group and let a be an element in α with absolute value |a|.
-Then,
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
+`|a|`. Then,
 $$-a ≤ |a|.$$
 -/
 lemma neg_le_abs (a : α) : -a ≤ |a| := le_sup_right
 
 /--
-Let α be a lattice ordered commutative group and let a be an element in α with positive component
-a⁺. Then a⁺ is positive.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
+ component `a⁺`. Then `a⁺` is positive.
 -/
 lemma pos_pos (a : α) : 0 ≤ a⁺ := le_sup_right
 
 /--
-Let α be a lattice ordered commutative group and let a be an element in α withnegative component a⁻.
-Then a⁻ is positive.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` withnegative
+component `a⁻`. Then `a⁻` is positive.
 -/
 lemma neg_pos (a : α) : 0 ≤ a⁻ := le_sup_right
 
 /--
-Let α be a lattice ordered commutative group and let a be an element in α with positive component
-a⁺. Then a⁺ dominates a.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
+component `a⁺`. Then `a⁺` dominates `a`.
 -/
 lemma le_pos (a : α) : a ≤ a⁺ := le_sup_left
 
 /--
-Let α be a lattice ordered commutative group and let a be an element in α with negative component
-a⁻. Then a⁻ dominates -a.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with negative
+component `a⁻`. Then `a⁻` dominates `-a`.
 -/
 lemma le_neg (a : α) : -a ≤ a⁻ := le_sup_left
 
@@ -274,8 +274,8 @@ end lattice_ordered_add_comm_group
 
 -- Bourbaki A.VI.12
 /--
-Let α be a lattice ordered commutative group and let a be an element in α. Then the negative
-component a⁻ of a is equal to the positive component (-a)⁺ of -a.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the negative
+component `a⁻` of `a` is equal to the positive component `(-a)⁺` of `-a`.
 -/
 lemma neg_eq_pos_neg (a : α) : a⁻ =(-a)⁺ :=
 begin
@@ -284,8 +284,8 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group and let a be an element in α. Then the positive
-component a⁺ of a is equal to the negative component (-a)⁻ of -a.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the positive
+component `a⁺` of `a` is equal to the negative component `(-a)⁻` of `-a`.
 -/
 lemma pos_eq_neg_neg (a : α) : a⁺ =(-a)⁻ :=
 begin
@@ -295,7 +295,7 @@ end
 
 -- We use this in Bourbaki A.VI.12  Prop 9 a)
 /--
-Let α be a lattice ordered commutative group. For all elements a, b and c in α,
+Let `α` be a lattice ordered commutative group. For all elements `a`, `b` and `c` in `α`,
 $$c + (a⊓b) = (c+a)⊓(c+b).$$
 -/
 lemma add_meet_eq_add_meet_add (a b c : α) : c + (a⊓b) = (c+a)⊓(c+b) :=
@@ -308,8 +308,8 @@ end
 
 -- We use this in Bourbaki A.VI.12  Prop 9 a)
 /--
-Let α be a lattice ordered commutative group with identity 0 and let a be an element in α with
-negative component a⁻. Then
+Let `α` be a lattice ordered commutative group with identity `0` and let `a` be an element in `α`
+with negative component `a⁻`. Then
 $$a⁻ = -(a⊓0).$$
 -/
 lemma neg_eq_neg_inf_zero (a : α) : a⁻ = -(a⊓0) :=
@@ -322,8 +322,9 @@ end
 
 -- Bourbaki A.VI.12  Prop 9 a)
 /--
-Let α be a lattice ordered commutative group and let a be an element in α with positive component a⁺
-and negative component a⁻. Then a can be decomposed as the difference of a⁺ and a⁻.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
+component `a⁺` and negative component `a⁻`. Then `a` can be decomposed as the difference of `a⁺` and
+`a⁻`.
 -/
 lemma pos_sub_neg (a : α) : a = a⁺ - a⁻ :=
 begin
@@ -341,8 +342,9 @@ end
 
 -- Bourbaki A.VI.12  Prop 9 a)
 /--
-Let α be a lattice ordered commutative group and let a be an element in α with positive component a⁺
-and negative component a⁻. Then a⁺ and a⁻ are co-prime (and, since they are positive, disjoint).
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
+component `a⁺` and negative component `a⁻`. Then `a⁺` and `a⁻` are co-prime (and, since they are
+positive, disjoint).
 -/
 lemma pos_meet_neg_eq_zero (a : α) : a⁺⊓a⁻=0 :=
 begin
@@ -357,8 +359,8 @@ end
 
 -- Bourbaki A.VI.12 (with a and b swapped)
 /--
-Let α be a lattice ordered commutative group, let a and b be elements in α, and let (a - b)⁺ be the
-positive componet of a-b. Then
+Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α`, and let
+`(a - b)⁺` be the positive componet of `a-b`. Then
 $$a⊔b = b + (a - b)⁺.$$
 -/
 lemma join_eq_add_pos_sub (a b : α) : a⊔b = b + (a - b)⁺ :=
@@ -369,8 +371,8 @@ end
 
 -- Bourbaki A.VI.12 (with a and b swapped)
 /--
-Let α be a lattice ordered commutative group, let a and b be elements in α, and let (a - b)⁺ be the
-positive componet of a-b. Then
+Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α`, and let
+`(a - b)⁺` be the positive componet of `a-b`. Then
 $$a⊓b = a - (a - b)⁺.$$
 -/
 lemma meet_eq_sub_pos_sub (a b : α) : a⊓b = a - (a - b)⁺ :=
@@ -385,9 +387,9 @@ end
 -- Bourbaki A.VI.12 Prop 9 c)
 -- Can we rewrite `lattice_ordered_add_comm_group.le_pos b` as `b.le_pos`?
 /--
-Let α be a lattice ordered commutative group and let a and b be elements in α with positive
-components a⁺ and b⁺ and negative components a⁻ and b⁻ respectively. Then b dominates a if
-and only if b⁺ dominates a⁺ and b⁻ dominates a⁺.
+Let `α` be a lattice ordered commutative group and let `a` and `b` be elements in `α` with positive
+components `a⁺` and `b⁺` and negative components `a⁻` and `b⁻` respectively. Then `b` dominates `a`
+if and only if `b⁺` dominates `a⁺` and `a⁻` dominates `b⁻`.
 -/
 lemma le_iff_pos_le_neg_ge (a b : α) : a ≤ b ↔ a⁺ ≤ b⁺ ∧ b⁻ ≤ a⁻ :=
 begin
@@ -413,8 +415,9 @@ end
 
 -- The proof from Bourbaki A.VI.12 Prop 9 d)
 /--
-Let α be a lattice ordered commutative group and let a be an element in α with absolute value |a|,
-positive component a⁺ and negative component a⁻. Then |a| decomposes as the sum of a⁺ and a⁻.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
+`|a|`, positive component `a⁺` and negative component `a⁻`. Then `|a|` decomposes as the sum of `a⁺`
+and `a⁻`.
 -/
 lemma pos_add_neg (a : α) : |a| = a⁺ + a⁻ :=
 begin
@@ -470,8 +473,8 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group, let a and b be elements in α and let |b-a| be the
-absolute value of b-a. Then,
+Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α` and let `|b-a|`
+be the absolute value of `b-a`. Then,
 $$a⊔b - (a⊓b) = |b-a|.$$
 -/
 lemma join_sub_meet_eq_abs_sub (a b : α) : a⊔b - (a⊓b) = |b-a| :=
@@ -482,8 +485,8 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group, let a and b be elements in α and let |b-a| be the
-absolute value of b-a. Then,
+Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α` and let `|b-a|`
+be the absolute value of `b-a`. Then,
 $$2•(a⊔b) = a + b + |b - a|.$$
 -/
 lemma two_join_eq_add_add_abs_sub (a b : α) : 2•(a⊔b) = a + b + |b - a| :=
@@ -495,8 +498,8 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group, let a and b be elements in α and let |b-a| be the
-absolute value of b-a. Then,
+Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α` and let `|b-a|`
+be the absolute value of `b-a`. Then,
 $$2•(a⊓b) = a + b - |b - a|.$$
 -/
 lemma two_meet_eq_add_sub_abs_sub (a b : α) : 2•(a⊓b) = a + b - |b - a| :=
@@ -544,8 +547,9 @@ instance lattice_ordered_add_comm_group.to_distrib_lattice (α : Type u)
 -- See, e.g. Zaanen, Lectures on Riesz Spaces
 -- 3rd lecture
 /--
-Let α be a lattice ordered commutative group and let a, b and c be elements in α. Let |a⊔c-(b⊔c)|,
-|a⊓c-b⊓c| and |a-b| denote the absolute values of a⊔c-(b⊔c), a⊓c-b⊓c and a-b respectively. Then,
+Let `α` be a lattice ordered commutative group and let `a`, `b` and `c` be elements in `α`. Let
+`|a⊔c-(b⊔c)|`, `|a⊓c-b⊓c|` and `|a-b|` denote the absolute values of `a⊔c-(b⊔c)`, `a⊓c-b⊓c` and
+`a-b` respectively. Then,
 $$|a⊔c-(b⊔c)| + |a⊓c-b⊓c| = |a-b|.$$
 -/
 theorem abs_diff_sup_add_abs_diff_inf (a b c : α) :
@@ -568,8 +572,8 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group and let a be a positive element in α. Then a is equal
-to its positive component a⁺.
+Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is equal
+to its positive component `a⁺`.
 -/
 lemma pos_pos_id (a : α) (h : 0≤ a): a⁺ = a :=
 begin
@@ -578,8 +582,8 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group and let a be a positive element in α. Then a is equal
-to its absolute value |a|.
+Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is
+equal to its absolute value `|a|`.
 -/
 lemma abs_pos_eq (a : α) (h: 0≤a) : |a| = a :=
 begin
@@ -602,8 +606,8 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group and let a be an element in α. Then the absolute value
-|a| of a is positive.
+Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the absolute
+value `|a|` of `a` is positive.
 -/
 lemma lattice_ordered_add_comm_group.abs_pos (a : α) : 0 ≤ |a| :=
 begin
@@ -613,7 +617,7 @@ begin
 end
 
 /--
-Let α be a lattice ordered commutative group. The unary operation of taking the absolute value is
+Let `α` be a lattice ordered commutative group. The unary operation of taking the absolute value is
 idempotent.
 -/
 lemma abs_idempotent (a : α) : |a| = | |a| | :=
@@ -625,9 +629,9 @@ end
 -- Commutative case, Zaanen, 3rd lecture
 -- For the non-commutative case, see Birkhoff Theorem 19 (27)
 /--
-Let α be a lattice ordered commutative group and let a, b and c be elements in α. Let |a⊔c-(b⊔c)|,
-|a⊓c-b⊓c| and |a-b| denote the absolute values of a⊔c-(b⊔c), a⊓c-b⊓c and a-b respectively. Then
-|a-b| dominates |a⊔c-(b⊔c)| and |a⊓c-b⊓c|.
+Let `α` be a lattice ordered commutative group and let `a`, `b` and `c` be elements in `α`. Let
+`|a⊔c-(b⊔c)|`, `|a⊓c-b⊓c|` and `|a-b|` denote the absolute values of `a⊔c-(b⊔c)`, `a⊓c-b⊓c` and
+`a-b` respectively. Then `|a-b|` dominates `|a⊔c-(b⊔c)|` and `|a⊓c-b⊓c|`.
 -/
 theorem Birkhoff_inequalities (a b c : α) :
 |a⊔c-(b⊔c)| ⊔ |a⊓c-b⊓c| ≤ |a-b| :=
@@ -648,7 +652,7 @@ end
 
 -- Banasiak Proposition 2.12, Zaanen 2nd lecture
 /--
-Let α be a lattice ordered commutative group. Then the absolute value satisfies the triangle
+Let `α` be a lattice ordered commutative group. Then the absolute value satisfies the triangle
 inequality.
 -/
 lemma abs_triangle  (a b : α) : |a+b| ≤ |a|+|b| :=

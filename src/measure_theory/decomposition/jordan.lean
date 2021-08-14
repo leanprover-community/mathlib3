@@ -276,7 +276,7 @@ namespace jordan_decomposition
 
 open measure vector_measure signed_measure function
 
-lemma eq_of_pos_part_eq_pos_part {j₁ j₂ : jordan_decomposition α}
+private lemma eq_of_pos_part_eq_pos_part {j₁ j₂ : jordan_decomposition α}
   (hj : j₁.pos_part = j₂.pos_part) (hj' : j₁.to_signed_measure = j₂.to_signed_measure) :
   j₁ = j₂ :=
 begin
@@ -295,7 +295,7 @@ theorem to_signed_measure_injective :
 begin
   /- The main idea is that two Jordan decompositions of a signed measure provides two
   Hahn decompositions for that measure. Then, from `of_symm_diff_compl_positive_negative`,
-  the symmetric difference the two Hahn decomposition have measure zero, thus, allowing us to
+  the symmetric difference the two Hahn decompositions have measure zero, thus, allowing us to
   show the equality of the underlying measures of the Jordan decompositions. -/
   intros j₁ j₂ hj,
   -- obtain the two Hahn decompositions from the Jordan decompositions

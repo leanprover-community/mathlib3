@@ -109,20 +109,20 @@ lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * 
 /-- The quaternion basis vectors within the algebra. -/
 @[simps i j k]
 def quaternion_basis : quaternion_algebra.basis (clifford_algebra (Q c₁ c₂)) c₁ c₂ :=
-{ i := clifford_algebra.ι (Q c₁ c₂) (1, 0),
-  j := clifford_algebra.ι (Q c₁ c₂) (0, 1),
-  k := clifford_algebra.ι (Q c₁ c₂) (1, 0) * clifford_algebra.ι (Q c₁ c₂) (0, 1),
+{ i := ι (Q c₁ c₂) (1, 0),
+  j := ι (Q c₁ c₂) (0, 1),
+  k := ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1),
   i_mul_i := begin
-    rw [clifford_algebra.ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
+    rw [ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
     simp,
   end,
   j_mul_j := begin
-    rw [clifford_algebra.ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
+    rw [ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
     simp,
   end,
   i_mul_j := rfl,
   j_mul_i := begin
-    rw [eq_neg_iff_add_eq_zero, clifford_algebra.ι_mul_ι_add_swap, quadratic_form.polar],
+    rw [eq_neg_iff_add_eq_zero, ι_mul_ι_add_swap, quadratic_form.polar],
     simp,
   end }
 
@@ -143,26 +143,31 @@ clifford_algebra.lift (Q c₁ c₂) ⟨
 
 @[simp]
 lemma to_quaternion_ι (v : R × R) :
-  to_quaternion (clifford_algebra.ι (Q c₁ c₂) v) = (⟨0, v.1, v.2, 0⟩ : ℍ[R,c₁,c₂]) :=
+  to_quaternion (ι (Q c₁ c₂) v) = (⟨0, v.1, v.2, 0⟩ : ℍ[R,c₁,c₂]) :=
 clifford_algebra.lift_ι_apply _ _ v
 
 /-- Map a quaternion into the clifford algebra. -/
-@[simp] def of_quaternion : ℍ[R,c₁,c₂] →ₐ[R] clifford_algebra (Q c₁ c₂) :=
+def of_quaternion : ℍ[R,c₁,c₂] →ₐ[R] clifford_algebra (Q c₁ c₂) :=
 (quaternion_basis c₁ c₂).lift_hom
+
+@[simp] lemma of_quaternion_apply (x : ℍ[R,c₁,c₂]) :
+  of_quaternion x = algebra_map R _ x.re
+                  + x.im_i • ι (Q c₁ c₂) (1, 0)
+                  + x.im_j • ι (Q c₁ c₂) (0, 1)
+                  + x.im_k • (ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1)) := rfl
 
 @[simp]
 lemma of_quaternion_comp_to_quaternion :
   of_quaternion.comp to_quaternion = alg_hom.id R (clifford_algebra (Q c₁ c₂)) :=
 begin
-  ext1,
-  dsimp,
+  ext : 1,
+  dsimp, -- before we end up with two goals and have to do this twice
   ext,
   all_goals {
-    dsimp [quaternion_algebra.basis.lift],
+    dsimp,
     rw to_quaternion_ι,
     dsimp,
-    simp only [zero_smul, one_smul, zero_add, add_zero, ring_hom.map_zero],
-  },
+    simp only [to_quaternion_ι, zero_smul, one_smul, zero_add, add_zero, ring_hom.map_zero], },
 end
 
 @[simp]
@@ -176,7 +181,7 @@ end
 /-- The clifford algebra over `clifford_algebra_quaternion.Q` is isomorphic as an `R`-algebra
 to `ℍ[R,c₁,c₂]`. -/
 @[simps]
-def equiv_quaternion : clifford_algebra (Q c₁ c₂) ≃ₐ[R] ℍ[R,c₁,c₂] :=
+protected def equiv : clifford_algebra (Q c₁ c₂) ≃ₐ[R] ℍ[R,c₁,c₂] :=
 alg_equiv.of_alg_hom to_quaternion of_quaternion
   to_quaternion_comp_of_quaternion
   of_quaternion_comp_to_quaternion

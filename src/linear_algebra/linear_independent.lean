@@ -176,7 +176,7 @@ begin
   rw [finsupp.map_domain_apply hf]
 end
 
-lemma linear_independent.reindex_range (i : linear_independent R v) :
+lemma linear_independent.coe_range (i : linear_independent R v) :
   linear_independent R (coe : range v → M) :=
 by simpa using i.comp _ (range_splitting_injective v)
 

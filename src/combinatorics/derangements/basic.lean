@@ -27,61 +27,96 @@ We also define:
 
 open equiv function
 
+/-- Permutations on `sᶜ` are equivalent to permutations that fix `s` pointwise. -/
+protected def perm.compl_equiv {α : Type*} (s : set α) [decidable_pred (∈ s)] :
+  perm (sᶜ : set α) ≃ {f : perm α // ∀ a ∈ s, f a = a} :=
+{ to_fun := λ f, ⟨f.of_subtype, λ a ha, f.of_subtype_apply_of_not_mem (λ h, h ha)⟩,
+  inv_fun := λ ⟨f, hf⟩, (f : perm α).subtype_perm
+    (λ a, ⟨λ ha hfa, ha (f.injective (hf _ hfa) ▸ hfa),  λ hfa ha, (hf a ha ▸ hfa) ha⟩),
+  left_inv := begin
+    rintro a,
+    simp,
+  end,
+  right_inv := begin
+    rintro a,
+    simp,
+  end }
+--(equiv.refl _)^.set.compl .symm.trans (subtype_equiv_right $ by simp)
+
 /-- A permutation is a derangement if it has no fixed points. -/
 def derangements (α : Type*) : set (perm α) := {f : perm α | ∀ x : α, f x ≠ x}
 
+/-- If `α` is equivalent to `β`, then `derangements α` is equivalent to `derangements β`. -/
 def equiv.derangements_congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ derangements β) :=
-subtype_equiv (perm_congr e) $ λ f, e.forall_congr $ λ x, by simp
+e.perm_congr.subtype_equiv $ λ f, e.forall_congr $ λ x, by simp
 
 namespace derangements
 
-section simple_lemmas
-
-/-- If `α` is equivalent to `β`, then `derangements α` is equivalent to `derangements β`. -/
-protected
-
-end simple_lemmas
-
 section fixed_points
-
 variables {α : Type*} [decidable_eq α]
 
 lemma mem_derangements_iff_fixed_points_eq_empty {f : perm α} :
   f ∈ derangements α ↔ fixed_points f = ∅ :=
 set.eq_empty_iff_forall_not_mem.symm
 
-/-- The set of permutations fixing `a` is the same as the set of permutations on `{a}ᶜ`. -/
-def discard_fixed_pt (s : set α) [decidable_pred (∈ s)] :
-  {f : perm α | ∀ a ∈ s, f a = a} ≃ perm sᶜ :=
+/-protected def compl_equiv' (a : α) :
+  {f : perm α // ∀ x, f x = x ↔ x = a} ≃ derangements ({a}ᶜ : set α) :=
 begin
-  refine (subtype_equiv_right _).trans _,
-  simp
-end
-
-/-- The set of permutations with `a` the only fixed point is equivalent to the set of derangements
-    on `{a}ᶜ`. -/
-protected def compl_equiv (a : α) :
-  {f : perm α // exactly_one_fixed_point f a} ≃ derangements (sᶜ : set α) :=
-begin
-  transitivity {f : {f : perm α // f a = a} // only_possible_fixed_point f.val a},
+  transitivity {f : {f : perm α // f a = a} // ∀ x, f x = x → x = a},
   { refine (subtype_equiv_right _).trans (subtype_subtype_equiv_subtype_exists _ _).symm,
     intro f,
-    simp_rw [exists_prop, eofp_iff_opfp_and_eq, and_comm] },
-  { refine subtype_equiv (discard_fixed_pt a) _,
+    sorry
+     },
+  { refine subtype_equiv (perm.compl_equiv {a}) _,
     rintro ⟨f, _⟩,
     simp [discard_fixed_pt, equiv.set.compl, derangements,
           only_possible_fixed_point, not_imp_not] }
+end-/
+
+/-- Derangements on `sᶜ` are equivalent to permutations whose set of fixed points is `s`. -/
+protected def compl_equiv' (s : set α) [decidable_pred (∈ s)] :
+  derangements (sᶜ : set α) ≃ {f : perm α // fixed_points f = s} :=
+begin
+
 end
 
--- TODO elaborator bug means i have to explicitly cast to Type
+
+/-- Derangements on `sᶜ` are equivalent to permutations whose set of fixed points is `s`. -/
+protected def compl_equiv (s : set α) [decidable_pred (∈ s)] :
+  derangements (sᶜ : set α) ≃ {f : perm α // fixed_points f = s} :=
+calc
+  derangements (sᶜ : set α)
+      ≃ {f : {f : perm α // s ⊆ fixed_points f} // fixed_points f ⊆ s}
+      : begin
+        refine (perm.compl_equiv s).subtype_equiv  _,
+        rintro f,
+        have := f.of_subtype,
+        rw derangements,
+        dsimp,
+        sorry
+        --simp [perm.compl_equiv, derangements, not_imp_not, set.sum_compl],
+      end
+  ... ≃ {f : perm α // ∃ (h : s ⊆ fixed_points f), fixed_points f ⊆ s}
+      : subtype_subtype_equiv_subtype_exists _ _
+  ... ≃ {f : perm α // fixed_points f = s}
+      : subtype_equiv_right (λ f, by rw [exists_prop, set.subset.antisymm_iff, and_comm])
+
+variables (s : set α) [decidable_pred (∈ s)] (f : perm (sᶜ : set α))
+
+lemma perm.compl_equiv_eq :
+  f.of_subtype = perm.compl_equiv s f :=
+begin
+  simp [perm.compl_equiv, equiv.set.compl],
+
+end
+#exit
 /-- The set of permutations that fix at most `a` is equivalent to the sum of:
     - derangements on `α`
     - derangements on `α` minus `a`. -/
-def opfp_equiv_sum_derangements (a : α) :
-  {f : perm α // only_possible_fixed_point f a}
-  ≃ (derangements (({a}ᶜ : set α) : Type _) ⊕ derangements α) :=
+def opfp_equiv_sum_derangements (s : set α) :
+  {f : perm α // fixed_points f ⊆ s} ≃ (derangements (sᶜ : set α)) ⊕ derangements α :=
 begin
-  let fixes_a := λ f : perm α, f a = a,
+  let fixes_a := λ f : perm α, ∀ a ∈ s, f a = a,
   refine (equiv.sum_compl (λ f : subtype _, fixes_a f.val)).symm.trans (sum_congr _ _),
   { refine (subtype_subtype_equiv_subtype_inter _ fixes_a).trans
       (equiv.trans (subtype_equiv_right _) (eofp_equiv_derangements_except_for a)),
@@ -120,7 +155,7 @@ end
 /-- For any `a : α`, the fiber over `some a` is the set of permutations
     where `a` is the only possible fixed point. -/
 lemma remove_none.fiber_eq_opfp (a : α) :
-  (remove_none.fiber (some a)) = {f : perm α | only_possible_fixed_point f a} :=
+  (remove_none.fiber (some a)) = {f : perm α | fixed_points f ⊆ {a}} :=
 begin
   ext f,
   split,
@@ -155,7 +190,7 @@ end
 /-- The set of derangements on `option α` is equivalent to the union over `a : α`
     of "permutations with `a` the only possible fixed point". -/
 def derangements_equiv_sigma_opfp :
-  derangements (option α) ≃ Σ a : α, {f : perm α | only_possible_fixed_point f a} :=
+  derangements (option α) ≃ Σ a : α, {f : perm α | fixed_points f ⊆ {a}} :=
 begin
   have fiber_none_is_false : (remove_none.fiber (@none α)) -> false,
   { rw remove_none.fiber_none_eq_empty, exact is_empty.false },

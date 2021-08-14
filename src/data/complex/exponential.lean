@@ -1291,42 +1291,30 @@ begin
 end
 
 
-
-lemma sum_half_geometric (j : ℕ) : ∑ (x : ℕ) in (range j), ((1:ℝ) / 2) ^ (x) = 2 - 2 * ((1 : ℝ)/2)^(j) :=
+-- TODO why does sub_add_assoc not exist?
+-- TODO move this lemma to another file
+lemma sum_geometric_half (j : ℕ) : ∑ (x : ℕ) in (range j), ((1:ℝ) / 2) ^ (x) = 2 - 2 * ((1 : ℝ)/2)^(j) :=
 begin
   induction j,
     {simp,},
-    {
-      rw finset.sum_range_succ,
-      rw j_ih,
-      rw pow_succ,
+    { rw [finset.sum_range_succ, j_ih, pow_succ],
       simp only [one_div, inv_pow', mul_inv_cancel_left'],
       rw <-mul_assoc,
       simp only [one_mul, mul_inv_cancel],
-      ring_nf,
-      -- TODO why does sub_add_assoc not exist?
-
-    },
+      ring_nf,},
 end
 
-lemma sum_half_geometric' (j n : ℕ) (h : n ≤ j) : ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ) / 2) ^ (x - n) ≤ (2 : ℝ) :=
+private lemma sum_geometric_half' (j n : ℕ) (h : n ≤ j) : ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ) / 2) ^ (x - n) ≤ (2 : ℝ) :=
 begin
   calc ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ)/ 2) ^ (x - n)
       = ∑ (x : ℕ) in (range (j - n)), ((1 : ℝ)/ 2) ^ (x) :
         begin
-          rw range_eq_Ico,
-          -- rw range_eq_Ico,
-          rw Ico.filter_le_of_le (nat.zero_le n),
-          rw finset.sum_Ico_eq_sum_range,
-          congr,
-          funext,
-          congr,
+          rw [range_eq_Ico, Ico.filter_le_of_le (nat.zero_le n),
+              finset.sum_Ico_eq_sum_range],
+          congr, funext, congr,
           exact norm_num.sub_nat_pos (n + k) n k rfl,
         end
-  ... = 2 - 2 * ((1 : ℝ)/2)^(j-n) :
-        begin
-          exact sum_half_geometric (j - n),
-        end
+  ... = 2 - 2 * ((1 : ℝ)/2)^(j-n) : sum_geometric_half (j - n)
   ... ≤ 2 :
         begin
           simp only [one_div, sub_le_self_iff, inv_nonneg, inv_pow', pow_nonneg],
@@ -1364,11 +1352,7 @@ begin
       rw abv_pow abs,
       rw mem_filter at hm,
       apply (div_le_iff' _).1,
-      rw mul_div_right_comm,
-      rw <-div_pow,
-      -- simp only [one_div, div_pow, inv_pow'],
-      rw div_eq_inv_mul,
-      -- rw field.inv_inv,
+      rw [mul_div_right_comm, <-div_pow, div_eq_inv_mul],
       calc ((1 / 2)⁻¹ * abs x) ^ (m - n) * ↑n!
           ≤ (n) ^ (m - n) * ↑n! :
             begin
@@ -1390,16 +1374,12 @@ begin
               rw <-nat.cast_pow,
               rw <-nat.cast_mul,
               apply nat.cast_le.2,
-              --   by library_search,
               apply nat.pow_mul_factorial_le_factorial,
               exact hm.right,
               exact real.nontrivial,
             end,
-
       apply pow_pos,
       simp only [one_div, zero_lt_bit0, zero_lt_one, inv_pos],
-
-
       simp only [nat.cast_pos],
       exact nat.factorial_pos m,
       simp only [nat.cast_pos],
@@ -1422,7 +1402,7 @@ begin
       apply mul_le_mul,
       rw mul_comm,
       apply mul_le_mul,
-      apply sum_half_geometric',
+      apply sum_geometric_half',
       exact hj,
       exact le_refl (abs x ^ n),
       apply pow_nonneg,

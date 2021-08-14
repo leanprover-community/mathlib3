@@ -1363,7 +1363,7 @@ begin
             begin
               rw [<-nat.cast_pow, <-nat.cast_mul, nat.cast_le],
               rw mem_filter at hm,
-              exact nat.pow_mul_factorial_le_factorial hm.right,
+              exact nat.pow_sub_mul_factorial_le_factorial hm.right,
             end,
       apply pow_pos,
       linarith,

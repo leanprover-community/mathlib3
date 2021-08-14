@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import group_theory.group_action.basic
 import data.fintype.card
 import data.zmod.basic
-import group_theory.group_action.conj
+import group_theory.group_action.conj_act
 import group_theory.specific_groups.cyclic
 import group_theory.quotient_group
 /-!

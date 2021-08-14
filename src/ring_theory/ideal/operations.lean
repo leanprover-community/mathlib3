@@ -1608,7 +1608,8 @@ end ring_hom
 namespace double_quot
 variables {R : Type u} [comm_ring R] (I J : ideal R)
 
-lemma add_comm : I+J = J+I := by {rw [ideal.add_eq_sup, sup_comm, ← ideal.add_eq_sup]}
+lemma add_comm : I+J = J+I := _root_.add_comm I J
+  --rw [ideal.add_eq_sup, sup_comm, ← ideal.add_eq_sup]}
 
 -- a few lemmas to help shorten the proofs later
 def left_proj_quot_add_mk (x :R) (hx : x ∈ I) : ideal.quotient.mk (I+J) x = 0 :=
@@ -1673,7 +1674,8 @@ begin
   rwa [hJ, in_ker_proj_to_add_right I J] at hmapx,
 end
 
-/-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I+J)`, where `J'` is the image of `J` in `R/I` -/
+/-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I+J)`,
+  where `J'` is the image of `J` in `R/I` -/
 def double_quot_to_quot_add : (J.map (ideal.quotient.mk I)).quotient →+* (I + J).quotient :=
 ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sum I J)
  (img_left_in_ker I J)

@@ -451,7 +451,8 @@ by { ext, refl }
 omit V
 
 variables (𝕜 P)
-/-- The map `p ↦ v +ᵥ p` as an affine isometric automorphism of `P`. -/
+/-- Translation by `v` (that is, the map `p ↦ v +ᵥ p`) as an affine isometric automorphism of `P`.
+-/
 def const_vadd (v : V) : P ≃ᵃⁱ[𝕜] P :=
 { norm_map := λ x, rfl,
   .. affine_equiv.const_vadd 𝕜 P v }

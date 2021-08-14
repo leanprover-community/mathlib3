@@ -196,9 +196,11 @@ protected lemma fin_support_approx : ∀ n, μ (support (hf.approx n)) < ∞ := 
 protected lemma tendsto_approx : ∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x)) :=
 hf.some_spec.2
 
-lemma strongly_measurable : strongly_measurable f := ⟨hf.approx, hf.tendsto_approx⟩
-
 end sequence
+
+lemma strongly_measurable [topological_space β] (hf : fin_strongly_measurable f μ) :
+  strongly_measurable f :=
+⟨hf.approx, hf.tendsto_approx⟩
 
 lemma exists_set_sigma_finite [topological_space β] [t2_space β]
   (hf : fin_strongly_measurable f μ) :

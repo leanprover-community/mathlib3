@@ -809,6 +809,7 @@ begin
   rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient_add_dim]
 end
 
+-- TODO determine how this generalises
 lemma dim_range_le (f : V →ₗ[K] V₁) : module.rank K f.range ≤ module.rank K V :=
 by { rw ← dim_range_add_dim_ker f, exact self_le_add_right _ _ }
 

@@ -308,8 +308,8 @@ begin
   -- it suffices to show the Jordan decompositions have the same positive parts
   refine eq_of_pos_part_eq_pos_part _ hj,
   ext1 i hi,
-  -- we see that the positive parts of the two Jordan decompositions is equal to their
-  -- associated signed measure restricted on their associated Hahn decomposition
+  -- we see that the positive parts of the two Jordan decompositions are equal to their
+  -- associated signed measures restricted on their associated Hahn decompositions
   have hμ₁ : (j₁.pos_part i).to_real = j₁.to_signed_measure (i ∩ Sᶜ),
   { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hS₁.compl),
         show j₁.neg_part (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1

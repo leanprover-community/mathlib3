@@ -6,7 +6,12 @@ Authors: Kexing Ying
 import measure_theory.decomposition.jordan
 
 /-!
-sorry
+# Lebesgue decomposition
+
+todo:
+* docs right here
+* docs for the section about `measurable_le`
+* comment on how I proved `exists_singular_with_density` (Lebesgue decomposition theorem)
 
 -/
 
@@ -205,7 +210,7 @@ begin
   ext, simp
 end
 
-lemma supr_monotone (f : ℕ → α → ℝ≥0∞) :
+lemma supr_monotone {α : Type*} (f : ℕ → α → ℝ≥0∞) :
   monotone (λ n x, ⨆ k (hk : k ≤ n), f k x) :=
 begin
   intros n m hnm x,
@@ -215,11 +220,11 @@ begin
   exact le_bsupr k this,
 end
 
-lemma supr_monotone' (f : ℕ → α → ℝ≥0∞) (x : α) :
+lemma supr_monotone' {α : Type*} (f : ℕ → α → ℝ≥0∞) (x : α) :
   monotone (λ n, ⨆ k (hk : k ≤ n), f k x) :=
 λ n m hnm, supr_monotone f hnm x
 
-lemma supr_le_le (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : k ≤ n) :
+lemma supr_le_le {α : Type*} (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : k ≤ n) :
   f k ≤ λ x, ⨆ k (hk : k ≤ n), f k x :=
 λ x, le_bsupr k hk
 

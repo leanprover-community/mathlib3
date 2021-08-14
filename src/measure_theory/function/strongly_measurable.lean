@@ -7,37 +7,40 @@ Authors: Rémy Degenne
 import measure_theory.function.simple_func_dense
 
 /-!
-# Strongly measurable functions
+# Strongly measurable and finitely strongly measurable functions
 
 A function `f` is said to be strongly measurable with respect to a measure `μ` if `f` is the
-sequential limit of simple functions whose support has finite measure.
+sequential limit of simple functions. It is said to be finitely strongly measurable if the supports
+of those simple functions have finite measure.
 
-Functions in `Lp` for `0 < p < ∞` are strongly measurable.
-If the measure is sigma-finite, measurable and strongly measurable are equivalent.
+If the space has a second countable topology, strongly measurable and measurable are equivalent.
 
-The main property of strongly measurable functions is `strongly_measurable.exists_set_sigma_finite`:
-there exists a measurable set `t` such that `f` is supported on `t` and `μ.restrict t` is
-sigma-finite. As a consequence, we can prove some results for those functions as if the measure was
-sigma-finite.
+Functions in `Lp` for `0 < p < ∞` are finitely strongly measurable.
+If the measure is sigma-finite, strongly measurable and finitely strongly measurable are equivalent.
+
+The main property of finitely strongly measurable functions is
+`fin_strongly_measurable.exists_set_sigma_finite`: there exists a measurable set `t` such that the
+function is supported on `t` and `μ.restrict t` is sigma-finite. As a consequence, we can prove some
+results for those functions as if the measure was sigma-finite.
 
 ## Main definitions
 
-* `strongly_measurable f μ`: `f : α → γ` is the limit of a sequence `fs : ℕ → simple_func α γ`
+* `strongly_measurable f`: `f : α → β` is the limit of a sequence `fs : ℕ → simple_func α β`.
+* `fin_strongly_measurable f μ`: `f : α → β` is the limit of a sequence `fs : ℕ → simple_func α β`
   such that for all `n ∈ ℕ`, the measure of the support of `fs n` is finite.
-* `strongly_measurable.sigma_finite_set`: a measurable set `t` such that `∀ x ∈ tᶜ, f x = 0` and
-  `μ.restrict t` is sigma-finite.
+* `ae_fin_strongly_measurable f μ`: `f` is almost everywhere equal to a `fin_strongly_measurable`
+  function.
+
+* `ae_fin_strongly_measurable.sigma_finite_set`: a measurable set `t` such that
+  `f =ᵐ[μ.restrict tᶜ] 0` and `μ.restrict t` is sigma-finite.
 
 ## Main statements
 
-* `strongly_measurable.exists_set_sigma_finite`: if a function `f` is strongly measurable with
-  respect to a measure `μ`, then there exists a measurable set `t` such that `∀ x ∈ tᶜ, f x = 0`
-  and `sigma_finite (μ.restrict t)`.
-* `mem_ℒp.ae_strongly_measurable`: if `mem_ℒp f p μ` with `0 < p < ∞`, then
-  `∃ g, strongly_measurable g μ ∧ f =ᵐ[μ] g`.
-* `Lp.strongly_measurable`: for `0 < p < ∞`, `Lp` functions are strongly measurable.
-* `stongly_measurable.measurable`: a stongly measurable function is measurable.
-* `measurable.strongly_measurable`: if a measure is sigma-finite, then all measurable functions are
-  strongly measurable.
+* `ae_fin_strongly_measurable.exists_set_sigma_finite`: there exists a measurable set `t` such that
+  `f =ᵐ[μ.restrict tᶜ] 0` and `μ.restrict t` is sigma-finite.
+* `mem_ℒp.ae_fin_strongly_measurable`: if `mem_ℒp f p μ` with `0 < p < ∞`, then
+  `ae_fin_strongly_measurable f μ`.
+* `Lp.fin_strongly_measurable`: for `0 < p < ∞`, `Lp` functions are finitely strongly measurable.
 
 ## References
 
@@ -74,10 +77,14 @@ def ae_fin_strongly_measurable [has_zero β] {m0 : measurable_space α} (f : α 
 
 end definitions
 
+/-! ## Strongly measurable functions -/
+
 namespace strongly_measurable
 
 variables {α β : Type*} {f : α → β}
 
+/-- A sequence of simple functions such that `∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x))`.
+That property is given by `strongly_measurable.tendsto_approx`. -/
 protected noncomputable
 def approx [measurable_space α] [topological_space β] (hf : strongly_measurable f) : ℕ → α →ₛ β :=
 hf.some
@@ -138,35 +145,40 @@ end
 
 /-- If the measure is sigma-finite, all strongly measurable functions are
   `fin_strongly_measurable`. -/
-lemma fin_strongly_measurable [topological_space β] [has_zero β] {m0 : measurable_space α}
+protected lemma fin_strongly_measurable [topological_space β] [has_zero β] {m0 : measurable_space α}
   (hf : strongly_measurable f) (μ : measure α) [sigma_finite μ] :
   fin_strongly_measurable f μ :=
 hf.fin_strongly_measurable_of_exists_set_sigma_finite
   ⟨set.univ, measurable_set.univ, by simp, by rwa measure.restrict_univ⟩
 
 /-- A strongly measurable function is measurable. -/
-lemma measurable [measurable_space α] [metric_space β] [measurable_space β] [borel_space β]
-  (hf : strongly_measurable f) :
+protected lemma measurable [measurable_space α] [metric_space β] [measurable_space β]
+  [borel_space β] (hf : strongly_measurable f) :
   measurable f :=
 measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi.mpr hf.tendsto_approx)
 
 end strongly_measurable
 
+section second_countable_strongly_measurable
+variables {α β : Type*} [measurable_space α] [measurable_space β] {f : α → β}
+
 /-- In a space with second countable topology, measurable implies strongly measurable.
   TODO: remove the `nonempty β` hypothesis? -/
-lemma measurable.strongly_measurable {α β} [measurable_space α] [emetric_space β]
-  [measurable_space β] [opens_measurable_space β] [second_countable_topology β] [hβ : nonempty β]
-  {f : α → β} (hf : measurable f) :
+lemma _root_.measurable.strongly_measurable [emetric_space β] [opens_measurable_space β]
+  [second_countable_topology β] [hβ : nonempty β] (hf : measurable f) :
   strongly_measurable f :=
 ⟨simple_func.approx_on f hf set.univ hβ.some (set.mem_univ hβ.some),
   λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
-lemma strongly_measurable_iff_measurable {α β} [measurable_space α] [metric_space β]
-  [measurable_space β] [borel_space β] [second_countable_topology β] [hβ : nonempty β]
-  {f : α → β} :
+lemma strongly_measurable_iff_measurable [metric_space β] [borel_space β]
+  [second_countable_topology β] [hβ : nonempty β] :
   strongly_measurable f ↔ measurable f :=
 ⟨λ h, h.measurable, λ h, measurable.strongly_measurable h⟩
+
+end second_countable_strongly_measurable
+
+/-! ## Finitely strongly measurable functions -/
 
 namespace fin_strongly_measurable
 
@@ -179,6 +191,9 @@ lemma ae_fin_strongly_measurable [topological_space β] (hf : fin_strongly_measu
 section sequence
 variables [topological_space β] (hf : fin_strongly_measurable f μ)
 
+/-- A sequence of simple functions such that `∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x))`
+and `∀ n, μ (support (hf.approx n)) < ∞`. These properties are given by
+`fin_strongly_measurable.tendsto_approx` and `fin_strongly_measurable.fin_support_approx`. -/
 protected noncomputable def approx : ℕ → α →ₛ β := hf.some
 
 protected lemma fin_support_approx : ∀ n, μ (support (hf.approx n)) < ∞ := hf.some_spec.1
@@ -188,7 +203,7 @@ hf.some_spec.2
 
 end sequence
 
-lemma strongly_measurable [topological_space β] (hf : fin_strongly_measurable f μ) :
+protected lemma strongly_measurable [topological_space β] (hf : fin_strongly_measurable f μ) :
   strongly_measurable f :=
 ⟨hf.approx, hf.tendsto_approx⟩
 
@@ -264,7 +279,6 @@ lemma sigma_finite_restrict (hf : ae_fin_strongly_measurable f μ) :
 hf.exists_set_sigma_finite.some_spec.2.2
 
 end ae_fin_strongly_measurable
-
 
 variables {α G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
   [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]

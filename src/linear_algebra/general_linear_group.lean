@@ -115,12 +115,19 @@ matrix.to_lin'_one
 
 end coe_lemmas
 
-instance SL_to_GL : has_coe (special_linear_group n R) (GL n R) :=
-⟨λ A, ⟨↑A, ↑(A⁻¹), congr_arg coe (mul_right_inv A), congr_arg coe (mul_left_inv A)⟩⟩
-
 end general_linear_group
 
+namespace special_linear_group
+
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
+
+instance has_coe_to_general_linear_group : has_coe (special_linear_group n R) (GL n R) :=
+⟨λ A, ⟨↑A, ↑(A⁻¹), congr_arg coe (mul_right_inv A), congr_arg coe (mul_left_inv A)⟩⟩
+
+end special_linear_group
+
 namespace GL_plus
+
 variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
 
 section

@@ -35,19 +35,19 @@ begin
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
     rcases nat.even.sub_even hn (nat.even_bit0 1) with ⟨k, hk⟩,
-    simp only [iter_deriv_pow, finset.prod_range_succ, finset.prod_range_zero, nat.sub_zero,
-      mul_one, hk, pow_mul', sq],
-    exact mul_nonneg (nat.cast_nonneg _) (mul_self_nonneg _) }
+    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, pow_mul'],
+    exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
 end
 
 /-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n` -/
 lemma convex_on_pow (n : ℕ) : convex_on (Ici 0) (λ x : ℝ, x^n) :=
 begin
-  apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on;
-    simp only [interior_Ici, differentiable_on_pow, deriv_pow',
-      differentiable_on_const, differentiable_on.mul, iter_deriv_pow],
-  intros x hx,
-  exact mul_nonneg (nat.cast_nonneg _) (pow_nonneg (le_of_lt hx) _)
+  apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on
+    differentiable_on_pow,
+  { simp only [deriv_pow'], exact differentiable_on_pow.const_mul _ },
+  { intros x hx,
+    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub],
+    exact mul_nonneg (nat.cast_nonneg _) (pow_nonneg (interior_subset hx) _) }
 end
 
 lemma finset.prod_nonneg_of_card_nonpos_even

@@ -5,6 +5,11 @@ Authors: Kexing Ying
 -/
 import measure_theory.decomposition.jordan
 
+/-!
+sorry
+
+-/
+
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal
 
@@ -24,12 +29,7 @@ begin
   by_contra, push_neg at h,
   simp_rw nonpos_iff_eq_zero at h,
   refine pos_iff_ne_zero.1 hf _,
-  rw ← nonpos_iff_eq_zero,
-  refine le_trans (measure_Union_le (λ i, f i)) _,
-  rw nonpos_iff_eq_zero,
-  convert tsum_zero,
-  { ext1 n, exact h n },
-  { apply_instance },
+  exact measure_Union_null h,
 end
 
 -- move

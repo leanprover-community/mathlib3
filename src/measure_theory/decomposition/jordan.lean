@@ -30,7 +30,7 @@ is useful for the Lebesgue decomposition theorem.
 
 * `measure_theory.signed_measure.to_signed_measure_to_jordan_decomposition` : the Jordan
   decomposition theorem.
-* `measure_thoery.jordan_decomposition.to_signed_measure_injective` : the Jordan decomposition of a
+* `measure_theory.jordan_decomposition.to_signed_measure_injective` : the Jordan decomposition of a
   signed measure is unique.
 
 ## Tags

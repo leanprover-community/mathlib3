@@ -38,11 +38,11 @@ lemma ultrafilter_basis_is_basis :
   topological_space.is_topological_basis (ultrafilter_basis α) :=
 ⟨begin
    rintros _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ u ⟨ua, ub⟩,
-   refine ⟨_, ⟨a ∩ b, rfl⟩, inter_mem_sets ua ub, assume v hv, ⟨_, _⟩⟩;
-     apply mem_sets_of_superset hv; simp [inter_subset_right a b]
+   refine ⟨_, ⟨a ∩ b, rfl⟩, inter_mem ua ub, assume v hv, ⟨_, _⟩⟩;
+     apply mem_of_superset hv; simp [inter_subset_right a b]
  end,
  eq_univ_of_univ_subset $ subset_sUnion_of_mem $
-   ⟨univ, eq_univ_of_forall (λ u, univ_mem_sets)⟩,
+   ⟨univ, eq_univ_of_forall (λ u, univ_mem)⟩,
  rfl⟩
 
 /-- The basic open sets for the topology on ultrafilters are open. -/
@@ -100,9 +100,9 @@ section embedding
 lemma ultrafilter_pure_injective : function.injective (pure : α → ultrafilter α) :=
 begin
   intros x y h,
-  have : {x} ∈ (pure x : ultrafilter α) := singleton_mem_pure_sets,
+  have : {x} ∈ (pure x : ultrafilter α) := singleton_mem_pure,
   rw h at this,
-  exact (mem_singleton_iff.mp (mem_pure_sets.mp this)).symm
+  exact (mem_singleton_iff.mp (mem_pure.mp this)).symm
 end
 
 open topological_space
@@ -163,7 +163,7 @@ lemma continuous_ultrafilter_extend (f : α → γ) : continuous (ultrafilter.ex
 have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap pure (𝓝 b)) (𝓝 c) := assume b,
   -- b.map f is an ultrafilter on γ, which is compact, so it converges to some c in γ.
   let ⟨c, _, h⟩ := compact_univ.ultrafilter_le_nhds (b.map f)
-    (by rw [le_principal_iff]; exact univ_mem_sets) in
+    (by rw [le_principal_iff]; exact univ_mem) in
   ⟨c, le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h⟩,
 begin
   letI : topological_space α := ⊥,

@@ -94,10 +94,8 @@ lemma simple_func.measure_support_lt_top_of_mem_ℒp {α H : Type*} [measurable_
 begin
   rw simple_func.support_eq,
   refine (measure_bUnion_finset_le _ _).trans_lt (ennreal.sum_lt_top_iff.mpr (λ y hy, _)),
-  refine f.measure_preimage_lt_top_of_mem_ℒp (pos_iff_ne_zero.mpr hp_ne_zero) hp_ne_top hf _ _,
-  sorry,
-  --classical,
-  --exact (finset.mem_filter.mp hy).2,
+  rw finset.mem_filter at hy,
+  exact f.measure_preimage_lt_top_of_mem_ℒp (pos_iff_ne_zero.mpr hp_ne_zero) hp_ne_top hf y hy.2,
 end
 
 namespace strongly_measurable
@@ -139,7 +137,7 @@ begin
     refine λ n, (measure_bUnion_finset_le _ _).trans_lt _,
     refine ennreal.sum_lt_top_iff.mpr (λ y hy, _),
     rw simple_func.restrict_preimage_singleton _ ((hS_meas n).inter ht),
-    swap, { sorry, },
+    swap, { rw finset.mem_filter at hy, exact hy.2, },
     refine (measure_mono (set.inter_subset_left _ _)).trans_lt _,
     have h_lt_top := measure_spanning_sets_lt_top (μ.restrict t) n,
     rwa measure.restrict_apply' ht at h_lt_top, },

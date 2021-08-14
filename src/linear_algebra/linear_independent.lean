@@ -509,7 +509,7 @@ lemma linear_independent.maximal_iff {ι : Type w} {R : Type u} [ring R] [nontri
 begin
   fsplit,
   { intros p κ w i' j h,
-    specialize p (range w) i'.reindex_range,
+    specialize p (range w) i'.coe_range,
     rw ←h at p,
     specialize p (range_comp_subset_range _ _),
     rw [range_comp, ←@image_univ _ _ w] at p,

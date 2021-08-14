@@ -1626,6 +1626,17 @@ lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
 
 end infinite
 
+/-- If every finset in a type has bounded cardinality, that type is finite. -/
+def fintype_of_finset_card_le {ι : Type*} (n : ℕ)
+  (w : ∀ s : finset ι, s.card ≤ n) : fintype ι :=
+begin
+  apply fintype_of_not_infinite,
+  introI i,
+  obtain ⟨s, c⟩ := infinite.exists_subset_card_eq ι (n+1),
+  specialize w s,
+  linarith,
+end
+
 lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) :
   ¬ injective f :=
 λ hf, (fintype.of_injective f hf).false

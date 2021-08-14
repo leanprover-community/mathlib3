@@ -358,18 +358,6 @@ variables (M : Type v) [add_comm_group M] [module R M]
 
 open submodule
 
--- FIXME move this!
-/-- If every finset in a type has bounded cardinality, that type is finite. -/
-def fintype_of_finset_card_le {ι : Type*} (n : ℕ)
-  (w : ∀ s : finset ι, s.card ≤ n) : fintype ι :=
-begin
-  apply fintype_of_not_infinite,
-  introI i,
-  obtain ⟨s, c⟩ := infinite.exists_subset_card_eq ι (n+1),
-  specialize w s,
-  linarith,
-end
-
 -- An auxiliary lemma for `linear_independent_le_span'`,
 -- with the additional assumption that the linearly independent family is finite.
 lemma linear_independent_le_span_aux'

@@ -82,6 +82,9 @@ def upper_central_series_step : subgroup G :=
     exact subgroup.normal.mem_comm infer_instance hx,
   end }
 
+lemma mem_upper_central_series_step (x : G) :
+  x ∈ upper_central_series_step H ↔ ∀ y, x * y * x⁻¹ * y⁻¹ ∈ H := iff.rfl
+
 open quotient_group
 
 /-- The proof that `upper_central_series_step H` is the preimage of the centre of `G/H` under

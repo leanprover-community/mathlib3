@@ -60,11 +60,6 @@ variables {α β : Type*} [topological_space β]
 def strongly_measurable [measurable_space α] (f : α → β) : Prop :=
 ∃ fs : ℕ → α →ₛ β, ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x))
 
-/-- A function is `ae_strongly_measurable` if it is the almost everywhere limit of simple
-  functions. -/
-def ae_strongly_measurable {m0 : measurable_space α} (f : α → β) (μ : measure α) : Prop :=
-∃ g, strongly_measurable g ∧ f =ᵐ[μ] g
-
 /-- A function is `fin_strongly_measurable` with respect to a measure if it is the limit of simple
   functions with support with finite measure. -/
 def fin_strongly_measurable [has_zero β] {m0 : measurable_space α} (f : α → β) (μ : measure α) :
@@ -80,11 +75,6 @@ def ae_fin_strongly_measurable [has_zero β] {m0 : measurable_space α} (f : α 
 end definitions
 
 namespace strongly_measurable
-
-lemma ae_strongly_measurable {α β : Type*} {m : measurable_space α} [topological_space β]
-  {f : α → β} (hf : strongly_measurable f) (μ : measure α) :
-  ae_strongly_measurable f μ :=
-⟨f, hf, ae_eq_refl f⟩
 
 variables {α β : Type*} {f : α → β}
 

@@ -457,6 +457,28 @@ lemma measure_preimage_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f
   μ (f ⁻¹' {x}) < ∞ :=
 integrable_iff.mp hf x hx
 
+lemma measure_support_lt_top {α H : Type*} [measurable_space H]
+  [normed_group H] {m : measurable_space α} {μ : measure α}
+  (f : α →ₛ H) (hf : ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞) :
+  μ (support f) < ∞ :=
+begin
+  rw support_eq,
+  refine (measure_bUnion_finset_le _ _).trans_lt (ennreal.sum_lt_top_iff.mpr (λ y hy, _)),
+  rw finset.mem_filter at hy,
+  exact hf y hy.2,
+end
+
+lemma measure_support_lt_top_of_mem_ℒp {α H : Type*} [measurable_space H]
+  [normed_group H] {m : measurable_space α} {μ : measure α} {p : ℝ≥0∞}
+  (f : α →ₛ H) (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+  μ (support f) < ∞ :=
+f.measure_support_lt_top ((mem_ℒp_iff (pos_iff_ne_zero.mpr hp_ne_zero) hp_ne_top).mp hf)
+
+lemma measure_support_lt_top_of_integrable {α H : Type*} [measurable_space H]
+  [normed_group H] {m : measurable_space α} {μ : measure α} (f : α →ₛ H) (hf : integrable f μ) :
+  μ (support f) < ∞ :=
+f.measure_support_lt_top (integrable_iff.mp hf)
+
 lemma measure_lt_top_of_mem_ℒp_indicator (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {c : E} (hc : c ≠ 0)
   {s : set α} (hs : measurable_set s)
   (hcs : mem_ℒp ((const α c).piecewise s hs (const α 0)) p μ) :

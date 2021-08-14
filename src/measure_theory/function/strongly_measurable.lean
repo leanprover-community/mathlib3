@@ -79,25 +79,6 @@ def ae_fin_strongly_measurable [has_zero β] {m0 : measurable_space α} (f : α 
 
 end definitions
 
-lemma simple_func.measurable_set_support {α H : Type*} [has_zero H] [measurable_space α]
-  (f : α →ₛ H) :
-  measurable_set (support f) :=
-begin
-  rw f.support_eq,
-  exact finset.measurable_set_bUnion _ (λ y hy, simple_func.measurable_set_fiber _ _),
-end
-
-lemma simple_func.measure_support_lt_top_of_mem_ℒp {α H : Type*} [measurable_space H]
-  [normed_group H] {m : measurable_space α} {μ : measure α} {p : ℝ≥0∞}
-  (f : α →ₛ H) (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
-  μ (support f) < ∞ :=
-begin
-  rw simple_func.support_eq,
-  refine (measure_bUnion_finset_le _ _).trans_lt (ennreal.sum_lt_top_iff.mpr (λ y hy, _)),
-  rw finset.mem_filter at hy,
-  exact f.measure_preimage_lt_top_of_mem_ℒp (pos_iff_ne_zero.mpr hp_ne_zero) hp_ne_top hf y hy.2,
-end
-
 namespace strongly_measurable
 
 lemma ae_strongly_measurable {α β : Type*} {m : measurable_space α} [topological_space β]

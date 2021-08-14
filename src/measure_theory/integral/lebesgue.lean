@@ -776,6 +776,9 @@ lemma support_eq (f : α →ₛ β) : support f = ⋃ y ∈ f.range.filter (λ y
 set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support, set.mem_preimage,
   finset.mem_coe, mem_filter, mem_range_self, true_and]
 
+lemma measurable_set_support (f : α →ₛ β) : measurable_set (support f) :=
+by { rw f.support_eq, exact finset.measurable_set_bUnion _ (λ y hy, measurable_set_fiber _ _), }
+
 /-- A `simple_func` has finite measure support if it is equal to `0` outside of a set of finite
 measure. -/
 protected def fin_meas_supp (f : α →ₛ β) (μ : measure α) : Prop :=

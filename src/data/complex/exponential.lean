@@ -1291,12 +1291,6 @@ begin
 end
 
 
--- TODO why does sub_add_assoc not exist?
--- TODO src/analysis/specific_limits sum_geometric_two_le accomplishes what we want here
--- Nevertheless, the more general algebra.geom_sum should be improved.
--- There exists a geom_sum_Ico there, why not an analogous geom_sum?
--- Perhaps because there is a definition by that name. I'm not sure why that exists.
-
 private lemma sum_geometric_half' (j n : ℕ) (h : n ≤ j) :
   ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ) / 2) ^ (x - n) ≤ (2 : ℝ) :=
 begin
@@ -1350,43 +1344,34 @@ begin
       refine sum_le_sum (λ m hm, _),
       rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
       apply mul_le_mul_of_nonneg_left,
-      apply (div_le_div_iff _ _).2,
-      rw abv_pow abs,
-      rw mem_filter at hm,
-      apply (div_le_iff' _).1,
-      rw [mul_div_right_comm, <-div_pow, div_eq_inv_mul],
+      rw [div_le_div_iff, abv_pow abs, <-div_le_iff',
+          mul_div_right_comm, <-div_pow, div_eq_inv_mul],
       calc ((1 / 2)⁻¹ * abs x) ^ (m - n) * ↑n!
           ≤ (n) ^ (m - n) * ↑n! :
             begin
-              apply mul_le_mul,
+              apply mul_le_mul_of_nonneg_right,
               apply pow_le_pow_of_le_left,
               apply mul_nonneg,
               simp only [one_div, zero_le_one, inv_inv', zero_le_bit0],
               exact abs_nonneg x,
-              apply (inv_mul_le_iff' _).2,
-              rw mul_one_div,
+              rw [inv_mul_le_iff', mul_one_div],
               exact hx,
-              simp only [one_div, zero_lt_bit0, zero_lt_one, inv_pos],
+              linarith,
               exact n!.cast_nonneg,
-              apply pow_nonneg (n.cast_nonneg),
             end
       ... ≤ ↑m! :
             begin
-              rw <-nat.cast_pow,
-              rw <-nat.cast_mul,
-              apply nat.cast_le.2,
-              apply nat.pow_mul_factorial_le_factorial,
-              exact hm.right,
-              exact real.nontrivial,
+              rw [<-nat.cast_pow, <-nat.cast_mul, nat.cast_le],
+              rw mem_filter at hm,
+              exact nat.pow_mul_factorial_le_factorial hm.right,
             end,
       apply pow_pos,
-      simp only [one_div, zero_lt_bit0, zero_lt_one, inv_pos],
-      simp only [nat.cast_pos],
+      linarith,
+      rw nat.cast_pos,
       exact nat.factorial_pos m,
-      simp only [nat.cast_pos],
+      rw nat.cast_pos,
       exact nat.factorial_pos n,
-      apply pow_nonneg,
-      exact abs_nonneg x,
+      apply pow_nonneg (abs_nonneg x),
     end
   ... ≤ 2 * abs x ^ n * (↑n!)⁻¹ :
     begin

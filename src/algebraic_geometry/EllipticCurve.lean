@@ -73,7 +73,7 @@ variables {R : Type*} [comm_ring R] (E : EllipticCurve R)
   we choose the sign used by the LMFDB. See
   [the LMFDB page on discriminants](https://www.lmfdb.org/knowledge/show/ec.discriminant)
   for more discussion. -/
-def disc := disc_aux E.a1 E.a2 E.a3 E.a4 E.a6
+def disc : R := disc_aux E.a1 E.a2 E.a3 E.a4 E.a6
 
 lemma disc_is_unit : is_unit E.disc :=
 begin

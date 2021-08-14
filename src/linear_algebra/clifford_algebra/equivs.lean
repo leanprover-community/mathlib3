@@ -3,8 +3,9 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import linear_algebra.clifford_algebra.basic
+import algebra.quaternion_basis
 import data.complex.module
+import linear_algebra.clifford_algebra.basic
 
 /-!
 # Other constructions isomorphic to Clifford Algebras
@@ -16,15 +17,13 @@ This file contains isomorphisms showing that other types are equivalent to some 
 * `clifford_algebra_complex.equiv`: the `complex` numbers are equivalent to a
   `clifford_algebra` over a one-dimensional vector space with a quadratic form that satisfies
   `Q (ι Q 1) = -1`.
-
-Future work:
-
-* Isomorphism to the `quaternion`s over `ℝ × ℝ`, sending `i, j, k` to `(0, 1)`, `(1, 0)`, and
-  `(1, 1)` (port from the `lean-ga` project).
+* `clifford_algebra_quaternion.equiv`: a `quaternion_algebra` over `R` is equivalent to a clifford
+  algebra over `R × R`, sending `i` to `(0, 1)` and `j` to `(1, 0)`.
 -/
 
 open clifford_algebra
 
+/-! ### The clifford algebra isomorphic to a ring -/
 namespace clifford_algebra_ring
 
 variables {R : Type*} [comm_ring R]
@@ -44,6 +43,7 @@ alg_equiv.of_alg_hom
 
 end clifford_algebra_ring
 
+/-! ### The clifford algebra isomorphic to the complex numbers -/
 namespace clifford_algebra_complex
 
 /-- The quadratic form sending elements to the negation of their square. -/
@@ -89,3 +89,99 @@ alg_equiv.of_alg_hom to_complex
 attribute [protected] Q
 
 end clifford_algebra_complex
+
+/-! ### The clifford algebra isomorphic to the quaternions -/
+namespace clifford_algebra_quaternion
+
+open_locale quaternion
+open quaternion_algebra
+
+variables {R : Type*} [comm_ring R] (c₁ c₂ : R)
+
+/-- The quadratic form. -/
+def Q : quadratic_form R (R × R) :=
+c₁ • quadratic_form.lin_mul_lin (linear_map.fst _ _ _) (linear_map.fst _ _ _) +
+c₂ • quadratic_form.lin_mul_lin (linear_map.snd _ _ _) (linear_map.snd _ _ _)
+
+@[simp]
+lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * v.2) := rfl
+
+/-- The quaternion basis vectors within the algebra. -/
+@[simps i j k]
+def quaternion_basis : quaternion_algebra.basis (clifford_algebra (Q c₁ c₂)) c₁ c₂ :=
+{ i := clifford_algebra.ι (Q c₁ c₂) (1, 0),
+  j := clifford_algebra.ι (Q c₁ c₂) (0, 1),
+  k := clifford_algebra.ι (Q c₁ c₂) (1, 0) * clifford_algebra.ι (Q c₁ c₂) (0, 1),
+  i_mul_i := begin
+    rw [clifford_algebra.ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
+    simp,
+  end,
+  j_mul_j := begin
+    rw [clifford_algebra.ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
+    simp,
+  end,
+  i_mul_j := rfl,
+  j_mul_i := begin
+    rw [eq_neg_iff_add_eq_zero, clifford_algebra.ι_mul_ι_add_swap, quadratic_form.polar],
+    simp,
+  end }
+
+variables {c₁ c₂}
+
+/-- Intermediate result of `clifford_algebra_complex.equiv_quaternion`: clifford algebras over
+`clifford_algebra_quaternion.Q` above can be converted to `ℍ[R,c₁,c₂]`. -/
+def to_quaternion : clifford_algebra (Q c₁ c₂) →ₐ[R] ℍ[R,c₁,c₂] :=
+clifford_algebra.lift (Q c₁ c₂) ⟨
+  { to_fun := λ v, (⟨0, v.1, v.2, 0⟩ : ℍ[R,c₁,c₂]),
+    map_add' := λ v₁ v₂, by simp,
+    map_smul' := λ r v, by ext; simp },
+  λ v, begin
+    dsimp,
+    ext,
+    all_goals {dsimp, ring},
+  end⟩
+
+@[simp]
+lemma to_quaternion_ι (v : R × R) :
+  to_quaternion (clifford_algebra.ι (Q c₁ c₂) v) = (⟨0, v.1, v.2, 0⟩ : ℍ[R,c₁,c₂]) :=
+clifford_algebra.lift_ι_apply _ _ v
+
+/-- Map a quaternion into the clifford algebra. -/
+@[simp] def of_quaternion : ℍ[R,c₁,c₂] →ₐ[R] clifford_algebra (Q c₁ c₂) :=
+(quaternion_basis c₁ c₂).lift_hom
+
+@[simp]
+lemma of_quaternion_comp_to_quaternion :
+  of_quaternion.comp to_quaternion = alg_hom.id R (clifford_algebra (Q c₁ c₂)) :=
+begin
+  ext1,
+  dsimp,
+  ext,
+  all_goals {
+    dsimp [quaternion_algebra.basis.lift],
+    rw to_quaternion_ι,
+    dsimp,
+    simp only [zero_smul, one_smul, zero_add, add_zero, ring_hom.map_zero],
+  },
+end
+
+@[simp]
+lemma to_quaternion_comp_of_quaternion :
+  to_quaternion.comp of_quaternion = alg_hom.id R ℍ[R,c₁,c₂] :=
+begin
+  apply quaternion_algebra.lift.symm.injective,
+  ext1; dsimp [quaternion_algebra.basis.lift]; simp,
+end
+
+/-- The clifford algebra over `clifford_algebra_quaternion.Q` is isomorphic as an `R`-algebra
+to `ℍ[R,c₁,c₂]`. -/
+@[simps]
+def equiv_quaternion : clifford_algebra (Q c₁ c₂) ≃ₐ[R] ℍ[R,c₁,c₂] :=
+alg_equiv.of_alg_hom to_quaternion of_quaternion
+  to_quaternion_comp_of_quaternion
+  of_quaternion_comp_to_quaternion
+
+-- this name is too short for us to want it visible after `open clifford_algebra_quaternion`
+attribute [protected] Q
+
+end clifford_algebra_quaternion

@@ -141,7 +141,7 @@ units.pos_subgroup.comap general_linear_group.det
 
 end
 
-@[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < ((A.det): R) := iff.rfl
+@[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
 
 end GL_plus
 

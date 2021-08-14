@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
-import algebra.group.hom
-import group_theory.group_action.group
 import algebra.smul_with_zero
+import group_theory.group_action.group
 
 /-!
 # Modules over a ring
@@ -18,16 +17,17 @@ In this file we define
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
   on a ring.
 
-  ## Implementation notes
-  In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the
-  word "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`.
-  If `R` is a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space.
-  Since those assumptions can be made by changing the typeclasses applied to `R` and `M`,
-  without changing the axioms in `module`, mathlib calls everything a `module`.
+## Implementation notes
 
-  In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
-  This caused inference issues in some cases, while not providing any real advantages, so we decided
-  to use a canonical `module` typeclass throughout.
+In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the
+word "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`.
+If `R` is a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space.
+Since those assumptions can be made by changing the typeclasses applied to `R` and `M`,
+without changing the axioms in `module`, mathlib calls everything a `module`.
+
+In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
+This caused inference issues in some cases, while not providing any real advantages, so we decided
+to use a canonical `module` typeclass throughout.
 
 ## Tags
 
@@ -100,8 +100,10 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
 
 variables {R} (M)
 
-/-- Compose a `module` with a `ring_hom`, with action `f s • m` -/
-def module.comp_hom [semiring S] (f : S →+* R) :
+/-- Compose a `module` with a `ring_hom`, with action `f s • m`.
+
+See note [reducible non-instances]. -/
+@[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
 { smul := (•) ∘ f,
   add_smul := λ r s x, by simp [add_smul],

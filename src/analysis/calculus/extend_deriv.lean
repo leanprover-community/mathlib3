@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.mean_value
-import tactic.monotonicity
 
 /-!
 # Extending differentiability to the boundary
@@ -186,7 +185,7 @@ begin
       self_mem_nhds_within,
     have : tendsto g (𝓝[Ioi x] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
-    apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
+    apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_gt hy)).deriv.symm },
   have B : has_deriv_within_at f (g x) (Iic x) x,
   { have diff : differentiable_on ℝ f (Iio x) :=
@@ -197,7 +196,7 @@ begin
       self_mem_nhds_within,
     have : tendsto g (𝓝[Iio x] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
-    apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
+    apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_lt hy)).deriv.symm },
   simpa using B.union A
 end

@@ -4,15 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
 import algebra.big_operators.pi
-import algebra.module.hom
-import algebra.module.pi
 import algebra.module.prod
-import algebra.module.submodule
 import algebra.module.submodule_lattice
-import algebra.group.prod
-import data.finsupp.basic
 import data.dfinsupp
-import algebra.pointwise
+import data.finsupp.basic
 import order.compactly_generated
 import order.omega_complete_partial_order
 
@@ -87,35 +82,37 @@ begin
   { intro i, exact (h i).map_zero },
 end
 
-variable (R)
+variables (α : Type*) [fintype α]
+variables (R M) [add_comm_monoid M] [semiring R] [module R M]
 
 /-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
 `α →₀ β` and `α → β`. -/
-@[simps apply] noncomputable def linear_equiv_fun_on_fintype {α} [fintype α] [add_comm_monoid M]
-  [semiring R] [module R M] :
+@[simps apply] noncomputable def linear_equiv_fun_on_fintype :
   (α →₀ M) ≃ₗ[R] (α → M) :=
 { to_fun := coe_fn,
   map_add' := λ f g, by { ext, refl },
   map_smul' := λ c f, by { ext, refl },
   .. equiv_fun_on_fintype }
 
-@[simp] lemma linear_equiv_fun_on_fintype_single {α} [decidable_eq α] [fintype α]
-  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
-  (@linear_equiv_fun_on_fintype R M α _ _ _ _) (single x m) = pi.single x m :=
+@[simp] lemma linear_equiv_fun_on_fintype_single [decidable_eq α] (x : α) (m : M) :
+  (linear_equiv_fun_on_fintype R M α) (single x m) = pi.single x m :=
 begin
   ext a,
   change (equiv_fun_on_fintype (single x m)) a = _,
   convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
 end
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_single {α} [decidable_eq α] [fintype α]
-  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
-  (@linear_equiv_fun_on_fintype R M α _ _ _ _).symm (pi.single x m) = single x m :=
+@[simp] lemma linear_equiv_fun_on_fintype_symm_single [decidable_eq α]
+  (x : α) (m : M) : (linear_equiv_fun_on_fintype R M α).symm (pi.single x m) = single x m :=
 begin
   ext a,
   change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
   convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
 end
+
+@[simp] lemma linear_equiv_fun_on_fintype_symm_coe (f : α →₀ M) :
+  (linear_equiv_fun_on_fintype R M α).symm f = f :=
+by { ext, simp [linear_equiv_fun_on_fintype], }
 
 end finsupp
 
@@ -223,10 +220,11 @@ instance : add_comm_monoid (M →ₗ[R] M₂) :=
   nsmul_zero' := λ f, by { ext x, simp },
   nsmul_succ' := λ n f, by { ext x, simp [nat.succ_eq_one_add, add_nsmul] } }
 
-instance linear_map_apply_is_add_monoid_hom (a : M) :
-  is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
-{ map_add := λ f g, linear_map.add_apply f g a,
-  map_zero := rfl }
+/-- Evaluation of an `R`-linear map at a fixed `a`, as an `add_monoid_hom`. -/
+def eval_add_monoid_hom (a : M) : (M →ₗ[R] M₂) →+ M₂ :=
+{ to_fun := λ f, f a,
+  map_add' := λ f g, linear_map.add_apply f g a,
+  map_zero' := rfl }
 
 lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
   (h + g).comp f = h.comp f + g.comp f := rfl
@@ -234,9 +232,15 @@ lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
 lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
   h.comp (f + g) = h.comp f + h.comp g := by { ext, simp }
 
+/-- `linear_map.to_add_monoid_hom` promoted to an `add_monoid_hom` -/
+def to_add_monoid_hom' : (M →ₗ[R] M₂) →+ (M →+ M₂) :=
+{ to_fun := to_add_monoid_hom,
+  map_zero' := by ext; refl,
+  map_add' := by intros; ext; refl }
+
 lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
-(t.sum_hom (λ g : M →ₗ[R] M₂, g b)).symm
+add_monoid_hom.map_sum ((add_monoid_hom.eval b).comp to_add_monoid_hom') f _
 
 section smul_right
 
@@ -422,10 +426,6 @@ by refine
   gsmul_neg' := _,
   .. linear_map.add_comm_monoid };
 intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
-
-instance linear_map_apply_is_add_group_hom (a : M) :
-  is_add_group_hom (λ f : M →ₗ[R] M₂, f a) :=
-{ map_add := λ f g, linear_map.add_apply f g a }
 
 end add_comm_group
 
@@ -748,12 +748,15 @@ lemma range_map_nonempty (N : submodule R M) :
 
 /-- The pushforward of a submodule by an injective linear map is
 linearly equivalent to the original submodule. -/
-@[simps]
 noncomputable def equiv_map_of_injective (f : M →ₗ[R] M₂) (i : injective f) (p : submodule R M) :
   p ≃ₗ[R] p.map f :=
 { map_add' := by { intros, simp, refl, },
   map_smul' := by { intros, simp, refl, },
   ..(equiv.set.image f p i) }
+
+@[simp] lemma coe_equiv_map_of_injective_apply (f : M →ₗ[R] M₂) (i : injective f)
+  (p : submodule R M) (x : p) :
+  (equiv_map_of_injective f i p x : M₂) = f x := rfl
 
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
@@ -1496,7 +1499,12 @@ lemma coe_finsupp_sum (t : ι →₀ γ) (g : ι → γ → M →ₗ[R] M₂) :
 end finsupp
 
 section dfinsupp
-variables {γ : ι → Type*} [decidable_eq ι] [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
+open dfinsupp
+variables {γ : ι → Type*} [decidable_eq ι]
+
+section sum
+
+variables [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
 
 @[simp] lemma map_dfinsupp_sum (f : M →ₗ[R] M₂) {t : Π₀ i, γ i} {g : Π i, γ i → M} :
   f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum
@@ -1506,6 +1514,18 @@ lemma coe_dfinsupp_sum (t : Π₀ i, γ i) (g : Π i, γ i → M →ₗ[R] M₂)
 
 @[simp] lemma dfinsupp_sum_apply (t : Π₀ i, γ i) (g : Π i, γ i → M →ₗ[R] M₂) (b : M) :
   (t.sum g) b = t.sum (λ i d, g i d b) := sum_apply _ _ _
+
+end sum
+
+section sum_add_hom
+
+variables [Π i, add_zero_class (γ i)]
+
+@[simp] lemma map_dfinsupp_sum_add_hom (f : M →ₗ[R] M₂) {t : Π₀ i, γ i} {g : Π i, γ i →+ M} :
+  f (sum_add_hom g t) = sum_add_hom (λ i, f.to_add_monoid_hom.comp (g i)) t :=
+f.to_add_monoid_hom.map_dfinsupp_sum_add_hom _ _
+
+end sum_add_hom
 
 end dfinsupp
 
@@ -1569,6 +1589,12 @@ end⟩
 This is the bundled version of `set.range_factorization`. -/
 @[reducible] def range_restrict (f : M →ₗ[R] M₂) : M →ₗ[R] f.range :=
 f.cod_restrict f.range f.mem_range_self
+
+/-- The range of a linear map is finite if the domain is finite.
+Note: this instance can form a diamond with `subtype.fintype` in the
+  presence of `fintype M₂`. -/
+instance fintype_range [fintype M] [decidable_eq M₂] (f : M →ₗ[R] M₂) : fintype (range f) :=
+set.fintype_range f
 
 section
 variables (R) (M)
@@ -1895,6 +1921,14 @@ def mkq : M →ₗ[R] p.quotient :=
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
 
+/-- Two `linear_map`s from a quotient module are equal if their compositions with
+`submodule.mkq` are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma linear_map_qext ⦃f g : p.quotient →ₗ[R] M₂⦄ (h : f.comp p.mkq = g.comp p.mkq) : f = g :=
+linear_map.ext $ λ x, quotient.induction_on' x $ (linear_map.congr_fun h : _)
+
 /-- The map from the quotient of `M` by a submodule `p` to `M₂` induced by a linear map `f : M → M₂`
 vanishing on `p`, as a linear map. -/
 def liftq (f : M →ₗ[R] M₂) (h : p ≤ f.ker) : p.quotient →ₗ[R] M₂ :=
@@ -2110,6 +2144,30 @@ def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R 
   ↑((e.of_submodule p).symm x) = e.symm x := rfl
 
 end
+
+section finsupp
+variables {γ : Type*} [module R M] [module R M₂] [has_zero γ]
+
+@[simp] lemma map_finsupp_sum (f : M ≃ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum _
+
+end finsupp
+
+section dfinsupp
+open dfinsupp
+
+variables {γ : ι → Type*} [decidable_eq ι] [module R M] [module R M₂]
+
+@[simp] lemma map_dfinsupp_sum [Π i, has_zero (γ i)] [Π i (x : γ i), decidable (x ≠ 0)]
+  (f : M ≃ₗ[R] M₂) (t : Π₀ i, γ i) (g : Π i, γ i → M) :
+  f (t.sum g) = t.sum (λ i d, f (g i d)) := f.map_sum _
+
+@[simp] lemma map_dfinsupp_sum_add_hom [Π i, add_zero_class (γ i)] (f : M ≃ₗ[R] M₂) (t : Π₀ i, γ i)
+  (g : Π i, γ i →+ M) :
+  f (sum_add_hom g t) = sum_add_hom (λ i, f.to_add_equiv.to_add_monoid_hom.comp (g i)) t :=
+f.to_add_equiv.map_dfinsupp_sum_add_hom _ _
+
+end dfinsupp
 
 section uncurry
 
@@ -2487,8 +2545,9 @@ by { cases x, refl }
 
 /-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
 of `t.subtype`. -/
+@[simps]
 def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
-comap q.subtype p ≃ₗ[R] p :=
+  comap q.subtype p ≃ₗ[R] p :=
 { to_fun := λ x, ⟨x, x.2⟩,
   inv_fun := λ x, ⟨⟨x, hpq x.2⟩, x.2⟩,
   left_inv := λ x, by simp only [coe_mk, set_like.eta, coe_coe],
@@ -2539,6 +2598,14 @@ begin
   { intros hx, refine ⟨e.symm x, hx, by simp⟩, },
 end
 
+lemma map_equiv_eq_comap_symm (e : M ≃ₗ[R] M₂) (K : submodule R M) :
+  K.map (e : M →ₗ[R] M₂) = K.comap e.symm :=
+submodule.ext (λ _, by rw [mem_map_equiv, mem_comap, linear_equiv.coe_coe])
+
+lemma comap_equiv_eq_map_symm (e : M ≃ₗ[R] M₂) (K : submodule R M₂) :
+  K.comap (e : M →ₗ[R] M₂) = K.map e.symm :=
+(map_equiv_eq_comap_symm e.symm K).symm
+
 lemma comap_le_comap_smul (f : M →ₗ[R] M₂) (c : R) :
   comap f q ≤ comap (c • f) q :=
 begin
@@ -2572,8 +2639,8 @@ def compatible_maps : submodule R (M →ₗ[R] M₂) :=
 natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
 def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
-  map_add'  := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
-  map_smul' := λ c f, by { ext m', apply quotient.induction_on' m', intros m, refl, } }
+  map_add'  := λ x y, by { ext, refl, },
+  map_smul' := λ c f, by { ext, refl, } }
 
 end submodule
 
@@ -2775,10 +2842,13 @@ instance automorphism_group : group (M ≃ₗ[R] M) :=
   one_mul := λ f, by {ext, refl},
   mul_left_inv := λ f, by {ext, exact f.left_inv x} }
 
-instance automorphism_group.to_linear_map_is_monoid_hom :
-  is_monoid_hom (linear_equiv.to_linear_map : (M ≃ₗ[R] M) → (M →ₗ[R] M)) :=
-{ map_one := rfl,
-  map_mul := λ f g, rfl }
+/-- Restriction from `R`-linear automorphisms of `M` to `R`-linearendomorphisms of `M`,
+promoted to a monoid hom. -/
+def automorphism_group.to_linear_map_monoid_hom :
+  (M ≃ₗ[R] M) →* (M →ₗ[R] M) :=
+{ to_fun := coe,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
 
 /-- The group of invertible linear maps from `M` to itself -/
 @[reducible] def general_linear_group := units (M →ₗ[R] M)

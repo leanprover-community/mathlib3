@@ -180,7 +180,7 @@ begin
   exact submodule.singleton_span_is_compact_element 1,
 end
 
-/-- Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
+/-- **Krull's theorem**: if `I` is an ideal that is not the whole ring, then it is included in some
     maximal ideal. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
@@ -474,6 +474,15 @@ instance (I : ideal α) : comm_ring I.quotient :=
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal α) : α →+* I.quotient :=
 ⟨λ a, submodule.quotient.mk a, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
+
+/- Two `ring_homs`s from the quotient by an ideal are equal if their
+compositions with `ideal.quotient.mk'` are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma ring_hom_ext [non_assoc_semiring β] ⦃f g : I.quotient →+* β⦄
+  (h : f.comp (mk I) = g.comp (mk I)) : f = g :=
+ring_hom.ext $ λ x, quotient.induction_on' x $ (ring_hom.congr_fun h : _)
 
 instance : inhabited (quotient I) := ⟨mk I 37⟩
 

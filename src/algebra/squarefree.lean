@@ -217,7 +217,7 @@ begin
   simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range] at hs,
   obtain ⟨hsn1, ⟨a, hsa⟩, ⟨b, hsb⟩⟩ := hs,
   rw hsa at hn,
-  obtain ⟨hlts, hlta⟩ := canonically_ordered_semiring.mul_pos.mp hn,
+  obtain ⟨hlts, hlta⟩ := canonically_ordered_comm_semiring.mul_pos.mp hn,
   rw hsb at hsa hn hlts,
   refine ⟨a, b, hlta, (pow_pos_iff zero_lt_two).mp hlts, hsa.symm, _⟩,
   rintro x ⟨y, hy⟩,

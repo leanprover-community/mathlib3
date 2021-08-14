@@ -131,7 +131,7 @@ begin
       (comap (algebra_map R S) P) (comap_is_prime _ _)), comap_jacobson],
     refine Inf_le_Inf (λ J hJ, _),
     simp only [true_and, set.mem_image, bot_le, set.mem_set_of_eq],
-    haveI : J.is_maximal := by simpa using hJ,
+    haveI : J.is_maximal, { simpa using hJ },
     exact exists_ideal_over_maximal_of_is_integral (is_integral_quotient_of_is_integral hRS) J
       (comap_bot_le_of_injective _ algebra_map_quotient_injective) }
 end
@@ -591,7 +591,7 @@ lemma quotient_mk_comp_C_is_integral_of_jacobson {R : Type*} [integral_domain R]
 begin
   unfreezingI {induction n with n IH},
   { refine ring_hom.is_integral_of_surjective _ (function.surjective.comp quotient.mk_surjective _),
-    exact C_surjective_fin_0 },
+    exact C_surjective (fin 0) },
   { rw [← fin_succ_equiv_comp_C_eq_C, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc,
       ← quotient_map_comp_mk le_rfl, ring_hom.comp_assoc (polynomial.C),
       ← quotient_map_comp_mk le_rfl, ring_hom.comp_assoc, ring_hom.comp_assoc,

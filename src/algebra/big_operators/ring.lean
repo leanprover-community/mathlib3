@@ -29,10 +29,15 @@ section semiring
 variables [non_unital_non_assoc_semiring β]
 
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
-(s.sum_hom (λ x, x * b)).symm
+add_monoid_hom.map_sum (add_monoid_hom.mul_right b) _ s
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
-(s.sum_hom _).symm
+add_monoid_hom.map_sum (add_monoid_hom.mul_left b) _ s
+
+lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
+  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
+  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
+by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 end semiring
 
@@ -87,11 +92,6 @@ begin
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
-
-lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
-  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
-  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
-by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 open_locale classical
 

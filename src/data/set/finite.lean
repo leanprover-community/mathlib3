@@ -564,15 +564,30 @@ begin
   simp,
 end
 
+/-- A finite union of finsets is finite. -/
+lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :
+  (⋃ a, (f a : set β)).finite :=
+begin
+  classical,
+  have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
+  { ext x,
+    simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
+    use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
+    rintro ⟨s, hs, hx⟩,
+    obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
+    exact ⟨a, hx⟩, },
+  rw w,
+  apply set.finite_mem_finset,
+end
+
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
 begin
   casesI hs,
   choose f hf using show ∀ x : s, ∃ i, x.1 ∈ t i, {simpa [subset_def] using h},
-  refine ⟨range f, finite_range f, _⟩,
-  rintro x hx,
-  simp,
-  exact ⟨x, ⟨hx, hf _⟩⟩,
+  refine ⟨range f, finite_range f, λ x hx, _⟩,
+  rw [bUnion_range, mem_Union],
+  exact ⟨⟨x, hx⟩, hf _⟩
 end
 
 lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t)

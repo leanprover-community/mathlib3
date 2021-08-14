@@ -654,7 +654,7 @@ begin
     refine ⟨v, _, _⟩,
     show v ∈ 𝓝[insert x s] x,
     { rw nhds_within_restrict _ xo o_open,
-      refine filter.inter_mem_sets self_mem_nhds_within _,
+      refine filter.inter_mem self_mem_nhds_within _,
       suffices : u ∈ 𝓝[(ext_chart_at I x) '' (insert x s ∩ o)] (ext_chart_at I x x),
         from (ext_chart_at_continuous_at I x).continuous_within_at.preimage_mem_nhds_within' this,
       apply nhds_within_mono _ _ u_nhds,
@@ -779,16 +779,16 @@ begin
   have : e' (f x) = (written_in_ext_chart_at I I' x f) (e x),
     by simp only [e, e'] with mfld_simps,
   rw this at hg,
-  have A : {y | y ∈ e.target ∧ f (e.symm y) ∈ t ∧ f (e.symm y) ∈ e'.source ∧
-    g (f (e.symm y)) ∈ e''.source} ∈ 𝓝[e.symm ⁻¹' s ∩ range I] e x,
-  { simp only [← ext_chart_at_map_nhds_within, mem_map, mem_preimage],
+  have A : ∀ᶠ y in 𝓝[e.symm ⁻¹' s ∩ range I] e x,
+    y ∈ e.target ∧ f (e.symm y) ∈ t ∧ f (e.symm y) ∈ e'.source ∧ g (f (e.symm y)) ∈ e''.source,
+  { simp only [← ext_chart_at_map_nhds_within, eventually_map],
     filter_upwards [hf.1.tendsto (ext_chart_at_source_mem_nhds I' (f x)),
       (hg.1.comp hf.1 st).tendsto (ext_chart_at_source_mem_nhds I'' (g (f x))),
       (inter_mem_nhds_within s (ext_chart_at_source_mem_nhds I x))],
     rintros x' (hfx' : f x' ∈ _) (hgfx' : g (f x') ∈ _) ⟨hx's, hx'⟩,
-    simp only [e.map_source hx', mem_preimage, true_and, e.left_inv hx', st hx's, *] },
+    simp only [e.map_source hx', true_and, e.left_inv hx', st hx's, *] },
   refine ((hg.2.comp _ (hf.2.mono (inter_subset_right _ _)) (inter_subset_left _ _)).mono_of_mem
-    (inter_mem_sets _ self_mem_nhds_within)).congr_of_eventually_eq _ _,
+    (inter_mem _ self_mem_nhds_within)).congr_of_eventually_eq _ _,
   { filter_upwards [A],
     rintro x' ⟨hx', ht, hfx', hgfx'⟩,
     simp only [*, mem_preimage, written_in_ext_chart_at, (∘), mem_inter_eq, e'.left_inv, true_and],
@@ -923,25 +923,58 @@ begin
   exact times_cont_diff_within_at_const,
 end
 
+@[to_additive]
+lemma times_cont_mdiff_one [has_one M'] : times_cont_mdiff I I' n (1 : M → M') :=
+by simp only [pi.one_def, times_cont_mdiff_const]
+
 lemma smooth_const : smooth I I' (λ (x : M), c) := times_cont_mdiff_const
+
+@[to_additive]
+lemma smooth_one [has_one M'] : smooth I I' (1 : M → M') :=
+by simp only [pi.one_def, smooth_const]
 
 lemma times_cont_mdiff_on_const : times_cont_mdiff_on I I' n (λ (x : M), c) s :=
 times_cont_mdiff_const.times_cont_mdiff_on
 
+@[to_additive]
+lemma times_cont_mdiff_on_one [has_one M'] : times_cont_mdiff_on I I' n (1 : M → M') s :=
+times_cont_mdiff_one.times_cont_mdiff_on
+
 lemma smooth_on_const : smooth_on I I' (λ (x : M), c) s :=
 times_cont_mdiff_on_const
+
+@[to_additive]
+lemma smooth_on_one [has_one M'] : smooth_on I I' (1 : M → M') s :=
+times_cont_mdiff_on_one
 
 lemma times_cont_mdiff_at_const : times_cont_mdiff_at I I' n (λ (x : M), c) x :=
 times_cont_mdiff_const.times_cont_mdiff_at
 
+@[to_additive]
+lemma times_cont_mdiff_at_one [has_one M'] : times_cont_mdiff_at I I' n (1 : M → M') x :=
+times_cont_mdiff_one.times_cont_mdiff_at
+
 lemma smooth_at_const : smooth_at I I' (λ (x : M), c) x :=
 times_cont_mdiff_at_const
+
+@[to_additive]
+lemma smooth_at_one [has_one M'] : smooth_at I I' (1 : M → M') x :=
+times_cont_mdiff_at_one
 
 lemma times_cont_mdiff_within_at_const : times_cont_mdiff_within_at I I' n (λ (x : M), c) s x :=
 times_cont_mdiff_at_const.times_cont_mdiff_within_at
 
+@[to_additive]
+lemma times_cont_mdiff_within_at_one [has_one M'] :
+  times_cont_mdiff_within_at I I' n (1 : M → M') s x :=
+times_cont_mdiff_at_const.times_cont_mdiff_within_at
+
 lemma smooth_within_at_const : smooth_within_at I I' (λ (x : M), c) s x :=
 times_cont_mdiff_within_at_const
+
+@[to_additive]
+lemma smooth_within_at_one [has_one M'] : smooth_within_at I I' (1 : M → M') s x :=
+times_cont_mdiff_within_at_one
 
 end id
 

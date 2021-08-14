@@ -2,16 +2,37 @@
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-Operations on set-valued functions, aka partial multifunctions, aka relations.
 -/
-import data.set.lattice
+import order.galois_connection
 
-variables {α : Type*} {β : Type*} {γ : Type*}
+/-!
+# Relations
+
+This file defines bundled relations. A relation between `α` and `β` is a function `α → β → Prop`.
+Relations are also known as set-valued functions, or partial multifunctions.
+
+## Main declarations
+
+* `rel α β`: Relation between `α` and `β`.
+* `rel.inv`: `r.inv` is the `rel β α` obtained by swapping the arguments of `r`.
+* `rel.dom`: Domain of a relation. `x ∈ r.dom` iff there exists `y` such that `r x y`.
+* `rel.codom`: Codomain, aka range, of a relation. `y ∈ r.codom` iff there exists `x` such that
+  `r x y`.
+* `rel.comp`: Relation composition. Note that the arguments order follows the `category_theory/`
+  one, so `r.comp s x z ↔ ∃ y, r x y ∧ s y z`.
+* `rel.image`: Image of a set under a relation. `r.image s` is the set of `f x` over all `x ∈ s`.
+* `rel.preimage`: Preimage of a set under a relation. Note that `r.preimage = r.inv.image`.
+* `rel.core`: Core of a set. For `s : set β`, `r.core s` is the set of `x : α` such that all `y`
+  related to `x` are in `s`.
+* `rel.restrict_domain`: Domain-restriction of a relation to a subtype.
+* `function.graph`: Graph of a function as a relation.
+-/
+
+variables {α β γ : Type*}
 
 /-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction --/
 @[derive complete_lattice, derive inhabited]
-def rel (α : Type*) (β : Type*) := α → β → Prop
+def rel (α β : Type*) := α → β → Prop
 
 namespace rel
 
@@ -27,7 +48,7 @@ lemma inv_inv : inv (inv r) = r := by { ext x y, reflexivity }
 /-- Domain of a relation -/
 def dom := {x | ∃ y, r x y}
 
-/-- Codomain aka range of a relation-/
+/-- Codomain aka range of a relation -/
 def codom := {y | ∃ x, r x y}
 
 lemma codom_inv : r.inv.codom = r.dom := by { ext x y, reflexivity }
@@ -38,7 +59,7 @@ lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
 λ x z, ∃ y, r x y ∧ s y z
 
-local infixr ` ∘ ` :=rel.comp
+local infixr ` ∘ ` := rel.comp
 
 lemma comp_assoc (r : rel α β) (s : rel β γ) (t : rel γ δ) :
   (r ∘ s) ∘ t = r ∘ s ∘ t :=
@@ -69,7 +90,7 @@ lemma mem_image (y : β) (s : set α) : y ∈ image r s ↔ ∃ x ∈ s, r x y :
 iff.rfl
 
 lemma image_subset : ((⊆) ⇒ (⊆)) r.image r.image :=
-assume s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
+λ s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
 
 lemma image_mono : monotone r.image := r.image_subset
 
@@ -130,7 +151,7 @@ lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈
 iff.rfl
 
 lemma core_subset : ((⊆) ⇒ (⊆)) r.core r.core :=
-assume s t h x h' y rxy, h (h' y rxy)
+λ s t h x h' y rxy, h (h' y rxy)
 
 lemma core_mono : monotone r.core := r.core_subset
 

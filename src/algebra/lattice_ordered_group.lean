@@ -211,16 +211,14 @@ Let `α` be a lattice ordered commutative group with identity `0`. For an elemen
 the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
 -/
 def lattice_ordered_add_comm_group.pos (a : α) : α :=  a ⊔ 0
-reserve postfix `⁺`:100
-postfix `⁺` := lattice_ordered_add_comm_group.pos
+postfix `⁺`:1000 := lattice_ordered_add_comm_group.pos
 
 /--
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
 -/
 def lattice_ordered_add_comm_group.neg (a : α) : α :=  (-a) ⊔ 0
-reserve postfix `⁻`:100
-postfix `⁻` := lattice_ordered_add_comm_group.neg
+postfix `⁻`:1000 := lattice_ordered_add_comm_group.neg
 
 /--
 Absolute value is a unary operator with properties similar to the absolute value of a real number.

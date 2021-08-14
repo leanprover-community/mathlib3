@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import logic.unique
+import logic.relation
 import order.boolean_algebra
 
 /-!
@@ -1910,21 +1911,35 @@ subsingleton_empty.pairwise_on r
   pairwise_on {a} r :=
 subsingleton_singleton.pairwise_on r
 
+theorem nonempty.pairwise_on_iff_exists_forall {s : set α} (hs : s.nonempty) {f : α → β}
+  {r : β → β → Prop} [is_equiv β r] :
+  (pairwise_on s (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
+begin
+  fsplit,
+  { rcases hs with ⟨y, hy⟩,
+    refine λ H, ⟨f y, λ x hx, _⟩,
+    rcases eq_or_ne x y with rfl|hne,
+    { apply is_refl.refl },
+    { exact H _ hx _ hy hne } },
+  { rintro ⟨z, hz⟩ x hx y hy hne,
+    exact @is_trans.trans β r _ (f x) z (f y) (hz _ hx) (is_symm.symm _ _ $ hz _ hy) }
+end
+
 /-- For a nonempty set `s`, a function `f` takes pairwise equal values on `s` if and only if
 for some `z` in the codomain, `f` takes value `z` on all `x ∈ s`. See also
 `set.pairwise_on_eq_iff_exists_eq` for a version that assumes `[nonempty β]` instead of
 `set.nonempty s`. -/
 theorem nonempty.pairwise_on_eq_iff_exists_eq {s : set α} (hs : s.nonempty) {f : α → β} :
   (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+hs.pairwise_on_iff_exists_forall
+
+lemma pairwise_on_iff_exists_forall [nonempty β] (s : set α) (f : α → β) {r : β → β → Prop}
+  [is_equiv β r] :
+  (pairwise_on s (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
 begin
-  fsplit,
-  { rcases hs with ⟨y, hy⟩,
-    refine λ H, ⟨f y, λ x hx, _⟩,
-    rcases eq_or_ne x y with rfl|hne,
-    { refl },
-    { exact H _ hx _ hy hne } },
-  { rintro ⟨z, hz⟩ x hx y hy hne,
-    exact (hz _ hx).trans (hz _ hy).symm }
+  rcases s.eq_empty_or_nonempty with rfl|hne,
+  { simp },
+  { exact hne.pairwise_on_iff_exists_forall }
 end
 
 /-- A function `f : α → β` with nonempty codomain takes pairwise equal values on a set `s` if and
@@ -1933,28 +1948,15 @@ only if for some `z` in the codomain, `f` takes value `z` on all `x ∈ s`. See 
 `[nonempty β]`. -/
 lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
   (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
-begin
-  rcases s.eq_empty_or_nonempty with rfl|hne,
-  { simp },
-  { exact hne.pairwise_on_eq_iff_exists_eq }
-end
+pairwise_on_iff_exists_forall s f
 
 lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
   (hr : symmetric r) :
   (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
 begin
-  refine ⟨λ h, ⟨_, _⟩, λ h, _⟩,
-  { exact h.mono (s.subset_insert a) },
-  { intros b hb hn,
-    exact h a (s.mem_insert _) b (set.mem_insert_of_mem _ hb) hn },
-  { intros b hb c hc hn,
-    rw [mem_insert_iff] at hb hc,
-    rcases hb with (rfl | hb);
-    rcases hc with (rfl | hc),
-    { exact absurd rfl hn },
-    { exact h.right _ hc hn },
-    { exact hr (h.right _ hb hn.symm) },
-    { exact h.left _ hb _ hc hn } }
+  simp only [pairwise_on, ball_insert_iff, true_and, forall_false_left, eq_self_iff_true, not_true,
+    ne.def, forall_and_distrib, hr.iff a, @eq_comm _ a],
+  exact ⟨λ h, ⟨h.2.2, h.2.1⟩, λ h, ⟨h.2, h.2, h.1⟩⟩
 end
 
 end set

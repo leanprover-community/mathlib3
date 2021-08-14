@@ -89,12 +89,12 @@ lemma ae_strongly_measurable {α β : Type*} {m : measurable_space α} [topologi
 variables {α β : Type*} {f : α → β}
 
 protected noncomputable
-def seq [measurable_space α] [topological_space β] (hf : strongly_measurable f) : ℕ → α →ₛ β :=
+def approx [measurable_space α] [topological_space β] (hf : strongly_measurable f) : ℕ → α →ₛ β :=
 hf.some
 
-protected lemma tendsto_seq [measurable_space α] [topological_space β]
+protected lemma tendsto_approx [measurable_space α] [topological_space β]
   (hf : strongly_measurable f) :
-  ∀ x, tendsto (λ n, hf.seq n x) at_top (𝓝 (f x)) :=
+  ∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x)) :=
 hf.some_spec
 
 lemma fin_strongly_measurable_of_exists_set_sigma_finite [topological_space β] [has_zero β]
@@ -106,7 +106,7 @@ begin
   haveI : sigma_finite (μ.restrict t) := htμ,
   let S := spanning_sets (μ.restrict t),
   have hS_meas : ∀ n, measurable_set (S n), from measurable_spanning_sets (μ.restrict t),
-  let f_approx := hf_meas.seq,
+  let f_approx := hf_meas.approx,
   let fs := λ n, simple_func.restrict (f_approx n) (S n ∩ t),
   have h_fs_t_compl : ∀ n, ∀ x ∉ t, fs n x = 0,
   { intros n x hxt,
@@ -124,7 +124,7 @@ begin
     rwa measure.restrict_apply' ht at h_lt_top, },
   { by_cases hxt : x ∈ t,
     swap, { rw [funext (λ n, h_fs_t_compl n x hxt), hft_zero x hxt], exact tendsto_const_nhds, },
-    have h : tendsto (λ n, (f_approx n) x) at_top (𝓝 (f x)), from hf_meas.tendsto_seq x,
+    have h : tendsto (λ n, (f_approx n) x) at_top (𝓝 (f x)), from hf_meas.tendsto_approx x,
     obtain ⟨n₁, hn₁⟩ : ∃ n, ∀ m, n ≤ m → fs m x = f_approx m x,
     { obtain ⟨n, hn⟩ : ∃ n, ∀ m, n ≤ m → x ∈ S m ∩ t,
       { suffices : ∃ n, ∀ m, n ≤ m → x ∈ S m,
@@ -158,7 +158,7 @@ hf.fin_strongly_measurable_of_exists_set_sigma_finite
 lemma measurable [measurable_space α] [metric_space β] [measurable_space β] [borel_space β]
   (hf : strongly_measurable f) :
   measurable f :=
-measurable_of_tendsto_metric (λ n, (hf.seq n).measurable) (tendsto_pi.mpr hf.tendsto_seq)
+measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi.mpr hf.tendsto_approx)
 
 end strongly_measurable
 
@@ -189,13 +189,14 @@ lemma ae_fin_strongly_measurable [topological_space β] (hf : fin_strongly_measu
 section sequence
 variables [topological_space β] (hf : fin_strongly_measurable f μ)
 
-protected noncomputable def seq : ℕ → α →ₛ β := hf.some
+protected noncomputable def approx : ℕ → α →ₛ β := hf.some
 
-protected lemma fin_support : ∀ n, μ (support (hf.seq n)) < ∞ := hf.some_spec.1
+protected lemma fin_support : ∀ n, μ (support (hf.approx n)) < ∞ := hf.some_spec.1
 
-protected lemma tendsto_seq : ∀ x, tendsto (λ n, hf.seq n x) at_top (𝓝 (f x)) := hf.some_spec.2
+protected lemma tendsto_approx: ∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x)) :=
+hf.some_spec.2
 
-lemma strongly_measurable : strongly_measurable f := ⟨hf.seq, hf.tendsto_seq⟩
+lemma strongly_measurable : strongly_measurable f := ⟨hf.approx, hf.tendsto_approx⟩
 
 end sequence
 
@@ -205,7 +206,7 @@ lemma exists_set_sigma_finite [topological_space β] [t2_space β]
 begin
   rcases hf with ⟨fs, hT_lt_top, h_approx⟩,
   let T := λ n, support (fs n),
-  have hT_meas : ∀ n, measurable_set (T n), from λ n, simple_func.measurable_set_support _,
+  have hT_meas : ∀ n, measurable_set (T n), from λ n, simple_func.measurable_set_support (fs n),
   let t := ⋃ n, T n,
   refine ⟨t, measurable_set.Union hT_meas, _, _⟩,
   { have h_fs_zero : ∀ n, ∀ x ∈ tᶜ, fs n x = 0,

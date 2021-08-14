@@ -61,7 +61,7 @@ lemma smul_eq_conj_act (g : conj_act G) (h : G) : g • h = mul_aut.conj g h := 
 @[simp] lemma «forall» (p : conj_act G → Prop) :
   (∀ (x : conj_act G), p x) ↔ ∀ x : G, p (to_conj_act x) := iff.rfl
 
-/-- The set of fixed points of the conj_actugation action of `G` on itself is the center of `G`. -/
+/-- The set of fixed points of the conjugation action of `G` on itself is the center of `G`. -/
 lemma fixed_points_eq_center : fixed_points (conj_act G) G = center G :=
 begin
   ext x,

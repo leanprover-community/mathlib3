@@ -1293,7 +1293,8 @@ end
 
 -- TODO why does sub_add_assoc not exist?
 -- TODO move this lemma to another file
-lemma sum_geometric_half (j : ℕ) : ∑ (x : ℕ) in (range j), ((1:ℝ) / 2) ^ (x) = 2 - 2 * ((1 : ℝ)/2)^(j) :=
+lemma sum_geometric_half (j : ℕ) :
+  ∑ (x : ℕ) in (range j), ((1:ℝ) / 2) ^ (x) = 2 - 2 * ((1 : ℝ)/2)^(j) :=
 begin
   induction j,
     {simp,},
@@ -1304,7 +1305,8 @@ begin
       ring_nf,},
 end
 
-private lemma sum_geometric_half' (j n : ℕ) (h : n ≤ j) : ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ) / 2) ^ (x - n) ≤ (2 : ℝ) :=
+private lemma sum_geometric_half' (j n : ℕ) (h : n ≤ j) :
+  ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ) / 2) ^ (x - n) ≤ (2 : ℝ) :=
 begin
   calc ∑ (x : ℕ) in filter (λ (k : ℕ), n ≤ k) (range j), ((1 : ℝ)/ 2) ^ (x - n)
       = ∑ (x : ℕ) in (range (j - n)), ((1 : ℝ)/ 2) ^ (x) :

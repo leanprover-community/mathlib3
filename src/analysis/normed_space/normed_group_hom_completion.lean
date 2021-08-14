@@ -8,7 +8,7 @@ import analysis.normed_space.normed_group_hom
 /-!
 # Completion of normed group homs
 
-Given two (semi) normed groups `G` and `H` and a normed group hom `f  : normed_group_hom G H`,
+Given two (semi) normed groups `G` and `H` and a normed group hom `f : normed_group_hom G H`,
 we build and study a normed group hom
 `f.completion  : normed_group_hom (completion G) (completion H)` such that the diagram
 
@@ -36,7 +36,7 @@ The vertical maps in the above diagrams are also normed group homs constructed i
 * `normed_group.to_compl : normed_group_hom G (completion G)`: the canonical map from `G` to its
   completion, as a normed group hom
 * `normed_group_hom.completion_to_compl`: the above diagram indeed commutes.
-* `normed_group_hom.norm_completion_le`: `∥f.completion∥ ≤ ∥f∥`
+* `normed_group_hom.norm_completion`: `∥f.completion∥ = ∥f∥`
 * `normed_group_hom.ker_le_ker_completion`: the kernel of `f.completion` contains the image of the
   kernel of `f`.
 * `normed_group_hom.ker_completion`: the kernel of `f.completion` is the closure of the image of the
@@ -72,6 +72,7 @@ def normed_group_hom.completion (f : normed_group_hom G H) :
 lemma normed_group_hom.completion_def (f : normed_group_hom G H) (x : completion G) :
   f.completion x = completion.map f x := rfl
 
+@[simp]
 lemma normed_group_hom.completion_coe_to_fun (f : normed_group_hom G H) :
   (f.completion : completion G → completion H) = completion.map f :=
 by { ext x, exact normed_group_hom.completion_def f x }
@@ -182,47 +183,19 @@ lemma normed_group_hom.ker_completion {f : normed_group_hom G H} {C : ℝ}
   (h : f.surjective_on_with f.range C) :
   (f.completion.ker : set $ completion G) = closure (to_compl.comp $ incl f.ker).range :=
 begin
-  by_cases Hf : ∀ x, ∥f x∥ = 0, -- This is a bit silly, we simply avoid assuming C ≥ 0
-  { apply le_antisymm,
-    { intros hatg hatg_in,
-      rw semi_normed_group.mem_closure_iff,
-      intros ε ε_pos,
-      obtain ⟨_, ⟨g : G, rfl⟩, hg : ∥hatg - g∥ < ε⟩ :=
-        semi_normed_group.mem_closure_iff.mp (completion.dense_inducing_coe.dense hatg) ε ε_pos,
-      obtain ⟨g' : G, hgg' : f g' = f g, hfg : ∥g'∥ ≤ C * ∥f g∥⟩ :=
-        h (f g) (mem_range_self g),
-      rw [Hf g, mul_zero] at hfg,
-      refine ⟨g - g', _, _⟩,
-      { norm_cast,
-        rw normed_group_hom.comp_range,
-        apply add_subgroup.mem_map_of_mem,
-        simp only [incl_range, mem_ker, map_sub, hgg', sub_self], },
-      { calc ∥hatg - (g - g')∥ = ∥hatg - g + g'∥ : by abel
-      ... ≤ ∥hatg - g∥ + ∥(g' : completion G)∥ : norm_add_le _ _
-      ... = ∥hatg - g∥ + ∥g'∥ : by rw [completion.norm_coe]
-      ... ≤ ∥hatg - g∥ : (add_le_iff_nonpos_right _).2 hfg
-      ... < ε : hg } },
-    { rw ← f.completion.is_closed_ker.closure_eq,
-      exact closure_mono f.ker_le_ker_completion } },
-  have hC : 0 ≤ C,
-  { push_neg at Hf,
-    cases Hf with x hx,
-    rcases h (f x) (mem_range_self x) with ⟨y, hy, hy'⟩,
-    rw ← hy at hy' hx,
-    exact nonneg_of_mul_nonneg_right ((norm_nonneg y).trans hy')
-      (lt_of_le_of_ne (norm_nonneg (f y)) hx.symm) },
-  apply le_antisymm, -- Now start the actual proof
+  rcases h.exists_pos with ⟨C', C'_pos, hC'⟩,
+  apply le_antisymm,
   { intros hatg hatg_in,
     rw semi_normed_group.mem_closure_iff,
     intros ε ε_pos,
-    have hCf : 0 ≤ C*∥f∥ := mul_nonneg hC (norm_nonneg _),
-    have ineq : 0 < 1 + C*∥f∥, by linarith,
-    set δ := ε/(1 + C*∥f∥),
+    have hCf : 0 ≤ C'*∥f∥ := (zero_le_mul_left C'_pos).mpr (norm_nonneg f),
+    have ineq : 0 < 1 + C'*∥f∥, by linarith,
+    set δ := ε/(1 + C'*∥f∥),
     have δ_pos : δ > 0, from div_pos ε_pos ineq,
     obtain ⟨_, ⟨g : G, rfl⟩, hg : ∥hatg - g∥ < δ⟩ :=
       semi_normed_group.mem_closure_iff.mp (completion.dense_inducing_coe.dense hatg) δ δ_pos,
-    obtain ⟨g' : G, hgg' : f g' = f g, hfg : ∥g'∥ ≤ C * ∥f g∥⟩ :=
-      h (f g) (mem_range_self g),
+    obtain ⟨g' : G, hgg' : f g' = f g, hfg : ∥g'∥ ≤ C' * ∥f g∥⟩ :=
+      hC' (f g) (mem_range_self g),
     have mem_ker : g - g' ∈ f.ker,
       by rw [f.mem_ker, f.map_sub, sub_eq_zero.mpr hgg'.symm],
     have : ∥f g∥ ≤ ∥f∥*∥hatg - g∥,
@@ -233,12 +206,12 @@ begin
         ... = ∥f.completion (g - hatg)∥ : by rw [f.completion.map_sub]
         ... ≤ ∥f.completion∥ * ∥(g :completion G) - hatg∥ : f.completion.le_op_norm _
         ... = ∥f∥ * ∥hatg - g∥ : by rw [norm_sub_rev, f.norm_completion],
-    have : ∥(g' : completion G)∥ ≤ C*∥f∥*∥hatg - g∥,
+    have : ∥(g' : completion G)∥ ≤ C'*∥f∥*∥hatg - g∥,
     calc
     ∥(g' : completion G)∥ = ∥g'∥ : completion.norm_coe _
-                      ... ≤ C * ∥f g∥ : hfg
-                      ... ≤ C * ∥f∥ * ∥hatg - g∥ : by { rw mul_assoc,
-                                                        exact mul_le_mul_of_nonneg_left this hC},
+                      ... ≤ C' * ∥f g∥ : hfg
+                      ... ≤ C' * ∥f∥ * ∥hatg - g∥ : by { rw mul_assoc,
+                                                        exact (mul_le_mul_left C'_pos).mpr this },
     refine ⟨g - g', _, _⟩,
     { norm_cast,
       rw normed_group_hom.comp_range,
@@ -246,9 +219,9 @@ begin
       simp only [incl_range, mem_ker] },
     { calc ∥hatg - (g - g')∥ = ∥hatg - g + g'∥ : by abel
       ... ≤ ∥hatg - g∥ + ∥(g' : completion G)∥ : norm_add_le _ _
-      ... < δ + C*∥f∥*∥hatg - g∥ : by linarith
-      ... ≤ δ + C*∥f∥*δ : add_le_add_left (mul_le_mul_of_nonneg_left hg.le hCf) δ
-      ... = (1 + C*∥f∥)*δ : by ring
+      ... < δ + C'*∥f∥*∥hatg - g∥ : by linarith
+      ... ≤ δ + C'*∥f∥*δ : add_le_add_left (mul_le_mul_of_nonneg_left hg.le hCf) δ
+      ... = (1 + C'*∥f∥)*δ : by ring
       ... = ε : mul_div_cancel' _ ineq.ne.symm } },
   { rw ← f.completion.is_closed_ker.closure_eq,
     exact closure_mono f.ker_le_ker_completion }

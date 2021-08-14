@@ -27,21 +27,19 @@ We also define:
 
 open equiv function
 
+/- Same as `(equiv.refl _)^.set.compl .symm.trans (subtype_equiv_right $ by simp)` but with better
+unfolding -/
 /-- Permutations on `sᶜ` are equivalent to permutations that fix `s` pointwise. -/
 protected def perm.compl_equiv {α : Type*} (s : set α) [decidable_pred (∈ s)] :
   perm (sᶜ : set α) ≃ {f : perm α // ∀ a ∈ s, f a = a} :=
 { to_fun := λ f, ⟨f.of_subtype, λ a ha, f.of_subtype_apply_of_not_mem (λ h, h ha)⟩,
   inv_fun := λ ⟨f, hf⟩, (f : perm α).subtype_perm
     (λ a, ⟨λ ha hfa, ha (f.injective (hf _ hfa) ▸ hfa),  λ hfa ha, (hf a ha ▸ hfa) ha⟩),
-  left_inv := begin
-    rintro a,
-    simp,
-  end,
+  left_inv := equiv.perm.subtype_perm_of_subtype,
   right_inv := begin
-    rintro a,
-    simp,
+    rintro ⟨f, hf⟩,
+    exact subtype.ext (equiv.perm.of_subtype_subtype_perm _ $ λ a hfa ha, hfa $ hf _ ha),
   end }
---(equiv.refl _)^.set.compl .symm.trans (subtype_equiv_right $ by simp)
 
 /-- A permutation is a derangement if it has no fixed points. -/
 def derangements (α : Type*) : set (perm α) := {f : perm α | ∀ x : α, f x ≠ x}
@@ -59,28 +57,6 @@ lemma mem_derangements_iff_fixed_points_eq_empty {f : perm α} :
   f ∈ derangements α ↔ fixed_points f = ∅ :=
 set.eq_empty_iff_forall_not_mem.symm
 
-/-protected def compl_equiv' (a : α) :
-  {f : perm α // ∀ x, f x = x ↔ x = a} ≃ derangements ({a}ᶜ : set α) :=
-begin
-  transitivity {f : {f : perm α // f a = a} // ∀ x, f x = x → x = a},
-  { refine (subtype_equiv_right _).trans (subtype_subtype_equiv_subtype_exists _ _).symm,
-    intro f,
-    sorry
-     },
-  { refine subtype_equiv (perm.compl_equiv {a}) _,
-    rintro ⟨f, _⟩,
-    simp [discard_fixed_pt, equiv.set.compl, derangements,
-          only_possible_fixed_point, not_imp_not] }
-end-/
-
-/-- Derangements on `sᶜ` are equivalent to permutations whose set of fixed points is `s`. -/
-protected def compl_equiv' (s : set α) [decidable_pred (∈ s)] :
-  derangements (sᶜ : set α) ≃ {f : perm α // fixed_points f = s} :=
-begin
-
-end
-
-
 /-- Derangements on `sᶜ` are equivalent to permutations whose set of fixed points is `s`. -/
 protected def compl_equiv (s : set α) [decidable_pred (∈ s)] :
   derangements (sᶜ : set α) ≃ {f : perm α // fixed_points f = s} :=
@@ -88,44 +64,67 @@ calc
   derangements (sᶜ : set α)
       ≃ {f : {f : perm α // s ⊆ fixed_points f} // fixed_points f ⊆ s}
       : begin
-        refine (perm.compl_equiv s).subtype_equiv  _,
-        rintro f,
-        have := f.of_subtype,
-        rw derangements,
+        refine (perm.compl_equiv s).subtype_equiv (λ f, ⟨λ hf a hfa, _, _⟩),
+        { by_contra ha,
+          refine hf ⟨a, ha⟩ (subtype.ext _),
+          rw [mem_fixed_points, is_fixed_pt, perm.compl_equiv] at hfa,
+          dsimp at hfa,
+          rwa equiv.perm.of_subtype_apply_of_mem at hfa },
+        rintro hf ⟨a, ha⟩ hfa,
+        refine ha (hf _),
+        rw [mem_fixed_points, is_fixed_pt, perm.compl_equiv],
         dsimp,
-        sorry
-        --simp [perm.compl_equiv, derangements, not_imp_not, set.sum_compl],
+        rw [equiv.perm.of_subtype_apply_of_mem _, hfa, subtype.coe_mk],
       end
   ... ≃ {f : perm α // ∃ (h : s ⊆ fixed_points f), fixed_points f ⊆ s}
       : subtype_subtype_equiv_subtype_exists _ _
   ... ≃ {f : perm α // fixed_points f = s}
       : subtype_equiv_right (λ f, by rw [exists_prop, set.subset.antisymm_iff, and_comm])
 
-variables (s : set α) [decidable_pred (∈ s)] (f : perm (sᶜ : set α))
+open_locale classical
 
-lemma perm.compl_equiv_eq :
-  f.of_subtype = perm.compl_equiv s f :=
-begin
-  simp [perm.compl_equiv, equiv.set.compl],
-
-end
-#exit
 /-- The set of permutations that fix at most `a` is equivalent to the sum of:
     - derangements on `α`
     - derangements on `α` minus `a`. -/
-def opfp_equiv_sum_derangements (s : set α) :
-  {f : perm α // fixed_points f ⊆ s} ≃ (derangements (sᶜ : set α)) ⊕ derangements α :=
-begin
-  let fixes_a := λ f : perm α, ∀ a ∈ s, f a = a,
-  refine (equiv.sum_compl (λ f : subtype _, fixes_a f.val)).symm.trans (sum_congr _ _),
-  { refine (subtype_subtype_equiv_subtype_inter _ fixes_a).trans
-      (equiv.trans (subtype_equiv_right _) (eofp_equiv_derangements_except_for a)),
-    intro f,
-    exact (eofp_iff_opfp_and_eq a f).symm },
-  { refine (subtype_subtype_equiv_subtype_inter _ (not ∘ fixes_a)).trans (subtype_equiv_right _),
-    intro f,
-    rw mem_derangements_iff_opfp_and_ne }
-end
+def opfp_equiv_sum_derangements (a : α) :
+  {f : perm α // fixed_points f ⊆ {a}} ≃ (derangements ({a}ᶜ : set α)) ⊕ derangements α :=
+calc
+  {f : perm α // fixed_points f ⊆ {a}}
+      ≃ {f : {f : perm α // fixed_points f ⊆ {a}} // a ∈ fixed_points f}
+        ⊕ {f : {f : perm α // fixed_points f ⊆ {a}} // a ∉ fixed_points f}
+      : equiv.sum_compl _ _
+  ... ≃ {f : perm α // fixed_points f ⊆ {a} ∧ a ∈ fixed_points f}
+        ⊕ {f : perm α // fixed_points f ⊆ {a} ∧ a ∉ fixed_points f}
+      : begin
+        refine equiv.sum_congr _ _,
+        convert subtype_subtype_equiv_subtype_inter _ _,
+        ext f,
+      end
+  ... ≃ {f : perm α // fixed_points f = {a}} ⊕ {f : perm α // fixed_points f = ∅}
+      : subtype_or_equiv _ _ begin
+        rintro f h,
+        refine (set.singleton_nonempty a).ne_empty (by rw [←h.1, h.2]),
+      end
+  ... ≃ (derangements _) ⊕ derangements α
+      : sorry
+
+open_locale classical
+/-- The set of permutations that fix at most `a` is equivalent to the sum of:
+    - derangements on `α`
+    - derangements on `α` minus `a`. -/
+def opfp_equiv_sum_derangements' (a : α) :
+  {f : perm α // fixed_points f ⊆ {a}} ≃ (derangements ({a}ᶜ : set α)) ⊕ derangements α :=
+calc
+  {f : perm α // fixed_points f ⊆ {a}}
+      ≃ {f : perm α // fixed_points f = {a} ∨ fixed_points f = ∅}
+      : subtype_equiv_right (λ f, by rw [set.subset_singleton_iff_eq, or_comm])
+  ... ≃ {f : perm α // fixed_points f = {a}} ⊕ {f : perm α // fixed_points f = ∅}
+      : subtype_or_equiv _ _ begin
+        rintro f h,
+        refine (set.singleton_nonempty a).ne_empty (by rw [←h.1, h.2]),
+      end
+  ... ≃ (derangements _) ⊕ derangements α
+      : sorry
 
 end fixed_points
 

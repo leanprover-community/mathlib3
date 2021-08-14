@@ -66,7 +66,7 @@ include V V₂
 lemma to_affine_map_injective : injective (to_affine_map : (P →ᵃⁱ[𝕜] P₂) → (P →ᵃ[𝕜] P₂))
 | ⟨f, _⟩ ⟨g, _⟩ rfl := rfl
 
-lemma coe_fn_injective : injective (λ (f : P →ᵃⁱ[𝕜] P₂) (x : P), f x) :=
+lemma coe_fn_injective : @injective (P →ᵃⁱ[𝕜] P₂) (P → P₂) coe_fn :=
 affine_map.coe_fn_injective.comp to_affine_map_injective
 
 @[ext] lemma ext {f g : P →ᵃⁱ[𝕜] P₂} (h : ∀ x, f x = g x) : f = g :=

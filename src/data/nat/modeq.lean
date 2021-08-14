@@ -277,7 +277,7 @@ by rw [add_div hc0, if_pos hc]
 
 lemma add_div_le_add_div (a b c : ℕ) : a / c + b / c ≤ (a + b) / c :=
 if hc0 : c = 0 then by simp [hc0]
-else by rw [nat.add_div (nat.pos_of_ne_zero hc0)]; exact le_add_right _ _
+else by rw [nat.add_div (nat.pos_of_ne_zero hc0)]; exact nat.le_add_right _ _
 
 lemma le_mod_add_mod_of_dvd_add_of_not_dvd {a b c : ℕ} (h : c ∣ a + b) (ha : ¬ c ∣ a) :
   c ≤ a % c + b % c :=

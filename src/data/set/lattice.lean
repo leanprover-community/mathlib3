@@ -882,6 +882,15 @@ begin
   simp [union_comm]
 end
 
+lemma union_distrib_bInter_left {ι : Type*} (s : ι → set α) (u : set ι) (t : set α) :
+    t ∪ (⋂ i ∈ u, s i) = ⋂ i ∈ u, t ∪ s i :=
+by rw [bInter_eq_Inter, bInter_eq_Inter, union_distrib_Inter_left]
+
+lemma union_distrib_bInter_right {ι : Type*} (s : ι → set α) (u : set ι) (t : set α) :
+    (⋂ i ∈ u, s i) ∪ t = ⋂ i ∈ u, s i ∪ t :=
+by rw [bInter_eq_Inter, bInter_eq_Inter, union_distrib_Inter_right]
+
+
 section function
 
 /-! ### `maps_to` -/

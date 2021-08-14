@@ -204,8 +204,8 @@ begin
   { apply der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append c ((2^m-c)/3) h,
     convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
     rw nat.mul_div_cancel',
-    { exact add_sub_of_le hm.1, },
-    { exact (modeq_iff_dvd' hm.1).mp hm.2.symm, }, },
+    { exact nat.add_sub_of_le hm.1 },
+    { exact (modeq_iff_dvd' hm.1).mp hm.2.symm } },
   rw [append_assoc, ←repeat_add _ _] at hw₃,
   cases add_mod2 ((2^m-c)/3) with t ht,
   rw ht at hw₃,
@@ -228,8 +228,8 @@ begin
   { apply der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append c ((2^m-c)/3) h,
     convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
     rw nat.mul_div_cancel',
-    { exact add_sub_of_le hm.1, },
-    { exact (modeq_iff_dvd' hm.1).mp hm.2.symm, }, },
+    { exact nat.add_sub_of_le hm.1 },
+    { exact (modeq_iff_dvd' hm.1).mp hm.2.symm } },
   rw [append_assoc, ←repeat_add _ _] at hw₃,
   cases add_mod2 ((2^m-c)/3) with t ht,
   rw ht at hw₃,

@@ -1318,7 +1318,7 @@ end measure
 open measure
 
 @[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
-by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
+by rw [← empty_mem_iff_bot, mem_ae_iff, compl_empty, measure_univ_eq_zero]
 
 @[simp] lemma ae_ne_bot : μ.ae.ne_bot ↔ μ ≠ 0 :=
 ne_bot_iff.trans (not_congr ae_eq_bot)
@@ -1429,8 +1429,8 @@ ae_eq_bot.trans restrict_eq_zero
 ne_bot_iff.trans $ (not_congr ae_restrict_eq_bot).trans pos_iff_ne_zero.symm
 
 lemma self_mem_ae_restrict {s} (hs : measurable_set s) : s ∈ (μ.restrict s).ae :=
-by simp only [ae_restrict_eq hs, exists_prop, mem_principal_sets, mem_inf_sets];
-  exact ⟨_, univ_mem_sets, s, by rw [univ_inter, and_self]⟩
+by simp only [ae_restrict_eq hs, exists_prop, mem_principal, mem_inf_iff];
+  exact ⟨_, univ_mem, s, subset.rfl, (univ_inter s).symm⟩
 
 /-- A version of the Borel-Cantelli lemma: if `sᵢ` is a sequence of measurable sets such that
 `∑ μ sᵢ` exists, then for almost all `x`, `x` does not belong to almost all `sᵢ`. -/
@@ -1683,7 +1683,7 @@ def finite_at_filter {m0 : measurable_space α} (μ : measure α) (f : filter α
 lemma finite_at_filter_of_finite {m0 : measurable_space α} (μ : measure α) [finite_measure μ]
   (f : filter α) :
   μ.finite_at_filter f :=
-⟨univ, univ_mem_sets, measure_lt_top μ univ⟩
+⟨univ, univ_mem, measure_lt_top μ univ⟩
 
 lemma finite_at_filter.exists_mem_basis {f : filter α} (hμ : finite_at_filter μ f)
   {p : ι → Prop} {s : ι → set α} (hf : f.has_basis p s) :
@@ -1691,7 +1691,7 @@ lemma finite_at_filter.exists_mem_basis {f : filter α} (hμ : finite_at_filter 
 (hf.exists_iff (λ s t hst ht, (measure_mono hst).trans_lt ht)).1 hμ
 
 lemma finite_at_bot {m0 : measurable_space α} (μ : measure α) : μ.finite_at_filter ⊥ :=
-⟨∅, mem_bot_sets, by simp only [measure_empty, with_top.zero_lt_top]⟩
+⟨∅, mem_bot, by simp only [measure_empty, with_top.zero_lt_top]⟩
 
 /-- `μ` has finite spanning sets in `C` if there is a countable sequence of sets in `C` that have
   finite measures. This structure is a type, which is useful if we want to record extra properties
@@ -1940,9 +1940,9 @@ h.filter_mono inf_le_right
 @[simp] lemma inf_ae_iff : μ.finite_at_filter (f ⊓ μ.ae) ↔ μ.finite_at_filter f :=
 begin
   refine ⟨_, λ h, h.filter_mono inf_le_left⟩,
-  rintros ⟨s, ⟨t, ht, u, hu, hs⟩, hμ⟩,
-  suffices : μ t ≤ μ s, from ⟨t, ht, this.trans_lt hμ⟩,
-  exact measure_mono_ae (mem_sets_of_superset hu (λ x hu ht, hs ⟨ht, hu⟩))
+  rintros ⟨s, ⟨t, ht, u, hu, rfl⟩, hμ⟩,
+  suffices : μ t ≤ μ (t ∩ u), from ⟨t, ht, this.trans_lt hμ⟩,
+  exact measure_mono_ae (mem_of_superset hu (λ x hu ht, ⟨ht, hu⟩))
 end
 
 alias inf_ae_iff ↔ measure_theory.measure.finite_at_filter.of_inf_ae _

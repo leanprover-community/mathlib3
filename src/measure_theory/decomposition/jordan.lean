@@ -275,76 +275,70 @@ namespace jordan_decomposition
 
 open measure vector_measure signed_measure function
 
+lemma eq_of_pos_part_eq_pos_part {j₁ j₂ : jordan_decomposition α}
+  (hj : j₁.pos_part = j₂.pos_part) (hj' : j₁.to_signed_measure = j₂.to_signed_measure) :
+  j₁ = j₂ :=
+begin
+  ext1,
+  { exact hj },
+  { rw ← to_signed_measure_eq_to_signed_measure_iff,
+    suffices : j₁.pos_part.to_signed_measure - j₁.neg_part.to_signed_measure =
+      j₁.pos_part.to_signed_measure - j₂.neg_part.to_signed_measure,
+    { exact sub_right_inj.mp this },
+    convert hj' }
+end
+
 /-- The Jordan decomposition of a signed measure is unique. -/
 theorem to_signed_measure_injective :
   injective $ @jordan_decomposition.to_signed_measure α _ :=
 begin
+  /- The main idea is that two Jordan decompositions of a signed measure provides two
+  Hahn decompositions for that measure. Then, from `of_symm_diff_compl_positive_negative`,
+  the symmetric difference the two Hahn decomposition have measure zero, thus, allowing us to
+  show the equality of the underlying measures of the Jordan decompositions. -/
   intros j₁ j₂ hj,
+  -- obtain the two Hahn decompositions from the Jordan decompositions
   obtain ⟨S, hS₁, hS₂, hS₃, hS₄, hS₅⟩ := j₁.exists_compl_positive_negative,
   obtain ⟨T, hT₁, hT₂, hT₃, hT₄, hT₅⟩ := j₂.exists_compl_positive_negative,
   rw ← hj at hT₂ hT₃,
-  obtain ⟨hST₁, hST₂⟩ := of_symm_diff_compl_positive_negative hS₁.compl hT₁.compl
+  -- the symmetric differences of the two Hahn decompositions have measure zero
+  obtain ⟨hST₁, -⟩ := of_symm_diff_compl_positive_negative hS₁.compl hT₁.compl
     ⟨hS₃, (compl_compl S).symm ▸ hS₂⟩ ⟨hT₃, (compl_compl T).symm ▸ hT₂⟩,
-  rw [compl_compl, compl_compl] at hST₂,
-  refine jordan_decomposition.ext _ _ _ _,
-  { refine measure_theory.measure.ext (λ i hi, _),
-    have hμ₁ : (j₁.pos_part i).to_real = j₁.to_signed_measure (i ∩ Sᶜ),
-    { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hS₁.compl),
-          show j₁.neg_part (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1
-            (hS₅ ▸ measure_mono (set.inter_subset_right _ _)),
-          ennreal.zero_to_real, sub_zero],
-      conv_lhs { rw ← set.inter_union_compl i S },
-      rw [measure_union, show j₁.pos_part (i ∩ S) = 0, by exact nonpos_iff_eq_zero.1
-            (hS₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
-      { refine set.disjoint_of_subset_left (set.inter_subset_right _ _)
-          (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-      { exact hi.inter hS₁ },
-      { exact hi.inter hS₁.compl } },
-    have hμ₂ : (j₂.pos_part i).to_real = j₂.to_signed_measure (i ∩ Tᶜ),
-    { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hT₁.compl),
-          show j₂.neg_part (i ∩ Tᶜ) = 0, by exact nonpos_iff_eq_zero.1
-            (hT₅ ▸ measure_mono (set.inter_subset_right _ _)),
-          ennreal.zero_to_real, sub_zero],
-      conv_lhs { rw ← set.inter_union_compl i T },
-      rw [measure_union, show j₂.pos_part (i ∩ T) = 0, by exact nonpos_iff_eq_zero.1
-            (hT₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
-      { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
-          (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-      { exact hi.inter hT₁ },
-      { exact hi.inter hT₁.compl } },
-    rw [← ennreal.to_real_eq_to_real (measure_lt_top _ _) (measure_lt_top _ _),
-        hμ₁, hμ₂, ← hj],
-    exact of_inter_eq_of_symm_diff_eq_zero_positive hS₁.compl hT₁.compl hi hS₃ hT₃ hST₁,
-    all_goals { apply_instance } },
-  { refine measure_theory.measure.ext (λ i hi, _),
-    have hν₁ : (j₁.neg_part i).to_real = - j₁.to_signed_measure (i ∩ S),
-    { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hS₁),
-          show j₁.pos_part (i ∩ S) = 0, by exact nonpos_iff_eq_zero.1
-            (hS₄ ▸ measure_mono (set.inter_subset_right _ _)),
-          ennreal.zero_to_real, zero_sub],
-      conv_lhs { rw ← set.inter_union_compl i S },
-      rw [measure_union, show j₁.neg_part (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1
-            (hS₅ ▸ measure_mono (set.inter_subset_right _ _)), add_zero, neg_neg],
-      { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
-          (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-      { exact hi.inter hS₁ },
-      { exact hi.inter hS₁.compl } },
-    have hν₂ : (j₂.neg_part i).to_real = - j₂.to_signed_measure (i ∩ T),
-    { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hT₁),
-          show j₂.pos_part (i ∩ T) = 0, by exact nonpos_iff_eq_zero.1
-            (hT₄ ▸ measure_mono (set.inter_subset_right _ _)),
-          ennreal.zero_to_real, zero_sub],
-      conv_lhs { rw ← set.inter_union_compl i T },
-      rw [measure_union, show j₂.neg_part (i ∩ Tᶜ) = 0, by exact nonpos_iff_eq_zero.1
-            (hT₅ ▸ measure_mono (set.inter_subset_right _ _)), add_zero, neg_neg],
-      { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
-          (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-      { exact hi.inter hT₁ },
-      { exact hi.inter hT₁.compl } },
-    rw [← ennreal.to_real_eq_to_real (measure_lt_top _ _) (measure_lt_top _ _),
-        hν₁, hν₂, neg_eq_iff_neg_eq, neg_neg, ← hj],
-    exact eq.symm (of_inter_eq_of_symm_diff_eq_zero_negative hS₁ hT₁ hi hS₂ hT₂ hST₂),
-    all_goals { apply_instance } }
+  -- it suffices to show the Jordan decompositions have the same positive parts
+  refine eq_of_pos_part_eq_pos_part _ hj,
+  ext1 i hi,
+  -- we see that the positive parts of the two Jordan decompositions is equal to their
+  -- associated signed measure restricted on their associated Hahn decomposition
+  have hμ₁ : (j₁.pos_part i).to_real = j₁.to_signed_measure (i ∩ Sᶜ),
+  { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hS₁.compl),
+        show j₁.neg_part (i ∩ Sᶜ) = 0, by exact nonpos_iff_eq_zero.1
+          (hS₅ ▸ measure_mono (set.inter_subset_right _ _)),
+        ennreal.zero_to_real, sub_zero],
+    conv_lhs { rw ← set.inter_union_compl i S },
+    rw [measure_union, show j₁.pos_part (i ∩ S) = 0, by exact nonpos_iff_eq_zero.1
+          (hS₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
+    { refine set.disjoint_of_subset_left (set.inter_subset_right _ _)
+        (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
+    { exact hi.inter hS₁ },
+    { exact hi.inter hS₁.compl } },
+  have hμ₂ : (j₂.pos_part i).to_real = j₂.to_signed_measure (i ∩ Tᶜ),
+  { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hT₁.compl),
+        show j₂.neg_part (i ∩ Tᶜ) = 0, by exact nonpos_iff_eq_zero.1
+          (hT₅ ▸ measure_mono (set.inter_subset_right _ _)),
+        ennreal.zero_to_real, sub_zero],
+    conv_lhs { rw ← set.inter_union_compl i T },
+    rw [measure_union, show j₂.pos_part (i ∩ T) = 0, by exact nonpos_iff_eq_zero.1
+          (hT₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
+    { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
+        (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
+    { exact hi.inter hT₁ },
+    { exact hi.inter hT₁.compl } },
+  -- since the two signed measures associated with the Jordan decompositions are the same,
+  -- and the symmetric difference of the Hahn decompositions have measure zero, the result follows
+  rw [← ennreal.to_real_eq_to_real (measure_lt_top _ _) (measure_lt_top _ _),
+      hμ₁, hμ₂, ← hj],
+  exact of_inter_eq_of_symm_diff_eq_zero_positive hS₁.compl hT₁.compl hi hS₃ hT₃ hST₁,
+  all_goals { apply_instance },
 end
 
 @[simp]

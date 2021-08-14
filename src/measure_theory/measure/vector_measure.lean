@@ -385,6 +385,20 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
+lemma to_signed_measure_eq_to_signed_measure_iff
+  {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
+  μ.to_signed_measure = ν.to_signed_measure ↔ μ = ν :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { ext1 i hi,
+    have : μ.to_signed_measure i = ν.to_signed_measure i,
+    { rw h },
+    rwa [to_signed_measure_apply_measurable hi, to_signed_measure_apply_measurable hi,
+        ennreal.to_real_eq_to_real] at this;
+    { exact measure_lt_top _ _ } },
+  { congr, assumption }
+end
+
 @[simp] lemma to_signed_measure_zero :
   (0 : measure α).to_signed_measure = 0 :=
 by { ext i hi, simp }

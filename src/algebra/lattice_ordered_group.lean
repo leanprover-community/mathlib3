@@ -191,7 +191,7 @@ lemma add_eq_meet_add_join (a b : α) : a⊓b + (a⊔b) = a + b :=
 calc a⊓b + (a⊔b) = a⊓b + ((a + b) + ((-b)⊔(-a))) :
   by {  rw add_join_eq_add_join_add (-b) (-a) (a+b), simp,  }
 ... = a⊓b + ((a + b) + -(a⊓b)) : by { rw [← join_neg_eq_neg_meet, sup_comm], }
-... = a + b                    : by { simp, },
+... = a + b                    : by { simp, }
 
 -- Bourbaki A.VI.12 Definition 4
 /--
@@ -347,7 +347,7 @@ $$a⊔b = b + (a - b)⁺.$$
 -/
 lemma join_eq_add_pos_sub (a b : α) : a⊔b = b + (a - b)⁺ :=
   calc  a⊔b = (b+(a-b))⊔(b+0) : by {rw add_zero b, rw add_sub_cancel'_right, }
-  ... = b + ((a-b)⊔0) : by { rw ← add_join_eq_add_join_add (a-b) 0 b},
+  ... = b + ((a-b)⊔0) : by { rw ← add_join_eq_add_join_add (a-b) 0 b}
 
 -- Bourbaki A.VI.12 (with a and b swapped)
 /--
@@ -523,7 +523,7 @@ theorem abs_diff_sup_add_abs_diff_inf (a b c : α) :
     ... = b⊔a + c -(b⊓a+c)                      :
       by {rw [add_comm, add_eq_meet_add_join, add_comm (b ⊓ a ⊔ c), add_eq_meet_add_join] }
     ... = b⊔a - b⊓a                             : by { simp, }
-    ... = |a-b|                                 : by { rw join_sub_meet_eq_abs_sub, },
+    ... = |a-b|                                 : by { rw join_sub_meet_eq_abs_sub, }
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is

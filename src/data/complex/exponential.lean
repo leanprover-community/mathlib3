@@ -1328,7 +1328,7 @@ begin
         end
 end
 
-lemma exp_bound' {x : ℂ} {n : ℕ} (hn : 0 < n) (hx : abs x ≤ n / 2) :
+lemma exp_bound' {x : ℂ} {n : ℕ} (hx : abs x ≤ n / 2) :
   abs (exp x - ∑ m in range n, x ^ m / m!) ≤ 2 * abs x ^ n * (n!)⁻¹ :=
 begin
   rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],

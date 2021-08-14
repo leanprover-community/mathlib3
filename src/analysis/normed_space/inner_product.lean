@@ -2293,21 +2293,16 @@ variables {K}
 lemma reflection_apply (p : E) : reflection K p = bit0 ↑(orthogonal_projection K p) - p := rfl
 
 /-- Reflection is its own inverse. -/
-@[simp] lemma reflection_symm :
-  (reflection K).symm = reflection K :=
-rfl
+@[simp] lemma reflection_symm : (reflection K).symm = reflection K := rfl
 
 variables (K)
 
 /-- Reflecting twice in the same subspace. -/
-@[simp] lemma reflection_reflection (p : E) :
-  reflection K (reflection K p) = p :=
+@[simp] lemma reflection_reflection (p : E) : reflection K (reflection K p) = p :=
 (reflection K).left_inv p
 
 /-- Reflection is involutive. -/
-lemma reflection_involutive :
-  function.involutive (reflection K) :=
-reflection_reflection K
+lemma reflection_involutive : function.involutive (reflection K) := reflection_reflection K
 
 end reflection
 

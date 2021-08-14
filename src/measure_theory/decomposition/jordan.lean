@@ -153,7 +153,8 @@ end
 
 /-- **The Jordan decomposition theorem**: Given a signed measure `s`, there exists a pair of
 mutually singular measures `μ` and `ν` such that `s = μ - ν`. In this case, the measures `μ`
-and `ν` are given by `s.to_jordan_decomposition.μ` and `s.to_jordan_decomposition.ν` respectively.
+and `ν` are given by `s.to_jordan_decomposition.pos_part` and
+`s.to_jordan_decomposition.neg_part` respectively.
 
 Note that we use `measure_theory.jordan_decomposition.to_signed_measure` to represent the
 signed measure corresponding to `s.to_jordan_decomposition.μ - s.to_jordan_decomposition.ν`. -/
@@ -197,14 +198,10 @@ lemma subset_negative_null_set
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
   (hsu : s ≤[u] 0) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
-  have : s v + s (w \ v) = 0,
-  { rw [← hw₁, ← of_union set.disjoint_diff hv (hw.diff hv),
-        set.union_diff_self, set.union_eq_self_of_subset_left hwt],
-    apply_instance },
-  have h₁ := nonpos_of_restrict_le_zero _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),
-  have h₂ := nonpos_of_restrict_le_zero _
-    (restrict_le_restrict_subset _ _ hu hsu ((w.diff_subset v).trans hw₂)),
-  linarith,
+  rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
+  have := subset_positive_null_set hu hv hw hsu,
+  simp only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
+  exact this hw₁ hw₂ hwt,
 end
 
 /-- If the symmetric difference of two positive sets is a null-set, then so are the differences
@@ -231,14 +228,11 @@ lemma of_diff_eq_zero_of_symm_diff_eq_zero_negative
   (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
 begin
-  rw restrict_le_restrict_iff at hsu hsv,
-  have a := hsu (hu.diff hv) (u.diff_subset v),
-  have b := hsv (hv.diff hu) (v.diff_subset u),
-  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff)
-        (hu.diff hv) (hv.diff hu)] at hs,
-  rw zero_apply at a b,
-  split,
-  all_goals { linarith <|> apply_instance <|> assumption },
+  rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
+  rw [← s.neg_le_neg_iff _ hv, neg_zero] at hsv,
+  have := of_diff_eq_zero_of_symm_diff_eq_zero_positive hu hv hsu hsv,
+  simp only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
+  exact this hs,
 end
 
 lemma of_inter_eq_of_symm_diff_eq_zero_positive
@@ -266,19 +260,11 @@ lemma of_inter_eq_of_symm_diff_eq_zero_negative
   (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=
 begin
-  have hwuv : s ((w ∩ u) Δ (w ∩ v)) = 0,
-  { refine subset_negative_null_set (hu.union hv) ((hw.inter hu).symm_diff (hw.inter hv))
-      (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs _ _,
-    { exact symm_diff_le_sup u v },
-    { rintro x (⟨⟨hxw, hxu⟩, hx⟩ | ⟨⟨hxw, hxv⟩, hx⟩);
-      rw [set.mem_inter_eq, not_and] at hx,
-      { exact or.inl ⟨hxu, hx hxw⟩ },
-      { exact or.inr ⟨hxv, hx hxw⟩ } } },
-  obtain ⟨huv, hvu⟩ := of_diff_eq_zero_of_symm_diff_eq_zero_negative
-    (hw.inter hu) (hw.inter hv)
-    (restrict_le_restrict_subset _ _ hu hsu (w.inter_subset_right u))
-    (restrict_le_restrict_subset _ _ hv hsv (w.inter_subset_right v)) hwuv,
-  rw [← of_diff_of_diff_eq_zero (hw.inter hu) (hw.inter hv) hvu, huv, zero_add]
+  rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
+  rw [← s.neg_le_neg_iff _ hv, neg_zero] at hsv,
+  have := of_inter_eq_of_symm_diff_eq_zero_positive hu hv hw hsu hsv,
+  simp only [pi.neg_apply, neg_inj, neg_eq_zero, coe_neg] at this,
+  exact this hs,
 end
 
 end

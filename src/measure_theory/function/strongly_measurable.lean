@@ -191,9 +191,9 @@ variables [topological_space β] (hf : fin_strongly_measurable f μ)
 
 protected noncomputable def approx : ℕ → α →ₛ β := hf.some
 
-protected lemma fin_support : ∀ n, μ (support (hf.approx n)) < ∞ := hf.some_spec.1
+protected lemma fin_support_approx : ∀ n, μ (support (hf.approx n)) < ∞ := hf.some_spec.1
 
-protected lemma tendsto_approx: ∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x)) :=
+protected lemma tendsto_approx : ∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x)) :=
 hf.some_spec.2
 
 lemma strongly_measurable : strongly_measurable f := ⟨hf.approx, hf.tendsto_approx⟩

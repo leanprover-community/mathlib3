@@ -48,7 +48,7 @@ at infinity if R is not a field. Define the group law on the R-points. (hard) pr
 
 /-- The discriminant of the plane cubic `Y^2+a1*X*Y+a3*Y=X^3+a2*X^2+a4*X+a6`. If `R` is a field
 then this polynomial vanishes iff the cubic curve cut out by this equation is singular. -/
-def EllipticCurve.disc_aux {R : Type*} [comm_ring R] (a1 a2 a3 a4 a6 : R) :=
+def EllipticCurve.disc_aux {R : Type*} [comm_ring R] (a1 a2 a3 a4 a6 : R) : R :=
 -432*a6^2 + ((288*a2 + 72*a1^2)*a4 + (-216*a3^2 + (144*a1*a2 + 36*a1^3)*a3 + (-64*a2^3 -
 48*a1^2*a2^2 - 12*a1^4*a2 - a1^6)))*a6 + (-64*a4^3 + (-96*a1*a3 + (16*a2^2 + 8*a1^2*a2 + a1^4))*a4^2
 + ((72*a2 - 30*a1^2)*a3^2 + (16*a1*a2^2 + 8*a1^3*a2 + a1^5)*a3)*a4 + (-27*a3^4 + (36*a1*a2 +

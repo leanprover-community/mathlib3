@@ -477,7 +477,7 @@ variable (K)
 /-- A field is one-dimensional as a vector space over itself. -/
 @[simp] lemma finrank_of_field : finrank K K = 1 :=
 begin
-  have := dim_of_field K,
+  have := dim_of_ring,
   rw [← finrank_eq_dim] at this,
   exact_mod_cast this
 end

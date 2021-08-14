@@ -1884,7 +1884,7 @@ begin
     refine (integral_has_deriv_within_at_right _ _ _).continuous_within_at.add
       continuous_within_at_const,
     { exact (hcont'.mono $ Icc_subset_Icc_right hy.2).interval_integrable_of_Icc hy.1 },
-    { exact ⟨_, mem_sets_of_superset self_mem_nhds_within Ioc_subset_Icc_self, hmeas'⟩ },
+    { exact ⟨_, mem_of_superset self_mem_nhds_within Ioc_subset_Icc_self, hmeas'⟩ },
     { exact (hcont' y hy).mono Ioc_subset_Icc_self } }
 end
 

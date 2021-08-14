@@ -191,7 +191,7 @@ begin
       card_eq_card_quotient_mul_card_subgroup
         (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H),
       fintype.card_congr this, hH, pow_succ],
-  exact nat.modeq.modeq_mul_right' _ (card_quotient_normalizer_modeq_card_quotient hH)
+  exact (card_quotient_normalizer_modeq_card_quotient hH).mul_right' _
 end
 
 /-- If `H` is a `p`-subgroup but not a Sylow `p`-subgroup, then `p` divides the
@@ -216,8 +216,8 @@ nat.dvd_of_mod_eq_zero
 lemma prime_pow_dvd_card_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ (n + 1) ∣ card G) {H : subgroup G} (hH : fintype.card H = p ^ n) :
   p ^ (n + 1) ∣ card (normalizer H) :=
-nat.modeq.modeq_zero_iff.1 ((card_normalizer_modeq_card hH).trans
-  (nat.modeq.modeq_zero_iff.2 hdvd))
+nat.modeq_zero_iff_dvd.1 ((card_normalizer_modeq_card hH).trans
+  hdvd.modeq_zero_nat)
 
 /-- If `H` is a subgroup of `G` of cardinality `p ^ n`,
   then `H` is contained in a subgroup of cardinality `p ^ (n + 1)`

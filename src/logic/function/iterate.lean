@@ -47,7 +47,7 @@ nat.rec_on n rfl $ λ n ihn, by rw [iterate_succ, ihn, comp.left_id]
 
 theorem iterate_add : ∀ (m n : ℕ), f^[m + n] = (f^[m]) ∘ (f^[n])
 | m 0 := rfl
-| m (nat.succ n) := by rw [iterate_succ, iterate_succ, iterate_add]
+| m (nat.succ n) := by rw [nat.add_succ, iterate_succ, iterate_succ, iterate_add]
 
 theorem iterate_add_apply (m n : ℕ) (x : α) : f^[m + n] x = (f^[m] (f^[n] x)) :=
 by rw iterate_add

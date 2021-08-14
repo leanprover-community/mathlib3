@@ -409,7 +409,7 @@ end
 
 lemma pow_padic_val_nat_dvd {p n : ℕ} [fact (nat.prime p)] : p ^ (padic_val_nat p n) ∣ n :=
 begin
-  cases eq_zero_or_pos n with hn hn,
+  cases nat.eq_zero_or_pos n with hn hn,
   { rw hn, exact dvd_zero (p ^ padic_val_nat p 0) },
   { rw multiplicity.pow_dvd_iff_le_multiplicity,
     apply le_of_eq,

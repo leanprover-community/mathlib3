@@ -1636,7 +1636,8 @@ def quot_left_to_quot_sum : I.quotient →+* (I+J).quotient :=
 ideal.quotient.lift I (ideal.quotient.mk (I+J)) (left_proj_quot_add_mk I J)
 
 /-- This will be used to lift `quot_left_to_quot_sum` to a map `(R/I)/J' → R/(I+J)`-/
-def img_left_in_ker (x : I.quotient) (hx : x ∈ J.map(ideal.quotient.mk I)) : quot_left_to_quot_sum I J x = 0 :=
+def img_left_in_ker (x : I.quotient) (hx : x ∈ J.map(ideal.quotient.mk I)) :
+  quot_left_to_quot_sum I J x = 0 :=
 begin
   have hIJmap: ((quot_left_to_quot_sum I J).comp(ideal.quotient.mk I) '' J) =
     (ideal.quotient.mk (I+J) '' J),
@@ -1645,7 +1646,8 @@ begin
     split,
 
      {intro hy,
-      obtain ⟨z,hz⟩ := (set.mem_image ((quot_left_to_quot_sum I J).comp(ideal.quotient.mk I)) J y).1 hy,
+      obtain ⟨z,hz⟩ := (set.mem_image ((quot_left_to_quot_sum I J).comp(ideal.quotient.mk I))
+        J y).1 hy,
       unfold quot_left_to_quot_sum at hz,
       rw [ring_hom.comp_apply,ideal.quotient.lift_mk] at hz,
       rw ← hz.right,
@@ -1658,11 +1660,13 @@ begin
       rwa [ring_hom.comp_apply, ideal.quotient.lift_mk]},
     },
 
-  have hJ: (J.map (ideal.quotient.mk I)).map (quot_left_to_quot_sum I J) = J.map (ideal.quotient.mk (I+J))
+  have hJ: (J.map (ideal.quotient.mk I)).map (quot_left_to_quot_sum I J) = J.map
+    (ideal.quotient.mk (I+J))
     := by rw [ideal.map_map, ideal.map,hIJmap, ← ideal.map],
 
-  have hmapx : quot_left_to_quot_sum I J x ∈ (J.map (ideal.quotient.mk I)).map (quot_left_to_quot_sum I J), {
-    rw ideal.map,
+  have hmapx : quot_left_to_quot_sum I J x ∈ (J.map (ideal.quotient.mk I)).map
+    (quot_left_to_quot_sum I J),
+    {rw ideal.map,
     apply set.mem_of_subset_of_mem (ideal.subset_span),
     exact (set.mem_image_of_mem (quot_left_to_quot_sum I J) hx)},
 
@@ -1671,6 +1675,7 @@ end
 
 /-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I+J)`, where `J'` is the image of `J` in `R/I` -/
 def double_quot_to_quot_add : (J.map (ideal.quotient.mk I)).quotient →+* (I + J).quotient :=
-ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sum I J) (img_left_in_ker I J)
+ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sum I J)
+ (img_left_in_ker I J)
 
 end double_quot

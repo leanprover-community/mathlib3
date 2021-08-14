@@ -386,14 +386,26 @@ int.is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
 lemma int.eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) : (z = 1 ∧ w = 1) ∨
 (z = -1 ∧ w = -1) :=
 begin
-  have := int.eq_one_or_neg_one_of_mul_eq_one,
-  sorry, -- ALEX HOMEWORK
---int.is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
+  cases int.eq_one_or_neg_one_of_mul_eq_one h,
+  { left,
+    split,
+    assumption,
+    rw h_1 at h,
+    rw one_mul at h,
+    exact h },
+  { right,
+    split,
+    assumption,
+    rw h_1 at h,
+    rw [neg_mul_eq_neg_mul_symm, one_mul] at h,
+    exact eq_neg_of_eq_neg (eq.symm h),
+  },
 end
 
 lemma int.le_one_zero (z : ℤ) (h: _root_.abs z < 1) : z = 0 :=
 begin
-  have int.eq_zero_iff_abs_lt_one.mp,
+  rw int.eq_zero_iff_abs_lt_one at h,
+  exact h,
 end
 
 lemma int.ne_zero_ge_one {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
@@ -418,18 +430,29 @@ begin
 end
 
 
-lemma junk1 ( x y : ℝ ): (0 < x) → (0 < y) → 0 < x*y :=
+lemma junk1 ( x y z: ℝ ): (x < y) → (0 < z) → x*z < y*z :=
 begin
-  intros,
-  exact mul_pos ᾰ ᾰ_1,
+  intros hxy hz,
+  exact (mul_lt_mul_right hz).mpr hxy,
 end
 
 
+
+/-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
+def fundamental_domain_open : set ℍ :=
+{z | 1 < (complex.norm_sq z) ∧ |z.re| < (1 : ℝ) / 2}
+
+notation `𝒟ᵒ` := fundamental_domain_open
 
 
 lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :
   (3 : ℝ)/4 < 4/ (3* (g 1 0)^4) :=
 begin
+  have z_im := z.im_ne_zero,
+  have c_2_pos : (0 : ℝ) < (g 1 0)^2,
+    exact_mod_cast pow_even_pos c_ne_z (by simp: even 2),
+  have c_4_pos : (0 : ℝ) < (g 1 0)^4,
+    exact_mod_cast pow_even_pos c_ne_z (by simp: even 4),
   have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
   {
     intros w hw,
@@ -444,6 +467,7 @@ begin
     ... = norm_sq (bottom g z) : by simp [norm_sq, bottom]; ring,
 
   have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
+  have zIm' : (3 : ℝ) < 4 * (z.im)^2 := by nlinarith,
 
   calc
   (3 : ℝ)/4 < ((g • z).im)^2 : ImGeInD _ hg
@@ -452,7 +476,7 @@ begin
   ... < (4 : ℝ)/ (3* (g 1 0)^4) : _,
 
   {
-    convert congr_arg (λ (x:ℝ), x^2) (im_smul_int_eq_div_norm_sq g z) using 1,
+    convert congr_arg (λ (x:ℝ), x^2) (im_smul_eq_div_norm_sq g z) using 1,
     exact (div_pow _ _ 2).symm,
   },
 
@@ -464,16 +488,15 @@ begin
     {
       exact pow_two_pos_of_ne_zero _ (normsq_bottom_ne_zero g z),
     },
-
-    refine mul_pos (pow_even_pos _ (by norm_num : even 4))
-      (pow_two_pos_of_ne_zero _ (im_nonzero z)),
-    exact_mod_cast c_ne_z,
-
+    { nlinarith, },
   },
 
-  rw div_lt_div_iff,
-  sorry, -- ALEX HOMEWORK
-
+  {
+    rw div_lt_div_iff,
+    nlinarith,
+    nlinarith,
+    nlinarith,
+  },
 end
 
 lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
@@ -492,23 +515,25 @@ begin
   {
     have := g_det,
     rw h at this,
-    rw g.det_coe_fun at this,
+    --rw g.det_coe_fun at this,
     simp at this,
     have := int.eq_one_or_neg_one_of_mul_eq_one' (this.symm),
     have gzIs : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → ↑(gg • z : ℍ) = (z : ℂ) + gg 0 1,
     {
       intros gg h₀ h₁ h₂,
+      simp only [coe_fn_eq_coe] at h₀ h₁ h₂,
       simp [h₀, h₁, h₂],
     },
     have gIsId : ∀ (gg : SL(2,ℤ)), gg • z ∈ 𝒟ᵒ → gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg = 1,
     {
       intros gg hh h₀ h₁ h₂,
+      simp only [coe_fn_eq_coe] at h₀ h₁ h₂,
       ext i,
       fin_cases i;
       fin_cases j,
-      simp [h₁],
+      simp only [h₁, coe_one, one_apply_eq],
       {
-        simp,
+        simp only [nat.one_ne_zero, coe_one, fin.zero_eq_one_iff, ne.def, not_false_iff, one_apply_ne],
 --        apply int.eq_zero_iff_abs_lt_one.mp,
         by_contra hhh,
         have reZ : |z.re| < 1/2,
@@ -527,12 +552,12 @@ begin
           apply congr_arg complex.re,
           exact_mod_cast (gzIs gg h₀ h₁ h₂).symm,
         },
-        have := int.ne_zero_ge_one hhh,
+
         refine move_by_large reZ reZpN _,
-        exact_mod_cast this,
+        exact_mod_cast  int.ne_zero_ge_one hhh,
       },
-      simp [h₀],
-      simp [h₂],
+      simp only [h₀, nat.one_ne_zero, coe_one, fin.one_eq_zero_iff, ne.def, not_false_iff, one_apply_ne],
+      simp only [h₂, coe_one, one_apply_eq],
     },
     have zIsGz : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg • z ∈ 𝒟ᵒ → z = gg • z,
     {
@@ -546,70 +571,19 @@ begin
       exact zIsGz g h this_1.1 this_1.2 hg,
     },
     { -- case a = d = -1
-      rw ← smul_neg_int,
-      apply zIsGz; simp [h, this_1],
+      rw ← neg_smul,
+      apply zIsGz; simp,
+      exact_mod_cast h,
+      simp only [this_1, neg_neg],
+      simp only [this_1, neg_neg],
+      --simp only [has_neg_coe_mat, dmatrix.neg_apply, coe_fn_eq_coe, neg_eq_zero],
       exact hg,
     },
   },
   {
     -- want to argue first that c=± 1
     -- then show this is impossible
-    have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
-    {
-      intros w hw,
-      have : 1 < (w.re)^2+(w.im)^2,
-      {
-        have : norm_sq w = (w.re)^2+(w.im)^2,
-        {
-          simp [norm_sq],
-          ring,
-        },
-        have hw1 := hw.1,
-        rw this at hw1,
-        linarith,
-      },
-      have : (w.re)^2 < 1/4,
-      {
-        convert sq_lt_sq hw.2 using 1,
-        field_simp,
-        ring,
-      },
-      linarith,
-    },
-
-    have czPdGecy : (g 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (bottom g z) :=
-      calc
-      (g 1 0 : ℝ)^2 * (z.im)^2 ≤ (g 1 0 : ℝ)^2 * (z.im)^2 + (g 1 0 * z.re + g 1 1)^2 : by nlinarith
-      ... = norm_sq (bottom g z) : by simp [norm_sq, bottom]; ring,
-
-    have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
-    have gzIm : (3 : ℝ) / 4 < ((g • z).im)^2 := ImGeInD _ hg,
-    have gzImIs : (g • z).im = z.im/ norm_sq (bottom g z),
-    {
-      sorry,
-    },
-
-    have cBnd : (3 : ℝ)/4 < 4/ (3* (g 1 0)^4),
-    {
-      calc
-      (3 : ℝ)/4 < ((g • z).im)^2 : ImGeInD _ hg
-      ... = (z.im)^2 / (norm_sq (bottom g z))^2 : _
-      ... ≤ (1 : ℝ)/((g 1 0)^4 * (z.im)^2) : _
-      ... < (4 : ℝ)/ (3* (g 1 0)^4) : _,
-
-      convert congr_arg (λ (x:ℝ), x^2) gzImIs using 1,
-      exact (div_pow _ _ 2).symm,
-
-      {
-      --  field_simp,
-        sorry,
-      },
-
-
-
-      sorry,
-    },
-
+    have := ineq_1 z g hz hg h,
 
     sorry,
   },
@@ -621,11 +595,15 @@ end
 
  lemma namedIsZ (c :ℤ  ) (h: c≤ 1) (h2: 0≤ c) :  c=0 ∨ c=1 :=
     begin
-         lift n to ℕ using hn
+--         lift n to ℕ using hn
       lift c to ℕ using h2,
       norm_cast,
-      refine namedIs _ _ ,
-      exact_mod_cast h,
+      cases c,
+      left, refl,
+      right,
+      norm_cast at h,
+      rw nat.succ_le_succ_iff at h,
+      sorry,
     end
 
 

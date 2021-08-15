@@ -934,14 +934,14 @@ instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurab
 begin
   refine ⟨λ s hs, _⟩,
   rw [← equiv.plift.surjective.infi_comp, mem_infi] at hs,
-  rcases hs with ⟨t, ht, ⟨V, hVf, hVs⟩⟩,
+  rcases hs with ⟨t, ht, ⟨V, hVf, rfl⟩⟩,
   choose U hUf hU using λ i, is_measurably_generated.exists_measurable_subset (hVf i),
   refine ⟨⋂ i : t, U i, _, _, _⟩,
   { rw [← equiv.plift.surjective.infi_comp, mem_infi],
-    refine ⟨t, ht, U, hUf, subset.refl _⟩ },
+    refine ⟨t, ht, U, hUf, rfl⟩ },
   { haveI := ht.countable.to_encodable,
     refine measurable_set.Inter (λ i, (hU i).1) },
-  { exact subset.trans (Inter_subset_Inter $ λ i, (hU i).2) hVs }
+  { exact Inter_subset_Inter (λ i, (hU i).2) }
 end
 
 end filter

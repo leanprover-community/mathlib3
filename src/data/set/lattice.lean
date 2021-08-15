@@ -332,6 +332,36 @@ supr_option s
 lemma Inter_option {ι} (s : option ι → set α) : (⋂ o, s o) = s none ∩ ⋂ i, s (some i) :=
 infi_option s
 
+lemma Inter_ite {ι : Type*} (f g : ι → set α) (I : set ι) [decidable_pred (λ x, x ∈ I)] :
+  (⋂ i, if i ∈ I then f i else g i) = (⋂ i ∈ I, f i) ∩ (⋂ i (h : i ∉ I), g i) :=
+begin
+  ext x,
+  simp,
+  split,
+  { intro h,
+    split ;
+    { intros i hi,
+      simpa [hi] using h i } },
+  { rintro ⟨h, h'⟩ i,
+    split_ifs with hi,
+    exacts [h i hi, h' i hi] }
+end
+
+lemma image_projection_prod {ι : Type*} {α : ι → Type*} {v : Π (i : ι), set (α i)}
+  (hv : (pi univ v).nonempty) (i : ι) :
+  (λ (x : Π (i : ι), α i), x i) '' (⋂ k, (λ (x : Π (j : ι), α j), x k) ⁻¹' v k) = v i:=
+begin
+  classical,
+  apply subset.antisymm,
+  { simp [Inter_subset] },
+  { intros y y_in,
+    simp only [mem_image, mem_Inter, mem_preimage],
+    rcases hv with ⟨z, hz⟩,
+    refine ⟨function.update z i y, _, update_same i y z⟩,
+    rw @forall_update_iff ι α _ z i y (λ i t, t ∈ v i),
+    exact ⟨y_in, λ j hj, by simpa using hz j⟩ },
+end
+
 /-! ### Unions and intersections indexed by `Prop` -/
 
 @[simp] theorem Inter_false {s : false → set α} : Inter s = univ := infi_false

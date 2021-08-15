@@ -734,10 +734,41 @@ lemma is_closed_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, s
 by rw [pi_def];
   exact (is_closed_Inter $ λ a, is_closed_Inter $ λ ha, (hs _ ha).preimage (continuous_apply _))
 
+lemma mem_nhds_pi {ι : Type*} {α : ι → Type*} [Π (i : ι), topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} (a : Π i, α i) (hs : I.pi s ∈ 𝓝 a) {i : ι} (hi : i ∈ I) :
+  s i ∈ 𝓝 (a i) :=
+begin
+  set p := λ i, λ (x : Π (i : ι), α i), x i,
+  rw [nhds_pi, pi_def] at hs,
+  obtain ⟨t : ι → set (Π i, α i),
+          ht : ∀ i, t i ∈ comap (p i) (𝓝 (a i)), ht' : (⋂ i ∈ I, p i ⁻¹' s i) = ⋂ (i : ι), t i⟩ :=
+    exists_Inter_of_mem_infi hs,
+  simp only [exists_prop, mem_comap] at ht,
+  choose v hv hv' using ht,
+  apply mem_of_superset (hv i),
+  have := calc (⋂ i, p i ⁻¹' v i) ⊆ (⋂ i, t i) : Inter_subset_Inter hv'
+  ... = ⋂ i ∈ I, p i ⁻¹' s i : by simp_rw ht'
+  ... ⊆ p i ⁻¹' s i : bInter_subset_of_mem hi,
+  rwa [← image_subset_iff, image_projection_prod] at this,
+  use a,
+  rw [mem_univ_pi],
+  exact λ j, mem_of_mem_nhds (hv j)
+end
+
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
   {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
   pi i s ∈ 𝓝 x :=
 by { rw [pi_def, bInter_mem hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
+
+lemma set_pi_mem_nhds_iff [fintype ι] {α : ι → Type*} [Π (i : ι), topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} (a : Π i, α i) :
+  I.pi s ∈ 𝓝 a ↔ ∀ (i : ι), i ∈ I → s i ∈ 𝓝 (a i) :=
+⟨by apply mem_nhds_pi, set_pi_mem_nhds $ finite.of_fintype I⟩
+
+lemma interior_pi_set [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
+  {I : set ι} {s : Π i, set (α i)} :
+  interior (pi I s) = I.pi (λ i, interior (s i)) :=
+by { ext a, simp only [mem_pi, mem_interior_iff_mem_nhds, set_pi_mem_nhds_iff] }
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =

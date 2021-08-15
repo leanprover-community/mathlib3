@@ -140,7 +140,7 @@ The Stone-Cech compactification functor from topological spaces to compact Hausd
 left adjoint to the inclusion functor.
 -/
 noncomputable def Top_to_CompHaus : Top.{u} ⥤ CompHaus.{u} :=
-adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u u} (λ _ _ _ _ _, rfl)
+adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u} (λ _ _ _ _ _, rfl)
 
 lemma Top_to_CompHaus_obj (X : Top) : ↥(Top_to_CompHaus.obj X) = stone_cech X :=
 rfl

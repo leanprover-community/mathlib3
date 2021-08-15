@@ -7,7 +7,7 @@ import tactic.auto_cases
 import tactic.tidy
 import tactic.with_local_reducibility
 import tactic.show_term
-import measure_theory.measure_space_def
+import measure_theory.measure.measure_space_def
 /-!
 # Tactics for measure theory
 

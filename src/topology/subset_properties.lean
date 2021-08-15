@@ -75,7 +75,7 @@ begin
   refine hs.compl_mem_sets (λ a ha, _),
   rcases hf a ha with ⟨t, ht, hst⟩,
   replace ht := mem_inf_principal.1 ht,
-  refine mem_inf_sets.2 ⟨_, ht, _, hst, _⟩,
+  apply mem_inf_of_inter ht hst,
   rintros x ⟨h₁, h₂⟩ hs,
   exact h₂ (h₁ hs)
 end
@@ -124,7 +124,7 @@ inter_eq_self_of_subset_right h ▸ hs.inter_right ht
 lemma is_compact.adherence_nhdset {f : filter α}
   (hs : is_compact s) (hf₂ : f ≤ 𝓟 s) (ht₁ : is_open t) (ht₂ : ∀a∈s, cluster_pt a f → a ∈ t) :
   t ∈ f :=
-classical.by_cases mem_sets_of_eq_bot $
+classical.by_cases mem_of_eq_bot $
   assume : f ⊓ 𝓟 tᶜ ≠ ⊥,
   let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := @@hs ⟨this⟩ $ inf_le_of_left_le hf₂ in
   have a ∈ t,
@@ -132,7 +132,7 @@ classical.by_cases mem_sets_of_eq_bot $
   have tᶜ ∩ t ∈ 𝓝[tᶜ] a,
     from inter_mem_nhds_within _ (is_open.mem_nhds ht₁ this),
   have A : 𝓝[tᶜ] a = ⊥,
-    from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
+    from empty_mem_iff_bot.1 $ compl_inter_self t ▸ this,
   have 𝓝[tᶜ] a ≠ ⊥,
     from hfa.of_inf_right.ne,
   absurd A this
@@ -280,26 +280,26 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt
     by simpa only [cluster_pt, not_exists, not_not, ne_bot_iff],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
-    have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
-    let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_sets] at this; exact this in
+    have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_mem_iff_bot, hf x hxs],
+    let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_iff] at this; exact this in
     have ∅ ∈ 𝓝[t₂] x,
-      from (𝓝[t₂] x).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
+      by { rw [ht, inter_comm], exact inter_mem_nhds_within _ ht₁ },
     have 𝓝[t₂] x = ⊥,
-      by rwa [empty_in_sets_eq_bot] at this,
+      by rwa [empty_mem_iff_bot] at this,
     by simp only [closure_eq_cluster_pts] at hx; exact (hx t₂ ht₂).ne this,
   let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
     (by simpa [eq_empty_iff_forall_not_mem, not_exists]) in
   have (⋂i∈t, subtype.val i) ∈ f,
     from t.Inter_mem_sets.2 $ assume i hi, i.2,
   have s ∩ (⋂i∈t, subtype.val i) ∈ f,
-    from inter_mem_sets (le_principal_iff.1 hfs) this,
+    from inter_mem (le_principal_iff.1 hfs) this,
   have ∅ ∈ f,
-    from mem_sets_of_superset this $ assume x ⟨hxs, hx⟩,
+    from mem_of_superset this $ assume x ⟨hxs, hx⟩,
     let ⟨i, hit, hxi⟩ := (show ∃i ∈ t, x ∉ closure (subtype.val i),
       by { rw [eq_empty_iff_forall_not_mem] at ht, simpa [hxs, not_forall] using ht x }) in
     have x ∈ closure i.val, from subset_closure (mem_bInter_iff.mp hx i hit),
     show false, from hxi this,
-  hfn.ne $ by rwa [empty_in_sets_eq_bot] at this
+  hfn.ne $ by rwa [empty_mem_iff_bot] at this
 
 /-- A set `s` is compact if for every open cover of `s`, there exists a finite subcover. -/
 lemma is_compact_of_finite_subcover
@@ -333,7 +333,7 @@ theorem is_compact_iff_finite_subfamily_closed :
 @[simp]
 lemma is_compact_empty : is_compact (∅ : set α) :=
 assume f hnf hsf, not.elim hnf.ne $
-empty_in_sets_eq_bot.1 $ le_principal_iff.1 hsf
+empty_mem_iff_bot.1 $ le_principal_iff.1 hsf
 
 @[simp]
 lemma is_compact_singleton {a : α} : is_compact ({a} : set α) :=
@@ -694,10 +694,10 @@ begin
   intros f hfs,
   rw le_principal_iff at hfs,
   obtain ⟨a : α, sa : a ∈ s, ha : map prod.fst ↑f ≤ 𝓝 a⟩ :=
-    hs (f.map prod.fst) (le_principal_iff.2 $ mem_map.2 $ mem_sets_of_superset hfs (λ x, and.left)),
+    hs (f.map prod.fst) (le_principal_iff.2 $ mem_map.2 $ mem_of_superset hfs (λ x, and.left)),
   obtain ⟨b : β, tb : b ∈ t, hb : map prod.snd ↑f ≤ 𝓝 b⟩ :=
     ht (f.map prod.snd) (le_principal_iff.2 $ mem_map.2 $
-      mem_sets_of_superset hfs (λ x, and.right)),
+      mem_of_superset hfs (λ x, and.right)),
   rw map_le_iff_le_comap at ha hb,
   refine ⟨⟨a, b⟩, ⟨sa, tb⟩, _⟩,
   rw nhds_prod_eq, exact le_inf ha hb
@@ -740,7 +740,7 @@ lemma filter.coprod_cocompact {β : Type*} [topological_space β]:
   (filter.cocompact α).coprod (filter.cocompact β) = filter.cocompact (α × β) :=
 begin
   ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],
+  simp only [mem_coprod_iff, exists_prop, mem_comap, filter.mem_cocompact],
   split,
   { rintro ⟨⟨A, ⟨t, ht, hAt⟩, hAS⟩, B, ⟨t', ht', hBt'⟩, hBS⟩,
     refine ⟨t.prod t', ht.prod ht', _⟩,
@@ -774,7 +774,7 @@ begin
   intros h f hfs,
   have : ∀i:ι, ∃a, a∈s i ∧ tendsto (λx:Πi:ι, π i, x i) f (𝓝 a),
   { refine λ i, h i (f.map _) (mem_map.2 _),
-    exact mem_sets_of_superset hfs (λ x hx, hx i) },
+    exact mem_of_superset hfs (λ x hx, hx i) },
   choose a ha,
   exact  ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
 end
@@ -792,7 +792,7 @@ lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topologica
   filter.Coprod (λ d, filter.cocompact (κ d)) = filter.cocompact (Π d, κ d) :=
 begin
   ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, filter.mem_cocompact],
+  simp only [mem_coprod_iff, exists_prop, mem_comap, filter.mem_cocompact],
   split,
   { intros h,
     rw filter.mem_Coprod_iff at h,

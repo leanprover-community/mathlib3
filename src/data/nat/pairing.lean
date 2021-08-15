@@ -56,12 +56,12 @@ begin
   by_cases a < b; simp [h, mkpair],
   { show unpair (b * b + a) = (a, b),
     have be : sqrt (b * b + a) = b,
-    { rw sqrt_add_eq, exact le_trans (le_of_lt h) (le_add_left _ _) },
+    { rw sqrt_add_eq, exact le_trans (le_of_lt h) (nat.le_add_left _ _) },
     simp [unpair, be, nat.add_sub_cancel, h] },
   { show unpair (a * a + a + b) = (a, b),
     have ae : sqrt (a * a + (a + b)) = a,
     { rw sqrt_add_eq, exact add_le_add_left (le_of_not_gt h) _ },
-    simp [unpair, ae, not_lt_zero, add_assoc] }
+    simp [unpair, ae, nat.not_lt_zero, add_assoc] }
 end
 
 lemma surjective_unpair : surjective unpair :=
@@ -90,7 +90,7 @@ by simpa using unpair_left_le (mkpair a b)
 theorem right_le_mkpair (a b : ℕ) : b ≤ mkpair a b :=
 begin
   by_cases h : a < b; simp [mkpair, h],
-  exact le_trans (le_mul_self _) (le_add_right _ _)
+  exact le_trans (le_mul_self _) (nat.le_add_right _ _)
 end
 
 theorem unpair_right_le (n : ℕ) : (unpair n).2 ≤ n :=
@@ -120,7 +120,7 @@ begin
     simp at h₁,
     rw [add_comm, add_comm _ a, add_assoc, add_lt_add_iff_left],
     rwa [add_comm, ← sqrt_lt, sqrt_add_eq],
-    exact le_trans h₁ (le_add_left _ _) }
+    exact le_trans h₁ (nat.le_add_left _ _) }
 end
 
 end nat

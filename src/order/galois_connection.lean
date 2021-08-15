@@ -307,7 +307,7 @@ lemma l_u_eq [preorder α] [partial_order β] (gi : galois_insertion l u) (b : �
 (gi.gc.l_u_le _).antisymm (gi.le_l_u _)
 
 lemma left_inverse_l_u [preorder α] [partial_order β] (gi : galois_insertion l u) :
-  function.left_inverse l u :=
+  left_inverse l u :=
 gi.l_u_eq
 
 lemma l_surjective [preorder α] [partial_order β] (gi : galois_insertion l u) :
@@ -484,6 +484,10 @@ variables {l : α → β} {u : β → α}
 lemma u_l_eq [partial_order α] [preorder β] (gi : galois_coinsertion l u) (a : α) :
   u (l a) = a :=
 gi.dual.l_u_eq a
+
+lemma u_l_left_inverse [partial_order α] [preorder β] (gi : galois_coinsertion l u) :
+  left_inverse u l :=
+gi.u_l_eq
 
 lemma u_surjective [partial_order α] [preorder β] (gi : galois_coinsertion l u) :
   surjective u :=

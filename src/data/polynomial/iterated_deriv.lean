@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import data.polynomial.derivative
-import logic.function.iterate
 import data.finset.intervals
-import tactic.ring
+import data.polynomial.derivative
 import tactic.linarith
 
 /-!
@@ -67,7 +65,7 @@ by simp only [iterated_deriv, derivative_X, function.iterate_one]
 @[simp] lemma iterated_deriv_X (h : 1 < n) : iterated_deriv (X : polynomial R) n = 0 :=
 begin
   induction n with n ih,
-  { exfalso, exact not_lt_zero 1 h},
+  { exfalso, exact nat.not_lt_zero 1 h},
   { simp only [iterated_deriv_succ],
     by_cases H : n = 1,
     { rw H, simp only [iterated_deriv_X_one, derivative_one] },

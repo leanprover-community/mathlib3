@@ -266,7 +266,7 @@ lemma quotient_nhd_basis (S : add_subgroup M) :
     { rintros - ⟨x, x_in, rfl⟩,
       rw mem_ball_0_iff at x_in,
       exact lt_of_le_of_lt (quotient_norm_mk_le S x) x_in },
-    apply filter.mem_sets_of_superset _ (set.subset.trans this h),
+    apply filter.mem_of_superset _ (set.subset.trans this h),
     clear h U this,
     apply is_open.mem_nhds,
     { change is_open ((mk' S) ⁻¹' _),

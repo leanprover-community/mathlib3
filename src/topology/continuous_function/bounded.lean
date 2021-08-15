@@ -189,7 +189,7 @@ instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)�
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
 have Hs : _ := continuous_iff'.1 f.continuous x (ε/2) (half_pos ε0),
-mem_sets_of_superset (prod_is_open.mem_nhds (ball_mem_nhds _ (half_pos ε0)) Hs) $
+mem_of_superset (prod_is_open.mem_nhds (ball_mem_nhds _ (half_pos ε0)) Hs) $
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
   ... < ε/2 + ε/2 : add_lt_add (lt_of_le_of_lt (dist_coe_le_dist _) hg) hy

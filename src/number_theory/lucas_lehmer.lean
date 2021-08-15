@@ -507,12 +507,9 @@ lemma modeq_mersenne (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :
 -- See https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/help.20finding.20a.20lemma/near/177698446
 begin
   conv in k { rw ← nat.div_add_mod k (2^n) },
-  refine nat.modeq.modeq_add _ (by refl),
+  refine nat.modeq.add_right _ _,
   conv { congr, skip, skip, rw ← one_mul (k/2^n) },
-  refine nat.modeq.modeq_mul _ (by refl),
-  symmetry,
-  rw [nat.modeq.modeq_iff_dvd, int.coe_nat_sub],
-  exact pow_pos (show 0 < 2, from dec_trivial) _
+  exact (nat.modeq_sub $ pow_pos (by norm_num : 0 < 2) _).mul_right _,
 end
 
 -- It's hard to know what the limiting factor for large Mersenne primes would be.

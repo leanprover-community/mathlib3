@@ -41,7 +41,7 @@ def cofinite : filter α :=
   (∀ᶠ x in cofinite, p x) ↔ finite {x | ¬p x} := iff.rfl
 
 instance cofinite_ne_bot [infinite α] : ne_bot (@cofinite α) :=
-⟨mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }⟩
+⟨mt empty_mem_iff_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }⟩
 
 lemma frequently_cofinite_iff_infinite {p : α → Prop} :
   (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=
@@ -53,7 +53,7 @@ lemma coprod_cofinite {β : Type*} :
   (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
 begin
   ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, mem_cofinite],
+  simp only [mem_coprod_iff, exists_prop, mem_comap, mem_cofinite],
   split,
   { rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
     rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
@@ -71,7 +71,7 @@ lemma Coprod_cofinite {δ : Type*} {κ : δ → Type*} [fintype δ] :
   filter.Coprod (λ d, (cofinite : filter (κ d))) = cofinite :=
 begin
   ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap_sets, mem_cofinite],
+  simp only [mem_coprod_iff, exists_prop, mem_comap, mem_cofinite],
   split,
   { rintros h,
     rw mem_Coprod_iff at h,

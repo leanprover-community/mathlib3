@@ -601,6 +601,11 @@ def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
 { map_mul' := by { rintro ⟨x⟩ ⟨y⟩, refl },
   .. submodule.quot_equiv_of_eq I J h }
 
+@[simp]
+lemma quot_equiv_of_eq_mk {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) (x : R) :
+  quot_equiv_of_eq h (ideal.quotient.mk I x) = ideal.quotient.mk J x :=
+rfl
+
 section pi
 variables (ι : Type v)
 

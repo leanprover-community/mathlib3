@@ -868,7 +868,7 @@ begin
   rw hl_cb.tendsto_iff_seq_tendsto,
   { intros x xl,
     have hxl, { rw tendsto_at_top' at xl, exact xl },
-    have h := inter_mem_sets hF_meas h_bound,
+    have h := inter_mem hF_meas h_bound,
     replace h := hxl _ h,
     rcases h with ⟨k, h⟩,
     rw ← tendsto_add_at_top_iff_nat k,

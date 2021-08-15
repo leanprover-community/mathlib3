@@ -464,11 +464,9 @@ theorem has_strict_deriv_at_id : has_strict_deriv_at id 1 x :=
 lemma deriv_id : deriv id x = 1 :=
 has_deriv_at.deriv (has_deriv_at_id x)
 
-@[simp] lemma deriv_id' : deriv (@id 𝕜) = λ _, 1 :=
-funext deriv_id
+@[simp] lemma deriv_id' : deriv (@id 𝕜) = λ _, 1 := funext deriv_id
 
-@[simp] lemma deriv_id'' : deriv (λ x : 𝕜, x) x = 1 :=
-deriv_id x
+@[simp] lemma deriv_id'' : deriv (λ x : 𝕜, x) = λ _, 1 := deriv_id'
 
 lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) : deriv_within id s x = 1 :=
 (has_deriv_within_at_id x s).deriv_within hxs
@@ -625,6 +623,9 @@ by simp only [deriv_within, fderiv_within_add_const hxs]
 lemma deriv_add_const (c : F) : deriv (λy, f y + c) x = deriv f x :=
 by simp only [deriv, fderiv_add_const]
 
+@[simp] lemma deriv_add_const' (c : F) : deriv (λ y, f y + c) = deriv f :=
+funext $ λ x, deriv_add_const c
+
 theorem has_deriv_at_filter.const_add (c : F) (hf : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ y, c + f y) f' x L :=
 zero_add f' ▸ (has_deriv_at_filter_const x L c).add hf
@@ -643,6 +644,9 @@ by simp only [deriv_within, fderiv_within_const_add hxs]
 
 lemma deriv_const_add (c : F)  : deriv (λy, c + f y) x = deriv f x :=
 by simp only [deriv, fderiv_const_add]
+
+@[simp] lemma deriv_const_add' (c : F) : deriv (λ y, c + f y) = deriv f :=
+funext $ λ x, deriv_const_add c
 
 end add
 
@@ -1287,9 +1291,20 @@ lemma deriv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
   deriv_within (λ y, c y * d) s x = deriv_within c s x * d :=
 (hc.has_deriv_within_at.mul_const d).deriv_within hxs
 
-lemma deriv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
+lemma deriv_mul_const (d : 𝕜) :
   deriv (λ y, c y * d) x = deriv c x * d :=
-(hc.has_deriv_at.mul_const d).deriv
+begin
+  by_cases hc : differentiable_at 𝕜 c x,
+  { exact (hc.has_deriv_at.mul_const d).deriv },
+  { rw [deriv_zero_of_not_differentiable_at hc, zero_mul],
+    rcases eq_or_ne d 0 with rfl|hd,
+    { simp only [mul_zero, deriv_const] },
+    { refine deriv_zero_of_not_differentiable_at (mt (λ H, _) hc),
+      simpa only [mul_inv_cancel_right' hd] using H.mul_const d⁻¹ } }
+end
+
+@[simp] lemma deriv_mul_const' (d : 𝕜) : deriv (λ x, c x * d) = λ x, deriv c x * d :=
+funext $ λ _, deriv_mul_const d
 
 theorem has_deriv_within_at.const_mul (c : 𝕜) (hd : has_deriv_within_at d d' s x) :
   has_deriv_within_at (λ y, c * d y) (c * d') s x :=
@@ -1317,9 +1332,11 @@ lemma deriv_within_const_mul (hxs : unique_diff_within_at 𝕜 s x)
   deriv_within (λ y, c * d y) s x = c * deriv_within d s x :=
 (hd.has_deriv_within_at.const_mul c).deriv_within hxs
 
-lemma deriv_const_mul (c : 𝕜) (hd : differentiable_at 𝕜 d x) :
-  deriv (λ y, c * d y) x = c * deriv d x :=
-(hd.has_deriv_at.const_mul c).deriv
+lemma deriv_const_mul (c : 𝕜) : deriv (λ y, c * d y) x = c * deriv d x :=
+by simp only [mul_comm c, deriv_mul_const]
+
+@[simp] lemma deriv_const_mul' (c : 𝕜) : deriv (λ x, c * d x) = λ x, c * deriv d x :=
+funext (λ x, deriv_const_mul c)
 
 end mul
 

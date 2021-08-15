@@ -439,7 +439,7 @@ by rw [leading_coeff, leading_coeff, coeff_smul, hk.nat_degree_smul]
 lemma monic_of_is_unit_leading_coeff_inv_smul (h : is_unit p.leading_coeff) :
   monic (h.unit⁻¹ • p) :=
 begin
-  rw [monic.def, (units.is_smul_regular _).leading_coeff_smul, units.smul_def],
+  rw [monic.def, (is_smul_regular_of_group _).leading_coeff_smul, units.smul_def],
   obtain ⟨k, hk⟩ := h,
   simp only [←hk, smul_eq_mul, ←units.coe_mul, units.coe_eq_one, inv_mul_eq_iff_eq_mul],
   simp [units.ext_iff, is_unit.unit_spec]

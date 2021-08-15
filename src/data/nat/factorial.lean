@@ -159,7 +159,7 @@ begin
   exact add_factorial_succ_le_factorial_add_succ i h,
 end
 
-lemma pow_sub_mul_factorial_le_factorial {n m : ℕ} (hnm : n ≤ m) : n! * n ^ (m - n) ≤ m! :=
+lemma factorial_mul_pow_sub_le_factorial {n m : ℕ} (hnm : n ≤ m) : n! * n ^ (m - n) ≤ m! :=
 begin
   suffices : n! * (n + 1) ^ (m - n) ≤ m!,
   { have h1 := pow_le_pow_of_le_left (nat.zero_le _) (le_succ n) (m - n),

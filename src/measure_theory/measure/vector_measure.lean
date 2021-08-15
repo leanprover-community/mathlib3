@@ -16,10 +16,10 @@ Similarly, when `M = ℂ`, we call the measure a complex measure and write `comp
 
 ## Main definitions
 
-* `vector_measure` is a vector valued, σ-additive function that maps the empty
+* `measure_theory.vector_measure` is a vector valued, σ-additive function that maps the empty
   and non-measurable set to zero.
-* `vector_measure.map` is the pushforward of a vector measure along a function.
-* `vector_measure.restrict` is the restriction of a vector measure on some set.
+* `measure_theory.vector_measure.map` is the pushforward of a vector measure along a function.
+* `measure_theory.vector_measure.restrict` is the restriction of a vector measure on some set.
 
 ## Notation
 

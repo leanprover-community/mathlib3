@@ -213,8 +213,6 @@ meta def linter.doc_blame_thm : linter :=
   errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:",
   is_fast := ff }
 
-
-
 /-!
 ## Linter for correct usage of `lemma`/`def`
 -/
@@ -250,6 +248,10 @@ has been used. -/
 
 attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
+/-!
+## Linter that checks whether declarations are well-typed
+-/
+
 /-- Checks whether the statement of a declaration is well-typed. -/
 meta def check_type (d : declaration) : tactic (option string) :=
 (type_check d.type >> return none) <|> return "The statement doesn't type-check"
@@ -267,6 +269,12 @@ Some definitions in the statement are marked `@[irreducible]`, which means that 
 "or `@[semireducible]`. This can especially cause problems with type class inference or " ++
 "`@[simps]`.",
   is_fast := tt }
+
+/-!
+## Linter for universe parameters
+-/
+
+open native
 
 /--
   The good parameters are the parameters that occur somewhere in the `rb_set` as a singleton or

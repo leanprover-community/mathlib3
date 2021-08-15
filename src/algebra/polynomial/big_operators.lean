@@ -43,7 +43,7 @@ variables {α : Type*} [semiring α]
 
 lemma nat_degree_list_sum_le (l : list (polynomial α)) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max 0 :=
-list_sum_le_foldr_max nat_degree (by simp) nat_degree_add_le _
+list.sum_le_foldr_max nat_degree (by simp) nat_degree_add_le _
 
 lemma nat_degree_multiset_sum_le (l : multiset (polynomial α)) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max max_left_comm 0 :=

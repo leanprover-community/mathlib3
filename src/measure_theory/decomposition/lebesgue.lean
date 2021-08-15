@@ -190,7 +190,7 @@ begin
     { refine sup_le _ _,
       { convert @le_bsupr _ _ _ (λ i, i ≤ m + 1) _ m.succ (le_refl _), refl },
       { refine bsupr_le (λ n hn, _),
-        have := (le_trans hn (nat.le_succ m)), -- repacing `this` below with the proof breaks
+        have := (le_trans hn (nat.le_succ m)), -- replacing `this` below with the proof breaks
         exact (le_bsupr n this) } } },
 end
 

@@ -611,8 +611,8 @@ protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : ca
 
 /-- The lift of a supremum is the supremum of the lifts. -/
 lemma lift_sup {ι : Type v} (f : ι → cardinal.{max v w}) :
-  lift.{(max v w) (max u v w)} (sup.{v w} f) =
-    sup.{v (max u w)} (λ i : ι, lift.{(max v w) (max u v w)} (f i)) :=
+  lift.{(max v w) u} (sup.{v w} f) =
+    sup.{v (max u w)} (λ i : ι, lift.{(max v w) u} (f i)) :=
 begin
   apply le_antisymm,
   { rw [cardinal.le_sup_iff], intros c hc, by_contra h,
@@ -625,8 +625,8 @@ end
 /-- To prove that the lift of a supremum is bounded by some cardinal `t`,
 it suffices to show that the lift of each cardinal is bounded by `t`. -/
 lemma lift_sup_le {ι : Type v} (f : ι → cardinal.{max v w})
-  (t : cardinal.{max u v w}) (w : ∀ i, lift.{_ (max u v w)} (f i) ≤ t) :
-  lift.{(max v w) (max u v w)} (sup f) ≤ t :=
+  (t : cardinal.{max u v w}) (w : ∀ i, lift.{_ u} (f i) ≤ t) :
+  lift.{(max v w) u} (sup f) ≤ t :=
 by { rw lift_sup, exact sup_le.mpr w, }
 
 universes v' w'
@@ -638,8 +638,8 @@ if bounded by the lift of some cardinal from the larger supremum.
 -/
 lemma lift_sup_le_lift_sup
   {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{max v w}) (f' : ι' → cardinal.{max v' w'})
-  (g : ι → ι') (h : ∀ i, lift.{_ (max v w v' w')} (f i) ≤ lift.{_ (max v w v' w')} (f' (g i))) :
-  lift.{_ (max v w v' w')} (sup f) ≤ lift.{_ (max v w v' w')} (sup f') :=
+  (g : ι → ι') (h : ∀ i, lift.{_ (max v' w')} (f i) ≤ lift.{_ (max v w)} (f' (g i))) :
+  lift.{_ (max v' w')} (sup f) ≤ lift.{_ (max v w)} (sup f') :=
 begin
   apply lift_sup_le.{(max v' w')} f,
   intro i,

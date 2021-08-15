@@ -352,7 +352,6 @@ lemma inf_eq_sub_pos_sub (a b : α) : a⊓b = a - (a - b)⁺ :=
   ... = a - ((a-b)⊔0)        : by  { rw ← neg_sup_eq_neg_inf_neg, rw ← sub_eq_add_neg, }
 
 -- Bourbaki A.VI.12 Prop 9 c)
--- Can we rewrite `lattice_ordered_add_comm_group.le_pos b` as `b.le_pos`?
 /--
 Let `α` be a lattice ordered commutative group and let `a` and `b` be elements in `α` with positive
 components `a⁺` and `b⁺` and negative components `a⁻` and `b⁻` respectively. Then `b` dominates `a`

@@ -39,9 +39,9 @@ variables {α β : Type*} [measurable_space α]
 
 namespace measure_theory
 
-namespace signed_measure
+namespace measure
 
-open vector_measure measure
+open vector_measure signed_measure
 
 /-- If two finite measures `μ` and `ν` are not mutually singular, there exists some `ε > 0` and
 a measurable set `E`, such that `ν(E) > 0` and `E` is positive with respect to `μ - εν`.
@@ -421,6 +421,6 @@ begin
   { measurability }
 end
 
-end signed_measure
+end measure
 
 end measure_theory

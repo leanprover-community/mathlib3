@@ -41,18 +41,25 @@ namespace measure_theory
 
 namespace measure
 
-def has_lebesgue_decomposition (μ ν : measure α) : Prop :=
+/-- A pair of measures `μ` and `ν` is said to `have_lebesgue_decomposition` if there exists a
+measure `ξ` and a measurable function `f`, such that `ξ` is mutually singular with respect to
+`ν` and `μ = ξ + ν.with_density f`. -/
+def have_lebesgue_decomposition (μ ν : measure α) : Prop :=
 ∃ (p : measure α × (α → ℝ≥0∞)), measurable p.2 ∧ p.1 ⊥ₘ ν ∧ μ = p.1 + ν.with_density p.2
 
+/-- If a pair of measures `have_lebesgue_decomposition`, then `singular_part` chooses the
+measure from `have_lebesgue_decomposition`, otherwise it returns the zero measure. -/
 @[irreducible]
 def singular_part (μ ν : measure α) : measure α :=
-if h : has_lebesgue_decomposition μ ν then (classical.some h).1 else 0
+if h : have_lebesgue_decomposition μ ν then (classical.some h).1 else 0
 
+/-- If a pair of measures `have_lebesgue_decomposition`, then `radon_nikodym_deriv` chooses the
+measurable function from `have_lebesgue_decomposition`, otherwise it returns the zero function. -/
 @[irreducible]
 def radon_nikodym_deriv (μ ν : measure α) : α → ℝ≥0∞ :=
-if h : has_lebesgue_decomposition μ ν then (classical.some h).2 else 0
+if h : have_lebesgue_decomposition μ ν then (classical.some h).2 else 0
 
-lemma has_lebesgue_decomposition_spec {μ ν : measure α} (h : has_lebesgue_decomposition μ ν) :
+lemma have_lebesgue_decomposition_spec {μ ν : measure α} (h : have_lebesgue_decomposition μ ν) :
   measurable (radon_nikodym_deriv μ ν) ∧ (singular_part μ ν) ⊥ₘ ν ∧
   μ = (singular_part μ ν) + ν.with_density (radon_nikodym_deriv μ ν) :=
 begin
@@ -63,8 +70,8 @@ end
 lemma radon_nikodym_deriv_measurable (μ ν : measure α) :
   measurable $ radon_nikodym_deriv μ ν :=
 begin
-  by_cases h : has_lebesgue_decomposition μ ν,
-  { exact (has_lebesgue_decomposition_spec h).1 },
+  by_cases h : have_lebesgue_decomposition μ ν,
+  { exact (have_lebesgue_decomposition_spec h).1 },
   { rw [radon_nikodym_deriv, dif_neg h],
     exact measurable_zero }
 end
@@ -269,12 +276,12 @@ def measurable_le_eval (μ ν : measure α) : set ℝ≥0∞ :=
 
 end
 
-/-- **The Lebesgue decomposition theorem**: Given finite measures `μ` and `ν`, there exists
-measures `ν₁`, `ν₂` such that `ν₁` is mutually singular to `μ` and there exists some
-`f : α → ℝ≥0∞` such that `ν₂ = μ.with_density f`. !!!fix docstring -/
-theorem has_lebesgue_decomposition_of_finite_measure
+/-- **The Lebesgue decomposition theorem**: Any pair of finite measures `μ` and `ν`
+`have_lebesgue_decomposition`. That is to say, there exists a measure `ξ` and a measurable function
+`f`, such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f` -/
+theorem have_lebesgue_decomposition_of_finite_measure
   (ν μ : measure α) [finite_measure ν] [finite_measure μ] :
-  has_lebesgue_decomposition ν μ :=
+  have_lebesgue_decomposition ν μ :=
 begin
   have h := @exists_seq_tendsto_Sup _ _ _ _ _ (measurable_le_eval μ ν)
     ⟨0, 0, zero_mem_measurable_le, by simp⟩ (order_top.bdd_above _),
@@ -385,17 +392,12 @@ begin
         add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
 end
 
--- move
-lemma finite_measure_le (μ ν : measure α) [finite_measure μ] (h : ν ≤ μ) :
-  finite_measure ν :=
-{ measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
-
 instance {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
   finite_measure (singular_part μ ν) :=
 begin
-  obtain ⟨-, -, h⟩ := has_lebesgue_decomposition_spec
-    (has_lebesgue_decomposition_of_finite_measure μ ν),
-  refine finite_measure_le μ _ _,
+  obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
+    (have_lebesgue_decomposition_of_finite_measure μ ν),
+  refine finite_measure_le μ _,
   conv_rhs { rw h },
   exact measure.le_add_right (le_refl _),
 end
@@ -403,34 +405,34 @@ end
 instance {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
   finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
 begin
-  obtain ⟨-, -, h⟩ := has_lebesgue_decomposition_spec
-    (has_lebesgue_decomposition_of_finite_measure μ ν),
-  refine finite_measure_le μ _ _,
+  obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
+    (have_lebesgue_decomposition_of_finite_measure μ ν),
+  refine finite_measure_le μ _,
   conv_rhs { rw h },
   exact measure.le_add_left (le_refl _),
 end
 
 /-- The Lebesgue decomposition is unique. -/
-theorem singular_with_density_unique -- !!!rename
+theorem have_lebesgue_decomposition_unique
   {μ ν : measure α} [finite_measure μ] [finite_measure ν]
   (s : measure α) (f : α → ℝ≥0∞) (hf : measurable f) (hs : s ⊥ₘ ν)
   (hadd : μ = s + ν.with_density f) :
   s = μ.singular_part ν ∧ ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
 begin
-  obtain ⟨-, hsing, hadd'⟩ := has_lebesgue_decomposition_spec
-    (has_lebesgue_decomposition_of_finite_measure μ ν),
+  obtain ⟨-, hsing, hadd'⟩ := have_lebesgue_decomposition_spec
+    (have_lebesgue_decomposition_of_finite_measure μ ν),
   obtain ⟨T, hT₁, hT₂, hT₃⟩ := hsing,
   obtain ⟨S, hS₁, hS₂, hS₃⟩ := hs,
   haveI : finite_measure s,
-  { obtain ⟨-, -, h⟩ := has_lebesgue_decomposition_spec
-    (has_lebesgue_decomposition_of_finite_measure μ ν),
-    refine finite_measure_le μ _ _,
+  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
+    (have_lebesgue_decomposition_of_finite_measure μ ν),
+    refine finite_measure_le μ _,
     conv_rhs { rw hadd },
     exact measure.le_add_right (le_refl _) },
   haveI : finite_measure (ν.with_density f),
-  { obtain ⟨-, -, h⟩ := has_lebesgue_decomposition_spec
-      (has_lebesgue_decomposition_of_finite_measure μ ν),
-    refine finite_measure_le μ _ _,
+  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
+      (have_lebesgue_decomposition_of_finite_measure μ ν),
+    refine finite_measure_le μ _,
     conv_rhs { rw hadd },
     exact measure.le_add_left (le_refl _) },
   have hsub : (μ.singular_part ν).to_signed_measure - s.to_signed_measure =

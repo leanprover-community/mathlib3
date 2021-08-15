@@ -800,9 +800,8 @@ begin
   have C : tendsto (λ p : ℝ × ℝ, p.1 ^ p.2) (𝓝[{0}] 0 ×ᶠ 𝓝 y) (pure 0),
   { rw [nhds_within_singleton, tendsto_pure, pure_prod, eventually_map],
     exact (lt_mem_nhds hp).mono (λ y hy, zero_rpow hy.ne') },
-  have := B.sup (C.mono_right (pure_le_nhds _)),
-  rw [← sup_prod, ← nhds_within_union, set.compl_union_self, nhds_within_univ, ← nhds_prod_eq] at this,
-  simpa [continuous_at, hp.ne']
+  simpa only [← sup_prod, ← nhds_within_union, set.compl_union_self, nhds_within_univ, nhds_prod_eq,
+    continuous_at, zero_rpow hp.ne'] using B.sup (C.mono_right (pure_le_nhds _))
 end
 
 lemma continuous_at_rpow (p : ℝ × ℝ) (h : p.1 ≠ 0 ∨ 0 < p.2) :

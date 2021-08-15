@@ -30,7 +30,7 @@ We provide the following functions to work with these objects:
 
 -/
 
-universe variables u
+universe variables u v
 
 open category_theory
 
@@ -315,7 +315,7 @@ section skeleton
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
 @[simps obj map]
-def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd :=
+def skeletal_functor : simplex_category.{u} ⥤ NonemptyFinLinOrd.{v} :=
 { obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
   map := λ a b f,
     ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩,

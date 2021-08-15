@@ -605,6 +605,22 @@ begin
   exact quotient.sound ⟨equiv.sigma_equiv_prod ι α⟩,
 end
 
+protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : cardinal} :
+  (c ≤ sup f) ↔ (∀ b, (∀ i, f i ≤ b) → c ≤ b) :=
+⟨λ h b hb, le_trans h (sup_le.mpr hb), λ h, h _ $ λ i, le_sup f i⟩
+
+lemma lift_sup {ι : Type v} (f : ι → cardinal.{max v w}) :
+  lift.{(max v w) (max u v w)} (sup.{v w} f) =
+    sup.{v (max u w)} (λ i : ι, lift.{(max v w) (max u v w)} (f i)) :=
+begin
+  apply le_antisymm,
+  { rw [cardinal.le_sup_iff], intros c hc, by_contra h,
+    obtain ⟨d, rfl⟩ := cardinal.lift_down (not_le.mp h).le,
+    simp only [lift_le, sup_le] at h hc,
+    exact h hc },
+  { simp only [cardinal.sup_le, lift_le, le_sup, implies_true_iff] }
+end
+
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)
 

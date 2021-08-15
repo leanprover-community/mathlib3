@@ -71,7 +71,7 @@ protected lemma mul_le_mul [monoid α] {f₁ f₂ g₁ g₂ : filter α} (hf : f
 @[to_additive]
 lemma ne_bot.mul [monoid α] {f g : filter α} : ne_bot f → ne_bot g → ne_bot (f * g) :=
 begin
-  simp only [forall_sets_nonempty_iff_ne_bot.symm],
+  simp only [forall_mem_nonempty_iff_ne_bot.symm],
   rintros hf hg s ⟨a, b, ha, hb, ab⟩,
   exact ((hf a ha).mul (hg b hb)).mono ab
 end
@@ -97,7 +97,7 @@ protected lemma one_mul [monoid α] (f : filter α) : 1 * f = f :=
 begin
   ext s, split,
   { rintros ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩,
-    refine mem_sets_of_superset (mem_sets_of_superset ht₂ _) t₁t₂,
+    refine mem_of_superset (mem_of_superset ht₂ _) t₁t₂,
     assume x hx,
     exact ⟨1, x, by rwa [← mem_one], hx, one_mul _⟩ },
   { assume hs, refine ⟨(1:set α), s, mem_principal_self _, hs, by simp only [one_mul]⟩ }
@@ -108,7 +108,7 @@ protected lemma mul_one [monoid α] (f : filter α) : f * 1 = f :=
 begin
   ext s, split,
   { rintros ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩,
-    refine mem_sets_of_superset (mem_sets_of_superset ht₁ _) t₁t₂,
+    refine mem_of_superset (mem_of_superset ht₁ _) t₁t₂,
     assume x hx,
     exact ⟨x, 1, hx, by rwa [← mem_one], mul_one _⟩ },
   { assume hs,
@@ -146,7 +146,7 @@ end
 @[to_additive]
 protected lemma map_one : map φ (1:filter α) = 1 :=
 le_antisymm
-  (le_principal_iff.2 $ mem_map_sets_iff.2 ⟨(1:set α), by simp,
+  (le_principal_iff.2 $ mem_map_iff_exists_image.2 ⟨(1:set α), by simp,
     by { assume x, simp [φ.map_one] }⟩)
   (le_map $ assume s hs,
    begin

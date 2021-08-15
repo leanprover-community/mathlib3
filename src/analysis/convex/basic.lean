@@ -444,6 +444,30 @@ lemma convex.sub {t : set E}  (hs : convex s) (ht : convex t) :
   convex ((λx : E × E, x.1 - x.2) '' (s.prod t)) :=
 (hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
 
+lemma convex.add_smul (h_conv : convex s) {p q : ℝ} (hple : 0 ≤ p) (hqle : 0 ≤ q) :
+  (p + q) • s = p • s + q • s :=
+begin
+  rcases hple.lt_or_eq with hp | rfl,
+  rcases hqle.lt_or_eq with hq | rfl,
+  { have hpq : 0 < p + q, from add_pos hp hq,
+    ext,
+    split; intro h,
+    { rcases h with ⟨v, hv, rfl⟩,
+      use [p • v, q • v],
+      refine ⟨smul_mem_smul_set hv, smul_mem_smul_set hv, _⟩,
+      rw add_smul, },
+    { rcases h with ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
+      have := h_conv h₁₂ h₂₂ (le_of_lt $ div_pos hp hpq) (le_of_lt $ div_pos hq hpq)
+        (by {field_simp, rw [div_self (ne_of_gt hpq)]} : p / (p + q) + q / (p + q) = 1),
+      rw mem_smul_set,
+      refine ⟨_, this, _⟩,
+      simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne'], }, },
+  all_goals { rcases s.eq_empty_or_nonempty with rfl | hne,
+    { simp, },
+    rw zero_smul_set hne,
+    simp, },
+end
+
 lemma convex.translate (hs : convex s) (z : E) : convex ((λx, z + x) '' s) :=
 hs.affine_image $ affine_map.const ℝ E z +ᵥ affine_map.id ℝ E
 

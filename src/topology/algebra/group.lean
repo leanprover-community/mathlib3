@@ -477,7 +477,7 @@ variables {G}
 
 lemma neg_Z : tendsto (λa:G, - a) (Z G) (Z G) :=
 have tendsto (λa, (0:G)) (Z G) (Z G),
-  by refine le_trans (assume h, _) zero_Z; simp [univ_mem_sets'] {contextual := tt},
+  by refine le_trans (assume h, _) zero_Z; simp [univ_mem'] {contextual := tt},
 have tendsto (λa:G, 0 - a) (Z G) (Z G), from
   sub_Z.comp (tendsto.prod_mk this tendsto_id),
 by simpa
@@ -670,7 +670,7 @@ begin
     apply ts,
     simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) v_mem (w * y⁻¹) w_mem },
   { rintros ⟨a, c, ⟨b, hb, ba⟩, ⟨d, hd, dc⟩, ac⟩,
-    refine ⟨b ∩ d, inter_mem_sets hb hd, assume v, _⟩,
+    refine ⟨b ∩ d, inter_mem hb hd, assume v, _⟩,
     simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,
     rintros ⟨vb, vd⟩,
     refine ac ⟨v * y⁻¹, y, _, _, _⟩,

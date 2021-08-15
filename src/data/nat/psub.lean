@@ -62,7 +62,7 @@ begin
   { show m < n, refine lt_of_not_ge (λ h, _),
     cases le.dest h with k e,
     injection s.symm.trans (psub_eq_some.2 $ (add_comm _ _).trans e) },
-  { show n ≤ m, rw ← psub_eq_some.1 s, apply le_add_left }
+  { show n ≤ m, rw ← psub_eq_some.1 s, apply nat.le_add_left }
 end
 
 theorem ppred_eq_pred {n} (h : 0 < n) : ppred n = some (pred n) :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import data.list.rotate
-import data.finset.basic
+import data.finset.sort
 import data.fintype.list
 
 /-!
@@ -14,6 +14,11 @@ Lists have an equivalence relation of whether they are rotational permutations o
 This relation is defined as `is_rotated`.
 
 Based on this, we define the quotient of lists by the rotation relation, called `cycle`.
+
+We also define a representation of concrete cycles, available when viewing them in a goal state or
+via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
+as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
+underlying element. This representation also supports cycles that can contain duplicates.
 
 -/
 
@@ -577,6 +582,12 @@ The `s : cycle α` as a `multiset α`.
 def to_multiset (s : cycle α) : multiset α :=
 quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
 
+/--
+The lift of `list.map`.
+-/
+def map {β : Type*} (f : α → β) : cycle α → cycle β :=
+quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
+
 section decidable
 
 variable [decidable_eq α]
@@ -611,6 +622,22 @@ instance fintype_nodup_nontrivial_cycle [fintype α] :
 fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
   (function.embedding.subtype _)).filter cycle.nontrivial)
   (by simp)
+
+/--
+The `multiset` of lists that can make the cycle.
+-/
+def lists (s : cycle α) : multiset (list α) :=
+quotient.lift_on' s
+  (λ l, (l.permutations.filter (λ (l' : list α), (l' : cycle α) = s) : multiset (list α))) $
+  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using perm.filter _ h.perm.permutations
+
+@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
+  l ∈ s.lists ↔ (l : cycle α) = s :=
+begin
+  induction s using quotient.induction_on',
+  rw [lists, quotient.lift_on'_mk'],
+  simpa using is_rotated.perm
+end
 
 /--
 The `s : cycle α` as a `finset α`.
@@ -662,5 +689,14 @@ by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
 (quotient.induction_on' s next_prev) hs x hx
 
 end decidable
+
+/--
+We define a representation of concrete cycles, available when viewing them in a goal state or
+via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
+as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
+underlying element. This representation also supports cycles that can contain duplicates.
+-/
+instance [has_repr α] : has_repr (cycle α) :=
+⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
 
 end cycle

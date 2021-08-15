@@ -97,7 +97,7 @@ sorted_last_eq_max'_aux _ _ _
 
 lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
   s.max' h = (s.sort (≤)).nth_le ((s.sort (≤)).length - 1)
-    (by simpa using sub_lt (card_pos.mpr h) zero_lt_one) :=
+    (by simpa using nat.sub_lt (card_pos.mpr h) zero_lt_one) :=
 (sorted_last_eq_max'_aux _ _ _).symm
 
 /-- Given a finset `s` of cardinality `k` in a linear order `α`, the map `order_iso_of_fin s h`

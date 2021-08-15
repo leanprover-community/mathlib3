@@ -379,7 +379,7 @@ begin
   rcases hf x with ⟨U, hxU, hUf⟩,
   have : continuous_at (λ x, ∏ i in hUf.to_finset, f i x) x,
     from tendsto_finset_prod _ (λ i hi, (hc i).continuous_at),
-  refine this.congr (mem_sets_of_superset hxU $ λ y hy, _),
+  refine this.congr (mem_of_superset hxU $ λ y hy, _),
   refine (finprod_eq_prod_of_mul_support_subset _ (λ i hi, _)).symm,
   rw [hUf.coe_to_finset],
   exact ⟨y, hi, hy⟩

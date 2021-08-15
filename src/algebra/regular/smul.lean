@@ -186,12 +186,6 @@ begin
   simp [←smul_assoc]
 end
 
--- In files later in the algebra hierarchy, `[mul_action (units R) R]` is inferrable, but not here.
--- Since we do not rely on the definition of `(•)` for the proof, just the ability to state that it
--- has one and that it is `smul_assoc`, we can put the requirement of the action as a hypothesis.
-lemma units.is_smul_regular [mul_action (units R) R] (a : units R) : is_smul_regular R a :=
-is_smul_regular_of_group a
-
 end group
 
 variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]

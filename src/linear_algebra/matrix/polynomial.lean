@@ -62,7 +62,7 @@ end
 lemma coeff_det_X_add_C_zero (A B : matrix n n α) :
   coeff (det ((X : polynomial α) • A.map C + B.map C)) 0 = det B :=
 begin
-  rw [det_apply, coeff_finset_sum, det_apply],
+  rw [det_apply, finset_sum_coeff, det_apply],
   refine finset.sum_congr rfl _,
   intros g hg,
   convert coeff_smul (sign g) _ 0,
@@ -74,7 +74,7 @@ end
 lemma coeff_det_X_add_C_card (A B : matrix n n α) :
   coeff (det ((X : polynomial α) • A.map C + B.map C)) (fintype.card n) = det A :=
 begin
-  rw [det_apply, det_apply, coeff_finset_sum],
+  rw [det_apply, det_apply, finset_sum_coeff],
   refine finset.sum_congr rfl _,
   simp only [algebra.id.smul_eq_mul, finset.mem_univ, ring_hom.map_matrix_apply, forall_true_left,
              map_apply, dmatrix.add_apply, pi.smul_apply],

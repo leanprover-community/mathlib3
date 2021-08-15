@@ -423,8 +423,8 @@ The proof that every cyclic permutant of `l` is in the list is `list.mem_cyclic_
        [[1, 2, 3, 2, 4], [2, 3, 2, 4, 1], [3, 2, 4, 1, 2],
         [2, 4, 1, 2, 3], [4, 1, 2, 3, 2]] -/
 def cyclic_permutations : list α → list (list α)
-| []       := [[]]
-| (x :: l) := init (zip_with (++) (tails (x :: l)) (inits (x :: l)))
+| []         := [[]]
+| l@(_ :: _) := init (zip_with (++) (tails l) (inits l))
 
 @[simp] lemma cyclic_permutations_nil : cyclic_permutations ([] : list α) = [[]] := rfl
 

@@ -21,7 +21,7 @@ The main definitions are the type `weak_dual 𝕜 E` and a topology instance on 
 
 * `weak_dual 𝕜 E` is a type synonym for `dual 𝕜 E` (when the latter is defined), both are equal to
   the type `E →L[𝕜] 𝕜` of continuous linear maps from a module `E` over `𝕜` to the ring `𝕜`.
-* `weak_dual_topology` is the topology instance on `weak_dual 𝕜 E`, the weak-* topology, i.e.,
+* the instance `topological_space (weak_dual 𝕜 E)` is the weak-* topology on `weak_dual 𝕜 E`, i.e.,
   the coarsest topology making the evaluation maps at all `z : E` are continuous.
 
 ## Main results
@@ -143,7 +143,7 @@ instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   module 𝕜 (weak_dual 𝕜 E) :=
 continuous_linear_map.module
 
-/-- Scalar multiplication in `weak_dual 𝕜 E` is continuous (when `𝕜` are a commutative
+/-- Scalar multiplication in `weak_dual 𝕜 E` is continuous (when `𝕜` is a commutative
 semiring). -/
 instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]

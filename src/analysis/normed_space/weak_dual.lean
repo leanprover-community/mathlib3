@@ -29,7 +29,7 @@ The main definitions concern the canonical mapping `dual 𝕜 E → weak_dual �
 The file is a stub.
 
 The first main results concern the comparison of the operator norm topology on `dual 𝕜 E` and the
-weak-* topology on (it type synonym) `weak_dual 𝕜 E`:
+weak-* topology on (its type synonym) `weak_dual 𝕜 E`:
 * `dual_norm_topology_le_weak_dual_topology` is the statement that the weak-* topology on the dual
   of a normed space is coarser (not necessarily strictly) than the operator norm topology.
 

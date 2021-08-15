@@ -43,18 +43,7 @@ variables {α : Type*} [semiring α]
 
 lemma nat_degree_list_sum_le (l : list (polynomial α)) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max 0 :=
-begin
-  induction l with hd tl IH,
-  { simp },
-  { simp only [list.sum_cons, list.foldr_map, le_max_iff, list.foldr] at IH ⊢,
-    cases le_or_lt (nat_degree tl.sum) (nat_degree hd),
-    { left,
-      refine (nat_degree_add_le _ _).trans _,
-      simpa using h },
-    { right,
-      refine (nat_degree_add_le _ _).trans _,
-      simp only [IH, max_le_iff, and_true, h.le.trans IH] } }
-end
+list.sum_le_foldr_max nat_degree (by simp) nat_degree_add_le _
 
 lemma nat_degree_multiset_sum_le (l : multiset (polynomial α)) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max max_left_comm 0 :=
@@ -227,11 +216,6 @@ end
 lemma coeff_zero_prod :
   (∏ i in s, f i).coeff 0 = ∏ i in s, (f i).coeff 0 :=
 by simpa using coeff_zero_multiset_prod (s.1.map f)
-
-lemma coeff_finset_sum (f : ι → polynomial R) (n : ℕ) :
-  coeff (s.sum f) n = s.sum (λ p, coeff (f p) n) :=
-let g : polynomial R →+ R := add_monoid_hom.mk (λ p, coeff p n) (by simp) (by simp) in
-g.map_sum f s
 
 end comm_semiring
 

@@ -276,6 +276,16 @@ begin
       { exact nat.sub_lt_self (by simp) nat.succ_pos' } } }
 end
 
+lemma map_rotate {β : Type*} (f : α → β) (l : list α) (n : ℕ) :
+  map f (l.rotate n) = (map f l).rotate n :=
+begin
+  induction n with n hn IH generalizing l,
+  { simp },
+  { cases l with hd tl,
+    { simp },
+    { simp [hn] } }
+end
+
 theorem nodup.rotate_eq_self_iff {l : list α} (hl : l.nodup) {n : ℕ} :
   l.rotate n = l ↔ n % l.length = 0 ∨ l = [] :=
 begin
@@ -393,6 +403,14 @@ lemma is_rotated_iff_mem_map_range : l ~r l' ↔ l' ∈ (list.range (l.length + 
 begin
   simp_rw [mem_map, mem_range, is_rotated_iff_mod],
   exact ⟨λ ⟨n, hn, h⟩, ⟨n, nat.lt_succ_of_le hn, h⟩, λ ⟨n, hn, h⟩, ⟨n, nat.le_of_lt_succ hn, h⟩⟩
+end
+
+@[congr] theorem is_rotated.map {β : Type*} {l₁ l₂ : list α} (h : l₁ ~r l₂) (f : α → β) :
+  map f l₁ ~r map f l₂ :=
+begin
+  obtain ⟨n, rfl⟩ := h,
+  rw map_rotate,
+  use n
 end
 
 /-- List of all cyclic permutations of `l`.

@@ -226,7 +226,7 @@ by { rw ← image_univ, exact hf _ is_open_univ }
 lemma image_mem_nhds (hf : is_open_map f) {x : α} {s : set α} (hx : s ∈ 𝓝 x) :
   f '' s ∈ 𝓝 (f x) :=
 let ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hx in
-mem_sets_of_superset (is_open.mem_nhds (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
+mem_of_superset (is_open.mem_nhds (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
 
 lemma image_interior_subset (hf : is_open_map f) (s : set α) :
   f '' interior s ⊆ interior (f '' s) :=

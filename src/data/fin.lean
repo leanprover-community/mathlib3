@@ -606,7 +606,7 @@ lemma cast_eq_cast (h : n = m) : (cast h : fin n → fin m) = _root_.cast (h ▸
 by { subst h, ext, simp }
 
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
-def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
+def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
 

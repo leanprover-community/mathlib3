@@ -43,17 +43,6 @@ namespace signed_measure
 
 open vector_measure measure
 
--- move
-lemma measure.exists_measure_pos_of_measure_Union_pos [encodable β] (μ : measure α)
-  (f : β → set α) (hf : 0 < μ (⋃ n, f n)) :
-  ∃ n, 0 < μ (f n) :=
-begin
-  by_contra, push_neg at h,
-  simp_rw nonpos_iff_eq_zero at h,
-  refine pos_iff_ne_zero.1 hf _,
-  exact measure_Union_null h,
-end
-
 /-- If two finite measures `μ` and `ν` are not mutually singular, there exists some `ε > 0` and
 a measurable set `E`, such that `ν(E) > 0` and `E` is positive with respect to `μ - εν`.
 
@@ -115,8 +104,7 @@ begin
   have := h _ hAmeas hμ,
   simp_rw [hA₁, set.compl_Inter, compl_compl] at this,
   -- as `Aᶜ = ⋃ n, f n`, `ν Aᶜ > 0` implies there exists some `n` such that `ν (f n) > 0`
-  obtain ⟨n, hn⟩ := measure.exists_measure_pos_of_measure_Union_pos ν _
-    (pos_iff_ne_zero.mpr this),
+  obtain ⟨n, hn⟩ := exists_measure_pos_of_not_measure_Union_null this,
   -- thus, choosing `f n` as the set `E` suffices
   exact ⟨1 / (n + 1), by simp, f n, hf₁ n, hn, hf₂ n⟩,
 end
@@ -136,10 +124,9 @@ lemma zero_mem_measurable_le : (0 : α → ℝ≥0∞) ∈ measurable_le μ ν :
 ⟨measurable_zero, λ A hA, by simp⟩
 
 lemma max_measurable_le (f g : α → ℝ≥0∞)
-  (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν)
-  (A : set α) (hA : measurable_set A):
-  ∫⁻ a in A, max (f a) (g a) ∂μ
-  ≤ ∫⁻ a in A ∩ { a | f a ≤ g a }, g a ∂μ + ∫⁻ a in A ∩ { a | g a < f a }, f a ∂μ :=
+  (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν) (A : set α) (hA : measurable_set A) :
+  ∫⁻ a in A, max (f a) (g a) ∂μ ≤
+  ∫⁻ a in A ∩ { a | f a ≤ g a }, g a ∂μ + ∫⁻ a in A ∩ { a | g a < f a }, f a ∂μ :=
 begin
   rw [← lintegral_indicator _ hA, ← lintegral_indicator f,
       ← lintegral_indicator g, ← lintegral_add],

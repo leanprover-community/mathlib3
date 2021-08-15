@@ -660,7 +660,7 @@ instance ideal.unique_factorization_monoid :
       exact ⟨x * y, ideal.mul_mem_mul x_mem y_mem,
              mt this.is_prime.mem_or_mem (not_or x_not_mem y_not_mem)⟩,
     end⟩,
-     λ h, irreducible_of_prime h⟩,
+    prime.irreducible⟩,
   .. ideal.wf_dvd_monoid }
 
 noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=

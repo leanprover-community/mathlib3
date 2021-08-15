@@ -461,6 +461,8 @@ coe_injective $ funext h
 lemma ext_iff {f g : M →ₗ⁅R,L⁆ N} : f = g ↔ ∀ m, f m = g m :=
 ⟨by { rintro rfl m, refl, }, ext⟩
 
+lemma congr_fun {f g : M →ₗ⁅R,L⁆ N} (h : f = g) (x : M) : f x = g x := h ▸ rfl
+
 @[simp] lemma mk_coe (f : M →ₗ⁅R,L⁆ N) (h₁ h₂ h₃) :
   (⟨f, h₁, h₂, h₃⟩ : M →ₗ⁅R,L⁆ N) = f :=
 by { ext, refl, }

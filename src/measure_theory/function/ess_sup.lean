@@ -29,18 +29,18 @@ sense). We do not define that quantity here, which is simply the supremum of a m
 open measure_theory filter
 open_locale ennreal
 
-variables {α β : Type*} [measurable_space α] {μ : measure α}
+variables {α β : Type*} {m : measurable_space α} {μ ν : measure α}
 
 section conditionally_complete_lattice
 variable [conditionally_complete_lattice β]
 
 /-- Essential supremum of `f` with respect to measure `μ`: the smallest `c : β` such that
 `f x ≤ c` a.e. -/
-def ess_sup (f : α → β) (μ : measure α) := μ.ae.limsup f
+def ess_sup {m : measurable_space α} (f : α → β) (μ : measure α) := μ.ae.limsup f
 
 /-- Essential infimum of `f` with respect to measure `μ`: the greatest `c : β` such that
 `c ≤ f x` a.e. -/
-def ess_inf (f : α → β) (μ : measure α) := μ.ae.liminf f
+def ess_inf {m : measurable_space α} (f : α → β) (μ : measure α) := μ.ae.liminf f
 
 lemma ess_sup_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) : ess_sup f μ = ess_sup g μ :=
 limsup_congr hfg
@@ -53,10 +53,12 @@ end conditionally_complete_lattice
 section complete_lattice
 variable [complete_lattice β]
 
-@[simp] lemma ess_sup_measure_zero {f : α → β} : ess_sup f 0 = ⊥ :=
+@[simp] lemma ess_sup_measure_zero {m : measurable_space α} {f : α → β} :
+  ess_sup f (0 : measure α) = ⊥ :=
 le_bot_iff.mp (Inf_le (by simp [set.mem_set_of_eq, eventually_le, ae_iff]))
 
-@[simp] lemma ess_inf_measure_zero {f : α → β} : ess_inf f 0 = ⊤ :=
+@[simp] lemma ess_inf_measure_zero {m : measurable_space α} {f : α → β} :
+  ess_inf f (0 : measure α) = ⊤ :=
 @ess_sup_measure_zero α (order_dual β) _ _ _
 
 lemma ess_sup_mono_ae {f g : α → β} (hfg : f ≤ᵐ[μ] g) : ess_sup f μ ≤ ess_sup g μ :=
@@ -91,28 +93,26 @@ limsup_const_bot
 lemma ess_inf_const_top : ess_inf (λ x : α, (⊤ : β)) μ = (⊤ : β) :=
 liminf_const_top
 
-lemma order_iso.ess_sup_apply {γ} [complete_lattice γ] (f : α → β) (μ : measure α)
-  (g : β ≃o γ) :
+lemma order_iso.ess_sup_apply {m : measurable_space α} {γ} [complete_lattice γ]
+  (f : α → β) (μ : measure α) (g : β ≃o γ) :
   g (ess_sup f μ) = ess_sup (λ x, g (f x)) μ :=
 begin
   refine order_iso.limsup_apply g _ _ _ _,
   all_goals { is_bounded_default, },
 end
 
-lemma order_iso.ess_inf_apply {γ} [complete_lattice γ] (f : α → β) (μ : measure α)
-  (g : β ≃o γ) :
+lemma order_iso.ess_inf_apply {m : measurable_space α} {γ} [complete_lattice γ]
+  (f : α → β) (μ : measure α) (g : β ≃o γ) :
   g (ess_inf f μ) = ess_inf (λ x, g (f x)) μ :=
 @order_iso.ess_sup_apply α (order_dual β) _ _  (order_dual γ) _ _ _ g.dual
 
-lemma ess_sup_mono_measure {f : α → β} {μ ν : measure α} (hμν : ν ≪ μ) :
-  ess_sup f ν ≤ ess_sup f μ :=
+lemma ess_sup_mono_measure {f : α → β} (hμν : ν ≪ μ) : ess_sup f ν ≤ ess_sup f μ :=
 begin
   refine limsup_le_limsup_of_le (measure.ae_le_iff_absolutely_continuous.mpr hμν) _ _,
   all_goals { is_bounded_default, },
 end
 
-lemma ess_inf_antimono_measure {f : α → β} {μ ν : measure α} (hμν : μ ≪ ν) :
-  ess_inf f ν ≤ ess_inf f μ :=
+lemma ess_inf_antimono_measure {f : α → β} (hμν : μ ≪ ν) : ess_inf f ν ≤ ess_inf f μ :=
 begin
   refine liminf_le_liminf_of_le (measure.ae_le_iff_absolutely_continuous.mpr hμν) _ _,
   all_goals { is_bounded_default, },

@@ -35,7 +35,7 @@ attribute [to_additive add_units] units
 
 section has_elem
 
-@[to_additive, simp] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
+@[to_additive] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
   default α = 1 :=
 unique.default_eq 1
 

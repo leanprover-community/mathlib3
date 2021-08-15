@@ -9,19 +9,29 @@ import measure_theory.decomposition.jordan
 # Lebesgue decomposition
 
 This file proves the Lebesgue decomposition theorem. The Lebesgue decomposition theorem states that,
-given two finite measures `μ` and `ν`, there exists two unique finite measures `ν₁` and `ν₂`
-such that
-* `ν = ν₁ + ν₂`
-* `ν₁` is mutually singular with `μ`
-* there exists some measurable function `f` such that `ν₂ = μ.with_density f`
+given two finite measures `μ` and `ν`, there exists a finite measure `ξ` and a measurable function
+`f` such that `μ = ξ + fν` and `ξ` is mutually singular with respect to `ν`.
 
 The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 
+## Main definitions
+
+* `measure_theory.measure.have_lebesgue_decomposition` : A pair of measures `μ` and `ν` is said
+  to `have_lebesgue_decomposition` if there exists a measure `ξ` and a measurable function `f`,
+  such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f`
+* `measure_theory.measure.singular_part` : If a pair of measures `have_lebesgue_decomposition`,
+  then `singular_part` chooses the measure from `have_lebesgue_decomposition`, otherwise it
+  returns the zero measure.
+* ``measure_theory.measure.radon_nikodym_deriv` : If a pair of measures
+  `have_lebesgue_decomposition`, then `radon_nikodym_deriv` chooses the measurable function from
+  `have_lebesgue_decomposition`, otherwise it returns the zero function.
+
 ## Main results
 
-* `measure_theory.signed_measure.exists_singular_with_density` : the Lebesgue decomposition theorem.
-* `measure_theory.signed_measure.singular_with_density_unique` : the Lebesgue decomposition is
-  unique.
+* `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure` :
+  the Lebesgue decomposition theorem.
+* `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure_unique` :
+  the Lebesgue decomposition is unique.
 
 ## To do
 
@@ -286,10 +296,10 @@ begin
   have h := @exists_seq_tendsto_Sup _ _ _ _ _ (measurable_le_eval μ ν)
     ⟨0, 0, zero_mem_measurable_le, by simp⟩ (order_top.bdd_above _),
   choose g hmono hg₂ f hf₁ hf₂ using h,
-  -- we set `ζ` to be the supremum of a increasing sequence of functions obtained from above
-  set ζ := ⨆ n k (hk : k ≤ n), f k with hζ,
-  -- we see that `ζ` has the largest integral among all functions in `measurable_le`
-  have hζ₁ : Sup (measurable_le_eval μ ν) = ∫⁻ a, ζ a ∂μ,
+  -- we set `ξ` to be the supremum of a increasing sequence of functions obtained from above
+  set ξ := ⨆ n k (hk : k ≤ n), f k with hξ,
+  -- we see that `ξ` has the largest integral among all functions in `measurable_le`
+  have hξ₁ : Sup (measurable_le_eval μ ν) = ∫⁻ a, ξ a ∂μ,
   { have := @lintegral_tendsto_of_tendsto_of_monotone _ _ μ
       (λ n, ⨆ k (hk : k ≤ n), f k) (⨆ n k (hk : k ≤ n), f k) _ _ _,
     { refine tendsto_nhds_unique _ this,
@@ -307,38 +317,38 @@ begin
       simp [supr_monotone' f _] },
     { refine filter.eventually_of_forall (λ a, _),
       simp [tendsto_at_top_supr (supr_monotone' f a)] } },
-  have hζm : measurable ζ,
+  have hξm : measurable ξ,
   { convert measurable_supr (λ n, (supr_mem_measurable_le _ hf₁ n).1),
-    ext, simp [hζ] },
-  -- `ζ` is the `f` in the theorem statement and we set `ν₁` to be `ν - μ.with_density ζ`
-  -- since we need `ν₁ + μ.with_density ζ = ν`
-  set ν₁ := ν - μ.with_density ζ with hν₁,
-  have hle : μ.with_density ζ ≤ ν,
+    ext, simp [hξ] },
+  -- `ξ` is the `f` in the theorem statement and we set `ν₁` to be `ν - μ.with_density ξ`
+  -- since we need `ν₁ + μ.with_density ξ = ν`
+  set ν₁ := ν - μ.with_density ξ with hν₁,
+  have hle : μ.with_density ξ ≤ ν,
   { intros B hB,
-    rw [hζ, with_density_apply _ hB],
+    rw [hξ, with_density_apply _ hB],
     simp_rw [supr_apply],
     rw lintegral_supr (λ i, (supr_mem_measurable_le _ hf₁ i).1) (supr_monotone _),
     exact supr_le (λ i, (supr_mem_measurable_le _ hf₁ i).2 B hB) },
-  haveI : finite_measure (μ.with_density ζ),
+  haveI : finite_measure (μ.with_density ξ),
   { refine finite_measure_with_density _,
     have hle' := hle set.univ measurable_set.univ,
     rw [with_density_apply _ measurable_set.univ, measure.restrict_univ] at hle',
     exact lt_of_le_of_lt hle' (measure_lt_top _ _) },
-  refine ⟨⟨ν₁, ζ⟩, hζm, _, _⟩,
+  refine ⟨⟨ν₁, ξ⟩, hξm, _, _⟩,
   { by_contra,
   -- if they are not mutually singular, then from `exists_positive_of_not_mutually_singular`,
   -- there exists some `ε > 0` and a measurable set `E`, such that `ν(E) > 0` and `E` is
   -- positive with respect to `μ - εν`
     obtain ⟨ε, hε₁, E, hE₁, hE₂, hE₃⟩ := exists_positive_of_not_mutually_singular ν₁ μ h,
     simp_rw hν₁ at hE₃,
-    have hζle : ∀ A, measurable_set A → ∫⁻ a in A, ζ a ∂μ ≤ ν A,
-    { intros A hA, rw hζ,
+    have hξle : ∀ A, measurable_set A → ∫⁻ a in A, ξ a ∂μ ≤ ν A,
+    { intros A hA, rw hξ,
       simp_rw [supr_apply],
       rw lintegral_supr (λ n, (supr_mem_measurable_le _ hf₁ n).1) (supr_monotone _),
       exact supr_le (λ n, (supr_mem_measurable_le _ hf₁ n).2 A hA) },
-  -- since `E` is positive, we have `∫⁻ a in A ∩ E, ε + ζ a ∂μ ≤ ν (A ∩ E)` for all `A`
+  -- since `E` is positive, we have `∫⁻ a in A ∩ E, ε + ξ a ∂μ ≤ ν (A ∩ E)` for all `A`
     have hε₂ : ∀ A : set α, measurable_set A →
-      ∫⁻ a in A ∩ E, ε + ζ a ∂μ ≤ ν (A ∩ E),
+      ∫⁻ a in A ∩ E, ε + ξ a ∂μ ≤ ν (A ∩ E),
     { intros A hA,
       have := subset_le_of_restrict_le_restrict _ _ hE₁ hE₃ (set.inter_subset_right A E),
       rwa [zero_apply, to_signed_measure_sub_apply (hA.inter hE₁),
@@ -347,46 +357,46 @@ begin
             le_sub_iff_add_le, ← ennreal.to_real_add, ennreal.to_real_le_to_real,
             measure.coe_nnreal_smul, pi.smul_apply, with_density_apply _ (hA.inter hE₁),
             show ε • μ (A ∩ E) = (ε : ℝ≥0∞) * μ (A ∩ E), by refl,
-            ← set_lintegral_const, ← lintegral_add measurable_const hζm] at this,
+            ← set_lintegral_const, ← lintegral_add measurable_const hξm] at this,
       { rw [ne.def, ennreal.add_eq_top, not_or_distrib],
         exact ⟨ne_of_lt (measure_lt_top _ _), ne_of_lt (measure_lt_top _ _)⟩ },
       { exact ne_of_lt (measure_lt_top _ _) },
       { exact ne_of_lt (measure_lt_top _ _) },
       { exact ne_of_lt (measure_lt_top _ _) },
       { rw with_density_apply _ (hA.inter hE₁),
-        exact hζle (A ∩ E) (hA.inter hE₁) },
+        exact hξle (A ∩ E) (hA.inter hE₁) },
       { apply_instance } },
-  -- from this, we can show `ζ + ε * E.indicator` is a function in `measurable_le` with
-  -- integral greater than `ζ`
-    have hζε : ζ + E.indicator (λ _, ε) ∈ measurable_le μ ν,
-    { refine ⟨measurable.add hζm (measurable.indicator measurable_const hE₁), λ A hA, _⟩,
-      have : ∫⁻ a in A, (ζ + E.indicator (λ _, ε)) a ∂μ =
-            ∫⁻ a in A ∩ E, ε + ζ a ∂μ + ∫⁻ a in A ∩ Eᶜ, ζ a ∂μ,
-      { rw [lintegral_add measurable_const hζm, add_assoc,
+  -- from this, we can show `ξ + ε * E.indicator` is a function in `measurable_le` with
+  -- integral greater than `ξ`
+    have hξε : ξ + E.indicator (λ _, ε) ∈ measurable_le μ ν,
+    { refine ⟨measurable.add hξm (measurable.indicator measurable_const hE₁), λ A hA, _⟩,
+      have : ∫⁻ a in A, (ξ + E.indicator (λ _, ε)) a ∂μ =
+            ∫⁻ a in A ∩ E, ε + ξ a ∂μ + ∫⁻ a in A ∩ Eᶜ, ξ a ∂μ,
+      { rw [lintegral_add measurable_const hξm, add_assoc,
             ← lintegral_union (hA.inter hE₁) (hA.inter (hE₁.compl))
               (disjoint.mono (set.inter_subset_right _ _) (set.inter_subset_right _ _)
               disjoint_compl_right), set.inter_union_compl],
         simp_rw [pi.add_apply],
-        rw [lintegral_add hζm (measurable.indicator measurable_const hE₁), add_comm],
+        rw [lintegral_add hξm (measurable.indicator measurable_const hE₁), add_comm],
         refine congr_fun (congr_arg has_add.add _) _,
         rw [set_lintegral_const, lintegral_indicator _ hE₁, set_lintegral_const,
             measure.restrict_apply hE₁, set.inter_comm] },
       conv_rhs { rw ← set.inter_union_compl A E },
       rw [this, measure_union _ (hA.inter hE₁) (hA.inter hE₁.compl)],
       { exact add_le_add (hε₂ A hA)
-          (hζle (A ∩ Eᶜ) (hA.inter hE₁.compl)) },
+          (hξle (A ∩ Eᶜ) (hA.inter hE₁.compl)) },
       { exact disjoint.mono (set.inter_subset_right _ _) (set.inter_subset_right _ _)
           disjoint_compl_right } },
-      have : ∫⁻ a, ζ a + E.indicator (λ _, ε) a ∂μ ≤ Sup (measurable_le_eval μ ν),
-      { exact le_Sup ⟨ζ + E.indicator (λ _, ε), hζε, rfl⟩ },
-  -- but this contradics the maximality of `∫⁻ x, ζ x ∂μ`
+      have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂μ ≤ Sup (measurable_le_eval μ ν),
+      { exact le_Sup ⟨ξ + E.indicator (λ _, ε), hξε, rfl⟩ },
+  -- but this contradics the maximality of `∫⁻ x, ξ x ∂μ`
       refine not_lt.2 this _,
-      rw [hζ₁, lintegral_add hζm (measurable.indicator (measurable_const) hE₁),
+      rw [hξ₁, lintegral_add hξm (measurable.indicator (measurable_const) hE₁),
           lintegral_indicator _ hE₁, set_lintegral_const],
       refine ennreal.lt_add_right _ (ennreal.mul_pos.2 ⟨ennreal.coe_pos.2 hε₁, hE₂⟩),
-      have := measure_lt_top (μ.with_density ζ) set.univ,
+      have := measure_lt_top (μ.with_density ξ) set.univ,
       rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] at this },
-  -- since `μ.with_density ζ ≤ ν`, it is clear that `ν = ν₁ + μ.with_density ζ`
+  -- since `μ.with_density ξ ≤ ν`, it is clear that `ν = ν₁ + μ.with_density ξ`
   { rw hν₁, ext1 A hA,
     rw [measure.coe_add, pi.add_apply, measure.sub_apply hA hle,
         add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
@@ -413,7 +423,7 @@ begin
 end
 
 /-- The Lebesgue decomposition is unique. -/
-theorem have_lebesgue_decomposition_unique
+theorem have_lebesgue_decomposition_of_finite_measure_unique
   {μ ν : measure α} [finite_measure μ] [finite_measure ν]
   (s : measure α) (f : α → ℝ≥0∞) (hf : measurable f) (hs : s ⊥ₘ ν)
   (hadd : μ = s + ν.with_density f) :

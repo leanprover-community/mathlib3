@@ -289,7 +289,7 @@ l.fold [] list.union
 else bad_params $ rb_set.of_list $ l.to_list.map $ λ us, us.filter $ λ nm, !good_levels.contains nm
 
 /-- Checks whether all universe levels `u` in `d` are "good".
-  This means that `u` either occurs by in a `level` of `d` by itself, or (recursively)
+  This means that `u` either occurs in a `level` of `d` by itself, or (recursively)
   with only other good levels.
   When this fails, usually this means that there is a level `max u v`, where neither `u` nor `v`
   occur by themselves in a level. It is ok if *one* of `u` or `v` never occurs alone. For example,
@@ -299,7 +299,7 @@ meta def check_univs (d : declaration) : tactic (option string) := do
   let l := d.type.univ_params_grouped.union d.value.univ_params_grouped,
   let bad := bad_params l,
   if bad.empty then return none else return $ some $ "universes " ++ to_string bad ++
-  " can be replaced by fewer universes."
+  " only occur together."
 
 /-- A linter for checking that there are no bad `max u v` universe levels. -/
 @[linter]

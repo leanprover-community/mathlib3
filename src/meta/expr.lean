@@ -247,7 +247,10 @@ meta def fold_mvar {α} : level → (name → α → α) → α → α
 | (max a b) f := fold_mvar a f ∘ fold_mvar b f
 | (imax a b) f := fold_mvar a f ∘ fold_mvar b f
 
-/-- `u.params` is the set of parameters occuring in `u`. -/
+/--
+`l.params` is the set of parameters occuring in `l`.
+For example if `l = max 1 (max (u+1) (max v w))` then `l.params = {u, v, w}`.
+-/
 protected meta def params (u : level) : name_set :=
 u.fold mk_name_set $ λ v l,
   match v with

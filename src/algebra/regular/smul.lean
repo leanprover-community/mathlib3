@@ -173,18 +173,26 @@ end comm_monoid
 
 end is_smul_regular
 
-section units
+section group
 
-variables [monoid R]
+variables {G : Type*} [monoid R] [group G]
 
-lemma units.is_smul_regular [mul_action (units R) R] (a : units R) : is_smul_regular R a :=
+/-- An element of a group acting on a monoid is regular. This relies on the availability
+of the inverse given by groups, since there is no `left_cancel_smul` typeclass. -/
+lemma is_smul_regular_of_group [mul_action G R] (g : G) : is_smul_regular R g :=
 begin
   intros x y h,
-  convert congr_arg ((•) a⁻¹) h using 1;
+  convert congr_arg ((•) g⁻¹) h using 1;
   simp [←smul_assoc]
 end
 
-end units
+-- In files later in the algebra hierarchy, `[mul_action (units R) R]` is inferrable, but not here.
+-- Since we do not rely on the definition of `(•)` for the proof, just the ability to state that it
+-- has one and that it is `smul_assoc`, we can put the requirement of the action as a hypothesis.
+lemma units.is_smul_regular [mul_action (units R) R] (a : units R) : is_smul_regular R a :=
+is_smul_regular_of_group a
+
+end group
 
 variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
 

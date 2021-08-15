@@ -14,6 +14,7 @@ This file proves basic results about `list.rotate`, the list rotation.
 ## Main declarations
 
 * `is_rotated l₁ l₂`: States that `l₁` is a rotated version of `l₂`.
+* `cyclic_permutations l`: The list of all cyclic permutants of `l`, up to the length of `l`.
 
 ## Tags
 
@@ -394,6 +395,15 @@ begin
   exact ⟨λ ⟨n, hn, h⟩, ⟨n, nat.lt_succ_of_le hn, h⟩, λ ⟨n, hn, h⟩, ⟨n, nat.le_of_lt_succ hn, h⟩⟩
 end
 
+/-- List of all cyclic permutations of `l`.
+The list will always contain `length l` elements. This implies that under certain conditions,
+there are duplicates in `cyclic_permutations l`.
+The `n`th entry is equal to `l.rotate (n + 1)`, proven in `nth_le_cyclic_permutations`.
+The proof that every cyclic permutant of `l` is in the list is `mem_cyclic_permutations_iff`.
+
+     cyclic_permutations [1, 2, 3, 2, 4] =
+       [[1, 2, 3, 2, 4], [2, 3, 2, 4, 1], [3, 2, 4, 1, 2],
+        [2, 4, 1, 2, 3], [4, 1, 2, 3, 2]] -/
 def cyclic_permutations : list α → list (list α)
 | []       := [[]]
 | (x :: l) := tail (zip_with (++) (tails (x :: l)) (inits (x :: l)))
@@ -460,6 +470,7 @@ begin
       simp } }
 end
 
+/-- If a `l : list α` is `nodup l`, then all of its cyclic permutants are distinct. -/
 lemma nodup.cyclic_permutations {l : list α} (hn : nodup l) :
   nodup (cyclic_permutations l) :=
 begin

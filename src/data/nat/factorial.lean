@@ -162,15 +162,12 @@ end
 lemma factorial_mul_pow_sub_le_factorial {n m : ℕ} (hnm : n ≤ m) : n! * n ^ (m - n) ≤ m! :=
 begin
   suffices : n! * (n + 1) ^ (m - n) ≤ m!,
-  { have h1 := pow_le_pow_of_le_left (nat.zero_le _) (le_succ n) (m - n),
-      apply trans _ this,
-      rw mul_le_mul_left,
-      apply pow_le_pow_of_le_left,
-      apply zero_le,
-      exact le_succ n,
-      exact factorial_pos n,},
+  { apply trans _ this,
+    rw mul_le_mul_left,
+    apply pow_le_pow_of_le_left (zero_le n) (le_succ n),
+    exact factorial_pos n,},
   convert nat.factorial_mul_pow_le_factorial,
-  exact (nat.add_sub_of_le hnm).symm
+  exact (nat.add_sub_of_le hnm).symm,
 end
 
 

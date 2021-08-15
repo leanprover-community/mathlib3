@@ -4,13 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
 import combinatorics.derangements.basic
-import data.equiv.basic
-import data.fintype.basic
 import data.fintype.card
-import data.set.finite
-
 import tactic.ring
-import tactic.zify
 
 /-!
 # Derangements on fintypes
@@ -48,10 +43,7 @@ end
 lemma card_derangements_invariant {α β : Type*} [fintype α] [decidable_eq α]
   [fintype β] [decidable_eq β] (h : card α = card β) :
   card (derangements α) = card (derangements β) :=
-begin
-  apply card_eq.mpr,  -- card_eq because we don't need the specific equivalence
-  use derangements.congr (equiv_of_card_eq h),
-end
+fintype.card_congr (equiv.derangements_congr $ equiv_of_card_eq h)
 
 lemma card_derangements_fin_succ_succ (n : ℕ) :
   card (derangements (fin (n+2))) = (n+1) * card (derangements (fin n)) +
@@ -67,17 +59,12 @@ begin
   { intro a, rw card_n' a, simp },
   have card_n2 : card (fin (n+2)) = card (option (fin (n+1))) := by simp,
   -- rewrite the LHS and substitute in our fintype-level equivalence
-  rw card_derangements_invariant card_n2,
-  rw card_congr (@derangements_recursion_equiv (fin (n+1)) _),
+  rw [card_derangements_invariant card_n2,
+    card_congr (@derangements_recursion_equiv (fin (n+1)) _)],
   -- push the cardinality through the Σ and ⊕ so that we can use `card_n`
   rw card_sigma,
-  conv_lhs
-  { apply_congr,
-    skip,
-    rw card_sum,
-    rw card_derangements_invariant (card_n x) },
-  rw [finset.sum_const, nsmul_eq_mul, finset.card_fin],
-  rw mul_add,
+  simp_rw [card_sum, card_derangements_invariant (card_n _)],
+  rw [finset.sum_const, nsmul_eq_mul, finset.card_fin, mul_add],
   norm_cast,
 end
 
@@ -121,9 +108,7 @@ end
 lemma card_derangements_eq_num_derangements (α : Type*) [fintype α] [decidable_eq α] :
   card (derangements α) = num_derangements (card α) :=
 begin
-  let n := card α,
-  have key : card α = card (fin n) := by simp,
-  rw card_derangements_invariant key,
+  rw ←card_derangements_invariant (card_fin _),
   exact card_derangements_fin_eq_num_derangements,
 end
 

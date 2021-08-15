@@ -118,16 +118,7 @@ instance lattice_ordered_comm_group.to_ordered_comm_group (α : Type u)
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance lattice_ordered_comm_group.to_lattice_ordered_group (α : Type u)
   [s : lattice_ordered_comm_group α] : lattice_ordered_group α :=
-{ mul_le_mul :=
-  begin
-    rintros a b h c d,
-    rw [mul_assoc, mul_assoc],
-    apply s.mul_le_mul_left,
-    rw mul_comm,
-    nth_rewrite 1 mul_comm,
-    apply s.mul_le_mul_left,
-    exact h,
-  end }
+{ mul_le_mul := λ a b hab c d, mul_le_mul' (mul_le_mul' le_rfl hab) le_rfl }
 
 
 -- A linearly ordered additive commutative group is a lattice ordered commutative group

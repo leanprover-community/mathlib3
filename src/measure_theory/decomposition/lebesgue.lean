@@ -50,7 +50,7 @@ This lemma is useful for the Lebesgue decomposition theorem. -/
 lemma exists_positive_of_not_mutually_singular
   (μ ν : measure α) [finite_measure μ] [finite_measure ν] (h : ¬ μ ⊥ₘ ν) :
   ∃ ε : ℝ≥0, 0 < ε ∧ ∃ E : set α, measurable_set E ∧ 0 < ν E ∧
-  0 ≤[E] (μ.to_signed_measure - (ε • ν).to_signed_measure) :=
+  0 ≤[E] μ.to_signed_measure - (ε • ν).to_signed_measure :=
 begin
   -- for all `n : ℕ`, obtain the Hahn decomposition for `μ - (1 / n) ν`
   have : ∀ n : ℕ, ∃ i : set α, measurable_set i ∧
@@ -62,7 +62,7 @@ begin
   -- and we show that `μ A = 0`
   set A := ⋂ n, (f n)ᶜ with hA₁,
   have hAmeas : measurable_set A,
-  { exact measurable_set.Inter (λ n, measurable_set.compl (hf₁ n)) },
+  { exact measurable_set.Inter (λ n, (hf₁ n).compl) },
   have hA₂ : ∀ n : ℕ, (μ.to_signed_measure - ((1 / (n + 1) : ℝ≥0) • ν).to_signed_measure) ≤[A] 0,
   { intro n, exact restrict_le_restrict_subset _ _ (hf₁ n).compl (hf₃ n) (set.Inter_subset _ _) },
   have hA₃ : ∀ n : ℕ, μ A ≤ (1 / (n + 1) : ℝ≥0) * ν A,
@@ -136,21 +136,19 @@ begin
       { simp only,
         rw [set.indicator_of_mem haA, set.indicator_of_mem, set.indicator_of_not_mem, add_zero],
         simp only [le_refl, max_le_iff, and_true, h],
-        { rintro ⟨_, hc⟩,
-          exact false.elim ((not_lt.2 h) hc) },
+        { rintro ⟨_, hc⟩, exact false.elim ((not_lt.2 h) hc) },
         { exact ⟨haA, h⟩ } },
       { simp only,
         rw [set.indicator_of_mem haA, set.indicator_of_mem _ f,
             set.indicator_of_not_mem, zero_add],
         simp only [true_and, le_refl, max_le_iff, le_of_lt (not_le.1 h)],
-        { rintro ⟨_, hc⟩,
-          exact false.elim (h hc) },
+        { rintro ⟨_, hc⟩, exact false.elim (h hc) },
         { exact ⟨haA, not_le.1 h⟩ } } },
     { simp [set.indicator_of_not_mem haA] } },
-  { exact measurable.indicator hg.1 (measurable_set.inter hA (measurable_set_le hf.1 hg.1)) },
-  { exact measurable.indicator hf.1 (measurable_set.inter hA (measurable_set_lt hg.1 hf.1)) },
-  { exact measurable_set.inter hA (measurable_set_le hf.1 hg.1) },
-  { exact measurable_set.inter hA (measurable_set_lt hg.1 hf.1) },
+  { exact measurable.indicator hg.1 (hA.inter (measurable_set_le hf.1 hg.1)) },
+  { exact measurable.indicator hf.1 (hA.inter (measurable_set_lt hg.1 hf.1)) },
+  { exact hA.inter (measurable_set_le hf.1 hg.1) },
+  { exact hA.inter (measurable_set_lt hg.1 hf.1) },
 end
 
 lemma sup_mem_measurable_le {f g : α → ℝ≥0∞}
@@ -159,8 +157,8 @@ lemma sup_mem_measurable_le {f g : α → ℝ≥0∞}
 begin
   simp_rw ennreal.sup_eq_max,
   refine ⟨measurable.max hf.1 hg.1, λ A hA, _⟩,
-  have h₁ := measurable_set.inter hA (measurable_set_le hf.1 hg.1),
-  have h₂ := measurable_set.inter hA (measurable_set_lt hg.1 hf.1),
+  have h₁ := hA.inter (measurable_set_le hf.1 hg.1),
+  have h₂ := hA.inter (measurable_set_lt hg.1 hf.1),
   refine le_trans (max_measurable_le f g hf hg A hA) _,
   refine le_trans (add_le_add (hg.2 _ h₁) (hf.2 _ h₂)) _,
   { rw [← measure_union _ h₁ h₂],
@@ -327,8 +325,8 @@ begin
       { exact ne_of_lt (measure_lt_top _ _) },
       { exact ne_of_lt (measure_lt_top _ _) },
       { exact ne_of_lt (measure_lt_top _ _) },
-      { rw with_density_apply _ (measurable_set.inter hA hE₁),
-        exact hζle (A ∩ E) (measurable_set.inter hA hE₁) },
+      { rw with_density_apply _ (hA.inter hE₁),
+        exact hζle (A ∩ E) (hA.inter hE₁) },
       { apply_instance } },
   -- from this, we can show `ζ + ε * E.indicator` is a function in `measurable_le` with
   -- integral greater than `ζ`
@@ -337,8 +335,7 @@ begin
       have : ∫⁻ a in A, (ζ + E.indicator (λ _, ε)) a ∂μ =
             ∫⁻ a in A ∩ E, ε + ζ a ∂μ + ∫⁻ a in A ∩ Eᶜ, ζ a ∂μ,
       { rw [lintegral_add measurable_const hζm, add_assoc,
-            ← lintegral_union (measurable_set.inter hA hE₁)
-              (measurable_set.inter hA (measurable_set.compl hE₁))
+            ← lintegral_union (hA.inter hE₁) (hA.inter (hE₁.compl))
               (disjoint.mono (set.inter_subset_right _ _) (set.inter_subset_right _ _)
               disjoint_compl_right), set.inter_union_compl],
         simp_rw [pi.add_apply],
@@ -347,10 +344,9 @@ begin
         rw [set_lintegral_const, lintegral_indicator _ hE₁, set_lintegral_const,
             measure.restrict_apply hE₁, set.inter_comm] },
       conv_rhs { rw ← set.inter_union_compl A E },
-      rw [this, measure_union _ (measurable_set.inter hA hE₁)
-          (measurable_set.inter hA (measurable_set.compl hE₁))],
+      rw [this, measure_union _ (hA.inter hE₁) (hA.inter hE₁.compl)],
       { exact add_le_add (hε₂ A hA)
-          (hζle (A ∩ Eᶜ) (measurable_set.inter hA (measurable_set.compl hE₁))) },
+          (hζle (A ∩ Eᶜ) (hA.inter hE₁.compl)) },
       { exact disjoint.mono (set.inter_subset_right _ _) (set.inter_subset_right _ _)
           disjoint_compl_right } },
       have : ∫⁻ a, ζ a + E.indicator (λ _, ε) a ∂μ ≤ Sup (measurable_le_eval μ ν),

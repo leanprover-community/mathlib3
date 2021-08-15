@@ -353,10 +353,6 @@ instance add_comm_monoid (n : ℕ) : add_comm_monoid (fin (n + 1)) :=
 
 end monoid
 
-/-- In the trivial ring, 0 = 1. We state it as `1 = 0` in the simplifying direction,
-because there are more lemmas where `0` is cancelling (in multiplication). -/
-@[simp] lemma one_eq_zero : (1 : fin 1) = 0 := rfl
-
 lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 

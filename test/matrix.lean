@@ -60,7 +60,7 @@ example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 99 = d := by simp
 example {α : Type*} [comm_ring α] {a b c d : α} :
   matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
 begin
-  simp [matrix.det_succ_row_zero, fin.sum_univ_succ, -unique_has_one],
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   /-
   Try this: simp only [det_succ_row_zero, fin.sum_univ_succ, neg_mul_eq_neg_mul_symm, mul_one,
   fin.default_eq_zero, fin.coe_zero, one_mul, cons_val_one, fin.coe_succ, univ_unique, minor_apply,
@@ -74,7 +74,7 @@ example {α : Type*} [comm_ring α] (A : matrix (fin 3) (fin 3) α) {a b c d e f
         matrix.det ![![a, b, c], ![d, e, f], ![g, h, i]] =
           a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
 begin
-  simp [matrix.det_succ_row_zero, fin.sum_univ_succ, -unique_has_one],
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   /-
   Try this: simp only [det_succ_row_zero, fin.sum_univ_succ, neg_mul_eq_neg_mul_symm, cons_append,
   mul_one, fin.default_eq_zero, fin.coe_zero, cons_vec_bit0_eq_alt0, one_mul, cons_val_one,

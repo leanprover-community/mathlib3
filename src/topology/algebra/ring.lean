@@ -77,6 +77,10 @@ instance prod_semiring {β : Type*}
   [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
 {}
 
+instance pi.topological_semiring {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, ring (C b)] [∀ b, topological_semiring (C b)] : topological_semiring (Π b, C b) :=
+{}
+
 end
 
 /-- A topological ring is a ring where the ring operations are continuous. -/
@@ -101,6 +105,10 @@ variables [topological_ring α]
   makes the product into a topological ring. -/
 instance prod_ring {β : Type*}
   [ring β] [topological_space β] [topological_ring β] : topological_ring (α × β) :=
+{ continuous_neg := continuous_neg }
+
+instance pi.topological_ring {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, ring (C b)] [∀ b, topological_ring (C b)] : topological_ring (Π b, C b) :=
 { continuous_neg := continuous_neg }
 
 /-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/

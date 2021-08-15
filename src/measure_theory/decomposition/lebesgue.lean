@@ -54,15 +54,6 @@ begin
   exact measure_Union_null h,
 end
 
--- move
-lemma nnreal.eq_zero_of_le_pos (a : ℝ≥0) (ha : ∀ b : ℝ≥0, 0 < b → a ≤ b) : a = 0 :=
-begin
-  by_contra,
-  have := ha (a / 2) (nnreal.half_pos (zero_lt_iff.2 h)),
-  rw ← @not_not (a ≤ a / 2) at this,
-  exact this (not_le.2 (nnreal.half_lt_self h)),
-end
-
 /-- If two finite measures `μ` and `ν` are not mutually singular, there exists some `ε > 0` and
 a measurable set `E`, such that `ν(E) > 0` and `E` is positive with respect to `μ - εν`.
 
@@ -95,13 +86,17 @@ begin
     lift ν A to ℝ≥0 using ne_of_lt (measure_lt_top _ _) with νA,
     rw ennreal.coe_eq_zero,
     by_cases hb : 0 < νA,
-    { have hb₁ : (0 : ℝ) < νA⁻¹, { rw _root_.inv_pos, exact hb },
-      apply nnreal.eq_zero_of_le_pos,
+    { suffices : ∀ b, 0 < b → μA ≤ b,
+      { by_contra,
+        have h' := this (μA / 2) (nnreal.half_pos (zero_lt_iff.2 h)),
+        rw ← @not_not (μA ≤ μA / 2) at h',
+        exact h' (not_le.2 (nnreal.half_lt_self h)) },
       intros c hc,
       have : ∃ n : ℕ, 1 / (n + 1 : ℝ) < c * νA⁻¹, refine exists_nat_one_div_lt _,
       { refine mul_pos hc _,
         rw _root_.inv_pos, exact hb },
       rcases this with ⟨n, hn⟩,
+      have hb₁ : (0 : ℝ) < νA⁻¹, { rw _root_.inv_pos, exact hb },
       have h' : 1 / (↑n + 1) * νA < c,
       { rw [← nnreal.coe_lt_coe, ← mul_lt_mul_right hb₁, nnreal.coe_mul, mul_assoc,
             ← nnreal.coe_inv, ← nnreal.coe_mul, _root_.mul_inv_cancel, ← nnreal.coe_mul,

@@ -11,7 +11,7 @@ import algebra.punit_instances
 # The category of monoids in a monoidal category.
 -/
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ u₁ u₂ u
 
 open category_theory
 open category_theory.monoidal_category

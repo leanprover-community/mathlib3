@@ -396,8 +396,8 @@ begin
 end
 
 /-- List of all cyclic permutations of `l`.
-The list will always contain `length l` elements. This implies that under certain conditions,
-there are duplicates in `cyclic_permutations l`.
+The `cyclic_permutations` of a nonempty list `l` will always contain `length l` elements.
+This implies that under certain conditions, there are duplicates in `cyclic_permutations l`.
 The `n`th entry is equal to `l.rotate (n + 1)`, proven in `nth_le_cyclic_permutations`.
 The proof that every cyclic permutant of `l` is in the list is `mem_cyclic_permutations_iff`.
 

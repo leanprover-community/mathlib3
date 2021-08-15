@@ -28,10 +28,10 @@ This file develops the basic theory, concentrating on the commutative case writt
 
 - `pos_sub_neg`: Every element `a` of a `lattice_ordered_add_comm_group` has a decomposition `a⁺-a⁻`
    into the difference of the positive and negative component.
-- `pos_meet_neg_eq_zero`: The positive and negative components are coprime.
+- `pos_inf_neg_eq_zero`: The positive and negative components are coprime.
 - `abs_triangle`: The absolute value operation satisfies the triangle inequality.
 
-It is shown that the meet and join operations are related to the absolute value operation by a
+It is shown that the inf and sup operations are related to the absolute value operation by a
 number of equations and inequalities.
 
 ## Notations
@@ -134,7 +134,7 @@ variables {α : Type u} [lattice_ordered_add_comm_group α]
 Let `α` be a lattice ordered commutative group. For all elements `a`, `b` and `c` in `α`,
 $$c + (a⊔b) = (c+a)⊔(c+b).$$
 -/
-lemma add_join_eq_add_join_add (a b c : α) : c + (a⊔b) = (c+a)⊔(c+b) :=
+lemma add_sup_eq_add_sup_add (a b c : α) : c + (a⊔b) = (c+a)⊔(c+b) :=
 begin
   refine le_antisymm _ (by simp),
   rw [← add_le_add_iff_left (-c), ← add_assoc, neg_add_self, zero_add],
@@ -148,7 +148,7 @@ end
 Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
 $$-(a⊔b)=(-a)⊓(-b).$$
 -/
-lemma neg_join_eq_neg_meet_neg (a b : α) : -(a⊔b)=(-a)⊓(-b) :=
+lemma neg_sup_eq_neg_inf_neg (a b : α) : -(a⊔b)=(-a)⊓(-b) :=
 begin
   rw le_antisymm_iff,
   split,
@@ -166,9 +166,9 @@ end
 Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
 $$-a⊔-b = -(a⊓b).$$
 -/
-@[simp] lemma join_neg_eq_neg_meet (a b : α) : -a⊔-b = -(a⊓b) :=
+@[simp] lemma sup_neg_eq_neg_inf (a b : α) : -a⊔-b = -(a⊓b) :=
 begin
-  rw [← neg_neg (-a⊔-b), neg_join_eq_neg_meet_neg (-a) (-b), neg_neg, neg_neg],
+  rw [← neg_neg (-a⊔-b), neg_sup_eq_neg_inf_neg (-a) (-b), neg_neg, neg_neg],
 end
 
 -- Bourbaki A.VI.10 Prop 7
@@ -176,10 +176,10 @@ end
 Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
 $$a⊓b + (a⊔b) = a + b.$$
 -/
-lemma add_eq_meet_add_join (a b : α) : a⊓b + (a⊔b) = a + b :=
+lemma add_eq_inf_add_sup (a b : α) : a⊓b + (a⊔b) = a + b :=
 calc a⊓b + (a⊔b) = a⊓b + ((a + b) + ((-b)⊔(-a))) :
-  by {  rw add_join_eq_add_join_add (-b) (-a) (a+b), simp,  }
-... = a⊓b + ((a + b) + -(a⊓b)) : by { rw [← join_neg_eq_neg_meet, sup_comm], }
+  by {  rw add_sup_eq_add_sup_add (-b) (-a) (a+b), simp,  }
+... = a⊓b + ((a + b) + -(a⊓b)) : by { rw [← sup_neg_eq_neg_inf, sup_comm], }
 ... = a + b                    : by { simp, }
 
 -- Bourbaki A.VI.12 Definition 4
@@ -273,7 +273,7 @@ end
 Let `α` be a lattice ordered commutative group. For all elements `a`, `b` and `c` in `α`,
 $$c + (a⊓b) = (c+a)⊓(c+b).$$
 -/
-lemma add_meet_eq_add_meet_add (a b c : α) : c + (a⊓b) = (c+a)⊓(c+b) :=
+lemma add_inf_eq_add_inf_add (a b c : α) : c + (a⊓b) = (c+a)⊓(c+b) :=
 begin
   rw le_antisymm_iff,
   split,
@@ -291,7 +291,7 @@ lemma neg_eq_neg_inf_zero (a : α) : a⁻ = -(a⊓0) :=
 begin
   unfold lattice_ordered_add_comm_group.neg,
   rw ← neg_inj,
-  rw neg_join_eq_neg_meet_neg,
+  rw neg_sup_eq_neg_inf_neg,
   simp,
 end
 
@@ -304,7 +304,7 @@ component `a⁺` and negative component `a⁻`. Then `a` can be decomposed as th
 lemma pos_sub_neg (a : α) : a = a⁺ - a⁻ :=
 begin
   unfold lattice_ordered_add_comm_group.neg,
-  rw [eq_sub_iff_add_eq, add_join_eq_add_join_add, add_zero, add_right_neg, sup_comm],
+  rw [eq_sub_iff_add_eq, add_sup_eq_add_sup_add, add_zero, add_right_neg, sup_comm],
   unfold lattice_ordered_add_comm_group.pos,
 end
 
@@ -317,10 +317,10 @@ Let `α` be a lattice ordered commutative group and let `a` be an element in `α
 component `a⁺` and negative component `a⁻`. Then `a⁺` and `a⁻` are co-prime (and, since they are
 positive, disjoint).
 -/
-lemma pos_meet_neg_eq_zero (a : α) : a⁺⊓a⁻=0 :=
+lemma pos_inf_neg_eq_zero (a : α) : a⁺⊓a⁻=0 :=
 begin
   rw ←add_right_inj (-a⁻),
-  rw add_meet_eq_add_meet_add,
+  rw add_inf_eq_add_inf_add,
   rw neg_add_eq_sub,
   simp only [add_zero, add_left_neg],
   rw pos_sub_neg',
@@ -334,9 +334,9 @@ Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in 
 `(a - b)⁺` be the positive componet of `a-b`. Then
 $$a⊔b = b + (a - b)⁺.$$
 -/
-lemma join_eq_add_pos_sub (a b : α) : a⊔b = b + (a - b)⁺ :=
+lemma sup_eq_add_pos_sub (a b : α) : a⊔b = b + (a - b)⁺ :=
   calc  a⊔b = (b+(a-b))⊔(b+0) : by {rw add_zero b, rw add_sub_cancel'_right, }
-  ... = b + ((a-b)⊔0) : by { rw ← add_join_eq_add_join_add (a-b) 0 b}
+  ... = b + ((a-b)⊔0) : by { rw ← add_sup_eq_add_sup_add (a-b) 0 b}
 
 -- Bourbaki A.VI.12 (with a and b swapped)
 /--
@@ -344,12 +344,12 @@ Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in 
 `(a - b)⁺` be the positive componet of `a-b`. Then
 $$a⊓b = a - (a - b)⁺.$$
 -/
-lemma meet_eq_sub_pos_sub (a b : α) : a⊓b = a - (a - b)⁺ :=
+lemma inf_eq_sub_pos_sub (a b : α) : a⊓b = a - (a - b)⁺ :=
   calc a⊓b = (a+0)⊓(a+(b-a)) : by { rw add_zero a, rw add_sub_cancel'_right, }
-  ... = a + (0⊓(b-a))        : by {rw ← add_meet_eq_add_meet_add 0 (b-a) a}
+  ... = a + (0⊓(b-a))        : by {rw ← add_inf_eq_add_inf_add 0 (b-a) a}
   ... = a + ((b-a)⊓0)        : by { rw inf_comm }
   ... = a + (-(a-b)⊓-0 )     : by { rw neg_zero, rw neg_sub }
-  ... = a - ((a-b)⊔0)        : by  { rw ← neg_join_eq_neg_meet_neg, rw ← sub_eq_add_neg, }
+  ... = a - ((a-b)⊔0)        : by  { rw ← neg_sup_eq_neg_inf_neg, rw ← sub_eq_add_neg, }
 
 -- Bourbaki A.VI.12 Prop 9 c)
 -- Can we rewrite `lattice_ordered_add_comm_group.le_pos b` as `b.le_pos`?
@@ -405,7 +405,7 @@ begin
       symmetry,
       rw [add_right_eq_self, neg_eq_zero, le_antisymm_iff ],
       split,
-      { rw ← pos_meet_neg_eq_zero a,
+      { rw ← pos_inf_neg_eq_zero a,
         apply le_inf,
         { rw pos_eq_neg_neg,
           apply and.right
@@ -416,7 +416,7 @@ begin
             (lattice_ordered_add_comm_group.le_abs a)), } },
       { apply lattice_ordered_add_comm_group.neg_pos, }
     end,
-    rw [← add_eq_meet_add_join, pos_meet_neg_eq_zero, zero_add, ← mod_eq_pos ],
+    rw [← add_eq_inf_add_sup, pos_inf_neg_eq_zero, zero_add, ← mod_eq_pos ],
     apply sup_le,
     apply and.left
       (iff.elim_left (le_iff_pos_le_neg_ge _ _)
@@ -432,9 +432,9 @@ Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in 
 be the absolute value of `b-a`. Then,
 $$a⊔b - (a⊓b) = |b-a|.$$
 -/
-lemma join_sub_meet_eq_abs_sub (a b : α) : a⊔b - (a⊓b) = |b-a| :=
+lemma sup_sub_inf_eq_abs_sub (a b : α) : a⊔b - (a⊓b) = |b-a| :=
 begin
-  rw [join_eq_add_pos_sub, inf_comm, meet_eq_sub_pos_sub],
+  rw [sup_eq_add_pos_sub, inf_comm, inf_eq_sub_pos_sub],
   simp only [add_sub_sub_cancel],
   rw [pos_eq_neg_neg, add_comm, neg_sub, pos_add_neg],
 end
@@ -444,9 +444,9 @@ Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in 
 be the absolute value of `b-a`. Then,
 $$2•(a⊔b) = a + b + |b - a|.$$
 -/
-lemma two_join_eq_add_add_abs_sub (a b : α) : 2•(a⊔b) = a + b + |b - a| :=
+lemma two_sup_eq_add_add_abs_sub (a b : α) : 2•(a⊔b) = a + b + |b - a| :=
 begin
-  rw [← add_eq_meet_add_join a b, ← join_sub_meet_eq_abs_sub],
+  rw [← add_eq_inf_add_sup a b, ← sup_sub_inf_eq_abs_sub],
   abel,
   simp only [← gsmul_coe_nat],
   norm_cast,
@@ -457,9 +457,9 @@ Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in 
 be the absolute value of `b-a`. Then,
 $$2•(a⊓b) = a + b - |b - a|.$$
 -/
-lemma two_meet_eq_add_sub_abs_sub (a b : α) : 2•(a⊓b) = a + b - |b - a| :=
+lemma two_inf_eq_add_sub_abs_sub (a b : α) : 2•(a⊓b) = a + b - |b - a| :=
 begin
-  rw [← add_eq_meet_add_join a b, ← join_sub_meet_eq_abs_sub],
+  rw [← add_eq_inf_add_sup a b, ← sup_sub_inf_eq_abs_sub],
   abel,
   simp only [← gsmul_coe_nat],
   norm_cast,
@@ -474,14 +474,14 @@ instance lattice_ordered_add_comm_group.to_distrib_lattice (α : Type u)
 { le_sup_inf :=
   begin
     intros,
-    rw [← add_le_add_iff_left (x⊓y⊓z), inf_assoc, add_eq_meet_add_join x (y⊓z),
+    rw [← add_le_add_iff_left (x⊓y⊓z), inf_assoc, add_eq_inf_add_sup x (y⊓z),
       ← neg_add_le_iff_le_add, le_inf_iff ],
     split,
-    { rw [neg_add_le_iff_le_add, ← add_eq_meet_add_join x y ],
+    { rw [neg_add_le_iff_le_add, ← add_eq_inf_add_sup x y ],
       apply add_le_add,
       { apply inf_le_inf_left, apply inf_le_left, },
       { apply inf_le_left, } },
-    { rw [neg_add_le_iff_le_add, ← add_eq_meet_add_join x z ],
+    { rw [neg_add_le_iff_le_add, ← add_eq_inf_add_sup x z ],
       apply add_le_add,
       { apply inf_le_inf_left, apply inf_le_right, },
       { apply inf_le_right, }, }
@@ -500,8 +500,8 @@ $$|a⊔c-(b⊔c)| + |a⊓c-b⊓c| = |a-b|.$$
 theorem abs_diff_sup_add_abs_diff_inf (a b c : α) :
 |a⊔c-(b⊔c)| + |a⊓c-b⊓c| = |a-b| :=
   calc |a⊔c-(b⊔c)| + |a⊓c-b⊓c| =
-    (b⊔c)⊔(a⊔c) - (b⊔c)⊓(a⊔c) + |a⊓c-b⊓c|       : by {rw ← join_sub_meet_eq_abs_sub, }
-    ... = (b⊔c)⊔(a⊔c) - (b⊔c)⊓(a⊔c) + (b⊓c⊔a⊓c - b⊓c⊓(a⊓c)) : by {rw ←join_sub_meet_eq_abs_sub, }
+    (b⊔c)⊔(a⊔c) - (b⊔c)⊓(a⊔c) + |a⊓c-b⊓c|       : by {rw ← sup_sub_inf_eq_abs_sub, }
+    ... = (b⊔c)⊔(a⊔c) - (b⊔c)⊓(a⊔c) + (b⊓c⊔a⊓c - b⊓c⊓(a⊓c)) : by {rw ←sup_sub_inf_eq_abs_sub, }
     ... = b⊔a⊔c - ((b⊓a)⊔c) + ((b⊔a)⊓c - b⊓a⊓c) : by {
       rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
       nth_rewrite 1 sup_comm,
@@ -510,9 +510,9 @@ theorem abs_diff_sup_add_abs_diff_inf (a b c : α) :
       rw [inf_right_idem, inf_assoc], }
     ... = b⊔a⊔c + (b⊔a)⊓c -(((b⊓a)⊔c)+b⊓a⊓c)    : by {abel,}
     ... = b⊔a + c -(b⊓a+c)                      :
-      by {rw [add_comm, add_eq_meet_add_join, add_comm (b ⊓ a ⊔ c), add_eq_meet_add_join] }
+      by {rw [add_comm, add_eq_inf_add_sup, add_comm (b ⊓ a ⊔ c), add_eq_inf_add_sup] }
     ... = b⊔a - b⊓a                             : by { simp, }
-    ... = |a-b|                                 : by { rw join_sub_meet_eq_abs_sub, }
+    ... = |a-b|                                 : by { rw sup_sub_inf_eq_abs_sub, }
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is
@@ -531,7 +531,7 @@ equal to its absolute value `|a|`.
 lemma abs_pos_eq (a : α) (h: 0≤a) : |a| = a :=
 begin
   unfold has_abs.abs,
-  rw [join_eq_add_pos_sub, sub_neg_eq_add, neg_add_eq_sub, ←add_left_inj a, sub_add_cancel,
+  rw [sup_eq_add_pos_sub, sub_neg_eq_add, neg_add_eq_sub, ←add_left_inj a, sub_add_cancel,
     ← two_smul ℕ, pos_pos_id ],
   exact nsmul_nonneg h 2,
 end

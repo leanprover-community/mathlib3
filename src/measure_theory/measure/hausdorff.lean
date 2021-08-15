@@ -298,7 +298,7 @@ begin
   rcases (mem_nhds_within_Ioi_iff_exists_Ioo_subset' ennreal.zero_lt_one).1 hle with ⟨r, hr0, hr⟩,
   refine λ s, le_of_tendsto_of_tendsto (mk_metric'.tendsto_pre _ s)
     (ennreal.tendsto.const_mul (mk_metric'.tendsto_pre _ s) (or.inr hc))
-    (mem_sets_of_superset (Ioo_mem_nhds_within_Ioi ⟨le_rfl, hr0⟩) (λ r' hr', _)),
+    (mem_of_superset (Ioo_mem_nhds_within_Ioi ⟨le_rfl, hr0⟩) (λ r' hr', _)),
   simp only [mem_set_of_eq, mk_metric'.pre],
   rw [← smul_apply, smul_bounded_by hc],
   refine le_bounded_by.2 (λ t, (bounded_by_le _).trans _) _,

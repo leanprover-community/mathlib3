@@ -1917,10 +1917,10 @@ begin
   have A : ∀ᶠ z in 𝓝[s \ {x}] x, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
     from (has_deriv_within_at_iff_tendsto_slope.1 hf).norm (is_open.mem_nhds is_open_Iio hr),
   have B : ∀ᶠ z in 𝓝[{x}] x, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
-    from mem_sets_of_superset self_mem_nhds_within
+    from mem_of_superset self_mem_nhds_within
       (singleton_subset_iff.2 $ by simp [hr₀]),
-  have C := mem_sup_sets.2 ⟨A, B⟩,
-  rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup_sets] at C,
+  have C := mem_sup.2 ⟨A, B⟩,
+  rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup] at C,
   filter_upwards [C.1],
   simp only [norm_smul, mem_Iio, normed_field.norm_inv],
   exact λ _, id

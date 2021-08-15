@@ -244,9 +244,16 @@ lemma is_lub_csupr [nonempty ι] {f : ι → α} (H : bdd_above (range f)) :
   is_lub (range f) (⨆ i, f i) :=
 is_lub_cSup (range_nonempty f) H
 
+lemma is_lub_csupr [nonempty ι] {f : ι → α} (H : bdd_above (range f)) :
+  is_lub (range f) (⨆ i, f i) :=
+is_lub_cSup (range_nonempty f) H
+
 lemma is_lub_csupr_set {f : β → α} {s : set β} (H : bdd_above (f '' s)) (Hne : s.nonempty) :
   is_lub (f '' s) (⨆ i : s, f i) :=
-by { rw image_eq_range at *, haveI := Hne.to_subtype, exact is_lub_csupr H }
+by { rw ← Sup_image', exact is_lub_cSup (Hne.image _) H }
+
+lemma is_glb_cInf (ne : s.nonempty) (H : bdd_below s) : is_glb s (Inf s) :=
+⟨assume x, cInf_le H, assume x, le_cInf ne⟩
 
 lemma is_glb_cinfi [nonempty ι] {f : ι → α} (H : bdd_below (range f)) :
   is_glb (range f) (⨅ i, f i) :=
@@ -254,7 +261,7 @@ is_glb_cInf (range_nonempty f) H
 
 lemma is_glb_cinfi_set {f : β → α} {s : set β} (H : bdd_below (f '' s)) (Hne : s.nonempty) :
   is_glb (f '' s) (⨅ i : s, f i) :=
-by { rw image_eq_range at *, haveI := Hne.to_subtype, exact is_glb_cinfi H }
+@is_lub_csupr_set (order_dual α) _ _ _ _ H Hne
 
 lemma is_lub.cSup_eq (H : is_lub s a) (ne : s.nonempty) : Sup s = a :=
 (is_lub_cSup ne ⟨a, H.1⟩).unique H
@@ -918,6 +925,76 @@ lemma le_cInf_image {s : set α} (hs : s.nonempty) {B : α} (hB: B ∈ lower_bou
 @cSup_image_le (order_dual α) (order_dual β) _ _ _ (λ x y hxy, h_mono hxy) _ hs _ hB
 
 end monotone
+
+namespace galois_connection
+
+variables {γ : Type*} [conditionally_complete_lattice α] [conditionally_complete_lattice β]
+  [nonempty ι] {l : α → β} {u : β → α}
+
+lemma l_cSup (gc : galois_connection l u) {s : set α} (hne : s.nonempty)
+  (hbdd : bdd_above s) :
+  l (Sup s) = ⨆ x : s, l x :=
+eq.symm $ is_lub.csupr_set_eq (gc.is_lub_l_image $ is_lub_cSup hne hbdd) hne
+
+lemma l_csupr (gc : galois_connection l u) {f : ι → α}
+  (hf : bdd_above (range f)) :
+  l (⨆ i, f i) = ⨆ i, l (f i) :=
+by rw [supr, gc.l_cSup (range_nonempty _) hf, supr_range']
+
+lemma l_csupr_set (gc : galois_connection l u) {s : set γ} {f : γ → α}
+  (hf : bdd_above (f '' s)) (hne : s.nonempty) :
+  l (⨆ i : s, f i) = ⨆ i : s, l (f i) :=
+by { haveI := hne.to_subtype, rw image_eq_range at hf, exact gc.l_csupr hf }
+
+lemma u_cInf (gc : galois_connection l u) {s : set β} (hne : s.nonempty)
+  (hbdd : bdd_below s) :
+  u (Inf s) = ⨅ x : s, u x :=
+gc.dual.l_cSup hne hbdd
+
+lemma u_cinfi (gc : galois_connection l u) {f : ι → β}
+  (hf : bdd_below (range f)) :
+  u (⨅ i, f i) = ⨅ i, u (f i) :=
+gc.dual.l_csupr hf
+
+lemma u_cinfi_set (gc : galois_connection l u) {s : set γ} {f : γ → β}
+  (hf : bdd_below (f '' s)) (hne : s.nonempty) :
+  u (⨅ i : s, f i) = ⨅ i : s, u (f i) :=
+gc.dual.l_csupr_set hf hne
+
+end galois_connection
+
+namespace order_iso
+
+variables {γ : Type*} [conditionally_complete_lattice α] [conditionally_complete_lattice β]
+  [nonempty ι]
+
+lemma map_cSup (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
+  e (Sup s) = ⨆ x : s, e x :=
+e.to_galois_connection.l_cSup hne hbdd
+
+lemma map_csupr (e : α ≃o β) {f : ι → α} (hf : bdd_above (range f)) :
+  e (⨆ i, f i) = ⨆ i, e (f i) :=
+e.to_galois_connection.l_csupr hf
+
+lemma map_csupr_set (e : α ≃o β) {s : set γ} {f : γ → α}
+  (hf : bdd_above (f '' s)) (hne : s.nonempty) :
+  e (⨆ i : s, f i) = ⨆ i : s, e (f i) :=
+e.to_galois_connection.l_csupr_set hf hne
+
+lemma map_cInf (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_below s) :
+  e (Inf s) = ⨅ x : s, e x :=
+e.dual.map_cSup hne hbdd
+
+lemma map_cinfi (e : α ≃o β) {f : ι → α} (hf : bdd_below (range f)) :
+  e (⨅ i, f i) = ⨅ i, e (f i) :=
+e.dual.map_csupr hf
+
+lemma map_cinfi_set (e : α ≃o β) {s : set γ} {f : γ → α}
+  (hf : bdd_below (f '' s)) (hne : s.nonempty) :
+  e (⨅ i : s, f i) = ⨅ i : s, e (f i) :=
+e.dual.map_csupr_set hf hne
+
+end order_iso
 
 /-!
 ### Relation between `Sup` / `Inf` and `finset.sup'` / `finset.inf'`

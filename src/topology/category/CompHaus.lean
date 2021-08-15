@@ -67,11 +67,12 @@ def of : CompHaus :=
 @[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
 
 /-- Any continuous function on compact Hausdorff spaces is a closed map. -/
-lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
+lemma is_closed_map {X Y : CompHaus.{u}} (f : X ⟶ Y) : is_closed_map f :=
 λ C hC, (hC.is_compact.image f.continuous).is_closed
 
 /-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
-lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
+lemma is_iso_of_bijective {X Y : CompHaus.{u}} (f : X ⟶ Y) (bij : function.bijective f) :
+  is_iso f :=
 begin
   let E := equiv.of_bijective _ bij,
   have hE : continuous E.symm,
@@ -88,7 +89,7 @@ end
 
 /-- Any continuous bijection of compact Hausdorff spaces induces an isomorphism. -/
 noncomputable
-def iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
+def iso_of_bijective {X Y : CompHaus.{u}} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
 by letI := is_iso_of_bijective _ bij; exact as_iso f
 
 end CompHaus
@@ -97,7 +98,7 @@ end CompHaus
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
 def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
 
-instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus) :=
+instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus.{u}) :=
 ⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
 
 /--

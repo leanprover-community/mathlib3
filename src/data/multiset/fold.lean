@@ -83,15 +83,6 @@ end fold
 
 section order
 
-@[to_additive]
-lemma prod_le_of_forall_le {α : Type*} [ordered_comm_monoid α]
-  (l : multiset α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
-  l.prod ≤ n ^ l.card :=
-begin
-  induction l using quotient.induction_on,
-  simpa using list.prod_le_of_forall_le _ _ h
-end
-
 lemma max_le_of_forall_le {α : Type*} [canonically_linear_ordered_add_monoid α]
   (l : multiset α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
   l.fold max ⊥ ≤ n :=

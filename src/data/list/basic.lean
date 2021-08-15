@@ -2532,6 +2532,17 @@ begin
     exact lt_of_add_lt_add_left (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
+@[to_additive]
+lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
+  l.prod ≤ n ^ l.length :=
+begin
+  induction l with y l IH,
+  { simp },
+  { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
+    have hy : y ≤ n := h y (mem_cons_self _ _),
+    simpa [pow_succ] using mul_le_mul' hy IH }
+end
+
 -- Several lemmas about sum/head/tail for `list ℕ`.
 -- These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
 

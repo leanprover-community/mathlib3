@@ -439,11 +439,10 @@ lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempt
 begin
   fsplit,
   { intro h, exact ⟨option.get h⟩, },
-  { rintro ⟨a⟩,
-    dsimp [choice],
-    rw dif_pos,
-    fsplit,
-    exact ⟨a⟩, },
+  { intro h,
+    dsimp only [choice],
+    rw dif_pos h,
+    exact is_some_some },
 end
 
 end

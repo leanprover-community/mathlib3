@@ -2,11 +2,28 @@
 Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.pow
 import algebra.order_functions
+import data.nat.pow
+
+/-!
+# Basic operations on the integers
+
+This file contains:
+* instances on `ℤ`. The stronger one is `int.linear_ordered_comm_ring`.
+* some basic lemmas about integers
+
+## Recursors
+
+* `int.rec`: Sign disjunction. Something is true/defined on `ℤ` if it's true/defined for nonnegative
+  and for negative values.
+* `int.bit_cases_on`: Parity disjunction. Something is true/defined on `ℤ` if it's true/defined for
+  even and for odd values.
+* `int.induction_on`: Simple growing induction on positive numbers, plus simple decreasing induction
+  on negative numbers. Note that this recursor is currently only `Prop`-valued.
+* `int.induction_on'`: Simple growing induction for numbers greater than `b`, plus simple decreasing
+  induction on numbers less than `b`.
+-/
 
 open nat
 
@@ -1001,7 +1018,7 @@ theorem of_nat_add_neg_succ_of_nat_of_ge {m n : ℕ}
 begin
   change sub_nat_nat _ _ = _,
   have h' : n.succ - m = 0,
-  apply sub_eq_zero_of_le h,
+  apply nat.sub_eq_zero_of_le h,
   simp [*, sub_nat_nat]
 end
 

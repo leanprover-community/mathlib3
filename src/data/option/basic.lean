@@ -22,7 +22,7 @@ This is useful in multiple ways:
   return `none`.
 * `option` is a monad. We love monads.
 
-`roption` is an alternative to `option` that can be seen as the type of `true`/`false` values
+`part` is an alternative to `option` that can be seen as the type of `true`/`false` values
 along with a term `a : α` if the value is `true`.
 
 ## Implementation notes
@@ -439,11 +439,10 @@ lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempt
 begin
   fsplit,
   { intro h, exact ⟨option.get h⟩, },
-  { rintro ⟨a⟩,
-    dsimp [choice],
-    rw dif_pos,
-    fsplit,
-    exact ⟨a⟩, },
+  { intro h,
+    dsimp only [choice],
+    rw dif_pos h,
+    exact is_some_some },
 end
 
 end

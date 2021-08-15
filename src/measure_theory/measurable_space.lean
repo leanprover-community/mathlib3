@@ -887,10 +887,10 @@ class is_measurably_generated (f : filter α) : Prop :=
 (exists_measurable_subset : ∀ ⦃s⦄, s ∈ f → ∃ t ∈ f, measurable_set t ∧ t ⊆ s)
 
 instance is_measurably_generated_bot : is_measurably_generated (⊥ : filter α) :=
-⟨λ _ _, ⟨∅, mem_bot_sets, measurable_set.empty, empty_subset _⟩⟩
+⟨λ _ _, ⟨∅, mem_bot, measurable_set.empty, empty_subset _⟩⟩
 
 instance is_measurably_generated_top : is_measurably_generated (⊤ : filter α) :=
-⟨λ s hs, ⟨univ, univ_mem_sets, measurable_set.univ, λ x _, hs x⟩⟩
+⟨λ s hs, ⟨univ, univ_mem, measurable_set.univ, λ x _, hs x⟩⟩
 
 lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated f]
   {p : α → Prop} (h : ∀ᶠ x in f, p x) :
@@ -909,11 +909,11 @@ instance inf_is_measurably_generated (f g : filter α) [is_measurably_generated 
   is_measurably_generated (f ⊓ g) :=
 begin
   refine ⟨_⟩,
-  rintros t ⟨sf, hsf, sg, hsg, ht⟩,
+  rintros t ⟨sf, hsf, sg, hsg, rfl⟩,
   rcases is_measurably_generated.exists_measurable_subset hsf with ⟨s'f, hs'f, hmf, hs'sf⟩,
   rcases is_measurably_generated.exists_measurable_subset hsg with ⟨s'g, hs'g, hmg, hs'sg⟩,
-  refine ⟨s'f ∩ s'g, inter_mem_inf_sets hs'f hs'g, hmf.inter hmg, _⟩,
-  exact subset.trans (inter_subset_inter hs'sf hs'sg) ht
+  refine ⟨s'f ∩ s'g, inter_mem_inf hs'f hs'g, hmf.inter hmg, _⟩,
+  exact inter_subset_inter hs'sf hs'sg
 end
 
 lemma principal_is_measurably_generated_iff {s : set α} :
@@ -933,11 +933,11 @@ instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurab
   is_measurably_generated (⨅ i, f i) :=
 begin
   refine ⟨λ s hs, _⟩,
-  rw [← equiv.plift.surjective.infi_comp, mem_infi_iff] at hs,
+  rw [← equiv.plift.surjective.infi_comp, mem_infi] at hs,
   rcases hs with ⟨t, ht, ⟨V, hVf, hVs⟩⟩,
   choose U hUf hU using λ i, is_measurably_generated.exists_measurable_subset (hVf i),
   refine ⟨⋂ i : t, U i, _, _, _⟩,
-  { rw [← equiv.plift.surjective.infi_comp, mem_infi_iff],
+  { rw [← equiv.plift.surjective.infi_comp, mem_infi],
     refine ⟨t, ht, U, hUf, subset.refl _⟩ },
   { haveI := ht.countable.to_encodable,
     refine measurable_set.Inter (λ i, (hU i).1) },

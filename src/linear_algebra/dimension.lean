@@ -602,10 +602,40 @@ by rw [←cardinal.lift_inj, ← (basis.singleton punit R).mk_eq_dim, cardinal.m
 
 end strong_rank_condition
 
-
 section division_ring
 variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables {K V}
+
+-- lemma foo' {ι : Type u} {n : ℕ} (h : ∀ s : finset ι, s.card ≤ n) : cardinal.mk ι ≤ n :=
+-- cardinal.card_le_of h
+
+-- lemma foo {ι : Type u} {n : ℕ} (h : (n : cardinal) < cardinal.mk ι) : ∃ s : finset ι, n < s.card :=
+-- sorry
+
+/-- Every finite subset of a linearly independent set is linearly independent. -/
+lemma linear_independent_finset_map_embedding_subtype
+  (s : set V) (li : linear_independent K (coe : s → V)) (t : finset s) :
+  linear_independent K (coe : (finset.map (embedding.subtype s) t) → V) :=
+begin
+  let f : (finset.map (embedding.subtype s) t) → s := λ x, ⟨x.1, by tidy⟩,
+  convert linear_independent.comp li f (by tidy),
+end
+
+/--
+If every finite set of linearly indepedent vectors has cardinality at most `n`,
+then the same is true for arbitrary sets of linearly independent vectors.
+-/
+lemma finset_linear_independent_bounded {n : ℕ}
+  (H : ∀ s : finset V, linear_independent K (λ i : s, (i : V)) → s.card ≤ n) :
+  ∀ s : set V, linear_independent K (coe : s → V) → cardinal.mk s ≤ n :=
+begin
+  intros s li,
+  apply cardinal.card_le_of,
+  intro t,
+  rw ← finset.card_map (embedding.subtype s),
+  apply H,
+  apply linear_independent_finset_map_embedding_subtype _ li,
+end
 
 -- TODO this is true over any ring
 theorem dim_le {n : ℕ}
@@ -629,15 +659,35 @@ lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < 
 
 variables [add_comm_group V'] [module K V']
 
+theorem linear_map.lift_dim_le_of_injective (f : V →ₗ[K] V') (i : injective f) :
+  cardinal.lift.{v v'} (module.rank K V) ≤ cardinal.lift.{v' v} (module.rank K V') :=
+begin
+  dsimp [module.rank],
+  fapply cardinal.lift_sup_le_lift_sup',
+  { rintro ⟨s, li⟩,
+    use f '' s,
+    sorry,
+  },
+  { rintro ⟨s, li⟩,
+    simp only [subtype.coe_mk],
+    apply cardinal.lift_mk_le'.mpr,
+    sorry, }
+end
+
+theorem linear_equiv.dim_le_of_injective (f : V →ₗ[K] V₁) (i : injective f) :
+  module.rank K V ≤ module.rank K V₁ :=
+cardinal.lift_le.1 (f.lift_dim_le_of_injective i)
+
 /-- Two linearly equivalent vector spaces have the same dimension, a version with different
 universes. -/
 -- TODO this is true over any ring
 theorem linear_equiv.lift_dim_eq (f : V ≃ₗ[K] V') :
   cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K V') :=
-let b := basis.of_vector_space K V in
-calc cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v v'} (cardinal.mk _) :
-  congr_arg _ b.mk_eq_dim''.symm
-... = cardinal.lift.{v' v} (module.rank K V') : (b.map f).mk_eq_dim
+begin
+  apply le_antisymm,
+  { exact f.to_linear_map.lift_dim_le_of_injective f.injective, },
+  { exact f.symm.to_linear_map.lift_dim_le_of_injective f.symm.injective, },
+end
 
 /-- Two linearly equivalent vector spaces have the same dimension. -/
 -- TODO this is true over any ring

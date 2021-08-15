@@ -75,7 +75,7 @@ def up_map {F : Type u₀ → Type u₁} {G : Type.{max u₀ v₀} → Type v₁
 functor.map (f ∘ ulift.down) (up x)
 
 /-- map function that moves down universes -/
-def down_map {F : Type.{max u₀ v₀} → Type u₁} {G : Type → Type v₁} [inst : uliftable G F]
+def down_map {F : Type.{max u₀ v₀} → Type u₁} {G : Type u₀ → Type v₁} [inst : uliftable G F]
   [functor F] {α β} (f : α → β) (x : F α) : G β :=
 down (functor.map (ulift.up ∘ f) x : F (ulift β))
 

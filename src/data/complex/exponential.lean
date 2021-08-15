@@ -1314,9 +1314,7 @@ begin
   ... ≤ 2 :
         begin
           rw sub_le_self_iff,
-          apply mul_nonneg,
-          linarith,
-          apply pow_nonneg,
+          apply mul_nonneg zero_le_two (pow_nonneg _ (j - n)),
           linarith,
         end
 end
@@ -1337,7 +1335,7 @@ begin
     begin
       refine congr_arg abs (sum_congr rfl (λ m hm, _)),
       rw [mem_filter, mem_range] at hm,
-      rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel' hm.2]
+      rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel' hm.2],
     end
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * ((((1 : ℝ)/2) ^ (m - n)) / n!) :
@@ -1351,12 +1349,9 @@ begin
       rw mul_comm,
       apply trans _ (nat.cast_le.2 (nat.factorial_mul_pow_sub_le_factorial hm.right)),
       exact is_trans.swap (λ (x y : ℝ), y ≤ x),
-      simp only [nat.factorial, nat.cast_mul, nat.cast_pow],
+      rw [nat.cast_mul, nat.cast_pow],
       apply mul_le_mul_of_nonneg_left,
-      apply pow_le_pow_of_le_left,
-      apply mul_nonneg,
-      linarith,
-      exact abs_nonneg x,
+      apply pow_le_pow_of_le_left (mul_nonneg zero_le_two (abs_nonneg x)),
       linarith,
       exact n!.cast_nonneg,
       exact real.nontrivial,
@@ -1377,10 +1372,7 @@ begin
       apply pow_nonneg (abs_nonneg x),
       apply le_refl,
       exact inv_nonneg.2 (n!.cast_nonneg),
-      apply mul_nonneg,
-      linarith,
-      apply pow_nonneg,
-      exact abs_nonneg x,
+      apply mul_nonneg zero_le_two (pow_nonneg (abs_nonneg x) n),
     end,
 end
 

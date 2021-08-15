@@ -398,7 +398,7 @@ end
 /-- List of all cyclic permutations of `l`.
 The `cyclic_permutations` of a nonempty list `l` will always contain `length l` elements.
 This implies that under certain conditions, there are duplicates in `cyclic_permutations l`.
-The `n`th entry is equal to `l.rotate (n + 1)`, proven in `nth_le_cyclic_permutations`.
+The `n`th entry is equal to `l.rotate n`, proven in `nth_le_cyclic_permutations`.
 The proof that every cyclic permutant of `l` is in the list is `mem_cyclic_permutations_iff`.
 
      cyclic_permutations [1, 2, 3, 2, 4] =
@@ -406,30 +406,32 @@ The proof that every cyclic permutant of `l` is in the list is `mem_cyclic_permu
         [2, 4, 1, 2, 3], [4, 1, 2, 3, 2]] -/
 def cyclic_permutations : list α → list (list α)
 | []       := [[]]
-| (x :: l) := tail (zip_with (++) (tails (x :: l)) (inits (x :: l)))
+| (x :: l) := init (zip_with (++) (tails (x :: l)) (inits (x :: l)))
 
 @[simp] lemma cyclic_permutations_nil : cyclic_permutations ([] : list α) = [[]] := rfl
 
-@[simp] lemma cyclic_permutations_cons (x : α) (l : list α) :
-  cyclic_permutations (x :: l) = tail (zip_with (++) (tails (x :: l)) (inits (x :: l))) := rfl
+lemma cyclic_permutations_cons (x : α) (l : list α) :
+  cyclic_permutations (x :: l) = init (zip_with (++) (tails (x :: l)) (inits (x :: l))) := rfl
 
-lemma length_cyclic_permutations_cons (x : α) (l : list α) :
+@[simp] lemma length_cyclic_permutations_cons (x : α) (l : list α) :
   length (cyclic_permutations (x :: l)) = length l + 1 :=
-by simp
+by simp [cyclic_permutations_cons]
 
 @[simp] lemma nth_le_cyclic_permutations (l : list α) (n : ℕ)
   (hn : n < length (cyclic_permutations l)) :
-  nth_le (cyclic_permutations l) n hn = l.rotate (n + 1) :=
+  nth_le (cyclic_permutations l) n hn = l.rotate n :=
 begin
   cases l with x l,
   { simp },
-  { simp only [rotate_cons_succ, tails, cyclic_permutations_cons, nth_le_zip_with,
-               zip_with_cons_cons, inits, nth_le_map', tail, nth_le_tails, nth_le_inits],
-    replace hn : n ≤ length l,
-    { simpa [nat.lt_succ_iff] using hn },
-    rw [rotate_eq_drop_append_take (hn.trans _), drop_append_of_le_length hn,
-        take_append_of_le_length hn, append_assoc, singleton_append],
-    simp }
+  { cases n,
+    { simp [init_eq_take, cyclic_permutations_cons] },
+    { suffices : drop n l ++ x :: take n l = (l ++ [x]).rotate n,
+      { simpa [init_eq_take, nth_le_take', cyclic_permutations_cons] },
+      replace hn : n < length l,
+      { simpa [succ_lt_succ_iff] using hn },
+      rw [rotate_eq_drop_append_take, drop_append_of_le_length hn.le,
+          take_append_of_le_length hn.le, append_assoc, singleton_append],
+      simpa using (hn.trans (lt_succ_self _)).le } }
 end
 
 lemma mem_cyclic_permutations_self (l : list α) :
@@ -438,7 +440,7 @@ begin
   cases l with x l,
   { simp },
   { rw mem_iff_nth_le,
-    refine ⟨l.length, by simp, _⟩,
+    refine ⟨0, by simp, _⟩,
     simp }
 end
 
@@ -462,12 +464,8 @@ begin
     simp only [exists_prop, nth_le_cyclic_permutations],
     cases l' with x l,
     { simp },
-    cases k,
-    { refine ⟨length l, by simp, _⟩,
-      rw [←length_cons x, rotate_length, rotate_zero] },
-    { refine ⟨k % (length l + 1), (nat.mod_lt _ (by simp)).trans_le (by simp), _⟩,
-      rw [rotate_cons_succ _ _ k, ←rotate_mod _ k, length_append],
-      simp } }
+    { refine ⟨k % length (x :: l), _, rotate_mod _ _⟩,
+      simpa using nat.mod_lt _ (zero_lt_succ _) } }
 end
 
 /-- If a `l : list α` is `nodup l`, then all of its cyclic permutants are distinct. -/
@@ -478,35 +476,20 @@ begin
   { simp },
   rw nodup_iff_nth_le_inj,
   intros i j hi hj h,
-  simp only [tails, length_inits, cyclic_permutations_cons, zip_with_cons_cons, inits, tail,
-             min_eq_right, length_map, length_zip_with, length_tails, lt_succ_iff] at hi hj,
-  rw [nth_le_cyclic_permutations, nth_le_cyclic_permutations, rotate_eq_iff, rotate_rotate,
-      eq_comm, hn.rotate_eq_self_iff, length_rotate, length] at h,
-  simp only [or_false] at h,
-  rcases l.length.zero_le.eq_or_lt with hl|hl,
-  { simp only [←hl, nonpos_iff_eq_zero] at hi hj,
-    simp [hi, hj] },
-  rcases hi.eq_or_lt with hi'|hi';
-  rcases hj.eq_or_lt with hj'|hj',
-  { rw [hi', hj'], },
-  { simpa [hi', mod_eq_of_lt, succ_lt_succ hj'] using h },
-  { simp only [hj', mod_eq_of_lt, succ_lt_succ hi', succ_sub_succ_eq_sub, add_mod_left] at h,
-    rw [mod_eq_of_lt, nat.sub_eq_iff_eq_add hi]  at h,
-    { simpa [h] using hi' },
-    { exact lt_of_le_of_lt (nat.sub_le_self _ _) (lt_succ_self _) } },
-  { simp only [hi', mod_eq_of_lt, succ_sub_succ_eq_sub, add_lt_add_iff_right] at h,
-    rw ←dvd_iff_mod_eq_zero at h,
-    obtain ⟨_|k, h⟩ := h,
-    { simpa using h },
-    { rw [mul_succ, ←nat.add_sub_assoc hi, nat.sub_eq_iff_eq_add (le_add_left hi)] at h,
-      cases k,
-      { simpa [add_comm, add_left_comm] using h.symm },
-      { refine absurd h.ge (not_le_of_lt _),
-        rw add_assoc _ _ i,
-        refine add_lt_add _ _,
-        { rw mul_succ,
-          exact (succ_lt_succ hj').trans_le le_add_self },
-        { exact (lt_succ_self _).trans_le le_self_add } } } }
+  simp only [length_cyclic_permutations_cons] at hi hj,
+  rw [nth_le_cyclic_permutations, nth_le_cyclic_permutations, rotate_eq_iff,
+      rotate_rotate, eq_comm, hn.rotate_eq_self_iff, length_rotate, length,
+      mod_eq_of_lt hi] at h,
+  simp only [or_false, ←dvd_iff_mod_eq_zero] at h,
+  obtain ⟨_|k, h⟩ := h,
+  { simp only [nat.sub_eq_iff_eq_add hi.le, add_eq_zero_iff, zero_add, mul_zero] at h,
+    simpa [h.right] using hi },
+  { rw [mul_succ, ←nat.add_sub_assoc hi.le, nat.sub_eq_iff_eq_add (le_add_left hi.le)] at h,
+    cases k,
+    { simpa [add_comm] using h.symm,},
+    { refine absurd h.ge (not_le_of_lt _),
+      rw [add_right_comm, add_lt_add_iff_right, mul_succ, add_right_comm],
+      exact hj.trans_le le_add_self } }
 end
 
 section decidable

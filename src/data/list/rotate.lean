@@ -275,6 +275,24 @@ begin
       { exact nat.sub_lt_self (by simp) nat.succ_pos' } } }
 end
 
+theorem nodup.rotate_eq_self_iff {l : list α} (hl : l.nodup) {n : ℕ} :
+  l.rotate n = l ↔ n % l.length = 0 ∨ l = [] :=
+begin
+  split,
+  { intro h,
+    cases l.length.zero_le.eq_or_lt with hl' hl',
+    { simp [←length_eq_zero, ←hl'] },
+    left,
+    rw nodup_iff_nth_le_inj at hl,
+    refine hl _ _ (mod_lt _ hl') hl' _,
+    rw ←nth_le_rotate' _ n,
+    simp_rw [h, nat.sub_add_cancel (mod_lt _ hl').le, mod_self] },
+  { rintro (h|h),
+    { rw [←rotate_mod, h],
+      exact rotate_zero l },
+    { simp [h] } }
+end
+
 section is_rotated
 
 variables (l l' : list α)
@@ -442,24 +460,6 @@ begin
       simp } }
 end
 
-theorem nodup.rotate_eq_self_iff {l : list α} (hl : l.nodup) {n : ℕ} :
-  l.rotate n = l ↔ n % l.length = 0 ∨ l = [] :=
-begin
-  split,
-  { intro h,
-    cases l.length.zero_le.eq_or_lt with hl' hl',
-    { simp [←length_eq_zero, ←hl'] },
-    left,
-    rw nodup_iff_nth_le_inj at hl,
-    refine hl _ _ (mod_lt _ hl') hl' _,
-    rw ←nth_le_rotate' _ n,
-    simp_rw [h, nat.sub_add_cancel (mod_lt _ hl').le, mod_self] },
-  { rintro (h|h),
-    { rw [←rotate_mod, h],
-      exact rotate_zero l },
-    { simp [h] } }
-end
-
 lemma nodup.cyclic_permutations {l : list α} (hn : nodup l) :
   nodup (cyclic_permutations l) :=
 begin
@@ -470,37 +470,32 @@ begin
   simp only [tails, length_inits, cyclic_permutations_cons, zip_with_cons_cons, inits, tail,
              min_eq_right, length_map, length_zip_with, length_tails, lt_succ_iff] at hi hj,
   rw [nth_le_cyclic_permutations, nth_le_cyclic_permutations, rotate_eq_iff, rotate_rotate,
-      eq_comm, hn.rotate_eq_self_iff, length_rotate] at h,
-  simp only [length_rotate, length, or_false] at h,
-  obtain ⟨a, ha⟩ := exists_eq_add_of_le hi,
-  obtain ⟨b, hb⟩ := exists_eq_add_of_le hj,
-  have ha' : i = l.length - a,
-  { rw [ha, nat.add_sub_cancel] },
-  subst i,
-  rcases a.zero_le.eq_or_lt with rfl|ha',
-  { simp only [mod_self, nat.sub_zero, add_mod_right, hb, add_right_comm j b 1] at h,
-    rcases b.zero_le.eq_or_lt with rfl|hb',
-    { simpa using hb },
-    { rw mod_eq_of_lt at h,
-      { simpa using h },
-      { simpa using hb' } } },
-  have hal : a ≤ l.length,
-  { contrapose! ha,
-    rw ←zero_add a at ha,
-    intro H,
-    rw H at ha,
-    simpa using ha },
-  rw nat.sub_add_eq_add_sub hal at h,
-  have ha' : length l + 1 - a < length l + 1,
-  { exact nat.sub_lt_self (nat.zero_lt_succ _) ha' },
-  rw hb at *,
-  rw [mod_eq_of_lt ha', nat.sub_sub_self (le_add_right hal), add_right_comm] at h,
-  rcases lt_trichotomy a b with H|rfl|H,
-  { rw mod_eq_of_lt at h,
+      eq_comm, hn.rotate_eq_self_iff, length_rotate, length] at h,
+  simp only [or_false] at h,
+  rcases l.length.zero_le.eq_or_lt with hl|hl,
+  { simp only [←hl, nonpos_iff_eq_zero] at hi hj,
+    simp [hi, hj] },
+  rcases hi.eq_or_lt with hi'|hi';
+  rcases hj.eq_or_lt with hj'|hj',
+  { rw [hi', hj'], },
+  { simpa [hi', mod_eq_of_lt, succ_lt_succ hj'] using h },
+  { simp only [hj', mod_eq_of_lt, succ_lt_succ hi', succ_sub_succ_eq_sub, add_mod_left] at h,
+    rw [mod_eq_of_lt, nat.sub_eq_iff_eq_add hi]  at h,
+    { simpa [h] using hi' },
+    { exact lt_of_le_of_lt (nat.sub_le_self _ _) (lt_succ_self _) } },
+  { simp only [hi', mod_eq_of_lt, succ_sub_succ_eq_sub, add_lt_add_iff_right] at h,
+    rw ←dvd_iff_mod_eq_zero at h,
+    obtain ⟨_|k, h⟩ := h,
     { simpa using h },
-    { simpa using H } },
-  { simp },
-  { sorry },
+    { rw [mul_succ, ←nat.add_sub_assoc hi, nat.sub_eq_iff_eq_add (le_add_left hi)] at h,
+      cases k,
+      { simpa [add_comm, add_left_comm] using h.symm },
+      { refine absurd h.ge (not_le_of_lt _),
+        rw add_assoc _ _ i,
+        refine add_lt_add _ _,
+        { rw mul_succ,
+          exact (succ_lt_succ hj').trans_le le_add_self },
+        { exact (lt_succ_self _).trans_le le_self_add } } } }
 end
 
 section decidable

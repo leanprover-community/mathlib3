@@ -1322,6 +1322,7 @@ begin
 end
 
 
+
 lemma exp_bound' {x : ℂ} {n : ℕ} (hx : abs x ≤ n / 2) :
   abs (exp x - ∑ m in range n, x ^ m / m!) ≤ 2 * abs x ^ n * (n!)⁻¹ :=
 begin
@@ -1343,36 +1344,28 @@ begin
     begin
       refine sum_le_sum (λ m hm, _),
       rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
-      apply mul_le_mul_of_nonneg_left,
+      apply mul_le_mul_of_nonneg_left _ (pow_nonneg (abs_nonneg x) n),
       rw [div_le_div_iff, abv_pow abs, <-div_le_iff',
-          mul_div_right_comm, <-div_pow, div_eq_inv_mul],
-      calc ((1 / 2)⁻¹ * abs x) ^ (m - n) * ↑n!
-          ≤ (n) ^ (m - n) * ↑n! :
-            begin
-              apply mul_le_mul_of_nonneg_right,
-              apply pow_le_pow_of_le_left,
-              apply mul_nonneg,
-              simp only [one_div, zero_le_one, inv_inv', zero_le_bit0],
-              exact abs_nonneg x,
-              rw [inv_mul_le_iff', mul_one_div],
-              exact hx,
-              linarith,
-              exact n!.cast_nonneg,
-            end
-      ... ≤ ↑m! :
-            begin
-              rw [<-nat.cast_pow, <-nat.cast_mul, nat.cast_le],
-              rw mem_filter at hm,
-              rw mul_comm,
-              exact nat.factorial_mul_pow_sub_le_factorial hm.right,
-            end,
+          mul_div_right_comm, <-div_pow, div_eq_inv_mul, one_div, inv_inv'],
+      rw mem_filter at hm,
+      rw mul_comm,
+      apply trans _ (nat.cast_le.2 (nat.factorial_mul_pow_sub_le_factorial hm.right)),
+      exact is_trans.swap (λ (x y : ℝ), y ≤ x),
+      simp only [nat.factorial, nat.cast_mul, nat.cast_pow],
+      apply mul_le_mul_of_nonneg_left,
+      apply pow_le_pow_of_le_left,
+      apply mul_nonneg,
+      linarith,
+      exact abs_nonneg x,
+      linarith,
+      exact n!.cast_nonneg,
+      exact real.nontrivial,
       apply pow_pos,
       linarith,
       rw nat.cast_pos,
       exact nat.factorial_pos m,
       rw nat.cast_pos,
       exact nat.factorial_pos n,
-      apply pow_nonneg (abs_nonneg x),
     end
   ... ≤ 2 * abs x ^ n * (↑n!)⁻¹ :
     begin

@@ -30,6 +30,7 @@ Adjunction between `Γ` and `Spec`
 -/
 
 noncomputable theory
+universe variables u v
 
 namespace algebraic_geometry
 open opposite
@@ -80,7 +81,7 @@ The spectrum of a commutative ring, as a `SheafedSpace`.
 /--
 The induced map of a ring homomorphism on the ring spectra, as a morphism of sheafed spaces.
 -/
-@[simps] def Spec.SheafedSpace_map {R S : CommRing} (f : R ⟶ S) :
+@[simps] def Spec.SheafedSpace_map {R S : CommRing.{u}} (f : R ⟶ S) :
   Spec.SheafedSpace_obj S ⟶ Spec.SheafedSpace_obj R :=
 { base := Spec.Top_map f,
   c :=

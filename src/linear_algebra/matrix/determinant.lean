@@ -107,10 +107,7 @@ by simp [det_apply, univ_unique]
 lemma det_eq_elem_of_subsingleton [subsingleton n] (A : matrix n n R) (k : n) :
   det A = A k k :=
 begin
-  rw det_apply,
-  suffices : ∏ (i : n), A i i = A k k,
-  { simpa },
-  convert fintype.prod_unique _,
+  convert det_unique _,
   exact unique_of_subsingleton k
 end
 

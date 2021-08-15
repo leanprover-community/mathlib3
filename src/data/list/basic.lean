@@ -528,6 +528,15 @@ append_bind _ _ _
 @[simp] theorem bind_singleton (f : α → list β) (x : α) : [x].bind f = f x :=
 append_nil (f x)
 
+@[simp] theorem bind_singleton' (l : list α) : l.bind (λ x, [x]) = l := bind_pure l
+
+theorem map_eq_bind {α β} (f : α → β) (l : list α) : map f l = l.bind (λ x, [f x]) :=
+by { transitivity, rw [← bind_singleton' l, bind_map], refl }
+
+theorem bind_assoc {α β} (l : list α) (f : α → list β) (g : β → list γ) :
+  (l.bind f).bind g = l.bind (λ x, (f x).bind g) :=
+by induction l; simp *
+
 /-! ### concat -/
 
 theorem concat_nil (a : α) : concat [] a = [a] := rfl
@@ -1137,7 +1146,7 @@ by { cases L, cases h, simp, }
 
 lemma nth_le_append : ∀ {l₁ l₂ : list α} {n : ℕ} (hn₁) (hn₂),
   (l₁ ++ l₂).nth_le n hn₁ = l₁.nth_le n hn₂
-| []     _ n     hn₁ hn₂  := (not_lt_zero _ hn₂).elim
+| []     _ n     hn₁ hn₂  := (nat.not_lt_zero _ hn₂).elim
 | (a::l) _ 0     hn₁ hn₂ := rfl
 | (a::l) _ (n+1) hn₁ hn₂ := by simp only [nth_le, cons_append];
                          exact nth_le_append _ _
@@ -1167,7 +1176,7 @@ eq_of_mem_repeat (nth_le_mem _ _ _)
 lemma nth_append {l₁ l₂ : list α} {n : ℕ} (hn : n < l₁.length) :
   (l₁ ++ l₂).nth n = l₁.nth n :=
 have hn' : n < (l₁ ++ l₂).length := lt_of_lt_of_le hn
-  (by rw length_append; exact le_add_right _ _),
+  (by rw length_append; exact nat.le_add_right _ _),
 by rw [nth_le_nth hn, nth_le_nth hn', nth_le_append]
 
 lemma nth_append_right {l₁ l₂ : list α} {n : ℕ} (hn : l₁.length ≤ n) :
@@ -1181,7 +1190,7 @@ begin
 end
 
 lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
-  last l h = l.nth_le (l.length - 1) (sub_lt (length_pos_of_ne_nil h) one_pos)
+  last l h = l.nth_le (l.length - 1) (nat.sub_lt (length_pos_of_ne_nil h) one_pos)
 | [] h := rfl
 | [a] h := by rw [last_singleton, nth_le_singleton]
 | (a :: b :: l) h := by { rw [last_cons, last_eq_nth_le (b :: l)],
@@ -1239,7 +1248,7 @@ lemma index_of_inj [decidable_eq α] {l : list α} {x y : α}
 
 theorem nth_le_reverse_aux2 : ∀ (l r : list α) (i : nat) (h1) (h2),
   nth_le (reverse_core l r) (length l - 1 - i) h1 = nth_le l i h2
-| []       r i     h1 h2 := absurd h2 (not_lt_zero _)
+| []       r i     h1 h2 := absurd h2 (nat.not_lt_zero _)
 | (a :: l) r 0     h1 h2 := begin
     have aux := nth_le_reverse_aux1 l (a :: r) 0,
     rw zero_add at aux,
@@ -1580,8 +1589,8 @@ theorem take_left' {l₁ l₂ : list α} {n} (h : length l₁ = n) :
 by rw ← h; apply take_left
 
 theorem take_take : ∀ (n m) (l : list α), take n (take m l) = take (min n m) l
-| n         0        l      := by rw [min_zero, take_zero, take_nil]
-| 0         m        l      := by rw [zero_min, take_zero, take_zero]
+| n         0        l      := by rw [nat.min_zero, take_zero, take_nil]
+| 0         m        l      := by rw [nat.zero_min, take_zero, take_zero]
 | (succ n)  (succ m) nil    := by simp only [take_nil]
 | (succ n)  (succ m) (a::l) := by simp only [take, min_succ_succ, take_take n m l]; split; refl
 
@@ -2230,12 +2239,12 @@ end
 @[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},
   mfoldl f b (l₁ ++ l₂) = mfoldl f b l₁ >>= λ x, mfoldl f x l₂
 | _ []     _ := by simp only [nil_append, mfoldl_nil, pure_bind]
-| _ (_::_) _ := by simp only [cons_append, mfoldl_cons, mfoldl_append, bind_assoc]
+| _ (_::_) _ := by simp only [cons_append, mfoldl_cons, mfoldl_append, is_lawful_monad.bind_assoc]
 
 @[simp] theorem mfoldr_append {f : α → β → m β} : ∀ {b l₁ l₂},
   mfoldr f b (l₁ ++ l₂) = mfoldr f b l₂ >>= λ x, mfoldr f x l₁
 | _ []     _ := by simp only [nil_append, mfoldr_nil, bind_pure]
-| _ (_::_) _ := by simp only [mfoldr_cons, cons_append, mfoldr_append, bind_assoc]
+| _ (_::_) _ := by simp only [mfoldr_cons, cons_append, mfoldr_append, is_lawful_monad.bind_assoc]
 
 end mfoldl_mfoldr
 
@@ -3848,12 +3857,25 @@ produced by inserting `t` into every non-terminal position of `ys` in order. As 
 lemma permutations_aux2_snd_eq (t : α) (ts : list α) (r : list β) (ys : list α) (f : list α → β) :
   (permutations_aux2 t ts r ys f).2 =
     (permutations_aux2 t [] [] ys id).2.map (λ x, f (x ++ ts)) ++ r :=
-by rw [←permutations_aux2_append, map_permutations_aux2, permutations_aux2_comp_append]
+by rw [← permutations_aux2_append, map_permutations_aux2, permutations_aux2_comp_append]
 
 theorem map_map_permutations_aux2 {α α'} (g : α → α') (t : α) (ts ys : list α) :
   map (map g) (permutations_aux2 t ts [] ys id).2 =
   (permutations_aux2 (g t) (map g ts) [] (map g ys) id).2 :=
 map_permutations_aux2' _ _ _ _ _ _ _ _ (λ _, rfl)
+
+theorem map_map_permutations'_aux (f : α → β) (t : α) (ts : list α) :
+  map (map f) (permutations'_aux t ts) = permutations'_aux (f t) (map f ts) :=
+by induction ts with a ts ih; [refl, {simp [← ih], refl}]
+
+theorem permutations'_aux_eq_permutations_aux2 (t : α) (ts : list α) :
+  permutations'_aux t ts = (permutations_aux2 t [] [ts ++ [t]] ts id).2 :=
+begin
+  induction ts with a ts ih, {refl},
+  simp [permutations'_aux, permutations_aux2_snd_cons, ih],
+  simp only [← permutations_aux2_append] {single_pass := tt},
+  simp [map_permutations_aux2],
+end
 
 theorem mem_permutations_aux2 {t : α} {ts : list α} {ys : list α} {l l' : list α} :
     l' ∈ (permutations_aux2 t ts [] ys (append l)).2 ↔
@@ -3921,6 +3943,9 @@ by rw [permutations_aux, permutations_aux.rec]
     (permutations_aux ts (t::is)) (permutations is) :=
 by rw [permutations_aux, permutations_aux.rec]; refl
 
+@[simp] theorem permutations_nil : permutations ([] : list α) = [[]] :=
+by rw [permutations, permutations_aux_nil]
+
 theorem map_permutations_aux (f : α → β) : ∀ (ts is : list α),
   map (map f) (permutations_aux ts is) = permutations_aux (map f ts) (map f is) :=
 begin
@@ -3933,6 +3958,25 @@ end
 theorem map_permutations (f : α → β) (ts : list α) :
   map (map f) (permutations ts) = permutations (map f ts) :=
 by rw [permutations, permutations, map, map_permutations_aux, map]
+
+theorem map_permutations' (f : α → β) (ts : list α) :
+  map (map f) (permutations' ts) = permutations' (map f ts) :=
+by induction ts with t ts ih; [refl, simp [← ih, map_bind, ← map_map_permutations'_aux, bind_map]]
+
+theorem permutations_aux_append (is is' ts : list α) :
+  permutations_aux (is ++ ts) is' =
+  (permutations_aux is is').map (++ ts) ++ permutations_aux ts (is.reverse ++ is') :=
+begin
+  induction is with t is ih generalizing is', {simp},
+  simp [foldr_permutations_aux2, ih, bind_map],
+  congr' 2, funext ys, rw [map_permutations_aux2],
+  simp only [← permutations_aux2_comp_append] {single_pass := tt},
+  simp only [id, append_assoc],
+end
+
+theorem permutations_append (is ts : list α) :
+  permutations (is ++ ts) = (permutations is).map (++ ts) ++ permutations_aux ts is.reverse :=
+by simp [permutations, permutations_aux_append]
 
 end permutations
 

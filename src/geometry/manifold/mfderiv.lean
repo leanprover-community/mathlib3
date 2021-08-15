@@ -609,7 +609,7 @@ begin
   { have : (ext_chart_at I x).symm ⁻¹' {y | f₁ y = f y} ∈
       𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
       ext_chart_preimage_mem_nhds_within I x h₁,
-    apply filter.mem_sets_of_superset this (λy, _),
+    apply filter.mem_of_superset this (λy, _),
     simp only [hx] with mfld_simps {contextual := tt} },
   { simp only [hx] with mfld_simps },
 end
@@ -617,7 +617,7 @@ end
 lemma has_mfderiv_within_at.congr_mono (h : has_mfderiv_within_at I I' f s x f')
   (ht : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (h₁ : t ⊆ s) :
   has_mfderiv_within_at I I' f₁ t x f' :=
-(h.mono h₁).congr_of_eventually_eq (filter.mem_inf_sets_of_right ht) hx
+(h.mono h₁).congr_of_eventually_eq (filter.mem_inf_of_right ht) hx
 
 lemma has_mfderiv_at.congr_of_eventually_eq (h : has_mfderiv_at I I' f x f')
   (h₁ : f₁ =ᶠ[𝓝 x] f) : has_mfderiv_at I I' f₁ x f' :=
@@ -717,7 +717,7 @@ lemma written_in_ext_chart_comp (h : continuous_within_at f s x) :
        = ((written_in_ext_chart_at I' I'' (f x) g) ∘ (written_in_ext_chart_at I I' x f)) y}
   ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
 begin
-  apply @filter.mem_sets_of_superset _ _
+  apply @filter.mem_of_superset _ _
     ((f ∘ (ext_chart_at I x).symm)⁻¹' (ext_chart_at I' (f x)).source) _
     (ext_chart_preimage_mem_nhds_within I x
       (h.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
@@ -1041,7 +1041,7 @@ begin
   refine ⟨continuous_id.continuous_at, _⟩,
   have : ∀ᶠ y in 𝓝[range I] ((ext_chart_at I x) x),
     ((ext_chart_at I x) ∘ (ext_chart_at I x).symm) y = id y,
-  { apply filter.mem_sets_of_superset (ext_chart_at_target_mem_nhds_within I x),
+  { apply filter.mem_of_superset (ext_chart_at_target_mem_nhds_within I x),
     mfld_set_tac },
   apply has_fderiv_within_at.congr_of_eventually_eq (has_fderiv_within_at_id _ _) this,
   simp only with mfld_simps
@@ -1303,7 +1303,7 @@ begin
   rw ← this,
   apply filter.eventually_eq.mfderiv_eq,
   have : e.source ∈ 𝓝 x := is_open.mem_nhds e.open_source hx,
-  exact filter.mem_sets_of_superset this (by mfld_set_tac)
+  exact filter.mem_of_superset this (by mfld_set_tac)
 end
 
 lemma comp_symm_deriv {x : M'} (hx : x ∈ e.target) :

@@ -161,3 +161,26 @@ protected def injective.unique [inhabited α] [subsingleton β] (hf : injective 
 @unique.mk' _ _ hf.subsingleton
 
 end function
+
+namespace option
+
+/-- `option α` is a `subsingleton` if and only if `α` is empty. -/
+lemma subsingleton_iff_is_empty {α} : subsingleton (option α) ↔ is_empty α :=
+⟨λ h, ⟨λ x, option.no_confusion $ @subsingleton.elim _ h x none⟩,
+  λ h, ⟨λ x y, option.cases_on x (option.cases_on y rfl (λ x, h.elim x)) (λ x, h.elim x)⟩⟩
+
+instance {α} [is_empty α] : unique (option α) := @unique.mk' _ _ (subsingleton_iff_is_empty.2 ‹_›)
+
+end option
+
+section subtype
+
+instance unique.subtype_eq (y : α) : unique {x // x = y} :=
+{ default := ⟨y, rfl⟩,
+  uniq := λ ⟨x, hx⟩, by simpa using hx }
+
+instance unique.subtype_eq' (y : α) : unique {x // y = x} :=
+{ default := ⟨y, rfl⟩,
+  uniq := λ ⟨x, hx⟩, by simpa using hx.symm }
+
+end subtype

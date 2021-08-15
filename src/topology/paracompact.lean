@@ -38,9 +38,7 @@ We also prove the following facts.
 
 ## TODO
 
-* Define partition of unity.
-
-* Prove (some of) [Michael's theorems](https://ncatlab.org/nlab/show/Michael%27s+theorem).
+Prove (some of) [Michael's theorems](https://ncatlab.org/nlab/show/Michael%27s+theorem).
 
 ## Tags
 

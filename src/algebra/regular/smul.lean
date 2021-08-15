@@ -175,7 +175,7 @@ end is_smul_regular
 
 section group
 
-variables {G : Type*} [monoid R] [group G]
+variables {G : Type*} [group G]
 
 /-- An element of a group acting on a monoid is regular. This relies on the availability
 of the inverse given by groups, since there is no `left_cancel_smul` typeclass. -/

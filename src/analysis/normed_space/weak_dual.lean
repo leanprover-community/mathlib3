@@ -36,8 +36,8 @@ weak-* topology on (it type synonym) `weak_dual 𝕜 E`:
 TODOs:
 * Add Banach-Alaoglu theorem.
 * Add metrizability of the dual unit ball (more generally bounded subsets) of `weak_dual 𝕜 E`
-  under the assumption of separability of `E`. This would in particular give the sequential
-  Banach-Alaoglu theorem from the general one.
+  under the assumption of separability of `E`. Sequential Banach-Alaoglu theorem would then follow
+  from the general one.
 
 ## Notations
 
@@ -94,12 +94,13 @@ normed_space.dual.to_weak_dual.symm
 
 namespace normed_space.dual
 
-@[simp] lemma to_weak_dual_inj_iff (x' y' : dual 𝕜 E) :
+@[simp] lemma to_weak_dual_eq_iff (x' y' : dual 𝕜 E) :
   x'.to_weak_dual = y'.to_weak_dual ↔ x' = y' :=
 to_weak_dual.injective.eq_iff
 
-@[simp] lemma _root_.weak_dual.to_normed_dual_inj_iff (x' y' : weak_dual 𝕜 E) :
-  x'.to_normed_dual = y'.to_normed_dual ↔ x' = y' := iff.rfl
+@[simp] lemma _root_.weak_dual.to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :
+  x'.to_normed_dual = y'.to_normed_dual ↔ x' = y' :=
+weak_dual.to_normed_dual.injective.eq_iff
 
 theorem to_weak_dual_continuous :
   continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=

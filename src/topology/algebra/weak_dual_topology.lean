@@ -50,11 +50,12 @@ The weak-* topology is defined as the induced topology under the mapping that as
 element `x'` the functional `E → 𝕜`, when the space `E → 𝕜` of functionals is equipped with the
 topology of pointwise convergence (product topology).
 
-The general definition assumes that `𝕜` is a topological semiring in the sense of the typeclasses
+Typically one might assumes that `𝕜` is a topological semiring in the sense of the typeclasses
  `topological_space 𝕜`, `semiring 𝕜`, `has_continuous_add 𝕜`, `has_continuous_mul 𝕜`,
 and that the space `E` is a topological module over `𝕜` in the sense of the typeclasses
 `topological_space E`, `add_comm_monoid E`, `has_continuous_add E`, `module 𝕜 E`,
-`has_continuous_smul 𝕜 E`.
+`has_continuous_smul 𝕜 E`. The definitions and results are, however, given with suitable subsets
+of these assumptions.
 
 ## References
 

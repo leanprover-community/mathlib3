@@ -136,13 +136,11 @@ $$c + (a⊔b) = (c+a)⊔(c+b).$$
 -/
 lemma add_join_eq_add_join_add (a b c : α) : c + (a⊔b) = (c+a)⊔(c+b) :=
 begin
-  rw le_antisymm_iff,
-  split,
-  { rw [← add_le_add_iff_left (-c), ← add_assoc, neg_add_self, zero_add, sup_le_iff],
-    split,
-    { simp, },
-    { simp, } },
-  { rw ← add_le_add_iff_left (-c), simp,  }
+  refine le_antisymm _ (by simp),
+  rw [← add_le_add_iff_left (-c), ← add_assoc, neg_add_self, zero_add],
+  apply sup_le,
+  { simp },
+  { simp },
 end
 
 -- Special case of Bourbaki A.VI.9 (2)

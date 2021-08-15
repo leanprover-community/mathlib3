@@ -84,9 +84,6 @@ The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 
 variables (𝕜 : Type*) [topological_space 𝕜] [semiring 𝕜]
 variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
---variables [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
---variables [has_continuous_add E]
---variables [has_continuous_smul 𝕜 E]
 
 /-- The (weak) dual of a topological module `E` over a topological semiring `𝕜` consists of
 continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the original
@@ -106,12 +103,12 @@ is equipped with the topology of pointwise convergence (product topology). -/
 instance : topological_space (weak_dual 𝕜 E) :=
 topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topological_space
 
-lemma eval_continuous' :
+lemma coe_fn_continuous :
   continuous (λ (x' : (weak_dual 𝕜 E)), (λ (z : E), x' z)) :=
 continuous_induced_dom
 
 lemma eval_continuous (z : E) : continuous (λ (x' : weak_dual 𝕜 E), x' z) :=
-(continuous_pi_iff.mp (eval_continuous' 𝕜 E)) z
+(continuous_pi_iff.mp (coe_fn_continuous 𝕜 E)) z
 
 lemma continuous_of_continuous_eval {α : Type*} [topological_space α]
   {g : α → weak_dual 𝕜 E} (h : ∀ z, continuous (λ a, g a z)) : continuous g :=
@@ -124,7 +121,7 @@ begin
   rw ←tendsto_pi,
   split,
   { intros weak_star_conv,
-    exact (((eval_continuous' 𝕜 E).tendsto ψ).comp weak_star_conv), },
+    exact (((coe_fn_continuous 𝕜 E).tendsto ψ).comp weak_star_conv), },
   { intro h_lim_forall,
     rwa [nhds_induced, tendsto_comap_iff], },
 end
@@ -134,22 +131,8 @@ instance [has_continuous_add 𝕜] : has_continuous_add (weak_dual 𝕜 E) :=
 { continuous_add := begin
     apply continuous_of_continuous_eval,
     intros z,
-    rw continuous_iff_continuous_at,
-    intros p,
-    set pz := (⟨p.fst z, p.snd z⟩ : 𝕜 × 𝕜)  with h_pz,
-    intros V V_nhd,
-    have W_nhd := continuous_iff_continuous_at.mp (‹has_continuous_add 𝕜›.continuous_add) pz V_nhd,
-    have rect := mem_nhds_prod_iff.mp W_nhd,
-    rcases rect with ⟨W₁, hW₁, W₂, ⟨hW₂, rect_sub_W⟩⟩,
-    have evat_cont_at := continuous_iff_continuous_at.mp (eval_continuous 𝕜 E z),
-    have nhd₁ := evat_cont_at p.fst hW₁,
-    have nhd₂ := evat_cont_at p.snd hW₂,
-    have nhd := prod_mem_nhds_iff.mpr ⟨nhd₁, nhd₂⟩,
-    rw prod.mk.eta at nhd,
-    apply mem_sets_of_superset nhd,
-    intros q hq,
-    have key : (⟨q.fst z, q.snd z⟩ : 𝕜 × 𝕜) ∈ W₁.prod W₂ := hq,
-    exact rect_sub_W key,
+    have h : continuous (λ p : 𝕜 × 𝕜, p.1 + p.2) := continuous_add,
+    exact h.comp ((eval_continuous 𝕜 E z).prod_map (eval_continuous 𝕜 E z)),
   end, }
 
 /-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`. -/
@@ -169,21 +152,8 @@ instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
 { continuous_smul := begin
     apply continuous_of_continuous_eval,
     intros z,
-    rw continuous_iff_continuous_at,
-    intros p,
-    set pz := (⟨p.fst, p.snd z⟩ : 𝕜 × 𝕜) with h_pz,
-    intros V V_nhd,
-    have W_nhd := continuous_iff_continuous_at.mp (‹has_continuous_mul 𝕜›.continuous_mul) pz V_nhd,
-    have rect := mem_nhds_prod_iff.mp W_nhd,
-    rcases rect with ⟨W₁, hW₁, W₂, ⟨hW₂, rect_sub_W⟩⟩,
-    have evat_cont_at := continuous_iff_continuous_at.mp (eval_continuous 𝕜 E z),
-    have nhd₂ := evat_cont_at p.snd hW₂,
-    have nhd := prod_mem_nhds_iff.mpr ⟨hW₁, nhd₂⟩,
-    rw prod.mk.eta at nhd,
-    apply mem_sets_of_superset nhd,
-    intros q hq,
-    have key : (⟨q.fst, q.snd z⟩ : 𝕜 × 𝕜) ∈ W₁.prod W₂ := hq,
-    exact rect_sub_W key,
+    have h : continuous (λ p : 𝕜 × 𝕜, p.1 * p.2) := continuous_mul,
+    exact h.comp ((continuous_id').prod_map (eval_continuous 𝕜 E z)),
   end, }
 
 end weak_dual

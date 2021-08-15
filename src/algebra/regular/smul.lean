@@ -173,16 +173,30 @@ end comm_monoid
 
 end is_smul_regular
 
+section group
+
+variables {G : Type*} [monoid R] [group G]
+
+/-- An element of a group acting on a monoid is regular. This relies on the availability
+of the inverse given by groups, since there is no `left_cancel_smul` typeclass. -/
+lemma is_smul_regular_of_group [mul_action G R] (g : G) : is_smul_regular R g :=
+begin
+  intros x y h,
+  convert congr_arg ((•) g⁻¹) h using 1;
+  simp [←smul_assoc]
+end
+
+end group
+
 variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
 
 /-- Any element in `units R` is `M`-regular. -/
-lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R)
-:=
+lemma units.is_smul_regular_coe (a : units R) : is_smul_regular M (a : R) :=
 is_smul_regular.of_mul_eq_one a.inv_val
 
 /-- A unit is `M`-regular. -/
 lemma is_unit.is_smul_regular (ua : is_unit a) : is_smul_regular M a :=
 begin
   rcases ua with ⟨a, rfl⟩,
-  exact a.is_smul_regular M
+  exact a.is_smul_regular_coe M
 end

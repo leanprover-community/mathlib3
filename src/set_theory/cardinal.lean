@@ -629,6 +629,11 @@ lemma lift_sup_le {ι : Type v} (f : ι → cardinal.{max v w})
   lift.{(max v w) u} (sup f) ≤ t :=
 by { rw lift_sup, exact sup_le.mpr w, }
 
+@[simp] lemma lift_sup_le_iff {ι : Type v} (f : ι → cardinal.{max v w}) (t : cardinal.{max u v w}) :
+  lift.{(max v w) u} (sup f) ≤ t ↔ ∀ i, lift.{_ u} (f i) ≤ t :=
+⟨λ h i, (lift_le.mpr (le_sup f i)).trans h,
+ λ h, lift_sup_le f t h⟩
+
 universes v' w'
 
 /--

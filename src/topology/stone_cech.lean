@@ -84,6 +84,20 @@ t2_iff_ultrafilter.mpr $ assume x y f fx fy,
   have hy : y = mjoin f, from ultrafilter_converges_iff.mp fy,
   hx.trans hy.symm
 
+instance : totally_disconnected_space (ultrafilter α) :=
+begin
+  rw totally_disconnected_space_iff_connected_component_singleton,
+  intro A,
+  simp only [set.eq_singleton_iff_unique_mem, mem_connected_component, true_and],
+  intros B hB,
+  rw ← ultrafilter.coe_le_coe,
+  intros s hs,
+  rw [connected_component_eq_Inter_clopen, set.mem_Inter] at hB,
+  let Z := { F : ultrafilter α | s ∈ F },
+  have hZ : is_clopen Z := ⟨ultrafilter_is_open_basic s, ultrafilter_is_closed_basic s⟩,
+  exact hB ⟨Z, hZ, hs⟩,
+end
+
 lemma ultrafilter_comap_pure_nhds (b : ultrafilter α) : comap pure (𝓝 b) ≤ b :=
 begin
   rw topological_space.nhds_generate_from,

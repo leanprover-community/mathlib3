@@ -2028,6 +2028,14 @@ lemma injective.exists_unique_of_mem_range (hf : injective f) {b : β} (hb : b �
   ∃! a, f a = b :=
 hf.mem_range_iff_exists_unique.mp hb
 
+lemma left_inverse.image_image {g : β → α} (h : left_inverse g f) (s : set α) :
+  g '' (f '' s) = s :=
+by rw [← image_comp, h.comp_eq_id, image_id]
+
+lemma left_inverse.preimage_preimage {g : β → α} (h : left_inverse g f) (s : set α) :
+  f ⁻¹' (g ⁻¹' s) = s :=
+by rw [← preimage_comp, h.comp_eq_id, preimage_id]
+
 end function
 open function
 

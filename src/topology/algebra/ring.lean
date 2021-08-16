@@ -108,10 +108,6 @@ instance {β : Type*} {C : β → Type*} [Π b, topological_space (C b)]
   [Π b, ring (C b)] [∀ b, topological_ring (C b)] : topological_ring (Π b, C b) :=
 { continuous_neg := continuous_neg }
 
-instance {β : Type*} {C : β → Type*} [Π b, topological_space (C b)]
-  [Π b, ring (C b)] [∀ b, topological_ring (C b)] : topological_ring (Π b, C b) :=
-{ continuous_neg := continuous_neg }
-
 /-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/
 lemma mul_left_continuous (x : α) : continuous (add_monoid_hom.mul_left x) :=
 continuous_const.mul continuous_id

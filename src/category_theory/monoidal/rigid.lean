@@ -177,26 +177,46 @@ begin
   slice_rhs 4 5 { rw [←tensor_comp, right_unitor_naturality, tensor_comp] },
   repeat { rw category.assoc },
   rw [triangle_assoc_comp_left_inv_assoc, ←right_unitor_tensor_assoc,
-    right_unitor_naturality_assoc, unitors_equal, ←category.assoc, ←category.assoc], simp
+    right_unitor_naturality_assoc, ←unitors_equal, ←category.assoc, ←category.assoc], simp
 end
 
 /- This theorem shows that right duals are isomorphic, which is almost trivial due to the
   previous theorem. -/
-def right_dual_iso {X Y₁ Y₂ : C} (p₁ : exact_pairing X Y₁) (p₂ : exact_pairing X Y₂) :
+def right_dual_iso {X Y₁ Y₂ : C} (_ : exact_pairing X Y₁) (_ : exact_pairing X Y₂) :
   Y₁ ≅ Y₂ :=
 { hom := @right_adjoint_mate C _ _ X X ⟨Y₂⟩ ⟨Y₁⟩ (𝟙 X),
   inv := @right_adjoint_mate C _ _ X X ⟨Y₁⟩ ⟨Y₂⟩ (𝟙 X),
   hom_inv_id' := by rw [←comp_right_adjoint_mate, category.comp_id, right_adjoint_mate_id],
   inv_hom_id' := by rw [←comp_right_adjoint_mate, category.comp_id, right_adjoint_mate_id] }
 
-@[simp] lemma right_dual_iso_id {X Y : C} (p : exact_pairing X Y) :
+def left_dual_iso {X₁ X₂ Y : C} (p₁ : exact_pairing X₁ Y) (p₂ : exact_pairing X₂ Y) :
+  X₁ ≅ X₂ :=
+{ hom := @left_adjoint_mate C _ _ Y Y ⟨X₂⟩ ⟨X₁⟩ (𝟙 Y),
+  inv := @left_adjoint_mate C _ _ Y Y ⟨X₁⟩ ⟨X₂⟩ (𝟙 Y),
+  hom_inv_id' := by rw [←comp_left_adjoint_mate, category.comp_id, left_adjoint_mate_id],
+  inv_hom_id' := by rw [←comp_left_adjoint_mate, category.comp_id, left_adjoint_mate_id] }
+
+@[simp]
+lemma right_dual_iso_id {X Y : C} (p : exact_pairing X Y) :
   right_dual_iso p p = iso.refl Y :=
 by { ext, simp only [right_dual_iso, iso.refl_hom, right_adjoint_mate_id] }
 
+@[simp]
+lemma left_dual_iso_id {X Y : C} (p : exact_pairing X Y) :
+  left_dual_iso p p = iso.refl X :=
+by { ext, simp only [left_dual_iso, iso.refl_hom, left_adjoint_mate_id] }
+
 /- A right rigid monoidal category is one in which every object has a right dual. -/
 class right_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
-  [dual : Π (X : C), has_right_dual X]
+  [right_dual : Π (X : C), has_right_dual X]
 
-attribute [instance] right_rigid_category.dual
+class left_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
+  [left_dual : Π (X : C), has_left_dual X]
+
+attribute [instance] right_rigid_category.right_dual
+attribute [instance] left_rigid_category.left_dual
+
+class rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
+  extends right_rigid_category C, left_rigid_category C
 
 end category_theory

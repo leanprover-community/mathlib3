@@ -479,7 +479,7 @@ protected theorem sub_le_iff_right : m - n ≤ k ↔ m ≤ k + n :=
 begin
   induction n with n ih generalizing k,
   { simp },
-  { simp [sub_succ, succ_add, ih, pred_le_iff] }
+  { simp only [sub_succ, add_succ, succ_add, ih, pred_le_iff] }
 end
 
 instance : has_ordered_sub ℕ :=

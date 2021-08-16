@@ -124,39 +124,37 @@ begin
   rw [←category.assoc],
   symmetry, iterate 2 { transitivity, rw ←category.assoc }, apply eq_whisker,
   repeat { rw ←id_tensor_comp }, apply congr_arg (λ f, 𝟙 Z^* ⊗ f),
-  slice_rhs 7 8 { rw ←id_tensor_comp_tensor_id },
-  rw id_tensor_right_unitor_inv,
-  slice_rhs 1 2 { rw right_unitor_inv_naturality },
-  slice_rhs 3 4 { rw ←associator_naturality },
-  slice_rhs 2 3 { rw [tensor_id, tensor_id_comp_id_tensor] },
-  slice_rhs 3 4 { rw ←associator_naturality },
+  rw [←id_tensor_comp_tensor_id (λ_ X^*).hom g, id_tensor_right_unitor_inv, category.assoc,
+    category.assoc, right_unitor_inv_naturality_assoc, ←associator_naturality_assoc, tensor_id,
+    tensor_id_comp_id_tensor_assoc, ←associator_naturality_assoc],
   slice_rhs 2 3 { rw [←tensor_comp, tensor_id, category.comp_id, ←category.id_comp (η_ Y Y^*), tensor_comp] },
-  slice_rhs 3 3 { rw ←id_tensor_comp_tensor_id }, rw ←tensor_id,
-  slice_rhs 5 6 { rw pentagon_hom_inv },
-  slice_rhs 7 8 { rw ←associator_naturality },
-  slice_rhs 4 5 { rw associator_inv_naturality },
+  rw [←id_tensor_comp_tensor_id _ (η_ Y Y^*), ←tensor_id],
+  repeat { rw category.assoc },
+  rw [pentagon_hom_inv_assoc, ←associator_naturality_assoc, associator_inv_naturality_assoc],
   slice_rhs 5 7 { rw [←comp_tensor_id, ←comp_tensor_id, evaluation_coevaluation, comp_tensor_id] },
-  slice_rhs 3 4 { rw associator_inv_naturality },
+  rw associator_inv_naturality_assoc,
   slice_rhs 4 5 { rw [←tensor_comp, left_unitor_naturality, tensor_comp] },
-  slice_rhs 5 7 { rw [triangle_assoc_comp_right_inv, tensor_id_comp_id_tensor] },
-  slice_rhs 5 6 { rw [tensor_inv_hom_id, category.comp_id] },
-  slice_rhs 3 4 { rw ←left_unitor_tensor },
-  slice_rhs 2 3 { rw left_unitor_naturality },
-  rw [unitors_equal, ←category.assoc, ←category.assoc], simp
+  repeat { rw category.assoc },
+  rw [triangle_assoc_comp_right_inv_assoc, ←left_unitor_tensor_assoc X X^*,
+    left_unitor_naturality_assoc, unitors_equal, ←category.assoc, ←category.assoc], simp
 end
 
 /- This theorem shows that right duals are isomorphic, which is almost trivial due to the
   previous theorem. -/
-theorem right_dual_iso {X Y₁ Y₂ : C} (p₁ : exact_pairing X Y₁) (p₂ : exact_pairing X Y₂) :
+def right_dual_iso {X Y₁ Y₂ : C} (p₁ : exact_pairing X Y₁) (p₂ : exact_pairing X Y₂) :
   Y₁ ≅ Y₂ :=
 { hom := @right_adjoint_mate C _ _ X X ⟨Y₂⟩ ⟨Y₁⟩ (𝟙 X),
   inv := @right_adjoint_mate C _ _ X X ⟨Y₁⟩ ⟨Y₂⟩ (𝟙 X),
   hom_inv_id' := by rw [←comp_right_adjoint_mate, category.comp_id, right_adjoint_mate_id],
   inv_hom_id' := by rw [←comp_right_adjoint_mate, category.comp_id, right_adjoint_mate_id] }
 
+@[simp] lemma right_dual_iso_id {X Y : C} (p : exact_pairing X Y) :
+  right_dual_iso p p = iso.refl Y :=
+by { ext, simp only [right_dual_iso, iso.refl_hom, right_adjoint_mate_id] }
+
 /- A right rigid monoidal category is one in which every object has a right dual. -/
 class right_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
-  (dual : Π (X : C), has_right_dual X)
+  [dual : Π (X : C), has_right_dual X]
 
 attribute [instance] right_rigid_category.dual
 

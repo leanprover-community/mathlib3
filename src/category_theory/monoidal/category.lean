@@ -243,7 +243,7 @@ by
     ←cancel_epi ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ 𝟙 Y), pentagon_assoc, triangle, ←associator_naturality,
     ←comp_tensor_id_assoc, triangle, associator_naturality, tensor_id]
 
-@[simp]
+@[simp, reassoc]
 lemma left_unitor_tensor (X Y : C) :
   ((λ_ (X ⊗ Y)).hom) = ((α_ (𝟙_ C) X Y).inv) ≫ ((λ_ X).hom ⊗ (𝟙 Y)) :=
 by { rw [←left_unitor_tensor'], simp }
@@ -366,6 +366,7 @@ lemma tensor_inv_hom_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z
   (g ⊗ f.inv) ≫ (h ⊗ f.hom) = (g ≫ h) ⊗ 𝟙 W :=
 by rw [←tensor_comp, f.inv_hom_id]
 
+@[reassoc]
 lemma pentagon_hom_inv {W X Y Z : C} :
   (α_ W X (Y ⊗ Z)).hom ≫ (𝟙 W ⊗ (α_ X Y Z).inv)
   = (α_ (W ⊗ X) Y Z).inv ≫ ((α_ W X Y).hom ⊗ 𝟙 Z) ≫ (α_ W (X ⊗ Y) Z).hom :=

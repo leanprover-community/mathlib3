@@ -47,7 +47,7 @@ variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : set α} {a b : 
 
 See note [reducible non-instances].
 -/
-@[reducible, to_additive
+@[to_additive
 /-"The set `(0 : set α)` is defined as `{0}` in locale `pointwise`.
 
 See note [reducible non-instances]."-/]
@@ -79,7 +79,7 @@ theorem image_one [has_one α] {f : α → β} : f '' 1 = {f 1} := image_singlet
 
 See note [reducible non-instances].
 -/
-@[reducible, to_additive
+@[to_additive
 /-" The set `(s + t : set α)` is defined as `{x + y | x ∈ s, y ∈ t}` in locale `pointwise`.
 
 See note [reducible non-instances].
@@ -369,7 +369,7 @@ It is equal to `{x⁻¹ | x ∈ s}`, see `set.image_inv`.
 
 See note [reducible non-instances].
 -/
-@[reducible, to_additive
+@[to_additive
 /-" The set `(-s : set α)` is defined as `{x | -x ∈ s}` in locale `pointwise`.
 It is equal to `{-x | x ∈ s}`, see `set.image_neg`.
 
@@ -440,7 +440,6 @@ in locale `pointwise`.
 
 See note [reducible non-instances].
 -/
-@[reducible]
 protected def has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
 ⟨λ a, image (has_scalar.smul a)⟩
 
@@ -449,7 +448,6 @@ is defined as `{x • y | x ∈ s, y ∈ t}` in locale `pointwise`.
 
 See note [reducible non-instances].
 -/
-@[reducible]
 protected def has_scalar [has_scalar α β] : has_scalar (set α) (set β) :=
 ⟨image2 has_scalar.smul⟩
 

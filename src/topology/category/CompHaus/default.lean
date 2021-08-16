@@ -68,11 +68,12 @@ def of : CompHaus :=
 @[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
 
 /-- Any continuous function on compact Hausdorff spaces is a closed map. -/
-lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
+lemma is_closed_map {X Y : CompHaus.{u}} (f : X ⟶ Y) : is_closed_map f :=
 λ C hC, (hC.is_compact.image f.continuous).is_closed
 
 /-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
-lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
+lemma is_iso_of_bijective {X Y : CompHaus.{u}} (f : X ⟶ Y) (bij : function.bijective f) :
+  is_iso f :=
 begin
   let E := equiv.of_bijective _ bij,
   have hE : continuous E.symm,
@@ -89,7 +90,7 @@ end
 
 /-- Any continuous bijection of compact Hausdorff spaces induces an isomorphism. -/
 noncomputable
-def iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
+def iso_of_bijective {X Y : CompHaus.{u}} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
 by letI := is_iso_of_bijective _ bij; exact as_iso f
 
 end CompHaus
@@ -98,7 +99,7 @@ end CompHaus
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
 def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
 
-instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus) :=
+instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus.{u}) :=
 ⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
 
 /--
@@ -112,7 +113,7 @@ def StoneCech_obj (X : Top) : CompHaus := CompHaus.of (stone_cech X)
 (Implementation) The bijection of homsets to establish the reflective adjunction of compact
 Hausdorff spaces in topological spaces.
 -/
-noncomputable def stone_cech_equivalence (X : Top) (Y : CompHaus) :
+noncomputable def stone_cech_equivalence (X : Top.{u}) (Y : CompHaus.{u}) :
   (StoneCech_obj X ⟶ Y) ≃ (X ⟶ CompHaus_to_Top.obj Y) :=
 { to_fun := λ f,
   { to_fun := f ∘ stone_cech_unit,
@@ -141,7 +142,7 @@ The Stone-Cech compactification functor from topological spaces to compact Hausd
 left adjoint to the inclusion functor.
 -/
 noncomputable def Top_to_CompHaus : Top.{u} ⥤ CompHaus.{u} :=
-adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u u} (λ _ _ _ _ _, rfl)
+adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u} (λ _ _ _ _ _, rfl)
 
 lemma Top_to_CompHaus_obj (X : Top) : ↥(Top_to_CompHaus.obj X) = stone_cech X :=
 rfl

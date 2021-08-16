@@ -168,7 +168,7 @@ instance : has_add cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α ⊕ β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
   quotient.sound ⟨equiv.sum_congr e₁ e₂⟩⟩
 
-@[simp] theorem add_def (α β) : mk α + mk β = mk (α ⊕ β) := rfl
+@[simp] theorem add_def (α β : Type u) : mk α + mk β = mk (α ⊕ β) := rfl
 
 instance : has_mul cardinal.{u} :=
 ⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, mk (α × β)) $ assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,

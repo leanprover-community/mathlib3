@@ -152,6 +152,9 @@ begin
     { simp [rotate_cons_succ, hn] } }
 end
 
+@[simp] lemma nil_eq_rotate_iff {l : list α} {n : ℕ} : [] = l.rotate n ↔ l = [] :=
+by simp [@eq_comm _ _ (l.rotate n)]
+
 @[simp] lemma rotate_singleton (x : α) (n : ℕ) :
   [x].rotate n = [x] :=
 begin
@@ -159,6 +162,18 @@ begin
   { simp },
   { rwa [rotate_cons_succ] }
 end
+
+@[simp] lemma rotate_eq_singleton_iff {l : list α} {n : ℕ} {x : α} : l.rotate n = [x] ↔ l = [x] :=
+begin
+  induction n with n hn generalizing l,
+  { simp },
+  { cases l with hd tl,
+    { simp },
+    { simp [rotate_cons_succ, hn, append_eq_cons_iff, and_comm] } }
+end
+
+@[simp] lemma singleton_eq_rotate_iff {l : list α} {n : ℕ} {x : α} : [x] = l.rotate n ↔ l = [x] :=
+by simp [@eq_comm _ [x]]
 
 lemma zip_with_rotate_distrib {α β γ : Type*} (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
   (h : l.length = l'.length) :
@@ -366,6 +381,12 @@ h.perm.mem_iff
 @[simp] lemma is_rotated_nil_iff' : [] ~r l ↔ l = [] :=
 by rw [is_rotated_comm, is_rotated_nil_iff]
 
+@[simp] lemma is_rotated_singleton_iff {x : α} : l ~r [x] ↔ l = [x] :=
+⟨λ ⟨n, hn⟩, by simpa using hn, λ h, h ▸ by refl⟩
+
+@[simp] lemma is_rotated_singleton_iff' {x : α} : [x] ~r l ↔ l = [x] :=
+by rw [is_rotated_comm, is_rotated_singleton_iff]
+
 lemma is_rotated_concat (hd : α) (tl : list α) :
   (tl ++ [hd]) ~r (hd :: tl) :=
 is_rotated.symm ⟨1, by simp⟩
@@ -435,6 +456,13 @@ lemma cyclic_permutations_cons (x : α) (l : list α) :
   length (cyclic_permutations (x :: l)) = length l + 1 :=
 by simp [cyclic_permutations_cons]
 
+lemma length_cyclic_permutations_of_ne_nil (l : list α) (h : l ≠ []) :
+  length (cyclic_permutations l) = length l :=
+begin
+  obtain ⟨hd, tl, rfl⟩ := exists_cons_of_ne_nil h,
+  simp
+end
+
 @[simp] lemma nth_le_cyclic_permutations (l : list α) (n : ℕ)
   (hn : n < length (cyclic_permutations l)) :
   nth_le (cyclic_permutations l) n hn = l.rotate n :=
@@ -486,6 +514,20 @@ begin
       simpa using nat.mod_lt _ (zero_lt_succ _) } }
 end
 
+@[simp] lemma cyclic_permutations_eq_nil_iff {l : list α} :
+  cyclic_permutations l = [[]] ↔ l = [] :=
+begin
+  refine ⟨λ h, _, λ h, by simp [h]⟩,
+  rw [←is_rotated_nil_iff', ←mem_cyclic_permutations_iff, h, mem_singleton]
+end
+
+@[simp] lemma cyclic_permutations_eq_singleton_iff {l : list α} {x : α} :
+  cyclic_permutations l = [[x]] ↔ l = [x] :=
+begin
+  refine ⟨λ h, _, λ h, by simp [cyclic_permutations, h, init_eq_take]⟩,
+  rw [←is_rotated_singleton_iff', ←mem_cyclic_permutations_iff, h, mem_singleton]
+end
+
 /-- If a `l : list α` is `nodup l`, then all of its cyclic permutants are distinct. -/
 lemma nodup.cyclic_permutations {l : list α} (hn : nodup l) :
   nodup (cyclic_permutations l) :=
@@ -508,6 +550,42 @@ begin
     { refine absurd h.ge (not_le_of_lt _),
       rw [add_right_comm, add_lt_add_iff_right, mul_succ, add_right_comm],
       exact hj.trans_le le_add_self } }
+end
+
+@[simp] lemma cyclic_permutations_rotate (l : list α) (k : ℕ) :
+  (l.rotate k).cyclic_permutations = l.cyclic_permutations.rotate k :=
+begin
+  have : (l.rotate k).cyclic_permutations.length = length (l.cyclic_permutations.rotate k),
+  { cases l,
+    { simp },
+    { rw length_cyclic_permutations_of_ne_nil;
+      simp } },
+  refine ext_le this (λ n hn hn', _),
+  rw [nth_le_cyclic_permutations, nth_le_rotate, nth_le_cyclic_permutations,
+      rotate_rotate, ←rotate_mod, add_comm],
+  cases l;
+  simp
+end
+
+lemma is_rotated.cyclic_permutations {l l' : list α} (h : l ~r l') :
+  l.cyclic_permutations ~r l'.cyclic_permutations :=
+begin
+  obtain ⟨k, rfl⟩ := h,
+  exact ⟨k, by simp⟩
+end
+
+lemma is_rotated_cyclic_permutations_iff {l l' : list α} :
+  l.cyclic_permutations ~r l'.cyclic_permutations ↔ l ~r l' :=
+begin
+  by_cases hl : l = [],
+  { simp [hl] },
+  have hl' : l.cyclic_permutations.length = l.length := length_cyclic_permutations_of_ne_nil _ hl,
+  refine ⟨λ h, _, is_rotated.cyclic_permutations⟩,
+  obtain ⟨k, hk⟩ := h,
+  refine ⟨k % l.length, _⟩,
+  have hk' : k % l.length < l.length := mod_lt _ (length_pos_of_ne_nil hl),
+  rw [←nth_le_cyclic_permutations _ _ (hk'.trans_le hl'.ge), ←nth_le_rotate' _ k],
+  simp [hk, hl', nat.sub_add_cancel hk'.le]
 end
 
 section decidable

@@ -3,8 +3,7 @@ Copyright (c) 2021 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
-import measure_theory.lebesgue_measure
-import measure_theory.haar_measure
+import measure_theory.measure.haar_lebesgue
 import analysis.convex.basic
 import algebra.ordered_pointwise
 import topology.bases
@@ -71,9 +70,7 @@ namespace geometry_of_numbers
 universe u
 variables (ι : Type u)
 noncomputable theory
-
-lemma is_add_left_invariant_real_volume : is_add_left_invariant (⇑(volume : measure ℝ)) :=
-by simp [← map_add_left_eq_self, real.map_volume_add_left]
+open set
 
 lemma is_add_left_invariant_pi_volume [fintype ι] {K : ι → Type*} [∀ i, measure_space (K i)]
   [∀ i, has_add (K i)] [∀ i, topological_space (K i)] [∀ i, has_continuous_add (K i)]
@@ -87,11 +84,10 @@ begin
   refine (pi_eq _).symm,
   intros s hS,
   rw [map_apply, volume_pi],
-  rw (_ : has_add.add v ⁻¹' set.pi set.univ (s)
-    = set.pi set.univ (λ (i : ι), (has_add.add (v i)) ⁻¹' (s i))),
+  rw (_ : (+) v ⁻¹' (univ : set _).pi s = (univ : set _).pi (λ (i : ι), (+) (v i) ⁻¹' (s i))),
   { rw pi_pi,
     { congr',
-      ext i :1,
+      ext i : 1,
       rw h _ _ (hS i), },
     { intro i,
       exact measurable_set_preimage (measurable_const_add (v i)) (hS i), }, },
@@ -99,11 +95,6 @@ begin
    { exact measurable_const_add v, },
    { exact measurable_set.univ_pi_fintype hS, },
 end
-
-/-- The closed interval [0,1] as a positive compact set, for inducing the Haar measure equal to
-    the lebesgue measure on ℝ. -/
-def Icc01 : positive_compacts ℝ :=
-⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
 
 /-- The closed unit cube with sides the intervals [0,1] as a positive compact set, for inducing the
     Haar measure equal to the lebesgue measure on ℝ^n. -/
@@ -118,14 +109,6 @@ begin
   rw [interior_pi_set, interior_Icc, univ_pi_nonempty_iff],
   exact (λ i, nonempty_Ioo.mpr zero_lt_one),
 end⟩
-
-lemma haar_measure_eq_lebesgue_measure : add_haar_measure Icc01 = volume :=
-begin
-  convert (add_haar_measure_unique _ Icc01).symm,
-  { simp [Icc01], },
-  { apply_instance, },
-  { exact is_add_left_invariant_real_volume, },
-end
 
 lemma volume_Icc [fintype ι] : volume (Icc 0 1 : set (ι → ℝ)) = 1 :=
 begin
@@ -342,7 +325,7 @@ begin
   simp only [algebra.id.smul_eq_mul],
   rw [fintype.card, ← finset.prod_const, ← finset.prod_mul_distrib],
   congr,
-  ext i :1,
+  ext i : 1,
   erw ← measure.map_apply _ _,
   conv_rhs { rw [← real.smul_map_volume_mul_left (inv_ne_zero (ne_of_gt hr))], },
   congr,

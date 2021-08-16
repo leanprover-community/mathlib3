@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
-import algebra.group.hom
-import group_theory.group_action.group
 import algebra.smul_with_zero
+import group_theory.group_action.group
 
 /-!
 # Modules over a ring
@@ -18,16 +17,17 @@ In this file we define
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those
   on a ring.
 
-  ## Implementation notes
-  In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the
-  word "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`.
-  If `R` is a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space.
-  Since those assumptions can be made by changing the typeclasses applied to `R` and `M`,
-  without changing the axioms in `module`, mathlib calls everything a `module`.
+## Implementation notes
 
-  In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
-  This caused inference issues in some cases, while not providing any real advantages, so we decided
-  to use a canonical `module` typeclass throughout.
+In typical mathematical usage, our definition of `module` corresponds to "semimodule", and the
+word "module" is reserved for `module R M` where `R` is a `ring` and `M` an `add_comm_group`.
+If `R` is a `field` and `M` an `add_comm_group`, `M` would be called an `R`-vector space.
+Since those assumptions can be made by changing the typeclasses applied to `R` and `M`,
+without changing the axioms in `module`, mathlib calls everything a `module`.
+
+In older versions of mathlib, we had separate `semimodule` and `vector_space` abbreviations.
+This caused inference issues in some cases, while not providing any real advantages, so we decided
+to use a canonical `module` typeclass throughout.
 
 ## Tags
 
@@ -241,6 +241,12 @@ instance semiring.to_module [semiring R] : module R R :=
   zero_smul := zero_mul,
   smul_zero := mul_zero }
 
+@[priority 910] -- see Note [lower instance priority]
+instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
+{ smul_add := λ r x y, add_mul _ _ _,
+  add_smul := λ r x y, mul_add _ _ _,
+  ..monoid_with_zero.to_opposite_mul_action_with_zero R}
+
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
 { smul := λ r x, f r * x,
@@ -451,7 +457,7 @@ section smul_injective
 
 variables (M)
 
-lemma smul_left_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective (λ (x : M), c • x) :=
 λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc c • (x - y) = c • x - c • y : smul_sub c x y
@@ -484,7 +490,7 @@ section smul_injective
 
 variables (R)
 
-lemma smul_right_injective {x : M} (hx : x ≠ 0) :
+lemma smul_left_injective {x : M} (hx : x ≠ 0) :
   function.injective (λ (c : R), c • x) :=
 λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc (c - d) • x = c • x - d • x : sub_smul c d x

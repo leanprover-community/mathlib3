@@ -133,7 +133,7 @@ by rw [show x - y = -(y - x), by abel, quotient_norm_neg]
 lemma quotient_norm_mk_le (S : add_subgroup M) (m : M) :
   ∥mk' S m∥ ≤ ∥m∥ :=
 begin
-  apply real.Inf_le,
+  apply cInf_le,
   use 0,
   { rintros _ ⟨n, h, rfl⟩,
     apply norm_nonneg },
@@ -163,7 +163,7 @@ lemma quotient_norm_nonneg (S : add_subgroup M) : ∀ x : quotient S, 0 ≤ ∥x
 begin
   rintros ⟨m⟩,
   change 0 ≤ ∥mk' S m∥,
-  apply real.lb_le_Inf _ (image_norm_nonempty _),
+  apply le_cInf (image_norm_nonempty _),
   rintros _ ⟨n, h, rfl⟩,
   apply norm_nonneg
 end
@@ -202,7 +202,7 @@ lemma norm_mk_lt {S : add_subgroup M} (x : quotient S) {ε : ℝ} (hε : 0 < ε)
   ∃ (m : M), mk' S m = x ∧ ∥m∥ < ∥x∥ + ε :=
 begin
   obtain ⟨_, ⟨m : M, H : mk' S m = x, rfl⟩, hnorm : ∥m∥ < ∥x∥ + ε⟩ :=
-    real.lt_Inf_add_pos (bdd_below_image_norm _) (image_norm_nonempty x) hε,
+    real.lt_Inf_add_pos (image_norm_nonempty x) hε,
   subst H,
   exact ⟨m, rfl, hnorm⟩,
 end
@@ -266,7 +266,7 @@ lemma quotient_nhd_basis (S : add_subgroup M) :
     { rintros - ⟨x, x_in, rfl⟩,
       rw mem_ball_0_iff at x_in,
       exact lt_of_le_of_lt (quotient_norm_mk_le S x) x_in },
-    apply filter.mem_sets_of_superset _ (set.subset.trans this h),
+    apply filter.mem_of_superset _ (set.subset.trans this h),
     clear h U this,
     apply is_open.mem_nhds,
     { change is_open ((mk' S) ⁻¹' _),
@@ -470,12 +470,8 @@ begin
   obtain ⟨m, rfl⟩ := hquot.surjective n,
   have nonemp : ((λ m', ∥m + m'∥) '' f.ker).nonempty,
   { rw set.nonempty_image_iff,
-    exact ⟨0, is_add_submonoid.zero_mem⟩ },
-  have bdd : bdd_below ((λ m', ∥m + m'∥) '' f.ker),
-  { use 0,
-    rintro _ ⟨x, hx, rfl⟩,
-    apply norm_nonneg },
-  rcases real.lt_Inf_add_pos bdd nonemp hε with
+    exact ⟨0, f.ker.zero_mem⟩ },
+  rcases real.lt_Inf_add_pos nonemp hε with
     ⟨_, ⟨⟨x, hx, rfl⟩, H : ∥m + x∥ < Inf ((λ (m' : M), ∥m + m'∥) '' f.ker) + ε⟩⟩,
   exact ⟨m+x, by rw [f.map_add,(normed_group_hom.mem_ker f x).mp hx, add_zero],
                by rwa hquot.norm⟩,
@@ -485,7 +481,7 @@ lemma is_quotient.norm_le {f : normed_group_hom M N} (hquot : is_quotient f) (m 
   ∥f m∥ ≤ ∥m∥ :=
 begin
   rw hquot.norm,
-  apply real.Inf_le,
+  apply cInf_le,
   { use 0,
     rintros _ ⟨m', hm', rfl⟩,
     apply norm_nonneg },

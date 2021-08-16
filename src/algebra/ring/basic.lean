@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland
 -/
 import algebra.divisibility
+import algebra.regular.basic
 import data.set.basic
 
 /-!
@@ -735,6 +736,11 @@ theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
+/-- A ring homomorphism is injective iff its kernel is trivial. -/
+theorem injective_iff' {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
+  function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
+(f : α →+ β).injective_iff'
+
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [non_assoc_semiring α] [ring γ] (f : α →* γ)
   (map_add : ∀ a b : α, f (a + b) = f a + f b) :
@@ -887,6 +893,36 @@ lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
+/-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
+The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
+lemma is_left_regular_of_non_zero_divisor [ring α] (k : α)
+  (h : ∀ (x : α), k * x = 0 → x = 0) : is_left_regular k :=
+begin
+  intros x y h',
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [mul_sub, sub_eq_zero, h']
+end
+
+/-- Right `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
+The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
+lemma is_right_regular_of_non_zero_divisor [ring α] (k : α)
+  (h : ∀ (x : α), x * k = 0 → x = 0) : is_right_regular k :=
+begin
+  intros x y h',
+  simp only at h',
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [sub_mul, sub_eq_zero, h']
+end
+
+lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) :
+  is_regular k :=
+⟨is_left_regular_of_non_zero_divisor k
+  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
+  is_right_regular_of_non_zero_divisor k
+  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
+
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -903,9 +939,9 @@ instance domain.to_no_zero_divisors : no_zero_divisors α :=
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
-    by { rw [← sub_eq_zero, ← mul_sub], simp [ha, sub_eq_zero] },
+    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
   mul_right_cancel_of_ne_zero := λ a b c hb,
-    by { rw [← sub_eq_zero, ← sub_mul], simp [hb, sub_eq_zero] },
+    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
 /-- Pullback a `domain` instance along an injective function.

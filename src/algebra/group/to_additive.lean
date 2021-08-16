@@ -42,6 +42,7 @@ that have been processed by `to_additive`. -/
 meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
+  parser    := failed,
   cache_cfg := ⟨λ ns,
                 ns.mfoldl
                   (λ dict n', do
@@ -51,8 +52,7 @@ meta def aux_attr : user_attribute (name_map name) name :=
                             end,
                     param ← aux_attr.get_param_untyped n',
                     pure $ dict.insert n param.app_arg.const_name)
-                  mk_name_map, []⟩,
-  parser    := lean.parser.ident }
+                  mk_name_map, []⟩ }
 
 end performance_hack
 
@@ -127,6 +127,8 @@ do let n := src.mk_string "_to_additive",
 * `trace`: output the generated additive declaration.
 * `tgt : name`: the name of the target (the additive declaration).
 * `doc`: an optional doc string.
+* if `allow_auto_name` is `ff` (default) then `@[to_additive]` will check whether the given name
+  can be auto-generated.
 -/
 @[derive has_reflect, derive inhabited]
 structure value_type : Type :=
@@ -134,10 +136,11 @@ structure value_type : Type :=
 (trace : bool)
 (tgt : name)
 (doc : option string)
+(allow_auto_name : bool)
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
-| tt s := ("comm_" ++ s)
+| tt s := "comm_" ++ s
 | ff s := s
 
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
@@ -163,6 +166,8 @@ meta def tr : bool → list string → list string
 | is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
 | is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
 | is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
+| is_comm ("haar" :: s)        := ("add_" ++ add_comm_prefix is_comm "haar")      :: tr ff s
+| is_comm ("prehaar" :: s)     := ("add_" ++ add_comm_prefix is_comm "prehaar")   :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]
@@ -175,8 +180,9 @@ string.map_tokens ''' $
 tr ff (s.split_on '_')
 
 /-- Return the provided target name or autogenerate one if one was not provided. -/
-meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
-(if tgt.get_prefix ≠ name.anonymous -- `tgt` is a full name
+meta def target_name (src tgt : name) (dict : name_map name) (allow_auto_name : bool) :
+  tactic name :=
+(if tgt.get_prefix ≠ name.anonymous ∨ allow_auto_name -- `tgt` is a full name
  then pure tgt
  else match src with
       | (name.mk_string s pre) :=
@@ -206,7 +212,7 @@ do
       | some pe := some <$> ((to_expr pe >>= eval_expr string) : tactic string)
       | none := pure none
       end,
-  return ⟨bang, ques, tgt.get_or_else name.anonymous, doc⟩
+  return ⟨bang, ques, tgt.get_or_else name.anonymous, doc, ff⟩
 
 private meta def proceed_fields_aux (src tgt : name) (prio : ℕ) (f : name → tactic (list string)) :
   command :=
@@ -321,7 +327,7 @@ There are two exceptions in this heuristic:
 
 If `@[to_additive]` fails because the additive declaration raises a type mismatch, there are
 various things you can try.
-The first thing to do is to figure out what `@[to_additive]` did wrong by looking at the type 
+The first thing to do is to figure out what `@[to_additive]` did wrong by looking at the type
 mismatch error.
 
 * Option 1: It additivized a declaration `d` that should remain multiplicative. Solutions:
@@ -430,7 +436,7 @@ protected meta def attr : user_attribute unit value_type :=
     dict ← aux_attr.get_cache,
     ignore ← ignore_args_attr.get_cache,
     reorder ← reorder_attr.get_cache,
-    tgt ← target_name src val.tgt dict,
+    tgt ← target_name src val.tgt dict val.allow_auto_name,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
     if env.contains tgt

@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
-import data.sym
+import data.sym.basic
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -710,11 +710,35 @@ end
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 fintype.of_subsingleton (default α)
 
+/-- Short-circuit instance to decrease search for `unique.fintype`,
+since that relies on a subsingleton elimination for `unique`. -/
+instance fintype.subtype_eq (y : α) : fintype {x // x = y} :=
+fintype.subtype {y} (by simp)
+
+/-- Short-circuit instance to decrease search for `unique.fintype`,
+since that relies on a subsingleton elimination for `unique`. -/
+instance fintype.subtype_eq' (y : α) : fintype {x // y = x} :=
+fintype.subtype {y} (by simp [eq_comm])
+
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
 by rw [subsingleton.elim f (@unique.fintype α _)]; refl
 
 @[simp] lemma univ_is_empty {α : Type*} [is_empty α] [fintype α] : @finset.univ α _ = ∅ :=
 finset.ext is_empty_elim
+
+@[simp] lemma fintype.card_subtype_eq (y : α)  :
+  fintype.card {x // x = y} = 1 :=
+begin
+  convert fintype.card_unique,
+  exact unique.subtype_eq _
+end
+
+@[simp] lemma fintype.card_subtype_eq' (y : α) :
+  fintype.card {x // y = x} = 1 :=
+begin
+  convert fintype.card_unique,
+  exact unique.subtype_eq' _
+end
 
 @[simp] theorem fintype.univ_empty : @univ empty _ = ∅ := rfl
 
@@ -835,6 +859,19 @@ fintype.of_injective (sum.inl : α → α ⊕ β) sum.inl_injective
 that `sum.inr` is an injection, but there's no clear inverse if `β` is empty. -/
 noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] : fintype β :=
 fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
+
+@[simp] theorem fintype.card_sum [fintype α] [fintype β] :
+  fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
+begin
+  classical,
+  rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
+  { simp [finset.card_univ] },
+  { intros x hx,
+    suffices : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
+    { obtain ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ := this,
+      simpa using hb },
+    simpa using hx }
+end
 
 section finset
 
@@ -1180,6 +1217,31 @@ fintype.card_le_of_embedding (function.embedding.subtype _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 fintype.card_lt_of_injective_of_not_mem coe subtype.coe_injective $ by rwa subtype.range_coe_subtype
+
+lemma fintype.card_subtype [fintype α] (p : α → Prop) [decidable_pred p] :
+  fintype.card {x // p x} = ((finset.univ : finset α).filter p).card :=
+begin
+  refine fintype.card_of_subtype _ _,
+  simp
+end
+
+lemma fintype.card_subtype_or (p q : α → Prop)
+  [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
+  fintype.card {x // p x ∨ q x} ≤ fintype.card {x // p x} + fintype.card {x // q x} :=
+begin
+  classical,
+  convert fintype.card_le_of_embedding (subtype_or_left_embedding p q),
+  rw fintype.card_sum
+end
+
+lemma fintype.card_subtype_or_disjoint (p q : α → Prop) (h : disjoint p q)
+  [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
+  fintype.card {x // p x ∨ q x} = fintype.card {x // p x} + fintype.card {x // q x} :=
+begin
+  classical,
+  convert fintype.card_congr (subtype_or_equiv p q h),
+  simp
+end
 
 theorem fintype.card_quotient_le [fintype α] (s : setoid α) [decidable_rel ((≈) : α → α → Prop)] :
   fintype.card (quotient s) ≤ fintype.card α :=

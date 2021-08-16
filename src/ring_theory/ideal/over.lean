@@ -110,7 +110,7 @@ lemma exists_nonzero_mem_of_ne_bot {P : ideal (polynomial R)}
 begin
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
   refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
-  refine (is_add_group_hom.injective_iff (polynomial.map (quotient.mk (P.comap C)))).mp _ _ pp0,
+  refine (ring_hom.injective_iff (polynomial.map_ring_hom (quotient.mk (P.comap C)))).mp _ _ pp0,
   refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
   rw [mk_ker],
   exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
@@ -257,7 +257,7 @@ begin
   let Rₚ := localization P.prime_compl,
   let Sₚ := localization (algebra.algebra_map_submonoid S P.prime_compl),
   letI : integral_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
-    is_localization.integral_domain_localization (le_non_zero_divisors_of_domain hP0),
+    is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hP0),
   obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
   haveI Qₚ_max : is_maximal (comap _ Qₚ) := @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
     (localization_algebra P.prime_compl S)

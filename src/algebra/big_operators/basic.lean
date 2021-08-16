@@ -374,11 +374,6 @@ begin
 end
 
 @[to_additive]
-lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} (g : β → γ) [is_monoid_hom g] :
-  (∏ x in s, g (f x)) = g (∏ x in s, f x) :=
-((monoid_hom.of g).map_prod f s).symm
-
-@[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
   (h₁ : r 1 1) (h₂ : ∀ a b c, r b c → r (f a * b) (g a * c)) : r (∏ x in s, f x) (∏ x in s, g x) :=
 by { delta finset.prod, apply multiset.prod_hom_rel; assumption }
@@ -1196,7 +1191,7 @@ variables [comm_group β]
 
 @[simp, to_additive]
 lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
-s.prod_hom has_inv.inv
+(monoid_hom.map_prod (comm_group.inv_monoid_hom : β →* β) f s).symm
 
 end comm_group
 
@@ -1230,9 +1225,9 @@ theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α)
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
 card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
 
-lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
+lemma gsmul_sum (α β : Type) [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=
-(s.sum_hom (gsmul z)).symm
+add_monoid_hom.map_sum (gsmul_add_group_hom z : β →+ β) f s
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
@@ -1291,6 +1286,18 @@ end
 
 end comm_group_with_zero
 
+@[to_additive]
+lemma prod_unique_nonempty {α β : Type*} [comm_monoid β] [unique α]
+  (s : finset α) (f : α → β) (h : s.nonempty) :
+  (∏ x in s, f x) = f (default α) :=
+begin
+  obtain ⟨a, ha⟩ := h,
+  have : s = {a},
+  { ext b,
+    simpa [subsingleton.elim a b] using ha },
+  rw [this, finset.prod_singleton, subsingleton.elim a (default α)]
+end
+
 end finset
 
 namespace fintype
@@ -1333,6 +1340,19 @@ prod_bijective e e.bijective f g h
 lemma prod_finset_coe [comm_monoid β] :
   ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
 (finset.prod_subtype s (λ _, iff.rfl) f).symm
+
+@[to_additive]
+lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
+  (∏ x : α, f x) = f (default α) :=
+by rw [univ_unique, prod_singleton]
+
+@[to_additive]
+lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] (f : α → β) (a : α) :
+  (∏ x : α, f x) = f a :=
+begin
+  haveI : unique α := unique_of_subsingleton a,
+  convert prod_unique f
+end
 
 end fintype
 

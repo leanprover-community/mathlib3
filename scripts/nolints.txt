@@ -169,10 +169,6 @@ apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
 apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
 
--- data/dfinsupp.lean
-apply_nolint dfinsupp.pre doc_blame
-apply_nolint dfinsupp.zip_with_def unused_arguments
-
 -- data/equiv/list.lean
 apply_nolint encodable.fintype_arrow doc_blame
 apply_nolint encodable.fintype_pi doc_blame
@@ -218,9 +214,7 @@ apply_nolint holor_index.drop doc_blame
 apply_nolint holor_index.take doc_blame
 
 -- data/list/defs.lean
-apply_nolint list.permutations_aux doc_blame
 apply_nolint list.permutations_aux.rec doc_blame
-apply_nolint list.permutations_aux2 doc_blame
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
@@ -295,9 +289,6 @@ apply_nolint pfun.graph' doc_blame
 apply_nolint pfun.image doc_blame
 apply_nolint pfun.preimage doc_blame
 apply_nolint pfun.res doc_blame
-apply_nolint roption.equiv_option doc_blame
-apply_nolint roption.get_or_else doc_blame
-apply_nolint roption.restrict doc_blame
 
 -- data/pnat/xgcd.lean
 apply_nolint pnat.gcd_a' doc_blame
@@ -382,22 +373,14 @@ apply_nolint vector.to_array doc_blame
 apply_nolint vector.traverse doc_blame
 apply_nolint vector.traverse_def unused_arguments
 
+-- data/vector3.lean
+apply_nolint vector3 has_inhabited_instance
+apply_nolint vector3.cons_elim doc_blame
+apply_nolint vector3.nil_elim doc_blame
+apply_nolint vector3.rec_on doc_blame
+
 -- deprecated/subfield.lean
 apply_nolint is_subfield doc_blame
-
--- deprecated/subgroup.lean
-apply_nolint add_group.closure doc_blame
-apply_nolint add_group.in_closure doc_blame
-apply_nolint group.in_closure doc_blame
-apply_nolint is_add_group_hom.ker doc_blame
-apply_nolint is_add_subgroup.add_center doc_blame
-apply_nolint is_add_subgroup.add_normalizer doc_blame
-apply_nolint is_add_subgroup.trivial doc_blame
-apply_nolint is_group_hom.ker doc_blame
-apply_nolint is_subgroup.center doc_blame
-apply_nolint is_subgroup.normalizer doc_blame
-apply_nolint normal_add_subgroup doc_blame
-apply_nolint normal_subgroup doc_blame
 
 -- deprecated/subring.lean
 apply_nolint ring.closure doc_blame
@@ -457,10 +440,6 @@ apply_nolint tactic.mono doc_blame
 
 -- number_theory/dioph.lean
 apply_nolint poly has_inhabited_instance
-apply_nolint vector3 has_inhabited_instance
-apply_nolint vector3.cons_elim doc_blame
-apply_nolint vector3.nil_elim doc_blame
-apply_nolint vector3.rec_on doc_blame
 
 -- number_theory/pell.lean
 apply_nolint pell.az unused_arguments

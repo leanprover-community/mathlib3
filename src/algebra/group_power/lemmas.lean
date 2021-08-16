@@ -10,7 +10,6 @@ import data.list.basic
 import data.int.cast
 import data.equiv.basic
 import data.equiv.mul_add
-import deprecated.group
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -49,6 +48,19 @@ lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
 
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+
+lemma is_unit_pos_pow_iff {M : Type*} [comm_monoid M] {m : M} {n : ℕ} (h : 0 < n) :
+  is_unit (m ^ n) ↔ is_unit m :=
+begin
+  obtain ⟨p, rfl⟩ := nat.exists_eq_succ_of_ne_zero h.ne',
+  refine ⟨λ h, _, is_unit.pow _⟩,
+  obtain ⟨⟨k, k', hk, hk'⟩, h⟩ := h,
+  rw [units.coe_mk] at h,
+  refine ⟨⟨m, m ^ p * k', _, _⟩, _⟩,
+  { rw [←mul_assoc, ←pow_succ, ←h, hk] },
+  { rw [mul_right_comm, ←pow_succ', ←h, hk] },
+  { exact units.coe_mk _ _ _ _ }
+end
 
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
 def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :

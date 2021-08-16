@@ -3,14 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import tactic.nth_rewrite
-import data.matrix.basic
+import algebra.iterate_hom
 import data.equiv.ring_aut
 import linear_algebra.tensor_product
-import ring_theory.subring
-import deprecated.subring
-import algebra.opposites
-import algebra.iterate_hom
+import tactic.nth_rewrite
 
 /-!
 # Algebra over Commutative Semiring
@@ -199,6 +195,9 @@ search (and was here first). -/
   (r • x) * y = r • (x * y) :=
 smul_mul_assoc r x y
 
+instance _root_.is_scalar_tower.opposite_right : is_scalar_tower R Aᵒᵖ A :=
+⟨λ x y z, algebra.mul_smul_comm _ _ _⟩
+
 section
 variables {r : R} {a : A}
 
@@ -284,33 +283,6 @@ lemma coe_algebra_map_of_subring {R : Type*} [comm_ring R] (S : subring R) :
 
 lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x : S) :
   algebra_map S R x = x := rfl
-
-section
-local attribute [instance] subset.comm_ring
-
-/-- Algebra over a set that is closed under the ring operations. -/
-local attribute [instance]
-def of_is_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  (S : set R) [is_subring S] : algebra S A :=
-algebra.of_subring S.to_subring
-
-lemma is_subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
-  (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
-
-lemma is_subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
-  (algebra_map S R : S → R) = subtype.val := rfl
-
-lemma is_subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
-  algebra_map S R x = x := rfl
-
-lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
-  set.range (algebra_map T₁ R) ⊆ T₂ :=
-begin
-  rintros x ⟨⟨t, ht⟩, rfl⟩,
-  exact hyp ht,
-end
-
-end
 
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
@@ -413,15 +385,6 @@ lemma algebra_map_End_eq_smul_id (a : R) :
 linear_map.ker_smul _ _ ha
 
 end module
-
-instance matrix_algebra (n : Type u) (R : Type v)
-  [decidable_eq n] [fintype n] [comm_semiring R] : algebra R (matrix n n R) :=
-{ commutes' := by { intros, simp [matrix.scalar], },
-  smul_def' := by { intros, simp [matrix.scalar], },
-  ..(matrix.scalar n) }
-
-@[simp] lemma matrix.algebra_map_eq_smul (n : Type u) {R : Type v} [decidable_eq n] [fintype n]
-  [comm_semiring R] (r : R) : (algebra_map R (matrix n n R)) r = r • 1 := rfl
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
@@ -1090,44 +1053,6 @@ end division_ring
 
 end alg_equiv
 
-namespace matrix
-
-/-! ### `matrix` section
-
-Specialize `matrix.one_map` and `matrix.zero_map` to `alg_hom` and `alg_equiv`.
-TODO: there should be a way to avoid restating these for each `foo_hom`.
--/
-
-variables {R A₁ A₂ n : Type*} [fintype n]
-
-section semiring
-
-variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [algebra R A₂]
-
-/-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
-@[simp] lemma alg_hom_map_one [decidable_eq n]
-  (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_one [decidable_eq n]
-  (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
-@[simp] lemma alg_hom_map_zero
-  (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_zero
-  (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
-map_zero f.map_zero
-
-end semiring
-
-end matrix
-
 section nat
 
 variables {R : Type*} [semiring R]
@@ -1202,7 +1127,9 @@ variables {R}
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
 
 variables (R A)
-/-- The multiplication in an algebra is a bilinear map. -/
+/-- The multiplication in an algebra is a bilinear map.
+
+A weaker version of this for semirings exists as `add_monoid_hom.mul`. -/
 def lmul : A →ₐ[R] (End R A) :=
 { map_one' := by { ext a, exact one_mul a },
   map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
@@ -1386,6 +1313,24 @@ etc. -/
 def eval_alg_hom {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (f i)] (i : I) :
   (Π i, f i) →ₐ[R] f i :=
 { to_fun := λ f, f i, commutes' := λ r, rfl, .. pi.eval_ring_hom f i}
+
+variables (A B : Type*) [comm_semiring R] [semiring B] [algebra R B]
+
+/-- `function.const` as an `alg_hom`. The name matches `pi.const_ring_hom`, `pi.const_monoid_hom`,
+etc. -/
+@[simps]
+def const_alg_hom : B →ₐ[R] (A → B) :=
+{ to_fun := function.const _,
+  commutes' := λ r, rfl,
+  .. pi.const_ring_hom A B}
+
+/-- When `R` is commutative and permits an `algebra_map`, `pi.const_ring_hom` is equal to that
+map. -/
+@[simp] lemma const_ring_hom_eq_algebra_map : const_ring_hom A R = algebra_map R (A → R) :=
+rfl
+
+@[simp] lemma const_alg_hom_eq_algebra_of_id : const_alg_hom R A R = algebra.of_id R (A → R) :=
+rfl
 
 end pi
 
@@ -1607,6 +1552,20 @@ lemma restrict_scalars_top : restrict_scalars R (⊤ : submodule S M) = ⊤ := r
 `S`-module generated by `X`. -/
 lemma span_le_restrict_scalars (X : set M) : span R (X : set M) ≤ restrict_scalars R (span S X) :=
 submodule.span_le.mpr submodule.subset_span
+
+/-- Even though `p.restrict_scalars R` has type `submodule R M`, it is still an `S`-module. -/
+instance restrict_scalars.orig_module (p : submodule S M) :
+  module S (p.restrict_scalars R) :=
+(by apply_instance : module S p)
+
+instance (p : submodule S M) : is_scalar_tower R S (p.restrict_scalars R) :=
+{ smul_assoc := λ r s x, subtype.ext $ smul_assoc r s (x : M) }
+
+/-- Turning `p : submodule S M` into an `R`-submodule gives the same module structure
+as turning it into a type and adding a module structure. -/
+@[simps]
+def restrict_scalars_equiv (p : submodule S M) : p.restrict_scalars R ≃ₗ[S] p :=
+{ map_smul' := λ c x, rfl, .. linear_equiv.refl R p }
 
 end submodule
 

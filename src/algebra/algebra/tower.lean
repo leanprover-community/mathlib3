@@ -128,14 +128,6 @@ variables (R) {S A B}
 @[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
 of_algebra_map_eq $ λ x, rfl
 
-section
-local attribute [instance] algebra.of_is_subring subset.comm_ring
--- conflicts with is_scalar_tower.subalgebra
-@[priority 999] instance subring {S A : Type*} [comm_ring S] [ring A] [algebra S A]
-  (U : set S) [is_subring U] : is_scalar_tower U S A :=
-of_algebra_map_eq $ λ x, rfl
-end
-
 @[nolint instance_priority]
 instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B]
   [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
@@ -319,7 +311,7 @@ variables [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
-smul_left_injective _ hx
+smul_right_injective _ hx
 
 end algebra
 

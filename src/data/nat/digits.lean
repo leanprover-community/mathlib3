@@ -420,7 +420,7 @@ begin
 end
 
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
-monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
+monotone_nat_of_le_succ (digits_len_le_digits_len_succ b) h
 
 lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 : l.last hl ≠ 0):
   (b + 2) ^ l.length ≤ (b + 2) * of_digits (b+2) l :=
@@ -481,7 +481,7 @@ begin
 end
 
 lemma of_digits_modeq (b k : ℕ) (L : list ℕ) : of_digits b L ≡ of_digits (b % k) L [MOD k] :=
-of_digits_modeq' b (b % k) k (nat.modeq.symm (nat.modeq.mod_modeq b k)) L
+of_digits_modeq' b (b % k) k (b.mod_modeq k).symm L
 
 lemma of_digits_mod (b k : ℕ) (L : list ℕ) : of_digits b L % k = of_digits (b % k) L % k :=
 of_digits_modeq b k L
@@ -499,7 +499,7 @@ end
 
 lemma of_digits_zmodeq (b : ℤ) (k : ℕ) (L : list ℕ) :
   of_digits b L ≡ of_digits (b % k) L [ZMOD k] :=
-of_digits_zmodeq' b (b % k) k (int.modeq.symm (int.modeq.mod_modeq b ↑k)) L
+of_digits_zmodeq' b (b % k) k (b.mod_modeq  ↑k).symm L
 
 lemma of_digits_zmod (b : ℤ) (k : ℕ) (L : list ℕ) :
   of_digits b L % k = of_digits (b % k) L % k :=
@@ -569,8 +569,7 @@ lemma dvd_iff_dvd_of_digits (b b' : ℕ) (c : ℤ) (h : (b : ℤ) ∣ (b' : ℤ)
 begin
   rw ←int.coe_nat_dvd,
   exact dvd_iff_dvd_of_dvd_sub
-    (int.modeq.modeq_iff_dvd.1
-      (zmodeq_of_digits_digits b b' c (int.modeq.modeq_iff_dvd.2 h).symm _).symm),
+    (zmodeq_of_digits_digits b b' c (int.modeq_iff_dvd.2 h).symm _).symm.dvd,
 end
 
 lemma eleven_dvd_iff (n : ℕ) :

@@ -81,11 +81,11 @@ end
 lemma fib_le_fib_succ {n : ℕ} : fib n ≤ fib (n + 1) := by { cases n; simp [fib_succ_succ] }
 
 @[mono] lemma fib_mono : monotone fib :=
-monotone_of_monotone_nat $ λ _, fib_le_fib_succ
+monotone_nat_of_le_succ $ λ _, fib_le_fib_succ
 
 /-- `fib (n + 2)` is strictly monotone. -/
 lemma fib_add_two_strict_mono : strict_mono (λ n, fib (n + 2)) :=
-strict_mono.nat $ λ n, lt_add_of_pos_left _ $ fib_pos succ_pos'
+strict_mono_nat_of_lt_succ $ λ n, lt_add_of_pos_left _ $ fib_pos succ_pos'
 
 lemma le_fib_self {n : ℕ} (five_le_n : 5 ≤ n) : n ≤ fib n :=
 begin
@@ -130,7 +130,7 @@ end
 
 lemma gcd_fib_add_self (m n : ℕ) : gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n) :=
 begin
-  cases eq_zero_or_pos n,
+  cases nat.eq_zero_or_pos n,
   { rw h, simp },
   replace h := nat.succ_pred_eq_of_pos h, rw [← h, succ_eq_add_one],
   calc gcd (fib m) (fib (n.pred + 1 + m))

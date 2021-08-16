@@ -266,6 +266,26 @@ See note [reducible non-instances]. -/
   one_smul := by simp [g.map_one, mul_action.one_smul],
   mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
 
+/-- If an action forms a scalar tower then so does the action formed by `mul_action.comp_hom`. -/
+@[priority 100]
+instance comp_hom.is_scalar_tower [mul_action M β] [has_scalar α β] [is_scalar_tower M α β]
+  [monoid N] (g : N →* M) :
+  (by haveI := comp_hom α g; haveI := comp_hom β g; exact is_scalar_tower N α β) :=
+by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
+
+@[priority 100]
+instance comp_hom.smul_comm_class [has_scalar β α] [smul_comm_class M β α]
+  [monoid N] (g : N →* M) :
+  (by haveI := comp_hom α g; exact smul_comm_class N β α) :=
+by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
+
+@[priority 100]
+instance comp_hom.smul_comm_class' [has_scalar β α] [smul_comm_class β M α]
+  [monoid N] (g : N →* M) :
+  (by haveI := comp_hom α g; exact smul_comm_class β N α) :=
+by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
+
+
 /-- An additive action of `M` on `α` and an additive monoid homomorphism `N → M` induce
 an additive action of `N` on `α`.
 

@@ -310,7 +310,6 @@ end
 end generators
 
 section skeleton
-set_option pp.universes true
 
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/

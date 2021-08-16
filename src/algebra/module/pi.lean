@@ -35,9 +35,9 @@ lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f
   (s • x) i = s i • x i :=
 rfl
 
-lemma is_smul_regular {α : Type*} [Π i, has_scalar α $ f i] (k : α)
+lemma _root_.is_smul_regular.pi {α : Type*} [Π i, has_scalar α $ f i] {k : α}
   (hk : Π i, is_smul_regular (f i) k) : is_smul_regular (Π i, f i) k :=
-λ _ _ h, funext $ λ i, hk i (by simpa using congr_fun h i)
+λ _ _ h, funext $ λ i, hk i (congr_fun h i : _)
 
 instance is_scalar_tower {α β : Type*}
   [has_scalar α β] [Π i, has_scalar β $ f i] [Π i, has_scalar α $ f i]

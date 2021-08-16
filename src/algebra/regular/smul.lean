@@ -33,6 +33,17 @@ def is_smul_regular [has_scalar R M] (c : R) := function.injective ((•) c : M 
 lemma is_left_regular.is_smul_regular [has_mul R] {c : R} (h : is_left_regular c) :
   is_smul_regular R c := h
 
+/-- Left-regular multiplication on `R` is equivalent to `R`-regularity of `R` itself. -/
+lemma is_left_regular_iff [has_mul R] {a : R} :
+  is_left_regular a ↔ is_smul_regular R a := iff.rfl
+
+lemma is_right_regular.is_smul_regular [has_mul R] {c : R} (h : is_right_regular c) :
+  is_smul_regular R (opposite.op c) := h
+
+/-- Right-regular multiplication on `R` is equivalent to `Rᵒᵖ`-regularity of `R` itself. -/
+lemma is_right_regular_iff [has_mul R] {a : R} :
+  is_right_regular a ↔ is_smul_regular R (opposite.op a) := iff.rfl
+
 namespace is_smul_regular
 
 variables {M}
@@ -58,9 +69,6 @@ is `M`-regular. -/
 @[simp] lemma smul_iff (b : S) (ha : is_smul_regular M a) :
   is_smul_regular M (a • b) ↔ is_smul_regular M b :=
 ⟨of_smul _, ha.smul⟩
-
-lemma is_left_regular_iff [has_mul R] {a : R} :
-  is_left_regular a ↔ is_smul_regular R a := iff.rfl
 
 lemma is_left_regular [has_mul R] {a : R} (h : is_smul_regular R a) :
   is_left_regular a := h

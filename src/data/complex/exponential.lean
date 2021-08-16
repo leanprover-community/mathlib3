@@ -1329,7 +1329,7 @@ begin
             apply pow_pos,
             rw nat.cast_pos,
             exact nat.succ_pos n,
-            rw [<-nat.cast_pow, <-nat.cast_mul, nat.cast_le],
+            rw [←nat.cast_pow, ←nat.cast_mul, nat.cast_le],
             exact (nat.factorial_mul_pow_le_factorial),
           end
   ... = ∑ (k : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^k / n.succ ^ k) :
@@ -1341,10 +1341,10 @@ begin
           end
   ... ≤ abs x ^ n / (↑n!) * 2 :
           begin
-            rw <-mul_sum,
+            rw ←mul_sum,
             apply mul_le_mul_of_nonneg_left,
-            simp_rw [<-div_pow],
-            rw [<-geom_sum_def, geom_sum_eq, div_le_iff_of_neg],
+            simp_rw [←div_pow],
+            rw [←geom_sum_def, geom_sum_eq, div_le_iff_of_neg],
             transitivity (-1 : ℝ),
             linarith,
             simp only [neg_le_sub_iff_le_add, div_pow, nat.cast_succ, le_add_iff_nonneg_left],

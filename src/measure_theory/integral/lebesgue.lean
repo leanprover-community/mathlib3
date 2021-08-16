@@ -1885,6 +1885,13 @@ begin
   exact lintegral_in_measure_zero _ _ hs₂
 end
 
+@[simp]
+lemma with_density_zero : μ.with_density 0 = 0 :=
+begin
+  ext1 s hs,
+  simp [with_density_apply _ hs],
+end
+
 end lintegral
 
 end measure_theory

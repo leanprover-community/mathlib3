@@ -77,13 +77,47 @@ begin
   exact classical.some_spec h,
 end
 
-lemma radon_nikodym_deriv_measurable (μ ν : measure α) :
+@[measurability]
+lemma measurable_radon_nikodym_deriv (μ ν : measure α) :
   measurable $ radon_nikodym_deriv μ ν :=
 begin
   by_cases h : have_lebesgue_decomposition μ ν,
   { exact (have_lebesgue_decomposition_spec h).1 },
   { rw [radon_nikodym_deriv, dif_neg h],
     exact measurable_zero }
+end
+
+lemma mutually_singular_singular_part (μ ν : measure α) :
+  singular_part μ ν ⊥ₘ ν :=
+begin
+  by_cases h : have_lebesgue_decomposition μ ν,
+  { exact (have_lebesgue_decomposition_spec h).2.1 },
+  { rw [singular_part, dif_neg h],
+    exact mutually_singular.zero.symm }
+end
+
+instance {μ ν : measure α} [finite_measure μ] :
+  finite_measure (singular_part μ ν) :=
+begin
+  by_cases h : have_lebesgue_decomposition μ ν,
+  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec h,
+    refine finite_measure_le μ _,
+    conv_rhs { rw h },
+    exact measure.le_add_right (le_refl _) },
+  { rw [singular_part, dif_neg h],
+    apply_instance }
+end
+
+instance {μ ν : measure α} [finite_measure μ] :
+  finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
+begin
+  by_cases h : have_lebesgue_decomposition μ ν,
+  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec h,
+    refine finite_measure_le μ _,
+    conv_rhs { rw h },
+    exact measure.le_add_left (le_refl _) },
+  { rw [radon_nikodym_deriv, dif_neg h, with_density_zero],
+    apply_instance }
 end
 
 open vector_measure signed_measure
@@ -154,7 +188,7 @@ begin
   exact ⟨1 / (n + 1), by simp, f n, hf₁ n, hn, hf₂ n⟩,
 end
 
-section
+namespace lebesgue_decomposition
 
 /-- Given two measures `μ` and `ν`, `measurable_le μ ν` is the set of measurable
 functions `f`, such that, for all measurable sets `A`, `∫⁻ x in A, f x ∂μ ≤ ν A`.
@@ -284,7 +318,9 @@ lemma supr_le_le {α : Type*} (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : 
 def measurable_le_eval (μ ν : measure α) : set ℝ≥0∞ :=
 (λ f : α → ℝ≥0∞, ∫⁻ x, f x ∂μ) '' measurable_le μ ν
 
-end
+end lebesgue_decomposition
+
+open lebesgue_decomposition
 
 /-- **The Lebesgue decomposition theorem**: Any pair of finite measures `μ` and `ν`
 `have_lebesgue_decomposition`. That is to say, there exists a measure `ξ` and a measurable function
@@ -400,26 +436,6 @@ begin
   { rw hν₁, ext1 A hA,
     rw [measure.coe_add, pi.add_apply, measure.sub_apply hA hle,
         add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
-end
-
-instance {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
-  finite_measure (singular_part μ ν) :=
-begin
-  obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
-    (have_lebesgue_decomposition_of_finite_measure μ ν),
-  refine finite_measure_le μ _,
-  conv_rhs { rw h },
-  exact measure.le_add_right (le_refl _),
-end
-
-instance {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
-  finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
-begin
-  obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
-    (have_lebesgue_decomposition_of_finite_measure μ ν),
-  refine finite_measure_le μ _,
-  conv_rhs { rw h },
-  exact measure.le_add_left (le_refl _),
 end
 
 /-- The Lebesgue decomposition is unique. -/

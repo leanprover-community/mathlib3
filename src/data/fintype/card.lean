@@ -71,11 +71,6 @@ begin
   exact λ hc, (hc (finset.mem_univ _)).elim
 end
 
-@[to_additive]
-lemma prod_unique [unique β] (f : β → M) :
-  (∏ x, f x) = f (default β) :=
-by simp only [finset.prod_singleton, univ_unique]
-
 /-- If a product of a `finset` of a subsingleton type has a given
 value, so do the terms in that product. -/
 @[to_additive "If a sum of a `finset` of a subsingleton type has a given

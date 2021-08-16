@@ -66,7 +66,7 @@ meta def add_g : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "g") p
 | n := n
 
-/-- Applyy the function `n : ∀ {α} [add_comm_{monoid,group} α]` to the given
+/-- Apply the function `n : ∀ {α} [add_comm_{monoid,group} α]` to the given
 list of arguments.
 
 Will use the `add_comm_{monoid,group}` instance that has been cached in the context.
@@ -336,6 +336,7 @@ This version of `abel` fails if the target is not an equality
 that is provable by the axioms of commutative monoids/groups.
 
 `abel1!` will use a more aggressive reducibility setting to identify atoms.
+This can prove goals that `abel` cannot, but is more expensive.
 -/
 meta def abel1 (red : parse (tk "!")?) : tactic unit :=
 do `(%%e₁ = %%e₂) ← target,
@@ -361,7 +362,9 @@ It attempts to prove the goal outright if there is no `at`
 specifier and the target is an equality, but if this
 fails, it falls back to rewriting all monoid expressions into a normal form.
 If there is an `at` specifier, it rewrites the given target into a normal form.
+
 `abel!` will use a more aggressive reducibility setting to identify atoms.
+This can prove goals that `abel` cannot, but is more expensive.
 ```lean
 example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
 example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel

@@ -223,11 +223,6 @@ begin
     (λ _ _, rfl),
 end
 
-lemma sum_range_add_sub_sum_range {α : Type*} [add_comm_group α] (f : ℕ → α)
-  (n m : ℕ) : ∑ k in range (n + m), f k - ∑ k in range n, f k =
-  ∑ k in finset.range m, f (n + k) :=
-sub_eq_of_eq_add' (sum_range_add f n m)
-
 end
 
 section no_archimedean

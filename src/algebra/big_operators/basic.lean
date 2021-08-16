@@ -777,6 +777,19 @@ begin
 end
 
 @[to_additive]
+lemma prod_range_add_div_prod_range {α : Type*} [comm_group α] (f : ℕ → α)
+  (n m : ℕ) : (∏ k in range (n + m), f k ) / (∏ k in range n, f k) =
+  ∏ k in finset.range m, f (n + k) :=
+begin
+  rw (prod_range_add f n m),
+  rw div_eq_mul_inv,
+  rw mul_comm,
+  rw ←mul_assoc,
+  simp only [one_mul, eq_self_iff_true, mul_left_inv],
+end
+
+
+@[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
   ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]

@@ -281,7 +281,7 @@ lemma lt_omega_of_linear_independent {ι : Type w} [finite_dimensional K V]
 begin
   apply cardinal.lift_lt.1,
   apply lt_of_le_of_lt,
-  apply linear_independent_le_dim h,
+  apply cardinal_lift_le_dim_of_linear_independent h,
   rw [←finrank_eq_dim, cardinal.lift_omega, cardinal.lift_nat_cast],
   apply cardinal.nat_lt_omega,
 end

@@ -284,6 +284,31 @@ begin
   exact hg,
 end
 
+/-- Every finite subset of a linearly independent set is linearly independent. -/
+lemma linear_independent_finset_map_embedding_subtype
+  (s : set M) (li : linear_independent R (coe : s → M)) (t : finset s) :
+  linear_independent R (coe : (finset.map (embedding.subtype s) t) → M) :=
+begin
+  let f : (finset.map (embedding.subtype s) t) → s := λ x, ⟨x.1, by tidy⟩,
+  convert linear_independent.comp li f (by tidy),
+end
+
+/--
+If every finite set of linearly independent vectors has cardinality at most `n`,
+then the same is true for arbitrary sets of linearly independent vectors.
+-/
+lemma linear_independent_bounded_of_finset_linear_independent_bounded {n : ℕ}
+  (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
+  ∀ s : set M, linear_independent R (coe : s → M) → cardinal.mk s ≤ n :=
+begin
+  intros s li,
+  apply cardinal.card_le_of,
+  intro t,
+  rw ← finset.card_map (embedding.subtype s),
+  apply H,
+  apply linear_independent_finset_map_embedding_subtype _ li,
+end
+
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 

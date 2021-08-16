@@ -44,7 +44,7 @@ namespace matrix
 open_locale matrix
 
 variables {R α α' β β' γ γ' : Type*}
-variables {l m n p q r : Type*} [fintype l] [fintype m] [fintype n] [fintype p] [fintype q]
+variables {l m n p : Type*} [fintype l] [fintype m] [fintype n] [fintype p]
 variables {q r : Type*} [fintype q] [fintype r]
 variables {l' m' n' p' : Type*} [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
@@ -155,8 +155,8 @@ begin
 end
 
 lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω')
-  (g' : β → δ → ξ) {q r : Type*} [fintype q] [fintype r] (A : matrix l m α) (B : matrix n p β)
-  (D : matrix q r δ) (φ : ω ≃ ω') (hφ : ∀ a b d, φ (g (f a b) d ) = f' a (g' b d )) :
+  (g' : β → δ → ξ) (A : matrix l m α) (B : matrix n p β) (D : matrix q r δ) (φ : ω ≃ ω')
+  (hφ : ∀ a b d, φ (g (f a b) d ) = f' a (g' b d )) :
   (reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)).trans (equiv.map_matrix φ)
     (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
 begin

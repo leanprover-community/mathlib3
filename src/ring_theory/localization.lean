@@ -447,10 +447,17 @@ ring_hom.ext $ monoid_hom.ext_iff.1 $ (to_localization_map M S).lift_of_comp j.t
 
 variables (M)
 
+/-- To show `j` and `k` agree on the whole localization, it suffices to show they agree
+on the image of the base ring, if they preserve `1` and `*`. -/
+protected lemma ext (j k : S → P) (hj1 : j 1 = 1) (hk1 : k 1 = 1)
+  (hjm : ∀ a b, j (a * b) = j a * j b) (hkm : ∀ a b, k (a * b) = k a * k b)
+  (h : ∀ a, j (algebra_map R S a) = k (algebra_map R S a)) : j = k :=
+funext $ monoid_hom.ext_iff.1 $ @submonoid.localization_map.epic_of_localization_map _ _ _ _ _ _ _
+  (to_localization_map M S) ⟨j, hj1, hjm⟩ ⟨k, hk1, hkm⟩ h
+
 lemma epic_of_localization_map (j k : S →+* P)
   (h : ∀ a, j.comp (algebra_map R S) a = k.comp (algebra_map R S) a) : j = k :=
-ring_hom.ext $ monoid_hom.ext_iff.1 $ @submonoid.localization_map.epic_of_localization_map
-  _ _ _ _ _ _ _ (to_localization_map M S) j.to_monoid_hom k.to_monoid_hom h
+ring_hom.ext $ congr_fun $ is_localization.ext M j k j.map_one k.map_one j.map_mul k.map_mul h
 
 variables {M}
 

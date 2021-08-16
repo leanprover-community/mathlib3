@@ -66,17 +66,6 @@ end
 open_locale big_operators
 variables {α : Type*} (s : finset α) (g : α → polynomial K)
 
--- I have a proof in another project, hope to PR soon - Aaron Anderson
-lemma nat_degree_prod_eq' (h : ∏ i in s, (g i).leading_coeff ≠ 0) :
-  (s.prod g).nat_degree = ∑ i in s, (g i).nat_degree :=
-begin
-  rw finset.prod_ne_zero_iff at h,
-  rw nat_degree_prod,
-  intros i hi hgi,
-  apply h i hi,
-  rw [hgi, polynomial.leading_coeff_zero],
-end
-
 lemma card_roots_eq_of_separable_of_splits
   (sep : separable f) (sp : polynomial.splits (ring_hom.id K) f) :
   f.roots.card = f.nat_degree :=
@@ -87,7 +76,7 @@ begin
   cases (exists_finset_of_splits (ring_hom.id K) sep sp) with s hs,
   simp only [ring_hom.id_apply, map_id] at hs, rw hs,
   rw [roots_C_mul _ hflc, roots_prod_X_sub_C, nat_degree_C_mul_eq_of_no_zero_divisors hflc],
-  rw nat_degree_prod_eq',
+  rw polynomial.nat_degree_prod',
   { simp only [mul_one, nat_degree_X_sub_C, nat.cast_id, finset.sum_const, nsmul_eq_mul,
       finset.card_def], },
   { simp only [(monic_X_sub_C _).leading_coeff, finset.prod_const_one,

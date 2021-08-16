@@ -115,6 +115,18 @@ begin
     id_tensor_comp_tensor_id_assoc, ←left_unitor_naturality, tensor_id_comp_id_tensor_assoc],
 end
 
+theorem left_adjoint_mate_comp {X Y Z : C} [has_left_dual X] [has_left_dual Y]
+  {f : X ⟶ Y} {g : *^X ⟶ Z} :
+  *^f ≫ g
+  = (λ_ _).inv ≫ (η_ *^X X ⊗ 𝟙 _) ≫ ((g ⊗ f) ⊗ 𝟙 _)
+    ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom :=
+begin
+  dunfold left_adjoint_mate,
+  rw [category.assoc, category.assoc, associator_naturality_assoc, associator_naturality_assoc,
+  ←id_tensor_comp_tensor_id _ g, category.assoc, category.assoc, category.assoc, category.assoc,
+  tensor_id_comp_id_tensor_assoc, ←right_unitor_naturality, id_tensor_comp_tensor_id_assoc],
+end
+
 /- The composition of adjoint mates is the adjoint mate of the composition. -/
 theorem comp_right_adjoint_mate {X Y Z : C}
   [has_right_dual X] [has_right_dual Y] [has_right_dual Z] {f : X ⟶ Y} {g : Y ⟶ Z} :

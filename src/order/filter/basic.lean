@@ -1380,7 +1380,8 @@ lemma range_mem_map : range m ∈ map m f :=
 by rw ←image_univ; exact image_mem_map univ_mem
 
 lemma mem_map_iff_exists_image : t ∈ map m f ↔ (∃ s ∈ f, m '' s ⊆ t) :=
-⟨λ ht, ⟨m ⁻¹' t, ht, image_preimage_subset _ _⟩, λ ⟨s, hs, ht⟩, mem_of_superset (image_mem_map hs) ht⟩
+⟨λ ht, ⟨m ⁻¹' t, ht, image_preimage_subset _ _⟩,
+  λ ⟨s, hs, ht⟩, mem_of_superset (image_mem_map hs) ht⟩
 
 @[simp] lemma map_id : filter.map id f = f :=
 filter_eq $ rfl

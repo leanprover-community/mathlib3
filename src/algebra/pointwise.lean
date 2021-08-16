@@ -29,6 +29,10 @@ Appropriate definitions and results are also transported to the additive theory 
   `(λ h, h * g) ⁻¹' s`, `(λ h, g * h) ⁻¹' s`, `(λ h, h * g⁻¹) ⁻¹' s`, `(λ h, g⁻¹ * h) ⁻¹' s`,
   `s * t`, `s⁻¹`, `(1 : set _)` (and similarly for additive variants).
   Expressions equal to one of these will be simplified.
+* We put all instances in the locale `pointwise`, so that these instances are not available by
+  default. Note that we do not mark them as reducible (as argued by note [reducible non-instances])
+  since we expect the locale to be open whenever the instances are actually used (and making the
+  instances reducible changes the behavior of `simp`).
 
 ## Tags
 
@@ -43,14 +47,9 @@ variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : set α} {a b : 
 
 /-! ### Properties about 1 -/
 
-/-- The set `(1 : set α)` is defined as `{1}` in locale `pointwise`.
-
-See note [reducible non-instances].
--/
+/-- The set `(1 : set α)` is defined as `{1}` in locale `pointwise`. -/
 @[to_additive
-/-"The set `(0 : set α)` is defined as `{0}` in locale `pointwise`.
-
-See note [reducible non-instances]."-/]
+/-"The set `(0 : set α)` is defined as `{0}` in locale `pointwise`. "-/]
 protected def has_one [has_one α] : has_one (set α) := ⟨{1}⟩
 
 localized "attribute [instance] set.has_one set.has_zero" in pointwise
@@ -75,15 +74,9 @@ theorem image_one [has_one α] {f : α → β} : f '' 1 = {f 1} := image_singlet
 
 /-! ### Properties about multiplication -/
 
-/-- The set `(s * t : set α)` is defined as `{x * y | x ∈ s, y ∈ t}` in locale `pointwise`.
-
-See note [reducible non-instances].
--/
+/-- The set `(s * t : set α)` is defined as `{x * y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
 @[to_additive
-/-" The set `(s + t : set α)` is defined as `{x + y | x ∈ s, y ∈ t}` in locale `pointwise`.
-
-See note [reducible non-instances].
-"-/]
+/-" The set `(s + t : set α)` is defined as `{x + y | x ∈ s, y ∈ t}` in locale `pointwise`."-/]
 protected def has_mul [has_mul α] : has_mul (set α) := ⟨image2 has_mul.mul⟩
 
 localized "attribute [instance] set.has_mul set.has_add" in pointwise
@@ -149,51 +142,27 @@ lemma singleton_mul_singleton [has_mul α] : ({a} : set α) * {b} = {a * b} := i
 protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=
 by simp only [← image2_mul, image2_swap _ s, mul_comm]
 
-/-- `set α` is a `mul_one_class` under pointwise operations if `α` is.
-
-See note [reducible non-instances].
--/
-@[reducible, to_additive /-"`set α` is an `add_zero_class` under pointwise operations if `α` is.
-
-See note [reducible non-instances].
-"-/]
+/-- `set α` is a `mul_one_class` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_zero_class` under pointwise operations if `α` is."-/]
 protected def mul_one_class [mul_one_class α] : mul_one_class (set α) :=
 { mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
   one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
   ..set.has_one, ..set.has_mul }
 
-/-- `set α` is a `semigroup` under pointwise operations if `α` is.
-
-See note [reducible non-instances].
--/
-@[reducible, to_additive /-"`set α` is an `add_semigroup` under pointwise operations if `α` is.
-
-See note [reducible non-instances].
-"-/]
+/-- `set α` is a `semigroup` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_semigroup` under pointwise operations if `α` is. "-/]
 protected def semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
-/-- `set α` is a `monoid` under pointwise operations if `α` is.
-
-See note [reducible non-instances].
--/
-@[reducible, to_additive /-"`set α` is an `add_monoid` under pointwise operations if `α` is.
-
-See note [reducible non-instances].
-"-/]
+/-- `set α` is a `monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_monoid` under pointwise operations if `α` is. "-/]
 protected def monoid [monoid α] : monoid (set α) :=
 { ..set.semigroup,
   ..set.mul_one_class }
 
-/-- `set α` is a `comm_monoid` under pointwise operations if `α` is.
-
-See note [reducible non-instances].
--/
-@[reducible, to_additive /-"`set α` is an `add_comm_monoid` under pointwise operations if `α` is.
-
-See note [reducible non-instances].
-"-/]
+/-- `set α` is a `comm_monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
 protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
 { mul_comm := λ _ _, set.mul_comm, ..set.monoid }
 
@@ -365,16 +334,10 @@ end big_operators
 /-! ### Properties about inversion -/
 
 /-- The set `(s⁻¹ : set α)` is defined as `{x | x⁻¹ ∈ s}` in locale `pointwise`.
-It is equal to `{x⁻¹ | x ∈ s}`, see `set.image_inv`.
-
-See note [reducible non-instances].
--/
+It is equal to `{x⁻¹ | x ∈ s}`, see `set.image_inv`. -/
 @[to_additive
 /-" The set `(-s : set α)` is defined as `{x | -x ∈ s}` in locale `pointwise`.
-It is equal to `{-x | x ∈ s}`, see `set.image_neg`.
-
-See note [reducible non-instances].
-"-/]
+It is equal to `{-x | x ∈ s}`, see `set.image_neg`. "-/]
 protected def has_inv [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
 
@@ -436,18 +399,12 @@ hs.preimage $ inv_injective.inj_on _
 /-! ### Properties about scalar multiplication -/
 
 /-- The scaling of a set `(x • s : set β)` by a scalar `x ∶ α` is defined as `{x • y | y ∈ s}`
-in locale `pointwise`.
-
-See note [reducible non-instances].
--/
+in locale `pointwise`. -/
 protected def has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
 ⟨λ a, image (has_scalar.smul a)⟩
 
 /-- The pointwise scalar multiplication `(s • t : set β)` by a set of scalars `s ∶ set α`
-is defined as `{x • y | x ∈ s, y ∈ t}` in locale `pointwise`.
-
-See note [reducible non-instances].
--/
+is defined as `{x • y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
 protected def has_scalar [has_scalar α β] : has_scalar (set α) (set β) :=
 ⟨image2 has_scalar.smul⟩
 
@@ -639,13 +596,9 @@ namespace finset
 variables {α : Type*} [decidable_eq α]
 
 /-- The pointwise product of two finite sets `s` and `t`:
-`st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }`.
-
-See note [reducible non-instances]. -/
-@[reducible, to_additive /-"The pointwise sum of two finite sets `s` and `t`:
-`s + t = { x + y | x ∈ s, y ∈ t }`.
-
-See note [reducible non-instances]."-/]
+`st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }`. -/
+@[to_additive /-"The pointwise sum of two finite sets `s` and `t`:
+`s + t = { x + y | x ∈ s, y ∈ t }`. "-/]
 protected def has_mul [has_mul α] : has_mul (finset α) :=
 ⟨λ s t, (s.product t).image (λ p : α × α, p.1 * p.2)⟩
 

@@ -332,7 +332,7 @@ begin
   have h := @exists_seq_tendsto_Sup _ _ _ _ _ (measurable_le_eval μ ν)
     ⟨0, 0, zero_mem_measurable_le, by simp⟩ (order_top.bdd_above _),
   choose g hmono hg₂ f hf₁ hf₂ using h,
-  -- we set `ξ` to be the supremum of a increasing sequence of functions obtained from above
+  -- we set `ξ` to be the supremum of an increasing sequence of functions obtained from above
   set ξ := ⨆ n k (hk : k ≤ n), f k with hξ,
   -- we see that `ξ` has the largest integral among all functions in `measurable_le`
   have hξ₁ : Sup (measurable_le_eval μ ν) = ∫⁻ a, ξ a ∂μ,
@@ -425,7 +425,7 @@ begin
           disjoint_compl_right } },
       have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂μ ≤ Sup (measurable_le_eval μ ν),
       { exact le_Sup ⟨ξ + E.indicator (λ _, ε), hξε, rfl⟩ },
-  -- but this contradics the maximality of `∫⁻ x, ξ x ∂μ`
+  -- but this contradicts the maximality of `∫⁻ x, ξ x ∂μ`
       refine not_lt.2 this _,
       rw [hξ₁, lintegral_add hξm (measurable.indicator (measurable_const) hE₁),
           lintegral_indicator _ hE₁, set_lintegral_const],

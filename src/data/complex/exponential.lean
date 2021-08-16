@@ -227,14 +227,8 @@ lemma sum_range_add_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → 
   {n m : ℕ} : ∑ k in range (n + m), f k - ∑ k in range n, f k =
   ∑ k in finset.range m, f (n + k) :=
 begin
-  sorry,
-  -- rw [← sum_sdiff (@filter_subset _ (λ k, n ≤ k) _ (range m)),
-  --   sub_eq_iff_eq_add, ← eq_sub_iff_add_eq, add_sub_cancel'],
-  -- refine finset.sum_congr
-  --   (finset.ext $ λ a, ⟨λ h, by simp at *; finish,
-  --   λ h, have ham : a < m := lt_of_lt_of_le (mem_range.1 h) hnm,
-  --     by simp * at *⟩)
-  --   (λ _ _, rfl),
+  rw sum_range_add,
+  simp only [add_sub_cancel', eq_self_iff_true],
 end
 
 end

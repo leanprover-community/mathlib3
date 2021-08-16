@@ -128,6 +128,13 @@ begin
     pow_card_sub_one_eq_one a h, mul_one],
 end
 
+lemma pow_card_pow (n : ℕ) (a : K) : a ^ q ^ n = a :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, pow_mul, ih, pow_card], },
+end
+
 variable (K)
 
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
@@ -376,6 +383,13 @@ namespace zmod
 /-- A variation on Fermat's little theorem. See `zmod.pow_card_sub_one_eq_one` -/
 @[simp] lemma pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
 by { have h := finite_field.pow_card x, rwa zmod.card p at h }
+
+@[simp] lemma pow_card_pow {n p : ℕ} [fact p.prime] (x : zmod p) : x ^ p ^ n = x :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, pow_mul, ih, pow_card], },
+end
 
 @[simp] lemma frobenius_zmod (p : ℕ) [fact p.prime] :
   frobenius (zmod p) p = ring_hom.id _ :=

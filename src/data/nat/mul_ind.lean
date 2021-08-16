@@ -29,6 +29,10 @@ The proofs use `padic_val_nat`; however, we have `padic_val_nat p = nat.log p $ 
 for any `p ∣ k`, which requires far less imports - the API isn't there though; however, this is why
 it's in `data` even though we import `number_theory`; it's not a particularly deep theorem.
 
+## TODO:
+
+Extend these results to any `normalization_monoid` with unique factorization.
+
 -/
 
 namespace nat
@@ -51,7 +55,7 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
 
     convert h ((k + 2) / p ^ t) p t (fact.out _) _ _,
     { rw nat.mul_div_cancel' hpt },
-    { rw nat.dvd_div_iff hpt,
+    { rw [nat.dvd_div_iff hpt, ←pow_succ'],
       exact pow_succ_padic_val_nat_not_dvd nat.succ_pos' },
 
     apply hk _ (nat.div_lt_of_lt_mul _),

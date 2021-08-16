@@ -1533,9 +1533,9 @@ lemma deriv_within_div_const (hc : differentiable_within_at 𝕜 c s x) {d : �
   deriv_within (λx, c x / d) s x = (deriv_within c s x) / d :=
 by simp [div_eq_inv_mul, deriv_within_const_mul, hc, hxs]
 
-@[simp] lemma deriv_div_const (hc : differentiable_at 𝕜 c x) {d : 𝕜} :
+@[simp] lemma deriv_div_const (d : 𝕜) :
   deriv (λx, c x / d) x = (deriv c x) / d :=
-by simp [div_eq_inv_mul, deriv_const_mul, hc]
+by simp only [div_eq_mul_inv, deriv_mul_const]
 
 end division
 

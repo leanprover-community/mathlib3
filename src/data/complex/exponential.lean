@@ -1328,27 +1328,21 @@ begin
   ... ≤ ∑ (k : ℕ) in range k, (abs x) ^ (n + k) / (n! * n.succ ^ k) :
           begin
             refine sum_le_sum (λ m hm, _),
-            apply div_le_div,
-            apply pow_nonneg,
-            apply abs_nonneg,
-            apply le_refl,
+            apply div_le_div (pow_nonneg (abs_nonneg x) (n + m)) (le_refl _),
             apply mul_pos,
             rw nat.cast_pos,
             exact nat.factorial_pos n,
             apply pow_pos,
             rw nat.cast_pos,
             exact nat.succ_pos n,
-            rw [<-nat.cast_pow, <-nat.cast_mul],
-            rw nat.cast_le,
+            rw [<-nat.cast_pow, <-nat.cast_mul, nat.cast_le],
             exact (nat.factorial_mul_pow_le_factorial),
           end
   ... = ∑ (k : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^k / n.succ ^ k) :
           begin
             congr,
             funext,
-            rw pow_add,
-            simp only [div_eq_inv_mul],
-            simp only [mul_inv'],
+            simp only [pow_add, div_eq_inv_mul, mul_inv'],
             ring,
           end
   ... ≤ abs x ^ n / (↑n!) * 2 :
@@ -1356,9 +1350,7 @@ begin
             rw <-mul_sum,
             apply mul_le_mul_of_nonneg_left,
             simp_rw [<-div_pow],
-            rw <-geom_sum_def,
-            rw geom_sum_eq,
-            rw div_le_iff_of_neg,
+            rw [<-geom_sum_def, geom_sum_eq, div_le_iff_of_neg],
             transitivity (-1 : ℝ),
             linarith,
             simp only [neg_le_sub_iff_le_add, div_pow, nat.cast_succ, le_add_iff_nonneg_left],

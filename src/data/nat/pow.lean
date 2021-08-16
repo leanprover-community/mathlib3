@@ -23,7 +23,7 @@ protected theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ,
 canonically_ordered_comm_semiring.pow_le_pow_of_le_left H
 
 theorem pow_le_pow_of_le_right {x : ℕ} (H : x > 0) {i : ℕ} : ∀ {j}, i ≤ j → x^i ≤ x^j
-| 0        h := by rw eq_zero_of_le_zero h; apply le_refl
+| 0        h := by rw nat.eq_zero_of_le_zero h; apply le_refl
 | (succ j) h := h.lt_or_eq_dec.elim
   (λhl, by rw [pow_succ', ← nat.mul_one (x^i)]; exact
     nat.mul_le_mul (pow_le_pow_of_le_right $ le_of_lt_succ hl) H)
@@ -31,7 +31,7 @@ theorem pow_le_pow_of_le_right {x : ℕ} (H : x > 0) {i : ℕ} : ∀ {j}, i ≤ 
 
 theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : 0 < i) : x^i < y^i :=
 begin
-  cases i with i, { exact absurd h (not_lt_zero _) },
+  cases i with i, { exact absurd h (nat.not_lt_zero _) },
   rw [pow_succ', pow_succ'],
   exact nat.mul_lt_mul' (nat.pow_le_pow_of_le_left (le_of_lt H) _) H
     (pow_pos (lt_of_le_of_lt (zero_le _) H) _)
@@ -135,7 +135,7 @@ begin
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
-    { apply sub_lt_of_pos_le _ _ (pow_pos b_pos _) h₁ },
+    { apply nat.sub_lt_of_pos_le _ _ (pow_pos b_pos _) h₁ },
 
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
@@ -158,7 +158,7 @@ begin
   { intro a, exact le_of_dvd (pow_pos (succ_pos x) l) a, },
   { intro a, cases x with x,
     { simp only [one_pow], },
-    { have le := (pow_le_iff_le_right (le_add_left _ _)).mp a,
+    { have le := (pow_le_iff_le_right (nat.le_add_left _ _)).mp a,
       use (x+2)^(l-k),
       rw [←pow_add, add_comm k, nat.sub_add_cancel le], } }
 end
@@ -177,7 +177,7 @@ lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
   have he : (succ p) ^ k = 1, from eq_one_of_dvd_one this,
   have k < (succ p) ^ k, from lt_pow_self hp k,
   have k < 1, by rwa [he] at this,
-  have k = 0, from eq_zero_of_le_zero $ le_of_lt_succ this,
+  have k = 0, from nat.eq_zero_of_le_zero $ le_of_lt_succ this,
   have 1 < 1, by rwa [this] at hk,
   absurd this dec_trivial
 
@@ -262,7 +262,7 @@ begin
   have m0 := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
   subst m0,
   simp at this,
-  have : n = 0 := eq_zero_of_le_zero (le_of_not_gt $ λ hn,
+  have : n = 0 := nat.eq_zero_of_le_zero (le_of_not_gt $ λ hn,
     ne_of_gt (pow_lt_pow_of_lt_right dec_trivial hn) this),
   subst n, refl
 end
@@ -292,7 +292,7 @@ begin
     by_cases e : bit b m = 0, { simp [e] },
     rw [size_bit e],
     cases n with n,
-    { exact e.elim (eq_zero_of_le_zero (le_of_lt_succ h)) },
+    { exact e.elim (nat.eq_zero_of_le_zero (le_of_lt_succ h)) },
     { apply succ_le_succ (IH _),
       apply lt_imp_lt_of_le_imp_le (λ h', bit0_le_bit _ h') h } }
 end⟩

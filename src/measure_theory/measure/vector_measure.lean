@@ -16,10 +16,10 @@ Similarly, when `M = ℂ`, we call the measure a complex measure and write `comp
 
 ## Main definitions
 
-* `vector_measure` is a vector valued, σ-additive function that maps the empty
+* `measure_theory.vector_measure` is a vector valued, σ-additive function that maps the empty
   and non-measurable set to zero.
-* `vector_measure.map` is the pushforward of a vector measure along a function.
-* `vector_measure.restrict` is the restriction of a vector measure on some set.
+* `measure_theory.vector_measure.map` is the pushforward of a vector measure along a function.
+* `measure_theory.vector_measure.restrict` is the restriction of a vector measure on some set.
 
 ## Notation
 
@@ -181,6 +181,27 @@ lemma of_diff {M : Type*} [add_comm_group M]
 begin
   rw [← of_add_of_diff hA hB h, add_sub_cancel'],
   apply_instance,
+end
+
+lemma of_diff_of_diff_eq_zero {A B : set α}
+  (hA : measurable_set A) (hB : measurable_set B) (h' : v (B \ A) = 0) :
+  v (A \ B) + v B = v A :=
+begin
+  symmetry,
+  calc v A = v (A \ B ∪ A ∩ B) : by simp only [set.diff_union_inter]
+       ... = v (A \ B) + v (A ∩ B) :
+  by { rw of_union,
+       { rw disjoint.comm,
+         exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_diff },
+       { exact hA.diff hB },
+       { exact hA.inter hB } }
+       ... = v (A \ B) + v (A ∩ B ∪ B \ A) :
+  by { rw [of_union, h', add_zero],
+       { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_diff },
+       { exact hA.inter hB },
+       { exact hB.diff hA } }
+       ... = v (A \ B) + v B :
+  by { rw [set.union_comm, set.inter_comm, set.diff_union_inter] }
 end
 
 lemma of_Union_nonneg {M : Type*} [topological_space M]
@@ -364,6 +385,20 @@ lemma to_signed_measure_apply_measurable {μ : measure α} [finite_measure μ]
   μ.to_signed_measure i = (μ i).to_real :=
 if_pos hi
 
+lemma to_signed_measure_eq_to_signed_measure_iff
+  {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
+  μ.to_signed_measure = ν.to_signed_measure ↔ μ = ν :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { ext1 i hi,
+    have : μ.to_signed_measure i = ν.to_signed_measure i,
+    { rw h },
+    rwa [to_signed_measure_apply_measurable hi, to_signed_measure_apply_measurable hi,
+        ennreal.to_real_eq_to_real] at this;
+    { exact measure_lt_top _ _ } },
+  { congr, assumption }
+end
+
 @[simp] lemma to_signed_measure_zero :
   (0 : measure α).to_signed_measure = 0 :=
 by { ext i hi, simp }
@@ -418,17 +453,11 @@ begin
       to_ennreal_vector_measure_apply_measurable hi, to_ennreal_vector_measure_apply_measurable hi]
 end
 
-/-- Given two finite measures `μ, ν`, `sub_to_signed_measure μ ν` is the signed measure
-corresponding to the function `μ - ν`. -/
-def sub_to_signed_measure (μ ν : measure α) [hμ : finite_measure μ] [hν : finite_measure ν] :
-  signed_measure α :=
-μ.to_signed_measure - ν.to_signed_measure
-
-lemma sub_to_signed_measure_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
+lemma to_signed_measure_sub_apply {μ ν : measure α} [finite_measure μ] [finite_measure ν]
   {i : set α} (hi : measurable_set i) :
-  μ.sub_to_signed_measure ν i = (μ i).to_real - (ν i).to_real :=
+  (μ.to_signed_measure - ν.to_signed_measure) i = (μ i).to_real - (ν i).to_real :=
 begin
-  rw [sub_to_signed_measure, vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
+  rw [vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       measure.to_signed_measure_apply_measurable hi, sub_eq_add_neg]
 end
 

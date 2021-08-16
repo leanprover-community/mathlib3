@@ -39,27 +39,27 @@ Overall, the indexing is a bit of a mess to understand. But, trust Lean, it work
 
 Let `n : ℕ`, `a : ℕ → ℕ`, `∀ i ≤ n, 0 < a i`, `∀ i, i + 2 ≤ n → aᵢ₊₁ ∣ aᵢ + aᵢ₊₂` (read `→` as
 "implies"). Then there exists `b : ℕ` such that `b` as an element of any linearly ordered field
-equals $\sum_{i=0}^{n-1}\dfrac{a_0a_n}{a_ia_{i+1}}$.
+equals $\sum_{i=0}^{n-1} (a_0 a_n) / (a_i a_{i+1})$.
 
 ## Proof outline
 
 The case `n = 0` is trivial.
 
 For `n + 1`, we prove the result by induction but by adding `aₙ₊₁ ∣ aₙ * b - a₀` to the induction
-hypothesis, where `b` is the previous sum, $\sum_{i=0}^{n-1}\dfrac{a_0a_n}{a_ia_{i+1}}$, as a
+hypothesis, where `b` is the previous sum, $\sum_{i=0}^{n-1} (a_0 a_n) / (a_i a_{i+1})$, as a
 natural.
 * Base case:
-  * $\sum_{i=0}^0\dfrac{a_0a_{0+1}}{a_0a_{0+1}}$ is a natural:
-    $\sum_{i=0}^0\dfrac{a_0a_{0+1}}{a_0a_{0+1}}=\dfrac{a_0a_1}{a_0a_1}=1$.
+  * $\sum_{i=0}^0 (a_0 a_{0+1}) / (a_0 a_{0+1})$ is a natural:
+    $\sum_{i=0}^0 (a_0 a_{0+1}) / (a_0 a_{0+1}) = (a_0 a_1) / (a_0 a_1) = 1$.
   * Divisibility condition:
     `a₀ * 1 - a₀ = 0` is clearly divisible by `a₁`.
 * Induction step:
-  * $\sum_{i=0}^n\dfrac{a_0a_{n+1}}{a_ia_{i+1}}$ is a natural:
-    $$\sum_{i=0}^{n+1}\dfrac{a_0a_{n+2}}{a_ia_{i+1}}
-      = \sum_{i=0}^n\dfrac{a_0a_{n+2}}{a_ia_{i+1}}+\dfrac{a_0a_{n+2}}{a_{n+1}a_{n+2}}
-      = \dfrac{a_{n+2}}{a_{n+1}}\cdot\sum_{i=0}^n\dfrac{a_0a_{n+1}}{a_ia_{i+1}}+\dfrac{a_0}{a_{n+1}}
-      = \dfrac{a_{n+2}}{a_{n+1}}\cdot b+\dfrac{a_0}{a_{n+1}}
-      = \dfrac{a_n+a_{n+2}}{a_{n+1}}\cdot b-\dfrac{a_n\cdot b-a_0}{a_{n+1}}$$
+  * $\sum_{i=0}^n (a_0 a_{n+1}) / (a_i a_{i+1})$ is a natural:
+    $$\sum_{i=0}^{n+1} (a_0 a_{n+2}) / (a_i a_{i+1})
+      = \sum_{i=0}^n\ (a_0 a_{n+2}) / (a_i a_{i+1}) + (a_0 a_{n+2}) / (a_{n+1} a_{n+2})
+      = a_{n+2} / a_{n+1} × \sum_{i=0}^n (a_0 a_{n+1}) / (a_i a_{i+1}) + a_0 / a_{n+1}
+      = a_{n+2} / a_{n+1} × b + a_0 / a_{n+1}
+      = (a_n + a_{n+2}) / a_{n+1} × b - (a_n b - a_0)(a_{n+1})$$
     which is a natural because `(aₙ + aₙ₊₂)/aₙ₊₁`, `b` and `(aₙ * b - a₀)/aₙ₊₁` are (plus an
     annoying inequality, or the fact that the original sum is positive because its terms are).
   * Divisibility condition:

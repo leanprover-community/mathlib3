@@ -1520,6 +1520,9 @@ instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_mea
 instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
+lemma finite_measure_le (μ : measure α) [finite_measure μ] (h : ν ≤ μ) : finite_measure ν :=
+{ measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
+
 @[simp] lemma measure_univ_nnreal_eq_zero [finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
 begin
   rw [← measure_theory.measure.measure_univ_eq_zero, ← coe_measure_univ_nnreal],

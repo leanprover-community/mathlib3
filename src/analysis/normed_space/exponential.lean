@@ -3,6 +3,7 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
+import algebra.char_p.algebra
 import analysis.calculus.deriv
 import analysis.specific_limits
 import data.complex.exponential
@@ -55,8 +56,8 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 ### Other useful compatibility results
 
 - `exp_eq_exp_of_field_extension` : given `𝕂' / 𝕂` a normed field extension (that is, an instance
-  of `normed_algebra 𝕂 𝕂'`) and a normed algebra `𝔸` over both `𝕂` and `𝕂'`, if `𝕂` and `𝕂'` have
-  the same characteristic and have compatible actions on `𝔸`, then `exp 𝕂 𝔸 = exp 𝕂' 𝔸`
+  of `normed_algebra 𝕂 𝕂'`) and a normed algebra `𝔸` over both `𝕂` and `𝕂'` then
+  `exp 𝕂 𝔸 = exp 𝕂' 𝔸`
 - `complex.exp_eq_exp_ℂ_ℂ` : `complex.exp = exp ℂ ℂ`
 - `real.exp_eq_exp_ℝ_ℝ` : `real.exp = exp ℝ ℝ`
 
@@ -480,15 +481,16 @@ end is_R_or_C
 
 section scalar_tower
 
-variables (𝕂 𝕂' 𝔸 : Type) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
+variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
   [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝕂'] [normed_algebra 𝕂' 𝔸]
-  [is_scalar_tower 𝕂 𝕂' 𝔸] (p : ℕ) [char_p 𝕂 p] [char_p 𝕂' p]
+  [is_scalar_tower 𝕂 𝕂' 𝔸] (p : ℕ) [char_p 𝕂 p]
 
 include p
 
 lemma exp_series_eq_exp_series_of_field_extension (n : ℕ) (x : 𝔸) :
   (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
 begin
+  letI : char_p 𝕂' p := char_p_of_injective_algebra_map (algebra_map 𝕂 𝕂').injective p,
   rw [exp_series, exp_series,
       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
@@ -509,8 +511,7 @@ begin
 end
 
 /-- Given `𝕂' / 𝕂` a normed field extension (that is, an instance of `normed_algebra 𝕂 𝕂'`) and a
-normed algebra `𝔸` over both `𝕂` and `𝕂'`, if `𝕂` and `𝕂'` have the same characteristic and have
-compatible actions on `𝔸`, then `exp 𝕂 𝔸 = exp 𝕂' 𝔸`. -/
+normed algebra `𝔸` over both `𝕂` and `𝕂'` then `exp 𝕂 𝔸 = exp 𝕂' 𝔸`. -/
 lemma exp_eq_exp_of_field_extension : exp 𝕂 𝔸 = exp 𝕂' 𝔸 :=
 begin
   ext,

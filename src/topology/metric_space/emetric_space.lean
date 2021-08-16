@@ -749,6 +749,10 @@ diam_subsingleton subsingleton_empty
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
 diam_subsingleton subsingleton_singleton
 
+@[simp] lemma diam_Union_mem_option {ι : Type*} (o : option ι) (s : ι → set α) :
+  diam (⋃ i ∈ o, s i) = ⨆ i ∈ o, diam (s i) :=
+by cases o; simp
+
 lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
 eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff, ball_insert_iff,
   edist_self, edist_comm x, max_le_iff, supr_le_iff, zero_le, true_and,

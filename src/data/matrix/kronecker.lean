@@ -246,6 +246,7 @@ open_locale matrix tensor_product
 section module
 
 variables [comm_semiring R] [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β]
+variables [add_comm_monoid γ] [module R γ]
 
 /-- The Kronecker tensor product. This is just a shorthand for `kronecker_map (⊗ₜ)`.
 Prefer the notation `⊗ₖₜ` rather than this definition. -/
@@ -299,9 +300,6 @@ lemma diagonal_kronecker_tmul_diagonal
   (a : m → α) (b : n → α):
   (diagonal a) ⊗ₖₜ[R] (diagonal b) = diagonal (λ mn, a mn.1 ⊗ₜ b mn.2) :=
 kronecker_map_diagonal_diagonal _ (zero_tmul _) (tmul_zero _) _ _
-
-
-variables [add_comm_monoid γ] [module R γ]
 
 lemma kronecker_tmul_assoc (A : matrix l m α) (B : matrix n p β) (C : matrix q r γ) :
 reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)

@@ -159,29 +159,15 @@ begin
   exact add_factorial_succ_le_factorial_add_succ i h,
 end
 
-lemma pow_mul_factorial_le_factorial {n m : ℕ} (hnm : n ≤ m) : n ^ (m - n) * n! ≤ m! :=
+lemma factorial_mul_pow_sub_le_factorial {n m : ℕ} (hnm : n ≤ m) : n! * n ^ (m - n) ≤ m! :=
 begin
-  induction m,
-  have hn : n = 0, exact le_zero_iff.mp hnm,
-  rw hn,
-  simp only [le_refl, mul_one, nat.nat_zero_eq_zero, nat.factorial_zero, nat.sub_self, pow_zero],
-  by_cases n ≤ m_n,
-  rw succ_sub,
-  rw [nat.factorial_succ, pow_succ],
-  rw mul_assoc,
-  apply mul_le_mul,
-  exact hnm,
-  exact m_ih h,
-  apply zero_le,
-  apply zero_le,
-  exact h,
-  simp at *,
-  have hn : m_n.succ ≤ n, exact succ_le_iff.mpr h,
-  have hn' : n = m_n.succ, exact le_antisymm hnm hn,
-  rw <- hn',
-  simp only [one_mul, nat.sub_self, pow_zero],
-  rw hn',
-  simp only [le_refl, mul_le_mul_left, nat.factorial_succ],
+  suffices : n! * (n + 1) ^ (m - n) ≤ m!,
+  { apply trans _ this,
+    rw mul_le_mul_left,
+    apply pow_le_pow_of_le_left (zero_le n) (le_succ n),
+    exact factorial_pos n,},
+  convert nat.factorial_mul_pow_le_factorial,
+  exact (nat.add_sub_of_le hnm).symm,
 end
 
 

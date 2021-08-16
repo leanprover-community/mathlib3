@@ -1164,7 +1164,7 @@ nth_le_permutations'_aux _ _ _ _
 lemma injective_permutations'_aux (x : α) : function.injective (permutations'_aux x) :=
 begin
   intros s t h,
-  apply injective_insert_nth s.length x,
+  apply insert_nth_injective s.length x,
   have hl : s.length = t.length := by simpa using congr_arg length h,
   rw [←nth_le_permutations'_aux s x s.length (by simp),
       ←nth_le_permutations'_aux t x s.length (by simp [hl])],
@@ -1255,7 +1255,7 @@ begin
         exact nth_le_mem _ _ _ },
       { simp only [ht] at hm' hn',
         rw ←hm' at hn',
-        exact H (injective_insert_nth _ _ hn') },
+        exact H (insert_nth_injective _ _ hn') },
       { suffices : x ∈ as,
         { exact h x (ha.subset this) rfl },
         rw [←hx, nth_le_insert_nth_of_lt _ _ _ _ ht (ht.trans_le hn)],

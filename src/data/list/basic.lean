@@ -1222,28 +1222,6 @@ ext $ λn, if h₁ : n < length l₁
   then by rw [nth_le_nth, nth_le_nth, h n h₁ (by rwa [← hl])]
   else let h₁ := le_of_not_gt h₁ in by { rw [nth_len_le h₁, nth_len_le], rwa [←hl], }
 
-lemma injective_append_left (l : list α) : function.injective ((++) l) :=
-begin
-  induction l with hd tl IH,
-  { convert function.injective_id },
-  { intros as bs h,
-    refine IH _,
-    simpa using h }
-end
-
-lemma injective_append_right (l : list α) : function.injective (++ l) :=
-begin
-  intros as bs h,
-  simp only at h,
-  have : as.length = bs.length := by simpa using congr_arg length h,
-  apply ext_le this,
-  intros n hn hn',
-  have ha : n < (as ++ l).length := hn.trans_le (by simp),
-  have hb : n < (bs ++ l).length := hn'.trans_le (by simp),
-  simp [←nth_le_append ha, ←nth_le_append hb, h]
-end
-
-
 @[simp] theorem index_of_nth_le [decidable_eq α] {a : α} :
   ∀ {l : list α} h, nth_le l (index_of a l) h = a
 | (b::l) h := by by_cases h' : a = b;
@@ -1528,16 +1506,7 @@ begin
   { simpa using IH }
 end
 
-lemma length_insert_nth_le_le (l : list α) (x : α) (n : ℕ) :
-  l.length ≤ (insert_nth n x l).length :=
-begin
-  cases le_or_lt n l.length with hn hn,
-  { rw length_insert_nth _ _ hn,
-    exact (nat.lt_succ_self _).le },
-  { rw insert_nth_of_length_lt _ _ _ hn }
-end
-
-lemma length_insert_nth_le (l : list α) (x : α) (n : ℕ) :
+lemma length_le_length_insert_nth (l : list α) (x : α) (n : ℕ) :
   l.length ≤ (insert_nth n x l).length :=
 begin
   cases le_or_lt n l.length with hn hn,
@@ -1557,7 +1526,7 @@ end
 
 lemma nth_le_insert_nth_of_lt (l : list α) (x : α) (n k : ℕ) (hn : k < n)
   (hk : k < l.length)
-  (hk' : k < (insert_nth n x l).length := hk.trans_le (length_insert_nth_le _ _ _)):
+  (hk' : k < (insert_nth n x l).length := hk.trans_le (length_le_length_insert_nth _ _ _)):
   (insert_nth n x l).nth_le k hk' = l.nth_le k hk :=
 begin
   induction n with n IH generalizing k l,
@@ -1597,7 +1566,7 @@ begin
     { simpa [succ_add] using IH _ _ _ } }
 end
 
-lemma injective_insert_nth (n : ℕ) (x : α) : function.injective (insert_nth n x) :=
+lemma insert_nth_injective (n : ℕ) (x : α) : function.injective (insert_nth n x) :=
 begin
   induction n with n IH,
   { have : insert_nth 0 x = cons x := funext (λ _, rfl),

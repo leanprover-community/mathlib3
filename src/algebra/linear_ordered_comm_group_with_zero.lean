@@ -73,57 +73,6 @@ def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   ..hf.ordered_comm_monoid f one mul,
   ..hf.comm_monoid_with_zero f zero one mul }
 
-lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
-begin
-  induction n with n ih,
-  { rw pow_zero },
-  { rw pow_succ, exact one_le_mul H ih }
-end
-
-lemma pow_le_one_of_le_one {n : ℕ} (H : x ≤ 1) : x^n ≤ 1 :=
-begin
-  induction n with n ih,
-  { rw pow_zero },
-  { rw pow_succ, exact mul_le_one' H ih }
-end
-
-lemma eq_one_of_pow_eq_one {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
-begin
-  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨n, rfl⟩, clear hn,
-  induction n with n ih,
-  { simpa using H },
-  { cases le_total x 1 with h,
-    all_goals
-    { have h1 := mul_le_mul_right' h (x ^ (n + 1)),
-      rw pow_succ at H,
-      rw [H, one_mul] at h1 },
-    { have h2 := pow_le_one_of_le_one h,
-      exact ih (le_antisymm h2 h1) },
-    { have h2 := one_le_pow_of_one_le' h,
-      exact ih (le_antisymm h1 h2) } }
-end
-
-lemma pow_eq_one_iff {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
-⟨eq_one_of_pow_eq_one hn, by { rintro rfl, exact one_pow _ }⟩
-
-lemma one_le_pow_iff {n : ℕ} (hn : n ≠ 0) : 1 ≤ x^n ↔ 1 ≤ x :=
-begin
-  refine ⟨_, one_le_pow_of_one_le'⟩,
-  contrapose!,
-  intro h, apply lt_of_le_of_ne (pow_le_one_of_le_one (le_of_lt h)),
-  rw [ne.def, pow_eq_one_iff hn],
-  exact ne_of_lt h,
-end
-
-lemma pow_le_one_iff {n : ℕ} (hn : n ≠ 0) : x^n ≤ 1 ↔ x ≤ 1 :=
-begin
-  refine ⟨_, pow_le_one_of_le_one⟩,
-  contrapose!,
-  intro h, apply lt_of_le_of_ne (one_le_pow_of_one_le' (le_of_lt h)),
-  rw [ne.def, eq_comm, pow_eq_one_iff hn],
-  exact ne_of_gt h,
-end
-
 lemma zero_le_one' : (0 : α) ≤ 1 :=
 linear_ordered_comm_monoid_with_zero.zero_le_one
 
@@ -221,7 +170,7 @@ namespace monoid_hom
 variables {R : Type*} [ring R] (f : R →* α)
 
 theorem map_neg_one : f (-1) = 1 :=
-eq_one_of_pow_eq_one (nat.succ_ne_zero 1) $
+(pow_eq_one_iff (nat.succ_ne_zero 1)).1 $
   calc f (-1) ^ 2 = f (-1) * f(-1) : sq _
               ... = f ((-1) * - 1) : (f.map_mul _ _).symm
               ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)

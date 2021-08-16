@@ -192,7 +192,7 @@ begin
   lift k to ℕ using int.le_of_lt hk,
   rw gsmul_coe_nat,
   apply nsmul_pos ha,
-  exact coe_nat_pos.mp hk,
+  exact (coe_nat_pos.mp hk).ne',
 end
 
 theorem gsmul_le_gsmul {a : A} {n m : ℤ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=

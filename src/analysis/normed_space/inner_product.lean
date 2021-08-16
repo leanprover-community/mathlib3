@@ -692,8 +692,8 @@ begin
     { intros i,
       have h' : ∥v i∥ ^ 2 = 1 ^ 2 := by simp [norm_sq_eq_inner, h i i],
       have h₁ : 0 ≤ ∥v i∥ := norm_nonneg _,
-      have h₂ : (0:ℝ) ≤ 1 := by norm_num,
-      rwa eq_of_sq_eq_sq h₁ h₂ at h' },
+      have h₂ : (0:ℝ) ≤ 1 := zero_le_one,
+      rwa sq_eq_sq h₁ h₂ at h' },
     { intros i j hij,
       simpa [hij] using h i j } }
 end

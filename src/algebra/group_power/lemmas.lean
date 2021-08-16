@@ -297,9 +297,9 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
 end
 
-/-- See also `smul_left_injective`. TODO: provide a `no_zero_smul_divisors` instance. We can't
+/-- See also `smul_right_injective`. TODO: provide a `no_zero_smul_divisors` instance. We can't
 do that here because importing that definition would create import cycles. -/
-lemma gsmul_left_injective {m : ℤ} (hm : m ≠ 0) : function.injective ((•) m : A → A) :=
+lemma gsmul_right_injective {m : ℤ} (hm : m ≠ 0) : function.injective ((•) m : A → A) :=
 λ a b, begin
   suffices : ∀ n : ℤ, 0 < n → n • a = n • b → a = b,
   { cases hm.symm.lt_or_lt,
@@ -316,13 +316,13 @@ lemma gsmul_left_injective {m : ℤ} (hm : m ≠ 0) : function.injective ((•) 
     exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hn },
 end
 
-lemma gsmul_left_inj {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
-(gsmul_left_injective hm).eq_iff
+lemma gsmul_right_inj {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
+(gsmul_right_injective hm).eq_iff
 
-/-- Alias of `gsmul_left_inj`, for ease of discovery alongside `gsmul_le_gsmul_iff` and
+/-- Alias of `gsmul_right_inj`, for ease of discovery alongside `gsmul_le_gsmul_iff` and
 `gsmul_lt_gsmul_iff`. -/
 lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
-gsmul_inj hm
+gsmul_right_inj hm
 
 end linear_ordered_add_comm_group
 

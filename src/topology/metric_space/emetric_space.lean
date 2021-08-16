@@ -749,7 +749,7 @@ diam_subsingleton subsingleton_empty
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
 diam_subsingleton subsingleton_singleton
 
-@[simp] lemma diam_Union_mem_option {ι : Type*} (o : option ι) (s : ι → set α) :
+lemma diam_Union_mem_option {ι : Type*} (o : option ι) (s : ι → set α) :
   diam (⋃ i ∈ o, s i) = ⨆ i ∈ o, diam (s i) :=
 by cases o; simp
 

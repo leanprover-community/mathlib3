@@ -46,8 +46,8 @@ open_locale classical big_operators
 namespace number_field
 variables (K : Type*) [field K] [number_field K]
 
-@[priority 100] -- See note [lower instance priority]
-instance char_zero : char_zero K := number_field.cz
+-- See note [lower instance priority]
+attribute [priority 100, instance] number_field.cz
 
 lemma finite_dimensional_of_number_field : finite_dimensional ℚ K := number_field.fd
 

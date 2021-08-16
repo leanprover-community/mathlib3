@@ -383,8 +383,7 @@ begin
       rw lintegral_supr (λ n, (supr_mem_measurable_le _ hf₁ n).1) (supr_monotone _),
       exact supr_le (λ n, (supr_mem_measurable_le _ hf₁ n).2 A hA) },
   -- since `E` is positive, we have `∫⁻ a in A ∩ E, ε + ξ a ∂μ ≤ ν (A ∩ E)` for all `A`
-    have hε₂ : ∀ A : set α, measurable_set A →
-      ∫⁻ a in A ∩ E, ε + ξ a ∂μ ≤ ν (A ∩ E),
+    have hε₂ : ∀ A : set α, measurable_set A → ∫⁻ a in A ∩ E, ε + ξ a ∂μ ≤ ν (A ∩ E),
     { intros A hA,
       have := subset_le_of_restrict_le_restrict _ _ hE₁ hE₃ (set.inter_subset_right A E),
       rwa [zero_apply, to_signed_measure_sub_apply (hA.inter hE₁),
@@ -423,8 +422,8 @@ begin
           (hξle (A ∩ Eᶜ) (hA.inter hE₁.compl)) },
       { exact disjoint.mono (set.inter_subset_right _ _) (set.inter_subset_right _ _)
           disjoint_compl_right } },
-      have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂μ ≤ Sup (measurable_le_eval μ ν),
-      { exact le_Sup ⟨ξ + E.indicator (λ _, ε), hξε, rfl⟩ },
+      have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂μ ≤ Sup (measurable_le_eval μ ν) :=
+        le_Sup ⟨ξ + E.indicator (λ _, ε), hξε, rfl⟩,
   -- but this contradicts the maximality of `∫⁻ x, ξ x ∂μ`
       refine not_lt.2 this _,
       rw [hξ₁, lintegral_add hξm (measurable.indicator (measurable_const) hE₁),

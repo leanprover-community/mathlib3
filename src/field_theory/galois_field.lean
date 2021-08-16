@@ -76,11 +76,11 @@ begin
   cases (exists_finset_of_splits (ring_hom.id K) sep sp) with s hs,
   simp only [ring_hom.id_apply, map_id] at hs, rw hs,
   rw [roots_C_mul _ hflc, roots_prod_X_sub_C, nat_degree_C_mul_eq_of_no_zero_divisors hflc],
-  rw polynomial.nat_degree_prod',
+  rw nat_degree_prod,
   { simp only [mul_one, nat_degree_X_sub_C, nat.cast_id, finset.sum_const, nsmul_eq_mul,
       finset.card_def], },
-  { simp only [(monic_X_sub_C _).leading_coeff, finset.prod_const_one,
-                ne.def, not_false_iff, one_ne_zero] }
+  { intros i hi,
+    exact X_sub_C_ne_zero i, }
 end
 
 -- linter complains, but removing causes `instance : fintype (galois_field p n)` below to fail

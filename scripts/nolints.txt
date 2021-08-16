@@ -364,7 +364,7 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/vector2.lean
+-- data/vector/basic.lean
 apply_nolint vector.insert_nth doc_blame
 apply_nolint vector.m_of_fn doc_blame
 apply_nolint vector.mmap doc_blame

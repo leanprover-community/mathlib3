@@ -1608,8 +1608,6 @@ end ring_hom
 namespace double_quot
 variables {R : Type u} [comm_ring R] (I J : ideal R)
 
-lemma add_comm : I+J = J+I := _root_.add_comm I J
-
 -- a few lemmas to help shorten the proofs later
 lemma left_proj_quot_add_mk (x :R) (hx : x ∈ I) : ideal.quotient.mk (I+J) x = 0 :=
 ideal.quotient.eq_zero_iff_mem.2 (ideal.mem_sup_left hx)

@@ -93,7 +93,8 @@ continuous_linear_map.add_comm_monoid
 namespace weak_dual
 
 /-- The weak-* topology instance `weak_dual.topological_space` on the dual of a topological module
-`E` over a topological semiring `𝕜` is defined as the induced topology under the mapping that associates to a dual element `x' : weak_dual 𝕜 E` the functional `E → 𝕜`, when the space `E → 𝕜`
+`E` over a topological semiring `𝕜` is defined as the induced topology under the mapping that
+associates to a dual element `x' : weak_dual 𝕜 E` the functional `E → 𝕜`, when the space `E → 𝕜`
 of functionals is equipped with the topology of pointwise convergence (product topology). -/
 instance : topological_space (weak_dual 𝕜 E) :=
 topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topological_space

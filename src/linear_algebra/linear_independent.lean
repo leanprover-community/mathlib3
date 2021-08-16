@@ -3,13 +3,10 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
-import algebra.big_operators.finsupp
 import linear_algebra.finsupp
 import linear_algebra.prod
-import linear_algebra.pi
-import order.zorn
-import data.finset.order
 import data.equiv.fin
+import set_theory.cardinal
 
 /-!
 

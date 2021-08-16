@@ -530,7 +530,7 @@ bot_unique $ λ s _, empty_subset _
 
 lemma empty_mem_iff_bot {f : filter α} : ∅ ∈ f ↔ f = ⊥ :=
 ⟨λ h, bot_unique $ λ s _, mem_of_superset h (empty_subset s),
-  λ h, h.symm ▸ mem_bot_sets⟩
+  λ h, h.symm ▸ mem_bot⟩
 
 lemma nonempty_of_mem {f : filter α} [hf : ne_bot f] {s : set α} (hs : s ∈ f) :
   s.nonempty :=
@@ -633,7 +633,7 @@ end
 
 lemma infi_sets_eq_finite' (f : ι → filter α) :
   (⨅ i, f i).sets = (⋃ t : finset (plift ι), (⨅ i ∈ t, f (plift.down i)).sets) :=
-by rw [← infi_sets_eq_finite, ← equiv.plift.surjective.infi_comp]; refl
+by { rw [← infi_sets_eq_finite, ← equiv.plift.surjective.infi_comp], refl }
 
 lemma mem_infi_finite {ι : Type*} {f : ι → filter α} (s) :
   s ∈ infi f ↔ ∃ t : finset ι, s ∈ ⨅ i ∈ t, f i :=
@@ -1377,7 +1377,7 @@ lemma image_mem_map_iff (hf : function.injective m) : m '' s ∈ map m f ↔ s �
 ⟨λ h, by rwa [← preimage_image_eq s hf], image_mem_map⟩
 
 lemma range_mem_map : range m ∈ map m f :=
-by rw ←image_univ; exact image_mem_map univ_mem
+by { rw ←image_univ, exact image_mem_map univ_mem }
 
 lemma mem_map_iff_exists_image : t ∈ map m f ↔ (∃ s ∈ f, m '' s ⊆ t) :=
 ⟨λ ht, ⟨m ⁻¹' t, ht, image_preimage_subset _ _⟩,
@@ -1605,7 +1605,7 @@ lemma gc_map_comap (m : α → β) : galois_connection (map m) (comap m) :=
 (gc_map_comap m).u_infi
 
 lemma le_comap_top (f : α → β) (l : filter α) : l ≤ comap f ⊤ :=
-by rw [comap_top]; exact le_top
+by { rw [comap_top], exact le_top }
 
 lemma map_comap_le : map m (comap m g) ≤ g := (gc_map_comap m).l_u_le _
 lemma le_comap_map : f ≤ comap m (map m f) := (gc_map_comap m).le_u_l _
@@ -1791,7 +1791,7 @@ lemma map_infi_eq {f : ι → filter α} {m : α → β} (hf : directed (≥) f)
   map m (infi f) = (⨅ i, map m (f i)) :=
 map_infi_le.antisymm
   (λ s (hs : preimage m s ∈ infi f),
-    let ⟨i, hi⟩ := (mem_infi_of_directed hf _).2 hs in
+    let ⟨i, hi⟩ := (mem_infi_of_directed hf _).1 hs in
     have (⨅ i, map m (f i)) ≤ 𝓟 s, from
       infi_le_of_le i $ by { simp only [le_principal_iff, mem_map], assumption },
     filter.le_principal_iff.1 this)
@@ -2165,7 +2165,7 @@ by rwa [tendsto, map_map]
 
 lemma tendsto_map'_iff {f : β → γ} {g : α → β} {x : filter α} {y : filter γ} :
   tendsto f (map g x) y ↔ tendsto (f ∘ g) x y :=
-by rw [tendsto, map_map]; refl
+by { rw [tendsto, map_map], refl }
 
 lemma tendsto_comap {f : α → β} {x : filter β} : tendsto f (comap f x) x :=
 map_comap_le
@@ -2176,13 +2176,12 @@ lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : fil
 
 lemma tendsto_comap'_iff {m : α → β} {f : filter α} {g : filter β} {i : γ → α}
   (h : range i ∈ f) : tendsto (m ∘ i) (comap i f) g ↔ tendsto m f g :=
-by rw [tendsto, ← map_compose]; simp only [(∘), map_comap_of_mem h, tendsto]
+by { rw [tendsto, ← map_compose], simp only [(∘), map_comap_of_mem h, tendsto] }
 
 lemma comap_eq_of_inverse {f : filter α} {g : filter β} {φ : α → β} (ψ : β → α)
   (eq : ψ ∘ φ = id) (hφ : tendsto φ f g) (hψ : tendsto ψ g f) : comap φ g = f :=
 begin
-  refine le_antisymm (le_trans (comap_mono $ map_le_iff_le_comap.1 hψ) _)
-    (map_le_iff_le_comap.1 hφ),
+  refine ((comap_mono $ map_le_iff_le_comap.1 hψ).trans _).antisymm (map_le_iff_le_comap.1 hφ),
   rw [comap_comap, eq, comap_id],
   exact le_rfl
 end
@@ -2381,11 +2380,11 @@ end
 
 lemma prod_infi_left [nonempty ι] {f : ι → filter α} {g : filter β}:
   (⨅ i, f i) ×ᶠ g = (⨅ i, (f i) ×ᶠ g) :=
-by rw [filter.prod, comap_infi, infi_inf]; simp only [filter.prod, eq_self_iff_true]
+by { rw [filter.prod, comap_infi, infi_inf], simp only [filter.prod, eq_self_iff_true] }
 
 lemma prod_infi_right [nonempty ι] {f : filter α} {g : ι → filter β} :
   f ×ᶠ (⨅ i, g i) = (⨅ i, f ×ᶠ (g i)) :=
-by rw [filter.prod, comap_infi, inf_infi]; simp only [filter.prod, eq_self_iff_true]
+by { rw [filter.prod, comap_infi, inf_infi], simp only [filter.prod, eq_self_iff_true] }
 
 @[mono] lemma prod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
   f₁ ×ᶠ g₁ ≤ f₂ ×ᶠ g₂ :=
@@ -2401,7 +2400,7 @@ by simp only [filter.prod, comap_comap, (∘), inf_comm, prod.fst_swap,
   eq_self_iff_true, prod.snd_swap, comap_inf]
 
 lemma prod_comm : f ×ᶠ g = map (λ p : β×α, (p.2, p.1)) (g ×ᶠ f) :=
-by rw [prod_comm', ← map_swap_eq_comap_swap]; refl
+by { rw [prod_comm', ← map_swap_eq_comap_swap], refl }
 
 lemma prod_map_map_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :

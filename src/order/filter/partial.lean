@@ -166,7 +166,7 @@ theorem rtendsto'_def (r : rel α β) (l₁ : filter α) (l₂ : filter β) :
   rtendsto' r l₁ l₂ ↔ ∀ s ∈ l₂, r.preimage s ∈ l₁ :=
 begin
   unfold rtendsto' rcomap', simp [le_def, rel.mem_image], split,
-  { exact λ h s hs, h _ _ hs subset.rfl },
+  { exact λ h s hs, h _ _ hs set.subset.rfl },
   { exact λ h s t ht, mem_of_superset (h t ht) }
 end
 

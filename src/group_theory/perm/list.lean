@@ -342,11 +342,6 @@ begin
       rw [hl, nat.mod_eq_of_lt hk', h1, ←nat.add_mod, nat.succ_add] } }
 end
 
-theorem nodup.nth_le_inj_iff {α : Type*} {l : list α} (h : nodup l)
-  {i j : ℕ} (hi : i < l.length) (hj : j < l.length) :
-  l.nth_le i hi = l.nth_le j hj ↔ i = j :=
-⟨nodup_iff_nth_le_inj.mp h _ _ _ _, by simp {contextual := tt}⟩
-
 lemma form_perm_apply_mem_eq_self_iff (hl : nodup l) (x : α) (hx : x ∈ l) :
   form_perm l x = x ↔ length l ≤ 1 :=
 begin

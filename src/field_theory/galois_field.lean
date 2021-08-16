@@ -197,7 +197,7 @@ begin
     rw [hx, hy], },
   { intros x hx,
     simp only [sub_eq_zero, aeval_X_pow, aeval_X, alg_hom.map_sub, sub_neg_eq_add] at *,
-    rw [neg_pow, hx, neg_one_pow_char_pow],
+    rw [neg_pow, hx, char_p.neg_one_pow_char_pow],
     simp, },
   { intros x y hx hy,
     simp only [aeval_X_pow, aeval_X, alg_hom.map_sub] at *,

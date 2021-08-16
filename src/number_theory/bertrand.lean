@@ -268,11 +268,25 @@ begin
                 exact zero_le (4 ^ n_n),
                 apply zero_le,
               end
-      ... ≤ (n_n + 1) * ((2 * n_n + 2).choose (n_n + 1)) :
+      ... ≤ 2 * ((2 * n_n + 1).factorial / (n_n.factorial * n_n.factorial)) :
               begin
                 simp [nat.choose, nat.choose_symm_half, <-two_mul],
-                -- rw nat.choose_eq_factorial_div_factorial,
-                -- rw nat.choose_eq_factorial_div_factorial,
+                rw nat.choose_eq_factorial_div_factorial,
+                have sdofih : 2 * n_n - n_n = n_n,
+                  rw two_mul,
+                  simp,
+                rw sdofih,
+                sorry,
+              end
+      ... = (n_n + 1) * ((2 * n_n + 2).choose (n_n + 1)) :
+              begin
+                simp [nat.choose, nat.choose_symm_half, <-two_mul],
+                rw nat.choose_eq_factorial_div_factorial,
+                have sdofih : 2 * n_n + 1 - n_n = n_n + 1,
+                  by ring,
+                rw sdofih,
+                rw nat.choose_eq_factorial_div_factorial,
+                simp_rw <-mul_assoc,
                 -- simp [nat.factorial],
                 sorry
               end,
@@ -697,6 +711,7 @@ begin
           exact a_584_le_exp_6,
           linarith,
           apply exp_pos,
+          exact covariant_swap_add_le_of_covariant_add_le ℝ,
         end
   ... ≤ sqrt 146 * log 2 :
         begin
@@ -1496,7 +1511,7 @@ theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p 
 begin
 cases lt_or_le 1003 n,
 {exact bertrand_eventually n h},
-
+-- TODO: manage this as a loop rather than a long sequence of cases
 cases le_or_lt 505 n,
 { use 1009, norm_num, split, linarith, linarith, },
 clear h,

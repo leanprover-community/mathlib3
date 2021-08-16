@@ -181,7 +181,7 @@ theorem zip_unzip : ∀ (l : list (α × β)), zip (unzip l).1 (unzip l).2 = l
 theorem unzip_zip_left : ∀ {l₁ : list α} {l₂ : list β}, length l₁ ≤ length l₂ →
   (unzip (zip l₁ l₂)).1 = l₁
 | []      l₂      h := rfl
-| l₁      []      h := by rw eq_nil_of_length_eq_zero (eq_zero_of_le_zero h); refl
+| l₁      []      h := by rw eq_nil_of_length_eq_zero (nat.eq_zero_of_le_zero h); refl
 | (a::l₁) (b::l₂) h := by simp only [zip_cons_cons, unzip_cons,
     unzip_zip_left (le_of_succ_le_succ h)]; split; refl
 

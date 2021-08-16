@@ -1275,6 +1275,14 @@ begin
   refl
 end
 
+lemma to_real_sub_of_le {a b : ℝ≥0∞} (h : b ≤ a) (ha : a ≠ ∞):
+  (a - b).to_real = a.to_real - b.to_real :=
+begin
+  lift b to ℝ≥0 using ne_top_of_le_ne_top ha h,
+  lift a to ℝ≥0 using ha,
+  simp only [← ennreal.coe_sub, ennreal.coe_to_real, nnreal.coe_sub (ennreal.coe_le_coe.mp h)],
+end
+
 lemma to_real_add_le : (a+b).to_real ≤ a.to_real + b.to_real :=
 if ha : a = ∞ then by simp only [ha, top_add, top_to_real, zero_add, to_real_nonneg]
 else if hb : b = ∞ then by simp only [hb, add_top, top_to_real, add_zero, to_real_nonneg]

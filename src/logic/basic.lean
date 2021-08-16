@@ -339,6 +339,18 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
+/-! ### Declarations about `xor` -/
+
+@[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]
+
+@[simp] theorem xor_false : xor false = id := funext $ λ a, by simp [xor]
+
+theorem xor_comm (a b) : xor a b = xor b a := by simp [xor, and_comm, or_comm]
+
+instance : is_commutative Prop xor := ⟨xor_comm⟩
+
+@[simp] theorem xor_self (a : Prop) : xor a a = false := by simp [xor]
+
 /-! ### Declarations about `and` -/
 
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=

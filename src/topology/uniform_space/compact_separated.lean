@@ -70,10 +70,10 @@ lemma unique_uniformity_of_compact_t2 {α : Type*} [t : topological_space α] [c
 begin
   apply uniform_space_eq,
   change uniformity _ = uniformity _,
-  haveI : @compact_space α u.to_topological_space := by rw h ; assumption,
-  haveI : @compact_space α u'.to_topological_space := by rw h' ; assumption,
-  haveI : @separated_space α u := by rwa [separated_iff_t2, h],
-  haveI : @separated_space α u' :=  by rwa [separated_iff_t2, h'],
+  haveI : @compact_space α u.to_topological_space, { rw h ; assumption },
+  haveI : @compact_space α u'.to_topological_space, { rw h' ; assumption },
+  haveI : @separated_space α u, { rwa [separated_iff_t2, h] },
+  haveI : @separated_space α u', { rwa [separated_iff_t2, h'] },
   rw [compact_space_uniformity, compact_space_uniformity, h, h']
 end
 
@@ -82,7 +82,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
   uniform_space α :=
 { uniformity := ⨆ x, 𝓝 (x, x),
   refl := begin
-    simp_rw [filter.principal_le_iff, mem_supr_sets],
+    simp_rw [filter.principal_le_iff, mem_supr],
     rintros V V_in ⟨x, _⟩ ⟨⟩,
     exact mem_of_mem_nhds (V_in x),
   end,
@@ -115,7 +115,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     have diag_subset : diagonal α ⊆ interior V,
     { rw subset_interior_iff_nhds,
       rintros ⟨x, x⟩ ⟨⟩,
-      exact (mem_supr_sets.mp V_in : _) x },
+      exact (mem_supr.mp V_in : _) x },
     have x_ne_y : x ≠ y,
     { intro h,
       apply this,
@@ -137,7 +137,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
       is_open_compl_iff.mpr (is_closed.union V₁_cl V₂_cl),
     let W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃),
     have W_in : W ∈ 𝓝Δ,
-    { rw mem_supr_sets,
+    { rw mem_supr,
       intros x,
       apply is_open.mem_nhds (is_open.union (is_open.union _ _) _),
       { by_cases hx : x ∈ V₁ ∪ V₂,

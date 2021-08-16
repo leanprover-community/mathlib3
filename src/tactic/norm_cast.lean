@@ -583,7 +583,7 @@ decorate_error "assumption_mod_cast failed:" $ do
   },
   replace_at derive [] tt,
   ctx ← local_context,
-  try_lst $ ctx.map (λ h, aux_mod_cast h ff >>= tactic.exact)
+  ctx.mfirst (λ h, aux_mod_cast h ff >>= tactic.exact)
 
 end tactic
 

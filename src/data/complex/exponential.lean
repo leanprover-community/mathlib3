@@ -1287,10 +1287,10 @@ begin
       refine sum_le_sum (λ m hm, _),
       rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
       refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
-      exact nat.cast_pos.2 (nat.factorial_pos _),
-      rw abv_pow abs,
-      exact (pow_le_one _ (abs_nonneg _) hx),
-      exact pow_nonneg (abs_nonneg _) _
+      { exact nat.cast_pos.2 (nat.factorial_pos _),},
+      { rw abv_pow abs,
+        exact (pow_le_one _ (abs_nonneg _) hx),},
+      { exact pow_nonneg (abs_nonneg _) _},
     end
   ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m! : ℝ)) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
@@ -1323,14 +1323,14 @@ begin
           begin
             refine sum_le_sum (λ m hm, _),
             apply div_le_div (pow_nonneg (abs_nonneg x) (n + m)) (le_refl _),
-            apply mul_pos,
-            rw nat.cast_pos,
-            exact nat.factorial_pos n,
-            apply pow_pos,
-            rw nat.cast_pos,
-            exact nat.succ_pos n,
-            rw [←nat.cast_pow, ←nat.cast_mul, nat.cast_le],
-            exact (nat.factorial_mul_pow_le_factorial),
+            { apply mul_pos,
+              { rw nat.cast_pos,
+                exact nat.factorial_pos n,},
+              { apply pow_pos,
+                rw nat.cast_pos,
+                exact nat.succ_pos n,},},
+            { rw [←nat.cast_pow, ←nat.cast_mul, nat.cast_le],
+              exact (nat.factorial_mul_pow_le_factorial),},
           end
   ... = ∑ (k : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^k / n.succ ^ k) :
           begin
@@ -1343,15 +1343,17 @@ begin
           begin
             rw ←mul_sum,
             apply mul_le_mul_of_nonneg_left,
-            simp_rw [←div_pow],
-            rw [←geom_sum_def, geom_sum_eq, div_le_iff_of_neg],
-            transitivity (-1 : ℝ),
-            linarith,
-            simp only [neg_le_sub_iff_le_add, div_pow, nat.cast_succ, le_add_iff_nonneg_left],
-            apply div_nonneg (pow_nonneg (abs_nonneg x) k) (pow_nonneg (nat.cast_nonneg (n + 1)) k),
-            linarith,
-            linarith,
-            exact div_nonneg (pow_nonneg (abs_nonneg x) n) (nat.cast_nonneg (n!)),
+            { simp_rw [←div_pow],
+              rw [←geom_sum_def, geom_sum_eq, div_le_iff_of_neg],
+              { transitivity (-1 : ℝ),
+                { linarith,},
+                { simp only [neg_le_sub_iff_le_add, div_pow,
+                             nat.cast_succ, le_add_iff_nonneg_left],
+                  apply div_nonneg (pow_nonneg (abs_nonneg x) k)
+                                   (pow_nonneg (nat.cast_nonneg (n + 1)) k),},},
+              { linarith,},
+              { linarith,},},
+            { exact div_nonneg (pow_nonneg (abs_nonneg x) n) (nat.cast_nonneg (n!)),},
           end,
 end
 

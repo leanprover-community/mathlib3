@@ -301,7 +301,7 @@ lemma diagonal_kronecker_tmul_diagonal
   (diagonal a) ⊗ₖₜ[R] (diagonal b) = diagonal (λ mn, a mn.1 ⊗ₜ b mn.2) :=
 kronecker_map_diagonal_diagonal _ (zero_tmul _) (tmul_zero _) _ _
 
-lemma kronecker_tmul_assoc (A : matrix l m α) (B : matrix n p β) (C : matrix q r γ) :
+@[simp] lemma kronecker_tmul_assoc (A : matrix l m α) (B : matrix n p β) (C : matrix q r γ) :
 reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)
   (((A ⊗ₖₜ[R] B) ⊗ₖₜ[R] C).map (tensor_product.assoc _ _ _ _)) = A ⊗ₖₜ[R] (B ⊗ₖₜ[R] C) :=
 ext $ λ i j, assoc_tmul _ _ _

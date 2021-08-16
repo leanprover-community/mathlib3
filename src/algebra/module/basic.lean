@@ -457,7 +457,7 @@ section smul_injective
 
 variables (M)
 
-lemma smul_left_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective (λ (x : M), c • x) :=
 λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc c • (x - y) = c • x - c • y : smul_sub c x y
@@ -490,7 +490,7 @@ section smul_injective
 
 variables (R)
 
-lemma smul_right_injective {x : M} (hx : x ≠ 0) :
+lemma smul_left_injective {x : M} (hx : x ≠ 0) :
   function.injective (λ (c : R), c • x) :=
 λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc (c - d) • x = c • x - d • x : sub_smul c d x

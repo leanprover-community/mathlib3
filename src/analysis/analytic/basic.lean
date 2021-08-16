@@ -346,7 +346,7 @@ lemma has_fpower_series_on_ball.mono
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
   ∀ᶠ r : ℝ≥0∞ in 𝓝[Ioi 0] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
-mem_sets_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
+mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
 
 lemma has_fpower_series_on_ball.add
@@ -997,7 +997,7 @@ lemma is_open_analytic_at : is_open {x | analytic_at 𝕜 f x} :=
 begin
   rw is_open_iff_mem_nhds,
   rintro x ⟨p, r, hr⟩,
-  exact mem_sets_of_superset (emetric.ball_mem_nhds _ hr.r_pos) (λ y hy, hr.analytic_at_of_mem hy)
+  exact mem_of_superset (emetric.ball_mem_nhds _ hr.r_pos) (λ y hy, hr.analytic_at_of_mem hy)
 end
 
 end

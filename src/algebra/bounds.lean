@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import order.galois_connection
+import order.conditionally_complete_lattice
 import algebra.pointwise
 
 /-!
@@ -83,3 +83,33 @@ image2_subset_iff.2 $ λ x hx y hy, mul_mem_upper_bounds_mul hx hy
 (hs.mul ht).mono (subset_lower_bounds_mul s t)
 
 end mul_add
+
+section conditionally_complete_lattice
+
+section right
+
+variables {ι G : Type*} [group G] [conditionally_complete_lattice G]
+  [covariant_class G G (function.swap (*)) (≤)] [nonempty ι] {f : ι → G}
+
+@[to_additive] lemma csupr_mul (hf : bdd_above (set.range f)) (a : G) :
+  (⨆ i, f i) * a = ⨆ i, f i * a :=
+(order_iso.mul_right a).map_csupr hf
+
+@[to_additive] lemma csupr_div (hf : bdd_above (set.range f)) (a : G) :
+  (⨆ i, f i) / a = ⨆ i, f i / a :=
+by simp only [div_eq_mul_inv, csupr_mul hf]
+
+end right
+
+section left
+
+variables {ι G : Type*} [group G] [conditionally_complete_lattice G]
+  [covariant_class G G (*) (≤)] [nonempty ι] {f : ι → G}
+
+@[to_additive] lemma mul_csupr (hf : bdd_above (set.range f)) (a : G) :
+  a * (⨆ i, f i) = ⨆ i, a * f i :=
+(order_iso.mul_left a).map_csupr hf
+
+end left
+
+end conditionally_complete_lattice

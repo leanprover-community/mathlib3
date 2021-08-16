@@ -128,16 +128,17 @@ begin
 end
 
 /- The composition of adjoint mates is the adjoint mate of the composition. -/
-theorem comp_right_adjoint_mate {X Y Z : C}
+@[reassoc]
+lemma comp_right_adjoint_mate {X Y Z : C}
   [has_right_dual X] [has_right_dual Y] [has_right_dual Z] {f : X ⟶ Y} {g : Y ⟶ Z} :
   (f ≫ g)^* = g^* ≫ f^* :=
 begin
   rw right_adjoint_mate_comp,
   simp only [right_adjoint_mate, comp_tensor_id, iso.cancel_iso_inv_left, id_tensor_comp, category.assoc],
   symmetry, iterate 5 { transitivity, rw [←category.id_comp g, tensor_comp] },
-  rw [←category.assoc],
+  rw ←category.assoc,
   symmetry, iterate 2 { transitivity, rw ←category.assoc }, apply eq_whisker,
-  repeat { rw ←id_tensor_comp }, apply congr_arg (λ f, 𝟙 Z^* ⊗ f),
+  repeat { rw ←id_tensor_comp }, congr' 1,
   rw [←id_tensor_comp_tensor_id (λ_ X^*).hom g, id_tensor_right_unitor_inv, category.assoc,
     category.assoc, right_unitor_inv_naturality_assoc, ←associator_naturality_assoc, tensor_id,
     tensor_id_comp_id_tensor_assoc, ←associator_naturality_assoc],
@@ -149,8 +150,34 @@ begin
   rw associator_inv_naturality_assoc,
   slice_rhs 4 5 { rw [←tensor_comp, left_unitor_naturality, tensor_comp] },
   repeat { rw category.assoc },
-  rw [triangle_assoc_comp_right_inv_assoc, ←left_unitor_tensor_assoc X X^*,
+  rw [triangle_assoc_comp_right_inv_assoc, ←left_unitor_tensor_assoc,
     left_unitor_naturality_assoc, unitors_equal, ←category.assoc, ←category.assoc], simp
+end
+
+@[reassoc]
+lemma comp_left_adjoint_mate {X Y Z : C}
+  [has_left_dual X] [has_left_dual Y] [has_left_dual Z] {f : X ⟶ Y} {g : Y ⟶ Z} :
+  *^(f ≫ g) = *^g ≫ *^f :=
+begin
+  rw left_adjoint_mate_comp,
+  simp only [left_adjoint_mate, id_tensor_comp, iso.cancel_iso_inv_left, comp_tensor_id, category.assoc],
+  symmetry, iterate 5 { transitivity, rw [←category.id_comp g, tensor_comp] },
+  rw ← category.assoc,
+  symmetry, iterate 2 { transitivity, rw ←category.assoc }, apply eq_whisker,
+  repeat { rw ←comp_tensor_id }, congr' 1,
+  rw [←tensor_id_comp_id_tensor g (ρ_ *^X).hom, left_unitor_inv_tensor_id, category.assoc,
+    category.assoc, left_unitor_inv_naturality_assoc, ←associator_inv_naturality_assoc, tensor_id,
+    id_tensor_comp_tensor_id_assoc, ←associator_inv_naturality_assoc],
+  slice_rhs 2 3 { rw [←tensor_comp, tensor_id, category.comp_id, ←category.id_comp (η_ *^Y Y), tensor_comp] },
+  rw [←tensor_id_comp_id_tensor (η_ *^Y Y), ←tensor_id],
+  repeat { rw category.assoc },
+  rw [pentagon_inv_hom_assoc, ←associator_inv_naturality_assoc, associator_naturality_assoc],
+  slice_rhs 5 7 { rw [←id_tensor_comp, ←id_tensor_comp, coevaluation_evaluation, id_tensor_comp ]},
+  rw associator_naturality_assoc,
+  slice_rhs 4 5 { rw [←tensor_comp, right_unitor_naturality, tensor_comp] },
+  repeat { rw category.assoc },
+  rw [triangle_assoc_comp_left_inv_assoc, ←right_unitor_tensor_assoc,
+    right_unitor_naturality_assoc, unitors_equal, ←category.assoc, ←category.assoc], simp
 end
 
 /- This theorem shows that right duals are isomorphic, which is almost trivial due to the

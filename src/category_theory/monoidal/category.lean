@@ -257,7 +257,7 @@ lemma left_unitor_tensor_inv (X Y : C) :
   (λ_ (X ⊗ Y)).inv = ((λ_ X).inv ⊗ (𝟙 Y)) ≫ (α_ (𝟙_ C) X Y).hom :=
 by { rw [←left_unitor_tensor_inv'], simp }
 
-@[simp]
+@[simp, reassoc]
 lemma right_unitor_tensor (X Y : C) :
   (ρ_ (X ⊗ Y)).hom = (α_ X Y (𝟙_ C)).hom ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) :=
 by
@@ -267,12 +267,16 @@ by
 
 @[reassoc, simp]
 lemma right_unitor_tensor_inv (X Y : C) :
-  ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ ((α_ X Y (𝟙_ C)).inv) :=
+  ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ (α_ X Y (𝟙_ C)).inv :=
 eq_of_inv_eq_inv (by simp)
 
 @[reassoc]
 lemma id_tensor_right_unitor_inv (X Y : C) : 𝟙 X ⊗ (ρ_ Y).inv = (ρ_ _).inv ≫ (α_ _ _ _).hom :=
 by simp only [right_unitor_tensor_inv, category.comp_id, iso.inv_hom_id, category.assoc]
+
+@[reassoc]
+lemma left_unitor_inv_tensor_id (X Y : C) : (λ_ X).inv ⊗ 𝟙 Y = (λ_ _).inv ≫ (α_ _ _ _).inv :=
+by simp only [left_unitor_tensor_inv, assoc, comp_id, hom_inv_id]
 
 @[reassoc]
 lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
@@ -375,6 +379,17 @@ begin
   rw ←iso.comp_inv_eq at pent,
   rw [iso.eq_inv_comp, ←pent],
   simp only [tensor_hom_inv_id, iso.inv_hom_id_assoc, tensor_id, category.comp_id, category.assoc],
+end
+
+@[reassoc]
+lemma pentagon_inv_hom {W X Y Z : C} :
+  (α_ (W ⊗ X) Y Z).inv ≫ ((α_ W X Y).hom ⊗ 𝟙 Z)
+  = (α_ W X (Y ⊗ Z)).hom ≫ (𝟙 W ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv :=
+begin
+  have pent := pentagon W X Y Z,
+  rw ←iso.inv_comp_eq at pent,
+  rw [←pent],
+  simp only [tensor_id, assoc, id_comp, comp_id, hom_inv_id, tensor_hom_inv_id_assoc],
 end
 
 end

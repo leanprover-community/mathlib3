@@ -230,7 +230,7 @@ lemma mul_kronecker_mul [comm_semiring α]
 kronecker_map_linear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_comm A B A' B'
 
 @[simp] lemma kronecker_assoc [semigroup α] (A : matrix l m α) (B : matrix n p α) (C : matrix q r α) :
-  reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r) ((A ⊗ₖ B) ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C):=
+  reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r) ((A ⊗ₖ B) ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C) :=
 kronecker_map_assoc _ _ _ _ A B C (equiv.cast rfl) mul_assoc
 
 end kronecker

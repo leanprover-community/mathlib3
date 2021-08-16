@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen
+Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
 import linear_algebra.basis
 import linear_algebra.std_basis
@@ -16,15 +16,46 @@ import linear_algebra.invariant_basis_number
 * The rank of a module is defined as `module.rank : cardinal`.
   This is defined as the supremum of the cardinalities of linearly independent subsets.
 
-Although this definition works for any module over a (semi)ring,
-for now we quickly specialize to division rings and then to fields.
-There's lots of generalization still to be done.
+* The rank of a linear map is defined as the rank of its range.
 
 ## Main statements
 
+* `linear_map.dim_le_of_injective`: the source of an injective linear map has dimension
+  at most that of the target.
+* `linear_map.dim_le_of_surjective`: the target of a surjective linear map has dimension
+  at most that of that source.
+* `basis_fintype_of_finite_spans`:
+  the existence of a finite spanning set implies that any basis is finite.
+* `infinite_basis_le_maximal_linear_independent`:
+  if `b` is an infinite basis for a module `M`,
+  and `s` is a maximal linearly independent set,
+  then the cardinality of `b` is bounded by the cardinality of `s`.
+
+For modules over rings satisfying the rank condition
+
+* `basis.le_span`:
+  the cardinality of a basis is bounded by the cardinality of any spanning set
+
+For modules over rings satisfying the strong rank condition
+
+* `linear_independent_le_span`:
+  For any linearly independent family `v : ι → M`
+  and any finite spanning set `w : set M`,
+  the cardinality of `ι` is bounded by the cardinality of `w`.
+* `linear_independent_le_basis`:
+  If `b` is a basis for a module `M`,
+  and `s` is a linearly independent set,
+  then the cardinality of `s` is bounded by the cardinality of `b`.
+
+For modules over rings with invariant basis number
+(including all commutative rings and all noetherian rings)
+
 * `mk_eq_mk_of_basis`: the dimension theorem, any two bases of the same vector space have the same
   cardinality.
-* `dim_quotient_add_dim`: if V₁ is a submodule of V, then
+
+For vector spaces (i.e. modules over a field), we have
+
+* `dim_quotient_add_dim`: if `V₁` is a submodule of `V`, then
   `module.rank (V/V₁) + module.rank V₁ = module.rank V`.
 * `dim_range_add_dim_ker`: the rank-nullity theorem.
 
@@ -204,8 +235,8 @@ begin
   rintro ⟨s, li⟩,
   refine le_trans _ (cardinal.le_sup _ ⟨range_splitting f '' s, _⟩),
   { apply linear_independent.of_comp f.range_restrict,
-    convert li.comp (range_spliting_image_equiv f s) (equiv.injective _) using 1, },
-  { exact (cardinal.eq_congr (range_spliting_image_equiv f s)).ge, },
+    convert li.comp (equiv.set.range_spliting_image_equiv f s) (equiv.injective _) using 1, },
+  { exact (cardinal.eq_congr (equiv.set.range_spliting_image_equiv f s)).ge, },
 end
 
 lemma dim_map_le (f : M →ₗ[R] M₁) (p : submodule R M) : module.rank R (p.map f) ≤ module.rank R p :=
@@ -214,7 +245,7 @@ begin
   rwa [linear_map.range_comp, range_subtype] at h,
 end
 
-lemma dim_le_of_surjective (f : M →ₗ[R] M₁) (h : surjective f) :
+lemma linear_map.dim_le_of_surjective (f : M →ₗ[R] M₁) (h : surjective f) :
   module.rank R M₁ ≤ module.rank R M :=
 begin
   rw ←dim_range_of_surjective f h,

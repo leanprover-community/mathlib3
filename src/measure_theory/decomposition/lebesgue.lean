@@ -425,8 +425,7 @@ end
 /-- The Lebesgue decomposition is unique. -/
 theorem have_lebesgue_decomposition_of_finite_measure_unique
   {μ ν : measure α} [finite_measure μ] [finite_measure ν]
-  (s : measure α) (f : α → ℝ≥0∞) (hf : measurable f) (hs : s ⊥ₘ ν)
-  (hadd : μ = s + ν.with_density f) :
+  (s : measure α) (f : α → ℝ≥0∞) (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   s = μ.singular_part ν ∧ ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
 begin
   obtain ⟨-, hsing, hadd'⟩ := have_lebesgue_decomposition_spec

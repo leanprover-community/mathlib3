@@ -33,31 +33,6 @@ it's in `data` even though we import `number_theory`; it's not a particularly de
 
 namespace nat
 
--- REVIEWERS: should this be here? or in `nat.prime`? or should I just replace this with `haveI`?
-
--- also not sure where these two should be
-@[simp] lemma dvd_div_iff {a b c : ℕ} (hbc : c ∣ b) : a ∣ b / c ↔ a * c ∣ b :=
-begin
-  obtain ⟨x, rfl⟩ := hbc,
-  obtain rfl | hc := nat.eq_zero_or_pos c,
-  { simp },
-  { rw [mul_comm c x, mul_dvd_mul_iff_right hc.ne', nat.mul_div_cancel _ hc] },
-end
-
-@[simp] lemma one_lt_pow_iff {k n : ℕ} (h : 0 ≠ k) : 1 < n ^ k ↔ 1 < n :=
-begin
-  cases n,
-  { cases k; simp },
-  cases n,
-  { rw one_pow },
-  refine ⟨λ _, one_lt_succ_succ n, λ _, _⟩,
-  induction k with k hk,
-  { exact absurd rfl h },
-  cases k,
-  { simp },
-  exact one_lt_mul (one_lt_succ_succ _).le (hk (succ_ne_zero k).symm),
-end
-
 /-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ k * a)`,
 you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
@@ -104,7 +79,7 @@ rec_on_coprime' (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
 /-- Given `P 0`, `P 1`, `P p` for all primes, and a proof that you can extend
 `P a` and `P b` to `P (a * b)`, you can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
-def rec_on_completely_multiplicative {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
+def rec_on_mul {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
   (hp : ∀ p, prime p → P p) (h : ∀ a b, P a → P b → P (a * b)) : ∀ a, P a :=
 let hp : ∀ p n : ℕ, prime p → P (p ^ n) :=
   λ p n hp', match n with

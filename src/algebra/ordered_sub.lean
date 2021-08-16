@@ -549,7 +549,7 @@ end contra
 section cov_lt
 variable [covariant_class α α (+) (<)]
 
-example : a < b ↔ ∃ c > 0, b = a + c :=
+lemma lt_iff_exists_add : a < b ↔ ∃ c > 0, b = a + c :=
 begin
   simp_rw [lt_iff_le_and_ne, and_comm, le_iff_exists_add, ← exists_and_distrib_left, exists_prop],
   apply exists_congr, intro c,

@@ -253,7 +253,7 @@ begin
     exact covariant_class.elim _ h }
 end
 
-lemma lt_of_mul_lt_mul_left  {α : Type u} [has_mul α] [partial_order α]
+lemma lt_of_mul_lt_mul_left {α : Type u} [has_mul α] [partial_order α]
   [contravariant_class α α (*) (<)] :
   ∀ (a b c : with_zero α), a * b < a * c → b < c :=
 begin
@@ -668,14 +668,14 @@ begin
 end
 
 @[to_additive]
-lemma min_mul_distrib'  (a b c : α) : min (a * b) c = min (min a c * min b c) c :=
+lemma min_mul_distrib' (a b c : α) : min (a * b) c = min (min a c * min b c) c :=
 by simpa [min_comm _ c] using min_mul_distrib c a b
 
-@[to_additive]
+@[simp, to_additive]
 lemma one_min (a : α) : min 1 a = 1 :=
 min_eq_left (one_le a)
 
-@[to_additive]
+@[simp, to_additive]
 lemma min_one (a : α) : min a 1 = 1 :=
 min_eq_right (one_le a)
 

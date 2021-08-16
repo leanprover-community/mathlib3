@@ -27,21 +27,11 @@ section
 open function
 variables {K L : Type*} [field K] [field L]
 
-lemma ring_hom.char_p_iff (f : K →+* L) (p : ℕ) :
-  char_p K p ↔ char_p L p :=
-begin
-  split; introI; constructor; intro n,
-  { rw [← f.map_nat_cast, f.map_eq_zero],
-    apply char_p.cast_eq_zero_iff },
-  { rw [← f.injective.eq_iff, f.map_nat_cast, f.map_zero],
-    apply char_p.cast_eq_zero_iff }
-end
-
 variables (K L) [algebra K L]
 
 lemma algebra.char_p_iff (p : ℕ) :
   char_p K p ↔ char_p L p :=
-(algebra_map K L).char_p_iff p
+(algebra_map K L).char_p_iff_char_p p
 
 end
 

@@ -20,7 +20,7 @@ about multiplicative functions, such as the totient function and the Möbius fun
 * `nat.rec_on_coprime'`: Given `P 0`, `P 1`, and `P (p ^ k)` for positive prime powers, and a way to
   extend `P a` and `P b` to `P (a * b)` when `a, b` are coprime,
   you can define `P` for all natural numbers.
-* `nat.rec_on_completely_multiplicative`: Given `P 0`, `P 1`, `P p` for all primes, and a proof that
+* `nat.rec_on_mul`: Given `P 0`, `P 1`, `P p` for all primes, and a proof that
   you can extend `P a` and `P b` to `P (a * b)`, you can define `P` for all natural numbers.
 
 ## Implementation notes

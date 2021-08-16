@@ -10,9 +10,9 @@ import linear_algebra.affine_space.affine_subspace
 /-!
 # Affine isometries
 
-In this file we define `affine_isometry 𝕜 P P₂` (notation: `P →ᵃⁱ[𝕜] P₂`) to be a affine isometric
+In this file we define `affine_isometry 𝕜 P P₂` (notation: `P →ᵃⁱ[𝕜] P₂`) to be an affine isometric
 embedding of normed add-torsors `P` into `P₂` over normed `𝕜`-spaces and `affine_isometry_equiv`
-(notation: `P ≃ᵃⁱ[𝕜] P₂`) to be a affine isometric equivalence between `P` and `P₂`.
+(notation: `P ≃ᵃⁱ[𝕜] P₂`) to be an affine isometric equivalence between `P` and `P₂`.
 
 We also prove basic lemmas and provide convenience constructors.  The choice of these lemmas and
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
@@ -424,7 +424,7 @@ open finite_dimensional affine_map
 variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
 
 /-- A affine isometry between finite dimensional spaces of equal dimension can be upgraded
-    to a affine isometry equivalence. -/
+    to an affine isometry equivalence. -/
 noncomputable def to_affine_isometry_equiv [inhabited P₁]
   (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
 affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)

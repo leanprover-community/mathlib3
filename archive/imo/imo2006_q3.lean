@@ -86,13 +86,6 @@ le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
             hz, ← pow_mul, ← mul_add, mul_pow, ← mul_assoc];
             exact congr (congr_arg _ $ by norm_num) rfl
 
--- only needs `linear_ordered_ring`
-/-- Out of three reals, two must have the same sign. -/
-lemma mul_nonneg_of_three (x y z : ℝ) :
-  0 ≤ x * y ∨ 0 ≤ y * z ∨ 0 ≤ z * x :=
-by iterate 3 { rw mul_nonneg_iff };
-  have := le_total 0 x; have := le_total 0 y; have := le_total 0 z; itauto
-
 /-- Proof that `M = 9 * sqrt 2 / 32` works with the substitution. -/
 theorem subst_proof₁ (x y z s : ℝ) (hxyz : x + y + z = 0) :
   abs (x * y * z * s) ≤ sqrt 2 / 32 * (x^2 + y^2 + z^2 + s^2)^2 :=

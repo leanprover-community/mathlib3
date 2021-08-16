@@ -628,15 +628,15 @@ The `multiset` of lists that can make the cycle.
 -/
 def lists (s : cycle α) : multiset (list α) :=
 quotient.lift_on' s
-  (λ l, (l.permutations.filter (λ (l' : list α), (l' : cycle α) = s) : multiset (list α))) $
-  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using perm.filter _ h.perm.permutations
+  (λ l, (l.cyclic_permutations : multiset (list α))) $
+  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.cyclic_permutations.perm
 
 @[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
   l ∈ s.lists ↔ (l : cycle α) = s :=
 begin
   induction s using quotient.induction_on',
   rw [lists, quotient.lift_on'_mk'],
-  simpa using is_rotated.perm
+  simp [mem_cyclic_permutations_iff]
 end
 
 /--

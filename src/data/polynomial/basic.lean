@@ -104,6 +104,13 @@ show neg _ = _, by rw neg
 lemma mul_to_finsupp {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
 lemma smul_to_finsupp {S : Type*} [monoid S] [distrib_mul_action S R] {a : S} {b} :
   (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := rfl
+lemma is_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R] {a : S}
+  (ha : is_smul_regular R a) : is_smul_regular (polynomial R) a :=
+begin
+  rintro ⟨(x : ℕ →₀ R)⟩ ⟨(y : ℕ →₀ R)⟩ h,
+  simp only [smul_to_finsupp] at h ⊢,
+  exact finsupp.is_smul_regular _ ha h
+end
 
 instance : inhabited (polynomial R) := ⟨0⟩
 

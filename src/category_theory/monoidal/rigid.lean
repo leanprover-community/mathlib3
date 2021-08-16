@@ -88,15 +88,20 @@ theorem right_dual_left_dual {X : C} [has_left_dual X] : (*^X)^* = X := rfl
 def right_adjoint_mate {X Y : C} [has_right_dual X] [has_right_dual Y] (f : X ⟶ Y) : Y^* ⟶ X^* :=
 (ρ_ _).inv ≫ (𝟙 _ ⊗ η_ _ _) ≫ (𝟙 _ ⊗ (f ⊗ 𝟙 _)) ≫ (α_ _ _ _).inv ≫ ((ε_ _ _) ⊗ 𝟙 _) ≫ (λ_ _).hom
 
+def left_adjoint_mate {X Y : C} [has_left_dual X] [has_left_dual Y] (f : X ⟶ Y) : *^Y ⟶ *^X :=
+(λ_ _).inv ≫ (η_ *^X X ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ f) ⊗ 𝟙 _) ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom
+
 notation f `^*` := right_adjoint_mate f
+notation `*^` f := left_adjoint_mate f
 
 @[simp] --Do we want this to be simp?
 theorem right_adjoint_mate_id {X : C} [has_right_dual X] : (𝟙 X)^* = 𝟙 (X^*) :=
-begin
-  simp only [right_adjoint_mate, monoidal_category.tensor_id, category.id_comp],
-  slice_lhs 2 4 { rw coevaluation_evaluation },
-  simp
-end
+by simp only [right_adjoint_mate, monoidal_category.tensor_id, category.id_comp,
+  coevaluation_evaluation_assoc, category.comp_id, iso.inv_hom_id]
+
+@[simp] theorem left_adjoint_mate_id {X : C} [has_left_dual X] : *^(𝟙 X) = 𝟙 (*^X) :=
+by simp only [left_adjoint_mate, monoidal_category.tensor_id, category.id_comp,
+  evaluation_coevaluation_assoc, category.comp_id, iso.inv_hom_id]
 
 theorem right_adjoint_mate_comp {X Y Z : C} [has_right_dual X]
   [has_right_dual Y] {f : X ⟶ Y} {g : X^* ⟶ Z} :
@@ -105,12 +110,9 @@ theorem right_adjoint_mate_comp {X Y Z : C} [has_right_dual X]
     ≫ (α_ Y^* Y Z).inv ≫ (ε_ Y Y^* ⊗ 𝟙 _) ≫ (λ_ Z).hom :=
 begin
   dunfold right_adjoint_mate,
-  slice_lhs 3 4 { rw associator_inv_naturality },
-  slice_rhs 3 4 { rw associator_inv_naturality },
-  rw ←tensor_id_comp_id_tensor g,
-  slice_rhs 5 6 { rw id_tensor_comp_tensor_id },
-  slice_lhs 6 7 { rw ←left_unitor_naturality },
-  rw tensor_id_comp_id_tensor_assoc
+  rw [category.assoc, category.assoc, associator_inv_naturality_assoc, associator_inv_naturality_assoc,
+    ←tensor_id_comp_id_tensor g, category.assoc, category.assoc, category.assoc, category.assoc,
+    id_tensor_comp_tensor_id_assoc, ←left_unitor_naturality, tensor_id_comp_id_tensor_assoc],
 end
 
 /- The composition of adjoint mates is the adjoint mate of the composition. -/

@@ -23,7 +23,8 @@ of topological (semi)rings.
 
 - `subring.topological_closure`/`subsemiring.topological_closure`: the topological closure of a
   `subring`/`subsemiring` is itself a `sub(semi)ring`.
-- `prod_ring`/`prod_semiring`: The product of two topological (semi)rings.
+- `prod.topological_semiring`/`prod.topological_ring`: The product of two topological (semi)rings.
+- `pi.topological_semiring`/`pi.topological_ring`: The arbitrary product of topological (semi)rings.
 - `ideal.closure`: The closure of an ideal is an ideal.
 - `topological_ring_quotient`: The quotient of a topological ring by an ideal is a topological ring.
 
@@ -73,8 +74,12 @@ closure_minimal h ht
 
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
-instance prod_semiring {β : Type*}
+instance {β : Type*}
   [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
+{}
+
+instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
+  [Π b, semiring (C b)] [Π b, topological_semiring (C b)] : topological_semiring (Π b, C b) :=
 {}
 
 end
@@ -99,8 +104,12 @@ variables [topological_ring α]
 
 /-- The product topology on the cartesian product of two topological rings
   makes the product into a topological ring. -/
-instance prod_ring {β : Type*}
+instance {β : Type*}
   [ring β] [topological_space β] [topological_ring β] : topological_ring (α × β) :=
+{ continuous_neg := continuous_neg }
+
+instance {β : Type*} {C : β → Type*} [Π b, topological_space (C b)]
+  [Π b, ring (C b)] [∀ b, topological_ring (C b)] : topological_ring (Π b, C b) :=
 { continuous_neg := continuous_neg }
 
 /-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/

@@ -168,7 +168,7 @@ lemma support_mem_nhds : support f ∈ 𝓝 c :=
 f.eventually_eq_one.mono $ λ x hx, by { rw hx, exact one_ne_zero }
 
 lemma closure_support_mem_nhds : closure (support f) ∈ 𝓝 c :=
-mem_sets_of_superset f.support_mem_nhds subset_closure
+mem_of_superset f.support_mem_nhds subset_closure
 
 lemma c_mem_support : c ∈ support f := mem_of_mem_nhds f.support_mem_nhds
 
@@ -190,7 +190,7 @@ begin
       (ext_chart_at_target_mem_nhds_within _ _)).to_has_basis' _ _,
   { rintro R ⟨hR0, hsub⟩,
     exact ⟨⟨⟨⟨R / 2, R, half_pos hR0, half_lt_self hR0⟩⟩, hsub⟩, trivial, subset.rfl⟩ },
-  { exact λ f _, inter_mem_sets (mem_nhds_within_of_mem_nhds $ closed_ball_mem_nhds f.R_pos)
+  { exact λ f _, inter_mem (mem_nhds_within_of_mem_nhds $ closed_ball_mem_nhds f.R_pos)
       self_mem_nhds_within }
 end
 

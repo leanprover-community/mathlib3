@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import logic.unique
+import logic.relation
 import order.boolean_algebra
 
 /-!
@@ -1854,6 +1855,21 @@ lemma left_inverse_range_splitting (f : α → β) :
 lemma range_splitting_injective (f : α → β) : injective (range_splitting f) :=
 (left_inverse_range_splitting f).injective
 
+lemma is_compl_range_some_none (α : Type*) :
+  is_compl (range (some : α → option α)) {none} :=
+⟨λ x ⟨⟨a, ha⟩, (hn : x = none)⟩, option.some_ne_none _ (ha.trans hn),
+  λ x hx, option.cases_on x (or.inr rfl) (λ x, or.inl $ mem_range_self _)⟩
+
+@[simp] lemma compl_range_some (α : Type*) :
+  (range (some : α → option α))ᶜ = {none} :=
+(is_compl_range_some_none α).compl_eq
+
+@[simp] lemma range_some_inter_none (α : Type*) : range (some : α → option α) ∩ {none} = ∅ :=
+(is_compl_range_some_none α).inf_eq_bot
+
+@[simp] lemma range_some_union_none (α : Type*) : range (some : α → option α) ∪ {none} = univ :=
+(is_compl_range_some_none α).sup_eq_top
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
@@ -1878,27 +1894,10 @@ theorem pairwise_on.mono {s t : set α} {r}
 theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
   (H : r ≤ r') (hp : pairwise_on s r) : pairwise_on s r' :=
 hp.imp H
+
 theorem pairwise_on_top (s : set α) :
   pairwise_on s ⊤ :=
 pairwise_on_of_forall s _ (λ a b, trivial)
-
-/-- If and only if `f` takes pairwise equal values on `s`, there is
-some value it takes everywhere on `s`. -/
-lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
-  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
-begin
-  split,
-  { intro h,
-    rcases eq_empty_or_nonempty s with rfl | ⟨x, hx⟩,
-    { exact ⟨classical.arbitrary β, λ x hx, false.elim hx⟩ },
-    { use f x,
-      intros y hy,
-      by_cases hyx : y = x,
-      { rw hyx },
-      { exact h y hy x hx hyx } } },
-  { rintros ⟨z, hz⟩ x hx y hy hne,
-    rw [hz x hx, hz y hy] }
-end
 
 protected lemma subsingleton.pairwise_on (h : s.subsingleton) (r : α → α → Prop) :
   pairwise_on s r :=
@@ -1912,22 +1911,52 @@ subsingleton_empty.pairwise_on r
   pairwise_on {a} r :=
 subsingleton_singleton.pairwise_on r
 
+theorem nonempty.pairwise_on_iff_exists_forall {s : set α} (hs : s.nonempty) {f : α → β}
+  {r : β → β → Prop} [is_equiv β r] :
+  (pairwise_on s (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
+begin
+  fsplit,
+  { rcases hs with ⟨y, hy⟩,
+    refine λ H, ⟨f y, λ x hx, _⟩,
+    rcases eq_or_ne x y with rfl|hne,
+    { apply is_refl.refl },
+    { exact H _ hx _ hy hne } },
+  { rintro ⟨z, hz⟩ x hx y hy hne,
+    exact @is_trans.trans β r _ (f x) z (f y) (hz _ hx) (is_symm.symm _ _ $ hz _ hy) }
+end
+
+/-- For a nonempty set `s`, a function `f` takes pairwise equal values on `s` if and only if
+for some `z` in the codomain, `f` takes value `z` on all `x ∈ s`. See also
+`set.pairwise_on_eq_iff_exists_eq` for a version that assumes `[nonempty β]` instead of
+`set.nonempty s`. -/
+theorem nonempty.pairwise_on_eq_iff_exists_eq {s : set α} (hs : s.nonempty) {f : α → β} :
+  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+hs.pairwise_on_iff_exists_forall
+
+lemma pairwise_on_iff_exists_forall [nonempty β] (s : set α) (f : α → β) {r : β → β → Prop}
+  [is_equiv β r] :
+  (pairwise_on s (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|hne,
+  { simp },
+  { exact hne.pairwise_on_iff_exists_forall }
+end
+
+/-- A function `f : α → β` with nonempty codomain takes pairwise equal values on a set `s` if and
+only if for some `z` in the codomain, `f` takes value `z` on all `x ∈ s`. See also
+`set.nonempty.pairwise_on_eq_iff_exists_eq` for a version that assumes `set.nonempty s` instead of
+`[nonempty β]`. -/
+lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
+  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+pairwise_on_iff_exists_forall s f
+
 lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
   (hr : symmetric r) :
   (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
 begin
-  refine ⟨λ h, ⟨_, _⟩, λ h, _⟩,
-  { exact h.mono (s.subset_insert a) },
-  { intros b hb hn,
-    exact h a (s.mem_insert _) b (set.mem_insert_of_mem _ hb) hn },
-  { intros b hb c hc hn,
-    rw [mem_insert_iff] at hb hc,
-    rcases hb with (rfl | hb);
-    rcases hc with (rfl | hc),
-    { exact absurd rfl hn },
-    { exact h.right _ hc hn },
-    { exact hr (h.right _ hb hn.symm) },
-    { exact h.left _ hb _ hc hn } }
+  simp only [pairwise_on, ball_insert_iff, true_and, forall_false_left, eq_self_iff_true, not_true,
+    ne.def, forall_and_distrib, hr.iff a, @eq_comm _ a],
+  exact ⟨λ h, ⟨h.2.2, h.2.1⟩, λ h, ⟨h.2, h.2, h.1⟩⟩
 end
 
 end set
@@ -1983,6 +2012,14 @@ lemma injective.mem_range_iff_exists_unique (hf : injective f) {b : β} :
 lemma injective.exists_unique_of_mem_range (hf : injective f) {b : β} (hb : b ∈ range f) :
   ∃! a, f a = b :=
 hf.mem_range_iff_exists_unique.mp hb
+
+lemma left_inverse.image_image {g : β → α} (h : left_inverse g f) (s : set α) :
+  g '' (f '' s) = s :=
+by rw [← image_comp, h.comp_eq_id, image_id]
+
+lemma left_inverse.preimage_preimage {g : β → α} (h : left_inverse g f) (s : set α) :
+  f ⁻¹' (g ⁻¹' s) = s :=
+by rw [← preimage_comp, h.comp_eq_id, preimage_id]
 
 end function
 open function

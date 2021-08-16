@@ -37,7 +37,7 @@ by rw [← length_eq_zero, length_range']
 | s 0     := (false_iff _).2 $ λ ⟨H1, H2⟩, not_le_of_lt H2 H1
 | s (succ n) :=
   have m = s → m < s + n + 1,
-    from λ e, e ▸ lt_succ_of_le (le_add_right _ _),
+    from λ e, e ▸ lt_succ_of_le (nat.le_add_right _ _),
   have l : m = s ∨ s + 1 ≤ m ↔ s ≤ m,
     by simpa only [eq_comm] using (@decidable.le_iff_eq_or_lt _ _ _ s m).symm,
   (mem_cons_iff _ _ _).trans $ by simp only [mem_range',
@@ -82,7 +82,7 @@ theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ 
 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=
 ⟨λ h, le_of_not_lt $ λ hn, lt_irrefl (s+n) $
-  (mem_range'.1 $ h $ mem_range'.2 ⟨le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
+  (mem_range'.1 $ h $ mem_range'.2 ⟨nat.le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
  λ h, (range'_sublist_right.2 h).subset⟩
 
 theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)

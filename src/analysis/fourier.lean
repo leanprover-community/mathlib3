@@ -3,9 +3,9 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import measure_theory.continuous_map_dense
-import measure_theory.l2_space
-import measure_theory.haar_measure
+import measure_theory.function.continuous_map_dense
+import measure_theory.function.l2_space
+import measure_theory.measure.haar
 import analysis.complex.circle
 import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass
@@ -87,7 +87,7 @@ section fourier
 continuous maps from `circle` to `ℂ`. -/
 @[simps] def fourier (n : ℤ) : C(circle, ℂ) :=
 { to_fun := λ z, z ^ n,
-  continuous_to_fun := continuous_subtype_coe.fpow nonzero_of_mem_circle n }
+  continuous_to_fun := continuous_subtype_coe.fpow n $ λ z, or.inl (nonzero_of_mem_circle z) }
 
 @[simp] lemma fourier_zero {z : circle} : fourier 0 z = 1 := rfl
 

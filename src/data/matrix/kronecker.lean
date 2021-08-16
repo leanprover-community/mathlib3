@@ -153,9 +153,6 @@ begin
   simp_rw [f.map_sum, linear_map.sum_apply, linear_map.map_sum, h_comm],
 end
 
-variables {δ ξ ω ω' : Type*} (f : (α → β) → γ) (g : γ → δ → ω)
-#check function.comp g f
-
 lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω')
   (g' : β → δ → ξ) {q r : Type*} [fintype q] [fintype r] (A : matrix l m α) (B : matrix n p β)
   (D : matrix q r δ) (φ : ω ≃ ω') (hφ : ∀ a b d, φ (g (f a b) d ) = f' a (g' b d )) :

@@ -447,18 +447,9 @@ begin
     (have_lebesgue_decomposition_of_finite_measure μ ν),
   obtain ⟨T, hT₁, hT₂, hT₃⟩ := hsing,
   obtain ⟨S, hS₁, hS₂, hS₃⟩ := hs,
-  haveI : finite_measure s,
-  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
-    (have_lebesgue_decomposition_of_finite_measure μ ν),
-    refine finite_measure_le μ _,
-    conv_rhs { rw hadd },
-    exact measure.le_add_right (le_refl _) },
-  haveI : finite_measure (ν.with_density f),
-  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
-      (have_lebesgue_decomposition_of_finite_measure μ ν),
-    refine finite_measure_le μ _,
-    conv_rhs { rw hadd },
-    exact measure.le_add_left (le_refl _) },
+  haveI : finite_measure s := finite_measure_le μ (hadd.symm ▸ measure.le_add_right (le_refl _)),
+  haveI : finite_measure (ν.with_density f) :=
+    finite_measure_le μ (hadd.symm ▸ measure.le_add_left (le_refl _)),
   have hsub : (μ.singular_part ν).to_signed_measure - s.to_signed_measure =
               (ν.with_density f).to_signed_measure -
               (ν.with_density $ μ.radon_nikodym_deriv ν).to_signed_measure,

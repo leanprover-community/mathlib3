@@ -159,12 +159,7 @@ lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ 
   (hφ : ∀ a b d, φ (g (f a b) d ) = f' a (g' b d )) :
   (reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)).trans (equiv.map_matrix φ)
     (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
-begin
-  ext i j,
-  simp only [equiv.prod_assoc_symm_apply, function.comp_app, minor_apply, equiv.map_matrix_apply,
-    map_apply, reindex_apply, equiv.coe_trans, kronecker_map],
-  apply hφ,
-end
+ext $ λ i j, hφ _ _ _
 
 end kronecker_map
 

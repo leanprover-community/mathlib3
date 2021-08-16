@@ -1078,6 +1078,13 @@ eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 
 variables {I J K L}
 
+lemma map_mk_eq_bot_of_le (h : I ≤ J) : I.map (J^.quotient.mk) = ⊥ :=
+begin
+  simp_rw [ideal.map, ideal.span_eq_bot, set.mem_image],
+  rintros y ⟨x, hx, rfl⟩,
+  exact ideal.quotient.eq_zero_iff_mem.2 (h hx),
+end
+
 theorem map_radical_le : map f (radical I) ≤ radical (map f I) :=
 map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, f.map_pow r n ▸ mem_map_of_mem f hrni⟩
 
@@ -1606,25 +1613,12 @@ end
 end ring_hom
 
 namespace double_quot
+open ideal
 variables {R : Type u} [comm_ring R] (I J : ideal R)
 
 -- a few lemmas to help shorten the proofs later
 lemma left_proj_quot_add_mk (x :R) (hx : x ∈ I) : ideal.quotient.mk (I ⊔ J) x = 0 :=
 ideal.quotient.eq_zero_iff_mem.2 (ideal.mem_sup_left hx)
-
-lemma right_proj_quot_add_mk (x : R) (hx : x ∈ J) :  ideal.quotient.mk (I ⊔ J) x = 0 :=
-ideal.quotient.eq_zero_iff_mem.2 (ideal.mem_sup_right hx)
-
-lemma in_ker_proj_to_add_left : I.map(ideal.quotient.mk(I ⊔ J)) = ⊥ :=
-begin
-  simp_rw [ideal.map, ideal.span_eq_bot, set.mem_image],
-  rintros y ⟨x, hx, rfl⟩,
-  exact left_proj_quot_add_mk I J x hx,
-end
-
-
-lemma in_ker_proj_to_add_right : J.map(ideal.quotient.mk(I ⊔ J)) = ⊥ :=
-by {rw sup_comm, apply in_ker_proj_to_add_left}
 
 /-- define `quot_left_to_quot_sum` to be the obvious ring hom `R/I → R/(I ⊔ J)` -/
 def quot_left_to_quot_sum : I.quotient →+* (I ⊔ J).quotient :=
@@ -1665,7 +1659,8 @@ begin
     apply set.mem_of_subset_of_mem (ideal.subset_span),
     exact (set.mem_image_of_mem (quot_left_to_quot_sum I J) hx)},
 
-  rwa [hJ, in_ker_proj_to_add_right I J] at hmapx,
+  have : J.map(ideal.quotient.mk(I ⊔ J)) = ⊥ :=  map_mk_eq_bot_of_le le_sup_right,
+  rwa [hJ,this] at hmapx,
 end
 
 /-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I ⊔ J)`,

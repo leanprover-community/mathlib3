@@ -1028,6 +1028,16 @@ lemma coe_submodule_fg
   submodule.fg (coe_submodule S I) ↔ submodule.fg I :=
 ⟨submodule.fg_of_fg_map _ (linear_map.ker_eq_bot.mpr hS), submodule.fg_map⟩
 
+@[simp]
+lemma coe_submodule_span (s : set R) :
+  coe_submodule S (submodule.span R s) = submodule.span R ((algebra_map R S) '' s) :=
+by { rw [is_localization.coe_submodule, submodule.map_span], refl }
+
+@[simp]
+lemma coe_submodule_span_singleton (x : R) :
+  coe_submodule S (submodule.span R {x}) = submodule.span R {(algebra_map R S) x} :=
+by rw [coe_submodule_span, set.image_singleton]
+
 variables {g : R →+* P}
 variables {T : submonoid P} (hy : M ≤ T.comap g) {Q : Type*} [comm_ring Q]
 variables [algebra P Q] [is_localization T Q]
@@ -1184,6 +1194,22 @@ lemma coe_submodule_strict_mono (h : M ≤ non_zero_divisors R) :
 strict_mono_of_le_iff_le (λ _ _, (coe_submodule_le_coe_submodule h).symm)
 
 variables (S) {Q M}
+
+lemma coe_submodule_injective (h : M ≤ non_zero_divisors R) :
+  function.injective (coe_submodule S : ideal R → submodule R S) :=
+injective_of_le_imp_le _ (λ _ _, (coe_submodule_le_coe_submodule h).mp)
+
+lemma coe_submodule_is_principal {I : ideal R} (h : M ≤ non_zero_divisors R) :
+  (coe_submodule S I).is_principal ↔ I.is_principal :=
+begin
+  split; unfreezingI { rintros ⟨⟨x, hx⟩⟩ },
+  { have x_mem : x ∈ coe_submodule S I := hx.symm ▸ submodule.mem_span_singleton_self x,
+    obtain ⟨x, x_mem, rfl⟩ := (mem_coe_submodule _ _).mp x_mem,
+    refine ⟨⟨x, coe_submodule_injective S h _⟩⟩,
+    rw [hx, coe_submodule_span_singleton] },
+  { refine ⟨⟨algebra_map R S x, _⟩⟩,
+    rw [hx, coe_submodule_span_singleton] }
+end
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain. -/
@@ -1416,6 +1442,19 @@ is_localization.coe_submodule_le_coe_submodule (le_refl _)
 lemma coe_submodule_strict_mono :
   strict_mono (coe_submodule K : ideal R → submodule R K) :=
 strict_mono_of_le_iff_le (λ _ _, coe_submodule_le_coe_submodule.symm)
+
+variables (R K)
+
+lemma coe_submodule_injective :
+  function.injective (coe_submodule K : ideal R → submodule R K) :=
+injective_of_le_imp_le _ (λ _ _, (coe_submodule_le_coe_submodule).mp)
+
+@[simp]
+lemma coe_submodule_is_principal {I : ideal R} :
+  (coe_submodule K I).is_principal ↔ I.is_principal :=
+is_localization.coe_submodule_is_principal _ (le_refl _)
+
+variables {R K}
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R K x ≠ 0 :=

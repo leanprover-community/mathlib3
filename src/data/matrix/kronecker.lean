@@ -44,7 +44,8 @@ namespace matrix
 open_locale matrix
 
 variables {R α α' β β' γ γ' : Type*}
-variables {l m n p : Type*} [fintype l] [fintype m] [fintype n] [fintype p]
+variables {l m n p q r : Type*} [fintype l] [fintype m] [fintype n] [fintype p] [fintype q]
+variables {q r : Type*} [fintype q] [fintype r]
 variables {l' m' n' p' : Type*} [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
 section kronecker_map
@@ -233,8 +234,7 @@ lemma mul_kronecker_mul [comm_semiring α]
   (A ⬝ B) ⊗ₖ (A' ⬝ B') = (A ⊗ₖ A') ⬝ (B ⊗ₖ B') :=
 kronecker_map_linear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_comm A B A' B'
 
-lemma kronecker_assoc [comm_semiring α] {q r : Type*} [fintype q] [fintype r]
-  (A : matrix l m α) (B : matrix n p α) (C : matrix q r α) :
+lemma kronecker_assoc [comm_semiring α] (A : matrix l m α) (B : matrix n p α) (C : matrix q r α) :
   reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r) ((A ⊗ₖ B) ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C):=
 kronecker_map_assoc _ _ _ _ A B C (equiv.cast rfl) mul_assoc
 

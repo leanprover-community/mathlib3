@@ -79,7 +79,7 @@ namespace linear_isometry
 variables (f : V →ₗᵢ[𝕜] V₂)
 
 /-- Reinterpret a linear isometry as an affine isometry. -/
-def to_affine_isometry  : V →ᵃⁱ[𝕜] V₂ :=
+def to_affine_isometry : V →ᵃⁱ[𝕜] V₂ :=
 { norm_map := f.norm_map,
   .. f.to_linear_map.to_affine_map }
 

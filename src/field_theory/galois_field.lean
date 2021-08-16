@@ -137,12 +137,61 @@ instance : char_p (galois_field p n) p :=
 instance : fintype (galois_field p n) :=
 finite_dimensional.fintype_of_fintype (zmod p) (galois_field p n)
 
-/-
-lemma finrank : finite_dimensional.finrank (zmod p) (galois_field p n) = n :=
+local notation [parsing_only] `g_poly` := (X^(p^n) - X : polynomial (zmod p))
+
+private lemma prime_one_lt {p : ℕ} [fact (nat.prime p)] : 1 < p := (nat.prime.one_lt' p).1
+
+section
+
+variables {K : Type*} [field K] {p n} (hn : n ≠ 0)
+include hn
+
+lemma gpoly_nat_degree_eq :
+  (X^(p^n) - X : polynomial K).nat_degree = p ^ n :=
 begin
-  sorry,
+  have hp : 1 < p := prime_one_lt,
+  have h1 : (X : polynomial K).degree < (X ^ p ^ n : polynomial K).degree,
+  { rw [degree_X_pow, degree_X],
+    exact_mod_cast nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) (nat.prime.one_lt' p).1 },
+  rw [nat_degree_eq_of_degree_eq (degree_sub_eq_left_of_degree_lt h1), nat_degree_X_pow],
 end
 
+lemma gpoly_ne_zero :
+  (X^(p^n) - X : polynomial K) ≠ 0 :=
+ne_zero_of_nat_degree_gt $
+calc 1 < _ : nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) (nat.prime.one_lt' p).1
+... = _ : (gpoly_nat_degree_eq hn).symm
+
+end
+
+lemma finrank (h : n ≠ 0) : finite_dimensional.finrank (zmod p) (galois_field p n) = n :=
+begin
+  have aux : g_poly ≠ 0,
+  { apply ne_zero_of_degree_gt (_ : 1 < degree _),
+    rw [degree_sub_eq_left_of_degree_lt],
+    all_goals
+    { simp only [nat.cast_with_bot, nsmul_one, degree_pow, degree_X],
+      norm_cast,
+      apply nat.one_lt_pow _ _ (nat.pos_of_ne_zero h) (nat.prime.one_lt' p).1 } },
+  have key : fintype.card ((g_poly).root_set (galois_field p n)) = (g_poly).nat_degree :=
+    card_root_set_eq_nat_degree (galois_poly_separable p _ (dvd_pow (dvd_refl p) h))
+    (splitting_field.splits g_poly),
+  have nat_degree_eq : (g_poly).nat_degree = p ^ n,
+  { exact gpoly_nat_degree_eq h, },
+  rw nat_degree_eq at key,
+  suffices : (g_poly).root_set (galois_field p n) = set.univ,
+  { simp_rw [this, ←fintype.of_equiv_card (equiv.set.univ _)] at key,
+    rw [@card_eq_pow_findim (zmod p), zmod.card] at key,
+    exact nat.pow_right_injective ((nat.prime.one_lt' p).out) key },
+  rw set.eq_univ_iff_forall,
+  intro x,
+  rw mem_root_set aux,
+  simp only [aeval_X_pow, aeval_X, alg_hom.map_sub],
+  -- ⊢ x ^ p ^ n - x = 0 in GF(p^n)
+  sorry
+end
+
+/-
 lemma card : fintype.card (galois_field p n) = p ^ n :=
 begin
   let b := is_noetherian.finset_basis (zmod p) (galois_field p n),

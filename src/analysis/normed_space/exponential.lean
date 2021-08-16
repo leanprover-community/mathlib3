@@ -490,7 +490,7 @@ include p
 lemma exp_series_eq_exp_series_of_field_extension (n : ℕ) (x : 𝔸) :
   (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
 begin
-  letI : char_p 𝕂' p := char_p_of_injective_algebra_map (algebra_map 𝕂 𝕂').injective p,
+  haveI : char_p 𝕂' p := char_p_of_injective_algebra_map (algebra_map 𝕂 𝕂').injective p,
   rw [exp_series, exp_series,
       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,

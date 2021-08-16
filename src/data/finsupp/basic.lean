@@ -1539,6 +1539,52 @@ end
 
 end comap_domain
 
+section option
+
+/-- Restrict a finitely supported function on `option α` to a finitely supported function on `α`. -/
+def some [has_zero M] (f : option α →₀ M) : α →₀ M :=
+f.comap_domain option.some (λ _, by simp)
+
+@[simp] lemma some_apply [has_zero M] (f : option α →₀ M) (a : α) :
+  f.some a = f (option.some a) := rfl
+
+@[simp] lemma some_zero [has_zero M] : (0 : option α →₀ M).some = 0 :=
+by { ext, simp, }
+
+@[simp] lemma some_add [add_comm_monoid M] (f g : option α →₀ M) : (f + g).some = f.some + g.some :=
+by { ext, simp, }
+
+@[simp] lemma some_single_none [has_zero M] (m : M) : (single none m : option α →₀ M).some = 0 :=
+by { ext, simp, }
+
+@[simp] lemma some_single_some [has_zero M] (a : α) (m : M) :
+  (single (option.some a) m : option α →₀ M).some = single a m :=
+by { ext b, simp [single_apply], }
+
+@[to_additive]
+lemma prod_option_index [add_comm_monoid M] [comm_monoid N]
+  (f : option α →₀ M) (b : option α → M → N) (h_zero : ∀ o, b o 0 = 1)
+  (h_add : ∀ o m₁ m₂, b o (m₁ + m₂) = b o m₁ * b o m₂) :
+  f.prod b = b none (f none) * f.some.prod (λ a, b (option.some a)) :=
+begin
+  apply induction_linear f,
+  { simp [h_zero], },
+  { intros f₁ f₂ h₁ h₂,
+    rw [finsupp.prod_add_index, h₁, h₂, some_add, finsupp.prod_add_index],
+    simp only [h_add, pi.add_apply, finsupp.coe_add],
+    rw mul_mul_mul_comm,
+    all_goals { simp [h_zero, h_add], }, },
+  { rintros (_|a) m; simp [h_zero, h_add], }
+end
+
+lemma sum_option_index_smul [semiring R] [add_comm_monoid M] [module R M]
+  (f : option α →₀ R) (b : option α → M) :
+  f.sum (λ o r, r • b o) =
+    f none • b none + f.some.sum (λ a r, r • b (option.some a)) :=
+f.sum_option_index _ (λ _, zero_smul _ _) (λ _ _ _, add_smul _ _ _)
+
+end option
+
 /-! ### Declarations about `equiv_congr_left` -/
 
 section equiv_congr_left

@@ -222,9 +222,25 @@ instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   smul_zero := λ r, unop_injective $ smul_zero r,
   ..opposite.mul_action α R }
 
+/-- Like `has_mul.to_has_scalar`, but multiplies on the right.
+
+See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action`. -/
+instance _root_.has_mul.to_has_opposite_scalar [has_mul α] : has_scalar (opposite α) α :=
+{ smul := λ c x, x * c.unop }
+
+lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+
+instance _root_.semigroup.opposite_smul_comm_class [semigroup α] :
+  smul_comm_class (opposite α) α α :=
+{ smul_comm := λ x y z, (mul_assoc _ _ _) }
+
+instance _root_.semigroup.opposite_smul_comm_class' [semigroup α] :
+  smul_comm_class α (opposite α) α :=
+{ smul_comm := λ x y z, (mul_assoc _ _ _).symm }
+
 /-- Like `monoid.to_mul_action`, but multiplies on the right. -/
 instance _root_.monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
-{ smul := λ c x, x * c.unop,
+{ smul := (•),
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
 
@@ -232,15 +248,13 @@ instance _root_.monoid.to_opposite_mul_action [monoid α] : mul_action (opposite
 -- `mul_action (opposite α) (opposite α)` are defeq.
 example [monoid α] : monoid.to_mul_action (opposite α) = opposite.mul_action α (opposite α) := rfl
 
-lemma op_smul_eq_mul [monoid α] {a a' : α} : op a • a' = a' * a := rfl
-
 /-- `monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
-instance left_cancel_monoid.to_has_faithful_scalar [left_cancel_monoid α] :
+instance _root_.left_cancel_monoid.to_has_faithful_opposite_scalar [left_cancel_monoid α] :
   has_faithful_scalar (opposite α) α :=
 ⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
 
 /-- `monoid.to_opposite_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
-instance cancel_monoid_with_zero.to_has_faithful_opposite_scalar
+instance _root_.cancel_monoid_with_zero.to_has_faithful_opposite_scalar
   [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_scalar (opposite α) α :=
 ⟨λ x y h, unop_injective $ mul_left_cancel' one_ne_zero (h 1)⟩
 

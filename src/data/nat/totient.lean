@@ -74,8 +74,8 @@ if hmn0 : m * n = 0
     haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
     haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
     rw [← zmod.card_units_eq_totient, ← zmod.card_units_eq_totient,
-      ← zmod.card_units_eq_totient,
-      fintype.card_congr (units.map_equiv (chinese_remainder h).to_mul_equiv).to_equiv,
+      ← zmod.card_units_eq_totient, fintype.card_congr
+      (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
       fintype.card_prod]
   end

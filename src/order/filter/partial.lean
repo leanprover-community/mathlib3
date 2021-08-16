@@ -51,8 +51,8 @@ that `rel.core` generalizes `set.preimage`. -/
 def rmap (r : rel α β) (l : filter α) : filter β :=
 { sets             := {s | r.core s ∈ l},
   univ_sets        := by simp,
-  sets_of_superset := λ s t hs st, mem_sets_of_superset hs $ rel.core_mono _ st,
-  inter_sets       := λ s t hs ht, by simp [rel.core_inter, inter_mem_sets hs ht] }
+  sets_of_superset := λ s t hs st, mem_of_superset hs $ rel.core_mono _ st,
+  inter_sets       := λ s t hs ht, by simp [rel.core_inter, inter_mem hs ht] }
 
 theorem rmap_sets (r : rel α β) (l : filter α) : (l.rmap r).sets = r.core ⁻¹' l.sets := rfl
 
@@ -84,10 +84,10 @@ iff.rfl
 `filter.comap` to relations. Note that `rel.core` generalizes `set.preimage`. -/
 def rcomap (r : rel α β) (f : filter β) : filter α :=
 { sets             := rel.image (λ s t, r.core s ⊆ t) f.sets,
-  univ_sets        := ⟨set.univ, univ_mem_sets, set.subset_univ _⟩,
+  univ_sets        := ⟨set.univ, univ_mem, set.subset_univ _⟩,
   sets_of_superset := λ a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', ma'a.trans ab⟩,
   inter_sets       := λ a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
-                        ⟨a' ∩ b', inter_mem_sets ha₁ hb₁,
+                        ⟨a' ∩ b', inter_mem ha₁ hb₁,
                           (r.core_inter a' b').subset.trans (set.inter_subset_inter ha₂ hb₂)⟩ }
 
 theorem rcomap_sets (r : rel α β) (f : filter β) :
@@ -102,7 +102,7 @@ begin
   { rintros ⟨u, ⟨v, vsets, hv⟩, h⟩,
     exact ⟨v, vsets, set.subset.trans (rel.core_mono _ hv) h⟩ },
   rintros ⟨t, tsets, ht⟩,
-  exact ⟨rel.core s t, ⟨t, tsets, set.subset.refl _⟩, ht⟩
+  exact ⟨rel.core s t, ⟨t, tsets, set.subset.rfl⟩, ht⟩
 end
 
 @[simp]
@@ -115,7 +115,7 @@ begin
   rw rtendsto_def,
   change (∀ (s : set β), s ∈ l₂.sets → r.core s ∈ l₁) ↔ l₁ ≤ rcomap r l₂,
   simp [filter.le_def, rcomap, rel.mem_image], split,
-  { exact λ h s t tl₂, mem_sets_of_superset (h t tl₂) },
+  { exact λ h s t tl₂, mem_of_superset (h t tl₂) },
   { exact λ h t tl₂, h _ t tl₂ set.subset.rfl }
 end
 
@@ -127,10 +127,10 @@ end
 to relations. -/
 def rcomap' (r : rel α β) (f : filter β) : filter α :=
 { sets             := rel.image (λ s t, r.preimage s ⊆ t) f.sets,
-  univ_sets        := ⟨set.univ, univ_mem_sets, set.subset_univ _⟩,
+  univ_sets        := ⟨set.univ, univ_mem, set.subset_univ _⟩,
   sets_of_superset := λ a b ⟨a', ha', ma'a⟩ ab, ⟨a', ha', ma'a.trans ab⟩,
   inter_sets       := λ a b ⟨a', ha₁, ha₂⟩ ⟨b', hb₁, hb₂⟩,
-                        ⟨a' ∩ b', inter_mem_sets ha₁ hb₁,
+                        ⟨a' ∩ b', inter_mem ha₁ hb₁,
                          (@rel.preimage_inter _ _ r _ _).trans (set.inter_subset_inter ha₂ hb₂)⟩ }
 
 @[simp]
@@ -166,8 +166,8 @@ theorem rtendsto'_def (r : rel α β) (l₁ : filter α) (l₂ : filter β) :
   rtendsto' r l₁ l₂ ↔ ∀ s ∈ l₂, r.preimage s ∈ l₁ :=
 begin
   unfold rtendsto' rcomap', simp [le_def, rel.mem_image], split,
-  { exact λ h s hs, h _ _ hs set.subset.rfl },
-  { exact λ h s t ht, mem_sets_of_superset (h t ht) }
+  { exact λ h s hs, h _ _ hs subset.rfl },
+  { exact λ h s t ht, mem_of_superset (h t ht) }
 end
 
 theorem tendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α → β) :
@@ -204,14 +204,10 @@ iff.rfl
 
 theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
   pmap (pfun.res f s) l = map f (l ⊓ 𝓟 s) :=
-filter.ext $ λ t,
 begin
-  simp [pfun.core_res], split,
-  { intro h, constructor, split, { exact h },
-    constructor, split, { reflexivity },
-    simp [set.inter_distrib_right], apply set.inter_subset_left },
-  rintro ⟨t₁, h₁, t₂, h₂, h₃⟩, apply mem_sets_of_superset h₁, rw ← set.inter_subset,
-  exact (set.inter_subset_inter_right _ h₂).trans h₃
+  ext t,
+  simp only [pfun.core_res, mem_pmap, mem_map, mem_inf_principal, imp_iff_not_or],
+  refl
 end
 
 theorem tendsto_iff_ptendsto (l₁ : filter α) (l₂ : filter β) (s : set α) (f : α → β) :
@@ -240,7 +236,7 @@ theorem ptendsto_of_ptendsto' {f : α →. β} {l₁ : filter α} {l₂ : filter
   ptendsto' f l₁ l₂ → ptendsto f l₁ l₂ :=
 begin
   rw [ptendsto_def, ptendsto'_def],
-  exact λ h s sl₂, mem_sets_of_superset (h s sl₂) (pfun.preimage_subset_core _ _),
+  exact λ h s sl₂, mem_of_superset (h s sl₂) (pfun.preimage_subset_core _ _),
 end
 
 theorem ptendsto'_of_ptendsto {f : α →. β} {l₁ : filter α} {l₂ : filter β} (h : f.dom ∈ l₁) :
@@ -249,7 +245,7 @@ begin
   rw [ptendsto_def, ptendsto'_def],
   rintro h' s sl₂,
   rw pfun.preimage_eq,
-  exact inter_mem_sets (h' s sl₂) h
+  exact inter_mem (h' s sl₂) h
 end
 
 end filter

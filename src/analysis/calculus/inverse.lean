@@ -316,7 +316,7 @@ lemma image_mem_nhds (hf : approximates_linear_on f f' s c) (f'symm : f'.nonline
 begin
   obtain ⟨t, hts, ht, xt⟩ : ∃ t ⊆ s, is_open t ∧ x ∈ t := _root_.mem_nhds_iff.1 hs,
   have := is_open.mem_nhds ((hf.mono_set hts).open_image f'symm ht hc) (mem_image_of_mem _ xt),
-  exact mem_sets_of_superset this (image_subset _ hts),
+  exact mem_of_superset this (image_subset _ hts),
 end
 
 lemma map_nhds_eq (hf : approximates_linear_on f f' s c) (f'symm : f'.nonlinear_right_inverse)
@@ -326,8 +326,8 @@ begin
   refine le_antisymm ((hf.continuous_on x (mem_of_mem_nhds hs)).continuous_at hs)
     (le_map (λ t ht, _)),
   have : f '' (s ∩ t) ∈ 𝓝 (f x) := (hf.mono_set (inter_subset_left s t)).image_mem_nhds
-    f'symm (inter_mem_sets hs ht) hc,
-  exact mem_sets_of_superset this (image_subset _ (inter_subset_right _ _)),
+    f'symm (inter_mem hs ht) hc,
+  exact mem_of_superset this (image_subset _ (inter_subset_right _ _)),
 end
 
 end locally_onto

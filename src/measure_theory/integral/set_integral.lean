@@ -131,7 +131,10 @@ lemma set_integral_map_of_closed_embedding [topological_space α] [borel_space �
   {β} [measurable_space β] [topological_space β] [borel_space β]
   {g : α → β} {f : β → E} {s : set β} (hs : measurable_set s) (hg : closed_embedding g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
-by rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg]
+begin
+  rw [measure.restrict_map hg.measurable hs, integral_map_of_closed_embedding hg],
+  apply_instance,
+end
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
@@ -187,8 +190,8 @@ begin
 end
 
 lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
-  (hf_meas : @measurable _ _ m _ f) {s : set α} (hs : @measurable_set α m s) :
-  ∫ x in s, f x ∂μ = @integral α E m _ _ _ _ _ _ (@measure.restrict _ m (μ.trim hm) s) f :=
+  (hf_meas : @measurable _ _ m _ f) {s : set α} (hs : measurable_set[m] s) :
+  ∫ x in s, f x ∂μ = ∫ x in s, f x ∂(μ.trim hm) :=
 by rwa [integral_trim hm hf_meas, restrict_trim hm μ]
 
 end normed_group
@@ -670,13 +673,13 @@ lemma integral_on_nonneg_of_ae {f : α → ℝ} (hf : ∀ᵐ a, a ∈ s → 0 �
 integral_nonneg_of_ae $ by { filter_upwards [hf] λ a h, indicator_nonneg' h }
 
 lemma integral_on_nonneg {f : α → ℝ} (hf : ∀ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
-integral_on_nonneg_of_ae $ univ_mem_sets' hf
+integral_on_nonneg_of_ae $ univ_mem' hf
 
 lemma integral_on_nonpos_of_ae {f : α → ℝ} (hf : ∀ᵐ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
 integral_nonpos_of_nonpos_ae $ by { filter_upwards [hf] λ a h, indicator_nonpos' h }
 
 lemma integral_on_nonpos {f : α → ℝ} (hf : ∀ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
-integral_on_nonpos_of_ae $ univ_mem_sets' hf
+integral_on_nonpos_of_ae $ univ_mem' hf
 
 lemma tendsto_integral_on_of_monotone {s : ℕ → set α} {f : α → β} (hsm : ∀i, measurable_set (s i))
   (h_mono : monotone s) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
@@ -729,12 +732,12 @@ begin
   refine tendsto_integral_filter_of_dominated_convergence _ _ _ _ _ _ _,
   { exact indicator (Union s) (λ a, ∥f a∥) },
   { exact is_countably_generated_at_top_finset_nat },
-  { refine univ_mem_sets' (λ n, _),
+  { refine univ_mem' (λ n, _),
     simp only [mem_set_of_eq],
     refine hfm.subset (measurable_set.Union (λ i, measurable_set.Union_Prop (λh, hm _)))
       (bUnion_subset_Union _ _), },
   { assumption },
-  { refine univ_mem_sets' (λ n, univ_mem_sets' $ _),
+  { refine univ_mem' (λ n, univ_mem' $ _),
     simp only [mem_set_of_eq],
     assume a,
     rw ← norm_indicator_eq_indicator_norm,

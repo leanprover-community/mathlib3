@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import data.nat.choose
-import data.int.modeq
 import algebra.iterate_hom
+import data.int.modeq
+import data.nat.choose
 import group_theory.order_of_element
 /-!
 # Characteristic of semirings
@@ -44,7 +44,7 @@ end
 lemma char_p.int_coe_eq_int_coe_iff [add_group R] [has_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 theorem char_p.eq [add_monoid R] [has_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
   p = q :=
@@ -179,7 +179,7 @@ sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 lemma eq_iff_modeq_int [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 lemma char_p.neg_one_ne_one [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
   (-1 : R) ≠ (1 : R) :=

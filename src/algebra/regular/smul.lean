@@ -30,6 +30,9 @@ variables {R S : Type*} (M : Type*) {a b : R} {s : S}
 injective map `M → M`. -/
 def is_smul_regular [has_scalar R M] (c : R) := function.injective ((•) c : M → M)
 
+lemma is_left_regular.is_smul_regular [has_mul R] {c : R} (h : is_left_regular c) :
+  is_smul_regular R c := h
+
 namespace is_smul_regular
 
 variables {M}
@@ -56,16 +59,17 @@ is `M`-regular. -/
   is_smul_regular M (a • b) ↔ is_smul_regular M b :=
 ⟨of_smul _, ha.smul⟩
 
+lemma is_left_regular_iff [has_mul R] {a : R} :
+  is_left_regular a ↔ is_smul_regular R a := iff.rfl
+
+lemma is_left_regular [has_mul R] {a : R} (h : is_smul_regular R a) :
+  is_left_regular a := h
+
 end has_scalar
 
 section monoid
 
 variables [monoid R] [mul_action R M]
-
-/-- Left-regularity in a `monoid R` is equivalent to `M`-regularity, when the
-`R`-module `M` is `R`. -/
-lemma is_left_regular_iff (a : R) : is_left_regular a ↔ is_smul_regular R a :=
-iff.rfl
 
 variable (M)
 

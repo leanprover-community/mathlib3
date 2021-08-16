@@ -223,8 +223,8 @@ begin
     (λ _ _, rfl),
 end
 
-lemma sum_range_add_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
-  {n m : ℕ} : ∑ k in range (n + m), f k - ∑ k in range n, f k =
+lemma sum_range_add_sub_sum_range {α : Type*} [add_comm_group α] (f : ℕ → α)
+  (n m : ℕ) : ∑ k in range (n + m), f k - ∑ k in range n, f k =
   ∑ k in finset.range m, f (n + k) :=
 begin
   rw sum_range_add,

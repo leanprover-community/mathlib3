@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.equiv.denumerable
 import order.preorder_hom
-import order.conditionally_complete_lattice
+import data.nat.lattice
 
 /-!
 # Relation embeddings from the naturals

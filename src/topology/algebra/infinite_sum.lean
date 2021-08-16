@@ -83,6 +83,14 @@ lemma summable_empty [is_empty β] : summable f := has_sum_empty.summable
 lemma tsum_eq_zero_of_not_summable (h : ¬ summable f) : ∑'b, f b = 0 :=
 by simp [tsum, h]
 
+lemma summable_congr (hfg : ∀b, f b = g b) :
+  summable f ↔ summable g :=
+iff_of_eq (congr_arg summable $ funext hfg)
+
+lemma summable.congr (hf : summable f) (hfg : ∀b, f b = g b) :
+  summable g :=
+(summable_congr hfg).mp hf
+
 lemma has_sum.has_sum_of_sum_eq {g : γ → α}
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∑ x in u', g x = ∑ b in v', f b)
   (hf : has_sum g a) :

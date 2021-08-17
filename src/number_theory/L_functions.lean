@@ -44,6 +44,25 @@ locally_constant.to_continuous_map
 abbreviation inclusion' (A : Type*) [normed_comm_ring A]: locally_constant X A →ₗ[A] C(X, A) :=
 locally_constant.to_continuous_map_linear_map A
 
+instance (A : Type*) [normed_comm_ring A] [h : nonempty X] : has_continuous_smul A C(X, A) :=
+{ continuous_smul := begin
+  change continuous ((λ p, p.1 * p.2 : C(X,A) × C(X,A) → C(X,A)) ∘
+    (λ p, ((continuous_map.const p.fst), p.2) : A × C(X,A) → C(X,A) × C(X,A))),
+  -- should be factored out
+  have h : continuous (continuous_map.const : A → C(X,A)),
+  { rw metric.continuous_iff,
+    intros a ε hε,
+    refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
+    rw dist_eq_norm at hb ⊢,
+    refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
+    rw continuous_map.norm_eq_supr_norm,
+    apply csupr_le,
+    intro x,
+    apply le_of_lt,
+    simp [hb] },
+  continuity,
+end }
+
 noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R]
   (U : clopen_sets X) : locally_constant X R :=
 {
@@ -502,25 +521,6 @@ begin
   rw [dist_eq_norm, ← linear_map.map_sub],
   refl,
 end
-
-instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
-{ continuous_smul := begin
-  change continuous ((λ p, p.1 * p.2 : C(X,A) × C(X,A) → C(X,A)) ∘
-    (λ p, ((continuous_map.const p.fst), p.2) : A × C(X,A) → C(X,A) × C(X,A))),
-  -- should be factored out
-  have h : continuous (continuous_map.const : A → C(X,A)),
-  { rw metric.continuous_iff,
-    intros a ε hε,
-    refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
-    rw dist_eq_norm at hb ⊢,
-    refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
-    rw continuous_map.norm_eq_supr_norm,
-    apply csupr_le,
-    intro x,
-    apply le_of_lt,
-    simp [hb] },
-  continuity,
-end }
 
 lemma cont [complete_space A] (h : nonempty X) (φ : measures'' X A) :
   continuous ((di  X A h).extend (φ.val.phi)) :=

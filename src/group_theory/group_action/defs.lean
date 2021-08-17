@@ -156,7 +156,7 @@ variables [has_scalar M α]
 /-- Auxiliary definition for `has_scalar.comp`, `mul_action.comp_hom`,
 `distrib_mul_action.comp_hom`, `module.comp_hom`, etc. -/
 @[simp, to_additive
-/-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. ""-/]
+/-" Auxiliary definition for `has_vadd.comp`, `add_action.comp_hom`, etc. "-/]
 def comp.smul (g : N → M) (n : N) (a : α) : α :=
 g n • a
 
@@ -166,8 +166,9 @@ variables (α)
 
 See note [reducible non-instances]. Since this is reducible, we make sure to go via
 `has_scalar.comp.smul` to prevent typeclass inference unfolding too far. -/
-@[reducible, to_additive] def comp (g : N → M) :
-  has_scalar N α :=
+@[reducible, to_additive /-" An additive action of `M` on `α` and a funcion `N → M` induces
+  an additive action of `N` on `α` "-/]
+def comp (g : N → M) : has_scalar N α :=
 { smul := has_scalar.comp.smul g }
 
 variables {α}
@@ -175,19 +176,17 @@ variables {α}
 /-- If an action forms a scalar tower then so does the action formed by `has_scalar.comp`. -/
 @[priority 100]
 instance comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower M α β]
-  [monoid N] (g : N → M) :
+  (g : N → M) :
   (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
 
 @[priority 100]
-instance comp.smul_comm_class [has_scalar β α] [smul_comm_class M β α]
-  [monoid N] (g : N → M) :
+instance comp.smul_comm_class [has_scalar β α] [smul_comm_class M β α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class N β α) :=
 by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
 
 @[priority 100]
-instance comp.smul_comm_class' [has_scalar β α] [smul_comm_class β M α]
-  [monoid N] (g : N → M) :
+instance comp.smul_comm_class' [has_scalar β α] [smul_comm_class β M α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class β N α) :=
 by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
 

@@ -316,7 +316,7 @@ begin
           have hby := hby y hy xy, rw hby, rw ←hbU, apply xU, }, },
 end
 
-theorem tp_dense (H : nonempty X) (hε : 0 < ε) (f : C(X, A)) (t : finset(set A))
+theorem tp_dense [nonempty X] (hε : 0 < ε) (f : C(X, A)) (t : finset(set A))
  (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i) :
   ∃ (b : C(X, A)) (H_1 : b ∈ set.range (inclusion X A)), dist f b < ε :=
 begin
@@ -364,7 +364,7 @@ begin
     { rw this, exact half_lt_self hε, }, },
 end
 
-theorem dense_C (H : nonempty X) : @dense (C(X, A)) _ (set.range (inclusion X A)) :=
+theorem dense_C [nonempty X] : @dense (C(X, A)) _ (set.range (inclusion X A)) :=
 begin
   rintros f,
   rw metric.mem_closure_iff,
@@ -381,7 +381,7 @@ begin
   rw set.preimage_sUnion at g',
   rw set.subset.antisymm_iff at g',
   obtain ⟨t, ht⟩ := is_compact.elim_finite_subcover _ _ _ g'.2,
-  { exact tp_dense X ε H hε f t ht, },
+  { exact tp_dense X ε hε f t ht, },
   { exact compact_univ, },
   { rintros i, apply is_open_Union, rintros hi, apply continuous.is_open_preimage _,
     { rw [hS, h'] at hi, simp at hi, cases hi with y hy,
@@ -457,14 +457,9 @@ begin
   refl,
 end
 
-lemma di (h : nonempty X) : dense_inducing (inclusion X A) :=
-begin
-  constructor,
-  { constructor, refl, },
-  { apply dense_C, assumption, },
-end
+lemma di [nonempty X] : dense_inducing (inclusion X A) := ⟨⟨rfl⟩, dense_C X⟩
 
-lemma uni_ind [h : nonempty X] : uniform_inducing (inclusion X A) :=
+lemma uni_ind [nonempty X] : uniform_inducing (inclusion X A) :=
 begin
   exact {comap_uniformity := refl
                        (filter.comap
@@ -488,20 +483,20 @@ begin
   refl,
 end
 
-lemma cont [complete_space A] (h : nonempty X) (φ : measures'' X A) :
-  continuous ((di  X A h).extend (φ.val.phi)) :=
+lemma cont [complete_space A] [nonempty X] (φ : measures'' X A) :
+  continuous ((di X A).extend (φ.val.phi)) :=
 begin
   refine uniform_continuous.continuous _,
-  refine uniform_continuous_uniformly_extend _ (dense_inducing.dense (di X A h)) _,
+  refine uniform_continuous_uniformly_extend _ (dense_inducing.dense (di X A)) _,
   { apply uni_ind, },
   { apply uni_cont, },
 end
 
-noncomputable def integral (h : nonempty X) (φ : measures'' X A) [complete_space A] :
+noncomputable def integral [nonempty X] (φ : measures'' X A) [complete_space A] :
   continuous_linear_map A C(X, A) A :=
 begin
-  have cont := cont X A h φ,
-  have di := di X A h,
+  have cont := cont X A φ,
+  have di := di X A,
   split,
   swap,
   { split, swap 3,

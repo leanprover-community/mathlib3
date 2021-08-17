@@ -98,7 +98,8 @@ open quaternion_algebra
 
 variables {R : Type*} [comm_ring R] (c₁ c₂ : R)
 
-/-- The quadratic form. -/
+/-- `Q c₁ c₂` is a quadratic form over `R × R` such that `clifford_algebra (Q c₁ c₂)` is isomorphic
+as an `R`-algebra to `ℍ[R,c₁,c₂]`. -/
 def Q : quadratic_form R (R × R) :=
 c₁ • quadratic_form.lin_mul_lin (linear_map.fst _ _ _) (linear_map.fst _ _ _) +
 c₂ • quadratic_form.lin_mul_lin (linear_map.snd _ _ _) (linear_map.snd _ _ _)
@@ -128,8 +129,8 @@ def quaternion_basis : quaternion_algebra.basis (clifford_algebra (Q c₁ c₂))
 
 variables {c₁ c₂}
 
-/-- Intermediate result of `clifford_algebra_complex.equiv_quaternion`: clifford algebras over
-`clifford_algebra_quaternion.Q` above can be converted to `ℍ[R,c₁,c₂]`. -/
+/-- Intermediate result of `clifford_algebra_quaternion.equiv`: clifford algebras over
+`clifford_algebra_quaternion.Q`  can be converted to `ℍ[R,c₁,c₂]`. -/
 def to_quaternion : clifford_algebra (Q c₁ c₂) →ₐ[R] ℍ[R,c₁,c₂] :=
 clifford_algebra.lift (Q c₁ c₂) ⟨
   { to_fun := λ v, (⟨0, v.1, v.2, 0⟩ : ℍ[R,c₁,c₂]),
@@ -178,7 +179,7 @@ begin
   ext1; dsimp [quaternion_algebra.basis.lift]; simp,
 end
 
-/-- The clifford algebra over `clifford_algebra_quaternion.Q` is isomorphic as an `R`-algebra
+/-- The clifford algebra over `clifford_algebra_quaternion.Q c₁ c₂` is isomorphic as an `R`-algebra
 to `ℍ[R,c₁,c₂]`. -/
 @[simps]
 protected def equiv : clifford_algebra (Q c₁ c₂) ≃ₐ[R] ℍ[R,c₁,c₂] :=

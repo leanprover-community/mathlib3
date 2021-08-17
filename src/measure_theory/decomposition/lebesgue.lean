@@ -120,6 +120,106 @@ begin
     apply_instance }
 end
 
+theorem eq_singular_part_of_have_lebesgue_decomposition
+  {μ ν : measure α} (h : have_lebesgue_decomposition μ ν)
+  (s : measure α) (f : α → ℝ≥0∞) (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
+  s = μ.singular_part ν :=
+begin
+  obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec h,
+  obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, ⟨T, hT₁, hT₂, hT₃⟩⟩ := ⟨hs, hsing⟩,
+  rw hadd' at hadd,
+  have hνinter : ν (S ∩ T)ᶜ = 0,
+  { rw set.compl_inter,
+    refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
+    rw [hT₃, hS₃, add_zero],
+    exact le_refl _ },
+  have heq : s.restrict (S ∩ T)ᶜ = (μ.singular_part ν).restrict (S ∩ T)ᶜ,
+  { ext1 A hA,
+    have hf : ν.with_density f (A ∩ (S ∩ T)ᶜ) = 0,
+    { refine with_density_absolutely_continuous ν _ _,
+      rw ← nonpos_iff_eq_zero,
+      exact hνinter ▸ measure_mono (set.inter_subset_right _ _) },
+    have hrn : ν.with_density (μ.radon_nikodym_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
+    { refine with_density_absolutely_continuous ν _ _,
+      rw ← nonpos_iff_eq_zero,
+      exact hνinter ▸ measure_mono (set.inter_subset_right _ _) },
+    rw [restrict_apply hA, restrict_apply hA, ← add_zero (s (A ∩ (S ∩ T)ᶜ)), ← hf,
+        ← add_apply, ← hadd, add_apply, hrn, add_zero] },
+  have heq' : ∀ A : set α, measurable_set A → s A = s.restrict (S ∩ T)ᶜ A,
+  { intros A hA,
+    have hsinter : s (A ∩ (S ∩ T)) = 0,
+    { rw ← nonpos_iff_eq_zero,
+      exact hS₂ ▸ measure_mono
+        (set.subset.trans (set.inter_subset_right _ _) (set.inter_subset_left _ _)) },
+    rw [restrict_apply hA, ← add_zero (s (A ∩ (S ∩ T)ᶜ)), ← hsinter, ← measure_union,
+        ← set.inter_union_distrib_left, set.compl_union_self, set.inter_univ],
+    { exact disjoint.inter_left' _ ( disjoint.inter_right' _ disjoint_compl_left) },
+    { measurability },
+    { measurability } },
+  ext1 A hA,
+  have hμinter : μ.singular_part ν (A ∩ (S ∩ T)) = 0,
+  { rw ← nonpos_iff_eq_zero,
+    exact hT₂ ▸ measure_mono
+      (set.subset.trans (set.inter_subset_right _ _) (set.inter_subset_right _ _)) },
+  rw [heq' A hA, heq, ← add_zero ((μ.singular_part ν).restrict (S ∩ T)ᶜ A), ← hμinter,
+      restrict_apply hA, ← measure_union, ← set.inter_union_distrib_left,
+      set.compl_union_self, set.inter_univ],
+  { exact disjoint.inter_left' _ ( disjoint.inter_right' _ disjoint_compl_left) },
+  { measurability },
+  { measurability }
+end
+
+theorem eq_radon_nikodym_deriv_of_have_lebesgue_decomposition
+  {μ ν : measure α} (h : have_lebesgue_decomposition μ ν)
+  (s : measure α) (f : α → ℝ≥0∞) (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
+  ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
+begin
+  obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec h,
+  obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, ⟨T, hT₁, hT₂, hT₃⟩⟩ := ⟨hs, hsing⟩,
+  rw hadd' at hadd,
+  have hνinter : ν (S ∩ T)ᶜ = 0,
+  { rw set.compl_inter,
+    refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
+    rw [hT₃, hS₃, add_zero],
+    exact le_refl _ },
+  have heq : (ν.with_density f).restrict (S ∩ T) =
+              (ν.with_density (radon_nikodym_deriv μ ν)).restrict (S ∩ T),
+  { ext1 A hA,
+    have hs : s (A ∩ (S ∩ T)) = 0,
+    { rw ← nonpos_iff_eq_zero,
+      exact hS₂ ▸ measure_mono
+        (set.subset.trans (set.inter_subset_right _ _) (set.inter_subset_left _ _)) },
+    have hsing : μ.singular_part ν (A ∩ (S ∩ T)) = 0,
+    { rw ← nonpos_iff_eq_zero,
+      exact hT₂ ▸ measure_mono
+        (set.subset.trans (set.inter_subset_right _ _) (set.inter_subset_right _ _)) },
+    rw [restrict_apply hA, restrict_apply hA, ← add_zero (ν.with_density f (A ∩ (S ∩ T))),
+        ← hs, ← add_apply, add_comm, ← hadd, add_apply, hsing, zero_add] },
+  have heq' : ∀ A : set α, measurable_set A →
+    ν.with_density f A = (ν.with_density f).restrict (S ∩ T) A,
+  { intros A hA,
+    have hνfinter : ν.with_density f (A ∩ (S ∩ T)ᶜ) = 0,
+    { rw ← nonpos_iff_eq_zero,
+      exact with_density_absolutely_continuous ν f hνinter ▸
+        measure_mono (set.inter_subset_right _ _) },
+    rw [restrict_apply hA, ← add_zero (ν.with_density f (A ∩ (S ∩ T))), ← hνfinter,
+        ← measure_union, ← set.inter_union_distrib_left, set.union_compl_self, set.inter_univ],
+    { exact disjoint.inter_left' _ (disjoint.inter_right' _ disjoint_compl_right) },
+    { measurability },
+    { measurability } },
+  ext1 A hA,
+  have hνrn : ν.with_density (μ.radon_nikodym_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
+  { rw ← nonpos_iff_eq_zero,
+    exact with_density_absolutely_continuous ν (μ.radon_nikodym_deriv ν) hνinter ▸
+      measure_mono (set.inter_subset_right _ _) },
+  rw [heq' A hA, heq, ← add_zero ((ν.with_density (μ.radon_nikodym_deriv ν)).restrict (S ∩ T) A),
+      ← hνrn, restrict_apply hA, ← measure_union, ← set.inter_union_distrib_left,
+      set.union_compl_self, set.inter_univ],
+  { exact disjoint.inter_left' _ (disjoint.inter_right' _ disjoint_compl_right) },
+  { measurability },
+  { measurability }
+end
+
 open vector_measure signed_measure
 
 /-- If two finite measures `μ` and `ν` are not mutually singular, there exists some `ε > 0` and
@@ -435,66 +535,6 @@ begin
   { rw hν₁, ext1 A hA,
     rw [measure.coe_add, pi.add_apply, measure.sub_apply hA hle,
         add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
-end
-
-/-- The Lebesgue decomposition is unique. -/
-theorem have_lebesgue_decomposition_of_finite_measure_unique
-  {μ ν : measure α} [finite_measure μ] [finite_measure ν]
-  (s : measure α) (f : α → ℝ≥0∞) (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
-  s = μ.singular_part ν ∧ ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
-begin
-  obtain ⟨-, hsing, hadd'⟩ := have_lebesgue_decomposition_spec
-    (have_lebesgue_decomposition_of_finite_measure μ ν),
-  obtain ⟨T, hT₁, hT₂, hT₃⟩ := hsing,
-  obtain ⟨S, hS₁, hS₂, hS₃⟩ := hs,
-  haveI : finite_measure s := finite_measure_le μ (hadd.symm ▸ measure.le_add_right (le_refl _)),
-  haveI : finite_measure (ν.with_density f) :=
-    finite_measure_le μ (hadd.symm ▸ measure.le_add_left (le_refl _)),
-  have hsub : (μ.singular_part ν).to_signed_measure - s.to_signed_measure =
-              (ν.with_density f).to_signed_measure -
-              (ν.with_density $ μ.radon_nikodym_deriv ν).to_signed_measure,
-  { ext i hi,
-    rw [to_signed_measure_sub_apply hi, to_signed_measure_sub_apply hi],
-    suffices : (μ.singular_part ν i).to_real + (ν.with_density (μ.radon_nikodym_deriv ν) i).to_real
-      = (s i).to_real + (ν.with_density f i).to_real,
-    { linarith },
-    rw [← ennreal.to_real_add, ← ennreal.to_real_add, ennreal.to_real_eq_to_real,
-        ← measure.add_apply, ← measure.add_apply, ← hadd, ← hadd'],
-    { exact (ennreal.add_lt_top.2 ⟨measure_lt_top _ _, measure_lt_top _ _⟩) },
-    { exact (ennreal.add_lt_top.2 ⟨measure_lt_top _ _, measure_lt_top _ _⟩) },
-    all_goals { exact ne_of_lt (measure_lt_top _ _) } },
-  have heq : ∀ A (hA : measurable_set A),
-    ((μ.singular_part ν).to_signed_measure - s.to_signed_measure) A =
-    ((μ.singular_part ν).to_signed_measure - s.to_signed_measure) (A ∩ (S ∩ T)ᶜ),
-  { intros A hA,
-    have : A = (A ∩ (S ∩ T)ᶜ) ∪ (A ∩ (S ∩ T)),
-    { rw [← set.inter_union_distrib_left, set.compl_union_self, set.inter_univ] },
-    conv_lhs { rw this },
-    rw of_union (disjoint.inter_left' _ (disjoint.inter_right' A disjoint_compl_left)),
-    suffices : ((μ.singular_part ν).to_signed_measure - s.to_signed_measure) (A ∩ (S ∩ T)) = 0,
-    { rw [this, add_zero] },
-    rw [to_signed_measure_sub_apply, sub_eq_zero, ennreal.to_real_eq_to_real],
-    refine eq.trans (nonpos_iff_eq_zero.1 (hT₂ ▸ measure_mono _))
-      (eq.symm ((nonpos_iff_eq_zero.1 (hS₂ ▸ measure_mono _)))),
-    { rw ← set.inter_assoc, exact set.inter_subset_right _ _ },
-    { rw [set.inter_comm, set.inter_assoc],
-      exact set.inter_subset_left _ _ },
-    all_goals { exact measure_lt_top _ _ <|> measurability <|> apply_instance} },
-  have hμinter : ν (S ∩ T)ᶜ = 0,
-    { rw set.compl_inter,
-      refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
-      rw [hT₃, hS₃, add_zero],
-      exact le_refl _ },
-  suffices : (μ.singular_part ν).to_signed_measure - s.to_signed_measure = 0,
-  { refine ⟨(to_signed_measure_eq_to_signed_measure_iff.1 (sub_eq_zero.1 this)).symm,
-            to_signed_measure_eq_to_signed_measure_iff.1 (sub_eq_zero.1 _)⟩,
-    rwa ← hsub },
-  ext A hA,
-  rw [heq A hA, hsub, to_signed_measure_sub_apply, with_density_absolutely_continuous,
-      with_density_absolutely_continuous, ennreal.zero_to_real, sub_zero, zero_apply],
-  { exact nonpos_iff_eq_zero.1 (hμinter ▸ measure_mono (set.inter_subset_right _ _)) },
-  { exact nonpos_iff_eq_zero.1 (hμinter ▸ measure_mono (set.inter_subset_right _ _)) },
-  { measurability }
 end
 
 end measure

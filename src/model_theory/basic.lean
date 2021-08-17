@@ -603,8 +603,6 @@ mem_image_of_mem f hx
 lemma apply_coe_mem_map (f : M →[L] N) (S : L.substructure M) (x : S) : f x ∈ S.map f :=
 mem_map_of_mem f x.prop
 
-/-- Shows that repeated application of `substructure.map` corresponds to mapping by composed
-  functions. -/
 lemma map_map (g : N →[L] P) (f : M →[L] N) : (S.map f).map g = S.map (g.comp f) :=
 set_like.coe_injective $ image_image _ _ _
 

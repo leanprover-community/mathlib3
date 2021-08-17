@@ -26,7 +26,7 @@ primitive and `fold_map_hom` as a defining property.
 def fold_map {α ω} [has_one ω] [has_mul ω] (f : α → ω) : t α → ω := ...
 
 lemma fold_map_hom (α β)
-  [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+  [monoid α] [monoid β] (f : α →* β)
   (g : γ → α) (x : t γ) :
   f (fold_map g x) = fold_map (f ∘ g) x :=
 ...
@@ -195,12 +195,15 @@ def free.map (f : α → β) : free_monoid α → free_monoid β := list.map f
 lemma free.map_eq_map (f : α → β) (xs : list α) :
   f <$> xs = free.map f xs := rfl
 
+/-- The `monoid_hom` from `free_monoid α` to `free_monoid β` induced by a map `α → β`. -/
 def free.map_monoid_hom (f : α → β) : free_monoid α →* free_monoid β :=
 { to_fun := free.map f,
   map_one' := by simp only [free.map, free_monoid.one_def, list.map, free_add_monoid.zero_def],
   map_mul' := λ x y,
     by simp only [free.map, free_monoid.mul_def, list.map_append, free_add_monoid.add_def], }
 
+/-- The `monoid_hom` from `free_monoid α` to `monoid.foldl β` whose underlying function
+  is `foldl.of_free_monoid`. -/
 def fold_foldl_monoid_hom (f : β → α → β) :free_monoid α →* monoid.foldl β :=
 { to_fun := foldl.of_free_monoid f,
   map_one' := rfl,
@@ -213,6 +216,8 @@ def fold_foldl_monoid_hom (f : β → α → β) :free_monoid α →* monoid.fol
 lemma foldl.unop_of_free_monoid  (f : β → α → β) (xs : free_monoid α) (a : β) :
   unop (foldl.of_free_monoid f xs) a = list.foldl f a xs := rfl
 
+/-- The `monoid_hom` from `free_monoid α` to `monoid.foldr β` whose underlying function
+  is `foldlr.of_free_monoid`. -/
 def fold_foldr_monoid_hom (f : α → β → β) : free_monoid α →* monoid.foldr β :=
 { to_fun := foldr.of_free_monoid f,
   map_one' := rfl,
@@ -225,11 +230,15 @@ variables (m : Type u → Type u) [monad m] [is_lawful_monad m]
 lemma mfoldl.unop_of_free_monoid  (f : β → α → m β) (xs : free_monoid α) (a : β) :
   unop (mfoldl.of_free_monoid f xs) a = list.mfoldl f a xs := rfl
 
+/-- The `monoid_hom` from `free_monoid α` to `monoid.mfoldl β` whose underlying function
+  is `mfoldl.of_free_monoid`. -/
 def fold_mfoldl_monoid_hom (f : β → α → m β) : free_monoid α →* monoid.mfoldl m β :=
 { to_fun := mfoldl.of_free_monoid f,
   map_one' := rfl,
   map_mul' := by intros; apply unop_injective; ext; apply list.mfoldl_append }
 
+/-- The `monoid_hom` from `free_monoid α` to `monoid.mfoldr β` whose underlying function
+  is `mfoldr.of_free_monoid`. -/
 def fold_mfoldr_monoid_hom (f : α → β → m β) : free_monoid α →* monoid.mfoldr m β :=
 { to_fun := mfoldr.of_free_monoid f,
   map_one' := rfl,

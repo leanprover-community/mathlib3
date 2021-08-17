@@ -549,9 +549,3 @@ end
 structure system {X : Type*} [set X] :=
 ( h : ℕ → finset X )
 ( projlim : X = Prop ) --inverse limit
-
-variables (p : ℕ) [fact p.prime]
-
-noncomputable instance topo : topological_space (units ℤ_[p]) := infer_instance
-
-instance topo' : topological_space (units A) := infer_instance

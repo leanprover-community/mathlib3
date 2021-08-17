@@ -234,12 +234,6 @@ begin
   { rintros i, have iC := hV i.2, apply topological_space.is_topological_basis.is_open f' iC, },
 end
 
-lemma sub_apply (f : C(X, A)) (g : locally_constant X A) (y : X) :
-  ∥(f - inclusion X A g) y ∥ = ∥f y - (inclusion X A g) y∥ :=
-begin
-  simp only [continuous_map.coe_sub, pi.sub_apply],
-end
-
 noncomputable def T' (ε : ℝ) (f : C(X, A)) (t : finset(set A))
  (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i) :
  finset (set X) :=
@@ -347,7 +341,7 @@ begin
             congr' 2, swap, congr, swap 3, congr,
             repeat { apply hw, refine classical.some_spec (exists_of_exists_unique (ht3 y)), }, },
           convert_to ∥(f y) - ((inclusion X A ⟨(c2 X f ε t ht), loc_const⟩) y)∥ ≤ ε/2,
-          apply sub_apply,
+          { simp only [continuous_map.coe_sub, pi.sub_apply], },
           rw this, --obtain ⟨U, hU, wU⟩ := (ht1 w w1).2, --have yU := wU w2, simp at yU,
           --rw S at ht5, rw set.mem_range at ht5, cases ht5 with z hz,
           have ht5 := (ht1 w w1).2, rcases ht5 with ⟨U, hU, wU⟩,

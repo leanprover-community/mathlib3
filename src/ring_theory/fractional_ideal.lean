@@ -1215,8 +1215,8 @@ omit loc
 
 variables (K)
 
-lemma coe_ideal_eq_mk'_mul_coe_ideal {I J : ideal R₁} {x y : R₁} (hy : y ∈ R₁⁰) :
-  span_singleton R₁⁰ (is_localization.mk' K x ⟨y, hy⟩) * I = (J : fractional_ideal R₁⁰ K)  ↔
+lemma mk'_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {x y : R₁} (hy : y ∈ R₁⁰) :
+  span_singleton R₁⁰ (is_localization.mk' K x ⟨y, hy⟩) * I = (J : fractional_ideal R₁⁰ K) ↔
   ideal.span {x} * I = ideal.span {y} * J :=
 begin
   have inj : function.injective (coe : ideal R₁ → fractional_ideal R₁⁰ K) :=
@@ -1235,13 +1235,13 @@ end
 
 variables {K}
 
-lemma coe_ideal_eq_span_singleton_mul_coe_ideal {I J : ideal R₁} {z : K} :
+lemma span_singleton_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {z : K} :
   span_singleton R₁⁰ z * (I : fractional_ideal R₁⁰ K) = J ↔
   ideal.span {((is_localization.sec R₁⁰ z).1 : R₁)} * I =
     ideal.span {(is_localization.sec R₁⁰ z).2} * J :=
 -- `erw` to deal with the distinction between `y` and `⟨y.1, y.2⟩`
-by erw [← fractional_ideal.coe_ideal_eq_mk'_mul_coe_ideal K (is_localization.sec R₁⁰ z).2.prop,
-       is_localization.mk'_sec K z]
+by erw [← mk'_mul_coe_ideal_eq_coe_ideal K (is_localization.sec R₁⁰ z).2.prop,
+        is_localization.mk'_sec K z]
 
 end principal_ideal_ring
 

@@ -126,7 +126,7 @@ instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_
 
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
 that `⁅x,G⁆ ⊆ H n`-/
-lemma mem_upper_central_series_succ_iff {G : Type*} [group G] (n : ℕ) (x : G) :
+lemma mem_upper_central_series_succ_iff (n : ℕ) (x : G) :
   x ∈ upper_central_series G (n + 1) ↔
   ∀ y : G, x * y * x⁻¹ * y⁻¹ ∈ upper_central_series G n := iff.rfl
 
@@ -181,7 +181,7 @@ lemma upper_central_series_is_ascending_central_series :
   is_ascending_central_series (upper_central_series G) :=
 ⟨rfl, λ x n h, h⟩
 
-lemma upper_central_series_le_succ (G : Type*) [group G] (n : ℕ)
+lemma upper_central_series_le_succ (n : ℕ)
 : upper_central_series G n ≤ upper_central_series G n.succ :=
 begin
   intros x hx y,
@@ -309,12 +309,12 @@ begin
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
 end
 
-lemma subsingleton_is_nilpotent (G : Type*) [group G] (hG : subsingleton G) : is_nilpotent G :=
+lemma subsingleton_is_nilpotent (hG : subsingleton G) : is_nilpotent G :=
 begin
   exact nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩,
 end
 
-lemma ucs_functorial_wrt_surjection (G : Type*) [group G] (H : Type*) [group H] (f : G →* H)
+lemma ucs_functorial_wrt_surjection {H : Type*} [group H] (f : G →* H)
 (h : function.surjective f) (n : ℕ)
 : subgroup.map f (upper_central_series G n) ≤ upper_central_series H n :=
 begin

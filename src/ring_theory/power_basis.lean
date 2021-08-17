@@ -154,14 +154,18 @@ X ^ pb.dim -
   ∑ (i : fin pb.dim), C (pb.basis.repr (pb.gen ^ pb.dim) i) * X ^ (i : ℕ)
 
 @[simp]
-lemma nat_degree_minpoly_gen (pb : power_basis A S) :
-  nat_degree (minpoly_gen pb) = pb.dim :=
+lemma degree_minpoly_gen (pb : power_basis A S) :
+  degree (minpoly_gen pb) = pb.dim :=
 begin
   unfold minpoly_gen,
-  apply nat_degree_eq_of_degree_eq_some,
   rw degree_sub_eq_left_of_degree_lt; rw degree_X_pow,
   apply degree_sum_fin_lt
 end
+
+@[simp]
+lemma nat_degree_minpoly_gen (pb : power_basis A S) :
+  nat_degree (minpoly_gen pb) = pb.dim :=
+nat_degree_eq_of_degree_eq_some pb.degree_minpoly_gen
 
 lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
 begin
@@ -206,6 +210,12 @@ begin
         zero_smul] }
 end
 
+lemma dim_le_degree_of_root (h : power_basis A S) {p : polynomial A}
+  (ne_zero : p ≠ 0) (root : aeval h.gen p = 0) :
+  ↑h.dim ≤ p.degree :=
+by { rw [degree_eq_nat_degree ne_zero, with_bot.coe_le_coe],
+     exact h.dim_le_nat_degree_of_root ne_zero root }
+
 @[simp]
 lemma nat_degree_minpoly (pb : power_basis A S) :
   (minpoly A pb.gen).nat_degree = pb.dim :=
@@ -217,6 +227,12 @@ begin
   rw ← degree_eq_nat_degree (minpoly_gen_monic pb).ne_zero,
   exact minpoly.min _ _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
 end
+
+@[simp]
+lemma minpoly_gen_eq [algebra K S] (pb : power_basis K S) :
+  pb.minpoly_gen = minpoly K pb.gen :=
+minpoly.unique K pb.gen pb.minpoly_gen_monic pb.aeval_minpoly_gen (λ p p_monic p_root,
+  pb.degree_minpoly_gen.symm ▸ pb.dim_le_degree_of_root p_monic.ne_zero p_root)
 
 end minpoly
 

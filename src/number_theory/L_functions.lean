@@ -545,7 +545,3 @@ begin
         simp only [linear_map.map_smul], }, }, },
   simp only [auto_param_eq], assumption,
 end
-
-structure system {X : Type*} [set X] :=
-( h : ℕ → finset X )
-( projlim : X = Prop ) --inverse limit

@@ -29,6 +29,10 @@ p-adic, L-function, Bernoulli measure, ...
 
 --variables (A : Type*) [normed_comm_ring A] (p : ℕ) [fact p.prime] (d : ℕ) (hd : gcd d p = 1)
 
+structure system {X : Type*} [set X] :=
+( h : ℕ → finset X )
+( projlim : X = Prop ) --inverse limit
+
 def zmod.topological_space (d : ℕ) : topological_space (zmod d) := ⊥
 
 local attribute [instance] zmod.topological_space

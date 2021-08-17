@@ -19,7 +19,7 @@ This defines the [Kronecker product](https://en.wikipedia.org/wiki/Kronecker_pro
   and matrices `A` and `B` with coefficients in `α` and `β`, respectively, it is defined as the
   matrix with coefficients in `γ` such that
   `kronecker_map f A B (i₁, i₂) (j₁, j₂) = f (A i₁ j₁) (B i₁ j₂)`.
-* `matrix.kronecker_map_linear`: when `f` is bilinear, so is `kronecker_map f`.
+* `matrix.kronecker_map_bilinear`: when `f` is bilinear, so is `kronecker_map f`.
 
 ## Specializations
 
@@ -124,7 +124,7 @@ end
 
 /-- When `f` is bilinear then `matrix.kronecker_map f` is also bilinear. -/
 @[simps]
-def kronecker_map_linear [comm_semiring R]
+def kronecker_map_bilinear [comm_semiring R]
   [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
   [module R α] [module R β] [module R γ]
   (f : α →ₗ[R] β →ₗ[R] γ) :
@@ -136,20 +136,20 @@ linear_map.mk₂ R
   (kronecker_map_add_right _ $ λ a, (f a).map_add)
   (λ r, kronecker_map_smul_right _ _ $ λ a, (f a).map_smul r)
 
-/-- `matrix.kronecker_map_linear` commutes with `⬝` if `f` commutes with `*`.
+/-- `matrix.kronecker_map_bilinear` commutes with `⬝` if `f` commutes with `*`.
 
 This is primarily used with `R = ℕ` to prove `matrix.mul_kronecker_mul`. -/
-lemma kronecker_map_linear_mul_mul [comm_semiring R]
+lemma kronecker_map_bilinear_mul_mul [comm_semiring R]
   [non_unital_non_assoc_semiring α] [non_unital_non_assoc_semiring β]
   [non_unital_non_assoc_semiring γ]
   [module R α] [module R β] [module R γ]
   (f : α →ₗ[R] β →ₗ[R] γ) (h_comm : ∀ a b a' b', f (a * b) (a' * b') = f a a' * f b b')
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
-  kronecker_map_linear f (A ⬝ B) (A' ⬝ B') =
-    (kronecker_map_linear f A A') ⬝ (kronecker_map_linear f B B') :=
+  kronecker_map_bilinear f (A ⬝ B) (A' ⬝ B') =
+    (kronecker_map_bilinear f A A') ⬝ (kronecker_map_bilinear f B B') :=
 begin
   ext ⟨i, i'⟩ ⟨j, j'⟩,
-  simp only [kronecker_map_linear_apply_apply, mul_apply, ← finset.univ_product_univ,
+  simp only [kronecker_map_bilinear_apply_apply, mul_apply, ← finset.univ_product_univ,
     finset.sum_product, kronecker_map],
   simp_rw [f.map_sum, linear_map.sum_apply, linear_map.map_sum, h_comm],
 end
@@ -192,7 +192,7 @@ lemma kronecker_apply [has_mul α] (A : matrix l m α) (B : matrix n p α) (i₁
 /-- `matrix.kronecker` as a bilinear map. -/
 def kronecker_bilinear [comm_semiring R] [semiring α] [algebra R α] :
   matrix l m α →ₗ[R] matrix n p α →ₗ[R] matrix (l × n) (m × p) α :=
-kronecker_map_linear (algebra.lmul R α).to_linear_map
+kronecker_map_bilinear (algebra.lmul R α).to_linear_map
 
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
 hypotheses which can be filled by properties of `*`. -/
@@ -234,7 +234,7 @@ kronecker_map_one_one _ zero_mul mul_zero (one_mul _)
 lemma mul_kronecker_mul [comm_semiring α]
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' α) (B' : matrix m' n' α) :
   (A ⬝ B) ⊗ₖ (A' ⬝ B') = (A ⊗ₖ A') ⬝ (B ⊗ₖ B') :=
-kronecker_map_linear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_comm A B A' B'
+kronecker_map_bilinear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_comm A B A' B'
 
 @[simp] lemma kronecker_assoc [semigroup α] (A : matrix l m α) (B : matrix n p α)
   (C : matrix q r α) : reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r) ((A ⊗ₖ B) ⊗ₖ C) =
@@ -274,7 +274,7 @@ lemma kronecker_tmul_apply (A : matrix l m α) (B : matrix n p β) (i₁ i₂ j�
 /-- `matrix.kronecker` as a bilinear map. -/
 def kronecker_tmul_bilinear :
   matrix l m α →ₗ[R] matrix n p β →ₗ[R] matrix (l × n) (m × p) (α ⊗[R] β) :=
-kronecker_map_linear (tensor_product.mk R α β)
+kronecker_map_bilinear (tensor_product.mk R α β)
 
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
 hypotheses which can be filled by properties of `⊗ₜ`. -/
@@ -329,7 +329,7 @@ kronecker_map_one_one _ (zero_tmul _) (tmul_zero _) rfl
 lemma mul_kronecker_tmul_mul
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
   (A ⬝ B) ⊗ₖₜ[R] (A' ⬝ B') = (A ⊗ₖₜ A') ⬝ (B ⊗ₖₜ B') :=
-kronecker_map_linear_mul_mul (tensor_product.mk R α β) tmul_mul_tmul A B A' B'
+kronecker_map_bilinear_mul_mul (tensor_product.mk R α β) tmul_mul_tmul A B A' B'
 
 end algebra
 

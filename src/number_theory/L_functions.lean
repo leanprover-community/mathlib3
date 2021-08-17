@@ -81,14 +81,6 @@ noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topologica
     end,
 }
 
-lemma is_basis_iff_cover' {H : Type*} [topological_space H] {B : set (set H)}
-  (h : topological_space.is_topological_basis B) : ∀ (U : set H) (hU : is_open U),
-    ∃ Us ⊆ B, U = ⋃₀ Us :=
-begin
-  rintros U,
-  exact topological_space.is_topological_basis.open_eq_sUnion h,
-end
-
 lemma diff_inter_mem_sUnion {α : Type*} (s : set (set α)) (a y : set α) (h : y ∈ s) :
   (a \ ⋃₀ s) ∩ y = ∅ :=
 begin

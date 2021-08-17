@@ -37,8 +37,8 @@ number field, ring of integers
 /-- A number field is a field which has characteristic zero and is finite
 dimensional over ℚ. -/
 class number_field (K : Type*) [field K] : Prop :=
-[cz : char_zero K]
-[fd : finite_dimensional ℚ K]
+[to_char_zero : char_zero K]
+[to_finite_dimensional : finite_dimensional ℚ K]
 
 open function
 open_locale classical big_operators
@@ -47,12 +47,9 @@ namespace number_field
 variables (K : Type*) [field K] [number_field K]
 
 -- See note [lower instance priority]
-attribute [priority 100, instance] number_field.cz
+attribute [priority 100, instance] number_field.to_char_zero number_field.to_finite_dimensional
 
-lemma finite_dimensional_of_number_field : finite_dimensional ℚ K := number_field.fd
-
-lemma is_algebraic_of_number_field : algebra.is_algebraic ℚ K :=
-  @algebra.is_algebraic_of_finite ℚ K _ _ _ (finite_dimensional_of_number_field K)
+protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebraic_of_finite
 
 /-- The ring of integers (or number ring) corresponding to a number field
 is the integral closure of ℤ in the number field. -/
@@ -96,8 +93,8 @@ instance rat.finite_dimensional : finite_dimensional ℚ ℚ :=
 (infer_instance : is_noetherian ℚ ℚ)
 
 instance rat.number_field : number_field ℚ :=
-{ cz := infer_instance,
-  fd := by { convert rat.finite_dimensional,
+{ to_char_zero := infer_instance,
+  to_finite_dimensional := by { convert rat.finite_dimensional,
              -- The vector space structure of `ℚ` over itself can arise in multiple ways:
              -- all fields are vector spaces over themselves (used in `rat.finite_dimensional`)
              -- all fields have a canonical embedding of `ℚ` (used in `number_field`).

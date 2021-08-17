@@ -44,7 +44,8 @@ meta def additive_test (f : name → option name) (replace_all : bool) (ignore :
   (e : expr) : bool :=
 if replace_all then tt else additive_test_aux f ignore ff e
 
-/-- additivize the declaration `src` using the dictionary `f`.
+/-- transform the declaration `src` and all declarations `pre._proof_i` occurring in `src`
+using the dictionary `f`.
 `replace_all`, `trace`, `ignore` and `reorder` are configuration options.
 `pre` is the declaration that got the `@[to_additive]` attribute and `tgt_pre` is the target of this
 declaration. -/
@@ -64,6 +65,7 @@ do
   -- we first transform all the declarations of the form `pre._proof_i`
   (decl.type.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
   (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
+  -- we transform `decl` using `f` and the configuration options.
   let decl :=
     decl.update_with_fun env (name.map_prefix f) (additive_test f replace_all ignore) reorder tgt,
   pp_decl ← pp decl,
@@ -72,9 +74,9 @@ do
 For help, see the docstring of `to_additive.attr`, section `Troubleshooting`.
 Failed to add declaration\n{pp_decl}
 
-Nested error message:\n").to_string $ -- empty line is intentional
+Nested error message:\n").to_string $ -- the empty line is intentional
     if env.is_protected src then add_protected_decl decl else add_decl decl,
-  attrs.mmap' (λ n, copy_attribute n src tgt)
+  attrs.mmap' $ λ n, copy_attribute n src tgt
 
 /--
 Make a new copy of a declaration,

@@ -30,6 +30,12 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 
 * `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure` :
   the Lebesgue decomposition theorem.
+* `measure_theory.measure.eq_singular_part` : Given measures `μ` and `ν`, if `s` is a measure
+  mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`, then
+  `s = singular_part μ ν`.
+* `measure_theory.measure.eq_radon_nikodym_deriv` : Given measures `μ` and `ν`, if `s` is a
+  measure mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`,
+  then `f = radon_nikodym_deriv μ ν`.
 
 ## To do
 
@@ -74,6 +80,10 @@ begin
   rw [singular_part, radon_nikodym_deriv, dif_pos h, dif_pos h],
   exact classical.some_spec h,
 end
+
+lemma have_lebesgue_decomposition_add {μ ν : measure α} (h : have_lebesgue_decomposition μ ν) :
+  μ = (singular_part μ ν) + ν.with_density (radon_nikodym_deriv μ ν) :=
+(have_lebesgue_decomposition_spec h).2.2
 
 @[measurability]
 lemma measurable_radon_nikodym_deriv (μ ν : measure α) :

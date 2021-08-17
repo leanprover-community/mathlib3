@@ -133,14 +133,14 @@ begin
           mul_eq_zero, hz, ring_hom.map_zero],
       exact or.inl rfl },
     { exact mem_non_zero_divisors_iff_ne_zero.mp (is_localization.sec R⁰ z).2.2 },
-    { exact fractional_ideal.coe_ideal_eq_span_singleton_mul_coe_ideal.mp h } },
+    { exact fractional_ideal.span_singleton_mul_coe_ideal_eq_coe_ideal.mp h } },
   { rintros ⟨x, y, hx, hy, h⟩,
     have hy' : y ∈ R⁰ := mem_non_zero_divisors_iff_ne_zero.mpr hy,
     refine ⟨is_localization.mk' K x ⟨y, hy'⟩, _, _⟩,
     { contrapose! hx,
       rwa [is_localization.mk'_eq_iff_eq_mul, zero_mul, ← (algebra_map R K).map_zero,
            (is_fraction_ring.injective R K).eq_iff] at hx },
-    { exact (fractional_ideal.coe_ideal_eq_mk'_mul_coe_ideal K hy').mpr h } },
+    { exact (fractional_ideal.mk'_mul_coe_ideal_eq_coe_ideal K hy').mpr h } },
 end
 
 lemma class_group.mk0_surjective [is_dedekind_domain R] :

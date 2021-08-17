@@ -100,39 +100,15 @@ protected def function.surjective.module [add_comm_monoid M₂] [has_scalar R M�
 
 variables {R} (M)
 
-namespace module
-
 /-- Compose a `module` with a `ring_hom`, with action `f s • m`.
 
 See note [reducible non-instances]. -/
-@[reducible] def comp_hom [semiring S] (f : S →+* R) :
+@[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
-{ smul := (•) ∘ f,
+{ smul := has_scalar.comp.smul f,
   add_smul := λ r s x, by simp [add_smul],
   .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
   .. distrib_mul_action.comp_hom M (f : S →* R) }
-
-/-- If an action forms a scalar tower then so does the action formed by
-`module.comp_hom`. -/
-@[priority 100]
-instance comp_hom.is_scalar_tower [add_comm_monoid M₂] [module R M₂] [has_scalar M M₂]
-  [is_scalar_tower R M M₂] [semiring S] (g : S →+* R) :
-  (by haveI := comp_hom M g; haveI := comp_hom M₂ g; exact is_scalar_tower S M M₂) :=
-mul_action.comp_hom.is_scalar_tower _ g.to_monoid_hom
-
-@[priority 100]
-instance comp_hom.smul_comm_class [has_scalar M₂ M] [smul_comm_class R M₂ M]
-  [semiring S] (g : S →+* R) :
-  (by haveI := comp_hom M g; exact smul_comm_class S M₂ M) :=
-mul_action.comp_hom.smul_comm_class _ g.to_monoid_hom
-
-@[priority 100]
-instance comp_hom.smul_comm_class' [has_scalar M₂ M] [smul_comm_class M₂ R M]
-  [semiring S] (g : S →+* R) :
-  (by haveI := comp_hom M g; exact smul_comm_class M₂ S M) :=
-mul_action.comp_hom.smul_comm_class' _ g.to_monoid_hom
-
-end module
 
 variables (R) (M)
 

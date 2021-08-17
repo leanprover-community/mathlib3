@@ -98,7 +98,8 @@ end
 Compare `det_conj`, where we use `M⁻¹` instead of `Mᵀ`.
 -/
 lemma det_transpose_conj [decidable_eq m] [decidable_eq n]
-  {N : matrix n n A} {M : matrix n m A} {M' : matrix m n A} (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  {N : matrix n n A} {M : matrix n m A} {M' : matrix m n A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (Mᵀ ⬝ N ⬝ M) = det (M ⬝ Mᵀ) * det N :=
 begin
   rw ← det_conj hMM' hM'M,

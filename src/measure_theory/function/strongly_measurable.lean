@@ -100,7 +100,6 @@ lemma fin_strongly_measurable_of_set_sigma_finite [topological_space β] [has_ze
   (ht : measurable_set t) (hft_zero : ∀ x ∈ tᶜ, f x = 0) (htμ : sigma_finite (μ.restrict t)) :
   fin_strongly_measurable f μ :=
 begin
-  obtain ⟨t, ht, hft_zero, htμ⟩ := hf,
   haveI : sigma_finite (μ.restrict t) := htμ,
   let S := spanning_sets (μ.restrict t),
   have hS_meas : ∀ n, measurable_set (S n), from measurable_spanning_sets (μ.restrict t),
@@ -149,8 +148,8 @@ end
 protected lemma fin_strongly_measurable [topological_space β] [has_zero β] {m0 : measurable_space α}
   (hf : strongly_measurable f) (μ : measure α) [sigma_finite μ] :
   fin_strongly_measurable f μ :=
-hf.fin_strongly_measurable_of_set_sigma_finite
-  ⟨set.univ, measurable_set.univ, by simp, by rwa measure.restrict_univ⟩
+hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simp)
+  (by rwa  measure.restrict_univ)
 
 /-- A strongly measurable function is measurable. -/
 protected lemma measurable [measurable_space α] [metric_space β] [measurable_space β]

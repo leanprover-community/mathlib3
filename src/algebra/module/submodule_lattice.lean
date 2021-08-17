@@ -23,7 +23,7 @@ to unify the APIs where possible.
 
 -/
 
-variables {R : Type*} {S : Type*} {M : Type*}
+variables {R S M : Type*}
 
 section add_comm_monoid
 variables [semiring R] [semiring S] [add_comm_monoid M] [module R M] [module S M]

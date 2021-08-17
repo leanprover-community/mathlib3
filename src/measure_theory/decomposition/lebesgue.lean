@@ -131,8 +131,14 @@ instance {μ ν : measure α} [sigma_finite μ] :
   sigma_finite (ν.with_density $ radon_nikodym_deriv μ ν) :=
 sigma_finite_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
 
+/-- Given measures `μ` and `ν`, if `s` is a measure mutually singular to `ν` and `f` is a
+measurable function such that `μ = s + fν`, then `s = singular_part μ ν`.
+
+This theorem provides the uniqueness of the `singular_part` in the Lebesgue decomposition theorem,
+while `measure_theory.measure.eq_radon_nikodym_deriv` provides the uniqueness of the
+`radon_nikodym_deriv`. -/
 theorem eq_singular_part
-  {μ ν : measure α} (s : measure α) (f : α → ℝ≥0∞) (hf : measurable f)
+  {μ ν : measure α} {s : measure α} {f : α → ℝ≥0∞} (hf : measurable f)
   (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   s = μ.singular_part ν :=
 begin
@@ -180,8 +186,14 @@ begin
   { measurability }
 end
 
+/-- Given measures `μ` and `ν`, if `s` is a measure mutually singular to `ν` and `f` is a
+measurable function such that `μ = s + fν`, then `f = radon_nikodym_deriv μ ν`.
+
+This theorem provides the uniqueness of the `radon_nikodym_deriv` in the Lebesgue decomposition
+theorem, while `measure_theory.measure.eq_singular_part` provides the uniqueness of the
+`singular_part`. -/
 theorem eq_radon_nikodym_deriv
-  {μ ν : measure α} (s : measure α) (f : α → ℝ≥0∞) (hf : measurable f)
+  {μ ν : measure α} {s : measure α} {f : α → ℝ≥0∞} (hf : measurable f)
   (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
 begin

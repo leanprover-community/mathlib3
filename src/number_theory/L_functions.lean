@@ -30,6 +30,7 @@ def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 variables (X : Type*)
 variables [topological_space X] [compact_space X] [t2_space X] [totally_disconnected_space X]
 variables {R : Type*} [normed_group R]
+variables (A : Type*) [normed_comm_ring A]
 
 noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
 
@@ -41,10 +42,10 @@ abbreviation inclusion (R : Type*) [topological_space R] : locally_constant X R 
 locally_constant.to_continuous_map
 
 -- TODO Remove `inclusion'`
-abbreviation inclusion' (A : Type*) [normed_comm_ring A]: locally_constant X A →ₗ[A] C(X, A) :=
+abbreviation inclusion' : locally_constant X A →ₗ[A] C(X, A) :=
 locally_constant.to_continuous_map_linear_map A
 
-instance (A : Type*) [normed_comm_ring A] [h : nonempty X] : has_continuous_smul A C(X, A) :=
+instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
 { continuous_smul := begin
   change continuous ((λ p, p.1 * p.2 : C(X,A) × C(X,A) → C(X,A)) ∘
     (λ p, ((continuous_map.const p.fst), p.2) : A × C(X,A) → C(X,A) × C(X,A))),
@@ -150,7 +151,7 @@ def h {A : Type*} [normed_ring A] (ε : ℝ) : A → set A := λ (x : A), metric
 
 def S {A : Type*} [normed_ring A] (ε : ℝ) : set (set A) := set.range (h ε)
 
-variables {A : Type*} [normed_comm_ring A] (f : C(X, A)) (ε : ℝ) [hε : 0 < ε]
+variables {A} (f : C(X, A)) (ε : ℝ) [hε : 0 < ε]
 
 def B : set(set X) := { j : set X | ∃ (U ∈ ((S ε) : set(set A))), j = f ⁻¹' U }
 

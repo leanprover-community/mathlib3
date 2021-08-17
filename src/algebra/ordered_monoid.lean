@@ -788,11 +788,9 @@ section covariant_class_mul_le
 variables [linear_order α]
 
 section has_mul
-
 variable [has_mul α]
 
 section left
-
 variable [covariant_class α α (*) (≤)]
 
 @[to_additive] lemma min_mul_mul_left (a b c : α) : min (a * b) (a * c) = a * min b c :=
@@ -805,7 +803,6 @@ lemma max_mul_mul_left (a b c : α) : max (a * b) (a * c) = a * max b c :=
 end left
 
 section right
-
 variable [covariant_class α α (function.swap (*)) (≤)]
 
 @[to_additive]

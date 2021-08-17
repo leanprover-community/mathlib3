@@ -39,7 +39,7 @@ General algebra:
     third isomorphism theorem: 'quotient_group.quotient_quotient_equiv_quotient'
     abelianization: 'abelianization'
     free group: 'free_group'
-    presentated group: 'presented_group'
+    presented group: 'presented_group'
     cyclic group: 'is_cyclic'
     nilpotent group: 'group.is_nilpotent'
     permutation group of a type: 'equiv.perm'

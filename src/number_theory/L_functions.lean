@@ -45,24 +45,29 @@ locally_constant.to_continuous_map
 abbreviation inclusion' : locally_constant X A →ₗ[A] C(X, A) :=
 locally_constant.to_continuous_map_linear_map A
 
-instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
-{ continuous_smul := begin
+-- TODO Generalise this. Ideally appeal to corresponding result for compact-open topology
+-- (cf #8721) if we can solve the defeq problem on the two topologies: CO and metric.
+lemma continuous_const' [nonempty X] : continuous (continuous_map.const : A → C(X,A)) :=
+begin
+  rw metric.continuous_iff,
+  intros a ε hε,
+  refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
+  rw dist_eq_norm at hb ⊢,
+  refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
+  rw continuous_map.norm_eq_supr_norm,
+  apply csupr_le,
+  intro x,
+  apply le_of_lt,
+  simp [hb],
+end
+
+instance [nonempty X] : has_continuous_smul A C(X, A) :=
+⟨begin
   change continuous ((λ p, p.1 * p.2 : C(X,A) × C(X,A) → C(X,A)) ∘
     (λ p, ((continuous_map.const p.fst), p.2) : A × C(X,A) → C(X,A) × C(X,A))),
-  -- should be factored out
-  have h : continuous (continuous_map.const : A → C(X,A)),
-  { rw metric.continuous_iff,
-    intros a ε hε,
-    refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
-    rw dist_eq_norm at hb ⊢,
-    refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
-    rw continuous_map.norm_eq_supr_norm,
-    apply csupr_le,
-    intro x,
-    apply le_of_lt,
-    simp [hb] },
+  have h := continuous_const' X A,
   continuity,
-end }
+end⟩
 
 noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R]
   (U : clopen_sets X) : locally_constant X R :=

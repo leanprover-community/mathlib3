@@ -65,18 +65,6 @@ x.2
 
 variables (K)
 
-lemma char_zero.of_algebra {R : Type*} (S : Type*) [comm_semiring R] [semiring S] [algebra R S]
-  [char_zero S] : char_zero R :=
-⟨begin
-  suffices : injective (algebra_map R S ∘ coe),
-  { exact injective.of_comp this },
-  convert char_zero.cast_injective,
-  ext n,
-  rw [function.comp_app, ← (algebra_map ℕ _).eq_nat_cast, ← ring_hom.comp_apply,
-      ring_hom.eq_nat_cast],
-  all_goals { apply_instance }
-end⟩
-
 instance : char_zero (ring_of_integers K) := char_zero.of_algebra K
 
 -- TODO: show `ring_of_integers K` is a Dedekind domain

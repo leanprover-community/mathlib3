@@ -241,6 +241,12 @@ instance semiring.to_module [semiring R] : module R R :=
   zero_smul := zero_mul,
   smul_zero := mul_zero }
 
+@[priority 910] -- see Note [lower instance priority]
+instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
+{ smul_add := λ r x y, add_mul _ _ _,
+  add_smul := λ r x y, mul_add _ _ _,
+  ..monoid_with_zero.to_opposite_mul_action_with_zero R}
+
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
 { smul := λ r x, f r * x,
@@ -451,7 +457,7 @@ section smul_injective
 
 variables (M)
 
-lemma smul_left_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective (λ (x : M), c • x) :=
 λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc c • (x - y) = c • x - c • y : smul_sub c x y
@@ -484,7 +490,7 @@ section smul_injective
 
 variables (R)
 
-lemma smul_right_injective {x : M} (hx : x ≠ 0) :
+lemma smul_left_injective {x : M} (hx : x ≠ 0) :
   function.injective (λ (c : R), c • x) :=
 λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc (c - d) • x = c • x - d • x : sub_smul c d x

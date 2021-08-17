@@ -1186,6 +1186,63 @@ begin
   rw [coe_ideal_span_singleton (generator aI), span_singleton_mul_span_singleton]
 end
 
+include loc
+
+lemma le_span_singleton_mul_iff {x : P} {I J : fractional_ideal S P} :
+  I ≤ span_singleton S x * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI :=
+show (∀ {zI} (hzI : zI ∈ I), zI ∈ span_singleton _ x * J) ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI,
+by simp only [fractional_ideal.mem_singleton_mul, eq_comm]
+
+lemma span_singleton_mul_le_iff {x : P} {I J : fractional_ideal S P} :
+  span_singleton _ x * I ≤ J ↔ ∀ z ∈ I, x * z ∈ J :=
+begin
+  simp only [fractional_ideal.mul_le, fractional_ideal.mem_singleton_mul,
+             fractional_ideal.mem_span_singleton],
+  split,
+  { intros h zI hzI,
+    exact h x ⟨1, one_smul _ _⟩ zI hzI },
+  { rintros h _ ⟨z, rfl⟩ zI hzI,
+    rw [algebra.smul_mul_assoc],
+    exact submodule.smul_mem J.1 _ (h zI hzI) },
+end
+
+lemma eq_span_singleton_mul {x : P} {I J : fractional_ideal S P} :
+  I = span_singleton _ x * J ↔ (∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ ∀ z ∈ J, x * z ∈ I :=
+by simp only [le_antisymm_iff, fractional_ideal.le_span_singleton_mul_iff,
+              fractional_ideal.span_singleton_mul_le_iff]
+
+omit loc
+
+variables (K)
+
+lemma mk'_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {x y : R₁} (hy : y ∈ R₁⁰) :
+  span_singleton R₁⁰ (is_localization.mk' K x ⟨y, hy⟩) * I = (J : fractional_ideal R₁⁰ K) ↔
+  ideal.span {x} * I = ideal.span {y} * J :=
+begin
+  have inj : function.injective (coe : ideal R₁ → fractional_ideal R₁⁰ K) :=
+    fractional_ideal.coe_ideal_injective,
+  have : span_singleton R₁⁰ (is_localization.mk' _ 1 ⟨y, hy⟩) *
+           span_singleton R₁⁰ (algebra_map R₁ K y) = 1,
+  { rw [span_singleton_mul_span_singleton, mul_comm, ← is_localization.mk'_eq_mul_mk'_one,
+        is_localization.mk'_self, span_singleton_one] },
+  let y' : units (fractional_ideal R₁⁰ K) := units.mk_of_mul_eq_one _ _ this,
+  have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K 1 ⟨y, hy⟩) := rfl,
+  refine iff.trans _ (y'.mul_right_inj.trans inj.eq_iff),
+  simp only [coe_ideal_mul, ideal.span, coe_ideal_span_singleton, ← mul_assoc, coe_y',
+    span_singleton_mul_span_singleton, mul_comm, ← is_localization.mk'_eq_mul_mk'_one,
+    is_localization.mk'_self, span_singleton_one, one_mul],
+end
+
+variables {K}
+
+lemma span_singleton_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {z : K} :
+  span_singleton R₁⁰ z * (I : fractional_ideal R₁⁰ K) = J ↔
+  ideal.span {((is_localization.sec R₁⁰ z).1 : R₁)} * I =
+    ideal.span {(is_localization.sec R₁⁰ z).2} * J :=
+-- `erw` to deal with the distinction between `y` and `⟨y.1, y.2⟩`
+by erw [← mk'_mul_coe_ideal_eq_coe_ideal K (is_localization.sec R₁⁰ z).2.prop,
+        is_localization.mk'_sec K z]
+
 end principal_ideal_ring
 
 variables {R₁ : Type*} [integral_domain R₁]

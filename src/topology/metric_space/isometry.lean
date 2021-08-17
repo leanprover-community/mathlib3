@@ -130,7 +130,7 @@ hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous
 
 lemma isometry.tendsto_nhds_iff [complete_space α] [emetric_space β] {ι : Type*} {f : α → β}
   {g : ι → α} {a : filter ι} {b : α} (hf : isometry f) :
-  a.tendsto g (𝓝 b) ↔ a.tendsto (f ∘ g) (𝓝 (f b)) :=
+  filter.tendsto g a (𝓝 b) ↔ filter.tendsto (f ∘ g) a (𝓝 (f b)) :=
 hf.closed_embedding.tendsto_nhds_iff
 
 end emetric_isometry --section

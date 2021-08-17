@@ -57,8 +57,7 @@ meta def tfae_have
   (re : parse (((tk "→" <|> tk "->")  *> return arrow.right)      <|>
                ((tk "↔" <|> tk "<->") *> return arrow.left_right) <|>
                ((tk "←" <|> tk "<-")  *> return arrow.left)))
-  (i₂ : parse (with_desc "j" small_nat))
-  (discharger : tactic unit := tactic.solve_by_elim) :
+  (i₂ : parse (with_desc "j" small_nat)) :
   tactic unit := do
     `(tfae %%l) <- target,
     l ← parse_list l,

@@ -30,8 +30,6 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 
 * `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure` :
   the Lebesgue decomposition theorem.
-* `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure_unique` :
-  the Lebesgue decomposition is unique.
 
 ## To do
 

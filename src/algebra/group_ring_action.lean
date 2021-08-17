@@ -82,6 +82,9 @@ def mul_semiring_action.to_semiring_equiv [mul_semiring_action G R] (x : G) : R 
 { .. distrib_mul_action.to_add_equiv G R x,
   .. mul_semiring_action.to_ring_hom G R x }
 
+section
+variables {M G R}
+
 /-- A stronger version of `submonoid.distrib_mul_action`. -/
 instance submonoid.mul_semiring_action [mul_semiring_action M R] (H : submonoid M) :
   mul_semiring_action H R :=
@@ -106,6 +109,8 @@ instance subring.mul_semiring_action {R'} [ring R'] [mul_semiring_action R' R]
   (H : subring R') :
   mul_semiring_action H R :=
 H.to_subsemiring.mul_semiring_action
+
+end
 
 section prod
 variables [mul_semiring_action M R] [mul_semiring_action M S]

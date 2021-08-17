@@ -120,7 +120,7 @@ begin
         apply hQ1,
         simp },
       erw span_singleton_prime hq at hQ2,
-      replace hQ2 := irreducible_of_prime hQ2,
+      replace hQ2 := hQ2.irreducible,
       rw irreducible_iff_uniformizer at hQ2,
       exact hQ2.symm } },
   { rintro ⟨RPID, Punique⟩,
@@ -162,7 +162,7 @@ begin
   clear hp hq p q,
   intros p hp,
   obtain ⟨n, hn⟩ := hR hp.ne_zero,
-  have : irreducible (ϖ ^ n) := irreducible_of_associated hn.symm hp,
+  have : irreducible (ϖ ^ n) := hn.symm.irreducible hp,
   rcases lt_trichotomy n 1 with (H|rfl|H),
   { obtain rfl : n = 0, { clear hn this, revert H n, exact dec_trivial },
     simpa only [not_irreducible_one, pow_zero] using this, },
@@ -398,7 +398,7 @@ lemma add_val_def (r : R) (u : units R) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ
   add_val R r = n :=
 by rw [add_val, add_valuation_apply, hr,
     eq_of_associated_left (associated_of_irreducible R hϖ
-      (irreducible_of_prime (classical.some_spec (exists_prime R)))),
+      (classical.some_spec (exists_prime R)).irreducible),
     eq_of_associated_right (associated.symm ⟨u, mul_comm _ _⟩),
     multiplicity_pow_self_of_prime (principal_ideal_ring.irreducible_iff_prime.1 hϖ)]
 
@@ -424,7 +424,7 @@ lemma add_val_pow (a : R) (n : ℕ) : add_val R (a ^ n) = n • add_val R a :=
 
 lemma add_val_eq_top_iff {a : R} : add_val R a = ⊤ ↔ a = 0 :=
 begin
-  have hi := (irreducible_of_prime (classical.some_spec (exists_prime R))),
+  have hi := (classical.some_spec (exists_prime R)).irreducible,
   split,
   { contrapose,
     intro h,
@@ -444,10 +444,10 @@ begin
     { rw [ha0, add_val_zero, top_le_iff, add_val_eq_top_iff] at h,
       rw h,
       apply dvd_zero },
-    obtain ⟨n, ha⟩ := associated_pow_irreducible ha0 (irreducible_of_prime hp),
+    obtain ⟨n, ha⟩ := associated_pow_irreducible ha0 hp.irreducible,
     rw [add_val, add_valuation_apply, add_valuation_apply,
       multiplicity_le_multiplicity_iff] at h,
-    exact dvd.trans (dvd_of_associated ha) (h n (dvd_of_associated ha.symm)), },
+    exact ha.dvd.trans (h n ha.symm.dvd), },
   { rw [add_val, add_valuation_apply, add_valuation_apply],
     exact multiplicity_le_multiplicity_of_dvd_right h }
 end

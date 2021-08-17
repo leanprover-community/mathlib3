@@ -64,7 +64,7 @@ match h₁, h₂ with
   ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
 end
 
-alias dvd_trans ← dvd.trans
+alias dvd_trans ← has_dvd.dvd.trans
 
 theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (by simp)
 

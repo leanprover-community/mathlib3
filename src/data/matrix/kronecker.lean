@@ -161,6 +161,13 @@ lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ 
     (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
 ext $ λ i j, hφ _ _ _
 
+lemma kronecker_map_assoc₁ {δ ξ ω : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω)
+  (g' : β → δ → ξ) (A : matrix l m α) (B : matrix n p β) (D : matrix q r δ)
+  (h : ∀ a b d, (g (f a b) d) = f' a (g' b d)) :
+  reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)
+    (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
+ext $ λ i j, h _ _ _
+
 end kronecker_map
 
 /-! ### Specialization to `matrix.kronecker_map (*)` -/

@@ -233,7 +233,7 @@ end
 end intermediate_field.adjoin_simple
 
 lemma trace_eq_sum_roots [finite_dimensional K L]
-  {x : L} (hx : _root_.is_integral K x) (hF : (minpoly K x).splits (algebra_map K F)) :
+  {x : L} (hF : (minpoly K x).splits (algebra_map K F)) :
   algebra_map K F (algebra.trace K L x) =
     finrank K⟮x⟯ L • ((minpoly K x).map (algebra_map K _)).roots.sum :=
 begin
@@ -257,8 +257,8 @@ lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is
   _root_.is_integral R (algebra.trace L F x) :=
 begin
   have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
-  rw ← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
-  rw trace_eq_sum_roots hx',
+  rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
+      trace_eq_sum_roots],
   { refine (is_integral.multiset_sum _).nsmul _,
     intros y hy,
     rw mem_roots_map (minpoly.ne_zero hx') at hy,

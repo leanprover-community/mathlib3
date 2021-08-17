@@ -118,12 +118,12 @@ begin
     apply_instance }
 end
 
-theorem eq_singular_part_of_have_lebesgue_decomposition
-  {μ ν : measure α} (h : have_lebesgue_decomposition μ ν)
-  (s : measure α) (f : α → ℝ≥0∞) (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
+theorem eq_singular_part
+  {μ ν : measure α} (s : measure α) (f : α → ℝ≥0∞) (hf : measurable f)
+  (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   s = μ.singular_part ν :=
 begin
-  obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec h,
+  obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec ⟨⟨s, f⟩, hf, hs, hadd⟩,
   obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, ⟨T, hT₁, hT₂, hT₃⟩⟩ := ⟨hs, hsing⟩,
   rw hadd' at hadd,
   have hνinter : ν (S ∩ T)ᶜ = 0,
@@ -167,12 +167,12 @@ begin
   { measurability }
 end
 
-theorem eq_radon_nikodym_deriv_of_have_lebesgue_decomposition
-  {μ ν : measure α} (h : have_lebesgue_decomposition μ ν)
-  (s : measure α) (f : α → ℝ≥0∞) (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
+theorem eq_radon_nikodym_deriv
+  {μ ν : measure α} (s : measure α) (f : α → ℝ≥0∞) (hf : measurable f)
+  (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
   ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
 begin
-  obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec h,
+  obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec ⟨⟨s, f⟩, hf, hs, hadd⟩,
   obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, ⟨T, hT₁, hT₂, hT₃⟩⟩ := ⟨hs, hsing⟩,
   rw hadd' at hadd,
   have hνinter : ν (S ∩ T)ᶜ = 0,

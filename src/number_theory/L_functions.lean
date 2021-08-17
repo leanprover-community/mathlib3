@@ -429,9 +429,6 @@ constructor,
 rintros U V, refine ⟨U.val ∪ V.val, _⟩, apply is_clopen.union U.prop V.prop,
 end
 
---what to do?
-variables {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation A nnreal)
-
 structure  distribution {R : Type*} [add_monoid R] :=
 (phi : clopen_sets X → R)
 (count_add ⦃f : ℕ → clopen_sets X⦄ :
@@ -441,9 +438,9 @@ structure  distribution {R : Type*} [add_monoid R] :=
 structure distribution' :=
 (phi : linear_map A (locally_constant X A) A)
 
-def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
+variables (v : valuation A nnreal) (A)
 
-variable (A)
+def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
 
 def measures' :=
   {φ : distribution' X //

@@ -379,7 +379,7 @@ begin
   rw set.preimage_sUnion at g',
   rw set.subset.antisymm_iff at g',
   obtain ⟨t, ht⟩ := is_compact.elim_finite_subcover _ _ _ g'.2,
-  { simp at ht, apply tp_dense X ε H hε f t ht, },
+  { exact tp_dense X ε H hε f t ht, },
   { exact compact_univ, },
   { rintros i, apply is_open_Union, rintros hi, apply continuous.is_open_preimage _,
     { rw [hS, h'] at hi, simp at hi, cases hi with y hy,

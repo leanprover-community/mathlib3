@@ -198,14 +198,16 @@ variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 
 /-- In a commutative Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero,
 `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)` for all `x`, `y` in the disk of convergence. -/
 lemma exp_add_of_lt_radius [char_zero 𝕂] {x y : 𝔸}
-  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) (hy : (∥y∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) :
+  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius)
+  (hy : (∥y∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_commute_of_lt_radius (commute.all x y) hx hy
 
 /-- The exponential map in a commutative Banach-algebra `𝔸` over a normed field `𝕂` of
 characteristic zero has Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x` in the
 disk of convergence. -/
-lemma has_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸} (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) :
+lemma has_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸}
+  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) :
   has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 begin
   have hpos : 0 < (exp_series 𝕂 𝔸).radius := (ennreal.coe_nonneg.mpr $ zero_le _).trans_lt hx,
@@ -248,7 +250,8 @@ by simpa using (has_strict_fderiv_at_exp_of_lt_radius hx).has_strict_deriv_at
 
 /-- The exponential map in a complete normed field `𝕂` of characteristic zero has derivative
 `exp 𝕂 𝕂 x` at any point `x` in the disk of convergence. -/
-lemma has_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂} (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝕂).radius) :
+lemma has_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂}
+  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝕂).radius) :
   has_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
 (has_strict_deriv_at_exp_of_lt_radius hx).has_deriv_at
 

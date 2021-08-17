@@ -447,14 +447,12 @@ ring_hom.ext $ monoid_hom.ext_iff.1 $ (to_localization_map M S).lift_of_comp j.t
 
 variables (M)
 /-- See note [partially-applied ext lemmas] -/
-@[ext]
 lemma monoid_hom_ext ⦃j k : S →* P⦄
   (h : j.comp (algebra_map R S : R →* S) = k.comp (algebra_map R S)) : j = k :=
 submonoid.localization_map.epic_of_localization_map (to_localization_map M S) $
   monoid_hom.congr_fun h
 
 /-- See note [partially-applied ext lemmas] -/
-@[ext]
 lemma ring_hom_ext ⦃j k : S →+* P⦄
   (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
 ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h

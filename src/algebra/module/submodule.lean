@@ -226,9 +226,9 @@ instance (p : submodule R M) : is_scalar_tower S R (p.restrict_scalars S) :=
 
 /-- Turning `p : submodule R M` into an `S`-submodule gives the same module structure
 as turning it into a type and adding a module structure. -/
-@[simps]
+@[simps {simp_rhs := tt}]
 def restrict_scalars_equiv (p : submodule R M) : p.restrict_scalars S ≃ₗ[R] p :=
-{ map_smul' := λ c x, rfl, .. add_equiv.refl p }
+{ to_fun := id, inv_fun := id, map_smul' := λ c x, rfl, .. add_equiv.refl p }
 
 end restrict_scalars
 

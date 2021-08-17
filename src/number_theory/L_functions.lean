@@ -32,8 +32,6 @@ variables [topological_space X] [compact_space X] [t2_space X] [totally_disconne
 variables {R : Type*} [normed_group R]
 variables (A : Type*) [normed_comm_ring A]
 
-noncomputable instance : uniform_space C(X, R) := metric_space.to_uniform_space'
-
 --todo
 --instance completeness {R : Type*} [normed_group R] : complete_space C(X, R) := sorry
 

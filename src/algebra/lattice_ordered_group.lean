@@ -15,37 +15,30 @@ They form the algebraic underpinnings of vector lattices, Banach lattices, AL-sp
 
 This file develops the basic theory, concentrating on the commutative case.
 
-## Main definitions
-
-* `lattice_ordered_group` - a (non-commutative) partially ordered (multiplicative) group which forms
-  a lattice with respect to the partial order.
-* `lattice_ordered_add_group` - the additive form of a `lattice_ordered_group`
-* `lattice_ordered_comm_group` - a lattice ordered (multiplicative) group with commutative group
-  operation
-* `lattice_ordered_add_comm_group` - the additive form of a `lattice_ordered_comm_group`
-
 ## Main statements
 
-- `pos_div_neg`: Every element `a` of a `lattice_ordered_add_comm_group` has a decomposition `a⁺-a⁻`
+- `pos_div_neg`: Every element `a` of a lattice ordered commutative group has a decomposition `a⁺-a⁻`
    into the difference of the positive and negative component.
 - `pos_inf_neg_eq_one`: The positive and negative components are coprime.
-- `mul_abs_triangle`: The absolute value operation satisfies the triangle inequality.
+- `abs_triangle`: The absolute value operation satisfies the triangle inequality.
 
 It is shown that the inf and sup operations are related to the absolute value operation by a
 number of equations and inequalities.
 
 ## Notations
 
-- `a⁺ = a ⊔ 0`: The *positive component* of an element `a` of a `lattice_ordered_add_comm_group`
-- `a⁻ = (-a) ⊔ 0`: The *negative component* of an element `a` of a `lattice_ordered_add_comm_group`
-* `|a| = a⊔(-a)`: The *absolute value* of an element `a` of a `lattice_ordered_add_comm_group`
+- `a⁺ = a ⊔ 0`: The *positive component* of an element `a` of a lattice ordered commutative group
+- `a⁻ = (-a) ⊔ 0`: The *negative component* of an element `a` of a lattice ordered commutative group
+* `|a| = a⊔(-a)`: The *absolute value* of an element `a` of a lattice ordered commutative group
 
 ## Implementation notes
 
-We define `lattice_ordered_group` as extending `group` and `lattice` and
-`lattice_ordered_comm_group` as extending `comm_group` and `lattice`. Equivalent additive classes
-are defined. We then show that a `lattice_ordered_comm_group` is a `lattice_ordered_group` and an
-`ordered_comm_group`.
+A lattice ordered commutative group is a type `α` satisfying:
+
+* `[lattice α]`
+* `[comm_group α]`
+* `[covariant_class α α (*) (≤)]`
+*  `[covariant_class α α (function.swap (*)) (≤)]`
 
 The remainder of the file establishes basic properties of `lattice_ordered_comm_group`. A number
 of these results also hold in the non-commutative case ([Birkhoff][birkhoff1942],
@@ -67,67 +60,16 @@ lattice, ordered, group
 
 universe u
 
-/--
-A group `(α,*)`, equipped with a partial order `≤`, making `α` into a lattice, such that, given
-elements `a` and `b` of type `α` satisfying `a ≤ b`, for all elements `c` and `d` of `type α`,
-$$c * a * d ≤ c * b * d,$$
-is said to be a *lattice ordered group*.
--/
-class lattice_ordered_group (α : Type u)
-  extends group α, lattice α :=
-(mul_le_mul : ∀ a b : α, a ≤ b → ∀ c d : α, c * a * d ≤ c * b * d)
-
-/--
-A lattice ordered group with Abelian group multiplication is said to be a *lattice ordered
-commutative group*.
--/
-class lattice_ordered_comm_group (α : Type u)
-  extends comm_group α, lattice α :=
-(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
-
-/--
-A group `(α,+)`, equipped with a partial order `≤`, making `α` into a lattice, such that, given
-elements `a` and `b` of type `α` satisfying `a ≤ b`, for all elements `c` and `d` of type `α`,
-$$c + a + d ≤ c + b + d,$$
-is said to be a *lattice ordered (additive) group*.
--/
-class lattice_ordered_add_group (α : Type u)
-  extends add_group α, lattice α :=
-(add_le_add : ∀ a b : α, a ≤ b → ∀ c d : α, c + a + d ≤ c + b + d)
-
-/--
-A lattice ordered additive group with Abelian group addition is said to be a *lattice ordered
-(additative) commutative group*.
--/
-class lattice_ordered_add_comm_group (α : Type u)
-  extends add_comm_group α, lattice α :=
-(add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
-
--- Tells to_additive that lattice_ordered_add_group is the additive form of lattice_ordered_group
--- and lattice_ordered_add_comm_group is the additive form of lattice_ordered_comm_group
-attribute [to_additive] lattice_ordered_group
-attribute [to_additive] lattice_ordered_comm_group
-
--- Every lattice ordered commutative group is also an ordered additive commutative group
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance lattice_ordered_comm_group.to_ordered_comm_group (α : Type u)
-  [s : lattice_ordered_comm_group α] : ordered_comm_group α :=
-{ mul := s.mul, ..s }
-
--- A lattice ordered commutative group is a lattice ordered group
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance lattice_ordered_comm_group.to_lattice_ordered_group (α : Type u)
-  [s : lattice_ordered_comm_group α] : lattice_ordered_group α :=
-{ mul_le_mul := λ a b hab c d, mul_le_mul' (mul_le_mul' le_rfl hab) le_rfl }
-
-
 -- A linearly ordered additive commutative group is a lattice ordered commutative group
 @[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_lattice_ordered_comm_group (α : Type u)
- [s : linear_ordered_comm_group α] : lattice_ordered_comm_group α :=
-{ mul_le_mul_left := s.mul_le_mul_left, }
+instance linear_ordered_comm_group.to_covariant_class (α : Type u)
+  [linear_ordered_comm_group α] :  covariant_class α α (*) (≤) :=
+{ elim := λ a b c bc, linear_ordered_comm_group.mul_le_mul_left _ _ bc a }
 
-variables {α : Type u} [lattice_ordered_comm_group α]
+
+variables {α : Type u} [lattice α] [comm_group α] [covariant_class α α (*) (≤)]
+  [covariant_class α α (function.swap (*)) (≤)]
+
 
 -- Special case of Bourbaki A.VI.9 (1)
 /--
@@ -186,22 +128,6 @@ calc a⊓b * (a⊔b) = a⊓b * ((a * b) * (b⁻¹⊔a⁻¹)) :
 ... = a⊓b * ((a * b) * (a⊓b)⁻¹) : by { rw [← sup_inv_eq_inv_inf, sup_comm], }
 ... = a * b                    : by { simp, }
 
--- Bourbaki A.VI.12 Definition 4
-/--
-Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
-the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
--/
-@[to_additive]
-def lattice_ordered_comm_group.pos (a : α) : α :=  a ⊔ 1
-postfix `⁺`:1000 := lattice_ordered_comm_group.pos
-
-/--
-Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
-the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
--/
-@[to_additive]
-def lattice_ordered_comm_group.neg (a : α) : α := a⁻¹ ⊔ 1
-postfix `⁻`:1000 := lattice_ordered_comm_group.neg
 
 /--
 Absolute value is a unary operator with properties similar to the absolute value of a real number.
@@ -213,12 +139,36 @@ instance lattice_ordered_comm_group_has_abs : has_abs (α)  := ⟨λa, a⊔a⁻�
 
 namespace lattice_ordered_comm_group
 
+-- Bourbaki A.VI.12 Definition 4
+/--
+Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
+the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
+-/
+@[to_additive additive_pos "
+  Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
+  the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
+"]
+def pos (a : α) : α :=  a ⊔ 1
+postfix `⁺`:1000 := pos
+
+/--
+Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
+the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
+-/
+@[to_additive additive_neg "
+  Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
+  the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
+"]
+def neg (a : α) : α := a⁻¹ ⊔ 1
+postfix `⁻`:1000 := neg
+
+
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
 `|a|`. Then,
 $$a ≤ |a|.$$
 -/
-@[to_additive]
+@[to_additive additive_le_abs]
 lemma le_abs (a : α) : a ≤ |a| := le_sup_left
 
 /--
@@ -233,31 +183,31 @@ lemma inv_le_abs (a : α) : a⁻¹ ≤ |a| := le_sup_right
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
  component `a⁺`. Then `a⁺` is positive.
 -/
-@[to_additive]
+@[to_additive additive_pos_pos]
 lemma pos_pos (a : α) : 1 ≤ a⁺ := le_sup_right
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` withnegative
 component `a⁻`. Then `a⁻` is positive.
 -/
-@[to_additive]
+@[to_additive additive_neg_pos]
 lemma neg_pos (a : α) : 1 ≤ a⁻ := le_sup_right
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with positive
 component `a⁺`. Then `a⁺` dominates `a`.
 -/
-@[to_additive]
+@[to_additive additive_le_pos]
 lemma le_pos (a : α) : a ≤ a⁺ := le_sup_left
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with negative
 component `a⁻`. Then `a⁻` dominates `-a`.
 -/
-@[to_additive]
+@[to_additive additive_le_neg]
 lemma le_neg (a : α) : a⁻¹ ≤ a⁻ := le_sup_left
 
-end lattice_ordered_comm_group
+
 
 -- Bourbaki A.VI.12
 /--
@@ -267,8 +217,8 @@ component `a⁻` of `a` is equal to the positive component `(-a)⁺` of `-a`.
 @[to_additive]
 lemma neg_eq_pos_inv (a : α) : a⁻ =(a⁻¹)⁺ :=
 begin
-  unfold lattice_ordered_comm_group.neg,
-  unfold lattice_ordered_comm_group.pos,
+  unfold neg,
+  unfold pos,
 end
 
 /--
@@ -380,8 +330,8 @@ Let `α` be a lattice ordered commutative group and let `a` and `b` be elements 
 components `a⁺` and `b⁺` and negative components `a⁻` and `b⁻` respectively. Then `b` dominates `a`
 if and only if `b⁺` dominates `a⁺` and `a⁻` dominates `b⁻`.
 -/
-@[to_additive]
-lemma mul_le_iff_pos_le_neg_ge (a b : α) : a ≤ b ↔ a⁺ ≤ b⁺ ∧ b⁻ ≤ a⁻ :=
+@[to_additive additive_le_iff_pos_le_neg_ge]
+lemma le_iff_pos_le_neg_ge (a b : α) : a ≤ b ↔ a⁺ ≤ b⁺ ∧ b⁻ ≤ a⁻ :=
 begin
   split,
   { intro h,
@@ -433,21 +383,21 @@ begin
         apply le_inf,
         { rw pos_eq_neg_inv,
           apply and.right
-            (iff.elim_left (mul_le_iff_pos_le_neg_ge _ _)
+            (iff.elim_left (le_iff_pos_le_neg_ge _ _)
             (lattice_ordered_comm_group.inv_le_abs a)), },
         { apply and.right
-            (iff.elim_left (mul_le_iff_pos_le_neg_ge _ _)
+            (iff.elim_left (le_iff_pos_le_neg_ge _ _)
             (lattice_ordered_comm_group.le_abs a)), } },
       { apply lattice_ordered_comm_group.neg_pos, }
     end,
     rw [← mul_eq_inf_mul_sup, pos_inf_neg_eq_one, one_mul, ← mod_eq_pos ],
     apply sup_le,
     apply and.left
-      (iff.elim_left (mul_le_iff_pos_le_neg_ge _ _)
+      (iff.elim_left (le_iff_pos_le_neg_ge _ _)
       (lattice_ordered_comm_group.le_abs a)),
     rw neg_eq_pos_inv,
     apply and.left
-      (iff.elim_left (mul_le_iff_pos_le_neg_ge _ _)
+      (iff.elim_left (le_iff_pos_le_neg_ge _ _)
       (lattice_ordered_comm_group.inv_le_abs a)), }
 end
 
@@ -494,8 +444,9 @@ end
 Every lattice ordered commutative group is a distributive lattice
 -/
 @[to_additive, priority 100] -- see Note [lower instance priority]
-instance lattice_ordered_comm_group.to_distrib_lattice (α : Type u)
-  [s : lattice_ordered_comm_group α] : distrib_lattice α :=
+instance lattice_ordered_comm_group_to_distrib_lattice (α : Type u)
+  [s: lattice α] [comm_group α] [covariant_class α α (*) (≤)]
+  [covariant_class α α (function.swap (*)) (≤)] : distrib_lattice α :=
 { le_sup_inf :=
   begin
     intros,
@@ -576,8 +527,8 @@ end
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the absolute
 value `|a|` of `a` is positive.
 -/
-@[to_additive]
-lemma lattice_ordered_comm_group.abs_pos (a : α) : 1 ≤ |a| :=
+@[to_additive additive_abs_pos]
+lemma abs_pos (a : α) : 1 ≤ |a| :=
 begin
   rw pos_mul_neg,
   apply one_le_mul
@@ -602,8 +553,8 @@ Let `α` be a lattice ordered commutative group and let `a`, `b` and `c` be elem
 `|a⊔c-(b⊔c)|`, `|a⊓c-b⊓c|` and `|a-b|` denote the absolute values of `a⊔c-(b⊔c)`, `a⊓c-b⊓c` and
 `a-b` respectively. Then `|a-b|` dominates `|a⊔c-(b⊔c)|` and `|a⊓c-b⊓c|`.
 -/
-@[to_additive]
-theorem mul_Birkhoff_inequalities (a b c : α) :
+@[to_additive additive_Birkhoff_inequalities]
+theorem Birkhoff_inequalities (a b c : α) :
 |(a⊔c)/(b⊔c)| ⊔ |(a⊓c)/(b⊓c)| ≤ |a/b| :=
 begin
   rw sup_le_iff,
@@ -621,8 +572,8 @@ end
 Let `α` be a lattice ordered commutative group. Then the absolute value satisfies the triangle
 inequality.
 -/
-@[to_additive]
-lemma mul_abs_triangle  (a b : α) : |a*b| ≤ |a|*|b| :=
+@[to_additive additive_abs_triangle]
+lemma abs_triangle  (a b : α) : |a*b| ≤ |a|*|b| :=
 begin
   apply sup_le,
   { apply mul_le_mul'
@@ -633,3 +584,5 @@ begin
     apply lattice_ordered_comm_group.inv_le_abs,
     apply lattice_ordered_comm_group.inv_le_abs, }
 end
+
+end lattice_ordered_comm_group

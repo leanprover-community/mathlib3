@@ -581,6 +581,17 @@ calc a = a * 1 : by simp
 @[to_additive] lemma le_self_mul : a ≤ a * c :=
 le_mul_right (le_refl a)
 
+@[to_additive]
+lemma lt_iff_exists_mul [covariant_class α α (*) (<)] : a < b ↔ ∃ c > 1, b = a * c :=
+begin
+  simp_rw [lt_iff_le_and_ne, and_comm, le_iff_exists_mul, ← exists_and_distrib_left, exists_prop],
+  apply exists_congr, intro c,
+  rw [and.congr_left_iff, gt_iff_lt], rintro rfl,
+  split,
+  { rw [one_lt_iff_ne_one], apply mt, rintro rfl, rw [mul_one] },
+  { rw [← (self_le_mul_right a c).lt_iff_ne], apply lt_mul_of_one_lt_right' }
+end
+
 local attribute [semireducible] with_zero
 
 -- This instance looks absurd: a monoid already has a zero
@@ -626,6 +637,8 @@ instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_orde
 instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
   [canonically_ordered_monoid α] : has_exists_mul_of_le α :=
 { exists_mul_of_le := λ a b hab, le_iff_exists_mul.mp hab }
+
+
 
 end canonically_ordered_monoid
 

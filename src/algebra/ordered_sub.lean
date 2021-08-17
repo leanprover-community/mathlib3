@@ -546,21 +546,6 @@ contravariant.add_le_cancellable.sub_sub_cancel_of_le h
 
 end contra
 
-section cov_lt
-variable [covariant_class α α (+) (<)]
-
-lemma lt_iff_exists_add : a < b ↔ ∃ c > 0, b = a + c :=
-begin
-  simp_rw [lt_iff_le_and_ne, and_comm, le_iff_exists_add, ← exists_and_distrib_left, exists_prop],
-  apply exists_congr, intro c,
-  rw [and.congr_left_iff, gt_iff_lt], rintro rfl,
-  split,
-  { rw [pos_iff_ne_zero], apply mt, rintro rfl, rw [add_zero] },
-  { rw [← (self_le_add_right a c).lt_iff_ne], apply lt_add_of_pos_right }
-end
-
-end cov_lt
-
 end canonically_ordered_add_monoid
 
 /-! Lemmas in a linearly canonically ordered monoid. -/

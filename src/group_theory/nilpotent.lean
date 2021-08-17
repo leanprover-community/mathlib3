@@ -181,7 +181,7 @@ lemma upper_central_series_is_ascending_central_series :
   is_ascending_central_series (upper_central_series G) :=
 ⟨rfl, λ x n h, h⟩
 
-lemma upper_central_series_le_succ (n : ℕ)
+lemma upper_central_series_mono (n : ℕ)
 : upper_central_series G n ≤ upper_central_series G n.succ :=
 begin
   intros x hx y,
@@ -262,9 +262,7 @@ variable {G}
 
 lemma mem_lower_central_series_succ_iff (n : ℕ) (x : G) : x ∈ lower_central_series G (n + 1) ↔
   x ∈ closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
-:= begin
-  refl,
-end
+:= iff.rfl
 
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
@@ -310,11 +308,9 @@ begin
 end
 
 lemma subsingleton_is_nilpotent (hG : subsingleton G) : is_nilpotent G :=
-begin
-  exact nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩,
-end
+ nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩
 
-lemma ucs_functorial_wrt_surjection {H : Type*} [group H] (f : G →* H)
+lemma upper_central_series.map {H : Type*} [group H] (f : G →* H)
 (h : function.surjective f) (n : ℕ)
 : subgroup.map f (upper_central_series G n) ≤ upper_central_series H n :=
 begin

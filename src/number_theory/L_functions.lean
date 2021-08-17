@@ -459,14 +459,7 @@ end
 
 lemma di [nonempty X] : dense_inducing (inclusion X A) := ⟨⟨rfl⟩, dense_C X⟩
 
-lemma uni_ind [nonempty X] : uniform_inducing (inclusion X A) :=
-begin
-  exact {comap_uniformity := refl
-                       (filter.comap
-                          (λ (x : locally_constant X A × locally_constant X A),
-                             (inclusion X A x.fst, inclusion X A x.snd))
-                          (uniformity C(X, A)))},
-end
+lemma uni_ind [nonempty X] : uniform_inducing (inclusion X A) := ⟨rfl⟩
 
 lemma uni_cont (φ : measures'' X A) : uniform_continuous ⇑(φ.val.phi) :=
 begin

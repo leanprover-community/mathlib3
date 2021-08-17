@@ -118,11 +118,10 @@ positive. -/
 theorem exists_bound_of_continuous (hf : continuous f) :
   ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :=
 begin
-  by_cases hι : nonempty ι, swap,
+  casesI is_empty_or_nonempty ι,
   { refine ⟨∥f 0∥ + 1, add_pos_of_nonneg_of_pos (norm_nonneg _) zero_lt_one, λ m, _⟩,
-    obtain rfl : m = 0, from funext (λ i, (hι ⟨i⟩).elim),
-    simp [univ_eq_empty.2 hι, zero_le_one] },
-  resetI,
+    obtain rfl : m = 0, from funext (is_empty.elim ‹_›),
+    simp [univ_eq_empty, zero_le_one] },
   obtain ⟨ε : ℝ, ε0 : 0 < ε, hε : ∀ m : Π i, E i, ∥m - 0∥ < ε → ∥f m - f 0∥ < 1⟩ :=
     normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one,
   simp only [sub_zero, f.map_zero] at hε,

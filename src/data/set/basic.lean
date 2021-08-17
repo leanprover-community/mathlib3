@@ -371,9 +371,6 @@ theorem eq_empty_iff_forall_not_mem {s : set α} : s = ∅ ↔ ∀ x, x ∉ s :=
 
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ := subset_empty_iff.1
 
-theorem eq_empty_of_not_nonempty (h : ¬nonempty α) (s : set α) : s = ∅ :=
-eq_empty_of_subset_empty $ λ x hx, h ⟨x⟩
-
 theorem eq_empty_of_is_empty [is_empty α] (s : set α) : s = ∅ :=
 eq_empty_of_subset_empty $ λ x hx, is_empty_elim x
 
@@ -414,11 +411,11 @@ Mathematically it is the same as `α` but it has a different type.
 
 @[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
-@[simp] lemma univ_eq_empty_iff : (univ : set α) = ∅ ↔ ¬ nonempty α :=
-eq_empty_iff_forall_not_mem.trans ⟨λ H ⟨x⟩, H x trivial, λ H x _, H ⟨x⟩⟩
+@[simp] lemma univ_eq_empty_iff : (univ : set α) = ∅ ↔ is_empty α :=
+eq_empty_iff_forall_not_mem.trans ⟨λ H, ⟨λ x, H x trivial⟩, λ H x _, @is_empty.false α H x⟩
 
-theorem empty_ne_univ [h : nonempty α] : (∅ : set α) ≠ univ :=
-λ e, univ_eq_empty_iff.1 e.symm h
+theorem empty_ne_univ [nonempty α] : (∅ : set α) ≠ univ :=
+λ e, not_is_empty_of_nonempty α $ univ_eq_empty_iff.1 e.symm
 
 @[simp] theorem subset_univ (s : set α) : s ⊆ univ := λ x H, trivial
 
@@ -1689,8 +1686,10 @@ lemma range_nonempty_iff_nonempty : (range f).nonempty ↔ nonempty ι :=
 lemma range_nonempty [h : nonempty ι] (f : ι → α) : (range f).nonempty :=
 range_nonempty_iff_nonempty.2 h
 
-@[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
-not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
+@[simp] lemma range_eq_empty_iff {f : ι → α} : range f = ∅ ↔ is_empty ι :=
+by rw [← not_nonempty_iff, ← range_nonempty_iff_nonempty, not_nonempty_iff_eq_empty]
+
+lemma range_eq_empty [is_empty ι] (f : ι → α) : range f = ∅ := range_eq_empty_iff.2 ‹_›
 
 instance [nonempty ι] (f : ι → α) : nonempty (range f) := (range_nonempty f).to_subtype
 

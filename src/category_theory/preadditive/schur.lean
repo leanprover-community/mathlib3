@@ -175,9 +175,9 @@ end
 
 lemma finrank_hom_simple_simple_eq_zero_iff
   (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
-  finrank 𝕜 (X ⟶ Y) = 0 ↔ ¬ nonempty (X ≅ Y) :=
+  finrank 𝕜 (X ⟶ Y) = 0 ↔ is_empty (X ≅ Y) :=
 begin
-  rw ←not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y),
+  rw [← not_nonempty_iff, ← not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y)],
   refine ⟨λ h, by { rw h, simp, }, λ h, _⟩,
   have := finrank_hom_simple_simple_le_one 𝕜 X Y,
   interval_cases finrank 𝕜 (X ⟶ Y) with h',

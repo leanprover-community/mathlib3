@@ -128,9 +128,6 @@ equiv.of_bijective f ⟨f.injective, hf⟩
 protected def of_is_empty {α β} [is_empty α] : α ↪ β :=
 ⟨is_empty_elim, is_empty_elim⟩
 
-protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
-⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
-
 /-- Change the value of an embedding `f` at one point. If the prescribed image
 is already occupied by some `f a'`, then swap the values at these two points. -/
 def set_value {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' = a)]

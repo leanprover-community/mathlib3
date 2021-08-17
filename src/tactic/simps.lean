@@ -434,8 +434,8 @@ Some common uses:
   In the first case, you can get both lemmas using `@[simps, simps coe as_fn]` and in the second
   case you can get both lemmas using `@[simps as_fn, simps apply]`.
 * If your new homomorphism-like structure extends another structure (without `old_structure_cmd`)
-  (like `rel_embedding`),
-  then you have to specify the coercion explicitly. For example
+  (like `rel_embedding`), then you have to specify explicitly that you want to use a coercion
+  as a custom projection. For example
   ```
     def rel_embedding.simps.apply (h : r ↪r s) : α → β := h
     initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_embedding)

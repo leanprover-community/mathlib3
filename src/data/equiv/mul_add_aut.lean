@@ -72,6 +72,25 @@ mul_equiv.apply_symm_apply _ _
 def to_perm : mul_aut M →* equiv.perm M :=
 by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
 
+/-- The tautological action by `mul_aut M` on `M`.
+
+Note this also satisfies the axioms of `mul_semiring_action` that aren't inherited from
+`distrib_mul_action`.
+
+This generalizes `mul_action.function_End`. -/
+instance mul_action.mul_aut {M} [monoid M] :
+  mul_action (mul_aut M) M :=
+{ smul := ($),
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] lemma mul_aut.smul_def {M} [monoid M] (f : mul_aut M) (a : M) :
+  f • a = f a := rfl
+
+/-- `distrib_mul_action.mul_aut` is faithful. -/
+instance mul_aut.has_faithful_scalar {M} [monoid M] : has_faithful_scalar (mul_aut M) M :=
+⟨λ _ _, mul_equiv.ext⟩
+
 /-- Group conjugation, `mul_aut.conj g h = g * h * g⁻¹`, as a monoid homomorphism
 mapping multiplication in `G` into multiplication in the automorphism group `mul_aut G`. -/
 def conj [group G] : G →* mul_aut G :=
@@ -129,6 +148,24 @@ add_equiv.apply_symm_apply _ _
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : add_aut A →* equiv.perm A :=
 by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
+
+/-- The tautological action by `add_aut A` on `A`.
+
+This generalizes `mul_action.function_End`. -/
+instance distrib_mul_action.add_aut {A} [add_monoid A] :
+  distrib_mul_action (add_aut A) A :=
+{ smul := ($),
+  smul_zero := add_equiv.map_zero,
+  smul_add := add_equiv.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] lemma add_aut.smul_def {A} [add_monoid A] (f : add_aut A) (a : A) :
+  f • a = f a := rfl
+
+/-- `distrib_mul_action.add_aut` is faithful. -/
+instance add_aut.has_faithful_scalar {A} [add_monoid A] : has_faithful_scalar (add_aut A) A :=
+⟨λ _ _, add_equiv.ext⟩
 
 /-- Additive group conjugation, `add_aut.conj g h = g + h - g`, as an additive monoid
 homomorphism mapping addition in `G` into multiplication in the automorphism group `add_aut G`

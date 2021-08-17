@@ -82,6 +82,25 @@ def mul_semiring_action.to_semiring_equiv [mul_semiring_action G R] (x : G) : R 
 { .. distrib_mul_action.to_add_equiv G R x,
   .. mul_semiring_action.to_ring_hom G R x }
 
+instance subgroup.mul_semiring_action [mul_semiring_action G R] (H : subgroup G) :
+  mul_semiring_action H R :=
+{ smul := (•),
+  smul_one := λ h, smul_one (h : G),
+  smul_mul := λ h, smul_mul' (h : G),
+  .. H.distrib_mul_action }
+
+/-- The tautological action by `R →+* R` on `R`.
+
+This is a stronger version of `distrib_mul_action.ring_hom`. -/
+instance mul_semiring_action.ring_hom : mul_semiring_action (R →+* R) R :=
+{ smul := (•),
+  smul_zero := ring_hom.map_zero,
+  smul_add := ring_hom.map_add,
+  smul_one := ring_hom.map_one,
+  smul_mul := ring_hom.map_mul,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
 section prod
 variables [mul_semiring_action M R] [mul_semiring_action M S]
 

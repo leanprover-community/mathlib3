@@ -1366,7 +1366,7 @@ lemma subalgebra_top_finrank_eq_submodule_top_finrank :
 by { rw ← algebra.top_to_submodule, refl }
 
 lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
-by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top }
+by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top F E }
 
 lemma subalgebra.finite_dimensional_bot : finite_dimensional F (⊥ : subalgebra F E) :=
 finite_dimensional_of_dim_eq_one subalgebra.dim_bot

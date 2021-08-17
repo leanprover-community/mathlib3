@@ -246,8 +246,8 @@ open_locale matrix tensor_product
 
 section module
 
-variables [comm_semiring R] [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β]
-variables [add_comm_monoid γ] [module R γ]
+variables [comm_semiring R] [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
+variables [module R α] [module R β] [module R γ]
 
 /-- The Kronecker tensor product. This is just a shorthand for `kronecker_map (⊗ₜ)`.
 Prefer the notation `⊗ₖₜ` rather than this definition. -/

@@ -243,7 +243,7 @@ theorem ptendsto'_of_ptendsto {f : α →. β} {l₁ : filter α} {l₂ : filter
   ptendsto f l₁ l₂ → ptendsto' f l₁ l₂ :=
 begin
   rw [ptendsto_def, ptendsto'_def],
-  rintro h' s sl₂,
+  intros h' s sl₂,
   rw pfun.preimage_eq,
   exact inter_mem (h' s sl₂) h
 end

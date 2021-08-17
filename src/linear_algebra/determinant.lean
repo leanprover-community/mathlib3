@@ -64,33 +64,51 @@ def equiv_of_pi_lequiv_pi {R : Type*} [integral_domain R]
   (e : (m → R) ≃ₗ[R] (n → R)) : m ≃ n :=
 basis.index_equiv (basis.of_equiv_fun e.symm) (pi.basis_fun _ _)
 
+namespace matrix
+
 /-- If `M` and `M'` are each other's inverse matrices, they are square matrices up to
 equivalence of types. -/
-def matrix.index_equiv_of_inv [decidable_eq m] [decidable_eq n]
+def index_equiv_of_inv [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   m ≃ n :=
-equiv_of_pi_lequiv_pi (matrix.to_lin'_of_inv hMM' hM'M)
+equiv_of_pi_lequiv_pi (to_lin'_of_inv hMM' hM'M)
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
-lemma matrix.det_conj
-  [decidable_eq m] [decidable_eq n]
+lemma det_conj [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N ⬝ M') = det N :=
 begin
   -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
   -- This turns the problem into one for square matrices (`matrix.det_units_conj`), which is easy.
-  let e : m ≃ n := matrix.index_equiv_of_inv hMM' hM'M,
+  let e : m ≃ n := index_equiv_of_inv hMM' hM'M,
   let U : units (matrix n n A) :=
     ⟨M.minor e.symm (equiv.refl _),
      M'.minor (equiv.refl _) e.symm,
      by rw [mul_eq_mul, ←minor_mul_equiv, hMM', minor_one_equiv],
      by rw [mul_eq_mul, ←minor_mul_equiv, hM'M, minor_one_equiv]⟩,
-  rw [← matrix.det_units_conj U N, ← det_minor_equiv_self e.symm],
+  rw [← det_units_conj U N, ← det_minor_equiv_self e.symm],
   simp only [minor_mul_equiv _ _ _ (equiv.refl n) _, equiv.coe_refl, minor_id_id,
              units.coe_mk, units.inv_mk]
 end
+
+/-- If `M'` is a two-sided inverse for `M` (indexed differently),
+`det (Mᵀ ⬝ N ⬝ M) = det (M ⬝ Mᵀ) * det N`.
+Compare `det_conj`, where we use `M⁻¹` instead of `Mᵀ`.
+-/
+lemma det_transpose_conj [decidable_eq m] [decidable_eq n]
+  {N : matrix n n A} {M : matrix n m A} {M' : matrix m n A} (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  det (Mᵀ ⬝ N ⬝ M) = det (M ⬝ Mᵀ) * det N :=
+begin
+  rw ← det_conj hMM' hM'M,
+  calc (M ⬝ (Mᵀ ⬝ N ⬝ M) ⬝ M').det
+      = ((M ⬝ Mᵀ) ⬝ (N ⬝ (M ⬝ M'))).det : by simp only [matrix.mul_assoc]
+  ... = ((M ⬝ Mᵀ) ⬝ N).det : by rw [hMM', matrix.mul_one]
+  ... = det (M ⬝ Mᵀ) * det N : det_mul _ _
+end
+
+end matrix
 
 end conjugate
 

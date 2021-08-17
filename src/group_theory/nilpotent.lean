@@ -122,7 +122,7 @@ def upper_central_series (n : ℕ) : subgroup G := (upper_central_series_aux G n
 
 instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_aux G n).2
 
-lemma upper_central_series_zero_def : upper_central_series G 0 = ⊥ := rfl
+@[simp] lemma upper_central_series_zero_def : upper_central_series G 0 = ⊥ := rfl
 
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
 that `⁅x,G⁆ ⊆ H n`-/
@@ -269,7 +269,7 @@ end
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
   induction n,
-  { simp [lower_central_series_zero_def, subgroup.top_normal] },
+  { simp [subgroup.top_normal] },
   { haveI := n_ih,
     exact general_commutator_normal (lower_central_series G n_n) ⊤ },
 end
@@ -319,7 +319,7 @@ lemma ucs_functorial_wrt_surjection (G : Type*) [group G] (H : Type*) [group H] 
 : subgroup.map f (upper_central_series G n) ≤ upper_central_series H n :=
 begin
   induction n with d hd,
-  { simp [upper_central_series_zero_def] },
+  { simp },
   { rintros _ ⟨x, hx : x ∈ upper_central_series G d.succ, rfl⟩ y',
     rcases (h y') with ⟨y, rfl⟩,
     simpa using hd (mem_map_of_mem f (hx y)) }

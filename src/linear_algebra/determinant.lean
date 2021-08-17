@@ -93,9 +93,9 @@ begin
              units.coe_mk, units.inv_mk]
 end
 
-/-- If `M'` is a two-sided inverse for `M` (indexed differently),
-`det (Mᵀ ⬝ N ⬝ M) = det (M ⬝ Mᵀ) * det N`.
-Compare `det_conj`, where we use `M⁻¹` instead of `Mᵀ`.
+/-- If there exists a two-sided inverse `M'` for `M` (indexed differently),
+then `det (Mᵀ ⬝ N ⬝ M) = det (M ⬝ Mᵀ) * det N`.
+Compare `matrix.det_conj`, where we use `M'` instead of `Mᵀ`.
 -/
 lemma det_transpose_conj [decidable_eq m] [decidable_eq n]
   {N : matrix n n A} {M : matrix n m A} {M' : matrix m n A}

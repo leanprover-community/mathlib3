@@ -115,14 +115,6 @@ begin
     exact measure.zero_le μ }
 end
 
-lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
-  {ν : measure α} (h : ν ≤ μ) : sigma_finite ν :=
-begin
-  cases hs.out with C,
-  exact ⟨nonempty.intro ⟨C.set, C.set_mem, λ i,
-    (lt_of_le_of_lt (le_iff'.1 h _) (C.finite i)), C.spanning⟩⟩,
-end
-
 instance {μ ν : measure α} [finite_measure μ] :
   finite_measure (singular_part μ ν) :=
 finite_measure_of_le μ $ singular_part_le μ ν

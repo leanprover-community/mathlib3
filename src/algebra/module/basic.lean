@@ -249,13 +249,7 @@ instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
 
 /-- A ring homomorphism `f : R →+* M` defines a module structure by `r • x = f r * x`. -/
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
-{ smul := λ r x, f r * x,
-  smul_add := λ r x y, by unfold has_scalar.smul; rw [mul_add],
-  add_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_add, add_mul],
-  mul_smul := λ r s x, by unfold has_scalar.smul; rw [f.map_mul, mul_assoc],
-  one_smul := λ x, show f 1 * x = _, by rw [f.map_one, one_mul],
-  zero_smul := λ x, show f 0 * x = 0, by rw [f.map_zero, zero_mul],
-  smul_zero := λ r, mul_zero (f r) }
+module.comp_hom S f
 
 section add_comm_monoid
 

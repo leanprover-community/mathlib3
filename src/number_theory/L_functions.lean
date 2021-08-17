@@ -84,9 +84,8 @@ noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topologica
 lemma diff_inter_mem_sUnion {α : Type*} (s : set (set α)) (a y : set α) (h : y ∈ s) :
   (a \ ⋃₀ s) ∩ y = ∅ :=
 begin
-  rw set.diff_eq, suffices : (⋃₀ s)ᶜ ∩ y = ∅,
-  { rw set.inter_assoc, rw this, rw set.inter_empty, },
-  apply set.inter_empty_of_inter_sUnion_empty h _, rw set.compl_inter_self,
+  rw [set.inter_comm, ← set.inter_diff_assoc, set.diff_eq_empty],
+  exact (set.inter_subset_left y a).trans (set.subset_sUnion_of_mem h),
 end
 
 lemma clopen_finite_Union {H : Type*} [topological_space H]

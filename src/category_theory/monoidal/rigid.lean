@@ -49,6 +49,15 @@ instance exact_pairing_unit : exact_pairing (𝟙_ C) (𝟙_ C) :=
       monoidal_category.unitors_inv_equal,
       monoidal_category.unitors_equal], simp } }
 
+instance exact_pairing_tensor (W X Y Z : C) [WX : exact_pairing W X] [YZ : exact_pairing Y Z] :
+  exact_pairing (W ⊗ Y) (Z ⊗ X) :=
+{ coevaluation := WX.coevaluation ≫ (𝟙 W ⊗ (λ_ X).inv) ≫ (𝟙 W ⊗ YZ.coevaluation ⊗ 𝟙 X)
+    ≫ (𝟙 W ⊗ (α_ Y Z X).hom) ≫ (α_ W Y (Z ⊗ X)).inv,
+  evaluation := (α_ (Z ⊗ X) W Y).inv ≫ ((α_ Z X W).hom ⊗ 𝟙 Y)
+    ≫ ((𝟙 Z ⊗ WX.evaluation) ⊗ 𝟙 Y) ≫ ((ρ_ Z).hom ⊗ 𝟙 Y) ≫ YZ.evaluation,
+  coevaluation_evaluation' := sorry,
+  evaluation_coevaluation' := sorry }
+
 /- A class of objects which have a right dual, -/
 class has_right_dual (X : C) :=
   (right_dual : C)
@@ -178,6 +187,12 @@ begin
   repeat { rw category.assoc },
   rw [triangle_assoc_comp_left_inv_assoc, ←right_unitor_tensor_assoc,
     right_unitor_naturality_assoc, ←unitors_equal, ←category.assoc, ←category.assoc], simp
+end
+
+lemma left_adjoint_of_right_adjoint {X Y : C} [has_right_dual X] [has_right_dual Y] (f : X ⟶ Y) :
+  *^(f^*) = f :=
+begin
+  simp [left_adjoint_mate, right_adjoint_mate],
 end
 
 /- This theorem shows that right duals are isomorphic, which is almost trivial due to the

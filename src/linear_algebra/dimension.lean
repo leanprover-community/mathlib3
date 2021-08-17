@@ -61,6 +61,10 @@ For vector spaces (i.e. modules over a field), we have
 
 ## Implementation notes
 
+There is a naming discrepancy: most of the theorem names refer to `dim`,
+even though the definition is of `module.rank`.
+This reflects that `module.rank` was originally called `dim`, and only defined for vector spaces.
+
 Many theorems in this file are not universe-generic when they relate dimensions
 in different universes. They should be as general as they can be without
 inserting `lift`s. The types `V`, `V'`, ... all live in different universes,

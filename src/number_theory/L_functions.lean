@@ -393,14 +393,6 @@ begin
 end
 --end of density section
 
-lemma clopen_coe (a b : clopen_sets X) : a.val = b.val → a = b :=
-begin
-  rintros h,
-  have : ∀ (a : clopen_sets X), a = ⟨a.val, a.prop⟩,
-    { simp only [implies_true_iff, eq_self_iff_true, subtype.coe_eta, subtype.val_eq_coe], },
-  rw this a, rw this b, simp [h],
-end
-
 instance union : semilattice_inf_bot (clopen_sets X) :=
 begin
   constructor,
@@ -413,7 +405,7 @@ begin
   { rintros a b c ab ac, apply set.subset_inter_iff.2 ⟨ab, ac⟩, },
   { rintros a, apply set.subset.refl, },
   { rintros a b c ab ac, apply set.subset.trans ab ac, },
-  { rintros a b ab ba, apply clopen_coe, apply set.subset.antisymm ab ba, },
+  { rintros a b ab ba, apply subtype.eq, apply set.subset.antisymm ab ba, },
 end
 
 instance : lattice (clopen_sets X) :=

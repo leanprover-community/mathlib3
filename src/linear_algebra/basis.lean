@@ -250,7 +250,10 @@ variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (
 include f h
 
 /-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
-then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module. -/
+then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
+
+See also `basis.algebra_map_coeffs` for the case where `f` is equal to `algebra_map`.
+-/
 @[simps {simp_rhs := tt}]
 def map_coeffs : basis ι R' M :=
 of_repr { map_smul' := λ c x,

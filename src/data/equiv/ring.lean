@@ -242,6 +242,12 @@ lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := (f : R ≃* S).map_ne_one_iff
 noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R ≃+* S :=
 { .. equiv.of_bijective f hf, .. f }
 
+@[simp] lemma coe_of_bijective (f : R →+* S) (hf : function.bijective f) :
+  (of_bijective f hf : R → S) = f := rfl
+
+lemma of_bijective_apply (f : R →+* S) (hf : function.bijective f) (x : R) :
+  of_bijective f hf x = f x := rfl
+
 end semiring
 
 section

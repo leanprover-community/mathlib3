@@ -880,7 +880,7 @@ lemma map_range_add [add_zero_class N]
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
 /-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
-def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ (β →₀ M) :=
+@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ (β →₀ M) :=
 { to_fun := λ v, emb_domain f v,
   map_zero' := by simp,
   map_add' := λ v w,

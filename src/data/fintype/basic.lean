@@ -860,6 +860,19 @@ that `sum.inr` is an injection, but there's no clear inverse if `β` is empty. -
 noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] : fintype β :=
 fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
 
+@[simp] theorem fintype.card_sum [fintype α] [fintype β] :
+  fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
+begin
+  classical,
+  rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
+  { simp [finset.card_univ] },
+  { intros x hx,
+    suffices : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
+    { obtain ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ := this,
+      simpa using hb },
+    simpa using hx }
+end
+
 section finset
 
 /-! ### `fintype (s : finset α)` -/
@@ -1204,6 +1217,31 @@ fintype.card_le_of_embedding (function.embedding.subtype _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 fintype.card_lt_of_injective_of_not_mem coe subtype.coe_injective $ by rwa subtype.range_coe_subtype
+
+lemma fintype.card_subtype [fintype α] (p : α → Prop) [decidable_pred p] :
+  fintype.card {x // p x} = ((finset.univ : finset α).filter p).card :=
+begin
+  refine fintype.card_of_subtype _ _,
+  simp
+end
+
+lemma fintype.card_subtype_or (p q : α → Prop)
+  [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
+  fintype.card {x // p x ∨ q x} ≤ fintype.card {x // p x} + fintype.card {x // q x} :=
+begin
+  classical,
+  convert fintype.card_le_of_embedding (subtype_or_left_embedding p q),
+  rw fintype.card_sum
+end
+
+lemma fintype.card_subtype_or_disjoint (p q : α → Prop) (h : disjoint p q)
+  [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
+  fintype.card {x // p x ∨ q x} = fintype.card {x // p x} + fintype.card {x // q x} :=
+begin
+  classical,
+  convert fintype.card_congr (subtype_or_equiv p q h),
+  simp
+end
 
 theorem fintype.card_quotient_le [fintype α] (s : setoid α) [decidable_rel ((≈) : α → α → Prop)] :
   fintype.card (quotient s) ≤ fintype.card α :=

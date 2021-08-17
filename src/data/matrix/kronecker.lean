@@ -156,7 +156,7 @@ end
 
 lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω')
   (g' : β → δ → ξ) (A : matrix l m α) (B : matrix n p β) (D : matrix q r δ) (φ : ω ≃ ω')
-  (hφ : ∀ a b d, φ (g (f a b) d ) = f' a (g' b d )) :
+  (hφ : ∀ a b d, φ (g (f a b) d) = f' a (g' b d)) :
   (reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)).trans (equiv.map_matrix φ)
     (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
 ext $ λ i j, hφ _ _ _
@@ -303,8 +303,8 @@ lemma diagonal_kronecker_tmul_diagonal
 kronecker_map_diagonal_diagonal _ (zero_tmul _) (tmul_zero _) _ _
 
 @[simp] lemma kronecker_tmul_assoc (A : matrix l m α) (B : matrix n p β) (C : matrix q r γ) :
-reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)
-  (((A ⊗ₖₜ[R] B) ⊗ₖₜ[R] C).map (tensor_product.assoc _ _ _ _)) = A ⊗ₖₜ[R] (B ⊗ₖₜ[R] C) :=
+  reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)
+    (((A ⊗ₖₜ[R] B) ⊗ₖₜ[R] C).map (tensor_product.assoc _ _ _ _)) = A ⊗ₖₜ[R] (B ⊗ₖₜ[R] C) :=
 ext $ λ i j, assoc_tmul _ _ _
 
 end module

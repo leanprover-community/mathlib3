@@ -13,7 +13,8 @@ A function `f` is said to be strongly measurable with respect to a measure `μ` 
 sequential limit of simple functions. It is said to be finitely strongly measurable if the supports
 of those simple functions have finite measure.
 
-If the space has a second countable topology, strongly measurable and measurable are equivalent.
+If the target space has a second countable topology, strongly measurable and measurable are
+equivalent.
 
 Functions in `Lp` for `0 < p < ∞` are finitely strongly measurable.
 If the measure is sigma-finite, strongly measurable and finitely strongly measurable are equivalent.
@@ -94,9 +95,9 @@ protected lemma tendsto_approx [measurable_space α] [topological_space β]
   ∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x)) :=
 hf.some_spec
 
-lemma fin_strongly_measurable_of_exists_set_sigma_finite [topological_space β] [has_zero β]
-  {m : measurable_space α} {μ : measure α} (hf_meas : strongly_measurable f)
-  (hf : ∃ t, measurable_set t ∧ (∀ x ∈ tᶜ, f x = 0) ∧ sigma_finite (μ.restrict t)) :
+lemma fin_strongly_measurable_of_set_sigma_finite [topological_space β] [has_zero β]
+  {m : measurable_space α} {μ : measure α} (hf_meas : strongly_measurable f) {t : set α}
+  (ht : measurable_set t) (hft_zero : ∀ x ∈ tᶜ, f x = 0) (htμ : sigma_finite (μ.restrict t)) :
   fin_strongly_measurable f μ :=
 begin
   obtain ⟨t, ht, hft_zero, htμ⟩ := hf,
@@ -148,7 +149,7 @@ end
 protected lemma fin_strongly_measurable [topological_space β] [has_zero β] {m0 : measurable_space α}
   (hf : strongly_measurable f) (μ : measure α) [sigma_finite μ] :
   fin_strongly_measurable f μ :=
-hf.fin_strongly_measurable_of_exists_set_sigma_finite
+hf.fin_strongly_measurable_of_set_sigma_finite
   ⟨set.univ, measurable_set.univ, by simp, by rwa measure.restrict_univ⟩
 
 /-- A strongly measurable function is measurable. -/
@@ -238,7 +239,7 @@ begin
       exact (measurable_set.compl (measurable_set.Union hT_meas)).union (hT_meas n), }, },
 end
 
-/-- A strongly measurable function is measurable. -/
+/-- A finitely strongly measurable function is measurable. -/
 protected lemma measurable [metric_space β] [measurable_space β] [borel_space β]
   (hf : fin_strongly_measurable f μ) :
   measurable f :=

@@ -266,10 +266,10 @@ lemma mem_lower_central_series_succ_iff (n : ℕ) (x : G) : x ∈ lower_central_
 
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
-  induction n,
+  induction n with d hd,
   { simp [subgroup.top_normal] },
-  { haveI := n_ih,
-    exact general_commutator_normal (lower_central_series G n_n) ⊤ },
+  { haveI := hd,
+    exact general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
 /-- The lower central series of a group is a descending central series. -/

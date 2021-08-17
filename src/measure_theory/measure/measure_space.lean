@@ -604,6 +604,14 @@ else 0
   map f μ s = μ (f ⁻¹' s) :=
 by simp [map, dif_pos hf, hs]
 
+lemma to_outer_measure_map {f : α → β} (hf : measurable f) :
+  (map f μ).to_outer_measure = (outer_measure.map f μ.to_outer_measure).trim :=
+begin
+  rw [← trimmed, outer_measure.trim_eq_trim_iff],
+  intros s hs,
+  rw [coe_to_outer_measure, map_apply hf hs, outer_measure.map_apply, coe_to_outer_measure]
+end
+
 theorem map_of_not_measurable {f : α → β} (hf : ¬measurable f) :
   map f μ = 0 :=
 by rw [map, dif_neg hf, linear_map.zero_apply]

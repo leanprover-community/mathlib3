@@ -267,7 +267,7 @@ of_repr { map_smul' := λ c x,
 lemma map_coeffs_apply (i : ι) : b.map_coeffs f h i = b i :=
 apply_eq_iff.mpr $ by simp [f.to_add_equiv_eq_coe]
 
-lemma coe_map_coeffs : (b.map_coeffs f h : ι → M) = b :=
+@[simp] lemma coe_map_coeffs : (b.map_coeffs f h : ι → M) = b :=
 funext $ b.map_coeffs_apply f h
 
 end map_coeffs

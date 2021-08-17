@@ -584,11 +584,13 @@ ext (by simp)
 /-- The image of a substructure along a homomorphism is a substructure. -/
 @[simps] def map (φ : M →[L] N) (S : L.substructure M) : L.substructure N :=
 { carrier := (φ '' S),
-  fun_mem := λ n f x hx, (mem_image _ _ _).1 ⟨fun_map f (λ i, classical.some (hx i)),
-      S.fun_mem f _ (λ i, (classical.some_spec (hx i)).1), begin
-    simp only [hom.map_fun, set_like.mem_coe],
-    exact congr rfl (funext (λ i, (classical.some_spec (hx i)).2)),
-  end⟩ }
+  fun_mem := λ n f x hx, (mem_image _ _ _).1
+    ⟨fun_map f (λ i, classical.some (hx i)),
+     S.fun_mem f _ (λ i, (classical.some_spec (hx i)).1),
+     begin
+       simp only [hom.map_fun, set_like.mem_coe],
+       exact congr rfl (funext (λ i, (classical.some_spec (hx i)).2)),
+     end⟩ }
 
 @[simp]
 lemma mem_map {f : M →[L] N} {S : L.substructure M} {y : N} :
@@ -601,6 +603,8 @@ mem_image_of_mem f hx
 lemma apply_coe_mem_map (f : M →[L] N) (S : L.substructure M) (x : S) : f x ∈ S.map f :=
 mem_map_of_mem f x.prop
 
+/-- Shows that repeated application of `substructure.map` corresponds to mapping by composed
+  functions. -/
 lemma map_map (g : N →[L] P) (f : M →[L] N) : (S.map f).map g = S.map (g.comp f) :=
 set_like.coe_injective $ image_image _ _ _
 

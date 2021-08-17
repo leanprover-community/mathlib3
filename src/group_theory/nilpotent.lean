@@ -311,8 +311,8 @@ lemma subsingleton_is_nilpotent (hG : subsingleton G) : is_nilpotent G :=
  nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩
 
 lemma upper_central_series.map {H : Type*} [group H] (f : G →* H)
-(h : function.surjective f) (n : ℕ)
-: subgroup.map f (upper_central_series G n) ≤ upper_central_series H n :=
+  (h : function.surjective f) (n : ℕ) :
+  subgroup.map f (upper_central_series G n) ≤ upper_central_series H n :=
 begin
   induction n with d hd,
   { simp },

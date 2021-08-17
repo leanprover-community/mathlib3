@@ -131,7 +131,7 @@ begin
 end
 
 theorem of_modeq_mul_left (m : ℤ) (h : a ≡ b [ZMOD m * n]) : a ≡ b [ZMOD n] :=
-by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left n m) h
+by rw [modeq_iff_dvd] at *; exact (dvd_mul_left n m).trans h
 
 theorem of_modeq_mul_right (m : ℤ) : a ≡ b [ZMOD n * m] → a ≡ b [ZMOD n] :=
 mul_comm m n ▸ of_modeq_mul_left _

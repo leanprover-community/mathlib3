@@ -112,9 +112,9 @@ else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.
 lemma splits_of_splits_mul {f g : polynomial K} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
   splits i f ∧ splits i g :=
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
+   (by rw map_mul; exact hg.trans (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
+   (by rw map_mul; exact hg.trans (dvd_mul_left _ _))⟩
 
 lemma splits_of_splits_of_dvd {f g : polynomial K} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
   splits i g :=

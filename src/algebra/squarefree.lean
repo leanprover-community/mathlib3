@@ -68,7 +68,7 @@ h.irreducible.squarefree
 lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
   squarefree x :=
-λ a h, hsq _ (dvd.trans h hdvd)
+λ a h, hsq _ (h.trans hdvd)
 
 namespace multiplicity
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]

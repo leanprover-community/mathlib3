@@ -19,11 +19,11 @@ theorem is_unit_iff_dvd_one [comm_monoid α] {x : α} : is_unit x ↔ x ∣ 1 :=
 
 theorem is_unit_iff_forall_dvd [comm_monoid α] {x : α} :
   is_unit x ↔ ∀ y, x ∣ y :=
-is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
+is_unit_iff_dvd_one.trans ⟨λ h y, h.trans (one_dvd _), λ h, h _⟩
 
 theorem is_unit_of_dvd_unit {α} [comm_monoid α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
-is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
+is_unit_iff_dvd_one.2 $ xy.trans $ is_unit_iff_dvd_one.1 hu
 
 lemma is_unit_of_dvd_one [comm_monoid α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
@@ -42,7 +42,7 @@ begin
   split,
   { intro h, rw [← not_lt], intro hmn, apply h1,
     have : x ^ m * x ∣ x ^ m * 1,
-    { rw [← pow_succ', mul_one], exact dvd_trans (pow_dvd_pow _ (nat.succ_le_of_lt hmn)) h },
+    { rw [← pow_succ', mul_one], exact (pow_dvd_pow _ (nat.succ_le_of_lt hmn)).trans h },
     rwa [mul_dvd_mul_iff_left, ← is_unit_iff_dvd_one] at this, apply pow_ne_zero m h0 },
   { apply pow_dvd_pow }
 end

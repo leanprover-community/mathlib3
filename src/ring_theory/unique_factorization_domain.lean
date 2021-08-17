@@ -77,7 +77,7 @@ lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
       (irreducible_or_factor x hx).elim
         (λ hxi, ⟨x, hxi, hxy ▸ by simp⟩)
         (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy.symm⟩ hx hx0 hxf in
-          ⟨i, hi.1, dvd.trans hi.2 (hxy ▸ by simp)⟩)) a ha ha0)
+          ⟨i, hi.1, hi.2.trans (hxy ▸ by simp)⟩)) a ha ha0)
 
 @[elab_as_eliminator] lemma induction_on_irreducible {P : α → Prop} (a : α)
   (h0 : P 0) (hu : ∀ u : α, is_unit u → P u)
@@ -176,7 +176,7 @@ by haveI := classical.dec_eq α; exact
     multiset.rel_zero_left.2 $
       multiset.eq_zero_of_forall_not_mem (λ x hx,
         have is_unit g.prod, by simpa [associated_one_iff_is_unit] using h.symm,
-        (hg x hx).not_unit (is_unit_iff_dvd_one.2 (dvd.trans (multiset.dvd_prod hx)
+        (hg x hx).not_unit (is_unit_iff_dvd_one.2 ((multiset.dvd_prod hx).trans
           (is_unit_iff_dvd_one.1 this)))))
   (λ p f ih g hf hg hfg,
     let ⟨b, hbg, hb⟩ := exists_associated_mem_of_dvd_prod
@@ -205,7 +205,7 @@ by haveI := classical.dec_eq α; exact
     multiset.eq_zero_of_forall_not_mem $ λ x hx,
     have is_unit g.prod, by simpa [associated_one_iff_is_unit] using h.symm,
     (hg x hx).not_unit $ is_unit_iff_dvd_one.2 $
-    dvd.trans (multiset.dvd_prod hx) (is_unit_iff_dvd_one.1 this))
+    (multiset.dvd_prod hx).trans (is_unit_iff_dvd_one.1 this))
   (λ p f ih g hf hg hfg,
     let ⟨b, hbg, hb⟩ := exists_associated_mem_of_dvd_prod
       (hf p (by simp)) (λ q hq, hg _ hq) $
@@ -584,7 +584,7 @@ begin
       refine ⟨p * a', b', c', _, mul_left_comm _ _ _, rfl⟩,
       intros q q_dvd_pa' q_dvd_b',
       cases left_dvd_or_dvd_right_of_dvd_prime_mul p_prime q_dvd_pa' with p_dvd_q q_dvd_a',
-      { have : p ∣ c' * b' := dvd_mul_of_dvd_right (dvd_trans p_dvd_q q_dvd_b') _,
+      { have : p ∣ c' * b' := dvd_mul_of_dvd_right (p_dvd_q.trans q_dvd_b') _,
         contradiction },
       exact coprime q_dvd_a' q_dvd_b'  } }
 end
@@ -615,7 +615,7 @@ begin
   { rw [multiset.le_iff_exists_add],
     rintro ⟨u, hu⟩,
     rw [← (factors_prod hb).dvd_iff_dvd_right, hu, prod_add, prod_repeat],
-    exact dvd.trans (associated.pow_pow $ associated_normalize a).dvd (dvd.intro u.prod rfl) }
+    exact (associated.pow_pow $ associated_normalize a).dvd.trans (dvd.intro u.prod rfl) }
 end
 
 lemma multiplicity_eq_count_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0) :

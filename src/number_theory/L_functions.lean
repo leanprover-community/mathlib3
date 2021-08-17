@@ -234,13 +234,6 @@ begin
   { rintros i, have iC := hV i.2, apply topological_space.is_topological_basis.is_open f' iC, },
 end
 
-lemma sub_iff {α : Type*} (s t : set α) (h : s = t) : ∀ (x : α), x ∈ s ↔ x ∈ t :=
-begin
-  rw set.subset.antisymm_iff at h, rintros x, split,
-  {revert x, show s ⊆ t, apply h.1,},
-  {revert x, show t ⊆ s, apply h.2,},
-end
-
 lemma sub_apply (f : C(X, A)) (g : locally_constant X A) (y : X) :
   ∥(f - inclusion X A g) y ∥ = ∥f y - (inclusion X A g) y∥ :=
 begin
@@ -319,7 +312,7 @@ begin
           cases ht3 with b hb, simp at hb, cases hb with hb hby, have hbU := hby U hU xU,
           have hby := hby y hy xy, rw hby, rw ←hbU, apply x'U, }, },
       simp, ext y, revert y,
-      apply sub_iff, symmetry,
+      rw ← set.ext_iff, symmetry,
       { congr, ext y, simp, rintros hy, split,
         { rintros xy, specialize ht3 x, simp at ht3,
           cases ht3 with b hb, simp at hb, cases hb with hb hby, have hbU := hby U hU xU,

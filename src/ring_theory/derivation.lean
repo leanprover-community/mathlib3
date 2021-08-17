@@ -24,7 +24,7 @@ non-commutative case. Any development on the theory of derivations is discourage
 definitive definition of derivation will be implemented.
 -/
 
-open algebra ring_hom
+open algebra
 
 -- to match `linear_map`
 set_option old_structure_cmd true
@@ -87,7 +87,8 @@ begin
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
-by rw [←mul_one r, ring_hom.map_mul, map_one, ←smul_def, map_smul, map_one_eq_zero, smul_zero]
+by rw [←mul_one r, ring_hom.map_mul, ring_hom.map_one, ←smul_def, map_smul, map_one_eq_zero,
+  smul_zero]
 
 /- Data typeclasses -/
 

@@ -415,17 +415,11 @@ begin
   { rintros x y, apply is_clopen.inter, },
 end
 
-instance has_union' : has_union (clopen_sets X) :=
-begin
-constructor,
-rintros U V, refine ⟨U.val ∪ V.val, _⟩, apply is_clopen.union U.prop V.prop,
-end
-
 structure  distribution {R : Type*} [add_monoid R] :=
 (phi : clopen_sets X → R)
 (count_add ⦃f : ℕ → clopen_sets X⦄ :
   (∀ (S T : clopen_sets X), S ⊓ T = ⊥ →
-  phi(S ∪ T) = phi S + phi T)) --define has_sup lattice structure via gi
+  phi(S ⊔ T) = phi S + phi T))
 
 structure distribution' :=
 (phi : linear_map A (locally_constant X A) A)

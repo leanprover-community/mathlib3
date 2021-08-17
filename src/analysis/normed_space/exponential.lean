@@ -179,9 +179,8 @@ begin
   dsimp only,
   conv_lhs {congr, funext, rw [hxy.add_pow' _, finset.smul_sum]},
   refine tsum_congr (λ n, finset.sum_congr rfl $ λ kl hkl, _),
-  have : kl.1 ≤ n := finset.nat.antidiagonal.fst_le hkl,
-  rw [nsmul_eq_smul_cast 𝕂, smul_smul, smul_mul_smul, @nat.cast_choose _ _ ‹_› _ _ this,
-      nat.sub_eq_of_eq_add (finset.nat.mem_antidiagonal.mp hkl).symm],
+  rw [nsmul_eq_smul_cast 𝕂, smul_smul, smul_mul_smul, ← (finset.nat.mem_antidiagonal.mp hkl),
+      nat.cast_add_choose, (finset.nat.mem_antidiagonal.mp hkl)],
   congr' 1,
   have : (n! : 𝕂) ≠ 0 := nat.cast_ne_zero.mpr n.factorial_ne_zero,
   field_simp [this]

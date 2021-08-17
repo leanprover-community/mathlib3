@@ -1520,7 +1520,7 @@ instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_mea
 instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
-lemma finite_measure_le (μ : measure α) [finite_measure μ] (h : ν ≤ μ) : finite_measure ν :=
+lemma finite_measure_of_le (μ : measure α) [finite_measure μ] (h : ν ≤ μ) : finite_measure ν :=
 { measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
 
 @[simp] lemma measure_univ_nnreal_eq_zero [finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
@@ -1806,6 +1806,14 @@ begin
     from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
   refine ⟨⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩⟩,
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
+end
+
+lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
+  (h : ν ≤ μ) : sigma_finite ν :=
+begin
+  cases hs.out with C,
+  exact ⟨nonempty.intro ⟨C.set, C.set_mem, λ i,
+    (lt_of_le_of_lt (le_iff'.1 h _) (C.finite i)), C.spanning⟩⟩,
 end
 
 end measure

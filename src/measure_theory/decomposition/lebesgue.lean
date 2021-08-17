@@ -94,29 +94,50 @@ begin
     exact mutually_singular.zero.symm }
 end
 
-instance {μ ν : measure α} [finite_measure μ] :
-  finite_measure (singular_part μ ν) :=
+lemma singular_part_le (μ ν : measure α) : singular_part μ ν ≤ μ :=
 begin
   by_cases h : have_lebesgue_decomposition μ ν,
   { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec h,
-    refine finite_measure_le μ _,
     conv_rhs { rw h },
     exact measure.le_add_right (le_refl _) },
   { rw [singular_part, dif_neg h],
-    apply_instance }
+    exact measure.zero_le μ }
 end
 
-instance {μ ν : measure α} [finite_measure μ] :
-  finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
+lemma with_density_radon_nikodym_deriv_le (μ ν : measure α) :
+  ν.with_density (radon_nikodym_deriv μ ν) ≤ μ :=
 begin
   by_cases h : have_lebesgue_decomposition μ ν,
   { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec h,
-    refine finite_measure_le μ _,
     conv_rhs { rw h },
     exact measure.le_add_left (le_refl _) },
   { rw [radon_nikodym_deriv, dif_neg h, with_density_zero],
-    apply_instance }
+    exact measure.zero_le μ }
 end
+
+lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
+  {ν : measure α} (h : ν ≤ μ) : sigma_finite ν :=
+begin
+  cases hs.out with C,
+  exact ⟨nonempty.intro ⟨C.set, C.set_mem, λ i,
+    (lt_of_le_of_lt (le_iff'.1 h _) (C.finite i)), C.spanning⟩⟩,
+end
+
+instance {μ ν : measure α} [finite_measure μ] :
+  finite_measure (singular_part μ ν) :=
+finite_measure_of_le μ $ singular_part_le μ ν
+
+instance {μ ν : measure α} [sigma_finite μ] :
+  sigma_finite (singular_part μ ν) :=
+sigma_finite_of_le μ $ singular_part_le μ ν
+
+instance {μ ν : measure α} [finite_measure μ] :
+  finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
+finite_measure_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
+
+instance {μ ν : measure α} [sigma_finite μ] :
+  sigma_finite (ν.with_density $ radon_nikodym_deriv μ ν) :=
+sigma_finite_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
 
 theorem eq_singular_part
   {μ ν : measure α} (s : measure α) (f : α → ℝ≥0∞) (hf : measurable f)

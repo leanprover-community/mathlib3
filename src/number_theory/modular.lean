@@ -3,7 +3,7 @@ Copyright (c) 2021 Alex Kontorovich and Heather Macbeth and Marc Masdeu. All rig
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
-import analysis.complex.upper_half_plane
+import analysis.complex.upper_half_plane analysis.special_functions.pow
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -328,6 +328,20 @@ begin
   field_simp [normsq_bottom_ne_zero, norm_sq_ne_zero, S]
 end
 
+/-- If `1<|z|`, then `|S•z|<1` *********** ????????????? *********** -/
+lemma normsq_S_lt_of_normsq {z : ℍ} (h: 1 < norm_sq z) : norm_sq (S • z) < 1 :=
+begin
+  sorry,
+  have : z.im < z.im / norm_sq (z:ℂ),
+  { have imz : 0 < z.im := im_pos z,
+    apply (lt_div_iff z.norm_sq_pos).mpr,
+    nlinarith },
+  convert this,
+  simp only [im_smul_eq_div_norm_sq],
+  field_simp [normsq_bottom_ne_zero, norm_sq_ne_zero, S]
+end
+
+
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
 lemma exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
 begin
@@ -499,6 +513,166 @@ begin
   },
 end
 
+lemma nat.is_zero_or_one_of_le_one {n : ℕ} (h: n ≤ 1) : n = 0 ∨ n = 1 :=
+begin
+  cases n,
+  left, refl,
+  right,
+  rw [nat.succ_le_succ_iff, le_zero_iff] at h,
+  rw h,
+end
+
+lemma int.is_zero_or__pm_one_of_le_one {n : ℤ} (h: |n| ≤ 1) : n = -1 ∨ n = 0 ∨ n = 1 :=
+begin
+  cases abs_cases n,
+  { right,
+    rw h_1.1 at h,
+    lift n to ℕ using h_1.2,
+    norm_cast at h,
+    norm_cast,
+    exact nat.is_zero_or_one_of_le_one h, },
+  { left,
+    rw h_1.1 at h,
+    linarith, },
+end
+
+
+lemma junk12 (n : ℕ) (h : |(n:ℤ)| ≤ 1) : n ≤ 1 :=
+begin
+cases abs_cases (n:ℤ),
+nlinarith,
+nlinarith,
+end
+
+
+lemma real.self_of_pow_inv_pow {x y : ℝ} (hx : 0 < x) (hy : 0 < y) : (x^((1:ℝ)/y))^y = x :=
+begin
+  have : 0 < x^((1:ℝ)/y) ,
+  {
+    rw real.rpow_def_of_pos hx,
+    exact real.exp_pos _,
+  },
+  rw real.rpow_def_of_pos this,
+  rw real.log_rpow hx,
+  rw ( _ : (1:ℝ) / y * real.log x * y = real.log x),
+  exact real.exp_log hx,
+
+  -- ring, ?!?
+  rw mul_comm,
+  rw ← mul_assoc,
+  rw ( _ : y * (1 / y) = 1),
+  ring,
+  simp,
+  field_simp,
+  refine div_self _,
+  nlinarith,
+end
+
+lemma real.lt_of_pow_lt_pow {x y z : ℝ} (hx : 0 < x) (hy : 0 < y) (hz : 0 < z) (h : x^z < y^ z) :
+x < y :=
+begin
+  rw real.rpow_def_of_pos hx at h,
+  rw real.rpow_def_of_pos hy at h,
+  rw real.exp_lt_exp at h,
+  apply (real.log_lt_log_iff hx hy).mp,
+  nlinarith,
+end
+
+lemma real.floor_eq_or_lt (y : ℝ ) :  (⌊y⌋ : ℝ) = y ∨ (⌊y⌋ : ℝ) < y
+ := le_iff_eq_or_lt.mp (floor_le y)
+
+lemma int.le_floor_of_lt {x : ℤ} {y : ℝ} (hx : (x : ℝ) < y) : (x:ℝ) ≤ (⌊y⌋:ℝ) :=
+begin
+  norm_cast,
+  rw le_floor,
+  exact le_of_lt hx,
+end
+
+lemma junk1234' (x : ℕ) (h : ¬ x ≤ 1) : 2 ≤ x :=
+begin
+  linarith,
+end
+
+lemma int.is_le_one_or_ge_two (x : ℤ) : |x| ≤ 1 ∨ 2 ≤ |x| :=
+begin
+  by_cases (|x| ≤ 1),
+  left, assumption, right,
+  let n:= int.to_nat (|x|),
+  have n_is : (n:ℤ) = |x|,
+  {
+    sorry,
+  },
+  have hn : ¬ n ≤ 1,
+  {
+    sorry,
+  },
+  have := junk1234' n hn,
+  linarith,
+end
+
+lemma ineq_2 (x : ℤ) (hx₁ : (3 : ℝ)/4 < 4/ (3* x^4)) (hx₂ : x ≠ 0) : x = 1 ∨ x = -1 :=
+begin
+  cases (int.is_le_one_or_ge_two x),
+  {
+    cases abs_cases x,
+    {
+      left,
+    --linarith,
+      sorry,
+    },
+    { right,
+      linarith,
+    },
+  },
+  {
+    have : (2:ℝ)^4 ≤ x^4,
+    {
+      norm_cast,
+      sorry,
+    },
+    have := (div_lt_div_iff _ _).mp hx₁,
+    linarith,
+    linarith,
+    linarith,
+  },
+end
+
+def T_pow (n : ℤ) : SL(2,ℤ) := ⟨ ![![1, n],![0,1]],
+begin
+  simp,
+  sorry,
+end
+⟩
+
+lemma g_is_of_c_is_one (g : SL(2,ℤ)) (hc : g 1 0 = 1) : g = (T_pow (g 0 0)) * S * (T_pow (g 1 1))
+:=
+begin
+  rw T_pow,
+  rw T_pow,
+  ext i,
+  fin_cases i;
+  fin_cases j,
+  { simp [vec_head, vec_tail, S], },
+  {
+    simp [vec_head, vec_tail, S],
+    have g_det : g.val.det = (g 0 0)*(g 1 1)-(g 1 0)*(g 0 1),
+    {
+      sorry,
+    },
+    rw hc at g_det,
+    rw g.2 at g_det,
+    rw g_det,
+    norm_cast,
+    ring,
+    sorry,
+  },
+  {
+    simp [vec_head, vec_tail, S, hc],
+    exact_mod_cast hc,
+  },
+  { simp [vec_head, vec_tail, S], },
+end
+
 lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
 begin
 /-
@@ -583,7 +757,35 @@ begin
   {
     -- want to argue first that c=± 1
     -- then show this is impossible
-    have := ineq_1 z g hz hg h,
+    have := ineq_2 _ (ineq_1 z g hz hg h) h,
+
+    cases this with hc,
+    {
+      have := g_is_of_c_is_one g hc,
+      let z₁ := T_pow (g 1 1) • z,
+      let w₁ := T_pow (- g 0 0) • (g • z),
+      have w_1_S_z_1 : w_1 = S • z_1,
+      {
+        sorry,
+      },
+      have w_1_norm : 1 < norm_sq w_1,
+      {
+        sorry,
+      },
+      have z_1_norm : 1 < norm_sq z_1,
+      {
+        sorry,
+      },
+
+      have := normsq_S_lt_of_normsq z_1_norm,
+
+      linarith,
+
+      sorry,
+    },
+    {
+      sorry,
+    },
 
     sorry,
   },
@@ -593,18 +795,6 @@ end
 
 
 
- lemma namedIsZ (c :ℤ  ) (h: c≤ 1) (h2: 0≤ c) :  c=0 ∨ c=1 :=
-    begin
---         lift n to ℕ using hn
-      lift c to ℕ using h2,
-      norm_cast,
-      cases c,
-      left, refl,
-      right,
-      norm_cast at h,
-      rw nat.succ_le_succ_iff at h,
-      sorry,
-    end
 
 
     lemma fundom_no_repeats (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟) (hz' : z' ∈ 𝒟) :

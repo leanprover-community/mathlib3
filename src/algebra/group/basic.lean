@@ -444,7 +444,7 @@ lemma mul_inv (a b : G) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 by rw [mul_inv_rev, mul_comm]
 
 @[to_additive]
-lemma div_eq_of_eq_mul' (a b c : G) (h : a = b * c) : a / b = c :=
+lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
 begin simp only [h, mul_comm, div_eq_mul_inv, mul_left_comm], rw [mul_left_comm], simp end
 
 end comm_group

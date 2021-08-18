@@ -677,7 +677,7 @@ begin
     rw ← ideal.one_eq_top at h,
     exact h.not_unit is_unit_one },
   { simp only [← ideal.dvd_span_singleton, ← ideal.span_singleton_mul_span_singleton] at ⊢ hxy,
-    exact h.div_or_div hxy }
+    exact h.dvd_or_dvd hxy }
 end
 
 theorem ideal.prime_of_is_prime {P : ideal A} (hP : P ≠ ⊥) (h : is_prime P) : prime P :=

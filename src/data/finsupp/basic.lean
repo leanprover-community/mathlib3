@@ -543,6 +543,19 @@ begin
   { exact hc₂ }
 end
 
+@[simp] lemma emb_domain_single (f : α ↪ β) (a : α) (m : M) :
+  emb_domain f (single a m) = single (f a) m :=
+begin
+  ext b,
+  by_cases h : b ∈ set.range f,
+  { rcases h with ⟨a', rfl⟩,
+    simp [single_apply], },
+  { simp only [emb_domain_notin_range, h, single_apply, not_false_iff],
+    rw if_neg,
+    rintro rfl,
+    simpa using h, },
+end
+
 end emb_domain
 
 /-! ### Declarations about `zip_with` -/
@@ -861,6 +874,23 @@ lemma map_range_add [add_zero_class N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
+
+/-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
+@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ (β →₀ M) :=
+{ to_fun := λ v, emb_domain f v,
+  map_zero' := by simp,
+  map_add' := λ v w,
+  begin
+    ext b,
+    by_cases h : b ∈ set.range f,
+    { rcases h with ⟨a, rfl⟩,
+      simp, },
+    { simp [emb_domain_notin_range, h], },
+  end, }
+
+@[simp] lemma emb_domain_add (f : α ↪ β) (v w : α →₀ M) :
+  emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
+(emb_domain.add_monoid_hom f).map_add v w
 
 end add_zero_class
 

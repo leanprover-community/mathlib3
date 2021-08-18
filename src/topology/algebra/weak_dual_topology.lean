@@ -83,6 +83,7 @@ continuous.
 The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 -/
 
+universe variables u v
 variables (𝕜 : Type*) [topological_space 𝕜] [semiring 𝕜]
 variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
 
@@ -111,11 +112,11 @@ continuous_induced_dom
 lemma eval_continuous (z : E) : continuous (λ (x' : weak_dual 𝕜 E), x' z) :=
 (continuous_pi_iff.mp (coe_fn_continuous 𝕜 E)) z
 
-lemma continuous_of_continuous_eval {α : Type*} [topological_space α]
+lemma continuous_of_continuous_eval {α : Type u} [topological_space α]
   {g : α → weak_dual 𝕜 E} (h : ∀ z, continuous (λ a, g a z)) : continuous g :=
 continuous_induced_rng (continuous_pi_iff.mpr h)
 
-theorem tendsto_iff_forall_eval_tendsto {γ : Type*} {F : filter γ}
+theorem tendsto_iff_forall_eval_tendsto {γ : Type u} {F : filter γ}
   {ψs : γ → weak_dual 𝕜 E} {ψ : weak_dual 𝕜 E} :
   tendsto ψs F (𝓝 ψ) ↔ ∀ z : E, tendsto (λ i, ψs i z) F (𝓝 (ψ z)) :=
 begin
@@ -137,7 +138,7 @@ instance [has_continuous_add 𝕜] : has_continuous_add (weak_dual 𝕜 E) :=
   end, }
 
 /-- If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`. -/
-instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
+instance (𝕜 : Type u) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E] [module 𝕜 E] :
   module 𝕜 (weak_dual 𝕜 E) :=
@@ -145,7 +146,7 @@ continuous_linear_map.module
 
 /-- Scalar multiplication in `weak_dual 𝕜 E` is continuous (when `𝕜` is a commutative
 semiring). -/
-instance (𝕜 : Type*) [topological_space 𝕜] [comm_semiring 𝕜]
+instance (𝕜 : Type u) [topological_space 𝕜] [comm_semiring 𝕜]
   [has_continuous_add 𝕜] [has_continuous_mul 𝕜]
   (E : Type*) [topological_space E] [add_comm_group E]
   [module 𝕜 E] :

@@ -30,8 +30,12 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 
 * `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure` :
   the Lebesgue decomposition theorem.
-* `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure_unique` :
-  the Lebesgue decomposition is unique.
+* `measure_theory.measure.eq_singular_part` : Given measures `μ` and `ν`, if `s` is a measure
+  mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`, then
+  `s = singular_part μ ν`.
+* `measure_theory.measure.eq_radon_nikodym_deriv` : Given measures `μ` and `ν`, if `s` is a
+  measure mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`,
+  then `f = radon_nikodym_deriv μ ν`.
 
 ## To do
 
@@ -77,13 +81,176 @@ begin
   exact classical.some_spec h,
 end
 
-lemma radon_nikodym_deriv_measurable (μ ν : measure α) :
+lemma have_lebesgue_decomposition_add {μ ν : measure α} (h : have_lebesgue_decomposition μ ν) :
+  μ = (singular_part μ ν) + ν.with_density (radon_nikodym_deriv μ ν) :=
+(have_lebesgue_decomposition_spec h).2.2
+
+@[measurability]
+lemma measurable_radon_nikodym_deriv (μ ν : measure α) :
   measurable $ radon_nikodym_deriv μ ν :=
 begin
   by_cases h : have_lebesgue_decomposition μ ν,
   { exact (have_lebesgue_decomposition_spec h).1 },
   { rw [radon_nikodym_deriv, dif_neg h],
     exact measurable_zero }
+end
+
+lemma mutually_singular_singular_part (μ ν : measure α) :
+  singular_part μ ν ⊥ₘ ν :=
+begin
+  by_cases h : have_lebesgue_decomposition μ ν,
+  { exact (have_lebesgue_decomposition_spec h).2.1 },
+  { rw [singular_part, dif_neg h],
+    exact mutually_singular.zero.symm }
+end
+
+lemma singular_part_le (μ ν : measure α) : singular_part μ ν ≤ μ :=
+begin
+  by_cases h : have_lebesgue_decomposition μ ν,
+  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec h,
+    conv_rhs { rw h },
+    exact measure.le_add_right (le_refl _) },
+  { rw [singular_part, dif_neg h],
+    exact measure.zero_le μ }
+end
+
+lemma with_density_radon_nikodym_deriv_le (μ ν : measure α) :
+  ν.with_density (radon_nikodym_deriv μ ν) ≤ μ :=
+begin
+  by_cases h : have_lebesgue_decomposition μ ν,
+  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec h,
+    conv_rhs { rw h },
+    exact measure.le_add_left (le_refl _) },
+  { rw [radon_nikodym_deriv, dif_neg h, with_density_zero],
+    exact measure.zero_le μ }
+end
+
+instance {μ ν : measure α} [finite_measure μ] :
+  finite_measure (singular_part μ ν) :=
+finite_measure_of_le μ $ singular_part_le μ ν
+
+instance {μ ν : measure α} [sigma_finite μ] :
+  sigma_finite (singular_part μ ν) :=
+sigma_finite_of_le μ $ singular_part_le μ ν
+
+instance {μ ν : measure α} [finite_measure μ] :
+  finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
+finite_measure_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
+
+instance {μ ν : measure α} [sigma_finite μ] :
+  sigma_finite (ν.with_density $ radon_nikodym_deriv μ ν) :=
+sigma_finite_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
+
+/-- Given measures `μ` and `ν`, if `s` is a measure mutually singular to `ν` and `f` is a
+measurable function such that `μ = s + fν`, then `s = singular_part μ ν`.
+
+This theorem provides the uniqueness of the `singular_part` in the Lebesgue decomposition theorem,
+while `measure_theory.measure.eq_radon_nikodym_deriv` provides the uniqueness of the
+`radon_nikodym_deriv`. -/
+theorem eq_singular_part
+  {μ ν : measure α} {s : measure α} {f : α → ℝ≥0∞} (hf : measurable f)
+  (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
+  s = μ.singular_part ν :=
+begin
+  obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec ⟨⟨s, f⟩, hf, hs, hadd⟩,
+  obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, ⟨T, hT₁, hT₂, hT₃⟩⟩ := ⟨hs, hsing⟩,
+  rw hadd' at hadd,
+  have hνinter : ν (S ∩ T)ᶜ = 0,
+  { rw set.compl_inter,
+    refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
+    rw [hT₃, hS₃, add_zero],
+    exact le_refl _ },
+  have heq : s.restrict (S ∩ T)ᶜ = (μ.singular_part ν).restrict (S ∩ T)ᶜ,
+  { ext1 A hA,
+    have hf : ν.with_density f (A ∩ (S ∩ T)ᶜ) = 0,
+    { refine with_density_absolutely_continuous ν _ _,
+      rw ← nonpos_iff_eq_zero,
+      exact hνinter ▸ measure_mono (set.inter_subset_right _ _) },
+    have hrn : ν.with_density (μ.radon_nikodym_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
+    { refine with_density_absolutely_continuous ν _ _,
+      rw ← nonpos_iff_eq_zero,
+      exact hνinter ▸ measure_mono (set.inter_subset_right _ _) },
+    rw [restrict_apply hA, restrict_apply hA, ← add_zero (s (A ∩ (S ∩ T)ᶜ)), ← hf,
+        ← add_apply, ← hadd, add_apply, hrn, add_zero] },
+  have heq' : ∀ A : set α, measurable_set A → s A = s.restrict (S ∩ T)ᶜ A,
+  { intros A hA,
+    have hsinter : s (A ∩ (S ∩ T)) = 0,
+    { rw ← nonpos_iff_eq_zero,
+      exact hS₂ ▸ measure_mono
+        (set.subset.trans (set.inter_subset_right _ _) (set.inter_subset_left _ _)) },
+    rw [restrict_apply hA, ← add_zero (s (A ∩ (S ∩ T)ᶜ)), ← hsinter, ← measure_union,
+        ← set.inter_union_distrib_left, set.compl_union_self, set.inter_univ],
+    { exact disjoint.inter_left' _ ( disjoint.inter_right' _ disjoint_compl_left) },
+    { measurability },
+    { measurability } },
+  ext1 A hA,
+  have hμinter : μ.singular_part ν (A ∩ (S ∩ T)) = 0,
+  { rw ← nonpos_iff_eq_zero,
+    exact hT₂ ▸ measure_mono
+      (set.subset.trans (set.inter_subset_right _ _) (set.inter_subset_right _ _)) },
+  rw [heq' A hA, heq, ← add_zero ((μ.singular_part ν).restrict (S ∩ T)ᶜ A), ← hμinter,
+      restrict_apply hA, ← measure_union, ← set.inter_union_distrib_left,
+      set.compl_union_self, set.inter_univ],
+  { exact disjoint.inter_left' _ ( disjoint.inter_right' _ disjoint_compl_left) },
+  { measurability },
+  { measurability }
+end
+
+/-- Given measures `μ` and `ν`, if `s` is a measure mutually singular to `ν` and `f` is a
+measurable function such that `μ = s + fν`, then `f = radon_nikodym_deriv μ ν`.
+
+This theorem provides the uniqueness of the `radon_nikodym_deriv` in the Lebesgue decomposition
+theorem, while `measure_theory.measure.eq_singular_part` provides the uniqueness of the
+`singular_part`. -/
+theorem eq_radon_nikodym_deriv
+  {μ ν : measure α} {s : measure α} {f : α → ℝ≥0∞} (hf : measurable f)
+  (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
+  ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
+begin
+  obtain ⟨hmeas, hsing, hadd'⟩ := have_lebesgue_decomposition_spec ⟨⟨s, f⟩, hf, hs, hadd⟩,
+  obtain ⟨⟨S, hS₁, hS₂, hS₃⟩, ⟨T, hT₁, hT₂, hT₃⟩⟩ := ⟨hs, hsing⟩,
+  rw hadd' at hadd,
+  have hνinter : ν (S ∩ T)ᶜ = 0,
+  { rw set.compl_inter,
+    refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
+    rw [hT₃, hS₃, add_zero],
+    exact le_refl _ },
+  have heq : (ν.with_density f).restrict (S ∩ T) =
+              (ν.with_density (radon_nikodym_deriv μ ν)).restrict (S ∩ T),
+  { ext1 A hA,
+    have hs : s (A ∩ (S ∩ T)) = 0,
+    { rw ← nonpos_iff_eq_zero,
+      exact hS₂ ▸ measure_mono
+        (set.subset.trans (set.inter_subset_right _ _) (set.inter_subset_left _ _)) },
+    have hsing : μ.singular_part ν (A ∩ (S ∩ T)) = 0,
+    { rw ← nonpos_iff_eq_zero,
+      exact hT₂ ▸ measure_mono
+        (set.subset.trans (set.inter_subset_right _ _) (set.inter_subset_right _ _)) },
+    rw [restrict_apply hA, restrict_apply hA, ← add_zero (ν.with_density f (A ∩ (S ∩ T))),
+        ← hs, ← add_apply, add_comm, ← hadd, add_apply, hsing, zero_add] },
+  have heq' : ∀ A : set α, measurable_set A →
+    ν.with_density f A = (ν.with_density f).restrict (S ∩ T) A,
+  { intros A hA,
+    have hνfinter : ν.with_density f (A ∩ (S ∩ T)ᶜ) = 0,
+    { rw ← nonpos_iff_eq_zero,
+      exact with_density_absolutely_continuous ν f hνinter ▸
+        measure_mono (set.inter_subset_right _ _) },
+    rw [restrict_apply hA, ← add_zero (ν.with_density f (A ∩ (S ∩ T))), ← hνfinter,
+        ← measure_union, ← set.inter_union_distrib_left, set.union_compl_self, set.inter_univ],
+    { exact disjoint.inter_left' _ (disjoint.inter_right' _ disjoint_compl_right) },
+    { measurability },
+    { measurability } },
+  ext1 A hA,
+  have hνrn : ν.with_density (μ.radon_nikodym_deriv ν) (A ∩ (S ∩ T)ᶜ) = 0,
+  { rw ← nonpos_iff_eq_zero,
+    exact with_density_absolutely_continuous ν (μ.radon_nikodym_deriv ν) hνinter ▸
+      measure_mono (set.inter_subset_right _ _) },
+  rw [heq' A hA, heq, ← add_zero ((ν.with_density (μ.radon_nikodym_deriv ν)).restrict (S ∩ T) A),
+      ← hνrn, restrict_apply hA, ← measure_union, ← set.inter_union_distrib_left,
+      set.union_compl_self, set.inter_univ],
+  { exact disjoint.inter_left' _ (disjoint.inter_right' _ disjoint_compl_right) },
+  { measurability },
+  { measurability }
 end
 
 open vector_measure signed_measure
@@ -154,7 +321,7 @@ begin
   exact ⟨1 / (n + 1), by simp, f n, hf₁ n, hn, hf₂ n⟩,
 end
 
-section
+namespace lebesgue_decomposition
 
 /-- Given two measures `μ` and `ν`, `measurable_le μ ν` is the set of measurable
 functions `f`, such that, for all measurable sets `A`, `∫⁻ x in A, f x ∂μ ≤ ν A`.
@@ -284,23 +451,25 @@ lemma supr_le_le {α : Type*} (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : 
 def measurable_le_eval (μ ν : measure α) : set ℝ≥0∞ :=
 (λ f : α → ℝ≥0∞, ∫⁻ x, f x ∂μ) '' measurable_le μ ν
 
-end
+end lebesgue_decomposition
+
+open lebesgue_decomposition
 
 /-- **The Lebesgue decomposition theorem**: Any pair of finite measures `μ` and `ν`
 `have_lebesgue_decomposition`. That is to say, there exists a measure `ξ` and a measurable function
 `f`, such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f` -/
 theorem have_lebesgue_decomposition_of_finite_measure
-  (ν μ : measure α) [finite_measure ν] [finite_measure μ] :
-  have_lebesgue_decomposition ν μ :=
+  (μ ν : measure α) [finite_measure μ] [finite_measure ν] :
+  have_lebesgue_decomposition μ ν :=
 begin
-  have h := @exists_seq_tendsto_Sup _ _ _ _ _ (measurable_le_eval μ ν)
+  have h := @exists_seq_tendsto_Sup _ _ _ _ _ (measurable_le_eval ν μ)
     ⟨0, 0, zero_mem_measurable_le, by simp⟩ (order_top.bdd_above _),
   choose g hmono hg₂ f hf₁ hf₂ using h,
-  -- we set `ξ` to be the supremum of a increasing sequence of functions obtained from above
+  -- we set `ξ` to be the supremum of an increasing sequence of functions obtained from above
   set ξ := ⨆ n k (hk : k ≤ n), f k with hξ,
   -- we see that `ξ` has the largest integral among all functions in `measurable_le`
-  have hξ₁ : Sup (measurable_le_eval μ ν) = ∫⁻ a, ξ a ∂μ,
-  { have := @lintegral_tendsto_of_tendsto_of_monotone _ _ μ
+  have hξ₁ : Sup (measurable_le_eval ν μ) = ∫⁻ a, ξ a ∂ν,
+  { have := @lintegral_tendsto_of_tendsto_of_monotone _ _ ν
       (λ n, ⨆ k (hk : k ≤ n), f k) (⨆ n k (hk : k ≤ n), f k) _ _ _,
     { refine tendsto_nhds_unique _ this,
       refine tendsto_of_tendsto_of_tendsto_of_le_of_le hg₂ tendsto_const_nhds _ _,
@@ -320,35 +489,34 @@ begin
   have hξm : measurable ξ,
   { convert measurable_supr (λ n, (supr_mem_measurable_le _ hf₁ n).1),
     ext, simp [hξ] },
-  -- `ξ` is the `f` in the theorem statement and we set `ν₁` to be `ν - μ.with_density ξ`
-  -- since we need `ν₁ + μ.with_density ξ = ν`
-  set ν₁ := ν - μ.with_density ξ with hν₁,
-  have hle : μ.with_density ξ ≤ ν,
+  -- `ξ` is the `f` in the theorem statement and we set `μ₁` to be `μ - ν.with_density ξ`
+  -- since we need `μ₁ + ν.with_density ξ = μ`
+  set μ₁ := μ - ν.with_density ξ with hμ₁,
+  have hle : ν.with_density ξ ≤ μ,
   { intros B hB,
     rw [hξ, with_density_apply _ hB],
     simp_rw [supr_apply],
     rw lintegral_supr (λ i, (supr_mem_measurable_le _ hf₁ i).1) (supr_monotone _),
     exact supr_le (λ i, (supr_mem_measurable_le _ hf₁ i).2 B hB) },
-  haveI : finite_measure (μ.with_density ξ),
+  haveI : finite_measure (ν.with_density ξ),
   { refine finite_measure_with_density _,
     have hle' := hle set.univ measurable_set.univ,
     rw [with_density_apply _ measurable_set.univ, measure.restrict_univ] at hle',
     exact lt_of_le_of_lt hle' (measure_lt_top _ _) },
-  refine ⟨⟨ν₁, ξ⟩, hξm, _, _⟩,
+  refine ⟨⟨μ₁, ξ⟩, hξm, _, _⟩,
   { by_contra,
   -- if they are not mutually singular, then from `exists_positive_of_not_mutually_singular`,
-  -- there exists some `ε > 0` and a measurable set `E`, such that `ν(E) > 0` and `E` is
-  -- positive with respect to `μ - εν`
-    obtain ⟨ε, hε₁, E, hE₁, hE₂, hE₃⟩ := exists_positive_of_not_mutually_singular ν₁ μ h,
-    simp_rw hν₁ at hE₃,
-    have hξle : ∀ A, measurable_set A → ∫⁻ a in A, ξ a ∂μ ≤ ν A,
+  -- there exists some `ε > 0` and a measurable set `E`, such that `μ(E) > 0` and `E` is
+  -- positive with respect to `ν - εμ`
+    obtain ⟨ε, hε₁, E, hE₁, hE₂, hE₃⟩ := exists_positive_of_not_mutually_singular μ₁ ν h,
+    simp_rw hμ₁ at hE₃,
+    have hξle : ∀ A, measurable_set A → ∫⁻ a in A, ξ a ∂ν ≤ μ A,
     { intros A hA, rw hξ,
       simp_rw [supr_apply],
       rw lintegral_supr (λ n, (supr_mem_measurable_le _ hf₁ n).1) (supr_monotone _),
       exact supr_le (λ n, (supr_mem_measurable_le _ hf₁ n).2 A hA) },
-  -- since `E` is positive, we have `∫⁻ a in A ∩ E, ε + ξ a ∂μ ≤ ν (A ∩ E)` for all `A`
-    have hε₂ : ∀ A : set α, measurable_set A →
-      ∫⁻ a in A ∩ E, ε + ξ a ∂μ ≤ ν (A ∩ E),
+  -- since `E` is positive, we have `∫⁻ a in A ∩ E, ε + ξ a ∂ν ≤ μ (A ∩ E)` for all `A`
+    have hε₂ : ∀ A : set α, measurable_set A → ∫⁻ a in A ∩ E, ε + ξ a ∂ν ≤ μ (A ∩ E),
     { intros A hA,
       have := subset_le_of_restrict_le_restrict _ _ hE₁ hE₃ (set.inter_subset_right A E),
       rwa [zero_apply, to_signed_measure_sub_apply (hA.inter hE₁),
@@ -356,7 +524,7 @@ begin
             ennreal.to_real_sub_of_le _ (ne_of_lt (measure_lt_top _ _)), sub_nonneg,
             le_sub_iff_add_le, ← ennreal.to_real_add, ennreal.to_real_le_to_real,
             measure.coe_nnreal_smul, pi.smul_apply, with_density_apply _ (hA.inter hE₁),
-            show ε • μ (A ∩ E) = (ε : ℝ≥0∞) * μ (A ∩ E), by refl,
+            show ε • ν (A ∩ E) = (ε : ℝ≥0∞) * ν (A ∩ E), by refl,
             ← set_lintegral_const, ← lintegral_add measurable_const hξm] at this,
       { rw [ne.def, ennreal.add_eq_top, not_or_distrib],
         exact ⟨ne_of_lt (measure_lt_top _ _), ne_of_lt (measure_lt_top _ _)⟩ },
@@ -368,10 +536,10 @@ begin
       { apply_instance } },
   -- from this, we can show `ξ + ε * E.indicator` is a function in `measurable_le` with
   -- integral greater than `ξ`
-    have hξε : ξ + E.indicator (λ _, ε) ∈ measurable_le μ ν,
+    have hξε : ξ + E.indicator (λ _, ε) ∈ measurable_le ν μ,
     { refine ⟨measurable.add hξm (measurable.indicator measurable_const hE₁), λ A hA, _⟩,
-      have : ∫⁻ a in A, (ξ + E.indicator (λ _, ε)) a ∂μ =
-            ∫⁻ a in A ∩ E, ε + ξ a ∂μ + ∫⁻ a in A ∩ Eᶜ, ξ a ∂μ,
+      have : ∫⁻ a in A, (ξ + E.indicator (λ _, ε)) a ∂ν =
+            ∫⁻ a in A ∩ E, ε + ξ a ∂ν + ∫⁻ a in A ∩ Eᶜ, ξ a ∂ν,
       { rw [lintegral_add measurable_const hξm, add_assoc,
             ← lintegral_union (hA.inter hE₁) (hA.inter (hE₁.compl))
               (disjoint.mono (set.inter_subset_right _ _) (set.inter_subset_right _ _)
@@ -387,108 +555,19 @@ begin
           (hξle (A ∩ Eᶜ) (hA.inter hE₁.compl)) },
       { exact disjoint.mono (set.inter_subset_right _ _) (set.inter_subset_right _ _)
           disjoint_compl_right } },
-      have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂μ ≤ Sup (measurable_le_eval μ ν),
-      { exact le_Sup ⟨ξ + E.indicator (λ _, ε), hξε, rfl⟩ },
-  -- but this contradics the maximality of `∫⁻ x, ξ x ∂μ`
+      have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂ν ≤ Sup (measurable_le_eval ν μ) :=
+        le_Sup ⟨ξ + E.indicator (λ _, ε), hξε, rfl⟩,
+  -- but this contradicts the maximality of `∫⁻ x, ξ x ∂ν`
       refine not_lt.2 this _,
       rw [hξ₁, lintegral_add hξm (measurable.indicator (measurable_const) hE₁),
           lintegral_indicator _ hE₁, set_lintegral_const],
       refine ennreal.lt_add_right _ (ennreal.mul_pos.2 ⟨ennreal.coe_pos.2 hε₁, hE₂⟩),
-      have := measure_lt_top (μ.with_density ξ) set.univ,
+      have := measure_lt_top (ν.with_density ξ) set.univ,
       rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] at this },
-  -- since `μ.with_density ξ ≤ ν`, it is clear that `ν = ν₁ + μ.with_density ξ`
-  { rw hν₁, ext1 A hA,
+  -- since `ν.with_density ξ ≤ μ`, it is clear that `μ = μ₁ + ν.with_density ξ`
+  { rw hμ₁, ext1 A hA,
     rw [measure.coe_add, pi.add_apply, measure.sub_apply hA hle,
         add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
-end
-
-instance {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
-  finite_measure (singular_part μ ν) :=
-begin
-  obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
-    (have_lebesgue_decomposition_of_finite_measure μ ν),
-  refine finite_measure_le μ _,
-  conv_rhs { rw h },
-  exact measure.le_add_right (le_refl _),
-end
-
-instance {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
-  finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
-begin
-  obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
-    (have_lebesgue_decomposition_of_finite_measure μ ν),
-  refine finite_measure_le μ _,
-  conv_rhs { rw h },
-  exact measure.le_add_left (le_refl _),
-end
-
-/-- The Lebesgue decomposition is unique. -/
-theorem have_lebesgue_decomposition_of_finite_measure_unique
-  {μ ν : measure α} [finite_measure μ] [finite_measure ν]
-  (s : measure α) (f : α → ℝ≥0∞) (hs : s ⊥ₘ ν) (hadd : μ = s + ν.with_density f) :
-  s = μ.singular_part ν ∧ ν.with_density f = ν.with_density (μ.radon_nikodym_deriv ν) :=
-begin
-  obtain ⟨-, hsing, hadd'⟩ := have_lebesgue_decomposition_spec
-    (have_lebesgue_decomposition_of_finite_measure μ ν),
-  obtain ⟨T, hT₁, hT₂, hT₃⟩ := hsing,
-  obtain ⟨S, hS₁, hS₂, hS₃⟩ := hs,
-  haveI : finite_measure s,
-  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
-    (have_lebesgue_decomposition_of_finite_measure μ ν),
-    refine finite_measure_le μ _,
-    conv_rhs { rw hadd },
-    exact measure.le_add_right (le_refl _) },
-  haveI : finite_measure (ν.with_density f),
-  { obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec
-      (have_lebesgue_decomposition_of_finite_measure μ ν),
-    refine finite_measure_le μ _,
-    conv_rhs { rw hadd },
-    exact measure.le_add_left (le_refl _) },
-  have hsub : (μ.singular_part ν).to_signed_measure - s.to_signed_measure =
-              (ν.with_density f).to_signed_measure -
-              (ν.with_density $ μ.radon_nikodym_deriv ν).to_signed_measure,
-  { ext i hi,
-    rw [to_signed_measure_sub_apply hi, to_signed_measure_sub_apply hi],
-    suffices : (μ.singular_part ν i).to_real + (ν.with_density (μ.radon_nikodym_deriv ν) i).to_real
-      = (s i).to_real + (ν.with_density f i).to_real,
-    { linarith },
-    rw [← ennreal.to_real_add, ← ennreal.to_real_add, ennreal.to_real_eq_to_real,
-        ← measure.add_apply, ← measure.add_apply, ← hadd, ← hadd'],
-    { exact (ennreal.add_lt_top.2 ⟨measure_lt_top _ _, measure_lt_top _ _⟩) },
-    { exact (ennreal.add_lt_top.2 ⟨measure_lt_top _ _, measure_lt_top _ _⟩) },
-    all_goals { exact ne_of_lt (measure_lt_top _ _) } },
-  have heq : ∀ A (hA : measurable_set A),
-    ((μ.singular_part ν).to_signed_measure - s.to_signed_measure) A =
-    ((μ.singular_part ν).to_signed_measure - s.to_signed_measure) (A ∩ (S ∩ T)ᶜ),
-  { intros A hA,
-    have : A = (A ∩ (S ∩ T)ᶜ) ∪ (A ∩ (S ∩ T)),
-    { rw [← set.inter_union_distrib_left, set.compl_union_self, set.inter_univ] },
-    conv_lhs { rw this },
-    rw of_union (disjoint.inter_left' _ (disjoint.inter_right' A disjoint_compl_left)),
-    suffices : ((μ.singular_part ν).to_signed_measure - s.to_signed_measure) (A ∩ (S ∩ T)) = 0,
-    { rw [this, add_zero] },
-    rw [to_signed_measure_sub_apply, sub_eq_zero, ennreal.to_real_eq_to_real],
-    refine eq.trans (nonpos_iff_eq_zero.1 (hT₂ ▸ measure_mono _))
-      (eq.symm ((nonpos_iff_eq_zero.1 (hS₂ ▸ measure_mono _)))),
-    { rw ← set.inter_assoc, exact set.inter_subset_right _ _ },
-    { rw [set.inter_comm, set.inter_assoc],
-      exact set.inter_subset_left _ _ },
-    all_goals { exact measure_lt_top _ _ <|> measurability <|> apply_instance} },
-  have hμinter : ν (S ∩ T)ᶜ = 0,
-    { rw set.compl_inter,
-      refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
-      rw [hT₃, hS₃, add_zero],
-      exact le_refl _ },
-  suffices : (μ.singular_part ν).to_signed_measure - s.to_signed_measure = 0,
-  { refine ⟨(to_signed_measure_eq_to_signed_measure_iff.1 (sub_eq_zero.1 this)).symm,
-            to_signed_measure_eq_to_signed_measure_iff.1 (sub_eq_zero.1 _)⟩,
-    rwa ← hsub },
-  ext A hA,
-  rw [heq A hA, hsub, to_signed_measure_sub_apply, with_density_absolutely_continuous,
-      with_density_absolutely_continuous, ennreal.zero_to_real, sub_zero, zero_apply],
-  { exact nonpos_iff_eq_zero.1 (hμinter ▸ measure_mono (set.inter_subset_right _ _)) },
-  { exact nonpos_iff_eq_zero.1 (hμinter ▸ measure_mono (set.inter_subset_right _ _)) },
-  { measurability }
 end
 
 end measure

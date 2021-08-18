@@ -125,14 +125,6 @@ end
 end nat
 open nat
 
-namespace set
-
-lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
-  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
-by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
-
-end set
-
 section complete_lattice
 
 lemma supr_unpair {α} [complete_lattice α] (f : ℕ → ℕ → α) :
@@ -144,3 +136,19 @@ lemma infi_unpair {α} [complete_lattice α] (f : ℕ → ℕ → α) :
 supr_unpair (show ℕ → ℕ → order_dual α, from f)
 
 end complete_lattice
+
+namespace set
+
+lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
+  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
+
+lemma Union_unpair {α} (f : ℕ → ℕ → set α) :
+  (⋃ n : ℕ, f n.unpair.1 n.unpair.2) = ⋃ i j : ℕ, f i j :=
+supr_unpair f
+
+lemma Inter_unpair {α} (f : ℕ → ℕ → set α) :
+  (⋂ n : ℕ, f n.unpair.1 n.unpair.2) = ⋂ i j : ℕ, f i j :=
+infi_unpair f
+
+end set

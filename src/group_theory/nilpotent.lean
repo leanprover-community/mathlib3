@@ -182,9 +182,9 @@ lemma upper_central_series_is_ascending_central_series :
 ⟨rfl, λ x n h, h⟩
 
 lemma upper_central_series_mono : monotone (upper_central_series G) :=
-monotone_nat_of_le_succ $ λ n,
 begin
-  intros x hx y,
+  apply monotone_nat_of_le_succ ,
+  intros n x hx y,
   rw [mul_assoc, mul_assoc, ← mul_assoc y x⁻¹ y⁻¹],
   exact mul_mem (upper_central_series G n) hx
     (normal.conj_mem (upper_central_series.subgroup.normal G n) x⁻¹ (inv_mem _ hx) y),

@@ -84,16 +84,15 @@ namespace strongly_measurable
 
 variables {α β : Type*} {f : α → β}
 
-lemma subsingleton.strongly_measurable [topological_space β] [subsingleton β] :
+lemma subsingleton.strongly_measurable [measurable_space α] [topological_space β] [subsingleton β] :
   strongly_measurable f :=
 begin
   let f_sf : α →ₛ β := ⟨f, λ x, _,
     set.subsingleton.finite (set.subsingleton_of_subsingleton (set.range f))⟩,
-  swap,
-  { have h_univ : f ⁻¹' {x} = set.univ, by { ext1 y, simp,},
+  { exact ⟨λ n, f_sf, λ x, tendsto_const_nhds⟩, },
+  { have h_univ : f ⁻¹' {x} = set.univ, by { ext1 y, simp, },
     rw h_univ,
     exact measurable_set.univ, },
-  exact ⟨λ n, f_sf, λ x, tendsto_const_nhds⟩,
 end
 
 /-- A sequence of simple functions such that `∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x))`.

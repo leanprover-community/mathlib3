@@ -83,8 +83,7 @@ instance apply_mul_action {M} [monoid M] : mul_action (mul_aut M) M :=
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-@[simp] lemma mul_aut.smul_def {M} [monoid M] (f : mul_aut M) (a : M) :
-  f • a = f a := rfl
+@[simp] protected lemma smul_def {M} [monoid M] (f : mul_aut M) (a : M) : f • a = f a := rfl
 
 /-- `mul_aut.apply_mul_action` is faithful. -/
 instance apply_has_faithful_scalar {M} [monoid M] : has_faithful_scalar (mul_aut M) M :=
@@ -158,7 +157,7 @@ instance apply_distrib_mul_action {A} [add_monoid A] : distrib_mul_action (add_a
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-@[simp] lemma add_aut.smul_def {A} [add_monoid A] (f : add_aut A) (a : A) : f • a = f a := rfl
+@[simp] protected lemma smul_def {A} [add_monoid A] (f : add_aut A) (a : A) : f • a = f a := rfl
 
 /-- `add_aut.apply_distrib_mul_action` is faithful. -/
 instance apply_has_faithful_scalar {A} [add_monoid A] : has_faithful_scalar (add_aut A) A :=

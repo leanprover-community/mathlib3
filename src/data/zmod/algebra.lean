@@ -7,10 +7,13 @@ Authors: Johan Commelin
 import data.zmod.basic
 import algebra.algebra.basic
 
+/-
+# The `zmod n`-algebra structure on rings whose characteristic divides `n`
+-/
 
 namespace zmod
-variables (R : Type*) [ring R]
 
+variables (R : Type*) [ring R]
 
 section
 variables {n : ℕ} (m : ℕ) [char_p R m]

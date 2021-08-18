@@ -17,7 +17,7 @@ This files defines several linters that prevent common mistakes when declaring s
 
 open tactic expr
 
-/-- `simp_lhs_rhs reduce_tac ty` returns the left-hand and right-hand side of a simp lemma with
+/-- `simp_lhs_rhs_aux reduce_tac ty` returns the left-hand and right-hand side of a simp lemma with
   type `ty`. `reduce_tac` is the tactic that is used to reduce the type. -/
 private meta def simp_lhs_rhs_aux (reduce_tac : expr → tactic expr) :
   expr → tactic (expr × expr) | ty := do
@@ -35,10 +35,13 @@ match ty with
 | ty := pure (ty, `(true))
 end
 
+/-- `simp_lhs_rhs ty` returns the left-hand and right-hand side of a simp lemma with
+  type `ty`, using `head_beta` to reduce the type. -/
 private meta def simp_lhs_rhs : expr → tactic (expr × expr) :=
 simp_lhs_rhs_aux head_beta
 
-/-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`. -/
+/-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`, using `whnf reducible`
+  to reduce the expression. -/
 private meta def simp_lhs (ty : expr): tactic expr :=
 prod.fst <$> simp_lhs_rhs_aux (λ e, whnf e reducible) ty
 

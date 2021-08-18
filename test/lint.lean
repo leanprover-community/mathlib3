@@ -127,3 +127,21 @@ run_cmd do
   d ← get_decl `my_exists_intro,
   t ← linter.def_lemma.test d,
   guard $ t = none
+
+/- test that `simp_var_head` applies `whnf reducible`. -/
+section
+
+variables {α β : Type*}
+/-- Two functions `f₁ f₂ : α → β` are equal on `s`
+  if `f₁ x = f₂ x` for all `x ∈ a`. -/
+@[reducible] def my_eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
+∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
+
+lemma my_eq_on_empty (f₁ f₂ : α → β) : my_eq_on f₁ f₂ ∅ := λ x, false.elim
+
+run_cmd do
+  d ← get_decl `my_eq_on_empty,
+  t ← linter.simp_var_head.test d,
+  guard t.is_some
+
+end

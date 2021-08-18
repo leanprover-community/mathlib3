@@ -516,7 +516,7 @@ variables (R A)
 /-- Identity map as an `alg_hom`. -/
 protected def id : A →ₐ[R] A :=
 { commutes' := λ _, rfl,
-  ..ring_hom.id A  }
+  ..ring_hom.id A }
 
 @[simp] lemma coe_id : ⇑(alg_hom.id R A) = id := rfl
 

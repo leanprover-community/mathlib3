@@ -1069,8 +1069,8 @@ do let (p, x) := p,
    tgt ← target,
    tgt' ← do {
      ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
-     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
-   } <|> to_expr ``(Π x, %%e = x → %%tgt),
+     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1)) }
+   <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',
    swap,
    exact ``(%%t %%e rfl),

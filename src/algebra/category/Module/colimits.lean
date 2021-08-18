@@ -339,7 +339,7 @@ begin
     -- add_smul
     { rw add_smul, },
     -- zero_smul
-    { rw zero_smul, },  }
+    { rw zero_smul, }, }
 end
 
 /-- The group homomorphism from the colimit module to the cone point of any other cocone. -/

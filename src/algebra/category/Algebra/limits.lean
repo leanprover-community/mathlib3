@@ -94,7 +94,7 @@ begin
   { intros x y, simp only [forget_map_eq_coe, alg_hom.map_mul, functor.map_cone_π_app], refl, },
   { simp only [forget_map_eq_coe, alg_hom.map_zero, functor.map_cone_π_app], refl, },
   { intros x y, simp only [forget_map_eq_coe, alg_hom.map_add, functor.map_cone_π_app], refl, },
-  { intros r, ext j, exact (s.π.app j).commutes r,  },
+  { intros r, ext j, exact (s.π.app j).commutes r, },
 end
 
 end has_limits

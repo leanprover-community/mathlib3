@@ -78,8 +78,7 @@ begin
     congr,
     skip,
     funext,
-    rw [←smul_sub, vsub_sub_vsub_cancel_left]
-  },
+    rw [←smul_sub, vsub_sub_vsub_cancel_left] },
   rw [←sum_smul, h, zero_smul]
 end
 
@@ -98,8 +97,7 @@ begin
     congr,
     skip,
     funext,
-    rw [←smul_sub, vsub_sub_vsub_cancel_left]
-  },
+    rw [←smul_sub, vsub_sub_vsub_cancel_left] },
   rw [←sum_smul, h, one_smul, vsub_add_vsub_cancel, vsub_self]
 end
 

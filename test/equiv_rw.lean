@@ -120,8 +120,7 @@ begin
   have : (α → α) ≃ _, {
     apply equiv.arrow_congr,
     apply e,
-    apply e,
-  },
+    apply e, },
   equiv_rw e,
   exact (@id β),
 end
@@ -238,8 +237,7 @@ begin
     -- intro h,
     -- clear_dependent mul,
     -- rename mul' mul,
-    exact mul,
-  },
+    exact mul, },
   -- transport axioms by simplifying, and applying the original axiom
   { intros, dsimp, simp, apply S.mul_assoc, }
 end

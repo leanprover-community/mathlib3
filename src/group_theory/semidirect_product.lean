@@ -200,7 +200,7 @@ def map (f₁ : N →* N₁) (f₂ : G →* G₁)
   map_mul' := λ x y, begin
     replace h := monoid_hom.ext_iff.1 (h x.right) y.left,
     ext; simp * at *,
-  end  }
+  end }
 
 variables (f₁ : N →* N₁) (f₂ : G →* G₁)
   (h : ∀ g : G, f₁.comp (φ g).to_monoid_hom = (φ₁ (f₂ g)).to_monoid_hom.comp f₁)

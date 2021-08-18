@@ -368,7 +368,7 @@ noncomputable def equiv_map_of_injective
   (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
   map_add' := λ _ _, subtype.ext (f.map_add _ _),
-  ..equiv.set.image f s hf  }
+  ..equiv.set.image f s hf }
 
 @[simp] lemma coe_equiv_map_of_injective_apply
   (f : R →+* S) (hf : function.injective f) (x : s) :

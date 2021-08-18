@@ -190,8 +190,7 @@ sheaf_condition_of_exists_unique_gluing _ $ λ ι U sf sf_comp, begin
     use [U i, hi, opens.le_supr U i],
     -- This follows, since our original family `sf` satisfies the predicate
     convert (sf i).property,
-    exact gl_spec i
-  },
+    exact gl_spec i },
   -- It remains to show that the chosen lift is really a gluing for the subsheaf and
   -- that it is unique. Both of which follow immediately from the corresponding facts
   -- in the sheaf of functions without the local predicate.

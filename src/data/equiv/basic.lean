@@ -1286,8 +1286,7 @@ by { ext, refl }
   (h : ∀ (a : α), p a ↔ q (e a)) :
   (e.subtype_equiv h).symm = e.symm.subtype_equiv (λ a, by {
     convert (h $ e.symm a).symm,
-    exact (e.apply_symm_apply a).symm,
-  }) :=
+    exact (e.apply_symm_apply a).symm }) :=
 rfl
 
 @[simp] lemma subtype_equiv_trans {p : α → Prop} {q : β → Prop} {r : γ → Prop}

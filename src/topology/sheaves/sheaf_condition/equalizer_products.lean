@@ -233,8 +233,8 @@ begin
     { hom := hom_of_le
       (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
       inv := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
-    }), },
+      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
+                     set.image_Union]) }), },
   { ext,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
     simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,

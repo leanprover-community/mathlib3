@@ -114,7 +114,7 @@ begin
     { right, apply h, subst a, exact hx, },
     { simp only [h', mem_union, mem_singleton] at hx ⊢, cases hx,
       { exact or.inl hx },
-      { exact or.inr (h _ hx) }  },
+      { exact or.inr (h _ hx) } },
     intro h, existsi s \ ({xs_hd} : finset α),
     simp only [and_imp, union_comm, mem_sdiff, mem_singleton],
     simp only [or_iff_not_imp_left] at h,

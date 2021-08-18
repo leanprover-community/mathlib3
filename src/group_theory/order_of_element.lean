@@ -655,7 +655,7 @@ lemma mem_multiples_iff_mem_gmultiples :
   b ∈ add_submonoid.multiples a ↔ b ∈ add_subgroup.gmultiples a :=
 ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩, λ ⟨i, hi⟩, ⟨(i % add_order_of a).nat_abs,
   by { simp only [nsmul_eq_smul] at hi ⊢,
-       rwa  [← gsmul_coe_nat,
+       rwa [← gsmul_coe_nat,
        int.nat_abs_of_nonneg (int.mod_nonneg _ (int.coe_nat_ne_zero_iff_pos.2
           (add_order_of_pos a))), ← gsmul_eq_mod_add_order_of] } ⟩⟩
 

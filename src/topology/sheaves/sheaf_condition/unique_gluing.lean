@@ -80,8 +80,7 @@ begin
   { intros i j,
     convert congr_arg (limits.pi.π (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2))) (i,j)) h,
     {rw [left_res, types.pi_lift_π_apply], refl},
-    {rw [right_res, types.pi_lift_π_apply], refl},
-  }
+    {rw [right_res, types.pi_lift_π_apply], refl}, }
 end
 
 /--
@@ -207,8 +206,7 @@ def sheaf_condition_of_exists_unique_gluing
 sheaf_condition_of_sheaf_condition_unique_gluing F $ λ ι U sf hsf,
 { default := by {
     choose gl gl_spec gl_uniq using h U sf hsf,
-    exact ⟨gl, gl_spec⟩,
-  },
+    exact ⟨gl, gl_spec⟩, },
   uniq := by {
     intro s,
     let t : F.gluing U sf := _,
@@ -216,8 +214,7 @@ sheaf_condition_of_sheaf_condition_unique_gluing F $ λ ι U sf hsf,
     ext,
     choose gl gl_spec gl_uniq using h U sf hsf,
     refine eq.trans (gl_uniq s.1 _) (gl_uniq t.1 _).symm,
-    exacts [s.2, t.2]
-  },
+    exacts [s.2, t.2] },
 }
 
 end presheaf

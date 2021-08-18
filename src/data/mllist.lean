@@ -46,8 +46,8 @@ meta def fixl_with (f : α → m (α × list β)) : α → list β → mllist m 
             match l with
             | (b :: rest) := pure (some b, fixl_with s' rest)
             | [] := pure (none, fixl_with s' [])
-            end
-          } <|> pure (none, nil)
+            end }
+          <|> pure (none, nil)
 
 /-- Repeatedly apply a function `f : α → m (α × list β)` to an initial `a : α`,
 accumulating the elements of the resulting `list β` as a single monadic lazy list. -/

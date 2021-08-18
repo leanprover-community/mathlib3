@@ -586,7 +586,7 @@ begin
       cases left_dvd_or_dvd_right_of_dvd_prime_mul p_prime q_dvd_pa' with p_dvd_q q_dvd_a',
       { have : p ∣ c' * b' := dvd_mul_of_dvd_right (p_dvd_q.trans q_dvd_b') _,
         contradiction },
-      exact coprime q_dvd_a' q_dvd_b'  } }
+      exact coprime q_dvd_a' q_dvd_b' } }
 end
 
 lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :

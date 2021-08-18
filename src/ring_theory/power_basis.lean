@@ -323,7 +323,7 @@ noncomputable def lift_equiv (pb : power_basis A S) :
 { to_fun := λ y, pb.lift y y.2,
   inv_fun := λ f, ⟨f pb.gen, by rw [aeval_alg_hom_apply, minpoly.aeval, f.map_zero]⟩,
   left_inv := λ y, subtype.ext $ lift_gen _ _ y.prop,
-  right_inv := λ f, pb.alg_hom_ext $ lift_gen _ _ _  }
+  right_inv := λ f, pb.alg_hom_ext $ lift_gen _ _ _ }
 
 /-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis. -/
 noncomputable def equiv

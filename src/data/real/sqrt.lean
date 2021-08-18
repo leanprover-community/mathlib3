@@ -104,8 +104,7 @@ begin
 
   suffices : ∃ δ > 0, ∀ i, abs (↑(sqrt_aux f i) - x) < δ / 2 ^ i,
   { rcases this with ⟨δ, δ0, hδ⟩,
-    intros,
-     }
+    intros }
 end -/
 
 /-- The square root of a real number. This returns 0 for negative inputs. -/

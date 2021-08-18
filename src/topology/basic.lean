@@ -1260,8 +1260,7 @@ begin
   { intros h x y h',
     simp only [ptendsto'_def, mem_nhds_iff],
     rintros s ⟨t, tsubs, opent, yt⟩,
-    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩
-  },
+    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩ },
   intros hf s os,
   rw is_open_iff_nhds,
   rintros x ⟨y, ys, fxy⟩ t,

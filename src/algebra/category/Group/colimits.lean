@@ -257,8 +257,7 @@ begin
     -- add_comm
     { rw add_comm, },
     -- add_assoc
-    { rw add_assoc, },
-  }
+    { rw add_assoc, } }
 end
 
 /-- The group homomorphism from the colimit abelian group to the cone point of any other cocone. -/

@@ -888,8 +888,7 @@ begin
       { right,
         refine ⟨(right_moves_add _ _).inv_fun (sum.inl j), _⟩,
         convert add_le_add_right jh,
-        apply add_move_right_inl },
-      },
+        apply add_move_right_inl } },
     { -- or play in z
       left,
       refine ⟨(left_moves_add _ _).inv_fun (sum.inr i), _⟩,

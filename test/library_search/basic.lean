@@ -118,8 +118,7 @@ def map_from_sum {A B C : Type} (f : A → C) (g : B → C) : (A ⊕ B) → C :=
 lemma bind_singleton {α β} (x : α) (f : α → list β) : list.bind [x] f = f x :=
 begin
   success_if_fail {
-    library_search { md := tactic.transparency.reducible },
-  },
+    library_search { md := tactic.transparency.reducible }, },
   library_search!,
 end
 

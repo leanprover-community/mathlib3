@@ -131,7 +131,7 @@ lemma list_le_mono_right {α : Type*} [preorder α] {xs ys zs : list α}
 begin
   revert ys zs,
   induction xs with x xs ; intros ys zs h,
-  { cases ys, { simp, apply list.le_refl }, cases h  },
+  { cases ys, { simp, apply list.le_refl }, cases h },
   { cases ys with y ys, cases h, simp [has_le.le,list.le] at *,
     suffices : list.le' ((zs ++ [x]) ++ xs) ((zs ++ [y]) ++ ys),
     { refine cast _ this, simp, },

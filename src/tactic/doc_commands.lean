@@ -393,8 +393,7 @@ by conv {
   to_lhs,
   conv {
     congr, skip,
-    rw h₁,
-  },
+    rw h₁ },
   rw h₂,
 }
 ```

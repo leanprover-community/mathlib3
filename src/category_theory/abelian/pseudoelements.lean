@@ -215,7 +215,7 @@ end zero
 
 /-- Morphisms map the zero pseudoelement to the zero pseudoelement -/
 @[simp] theorem apply_zero {P Q : C} (f : P ⟶ Q) : f 0 = 0 :=
-by { rw [pseudo_zero_def, pseudo_apply_mk], simp  }
+by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
 
 /-- The zero morphism maps every pseudoelement to 0. -/
 @[simp] theorem zero_apply {P : C} (Q : C) (a : P) : (0 : P ⟶ Q) a = 0 :=

@@ -71,8 +71,7 @@ meta def step1 (md : transparency) (unify : bool)
           k ← mk_local' n binder_info.default J,
           e ← kreplace e j k md unify,
           ks ← ks.mmap $ λ k', kreplace k' j k md unify,
-          pure (e, k :: ks)
-        },
+          pure (e, k :: ks) },
   to_generalize.mfoldr go (e, [])
 
 /--
@@ -242,8 +241,7 @@ meta def generalizes (args : parse generalizes_args_parser) : tactic unit :=
 propagate_tags $ do
   args ← args.mmap $ λ ⟨arg_name, hyp_name, arg⟩, do {
     arg ← to_expr arg,
-    pure (arg_name, hyp_name, arg)
-  },
+    pure (arg_name, hyp_name, arg) },
   generalizes_intro args,
   pure ()
 

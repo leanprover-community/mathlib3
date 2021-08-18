@@ -27,6 +27,7 @@ adjoin, algebra, finitely-generated algebra
 universes u v w
 
 open submodule
+open_locale pointwise
 
 namespace algebra
 

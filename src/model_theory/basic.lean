@@ -43,6 +43,7 @@ namespace first_order
 
 /-- A first-order language consists of a type of functions of every natural-number arity and a
   type of relations of every natural-number arity. -/
+@[nolint check_univs] -- false positive
 structure language :=
 (functions : ℕ → Type u) (relations : ℕ → Type v)
 

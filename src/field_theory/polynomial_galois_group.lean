@@ -279,7 +279,7 @@ begin
     exact splits_of_splits_of_dvd _
       (minpoly.ne_zero qx_int)
       (normal.splits h_normal _)
-      (dvd_symm_of_irreducible (minpoly.irreducible qx_int) hr (minpoly.dvd F _ hx)) },
+      ((minpoly.irreducible qx_int).dvd_symm hr (minpoly.dvd F _ hx)) },
   have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,
@@ -332,7 +332,7 @@ begin
   { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,
         intermediate_field.adjoin.finrank hα, this] },
   suffices : minpoly F α ∣ p,
-  { have key := dvd_symm_of_irreducible (minpoly.irreducible hα) p_irr this,
+  { have key := (minpoly.irreducible hα).dvd_symm p_irr this,
     apply le_antisymm,
     { exact nat_degree_le_of_dvd this p_irr.ne_zero },
     { exact nat_degree_le_of_dvd key (minpoly.ne_zero hα) } },

@@ -44,6 +44,8 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
  * [Nash-Williams, *On Well-Quasi-Ordering Finite Trees*][Nash-Williams63]
 -/
 
+open_locale pointwise
+
 variables {α : Type*}
 
 namespace set

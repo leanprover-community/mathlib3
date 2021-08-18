@@ -882,7 +882,7 @@ begin
       rw map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic,
       intro hdiv,
       refine hdiff (eq_of_monic_of_associated Pmonic Qmonic _),
-      exact associated_of_dvd_dvd hdiv (dvd_symm_of_irreducible Pirr Qirr hdiv) },
+      exact associated_of_dvd_dvd hdiv (Pirr.dvd_symm Qirr hdiv) },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Pmonic).2,
       exact minpoly_dvd_X_pow_sub_one h hpos },
     { apply (map_dvd_map (int.cast_ring_hom ℚ) int.cast_injective Qmonic).2,

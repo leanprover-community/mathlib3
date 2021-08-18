@@ -9,8 +9,8 @@ namespace measure_theory
 
 namespace measure
 
-/-- **The Radon-Nikodym theorem**: Given two finite measures `μ` and `ν`, if `ν` is absolutely
-continuous with respect to `μ`, then there exists a measurable function `f` such that
+/-- **The Radon-Nikodym theorem**: Given two measures `μ` and `ν`, if
+`have_lebesgue_decomposition μ ν`, then there exists a measurable function `f` such that
 `f` is the derivative of `ν` with respect to `μ`. -/
 theorem with_density_radon_nikodym_deriv_eq_of_finite
   (μ ν : measure α) (hl : have_lebesgue_decomposition μ ν) (h : μ ≪ ν) :

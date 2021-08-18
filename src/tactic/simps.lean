@@ -377,7 +377,7 @@ This command specifies custom names and custom projections for the simp attribut
   `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)`.
 * See Note [custom simps projection] and the examples below for information how to declare custom
   projections.
-* If not custom projection is specified, the projection will be `coe_fn`/`⇑` if a `has_coe_to_fun`
+* If no custom projection is specified, the projection will be `coe_fn`/`⇑` if a `has_coe_to_fun`
   instance has been declared, or the notation of a notation class (like `has_mul`) if such an
   instance is available. If none of these cases apply, the projection itself will be used.
 * You can disable a projection by default by running

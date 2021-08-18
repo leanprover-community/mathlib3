@@ -99,14 +99,32 @@ nat_iso.of_components
 @[simp] lemma inclusion_map_iso_hom (x : X) : (inclusion_map_iso f x).hom = 𝟙 _ := rfl
 @[simp] lemma inclusion_map_iso_inv (x : X) : (inclusion_map_iso f x).inv = 𝟙 _ := rfl
 
-def is_open_map.functor_nhds (h : is_open_map f) (x : X) :
+end open_nhds
+
+end topological_space
+
+namespace is_open_map
+
+open topological_space
+
+variables {f}
+
+/--
+An open map `f : X ⟶ Y` induces a functor `open_nhds x ⥤ open_nhds (f x)`.
+-/
+@[simps]
+def functor_nhds (h : is_open_map f) (x : X) :
   open_nhds x ⥤ open_nhds (f x) :=
 { obj := λ U, ⟨h.functor.obj U.1, ⟨x, U.2, rfl⟩⟩,
   map := λ U V i, h.functor.map i }
 
-def inclusion_functor_nhds_iso (h : is_open_map f) (x : X) :
-  inclusion x ⋙ h.functor ≅ is_open_map.functor_nhds f h x ⋙ inclusion (f x) :=
-nat_iso.of_components (λ U, by refl) (by tidy)
+/--
+An open map `f : X ⟶ Y` induces an adjunction between `open_nhds x` and `open_nhds (f x)`.
+-/
+def adjunction_nhds (h : is_open_map f) (x : X) :
+  is_open_map.functor_nhds h x ⊣ open_nhds.map f x :=
+adjunction.mk_of_unit_counit
+{ unit := { app := λ U, hom_of_le $ λ x hxU, ⟨x, hxU, rfl⟩ },
+  counit := { app := λ V, hom_of_le $ λ y ⟨x, hfxV, hxy⟩, hxy ▸ hfxV } }
 
-end open_nhds
-end topological_space
+end is_open_map

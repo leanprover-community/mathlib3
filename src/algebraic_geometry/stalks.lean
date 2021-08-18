@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
-import category_theory.limits.cofinal
+import category_theory.limits.final
 import topology.sheaves.stalks
 
 /-!
@@ -51,23 +51,17 @@ by rw [stalk_map, stalk_functor_map_germ_assoc, stalk_pushforward_germ]
 
 section restrict
 
--- TODO: Move in opposites.lean
-lemma op_comp_iso {C : Type u} [category.{v} C] {D : Type u} [category.{v} D] {E : Type u} [category.{v} E] (F : C ⥤ D) (G : D ⥤ E) :
-  (F ⋙ G).op ≅ F.op ⋙ G.op :=
-nat_iso.of_components (λ X, iso.refl _) (by tidy)
-
--- PROJECT: restriction preserves stalks.
--- We'll want to define cofinal functors, show precomposing with a cofinal functor preserves
--- colimits, and (easily) verify that "open neighbourhoods of x within U" is cofinal in "open
--- neighbourhoods of x".
-
 def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :
   (X.restrict f h).stalk x ≅ X.stalk (f x) :=
 begin
-  change colimit ((open_nhds.is_open_map.functor_nhds f h.is_open_map x).op ⋙ (open_nhds.inclusion (f x)).op ⋙ X.presheaf)
+  change colimit ((h.is_open_map.functor_nhds x).op ⋙ (open_nhds.inclusion (f x)).op ⋙ X.presheaf)
     ≅ colimit ((open_nhds.inclusion (f x)).op ⋙ X.presheaf),
-  sorry
+  -- As a left adjoint, the functor `h.is_open_map.functor_nhds x` is initial.
+  haveI := functor.initial_of_left_adjoint (h.is_open_map.adjunction_nhds x),
+  -- Typeclass resolution knows that the dual of an initial functor is final. The result follows
+  -- from the general fact that postcomposing with a final functor doesn't change colimits.
+  apply functor.final.colimit_iso,
 end
 
 

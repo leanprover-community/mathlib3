@@ -3,7 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import data.multiset.basic
+import algebra.big_operators.basic
 import algebra.divisibility
 import algebra.invertible
 
@@ -63,6 +63,9 @@ hp.1
 lemma not_unit (hp : prime p) : ¬ is_unit p :=
 hp.2.1
 
+lemma not_dvd_one (hp : prime p) : ¬ p ∣ 1 :=
+λ h, hp.not_unit (is_unit_of_dvd_one _ h)
+
 lemma ne_one (hp : prime p) : p ≠ 1 :=
 λ h, hp.2.1 (h.symm ▸ is_unit_one)
 
@@ -84,6 +87,28 @@ begin
   exact ih dvd_pow
 end
 
+lemma exists_mem_multiset_dvd {s : multiset α} {p : α} (hp : prime p) :
+  p ∣ s.prod → ∃ a ∈ s, p ∣ a :=
+multiset.induction_on s (λ h, (hp.not_dvd_one h).elim) $
+λ a s ih h,
+  have p ∣ a * s.prod, by simpa using h,
+  match hp.dvd_or_dvd this with
+  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
+  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
+  end
+
+lemma exists_mem_finset_dvd {ι : Sort*} [decidable_eq ι] {p : α} (hp : prime p) {s : finset ι}
+  {f : ι → α} :
+  p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
+finset.induction_on s (λ h, (hp.not_dvd_one $ finset.prod_empty.subst h).elim) $
+λ i s hi ih h,
+begin
+  obtain hpf | hps := hp.dvd_or_dvd ((finset.prod_insert hi).subst h),
+  { exact ⟨i, finset.mem_insert_self i s, hpf⟩ },
+  { obtain ⟨j, hj, hpf⟩ := ih hps,
+    exact ⟨j, finset.mem_insert_of_mem hj, hpf⟩ }
+end
+
 end prime
 
 @[simp] lemma not_prime_zero : ¬ prime (0 : α) :=
@@ -91,16 +116,6 @@ end prime
 
 @[simp] lemma not_prime_one : ¬ prime (1 : α) :=
 λ h, h.not_unit is_unit_one
-
-lemma exists_mem_multiset_dvd_of_prime {s : multiset α} {p : α} (hp : prime p) :
-  p ∣ s.prod → ∃a∈s, p ∣ a :=
-multiset.induction_on s (assume h, (hp.not_unit $ is_unit_of_dvd_one _ h).elim) $
-assume a s ih h,
-  have p ∣ a * s.prod, by simpa using h,
-  match hp.dvd_or_dvd this with
-  | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
-  | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
-  end
 
 end prime
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Alex J. Best, Johan Commelin, Eric Rodriguez, Ruben Van de Velde
 -/
 
+import algebra.char_p.algebra
 import field_theory.finite.basic
 import field_theory.separable
 import linear_algebra.finite_dimensional
@@ -22,19 +23,6 @@ It is a finite field with `p ^ n` elements.
 -/
 
 noncomputable theory
-
--- move this
-section
-open function
-variables {K L : Type*} [field K] [field L]
-
-variables (K L) [algebra K L]
-
-lemma algebra.char_p_iff (p : ℕ) :
-  char_p K p ↔ char_p L p :=
-(algebra_map K L).char_p_iff_char_p p
-
-end
 
 open polynomial
 

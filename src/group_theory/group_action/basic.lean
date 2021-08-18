@@ -194,6 +194,56 @@ rfl
   mul_action.stabilizer G ((1 : G) : quotient H) = H :=
 by { ext, simp [quotient_group.eq] }
 
+section draft
+
+def equiv.sigma_assoc {α : Sort*} {β : α → Sort*} (γ : Π (a : α), β a → Sort*) :
+  (Σ (ab : Σ (a : α), β a), γ ab.1 ab.2) ≃ Σ (a : α), (Σ (b : β a), γ a b) :=
+{ to_fun := λ x, ⟨x.1.1, ⟨x.1.2, x.2⟩⟩,
+  inv_fun := λ x, ⟨⟨x.1, x.2.1⟩, x.2.2⟩,
+  left_inv := λ ⟨⟨a, b⟩, c⟩, rfl,
+  right_inv := λ ⟨a, ⟨b, c⟩⟩, rfl }
+
+local notation `Ω` := (quotient $ orbit_rel α β)
+
+noncomputable def goal : (Σ (a : α), (fixed_by α β a)) ≃ Ω × α :=
+let
+  e₀ : (Σ (a : α), fixed_by α β a) ≃ {ab : α × β // ab.1 • ab.2 = ab.2} :=
+    (equiv.subtype_prod_equiv_sigma_subtype _).symm,
+  e₁ : {ab : α × β // ab.1 • ab.2 = ab.2} ≃ {ba : β × α // ba.2 • ba.1 = ba.1} :=
+    (equiv.prod_comm α β).subtype_equiv (λ ab, iff.rfl),
+  e₂ : {ba : β × α // ba.2 • ba.1 = ba.1} ≃ Σ (b : β), stabilizer α b :=
+    equiv.subtype_prod_equiv_sigma_subtype (λ (b : β) a, a ∈ stabilizer α b),
+  tmp₀ : β ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} :=
+    (equiv.sigma_preimage_equiv quotient.mk').symm,
+  e₃ : (Σ (b : β), stabilizer α b) ≃
+        Σ (ωb : (Σ (ω : Ω), {b // quotient.mk' b = ω})), stabilizer α (ωb.2 : β) :=
+    tmp₀.sigma_congr_left',
+  e₄ : (Σ (ωb : (Σ (ω : Ω), {b // quotient.mk' b = ω})), stabilizer α (ωb.2 : β)) ≃
+        Σ (ω : Ω), (Σ (b : {b // quotient.mk' b = ω}), stabilizer α (b : β)) :=
+    equiv.sigma_assoc (λ (ω : Ω) (b : {b // quotient.mk' b = ω}), stabilizer α (b : β)),
+  e₅ : (Σ (ω : Ω), (Σ (b : {b // quotient.mk' b = ω}), stabilizer α (b : β))) ≃
+        Σ (ω : Ω), (Σ (b : {b // quotient.mk' b = ω}), stabilizer α (quotient.out' ω)) :=
+    sorry,
+  e₆ : (Σ (ω : Ω), (Σ (b : {b // quotient.mk' b = ω}), stabilizer α (quotient.out' ω))) ≃
+        Σ (ω : Ω), {b // quotient.mk' b = ω} × stabilizer α (quotient.out' ω) :=
+    sorry,
+  e₇ : (Σ (ω : Ω), {b // quotient.mk' b = ω} × stabilizer α (quotient.out' ω)) ≃
+        Σ (ω : Ω), orbit α (quotient.out' ω) × stabilizer α (quotient.out' ω) :=
+    sorry,
+  e₈ : (Σ (ω : Ω), orbit α (quotient.out' ω) × stabilizer α (quotient.out' ω)) ≃
+        Σ (ω : Ω), quotient (stabilizer α $ quotient.out' ω) × stabilizer α (quotient.out' ω) :=
+    equiv.sigma_congr_right
+      (λ ω, equiv.prod_congr (orbit_equiv_quotient_stabilizer α _) (equiv.refl _)),
+  e₉ : (Σ (ω : Ω), quotient (stabilizer α $ quotient.out' ω) × stabilizer α (quotient.out' ω)) ≃
+        Σ (ω : Ω), α :=
+    sorry,
+  e₁₀ : (Σ (ω : Ω), α) ≃ Ω × α :=
+    sorry
+in e₀.trans $ e₁.trans $ e₂.trans $ e₃.trans $ e₄.trans $ e₅.trans $ e₆.trans $ e₇.trans $ e₈.trans $
+  e₉.trans $ e₁₀
+
+end draft
+
 end mul_action
 
 section

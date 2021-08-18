@@ -58,3 +58,12 @@ let t := d.type.eta_expand env reorder,
 let decl := declaration.defn `barr6 d.univ_params t e d.reducibility_hints d.is_trusted,
 add_decl decl,
 skip
+
+/-! Test the namespace bug (#8733). This code should *not* generate a lemma
+  `add_some_def.in_namespace`. -/
+def some_def.in_namespace := ff
+@[to_additive add_some_def]
+def some_def {α : Type*} [has_mul α] (x : α) : α :=
+if some_def.in_namespace then x * x else x
+
+run_cmd success_if_fail (get_decl `add_some_def.in_namespace)

@@ -181,8 +181,8 @@ lemma upper_central_series_is_ascending_central_series :
   is_ascending_central_series (upper_central_series G) :=
 ⟨rfl, λ x n h, h⟩
 
-lemma upper_central_series_mono (n : ℕ)
-: upper_central_series G n ≤ upper_central_series G n.succ :=
+lemma upper_central_series_mono : monotone (upper_central_series G) :=
+monotone_nat_of_le_succ $ λ n,
 begin
   intros x hx y,
   rw [mul_assoc, mul_assoc, ← mul_assoc y x⁻¹ y⁻¹],
@@ -307,7 +307,7 @@ begin
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
 end
 
-lemma subsingleton_is_nilpotent (hG : subsingleton G) : is_nilpotent G :=
+lemma subsingleton.is_nilpotent (hG : subsingleton G) : is_nilpotent G :=
  nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩
 
 lemma upper_central_series.map {H : Type*} [group H] (f : G →* H)

@@ -2786,9 +2786,13 @@ quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
 end isomorphism_laws
 
+end linear_map
+
 section fun_left
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
 variables {m n p : Type*}
+
+namespace linear_map
 
 /-- Given an `R`-module `M` and a function `m → n` between arbitrary types,
 construct a linear map `(n → M) →ₗ[R] (m → M)` -/
@@ -2829,6 +2833,10 @@ begin
   simp only [← linear_map.comp_apply, ← fun_left_comp, hg.id, fun_left_id]
 end
 
+end linear_map
+
+namespace linear_equiv
+
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/
 def fun_congr_left (e : m ≃ n) : (n → M) ≃ₗ[R] (m → M) :=
@@ -2855,12 +2863,16 @@ rfl
   (fun_congr_left R M e).symm = fun_congr_left R M e.symm :=
 rfl
 
+end linear_equiv
+
 end fun_left
 
 universe i
 variables [semiring R] [add_comm_monoid M] [module R M]
 
 variables (R M)
+
+namespace linear_equiv
 
 instance automorphism_group : group (M ≃ₗ[R] M) :=
 { mul := λ f g, g.trans f,
@@ -2901,6 +2913,10 @@ instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
 /-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
 instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
 ⟨λ _ _, linear_equiv.ext⟩
+
+end linear_equiv
+
+namespace linear_map
 
 /-- The group of invertible linear maps from `M` to itself -/
 @[reducible] def general_linear_group := units (M →ₗ[R] M)

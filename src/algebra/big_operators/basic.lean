@@ -777,9 +777,8 @@ begin
 end
 
 @[to_additive]
-lemma prod_range_add_div_prod_range {α : Type*} [comm_group α] (f : ℕ → α)
-  (n m : ℕ) : (∏ k in range (n + m), f k ) / (∏ k in range n, f k) =
-  ∏ k in finset.range m, f (n + k) :=
+lemma prod_range_add_div_prod_range {α : Type*} [comm_group α] (f : ℕ → α) (n m : ℕ) :
+  (∏ k in range (n + m), f k) / (∏ k in range n, f k) = ∏ k in finset.range m, f (n + k) :=
 div_eq_of_eq_mul' (prod_range_add f n m)
 
 

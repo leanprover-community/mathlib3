@@ -184,6 +184,10 @@ lemma restrict_scalars_apply (f : A →ₐ[S] B) (x : A) : f.restrict_scalars R 
 
 @[simp] lemma coe_restrict_scalars' (f : A →ₐ[S] B) : (restrict_scalars R f : A → B) = f := rfl
 
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars R : (A →ₐ[S] B) → (A →ₐ[R] B)) :=
+λ f g h, alg_hom.ext (alg_hom.congr_fun h : _)
+
 end alg_hom
 
 namespace alg_equiv
@@ -199,6 +203,10 @@ lemma restrict_scalars_apply (f : A ≃ₐ[S] B) (x : A) : f.restrict_scalars R 
 @[simp] lemma coe_restrict_scalars (f : A ≃ₐ[S] B) : (f.restrict_scalars R : A ≃+* B) = f := rfl
 
 @[simp] lemma coe_restrict_scalars' (f : A ≃ₐ[S] B) : (restrict_scalars R f : A → B) = f := rfl
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars R : (A ≃ₐ[S] B) → (A ≃ₐ[R] B)) :=
+λ f g h, alg_equiv.ext (alg_equiv.congr_fun h : _)
 
 end alg_equiv
 

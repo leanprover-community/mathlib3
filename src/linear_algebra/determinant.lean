@@ -74,37 +74,24 @@ def index_equiv_of_inv [decidable_eq m] [decidable_eq n]
   m ≃ n :=
 equiv_of_pi_lequiv_pi (to_lin'_of_inv hMM' hM'M)
 
-/-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
-lemma det_conj [decidable_eq m] [decidable_eq n]
-  {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
-  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
-  det (M ⬝ N ⬝ M') = det N :=
-begin
-  -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
-  -- This turns the problem into one for square matrices (`matrix.det_units_conj`), which is easy.
-  let e : m ≃ n := index_equiv_of_inv hMM' hM'M,
-  let U : units (matrix n n A) :=
-    ⟨M.minor e.symm (equiv.refl _),
-     M'.minor (equiv.refl _) e.symm,
-     by rw [mul_eq_mul, ←minor_mul_equiv, hMM', minor_one_equiv],
-     by rw [mul_eq_mul, ←minor_mul_equiv, hM'M, minor_one_equiv]⟩,
-  rw [← det_units_conj U N, ← det_minor_equiv_self e.symm],
-  simp only [minor_mul_equiv _ _ _ (equiv.refl n) _, equiv.coe_refl, minor_id_id,
-             units.coe_mk, units.inv_mk]
-end
-
 /-- If there exists a two-sided inverse `M'` for `M` (indexed differently),
 then `det (N ⬝ M) = det (M ⬝ N)`. -/
 lemma det_comm [decidable_eq m] [decidable_eq n]
   {M : matrix n m A} {N : matrix m n A} {M' : matrix m n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N) = det (N ⬝ M) :=
-begin
-  rw ← det_conj hM'M hMM',
-  calc det (M' ⬝ (M ⬝ N) ⬝ M)
-      = det ((M' ⬝ M) ⬝ (N ⬝ M)) : by simp only [matrix.mul_assoc]
-  ... = det (N ⬝ M) : by rw [hM'M, matrix.one_mul]
-end
+-- Although `m` and `n` are different a priori, we will show they have the same cardinality.
+-- This turns the problem into one for square matrices, which is easy.
+by rw [← det_minor_equiv_self (index_equiv_of_inv hMM' hM'M),
+       minor_mul_equiv _ _ _ (equiv.refl n) _, det_mul, mul_comm, ← det_mul, ← minor_mul_equiv,
+       equiv.coe_refl, minor_id_id]
+
+/-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
+lemma det_conj [decidable_eq m] [decidable_eq n]
+  {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  det (M ⬝ N ⬝ M') = det N :=
+by rw [← det_comm hM'M hMM', ← matrix.mul_assoc, hM'M, matrix.one_mul]
 
 end matrix
 

@@ -162,7 +162,8 @@ end
 
 end primitive_element_inf
 
-variables (F E : Type*) [field F] [field E] [algebra F E] [finite_dimensional F E] [is_separable F E]
+variables (F E : Type*) [field F] [field E] 
+variables [algebra F E] [finite_dimensional F E] [is_separable F E]
 
 /-- Primitive element theorem: a finite separable field extension `E` of `F` has a
   primitive element, i.e. there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/

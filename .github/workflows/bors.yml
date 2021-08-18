@@ -44,13 +44,6 @@ jobs:
         run: |
           ./scripts/lint-style.sh
 
-      - name: upload nolints.txt
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: nolints.txt
-          path: nolints.txt
-
   build:
     if: github.repository == 'leanprover-community/mathlib'
     name: Build mathlib
@@ -147,6 +140,13 @@ jobs:
         run: |
           ./scripts/mk_all.sh
           lean --run scripts/lint_mathlib.lean
+
+      - name: upload nolints.txt
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: nolints.txt
+          path: nolints.txt
 
   tests:
     name: Run tests

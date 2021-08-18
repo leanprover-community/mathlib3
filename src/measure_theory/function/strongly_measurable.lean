@@ -84,6 +84,18 @@ namespace strongly_measurable
 
 variables {α β : Type*} {f : α → β}
 
+lemma subsingleton.strongly_measurable [topological_space β] [subsingleton β] :
+  strongly_measurable f :=
+begin
+  let f_sf : α →ₛ β := ⟨f, λ x, _,
+    set.subsingleton.finite (set.subsingleton_of_subsingleton (set.range f))⟩,
+  swap,
+  { have h_univ : f ⁻¹' {x} = set.univ, by { ext1 y, simp,},
+    rw h_univ,
+    exact measurable_set.univ, },
+  exact ⟨λ n, f_sf, λ x, tendsto_const_nhds⟩,
+end
+
 /-- A sequence of simple functions such that `∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x))`.
 That property is given by `strongly_measurable.tendsto_approx`. -/
 protected noncomputable
@@ -161,18 +173,6 @@ end strongly_measurable
 
 section second_countable_strongly_measurable
 variables {α β : Type*} [measurable_space α] [measurable_space β] {f : α → β}
-
-lemma subsingleton.strongly_measurable {γ} [topological_space γ] [subsingleton γ] {f : α → γ} :
-  strongly_measurable f :=
-begin
-  let f_sf : α →ₛ γ := ⟨f, λ x, _,
-    set.subsingleton.finite (set.subsingleton_of_subsingleton (set.range f))⟩,
-  swap,
-  { have h_univ : f ⁻¹' {x} = set.univ, by { ext1 y, simp,},
-    rw h_univ,
-    exact measurable_set.univ, },
-  exact ⟨λ n, f_sf, λ x, tendsto_const_nhds⟩,
-end
 
 /-- In a space with second countable topology, measurable implies strongly measurable. -/
 lemma _root_.measurable.strongly_measurable [emetric_space β] [opens_measurable_space β]

@@ -1618,7 +1618,7 @@ variables {R : Type u} [comm_ring R] (I J : ideal R)
 
 /-- define `quot_left_to_quot_sum` to be the obvious ring hom `R/I → R/(I ⊔ J)` -/
 def quot_left_to_quot_sum : I.quotient →+* (I ⊔ J).quotient :=
-  ideal.quotient.lift_mk_of_le I (I ⊔ J) (le_sup_left)
+  ideal.quotient.inclusion I (I ⊔ J) (le_sup_left)
 
 /-- This will be used to lift `quot_left_to_quot_sum` to a map `(R/I)/J' → R/(I ⊔ J)`-/
 lemma img_left_in_ker (x : I.quotient) (hx : x ∈ J.map(ideal.quotient.mk I)) :
@@ -1634,7 +1634,7 @@ begin
       obtain ⟨z, hz⟩ := (set.mem_image ((quot_left_to_quot_sum I J).comp(ideal.quotient.mk I))
         J y).1 hy,
       unfold quot_left_to_quot_sum at hz,
-      rw [ring_hom.comp_apply, ideal.quotient.lift_mk_of_le, ideal.quotient.lift_mk] at hz,
+      rw [ring_hom.comp_apply, ideal.quotient.inclusion, ideal.quotient.lift_mk] at hz,
       rw ← hz.right,
       exact set.mem_image_of_mem (ideal.quotient.mk (I ⊔ J)) hz.left},
 
@@ -1642,7 +1642,7 @@ begin
       obtain ⟨z, hz⟩ := (set.mem_image (ideal.quotient.mk (I ⊔ J)) J y).1 hy,
       rw [quot_left_to_quot_sum, set.mem_image_eq],
       use z,
-      rwa [ring_hom.comp_apply, ideal.quotient.lift_mk_of_le, ideal.quotient.lift_mk]},
+      rwa [ring_hom.comp_apply, ideal.quotient.inclusion, ideal.quotient.lift_mk]},
     },
 
   have hJ: (J.map (ideal.quotient.mk I)).map (quot_left_to_quot_sum I J) = J.map

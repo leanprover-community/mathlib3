@@ -445,7 +445,7 @@ by rw [mul_inv_rev, mul_comm]
 
 @[to_additive]
 lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
-begin simp only [h, mul_comm, div_eq_mul_inv, mul_left_comm], rw [mul_left_comm], simp end
+by rw [h, div_eq_mul_inv, mul_comm, inv_mul_cancel_left]
 
 end comm_group
 

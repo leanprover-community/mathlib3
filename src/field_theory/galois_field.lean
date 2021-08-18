@@ -139,7 +139,7 @@ calc 1 < _ : nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) (nat.prime.one_lt' p).1
 
 end
 
-lemma finrank (h : n ≠ 0) : finite_dimensional.finrank (zmod p) (galois_field p n) = n :=
+lemma finrank {n} (h : n ≠ 0) : finite_dimensional.finrank (zmod p) (galois_field p n) = n :=
 begin
   have aux : g_poly ≠ 0 := gpoly_ne_zero h,
   have key : fintype.card ((g_poly).root_set (galois_field p n)) = (g_poly).nat_degree :=
@@ -184,10 +184,10 @@ begin
     rw [hx, hy], },
 end
 
-lemma card : fintype.card (galois_field p n) = p ^ n :=
+lemma card (h : n ≠ 0) : fintype.card (galois_field p n) = p ^ n :=
 begin
   let b := is_noetherian.finset_basis (zmod p) (galois_field p n),
-  rw [module.card_fintype b, ← finite_dimensional.finrank_eq_card_basis b, zmod.card, finrank],
+  rw [module.card_fintype b, ← finite_dimensional.finrank_eq_card_basis b, zmod.card, finrank p h],
 end
 
 theorem splits_zmod_X_pow_sub_X : splits (ring_hom.id (zmod p)) (X ^ p - X) :=

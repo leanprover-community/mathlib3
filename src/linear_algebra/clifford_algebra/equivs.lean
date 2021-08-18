@@ -285,11 +285,12 @@ end
 def of_quaternion : ℍ[R,c₁,c₂] →ₐ[R] clifford_algebra (Q c₁ c₂) :=
 (quaternion_basis c₁ c₂).lift_hom
 
-@[simp] lemma of_quaternion_apply (x : ℍ[R,c₁,c₂]) :
-  of_quaternion x = algebra_map R _ x.re
-                  + x.im_i • ι (Q c₁ c₂) (1, 0)
-                  + x.im_j • ι (Q c₁ c₂) (0, 1)
-                  + x.im_k • (ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1)) := rfl
+@[simp] lemma of_quaternion_mk (a₁ a₂ a₃ a₄ : R) :
+  of_quaternion (⟨a₁, a₂, a₃, a₄⟩ : ℍ[R,c₁,c₂])
+    = algebra_map R _ a₁
+    + a₂ • ι (Q c₁ c₂) (1, 0)
+    + a₃ • ι (Q c₁ c₂) (0, 1)
+    + a₄ • (ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1)) := rfl
 
 @[simp]
 lemma of_quaternion_comp_to_quaternion :

@@ -21,7 +21,7 @@ variables [monoid M] [preorder M] [covariant_class M M (*) (≤)]
 
 @[mono, to_additive nsmul_le_nsmul_of_le_right]
 lemma pow_le_pow_of_le_left' [covariant_class M M (function.swap (*)) (≤)]
-  {a b : M} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
+  {a b : M} (hab : a ≤ b) : ∀ i : ℕ, a ^ i ≤ b ^ i
 | 0     := by simp
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul' hab (pow_le_pow_of_le_left' k) }
@@ -32,7 +32,7 @@ theorem one_le_pow_of_one_le' {a : M} (H : 1 ≤ a) : ∀ n : ℕ, 1 ≤ a ^ n
 | (k + 1) := by { rw pow_succ, exact one_le_mul H (one_le_pow_of_one_le' k) }
 
 @[to_additive nsmul_nonpos]
-theorem pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1:=
+theorem pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1 :=
 @one_le_pow_of_one_le' (order_dual M) _ _ _ _ H n
 
 @[to_additive nsmul_le_nsmul]

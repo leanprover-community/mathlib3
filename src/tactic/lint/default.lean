@@ -50,6 +50,7 @@ The following linters are run by default:
 18. `has_coe_to_fun` checks that every type that coerces to a function has a direct
     `has_coe_to_fun` instance.
 19. `check_type` checks that the statement of a declaration is well-typed.
+20. `check_univs` checks that that there are no bad `max u v` universe levels.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

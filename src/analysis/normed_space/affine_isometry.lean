@@ -10,15 +10,24 @@ import linear_algebra.affine_space.affine_subspace
 /-!
 # Affine isometries
 
-In this file we define `affine_isometry 𝕜 P P₂` (notation: `P →ᵃⁱ[𝕜] P₂`) to be a affine isometric
-embedding of normed add-torsors `P` into `P₂` over normed `𝕜`-spaces and `affine_isometry_equiv`
-(notation: `P ≃ᵃⁱ[𝕜] P₂`) to be a affine isometric equivalence between `P` and `P₂`.
+In this file we define `affine_isometry 𝕜 P P₂` to be an affine isometric embedding of normed
+add-torsors `P` into `P₂` over normed `𝕜`-spaces and `affine_isometry_equiv` to be an affine
+isometric equivalence between `P` and `P₂`.
 
 We also prove basic lemmas and provide convenience constructors.  The choice of these lemmas and
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
 Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
 `semi_normed_add_torsor` and specialize to `normed_add_torsor` only when needed.
+
+## Notation
+
+We introduce the notation `P →ᵃⁱ[𝕜] P₂` for `affine_isometry 𝕜 P P₂`, and `P ≃ᵃⁱ[𝕜] P₂` for
+`affine_isometry_equiv 𝕜 P P₂`.  In contrast with the notation `→ₗᵢ` for linear isometries, `≃ᵢ`
+for isometric equivalences, etc., the "i" here is a superscript.  This is for aesthetic reasons to
+match the superscript "a" (note that in mathlib `→ᵃ` is an affine map, since `→ₐ` has been taken by
+algebra-homomorphisms.)
+
 -/
 open function set
 
@@ -43,6 +52,7 @@ structure affine_isometry extends P →ᵃ[𝕜] P₂ :=
 omit V V₂
 variables {𝕜 P P₂}
 
+-- `→ᵃᵢ` would be more consistent with the linear isometry notation, but it is uglier
 notation P ` →ᵃⁱ[`:25 𝕜:25 `] `:0 P₂:0 := affine_isometry 𝕜 P P₂
 
 namespace affine_isometry
@@ -79,7 +89,7 @@ namespace linear_isometry
 variables (f : V →ₗᵢ[𝕜] V₂)
 
 /-- Reinterpret a linear isometry as an affine isometry. -/
-def to_affine_isometry  : V →ᵃⁱ[𝕜] V₂ :=
+def to_affine_isometry : V →ᵃⁱ[𝕜] V₂ :=
 { norm_map := f.norm_map,
   .. f.to_linear_map.to_affine_map }
 
@@ -202,6 +212,7 @@ structure affine_isometry_equiv extends P ≃ᵃ[𝕜] P₂ :=
 variables {𝕜 P P₂}
 omit V V₂
 
+-- `≃ᵃᵢ` would be more consistent with the linear isometry equiv notation, but it is uglier
 notation P ` ≃ᵃⁱ[`:25 𝕜:25 `] `:0 P₂:0 := affine_isometry_equiv 𝕜 P P₂
 
 namespace affine_isometry_equiv
@@ -424,7 +435,7 @@ open finite_dimensional affine_map
 variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
 
 /-- A affine isometry between finite dimensional spaces of equal dimension can be upgraded
-    to a affine isometry equivalence. -/
+    to an affine isometry equivalence. -/
 noncomputable def to_affine_isometry_equiv [inhabited P₁]
   (li : P₁ →ᵃⁱ[𝕜] P₂) (h : finrank 𝕜 V₁ = finrank 𝕜 V₂) : P₁ ≃ᵃⁱ[𝕜] P₂ :=
 affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (arbitrary P₁)

@@ -185,7 +185,7 @@ begin
       self_mem_nhds_within,
     have : tendsto g (𝓝[Ioi x] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
-    apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
+    apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_gt hy)).deriv.symm },
   have B : has_deriv_within_at f (g x) (Iic x) x,
   { have diff : differentiable_on ℝ f (Iio x) :=
@@ -196,7 +196,19 @@ begin
       self_mem_nhds_within,
     have : tendsto g (𝓝[Iio x] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
-    apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
+    apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_lt hy)).deriv.symm },
   simpa using B.union A
+end
+
+/-- If a real function `f` has a derivative `g` everywhere but at a point, and `f` and `g` are
+continuous at this point, then `g` is the derivative of `f` everywhere. -/
+lemma has_deriv_at_of_has_deriv_at_of_ne' {f g : ℝ → E} {x : ℝ}
+  (f_diff : ∀ y ≠ x, has_deriv_at f (g y) y)
+  (hf : continuous_at f x) (hg : continuous_at g x) (y : ℝ) :
+  has_deriv_at f (g y) y :=
+begin
+  rcases eq_or_ne y x with rfl|hne,
+  { exact has_deriv_at_of_has_deriv_at_of_ne f_diff hf hg },
+  { exact f_diff y hne }
 end

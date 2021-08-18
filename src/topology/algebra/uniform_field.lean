@@ -65,7 +65,7 @@ lemma continuous_hat_inv [completable_top_field K] {x : hat K} (h : x ≠ 0) :
 begin
   haveI : regular_space (hat K) := completion.regular_space K,
   refine dense_inducing_coe.continuous_at_extend _,
-  apply mem_sets_of_superset (compl_singleton_mem_nhds h),
+  apply mem_of_superset (compl_singleton_mem_nhds h),
   intros y y_ne,
   rw mem_compl_singleton_iff at y_ne,
   apply complete_space.complete,
@@ -164,7 +164,7 @@ instance topological_division_ring_completion : topological_division_ring (hat K
         rw mem_compl_singleton_iff at y_ne,
         dsimp [has_inv.inv],
         rw if_neg y_ne },
-      exact mem_sets_of_superset (compl_singleton_mem_nhds x_ne) this },
+      exact mem_of_superset (compl_singleton_mem_nhds x_ne) this },
     exact continuous_at.congr (continuous_hat_inv x_ne) this
   end,
   ..completion.top_ring_compl }

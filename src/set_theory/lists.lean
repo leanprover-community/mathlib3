@@ -67,7 +67,7 @@ with lists'.subset : lists' α tt → lists' α tt → Prop
 | nil {l} : lists'.subset lists'.nil l
 | cons {a a' l l'} : lists.equiv a a' → a' ∈ lists'.to_list l' →
   lists'.subset l l' → lists'.subset (lists'.cons a l) l'
-local infix ~ := lists.equiv
+local infix ` ~ `:50 := lists.equiv
 
 namespace lists'
 

@@ -353,17 +353,18 @@ begin
   apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
 end
 
-lemma subsingleton_iff : subsingleton M ↔ subsingleton (lie_submodule R L M) :=
-(submodule.subsingleton_iff R).trans $ by
-  rw [← subsingleton_iff_bot_eq_top, ← subsingleton_iff_bot_eq_top, ← coe_to_submodule_eq_iff,
-    top_coe_submodule, bot_coe_submodule]
+@[simp] lemma subsingleton_iff : subsingleton (lie_submodule R L M) ↔ subsingleton M :=
+have h : subsingleton (lie_submodule R L M) ↔ subsingleton (submodule R M),
+{ rw [← subsingleton_iff_bot_eq_top, ← subsingleton_iff_bot_eq_top, ← coe_to_submodule_eq_iff,
+    top_coe_submodule, bot_coe_submodule], },
+h.trans $ submodule.subsingleton_iff R
 
-lemma nontrivial_iff : nontrivial M ↔ nontrivial (lie_submodule R L M) :=
+@[simp] lemma nontrivial_iff : nontrivial (lie_submodule R L M) ↔ nontrivial M :=
 not_iff_not.mp (
   (not_nontrivial_iff_subsingleton.trans $ subsingleton_iff R L M).trans
   not_nontrivial_iff_subsingleton.symm)
 
-instance [nontrivial M] : nontrivial (lie_submodule R L M) := (nontrivial_iff R L M).mp ‹_›
+instance [nontrivial M] : nontrivial (lie_submodule R L M) := (nontrivial_iff R L M).mpr ‹_›
 
 variables {R L M}
 

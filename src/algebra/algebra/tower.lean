@@ -19,6 +19,7 @@ An important definition is `to_alg_hom R S A`, the canonical `R`-algebra homomor
 
 -/
 
+open_locale pointwise
 universes u v w u₁ v₁
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁) (M : Type v₁)
@@ -311,7 +312,7 @@ variables [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
-smul_left_injective _ hx
+smul_right_injective _ hx
 
 end algebra
 

@@ -176,6 +176,10 @@ begin
   rw [finsupp.map_domain_apply hf]
 end
 
+lemma linear_independent.coe_range (i : linear_independent R v) :
+  linear_independent R (coe : range v → M) :=
+by simpa using i.comp _ (range_splitting_injective v)
+
 /-- If `v` is a linearly independent family of vectors and the kernel of a linear map `f` is
 disjoint with the sumodule spaned by the vectors of `v`, then `f ∘ v` is a linearly independent
 family of vectors. See also `linear_independent.map'` for a special case assuming `ker f = ⊥`. -/
@@ -472,6 +476,23 @@ begin
     intros,
     erw [pi.smul_apply, smul_assoc],
     refl }
+end
+
+/-- Linear independent families are injective, even if you multiply either side. -/
+lemma linear_independent.eq_of_smul_apply_eq_smul_apply {M : Type*} [add_comm_group M] [module R M]
+  {v : ι → M} (li : linear_independent R v) (c d : R) (i j : ι)
+  (hc : c ≠ 0) (h : c • v i = d • v j) : i = j :=
+begin
+  let l : ι →₀ R := finsupp.single i c - finsupp.single j d,
+  have h_total : finsupp.total ι M R v l = 0,
+  { simp_rw [linear_map.map_sub, finsupp.total_apply],
+    simp [h] },
+  have h_single_eq : finsupp.single i c = finsupp.single j d,
+  { rw linear_independent_iff at li,
+    simp [eq_add_of_sub_eq' (li l h_total)] },
+  rcases (finsupp.single_eq_single_iff _ _ _ _).mp h_single_eq with ⟨this, _⟩ | ⟨hc, _⟩,
+  { exact this },
+  { contradiction },
 end
 
 section subtype

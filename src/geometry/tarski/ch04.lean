@@ -2,7 +2,7 @@ import tactic.tauto
 import geometry.tarski.ch03
 
 variables {α : Type*} [tarski α]
-variables {A B C D E F A' B' C' D' P Q X Y : α}
+variables {A B C D E F A' B' C' D' E' P Q X Y : α}
 
 namespace tarski
 
@@ -21,6 +21,10 @@ begin
   exact five_segment hE'₂.symm.comm h₄.comm this h₆
     (h₁.left_cancel hE₁).symm (h₁'.left_cancel hE'₁).symm hE₂.symm,
 end
+
+lemma l4_2_bis (ABC : betw A B C) (ABC' : betw A' B' C') (AB : cong A B A' B') (BC : cong B C B' C')
+  (AD : cong A D A' D') (CD : cong C D C' D') : cong B D B' D' :=
+l4_2 ABC ABC' (l2_11 ABC ABC' AB BC) BC AD CD
 
 lemma l4_3 (h₁ : betw A B C) (h₁' : betw A' B' C') (hAC : cong A C A' C') (hBC : cong B C B' C') :
   cong A B A' B' :=
@@ -43,7 +47,9 @@ begin
   exact ⟨B', this, hB'₂.symm, hAC, hC''₂.symm⟩,
 end
 
-lemma l4_6 (h : betw A B C) (hAB : cong A B A' B') (hAC : cong A C A' C') (hBC : cong B C B' C') :
+-- aka `l4_6`
+lemma betw.betw_of_congs (h : betw A B C)
+  (hAB : cong A B A' B') (hAC : cong A C A' C') (hBC : cong B C B' C') :
   betw A' B' C' :=
 begin
   obtain ⟨B'', hB''₁, hB''₂, -, hB''₃⟩ := l4_5 h hAC,
@@ -69,15 +75,43 @@ lemma col.right_symm (h : col A B C) : col A C B := h.rotate.symm
 
 def betw.col (ABC : betw A B C) : col A B C := or.inl ABC
 
+@[simp] lemma col_id_left : col A A B := (betw.id_left _ _).col
+@[simp] lemma col_id_right : col A B B := (betw.id_right _ _).col
+@[simp] lemma col_id_mid : col A B A := col_id_left.rotate
+
+lemma ne12_of_not_col (ABC : ¬ col A B C) : A ≠ B := λ h, ABC (h ▸ col_id_left)
+lemma ne13_of_not_col (ABC : ¬ col A B C) : A ≠ C := λ h, ABC (h ▸ col_id_mid)
+lemma ne23_of_not_col (ABC : ¬ col A B C) : B ≠ C := λ h, ABC (h ▸ col_id_right)
+
+-- aka `l4_13`
+lemma col.col_of_congs (h : col A B C)
+  (AB : cong A B A' B') (AC : cong A C A' C') (BC : cong B C B' C') :
+  col A' B' C' :=
+h.elim3 (λ i, or.inl (i.betw_of_congs AB AC BC))
+  (λ i, or.inr (or.inl (i.betw_of_congs BC AB.comm AC.comm)))
+  (λ i, or.inr (or.inr (i.betw_of_congs AC.comm BC.comm AB)))
+
+lemma l4_14 (ABC : col A B C) (AB : cong A B A' B') :
+  ∃ C', cong A B A' B' ∧ cong A C A' C' ∧ cong B C B' C' :=
+begin
+  rcases ABC with ABC | BCA | CAB,
+  { obtain ⟨C', ABC', BC⟩ := segment_construction A' B' B C,
+    exact ⟨C', AB, l2_11 ABC ABC' AB BC.symm, BC.symm⟩ },
+  { obtain ⟨C', -, BC, -, CA⟩ := l4_5 BCA AB.comm,
+    exact ⟨C', AB, CA.comm, BC⟩ },
+  { obtain ⟨C', BAC', AC⟩ := segment_construction B' A' A C,
+    exact ⟨C', AB, AC.symm, l2_11 CAB.symm BAC' AB.comm AC.symm⟩ }
+end
+
 lemma l4_16 (h : col A B C)
-  (hAB : cong A B A' B') (hAC : cong A C A' C') (hBC : cong B C B' C')
-  (hAD : cong A D A' D') (hBD : cong B D B' D') (nAB : A ≠ B) :
+  (AB : cong A B A' B') (AC : cong A C A' C') (BC : cong B C B' C')
+  (AD : cong A D A' D') (BD : cong B D B' D') (nAB : A ≠ B) :
   cong C D C' D' :=
 begin
   rcases h with h | h | h,
-  { exact five_segment hAB hBC hAD hBD h (l4_6 h hAB hAC hBC) nAB },
-  { exact l4_2 h (l4_6 h hBC hAB.comm hAC.comm) hAB.comm hAC.comm hBD hAD },
-  { exact five_segment hAB.comm hAC hBD hAD h.symm (l4_6 h.symm hAB.comm hBC hAC) nAB.symm },
+  { exact five_segment AB BC AD BD h (h.betw_of_congs AB AC BC) nAB },
+  { exact l4_2 h (h.betw_of_congs BC AB.comm AC.comm) AB.comm AC.comm BD AD },
+  { exact five_segment AB.comm AC BD AD h.symm (h.symm.betw_of_congs AB.comm BC AC) nAB.symm },
 end
 
 -- converse of upper_dim
@@ -96,6 +130,16 @@ begin
   { cases h₁.identity,
     apply h₃.reverse_identity },
   exact l4_18 nAB (col.right_symm (or.inl h₁)) h₂ h₃,
+end
+
+lemma six_segments_inner_betw
+  (BAD : betw B A D) (BAD' : betw B' A' D') (BCE : betw B C E) (BCE' : betw B' C' E')
+  (BA : cong B A B' A') (BD : cong B D B' D') (BC : cong B C B' C') (BE : cong B E B' E')
+  (DE : cong D E D' E') :
+  cong A C A' C' :=
+begin
+  apply (l4_2 BCE BCE' BE (l4_3_1 BCE BCE' BC BE) BA _).comm,
+  apply (l4_2 BAD BAD' BD (l4_3_1 BAD BAD' BA BD) BE DE).comm,
 end
 
 end tarski

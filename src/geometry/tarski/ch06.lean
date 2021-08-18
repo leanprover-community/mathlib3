@@ -2,7 +2,7 @@ import tactic.tauto
 import geometry.tarski.ch05
 
 variables {α : Type*} [tarski α]
-variables {A B C D E F A' B' C' D' P Q X Y : α}
+variables {A B C D E F A' B' C' D' E' P Q X Y : α}
 
 namespace tarski
 
@@ -30,7 +30,7 @@ lemma bet.out_bet (APC : betw A P C) (PAB : out P A B) :
 begin
   rcases eq_or_ne C P with rfl | nCP,
   { apply betw.id_right },
-  rwa @l6_2 _ _ A _ _ _ PAB.1 PAB.2.1 nCP APC,
+  rwa l6_2 PAB.1 PAB.2.1 nCP APC,
 end
 
 -- l6_6
@@ -78,6 +78,7 @@ lemma l6_4 : out P A B ↔ col A P B ∧ ¬ betw A P B :=
 lemma out.trivial (nAP : A ≠ P) : out P A A :=
 ⟨nAP, nAP, or.inl (betw.id_right _ _)⟩
 
+-- l6_7
 lemma out.trans (PAB : out P A B) (PBC : out P B C) : out P A C :=
 begin
   refine ⟨PAB.1, PBC.2.1, _⟩,
@@ -164,12 +165,13 @@ lemma col.trans (PQA : col P Q A) (PQB : col P Q B) (nPQ : P ≠ Q) : col P A B 
 lemma col.trans' (PQA : col P Q A) (PQB : col P Q B) (nPQ : P ≠ Q) : col Q A B :=
 PQA.left_symm.trans PQB.left_symm nPQ.symm
 
+-- uniqueness of intersection
 lemma l6_21 (ABC : ¬col A B C) (nCD : C ≠ D) (ABP : col A B P) (ABQ : col A B Q)
   (CDP : col C D P) (CDQ : col C D Q) :
   P = Q :=
 begin
   by_contra nPQ,
-  have nAB : A ≠ B := λ h, ABC (h ▸ (betw.id_left A C).col),
+  have nAB : A ≠ B := ne12_of_not_col ABC,
   have CPQ : col C P Q := CDP.trans CDQ nCD,
   have QBC : col Q B C := (ABP.trans' ABQ nAB).symm.trans CPQ.symm (ne.symm nPQ),
   apply ABC,
@@ -206,7 +208,37 @@ lemma out.betw_of_out (ABC : out A B C) (CAB : out C A B) : betw A B C :=
 lemma bet2_le2_le1346 : betw A B C → betw A' B' C' → le A B A' B' → le B C B' C' → le A C A' C' :=
 λ h₁ h₂ h₃, betw.le_le h₁ h₂ h₃.comm
 
+-- not_out_bet
 lemma col.betw_of_not_out (ABC : col A B C) (BAC : ¬out B A C) : betw A B C :=
 by_contradiction (λ i, BAC (ABC.out_of_not_betw i))
+
+-- cong_preserves_bet
+lemma betw.betw_of_out_cong {A₀ D₀} (BA'A₀ : betw B A' A₀) (ED'D₀ : out E D' D₀)
+  (BA'ED' : cong B A' E D') (BA₀ED₀ : cong B A₀ E D₀) :
+  betw E D' D₀ :=
+begin
+  cases ED'D₀.2.2,
+  { assumption },
+  cases h.cong ((BA'A₀.le_left.cong BA'ED' BA₀ED₀).antisymm h.le_left).symm,
+  apply betw.id_right,
+end
+
+-- out_cong_cong
+lemma out_cong_cong (BA'A : out B A' A) (ED'D : out E D' D)
+  (BA'ED' : cong B A' E D') (BAED : cong B A E D) :
+  cong A' A D' D :=
+begin
+  cases BA'A.2.2 with BA'A BAA',
+  { apply l4_3_1 BA'A (BA'A.betw_of_out_cong ED'D BA'ED' BAED) BA'ED' BAED },
+  { apply l4_3 BAA'.symm (BAA'.betw_of_out_cong ED'D.symm BAED BA'ED').symm BA'ED'.comm BAED.comm }
+end
+
+lemma six_segments_out
+  (BAD : out B A D) (BAD' : out B' A' D') (BCE : out B C E) (BCE' : out B' C' E')
+  (BA : cong B A B' A') (BD : cong B D B' D') (BC : cong B C B' C') (BE : cong B E B' E')
+  (AC : cong A C A' C') :
+  cong D E D' E' :=
+l4_16 BAD.col BA BD (out_cong_cong BAD BAD' BA BD) BE
+  (l4_16 BCE.col BC BE (out_cong_cong BCE BCE' BC BE) BA AC.comm BCE.1.symm).comm BAD.1.symm
 
 end tarski

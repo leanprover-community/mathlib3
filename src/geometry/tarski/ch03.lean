@@ -97,4 +97,10 @@ begin
   exact ⟨_, i⟩
 end
 
+lemma betw.ne : ∀ {A B C : α}, betw A B C → A ≠ B → A ≠ C
+| _ B _ b i (eq.refl A) := i b.identity
+
+lemma betw.ne' (h : betw A B C) (nCB : C ≠ B) : A ≠ C :=
+(h.symm.ne nCB).symm
+
 end tarski

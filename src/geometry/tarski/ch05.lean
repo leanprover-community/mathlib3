@@ -122,7 +122,8 @@ end
 lemma l5_5 : le A B C D ↔ ∃ X, betw A B X ∧ cong A X C D :=
 ⟨l5_5_1, λ ⟨X, h₁, h₂⟩, l5_5_2 h₁ h₂⟩
 
-lemma l5_6 (ABCD : le A B C D) (ABA'B' : cong A B A' B') (CDC'D' : cong C D C' D') :
+-- l5_6
+lemma le.cong (ABCD : le A B C D) (ABA'B' : cong A B A' B') (CDC'D' : cong C D C' D') :
   le A' B' C' D' :=
 begin
   rcases ABCD with ⟨E, CED, ABCE⟩,
@@ -141,7 +142,7 @@ begin
 end
 
 lemma betw.cong (ACB : betw A C B) (ACAB : cong A C A B) : C = B :=
-ACB.antisymm_right (l4_6 ACB ACAB ACAB.symm (cong.pseudo_refl _ _))
+ACB.antisymm_right (ACB.betw_of_congs ACAB ACAB.symm (cong.pseudo_refl _ _))
 
 lemma betw.cong' (ADB : betw A D B) (AEB : betw A E B) (ADAE : cong A D A E) : D = E :=
 cong3_betw_eq AEB ADAE.symm
@@ -188,7 +189,7 @@ lemma betw.cong_eq (ABC : betw A B C) (ACD : betw A C D) (BCAD : cong B C A D) :
 begin
   have : C = D,
   { apply betw.cong ACD (le.antisymm (l5_5_2 ACD (cong.refl _ _)) _),
-    apply l5_6 (l5_5_2 ABC.symm (cong.refl _ _)) BCAD.left_comm (cong.pseudo_refl _ _) },
+    apply le.cong (l5_5_2 ABC.symm (cong.refl _ _)) BCAD.left_comm (cong.pseudo_refl _ _) },
   subst D,
   exact ⟨rfl, (ABC.symm.cong BCAD.comm).symm⟩,
 end
@@ -210,7 +211,7 @@ lemma lt.comm (h : lt A B C D) : lt B A D C := h.left_comm.right_comm
 
 lemma cong.lt_lt (ABCD : lt A B C D) (ABA'B' : cong A B A' B') (CDC'D' : cong C D C' D') :
   lt A' B' C' D' :=
-⟨l5_6 ABCD.1 ‹_› ‹_›, λ i, ABCD.2 (ABA'B'.trans (i.trans CDC'D'.symm))⟩
+⟨le.cong ABCD.1 ‹_› ‹_›, λ i, ABCD.2 (ABA'B'.trans (i.trans CDC'D'.symm))⟩
 
 lemma fourth_point (nAB : A ≠ B) (nBC : B ≠ C) (ABP : col A B P) (ABC : betw A B C) :
   betw P A B ∨ betw A P B ∨ betw B P C ∨ betw B C P :=
@@ -294,7 +295,7 @@ begin
   obtain ⟨b'', Ob'B, obO'b'⟩ := obOB,
   cases construction_uniqueness nAO AOb' Ob'bo (AOB.right_cancel Ob'B) obO'b'.symm.right_comm,
   have a'b'a'B : le a' b' a' B := ⟨b', BOa'.symm.right_trans ‹betw O b' B›, cong.refl _ _⟩,
-  apply l5_6 (a'b'a'B.trans ‹le B a' B A›.comm) _ (cong.refl _ _),
+  apply le.cong (a'b'a'B.trans ‹le B a' B A›.comm) _ (cong.refl _ _),
   apply l2_11 (Oa'A.symm.left_cancel AOb') aob Oa'ao.left_comm obO'b'.symm,
 end
 

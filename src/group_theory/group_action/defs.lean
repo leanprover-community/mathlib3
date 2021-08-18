@@ -385,30 +385,30 @@ variable {α}
 /-- The tautological action by `function.End α` on `α`.
 
 This is generalized to bundled endomorphisms by:
-* `mul_action.perm`
-* `distrib_mul_action.add_monoid_End`
-* `distrib_mul_action.add_aut`
-* `distrib_mul_action.ring_hom`
-* `distrib_mul_action.linear_equiv`
-* `module.linear_map`
-* `mul_semiring_action.ring_hom`
-* `mul_semiring_action.alg_equiv`
+* `equiv.perm.apply_mul_action`
+* `add_monoid.End.apply_distrib_mul_action`
+* `add_aut.apply_distrib_mul_action`
+* `ring_hom.apply_distrib_mul_action`
+* `linear_equiv.apply_distrib_mul_action`
+* `linear_map.apply_module`
+* `ring_hom.apply_mul_semiring_action`
+* `alg_equiv.apply_mul_semiring_action`
 -/
-instance mul_action.function_End : mul_action (function.End α) α :=
+instance function.End.apply_mul_action : mul_action (function.End α) α :=
 { smul := ($),
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
 @[simp] lemma function.End.smul_def (f : function.End α) (a : α) : f • a = f a := rfl
 
-/-- `mul_action.function_End` is faithful. -/
-instance function.End.has_faithful_scalar : has_faithful_scalar (function.End α) α :=
+/-- `function.End.apply_mul_action` is faithful. -/
+instance function.End.apply_has_faithful_scalar : has_faithful_scalar (function.End α) α :=
 ⟨λ x y, funext⟩
 
 /-- The tautological action by `add_monoid.End α` on `α`.
 
-This generalizes `mul_action.function_End`. -/
-instance distrib_mul_action.add_monoid_End [add_monoid α] :
+This generalizes `function.End.apply_mul_action`. -/
+instance add_monoid.End.apply_distrib_mul_action [add_monoid α] :
   distrib_mul_action (add_monoid.End α) α :=
 { smul := ($),
   smul_zero := add_monoid_hom.map_zero,
@@ -419,8 +419,8 @@ instance distrib_mul_action.add_monoid_End [add_monoid α] :
 @[simp] lemma add_monoid.End.smul_def [add_monoid α] (f : add_monoid.End α) (a : α) :
   f • a = f a := rfl
 
-/-- `distrib_mul_action.add_monoid_End` is faithful. -/
-instance add_monoid.End.has_faithful_scalar [add_monoid α] :
+/-- `add_monoid.End.apply_distrib_mul_action` is faithful. -/
+instance add_monoid.End.apply_has_faithful_scalar [add_monoid α] :
   has_faithful_scalar (add_monoid.End α) α :=
 ⟨add_monoid_hom.ext⟩
 

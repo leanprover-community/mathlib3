@@ -1010,8 +1010,8 @@ by { ext, refl }
 
 /-- The tautological action by `A₁ ≃ₐ[R] A₁` on `A₁`.
 
-This generalizes `mul_action.function_End`. -/
-instance mul_semiring_action.alg_equiv : mul_semiring_action (A₁ ≃ₐ[R] A₁) A₁ :=
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_mul_semiring_action : mul_semiring_action (A₁ ≃ₐ[R] A₁) A₁ :=
 { smul := ($),
   smul_zero := alg_equiv.map_zero,
   smul_add := alg_equiv.map_add,
@@ -1020,15 +1020,15 @@ instance mul_semiring_action.alg_equiv : mul_semiring_action (A₁ ≃ₐ[R] A�
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-@[simp] lemma alg_equiv.smul_def (f : A₁ ≃ₐ[R] A₁) (a : A₁) : f • a = f a := rfl
+@[simp] protected lemma smul_def (f : A₁ ≃ₐ[R] A₁) (a : A₁) : f • a = f a := rfl
 
-instance mul_semiring_action.alg_equiv.smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
+instance apply_smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
 { smul_comm := λ r e a, (e.to_linear_equiv.map_smul r a).symm }
 
-instance mul_semiring_action.alg_equiv.smul_comm_class' : smul_comm_class (A₁ ≃ₐ[R] A₁) R A₁ :=
+instance apply_smul_comm_class' : smul_comm_class (A₁ ≃ₐ[R] A₁) R A₁ :=
 { smul_comm := λ e r a, (e.to_linear_equiv.map_smul r a) }
 
-instance alg_equiv.has_faithful_scalar : has_faithful_scalar (A₁ ≃ₐ[R] A₁) A₁ :=
+instance apply_has_faithful_scalar : has_faithful_scalar (A₁ ≃ₐ[R] A₁) A₁ :=
 ⟨λ _ _, alg_equiv.ext⟩
 
 end semiring

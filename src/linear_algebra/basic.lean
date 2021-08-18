@@ -571,8 +571,8 @@ intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
 /-- The tautological action by `M →ₗ[R] M` on `M`.
 
-This generalizes `mul_action.function_End`. -/
-instance module.linear_map : module (M →ₗ[R] M) M :=
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_module : module (M →ₗ[R] M) M :=
 { smul := ($),
   smul_zero := linear_map.map_zero,
   smul_add := linear_map.map_add,
@@ -581,17 +581,16 @@ instance module.linear_map : module (M →ₗ[R] M) M :=
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-@[simp] lemma linear_map.smul_def (f : M →ₗ[R] M) (a : M) :
-  f • a = f a := rfl
+@[simp] protected lemma smul_def (f : M →ₗ[R] M) (a : M) : f • a = f a := rfl
 
-/-- `module.linear_map` is faithful. -/
-instance linear_map.has_faithful_scalar : has_faithful_scalar (M →ₗ[R] M) M :=
+/-- `linear_map.apply_module` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (M →ₗ[R] M) M :=
 ⟨λ _ _, linear_map.ext⟩
 
-instance module.linear_map.smul_comm_class : smul_comm_class R (M →ₗ[R] M) M :=
+instance apply_smul_comm_class : smul_comm_class R (M →ₗ[R] M) M :=
 { smul_comm := λ r e m, (e.map_smul r m).symm }
 
-instance module.linear_map.smul_comm_class' : smul_comm_class (M →ₗ[R] M) R M :=
+instance apply_smul_comm_class' : smul_comm_class (M →ₗ[R] M) R M :=
 { smul_comm := linear_map.map_smul }
 
 end semiring
@@ -2882,25 +2881,25 @@ def automorphism_group.to_linear_map_monoid_hom :
 
 /-- The tautological action by `M ≃ₗ[R] M` on `M`.
 
-This generalizes `mul_action.function_End`. -/
-instance distrib_mul_action.linear_equiv : distrib_mul_action (M ≃ₗ[R] M) M :=
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
 { smul := ($),
   smul_zero := linear_equiv.map_zero,
   smul_add := linear_equiv.map_add,
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-instance distrib_mul_action.linear_equiv.smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=
+instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=
 { smul_comm := λ r e m, (e.map_smul r m).symm }
 
-instance distrib_mul_action.linear_equiv.smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
+instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
 { smul_comm := linear_equiv.map_smul }
 
-@[simp] lemma linear_equiv.smul_def (f : M ≃ₗ[R] M) (a : M) :
+@[simp] protected lemma smul_def (f : M ≃ₗ[R] M) (a : M) :
   f • a = f a := rfl
 
-/-- `distrib_mul_action.linear_equiv` is faithful. -/
-instance linear_equiv.has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+/-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
+instance linear_equiv.apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
 ⟨λ _ _, linear_equiv.ext⟩
 
 /-- The group of invertible linear maps from `M` to itself -/

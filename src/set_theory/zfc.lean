@@ -26,25 +26,32 @@ Then the rest is usual set theory.
 
 ## Other definitions
 
-* `arity α n`: `n`-ary function `α → α → ... → α`.
+* `arity α n`: `n`-ary function `α → α → ... → α`. Defined inductively.
 * `arity.const a n`: `n`-ary constant function equal to `a`.
 * `pSet.type`: Underlying type of a pre-set.
 * `pSet.func`: Underlying family of pre-sets of a pre-set.
 * `pSet.equiv`: Extensional equivalence of pre-sets. Defined inductively.
-* `pSet.omega`, `Set.omega`: The von Neumann ordinal `ω`.
+* `pSet.omega`, `Set.omega`: The von Neumann ordinal `ω` as a `pSet`, as a `Set`.
 * `pSet.arity.equiv`: Extensional equivalence of `n`-ary `pSet`-valued functions. Extension of
   `pSet.equiv`.
-* `pSet.resp`: Collection of `n`-ary `pSet`-valued functions that respect equivalence.
-* `pSet.eval`: Turns a `pSet`-valued function that respect equivalence into a `Set`-valued function.
+* `pSet.resp`: Collection of `n`-ary `pSet`-valued functions that respect extensional equivalence.
+* `pSet.eval`: Turns a `pSet`-valued function that respect extensional equivalence into a
+  `Set`-valued function.
 * `classical.all_definable`: All functions are classically definable.
-* `Set.is_func` : Predicate that ZFC set is a subset of `x × y` that can be considered as a ZFC
-  function `x → y`.
-* `Set.funs`: ZFC set of ZFC function `x → y`.
+* `Set.is_func` : Predicate that a ZFC set is a subset of `x × y` that can be considered as a ZFC
+  function `x → y`. That is, each member of `x` is related by the ZFC set to exactly one member of
+  `y`.
+* `Set.funs`: ZFC set of ZFC functions `x → y`.
+* `Class.iota`: Definite description operator.
 
 ## Notes
 
 To avoid confusion between the Lean `set` and the ZFC `Set`, docstrings in this file refer to them
-respectively as "`set`" and "ZFC set"
+respectively as "`set`" and "ZFC set".
+
+## TODO
+
+Prove `Set.map_definable_aux` computably.
 -/
 
 universes u v

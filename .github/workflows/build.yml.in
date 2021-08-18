@@ -30,6 +30,13 @@ jobs:
         run: |
           ./scripts/lint-style.sh
 
+      - name: upload nolints.txt
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: nolints.txt
+          path: nolints.txt
+
   build:
     if: github.repository MAIN_OR_FORK 'leanprover-community/mathlib'
     name: Build mathlibJOB_NAME

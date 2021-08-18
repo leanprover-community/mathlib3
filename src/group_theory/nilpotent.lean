@@ -308,7 +308,7 @@ begin
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
 end
 
-lemma subsingleton.is_nilpotent (hG : subsingleton G) : is_nilpotent G :=
+instance is_nilpotent_of_subsingleton [subsingleton G] : is_nilpotent G :=
 nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩
 
 lemma upper_central_series.map {H : Type*} [group H] (f : G →* H)

@@ -149,7 +149,7 @@ protected lemma fin_strongly_measurable [topological_space β] [has_zero β] {m0
   (hf : strongly_measurable f) (μ : measure α) [sigma_finite μ] :
   fin_strongly_measurable f μ :=
 hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simp)
-  (by rwa  measure.restrict_univ)
+  (by rwa measure.restrict_univ)
 
 /-- A strongly measurable function is measurable. -/
 protected lemma measurable [measurable_space α] [metric_space β] [measurable_space β]
@@ -162,17 +162,34 @@ end strongly_measurable
 section second_countable_strongly_measurable
 variables {α β : Type*} [measurable_space α] [measurable_space β] {f : α → β}
 
-/-- In a space with second countable topology, measurable implies strongly measurable.
-  TODO: remove the `nonempty β` hypothesis? -/
-lemma _root_.measurable.strongly_measurable [emetric_space β] [opens_measurable_space β]
-  [second_countable_topology β] [hβ : nonempty β] (hf : measurable f) :
+lemma subsingleton.strongly_measurable {γ} [topological_space γ] [subsingleton γ] {f : α → γ} :
   strongly_measurable f :=
-⟨simple_func.approx_on f hf set.univ hβ.some (set.mem_univ hβ.some),
-  λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩
+begin
+  let f_sf : α →ₛ γ := ⟨f, λ x, _,
+    set.subsingleton.finite (set.subsingleton_of_subsingleton (set.range f))⟩,
+  swap,
+  { have h_univ : f ⁻¹' {x} = set.univ, by { ext1 y, simp,},
+    rw h_univ,
+    exact measurable_set.univ, },
+  exact ⟨λ n, f_sf, λ x, tendsto_const_nhds⟩,
+end
+
+/-- In a space with second countable topology, measurable implies strongly measurable. -/
+lemma _root_.measurable.strongly_measurable [emetric_space β] [opens_measurable_space β]
+  [second_countable_topology β] (hf : measurable f) :
+  strongly_measurable f :=
+begin
+  by_cases hβ : is_empty β,
+  { haveI : is_empty β := hβ,
+    exact subsingleton.strongly_measurable, },
+  haveI hβ_non : nonempty β := not_is_empty_iff.mp hβ,
+  exact ⟨simple_func.approx_on f hf set.univ hβ_non.some (set.mem_univ hβ_non.some),
+    λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩
+end
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
 lemma strongly_measurable_iff_measurable [metric_space β] [borel_space β]
-  [second_countable_topology β] [hβ : nonempty β] :
+  [second_countable_topology β] :
   strongly_measurable f ↔ measurable f :=
 ⟨λ h, h.measurable, λ h, measurable.strongly_measurable h⟩
 

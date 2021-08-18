@@ -131,36 +131,36 @@ lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
   (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
 by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
-lemma Union_unpair_union {α} {s t : ℕ → set α} :
-  (⋃ n : ℕ, s n.unpair.1 ∪ t n.unpair.2) = ⋃ i j : ℕ, s i ∪ t j :=
-begin
-  have : (⋃ i : ℕ × ℕ, s i.1 ∪ t i.2) = ⋃ i j : ℕ, s i ∪ t j,
-  { ext, simp },
-  rw [← this, ← nat.surjective_unpair.Union_comp],
-end
-
-lemma Union_unpair_inter {α} {s t : ℕ → set α} :
-  (⋃ n : ℕ, s n.unpair.1 ∩ t n.unpair.2) = ⋃ i j : ℕ, s i ∩ t j :=
-begin
-  have : (⋃ i : ℕ × ℕ, s i.1 ∩ t i.2) = ⋃ i j : ℕ, s i ∩ t j,
-  { ext, simp },
-  rw [← this, ← nat.surjective_unpair.Union_comp],
-end
-
-lemma Inter_unpair_union {α} {s t : ℕ → set α} :
-  (⋂ n : ℕ, s n.unpair.1 ∪ t n.unpair.2) = ⋂ i j : ℕ, s i ∪ t j :=
-begin
-  have : (⋂ i : ℕ × ℕ, s i.1 ∪ t i.2) = ⋂ i j : ℕ, s i ∪ t j,
-  { ext, simp },
-  rw [← this, ← nat.surjective_unpair.Inter_comp],
-end
-
-lemma Inter_unpair_inter {α} {s t : ℕ → set α} :
-  (⋂ n : ℕ, s n.unpair.1 ∩ t n.unpair.2) = ⋂ i j : ℕ, s i ∩ t j :=
-begin
-  have : (⋂ i : ℕ × ℕ, s i.1 ∩ t i.2) = ⋂ i j : ℕ, s i ∩ t j,
-  { ext, simp, },
-  rw [← this, ← nat.surjective_unpair.Inter_comp],
-end
-
 end set
+
+section complete_lattice
+
+lemma supr_unpair_sup {α} [complete_lattice α] {s t : ℕ → α} :
+  (⨆ n : ℕ, s n.unpair.1 ⊔ t n.unpair.2) = (⨆ i : ℕ, s i) ⊔ ⨆ j, t j :=
+begin
+  simp_rw [supr_sup, sup_supr, ← (supr_prod : (⨆ i : ℕ × ℕ, s i.1 ⊔ t i.2) = _),
+           ← nat.surjective_unpair.supr_comp],
+end
+
+lemma supr_unpair_inf {α} [complete_distrib_lattice α] {s t : ℕ → α} :
+  (⨆ n : ℕ, s n.unpair.1 ⊓ t n.unpair.2) = (⨆ i : ℕ, s i) ⊓ ⨆ j, t j :=
+begin
+  simp_rw [supr_inf_eq, inf_supr_eq, ← (supr_prod : (⨆ i : ℕ × ℕ, s i.1 ⊓ t i.2) = _),
+           ← nat.surjective_unpair.supr_comp],
+end
+
+lemma infi_unpair_sup {α} [complete_distrib_lattice α] {s t : ℕ → α} :
+  (⨅ n : ℕ, s n.unpair.1 ⊔ t n.unpair.2) = (⨅ i : ℕ, s i) ⊔ ⨅ j, t j :=
+begin
+  simp_rw [infi_sup_eq, sup_infi_eq, ← (infi_prod : (⨅ i : ℕ × ℕ, s i.1 ⊔ t i.2) = _),
+           ← nat.surjective_unpair.infi_comp],
+end
+
+lemma infi_unpair_inf {α} [complete_lattice α] {s t : ℕ → α} :
+  (⨅ n : ℕ, s n.unpair.1 ⊓ t n.unpair.2) = (⨅ i : ℕ, s i) ⊓ ⨅ j, t j :=
+begin
+  simp_rw [infi_inf, inf_infi, ← (infi_prod : (⨅ i : ℕ × ℕ, s i.1 ⊓ t i.2) = _),
+           ← nat.surjective_unpair.infi_comp],
+end
+
+end complete_lattice

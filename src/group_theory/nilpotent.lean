@@ -183,7 +183,7 @@ lemma upper_central_series_is_ascending_central_series :
 
 lemma upper_central_series_mono : monotone (upper_central_series G) :=
 begin
-  apply monotone_nat_of_le_succ ,
+  refine monotone_nat_of_le_succ _,
   intros n x hx y,
   rw [mul_assoc, mul_assoc, ← mul_assoc y x⁻¹ y⁻¹],
   exact mul_mem (upper_central_series G n) hx

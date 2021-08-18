@@ -105,10 +105,10 @@ end
 
 /--
 Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in `α`,
-$$-a⊔-b = -(a⊓b).$$
+$$ -(a⊓b) = -a⊔-b.$$
 -/
 @[to_additive, simp]
-lemma sup_inv_eq_inv_inf (a b : α) : a⁻¹⊔b⁻¹ = (a⊓b)⁻¹ :=
+lemma inv_inf_eq_sup_inv (a b : α) : (a⊓b)⁻¹ = a⁻¹⊔b⁻¹ :=
 begin
   rw [← inv_inv (a⁻¹⊔b⁻¹), inv_sup_eq_inv_inf_inv a⁻¹ b⁻¹, inv_inv, inv_inv],
 end
@@ -122,8 +122,8 @@ $$a⊓b + (a⊔b) = a + b.$$
 lemma mul_eq_inf_mul_sup (a b : α) : a⊓b * (a⊔b) = a * b :=
 calc a⊓b * (a⊔b) = a⊓b * ((a * b) * (b⁻¹⊔a⁻¹)) :
   by {  rw mul_sup_eq_mul_sup_mul b⁻¹ a⁻¹ (a*b), simp,  }
-... = a⊓b * ((a * b) * (a⊓b)⁻¹) : by { rw [← sup_inv_eq_inv_inf, sup_comm], }
-... = a * b                    : by { simp, }
+... = a⊓b * ((a * b) * (a⊓b)⁻¹) : by { rw [inv_inf_eq_sup_inv, sup_comm], }
+... = a * b                    : by { rw [mul_comm, inv_mul_cancel_right],  }
 
 
 /--
@@ -255,7 +255,7 @@ begin
   unfold lattice_ordered_comm_group.neg,
   rw ← inv_inj,
   rw inv_sup_eq_inv_inf_inv,
-  simp,
+  rw [inv_inv, inv_inv, one_inv],
 end
 
 -- Bourbaki A.VI.12  Prop 9 a)
@@ -288,8 +288,7 @@ positive, disjoint).
 lemma pos_inf_neg_eq_one (a : α) : a⁺⊓a⁻=1 :=
 begin
   rw [←mul_right_inj (a⁻)⁻¹, mul_inf_eq_mul_inf_mul, mul_one, mul_left_inv, mul_comm,
-    ←div_eq_mul_inv, pos_div_neg', neg_eq_inv_inf_one],
-  simp,
+    ←div_eq_mul_inv, pos_div_neg', neg_eq_inv_inf_one, inv_inv],
 end
 
 -- Bourbaki A.VI.12 (with a and b swapped)

@@ -260,9 +260,10 @@ variable {G}
 
 @[simp] lemma lower_central_series_zero_def : lower_central_series G 0 = ⊤ := rfl
 
-lemma mem_lower_central_series_succ_iff (n : ℕ) (x : G) : x ∈ lower_central_series G (n + 1) ↔
-  x ∈ closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
-:= iff.rfl
+lemma mem_lower_central_series_succ_iff (n : ℕ) (x : G) :
+  x ∈ lower_central_series G (n + 1) ↔
+    x ∈ closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x} :=
+iff.rfl
 
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin

@@ -38,7 +38,6 @@ A lattice ordered commutative group is a type `α` satisfying:
 * `[lattice α]`
 * `[comm_group α]`
 * `[covariant_class α α (*) (≤)]`
-*  `[covariant_class α α (function.swap (*)) (≤)]`
 
 The remainder of the file establishes basic properties of `lattice_ordered_comm_group`. A number
 of these results also hold in the non-commutative case ([Birkhoff][birkhoff1942],
@@ -68,8 +67,6 @@ instance linear_ordered_comm_group.to_covariant_class (α : Type u)
 
 
 variables {α : Type u} [lattice α] [comm_group α] [covariant_class α α (*) (≤)]
-  [covariant_class α α (function.swap (*)) (≤)]
-
 
 -- Special case of Bourbaki A.VI.9 (1)
 /--

@@ -195,7 +195,6 @@ class has_nndist (α : Type*) := (nndist : α → α → ℝ≥0)
 
 export has_nndist (nndist)
 
-
 /-- Distance as a nonnegative real number. -/
 @[priority 100] -- see Note [lower instance priority]
 instance pseudo_metric_space.to_has_nndist : has_nndist α := ⟨λ a b, ⟨dist a b, dist_nonneg⟩⟩
@@ -277,8 +276,17 @@ def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
 
 theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
 
-@[simp] lemma nonempty_ball (h : 0 < ε) : (ball x ε).nonempty :=
-⟨x, by simp [h]⟩
+theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
+dist_nonneg.trans_lt hy
+
+theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
+show dist x x < ε, by rw dist_self; assumption
+
+@[simp] lemma nonempty_ball : (ball x ε).nonempty ↔ 0 < ε :=
+⟨λ ⟨x, hx⟩, pos_of_mem_ball hx, λ h, ⟨x, mem_ball_self h⟩⟩
+
+@[simp] lemma ball_eq_empty : ball x ε = ∅ ↔ ε ≤ 0 :=
+by rw [← not_nonempty_iff_eq_empty, nonempty_ball, not_lt]
 
 lemma ball_eq_ball (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
@@ -300,8 +308,14 @@ def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
 by { rw dist_comm, refl }
 
-lemma nonempty_closed_ball (h : 0 ≤ ε) : (closed_ball x ε).nonempty :=
-⟨x, by simp [h]⟩
+theorem mem_closed_ball_self (h : 0 ≤ ε) : x ∈ closed_ball x ε :=
+show dist x x ≤ ε, by rw dist_self; assumption
+
+@[simp] lemma nonempty_closed_ball : (closed_ball x ε).nonempty ↔ 0 ≤ ε :=
+⟨λ ⟨x, hx⟩, dist_nonneg.trans hx, λ h, ⟨x, mem_closed_ball_self h⟩⟩
+
+@[simp] lemma closed_ball_eq_empty : closed_ball x ε = ∅ ↔ ε < 0 :=
+by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy
@@ -323,15 +337,6 @@ by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.s
 
 @[simp] theorem closed_ball_diff_ball : closed_ball x ε \ ball x ε = sphere x ε :=
 by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm]
-
-theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
-lt_of_le_of_lt dist_nonneg hy
-
-theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
-show dist x x < ε, by rw dist_self; assumption
-
-theorem mem_closed_ball_self (h : 0 ≤ ε) : x ∈ closed_ball x ε :=
-show dist x x ≤ ε, by rw dist_self; assumption
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [dist_comm]
@@ -1287,17 +1292,29 @@ by { rw [nndist_pi_def], exact finset.le_sup (finset.mem_univ b) }
 lemma dist_le_pi_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
 by simp only [dist_nndist, nnreal.coe_le_coe, nndist_le_pi_nndist f g b]
 
-/-- An open ball in a product space is a product of open balls. The assumption `0 < r`
-is necessary for the case of the empty product. -/
+/-- An open ball in a product space is a product of open balls. See also `metric.ball_pi'`
+for a version assuming `nonempty β` instead of `0 < r`. -/
 lemma ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 < r) :
-  ball x r = { y | ∀b, y b ∈ ball (x b) r } :=
+  ball x r = set.pi univ (λ b, ball (x b) r) :=
 by { ext p, simp [dist_pi_lt_iff hr] }
 
-/-- A closed ball in a product space is a product of closed balls. The assumption `0 ≤ r`
-is necessary for the case of the empty product. -/
+/-- An open ball in a product space is a product of open balls. See also `metric.ball_pi`
+for a version assuming `0 < r` instead of `nonempty β`. -/
+lemma ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
+  ball x r = set.pi univ (λ b, ball (x b) r) :=
+(lt_or_le 0 r).elim (ball_pi x) $ λ hr, by simp [ball_eq_empty.2 hr]
+
+/-- A closed ball in a product space is a product of closed balls. See also `metric.closed_ball_pi'`
+for a version assuming `nonempty β` instead of `0 ≤ r`. -/
 lemma closed_ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 ≤ r) :
-  closed_ball x r = { y | ∀b, y b ∈ closed_ball (x b) r } :=
+  closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
 by { ext p, simp [dist_pi_le_iff hr] }
+
+/-- A closed ball in a product space is a product of closed balls. See also `metric.closed_ball_pi`
+for a version assuming `0 ≤ r` instead of `nonempty β`. -/
+lemma closed_ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
+  closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
+(le_or_lt 0 r).elim (closed_ball_pi x) $ λ hr, by simp [closed_ball_eq_empty.2 hr]
 
 end pi
 

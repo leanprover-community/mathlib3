@@ -141,6 +141,6 @@ by rw [← (supr_prod : (⨆ i : ℕ × ℕ, f i.1 i.2) = _), ← nat.surjective
 
 lemma infi_unpair {α} [complete_lattice α] (f : ℕ → ℕ → α) :
   (⨅ n : ℕ, f n.unpair.1 n.unpair.2) = ⨅ i j : ℕ, f i j :=
-by rw [← (infi_prod : (⨅ i : ℕ × ℕ, f i.1 i.2) = _), ← nat.surjective_unpair.infi_comp]
+supr_unpair (show ℕ → ℕ → order_dual α, from f)
 
 end complete_lattice

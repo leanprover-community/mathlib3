@@ -329,7 +329,9 @@ begin
 end
 
 /-- If `1<|z|`, then `|S•z|<1` *********** ????????????? *********** -/
-lemma normsq_S_lt_of_normsq {z : ℍ} (h: 1 < norm_sq z) : norm_sq (S • z) < 1 :=
+lemma normsq_S_lt_of_normsq {z : ℍ} (h: 1 < norm_sq z) :
+norm_sq -- (S • z)
+z < 1 :=
 begin
   sorry,
   have : z.im < z.im / norm_sq (z:ℂ),
@@ -340,7 +342,7 @@ begin
   simp only [im_smul_eq_div_norm_sq],
   field_simp [normsq_bottom_ne_zero, norm_sq_ne_zero, S]
 end
-
+/- -/
 
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
 lemma exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
@@ -639,8 +641,8 @@ end
 
 def T_pow (n : ℤ) : SL(2,ℤ) := ⟨ ![![1, n],![0,1]],
 begin
+  rw matrix.det_fin_two,
   simp,
-  sorry,
 end
 ⟩
 
@@ -671,6 +673,11 @@ begin
     exact_mod_cast hc,
   },
   { simp [vec_head, vec_tail, S], },
+end
+
+lemma move_by_T (z : ℍ) (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq ((T_pow n) • z) :=
+begin
+  sorry,
 end
 
 lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
@@ -761,27 +768,44 @@ begin
 
     cases this with hc,
     {
+      exfalso,
       have := g_is_of_c_is_one g hc,
       let z₁ := T_pow (g 1 1) • z,
       let w₁ := T_pow (- g 0 0) • (g • z),
-      have w_1_S_z_1 : w_1 = S • z_1,
+      have w₁_S_z₁ : w₁ = S • z₁,
+      {
+        have : T_pow (- g 0 0) * g = S * T_pow (g 1 1),
+        {
+          sorry,
+        },
+
+        convert congr_arg (λ (g:SL(2,ℤ)), g • z) this using 1,
+        {
+          simp [w₁, upper_half_plane.mul_smul'],
+          convert (upper_half_plane.mul_smul' (T_pow (- g 0 0)) g z).symm using 1,
+          simp,
+          sorry,
+        },
+        {
+          simp [z₁, upper_half_plane.mul_smul'],
+          convert (upper_half_plane.mul_smul' S (T_pow (g 1 1)) z).symm using 1,
+          simp,
+          sorry,
+        },
+      },
+      have w₁_norm : 1 < norm_sq w₁,
       {
         sorry,
       },
-      have w_1_norm : 1 < norm_sq w_1,
-      {
-        sorry,
-      },
-      have z_1_norm : 1 < norm_sq z_1,
+      have z₁_norm : 1 < norm_sq z₁,
       {
         sorry,
       },
 
-      have := normsq_S_lt_of_normsq z_1_norm,
+      have := normsq_S_lt_of_normsq z₁_norm,
+--      rw ← w₁_S_z₁ at this,
 
       linarith,
-
-      sorry,
     },
     {
       sorry,

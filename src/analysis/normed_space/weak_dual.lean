@@ -10,11 +10,14 @@ import analysis.normed_space.operator_norm
 /-!
 # Weak dual of normed space
 
-This file proves properties of the weak-* topology on the dual of a normed space `E`.
+Let `E` be a normed space over a field `𝕜`. This file is concerned with properties of the weak-*
+topology on the dual of `E`. By the dual, we mean either of the type synonyms
+`normed_space.dual 𝕜 E` or `weak_dual 𝕜 E`, depending on whether it is viewed as equipped with its
+usual operator norm topology or the weak-* topology.
 
-It is shown that the canonical mapping `dual 𝕜 E → weak_dual 𝕜 E` is continuous, and as a
-consequence the weak-* topology is coarser than the topology obtained from the dual norm (operator
-norm).
+It is shown that the canonical mapping `normed_space.dual 𝕜 E → weak_dual 𝕜 E` is continuous, and
+as a consequence the weak-* topology is coarser than the topology obtained from the operator norm
+(dual norm).
 
 The file is a stub, some TODOs below.
 

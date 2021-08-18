@@ -767,6 +767,20 @@ end map
 
 end walk_to_path
 
+namespace walk
+variables {G}
+
+/-- Whether or not the path `p` is a prefix of the path `q`. -/
+def prefix_of [decidable_eq V] : Π {u v w : V} (p : G.walk u v) (q : G.walk u w), Prop
+| u v w nil _ := true
+| u v w (cons _ _) nil := false
+| u v w (@cons _ _ _ x _ r p) (@cons _ _ _ y _ s q) :=
+  if h : x = y
+  then by { subst y, exact prefix_of p q }
+  else false
+
+end walk
+
 section
 variables [decidable_eq V]
 
@@ -1059,12 +1073,32 @@ end
 noncomputable abbreviation tree_path (h : G.is_tree) (v w : V) : G.path v w :=
 ⟨((G.is_tree_iff.mp h) v w).some, ((G.is_tree_iff.mp h) v w).some_spec.1⟩
 
-lemma tree_path_spec {h : G.is_tree} {v w : V} (p q : G.path v w) : p = q :=
+lemma tree_path_spec {h : G.is_tree} {v w : V} (p : G.path v w) : p = G.tree_path h v w :=
 begin
   cases p,
-  cases q,
   have := ((G.is_tree_iff.mp h) v w).some_spec,
-  simp only [this.2 p_val p_property, this.2 q_val q_property],
+  simp only [this.2 p_val p_property],
+end
+
+/-- The tree metric, which is the length of the path between any two vertices.
+
+Fixing a vertex as the root, then `G.tree_dist h root` gives the depth of each node with
+respect to the root. -/
+noncomputable def tree_dist (h : G.is_tree) (v w : V) : ℕ :=
+walk.length (G.tree_path h v w : G.walk v w)
+
+variables {G} [decidable_eq V]
+
+/-- Given a tree and a choice of root, then we can tell whether a given path
+from `v` is a *rootward* path based on whether or not it is a prefix of the unique
+path from `v` to the root. This gives paths a canonical orientation in a rooted tree. -/
+def path.is_rootward (h : G.is_tree) (root : V) {v w : V} (p : G.path v w) : Prop :=
+walk.prefix_of (p : G.walk v w) (G.tree_path h v root : G.walk v root)
+
+lemma path.is_rootward_or_reverse (h : G.is_tree) (root : V) {v w : V} (p : G.path v w) :
+  p.is_rootward h root ∨ p.reverse.is_rootward h root :=
+begin
+  sorry,
 end
 
 end

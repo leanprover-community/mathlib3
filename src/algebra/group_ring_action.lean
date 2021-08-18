@@ -82,7 +82,6 @@ def mul_semiring_action.to_semiring_equiv [mul_semiring_action G R] (x : G) : R 
 { .. distrib_mul_action.to_add_equiv G R x,
   .. mul_semiring_action.to_ring_hom G R x }
 
-
 section
 variables {M G R}
 

@@ -1843,14 +1843,6 @@ lemma disjoint_disjointed_finite_spanning_sets_in {μ : measure α}
   pairwise (disjoint on (disjointed_finite_spanning_sets_in μ S).set) :=
 disjoint_disjointed _
 
-lemma set.Union_unpair_inter (s t : ℕ → set α) :
-  (⋃ n : ℕ, s n.unpair.1 ∩ t n.unpair.2) = ⋃ i j : ℕ, s i ∩ t j :=
-begin
-  have : (⋃ i : ℕ × ℕ, s i.1 ∩ t i.2) = ⋃ i j : ℕ, s i ∩ t j,
-  { ext, simp only [set.mem_Union, prod.exists] },
-  rw [← this, ← nat.surjective_unpair.Union_comp],
-end
-
 private lemma exists_eq_finite_spanning_sets_in
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   ∃ (S : μ.finite_spanning_sets_in {s | measurable_set s})
@@ -1862,8 +1854,8 @@ begin
   have hW₁ : ∀ n, measurable_set (W n) :=
     λ n, (S.set_mem n.unpair.1).inter (T.set_mem n.unpair.2),
   have hW₂ : (⋃ i, W i) = set.univ,
-  { simp_rw [hW, set.Union_unpair_inter, ← set.inter_Union, ← set.Union_inter,
-             S.spanning, T.spanning, set.inter_univ] },
+  { simp_rw [hW, set.Union_unpair (λ i j, S.set i ∩ T.set j), ← set.inter_Union,
+             ← set.Union_inter, S.spanning, T.spanning, set.inter_univ] },
   refine ⟨⟨W, hW₁, _, hW₂⟩, ⟨W, hW₁, _, hW₂⟩, rfl⟩,
   { intro i,
     refine lt_of_le_of_lt (measure_mono _) (S.finite i.unpair.1),

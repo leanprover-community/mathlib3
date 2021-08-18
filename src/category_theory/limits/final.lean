@@ -10,16 +10,24 @@ import category_theory.limits.yoneda
 import category_theory.limits.types
 
 /-!
-# Cofinal functors
+# Final and initial functors
 
-A functor `F : C ⥤ D` is cofinal if for every `d : D`,
-the comma category of morphisms `d ⟶ F.obj c` is connected.
+A functor `F : C ⥤ D` is final if for every `d : D`,
+the comma category of morphisms `d ⟶ F.obj c` is connected
+
+A functor `F : C ⥤ D` is initial, if for every `d : D`,
+the comma category of morphisms `F.obj c ⟶ d` is connected.
+
+We show that `F` is final if and only if `F.op` is initial, and vice versa.
 
 We prove the following three statements are equivalent:
-1. `F : C ⥤ D` is cofinal.
+1. `F : C ⥤ D` is final.
 2. Every functor `G : D ⥤ E` has a colimit if and only if `F ⋙ G` does,
    and these colimits are isomorphic via `colimit.pre G F`.
 3. `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit`.
+
+By replacing all occurences of "final" by "initial" and "colimit" by "limit", we obtain the
+analogous statement for initial functors.
 
 Starting at 1. we show (in `cocones_equiv`) that
 the categories of cocones over `G : D ⥤ E` and over `F ⋙ G` are equivalent.
@@ -30,9 +38,6 @@ From 2. we can specialize to `G = coyoneda.obj (op d)` to obtain 3., as `colimit
 
 From 3., we prove 1. directly in `cofinal_of_colimit_comp_coyoneda_iso_punit`.
 
-We also show these conditions imply:
-4. Every functor `H : Dᵒᵖ ⥤ E` has a limit if and only if `F.op ⋙ H` does,
-   and these limits are isomorphic via `limit.pre H F.op`.
 
 
 ## Naming
@@ -86,151 +91,6 @@ instance final_op_of_initial (F : C ⥤ D) [initial F] : final F.op :=
 instance initial_op_of_final (F : C ⥤ D) [final F] : initial F.op :=
 { out := λ d, is_connected_of_equivalent (structured_arrow_op_equivalence F (unop d)) }
 
-namespace initial
-
-variables (F : C ⥤ D) [initial F]
-
-instance (d : D) : nonempty (costructured_arrow F d) := is_connected.is_nonempty
-
-variables {E : Type u} [category.{v} E] (G : D ⥤ E)
-
-def lift (d : D) : C := (classical.arbitrary (costructured_arrow F d)).left
-
-def hom_to_lift (d : D) : F.obj (lift F d) ⟶ d :=
-  (classical.arbitrary (costructured_arrow F d)).hom
-
-lemma induction {d : D} (Z : Π (X : C) (k : F.obj X ⟶ d), Prop)
-  (h₁ : Π X₁ X₂ (k₁ : F.obj X₁ ⟶ d) (k₂ : F.obj X₂ ⟶ d) (f : X₁ ⟶ X₂),
-    (F.map f ≫ k₂ = k₁) → Z X₁ k₁ → Z X₂ k₂)
-  (h₂ : Π X₁ X₂ (k₁ : F.obj X₁ ⟶ d) (k₂ : F.obj X₂ ⟶ d) (f : X₁ ⟶ X₂),
-    (F.map f ≫ k₂ = k₁) → Z X₂ k₂ → Z X₁ k₁)
-  {X₀ : C} {k₀ : F.obj X₀ ⟶ d} (z : Z X₀ k₀) : Z (lift F d) (hom_to_lift F d) :=
-begin
-  apply nonempty.some,
-  apply @is_preconnected_induction _ _ _
-    (λ Y : costructured_arrow F d, Z Y.left Y.hom) _ _ { left := X₀, hom := k₀ } z,
-  { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
-  { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
-end
-
-variables {F G}
-
-/--
-Given a cone over `F ⋙ G`, we can construct a `cocone G` with the same cocone point.
--/
-@[simps]
-def extend_cone : cone (F ⋙ G) ⥤ cone G :=
-{ obj := λ c,
-  { X := c.X,
-    π :=
-    { app := λ d, c.π.app (lift F d) ≫ G.map (hom_to_lift F d),
-      naturality' := λ X Y f,
-      begin
-        dsimp, simp,
-        -- This would be true if we'd chosen `lift F Y` to be `lift F X`
-        -- and `hom_to_lift F Y` to be `hom_to_lift F X ≫ f`.
-        apply induction F (λ Z k, (c.π.app Z ≫ G.map k : c.X ⟶ _) =
-          c.π.app (lift F X) ≫ G.map (hom_to_lift F X) ≫ G.map f),
-        { intros Z₁ Z₂ k₁ k₂ g a z,
-        rw [←a, functor.map_comp, ←functor.comp_map, ←category.assoc, ←category.assoc, c.w] at z,
-        rw [z, category.assoc] },
-        { intros Z₁ Z₂ k₁ k₂ g a z,
-        rw [←a, functor.map_comp, ←functor.comp_map, ←category.assoc, ←category.assoc,
-          c.w, z, category.assoc] },
-        { rw [←functor.map_comp], },
-      end } },
-  map := λ X Y f,
-  { hom := f.hom, } }
-
-@[simp]
-lemma limit_cone_comp_aux (s : cone (F ⋙ G)) (j : C) :
-  s.π.app (lift F (F.obj j)) ≫ G.map (hom_to_lift F (F.obj j)) =
-    s.π.app j :=
-begin
-  -- This point is that this would be true if we took `lift (F.obj j)` to just be `j`
-  -- and `hom_to_lift (F.obj j)` to be `𝟙 (F.obj j)`.
-  apply induction F (λ X k, s.π.app X ≫ G.map k = (s.π.app j : _)),
-  { intros j₁ j₂ k₁ k₂ f w h, rw ←s.w f, rw ←w at h, simpa using h, },
-  { intros j₁ j₂ k₁ k₂ f w h, rw ←s.w f at h, rw ←w, simpa using h, },
-  { exact s.w (𝟙 _), },
-end
-
-variables (F G)
-
-@[simps]
-def cones_equiv : cone (F ⋙ G) ≌ cone G :=
-{ functor := extend_cone,
-  inverse := cones.whiskering F,
-  unit_iso := nat_iso.of_components (λ c, cones.ext (iso.refl _) (by tidy)) (by tidy),
-  counit_iso := nat_iso.of_components (λ c, cones.ext (iso.refl _) (by tidy)) (by tidy), }.
-
-variables {G}
-
-def is_limit_whisker_equiv (t : cone G) : is_limit (t.whisker F) ≃ is_limit t :=
-is_limit.of_cone_equiv (cones_equiv F G).symm
-
-def is_limit_extend_cone_equiv (t : cone (F ⋙ G)) :
-  is_limit (extend_cone.obj t) ≃ is_limit t :=
-is_limit.of_cone_equiv (cones_equiv F G)
-
-@[simps]
-def limit_cone_comp (t : limit_cone G) :
-  limit_cone (F ⋙ G) :=
-{ cone := _,
-  is_limit := (is_limit_whisker_equiv F _).symm (t.is_limit) }
-
-@[priority 100]
-instance comp_has_limit [has_limit G] :
-  has_limit (F ⋙ G) :=
-has_limit.mk (limit_cone_comp F (get_limit_cone G))
-
-lemma limit_pre_is_iso_aux {t : cone G} (P : is_limit t) :
-  ((is_limit_whisker_equiv F _).symm P).lift (t.whisker F) = 𝟙 t.X :=
-begin
-  dsimp [is_limit_whisker_equiv],
-  apply P.hom_ext,
-  intro j,
-  simp,
-end
-
-instance limit_pre_is_iso [has_limit G] :
-  is_iso (limit.pre G F) :=
-begin
-  rw limit.pre_eq (limit_cone_comp F (get_limit_cone G)) (get_limit_cone G),
-  erw limit_pre_is_iso_aux,
-  dsimp,
-  apply_instance,
-end
-
-section
-variables (G)
-
-def limit_iso [has_limit G] : limit (F ⋙ G) ≅ limit G := (as_iso (limit.pre G F)).symm
-
-end
-
-@[simps]
-def limit_cone_of_comp (t : limit_cone (F ⋙ G)) :
-  limit_cone G :=
-{ cone := extend_cone.obj t.cone,
-  is_limit := (is_limit_extend_cone_equiv F _).symm (t.is_limit), }
-
-lemma has_limit_of_comp [has_limit (F ⋙ G)] :
-  has_limit G :=
-has_limit.mk (limit_cone_of_comp F (get_limit_cone (F ⋙ G)))
-
-section
-local attribute [instance] has_limit_of_comp
-
-def limit_iso' [has_limit (F ⋙ G)] : limit (F ⋙ G) ≅ limit G :=
-(as_iso (limit.pre G F)).symm
-
-end
-
-
-end initial
-
-
 namespace final
 
 variables (F : C ⥤ D) [final F]
@@ -259,7 +119,7 @@ We want to perform some construction (usually just a proof) about
 the particular choices `lift F d` and `hom_to_lift F d`,
 it suffices to perform that construction for some other pair of choices
 (denoted `X₀ : C` and `k₀ : d ⟶ F.obj X₀` below),
-and to show that how to transport such a construction
+and to show how to transport such a construction
 *both* directions along a morphism between such choices.
 -/
 lemma induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Prop)
@@ -477,6 +337,204 @@ lemma cofinal_of_colimit_comp_coyoneda_iso_punit
 end⟩
 
 end final
+
+
+namespace initial
+
+variables (F : C ⥤ D) [initial F]
+
+instance (d : D) : nonempty (costructured_arrow F d) := is_connected.is_nonempty
+
+variables {E : Type u} [category.{v} E] (G : D ⥤ E)
+
+/--
+When `F : C ⥤ D` is initial, we denote by `lift F d` an arbitrary choice of object in `C` such that
+there exists a morphism `F.obj (lift F d) ⟶ d`.
+-/
+def lift (d : D) : C := (classical.arbitrary (costructured_arrow F d)).left
+
+/--
+When `F : C ⥤ D` is initial, we denote by `hom_to_lift` an arbitrary choice of morphism
+`F.obj (lift F d) ⟶ d`.
+-/
+def hom_to_lift (d : D) : F.obj (lift F d) ⟶ d :=
+  (classical.arbitrary (costructured_arrow F d)).hom
+
+/--
+We provide an induction principle for reasoning about `lift` and `hom_to_lift`.
+We want to perform some construction (usually just a proof) about
+the particular choices `lift F d` and `hom_to_lift F d`,
+it suffices to perform that construction for some other pair of choices
+(denoted `X₀ : C` and `k₀ : d ⟶ F.obj X₀` below),
+and to show how to transport such a construction
+*both* directions along a morphism between such choices.
+-/
+lemma induction {d : D} (Z : Π (X : C) (k : F.obj X ⟶ d), Prop)
+  (h₁ : Π X₁ X₂ (k₁ : F.obj X₁ ⟶ d) (k₂ : F.obj X₂ ⟶ d) (f : X₁ ⟶ X₂),
+    (F.map f ≫ k₂ = k₁) → Z X₁ k₁ → Z X₂ k₂)
+  (h₂ : Π X₁ X₂ (k₁ : F.obj X₁ ⟶ d) (k₂ : F.obj X₂ ⟶ d) (f : X₁ ⟶ X₂),
+    (F.map f ≫ k₂ = k₁) → Z X₂ k₂ → Z X₁ k₁)
+  {X₀ : C} {k₀ : F.obj X₀ ⟶ d} (z : Z X₀ k₀) : Z (lift F d) (hom_to_lift F d) :=
+begin
+  apply nonempty.some,
+  apply @is_preconnected_induction _ _ _
+    (λ Y : costructured_arrow F d, Z Y.left Y.hom) _ _ { left := X₀, hom := k₀ } z,
+  { intros j₁ j₂ f a, fapply h₁ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
+  { intros j₁ j₂ f a, fapply h₂ _ _ _ _ f.left _ a, convert f.w, dsimp, simp, },
+end
+
+variables {F G}
+
+/--
+Given a cone over `F ⋙ G`, we can construct a `cone G` with the same cocone point.
+-/
+@[simps]
+def extend_cone : cone (F ⋙ G) ⥤ cone G :=
+{ obj := λ c,
+  { X := c.X,
+    π :=
+    { app := λ d, c.π.app (lift F d) ≫ G.map (hom_to_lift F d),
+      naturality' := λ X Y f,
+      begin
+        dsimp, simp,
+        -- This would be true if we'd chosen `lift F Y` to be `lift F X`
+        -- and `hom_to_lift F Y` to be `hom_to_lift F X ≫ f`.
+        apply induction F (λ Z k, (c.π.app Z ≫ G.map k : c.X ⟶ _) =
+          c.π.app (lift F X) ≫ G.map (hom_to_lift F X) ≫ G.map f),
+        { intros Z₁ Z₂ k₁ k₂ g a z,
+        rw [←a, functor.map_comp, ←functor.comp_map, ←category.assoc, ←category.assoc, c.w] at z,
+        rw [z, category.assoc] },
+        { intros Z₁ Z₂ k₁ k₂ g a z,
+        rw [←a, functor.map_comp, ←functor.comp_map, ←category.assoc, ←category.assoc,
+          c.w, z, category.assoc] },
+        { rw [←functor.map_comp], },
+      end } },
+  map := λ X Y f,
+  { hom := f.hom, } }
+
+@[simp]
+lemma limit_cone_comp_aux (s : cone (F ⋙ G)) (j : C) :
+  s.π.app (lift F (F.obj j)) ≫ G.map (hom_to_lift F (F.obj j)) =
+    s.π.app j :=
+begin
+  -- This point is that this would be true if we took `lift (F.obj j)` to just be `j`
+  -- and `hom_to_lift (F.obj j)` to be `𝟙 (F.obj j)`.
+  apply induction F (λ X k, s.π.app X ≫ G.map k = (s.π.app j : _)),
+  { intros j₁ j₂ k₁ k₂ f w h, rw ←s.w f, rw ←w at h, simpa using h, },
+  { intros j₁ j₂ k₁ k₂ f w h, rw ←s.w f at h, rw ←w, simpa using h, },
+  { exact s.w (𝟙 _), },
+end
+
+variables (F G)
+
+/--
+If `F` is initial,
+the category of cones on `F ⋙ G` is equivalent to the category of cones on `G`,
+for any `G : D ⥤ E`.
+-/
+@[simps]
+def cones_equiv : cone (F ⋙ G) ≌ cone G :=
+{ functor := extend_cone,
+  inverse := cones.whiskering F,
+  unit_iso := nat_iso.of_components (λ c, cones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ c, cones.ext (iso.refl _) (by tidy)) (by tidy), }.
+
+variables {G}
+
+/--
+When `F : C ⥤ D` is initial, and `t : cone G` for some `G : D ⥤ E`,
+`t.whisker F` is a colimit cocone exactly when `t` is.
+-/
+def is_limit_whisker_equiv (t : cone G) : is_limit (t.whisker F) ≃ is_limit t :=
+is_limit.of_cone_equiv (cones_equiv F G).symm
+
+/--
+When `F` is initial, and `t : cone (F ⋙ G)`,
+`extend_cone.obj t` is a limit cone exactly when `t` is.
+-/
+def is_limit_extend_cone_equiv (t : cone (F ⋙ G)) :
+  is_limit (extend_cone.obj t) ≃ is_limit t :=
+is_limit.of_cone_equiv (cones_equiv F G)
+
+/-- Given a limit cone over `G : D ⥤ E` we can construct a limit cocone over `F ⋙ G`. -/
+@[simps]
+def limit_cone_comp (t : limit_cone G) :
+  limit_cone (F ⋙ G) :=
+{ cone := _,
+  is_limit := (is_limit_whisker_equiv F _).symm (t.is_limit) }
+
+@[priority 100]
+instance comp_has_limit [has_limit G] :
+  has_limit (F ⋙ G) :=
+has_limit.mk (limit_cone_comp F (get_limit_cone G))
+
+lemma limit_pre_is_iso_aux {t : cone G} (P : is_limit t) :
+  ((is_limit_whisker_equiv F _).symm P).lift (t.whisker F) = 𝟙 t.X :=
+begin
+  dsimp [is_limit_whisker_equiv],
+  apply P.hom_ext,
+  intro j,
+  simp,
+end
+
+instance limit_pre_is_iso [has_limit G] :
+  is_iso (limit.pre G F) :=
+begin
+  rw limit.pre_eq (limit_cone_comp F (get_limit_cone G)) (get_limit_cone G),
+  erw limit_pre_is_iso_aux,
+  dsimp,
+  apply_instance,
+end
+
+section
+variables (G)
+
+/--
+When `F : C ⥤ D` is initial, and `G : D ⥤ E` has a limit, then `F ⋙ G` has a limit also and
+`limit (F ⋙ G) ≅ limit G`
+
+https://stacks.math.columbia.edu/tag/04E7
+-/
+def limit_iso [has_limit G] : limit (F ⋙ G) ≅ limit G := (as_iso (limit.pre G F)).symm
+
+end
+
+/-- Given a limit cocone over `F ⋙ G` we can construct a limit cocone over `G`. -/
+@[simps]
+def limit_cone_of_comp (t : limit_cone (F ⋙ G)) :
+  limit_cone G :=
+{ cone := extend_cone.obj t.cone,
+  is_limit := (is_limit_extend_cone_equiv F _).symm (t.is_limit), }
+
+/--
+When `F` is initial, and `F ⋙ G` has a limit, then `G` has a limit also.
+
+We can't make this an instance, because `F` is not determined by the goal.
+(Even if this weren't a problem, it would cause a loop with `comp_has_colimit`.)
+-/
+lemma has_limit_of_comp [has_limit (F ⋙ G)] :
+  has_limit G :=
+has_limit.mk (limit_cone_of_comp F (get_limit_cone (F ⋙ G)))
+
+section
+local attribute [instance] has_limit_of_comp
+
+/--
+When `F` is initial, and `F ⋙ G` has a limit, then `G` has a limit also and
+`limit (F ⋙ G) ≅ limit G`
+
+https://stacks.math.columbia.edu/tag/04E7
+-/
+def limit_iso' [has_limit (F ⋙ G)] : limit (F ⋙ G) ≅ limit G :=
+(as_iso (limit.pre G F)).symm
+
+end
+
+
+end initial
+
+
+
 
 end functor
 

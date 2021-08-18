@@ -55,7 +55,11 @@ meta def transform_decl_with_prefix_fun_aux (f : name → option name)
 λ src,
 do
   -- if this declaration is not `pre` or an internal declaration, we do nothing.
-  tt ← return (src = pre ∨ src.is_internal : bool) | skip,
+  tt ← return (src = pre ∨ src.is_internal : bool) |
+    if (f src).is_some then skip else fail!("@[to_additive] failed.
+The declaration {pre} depends on the declaration {src} which is in the namespace {pre}, but " ++
+"does not have the `@[to_additive]` attribute. This is not supported. Workaround: move {src} to " ++
+"a different namespace."),
   env ← get_env,
   -- we find the additive name of `src`
   let tgt := src.map_prefix (λ n, if n = pre then some tgt_pre else none),

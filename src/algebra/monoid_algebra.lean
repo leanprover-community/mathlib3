@@ -728,7 +728,7 @@ variables [semiring k]
 
 /-- The opposite of an `monoid_algebra R I` equivalent as a ring to
 the `monoid_algebra Rᵒᵖ Iᵒᵖ` over the opposite ring, taking elements to their opposite. -/
-@[simps apply {simp_rhs := tt}] protected noncomputable def op_ring_equiv [monoid G] :
+@[simps {simp_rhs := tt}] protected noncomputable def op_ring_equiv [monoid G] :
   (monoid_algebra k G)ᵒᵖ ≃+* monoid_algebra kᵒᵖ Gᵒᵖ :=
 { map_mul' := begin
     dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],
@@ -738,11 +738,6 @@ the `monoid_algebra Rᵒᵖ Iᵒᵖ` over the opposite ring, taking elements to 
   end,
   ..op_add_equiv.symm.trans $ (finsupp.map_range.add_equiv (op_add_equiv : k ≃+ kᵒᵖ)).trans $
     finsupp.dom_congr equiv_to_opposite }
-
-@[simp] lemma op_ring_equiv_symm_apply [monoid G] (x : monoid_algebra kᵒᵖ Gᵒᵖ) :
-  monoid_algebra.op_ring_equiv.symm x =
-    op (map_range unop (unop_zero _) $ equiv_map_domain equiv_to_opposite.symm x) :=
-rfl
 
 @[simp] lemma op_ring_equiv_single [monoid G] (r : k) (x : G) :
   monoid_algebra.op_ring_equiv (op (single x r)) = single (op x) (op r) :=

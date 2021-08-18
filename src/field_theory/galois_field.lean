@@ -1,6 +1,7 @@
 /-
-Copyleft. No rights reserved.
-Authors: Johan Commelin
+Copyright (c) 2021 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aaron Anderson, Alex J. Best, Johan Commelin, Eric Rodriguez and Ruben Van de Velde
 -/
 
 import field_theory.finite.basic

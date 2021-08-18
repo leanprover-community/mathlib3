@@ -201,6 +201,18 @@ alg_equiv.of_alg_hom
   (by { ext, simp, })
   (by { ext, simp, })
 
+/-- The symmetric product of vectors is a scalar -/
+lemma ι_mul_ι_add_swap (a b : M) :
+  ι Q a * ι Q b + ι Q b * ι Q a = algebra_map R _ (quadratic_form.polar Q a b) :=
+calc  ι Q a * ι Q b + ι Q b * ι Q a
+    = ι Q (a + b) * ι Q (a + b) - ι Q a * ι Q a - ι Q b * ι Q b :
+        by { rw [(ι Q).map_add, mul_add, add_mul, add_mul], abel, }
+... = algebra_map R _ (Q (a + b)) - algebra_map R _ (Q a) - algebra_map R _ (Q b) :
+        by rw [ι_sq_scalar, ι_sq_scalar, ι_sq_scalar]
+... = algebra_map R _ (Q (a + b) - Q a - Q b) :
+        by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
+... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
+
 section map
 
 variables {M₁ M₂ M₃ : Type*}

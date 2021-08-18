@@ -219,6 +219,16 @@ theorem mul_card_image_le_card {f : α → β} (s : finset α)
   n * (s.image f).card ≤ s.card :=
 mul_card_image_le_card_of_maps_to (λ x, mem_image_of_mem _) n hn
 
+@[to_additive]
+lemma prod_le_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
+  (n : β) (h : ∀ (x ∈ s), f x ≤ n) :
+  s.prod f ≤ n ^ s.card :=
+begin
+  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
+  { simpa using h },
+  { simpa }
+end
+
 end pigeonhole
 
 section canonically_ordered_monoid

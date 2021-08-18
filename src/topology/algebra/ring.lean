@@ -86,8 +86,7 @@ end
 
 /-- A topological ring is a ring where the ring operations are continuous. -/
 class topological_ring [topological_space α] [ring α]
-  extends has_continuous_add α, has_continuous_mul α : Prop :=
-(continuous_neg : continuous (λa:α, -a))
+  extends topological_add_group α, has_continuous_mul α : Prop
 
 variables {α} [ring α] [topological_space α]
 
@@ -95,9 +94,6 @@ section
 variables [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
-
-@[priority 100] -- see Note [lower instance priority]
-instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
 end
 
 variables [topological_ring α]
@@ -106,7 +102,7 @@ variables [topological_ring α]
   makes the product into a topological ring. -/
 instance {β : Type*}
   [ring β] [topological_space β] [topological_ring β] : topological_ring (α × β) :=
-{ continuous_neg := continuous_neg }
+{ }
 
 instance {β : Type*} {C : β → Type*} [Π b, topological_space (C b)]
   [Π b, ring (C b)] [∀ b, topological_ring (C b)] : topological_ring (Π b, C b) :=
@@ -124,8 +120,8 @@ continuous_id.mul continuous_const
 itself a subring. -/
 def subring.topological_closure (S : subring α) : subring α :=
 { carrier := closure (S : set α),
-  ..(S.to_submonoid.topological_closure),
-  ..(S.to_add_subgroup.topological_closure) }
+  ..S.to_submonoid.topological_closure,
+  ..S.to_add_subgroup.topological_closure }
 
 instance subring.topological_closure_topological_ring (s : subring α) :
   topological_ring (s.topological_closure) :=

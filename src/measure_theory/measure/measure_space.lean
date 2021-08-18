@@ -1828,6 +1828,9 @@ section disjointed
 
 variable [measurable_space α]
 
+/-- Given `S : μ.finite_spanning_sets_in {s | measurable_set s}`,
+`disjointed_finite_spanning_sets_in` provides a `finite_spanning_sets_in {s | measurable_set s}`
+such that its underlying sets are pairwise disjoint. -/
 def disjointed_finite_spanning_sets_in (μ : measure α)
   (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
    μ.finite_spanning_sets_in {s | measurable_set s} :=
@@ -1848,7 +1851,7 @@ begin
   rw [← this, ← nat.surjective_unpair.Union_comp],
 end
 
-lemma exists_eq_finite_spanning_sets_in
+private lemma exists_eq_finite_spanning_sets_in
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   ∃ (S : μ.finite_spanning_sets_in {s | measurable_set s})
     (T : ν.finite_spanning_sets_in {s | measurable_set s}), S.set = T.set :=

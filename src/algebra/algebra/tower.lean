@@ -19,6 +19,7 @@ An important definition is `to_alg_hom R S A`, the canonical `R`-algebra homomor
 
 -/
 
+open_locale pointwise
 universes u v w u₁ v₁
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁) (M : Type v₁)

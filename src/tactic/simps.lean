@@ -391,7 +391,7 @@ This command specifies custom names and custom projections for the simp attribut
   `foo` and you want to apply the projections `snd`, `coe` (which is a prefix) and `fst`, in that
   order you can run `@[simps snd_coe_fst] def foo ...` and this will generate a lemma with the
   name `coe_foo_snd_fst`.
-  * Run `initialize_simps_projections?` (or set `trace.simps.verbose`)
+  * Run `initialize_simps_projections?` (or `set_option trace.simps.verbose true`)
   to see the generated projections.
 * You can declare a new name for a projection that is the composite of multiple projections, e.g.
   ```

@@ -130,7 +130,7 @@ def quaternion_basis : quaternion_algebra.basis (clifford_algebra (Q c₁ c₂))
 variables {c₁ c₂}
 
 /-- Intermediate result of `clifford_algebra_quaternion.equiv`: clifford algebras over
-`clifford_algebra_quaternion.Q`  can be converted to `ℍ[R,c₁,c₂]`. -/
+`clifford_algebra_quaternion.Q` can be converted to `ℍ[R,c₁,c₂]`. -/
 def to_quaternion : clifford_algebra (Q c₁ c₂) →ₐ[R] ℍ[R,c₁,c₂] :=
 clifford_algebra.lift (Q c₁ c₂) ⟨
   { to_fun := λ v, (⟨0, v.1, v.2, 0⟩ : ℍ[R,c₁,c₂]),

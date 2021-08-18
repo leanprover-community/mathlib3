@@ -57,7 +57,7 @@ linear algebra, vector space, module
 -/
 
 open function
-open_locale big_operators
+open_locale big_operators pointwise
 
 universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
@@ -672,13 +672,13 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 
 variables (R)
 
-lemma subsingleton_iff : subsingleton M ↔ subsingleton (submodule R M) :=
-add_submonoid.subsingleton_iff.trans $ begin
-  rw [←subsingleton_iff_bot_eq_top, ←subsingleton_iff_bot_eq_top],
-  convert to_add_submonoid_eq; refl
-end
+@[simp] lemma subsingleton_iff : subsingleton (submodule R M) ↔ subsingleton M :=
+have h : subsingleton (submodule R M) ↔ subsingleton (add_submonoid M),
+{ rw [←subsingleton_iff_bot_eq_top, ←subsingleton_iff_bot_eq_top],
+  convert to_add_submonoid_eq.symm; refl, },
+h.trans add_submonoid.subsingleton_iff
 
-lemma nontrivial_iff : nontrivial M ↔ nontrivial (submodule R M) :=
+@[simp] lemma nontrivial_iff : nontrivial (submodule R M) ↔ nontrivial M :=
 not_iff_not.mp (
   (not_nontrivial_iff_subsingleton.trans $ subsingleton_iff R).trans
   not_nontrivial_iff_subsingleton.symm)
@@ -686,12 +686,12 @@ not_iff_not.mp (
 variables {R}
 
 instance [subsingleton M] : unique (submodule R M) :=
-⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mp ‹_›) a _⟩
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mpr ‹_›) a _⟩
 
 instance unique' [subsingleton R] : unique (submodule R M) :=
 by haveI := module.subsingleton R M; apply_instance
 
-instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
+instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mpr ‹_›
 
 theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=

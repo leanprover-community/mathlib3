@@ -66,7 +66,7 @@ begin
   apply is_coprime_of_dvd,
   { unfreezingI { rintro ⟨rfl, rfl⟩ }, simpa using h },
   { unfreezingI { rintro z nu nz ⟨w, rfl⟩ dy },
-    refine h' (dvd.trans _ dy),
+    refine h' (dvd_trans _ dy),
     simpa using mul_dvd_mul_left z (is_unit_iff_dvd_one.1 $
       (of_irreducible_mul h).resolve_left nu) }
 end

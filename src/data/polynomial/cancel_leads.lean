@@ -37,7 +37,7 @@ variables {p q}
 
 lemma dvd_cancel_leads_of_dvd_of_dvd {r : polynomial R} (pq : p ∣ q) (pr : p ∣ r) :
   p ∣ q.cancel_leads r :=
-dvd_sub (dvd.trans pr (dvd.intro_left _ rfl)) (dvd.trans pq (dvd.intro_left _ rfl))
+dvd_sub (pr.trans (dvd.intro_left _ rfl)) (pq.trans (dvd.intro_left _ rfl))
 
 end comm_ring
 

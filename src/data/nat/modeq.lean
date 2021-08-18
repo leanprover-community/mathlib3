@@ -69,7 +69,7 @@ theorem mod_modeq (a n) : a % n ≡ a [MOD n] := mod_mod _ _
 namespace modeq
 
 protected theorem modeq_of_dvd (d : m ∣ n) (h : a ≡ b [MOD n]) : a ≡ b [MOD m] :=
-modeq_of_dvd (dvd_trans (int.coe_nat_dvd.2 d) h.dvd)
+modeq_of_dvd ((int.coe_nat_dvd.2 d).trans h.dvd)
 
 protected theorem mul_left' (c : ℕ) (h : a ≡ b [MOD n]) : c * a ≡ c * b [MOD (c * n)] :=
 by unfold modeq at *; rw [mul_mod_mul_left, mul_mod_mul_left, h]
@@ -125,7 +125,7 @@ protected theorem add_right_cancel' (c : ℕ) (h : a + c ≡ b + c [MOD n]) : a 
 modeq.rfl.add_right_cancel h
 
 theorem of_modeq_mul_left (m : ℕ) (h : a ≡ b [MOD m * n]) : a ≡ b [MOD n] :=
-by { rw [modeq_iff_dvd] at *, exact dvd.trans (dvd_mul_left (n : ℤ) (m : ℤ)) h }
+by { rw [modeq_iff_dvd] at *, exact (dvd_mul_left (n : ℤ) (m : ℤ)).trans h }
 
 theorem of_modeq_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] :=
 mul_comm m n ▸ of_modeq_mul_left _

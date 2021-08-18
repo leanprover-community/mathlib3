@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ruben Van de Velde
 -/
 
+import algebra.algebra.restrict_scalars
 import data.complex.is_R_or_C
 
 /-!

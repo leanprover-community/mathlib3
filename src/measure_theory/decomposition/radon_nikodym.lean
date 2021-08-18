@@ -13,11 +13,10 @@ namespace measure
 continuous with respect to `μ`, then there exists a measurable function `f` such that
 `f` is the derivative of `ν` with respect to `μ`. -/
 theorem with_density_radon_nikodym_deriv_eq_of_finite
-  (μ ν : measure α) [finite_measure μ] [finite_measure ν] (h : μ ≪ ν) :
+  (μ ν : measure α) (hl : have_lebesgue_decomposition μ ν) (h : μ ≪ ν) :
   ν.with_density (radon_nikodym_deriv μ ν) = μ :=
 begin
-  obtain ⟨hf₁, ⟨E, hE₁, hE₂, hE₃⟩, hadd⟩:=
-    have_lebesgue_decomposition_spec (have_lebesgue_decomposition_of_finite_measure μ ν),
+  obtain ⟨hf₁, ⟨E, hE₁, hE₂, hE₃⟩, hadd⟩:= have_lebesgue_decomposition_spec hl,
   have : singular_part μ ν = 0,
   { apply le_antisymm,
     { intros A hA,
@@ -89,13 +88,6 @@ begin
   refine ⟨disjointed_finite_spanning_sets_in S, disjointed_finite_spanning_sets_in T, _, _⟩,
   { simp [disjointed_finite_spanning_sets_in, hST] },
   { exact disjoint_disjointed_finite_spanning_sets_in _ }
-end
-
-theorem exists_with_density_of_absolute_continuous'
-  (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] (h : ν ≪ μ) :
-  ∃ (f : α → ℝ≥0∞) (hf : measurable f), ν = μ.with_density f :=
-begin
-  sorry
 end
 
 end sigma_finite

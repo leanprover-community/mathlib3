@@ -94,19 +94,16 @@ begin
 end
 
 /-- If there exists a two-sided inverse `M'` for `M` (indexed differently),
-then `det (Mᵀ ⬝ N ⬝ M) = det (M ⬝ Mᵀ) * det N`.
-Compare `matrix.det_conj`, where we use `M'` instead of `Mᵀ`.
--/
-lemma det_transpose_conj [decidable_eq m] [decidable_eq n]
-  {N : matrix n n A} {M : matrix n m A} {M' : matrix m n A}
+then `det (N ⬝ M) = det (M ⬝ N)`. -/
+lemma det_comm [decidable_eq m] [decidable_eq n]
+  {M : matrix n m A} {N : matrix m n A} {M' : matrix m n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
-  det (Mᵀ ⬝ N ⬝ M) = det (M ⬝ Mᵀ) * det N :=
+  det (M ⬝ N) = det (N ⬝ M) :=
 begin
-  rw ← det_conj hMM' hM'M,
-  calc (M ⬝ (Mᵀ ⬝ N ⬝ M) ⬝ M').det
-      = ((M ⬝ Mᵀ) ⬝ (N ⬝ (M ⬝ M'))).det : by simp only [matrix.mul_assoc]
-  ... = ((M ⬝ Mᵀ) ⬝ N).det : by rw [hMM', matrix.mul_one]
-  ... = det (M ⬝ Mᵀ) * det N : det_mul _ _
+  rw ← det_conj hM'M hMM',
+  calc det (M' ⬝ (M ⬝ N) ⬝ M)
+      = det ((M' ⬝ M) ⬝ (N ⬝ M)) : by simp only [matrix.mul_assoc]
+  ... = det (N ⬝ M) : by rw [hM'M, matrix.one_mul]
 end
 
 end matrix

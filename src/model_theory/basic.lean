@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.nat.basic
-import data.set_like
+import data.set_like.basic
 import data.set.lattice
 import order.closure
 
@@ -37,13 +37,14 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
+universe variables u v
 
 namespace first_order
 
 /-- A first-order language consists of a type of functions of every natural-number arity and a
   type of relations of every natural-number arity. -/
 structure language :=
-(functions : ℕ → Type*) (relations : ℕ → Type*)
+(functions : ℕ → Type u) (relations : ℕ → Type v)
 
 namespace language
 

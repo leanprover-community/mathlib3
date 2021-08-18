@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
@@ -1831,7 +1832,7 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 Amelia Livingston, Yury Kudryashov
 -/
 import data.set.lattice
-import data.set_like
+import data.set_like.basic
 
 /-!
 # Submonoids: definition and `complete_lattice` structure

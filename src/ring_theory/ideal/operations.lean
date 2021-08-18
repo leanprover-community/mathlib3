@@ -321,6 +321,45 @@ begin
   simp only [pow_succ, ih, span_singleton_mul_span_singleton],
 end
 
+lemma mem_mul_span_singleton {x y : R} {I : ideal R} :
+  x ∈ I * span {y} ↔ ∃ z ∈ I, z * y = x :=
+submodule.mem_smul_span_singleton
+
+lemma mem_span_singleton_mul {x y : R} {I : ideal R} :
+  x ∈ span {y} * I ↔ ∃ z ∈ I, y * z = x :=
+by simp only [mul_comm, mem_mul_span_singleton]
+
+lemma le_span_singleton_mul_iff {x : R} {I J : ideal R} :
+  I ≤ span {x} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI :=
+show (∀ {zI} (hzI : zI ∈ I), zI ∈ span {x} * J) ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI,
+by simp only [mem_span_singleton_mul]
+
+lemma span_singleton_mul_le_iff {x : R} {I J : ideal R} :
+  span {x} * I ≤ J ↔ ∀ z ∈ I, x * z ∈ J :=
+begin
+  simp only [mul_le, mem_span_singleton_mul, mem_span_singleton],
+  split,
+  { intros h zI hzI,
+    exact h x (dvd_refl x) zI hzI },
+  { rintros h _ ⟨z, rfl⟩ zI hzI,
+    rw [mul_comm x z, mul_assoc],
+    exact J.mul_mem_left _ (h zI hzI) },
+end
+
+lemma span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :
+  span {x} * I ≤ span {y} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ :=
+by simp only [span_singleton_mul_le_iff, mem_span_singleton_mul, eq_comm]
+
+lemma eq_span_singleton_mul {x : R} (I J : ideal R) :
+  I = span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=
+by simp only [le_antisymm_iff, le_span_singleton_mul_iff, span_singleton_mul_le_iff]
+
+lemma span_singleton_mul_eq_span_singleton_mul {x y : R} (I J : ideal R) :
+  span {x} * I = span {y} * J ↔
+    ((∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ) ∧
+     (∀ zJ ∈ J, ∃ zI ∈ I, x * zI = y * zJ)) :=
+by simp only [le_antisymm_iff, span_singleton_mul_le_span_singleton_mul, eq_comm]
+
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
 
@@ -709,6 +748,27 @@ begin
           subset_union_prime' hp', ← or_assoc, or_self, bex_def] at h,
       rwa finset.exists_mem_insert } }
 end
+
+section dvd
+
+/-- If `I` divides `J`, then `I` contains `J`.
+
+In a Dedekind domain, to divide and contain are equivalent, see `ideal.dvd_iff_le`.
+-/
+lemma le_of_dvd {I J : ideal R} : I ∣ J → J ≤ I
+| ⟨K, h⟩ := h.symm ▸ le_trans mul_le_inf inf_le_left
+
+lemma is_unit_iff {I : ideal R} :
+  is_unit I ↔ I = ⊤ :=
+is_unit_iff_dvd_one.trans ((@one_eq_top R _).symm ▸
+ ⟨λ h, eq_top_iff.mpr (ideal.le_of_dvd h), λ h, ⟨⊤, by rw [mul_top, h]⟩⟩)
+
+instance unique_units : unique (units (ideal R)) :=
+{ default := 1,
+  uniq := λ u, units.ext
+    (show (u : ideal R) = 1, by rw [is_unit_iff.mp u.is_unit, one_eq_top]) }
+
+end dvd
 
 end mul_and_radical
 

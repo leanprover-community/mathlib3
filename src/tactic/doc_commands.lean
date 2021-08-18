@@ -68,7 +68,8 @@ do fr ← parser.ident,
 output. -/
 @[user_attribute] meta def library_note_attr : user_attribute :=
 { name := `library_note,
-  descr := "Notes about library features to be included in documentation" }
+  descr := "Notes about library features to be included in documentation",
+  parser := failed }
 
 /--
 `mk_reflected_definition name val` constructs a definition declaration by reflection.
@@ -176,7 +177,8 @@ end
 for use in doc output -/
 @[user_attribute] meta def tactic_doc_entry_attr : user_attribute :=
 { name := `tactic_doc,
-  descr := "Information about a tactic to be included in documentation" }
+  descr := "Information about a tactic to be included in documentation",
+  parser := failed }
 
 /-- Collects everything in the environment tagged with the attribute `tactic_doc`. -/
 meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=

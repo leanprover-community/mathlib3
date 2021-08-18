@@ -1119,21 +1119,20 @@ by rw [← f.integral_eq_integral hfi, simple_func.integral]
 
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
-  by_cases hμ : μ univ < ∞,
+  cases (@le_top _ _ (μ univ)).lt_or_eq with hμ hμ,
   { haveI : finite_measure μ := ⟨hμ⟩,
     calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
       ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm
     ... = _ : _,
     rw [simple_func.integral],
-    by_cases ha : nonempty α,
-    { resetI, simp [preimage_const_of_mem] },
-    { simp [μ.eq_zero_of_not_nonempty ha] } },
+    casesI is_empty_or_nonempty α,
+    { simp [μ.eq_zero_of_is_empty] },
+    { simp [preimage_const_of_mem] } },
   { by_cases hc : c = 0,
     { simp [hc, integral_zero] },
     { have : ¬integrable (λ x : α, c) μ,
       { simp only [integrable_const_iff, not_or_distrib],
-        exact ⟨hc, hμ⟩ },
-      simp only [not_lt, top_le_iff] at hμ,
+        exact ⟨hc, hμ.not_lt⟩ },
       simp [integral_undef, *] } }
 end
 

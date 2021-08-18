@@ -51,6 +51,11 @@ because `le` is used almost exclusively in mathlib.
 protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
 
 lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
+
+lemma not_lt [partial_order α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
+
+lemma not_gt [partial_order α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
+
 end eq
 
 namespace has_le.le

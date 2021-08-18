@@ -31,7 +31,7 @@ variables [algebra R K] [is_fraction_ring R K]
 variables [algebra K L] [finite_dimensional K L]
 variables [algebra R L] [is_scalar_tower R K L]
 
-local notation R`⁰`:9000 := non_zero_divisors R
+open_locale non_zero_divisors
 
 open is_localization is_fraction_ring fractional_ideal units
 

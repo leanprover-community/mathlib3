@@ -23,7 +23,7 @@ Gauss's Lemma is one of a few results pertaining to irreducibility of primitive 
 
 -/
 
-local notation R`⁰`:9000 := non_zero_divisors R
+open_locale non_zero_divisors
 
 variables {R : Type*} [integral_domain R]
 

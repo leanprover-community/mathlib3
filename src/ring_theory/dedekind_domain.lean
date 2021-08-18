@@ -46,7 +46,7 @@ dedekind domain, dedekind ring
 
 variables (R A K : Type*) [comm_ring R] [integral_domain A] [field K]
 
-local notation R`⁰`:9000 := non_zero_divisors R
+open_locale non_zero_divisors
 
 /-- A ring `R` has Krull dimension at most one if all nonzero prime ideals are maximal. -/
 def ring.dimension_le_one : Prop :=

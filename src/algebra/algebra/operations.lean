@@ -30,6 +30,7 @@ multiplication of submodules, division of subodules, submodule semiring
 universes u v
 
 open algebra set
+open_locale pointwise
 
 namespace submodule
 

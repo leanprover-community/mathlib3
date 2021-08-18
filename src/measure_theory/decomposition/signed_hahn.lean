@@ -3,7 +3,7 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.vector_measure
+import measure_theory.measure.vector_measure
 import order.symm_diff
 
 /-!
@@ -19,9 +19,10 @@ the Jordan decomposition theorem, the Lebesgue decomposition theorem and the Rad
 
 ## Main results
 
-* `signed_measure.exists_disjoint_positive_negative_union_eq` : the Hahn decomposition theorem.
-* `signed_measure.exists_subset_restrict_nonpos` : A measurable set of negative measure contains
-  a negative subset.
+* `measure_theory.signed_measure.exists_is_compl_positive_negative` : the Hahn decomposition
+  theorem.
+* `measure_theory.signed_measure.exists_subset_restrict_nonpos` : A measurable set of negative
+  measure contains a negative subset.
 
 ## Notation
 
@@ -381,8 +382,8 @@ begin
   exact lt_irrefl _ ((neg_lt.1 hn).trans_le (hfalse n)),
 end
 
-/-- Alternative formulation of `exists_is_compl_positive_negative` (the Hahn decomposition
-theorem) using set complements. -/
+/-- Alternative formulation of `measure_theory.signed_measure.exists_is_compl_positive_negative`
+(the Hahn decomposition theorem) using set complements. -/
 lemma exists_compl_positive_negative (s : signed_measure α) :
   ∃ i : set α, measurable_set i ∧ 0 ≤[i] s ∧ s ≤[iᶜ] 0 :=
 begin

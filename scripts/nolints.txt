@@ -488,9 +488,7 @@ apply_nolint holor_index.take doc_blame
 apply_nolint cycle.decidable_nontrivial_coe check_reducibility
 
 -- data/list/defs.lean
-apply_nolint list.permutations_aux doc_blame
 apply_nolint list.permutations_aux.rec doc_blame
-apply_nolint list.permutations_aux2 doc_blame
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
 apply_nolint list.sublists_aux₁ doc_blame
@@ -684,6 +682,7 @@ apply_nolint setoid.mk_classes check_reducibility
 apply_nolint setoid.setoid_of_disjoint_union check_reducibility
 
 -- data/vector2.lean
+-- data/vector/basic.lean
 apply_nolint vector.insert_nth doc_blame
 apply_nolint vector.m_of_fn doc_blame
 apply_nolint vector.mmap doc_blame
@@ -691,6 +690,12 @@ apply_nolint vector.reverse doc_blame
 apply_nolint vector.to_array doc_blame
 apply_nolint vector.traverse doc_blame
 apply_nolint vector.traverse_def unused_arguments
+
+-- data/vector3.lean
+apply_nolint vector3 has_inhabited_instance
+apply_nolint vector3.cons_elim doc_blame
+apply_nolint vector3.nil_elim doc_blame
+apply_nolint vector3.rec_on doc_blame
 
 -- deprecated/subfield.lean
 apply_nolint is_subfield doc_blame
@@ -847,10 +852,6 @@ apply_nolint tactic.mono doc_blame
 
 -- number_theory/dioph.lean
 apply_nolint poly has_inhabited_instance
-apply_nolint vector3 has_inhabited_instance
-apply_nolint vector3.cons_elim doc_blame
-apply_nolint vector3.nil_elim doc_blame
-apply_nolint vector3.rec_on doc_blame
 
 -- number_theory/pell.lean
 apply_nolint pell.az unused_arguments
@@ -1046,20 +1047,12 @@ apply_nolint pSet.type has_inhabited_instance
 apply_nolint random_fin_of_pos check_reducibility
 
 -- tactic/abel.lean
-apply_nolint tactic.abel.add_g doc_blame
-apply_nolint tactic.abel.cache doc_blame
-apply_nolint tactic.abel.cache.app doc_blame
-apply_nolint tactic.abel.cache.iapp doc_blame
-apply_nolint tactic.abel.cache.int_to_expr doc_blame
-apply_nolint tactic.abel.cache.mk_app doc_blame
-apply_nolint tactic.abel.cache.mk_term doc_blame
 apply_nolint tactic.abel.eval doc_blame
 apply_nolint tactic.abel.eval' doc_blame
 apply_nolint tactic.abel.eval_add doc_blame
 apply_nolint tactic.abel.eval_atom doc_blame
 apply_nolint tactic.abel.eval_neg doc_blame
 apply_nolint tactic.abel.eval_smul doc_blame
-apply_nolint tactic.abel.mk_cache doc_blame
 apply_nolint tactic.abel.normal_expr doc_blame
 apply_nolint tactic.abel.normal_expr.e doc_blame
 apply_nolint tactic.abel.normal_expr.pp doc_blame
@@ -1525,7 +1518,6 @@ apply_nolint tactic.tautology doc_blame
 
 -- tactic/tfae.lean
 apply_nolint tactic.interactive.parse_list doc_blame
-apply_nolint tactic.interactive.tfae_have unused_arguments
 apply_nolint tactic.tfae.arrow doc_blame
 apply_nolint tactic.tfae.mk_implication doc_blame
 apply_nolint tactic.tfae.mk_name doc_blame

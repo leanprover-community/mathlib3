@@ -31,7 +31,7 @@ In this file we prove various facts about membership in a submonoid:
 submonoid, submonoids
 -/
 
-open_locale big_operators
+open_locale big_operators pointwise
 
 variables {M : Type*}
 variables {A : Type*}
@@ -206,6 +206,8 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
 
+lemma mem_powers_iff (x z : M) : x ∈ powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
+
 lemma powers_eq_closure (n : M) : powers n = closure {n} :=
 by { ext, exact mem_closure_singleton.symm }
 
@@ -264,6 +266,8 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_multiples (x : A) : x ∈ multiples x := ⟨1, one_nsmul _⟩
 
+lemma mem_multiples_iff (x z : A) : x ∈ multiples z ↔ ∃ n : ℕ, n • z = x := iff.rfl
+
 lemma multiples_eq_closure (x : A) : multiples x = closure {x} :=
 by { ext, exact mem_closure_singleton.symm }
 
@@ -272,6 +276,7 @@ lemma multiples_subset {x : A} {P : add_submonoid A} (h : x ∈ P) : multiples x
 
 attribute [to_additive add_submonoid.multiples] submonoid.powers
 attribute [to_additive add_submonoid.mem_multiples] submonoid.mem_powers
+attribute [to_additive add_submonoid.mem_multiples_iff] submonoid.mem_powers_iff
 attribute [to_additive add_submonoid.multiples_eq_closure] submonoid.powers_eq_closure
 attribute [to_additive add_submonoid.multiples_subset] submonoid.powers_subset
 

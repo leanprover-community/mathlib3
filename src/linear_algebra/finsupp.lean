@@ -928,7 +928,7 @@ lemma splitting_of_finsupp_surjective_injective (f : M →ₗ[R] (α →₀ R)) 
 def splitting_of_fun_on_fintype_surjective [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   (α → R) →ₗ[R] M :=
 (finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)).comp
-  (@linear_equiv_fun_on_fintype R R α _ _ _ _).symm.to_linear_map
+  (linear_equiv_fun_on_fintype R R α).symm.to_linear_map
 
 lemma splitting_of_fun_on_fintype_surjective_splits
   [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :

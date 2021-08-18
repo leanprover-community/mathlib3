@@ -543,6 +543,19 @@ begin
   { exact hc₂ }
 end
 
+@[simp] lemma emb_domain_single (f : α ↪ β) (a : α) (m : M) :
+  emb_domain f (single a m) = single (f a) m :=
+begin
+  ext b,
+  by_cases h : b ∈ set.range f,
+  { rcases h with ⟨a', rfl⟩,
+    simp [single_apply], },
+  { simp only [emb_domain_notin_range, h, single_apply, not_false_iff],
+    rw if_neg,
+    rintro rfl,
+    simpa using h, },
+end
+
 end emb_domain
 
 /-! ### Declarations about `zip_with` -/
@@ -861,6 +874,23 @@ lemma map_range_add [add_zero_class N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
+
+/-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
+@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ (β →₀ M) :=
+{ to_fun := λ v, emb_domain f v,
+  map_zero' := by simp,
+  map_add' := λ v w,
+  begin
+    ext b,
+    by_cases h : b ∈ set.range f,
+    { rcases h with ⟨a, rfl⟩,
+      simp, },
+    { simp [emb_domain_notin_range, h], },
+  end, }
+
+@[simp] lemma emb_domain_add (f : α ↪ β) (v w : α →₀ M) :
+  emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
+(emb_domain.add_monoid_hom f).map_add v w
 
 end add_zero_class
 
@@ -1538,6 +1568,52 @@ begin
 end
 
 end comap_domain
+
+section option
+
+/-- Restrict a finitely supported function on `option α` to a finitely supported function on `α`. -/
+def some [has_zero M] (f : option α →₀ M) : α →₀ M :=
+f.comap_domain option.some (λ _, by simp)
+
+@[simp] lemma some_apply [has_zero M] (f : option α →₀ M) (a : α) :
+  f.some a = f (option.some a) := rfl
+
+@[simp] lemma some_zero [has_zero M] : (0 : option α →₀ M).some = 0 :=
+by { ext, simp, }
+
+@[simp] lemma some_add [add_comm_monoid M] (f g : option α →₀ M) : (f + g).some = f.some + g.some :=
+by { ext, simp, }
+
+@[simp] lemma some_single_none [has_zero M] (m : M) : (single none m : option α →₀ M).some = 0 :=
+by { ext, simp, }
+
+@[simp] lemma some_single_some [has_zero M] (a : α) (m : M) :
+  (single (option.some a) m : option α →₀ M).some = single a m :=
+by { ext b, simp [single_apply], }
+
+@[to_additive]
+lemma prod_option_index [add_comm_monoid M] [comm_monoid N]
+  (f : option α →₀ M) (b : option α → M → N) (h_zero : ∀ o, b o 0 = 1)
+  (h_add : ∀ o m₁ m₂, b o (m₁ + m₂) = b o m₁ * b o m₂) :
+  f.prod b = b none (f none) * f.some.prod (λ a, b (option.some a)) :=
+begin
+  apply induction_linear f,
+  { simp [h_zero], },
+  { intros f₁ f₂ h₁ h₂,
+    rw [finsupp.prod_add_index, h₁, h₂, some_add, finsupp.prod_add_index],
+    simp only [h_add, pi.add_apply, finsupp.coe_add],
+    rw mul_mul_mul_comm,
+    all_goals { simp [h_zero, h_add], }, },
+  { rintros (_|a) m; simp [h_zero, h_add], }
+end
+
+lemma sum_option_index_smul [semiring R] [add_comm_monoid M] [module R M]
+  (f : option α →₀ R) (b : option α → M) :
+  f.sum (λ o r, r • b o) =
+    f none • b none + f.some.sum (λ a r, r • b (option.some a)) :=
+f.sum_option_index _ (λ _, zero_smul _ _) (λ _ _ _, add_smul _ _ _)
+
+end option
 
 /-! ### Declarations about `equiv_congr_left` -/
 

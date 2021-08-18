@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
@@ -1180,10 +1181,7 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 
 /-- A seminormed ring is a topological ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α :=
-⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
-    have ∀ e : α, -e - -x = -(e - x), by intro; simp,
-    by simp only [this, norm_neg]; apply tendsto_norm_sub_self ⟩
+instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
@@ -1831,7 +1829,7 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin

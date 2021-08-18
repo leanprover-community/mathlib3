@@ -35,7 +35,7 @@ import ring_theory.power_series.basic
 -/
 
 open finset
-open_locale big_operators classical
+open_locale big_operators classical pointwise
 noncomputable theory
 
 /-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of

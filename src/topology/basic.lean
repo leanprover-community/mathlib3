@@ -429,6 +429,17 @@ hs.nonempty_iff.2 h
 lemma dense.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
 λ x, closure_mono h (hd x)
 
+/-- Complement to a singleton is dense if and only if the singleton is not an open set. -/
+lemma dense_compl_singleton {x : α} : dense ({x}ᶜ : set α) ↔ ¬is_open ({x} : set α) :=
+begin
+  fsplit,
+  { intros hd ho,
+    exact (hd.inter_open_nonempty _ ho (singleton_nonempty _)).ne_empty (inter_compl_self _) },
+  { refine λ ho, dense_iff_inter_open.2 (λ U hU hne, inter_compl_nonempty_iff.2 $ λ hUx, _),
+    obtain rfl : U = {x}, from eq_singleton_iff_nonempty_unique_mem.2 ⟨hne, hUx⟩,
+    exact ho hU }
+end
+
 /-!
 ### Frontier of a set
 -/
@@ -664,7 +675,7 @@ theorem all_mem_nhds (x : α) (P : set α → Prop) (hP : ∀ s t, s ⊆ t → P
 theorem all_mem_nhds_filter (x : α) (f : set α → set β) (hf : ∀ s t, s ⊆ t → f s ⊆ f t)
     (l : filter β) :
   (∀ s ∈ 𝓝 x, f s ∈ l) ↔ (∀ s, is_open s → x ∈ s → f s ∈ l) :=
-all_mem_nhds _ _ (λ s t ssubt h, mem_sets_of_superset h (hf s t ssubt))
+all_mem_nhds _ _ (λ s t ssubt h, mem_of_superset h (hf s t ssubt))
 
 theorem rtendsto_nhds {r : rel β α} {l : filter β} {a : α} :
   rtendsto r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.core s ∈ l) :=
@@ -687,7 +698,7 @@ theorem tendsto_nhds {f : β → α} {l : filter β} {a : α} :
 all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
 
 lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (𝓝 a) :=
-tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
+tendsto_nhds.mpr $ assume s hs ha, univ_mem' $ assume _, ha
 
 lemma tendsto_at_top_of_eventually_const {ι : Type*} [semilattice_sup ι] [nonempty ι]
   {x : α} {u : ι → α} {i₀ : ι} (h : ∀ i ≥ i₀, u i = x) : tendsto u at_top (𝓝 x) :=
@@ -698,7 +709,7 @@ lemma tendsto_at_bot_of_eventually_const {ι : Type*} [semilattice_inf ι] [none
 tendsto.congr' (eventually_eq.symm (eventually_at_bot.mpr ⟨i₀, h⟩)) tendsto_const_nhds
 
 lemma pure_le_nhds : pure ≤ (𝓝 : α → filter α) :=
-assume a s hs, mem_pure_sets.2 $ mem_of_mem_nhds hs
+assume a s hs, mem_pure.2 $ mem_of_mem_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
@@ -805,7 +816,7 @@ by rw [interior_eq_nhds', mem_set_of_eq]
 
 @[simp] lemma interior_mem_nhds {s : set α} {a : α} :
   interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=
-⟨λ h, mem_sets_of_superset h interior_subset,
+⟨λ h, mem_of_superset h interior_subset,
   λ h, is_open.mem_nhds is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
 
 lemma interior_set_of_eq {p : α → Prop} :
@@ -901,6 +912,11 @@ end
 
 lemma closure_inter_open' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
 by simpa only [inter_comm] using closure_inter_open h
+
+lemma dense.open_subset_closure_inter {s t : set α} (hs : dense s) (ht : is_open t) :
+  t ⊆ closure (t ∩ s) :=
+calc t = t ∩ closure s   : by rw [hs.closure_eq, inter_univ]
+   ... ⊆ closure (t ∩ s) : closure_inter_open ht
 
 lemma mem_closure_of_mem_closure_union {s₁ s₂ : set α} {x : α} (h : x ∈ closure (s₁ ∪ s₂))
   (h₁ : s₁ᶜ ∈ 𝓝 x) : x ∈ closure s₂ :=
@@ -1028,7 +1044,7 @@ lemma locally_finite.point_finite {f : β → set α} (hf : locally_finite f) (x
 let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_mem_nhds hxt⟩
 
 lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
-assume x, ⟨univ, univ_mem_sets, finite.of_fintype _⟩
+assume x, ⟨univ, univ_mem, finite.of_fintype _⟩
 
 lemma locally_finite.subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
@@ -1058,7 +1074,7 @@ begin
   replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, (h₂ i).is_open_compl.mem_nhds (ha i),
   rcases h₁ a with ⟨t, h_nhds, h_fin⟩,
   have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
-    from inter_mem_sets h_nhds ((bInter_mem_sets h_fin).2 (λ i _, ha i)),
+    from inter_mem h_nhds ((bInter_mem h_fin).2 (λ i _, ha i)),
   filter_upwards [this],
   simp only [mem_inter_eq, mem_Inter],
   rintros b ⟨hbt, hn⟩ i hfb,
@@ -1249,10 +1265,10 @@ begin
   intros hf s os,
   rw is_open_iff_nhds,
   rintros x ⟨y, ys, fxy⟩ t,
-  rw [mem_principal_sets],
+  rw [mem_principal],
   assume h : f.preimage s ⊆ t,
   change t ∈ 𝓝 x,
-  apply mem_sets_of_superset _ h,
+  apply mem_of_superset _ h,
   have h' : ∀ s ∈ 𝓝 y, f.preimage s ∈ 𝓝 x,
   { intros s hs,
      have : ptendsto' f (𝓝 x) (𝓝 y) := hf fxy,
@@ -1314,6 +1330,12 @@ lemma dense_range.dense_image {f : α → β} (hf' : dense_range f) (hf : contin
   {s : set α} (hs : dense s) :
   dense (f '' s)  :=
 (hf'.mono $ hf.range_subset_closure_image_dense hs).of_closure
+
+/-- If `f` has dense range and `s` is an open set in the codomain of `f`, then the image of the
+preimage of `s` under `f` is dense in `s`. -/
+lemma dense_range.subset_closure_image_preimage_of_is_open (hf : dense_range f) {s : set β}
+  (hs : is_open s) : s ⊆ closure (f '' (f ⁻¹' s)) :=
+by { rw image_preimage_eq_inter_range, exact hf.open_subset_closure_inter hs }
 
 /-- If a continuous map with dense range maps a dense set to a subset of `t`, then `t` is a dense
 set. -/

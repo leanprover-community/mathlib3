@@ -23,7 +23,8 @@ of topological (semi)rings.
 
 - `subring.topological_closure`/`subsemiring.topological_closure`: the topological closure of a
   `subring`/`subsemiring` is itself a `sub(semi)ring`.
-- `prod_ring`/`prod_semiring`: The product of two topological (semi)rings.
+- `prod.topological_semiring`/`prod.topological_ring`: The product of two topological (semi)rings.
+- `pi.topological_semiring`/`pi.topological_ring`: The arbitrary product of topological (semi)rings.
 - `ideal.closure`: The closure of an ideal is an ideal.
 - `topological_ring_quotient`: The quotient of a topological ring by an ideal is a topological ring.
 
@@ -73,16 +74,19 @@ closure_minimal h ht
 
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
-instance prod_semiring {β : Type*}
+instance {β : Type*}
   [semiring β] [topological_space β] [topological_semiring β] : topological_semiring (α × β) :=
+{}
+
+instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
+  [Π b, semiring (C b)] [Π b, topological_semiring (C b)] : topological_semiring (Π b, C b) :=
 {}
 
 end
 
 /-- A topological ring is a ring where the ring operations are continuous. -/
 class topological_ring [topological_space α] [ring α]
-  extends has_continuous_add α, has_continuous_mul α : Prop :=
-(continuous_neg : continuous (λa:α, -a))
+  extends topological_add_group α, has_continuous_mul α : Prop
 
 variables {α} [ring α] [topological_space α]
 
@@ -90,17 +94,18 @@ section
 variables [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
-
-@[priority 100] -- see Note [lower instance priority]
-instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
 end
 
 variables [topological_ring α]
 
 /-- The product topology on the cartesian product of two topological rings
   makes the product into a topological ring. -/
-instance prod_ring {β : Type*}
+instance {β : Type*}
   [ring β] [topological_space β] [topological_ring β] : topological_ring (α × β) :=
+{ }
+
+instance {β : Type*} {C : β → Type*} [Π b, topological_space (C b)]
+  [Π b, ring (C b)] [∀ b, topological_ring (C b)] : topological_ring (Π b, C b) :=
 { continuous_neg := continuous_neg }
 
 /-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/
@@ -115,8 +120,8 @@ continuous_id.mul continuous_const
 itself a subring. -/
 def subring.topological_closure (S : subring α) : subring α :=
 { carrier := closure (S : set α),
-  ..(S.to_submonoid.topological_closure),
-  ..(S.to_add_subgroup.topological_closure) }
+  ..S.to_submonoid.topological_closure,
+  ..S.to_add_subgroup.topological_closure }
 
 instance subring.topological_closure_topological_ring (s : subring α) :
   topological_ring (s.topological_closure) :=

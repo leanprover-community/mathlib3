@@ -3,7 +3,7 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-
+import algebra.algebra.restrict_scalars
 import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
@@ -27,6 +27,7 @@ of `A`, then `{bi cj | i ∈ I, j ∈ J}` is an `R`-basis of `A`. This statement
 base rings to be a field, so we also generalize the lemma to rings in this file.
 -/
 
+open_locale pointwise
 universes u v w u₁
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)

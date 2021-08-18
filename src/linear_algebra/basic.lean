@@ -2836,6 +2836,7 @@ end
 end linear_map
 
 namespace linear_equiv
+open linear_map
 
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/

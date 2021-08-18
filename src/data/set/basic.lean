@@ -1574,7 +1574,7 @@ by { rcases hs.eq_empty_or_singleton with rfl|⟨x, rfl⟩, exacts [he, h₁ _] 
 lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 λ x hx y hy, subsingleton.elim x y
 
-lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : subsingleton s :=
+lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
 subsingleton.mono subsingleton_univ (subset_univ s)
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`

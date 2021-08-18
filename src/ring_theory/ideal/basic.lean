@@ -590,6 +590,9 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 @[simp] lemma lift_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
   lift S f H (mk S a) = f a := rfl
 
+def lift_mk_of_le (S T : ideal α) (H : S ≤ T) : S.quotient →+* T.quotient :=
+  ideal.quotient.lift S (T^.quotient.mk) (λ x hx, eq_zero_iff_mem.2 (H hx))
+
 end quotient
 
 /-- Quotienting by equal ideals gives equivalent rings.

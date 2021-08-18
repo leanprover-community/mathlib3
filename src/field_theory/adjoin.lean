@@ -480,7 +480,7 @@ end
 
 section power_basis
 
-variables {L : Type*} [field K] [field L] [algebra K L]
+variables {L : Type*} [field L] [algebra K L]
 
 /-- The elements `1, x, ..., x ^ (d - 1)` form a basis for `K⟮x⟯`,
 where `d` is the degree of the minimal polynomial of `x`. -/
@@ -501,9 +501,6 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
     by rw [power_basis_aux, basis.map_apply, power_basis.basis_eq_pow,
            alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow, adjoin_root.power_basis_gen,
            adjoin_root_equiv_adjoin_apply_root] }
-
-@[simp] lemma adjoin.power_basis.gen_eq {x : L} (hx : is_integral K x) :
-  (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
 
 lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
 power_basis.finite_dimensional (adjoin.power_basis hx)
@@ -763,10 +760,6 @@ section power_basis
 
 variables {K L : Type*} [field K] [field L] [algebra K L]
 
-namespace intermediate_field
-
-end intermediate_field
-
 namespace power_basis
 
 open intermediate_field
@@ -777,7 +770,7 @@ noncomputable def equiv_adjoin_simple (pb : power_basis K L) :
 (adjoin.power_basis pb.is_integral_gen).equiv pb
   (minpoly.eq_of_algebra_map_eq (algebra_map K⟮pb.gen⟯ L).injective
     (adjoin.power_basis pb.is_integral_gen).is_integral_gen
-    (by rw [adjoin.power_basis.gen_eq, adjoin_simple.algebra_map_gen]))
+    (by rw [adjoin.power_basis_gen, adjoin_simple.algebra_map_gen]))
 
 @[simp]
 lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : polynomial K) :
@@ -792,12 +785,12 @@ equiv_gen _ pb _
 @[simp]
 lemma equiv_adjoin_simple_symm_aeval (pb : power_basis K L) (f : polynomial K) :
   pb.equiv_adjoin_simple.symm (aeval pb.gen f) = aeval (adjoin_simple.gen K pb.gen) f :=
-by rw [equiv_adjoin_simple, equiv_symm, equiv_aeval, adjoin.power_basis.gen_eq]
+by rw [equiv_adjoin_simple, equiv_symm, equiv_aeval, adjoin.power_basis_gen]
 
 @[simp]
 lemma equiv_adjoin_simple_symm_gen (pb : power_basis K L) :
   pb.equiv_adjoin_simple.symm pb.gen = (adjoin_simple.gen K pb.gen) :=
-by rw [equiv_adjoin_simple, equiv_symm, equiv_gen, adjoin.power_basis.gen_eq]
+by rw [equiv_adjoin_simple, equiv_symm, equiv_gen, adjoin.power_basis_gen]
 
 end power_basis
 

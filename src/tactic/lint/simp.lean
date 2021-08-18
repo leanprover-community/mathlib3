@@ -17,9 +17,11 @@ This files defines several linters that prevent common mistakes when declaring s
 
 open tactic expr
 
-/-- `simp_lhs_rhs ty` returns the left-hand and right-hand side of a simp lemma with type `ty`. -/
-private meta def simp_lhs_rhs : expr → tactic (expr × expr) | ty := do
-ty ← head_beta ty,
+/-- `simp_lhs_rhs reduce_tac ty` returns the left-hand and right-hand side of a simp lemma with
+  type `ty`. `reduce_tac` is the tactic that is used to reduce the type. -/
+private meta def simp_lhs_rhs_aux (reduce_tac : expr → tactic expr) :
+  expr → tactic (expr × expr) | ty := do
+ty ← reduce_tac ty,
 -- We only detect a fixed set of simp relations here.
 -- This is somewhat justified since for a custom simp relation R,
 -- the simp lemma `R a b` is implicitly converted to `R a b ↔ true` as well.
@@ -29,13 +31,16 @@ match ty with
 | `(%%lhs ↔ %%rhs) := pure (lhs, rhs)
 | (expr.pi n bi a b) := do
   l ← mk_local' n bi a,
-  simp_lhs_rhs (b.instantiate_var l)
+  simp_lhs_rhs_aux (b.instantiate_var l)
 | ty := pure (ty, `(true))
 end
 
+private meta def simp_lhs_rhs : expr → tactic (expr × expr) :=
+simp_lhs_rhs_aux head_beta
+
 /-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`. -/
 private meta def simp_lhs (ty : expr): tactic expr :=
-prod.fst <$> simp_lhs_rhs ty
+prod.fst <$> simp_lhs_rhs_aux (λ e, whnf e reducible) ty
 
 /--
 `simp_is_conditional_core ty` returns `none` if `ty` is a conditional simp

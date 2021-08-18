@@ -3,6 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import category_theory.adjunction.opposites
 import category_theory.punit
 import category_theory.structured_arrow
 import category_theory.is_connected
@@ -90,6 +91,26 @@ instance final_op_of_initial (F : C ⥤ D) [initial F] : final F.op :=
 
 instance initial_op_of_final (F : C ⥤ D) [final F] : initial F.op :=
 { out := λ d, is_connected_of_equivalent (structured_arrow_op_equivalence F (unop d)) }
+
+/-- If a functor `R : D ⥤ C` is a right adjoint, it is final. -/
+lemma final_of_right_adjoint {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) : final R :=
+{ out := λ c,
+  let u : structured_arrow c R := structured_arrow.mk (adj.unit.app c) in
+  @zigzag_is_connected _ _ ⟨u⟩ $ λ f g, relation.refl_trans_gen.trans
+    (relation.refl_trans_gen.single (show zag f u, from
+      or.inr ⟨structured_arrow.hom_mk ((adj.hom_equiv c f.right).symm f.hom) (by simp)⟩))
+    (relation.refl_trans_gen.single (show zag u g, from
+      or.inl ⟨structured_arrow.hom_mk ((adj.hom_equiv c g.right).symm g.hom) (by simp)⟩)) }
+
+/-- If a functor `L : C ⥤ D` is a left adjoint, it is initial. -/
+lemma initial_of_left_adjoint {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) : initial L :=
+{ out := λ d,
+  let u : costructured_arrow L d := costructured_arrow.mk (adj.counit.app d) in
+  @zigzag_is_connected _ _ ⟨u⟩ $ λ f g, relation.refl_trans_gen.trans
+    (relation.refl_trans_gen.single (show zag f u, from
+      or.inl ⟨costructured_arrow.hom_mk (adj.hom_equiv f.left d f.hom) (by simp)⟩))
+    (relation.refl_trans_gen.single (show zag u g, from
+      or.inr ⟨costructured_arrow.hom_mk (adj.hom_equiv g.left d g.hom) (by simp)⟩)) }
 
 namespace final
 
@@ -529,7 +550,6 @@ def limit_iso' [has_limit (F ⋙ G)] : limit (F ⋙ G) ≅ limit G :=
 (as_iso (limit.pre G F)).symm
 
 end
-
 
 end initial
 

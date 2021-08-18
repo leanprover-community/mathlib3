@@ -676,9 +676,9 @@ multilinear_map.mk_continuous
   (multilinear_map.mk_pi_algebra 𝕜 ι A) (if nonempty ι then 1 else ∥(1 : A)∥) $
   begin
     intro m,
-    by_cases hι : nonempty ι,
-    { resetI, simp [hι, norm_prod_le' univ univ_nonempty] },
-    { simp [eq_empty_of_not_nonempty hι univ, hι] }
+    casesI is_empty_or_nonempty ι with hι hι,
+    { simp [eq_empty_of_is_empty univ, not_nonempty_iff.2 hι] },
+    { simp [norm_prod_le' univ univ_nonempty, hι] }
   end
 
 variables {A 𝕜 ι}

@@ -169,19 +169,18 @@ variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 theorem exists_primitive_element [finite_dimensional F E] (F_sep : is_separable F E) :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  by_cases F_finite : nonempty (fintype F),
-  { exact nonempty.elim F_finite
-    (λ h, by haveI := h; exact exists_primitive_element_of_fintype_bot F E) },
+  rcases is_empty_or_nonempty (fintype F) with F_inf|⟨⟨F_finite⟩⟩,
   { let P : intermediate_field F E → Prop := λ K, ∃ α : E, F⟮α⟯ = K,
     have base : P ⊥ := ⟨0, adjoin_zero⟩,
     have ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯,
     { intros K β hK,
       cases hK with α hK,
       rw [←hK, adjoin_simple_adjoin_simple],
-      haveI : infinite F := not_nonempty_fintype.mp F_finite,
+      haveI : infinite F := is_empty_fintype.mp F_inf,
       cases primitive_element_inf_aux α β F_sep with γ hγ,
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },
+  { exactI exists_primitive_element_of_fintype_bot F E }
 end
 
 /-- Alternative phrasing of primitive element theorem:

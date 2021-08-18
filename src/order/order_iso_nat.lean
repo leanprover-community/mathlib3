@@ -165,7 +165,7 @@ begin
     obtain ⟨x, ⟨n, hn⟩, range_bounded⟩ := h _ hne,
     use n, intros m hm, rw ← hn at range_bounded, symmetry,
     apply range_bounded (a m) (set.mem_range_self _) (a.monotone hm), },
-  { rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,
+  { rw rel_embedding.well_founded_iff_no_descending_seq, refine ⟨λ a, _⟩,
     obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_preorder_hom,
     exact n.succ_ne_self.symm (rel_embedding.to_preorder_hom_injective _ (hn _ n.le_succ)), },
 end

@@ -2899,7 +2899,7 @@ instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
   f • a = f a := rfl
 
 /-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
-instance linear_equiv.apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
 ⟨λ _ _, linear_equiv.ext⟩
 
 /-- The group of invertible linear maps from `M` to itself -/

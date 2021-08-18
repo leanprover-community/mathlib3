@@ -131,4 +131,36 @@ lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
   (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
 by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
+lemma Union_unpair_union {α} {s t : ℕ → set α} :
+  (⋃ n : ℕ, s n.unpair.1 ∪ t n.unpair.2) = ⋃ i j : ℕ, s i ∪ t j :=
+begin
+  have : (⋃ i : ℕ × ℕ, s i.1 ∪ t i.2) = ⋃ i j : ℕ, s i ∪ t j,
+  { ext, simp },
+  rw [← this, ← nat.surjective_unpair.Union_comp],
+end
+
+lemma Union_unpair_inter {α} {s t : ℕ → set α} :
+  (⋃ n : ℕ, s n.unpair.1 ∩ t n.unpair.2) = ⋃ i j : ℕ, s i ∩ t j :=
+begin
+  have : (⋃ i : ℕ × ℕ, s i.1 ∩ t i.2) = ⋃ i j : ℕ, s i ∩ t j,
+  { ext, simp },
+  rw [← this, ← nat.surjective_unpair.Union_comp],
+end
+
+lemma Inter_unpair_union {α} {s t : ℕ → set α} :
+  (⋂ n : ℕ, s n.unpair.1 ∪ t n.unpair.2) = ⋂ i j : ℕ, s i ∪ t j :=
+begin
+  have : (⋂ i : ℕ × ℕ, s i.1 ∪ t i.2) = ⋂ i j : ℕ, s i ∪ t j,
+  { ext, simp },
+  rw [← this, ← nat.surjective_unpair.Inter_comp],
+end
+
+lemma Inter_unpair_inter {α} {s t : ℕ → set α} :
+  (⋂ n : ℕ, s n.unpair.1 ∩ t n.unpair.2) = ⋂ i j : ℕ, s i ∩ t j :=
+begin
+  have : (⋂ i : ℕ × ℕ, s i.1 ∩ t i.2) = ⋂ i j : ℕ, s i ∩ t j,
+  { ext, simp, },
+  rw [← this, ← nat.surjective_unpair.Inter_comp],
+end
+
 end set

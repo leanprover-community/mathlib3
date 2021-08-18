@@ -92,7 +92,7 @@ end
 variables (m n : ℕ)
 
 theorem week4_p2 (hn : 2 ≤ n) :
-  ¬ n! ∣ (∏ i in Ico 1 n, (m^i + i!)^(n / i)) ↔ n.prime ∧ n ∣ m :=
+  ¬ n! ∣ (∏ i in Ico 1 n, (m^i + i!)^(n/i)) ↔ n.prime ∧ n ∣ m :=
 begin
   split, swap,
   { rintro ⟨hnprime, hnm⟩ h,
@@ -104,7 +104,7 @@ begin
   contrapose!,
   rintro h,
   suffices H : ∀ p : ℕ, p.prime →
-    multiplicity p n! ≤ multiplicity p ∏ (i : ℕ) in Ico 1 n, (m ^ i + i!) ^ (n / i),
+    multiplicity p n! ≤ multiplicity p ∏ (i : ℕ) in Ico 1 n, (m^i + i!)^(n/i),
   {
     sorry
   },
@@ -113,22 +113,46 @@ begin
   { rw multiplicity.multiplicity_eq_zero_of_not_dvd ((not_congr hp.dvd_factorial).2 hpn),
     exact zero_le _ },
   rw multiplicity.finset.prod (nat.prime_iff.1 hp),
-  --rw [multiplicity.finset.prod], simp_rw [multiplicity.pow],
   by_cases hpm : p ∣ m,
   {
     have : p ≠ n := λ hpn, h (hpn ▸ hp) (hpn ▸ hpm),
-    sorry
+    calc
+      multiplicity p n!
+          = ∑ (i : ℕ) in Ico 1 (log p n).succ, ((n/p^i : ℕ) : enat)
+          : begin
+            rw [hp.multiplicity_factorial (lt_succ_self _)], -- rw nat.cast_sum,
+            sorry
+          end
+    ... = ∑ (i : ℕ) in (Ico 1 (log p n).succ).image (λ x, p^x), ((n/i : ℕ) : enat)
+          : begin
+            rw sum_image,
+            exact λ x _ y _ h, pow_right_injective hp.two_le h,
+          end
+      ... ≤ ∑ (i : ℕ) in Ico 1 n, ((n / i : ℕ) : enat) : begin
+            refine sum_le_sum_of_subset _,
+            rintro i hi,
+            obtain ⟨a, ha, rfl⟩ := mem_image.1 hi,
+            rw [Ico.mem] at ⊢ ha,
+            refine ⟨pow_pos hp.pos _, _⟩,
+            have := (nat.pow_le_iff_le_log _ _ _ _).2 (le_of_lt_succ ha.2),
+            refine ((nat.pow_le_iff_le_log _ _ _ _).2 (le_of_lt_succ ha.2)).lt_of_ne _,
+          end
+      ... = ∑ (i : ℕ) in Ico 1 n, multiplicity p ((m^i + i!)^(n/i)) : sorry
   },
+  sorry,
   calc
     multiplicity p n!
         ≤ (n/(p - 1) : ℕ) : hp.multiplicity_factorial_le_div_pred n
     ... = (n/(p - 1) : ℕ) • 1 : sorry
     ... ≤ (n/(p - 1)) • multiplicity p (m^(p - 1) + (p - 1)!) : begin
-          refine (mul_le_mul_left _).2 _,
+          sorry,
         end
-    ... = multiplicity p ((m^(p - 1) + (p - 1)!)^(n/(p - 1)))
-        : by rw [multiplicity.pow, ←smul_one_eq_coe (n / (p - 1))]
-    ... ≤ ∑ (x : ℕ) in Ico 1 n, multiplicity p ((m ^ x + x!) ^ (n / x)) : begin
-      refine finset.single_le_sum _ _ _,
-    end,
+    ... = (λ x, multiplicity p ((m^(p - 1) + (p - 1)!)^(n/(p - 1)))) (p - 1)
+        : (multiplicity.pow $ nat.prime_iff.1 hp).symm
+    ... ≤ ∑ (i : ℕ) in Ico 1 n, multiplicity p ((m^i + i!)^(n/i))
+        : begin
+          have H : ∀ i ∈ Ico 1 n, 0 ≤ multiplicity p ((m^i + i!)^(n/i)) := λ _ _, zero_le _,
+          exact finset.single_le_sum H (Ico.mem.2
+            ⟨hp.pred_pos, succ_le_iff.1 ((succ_pred_prime hp).symm ▸ hpn)⟩),
+        end,
 end

@@ -119,7 +119,7 @@ Let `α` be a lattice ordered commutative group. For all elements `a` and `b` in
 $$a⊓b + (a⊔b) = a + b.$$
 -/
 @[to_additive]
-lemma mul_eq_inf_mul_sup (a b : α) : a⊓b * (a⊔b) = a * b :=
+lemma inf_mul_sup (a b : α) : a⊓b * (a⊔b) = a * b :=
 calc a⊓b * (a⊔b) = a⊓b * ((a * b) * (b⁻¹⊔a⁻¹)) :
   by {  rw mul_sup_eq_mul_sup_mul b⁻¹ a⁻¹ (a*b), simp,  }
 ... = a⊓b * ((a * b) * (a⊓b)⁻¹) : by { rw [inv_inf_eq_sup_inv, sup_comm], }
@@ -386,7 +386,7 @@ begin
             (lattice_ordered_comm_group.le_abs a)), } },
       { apply lattice_ordered_comm_group.neg_pos, }
     end,
-    rw [← mul_eq_inf_mul_sup, pos_inf_neg_eq_one, one_mul, ← mod_eq_pos ],
+    rw [← inf_mul_sup, pos_inf_neg_eq_one, one_mul, ← mod_eq_pos ],
     apply sup_le,
     apply and.left
       (iff.elim_left (le_iff_pos_le_neg_ge _ _)
@@ -420,7 +420,7 @@ $$2•(a⊔b) = a + b + |b - a|.$$
 @[to_additive]
 lemma sup_sq_eq_mul_mul_abs_div (a b : α) : (a⊔b)^2 = a * b * |b / a| :=
 begin
-  rw [← mul_eq_inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, ← mul_assoc, mul_comm,
+  rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, ← mul_assoc, mul_comm,
     mul_assoc, ← pow_two, inv_mul_cancel_left],
 end
 
@@ -432,7 +432,7 @@ $$2•(a⊓b) = a + b - |b - a|.$$
 @[to_additive]
 lemma two_inf_eq_mul_div_abs_div (a b : α) : (a⊓b)^2 = a * b / |b / a| :=
 begin
-  rw [← mul_eq_inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, div_eq_mul_inv,
+  rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, div_eq_mul_inv,
     mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_comm_assoc, ← pow_two],
 end
 
@@ -446,14 +446,14 @@ instance lattice_ordered_comm_group_to_distrib_lattice (α : Type u)
 { le_sup_inf :=
   begin
     intros,
-    rw [← mul_le_mul_iff_left (x⊓(y⊓z)),  mul_eq_inf_mul_sup x (y⊓z),
+    rw [← mul_le_mul_iff_left (x⊓(y⊓z)),  inf_mul_sup x (y⊓z),
       ← inv_mul_le_iff_le_mul, le_inf_iff ],
     split,
-    { rw [inv_mul_le_iff_le_mul, ← mul_eq_inf_mul_sup x y ],
+    { rw [inv_mul_le_iff_le_mul, ← inf_mul_sup x y ],
       apply mul_le_mul',
       { apply inf_le_inf_left, apply inf_le_left, },
       { apply inf_le_left, } },
-    { rw [inv_mul_le_iff_le_mul, ← mul_eq_inf_mul_sup x z ],
+    { rw [inv_mul_le_iff_le_mul, ← inf_mul_sup x z ],
       apply mul_le_mul',
       { apply inf_le_inf_left, apply inf_le_right, },
       { apply inf_le_right, }, }
@@ -491,7 +491,7 @@ theorem abs_div_sup_mul_abs_div_inf (a b c : α) :
       rw [inf_right_idem, inf_assoc], }
     ... = (b⊔a⊔c) * ((b⊔a)⊓c) /(((b⊓a)⊔c)*(b⊓a⊓c))    : by { rw div_mul_div_eq_mul_div_mul,}
     ... = (b⊔a) * c /(b⊓a*c)                      :
-      by {rw [mul_comm, mul_eq_inf_mul_sup, mul_comm (b ⊓ a ⊔ c), mul_eq_inf_mul_sup] }
+      by {rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup] }
     ... = (b⊔a) / (b⊓a) : by { rw [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left,
        ← div_eq_mul_inv], }
     ... = |a/b|         : by { rw sup_div_inf_eq_abs_div,  }

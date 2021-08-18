@@ -135,32 +135,12 @@ end set
 
 section complete_lattice
 
-lemma supr_unpair_sup {α} [complete_lattice α] {s t : ℕ → α} :
-  (⨆ n : ℕ, s n.unpair.1 ⊔ t n.unpair.2) = (⨆ i : ℕ, s i) ⊔ ⨆ j, t j :=
-begin
-  simp_rw [supr_sup, sup_supr, ← (supr_prod : (⨆ i : ℕ × ℕ, s i.1 ⊔ t i.2) = _),
-           ← nat.surjective_unpair.supr_comp],
-end
+lemma supr_unpair {α} [complete_lattice α] (f : ℕ → ℕ → α) :
+  (⨆ n : ℕ, f n.unpair.1 n.unpair.2) = ⨆ i j : ℕ, f i j :=
+by rw [← (supr_prod : (⨆ i : ℕ × ℕ, f i.1 i.2) = _), ← nat.surjective_unpair.supr_comp]
 
-lemma supr_unpair_inf {α} [complete_distrib_lattice α] {s t : ℕ → α} :
-  (⨆ n : ℕ, s n.unpair.1 ⊓ t n.unpair.2) = (⨆ i : ℕ, s i) ⊓ ⨆ j, t j :=
-begin
-  simp_rw [supr_inf_eq, inf_supr_eq, ← (supr_prod : (⨆ i : ℕ × ℕ, s i.1 ⊓ t i.2) = _),
-           ← nat.surjective_unpair.supr_comp],
-end
-
-lemma infi_unpair_sup {α} [complete_distrib_lattice α] {s t : ℕ → α} :
-  (⨅ n : ℕ, s n.unpair.1 ⊔ t n.unpair.2) = (⨅ i : ℕ, s i) ⊔ ⨅ j, t j :=
-begin
-  simp_rw [infi_sup_eq, sup_infi_eq, ← (infi_prod : (⨅ i : ℕ × ℕ, s i.1 ⊔ t i.2) = _),
-           ← nat.surjective_unpair.infi_comp],
-end
-
-lemma infi_unpair_inf {α} [complete_lattice α] {s t : ℕ → α} :
-  (⨅ n : ℕ, s n.unpair.1 ⊓ t n.unpair.2) = (⨅ i : ℕ, s i) ⊓ ⨅ j, t j :=
-begin
-  simp_rw [infi_inf, inf_infi, ← (infi_prod : (⨅ i : ℕ × ℕ, s i.1 ⊓ t i.2) = _),
-           ← nat.surjective_unpair.infi_comp],
-end
+lemma infi_unpair {α} [complete_lattice α] (f : ℕ → ℕ → α) :
+  (⨅ n : ℕ, f n.unpair.1 n.unpair.2) = ⨅ i j : ℕ, f i j :=
+by rw [← (infi_prod : (⨅ i : ℕ × ℕ, f i.1 i.2) = _), ← nat.surjective_unpair.infi_comp]
 
 end complete_lattice

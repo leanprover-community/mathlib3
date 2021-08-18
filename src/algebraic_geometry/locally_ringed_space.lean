@@ -123,9 +123,6 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 
 instance : faithful forget_to_SheafedSpace := {}
 
--- PROJECT: once we have `PresheafedSpace.restrict_stalk_iso`
--- (that restriction doesn't change stalks) we can uncomment this.
-
 noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=

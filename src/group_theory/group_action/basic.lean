@@ -239,8 +239,8 @@ let
     sorry,
   e₁₀ : (Σ (ω : Ω), α) ≃ Ω × α :=
     sorry
-in e₀.trans $ e₁.trans $ e₂.trans $ e₃.trans $ e₄.trans $ e₅.trans $ e₆.trans $ e₇.trans $ e₈.trans $
-  e₉.trans $ e₁₀
+in e₀.trans $ e₁.trans $ e₂.trans $ e₃.trans $ e₄.trans $ e₅.trans $ e₆.trans $ e₇.trans $
+    e₈.trans $ e₉.trans $ e₁₀
 
 end draft
 

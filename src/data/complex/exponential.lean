@@ -1280,10 +1280,10 @@ begin
       refine sum_le_sum (λ m hm, _),
       rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
       refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
-      { exact nat.cast_pos.2 (nat.factorial_pos _),},
+      { exact nat.cast_pos.2 (nat.factorial_pos _), },
       { rw abv_pow abs,
-        exact (pow_le_one _ (abs_nonneg _) hx),},
-      { exact pow_nonneg (abs_nonneg _) _},
+        exact (pow_le_one _ (abs_nonneg _) hx), },
+      { exact pow_nonneg (abs_nonneg _) _ },
     end
   ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m! : ℝ)) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]

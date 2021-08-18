@@ -212,22 +212,40 @@ lemma class_group.mk0_eq_one_iff [is_dedekind_domain R]
   class_group.mk0 K ⟨I, hI⟩ = 1 ↔ I.is_principal :=
 class_group.mk_eq_one_iff.trans (coe_submodule_is_principal R K)
 
+/-- The class group of principal ideal domain is finite (in fact a singleton).
+TODO: generalize to Dedekind domains -/
+instance [is_principal_ideal_ring R] :
+  fintype (class_group R K) :=
+{ elems := {1},
+  complete :=
+  begin
+    rintros ⟨I⟩,
+    rw [finset.mem_singleton],
+    exact class_group.mk_eq_one_iff.mpr (I : fractional_ideal R⁰ K).is_principal
+  end }
+
+/-- The class number of a principal ideal domain is `1`. -/
+lemma card_class_group_eq_one [is_principal_ideal_ring R] :
+  fintype.card (class_group R K) = 1 :=
+begin
+  rw fintype.card_eq_one_iff,
+  use 1,
+  rintros ⟨I⟩,
+  exact class_group.mk_eq_one_iff.mpr (I : fractional_ideal R⁰ K).is_principal
+end
+
 /-- The class number is `1` iff the ring of integers is a principal ideal domain. -/
 lemma card_class_group_eq_one_iff [is_dedekind_domain R] [fintype (class_group R K)] :
   fintype.card (class_group R K) = 1 ↔ is_principal_ideal_ring R :=
 begin
+  split, swap, { introsI, convert card_class_group_eq_one, assumption },
   rw fintype.card_eq_one_iff,
-  split,
-  { rintros ⟨I, hI⟩,
-    have eq_one : ∀ J : class_group R K, J = 1 := λ J, trans (hI J) (hI 1).symm,
-    refine ⟨λ I, _⟩,
-    by_cases hI : I = ⊥,
-    { rw hI, exact bot_is_principal },
-    exact (class_group.mk0_eq_one_iff (mem_non_zero_divisors_iff_ne_zero.mpr hI)).mp (eq_one _) },
-  { unfreezingI { intros hpid },
-    use 1,
-    rintros ⟨I⟩,
-    exact class_group.mk_eq_one_iff.mpr (I : fractional_ideal R⁰ K).is_principal }
+  rintros ⟨I, hI⟩,
+  have eq_one : ∀ J : class_group R K, J = 1 := λ J, trans (hI J) (hI 1).symm,
+  refine ⟨λ I, _⟩,
+  by_cases hI : I = ⊥,
+  { rw hI, exact bot_is_principal },
+  exact (class_group.mk0_eq_one_iff (mem_non_zero_divisors_iff_ne_zero.mpr hI)).mp (eq_one _),
 end
 
 end integral_domain

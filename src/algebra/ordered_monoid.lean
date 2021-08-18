@@ -638,8 +638,6 @@ instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
   [canonically_ordered_monoid α] : has_exists_mul_of_le α :=
 { exists_mul_of_le := λ a b hab, le_iff_exists_mul.mp hab }
 
-
-
 end canonically_ordered_monoid
 
 lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=

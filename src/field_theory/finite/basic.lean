@@ -223,16 +223,39 @@ end
 
 section is_splitting_field
 open polynomial
-variables (p : ℕ) [fact p.prime] [char_p K p]
 
+section
+
+variables {p n : ℕ}
+
+lemma X_pow_card_sub_X_nat_degree_eq (hp : 1 < p) :
+  (X ^ p - X : polynomial K).nat_degree = p :=
+begin
+  have h1 : (X : polynomial K).degree < (X ^ p : polynomial K).degree,
+  { rw [degree_X_pow, degree_X],
+    exact_mod_cast hp },
+  rw [nat_degree_eq_of_degree_eq (degree_sub_eq_left_of_degree_lt h1), nat_degree_X_pow],
+end
+
+lemma X_pow_card_pow_sub_X_nat_degree_eq (hn : n ≠ 0) (hp : 1 < p) :
+  (X ^ p ^ n - X : polynomial K).nat_degree = p ^ n :=
+X_pow_card_sub_X_nat_degree_eq K $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
+
+lemma X_pow_card_sub_X_ne_zero (hp : 1 < p) : (X ^ p - X : polynomial K) ≠ 0 :=
+ne_zero_of_nat_degree_gt $
+calc 1 < _ : hp
+... = _ : (X_pow_card_sub_X_nat_degree_eq K hp).symm
+
+lemma X_pow_card_pow_sub_X_ne_zero (hn : n ≠ 0) (hp : 1 < p) : (X ^ p ^ n - X : polynomial K) ≠ 0 :=
+X_pow_card_sub_X_ne_zero K $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
+
+end
+
+variables (p : ℕ) [fact p.prime] [char_p K p]
 lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ.val :=
 begin
   classical,
-  have aux : (X^q - X : polynomial K) ≠ 0,
-  { apply ne_zero_of_degree_gt (_ : 1 < degree _), rw [degree_sub_eq_left_of_degree_lt],
-    all_goals
-    { simp only [nat.cast_with_bot, nsmul_one, degree_pow, degree_X],
-      norm_cast, exact fintype.one_lt_card, }, },
+  have aux : (X^q - X : polynomial K) ≠ 0 := X_pow_card_sub_X_ne_zero K fintype.one_lt_card,
   have : (roots (X^q - X : polynomial K)).to_finset = finset.univ,
   { rw eq_univ_iff_forall,
     intro x,
@@ -249,25 +272,10 @@ end
 instance : is_splitting_field (zmod p) K (X^q - X) :=
 { splits :=
   begin
-    have hp : 1 < p,
-    { apply nat.prime.one_lt,
-      apply fact_iff.mp,
-      assumption },
-    have h1 : (-X : polynomial K).degree < (X ^ q : polynomial K).degree,
-    { rw [degree_X_pow, degree_neg, degree_X],
-      exact_mod_cast fintype.one_lt_card,
-      apply_instance },
-
-    have h2 : roots (X^q - X : polynomial K) = finset.univ.val := roots_X_pow_card_sub_X _,
-    have h3 : (X^q - X : polynomial K).roots.card = q,
-    { rw [h2, ←finset.card_def, finset.card_univ] },
-    have h4 : (X^q - X : polynomial K).nat_degree = q,
-    { convert nat_degree_eq_of_degree_eq (degree_add_eq_left_of_degree_lt h1),
-      rw nat_degree_X_pow },
-    have h5 := splits_iff_card_roots.mpr (h3.trans h4.symm),
-    refine (splits_id_iff_splits (algebra_map (zmod p) K)).mp _,
-    convert h5,
-    rw [polynomial.map_sub, polynomial.map_pow, polynomial.map_X],
+    have h : (X^q - X : polynomial K).nat_degree = q :=
+      X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
+    rw [←splits_id_iff_splits, splits_iff_card_roots, map_sub, map_pow, map_X, h,
+      roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
   end,
   adjoin_roots :=
   begin

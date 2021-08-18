@@ -105,36 +105,16 @@ instance : char_p (galois_field p n) p :=
 instance : fintype (galois_field p n) :=
 finite_dimensional.fintype_of_fintype (zmod p) (galois_field p n)
 
-local notation [parsing_only] `g_poly` := (X^(p^n) - X : polynomial (zmod p))
-
-section
-
-variables {K : Type*} [field K] {p n} (hn : n ≠ 0)
-include hn
-
-lemma gpoly_nat_degree_eq : (X ^ p ^ n - X : polynomial K).nat_degree = p ^ n :=
-begin
-  have hp : 1 < p := (fact.out (nat.prime p)).one_lt,
-  have h1 : (X : polynomial K).degree < (X ^ p ^ n : polynomial K).degree,
-  { rw [degree_X_pow, degree_X],
-    exact_mod_cast nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) (nat.prime.one_lt' p).1 },
-  rw [nat_degree_eq_of_degree_eq (degree_sub_eq_left_of_degree_lt h1), nat_degree_X_pow],
-end
-
-lemma gpoly_ne_zero : (X ^ p ^ n - X : polynomial K) ≠ 0 :=
-ne_zero_of_nat_degree_gt $
-calc 1 < _ : nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) (nat.prime.one_lt' p).1
-... = _ : (gpoly_nat_degree_eq hn).symm
-
-end
-
 lemma finrank {n} (h : n ≠ 0) : finite_dimensional.finrank (zmod p) (galois_field p n) = n :=
 begin
-  have aux : g_poly ≠ 0 := gpoly_ne_zero h,
+  set g_poly := (X^(p^n) - X : polynomial (zmod p)),
+  have hp : 1 < p := (fact.out (nat.prime p)).one_lt,
+  have aux : g_poly ≠ 0 := finite_field.X_pow_card_pow_sub_X_ne_zero _ h hp,
   have key : fintype.card ((g_poly).root_set (galois_field p n)) = (g_poly).nat_degree :=
     card_root_set_eq_nat_degree (galois_poly_separable p _ (dvd_pow (dvd_refl p) h))
     (splitting_field.splits g_poly),
-  have nat_degree_eq : (g_poly).nat_degree = p ^ n := gpoly_nat_degree_eq h,
+  have nat_degree_eq : (g_poly).nat_degree = p ^ n :=
+    finite_field.X_pow_card_pow_sub_X_nat_degree_eq _ h hp,
   rw nat_degree_eq at key,
   suffices : (g_poly).root_set (galois_field p n) = set.univ,
   { simp_rw [this, ←fintype.of_equiv_card (equiv.set.univ _)] at key,
@@ -177,14 +157,11 @@ end
 
 theorem splits_zmod_X_pow_sub_X : splits (ring_hom.id (zmod p)) (X ^ p - X) :=
 begin
+  have hp : 1 < p := (fact.out (nat.prime p)).one_lt,
   have h1 : roots (X ^ p - X : polynomial (zmod p)) = finset.univ.val,
   { convert finite_field.roots_X_pow_card_sub_X _,
     exact (zmod.card p).symm },
-  have h2 : (X ^ p - X : polynomial (zmod p)).nat_degree = p,
-  { convert gpoly_nat_degree_eq one_ne_zero,
-    { rw pow_one },
-    { rw pow_one },
-    { apply_instance } },
+  have h2 := finite_field.X_pow_card_sub_X_nat_degree_eq (zmod p) hp,
   rw [splits_iff_card_roots, h1, ←finset.card_def, finset.card_univ, h2, zmod.card],
 end
 

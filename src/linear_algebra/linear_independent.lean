@@ -286,8 +286,18 @@ lemma linear_independent_finset_map_embedding_subtype
   (s : set M) (li : linear_independent R (coe : s → M)) (t : finset s) :
   linear_independent R (coe : (finset.map (embedding.subtype s) t) → M) :=
 begin
-  let f : (finset.map (embedding.subtype s) t) → s := λ x, ⟨x.1, by tidy⟩,
-  convert linear_independent.comp li f (by tidy),
+  let f : t.map (embedding.subtype s) → s := λ x, ⟨x.1, begin
+    obtain ⟨x, h⟩ := x,
+    rw [finset.mem_map] at h,
+    obtain ⟨a, ha, rfl⟩ := h,
+    simp only [subtype.coe_prop, embedding.coe_subtype],
+  end⟩,
+  convert linear_independent.comp li f _,
+  rintros ⟨x, hx⟩ ⟨y, hy⟩,
+  rw [finset.mem_map] at hx hy,
+  obtain ⟨a, ha, rfl⟩ := hx,
+  obtain ⟨b, hb, rfl⟩ := hy,
+  simp only [imp_self, subtype.mk_eq_mk],
 end
 
 /--

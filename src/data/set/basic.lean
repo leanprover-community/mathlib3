@@ -445,16 +445,9 @@ lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ 
 ⟨λ h, by { by_contradiction w, exact h (eq_univ_iff_forall.mpr (not_exists_not.mp w)), },
   λ h w, by simpa [w] using h⟩
 
-lemma not_subseteq_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
+lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
   ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
-⟨λ h, begin
-  by_contradiction w,
-  exact h (by simpa using w),
-end, λ h, begin
-  obtain ⟨x, xs, xt⟩ := h,
-  by_contradiction w,
-  exact xt (w xs),
-end⟩
+by simp [subset_def]
 
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}

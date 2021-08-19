@@ -758,41 +758,30 @@ namespace basis
 Any basis is a maximal linear independent set.
 -/
 lemma maximal [nontrivial R] (b : basis ι R M) : b.linear_independent.maximal :=
-λ w i h,
+λ w hi h,
 begin
   -- If `range w` is strictly bigger than `range b`,
   apply le_antisymm h,
-  by_contradiction h', simp at h',
-  -- choose some `w k ∈ range w \ range b`,
-  obtain ⟨x, p, q⟩ := not_subseteq_iff_exists_mem_not_mem.mp h',
+  -- then choose some `x ∈ range w \ range b`,
+  intros x p,
+  by_contradiction q,
   -- and write it in terms of the basis.
   have e := b.total_repr x,
   -- This then expresses `x` as a linear combination
   -- of elements of `w` which are in the range of `b`,
-  let u' : Π i, ∃ z : w, b i = z := λ i, ⟨inclusion h ⟨(b i), ⟨i, rfl⟩⟩, rfl⟩,
-  let u : ι ↪ w := ⟨λ i, (u' i).some, λ i i' r, begin
-    dsimp at r,
-    apply_fun (coe : w → M) at r,
-    rw [←(u' i).some_spec, ←(u' i').some_spec] at r,
-    exact b.injective r,
-  end⟩,
-  have r : ∀ i, b i = u i := λ i, (u' i).some_spec,
-  rw finsupp.total_apply at e,
-  simp_rw r at e,
-  erw ←@finsupp.sum_emb_domain
-    _ _ _ _ _ _ (b.repr x) u (λ (x : w), (smul_add_hom R M).flip (x : M)) at e,
-  change (finsupp.emb_domain u _).sum (λ x m, (((smul_add_hom R M).flip) x) m) = _ at e,
-  simp only [add_monoid_hom.flip_apply, smul_add_hom_apply] at e,
-  rw ←finsupp.total_apply at e,
-  -- contradicting linear independence.
-  change _ = ((⟨x, p⟩ : w) : M) at e,
-  refine i.total_ne_of_not_mem_support _ _ e,
+  let u : ι ↪ w := ⟨λ i, ⟨b i, h ⟨i, rfl⟩⟩, λ i i' r,
+    b.injective (by simpa only [subtype.mk_eq_mk] using r)⟩,
+  have r : ∀ i, b i = u i := λ i, rfl,
+  simp_rw [finsupp.total_apply, r] at e,
+  change (b.repr x).sum (λ (i : ι) (a : R), (λ (x : w) (r : R), r • (x : M)) (u i) a) =
+    ((⟨x, p⟩ : w) : M) at e,
+  rw [←finsupp.sum_emb_domain, ←finsupp.total_apply] at e,
+  -- Now we can contradict the linear independence of hi
+  refine hi.total_ne_of_not_mem_support _ _ e,
   simp only [finset.mem_map, finsupp.support_emb_domain],
   rintro ⟨j, -, W⟩,
-  replace W : (u j : M) = x := congr_arg coe W,
-  rw ←r at W,
-  apply q,
-  exact ⟨j, W⟩,
+  simp only [embedding.coe_fn_mk, subtype.mk_eq_mk, ←r] at W,
+  apply q ⟨j, W⟩,
 end
 
 section mk

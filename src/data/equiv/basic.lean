@@ -1730,8 +1730,7 @@ equiv.set.image_of_inj_on f s (H.inj_on s)
   (set.image f s H).symm ⟨f x, ⟨x, ⟨h, rfl⟩⟩⟩ = ⟨x, h⟩ :=
 begin
   apply (set.image f s H).injective,
-  simp only [(set.image f s H).apply_symm_apply],
-  simp,
+  simp [(set.image f s H).apply_symm_apply],
 end
 
 lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set α) :
@@ -1764,7 +1763,7 @@ If `s` is a set in `range f`,
 then its image under `range_splitting f` is in bijection (via `f`) with `s`.
 -/
 @[simps]
-noncomputable def range_spliting_image_equiv {α β : Type*} (f : α → β) (s : set (range f)) :
+noncomputable def range_splitting_image_equiv {α β : Type*} (f : α → β) (s : set (range f)) :
   range_splitting f '' s ≃ s :=
 { to_fun := λ x, ⟨⟨f x, by simp⟩,
     (by { rcases x with ⟨x, ⟨y, ⟨m, rfl⟩⟩⟩, simpa [apply_range_splitting f] using m, })⟩,

@@ -150,8 +150,8 @@ begin
   rintro ⟨s, li⟩,
   refine le_trans _ (cardinal.le_sup _ ⟨range_splitting f '' s, _⟩),
   { apply linear_independent.of_comp f.range_restrict,
-    convert li.comp (equiv.set.range_spliting_image_equiv f s) (equiv.injective _) using 1, },
-  { exact (cardinal.eq_congr (equiv.set.range_spliting_image_equiv f s)).ge, },
+    convert li.comp (equiv.set.range_splitting_image_equiv f s) (equiv.injective _) using 1, },
+  { exact (cardinal.eq_congr (equiv.set.range_splitting_image_equiv f s)).ge, },
 end
 
 lemma dim_map_le (f : M →ₗ[R] M₁) (p : submodule R M) : module.rank R (p.map f) ≤ module.rank R p :=

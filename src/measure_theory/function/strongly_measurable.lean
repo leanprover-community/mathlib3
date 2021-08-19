@@ -9,8 +9,8 @@ import measure_theory.function.simple_func_dense
 /-!
 # Strongly measurable and finitely strongly measurable functions
 
-A function `f` is said to be strongly measurable with respect to a measure `μ` if `f` is the
-sequential limit of simple functions. It is said to be finitely strongly measurable if the supports
+A function `f` is said to be strongly measurable if `f` is the sequential limit of simple functions.
+It is said to be finitely strongly measurable with respect to a measure `μ` if the supports
 of those simple functions have finite measure.
 
 If the target space has a second countable topology, strongly measurable and measurable are
@@ -179,12 +179,11 @@ lemma _root_.measurable.strongly_measurable [emetric_space β] [opens_measurable
   [second_countable_topology β] (hf : measurable f) :
   strongly_measurable f :=
 begin
-  by_cases hβ : is_empty β,
-  { haveI : is_empty β := hβ,
-    exact subsingleton.strongly_measurable f, },
-  haveI hβ_non : nonempty β := not_is_empty_iff.mp hβ,
-  exact ⟨simple_func.approx_on f hf set.univ hβ_non.some (set.mem_univ hβ_non.some),
-    λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩
+  rcases is_empty_or_nonempty β; resetI,
+  { exact subsingleton.strongly_measurable f, },
+  { inhabit β,
+    exact ⟨simple_func.approx_on f hf set.univ (default β) (set.mem_univ _),
+      λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩, },
 end
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
@@ -291,7 +290,7 @@ lemma ae_eq_zero_compl (hf : ae_fin_strongly_measurable f μ) :
   f =ᵐ[μ.restrict hf.sigma_finite_setᶜ] 0 :=
 hf.exists_set_sigma_finite.some_spec.2.1
 
-lemma sigma_finite_restrict (hf : ae_fin_strongly_measurable f μ) :
+instance sigma_finite_restrict (hf : ae_fin_strongly_measurable f μ) :
   sigma_finite (μ.restrict hf.sigma_finite_set) :=
 hf.exists_set_sigma_finite.some_spec.2.2
 

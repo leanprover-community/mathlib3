@@ -7,7 +7,7 @@ Authors: Johan Commelin
 import data.zmod.basic
 import algebra.algebra.basic
 
-/-
+/!-
 # The `zmod n`-algebra structure on rings whose characteristic divides `n`
 -/
 

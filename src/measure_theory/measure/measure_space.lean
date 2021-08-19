@@ -1829,7 +1829,7 @@ section disjointed
 variable [measurable_space α]
 
 /-- Given `S : μ.finite_spanning_sets_in {s | measurable_set s}`,
-`disjointed_finite_spanning_sets_in` provides a `finite_spanning_sets_in {s | measurable_set s}`
+`finite_spanning_sets_in.disjointed` provides a `finite_spanning_sets_in {s | measurable_set s}`
 such that its underlying sets are pairwise disjoint. -/
 protected def finite_spanning_sets_in.disjointed {μ : measure α}
   (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
@@ -1843,7 +1843,7 @@ lemma finite_spanning_sets_in.disjoint_disjointed {μ : measure α}
   pairwise (disjoint on S.disjointed.set) :=
 disjoint_disjointed _
 
-/-- Given two σ-finite measures `μ` and `ν`, `finite_spanning_sets.in_add μ ν` is a sequence of
+/-- Given two σ-finite measures `μ` and `ν`, `finite_spanning_setsin.add μ ν` is a sequence of
 pairwise disjoint, finite spanning sets in `{s | measurable_set s}` with respect to `μ + ν`. -/
 protected def finite_spanning_sets_in.add {μ ν : measure α}
   (S : μ.finite_spanning_sets_in {s | measurable_set s})
@@ -1861,7 +1861,7 @@ protected def finite_spanning_sets_in.add {μ ν : measure α}
   spanning := by simp_rw [set.Union_unpair (λ i j, S.set i ∩ T.set j), ← set.inter_Union,
                           ← set.Union_inter, S.spanning, T.spanning, set.inter_univ] }
 
-/-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in_of_le` provides the induced
+/-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in.of_le` provides the induced
 `finite_spanning_set` with respect to `ν` from a `finite_spanning_set` with respect to `μ`. -/
 def finite_spanning_sets_in.of_le {μ ν : measure α} (h : ν ≤ μ) {C : set (set α)}
   (S : μ.finite_spanning_sets_in C) : ν.finite_spanning_sets_in C :=

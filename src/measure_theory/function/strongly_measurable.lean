@@ -80,20 +80,21 @@ end definitions
 
 /-! ## Strongly measurable functions -/
 
-namespace strongly_measurable
-
-variables {α β : Type*} {f : α → β}
-
-lemma subsingleton.strongly_measurable [measurable_space α] [topological_space β] [subsingleton β] :
+lemma subsingleton.strongly_measurable {α β} [measurable_space α] [topological_space β]
+  [subsingleton β] (f : α → β) :
   strongly_measurable f :=
 begin
   let f_sf : α →ₛ β := ⟨f, λ x, _,
-    set.subsingleton.finite (set.subsingleton_of_subsingleton (set.range f))⟩,
+    set.subsingleton.finite set.subsingleton_of_subsingleton⟩,
   { exact ⟨λ n, f_sf, λ x, tendsto_const_nhds⟩, },
   { have h_univ : f ⁻¹' {x} = set.univ, by { ext1 y, simp, },
     rw h_univ,
     exact measurable_set.univ, },
 end
+
+namespace strongly_measurable
+
+variables {α β : Type*} {f : α → β}
 
 /-- A sequence of simple functions such that `∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x))`.
 That property is given by `strongly_measurable.tendsto_approx`. -/
@@ -180,7 +181,7 @@ lemma _root_.measurable.strongly_measurable [emetric_space β] [opens_measurable
 begin
   by_cases hβ : is_empty β,
   { haveI : is_empty β := hβ,
-    exact subsingleton.strongly_measurable, },
+    exact subsingleton.strongly_measurable f, },
   haveI hβ_non : nonempty β := not_is_empty_iff.mp hβ,
   exact ⟨simple_func.approx_on f hf set.univ hβ_non.some (set.mem_univ hβ_non.some),
     λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩

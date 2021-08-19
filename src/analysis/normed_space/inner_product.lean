@@ -1854,7 +1854,7 @@ begin
         repeat {exact le_of_lt one_half_pos},
         exact add_halves 1 },
     have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-    {  mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
+    { mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
     have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),

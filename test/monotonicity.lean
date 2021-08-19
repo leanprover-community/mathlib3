@@ -232,7 +232,7 @@ example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)
   (h₁ : x ≤ y)
 : (m + x + n) * z + k ≤ z * (y + n + m) + k :=
-by {  ac_mono* := h₁ }
+by { ac_mono* := h₁ }
 
 example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)

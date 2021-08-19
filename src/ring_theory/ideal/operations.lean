@@ -1621,9 +1621,10 @@ def quot_left_to_quot_sum : I.quotient →+* (I ⊔ J).quotient :=
   ideal.quotient.inclusion I (I ⊔ J) (le_sup_left)
 
 /-- This will be used to lift `quot_left_to_quot_sum` to a map `(R/I)/J' → R/(I ⊔ J)`-/
-lemma img_left_in_ker (x : I.quotient) (hx : x ∈ J.map(ideal.quotient.mk I)) :
-  quot_left_to_quot_sum I J x = 0 :=
+lemma map_mk_le_ker_quot_left_to_quot_sum :
+  J.map (ideal.quotient.mk I) ≤ (quot_left_to_quot_sum I J).ker :=
 begin
+  intros x hx,
   have hIJmap: ((quot_left_to_quot_sum I J).comp(ideal.quotient.mk I) '' J) =
     (ideal.quotient.mk (I ⊔ J) '' J),
    {apply set.ext,

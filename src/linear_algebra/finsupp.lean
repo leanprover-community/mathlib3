@@ -598,8 +598,8 @@ end total
 
 /-- An equivalence of domains induces a linear equivalence of finitely supported functions.
 
-This is `finsupp.dom_congr` as a `linear_equiv`.-/
--- See also `linear_map.fun_congr_left` for the case of arbitrary functions.
+This is `finsupp.dom_congr` as a `linear_equiv`.
+See also `linear_map.fun_congr_left` for the case of arbitrary functions. -/
 protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
 (finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv $

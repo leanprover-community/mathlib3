@@ -10,7 +10,7 @@ import tactic.norm_cast
 /-!
 # Typeclass for a type `F` with an injective map to `A → B`
 
-This typeclass is primarily for use by homomorphisms like `monoid_hom` and `linear-map`.
+This typeclass is primarily for use by homomorphisms like `monoid_hom` and `linear_map`.
 
 A typical type of morphisms should be declared as:
 ```
@@ -27,8 +27,6 @@ instance : fun_like (my_hom A B) A B :=
 
 /-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
 instance : has_coe_to_fun (M →ₗ[R] M₂) := to_fun.to_coe_fn
-
-@[simp] lemma to_fun_eq_coe {f : M →ₗ[R] M₂} : f.to_fun = (f : M → M₂) := rfl
 
 @[simp] lemma to_fun_eq_coe {f : my_hom A B} : f.to_fun = (f : A → B) := rfl
 

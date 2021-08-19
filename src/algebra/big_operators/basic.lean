@@ -1414,15 +1414,16 @@ begin
   { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
 end
 
-theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
+theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ}
+  (h : ∀ (a : α), a ∈ s → k ∣ multiset.count a s) :
   ∃ (u : multiset α), s = k • u :=
 begin
   use ∑ a in s.to_finset, (s.count a / k) • (a ::ₘ 0),
   have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • (x ::ₘ 0) =
     ∑ (x : α) in s.to_finset, count x s • (x ::ₘ 0),
-  { refine congr_arg s.to_finset.sum _,
-    apply funext, intro x,
-    rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },
+  { apply finset.sum_congr rfl,
+    intros x hx,
+    rw [← mul_nsmul, nat.mul_div_cancel' (h x (mem_to_finset.mp hx))] },
   rw [← finset.sum_nsmul, h₂, to_finset_sum_count_nsmul_eq]
 end
 

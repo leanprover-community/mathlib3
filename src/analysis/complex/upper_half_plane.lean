@@ -88,7 +88,7 @@ ne_of_gt (normsq_bottom_pos g z)
 /-- Fractional linear transformation -/
 def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z
 
-lemma im_smul_eq_div_norm_sq' (g : SL(2, ℝ)) (z : ℍ) :
+lemma smul_aux'_im (g : SL(2, ℝ)) (z : ℍ) :
   (smul_aux' g z).im = z.im / (bottom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],

@@ -1861,10 +1861,10 @@ protected def finite_spanning_sets_in.disjointed {μ : measure α}
   λ n, lt_of_le_of_lt (measure_mono (disjointed_subset S.set n)) (S.finite _),
   S.spanning ▸ Union_disjointed⟩
 
-lemma finite_spanning_sets_in.disjoint_disjointed {μ : measure α}
+lemma finite_spanning_sets_in.disjointed_set_eq {μ : measure α}
   (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
-  pairwise (disjoint on S.disjointed.set) :=
-disjoint_disjointed _
+  S.disjointed.set = disjointed S.set :=
+rfl
 
 lemma exists_eq_disjoint_finite_spanning_sets_in
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
@@ -1873,7 +1873,7 @@ lemma exists_eq_disjoint_finite_spanning_sets_in
     S.set = T.set ∧ pairwise (disjoint on S.set) :=
 let S := (μ.to_finite_spanning_sets_in.add ν.to_finite_spanning_sets_in).disjointed in
 ⟨S.of_le (measure.le_add_right le_rfl), S.of_le (measure.le_add_left le_rfl),
- rfl, finite_spanning_sets_in.disjoint_disjointed _⟩
+ rfl, disjoint_disjointed _⟩
 
 end disjointed
 

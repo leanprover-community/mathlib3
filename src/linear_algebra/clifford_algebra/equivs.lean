@@ -23,8 +23,8 @@ This file contains isomorphisms showing that other types are equivalent to some 
 * `clifford_algebra_complex.equiv`: the `complex` numbers are equivalent as an `ℝ`-algebra to a
   `clifford_algebra` over a one-dimensional vector space with a quadratic form that satisfies
   `Q (ι Q 1) = -1`.
-* `clifford_algebra_complex.of_complex`: the forward direction of this equiv
-* `clifford_algebra_complex.to_complex`: the reverse direction of this equiv
+* `clifford_algebra_complex.to_complex`: the forward direction of this equiv
+* `clifford_algebra_complex.of_complex`: the reverse direction of this equiv
 
 We show additionally that this equivalence sends `complex.conj` to `clifford_algebra.involute` and
 vice-versa:
@@ -39,8 +39,8 @@ is the same as `clifford_algebra.involute`.
 
 * `clifford_algebra_quaternion.equiv`: a `quaternion_algebra` over `R` is equivalent as an
   `R`-algebra to a clifford algebra over `R × R`, sending `i` to `(0, 1)` and `j` to `(1, 0)`.
-* `clifford_algebra_quaternion.of_quaternion`: the forward direction of this equiv
-* `clifford_algebra_quaternion.to_quaternion`: the reverse direction of this equiv
+* `clifford_algebra_quaternion.to_quaternion`: the forward direction of this equiv
+* `clifford_algebra_quaternion.of_quaternion`: the reverse direction of this equiv
 
 We show additionally that this equivalence sends `quaternion_algebra.conj` to the clifford conjugate
 and vice-versa:
@@ -72,8 +72,7 @@ instance : comm_ring (clifford_algebra (0 : quadratic_form R unit)) :=
   end,
   ..clifford_algebra.ring _ }
 
-lemma reverse_apply (x : clifford_algebra (0 : quadratic_form R unit)) :
-  x.reverse = x :=
+lemma reverse_apply (x : clifford_algebra (0 : quadratic_form R unit)) : x.reverse = x :=
 begin
   induction x using clifford_algebra.induction,
   case h_grade0 : r { exact reverse.commutes _},
@@ -183,17 +182,18 @@ instance : comm_ring (clifford_algebra Q) :=
   .. clifford_algebra.ring _ }
 
 /-- `reverse` is a no-op over `clifford_algebra_complex.Q`. -/
-@[simp]
-lemma reverse_eq_id : (reverse : clifford_algebra Q →ₗ[ℝ] _) = linear_map.id :=
+lemma reverse_apply (x : clifford_algebra Q) : x.reverse = x :=
 begin
-  ext c,
-  rw linear_map.id_apply,
-  induction c using clifford_algebra.induction,
+  induction x using clifford_algebra.induction,
   case h_grade0 : r { exact reverse.commutes _},
   case h_grade1 : x { rw [reverse_ι] },
   case h_mul : x₁ x₂ hx₁ hx₂ { rw [reverse.map_mul, mul_comm, hx₁, hx₂] },
   case h_add : x₁ x₂ hx₁ hx₂ { rw [reverse.map_add, hx₁, hx₂] },
 end
+
+@[simp]
+lemma reverse_eq_id : (reverse : clifford_algebra Q →ₗ[ℝ] _) = linear_map.id :=
+linear_map.ext reverse_apply
 
 /-- `complex.conj` is analogous to `clifford_algebra.involute`. -/
 @[simp] lemma of_complex_conj (c : ℂ) : of_complex (c.conj) = (of_complex c).involute :=

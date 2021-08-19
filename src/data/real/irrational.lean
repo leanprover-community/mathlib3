@@ -261,6 +261,7 @@ open irrational
 ### Lemmas about Irrationals between Reals
 -/
 
+/-- There exists an irrational number between any two distinct rational numbers.-/
 theorem exists_irrational_btwn_rats {x y :ℚ} (h : (x :ℝ) < y) :
 ∃ (r : ℝ), irrational r ∧ (x : ℝ) < r ∧ r < y:=
 begin
@@ -287,6 +288,7 @@ begin
     exact one_lt_two }
 end
 
+/-- There exists an irrational number between any two distinct real numbers.-/
 theorem exists_irrational_btwn {x y :ℝ} (h : x < y) :
 ∃ (r : ℝ), irrational r ∧ x < r ∧ r < y:=
 begin
@@ -294,7 +296,7 @@ begin
   rcases exists_rat_btwn q₁_lt_y with ⟨q₂, ⟨q₁_lt_q₂, q₂_lt_y⟩⟩,
   rcases exists_irrational_btwn_rats q₁_lt_q₂ with ⟨r, ⟨irrational_r, q₁_lt_r, r_lt_q₂⟩⟩,
   use r,
-  refine ⟨irrational_r, lt_trans x_lt_q₁ q₁_lt_r, lt_trans r_lt_q₂ q₂_lt_y⟩,
+  exact ⟨irrational_r, lt_trans x_lt_q₁ q₁_lt_r, lt_trans r_lt_q₂ q₂_lt_y⟩,
 end
 
 end

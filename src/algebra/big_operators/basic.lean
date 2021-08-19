@@ -817,7 +817,7 @@ lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
 
-@[to_additive] lemma prod_mem_multiset {α : Type*} [decidable_eq α]
+@[to_additive] lemma prod_mem_multiset [decidable_eq α]
   (m : multiset α) (f : {x // x ∈ m} → β) (g : α → β)
   (hfg : ∀ x, f x = g x) :
   ∏ (x : {x // x ∈ m}), f x = ∏ x in m.to_finset, g x :=

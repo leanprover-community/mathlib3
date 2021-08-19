@@ -17,8 +17,8 @@ This file develops the basic theory, concentrating on the commutative case.
 
 ## Main statements
 
-- `pos_div_neg`: Every element `a` of a lattice ordered commutative group has a decomposition `a⁺-a⁻`
-   into the difference of the positive and negative component.
+- `pos_div_neg`: Every element `a` of a lattice ordered commutative group has a decomposition
+  `a⁺-a⁻` into the difference of the positive and negative component.
 - `pos_inf_neg_eq_one`: The positive and negative components are coprime.
 - `abs_triangle`: The absolute value operation satisfies the triangle inequality.
 

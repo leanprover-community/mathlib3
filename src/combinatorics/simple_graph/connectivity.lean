@@ -1,11 +1,10 @@
 /-
-Copyright (c) 2020 Kyle Miller. All rights reserved.
+Copyright (c) 2021 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kyle Miller
+Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
-import tactic.omega
 /-!
 
 # Graph connectivity
@@ -32,6 +31,15 @@ counterparts in [Chou1994].
 ## Main definitions
 
 * `simple_graph.walk`
+
+* `simple_graph.is_trail`, `simple_graph.is_path`, and `simple_graph.is_cycle`.
+
+* `simple_graph.path`
+
+* `simple_graph.reachable`, `simple_graph.is_connected`,
+  and `simple_graph.connected_component`
+
+* `simple_graph.is_acyclic` and `simple_graph.is_tree`
 
 ## Tags
 walks
@@ -212,6 +220,8 @@ multiset.nodup_iff_count_le_one.mp h e
 lemma trail_count_eq_one {u v : V} (p : G.walk u v) (h : p.is_trail) {e : G.edge_set} (he : e ∈ p.edges) :
   p.edges.count e = 1 :=
 multiset.count_eq_one_of_mem h he
+lemma trail_count_eq_one {u v : V} (p : G.walk u v) (h : p.is_trail) {e : G.edge_set}
+  (he : e ∈ p.edges) : p.edges.count e = 1 :=
 
 @[simp] lemma nil_is_trail {u : V} : (nil : G.walk u u).is_trail :=
 by simp [is_trail, edges]
@@ -219,15 +229,15 @@ by simp [is_trail, edges]
 @[simp] lemma nil_is_path {u : V} : (nil : G.walk u u).is_path :=
 by simp [is_path, support]
 
-lemma is_trail_of_cons_is_trail {u v w : V} {h : G.adj u v} {p : G.walk v w} (h : (cons h p).is_trail) :
-  p.is_trail :=
+lemma is_trail_of_cons_is_trail {u v w : V} {h : G.adj u v} {p : G.walk v w}
+  (h : (cons h p).is_trail) : p.is_trail :=
 begin
   rw [is_trail, edges, multiset.nodup_cons] at h,
   exact h.2,
 end
 
-lemma is_path_of_cons_is_path {u v w : V} {h : G.adj u v} {p : G.walk v w} (h : (cons h p).is_path) :
-  p.is_path :=
+lemma is_path_of_cons_is_path {u v w : V} {h : G.adj u v} {p : G.walk v w}
+  (h : (cons h p).is_path) : p.is_path :=
 begin
   rw [is_path, support, multiset.nodup_cons] at h,
   exact ⟨is_trail_of_cons_is_trail h.1, h.2.2⟩,
@@ -477,8 +487,8 @@ begin
   { exact reverse_trail p, },
 end
 
-lemma is_trail_of_concat_left {u v w : V} (p : G.walk u v) (q : G.walk v w) (h : (p.concat q).is_trail) :
-  p.is_trail :=
+lemma is_trail_of_concat_left {u v w : V} (p : G.walk u v) (q : G.walk v w)
+  (h : (p.concat q).is_trail) : p.is_trail :=
 begin
   induction p,
   { simp, },
@@ -491,8 +501,8 @@ begin
     exact or.inl h', },
 end
 
-lemma is_trail_of_concat_right {u v w : V} (p : G.walk u v) (q : G.walk v w) (h : (p.concat q).is_trail) :
-  q.is_trail :=
+lemma is_trail_of_concat_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
+  (h : (p.concat q).is_trail) : q.is_trail :=
 begin
   rw [←reverse_trail_iff, concat_reverse] at h,
   rw ←reverse_trail_iff,
@@ -593,8 +603,8 @@ begin
     { simp [p_ih], }, },
 end
 
-lemma split_at_vertex_fst_is_trail {u v w : V} (p : G.walk v w) (hc : p.is_trail) (h : u ∈ p.support) :
-  (p.split_at_vertex_fst u h).is_trail :=
+lemma split_at_vertex_fst_is_trail {u v w : V} (p : G.walk v w)
+  (hc : p.is_trail) (h : u ∈ p.support) : (p.split_at_vertex_fst u h).is_trail :=
 begin
   induction p,
   { simp [split_at_vertex_fst],
@@ -618,8 +628,8 @@ begin
         exact or.inl h, }, }, },
 end
 
-lemma split_at_vertex_snd_is_trail {u v w : V} (p : G.walk v w) (hc : p.is_trail) (h : u ∈ p.support) :
-  (p.split_at_vertex_snd u h).is_trail :=
+lemma split_at_vertex_snd_is_trail {u v w : V} (p : G.walk v w)
+  (hc : p.is_trail) (h : u ∈ p.support) : (p.split_at_vertex_snd u h).is_trail :=
 begin
   induction p,
   { simp [split_at_vertex_snd],
@@ -877,7 +887,8 @@ begin
     congr' 1,
     rw add_comm,
     apply c.trail_count_eq_one hc he, },
-  have this'' : multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) (p2.concat p11).edges + multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) p12.edges = 1,
+  have this'' : multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) (p2.concat p11).edges
+                  + multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) p12.edges = 1,
   { convert this',
     rw walk.concat_edges,
     symmetry,
@@ -913,10 +924,11 @@ begin
     have hp : 0 < multiset.count v p.support := by simp [multiset.count_pos],
     have hp' : 0 < multiset.count v p'.support := by simp [multiset.count_pos],
     simp,
-    omega, },
+    rw ←nat.succ_le_iff at ⊢ hp hp',
+    exact nat.sub_le_sub_right (add_le_add hp hp') 1, },
   { simp [hwv],
     have hp : 0 < multiset.count w p.support := by simp [multiset.count_pos, h],
-    omega, },
+    exact nat.add_pos_left hp _, },
 end
 
 lemma is_bridge_iff_no_cycle_contains {v w : V} (h : G.adj v w) :
@@ -944,7 +956,10 @@ begin
         { exact hwc },
         exact (G.ne_of_adj h).symm, },
       apply is_bridge_iff_no_cycle_contains.aux1 G (G.sym h) (p2.concat p1)
-        (by { rw [walk.concat_edges, add_comm, ←walk.concat_edges, walk.split_at_vertex_spec], rw hh, exact he })
+        (by { rw [walk.concat_edges, add_comm, ←walk.concat_edges,
+                  walk.split_at_vertex_spec],
+              rw hh,
+              exact he })
         _ (walk.rotate_trail _ hc.2.1 hv),
       swap,
       { apply mem_concat_support,

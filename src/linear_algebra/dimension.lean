@@ -133,7 +133,7 @@ lemma cardinal_le_dim_of_linear_independent
 by simpa using cardinal_lift_le_dim_of_linear_independent hv
 
 lemma cardinal_le_dim_of_linear_independent'
-  {s : set M} (hs : linear_independent R (λ x, x : s → M)) :
+  {s : set M} (hs : linear_independent R (coe : s → M)) :
   cardinal.mk s ≤ module.rank R M :=
 cardinal_le_dim_of_linear_independent hs
 

@@ -64,18 +64,16 @@ lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_po
 /-- Denominator of the formula for a fractional linear transformation -/
 @[simp] def bottom (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 1 0) * z + (g 1 1)
 
-lemma linear_ne_zero (cd : fin 2 → ℝ) (z : ℍ) (hcd : cd ≠ 0) : (cd 0 : ℂ) * z + cd 1 ≠ 0 :=
+lemma linear_ne_zero (cd : fin 2 → ℝ) (z : ℍ) (h : cd ≠ 0) : (cd 0 : ℂ) * z + cd 1 ≠ 0 :=
 begin
-  intros h,
-  apply hcd,
-  have : cd 0 = 0,
-  { have : ((cd 0 : ℂ)*z+(cd 1)).im = 0 := by simp [h],
-    simpa [z.im_ne_zero] using this },
+  contrapose! h,
+  have : cd 0 = 0, -- we will need this twice
+  { apply_fun complex.im at h,
+    simpa only [z.im_ne_zero, complex.add_im, add_zero, coe_im, zero_mul, or_false,
+      complex.of_real_im, complex.zero_im, complex.mul_im, mul_eq_zero] using h, },
+  simp only [this, zero_mul, complex.of_real_zero, zero_add, complex.of_real_eq_zero] at h,
   ext i,
-  fin_cases i,
-  { exact this,},
-  have this1 : ((cd 0 : ℂ)*z+(cd 1)).re = 0 := by simp [h],
-  simpa [this] using this1
+  fin_cases i; assumption,
 end
 
 lemma bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠ 0 :=

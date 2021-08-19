@@ -39,8 +39,8 @@ A lattice ordered commutative group is a type `α` satisfying:
 * `[comm_group α]`
 * `[covariant_class α α (*) (≤)]`
 
-The remainder of the file establishes basic properties of `lattice_ordered_comm_group`. A number
-of these results also hold in the non-commutative case ([Birkhoff][birkhoff1942],
+The remainder of the file establishes basic properties of lattice ordered commutative groups. A
+number of these results also hold in the non-commutative case ([Birkhoff][birkhoff1942],
 [Fuchs][fuchs1963]) but we have not developed that here, since we are primarily interested in vector
 lattices.
 

@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import group_theory.group_action.defs
 import group_theory.group_action.group
 import group_theory.coset
+import data.setoid.basic
 
 /-!
 # Basic properties of group actions
@@ -128,6 +129,12 @@ def orbit_rel : setoid β :=
 
 variables {α β}
 
+noncomputable def stabilizer_smul_eq_coset {x y : β} (hxy : (orbit_rel α β).rel x y) :
+  (stabilizer α x ≃ stabilizer α y) :=
+let g := classical.some hxy in
+have hg : g • y = x := classical.some_spec hxy,
+mul_left
+
 open quotient_group
 
 /-- Action on left cosets. -/
@@ -215,32 +222,31 @@ let
     equiv.subtype_prod_equiv_sigma_subtype (λ (b : β) a, a ∈ stabilizer α b),
   tmp₀ : β ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} :=
     (equiv.sigma_preimage_equiv quotient.mk').symm,
+  tmp₁ : (Σ (ω : Ω), {b // quotient.mk' b = ω}) ≃ Σ (ω : Ω), orbit α ω.out' :=
+    equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right (λ x, sorry)),
   e₃ : (Σ (b : β), stabilizer α b) ≃
-        Σ (ωb : (Σ (ω : Ω), {b // quotient.mk' b = ω})), stabilizer α (ωb.2 : β) :=
-    tmp₀.sigma_congr_left',
-  e₄ : (Σ (ωb : (Σ (ω : Ω), {b // quotient.mk' b = ω})), stabilizer α (ωb.2 : β)) ≃
-        Σ (ω : Ω), (Σ (b : {b // quotient.mk' b = ω}), stabilizer α (b : β)) :=
-    equiv.sigma_assoc (λ (ω : Ω) (b : {b // quotient.mk' b = ω}), stabilizer α (b : β)),
-  e₅ : (Σ (ω : Ω), (Σ (b : {b // quotient.mk' b = ω}), stabilizer α (b : β))) ≃
-        Σ (ω : Ω), (Σ (b : {b // quotient.mk' b = ω}), stabilizer α (quotient.out' ω)) :=
+        Σ (ωb : (Σ (ω : Ω), orbit α ω.out')), stabilizer α (ωb.2 : β) :=
+    (tmp₀.trans tmp₁).sigma_congr_left',
+  e₄ : (Σ (ωb : (Σ (ω : Ω), orbit α ω.out')), stabilizer α (ωb.2 : β)) ≃
+        Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α (b : β)) :=
+    equiv.sigma_assoc (λ (ω : Ω) (b : orbit α ω.out'), stabilizer α (b : β)),
+  e₅ : (Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α (b : β))) ≃
+        Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α ω.out') :=
     sorry,
-  e₆ : (Σ (ω : Ω), (Σ (b : {b // quotient.mk' b = ω}), stabilizer α (quotient.out' ω))) ≃
-        Σ (ω : Ω), {b // quotient.mk' b = ω} × stabilizer α (quotient.out' ω) :=
+  e₆ : (Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α ω.out')) ≃
+        Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out' :=
     sorry,
-  e₇ : (Σ (ω : Ω), {b // quotient.mk' b = ω} × stabilizer α (quotient.out' ω)) ≃
-        Σ (ω : Ω), orbit α (quotient.out' ω) × stabilizer α (quotient.out' ω) :=
-    sorry,
-  e₈ : (Σ (ω : Ω), orbit α (quotient.out' ω) × stabilizer α (quotient.out' ω)) ≃
-        Σ (ω : Ω), quotient (stabilizer α $ quotient.out' ω) × stabilizer α (quotient.out' ω) :=
+  e₇ : (Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out') ≃
+        Σ (ω : Ω), quotient (stabilizer α ω.out') × stabilizer α ω.out' :=
     equiv.sigma_congr_right
       (λ ω, equiv.prod_congr (orbit_equiv_quotient_stabilizer α _) (equiv.refl _)),
-  e₉ : (Σ (ω : Ω), quotient (stabilizer α $ quotient.out' ω) × stabilizer α (quotient.out' ω)) ≃
+  e₈ : (Σ (ω : Ω), quotient (stabilizer α ω.out') × stabilizer α ω.out') ≃
         Σ (ω : Ω), α :=
-    sorry,
-  e₁₀ : (Σ (ω : Ω), α) ≃ Ω × α :=
-    sorry
+    equiv.sigma_congr_right (λ ω, subgroup.group_equiv_quotient_times_subgroup.symm),
+  e₉ : (Σ (ω : Ω), α) ≃ Ω × α :=
+    equiv.sigma_equiv_prod Ω α
 in e₀.trans $ e₁.trans $ e₂.trans $ e₃.trans $ e₄.trans $ e₅.trans $ e₆.trans $ e₇.trans $
-    e₈.trans $ e₉.trans $ e₁₀
+    e₈.trans $ e₉
 
 end draft
 

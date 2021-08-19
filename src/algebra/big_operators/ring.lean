@@ -191,6 +191,22 @@ lemma prod_nat_cast (s : finset α) (f : α → ℕ) :
 
 end comm_semiring
 
+section comm_ring
+
+variables {R : Type*} [comm_ring R]
+
+lemma prod_range_cast_nat_sub (n k : ℕ) :
+  ∏ i in range k, (n - i : R) = (∏ i in range k, (n - i) : ℕ) :=
+begin
+  rw prod_nat_cast,
+  cases le_or_lt k n with hkn hnk,
+  { exact prod_congr rfl (λ i hi, (nat.cast_sub $ (mem_range.1 hi).le.trans hkn).symm) },
+  { rw ← mem_range at hnk,
+    rw [prod_eq_zero hnk, prod_eq_zero hnk]; simp }
+end
+
+end comm_ring
+
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
 @[to_additive]

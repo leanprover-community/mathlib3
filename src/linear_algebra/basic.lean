@@ -2868,9 +2868,9 @@ end linear_equiv
 
 end fun_left
 
-universe i
-variables [semiring R] [add_comm_monoid M] [module R M]
+namespace linear_equiv
 
+variables [semiring R] [add_comm_monoid M] [module R M]
 variables (R M)
 
 namespace linear_equiv
@@ -2884,7 +2884,7 @@ instance automorphism_group : group (M ≃ₗ[R] M) :=
   one_mul := λ f, by {ext, refl},
   mul_left_inv := λ f, by {ext, exact f.left_inv x} }
 
-/-- Restriction from `R`-linear automorphisms of `M` to `R`-linearendomorphisms of `M`,
+/-- Restriction from `R`-linear automorphisms of `M` to `R`-linear endomorphisms of `M`,
 promoted to a monoid hom. -/
 def automorphism_group.to_linear_map_monoid_hom :
   (M ≃ₗ[R] M) →* (M →ₗ[R] M) :=
@@ -2918,6 +2918,9 @@ instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
 end linear_equiv
 
 namespace linear_map
+
+variables [semiring R] [add_comm_monoid M] [module R M]
+variables (R M)
 
 /-- The group of invertible linear maps from `M` to itself -/
 @[reducible] def general_linear_group := units (M →ₗ[R] M)

@@ -182,7 +182,7 @@ src/tactic/transfer.lean : line 112 : ERR_LIN : Line has more than 100 character
 src/tactic/transfer.lean : line 113 : ERR_LIN : Line has more than 100 characters
 src/tactic/transfer.lean : line 6 : ERR_MOD : Module docstring missing, or too late
 src/tactic/transform_decl.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/transform_decl.lean : line 85 : ERR_LIN : Line has more than 100 characters
+src/tactic/transform_decl.lean : line 98 : ERR_LIN : Line has more than 100 characters
 src/tactic/transport.lean : line 45 : ERR_LIN : Line has more than 100 characters
 src/tactic/trunc_cases.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/wlog.lean : line 10 : ERR_MOD : Module docstring missing, or too late

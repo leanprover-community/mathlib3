@@ -12,7 +12,7 @@ This file defines two `ℕ`-valued ana**log**s of the logarithm of `n` with base
 * `log b n`: Lower logarithm, or floor **log**. Greatest `k` such that `b^k ≤ n`.
 * `clog b n`: Upper logarithm, or **c**eil **log**. Least `k` such that `n ≤ b^k`.
 
-These are of interest because, for `2 ≤ b`, `nat.log b` and `nat.clog b` are respectively right and
+These are interesting because, for `2 ≤ b`, `nat.log b` and `nat.clog b` are respectively right and
 left adjoints of `nat.pow b`. See `pow_le_iff_le_log` and `le_pow_iff_clog_le`.
 -/
 
@@ -49,7 +49,7 @@ lemma log_zero_right (b : ℕ) : log b 0 = 0 :=
 by { rw log, cases b; refl }
 
 lemma log_one_left (n : ℕ) : log 1 n = 0 :=
-log_of_left_le_one rfl.ge
+log_of_left_le_one le_rfl
 
 lemma log_one_right (b : ℕ) : log b 1 = 0 :=
 if h : b ≤ 1 then
@@ -57,7 +57,7 @@ if h : b ≤ 1 then
 else
   log_of_lt (not_le.mp h)
 
-/-- `b^` and `log b` (almost) form a Galois connection. -/
+/-- `pow b` and `log b` (almost) form a Galois connection. -/
 lemma pow_le_iff_le_log {b : ℕ} (hb : 1 < b) {x y : ℕ} (hy : 0 < y) :
   b^x ≤ y ↔ x ≤ log b y :=
 begin
@@ -153,8 +153,7 @@ begin
   exact add_le_add_right h _,
 end
 
-
-/--`clog b` and `b^` form a Galois connection. -/
+/--`clog b` and `pow b` form a Galois connection. -/
 lemma le_pow_iff_clog_le {b : ℕ} (hb : 2 ≤ b) {x y : ℕ} :
   x ≤ b^y ↔ clog b x ≤ y :=
 begin
@@ -200,5 +199,17 @@ end
 
 lemma clog_mono {b : ℕ} : monotone (clog b) :=
 λ x y, clog_le_clog_of_le
+
+lemma log_le_clog (b n : ℕ) : log b n ≤ clog b n :=
+begin
+  obtain hb | hb := le_or_lt b 1,
+  { rw log_of_left_le_one hb,
+    exact zero_le _},
+  cases n,
+  { rw log_zero_right,
+    exact zero_le _},
+  exact (pow_right_strict_mono hb).le_iff_le.1 ((pow_log_le_self hb $ succ_pos _).trans $
+    le_pow_clog hb $ succ_pos _),
+end
 
 end nat

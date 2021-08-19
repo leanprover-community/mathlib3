@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Jalex Stark
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 -/
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
 import data.rel
 import linear_algebra.matrix.trace
+import algebra.indicator_function
 
 /-!
 # Adjacency Matrices
@@ -168,24 +169,6 @@ begin
   simp,
 end
 
-lemma sum_subset_extend {α β : Type*} [add_comm_monoid β]
-  {s t : finset α} [decidable_pred (∈ s)]
-  (h : s ⊆ t) (f : α → β) :
-  ∑ i in s, f i = ∑ i in t, if i ∈ s then f i else 0 :=
-begin
-  rw [←finset.sum_subset h, ←finset.sum_attach],
-  swap, exact λ x ht hs, by simp [hs],
-  nth_rewrite 1 ←finset.sum_attach,
-  congr,
-  ext,
-  simp,
-end
-
-lemma extend_by_zero' {α β : Type*} [fintype α] [add_comm_monoid β]
-  (s : finset α) [decidable_pred (∈ s)] (f : α → β) :
-  ∑ i in s, f i = ∑ (i : α), if i ∈ s then f i else 0 :=
-by rw sum_subset_extend (subset_univ s)
-
 theorem adj_matrix_pow_apply_eq_card_walk (n : ℕ) (u v : α) :
   (G.adj_matrix R ^ n) u v = fintype.card {p : G.walk u v // p.length = n} :=
 begin
@@ -197,8 +180,8 @@ begin
     { simp [walk_len, h], }, },
   { rw [nat.succ_eq_add_one, add_comm, pow_add, pow_one],
     simp only [adj_matrix_mul_apply, mul_eq_mul],
-    rw [extend_by_zero'],
-    simp only [n_ih, mem_neighbor_finset],
+    rw set.sum_indicator_subset _ (subset_univ _),
+    simp_rw [set.indicator_apply, mem_coe, mem_neighbor_finset, n_ih],
     rw add_comm,
     simp only [walk_len],
     rw finset.card_bUnion,

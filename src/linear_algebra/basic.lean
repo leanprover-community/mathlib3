@@ -2762,9 +2762,13 @@ quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
 end isomorphism_laws
 
+end linear_map
+
 section fun_left
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
 variables {m n p : Type*}
+
+namespace linear_map
 
 /-- Given an `R`-module `M` and a function `m → n` between arbitrary types,
 construct a linear map `(n → M) →ₗ[R] (m → M)` -/
@@ -2805,13 +2809,18 @@ begin
   simp only [← linear_map.comp_apply, ← fun_left_comp, hg.id, fun_left_id]
 end
 
+end linear_map
+
+namespace linear_equiv
+open linear_map
+
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/
 def fun_congr_left (e : m ≃ n) : (n → M) ≃ₗ[R] (m → M) :=
 linear_equiv.of_linear (fun_left R M e) (fun_left R M e.symm)
-  (ext $ λ x, funext $ λ i,
+  (linear_map.ext $ λ x, funext $ λ i,
     by rw [id_apply, ← fun_left_comp, equiv.symm_comp_self, fun_left_id])
-  (ext $ λ x, funext $ λ i,
+  (linear_map.ext $ λ x, funext $ λ i,
     by rw [id_apply, ← fun_left_comp, equiv.self_comp_symm, fun_left_id])
 
 @[simp] theorem fun_congr_left_apply (e : m ≃ n) (x : n → M) :
@@ -2831,11 +2840,13 @@ rfl
   (fun_congr_left R M e).symm = fun_congr_left R M e.symm :=
 rfl
 
+end linear_equiv
+
 end fun_left
 
-universe i
-variables [semiring R] [add_comm_monoid M] [module R M]
+namespace linear_equiv
 
+variables [semiring R] [add_comm_monoid M] [module R M]
 variables (R M)
 
 instance automorphism_group : group (M ≃ₗ[R] M) :=
@@ -2847,13 +2858,20 @@ instance automorphism_group : group (M ≃ₗ[R] M) :=
   one_mul := λ f, by {ext, refl},
   mul_left_inv := λ f, by {ext, exact f.left_inv x} }
 
-/-- Restriction from `R`-linear automorphisms of `M` to `R`-linearendomorphisms of `M`,
+/-- Restriction from `R`-linear automorphisms of `M` to `R`-linear endomorphisms of `M`,
 promoted to a monoid hom. -/
 def automorphism_group.to_linear_map_monoid_hom :
   (M ≃ₗ[R] M) →* (M →ₗ[R] M) :=
 { to_fun := coe,
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
+
+end linear_equiv
+
+namespace linear_map
+
+variables [semiring R] [add_comm_monoid M] [module R M]
+variables (R M)
 
 /-- The group of invertible linear maps from `M` to itself -/
 @[reducible] def general_linear_group := units (M →ₗ[R] M)

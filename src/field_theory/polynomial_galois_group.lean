@@ -97,6 +97,35 @@ instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting
 is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h.1).commutes x).symm)
 
+section
+
+lemma is_scalar_tower_mid {K L R : Type*} [field K] [field L] [algebra K L] (S : intermediate_field K L)
+  [semiring R] [algebra L R] [algebra K R]
+[is_scalar_tower K L R] : is_scalar_tower K S R :=
+is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
+
+def should_fail_fast1 (α : p.splitting_field) : is_scalar_tower F p.splitting_field p.splitting_field :=
+@gal.is_scalar_tower _ _ p p.splitting_field _ _ _  -- failed to synthesize class instance
+
+def should_fail_fast2 : fact
+  (@splits F p.splitting_field _inst_1 (@splitting_field.field F _inst_1 p)
+    (@algebra_map F p.splitting_field
+      (@comm_ring.to_comm_semiring F (@euclidean_domain.to_comm_ring F (@field.to_euclidean_domain F _inst_1)))
+      (@ring.to_semiring p.splitting_field
+        (@division_ring.to_ring p.splitting_field
+          (@field.to_division_ring p.splitting_field (@splitting_field.field F _inst_1 p))))
+      (@splitting_field.algebra F _inst_1 p))
+p) := infer_instance -- failed to synthesize class instance
+
+-- This should never be able to loop!
+local attribute [-instance] gal.is_scalar_tower nat.prime.one_lt' pos_of_one_lt succ_pos''
+
+def should_fail_but_loops (α : p.splitting_field) : is_scalar_tower F F⟮α⟯ p.splitting_field :=
+@@is_scalar_tower_mid _ _ _ _ _ _ _ (@gal.is_scalar_tower _ _ p p.splitting_field _ _ _)
+-- timeout, keeps trying to find the above instance
+
+end
+
 /-- Restrict from a superfield automorphism into a member of `gal p`. -/
 def restrict [fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
 alg_equiv.restrict_normal_hom p.splitting_field

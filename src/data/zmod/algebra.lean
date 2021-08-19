@@ -18,6 +18,7 @@ variables (R : Type*) [ring R]
 section
 variables {n : ℕ} (m : ℕ) [char_p R m]
 
+/-- The `zmod n`-algebra structure on rings whose characteristic `m` divides `n` -/
 def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 { smul := λ a r, a * r,
   commutes' := λ a r, show (a * r : R) = r * a,

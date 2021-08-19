@@ -52,7 +52,6 @@ begin
   exact sep.map,
 end
 
-open_locale big_operators
 variables {α : Type*} (s : finset α) (g : α → polynomial K)
 
 lemma card_roots_eq_of_separable_of_splits
@@ -168,6 +167,7 @@ begin
   rw [splits_iff_card_roots, h1, ←finset.card_def, finset.card_univ, h2, zmod.card],
 end
 
+/-- A Galois field with exponent 1 is equivalent to `zmod` -/
 def equiv_zmod_p : galois_field p 1 ≃ₐ[zmod p] (zmod p) :=
 have h : (X ^ p ^ 1 : polynomial (zmod p)) = X ^ (fintype.card (zmod p)),
   by rw [pow_one, zmod.card p],

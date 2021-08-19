@@ -226,28 +226,29 @@ open polynomial
 
 section
 
-variables {p n : ℕ}
+variables (K' : Type*) [field K'] {p n : ℕ}
 
 lemma X_pow_card_sub_X_nat_degree_eq (hp : 1 < p) :
-  (X ^ p - X : polynomial K).nat_degree = p :=
+  (X ^ p - X : polynomial K').nat_degree = p :=
 begin
-  have h1 : (X : polynomial K).degree < (X ^ p : polynomial K).degree,
+  have h1 : (X : polynomial K').degree < (X ^ p : polynomial K').degree,
   { rw [degree_X_pow, degree_X],
     exact_mod_cast hp },
   rw [nat_degree_eq_of_degree_eq (degree_sub_eq_left_of_degree_lt h1), nat_degree_X_pow],
 end
 
 lemma X_pow_card_pow_sub_X_nat_degree_eq (hn : n ≠ 0) (hp : 1 < p) :
-  (X ^ p ^ n - X : polynomial K).nat_degree = p ^ n :=
-X_pow_card_sub_X_nat_degree_eq K $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
+  (X ^ p ^ n - X : polynomial K').nat_degree = p ^ n :=
+X_pow_card_sub_X_nat_degree_eq K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
 
-lemma X_pow_card_sub_X_ne_zero (hp : 1 < p) : (X ^ p - X : polynomial K) ≠ 0 :=
+lemma X_pow_card_sub_X_ne_zero (hp : 1 < p) : (X ^ p - X : polynomial K') ≠ 0 :=
 ne_zero_of_nat_degree_gt $
 calc 1 < _ : hp
-... = _ : (X_pow_card_sub_X_nat_degree_eq K hp).symm
+... = _ : (X_pow_card_sub_X_nat_degree_eq K' hp).symm
 
-lemma X_pow_card_pow_sub_X_ne_zero (hn : n ≠ 0) (hp : 1 < p) : (X ^ p ^ n - X : polynomial K) ≠ 0 :=
-X_pow_card_sub_X_ne_zero K $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
+lemma X_pow_card_pow_sub_X_ne_zero (hn : n ≠ 0) (hp : 1 < p) :
+  (X ^ p ^ n - X : polynomial K') ≠ 0 :=
+X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
 
 end
 
@@ -369,9 +370,6 @@ end
 section
 
 variables {V : Type*} [add_comm_group V] [module K V]
-
-noncomputable def fintype_of_finite_dimensional [finite_dimensional K V] : fintype V :=
-finite_dimensional.fintype_of_fintype K V
 
 -- should this go in a namespace?
 -- finite_dimensional would be natural,

@@ -199,7 +199,7 @@ begin
 end
 
 lemma C_content_dvd (p : polynomial R) : C p.content ∣ p :=
-dvd_content_iff_C_dvd.1 (dvd_refl _)
+dvd_content_iff_C_dvd.1 dvd_rfl
 
 lemma is_primitive_iff_content_eq_one {p : polynomial R} : p.is_primitive ↔ p.content = 1 :=
 begin

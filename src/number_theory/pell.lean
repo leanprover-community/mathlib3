@@ -257,7 +257,7 @@ section
   nat.coprime_of_dvd' $ λk kp kx ky,
   let p := pell_eq n in by rw ← p; exact
   nat.dvd_sub (le_of_lt $ nat.lt_of_sub_eq_succ p)
-    (dvd_mul_of_dvd_right kx _) (dvd_mul_of_dvd_right ky _)
+    (kx.mul_left _) (ky.mul_left _)
 
   theorem y_increasing {m} : Π {n}, m < n → yn m < yn n
   | 0     h := absurd h $ nat.not_lt_zero _
@@ -283,7 +283,7 @@ section
   theorem y_mul_dvd (n) : ∀k, yn n ∣ yn (n * k)
   | 0     := dvd_zero _
   | (k+1) := by rw [nat.mul_succ, yn_add]; exact
-    dvd_add (dvd_mul_left _ _) (dvd_mul_of_dvd_left (y_mul_dvd k) _)
+    dvd_add (dvd_mul_left _ _) ((y_mul_dvd k).mul_right _)
 
   theorem y_dvd_iff (m n) : yn m ∣ yn n ↔ m ∣ n :=
   ⟨λh, nat.dvd_of_mod_eq_zero $ (nat.eq_zero_or_pos _).resolve_right $ λhp,
@@ -295,7 +295,7 @@ section
     by rw [← nat.mod_add_div n m, yn_add] at h; exact
     not_le_of_gt (y_increasing _ $ nat.mod_lt n m0)
      (nat.le_of_dvd (y_increasing _ hp) $ co.dvd_of_dvd_mul_right $
-      (nat.dvd_add_iff_right $ dvd_mul_of_dvd_right (y_mul_dvd _ _ _) _).2 h),
+      (nat.dvd_add_iff_right $ (y_mul_dvd _ _ _).mul_left _).2 h),
   λ⟨k, e⟩, by rw e; apply y_mul_dvd⟩
 
   theorem xy_modeq_yn (n) :
@@ -332,8 +332,7 @@ section
   have yn n ∣ k * (xn n)^(k-1), from
   nat.dvd_of_mul_dvd_mul_right (y_increasing n0l) $ modeq_zero_iff_dvd.1 $
     by have xm := (xy_modeq_yn a1 n k).right; rw ← ke at xm; exact
-    (xm.modeq_of_dvd $ by simp [pow_succ]).symm.trans
-      (modeq_zero_iff_dvd.2 h),
+    (xm.modeq_of_dvd $ by simp [pow_succ]).symm.trans h.modeq_zero_int,
   by rw ke; exact dvd_mul_of_dvd_right
     (((xy_coprime _ _).pow_left _).symm.dvd_of_dvd_mul_right this) _
 
@@ -391,7 +390,7 @@ section
     ⟨-↑(y^n), by simp [pow_succ, mul_add, int.coe_nat_mul,
         show ((2:ℕ):ℤ) = 2, from rfl, mul_comm, mul_left_comm]; ring ⟩,
     by rw [xz_succ_succ, yz_succ_succ, x_sub_y_dvd_pow_lem a1 ↑(y^(n+2)) ↑(y^(n+1)) ↑(y^n)]; exact
-    dvd_sub (dvd_add this $ dvd_mul_of_dvd_right (x_sub_y_dvd_pow (n+1)) _) (x_sub_y_dvd_pow n)
+    dvd_sub (dvd_add this $ (x_sub_y_dvd_pow (n+1)) _).mul_left (x_sub_y_dvd_pow n)
 
   theorem xn_modeq_x2n_add_lem (n j) : xn n ∣ d * yn n * (yn n * xn j) + xn j :=
   have h1 : d * yn n * (yn n * xn j) + xn j = (d * yn n * yn n + 1) * xn j,
@@ -406,7 +405,7 @@ section
     rw [two_mul, add_assoc, xn_add, add_assoc, ←zero_add 0],
     refine (dvd_mul_right (xn a1 n) (xn a1 (n + j))).modeq_zero_nat.add _,
     rw [yn_add, left_distrib, add_assoc, ←zero_add 0],
-    exact (dvd_mul_of_dvd_right (dvd_mul_right _ _) _).modeq_zero_nat.add
+    exact ((dvd_mul_right _ _).mul_left _).modeq_zero_nat.add
       (xn_modeq_x2n_add_lem _ _ _).modeq_zero_nat,
   end
 
@@ -417,7 +416,7 @@ section
     (by delta xz; delta yz;
         repeat {rw ← int.coe_nat_add <|> rw ← int.coe_nat_mul}; rw mul_comm (xn a1 j) (yn a1 n);
         exact int.coe_nat_dvd.2 (xn_modeq_x2n_add_lem _ _ _))
-    (dvd_mul_of_dvd_right (dvd_mul_right _ _) _),
+    ((dvd_mul_right _ _).mul_left _),
   begin
     rw [two_mul, nat.add_sub_assoc h, xn_add, add_assoc, ←zero_add 0],
     exact (dvd_mul_right _ _).modeq_zero_nat.add
@@ -474,9 +473,9 @@ section
         rw ← nat.mod_eq_of_lt (nat.sub_lt (x_pos a1 n) (x_pos a1 (2 * n - k))),
         apply modeq.add_right_cancel' (xn a1 (2 * n - k)),
         rw [nat.sub_add_cancel xle],
-        have t := xn_modeq_x2n_sub_lem a1 (le_of_lt k2nl),
+        have t := xn_modeq_x2n_sub_lem a1 k2nl.le,
         rw nat.sub_sub_self k2n at t,
-        exact t.trans (modeq_zero_iff_dvd.2 $ dvd_refl _).symm },
+        exact t.trans dvd_rfl.zero_modeq_int },
     (lt_trichotomy j n).elim
     (λ (jn : j < n), eq_of_xn_modeq_lem1 ij (lt_of_le_of_ne jn jnn)) $ λo, o.elim
     (λ (jn : j = n), by {
@@ -570,7 +569,7 @@ section
   or.imp
     (λ(ji : j' = i), by rwa ← ji)
     (λ(ji : j' + i = 4 * n), (jj.add_right _).trans $
-      by rw ji; exact (dvd_refl _).modeq_zero_nat)
+      by { rw ji, exact dvd_rfl.modeq_zero_nat })
     (eq_of_xn_modeq' ipos hin jl.le $
       (h.symm.trans $ by { rw ← nat.mod_add_div j (4*n), exact this j' _ }).symm)
 end
@@ -608,8 +607,8 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
   have yv : y * y ∣ v, from dvd_trans (ysq_dvd_yy a1 k) $
       (y_dvd_iff _ _ _).2 $ dvd_mul_left _ _,
   have uco : nat.coprime u (4 * y), from
-    have 2 ∣ v, from modeq_zero_iff_dvd.1 $ (yn_modeq_two _ _).trans $
-      modeq_zero_iff_dvd.2 (dvd_mul_right _ _),
+    have 2 ∣ v, from modeq_zero_iff_dvd.1 $ (yn_modeq_two _ _).trans
+      (dvd_mul_right _ _).modeq_zero_int,
     have nat.coprime u 2, from
       (xy_coprime a1 m).coprime_dvd_right this,
     (this.mul_right this).mul_right $
@@ -716,7 +715,7 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
   have a1 : 1 < a, from x_increasing w1 wpos,
   let x := xn a1 k, y := yn a1 k in
   let ⟨z, ze⟩ := show w ∣ yn w1 w, from modeq_zero_iff_dvd.1 $
-    (yn_modeq_a_sub_one w1 w).trans (modeq_zero_iff_dvd.2 $ dvd_refl _) in
+    (yn_modeq_a_sub_one w1 w).trans dvd_rfl.modeq_zero_int in
   have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
     eq_pow_of_pell_lem a1 npos kpos $ calc
       n^k ≤ n^w       : nat.pow_le_pow_of_le_right npos kw

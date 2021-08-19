@@ -94,7 +94,7 @@ theorem mem_jacobson_iff {x : R} : x ∈ jacobson I ↔ ∀ y, ∃ z, x * y * z 
     let ⟨M, hm1, hm2⟩ := exists_le_maximal _ hxy in
     suffices x ∉ M, from (this $ mem_Inf.1 hx ⟨le_trans le_sup_left hm2, hm1⟩).elim,
     λ hxm, hm1.1.1 $ (eq_top_iff_one _).2 $ add_sub_cancel' (x * y) 1 ▸ M.sub_mem
-      (le_trans le_sup_right hm2 $ mem_span_singleton.2 $ dvd_refl _)
+      (le_sup_right.trans hm2 $ mem_span_singleton.2 dvd_rfl)
       (M.mul_mem_right _ hxm)),
 λ hx, mem_Inf.2 $ λ M ⟨him, hm⟩, classical.by_contradiction $ λ hxm,
   let ⟨y, hy⟩ := hm.exists_inv hxm, ⟨z, hz⟩ := hx (-y) in

@@ -363,7 +363,7 @@ begin
       { rw hc },
       rw [valuation_p_pow_mul _ _ hc', add_sub_cancel', pow_succ', ← mul_sub],
       apply mul_dvd_mul_left,
-      by_cases hc0 : c.valuation.nat_abs = 0,
+      obtain hc0 | hc0 := c.valuation.nat_abs.eq_zero_or_pos,
       { simp only [hc0, mul_one, pow_zero],
         rw [mul_comm, unit_coeff_spec h] at hc,
         suffices : c = unit_coeff h,
@@ -374,12 +374,10 @@ begin
           rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, gpow_zero], },
         rw discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
         exact irreducible_p },
-      { rw [zero_pow (nat.pos_of_ne_zero hc0)],
+      { rw zero_pow hc0,
         simp only [sub_zero, zmod.cast_zero, mul_zero],
         rw unit_coeff_spec hc',
-        apply dvd_mul_of_dvd_right,
-        apply dvd_pow (dvd_refl _),
-        exact hc0 } } }
+        exact (dvd_rfl.pow hc0).mul_left } } }
 end
 
 attribute [irreducible] appr

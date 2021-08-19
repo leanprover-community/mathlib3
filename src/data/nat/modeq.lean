@@ -161,7 +161,7 @@ if hm : m = 0 then ⟨b, begin rw [hm, gcd_zero_right] at h, split, exact h.symm
     rw [nat.gcd_eq_zero_iff, not_and],
     exact λ _, hm,
   end,
-  have hcoedvd : ∀ t, (gcd n m : ℤ) ∣ t * (b - a) := λ t, dvd_mul_of_dvd_right h.dvd _,
+  have hcoedvd : ∀ t, (gcd n m : ℤ) ∣ t * (b - a) := λ t, h.dvd.mul_left _,
   have := gcd_eq_gcd_ab n m,
   split; rw [int.mod_def, ← sub_add]; refine dvd_add _ (dvd_mul_of_dvd_left _ _); try {norm_cast},
   { rw ← sub_eq_iff_eq_add' at this,

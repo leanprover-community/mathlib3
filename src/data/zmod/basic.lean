@@ -342,27 +342,27 @@ section char_eq
 variable [char_p R n]
 
 @[simp] lemma cast_one' : ((1 : zmod n) : R) = 1 :=
-cast_one (dvd_refl _)
+cast_one dvd_rfl
 
 @[simp] lemma cast_add' (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
-cast_add (dvd_refl _) a b
+cast_add dvd_rfl a b
 
 @[simp] lemma cast_mul' (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
-cast_mul (dvd_refl _) a b
+cast_mul dvd_rfl a b
 
 @[simp] lemma cast_sub' (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
-cast_sub (dvd_refl _) a b
+cast_sub dvd_rfl a b
 
 @[simp] lemma cast_pow' (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
-cast_pow (dvd_refl _) a k
+cast_pow dvd_rfl a k
 
 @[simp, norm_cast]
 lemma cast_nat_cast' (k : ℕ) : ((k : zmod n) : R) = k :=
-cast_nat_cast (dvd_refl _) k
+cast_nat_cast dvd_rfl k
 
 @[simp, norm_cast]
 lemma cast_int_cast' (k : ℤ) : ((k : zmod n) : R) = k :=
-cast_int_cast (dvd_refl _) k
+cast_int_cast dvd_rfl k
 
 instance (R : Type*) [comm_ring R] [char_p R n] : algebra (zmod n) R :=
 (zmod.cast_hom (dvd_refl n) R).to_algebra

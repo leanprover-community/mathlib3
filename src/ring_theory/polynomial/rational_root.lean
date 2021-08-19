@@ -100,7 +100,7 @@ begin
   intros j hj,
   by_cases h : j < p.nat_degree,
   { rw coeff_scale_roots,
-    refine dvd_mul_of_dvd_left (dvd_mul_of_dvd_right _ _) _,
+    refine (dvd_mul_of_dvd_right _ _).mul_right _,
     convert pow_dvd_pow _ (nat.succ_le_iff.mpr (nat.lt_sub_left_of_add_lt _)),
     { exact (pow_one _).symm },
     simpa using h },

@@ -153,7 +153,7 @@ begin
   calc
   nat_abs (a / b) = nat_abs (a / b) * 1 : by rw mul_one
     ... = nat_abs (a / b) * (nat_abs b / nat_abs b) : by rw nat.div_self h
-    ... = nat_abs (a / b) * nat_abs b / nat_abs b : by rw (nat.mul_div_assoc _ (dvd_refl _))
+    ... = nat_abs (a / b) * nat_abs b / nat_abs b : by rw (nat.mul_div_assoc _ dvd_rfl)
     ... = nat_abs (a / b * b) / nat_abs b : by rw (nat_abs_mul (a / b) b)
     ... = nat_abs a / nat_abs b : by rw int.div_mul_cancel H,
 end
@@ -275,7 +275,7 @@ gcd_dvd_gcd_of_dvd_right _ (dvd_mul_right _ _)
 
 theorem gcd_eq_left {i j : ℤ} (H : i ∣ j) : gcd i j = nat_abs i :=
 nat.dvd_antisymm (by unfold gcd; exact nat.gcd_dvd_left _ _)
-                 (by unfold gcd; exact nat.dvd_gcd (dvd_refl _) (nat_abs_dvd_abs_iff.mpr H))
+                 (by unfold gcd; exact nat.dvd_gcd dvd_rfl (nat_abs_dvd_abs_iff.mpr H))
 
 theorem gcd_eq_right {i j : ℤ} (H : j ∣ i) : gcd i j = nat_abs j :=
 by rw [gcd_comm, gcd_eq_left H]
@@ -376,8 +376,8 @@ begin
   refine nat.dvd_antisymm _ (int.coe_nat_dvd.1 (int.dvd_gcd h₁ h₂)),
   rw [← int.coe_nat_dvd, ← h₃],
   apply dvd_add,
-  { exact dvd_mul_of_dvd_left (int.gcd_dvd_left _ _) _ },
-  { exact dvd_mul_of_dvd_left (int.gcd_dvd_right _ _) _ }
+  { exact (int.gcd_dvd_left _ _).mul_right _ },
+  { exact (int.gcd_dvd_right _ _).mul_right _ }
 end
 
 lemma nat_gcd_helper_dvd_left (x y a : ℕ) (h : x * a = y) : nat.gcd x y = x :=

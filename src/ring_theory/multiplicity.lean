@@ -411,7 +411,7 @@ lemma pow {p a : α} (hp : prime p) : ∀ {k : ℕ},
 
 lemma multiplicity_pow_self {p : α} (h0 : p ≠ 0) (hu : ¬ is_unit p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=
-by { rw [eq_some_iff], use dvd_refl _, rw [pow_dvd_pow_iff h0 hu], apply nat.not_succ_le_self }
+by { rw [eq_some_iff], use dvd_rfl, rw [pow_dvd_pow_iff h0 hu], apply nat.not_succ_le_self }
 
 lemma multiplicity_pow_self_of_prime {p : α} (hp : prime p) (n : ℕ) :
   multiplicity p (p ^ n) = n :=

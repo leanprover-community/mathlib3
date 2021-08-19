@@ -57,7 +57,7 @@ lemma lcm_dvd {a : α} : (∀b ∈ s, f b ∣ a) → s.lcm f ∣ a :=
 lcm_dvd_iff.2
 
 lemma dvd_lcm {b : β} (hb : b ∈ s) : f b ∣ s.lcm f :=
-lcm_dvd_iff.1 (dvd_refl _) _ hb
+lcm_dvd_iff.1 dvd_rfl _ hb
 
 @[simp] lemma lcm_insert [decidable_eq β] {b : β} :
   (insert b s : finset β).lcm f = gcd_monoid.lcm (f b) (s.lcm f) :=
@@ -110,7 +110,7 @@ begin
 end
 
 lemma gcd_dvd {b : β} (hb : b ∈ s) : s.gcd f ∣ f b :=
-dvd_gcd_iff.1 (dvd_refl _) _ hb
+dvd_gcd_iff.1 dvd_rfl _ hb
 
 lemma dvd_gcd {a : α} : (∀b ∈ s, a ∣ f b) → a ∣ s.gcd f :=
 dvd_gcd_iff.2

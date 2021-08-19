@@ -139,10 +139,10 @@ by simpa only [zero_mul, zero_add] using div_add_mod a 0
  end⟩
 
 @[simp] lemma mod_self (a : R) : a % a = 0 :=
-mod_eq_zero.2 (dvd_refl _)
+mod_eq_zero.2 dvd_rfl
 
 lemma dvd_mod_iff {a b c : R} (h : c ∣ b) : c ∣ a % b ↔ c ∣ a :=
-by rw [dvd_add_iff_right (dvd_mul_of_dvd_left h _), div_add_mod]
+by rw [dvd_add_iff_right (h.mul_right _), div_add_mod]
 
 lemma lt_one (a : R) : a ≺ (1:R) → a = 0 :=
 by haveI := classical.dec; exact
@@ -221,7 +221,7 @@ by rw gcd; split_ifs; [simp only [h, mod_zero, gcd_zero_right], refl]
 
 theorem gcd_dvd (a b : R) : gcd a b ∣ a ∧ gcd a b ∣ b :=
 gcd.induction a b
-  (λ b, by rw [gcd_zero_left]; exact ⟨dvd_zero _, dvd_refl _⟩)
+  (λ b, by rw [gcd_zero_left]; exact ⟨dvd_zero _, dvd_rfl⟩)
   (λ a b aneq ⟨IH₁, IH₂⟩, by rw gcd_val;
     exact ⟨IH₂, (dvd_mod_iff IH₂).1 IH₁⟩)
 
@@ -248,7 +248,7 @@ theorem gcd_eq_left {a b : R} : gcd a b = a ↔ a ∣ b :=
 gcd_eq_left.2 (one_dvd _)
 
 @[simp] theorem gcd_self (a : R) : gcd a a = a :=
-gcd_eq_left.2 (dvd_refl _)
+gcd_eq_left.2 dvd_rfl
 
 /--
 An implementation of the extended GCD algorithm.
@@ -361,8 +361,8 @@ begin
     rw [mul_left_comm, mul_div_cancel_left _ hxy, ← mul_left_inj' hxy, hp],
     rw [← mul_assoc], simp only [mul_right_comm] },
   rw [gcd_eq_gcd_ab, mul_add], apply dvd_add,
-  { rw mul_left_comm, exact mul_dvd_mul_left _ (dvd_mul_of_dvd_left hyz _) },
-  { rw [mul_left_comm, mul_comm], exact mul_dvd_mul_left _ (dvd_mul_of_dvd_left hxz _) }
+  { rw mul_left_comm, exact mul_dvd_mul_left _ (hyz.mul_right _) },
+  { rw [mul_left_comm, mul_comm], exact mul_dvd_mul_left _ (hxz.mul_right _) }
 end
 
 @[simp] lemma lcm_dvd_iff {x y z : R} : lcm x y ∣ z ↔ x ∣ z ∧ y ∣ z :=

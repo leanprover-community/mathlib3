@@ -313,26 +313,26 @@ theorem gcd_eq_right_iff (a b : α) (h : normalize b = b) : gcd a b = b ↔ b �
 by simpa only [gcd_comm a b] using gcd_eq_left_iff b a h
 
 theorem gcd_dvd_gcd_mul_left (m n k : α) : gcd m n ∣ gcd (k * m) n :=
-gcd_dvd_gcd (dvd_mul_left _ _) (dvd_refl _)
+gcd_dvd_gcd (dvd_mul_left _ _) dvd_rfl
 
 theorem gcd_dvd_gcd_mul_right (m n k : α) : gcd m n ∣ gcd (m * k) n :=
-gcd_dvd_gcd (dvd_mul_right _ _) (dvd_refl _)
+gcd_dvd_gcd (dvd_mul_right _ _) dvd_rfl
 
 theorem gcd_dvd_gcd_mul_left_right (m n k : α) : gcd m n ∣ gcd m (k * n) :=
-gcd_dvd_gcd (dvd_refl _) (dvd_mul_left _ _)
+gcd_dvd_gcd dvd_rfl (dvd_mul_left _ _)
 
 theorem gcd_dvd_gcd_mul_right_right (m n k : α) : gcd m n ∣ gcd m (n * k) :=
-gcd_dvd_gcd (dvd_refl _) (dvd_mul_right _ _)
+gcd_dvd_gcd dvd_rfl (dvd_mul_right _ _)
 
 theorem associated.gcd_eq_left {m n : α} (h : associated m n) (k : α) : gcd m k = gcd n k :=
 dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
-  (gcd_dvd_gcd h.dvd (dvd_refl _))
-  (gcd_dvd_gcd h.symm.dvd (dvd_refl _))
+  (gcd_dvd_gcd h.dvd dvd_rfl)
+  (gcd_dvd_gcd h.symm.dvd dvd_rfl)
 
 theorem associated.gcd_eq_right {m n : α} (h : associated m n) (k : α) : gcd k m = gcd k n :=
 dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
-  (gcd_dvd_gcd (dvd_refl _) h.dvd)
-  (gcd_dvd_gcd (dvd_refl _) h.symm.dvd)
+  (gcd_dvd_gcd dvd_rfl h.dvd)
+  (gcd_dvd_gcd dvd_rfl h.symm.dvd)
 
 lemma dvd_gcd_mul_of_dvd_mul {m n k : α} (H : k ∣ m * n) : k ∣ (gcd k m) * n :=
 begin
@@ -462,9 +462,9 @@ classical.by_cases
         normalize.map_mul, normalize_gcd, ← gcd_mul_right, dvd_gcd_iff,
         mul_comm b c, mul_dvd_mul_iff_left h1, mul_dvd_mul_iff_right h2, and_comm])
 
-lemma dvd_lcm_left (a b : α) : a ∣ lcm a b := (lcm_dvd_iff.1 (dvd_refl _)).1
+lemma dvd_lcm_left (a b : α) : a ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).1
 
-lemma dvd_lcm_right (a b : α) : b ∣ lcm a b := (lcm_dvd_iff.1 (dvd_refl _)).2
+lemma dvd_lcm_right (a b : α) : b ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).2
 
 lemma lcm_dvd {a b c : α} (hab : a ∣ b) (hcb : c ∣ b) : lcm a c ∣ b :=
 lcm_dvd_iff.2 ⟨hab, hcb⟩
@@ -511,7 +511,7 @@ theorem lcm_dvd_lcm {a b c d : α} (hab : a ∣ b) (hcd : c ∣ d) : lcm a c ∣
 lcm_dvd (hab.trans (dvd_lcm_left _ _)) (hcd.trans (dvd_lcm_right _ _))
 
 @[simp] theorem lcm_units_coe_left (u : units α) (a : α) : lcm ↑u a = normalize a :=
-lcm_eq_normalize (lcm_dvd units.coe_dvd (dvd_refl _)) (dvd_lcm_right _ _)
+lcm_eq_normalize (lcm_dvd units.coe_dvd dvd_rfl) (dvd_lcm_right _ _)
 
 @[simp] theorem lcm_units_coe_right (a : α) (u : units α) : lcm a ↑u = normalize a :=
 (lcm_comm a u).trans $ lcm_units_coe_left _ _
@@ -523,7 +523,7 @@ lcm_units_coe_left 1 a
 lcm_units_coe_right a 1
 
 @[simp] theorem lcm_same (a : α) : lcm a a = normalize a :=
-lcm_eq_normalize (lcm_dvd (dvd_refl _) (dvd_refl _)) (dvd_lcm_left _ _)
+lcm_eq_normalize (lcm_dvd dvd_rfl dvd_rfl) (dvd_lcm_left _ _)
 
 @[simp] theorem lcm_eq_one_iff (a b : α) : lcm a b = 1 ↔ a ∣ 1 ∧ b ∣ 1 :=
 iff.intro
@@ -557,26 +557,26 @@ theorem lcm_eq_right_iff (a b : α) (h : normalize b = b) : lcm a b = b ↔ a �
 by simpa only [lcm_comm b a] using lcm_eq_left_iff b a h
 
 theorem lcm_dvd_lcm_mul_left (m n k : α) : lcm m n ∣ lcm (k * m) n :=
-lcm_dvd_lcm (dvd_mul_left _ _) (dvd_refl _)
+lcm_dvd_lcm (dvd_mul_left _ _) dvd_rfl
 
 theorem lcm_dvd_lcm_mul_right (m n k : α) : lcm m n ∣ lcm (m * k) n :=
-lcm_dvd_lcm (dvd_mul_right _ _) (dvd_refl _)
+lcm_dvd_lcm (dvd_mul_right _ _) dvd_rfl
 
 theorem lcm_dvd_lcm_mul_left_right (m n k : α) : lcm m n ∣ lcm m (k * n) :=
-lcm_dvd_lcm (dvd_refl _) (dvd_mul_left _ _)
+lcm_dvd_lcm dvd_rfl (dvd_mul_left _ _)
 
 theorem lcm_dvd_lcm_mul_right_right (m n k : α) : lcm m n ∣ lcm m (n * k) :=
-lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
+lcm_dvd_lcm dvd_rfl (dvd_mul_right _ _)
 
 theorem lcm_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : lcm m k = lcm n k :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
-  (lcm_dvd_lcm h.dvd (dvd_refl _))
-  (lcm_dvd_lcm h.symm.dvd (dvd_refl _))
+  (lcm_dvd_lcm h.dvd dvd_rfl)
+  (lcm_dvd_lcm h.symm.dvd dvd_rfl)
 
 theorem lcm_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : lcm k m = lcm k n :=
 dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
-  (lcm_dvd_lcm (dvd_refl _) h.dvd)
-  (lcm_dvd_lcm (dvd_refl _) h.symm.dvd)
+  (lcm_dvd_lcm dvd_rfl h.dvd)
+  (lcm_dvd_lcm dvd_rfl h.symm.dvd)
 
 end lcm
 
@@ -799,9 +799,9 @@ noncomputable def gcd_monoid_of_exists_gcd [decidable_eq α]
 gcd_monoid_of_gcd
   (λ a b, normalize (classical.some (h a b)))
   (λ a b, normalize_dvd_iff.2
-    (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).1)
+    (((classical.some_spec (h a b) (classical.some (h a b))).2 dvd_rfl)).1)
   (λ a b, normalize_dvd_iff.2
-    (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).2)
+    (((classical.some_spec (h a b) (classical.some (h a b))).2 dvd_rfl)).2)
   (λ a b c ac ab, dvd_normalize_iff.2 ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
   (λ a b, normalize_idem _)
 
@@ -812,9 +812,9 @@ noncomputable def gcd_monoid_of_exists_lcm [decidable_eq α]
 gcd_monoid_of_lcm
   (λ a b, normalize (classical.some (h a b)))
   (λ a b, dvd_normalize_iff.2
-    (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).1)
+    (((classical.some_spec (h a b) (classical.some (h a b))).2 dvd_rfl)).1)
   (λ a b, dvd_normalize_iff.2
-    (((classical.some_spec (h a b) (classical.some (h a b))).2 (dvd_refl _))).2)
+    (((classical.some_spec (h a b) (classical.some (h a b))).2 dvd_rfl)).2)
   (λ a b c ac ab, normalize_dvd_iff.2 ((classical.some_spec (h c b) a).1 ⟨ac, ab⟩))
   (λ a b, normalize_idem _)
 

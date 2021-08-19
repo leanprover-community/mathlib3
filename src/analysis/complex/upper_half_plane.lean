@@ -51,11 +51,7 @@ lemma im_pos (z : ℍ) : 0 < z.im := z.2
 lemma im_ne_zero (z : ℍ) : z.im ≠ 0 := z.im_pos.ne'
 
 lemma ne_zero (z : ℍ) : (z : ℂ) ≠ 0 :=
-begin
-  intros h,
-  apply z.im_ne_zero,
-  rw [←complex.zero_im, ←h, coe_im]
-end
+mt (congr_arg complex.im) z.im_ne_zero
 
 lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
 begin

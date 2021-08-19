@@ -203,44 +203,57 @@ end
 def is_trail {u v : V} (p : G.walk u v) : Prop := p.edges.nodup
 
 /-- A *path* is a trail with no repeating vertices. -/
-def is_path {u v : V} (p : G.walk u v) : Prop := p.is_trail ∧ p.support.nodup
+structure is_path {u v : V} (p : G.walk u v) : Prop :=
+(to_trail : is_trail p)
+(support_nodup : p.support.nodup)
 
-/-- A *cycle* at `u : V` is a nonempty trail whose only repeating vertex is `u`. -/
-def is_cycle {u : V} (p : G.walk u u) : Prop :=
-p ≠ nil ∧ p.is_trail ∧ (p.support.erase u).nodup
+/-- A *circuit* at `u : V` is a nonempty trail beginning and ending at `u`. -/
+structure is_circuit {u : V} (p : G.walk u u) : Prop :=
+(to_trail : is_trail p)
+(ne_nil : p ≠ nil)
 
-lemma is_trail_of_path {u : V} {p : G.walk u u} (h : p.is_path) : p.is_trail := h.1
+/-- A *cycle* at `u : V` is a circuit at `u` whose only repeating vertex is `u`. -/
+structure is_cycle {u : V} (p : G.walk u u) extends to_circuit : is_circuit p : Prop :=
+(support_nodup : (p.support.erase u).nodup)
 
-lemma is_trail_of_cycle {u : V} {p : G.walk u u} (h : p.is_cycle) : p.is_trail := h.2.1
+lemma is_path_def {u v : V} (p : G.walk u v) :
+  p.is_path ↔ is_trail p ∧ p.support.nodup :=
+by split; { rintro ⟨h1, h2⟩, exact ⟨h1, h2⟩ }
+
+lemma is_cycle_def {u : V} (p : G.walk u u) :
+  p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ (p.support.erase u).nodup :=
+begin
+  split,
+  { rintro ⟨⟨h1, h2⟩, h3⟩, exact ⟨h1, h2, h3⟩, },
+  { rintro ⟨h1, h2, h3⟩, exact ⟨⟨h1, h2⟩, h3⟩, },
+end
 
 lemma trail_count_le_one {u v : V} (p : G.walk u v) (h : p.is_trail) (e : G.edge_set) :
   p.edges.count e ≤ 1 :=
 multiset.nodup_iff_count_le_one.mp h e
 
-lemma trail_count_eq_one {u v : V} (p : G.walk u v) (h : p.is_trail) {e : G.edge_set} (he : e ∈ p.edges) :
-  p.edges.count e = 1 :=
-multiset.count_eq_one_of_mem h he
 lemma trail_count_eq_one {u v : V} (p : G.walk u v) (h : p.is_trail) {e : G.edge_set}
   (he : e ∈ p.edges) : p.edges.count e = 1 :=
+multiset.count_eq_one_of_mem h he
 
 @[simp] lemma nil_is_trail {u : V} : (nil : G.walk u u).is_trail :=
 by simp [is_trail, edges]
 
 @[simp] lemma nil_is_path {u : V} : (nil : G.walk u u).is_path :=
-by simp [is_path, support]
+by { fsplit; simp [support] }
 
 lemma is_trail_of_cons_is_trail {u v w : V} {h : G.adj u v} {p : G.walk v w}
   (h : (cons h p).is_trail) : p.is_trail :=
-begin
-  rw [is_trail, edges, multiset.nodup_cons] at h,
-  exact h.2,
-end
+by { rw [is_trail, edges, multiset.nodup_cons] at h, exact h.2, }
 
 lemma is_path_of_cons_is_path {u v w : V} {h : G.adj u v} {p : G.walk v w}
   (h : (cons h p).is_path) : p.is_path :=
 begin
-  rw [is_path, support, multiset.nodup_cons] at h,
-  exact ⟨is_trail_of_cons_is_trail h.1, h.2.2⟩,
+  cases h with ht hd,
+  split,
+  { exact is_trail_of_cons_is_trail ht, },
+  { rw [support, multiset.nodup_cons] at hd,
+    exact hd.2, },
 end
 
 lemma cons_is_trail_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
@@ -250,7 +263,7 @@ by simp only [is_trail, edges, and_comm, iff_self, multiset.nodup_cons]
 lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 begin
-  simp only [is_path, is_trail, edges, support, multiset.nodup_cons],
+  simp only [is_path_def, is_trail, edges, support, multiset.nodup_cons],
   split,
   { rintro ⟨⟨h1, hen⟩, hns, hsn⟩,
     exact ⟨⟨hen, hsn⟩, hns⟩, },
@@ -510,7 +523,7 @@ begin
 end
 
 lemma reverse_path {u v : V} (p : G.walk u v) (h : p.is_path) : p.reverse.is_path :=
-by simpa [is_path] using h
+by simpa [is_path_def] using h
 
 @[simp] lemma reverse_path_iff {u v : V} (p : G.walk u v) : p.reverse.is_path ↔ p.is_path :=
 begin
@@ -674,25 +687,26 @@ lemma rotate_trail {u v : V} (c : G.walk v v) (hc : c.is_trail) (h : u ∈ c.sup
   (c.rotate h).is_trail :=
 by simpa [is_trail] using hc
 
+lemma rotate_circuit {u v : V} (c : G.walk v v) (hc : c.is_circuit) (h : u ∈ c.support) :
+  (c.rotate h).is_circuit :=
+begin
+  fsplit,
+  { exact rotate_trail _ hc.to_trail _, },
+  { cases c,
+    { exact (hc.ne_nil rfl).elim, },
+    { intro hn,
+      have hn' := congr_arg length hn,
+      rw [rotate, concat_length, add_comm, ←concat_length, split_at_vertex_spec] at hn',
+      simpa using hn', } },
+end
+
 lemma rotate_cycle {u v : V} (c : G.walk v v) (hc : c.is_cycle) (h : u ∈ c.support) :
   (c.rotate h).is_cycle :=
 begin
   split,
-  { cases c,
-    { exfalso,
-      simpa [is_cycle] using hc, },
-    { simp [rotate, split_at_vertex_snd, split_at_vertex_fst],
-      split_ifs,
-      { subst u,
-        simp, },
-      { intro hcon,
-        have hcon' := congr_arg walk.length hcon,
-        simpa using hcon', }, }, },
-  split,
-  { apply rotate_trail,
-    exact is_trail_of_cycle hc, },
+  { exact rotate_circuit _ hc.to_circuit _, },
   { simp,
-    by_cases huv : u = v; simp [huv, hc.2.2], },
+    by_cases huv : u = v; simp [huv, hc.support_nodup], },
 end
 
 /-- Get the vertex immediately after the split point, where if the very last vertex was the split
@@ -713,7 +727,7 @@ variables {G}
 
 /-- The length-1 path given by a pair of adjacent vertices. -/
 def singleton {u v : V} (h : G.adj u v) : G.path u v :=
-⟨walk.cons h walk.nil, by simp [walk.is_path, walk.is_trail, walk.edges, G.ne_of_adj h]⟩
+⟨walk.cons h walk.nil, by simp [walk.is_path_def, walk.is_trail, walk.edges, G.ne_of_adj h]⟩
 
 @[symm] def reverse {u v : V} (p : G.path u v) : G.path v u :=
 ⟨walk.reverse p, walk.reverse_path p p.property⟩
@@ -937,14 +951,13 @@ begin
   split,
   { intros hb u c hc he,
     rw is_bridge_iff_walks_contain at hb,
-    simp [walk.is_cycle] at hc,
     have hv : v ∈ c.support := walk.edge_vert_mem_support h c he,
     have hh : (⟨⟦(w, v)⟧, G.sym h⟩ : G.edge_set) = ⟨⟦(v, w)⟧, h⟩ := by simp [sym2.eq_swap],
     have hwc : w ∈ c.support := walk.edge_vert_mem_support (G.sym h) c (by { rw hh, exact he, }),
     let p1 := c.split_at_vertex_fst v hv,
     let p2 := c.split_at_vertex_snd v hv,
     by_cases hw : w ∈ p1.support,
-    { exact is_bridge_iff_no_cycle_contains.aux1 G h c he hb hc.2.1 hv hw, },
+    { exact is_bridge_iff_no_cycle_contains.aux1 G h c he hb hc.to_trail hv hw, },
     { have hw' : w ∈ p2.support,
       { have : c = p1.concat p2 := by simp,
         rw [this, walk.concat_support] at hwc,
@@ -960,7 +973,7 @@ begin
                   walk.split_at_vertex_spec],
               rw hh,
               exact he })
-        _ (walk.rotate_trail _ hc.2.1 hv),
+        _ (walk.rotate_trail _ hc.to_trail hv),
       swap,
       { apply mem_concat_support,
         exact hw', },
@@ -974,7 +987,7 @@ begin
     intro p,
     by_contra hne,
     specialize hc (walk.cons (G.sym h) p.to_path) _,
-    { simp [walk.is_cycle, walk.cons_is_trail_iff],
+    { simp [walk.is_cycle_def, walk.cons_is_trail_iff],
       split,
       { apply walk.to_path_avoids,
         convert hne using 3,
@@ -995,7 +1008,7 @@ begin
     exact (ha _ p hp).elim, },
   { intros hb v p hp,
     cases p,
-    { simpa [walk.is_cycle] using hp, },
+    { simpa [walk.is_cycle_def] using hp, },
     { specialize hb p_h,
       rw is_bridge_iff_no_cycle_contains at hb,
       apply hb _ hp,
@@ -1013,7 +1026,7 @@ begin
     { exfalso,
       cases q,
       exact (hnq rfl).elim,
-      simpa [walk.is_path] using hq, }, },
+      simpa [walk.is_path_def] using hq, }, },
   { rw is_acyclic_iff_all_bridges at h,
     specialize h p_h,
     rw is_bridge_iff_walks_contain at h,
@@ -1022,7 +1035,7 @@ begin
     cases h,
     { cases q,
       { exfalso,
-        simpa [walk.is_path] using hp, },
+        simpa [walk.is_path_def] using hp, },
       { rw walk.cons_is_path_iff at hp hq,
         simp [walk.edges] at h,
         cases h,
@@ -1041,13 +1054,13 @@ end
 lemma is_acyclic_if_unique_path (h : ∀ (v w : V) (p q : G.path v w), p = q) : G.is_acyclic :=
 begin
   intros v c hc,
-  simp [walk.is_cycle] at hc,
+  simp [walk.is_cycle_def] at hc,
   cases c,
-  { exact (hc.1 rfl).elim },
+  { exact (hc.2.1 rfl).elim },
   { simp [walk.cons_is_trail_iff] at hc,
     have hp : c_p.is_path,
     { cases_matching* [_ ∧ _],
-      simp only [walk.is_path],
+      simp only [walk.is_path_def],
       split; assumption, },
     specialize h _ _ ⟨c_p, hp⟩ (path.singleton (G.sym c_h)),
     simp [path.singleton] at h,

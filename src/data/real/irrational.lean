@@ -261,30 +261,39 @@ open irrational
 ### Lemmas about Irrationals between Reals
 -/
 
+/-- An irrational number between any two distinct rational numbers.-/
+noncomputable def irrational_btwn_rats {x y : ℚ} (h : x < y) : { r : ℝ // irrational r } :=
+⟨x +((y - x) : ℚ) * (real.sqrt 2)⁻¹, begin
+  refine irrational.rat_add _
+    (irrational.rat_mul
+      (irrational_inv_iff.mpr irrational_sqrt_two) _),
+  exact_mod_cast (ne_of_gt (sub_pos_of_lt h)) end⟩
+
+lemma lt_irrational_btwn_rats {x y : ℚ} (h : x < y) : (x : ℝ) < (irrational_btwn_rats h : ℝ) :=
+begin
+  suffices : 0 < ↑(y - x) * (real.sqrt 2)⁻¹,
+  { simpa [irrational_btwn_rats] using h, },
+  refine (zero_lt_mul_right _).mpr _,
+  apply inv_pos.mpr,
+  norm_num,
+  exact_mod_cast (sub_pos_of_lt h)
+end
+
+lemma irrational_btwn_rats_lt {x y : ℚ} (h : x < y) : (irrational_btwn_rats h : ℝ) < y :=
+begin
+  apply (sub_lt_sub_iff_right (x :ℝ)).mp,
+  simp only [irrational_btwn_rats, add_sub_cancel', cast_sub, subtype.coe_mk],
+  refine (mul_lt_iff_lt_one_right _).mpr (inv_lt_one _),
+  exact_mod_cast  (sub_pos_of_lt h),
+  refine (real.lt_sqrt zero_le_one (zero_le_bit0.mpr zero_le_one)).mpr _,
+  rw one_pow,
+  exact one_lt_two
+end
+
 /-- There exists an irrational number between any two distinct rational numbers.-/
 theorem exists_irrational_btwn_rats {x y : ℚ} (h : x < y) :
-∃ r, irrational r ∧ (x : ℝ) < r ∧ r < y:=
-begin
-  refine ⟨x +((y - x) : ℚ) * (real.sqrt 2)⁻¹, _, _, _⟩,
-  { refine irrational.rat_add _
-      (irrational.rat_mul
-        (irrational_inv_iff.mpr irrational_sqrt_two) _),
-    exact_mod_cast (ne_of_gt (sub_pos_of_lt h)) },
-  { suffices : 0 < ↑(y - x) * (real.sqrt 2)⁻¹,
-    { simpa using h, },
-    refine (zero_lt_mul_right _).mpr _,
-    apply inv_pos.mpr,
-    norm_num,
-    exact_mod_cast (sub_pos_of_lt h) },
-  { apply (sub_lt_sub_iff_right (x :ℝ)).mp,
-    rw [add_sub_cancel', ←cast_sub],
-    refine (mul_lt_iff_lt_one_right _).mpr
-      (inv_lt_one _),
-    exact_mod_cast  (sub_pos_of_lt h),
-    refine (real.lt_sqrt zero_le_one (zero_le_bit0.mpr zero_le_one)).mpr _,
-    rw one_pow,
-    exact one_lt_two }
-end
+∃ r, irrational r ∧ (x : ℝ) < r ∧ r < y :=
+⟨irrational_btwn_rats h, subtype.prop _, lt_irrational_btwn_rats h, irrational_btwn_rats_lt h⟩
 
 /-- There exists an irrational number between any two distinct real numbers.-/
 theorem exists_irrational_btwn {x y : ℝ} (h : x < y) :

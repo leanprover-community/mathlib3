@@ -82,7 +82,7 @@ linear_ne_zero (g 1) z (g.row_ne_zero 1)
 lemma norm_sq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (bottom g z) :=
 complex.norm_sq_pos.mpr (bottom_ne_zero g z)
 
-lemma normsq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=
+lemma norm_sq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=
 ne_of_gt (normsq_bottom_pos g z)
 
 /-- Fractional linear transformation -/

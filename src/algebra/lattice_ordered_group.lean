@@ -441,8 +441,7 @@ Every lattice ordered commutative group is a distributive lattice
 -/
 @[to_additive, priority 100] -- see Note [lower instance priority]
 instance lattice_ordered_comm_group_to_distrib_lattice (α : Type u)
-  [s: lattice α] [comm_group α] [covariant_class α α (*) (≤)]
-  [covariant_class α α (function.swap (*)) (≤)] : distrib_lattice α :=
+  [s: lattice α] [comm_group α] [covariant_class α α (*) (≤)] : distrib_lattice α :=
 { le_sup_inf :=
   begin
     intros,

@@ -222,6 +222,7 @@ Topology:
     topological ring: 'topological_ring'
     completion of a topological ring: 'uniform_space.completion.ring'
     topological module: 'has_continuous_smul'
+    weak-* topology: 'weak_dual.topological_space'
     Haar measure on a locally compact Hausdorff group: 'measure_theory.measure.haar_measure'
   Metric spaces:
     metric space: 'metric_space'

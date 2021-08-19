@@ -527,18 +527,16 @@ quantifying over types (in the same universe as `M`) into which the indexing fam
 lemma linear_independent.maximal_iff {ι : Type w} {R : Type u} [ring R] [nontrivial R]
   {M : Type v} [add_comm_group M] [module R M] {v : ι → M} (i : linear_independent R v) :
   i.maximal ↔ ∀ (κ : Type v) (w : κ → M) (i' : linear_independent R w)
-    (j : ι ↪ κ) (h : w ∘ j = v), surjective j :=
+    (j : ι → κ) (h : w ∘ j = v), surjective j :=
 begin
   fsplit,
-  { intros p κ w i' j h,
-    specialize p (range w) i'.coe_range,
-    rw ←h at p,
-    specialize p (range_comp_subset_range _ _),
+  { rintros p κ w i' j rfl,
+    specialize p (range w) i'.coe_range (range_comp_subset_range _ _),
     rw [range_comp, ←@image_univ _ _ w] at p,
     exact range_iff_surjective.mp (image_injective.mpr i'.injective p), },
   { intros p w i' h,
     specialize p w (coe : w → M) i'
-      ⟨λ i, ⟨v i, range_subset_iff.mp h i⟩, (λ x y q, i.injective (by simpa using q))⟩
+      (λ i, ⟨v i, range_subset_iff.mp h i⟩)
       (by { ext, simp, }),
     have q := congr_arg (λ s, (coe : w → M) '' s) p.range_eq,
     dsimp at q,

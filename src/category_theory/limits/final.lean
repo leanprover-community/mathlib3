@@ -16,19 +16,17 @@ import category_theory.limits.types
 A functor `F : C ⥤ D` is final if for every `d : D`,
 the comma category of morphisms `d ⟶ F.obj c` is connected.
 
-A functor `F : C ⥤ D` is initial, if for every `d : D`,
+Dually, a functor `F : C ⥤ D` is initial if for every `d : D`,
 the comma category of morphisms `F.obj c ⟶ d` is connected.
 
-We show that `F` is final if and only if `F.op` is initial, and vice versa.
+We show that right adjoints are examples of final functors, while
+left adjoints are examples of initial functors.
 
-We prove the following three statements are equivalent:
+For final functors, we prove that the following three statements are equivalent:
 1. `F : C ⥤ D` is final.
 2. Every functor `G : D ⥤ E` has a colimit if and only if `F ⋙ G` does,
    and these colimits are isomorphic via `colimit.pre G F`.
 3. `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit`.
-
-By replacing all occurences of "final" by "initial" and "colimit" by "limit", we obtain the
-analogous statement for initial functors.
 
 Starting at 1. we show (in `cocones_equiv`) that
 the categories of cocones over `G : D ⥤ E` and over `F ⋙ G` are equivalent.
@@ -39,15 +37,18 @@ From 2. we can specialize to `G = coyoneda.obj (op d)` to obtain 3., as `colimit
 
 From 3., we prove 1. directly in `cofinal_of_colimit_comp_coyoneda_iso_punit`.
 
+Dually, we prove that if a functor `F : C ⥤ D` is initial, then any functor `G : D ⥤ E` has a
+limit if and only if `F ⋙ G` does, and these limits are isomorphic via `limit.pre G F`.
 
 
 ## Naming
-There is some discrepancy in the literature about naming; some say 'final' instead of 'cofinal'.
+There is some discrepancy in the literature about naming; some say 'cofinal' instead of 'final'.
 The explanation for this is that the 'co' prefix here is *not* the usual category-theoretic one
 indicating duality, but rather indicating the sense of "along with".
 
-While the trend seems to be towards using 'final', for now we go with the bulk of the literature
-and use 'cofinal'.
+## Future work
+Conditions 1, 2 and 3 for final functors above should be dualised to initial functors. So far, we
+only have the implication 1 ⇒ 2.
 
 ## References
 * https://stacks.math.columbia.edu/tag/09WN

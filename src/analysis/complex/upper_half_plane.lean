@@ -93,7 +93,8 @@ lemma smul_aux'_im (g : SL(2, ℝ)) (z : ℍ) :
 begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (bottom g z).norm_sq,
-  have : NsqBot ≠ 0 := by simp [complex.norm_sq_pos, bottom_ne_zero g z, NsqBot, -bottom],
+  have : NsqBot ≠ 0,
+  { simp only [bottom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
   field_simp [smul_aux'],
   convert congr_arg (λ x, x * z.im * NsqBot ^ 2) g.det_coe using 1,
   { rw det_fin_two ↑g,

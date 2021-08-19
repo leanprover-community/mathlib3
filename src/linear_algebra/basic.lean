@@ -2873,8 +2873,6 @@ namespace linear_equiv
 variables [semiring R] [add_comm_monoid M] [module R M]
 variables (R M)
 
-namespace linear_equiv
-
 instance automorphism_group : group (M ≃ₗ[R] M) :=
 { mul := λ f g, g.trans f,
   one := linear_equiv.refl R M,

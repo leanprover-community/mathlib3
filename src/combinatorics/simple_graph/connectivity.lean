@@ -41,6 +41,10 @@ counterparts in [Chou1994].
 
 * `simple_graph.is_acyclic` and `simple_graph.is_tree`
 
+* `simple_graph.walk.is_eulerian` and `simple_graph.walk.is_hamiltonian`
+
+* `simple_graph.edge_connected` for k-edge-connectivity of a graph
+
 ## Tags
 walks
 
@@ -216,6 +220,18 @@ structure is_circuit {u : V} (p : G.walk u u) : Prop :=
 structure is_cycle {u : V} (p : G.walk u u) extends to_circuit : is_circuit p : Prop :=
 (support_nodup : (p.support.erase u).nodup)
 
+/-- A walk `p` is *Eulerian* if it visits every edge exactly once.
+
+Combine with `p.is_trail` to get an Eulerian trail (also known as an "Eulerian path"),
+or combine with `p.is_circuit` to get an Eulerian circuit (also known as an "Eulerian cycle"). -/
+def is_eulerian {u v : V} (p : G.walk u v) : Prop :=
+∀ e : G.edge_set, p.edges.count e = 1
+
+/-- A walk `p` is *Hamiltonian* if it visits every vertex exactly once.
+Hamiltonian walks are automatically paths. (TODO: make the path version.) -/
+def is_hamiltonian {u v : V} (p : G.walk u v) : Prop :=
+∀ v, p.support.count v = 1
+
 lemma is_path_def {u v : V} (p : G.walk u v) :
   p.is_path ↔ is_trail p ∧ p.support.nodup :=
 by split; { rintro ⟨h1, h2⟩, exact ⟨h1, h2⟩ }
@@ -318,6 +334,12 @@ instance connected_components.inhabited [inhabited V] : inhabited G.connected_co
 lemma connected_component.subsingleton_of_is_connected (h : G.is_connected) :
   subsingleton G.connected_component :=
 ⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h v w)) d) c d⟩
+
+/-- A graph is *k-edge-connected* if the graph remains connected whenever
+fewer than k edges are removed. -/
+def edge_connected (k : ℕ) : Prop :=
+∀ (s : finset (sym2 V)), ↑s ⊆ G.edge_set → s.card < k →
+  ((⊤ : G.subgraph).delete_edges ↑s).coe.is_connected
 
 section walk_to_path
 variables [decidable_eq V]

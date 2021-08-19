@@ -168,16 +168,23 @@ begin
   simp,
 end
 
+lemma sum_subset_extend {α β : Type*} [add_comm_monoid β]
+  {s t : finset α} [decidable_pred (∈ s)]
+  (h : s ⊆ t) (f : α → β) :
+  ∑ i in s, f i = ∑ i in t, if i ∈ s then f i else 0 :=
+begin
+  rw [←finset.sum_subset h, ←finset.sum_attach],
+  swap, exact λ x ht hs, by simp [hs],
+  nth_rewrite 1 ←finset.sum_attach,
+  congr,
+  ext,
+  simp,
+end
+
 lemma extend_by_zero' {α β : Type*} [fintype α] [add_comm_monoid β]
   (s : finset α) [decidable_pred (∈ s)] (f : α → β) :
   ∑ i in s, f i = ∑ (i : α), if i ∈ s then f i else 0 :=
-begin
-  classical,
-  convert finset.sum_add_sum_compl s _,
-  have : filter (λ (i : α), i ∈ s) sᶜ = ∅,
-  { ext, simp, },
-  simp [finset.sum_ite, this],
-end
+by rw sum_subset_extend (subset_univ s)
 
 theorem adj_matrix_pow_apply_eq_card_walk (n : ℕ) (u v : α) :
   (G.adj_matrix R ^ n) u v = fintype.card {p : G.walk u v // p.length = n} :=

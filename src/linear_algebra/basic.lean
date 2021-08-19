@@ -2842,9 +2842,9 @@ open linear_map
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/
 def fun_congr_left (e : m ≃ n) : (n → M) ≃ₗ[R] (m → M) :=
 linear_equiv.of_linear (fun_left R M e) (fun_left R M e.symm)
-  (ext $ λ x, funext $ λ i,
+  (linear_map.ext $ λ x, funext $ λ i,
     by rw [id_apply, ← fun_left_comp, equiv.symm_comp_self, fun_left_id])
-  (ext $ λ x, funext $ λ i,
+  (linear_map.ext $ λ x, funext $ λ i,
     by rw [id_apply, ← fun_left_comp, equiv.self_comp_symm, fun_left_id])
 
 @[simp] theorem fun_congr_left_apply (e : m ≃ n) (x : n → M) :

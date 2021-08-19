@@ -78,6 +78,9 @@ eq_of_forall_le_iff $ λ z,
 by { rw ←pow_le_iff_le_log hb (pow_pos (zero_lt_one.trans hb) _),
     exact (pow_right_strict_mono hb).le_iff_le }
 
+lemma log_pos {b n : ℕ} (hb : 1 < b) (hn : b ≤ n) : 0 < log b n :=
+by { rwa [←succ_le_iff, ←pow_le_iff_le_log hb (hb.le.trans hn), pow_one] }
+
 lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) :
   x < b ^ (log b x).succ :=
 begin
@@ -177,28 +180,28 @@ lemma clog_pow (b x : ℕ) (hb : 1 < b) : clog b (b ^ x) = x :=
 eq_of_forall_ge_iff $ λ z,
 by { rw ←le_pow_iff_clog_le hb, exact (pow_right_strict_mono hb).le_iff_le }
 
-lemma pow_pred_clog_lt_self {b x : ℕ} (hb : 1 < b) {x : ℕ} (hx : 1 < x) :
+lemma pow_pred_clog_lt_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 1 < x) :
   b ^ (clog b x).pred < x :=
 begin
   rw [←not_le, le_pow_iff_clog_le hb, not_le],
   exact pred_lt (clog_pos hb hx).ne',
 end
 
-lemma le_pow_clog {b : ℕ} (hb : 2 ≤ b) {x : ℕ} (hx : 0 < x) : x ≤ b ^ clog b x :=
+lemma le_pow_clog {b : ℕ} (hb : 2 ≤ b) (x : ℕ) : x ≤ b ^ clog b x :=
 (le_pow_iff_clog_le hb).2 le_rfl
 
-lemma clog_le_clog_of_le {b n m : ℕ} (h : n ≤ m) : clog b n ≤ clog b m :=
+lemma clog_le_clog_of_le (b : ℕ) {n m : ℕ} (h : n ≤ m) : clog b n ≤ clog b m :=
 begin
   cases le_or_lt b 1 with hb hb,
   { rw clog_of_left_le_one hb, exact zero_le _ },
   { obtain rfl | hn := n.eq_zero_or_pos,
     { rw [clog_zero_right], exact zero_le _ },
     { rw ←le_pow_iff_clog_le hb,
-      exact h.trans (le_pow_clog hb $ hn.trans_le h) } }
+      exact h.trans (le_pow_clog hb _) } }
 end
 
-lemma clog_mono {b : ℕ} : monotone (clog b) :=
-λ x y, clog_le_clog_of_le
+lemma clog_mono (b : ℕ) : monotone (clog b) :=
+λ x y, clog_le_clog_of_le _
 
 lemma log_le_clog (b n : ℕ) : log b n ≤ clog b n :=
 begin
@@ -209,7 +212,7 @@ begin
   { rw log_zero_right,
     exact zero_le _},
   exact (pow_right_strict_mono hb).le_iff_le.1 ((pow_log_le_self hb $ succ_pos _).trans $
-    le_pow_clog hb $ succ_pos _),
+    le_pow_clog hb _),
 end
 
 end nat

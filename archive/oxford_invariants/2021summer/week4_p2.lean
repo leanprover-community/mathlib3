@@ -90,10 +90,12 @@ begin
 end
 
 lemma has_dvd.dvd.pow {M : Type*} [comm_monoid M] {x y : M} (hxy : x ∣ y) {n : ℕ} (hn : 0 < n) :
-  x ∣ y^n := sorry
+  x ∣ y^n :=
+dvd_pow hxy hn.ne'
 
 lemma le_pow {R : Type*} [_inst_1 : ordered_semiring R] {a : R} (ha : 1 ≤ a) {n : ℕ} (hn : 0 < n) :
-  a ≤ a^n := sorry
+  a ≤ a^n :=
+by simpa using pow_le_pow ha hn
 
 lemma log_pos {b n : ℕ} (hb : 1 < b) (hn : b ≤ n) : 0 < log b n :=
 by { rwa [←succ_le_iff, ←pow_le_iff_le_log _ _ hb (hb.le.trans hn), pow_one] }

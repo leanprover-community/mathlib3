@@ -195,23 +195,49 @@ begin
   exact coe_nat_pos.mp hk,
 end
 
+theorem gsmul_strict_mono_left {a : A} (ha : 0 < a) : strict_mono (λ n : ℤ, n • a) :=
+λ n m h,
+  calc n • a = n • a + 0 : (add_zero _).symm
+    ... < n • a + (m - n) • a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
+    ... = m • a : by { rw [← add_gsmul], simp }
+
+theorem gsmul_mono_left {a : A} (ha : 0 ≤ a) : monotone (λ n : ℤ, n • a) :=
+λ n m h,
+  calc n • a = n • a + 0 : (add_zero _).symm
+    ... ≤ n • a + (m - n) • a : add_le_add_left (gsmul_nonneg ha (sub_nonneg.mpr h)) _
+    ... = m • a : by { rw [← add_gsmul], simp }
+
 theorem gsmul_le_gsmul {a : A} {n m : ℤ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
-calc n • a = n • a + 0 : (add_zero _).symm
-  ... ≤ n • a + (m - n) • a : add_le_add_left (gsmul_nonneg ha (sub_nonneg.mpr h)) _
-  ... = m • a : by { rw [← add_gsmul], simp }
+gsmul_mono_left ha h
 
 theorem gsmul_lt_gsmul {a : A} {n m : ℤ} (ha : 0 < a) (h : n < m) : n • a < m • a :=
-calc n • a = n • a + 0 : (add_zero _).symm
-  ... < n • a + (m - n) • a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
-  ... = m • a : by { rw [← add_gsmul], simp }
+gsmul_strict_mono_left ha h
 
-lemma gsmul_lt_gsmul_of_lt_right_of_pos {a b : A} {m : ℤ} (hab : a < b) (hm : 0 < m) :
-  m • a < m • b :=
-begin
+variables (A)
+
+lemma gsmul_strict_mono_right {n : ℤ} (hn : 0 < n) :
+  strict_mono ((•) n : A → A) :=
+λ a b hab, begin
   rw ← sub_pos at hab,
   rw [← sub_pos, ← gsmul_sub],
-  exact gsmul_pos hab hm,
+  exact gsmul_pos hab hn,
 end
+
+lemma gsmul_mono_right {n : ℤ} (hn : 0 ≤ n) :
+  monotone ((•) n : A → A) :=
+λ a b hab, begin
+  rw ← sub_nonneg at hab,
+  rw [← sub_nonneg, ← gsmul_sub],
+  exact gsmul_nonneg hab hn,
+end
+
+variables {A}
+
+theorem gsmul_le_gsmul' {n : ℤ} (hn : 0 ≤ n) {a₁ a₂ : A} (h : a₁ ≤ a₂) : n • a₁ ≤ n • a₂ :=
+gsmul_mono_right A hn h
+
+theorem gsmul_lt_gsmul' {n : ℤ} (hn : 0 < n) {a₁ a₂ : A} (h : a₁ < a₂) : n • a₁ < n • a₂ :=
+gsmul_strict_mono_right A hn h
 
 lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
   abs (n • a) = n • abs a :=
@@ -270,18 +296,10 @@ section linear_ordered_add_comm_group
 variable [linear_ordered_add_comm_group A]
 
 theorem gsmul_le_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a ≤ m • a ↔ n ≤ m :=
-begin
-  refine ⟨λ h, _, gsmul_le_gsmul $ le_of_lt ha⟩,
-  by_contra H,
-  exact lt_irrefl _ (lt_of_lt_of_le (gsmul_lt_gsmul ha (not_le.mp H)) h)
-end
+(gsmul_strict_mono_left ha).le_iff_le
 
 theorem gsmul_lt_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a < m • a ↔ n < m :=
-begin
-  refine ⟨λ h, _, gsmul_lt_gsmul ha⟩,
-  by_contra H,
-  exact lt_irrefl _ (lt_of_le_of_lt (gsmul_le_gsmul (le_of_lt ha) $ not_lt.mp H) h)
-end
+(gsmul_strict_mono_left ha).lt_iff_lt
 
 theorem nsmul_le_nsmul_iff {a : A} {n m : ℕ} (ha : 0 < a) : n • a ≤ m • a ↔ n ≤ m :=
 begin
@@ -300,20 +318,12 @@ end
 /-- See also `smul_right_injective`. TODO: provide a `no_zero_smul_divisors` instance. We can't
 do that here because importing that definition would create import cycles. -/
 lemma gsmul_right_injective {m : ℤ} (hm : m ≠ 0) : function.injective ((•) m : A → A) :=
-λ a b, begin
-  suffices : ∀ n : ℤ, 0 < n → n • a = n • b → a = b,
-  { cases hm.symm.lt_or_lt,
-    { exact this _ h, },
-    { intro hab,
-      refine this _ (neg_pos.mpr h) _,
-      rw [neg_gsmul, neg_gsmul, hab], }, },
-  intros n hn hab,
-  contrapose hab,
-  obtain hab' | hab' := ne_iff_lt_or_gt.mp hab,
-  { apply ne_of_lt,
-    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hn },
-  { apply ne_of_gt,
-    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hn },
+begin
+  cases hm.symm.lt_or_lt,
+  { exact (gsmul_strict_mono_right A h).injective, },
+  { intros a b hab,
+    refine (gsmul_strict_mono_right A (neg_pos.mpr h)).injective _,
+    rw [neg_gsmul, neg_gsmul, hab], },
 end
 
 lemma gsmul_right_inj {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=

@@ -233,6 +233,15 @@ begin
   { apply l4_3 BAA'.symm (BAA'.betw_of_out_cong ED'D.symm BAED BA'ED').symm BA'ED'.comm BAED.comm }
 end
 
+-- cong3_preserves_out
+lemma out.out_of_congs (h : out A B C)
+  (AB : cong A B A' B') (AC : cong A C A' C') (BC : cong B C B' C') :
+  out A' B' C' :=
+begin
+  refine ⟨AB.comm.diff h.1, AC.comm.diff h.2.1, _⟩,
+  exact or.imp (λ i, betw.betw_of_congs i AB AC BC) (λ i, betw.betw_of_congs i AC AB BC.comm) h.2.2
+end
+
 lemma six_segments_out
   (BAD : out B A D) (BAD' : out B' A' D') (BCE : out B C E) (BCE' : out B' C' E')
   (BA : cong B A B' A') (BD : cong B D B' D') (BC : cong B C B' C') (BE : cong B E B' E')
@@ -240,5 +249,16 @@ lemma six_segments_out
   cong D E D' E' :=
 l4_16 BAD.col BA BD (out_cong_cong BAD BAD' BA BD) BE
   (l4_16 BCE.col BC BE (out_cong_cong BCE BCE' BC BE) BA AC.comm BCE.1.symm).comm BAD.1.symm
+
+-- out_bet_out_1
+lemma out.out_of_bet (PAC : out P A C) (ABC : betw A B C) : out P A B :=
+begin
+  rcases eq_or_ne B P with rfl | nBP,
+  { apply ((l6_4_1 PAC).2 ABC).elim },
+  refine ⟨PAC.1, nBP, _⟩,
+  cases PAC.2.2,
+  { apply or.inl (h.right_cancel ABC) },
+  { apply or.inr (h.right_trans ABC.symm) }
+end
 
 end tarski

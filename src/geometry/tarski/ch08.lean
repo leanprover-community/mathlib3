@@ -17,13 +17,13 @@ begin
 end
 
 -- aka `l8_3`
--- aka `per_col`
 lemma per.of_col (ABC : per A B C) (BAA : col B A A') (nAB : A ≠ B) : per A' B C :=
 begin
   rcases ABC with ⟨C', BCC, AC⟩,
   exact ⟨C', BCC, l4_17 nAB BAA.left_symm AC BCC.2.left_comm⟩,
 end
 
+-- aka `per_col`
 lemma per.of_col' (ABC : per A B C) (BCC : col B C C') (nBC : B ≠ C) : per A B C' :=
 (ABC.symm.of_col BCC nBC.symm).symm
 
@@ -67,7 +67,8 @@ end
 lemma per.identity (AB : per A B A) : A = B :=
 l8_7 per_trivial.symm AB
 
-lemma l8_9 (ABC : per A B C) (ABC' : col A B C) : A = B ∨ C = B :=
+-- aka `l8_9`
+lemma per.eq_or_eq_of_col (ABC : per A B C) (ABC' : col A B C) : A = B ∨ C = B :=
 begin
   rcases eq_or_ne A B with rfl | nAB,
   { left, refl },
@@ -92,6 +93,7 @@ begin
   apply BCD.2.symm.trans (BC.comm.trans BCD'.2),
 end
 
+-- col_col_per_per
 lemma per.of_col_of_col (AXC : per A X C) (nAX : A ≠ X) (nCX : C ≠ X)
   (UAX : col U A X) (VCX : col V C X) :
   per U X V :=
@@ -112,6 +114,27 @@ by { rintro ⟨_, _, h, _⟩, apply h }
 lemma perp_at.symm : perp_at X A B C D → perp_at X C D A B
 | ⟨nAB, nCD, XAB, XCD, h⟩ := ⟨nCD, nAB, XCD, XAB, λ U V UCB VAD, (h _ _ VAD UCB).symm⟩
 
+lemma perp_at.right_comm : perp_at X A B C D → perp_at X A B D C
+| ⟨AB, CD, X₁, X₂, h⟩ := ⟨AB, CD.symm, X₁, X₂.right_symm, λ U V UAB VDC, h _ _ UAB VDC.right_symm⟩
+
+lemma perp_at.left_comm (h : perp_at X A B C D) : perp_at X B A C D :=
+h.symm.right_comm.symm
+
+lemma perp_at.comm (h : perp_at X A B C D) : perp_at X B A D C :=
+h.left_comm.right_comm
+
+lemma perp.right_comm : perp A B C D → perp A B D C
+| ⟨X, h⟩ := ⟨X, h.right_comm⟩
+
+lemma perp.left_comm : perp A B C D → perp B A C D
+| ⟨X, h⟩ := ⟨X, h.left_comm⟩
+
+lemma perp.symm : perp A B C D → perp C D A B
+| ⟨X, h⟩ := ⟨X, h.symm⟩
+
+lemma perp.comm (h : perp A B C D) : perp B A D C :=
+h.left_comm.right_comm
+
 lemma l8_13_2 (nAB : A ≠ B) (nCD : C ≠ D) (XAB : col X A B) (XCD : col X C D)
   (UAB : col U A B) (VCD : col V C D) (nUX : U ≠ X) (nVX : V ≠ X) (UXV : per U X V) :
   perp_at X A B C D :=
@@ -123,6 +146,14 @@ begin
   apply col3 nCD VCD'.rotate VCD.rotate XCD.rotate,
 end
 
+-- potentially not useful but true
+-- lemma l8_13 :
+--   perp_at X A B C D ↔ A ≠ B ∧ C ≠ D ∧ col X A B ∧ col X C D ∧
+--     ∃ U V, col U A B ∧ col V C D ∧ U ≠ X ∧ V ≠ X ∧ per U X V :=
+-- begin
+--   sorry
+-- end
+
 lemma l8_14_1 : ¬ perp A B A B :=
 begin
   rintro ⟨X, nAB, -, XAB, -, h⟩,
@@ -132,10 +163,13 @@ begin
   apply nAB.symm this.identity,
 end
 
+/-- If AB is perpendicular to CD at X and they intersect at Y, then X = Y. -/
 lemma l8_14_2_1b (hX : perp_at X A B C D) (YAB : col Y A B) (YCD : col Y C D) : X = Y :=
 (hX.2.2.2.2 Y Y YAB YCD).identity.symm
 
-lemma l8_14_2_1b_bis (h : perp A B C D) (XAB : col X A B) (XCD : col X C D) :
+/-- If AB is perpendicular to CD, and they intersect at X, then AB is perpendicular to CD at X. -/
+-- l8_14_2_1b_bis
+lemma perp.perp_at_of_col (h : perp A B C D) (XAB : col X A B) (XCD : col X C D) :
   perp_at X A B C D :=
 begin
   obtain ⟨Y, hY⟩ := h,
@@ -143,55 +177,50 @@ begin
   apply hY
 end
 
--- `per_perp_in`
-lemma per.perp_at (ABC : per A B C) (nAB : A ≠ B) (nBC : B ≠ C) : perp_at B A B B C :=
-⟨nAB, nBC, by simp, by simp, λ U V UAB VBC, ABC.of_col_of_col nAB nBC.symm UAB VBC.right_symm⟩
+/-- If AB is perpendicular to CD and any intersection point is X, then AB is perpendicular to CD at
+X. -/
+lemma l8_14_2_2 (h : perp A B C D) (h' : ∀ Y, col Y A B → col Y C D → X = Y) :
+  perp_at X A B C D :=
+begin
+  obtain ⟨Y, nAB, nCD, YAB, YCD, h⟩ := h,
+  cases h' _ YAB YCD,
+  exact ⟨nAB, nCD, YAB, YCD, h⟩,
+end
 
--- `per_perp`
-lemma per.perp (ABC : per A B C) (nAB : A ≠ B) (nBC : B ≠ C) : perp A B B C :=
-⟨B, ABC.perp_at nAB nBC⟩
-
-lemma l8_14_3 (hX : perp_at X A B C D) (hY : perp_at Y A B C D) : X = Y :=
+/-- If AB is perpendicular to CD at X and Y, then X = Y. -/
+-- l8_14_3
+lemma perp_at.unique (hX : perp_at X A B C D) (hY : perp_at Y A B C D) : X = Y :=
 l8_14_2_1b hX hY.2.2.1 hY.2.2.2.1
 
 lemma l8_15_1 (ABX : col A B X) (ABCX : perp A B C X) :
   perp_at X A B C X :=
-l8_14_2_1b_bis ABCX ABX.rotate' (by simp)
+ABCX.perp_at_of_col ABX.rotate' col_id_mid
 
--- `perp_perp_in`
-lemma perp.perp_at (h : perp A B C A) : perp_at A A B C A :=
-l8_15_1 (by simp) h
+lemma l8_15 (ABX : col A B X) :
+  perp A B C X ↔ perp_at X A B C X :=
+⟨l8_15_1 ABX, λ h, ⟨X, h⟩⟩
 
-lemma perp.right_comm (h : perp A B C D) : perp A B D C :=
+-- similar to `perp_col0` but flipped
+lemma perp.col (h : perp A B C D) (nXY : X ≠ Y) (ABX : col A B X) (ABY : col A B Y) :
+  perp X Y C D :=
 begin
-  obtain ⟨X, nAB, nCD, XAB, XCD, h⟩ := h,
-  exact ⟨X, nAB, nCD.symm, XAB, XCD.right_symm, λ U V UAB VDC, h _ _ UAB VDC.right_symm⟩,
+  obtain ⟨T, nAB, nCD, TAB, TCD, h⟩ := h,
+  refine ⟨T, nXY, nCD, col3 nAB TAB.rotate ABX ABY, TCD, λ U V UAB VCD, h _ _ _ VCD⟩,
+  apply (col3 nXY (ABX.trans ABY nAB).rotate (ABX.trans' ABY nAB).rotate UAB.rotate).rotate',
 end
 
-lemma perp.symm (h : perp A B C D) : perp C D A B :=
+-- lemma perp_col1 (nCX : C ≠ X) (ABCD : perp A B C D) (CDX : col C D X) :
+--   perp A B C X :=
+-- (ABCD.symm.col nCX col_id_mid CDX).symm
+
+lemma l8_18_uniqueness (nABC : ¬ col A B C) (ABX : col A B X) (ABCX : perp A B C X)
+  (ABY : col A B Y) (ABCY : perp A B C Y) : X = Y :=
 begin
-  obtain ⟨X, h⟩ := h,
-  exact ⟨X, h.symm⟩,
-end
-
-lemma perp.left_comm (h : perp A B C D) : perp B A C D :=
-h.symm.right_comm.symm
-
-lemma perp.comm (h : perp A B C D) : perp B A D C :=
-h.left_comm.right_comm
-
--- `per_not_colp`
-lemma per.not_colp (BAP : per B A P) (ABR : per A B R) (nAB : A ≠ B) (nAP : A ≠ P) (nBR : B ≠ R) :
-  ¬ col P A R :=
-λ PAR, nAB (l8_7 (BAP.symm.of_col PAR.left_symm nAP.symm) ABR.symm)
-
-lemma per.not_col (ABC : per A B C) (nAB : A ≠ B) (nBC : B ≠ C) : ¬ col A B C :=
-begin
-  intro ABC',
-  obtain ⟨C', BCC, AC⟩ := ABC,
-  obtain ⟨rfl, ACC⟩ : C = C' ∨ midpoint A C C' := l7_20 (ABC'.symm.trans BCC.1.col nBC.symm) AC,
-  { apply nBC BCC.id'' },
-  { apply nAB (l7_17 h BCC) }
+  have : A ≠ B := ne12_of_not_col nABC,
+  have XABCX : perp_at X A B C X := l8_15_1 ABX ABCX,
+  have YABCY : perp_at Y A B C Y := l8_15_1 ABY ABCY,
+  have : per C X Y := (XABCX.2.2.2.2 _ _ ABY.rotate' col_id_left).symm,
+  apply l8_7 this (YABCY.2.2.2.2 _ _ ABX.rotate' col_id_left).symm,
 end
 
 lemma l8_18_existence (nABC : ¬ col A B C) : ∃ X, col A B X ∧ perp A B C X :=
@@ -254,23 +283,32 @@ begin
   apply nAY.symm BAY.identity,
 end
 
-lemma perp.col (h : perp A B C D) (nXY : X ≠ Y) (ABX : col A B X) (ABY : col A B Y) :
-  perp X Y C D :=
+lemma l8_18 (nABC : ¬ col A B C) : ∃! X, col A B X ∧ perp A B C X :=
 begin
-  obtain ⟨T, nAB, nCD, TAB, TCD, h⟩ := h,
-  refine ⟨T, nXY, nCD, col3 nAB TAB.rotate ABX ABY, TCD, λ U V UAB VCD, h _ _ _ VCD⟩,
-  apply (col3 nXY (ABX.trans ABY nAB).rotate (ABX.trans' ABY nAB).rotate UAB.rotate).rotate',
+  apply exists_unique_of_exists_of_unique (l8_18_existence nABC),
+  rintro X Y ⟨ABX, ABCX⟩ ⟨ABY, ABCY⟩,
+  exact l8_18_uniqueness nABC ABX ABCX ABY ABCY,
 end
 
-lemma l8_18_uniqueness (nABC : ¬ col A B C) (ABX : col A B X) (ABCX : perp A B C X)
-  (ABY : col A B Y) (ABCY : perp A B C Y) : X = Y :=
-begin
-  have : A ≠ B := ne12_of_not_col nABC,
-  have XABCX : perp_at X A B C X := l8_15_1 ABX ABCX,
-  have YABCY : perp_at Y A B C Y := l8_15_1 ABY ABCY,
-  have : per C X Y := (XABCX.2.2.2.2 _ _ ABY.rotate' col_id_left).symm,
-  apply l8_7 this (YABCY.2.2.2.2 _ _ ABX.rotate' col_id_left).symm,
-end
+-- `per_perp_in`
+lemma per.perp_at (ABC : per A B C) (nAB : A ≠ B) (nBC : B ≠ C) : perp_at B A B B C :=
+⟨nAB, nBC, by simp, by simp, λ U V UAB VBC, ABC.of_col_of_col nAB nBC.symm UAB VBC.right_symm⟩
+
+-- `per_perp`
+lemma per.perp (ABC : per A B C) (nAB : A ≠ B) (nBC : B ≠ C) : perp A B B C :=
+⟨B, ABC.perp_at nAB nBC⟩
+
+-- `perp_perp_in`
+lemma perp.perp_at (h : perp A B C A) : perp_at A A B C A :=
+l8_15_1 col_id_mid h
+
+-- `per_not_colp`
+lemma per.not_colp (BAP : per B A P) (ABR : per A B R) (nAB : A ≠ B) (nAP : A ≠ P) (nBR : B ≠ R) :
+  ¬ col P A R :=
+λ PAR, nAB (l8_7 (BAP.symm.of_col PAR.left_symm nAP.symm) ABR.symm)
+
+lemma per.not_col (ABC : per A B C) (nAB : A ≠ B) (nBC : B ≠ C) : ¬ col A B C :=
+λ ABC', nBC.symm ((ABC.eq_or_eq_of_col ABC').resolve_left nAB)
 
 lemma l8_20_1 (ABC : per A B C) (PCD : midpoint P C' D) (ACC : midpoint A C' C)
   (BDC : midpoint B D C) : per B A P :=
@@ -309,6 +347,7 @@ begin
   apply nBC BDC.id'',
 end
 
+-- looking at the proof in the textbook, this could be simplified?
 lemma l8_21_aux (nABC : ¬ col A B C) : ∃ P T, perp A B P A ∧ col A B T ∧ betw C T P :=
 begin
   obtain ⟨X, ABX, ABCX⟩ := l8_18_existence nABC,
@@ -387,7 +426,7 @@ begin
   have XPP : ¬ col X P P',
   { intro h,
     have : col P A X := (APP.1.col.right_symm.trans h.rotate nPP),
-    obtain ⟨rfl | rfl⟩ := l8_9 PAX this,
+    obtain ⟨rfl | rfl⟩ := per.eq_or_eq_of_col PAX this,
     { apply nAP rfl },
     { apply nAX h_1.symm } },
   have AXM : betw A X M := l7_22 PXR PXR' XP XR.symm APP MRR,
@@ -435,7 +474,7 @@ begin
     apply ABPA.ne_right APBR.identity.symm },
   have ABQ : ¬ col A B Q,
   { intro h,
-    have : A = B ∨ Q = B := l8_9 ABQB.comm.per2 h,
+    have : A = B ∨ Q = B := per.eq_or_eq_of_col ABQB.comm.per2 h,
     rcases this with rfl | rfl,
     { apply nAB rfl },
     { apply ABQB.ne_right rfl } },
@@ -450,16 +489,25 @@ begin
   { rintro rfl,
     apply ABPA.ne_right rfl },
   have : perp A B R B := (perp.col ABQB.symm nBR.symm BRQ.col.rotate' col_id_right).symm,
-  have : cong A R P B,
-
-  -- have : midpoint X A B ∧ midpoint X P R := l7_21 _ _ _ _ _ _,
-  -- refine ⟨X, _⟩,
+  have ARPB : cong A R P B := perp.cong nAB nAP ABPA this APBR ABX RXP.symm,
+  have APB : ¬col A P B,
+  { intro APB,
+    apply nAP.symm ((l8_9 ABPA.per1 APB.rotate').resolve_left nAB.symm) },
+  have : midpoint X A B ∧ midpoint X P R :=
+    l7_21 APB nPR APBR ARPB.symm.right_comm ABX.right_symm RXP.symm.col,
+  exact ⟨X, this.1⟩
 end
 
-lemma midpoint_existence : ∃ X, midpoint X A B :=
+lemma midpoint_existence (A B : α) : ∃ X, midpoint X A B :=
 begin
   rcases eq_or_ne A B with rfl | nAB,
   { exact ⟨A, midpoint_refl⟩ },
+  obtain ⟨Q, -, ABQA, -, - : betw A _ Q⟩ := l8_21 nAB.symm,
+  obtain ⟨P, T, ABPA, ABT, QTP : betw Q T P⟩ := l8_21 nAB,
+  cases le.cases A P B Q,
+  { apply midpoint_existence_aux nAB ABQA.left_comm ABPA ABT QTP h, },
+  { obtain ⟨X, h⟩ := midpoint_existence_aux nAB.symm ABPA.left_comm ABQA ABT.left_symm QTP.symm h,
+    exact ⟨X, h.symm⟩ },
 end
 
 end tarski

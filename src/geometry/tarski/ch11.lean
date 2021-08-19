@@ -195,6 +195,7 @@ cong_angle.trans (cong_angle_pseudo_refl h.nCB h.nAB) h
 lemma cong_angle.comm (h : cong_angle A B C D E F) : cong_angle C B A F E D :=
 h.left_comm.right_comm
 
+-- conga_line
 lemma betw.cong_angle (ABC : betw A B C) (DEF : betw D E F)
   (nAB : A ≠ B) (nBC : B ≠ C) (nDE : D ≠ E) (nEF : E ≠ F) :
   cong_angle A B C D E F :=
@@ -207,11 +208,27 @@ lemma cong_angle_opposite (ABA : betw A B A') (nAB : A ≠ B) (nAB' : A' ≠ B)
 ((cong_angle_pseudo_refl nAB nBC.symm).complement ABA nAB' CBC nBC'.symm).right_comm.complement
   ABA.symm nAB ABA nAB'
 
+-- cong2_conga_cong
 lemma cong_angle.cong (ABC : cong_angle A B C A' B' C') (AB : cong A B A' B')
   (BC : cong B C B' C') :
   cong A C A' C' :=
 ABC.cong_of_out (out.trivial ABC.1) (out.trivial ABC.2) (out.trivial ABC.3) (out.trivial ABC.4)
   AB.comm BC
+
+-- l11_21_a
+lemma out.out_of_cong_angle (BAC : out B A C) (h : cong_angle A B C D E F) :
+  out E D F :=
+begin
+  obtain ⟨A', C', D', F', BAA, AAED, BCC, CCEF, EDD, DDBA, EFF, FFBC, ACDF⟩ := h.ex,
+  apply (EDD.out h.nDE).trans (out.trans _ (EFF.out h.nFE).symm),
+  apply out.out_of_congs _ (l11_aux BAA EDD AAED DDBA) (l11_aux BCC EFF CCEF FFBC) ACDF,
+  apply (BAA.out BAC.1).symm.trans (BAC.trans (BCC.out BAC.2.1)),
+end
+
+-- l11_21_b
+lemma out.cong_angle_of_out (BAC : out B A C) (EDF : out E D F) :
+  cong_angle A B C D E F :=
+(cong_angle_zero BAC.1 EDF.1).cong_angle_of_out (out.trivial BAC.1) BAC (out.trivial EDF.1) EDF
 
 def in_angle (P A B C : α) := A ≠ B ∧ C ≠ B ∧ P ≠ B ∧ ∃ X, betw A X C ∧ (X = B ∨ out B X P)
 def le_angle (A B C D E F : α) := ∃ P, in_angle P D E F ∧ cong_angle A B C D E F
@@ -225,6 +242,46 @@ begin
   rintro ⟨nAB, nCB, nPB, X, AXC, h⟩,
   exact ⟨nCB, nAB, nPB, X, AXC.symm, h⟩,
 end
+
+-- out321__inagle
+lemma out.in_angle_left (nCB : C ≠ B) (BAP : out B A P) :
+  in_angle P A B C :=
+⟨BAP.1, nCB, BAP.2.1, A, betw.id_left _ _, or.inr BAP⟩
+
+-- out341__inagle
+lemma out.in_angle_right (nAB : A ≠ B) (BCP : out B C P) :
+  in_angle P A B C :=
+⟨nAB, BCP.1, BCP.2.1, C, betw.id_right _ _, or.inr BCP⟩
+
+-- out_in_angle
+lemma out.in_angle_zero (BAC : out B A C) (BPA : out B P A) :
+  in_angle P A B C :=
+out.in_angle_left BAC.2.1 BPA.symm
+
+-- inangle1123
+lemma in_angle_left (nAB : A ≠ B) (nCB : C ≠ B) : in_angle A A B C :=
+⟨nAB, nCB, nAB, A, betw.id_left _ _, or.inr (out.trivial nAB)⟩
+
+-- inangle3123
+lemma in_angle_right (nAB : A ≠ B) (nCB : C ≠ B) : in_angle C A B C :=
+⟨nAB, nCB, nCB, C, betw.id_right _ _, or.inr (out.trivial nCB)⟩
+
+-- in_angle_out
+lemma in_angle.out_of_out (BAC : out B A C) (hP : in_angle P A B C) :
+  out B A P :=
+begin
+  obtain ⟨X, AXC, _ | h⟩ := hP.2.2.2,
+  { subst X,
+    apply ((l6_4_1 BAC).2 AXC).elim },
+  apply (BAC.out_of_bet AXC).trans h,
+end
+
+-- l11_25_aux
+lemma in_angle.in_angle_of_out' (hP : in_angle P A B C) (ABC : ¬ betw A B C) (BAA : out B A' A) :
+  in_angle P A' B C :=
+sorry
+
+---
 
 lemma l11_30 (le : le_angle A B C D E F) (ABC : cong_angle A B C A' B' C')
   (DEF : cong_angle D E F D' E' F') :

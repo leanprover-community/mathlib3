@@ -1661,7 +1661,7 @@ end
 
 /-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I ⊔ J)`,
   where `J'` is the image of `J` in `R/I` -/
-def double_quot_to_quot_add : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
+def double_quot_to_quot_sup : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
 ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sum I J)
  (img_left_in_ker I J)
 

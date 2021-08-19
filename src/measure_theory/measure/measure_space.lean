@@ -1865,7 +1865,7 @@ def finite_spanning_sets_in.add {μ ν : measure α}
 lemma finite_spanning_sets_in.add_disjoint {μ ν : measure α}
   (S : μ.finite_spanning_sets_in {s | measurable_set s})
   (T : ν.finite_spanning_sets_in {s | measurable_set s}):
-  pairwise (disjoint on (finite_spanning_sets_in.add S T).set) :=
+  pairwise (disjoint on (S.add T).set) :=
 disjoint_disjointed_finite_spanning_sets_in _
 
 /-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in_of_le` provides the induced

@@ -110,34 +110,10 @@ cardinal.sup.{v v}
 end
 
 section
-variables {R : Type u} [ring R] [nontrivial R]
+variables {R : Type u} [ring R]
 variables {M : Type v} [add_comm_group M] [module R M]
-
-lemma {m} cardinal_lift_le_dim_of_linear_independent
-  {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
-  cardinal.lift.{w (max v m)} (cardinal.mk ι) ≤ cardinal.lift.{v (max w m)} (module.rank R M) :=
-begin
-  apply le_trans,
-  { exact cardinal.lift_mk_le.mpr
-      ⟨(equiv.of_injective _ hv.injective).to_embedding⟩, },
-  { simp only [cardinal.lift_le],
-    apply le_trans,
-    swap,
-    exact cardinal.le_sup _ ⟨range v, hv.coe_range⟩,
-    exact le_refl _, },
-end
-
-lemma cardinal_le_dim_of_linear_independent
-  {ι : Type v} {v : ι → M} (hv : linear_independent R v) :
-  cardinal.mk ι ≤ module.rank R M :=
-by simpa using cardinal_lift_le_dim_of_linear_independent hv
-
-lemma cardinal_le_dim_of_linear_independent'
-  {s : set M} (hs : linear_independent R (λ x, x : s → M)) :
-  cardinal.mk s ≤ module.rank R M :=
-cardinal_le_dim_of_linear_independent hs
-
 variables {M' : Type v'} [add_comm_group M'] [module R M']
+variables {M₁ : Type v} [add_comm_group M₁] [module R M₁]
 
 theorem linear_map.lift_dim_le_of_injective (f : M →ₗ[R] M') (i : injective f) :
   cardinal.lift.{v v'} (module.rank R M) ≤ cardinal.lift.{v' v} (module.rank R M') :=
@@ -154,74 +130,9 @@ begin
     exact cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩, }
 end
 
-variables {M₁ : Type v} [add_comm_group M₁] [module R M₁]
-
 theorem linear_map.dim_le_of_injective (f : M →ₗ[R] M₁) (i : injective f) :
   module.rank R M ≤ module.rank R M₁ :=
 cardinal.lift_le.1 (f.lift_dim_le_of_injective i)
-
-lemma dim_le_of_submodule (s t : submodule R M) (h : s ≤ t) :
-  module.rank R s ≤ module.rank R t :=
-(of_le h).dim_le_of_injective $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
-  subtype.eq $ show x = y, from subtype.ext_iff_val.1 eq
-
-/-- Two linearly equivalent vector spaces have the same dimension, a version with different
-universes. -/
-theorem linear_equiv.lift_dim_eq (f : M ≃ₗ[R] M') :
-  cardinal.lift.{v v'} (module.rank R M) = cardinal.lift.{v' v} (module.rank R M') :=
-begin
-  apply le_antisymm,
-  { exact f.to_linear_map.lift_dim_le_of_injective f.injective, },
-  { exact f.symm.to_linear_map.lift_dim_le_of_injective f.symm.injective, },
-end
-
-/-- Two linearly equivalent vector spaces have the same dimension. -/
-theorem linear_equiv.dim_eq (f : M ≃ₗ[R] M₁) :
-  module.rank R M = module.rank R M₁ :=
-cardinal.lift_inj.1 f.lift_dim_eq
-
-lemma dim_eq_of_injective (f : M →ₗ[R] M₁) (h : injective f) :
-  module.rank R M = module.rank R f.range :=
-(linear_equiv.of_injective f (linear_map.ker_eq_bot.mpr h)).dim_eq
-
-variables (R M)
-
-@[simp] lemma dim_punit : module.rank R punit = 0 :=
-begin
-  apply le_bot_iff.mp,
-  apply cardinal.sup_le.mpr,
-  rintro ⟨s, li⟩,
-  apply le_bot_iff.mpr,
-  apply cardinal.mk_emptyc_iff.mpr,
-  simp only [subtype.coe_mk],
-  by_contradiction h,
-  have ne : s.nonempty := ne_empty_iff_nonempty.mp h,
-  simpa using linear_independent.ne_zero (⟨_, ne.some_mem⟩ : s) li,
-end
-
-@[simp] lemma dim_bot : module.rank R (⊥ : submodule R M) = 0 :=
-begin
-  have : (⊥ : submodule R M) ≃ₗ[R] punit := bot_equiv_punit,
-  rw [this.dim_eq, dim_punit],
-end
-
-@[simp] lemma dim_top : module.rank R (⊤ : submodule R M) = module.rank R M :=
-begin
-  have : (⊤ : submodule R M) ≃ₗ[R] M := linear_equiv.of_top ⊤ rfl,
-  rw this.dim_eq,
-end
-
-variables {R M}
-
-lemma dim_range_of_surjective (f : M →ₗ[R] M') (h : surjective f) :
-  module.rank R f.range = module.rank R M' :=
-by rw [linear_map.range_eq_top.2 h, dim_top]
-
-lemma dim_submodule_le (s : submodule R M) : module.rank R s ≤ module.rank R M :=
-begin
-  rw ←dim_top R M,
-  exact dim_le_of_submodule _ _ le_top,
-end
 
 theorem dim_le {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
@@ -249,12 +160,105 @@ begin
   rwa [linear_map.range_comp, range_subtype] at h,
 end
 
+lemma dim_le_of_submodule (s t : submodule R M) (h : s ≤ t) :
+  module.rank R s ≤ module.rank R t :=
+(of_le h).dim_le_of_injective $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
+  subtype.eq $ show x = y, from subtype.ext_iff_val.1 eq
+
+/-- Two linearly equivalent vector spaces have the same dimension, a version with different
+universes. -/
+theorem linear_equiv.lift_dim_eq (f : M ≃ₗ[R] M') :
+  cardinal.lift.{v v'} (module.rank R M) = cardinal.lift.{v' v} (module.rank R M') :=
+begin
+  apply le_antisymm,
+  { exact f.to_linear_map.lift_dim_le_of_injective f.injective, },
+  { exact f.symm.to_linear_map.lift_dim_le_of_injective f.symm.injective, },
+end
+
+/-- Two linearly equivalent vector spaces have the same dimension. -/
+theorem linear_equiv.dim_eq (f : M ≃ₗ[R] M₁) :
+  module.rank R M = module.rank R M₁ :=
+cardinal.lift_inj.1 f.lift_dim_eq
+
+lemma dim_eq_of_injective (f : M →ₗ[R] M₁) (h : injective f) :
+  module.rank R M = module.rank R f.range :=
+(linear_equiv.of_injective f (linear_map.ker_eq_bot.mpr h)).dim_eq
+
+variables (R M)
+
+@[simp] lemma dim_top : module.rank R (⊤ : submodule R M) = module.rank R M :=
+begin
+  have : (⊤ : submodule R M) ≃ₗ[R] M := linear_equiv.of_top ⊤ rfl,
+  rw this.dim_eq,
+end
+
+variables {R M}
+
+lemma dim_range_of_surjective (f : M →ₗ[R] M') (h : surjective f) :
+  module.rank R f.range = module.rank R M' :=
+by rw [linear_map.range_eq_top.2 h, dim_top]
+
+lemma dim_submodule_le (s : submodule R M) : module.rank R s ≤ module.rank R M :=
+begin
+  rw ←dim_top R M,
+  exact dim_le_of_submodule _ _ le_top,
+end
+
 lemma linear_map.dim_le_of_surjective (f : M →ₗ[R] M₁) (h : surjective f) :
   module.rank R M₁ ≤ module.rank R M :=
 begin
   rw ←dim_range_of_surjective f h,
   apply dim_range_le,
 end
+
+variables [nontrivial R]
+
+lemma {m} cardinal_lift_le_dim_of_linear_independent
+  {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
+  cardinal.lift.{w (max v m)} (cardinal.mk ι) ≤ cardinal.lift.{v (max w m)} (module.rank R M) :=
+begin
+  apply le_trans,
+  { exact cardinal.lift_mk_le.mpr
+      ⟨(equiv.of_injective _ hv.injective).to_embedding⟩, },
+  { simp only [cardinal.lift_le],
+    apply le_trans,
+    swap,
+    exact cardinal.le_sup _ ⟨range v, hv.coe_range⟩,
+    exact le_refl _, },
+end
+
+lemma cardinal_le_dim_of_linear_independent
+  {ι : Type v} {v : ι → M} (hv : linear_independent R v) :
+  cardinal.mk ι ≤ module.rank R M :=
+by simpa using cardinal_lift_le_dim_of_linear_independent hv
+
+lemma cardinal_le_dim_of_linear_independent'
+  {s : set M} (hs : linear_independent R (λ x, x : s → M)) :
+  cardinal.mk s ≤ module.rank R M :=
+cardinal_le_dim_of_linear_independent hs
+
+variables (R M)
+
+@[simp] lemma dim_punit : module.rank R punit = 0 :=
+begin
+  apply le_bot_iff.mp,
+  apply cardinal.sup_le.mpr,
+  rintro ⟨s, li⟩,
+  apply le_bot_iff.mpr,
+  apply cardinal.mk_emptyc_iff.mpr,
+  simp only [subtype.coe_mk],
+  by_contradiction h,
+  have ne : s.nonempty := ne_empty_iff_nonempty.mp h,
+  simpa using linear_independent.ne_zero (⟨_, ne.some_mem⟩ : s) li,
+end
+
+@[simp] lemma dim_bot : module.rank R (⊥ : submodule R M) = 0 :=
+begin
+  have : (⊥ : submodule R M) ≃ₗ[R] punit := bot_equiv_punit,
+  rw [this.dim_eq, dim_punit],
+end
+
+variables {R M}
 
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.

@@ -484,3 +484,17 @@ def mul_equiv.op {α β} [has_mul α] [has_mul β] :
 /-- The 'unopposite' of an iso `αᵒᵖ ≃* βᵒᵖ`. Inverse to `mul_equiv.op`. -/
 @[simp] def mul_equiv.unop {α β} [has_mul α] [has_mul β] :
   (αᵒᵖ ≃* βᵒᵖ) ≃ (α ≃* β) := mul_equiv.op.symm
+
+section ext
+
+/-- This ext lemma change equalities on `αᵒᵖ →+ β` to equalities on `α →+ β`.
+This is useful because there are often ext lemmas for specific `α`s that will apply
+to an equality of `α →+ β` such as `finsupp.add_hom_ext'`. -/
+@[ext]
+lemma add_monoid_hom.op_ext {α β} [add_zero_class α] [add_zero_class β]
+  (f g : αᵒᵖ →+ β)
+  (h : f.comp (op_add_equiv : α ≃+ αᵒᵖ).to_add_monoid_hom =
+       g.comp (op_add_equiv : α ≃+ αᵒᵖ).to_add_monoid_hom) : f = g :=
+add_monoid_hom.ext $ λ x, (add_monoid_hom.congr_fun h : _) x.unop
+
+end ext

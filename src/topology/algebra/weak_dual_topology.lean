@@ -19,26 +19,27 @@ The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 
 The main definitions are the type `weak_dual 𝕜 E` and a topology instance on it.
 
-* `weak_dual 𝕜 E` is a type synonym for `dual 𝕜 E` (when the latter is defined), both are equal to
+* `weak_dual 𝕜 E` is a type synonym for `dual 𝕜 E` (when the latter is defined): both are equal to
   the type `E →L[𝕜] 𝕜` of continuous linear maps from a module `E` over `𝕜` to the ring `𝕜`.
-* the instance `topological_space (weak_dual 𝕜 E)` is the weak-* topology on `weak_dual 𝕜 E`, i.e.,
-  the coarsest topology making the evaluation maps at all `z : E` are continuous.
+* The instance `weak_dual.topological_space` is the weak-* topology on `weak_dual 𝕜 E`, i.e., the
+  coarsest topology making the evaluation maps at all `z : E` continuous.
 
 ## Main results
 
 We establish that `weak_dual 𝕜 E` has the following structure:
-* The addition in `weak_dual 𝕜 E` is continuous, i.e. we have `has_continuous_add (weak_dual 𝕜 E)`.
-* If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a module over `𝕜`.
-* If the scalars `𝕜` are a commutative semiring, then the scalar multiplication by `𝕜` in
-  `weak_dual 𝕜 E` is continuous, i.e. we have `has_continuous_smul 𝕜 (weak_dual 𝕜 E)`.
+* `weak_dual.has_continuous_add`: The addition in `weak_dual 𝕜 E` is continuous.
+* `weak_dual.module`: If the scalars `𝕜` are a commutative semiring, then `weak_dual 𝕜 E` is a
+  module over `𝕜`.
+* `weak_dual.has_continuous_smul`: If the scalars `𝕜` are a commutative semiring, then the scalar
+  multiplication by `𝕜` in `weak_dual 𝕜 E` is continuous.
 
 We prove the following results characterizing the weak-* topology:
-* `eval_continuous` shows that for any `z : E`, the evaluation mapping `weak_dual 𝕜 E → 𝕜`
-  taking `x'`to `x' z` is continuous.
-* `continuous_of_continuous_eval` shows that for a mapping to `weak_dual 𝕜 E → 𝕜` to be continuous,
-  it is sufficient that its compositions with evaluations at all points `z : E` are continuous
-* `tendsto_iff_forall_eval_tendsto` is a characterization of convergence in `weak_dual 𝕜 E` in
-  terms of convergence of the evaluations at all points `z : E`
+* `weak_dual.eval_continuous`: For any `z : E`, the evaluation mapping `weak_dual 𝕜 E → 𝕜` taking
+  `x'`to `x' z` is continuous.
+* `weak_dual.continuous_of_continuous_eval`: For a mapping to `weak_dual 𝕜 E` to be continuous,
+  it suffices that its compositions with evaluations at all points `z : E` are continuous.
+* `weak_dual.tendsto_iff_forall_eval_tendsto`: Convergence in `weak_dual 𝕜 E` can be characterized
+  in terms of convergence of the evaluations at all points `z : E`.
 
 ## Notations
 
@@ -50,12 +51,12 @@ The weak-* topology is defined as the induced topology under the mapping that as
 element `x'` the functional `E → 𝕜`, when the space `E → 𝕜` of functionals is equipped with the
 topology of pointwise convergence (product topology).
 
-Typically one might assumes that `𝕜` is a topological semiring in the sense of the typeclasses
- `topological_space 𝕜`, `semiring 𝕜`, `has_continuous_add 𝕜`, `has_continuous_mul 𝕜`,
+Typically one might assume that `𝕜` is a topological semiring in the sense of the typeclasses
+`topological_space 𝕜`, `semiring 𝕜`, `has_continuous_add 𝕜`, `has_continuous_mul 𝕜`,
 and that the space `E` is a topological module over `𝕜` in the sense of the typeclasses
 `topological_space E`, `add_comm_monoid E`, `has_continuous_add E`, `module 𝕜 E`,
-`has_continuous_smul 𝕜 E`. The definitions and results are, however, given with suitable subsets
-of these assumptions.
+`has_continuous_smul 𝕜 E`. The definitions and results are, however, given with weaker assumptions
+when possible.
 
 ## References
 
@@ -74,22 +75,15 @@ open_locale topological_space
 section weak_star_topology
 /-!
 ### Weak star topology on duals of topological modules
-In this section, we define the weak-* topology on duals of suitable topological modules `E` over
-suitable topological semirings `𝕜`. The (weak) dual `weak_dual 𝕜 E` consists of continuous linear
-functionals `E →L[𝕜] 𝕜` from `E` to scalars `𝕜`. The weak-* topology is the coarsest topology on
-this dual `weak_dual 𝕜 E := (E →L[𝕜] 𝕜)` w.r.t. which the evaluation maps at all `z : E` are
-continuous.
-
-The weak dual is a module over `𝕜` if the semiring `𝕜` is commutative.
 -/
 
 universe variables u v
 variables (𝕜 : Type*) [topological_space 𝕜] [semiring 𝕜]
 variables (E : Type*) [topological_space E] [add_comm_monoid E] [module 𝕜 E]
 
-/-- The (weak) dual of a topological module `E` over a topological semiring `𝕜` consists of
-continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the original
-dual, but will be equipped with a different topology. -/
+/-- The weak dual of a topological module `E` over a topological semiring `𝕜` consists of
+continuous linear functionals from `E` to scalars `𝕜`. It is a type synonym with the usual dual
+(when the latter is defined), but will be equipped with a different topology. -/
 @[derive [inhabited, has_coe_to_fun]]
 def weak_dual := E →L[𝕜] 𝕜
 
@@ -98,10 +92,10 @@ continuous_linear_map.add_comm_monoid
 
 namespace weak_dual
 
-/-- The weak-* topology instance `weak_dual_topology` on the dual of a topological module `E` over
-a topological semiring `𝕜` is defined as the induced topology under the mapping that associates to
-a dual element `x' : weak_dual 𝕜 E` the functional `E → 𝕜`, when the space `E → 𝕜` of functionals
-is equipped with the topology of pointwise convergence (product topology). -/
+/-- The weak-* topology instance `weak_dual.topological_space` on the dual of a topological module
+`E` over a topological semiring `𝕜` is defined as the induced topology under the mapping that
+associates to a dual element `x' : weak_dual 𝕜 E` the functional `E → 𝕜`, when the space `E → 𝕜`
+of functionals is equipped with the topology of pointwise convergence (product topology). -/
 instance : topological_space (weak_dual 𝕜 E) :=
 topological_space.induced (λ x' : weak_dual 𝕜 E, λ z : E, x' z) Pi.topological_space
 

@@ -32,7 +32,7 @@ section ae_eq_of_forall
 variables {α E 𝕜 : Type*} {m : measurable_space α} {μ : measure α} [is_R_or_C 𝕜]
 
 lemma ae_eq_zero_of_forall_inner [inner_product_space 𝕜 E] [second_countable_topology E]
-  {f : α → E} (hf : ∀ c : E, ∀ᵐ x ∂μ, inner c (f x) = (0 : 𝕜)) :
+  {f : α → E} (hf : ∀ c : E, (λ x, (inner c (f x) : 𝕜)) =ᵐ[μ] 0) :
   f =ᵐ[μ] 0 :=
 begin
   let s := dense_seq E,
@@ -49,7 +49,7 @@ local notation `⟪`x`, `y`⟫` := y x
 
 lemma ae_eq_zero_of_forall_dual [normed_group E] [normed_space 𝕜 E]
   [second_countable_topology (dual 𝕜 E)]
-  {f : α → E} (hf : ∀ c : dual 𝕜 E, ∀ᵐ x ∂μ, ⟪f x, c⟫ = (0 : 𝕜)) :
+  {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) :
   f =ᵐ[μ] 0 :=
 begin
   let s := dense_seq (dual 𝕜 E),

@@ -1816,13 +1816,36 @@ begin
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
 end
 
+/-- Given two σ-finite measures `μ` and `ν`, `finite_spanning_setsin.add μ ν` is a sequence of
+pairwise disjoint, finite spanning sets in `{s | measurable_set s}` with respect to `μ + ν`. -/
+protected def finite_spanning_sets_in.add
+  (S : μ.finite_spanning_sets_in {s | measurable_set s})
+  (T : ν.finite_spanning_sets_in {s | measurable_set s}) :
+  (μ + ν).finite_spanning_sets_in {s | measurable_set s} :=
+{ set := λ n : ℕ, S.set n.unpair.1 ∩ T.set n.unpair.2,
+  set_mem := λ n, (S.set_mem n.unpair.1).inter (T.set_mem n.unpair.2),
+  finite :=
+    begin
+      intro n,
+      rw [add_apply, ennreal.add_lt_top],
+      exact ⟨lt_of_le_of_lt (measure_mono (set.inter_subset_left _ _)) (S.finite n.unpair.1),
+             lt_of_le_of_lt (measure_mono (set.inter_subset_right _ _)) (T.finite n.unpair.2)⟩,
+    end,
+  spanning := by simp_rw [set.Union_unpair (λ i j, S.set i ∩ T.set j), ← set.inter_Union,
+                          ← set.Union_inter, S.spanning, T.spanning, set.inter_univ] }
+
+/-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in.of_le` provides the induced
+`finite_spanning_set` with respect to `ν` from a `finite_spanning_set` with respect to `μ`. -/
+def finite_spanning_sets_in.of_le (h : ν ≤ μ) {C : set (set α)}
+  (S : μ.finite_spanning_sets_in C) : ν.finite_spanning_sets_in C :=
+{ set := S.set,
+  set_mem := S.set_mem,
+  finite := λ n, lt_of_le_of_lt (le_iff'.1 h _) (S.finite n),
+  spanning := S.spanning }
+
 lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
   (h : ν ≤ μ) : sigma_finite ν :=
-begin
-  cases hs.out with C,
-  exact ⟨nonempty.intro ⟨C.set, C.set_mem, λ i,
-    (lt_of_le_of_lt (le_iff'.1 h _) (C.finite i)), C.spanning⟩⟩,
-end
+⟨nonempty.intro (hs.out.some.of_le h)⟩
 
 section disjointed
 
@@ -1842,33 +1865,6 @@ lemma finite_spanning_sets_in.disjoint_disjointed {μ : measure α}
   (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
   pairwise (disjoint on S.disjointed.set) :=
 disjoint_disjointed _
-
-/-- Given two σ-finite measures `μ` and `ν`, `finite_spanning_setsin.add μ ν` is a sequence of
-pairwise disjoint, finite spanning sets in `{s | measurable_set s}` with respect to `μ + ν`. -/
-protected def finite_spanning_sets_in.add {μ ν : measure α}
-  (S : μ.finite_spanning_sets_in {s | measurable_set s})
-  (T : ν.finite_spanning_sets_in {s | measurable_set s}) :
-  (μ + ν).finite_spanning_sets_in {s | measurable_set s} :=
-{ set := λ n : ℕ, S.set n.unpair.1 ∩ T.set n.unpair.2,
-  set_mem := λ n, (S.set_mem n.unpair.1).inter (T.set_mem n.unpair.2),
-  finite :=
-    begin
-      intro n,
-      rw [add_apply, ennreal.add_lt_top],
-      exact ⟨lt_of_le_of_lt (measure_mono (set.inter_subset_left _ _)) (S.finite n.unpair.1),
-             lt_of_le_of_lt (measure_mono (set.inter_subset_right _ _)) (T.finite n.unpair.2)⟩,
-    end,
-  spanning := by simp_rw [set.Union_unpair (λ i j, S.set i ∩ T.set j), ← set.inter_Union,
-                          ← set.Union_inter, S.spanning, T.spanning, set.inter_univ] }
-
-/-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in.of_le` provides the induced
-`finite_spanning_set` with respect to `ν` from a `finite_spanning_set` with respect to `μ`. -/
-def finite_spanning_sets_in.of_le {μ ν : measure α} (h : ν ≤ μ) {C : set (set α)}
-  (S : μ.finite_spanning_sets_in C) : ν.finite_spanning_sets_in C :=
-{ set := S.set,
-  set_mem := S.set_mem,
-  finite := λ n, lt_of_le_of_lt (le_iff'.1 h _) (S.finite n),
-  spanning := S.spanning }
 
 lemma exists_eq_disjoint_finite_spanning_sets_in
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :

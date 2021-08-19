@@ -128,8 +128,7 @@ begin
   induction p generalizing q w,
   { refl },
   { dsimp [walk.reverse_aux, walk.reverse],
-    repeat { rw p_ih },
-    rw ←concat_assoc,
+    rw [p_ih, p_ih, ←concat_assoc],
     refl, }
 end
 
@@ -169,7 +168,8 @@ protected lemma reverse_aux_length {u v w : V} (p : G.walk u v) (q : G.walk u w)
 begin
   induction p,
   { simp [walk.reverse_aux], },
-  { dunfold reverse_aux, rw p_ih, simp only [cons_length], ring, },
+  { simp only [walk.reverse_aux, p_ih, cons_length],
+    ring, },
 end
 
 @[simp] lemma reverse_length {u v : V} (p : G.walk u v) : p.reverse.length = p.length :=
@@ -187,6 +187,18 @@ def edges : Π {u v : V}, G.walk u v → multiset (sym2 V)
 | u v nil := ∅
 | u v (@cons _ _ _ x _ h p) := ⟦(u, x)⟧ ::ₘ p.edges
 
+@[simp] lemma nil_support {u : V} : (nil : G.walk u u).support = {u} := rfl
+
+@[simp] lemma cons_support {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+  (cons h p).support = u ::ₘ p.support := rfl
+
+@[simp] lemma start_mem_support {u v : V} (p : G.walk u v) : u ∈ p.support :=
+by cases p; simp [support]
+
+@[simp] lemma end_mem_support : ∀ {u v : V} (p : G.walk u v), v ∈ p.support
+| _ _ nil := by simp
+| _ _ (cons h p) := by simp [p.end_mem_support]
+
 lemma edges_mem_edge_set {u v : V} {p : G.walk u v} {e : sym2 V}
   (h : e ∈ p.edges) : e ∈ G.edge_set :=
 begin
@@ -202,19 +214,23 @@ end
 def edges' {u v : V} (p : G.walk u v) : multiset G.edge_set :=
 p.edges.attach.map (λ e, ⟨e, edges_mem_edge_set e.property⟩)
 
+@[simp] lemma nil_edges {u : V} : (nil : G.walk u u).edges = ∅ := rfl
+
+@[simp] lemma cons_edges {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+  (cons h p).edges = ⟦(u, v)⟧ ::ₘ p.edges := rfl
+
 lemma edge_vert_mem_support {t u v w : V} (ha : G.adj t u) (p : G.walk v w)
   (he : ⟦(t, u)⟧ ∈ p.edges) :
   t ∈ p.support :=
 begin
   induction p,
-  { exfalso,
-    simpa [edges] using he, },
-  { simp only [support, multiset.mem_cons],
-    simp only [edges, multiset.mem_cons, quotient.eq] at he,
+  { exact false.elim he, },
+  { simp only [cons_support, multiset.mem_cons],
+    simp only [cons_edges, multiset.mem_cons, quotient.eq] at he,
     cases he,
     { cases he,
       { exact or.inl rfl, },
-      { cases p_p; simp [support], }, },
+      { cases p_p; simp, }, },
     { exact or.inr (p_ih he), } },
 end
 
@@ -231,7 +247,8 @@ structure is_circuit {u : V} (p : G.walk u u) : Prop :=
 (to_trail : is_trail p)
 (ne_nil : p ≠ nil)
 
-/-- A *cycle* at `u : V` is a circuit at `u` whose only repeating vertex is `u`. -/
+/-- A *cycle* at `u : V` is a circuit at `u` whose only repeating vertex
+is `u` (which appears exactly twice). -/
 structure is_cycle {u : V} (p : G.walk u u) extends to_circuit : is_circuit p : Prop :=
 (support_nodup : (p.support.erase u).nodup)
 
@@ -243,7 +260,7 @@ def is_eulerian {u v : V} (p : G.walk u v) : Prop :=
 ∀ e, e ∈ G.edge_set → p.edges.count e = 1
 
 /-- A walk `p` is *Hamiltonian* if it visits every vertex exactly once.
-Hamiltonian walks are automatically paths. (TODO: make the path version.) -/
+Hamiltonian walks are automatically paths. (TODO: make the path version, too.) -/
 def is_hamiltonian {u v : V} (p : G.walk u v) : Prop :=
 ∀ v, p.support.count v = 1
 
@@ -253,11 +270,7 @@ by split; { rintro ⟨h1, h2⟩, exact ⟨h1, h2⟩ }
 
 lemma is_cycle_def {u : V} (p : G.walk u u) :
   p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ (p.support.erase u).nodup :=
-begin
-  split,
-  { rintro ⟨⟨h1, h2⟩, h3⟩, exact ⟨h1, h2, h3⟩, },
-  { rintro ⟨h1, h2, h3⟩, exact ⟨⟨h1, h2⟩, h3⟩, },
-end
+iff.intro (λ h, ⟨h.1.1, h.1.2, h.2⟩) (λ h, ⟨⟨h.1, h.2.1⟩, h.2.2⟩)
 
 lemma trail_count_le_one {u v : V} (p : G.walk u v) (h : p.is_trail) (e : sym2 V) :
   p.edges.count e ≤ 1 :=
@@ -271,7 +284,7 @@ multiset.count_eq_one_of_mem h he
 by simp [is_trail, edges]
 
 @[simp] lemma nil_is_path {u : V} : (nil : G.walk u u).is_path :=
-by { fsplit; simp [support] }
+by { fsplit; simp }
 
 lemma is_trail_of_cons_is_trail {u v w : V} {h : G.adj u v} {p : G.walk v w}
   (h : (cons h p).is_trail) : p.is_trail :=
@@ -283,26 +296,25 @@ begin
   cases h with ht hd,
   split,
   { exact is_trail_of_cons_is_trail ht, },
-  { rw [support, multiset.nodup_cons] at hd,
+  { rw [cons_support, multiset.nodup_cons] at hd,
     exact hd.2, },
 end
 
-lemma cons_is_trail_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+@[simp] lemma cons_is_trail_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_trail ↔ p.is_trail ∧ ⟦(u, v)⟧ ∉ p.edges :=
-by simp only [is_trail, edges, and_comm, iff_self, multiset.nodup_cons]
+by simp [is_trail, cons_edges, and_comm, iff_self, multiset.nodup_cons]
 
-lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+@[simp] lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 begin
-  simp only [is_path_def, is_trail, edges, support, multiset.nodup_cons],
+  simp only [is_path_def, cons_is_trail_iff, cons_support, multiset.nodup_cons],
   split,
-  { rintro ⟨⟨h1, hen⟩, hns, hsn⟩,
-    exact ⟨⟨hen, hsn⟩, hns⟩, },
-  { rintro ⟨⟨hen, hsn⟩, hns⟩,
-    simp only [hen, hsn, hns, and_true, not_false_iff],
+  { rintro ⟨⟨ht, hne⟩, hns, hsn⟩,
+    exact ⟨⟨ht, hsn⟩, hns⟩, },
+  { rintro ⟨⟨ht, hsn⟩, hns⟩,
+    simp only [ht, hsn, hns, and_true, not_false_iff, true_and],
     intro he,
-    apply hns,
-    exact edge_vert_mem_support h p he, },
+    exact hns (edge_vert_mem_support h p he), },
 end
 
 end walk
@@ -368,18 +380,6 @@ abbreviation path (u v : V) := {p : G.walk u v // p.is_path}
 namespace walk
 variables {G}
 
-@[simp] lemma nil_support {u : V} : (nil : G.walk u u).support = {u} := rfl
-
-@[simp] lemma cons_support {u v w : V} (h : G.adj u v) (p : G.walk v w) :
-  (cons h p).support = u ::ₘ p.support := rfl
-
-@[simp] lemma start_mem_support {u v : V} (p : G.walk u v) : u ∈ p.support :=
-by cases p; simp [support]
-
-@[simp] lemma end_mem_support : ∀ {u v : V} (p : G.walk u v), v ∈ p.support
-| _ _ nil := by simp
-| _ _ (cons h p) := by simp [p.end_mem_support]
-
 @[simp]
 lemma concat_support {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.concat p').support = p.support + p'.support - {v} :=
@@ -389,9 +389,9 @@ begin
   { simp only [cons_concat, cons_support, p_ih, multiset.singleton_eq_singleton,
       multiset.sub_zero, multiset.sub_cons, multiset.cons_add],
     rw [←multiset.singleton_add, ←multiset.singleton_add],
-    have h₁ : p_w ∈ p'.support := p'.start_mem_support,
-    have h₂ : p_w ∈ p_p.support + p'.support, simp [multiset.mem_add, h₁],
-    rw multiset.erase_add_right_pos _ h₂, },
+    have : p_w ∈ p_p.support + p'.support,
+    { simp [multiset.mem_add, p'.start_mem_support], },
+    rw multiset.erase_add_right_pos _ this, },
 end
 
 @[simp]
@@ -401,11 +401,6 @@ begin
   { trivial, },
   { simp [p_ih], },
 end
-
-@[simp] lemma nil_edges {u : V} : (nil : G.walk u u).edges = ∅ := rfl
-
-@[simp] lemma cons_edges {u v w : V} (h : G.adj u v) (p : G.walk v w) :
-  (cons h p).edges = ⟦(u, v)⟧ ::ₘ p.edges := rfl
 
 @[simp]
 lemma concat_edges {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
@@ -421,8 +416,7 @@ lemma reverse_edges {u v : V} (p : G.walk u v) : p.reverse.edges = p.edges :=
 begin
   induction p,
   { trivial },
-  { simp [p_ih, -quotient.eq],
-    exact sym2.eq_swap, },
+  { simp [p_ih, -quotient.eq, sym2.eq_swap], },
 end
 
 lemma reverse_trail {u v : V} (p : G.walk u v) (h : p.is_trail) : p.reverse.is_trail :=
@@ -440,36 +434,22 @@ end
 lemma is_trail_of_concat_left {u v w : V} (p : G.walk u v) (q : G.walk v w)
   (h : (p.concat q).is_trail) : p.is_trail :=
 begin
-  induction p,
-  { simp, },
-  { simp [cons_is_trail_iff],
-    simp [cons_is_trail_iff] at h,
-    split,
-    apply p_ih _ h.1,
-    intro h',
-    apply h.2,
-    exact or.inl h', },
+  rw [is_trail, concat_edges, multiset.nodup_add] at h,
+  exact h.1,
 end
 
 lemma is_trail_of_concat_right {u v w : V} (p : G.walk u v) (q : G.walk v w)
   (h : (p.concat q).is_trail) : q.is_trail :=
 begin
-  rw [←reverse_trail_iff, concat_reverse] at h,
-  rw ←reverse_trail_iff,
-  exact is_trail_of_concat_left _ _ h,
+  rw [is_trail, concat_edges, multiset.nodup_add] at h,
+  exact h.2.1,
 end
 
 lemma reverse_path {u v : V} (p : G.walk u v) (h : p.is_path) : p.reverse.is_path :=
 by simpa [is_path_def] using h
 
 @[simp] lemma reverse_path_iff {u v : V} (p : G.walk u v) : p.reverse.is_path ↔ p.is_path :=
-begin
-  split,
-  { intro h,
-    convert reverse_path _ h,
-    rw reverse_reverse, },
-  { exact reverse_path p, },
-end
+by split; intro h; convert reverse_path _ h; simp
 
 def split_at_vertex_fst : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.support), G.walk v u
 | v w nil u h := begin

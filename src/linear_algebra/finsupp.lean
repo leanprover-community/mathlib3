@@ -537,15 +537,15 @@ lemma total_option (v : option α → M) (f : option α →₀ R) :
 by rw [total_apply, sum_option_index_smul, total_apply]
 
 lemma total_total {α β : Type*} (A : α → M) (B : β → (α →₀ R)) (f : β →₀ R) :
-  finsupp.total α M R A ((finsupp.total β (α →₀ R) R B) f) =
+  finsupp.total α M R A (finsupp.total β (α →₀ R) R B f) =
     finsupp.total β M R (λ b, finsupp.total α M R A (B b)) f :=
 begin
-  simp only [finsupp.total_apply],
-  apply finsupp.induction_linear f,
-  { simp, },
+  simp only [total_apply],
+  apply induction_linear f,
+  { simp only [sum_zero_index], },
   { intros f₁ f₂ h₁ h₂,
-    simp [finsupp.sum_add_index, h₁, h₂, add_smul], },
-  { simp [finsupp.sum_single_index, finsupp.sum_smul_index, finsupp.smul_sum, mul_smul], }
+    simp [sum_add_index, h₁, h₂, add_smul], },
+  { simp [sum_single_index, sum_smul_index, smul_sum, mul_smul], }
 end
 
 @[simp] lemma total_fin_zero (f : fin 0 → M) :

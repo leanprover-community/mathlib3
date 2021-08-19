@@ -308,6 +308,7 @@ begin
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
 end
 
+@[priority 100]
 instance is_nilpotent_of_subsingleton [subsingleton G] : is_nilpotent G :=
 nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩
 

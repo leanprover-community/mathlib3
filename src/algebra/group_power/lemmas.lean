@@ -213,6 +213,12 @@ gsmul_mono_left ha h
 theorem gsmul_lt_gsmul {a : A} {n m : ℤ} (ha : 0 < a) (h : n < m) : n • a < m • a :=
 gsmul_strict_mono_left ha h
 
+theorem gsmul_le_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a ≤ m • a ↔ n ≤ m :=
+(gsmul_strict_mono_left ha).le_iff_le
+
+theorem gsmul_lt_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a < m • a ↔ n < m :=
+(gsmul_strict_mono_left ha).lt_iff_lt
+
 variables (A)
 
 lemma gsmul_strict_mono_right {n : ℤ} (hn : 0 < n) :
@@ -295,11 +301,11 @@ end ordered_add_comm_group
 section linear_ordered_add_comm_group
 variable [linear_ordered_add_comm_group A]
 
-theorem gsmul_le_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a ≤ m • a ↔ n ≤ m :=
-(gsmul_strict_mono_left ha).le_iff_le
+theorem gsmul_le_gsmul_iff' {n : ℤ} (hn : 0 < n) {a₁ a₂ : A} : n • a₁ ≤ n • a₂ ↔ a₁ ≤ a₂  :=
+(gsmul_strict_mono_right A hn).le_iff_le
 
-theorem gsmul_lt_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a < m • a ↔ n < m :=
-(gsmul_strict_mono_left ha).lt_iff_lt
+theorem gsmul_lt_gsmul_iff' {n : ℤ} (hn : 0 < n) {a₁ a₂ : A} : n • a₁ < n • a₂ ↔ a₁ < a₂  :=
+(gsmul_strict_mono_right A hn).lt_iff_lt
 
 theorem nsmul_le_nsmul_iff {a : A} {n m : ℕ} (ha : 0 < a) : n • a ≤ m • a ↔ n ≤ m :=
 begin
@@ -329,9 +335,9 @@ end
 lemma gsmul_right_inj {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
 (gsmul_right_injective hm).eq_iff
 
-/-- Alias of `gsmul_right_inj`, for ease of discovery alongside `gsmul_le_gsmul_iff` and
-`gsmul_lt_gsmul_iff`. -/
-lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
+/-- Alias of `gsmul_right_inj`, for ease of discovery alongside `gsmul_le_gsmul_iff'` and
+`gsmul_lt_gsmul_iff'`. -/
+lemma gsmul_eq_gsmul_iff' {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
 gsmul_right_inj hm
 
 end linear_ordered_add_comm_group

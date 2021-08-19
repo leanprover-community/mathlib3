@@ -208,10 +208,16 @@ end
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra
 
-instance to_algebra : algebra S L :=
+instance to_algebra {R : Type*} [semiring R] [algebra L R] : algebra S R :=
 S.to_subalgebra.to_algebra
 
-instance : is_scalar_tower K S L :=
+instance is_scalar_tower_bot {R R' : Type*} [comm_semiring R] [semiring R']
+  [algebra L R] [algebra R R'] [algebra L R'] [is_scalar_tower L R R'] :
+  is_scalar_tower S L R' :=
+is_scalar_tower.subalgebra _ _ _ S.to_subalgebra
+
+instance is_scalar_tower_mid {R : Type*} [semiring R] [algebra L R] [algebra K R]
+  [is_scalar_tower K L R] : is_scalar_tower K S R :=
 is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
 
 variables {L' : Type*} [field L'] [algebra K L']

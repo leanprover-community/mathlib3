@@ -6,9 +6,10 @@ Authors: Anne Baanen
 
 import linear_algebra.bilinear_form
 import linear_algebra.char_poly.coeff
+import linear_algebra.determinant
 import linear_algebra.trace
-import field_theory.adjoin
 import field_theory.algebraic_closure
+import field_theory.primitive_element
 import ring_theory.power_basis
 
 /-!
@@ -232,19 +233,28 @@ end
 
 end intermediate_field.adjoin_simple
 
+open intermediate_field
+
+variables (K)
+
+lemma trace_eq_trace_adjoin [finite_dimensional K L] (x : L) :
+  algebra.trace K L x = finrank K⟮x⟯ L • trace K K⟮x⟯ (adjoin_simple.gen K x) :=
+begin
+  rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
+  conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
+  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
+      smul_eq_mul, algebra.smul_def],
+  apply_instance
+end
+
+variables {K}
+
 lemma trace_eq_sum_roots [finite_dimensional K L]
   {x : L} (hF : (minpoly K x).splits (algebra_map K F)) :
   algebra_map K F (algebra.trace K L x) =
     finrank K⟮x⟯ L • ((minpoly K x).map (algebra_map K _)).roots.sum :=
-begin
-  haveI : finite_dimensional K⟮x⟯ L := finite_dimensional.right K _ L,
-  rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
-  conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
-  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
-      smul_eq_mul, ring_hom.map_mul, ← is_scalar_tower.algebra_map_apply ℕ K _, ← smul_def,
-      intermediate_field.adjoin_simple.trace_gen_eq_sum_roots _ hF],
-  all_goals { apply_instance }
-end
+by rw [trace_eq_trace_adjoin K x, algebra.smul_def, ring_hom.map_mul, ← algebra.smul_def,
+    intermediate_field.adjoin_simple.trace_gen_eq_sum_roots _ hF, is_scalar_tower.algebra_map_smul]
 
 end eq_sum_roots
 
@@ -268,3 +278,62 @@ begin
   { apply is_alg_closed.splits_codomain },
   { apply_instance }
 end
+
+section eq_sum_embeddings
+
+variables [algebra K F] [is_scalar_tower K L F]
+
+open algebra intermediate_field
+
+lemma trace_eq_sum_embeddings_gen (E : Type*) [field E] [algebra K E]
+  (pb : power_basis K L)
+  (hE : (minpoly K pb.gen).splits (algebra_map K E)) (hfx : (minpoly K pb.gen).separable) :
+  algebra_map K E (algebra.trace K L pb.gen) =
+    (@@finset.univ (power_basis.alg_hom.fintype pb)).sum (λ σ, σ pb.gen) :=
+begin
+  letI := classical.dec_eq E,
+  rw [pb.trace_gen_eq_sum_roots hE, fintype.sum_equiv pb.lift_equiv', finset.sum_mem_multiset,
+      finset.sum_eq_multiset_sum, multiset.to_finset_val,
+      multiset.erase_dup_eq_self.mpr (nodup_roots ((separable_map _).mpr hfx)), multiset.map_id],
+  { intro x, refl },
+  { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
+end
+
+variables (F)
+lemma sum_embeddings_eq_finrank_mul
+  (E : Type*) [field E] [is_alg_closed E]
+  [algebra K E]  [finite_dimensional K F] [is_separable K F]
+  (pb : power_basis K L) :
+  ∑ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
+    finrank L F • (@@finset.univ (power_basis.alg_hom.fintype pb)).sum
+      (λ σ : L →ₐ[K] E, σ pb.gen) :=
+begin
+  haveI : finite_dimensional L F := finite_dimensional.right K L F,
+  haveI : is_separable L F := is_separable_tower_top_of_is_separable K L F,
+  letI : fintype (L →ₐ[K] E) := power_basis.alg_hom.fintype pb,
+  letI : ∀ (f : L →ₐ[K] E), fintype (@@alg_hom L F E _ _ _ _ f.to_ring_hom.to_algebra) :=
+    _, -- will be solved by unification
+  rw [fintype.sum_equiv alg_hom_equiv_sigma (λ (σ : F →ₐ[K] E), _) (λ σ, σ.1 pb.gen),
+      ← finset.univ_sigma_univ, finset.sum_sigma, ← finset.sum_nsmul],
+  refine finset.sum_congr rfl (λ σ _, _),
+  { letI : algebra L E := σ.to_ring_hom.to_algebra,
+    simp only [finset.sum_const, finset.card_univ],
+    rw alg_hom.card L F E },
+  { intros σ,
+    simp only [alg_hom_equiv_sigma, equiv.coe_fn_mk, alg_hom.restrict_domain, alg_hom.comp_apply,
+         is_scalar_tower.coe_to_alg_hom'] }
+end
+
+lemma trace_eq_sum_embeddings [is_alg_closed F] [finite_dimensional K L] [is_separable K L]
+  {x : L} (hx : is_integral K x) :
+  algebra_map K F (algebra.trace K L x) = ∑ σ : L →ₐ[K] F, σ x :=
+begin
+  rw [trace_eq_trace_adjoin K x, algebra.smul_def, ring_hom.map_mul, ← adjoin.power_basis_gen hx,
+      trace_eq_sum_embeddings_gen F (adjoin.power_basis hx) (is_alg_closed.splits_codomain _),
+      ← algebra.smul_def, algebra_map_smul],
+  { exact (sum_embeddings_eq_finrank_mul L F (adjoin.power_basis hx)).symm },
+  { haveI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
+    exact is_separable.separable K _ }
+end
+
+end eq_sum_embeddings

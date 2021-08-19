@@ -23,6 +23,9 @@ import data.real.nnreal
 
 open_locale big_operators
 
+-- TODO File Docstring
+-- TODO Cite "Proofs From THE BOOK"
+
 /-- The multiplicity of p in the nth central binomial coefficient-/
 private def α (n p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p ((2 * n).choose n)

@@ -318,7 +318,10 @@ end
 
 end walk
 
-/-- Two vertices are *reachable* if there is a walk between them. -/
+/-- Two vertices are *reachable* if there is a walk between them.
+
+This is equivalent to `relation.refl_trans_gen` of `G.adj`.
+See `simple_graph.reachable_iff_refl_trans_gen`. -/
 def reachable (u v : V) : Prop := nonempty (G.walk u v)
 
 variables {G}
@@ -335,6 +338,20 @@ huv.elim (λ p, ⟨p.reverse⟩)
 @[trans] lemma reachable.trans {u v w : V} (huv : G.reachable u v) (hvw : G.reachable v w) :
   G.reachable u w :=
 huv.elim (λ puv, hvw.elim (λ pvw, ⟨puv.concat pvw⟩))
+
+lemma reachable_iff_refl_trans_gen (u v : V) :
+  G.reachable u v ↔ relation.refl_trans_gen G.adj u v :=
+begin
+  split,
+  { rintro ⟨h⟩,
+    induction h,
+    { refl, },
+    { exact (relation.refl_trans_gen.single h_h).trans h_ih, }, },
+  { intro h,
+    induction h with _ _ _ ha hr,
+    { refl, },
+    { exact reachable.trans hr ⟨walk.cons ha walk.nil⟩, }, },
+end
 
 variables (G)
 

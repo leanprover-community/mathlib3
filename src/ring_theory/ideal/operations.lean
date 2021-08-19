@@ -1684,8 +1684,8 @@ begin
   exact hx,
 end
 
-/-- define `lift_add_double_qot_mk` to be the induced map `R/(I ⊔ J) → (R/I)/J' ` -/
-def lift_add_double_qot_mk (I J : ideal R) := ideal.quotient.lift (I ⊔ J) (double_quot_mk I J)
+/-- define `lift_add_double_quot_mk` to be the induced map `R/(I ⊔ J) → (R/I)/J' ` -/
+def lift_add_double_quot_mk (I J : ideal R) := ideal.quotient.lift (I ⊔ J) (double_quot_mk I J)
   (mem_add_double_quot_mk I J)
 
 /-- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/

@@ -166,9 +166,9 @@ linear_equiv.of_linear
   (lift $ tensor_product.uncurry A _ _ _ $ comp (lcurry R A _ _ _) $
     tensor_product.mk A M (P ⊗[R] N))
   (tensor_product.uncurry A _ _ _ $ comp (uncurry R A _ _ _) $
-    by apply tensor_product.curry; exact (mk R A _ _))
+    by { apply tensor_product.curry, exact (mk R A _ _) })
   (by { ext, refl, })
-  (by { ext, refl, })
+  (by { ext, simp })
 
 end comm_semiring
 

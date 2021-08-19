@@ -1304,15 +1304,15 @@ begin
     exact (nat.add_sub_of_le hj).symm,
   rw hj,
   rw sum_range_add_sub_sum_range,
-  calc abs (∑ (k : ℕ) in range k, x ^ (n + k) / ((n + k)! : ℂ))
-      ≤ ∑ (k : ℕ) in range k, abs (x ^ (n + k) / ((n + k)! : ℂ)) : abv_sum_le_sum_abv _ _
-  ... ≤ ∑ (k : ℕ) in range k, (abs x) ^ (n + k) / (n + k)! :
+  calc abs (∑ (i : ℕ) in range k, x ^ (n + i) / ((n + i)! : ℂ))
+      ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abv_sum_le_sum_abv _ _
+  ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n + i)! :
           begin
             refine sum_le_sum (λ m hm, _),
             simp only [complex.abs_cast_nat, complex.abs_div],
             rw [abv_pow abs],
           end
-  ... ≤ ∑ (k : ℕ) in range k, (abs x) ^ (n + k) / (n! * n.succ ^ k) :
+  ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n! * n.succ ^ i) :
           begin
             refine sum_le_sum (λ m hm, _),
             apply div_le_div (pow_nonneg (abs_nonneg x) (n + m)) (le_refl _),
@@ -1325,7 +1325,7 @@ begin
             { rw [←nat.cast_pow, ←nat.cast_mul, nat.cast_le],
               exact (nat.factorial_mul_pow_le_factorial),},
           end
-  ... = ∑ (k : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^k / n.succ ^ k) :
+  ... = ∑ (i : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^i / n.succ ^ i) :
           begin
             congr,
             funext,

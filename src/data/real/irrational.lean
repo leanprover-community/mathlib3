@@ -292,8 +292,8 @@ theorem exists_irrational_btwn {x y : ℝ} (h : x < y) :
 begin
   rcases exists_rat_btwn h with ⟨q₁, ⟨x_lt_q₁,  q₁_lt_y⟩⟩,
   rcases exists_rat_btwn q₁_lt_y with ⟨q₂, ⟨q₁_lt_q₂, q₂_lt_y⟩⟩,
-  rcases exists_irrational_btwn_rats (cast_lt.mp q₁_lt_q₂) with ⟨r, ⟨irrational_r, q₁_lt_r, r_lt_q₂⟩⟩,
-  exact ⟨r, irrational_r, lt_trans x_lt_q₁ q₁_lt_r, lt_trans r_lt_q₂ q₂_lt_y⟩,
+  rcases exists_irrational_btwn_rats (cast_lt.mp q₁_lt_q₂) with ⟨r, ⟨irrat_r, q₁_lt_r, r_lt_q₂⟩⟩,
+  exact ⟨r, irrat_r, lt_trans x_lt_q₁ q₁_lt_r, lt_trans r_lt_q₂ q₂_lt_y⟩,
 end
 
 end

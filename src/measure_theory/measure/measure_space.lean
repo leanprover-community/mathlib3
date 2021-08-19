@@ -1843,59 +1843,51 @@ lemma disjoint_disjointed_finite_spanning_sets_in {μ : measure α}
   pairwise (disjoint on (disjointed_finite_spanning_sets_in μ S).set) :=
 disjoint_disjointed _
 
-/-- Given a pair of σ-finite measure `μ`, `ν`, `unpair_finite_spanning_sets_in_left μ ν` provides
-an element of type `μ.finite_spanning_sets_in {s | measurable_set s}` such that its underlying
-sets is pairwise disjoint, finite with respect to both `μ` and `ν` and equal to the underlying
-sets of `unpair_finite_spanning_sets_in_right μ ν`.
-
-Note: this definition is not commutative since `n.unpair.1` does not necessarily equal
-`n.unpair.2`. -/
-def unpair_finite_spanning_sets_in_left
-  (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
-  μ.finite_spanning_sets_in {s | measurable_set s} :=
-μ.disjointed_finite_spanning_sets_in $
+/-- Given two σ-finite measures `μ` and `ν`, `finite_spanning_sets_in_add μ ν` is a sequence of
+pairwise disjoint, finite spanning sets in `{s | measurable_set s}` with respect to `μ + ν`. -/
+def finite_spanning_sets_in_add (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
+  (μ + ν).finite_spanning_sets_in {s | measurable_set s} :=
+(μ + ν).disjointed_finite_spanning_sets_in $
 let S := μ.to_finite_spanning_sets_in in
 let T := ν.to_finite_spanning_sets_in in
 { set := λ n : ℕ, S.set n.unpair.1 ∩ T.set n.unpair.2,
   set_mem := λ n, (S.set_mem n.unpair.1).inter (T.set_mem n.unpair.2),
-  finite := λ n, lt_of_le_of_lt (measure_mono (set.inter_subset_left _ _)) (S.finite n.unpair.1),
+  finite :=
+    begin
+      intro n,
+      rw [add_apply, ennreal.add_lt_top],
+      exact ⟨lt_of_le_of_lt (measure_mono (set.inter_subset_left _ _)) (S.finite n.unpair.1),
+             lt_of_le_of_lt (measure_mono (set.inter_subset_right _ _)) (T.finite n.unpair.2)⟩,
+    end,
   spanning := by simp_rw [set.Union_unpair (λ i j, S.set i ∩ T.set j), ← set.inter_Union,
                           ← set.Union_inter, S.spanning, T.spanning, set.inter_univ] }
 
-/-- Given a pair of σ-finite measure `μ`, `ν`, `unpair_finite_spanning_sets_in_right μ ν` provides
-an element of type `ν.finite_spanning_sets_in {s | measurable_set s}` such that its underlying
-sets is pairwise disjoint, finite with respect to both `μ` and `ν`, and equal to the underlying
-sets of `unpair_finite_spanning_sets_in_left μ ν`.
+lemma disjoint_finite_spanning_sets_in_add
+  {μ ν : measure α} [sigma_finite μ] [sigma_finite ν] :
+  pairwise (disjoint on (finite_spanning_sets_in_add μ ν).set) :=
+disjoint_disjointed_finite_spanning_sets_in _
 
-Note: this definition is not commutative since `n.unpair.1` does not necessarily equal
-`n.unpair.2`. -/
-def unpair_finite_spanning_sets_in_right
+/-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in_of_le` provides the induced
+`finite_spanning_set` with respect to `ν` from a `finite_spanning_set` with respect to `μ`. -/
+def finite_spanning_sets_in_of_le (μ ν : measure α) (h : ν ≤ μ) {C : set (set α)}
+  (S : μ.finite_spanning_sets_in C) : ν.finite_spanning_sets_in C :=
+{ set := S.set,
+  set_mem := S.set_mem,
+  finite := λ n, lt_of_le_of_lt (le_iff'.1 h _) (S.finite n),
+  spanning := S.spanning }
+
+lemma exists_eq_disjoint_finite_spanning_sets_in
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
-  ν.finite_spanning_sets_in {s | measurable_set s} :=
-ν.disjointed_finite_spanning_sets_in $
-let S := μ.to_finite_spanning_sets_in in
-let T := ν.to_finite_spanning_sets_in in
-{ set := λ n : ℕ, S.set n.unpair.1 ∩ T.set n.unpair.2,
-  set_mem := λ n, (S.set_mem n.unpair.1).inter (T.set_mem n.unpair.2),
-  finite := λ n, lt_of_le_of_lt (measure_mono (set.inter_subset_right _ _)) (T.finite n.unpair.2),
-  spanning := by simp_rw [set.Union_unpair (λ i j, S.set i ∩ T.set j), ← set.inter_Union,
-                          ← set.Union_inter, S.spanning, T.spanning, set.inter_univ] }
-
-lemma unpair_finite_spanning_sets_in_eq
-  {μ ν : measure α} [sigma_finite μ] [sigma_finite ν] :
-  (unpair_finite_spanning_sets_in_left μ ν).set =
-  (unpair_finite_spanning_sets_in_right μ ν).set :=
-rfl
-
-lemma disjointed_unpair_finite_spanning_sets_in_left
-  {μ ν : measure α} [sigma_finite μ] [sigma_finite ν] :
-  pairwise (disjoint on (unpair_finite_spanning_sets_in_left μ ν).set) :=
-disjoint_disjointed_finite_spanning_sets_in _
-
-lemma disjointed_unpair_finite_spanning_sets_in_right
-  {μ ν : measure α} [sigma_finite μ] [sigma_finite ν] :
-  pairwise (disjoint on (unpair_finite_spanning_sets_in_right μ ν).set) :=
-disjoint_disjointed_finite_spanning_sets_in _
+  ∃ (S : μ.finite_spanning_sets_in {s | measurable_set s})
+    (T : ν.finite_spanning_sets_in {s | measurable_set s}),
+    S.set = T.set ∧ pairwise (disjoint on S.set) :=
+begin
+  refine ⟨finite_spanning_sets_in_of_le (μ + ν) μ _ (finite_spanning_sets_in_add μ ν),
+          finite_spanning_sets_in_of_le (μ + ν) ν _ (finite_spanning_sets_in_add μ ν),
+          rfl, disjoint_finite_spanning_sets_in_add⟩,
+  { exact measure.le_add_right (le_refl _) },
+  { exact measure.le_add_left (le_refl _) }
+end
 
 end disjointed
 

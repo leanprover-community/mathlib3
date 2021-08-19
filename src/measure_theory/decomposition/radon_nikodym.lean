@@ -32,8 +32,7 @@ lemma with_density_radon_nikodym_deriv_eq
 begin
   obtain ⟨hf₁, ⟨E, hE₁, hE₂, hE₃⟩, hadd⟩:= have_lebesgue_decomposition_spec hl,
   have : singular_part μ ν = 0,
-  { apply le_antisymm,
-    { intros A hA,
+  { refine le_antisymm (λ A hA, _) (measure.zero_le _),
       suffices : singular_part μ ν set.univ = 0,
       { rw [measure.coe_zero, pi.zero_apply, ← this],
         exact measure_mono (set.subset_univ _) },

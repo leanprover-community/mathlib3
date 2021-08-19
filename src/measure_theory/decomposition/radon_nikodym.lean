@@ -15,6 +15,15 @@ In particular, we have `f = radon_nikodym_deriv μ ν`.
 
 The Radon-Nikodym theorem will allow us to define many important concepts in probability theory,
 most notably conditional expectation and probability cumulative function.
+
+## Main results
+
+* `measure_theory.measureabsolutely_continuous_iff_with_density_radon_nikodym_derive_eq` :
+  the Radon-Nikodym theorem
+
+## Tags
+
+Radon-Nikodym theorem
 -/
 
 noncomputable theory
@@ -42,14 +51,13 @@ begin
       { rw ← hadd },
       rw [measure.coe_add, pi.add_apply, h hE₃] at this,
       exact (add_eq_zero_iff.1 this).1 },
-    { exact measure.zero_le _} },
   rw [this, zero_add] at hadd,
   exact hadd.symm
 end
 
 /-- **The Radon-Nikodym theorem**: Given two measures `μ` and `ν`, if
 `have_lebesgue_decomposition μ ν`, then `μ` is absolutely continuous to `ν` if and only if
-there `ν.with_density (radon_nikodym_deriv μ ν) = μ`. -/
+`ν.with_density (radon_nikodym_deriv μ ν) = μ`. -/
 theorem absolutely_continuous_iff_with_density_radon_nikodym_derive_eq
   {μ ν : measure α} (hl : have_lebesgue_decomposition μ ν) :
   μ ≪ ν ↔ ν.with_density (radon_nikodym_deriv μ ν) = μ :=

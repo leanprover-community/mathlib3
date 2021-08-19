@@ -281,7 +281,7 @@ end linear_map
 
 namespace module
 
-/-- In the presence of the module `module.comp_hom S g`, `g : R →+* S` is an `R`-linear map. -/
+/-- `g : R →+* S` is `R`-linear when the module structure on `S` is `module.comp_hom S g` . -/
 @[simps]
 def comp_hom.to_linear_map {R S : Type*} [semiring R] [semiring S] (g : R →+* S) :
   (by haveI := comp_hom S g; exact (R →ₗ[R] S)) :=
@@ -653,9 +653,9 @@ end linear_equiv
 
 namespace module
 
-/-- In the presence of the module `module.comp_hom S g`, `g : R ≃+* S` is an `R`-linear equiv. -/
+/-- `g : R ≃+* S` is `R`-linear when the module structure on `S` is `module.comp_hom S g` . -/
 @[simps]
-def comp_hom.to_linear_equiv {R S : Type*} [semiring R] [semiring S] (g : R ≃+* S):
+def comp_hom.to_linear_equiv {R S : Type*} [semiring R] [semiring S] (g : R ≃+* S) :
   (by haveI := comp_hom S (↑g : R →+* S); exact (R ≃ₗ[R] S)) :=
 by exact {
   to_fun := (g : R → S),

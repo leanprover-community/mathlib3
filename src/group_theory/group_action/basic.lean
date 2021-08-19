@@ -211,58 +211,44 @@ rfl
   mul_action.stabilizer G ((1 : G) : quotient H) = H :=
 by { ext, simp [quotient_group.eq] }
 
-section draft
-
 variables {α}
-
-def equiv.sigma_assoc {α : Sort*} {β : α → Sort*} (γ : Π (a : α), β a → Sort*) :
-  (Σ (ab : Σ (a : α), β a), γ ab.1 ab.2) ≃ Σ (a : α), (Σ (b : β a), γ a b) :=
-{ to_fun := λ x, ⟨x.1.1, ⟨x.1.2, x.2⟩⟩,
-  inv_fun := λ x, ⟨⟨x.1, x.2.1⟩, x.2.2⟩,
-  left_inv := λ ⟨⟨a, b⟩, c⟩, rfl,
-  right_inv := λ ⟨a, ⟨b, c⟩⟩, rfl }
 
 local notation `Ω` := (quotient $ orbit_rel α β)
 
-noncomputable def sigma_fixed_by_equiv_orbits_prod_group : (Σ (a : α), (fixed_by α β a)) ≃ Ω × α :=
+/-- **Burnside's lemma** : given a group `G` acting on a set `X`, there is a bijection between the
+disjoint union of all `{x ∈ X | g • x = x}` for `g ∈ G` and the product `G × X/G`, where `X/G`
+denotes the quotient of `X` by the relation `orbit_rel`. -/
+noncomputable def sigma_fixed_by_equiv_orbits_prod_group :
+  (Σ (a : α), (fixed_by α β a)) ≃ Ω × α :=
 let
-  e₀ : (Σ (a : α), fixed_by α β a) ≃ {ab : α × β // ab.1 • ab.2 = ab.2} :=
-    (equiv.subtype_prod_equiv_sigma_subtype _).symm,
-  e₁ : {ab : α × β // ab.1 • ab.2 = ab.2} ≃ {ba : β × α // ba.2 • ba.1 = ba.1} :=
-    (equiv.prod_comm α β).subtype_equiv (λ ab, iff.rfl),
-  e₂ : {ba : β × α // ba.2 • ba.1 = ba.1} ≃ Σ (b : β), stabilizer α b :=
-    equiv.subtype_prod_equiv_sigma_subtype (λ (b : β) a, a ∈ stabilizer α b),
-  tmp₀ : β ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} :=
-    (equiv.sigma_preimage_equiv quotient.mk').symm,
-  tmp₁ : (Σ (ω : Ω), {b // quotient.mk' b = ω}) ≃ Σ (ω : Ω), orbit α ω.out' :=
+  key₁ : β ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} := (equiv.sigma_preimage_equiv quotient.mk').symm,
+  key₂ : (Σ (ω : Ω), {b // quotient.mk' b = ω}) ≃ Σ (ω : Ω), orbit α ω.out' :=
     equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right $
-      λ x, @quotient.mk_eq_iff_out _ (orbit_rel α β) _ _ ),
-  e₃ : (Σ (b : β), stabilizer α b) ≃
-        Σ (ωb : (Σ (ω : Ω), orbit α ω.out')), stabilizer α (ωb.2 : β) :=
-    (tmp₀.trans tmp₁).sigma_congr_left',
-  e₄ : (Σ (ωb : (Σ (ω : Ω), orbit α ω.out')), stabilizer α (ωb.2 : β)) ≃
-        Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α (b : β)) :=
-    equiv.sigma_assoc (λ (ω : Ω) (b : orbit α ω.out'), stabilizer α (b : β)),
-  e₅ : (Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α (b : β))) ≃
-        Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α ω.out') :=
-    equiv.sigma_congr_right (λ ω, equiv.sigma_congr_right $
-      λ ⟨b, hb⟩, (stabilizer_equiv_stabilizer_of_orbit_rel hb).to_equiv),
-  e₆ : (Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α ω.out')) ≃
-        Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out' :=
-    equiv.sigma_congr_right (λ ω, equiv.sigma_equiv_prod _ _),
-  e₇ : (Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out') ≃
-        Σ (ω : Ω), quotient (stabilizer α ω.out') × stabilizer α ω.out' :=
-    equiv.sigma_congr_right
-      (λ ω, equiv.prod_congr (orbit_equiv_quotient_stabilizer α _) (equiv.refl _)),
-  e₈ : (Σ (ω : Ω), quotient (stabilizer α ω.out') × stabilizer α ω.out') ≃
-        Σ (ω : Ω), α :=
-    equiv.sigma_congr_right (λ ω, subgroup.group_equiv_quotient_times_subgroup.symm),
-  e₉ : (Σ (ω : Ω), α) ≃ Ω × α :=
-    equiv.sigma_equiv_prod Ω α
-in e₀.trans $ e₁.trans $ e₂.trans $ e₃.trans $ e₄.trans $ e₅.trans $ e₆.trans $ e₇.trans $
-    e₈.trans $ e₉
-
-end draft
+      λ x, @quotient.mk_eq_iff_out _ (orbit_rel α β) _ _)
+in
+calc  (Σ (a : α), fixed_by α β a)
+    ≃ {ab : α × β // ab.1 • ab.2 = ab.2} :
+        (equiv.subtype_prod_equiv_sigma_subtype _).symm
+... ≃ {ba : β × α // ba.2 • ba.1 = ba.1} :
+        (equiv.prod_comm α β).subtype_equiv (λ ab, iff.rfl)
+... ≃ Σ (b : β), stabilizer α b :
+        equiv.subtype_prod_equiv_sigma_subtype (λ (b : β) a, a ∈ stabilizer α b)
+... ≃ Σ (ωb : (Σ (ω : Ω), orbit α ω.out')), stabilizer α (ωb.2 : β) :
+        (key₁.trans key₂).sigma_congr_left'
+... ≃ Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α (b : β)) :
+        equiv.sigma_assoc (λ (ω : Ω) (b : orbit α ω.out'), stabilizer α (b : β))
+... ≃ Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α ω.out') :
+        equiv.sigma_congr_right (λ ω, equiv.sigma_congr_right $
+          λ ⟨b, hb⟩, (stabilizer_equiv_stabilizer_of_orbit_rel hb).to_equiv)
+... ≃ Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out' :
+        equiv.sigma_congr_right (λ ω, equiv.sigma_equiv_prod _ _)
+... ≃ Σ (ω : Ω), quotient (stabilizer α ω.out') × stabilizer α ω.out' :
+        equiv.sigma_congr_right
+          (λ ω, equiv.prod_congr (orbit_equiv_quotient_stabilizer α _) (equiv.refl _))
+... ≃ Σ (ω : Ω), α :
+        equiv.sigma_congr_right (λ ω, subgroup.group_equiv_quotient_times_subgroup.symm)
+... ≃ Ω × α :
+        equiv.sigma_equiv_prod Ω α
 
 end mul_action
 

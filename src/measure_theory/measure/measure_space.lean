@@ -1869,7 +1869,7 @@ disjoint_disjointed_finite_spanning_sets_in _
 
 /-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in_of_le` provides the induced
 `finite_spanning_set` with respect to `ν` from a `finite_spanning_set` with respect to `μ`. -/
-def finite_spanning_sets_in_of_le (μ ν : measure α) (h : ν ≤ μ) {C : set (set α)}
+def finite_spanning_sets_in.of_le {μ ν : measure α} (h : ν ≤ μ) {C : set (set α)}
   (S : μ.finite_spanning_sets_in C) : ν.finite_spanning_sets_in C :=
 { set := S.set,
   set_mem := S.set_mem,
@@ -1881,13 +1881,9 @@ lemma exists_eq_disjoint_finite_spanning_sets_in
   ∃ (S : μ.finite_spanning_sets_in {s | measurable_set s})
     (T : ν.finite_spanning_sets_in {s | measurable_set s}),
     S.set = T.set ∧ pairwise (disjoint on S.set) :=
-begin
-  refine ⟨finite_spanning_sets_in_of_le (μ + ν) μ _ (finite_spanning_sets_in_add μ ν),
-          finite_spanning_sets_in_of_le (μ + ν) ν _ (finite_spanning_sets_in_add μ ν),
-          rfl, disjoint_finite_spanning_sets_in_add⟩,
-  { exact measure.le_add_right (le_refl _) },
-  { exact measure.le_add_left (le_refl _) }
-end
+⟨(finite_spanning_sets_in_add μ ν).of_le (measure.le_add_right (le_refl _)),
+ (finite_spanning_sets_in_add μ ν).of_le (measure.le_add_left (le_refl _)),
+ rfl, disjoint_finite_spanning_sets_in_add⟩
 
 end disjointed
 

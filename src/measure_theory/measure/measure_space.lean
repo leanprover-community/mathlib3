@@ -1831,7 +1831,7 @@ variable [measurable_space α]
 /-- Given `S : μ.finite_spanning_sets_in {s | measurable_set s}`,
 `disjointed_finite_spanning_sets_in` provides a `finite_spanning_sets_in {s | measurable_set s}`
 such that its underlying sets are pairwise disjoint. -/
-def disjointed_finite_spanning_sets_in (μ : measure α)
+def finite_spanning_sets_in.disjointed {μ : measure α}
   (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
    μ.finite_spanning_sets_in {s | measurable_set s} :=
 ⟨disjointed S.set, measurable_set.disjointed S.set_mem,
@@ -1840,7 +1840,7 @@ def disjointed_finite_spanning_sets_in (μ : measure α)
 
 lemma disjoint_disjointed_finite_spanning_sets_in {μ : measure α}
   (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
-  pairwise (disjoint on (disjointed_finite_spanning_sets_in μ S).set) :=
+  pairwise (disjoint on S.disjointed.set) :=
 disjoint_disjointed _
 
 /-- Given two σ-finite measures `μ` and `ν`, `finite_spanning_sets.in_add μ ν` is a sequence of
@@ -1849,7 +1849,6 @@ def finite_spanning_sets_in.add {μ ν : measure α}
   (S : μ.finite_spanning_sets_in {s | measurable_set s})
   (T : ν.finite_spanning_sets_in {s | measurable_set s}) :
   (μ + ν).finite_spanning_sets_in {s | measurable_set s} :=
-(μ + ν).disjointed_finite_spanning_sets_in $
 { set := λ n : ℕ, S.set n.unpair.1 ∩ T.set n.unpair.2,
   set_mem := λ n, (S.set_mem n.unpair.1).inter (T.set_mem n.unpair.2),
   finite :=
@@ -1861,12 +1860,6 @@ def finite_spanning_sets_in.add {μ ν : measure α}
     end,
   spanning := by simp_rw [set.Union_unpair (λ i j, S.set i ∩ T.set j), ← set.inter_Union,
                           ← set.Union_inter, S.spanning, T.spanning, set.inter_univ] }
-
-lemma finite_spanning_sets_in.add_disjoint {μ ν : measure α}
-  (S : μ.finite_spanning_sets_in {s | measurable_set s})
-  (T : ν.finite_spanning_sets_in {s | measurable_set s}):
-  pairwise (disjoint on (S.add T).set) :=
-disjoint_disjointed_finite_spanning_sets_in _
 
 /-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in_of_le` provides the induced
 `finite_spanning_set` with respect to `ν` from a `finite_spanning_set` with respect to `μ`. -/
@@ -1882,9 +1875,9 @@ lemma exists_eq_disjoint_finite_spanning_sets_in
   ∃ (S : μ.finite_spanning_sets_in {s | measurable_set s})
     (T : ν.finite_spanning_sets_in {s | measurable_set s}),
     S.set = T.set ∧ pairwise (disjoint on S.set) :=
-let S := μ.to_finite_spanning_sets_in.add ν.to_finite_spanning_sets_in in
+let S := (μ.to_finite_spanning_sets_in.add ν.to_finite_spanning_sets_in).disjointed in
 ⟨S.of_le (measure.le_add_right (le_refl _)), S.of_le (measure.le_add_left (le_refl _)),
- rfl, finite_spanning_sets_in.add_disjoint _ _⟩
+ rfl, disjoint_disjointed_finite_spanning_sets_in _⟩
 
 end disjointed
 

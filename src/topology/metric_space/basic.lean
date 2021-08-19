@@ -120,7 +120,7 @@ pseudo_metric_space.to_uniform_space
 instance pseudo_metric_space.to_has_edist : has_edist α := ⟨pseudo_metric_space.edist⟩
 
 /-- Construct a pseudo-metric space structure whose underlying topological space structure
-(definitionaly) agrees which a pre-existing topology which is compatible with a given distance
+(definitionally) agrees which a pre-existing topology which is compatible with a given distance
 function. -/
 def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
@@ -129,9 +129,9 @@ def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist 
   (H : ∀ s : set α, is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s) :
 pseudo_metric_space α :=
 { dist := dist,
-  dist_self := λ x, dist_self _,
-  dist_comm := λ x y, dist_comm _ _,
-  dist_triangle := λ x y z, dist_triangle _ _  _,
+  dist_self := dist_self,
+  dist_comm := dist_comm,
+  dist_triangle := dist_triangle,
   to_uniform_space := { is_open_uniformity := begin
     dsimp only [uniform_space.core_of_dist],
     intros s,
@@ -1840,7 +1840,7 @@ class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
 
 /-- Construct a metric space structure whose underlying topological space structure
-(definitionaly) agrees which a pre-existing topology which is compatible with a given distance
+(definitionally) agrees which a pre-existing topology which is compatible with a given distance
 function. -/
 def metric_space.of_metrizable {α : Type*} [topological_space α] (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)

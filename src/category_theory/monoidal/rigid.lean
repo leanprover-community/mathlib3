@@ -90,9 +90,11 @@ instance has_right_dual_left_dual {X : C} [has_left_dual X] : has_right_dual (*^
 instance has_left_dual_right_dual {X : C} [has_right_dual X] : has_left_dual (X ^*) :=
 { left_dual := X }
 
-theorem left_dual_right_dual {X : C} [has_right_dual X] : *^(X^*) = X := rfl
+@[simp]
+lemma left_dual_right_dual {X : C} [has_right_dual X] : *^(X^*) = X := rfl
 
-theorem right_dual_left_dual {X : C} [has_left_dual X] : (*^X)^* = X := rfl
+@[simp]
+lemma right_dual_left_dual {X : C} [has_left_dual X] : (*^X)^* = X := rfl
 
 def right_adjoint_mate {X Y : C} [has_right_dual X] [has_right_dual Y] (f : X ⟶ Y) : Y^* ⟶ X^* :=
 (ρ_ _).inv ≫ (𝟙 _ ⊗ η_ _ _) ≫ (𝟙 _ ⊗ (f ⊗ 𝟙 _)) ≫ (α_ _ _ _).inv ≫ ((ε_ _ _) ⊗ 𝟙 _) ≫ (λ_ _).hom
@@ -193,8 +195,36 @@ lemma left_adjoint_of_right_adjoint {X Y : C} [has_right_dual X] [has_right_dual
   *^(f^*) = f :=
 begin
   simp [left_adjoint_mate, right_adjoint_mate],
+  rw [associator_naturality_assoc, associator_naturality_assoc,
+    ←left_unitor_tensor', id_tensor_comp_assoc],
+  slice_lhs 10 11 { rw [←tensor_comp, ←left_unitor_naturality, tensor_comp] },
+  slice_lhs 8 9 { rw [←tensor_comp, associator_naturality, tensor_comp] },
+  -- Slide the evaluations past each other
+  slice_lhs 9 10 { rw [←tensor_comp, tensor_id, tensor_id_comp_id_tensor,
+    ←id_tensor_comp_tensor_id (ε_ *^(X^*) X^*), tensor_comp] },
+  rw pentagon_comp_id_tensor_assoc,
+  slice_lhs 9 10 { rw ←associator_naturality },
+  slice_lhs 5 6 { rw [←tensor_comp, ←tensor_comp, associator_inv_naturality, tensor_comp, tensor_comp] },
+  slice_lhs 9 10 { rw associator_naturality },
+  slice_lhs 8 9 { rw ←pentagon },
+  simp only [inv_hom_id_tensor_assoc, tensor_id, category.id_comp, category.assoc],
+  slice_lhs 6 7 { rw associator_naturality },
+  slice_lhs 7 8 { rw [←tensor_comp, associator_naturality, tensor_comp] },
+  -- Slide a evaluation past `f`
+  slice_lhs 8 9 { rw [tensor_id, ←tensor_comp, tensor_id_comp_id_tensor,
+    ←id_tensor_comp_tensor_id (ε_ *^(X^*) X^*), tensor_comp] },
+  slice_lhs 5 6 { rw associator_naturality },
+  slice_lhs 4 5 { rw associator_naturality },
+  slice_lhs 5 5 { rw [←associator_conjugation, id_tensor_comp, id_tensor_comp] },
+  slice_lhs 7 9 { rw [←tensor_comp, ←tensor_comp, pentagon_inv_inv_hom, tensor_comp, category.comp_id] },
+  slice_lhs 8 9 { rw [←tensor_id, ←tensor_comp, ←associator_inv_naturality, tensor_comp] },
+  -- Resolve evaluation and coevaluation for X
+  slice_lhs 6 8 { erw [←tensor_comp, ←tensor_comp, ←tensor_comp, ←tensor_comp,
+    evaluation_coevaluation *^(X^*) X^*, tensor_comp, tensor_comp, category.comp_id, category.comp_id] },
+  simp only [category.assoc],
 end
 
+#exit
 /- This theorem shows that right duals are isomorphic, which is almost trivial due to the
   previous theorem. -/
 def right_dual_iso {X Y₁ Y₂ : C} (_ : exact_pairing X Y₁) (_ : exact_pairing X Y₂) :

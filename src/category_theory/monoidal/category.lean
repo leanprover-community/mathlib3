@@ -294,10 +294,30 @@ lemma id_tensor_associator_inv_naturality {X Y Z X' : C} (f : X ⟶ X')  :
 by { rw [←tensor_id, associator_inv_naturality] }
 
 @[reassoc]
+lemma associator_conjugation {X X' Y Y' Z Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
+  (α_ X Y Z).hom ≫ (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (f ⊗ g) ⊗ h :=
+by rw [associator_inv_naturality, hom_inv_id_assoc]
+
+@[reassoc]
+lemma associator_inv_conjugation {X X' Y Y' Z Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
+  (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) ≫ (α_ X' Y' Z').hom = f ⊗ g ⊗ h :=
+by rw [associator_naturality, inv_hom_id_assoc]
+
+@[reassoc]
 lemma pentagon_inv (W X Y Z : C) :
   ((𝟙 W) ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ (𝟙 Z))
     = (α_ W X (Y ⊗ Z)).inv ≫ (α_ (W ⊗ X) Y Z).inv :=
 category_theory.eq_of_inv_eq_inv (by simp [pentagon])
+
+@[reassoc]
+lemma pentagon_inv_inv_hom (W X Y Z : C) :
+  (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ (𝟙 Z)) ≫ (α_ (W ⊗ X) Y Z).hom
+  = ((𝟙 W) ⊗ (α_ X Y Z).hom) ≫ (α_ W X (Y ⊗ Z)).inv :=
+begin
+  rw ←((iso.eq_comp_inv _).mp (pentagon_inv W X Y Z)),
+  slice_rhs 1 2 { rw [←id_tensor_comp, iso.hom_inv_id] },
+  simp only [tensor_id, assoc, id_comp]
+end
 
 lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
@@ -382,7 +402,7 @@ begin
 end
 
 @[reassoc]
-lemma pentagon_inv_hom {W X Y Z : C} :
+lemma pentagon_inv_hom (W X Y Z : C) :
   (α_ (W ⊗ X) Y Z).inv ≫ ((α_ W X Y).hom ⊗ 𝟙 Z)
   = (α_ W X (Y ⊗ Z)).hom ≫ (𝟙 W ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv :=
 begin
@@ -391,6 +411,12 @@ begin
   rw [←pent],
   simp only [tensor_id, assoc, id_comp, comp_id, hom_inv_id, tensor_hom_inv_id_assoc],
 end
+
+@[reassoc]
+lemma pentagon_comp_id_tensor {W X Y Z : C} :
+  (α_ W (X ⊗ Y) Z).hom ≫ ((𝟙 W) ⊗ (α_ X Y Z).hom)
+  = ((α_ W X Y).inv ⊗ (𝟙 Z)) ≫ (α_ (W ⊗ X) Y Z).hom ≫ (α_ W X (Y ⊗ Z)).hom :=
+by { rw ←pentagon W X Y Z, simp }
 
 end
 

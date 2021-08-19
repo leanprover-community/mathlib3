@@ -168,9 +168,11 @@ begin
   simp,
 end
 
-lemma extend_by_zero' {α β : Type*} [fintype α] [add_comm_monoid β] (s : finset α) [decidable_eq α] (f : α → β) :
+lemma extend_by_zero' {α β : Type*} [fintype α] [add_comm_monoid β]
+  (s : finset α) [decidable_pred (∈ s)] (f : α → β) :
   ∑ i in s, f i = ∑ (i : α), if i ∈ s then f i else 0 :=
 begin
+  classical,
   convert finset.sum_add_sum_compl s _,
   have : filter (λ (i : α), i ∈ s) sᶜ = ∅,
   { ext, simp, },

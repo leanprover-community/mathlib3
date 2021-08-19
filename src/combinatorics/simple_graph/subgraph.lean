@@ -302,6 +302,10 @@ def delete_edges (G' : G.subgraph) (s : set (sym2 V)) : G.subgraph :=
     exact h,
   end }
 
+@[simp]
+lemma delete_edges_of_empty (G' : G.subgraph) : G'.delete_edges ∅ = G' :=
+by ext; simp
+
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/
 def map {x y : subgraph G} (h : x ≤ y) : x.coe →g y.coe :=

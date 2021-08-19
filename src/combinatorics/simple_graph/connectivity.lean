@@ -36,7 +36,7 @@ counterparts in [Chou1994].
 
 * `simple_graph.path`
 
-* `simple_graph.reachable`, `simple_graph.is_connected`,
+* `simple_graph.reachable`, `simple_graph.connected`,
   and `simple_graph.connected_component`
 
 * `simple_graph.is_acyclic` and `simple_graph.is_tree`
@@ -338,7 +338,7 @@ the `simple_graph.reachable` relation. -/
 def connected_component := quot G.reachable
 
 /-- A graph is connected is every pair of vertices is reachable from one another. -/
-def is_connected : Prop := ∀ (u v : V), G.reachable u v
+def connected : Prop := ∀ (u v : V), G.reachable u v
 
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
@@ -346,15 +346,18 @@ def connected_component_of (v : V) : G.connected_component := quot.mk G.reachabl
 instance connected_components.inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_of (default _)⟩
 
-lemma connected_component.subsingleton_of_is_connected (h : G.is_connected) :
+lemma connected_component.subsingleton_of_connected (h : G.connected) :
   subsingleton G.connected_component :=
 ⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h v w)) d) c d⟩
 
-/-- A graph is *k-edge-connected* if the graph remains connected whenever
+/-- A subgraph is connected if it is connected as a simple graph. -/
+abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
+
+/-- A graph is *k-edge-connected* if it remains connected whenever
 fewer than k edges are removed. -/
 def edge_connected (k : ℕ) : Prop :=
 ∀ (s : finset (sym2 V)), ↑s ⊆ G.edge_set → s.card < k →
-  ((⊤ : G.subgraph).delete_edges ↑s).coe.is_connected
+  ((⊤ : G.subgraph).delete_edges ↑s).connected
 
 section walk_to_path
 variables [decidable_eq V]
@@ -421,109 +424,6 @@ begin
   { simp [p_ih, -quotient.eq],
     exact sym2.eq_swap, },
 end
-
-/-- Given a walk and a vertex in the walk's support, create a walk starting from that vertex.
-
-The resulting walk begins at the last instance of that vertex in the original walk. -/
-def subwalk_from : Π {u v w : V} (p : G.walk u v), w ∈ p.support → G.walk w v
-| _ _ w nil h :=
-  by { rw [nil_support, multiset.singleton_eq_singleton, multiset.mem_singleton] at h, subst w }
-| u v w (@cons _ _ _ x _ ha p) hs := begin
-  rw [cons_support, multiset.mem_cons] at hs,
-  by_cases hw : w = u,
-  { subst w,
-    exact cons ha p, },
-  { have : w ∈ p.support := hs.cases_on (λ hw', (hw hw').elim) id,
-    exact p.subwalk_from this, },
-end
-
-/-- Given a walk, produces a walk with the same endpoints and no repeated vertices or edges. -/
-def to_path_aux : Π {u v : V}, G.walk u v → G.walk u v
-| u v nil := nil
-| u v (@cons _ _ _ x _ ha p) :=
-  let p' := p.to_path_aux
-  in if hs : u ∈ p'.support
-     then p'.subwalk_from hs
-     else cons ha p'
-
-lemma subwalk_from_is_path {u v w : V} (p : G.walk u v) (h : p.is_path) (hs : w ∈ p.support) :
-  (p.subwalk_from hs).is_path :=
-begin
-  induction p,
-  { rw [nil_support, multiset.singleton_eq_singleton, multiset.mem_singleton] at hs,
-    subst w,
-    exact h, },
-  { rw [cons_support, multiset.mem_cons] at hs,
-    simp only [subwalk_from],
-    split_ifs with hw hw,
-    { subst w,
-      exact h, },
-    { cases hs with hs₁ hs₂,
-      { exact (hw hs₁).elim },
-      { apply p_ih,
-        exact is_path_of_cons_is_path h, }, }, },
-end
-
-lemma to_path_aux_is_path {u v : V} (p : G.walk u v) : p.to_path_aux.is_path :=
-begin
-  induction p,
-  { simp [to_path_aux], },
-  { simp [to_path_aux],
-    split_ifs,
-    { exact subwalk_from_is_path _ p_ih _, },
-    { rw cons_is_path_iff,
-      exact ⟨p_ih, h⟩, }, },
-end
-
-/-- Given a walk, produces a path with the same endpoints using `simple_graph.walk.to_path_aux`. -/
-def to_path {u v : V} (p : G.walk u v) : G.path u v := ⟨p.to_path_aux, to_path_aux_is_path p⟩
-
-@[simp] lemma path_is_path {u v : V} (p : G.path u v) : is_path (p : G.walk u v) := p.property
-
-@[simp] lemma path_is_trail {u v : V} (p : G.path u v) : is_trail (p : G.walk u v) := p.property.1
-
-lemma to_path_avoids.aux1 {u v w : V} (e : sym2 V)
-  (p : G.walk v w) (hp : e ∉ p.edges) (hu : u ∈ p.support) :
-  e ∉ walk.edges (walk.subwalk_from p hu) :=
-begin
-  induction p,
-  { simp [subwalk_from],
-    generalize_proofs,
-    subst u,
-    exact hp, },
-  { simp [subwalk_from],
-    split_ifs,
-    { subst u,
-      simpa using hp, },
-    { apply p_ih,
-      simp at hp,
-      push_neg at hp,
-      exact hp.2, }, },
-end
-
-lemma to_path_avoids {v w : V} (e : sym2 V)
-  (p : G.walk v w) (hp : e ∉ p.edges) :
-  e ∉ walk.edges (p.to_path : G.walk v w) :=
-begin
-  simp only [to_path, subtype.coe_mk],
-  induction p,
-  { simp [to_path_aux], },
-  { simp [to_path_aux],
-    split_ifs,
-    { apply to_path_avoids.aux1,
-      apply p_ih,
-      simp at hp,
-      push_neg at hp,
-      exact hp.2, },
-    { simp [to_path_aux],
-      push_neg,
-      simp at hp,
-      push_neg at hp,
-      use hp.1,
-      apply p_ih,
-      exact hp.2, }, },
-end
-
 
 lemma reverse_trail {u v : V} (p : G.walk u v) (h : p.is_trail) : p.reverse.is_trail :=
 by simpa [is_trail] using h
@@ -754,10 +654,95 @@ match v, w, c.split_at_vertex_snd u h with
 | _, _, (@cons _ _ _ x _ r p) := x
 end
 
+/-- Given a walk, produces a walk with the same endpoints and no repeated vertices or edges. -/
+def to_path_aux : Π {u v : V}, G.walk u v → G.walk u v
+| u v nil := nil
+| u v (@cons _ _ _ x _ ha p) :=
+  let p' := p.to_path_aux
+  in if hs : u ∈ p'.support
+     then p'.split_at_vertex_snd u hs
+     else cons ha p'
+
+lemma split_at_vertex_snd_is_path {u v w : V} (p : G.walk u v) (h : p.is_path) (hs : w ∈ p.support) :
+  (p.split_at_vertex_snd w hs).is_path :=
+begin
+  induction p,
+  { rw [nil_support, multiset.singleton_eq_singleton, multiset.mem_singleton] at hs,
+    subst w,
+    exact h, },
+  { rw [cons_support, multiset.mem_cons] at hs,
+    simp only [split_at_vertex_snd],
+    split_ifs with hw hw,
+    { subst w,
+      exact h, },
+    { apply p_ih,
+      exact is_path_of_cons_is_path h, }, },
+end
+
+lemma to_path_aux_is_path {u v : V} (p : G.walk u v) : p.to_path_aux.is_path :=
+begin
+  induction p,
+  { simp [to_path_aux], },
+  { simp [to_path_aux],
+    split_ifs,
+    { exact split_at_vertex_snd_is_path _ p_ih _, },
+    { rw cons_is_path_iff,
+      exact ⟨p_ih, h⟩, }, },
+end
+
+/-- Given a walk, produces a path with the same endpoints using `simple_graph.walk.to_path_aux`. -/
+def to_path {u v : V} (p : G.walk u v) : G.path u v := ⟨p.to_path_aux, to_path_aux_is_path p⟩
+
+lemma to_path_avoids.aux1 {u v w : V} (e : sym2 V)
+  (p : G.walk v w) (hp : e ∉ p.edges) (hu : u ∈ p.support) :
+  e ∉ (split_at_vertex_snd p u hu).edges :=
+begin
+  induction p,
+  { simp [split_at_vertex_snd],
+    generalize_proofs,
+    subst u,
+    exact hp, },
+  { simp [split_at_vertex_snd],
+    split_ifs,
+    { subst u,
+      simpa using hp, },
+    { apply p_ih,
+      simp at hp,
+      push_neg at hp,
+      exact hp.2, }, },
+end
+
+lemma to_path_avoids {v w : V} (e : sym2 V)
+  (p : G.walk v w) (hp : e ∉ p.edges) :
+  e ∉ walk.edges (p.to_path : G.walk v w) :=
+begin
+  simp only [to_path, subtype.coe_mk],
+  induction p,
+  { simp [to_path_aux], },
+  { simp [to_path_aux],
+    split_ifs,
+    { apply to_path_avoids.aux1,
+      apply p_ih,
+      simp at hp,
+      push_neg at hp,
+      exact hp.2, },
+    { simp [to_path_aux],
+      push_neg,
+      simp at hp,
+      push_neg at hp,
+      use hp.1,
+      apply p_ih,
+      exact hp.2, }, },
+end
+
 end walk
 
 namespace path
 variables {G}
+
+@[simp] lemma path_is_path {u v : V} (p : G.path u v) : walk.is_path (p : G.walk u v) := p.property
+
+@[simp] lemma to_trail {u v : V} (p : G.path u v) : walk.is_trail (p : G.walk u v) := p.property.to_trail
 
 /-- The empty path at a vertex. -/
 @[refl] def nil {u : V} : G.path u u := ⟨walk.nil, by simp⟩
@@ -852,13 +837,10 @@ A characterization: `simple_graph.is_acyclic_iff`.-/
 def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
 
 /-- A *tree* is a connected acyclic graph. -/
-def is_tree : Prop := G.is_connected ∧ G.is_acyclic
+def is_tree : Prop := G.connected ∧ G.is_acyclic
 
 namespace subgraph
 variables {G} (H : subgraph G)
-
-/-- A subgraph is connected if it is connected as a simple graph. -/
-abbreviation is_connected : Prop := H.coe.is_connected
 
 /-- An edge of a subgraph is a bridge edge if, after removing it, its incident vertices
 are no longer reachable. -/
@@ -1121,7 +1103,7 @@ begin
   { rintro ⟨hc, hu⟩ v w,
     let q := (hc v w).some.to_path,
     use q,
-    simp only [true_and, walk.path_is_path],
+    simp only [true_and, path.path_is_path],
     intros p hp,
     specialize hu v w ⟨p, hp⟩ q,
     rw ←hu,
@@ -1166,6 +1148,22 @@ lemma path.is_rootward_or_reverse (h : G.is_tree) (root : V) {v w : V} (p : G.pa
   p.is_rootward h root ∨ p.reverse.is_rootward h root :=
 begin
   sorry,
+end
+
+variables (G)
+
+lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k) :
+  G.connected :=
+begin
+  intros v w,
+  specialize h ∅ (by simp) (by simp [hk]),
+  specialize h ⟨v, _⟩ ⟨w, _⟩,
+  iterate 2 { simp, },
+  cases h,
+  split,
+  let f : ((⊤ : G.subgraph).delete_edges ↑(∅ : finset (sym2 V))).coe →g G :=
+    ⟨λ v, v, λ _ _ h, subgraph.adj_sub _ h⟩,
+  exact h.map f,
 end
 
 end

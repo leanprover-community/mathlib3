@@ -217,9 +217,6 @@ nat.eq_zero_of_le_zero $
 lemma eq_zero_of_mul_le {a b : ℕ} (hb : 2 ≤ b) (h : b * a ≤ a) : a = 0 :=
 eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 
-theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
-⟨nat.eq_zero_of_le_zero, assume h, h ▸ le_refl i⟩
-
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 
@@ -271,6 +268,11 @@ eq_one_of_dvd_one ⟨n, H.symm⟩
 
 theorem eq_one_of_mul_eq_one_left {m n : ℕ} (H : m * n = 1) : n = 1 :=
 eq_one_of_mul_eq_one_right (by rwa mul_comm)
+
+lemma le_one_iff : ∀ {n : ℕ}, n ≤ 1 ↔ n = 0 ∨ n = 1
+| 0 := dec_trivial
+| 1 := dec_trivial
+| (n+2) := dec_trivial
 
 /-! ### `succ` -/
 
@@ -349,7 +351,7 @@ lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
 @[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
-lt_succ_iff.trans le_zero_iff
+lt_succ_iff.trans nat.le_zero_iff
 
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin
@@ -765,8 +767,10 @@ by rw [le_rec_on_succ (le_refl n), le_rec_on_self]
 theorem le_rec_on_trans {C : ℕ → Sort u} {n m k} (hnm : n ≤ m) (hmk : m ≤ k) {next} (x : C n) :
   (le_rec_on (le_trans hnm hmk) @next x : C k) = le_rec_on hmk @next (le_rec_on hnm @next x) :=
 begin
-  induction hmk with k hmk ih, { rw le_rec_on_self },
-  rw [le_rec_on_succ (le_trans hnm hmk), ih, le_rec_on_succ]
+  apply nat.le.induction_on hmk,
+  { rw le_rec_on_self },
+  { intros k hmk ih,
+    rw [le_rec_on_succ (le_trans hnm hmk), ih, le_rec_on_succ] },
 end
 
 theorem le_rec_on_succ_left {C : ℕ → Sort u} {n m} (h1 : n ≤ m) (h2 : n+1 ≤ m)
@@ -781,16 +785,24 @@ theorem le_rec_on_injective {C : ℕ → Sort u} {n m} (hnm : n ≤ m)
   (next : Π n, C n → C (n+1)) (Hnext : ∀ n, function.injective (next n)) :
   function.injective (le_rec_on hnm next) :=
 begin
-  induction hnm with m hnm ih, { intros x y H, rwa [le_rec_on_self, le_rec_on_self] at H },
-  intros x y H, rw [le_rec_on_succ hnm, le_rec_on_succ hnm] at H, exact ih (Hnext _ H)
+  apply nat.le.induction_on hnm,
+  { intros x y H, rwa [le_rec_on_self, le_rec_on_self] at H },
+  { intros m hnm ih x y H,
+    rw [le_rec_on_succ hnm, le_rec_on_succ hnm] at H,
+    exact ih (Hnext _ H) },
 end
 
 theorem le_rec_on_surjective {C : ℕ → Sort u} {n m} (hnm : n ≤ m)
   (next : Π n, C n → C (n+1)) (Hnext : ∀ n, function.surjective (next n)) :
   function.surjective (le_rec_on hnm next) :=
 begin
-  induction hnm with m hnm ih, { intros x, use x, rw le_rec_on_self },
-  intros x, rcases Hnext _ x with ⟨w, rfl⟩, rcases ih w with ⟨x, rfl⟩, use x, rw le_rec_on_succ
+  apply nat.le.induction_on hnm,
+  { intros x, use x, rw le_rec_on_self },
+  { intros m hnm ih x,
+    rcases Hnext _ x with ⟨w, rfl⟩,
+    rcases ih w with ⟨x, rfl⟩,
+    use x,
+    rw le_rec_on_succ },
 end
 
 /-- Recursion principle based on `<`. -/
@@ -811,7 +823,7 @@ by { simp only [strong_rec_on'], rw nat.strong_rec' }
 @[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m}
   (h0 : P m) (h1 : ∀ n, m ≤ n → P n → P (n + 1)) :
   ∀ n, m ≤ n → P n :=
-by apply nat.less_than_or_equal.rec h0; exact h1
+λ n h, @nat.le.induction_on m (λ b _, P b) n h h0 h1
 
 /-- Decreasing induction: if `P (k+1)` implies `P k`, then `P n` implies `P m` for all `m ≤ n`.
 Also works for functions to `Sort*`. -/
@@ -837,8 +849,13 @@ lemma decreasing_induction_trans {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n)
   (mn : m ≤ n) (nk : n ≤ k) (hP : P k) :
   (decreasing_induction h (le_trans mn nk) hP : P m) =
   decreasing_induction h mn (decreasing_induction h nk hP) :=
-by { induction nk with k nk ih, rw [decreasing_induction_self],
-     rw [decreasing_induction_succ h (le_trans mn nk), ih, decreasing_induction_succ] }
+begin
+  revert hP,
+  apply nat.le.induction_on nk,
+  { intro hP, rw [decreasing_induction_self], },
+  { intros k nk ih hP,
+    rw [decreasing_induction_succ h (le_trans mn nk), ih, decreasing_induction_succ] }
+end
 
 lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ}
   (smn : m + 1 ≤ n) (mn : m ≤ n) (hP : P n) :

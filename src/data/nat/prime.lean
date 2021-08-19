@@ -319,7 +319,7 @@ begin
       { cases m with m,
         { refl, },
         { rw h at ub,
-          cases ub with _ ub, cases ub with _ ub, cases ub, } } } }
+          cases ub, } } } }
 end
 
 end min_fac

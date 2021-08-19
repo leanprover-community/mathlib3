@@ -638,8 +638,12 @@ end⟩
 
 theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) :
   terminates (nth s n) → terminates (nth s m) :=
-by induction h with m' h IH; [exact id,
-  exact λ T, IH (@head_terminates_of_head_tail_terminates _ _ T)]
+begin
+  apply nat.le.induction_on h,
+  { exact id, },
+  { intros m' h IH,
+    exact λ T, IH (@head_terminates_of_head_tail_terminates _ _ T) },
+end
 
 theorem head_terminates_of_nth_terminates {s : wseq α} {n} :
   terminates (nth s n) → terminates (head s) :=

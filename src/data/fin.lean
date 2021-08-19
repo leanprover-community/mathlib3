@@ -308,10 +308,10 @@ begin
     exact nat.lt_succ_self _ },
   { assume H,
     have A : ∀ i j (h : i < j) (h' : j < n), f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
-    { assume i j h h',
-      induction h with k h IH,
-      { exact H _ _ },
-      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
+    { assume i j h,
+      apply nat.le.induction_on h,
+      { intros, exact H _ _ },
+      { intros k h IH h', exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
     assume i j hij,
     convert A (i : ℕ) (j : ℕ) hij j.2; ext; simp only [subtype.coe_eta] }
 end
@@ -370,7 +370,7 @@ by { cases k, refl }
 lemma coe_bit1 {n : ℕ} (k : fin (n + 1)) :
   ((bit1 k : fin (n + 1)) : ℕ) = bit1 (k : ℕ) % (n + 1) :=
 begin
-  cases n, { cases k with k h, cases k, {show _ % _ = _, simp}, cases h with _ h, cases h },
+  cases n, { cases k with k h, cases k, {show _ % _ = _, simp}, cases h with _ h, },
   simp [bit1, fin.coe_bit0, fin.coe_add, fin.coe_one],
 end
 

@@ -200,7 +200,9 @@ begin
   swap 8,
   { exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) ‹_›)).symm, },
   swap 7,
-  { have : k ≤ i := nat.le_of_pred_lt ‹_›, linarith, },
+  { have : k ≤ i := nat.le_of_pred_lt ‹_›,
+    simp only [subtype.mk_lt_mk, add_lt_add_iff_right] at h_1,
+    linarith, },
   -- Hope for the best from `linarith`:
   all_goals { try { refl <|> simp at * }; linarith, },
 end

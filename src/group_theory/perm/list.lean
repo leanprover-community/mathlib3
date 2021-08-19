@@ -176,9 +176,10 @@ begin
     { specialize IH (y :: l) (nodup_of_nodup_cons h) _,
       { simpa [nat.succ_lt_succ_iff] using hn },
       simp only [swap_apply_eq_iff, coe_mul, form_perm_cons_cons, nth_le],
-      generalize_proofs at IH,
-      rw [IH, swap_apply_of_ne_of_ne, nth_le];
-      { rintro rfl,
+      convert IH,
+      rw [swap_apply_of_ne_of_ne, nth_le];
+      { rintro w,
+        rw ←w at h,
         simpa [nth_le_mem _ _ _] using h } } }
 end
 

@@ -32,9 +32,10 @@ lemma continuants_aux_stable_of_terminated (succ_n_le_m : (n + 1) ≤ m)
   (terminated_at_n : g.terminated_at n) :
   g.continuants_aux m = g.continuants_aux (n + 1) :=
 begin
-  induction succ_n_le_m with m succ_n_le_m IH,
+  apply nat.le.induction_on succ_n_le_m,
   { refl },
-  { have : g.continuants_aux (m + 1) = g.continuants_aux m, by
+  { intros m succ_n_le_m IH,
+    have : g.continuants_aux (m + 1) = g.continuants_aux m, by
     { have : n ≤ m - 1, from nat.le_pred_of_lt succ_n_le_m,
       have : g.terminated_at (m - 1), from terminated_stable this terminated_at_n,
       have stable_step : g.continuants_aux (m - 1 + 2) = g.continuants_aux (m - 1 + 1), from
@@ -66,9 +67,11 @@ lemma convergents'_aux_stable_of_terminated {s : seq $ gcf.pair K} (n_le_m : n �
   (terminated_at_n : s.terminated_at n) :
   convergents'_aux s m = convergents'_aux s n :=
 begin
-  induction n_le_m with m n_le_m IH generalizing s,
-  { refl },
-  { cases s_head_eq : s.head with gp_head,
+  revert s,
+  apply nat.le.induction_on n_le_m,
+  { intros, refl },
+  { intros m n_le_m IH s _,
+    cases s_head_eq : s.head with gp_head,
     case option.none { cases n; simp only [convergents'_aux, s_head_eq] },
     case option.some
     { have : convergents'_aux s (n + 1) = convergents'_aux s n, from

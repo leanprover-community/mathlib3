@@ -353,9 +353,10 @@ begin
       { rwa ← IH,
         assume gp' m m_lt_n s_mth_eq',
         -- case distinction on m + 1 = n or m + 1 < n
-        cases m_lt_n with n succ_m_lt_n,
+        cases nat.eq_or_lt_of_le m_lt_n with h succ_m_lt_n,
         { -- the difficult case at the squashed position: we first obtain the values from
           -- the sequence
+          subst h,
           obtain ⟨gp_succ_m, s_succ_mth_eq⟩ : ∃ gp_succ_m, g.s.nth (m + 1) = some gp_succ_m, from
             option.ne_none_iff_exists'.mp not_terminated_at_n,
           obtain ⟨gp_m, mth_s_eq⟩ : ∃ gp_m, g.s.nth m = some gp_m, from
@@ -372,7 +373,9 @@ begin
           exact (div_pos this.left this.right) },
         { -- the easy case: before the squashed position, nothing changes
           refine s_pos (nat.lt.step $ nat.lt.step succ_m_lt_n) _,
-          exact eq.trans (squash_gcf_nth_of_lt succ_m_lt_n).symm s_mth_eq' } },
+          cases n, cases m_lt_n,
+          exact (squash_gcf_nth_of_lt (nat.lt_of_succ_lt_succ succ_m_lt_n)).symm.trans
+            s_mth_eq' } },
       -- now the result follows from the fact that the convergents coincide at the squashed position
       -- as established in `succ_nth_convergent_eq_squash_gcf_nth_convergent`.
       have : ∀ ⦃b⦄, g.partial_denominators.nth n = some b → b ≠ 0, by

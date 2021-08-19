@@ -143,8 +143,6 @@ begin
     exact λ i hi, (i.not_lt_zero hi).elim },
   simp_rw [disjointed_succ, partial_sups_eq_bsupr, sdiff_eq, compl_supr],
   congr,
-  ext i,
-  rw nat.lt_succ_iff,
 end
 
 end complete_boolean_algebra

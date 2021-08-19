@@ -79,10 +79,12 @@ begin
   have : ∀ n, 0 < n → n! < n.succ!,
   { intros k hk, rw [factorial_succ, succ_mul, lt_add_iff_pos_left],
     apply mul_pos hk (factorial_pos k) },
-  induction h with k hnk generalizing hn,
-  { exact this _ hn, },
-  refine lt_trans (h_ih hn) (this _ _),
-  exact lt_trans hn (lt_of_succ_le hnk),
+  revert hn,
+  apply nat.le.induction_on h,
+  { exact this _, },
+  { intros k hnk h_ih hn,
+    refine lt_trans (h_ih hn) (this _ _),
+    exact lt_trans hn (lt_of_succ_le hnk), }
 end
 
 lemma one_lt_factorial : 1 < n! ↔ 1 < n :=
@@ -93,7 +95,7 @@ begin
   split; intro h,
   { rw [← not_lt, ← one_lt_factorial, h],
     apply lt_irrefl },
-  cases h with h h, refl, cases h, refl,
+  { rcases nat.le_one_iff.mp h with rfl|rfl; refl, },
 end
 
 lemma factorial_inj (hn : 1 < n!) : n! = m! ↔ n = m :=
@@ -134,7 +136,8 @@ end
 lemma add_factorial_lt_factorial_add {i n : ℕ} (hi : 2 ≤ i) (hn : 1 ≤ n) :
   i + n! < (i + n)! :=
 begin
-  cases hn,
+  cases n, cases hn,
+  cases n,
   { rw factorial_one,
     exact lt_factorial_self (succ_le_succ hi) },
   exact add_factorial_succ_lt_factorial_add_succ _ hi,
@@ -143,20 +146,23 @@ end
 lemma add_factorial_succ_le_factorial_add_succ (i : ℕ) (n : ℕ) :
   i + (n + 1)! ≤ (i + (n + 1))! :=
 begin
-  obtain i2 | (_ | ⟨_, i0⟩) := le_or_lt 2 i,
+  obtain i2 | i0 := le_or_lt 2 i,
   { exact (n.add_factorial_succ_lt_factorial_add_succ i2).le },
-  { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
-    rw [add_mul, one_mul, add_comm 1 n],
-    exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
-  rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add]
+  { cases i, { simp, },
+    cases i,
+    { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
+      rw [add_mul, one_mul, add_comm 1 n],
+      exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
+    cases i0, },
 end
 
 lemma add_factorial_le_factorial_add (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :
   i + n! ≤ (i + n)! :=
 begin
-  cases n1 with h,
+  cases n, cases n1,
+  cases n with h,
   { exact self_le_factorial _ },
-  exact add_factorial_succ_le_factorial_add_succ i h,
+  exact add_factorial_succ_le_factorial_add_succ i (h+1),
 end
 
 end factorial

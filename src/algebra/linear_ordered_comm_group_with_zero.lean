@@ -199,7 +199,11 @@ by { rw [← one_mul (x ^ n), pow_succ],
 exact mul_lt_right' _ hx (pow_ne_zero _ $ ne_of_gt (lt_trans zero_lt_one'' hx)) }
 
 lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ n :=
-by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ hx, lt_trans ih (pow_lt_pow_succ hx)] }
+begin
+  apply nat.le.induction_on hmn,
+  { exact pow_lt_pow_succ hx, },
+  { intros n hmn ih, exact lt_trans ih (pow_lt_pow_succ hx) },
+end
 
 lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
 show (units.mk0 a ha)⁻¹ < (units.mk0 b hb)⁻¹ ↔ (units.mk0 b hb) < (units.mk0 a ha),

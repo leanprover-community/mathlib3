@@ -961,7 +961,11 @@ eq_nil_of_subset_nil $ s.subset
 
 theorem repeat_sublist_repeat (a : α) {m n} : repeat a m <+ repeat a n ↔ m ≤ n :=
 ⟨λ h, by simpa only [length_repeat] using length_le_of_sublist h,
- λ h, by induction h; [refl, simp only [*, repeat_succ, sublist.cons]] ⟩
+ λ h, begin
+   apply nat.le.induction_on h,
+   { refl, },
+   { intros, simp only [*, repeat_succ, sublist.cons], },
+ end⟩
 
 theorem eq_of_sublist_of_length_eq : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → length l₁ = length l₂ → l₁ = l₂
 | ._ ._ sublist.slnil             h := rfl

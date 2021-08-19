@@ -89,10 +89,11 @@ strict_mono_nat_of_lt_succ $ λ n, lt_add_of_pos_left _ $ fib_pos succ_pos'
 
 lemma le_fib_self {n : ℕ} (five_le_n : 5 ≤ n) : n ≤ fib n :=
 begin
-  induction five_le_n with n five_le_n IH,
+  apply nat.le.induction_on five_le_n,
   { have : 5 = fib 5, by refl,  -- 5 ≤ fib 5
     exact le_of_eq this },
   { -- n + 1 ≤ fib (n + 1) for 5 ≤ n
+    intros n five_le_n IH,
     cases n with n', -- rewrite n = succ n' to use fib.succ_succ
     { have : 5 = 0, from nat.le_zero_iff.elim_left five_le_n, contradiction },
     rw fib_succ_succ,

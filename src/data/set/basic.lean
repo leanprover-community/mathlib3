@@ -442,8 +442,7 @@ instance univ_decidable : decidable_pred (∈ @set.univ α) :=
 λ x, is_true trivial
 
 lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
-⟨λ h, by { by_contradiction w, exact h (eq_univ_iff_forall.mpr (not_exists_not.mp w)), },
-  λ h w, by simpa [w] using h⟩
+by rw [←not_forall, ←eq_univ_iff_forall]
 
 lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
   ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=

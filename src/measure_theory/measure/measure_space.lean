@@ -1845,7 +1845,7 @@ def finite_spanning_sets_in.of_le (h : ν ≤ μ) {C : set (set α)}
 
 lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
   (h : ν ≤ μ) : sigma_finite ν :=
-⟨nonempty.intro (hs.out.some.of_le h)⟩
+⟨hs.out.map $ finite_spanning_sets_in.of_le h⟩
 
 section disjointed
 

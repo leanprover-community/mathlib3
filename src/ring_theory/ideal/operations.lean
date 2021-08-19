@@ -1671,8 +1671,9 @@ def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient:=
 ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
 
 -- Another short result for lifting map `ring_to_double_quot` to a map `R/(I ⊔ J) → (R/I)/J'`
-lemma mem_add_double_quot_mk (x : R) (hx : x ∈ I ⊔ J) : double_quot_mk I J x = 0 :=
+lemma sup_le_ker_double_quot_mk : I ⊔ J ≤ (double_quot_mk I J).ker :=
 begin
+  intros x hx,
   have hIJtoJ : (I ⊔ J).map(ideal.quotient.mk I) = J.map(ideal.quotient.mk I) := by {
     rw [ ideal.map_sup, ideal.map_quotient_self],
     simp},

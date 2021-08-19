@@ -509,6 +509,8 @@ end
     exact split_at_vertex_snd p _ this,
   end
 
+/-- This and `split_at_vertex_fst_support_count` give a specification for
+the way these functions split a walk. -/
 @[simp]
 lemma split_at_vertex_spec {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.split_at_vertex_fst u h).concat (p.split_at_vertex_snd u h) = p :=
@@ -526,6 +528,27 @@ begin
       subst p_u,
       simp [split_at_vertex_fst, split_at_vertex_snd],
       simp [split_at_vertex_fst, split_at_vertex_snd, hvu, p_ih], }, },
+end
+
+@[simp]
+lemma split_at_vertex_fst_support_count {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
+  (p.split_at_vertex_fst u h).support.count u = 1 :=
+begin
+  induction p,
+  { simp at h,
+    subst u,
+    simp [split_at_vertex_fst], },
+  { simp [split_at_vertex_fst],
+    split_ifs,
+    { subst u,
+      simp, },
+    { simp at h,
+      cases h,
+      { exact (h_1 h_2.symm).elim, },
+      { rw [cons_support, multiset.count_cons, p_ih h_2],
+        simp,
+        intro h,
+        exact h_1 h.symm, }, }, },
 end
 
 lemma split_at_vertex_support {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :

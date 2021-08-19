@@ -61,7 +61,7 @@ end
 theorem absolutely_continuous_iff_with_density_radon_nikodym_derive_eq
   {μ ν : measure α} (hl : have_lebesgue_decomposition μ ν) :
   μ ≪ ν ↔ ν.with_density (radon_nikodym_deriv μ ν) = μ :=
-⟨λ h, with_density_radon_nikodym_deriv_eq hl h, λ h, h ▸ with_density_absolutely_continuous _ _⟩
+⟨with_density_radon_nikodym_deriv_eq hl, λ h, h ▸ with_density_absolutely_continuous _ _⟩
 
 end measure
 

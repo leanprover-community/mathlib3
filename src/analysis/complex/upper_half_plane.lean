@@ -54,10 +54,7 @@ lemma ne_zero (z : ℍ) : (z : ℂ) ≠ 0 :=
 mt (congr_arg complex.im) z.im_ne_zero
 
 lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
-begin
-  rw complex.norm_sq_pos,
-  exact z.ne_zero
-end
+by { rw complex.norm_sq_pos, exact z.ne_zero }
 
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
 

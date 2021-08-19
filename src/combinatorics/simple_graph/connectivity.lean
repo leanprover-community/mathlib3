@@ -183,12 +183,27 @@ def support : Π {u v : V}, G.walk u v → multiset V
 | u v (cons h p) := u ::ₘ p.support
 
 /-- The `edges` of a walk is the multiset of edges it visits. -/
-def edges : Π {u v : V}, G.walk u v → multiset G.edge_set
+def edges : Π {u v : V}, G.walk u v → multiset (sym2 V)
 | u v nil := ∅
-| u v (cons h p) := ⟨⟦(u, _)⟧, h⟩ ::ₘ p.edges
+| u v (@cons _ _ _ x _ h p) := ⟦(u, x)⟧ ::ₘ p.edges
+
+lemma edges_mem_edge_set {u v : V} {p : G.walk u v} {e : sym2 V}
+  (h : e ∈ p.edges) : e ∈ G.edge_set :=
+begin
+  induction p generalizing e,
+  { exact false.elim h, },
+  { rw [edges, multiset.mem_cons] at h,
+    rcases h with ⟨rfl, h⟩,
+    { exact p_h },
+    { exact p_ih h }, },
+end
+
+/-- A variant of `edges` where the edges lie in the subtype for `edge_set`. -/
+def edges' {u v : V} (p : G.walk u v) : multiset G.edge_set :=
+p.edges.attach.map (λ e, ⟨e, edges_mem_edge_set e.property⟩)
 
 lemma edge_vert_mem_support {t u v w : V} (ha : G.adj t u) (p : G.walk v w)
-  (he : (⟨⟦(t, u)⟧, ha⟩ : G.edge_set) ∈ p.edges) :
+  (he : ⟦(t, u)⟧ ∈ p.edges) :
   t ∈ p.support :=
 begin
   induction p,
@@ -225,7 +240,7 @@ structure is_cycle {u : V} (p : G.walk u u) extends to_circuit : is_circuit p : 
 Combine with `p.is_trail` to get an Eulerian trail (also known as an "Eulerian path"),
 or combine with `p.is_circuit` to get an Eulerian circuit (also known as an "Eulerian cycle"). -/
 def is_eulerian {u v : V} (p : G.walk u v) : Prop :=
-∀ e : G.edge_set, p.edges.count e = 1
+∀ e, e ∈ G.edge_set → p.edges.count e = 1
 
 /-- A walk `p` is *Hamiltonian* if it visits every vertex exactly once.
 Hamiltonian walks are automatically paths. (TODO: make the path version.) -/
@@ -244,11 +259,11 @@ begin
   { rintro ⟨h1, h2, h3⟩, exact ⟨⟨h1, h2⟩, h3⟩, },
 end
 
-lemma trail_count_le_one {u v : V} (p : G.walk u v) (h : p.is_trail) (e : G.edge_set) :
+lemma trail_count_le_one {u v : V} (p : G.walk u v) (h : p.is_trail) (e : sym2 V) :
   p.edges.count e ≤ 1 :=
 multiset.nodup_iff_count_le_one.mp h e
 
-lemma trail_count_eq_one {u v : V} (p : G.walk u v) (h : p.is_trail) {e : G.edge_set}
+lemma trail_count_eq_one {u v : V} (p : G.walk u v) (h : p.is_trail) {e : sym2 V}
   (he : e ∈ p.edges) : p.edges.count e = 1 :=
 multiset.count_eq_one_of_mem h he
 
@@ -273,7 +288,7 @@ begin
 end
 
 lemma cons_is_trail_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
-  (cons h p).is_trail ↔ p.is_trail ∧ (⟨⟦(u, v)⟧, h⟩ : G.edge_set) ∉ p.edges :=
+  (cons h p).is_trail ↔ p.is_trail ∧ ⟦(u, v)⟧ ∉ p.edges :=
 by simp only [is_trail, edges, and_comm, iff_self, multiset.nodup_cons]
 
 lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
@@ -387,7 +402,7 @@ end
 @[simp] lemma nil_edges {u : V} : (nil : G.walk u u).edges = ∅ := rfl
 
 @[simp] lemma cons_edges {u v w : V} (h : G.adj u v) (p : G.walk v w) :
-  (cons h p).edges = (⟨⟦(u, v)⟧, h⟩ : G.edge_set) ::ₘ p.edges := rfl
+  (cons h p).edges = ⟦(u, v)⟧ ::ₘ p.edges := rfl
 
 @[simp]
 lemma concat_edges {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
@@ -467,7 +482,7 @@ def to_path {u v : V} (p : G.walk u v) : G.path u v := ⟨p.to_path_aux, to_path
 
 @[simp] lemma path_is_trail {u v : V} (p : G.path u v) : is_trail (p : G.walk u v) := p.property.1
 
-lemma to_path_avoids.aux1 {u v w : V} (e : G.edge_set)
+lemma to_path_avoids.aux1 {u v w : V} (e : sym2 V)
   (p : G.walk v w) (hp : e ∉ p.edges) (hu : u ∈ p.support) :
   e ∉ walk.edges (walk.subwalk_from p hu) :=
 begin
@@ -486,7 +501,7 @@ begin
       exact hp.2, }, },
 end
 
-lemma to_path_avoids {v w : V} (e : G.edge_set)
+lemma to_path_avoids {v w : V} (e : sym2 V)
   (p : G.walk v w) (hp : e ∉ p.edges) :
   e ∉ walk.edges (p.to_path : G.walk v w) :=
 begin
@@ -781,9 +796,10 @@ begin
   { simp [walk.map, p_ih], },
 end
 
+/-- Note: this is using the underlying map for `simple_graph.map_edge_set`. -/
 @[simp]
 lemma walk.map_edges_eq (f : G →g G') {u v : V} (p : G.walk u v) :
-  (p.map f).edges = p.edges.map f.map_edge_set :=
+  (p.map f).edges = p.edges.map (λ e, sym2.map f e) :=
 begin
   induction p,
   { refl, },
@@ -860,14 +876,13 @@ Characterizations of bridges:
 def is_bridge {v w : V} (h : G.adj v w) : Prop := (⊤ : G.subgraph).is_bridge h
 
 /-- Given a walk that avoids an edge, create a walk in the subgraph with that deleted. -/
-def walk_of_avoiding_walk {v w : V} (e : G.edge_set)
+def walk_of_avoiding_walk {v w : V} (e : sym2 V)
   (p : G.walk v w) (hp : e ∉ p.edges) :
   ((⊤ : G.subgraph).delete_edges {e}).spanning_coe.walk v w :=
 begin
   induction p,
   { refl, },
-  { cases e with e he,
-    simp only [walk.edges, multiset.mem_cons, subtype.mk_eq_mk] at hp,
+  { simp only [walk.edges, multiset.mem_cons, subtype.mk_eq_mk] at hp,
     push_neg at hp,
     apply walk.cons _ (p_ih _),
     use p_h,
@@ -877,7 +892,7 @@ begin
 end
 
 lemma is_bridge_iff_walks_contain {v w : V} (h : G.adj v w) :
-  G.is_bridge h ↔ ∀ (p : G.walk v w), (⟨⟦(v, w)⟧, h⟩ : G.edge_set) ∈ p.edges :=
+  G.is_bridge h ↔ ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges :=
 begin
   split,
   { intros hb p,
@@ -888,19 +903,20 @@ begin
     rintro ⟨p'⟩,
     specialize hpe (p'.map (subgraph.map_spanning_top _)),
     simp only [set_coe.exists, walk.map_edges_eq, multiset.mem_map] at hpe,
-    obtain ⟨z, zmem, he, hd⟩ := hpe,
+    obtain ⟨z, he, hd⟩ := hpe,
     simp only [subgraph.map_spanning_top, hom.map_edge_set, rel_hom.coe_fn_mk,
       id.def, subtype.coe_mk, sym2.map_id] at hd,
     subst z,
-    simpa [subgraph.spanning_coe] using zmem, },
+    have := walk.edges_mem_edge_set he,
+    simpa [subgraph.spanning_coe] using this, },
 end
 
 lemma is_bridge_iff_no_cycle_contains.aux1
   {u v w : V}
   (h : G.adj v w)
   (c : G.walk u u)
-  (he : (⟨⟦(v, w)⟧, h⟩ : G.edge_set) ∈ c.edges)
-  (hb : ∀ (p : G.walk v w), (⟨⟦(v, w)⟧, h⟩ : G.edge_set) ∈ p.edges)
+  (he : ⟦(v, w)⟧ ∈ c.edges)
+  (hb : ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges)
   (hc : c.is_trail)
   (hv : v ∈ c.support)
   (hw : w ∈ (c.split_at_vertex_fst v hv).support) :
@@ -914,8 +930,8 @@ begin
   let q := p2.concat p11,
   have hbq := hb (p2.concat p11),
   have hpq' := hb p12.reverse,
-  have this' : multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) (p2.edges + p11.edges + p12.edges) = 1,
-  { convert_to multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) c.edges = _,
+  have this' : multiset.count ⟦(v, w)⟧ (p2.edges + p11.edges + p12.edges) = 1,
+  { convert_to multiset.count ⟦(v, w)⟧ c.edges = _,
     congr,
     rw ←this,
     simp_rw [walk.concat_edges],
@@ -923,13 +939,13 @@ begin
     congr' 1,
     rw add_comm,
     apply c.trail_count_eq_one hc he, },
-  have this'' : multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) (p2.concat p11).edges
-                  + multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) p12.edges = 1,
+  have this'' : multiset.count ⟦(v, w)⟧ (p2.concat p11).edges
+                  + multiset.count ⟦(v, w)⟧ p12.edges = 1,
   { convert this',
     rw walk.concat_edges,
     symmetry,
     apply multiset.count_add, },
-  have hA : multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) (p2.concat p11).edges = 1,
+  have hA : multiset.count ⟦(v, w)⟧ (p2.concat p11).edges = 1,
   { apply walk.trail_count_eq_one,
     have hr := c.rotate_trail hc hv,
     have : c.rotate hv = (p2.concat p11).concat p12,
@@ -940,7 +956,7 @@ begin
     rw this at hr,
     apply walk.is_trail_of_concat_left _ _ hr,
     assumption, },
-  have hB : multiset.count (⟨⟦(v, w)⟧, h⟩ : G.edge_set) p12.edges = 1,
+  have hB : multiset.count ⟦(v, w)⟧ p12.edges = 1,
   { apply walk.trail_count_eq_one,
     apply walk.is_trail_of_concat_right,
     apply walk.is_trail_of_concat_left,
@@ -968,14 +984,14 @@ begin
 end
 
 lemma is_bridge_iff_no_cycle_contains {v w : V} (h : G.adj v w) :
-  G.is_bridge h ↔ ∀ {u : V} (p : G.walk u u), p.is_cycle → (⟨⟦(v, w)⟧, h⟩ : G.edge_set) ∉ p.edges :=
+  G.is_bridge h ↔ ∀ {u : V} (p : G.walk u u), p.is_cycle → ⟦(v, w)⟧ ∉ p.edges :=
 begin
   split,
   { intros hb u c hc he,
     rw is_bridge_iff_walks_contain at hb,
     have hv : v ∈ c.support := walk.edge_vert_mem_support h c he,
-    have hh : (⟨⟦(w, v)⟧, G.sym h⟩ : G.edge_set) = ⟨⟦(v, w)⟧, h⟩ := by simp [sym2.eq_swap],
-    have hwc : w ∈ c.support := walk.edge_vert_mem_support (G.sym h) c (by { rw hh, exact he, }),
+    have hwc : w ∈ c.support := walk.edge_vert_mem_support (G.sym h) c
+                                (by { rw sym2.eq_swap, exact he, }),
     let p1 := c.split_at_vertex_fst v hv,
     let p2 := c.split_at_vertex_snd v hv,
     by_cases hw : w ∈ p1.support,
@@ -993,7 +1009,7 @@ begin
       apply is_bridge_iff_no_cycle_contains.aux1 G (G.sym h) (p2.concat p1)
         (by { rw [walk.concat_edges, add_comm, ←walk.concat_edges,
                   walk.split_at_vertex_spec],
-              rw hh,
+              rw sym2.eq_swap,
               exact he })
         _ (walk.rotate_trail _ hc.to_trail hv),
       swap,
@@ -1002,7 +1018,7 @@ begin
       { simp, },
       { intro p,
         specialize hb p.reverse,
-        rw hh,
+        rw sym2.eq_swap,
         simpa using hb, }, }, },
   { intro hc,
     rw is_bridge_iff_walks_contain,
@@ -1012,7 +1028,7 @@ begin
     { simp [walk.is_cycle_def, walk.cons_is_trail_iff],
       split,
       { apply walk.to_path_avoids,
-        convert hne using 3,
+        convert hne using 2,
         rw sym2.eq_swap, },
       { exact p.to_path.property.2, }, },
     simp [-quotient.eq] at hc,
@@ -1068,9 +1084,10 @@ begin
             apply hq.2,
             simp, }, },
         { exfalso,
-          apply hq.2 (walk.edge_vert_mem_support _ _ h), }, }, },
+          apply hq.2 (walk.edge_vert_mem_support _ _ h),
+          exact p_h, }, }, },
     { rw walk.cons_is_path_iff at hp,
-      exact (hp.2 (walk.edge_vert_mem_support _ _ h)).elim, }, },
+      exact (hp.2 (walk.edge_vert_mem_support p_h _ h)).elim, }, },
 end
 
 lemma is_acyclic_if_unique_path (h : ∀ (v w : V) (p q : G.path v w), p = q) : G.is_acyclic :=

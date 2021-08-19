@@ -60,6 +60,7 @@ the type `walk u v` consists of all walks starting at `u` and ending at `v`.
 
 We say that a walk *visits* the vertices it contains.  The set of vertices a
 walk visits is `simple_graph.walk.support`. -/
+@[derive decidable_eq]
 inductive walk : V → V → Type u
 | nil {u : V} : walk u u
 | cons {u v w: V} (h : G.adj u v) (p : walk v w) : walk u w

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
 import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.connectivity
 import data.rel
 import linear_algebra.matrix.trace
 
@@ -97,5 +98,120 @@ lemma adj_matrix_mul_vec_const_apply_of_regular {d : ℕ} {r : R} (hd : G.is_reg
   {v : α} :
   (G.adj_matrix R).mul_vec (function.const _ r) v = (d * r) :=
 by simp [hd v]
+
+section walks
+variables (G) [decidable_eq α]
+
+/-- The `finset` of length-`n` walks from `u` to `v`. -/
+def walk_len : Π (n : ℕ) (u v : α), finset (G.walk u v)
+| 0 u v := if h : u = v
+           then by { subst u, exact {walk.nil}, }
+           else ∅
+| (n+1) u v := finset.univ.bUnion (λ (w : α),
+                 if h : G.adj u w
+                 then (walk_len n w v).map ⟨λ p, walk.cons h p, begin
+                     intros p q, simp,
+                   end⟩
+                 else ∅)
+
+lemma walk_len_eq (n : ℕ) (u v : α) :
+  ↑(G.walk_len n u v) = {p : G.walk u v | p.length = n} :=
+begin
+  induction n generalizing u v,
+  { ext p,
+    simp only [walk_len, nat.nat_zero_eq_zero, mem_coe, set.mem_set_of_eq],
+    by_cases h : u = v,
+    { subst h,
+      cases p; simp, },
+    { cases p,
+      simp,
+      simp [h], }, },
+  { ext p,
+    simp [walk_len],
+    split,
+    { rintro ⟨w, h⟩,
+      by_cases huw : G.adj u w,
+      { simp [huw] at h,
+        obtain ⟨q, hq, rfl⟩ := h,
+        simp [walk.length],
+        rw [←finset.mem_coe, n_ih] at hq,
+        exact hq, },
+      { simp [huw] at h,
+        exact h.elim, }, },
+    { intro hp,
+      cases p,
+      { exfalso,
+        simp at hp,
+        injection hp, },
+      { use p_v,
+        simp [p_h],
+        rw [←finset.mem_coe, n_ih],
+        injection hp, }, }, },
+end
+
+instance walk_of_len_fintype {u v : α} (n : ℕ) : fintype {p : G.walk u v // p.length = n} :=
+begin
+  apply fintype.subtype (G.walk_len n u v),
+  intro p,
+  rw ←finset.mem_coe,
+  rw walk_len_eq,
+  simp,
+end
+
+lemma fintype_card_walk_eq (u v : α) (n : ℕ) :
+  (G.walk_len n u v).card = fintype.card {p : G.walk u v // p.length = n} :=
+begin
+  rw fintype.card_of_subtype (G.walk_len n u v),
+  intro p,
+  rw ←finset.mem_coe,
+  rw walk_len_eq,
+  simp,
+end
+
+lemma extend_by_zero' {α β : Type*} [fintype α] [add_comm_monoid β] (s : finset α) [decidable_eq α] (f : α → β) :
+  ∑ i in s, f i = ∑ (i : α), if i ∈ s then f i else 0 :=
+begin
+  convert finset.sum_add_sum_compl s _,
+  have : filter (λ (i : α), i ∈ s) sᶜ = ∅,
+  { ext, simp, },
+  simp [finset.sum_ite, this],
+end
+
+theorem adj_matrix_pow_apply_eq_card_walk (n : ℕ) (u v : α) :
+  (G.adj_matrix R ^ n) u v = fintype.card {p : G.walk u v // p.length = n} :=
+begin
+  rw ←fintype_card_walk_eq,
+  induction n generalizing u v,
+  { by_cases h : u = v,
+    { subst h,
+      simp [walk_len], },
+    { simp [walk_len, h], }, },
+  { rw [nat.succ_eq_add_one, add_comm, pow_add, pow_one],
+    simp only [adj_matrix_mul_apply, mul_eq_mul],
+    rw [extend_by_zero'],
+    simp only [n_ih, mem_neighbor_finset],
+    rw add_comm,
+    simp only [walk_len],
+    rw finset.card_bUnion,
+    { norm_cast,
+      congr' 2,
+      ext x,
+      by_cases hux : G.adj u x,
+      { simp [hux], },
+      { simp [hux], }, },
+    { intros x hx y hy hxy,
+      intros p hp,
+      simp at hp,
+      split_ifs at hp;
+      simp at hp; try { exact hp.elim },
+      obtain ⟨⟨qx, hql, hqp⟩, ⟨rx, hrl, hrp⟩⟩ := hp,
+      cases p,
+      injection hqp,
+      injection hqp,
+      injection hrp,
+      exact (hxy (h_2.trans h_4.symm)).elim, }, },
+end
+
+end walks
 
 end simple_graph

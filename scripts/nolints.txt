@@ -75,8 +75,24 @@ apply_nolint linear_nonneg_ring.to_linear_ordered_ring check_reducibility
 apply_nolint nonneg_ring.to_linear_nonneg_ring check_reducibility
 
 -- algebra/pointwise.lean
+apply_nolint finset.has_add check_reducibility
+apply_nolint finset.has_mul check_reducibility
+apply_nolint set.add_comm_monoid check_reducibility
+apply_nolint set.add_monoid check_reducibility
+apply_nolint set.add_semigroup check_reducibility
+apply_nolint set.add_zero_class check_reducibility
+apply_nolint set.comm_monoid check_reducibility
 apply_nolint set.fintype_add check_reducibility
 apply_nolint set.fintype_mul check_reducibility
+apply_nolint set.has_add check_reducibility
+apply_nolint set.has_inv check_reducibility
+apply_nolint set.has_mul check_reducibility
+apply_nolint set.has_neg check_reducibility
+apply_nolint set.has_one check_reducibility
+apply_nolint set.has_zero check_reducibility
+apply_nolint set.monoid check_reducibility
+apply_nolint set.mul_one_class check_reducibility
+apply_nolint set.semigroup check_reducibility
 
 -- algebra/ring/basic.lean
 apply_nolint is_integral_domain.to_integral_domain check_reducibility
@@ -562,15 +578,6 @@ apply_nolint pequiv.refl doc_blame
 apply_nolint pequiv.symm doc_blame
 apply_nolint pequiv.trans doc_blame
 
--- data/pfun.lean
-apply_nolint pfun.core doc_blame
-apply_nolint pfun.fix doc_blame
-apply_nolint pfun.fix_induction doc_blame
-apply_nolint pfun.graph' doc_blame
-apply_nolint pfun.image doc_blame
-apply_nolint pfun.preimage doc_blame
-apply_nolint pfun.res doc_blame
-
 -- data/pnat/xgcd.lean
 apply_nolint pnat.gcd_a' doc_blame
 apply_nolint pnat.gcd_b' doc_blame
@@ -681,7 +688,6 @@ apply_nolint setoid.prod check_reducibility
 apply_nolint setoid.mk_classes check_reducibility
 apply_nolint setoid.setoid_of_disjoint_union check_reducibility
 
--- data/vector2.lean
 -- data/vector/basic.lean
 apply_nolint vector.insert_nth doc_blame
 apply_nolint vector.m_of_fn doc_blame
@@ -802,11 +808,11 @@ apply_nolint function.surjective.unique check_reducibility
 apply_nolint unique.mk' check_reducibility
 apply_nolint unique_prop check_reducibility
 
--- measure_theory/ae_eq_fun.lean
-apply_nolint measure_theory.measure.ae_eq_setoid check_reducibility
-
--- measure_theory/borel_space.lean
+-- measure_theory/constructions/borel_space.lean
 apply_nolint borel check_reducibility
+
+-- measure_theory/function/ae_eq_fun.lean
+apply_nolint measure_theory.measure.ae_eq_setoid check_reducibility
 
 -- measure_theory/measurable_space.lean
 apply_nolint measurable_space.comap check_reducibility
@@ -816,10 +822,10 @@ apply_nolint measurable_space.map check_reducibility
 apply_nolint measurable_space.generate_from check_reducibility
 apply_nolint measurable_space.mk_of_closure check_reducibility
 
--- measure_theory/measure_space.lean
+-- measure_theory/measure/measure_space.lean
 apply_nolint null_measurable check_reducibility
 
--- measure_theory/outer_measure.lean
+-- measure_theory/measure/outer_measure.lean
 apply_nolint measure_theory.outer_measure.caratheodory check_reducibility
 
 -- measure_theory/pi_system.lean
@@ -900,17 +906,6 @@ apply_nolint filter.unique check_reducibility
 -- order/filter/germ.lean
 apply_nolint filter.germ_setoid check_reducibility
 
--- order/filter/partial.lean
-apply_nolint filter.pcomap' doc_blame
-apply_nolint filter.pmap doc_blame
-apply_nolint filter.ptendsto doc_blame
-apply_nolint filter.ptendsto' doc_blame
-apply_nolint filter.rcomap doc_blame
-apply_nolint filter.rcomap' doc_blame
-apply_nolint filter.rmap doc_blame
-apply_nolint filter.rtendsto doc_blame
-apply_nolint filter.rtendsto' doc_blame
-
 -- order/fixed_points.lean
 apply_nolint fixed_points.complete_lattice check_reducibility
 apply_nolint fixed_points.next doc_blame
@@ -980,6 +975,9 @@ apply_nolint is_localization.integral_domain_of_le_non_zero_divisors check_reduc
 
 -- ring_theory/polynomial/basic.lean
 apply_nolint mv_polynomial.integral_domain_fintype check_reducibility
+
+-- ring_theory/power_basis.lean
+apply_nolint power_basis.alg_hom.fintype check_reducibility
 
 -- ring_theory/valuation/basic.lean
 apply_nolint add_valuation.to_preorder check_reducibility

@@ -94,7 +94,7 @@ lemma det_conj [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N ⬝ M') = det N :=
-by rw [← det_comm hM'M hMM', ← matrix.mul_assoc, hM'M, matrix.one_mul]
+by rw [← det_comm' hM'M hMM', ← matrix.mul_assoc, hM'M, matrix.one_mul]
 
 end matrix
 

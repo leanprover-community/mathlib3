@@ -79,7 +79,7 @@ end
 lemma bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠ 0 :=
 linear_ne_zero (g 1) z (g.row_ne_zero 1)
 
-lemma normsq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (bottom g z) :=
+lemma norm_sq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (bottom g z) :=
 complex.norm_sq_pos.mpr (bottom_ne_zero g z)
 
 lemma normsq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=

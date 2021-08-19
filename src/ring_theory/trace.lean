@@ -224,8 +224,8 @@ begin
   have hx' : is_integral K (adjoin_simple.gen K x),
   { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
     apply_instance },
-  rw [← adjoin.power_basis.gen_eq hx, (adjoin.power_basis hx).trace_gen_eq_sum_roots];
-    rw [adjoin.power_basis.gen_eq hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
+  rw [← adjoin.power_basis_gen hx, (adjoin.power_basis hx).trace_gen_eq_sum_roots];
+    rw [adjoin.power_basis_gen hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
     try { simp only [adjoin_simple.algebra_map_gen _ _] },
   exact hf
 end

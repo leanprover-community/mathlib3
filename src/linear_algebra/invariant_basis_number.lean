@@ -192,7 +192,7 @@ begin
   let e : fin (n + 1 + m) ≃ fin n ⊕ fin (1 + m) :=
     (fin_congr (add_assoc _ _ _)).trans fin_sum_fin_equiv.symm,
   let f' := f.comp ((linear_equiv.sum_arrow_lequiv_prod_arrow _ _ R R).symm.trans
-    (linear_map.fun_congr_left R R e)).to_linear_map,
+    (linear_equiv.fun_congr_left R R e)).to_linear_map,
   have i' : injective f' := i.comp (linear_equiv.injective _),
   apply @zero_ne_one (fin (1 + m) → R) _ _,
   apply (is_noetherian.equiv_punit_of_prod_injective f' i').injective,

@@ -129,11 +129,21 @@ def orbit_rel : setoid β :=
 
 variables {α β}
 
-noncomputable def stabilizer_smul_eq_coset {x y : β} (hxy : (orbit_rel α β).rel x y) :
-  (stabilizer α x ≃ stabilizer α y) :=
-let g := classical.some hxy in
-have hg : g • y = x := classical.some_spec hxy,
-mul_left
+lemma stabilizer_smul_eq_stabilizer_map_conj (g : α) (x : β) :
+  (stabilizer α (g • x) = (stabilizer α x).map (mul_aut.conj g).to_monoid_hom) :=
+begin
+  ext h,
+  rw [mem_stabilizer_iff, ← smul_left_cancel_iff g⁻¹, smul_smul, smul_smul, smul_smul, mul_left_inv,
+      one_smul, ← mem_stabilizer_iff, subgroup.mem_map_equiv, mul_aut.conj_symm_apply]
+end
+
+noncomputable def stabilizer_equiv_stabilizer_of_orbit_rel {x y : β} (h : (orbit_rel α β).rel x y) :
+  stabilizer α x ≃* stabilizer α y :=
+let g : α := classical.some h in
+have hg : g • y = x := classical.some_spec h,
+have this : stabilizer α x = (stabilizer α y).map (mul_aut.conj g).to_monoid_hom,
+  by rw [← hg, stabilizer_smul_eq_stabilizer_map_conj],
+(mul_equiv.subgroup_congr this).trans ((mul_aut.conj g).subgroup_equiv_map $ stabilizer α y).symm
 
 open quotient_group
 
@@ -203,6 +213,8 @@ by { ext, simp [quotient_group.eq] }
 
 section draft
 
+variables {α}
+
 def equiv.sigma_assoc {α : Sort*} {β : α → Sort*} (γ : Π (a : α), β a → Sort*) :
   (Σ (ab : Σ (a : α), β a), γ ab.1 ab.2) ≃ Σ (a : α), (Σ (b : β a), γ a b) :=
 { to_fun := λ x, ⟨x.1.1, ⟨x.1.2, x.2⟩⟩,
@@ -212,7 +224,7 @@ def equiv.sigma_assoc {α : Sort*} {β : α → Sort*} (γ : Π (a : α), β a �
 
 local notation `Ω` := (quotient $ orbit_rel α β)
 
-noncomputable def goal : (Σ (a : α), (fixed_by α β a)) ≃ Ω × α :=
+noncomputable def sigma_fixed_by_equiv_orbits_prod_group : (Σ (a : α), (fixed_by α β a)) ≃ Ω × α :=
 let
   e₀ : (Σ (a : α), fixed_by α β a) ≃ {ab : α × β // ab.1 • ab.2 = ab.2} :=
     (equiv.subtype_prod_equiv_sigma_subtype _).symm,
@@ -223,7 +235,8 @@ let
   tmp₀ : β ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} :=
     (equiv.sigma_preimage_equiv quotient.mk').symm,
   tmp₁ : (Σ (ω : Ω), {b // quotient.mk' b = ω}) ≃ Σ (ω : Ω), orbit α ω.out' :=
-    equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right (λ x, sorry)),
+    equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right $
+      λ x, @quotient.mk_eq_iff_out _ (orbit_rel α β) _ _ ),
   e₃ : (Σ (b : β), stabilizer α b) ≃
         Σ (ωb : (Σ (ω : Ω), orbit α ω.out')), stabilizer α (ωb.2 : β) :=
     (tmp₀.trans tmp₁).sigma_congr_left',
@@ -232,10 +245,11 @@ let
     equiv.sigma_assoc (λ (ω : Ω) (b : orbit α ω.out'), stabilizer α (b : β)),
   e₅ : (Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α (b : β))) ≃
         Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α ω.out') :=
-    sorry,
+    equiv.sigma_congr_right (λ ω, equiv.sigma_congr_right $
+      λ ⟨b, hb⟩, (stabilizer_equiv_stabilizer_of_orbit_rel hb).to_equiv),
   e₆ : (Σ (ω : Ω), (Σ (b : orbit α ω.out'), stabilizer α ω.out')) ≃
         Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out' :=
-    sorry,
+    equiv.sigma_congr_right (λ ω, equiv.sigma_equiv_prod _ _),
   e₇ : (Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out') ≃
         Σ (ω : Ω), quotient (stabilizer α ω.out') × stabilizer α ω.out' :=
     equiv.sigma_congr_right

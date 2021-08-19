@@ -14,7 +14,7 @@ This file proves the Radon-Nikodym theorem. The Radon-Nikodym theorem states tha
 In particular, we have `f = radon_nikodym_deriv μ ν`.
 
 The Radon-Nikodym theorem will allow us to define many important concepts in probability theory,
-most notably conditional expectation and probability cumulative function.
+most notably conditional expectations and probability cumulative functions.
 
 ## Main results
 

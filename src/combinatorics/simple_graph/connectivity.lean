@@ -385,7 +385,7 @@ abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := 
 fewer than k edges are removed. -/
 def edge_connected (k : ℕ) : Prop :=
 ∀ (s : finset (sym2 V)), ↑s ⊆ G.edge_set → s.card < k →
-  ((⊤ : G.subgraph).delete_edges ↑s).connected
+  ((⊤ : G.subgraph).delete_edges ↑s).spanning_coe.connected
 
 section walk_to_path
 
@@ -866,7 +866,11 @@ namespace subgraph
 variables {G} (H : subgraph G)
 
 /-- An edge of a subgraph is a bridge edge if, after removing it, its incident vertices
-are no longer reachable. -/
+are no longer reachable.
+
+Implementation note: this uses `simple_graph.subgraph.spanning_coe` since adding
+vertices to a subgraph does not change reachability, and it is simpler than
+dealing with the dependent types from `simple_graph.subgraph.coe`. -/
 def is_bridge {v w : V} (h : H.adj v w) : Prop :=
 ¬(H.delete_edges {⟦(v, w)⟧}).spanning_coe.reachable v w
 
@@ -1185,14 +1189,10 @@ lemma connected_of_edge_connected {k : ℕ} (hk : 0 < k) (h : G.edge_connected k
   G.connected :=
 begin
   intros v w,
-  specialize h ∅ (by simp) (by simp [hk]),
-  specialize h ⟨v, _⟩ ⟨w, _⟩,
-  iterate 2 { simp, },
+  specialize h ∅ (by simp) (by simp [hk]) v w,
+  simp only [finset.coe_empty, subgraph.delete_edges_of_empty] at h,
   cases h,
-  split,
-  let f : ((⊤ : G.subgraph).delete_edges ↑(∅ : finset (sym2 V))).coe →g G :=
-    ⟨λ v, v, λ _ _ h, subgraph.adj_sub _ h⟩,
-  exact h.map f,
+  exact ⟨h.map (subgraph.map_spanning_top _)⟩,
 end
 
 end

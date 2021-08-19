@@ -102,6 +102,23 @@ funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
 
 lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
 
+@[simp] lemma E_mul (k : n) : E R i j ⬝ E R j k = E R i k :=
+begin
+  ext a b,
+  simp only [matrix.mul_apply, boole_mul],
+  by_cases h₁ : i = a; by_cases h₂ : k = b;
+  simp [h₁, h₂],
+end
+
+@[simp] lemma E_mul_of_ne {k l : n} (h : j ≠ k) : E R i j ⬝ E R k l = 0 :=
+begin
+  ext a b,
+  simp only [matrix.mul_apply, dmatrix.zero_apply, boole_mul],
+  by_cases h₁ : i = a;
+  simp [h₁, h, h.symm],
+end
+
+
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
@@ -109,7 +126,93 @@ def Eb (h : j ≠ i) : sl n R :=
 
 @[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
 
+variable {R}
+
+def transvection (c : R) : matrix n n R := 1 + c • E R i j
+
+lemma transvection_mul (h : i ≠ j) (c d : R) :
+  transvection i j c ⬝ transvection i j d = transvection i j (c + d) :=
+by simp [transvection, matrix.add_mul, matrix.mul_add, h, h.symm, add_smul, add_assoc]
+
 end elementary_basis
+
+section
+
+variable {R}
+variable {r : ℕ}
+
+def is_last_diag (M : matrix (fin r.succ) (fin r.succ) R) :=
+∀ (i : fin r.succ), (i : ℕ) < r → (M i (fin.last r) = 0 ∧ M (fin.last r) i = 0)
+
+universe u𝕜
+variables {𝕜 : Type u𝕜 } [field 𝕜]
+open fin
+
+def Lrow (M : matrix (fin r.succ) (fin r.succ) 𝕜) : list (matrix (fin r.succ) (fin r.succ) 𝕜) :=
+list.of_fn $ λ i : fin r, transvection (cast_succ i) (last r) $
+  -M (cast_succ i) (last r) / M (last r) (last r)
+
+lemma zoug (M : matrix (fin r.succ) (fin r.succ) 𝕜) (hM : M (last r) (last r) ≠ 0)
+  (i : fin r) : ((Lrow M).prod ⬝ M) (fin.cast_succ i) (fin.last r) = 0 :=
+begin
+  have : ∀ (k : ℕ), k ≤ r → (((Lrow M).drop k).prod ⬝ M) (fin.cast_succ i) (fin.last r) =
+    if k ≤ i then 0 else M (fin.cast_succ i) (fin.last r),
+  { assume k hk,
+    apply nat.decreasing_induction _ hk,
+    { simp only [lie_algebra.special_linear.Lrow, list.length_of_fn, matrix.one_mul,
+        list.drop_eq_nil_of_le, list.prod_nil],
+      rw if_neg,
+      simpa only [not_le] using i.2 },
+    { assume n hn,
+      have : n < (Lrow M).length := sorry,
+      rw ← list.cons_nth_le_drop_succ this,
+      simp [matrix.mul_assoc],
+
+    }
+
+  }
+end
+
+
+#exit
+
+lemma exists_is_last_diag_transvec_self_transvec_aux (M : matrix (fin r.succ) (fin r.succ) 𝕜)
+  (hM : M (fin.last r) (fin.last r) ≠ 0) (j : ℕ) (hj : j < r.succ) :
+  ∃ (L : list (matrix (fin r.succ) (fin r.succ) 𝕜)), ∀ i, i < j → (L.prod ⬝ M) i (fin.last r) = 0 :=
+begin
+  induction j with j IH,
+  { refine ⟨list.nil, by simp⟩ },
+
+end
+
+#exit
+
+  is_last_diag (L.prod ⬝ M ⬝ L'.prod) :=
+begin
+  let L := list.of_fn (λ i : fin r, transvection 𝕜 (fin.cast_succ i) (fin.last r)
+    (-M (fin.cast_succ i) (fin.last r) / M (fin.last r) (fin.last r)),
+end
+
+
+#exit
+
+lemma exists_is_last_diag_transvec_self_transvec (M : matrix (fin r.succ) (fin r.succ) R) :
+  ∃ (L L' : list (matrix (fin r.succ) (fin r.succ) R)),
+  is_last_diag (L.prod ⬝ M ⬝ L'.prod) :=
+begin
+  by_cases H : is_last_diag M, { refine ⟨list.nil, list.nil, by simpa using H⟩ },
+  by_cases h : ∃ (i : fin r.succ), (i : ℕ) < r ∧ M i (fin.last r) ≠ 0,
+  { rcases h with ⟨i, i_lt, hi⟩,
+
+  }
+end
+
+
+
+end
+
+
+#exit
 
 lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬is_lie_abelian ↥(sl n R) :=
 begin

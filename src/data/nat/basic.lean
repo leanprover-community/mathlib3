@@ -818,6 +818,28 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
 
+/-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k ≥ n`,
+there is a map from `C n` to each `C m`, `n ≤ m`. -/
+@[elab_as_eliminator]
+def le_rec_on' {C : ℕ → Sort*} {n : ℕ} :
+  Π {m : ℕ}, n ≤ m → (Π ⦃k⦄, n ≤ k → C k → C (k+1)) → C n → C m
+| 0     H next x := eq.rec_on (nat.eq_zero_of_le_zero H) x
+| (m+1) H next x := or.by_cases (of_le_succ H) (λ h : n ≤ m, next h $ le_rec_on' h next x)
+  (λ h : n = m + 1, eq.rec_on h x)
+
+@[elab_as_eliminator]
+def decreasing_induction' {P : ℕ → Sort*} {m n : ℕ} (h : ∀ k < n, m ≤ k → P (k+1) → P k)
+  (mn : m ≤ n) (hP : P n) : P m :=
+begin
+  -- induction mn using nat.le_rec_on' generalizing h hP -- this doesn't work unfortunately
+  refine le_rec_on' mn _ _ h hP; clear h hP mn n,
+  { intros n mn ih h hP,
+    apply ih,
+    { exact λ k hk, h k hk.step },
+    { exact h n (lt_succ_self n) mn hP } },
+  { intros h hP, exact hP }
+end
+
 /-! ### `div` -/
 
 attribute [simp] nat.div_self

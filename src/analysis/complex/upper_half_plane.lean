@@ -107,7 +107,7 @@ def smul_aux (g : SL(2,ℝ)) (z : ℍ) : ℍ :=
 ⟨smul_aux' g z,
 by { rw smul_aux'_im, exact div_pos z.im_pos (complex.norm_sq_pos.mpr (bottom_ne_zero g z)) }⟩
 
-lemma bot_cocycle (x y : SL(2,ℝ)) (z : ℍ) :
+lemma bottom_cocycle (x y : SL(2,ℝ)) (z : ℍ) :
   bottom (x * y) z = bottom x (smul_aux y z) * bottom y z :=
 begin
   change _ = (_ * (_ / _) + _) * _,

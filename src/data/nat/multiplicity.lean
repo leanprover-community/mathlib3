@@ -3,24 +3,39 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import algebra.big_operators.intervals
 import data.nat.bitwise
 import data.nat.log
 import data.nat.parity
 import ring_theory.int.basic
-import algebra.big_operators.intervals
 
 /-!
-
 # Natural number multiplicity
 
-This file contains lemmas about the multiplicity function
-(the maximum prime power divding a number).
+This file contains lemmas about the multiplicity function (the maximum prime power divding a number)
+when applied to naturals, in particular calculating it for factorials and binomial coefficients.
 
-# Main results
+## Multiplicity calculations
 
-There are natural number versions of some basic lemmas about multiplicity.
+* `nat.multiplicity_factorial`: Legendre's Theorem. The multiplicity of `p` in `n!` is
+  `n/p + ... + n/p^b` for any `b` such that `n/p^(b + 1) = 0`.
+* `nat.multiplicity_factorial_mul`: The multiplicity of `p` in `(p * n)!` is `n` more than that of
+  `n!`.
+* `nat.multiplicity_choose`: The multiplicity of `p` in `n.choose k` is the number of carries when
+  `k` and`n - k` are added in base `p`.
 
-There are also lemmas about the multiplicity of primes in factorials and in binomial coefficients.
+## Other declarations
+
+* `nat.multiplicity_eq_card_pow_dvd`: The multiplicity of `m` in `n` is the number of positive
+  natural numbers `i` such that `m ^ i` divides `n`.
+* `nat.multiplicity_two_factorial_lt`: The multiplicity of `2` in `n!` is strictly less than `n`.
+* `nat.prime.multiplicity_something`: Specialization of `multiplicity.something` to a prime in the
+  naturals. Avoids having to provide `p ≠ 1` and other trivialities, along with translating between
+  `prime` and `nat.prime`.
+
+## Tags
+
+Legendre, p-adic
 -/
 
 open finset nat multiplicity
@@ -28,7 +43,7 @@ open_locale big_operators nat
 
 namespace nat
 
-/-- The multiplicity of `m` in `n` is the number of positive natural numbers `i` such that `p ^ i`
+/-- The multiplicity of `m` in `n` is the number of positive natural numbers `i` such that `m ^ i`
 divides `n`. This set is expressed by filtering `Ico 1 b` where `b` is any bound greater than
 `log m n`. -/
 lemma multiplicity_eq_card_pow_dvd {m n b : ℕ} (hm : m ≠ 1) (hn : 0 < n) (hb : log m n < b):

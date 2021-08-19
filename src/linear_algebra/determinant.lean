@@ -74,17 +74,20 @@ def index_equiv_of_inv [decidable_eq m] [decidable_eq n]
   m ≃ n :=
 equiv_of_pi_lequiv_pi (to_lin'_of_inv hMM' hM'M)
 
+lemma det_comm [decidable_eq n] (M N : matrix n n A) : det (M ⬝ N) = det (N ⬝ M) :=
+by rw [det_mul, det_mul, mul_comm]
+
 /-- If there exists a two-sided inverse `M'` for `M` (indexed differently),
 then `det (N ⬝ M) = det (M ⬝ N)`. -/
-lemma det_comm [decidable_eq m] [decidable_eq n]
+lemma det_comm' [decidable_eq m] [decidable_eq n]
   {M : matrix n m A} {N : matrix m n A} {M' : matrix m n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N) = det (N ⬝ M) :=
 -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
 -- This turns the problem into one for square matrices, which is easy.
-by rw [← det_minor_equiv_self (index_equiv_of_inv hMM' hM'M),
-       minor_mul_equiv _ _ _ (equiv.refl n) _, det_mul, mul_comm, ← det_mul, ← minor_mul_equiv,
-       equiv.coe_refl, minor_id_id]
+let e := index_equiv_of_inv hMM' hM'M in
+by rw [← det_minor_equiv_self e, minor_mul_equiv _ _ _ (equiv.refl n) _, det_comm,
+  ← minor_mul_equiv, equiv.coe_refl, minor_id_id]
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
 lemma det_conj [decidable_eq m] [decidable_eq n]

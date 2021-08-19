@@ -131,9 +131,9 @@ nat.rec_on n monotone_id (λ n ihn, ihn.comp hf)
 lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
   monotone f | n m h :=
 begin
-  induction h,
+  apply nat.le.induction_on h,
   { refl },
-  { transitivity, assumption, exact hf _ }
+  { intros, transitivity, assumption, exact hf _ }
 end
 
 lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
@@ -370,7 +370,12 @@ end strict_mono
 
 lemma strict_mono_nat_of_lt_succ {β} [preorder β] {f : ℕ → β} (h : ∀ n, f n < f (n + 1)) :
   strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact ih.trans (h _) }
+begin
+  intros n m hnm,
+  apply nat.le.induction_on hnm,
+  { apply h, },
+  { intros _ _ ih, exact ih.trans (h _), },
+end
 
 section
 open function

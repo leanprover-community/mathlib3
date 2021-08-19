@@ -8,6 +8,19 @@ Coinductive formalization of unbounded computations.
 import data.stream
 import tactic.basic
 
+
+protected lemma nat.le.rec {a : ℕ} {motive : ℕ → Prop} (h : motive a)
+  (w : ∀ {b : ℕ}, a ≤ b → motive b → motive b.succ) :
+  ∀ {b : ℕ}, a ≤ b → motive b :=
+begin
+  intros b h,
+  induction b,
+  { cases nat.le_zero_iff.mp h, assumption, },
+  { cases nat.eq_or_lt_of_le h with h' h',
+    { subst h', assumption, },
+    { apply w, apply nat.le_of_lt_succ h', apply b_ih, apply nat.le_of_lt_succ h', } }
+end
+
 universes u v w
 
 /-
@@ -231,7 +244,12 @@ instance : has_mem α (computation α) := ⟨computation.mem⟩
 
 theorem le_stable (s : computation α) {a m n} (h : m ≤ n) :
   s.1 m = some a → s.1 n = some a :=
-by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)]}
+begin
+  cases s with f al,
+  apply nat.le.induction_on h,
+  { exact id, },
+  { intros n h ih w, exact al (ih w), },
+end
 
 theorem mem_unique {s : computation α} {a b : α} : a ∈ s → b ∈ s → a = b
 | ⟨m, ha⟩ ⟨n, hb⟩ := by injection

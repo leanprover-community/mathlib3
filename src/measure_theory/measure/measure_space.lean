@@ -1876,7 +1876,7 @@ lemma exists_eq_disjoint_finite_spanning_sets_in
     (T : ν.finite_spanning_sets_in {s | measurable_set s}),
     S.set = T.set ∧ pairwise (disjoint on S.set) :=
 let S := (μ.to_finite_spanning_sets_in.add ν.to_finite_spanning_sets_in).disjointed in
-⟨S.of_le (measure.le_add_right (le_refl _)), S.of_le (measure.le_add_left (le_refl _)),
+⟨S.of_le (measure.le_add_right le_rfl), S.of_le (measure.le_add_left le_rfl),
  rfl, finite_spanning_sets_in.disjoint_disjointed _⟩
 
 end disjointed

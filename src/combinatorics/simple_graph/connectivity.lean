@@ -643,8 +643,8 @@ def to_path_aux : Π {u v : V}, G.walk u v → G.walk u v
      then p'.split_at_vertex_snd u hs
      else cons ha p'
 
-lemma split_at_vertex_snd_is_path {u v w : V} (p : G.walk u v) (h : p.is_path) (hs : w ∈ p.support) :
-  (p.split_at_vertex_snd w hs).is_path :=
+lemma split_at_vertex_snd_is_path {u v w : V} (p : G.walk u v) (h : p.is_path)
+  (hs : w ∈ p.support) : (p.split_at_vertex_snd w hs).is_path :=
 begin
   induction p,
   { rw [nil_support, multiset.singleton_eq_singleton, multiset.mem_singleton] at hs,
@@ -722,7 +722,8 @@ variables {G}
 
 @[simp] lemma path_is_path {u v : V} (p : G.path u v) : walk.is_path (p : G.walk u v) := p.property
 
-@[simp] lemma to_trail {u v : V} (p : G.path u v) : walk.is_trail (p : G.walk u v) := p.property.to_trail
+@[simp] lemma to_trail {u v : V} (p : G.path u v) : walk.is_trail (p : G.walk u v) :=
+p.property.to_trail
 
 /-- The empty path at a vertex. -/
 @[refl] def nil {u : V} : G.path u u := ⟨walk.nil, by simp⟩
@@ -733,6 +734,10 @@ def singleton {u v : V} (h : G.adj u v) : G.path u v :=
 
 @[symm] def reverse {u v : V} (p : G.path u v) : G.path v u :=
 ⟨walk.reverse p, walk.reverse_path p p.property⟩
+
+lemma support_count_eq_one {u v w : V} {p : G.path u v}
+  (hw : w ∈ (p : G.walk u v).support) : (p : G.walk u v).support.count w = 1 :=
+multiset.count_eq_one_of_mem p.property.support_nodup hw
 
 end path
 
@@ -1118,16 +1123,55 @@ walk.length (G.tree_path h v w : G.walk v w)
 
 variables {G} [decidable_eq V]
 
-/-- Given a tree and a choice of root, then we can tell whether a given path
-from `v` is a *rootward* path based on whether or not it is a prefix of the unique
-path from `v` to the root. This gives paths a canonical orientation in a rooted tree. -/
-def path.is_rootward (h : G.is_tree) (root : V) {v w : V} (p : G.path v w) : Prop :=
-walk.prefix_of (p : G.walk v w) (G.tree_path h v root : G.walk v root)
+/-- Given a tree and a choice of root, then we can tell whether a given ordered
+pair of adjacent vertices `v` and `w` is *rootward* based on whether or not `w` lies
+on the path from `v` to the root.
+This gives paths a canonical orientation in a rooted tree. -/
+def is_rootward (h : G.is_tree) (root : V) (v w : V) (hvw : G.adj v w) : Prop :=
+w ∈ (G.tree_path h v root : G.walk v root).support
 
-lemma path.is_rootward_or_reverse (h : G.is_tree) (root : V) {v w : V} (p : G.path v w) :
-  p.is_rootward h root ∨ p.reverse.is_rootward h root :=
+lemma is_rootward_or_reverse (h : G.is_tree) (root : V) {v w : V} (hvw : G.adj v w) :
+  is_rootward h root v w hvw ↔ ¬is_rootward h root w v (G.sym hvw) :=
 begin
-  sorry,
+  have h' := h.2,
+  rw is_acyclic_iff at h',
+  split,
+  { intros hw hv,
+    simp only [is_rootward] at hw hv,
+    specialize h' v root (G.tree_path h v root)
+      ⟨(walk.split_at_vertex_snd _ _ hv), walk.split_at_vertex_snd_is_path _ _ _⟩,
+    { apply path.path_is_path, },
+    have hh := walk.split_at_vertex_spec _ hv,
+    have h'' : (G.tree_path h v root : G.walk v root) = walk.split_at_vertex_snd _ _ hv,
+    { rw h',
+      simp only [subtype.coe_mk], },
+    rw ←h'' at hh,
+    have hh' := congr_arg (multiset.count w) (congr_arg walk.support hh),
+    rw [walk.concat_support, multiset.count_sub, multiset.count_add] at hh',
+    rw [multiset.singleton_eq_singleton, multiset.count_cons_of_ne (G.ne_of_adj $ G.sym hvw)] at hh',
+    rw [multiset.count_zero, nat.sub_zero] at hh',
+    rw path.support_count_eq_one hw at hh',
+    rw path.support_count_eq_one at hh',
+    swap,
+    { simp only [walk.start_mem_support], },
+    simpa using hh', },
+  { simp only [is_rootward],
+    intro hv,
+    let p := walk.cons hvw (G.tree_path h w root : G.walk w root),
+    have hp : p.is_path,
+    { split,
+      { rw [walk.is_trail, walk.cons_edges, multiset.nodup_cons],
+        split,
+        { intro he,
+          exact hv (walk.edge_vert_mem_support hvw _ he), },
+        { exact (G.tree_path h w root).property.to_trail, }, },
+      { rw [walk.cons_support, multiset.nodup_cons],
+        split,
+        { exact hv, },
+        { exact (G.tree_path h w root).property.support_nodup, }, }, },
+    specialize h' v root ⟨p, hp⟩ (G.tree_path h v root),
+    rw ←h',
+    simp, },
 end
 
 variables (G)

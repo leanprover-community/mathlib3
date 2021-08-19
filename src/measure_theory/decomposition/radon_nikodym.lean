@@ -1,4 +1,21 @@
+/-
+Copyright (c) 2021 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
 import measure_theory.decomposition.lebesgue
+
+/-!
+# Radon-Nikodym theorem
+
+This file proves the Radon-Nikodym theorem. The Radon-Nikodym theorem states that, given measures
+`μ, ν`, if `have_lebesgue_decomposition μ ν`, then `μ` is absolutely continuous with respect to
+`ν` if and only if there exists a measurable function `f : α → ℝ≥0∞` such that `μ = fν`.
+In particular, we have `f = radon_nikodym_deriv μ ν`.
+
+The Radon-Nikodym theorem will allow us to define many important concepts in probability theory,
+most notably conditional expectation and probability cumulative function.
+-/
 
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal
@@ -9,11 +26,8 @@ namespace measure_theory
 
 namespace measure
 
-/-- **The Radon-Nikodym theorem**: Given two measures `μ` and `ν`, if
-`have_lebesgue_decomposition μ ν`, then there exists a measurable function `f` such that
-`f` is the derivative of `ν` with respect to `μ`. -/
-theorem with_density_radon_nikodym_deriv_eq_of_finite
-  (μ ν : measure α) (hl : have_lebesgue_decomposition μ ν) (h : μ ≪ ν) :
+lemma with_density_radon_nikodym_deriv_eq
+  {μ ν : measure α} (hl : have_lebesgue_decomposition μ ν) (h : μ ≪ ν) :
   ν.with_density (radon_nikodym_deriv μ ν) = μ :=
 begin
   obtain ⟨hf₁, ⟨E, hE₁, hE₂, hE₃⟩, hadd⟩:= have_lebesgue_decomposition_spec hl,
@@ -33,6 +47,14 @@ begin
   rw [this, zero_add] at hadd,
   exact hadd.symm
 end
+
+/-- **The Radon-Nikodym theorem**: Given two measures `μ` and `ν`, if
+`have_lebesgue_decomposition μ ν`, then `μ` is absolutely continuous to `ν` if and only if
+there `ν.with_density (radon_nikodym_deriv μ ν) = μ`. -/
+theorem absolutely_continuous_iff_with_density_radon_nikodym_derive_eq
+  {μ ν : measure α} (hl : have_lebesgue_decomposition μ ν) :
+  μ ≪ ν ↔ ν.with_density (radon_nikodym_deriv μ ν) = μ :=
+⟨λ h, with_density_radon_nikodym_deriv_eq hl h, λ h, h ▸ with_density_absolutely_continuous _ _⟩
 
 end measure
 

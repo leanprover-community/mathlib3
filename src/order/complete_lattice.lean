@@ -68,17 +68,16 @@ Note that we rarely use `complete_semilattice_Sup`
 Nevertheless it is sometimes a useful intermediate step in constructions.
 -/
 class complete_semilattice_Sup (α : Type*) extends partial_order α, has_Sup α :=
-(le_Sup : ∀s, ∀a∈s, a ≤ Sup s)
-(Sup_le : ∀s a, (∀b∈s, b ≤ a) → Sup s ≤ a)
+(is_lub_Sup : ∀ s, is_lub s (Sup s))
+
+export complete_semilattice_Sup (is_lub_Sup)
 
 section
 variables [complete_semilattice_Sup α] {s t : set α} {a b : α}
 
-@[ematch] theorem le_Sup : a ∈ s → a ≤ Sup s := complete_semilattice_Sup.le_Sup s a
+@[ematch] theorem le_Sup (h : a ∈ s) : a ≤ Sup s := (is_lub_Sup s).1 h
 
-theorem Sup_le : (∀b∈s, b ≤ a) → Sup s ≤ a := complete_semilattice_Sup.Sup_le s a
-
-lemma is_lub_Sup (s : set α) : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
+theorem Sup_le (h : ∀ b ∈ s, b ≤ a) : Sup s ≤ a := (is_lub_Sup s).2 h
 
 lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
 
@@ -91,17 +90,11 @@ theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_Sup s)
 
-lemma le_Sup_iff :
-  a ≤ Sup s ↔ (∀ b, (∀ x ∈ s, x ≤ b) → a ≤ b) :=
+lemma le_Sup_iff : a ≤ Sup s ↔ (∀ b ∈ upper_bounds s, a ≤ b) :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
-le_of_forall_le' begin
-  simp only [Sup_le_iff],
-  introv h₀ h₁,
-  rcases h _ h₁ with ⟨y,hy,hy'⟩,
-  solve_by_elim [le_trans hy']
-end
+le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
 
 -- We will generalize this to conditionally complete lattices in `cSup_singleton`.
 theorem Sup_singleton {a : α} : Sup {a} = a :=
@@ -116,18 +109,22 @@ Note that we rarely use `complete_semilattice_Inf`
 Nevertheless it is sometimes a useful intermediate step in constructions.
 -/
 class complete_semilattice_Inf (α : Type*) extends partial_order α, has_Inf α :=
-(Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
-(le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
+(is_glb_Inf : ∀ s, is_glb s (Inf s))
 
+export complete_semilattice_Inf (is_glb_Inf)
 
 section
 variables [complete_semilattice_Inf α] {s t : set α} {a b : α}
 
-@[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a := complete_semilattice_Inf.Inf_le s a
+instance : complete_semilattice_Sup (order_dual α) :=
+{ is_lub_Sup := @is_glb_Inf α _, .. order_dual.partial_order α, .. order_dual.has_Sup α }
 
-theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_semilattice_Inf.le_Inf s a
+instance {α : Type*} [complete_semilattice_Sup α] : complete_semilattice_Inf (order_dual α) :=
+{ is_glb_Inf := @is_lub_Sup α _, .. order_dual.partial_order α, .. order_dual.has_Inf α }
 
-lemma is_glb_Inf (s : set α) : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
+@[ematch] theorem Inf_le (h : a ∈ s) : Inf s ≤ a := (is_glb_Inf s).1 h
+
+theorem le_Inf (h : ∀ b ∈ s, a ≤ b) : a ≤ Inf s := (is_glb_Inf s).2 h
 
 lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
 
@@ -140,17 +137,11 @@ theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 @[simp] theorem le_Inf_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
 le_is_glb_iff (is_glb_Inf s)
 
-lemma Inf_le_iff :
-  Inf s ≤ a ↔ (∀ b, (∀ x ∈ s, b ≤ x) → b ≤ a) :=
-⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
+lemma Inf_le_iff : Inf s ≤ a ↔ (∀ b ∈ lower_bounds s, b ≤ a) :=
+@le_Sup_iff (order_dual α) _ _ _
 
 theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
-le_of_forall_le begin
-  simp only [le_Inf_iff],
-  introv h₀ h₁,
-  rcases h _ h₁ with ⟨y,hy,hy'⟩,
-  solve_by_elim [le_trans _ hy']
-end
+@Sup_le_Sup_of_forall_exists_le (order_dual α) _ _ _ h
 
 -- We will generalize this to conditionally complete lattices in `cInf_singleton`.
 theorem Inf_singleton {a : α} : Inf {a} = a :=
@@ -194,11 +185,9 @@ def complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   sup_le := λ a b c hac hbc, (is_glb_Inf _).1 $ by simp [*],
   le_sup_left := λ a b, (is_glb_Inf _).2 $ λ x, and.left,
   le_sup_right := λ a b, (is_glb_Inf _).2 $ λ x, and.right,
-  le_Inf := λ s a ha, (is_glb_Inf s).2 ha,
-  Inf_le := λ s a ha, (is_glb_Inf s).1 ha,
+  is_glb_Inf := is_glb_Inf,
   Sup := λ s, Inf (upper_bounds s),
-  le_Sup := λ s a ha, (is_glb_Inf (upper_bounds s)).2 $ λ b hb, hb ha,
-  Sup_le := λ s a ha, (is_glb_Inf (upper_bounds s)).1 ha,
+  is_lub_Sup := λ s, is_glb_upper_bounds.1 (is_glb_Inf _),
   .. H1, .. H2 }
 
 /--
@@ -242,10 +231,8 @@ def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   inf_le_left := λ a b, (is_lub_Sup _).2 (λ x, and.left),
   inf_le_right := λ a b, (is_lub_Sup _).2 (λ x, and.right),
   Inf := λ s, Sup (lower_bounds s),
-  Sup_le := λ s a ha, (is_lub_Sup s).2 ha,
-  le_Sup := λ s a ha, (is_lub_Sup s).1 ha,
-  Inf_le := λ s a ha, (is_lub_Sup (lower_bounds s)).2 (λ b hb, hb ha),
-  le_Inf := λ s a ha, (is_lub_Sup (lower_bounds s)).1 ha,
+  is_glb_Inf := λ s, is_lub_lower_bounds.1 (is_lub_Sup _),
+  is_lub_Sup := is_lub_Sup,
   .. H1, .. H2 }
 
 /--
@@ -265,11 +252,8 @@ namespace order_dual
 variable (α)
 
 instance [complete_lattice α] : complete_lattice (order_dual α) :=
-{ le_Sup := @complete_lattice.Inf_le α _,
-  Sup_le := @complete_lattice.le_Inf α _,
-  Inf_le := @complete_lattice.le_Sup α _,
-  le_Inf := @complete_lattice.Sup_le α _,
-  .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
+{ .. order_dual.bounded_lattice α, .. order_dual.complete_semilattice_Sup,
+  .. order_dual.complete_semilattice_Inf }
 
 instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
 { .. order_dual.complete_lattice α, .. order_dual.linear_order α }
@@ -419,9 +403,15 @@ le_Sup ⟨i, rfl⟩
 
 lemma is_lub_supr : is_lub (range s) (⨆j, s j) := is_lub_Sup _
 
+lemma is_lub_supr_set (s : set β) (f : β → α) : is_lub (f '' s) (⨆ j : s, f j) :=
+by { rw image_eq_range, exact is_lub_supr }
+
 lemma is_lub.supr_eq (h : is_lub (range s) a) : (⨆j, s j) = a := h.Sup_eq
 
 lemma is_glb_infi : is_glb (range s) (⨅j, s j) := is_glb_Inf _
+
+lemma is_glb_infi_set (s : set β) (f : β → α) : is_glb (f '' s) (⨅ j : s, f j) :=
+by { rw image_eq_range, exact is_glb_infi }
 
 lemma is_glb.infi_eq (h : is_glb (range s) a) : (⨅j, s j) = a := h.Inf_eq
 
@@ -1089,12 +1079,10 @@ end complete_linear_order
 -/
 
 instance Prop.complete_lattice : complete_lattice Prop :=
-{ Sup    := λs, ∃a∈s, a,
-  le_Sup := assume s a h p, ⟨a, h, p⟩,
-  Sup_le := assume s a h ⟨b, h', p⟩, h b h' p,
-  Inf    := λs, ∀a:Prop, a∈s → a,
-  Inf_le := assume s a h p, p a h,
-  le_Inf := assume s a h p b hb, h b hb p,
+{ Sup        := λ s, ∃ a ∈ s, a,
+  is_lub_Sup := λ s, ⟨λ p hp h, ⟨p, hp, h⟩, λ p hp ⟨q, hqs, hq⟩, hp hqs hq⟩,
+  Inf        := λ s, ∀ a ∈ s, a,
+  is_glb_Inf := λ s, ⟨λ p hps hp, hp p hps, λ p hps hp q hqs, hps hqs hp⟩,
   .. Prop.bounded_distrib_lattice }
 
 @[simp] lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
@@ -1115,13 +1103,9 @@ instance pi.has_Inf {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)] : ha
 
 instance pi.complete_lattice {α : Type*} {β : α → Type*} [∀ i, complete_lattice (β i)] :
   complete_lattice (Π i, β i) :=
-{ Sup := Sup,
-  Inf := Inf,
-  le_Sup := λ s f hf i, le_supr (λ f : s, (f : Π i, β i) i) ⟨f, hf⟩,
-  Inf_le := λ s f hf i, infi_le (λ f : s, (f : Π i, β i) i) ⟨f, hf⟩,
-  Sup_le := λ s f hf i, supr_le $ λ g, hf g g.2 i,
-  le_Inf := λ s f hf i, le_infi $ λ g, hf g g.2 i,
-  .. pi.bounded_lattice }
+{ is_lub_Sup := λ s, is_lub_pi.2 $ λ a, is_lub_supr_set _ _,
+  is_glb_Inf := λ s, is_glb_pi.2 $ λ a, is_glb_infi_set _ _,
+  .. pi.bounded_lattice, .. pi.has_Sup, .. pi.has_Inf }
 
 lemma Inf_apply {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)]
   {s : set (Πa, β a)} {a : α} :
@@ -1171,17 +1155,9 @@ instance [has_Sup α] [has_Sup β] : has_Sup (α × β) :=
 ⟨λs, (Sup (prod.fst '' s), Sup (prod.snd '' s))⟩
 
 instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × β) :=
-{ le_Sup := assume s p hab, ⟨le_Sup $ mem_image_of_mem _ hab, le_Sup $ mem_image_of_mem _ hab⟩,
-  Sup_le := assume s p h,
-    ⟨ Sup_le $ ball_image_of_ball $ assume p hp, (h p hp).1,
-      Sup_le $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
-  Inf_le := assume s p hab, ⟨Inf_le $ mem_image_of_mem _ hab, Inf_le $ mem_image_of_mem _ hab⟩,
-  le_Inf := assume s p h,
-    ⟨ le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).1,
-      le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
-  .. prod.bounded_lattice α β,
-  .. prod.has_Sup α β,
-  .. prod.has_Inf α β }
+{ is_lub_Sup := λ s, (is_lub_prod (_, _)).2 ⟨is_lub_Sup _, is_lub_Sup _⟩,
+  is_glb_Inf := λ s, (is_glb_prod (_, _)).2 ⟨is_glb_Inf _, is_glb_Inf _⟩,
+  .. prod.bounded_lattice α β, .. prod.has_Sup α β, .. prod.has_Inf α β }
 
 end prod
 

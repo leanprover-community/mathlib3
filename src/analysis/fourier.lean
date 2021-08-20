@@ -3,16 +3,18 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import measure_theory.l2_space
-import measure_theory.haar_measure
+import measure_theory.function.continuous_map_dense
+import measure_theory.function.l2_space
+import measure_theory.measure.haar
 import analysis.complex.circle
+import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass
 
 /-!
 
 # Fourier analysis on the circle
 
-This file contains some first steps towards Fourier series.
+This file contains basic technical results for a development of Fourier series.
 
 ## Main definitions
 
@@ -20,6 +22,9 @@ This file contains some first steps towards Fourier series.
 * instances `measure_space`, `probability_measure` for the circle with respect to this measure
 * for `n : ℤ`, `fourier n` is the monomial `λ z, z ^ n`, bundled as a continuous map from `circle`
   to `ℂ`
+* for `n : ℤ` and `p : ℝ≥0∞`, `fourier_Lp p n` is an abbreviation for the monomial `fourier n`
+  considered as an element of the Lᵖ-space `Lp ℂ p haar_circle`, via the embedding
+  `continuous_map.to_Lp`
 
 ## Main statements
 
@@ -28,24 +33,33 @@ dense in `C(circle, ℂ)`, i.e. that its `submodule.topological_closure` is `⊤
 the Stone-Weierstrass theorem after checking that it is a subalgebra, closed under conjugation, and
 separates points.
 
-The theorem `orthonormal_fourier` states that the functions `fourier n`, when sent via
-`continuous_map.to_Lp` to the L^2 space on the circle, form an orthonormal set.
+The theorem `span_fourier_Lp_closure_eq_top` states that for `1 ≤ p < ∞` the span of the monomials
+`fourier_Lp` is dense in `Lp ℂ p haar_circle`, i.e. that its `submodule.topological_closure` is
+`⊤`.  This follows from the previous theorem using general theory on approximation of Lᵖ functions
+by continuous functions.
+
+The theorem `orthonormal_fourier` states that the monomials `fourier_Lp 2 n` form an orthonormal
+set (in the L² space of the circle).
+
+By definition, a Hilbert basis for an inner product space is an orthonormal set whose span is
+dense.  Thus, the last two results together establish that the functions `fourier_Lp 2 n` form a
+Hilbert basis for L².
 
 ## TODO
 
-Show that the image of `submodule.span fourier` under `continuous_map.to_Lp` is dense in the `L^2`
-space on the circle. This follows from `span_fourier_closure_eq_top` using general theory (not yet
-in Lean) on approximation by continuous functions.
-
-Paired with `orthonormal_fourier`, this establishes that the functions `fourier` form a Hilbert
-basis for `L^2`.
+Once mathlib has general theory showing that a Hilbert basis of an inner product space induces a
+unitary equivalence with L², the results in this file will give Fourier series applications such
+as Parseval's formula.
 
 -/
 
 noncomputable theory
+open_locale ennreal
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
 
 local attribute [instance] fact_one_le_two_ennreal
+
+/-! ### Choice of measure on the circle -/
 
 section haar_circle
 /-! We make the circle into a measure space, using the Haar measure normalized to have total
@@ -65,13 +79,15 @@ instance : measure_space circle :=
 
 end haar_circle
 
+/-! ### Monomials on the circle -/
+
 section fourier
 
 /-- The family of monomials `λ z, z ^ n`, parametrized by `n : ℤ` and considered as bundled
 continuous maps from `circle` to `ℂ`. -/
 @[simps] def fourier (n : ℤ) : C(circle, ℂ) :=
 { to_fun := λ z, z ^ n,
-  continuous_to_fun := continuous_subtype_coe.fpow nonzero_of_mem_circle n }
+  continuous_to_fun := continuous_subtype_coe.fpow n $ λ z, or.inl (nonzero_of_mem_circle z) }
 
 @[simp] lemma fourier_zero {z : circle} : fourier 0 z = 1 := rfl
 
@@ -142,10 +158,26 @@ continuous_map.subalgebra_complex_topological_closure_eq_top_of_separates_points
   fourier_subalgebra_conj_invariant
 
 /-- The linear span of the monomials `z ^ n` is dense in `C(circle, ℂ)`. -/
-lemma span_fourier_closure_eq_top : (span ℂ (set.range fourier)).topological_closure = ⊤ :=
+lemma span_fourier_closure_eq_top : (span ℂ (range fourier)).topological_closure = ⊤ :=
 begin
   rw ← fourier_subalgebra_coe,
   exact congr_arg subalgebra.to_submodule fourier_subalgebra_closure_eq_top,
+end
+
+/-- The family of monomials `λ z, z ^ n`, parametrized by `n : ℤ` and considered as elements of
+the `Lp` space of functions on `circle` taking values in `ℂ`. -/
+abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p haar_circle :=
+to_Lp p haar_circle ℂ (fourier n)
+
+/-- For each `1 ≤ p < ∞`, the linear span of the monomials `z ^ n` is dense in
+`Lp ℂ p haar_circle`. -/
+lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ∞) :
+  (span ℂ (range (fourier_Lp p))).topological_closure = ⊤ :=
+begin
+  convert (continuous_map.to_Lp_dense_range ℂ hp haar_circle ℂ).topological_closure_map_submodule
+    span_fourier_closure_eq_top,
+  rw [map_span, range_comp],
+  simp
 end
 
 /-- For `n ≠ 0`, a rotation by `n⁻¹ * real.pi` negates the monomial `z ^ n`. -/
@@ -160,7 +192,7 @@ begin
 end
 
 /-- The monomials `z ^ n` are an orthonormal set with respect to Haar measure on the circle. -/
-lemma orthonormal_fourier : orthonormal ℂ (λ n, to_Lp 2 haar_circle ℂ (fourier n)) :=
+lemma orthonormal_fourier : orthonormal ℂ (fourier_Lp 2) :=
 begin
   rw orthonormal_iff_ite,
   intros i j,

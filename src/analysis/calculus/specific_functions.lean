@@ -3,11 +3,8 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
-import analysis.special_functions.exp_log
 import analysis.normed_space.euclidean_dist
-import topology.algebra.polynomial
 
 /-!
 # Infinitely smooth bump function
@@ -143,12 +140,12 @@ begin
     -- extension results.
     apply has_deriv_at_interval_left_endpoint_of_tendsto_deriv diff _ self_mem_nhds_within,
     { refine (f_aux_limit (n+1)).congr' _,
-      apply mem_sets_of_superset self_mem_nhds_within (λx hx, _),
+      apply mem_of_superset self_mem_nhds_within (λx hx, _),
       simp [(f_aux_deriv_pos n x hx).deriv] },
     { have : f_aux n 0 = 0, by simp [f_aux, le_refl],
       simp only [continuous_within_at, this],
       refine (f_aux_limit n).congr' _,
-      apply mem_sets_of_superset self_mem_nhds_within (λx hx, _),
+      apply mem_of_superset self_mem_nhds_within (λx hx, _),
       have : ¬(x ≤ 0), by simpa using hx,
       simp [f_aux, this] } },
   simpa using A.union B,

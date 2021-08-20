@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import analysis.convex.basic
-import linear_algebra.finite_dimensional
 
 /-!
 # Carathéodory's convexity theorem
@@ -114,7 +113,7 @@ begin
     intro i,
     transitivity,
     { apply ih,
-      rw [card_erase_of_mem, h, nat.pred_succ],
+      rw [card_erase_of_mem, h, nat.add_succ, nat.pred_succ],
       exact i.2, },
     { apply Union_subset_Union,
       intro t',

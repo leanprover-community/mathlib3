@@ -8,6 +8,7 @@ import algebra.lie.tensor_product
 import algebra.lie.character
 import algebra.lie.cartan_subalgebra
 import linear_algebra.eigenspace
+import ring_theory.tensor_product
 
 /-!
 # Weights and roots of Lie modules and Lie algebras

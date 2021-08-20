@@ -116,8 +116,8 @@ theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
 | 0 := by simp [nat.zero_le]
 | 1 := by simp
 | (n+2) := iff_of_false
-  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (le_add_left 2 n)))
-  (not_le_of_lt $ le_add_left 2 n)
+  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (nat.le_add_left 2 n)))
+  (not_le_of_lt $ nat.le_add_left 2 n)
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=

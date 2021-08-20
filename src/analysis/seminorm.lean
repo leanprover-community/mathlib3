@@ -45,7 +45,7 @@ variables
 {E : Type*} [add_comm_group E] [module 𝕜 E]
 
 open set normed_field
-open_locale topological_space
+open_locale topological_space pointwise
 
 /-- A set `A` absorbs another set `B` if `B` is contained in scaling
 `A` by elements of sufficiently large norms. -/

@@ -29,10 +29,15 @@ section semiring
 variables [non_unital_non_assoc_semiring β]
 
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
-(s.sum_hom (λ x, x * b)).symm
+add_monoid_hom.map_sum (add_monoid_hom.mul_right b) _ s
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
-(s.sum_hom _).symm
+add_monoid_hom.map_sum (add_monoid_hom.mul_left b) _ s
+
+lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
+  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
+  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
+by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 end semiring
 
@@ -87,11 +92,6 @@ begin
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
-
-lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
-  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
-  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
-by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 open_locale classical
 
@@ -190,6 +190,22 @@ lemma prod_nat_cast (s : finset α) (f : α → ℕ) :
 (nat.cast_ring_hom β).map_prod f s
 
 end comm_semiring
+
+section comm_ring
+
+variables {R : Type*} [comm_ring R]
+
+lemma prod_range_cast_nat_sub (n k : ℕ) :
+  ∏ i in range k, (n - i : R) = (∏ i in range k, (n - i) : ℕ) :=
+begin
+  rw prod_nat_cast,
+  cases le_or_lt k n with hkn hnk,
+  { exact prod_congr rfl (λ i hi, (nat.cast_sub $ (mem_range.1 hi).le.trans hkn).symm) },
+  { rw ← mem_range at hnk,
+    rw [prod_eq_zero hnk, prod_eq_zero hnk]; simp }
+end
+
+end comm_ring
 
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/

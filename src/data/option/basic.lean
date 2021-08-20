@@ -22,7 +22,7 @@ This is useful in multiple ways:
   return `none`.
 * `option` is a monad. We love monads.
 
-`roption` is an alternative to `option` that can be seen as the type of `true`/`false` values
+`part` is an alternative to `option` that can be seen as the type of `true`/`false` values
 along with a term `a : α` if the value is `true`.
 
 ## Implementation notes
@@ -59,6 +59,8 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 @[simp] lemma get_some (x : α) (h : is_some (some x)) : option.get h = x := rfl
 
 @[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
+
+@[simp] lemma get_or_else_none (x : α) : option.get_or_else none x = x := rfl
 
 @[simp] lemma get_or_else_coe (x y : α) : option.get_or_else ↑x y = x := rfl
 
@@ -409,6 +411,10 @@ def cases_on' : option α → β → (α → β) → β
   cases_on' o (f none) (f ∘ coe) = f o :=
 by cases o; refl
 
+@[simp] lemma get_or_else_map (f : α → β) (x : α) (o : option α) :
+  get_or_else (o.map f) (f x) = f (get_or_else o x) :=
+by cases o; refl
+
 section
 open_locale classical
 
@@ -433,11 +439,10 @@ lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempt
 begin
   fsplit,
   { intro h, exact ⟨option.get h⟩, },
-  { rintro ⟨a⟩,
-    dsimp [choice],
-    rw dif_pos,
-    fsplit,
-    exact ⟨a⟩, },
+  { intro h,
+    dsimp only [choice],
+    rw dif_pos h,
+    exact is_some_some },
 end
 
 end

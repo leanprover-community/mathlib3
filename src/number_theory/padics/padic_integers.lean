@@ -568,7 +568,7 @@ begin
 end
 
 lemma irreducible_p : irreducible (p : ℤ_[p]) :=
-irreducible_of_prime prime_p
+prime.irreducible prime_p
 
 instance : discrete_valuation_ring ℤ_[p] :=
 discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization

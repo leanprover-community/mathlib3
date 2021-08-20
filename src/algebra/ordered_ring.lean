@@ -7,10 +7,6 @@ import algebra.ordered_group
 import algebra.invertible
 import data.set.intervals.basic
 
--- This should probably go into Lean core.
-lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
-by rw [nat.succ_eq_add_one, nat.add_comm]
-
 set_option old_structure_cmd true
 
 universe u
@@ -971,6 +967,12 @@ lemma mul_nonneg_iff : 0 ≤ a * b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤
 by haveI := @linear_order.decidable_le α _; exact
 ⟨nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg,
   λ h, h.elim (and_imp.2 decidable.mul_nonneg) (and_imp.2 decidable.mul_nonneg_of_nonpos_of_nonpos)⟩
+
+/-- Out of three elements of a `linear_ordered_ring`, two must have the same sign. -/
+lemma mul_nonneg_of_three (a b c : α) :
+  0 ≤ a * b ∨ 0 ≤ b * c ∨ 0 ≤ c * a :=
+by iterate 3 { rw mul_nonneg_iff };
+  have := le_total 0 a; have := le_total 0 b; have := le_total 0 c; itauto
 
 lemma mul_nonpos_iff : a * b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤ b :=
 by rw [← neg_nonneg, neg_mul_eq_mul_neg, mul_nonneg_iff, neg_nonneg, neg_nonpos]

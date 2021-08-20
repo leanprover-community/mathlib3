@@ -108,6 +108,18 @@ lemma rel_iff_cov [covariant_class M N μ r] [contravariant_class M N μ r] (m :
   r (μ m a) (μ m b) ↔ r a b :=
 ⟨contravariant_class.elim _, covariant_class.elim _⟩
 
+section flip
+
+variables {M N μ r}
+
+lemma covariant.flip (h : covariant M N μ r) : covariant M N μ (flip r) :=
+λ a b c hbc, h a hbc
+
+lemma contravariant.flip (h : contravariant M N μ r) : contravariant M N μ (flip r) :=
+λ a b c hbc, h a hbc
+
+end flip
+
 section covariant
 variables {M N μ r} [covariant_class M N μ r]
 
@@ -115,6 +127,7 @@ lemma act_rel_act_of_rel (m : M) {a b : N} (ab : r a b) :
   r (μ m a) (μ m b) :=
 covariant_class.elim _ ab
 
+@[to_additive]
 lemma group.covariant_iff_contravariant [group N] :
   covariant N N (*) r ↔ contravariant N N (*) r :=
 begin
@@ -125,9 +138,10 @@ begin
     exact h a⁻¹ bc }
 end
 
-lemma covconv [group N] [cov : covariant_class N N (*) r] : contravariant_class N N (*) r :=
-{ elim := λ a b c bc, group.covariant_iff_contravariant.mp cov.elim _ bc }
-
+@[to_additive]
+lemma group.covconv [group N] [covariant_class N N (*) r] :
+  contravariant_class N N (*) r :=
+⟨group.covariant_iff_contravariant.mp covariant_class.elim⟩
 
 section is_trans
 variables [is_trans N r] (m n : M) {a b c d : N}
@@ -220,6 +234,11 @@ by rw is_symm_op.flip_eq
 instance contravariant_mul_lt_of_covariant_mul_le [has_mul N] [linear_order N]
   [covariant_class N N (*) (≤)] : contravariant_class N N (*) (<) :=
 { elim := (covariant_le_iff_contravariant_lt N N (*)).mp covariant_class.elim }
+
+@[to_additive]
+instance covariant_mul_lt_of_contravariant_mul_le [has_mul N] [linear_order N]
+  [contravariant_class N N (*) (≤)] : covariant_class N N (*) (<) :=
+{ elim := (covariant_lt_iff_contravariant_le N N (*)).mpr contravariant_class.elim }
 
 @[to_additive]
 instance covariant_swap_mul_le_of_covariant_mul_le [comm_semigroup N] [has_le N]

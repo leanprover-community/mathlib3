@@ -3,9 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import algebra.group.hom
 import algebra.group.type_tags
-import algebra.group.units_hom
 import algebra.group_with_zero
 
 /-!
@@ -126,6 +124,9 @@ def symm (h : M ≃* N) : N ≃* M :=
 { map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
 
+@[simp, to_additive]
+lemma inv_fun_eq_symm {f : M ≃* N} : f.inv_fun = f.symm := rfl
+
 /-- See Note [custom simps projection] -/
 -- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
 -- in the whole file.
@@ -189,6 +190,9 @@ theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e
 @[to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
+@[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :
+  (e₁.trans e₂).symm p = e₁.symm (e₂.symm p) := rfl
+  
 @[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
 e.injective.eq_iff
 
@@ -405,16 +409,23 @@ h.to_add_monoid_hom.map_sub x y
 
 /-- A group is isomorphic to its group of units. -/
 @[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
-def to_units {G} [group G] : G ≃* units G :=
+def to_units [group G] : G ≃* units G :=
 { to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,
   left_inv := λ x, rfl,
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
+@[simp, to_additive coe_to_add_units] lemma coe_to_units [group G] (g : G) :
+  (to_units g : G) = g := rfl
+
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
+
+@[simp, to_additive] lemma coe_inv [group G] (u : units G) :
+  ↑u⁻¹ = (u⁻¹ : G) :=
+to_units.symm.map_inv u
 
 variables [monoid M] [monoid N] [monoid P]
 
@@ -506,6 +517,31 @@ variable {G}
 
 @[simp, to_additive]
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
+
+/-- A version of `equiv.mul_left a b⁻¹` that is defeq to `a / b`. -/
+@[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. "-/, simps]
+protected def div_left (a : G) : G ≃ G :=
+{ to_fun := λ b, a / b,
+  inv_fun := λ b, b⁻¹ * a,
+  left_inv := λ b, by simp [div_eq_mul_inv],
+  right_inv := λ b, by simp [div_eq_mul_inv] }
+
+@[to_additive]
+lemma div_left_eq_inv_trans_mul_left (a : G) :
+  equiv.div_left a = (equiv.inv G).trans (equiv.mul_left a) :=
+ext $ λ _, div_eq_mul_inv _ _
+
+/-- A version of `equiv.mul_right a⁻¹ b` that is defeq to `b / a`. -/
+@[to_additive /-" A version of `equiv.add_right (-a) b` that is defeq to `b - a`. "-/, simps]
+protected def div_right (a : G) : G ≃ G :=
+{ to_fun := λ b, b / a,
+  inv_fun := λ b, b * a,
+  left_inv := λ b, by simp [div_eq_mul_inv],
+  right_inv := λ b, by simp [div_eq_mul_inv] }
+
+@[to_additive]
+lemma div_right_eq_mul_right_inv (a : G) : equiv.div_right a = equiv.mul_right a⁻¹ :=
+ext $ λ _, div_eq_mul_inv _ _
 
 end group
 

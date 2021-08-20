@@ -287,6 +287,21 @@ begin
   simp only [and_assoc, and.left_comm]
 end
 
+/-- A product of induced topologies is induced by the product map -/
+lemma prod_induced_induced {α γ : Type*} (f : α → β) (g : γ → δ) :
+  @prod.topological_space α γ (induced f ‹_›) (induced g ‹_›) =
+  induced (λ p, (f p.1, g p.2)) prod.topological_space :=
+begin
+  set fxg := (λ p : α × γ, (f p.1, g p.2)),
+  have key1 : f ∘ (prod.fst : α × γ → α) = (prod.fst : β × δ → β) ∘ fxg, from rfl,
+  have key2 : g ∘ (prod.snd : α × γ → γ) = (prod.snd : β × δ → δ) ∘ fxg, from rfl,
+  unfold prod.topological_space,
+  conv_lhs {
+    rw [induced_compose, induced_compose, key1, key2],
+    congr, rw ← induced_compose, skip, rw ← induced_compose, },
+  rw induced_inf
+end
+
 lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
   {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
 continuous_iff_continuous_at.2 $ λ ⟨a, b⟩,
@@ -308,7 +323,7 @@ begin
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
   simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
-  exact mem_sets_of_superset hu (λ z hz, H _ hz _ (mem_of_mem_nhds hv) rfl)
+  exact mem_of_superset hu (λ z hz, H _ hz _ (mem_of_mem_nhds hv) rfl)
 end
 
 @[simp] lemma map_fst_nhds (x : α × β) : map prod.fst (𝓝 x) = 𝓝 x.1 :=
@@ -327,7 +342,7 @@ begin
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
   simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
-  exact mem_sets_of_superset hv (λ z hz, H _ (mem_of_mem_nhds hu) _ hz rfl)
+  exact mem_of_superset hv (λ z hz, H _ (mem_of_mem_nhds hu) _ hz rfl)
 end
 
 @[simp] lemma map_snd_nhds (x : α × β) : map prod.snd (𝓝 x) = 𝓝 x.2 :=
@@ -722,7 +737,7 @@ by rw [pi_def];
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
   {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
   pi i s ∈ 𝓝 x :=
-by { rw [pi_def, bInter_mem_sets hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
+by { rw [pi_def, bInter_mem hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
 
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =

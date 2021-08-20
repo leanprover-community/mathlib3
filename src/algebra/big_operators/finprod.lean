@@ -3,11 +3,9 @@ Copyright (c) 2020 Kexing Ying and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying, Kevin Buzzard, Yury Kudryashov
 -/
-
-import data.set.finite
-import data.set.disjointed
-import algebra.big_operators
+import algebra.big_operators.order
 import algebra.indicator_function
+import data.set.pairwise
 
 /-!
 # Finite products and sums over types and sets

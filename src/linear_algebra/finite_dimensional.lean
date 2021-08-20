@@ -281,7 +281,7 @@ lemma lt_omega_of_linear_independent {ι : Type w} [finite_dimensional K V]
 begin
   apply cardinal.lift_lt.1,
   apply lt_of_le_of_lt,
-  apply linear_independent_le_dim h,
+  apply cardinal_lift_le_dim_of_linear_independent h,
   rw [←finrank_eq_dim, cardinal.lift_omega, cardinal.lift_nat_cast],
   apply cardinal.nat_lt_omega,
 end
@@ -477,8 +477,8 @@ variable (K)
 /-- A field is one-dimensional as a vector space over itself. -/
 @[simp] lemma finrank_of_field : finrank K K = 1 :=
 begin
-  have := dim_of_field K,
-  rw [← finrank_eq_dim] at this,
+  have := dim_of_ring K,
+  rw [←finrank_eq_dim] at this,
   exact_mod_cast this
 end
 
@@ -697,7 +697,7 @@ end linear_equiv
 
 instance finite_dimensional_finsupp {ι : Type*} [fintype ι] [finite_dimensional K V] :
   finite_dimensional K (ι →₀ V) :=
-(finsupp.linear_equiv_fun_on_fintype K : (ι →₀ V) ≃ₗ[K] (ι → V)).symm.finite_dimensional
+(finsupp.linear_equiv_fun_on_fintype K V ι).symm.finite_dimensional
 
 namespace finite_dimensional
 
@@ -1366,7 +1366,7 @@ lemma subalgebra_top_finrank_eq_submodule_top_finrank :
 by { rw ← algebra.top_to_submodule, refl }
 
 lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
-by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top }
+by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top F E }
 
 lemma subalgebra.finite_dimensional_bot : finite_dimensional F (⊥ : subalgebra F E) :=
 finite_dimensional_of_dim_eq_one subalgebra.dim_bot

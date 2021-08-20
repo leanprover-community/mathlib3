@@ -36,6 +36,9 @@ classical.choice h
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @set.to_finset _ _ h.fintype
 
+@[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite :=
+by simp [infinite]
+
 @[simp] theorem finite.mem_to_finset {s : set α} (h : finite s) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
 
@@ -585,10 +588,9 @@ lemma finite_subset_Union {s : set α} (hs : finite s)
 begin
   casesI hs,
   choose f hf using show ∀ x : s, ∃ i, x.1 ∈ t i, {simpa [subset_def] using h},
-  refine ⟨range f, finite_range f, _⟩,
-  rintro x hx,
-  simp,
-  exact ⟨x, ⟨hx, hf _⟩⟩,
+  refine ⟨range f, finite_range f, λ x hx, _⟩,
+  rw [bUnion_range, mem_Union],
+  exact ⟨⟨x, hx⟩, hf _⟩
 end
 
 lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t)

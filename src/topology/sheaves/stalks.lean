@@ -155,6 +155,17 @@ end
   (f : F ⟶ G) : germ F x ≫ (stalk_functor C x.1).map f = f.app (op U) ≫ germ G x :=
 colimit.ι_map (whisker_left ((open_nhds.inclusion x.1).op) f) (op ⟨U, x.2⟩)
 
+lemma stalk_functor_map_unique {F G : X.presheaf C} (f : F ⟶ G) (x : X)
+  (φ : F.stalk x ⟶ G.stalk x)
+  (hφ : ∀ (U : opens X) (hx : x ∈ U), germ F ⟨x, hx⟩ ≫ φ = f.app (op U) ≫ germ G ⟨x, hx⟩) :
+  φ = (stalk_functor C x).map f :=
+begin
+  apply colim_map_unique,
+  intros U, op_induction U,
+  cases U with V hx,
+  exact hφ V hx,
+end
+
 @[simp] lemma stalk_functor_map_germ_apply (U : opens X) (x : U) {F G : X.presheaf (Type v)}
   (f : F ⟶ G) (s : F.obj (op U)) :
   (stalk_functor (Type v) x.1).map f (germ F x s) = germ G x (f.app (op U) s) :=
@@ -299,16 +310,6 @@ begin
   exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ),
 end
 
-@[simp, elementwise, reassoc]
-lemma stalk_pushforward_germ (f : X ⟶ Y) (F : X.presheaf C) (U : opens Y)
-  (x : (opens.map f).obj U) :
-  (f _* F).germ ⟨f x, x.2⟩ ≫ F.stalk_pushforward C f x = F.germ x :=
-begin
-  rw [stalk_pushforward, germ, colimit.ι_map_assoc, colimit.ι_pre, whisker_right_app],
-  erw [category_theory.functor.map_id, category.id_comp],
-  refl,
-end
-
 -- Here are two other potential solutions, suggested by @fpvandoorn at
 -- <https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240>
 -- However, I can't get the subsequent two proofs to work with either one.
@@ -324,6 +325,21 @@ end
 -- (colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) :
 --   colim.obj ((open_nhds.inclusion (f x) ⋙ opens.map f).op ⋙ ℱ) ⟶ _) ≫
 -- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
+
+@[simp, elementwise, reassoc]
+lemma stalk_pushforward_germ (f : X ⟶ Y) (F : X.presheaf C) (U : opens Y)
+  (x : (opens.map f).obj U) :
+  (f _* F).germ ⟨f x, x.2⟩ ≫ F.stalk_pushforward C f x = F.germ x :=
+begin
+  rw [stalk_pushforward, germ, colimit.ι_map_assoc, colimit.ι_pre, whisker_right_app],
+  erw [category_theory.functor.map_id, category.id_comp],
+  refl,
+end
+
+lemma stalk_pushforward_unique (f : X ⟶ Y) (F : X.presheaf C) (x : X)
+  (φ : (f _* F).stalk (f x) ⟶ F.stalk x)
+  (hφ: ∀ (U : opens Y) (hx : x ∈ (opens.map f).obj U), (f _* F).germ ⟨f x, hx⟩ ≫ φ = F.germ ⟨x, hx⟩) :
+  φ = F.stalk_pushforward C f x := sorry
 
 namespace stalk_pushforward
 local attribute [tidy] tactic.op_induction'

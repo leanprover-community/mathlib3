@@ -78,7 +78,6 @@ instance : algebra R (⨁ i, A i) :=
 #check 1
 
 /-- Build a `galgebra` instance for a collection of `submodule`s. -/
-@[simps?]
 def galgebra.of_submodules
   (carriers : ι → submodule R B)
   (one_mem : (1 : B) ∈ carriers 0)

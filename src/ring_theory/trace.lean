@@ -7,6 +7,8 @@ Authors: Anne Baanen
 import linear_algebra.bilinear_form
 import linear_algebra.char_poly.coeff
 import linear_algebra.trace
+import field_theory.adjoin
+import field_theory.algebraic_closure
 import ring_theory.power_basis
 
 /-!
@@ -161,14 +163,16 @@ by { ext, rw [trace_form_to_matrix, pow_add, h.basis_eq_pow, h.basis_eq_pow] }
 
 end trace_form
 
-section eq_prod_roots
+end algebra
 
-open polynomial
+section eq_sum_roots
+
+open algebra polynomial
 
 variables {F : Type*} [field F]
 variables [algebra K S] [algebra K F]
 
-lemma trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
+lemma power_basis.trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (trace K S pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.sum :=
@@ -193,6 +197,74 @@ begin
     intros, apply monic_X_sub_C },
 end
 
-end eq_prod_roots
+namespace intermediate_field.adjoin_simple
 
-end algebra
+open intermediate_field
+
+lemma trace_gen_eq_zero {x : L} (hx : ¬ is_integral K x) :
+  algebra.trace K K⟮x⟯ (adjoin_simple.gen K x) = 0 :=
+begin
+  rw [trace_eq_zero_of_not_exists_basis, linear_map.zero_apply],
+  contrapose! hx,
+  obtain ⟨s, ⟨b⟩⟩ := hx,
+  refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_finset_basis b) },
+  { exact subset_adjoin K _ (set.mem_singleton x) }
+end
+
+lemma trace_gen_eq_sum_roots (x : L)
+  (hf : (minpoly K x).splits (algebra_map K F)) :
+  algebra_map K F (trace K K⟮x⟯ (adjoin_simple.gen K x)) =
+    ((minpoly K x).map (algebra_map K F)).roots.sum :=
+begin
+  have injKKx : function.injective (algebra_map K K⟮x⟯) := ring_hom.injective _,
+  have injKxL : function.injective (algebra_map K⟮x⟯ L) := ring_hom.injective _,
+  by_cases hx : is_integral K x, swap,
+  { simp [minpoly.eq_zero hx, trace_gen_eq_zero hx], },
+  have hx' : is_integral K (adjoin_simple.gen K x),
+  { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
+    apply_instance },
+  rw [← adjoin.power_basis_gen hx, (adjoin.power_basis hx).trace_gen_eq_sum_roots];
+    rw [adjoin.power_basis_gen hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
+    try { simp only [adjoin_simple.algebra_map_gen _ _] },
+  exact hf
+end
+
+end intermediate_field.adjoin_simple
+
+lemma trace_eq_sum_roots [finite_dimensional K L]
+  {x : L} (hF : (minpoly K x).splits (algebra_map K F)) :
+  algebra_map K F (algebra.trace K L x) =
+    finrank K⟮x⟯ L • ((minpoly K x).map (algebra_map K _)).roots.sum :=
+begin
+  haveI : finite_dimensional K⟮x⟯ L := finite_dimensional.right K _ L,
+  rw ← @trace_trace _ _ K K⟮x⟯ _ _ _ _ _ _ _ _ x,
+  conv in x { rw ← intermediate_field.adjoin_simple.algebra_map_gen K x },
+  rw [trace_algebra_map, ← is_scalar_tower.algebra_map_smul K, (algebra.trace K K⟮x⟯).map_smul,
+      smul_eq_mul, ring_hom.map_mul, ← is_scalar_tower.algebra_map_apply ℕ K _, ← smul_def,
+      intermediate_field.adjoin_simple.trace_gen_eq_sum_roots _ hF],
+  all_goals { apply_instance }
+end
+
+end eq_sum_roots
+
+variables {F : Type*} [field F]
+variables [algebra R L] [algebra L F] [algebra R F] [is_scalar_tower R L F]
+
+open polynomial
+
+lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
+  _root_.is_integral R (algebra.trace L F x) :=
+begin
+  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
+      trace_eq_sum_roots],
+  { refine (is_integral.multiset_sum _).nsmul _,
+    intros y hy,
+    rw mem_roots_map (minpoly.ne_zero hx') at hy,
+    use [minpoly R x, minpoly.monic hx],
+    rw ← aeval_def at ⊢ hy,
+    exact minpoly.aeval_of_is_scalar_tower R x y hy },
+  { apply is_alg_closed.splits_codomain },
+  { apply_instance }
+end

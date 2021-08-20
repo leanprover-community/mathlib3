@@ -46,7 +46,7 @@ dedekind domain, dedekind ring
 
 variables (R A K : Type*) [comm_ring R] [integral_domain A] [field K]
 
-local notation R`⁰`:9000 := non_zero_divisors R
+open_locale non_zero_divisors
 
 /-- A ring `R` has Krull dimension at most one if all nonzero prime ideals are maximal. -/
 def ring.dimension_le_one : Prop :=
@@ -660,10 +660,36 @@ instance ideal.unique_factorization_monoid :
       exact ⟨x * y, ideal.mul_mem_mul x_mem y_mem,
              mt this.is_prime.mem_or_mem (not_or x_not_mem y_not_mem)⟩,
     end⟩,
-     λ h, irreducible_of_prime h⟩,
+    prime.irreducible⟩,
   .. ideal.wf_dvd_monoid }
 
 noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
 normalization_monoid_of_unique_units
+
+@[simp] lemma ideal.dvd_span_singleton {I : ideal A} {x : A} :
+  I ∣ ideal.span {x} ↔ x ∈ I :=
+ideal.dvd_iff_le.trans (ideal.span_le.trans set.singleton_subset_iff)
+
+lemma ideal.is_prime_of_prime {P : ideal A} (h : prime P) : is_prime P :=
+begin
+  refine ⟨_, λ x y hxy, _⟩,
+  { unfreezingI { rintro rfl },
+    rw ← ideal.one_eq_top at h,
+    exact h.not_unit is_unit_one },
+  { simp only [← ideal.dvd_span_singleton, ← ideal.span_singleton_mul_span_singleton] at ⊢ hxy,
+    exact h.dvd_or_dvd hxy }
+end
+
+theorem ideal.prime_of_is_prime {P : ideal A} (hP : P ≠ ⊥) (h : is_prime P) : prime P :=
+begin
+  refine ⟨hP, mt ideal.is_unit_iff.mp h.ne_top, λ I J hIJ, _⟩,
+  simpa only [ideal.dvd_iff_le] using (h.mul_le.mp (ideal.le_of_dvd hIJ)),
+end
+
+/-- In a Dedekind domain, the (nonzero) prime elements of the monoid with zero `ideal A`
+are exactly the prime ideals. -/
+theorem ideal.prime_iff_is_prime {P : ideal A} (hP : P ≠ ⊥) :
+  prime P ↔ is_prime P :=
+⟨ideal.is_prime_of_prime, ideal.prime_of_is_prime hP⟩
 
 end is_dedekind_domain

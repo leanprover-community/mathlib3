@@ -52,7 +52,7 @@ While `convex` is a predicate on sets, `convex_cone` is a bundled convex cone.
 universes u v
 
 open set linear_map
-open_locale classical
+open_locale classical pointwise
 
 variables (E : Type*) [add_comm_group E] [module ℝ E]
   {F : Type*} [add_comm_group F] [module ℝ F]

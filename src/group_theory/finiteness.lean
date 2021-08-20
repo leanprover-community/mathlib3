@@ -27,6 +27,7 @@ group.
 
 /-! ### Monoids and submonoids -/
 
+open_locale pointwise
 variables {M N : Type*} [monoid M] [add_monoid N]
 
 section submonoid

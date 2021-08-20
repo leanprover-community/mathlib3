@@ -273,9 +273,14 @@ theorem minimum_eq_coe_iff {m : α} {l : list α} :
 
 section fold
 
-lemma maximum_eq_coe_foldr_max_of_ne_nil {α : Type*} [canonically_linear_ordered_add_monoid α]
-  (l : list α) (h : l ≠ []) :
-  l.maximum = (l.foldr max ⊥ : α) :=
+variables {M : Type*} [canonically_linear_ordered_add_monoid M]
+
+/-! Note: since there is no typeclass for both `linear_order` and `has_top`, nor a typeclass dual
+to `canonically_linear_ordered_add_monoid α` we cannot express these lemmas generally for
+`minimum`; instead we are limited to doing so on `order_dual α`. -/
+
+lemma maximum_eq_coe_foldr_max_of_ne_nil (l : list M) (h : l ≠ []) :
+  l.maximum = (l.foldr max ⊥ : M) :=
 begin
   induction l with hd tl IH,
   { contradiction },
@@ -285,17 +290,15 @@ begin
     { simp [IH h] } }
 end
 
-lemma minimum_eq_coe_foldr_min_of_ne_nil {α : Type*} [canonically_linear_ordered_add_monoid α]
-  (l : list (order_dual α)) (h : l ≠ []) :
-  l.minimum = (l.foldr min (⊥ : α) : order_dual α) :=
+lemma minimum_eq_coe_foldr_min_of_ne_nil (l : list (order_dual M)) (h : l ≠ []) :
+  l.minimum = (l.foldr min ⊤ : order_dual M) :=
 maximum_eq_coe_foldr_max_of_ne_nil l h
 
 lemma maximum_nat_eq_coe_foldr_max_of_ne_nil (l : list ℕ) (h : l ≠ []) :
   l.maximum = (l.foldr max 0 : ℕ) :=
 maximum_eq_coe_foldr_max_of_ne_nil l h
 
-lemma max_le_of_forall_le {α : Type*} [canonically_linear_ordered_add_monoid α]
-  (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
+lemma max_le_of_forall_le (l : list M) (n : M) (h : ∀ (x ∈ l), x ≤ n) :
   l.foldr max ⊥ ≤ n :=
 begin
   induction l with y l IH,
@@ -305,26 +308,14 @@ begin
     simpa [hy] using IH }
 end
 
-lemma le_min_of_le_forall {α : Type*} [canonically_linear_ordered_add_monoid α]
-  (l : list (order_dual α)) (n : (order_dual α)) (h : ∀ (x ∈ l), n ≤ x) :
-  n ≤ l.foldr min (⊥ : α) :=
+lemma le_min_of_le_forall (l : list (order_dual M)) (n : (order_dual M))
+  (h : ∀ (x ∈ l), n ≤ x) :
+  n ≤ l.foldr min ⊤ :=
 max_le_of_forall_le l n h
 
 lemma max_nat_le_of_forall_le (l : list ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
   l.foldr max 0 ≤ n :=
 max_le_of_forall_le l n h
-
-@[to_additive]
-lemma prod_le_of_forall_le {α : Type*} [ordered_comm_monoid α]
-  (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
-  l.prod ≤ n ^ l.length :=
-begin
-  induction l with y l IH,
-  { simp },
-  { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
-    have hy : y ≤ n := h y (mem_cons_self _ _),
-    simpa [pow_succ] using mul_le_mul' hy IH }
-end
 
 end fold
 

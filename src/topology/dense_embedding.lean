@@ -49,30 +49,17 @@ di.to_inducing.continuous
 lemma closure_range : closure (range i) = univ :=
 di.dense.closure_range
 
-lemma self_sub_closure_image_preimage_of_open {s : set β} (di : dense_inducing i) :
-  is_open s → s ⊆ closure (i '' (i ⁻¹' s)) :=
-begin
-  intros s_op b b_in_s,
-  rw [image_preimage_eq_inter_range, mem_closure_iff],
-  intros U U_op b_in,
-  rw ←inter_assoc,
-  exact (dense_iff_inter_open.1 di.dense) _ (is_open_inter U_op s_op) ⟨b, b_in, b_in_s⟩
-end
+lemma preconnected_space [preconnected_space α] (di : dense_inducing i) : preconnected_space β :=
+di.dense.preconnected_space di.continuous
 
-lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :
-  s ∈ 𝓝 a → closure (i '' s) ∈ 𝓝 (i a) :=
+lemma closure_image_mem_nhds {s : set α} {a : α} (di : dense_inducing i) (hs : s ∈ 𝓝 a) :
+  closure (i '' s) ∈ 𝓝 (i a) :=
 begin
-  rw [di.nhds_eq_comap a, mem_comap_sets],
-  intro h,
-  rcases h with ⟨t, t_nhd, sub⟩,
-  rw mem_nhds_sets_iff at t_nhd,
-  rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩,
-  have := calc i ⁻¹' U ⊆ i⁻¹' t : preimage_mono U_sub
-                   ... ⊆ s      : sub,
-  have := calc U ⊆ closure (i '' (i ⁻¹' U)) : self_sub_closure_image_preimage_of_open di U_op
-             ... ⊆ closure (i '' s)         : closure_mono (image_subset i this),
-  have U_nhd : U ∈ 𝓝 (i a) := mem_nhds_sets U_op e_a_in_U,
-  exact (𝓝 (i a)).sets_of_superset U_nhd this
+  rw [di.nhds_eq_comap a, ((nhds_basis_opens _).comap _).mem_iff] at hs,
+  rcases hs with ⟨U, ⟨haU, hUo⟩, sub : i ⁻¹' U ⊆ s⟩,
+  refine mem_of_superset (hUo.mem_nhds haU) _,
+  calc U ⊆ closure (i '' (i ⁻¹' U)) : di.dense.subset_closure_image_preimage_of_is_open hUo
+     ... ⊆ closure (i '' s)         : closure_mono (image_subset i sub)
 end
 
 /-- The product of two dense inducings is a dense inducing -/
@@ -170,11 +157,11 @@ begin
     rwa di.extend_eq_of_tendsto hc },
   obtain ⟨V₂, V₂_in, V₂_op, hV₂⟩ : ∃ V₂ ∈ 𝓝 b, is_open V₂ ∧ ∀ x ∈ i ⁻¹' V₂, f x ∈ V',
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
-                            (mem_of_nhds V₁_in : b ∈ V₁) V' V'_in },
+                            (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
-  { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
+  { filter_upwards [inter_mem V₁_in V₂_in], exact this },
   rintros x ⟨x_in₁, x_in₂⟩,
-  have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
+  have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
   use V₂,
   tauto,
@@ -182,7 +169,7 @@ end
 
 lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing i)
   (hf : ∀b, ∃c, tendsto f (comap i (𝓝 b)) (𝓝 c)) : continuous (di.extend f) :=
-continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem_sets' hf
+continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem' hf
 
 lemma mk'
   (i : α → β)

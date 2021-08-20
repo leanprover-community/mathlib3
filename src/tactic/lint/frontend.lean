@@ -144,13 +144,14 @@ let formatted_results := results.map $ λ ⟨linter_name, linter, results⟩,
       | none := print_warnings env results
       | some dropped := grouped_by_filename env results dropped (print_warnings env)
       end in
-    report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings ++ "\n"
+    report_str ++ "/- " ++ linter.errors_found ++ " -/\n" ++ warnings ++ "\n"
   else if verbose = lint_verbosity.high then
-    "/- OK: " ++ linter.no_errors_found ++ ". -/"
+    "/- OK: " ++ linter.no_errors_found ++ " -/"
   else format.nil,
 let s := format.intercalate "\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
 let s := if verbose = lint_verbosity.low then s else
-  format!"/- Checking {non_auto_decls.length} declarations (plus {decls.length - non_auto_decls.length} automatically generated ones) {where_desc} -/\n\n" ++ s,
+  format!("/- Checking {non_auto_decls.length} declarations (plus " ++
+  "{decls.length - non_auto_decls.length} automatically generated ones) {where_desc} -/\n\n") ++ s,
 let s := if slow then s else s ++ "/- (slow tests skipped) -/\n",
 s
 
@@ -209,7 +210,7 @@ meta def lint_all (slow : bool := tt) (verbose : lint_verbosity := lint_verbosit
 /-- Parses an optional `only`, followed by a sequence of zero or more identifiers.
 Prepends `linter.` to each of these identifiers. -/
 private meta def parse_lint_additions : parser (bool × list name) :=
-prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident_*)
+prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident*)
 
 /--
 Parses a "-" or "+", returning `lint_verbosity.low` or `lint_verbosity.high` respectively,

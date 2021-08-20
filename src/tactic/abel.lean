@@ -16,14 +16,21 @@ Evaluate expressions in the language of additive, commutative monoids and groups
 namespace tactic
 namespace abel
 
-meta structure cache :=
+/-- The `context` for a call to `abel`.
+
+Stores a few options for this call, and caches some common subexpressions
+such as typeclass instances and `0 : α`.
+-/
+meta structure context :=
+(red : transparency)
 (α : expr)
 (univ : level)
 (α0 : expr)
 (is_group : bool)
 (inst : expr)
 
-meta def mk_cache (e : expr) : tactic cache :=
+/-- Populate a `context` object for evaluating `e`, up to reducibility level `red`. -/
+meta def mk_context (red : transparency) (e : expr) : tactic context :=
 do α ← infer_type e,
    c ← mk_app ``add_comm_monoid [α] >>= mk_instance,
    cg ← try_core (mk_app ``add_comm_group [α] >>= mk_instance),
@@ -32,29 +39,49 @@ do α ← infer_type e,
    u ← get_univ_assignment u,
    α0 ← expr.of_nat α 0,
    match cg with
-   | (some cg) := return ⟨α, u, α0, tt, cg⟩
-   | _ := return ⟨α, u, α0, ff, c⟩
+   | (some cg) := return ⟨red, α, u, α0, tt, cg⟩
+   | _ := return ⟨red, α, u, α0, ff, c⟩
    end
 
-meta def cache.app (c : cache) (n : name) (inst : expr) : list expr → expr :=
+/-- Apply the function `n : ∀ {α} [inst : add_whatever α], _` to the
+implicit parameters in the context, and the given list of arguments. -/
+meta def context.app (c : context) (n : name) (inst : expr) : list expr → expr :=
 (@expr.const tt n [c.univ] c.α inst).mk_app
 
-meta def cache.mk_app (c : cache) (n inst : name) (l : list expr) : tactic expr :=
+/-- Apply the function `n : ∀ {α} [inst α], _` to the implicit parameters in the
+context, and the given list of arguments.
+
+Compared to `context.app`, this takes the name of the typeclass, rather than an
+inferred typeclass instance.
+-/
+meta def context.mk_app (c : context) (n inst : name) (l : list expr) : tactic expr :=
 do m ← mk_instance ((expr.const inst [c.univ] : expr) c.α), return $ c.app n m l
 
+/-- Add the letter "g" to the end of the name, e.g. turning `term` into `termg`.
+
+This is used to choose between declarations taking `add_comm_monoid` and those
+taking `add_comm_group` instances.
+-/
 meta def add_g : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "g") p
 | n := n
 
-meta def cache.iapp (c : cache) (n : name) : list expr → expr :=
+/-- Apply the function `n : ∀ {α} [add_comm_{monoid,group} α]` to the given
+list of arguments.
+
+Will use the `add_comm_{monoid,group}` instance that has been cached in the context.
+-/
+meta def context.iapp (c : context) (n : name) : list expr → expr :=
 c.app (if c.is_group then add_g n else n) c.inst
 
-def term {α} [add_comm_monoid α] (n : ℕ) (x a : α) : α := n •ℕ x + a
-def termg {α} [add_comm_group α] (n : ℤ) (x a : α) : α := n •ℤ x + a
+def term {α} [add_comm_monoid α] (n : ℕ) (x a : α) : α := n • x + a
+def termg {α} [add_comm_group α] (n : ℤ) (x a : α) : α := n • x + a
 
-meta def cache.mk_term (c : cache) (n x a : expr) : expr := c.iapp ``term [n, x, a]
+/-- Evaluate a term with coefficient `n`, atom `x` and successor terms `a`. -/
+meta def context.mk_term (c : context) (n x a : expr) : expr := c.iapp ``term [n, x, a]
 
-meta def cache.int_to_expr (c : cache) (n : ℤ) : tactic expr :=
+/-- Interpret an integer as a coefficient to a term. -/
+meta def context.int_to_expr (c : context) (n : ℤ) : tactic expr :=
 expr.of_int (if c.is_group then `(ℤ) else `(ℕ)) n
 
 meta inductive normal_expr : Type
@@ -68,10 +95,11 @@ meta def normal_expr.e : normal_expr → expr
 meta instance : has_coe normal_expr expr := ⟨normal_expr.e⟩
 meta instance : has_coe_to_fun normal_expr := ⟨_, λ e, ((e : expr) : expr → expr)⟩
 
-meta def normal_expr.term' (c : cache) (n : expr × ℤ) (x : expr) (a : normal_expr) : normal_expr :=
+meta def normal_expr.term' (c : context) (n : expr × ℤ) (x : expr) (a : normal_expr) :
+  normal_expr :=
 normal_expr.nterm (c.mk_term n.1 x a) n x a
 
-meta def normal_expr.zero' (c : cache) : normal_expr := normal_expr.zero c.α0
+meta def normal_expr.zero' (c : context) : normal_expr := normal_expr.zero c.α0
 
 meta def normal_expr.to_list : normal_expr → list (ℤ × expr)
 | (normal_expr.zero _) := []
@@ -116,12 +144,12 @@ theorem term_add_termg {α} [add_comm_group α] (n₁ x a₁ n₂ a₂ n' a')
 by simp [h₁.symm, h₂.symm, termg, add_gsmul]; ac_refl
 
 theorem zero_term {α} [add_comm_monoid α] (x a) : @term α _ 0 x a = a :=
-by simp [term]
+by simp [term, zero_nsmul, one_nsmul]
 
 theorem zero_termg {α} [add_comm_group α] (x a) : @termg α _ 0 x a = a :=
 by simp [termg]
 
-meta def eval_add (c : cache) : normal_expr → normal_expr → tactic (normal_expr × expr)
+meta def eval_add (c : context) : normal_expr → normal_expr → tactic (normal_expr × expr)
 | (zero _) e₂ := do
   p ← mk_app ``zero_add [e₂],
   return (e₂, p)
@@ -129,13 +157,8 @@ meta def eval_add (c : cache) : normal_expr → normal_expr → tactic (normal_e
   p ← mk_app ``add_zero [e₁],
   return (e₁, p)
 | he₁@(nterm e₁ n₁ x₁ a₁) he₂@(nterm e₂ n₂ x₂ a₂) :=
-  if expr.lex_lt x₁ x₂ then do
-    (a', h) ← eval_add a₁ he₂,
-    return (term' c n₁ x₁ a', c.iapp ``term_add_const [n₁.1, x₁, a₁, e₂, a', h])
-  else if x₁ ≠ x₂ then do
-    (a', h) ← eval_add he₁ a₂,
-    return (term' c n₂ x₂ a', c.iapp ``const_add_term [e₁, n₂.1, x₂, a₂, a', h])
-  else do
+  (do
+    is_def_eq x₁ x₂ c.red,
     (n', h₁) ← mk_app ``has_add.add [n₁.1, n₂.1] >>= norm_num.eval_field,
     (a', h₂) ← eval_add a₁ a₂,
     let k := n₁.2 + n₂.2,
@@ -143,14 +166,20 @@ meta def eval_add (c : cache) : normal_expr → normal_expr → tactic (normal_e
     if k = 0 then do
       p ← mk_eq_trans p₁ (c.iapp ``zero_term [x₁, a']),
       return (a', p)
-    else return (term' c (n', k) x₁ a', p₁)
+    else return (term' c (n', k) x₁ a', p₁))
+  <|> if expr.lex_lt x₁ x₂ then do
+    (a', h) ← eval_add a₁ he₂,
+    return (term' c n₁ x₁ a', c.iapp ``term_add_const [n₁.1, x₁, a₁, e₂, a', h])
+  else do
+    (a', h) ← eval_add he₁ a₂,
+    return (term' c n₂ x₂ a', c.iapp ``const_add_term [e₁, n₂.1, x₂, a₂, a', h])
 
 theorem term_neg {α} [add_comm_group α] (n x a n' a')
   (h₁ : -n = n') (h₂ : -a = a') :
   -@termg α _ n x a = termg n' x a' :=
 by simp [h₂.symm, h₁.symm, termg]; ac_refl
 
-meta def eval_neg (c : cache) : normal_expr → tactic (normal_expr × expr)
+meta def eval_neg (c : context) : normal_expr → tactic (normal_expr × expr)
 | (zero e) := do
   p ← c.mk_app ``neg_zero ``add_group [],
   return (zero' c, p)
@@ -160,11 +189,11 @@ meta def eval_neg (c : cache) : normal_expr → tactic (normal_expr × expr)
   return (term' c (n', -n.2) x a',
     c.app ``term_neg c.inst [n.1, x, a, n', a', h₁, h₂])
 
-def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n •ℕ x
-def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n •ℤ x
+def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n • x
+def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n • x
 
 theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
-by simp [smul]
+by simp [smul, nsmul_zero]
 
 theorem zero_smulg {α} [add_comm_group α] (c) : smulg c (0 : α) = 0 :=
 by simp [smulg]
@@ -177,9 +206,9 @@ by simp [h₂.symm, h₁.symm, term, smul, nsmul_add, mul_nsmul]
 theorem term_smulg {α} [add_comm_group α] (c n x a n' a')
   (h₁ : c * n = n') (h₂ : smulg c a = a') :
   smulg c (@termg α _ n x a) = termg n' x a' :=
-by simp [h₂.symm, h₁.symm, termg, smulg, gsmul_add, gsmul_mul]
+by simp [h₂.symm, h₁.symm, termg, smulg, gsmul_add, mul_gsmul]
 
-meta def eval_smul (c : cache) (k : expr × ℤ) :
+meta def eval_smul (c : context) (k : expr × ℤ) :
   normal_expr → tactic (normal_expr × expr)
 | (zero _) := return (zero' c, c.iapp ``zero_smul [k.1])
 | (nterm e n x a) := do
@@ -194,7 +223,7 @@ by simp [term]
 theorem term_atomg {α} [add_comm_group α] (x : α) : x = termg 1 x 0 :=
 by simp [termg]
 
-meta def eval_atom (c : cache) (e : expr) : tactic (normal_expr × expr) :=
+meta def eval_atom (c : context) (e : expr) : tactic (normal_expr × expr) :=
 do n1 ← c.int_to_expr 1,
    return (term' c (n1, 1) e (zero' c), c.iapp ``term_atom [e])
 
@@ -203,10 +232,10 @@ lemma unfold_sub {α} [add_group α] (a b c : α)
 by rw [sub_eq_add_neg, h]
 
 theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
-  (h : smul n x = y) : n •ℕ x = y := h
+  (h : smul n x = y) : n • x = y := h
 
 theorem unfold_smulg {α} [add_comm_group α] (n : ℕ) (x y : α)
-  (h : smulg (int.of_nat n) x = y) : n •ℕ x = y := h
+  (h : smulg (int.of_nat n) x = y) : (n : ℤ) • x = y := h
 
 theorem unfold_gsmul {α} [add_comm_group α] (n : ℤ) (x y : α)
   (h : smulg n x = y) : gsmul n x = y := h
@@ -221,7 +250,16 @@ lemma subst_into_smulg {α} [add_comm_group α]
   (prt : @smulg α _ tl tr = t) : smulg l r = t :=
 by simp [prl, prr, prt]
 
-meta def eval (c : cache) : expr → tactic (normal_expr × expr)
+/-- Deal with a `smul` term of the form `e₁ • e₂`, handling both natural and integer `e₁`. -/
+meta def eval_smul' (c : context) (eval : expr → tactic (normal_expr × expr))
+  (e₁ e₂ : expr) : tactic (normal_expr × expr) :=
+do (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁,
+  n ← if c.is_group then e₁'.to_int else coe <$> e₁'.to_nat,
+  (e₂', p₂) ← eval e₂,
+  (e', p) ← eval_smul c (e₁', n) e₂',
+  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
+
+meta def eval (c : context) : expr → tactic (normal_expr × expr)
 | `(%%e₁ + %%e₂) := do
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
@@ -247,21 +285,13 @@ meta def eval (c : cache) : expr → tactic (normal_expr × expr)
   guardb c.is_group,
   (e', p) ← eval $ c.iapp ``smul [e₁, e₂],
   return (e', c.app ``unfold_gsmul c.inst [e₁, e₂, e', p])
-| `(smul %%e₁ %%e₂) := do
-  guard (¬ c.is_group),
-  (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁, n ← e₁'.to_nat,
-  (e₂', p₂) ← eval e₂,
-  (e', p) ← eval_smul c (e₁', n) e₂',
-  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
-| `(smulg %%e₁ %%e₂) := do
-  guardb c.is_group,
-  (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁, n ← e₁'.to_int,
-  (e₂', p₂) ← eval e₂,
-  (e', p) ← eval_smul c (e₁', n) e₂',
-  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
+| `(@has_scalar.smul nat _ add_monoid.has_scalar_nat %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(@has_scalar.smul int _ sub_neg_monoid.has_scalar_int %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(smul %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(smulg %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
 | e := eval_atom c e
 
-meta def eval' (c : cache) (e : expr) : tactic (expr × expr) :=
+meta def eval' (c : context) (e : expr) : tactic (expr × expr) :=
 do (e', p) ← eval c e, return (e', p)
 
 @[derive has_reflect]
@@ -269,17 +299,19 @@ inductive normalize_mode | raw | term
 
 instance : inhabited normalize_mode := ⟨normalize_mode.term⟩
 
-meta def normalize (mode := normalize_mode.term) (e : expr) : tactic (expr × expr) := do
+meta def normalize (red : transparency) (mode := normalize_mode.term) (e : expr) :
+  tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
 | normalize_mode.term :=
-  [``term.equations._eqn_1, ``termg.equations._eqn_1, ``add_zero, ``one_nsmul, ``one_gsmul, ``gsmul_zero]
+  [``term.equations._eqn_1, ``termg.equations._eqn_1, ``add_zero, ``one_nsmul, ``one_gsmul,
+    ``gsmul_zero]
 | _ := []
 end,
 lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
 (_, e', pr) ← ext_simplify_core () {}
   simp_lemmas.mk (λ _, failed) (λ _ _ _ _ e, do
-    c ← mk_cache e,
+    c ← mk_context red e,
     (new_e, pr) ← match mode with
     | normalize_mode.raw := eval' c
     | normalize_mode.term := trans_conv (eval' c)
@@ -301,10 +333,14 @@ local postfix `?`:9001 := optional
 /-- Tactic for solving equations in the language of
 *additive*, commutative monoids and groups.
 This version of `abel` fails if the target is not an equality
-that is provable by the axioms of commutative monoids/groups. -/
-meta def abel1 : tactic unit :=
+that is provable by the axioms of commutative monoids/groups.
+
+`abel1!` will use a more aggressive reducibility setting to identify atoms.
+This can prove goals that `abel` cannot, but is more expensive.
+-/
+meta def abel1 (red : parse (tk "!")?) : tactic unit :=
 do `(%%e₁ = %%e₂) ← target,
-  c ← mk_cache e₁,
+  c ← mk_context (if red.is_some then semireducible else reducible) e₁,
   (e₁', p₁) ← eval c e₁,
   (e₂', p₂) ← eval c e₂,
   is_def_eq e₁' e₂',
@@ -326,20 +362,26 @@ It attempts to prove the goal outright if there is no `at`
 specifier and the target is an equality, but if this
 fails, it falls back to rewriting all monoid expressions into a normal form.
 If there is an `at` specifier, it rewrites the given target into a normal form.
+
+`abel!` will use a more aggressive reducibility setting to identify atoms.
+This can prove goals that `abel` cannot, but is more expensive.
 ```lean
 example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
 example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel
 example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : a = 0 :=
 by { abel at hyp, exact hyp }
+example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - (id a + b) = 0 := by abel!
 ```
 -/
-meta def abel (SOP : parse abel.mode) (loc : parse location) : tactic unit :=
+meta def abel (red : parse (tk "!")?) (SOP : parse abel.mode) (loc : parse location) :
+  tactic unit :=
 match loc with
-| interactive.loc.ns [none] := abel1
+| interactive.loc.ns [none] := abel1 red
 | _ := failed
 end <|>
 do ns ← loc.get_locals,
-   tt ← tactic.replace_at (normalize SOP) ns loc.include_goal
+   let red := if red.is_some then semireducible else reducible,
+   tt ← tactic.replace_at (normalize red SOP) ns loc.include_goal
       | fail "abel failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
 

@@ -63,8 +63,8 @@ Similar predicates with `_on` suffix are particular cases for `l = 𝓟 s`.
 
 * Multiplication and division;
 * `is_*_*.bicompl` : if `x` is a minimum for `f`, `y` is a minimum for `g`, and `op` is a monotone
-  binary operation, then `(x, y)` is a minimum for `uncurry (bicompl op f g)`. From this point of view,
-  `is_*_*.bicomp` is a composition
+  binary operation, then `(x, y)` is a minimum for `uncurry (bicompl op f g)`. From this point
+  of view, `is_*_*.bicomp` is a composition
 * It would be nice to have a tactic that specializes `comp_(anti)mono` or `bicomp_mono`
   based on a proof of monotonicity of a given (binary) function. The tactic should maintain a `meta`
   list of known (anti)monotone (binary) functions with their names, as well as a list of special
@@ -141,10 +141,10 @@ lemma is_max_on.is_extr (h : is_max_on f s a) : is_extr_on f s a := h.is_extr
 /-! ### Constant function -/
 
 lemma is_min_filter_const {b : β} : is_min_filter (λ _, b) l a :=
-univ_mem_sets' $ λ _, le_refl _
+univ_mem' $ λ _, le_refl _
 
 lemma is_max_filter_const {b : β} : is_max_filter (λ _, b) l a :=
-univ_mem_sets' $ λ _, le_refl _
+univ_mem' $ λ _, le_refl _
 
 lemma is_extr_filter_const {b : β} : is_extr_filter (λ _, b) l a := is_min_filter_const.is_extr
 
@@ -220,11 +220,11 @@ hf.on_subset (inter_subset_left s t)
 
 lemma is_min_filter.comp_mono (hf : is_min_filter f l a) {g : β → γ} (hg : monotone g) :
   is_min_filter (g ∘ f) l a :=
-mem_sets_of_superset hf $ λ x hx, hg hx
+mem_of_superset hf $ λ x hx, hg hx
 
 lemma is_max_filter.comp_mono (hf : is_max_filter f l a) {g : β → γ} (hg : monotone g) :
   is_max_filter (g ∘ f) l a :=
-mem_sets_of_superset hf $ λ x hx, hg hx
+mem_of_superset hf $ λ x hx, hg hx
 
 lemma is_extr_filter.comp_mono (hf : is_extr_filter f l a) {g : β → γ} (hg : monotone g) :
   is_extr_filter (g ∘ f) l a :=
@@ -275,12 +275,12 @@ hf.comp_antimono hg
 lemma is_min_filter.bicomp_mono [preorder δ] {op : β → γ → δ} (hop : ((≤) ⇒ (≤) ⇒ (≤)) op op)
   (hf : is_min_filter f l a) {g : α → γ} (hg : is_min_filter g l a) :
   is_min_filter (λ x, op (f x) (g x)) l a :=
-mem_sets_of_superset (inter_mem_sets hf hg) $ λ x ⟨hfx, hgx⟩, hop hfx hgx
+mem_of_superset (inter_mem hf hg) $ λ x ⟨hfx, hgx⟩, hop hfx hgx
 
 lemma is_max_filter.bicomp_mono [preorder δ] {op : β → γ → δ} (hop : ((≤) ⇒ (≤) ⇒ (≤)) op op)
   (hf : is_max_filter f l a) {g : α → γ} (hg : is_max_filter g l a) :
   is_max_filter (λ x, op (f x) (g x)) l a :=
-mem_sets_of_superset (inter_mem_sets hf hg) $ λ x ⟨hfx, hgx⟩, hop hfx hgx
+mem_of_superset (inter_mem hf hg) $ λ x ⟨hfx, hgx⟩, hop hfx hgx
 
 -- No `extr` version because we need `hf` and `hg` to be of the same kind
 
@@ -306,8 +306,8 @@ lemma is_max_filter.comp_tendsto {g : δ → α} {l' : filter δ} {b : δ} (hf :
   is_max_filter (f ∘ g) l' b :=
 hg hf
 
-lemma is_extr_filter.comp_tendsto {g : δ → α} {l' : filter δ} {b : δ} (hf : is_extr_filter f l (g b))
-  (hg : tendsto g l' l) :
+lemma is_extr_filter.comp_tendsto {g : δ → α} {l' : filter δ} {b : δ}
+  (hf : is_extr_filter f l (g b)) (hg : tendsto g l' l) :
   is_extr_filter (f ∘ g) l' b :=
 hf.elim (λ hf, (hf.comp_tendsto hg).is_extr) (λ hf, (hf.comp_tendsto hg).is_extr)
 

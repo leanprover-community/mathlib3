@@ -12,9 +12,11 @@ This file defines several small linters:
   - `ge_or_gt` checks that `>` and `≥` do not occur in the statement of theorems.
   - `dup_namespace` checks that no declaration has a duplicated namespace such as `list.list.monad`.
   - `unused_arguments` checks that definitions and theorems do not have unused arguments.
-  - `doc_blame` checks that every definition has a documentation string
-  - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default)
+  - `doc_blame` checks that every definition has a documentation string.
+  - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default).
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
+  - `check_type` checks that the statement of a declaration is well-typed.
+  - `check_univs` checks that that there are no bad `max u v` universe levels.
 -/
 
 open tactic expr
@@ -75,7 +77,8 @@ return $ if d.type.contains_constant (λ n, n ∈ illegal_ge_gt) &&
 -- return $ if d.type.contains_constant (λ n, (n.get_prefix = `classical ∧
 --   n.last ∈ ["prop_decidable", "dec", "dec_rel", "dec_eq"]) ∨ n ∈ [`gt, `ge])
 -- then
---   let illegal1 := [`classical.prop_decidable, `classical.dec, `classical.dec_rel, `classical.dec_eq],
+--   let illegal1 := [`classical.prop_decidable, `classical.dec, `classical.dec_rel,
+--     `classical.dec_eq],
 --       illegal2 := [`gt, `ge],
 --       occur1 := illegal1.filter (λ n, d.type.contains_constant (eq n)),
 --       occur2 := illegal2.filter (λ n, d.type.contains_constant (eq n)) in
@@ -88,7 +91,7 @@ return $ if d.type.contains_constant (λ n, n ∈ illegal_ge_gt) &&
 @[linter] meta def linter.ge_or_gt : linter :=
 { test := ge_or_gt_in_statement,
   auto_decls := ff,
-  no_errors_found := "Not using ≥/> in declarations",
+  no_errors_found := "Not using ≥/> in declarations.",
   errors_found := "The following declarations use ≥/>, probably in a way where we would prefer
   to use ≤/< instead. See note [nolint_ge] for more information.",
   is_fast := ff }
@@ -121,8 +124,8 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 @[linter] meta def linter.dup_namespace : linter :=
 { test := dup_namespace,
   auto_decls := ff,
-  no_errors_found := "No declarations have a duplicate namespace",
-  errors_found := "DUPLICATED NAMESPACES IN NAME" }
+  no_errors_found := "No declarations have a duplicate namespace.",
+  errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
 
 
@@ -130,7 +133,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 ## Linter for unused arguments
 -/
 
-/-- Auxilliary definition for `check_unused_arguments` -/
+/-- Auxiliary definition for `check_unused_arguments` -/
 private meta def check_unused_arguments_aux : list ℕ → ℕ → ℕ → expr → list ℕ | l n n_max e :=
 if n > n_max then l else
 if ¬ is_lambda e ∧ ¬ is_pi e then l else
@@ -172,8 +175,8 @@ private meta def unused_arguments (d : declaration) : tactic (option string) := 
 @[linter] meta def linter.unused_arguments : linter :=
 { test := unused_arguments,
   auto_decls := ff,
-  no_errors_found := "No unused arguments",
-  errors_found := "UNUSED ARGUMENTS" }
+  no_errors_found := "No unused arguments.",
+  errors_found := "UNUSED ARGUMENTS." }
 
 attribute [nolint unused_arguments] imp_intro
 
@@ -200,17 +203,15 @@ private meta def doc_blame_report_thm : declaration → tactic (option string)
     (doc_blame_report_defn d) (return none),
   auto_decls := ff,
   no_errors_found := "No definitions are missing documentation.",
-  errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
+  errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:" }
 
 /-- A linter for checking theorem doc strings. This is not in the default linter set. -/
 meta def linter.doc_blame_thm : linter :=
 { test := doc_blame_report_thm,
   auto_decls := ff,
   no_errors_found := "No theorems are missing documentation.",
-  errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
+  errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:",
   is_fast := ff }
-
-
 
 /-!
 ## Linter for correct usage of `lemma`/`def`
@@ -229,17 +230,92 @@ private meta def incorrect_def_lemma (d : declaration) : tactic (option string) 
     is_instance_d ← is_instance d.to_name,
     if is_instance_d then return none else do
       -- the following seems to be a little quicker than `is_prop d.type`.
-      expr.sort n ← infer_type d.type, return $
-      if d.is_theorem ↔ n = level.zero then none
-      else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
-      else "is a lemma/theorem, should be a def"
+      expr.sort n ← infer_type d.type,
+      is_pattern ← has_attribute' `pattern d.to_name,
+      return $
+        if d.is_theorem ↔ n = level.zero then none
+        else if d.is_theorem then "is a lemma/theorem, should be a def"
+        else if is_pattern then none -- declarations with `@[pattern]` are allowed to be a `def`.
+        else "is a def, should be a lemma/theorem"
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/
 @[linter] meta def linter.def_lemma : linter :=
 { test := incorrect_def_lemma,
   auto_decls := ff,
-  no_errors_found := "All declarations correctly marked as def/lemma",
-  errors_found := "INCORRECT DEF/LEMMA" }
+  no_errors_found := "All declarations correctly marked as def/lemma.",
+  errors_found := "INCORRECT DEF/LEMMA:" }
 
 attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
+
+/-!
+## Linter that checks whether declarations are well-typed
+-/
+
+/-- Checks whether the statement of a declaration is well-typed. -/
+meta def check_type (d : declaration) : tactic (option string) :=
+(type_check d.type >> return none) <|> return "The statement doesn't type-check"
+
+/-- A linter for missing checking whether statements of declarations are well-typed. -/
+@[linter]
+meta def linter.check_type : linter :=
+{ test := check_type,
+  auto_decls := ff,
+  no_errors_found :=
+    "The statements of all declarations type-check with default reducibility settings.",
+  errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK.
+Some definitions in the statement are marked `@[irreducible]`, which means that the statement " ++
+"is now ill-formed. It is likely that these definitions were locally marked as `@[reducible]` " ++
+"or `@[semireducible]`. This can especially cause problems with type class inference or " ++
+"`@[simps]`.",
+  is_fast := tt }
+
+/-!
+## Linter for universe parameters
+-/
+
+open native
+
+/--
+  The good parameters are the parameters that occur somewhere in the `rb_set` as a singleton or
+  (recursively) with only other good parameters.
+  All other parameters in the `rb_set` are bad.
+-/
+meta def bad_params : rb_set (list name) → list name | l :=
+let good_levels : name_set :=
+  l.fold mk_name_set $ λ us prev, if us.length = 1 then prev.insert us.head else prev in
+if good_levels.empty then
+l.fold [] list.union
+else bad_params $ rb_set.of_list $ l.to_list.map $ λ us, us.filter $ λ nm, !good_levels.contains nm
+
+/--
+Checks whether all universe levels `u` in `d` are "good".
+This means that `u` either occurs in a `level` of `d` by itself, or (recursively)
+with only other good levels.
+When this fails, usually this means that there is a level `max u v`, where neither `u` nor `v`
+occur by themselves in a level. It is ok if *one* of `u` or `v` never occurs alone. For example,
+`(α : Type u) (β : Type (max u v))` is a occasionally useful method of saying that `β` lives in
+a higher universe level than `α`.
+-/
+meta def check_univs (d : declaration) : tactic (option string) := do
+  let l := d.type.univ_params_grouped.union d.value.univ_params_grouped,
+  let bad := bad_params l,
+  if bad.empty then return none else return $ some $ "universes " ++ to_string bad ++
+  " only occur together."
+
+/-- A linter for checking that there are no bad `max u v` universe levels. -/
+@[linter]
+meta def linter.check_univs : linter :=
+{ test := check_univs,
+  auto_decls := tt,
+  no_errors_found :=
+    "All declaratations have good universe levels.",
+  errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. " ++
+"This usually means that there is a `max u v` in the declaration where neither `u` nor `v` " ++
+"occur by themselves. Solution: Find the type (or type bundled with data) that has this " ++
+"universe argument and provide the universe level explicitly. If this happens in an implicit " ++
+"argument of the declaration, a better solution is to move this argument to a `variables` " ++
+"command (where the universe level can be kept implicit).
+Note: if the linter flags an automatically generated declaration `xyz._proof_i`, it means that
+the universe problem is with `xyz` itself (even if the linter doesn't flag `xyz`)",
+  is_fast := tt }

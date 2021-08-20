@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import order.filter.basic
 import data.set.countable
@@ -31,14 +31,14 @@ variables {l : filter α} [countable_Inter_filter l]
 
 lemma countable_sInter_mem_sets {S : set (set α)} (hSc : countable S) :
   ⋂₀ S ∈ l ↔ ∀ s ∈ S, s ∈ l :=
-⟨λ hS s hs, mem_sets_of_superset hS (sInter_subset_of_mem hs),
+⟨λ hS s hs, mem_of_superset hS (sInter_subset_of_mem hs),
   countable_Inter_filter.countable_sInter_mem_sets' hSc⟩
 
 lemma countable_Inter_mem_sets [encodable ι] {s : ι → set α} :
   (⋂ i, s i) ∈ l ↔ ∀ i, s i ∈ l :=
 sInter_range s ▸ (countable_sInter_mem_sets (countable_range _)).trans forall_range_iff
 
-lemma countable_bInter_mem_sets {S : set ι} (hS : countable S) {s : Π i ∈ S, set α} :
+lemma countable_bInter_mem {S : set ι} (hS : countable S) {s : Π i ∈ S, set α} :
   (⋂ i ∈ S, s i ‹_›) ∈ l ↔  ∀ i ∈ S, s i ‹_› ∈ l :=
 begin
   rw [bInter_eq_Inter],
@@ -54,7 +54,7 @@ by simpa only [filter.eventually, set_of_forall]
 lemma eventually_countable_ball {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
   (∀ᶠ x in l, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᶠ x in l, p x i ‹_› :=
 by simpa only [filter.eventually, set_of_forall]
-  using @countable_bInter_mem_sets _ _ l _ _ hS (λ i hi, {x | p x i hi})
+  using @countable_bInter_mem _ _ l _ _ hS (λ i hi, {x | p x i hi})
 
 lemma eventually_le.countable_Union [encodable ι] {s t : ι → set α} (h : ∀ i, s i ≤ᶠ[l] t i) :
   (⋃ i, s i) ≤ᶠ[l] ⋃ i, t i :=
@@ -118,11 +118,11 @@ instance countable_Inter_filter_inf (l₁ l₂ : filter α) [countable_Inter_fil
 begin
   refine ⟨λ S hSc hS, _⟩,
   choose s hs t ht hst using hS,
-  replace hs : (⋂ i ∈ S, s i ‹_›) ∈ l₁ := (countable_bInter_mem_sets hSc).2 hs,
-  replace ht : (⋂ i ∈ S, t i ‹_›) ∈ l₂ := (countable_bInter_mem_sets hSc).2 ht,
-  refine mem_sets_of_superset (inter_mem_inf_sets hs ht) (subset_sInter $ λ i hi, _),
-  refine subset.trans (inter_subset_inter _ _) (hst i hi);
-    exact Inter_subset_of_subset i (Inter_subset _ _)
+  replace hs : (⋂ i ∈ S, s i ‹_›) ∈ l₁ := (countable_bInter_mem hSc).2 hs,
+  replace ht : (⋂ i ∈ S, t i ‹_›) ∈ l₂ := (countable_bInter_mem hSc).2 ht,
+  refine mem_of_superset (inter_mem_inf hs ht) (subset_sInter $ λ i hi, _),
+  rw hst i hi,
+  apply inter_subset_inter ; exact Inter_subset_of_subset i (Inter_subset _ _)
 end
 
 /-- Supremum of two `countable_Inter_filter`s is a `countable_Inter_filter`. -/

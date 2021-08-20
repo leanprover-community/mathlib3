@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison, Adam Topaz.
+Authors: Scott Morrison, Adam Topaz
 -/
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra
@@ -11,7 +11,8 @@ import data.equiv.transfer_instance
 /-!
 # Free Algebras
 
-Given a commutative semiring `R`, and a type `X`, we construct the free `R`-algebra on `X`.
+Given a commutative semiring `R`, and a type `X`, we construct the free unital, associative
+`R`-algebra on `X`.
 
 ## Notation
 

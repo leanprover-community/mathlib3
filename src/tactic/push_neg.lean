@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Patrick Massot All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Patrick Massot, Simon Hudon
+Authors: Patrick Massot, Simon Hudon
 
 A tactic pushing negations into an expression
 -/
@@ -180,8 +180,10 @@ Transforms the goal into its contrapositive.
 * `contrapose! h`  first reverts the local assumption `h`, and then uses `contrapose!` and `intro h`
 * `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 -/
-meta def tactic.interactive.contrapose (push : parse (tk "!" )?) : parse name_with_opt? → tactic unit
-| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >> intro (h'.get_or_else h) >> skip
+meta def tactic.interactive.contrapose (push : parse (tk "!" )?) :
+  parse name_with_opt? → tactic unit
+| (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >>
+  intro (h'.get_or_else h) >> skip
 | none :=
   do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
   cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail "contrapose only applies to nondependent arrows between props",

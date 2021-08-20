@@ -1,15 +1,15 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Kenny Lau
+Authors: Johannes Hölzl, Kenny Lau
 -/
-import data.dfinsupp
-import linear_algebra.basic
+import data.finsupp.to_dfinsupp
+import linear_algebra.basis
 
 /-!
-# Properties of the semimodule `Π₀ i, M i`
+# Properties of the module `Π₀ i, M i`
 
-Given an indexed collection of `R`-semimodules `M i`, the `R`-semimodule structure on `Π₀ i, M i`
+Given an indexed collection of `R`-modules `M i`, the `R`-module structure on `Π₀ i, M i`
 is defined in `data.dfinsupp`.
 
 In this file we define `linear_map` versions of various maps:
@@ -29,14 +29,14 @@ much more developed, but many lemmas in that file should be eligible to copy ove
 
 ## Tags
 
-function with finite support, semimodule, linear algebra
+function with finite support, module, linear algebra
 -/
 
 variables {ι : Type*} {R : Type*} {S : Type*} {M : ι → Type*} {N : Type*}
 
 variables [dec_ι : decidable_eq ι]
-variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
-variables [add_comm_monoid N] [semimodule R N]
+variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, module R (M i)]
+variables [add_comm_monoid N] [module R N]
 
 namespace dfinsupp
 
@@ -44,11 +44,11 @@ include dec_ι
 
 /-- `dfinsupp.mk` as a `linear_map`. -/
 def lmk (s : finset ι) : (Π i : (↑s : set ι), M i) →ₗ[R] Π₀ i, M i :=
-⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul R x]⟩
+{ to_fun := mk s, map_add' := λ _ _, mk_add, map_smul' := λ c x, mk_smul R x }
 
 /-- `dfinsupp.single` as a `linear_map` -/
 def lsingle (i) : M i →ₗ[R] Π₀ i, M i :=
-⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
+{ to_fun := single i, map_smul' := λ r x, single_smul _, .. dfinsupp.single_add_hom _ _ }
 
 /-- Two `R`-linear maps from `Π₀ i, M i` which agree on each `single i x` agree everywhere. -/
 lemma lhom_ext ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄
@@ -87,19 +87,19 @@ section lsum
 
 /-- Typeclass inference can't find `dfinsupp.add_comm_monoid` without help for this case.
 This instance allows it to be found where it is needed on the LHS of the colon in
-`dfinsupp.semimodule_of_linear_map`. -/
+`dfinsupp.module_of_linear_map`. -/
 instance add_comm_monoid_of_linear_map : add_comm_monoid (Π₀ (i : ι), M i →ₗ[R] N) :=
 @dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _
 
-/-- Typeclass inference can't find `dfinsupp.semimodule` without help for this case.
+/-- Typeclass inference can't find `dfinsupp.module` without help for this case.
 This is needed to define `dfinsupp.lsum` below.
 
 The cause seems to be an inability to unify the `Π i, add_comm_monoid (M i →ₗ[R] N)` instance that
 we have with the `Π i, has_zero (M i →ₗ[R] N)` instance which appears as a parameter to the
 `dfinsupp` type. -/
-instance semimodule_of_linear_map [semiring S] [semimodule S N] [smul_comm_class R S N] :
-  semimodule S (Π₀ (i : ι), M i →ₗ[R] N) :=
-@dfinsupp.semimodule _ (λ i, M i →ₗ[R] N) _ _ _ _
+instance module_of_linear_map [semiring S] [module S N] [smul_comm_class R S N] :
+  module S (Π₀ (i : ι), M i →ₗ[R] N) :=
+@dfinsupp.module _ (λ i, M i →ₗ[R] N) _ _ _ _
 
 variables (S)
 
@@ -108,8 +108,8 @@ include dec_ι
 /-- The `dfinsupp` version of `finsupp.lsum`.
 
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
-@[simps apply symm_apply]
-def lsum [semiring S] [semimodule S N] [smul_comm_class R S N] :
+@[simps]
+def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
     to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
@@ -129,4 +129,120 @@ def lsum [semiring S] [semimodule S N] [smul_comm_class R S N] :
 
 end lsum
 
+/-! ### Bundled versions of `dfinsupp.map_range`
+
+The names should match the equivalent bundled `finsupp.map_range` definitions.
+-/
+
+section map_range
+
+variables {β β₁ β₂: ι → Type*}
+variables [Π i, add_comm_monoid (β i)] [Π i, add_comm_monoid (β₁ i)] [Π i, add_comm_monoid (β₂ i)]
+variables [Π i, module R (β i)] [Π i, module R (β₁ i)] [Π i, module R (β₂ i)]
+
+lemma map_range_smul (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
+  (r : R) (hf' : ∀ i x, f i (r • x) = r • f i x) (g : Π₀ i, β₁ i):
+  map_range f hf (r • g) = r • map_range f hf g :=
+begin
+  ext,
+  simp only [map_range_apply f, coe_smul, pi.smul_apply, hf']
+end
+
+/-- `dfinsupp.map_range` as an `linear_map`. -/
+@[simps apply]
+def map_range.linear_map (f : Π i, β₁ i →ₗ[R] β₂ i) : (Π₀ i, β₁ i) →ₗ[R] (Π₀ i, β₂ i) :=
+{ to_fun := map_range (λ i x, f i x) (λ i, (f i).map_zero),
+  map_smul' := λ r, map_range_smul _ _ _ (λ i, (f i).map_smul r),
+  .. map_range.add_monoid_hom (λ i, (f i).to_add_monoid_hom) }
+
+@[simp]
+lemma map_range.linear_map_id :
+  map_range.linear_map (λ i, (linear_map.id : (β₂ i) →ₗ[R] _)) = linear_map.id :=
+linear_map.ext map_range_id
+
+lemma map_range.linear_map_comp (f : Π i, β₁ i →ₗ[R] β₂ i) (f₂ : Π i, β i →ₗ[R] β₁ i):
+  map_range.linear_map (λ i, (f i).comp (f₂ i)) =
+    (map_range.linear_map f).comp (map_range.linear_map f₂) :=
+linear_map.ext $ map_range_comp (λ i x, f i x) (λ i x, f₂ i x) _ _ _
+
+/-- `dfinsupp.map_range.linear_map` as an `linear_equiv`. -/
+@[simps apply]
+def map_range.linear_equiv (e : Π i, β₁ i ≃ₗ[R] β₂ i) : (Π₀ i, β₁ i) ≃ₗ[R] (Π₀ i, β₂ i) :=
+{ to_fun := map_range (λ i x, e i x) (λ i, (e i).map_zero),
+  inv_fun := map_range (λ i x, (e i).symm x) (λ i, (e i).symm.map_zero),
+  .. map_range.add_equiv (λ i, (e i).to_add_equiv),
+  .. map_range.linear_map (λ i, (e i).to_linear_map) }
+
+@[simp]
+lemma map_range.linear_equiv_refl :
+  (map_range.linear_equiv $ λ i, linear_equiv.refl R (β₁ i)) = linear_equiv.refl _ _ :=
+linear_equiv.ext map_range_id
+
+lemma map_range.linear_equiv_trans (f : Π i, β i ≃ₗ[R] β₁ i) (f₂ : Π i, β₁ i ≃ₗ[R] β₂ i):
+  map_range.linear_equiv (λ i, (f i).trans (f₂ i)) =
+    (map_range.linear_equiv f).trans (map_range.linear_equiv f₂) :=
+linear_equiv.ext $ map_range_comp (λ i x, f₂ i x) (λ i x, f i x) _ _ _
+
+@[simp]
+lemma map_range.linear_equiv_symm (e : Π i, β₁ i ≃ₗ[R] β₂ i) :
+  (map_range.linear_equiv e).symm = map_range.linear_equiv (λ i, (e i).symm) := rfl
+
+end map_range
+
+section basis
+
+/-- The direct sum of free modules is free.
+
+Note that while this is stated for `dfinsupp` not `direct_sum`, the types are defeq. -/
+noncomputable def basis {η : ι → Type*} (b : Π i, basis (η i) R (M i)) :
+  basis (Σ i, η i) R (Π₀ i, M i) :=
+basis.of_repr ((map_range.linear_equiv (λ i, (b i).repr)).trans
+  (sigma_finsupp_lequiv_dfinsupp R).symm)
+
+end basis
+
 end dfinsupp
+
+include dec_ι
+
+namespace submodule
+
+lemma dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
+  [Π i (x : β i), decidable (x ≠ 0)] (S : submodule R N)
+  (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_mem f g h
+
+lemma dfinsupp_sum_add_hom_mem {β : ι → Type*} [Π i, add_zero_class (β i)]
+  (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i →+ N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
+  dfinsupp.sum_add_hom g f ∈ S :=
+S.to_add_submonoid.dfinsupp_sum_add_hom_mem f g h
+
+/-- The supremum of a family of submodules is equal to the range of `dfinsupp.lsum`; that is
+every element in the `supr` can be produced from taking a finite number of non-zero elements
+of `p i`, coercing them to `N`, and summing them. -/
+lemma supr_eq_range_dfinsupp_lsum (p : ι → submodule R N) :
+  supr p = (dfinsupp.lsum ℕ (λ i, (p i).subtype)).range :=
+begin
+  apply le_antisymm,
+  { apply supr_le _,
+    intros i y hy,
+    exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
+  { rintros x ⟨v, rfl⟩,
+    exact dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
+end
+
+lemma mem_supr_iff_exists_dfinsupp (p : ι → submodule R N) (x : N) :
+  x ∈ supr p ↔ ∃ f : Π₀ i, p i, dfinsupp.lsum ℕ (λ i, (p i).subtype) f = x :=
+set_like.ext_iff.mp (supr_eq_range_dfinsupp_lsum p) x
+
+/-- A variant of `submodule.mem_supr_iff_exists_dfinsupp` with the RHS fully unfolded. -/
+lemma mem_supr_iff_exists_dfinsupp' (p : ι → submodule R N) [Π i (x : p i), decidable (x ≠ 0)]
+  (x : N) :
+  x ∈ supr p ↔ ∃ f : Π₀ i, p i, f.sum (λ i xi, ↑xi) = x :=
+begin
+  rw mem_supr_iff_exists_dfinsupp,
+  simp_rw [dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply],
+  congr',
+end
+
+end submodule

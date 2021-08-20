@@ -9,6 +9,53 @@ import tactic.basic
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
+section ne_imp
+
+variable {r : α → α → Prop}
+
+lemma is_refl.reflexive [is_refl α r] : reflexive r :=
+λ x, is_refl.refl x
+
+/-- To show a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+it suffices to show it holds when `x ≠ y`. -/
+lemma reflexive.rel_of_ne_imp (h : reflexive r) {x y : α} (hr : x ≠ y → r x y) : r x y :=
+begin
+  by_cases hxy : x = y,
+  { exact hxy ▸ h x },
+  { exact hr hxy }
+end
+
+/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+then it holds whether or not `x ≠ y`. -/
+lemma reflexive.ne_imp_iff (h : reflexive r) {x y : α} :
+  (x ≠ y → r x y) ↔ r x y :=
+⟨h.rel_of_ne_imp, λ hr _, hr⟩
+
+/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+then it holds whether or not `x ≠ y`. Unlike `reflexive.ne_imp_iff`, this uses `[is_refl α r]`. -/
+lemma reflexive_ne_imp_iff [is_refl α r] {x y : α} :
+  (x ≠ y → r x y) ↔ r x y :=
+is_refl.reflexive.ne_imp_iff
+
+protected lemma symmetric.iff (H : symmetric r) (x y : α) : r x y ↔ r y x := ⟨λ h, H h, λ h, H h⟩
+
+end ne_imp
+
+section comap
+
+variables {r : β → β → Prop}
+
+lemma reflexive.comap (h : reflexive r) (f : α → β) : reflexive (r on f) :=
+λ a, h (f a)
+
+lemma symmetric.comap (h : symmetric r) (f : α → β) : symmetric (r on f) :=
+λ a b hab, h hab
+
+lemma transitive.comap (h : transitive r) (f : α → β) : transitive (r on f) :=
+λ a b c hab hbc, h hab hbc
+
+end comap
+
 namespace relation
 
 section comp

@@ -55,11 +55,18 @@ lemma mul_left (ha : semiconj_by a y z) (hb : semiconj_by b x y) :
   semiconj_by (a * b) x z :=
 by unfold semiconj_by; assoc_rw [hb.eq, ha.eq, mul_assoc]
 
+/-- The relation “there exists an element that semiconjugates `a` to `b`” on a semigroup
+is transitive. -/
+@[to_additive "The relation “there exists an element that semiconjugates `a` to `b`” on an additive
+semigroup is transitive."]
+protected lemma transitive : transitive (λ a b : S, ∃ c, semiconj_by c a b) :=
+λ a b c ⟨x, hx⟩ ⟨y, hy⟩, ⟨y * x, hy.mul_left hx⟩
+
 end semigroup
 
-section monoid
+section mul_one_class
 
-variables {M : Type u} [monoid M]
+variables {M : Type u} [mul_one_class M]
 
 /-- Any element semiconjugates `1` to `1`. -/
 @[simp, to_additive]
@@ -68,6 +75,19 @@ lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_
 /-- One semiconjugates any element to itself. -/
 @[simp, to_additive]
 lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x
+
+/-- The relation “there exists an element that semiconjugates `a` to `b`” on a monoid (or, more
+generally, on ` mul_one_class` type) is reflexive. -/
+@[to_additive "The relation “there exists an element that semiconjugates `a` to `b`” on an additive
+monoid (or, more generally, on a `add_zero_class` type) is reflexive."]
+protected lemma reflexive : reflexive (λ a b : M, ∃ c, semiconj_by c a b) :=
+λ a, ⟨1, one_left a⟩
+
+end mul_one_class
+
+section monoid
+
+variables {M : Type u} [monoid M]
 
 /-- If `a` semiconjugates a unit `x` to a unit `y`, then it semiconjugates `x⁻¹` to `y⁻¹`. -/
 @[to_additive] lemma units_inv_right {a : M} {x y : units M} (h : semiconj_by a x y) :
@@ -134,6 +154,11 @@ by unfold semiconj_by; rw [mul_assoc, inv_mul_self, mul_one]
 end group
 
 end semiconj_by
+
+@[simp, to_additive add_semiconj_by_iff_eq]
+lemma semiconj_by_iff_eq {M : Type u} [cancel_comm_monoid M] {a x y : M} :
+  semiconj_by a x y ↔ x = y :=
+⟨λ h, mul_left_cancel (h.trans (mul_comm _ _)), λ h, by rw [h, semiconj_by, mul_comm] ⟩
 
 /-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
 @[to_additive]

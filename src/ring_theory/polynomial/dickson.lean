@@ -7,7 +7,7 @@ Authors: Julian Kuelshammer
 import ring_theory.polynomial.chebyshev
 import ring_theory.localization
 import data.zmod.basic
-import algebra.invertible
+import algebra.char_p.invertible
 
 
 /-!
@@ -62,7 +62,7 @@ noncomputable def dickson : ℕ → polynomial R
 @[simp] lemma dickson_zero : dickson k a 0 = 3 - k := rfl
 @[simp] lemma dickson_one : dickson k a 1 = X := rfl
 lemma dickson_two : dickson k a 2 = X ^ 2 - C a * (3 - k) :=
-by simp only [dickson, pow_two]
+by simp only [dickson, sq]
 @[simp] lemma dickson_add_two (n : ℕ) :
   dickson k a (n + 2) = X * dickson k a (n + 1) - C a * dickson k a n :=
 by rw dickson
@@ -127,24 +127,24 @@ end
 
 variables (R)
 
-lemma dickson_one_one_eq_chebyshev₁ [invertible (2 : R)] :
-  ∀ n, dickson 1 (1 : R) n = 2 * (chebyshev₁ R n).comp (C (⅟2) * X)
-| 0       := by { simp only [chebyshev₁_zero, mul_one, one_comp, dickson_zero], norm_num }
-| 1       := by rw [dickson_one, chebyshev₁_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
+lemma dickson_one_one_eq_chebyshev_T [invertible (2 : R)] :
+  ∀ n, dickson 1 (1 : R) n = 2 * (chebyshev.T R n).comp (C (⅟2) * X)
+| 0       := by { simp only [chebyshev.T_zero, mul_one, one_comp, dickson_zero], norm_num }
+| 1       := by rw [dickson_one, chebyshev.T_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
                     mul_inv_of_self, C_1, one_mul]
 | (n + 2) :=
 begin
-  simp only [dickson_add_two, chebyshev₁_add_two, dickson_one_one_eq_chebyshev₁ (n + 1),
-    dickson_one_one_eq_chebyshev₁ n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
+  simp only [dickson_add_two, chebyshev.T_add_two, dickson_one_one_eq_chebyshev_T (n + 1),
+    dickson_one_one_eq_chebyshev_T n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
   simp only [← C_1, ← C_bit0, ← mul_assoc, ← C_mul, mul_inv_of_self],
   rw [C_1, one_mul],
   ring
 end
 
-lemma chebyshev₁_eq_dickson_one_one [invertible (2 : R)] (n : ℕ) :
-  chebyshev₁ R n = C (⅟2) * (dickson 1 1 n).comp (2 * X) :=
+lemma chebyshev_T_eq_dickson_one_one [invertible (2 : R)] (n : ℕ) :
+  chebyshev.T R n = C (⅟2) * (dickson 1 1 n).comp (2 * X) :=
 begin
-  rw dickson_one_one_eq_chebyshev₁,
+  rw dickson_one_one_eq_chebyshev_T,
   simp only [comp_assoc, mul_comp, C_comp, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul],
   rw [inv_of_mul_self, C_1, one_mul, one_mul, comp_X]
 end
@@ -161,7 +161,7 @@ begin
   congr' 1,
   apply map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [map_dickson, map_comp, ring_hom.eq_int_cast, int.cast_one,
-    dickson_one_one_eq_chebyshev₁, chebyshev₁_mul, two_mul, ← add_comp],
+    dickson_one_one_eq_chebyshev_T, chebyshev.T_mul, two_mul, ← add_comp],
   simp only [← two_mul, ← comp_assoc],
   apply eval₂_congr rfl rfl,
   rw [comp_assoc],
@@ -184,10 +184,11 @@ begin
   -- For this argument, we need an arbitrary infinite field of characteristic `p`.
   obtain ⟨K, _, _, H⟩ : ∃ (K : Type) [field K], by exactI ∃ [char_p K p], infinite K,
   { let K := fraction_ring (polynomial (zmod p)),
-    let f : zmod p →+* K := (fraction_ring.of _).to_map.comp C,
-    haveI : char_p K p := by { rw ← f.char_p_iff_char_p, apply_instance },
+    let f : zmod p →+* K := (algebra_map _ (fraction_ring _)).comp C,
+    haveI : char_p K p, { rw ← f.char_p_iff_char_p, apply_instance },
     haveI : infinite K :=
-    by { apply infinite.of_injective _ (fraction_ring.of _).injective, apply_instance },
+    infinite.of_injective (algebra_map (polynomial (zmod p)) (fraction_ring (polynomial (zmod p))))
+      (is_fraction_ring.injective _ _),
     refine ⟨K, _, _, _⟩; apply_instance },
   resetI,
   apply map_injective (zmod.cast_hom (dvd_refl p) K) (ring_hom.injective _),
@@ -211,15 +212,14 @@ begin
     suffices : (set.univ : set K) =
       {x : K | ∃ (y : K), x = y + y⁻¹ ∧ y ≠ 0} >>= (λ x, {y | x = y + y⁻¹ ∨ y = 0}),
     { rw this, clear this,
-      apply set.finite_bUnion h,
-      rintro x hx,
+      refine h.bUnion (λ x hx, _),
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
       let φ : polynomial K := X ^ 2 - C x * X + 1,
       have hφ : φ ≠ 0,
       { intro H,
         have : φ.eval 0 = 0, by rw [H, eval_zero],
         simpa [eval_X, eval_one, eval_pow, eval_sub, sub_zero, eval_add,
-          eval_mul, mul_zero, pow_two, zero_add, one_ne_zero] },
+          eval_mul, mul_zero, sq, zero_add, one_ne_zero] },
       classical,
       convert (φ.roots ∪ {0}).to_finset.finite_to_set using 1,
       ext1 y,

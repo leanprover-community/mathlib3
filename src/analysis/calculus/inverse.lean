@@ -314,19 +314,20 @@ lemma image_mem_nhds (hf : approximates_linear_on f f' s c) (f'symm : f'.nonline
   {x : E} (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
   f '' s ∈ 𝓝 (f x) :=
 begin
-  obtain ⟨t, hts, ht, xt⟩ : ∃ t ⊆ s, is_open t ∧ x ∈ t := mem_nhds_sets_iff.1 hs,
-  have := mem_nhds_sets ((hf.mono_set hts).open_image f'symm ht hc) (mem_image_of_mem _ xt),
-  exact mem_sets_of_superset this (image_subset _ hts),
+  obtain ⟨t, hts, ht, xt⟩ : ∃ t ⊆ s, is_open t ∧ x ∈ t := _root_.mem_nhds_iff.1 hs,
+  have := is_open.mem_nhds ((hf.mono_set hts).open_image f'symm ht hc) (mem_image_of_mem _ xt),
+  exact mem_of_superset this (image_subset _ hts),
 end
 
 lemma map_nhds_eq (hf : approximates_linear_on f f' s c) (f'symm : f'.nonlinear_right_inverse)
   {x : E} (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
   map f (𝓝 x) = 𝓝 (f x) :=
 begin
-  refine le_antisymm ((hf.continuous_on x (mem_of_nhds hs)).continuous_at hs) (le_map (λ t ht, _)),
+  refine le_antisymm ((hf.continuous_on x (mem_of_mem_nhds hs)).continuous_at hs)
+    (le_map (λ t ht, _)),
   have : f '' (s ∩ t) ∈ 𝓝 (f x) := (hf.mono_set (inter_subset_left s t)).image_mem_nhds
-    f'symm (inter_mem_sets hs ht) hc,
-  exact mem_sets_of_superset this (image_subset _ (inter_subset_right _ _)),
+    f'symm (inter_mem hs ht) hc,
+  exact mem_of_superset this (image_subset _ (inter_subset_right _ _)),
 end
 
 end locally_onto
@@ -392,7 +393,7 @@ def to_local_homeomorph (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c
 { to_local_equiv := hf.to_local_equiv hc,
   open_source := hs,
   open_target := hf.open_image f'.to_nonlinear_right_inverse hs
-    (by rwa f'.to_linear_equiv.to_equiv.subsingleton_iff at hc),
+    (by rwa f'.to_linear_equiv.to_equiv.subsingleton_congr at hc),
   continuous_to_fun := hf.continuous_on,
   continuous_inv_fun := hf.inverse_continuous_on hc }
 
@@ -436,7 +437,7 @@ lemma approximates_deriv_on_nhds {f : E → F} {f' : E →L[𝕜] F} {a : E}
   ∃ s ∈ 𝓝 a, approximates_linear_on f f' s c :=
 begin
   cases hc with hE hc,
-  { refine ⟨univ, mem_nhds_sets is_open_univ trivial, λ x hx y hy, _⟩,
+  { refine ⟨univ, is_open.mem_nhds is_open_univ trivial, λ x hx y hy, _⟩,
     simp [@subsingleton.elim E hE x y] },
   have := hf.def hc,
   rw [nhds_prod_eq, filter.eventually, mem_prod_same_iff] at this,

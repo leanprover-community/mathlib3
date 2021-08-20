@@ -57,6 +57,9 @@ attribute [instance] concrete_category.forget_faithful
 @[reducible] def forget (C : Type v) [category C] [concrete_category.{u} C] : C ⥤ Type u :=
 concrete_category.forget C
 
+instance concrete_category.types : concrete_category (Type u) :=
+{ forget := 𝟭 _ }
+
 /--
 Provide a coercion to `Type u` for a concrete category. This is not marked as an instance
 as it could potentially apply to every type, and so is too expensive in typeclass search.
@@ -86,7 +89,7 @@ def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) :=
 local attribute [instance] concrete_category.has_coe_to_fun
 
 /-- In any concrete category, we can test equality of morphisms by pointwise evaluations.-/
-lemma concrete_category.hom_ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x  = g x) : f = g :=
+lemma concrete_category.hom_ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x = g x) : f = g :=
 begin
   apply faithful.map_injective (forget C),
   ext,
@@ -95,10 +98,24 @@ end
 
 @[simp] lemma forget_map_eq_coe {X Y : C} (f : X ⟶ Y) : (forget C).map f = f := rfl
 
-@[simp] lemma coe_id {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
+/--
+Analogue of `congr_fun h x`,
+when `h : f = g` is an equality between morphisms in a concrete category.
+-/
+lemma congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
+congr_fun (congr_arg (λ k : X ⟶ Y, (k : X → Y)) h) x
+
+lemma coe_id {X : C} : ((𝟙 X) : X → X) = id :=
+(forget _).map_id X
+
+lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g : X → Z) = g ∘ f :=
+(forget _).map_comp f g
+
+@[simp] lemma id_apply {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
 congr_fun ((forget _).map_id X) x
 
-@[simp] lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+@[simp] lemma comp_apply {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
 
@@ -108,6 +125,12 @@ congr_fun ((forget C).map_iso f).hom_inv_id x
 @[simp] lemma coe_inv_hom_id {X Y : C} (f : X ≅ Y) (y : Y) :
   f.hom (f.inv y) = y :=
 congr_fun ((forget C).map_iso f).inv_hom_id y
+
+lemma concrete_category.congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
+congr_fun (congr_arg (λ f : X ⟶ Y, (f : X → Y)) h) x
+
+lemma concrete_category.congr_arg {X Y : C} (f : X ⟶ Y) {x x' : X} (h : x = x') : f x = f x' :=
+congr_arg (f : X → Y) h
 
 /-- In any concrete category, injective morphisms are monomorphisms. -/
 lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.injective f) :
@@ -119,10 +142,11 @@ lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.
   epi f :=
 faithful_reflects_epi (forget C) ((epi_iff_surjective f).2 s)
 
-end
+@[simp] lemma concrete_category.has_coe_to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
+  coe_fn f = f :=
+rfl
 
-instance concrete_category.types : concrete_category (Type u) :=
-{ forget := 𝟭 _ }
+end
 
 /--
 `has_forget₂ C D`, where `C` and `D` are both concrete categories, provides a functor

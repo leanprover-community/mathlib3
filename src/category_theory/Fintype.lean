@@ -82,11 +82,11 @@ instance : full incl := { preimage := λ _ _ f, f }
 instance : faithful incl := {}
 instance : ess_surj incl :=
 { mem_ess_image := λ X,
-  let F := trunc.out (fintype.equiv_fin X) in
+  let F := fintype.equiv_fin X in
   ⟨fintype.card X, ⟨⟨F.symm, F, F.self_comp_symm, F.symm_comp_self⟩⟩⟩ }
 
 noncomputable instance : is_equivalence incl :=
-equivalence.equivalence_of_fully_faithfully_ess_surj _
+equivalence.of_fully_faithfully_ess_surj _
 
 /-- The equivalence between `Fintype.skeleton` and `Fintype`. -/
 noncomputable def equivalence : skeleton ≌ Fintype := incl.as_equivalence

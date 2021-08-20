@@ -3,26 +3,25 @@ import data.nat.prime
 import data.zmod.basic
 
 /-- fermat's primality test -/
-def primality_test (p : ℕ) (h : fact (0 < p)) : rand bool :=
+def primality_test (p : ℕ) : rand bool :=
 if h : 2 ≤ p-1 then do
   n ← rand.random_r 2 (p-1) h,
-  return $ (n : zmod p)^(p-1) = 1 -- we do arithmetic with `zmod n` so that modulo and multiplication are interleaved
+  -- we do arithmetic with `zmod n` so that modulo and multiplication are interleaved
+  return $ (n : zmod p)^(p-1) = 1
 else return (p = 2)
 
 /-- `iterated_primality_test_aux p h n` generating `n` candidate witnesses that `p` is a
 composite number and concludes that `p` is prime if none of them is a valid witness  -/
-def iterated_primality_test_aux (p : ℕ) (h : fact (0 < p)) : ℕ → rand bool
+def iterated_primality_test_aux (p : ℕ) : ℕ → rand bool
 | 0 := pure tt
 | (n+1) := do
-  b ← primality_test p h,
+  b ← primality_test p,
   if b
     then iterated_primality_test_aux n
     else pure ff
 
 def iterated_primality_test (p : ℕ) : rand bool :=
-if h : 0 < p
-  then iterated_primality_test_aux p h 10
-  else pure ff
+iterated_primality_test_aux p 10
 
 /-- `find_prime_aux p h n` generates a candidate prime number, tests
 it as well as the 19 odd numbers following it. If none of them is
@@ -32,7 +31,8 @@ def find_prime_aux (p : ℕ) (h : 1 ≤ p / 2) : ℕ → rand (option ℕ)
 | (n+1) := do
   k ← rand.random_r 1 (p / 2) h,
   let xs := (list.range' k 20).map (λ i, 2*i+1),
-  some r ← option_t.run $ xs.mfirst (λ n, option_t.mk $ mcond (iterated_primality_test n) (pure (some n)) (pure none))
+  some r ← option_t.run $
+    xs.mfirst (λ n, option_t.mk $ mcond (iterated_primality_test n) (pure (some n)) (pure none))
     | find_prime_aux n,
   pure r
 

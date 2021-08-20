@@ -82,7 +82,7 @@ lemma strong_epi_of_strong_epi [strong_epi (f ≫ g)] : strong_epi g :=
 end
 
 /-- A strong epimorphism that is a monomorphism is an isomorphism. -/
-noncomputable def is_iso_of_mono_of_strong_epi (f : P ⟶ Q) [mono f] [strong_epi f] : is_iso f :=
-{ inv := arrow.lift $ arrow.hom_mk' $ show 𝟙 P ≫ f = f ≫ 𝟙 Q, by simp }
+lemma is_iso_of_mono_of_strong_epi (f : P ⟶ Q) [mono f] [strong_epi f] : is_iso f :=
+⟨⟨arrow.lift $ arrow.hom_mk' $ show 𝟙 P ≫ f = f ≫ 𝟙 Q, by simp, by tidy⟩⟩
 
 end category_theory

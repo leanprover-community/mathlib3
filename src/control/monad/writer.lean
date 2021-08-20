@@ -150,7 +150,8 @@ implementing `monad_functor`.
 Note: This class can be seen as a simplification of the more "principled" definition
 ```
 class monad_reader_functor (ρ ρ' : out_param (Type u)) (n n' : Type u → Type u) :=
-(map {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
+(map {α : Type u} :
+  (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
 ```
 -/
 class monad_writer_adapter (ω ω' : out_param (Type u)) (m m' : Type u → Type v) :=

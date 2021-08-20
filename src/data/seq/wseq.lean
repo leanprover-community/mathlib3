@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.seq.seq
 import data.dlist
@@ -378,7 +378,7 @@ theorem lift_rel_destruct_iff {R : α → β → Prop} {s : wseq α} {t : wseq �
     intros s t, apply or.inl
   end⟩⟩
 
-infix ~ := equiv
+infix ` ~ `:50 := equiv
 
 theorem destruct_congr {s t : wseq α} :
   s ~ t → computation.lift_rel (bisim_o (~)) (destruct s) (destruct t) :=

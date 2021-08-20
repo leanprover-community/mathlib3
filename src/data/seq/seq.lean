@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.list.basic
 import data.stream
@@ -233,7 +233,7 @@ instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
 section bisim
   variable (R : seq α → seq α → Prop)
 
-  local infix ~ := R
+  local infix ` ~ `:50 := R
 
   def bisim_o : option (seq1 α) → option (seq1 α) → Prop
   | none          none            := true

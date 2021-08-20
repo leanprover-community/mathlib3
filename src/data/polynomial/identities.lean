@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.derivative
+import tactic.ring_exp
 
 /-!
 # Theory of univariate polynomials
@@ -61,7 +62,7 @@ private lemma poly_binom_aux3 (f : polynomial R) (x y : R) : f.eval (x + y) =
   f.sum (λ e a, a * x^e) +
   f.sum (λ e a, (a * e * x^(e-1)) * y) +
   f.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
-by rw poly_binom_aux2; simp [left_distrib, finsupp.sum_add, mul_assoc]
+by { rw poly_binom_aux2, simp [left_distrib, sum_add, mul_assoc] }
 
 def binom_expansion (f : polynomial R) (x y : R) :
   {k : R // f.eval (x + y) = f.eval x + (f.derivative.eval x) * y + k * y^2} :=
@@ -70,9 +71,8 @@ begin
   rw poly_binom_aux3,
   congr,
   { rw [←eval_eq_sum], },
-  { rw derivative_eval, symmetry,
-    apply finsupp.sum_mul },
-  { symmetry, apply finsupp.sum_mul }
+  { rw derivative_eval, exact finset.sum_mul.symm },
+  { exact finset.sum_mul.symm }
 end
 
 def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - y)}
@@ -93,10 +93,9 @@ def eval_sub_factor (f : polynomial R) (x y : R) :
 begin
   refine ⟨f.sum (λ i r, r * (pow_sub_pow_factor x y i).val), _⟩,
   delta eval eval₂,
-  rw ← finsupp.sum_sub,
-  rw finsupp.sum_mul,
-  delta finsupp.sum,
-  congr' with i r, dsimp,
+  simp only [sum, ← finset.sum_sub_distrib, finset.sum_mul],
+  dsimp,
+  congr' with i r,
   rw [mul_assoc, ←(pow_sub_pow_factor x y _).prop, mul_sub],
 end
 

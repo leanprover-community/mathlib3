@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import topology.instances.ennreal
 
@@ -210,7 +210,7 @@ begin
   { simp only [← ennreal.tsum_mul_left, ← mul_assoc],
     refine tsum_congr (λ b, _),
     split_ifs with h1 h2 h2,
-    any_goals { ring },
+    any_goals { ring1 },
     { rw bind_on_support_eq_zero_iff at h1,
       simp only [h1 a' h, ennreal.coe_zero, zero_mul, mul_zero] },
     { simp only [h2, ennreal.coe_zero, mul_zero, zero_mul] } }
@@ -249,7 +249,7 @@ def seq (f : pmf (α → β)) (p : pmf α) : pmf β := f.bind (λ m, p.bind $ λ
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 ⟨λ a, s.count a / s.card,
   have ∑ a in s.to_finset, (s.count a : ℝ) / s.card = 1,
-    by simp [div_eq_inv_mul, finset.mul_sum.symm, (finset.sum_nat_cast _ _).symm, hs],
+    by simp [div_eq_inv_mul, finset.mul_sum.symm, (nat.cast_sum _ _).symm, hs],
   have ∑ a in s.to_finset, (s.count a : ℝ≥0) / s.card = 1,
     by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
   begin

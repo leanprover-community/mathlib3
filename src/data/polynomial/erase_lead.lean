@@ -3,8 +3,8 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.polynomial.degree
 import data.polynomial.degree.trailing_degree
+import data.polynomial.inductions
 
 /-!
 # Erase the leading term of a univariate polynomial
@@ -21,7 +21,7 @@ and thus works for polynomials over semirings as well as rings.
 noncomputable theory
 open_locale classical
 
-open polynomial finsupp finset
+open polynomial finset
 
 namespace polynomial
 
@@ -30,29 +30,27 @@ variables {R : Type*} [semiring R] {f : polynomial R}
 /-- `erase_lead f` for a polynomial `f` is the polynomial obtained by
 subtracting from `f` the leading term of `f`. -/
 def erase_lead (f : polynomial R) : polynomial R :=
-finsupp.erase f.nat_degree f
+polynomial.erase f.nat_degree f
 
 section erase_lead
 
 lemma erase_lead_support (f : polynomial R) :
   f.erase_lead.support = f.support.erase f.nat_degree :=
--- `rfl` fails because LHS uses `nat.decidable_eq` but RHS is classical.
-by convert rfl
+by simp only [erase_lead, support_erase]
 
 lemma erase_lead_coeff (i : ℕ) :
   f.erase_lead.coeff i = if i = f.nat_degree then 0 else f.coeff i :=
--- `rfl` fails because LHS uses `nat.decidable_eq` but RHS is classical.
-by convert rfl
+by simp only [erase_lead, coeff_erase]
 
 @[simp] lemma erase_lead_coeff_nat_degree : f.erase_lead.coeff f.nat_degree = 0 :=
-finsupp.erase_same
+by simp [erase_lead_coeff]
 
 lemma erase_lead_coeff_of_ne (i : ℕ) (hi : i ≠ f.nat_degree) :
   f.erase_lead.coeff i = f.coeff i :=
-finsupp.erase_ne hi
+by simp [erase_lead_coeff, hi]
 
 @[simp] lemma erase_lead_zero : erase_lead (0 : polynomial R) = 0 :=
-finsupp.erase_zero _
+by simp only [erase_lead, erase_zero]
 
 @[simp] lemma erase_lead_add_monomial_nat_degree_leading_coeff (f : polynomial R) :
   f.erase_lead + monomial f.nat_degree f.leading_coeff = f :=
@@ -78,13 +76,13 @@ by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
 
 lemma erase_lead_ne_zero (f0 : 2 ≤ f.support.card) : erase_lead f ≠ 0 :=
 begin
-  rw [ne.def, ← finsupp.card_support_eq_zero, erase_lead_support],
+  rw [ne.def, ← card_support_eq_zero, erase_lead_support],
   exact (zero_lt_one.trans_le $ (nat.sub_le_sub_right f0 1).trans
     finset.pred_card_le_card_erase).ne.symm
 end
 
 @[simp] lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
-by convert not_mem_erase _ _
+by simp [not_mem_support_iff]
 
 lemma ne_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
   a ≠ f.nat_degree :=
@@ -114,7 +112,7 @@ erase_lead_card_support fc
 begin
   by_cases hr : r = 0,
   { subst r, simp only [monomial_zero_right, erase_lead_zero] },
-  { rw [erase_lead, nat_degree_monomial _ _ hr], exact erase_single }
+  { rw [erase_lead, nat_degree_monomial _ _ hr, erase_monomial] }
 end
 
 @[simp] lemma erase_lead_C (r : R) : erase_lead (C r) = 0 :=
@@ -173,7 +171,11 @@ begin
   generalize' hd : card f.support = c,
   revert f,
   induction c with c hc,
-  { exact λ f df f0, by rwa (finsupp.support_eq_empty.mp (card_eq_zero.mp f0)) },
+  { assume f df f0,
+    convert P_0,
+    simpa only [support_eq_empty, card_eq_zero] using f0},
+
+ --   exact λ f df f0, by rwa (finsupp.support_eq_empty.mp (card_eq_zero.mp f0)) },
   { intros f df f0,
     rw ← erase_lead_add_C_mul_X_pow f,
     refine P_C_add f.erase_lead _ (erase_lead_nat_degree_le.trans df) _ _ _,

@@ -71,7 +71,7 @@ by simp [reverse]
 by simp [reverse]
 
 @[simp] lemma reverse.map_one : reverse (1 : clifford_algebra Q) = 1 :=
-reverse.commutes 1
+by convert reverse.commutes (1 : R); simp
 
 @[simp] lemma reverse.map_mul (a b : clifford_algebra Q) :
   reverse (a * b) = reverse b * reverse a :=

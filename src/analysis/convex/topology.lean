@@ -28,6 +28,7 @@ We prove the following facts:
 variables {ι : Type*} {E : Type*}
 
 open set
+open_locale pointwise
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex s ↔ is_preconnected s :=
 real.convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
@@ -60,7 +61,7 @@ lemma bounded_std_simplex : metric.bounded (std_simplex ι) :=
 
 /-- `std_simplex ι` is closed. -/
 lemma is_closed_std_simplex : is_closed (std_simplex ι) :=
-(std_simplex_eq_inter ι).symm ▸ is_closed_inter
+(std_simplex_eq_inter ι).symm ▸ is_closed.inter
   (is_closed_Inter $ λ i, is_closed_le continuous_const (continuous_apply i))
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
@@ -72,10 +73,10 @@ end std_simplex
 
 /-! ### Topological vector space -/
 
-section topological_vector_space
+section has_continuous_smul
 
-variables [add_comm_group E] [vector_space ℝ E] [topological_space E]
-  [topological_add_group E] [topological_vector_space ℝ E]
+variables [add_comm_group E] [module ℝ E] [topological_space E]
+  [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex.interior {s : set E} (hs : convex s) : convex (interior s) :=
@@ -85,10 +86,10 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
     by { rw ← image_smul,
-         exact (is_open_map_smul_of_ne_zero hne _ is_open_interior).add_left } )
+         exact (is_open_map_smul' hne _ is_open_interior).add_left } )
   (λ hne,
     by { rw ← image_smul,
-         exact (is_open_map_smul_of_ne_zero hne _ is_open_interior).add_right }),
+         exact (is_open_map_smul' hne _ is_open_interior).add_right }),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
     (by { simp only [← image_smul], apply add_subset_add; exact image_subset _ interior_subset })
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)
@@ -118,7 +119,26 @@ lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) 
   is_closed (convex_hull s) :=
 hs.compact_convex_hull.is_closed
 
-end topological_vector_space
+/-- If `x ∈ s` and `y ∈ interior s`, then the segment `(x, y]` is included in `interior s`. -/
+lemma convex.add_smul_sub_mem_interior {s : set E} (hs : convex s)
+  {x y : E} (hx : x ∈ s) (hy : y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
+  x + t • (y - x) ∈ interior s :=
+begin
+  let f := λ z, x + t • (z - x),
+  have : is_open_map f := (is_open_map_add_left _).comp
+    ((is_open_map_smul (units.mk0 _ ht.1.ne')).comp (is_open_map_sub_right _)),
+  apply mem_interior.2 ⟨f '' (interior s), _, this _ is_open_interior, mem_image_of_mem _ hy⟩,
+  refine image_subset_iff.2 (λ z hz, _),
+  exact hs.add_smul_sub_mem hx (interior_subset hz) ⟨ht.1.le, ht.2⟩,
+end
+
+/-- If `x ∈ s` and `x + y ∈ interior s`, then `x + t y ∈ interior s` for `t ∈ (0, 1]`. -/
+lemma convex.add_smul_mem_interior {s : set E} (hs : convex s)
+  {x y : E} (hx : x ∈ s) (hy : x + y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
+  x + t • y ∈ interior s :=
+by { convert hs.add_smul_sub_mem_interior hx hy ht, abel }
+
+end has_continuous_smul
 
 /-! ### Normed vector space -/
 
@@ -168,8 +188,7 @@ end
 @[simp] lemma convex_hull_ediam (s : set E) :
   emetric.diam (convex_hull s) = emetric.diam s :=
 begin
-  refine le_antisymm (emetric.diam_le_of_forall_edist_le $ λ x hx y hy, _)
-    (emetric.diam_mono $ subset_convex_hull s),
+  refine (emetric.diam_le $ λ x hx y hy, _).antisymm (emetric.diam_mono $ subset_convex_hull s),
   rcases convex_hull_exists_dist_ge2 hx hy with ⟨x', hx', y', hy', H⟩,
   rw edist_dist,
   apply le_trans (ennreal.of_real_le_of_real H),

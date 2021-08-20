@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Leonardo de Moura, Jeremy Avigad
+Authors: Leonardo de Moura, Jeremy Avigad
 -/
 
 /-!
@@ -194,5 +194,9 @@ by cases h; subst h; [cases b₁, cases b₀]; simp [to_nat,nat.zero_le]
 
 lemma of_nat_to_nat (b : bool) : of_nat (to_nat b) = b :=
 by cases b; simp only [of_nat,to_nat]; exact dec_trivial
+
+@[simp] lemma injective_iff {α : Sort*} {f : bool → α} : function.injective f ↔ f ff ≠ f tt :=
+⟨λ Hinj Heq, ff_ne_tt (Hinj Heq),
+  λ H x y hxy, by { cases x; cases y, exacts [rfl, (H hxy).elim, (H hxy.symm).elim, rfl] }⟩
 
 end bool

@@ -3,14 +3,15 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Benjamin Davidson
 -/
-import analysis.special_functions.pow
+import analysis.special_functions.integrals
 /-!
 # Pi
 
 This file contains lemmas which establish bounds on or approximations of `real.pi`. Notably, these
 include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_series`, which bound `π` using series;
 numerical bounds on `π` such as `pi_gt_314`and `pi_lt_315` (more precise versions are given, too);
-and `tendsto_sum_pi_div_four`, Leibniz's series for `π`.
+and exact (infinite) formulas involving `π`, such as `tendsto_sum_pi_div_four`, Leibniz's
+series for `π`, and `tendsto_prod_pi_div_two`, the Wallis product for `π`.
 -/
 
 open_locale real
@@ -62,7 +63,7 @@ theorem pi_lower_bound_start (n : ℕ) {a}
   (h : sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2) : a < π :=
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series n), rw [mul_comm],
-  refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sqr_le _),
+  refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sq_le _),
   rwa [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
 end
 
@@ -110,7 +111,7 @@ lemma sqrt_two_add_series_step_down (a b : ℕ) {c d n : ℕ} {z : ℝ}
   (h : a ^ 2 * d ≤ (2 * d + c) * b ^ 2) : z ≤ sqrt_two_add_series (c/d) (n+1) :=
 begin
   apply le_trans hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
-  apply le_sqrt_of_sqr_le,
+  apply le_sqrt_of_sq_le,
   have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
   have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
   rw [div_pow, add_div_eq_mul_add_div _ _ (ne_of_gt hd'), div_le_div_iff (pow_pos hb' _) hd'],
@@ -158,9 +159,9 @@ open filter set
 open_locale classical big_operators topological_space
 local notation `|`x`|` := abs x
 
-/-- This theorem establishes Leibniz's series for `π`: The alternating sum of the reciprocals of the
-  odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent series.
-  The main tool that this proof uses is the Mean Value Theorem (specifically avoiding the
+/-- This theorem establishes **Leibniz's series for `π`**: The alternating sum of the reciprocals
+  of the odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent
+  series. The main tool that this proof uses is the Mean Value Theorem (specifically avoiding the
   Fundamental Theorem of Calculus).
 
   Intuitively, the theorem holds because Leibniz's series is the Taylor series of `arctan x`
@@ -189,14 +190,15 @@ begin
   --     constructed from `u` tends to `0` at `+∞`
   let u := λ k : ℕ, (k:nnreal) ^ (-1 / (2 * (k:ℝ) + 1)),
   have H : tendsto (λ k : ℕ, (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
-  { convert (((tendsto_rpow_div_mul_add (-1) 2 1 $ by norm_num).neg.const_add 1).add
+  { convert (((tendsto_rpow_div_mul_add (-1) 2 1 two_ne_zero.symm).neg.const_add 1).add
       tendsto_inv_at_top_zero).comp tendsto_coe_nat_at_top_at_top,
     { ext k,
       simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
-          @div_mul_cancel _ _ _ (2*(k:ℝ)+1) (by { norm_cast, linarith }), rpow_neg_one k],
-      ring },
-    { simp } },
+         @div_mul_cancel _ _ _ (2*(k:ℝ)+1)
+            (by { norm_cast, simp only [nat.succ_ne_zero, not_false_iff] }), rpow_neg_one k,
+          sub_eq_add_neg] },
+    { simp only [add_zero, add_right_neg] } },
   -- (2) We convert the limit in our goal to an inequality
   refine squeeze_zero_norm _ H,
   intro k,
@@ -215,7 +217,7 @@ begin
     { simpa only [U, hk] using zero_rpow_le_one _ },
     { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
         (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
-          (by norm_num) (by { norm_cast, linarith }))) } },
+          (neg_neg_iff_pos.mpr zero_lt_one) (by { norm_cast, exact nat.succ_pos' }))) } },
   have hU2 := nnreal.coe_nonneg U,
   -- (4) We compute the derivative of `f`, denoted by `f'`
   let f' := λ x : ℝ, (-x^2) ^ k / (1 + x^2),
@@ -232,10 +234,11 @@ begin
                   nat.cast_one, nat.cast_mul],
         rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1) (by { norm_cast, linarith }),
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
-        ring } },
+        ring_nf } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
-    have g_sum := @geom_sum _ _ (-x^2) (by linarith [neg_nonpos.mpr (pow_two_nonneg x)]) k,
-    simp only [geom_series, f'] at g_sum ⊢,
+    have g_sum :=
+      @geom_sum_eq _ _ (-x^2) ((neg_nonpos.mpr (sq_nonneg x)).trans_lt zero_lt_one).ne k,
+    simp only [geom_sum, f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
   have hderiv1 : ∀ x ∈ Icc (U:ℝ) 1, has_deriv_within_at f (f' x) (Icc (U:ℝ) 1) x :=
@@ -246,10 +249,11 @@ begin
   have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
   { intros x hx,
     rw [abs_div, is_absolute_value.abv_pow abs (-x^2) k, abs_neg, is_absolute_value.abv_pow abs x 2,
-        tactic.ring_exp.pow_e_pf_exp rfl rfl, @abs_of_pos _ _ (1+x^2) (by nlinarith)],
-    convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) (by norm_num)
-      (by nlinarith),
-    simp },
+       tactic.ring_exp.pow_e_pf_exp rfl rfl],
+    refine div_le_of_nonneg_of_le_mul (abs_nonneg _) (pow_nonneg (abs_nonneg _) _) _,
+    refine le_mul_of_one_le_right (pow_nonneg (abs_nonneg _) _) _,
+    rw abs_of_nonneg ((add_nonneg zero_le_one (sq_nonneg x)) : (0 : ℝ) ≤ _),
+    exact (le_add_of_nonneg_right (sq_nonneg x) : (1 : ℝ) ≤ _) },
   have hbound1 : ∀ x ∈ Ico (U:ℝ) 1, |f' x| ≤ 1,
   { rintros x ⟨hx_left, hx_right⟩,
     have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),
@@ -268,11 +272,84 @@ begin
   have mvt2 :=
     norm_image_sub_le_of_norm_deriv_le_segment' hderiv2 hbound2 _ (right_mem_Icc.mpr hU2),
   -- The following algebra is enough to complete the proof
-  calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring
+  calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring_nf
                ... ≤ 1 * (1-U) + U^(2*k) * (U - 0) : le_trans (abs_add (f 1 - f U) (f U - f 0))
                                                       (add_le_add mvt1 mvt2)
                ... = 1 - U + U^(2*k) * U : by ring
                ... = 1 - (u k) + (u k)^(2*(k:ℝ)+1) : by { rw [← pow_succ' (U:ℝ) (2*k)], norm_cast },
+end
+
+/-! ### The Wallis Product for Pi -/
+
+open finset interval_integral
+
+lemma integral_sin_pow_div_tendsto_one :
+  tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
+begin
+  have h₃ : ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≤ 1 :=
+    λ n, (div_le_one (integral_sin_pow_pos _)).mpr (integral_sin_pow_antimono _),
+  have h₄ :
+    ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≥ 2 * n / (2 * n + 1),
+  { rintro ⟨n⟩,
+    { have : 0 ≤ (1 + 1) / π, exact div_nonneg (by norm_num) pi_pos.le,
+      simp [this] },
+    calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
+      (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
+      by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
+        convert integral_sin_pow_antimono (2 * n + 1) using 1 }
+    ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
+      by { rw div_eq_iff (integral_sin_pow_pos (2 * n + 1)).ne',
+           convert integral_sin_pow (2 * n + 1), simp with field_simps, norm_cast } },
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
+  { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨⌈1 / ε⌉₊, λ n hn, _⟩),
+    have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),
+    { conv_lhs { congr, skip, rw ← @div_self _ _ ((2:ℝ) * n + 1) (by { norm_cast, linarith }), },
+      rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
+    have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
+    rw [dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
+    calc 1 / ε ≤ ⌈1 / ε⌉₊ : le_nat_ceil _
+          ... ≤ n : by exact_mod_cast hn.le
+          ... < 2 * n + 1 : by { norm_cast, linarith } },
+  { exact tendsto_const_nhds },
+end
+
+/-- This theorem establishes the Wallis Product for `π`. Our proof is largely about analyzing
+  the behavior of the ratio of the integral of `sin x ^ n` as `n → ∞`.
+  See: https://en.wikipedia.org/wiki/Wallis_product
+
+  The proof can be broken down into two pieces.
+  (Pieces involving general properties of the integral of `sin x ^n` can be found
+  in `analysis.special_functions.integrals`.) First, we use integration by parts to obtain a
+  recursive formula for `∫ x in 0..π, sin x ^ (n + 2)` in terms of `∫ x in 0..π, sin x ^ n`.
+  From this we can obtain closed form products of `∫ x in 0..π, sin x ^ (2 * n)` and
+  `∫ x in 0..π, sin x ^ (2 * n + 1)` via induction. Next, we study the behavior of the ratio
+  `∫ (x : ℝ) in 0..π, sin x ^ (2 * k + 1)) / ∫ (x : ℝ) in 0..π, sin x ^ (2 * k)` and prove that
+  it converges to one using the squeeze theorem. The final product for `π` is obtained after some
+  algebraic manipulation. -/
+theorem tendsto_prod_pi_div_two :
+  tendsto (λ k, ∏ i in range k,
+    (((2:ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) at_top (𝓝 (π/2)) :=
+begin
+  suffices h : tendsto (λ k, 2 / π  * ∏ i in range k,
+    (((2:ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) at_top (𝓝 1),
+  { have := tendsto.const_mul (π / 2) h,
+    have h : π / 2 ≠ 0, norm_num [pi_ne_zero],
+    simp only [← mul_assoc, ← @inv_div _ _ π 2, mul_inv_cancel h, one_mul, mul_one] at this,
+    exact this },
+  have h : (λ (k : ℕ), (2:ℝ) / π * ∏ (i : ℕ) in range k,
+    ((2 * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) =
+  λ k, (2 * ∏ i in range k,
+    (2 * i + 2) / (2 * i + 3)) / (π * ∏ (i : ℕ) in range k, (2 * i + 1) / (2 * i + 2)),
+  { funext,
+    have h : ∏ (i : ℕ) in range k, ((2:ℝ) * ↑i + 2) / (2 * ↑i + 1) =
+      1 / (∏ (i : ℕ) in range k, (2 * ↑i + 1) / (2 * ↑i + 2)),
+    { rw [one_div, ← finset.prod_inv_distrib'],
+      refine prod_congr rfl (λ x hx, _),
+      field_simp },
+    rw [prod_mul_distrib, h],
+    field_simp },
+  simp only [h, ← integral_sin_pow_even, ← integral_sin_pow_odd],
+  exact integral_sin_pow_div_tendsto_one,
 end
 
 end real

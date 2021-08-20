@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.pi.basic
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # Limits in the category of indexed families of objects.

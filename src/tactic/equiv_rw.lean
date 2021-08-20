@@ -38,9 +38,9 @@ along with some structural congruence lemmas such as
 The main `equiv_rw` function, when operating on the goal, simply generates a new equivalence `e'`
 with left hand side matching the target, and calls `apply e'.inv_fun`.
 
-When operating on a hypothesis `x : α`, we introduce a new fact `h : x = e.symm (e x)`,
-revert this, and then attempt to `generalize`, replacing all occurrences of `e x` with a new constant `y`,
-before `intro`ing and `subst`ing `h`, and renaming `y` back to `x`.
+When operating on a hypothesis `x : α`, we introduce a new fact `h : x = e.symm (e x)`, revert this,
+and then attempt to `generalize`, replacing all occurrences of `e x` with a new constant `y`, before
+`intro`ing and `subst`ing `h`, and renaming `y` back to `x`.
 
 ## Future improvements
 In a future PR I anticipate that `derive equiv_functor` should work on many examples,
@@ -94,7 +94,8 @@ meta def equiv_congr_lemmas : list (tactic expr) :=
   `bifunctor.map_equiv,
   -- Handles `list`, `option`, `unique`, and many others:
   `equiv_functor.map_equiv,
-  -- We have to filter results to ensure we don't cheat and use exclusively `equiv.refl` and `iff.refl`!
+  -- We have to filter results to ensure we don't cheat and use exclusively
+  -- `equiv.refl` and `iff.refl`!
   `equiv.refl,
   `iff.refl
   ].map (λ n, mk_const n)
@@ -171,7 +172,8 @@ do
   -- Now call `equiv_rw_type_core`.
   new_eqv ← prod.snd <$> (solve_aux equiv_ty $ equiv_rw_type_core eqv cfg),
   -- Check that we actually used the equivalence `eq`
-  -- (`equiv_rw_type_core` will always find `equiv.refl`, but hopefully only after all other possibilities)
+  -- (`equiv_rw_type_core` will always find `equiv.refl`,
+  -- but hopefully only after all other possibilities)
   new_eqv ← instantiate_mvars new_eqv,
   -- We previously had `guard (eqv.occurs new_eqv)` here, but `kdepends_on` is more reliable.
   kdepends_on new_eqv eqv >>= guardb <|> (do
@@ -219,8 +221,8 @@ dsimp_result (do
     `[try { simp only with equiv_rw_simp }]
   else
     -- We may need to unfreeze `x` before we can `clear` it.
-    unfreezing_hyp x' (clear' tt [x']) <|>
-      fail format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
+    unfreezing_hyp x' (clear' tt [x']) <|> fail
+      format!"equiv_rw expected to be able to clear the original hypothesis {x}, but couldn't.",
   skip)
   {fail_if_unchanged := ff} tt -- call `dsimp_result` with `no_defaults := tt`.
 
@@ -257,7 +259,8 @@ a goal `⊢ unique α` into `⊢ unique β`.
 The maximum search depth for rewriting in subexpressions is controlled by
 `equiv_rw e {max_depth := n}`.
 -/
-meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) (cfg : equiv_rw_cfg := {}) : itactic :=
+meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) (cfg : equiv_rw_cfg := {}) :
+  itactic :=
 do e ← to_expr e,
    match loc with
    | (some hyp) := equiv_rw_hyp hyp e cfg

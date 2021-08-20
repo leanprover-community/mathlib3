@@ -120,7 +120,7 @@ end prime
 
 end prime
 
-lemma prime.left_dvd_or_dvd_right_of_dvd_prime_mul [comm_cancel_monoid_with_zero α] {p : α}
+lemma prime.left_dvd_or_dvd_right_of_dvd_mul [comm_cancel_monoid_with_zero α] {p : α}
   (hp : prime p) {a b : α} : a ∣ p * b → p ∣ a ∨ a ∣ b :=
 begin
   rintro ⟨c, hc⟩,

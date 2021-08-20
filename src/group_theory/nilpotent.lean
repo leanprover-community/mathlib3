@@ -336,6 +336,7 @@ begin
     simpa using hd (mem_map_of_mem f (hx y)) }
 end
 
+-- linter is failing because i haven't used surjectivity here...
 lemma lower_central_series.map {H : Type*} [group H] {f : G →* H}
   (h : function.surjective f) (n : ℕ) :
   subgroup.map f (lower_central_series G n) ≤ lower_central_series H n :=

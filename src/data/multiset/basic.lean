@@ -581,6 +581,12 @@ theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ {a} := repeat_s
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p) ▸ s, sublist.subperm⟩
 
+theorem nsmul_singleton (a : α) (n) : n • ({a} : multiset α) = repeat a n :=
+begin
+  refine eq_repeat.mpr ⟨_, λ b hb, mem_singleton.mp (mem_of_mem_nsmul hb)⟩,
+  rw [card_nsmul, card_singleton, mul_one]
+end
+
 lemma nsmul_repeat {a : α} (n m : ℕ) : n • (repeat a m) = repeat a (n * m) :=
 begin
   rw eq_repeat,

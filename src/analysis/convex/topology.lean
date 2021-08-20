@@ -28,6 +28,7 @@ We prove the following facts:
 variables {ι : Type*} {E : Type*}
 
 open set
+open_locale pointwise
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex s ↔ is_preconnected s :=
 real.convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm

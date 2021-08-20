@@ -253,7 +253,7 @@ begin
     exact covariant_class.elim _ h }
 end
 
-lemma lt_of_mul_lt_mul_left  {α : Type u} [has_mul α] [partial_order α]
+lemma lt_of_mul_lt_mul_left {α : Type u} [has_mul α] [partial_order α]
   [contravariant_class α α (*) (<)] :
   ∀ (a b c : with_zero α), a * b < a * c → b < c :=
 begin
@@ -581,6 +581,17 @@ calc a = a * 1 : by simp
 @[to_additive] lemma le_self_mul : a ≤ a * c :=
 le_mul_right (le_refl a)
 
+@[to_additive]
+lemma lt_iff_exists_mul [covariant_class α α (*) (<)] : a < b ↔ ∃ c > 1, b = a * c :=
+begin
+  simp_rw [lt_iff_le_and_ne, and_comm, le_iff_exists_mul, ← exists_and_distrib_left, exists_prop],
+  apply exists_congr, intro c,
+  rw [and.congr_left_iff, gt_iff_lt], rintro rfl,
+  split,
+  { rw [one_lt_iff_ne_one], apply mt, rintro rfl, rw [mul_one] },
+  { rw [← (self_le_mul_right a c).lt_iff_ne], apply lt_mul_of_one_lt_right' }
+end
+
 local attribute [semireducible] with_zero
 
 -- This instance looks absurd: a monoid already has a zero
@@ -645,11 +656,10 @@ class canonically_linear_ordered_monoid (α : Type*)
       extends canonically_ordered_monoid α, linear_order α
 
 section canonically_linear_ordered_monoid
-variables
+variables [canonically_linear_ordered_monoid α]
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_monoid.semilattice_sup_bot
-  [canonically_linear_ordered_monoid α] : semilattice_sup_bot α :=
+instance canonically_linear_ordered_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_monoid.to_order_bot α }
 
 instance with_top.canonically_linear_ordered_add_monoid
@@ -658,8 +668,8 @@ instance with_top.canonically_linear_ordered_add_monoid
 { .. (infer_instance : canonically_ordered_add_monoid (with_top α)),
   .. (infer_instance : linear_order (with_top α)) }
 
-@[to_additive] lemma min_mul_distrib [canonically_linear_ordered_monoid α] (a b c : α) :
-  min a (b * c) = min a (min a b * min a c) :=
+@[to_additive]
+lemma min_mul_distrib (a b c : α) : min a (b * c) = min a (min a b * min a c) :=
 begin
   cases le_total a b with hb hb,
   { simp [hb, le_mul_right] },
@@ -668,9 +678,17 @@ begin
     { simp [hb, hc] } }
 end
 
-@[to_additive] lemma min_mul_distrib' [canonically_linear_ordered_monoid α] (a b c : α) :
-  min (a * b) c = min (min a c * min b c) c :=
+@[to_additive]
+lemma min_mul_distrib' (a b c : α) : min (a * b) c = min (min a c * min b c) c :=
 by simpa [min_comm _ c] using min_mul_distrib c a b
+
+@[simp, to_additive]
+lemma one_min (a : α) : min 1 a = 1 :=
+min_eq_left (one_le a)
+
+@[simp, to_additive]
+lemma min_one (a : α) : min a 1 = 1 :=
+min_eq_right (one_le a)
 
 end canonically_linear_ordered_monoid
 
@@ -785,33 +803,54 @@ class linear_ordered_cancel_comm_monoid (α : Type u)
   extends ordered_cancel_comm_monoid α, linear_ordered_comm_monoid α
 
 section covariant_class_mul_le
-variables [cancel_comm_monoid α] [linear_order α] [covariant_class α α (*) (≤)]
+variables [linear_order α]
+
+section has_mul
+variable [has_mul α]
+
+section left
+variable [covariant_class α α (*) (≤)]
 
 @[to_additive] lemma min_mul_mul_left (a b c : α) : min (a * b) (a * c) = a * min b c :=
 (monotone_id.const_mul' a).map_min.symm
+
+@[to_additive]
+lemma max_mul_mul_left (a b c : α) : max (a * b) (a * c) = a * max b c :=
+(monotone_id.const_mul' a).map_max.symm
+
+end left
+
+section right
+variable [covariant_class α α (function.swap (*)) (≤)]
 
 @[to_additive]
 lemma min_mul_mul_right (a b c : α) : min (a * c) (b * c) = min a b * c :=
 (monotone_id.mul_const' c).map_min.symm
 
 @[to_additive]
-lemma max_mul_mul_left (a b c : α) : max (a * b) (a * c) = a * max b c :=
-(monotone_id.const_mul' a).map_max.symm
-
-@[to_additive]
 lemma max_mul_mul_right (a b c : α) : max (a * c) (b * c) = max a b * c :=
 (monotone_id.mul_const' c).map_max.symm
 
+end right
+
+end has_mul
+
+variable [monoid α]
+
 @[to_additive]
-lemma min_le_mul_of_one_le_right {a b : α} (hb : 1 ≤ b) : min a b ≤ a * b :=
+lemma min_le_mul_of_one_le_right [covariant_class α α (*) (≤)] {a b : α} (hb : 1 ≤ b) :
+  min a b ≤ a * b :=
 min_le_iff.2 $ or.inl $ le_mul_of_one_le_right' hb
 
 @[to_additive]
-lemma min_le_mul_of_one_le_left {a b : α} (ha : 1 ≤ a) : min a b ≤ a * b :=
+lemma min_le_mul_of_one_le_left [covariant_class α α (function.swap (*)) (≤)] {a b : α}
+  (ha : 1 ≤ a) : min a b ≤ a * b :=
 min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 
 @[to_additive]
-lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
+lemma max_le_mul_of_one_le [covariant_class α α (*) (≤)]
+  [covariant_class α α (function.swap (*)) (≤)] {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) :
+  max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
 
 end covariant_class_mul_le

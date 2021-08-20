@@ -26,6 +26,7 @@ make the notation available.
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 
@@ -144,7 +145,7 @@ by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_r
 @[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
 by simpa only [add_comm] using preimage_const_add_interval a b c
 
-@[simp] lemma preimage_neg_interval : -([a, b]) = [-a, -b] :=
+@[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
 by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
 @[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=

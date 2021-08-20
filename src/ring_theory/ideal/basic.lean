@@ -29,7 +29,7 @@ universes u v w
 variables {α : Type u} {β : Type v}
 open set function
 
-open_locale classical big_operators
+open_locale classical big_operators pointwise
 
 /-- A (left) ideal in a semiring `R` is an additive submonoid `s` such that
 `a * b ∈ s` whenever `b ∈ s`. If `R` is a ring, then `s` is an additive subgroup.  -/

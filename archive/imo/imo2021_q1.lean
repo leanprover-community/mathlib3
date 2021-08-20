@@ -44,7 +44,7 @@ open real
 lemma lower_bound (n l : ℕ) (hl : 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ)) :
   (n : ℕ) + 4 * l ≤ 2 * l * l :=
 begin
-  have h₁ : sqrt (4 + 2 * n) ≤ 2 * l - 2 := by linarith,
+  have h₁ : sqrt (4 + 2 * n) ≤ 2 * l - 2, { linarith },
   replace h₁ := (sqrt_le_iff.1 h₁).2,
   ring_exp at h₁,
   norm_num at h₁,
@@ -55,7 +55,7 @@ end
 lemma upper_bound (n l : ℕ) (hl₂ : (l : ℝ) ≤ sqrt (1 + n) - 1) :
   2 * l * l + 4 * l ≤ 2 * n :=
 begin
-  have h₁ : (l : ℝ) + 1 ≤ sqrt (1 + n) := by linarith,
+  have h₁ : (l : ℝ) + 1 ≤ sqrt (1 + n), { linarith },
   rw le_sqrt at h₁,
   ring_exp at h₁, norm_num at h₁,
   norm_cast at h₁,
@@ -82,7 +82,7 @@ begin
     by_cases p: n ≥ 108,
     norm_cast,
     nlinarith,
-    have : n = 107 := by linarith,
+    have : n = 107, { linarith },
     subst this,
     norm_num,
     swap 3,
@@ -137,9 +137,7 @@ begin
   by_cases p : n ≥ 107,
   { have h := exists_numbers_in_interval n p,
     cases h with l hl,
-    use (2 * l * l - 4 * l),
-    use (2 * l * l + 1),
-    use (2 * l * l + 4 * l),
+    use [2 * l * l - 4 * l, 2 * l * l + 1, 2 * l * l + 4 * l],
     by_cases p : l > 1,
     refine ⟨_,⟨_,⟨_,⟨_,⟨_, ⟨_, _⟩⟩⟩⟩⟩⟩,
     { exact nat.le_sub_right_of_add_le hl.1 },
@@ -147,17 +145,16 @@ begin
     { linarith },
     { exact hl.2 },
     { use (2 * l - 1),
-      have h₁ : 1 ≤ 2 * l := by linarith,
-      have h₂ : 4 * l ≤ 2 * l * l := by linarith,
+      have h₁ : 1 ≤ 2 * l, { linarith },
+      have h₂ : 4 * l ≤ 2 * l * l, { linarith },
       zify [h₁, h₂],
       ring_exp_eq },
     { use (2 * l),
-      have h₁ : 4 * l ≤ 2 * l * l := by linarith,
+      have h₁ : 4 * l ≤ 2 * l * l, { linarith },
       zify [h₁],
       ring_exp_eq },
     { use(2 * l + 1),
-      ring_exp_eq,
-    },
+      ring_exp_eq },
       --Otherwise, if 100 ≤ n < 107, then it suffices to consider explicit
       --construction of a triplet {a, b, c}, which is constructed by setting l=9
       --in the argument at the start of the file.
@@ -170,11 +167,11 @@ begin
 end
 
 lemma mem_compl_iff_nmem_subset {A : finset ℕ} {a b c n : ℕ}
-(t : A ⊆ finset.Ico n (2 * n + 2)) (h₁ : n ≤ a)
-(h₂ : a < b) (h₃ : b < c) (h₄ : c ≤ 2 * n) :
-(a ∉ A ↔ a ∈ finset.Ico n (2 * n + 2) \ A) ∧
-(b ∉ A ↔ b ∈ finset.Ico n (2 * n + 2) \ A) ∧
-(c ∉ A ↔ c ∈ finset.Ico n (2 * n + 2) \ A) :=
+ (t : A ⊆ finset.Ico n (2 * n + 2)) (h₁ : n ≤ a)
+ (h₂ : a < b) (h₃ : b < c) (h₄ : c ≤ 2 * n) :
+ (a ∉ A ↔ a ∈ finset.Ico n (2 * n + 2) \ A) ∧
+ (b ∉ A ↔ b ∈ finset.Ico n (2 * n + 2) \ A) ∧
+ (c ∉ A ↔ c ∈ finset.Ico n (2 * n + 2) \ A) :=
 begin
   refine ⟨⟨_,_⟩, ⟨⟨_,_⟩,⟨_,_⟩⟩⟩,
   { intro ha,
@@ -215,29 +212,20 @@ begin
   by_cases h₁: a ∈ A,
   { by_cases h₂: b ∈ A,
     { left,
-      use a,
-      exact h₁,
-      use b,
-      exact h₂,
+      use [a, h₁, b, h₂],
       refine ⟨_, p.1⟩,
       { simp only [subtype.mk_eq_mk, ne.def],
         linarith}},
     { by_cases h₃ : c ∈ A,
       { left,
-        use c,
-        exact h₃,
-        use a,
-        exact h₁,
+        use [c, h₃, a, h₁],
         refine ⟨_,p.2.1⟩,
         { simp only [subtype.mk_eq_mk, ne.def],
           linarith }},
       { rw (mem_compl_iff_nmem_subset hA han hba hcb hnc).2.1 at h₂,
         rw (mem_compl_iff_nmem_subset hA han hba hcb hnc).2.2 at h₃,
         right,
-        use b,
-        exact h₂,
-        use c,
-        exact h₃,
+        use [b, h₂, c, h₃],
         refine ⟨_, p.2.2⟩,
         { simp only [subtype.mk_eq_mk, ne.def],
           linarith }}}},
@@ -245,28 +233,19 @@ begin
     by_cases h₂ : b ∈ A,
     { by_cases h₃ : c ∈ A,
       { left,
-        use b,
-        exact h₂,
-        use c,
-        exact h₃,
+        use [b, h₂, c, h₃],
         refine ⟨_, p.2.2⟩,
         { simp only [subtype.mk_eq_mk, ne.def],
           linarith }},
       { rw (mem_compl_iff_nmem_subset hA han hba hcb hnc).2.2 at h₃,
         right,
-        use c,
-        exact h₃,
-        use a,
-        exact h₁,
+        use [c, h₃, a, h₁],
         refine ⟨_, p.2.1⟩,
         { simp only [subtype.mk_eq_mk, ne.def],
           linarith }}},
       { rw (mem_compl_iff_nmem_subset hA han hba hcb hnc).2.1 at h₂,
         right,
-        use a,
-        exact h₁,
-        use b,
-        exact h₂,
+        use [a, h₁, b, h₂],
         refine ⟨_, p.1⟩,
         { simp only [subtype.mk_eq_mk, ne.def],
           linarith }}},

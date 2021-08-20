@@ -1429,7 +1429,7 @@ instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_s
 begin
   refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
   rw closed_ball_pi _ hr,
-  apply is_compact_pi_infinite (λb, _),
+  apply is_compact_univ_pi (λb, _),
   apply (h b).compact_ball
 end
 

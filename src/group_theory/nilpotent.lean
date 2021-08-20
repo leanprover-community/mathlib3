@@ -273,7 +273,7 @@ begin
     exact general_commutator_normal (lower_central_series G d) ⊤ },
 end
 
-lemma lower_central_series.antimono (n : ℕ) :
+lemma lower_central_series_antimono (n : ℕ) :
   lower_central_series G n.succ ≤ lower_central_series G n :=
 begin
   intros x hx,

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import data.nat.choose
-import data.int.modeq
 import algebra.iterate_hom
+import data.int.modeq
+import data.nat.choose
 import group_theory.order_of_element
 /-!
 # Characteristic of semirings
@@ -44,7 +44,7 @@ end
 lemma char_p.int_coe_eq_int_coe_iff [add_group R] [has_one R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 theorem char_p.eq [add_monoid R] [has_one R] {p q : ℕ} (c1 : char_p R p) (c2 : char_p R q) :
   p = q :=
@@ -179,7 +179,7 @@ sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 lemma eq_iff_modeq_int [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
 by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
-       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+       char_p.int_cast_eq_zero_iff R p, int.modeq_iff_dvd]
 
 lemma char_p.neg_one_ne_one [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
   (-1 : R) ≠ (1 : R) :=
@@ -428,3 +428,21 @@ begin
 end
 
 end
+
+section prod
+
+variables (S : Type v) [semiring R] [semiring S] (p q : ℕ) [char_p R p]
+
+/-- The characteristic of the product of rings is the least common multiple of the
+characteristics of the two rings. -/
+instance [char_p S q] : char_p (R × S) (nat.lcm p q) :=
+{ cast_eq_zero_iff :=
+    by simp [prod.ext_iff, char_p.cast_eq_zero_iff R p,
+      char_p.cast_eq_zero_iff S q, nat.lcm_dvd_iff] }
+
+/-- The characteristic of the product of two rings of the same characteristic
+  is the same as the characteristic of the rings -/
+instance prod.char_p [char_p S p] : char_p (R × S) p :=
+by convert nat.lcm.char_p R S p p; simp
+
+end prod

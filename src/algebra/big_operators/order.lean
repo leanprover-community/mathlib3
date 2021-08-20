@@ -219,6 +219,16 @@ theorem mul_card_image_le_card {f : α → β} (s : finset α)
   n * (s.image f).card ≤ s.card :=
 mul_card_image_le_card_of_maps_to (λ x, mem_image_of_mem _) n hn
 
+@[to_additive]
+lemma prod_le_of_forall_le {α β : Type*} [ordered_comm_monoid β] (s : finset α) (f : α → β)
+  (n : β) (h : ∀ (x ∈ s), f x ≤ n) :
+  s.prod f ≤ n ^ s.card :=
+begin
+  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
+  { simpa using h },
+  { simpa }
+end
+
 end pigeonhole
 
 section canonically_ordered_monoid
@@ -405,7 +415,7 @@ begin
   induction s using finset.induction with a s has ih h,
   { simp },
   { rw [finset.prod_insert has, finset.prod_insert has],
-    apply canonically_ordered_semiring.mul_le_mul,
+    apply mul_le_mul',
     { exact h _ (finset.mem_insert_self a s) },
     { exact ih (λ i hi, h _ (finset.mem_insert_of_mem hi)) } }
 end
@@ -418,9 +428,9 @@ lemma prod_add_prod_le' (hi : i ∈ s) (h2i : g i + h i ≤ f i)
   ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
 begin
   classical, simp_rw [prod_eq_mul_prod_diff_singleton hi],
-  refine le_trans _ (canonically_ordered_semiring.mul_le_mul_right' h2i _),
+  refine le_trans _ (mul_le_mul_right' h2i _),
   rw [right_distrib],
-  apply add_le_add; apply canonically_ordered_semiring.mul_le_mul_left'; apply prod_le_prod';
+  apply add_le_add; apply mul_le_mul_left'; apply prod_le_prod';
   simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption
 end
 

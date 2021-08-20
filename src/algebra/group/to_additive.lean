@@ -21,13 +21,11 @@ Usage information is contained in the doc string of `to_additive.attr`.
 
 * For structures, automatically generate theorems like `group α ↔
   add_group (additive α)`.
-
-* Rewrite rules for the last part of the name that work in more
-  cases. E.g., we can replace `monoid` with `add_monoid` etc.
 -/
 
 namespace to_additive
-open tactic exceptional
+open tactic
+setup_tactic_parser
 
 section performance_hack -- see Note [user attribute parameters]
 
@@ -44,6 +42,7 @@ that have been processed by `to_additive`. -/
 meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
+  parser    := failed,
   cache_cfg := ⟨λ ns,
                 ns.mfoldl
                   (λ dict n', do
@@ -53,17 +52,14 @@ meta def aux_attr : user_attribute (name_map name) name :=
                             end,
                     param ← aux_attr.get_param_untyped n',
                     pure $ dict.insert n param.app_arg.const_name)
-                  mk_name_map, []⟩,
-  parser    := lean.parser.ident }
+                  mk_name_map, []⟩ }
 
 end performance_hack
 
 section extra_attributes
 
-setup_tactic_parser
-
 /--
-n attribute that tells `@[to_additive]` that certain arguments of this definition are not
+An attribute that tells `@[to_additive]` that certain arguments of this definition are not
 involved when using `@[to_additive]`.
 This helps the heuristic of `@[to_additive]` by also transforming definitions if `ℕ` or another
 fixed type occurs as one of these arguments.
@@ -80,6 +76,31 @@ meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
         return $ dict.insert n (param.to_list expr.to_nat).iget)
       mk_name_map, []⟩,
   parser    := (lean.parser.small_nat)* }
+
+/--
+An attribute that stores all the declarations that needs their arguments reordered when
+applying `@[to_additive]`. Currently, we only support swapping consecutive arguments.
+The list of the natural numbers contains the positions of the first of the two arguments
+to be swapped.
+If the first two arguments are swapped, the first two universe variables are also swapped.
+Example: `@[to_additive_reorder 1 4]` swaps the first two arguments and the arguments in
+positions 4 and 5.
+-/
+@[user_attribute]
+meta def reorder_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
+{ name      := `to_additive_reorder,
+  descr     :=
+    "Auxiliary attribute for `to_additive` that stores arguments that need to be reordered.",
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl
+      (λ dict n, do
+        param ← reorder_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        return $ dict.insert n (param.to_list expr.to_nat).iget)
+      mk_name_map, []⟩,
+  parser    := do
+    l ← (lean.parser.small_nat)*,
+    guard (l.all (≠ 0)) <|> exceptional.fail "The reorder positions must be positive",
+    return l }
 
 end extra_attributes
 
@@ -101,14 +122,25 @@ do let n := src.mk_string "_to_additive",
    aux_attr.set n tgt tt
 
 /-- `value_type` is the type of the arguments that can be provided to `to_additive`.
-`to_additive.parser` parses the provided arguments into `name` for the target and an
-optional doc string. -/
+`to_additive.parser` parses the provided arguments:
+* `replace_all`: replace all multiplicative declarations, do not use the heuristic.
+* `trace`: output the generated additive declaration.
+* `tgt : name`: the name of the target (the additive declaration).
+* `doc`: an optional doc string.
+* if `allow_auto_name` is `ff` (default) then `@[to_additive]` will check whether the given name
+  can be auto-generated.
+-/
 @[derive has_reflect, derive inhabited]
-structure value_type : Type := (replace_all : bool) (tgt : name) (doc : option string)
+structure value_type : Type :=
+(replace_all : bool)
+(trace : bool)
+(tgt : name)
+(doc : option string)
+(allow_auto_name : bool)
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
-| tt s := ("comm_" ++ s)
+| tt s := "comm_" ++ s
 | ff s := s
 
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
@@ -134,6 +166,8 @@ meta def tr : bool → list string → list string
 | is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
 | is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
 | is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
+| is_comm ("haar" :: s)        := ("add_" ++ add_comm_prefix is_comm "haar")      :: tr ff s
+| is_comm ("prehaar" :: s)     := ("add_" ++ add_comm_prefix is_comm "prehaar")   :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]
@@ -146,8 +180,9 @@ string.map_tokens ''' $
 tr ff (s.split_on '_')
 
 /-- Return the provided target name or autogenerate one if one was not provided. -/
-meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
-(if tgt.get_prefix ≠ name.anonymous -- `tgt` is a full name
+meta def target_name (src tgt : name) (dict : name_map name) (allow_auto_name : bool) :
+  tactic name :=
+(if tgt.get_prefix ≠ name.anonymous ∨ allow_auto_name -- `tgt` is a full name
  then pure tgt
  else match src with
       | (name.mk_string s pre) :=
@@ -166,18 +201,18 @@ meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
 Give the desired additive name explicitly using `@[to_additive additive_name]`. ")
   else pure res)
 
-setup_tactic_parser
-/-- the parser for the arguments to `to_additive` -/
+/-- the parser for the arguments to `to_additive`. -/
 meta def parser : lean.parser value_type :=
 do
-  b ← option.is_some <$> (tk "!")?,
+  bang ← option.is_some <$> (tk "!")?,
+  ques ← option.is_some <$> (tk "?")?,
   tgt ← ident?,
   e ← texpr?,
   doc ← match e with
       | some pe := some <$> ((to_expr pe >>= eval_expr string) : tactic string)
       | none := pure none
       end,
-  return ⟨b, tgt.get_or_else name.anonymous, doc⟩
+  return ⟨bang, ques, tgt.get_or_else name.anonymous, doc, ff⟩
 
 private meta def proceed_fields_aux (src tgt : name) (prio : ℕ) (f : name → tactic (list string)) :
   command :=
@@ -288,12 +323,47 @@ There are two exceptions in this heuristic:
   (usually in the form `has_top.top ℕ ...`) and still be additivized.
   So `@has_mul.mul (C^∞⟮I, N; I', G⟯) _ f g` will be additivized.
 
+### Troubleshooting
 
-If you want to disable this heuristic and replace all multiplicative
-identifiers with their additive counterpart, use `@[to_additive!]`.
+If `@[to_additive]` fails because the additive declaration raises a type mismatch, there are
+various things you can try.
+The first thing to do is to figure out what `@[to_additive]` did wrong by looking at the type
+mismatch error.
 
-If `to_additive` is unable to automatically generate the additive
-version of a declaration, it can be useful to apply the attribute manually:
+* Option 1: It additivized a declaration `d` that should remain multiplicative. Solutions:
+  * Make sure the first argument of `d` is a type with a multiplicative structure. If not, can you
+    reorder the (implicit) arguments of `d` so that the first argument becomes a type with a
+    multiplicative structure (and not some indexing type)?
+    The reason is that `@[to_additive]` doesn't additivize declarations if their first argument
+    contains fixed types like `ℕ` or `ℝ`. See section Heuristics.
+    This is not possible if `d` is something like `pi.has_one` or `prod.group`, where the second
+    argument (also) has a multiplicative structure.
+  * Sometimes only the proof of a lemma/theorem uses these problematic declarations.
+    In some cases you can rewrite the proof a little bit to work around these declarations.
+* Option 2: It didn't additivize a declaration that should be additivized.
+  This happened because the heuristic applied, and the first argument contains a fixed type,
+  like `ℕ` or `ℝ`. Solutions:
+  * If the fixed type has an additive counterpart (like `↥Semigroup`), give it the `@[to_additive]`
+    attribute.
+  * If the fixed type occurs inside the `k`-th argument of a declaration `d`, and the
+    `k`-th argument is not connected to the multiplicative structure on `d`, consider adding
+    attribute `[to_additive_ignore_args k]` to `d`.
+  * If you want to disable the heuristic and replace all multiplicative
+    identifiers with their additive counterpart, use `@[to_additive!]`.
+* Option 3: Arguments / universe levels are incorrectly ordered in the additive version.
+  This likely only happens when the multiplicative declaration involves `pow`/`^`. Solutions:
+  * Ensure that the order of arguments of all relevant declarations are the same for the
+    multiplicative and additive version. This might mean that arguments have an "unnatural" order
+    (e.g. `monoid.npow n x` corresponds to `x ^ n`, but it is convenient that `monoid.npow` has this
+    argument order, since it matches `add_monoid.nsmul n x`.
+  * If this is not possible, add the `[to_additive_reorder k]` to the multiplicative declaration
+    to indicate that the `k`-th and `(k+1)`-st arguments are reordered in the additive version.
+
+If neither of these solutions work, and `to_additive` is unable to automatically generate the
+additive version of a declaration, manually write and prove the additive version.
+Often the proof of a lemma/theorem can just be the multiplicative version of the lemma applied to
+`multiplicative G`.
+Afterwards, apply the attribute manually:
 
 ```
 attribute [to_additive foo_add_bar] foo_bar
@@ -365,13 +435,14 @@ protected meta def attr : user_attribute unit value_type :=
     val ← attr.get_param src,
     dict ← aux_attr.get_cache,
     ignore ← ignore_args_attr.get_cache,
-    tgt ← target_name src val.tgt dict,
+    reorder ← reorder_attr.get_cache,
+    tgt ← target_name src val.tgt dict val.allow_auto_name,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict val.replace_all ignore src tgt
+      transform_decl_with_prefix_dict dict val.replace_all val.trace ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp, `measurability],
       mwhen (has_attribute' `simps src)

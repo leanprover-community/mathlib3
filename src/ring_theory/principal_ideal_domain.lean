@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Morenikeji Neri
 -/
-import ring_theory.noetherian
 import ring_theory.unique_factorization_domain
+
 /-!
 # Principal ideal rings and principal ideal domains
 
@@ -160,6 +160,10 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
       exact ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩, λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 end
 
+lemma is_field.is_principal_ideal_ring {R : Type*} [integral_domain R] (h : is_field R) :
+  is_principal_ideal_ring R :=
+@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
+
 namespace principal_ideal_ring
 open is_principal_ideal_ring
 
@@ -189,7 +193,7 @@ variables [integral_domain R] [is_principal_ideal_ring R]
 lemma irreducible_iff_prime {p : R} : irreducible p ↔ prime p :=
 ⟨λ hp, (ideal.span_singleton_prime hp.ne_zero).1 $
     (is_maximal_of_irreducible hp).is_prime,
-  irreducible_of_prime⟩
+  prime.irreducible⟩
 
 lemma associates_irreducible_iff_prime : ∀{p : associates R}, irreducible p ↔ prime p :=
 associates.irreducible_iff_prime_iff.1 (λ _, irreducible_iff_prime)

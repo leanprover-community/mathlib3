@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.fintype.basic
+import data.finset.sort
 
 /-!
 # Finite sets
@@ -35,6 +35,9 @@ classical.choice h
 /-- Get a finset from a finite set -/
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @set.to_finset _ _ h.fintype
+
+@[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite :=
+by simp [infinite]
 
 @[simp] theorem finite.mem_to_finset {s : set α} (h : finite s) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
@@ -273,11 +276,12 @@ instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred 
   fintype ({a ∈ s | p a} : set α) :=
 fintype.of_finset (s.to_finset.filter p) $ by simp
 
-instance fintype_inter (s t : set α) [fintype s] [decidable_pred t] : fintype (s ∩ t : set α) :=
+instance fintype_inter (s t : set α) [fintype s] [decidable_pred (∈ t)] : fintype (s ∩ t : set α) :=
 set.fintype_sep s t
 
 /-- A `fintype` structure on a set defines a `fintype` structure on its subset. -/
-def fintype_subset (s : set α) {t : set α} [fintype s] [decidable_pred t] (h : t ⊆ s) : fintype t :=
+def fintype_subset (s : set α) {t : set α} [fintype s] [decidable_pred (∈ t)] (h : t ⊆ s) :
+  fintype t :=
 by rw ← inter_eq_self_of_subset_right h; apply_instance
 
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
@@ -563,15 +567,30 @@ begin
   simp,
 end
 
+/-- A finite union of finsets is finite. -/
+lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :
+  (⋃ a, (f a : set β)).finite :=
+begin
+  classical,
+  have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
+  { ext x,
+    simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
+    use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
+    rintro ⟨s, hs, hx⟩,
+    obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
+    exact ⟨a, hx⟩, },
+  rw w,
+  apply set.finite_mem_finset,
+end
+
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
 begin
   casesI hs,
   choose f hf using show ∀ x : s, ∃ i, x.1 ∈ t i, {simpa [subset_def] using h},
-  refine ⟨range f, finite_range f, _⟩,
-  rintro x hx,
-  simp,
-  exact ⟨x, ⟨hx, hf _⟩⟩,
+  refine ⟨range f, finite_range f, λ x hx, _⟩,
+  rw [bUnion_range, mem_Union],
+  exact ⟨⟨x, hx⟩, hf _⟩
 end
 
 lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t)
@@ -809,3 +828,28 @@ lemma card_compl_eq_card_compl (h : fintype.card {x // p x} = fintype.card {x //
 by simp only [card_subtype_compl, h]
 
 end fintype
+
+/--
+If a set `s` does not contain any elements between any pair of elements `x, z ∈ s` with `x ≤ z`
+(i.e if given `x, y, z ∈ s` such that `x ≤ y ≤ z`, then `y` is either `x` or `z`), then `s` is
+finite.
+-/
+lemma set.finite_of_forall_between_eq_endpoints {α : Type*} [linear_order α] (s : set α)
+  (h : ∀ (x ∈ s) (y ∈ s) (z ∈ s), x ≤ y → y ≤ z → x = y ∨ y = z) :
+  set.finite s :=
+begin
+  by_contra hinf,
+  change s.infinite at hinf,
+  rcases hinf.exists_subset_card_eq 3 with ⟨t, hts, ht⟩,
+  let f := t.order_iso_of_fin ht,
+  let x := f 0,
+  let y := f 1,
+  let z := f 2,
+  have := h x (hts x.2) y (hts y.2) z (hts z.2)
+    (f.monotone $ by dec_trivial) (f.monotone $ by dec_trivial),
+  have key₁ : (0 : fin 3) ≠ 1 := by dec_trivial,
+  have key₂ : (1 : fin 3) ≠ 2 := by dec_trivial,
+  cases this,
+  { dsimp only [x, y] at this, exact key₁ (f.injective $ subtype.coe_injective this) },
+  { dsimp only [y, z] at this, exact key₂ (f.injective $ subtype.coe_injective this) }
+end

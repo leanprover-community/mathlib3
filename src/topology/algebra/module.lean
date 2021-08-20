@@ -50,7 +50,7 @@ begin
     from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
       tendsto_const_nhds),
   rw [zero_smul, add_zero] at this,
-  rcases nonempty_of_mem_sets (inter_mem_sets (mem_map.1 (this hy)) self_mem_nhds_within)
+  rcases nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within)
     with ⟨_, hu, u, rfl⟩,
   have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
   exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
@@ -195,7 +195,7 @@ by { intros f g H, cases f, cases g, congr' }
   (f : M →ₗ[R] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem coe_fn_injective : @function.injective (M →L[R] M₂) (M → M₂) coe_fn :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
@@ -247,8 +247,22 @@ contained in the `topological_closure` of its image. -/
 lemma _root_.submodule.topological_closure_map [topological_space R] [has_continuous_smul R M]
   [has_continuous_add M] [has_continuous_smul R M₂] [has_continuous_add M₂] (f : M →L[R] M₂)
   (s : submodule R M) :
-  (s.topological_closure.map f.to_linear_map) ≤ (s.map f.to_linear_map).topological_closure :=
+  (s.topological_closure.map ↑f) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
 image_closure_subset_closure_image f.continuous
+
+/-- Under a dense continuous linear map, a submodule whose `topological_closure` is `⊤` is sent to
+another such submodule.  That is, the image of a dense set under a map with dense range is dense.
+-/
+lemma _root_.dense_range.topological_closure_map_submodule [topological_space R]
+  [has_continuous_smul R M] [has_continuous_add M] [has_continuous_smul R M₂]
+  [has_continuous_add M₂] {f : M →L[R] M₂} (hf' : dense_range f) {s : submodule R M}
+  (hs : s.topological_closure = ⊤) :
+  (s.map (f : M →ₗ[R] M₂)).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [submodule.topological_closure_coe, submodule.top_coe, ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image f.continuous hs
+end
 
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_zero⟩⟩
@@ -758,10 +772,10 @@ end ring
 
 section smul
 
-variables {R S : Type*} [ring R] [ring S] [topological_space S]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M]
-  {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
-  {M₃ : Type*} [topological_space M₃] [add_comm_group M₃] [module R M₃]
+variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
   [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
 
 instance : has_scalar S (M →L[R] M₃) :=

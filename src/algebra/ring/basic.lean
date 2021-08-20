@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland
 -/
 import algebra.divisibility
+import algebra.regular.basic
 import data.set.basic
 
 /-!
@@ -462,6 +463,8 @@ include rα
 instance : inhabited (α →+* α) := ⟨id α⟩
 
 @[simp] lemma id_apply (x : α) : ring_hom.id α x = x := rfl
+@[simp] lemma coe_add_monoid_hom_id : (id α : α →+ α) = add_monoid_hom.id α := rfl
+@[simp] lemma coe_monoid_hom_id : (id α : α →* α) = monoid_hom.id α := rfl
 
 variable {rγ : non_assoc_semiring γ}
 include rβ rγ
@@ -520,6 +523,17 @@ omit rα rβ rγ
 
 end ring_hom
 
+section semiring
+
+variables [semiring α] {a : α}
+
+@[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
+
+lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
+f.to_monoid_hom.map_dvd
+
+end semiring
+
 /-- A commutative semiring is a `semiring` with commutative multiplication. In other words, it is a
 type with the following structures: additive commutative monoid (`add_comm_monoid`), multiplicative
 commutative monoid (`comm_monoid`), distributive laws (`distrib`), and multiplication by zero law
@@ -554,11 +568,6 @@ protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
-
-@[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
-
-lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
-λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
 
 end comm_semiring
 
@@ -727,6 +736,11 @@ theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
+/-- A ring homomorphism is injective iff its kernel is trivial. -/
+theorem injective_iff' {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
+  function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
+(f : α →+ β).injective_iff'
+
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [non_assoc_semiring α] [ring γ] (f : α →* γ)
   (map_add : ∀ a b : α, f (a + b) = f a + f b) :
@@ -743,6 +757,78 @@ class comm_ring (α : Type u) extends ring α, comm_monoid α
 @[priority 100] -- see Note [lower instance priority]
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
+
+section ring
+variables [ring α] {a b c : α}
+
+theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
+dvd.elim h
+  (assume c, assume : b = a * c,
+    dvd.intro (-c) (by simp [this]))
+
+theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
+let t := dvd_neg_of_dvd h in by rwa neg_neg at t
+
+/-- An element a of a ring divides the additive inverse of an element b iff a divides b. -/
+@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
+⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
+
+theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
+dvd.elim h
+  (assume c, assume : b = a * c,
+    dvd.intro (-c) (by simp [this]))
+
+theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
+let t := neg_dvd_of_dvd h in by rwa neg_neg at t
+
+/-- The additive inverse of an element a of a ring divides another element b iff a divides b. -/
+@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
+⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+
+theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
+by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
+
+theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
+⟨λh₂, dvd_add h₂ h, λH, by have t := dvd_sub H h; rwa add_sub_cancel at t⟩
+
+theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
+by rw add_comm; exact dvd_add_iff_left h
+
+theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
+
+/-- If an element a divides another element c in a commutative ring, a divides the sum of another
+  element b with c iff a divides b. -/
+theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
+(dvd_add_iff_left h).symm
+
+/-- If an element a divides another element b in a commutative ring, a divides the sum of b and
+  another element c iff a divides c. -/
+theorem dvd_add_right (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
+(dvd_add_iff_right h).symm
+
+/-- An element a divides the sum a + b if and only if a divides b.-/
+@[simp] lemma dvd_add_self_left {a b : α} : a ∣ a + b ↔ a ∣ b :=
+dvd_add_right (dvd_refl a)
+
+/-- An element a divides the sum b + a if and only if a divides b.-/
+@[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
+dvd_add_left (dvd_refl a)
+
+lemma dvd_iff_dvd_of_dvd_sub {a b c : α} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+begin
+  split,
+  { intro h',
+    convert dvd_sub h' h,
+    exact eq.symm (sub_sub_self b c) },
+  { intro h',
+    convert dvd_add h h',
+    exact eq_add_of_sub_eq rfl }
+end
+
+@[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
+dvd_neg _ _
+
+end ring
 
 section comm_ring
 variables [comm_ring α] {a b c : α}
@@ -771,73 +857,12 @@ protected def function.surjective.comm_ring
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 
-theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
-dvd.elim h
-  (assume c, assume : b = a * c,
-    dvd.intro (-c) (by simp [this]))
-
-theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
-let t := dvd_neg_of_dvd h in by rwa neg_neg at t
-
-theorem dvd_neg_iff_dvd (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
-⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
-
-theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
-dvd.elim h
-  (assume c, assume : b = a * c,
-    dvd.intro (-c) (by simp [this]))
-
-theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
-let t := neg_dvd_of_dvd h in by rwa neg_neg at t
-
-theorem neg_dvd_iff_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
-⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
-
-theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
-by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
-
-theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
-⟨λh₂, dvd_add h₂ h, λH, by have t := dvd_sub H h; rwa add_sub_cancel at t⟩
-
-theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
-by rw add_comm; exact dvd_add_iff_left h
-
-theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
-
 /-- Representation of a difference of two squares in a commutative ring as a product. -/
 theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
 by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
 
 lemma mul_self_sub_one (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
 by rw [← mul_self_sub_mul_self, mul_one]
-
-/-- An element a of a commutative ring divides the additive inverse of an element b iff a
-  divides b. -/
-@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
-⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
-
-/-- The additive inverse of an element a of a commutative ring divides another element b iff a
-  divides b. -/
-@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
-⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
-
-/-- If an element a divides another element c in a commutative ring, a divides the sum of another
-  element b with c iff a divides b. -/
-theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
-(dvd_add_iff_left h).symm
-
-/-- If an element a divides another element b in a commutative ring, a divides the sum of b and
-  another element c iff a divides c. -/
-theorem dvd_add_right (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
-(dvd_add_iff_right h).symm
-
-/-- An element a divides the sum a + b if and only if a divides b.-/
-@[simp] lemma dvd_add_self_left {a b : α} : a ∣ a + b ↔ a ∣ b :=
-dvd_add_right (dvd_refl a)
-
-/-- An element a divides the sum b + a if and only if a divides b.-/
-@[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
-dvd_add_left (dvd_refl a)
 
 /-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
   its roots. This particular version states that if we have a root `x` of a monic quadratic
@@ -860,17 +885,6 @@ begin
   simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
 end
 
-lemma dvd_iff_dvd_of_dvd_sub {a b c : α} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
-begin
-  split,
-  { intro h',
-    convert dvd_sub h' h,
-    exact eq.symm (sub_sub_self b c) },
-  { intro h',
-    convert dvd_add h h',
-    exact eq_add_of_sub_eq rfl }
-end
-
 end comm_ring
 
 lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
@@ -878,6 +892,36 @@ lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 
 lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
+
+/-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
+The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
+lemma is_left_regular_of_non_zero_divisor [ring α] (k : α)
+  (h : ∀ (x : α), k * x = 0 → x = 0) : is_left_regular k :=
+begin
+  intros x y h',
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [mul_sub, sub_eq_zero, h']
+end
+
+/-- Right `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
+The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
+lemma is_right_regular_of_non_zero_divisor [ring α] (k : α)
+  (h : ∀ (x : α), x * k = 0 → x = 0) : is_right_regular k :=
+begin
+  intros x y h',
+  simp only at h',
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [sub_mul, sub_eq_zero, h']
+end
+
+lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) :
+  is_regular k :=
+⟨is_left_regular_of_non_zero_divisor k
+  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
+  is_right_regular_of_non_zero_divisor k
+  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
@@ -895,9 +939,9 @@ instance domain.to_no_zero_divisors : no_zero_divisors α :=
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
-    by { rw [← sub_eq_zero, ← mul_sub], simp [ha, sub_eq_zero] },
+    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
   mul_right_cancel_of_ne_zero := λ a b c hb,
-    by { rw [← sub_eq_zero, ← sub_mul], simp [hb, sub_eq_zero] },
+    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
 /-- Pullback a `domain` instance along an injective function.

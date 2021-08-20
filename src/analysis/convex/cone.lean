@@ -3,9 +3,7 @@ Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Frédéric Dupuis
 -/
-import linear_algebra.linear_pmap
 import analysis.convex.basic
-import order.zorn
 import analysis.normed_space.inner_product
 
 /-!
@@ -54,7 +52,7 @@ While `convex` is a predicate on sets, `convex_cone` is a bundled convex cone.
 universes u v
 
 open set linear_map
-open_locale classical
+open_locale classical pointwise
 
 variables (E : Type*) [add_comm_group E] [module ℝ E]
   {F : Type*} [add_comm_group F] [module ℝ F]
@@ -479,7 +477,7 @@ end
 
 end riesz_extension
 
-/-- M. Riesz extension theorem: given a convex cone `s` in a vector space `E`, a submodule `p`,
+/-- M. **Riesz extension theorem**: given a convex cone `s` in a vector space `E`, a submodule `p`,
 and a linear `f : p → ℝ`, assume that `f` is nonnegative on `p ∩ s` and `p + s = E`. Then
 there exists a globally defined linear function `g : E → ℝ` that agrees with `f` on `p`,
 and is nonnegative on `s`. -/
@@ -495,7 +493,7 @@ begin
   { exact λ x hx, hgs ⟨x, _⟩ hx }
 end
 
-/-- Hahn-Banach theorem: if `N : E → ℝ` is a sublinear map, `f` is a linear map
+/-- **Hahn-Banach theorem**: if `N : E → ℝ` is a sublinear map, `f` is a linear map
 defined on a subspace of `E`, and `f x ≤ N x` for all `x` in the domain of `f`,
 then `f` can be extended to the whole space to a linear map `g` such that `g x ≤ N x`
 for all `x`. -/

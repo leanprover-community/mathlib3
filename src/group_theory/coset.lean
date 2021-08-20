@@ -181,51 +181,67 @@ theorem normal_of_eq_cosets (h : ∀ g : α, g *l s = s *r g) : s.normal :=
 theorem normal_iff_eq_cosets : s.normal ↔ ∀ g : α, g *l s = s *r g :=
 ⟨@eq_cosets_of_normal _ _ s, normal_of_eq_cosets s⟩
 
+@[to_additive left_add_coset_eq_iff]
+lemma left_coset_eq_iff {x y : α} : left_coset x s = left_coset y s ↔ x⁻¹ * y ∈ s :=
+begin
+  rw set.ext_iff,
+  simp_rw [mem_left_coset_iff, set_like.mem_coe],
+  split,
+  { intro h, apply (h y).mpr, rw mul_left_inv, exact s.one_mem },
+  { intros h z, rw ←mul_inv_cancel_right x⁻¹ y, rw mul_assoc, exact s.mul_mem_cancel_left h },
+end
+
+@[to_additive right_add_coset_eq_iff]
+lemma right_coset_eq_iff {x y : α} : right_coset ↑s x = right_coset s y ↔ y * x⁻¹ ∈ s :=
+begin
+  rw set.ext_iff,
+  simp_rw [mem_right_coset_iff, set_like.mem_coe],
+  split,
+  { intro h, apply (h y).mpr, rw mul_right_inv, exact s.one_mem },
+  { intros h z, rw ←inv_mul_cancel_left y x⁻¹, rw ←mul_assoc, exact s.mul_mem_cancel_right h },
+end
+
 end coset_subgroup
 
 run_cmd to_additive.map_namespace `quotient_group `quotient_add_group
 
 namespace quotient_group
 
+variables [group α] (s : subgroup α)
+
 /-- The equivalence relation corresponding to the partition of a group by left cosets
 of a subgroup.-/
 @[to_additive "The equivalence relation corresponding to the partition of a group by left cosets
 of a subgroup."]
-def left_rel [group α] (s : subgroup α) : setoid α :=
-⟨λ x y, x⁻¹ * y ∈ s,
-  assume x, by simp [s.one_mem],
-  assume x y hxy,
-    have (x⁻¹ * y)⁻¹ ∈ s, from s.inv_mem hxy,
-    by simpa using this,
-  assume x y z hxy hyz,
-    have x⁻¹ * y * (y⁻¹ * z) ∈ s, from s.mul_mem hxy hyz,
-    by simpa [mul_assoc] using this⟩
+def left_rel : setoid α :=
+⟨λ x y, x⁻¹ * y ∈ s, by { simp_rw ←left_coset_eq_iff, exact left_coset_equivalence_rel s }⟩
+
+lemma left_rel_r_eq_left_coset_equivalence :
+  @setoid.r _ (quotient_group.left_rel s) = left_coset_equivalence s :=
+by { ext, exact (left_coset_eq_iff s).symm }
 
 @[to_additive]
-instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
-  decidable_rel (left_rel s).r := λ _ _, d _
+instance left_rel_decidable [decidable_pred (∈ s)] :
+  decidable_rel (left_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
-def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
+def quotient : Type* := quotient (left_rel s)
 
 /-- The equivalence relation corresponding to the partition of a group by right cosets of a
 subgroup. -/
 @[to_additive "The equivalence relation corresponding to the partition of a group by right cosets of
 a subgroup."]
-def right_rel [group α] (s : subgroup α) : setoid α :=
-⟨λ x y, y * x⁻¹ ∈ s,
-  assume x, by simp [s.one_mem],
-  assume x y hxy,
-    have (y * x⁻¹)⁻¹ ∈ s, from s.inv_mem hxy,
-    by simpa using this,
-  assume x y z hxy hyz,
-    have (z * y⁻¹) * (y * x⁻¹) ∈ s, from s.mul_mem hyz hxy,
-    by simpa [mul_assoc] using this⟩
+def right_rel : setoid α :=
+⟨λ x y, y * x⁻¹ ∈ s, by { simp_rw ←right_coset_eq_iff, exact right_coset_equivalence_rel s }⟩
+
+lemma right_rel_r_eq_right_coset_equivalence :
+  @setoid.r _ (quotient_group.right_rel s) = right_coset_equivalence s :=
+by { ext, exact (right_coset_eq_iff s).symm }
 
 @[to_additive]
-instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
-  decidable_rel (left_rel s).r := λ _ _, d _
+instance right_rel_decidable [decidable_pred (∈ s)] :
+  decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
 end quotient_group
 
@@ -267,6 +283,11 @@ lemma induction_on' {C : quotient s → Prop} (x : quotient s)
 quotient.induction_on' x H
 
 @[to_additive]
+lemma forall_coe {C : quotient s → Prop} :
+  (∀ x : quotient s, C x) ↔ ∀ x : α, C x :=
+⟨λ hx x, hx _, quot.ind⟩
+
+@[to_additive]
 instance (s : subgroup α) : inhabited (quotient s) :=
 ⟨((1 : α) : quotient s)⟩
 
@@ -277,7 +298,8 @@ quotient.eq'
 @[to_additive]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=
-set.ext $ λ z, by { rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq], simp }
+set.ext $ λ z,
+  by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq, set_like.mem_coe]
 
 @[to_additive]
 lemma preimage_image_coe (N : subgroup α) (s : set α) :
@@ -336,6 +358,7 @@ lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fi
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
+/-- **Order of a Subgroup** -/
 lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
@@ -343,6 +366,28 @@ by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgr
 lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (λ a, a ∈ s)]
   [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s]
+
+open fintype
+
+variables {H : Type*} [group H]
+
+lemma card_dvd_of_injective [fintype α] [fintype H] (f : α →* H) (hf : function.injective f) :
+  card α ∣ card H :=
+by classical;
+calc card α = card (f.range : subgroup H) : card_congr (equiv.of_injective f hf)
+...∣ card H : card_subgroup_dvd_card _
+
+lemma card_dvd_of_le {H K : subgroup α} [fintype H] [fintype K] (hHK : H ≤ K) : card H ∣ card K :=
+card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
+
+lemma card_comap_dvd_of_injective (K : subgroup H) [fintype K]
+  (f : α →* H) [fintype (K.comap f)] (hf : function.injective f) :
+  fintype.card (K.comap f) ∣ fintype.card K :=
+by haveI : fintype ((K.comap f).map f) :=
+  fintype.of_equiv _ (equiv_map_of_injective _ _ hf).to_equiv;
+calc fintype.card (K.comap f) = fintype.card ((K.comap f).map f) :
+       fintype.card_congr (equiv_map_of_injective _ _ hf).to_equiv
+... ∣ fintype.card K : card_dvd_of_le (map_comap_le _ _)
 
 end subgroup
 

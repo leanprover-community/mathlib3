@@ -85,7 +85,7 @@ end
 lemma adj_matrix_pow_three_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
   ((G.adj_matrix R) ^ 3) v w = degree G v :=
 begin
-  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, sum_nat_cast],
+  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, nat.cast_sum],
   apply sum_congr rfl,
   intros x hx,
   rw [adj_matrix_sq_of_ne _ hG, nat.cast_one],
@@ -322,8 +322,8 @@ end
 
 end friendship
 
-/-- We wish to show that a friendship graph has a politician (a vertex adjacent to all others).
-  We proceed by contradiction, and assume the graph has no politician.
+/-- **Friendship theorem**: We wish to show that a friendship graph has a politician (a vertex
+  adjacent to all others). We proceed by contradiction, and assume the graph has no politician.
   We have already proven that a friendship graph with no politician is `d`-regular for some `d`,
   and now we do casework on `d`.
   If the degree is at most 2, we observe by casework that it has a politician anyway.

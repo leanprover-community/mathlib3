@@ -33,11 +33,32 @@ structure add_units (α : Type u) [add_monoid α] :=
 
 attribute [to_additive add_units] units
 
+section has_elem
+
+@[to_additive] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
+  default α = 1 :=
+unique.default_eq 1
+
+end has_elem
+
 namespace units
 
 variables [monoid α]
 
 @[to_additive] instance : has_coe (units α) α := ⟨val⟩
+
+@[to_additive] instance : has_inv (units α) := ⟨λ u, ⟨u.2, u.1, u.4, u.3⟩⟩
+
+/-- See Note [custom simps projection] -/
+@[to_additive /-" See Note [custom simps projection] "-/]
+def simps.coe (u : units α) : α := u
+
+/-- See Note [custom simps projection] -/
+@[to_additive /-" See Note [custom simps projection] "-/]
+def simps.coe_inv (u : units α) : α := ↑(u⁻¹)
+
+initialize_simps_projections units (val → coe as_prefix, inv → coe_inv as_prefix)
+initialize_simps_projections add_units (val → coe as_prefix, neg → coe_neg as_prefix)
 
 @[simp, to_additive] lemma coe_mk (a : α) (b h₁ h₂) : ↑(units.mk a b h₁ h₂) = a := rfl
 
@@ -60,6 +81,17 @@ variables [monoid α]
   mk (u : α) y h₁ h₂ = u :=
 ext rfl
 
+/-- Copy a unit, adjusting definition equalities. -/
+@[to_additive /-"Copy an `add_unit`, adjusting definitional equalities."-/, simps]
+def copy (u : units α) (val : α) (hv : val = u) (inv : α) (hi : inv = ↑(u⁻¹)) : units α :=
+{ val := val, inv := inv,
+  inv_val := hv.symm ▸ hi.symm ▸ u.inv_val, val_inv := hv.symm ▸ hi.symm ▸ u.val_inv }
+
+@[to_additive]
+lemma copy_eq (u : units α) (val hv inv hi) :
+  u.copy val hv inv hi = u :=
+ext hv
+
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
@@ -69,7 +101,7 @@ ext rfl
   mul_one := λ u, ext $ mul_one u,
   one_mul := λ u, ext $ one_mul u,
   mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
-  inv := λ u, ⟨u.2, u.1, u.4, u.3⟩,
+  inv := has_inv.inv,
   mul_left_inv := λ u, ext u.inv_val }
 
 variables (a b : units α) {c : units α}
@@ -84,10 +116,9 @@ by rw [←units.coe_one, eq_iff]
 
 @[simp, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
 
-@[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
+@[simp, to_additive] lemma val_eq_coe : a.val = (↑a : α) := rfl
 
-@[norm_cast, to_additive] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
-attribute [norm_cast] add_units.coe_neg
+@[simp, to_additive] lemma inv_eq_coe_inv : a.inv = ((a⁻¹ : units α) : α) := rfl
 
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
@@ -141,7 +172,7 @@ calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
       ... = a : by rw [u.inv_mul, one_mul]
 
 lemma inv_unique {u₁ u₂ : units α} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
-suffices ↑u₁ * (↑u₂⁻¹ : α) = 1, by exact inv_eq_of_mul_eq_one this, by rw [h, u₂.mul_inv]
+inv_eq_of_mul_eq_one $ by rw [h, u₂.mul_inv]
 
 end units
 

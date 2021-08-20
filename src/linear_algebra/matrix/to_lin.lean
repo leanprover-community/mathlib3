@@ -3,10 +3,10 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import data.matrix.block
 import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
-import ring_theory.matrix_algebra
 
 /-!
 # Linear maps and matrices
@@ -589,10 +589,15 @@ end
 end finite_dimensional
 end linear_map
 
+section
+
+variables {R : Type v} [comm_ring R] {n : Type*} [fintype n] [decidable_eq n]
+variables {M M₁ M₂ : Type*} [add_comm_group M] [module R M]
+variables [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
+
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
 is compatible with the algebra structures. -/
-def alg_equiv_matrix' {R : Type v} [comm_ring R] {n : Type*} [fintype n] [decidable_eq n] :
-  module.End R (n → R) ≃ₐ[R] matrix n n R :=
+def alg_equiv_matrix' : module.End R (n → R) ≃ₐ[R] matrix n n R :=
 { map_mul'  := linear_map.to_matrix'_comp,
   map_add'  := linear_map.to_matrix'.map_add,
   commutes' := λ r, by { change (r • (linear_map.id : module.End R _)).to_matrix' = r • 1,
@@ -601,8 +606,7 @@ def alg_equiv_matrix' {R : Type v} [comm_ring R] {n : Type*} [fintype n] [decida
 
 /-- A linear equivalence of two modules induces an equivalence of algebras of their
 endomorphisms. -/
-def linear_equiv.alg_conj {R : Type v} [comm_ring R] {M₁ M₂ : Type*}
-  [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂] (e : M₁ ≃ₗ[R] M₂) :
+def linear_equiv.alg_conj (e : M₁ ≃ₗ[R] M₂) :
   module.End R M₁ ≃ₐ[R] module.End R M₂ :=
 { map_mul'  := λ f g, by apply e.arrow_congr_comp,
   map_add'  := e.conj.map_add,
@@ -612,7 +616,7 @@ def linear_equiv.alg_conj {R : Type v} [comm_ring R] {M₁ M₂ : Type*}
 
 /-- A basis of a module induces an equivalence of algebras from the endomorphisms of the module to
 square matrices. -/
-def alg_equiv_matrix {R : Type v} {M : Type w} {n : Type*} [fintype n]
-  [comm_ring R] [add_comm_group M] [module R M] [decidable_eq n] (h : basis n R M) :
-  module.End R M ≃ₐ[R] matrix n n R :=
+def alg_equiv_matrix (h : basis n R M) : module.End R M ≃ₐ[R] matrix n n R :=
 h.equiv_fun.alg_conj.trans alg_equiv_matrix'
+
+end

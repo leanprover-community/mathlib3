@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.module.basic
+import algebra.regular.smul
 import algebra.ring.pi
 
 /-!
@@ -22,6 +23,7 @@ instance has_scalar {α : Type*} [Π i, has_scalar α $ f i] :
   has_scalar α (Π i : I, f i) :=
 ⟨λ s x, λ i, s • (x i)⟩
 
+lemma smul_def {α : Type*} [Π i, has_scalar α $ f i] (s : α) : s • x = λ i, s • x i := rfl
 @[simp] lemma smul_apply {α : Type*} [Π i, has_scalar α $ f i] (s : α) : (s • x) i = s • x i := rfl
 
 instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
@@ -32,6 +34,10 @@ instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
 lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
+
+lemma _root_.is_smul_regular.pi {α : Type*} [Π i, has_scalar α $ f i] {k : α}
+  (hk : Π i, is_smul_regular (f i) k) : is_smul_regular (Π i, f i) k :=
+λ _ _ h, funext $ λ i, hk i (congr_fun h i : _)
 
 instance is_scalar_tower {α β : Type*}
   [has_scalar α β] [Π i, has_scalar β $ f i] [Π i, has_scalar α $ f i]
@@ -62,6 +68,22 @@ instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
   [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
   [∀ i, smul_comm_class (f i) (g i) (h i)] : smul_comm_class (Π i, f i) (Π i, g i) (Π i, h i) :=
 ⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
+
+/-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is
+not an instance as `i` cannot be inferred. -/
+lemma has_faithful_scalar_at {α : Type*}
+  [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_scalar α (f i)] :
+  has_faithful_scalar α (Π i, f i) :=
+⟨λ x y h, eq_of_smul_eq_smul $ λ a : f i, begin
+  classical,
+  have := congr_fun (h $ function.update (λ j, classical.choice (‹Π i, nonempty (f i)› j)) i a) i,
+  simpa using this,
+end⟩
+
+instance has_faithful_scalar {α : Type*}
+  [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_scalar α (f i)] :
+  has_faithful_scalar α (Π i, f i) :=
+let ⟨i⟩ := ‹nonempty I› in has_faithful_scalar_at i
 
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
   @mul_action α (Π i : I, f i) m :=

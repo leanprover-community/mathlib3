@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.mean_value
-import tactic.monotonicity
 
 /-!
 # Extending differentiability to the boundary
@@ -85,11 +84,11 @@ begin
     apply continuous_within_at.mono _ this,
     simp only [continuous_within_at] },
   rw nhds_within_prod_eq,
-  { have : f v - f u - (f' v - f' u) = f v - f' v - (f u - f' u) := by abel,
-    rw this,
-    convert tendsto.comp continuous_norm.continuous_at
-      ((tendsto.comp (f_cont' v v_in) tendsto_snd).sub $ tendsto.comp (f_cont' u u_in) tendsto_fst),
-    intros, simp, abel },
+  { have : ∀ u v, f v - f u - (f' v - f' u) = f v - f' v - (f u - f' u) := by { intros, abel },
+    simp only [this],
+    exact tendsto.comp continuous_norm.continuous_at
+      ((tendsto.comp (f_cont' v v_in) tendsto_snd).sub $
+        tendsto.comp (f_cont' u u_in) tendsto_fst) },
   { apply tendsto_nhds_within_of_tendsto_nhds,
     rw nhds_prod_eq,
     exact tendsto_const_nhds.mul
@@ -186,7 +185,7 @@ begin
       self_mem_nhds_within,
     have : tendsto g (𝓝[Ioi x] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
-    apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
+    apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_gt hy)).deriv.symm },
   have B : has_deriv_within_at f (g x) (Iic x) x,
   { have diff : differentiable_on ℝ f (Iio x) :=
@@ -197,7 +196,19 @@ begin
       self_mem_nhds_within,
     have : tendsto g (𝓝[Iio x] x) (𝓝 (g x)) := tendsto_inf_left hg,
     apply this.congr' _,
-    apply mem_sets_of_superset self_mem_nhds_within (λy hy, _),
+    apply mem_of_superset self_mem_nhds_within (λy hy, _),
     exact (f_diff y (ne_of_lt hy)).deriv.symm },
   simpa using B.union A
+end
+
+/-- If a real function `f` has a derivative `g` everywhere but at a point, and `f` and `g` are
+continuous at this point, then `g` is the derivative of `f` everywhere. -/
+lemma has_deriv_at_of_has_deriv_at_of_ne' {f g : ℝ → E} {x : ℝ}
+  (f_diff : ∀ y ≠ x, has_deriv_at f (g y) y)
+  (hf : continuous_at f x) (hg : continuous_at g x) (y : ℝ) :
+  has_deriv_at f (g y) y :=
+begin
+  rcases eq_or_ne y x with rfl|hne,
+  { exact has_deriv_at_of_has_deriv_at_of_ne f_diff hf hg },
+  { exact f_diff y hne }
 end

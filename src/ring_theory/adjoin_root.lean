@@ -73,7 +73,7 @@ theorem induction_on {C : adjoin_root f → Prop} (x : adjoin_root f)
 quotient.induction_on' x ih
 
 /-- Embedding of the original ring `R` into `adjoin_root f`. -/
-def of : R →+* adjoin_root f := (mk f).comp (ring_hom.of C)
+def of : R →+* adjoin_root f := (mk f).comp C
 
 instance : algebra R (adjoin_root f) := (of f).to_algebra
 
@@ -108,6 +108,9 @@ by rw [← algebra_map_eq, ← aeval_def, aeval_eq, mk_self]
 
 lemma is_root_root (f : polynomial R) : is_root (f.map (of f)) (root f) :=
 by rw [is_root, eval_map, eval₂_root]
+
+lemma is_algebraic_root (hf : f ≠ 0) : is_algebraic R (root f) :=
+⟨f, hf, eval₂_root f⟩
 
 variables [comm_ring S]
 
@@ -159,26 +162,6 @@ begin
   exact (@lift_root _ _ _ _ _ _ _ (aeval_alg_hom_eq_zero f ϕ)).symm,
 end
 
-/-- If `E` is a field extension of `F` and `f` is a polynomial over `F` then the set
-of maps from `F[x]/(f)` into `E` is in bijection with the set of roots of `f` in `E`. -/
-def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf : f ≠ 0) :
-  (adjoin_root f →ₐ[F] E) ≃ {x // x ∈ (f.map (algebra_map F E)).roots} :=
-{ to_fun := λ ϕ, ⟨ϕ (root f), begin
-    rw [mem_roots (map_ne_zero hf), is_root.def, ←eval₂_eq_eval_map],
-    exact aeval_alg_hom_eq_zero f ϕ,
-    exact field.to_nontrivial E, end⟩,
-  inv_fun := λ x, lift_hom f ↑x (begin
-    rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf)],
-    exact subtype.mem x,
-    exact field.to_nontrivial E end),
-  left_inv := λ ϕ, lift_hom_eq_alg_hom f ϕ,
-  right_inv := λ x, begin
-    ext,
-    refine @lift_root F E _ f _ _ ↑x _,
-    rw [eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf), ←multiset.mem_to_finset],
-    exact multiset.mem_to_finset.mpr (subtype.mem x),
-    exact field.to_nontrivial E end }
-
 end comm_ring
 
 section irreducible
@@ -208,6 +191,28 @@ section power_basis
 
 variables [field K] {f : polynomial K}
 
+lemma is_integral_root (hf : f ≠ 0) : is_integral K (root f) :=
+(is_algebraic_iff_is_integral _).mp (is_algebraic_root hf)
+
+lemma minpoly_root (hf : f ≠ 0) : minpoly K (root f) = f * C (f.leading_coeff⁻¹) :=
+begin
+  have f'_monic : monic _ := monic_mul_leading_coeff_inv hf,
+  refine (minpoly.unique K _ f'_monic _ _).symm,
+  { rw [alg_hom.map_mul, aeval_eq, mk_self, zero_mul] },
+  intros q q_monic q_aeval,
+  have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
+  { ext,
+    { simp only [ring_hom.comp_apply, mk_C, lift_of], refl },
+    { simp only [ring_hom.comp_apply, mk_X, lift_root] } },
+  rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
+      with_bot.coe_le_coe, nat_degree_mul hf, nat_degree_C, add_zero],
+  apply nat_degree_le_of_dvd,
+  { have : mk f q = 0, by rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero],
+    rwa [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem] },
+  { exact q_monic.ne_zero },
+  { rwa [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] },
+end
+
 /-- The elements `1, root f, ..., root f ^ (d - 1)` form a basis for `adjoin_root f`,
 where `f` is an irreducible polynomial over a field of degree `d`. -/
 def power_basis_aux (hf : f ≠ 0) : basis (fin f.nat_degree) K (adjoin_root f) :=
@@ -216,30 +221,14 @@ begin
   have deg_f' : f'.nat_degree = f.nat_degree,
   { rw [nat_degree_mul hf, nat_degree_C, add_zero],
     { rwa [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] } },
-  have f'_monic : monic f' := monic_mul_leading_coeff_inv hf,
-  have aeval_f' : aeval (root f) f' = 0,
-  { rw [f'_def, alg_hom.map_mul, aeval_eq, mk_self, zero_mul] },
-  have hx : is_integral K (root f) := ⟨f', f'_monic, aeval_f'⟩,
-  have minpoly_eq : f' = minpoly K (root f),
-  { apply minpoly.unique K _ f'_monic aeval_f',
-    intros q q_monic q_aeval,
-    have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
-    { ext,
-      { simp only [ring_hom.comp_apply, mk_C, lift_of], refl },
-      { simp only [ring_hom.comp_apply, mk_X, lift_root] } },
-    rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
-        with_bot.coe_le_coe, deg_f'],
-    apply nat_degree_le_of_dvd,
-    { have : mk f q = 0, by rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero],
-      rwa [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem] },
-    { exact q_monic.ne_zero } },
+  have minpoly_eq : minpoly K (root f) = f' := minpoly_root hf,
   apply @basis.mk _ _ _ (λ (i : fin f.nat_degree), (root f ^ i.val)),
-  { rw [←deg_f', minpoly_eq],
-    exact hx.linear_independent_pow },
+  { rw [← deg_f', ← minpoly_eq],
+    exact (is_integral_root hf).linear_independent_pow },
   { rw _root_.eq_top_iff,
     rintros y -,
-    rw [←deg_f', minpoly_eq],
-    apply hx.mem_span_pow,
+    rw [← deg_f', ← minpoly_eq],
+    apply (is_integral_root hf).mem_span_pow,
     obtain ⟨g⟩ := y,
     use g,
     rw aeval_eq,
@@ -255,6 +244,32 @@ where `f` is an irreducible polynomial over a field of degree `d`. -/
   basis := power_basis_aux hf,
   basis_eq_pow := basis.mk_apply _ _ }
 
+lemma minpoly_power_basis_gen (hf : f ≠ 0) :
+  minpoly K (power_basis hf).gen = f * C (f.leading_coeff⁻¹) :=
+by rw [power_basis_gen, minpoly_root hf]
+
+lemma minpoly_power_basis_gen_of_monic (hf : f.monic) (hf' : f ≠ 0 := hf.ne_zero) :
+  minpoly K (power_basis hf').gen = f :=
+by rw [minpoly_power_basis_gen hf', hf.leading_coeff, inv_one, C.map_one, mul_one]
+
 end power_basis
+
+section equiv
+
+variables (K) (L F : Type*) [field F] [field K] [field L] [algebra F K] [algebra F L]
+variables (pb : _root_.power_basis F K)
+
+/-- If `L` is a field extension of `F` and `f` is a polynomial over `F` then the set
+of maps from `F[x]/(f)` into `L` is in bijection with the set of roots of `f` in `L`. -/
+def equiv (f : polynomial F) (hf : f ≠ 0) :
+  (adjoin_root f →ₐ[F] L) ≃ {x // x ∈ (f.map (algebra_map F L)).roots} :=
+(power_basis hf).lift_equiv'.trans ((equiv.refl _).subtype_equiv (λ x,
+  begin
+    rw [power_basis_gen, minpoly_root hf, polynomial.map_mul, roots_mul,
+        polynomial.map_C, roots_C, add_zero, equiv.refl_apply],
+    { rw ← polynomial.map_mul, exact map_monic_ne_zero (monic_mul_leading_coeff_inv hf) }
+  end))
+
+end equiv
 
 end adjoin_root

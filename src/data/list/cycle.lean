@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 import data.list.rotate
-import data.finset.basic
+import data.finset.sort
+import data.fintype.list
 
 /-!
 # Cycles of a list
@@ -13,6 +14,11 @@ Lists have an equivalence relation of whether they are rotational permutations o
 This relation is defined as `is_rotated`.
 
 Based on this, we define the quotient of lists by the rotation relation, called `cycle`.
+
+We also define a representation of concrete cycles, available when viewing them in a goal state or
+via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
+as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
+underlying element. This representation also supports cycles that can contain duplicates.
 
 -/
 
@@ -508,6 +514,20 @@ A `s : cycle α` that is made up of at least two unique elements.
 -/
 def nontrivial (s : cycle α) : Prop := ∃ (x y : α) (h : x ≠ y), x ∈ s ∧ y ∈ s
 
+@[simp] lemma nontrivial_coe_nodup_iff {l : list α} (hl : l.nodup) :
+  nontrivial (l : cycle α) ↔ 2 ≤ l.length :=
+begin
+  rw nontrivial,
+  rcases l with (_ | ⟨hd, _ | ⟨hd', tl⟩⟩),
+  { simp },
+  { simp },
+  { simp only [mem_cons_iff, exists_prop, mem_coe_iff, list.length, ne.def, nat.succ_le_succ_iff,
+               zero_le, iff_true],
+    refine ⟨hd, hd', _, by simp⟩,
+    simp only [not_or_distrib, mem_cons_iff, nodup_cons] at hl,
+    exact hl.left.left }
+end
+
 @[simp] lemma nontrivial_reverse_iff {s : cycle α} :
   s.reverse.nontrivial ↔ s.nontrivial :=
 by simp [nontrivial]
@@ -547,18 +567,77 @@ begin
     simp [this] }
 end
 
+lemma nodup.nontrivial_iff {s : cycle α} (h : nodup s) :
+  nontrivial s ↔ ¬ subsingleton s :=
+begin
+  rw length_subsingleton_iff,
+  induction s using quotient.induction_on',
+  simp only [mk'_eq_coe, nodup_coe_iff] at h,
+  simp [h, nat.succ_le_iff]
+end
+
 /--
 The `s : cycle α` as a `multiset α`.
 -/
 def to_multiset (s : cycle α) : multiset α :=
 quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
 
+/--
+The lift of `list.map`.
+-/
+def map {β : Type*} (f : α → β) : cycle α → cycle β :=
+quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
+
+/--
+The `multiset` of lists that can make the cycle.
+-/
+def lists (s : cycle α) : multiset (list α) :=
+quotient.lift_on' s
+  (λ l, (l.cyclic_permutations : multiset (list α))) $
+  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.cyclic_permutations.perm
+
+@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
+  l ∈ s.lists ↔ (l : cycle α) = s :=
+begin
+  induction s using quotient.induction_on',
+  rw [lists, quotient.lift_on'_mk'],
+  simp
+end
+
 section decidable
 
 variable [decidable_eq α]
 
+/--
+Auxiliary decidability algorithm for lists that contain at least two unique elements.
+-/
+def decidable_nontrivial_coe : Π (l : list α), decidable (nontrivial (l : cycle α))
+| []            := is_false (by simp [nontrivial])
+| [x]           := is_false (by simp [nontrivial])
+| (x :: y :: l) := if h : x = y
+  then @decidable_of_iff' _ (nontrivial ((x :: l) : cycle α))
+    (by simp [h, nontrivial])
+    (decidable_nontrivial_coe (x :: l))
+  else is_true ⟨x, y, h, by simp, by simp⟩
+
+instance {s : cycle α} : decidable (nontrivial s) :=
+quot.rec_on_subsingleton s decidable_nontrivial_coe
+
 instance {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
+
+instance fintype_nodup_cycle [fintype α] : fintype {s : cycle α // s.nodup} :=
+fintype.of_surjective (λ (l : {l : list α // l.nodup}), ⟨l.val, by simpa using l.prop⟩) (λ ⟨s, hs⟩,
+  begin
+    induction s using quotient.induction_on',
+    exact ⟨⟨s, hs⟩, by simp⟩
+  end)
+
+instance fintype_nodup_nontrivial_cycle [fintype α] :
+  fintype {s : cycle α // s.nodup ∧ s.nontrivial} :=
+fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
+  (function.embedding.subtype _)).filter cycle.nontrivial)
+  (by simp)
 
 /--
 The `s : cycle α` as a `finset α`.
@@ -610,5 +689,14 @@ by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
 (quotient.induction_on' s next_prev) hs x hx
 
 end decidable
+
+/--
+We define a representation of concrete cycles, available when viewing them in a goal state or
+via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
+as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
+underlying element. This representation also supports cycles that can contain duplicates.
+-/
+instance [has_repr α] : has_repr (cycle α) :=
+⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
 
 end cycle

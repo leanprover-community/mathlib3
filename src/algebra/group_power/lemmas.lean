@@ -10,7 +10,6 @@ import data.list.basic
 import data.int.cast
 import data.equiv.basic
 import data.equiv.mul_add
-import deprecated.group
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -49,6 +48,19 @@ lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
 
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+
+lemma is_unit_pos_pow_iff {M : Type*} [comm_monoid M] {m : M} {n : ℕ} (h : 0 < n) :
+  is_unit (m ^ n) ↔ is_unit m :=
+begin
+  obtain ⟨p, rfl⟩ := nat.exists_eq_succ_of_ne_zero h.ne',
+  refine ⟨λ h, _, is_unit.pow _⟩,
+  obtain ⟨⟨k, k', hk, hk'⟩, h⟩ := h,
+  rw [units.coe_mk] at h,
+  refine ⟨⟨m, m ^ p * k', _, _⟩, _⟩,
+  { rw [←mul_assoc, ←pow_succ, ←h, hk] },
+  { rw [mul_right_comm, ←pow_succ', ←h, hk] },
+  { exact units.coe_mk _ _ _ _ }
+end
 
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
 def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
@@ -183,15 +195,55 @@ begin
   exact coe_nat_pos.mp hk,
 end
 
+theorem gsmul_strict_mono_left {a : A} (ha : 0 < a) : strict_mono (λ n : ℤ, n • a) :=
+λ n m h,
+  calc n • a = n • a + 0 : (add_zero _).symm
+    ... < n • a + (m - n) • a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
+    ... = m • a : by { rw [← add_gsmul], simp }
+
+theorem gsmul_mono_left {a : A} (ha : 0 ≤ a) : monotone (λ n : ℤ, n • a) :=
+λ n m h,
+  calc n • a = n • a + 0 : (add_zero _).symm
+    ... ≤ n • a + (m - n) • a : add_le_add_left (gsmul_nonneg ha (sub_nonneg.mpr h)) _
+    ... = m • a : by { rw [← add_gsmul], simp }
+
 theorem gsmul_le_gsmul {a : A} {n m : ℤ} (ha : 0 ≤ a) (h : n ≤ m) : n • a ≤ m • a :=
-calc n • a = n • a + 0 : (add_zero _).symm
-  ... ≤ n • a + (m - n) • a : add_le_add_left (gsmul_nonneg ha (sub_nonneg.mpr h)) _
-  ... = m • a : by { rw [← add_gsmul], simp }
+gsmul_mono_left ha h
 
 theorem gsmul_lt_gsmul {a : A} {n m : ℤ} (ha : 0 < a) (h : n < m) : n • a < m • a :=
-calc n • a = n • a + 0 : (add_zero _).symm
-  ... < n • a + (m - n) • a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
-  ... = m • a : by { rw [← add_gsmul], simp }
+gsmul_strict_mono_left ha h
+
+theorem gsmul_le_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a ≤ m • a ↔ n ≤ m :=
+(gsmul_strict_mono_left ha).le_iff_le
+
+theorem gsmul_lt_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a < m • a ↔ n < m :=
+(gsmul_strict_mono_left ha).lt_iff_lt
+
+variables (A)
+
+lemma gsmul_strict_mono_right {n : ℤ} (hn : 0 < n) :
+  strict_mono ((•) n : A → A) :=
+λ a b hab, begin
+  rw ← sub_pos at hab,
+  rw [← sub_pos, ← gsmul_sub],
+  exact gsmul_pos hab hn,
+end
+
+lemma gsmul_mono_right {n : ℤ} (hn : 0 ≤ n) :
+  monotone ((•) n : A → A) :=
+λ a b hab, begin
+  rw ← sub_nonneg at hab,
+  rw [← sub_nonneg, ← gsmul_sub],
+  exact gsmul_nonneg hab hn,
+end
+
+variables {A}
+
+theorem gsmul_le_gsmul' {n : ℤ} (hn : 0 ≤ n) {a₁ a₂ : A} (h : a₁ ≤ a₂) : n • a₁ ≤ n • a₂ :=
+gsmul_mono_right A hn h
+
+theorem gsmul_lt_gsmul' {n : ℤ} (hn : 0 < n) {a₁ a₂ : A} (h : a₁ < a₂) : n • a₁ < n • a₂ :=
+gsmul_strict_mono_right A hn h
 
 lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
   abs (n • a) = n • abs a :=
@@ -249,19 +301,11 @@ end ordered_add_comm_group
 section linear_ordered_add_comm_group
 variable [linear_ordered_add_comm_group A]
 
-theorem gsmul_le_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a ≤ m • a ↔ n ≤ m :=
-begin
-  refine ⟨λ h, _, gsmul_le_gsmul $ le_of_lt ha⟩,
-  by_contra H,
-  exact lt_irrefl _ (lt_of_lt_of_le (gsmul_lt_gsmul ha (not_le.mp H)) h)
-end
+theorem gsmul_le_gsmul_iff' {n : ℤ} (hn : 0 < n) {a₁ a₂ : A} : n • a₁ ≤ n • a₂ ↔ a₁ ≤ a₂ :=
+(gsmul_strict_mono_right A hn).le_iff_le
 
-theorem gsmul_lt_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n • a < m • a ↔ n < m :=
-begin
-  refine ⟨λ h, _, gsmul_lt_gsmul ha⟩,
-  by_contra H,
-  exact lt_irrefl _ (lt_of_le_of_lt (gsmul_le_gsmul (le_of_lt ha) $ not_lt.mp H) h)
-end
+theorem gsmul_lt_gsmul_iff' {n : ℤ} (hn : 0 < n) {a₁ a₂ : A} : n • a₁ < n • a₂ ↔ a₁ < a₂ :=
+(gsmul_strict_mono_right A hn).lt_iff_lt
 
 theorem nsmul_le_nsmul_iff {a : A} {n m : ℕ} (ha : 0 < a) : n • a ≤ m • a ↔ n ≤ m :=
 begin
@@ -276,6 +320,25 @@ begin
   by_contra H,
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
 end
+
+/-- See also `smul_right_injective`. TODO: provide a `no_zero_smul_divisors` instance. We can't
+do that here because importing that definition would create import cycles. -/
+lemma gsmul_right_injective {m : ℤ} (hm : m ≠ 0) : function.injective ((•) m : A → A) :=
+begin
+  cases hm.symm.lt_or_lt,
+  { exact (gsmul_strict_mono_right A h).injective, },
+  { intros a b hab,
+    refine (gsmul_strict_mono_right A (neg_pos.mpr h)).injective _,
+    rw [neg_gsmul, neg_gsmul, hab], },
+end
+
+lemma gsmul_right_inj {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
+(gsmul_right_injective hm).eq_iff
+
+/-- Alias of `gsmul_right_inj`, for ease of discovery alongside `gsmul_le_gsmul_iff'` and
+`gsmul_lt_gsmul_iff'`. -/
+lemma gsmul_eq_gsmul_iff' {a b : A} {m : ℤ} (hm : m ≠ 0) : m • a = m • b ↔ a = b :=
+gsmul_right_inj hm
 
 end linear_ordered_add_comm_group
 
@@ -540,6 +603,15 @@ alias int.abs_le_self_sq ← int.abs_le_self_pow_two
 lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_sq _)
 
 alias int.le_self_sq ← int.le_self_pow_two
+
+lemma pow_right_injective {x : ℤ} (h : 1 < x.nat_abs) : function.injective ((^) x : ℕ → ℤ) :=
+begin
+  suffices : function.injective (nat_abs ∘ ((^) x : ℕ → ℤ)),
+  { exact function.injective.of_comp this },
+  convert nat.pow_right_injective h,
+  ext n,
+  rw [function.comp_app, nat_abs_pow]
+end
 
 end int
 

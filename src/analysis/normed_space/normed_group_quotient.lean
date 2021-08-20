@@ -24,7 +24,7 @@ are isomorphic to the canonical projection onto a normed group quotient.
 ## Main definitions
 
 
-We use `M` and `N` to denote semi normed groups and `S : add_subgroup M`.
+We use `M` and `N` to denote seminormed groups and `S : add_subgroup M`.
 All the following definitions are in the `add_subgroup` namespace. Hence we can access
 `add_subgroup.normed_mk S` as `S.normed_mk`.
 
@@ -133,7 +133,7 @@ by rw [show x - y = -(y - x), by abel, quotient_norm_neg]
 lemma quotient_norm_mk_le (S : add_subgroup M) (m : M) :
   ∥mk' S m∥ ≤ ∥m∥ :=
 begin
-  apply real.Inf_le,
+  apply cInf_le,
   use 0,
   { rintros _ ⟨n, h, rfl⟩,
     apply norm_nonneg },
@@ -163,7 +163,7 @@ lemma quotient_norm_nonneg (S : add_subgroup M) : ∀ x : quotient S, 0 ≤ ∥x
 begin
   rintros ⟨m⟩,
   change 0 ≤ ∥mk' S m∥,
-  apply real.lb_le_Inf _ (image_norm_nonempty _),
+  apply le_cInf (image_norm_nonempty _),
   rintros _ ⟨n, h, rfl⟩,
   apply norm_nonneg
 end
@@ -202,7 +202,7 @@ lemma norm_mk_lt {S : add_subgroup M} (x : quotient S) {ε : ℝ} (hε : 0 < ε)
   ∃ (m : M), mk' S m = x ∧ ∥m∥ < ∥x∥ + ε :=
 begin
   obtain ⟨_, ⟨m : M, H : mk' S m = x, rfl⟩, hnorm : ∥m∥ < ∥x∥ + ε⟩ :=
-    real.lt_Inf_add_pos (bdd_below_image_norm _) (image_norm_nonempty x) hε,
+    real.lt_Inf_add_pos (image_norm_nonempty x) hε,
   subst H,
   exact ⟨m, rfl, hnorm⟩,
 end
@@ -266,7 +266,7 @@ lemma quotient_nhd_basis (S : add_subgroup M) :
     { rintros - ⟨x, x_in, rfl⟩,
       rw mem_ball_0_iff at x_in,
       exact lt_of_le_of_lt (quotient_norm_mk_le S x) x_in },
-    apply filter.mem_sets_of_superset _ (set.subset.trans this h),
+    apply filter.mem_of_superset _ (set.subset.trans this h),
     clear h U this,
     apply is_open.mem_nhds,
     { change is_open ((mk' S) ⁻¹' _),
@@ -444,7 +444,7 @@ def lift {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   end,
   .. quotient_add_group.lift S f.to_add_monoid_hom hf }
 
-lemma lift_mk  {N : Type*} [semi_normed_group N] (S : add_subgroup M)
+lemma lift_mk {N : Type*} [semi_normed_group N] (S : add_subgroup M)
   (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0) (m : M) :
   lift S f hf (S.normed_mk m) = f m := rfl
 
@@ -470,12 +470,8 @@ begin
   obtain ⟨m, rfl⟩ := hquot.surjective n,
   have nonemp : ((λ m', ∥m + m'∥) '' f.ker).nonempty,
   { rw set.nonempty_image_iff,
-    exact ⟨0, is_add_submonoid.zero_mem⟩ },
-  have bdd : bdd_below ((λ m', ∥m + m'∥) '' f.ker),
-  { use 0,
-    rintro _ ⟨x, hx, rfl⟩,
-    apply norm_nonneg },
-  rcases real.lt_Inf_add_pos bdd nonemp hε with
+    exact ⟨0, f.ker.zero_mem⟩ },
+  rcases real.lt_Inf_add_pos nonemp hε with
     ⟨_, ⟨⟨x, hx, rfl⟩, H : ∥m + x∥ < Inf ((λ (m' : M), ∥m + m'∥) '' f.ker) + ε⟩⟩,
   exact ⟨m+x, by rw [f.map_add,(normed_group_hom.mem_ker f x).mp hx, add_zero],
                by rwa hquot.norm⟩,
@@ -485,11 +481,48 @@ lemma is_quotient.norm_le {f : normed_group_hom M N} (hquot : is_quotient f) (m 
   ∥f m∥ ≤ ∥m∥ :=
 begin
   rw hquot.norm,
-  apply real.Inf_le,
+  apply cInf_le,
   { use 0,
     rintros _ ⟨m', hm', rfl⟩,
     apply norm_nonneg },
   { exact ⟨0, f.ker.zero_mem, by simp⟩ }
+end
+
+lemma lift_norm_le {N : Type*} [semi_normed_group N] (S : add_subgroup M)
+  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
+  {c : ℝ≥0} (fb : ∥f∥ ≤ c) :
+  ∥lift S f hf∥ ≤ c :=
+begin
+  apply op_norm_le_bound _ c.coe_nonneg,
+  intros x,
+  by_cases hc : c = 0,
+  { simp only [hc, nnreal.coe_zero, zero_mul] at fb ⊢,
+    obtain ⟨x, rfl⟩ := surjective_quot_mk _ x,
+    show ∥f x∥ ≤ 0,
+    calc ∥f x∥ ≤ 0 * ∥x∥ : f.le_of_op_norm_le fb x
+          ... = 0 : zero_mul _ },
+  { replace hc : 0 < c := pos_iff_ne_zero.mpr hc,
+    apply le_of_forall_pos_le_add,
+    intros ε hε,
+    have aux : 0 < (ε / c) := div_pos hε hc,
+    obtain ⟨x, rfl, Hx⟩ : ∃ x', S.normed_mk x' = x ∧ ∥x'∥ < ∥x∥ + (ε / c) :=
+      (is_quotient_quotient _).norm_lift aux _,
+    rw lift_mk,
+    calc ∥f x∥ ≤ c * ∥x∥ : f.le_of_op_norm_le fb x
+          ... ≤ c * (∥S.normed_mk x∥ + ε / c) : (mul_le_mul_left _).mpr Hx.le
+          ... = c * _ + ε : _,
+    { exact_mod_cast hc },
+    { rw [mul_add, mul_div_cancel'], exact_mod_cast hc.ne' } },
+end
+
+lemma lift_norm_noninc {N : Type*} [semi_normed_group N] (S : add_subgroup M)
+  (f : normed_group_hom M N) (hf : ∀ s ∈ S, f s = 0)
+  (fb : f.norm_noninc) :
+  (lift S f hf).norm_noninc :=
+λ x,
+begin
+  have fb' : ∥f∥ ≤ (1 : ℝ≥0) := norm_noninc.norm_noninc_iff_norm_le_one.mp fb,
+  simpa using le_of_op_norm_le _ (f.lift_norm_le _ _ fb') _,
 end
 
 end normed_group_hom

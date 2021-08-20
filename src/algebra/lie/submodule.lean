@@ -271,8 +271,10 @@ end
 
 lemma Inf_glb (S : set (lie_submodule R L M)) : is_glb S (Inf S) :=
 begin
-  have h : ∀ (N N' : lie_submodule R L M), (N : set M) ≤ N' ↔ N ≤ N', { intros, apply iff.rfl, },
-  simp only [is_glb.of_image h, Inf_coe, is_glb_binfi],
+  have h : ∀ (N N' : lie_submodule R L M), (N : set M) ≤ N' ↔ N ≤ N', { intros, refl },
+  apply is_glb.of_image h,
+  simp only [Inf_coe],
+  exact is_glb_binfi
 end
 
 /-- The set of Lie submodules of a Lie module form a complete lattice.
@@ -351,17 +353,18 @@ begin
   apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
 end
 
-lemma subsingleton_iff : subsingleton M ↔ subsingleton (lie_submodule R L M) :=
-(submodule.subsingleton_iff R).trans $ by
-  rw [← subsingleton_iff_bot_eq_top, ← subsingleton_iff_bot_eq_top, ← coe_to_submodule_eq_iff,
-    top_coe_submodule, bot_coe_submodule]
+@[simp] lemma subsingleton_iff : subsingleton (lie_submodule R L M) ↔ subsingleton M :=
+have h : subsingleton (lie_submodule R L M) ↔ subsingleton (submodule R M),
+{ rw [← subsingleton_iff_bot_eq_top, ← subsingleton_iff_bot_eq_top, ← coe_to_submodule_eq_iff,
+    top_coe_submodule, bot_coe_submodule], },
+h.trans $ submodule.subsingleton_iff R
 
-lemma nontrivial_iff : nontrivial M ↔ nontrivial (lie_submodule R L M) :=
+@[simp] lemma nontrivial_iff : nontrivial (lie_submodule R L M) ↔ nontrivial M :=
 not_iff_not.mp (
   (not_nontrivial_iff_subsingleton.trans $ subsingleton_iff R L M).trans
   not_nontrivial_iff_subsingleton.symm)
 
-instance [nontrivial M] : nontrivial (lie_submodule R L M) := (nontrivial_iff R L M).mp ‹_›
+instance [nontrivial M] : nontrivial (lie_submodule R L M) := (nontrivial_iff R L M).mpr ‹_›
 
 variables {R L M}
 
@@ -430,6 +433,29 @@ begin
   { intros x m hm, rw [← h, mem_coe_submodule], exact lie_mem _ (subset_lie_span hm), },
   { rw [← coe_to_submodule_mk p h, coe_to_submodule, coe_to_submodule_eq_iff, lie_span_eq], },
 end
+
+variables (R L M)
+
+/-- `lie_span` forms a Galois insertion with the coercion from `lie_submodule` to `set`. -/
+protected def gi : galois_insertion (lie_span R L : set M → lie_submodule R L M) coe :=
+{ choice    := λ s _, lie_span R L s,
+  gc        := λ s t, lie_span_le,
+  le_l_u    := λ s, subset_lie_span,
+  choice_eq := λ s h, rfl }
+
+@[simp] lemma span_empty : lie_span R L (∅ : set M) = ⊥ :=
+(lie_submodule.gi R L M).gc.l_bot
+
+@[simp] lemma span_univ : lie_span R L (set.univ : set M) = ⊤ :=
+eq_top_iff.2 $ set_like.le_def.2 $ subset_lie_span
+
+variables {M}
+
+lemma span_union (s t : set M) : lie_span R L (s ∪ t) = lie_span R L s ⊔ lie_span R L t :=
+(lie_submodule.gi R L M).gc.l_sup
+
+lemma span_Union {ι} (s : ι → set M) : lie_span R L (⋃ i, s i) = ⨆ i, lie_span R L (s i) :=
+(lie_submodule.gi R L M).gc.l_supr
 
 end lie_span
 

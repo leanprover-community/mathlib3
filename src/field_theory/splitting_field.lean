@@ -69,7 +69,7 @@ f = 0 ∨ ∀ {g : polynomial L}, irreducible g → g ∣ f.map i → degree g =
 @[simp] lemma splits_C (a : K) : splits i (C a) :=
 if ha : a = 0 then ha.symm ▸ (@C_0 K _).symm ▸ splits_zero i
 else
-have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
+have hia : i a ≠ 0, from mt ((i.injective_iff).1
   i.injective _) ha,
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
@@ -112,9 +112,9 @@ else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.
 lemma splits_of_splits_mul {f g : polynomial K} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
   splits i f ∧ splits i g :=
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
+   (by rw map_mul; exact hg.trans (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
+   (by rw map_mul; exact hg.trans (dvd_mul_left _ _))⟩
 
 lemma splits_of_splits_of_dvd {f g : polynomial K} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
   splits i g :=
@@ -337,7 +337,8 @@ else
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
         end)
       (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨(units.map' C : units L →* units (polynomial L)) (units.mk0 (f.map i).leading_coeff
+        ⟨(units.map C.to_monoid_hom : units L →* units (polynomial L))
+          (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
         ... ~ᵤ _ : associated.symm (unique_factorization_monoid.factors_prod (by simpa using hf0))),
@@ -354,7 +355,7 @@ unique_factorization_monoid.induction_on_prime f (λ _, splits_zero _)
   (λ a p ha0 hp ih hfi, splits_mul _
     (splits_of_degree_eq_one _
       ((splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).1.resolve_left
-        hp.1 (irreducible_of_prime hp) (by rw map_id)))
+        hp.1 hp.irreducible (by rw map_id)))
     (ih (splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).2))
 
 end UFD

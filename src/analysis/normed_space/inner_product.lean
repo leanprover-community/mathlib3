@@ -3,12 +3,11 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis, Heather Macbeth
 -/
-
+import analysis.complex.basic
+import analysis.normed_space.bounded_linear_maps
+import analysis.special_functions.sqrt
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
-import data.complex.is_R_or_C
-import analysis.special_functions.sqrt
-import analysis.complex.basic
 
 /-!
 # Inner Product Space
@@ -233,7 +232,7 @@ lemma inner_sub_sub_self {x y : F} : ⟪x - y, x - y⟫ = ⟪x, x⟫ - ⟪x, y�
 by simp only [inner_sub_left, inner_sub_right]; ring
 
 /--
-Cauchy–Schwarz inequality. This proof follows "Proof 2" on Wikipedia.
+**Cauchy–Schwarz inequality**. This proof follows "Proof 2" on Wikipedia.
 We need this for the `core` structure to prove the triangle inequality below when
 showing the core is a normed group.
 -/
@@ -741,6 +740,14 @@ lemma orthonormal.inner_left_fintype [fintype ι]
   ⟪∑ i : ι, (l i) • (v i), v i⟫ = conj (l i) :=
 by simp [sum_inner, inner_smul_left, orthonormal_iff_ite.mp hv]
 
+/--
+The double sum of weighted inner products of pairs of vectors from an orthonormal sequence is the
+sum of the weights.
+-/
+lemma orthonormal.inner_left_right_finset {s : finset ι}  {v : ι → E} (hv : orthonormal 𝕜 v)
+  {a : ι → ι → 𝕜} : ∑ i in s, ∑ j in s, (a i j) • ⟪v j, v i⟫ = ∑ k in s, a k k :=
+by simp [orthonormal_iff_ite.mp hv, finset.sum_ite_of_true]
+
 /-- An orthonormal set is linearly independent. -/
 lemma orthonormal.linear_independent {v : ι → E} (hv : orthonormal 𝕜 v) :
   linear_independent 𝕜 v :=
@@ -923,6 +930,9 @@ begin
   conv_lhs { congr, skip, rw [inner_abs_conj_sym] },
   exact inner_mul_inner_self_le _ _
 end
+
+lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
+(is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
@@ -1366,13 +1376,65 @@ linear_map.mk_continuous
     map_add' := λ x y, inner_add_right,
     map_smul' := λ c x, inner_smul_right }
   ∥v∥
-  (by simpa [is_R_or_C.norm_eq_abs] using abs_inner_le_norm v)
+  (by simpa using norm_inner_le_norm v)
 
 @[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
 
 @[simp] lemma inner_right_apply (v w : E) : inner_right v w = ⟪v, w⟫ := rfl
 
 end norm
+
+section bessels_inequality
+
+variables {ι: Type*} (x : E) {v : ι → E}
+
+/-- Bessel's inequality for finite sums. -/
+lemma orthonormal.sum_inner_products_le {s : finset ι} (hv : orthonormal 𝕜 v) :
+  ∑ i in s, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
+begin
+  have h₂ : ∑ i in s, ∑ j in s, ⟪v i, x⟫ * ⟪x, v j⟫ * ⟪v j, v i⟫
+    = (∑ k in s, (⟪v k, x⟫ * ⟪x, v k⟫) : 𝕜),
+   { exact hv.inner_left_right_finset },
+  have h₃ : ∀ z : 𝕜, re (z * conj (z)) = ∥z∥ ^ 2,
+  { intro z,
+    simp only [mul_conj, norm_sq_eq_def'],
+    norm_cast, },
+  suffices hbf: ∥x -  ∑ i in s, ⟪v i, x⟫ • (v i)∥ ^ 2 = ∥x∥ ^ 2 - ∑ i in s, ∥⟪v i, x⟫∥ ^ 2,
+  { rw [←sub_nonneg, ←hbf],
+    simp only [norm_nonneg, pow_nonneg], },
+  rw [norm_sub_sq, sub_add],
+  simp only [inner_product_space.norm_sq_eq_inner, inner_sum],
+  simp only [sum_inner, two_mul, inner_smul_right, inner_conj_sym, ←mul_assoc, h₂, ←h₃,
+  inner_conj_sym, add_monoid_hom.map_sum, finset.mul_sum, ←finset.sum_sub_distrib, inner_smul_left,
+  add_sub_cancel'],
+end
+
+/-- Bessel's inequality. -/
+lemma orthonormal.tsum_inner_products_le (hv : orthonormal 𝕜 v) :
+  ∑' i, ∥⟪v i, x⟫∥ ^ 2 ≤ ∥x∥ ^ 2 :=
+begin
+  refine tsum_le_of_sum_le' _ (λ s, hv.sum_inner_products_le x),
+  simp only [norm_nonneg, pow_nonneg]
+end
+
+/-- The sum defined in Bessel's inequality is summable. -/
+lemma orthonormal.inner_products_summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥⟪v i, x⟫∥ ^ 2) :=
+begin
+  by_cases hnon : nonempty ι,
+  { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2)),
+    apply has_sum_of_is_lub_of_nonneg,
+    { intro b,
+      simp only [norm_nonneg, pow_nonneg], },
+    { refine is_lub_cSup (set.range_nonempty _) _,
+      use ∥x∥ ^ 2,
+      rintro y ⟨s, rfl⟩,
+      exact hv.sum_inner_products_le x, }, },
+  { rw not_nonempty_iff at hnon,
+    haveI := hnon,
+    exact summable_empty, },
+end
+
+end bessels_inequality
 
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
@@ -1463,7 +1525,7 @@ lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E
   smul_right := λ r x y,
     by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
   bound := ⟨1, zero_lt_one, λ x y,
-    by { rw [one_mul, is_R_or_C.norm_eq_abs], exact abs_inner_le_norm x y, }⟩ }
+    by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
 
 /-- Derivative of the inner product. -/
 def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p

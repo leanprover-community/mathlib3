@@ -7,7 +7,7 @@ Authors: Johan Commelin
 import data.mv_polynomial
 import algebra.algebra.operations
 import data.fintype.card
-import algebra.direct_sum_graded
+import algebra.direct_sum.ring
 
 /-!
 # Homogeneous polynomials

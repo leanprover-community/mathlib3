@@ -5,7 +5,7 @@ Authors: Kenny Lau
 
 Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
-import algebra.direct_sum
+import algebra.direct_sum.basic
 import linear_algebra.dfinsupp
 
 /-!

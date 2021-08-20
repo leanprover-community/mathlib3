@@ -59,10 +59,10 @@ by { rw complex.norm_sq_pos, exact z.ne_zero }
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
 
 /-- Numerator of the formula for a fractional linear transformation -/
-@[simp] def top (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
+@[simp] def num (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
 
 /-- Denominator of the formula for a fractional linear transformation -/
-@[simp] def bottom (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 1 0) * z + (g 1 1)
+@[simp] def denom (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 1 0) * z + (g 1 1)
 
 lemma linear_ne_zero (cd : fin 2 → ℝ) (z : ℍ) (h : cd ≠ 0) : (cd 0 : ℂ) * z + cd 1 ≠ 0 :=
 begin
@@ -76,25 +76,25 @@ begin
   fin_cases i; assumption,
 end
 
-lemma bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠ 0 :=
+lemma denom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : denom g z ≠ 0 :=
 linear_ne_zero (g 1) z (g.row_ne_zero 1)
 
-lemma norm_sq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (bottom g z) :=
-complex.norm_sq_pos.mpr (bottom_ne_zero g z)
+lemma norm_sq_denom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (denom g z) :=
+complex.norm_sq_pos.mpr (denom_ne_zero g z)
 
-lemma norm_sq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=
-ne_of_gt (norm_sq_bottom_pos g z)
+lemma norm_sq_denom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (denom g z) ≠ 0 :=
+ne_of_gt (norm_sq_denom_pos g z)
 
 /-- Fractional linear transformation -/
-def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z
+def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := num g z / denom g z
 
 lemma smul_aux'_im (g : SL(2, ℝ)) (z : ℍ) :
-  (smul_aux' g z).im = z.im / (bottom g z).norm_sq :=
+  (smul_aux' g z).im = z.im / (denom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
-  set NsqBot := (bottom g z).norm_sq,
+  set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
-  { simp only [bottom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
+  { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
   field_simp [smul_aux'],
   convert congr_arg (λ x, x * z.im * NsqBot ^ 2) g.det_coe using 1,
   { rw det_fin_two ↑g,
@@ -105,13 +105,13 @@ end
 /-- Fractional linear transformation -/
 def smul_aux (g : SL(2,ℝ)) (z : ℍ) : ℍ :=
 ⟨smul_aux' g z,
-by { rw smul_aux'_im, exact div_pos z.im_pos (complex.norm_sq_pos.mpr (bottom_ne_zero g z)) }⟩
+by { rw smul_aux'_im, exact div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)) }⟩
 
-lemma bottom_cocycle (x y : SL(2,ℝ)) (z : ℍ) :
-  bottom (x * y) z = bottom x (smul_aux y z) * bottom y z :=
+lemma denom_cocycle (x y : SL(2,ℝ)) (z : ℍ) :
+  denom (x * y) z = denom x (smul_aux y z) * denom y z :=
 begin
   change _ = (_ * (_ / _) + _) * _,
-  field_simp [bottom_ne_zero, -bottom, -top],
+  field_simp [denom_ne_zero, -denom, -num],
   simp [matrix.mul, dot_product, fin.sum_univ_succ],
   ring
 end
@@ -122,7 +122,7 @@ begin
   ext1,
   change _ / _ = (_ * (_ / _) + _)  * _,
   rw bot_cocycle,
-  field_simp [bottom_ne_zero, -bottom, -top],
+  field_simp [denom_ne_zero, -denom, -num],
   simp [matrix.mul, dot_product, fin.sum_univ_succ],
   ring
 end
@@ -133,20 +133,20 @@ instance : mul_action SL(2, ℝ) ℍ :=
   one_smul := λ z, by { ext1, change _ / _ = _, simp },
   mul_smul := mul_smul' }
 
-@[simp] lemma coe_smul (g : SL(2, ℝ)) (z : ℍ) : ↑(g • z) = top g z / bottom g z := rfl
-@[simp] lemma re_smul (g : SL(2, ℝ)) (z : ℍ) : (g • z).re = (top g z / bottom g z).re := rfl
+@[simp] lemma coe_smul (g : SL(2, ℝ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
+@[simp] lemma re_smul (g : SL(2, ℝ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
 
-lemma im_smul (g : SL(2, ℝ)) (z : ℍ) : (g • z).im = (top g z / bottom g z).im := rfl
+lemma im_smul (g : SL(2, ℝ)) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℝ)) (z : ℍ) :
-  (g • z).im = z.im / (complex.norm_sq (bottom g z)) :=
+  (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
 im_smul_eq_div_norm_sq' g z
 
 @[simp] lemma neg_smul (g : SL(2,ℝ)) (z : ℍ) : -g • z = g • z :=
 begin
   ext1,
   change _ / _ = _ / _,
-  field_simp [bottom_ne_zero, -bottom, -top],
+  field_simp [denom_ne_zero, -denom, -num],
   simp,
   ring,
 end

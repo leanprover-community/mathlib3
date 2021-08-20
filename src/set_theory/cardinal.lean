@@ -660,6 +660,8 @@ begin
   apply le_sup,
 end
 
+/-- A variant of `lift_sup_le_lift_sup` with universes specialized via `w = v` and `w' = v'`.
+This is sometimes necessary to avoid universe unification issues. -/
 lemma lift_sup_le_lift_sup'
   {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{v}) (f' : ι' → cardinal.{v'})
   (g : ι → ι') (h : ∀ i, lift.{_ v'} (f i) ≤ lift.{_ v} (f' (g i))) :

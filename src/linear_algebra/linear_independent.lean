@@ -516,19 +516,11 @@ universes v w
 
 /--
 A linearly independent family is maximal if there is no strictly larger linearly independent family.
-
-There is a universe subtlety here.
-We can't quantify over universes, and it is not enough to quantify over
-all indexed families in the same universe as the maximal family:
-there could potentially be a strictly larger linearly independent family,
-but only in a larger universe.
-Since every linearly independent family injects into `M`,
-it is sufficient to index by some set in `M`.
 -/
 @[nolint unused_arguments]
 def linear_independent.maximal {ι : Type w} {R : Type u} [semiring R]
   {M : Type v} [add_comm_monoid M] [module R M] {v : ι → M} (i : linear_independent R v) : Prop :=
-∀ (w : set M) (i' : linear_independent R (coe : w → M)) (h : range v ≤ w), range v = w
+∀ (s : set M) (i' : linear_independent R (coe : s → M)) (h : range v ≤ s), range v = s
 
 /--
 An alternative characterization of a maximal linearly independent family,

@@ -123,7 +123,7 @@ end
 (kronecker_map_diagonal_diagonal _ hf₁ hf₂ _ _).trans $ by simp only [hf₃, diagonal_one]
 
 @[simp]
-lemma kronecker_map_reindex (f : α → β → γ)  (el : l ≃ l') (em : m ≃ m') (en : n ≃ n')
+lemma kronecker_map_reindex (f : α → β → γ) (el : l ≃ l') (em : m ≃ m') (en : n ≃ n')
   (ep : p ≃ p') (M : matrix l m α) (N : matrix n p β) :
   kronecker_map f (reindex el em M) (reindex en ep N) =
   reindex (el.prod_congr en) (em.prod_congr ep)

@@ -486,6 +486,9 @@ if hf : measurable f then
     { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] }
   end } else 0
 
+lemma map_not_measurable {f : α → β} (hf : ¬ measurable f) : v.map f = 0 :=
+dif_neg hf
+
 lemma map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   v.map f s = v (f ⁻¹' s) :=
 by { rw [map, dif_pos hf], exact if_pos hs }
@@ -872,6 +875,51 @@ variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M
 instance covariant_add_le :
   covariant_class (vector_measure α M) (vector_measure α M) (+) (≤) :=
 ⟨λ u v w h i hi, add_le_add_left (h i hi) _⟩
+
+end
+
+section
+
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
+
+/-- A vector measure `v` is absolutely continuous with respect to a measure `μ` if for all sets
+`s`, `μ s = 0`, we have `v s = 0`. -/
+def absolutely_continuous (v : vector_measure α M) (μ : measure α) :=
+∀ ⦃s : set α⦄, μ s = 0 → v s = 0
+
+infix ` ≪ `:50 := absolutely_continuous
+
+namespace absolutely_continuous
+
+variables {v : vector_measure α M} {μ : measure α}
+
+lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → μ s = 0 → v s = 0) : v ≪ μ :=
+begin
+  intros s hs,
+  by_cases hmeas : measurable_set s,
+  { exact h hmeas hs },
+  { exact not_measurable v hmeas }
+end
+
+lemma to_signed_measure (μ : measure α) [finite_measure μ]: μ.to_signed_measure ≪ μ :=
+begin
+  refine mk (λ s hs₁ hs₂, _),
+  rw [measure.to_signed_measure_apply_measurable hs₁, hs₂, ennreal.zero_to_real]
+end
+
+lemma map [measure_space β] (h : v ≪ μ) (f : α → β) :
+  v.map f ≪ measure.map f μ :=
+begin
+  by_cases hf : measurable f,
+  { refine mk (λ s hs hws, _),
+    rw map_apply _ hf hs,
+    rw measure.map_apply hf hs at hws,
+    exact h hws },
+  { intros s hs,
+    rw [map_not_measurable v hf, zero_apply] }
+end
+
+end absolutely_continuous
 
 end
 

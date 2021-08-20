@@ -376,6 +376,48 @@ begin
   simp [to_signed_measure_neg],
 end
 
+/-- The total variation of a signed measure. -/
+def to_measure (s : signed_measure α) : measure α :=
+s.to_jordan_decomposition.pos_part + s.to_jordan_decomposition.neg_part
+
+lemma to_measure_zero : (0 : signed_measure α).to_measure = 0 :=
+by simp [to_measure, to_jordan_decomposition_zero]
+
+lemma to_measure_neg (s : signed_measure α) : (-s).to_measure = s.to_measure :=
+by simp [to_measure, to_jordan_decomposition_neg, add_comm]
+
+lemma absolutely_continuous_iff (s : signed_measure α) (μ : measure α) :
+  s ≪ μ ↔ s.to_measure ≪ μ :=
+begin
+  split; intro h,
+  { refine measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
+    obtain ⟨i, hi₁, hi₂, hi₃, hpos, hneg⟩ := s.to_jordan_decomposition_spec,
+    rw [to_measure, measure.add_apply, hpos, hneg,
+        to_measure_of_zero_le_apply _ _ _ hS₁, to_measure_of_le_zero_apply _ _ _ hS₁],
+    simp [h (measure_mono_null (i.inter_subset_right S) hS₂),
+          h (measure_mono_null (iᶜ.inter_subset_right S) hS₂)],
+    refl },
+  { refine vector_measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
+    have := h hS₂,
+    rw [to_measure, measure.add_apply, add_eq_zero_iff] at this,
+    rw [← s.to_signed_measure_to_jordan_decomposition, to_signed_measure,
+        measure.to_signed_measure_sub_apply hS₁, this.1, this.2, ennreal.zero_to_real, sub_zero] }
+end
+
+lemma to_measure_absolutely_continuous_iff (s : signed_measure α) (μ : measure α) :
+  s.to_measure ≪ μ ↔
+  s.to_jordan_decomposition.pos_part ≪ μ ∧ s.to_jordan_decomposition.neg_part ≪ μ :=
+begin
+  split; intro h,
+  { split, all_goals
+    { refine measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
+      have := h hS₂,
+      rw [to_measure, measure.add_apply, add_eq_zero_iff] at this },
+    exacts [this.1, this.2] },
+  { refine measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
+    rw [to_measure, measure.add_apply, h.1 hS₂, h.2 hS₂, add_zero] }
+end
+
 end signed_measure
 
 end measure_theory

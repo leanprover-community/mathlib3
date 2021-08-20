@@ -776,7 +776,7 @@ begin
   change (b.repr x).sum (λ (i : ι) (a : R), (λ (x : w) (r : R), r • (x : M)) (u i) a) =
     ((⟨x, p⟩ : w) : M) at e,
   rw [←finsupp.sum_emb_domain, ←finsupp.total_apply] at e,
-  -- Now we can contradict the linear independence of hi
+  -- Now we can contradict the linear independence of `hi`
   refine hi.total_ne_of_not_mem_support _ _ e,
   simp only [finset.mem_map, finsupp.support_emb_domain],
   rintro ⟨j, -, W⟩,

@@ -374,7 +374,7 @@ variables {V : Type*} [add_comm_group V] [module K V]
 -- should this go in a namespace?
 -- finite_dimensional would be natural,
 -- but we don't assume it...
-lemma card_eq_pow_findim [fintype V] :
+lemma card_eq_pow_finrank [fintype V] :
   fintype.card V = q ^ (finite_dimensional.finrank K V) :=
 begin
   let b := is_noetherian.finset_basis K V,

@@ -85,7 +85,7 @@ begin
   rw nat_degree_eq at key,
   suffices : (g_poly).root_set (galois_field p n) = set.univ,
   { simp_rw [this, ←fintype.of_equiv_card (equiv.set.univ _)] at key,
-    rw [@card_eq_pow_findim (zmod p), zmod.card] at key,
+    rw [@card_eq_pow_finrank (zmod p), zmod.card] at key,
     exact nat.pow_right_injective ((nat.prime.one_lt' p).out) key },
   rw set.eq_univ_iff_forall,
   suffices : ∀ x (hx : x ∈ (⊤ : subalgebra (zmod p) (galois_field p n))),

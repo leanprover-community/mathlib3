@@ -311,7 +311,7 @@ variables [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
-smul_left_injective _ hx
+smul_right_injective _ hx
 
 end algebra
 

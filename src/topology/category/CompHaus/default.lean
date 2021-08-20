@@ -8,6 +8,7 @@ import category_theory.adjunction.reflective
 import topology.category.Top
 import topology.stone_cech
 import category_theory.monad.limits
+import topology.urysohns_lemma
 
 /-!
 
@@ -67,11 +68,12 @@ def of : CompHaus :=
 @[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
 
 /-- Any continuous function on compact Hausdorff spaces is a closed map. -/
-lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
+lemma is_closed_map {X Y : CompHaus.{u}} (f : X ⟶ Y) : is_closed_map f :=
 λ C hC, (hC.is_compact.image f.continuous).is_closed
 
 /-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
-lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
+lemma is_iso_of_bijective {X Y : CompHaus.{u}} (f : X ⟶ Y) (bij : function.bijective f) :
+  is_iso f :=
 begin
   let E := equiv.of_bijective _ bij,
   have hE : continuous E.symm,
@@ -88,7 +90,7 @@ end
 
 /-- Any continuous bijection of compact Hausdorff spaces induces an isomorphism. -/
 noncomputable
-def iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
+def iso_of_bijective {X Y : CompHaus.{u}} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
 by letI := is_iso_of_bijective _ bij; exact as_iso f
 
 end CompHaus
@@ -97,7 +99,7 @@ end CompHaus
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
 def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
 
-instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus) :=
+instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus.{u}) :=
 ⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
 
 /--
@@ -111,7 +113,7 @@ def StoneCech_obj (X : Top) : CompHaus := CompHaus.of (stone_cech X)
 (Implementation) The bijection of homsets to establish the reflective adjunction of compact
 Hausdorff spaces in topological spaces.
 -/
-noncomputable def stone_cech_equivalence (X : Top) (Y : CompHaus) :
+noncomputable def stone_cech_equivalence (X : Top.{u}) (Y : CompHaus.{u}) :
   (StoneCech_obj X ⟶ Y) ≃ (X ⟶ CompHaus_to_Top.obj Y) :=
 { to_fun := λ f,
   { to_fun := f ∘ stone_cech_unit,
@@ -140,7 +142,7 @@ The Stone-Cech compactification functor from topological spaces to compact Hausd
 left adjoint to the inclusion functor.
 -/
 noncomputable def Top_to_CompHaus : Top.{u} ⥤ CompHaus.{u} :=
-adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u u} (λ _ _ _ _ _, rfl)
+adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u} (λ _ _ _ _ _, rfl)
 
 lemma Top_to_CompHaus_obj (X : Top) : ↥(Top_to_CompHaus.obj X) = stone_cech X :=
 rfl
@@ -169,23 +171,27 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
 { X :=
   { to_Top := (Top.limit_cone (F ⋙ CompHaus_to_Top)).X,
     is_compact := begin
-      dsimp [Top.limit_cone],
+      show compact_space ↥{u : Π j, (F.obj j) | ∀ {i j : J} (f : i ⟶ j), (F.map f) (u i) = u j},
       rw ← is_compact_iff_compact_space,
       apply is_closed.is_compact,
       have : {u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} =
-        ⋂ (i j : J) (f : i ⟶ j), {u | F.map f (u i) = u j}, by tidy,
+        ⋂ (i j : J) (f : i ⟶ j), {u | F.map f (u i) = u j},
+      { ext1, simp only [set.mem_Inter, set.mem_set_of_eq], },
       rw this,
       apply is_closed_Inter, intros i,
       apply is_closed_Inter, intros j,
       apply is_closed_Inter, intros f,
-      apply is_closed_eq;
-      continuity,
+      apply is_closed_eq,
+      { exact (continuous_map.continuous (F.map f)).comp (continuous_apply i), },
+      { exact continuous_apply j, }
     end,
-    is_hausdorff := by { dsimp [Top.limit_cone], apply_instance } },
+    is_hausdorff :=
+      show t2_space ↥{u : Π j, (F.obj j) | ∀ {i j : J} (f : i ⟶ j), (F.map f) (u i) = u j},
+      from infer_instance },
   π :=
   { app := λ j, (Top.limit_cone (F ⋙ CompHaus_to_Top)).π.app j,
-    -- tidy needs a little help in the `naturality'` field to avoid deterministic timeouts.
-    naturality' := by { intros _ _ _, ext, tidy } } }
+    naturality' := by { intros _ _ _, ext ⟨x, hx⟩,
+      simp only [comp_apply, functor.const.obj_map, id_apply], exact (hx f).symm, } } }
 
 /-- The limit cone `CompHaus.limit_cone F` is indeed a limit cone. -/
 def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
@@ -193,5 +199,51 @@ def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u})
 { lift := λ S,
     (Top.limit_cone_is_limit (F ⋙ CompHaus_to_Top)).lift (CompHaus_to_Top.map_cone S),
   uniq' := λ S m h, (Top.limit_cone_is_limit _).uniq (CompHaus_to_Top.map_cone S) _ h }
+
+lemma epi_iff_surjective {X Y : CompHaus.{u}} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
+begin
+  split,
+  { contrapose!,
+    rintros ⟨y, hy⟩ hf,
+    let C := set.range f,
+    have hC : is_closed C := (is_compact_range f.continuous).is_closed,
+    let D := {y},
+    have hD : is_closed D := is_closed_singleton,
+    have hCD : disjoint C D,
+    { rw set.disjoint_singleton_right, rintro ⟨y', hy'⟩, exact hy y' hy' },
+    haveI : normal_space ↥(Y.to_Top) := normal_of_compact_t2,
+    obtain ⟨φ, hφ0, hφ1, hφ01⟩ := exists_continuous_zero_one_of_closed hC hD hCD,
+    haveI : compact_space (ulift.{u} $ set.Icc (0:ℝ) 1) := homeomorph.ulift.symm.compact_space,
+    haveI : t2_space (ulift.{u} $ set.Icc (0:ℝ) 1) := homeomorph.ulift.symm.t2_space,
+    let Z := of (ulift.{u} $ set.Icc (0:ℝ) 1),
+    let g : Y ⟶ Z := ⟨λ y', ⟨⟨φ y', hφ01 y'⟩⟩,
+      continuous_ulift_up.comp (continuous_subtype_mk (λ y', hφ01 y') φ.continuous)⟩,
+    let h : Y ⟶ Z := ⟨λ _, ⟨⟨0, set.left_mem_Icc.mpr zero_le_one⟩⟩, continuous_const⟩,
+    have H : h = g,
+    { rw ← cancel_epi f,
+      ext x, dsimp,
+      simp only [comp_apply, continuous_map.coe_mk, subtype.coe_mk, hφ0 (set.mem_range_self x),
+        pi.zero_apply], },
+    apply_fun (λ e, (e y).down) at H,
+    dsimp at H,
+    simp only [subtype.mk_eq_mk, hφ1 (set.mem_singleton y), pi.one_apply] at H,
+    exact zero_ne_one H, },
+  { rw ← category_theory.epi_iff_surjective,
+    apply faithful_reflects_epi (forget CompHaus) },
+end
+
+lemma mono_iff_injective {X Y : CompHaus.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
+begin
+  split,
+  { introsI hf x₁ x₂ h,
+    let g₁ : of punit ⟶ X := ⟨λ _, x₁, continuous_of_discrete_topology⟩,
+    let g₂ : of punit ⟶ X := ⟨λ _, x₂, continuous_of_discrete_topology⟩,
+    have : g₁ ≫ f = g₂ ≫ f, by { ext, exact h },
+    rw cancel_mono at this,
+    apply_fun (λ e, e punit.star) at this,
+    exact this },
+  { rw ← category_theory.mono_iff_injective,
+    apply faithful_reflects_mono (forget CompHaus) }
+end
 
 end CompHaus

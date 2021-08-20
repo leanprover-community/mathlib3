@@ -98,17 +98,14 @@ multiset.induction_on s (λ h, (hp.not_dvd_one h).elim) $
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end
 
-lemma exists_mem_finset_dvd {ι : Sort*} [decidable_eq ι] {s : finset ι}
-  {f : ι → α} :
+lemma exists_mem_multiset_map_dvd {s : multiset β} {f : β → α} :
+  p ∣ (s.map f).prod → ∃ a ∈ s, p ∣ f a :=
+λ h, by simpa only [exists_prop, multiset.mem_map, exists_exists_and_eq_and]
+  using hp.exists_mem_multiset_dvd h
+
+lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
   p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
-finset.induction_on s (λ h, (hp.not_dvd_one $ finset.prod_empty.subst h).elim) $
-λ i s hi ih h,
-begin
-  obtain hpf | hps := hp.dvd_or_dvd ((finset.prod_insert hi).subst h),
-  { exact ⟨i, finset.mem_insert_self i s, hpf⟩ },
-  { obtain ⟨j, hj, hpf⟩ := ih hps,
-    exact ⟨j, finset.mem_insert_of_mem hj, hpf⟩ }
-end
+hp.exists_mem_multiset_map_dvd
 
 end prime
 

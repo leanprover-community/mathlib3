@@ -56,34 +56,26 @@ lemma form_perm_disjoint_iff (hl : nodup l) (hl' : nodup l')
   (hn : 2 ≤ l.length) (hn' : 2 ≤ l'.length) :
   perm.disjoint (form_perm l) (form_perm l') ↔ l.disjoint l' :=
 begin
-  rw disjoint_iff_eq_or_eq,
-  rw list.disjoint,
+  rw [disjoint_iff_eq_or_eq, list.disjoint],
   split,
   { rintro h x hx hx',
     specialize h x,
     rw [form_perm_apply_mem_eq_self_iff _ hl _ hx,
-        form_perm_apply_mem_eq_self_iff _ hl' _ hx',
-        le_iff_eq_or_lt, le_iff_eq_or_lt, nat.lt_one_iff, nat.lt_one_iff,
-        length_eq_one, length_eq_one, length_eq_zero, length_eq_zero] at h,
-    rcases h with (⟨hd, rfl⟩|rfl)|(⟨hd, rfl⟩|rfl);
-    simpa using hx <|> simpa using hx' <|>
-      simpa [nat.succ_le_succ_iff] using hn <|> simpa [nat.succ_le_succ_iff] using hn' },
+        form_perm_apply_mem_eq_self_iff _ hl' _ hx'] at h,
+    rcases h with hl | hl'; linarith },
   { intros h x,
-    by_cases hx : x ∈ l;
-    by_cases hx' : x ∈ l',
-    { simpa using h hx hx' },
-    { simp [form_perm_apply_not_mem _ _ hx'] },
-    { simp [form_perm_apply_not_mem _ _ hx] },
-    { simp [form_perm_apply_not_mem _ _ hx'] } }
+    by_cases hx : x ∈ l; by_cases hx' : x ∈ l',
+    { exact (h hx hx').elim },
+    all_goals { have := form_perm_apply_not_mem _ _ ‹_›, tauto } }
 end
 
 lemma is_cycle_form_perm (hl : nodup l) (hn : 2 ≤ l.length) :
   is_cycle (form_perm l) :=
 begin
   cases l with x l,
-  { simpa using hn },
+  { norm_num at hn },
   induction l with y l IH generalizing x,
-  { simpa [nat.succ_le_succ_iff] using hn },
+  { norm_num at hn },
   { use x,
     split,
     { rwa form_perm_apply_mem_ne_self_iff _ hl _ (mem_cons_self _ _) },
@@ -91,32 +83,21 @@ begin
       have : w ∈ (x :: y :: l) := form_perm_ne_self_imp_mem _ _ hw,
       obtain ⟨k, hk, rfl⟩ := nth_le_of_mem this,
       use k,
-      rw gpow_coe_nat,
-      convert form_perm_pow_apply_nth_le _ hl k 0 (by simp),
-      rw [nat.zero_add, nat.mod_eq_of_lt hk] } }
+      simp only [gpow_coe_nat, form_perm_pow_apply_head _ _ hl k, nat.mod_eq_of_lt hk] } }
 end
 
 lemma pairwise_same_cycle_form_perm (hl : nodup l) (hn : 2 ≤ l.length) :
   pairwise (l.form_perm.same_cycle) l :=
-begin
-  rw pairwise.imp_mem,
-  refine pairwise_of_forall _,
-  intros x y hx hy,
-  refine (is_cycle_form_perm hl hn).same_cycle _ _;
-  { rwa form_perm_apply_mem_ne_self_iff _ hl _,
-    assumption }
-end
+pairwise.imp_mem.mpr (pairwise_of_forall (λ x y hx hy, (is_cycle_form_perm hl hn).same_cycle
+  ((form_perm_apply_mem_ne_self_iff _ hl _ hx).mpr hn)
+  ((form_perm_apply_mem_ne_self_iff _ hl _ hy).mpr hn)))
 
 lemma cycle_of_form_perm (hl : nodup l) (hn : 2 ≤ l.length) (x) :
   cycle_of l.attach.form_perm x = l.attach.form_perm :=
-begin
-  rw ←length_attach at hn,
-  rw ←nodup_attach at hl,
-  refine is_cycle.cycle_of_eq _ _,
-  { exact is_cycle_form_perm hl hn },
-  { rwa form_perm_apply_mem_ne_self_iff _ hl,
-    exact mem_attach _ _ }
-end
+have hn : 2 ≤ l.attach.length := by rwa ← length_attach at hn,
+have hl : l.attach.nodup := by rwa ← nodup_attach at hl,
+(is_cycle_form_perm hl hn).cycle_of_eq
+  ((form_perm_apply_mem_ne_self_iff _ hl _ (mem_attach _ _)).mpr hn)
 
 lemma cycle_type_form_perm (hl : nodup l) (hn : 2 ≤ l.length) :
   cycle_type l.attach.form_perm = {l.length} :=
@@ -158,8 +139,7 @@ def form_perm : Π (s : cycle α) (h : nodup s), equiv.perm α :=
       ext,
       { exact h.nodup_iff },
       { intros h₁ h₂ _,
-        refine heq_of_eq _,
-        exact form_perm_eq_of_is_rotated h₁ h }
+        exact heq_of_eq (form_perm_eq_of_is_rotated h₁ h) }
     end)
 
 @[simp] lemma form_perm_coe (l : list α) (hl : l.nodup) :
@@ -235,7 +215,7 @@ namespace equiv.perm
 variables [fintype α] [decidable_eq α] (p : equiv.perm α) (x : α)
 
 /--
-Given `f : perm α` and `x : α`, generate the list `[x, f x, f (f x), ...]`
+`equiv.perm.to_list (f : perm α) (x : α)` generates the list `[x, f x, f (f x), ...]`
 until looping. That means when `f x = x`, `to_list f x = []`.
 -/
 def to_list : list α :=
@@ -299,13 +279,11 @@ begin
   rw [←cycle_of_apply_self, ←ne.def, ←mem_support] at hx,
   rw [nth_le_to_list, nth_le_to_list,
       ←cycle_of_pow_apply_self p x n, ←cycle_of_pow_apply_self p x m],
-  cases n;
-  cases m,
+  cases n; cases m,
   { simp },
   { rw [←hc.mem_support_pos_pow_iff_of_lt_order_of m.zero_lt_succ hm,
         mem_support, cycle_of_pow_apply_self] at hx,
-    rw eq_comm,
-    simp [hx] },
+    simp [hx.symm] },
   { rw [←hc.mem_support_pos_pow_iff_of_lt_order_of n.zero_lt_succ hn,
         mem_support, cycle_of_pow_apply_self] at hx,
     simp [hx] },
@@ -453,10 +431,7 @@ multiset.rec_on (finset.univ : finset α).val
   (λ x s l, if f x = x then l else to_list f x)
   (by { intros x y m s,
     refine heq_of_eq _,
-    split_ifs with hx hy hy,
-    { refl },
-    { refl },
-    { refl },
+    split_ifs with hx hy hy; try { refl },
     { have hc : same_cycle f x y := is_cycle.same_cycle hf hx hy,
       exact quotient.sound' hc.to_list_is_rotated }})
 

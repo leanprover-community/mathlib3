@@ -303,6 +303,11 @@ begin
           ←nat.add_assoc] }
 end
 
+lemma form_perm_pow_apply_head (x : α) (l : list α) (h : nodup (x :: l)) (n : ℕ) :
+  (form_perm (x :: l) ^ n) x =
+    (x :: l).nth_le (n % (x :: l).length) (nat.mod_lt _ (nat.zero_lt_succ _)) :=
+by { convert form_perm_pow_apply_nth_le _ h n 0 _; simp }
+
 lemma form_perm_ext_iff {x y x' y' : α} {l l' : list α}
   (hd : nodup (x :: y :: l)) (hd' : nodup (x' :: y' :: l')) :
   form_perm (x :: y :: l) = form_perm (x' :: y' :: l') ↔ (x :: y :: l) ~r (x' :: y' :: l') :=

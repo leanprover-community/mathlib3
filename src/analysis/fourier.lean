@@ -6,6 +6,7 @@ Authors: Heather Macbeth
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
 import measure_theory.measure.haar
+import measure_theory.measure.lebesgue
 import analysis.complex.circle
 import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass
@@ -219,24 +220,32 @@ end
 
 
 --@[derive has_coe_to_fun]
-def Schwarz := {f : ℝ → ℝ // asymptotics.is_O f  (λ x : ℝ, 1/(1+x^2)) (filter.cocompact ℝ) ∧
+def Schwarz := {f : ℝ → ℂ // asymptotics.is_O f  (λ x : ℝ, 1/(1+x^2)) (filter.cocompact ℝ) ∧
   times_cont_diff ℝ 2 f }
 
 instance : add_comm_monoid Schwarz := sorry
 
 instance : module ℝ Schwarz := sorry
 
-instance : has_coe Schwarz (ℝ → ℝ) := coe_subtype
+instance : has_coe Schwarz (ℝ → ℂ) := coe_subtype
 
-instance : has_coe_to_fun Schwarz := ⟨ _ , (λ f, (f : ℝ → ℝ ))⟩
+instance : has_coe_to_fun Schwarz := ⟨ _ , (λ f, (f : ℝ → ℂ ))⟩
 
 def Fourier_transform : Schwarz →ₗ[ℝ] Schwarz := sorry
 
+@[simp] lemma Fourier_transform_apply (f : Schwarz ) (x : ℝ) :
+Fourier_transform f x = ∫ t : ℝ , f t  * complex.exp (2 * real.pi * complex.I * t * x) :=
+begin
+  sorry,
+end
 
-def automorphic_point_pair_invariant' : Schwarz → (ℝ → ℝ) :=
+
+/--  x:ℝ  ↦ F(x) := ∑ f ( x + m  )-/
+def automorphic_point_pair_invariant' : Schwarz → (ℝ → ℂ ) :=
  λ f, λ x, ∑' (m:ℤ), f (x+m)
 
-def auto_descend' : Schwarz → (real.angle' → ℝ)  :=
+/--  x:ℝ/ℤ   ↦ F(x):= ∑ f ( x + m  )-/
+def auto_descend' : Schwarz → (real.angle' → ℂ )  :=
 λ f, @quotient.lift _ _ (quotient_add_group.left_rel _) (automorphic_point_pair_invariant' f)
 --(add_subgroup.gmultiples (2*real.pi))
 begin
@@ -247,22 +256,49 @@ begin
 --  dsimp [quotient_add_group.left_rel] at hab,
 end
 
-def auto_descend : Schwarz → (real.angle' × real.angle' → ℝ)  := λ f, λ ⟨x, y⟩ ,
+/--  x,y:ℝ/ℤ   ↦ K(x,y):= ∑ f ( x + m -y  )-/
+def auto_descend : Schwarz → (real.angle' × real.angle' → ℂ )  := λ f, λ ⟨x, y⟩ ,
 (auto_descend' f) (x-y)
 
 
+/--  y : ℝ/ℤ   ↦ θ : circle -/
 def expm : real.angle' ≃ circle := sorry
 
-def auto_descend'' : Schwarz → real.angle' → circle → ℝ  := λ f, λ x, λ  y,
+
+def auto_descend'' : Schwarz → real.angle' → circle → ℂ   := λ f, λ x, λ  y,
 (auto_descend f) ⟨ x, expm.symm y⟩
 
-
+/--  θ:circle , y : ℝ/ℤ   ↦ K(θ ,y):= ∑ f ( θ  + m -y  )-/
 def auto_descend''' : Schwarz → real.angle' → Lp ℂ 2 haar_circle   :=  sorry
 --λ f, λ x, λ  y,
 --(auto_descend f) ⟨ x,y⟩
 
+/--  given K, y:ℝ/ℤ , m:ℤ , get: ⟨K(θ ,y), e_m(θ)⟩ -/
+def cof : Schwarz → real.angle' → ℤ → ℂ := λ f, λ θ, λ m,
+  inner (fourier_Lp 2 m) (auto_descend''' f θ)
 
-def cof : Schwarz → real.angle' → ℤ → ℂ := λ f, λ θ, λ m, ⟪ auto_descend''' f θ , fourier_Lp 2 m ⟫
+
+lemma unfolding_trick (f : Schwarz ) ( y : ℝ ) (m : ℤ ) :
+cof f (quotient.mk' y) m = Fourier_transform f (m:ℝ ) * complex.exp (-2 * real.pi * complex.I * m * y) :=
+begin
+  rw cof,
+  simp,
+  dsimp [inner],
+  have : ∫ (a : ↥circle), complex.conj ((fourier_Lp 2 m) a) * (auto_descend''' f (quotient.mk' y)) a ∂haar_circle
+  =
+  ∫ (a : ↥circle), complex.conj ((fourier m) a) * (auto_descend'' f (quotient.mk' y)) a ∂haar_circle
+  := sorry,
+  rw this,
+  clear this,
+  simp,
+  rw auto_descend'',
+  rw auto_descend,
+  simp,
+--  rw auto_descend',
+--  simp,
+
+
+end
 
 theorem Poisson_summation (f : Schwarz) : ∑' (n:ℤ), f n = ∑' (m:ℤ), (Fourier_transform f) m :=
 begin

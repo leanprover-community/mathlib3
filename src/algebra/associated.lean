@@ -65,7 +65,7 @@ lemma not_unit : ¬ is_unit p :=
 hp.2.1
 
 lemma not_dvd_one : ¬ p ∣ 1 :=
-λ h, hp.not_unit (is_unit_of_dvd_one _ h)
+mt (is_unit_of_dvd_one _) hp.not_unit
 
 lemma ne_one : p ≠ 1 :=
 λ h, hp.2.1 (h.symm ▸ is_unit_one)

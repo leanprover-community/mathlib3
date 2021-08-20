@@ -25,11 +25,12 @@ Let `X` be a profinite set.
 
 noncomputable theory
 
+universe variables u v w
 open category_theory function
 
 namespace Profinite
 
-instance projective_ultrafilter (X : Type*) :
+instance projective_ultrafilter (X : Type u) :
   projective (of $ ultrafilter X) :=
 { factors := λ Y Z f g hg,
   begin
@@ -46,14 +47,14 @@ instance projective_ultrafilter (X : Type*) :
   end }
 
 /-- For any profinite `X`, the natural map `ultrafilter X → X` is a projective presentation. -/
-def projective_presentation (X : Profinite) : projective_presentation X :=
+def projective_presentation (X : Profinite.{u}) : projective_presentation X :=
 { P := of $ ultrafilter X,
   f := ⟨_, continuous_ultrafilter_extend id⟩,
   projective := Profinite.projective_ultrafilter X,
   epi := concrete_category.epi_of_surjective _ $
     λ x, ⟨(pure x : ultrafilter X), congr_fun (ultrafilter_extend_extends (𝟙 X)) x⟩ }
 
-instance : enough_projectives Profinite :=
+instance : enough_projectives Profinite.{u} :=
 { presentation := λ X, ⟨projective_presentation X⟩ }
 
 end Profinite

@@ -1248,7 +1248,7 @@ lemma map_range.equiv_trans
     (map_range.equiv f hf hf').trans (map_range.equiv f₂ hf₂ hf₂') :=
 equiv.ext $ map_range_comp _ _ _ _ _
 
-lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
+@[simp] lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
   ((map_range.equiv f hf hf').symm : (α →₀ _) ≃ _) = map_range.equiv f.symm hf' hf :=
 equiv.ext $ λ x, rfl
 
@@ -1339,7 +1339,7 @@ lemma map_range.add_equiv_trans (f : M ≃+ N) (f₂ : N ≃+ P) :
     (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
 add_equiv.ext $ map_range_comp _ _ _ _ _
 
-lemma map_range.add_equiv_symm (f : M ≃+ N) :
+@[simp] lemma map_range.add_equiv_symm (f : M ≃+ N) :
   ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
 add_equiv.ext $ λ x, rfl
 

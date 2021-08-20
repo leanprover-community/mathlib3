@@ -191,7 +191,7 @@ begin
   rw C_dvd_iff_dvd_coeff,
   split,
   { intros h i,
-    apply dvd_trans h (content_dvd_coeff _) },
+    apply h.trans (content_dvd_coeff _) },
   { intro h,
     rw [content, finset.dvd_gcd_iff],
     intros i hi,
@@ -328,7 +328,7 @@ begin
     content_C_mul, h, mul_one, content_prim_part, content_prim_part, mul_one, mul_one] },
   rw [← normalize_content, normalize_eq_one, is_unit_iff_dvd_one,
       content_eq_gcd_leading_coeff_content_erase_lead, leading_coeff_mul, gcd_comm],
-  apply dvd_trans (gcd_mul_dvd_mul_gcd _ _ _),
+  apply (gcd_mul_dvd_mul_gcd _ _ _).trans,
   rw [content_mul_aux, ih, content_prim_part, mul_one, gcd_comm,
       ← content_eq_gcd_leading_coeff_content_erase_lead, content_prim_part, one_mul,
       mul_comm q.prim_part, content_mul_aux, ih, content_prim_part, mul_one, gcd_comm,
@@ -372,7 +372,7 @@ lemma is_primitive.dvd_prim_part_iff_dvd {p q : polynomial R}
   (hp : p.is_primitive) (hq : q ≠ 0) :
   p ∣ q.prim_part ↔ p ∣ q :=
 begin
-  refine ⟨λ h, dvd.trans h (dvd.intro_left _ q.eq_C_content_mul_prim_part.symm), λ h, _⟩,
+  refine ⟨λ h, h.trans (dvd.intro_left _ q.eq_C_content_mul_prim_part.symm), λ h, _⟩,
   rcases h with ⟨r, rfl⟩,
   apply dvd.intro _,
   rw [prim_part_mul hq, hp.prim_part_eq],
@@ -386,7 +386,7 @@ begin
   have h : ∃ (n : ℕ) (r : polynomial R), r.nat_degree = n ∧ r.is_primitive ∧ p ∣ r ∧ q ∣ r :=
     ⟨(p * q).nat_degree, p * q, rfl, hp.mul hq, dvd_mul_right _ _, dvd_mul_left _ _⟩,
   rcases nat.find_spec h with ⟨r, rdeg, rprim, pr, qr⟩,
-  refine ⟨r, rprim, λ s, ⟨_, λ rs, ⟨dvd.trans pr rs, dvd.trans qr rs⟩⟩⟩,
+  refine ⟨r, rprim, λ s, ⟨_, λ rs, ⟨pr.trans rs, qr.trans rs⟩⟩⟩,
   suffices hs : ∀ (n : ℕ) (s : polynomial R), s.nat_degree = n → (p ∣ s ∧ q ∣ s → r ∣ s),
   { apply hs s.nat_degree s rfl },
   clear s,
@@ -415,7 +415,7 @@ begin
   rw [ne.def, ← leading_coeff_eq_zero, ← C_eq_zero] at hC0,
   rw [sub_add_cancel, ← rprim.dvd_prim_part_iff_dvd (mul_ne_zero hC0 s0)] at h,
   rcases is_unit_prim_part_C r.leading_coeff with ⟨u, hu⟩,
-  apply dvd.trans h (dvd_of_associated (associated.symm ⟨u, _⟩)),
+  apply h.trans (associated.symm ⟨u, _⟩).dvd,
   rw [prim_part_mul (mul_ne_zero hC0 s0), hu, mul_comm],
 end
 
@@ -426,7 +426,7 @@ begin
   split; intro h,
   { rcases h with ⟨r, rfl⟩,
     rw [content_mul, p.is_primitive_prim_part.dvd_prim_part_iff_dvd hq],
-    exact ⟨dvd.intro _ rfl, dvd.trans p.prim_part_dvd (dvd.intro _ rfl)⟩ },
+    exact ⟨dvd.intro _ rfl, p.prim_part_dvd.trans (dvd.intro _ rfl)⟩ },
   { rw [p.eq_C_content_mul_prim_part, q.eq_C_content_mul_prim_part],
     exact mul_dvd_mul (ring_hom.map_dvd C h.1) h.2 }
 end

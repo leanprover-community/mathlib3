@@ -1003,31 +1003,20 @@ lemma is_lub_bsupr {s : set β} {f : β → α} : is_lub (f '' s) (⨆ x ∈ s, 
 by simpa only [range_comp, subtype.range_coe, supr_subtype'] using @is_lub_supr α s _ (f ∘ coe)
 
 theorem infi_sigma {p : β → Type*} {f : sigma p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
-le_antisymm
-  (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
-  (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
+eq_of_forall_le_iff $ λ c, by simp only [le_infi_iff, sigma.forall]
 
 theorem supr_sigma {p : β → Type*} {f : sigma p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 @infi_sigma (order_dual α) _ _ _ _
 
 theorem infi_prod {γ : Type*} {f : β × γ → α} : (⨅ x, f x) = (⨅ i j, f (i, j)) :=
-le_antisymm
-  (le_infi $ assume i, le_infi $ assume j, infi_le _ _)
-  (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
+eq_of_forall_le_iff $ λ c, by simp only [le_infi_iff, prod.forall]
 
 theorem supr_prod {γ : Type*} {f : β × γ → α} : (⨆ x, f x) = (⨆ i j, f (i, j)) :=
 @infi_prod (order_dual α) _ _ _ _
 
 theorem infi_sum {γ : Type*} {f : β ⊕ γ → α} :
   (⨅ x, f x) = (⨅ i, f (sum.inl i)) ⊓ (⨅ j, f (sum.inr j)) :=
-le_antisymm
-  (le_inf
-    (infi_le_infi2 $ assume i, ⟨_, le_refl _⟩)
-    (infi_le_infi2 $ assume j, ⟨_, le_refl _⟩))
-  (le_infi $ assume s, match s with
-  | sum.inl i := inf_le_of_left_le $ infi_le _ _
-  | sum.inr j := inf_le_of_right_le $ infi_le _ _
-  end)
+eq_of_forall_le_iff $ λ c, by simp only [le_inf_iff, le_infi_iff, sum.forall]
 
 theorem supr_sum {γ : Type*} {f : β ⊕ γ → α} :
   (⨆ x, f x) = (⨆ i, f (sum.inl i)) ⊔ (⨆ j, f (sum.inr j)) :=

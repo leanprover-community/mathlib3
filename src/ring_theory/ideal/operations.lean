@@ -1621,7 +1621,7 @@ def quot_left_to_quot_sup : I.quotient →+* (I ⊔ J).quotient :=
   ideal.quotient.factor I (I ⊔ J) (le_sup_left)
 
 /-- This will be used to lift `quot_left_to_quot_sup` to a map `(R/I)/J' → R/(I ⊔ J)`-/
-lemma map_mk_le_ker_quot_left_to_quot_sum :
+lemma map_mk_le_ker_quot_left_to_quot_sup :
   J.map (ideal.quotient.mk I) ≤ (quot_left_to_quot_sup I J).ker :=
 begin
   intros x hx,
@@ -1665,7 +1665,7 @@ end
 def double_quot_to_quot_sup : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
 ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sup I J)
  (λ x hx, (ring_hom.mem_ker (quot_left_to_quot_sup I J)).2
-  (map_mk_le_ker_quot_left_to_quot_sum I J hx))
+  (map_mk_le_ker_quot_left_to_quot_sup I J hx))
 
 /-- define `double_quot_mk` to be the composite of the maps `R → (R/I) and (R/I) → (R/I)/J'` -/
 def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient:=
@@ -1700,7 +1700,7 @@ def lift_sup_double_quot_mk (I J : ideal R) := ideal.quotient.lift (I ⊔ J) (do
     (ker_double_quot_mk I J)  x).2 hx))
 
 /-- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/
-def double_quot_equiv_quot_add : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=
+def double_quot_equiv_quot_sup : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=
 ring_equiv.of_hom_inv (double_quot_to_quot_sup I J) (lift_sup_double_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
 

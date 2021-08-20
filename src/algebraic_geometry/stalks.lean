@@ -54,14 +54,14 @@ section restrict
 def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :
   (X.restrict f h).stalk x ≅ X.stalk (f x) :=
-begin
-  change colimit ((h.is_open_map.functor_nhds x).op ⋙ (open_nhds.inclusion (f x)).op ⋙ X.presheaf)
+show colimit ((h.is_open_map.functor_nhds x).op ⋙ (open_nhds.inclusion (f x)).op ⋙ X.presheaf)
     ≅ colimit ((open_nhds.inclusion (f x)).op ⋙ X.presheaf),
+begin
   -- As a left adjoint, the functor `h.is_open_map.functor_nhds x` is initial.
-  haveI := functor.initial_of_left_adjoint (h.is_open_map.adjunction_nhds x),
+  haveI := initial_of_adjunction (h.is_open_map.adjunction_nhds x),
   -- Typeclass resolution knows that the dual of an initial functor is final. The result follows
   -- from the general fact that postcomposing with a final functor doesn't change colimits.
-  apply functor.final.colimit_iso,
+  apply final.colimit_iso,
 end
 
 

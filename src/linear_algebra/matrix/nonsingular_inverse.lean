@@ -90,18 +90,47 @@ is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 lemma cramer_apply (i : n) : cramer A b i = (A.update_column i b).det := rfl
 
 lemma cramer_transpose_row_self (i : n) :
-  Aᵀ.cramer (A i) = λ j, ite (i = j) A.det 0 :=
+  Aᵀ.cramer (A i) = pi.single i A.det :=
 begin
   ext j,
-  rw cramer_apply,
-  by_cases h : i = j,
+  rw [cramer_apply, pi.single_apply],
+  split_ifs with h,
   { -- i = j: this entry should be `A.det`
-    rw [update_column_transpose, det_transpose], simp [update_row, h], },
+    subst h,
+    simp only [update_column_transpose, det_transpose, update_row, function.update_eq_self] },
   { -- i ≠ j: this entry should be 0
-    rw [if_neg h, update_column_transpose, det_transpose],
+    rw [update_column_transpose, det_transpose],
     apply det_zero_of_row_eq h,
-    rw [update_row_self, update_row_ne],
-    apply h }
+    rw [update_row_self, update_row_ne (ne.symm h)] }
+end
+
+lemma cramer_row_self (i : n) (h : ∀ j, b j = A j i) :
+  A.cramer b = pi.single i A.det :=
+begin
+  rw [← transpose_transpose A, det_transpose],
+  convert cramer_transpose_row_self Aᵀ i,
+  exact funext h
+end
+
+@[simp] lemma cramer_one : cramer (1 : matrix n n α) = 1 :=
+begin
+  ext i j,
+  convert congr_fun (cramer_row_self (1 : matrix n n α) (pi.single i 1) i _) j,
+  { simp },
+  { intros j, rw [matrix.one_eq_pi_single, pi.single_comm] }
+end
+
+@[simp] lemma cramer_subsingleton_apply [subsingleton n] (A : matrix n n α) (b : n → α) (i : n) :
+  cramer A b i = b i :=
+by rw [cramer_apply, det_eq_elem_of_subsingleton _ i, update_column_self]
+
+lemma cramer_zero [nontrivial n] : cramer (0 : matrix n n α) = 0 :=
+begin
+  ext i j,
+  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := exists_ne j,
+  apply det_eq_zero_of_column_eq_zero j',
+  intro j'',
+  simp [update_column_ne hj'],
 end
 
 @[simp] lemma cramer_one : cramer (1 : matrix n n α) = 1 :=
@@ -224,7 +253,7 @@ lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
   rw [mul_apply, pi.smul_apply, pi.smul_apply, one_apply, smul_eq_mul, mul_boole],
-  simp [mul_adjugate_apply, sum_cramer_apply, cramer_transpose_row_self],
+  simp [mul_adjugate_apply, sum_cramer_apply, cramer_transpose_row_self, pi.single_apply, eq_comm]
 end
 
 lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=

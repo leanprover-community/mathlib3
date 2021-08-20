@@ -43,18 +43,7 @@ variables {α : Type*} [semiring α]
 
 lemma nat_degree_list_sum_le (l : list (polynomial α)) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max 0 :=
-begin
-  induction l with hd tl IH,
-  { simp },
-  { simp only [list.sum_cons, list.foldr_map, le_max_iff, list.foldr] at IH ⊢,
-    cases le_or_lt (nat_degree tl.sum) (nat_degree hd),
-    { left,
-      refine (nat_degree_add_le _ _).trans _,
-      simpa using h },
-    { right,
-      refine (nat_degree_add_le _ _).trans _,
-      simp only [IH, max_le_iff, and_true, h.le.trans IH] } }
-end
+list.sum_le_foldr_max nat_degree (by simp) nat_degree_add_le _
 
 lemma nat_degree_multiset_sum_le (l : multiset (polynomial α)) :
   nat_degree l.sum ≤ (l.map nat_degree).foldr max max_left_comm 0 :=
@@ -131,7 +120,7 @@ the product of the leading coefficients, provided that this product is nonzero.
 See `polynomial.leading_coeff_multiset_prod` (without the `'`) for a version for integral domains,
 where this condition is automatically satisfied.
 -/
-lemma leading_coeff_multiset_prod' (h : (t.map (λ f, leading_coeff f)).prod ≠ 0) :
+lemma leading_coeff_multiset_prod' (h : (t.map leading_coeff).prod ≠ 0) :
   t.prod.leading_coeff = (t.map leading_coeff).prod :=
 begin
   revert h,

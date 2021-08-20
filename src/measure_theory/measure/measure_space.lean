@@ -604,6 +604,14 @@ else 0
   map f μ s = μ (f ⁻¹' s) :=
 by simp [map, dif_pos hf, hs]
 
+lemma map_to_outer_measure {f : α → β} (hf : measurable f) :
+  (map f μ).to_outer_measure = (outer_measure.map f μ.to_outer_measure).trim :=
+begin
+  rw [← trimmed, outer_measure.trim_eq_trim_iff],
+  intros s hs,
+  rw [coe_to_outer_measure, map_apply hf hs, outer_measure.map_apply, coe_to_outer_measure]
+end
+
 theorem map_of_not_measurable {f : α → β} (hf : ¬measurable f) :
   map f μ = 0 :=
 by rw [map, dif_neg hf, linear_map.zero_apply]
@@ -1520,6 +1528,9 @@ instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_mea
 instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
+lemma finite_measure_of_le (μ : measure α) [finite_measure μ] (h : ν ≤ μ) : finite_measure ν :=
+{ measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
+
 @[simp] lemma measure_univ_nnreal_eq_zero [finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
 begin
   rw [← measure_theory.measure.measure_univ_eq_zero, ← coe_measure_univ_nnreal],
@@ -1803,6 +1814,14 @@ begin
     from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
   refine ⟨⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩⟩,
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
+end
+
+lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
+  (h : ν ≤ μ) : sigma_finite ν :=
+begin
+  cases hs.out with C,
+  exact ⟨nonempty.intro ⟨C.set, C.set_mem, λ i,
+    (lt_of_le_of_lt (le_iff'.1 h _) (C.finite i)), C.spanning⟩⟩,
 end
 
 end measure

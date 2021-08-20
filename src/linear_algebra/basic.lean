@@ -595,7 +595,7 @@ def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
   map_smul' := λ c f, by { ext, apply mul_smul, } }
 
 @[simp] lemma smul_rightₗ_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
-  (smul_rightₗ : (M₂ →ₗ R) →ₗ M →ₗ M₂ →ₗ M) f x c = (f c) • x := rfl
+  (smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M) f x c = (f c) • x := rfl
 
 end comm_ring
 

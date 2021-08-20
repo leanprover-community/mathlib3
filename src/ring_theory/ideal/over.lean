@@ -257,7 +257,7 @@ begin
   let Rₚ := localization P.prime_compl,
   let Sₚ := localization (algebra.algebra_map_submonoid S P.prime_compl),
   letI : integral_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
-    is_localization.integral_domain_localization (le_non_zero_divisors_of_domain hP0),
+    is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hP0),
   obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
   haveI Qₚ_max : is_maximal (comap _ Qₚ) := @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
     (localization_algebra P.prime_compl S)

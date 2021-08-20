@@ -136,6 +136,26 @@ at most `C`. -/
 def surjective_on_with (f : normed_group_hom V₁ V₂) (K : add_subgroup V₂) (C : ℝ) : Prop :=
   ∀ h ∈ K, ∃ g, f g = h ∧ ∥g∥ ≤ C*∥h∥
 
+lemma surjective_on_with.mono {f : normed_group_hom V₁ V₂} {K : add_subgroup V₂} {C C' : ℝ}
+  (h : f.surjective_on_with K C) (H : C ≤ C') : f.surjective_on_with K C' :=
+begin
+  intros k k_in,
+  rcases h k k_in with ⟨g, rfl, hg⟩,
+  use [g, rfl],
+  by_cases Hg : ∥f g∥ = 0,
+  { simpa [Hg] using hg },
+  { exact hg.trans ((mul_le_mul_right $ (ne.symm Hg).le_iff_lt.mp (norm_nonneg _)).mpr H) }
+end
+
+lemma surjective_on_with.exists_pos {f : normed_group_hom V₁ V₂} {K : add_subgroup V₂} {C : ℝ}
+  (h : f.surjective_on_with K C) : ∃ C' > 0, f.surjective_on_with K C' :=
+begin
+  refine ⟨abs C + 1, _, _⟩,
+  { linarith [abs_nonneg C] },
+  { apply h.mono,
+    linarith [le_abs_self C] }
+end
+
 lemma surjective_on_with.surj_on {f : normed_group_hom V₁ V₂} {K : add_subgroup V₂} {C : ℝ}
   (h : f.surjective_on_with K C) : set.surj_on f set.univ K :=
 λ x hx, (h x hx).imp $ λ a ⟨ha, _⟩, ⟨set.mem_univ _, ha⟩
@@ -484,6 +504,10 @@ def range : add_subgroup V₂ := f.to_add_monoid_hom.range
 
 lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=
 by { rw [range, add_monoid_hom.mem_range], refl }
+
+@[simp]
+lemma mem_range_self (v : V₁) : f v ∈ f.range :=
+⟨v, rfl⟩
 
 lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.range :=
 by { erw add_monoid_hom.map_range, refl }

@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import combinatorics.partition
 import algebra.gcd_monoid.multiset
-import tactic.linarith
+import combinatorics.partition
 import group_theory.perm.cycles
 import group_theory.sylow
+import ring_theory.int.basic
+import tactic.linarith
 
 /-!
 # Cycle Types
@@ -154,9 +155,8 @@ cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
-  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, lcm_singleton, order_of_is_cycle hσ,
-    nat.normalize_eq])
-  (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, nat.lcm_eq_lcm, hστ.order_of, hσ, hτ])
+  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, lcm_singleton, order_of_is_cycle hσ, normalize_eq])
+  (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, lcm_eq_nat_lcm, hστ.order_of, hσ, hτ])
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
 begin
@@ -437,7 +437,7 @@ by rwa [is_three_cycle, cycle_type_inv]
 lemma order_of {g : perm α} (ht : is_three_cycle g) :
   order_of g = 3 :=
 by rw [←lcm_cycle_type, ht.cycle_type, multiset.singleton_eq_singleton,
-  multiset.lcm_singleton, nat.normalize_eq]
+  multiset.lcm_singleton, normalize_eq]
 
 lemma is_three_cycle_sq {g : perm α} (ht : is_three_cycle g) :
   is_three_cycle (g * g) :=

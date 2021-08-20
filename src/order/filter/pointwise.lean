@@ -19,7 +19,7 @@ open classical set
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open_locale classical
+open_locale classical pointwise
 
 namespace filter
 open set

@@ -249,6 +249,14 @@ lemma measure_union_null_iff : μ (s₁ ∪ s₂) = 0 ↔ μ s₁ = 0 ∧ μ s�
 ⟨λ h, ⟨measure_mono_null (subset_union_left _ _) h, measure_mono_null (subset_union_right _ _) h⟩,
   λ h, measure_union_null h.1 h.2⟩
 
+lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
+  (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
+begin
+  by_contra, push_neg at h,
+  simp_rw nonpos_iff_eq_zero at h,
+  exact hs (measure_Union_null h),
+end
+
 /-! ### The almost everywhere filter -/
 
 /-- The “almost everywhere” filter of co-null sets. -/

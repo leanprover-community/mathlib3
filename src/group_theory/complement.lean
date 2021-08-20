@@ -271,11 +271,10 @@ quotient.induction_on α (quotient.induction_on β
       change pow_coprime hH ((pow_coprime hH).symm (diff α β)⁻¹) * (diff α β) = 1,
       rw [equiv.apply_symm_apply, inv_mul_self] }⟩))
 
-lemma smul_injective [H.normal] (α : H.quotient_diff)
-  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H)))
-  {h₁ h₂ : H} (hh : h₁ • α = h₂ • α) : h₁ = h₂ :=
-begin
-  revert hh,
+lemma smul_left_injective [H.normal] (α : H.quotient_diff)
+  (hH : nat.coprime (fintype.card H) (fintype.card (quotient_group.quotient H))) :
+  function.injective (λ h : H, h • α) :=
+λ h₁ h₂, begin
   refine quotient.induction_on α (λ α hα, _),
   replace hα : diff (h₁ • α) (h₂ • α) = 1 := quotient.exact hα,
   rw [smul_diff, ←diff_inv, smul_diff, diff_self, mul_one, mul_inv_eq_one] at hα,
@@ -288,7 +287,7 @@ lemma is_complement_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotien
 begin
   classical,
   let ϕ : H ≃ mul_action.orbit G α := equiv.of_bijective (λ h, ⟨h • α, h, rfl⟩)
-    ⟨λ h₁ h₂ hh, smul_injective α hH (subtype.ext_iff.mp hh),
+    ⟨λ h₁ h₂ hh, smul_left_injective α hH (subtype.ext_iff.mp hh),
       λ β, exists_imp_exists (λ h hh, subtype.ext hh) (exists_smul_eq α β hH)⟩,
   have key := card_eq_card_quotient_mul_card_subgroup (mul_action.stabilizer G α),
   rw ← fintype.card_congr (ϕ.trans (mul_action.orbit_equiv_quotient_stabilizer G α)) at key,

@@ -482,8 +482,11 @@ def closed_ball (x : α) (ε : ℝ≥0∞) := {y | edist y x ≤ ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
 
+@[simp] theorem closed_ball_top (x : α) : closed_ball x ∞ = univ :=
+eq_univ_of_forall $ λ y, @le_top _ _ (edist y x)
+
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
-assume y, by simp; intros h; apply le_of_lt h
+assume y hy, le_of_lt hy
 
 theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
 lt_of_le_of_lt (zero_le _) hy
@@ -748,6 +751,10 @@ diam_subsingleton subsingleton_empty
 /-- The diameter of a singleton vanishes -/
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
 diam_subsingleton subsingleton_singleton
+
+lemma diam_Union_mem_option {ι : Type*} (o : option ι) (s : ι → set α) :
+  diam (⋃ i ∈ o, s i) = ⨆ i ∈ o, diam (s i) :=
+by cases o; simp
 
 lemma diam_insert : diam (insert x s) = max (⨆ y ∈ s, edist x y) (diam s) :=
 eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff, ball_insert_iff,

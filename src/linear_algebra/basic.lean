@@ -2361,7 +2361,7 @@ rfl
 
 /-- If `M₂` and `M₃` are linearly isomorphic then the two spaces of linear maps from `M` into `M₂`
 and `M` into `M₃` are linearly isomorphic. -/
-def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) :=
+def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ[R] (M →ₗ[R] M₃) :=
 arrow_congr (linear_equiv.refl R M) f
 
 /-- If `M` and `M₂` are linearly isomorphic then the two spaces of linear maps from `M` and `M₂` to

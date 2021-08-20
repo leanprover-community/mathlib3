@@ -337,10 +337,10 @@ bilin_form.to_lin.symm
 rfl
 
 @[simp] lemma linear_map.to_bilin_symm :
-  (linear_map.to_bilin.symm : bilin_form R₂ M₂ ≃ₗ _) = bilin_form.to_lin := rfl
+  (linear_map.to_bilin.symm : bilin_form R₂ M₂ ≃ₗ[R₂] _) = bilin_form.to_lin := rfl
 
 @[simp] lemma bilin_form.to_lin_symm :
-  (bilin_form.to_lin.symm : _ ≃ₗ bilin_form R₂ M₂) = linear_map.to_bilin :=
+  (bilin_form.to_lin.symm : _ ≃ₗ[R₂] bilin_form R₂ M₂) = linear_map.to_bilin :=
 linear_map.to_bilin.symm_symm
 
 @[simp, norm_cast]
@@ -684,11 +684,11 @@ end
 matrix.to_bilin'_aux_std_basis M i j
 
 @[simp] lemma bilin_form.to_matrix'_symm :
-  (bilin_form.to_matrix'.symm : matrix n n R₃ ≃ₗ _) = matrix.to_bilin' :=
+  (bilin_form.to_matrix'.symm : matrix n n R₃ ≃ₗ[R₃] _) = matrix.to_bilin' :=
 rfl
 
 @[simp] lemma matrix.to_bilin'_symm :
-  (matrix.to_bilin'.symm : _ ≃ₗ matrix n n R₃) = bilin_form.to_matrix' :=
+  (matrix.to_bilin'.symm : _ ≃ₗ[R₃] matrix n n R₃) = bilin_form.to_matrix' :=
 bilin_form.to_matrix'.symm_symm
 
 @[simp] lemma matrix.to_bilin'_to_matrix' (B : bilin_form R₃ (n → R₃)) :

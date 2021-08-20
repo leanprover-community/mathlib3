@@ -33,6 +33,14 @@ structure add_units (α : Type u) [add_monoid α] :=
 
 attribute [to_additive add_units] units
 
+section has_elem
+
+@[to_additive] lemma unique_has_one {α : Type*} [unique α] [has_one α] :
+  default α = 1 :=
+unique.default_eq 1
+
+end has_elem
+
 namespace units
 
 variables [monoid α]

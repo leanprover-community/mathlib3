@@ -920,7 +920,7 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
   is_regular k :=
 ⟨is_left_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
-  is_right_regular_of_non_zero_divisor k
+ is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying
@@ -935,19 +935,6 @@ variable [domain α]
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_no_zero_divisors : no_zero_divisors α :=
 ⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
-
-lemma ring.is_regular {α : Type*} [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) :
-  is_regular k :=
-⟨is_left_regular_of_non_zero_divisor k
-  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
- is_right_regular_of_non_zero_divisor k
-  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
-
-lemma domain.is_regular {k : α} (hk : k ≠ 0) : is_regular k :=
-⟨is_left_regular_of_non_zero_divisor k
-  (λ x h, (domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h).resolve_left hk),
- is_right_regular_of_non_zero_divisor k
-  (λ x h, (domain.eq_zero_or_eq_zero_of_mul_eq_zero _ _ h).resolve_right hk)⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=

@@ -690,8 +690,8 @@ lemma is_caratheodory_Union_lt {s : ℕ → set α} :
   ∀{n:ℕ}, (∀i<n, is_caratheodory (s i)) → is_caratheodory (⋃i<n, s i)
 | 0       h := by simp [nat.not_lt_zero]
 | (n + 1) h := by rw bUnion_lt_succ; exact is_caratheodory_union m
-  (h n (le_refl (n + 1)))
-      (is_caratheodory_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
+    (is_caratheodory_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
+    (h n (le_refl (n + 1)))
 
 lemma is_caratheodory_inter (h₁ : is_caratheodory s₁) (h₂ : is_caratheodory s₂) :
   is_caratheodory (s₁ ∩ s₂) :=
@@ -703,10 +703,10 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   ∀ {n}, ∑ i in finset.range n, m (t ∩ s i) = m (t ∩ ⋃i<n, s i)
 | 0            := by simp [nat.not_lt_zero, m.empty]
 | (nat.succ n) := begin
-  simp [bUnion_lt_succ, range_succ],
-  rw [measure_inter_union m _ (h n), is_caratheodory_sum],
+  rw [bUnion_lt_succ, finset.sum_range_succ, set.union_comm, is_caratheodory_sum,
+    m.measure_inter_union _ (h n), add_comm],
   intro a,
-  simpa [range_succ] using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))

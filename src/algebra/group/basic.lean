@@ -190,6 +190,10 @@ inv_inv
 @[simp, to_additive]
 lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
 
+@[simp, to_additive]
+lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
+inv_involutive.surjective
+
 @[to_additive]
 lemma inv_injective : function.injective (has_inv.inv : G → G) :=
 inv_involutive.injective

@@ -670,6 +670,17 @@ quot.induction_on s $ λ l, rfl
 
 lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
+lemma map_eq_singleton {f : α → β} {s : multiset α} {b : β} :
+  map f s = b ::ₘ 0 ↔ ∃ a : α, s = a ::ₘ 0 ∧ f a = b :=
+begin
+  split,
+  { rcases s with ⟨⟨_, _⟩⟩,
+    { simp },
+    { simp [singleton_coe] {contextual := tt} } },
+  { rintro ⟨_, rfl, rfl⟩,
+    simp }
+end
+
 theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
 { induction k, simp, simpa }
 
@@ -973,6 +984,14 @@ quotient.induction_on m $ λ l hl, by simpa using list.one_le_prod_of_one_le hl
 lemma single_le_prod [ordered_comm_monoid α] {m : multiset α} :
   (∀ x ∈ m, (1 : α) ≤ x) → ∀ x ∈ m, x ≤ m.prod :=
 quotient.induction_on m $ λ l hl x hx, by simpa using list.single_le_prod hl x hx
+
+@[to_additive]
+lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : multiset α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
+  l.prod ≤ n ^ l.card :=
+begin
+  induction l using quotient.induction_on,
+  simpa using list.prod_le_of_forall_le _ _ h
+end
 
 @[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
 lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α] {m : multiset α} :

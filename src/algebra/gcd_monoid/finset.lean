@@ -182,9 +182,7 @@ begin
   { simp },
   intros b t hbt h,
   rw [gcd_insert, gcd_insert, h, ← gcd_mul_left],
-  apply gcd_eq_of_associated_right,
-  apply associated_mul_mul _ (associated.refl _),
-  apply normalize_associated,
+  apply ((normalize_associated a).mul_right _).gcd_eq_right
 end
 
 lemma gcd_mul_right {a : α} : s.gcd (λ x, f x * a) = s.gcd f * normalize a :=
@@ -194,9 +192,7 @@ begin
   { simp },
   intros b t hbt h,
   rw [gcd_insert, gcd_insert, h, ← gcd_mul_right],
-  apply gcd_eq_of_associated_right,
-  apply associated_mul_mul (associated.refl _),
-  apply normalize_associated,
+  apply ((normalize_associated a).mul_left _).gcd_eq_right
 end
 
 end gcd
@@ -219,8 +215,7 @@ begin
   rw [gcd_insert, gcd_insert, gcd_comm (f b), ← gcd_assoc, hi (λ x hx, h _ (mem_insert_of_mem hx)),
       gcd_comm a, gcd_assoc, gcd_comm a (gcd_monoid.gcd _ _),
       gcd_comm (g b), gcd_assoc _ _ a, gcd_comm _ a],
-  refine congr rfl _,
-  apply gcd_eq_of_dvd_sub_right (h _ (mem_insert_self _ _)),
+  exact congr_arg _ (gcd_eq_of_dvd_sub_right (h _ (mem_insert_self _ _)))
 end
 
 end integral_domain

@@ -99,7 +99,7 @@ lemma multiplicity_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
 begin
   have hp' := prime_iff.mp hp,
   have h0 : 2 ≤ p := hp.two_le,
-  have h1 : 1 ≤ p * n + 1 := le_add_left _ _,
+  have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
   have h2 : p * n + 1 ≤ p * (n + 1), linarith,
   have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
   have hm : multiplicity p (p * n)! ≠ ⊤,

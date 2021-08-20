@@ -96,7 +96,7 @@ lemma log_le_log_of_le {b n m : ℕ} (h : n ≤ m) : log b n ≤ log b m :=
 begin
   cases le_or_lt b 1 with hb hb,
   { rw log_eq_zero_of_le hb, exact zero_le _ },
-  { cases eq_zero_or_pos n with hn hn,
+  { cases nat.eq_zero_or_pos n with hn hn,
     { rw [hn, log_zero_eq_zero], exact zero_le _ },
     { rw ←pow_le_iff_le_log _ _ hb (lt_of_lt_of_le hn h),
       exact (pow_log_le_self b n hb hn).trans h } }
@@ -106,6 +106,6 @@ lemma log_le_log_succ {b n : ℕ} : log b n ≤ log b n.succ :=
 log_le_log_of_le $ le_succ n
 
 lemma log_mono {b : ℕ} : monotone (λ n : ℕ, log b n) :=
-monotone_of_monotone_nat $ λ n, log_le_log_succ
+monotone_nat_of_le_succ $ λ n, log_le_log_succ
 
 end nat

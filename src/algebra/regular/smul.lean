@@ -73,6 +73,9 @@ is `M`-regular. -/
 lemma is_left_regular [has_mul R] {a : R} (h : is_smul_regular R a) :
   is_left_regular a := h
 
+lemma is_right_regular [has_mul R] {a : R} (h : is_smul_regular R (opposite.op a)) :
+  is_right_regular a := h
+
 end has_scalar
 
 section monoid

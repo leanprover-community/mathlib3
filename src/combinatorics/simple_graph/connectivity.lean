@@ -645,17 +645,17 @@ end
 -/
 
 lemma rotate_edges {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
-  (c.rotate h).edges ~ c.edges :=
+  (c.rotate h).edges ~r c.edges :=
 begin
   simp [rotate, concat_edges],
-  apply list.perm.trans (list.perm_append_comm) _,
+  apply list.is_rotated.trans list.is_rotated_append,
   rw [←concat_edges, split_at_vertex_spec],
 end
 
 lemma rotate_trail {u v : V} (c : G.walk v v) (hc : c.is_trail) (h : u ∈ c.support) :
   (c.rotate h).is_trail :=
 begin
-  rw [is_trail, list.perm.nodup_iff (c.rotate_edges h)],
+  rw [is_trail, (c.rotate_edges h).perm.nodup_iff],
   exact hc,
 end
 

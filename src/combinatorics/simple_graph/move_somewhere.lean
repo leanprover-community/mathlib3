@@ -10,4 +10,13 @@ begin
   simp [tail],
 end
 
+lemma is_rotated_append {l₁ l₂ : list α} : (l₁ ++ l₂) ~r (l₂ ++ l₁) :=
+begin
+  use l₁.length,
+  rw rotate_eq_rotate',
+  induction l₁ generalizing l₂,
+  { simp, },
+  { simp [rotate', l₁_ih], },
+end
+
 end list

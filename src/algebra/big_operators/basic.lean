@@ -817,6 +817,15 @@ lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
 
+@[to_additive] lemma prod_mem_multiset [decidable_eq α]
+  (m : multiset α) (f : {x // x ∈ m} → β) (g : α → β)
+  (hfg : ∀ x, f x = g x) :
+  ∏ (x : {x // x ∈ m}), f x = ∏ x in m.to_finset, g x :=
+prod_bij (λ x _, x.1) (λ x _, multiset.mem_to_finset.mpr x.2)
+  (λ _ _, hfg _)
+  (λ _ _ _ _ h, by { ext, assumption })
+  (λ y hy, ⟨⟨y, multiset.mem_to_finset.mp hy⟩, finset.mem_univ _, rfl⟩)
+
 /--
 To prove a property of a product, it suffices to prove that
 the property is multiplicative and holds on factors.
@@ -1414,15 +1423,16 @@ begin
   { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
 end
 
-theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
+theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ}
+  (h : ∀ (a : α), a ∈ s → k ∣ multiset.count a s) :
   ∃ (u : multiset α), s = k • u :=
 begin
   use ∑ a in s.to_finset, (s.count a / k) • (a ::ₘ 0),
   have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • (x ::ₘ 0) =
     ∑ (x : α) in s.to_finset, count x s • (x ::ₘ 0),
-  { refine congr_arg s.to_finset.sum _,
-    apply funext, intro x,
-    rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },
+  { apply finset.sum_congr rfl,
+    intros x hx,
+    rw [← mul_nsmul, nat.mul_div_cancel' (h x (mem_to_finset.mp hx))] },
   rw [← finset.sum_nsmul, h₂, to_finset_sum_count_nsmul_eq]
 end
 

@@ -18,7 +18,7 @@ We develop some properties of measures on (topological) groups
 
 noncomputable theory
 
-open_locale ennreal
+open_locale ennreal pointwise
 open has_inv set function measure_theory.measure
 
 namespace measure_theory

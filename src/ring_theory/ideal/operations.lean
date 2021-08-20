@@ -14,7 +14,7 @@ import ring_theory.non_zero_divisors
 -/
 universes u v w x
 
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace submodule
 

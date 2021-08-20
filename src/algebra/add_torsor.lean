@@ -205,6 +205,8 @@ image2_subset_iff
 
 end vsub
 
+open_locale pointwise
+
 instance add_action : add_action (set G) (set P) :=
 { vadd := set.image2 (+ᵥ),
   zero_vadd := λ s, by simp [← singleton_zero],

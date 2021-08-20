@@ -62,8 +62,8 @@ begin
   simp only [fin.tail]
 end
 
-lemma vandermonde_mul_vandermonde_transpose {n : ℕ} (v : fin n → R) (i j) :
-  (vandermonde v ⬝ (vandermonde v)ᵀ) i j = ∑ (k : fin n), (v i * v j) ^ (k : ℕ) :=
+lemma vandermonde_mul_vandermonde_transpose {n : ℕ} (v w : fin n → R) (i j) :
+  (vandermonde v ⬝ (vandermonde w)ᵀ) i j = ∑ (k : fin n), (v i * w j) ^ (k : ℕ) :=
 by simp only [vandermonde_apply, matrix.mul_apply, matrix.transpose_apply, mul_pow]
 
 lemma vandermonde_transpose_mul_vandermonde {n : ℕ} (v : fin n → R) (i j) :

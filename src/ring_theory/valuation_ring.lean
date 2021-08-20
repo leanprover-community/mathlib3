@@ -1,9 +1,96 @@
+import number_theory.padics.padic_integers
+import ring_theory.localization
 import ring_theory.valuation.basic
 
 open_locale classical
 noncomputable theory
 
-universe u
+universes u v
+
+namespace ext_integers
+
+variables  {Γ₀: Type v} [linear_ordered_comm_group_with_zero Γ₀]
+
+class valuation_ring' (R : Type u) {K: Type u} [integral_domain R] [field K] [algebra R K]
+  [is_fraction_ring R K] (v : valuation K Γ₀) : Prop :=
+(int_cond : R = {x : K | v x ≥ 0})
+
+inductive Zbar : Type
+| of_int : ℤ → Zbar
+| infinity : Zbar
+
+localized "notation `∞` := Zbar.infinity" in ext_integers
+
+instance : has_coe ℤ Zbar := ⟨Zbar.of_int⟩
+
+
+def bar_int (x : Zbar) : ℕ := Zbar.rec_on x (λ n, 3) (4)
+def bar_funct : Zbar → Zbar := λ x, Zbar.rec_on x (λ n, n) (∞)
+
+def le : Zbar → Zbar → Prop := λ x, Zbar.rec_on x
+  (assume a, λ y, Zbar.rec_on y (λ m, a ≤ m) tt)
+  (λ y, Zbar.rec_on y (λ m, ff) tt)
+
+def lt : Zbar → Zbar → Prop := λ x, Zbar.rec_on x
+  (assume a, λ y, Zbar.rec_on y (λ m, a < m) tt)
+  (λ y, Zbar.rec_on y (λ m, ff) ff)
+
+def mul : Zbar → Zbar → Zbar := λ x, Zbar.rec_on x
+  (assume a, λ y, Zbar.rec_on y (λ m, ↑(a + m)) ∞)
+  (λ y, ∞)
+
+instance : linear_ordered_comm_group_with_zero (Zbar) :=
+{ le := le,
+  lt := lt,
+  le_refl := sorry,
+  le_trans := sorry,
+  lt_iff_le_not_le := sorry,
+  le_antisymm := sorry,
+  le_total := sorry,
+  decidable_le := sorry,
+  decidable_eq := sorry,
+  decidable_lt := sorry,
+  mul := mul,
+  mul_assoc := sorry,
+  one := ↑0,
+  one_mul := begin
+              intro a,
+              dsimp [mul],
+              unfold_coes,
+              simp_rw zero_add,
+              sorry,
+            end,
+  mul_one := sorry,
+  npow := sorry,
+  npow_zero' := sorry,
+  npow_succ' := sorry,
+  mul_comm := sorry,
+  mul_le_mul_left := sorry,
+  lt_of_mul_lt_mul_left := sorry,
+  zero := ∞,
+  zero_mul := λ x, by constructor,
+  mul_zero := sorry,
+  zero_le_one := sorry,
+  inv := sorry,
+  div := sorry,
+  div_eq_mul_inv := sorry,
+  gpow := sorry,
+  gpow_zero' := sorry,
+  gpow_succ' := sorry,
+  gpow_neg' := sorry,
+  exists_pair_ne := by {use [(1 : ℤ), ∞]},
+  inv_zero := sorry,
+  mul_inv_cancel := sorry, }
+
+-- def padic.val (p : ℕ) [fact p.prime] : valuation (padic p) ℤ :=
+-- { to_fun := padic.valuation,
+--   map_zero' := ,
+--   map_one' := _,
+--   map_mul' := _,
+--   map_add' := _ }
+
+
+end ext_integers
 
 class valuation_ring (R : Type u) [integral_domain R] : Prop :=
 (cond : ∀ (a b : R), ∃ c : R, a * c = b ∨ b * c = a)

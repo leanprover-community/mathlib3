@@ -28,6 +28,7 @@ order of an element
 -/
 
 open function nat
+open_locale pointwise
 
 universes u v
 

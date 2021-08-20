@@ -822,6 +822,10 @@ instance
 
 example {S : submonoid M'} : is_scalar_tower S M' M' := by apply_instance
 
+instance [mul_action M' α] [has_faithful_scalar M' α] (S : submonoid M') :
+  has_faithful_scalar S α :=
+{ eq_of_smul_eq_smul := λ x y h, subtype.ext (eq_of_smul_eq_smul h) }
+
 end submonoid
 
 end actions

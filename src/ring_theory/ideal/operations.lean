@@ -14,7 +14,7 @@ import ring_theory.non_zero_divisors
 -/
 universes u v w x
 
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace submodule
 
@@ -320,6 +320,45 @@ begin
   induction n with n ih, { simp [set.singleton_one], },
   simp only [pow_succ, ih, span_singleton_mul_span_singleton],
 end
+
+lemma mem_mul_span_singleton {x y : R} {I : ideal R} :
+  x ∈ I * span {y} ↔ ∃ z ∈ I, z * y = x :=
+submodule.mem_smul_span_singleton
+
+lemma mem_span_singleton_mul {x y : R} {I : ideal R} :
+  x ∈ span {y} * I ↔ ∃ z ∈ I, y * z = x :=
+by simp only [mul_comm, mem_mul_span_singleton]
+
+lemma le_span_singleton_mul_iff {x : R} {I J : ideal R} :
+  I ≤ span {x} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI :=
+show (∀ {zI} (hzI : zI ∈ I), zI ∈ span {x} * J) ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI,
+by simp only [mem_span_singleton_mul]
+
+lemma span_singleton_mul_le_iff {x : R} {I J : ideal R} :
+  span {x} * I ≤ J ↔ ∀ z ∈ I, x * z ∈ J :=
+begin
+  simp only [mul_le, mem_span_singleton_mul, mem_span_singleton],
+  split,
+  { intros h zI hzI,
+    exact h x (dvd_refl x) zI hzI },
+  { rintros h _ ⟨z, rfl⟩ zI hzI,
+    rw [mul_comm x z, mul_assoc],
+    exact J.mul_mem_left _ (h zI hzI) },
+end
+
+lemma span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :
+  span {x} * I ≤ span {y} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ :=
+by simp only [span_singleton_mul_le_iff, mem_span_singleton_mul, eq_comm]
+
+lemma eq_span_singleton_mul {x : R} (I J : ideal R) :
+  I = span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=
+by simp only [le_antisymm_iff, le_span_singleton_mul_iff, span_singleton_mul_le_iff]
+
+lemma span_singleton_mul_eq_span_singleton_mul {x y : R} (I J : ideal R) :
+  span {x} * I = span {y} * J ↔
+    ((∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ) ∧
+     (∀ zJ ∈ J, ∃ zI ∈ I, x * zI = y * zJ)) :=
+by simp only [le_antisymm_iff, span_singleton_mul_le_span_singleton_mul, eq_comm]
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩

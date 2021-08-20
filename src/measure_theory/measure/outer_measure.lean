@@ -1215,6 +1215,14 @@ theorem le_trim_iff {m₁ m₂ : outer_measure α} :
   m₁ ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
+theorem trim_le_trim_iff {m₁ m₂ : outer_measure α} :
+  m₁.trim ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
+le_trim_iff.trans $ forall_congr $ λ s, forall_congr $ λ hs, by rw [trim_eq _ hs]
+
+theorem trim_eq_trim_iff {m₁ m₂ : outer_measure α} :
+  m₁.trim = m₂.trim ↔ ∀ s, measurable_set s → m₁ s = m₂ s :=
+by simp only [le_antisymm_iff, trim_le_trim_iff, forall_and_distrib]
+
 theorem trim_eq_infi (s : set α) : m.trim s = ⨅ t (st : s ⊆ t) (ht : measurable_set t), m t :=
 by { simp only [infi_comm] {single_pass := tt}, exact induced_outer_measure_eq_infi
     measurable_set.Union (λ f _, m.Union_nat f) (λ _ _ _ _ h, m.mono h) s }
@@ -1223,7 +1231,7 @@ theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ measur
 by simp [infi_subtype, infi_and, trim_eq_infi]
 
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
-le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (le_trim _)
+trim_eq_trim_iff.2 $ λ s, m.trim_eq
 
 @[simp] theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm

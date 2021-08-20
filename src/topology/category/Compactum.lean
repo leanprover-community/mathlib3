@@ -69,6 +69,7 @@ We also add wrappers around structures which already exist. Here are the main on
 
 -/
 
+universe variable u
 open category_theory filter ultrafilter topological_space category_theory.limits has_finite_inter
 open_locale classical topological_space
 
@@ -415,7 +416,7 @@ def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=
 namespace Compactum_to_CompHaus
 
 /-- The functor Compactum_to_CompHaus is full. -/
-def full : full Compactum_to_CompHaus :=
+def full : full Compactum_to_CompHaus.{u} :=
 { preimage := λ X Y f, Compactum.hom_of_continuous f.1 f.2 }
 
 /-- The functor Compactum_to_CompHaus is faithful. -/

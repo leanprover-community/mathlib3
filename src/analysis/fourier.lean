@@ -87,7 +87,7 @@ section fourier
 continuous maps from `circle` to `ℂ`. -/
 @[simps] def fourier (n : ℤ) : C(circle, ℂ) :=
 { to_fun := λ z, z ^ n,
-  continuous_to_fun := continuous_subtype_coe.fpow nonzero_of_mem_circle n }
+  continuous_to_fun := continuous_subtype_coe.fpow n $ λ z, or.inl (nonzero_of_mem_circle z) }
 
 @[simp] lemma fourier_zero {z : circle} : fourier 0 z = 1 := rfl
 

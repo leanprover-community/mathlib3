@@ -591,7 +591,7 @@ begin
         map_smul' := λ c y, _ }⟩,
     { rw [finsupp.add_apply, add_smul] },
     { rw [finsupp.smul_apply, smul_assoc] },
-    { refine smul_right_injective _ nz _,
+    { refine smul_left_injective _ nz _,
       simp only [finsupp.single_eq_same],
       exact (w (f (default ι) • x)).some_spec },
     { simp only [finsupp.single_eq_same],

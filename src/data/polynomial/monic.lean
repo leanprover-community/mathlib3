@@ -333,7 +333,6 @@ end nonzero_semiring
 section not_zero_divisor
 
 -- TODO: using gh-8537, rephrase lemmas that involve commutation around `*` using the op-ring
--- TODO: using gh-8561, rephrase using regular elements
 
 variables [semiring R] {p : polynomial R}
 
@@ -396,8 +395,8 @@ begin
     rw [←sub_eq_zero, ←hp.mul_left_eq_zero_iff, sub_mul, h, sub_self] }
 end
 
-lemma _root_.is_smul_regular.degree_smul {S : Type*} [monoid S] [distrib_mul_action S R]
-  {k : S} (hk : is_smul_regular R k) (p : polynomial R) :
+lemma degree_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
   (k • p).degree = p.degree :=
 begin
   refine le_antisymm _ _,
@@ -408,39 +407,39 @@ begin
   { rw degree_le_iff_coeff_zero,
     intros m hm,
     rw degree_lt_iff_coeff_zero at hm,
-    refine hk _,
+    refine h _,
     simpa using hm m le_rfl },
 end
 
-lemma _root_.is_smul_regular.nat_degree_smul {S : Type*} [monoid S] [distrib_mul_action S R]
-  {k : S} (hk : is_smul_regular R k) (p : polynomial R) :
+lemma nat_degree_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
   (k • p).nat_degree = p.nat_degree :=
 begin
   by_cases hp : p = 0,
   { simp [hp] },
   rw [←with_bot.coe_eq_coe, ←degree_eq_nat_degree hp, ←degree_eq_nat_degree,
-      hk.degree_smul p],
+      degree_smul_of_smul_regular p h],
   contrapose! hp,
   -- TODO: is this general over things with some smul class??
-  have hk' : is_smul_regular (polynomial R) k,
+  have h' : is_smul_regular (polynomial R) k,
   { intros p q hpq,
     rw ext_iff at hpq ⊢,
     intro n,
-    refine hk _,
+    refine h _,
     simpa using hpq n },
   rw ←smul_zero k at hp,
-  exact hk' hp
+  exact h' hp
 end
 
-lemma _root_.is_smul_regular.leading_coeff_smul {S : Type*} [monoid S] [distrib_mul_action S R]
-  {k : S} (hk : is_smul_regular R k) (p : polynomial R) :
+lemma leading_coeff_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
+  {k : S} (p : polynomial R) (h : is_smul_regular R k) :
   (k • p).leading_coeff = k • p.leading_coeff :=
-by rw [leading_coeff, leading_coeff, coeff_smul, hk.nat_degree_smul]
+by rw [leading_coeff, leading_coeff, coeff_smul, nat_degree_smul_of_smul_regular p h]
 
 lemma monic_of_is_unit_leading_coeff_inv_smul (h : is_unit p.leading_coeff) :
   monic (h.unit⁻¹ • p) :=
 begin
-  rw [monic.def, (units.is_smul_regular _).leading_coeff_smul, units.smul_def],
+  rw [monic.def, leading_coeff_smul_of_smul_regular _ (is_smul_regular_of_group _), units.smul_def],
   obtain ⟨k, hk⟩ := h,
   simp only [←hk, smul_eq_mul, ←units.coe_mul, units.coe_eq_one, inv_mul_eq_iff_eq_mul],
   simp [units.ext_iff, is_unit.unit_spec]

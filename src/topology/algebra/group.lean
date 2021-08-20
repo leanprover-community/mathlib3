@@ -314,7 +314,7 @@ begin
 end
 
 @[to_additive]
-lemma topological_group.of_nhds_one' {G : Type*} [group G] [topological_space G]
+lemma topological_group.of_nhds_one' {G : Type u} [group G] [topological_space G]
   (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
   (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
@@ -362,7 +362,7 @@ lemma topological_group.of_nhds_one {G : Type u} [group G] [topological_space G]
   continuous_inv := topological_group.of_nhds_aux hinv hleft hconj}
 
 @[to_additive]
-lemma topological_group.of_comm_of_nhds_one {G : Type*} [comm_group G] [topological_space G]
+lemma topological_group.of_comm_of_nhds_one {G : Type u} [comm_group G] [topological_space G]
   (hmul : tendsto (uncurry ((*) : G → G → G)) ((𝓝 1) ×ᶠ 𝓝 1) (𝓝 1))
   (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1)) : topological_group G :=

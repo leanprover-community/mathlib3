@@ -123,14 +123,14 @@ end
 (kronecker_map_diagonal_diagonal _ hf₁ hf₂ _ _).trans $ by simp only [hf₃, diagonal_one]
 
 lemma kronecker_map_reindex_left (f : α → β → γ) (el : l ≃ l') (em : m ≃ m') (M : matrix l m α)
-  (N : matrix n n' β) : matrix.kronecker_map f (matrix.reindex el em M) N =
-  matrix.reindex (el.prod_congr (equiv.refl _)) (em.prod_congr (equiv.refl _))
-  (matrix.kronecker_map f M N) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
+  (N : matrix n n' β) : kronecker_map f (matrix.reindex el em M) N =
+  reindex (el.prod_congr (equiv.refl _)) (em.prod_congr (equiv.refl _)) (kronecker_map f M N)
+:= by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
 lemma kronecker_map_reindex_right (f : α → β → γ) (em : m ≃ m') (en : n ≃ n') (M : matrix l l' α)
-  (N : matrix m n β) : matrix.kronecker_map f M (matrix.reindex em en N) =
-  matrix.reindex ((equiv.refl _).prod_congr em) ((equiv.refl _).prod_congr en)
-    (matrix.kronecker_map f M N) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
+  (N : matrix m n β) : kronecker_map f M (reindex em en N) =
+  reindex ((equiv.refl _).prod_congr em) ((equiv.refl _).prod_congr en) (kronecker_map f M N) :=
+by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
 lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω')
   (g' : β → δ → ξ) (A : matrix l m α) (B : matrix n p β) (D : matrix q r δ) (φ : ω ≃ ω')

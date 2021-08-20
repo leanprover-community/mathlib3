@@ -128,7 +128,7 @@ lemma kronecker_map_reindex_left (f : α → β → γ) (el : l ≃ l') (em : m 
   (matrix.kronecker_map f M N) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
 lemma kronecker_map_reindex_right (f : α → β → γ) (em : m ≃ m') (en : n ≃ n') (M : matrix l l' α)
-  (N : matrix m₁ n₁ β) : matrix.kronecker_map f M (matrix.reindex em en N) =
+  (N : matrix m n β) : matrix.kronecker_map f M (matrix.reindex em en N) =
   matrix.reindex ((equiv.refl _).prod_congr em) ((equiv.refl _).prod_congr en)
     (matrix.kronecker_map f M N) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 

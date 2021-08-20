@@ -135,6 +135,13 @@ lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p 
    p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
 by rw [← enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
 
+lemma multiplicity_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :
+  multiplicity p n! ≤ (n/(p - 1) : ℕ) :=
+begin
+  rw [hp.multiplicity_factorial (lt_succ_self _), enat.coe_le_coe],
+  exact nat.geom_sum_Ico_le hp.two_le _ _,
+end
+
 lemma multiplicity_choose_aux {p n b k : ℕ} (hp : p.prime) (hkn : k ≤ n) :
   ∑ i in finset.Ico 1 b, n / p ^ i =
   ∑ i in finset.Ico 1 b, k / p ^ i + ∑ i in finset.Ico 1 b, (n - k) / p ^ i +

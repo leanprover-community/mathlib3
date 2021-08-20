@@ -563,6 +563,21 @@ begin
   { exact nodup_roots (separable.map h_sep) },
 end
 
+lemma exists_finset_of_splits
+  (i : F →+* K) {f : polynomial F} (sep : separable f) (sp : splits i f) :
+  ∃ (s : finset K), f.map i =
+    C (i f.leading_coeff) * (s.prod (λ a : K, (X : polynomial K) - C a)) :=
+begin
+  classical,
+  obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
+  use s.to_finset,
+  rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
+  apply nodup_of_separable_prod,
+  apply separable.of_mul_right,
+  rw ←h,
+  exact sep.map,
+end
+
 end splits
 
 end field

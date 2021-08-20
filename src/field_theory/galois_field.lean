@@ -39,19 +39,6 @@ section splitting_field_facts
 
 variables {K : Type*} {L : Type*} [field K] [field L] {f : polynomial K}
 
-lemma exists_finset_of_splits (i : K →+* L) (sep : separable f) : splits i f →
-  ∃ (s : finset L), f.map i = C (i f.leading_coeff) *
-  (s.prod (λ a : L, (X : polynomial L) - C a)) :=
-begin
-  classical,
-  intro sp, cases exists_multiset_of_splits i sp with s h, use s.to_finset, rw h,
-  rw finset.prod_eq_multiset_prod, rw ← multiset.to_finset_eq,
-  apply nodup_of_separable_prod,
-  apply separable.of_mul_right,
-  rw ←h,
-  exact sep.map,
-end
-
 -- linter complains, but removing causes `instance : fintype (galois_field p n)` below to fail
 instance is_splitting_field.finite_dimensional  [algebra K L] [is_splitting_field K L f] :
   finite_dimensional K L :=

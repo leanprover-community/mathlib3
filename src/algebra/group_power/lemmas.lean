@@ -245,14 +245,6 @@ gsmul_mono_right A hn h
 theorem gsmul_lt_gsmul' {n : ℤ} (hn : 0 < n) {a₁ a₂ : A} (h : a₁ < a₂) : n • a₁ < n • a₂ :=
 gsmul_strict_mono_right A hn h
 
-lemma gsmul_lt_gsmul_of_lt_right_of_pos {a b : A} {m : ℤ} (hab : a < b) (hm : 0 < m) :
-  m • a < m • b :=
-begin
-  rw ← sub_pos at hab,
-  rw [← sub_pos, ← gsmul_sub],
-  exact gsmul_pos hab hm,
-end
-
 lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
   abs (n • a) = n • abs a :=
 begin

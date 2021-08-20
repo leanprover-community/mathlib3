@@ -35,10 +35,14 @@ lt_iff_lt_of_le_iff_le nth_le_iff_le_count
 lemma nth_count_le  (n : ℕ) : nth p (count p n) ≤ n :=
 (nth_count_gc _).l_u_le _
 
--- TODO this is the difficult sorry
 lemma count_succ_eq_succ_count {n : ℕ} (h : p (n + 1)) :
   count p (n + 1) = count p n + 1 :=
-sorry
+begin
+  suffices : (list.range (n+2)).filter p = ((list.range n.succ).filter p) ++ [n+1],
+  { simp [count, this] },
+  rw list.range_succ,
+  simp [h]
+end
 
 lemma nth_count  (n : ℕ) (h : p n) : nth p (count p n) = n :=
 begin

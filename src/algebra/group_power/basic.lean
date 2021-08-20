@@ -247,8 +247,10 @@ lemma has_dvd.dvd.pow {x y : M} (hxy : x ∣ y) {n : ℕ} (hn : 0 < n) :
   x ∣ y^n :=
 dvd_pow hxy hn
 
-lemma le_pow {a : M} {n : ℕ} (hn : 0 < n) :
-  a ∣ a^n := sorry
+lemma dvd_pow_self (a : M) :
+  ∀ {n : ℕ} (hn : 0 < n), a ∣ a^n
+| 0       hn := (lt_irrefl _ hn).elim
+| (n + 1) _  := dvd.intro (a^n) (pow_succ _ _).symm
 
 end comm_monoid
 

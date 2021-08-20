@@ -428,10 +428,10 @@ begin
   by_cases hb : b = 0,
   { rw [hb, gcd_zero_right] at hab, use 1, rw one_pow,
     apply (associated_one_iff_is_unit.mpr (normalize_eq_one.mp hab)).symm },
-  by_cases hk : k = 0,
-  { use 1, rw [hk, pow_zero] at h ⊢, use units.mk_of_mul_eq_one _ _ h,
+  cases k,
+  { use 1, rw pow_zero at h ⊢, use units.mk_of_mul_eq_one _ _ h,
     rw [units.coe_mk_of_mul_eq_one, one_mul] },
-  have hc : c ∣ a * b, { rw h, refine dvd_pow (dvd_refl c) hk },
+  have hc : c ∣ a * b, { rw h, refine dvd_pow_self _ (nat.succ_pos _) },
   obtain ⟨d₁, hd₁, d₂, hd₂, hc⟩ := exists_dvd_and_dvd_of_dvd_mul hc,
   use d₁,
   obtain ⟨h0₁, ⟨a', ha'⟩⟩ := pow_dvd_of_mul_eq_pow ha hab h hc hd₁,
@@ -441,7 +441,7 @@ begin
   have h' : a' * b' = 1,
   { apply (mul_right_inj' h0₁).mp, rw mul_one,
     apply (mul_right_inj' h0₂).mp, rw ← h,
-    rw [mul_assoc, mul_comm a', ← mul_assoc (d₁ ^ k), ← mul_assoc _ (d₁ ^ k), mul_comm b'] },
+    rw [mul_assoc, mul_comm a', ← mul_assoc _ b', ← mul_assoc b', mul_comm b'] },
   use units.mk_of_mul_eq_one _ _ h',
   rw [units.coe_mk_of_mul_eq_one, ha']
 end

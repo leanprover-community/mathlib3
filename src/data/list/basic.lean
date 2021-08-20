@@ -1409,9 +1409,12 @@ lemma mem_or_eq_of_mem_update_nth : ∀ {l : list α} {n : ℕ} {a b : α}
 section insert_nth
 variable {a : α}
 
-@[simp] lemma insert_nth_nil (a : α) : insert_nth 0 a [] = [a] := rfl
+@[simp] lemma insert_nth_zero (s : list α) (x : α) : insert_nth 0 x s = x :: s := rfl
 
 @[simp] lemma insert_nth_succ_nil (n : ℕ) (a : α) : insert_nth (n + 1) a [] = [] := rfl
+
+@[simp] lemma insert_nth_succ_cons (s : list α) (hd x : α) (n : ℕ) :
+  insert_nth (n + 1) x (hd :: s) = hd :: (insert_nth n x s) := rfl
 
 lemma length_insert_nth : ∀n as, n ≤ length as → length (insert_nth n a as) = length as + 1
 | 0     as       h := rfl
@@ -1457,6 +1460,119 @@ lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.leng
   dsimp [list.insert_nth],
   erw [list.mem_cons_iff, mem_insert_nth (nat.le_of_succ_le_succ h), list.mem_cons_iff,
     ← or.assoc, or_comm (a = a'), or.assoc]
+end
+
+lemma inj_on_insert_nth_index_of_not_mem (l : list α) (x : α) (hx : x ∉ l) :
+  set.inj_on (λ k, insert_nth k x l) {n | n ≤ l.length} :=
+begin
+  induction l with hd tl IH,
+  { intros n hn m hm h,
+    simp only [set.mem_singleton_iff, set.set_of_eq_eq_singleton, length, nonpos_iff_eq_zero]
+      at hn hm,
+    simp [hn, hm] },
+  { intros n hn m hm h,
+    simp only [length, set.mem_set_of_eq] at hn hm,
+    simp only [mem_cons_iff, not_or_distrib] at hx,
+    cases n;
+    cases m,
+    { refl },
+    { simpa [hx.left] using h },
+    { simpa [ne.symm hx.left] using h },
+    { simp only [true_and, eq_self_iff_true, insert_nth_succ_cons] at h,
+      rw nat.succ_inj',
+      refine IH hx.right _ _ h,
+      { simpa [nat.succ_le_succ_iff] using hn },
+      { simpa [nat.succ_le_succ_iff] using hm } } }
+end
+
+lemma insert_nth_of_length_lt (l : list α) (x : α) (n : ℕ) (h : l.length < n) :
+  insert_nth n x l = l :=
+begin
+  induction l with hd tl IH generalizing n,
+  { cases n,
+    { simpa using h },
+    { simp } },
+  { cases n,
+    { simpa using h },
+    { simp only [nat.succ_lt_succ_iff, length] at h,
+      simpa using IH _ h } }
+end
+
+@[simp] lemma insert_nth_length_self (l : list α) (x : α) :
+  insert_nth l.length x l = l ++ [x] :=
+begin
+  induction l with hd tl IH,
+  { simp },
+  { simpa using IH }
+end
+
+lemma length_le_length_insert_nth (l : list α) (x : α) (n : ℕ) :
+  l.length ≤ (insert_nth n x l).length :=
+begin
+  cases le_or_lt n l.length with hn hn,
+  { rw length_insert_nth _ _ hn,
+    exact (nat.lt_succ_self _).le },
+  { rw insert_nth_of_length_lt _ _ _ hn }
+end
+
+lemma length_insert_nth_le_succ (l : list α) (x : α) (n : ℕ) :
+  (insert_nth n x l).length ≤ l.length + 1 :=
+begin
+  cases le_or_lt n l.length with hn hn,
+  { rw length_insert_nth _ _ hn },
+  { rw insert_nth_of_length_lt _ _ _ hn,
+    exact (nat.lt_succ_self _).le }
+end
+
+lemma nth_le_insert_nth_of_lt (l : list α) (x : α) (n k : ℕ) (hn : k < n)
+  (hk : k < l.length)
+  (hk' : k < (insert_nth n x l).length := hk.trans_le (length_le_length_insert_nth _ _ _)):
+  (insert_nth n x l).nth_le k hk' = l.nth_le k hk :=
+begin
+  induction n with n IH generalizing k l,
+  { simpa using hn },
+  { cases l with hd tl,
+    { simp },
+    { cases k,
+      { simp },
+      { rw nat.succ_lt_succ_iff at hn,
+        simpa using IH _ _ hn _ } } }
+end
+
+@[simp] lemma nth_le_insert_nth_self (l : list α) (x : α) (n : ℕ)
+  (hn : n ≤ l.length) (hn' : n < (insert_nth n x l).length :=
+    by rwa [length_insert_nth _ _ hn, nat.lt_succ_iff]) :
+  (insert_nth n x l).nth_le n hn' = x :=
+begin
+  induction l with hd tl IH generalizing n,
+  { simp only [length, nonpos_iff_eq_zero] at hn,
+    simp [hn] },
+  { cases n,
+    { simp },
+    { simp only [nat.succ_le_succ_iff, length] at hn,
+      simpa using IH _ hn } }
+end
+
+lemma nth_le_insert_nth_add_succ (l : list α) (x : α) (n k : ℕ)
+  (hk' : n + k < l.length)
+  (hk : n + k + 1 < (insert_nth n x l).length :=
+    by rwa [length_insert_nth _ _ (le_self_add.trans hk'.le), nat.succ_lt_succ_iff]) :
+  (insert_nth n x l).nth_le (n + k + 1) hk = nth_le l (n + k) hk' :=
+begin
+  induction l with hd tl IH generalizing n k,
+  { simpa using hk' },
+  { cases n,
+    { simpa },
+    { simpa [succ_add] using IH _ _ _ } }
+end
+
+lemma insert_nth_injective (n : ℕ) (x : α) : function.injective (insert_nth n x) :=
+begin
+  induction n with n IH,
+  { have : insert_nth 0 x = cons x := funext (λ _, rfl),
+    simp [this] },
+  { rintros (_|⟨a, as⟩) (_|⟨b, bs⟩) h;
+    simpa [IH.eq_iff] using h <|> refl }
 end
 
 end insert_nth
@@ -2541,6 +2657,17 @@ begin
     exact lt_of_add_lt_add_left (lt_of_le_of_lt h $ add_lt_add_right (lt_of_not_ge h') _) }
 end
 
+@[to_additive]
+lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
+  l.prod ≤ n ^ l.length :=
+begin
+  induction l with y l IH,
+  { simp },
+  { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
+    have hy : y ≤ n := h y (mem_cons_self _ _),
+    simpa [pow_succ] using mul_le_mul' hy IH }
+end
+
 -- Several lemmas about sum/head/tail for `list ℕ`.
 -- These are hard to generalize well, as they rely on the fact that `default ℕ = 0`.
 
@@ -3452,6 +3579,26 @@ eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l))
 by simp only [count, countp_filter]; congr; exact
 set.ext (λ b, and_iff_left_of_imp (λ e, e ▸ h))
 
+lemma count_bind {α β} [decidable_eq β] (l : list α) (f : α → list β) (x : β)  :
+  count x (l.bind f) = sum (map (count x ∘ f) l) :=
+begin
+  induction l with hd tl IH,
+  { simp },
+  { simpa }
+end
+
+@[simp] lemma count_map_map {α β} [decidable_eq α] [decidable_eq β] (l : list α) (f : α → β)
+  (hf : function.injective f) (x : α) :
+  count (f x) (map f l) = count x l :=
+begin
+  induction l with y l IH generalizing x,
+  { simp },
+  { rw map_cons,
+    by_cases h : x = y,
+    { simpa [h] using IH _ },
+    { simpa [h, hf.ne h] using IH _ } }
+end
+
 end count
 
 /-! ### prefix, suffix, infix -/
@@ -3779,6 +3926,36 @@ by { rw inits_eq_tails l, simp [reverse_involutive.comp_self], }
 
 lemma map_reverse_tails (l : list α) : map reverse l.tails = (reverse $ inits $ reverse l) :=
 by { rw tails_eq_inits l, simp [reverse_involutive.comp_self], }
+
+@[simp] lemma length_tails (l : list α) : length (tails l) = length l + 1 :=
+begin
+  induction l with x l IH,
+  { simp },
+  { simpa using IH }
+end
+
+@[simp] lemma length_inits (l : list α) : length (inits l) = length l + 1 :=
+by simp [inits_eq_tails]
+
+@[simp] lemma nth_le_tails (l : list α) (n : ℕ) (hn : n < length (tails l)) :
+  nth_le (tails l) n hn = l.drop n :=
+begin
+  induction l with x l IH generalizing n,
+  { simp },
+  { cases n,
+    { simp },
+    { simpa using IH n _ } },
+end
+
+@[simp] lemma nth_le_inits (l : list α) (n : ℕ) (hn : n < length (inits l)) :
+  nth_le (inits l) n hn = l.take n :=
+begin
+  induction l with x l IH generalizing n,
+  { simp },
+  { cases n,
+    { simp },
+    { simpa using IH n _ } }
+end
 
 instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
 | []      l₂ := is_true ⟨[], l₂, rfl⟩

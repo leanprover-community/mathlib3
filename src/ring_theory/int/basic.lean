@@ -51,7 +51,7 @@ end
 
 theorem nat.irreducible_iff_prime {p : ℕ} : irreducible p ↔ prime p :=
 begin
-  refine ⟨λ h, _, irreducible_of_prime⟩,
+  refine ⟨λ h, _, prime.irreducible⟩,
   rw ← nat.prime_iff,
   refine ⟨_, λ m hm, _⟩,
   { cases p, { exfalso, apply h.ne_zero rfl },
@@ -352,10 +352,7 @@ lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=
 associated_of_dvd_dvd (int.coe_nat_dvd_right.mpr (dvd_refl _)) (int.nat_abs_dvd.mpr (dvd_refl _))
 
 lemma int.prime_iff_nat_abs_prime {k : ℤ} : prime k ↔ nat.prime k.nat_abs :=
-begin
-  rw nat.prime_iff_prime_int,
-  rw prime_iff_of_associated (int.associated_nat_abs k),
-end
+(int.associated_nat_abs k).prime_iff.trans nat.prime_iff_prime_int.symm
 
 theorem int.associated_iff_nat_abs {a b : ℤ} : associated a b ↔ a.nat_abs = b.nat_abs :=
 begin

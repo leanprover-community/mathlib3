@@ -82,7 +82,7 @@ begin
   rintros p q rfl,
   rw [map_mul] at hf,
   rcases mul_eq_mul_prime_pow (show prime (X : polynomial (ideal.quotient P)),
-    from prime_of_degree_eq_one_of_monic degree_X monic_X) hf with
+    from monic_X.prime_of_degree_eq_one degree_X) hf with
       ⟨m, n, b, c, hmnd, hbc, hp, hq⟩,
   have hmn : 0 < m → 0 < n → false,
   { assume hm0 hn0,

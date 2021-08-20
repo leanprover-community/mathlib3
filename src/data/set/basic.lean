@@ -441,6 +441,13 @@ lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : se
 instance univ_decidable : decidable_pred (∈ @set.univ α) :=
 λ x, is_true trivial
 
+lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
+by rw [←not_forall, ←eq_univ_iff_forall]
+
+lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
+  ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
+by simp [subset_def]
+
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 
@@ -1573,6 +1580,9 @@ by { rcases hs.eq_empty_or_singleton with rfl|⟨x, rfl⟩, exacts [he, h₁ _] 
 
 lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 λ x hx y hy, subsingleton.elim x y
+
+lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
+subsingleton.mono subsingleton_univ (subset_univ s)
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
 is a subsingleton set. -/

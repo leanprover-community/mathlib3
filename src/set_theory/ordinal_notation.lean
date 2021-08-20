@@ -423,14 +423,14 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
   conv in (_-oadd _ _ _) {simp [has_sub.sub, sub]},
   have ee := @cmp_compares _ _ h₁.fst h₂.fst,
   cases cmp e₁ e₂,
-  { rw [sub_eq_zero_iff_le.2], {refl},
+  { rw [ordinal.sub_eq_zero_iff_le.2], {refl},
     exact le_of_lt (oadd_lt_oadd_1 h₁ ee) },
   { change e₁ = e₂ at ee, substI e₂, unfold sub._match_1,
     cases mn : (n₁:ℕ) - n₂; dsimp only [sub._match_2],
     { by_cases en : n₁ = n₂,
       { simp [en], rwa [add_sub_add_cancel] },
       { simp [en, -repr],
-        exact (sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
+        exact (ordinal.sub_eq_zero_iff_le.2 $ le_of_lt $ oadd_lt_oadd_2 h₁ $
           lt_of_le_of_ne (nat.sub_eq_zero_iff_le.1 mn) (mt pnat.eq en)).symm } },
     { simp [nat.succ_pnat, -nat.cast_succ],
       rw [(nat.sub_eq_iff_eq_add $ le_of_lt $ nat.lt_of_sub_eq_succ mn).1 mn,

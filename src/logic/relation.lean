@@ -23,14 +23,16 @@ the bundled version, see `rel`.
   `r` related transitively, plus for all `a` it relates `a` with itself. So
   `refl_trans_gen r a b ↔ (∃ x₀ ... xₙ, r a x₀ ∧ r x₀ x₁ ∧ ... ∧ r xₙ b) ∨ a = b`. It is the same as
   the reflexive closure of the transitive closure, or the transitive closure of the reflexive
-  closure.
+  closure. In terms of rewriting systems, this means that `a` can be rewritten to `b` in a number of
+  rewrites.
 * `relation.comp`:  Relation composition. We provide notation `∘r`. For `r : α → β → Prop` and
   `s : β → γ → Prop`, `r ∘r s`relates `a : α` and `c : γ` iff there exists `b : β` that's related to
   both.
 * `relation.map`: Image of a relation under a pair of maps. For `r : α → β → Prop`, `f : α → γ`,
   `g : β → δ`, `map r f g` is the relation `γ → δ → Prop` relating `f a` and `g b` for all `a`, `b`
   related by `r`.
-* `relation.join`: Join of a relation. For `r : α → α → Prop`, `join r a b ↔ ∃ c, r a c ∧ r b c`.
+* `relation.join`: Join of a relation. For `r : α → α → Prop`, `join r a b ↔ ∃ c, r a c ∧ r b c`. In
+  terms of rewriting systems, this means that `a` and `b` can be rewritten to the same term.
 -/
 
 variables {α β γ δ : Type*}
@@ -97,14 +99,14 @@ def comp (r : α → β → Prop) (p : β → γ → Prop) (a : α) (c : γ) : P
 local infixr ` ∘r ` : 80 := relation.comp
 
 lemma comp_eq : r ∘r (=) = r :=
-funext $ assume a, funext $ assume b, propext $ iff.intro
-  (assume ⟨c, h, eq⟩, eq ▸ h)
-  (assume h, ⟨b, h, rfl⟩)
+funext $ λ a, funext $ λ b, propext $ iff.intro
+  (λ ⟨c, h, eq⟩, eq ▸ h)
+  (λ h, ⟨b, h, rfl⟩)
 
 lemma eq_comp : (=) ∘r r = r :=
-funext $ assume a, funext $ assume b, propext $ iff.intro
-  (assume ⟨c, eq, h⟩, eq.symm ▸ h)
-  (assume h, ⟨a, rfl, h⟩)
+funext $ λ a, funext $ λ b, propext $ iff.intro
+  (λ ⟨c, eq, h⟩, eq.symm ▸ h)
+  (λ h, ⟨a, rfl, h⟩)
 
 lemma iff_comp {r : Prop → α → Prop} : (↔) ∘r r = r :=
 have (↔) = (=), by funext a b; exact iff_eq_eq,
@@ -118,16 +120,16 @@ lemma comp_assoc : (r ∘r p) ∘r q = r ∘r p ∘r q :=
 begin
   funext a d, apply propext,
   split,
-  exact assume ⟨c, ⟨b, hab, hbc⟩, hcd⟩, ⟨b, hab, c, hbc, hcd⟩,
-  exact assume ⟨b, hab, c, hbc, hcd⟩, ⟨c, ⟨b, hab, hbc⟩, hcd⟩
+  exact λ ⟨c, ⟨b, hab, hbc⟩, hcd⟩, ⟨b, hab, c, hbc, hcd⟩,
+  exact λ ⟨b, hab, c, hbc, hcd⟩, ⟨c, ⟨b, hab, hbc⟩, hcd⟩
 end
 
 lemma flip_comp : flip (r ∘r p) = (flip p) ∘r (flip r) :=
 begin
   funext c a, apply propext,
   split,
-  exact assume ⟨b, hab, hbc⟩, ⟨b, hbc, hab⟩,
-  exact assume ⟨b, hbc, hab⟩, ⟨b, hab, hbc⟩
+  exact λ ⟨b, hab, hbc⟩, ⟨b, hbc, hab⟩,
+  exact λ ⟨b, hbc, hab⟩, ⟨b, hab, hbc⟩
 end
 
 end comp
@@ -212,7 +214,7 @@ begin
     apply ih,
     show P b _, from head hbc _ refl,
     show ∀ a a', r a a' → refl_trans_gen r a' b → P a' _ → P a _,
-      from assume a a' hab hbc, head hab _ }
+      from λ a a' hab hbc, head hab _ }
 end
 
 @[elab_as_eliminator]
@@ -239,12 +241,10 @@ end
 
 lemma cases_head_iff : refl_trans_gen r a b ↔ a = b ∨ (∃ c, r a c ∧ refl_trans_gen r c b) :=
 begin
-  split,
-  { exact cases_head },
-  { assume h,
-    rcases h with rfl | ⟨c, hac, hcb⟩,
-    { refl },
-    { exact head hac hcb } }
+  use cases_head,
+  rintro (rfl | ⟨c, hac, hcb⟩),
+  { refl },
+  { exact head hac hcb }
 end
 
 lemma total_of_right_unique (U : relator.right_unique r)
@@ -329,7 +329,7 @@ end,
 trans_gen.single⟩
 
 lemma transitive_trans_gen : transitive (trans_gen r) :=
-assume a b c, trans
+λ a b c, trans
 
 lemma trans_gen_idem :
   trans_gen (trans_gen r) = trans_gen r :=
@@ -372,8 +372,8 @@ end
 
 lemma refl_trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀ a b, r a b → p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
-refl_trans_gen.trans_induction_on hab (assume a, refl)
-  (assume a b, refl_trans_gen.single ∘ h _ _) (assume a b c _ _, trans)
+refl_trans_gen.trans_induction_on hab (λ a, refl)
+  (λ a b, refl_trans_gen.single ∘ h _ _) (λ a b c _ _, trans)
 
 lemma refl_trans_gen_mono {p : α → α → Prop} :
   (∀ a b, r a b → p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
@@ -388,10 +388,10 @@ funext $ λ a, funext $ λ b, propext $
 end, single⟩
 
 lemma reflexive_refl_trans_gen : reflexive (refl_trans_gen r) :=
-assume a, refl
+λ a, refl
 
 lemma transitive_refl_trans_gen : transitive (refl_trans_gen r) :=
-assume a b c, trans
+λ a b c, trans
 
 lemma refl_trans_gen_idem :
   refl_trans_gen (refl_trans_gen r) = refl_trans_gen r :=
@@ -421,6 +421,7 @@ def join (r : α → α → Prop) : α → α → Prop := λ a b, ∃ c, r a c �
 section join
 open refl_trans_gen refl_gen
 
+/-- A sufficient condition for the Church-Rosser property. -/
 lemma church_rosser
   (h : ∀ a b c, r a b → r a c → ∃ d, refl_gen r b d ∧ refl_trans_gen r c d)
   (hab : refl_trans_gen r a b) (hac : refl_trans_gen r a c) : join (refl_trans_gen r) b c :=
@@ -448,14 +449,14 @@ lemma join_of_single (h : reflexive r) (hab : r a b) : join r a b :=
 ⟨b, hab, h b⟩
 
 lemma symmetric_join : symmetric (join r) :=
-assume a b ⟨c, hac, hcb⟩, ⟨c, hcb, hac⟩
+λ a b ⟨c, hac, hcb⟩, ⟨c, hcb, hac⟩
 
 lemma reflexive_join (h : reflexive r) : reflexive (join r) :=
-assume a, ⟨a, h a, h a⟩
+λ a, ⟨a, h a, h a⟩
 
 lemma transitive_join (ht : transitive r) (h : ∀ a b c, r a b → r a c → join r b c) :
   transitive (join r) :=
-assume a b c ⟨x, hax, hbx⟩ ⟨y, hby, hcy⟩,
+λ a b c ⟨x, hax, hbx⟩ ⟨y, hby, hcy⟩,
 let ⟨z, hxz, hyz⟩ := h b x y hbx hby in
 ⟨z, ht hax hxz, ht hcy hyz⟩
 
@@ -467,7 +468,7 @@ lemma equivalence_join (hr : reflexive r) (ht : transitive r)
 lemma equivalence_join_refl_trans_gen
   (h : ∀ a b c, r a b → r a c → ∃ d, refl_gen r b d ∧ refl_trans_gen r c d) :
   equivalence (join (refl_trans_gen r)) :=
-equivalence_join reflexive_refl_trans_gen transitive_refl_trans_gen (assume a b c, church_rosser h)
+equivalence_join reflexive_refl_trans_gen transitive_refl_trans_gen (λ a b c, church_rosser h)
 
 lemma join_of_equivalence {r' : α → α → Prop} (hr : equivalence r)
   (h : ∀ a b, r' a b → r a b) : join r' a b → r a b
@@ -493,7 +494,7 @@ section eqv_gen
 lemma eqv_gen_iff_of_equivalence (h : equivalence r) : eqv_gen r a b ↔ r a b :=
 iff.intro
   begin
-    assume h,
+    intro h,
     induction h,
     case eqv_gen.rel { assumption },
     case eqv_gen.refl { exact h.1 _ },

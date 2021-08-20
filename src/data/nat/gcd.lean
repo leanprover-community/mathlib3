@@ -32,7 +32,7 @@ gcd.induction m n (λn _ kn, by rw gcd_zero_left; exact kn)
   (λn m mpos IH H1 H2, by rw gcd_rec; exact IH ((dvd_mod_iff H1).2 H2) H1)
 
 theorem dvd_gcd_iff {m n k : ℕ} : k ∣ gcd m n ↔ k ∣ m ∧ k ∣ n :=
-iff.intro (λ h, ⟨dvd_trans h (gcd_dvd m n).left, dvd_trans h (gcd_dvd m n).right⟩)
+iff.intro (λ h, ⟨h.trans (gcd_dvd m n).left, h.trans (gcd_dvd m n).right⟩)
           (λ h, dvd_gcd h.left h.right)
 
 theorem gcd_comm (m n : ℕ) : gcd m n = gcd n m :=
@@ -50,12 +50,12 @@ by rw gcd_comm; apply gcd_eq_left_iff_dvd
 theorem gcd_assoc (m n k : ℕ) : gcd (gcd m n) k = gcd m (gcd n k) :=
 dvd_antisymm
   (dvd_gcd
-    (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_left m n))
-    (dvd_gcd (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_right m n))
+    ((gcd_dvd_left (gcd m n) k).trans (gcd_dvd_left m n))
+    (dvd_gcd ((gcd_dvd_left (gcd m n) k).trans (gcd_dvd_right m n))
       (gcd_dvd_right (gcd m n) k)))
   (dvd_gcd
-    (dvd_gcd (gcd_dvd_left m (gcd n k)) (dvd.trans (gcd_dvd_right m (gcd n k)) (gcd_dvd_left n k)))
-    (dvd.trans (gcd_dvd_right m (gcd n k)) (gcd_dvd_right n k)))
+    (dvd_gcd (gcd_dvd_left m (gcd n k)) ((gcd_dvd_right m (gcd n k)).trans (gcd_dvd_left n k)))
+    ((gcd_dvd_right m (gcd n k)).trans (gcd_dvd_right n k)))
 
 @[simp] theorem gcd_one_right (n : ℕ) : gcd n 1 = 1 :=
 eq.trans (gcd_comm n 1) $ gcd_one_left n
@@ -90,10 +90,10 @@ or.elim (nat.eq_zero_or_pos k)
     nat.div_mul_cancel H1, nat.div_mul_cancel H2])
 
 theorem gcd_dvd_gcd_of_dvd_left {m k : ℕ} (n : ℕ) (H : m ∣ k) : gcd m n ∣ gcd k n :=
-dvd_gcd (dvd.trans (gcd_dvd_left m n) H) (gcd_dvd_right m n)
+dvd_gcd ((gcd_dvd_left m n).trans H) (gcd_dvd_right m n)
 
 theorem gcd_dvd_gcd_of_dvd_right {m k : ℕ} (n : ℕ) (H : m ∣ k) : gcd n m ∣ gcd n k :=
-dvd_gcd (gcd_dvd_left n m) (dvd.trans (gcd_dvd_right n m) H)
+dvd_gcd (gcd_dvd_left n m) ((gcd_dvd_right n m).trans H)
 
 theorem gcd_dvd_gcd_mul_left (m n k : ℕ) : gcd m n ∣ gcd (k * m) n :=
 gcd_dvd_gcd_of_dvd_left _ (dvd_mul_left _ _)
@@ -182,7 +182,7 @@ theorem dvd_lcm_right (m n : ℕ) : n ∣ lcm m n :=
 lcm_comm n m ▸ dvd_lcm_left n m
 
 theorem gcd_mul_lcm (m n : ℕ) : gcd m n * lcm m n = m * n :=
-by delta lcm; rw [nat.mul_div_cancel' (dvd.trans (gcd_dvd_left m n) (dvd_mul_right m n))]
+by delta lcm; rw [nat.mul_div_cancel' ((gcd_dvd_left m n).trans (dvd_mul_right m n))]
 
 theorem lcm_dvd {m n k : ℕ} (H1 : m ∣ k) (H2 : n ∣ k) : lcm m n ∣ k :=
 or.elim (nat.eq_zero_or_pos k)
@@ -192,17 +192,17 @@ or.elim (nat.eq_zero_or_pos k)
        exact dvd_gcd (mul_dvd_mul_left _ H2) (mul_dvd_mul_right H1 _))
 
 lemma lcm_dvd_iff {m n k : ℕ} : lcm m n ∣ k ↔ m ∣ k ∧ n ∣ k :=
-⟨λ h, ⟨dvd_trans (dvd_lcm_left _ _) h, dvd_trans (dvd_lcm_right _ _) h⟩,
+⟨λ h, ⟨(dvd_lcm_left _ _).trans h, (dvd_lcm_right _ _).trans h⟩,
   and_imp.2 lcm_dvd⟩
 
 theorem lcm_assoc (m n k : ℕ) : lcm (lcm m n) k = lcm m (lcm n k) :=
 dvd_antisymm
   (lcm_dvd
-    (lcm_dvd (dvd_lcm_left m (lcm n k)) (dvd.trans (dvd_lcm_left n k) (dvd_lcm_right m (lcm n k))))
-    (dvd.trans (dvd_lcm_right n k) (dvd_lcm_right m (lcm n k))))
+    (lcm_dvd (dvd_lcm_left m (lcm n k)) ((dvd_lcm_left n k).trans (dvd_lcm_right m (lcm n k))))
+    ((dvd_lcm_right n k).trans (dvd_lcm_right m (lcm n k))))
   (lcm_dvd
-    (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
-    (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k))
+    ((dvd_lcm_left m n).trans (dvd_lcm_left (lcm m n) k))
+    (lcm_dvd ((dvd_lcm_right m n).trans (dvd_lcm_left (lcm m n) k))
       (dvd_lcm_right (lcm m n) k)))
 
 theorem lcm_ne_zero {m n : ℕ} (hm : m ≠ 0) (hn : n ≠ 0) : lcm m n ≠ 0 :=
@@ -405,9 +405,9 @@ replace h : gcd k (m * n) = m' * n' := h,
 rw h,
 have hm'n' : m' * n' ∣ k := h ▸ gcd_dvd_left _ _,
 apply mul_dvd_mul,
-  { have hm'k : m' ∣ k := dvd_trans (dvd_mul_right m' n') hm'n',
+  { have hm'k : m' ∣ k := (dvd_mul_right m' n').trans hm'n',
     exact dvd_gcd hm'k hm' },
-  { have hn'k : n' ∣ k := dvd_trans (dvd_mul_left n' m') hm'n',
+  { have hn'k : n' ∣ k := (dvd_mul_left n' m').trans hm'n',
     exact dvd_gcd hn'k hn' }
 end
 

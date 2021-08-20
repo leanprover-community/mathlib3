@@ -36,6 +36,9 @@ classical.choice h
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @set.to_finset _ _ h.fintype
 
+@[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite :=
+by simp [infinite]
+
 @[simp] theorem finite.mem_to_finset {s : set α} (h : finite s) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
 

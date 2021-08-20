@@ -176,6 +176,10 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
   begin intro f, ext a, refl end,
   begin intro f, ext a, refl end⟩
 
+@[simp] lemma equiv_fun_on_fintype_symm_coe {α} [fintype α] (f : α →₀ M) :
+  equiv_fun_on_fintype.symm f = f :=
+by { ext, simp [equiv_fun_on_fintype], }
+
 end basic
 
 /-! ### Declarations about `single` -/

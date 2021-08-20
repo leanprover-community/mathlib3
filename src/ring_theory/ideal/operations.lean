@@ -1616,45 +1616,45 @@ namespace double_quot
 open ideal
 variables {R : Type u} [comm_ring R] (I J : ideal R)
 
-/-- define `quot_left_to_quot_sum` to be the obvious ring hom `R/I → R/(I ⊔ J)` -/
-def quot_left_to_quot_sum : I.quotient →+* (I ⊔ J).quotient :=
+/-- define `quot_left_to_quot_sup` to be the obvious ring hom `R/I → R/(I ⊔ J)` -/
+def quot_left_to_quot_sup : I.quotient →+* (I ⊔ J).quotient :=
   ideal.quotient.inclusion I (I ⊔ J) (le_sup_left)
 
-/-- This will be used to lift `quot_left_to_quot_sum` to a map `(R/I)/J' → R/(I ⊔ J)`-/
+/-- This will be used to lift `quot_left_to_quot_sup` to a map `(R/I)/J' → R/(I ⊔ J)`-/
 lemma map_mk_le_ker_quot_left_to_quot_sum :
-  J.map (ideal.quotient.mk I) ≤ (quot_left_to_quot_sum I J).ker :=
+  J.map (ideal.quotient.mk I) ≤ (quot_left_to_quot_sup I J).ker :=
 begin
   intros x hx,
-  have hIJmap: ((quot_left_to_quot_sum I J).comp(ideal.quotient.mk I) '' J) =
+  have hIJmap: ((quot_left_to_quot_sup I J).comp(ideal.quotient.mk I) '' J) =
     (ideal.quotient.mk (I ⊔ J) '' J),
    {apply set.ext,
     intro y,
     split,
 
      {intro hy,
-      obtain ⟨z, hz⟩ := (set.mem_image ((quot_left_to_quot_sum I J).comp(ideal.quotient.mk I))
+      obtain ⟨z, hz⟩ := (set.mem_image ((quot_left_to_quot_sup I J).comp(ideal.quotient.mk I))
         J y).1 hy,
-      unfold quot_left_to_quot_sum at hz,
+      unfold quot_left_to_quot_sup at hz,
       rw [ring_hom.comp_apply, ideal.quotient.inclusion, ideal.quotient.lift_mk] at hz,
       rw ← hz.right,
       exact set.mem_image_of_mem (ideal.quotient.mk (I ⊔ J)) hz.left},
 
      {intro hy,
       obtain ⟨z, hz⟩ := (set.mem_image (ideal.quotient.mk (I ⊔ J)) J y).1 hy,
-      rw [quot_left_to_quot_sum, set.mem_image_eq],
+      rw [quot_left_to_quot_sup, set.mem_image_eq],
       use z,
       rwa [ring_hom.comp_apply, ideal.quotient.inclusion, ideal.quotient.lift_mk]},
     },
 
-  have hJ: (J.map (ideal.quotient.mk I)).map (quot_left_to_quot_sum I J) = J.map
+  have hJ: (J.map (ideal.quotient.mk I)).map (quot_left_to_quot_sup I J) = J.map
     (ideal.quotient.mk (I ⊔ J))
     := by rw [ideal.map_map, ideal.map,hIJmap, ← ideal.map],
 
-  have hmapx : quot_left_to_quot_sum I J x ∈ (J.map (ideal.quotient.mk I)).map
-    (quot_left_to_quot_sum I J),
+  have hmapx : quot_left_to_quot_sup I J x ∈ (J.map (ideal.quotient.mk I)).map
+    (quot_left_to_quot_sup I J),
     {rw ideal.map,
     apply set.mem_of_subset_of_mem (ideal.subset_span),
-    exact (set.mem_image_of_mem (quot_left_to_quot_sum I J) hx)},
+    exact (set.mem_image_of_mem (quot_left_to_quot_sup I J) hx)},
 
   have : J.map(ideal.quotient.mk(I ⊔ J)) = ⊥ :=  map_mk_eq_bot_of_le le_sup_right,
   rwa [hJ,this] at hmapx,
@@ -1663,8 +1663,9 @@ end
 /-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I ⊔ J)`,
   where `J'` is the image of `J` in `R/I` -/
 def double_quot_to_quot_sup : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
-ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sum I J)
- (img_left_in_ker I J)
+ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sup I J)
+ (λ x hx, (ring_hom.mem_ker (quot_left_to_quot_sup I J)).2
+  (map_mk_le_ker_quot_left_to_quot_sum I J hx))
 
 /-- define `double_quot_mk` to be the composite of the maps `R → (R/I) and (R/I) → (R/I)/J'` -/
 def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient:=
@@ -1673,26 +1674,23 @@ def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient:=
 -- Another short result for lifting map `ring_to_double_quot` to a map `R/(I ⊔ J) → (R/I)/J'`
 lemma sup_le_ker_double_quot_mk : I ⊔ J ≤ (double_quot_mk I J).ker :=
 begin
-  intros x hx,
-  have hIJtoJ : (I ⊔ J).map(ideal.quotient.mk I) = J.map(ideal.quotient.mk I) := by {
-    rw [ ideal.map_sup, ideal.map_quotient_self],
-    simp},
-  have : ((I ⊔ J).map(ideal.quotient.mk I)).map(ideal.quotient.mk
-    (J.map(ideal.quotient.mk I))) = ⊥ := by rw [hIJtoJ, ideal.map_quotient_self
-      (J.map(ideal.quotient.mk I))],
-  rw [double_quot_mk, ← ideal.mem_bot, ← this, ring_hom.comp_apply],
-  apply ideal.mem_map_of_mem,
-  apply ideal.mem_map_of_mem,
-  exact hx,
+  apply sup_le _ _,
+  { intros x hx,
+    apply quotient.eq_zero_iff_mem.mpr,
+    rw quotient.eq_zero_iff_mem.mpr hx,
+    exact ideal.zero_mem _, },
+  { intros x hx,
+    apply quotient.eq_zero_iff_mem.mpr,
+    exact ideal.mem_map_of_mem _ hx, },
 end
 
 /-- define `lift_add_double_quot_mk` to be the induced map `R/(I ⊔ J) → (R/I)/J' ` -/
-def lift_add_double_quot_mk (I J : ideal R) := ideal.quotient.lift (I ⊔ J) (double_quot_mk I J)
-  (mem_add_double_quot_mk I J)
+def lift_sup_double_quot_mk (I J : ideal R) := ideal.quotient.lift (I ⊔ J) (double_quot_mk I J)
+  (sup_le_ker_double_quot_mk I J)
 
 /-- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/
 def double_quot_equiv_quot_add : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=
-ring_equiv.of_hom_inv (double_quot_to_quot_add I J) (lift_add_double_qot_mk I J)
+ring_equiv.of_hom_inv (double_quot_to_quot_sup I J) (lift_sup_double_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
 
 end double_quot

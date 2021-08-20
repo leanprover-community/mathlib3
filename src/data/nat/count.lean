@@ -28,7 +28,7 @@ noncomputable def nth : ℕ → ℕ
 lemma nth_def (n : ℕ) : nth p n = Inf { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 well_founded.fix_eq _ _ _
 
-lemma count_monotone  : monotone (count p) :=
+lemma count_monotone : monotone (count p) :=
 begin
   intros n m h,
   rw [count_eq_card, count_eq_card],
@@ -39,11 +39,11 @@ begin
 end
 
 -- Not sure how hard this is. Possibly not needed, anyway.
-lemma nth_mem_of_le_card  (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i }) :
+lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i }) :
   p (nth p n) :=
 sorry
 
-lemma nth_mem_of_infinite_aux  (n : ℕ) (i : set.infinite p) :
+lemma nth_mem_of_infinite_aux (n : ℕ) (i : set.infinite p) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
   -- This sorry should be relatively easy:
@@ -53,27 +53,27 @@ begin
   exact Inf_mem ne,
 end
 
-lemma nth_mem_of_infinite  (n : ℕ) (i : set.infinite p) : p (nth p n) :=
+lemma nth_mem_of_infinite (n : ℕ) (i : set.infinite p) : p (nth p n) :=
 (nth_mem_of_infinite_aux p n i).1
 
-lemma nth_strict_mono_of_infinite  (i : set.infinite p) : strict_mono (nth p) :=
+lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p m i).2 _ h
 
-lemma count_nth_of_le_card  (n : ℕ) (w : n ≤ nat.card { i | p i }) :
+lemma count_nth_of_le_card (n : ℕ) (w : n ≤ nat.card { i | p i }) :
   count p (nth p n) = n :=
 sorry
 
-lemma count_nth_of_infinite  (n : ℕ) (i : set.infinite p) : count p (nth p n) = n :=
+lemma count_nth_of_infinite (n : ℕ) (i : set.infinite p) : count p (nth p n) = n :=
 sorry
 
-lemma nth_le_of_le_count  (n k : ℕ) (h : k ≤ count p n) : nth p k ≤ n :=
+lemma nth_le_of_le_count (n k : ℕ) (h : k ≤ count p n) : nth p k ≤ n :=
 sorry
 
 -- todo: move
-lemma le_succ_iff (x n : ℕ): x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
+lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
 by rw [decidable.le_iff_lt_or_eq, lt_succ_iff]
 
-lemma count_eq_count_add_one  (n : ℕ) (h : p (n+1)) :
+lemma count_eq_count_add_one (n : ℕ) (h : p (n+1)) :
   count p (n + 1) = count p n + 1 :=
 begin
   rw [count_eq_card, count_eq_card],
@@ -89,7 +89,7 @@ begin
 end
 
 -- TODO this is the difficult sorry
-lemma nth_count  (n : ℕ) (h : p n) : nth p (count p n) = n :=
+lemma nth_count (n : ℕ) (h : p n) : nth p (count p n) = n :=
 sorry
 
 open_locale classical

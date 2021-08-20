@@ -1672,21 +1672,32 @@ def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient:=
 ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
 
 -- Another short result for lifting map `ring_to_double_quot` to a map `R/(I ⊔ J) → (R/I)/J'`
-lemma sup_le_ker_double_quot_mk : I ⊔ J ≤ (double_quot_mk I J).ker :=
+lemma ker_double_quot_mk : (double_quot_mk I J).ker = I ⊔ J :=
 begin
-  apply sup_le _ _,
-  { intros x hx,
-    apply quotient.eq_zero_iff_mem.mpr,
-    rw quotient.eq_zero_iff_mem.mpr hx,
-    exact ideal.zero_mem _, },
-  { intros x hx,
-    apply quotient.eq_zero_iff_mem.mpr,
-    exact ideal.mem_map_of_mem _ hx, },
+  ext,
+  rw [sup_comm, submodule.mem_sup, ring_hom.mem_ker, double_quot_mk, ring_hom.comp_apply,
+    quotient.eq_zero_iff_mem, mem_map_iff_of_surjective _ (quotient.mk_surjective)],
+  simp_rw [ideal.quotient.eq, exists_prop],
+  refine exists_congr (λ a, and_congr_right $ λ ha, _),
+  split,
+  {intro ha,
+    use - (a - x),
+    split,
+    exact submodule.neg_mem _ ha,
+    ring},
+  intro hz,
+  obtain ⟨z, hz'⟩ := hz,
+  suffices hax : a - x = - z, {
+    rw hax,
+    exact submodule.neg_mem _ hz'.left},
+  rw ← hz'.right,
+  ring,
 end
 
 /-- define `lift_add_double_quot_mk` to be the induced map `R/(I ⊔ J) → (R/I)/J' ` -/
 def lift_sup_double_quot_mk (I J : ideal R) := ideal.quotient.lift (I ⊔ J) (double_quot_mk I J)
-  (sup_le_ker_double_quot_mk I J)
+  (λ x hx, (ring_hom.mem_ker (double_quot_mk I J)).1 ((set_like.ext_iff.1
+    (ker_double_quot_mk I J)  x).2 hx))
 
 /-- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/
 def double_quot_equiv_quot_add : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=

@@ -593,8 +593,11 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 /-- Weaken the relation of a quotient.
 
 This is the `ideal.quotient` version of `quot.factor` -/
-def inclusion (S T : ideal α) (H : S ≤ T) : S.quotient →+* T.quotient :=
+def factor (S T : ideal α) (H : S ≤ T) : S.quotient →+* T.quotient :=
   ideal.quotient.lift S (T^.quotient.mk) (λ x hx, eq_zero_iff_mem.2 (H hx))
+
+@[simp] lemma factor_mk (S T : ideal α) (H : S ≤ T) (x : α) :
+  factor S T H (mk S x) = mk T x := rfl
 
 end quotient
 

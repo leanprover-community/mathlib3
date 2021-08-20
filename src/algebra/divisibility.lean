@@ -181,7 +181,7 @@ iff.intro
   (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
   (assume ⟨c, eq⟩, eq.symm ▸ (dvd_mul_right _ _).mul_right _)
 
-/-- In a monoid, an element a divides an element b iff all associates of `a` divide `b`.-/
+/-- In a monoid, an element `a` divides an element `b` iff all associates of `a` divide `b`. -/
 lemma mul_right_dvd : a * u ∣ b ↔ a ∣ b :=
 iff.intro
   (λ ⟨c, eq⟩, ⟨↑u * c, eq.trans (mul_assoc _ _ _)⟩)

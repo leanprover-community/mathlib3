@@ -968,7 +968,7 @@ by rw [mul_comm c, mod_mul_right_div_self]
 
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_rfl⟩
-#where
+
 protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k ∣ m :=
 (nat.dvd_add_iff_left h).symm
 

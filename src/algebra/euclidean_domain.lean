@@ -366,7 +366,7 @@ begin
 end
 
 @[simp] lemma lcm_dvd_iff {x y z : R} : lcm x y ∣ z ↔ x ∣ z ∧ y ∣ z :=
-⟨λ hz, ⟨dvd_trans (dvd_lcm_left _ _) hz, dvd_trans (dvd_lcm_right _ _) hz⟩,
+⟨λ hz, ⟨(dvd_lcm_left _ _).trans hz, (dvd_lcm_right _ _).trans hz⟩,
 λ ⟨hxz, hyz⟩, lcm_dvd hxz hyz⟩
 
 @[simp] lemma lcm_zero_left (x : R) : lcm 0 x = 0 :=

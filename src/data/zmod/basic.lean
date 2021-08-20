@@ -288,7 +288,7 @@ begin
   symmetry,
   erw [fin.coe_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
       @char_p.cast_eq_zero_iff R _ _ m],
-  exact dvd_trans h (nat.dvd_sub_mod _),
+  exact h.trans (nat.dvd_sub_mod _),
 end
 
 lemma cast_mul (h : m ∣ n) (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
@@ -299,7 +299,7 @@ begin
   symmetry,
   erw [fin.coe_mul, ← nat.cast_mul, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
       @char_p.cast_eq_zero_iff R _ _ m],
-  exact dvd_trans h (nat.dvd_sub_mod _),
+  exact h.trans (nat.dvd_sub_mod _),
 end
 
 /-- The canonical ring homomorphism from `zmod n` to a ring of characteristic `n`.

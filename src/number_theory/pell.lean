@@ -604,8 +604,7 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
       m := 2 * (k * y),
       u := xn a1 m, v := yn a1 m in
   have ky : k ≤ y, from yn_ge_n a1 k,
-  have yv : y * y ∣ v, from dvd_trans (ysq_dvd_yy a1 k) $
-      (y_dvd_iff _ _ _).2 $ dvd_mul_left _ _,
+  have yv : y * y ∣ v, from (ysq_dvd_yy a1 k).trans $ (y_dvd_iff _ _ _).2 $ dvd_mul_left _ _,
   have uco : nat.coprime u (4 * y), from
     have 2 ∣ v, from modeq_zero_iff_dvd.1 $ (yn_modeq_two _ _).trans
       (dvd_mul_right _ _).modeq_zero_int,

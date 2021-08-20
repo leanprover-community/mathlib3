@@ -83,7 +83,7 @@ lemma norm_sq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (botto
 complex.norm_sq_pos.mpr (bottom_ne_zero g z)
 
 lemma norm_sq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=
-ne_of_gt (normsq_bottom_pos g z)
+ne_of_gt (norm_sq_bottom_pos g z)
 
 /-- Fractional linear transformation -/
 def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z

@@ -52,25 +52,6 @@ begin
   exact sep.map,
 end
 
-variables {α : Type*} (s : finset α) (g : α → polynomial K)
-
-lemma card_roots_eq_of_separable_of_splits
-  (sep : separable f) (sp : polynomial.splits (ring_hom.id K) f) :
-  f.roots.card = f.nat_degree :=
-begin
-  classical,
-  have hf : f ≠ 0, { rintro rfl, exact not_separable_zero sep },
-  have hflc : f.leading_coeff ≠ 0, { rwa [ne.def, leading_coeff_eq_zero] },
-  cases (exists_finset_of_splits (ring_hom.id K) sep sp) with s hs,
-  simp only [ring_hom.id_apply, map_id] at hs, rw hs,
-  rw [roots_C_mul _ hflc, roots_prod_X_sub_C, nat_degree_C_mul_eq_of_no_zero_divisors hflc],
-  rw nat_degree_prod,
-  { simp only [mul_one, nat_degree_X_sub_C, nat.cast_id, finset.sum_const, nsmul_eq_mul,
-      finset.card_def], },
-  { intros i hi,
-    exact X_sub_C_ne_zero i, }
-end
-
 -- linter complains, but removing causes `instance : fintype (galois_field p n)` below to fail
 instance is_splitting_field.finite_dimensional  [algebra K L] [is_splitting_field K L f] :
   finite_dimensional K L :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
 import data.finset.order
-import linear_algebra.direct_sum_module
+import algebra.direct_sum.module
 import ring_theory.free_comm_ring
 import ring_theory.ideal.operations
 /-!

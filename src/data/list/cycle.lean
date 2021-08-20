@@ -601,7 +601,7 @@ quotient.lift_on' s
 begin
   induction s using quotient.induction_on',
   rw [lists, quotient.lift_on'_mk'],
-  simp [mem_cyclic_permutations_iff]
+  simp
 end
 
 section decidable

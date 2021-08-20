@@ -505,7 +505,7 @@ begin
   simp
 end
 
-lemma mem_cyclic_permutations_iff {l l' : list α} :
+@[simp] lemma mem_cyclic_permutations_iff {l l' : list α} :
   l ∈ cyclic_permutations l' ↔ l ~r l' :=
 begin
   split,
@@ -573,7 +573,7 @@ begin
   exact ⟨k, by simp⟩
 end
 
-lemma is_rotated_cyclic_permutations_iff {l l' : list α} :
+@[simp] lemma is_rotated_cyclic_permutations_iff {l l' : list α} :
   l.cyclic_permutations ~r l'.cyclic_permutations ↔ l ~r l' :=
 begin
   by_cases hl : l = [],

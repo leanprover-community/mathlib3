@@ -34,9 +34,9 @@ lemma function.mem_fixed_points_apply {α : Type*} (f : α → α) {x : α}
   f x ∈ function.fixed_points f :=
 by convert hx
 
-@[simp] lemma function.injective.mem_fixed_points_apply_iff {α : Type*} {f : α → α}
+@[simp] lemma function.injective.is_fixed_pt_apply_iff {α : Type*} {f : α → α}
   (hf : function.injective f) {x : α} :
-  f x ∈ function.fixed_points f ↔ x ∈ function.fixed_points f :=
+  function.is_fixed_pt f (f x) ↔ function.is_fixed_pt f x :=
 ⟨λ h, hf h, function.mem_fixed_points_apply f⟩
 
 open equiv function
@@ -180,10 +180,9 @@ begin
   { intro h_opfp,
     use equiv.perm.decompose_option.symm (some a, f),
     split,
-    { simp only [equiv.perm.decompose_option_symm_apply],
-      intro x,
+    { intro x,
       apply_fun (swap none (some a)),
-      simp only [equiv.swap_apply_self, equiv.perm.coe_mul],
+      simp only [perm.decompose_option_symm_apply, swap_apply_self, perm.coe_mul],
       cases x,
       { simp },
       { simp only [equiv_functor.map_equiv_apply, equiv_functor.map,
@@ -192,8 +191,7 @@ begin
         { rw [x_vs_a, swap_apply_right], apply option.some_ne_none },
         { have ne_1 : some x ≠ none := option.some_ne_none _,
           have ne_2 : some x ≠ some a := (option.some_injective α).ne_iff.mpr x_vs_a,
-          rw swap_apply_of_ne_of_ne ne_1 ne_2,
-          rw (option.some_injective α).ne_iff,
+          rw [swap_apply_of_ne_of_ne ne_1 ne_2, (option.some_injective α).ne_iff],
           intro contra,
           exact x_vs_a (h_opfp contra) } } },
     { rw apply_symm_apply } }

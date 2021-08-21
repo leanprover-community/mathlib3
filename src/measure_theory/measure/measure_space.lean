@@ -1606,10 +1606,10 @@ attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
 
-lemma measure_subsingleton (hs : s.subsingleton) : μ s = 0 :=
+lemma _root_.set.subsingleton.measure_zero {α : Type*} [measurable_space α] {s : set α}
+  (hs : s.subsingleton) (μ : measure α) [has_no_atoms μ] :
+  μ s = 0 :=
 hs.induction_on measure_empty measure_singleton
-
-alias measure_subsingleton ← set.subsingleton.measure_eq
 
 @[simp] lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=
@@ -1624,18 +1624,22 @@ begin
   apply measure_mono_null (inter_subset_left t s) ht2
 end
 
-lemma _root_.set.countable.measure_zero (h : countable s) : μ s = 0 :=
+lemma _root_.set.countable.measure_zero {α : Type*} [measurable_space α] {s : set α}
+  (h : countable s) (μ : measure α) [has_no_atoms μ] :
+  μ s = 0 :=
 begin
   rw [← bUnion_of_singleton s, ← nonpos_iff_eq_zero],
   refine le_trans (measure_bUnion_le h _) _,
   simp
 end
 
-lemma _root_.set.finite.measure_zero (h : s.finite) : μ s = 0 :=
-h.countable.measure_zero
+lemma _root_.set.finite.measure_zero {α : Type*} [measurable_space α] {s : set α}
+  (h : s.finite) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
+h.countable.measure_zero μ
 
-lemma _root_.finset.measure_zero (s : finset α) : μ ↑s = 0 :=
-s.finite_to_set.measure_zero
+lemma _root_.finset.measure_zero {α : Type*} [measurable_space α] {s : set α}
+  (s : finset α) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
+s.finite_to_set.measure_zero μ
 
 lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=

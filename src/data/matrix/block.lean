@@ -17,9 +17,7 @@ import data.matrix.basic
 * `matrix.block_diagonal'`: block diagonal of unequally sized blocks
 -/
 
-variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
-variables {m' : o → Type*} [∀ i, fintype (m' i)]
-variables {n' : o → Type*} [∀ i, fintype (n' i)]
+variables {l m n o : Type*} {m' : o → Type*} {n' : o → Type*}
 variables {R : Type*} {S : Type*} {α : Type*} {β : Type*}
 
 open_locale matrix
@@ -174,7 +172,7 @@ begin
   ext i j, rcases i; rcases j; refl,
 end
 
-lemma from_blocks_multiply {p q : Type*} [fintype p] [fintype q]
+lemma from_blocks_multiply {p q : Type*} [fintype l] [fintype m]
   (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
   (A' : matrix l p α) (B' : matrix l q α) (C' : matrix m p α) (D' : matrix m q α) :
   (from_blocks A B C D) ⬝ (from_blocks A' B' C' D') =
@@ -294,7 +292,8 @@ end
   block_diagonal (M - N) = block_diagonal M - block_diagonal N :=
 by simp [sub_eq_add_neg]
 
-@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α] (N : o → matrix n p α) :
+@[simp] lemma block_diagonal_mul {p : Type*} [fintype n] [fintype o] [semiring α]
+  (N : o → matrix n p α) :
   block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
@@ -415,7 +414,7 @@ end
   block_diagonal' (M - N) = block_diagonal' M - block_diagonal' N :=
 by simp [sub_eq_add_neg]
 
-@[simp] lemma block_diagonal'_mul {p : o → Type*} [Π i, fintype (p i)] [semiring α]
+@[simp] lemma block_diagonal'_mul {p : o → Type*} [semiring α] [Π i, fintype (n' i)] [fintype o]
   (N : Π i, matrix (n' i) (p i) α) :
     block_diagonal' (λ k, M k ⬝ N k) = block_diagonal' M ⬝ block_diagonal' N :=
 begin

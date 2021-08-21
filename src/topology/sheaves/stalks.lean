@@ -155,17 +155,6 @@ end
   (f : F ⟶ G) : germ F x ≫ (stalk_functor C x.1).map f = f.app (op U) ≫ germ G x :=
 colimit.ι_map (whisker_left ((open_nhds.inclusion x.1).op) f) (op ⟨U, x.2⟩)
 
-lemma stalk_functor_map_unique {F G : X.presheaf C} (f : F ⟶ G) (x : X)
-  (φ : F.stalk x ⟶ G.stalk x)
-  (hφ : ∀ (U : opens X) (hx : x ∈ U), germ F ⟨x, hx⟩ ≫ φ = f.app (op U) ≫ germ G ⟨x, hx⟩) :
-  φ = (stalk_functor C x).map f :=
-begin
-  apply colim_map_unique,
-  intros U, op_induction U,
-  cases U with V hx,
-  exact hφ V hx,
-end
-
 @[simp] lemma stalk_functor_map_germ_apply (U : opens X) (x : U) {F G : X.presheaf (Type v)}
   (f : F ⟶ G) (s : F.obj (op U)) :
   (stalk_functor (Type v) x.1).map f (germ F x s) = germ G x (f.app (op U) s) :=
@@ -335,11 +324,6 @@ begin
   erw [category_theory.functor.map_id, category.id_comp],
   refl,
 end
-
-lemma stalk_pushforward_unique (f : X ⟶ Y) (F : X.presheaf C) (x : X)
-  (φ : (f _* F).stalk (f x) ⟶ F.stalk x)
-  (hφ: ∀ (U : opens Y) (hx : x ∈ (opens.map f).obj U), (f _* F).germ ⟨f x, hx⟩ ≫ φ = F.germ ⟨x, hx⟩) :
-  φ = F.stalk_pushforward C f x := sorry
 
 namespace stalk_pushforward
 local attribute [tidy] tactic.op_induction'

@@ -157,11 +157,6 @@ is_limit.map _ (limit.is_limit G) α
   lim_map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
 limit.lift_π _ j
 
-lemma lim_map_unique {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G)
-  (f : limit F ⟶ limit G) (h : ∀ j, f ≫ limit.π G j = limit.π F j ≫ α.app j) :
-  f = lim_map α :=
-is_limit.map_unique _ (limit.is_limit G) α f h
-
 /-- The cone morphism from any cone to the arbitrary choice of limit cone. -/
 def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) :
   c ⟶ limit.cone F :=
@@ -578,11 +573,6 @@ is_colimit.map (colimit.is_colimit F) _ α
 lemma ι_colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) (j : J) :
   colimit.ι F j ≫ colim_map α = α.app j ≫ colimit.ι G j :=
 colimit.ι_desc _ j
-
-lemma colim_map_unique {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G)
-  (f : colimit F ⟶ colimit G) (h : ∀ j, colimit.ι F j ≫ f = α.app j ≫ colimit.ι G j) :
-  f = colim_map α :=
-is_colimit.map_unique (colimit.is_colimit F) _ α f h
 
 /-- The cocone morphism from the arbitrary choice of colimit cocone to any cocone. -/
 def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :

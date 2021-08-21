@@ -76,10 +76,6 @@ P.lift ((cones.postcompose α).obj s)
   (α : F ⟶ G) (j : J) : hd.map c α ≫ d.π.app j = c.π.app j ≫ α.app j :=
 fac _ _ _
 
-lemma map_unique {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d) (α : F ⟶ G)
-  (f : c.X ⟶ d.X) (hf : ∀ j, f ≫ d.π.app j = c.π.app j ≫ α.app j) : f = hd.map c α :=
-hd.uniq ((cones.postcompose α).obj c) f hf
-
 lemma lift_self {c : cone F} (t : is_limit c) : t.lift c = 𝟙 c.X :=
 (t.uniq _ _ (λ j, id_comp _)).symm
 
@@ -491,10 +487,6 @@ P.desc ((cocones.precompose α).obj t)
 lemma ι_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
   (j : J) : c.ι.app j ≫ is_colimit.map hc d α = α.app j ≫ d.ι.app j :=
 fac _ _ _
-
-lemma map_unique {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
-  (f : c.X ⟶ d.X) (hf : ∀ j, c.ι.app j ≫ f = α.app j ≫ d.ι.app j) : f = hc.map d α :=
-hc.uniq ((limits.cocones.precompose α).obj d) f hf
 
 @[simp]
 lemma desc_self {t : cocone F} (h : is_colimit t) : h.desc t = 𝟙 t.X :=

@@ -1753,13 +1753,6 @@ end list
 
 namespace finset
 
-lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
-  ∃ (l : list α), l.nodup ∧ l.to_finset = s :=
-begin
-  obtain ⟨⟨l⟩, hs⟩ := s,
-  exact ⟨l, hs, (list.to_finset_eq _).symm⟩,
-end
-
 /-! ### map -/
 section map
 open function
@@ -2489,6 +2482,13 @@ by simp [to_list]
 @[simp, norm_cast]
 lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val :=
 by { classical, ext, simp }
+
+@[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
+by { ext, simp }
+
+lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
+  ∃ (l : list α), l.nodup ∧ l.to_finset = s :=
+⟨s.to_list, s.nodup_to_list, s.to_list_to_finset⟩
 
 end to_list
 

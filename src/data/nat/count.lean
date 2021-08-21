@@ -115,6 +115,24 @@ noncomputable def nth : ℕ → ℕ
 lemma nth_def (n : ℕ) : nth p n = Inf { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 well_founded.fix_eq _ _ _
 
+lemma nth_eq_zero_iff (n : ℕ) : nth p n = 0 ↔ n = 0 ∧ p 0 ∨ set_of p = ∅ :=
+begin
+  rw nth,
+  split,
+  simp only [nat.not_lt_zero, set.mem_set_of_eq, Inf_eq_zero],
+  have : (∀ k, ¬k < n) → n = 0 := eq_bot_of_minimal,
+  rintro (⟨hp0, hn⟩ | rhs),
+  { rw eq_bot_of_minimal hn,
+    exact or.inl ⟨rfl, hp0⟩ },
+  { sorry },
+  rintro (⟨rfl, hp0⟩ | hnone),
+  { simp [hp0] },
+  { rw nat.Inf_eq_zero,
+    right,
+    rw set.set_of_and,
+    convert set.empty_inter _ }
+end
+
 lemma count_monotone : monotone (count p) :=
 begin
   intros n m h,
@@ -149,17 +167,22 @@ lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) 
 lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
-lemma count_nth_of_le_card (n : ℕ) (w : n ≤ nat.card { i | p i }) :
-  count p (nth p n) = n :=
-sorry
+-- eric: I think these definitely need < as opposed to ≤; consider `nth p 3` ("4th element")
+-- for a `p` that is true thrice
 
--- Not sure how hard this is. Possibly not needed, anyway.
--- (kmill: this seems to need a nonemptiness hypothesis for {i | p i})
-lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i }) :
+lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
+  count p (nth p n) = n :=
+begin
+  casesI fintype_or_infinite {i | p i},
+  { sorry },
+  { sorry }
+end
+
+lemma nth_mem_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
   p (nth p n) :=
 begin
-  cases fintype_or_infinite {i | p i}; resetI,
-  { rw [cardinal.fintype_card, cardinal.nat_cast_le, ←nat.card_eq_fintype_card] at w,
+  casesI fintype_or_infinite {i | p i},
+  { rw [cardinal.fintype_card, cardinal.nat_cast_lt, ←nat.card_eq_fintype_card] at w,
     sorry, },
   { apply nth_mem_of_infinite,
     rwa ←set.infinite_coe_iff, },
@@ -170,9 +193,9 @@ sorry
 
 lemma count_nth_gc (i : set.infinite p) : galois_connection (count p) (nth p) :=
 begin
-  rintro a b,
-  rw [nth, count],
-  rw le_cInf_iff (⟨0, λ _ _, zero_le _⟩ : bdd_below _),
+  rintro x y,
+  rw [nth, le_cInf_iff (⟨0, λ _ _, zero_le _⟩ : bdd_below _)],
+  dsimp,
   sorry,
   sorry,
 end

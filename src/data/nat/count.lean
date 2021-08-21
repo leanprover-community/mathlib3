@@ -60,13 +60,30 @@ sorry
 -- TODO move to `data.set.finite`.
 lemma exists_gt_of_infinite (i : set.infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
 
-lemma nth_mem_of_infinite_aux (i : set.infinite p) (n : ℕ) :
+-- TODO move to `data.set.finite`.
+lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
+  (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
+begin
+  intro hd,
+  have := set.finite.union hd (set.finite.inter_of_right ht s),
+  rw set.diff_union_inter at this,
+  exact hs this,
+end
+
+lemma nth_mem_of_infinite_aux (n : ℕ) (i : set.infinite (set_of p)) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
   have ne : set.nonempty { i : ℕ | p i ∧ ∀ k < n, nth p k < i },
-  { -- take the maximum of the witnesses provided by `exists_gt_of_infinite p i (nth p k)`
-    -- over `k < n`
-    sorry },
+  { let s : set ℕ := ⋃ (k < n), { i : ℕ | nth p k ≥ i },
+    convert_to ((set_of p) \ s).nonempty,
+    { ext i, simp, },
+    have : s.finite,
+    { apply set.finite.bUnion,
+      apply set.finite_lt_nat,
+      intros k h,
+      apply set.finite_le_nat, },
+    apply set.infinite.nonempty,
+    apply infinite_of_infinite_sdiff_finite i this, },
   rw nth_def,
   exact Inf_mem ne,
 end

@@ -488,9 +488,7 @@ by haveI := classical.dec_eq α; exact
 lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
   ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
 begin
-  conv_lhs {
-    erw ←prod_map (s.subtype p) (function.embedding.subtype _) f
-  },
+  conv_lhs { erw ←prod_map (s.subtype p) (function.embedding.subtype _) f },
   exact prod_congr (subtype_map _) (λ x hx, rfl)
 end
 
@@ -816,6 +814,15 @@ attribute [to_additive] prod_multiset_map_count
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
+
+@[to_additive] lemma prod_mem_multiset [decidable_eq α]
+  (m : multiset α) (f : {x // x ∈ m} → β) (g : α → β)
+  (hfg : ∀ x, f x = g x) :
+  ∏ (x : {x // x ∈ m}), f x = ∏ x in m.to_finset, g x :=
+prod_bij (λ x _, x.1) (λ x _, multiset.mem_to_finset.mpr x.2)
+  (λ _ _, hfg _)
+  (λ _ _ _ _ h, by { ext, assumption })
+  (λ y hy, ⟨⟨y, multiset.mem_to_finset.mp hy⟩, finset.mem_univ _, rfl⟩)
 
 /--
 To prove a property of a product, it suffices to prove that

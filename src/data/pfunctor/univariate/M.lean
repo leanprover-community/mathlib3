@@ -277,7 +277,7 @@ begin
   dsimp only [M.mk,dest],
   cases x with x ch, congr' with i,
   cases h : ch i,
-  simp  only [children,M.approx.s_mk,children',cast_eq],
+  simp only [children,M.approx.s_mk,children',cast_eq],
   dsimp only [M.approx.s_mk,children'],
   congr, rw h,
 end
@@ -377,7 +377,7 @@ lemma cases_on_mk'
 cases_mk ⟨_,x⟩ _
 
 /-- `is_path p x` tells us if `p` is a valid path through `x` -/
-inductive is_path  : path F → M F → Prop
+inductive is_path : path F → M F → Prop
 | nil (x : M F) : is_path [] x
 | cons (xs : path F) {a} (x : M F) (f : F.B a → M F) (i : F.B a) :
   x = M.mk ⟨a,f⟩ →

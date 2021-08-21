@@ -612,7 +612,7 @@ end
 
 /-- An involutive linear map is a linear equivalence. -/
 def of_involutive [module R M] (f : M →ₗ[R] M) (hf : involutive f) : M ≃ₗ[R] M :=
-{ .. f, .. hf.to_equiv f  }
+{ .. f, .. hf.to_equiv f }
 
 @[simp] lemma coe_of_involutive [module R M] (f : M →ₗ[R] M) (hf : involutive f) :
   ⇑(of_involutive f hf) = f :=

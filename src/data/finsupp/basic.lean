@@ -176,6 +176,10 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
   begin intro f, ext a, refl end,
   begin intro f, ext a, refl end⟩
 
+@[simp] lemma equiv_fun_on_fintype_symm_coe {α} [fintype α] (f : α →₀ M) :
+  equiv_fun_on_fintype.symm f = f :=
+by { ext, simp [equiv_fun_on_fintype], }
+
 end basic
 
 /-! ### Declarations about `single` -/
@@ -1921,7 +1925,7 @@ begin
       multiset.prod_singleton],
     { exact pow_zero a },
     { exact pow_zero },
-    { exact pow_add  } }
+    { exact pow_add } }
 end
 
 @[simp] lemma to_finset_to_multiset [decidable_eq α] (f : α →₀ ℕ) :
@@ -2213,6 +2217,10 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
+
+lemma _root_.is_smul_regular.finsupp {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {k : R}
+  (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=
+λ _ _ h, ext $ λ i, hk (congr_fun h i)
 
 instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_scalar R M] :
   has_faithful_scalar R (α →₀ M) :=

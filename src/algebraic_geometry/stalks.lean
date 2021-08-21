@@ -11,7 +11,8 @@ import topology.sheaves.stalks
 # Stalks for presheaved spaces
 
 This file lifts constructions of stalks and pushforwards of stalks to work with
-the category of presheafed spaces.
+the category of presheafed spaces. Additionally, we prove that restriction of
+presheafed spaces does not change the stalks.
 -/
 
 noncomputable theory
@@ -51,22 +52,78 @@ by rw [stalk_map, stalk_functor_map_germ_assoc, stalk_pushforward_germ]
 
 section restrict
 
+/--
+For an open embedding `f : U ⟶ X` and a point `x : U`, we get an isomorphism between the stalk
+of `X` at `f x` and the stalk of the restriction of `X` along `f` at t `x`.
+-/
 def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :
   (X.restrict f h).stalk x ≅ X.stalk (f x) :=
-show colimit ((h.is_open_map.functor_nhds x).op ⋙ (open_nhds.inclusion (f x)).op ⋙ X.presheaf)
-    ≅ colimit ((open_nhds.inclusion (f x)).op ⋙ X.presheaf),
 begin
   -- As a left adjoint, the functor `h.is_open_map.functor_nhds x` is initial.
   haveI := initial_of_adjunction (h.is_open_map.adjunction_nhds x),
-  -- Typeclass resolution knows that the dual of an initial functor is final. The result follows
-  -- from the general fact that postcomposing with a final functor doesn't change colimits.
-  apply final.colimit_iso,
+  -- Typeclass resolution knows that the opposite of an initial functor is final. The result
+  -- follows from the general fact that postcomposing with a final functor doesn't change colimits.
+  exact final.colimit_iso (h.is_open_map.functor_nhds x).op
+    ((open_nhds.inclusion (f x)).op ⋙ X.presheaf),
 end
 
+@[simp, elementwise, reassoc]
+lemma restrict_stalk_iso_hom_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+  (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
+  (X.restrict f h).presheaf.germ ⟨x, hx⟩ ≫ (restrict_stalk_iso X f h x).hom =
+  X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ :=
+colimit.ι_pre ((open_nhds.inclusion (f x)).op ⋙ X.presheaf)
+  (h.is_open_map.functor_nhds x).op (op ⟨V, hx⟩)
 
--- TODO `restrict_stalk_iso` is compatible with `germ`.
+@[simp, elementwise, reassoc]
+lemma restrict_stalk_iso_inv_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+  (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
+  X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
+  (restrict_stalk_iso X f h x).inv = (X.restrict f h).presheaf.germ ⟨x, hx⟩ :=
+by rw [← restrict_stalk_iso_hom_germ, category.assoc, iso.hom_inv_id, category.comp_id]
 
+/--
+For an open embedding `f : U ⟶ X`, the induced stalk map of the canonical inclusion
+`X.restrict f _ ⟶ X` is equal to the isomorphism of stalks defined above.
+In particular, it is an isomorphism.
+-/
+lemma stalk_map_of_restrict_eq {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+  (h : open_embedding f) (x : U) :
+  stalk_map (X.of_restrict f h) x = (X.restrict_stalk_iso f h x).inv :=
+stalk_hom_ext _ $ λ V hx,
+begin
+  -- The canonical inclusion morphism `f '' (f ⁻¹ V) ⟶ V`.
+  -- This will be filled in automatically by unification later.
+  let i : h.is_open_map.functor.obj ((opens.map f).obj V) ⟶ V := _,
+  erw [stalk_map_germ (X.of_restrict f h) V ⟨x, hx⟩, ← germ_res X.presheaf i ⟨f x, ⟨x, hx, rfl⟩⟩,
+    category.assoc, restrict_stalk_iso_inv_germ X f h ((opens.map f).obj V) x hx],
+  congr,
+end
+
+instance is_iso_stalk_map_of_restrict {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+  (h : open_embedding f) (x : U) :
+  is_iso (stalk_map (X.of_restrict f h) x) :=
+by { rw stalk_map_of_restrict_eq, apply_instance }
+
+/--
+The induced stalk map of the canonical map `X ⟶ X.restrict (opens.inclusion ⊤) _` is equal to the
+isomorphism of stalks defined above.
+In particular, it is an isomorphism.
+-/
+lemma stalk_map_to_restrict_top (X : PresheafedSpace C) (x : X) :
+  stalk_map X.to_restrict_top x =
+  (restrict_stalk_iso X (opens.inclusion ⊤) (opens.open_embedding ⊤) ⟨x, trivial⟩).hom :=
+stalk_hom_ext _ $ λ U hx,
+begin
+  erw [stalk_map_germ X.to_restrict_top U ⟨x, hx⟩, restrict_stalk_iso_hom_germ X _ _ U ⟨x, trivial⟩,
+    germ_res],
+  congr,
+end
+
+instance is_iso_stalk_map_to_restrict_top (X : PresheafedSpace C) (x : X) :
+  is_iso (stalk_map X.to_restrict_top x) :=
+by { rw stalk_map_to_restrict_top, apply_instance }
 
 end restrict
 

@@ -141,23 +141,23 @@ namespace lattice_ordered_comm_group
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
 -/
-@[to_additive additive_pos "
+@[to_additive pos "
   Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
   the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
 "]
-def pos (a : α) : α :=  a ⊔ 1
-postfix `⁺`:1000 := pos
+def mpos (a : α) : α :=  a ⊔ 1
+postfix `⁺`:1000 := mpos
 
 /--
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
 -/
-@[to_additive additive_neg "
+@[to_additive neg "
   Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
   the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
 "]
-def neg (a : α) : α := a⁻¹ ⊔ 1
-postfix `⁻`:1000 := neg
+def mneg (a : α) : α := a⁻¹ ⊔ 1
+postfix `⁻`:1000 := mneg
 
 
 /--
@@ -214,8 +214,8 @@ component `a⁻` of `a` is equal to the positive component `(-a)⁺` of `-a`.
 @[to_additive]
 lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ :=
 begin
-  unfold neg,
-  unfold pos,
+  unfold mneg,
+  unfold mpos,
 end
 
 /--
@@ -252,7 +252,7 @@ $$a⁻ = -(a ⊓ 0).$$
 @[to_additive]
 lemma neg_eq_inv_inf_one (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
 begin
-  unfold lattice_ordered_comm_group.neg,
+  unfold lattice_ordered_comm_group.mneg,
   rw ← inv_inj,
   rw inv_sup_eq_inv_inf_inv,
   rw [inv_inv, inv_inv, one_inv],
@@ -269,9 +269,9 @@ lemma pos_inv_neg (a : α) : a = a⁺ / a⁻ :=
 begin
   rw div_eq_mul_inv,
   apply eq_mul_inv_of_mul_eq,
-  unfold lattice_ordered_comm_group.neg,
+  unfold lattice_ordered_comm_group.mneg,
   rw [mul_sup_eq_mul_sup_mul, mul_one, mul_right_inv, sup_comm],
-  unfold lattice_ordered_comm_group.pos,
+  unfold lattice_ordered_comm_group.mpos,
 end
 
 -- Hack to work around rewrite not working if lhs is a variable
@@ -502,7 +502,7 @@ equal to its positive component `a⁺`.
 -/
 lemma pos_pos_id (a : α) (h : 1 ≤ a): a⁺ = a :=
 begin
-  unfold lattice_ordered_comm_group.pos,
+  unfold lattice_ordered_comm_group.mpos,
   apply sup_of_le_left h,
 end
 

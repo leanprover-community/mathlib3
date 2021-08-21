@@ -65,7 +65,6 @@ instance linear_ordered_comm_group.to_covariant_class (α : Type u)
   [linear_ordered_comm_group α] :  covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, linear_ordered_comm_group.mul_le_mul_left _ _ bc a }
 
-
 variables {α : Type u} [lattice α] [comm_group α] [covariant_class α α (*) (≤)]
 
 -- Special case of Bourbaki A.VI.9 (1)
@@ -125,7 +124,6 @@ calc a⊓b * (a ⊔ b) = a ⊓ b * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
 ... = a⊓b * ((a * b) * (a ⊓ b)⁻¹) : by { rw [inv_inf_eq_sup_inv, sup_comm], }
 ... = a * b                    : by { rw [mul_comm, inv_mul_cancel_right],  }
 
-
 /--
 Absolute value is a unary operator with properties similar to the absolute value of a real number.
 -/
@@ -152,13 +150,11 @@ postfix `⁺`:1000 := mpos
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
 -/
-@[to_additive neg "
-  Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
-  the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`.
-"]
+@[to_additive neg
+  "Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
+  the element `(-a) ⊔ 0` is said to be the *negative component* of `a`, denoted `a⁻`."]
 def mneg (a : α) : α := a⁻¹ ⊔ 1
 postfix `⁻`:1000 := mneg
-
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α` with absolute value
@@ -203,8 +199,6 @@ component `a⁻`. Then `a⁻` dominates `-a`.
 -/
 @[to_additive additive_le_neg]
 lemma le_neg (a : α) : a⁻¹ ≤ a⁻ := le_sup_left
-
-
 
 -- Bourbaki A.VI.12
 /--

@@ -31,52 +31,22 @@ begin
   simp [lt_succ_iff],
 end
 
-lemma count_succ_eq_succ_count {n : ℕ} (hn : p n) :
-  count p (n + 1) = count p n + 1 :=
+lemma count_succ {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+  count p (n + 1) = count p n + (if p n then 1 else 0) :=
 begin
-  rw [count_eq_card, count_eq_card],
-  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i} ∪ {n},
-  { rw [←set.to_finset_card],
-    simp [this], },
-  ext,
-  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
-  rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
-  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h : x = n, h.symm.subst hn).symm),
+  suffices : (list.range (n+1)).filter p = ((list.range n).filter p) ++ if p n then [n] else [],
+  { split_ifs; simp [h, count, this] },
+  rw list.range_succ,
+  split_ifs; simp [h]
 end
 
-lemma count_succ_eq_count {n : ℕ} (hn : ¬p n) :
-  count p (n + 1) = count p n :=
-begin
-  rw [count_eq_card, count_eq_card],
-  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i},
-  { rw [←set.to_finset_card, ←set.to_finset_card],
-    simp_rw [this],
-    congr },
-    ext,
-  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
-  rw [lt_succ_iff, le_iff_lt_or_eq],
-  exact and_congr_left (λ hx, or_iff_left_of_imp $ λ h, (h.symm.subst hn hx).elim),
-end
-
-lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+@[simp] lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
   count p (n + 1) = count p n + 1 ↔ p n :=
-begin
-  refine ⟨_, count_succ_eq_succ_count p⟩,
-  contrapose,
-  rintro hn,
-  rw count_succ_eq_count p hn,
-  exact (succ_ne_self _).symm,
-end
+by by_cases h : p n; simp [h, count_succ]
 
-lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+@[simp] lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
   count p (n + 1) = count p n ↔ ¬p n :=
-begin
-  refine ⟨_, count_succ_eq_count p⟩,
-  contrapose,
-  rintro hn,
-  rw count_succ_eq_succ_count p (of_not_not hn),
-  exact succ_ne_self _,
-end
+by by_cases h : p n; simp [h, count_succ]
 
 /--
 Find the `n`-th natural number satisfying `p`

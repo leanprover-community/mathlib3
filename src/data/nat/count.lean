@@ -105,9 +105,6 @@ lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i
 sorry
 
 -- TODO move to `data.set.finite`.
-lemma exists_gt_of_infinite (i : set.infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
-
--- TODO move to `data.set.finite`.
 lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
   (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
 begin
@@ -133,6 +130,15 @@ begin
     apply infinite_of_infinite_sdiff_finite i this, },
   rw nth_def,
   exact Inf_mem ne,
+end
+
+-- TODO move to `data.set.finite`. (not used in this module)
+lemma exists_gt_of_infinite {s : set ℕ} (i : set.infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
+begin
+  have := infinite_of_infinite_sdiff_finite i (set.finite_le_nat n),
+  obtain ⟨m, hm⟩ := set.infinite.nonempty this,
+  use m,
+  simpa using hm,
 end
 
 lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) :=

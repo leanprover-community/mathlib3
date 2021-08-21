@@ -332,19 +332,26 @@ supr_option s
 lemma Inter_option {ι} (s : option ι → set α) : (⋂ o, s o) = s none ∩ ⋂ i, s (some i) :=
 infi_option s
 
-lemma Inter_ite {ι : Type*} (f g : ι → set α) (I : set ι) [decidable_pred (λ x, x ∈ I)] :
-  (⋂ i, if i ∈ I then f i else g i) = (⋂ i ∈ I, f i) ∩ (⋂ i (h : i ∉ I), g i) :=
-begin
-  ext x,
-  simp,
-  split,
-  { intro h,
-    split ;
-    { intros i hi,
-      simpa [hi] using h i } },
-  { rintro ⟨h, h'⟩ i,
-    split_ifs with hi,
-    exacts [h i hi, h' i hi] }
+section
+
+variables (p : ι → Prop) [decidable_pred p]
+
+lemma Union_dite (f : Π i, p i → set α) (g : Π i, ¬p i → set α) :
+  (⋃ i, if h : p i then f i h else g i h) = (⋃ i (h : p i), f i h) ∪ (⋃ i (h : ¬ p i), g i h) :=
+supr_dite _ _ _
+
+lemma Union_ite (f g : ι → set α) :
+  (⋃ i, if p i then f i else g i) = (⋃ i (h : p i), f i) ∪ (⋃ i (h : ¬ p i), g i) :=
+Union_dite _ _ _
+
+lemma Inter_dite (f : Π i, p i → set α) (g : Π i, ¬p i → set α) :
+  (⋂ i, if h : p i then f i h else g i h) = (⋂ i (h : p i), f i h) ∩ (⋂ i (h : ¬ p i), g i h) :=
+infi_dite _ _ _
+
+lemma Inter_ite (f g : ι → set α) :
+  (⋂ i, if p i then f i else g i) = (⋂ i (h : p i), f i) ∩ (⋂ i (h : ¬ p i), g i) :=
+Inter_dite _ _ _
+
 end
 
 lemma image_projection_prod {ι : Type*} {α : ι → Type*} {v : Π (i : ι), set (α i)}

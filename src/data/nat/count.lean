@@ -44,12 +44,6 @@ begin
   exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h' : x = n, h'.symm.subst h).symm),
 end
 
-lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
-  count p (n + 1) = count p n ↔ ¬p n :=
-begin
-  sorry
-end
-
 lemma count_succ_eq_count {n : ℕ} (h : ¬p n) :
   count p (n + 1) = count p n :=
 begin
@@ -70,6 +64,14 @@ end
 
 lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
   count p (n + 1) = count p n + 1 ↔ p n :=
+begin
+  by_cases h : p n,
+  { simp [h, count_succ_eq_succ_count], },
+  { simp [h, count_succ_eq_count], },
+end
+
+lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+  count p (n + 1) = count p n ↔ ¬p n :=
 begin
   by_cases h : p n,
   { simp [h, count_succ_eq_succ_count], },

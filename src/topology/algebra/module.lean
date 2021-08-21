@@ -137,7 +137,7 @@ structure continuous_linear_map
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [module R M] [module R M₂]
-  extends linear_map R M M₂ :=
+  extends M →ₗ[R] M₂ :=
 (cont : continuous to_fun . tactic.interactive.continuity')
 
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
@@ -151,7 +151,7 @@ structure continuous_linear_equiv
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [module R M] [module R M₂]
-  extends linear_equiv R M M₂ :=
+  extends M ≃ₗ[R] M₂ :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 

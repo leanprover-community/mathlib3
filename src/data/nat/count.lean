@@ -74,7 +74,7 @@ lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p m i).2 _ h
 
 lemma count_nth_of_le_card (n : ℕ) (w : n ≤ nat.card { i | p i }) :
-  count p (nth p n) = n :=
+  count p (nth p n) = n + 1 :=
 sorry
 
 lemma count_nth_of_infinite (n : ℕ) (i : set.infinite p) : count p (nth p n) = n + 1 :=

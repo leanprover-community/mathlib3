@@ -31,7 +31,7 @@ begin
   simp [lt_succ_iff],
 end
 
-lemma count_succ_eq_succ_count {n : ℕ} (h : p n) :
+lemma count_succ_eq_succ_count {n : ℕ} (hn : p n) :
   count p (n + 1) = count p n + 1 :=
 begin
   rw [count_eq_card, count_eq_card],
@@ -41,41 +41,41 @@ begin
   ext,
   simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
   rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
-  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h' : x = n, h'.symm.subst h).symm),
+  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h : x = n, h.symm.subst hn).symm),
 end
 
-lemma count_succ_eq_count {n : ℕ} (h : ¬p n) :
+lemma count_succ_eq_count {n : ℕ} (hn : ¬p n) :
   count p (n + 1) = count p n :=
 begin
   rw [count_eq_card, count_eq_card],
   suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i},
   { rw [←set.to_finset_card, ←set.to_finset_card],
     simp_rw [this],
-    congr, },
-  ext,
-  simp only [and.congr_left_iff, set.mem_set_of_eq],
-  intro hp,
-  by_cases hx : x = n,
-  { subst x,
-    exact (h hp).elim },
-  { rw [lt_succ_iff, decidable.le_iff_lt_or_eq],
-    simp [hx], },
+    congr },
+    ext,
+  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
+  rw [lt_succ_iff, le_iff_lt_or_eq],
+  exact and_congr_left (λ hx, or_iff_left_of_imp $ λ h, (h.symm.subst hn hx).elim),
 end
 
 lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
   count p (n + 1) = count p n + 1 ↔ p n :=
 begin
-  by_cases h : p n,
-  { simp [h, count_succ_eq_succ_count], },
-  { simp [h, count_succ_eq_count], },
+  refine ⟨_, count_succ_eq_succ_count p⟩,
+  contrapose,
+  rintro hn,
+  rw count_succ_eq_count p hn,
+  exact (succ_ne_self _).symm,
 end
 
 lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
   count p (n + 1) = count p n ↔ ¬p n :=
 begin
-  by_cases h : p n,
-  { simp [h, count_succ_eq_succ_count], },
-  { simp [h, count_succ_eq_count], },
+  refine ⟨_, count_succ_eq_count p⟩,
+  contrapose,
+  rintro hn,
+  rw count_succ_eq_succ_count p (of_not_not hn),
+  exact succ_ne_self _,
 end
 
 /--
@@ -98,6 +98,14 @@ begin
   { rintros ⟨n, _⟩ ⟨m, _⟩ h,
     simpa using h },
 end
+
+-- Not sure how hard this is. Possibly not needed, anyway.
+lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i }) :
+  p (nth p n) :=
+sorry
+
+-- TODO move to `data.set.finite`.
+lemma exists_gt_of_infinite (i : set.infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
 
 -- TODO move to `data.set.finite`.
 lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}

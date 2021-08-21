@@ -7,6 +7,8 @@ import data.nat.lattice
 /-!
 -/
 
+open list
+
 section to_move
 
 namespace set
@@ -42,6 +44,9 @@ variables (p : ℕ → Prop) [decidable_pred p]
 /-- Count the `i < n` satisfying `p i`. -/
 def count (n : ℕ) : ℕ :=
 ((list.range n).filter p).length
+
+lemma count_zero : count p 0 = 0 :=
+by rw [count, range_zero, filter_nil, length]
 
 noncomputable instance count_set_fintype (p : ℕ → Prop) (n : ℕ) : fintype { i | i < n ∧ p i } :=
 fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i < n })) (by tidy)
@@ -158,7 +163,7 @@ lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth i
 lemma nth_count_le (i : set.infinite p) (n : ℕ) : count p (nth p n) ≤ n :=
 (count_nth_gc _ i).l_u_le _
 
-lemma nth_le_of_le_count (a b : ℕ) (h : a < nth p b) : count p a < b :=
+lemma nth_le_of_le_count (a b : ℕ) (h : a ≤ count p b) : nth p a ≤ b :=
 begin
   sorry
 end

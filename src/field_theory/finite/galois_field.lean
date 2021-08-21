@@ -132,4 +132,3 @@ have inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
 by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : polynomial (zmod p))).symm
 
 end galois_field
-#lint

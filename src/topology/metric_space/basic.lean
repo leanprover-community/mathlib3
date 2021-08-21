@@ -900,7 +900,11 @@ instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,
   by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub_comm]
 
-lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
+lemma real.ball_eq (x r : ℝ) : ball x r = Ioo (x - r) (x + r) :=
+set.ext $ λ y, by rw [mem_ball, dist_comm, real.dist_eq,
+  abs_sub_lt_iff, mem_Ioo, ← sub_lt_iff_lt_add', sub_lt]
+
+lemma real.closed_ball_eq {x r : ℝ} : closed_ball x r = Icc (x - r) (x + r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
@@ -1781,7 +1785,7 @@ begin
   { rw ← bounded_iff_subset_ball,
     exact hs.bounded },
   refine ⟨(coe ⁻¹' closed_ball (0:ℝ) r)ᶜ, _, _⟩,
-  { simp [mem_cofinite, closed_ball_Icc, set.Icc_ℤ_finite] },
+  { simp [mem_cofinite, real.closed_ball_eq, set.Icc_ℤ_finite] },
   { rw ← compl_subset_compl at hr,
     intros y hy,
     exact hr hy }

@@ -217,7 +217,7 @@ local notation `Ω` := (quotient $ orbit_rel α β)
 
 /-- **Burnside's lemma** : given a group `G` acting on a set `X`, there is a bijection between the
 disjoint union of all `{x ∈ X | g • x = x}` for `g ∈ G` and the product `G × X/G`, where `X/G`
-denotes the quotient of `X` by the relation `orbit_rel`. -/
+denotes the quotient of `X` by the relation `orbit_rel G X`. -/
 noncomputable def sigma_fixed_by_equiv_orbits_prod_group :
   (Σ (a : α), (fixed_by α β a)) ≃ Ω × α :=
 let

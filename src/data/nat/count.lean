@@ -31,6 +31,53 @@ begin
   simp [lt_succ_iff],
 end
 
+lemma count_succ_eq_succ_count {n : ℕ} (h : p n) :
+  count p (n + 1) = count p n + 1 :=
+begin
+  rw [count_eq_card, count_eq_card],
+  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i} ∪ {n},
+  { rw [←set.to_finset_card],
+    simp [this], },
+  ext,
+  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
+  rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
+  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h' : x = n, h'.symm.subst h).symm),
+end
+
+lemma count_succ_eq_count {n : ℕ} (h : ¬p n) :
+  count p (n + 1) = count p n :=
+begin
+  rw [count_eq_card, count_eq_card],
+  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i},
+  { rw [←set.to_finset_card, ←set.to_finset_card],
+    simp_rw [this],
+    congr, },
+  ext,
+  simp only [and.congr_left_iff, set.mem_set_of_eq],
+  intro hp,
+  by_cases hx : x = n,
+  { subst x,
+    exact (h hp).elim },
+  { rw [lt_succ_iff, decidable.le_iff_lt_or_eq],
+    simp [hx], },
+end
+
+lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+  count p (n + 1) = count p n + 1 ↔ p n :=
+begin
+  by_cases h : p n,
+  { simp [h, count_succ_eq_succ_count], },
+  { simp [h, count_succ_eq_count], },
+end
+
+lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+  count p (n + 1) = count p n ↔ ¬p n :=
+begin
+  by_cases h : p n,
+  { simp [h, count_succ_eq_succ_count], },
+  { simp [h, count_succ_eq_count], },
+end
+
 /--
 Find the `n`-th natural number satisfying `p`
 (indexed from `0`, so `nth p 0` is the first natural number satisfying `p`),
@@ -58,9 +105,6 @@ lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i
 sorry
 
 -- TODO move to `data.set.finite`.
-lemma exists_gt_of_infinite (i : set.infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
-
--- TODO move to `data.set.finite`.
 lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
   (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
 begin
@@ -70,7 +114,7 @@ begin
   exact hs this,
 end
 
-lemma nth_mem_of_infinite_aux (n : ℕ) (i : set.infinite (set_of p)) :
+lemma nth_mem_of_infinite_aux (i : set.infinite (set_of p)) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
   have ne : set.nonempty { i : ℕ | p i ∧ ∀ k < n, nth p k < i },
@@ -88,7 +132,16 @@ begin
   exact Inf_mem ne,
 end
 
-lemma nth_mem_of_infinite (i : set.infinite p) (n : ℕ) : p (nth p n) :=
+-- TODO move to `data.set.finite`. (not used in this module)
+lemma exists_gt_of_infinite {s : set ℕ} (i : set.infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
+begin
+  have := infinite_of_infinite_sdiff_finite i (set.finite_le_nat n),
+  obtain ⟨m, hm⟩ := set.infinite.nonempty this,
+  use m,
+  simpa using hm,
+end
+
+lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) :=
 (nth_mem_of_infinite_aux p i n).1
 
 lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=
@@ -121,24 +174,17 @@ lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth i
 lemma nth_count_le (i : set.infinite p) (n : ℕ) : count p (nth p n) ≤ n :=
 (count_nth_gc _ i).l_u_le _
 
+lemma nth_le_of_le_count (a b : ℕ) (h : a < nth p b) : count p a < b :=
+begin
+  sorry
+end
+
 lemma nth_le_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k ≤ n :=
 sorry
 
 -- todo: move
 lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
 by rw [decidable.le_iff_lt_or_eq, lt_succ_iff]
-
-lemma count_eq_count_add_one (n : ℕ) (hn : p n) :
-  count p (n + 1) = count p n + 1 :=
-begin
-  rw [count_eq_card, count_eq_card],
-  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i} ∪ {n},
-  { simp [this] },
-  ext,
-  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
-  rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
-  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h : x = n, h.symm.subst hn).symm),
-end
 
 -- TODO this is the difficult sorry
 lemma nth_count (n : ℕ) (h : p n) : nth p (count p n - 1) = n :=

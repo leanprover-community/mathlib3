@@ -344,6 +344,13 @@ lemma ball_eq_ball' (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.1 p.2 < ε} = metric.ball x ε :=
 by { ext, simp [dist_comm, uniform_space.ball] }
 
+@[simp] lemma Union_ball_nat (x : α) : (⋃ n : ℕ, ball x n) = univ :=
+Union_eq_univ_iff.2 $ λ y, exists_nat_gt (dist y x)
+
+@[simp] lemma Union_ball_nat_succ (x : α) : (⋃ n : ℕ, ball x (n + 1)) = univ :=
+Union_eq_univ_iff.2 $ λ y, (exists_nat_gt (dist y x)).imp $ λ n hn,
+  hn.trans (lt_add_one _)
+
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
@@ -400,6 +407,9 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
 theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
+
+@[simp] lemma Union_closed_ball_nat (x : α) : (⋃ n : ℕ, closed_ball x n) = univ :=
+Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)
 
 theorem ball_disjoint (h : ε₁ + ε₂ ≤ dist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
@@ -1404,7 +1414,7 @@ begin
   suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
   { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
-      Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)⟩⟩ },
+      Union_closed_ball_nat _⟩⟩ },
   { exact ⟨⟨λ n, ∅, λ n, is_compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
 end
 

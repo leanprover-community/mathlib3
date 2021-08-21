@@ -356,6 +356,7 @@ def gpow_group_hom (n : ℤ) : G →* G :=
 end comm_group
 
 lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
+| 0 h := by cases lt_irrefl _ h
 | (n+1) _ := by rw [pow_succ, zero_mul]
 
 lemma zero_pow_eq [monoid_with_zero R] (n : ℕ) : (0 : R)^n = if n = 0 then 1 else 0 :=

@@ -193,6 +193,7 @@ theorem length_pos_of_mem {a : α} : ∀ {l : list α}, a ∈ l → 0 < length l
 | (b::l) _ := zero_lt_succ _
 
 theorem exists_mem_of_length_pos : ∀ {l : list α}, 0 < length l → ∃ a, a ∈ l
+| nil h := by cases lt_irrefl _ h
 | (b::l) _ := ⟨b, mem_cons_self _ _⟩
 
 theorem length_pos_iff_exists_mem {l : list α} : 0 < length l ↔ ∃ a, a ∈ l :=

@@ -356,7 +356,7 @@ lt_succ_iff.trans nat.le_zero_iff
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin
   rw [← lt_succ_iff, div_lt_iff_lt_mul _ _ n0, succ_mul, mul_comm],
-  cases n, {cases n0},
+  cases n, {cases lt_irrefl _ n0},
   exact lt_succ_iff,
 end
 
@@ -374,6 +374,7 @@ attribute [simp] nat.sub_self
 lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
 | 0 0 h := ⟨0, by simp⟩
 | 0 (n+1) h := ⟨n+1, by simp⟩
+| (n+1) 0 h := by cases nat.le_zero_iff.mp h
 | (m+1) (n+1) h :=
   let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
   ⟨k, by simp [hk, add_comm, add_left_comm]⟩
@@ -381,6 +382,7 @@ lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
 lemma exists_eq_add_of_lt : ∀ {m n : ℕ}, m < n → ∃ k : ℕ, n = m + k + 1
 | 0 0 h := false.elim $ lt_irrefl _ h
 | 0 (n+1) h := ⟨n, by simp⟩
+| (m+1) 0 h := by cases nat.le_zero_iff.mp h
 | (m+1) (n+1) h := let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
   ⟨k, by simp [hk]⟩
 
@@ -1241,6 +1243,7 @@ begin
 end
 
 lemma lt_iff_le_pred : ∀ {m n : ℕ}, 0 < n → (m < n ↔ m ≤ n - 1)
+| m 0 h := by cases lt_irrefl _ h
 | m (n+1) _ := lt_succ_iff
 
 lemma div_eq_sub_mod_div {m n : ℕ} : m / n = (m - m % n) / n :=
@@ -1512,7 +1515,7 @@ by { convert bit1_lt_bit0_iff, refl, }
 @[simp] lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
 
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
-by { cases n, cases h, apply succ_pos, }
+by { cases n, cases lt_irrefl _ h, apply succ_pos, }
 
 /-- Define a function on `ℕ` depending on parity of the argument. -/
 @[elab_as_eliminator]

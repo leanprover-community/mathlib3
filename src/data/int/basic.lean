@@ -189,7 +189,7 @@ add_le_add_iff_right _
 lt_add_one_iff.mpr (by simp)
 
 @[norm_cast] lemma coe_pred_of_pos {n : ℕ} (h : 0 < n) : ((n - 1 : ℕ) : ℤ) = (n : ℤ) - 1 :=
-by { cases n, cases h, simp, }
+by { cases n, cases lt_irrefl _ h, simp, }
 
 lemma le_add_one {a b : ℤ} (h : a ≤ b) : a ≤ b + 1 :=
 le_of_lt (int.lt_add_one_iff.mpr h)

@@ -152,6 +152,7 @@ begin
 end
 
 lemma pow_dvd_pow_iff_pow_le_pow {k l : ℕ} : Π {x : ℕ} (w : 0 < x), x^k ∣ x^l ↔ x^k ≤ x^l
+| 0 w := by cases lt_irrefl _ w
 | (x+1) w :=
 begin
   split,
@@ -171,6 +172,8 @@ lemma pow_dvd_pow_iff_le_right' {b k l : ℕ} : (b+2)^k ∣ (b+2)^l ↔ k ≤ l 
 pow_dvd_pow_iff_le_right (nat.lt_of_sub_eq_succ rfl)
 
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
+| 0 _ hp _ _ := by cases nat.not_lt_zero _ hp
+| _ 0 _ hk _ := by cases nat.not_lt_zero _ hk
 | (succ p) (succ k) hp hk h :=
   have succ p * (succ p)^k ∣ succ p * 1, by simpa [pow_succ] using h,
   have (succ p) ^ k ∣ 1, from dvd_of_mul_dvd_mul_left (succ_pos _) this,

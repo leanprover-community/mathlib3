@@ -58,6 +58,7 @@ begin
 end
 
 theorem dvd_factorial : ∀ {m n}, 0 < m → m ≤ n → m ∣ n!
+| 0        m h _ := by cases lt_irrefl _ h
 | (succ m) n _ h := dvd_of_mul_right_dvd (factorial_dvd_factorial h)
 
 @[mono] theorem factorial_le {m n} (h : m ≤ n) : m! ≤ n! :=
@@ -136,7 +137,7 @@ end
 lemma add_factorial_lt_factorial_add {i n : ℕ} (hi : 2 ≤ i) (hn : 1 ≤ n) :
   i + n! < (i + n)! :=
 begin
-  cases n, cases hn,
+  cases n, cases nat.le_zero_iff.mp hn,
   cases n,
   { rw factorial_one,
     exact lt_factorial_self (succ_le_succ hi) },
@@ -153,13 +154,13 @@ begin
     { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
       rw [add_mul, one_mul, add_comm 1 n],
       exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
-    cases i0, },
+    cases nat.not_lt_zero _ (lt_of_succ_lt_succ (lt_of_succ_lt_succ i0)), },
 end
 
 lemma add_factorial_le_factorial_add (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :
   i + n! ≤ (i + n)! :=
 begin
-  cases n, cases n1,
+  cases n, cases nat.le_zero_iff.mp n1,
   cases n with h,
   { exact self_le_factorial _ },
   exact add_factorial_succ_le_factorial_add_succ i (h+1),
@@ -232,9 +233,9 @@ begin
 end
 
 lemma pow_lt_asc_factorial (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → (n + 1)^k < n.asc_factorial k
-| 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
-| (k + 2) := λ _, pow_lt_asc_factorial' n k
+| 0 h := by cases nat.le_zero_iff.mp h
+| 1 h := by cases nat.le_zero_iff.mp (nat.le_of_succ_le_succ h)
+| (k + 2) h := pow_lt_asc_factorial' n k
 
 lemma asc_factorial_le_pow_add (n : ℕ) : ∀ (k : ℕ), n.asc_factorial k ≤ (n + k)^k
 | 0 := by rw [asc_factorial_zero, pow_zero]
@@ -245,9 +246,9 @@ lemma asc_factorial_le_pow_add (n : ℕ) : ∀ (k : ℕ), n.asc_factorial k ≤ 
 end
 
 lemma asc_factorial_lt_pow_add (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → n.asc_factorial k < (n + k)^k
-| 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
-| (k + 2) := λ _, begin
+| 0 h := by cases nat.le_zero_iff.mp h
+| 1 h := by cases nat.le_zero_iff.mp (nat.le_of_succ_le_succ h)
+| (k + 2) h := begin
   rw [asc_factorial_succ, pow_succ],
   refine nat.mul_lt_mul' (le_refl _) ((asc_factorial_le_pow_add n _).trans_lt
     (pow_lt_pow_of_lt_left (lt_add_one _) (succ_pos _))) (succ_pos _),
@@ -352,9 +353,9 @@ end
 
 lemma pow_sub_lt_desc_factorial {n : ℕ} :
   ∀ {k : ℕ}, 2 ≤ k → k ≤ n → (n + 1 - k)^k < n.desc_factorial k
-| 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
-| (k + 2) := λ _ h, by { rw succ_sub_succ, exact pow_sub_lt_desc_factorial' h }
+| 0 w := by cases nat.le_zero_iff.mp w
+| 1 w := by cases nat.le_zero_iff.mp (nat.le_of_succ_le_succ w)
+| (k + 2) w := λ h, by { rw succ_sub_succ, exact pow_sub_lt_desc_factorial' h }
 
 lemma desc_factorial_le_pow (n : ℕ) : ∀ (k : ℕ), n.desc_factorial k ≤ n^k
 | 0 := by rw [desc_factorial_zero, pow_zero]
@@ -364,9 +365,9 @@ lemma desc_factorial_le_pow (n : ℕ) : ∀ (k : ℕ), n.desc_factorial k ≤ n^
 end
 
 lemma desc_factorial_lt_pow {n : ℕ} (hn : 1 ≤ n) : ∀ {k : ℕ}, 2 ≤ k → n.desc_factorial k < n^k
-| 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
-| (k + 2) := λ _, begin
+| 0 h := by cases nat.le_zero_iff.mp h
+| 1 h := by cases nat.le_zero_iff.mp (nat.le_of_succ_le_succ h)
+| (k + 2) h := begin
   rw [desc_factorial_succ, pow_succ', mul_comm],
   exact nat.mul_lt_mul' (desc_factorial_le_pow _ _) (nat.sub_lt_self hn k.zero_lt_succ)
     (pow_pos hn _),

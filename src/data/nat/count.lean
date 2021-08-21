@@ -99,11 +99,6 @@ begin
     simpa using h },
 end
 
--- Not sure how hard this is. Possibly not needed, anyway.
-lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i }) :
-  p (nth p n) :=
-sorry
-
 -- TODO move to `data.set.finite`.
 lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
   (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
@@ -150,6 +145,18 @@ lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=
 lemma count_nth_of_le_card (n : ℕ) (w : n ≤ nat.card { i | p i }) :
   count p (nth p n) = n + 1 :=
 sorry
+
+-- Not sure how hard this is. Possibly not needed, anyway.
+-- (kmill: this seems to need a nonemptiness hypothesis for {i | p i})
+lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i }) :
+  p (nth p n) :=
+begin
+  cases fintype_or_infinite {i | p i}; resetI,
+  { rw [cardinal.fintype_card, cardinal.nat_cast_le, ←nat.card_eq_fintype_card] at w,
+    sorry, },
+  { apply nth_mem_of_infinite,
+    rwa ←set.infinite_coe_iff, },
+end
 
 lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n + 1 :=
 sorry

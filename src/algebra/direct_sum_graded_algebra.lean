@@ -112,8 +112,8 @@ def to_algebra [galgebra R A] [semiring B] [algebra R B]
   (hmul : ∀ {i j} (ai : A i) (aj : A j), f _ (ghas_mul.mul ai aj) = f _ ai * f _ aj)
   (hcommutes : ∀ r, (f 0) (galgebra.to_fun r) = (algebra_map R B) r) :
   (⨁ i, A i) →ₐ[R] B :=
-{ to_fun := to_semiring (λ i, (f i).to_add_monoid_hom) hone (λ i j ai aj, hmul ai aj),
+{ to_fun := to_semiring (λ i, (f i).to_add_monoid_hom) hone @hmul,
   commutes' := λ r, (direct_sum.to_semiring_of _ _ _ _ _).trans (hcommutes r),
-  .. to_semiring (λ i, (f i).to_add_monoid_hom) hone (λ i j ai aj, hmul ai aj)}
+  .. to_semiring (λ i, (f i).to_add_monoid_hom) hone @hmul}
 
 end direct_sum

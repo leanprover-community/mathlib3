@@ -12,7 +12,7 @@ variables (p : ℕ → Prop) [decidable_pred p]
 
 /-- Count the `i ≤ n` satisfying `p i`. -/
 def count (n : ℕ) : ℕ :=
-((list.range n).filter p).length
+((list.range (n+1)).filter p).length
 
 noncomputable instance count_set_fintype (n : ℕ) (p : ℕ → Prop) : fintype { i | i ≤ n ∧ p i } :=
 fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i ≤ n })) (by tidy)
@@ -21,7 +21,11 @@ fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i ≤ n })) (by tidy)
 lemma count_eq_card (n : ℕ) : count p n = fintype.card { i : ℕ | i ≤ n ∧ p i } :=
 sorry
 
-/-- Find the `n`-th natural number satisfying `p`, or `0` if there is no such. -/
+/--
+Find the `n`-th natural number satisfying `p`
+(indexed from `0`, so `nth p 0` is the first natural number satisfying `p`),
+or `0` if there is no such.
+-/
 noncomputable def nth : ℕ → ℕ
 | n := Inf { i : ℕ | p i ∧ ∀ k < n, nth k < i }
 
@@ -63,10 +67,10 @@ lemma count_nth_of_le_card (n : ℕ) (w : n ≤ nat.card { i | p i }) :
   count p (nth p n) = n :=
 sorry
 
-lemma count_nth_of_infinite (n : ℕ) (i : set.infinite p) : count p (nth p n) = n :=
+lemma count_nth_of_infinite (n : ℕ) (i : set.infinite p) : count p (nth p n) = n + 1 :=
 sorry
 
-lemma nth_le_of_le_count (n k : ℕ) (h : k ≤ count p n) : nth p k ≤ n :=
+lemma nth_le_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k ≤ n :=
 sorry
 
 -- todo: move
@@ -89,7 +93,7 @@ begin
 end
 
 -- TODO this is the difficult sorry
-lemma nth_count (n : ℕ) (h : p n) : nth p (count p n) = n :=
+lemma nth_count (n : ℕ) (h : p n) : nth p (count p n - 1) = n :=
 sorry
 
 open_locale classical
@@ -98,6 +102,6 @@ noncomputable def set.infinite.order_iso_nat {s : set ℕ} (i : s.infinite) : s 
 (strict_mono.order_iso_of_surjective
   (λ n, (⟨nth s n, nth_mem_of_infinite s n i⟩ : s))
   (λ n m h, nth_strict_mono_of_infinite s i h)
-  (λ ⟨n, w⟩, ⟨count s n, by simpa using nth_count s n w⟩)).symm
+  (λ ⟨n, w⟩, ⟨count s n - 1, by simpa using nth_count s n w⟩)).symm
 
 end nat

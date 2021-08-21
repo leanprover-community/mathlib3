@@ -108,7 +108,7 @@ coercions such as `submodule.subtype (A i)`, and the `[gmonoid A]` structure ori
 `direct_sum.gmonoid.of_add_submodules`, in which case the proofs about `ghas_one` and `ghas_mul`
 can be discharged by `rfl`. -/
 @[simps]
-def to_algebra [galgebra R A] [semiring B] [algebra R B]
+def to_algebra
   (f : Π i, A i →ₗ[R] B) (hone : f _ (ghas_one.one) = 1)
   (hmul : ∀ {i j} (ai : A i) (aj : A j), f _ (ghas_mul.mul ai aj) = f _ ai * f _ aj)
   (hcommutes : ∀ r, (f 0) (galgebra.to_fun r) = (algebra_map R B) r) :

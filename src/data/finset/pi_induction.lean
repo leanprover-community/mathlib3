@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import data.fintype.basic
 
@@ -16,7 +16,8 @@ finite type.
   `finset.induction_on`.
 
 * `finset.induction_on_pi_max` and `finset.induction_on_pi_min`: generalizations of
-  `finset.induction_on_max`; these versions require `Π i, linear_order (α i)` but assume `∀ y ∈ g i, y < x` and `∀ y ∈ g i, x < y` respectively in the induction step.
+  `finset.induction_on_max`; these versions require `Π i, linear_order (α i)` but assume
+  `∀ y ∈ g i, y < x` and `∀ y ∈ g i, x < y` respectively in the induction step.
 
 ## Tags
 finite set, finite type, induction, function

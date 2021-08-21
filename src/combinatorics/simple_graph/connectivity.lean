@@ -253,7 +253,8 @@ structure is_circuit {u : V} (p : G.walk u u) : Prop :=
 
 /-- A *cycle* at `u : V` is a circuit at `u` whose only repeating vertex
 is `u` (which appears exactly twice). -/
-structure is_cycle [decidable_eq V] {u : V} (p : G.walk u u) extends to_circuit : is_circuit p : Prop :=
+structure is_cycle [decidable_eq V] {u : V} (p : G.walk u u) extends to_circuit :
+  is_circuit p : Prop :=
 (support_nodup : p.support.tail.nodup)
 
 /-- A walk `p` is *Eulerian* if it visits every edge exactly once.
@@ -760,7 +761,8 @@ begin
       exact list.cons_subset_cons _ p_ih, }, },
 end
 
-lemma to_path_support_subset {u v : V} (p : G.walk u v) : walk.support (p.to_path : G.walk u v) ⊆ p.support :=
+lemma to_path_support_subset {u v : V} (p : G.walk u v) :
+  walk.support (p.to_path : G.walk u v) ⊆ p.support :=
 by simp [to_path, to_path_aux_support_subset]
 
 lemma to_path_aux_edges_subset {u v : V} (p : G.walk u v) : p.to_path_aux.edges ⊆ p.edges :=
@@ -775,7 +777,8 @@ begin
       exact list.cons_subset_cons _ p_ih, }, },
 end
 
-lemma to_path_edges_subset {u v : V} (p : G.walk u v) : walk.edges (p.to_path : G.walk u v) ⊆ p.edges :=
+lemma to_path_edges_subset {u v : V} (p : G.walk u v) :
+  walk.edges (p.to_path : G.walk u v) ⊆ p.edges :=
 by simp [to_path, to_path_aux_edges_subset]
 
 end walk

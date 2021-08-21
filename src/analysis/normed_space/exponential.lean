@@ -127,6 +127,69 @@ section complete_algebra
 
 variables [complete_space 𝔸]
 
+lemma exp_series_summable_of_mem_ball (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  summable (λ n, exp_series 𝕂 𝔸 n (λ _, x)) :=
+(exp_series 𝕂 𝔸).summable hx
+
+lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
+(exp_series 𝕂 𝔸).summable_norm_apply hx
+
+lemma exp_series_summable_of_mem_ball' (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  summable (λ n, (1 / n! : 𝕂) • x^n) :=
+begin
+  rw ← exp_series_apply_eq',
+  exact exp_series_summable_of_mem_ball x hx
+end
+
+lemma norm_exp_series_summable_of_mem_ball' (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  summable (λ n, ∥(1 / n! : 𝕂) • x^n∥) :=
+begin
+  change summable (norm ∘ _),
+  rw ← exp_series_apply_eq',
+  exact norm_exp_series_summable_of_mem_ball x hx
+end
+
+lemma exp_series_summable_field_of_mem_ball [complete_space 𝕂] (x : 𝕂)
+  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) : summable (λ n, x^n / n!) :=
+begin
+  rw ← exp_series_apply_eq_field',
+  exact exp_series_summable_of_mem_ball x hx
+end
+
+lemma norm_exp_series_summable_field_of_mem_ball [complete_space 𝕂] (x : 𝕂)
+  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) :
+  summable (λ n, ∥x^n / n!∥) :=
+begin
+  change summable (norm ∘ _),
+  rw ← exp_series_apply_eq_field',
+  exact norm_exp_series_summable_of_mem_ball x hx
+end
+
+lemma exp_series_has_sum_exp_of_mem_ball (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  has_sum (λ n, exp_series 𝕂 𝔸 n (λ _, x)) (exp 𝕂 𝔸 x) :=
+formal_multilinear_series.has_sum (exp_series 𝕂 𝔸) hx
+
+lemma exp_series_has_sum_exp_of_mem_ball' (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  has_sum (λ n, (1 / n! : 𝕂) • x^n) (exp 𝕂 𝔸 x):=
+begin
+  rw ← exp_series_apply_eq',
+  exact exp_series_has_sum_exp_of_mem_ball x hx
+end
+
+lemma exp_series_has_sum_exp_field_of_mem_ball [complete_space 𝕂] (x : 𝕂)
+  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) : has_sum (λ n, x^n / n!) (exp 𝕂 𝕂 x) :=
+begin
+  rw ← exp_series_apply_eq_field',
+  exact exp_series_has_sum_exp_of_mem_ball x hx
+end
+
 lemma has_fpower_series_on_ball_exp_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radius) :
   has_fpower_series_on_ball (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 (exp_series 𝕂 𝔸).radius :=
 (exp_series 𝕂 𝔸).has_fpower_series_on_ball h
@@ -167,15 +230,13 @@ lemma has_fderiv_at_exp_zero_of_radius_pos (h : 0 < (exp_series 𝕂 𝔸).radiu
 
 /-- In a Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero, if `x` and `y` are
 in the disk of convergence and commute, then `exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
-lemma exp_add_of_commute_of_lt_radius [char_zero 𝕂]
-  {x y : 𝔸} (hxy : commute x y) (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius)
-  (hy : (∥y∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) :
+lemma exp_add_of_commute_of_mem_ball [char_zero 𝕂]
+  {x y : 𝔸} (hxy : commute x y) (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius)
+  (hy : y ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 begin
-  have : ∀ {t : 𝔸}, ↑∥t∥₊ < (exp_series 𝕂 𝔸).radius → summable (λ n : ℕ, ∥(1 / n! : 𝕂) • t ^ n∥),
-    from λ t ht, ((exp_series 𝕂 𝔸).summable_norm_of_nnnorm_lt_radius ht).congr
-      (λ n, by rw exp_series_apply_eq t n),
-  rw [exp_eq_tsum, tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm (this hx) (this hy)],
+  rw [exp_eq_tsum, tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm
+        (norm_exp_series_summable_of_mem_ball' x hx) (norm_exp_series_summable_of_mem_ball' y hy)],
   dsimp only,
   conv_lhs {congr, funext, rw [hxy.add_pow' _, finset.smul_sum]},
   refine tsum_congr (λ n, finset.sum_congr rfl $ λ kl hkl, _),
@@ -197,43 +258,42 @@ variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 
 
 /-- In a commutative Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero,
 `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)` for all `x`, `y` in the disk of convergence. -/
-lemma exp_add_of_lt_radius [char_zero 𝕂] {x y : 𝔸}
-  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius)
-  (hy : (∥y∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) :
+lemma exp_add_of_mem_ball [char_zero 𝕂] {x y : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius)
+  (hy : y ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
-exp_add_of_commute_of_lt_radius (commute.all x y) hx hy
+exp_add_of_commute_of_mem_ball (commute.all x y) hx hy
 
 /-- The exponential map in a commutative Banach-algebra `𝔸` over a normed field `𝕂` of
 characteristic zero has Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x` in the
 disk of convergence. -/
-lemma has_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸}
-  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) :
+lemma has_fderiv_at_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   has_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
 begin
-  have hpos : 0 < (exp_series 𝕂 𝔸).radius := (ennreal.coe_nonneg.mpr $ zero_le _).trans_lt hx,
+  have hpos : 0 < (exp_series 𝕂 𝔸).radius := (zero_le _).trans_lt hx,
   rw has_fderiv_at_iff_is_o_nhds_zero,
   suffices : (λ h, exp 𝕂 𝔸 x * (exp 𝕂 𝔸 (0 + h) - exp 𝕂 𝔸 0 - continuous_linear_map.id 𝕂 𝔸 h))
     =ᶠ[𝓝 0] (λ h, exp 𝕂 𝔸 (x + h) - exp 𝕂 𝔸 x - exp 𝕂 𝔸 x • continuous_linear_map.id 𝕂 𝔸 h),
   { refine (is_o.const_mul_left _ _).congr' this (eventually_eq.refl _ _),
     rw ← has_fderiv_at_iff_is_o_nhds_zero,
     exact has_fderiv_at_exp_zero_of_radius_pos hpos },
-  have : ∀ᶠ h in 𝓝 (0 : 𝔸), ↑∥h∥₊ < (exp_series 𝕂 𝔸).radius,
-  { simp_rw ← edist_eq_coe_nnnorm,
-    exact emetric.ball_mem_nhds _ hpos, },
+  have : ∀ᶠ h in 𝓝 (0 : 𝔸), h ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius :=
+    emetric.ball_mem_nhds _ hpos,
   filter_upwards [this],
   intros h hh,
-  rw [exp_add_of_lt_radius hx hh, exp_zero, zero_add, continuous_linear_map.id_apply, smul_eq_mul],
+  rw [exp_add_of_mem_ball hx hh, exp_zero, zero_add, continuous_linear_map.id_apply, smul_eq_mul],
   ring
 end
 
 /-- The exponential map in a commutative Banach-algebra `𝔸` over a normed field `𝕂` of
 characteristic zero has strict Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x` in
 the disk of convergence. -/
-lemma has_strict_fderiv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝔸}
-  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝔸).radius) :
+lemma has_strict_fderiv_at_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
-let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball x (by rwa ← edist_eq_coe_nnnorm at hx) in
-hp.has_fderiv_at.unique (has_fderiv_at_exp_of_lt_radius hx) ▸ hp.has_strict_fderiv_at
+let ⟨p, hp⟩ := analytic_at_exp_of_mem_ball x hx in
+hp.has_fderiv_at.unique (has_fderiv_at_exp_of_mem_ball hx) ▸ hp.has_strict_fderiv_at
 
 end any_field_comm_algebra
 
@@ -243,17 +303,17 @@ variables {𝕂 : Type*} [nondiscrete_normed_field 𝕂] [complete_space 𝕂]
 
 /-- The exponential map in a complete normed field `𝕂` of characteristic zero has strict derivative
 `exp 𝕂 𝕂 x` at any point `x` in the disk of convergence. -/
-lemma has_strict_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂}
-  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝕂).radius) :
+lemma has_strict_deriv_at_exp_of_mem_ball [char_zero 𝕂] {x : 𝕂}
+  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) :
   has_strict_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
-by simpa using (has_strict_fderiv_at_exp_of_lt_radius hx).has_strict_deriv_at
+by simpa using (has_strict_fderiv_at_exp_of_mem_ball hx).has_strict_deriv_at
 
 /-- The exponential map in a complete normed field `𝕂` of characteristic zero has derivative
 `exp 𝕂 𝕂 x` at any point `x` in the disk of convergence. -/
-lemma has_deriv_at_exp_of_lt_radius [char_zero 𝕂] {x : 𝕂}
-  (hx : (∥x∥₊ : ℝ≥0∞) < (exp_series 𝕂 𝕂).radius) :
+lemma has_deriv_at_exp_of_mem_ball [char_zero 𝕂] {x : 𝕂}
+  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) :
   has_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
-(has_strict_deriv_at_exp_of_lt_radius hx).has_deriv_at
+(has_strict_deriv_at_exp_of_mem_ball hx).has_deriv_at
 
 /-- The exponential map in a complete normed field `𝕂` of characteristic zero has strict derivative
 `1` at zero, as long as it converges on a neighborhood of zero. -/
@@ -335,49 +395,37 @@ section complete_algebra
 variables [complete_space 𝔸]
 
 lemma exp_series_summable (x : 𝔸) : summable (λ n, exp_series 𝕂 𝔸 n (λ _, x)) :=
-begin
-  refine formal_multilinear_series.summable (exp_series 𝕂 𝔸) _,
-  rw exp_series_radius_eq_top,
-  exact edist_lt_top x 0
-end
+exp_series_summable_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
+lemma norm_exp_series_summable (x : 𝔸) : summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
+norm_exp_series_summable_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 lemma exp_series_summable' (x : 𝔸) : summable (λ n, (1 / n! : 𝕂) • x^n) :=
-begin
-  rw ← exp_series_apply_eq',
-  exact exp_series_summable x
-end
+exp_series_summable_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
+lemma norm_exp_series_summable' (x : 𝔸) : summable (λ n, ∥(1 / n! : 𝕂) • x^n∥) :=
+norm_exp_series_summable_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 lemma exp_series_summable_field (x : 𝕂) : summable (λ n, x^n / n!) :=
-begin
-  rw ← exp_series_apply_eq_field',
-  exact exp_series_summable x
-end
+exp_series_summable_field_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ edist_lt_top _ _)
+
+lemma norm_exp_series_summable_field (x : 𝕂) : summable (λ n, ∥x^n / n!∥) :=
+norm_exp_series_summable_field_of_mem_ball x
+  ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ edist_lt_top _ _)
 
 lemma exp_series_has_sum_exp (x : 𝔸) : has_sum (λ n, exp_series 𝕂 𝔸 n (λ _, x)) (exp 𝕂 𝔸 x) :=
-begin
-  refine formal_multilinear_series.has_sum (exp_series 𝕂 𝔸) _,
-  rw exp_series_radius_eq_top,
-  exact edist_lt_top x 0
-end
+exp_series_has_sum_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 lemma exp_series_has_sum_exp' (x : 𝔸) : has_sum (λ n, (1 / n! : 𝕂) • x^n) (exp 𝕂 𝔸 x):=
-begin
-  rw ← exp_series_apply_eq',
-  exact exp_series_has_sum_exp x
-end
+exp_series_has_sum_exp_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 lemma exp_series_has_sum_exp_field (x : 𝕂) : has_sum (λ n, x^n / n!) (exp 𝕂 𝕂 x):=
-begin
-  rw ← exp_series_apply_eq_field',
-  exact exp_series_has_sum_exp x
-end
+exp_series_has_sum_exp_field_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ edist_lt_top _ _)
 
 lemma exp_has_fpower_series_on_ball :
   has_fpower_series_on_ball (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 ∞ :=
-begin
-  rw ← exp_series_radius_eq_top 𝕂 𝔸,
-  exact has_fpower_series_on_ball_exp_of_radius_pos (exp_series_radius_pos _ _)
-end
+exp_series_radius_eq_top 𝕂 𝔸 ▸
+  has_fpower_series_on_ball_exp_of_radius_pos (exp_series_radius_pos _ _)
 
 lemma exp_has_fpower_series_at_zero :
   has_fpower_series_at (exp 𝕂 𝔸) (exp_series 𝕂 𝔸) 0 :=
@@ -416,8 +464,8 @@ local attribute [instance] char_zero_R_or_C
 lemma exp_add_of_commute [complete_space 𝔸]
   {x y : 𝔸} (hxy : commute x y) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
-exp_add_of_commute_of_lt_radius hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
-  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
+exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 end any_algebra
 
@@ -430,14 +478,14 @@ local attribute [instance] char_zero_R_or_C
 /-- In a comutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`,
 `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
 lemma exp_add {x y : 𝔸} : exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
-exp_add_of_lt_radius ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
-  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
+exp_add_of_mem_ball ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 /-- The exponential map in a commutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has strict
 Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x`. -/
 lemma has_strict_fderiv_at_exp {x : 𝔸} :
   has_strict_fderiv_at (exp 𝕂 𝔸) (exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸) x :=
-has_strict_fderiv_at_exp_of_lt_radius ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ ennreal.coe_lt_top)
+has_strict_fderiv_at_exp_of_mem_ball ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 /-- The exponential map in a commutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has
 Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x`. -/
@@ -456,7 +504,7 @@ local attribute [instance] char_zero_R_or_C
 /-- The exponential map in `𝕂 = ℝ` or `𝕂 = ℂ` has strict derivative `exp 𝕂 𝕂 x` at any point
 `x`. -/
 lemma has_strict_deriv_at_exp {x : 𝕂} : has_strict_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=
-has_strict_deriv_at_exp_of_lt_radius ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ ennreal.coe_lt_top)
+has_strict_deriv_at_exp_of_mem_ball ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ edist_lt_top _ _)
 
 /-- The exponential map in `𝕂 = ℝ` or `𝕂 = ℂ` has derivative `exp 𝕂 𝕂 x` at any point `x`. -/
 lemma has_deriv_at_exp {x : 𝕂} : has_deriv_at (exp 𝕂 𝕂) (exp 𝕂 𝕂 x) x :=

@@ -777,6 +777,9 @@ set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support,
 
 variables {m : measurable_space α} [has_zero β] [has_zero γ] {μ : measure α} {f : α →ₛ β}
 
+lemma measurable_set_support [measurable_space α] (f : α →ₛ β) : measurable_set (support f) :=
+by { rw f.support_eq, exact finset.measurable_set_bUnion _ (λ y hy, measurable_set_fiber _ _), }
+
 /-- A `simple_func` has finite measure support if it is equal to `0` outside of a set of finite
 measure. -/
 protected def fin_meas_supp {m : measurable_space α} (f : α →ₛ β) (μ : measure α) : Prop :=

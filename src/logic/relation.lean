@@ -472,7 +472,7 @@ iff.intro
     case eqv_gen.rel { assumption },
     case eqv_gen.refl { exact h.1 _ },
     case eqv_gen.symm { apply h.2.1, assumption },
-    case eqv_gen.trans : a b c _ _ hab hbc {  exact h.2.2 hab hbc }
+    case eqv_gen.trans : a b c _ _ hab hbc { exact h.2.2 hab hbc }
   end
   (eqv_gen.rel a b)
 

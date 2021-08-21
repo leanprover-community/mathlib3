@@ -138,6 +138,14 @@ lemma map_smul [has_scalar R α] [has_scalar R β] (f : α → β) (r : R)
   (hf : ∀ a, f (r • a) = r • f a) (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 ext $ λ _ _, hf _
 
+lemma _root_.is_smul_regular.matrix [has_scalar R S] {k : R} (hk : is_smul_regular S k) :
+  is_smul_regular (matrix m n S) k :=
+is_smul_regular.pi $ λ _, is_smul_regular.pi $ λ _, hk
+
+lemma _root_.is_left_regular.matrix [has_mul α] {k : α} (hk : is_left_regular k) :
+  is_smul_regular (matrix m n α) k :=
+hk.is_smul_regular.matrix
+
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim i }⟩

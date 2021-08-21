@@ -279,6 +279,19 @@ end add_comm_group
 
 end linear_map
 
+namespace module
+
+/-- `g : R →+* S` is `R`-linear when the module structure on `S` is `module.comp_hom S g` . -/
+@[simps]
+def comp_hom.to_linear_map {R S : Type*} [semiring R] [semiring S] (g : R →+* S) :
+  (by haveI := comp_hom S g; exact (R →ₗ[R] S)) :=
+by exact {
+  to_fun := (g : R → S),
+  map_add' := g.map_add,
+  map_smul' := g.map_mul }
+
+end module
+
 namespace distrib_mul_action_hom
 
 variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂]
@@ -599,7 +612,7 @@ end
 
 /-- An involutive linear map is a linear equivalence. -/
 def of_involutive [module R M] (f : M →ₗ[R] M) (hf : involutive f) : M ≃ₗ[R] M :=
-{ .. f, .. hf.to_equiv f  }
+{ .. f, .. hf.to_equiv f }
 
 @[simp] lemma coe_of_involutive [module R M] (f : M →ₗ[R] M) (hf : involutive f) :
   ⇑(of_involutive f hf) = f :=
@@ -637,3 +650,17 @@ end restrict_scalars
 end add_comm_monoid
 
 end linear_equiv
+
+namespace module
+
+/-- `g : R ≃+* S` is `R`-linear when the module structure on `S` is `module.comp_hom S g` . -/
+@[simps]
+def comp_hom.to_linear_equiv {R S : Type*} [semiring R] [semiring S] (g : R ≃+* S) :
+  (by haveI := comp_hom S (↑g : R →+* S); exact (R ≃ₗ[R] S)) :=
+by exact {
+  to_fun := (g : R → S),
+  inv_fun := (g.symm : S → R),
+  map_smul' := g.map_mul,
+  ..g }
+
+end module

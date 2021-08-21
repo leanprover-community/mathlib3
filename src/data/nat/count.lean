@@ -26,6 +26,24 @@ variables {α : Type*} {s t : set α}
 lemma sdiff_eq_empty_iff_subset : s \ t = ∅ ↔ s ⊆ t :=
 sdiff_eq_bot_iff
 
+-- TODO: move to `data.set.finite`.
+lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
+  (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
+begin
+  intro hd,
+  have := set.finite.union hd (set.finite.inter_of_right ht s),
+  rw set.diff_union_inter at this,
+  exact hs this,
+end
+
+-- TODO: move to `data.set.finite`.
+lemma exists_gt_of_infinite (s : set ℕ) (i : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
+begin
+  obtain ⟨m, hm⟩ := set.infinite.nonempty (infinite_of_infinite_sdiff_finite i (set.finite_le_nat n)),
+  use m,
+  simpa using hm,
+end
+
 lemma infinite.exists_not_mem_finset (i : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=
 begin
@@ -37,24 +55,6 @@ begin
   apply i,
   apply finite.subset f.finite_to_set,
   exact (sdiff_eq_empty_iff_subset.mp $ or.resolve_right (eq_empty_or_nonempty _) h),
-end
-
--- TODO: move to `data.set.finite`.
-lemma exists_gt_of_infinite (s : set ℕ) (i : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
-begin
-  obtain ⟨m, hm, h⟩ := i.exists_not_mem_finset (finset.Ico 0 (n + 1)),
-  simp only [true_and, finset.Ico.mem, not_lt, zero_le, nat.succ_le_iff] at h,
-  exact ⟨m, hm, h⟩
-end
-
--- TODO: move to `data.set.finite`.
-lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
-  (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
-begin
-  intro hd,
-  have := set.finite.union hd (set.finite.inter_of_right ht s),
-  rw set.diff_union_inter at this,
-  exact hs this,
 end
 
 end set

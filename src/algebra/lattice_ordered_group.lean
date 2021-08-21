@@ -434,11 +434,6 @@ instance lattice_ordered_comm_group_to_distrib_lattice (α : Type u)
   end,
   ..s }
 
-@[to_additive]
-lemma div_mul_div_eq_mul_div_mul (x y w z : α) : x / y * (w / z) = x * w / (y * z) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
-    mul_left_cancel_iff, mul_comm, mul_assoc]
-
 -- See, e.g. Zaanen, Lectures on Riesz Spaces
 -- 3rd lecture
 /--
@@ -461,7 +456,7 @@ theorem abs_div_sup_mul_abs_div_inf (a b c : α) :
       nth_rewrite 3 inf_comm,
       rw [inf_right_idem, inf_assoc], }
     ... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by
-      { rw div_mul_div_eq_mul_div_mul,}
+      { rw div_mul_comm,}
     ... = (b ⊔ a) * c / (b ⊓ a * c)                      :
       by {rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup] }
     ... = (b ⊔ a) / (b ⊓ a) : by { rw [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left,

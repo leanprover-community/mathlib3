@@ -31,12 +31,6 @@ begin
   simp [lt_succ_iff],
 end
 
-lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
-  count p (n + 1) = count p n + 1 ↔ p n :=
-begin
-  sorry
-end
-
 lemma count_succ_eq_succ_count {n : ℕ} (h : p n) :
   count p (n + 1) = count p n + 1 :=
 begin
@@ -72,6 +66,14 @@ begin
     exact (h hp).elim },
   { rw [lt_succ_iff, decidable.le_iff_lt_or_eq],
     simp [hx], },
+end
+
+lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+  count p (n + 1) = count p n + 1 ↔ p n :=
+begin
+  by_cases h : p n,
+  { simp [h, count_succ_eq_succ_count], },
+  { simp [h, count_succ_eq_count], },
 end
 
 /--

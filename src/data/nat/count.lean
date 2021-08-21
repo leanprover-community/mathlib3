@@ -7,13 +7,12 @@ import data.nat.lattice
 /-!
 -/
 
-namespace nat
-variables (p : ℕ → Prop) [decidable_pred p]
+section to_move
 
-/-! ### TO MOVE -/
+namespace set
 
 -- TODO: move to `data.set.finite`.
-lemma exists_gt_of_infinite (i : set.infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
+lemma exists_gt_of_infinite (p : ℕ → Prop) (i : infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
 
 -- TODO: move to `data.set.finite`.
 lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
@@ -25,11 +24,20 @@ begin
   exact hs this,
 end
 
--- TODO: move
-lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
-by rw [decidable.le_iff_lt_or_eq, lt_succ_iff]
+end set
 
-/-! ### Real stuff -/
+namespace nat
+
+lemma nat.le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
+by rw [decidable.le_iff_lt_or_eq, nat.lt_succ_iff]
+
+end nat
+
+end to_move
+
+namespace nat
+
+variables (p : ℕ → Prop) [decidable_pred p]
 
 /-- Count the `i < n` satisfying `p i`. -/
 def count (n : ℕ) : ℕ :=
@@ -52,8 +60,7 @@ begin
   simp [lt_succ_iff],
 end
 
-lemma count_succ {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
-  count p (n + 1) = count p n + (if p n then 1 else 0) :=
+lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 begin
   suffices : (list.range (n+1)).filter p = ((list.range n).filter p) ++ if p n then [n] else [],
   { split_ifs; simp [h, count, this] },
@@ -61,12 +68,10 @@ begin
   split_ifs; simp [h]
 end
 
-@[simp] lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
-  count p (n + 1) = count p n + 1 ↔ p n :=
+@[simp] lemma count_succ_eq_succ_count_iff {n : ℕ} : count p (n + 1) = count p n + 1 ↔ p n :=
 by by_cases h : p n; simp [h, count_succ]
 
-@[simp] lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
-  count p (n + 1) = count p n ↔ ¬p n :=
+@[simp] lemma count_succ_eq_count_iff {n : ℕ} : count p (n + 1) = count p n ↔ ¬p n :=
 by by_cases h : p n; simp [h, count_succ]
 
 /--
@@ -103,7 +108,7 @@ begin
       intros k h,
       apply set.finite_le_nat, },
     apply set.infinite.nonempty,
-    apply infinite_of_infinite_sdiff_finite i this, },
+    apply set.infinite_of_infinite_sdiff_finite i this, },
   rw nth_def,
   exact Inf_mem ne,
 end

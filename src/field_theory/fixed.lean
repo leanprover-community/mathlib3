@@ -243,7 +243,7 @@ begin
   refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
   rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
     cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
-  exact linear_independent_le_dim'.{_ _ _ (max u v)}
+  exact cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max u v)}
     (linear_independent_smul_of_linear_independent G F hs)
 end
 

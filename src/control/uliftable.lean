@@ -126,7 +126,7 @@ def cont_t.uliftable' {m m'} [uliftable m m']
   (F : r ≃ r') :
   uliftable (cont_t r m) (cont_t r' m') :=
 { congr :=
-    λ α β, cont_t.equiv (uliftable.congr _ _ F)  }
+    λ α β, cont_t.equiv (uliftable.congr _ _ F) }
 
 instance {s m m'} [uliftable m m'] : uliftable (cont_t s m) (cont_t (ulift s) m') :=
 cont_t.uliftable' equiv.ulift.symm

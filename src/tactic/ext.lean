@@ -219,6 +219,8 @@ Returns the extensionality lemmas in the environment, as a list of lemma names.
 meta def get_ext_lemma_names : tactic (list name) :=
 attribute.get_instances ext_lemma_attr_core.name
 
+/-- Marks `lem` as an extensionality lemma corresponding to type constructor `constr`;
+if `persistent` is true then this is a global attribute, else local. -/
 meta def add_ext_lemma (constr lem : name) (persistent : bool) : tactic unit :=
 ext_attr_core.set constr lem persistent >> ext_lemma_attr_core.set lem () persistent
 

@@ -872,6 +872,8 @@ lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
   x ∈ closure s ↔ ne_bot (𝓝[s] x) :=
 mem_closure_iff_cluster_pt
 
+/-- If `x` is not an isolated point of a topological space, then `{x}ᶜ` is dense in the whole
+space. -/
 lemma dense_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] : dense ({x}ᶜ : set α) :=
 begin
   intro y,
@@ -880,11 +882,13 @@ begin
   { exact subset_closure hne }
 end
 
-/-- If `x` is not an isolated point of a topological space, then the closure of `{-/
+/-- If `x` is not an isolated point of a topological space, then the closure of `{x}ᶜ` is the whole
+space. -/
 @[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
   closure {x}ᶜ = (univ : set α) :=
 (dense_compl_singleton x).closure_eq
 
+/-- If `x` is not an isolated point of a topological space, then the interior of `{x}ᶜ` is empty. -/
 @[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
   interior {x} = (∅ : set α) :=
 interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)

@@ -57,12 +57,16 @@ lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i
   p (nth p n) :=
 sorry
 
+-- TODO move to `data.set.finite`.
+lemma exists_gt_of_infinite (i : set.infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
+
 lemma nth_mem_of_infinite_aux (i : set.infinite p) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
-  -- This sorry should be relatively easy:
-  -- it's the intersection of an infinite set with finitely many cofinite sets.
-  have ne : set.nonempty { i : ℕ | p i ∧ ∀ k < n, nth p k < i } := sorry,
+  have ne : set.nonempty { i : ℕ | p i ∧ ∀ k < n, nth p k < i },
+  { -- take the maximum of the witnesses provided by `exists_gt_of_infinite p i (nth p k)`
+    -- over `k < n`
+    sorry },
   rw nth_def,
   exact Inf_mem ne,
 end

@@ -28,4 +28,15 @@ begin
   { simp [rotate', l₁_ih], },
 end
 
+lemma count_le_length [decidable_eq α] (l : list α) (x : α) : count x l ≤ l.length :=
+begin
+  induction l,
+  simp,
+  simp [count_cons],
+  split_ifs,
+  { rw [nat.succ_eq_add_one, add_le_add_iff_right],
+    assumption, },
+  { exact le_add_right l_ih, },
+end
+
 end list

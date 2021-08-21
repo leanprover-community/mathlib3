@@ -71,6 +71,8 @@ begin
     simp [this], },
 end
 
+/-- Takes an element of `ℂ ≃ₗᵢ[ℝ] ℂ` and checks if it is a rotation, returns an element of the
+unit circle. -/
 @[simps]
 def rotation_of (e : ℂ ≃ₗᵢ[ℝ] ℂ) : circle :=
 ⟨(e 1) / complex.abs (e 1), by simp⟩

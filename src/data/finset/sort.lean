@@ -43,7 +43,7 @@ multiset.mem_sort _
 @[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
 multiset.length_sort _
 
-lemma sort_eq_to_list (s : finset α) : sort r s ~ s.to_list :=
+lemma sort_perm_to_list (s : finset α) : sort r s ~ s.to_list :=
 by { rw ←multiset.coe_eq_coe, simp only [coe_to_list, sort_eq] }
 
 end sort

@@ -5,8 +5,8 @@ Authors: Andreas Swerdlow, Kexing Ying
 -/
 
 import linear_algebra.dual
+import linear_algebra.matrix.basis
 import linear_algebra.matrix.nonsingular_inverse
-import linear_algebra.matrix.to_lin
 import linear_algebra.tensor_product
 
 /-!
@@ -388,6 +388,28 @@ lemma comp_comp {M'' : Type*} [add_comm_monoid M''] [module R M'']
 
 @[simp] lemma comp_right_apply (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
   B.comp_right f v w = B v (f w) := rfl
+
+@[simp] lemma comp_id_left (B : bilin_form R M) (r : M →ₗ[R] M) :
+  B.comp linear_map.id r = B.comp_right r :=
+by { ext, refl }
+
+@[simp] lemma comp_id_right (B : bilin_form R M) (l : M →ₗ[R] M) :
+  B.comp l linear_map.id = B.comp_left l :=
+by { ext, refl }
+
+@[simp] lemma comp_left_id (B : bilin_form R M) :
+  B.comp_left linear_map.id = B :=
+by { ext, refl }
+
+@[simp] lemma comp_right_id (B : bilin_form R M) :
+  B.comp_right linear_map.id = B :=
+by { ext, refl }
+
+-- Shortcut for `comp_id_{left,right}` followed by `comp_{right,left}_id`,
+-- has to be declared after the former two to get the right priority
+@[simp] lemma comp_id_id (B : bilin_form R M) :
+  B.comp linear_map.id linear_map.id = B :=
+by { ext, refl }
 
 lemma comp_injective (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
   (hₗ : function.surjective l) (hᵣ : function.surjective r) :
@@ -864,6 +886,12 @@ lemma bilin_form.to_matrix_comp_right (B : bilin_form R₃ M₃) (f : M₃ →�
   bilin_form.to_matrix b (B.comp_right f) = bilin_form.to_matrix b B ⬝ (to_matrix b b f) :=
 by simp only [bilin_form.comp_right, bilin_form.to_matrix_comp b b, to_matrix_id,
               transpose_one, matrix.one_mul]
+
+@[simp]
+lemma bilin_form.to_matrix_mul_basis_to_matrix (c : basis o R₃ M₃) (B : bilin_form R₃ M₃) :
+  (b.to_matrix c)ᵀ ⬝ bilin_form.to_matrix b B ⬝ b.to_matrix c = bilin_form.to_matrix c B :=
+by rw [← linear_map.to_matrix_id_eq_basis_to_matrix, ← bilin_form.to_matrix_comp,
+       bilin_form.comp_id_id]
 
 lemma bilin_form.mul_to_matrix_mul (B : bilin_form R₃ M₃)
   (M : matrix o n R₃) (N : matrix n o R₃) :

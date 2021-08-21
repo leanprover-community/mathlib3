@@ -12,6 +12,49 @@ import measure_theory.function.strongly_measurable
 
 namespace measure_theory
 
+
+section ae_eq_of_forall
+
+variables {α E 𝕜 : Type*} {m : measurable_space α} {μ : measure α} [is_R_or_C 𝕜]
+
+lemma ae_eq_zero_of_forall_inner [inner_product_space 𝕜 E] [second_countable_topology E]
+  {f : α → E} (hf : ∀ c : E, (λ x, (inner c (f x) : 𝕜)) =ᵐ[μ] 0) :
+  f =ᵐ[μ] 0 :=
+begin
+  let s := dense_seq E,
+  have hs : dense_range s := dense_range_dense_seq E,
+  have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, inner (s n) (f x) = (0 : 𝕜), from ae_all_iff.mpr (λ n, hf (s n)),
+  refine hf'.mono (λ x hx, _),
+  rw [pi.zero_apply, ← inner_self_eq_zero],
+  have h_closed : is_closed {c : E | inner c (f x) = (0 : 𝕜)},
+    from is_closed_eq (continuous_id.inner continuous_const) continuous_const,
+  exact @is_closed_property ℕ E _ s (λ c, inner c (f x) = (0 : 𝕜)) hs h_closed (λ n, hx n) _,
+end
+
+local notation `⟪`x`, `y`⟫` := y x
+
+lemma ae_eq_zero_of_forall_dual [normed_group E] [normed_space 𝕜 E]
+  [second_countable_topology (dual 𝕜 E)]
+  {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) :
+  f =ᵐ[μ] 0 :=
+begin
+  let s := dense_seq (dual 𝕜 E),
+  have hs : dense_range s := dense_range_dense_seq _,
+  have hfs : ∀ n : ℕ, ∀ᵐ x ∂μ, ⟪f x, s n⟫ = (0 : 𝕜), from λ n, hf (s n),
+  have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, ⟪f x, s n⟫ = (0 : 𝕜), by rwa ae_all_iff,
+  refine hf'.mono (λ x hx, eq_zero_of_forall_dual_eq_zero 𝕜 (λ c, _)),
+  have h_closed : is_closed {c : dual 𝕜 E | ⟪f x, c⟫ = (0 : 𝕜)},
+  { refine is_closed_eq _ continuous_const,
+    have h_fun_eq : (λ (c : dual 𝕜 E), ⟪f x, c⟫) = inclusion_in_double_dual 𝕜 E (f x),
+      by { ext1 c, rw ← dual_def 𝕜 E (f x) c, },
+    rw h_fun_eq,
+    continuity, },
+  exact @is_closed_property ℕ (dual 𝕜 E) _ s (λ c, ⟪f x, c⟫ = (0 : 𝕜)) hs h_closed (λ n, hx n) c,
+end
+
+end ae_eq_of_forall
+
+
 variables {𝕜 E' : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   {m m0 : measurable_space α} {μ : measure α} {s t : set α}
   [inner_product_space 𝕜 E] [measurable_space E] [borel_space E] [second_countable_topology E]

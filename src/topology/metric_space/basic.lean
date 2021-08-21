@@ -195,7 +195,6 @@ class has_nndist (α : Type*) := (nndist : α → α → ℝ≥0)
 
 export has_nndist (nndist)
 
-
 /-- Distance as a nonnegative real number. -/
 @[priority 100] -- see Note [lower instance priority]
 instance pseudo_metric_space.to_has_nndist : has_nndist α := ⟨λ a b, ⟨dist a b, dist_nonneg⟩⟩
@@ -277,8 +276,20 @@ def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
 
 theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
 
-@[simp] lemma nonempty_ball (h : 0 < ε) : (ball x ε).nonempty :=
-⟨x, by simp [h]⟩
+theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
+dist_nonneg.trans_lt hy
+
+theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
+show dist x x < ε, by rw dist_self; assumption
+
+@[simp] lemma nonempty_ball : (ball x ε).nonempty ↔ 0 < ε :=
+⟨λ ⟨x, hx⟩, pos_of_mem_ball hx, λ h, ⟨x, mem_ball_self h⟩⟩
+
+@[simp] lemma ball_eq_empty : ball x ε = ∅ ↔ ε ≤ 0 :=
+by rw [← not_nonempty_iff_eq_empty, nonempty_ball, not_lt]
+
+@[simp] lemma ball_zero : ball x 0 = ∅ :=
+by rw [ball_eq_empty]
 
 lemma ball_eq_ball (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
@@ -300,8 +311,14 @@ def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
 by { rw dist_comm, refl }
 
-lemma nonempty_closed_ball (h : 0 ≤ ε) : (closed_ball x ε).nonempty :=
-⟨x, by simp [h]⟩
+theorem mem_closed_ball_self (h : 0 ≤ ε) : x ∈ closed_ball x ε :=
+show dist x x ≤ ε, by rw dist_self; assumption
+
+@[simp] lemma nonempty_closed_ball : (closed_ball x ε).nonempty ↔ 0 ≤ ε :=
+⟨λ ⟨x, hx⟩, dist_nonneg.trans hx, λ h, ⟨x, mem_closed_ball_self h⟩⟩
+
+@[simp] lemma closed_ball_eq_empty : closed_ball x ε = ∅ ↔ ε < 0 :=
+by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy
@@ -323,15 +340,6 @@ by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.s
 
 @[simp] theorem closed_ball_diff_ball : closed_ball x ε \ ball x ε = sphere x ε :=
 by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm]
-
-theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
-lt_of_le_of_lt dist_nonneg hy
-
-theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
-show dist x x < ε, by rw dist_self; assumption
-
-theorem mem_closed_ball_self (h : 0 ≤ ε) : x ∈ closed_ball x ε :=
-show dist x x ≤ ε, by rw dist_self; assumption
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [dist_comm]
@@ -364,19 +372,6 @@ ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 ⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
-
-@[simp] theorem ball_eq_empty_iff_nonpos : ball x ε = ∅ ↔ ε ≤ 0 :=
-eq_empty_iff_forall_not_mem.trans
-⟨λ h, le_of_not_gt $ λ ε0, h _ $ mem_ball_self ε0,
- λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩
-
-@[simp] theorem closed_ball_eq_empty_iff_neg : closed_ball x ε = ∅ ↔ ε < 0 :=
-eq_empty_iff_forall_not_mem.trans
-⟨λ h, not_le.1 $ λ ε0, h x $ mem_closed_ball_self ε0,
-  λ ε0 y h, not_lt_of_le (mem_closed_ball.1 h) (lt_of_lt_of_le ε0 dist_nonneg)⟩
-
-@[simp] lemma ball_zero : ball x 0 = ∅ :=
-by rw [ball_eq_empty_iff_nonpos]
 
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
@@ -1294,17 +1289,29 @@ by { rw [nndist_pi_def], exact finset.le_sup (finset.mem_univ b) }
 lemma dist_le_pi_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
 by simp only [dist_nndist, nnreal.coe_le_coe, nndist_le_pi_nndist f g b]
 
-/-- An open ball in a product space is a product of open balls. The assumption `0 < r`
-is necessary for the case of the empty product. -/
+/-- An open ball in a product space is a product of open balls. See also `metric.ball_pi'`
+for a version assuming `nonempty β` instead of `0 < r`. -/
 lemma ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 < r) :
-  ball x r = { y | ∀b, y b ∈ ball (x b) r } :=
+  ball x r = set.pi univ (λ b, ball (x b) r) :=
 by { ext p, simp [dist_pi_lt_iff hr] }
 
-/-- A closed ball in a product space is a product of closed balls. The assumption `0 ≤ r`
-is necessary for the case of the empty product. -/
+/-- An open ball in a product space is a product of open balls. See also `metric.ball_pi`
+for a version assuming `0 < r` instead of `nonempty β`. -/
+lemma ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
+  ball x r = set.pi univ (λ b, ball (x b) r) :=
+(lt_or_le 0 r).elim (ball_pi x) $ λ hr, by simp [ball_eq_empty.2 hr]
+
+/-- A closed ball in a product space is a product of closed balls. See also `metric.closed_ball_pi'`
+for a version assuming `nonempty β` instead of `0 ≤ r`. -/
 lemma closed_ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 ≤ r) :
-  closed_ball x r = { y | ∀b, y b ∈ closed_ball (x b) r } :=
+  closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
 by { ext p, simp [dist_pi_le_iff hr] }
+
+/-- A closed ball in a product space is a product of closed balls. See also `metric.closed_ball_pi`
+for a version assuming `0 ≤ r` instead of `nonempty β`. -/
+lemma closed_ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
+  closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
+(le_or_lt 0 r).elim (closed_ball_pi x) $ λ hr, by simp [closed_ball_eq_empty.2 hr]
 
 end pi
 
@@ -1419,7 +1426,7 @@ instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_s
 begin
   refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
   rw closed_ball_pi _ hr,
-  apply is_compact_pi_infinite (λb, _),
+  apply is_compact_univ_pi (λb, _),
   apply (h b).compact_ball
 end
 
@@ -1448,7 +1455,7 @@ lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' < r, s ⊆ ball x r' :=
 begin
   cases le_or_lt r 0 with hr hr,
-  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
+  { rw [ball_eq_empty.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
     exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
   { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
 end

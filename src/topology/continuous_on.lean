@@ -317,6 +317,10 @@ theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=
 by rw [comap_principal, set.preimage_image_eq _ subtype.coe_injective]
 
+lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
+  x ∈ closure s ↔ ne_bot (𝓝[s] x) :=
+mem_closure_iff_cluster_pt
+
 lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :
   ne_bot (𝓝[s] x) :=
 mem_closure_iff_nhds_within_ne_bot.1 $ subset_closure hx

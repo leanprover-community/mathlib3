@@ -2,6 +2,7 @@ import order.rel_iso
 import data.set.finite
 import order.conditionally_complete_lattice
 import set_theory.fincard
+import data.nat.lattice
 
 /-!
 -/

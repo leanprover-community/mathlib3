@@ -75,9 +75,12 @@ instance : algebra R (⨁ i, A i) :=
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.smul_def r ⟨i, xi⟩),
   end }
 
-#check 1
+section
+-- for `simps`
+local attribute [simp] linear_map.cod_restrict
 
 /-- Build a `galgebra` instance for a collection of `submodule`s. -/
+@[simps? to_fun_apply {simp_rhs := tt}]
 def galgebra.of_submodules
   (carriers : ι → submodule R B)
   (one_mem : (1 : B) ∈ carriers 0)
@@ -94,15 +97,7 @@ by exact {
   commutes := λ r ⟨i, xi⟩, sigma.subtype_ext ((zero_add i).trans (add_zero i).symm) $ algebra.commutes _ _,
   smul_def := λ r ⟨i, xi⟩, sigma.subtype_ext (zero_add i).symm $ algebra.smul_def _ _ }
 
--- `@[simps]` doesn't generate this well
-lemma galgebra.of_submodules_algebra_map
-  (carriers : ι → submodule R B)
-  (one_mem : (1 : B) ∈ carriers 0)
-  (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : B) ∈ carriers (i + j))
-  (r : R) :
-  by letI x : gmonoid (λ i, carriers i) := gmonoid.of_submodules carriers one_mem mul_mem;exact
-  @galgebra.to_fun _ _ _ _ _ _ _ _ _ (galgebra.of_submodules R carriers one_mem mul_mem) r =
-    ⟨algebra_map R B r, submodule.one_le.mpr one_mem (submodule.algebra_map_mem _) ⟩ := rfl
+end
 
 /-- A family of `linear_map`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
 describes an `alg_hom` on `⨁ i, A i`. This is a stronger version of `direct_sum.to_semiring`.

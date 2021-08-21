@@ -40,8 +40,7 @@ begin
 end
 
 -- TODO: move to `data.set.finite`.
--- there's some defeq abuse here with `ℕ → Prop = set ℕ`
-lemma exists_gt_of_infinite (p : ℕ → Prop) (i : infinite p) (n : ℕ) : ∃ m, p m ∧ n < m :=
+lemma exists_gt_of_infinite (s : set ℕ) (i : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
 begin
   obtain ⟨m, hm, h⟩ := i.exists_not_mem_finset (finset.Ico 0 (n + 1)),
   simp only [true_and, finset.Ico.mem, not_lt, zero_le, nat.succ_le_iff] at h,

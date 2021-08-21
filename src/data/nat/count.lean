@@ -18,7 +18,17 @@ fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i ≤ n })) (by tidy)
 
 /-- `count p n` can be expressed as the cardinality of `{ i | i ≤ n ∧ p i }`. -/
 lemma count_eq_card (n : ℕ) : count p n = fintype.card { i : ℕ | i ≤ n ∧ p i } :=
-sorry
+begin
+  have h : list.nodup ((list.range (n + 1)).filter p) :=
+    list.nodup_filter _ (list.nodup_range (n + 1)),
+  rw ←multiset.coe_nodup at h,
+  rw [count, ←multiset.coe_card],
+  change (finset.mk _ h).card = _,
+  rw [←set.to_finset_card],
+  congr' 1,
+  ext i,
+  simp [lt_succ_iff],
+end
 
 /--
 Find the `n`-th natural number satisfying `p`

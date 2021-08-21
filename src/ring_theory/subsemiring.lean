@@ -780,6 +780,10 @@ instance
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 
+instance [mul_action R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
+  has_faithful_scalar S α :=
+S.to_submonoid.has_faithful_scalar
+
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_monoid α] [distrib_mul_action R' α] (S : subsemiring R') : distrib_mul_action S α :=
 S.to_submonoid.distrib_mul_action

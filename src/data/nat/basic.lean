@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.ordered_ring
+import algebra.ordered_sub
 
 /-!
 # Basic operations on the natural numbers
@@ -467,166 +468,137 @@ end
 @[simp] lemma pred_one_add (n : ℕ) : pred (1 + n) = n :=
 by rw [add_comm, add_one, pred_succ]
 
-/-! ### `sub` -/
+lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
+⟨le_succ_of_pred_le, by { cases n, { exact λ h, zero_le m }, exact le_of_succ_le_succ }⟩
+
+/-! ### `sub`
+
+Todo: remove lemmas that are proven in general for `has_ordered_sub`. -/
+
+protected theorem sub_le_iff_right : m - n ≤ k ↔ m ≤ k + n :=
+begin
+  induction n with n ih generalizing k,
+  { simp },
+  { simp only [sub_succ, add_succ, succ_add, ih, pred_le_iff] }
+end
+
+instance : has_ordered_sub ℕ :=
+⟨λ n m k, nat.sub_le_iff_right⟩
 
 protected theorem le_sub_add (n m : ℕ) : n ≤ n - m + m :=
-or.elim (le_total n m)
-  (assume : n ≤ m, begin rw [nat.sub_eq_zero_of_le this, zero_add], exact this end)
-  (assume : m ≤ n, begin rw (nat.sub_add_cancel this) end)
-
-theorem sub_add_eq_max (n m : ℕ) : n - m + m = max n m :=
-eq_max (nat.le_sub_add _ _) (nat.le_add_left _ _) $ λ k h₁ h₂,
-by rw ← nat.sub_add_cancel h₂; exact
-add_le_add_right (nat.sub_le_sub_right h₁ _) _
-
-theorem add_sub_eq_max (n m : ℕ) : n + (m - n) = max n m :=
-by rw [add_comm, max_comm, sub_add_eq_max]
-
-theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
-(le_total n m).elim
-  (λ h, by rw [min_eq_left h, nat.sub_eq_zero_of_le h, zero_add])
-  (λ h, by rw [min_eq_right h, nat.sub_add_cancel h])
+le_sub_add
 
 protected theorem add_sub_cancel' {n m : ℕ} (h : m ≤ n) : m + (n - m) = n :=
-by rw [add_comm, nat.sub_add_cancel h]
+add_sub_cancel_of_le h
 
 protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
   (a - b) + (b - c) = a - c :=
-by rw [←nat.add_sub_assoc hbc, ←nat.sub_add_comm hab, nat.add_sub_cancel]
+sub_add_sub_cancel''  hab hbc
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
-begin rw [h, nat.add_sub_cancel_left] end
+sub_eq_of_eq_add'' $ by rw [add_comm, h]
 
 theorem sub_cancel {a b c : ℕ} (h₁ : a ≤ b) (h₂ : a ≤ c) (w : b - a = c - a) : b = c :=
-by rw [←nat.sub_add_cancel h₁, ←nat.sub_add_cancel h₂, w]
+sub_inj_left h₁ h₂ w
 
 lemma sub_sub_sub_cancel_right {a b c : ℕ} (h₂ : c ≤ b) : (a - c) - (b - c) = a - b :=
-by rw [nat.sub_sub, ←nat.add_sub_assoc h₂, nat.add_sub_cancel_left]
-
-lemma add_sub_cancel_right (n m k : ℕ) : n + (m + k) - k = n + m :=
-by { rw [nat.add_sub_assoc, nat.add_sub_cancel], apply k.le_add_left }
+sub_sub_sub_cancel_right' h₂
 
 protected lemma sub_add_eq_add_sub {a b c : ℕ} (h : b ≤ a) : (a - b) + c = (a + c) - b :=
-by rw [add_comm a, nat.add_sub_assoc h, add_comm]
-
-theorem sub_min (n m : ℕ) : n - min n m = n - m :=
-nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
+sub_add_eq_add_sub' h
 
 theorem sub_sub_assoc {a b c : ℕ} (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
-(nat.sub_eq_iff_eq_add (le_trans (nat.sub_le _ _) h₁)).2 $
-by rw [add_right_comm, add_assoc, nat.sub_add_cancel h₂, nat.sub_add_cancel h₁]
+sub_sub_assoc h₁ h₂
 
 protected theorem lt_of_sub_pos (h : 0 < n - m) : m < n :=
-lt_of_not_ge
-  (assume : n ≤ m,
-    have n - m = 0, from nat.sub_eq_zero_of_le this,
-    begin rw this at h, exact lt_irrefl _ h end)
+sub_pos_iff_lt.mp h
 
 protected theorem lt_of_sub_lt_sub_right : m - k < n - k → m < n :=
-lt_imp_lt_of_le_imp_le (λ h, nat.sub_le_sub_right h _)
+lt_of_sub_lt_sub_right
 
 protected theorem lt_of_sub_lt_sub_left : m - n < m - k → k < n :=
-lt_imp_lt_of_le_imp_le (nat.sub_le_sub_left _)
+lt_of_sub_lt_sub_left
 
 protected theorem sub_lt_self (h₁ : 0 < m) (h₂ : 0 < n) : m - n < m :=
-calc
-  m - n = succ (pred m) - succ (pred n) : by rw [succ_pred_eq_of_pos h₁, succ_pred_eq_of_pos h₂]
-    ... = pred m - pred n               : by rw succ_sub_succ
-    ... ≤ pred m                        : nat.sub_le _ _
-    ... < succ (pred m)                 : lt_succ_self _
-    ... = m                             : succ_pred_eq_of_pos h₁
+sub_lt_self' h₁ h₂
 
 protected theorem le_sub_right_of_add_le (h : m + k ≤ n) : m ≤ n - k :=
-by rw ← nat.add_sub_cancel m k; exact nat.sub_le_sub_right h k
+le_sub_of_add_le_right' h
 
 protected theorem le_sub_left_of_add_le (h : k + m ≤ n) : m ≤ n - k :=
-nat.le_sub_right_of_add_le (by rwa add_comm at h)
+le_sub_of_add_le_left' h
 
 protected theorem lt_sub_right_of_add_lt (h : m + k < n) : m < n - k :=
-lt_of_succ_le $ nat.le_sub_right_of_add_le $
-by rw succ_add; exact succ_le_of_lt h
+lt_sub_iff_right.mpr h
 
 protected theorem lt_sub_left_of_add_lt (h : k + m < n) : m < n - k :=
-nat.lt_sub_right_of_add_lt (by rwa add_comm at h)
+lt_sub_iff_left.mpr h
 
 protected theorem add_lt_of_lt_sub_right (h : m < n - k) : m + k < n :=
-@nat.lt_of_sub_lt_sub_right _ _ k (by rwa nat.add_sub_cancel)
+lt_sub_iff_right.mp h
 
 protected theorem add_lt_of_lt_sub_left (h : m < n - k) : k + m < n :=
-by rw add_comm; exact nat.add_lt_of_lt_sub_right h
+lt_sub_iff_left.mp h
 
 protected theorem le_add_of_sub_le_right : n - k ≤ m → n ≤ m + k :=
-le_imp_le_of_lt_imp_lt nat.lt_sub_right_of_add_lt
+sub_le_iff_right.mp
 
 protected theorem le_add_of_sub_le_left : n - k ≤ m → n ≤ k + m :=
-le_imp_le_of_lt_imp_lt nat.lt_sub_left_of_add_lt
+sub_le_iff_left.mp
 
 protected theorem lt_add_of_sub_lt_right : n - k < m → n < m + k :=
-lt_imp_lt_of_le_imp_le nat.le_sub_right_of_add_le
+lt_add_of_sub_lt_right'
 
 protected theorem lt_add_of_sub_lt_left : n - k < m → n < k + m :=
-lt_imp_lt_of_le_imp_le nat.le_sub_left_of_add_le
+lt_add_of_sub_lt_left'
 
 protected theorem sub_le_left_of_le_add : n ≤ k + m → n - k ≤ m :=
-le_imp_le_of_lt_imp_lt nat.add_lt_of_lt_sub_left
+sub_le_iff_left.mpr
 
 protected theorem sub_le_right_of_le_add : n ≤ m + k → n - k ≤ m :=
-le_imp_le_of_lt_imp_lt nat.add_lt_of_lt_sub_right
+sub_le_iff_right.mpr
 
 protected theorem sub_lt_left_iff_lt_add (H : n ≤ k) : k - n < m ↔ k < n + m :=
-⟨nat.lt_add_of_sub_lt_left,
- λ h₁,
-  have succ k ≤ n + m,   from succ_le_of_lt h₁,
-  have succ (k - n) ≤ m, from
-    calc succ (k - n) = succ k - n : by rw (succ_sub H)
-          ...     ≤ n + m - n      : nat.sub_le_sub_right this n
-          ...     = m              : by rw nat.add_sub_cancel_left,
-  lt_of_succ_le this⟩
+sub_lt_iff_left H
 
 protected theorem le_sub_left_iff_add_le (H : m ≤ k) : n ≤ k - m ↔ m + n ≤ k :=
-le_iff_le_iff_lt_iff_lt.2 (nat.sub_lt_left_iff_lt_add H)
+le_sub_iff_left H
 
 protected theorem le_sub_right_iff_add_le (H : n ≤ k) : m ≤ k - n ↔ m + n ≤ k :=
-by rw [nat.le_sub_left_iff_add_le H, add_comm]
+le_sub_iff_right H
 
 protected theorem lt_sub_left_iff_add_lt : n < k - m ↔ m + n < k :=
-⟨nat.add_lt_of_lt_sub_left, nat.lt_sub_left_of_add_lt⟩
+lt_sub_iff_left
 
 protected theorem lt_sub_right_iff_add_lt : m < k - n ↔ m + n < k :=
-by rw [nat.lt_sub_left_iff_add_lt, add_comm]
+lt_sub_iff_right
 
 theorem sub_le_left_iff_le_add : m - n ≤ k ↔ m ≤ n + k :=
-le_iff_le_iff_lt_iff_lt.2 nat.lt_sub_left_iff_add_lt
+sub_le_iff_left
 
 theorem sub_le_right_iff_le_add : m - k ≤ n ↔ m ≤ n + k :=
-by rw [nat.sub_le_left_iff_le_add, add_comm]
+sub_le_iff_right
 
 protected theorem sub_lt_right_iff_lt_add (H : k ≤ m) : m - k < n ↔ m < n + k :=
-by rw [nat.sub_lt_left_iff_lt_add H, add_comm]
+sub_lt_iff_right H
 
 protected theorem sub_le_sub_left_iff (H : k ≤ m) : m - n ≤ m - k ↔ k ≤ n :=
-⟨λ h,
-  have k + (m - k) - n ≤ m - k, by rwa nat.add_sub_cancel' H,
-  nat.le_of_add_le_add_right (nat.le_add_of_sub_le_left this),
-nat.sub_le_sub_left _⟩
+sub_le_sub_iff_left' H
 
 protected theorem sub_lt_sub_right_iff (H : k ≤ m) : m - k < n - k ↔ m < n :=
-lt_iff_lt_of_le_iff_le (nat.sub_le_sub_right_iff _ _ _ H)
+sub_lt_sub_iff_right' H
 
 protected theorem sub_lt_sub_left_iff (H : n ≤ m) : m - n < m - k ↔ k < n :=
-lt_iff_lt_of_le_iff_le (nat.sub_le_sub_left_iff H)
+sub_lt_sub_iff_left_of_le H
 
 protected theorem sub_le_iff : m - n ≤ k ↔ m - k ≤ n :=
-nat.sub_le_left_iff_le_add.trans nat.sub_le_right_iff_le_add.symm
+sub_le_iff_sub_le
 
 protected lemma sub_le_self (n m : ℕ) : n - m ≤ n :=
-nat.sub_le_left_of_le_add (nat.le_add_left _ _)
+sub_le_self'
 
 protected theorem sub_lt_iff (h₁ : n ≤ m) (h₂ : k ≤ m) : m - n < k ↔ m - k < n :=
-(nat.sub_lt_left_iff_lt_add h₁).trans (nat.sub_lt_right_iff_lt_add h₂).symm
-
-lemma pred_le_iff {n m : ℕ} : pred n ≤ m ↔ n ≤ succ m :=
-@nat.sub_le_right_iff_le_add n m 1
+sub_lt_iff_sub_lt h₁ h₂
 
 lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 @nat.lt_sub_right_iff_add_lt n 1 m

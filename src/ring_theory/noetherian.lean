@@ -59,7 +59,7 @@ Noetherian, noetherian, Noetherian ring, Noetherian module, noetherian ring, noe
 -/
 
 open set
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace submodule
 variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
@@ -289,7 +289,7 @@ begin
   letI : algebra R S := ring_hom.to_algebra f,
   letI : algebra R A := ring_hom.to_algebra (g.comp f),
   letI : algebra S A := ring_hom.to_algebra g,
-  letI : is_scalar_tower R S A := _root_.restrict_scalars.is_scalar_tower R S A,
+  letI : is_scalar_tower R S A := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
   let f₁ := algebra.linear_map R S,
   let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
   exact fg_ker_comp f₁ g₁ hf (fg_restrict_scalars g.ker hg hsur) hsur

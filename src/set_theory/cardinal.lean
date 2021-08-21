@@ -512,6 +512,13 @@ theorem lift_mk_le {α : Type u} {β : Type v} :
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
+/-- A variant of `lift_mk_le` with universes specialized as `w = max u v`.
+This is sometimes necessary to avoid universe unification issues. -/
+theorem lift_mk_le' {α : Type u} {β : Type v} :
+  lift.{u v} (mk α) ≤ lift.{v u} (mk β) ↔ nonempty (α ↪ β) :=
+⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
+ λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
+
 theorem lift_mk_eq {α : Type u} {β : Type v} :
   lift.{u (max v w)} (mk α) = lift.{v (max u w)} (mk β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
@@ -652,6 +659,14 @@ begin
   simp only [lift_le],
   apply le_sup,
 end
+
+/-- A variant of `lift_sup_le_lift_sup` with universes specialized via `w = v` and `w' = v'`.
+This is sometimes necessary to avoid universe unification issues. -/
+lemma lift_sup_le_lift_sup'
+  {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{v}) (f' : ι' → cardinal.{v'})
+  (g : ι → ι') (h : ∀ i, lift.{_ v'} (f i) ≤ lift.{_ v} (f' (g i))) :
+  lift.{_ v'} (sup.{v v} f) ≤ lift.{_ v} (sup.{v' v'} f') :=
+lift_sup_le_lift_sup f f' g h
 
 /-- `ω` is the smallest infinite cardinal, also known as ℵ₀. -/
 def omega : cardinal.{u} := lift (mk ℕ)

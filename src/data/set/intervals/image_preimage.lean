@@ -17,6 +17,7 @@ lemmas about preimages and images of all intervals. We also prove a few lemmas a
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 

@@ -176,6 +176,10 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
   begin intro f, ext a, refl end,
   begin intro f, ext a, refl end⟩
 
+@[simp] lemma equiv_fun_on_fintype_symm_coe {α} [fintype α] (f : α →₀ M) :
+  equiv_fun_on_fintype.symm f = f :=
+by { ext, simp [equiv_fun_on_fintype], }
+
 end basic
 
 /-! ### Declarations about `single` -/
@@ -1248,7 +1252,7 @@ lemma map_range.equiv_trans
     (map_range.equiv f hf hf').trans (map_range.equiv f₂ hf₂ hf₂') :=
 equiv.ext $ map_range_comp _ _ _ _ _
 
-lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
+@[simp] lemma map_range.equiv_symm (f : M ≃ N) (hf hf') :
   ((map_range.equiv f hf hf').symm : (α →₀ _) ≃ _) = map_range.equiv f.symm hf' hf :=
 equiv.ext $ λ x, rfl
 
@@ -1339,7 +1343,7 @@ lemma map_range.add_equiv_trans (f : M ≃+ N) (f₂ : N ≃+ P) :
     (map_range.add_equiv f).trans (map_range.add_equiv f₂) :=
 add_equiv.ext $ map_range_comp _ _ _ _ _
 
-lemma map_range.add_equiv_symm (f : M ≃+ N) :
+@[simp] lemma map_range.add_equiv_symm (f : M ≃+ N) :
   ((map_range.add_equiv f).symm : (α →₀ _) ≃+ _) = map_range.add_equiv f.symm :=
 add_equiv.ext $ λ x, rfl
 
@@ -2213,6 +2217,10 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
+
+lemma _root_.is_smul_regular.finsupp {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {k : R}
+  (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=
+λ _ _ h, ext $ λ i, hk (congr_fun h i)
 
 instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_scalar R M] :
   has_faithful_scalar R (α →₀ M) :=

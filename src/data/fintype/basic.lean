@@ -1589,6 +1589,19 @@ not_fintype α
 noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
 nonempty.some $ by rwa [← not_is_empty_iff, is_empty_fintype]
 
+section
+open_locale classical
+
+/--
+Any type is (classically) either a `fintype`, or `infinite`.
+
+One can obtain the relevant typeclasses via `cases fintype_or_infinite α; resetI`.
+-/
+noncomputable def fintype_or_infinite (α : Type*) : psum (fintype α) (infinite α) :=
+if h : infinite α then psum.inr h else psum.inl (fintype_of_not_infinite h)
+
+end
+
 lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
 begin
@@ -1652,6 +1665,18 @@ lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
 ⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
+
+/-- If every finset in a type has bounded cardinality, that type is finite. -/
+noncomputable def fintype_of_finset_card_le {ι : Type*} (n : ℕ)
+  (w : ∀ s : finset ι, s.card ≤ n) : fintype ι :=
+begin
+  apply fintype_of_not_infinite,
+  introI i,
+  obtain ⟨s, c⟩ := infinite.exists_subset_card_eq ι (n+1),
+  specialize w s,
+  rw c at w,
+  exact nat.not_succ_le_self n w,
+end
 
 lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) :
   ¬ injective f :=

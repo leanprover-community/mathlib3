@@ -64,7 +64,7 @@ multiset.induction_on s (by simp) $ λ a s IH, begin
   by_cases a ∈ s; simp [IH, h],
   unfold lcm,
   rw [← cons_erase h, fold_cons_left, ← lcm_assoc, lcm_same],
-  apply lcm_eq_of_associated_left associated_normalize,
+  apply lcm_eq_of_associated_left (associated_normalize _),
 end
 
 @[simp] lemma lcm_ndunion (s₁ s₂ : multiset α) :
@@ -132,7 +132,7 @@ multiset.induction_on s (by simp) $ λ a s IH, begin
   by_cases a ∈ s; simp [IH, h],
   unfold gcd,
   rw [← cons_erase h, fold_cons_left, ← gcd_assoc, gcd_same],
-  apply gcd_eq_of_associated_left associated_normalize,
+  apply (associated_normalize _).gcd_eq_left,
 end
 
 @[simp] lemma gcd_ndunion (s₁ s₂ : multiset α) :

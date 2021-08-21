@@ -42,11 +42,12 @@ lemma count_succ_eq_succ_count {n : ℕ} (h : p n) :
 begin
   rw [count_eq_card, count_eq_card],
   suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i} ∪ {n},
-  { simp [this] },
+  { rw [←set.to_finset_card],
+    simp [this], },
   ext,
   simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
   rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
-  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h : x = n, h.symm.subst hn).symm),
+  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h' : x = n, h'.symm.subst h).symm),
 end
 
 lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
@@ -59,12 +60,18 @@ lemma count_succ_eq_count {n : ℕ} (h : ¬p n) :
   count p (n + 1) = count p n :=
 begin
   rw [count_eq_card, count_eq_card],
-  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i} ∪ {n},
-  { simp [this] },
+  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i},
+  { rw [←set.to_finset_card, ←set.to_finset_card],
+    simp_rw [this],
+    congr, },
   ext,
-  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
-  rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
-  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h : x = n, h.symm.subst hn).symm),
+  simp only [and.congr_left_iff, set.mem_set_of_eq],
+  intro hp,
+  by_cases hx : x = n,
+  { subst x,
+    exact (h hp).elim },
+  { rw [lt_succ_iff, decidable.le_iff_lt_or_eq],
+    simp [hx], },
 end
 
 /--
@@ -159,15 +166,7 @@ lemma nth_count_le (i : set.infinite p) (n : ℕ) : count p (nth p n) ≤ n :=
 
 lemma nth_le_of_le_count (a b : ℕ) (h : a < nth p b) : count p a < b :=
 begin
-
-end
-
-lemma nth_le_of_le_count (a b : ℕ) (h : a ≤ count p b) : nth p a ≤ b :=
-begin
-  rw lt_of_lt_
-  rw nth,
-  refine cInf_le_of_le _ _ _,
-
+  sorry
 end
 
 lemma nth_le_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k ≤ n :=

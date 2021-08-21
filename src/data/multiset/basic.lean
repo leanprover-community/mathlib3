@@ -1953,6 +1953,15 @@ by simpa [countp_eq_card_filter] using card_le_of_le (filter_le_filter p h)
   countp p (filter q s) = countp (λ a, p a ∧ q a) s :=
 by simp [countp_eq_card_filter]
 
+theorem countp_map (f : α → β) (s : multiset α) (p : β → Prop) [decidable_pred p] :
+  countp p (map f s) = (s.filter (λ a, p (f a))).card :=
+begin
+  refine multiset.induction_on s _ (λ a t IH, _),
+  { rw [map_zero, countp_zero, filter_zero, card_zero] },
+  { rw [map_cons, countp_cons, IH, filter_cons, card_add, apply_ite card, card_zero,
+      card_singleton, add_comm] },
+end
+
 variable {p}
 
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=

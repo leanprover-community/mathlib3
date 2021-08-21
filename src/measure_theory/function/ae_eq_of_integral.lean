@@ -84,15 +84,15 @@ begin
   { intro hbc,
     obtain ⟨r, hr⟩ := exists_rat_btwn hbc,
     specialize h r,
-    sorry,
-    --simp only [hr.right, set.Union_true] at h,
-    --refine measure_mono_null (λ x hx, _) h,
-    --rw set.mem_set_of_eq at hx ⊢,
-    --exact hx.trans hr.1.le,
-    },
+    have h_ss : {x : α | f x ≤ b} ⊆ {x : α | f x ≤ r},
+    { intros x hx,
+      rw set.mem_set_of_eq at hx,
+      exact hx.trans hr.1.le, },
+    refine measure_mono_null h_ss _,
+    simpa [hr.2] using h, },
   { by_cases hbc : ↑b < c,
-    { simp only [hbc, set.Union_true],
-      exact h _ hbc, },
+    { specialize h _ hbc,
+      simpa [hbc] using h, },
     { simp [hbc], }, },
 end
 
@@ -489,7 +489,7 @@ begin
   have htf_zero : f =ᵐ[μ.restrict tᶜ] 0,
   { rw [eventually_eq, ae_restrict_iff' (measurable_set.compl (hm _ ht_meas))],
     exact eventually_of_forall htf_zero, },
-  have hf_meas_m : measurable[m] f, from hf.measurable,
+  have hf_meas_m : @measurable _ _ m _ f, from hf.measurable,
   suffices : f =ᵐ[μ.restrict t] 0,
     from ae_of_ae_restrict_of_ae_restrict_compl (hm t ht_meas) this htf_zero,
   refine measure_eq_zero_of_trim_eq_zero hm _,
@@ -506,72 +506,6 @@ begin
       trim_measurable_set_eq hm (@measurable_set.inter _ m _ _ hs ht_meas)] at hμs,
     rw ← integral_trim hm hf_meas_m,
     exact hf_zero _ (@measurable_set.inter _ m _ _ hs ht_meas) hμs, },
-end
-
-lemma Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero
-  (hm : m ≤ m0) (f : Lp_meas E' 𝕜 m p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
-  (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
-  (hf_zero : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
-  f =ᵐ[μ] 0 :=
-begin
-  obtain ⟨g, hg_sm, hfg⟩ := Lp_meas.ae_fin_strongly_measurable' hm f hp_ne_zero hp_ne_top,
-  refine hfg.trans _,
-  refine ae_eq_zero_of_forall_set_integral_eq_of_fin_strongly_measurable_trim hm _ _ hg_sm,
-  { intros s hs hμs,
-    have hfg_restrict : f =ᵐ[μ.restrict s] g, from ae_restrict_of_ae hfg,
-    rw [integrable_on, integrable_congr hfg_restrict.symm],
-    exact hf_int_finite s hs hμs, },
-  { intros s hs hμs,
-    have hfg_restrict : f =ᵐ[μ.restrict s] g, from ae_restrict_of_ae hfg,
-    rw integral_congr_ae hfg_restrict.symm,
-    exact hf_zero s hs hμs, },
-end
-
-lemma Lp.ae_eq_zero_of_forall_set_integral_eq_zero'
-  (hm : m ≤ m0) (f : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
-  (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
-  (hf_zero : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
-  (hf_meas : ae_measurable' m f μ) :
-  f =ᵐ[μ] 0 :=
-begin
-  let f_meas : Lp_meas E' 𝕜 m p μ := ⟨f, hf_meas⟩,
-  have hf_f_meas : f =ᵐ[μ] f_meas, by simp only [coe_fn_coe_base, subtype.coe_mk],
-  refine hf_f_meas.trans _,
-  refine Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero hm f_meas hp_ne_zero hp_ne_top _ _,
-  { intros s hs hμs,
-    have hfg_restrict : f =ᵐ[μ.restrict s] f_meas, from ae_restrict_of_ae hf_f_meas,
-    rw [integrable_on, integrable_congr hfg_restrict.symm],
-    exact hf_int_finite s hs hμs, },
-  { intros s hs hμs,
-    have hfg_restrict : f =ᵐ[μ.restrict s] f_meas, from ae_restrict_of_ae hf_f_meas,
-    rw integral_congr_ae hfg_restrict.symm,
-    exact hf_zero s hs hμs, },
-end
-
-/-- **Unicity of the conditional expectation**. -/
-lemma Lp.ae_eq_of_forall_set_integral_eq'
-  (hm : m ≤ m0) (f g : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
-  (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
-  (hg_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on g s μ)
-  (hfg : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ)
-  (hf_meas : ae_measurable' m f μ) (hg_meas : ae_measurable' m g μ) :
-  f =ᵐ[μ] g :=
-begin
-  suffices h_sub : ⇑(f-g) =ᵐ[μ] 0,
-    by { rw ← sub_ae_eq_zero, exact (Lp.coe_fn_sub f g).symm.trans h_sub, },
-  have hfg' : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, (f - g) x ∂μ = 0,
-  { intros s hs hμs,
-    rw integral_congr_ae (ae_restrict_of_ae (Lp.coe_fn_sub f g)),
-    rw integral_sub' (hf_int_finite s hs hμs) (hg_int_finite s hs hμs),
-    exact sub_eq_zero.mpr (hfg s hs hμs), },
-  have hfg_int : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on ⇑(f-g) s μ,
-  { intros s hs hμs,
-    rw [integrable_on, integrable_congr (ae_restrict_of_ae (Lp.coe_fn_sub f g))],
-    exact (hf_int_finite s hs hμs).sub (hg_int_finite s hs hμs), },
-  have hfg_meas : ae_measurable' m ⇑(f - g) μ,
-    from ae_measurable'.congr (hf_meas.sub hg_meas) (Lp.coe_fn_sub f g).symm,
-  exact Lp.ae_eq_zero_of_forall_set_integral_eq_zero' hm (f-g) hp_ne_zero hp_ne_top hfg_int hfg'
-    hfg_meas,
 end
 
 lemma ae_eq_of_forall_set_integral_eq_of_sigma_finite [sigma_finite μ] {f g : α → E'}
@@ -593,41 +527,6 @@ begin
   rw ← measure.restrict_apply' h_meas_n,
   exact ae_eq_restrict_of_forall_set_integral_eq hf_int_finite hg_int_finite hfg_zero h_meas_n
     hμn.ne,
-end
-
-lemma ae_eq_of_forall_set_integral_eq_of_sigma_finite' (hm : m ≤ m0) [@sigma_finite _ m (μ.trim hm)]
-  {f g : α → E'}
-  (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
-  (hg_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on g s μ)
-  (hfg_eq : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ)
-  (hfm : ae_measurable' m f μ) (hgm : ae_measurable' m g μ) :
-  f =ᵐ[μ] g :=
-begin
-  rw ← ae_eq_trim_iff_of_ae_measurable' hm hfm hgm,
-  have hf_mk_int_finite : ∀ s, measurable_set[m] s → μ.trim hm s < ∞ →
-    @integrable_on _ _ m _ _ (hfm.mk f) s (μ.trim hm),
-  { intros s hs hμs,
-    rw trim_measurable_set_eq hm hs at hμs,
-    rw [integrable_on, restrict_trim hm _ hs],
-    refine integrable.trim hm _ hfm.measurable_mk,
-    exact integrable.congr (hf_int_finite s hs hμs) (ae_restrict_of_ae hfm.ae_eq_mk), },
-  have hg_mk_int_finite : ∀ s, measurable_set[m] s → μ.trim hm s < ∞ →
-    @integrable_on _ _ m _ _ (hgm.mk g) s (μ.trim hm),
-  { intros s hs hμs,
-    rw trim_measurable_set_eq hm hs at hμs,
-    rw [integrable_on, restrict_trim hm _ hs],
-    refine integrable.trim hm _ hgm.measurable_mk,
-    exact integrable.congr (hg_int_finite s hs hμs) (ae_restrict_of_ae hgm.ae_eq_mk), },
-  have hfg_mk_eq : ∀ s : set α, measurable_set[m] s → μ.trim hm s < ∞ →
-    @integral _ _ m _ _ _ _ _ _ (@measure.restrict _ m (μ.trim hm) s) (hfm.mk f)
-      = @integral _ _ m _ _ _ _ _ _ (@measure.restrict _ m (μ.trim hm) s) (hgm.mk g),
-  { intros s hs hμs,
-    rw trim_measurable_set_eq hm hs at hμs,
-    rw [restrict_trim hm _ hs, ← integral_trim hm hfm.measurable_mk,
-      ← integral_trim hm hgm.measurable_mk, integral_congr_ae (ae_restrict_of_ae hfm.ae_eq_mk.symm),
-      integral_congr_ae (ae_restrict_of_ae hgm.ae_eq_mk.symm)],
-    exact hfg_eq s hs hμs, },
-  exact ae_eq_of_forall_set_integral_eq_of_sigma_finite hf_mk_int_finite hg_mk_int_finite hfg_mk_eq,
 end
 
 lemma integrable.ae_eq_zero_of_forall_set_integral_eq_zero {f : α → E'} (hf : integrable f μ)

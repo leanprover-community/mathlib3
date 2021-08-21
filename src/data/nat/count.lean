@@ -3,6 +3,7 @@ import data.set.finite
 import order.conditionally_complete_lattice
 import set_theory.fincard
 import data.nat.lattice
+import data.finset.intervals
 
 /-!
 -/
@@ -11,10 +12,41 @@ open list
 
 section to_move
 
+namespace nat
+
+lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
+by rw [decidable.le_iff_lt_or_eq, nat.lt_succ_iff]
+
+end nat
+
 namespace set
 
+variables {α : Type*} {s t : set α}
+
+lemma sdiff_eq_empty_iff_subset : s \ t = ∅ ↔ s ⊆ t :=
+sdiff_eq_bot_iff
+
+lemma infinite.exists_not_mem_finset (i : s.infinite) (f : finset α) :
+  ∃ a ∈ s, a ∉ f :=
+begin
+  suffices : (s \ f).nonempty,
+  { use this.some,
+    have := this.some_spec,
+    tauto },
+  by_contra h,
+  apply i,
+  apply finite.subset f.finite_to_set,
+  exact (sdiff_eq_empty_iff_subset.mp $ or.resolve_right (eq_empty_or_nonempty _) h),
+end
+
 -- TODO: move to `data.set.finite`.
-lemma exists_gt_of_infinite (p : ℕ → Prop) (i : infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
+-- there's some defeq abuse here with `ℕ → Prop = set ℕ`
+lemma exists_gt_of_infinite (p : ℕ → Prop) (i : infinite p) (n : ℕ) : ∃ m, p m ∧ n < m :=
+begin
+  obtain ⟨m, hm, h⟩ := i.exists_not_mem_finset (finset.Ico 0 (n + 1)),
+  simp only [true_and, finset.Ico.mem, not_lt, zero_le, nat.succ_le_iff] at h,
+  exact ⟨m, hm, h⟩
+end
 
 -- TODO: move to `data.set.finite`.
 lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
@@ -27,13 +59,6 @@ begin
 end
 
 end set
-
-namespace nat
-
-lemma nat.le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
-by rw [decidable.le_iff_lt_or_eq, nat.lt_succ_iff]
-
-end nat
 
 end to_move
 

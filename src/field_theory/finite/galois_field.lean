@@ -35,17 +35,6 @@ begin
   ring,
 end
 
-section splitting_field_facts
-
-variables {K : Type*} {L : Type*} [field K] [field L] {f : polynomial K}
-
--- linter complains, but removing causes `instance : fintype (galois_field p n)` below to fail
-instance is_splitting_field.finite_dimensional  [algebra K L] [is_splitting_field K L f] :
-  finite_dimensional K L :=
-is_splitting_field.finite_dimensional L f
-
-end splitting_field_facts
-
 /-- A finite field with `p ^ n` elements.
 Every field with the same cardinality is (non-canonically)
 isomorphic to this field. -/
@@ -68,9 +57,8 @@ polynomial.is_splitting_field.splitting_field _
 instance : char_p (galois_field p n) p :=
 (algebra.char_p_iff (zmod p) (galois_field p n) p).mp (by apply_instance)
 
--- should be able to apply_instance from finite_dimensional.fintype on finite.lean
-instance : fintype (galois_field p n) :=
-finite_dimensional.fintype_of_fintype (zmod p) (galois_field p n)
+instance : fintype (galois_field p n) := by {dsimp only [galois_field],
+  exact finite_dimensional.fintype_of_fintype (zmod p) (galois_field p n) }
 
 lemma finrank {n} (h : n ≠ 0) : finite_dimensional.finrank (zmod p) (galois_field p n) = n :=
 begin
@@ -144,3 +132,4 @@ have inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
 by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : polynomial (zmod p))).symm
 
 end galois_field
+#lint

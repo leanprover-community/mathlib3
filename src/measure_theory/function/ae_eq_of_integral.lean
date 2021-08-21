@@ -91,7 +91,7 @@ begin
     --exact hx.trans hr.1.le,
     },
   { by_cases hbc : ↑b < c,
-    { simp only [hbc, set.Union_pos],
+    { simp only [hbc, set.Union_true],
       exact h _ hbc, },
     { simp [hbc], }, },
 end

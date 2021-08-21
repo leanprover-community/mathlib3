@@ -2097,12 +2097,11 @@ begin
     assume h,
     induction h generalizing as,
     case rel.zero { simp at hm, contradiction },
-    case rel.cons : a' b as' bs ha'b h ih {
-      rcases cons_eq_cons.1 hm with ⟨eq₁, eq₂⟩ | ⟨h, cs, eq₁, eq₂⟩,
+    case rel.cons : a' b as' bs ha'b h ih
+    { rcases cons_eq_cons.1 hm with ⟨eq₁, eq₂⟩ | ⟨h, cs, eq₁, eq₂⟩,
       { subst eq₁, subst eq₂, exact ⟨b, bs, ha'b, h, rfl⟩ },
       { rcases ih eq₂.symm with ⟨b', bs', h₁, h₂, eq⟩,
-        exact ⟨b', b ::ₘ bs', h₁, eq₁.symm ▸ rel.cons ha'b h₂, eq.symm ▸ cons_swap _ _ _⟩  }
-    } },
+        exact ⟨b', b ::ₘ bs', h₁, eq₁.symm ▸ rel.cons ha'b h₂, eq.symm ▸ cons_swap _ _ _⟩ } } },
   { exact assume ⟨b, bs', hab, h, eq⟩, eq.symm ▸ rel.cons hab h }
 end
 

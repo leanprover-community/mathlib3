@@ -219,7 +219,7 @@ Returns the extensionality lemmas in the environment, as a list of lemma names.
 meta def get_ext_lemma_names : tactic (list name) :=
 attribute.get_instances ext_lemma_attr_core.name
 
-meta def add_ext_lemma (lem constr : name) (persistent : bool) : tactic unit :=
+meta def add_ext_lemma (constr lem : name) (persistent : bool) : tactic unit :=
 ext_attr_core.set constr lem persistent >> ext_lemma_attr_core.set lem () persistent
 
 /--

@@ -7,14 +7,13 @@ import set_theory.fincard
 -/
 
 namespace nat
-
 variables (p : ℕ → Prop) [decidable_pred p]
 
 /-- Count the `i ≤ n` satisfying `p i`. -/
 def count (n : ℕ) : ℕ :=
 ((list.range (n+1)).filter p).length
 
-noncomputable instance count_set_fintype (n : ℕ) (p : ℕ → Prop) : fintype { i | i ≤ n ∧ p i } :=
+noncomputable instance count_set_fintype (p : ℕ → Prop) (n : ℕ) : fintype { i | i ≤ n ∧ p i } :=
 fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i ≤ n })) (by tidy)
 
 /-- `count p n` can be expressed as the cardinality of `{ i | i ≤ n ∧ p i }`. -/
@@ -57,7 +56,7 @@ lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i
   p (nth p n) :=
 sorry
 
-lemma nth_mem_of_infinite_aux (n : ℕ) (i : set.infinite p) :
+lemma nth_mem_of_infinite_aux (i : set.infinite p) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
   -- This sorry should be relatively easy:
@@ -67,18 +66,39 @@ begin
   exact Inf_mem ne,
 end
 
-lemma nth_mem_of_infinite (n : ℕ) (i : set.infinite p) : p (nth p n) :=
-(nth_mem_of_infinite_aux p n i).1
+lemma nth_mem_of_infinite (i : set.infinite p) (n : ℕ) : p (nth p n) :=
+(nth_mem_of_infinite_aux p i n).1
 
 lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=
-λ n m h, (nth_mem_of_infinite_aux p m i).2 _ h
+λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
 lemma count_nth_of_le_card (n : ℕ) (w : n ≤ nat.card { i | p i }) :
   count p (nth p n) = n + 1 :=
 sorry
 
-lemma count_nth_of_infinite (n : ℕ) (i : set.infinite p) : count p (nth p n) = n + 1 :=
+lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n + 1 :=
 sorry
+
+lemma count_nth_gc (i : set.infinite p) : galois_connection (count p) (nth p) :=
+begin
+  rintro a b,
+  rw [nth, count],
+  rw le_cInf_iff (⟨0, λ _ _, zero_le _⟩ : bdd_below _),
+  sorry,
+  refine ⟨0, λ _ _, zero_le _⟩,
+  rintro y,
+end
+
+lemma count_le_iff_le_nth {p} [decidable_pred p] (i : set.infinite p) {a b : ℕ} :
+  count p a ≤ b ↔ a ≤ nth p b :=
+count_nth_gc p i _ _
+
+lemma lt_nth_iff_count_lt {p} [decidable_pred p] (i : set.infinite p) {a b : ℕ} :
+  a < count p b ↔ nth p a < b :=
+lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth i
+
+lemma nth_count_le (i : set.infinite p) (n : ℕ) : count p (nth p n) ≤ n :=
+(count_nth_gc _ i).l_u_le _
 
 lemma nth_le_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k ≤ n :=
 sorry
@@ -110,7 +130,7 @@ open_locale classical
 
 noncomputable def set.infinite.order_iso_nat {s : set ℕ} (i : s.infinite) : s ≃o ℕ :=
 (strict_mono.order_iso_of_surjective
-  (λ n, (⟨nth s n, nth_mem_of_infinite s n i⟩ : s))
+  (λ n, (⟨nth s n, nth_mem_of_infinite s i n⟩ : s))
   (λ n m h, nth_strict_mono_of_infinite s i h)
   (λ ⟨n, w⟩, ⟨count s n - 1, by simpa using nth_count s n w⟩)).symm
 

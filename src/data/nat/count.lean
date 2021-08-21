@@ -131,18 +131,18 @@ lemma nth_eq_zero_iff (n : ℕ) : nth p n = 0 ↔ n = 0 ∧ p 0 ∨ set_of p = �
 begin
   rw nth,
   split,
-  simp only [nat.not_lt_zero, set.mem_set_of_eq, Inf_eq_zero],
-  have : (∀ k, ¬k < n) → n = 0 := eq_bot_of_minimal,
-  rintro (⟨hp0, hn⟩ | rhs),
-  { rw eq_bot_of_minimal hn,
-    exact or.inl ⟨rfl, hp0⟩ },
-  { sorry },
-  rintro (⟨rfl, hp0⟩ | hnone),
-  { simp [hp0] },
-  { rw nat.Inf_eq_zero,
-    right,
-    rw set.set_of_and,
-    convert set.empty_inter _ }
+  { simp only [nat.not_lt_zero, set.mem_set_of_eq, Inf_eq_zero],
+    have : (∀ k, ¬k < n) → n = 0 := eq_bot_of_minimal,
+    rintro (⟨hp0, hn⟩ | rhs),
+    { rw eq_bot_of_minimal hn,
+      exact or.inl ⟨rfl, hp0⟩ },
+    { sorry }, },
+  { rintro (⟨rfl, hp0⟩ | hnone),
+    { simp [hp0] },
+    { rw nat.Inf_eq_zero,
+      right,
+      rw set.set_of_and,
+      convert set.empty_inter _ } }
 end
 
 lemma count_monotone : monotone (count p) :=

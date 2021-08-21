@@ -243,7 +243,7 @@ begin
   refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
   rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
     cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
-  exact linear_independent_le_dim'.{_ _ _ (max u v)}
+  exact cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max u v)}
     (linear_independent_smul_of_linear_independent G F hs)
 end
 
@@ -295,18 +295,18 @@ namespace fixed_points
 /-- Embedding produced from a faithful action. -/
 @[simps apply {fully_applied := ff}]
 def to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
-  [faithful_mul_semiring_action G F] : G ↪ (F →ₐ[fixed_points.subfield G F] F) :=
+  [mul_semiring_action G F] [has_faithful_scalar G F] : G ↪ (F →ₐ[fixed_points.subfield G F] F) :=
 { to_fun := λ g, { commutes' := λ x, x.2 g,
     .. mul_semiring_action.to_ring_hom G F g },
   inj' := λ g₁ g₂ hg, to_ring_hom_injective G F $ ring_hom.ext $ λ x, alg_hom.ext_iff.1 hg x, }
 
 lemma to_alg_hom_apply_apply {G : Type u} {F : Type v} [group G] [field F]
-  [faithful_mul_semiring_action G F] (g : G) (x : F) :
+  [mul_semiring_action G F] [has_faithful_scalar G F] (g : G) (x : F) :
   to_alg_hom G F g x = g • x :=
 rfl
 
 theorem finrank_eq_card (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [faithful_mul_semiring_action G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
   finrank (fixed_points.subfield G F) F = fintype.card G :=
 le_antisymm (fixed_points.finrank_le_card G F) $
 calc  fintype.card G
@@ -316,7 +316,7 @@ calc  fintype.card G
 ... = finrank (fixed_points.subfield G F) F : finrank_linear_map' _ _ _
 
 theorem to_alg_hom_bijective (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [faithful_mul_semiring_action G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
   function.bijective (to_alg_hom G F) :=
 begin
   rw fintype.bijective_iff_injective_and_card,
@@ -330,7 +330,8 @@ end
 
 /-- Bijection between G and algebra homomorphisms that fix the fixed points -/
 def to_alg_hom_equiv (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [faithful_mul_semiring_action G F] : G ≃ (F →ₐ[fixed_points.subfield G F] F) :=
+  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+    G ≃ (F →ₐ[fixed_points.subfield G F] F) :=
 function.embedding.equiv_of_surjective (to_alg_hom G F) (to_alg_hom_bijective G F).2
 
 end fixed_points

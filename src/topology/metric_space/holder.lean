@@ -56,7 +56,7 @@ def holder_on_with (C r : ℝ≥0) (f : X → Y) (s : set X) : Prop :=
 λ x hx, hx.elim
 
 @[simp] lemma holder_on_with_singleton (C r : ℝ≥0) (f : X → Y) (x : X) : holder_on_with C r f {x} :=
-by { rintro a (rfl : a = x) b (rfl : b = a), rw edist_self, exact zero_le _  }
+by { rintro a (rfl : a = x) b (rfl : b = a), rw edist_self, exact zero_le _ }
 
 lemma set.subsingleton.holder_on_with {s : set X} (hs : s.subsingleton) (C r : ℝ≥0) (f : X → Y) :
   holder_on_with C r f s :=
@@ -114,7 +114,7 @@ lemma comp_holder_with {Cg rg : ℝ≥0} {g : Y → Z} {t : set Y} (hg : holder_
   holder_with (Cg * Cf ^ (rg : ℝ)) (rg * rf) (g ∘ f) :=
 holder_on_with_univ.mp $ hg.comp (hf.holder_on_with univ) (λ x _, ht x)
 
-/-- A Hölder continuouf sunction is uniformly continuous -/
+/-- A Hölder continuous function is uniformly continuous -/
 protected lemma uniform_continuous_on (hf : holder_on_with C r f s) (h0 : 0 < r) :
   uniform_continuous_on f s :=
 begin

@@ -32,7 +32,7 @@ def antidiagonal (n : ℕ) : list (ℕ × ℕ) :=
   x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
 begin
   rw [antidiagonal, mem_map], split,
-  { rintros ⟨i, hi, rfl⟩, rw [mem_range, lt_succ_iff] at hi, exact add_sub_of_le hi },
+  { rintros ⟨i, hi, rfl⟩, rw [mem_range, lt_succ_iff] at hi, exact nat.add_sub_of_le hi },
   { rintro rfl, refine ⟨x.fst, _, _⟩,
     { rw [mem_range, add_assoc, lt_add_iff_pos_right], exact zero_lt_succ _ },
     { exact prod.ext rfl (nat.add_sub_cancel_left _ _) } }

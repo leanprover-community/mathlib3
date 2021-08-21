@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-
-import data.polynomial.eval
 import algebra.algebra.tower
+import data.polynomial.eval
 
 /-!
 # Theory of univariate polynomials
@@ -311,8 +310,7 @@ begin
   rw sum_range_succ',
   conv_lhs {
     congr, apply_congr, skip,
-    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ],
-  },
+    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ], },
   simp [sum_range_sub', coeff_monomial],
 end
 

@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
-import algebra.algebra.basic
 import algebra.big_operators.finsupp
 import linear_algebra.finsupp
 import algebra.non_unital_alg_hom
@@ -241,6 +240,10 @@ instance [semiring R] [semiring k] [module R k] :
   module R (monoid_algebra k G) :=
 finsupp.module G k
 
+instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_scalar R k] [nonempty G] :
+  has_faithful_scalar R (monoid_algebra k G) :=
+finsupp.has_faithful_scalar
+
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
   [has_scalar R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (monoid_algebra k G) :=
@@ -363,7 +366,7 @@ have f.sum (λ a b, ite (x * a = y) (0 * b) 0) = 0, by simp,
 calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
   (mul_apply _ _ _).trans $ sum_single_index this
 ... = f.sum (λ a b, ite (a = z) (r * b) 0) :
-  by { simp only [H], congr' with g s, split_ifs; refl  }
+  by { simp only [H], congr' with g s, split_ifs; refl }
 ... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq' _ _
 ... = _ : by split_ifs with h; simp at h; simp [h]
 
@@ -717,6 +720,35 @@ by rw [of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single, finsupp.mem_
 
 end span
 
+section opposite
+
+open finsupp opposite
+
+variables [semiring k]
+
+/-- The opposite of an `monoid_algebra R I` equivalent as a ring to
+the `monoid_algebra Rᵒᵖ Iᵒᵖ` over the opposite ring, taking elements to their opposite. -/
+@[simps {simp_rhs := tt}] protected noncomputable def op_ring_equiv [monoid G] :
+  (monoid_algebra k G)ᵒᵖ ≃+* monoid_algebra kᵒᵖ Gᵒᵖ :=
+{ map_mul' := begin
+    dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],
+    rw add_monoid_hom.map_mul_iff,
+    ext i₁ r₁ i₂ r₂ : 6,
+    simp
+  end,
+  ..op_add_equiv.symm.trans $ (finsupp.map_range.add_equiv (op_add_equiv : k ≃+ kᵒᵖ)).trans $
+    finsupp.dom_congr equiv_to_opposite }
+
+@[simp] lemma op_ring_equiv_single [monoid G] (r : k) (x : G) :
+  monoid_algebra.op_ring_equiv (op (single x r)) = single (op x) (op r) :=
+by simp
+
+@[simp] lemma op_ring_equiv_symm_single [monoid G] (r : kᵒᵖ) (x : Gᵒᵖ) :
+  monoid_algebra.op_ring_equiv.symm (single x r) = op (single x.unop r.unop) :=
+by simp
+
+end opposite
+
 end monoid_algebra
 
 /-! ### Additive monoids -/
@@ -901,6 +933,10 @@ variables {R S : Type*}
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (add_monoid_algebra k G) :=
 finsupp.distrib_mul_action G k
+
+instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_scalar R k] [nonempty G] :
+  has_faithful_scalar R (add_monoid_algebra k G) :=
+finsupp.has_faithful_scalar
 
 instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k G) :=
 finsupp.module G k
@@ -1169,6 +1205,36 @@ See note [partially-applied ext lemmas]. -/
     (g : add_monoid_algebra k G →* R).comp (of k G)) :
   f = g :=
 ring_hom_ext (ring_hom.congr_fun h₁) (monoid_hom.congr_fun h_of)
+
+section opposite
+
+open finsupp opposite
+
+variables [semiring k]
+
+/-- The opposite of an `add_monoid_algebra R I` is ring equivalent to
+the `add_monoid_algebra Rᵒᵖ I` over the opposite ring, taking elements to their opposite. -/
+@[simps {simp_rhs := tt}] protected noncomputable def op_ring_equiv [add_comm_monoid G] :
+  (add_monoid_algebra k G)ᵒᵖ ≃+* add_monoid_algebra kᵒᵖ G :=
+{ map_mul' := begin
+    dsimp only [add_equiv.to_fun_eq_coe, ←add_equiv.coe_to_add_monoid_hom],
+    rw add_monoid_hom.map_mul_iff,
+    ext i r i' r' : 6,
+    dsimp,
+    simp only [map_range_single, single_mul_single, ←op_mul, add_comm]
+  end,
+  ..opposite.op_add_equiv.symm.trans
+    (finsupp.map_range.add_equiv (opposite.op_add_equiv : k ≃+ kᵒᵖ))}
+
+@[simp] lemma op_ring_equiv_single [add_comm_monoid G] (r : k) (x : G) :
+  add_monoid_algebra.op_ring_equiv (op (single x r)) = single x (op r) :=
+by simp
+
+@[simp] lemma op_ring_equiv_symm_single [add_comm_monoid G] (r : kᵒᵖ) (x : Gᵒᵖ) :
+  add_monoid_algebra.op_ring_equiv.symm (single x r) = op (single x r.unop) :=
+by simp
+
+end opposite
 
 /--
 The instance `algebra R (add_monoid_algebra k G)` whenever we have `algebra R k`.

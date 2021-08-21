@@ -3,13 +3,13 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.normed_space.inner_product
 import analysis.special_functions.trigonometric
 import algebra.quadratic_discriminant
 import analysis.normed_space.add_torsor
 import data.matrix.notation
 import linear_algebra.affine_space.finite_dimensional
 import tactic.fin_cases
+import analysis.calculus.conformal
 
 /-!
 # Euclidean spaces
@@ -74,6 +74,33 @@ variables {V : Type*} [inner_product_space ℝ V]
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. -/
 def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
+
+lemma is_conformal_map.preserves_angle {E F : Type*}
+  [inner_product_space ℝ E] [inner_product_space ℝ F]
+  {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
+  angle (f' u) (f' v) = angle u v :=
+begin
+  obtain ⟨c, hc, li, hcf⟩ := h,
+  suffices : c * (c * inner u v) / (∥c∥ * ∥u∥ * (∥c∥ * ∥v∥)) = inner u v / (∥u∥ * ∥v∥),
+  { simp [this, angle, hcf, norm_smul, inner_smul_left, inner_smul_right] },
+  by_cases hu : ∥u∥ = 0,
+  { simp [norm_eq_zero.mp hu] },
+  by_cases hv : ∥v∥ = 0,
+  { simp [norm_eq_zero.mp hv] },
+  have hc : ∥c∥ ≠ 0 := λ w, hc (norm_eq_zero.mp w),
+  field_simp,
+  have : c * c = ∥c∥ * ∥c∥ := by simp [real.norm_eq_abs, abs_mul_abs_self],
+  convert congr_arg (λ x, x * ⟪u, v⟫ * ∥u∥ * ∥v∥) this using 1; ring,
+end
+
+/-- If a real differentiable map `f` is conformal at a point `x`,
+    then it preserves the angles at that point. -/
+lemma conformal_at.preserves_angle {E F : Type*}
+  [inner_product_space ℝ E] [inner_product_space ℝ F]
+  {f : E → F} {x : E} {f' : E →L[ℝ] F}
+  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
+  angle (f' u) (f' v) = angle u v :=
+let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ is_conformal_map.preserves_angle c u v
 
 /-- The cosine of the angle between two vectors. -/
 lemma cos_angle (x y : V) : real.cos (angle x y) = inner x y / (∥x∥ * ∥y∥) :=

@@ -274,7 +274,7 @@ begin
     exact is_topological_basis.is_open (cond i) (h1 i hi) },
   { intros a U ha hU,
     have : U ∈ nhds a := is_open.mem_nhds hU ha,
-    rw [nhds_pi, filter.mem_infi_iff] at this,
+    rw [nhds_pi, filter.mem_infi] at this,
     obtain ⟨F, hF, V, hV1, hV2⟩ := this,
     choose U' hU' using hV1,
     obtain ⟨hU1, hU2⟩ := ⟨λ i, (hU' i).1, λ i, (hU' i).2⟩,

@@ -739,12 +739,12 @@ match a, b with
   end
 end
 
-@[simp] lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
+@[simp] protected lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by simpa [-ennreal.sub_le_iff_le_add] using @ennreal.sub_le_iff_le_add a b 0
 
 @[simp] lemma zero_lt_sub_iff_lt : 0 < a - b ↔ b < a :=
-by simpa [ennreal.bot_lt_iff_ne_bot, -sub_eq_zero_iff_le]
-  using not_iff_not.2 (@sub_eq_zero_iff_le a b)
+by simpa [ennreal.bot_lt_iff_ne_bot, -ennreal.sub_eq_zero_iff_le]
+  using not_iff_not.2 (@ennreal.sub_eq_zero_iff_le a b)
 
 lemma lt_sub_iff_add_lt : a < b - c ↔ a + c < b :=
 begin
@@ -1275,6 +1275,14 @@ begin
   refl
 end
 
+lemma to_real_sub_of_le {a b : ℝ≥0∞} (h : b ≤ a) (ha : a ≠ ∞):
+  (a - b).to_real = a.to_real - b.to_real :=
+begin
+  lift b to ℝ≥0 using ne_top_of_le_ne_top ha h,
+  lift a to ℝ≥0 using ha,
+  simp only [← ennreal.coe_sub, ennreal.coe_to_real, nnreal.coe_sub (ennreal.coe_le_coe.mp h)],
+end
+
 lemma to_real_add_le : (a+b).to_real ≤ a.to_real + b.to_real :=
 if ha : a = ∞ then by simp only [ha, top_add, top_to_real, zero_add, to_real_nonneg]
 else if hb : b = ∞ then by simp only [hb, add_top, top_to_real, add_zero, to_real_nonneg]
@@ -1348,6 +1356,9 @@ by simp [ennreal.of_real]
 
 @[simp] lemma of_real_eq_zero {p : ℝ} : ennreal.of_real p = 0 ↔ p ≤ 0 :=
 by simp [ennreal.of_real]
+
+@[simp] lemma zero_eq_of_real {p : ℝ} : 0 = ennreal.of_real p ↔ p ≤ 0 :=
+eq_comm.trans of_real_eq_zero
 
 lemma of_real_le_iff_le_to_real {a : ℝ} {b : ℝ≥0∞} (hb : b ≠ ∞) :
   ennreal.of_real a ≤ b ↔ a ≤ ennreal.to_real b :=

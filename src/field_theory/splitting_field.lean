@@ -112,9 +112,9 @@ else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.
 lemma splits_of_splits_mul {f g : polynomial K} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
   splits i f ∧ splits i g :=
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
+   (by rw map_mul; exact hg.trans (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
+   (by rw map_mul; exact hg.trans (dvd_mul_left _ _))⟩
 
 lemma splits_of_splits_of_dvd {f g : polynomial K} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
   splits i g :=
@@ -355,7 +355,7 @@ unique_factorization_monoid.induction_on_prime f (λ _, splits_zero _)
   (λ a p ha0 hp ih hfi, splits_mul _
     (splits_of_degree_eq_one _
       ((splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).1.resolve_left
-        hp.1 (irreducible_of_prime hp) (by rw map_id)))
+        hp.1 hp.irreducible (by rw map_id)))
     (ih (splits_of_splits_mul _ (mul_ne_zero hp.1 ha0) hfi).2))
 
 end UFD

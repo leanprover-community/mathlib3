@@ -59,7 +59,7 @@ Noetherian, noetherian, Noetherian ring, Noetherian module, noetherian ring, noe
 -/
 
 open set
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace submodule
 variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
@@ -289,7 +289,7 @@ begin
   letI : algebra R S := ring_hom.to_algebra f,
   letI : algebra R A := ring_hom.to_algebra (g.comp f),
   letI : algebra S A := ring_hom.to_algebra g,
-  letI : is_scalar_tower R S A := restrict_scalars.is_scalar_tower R S A,
+  letI : is_scalar_tower R S A := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
   let f₁ := algebra.linear_map R S,
   let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
   exact fg_ker_comp f₁ g₁ hf (fg_restrict_scalars g.ker hg hsur) hsur
@@ -338,6 +338,10 @@ variables [ring R] [add_comm_group M] [add_comm_group P]
 variables [module R M] [module R P]
 open is_noetherian
 include R
+
+/-- An R-module is Noetherian iff all its submodules are finitely-generated. -/
+lemma is_noetherian_def : is_noetherian R M ↔ ∀ (s : submodule R M), s.fg :=
+⟨λ h, h.noetherian, is_noetherian.mk⟩
 
 theorem is_noetherian_submodule {N : submodule R M} :
   is_noetherian R N ↔ ∀ s : submodule R M, s ≤ N → s.fg :=
@@ -577,6 +581,11 @@ class is_noetherian_ring (R) [ring R] extends is_noetherian R R : Prop
 
 theorem is_noetherian_ring_iff {R} [ring R] : is_noetherian_ring R ↔ is_noetherian R R :=
 ⟨λ h, h.1, @is_noetherian_ring.mk _ _⟩
+
+/-- A commutative ring is Noetherian if and only if all its ideals are finitely-generated. -/
+lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [comm_ring R] :
+  is_noetherian_ring R ↔ ∀ I : ideal R, I.fg :=
+is_noetherian_ring_iff.trans is_noetherian_def
 
 @[priority 80] -- see Note [lower instance priority]
 instance ring.is_noetherian_of_fintype (R M) [fintype M] [ring R] [add_comm_group M] [module R M] :

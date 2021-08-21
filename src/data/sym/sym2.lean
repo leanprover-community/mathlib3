@@ -41,8 +41,7 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
-open function
-open sym
+open finset fintype function sym
 
 universe u
 variables {α : Type u}
@@ -217,6 +216,9 @@ A type `α` is naturally included in the diagonal of `α × α`, and this functi
 of this diagonal in `sym2 α`.
 -/
 def diag (x : α) : sym2 α := ⟦(x, x)⟧
+
+lemma diag_injective : function.injective (sym2.diag : α → sym2 α) :=
+λ x y h, by cases quotient.exact h; refl
 
 /--
 A predicate for testing whether an element of `sym2 α` is on the diagonal.
@@ -449,6 +451,40 @@ begin
   rw other_eq_other' at hb ⊢,
   convert other_invol' ha hb,
   rw other_eq_other',
+end
+
+lemma filter_image_quotient_mk_is_diag [decidable_eq α] (s : finset α) :
+  ((s.product s).image quotient.mk).filter is_diag =
+    s.diag.image quotient.mk :=
+begin
+  ext z,
+  induction z using quotient.induction_on,
+  rcases z with ⟨x, y⟩,
+  simp only [mem_image, mem_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  split,
+  { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
+    rw [←h, sym2.is_diag_iff_eq] at hab,
+    exact ⟨a, b, ⟨ha, hab⟩, h⟩ },
+  { rintro ⟨a, b, ⟨ha, rfl⟩, h⟩,
+    rw ←h,
+    exact ⟨⟨a, a, ⟨ha, ha⟩, rfl⟩, rfl⟩ }
+end
+
+lemma filter_image_quotient_mk_not_is_diag [decidable_eq α] (s : finset α) :
+  ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
+    s.off_diag.image quotient.mk :=
+begin
+  ext z,
+  induction z using quotient.induction_on,
+  rcases z with ⟨x, y⟩,
+  simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  split,
+  { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
+    rw [←h, sym2.is_diag_iff_eq] at hab,
+    exact ⟨a, b, ⟨ha, hb, hab⟩, h⟩ },
+  { rintro ⟨a, b, ⟨ha, hb, hab⟩, h⟩,
+    rw [ne.def, ←sym2.is_diag_iff_eq, h] at hab,
+    exact ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩ }
 end
 
 end decidable

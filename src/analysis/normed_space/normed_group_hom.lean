@@ -5,6 +5,8 @@ Authors: Johan Commelin
 -/
 
 import analysis.normed_space.basic
+import analysis.specific_limits
+import topology.sequences
 
 /-!
 # Normed groups homomorphisms
@@ -127,6 +129,37 @@ theorem antilipschitz_of_norm_ge {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f 
 antilipschitz_with.of_le_mul_dist $
 λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
+/-- A normed group hom is surjective on the subgroup `K` with constant `C` if every element
+`x` of `K` has a preimage whose norm is bounded above by `C*∥x∥`. This is a more
+abstract version of `f` having a right inverse defined on `K` with operator norm
+at most `C`. -/
+def surjective_on_with (f : normed_group_hom V₁ V₂) (K : add_subgroup V₂) (C : ℝ) : Prop :=
+  ∀ h ∈ K, ∃ g, f g = h ∧ ∥g∥ ≤ C*∥h∥
+
+lemma surjective_on_with.mono {f : normed_group_hom V₁ V₂} {K : add_subgroup V₂} {C C' : ℝ}
+  (h : f.surjective_on_with K C) (H : C ≤ C') : f.surjective_on_with K C' :=
+begin
+  intros k k_in,
+  rcases h k k_in with ⟨g, rfl, hg⟩,
+  use [g, rfl],
+  by_cases Hg : ∥f g∥ = 0,
+  { simpa [Hg] using hg },
+  { exact hg.trans ((mul_le_mul_right $ (ne.symm Hg).le_iff_lt.mp (norm_nonneg _)).mpr H) }
+end
+
+lemma surjective_on_with.exists_pos {f : normed_group_hom V₁ V₂} {K : add_subgroup V₂} {C : ℝ}
+  (h : f.surjective_on_with K C) : ∃ C' > 0, f.surjective_on_with K C' :=
+begin
+  refine ⟨abs C + 1, _, _⟩,
+  { linarith [abs_nonneg C] },
+  { apply h.mono,
+    linarith [le_abs_self C] }
+end
+
+lemma surjective_on_with.surj_on {f : normed_group_hom V₁ V₂} {K : add_subgroup V₂} {C : ℝ}
+  (h : f.surjective_on_with K C) : set.surj_on f set.univ K :=
+λ x hx, (h x hx).imp $ λ a ⟨ha, _⟩, ⟨set.mem_univ _, ha⟩
+
 /-! ### The operator norm -/
 
 /-- The operator norm of a seminormed group homomorphism is the inf of all its bounds. -/
@@ -185,6 +218,13 @@ div_le_of_nonneg_of_le_mul (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M :=
 cInf_le bounds_bdd_below ⟨hMp, hM⟩
+
+lemma op_norm_eq_of_bounds {M : ℝ} (M_nonneg : 0 ≤ M)
+  (h_above : ∀ x, ∥f x∥ ≤ M*∥x∥) (h_below : ∀ N ≥ 0, (∀ x, ∥f x∥ ≤ N*∥x∥) → M ≤ N) :
+  ∥f∥ = M :=
+le_antisymm (f.op_norm_le_bound M_nonneg h_above)
+  ((le_cInf_iff normed_group_hom.bounds_bdd_below ⟨M, M_nonneg, h_above⟩).mpr $
+   λ N ⟨N_nonneg, hN⟩, h_below N N_nonneg hN)
 
 theorem op_norm_le_of_lipschitz {f : normed_group_hom V₁ V₂} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
@@ -465,6 +505,10 @@ def range : add_subgroup V₂ := f.to_add_monoid_hom.range
 lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=
 by { rw [range, add_monoid_hom.mem_range], refl }
 
+@[simp]
+lemma mem_range_self (v : V₁) : f v ∈ f.range :=
+⟨v, rfl⟩
+
 lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.range :=
 by { erw add_monoid_hom.map_range, refl }
 
@@ -626,3 +670,110 @@ norm_lift_le _ _ _ hφ
 end equalizer
 
 end normed_group_hom
+
+section controlled_closure
+open filter finset
+open_locale topological_space
+variables {G : Type*} [normed_group G] [complete_space G]
+variables {H : Type*} [normed_group H]
+
+/-- Given `f : normed_group_hom G H` for some complete `G` and a subgroup `K` of `H`, if every
+element `x` of `K` has a preimage under `f` whose norm is at most `C*∥x∥` then the same holds for
+elements of the (topological) closure of `K` with constant `C+ε` instead of `C`, for any
+positive `ε`.
+-/
+lemma controlled_closure_of_complete  {f : normed_group_hom G H} {K : add_subgroup H}
+  {C ε : ℝ} (hC : 0 < C) (hε : 0 < ε) (hyp : f.surjective_on_with K C) :
+  f.surjective_on_with K.topological_closure (C + ε) :=
+begin
+  rintros (h : H) (h_in : h ∈ K.topological_closure),
+  /- We first get rid of the easy case where `h = 0`.-/
+  by_cases hyp_h : h = 0,
+  { rw hyp_h,
+    use 0,
+    simp },
+  /- The desired preimage will be constructed as the sum of a series. Convergence of
+  the series will be guaranteed by completeness of `G`. We first write `h` as the sum
+  of a sequence `v` of elements of `K` which starts close to `h` and then quickly goes to zero.
+  The sequence `b` below quantifies this. -/
+  set b : ℕ → ℝ := λ i, (1/2)^i*(ε*∥h∥/2)/C,
+  have b_pos : ∀ i, 0 < b i,
+  { intro i,
+    field_simp [b, hC],
+    exact div_pos (mul_pos hε (norm_pos_iff.mpr hyp_h))
+                  (mul_pos (by norm_num : (0 : ℝ) < 2^i*2) hC) },
+  obtain ⟨v : ℕ → H, lim_v : tendsto (λ (n : ℕ), ∑ k in range (n + 1), v k) at_top (𝓝 h),
+    v_in : ∀ n, v n ∈ K, hv₀ : ∥v 0 - h∥ < b 0, hv : ∀ n > 0, ∥v n∥ < b n⟩ :=
+    controlled_sum_of_mem_closure h_in b_pos,
+  /- The controlled surjectivity assumption on `f` allows to build preimages `u n` for all
+  elements `v n` of the `v` sequence.-/
+  have : ∀ n, ∃ m' : G, f m' = v n ∧ ∥m'∥ ≤ C * ∥v n∥ := λ (n : ℕ), hyp (v n) (v_in n),
+  choose u hu hnorm_u using this,
+  /- The desired series `s` is then obtained by summing `u`. We then check our choice of
+  `b` ensures `s` is Cauchy. -/
+  set s : ℕ → G := λ n, ∑ k in range (n+1), u k,
+  have : cauchy_seq s,
+  { apply normed_group.cauchy_series_of_le_geometric'' (by norm_num) one_half_lt_one,
+    rintro n (hn : n ≥ 1),
+    calc ∥u n∥ ≤ C*∥v n∥ : hnorm_u n
+    ... ≤ C * b n : mul_le_mul_of_nonneg_left (hv _ $ nat.succ_le_iff.mp hn).le hC.le
+    ... = (1/2)^n * (ε * ∥h∥/2) : by simp [b, mul_div_cancel' _ hC.ne.symm]
+    ... = (ε * ∥h∥/2) * (1/2)^n : mul_comm _ _ },
+  /- We now show that the limit `g` of `s` is the desired preimage. -/
+  obtain ⟨g : G, hg⟩ := cauchy_seq_tendsto_of_complete this,
+  refine ⟨g, _, _⟩,
+  { /- We indeed get a preimage. First note: -/
+    have : f ∘ s = λ n, ∑ k in range (n + 1), v k,
+    { ext n,
+      simp [f.map_sum, hu] },
+    /- In the above equality, the left-hand-side converges to `f g` by continuity of `f` and
+       definition of `g` while the right-hand-side converges to `h` by construction of `v` so
+       `g` is indeed a preimage of `h`. -/
+    rw ← this at lim_v,
+    exact tendsto_nhds_unique ((f.continuous.tendsto g).comp hg) lim_v },
+  { /- Then we need to estimate the norm of `g`, using our careful choice of `b`. -/
+    suffices : ∀ n, ∥s n∥ ≤ (C + ε) * ∥h∥,
+      from le_of_tendsto' (continuous_norm.continuous_at.tendsto.comp hg) this,
+    intros n,
+    have hnorm₀ : ∥u 0∥ ≤ C*b 0 + C*∥h∥,
+    { have := calc
+      ∥v 0∥ ≤ ∥h∥ + ∥v 0 - h∥ : norm_le_insert' _ _
+      ... ≤ ∥h∥ + b 0 : by apply add_le_add_left hv₀.le,
+      calc ∥u 0∥ ≤ C*∥v 0∥ : hnorm_u 0
+      ... ≤ C*(∥h∥ + b 0) : mul_le_mul_of_nonneg_left this hC.le
+      ... = C * b 0 + C * ∥h∥ : by rw [add_comm, mul_add] },
+    have : ∑ k in range (n + 1), C * b k ≤ ε * ∥h∥ := calc
+      ∑ k in range (n + 1), C * b k = (∑ k in range (n + 1), (1 / 2) ^ k) * (ε * ∥h∥ / 2) :
+                     by simp only [b, mul_div_cancel' _ hC.ne.symm, ← sum_mul]
+      ... ≤  2 * (ε * ∥h∥ / 2) : mul_le_mul_of_nonneg_right (sum_geometric_two_le _)
+                                                            (by nlinarith [hε, norm_nonneg h])
+      ... = ε * ∥h∥ : mul_div_cancel' _ two_ne_zero,
+    calc ∥s n∥ ≤ ∑ k in range (n+1), ∥u k∥ : norm_sum_le _ _
+    ... = ∑ k in range n, ∥u (k + 1)∥ + ∥u 0∥ : sum_range_succ' _ _
+    ... ≤ ∑ k in range n, C*∥v (k + 1)∥ + ∥u 0∥ : add_le_add_right (sum_le_sum (λ _ _, hnorm_u _)) _
+    ... ≤ ∑ k in range n, C*b (k+1) + (C*b 0 + C*∥h∥) :
+      add_le_add (sum_le_sum (λ k _, mul_le_mul_of_nonneg_left (hv _ k.succ_pos).le hC.le)) hnorm₀
+    ... = ∑ k in range (n+1), C*b k + C*∥h∥ : by rw [← add_assoc, sum_range_succ']
+    ... ≤ (C+ε)*∥h∥ : by { rw [add_comm, add_mul], apply add_le_add_left this } }
+end
+
+/-- Given `f : normed_group_hom G H` for some complete `G`, if every element `x` of the image of
+an isometric immersion `j : normed_group_hom K H` has a preimage under `f` whose norm is at most
+`C*∥x∥` then the same holds for elements of the (topological) closure of this image with constant
+`C+ε` instead of `C`, for any positive `ε`.
+This is useful in particular if `j` is the inclusion of a normed group into its completion
+(in this case the closure is the full target group).
+-/
+lemma controlled_closure_range_of_complete {f : normed_group_hom G H}
+  {K : Type*} [semi_normed_group K] {j : normed_group_hom K H} (hj : ∀ x, ∥j x∥ = ∥x∥)
+  {C ε : ℝ} (hC : 0 < C) (hε : 0 < ε) (hyp : ∀ k, ∃ g, f g = j k ∧ ∥g∥ ≤ C*∥k∥) :
+  f.surjective_on_with j.range.topological_closure (C + ε) :=
+begin
+  replace hyp : ∀ h ∈ j.range, ∃ g, f g = h ∧ ∥g∥ ≤ C*∥h∥,
+  { intros h h_in,
+    rcases (j.mem_range _).mp h_in with ⟨k, rfl⟩,
+    rw hj,
+    exact hyp k },
+  exact controlled_closure_of_complete hC hε hyp
+end
+end controlled_closure

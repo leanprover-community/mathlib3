@@ -106,6 +106,10 @@ def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 
 @[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = id := rfl
 
+@[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
+
+@[simp] lemma id_to_linear_map : (id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
+
 instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
 /-- Composition of linear isometries. -/
@@ -339,13 +343,6 @@ e.isometry.comp_continuous_on_iff
 @[simp] lemma comp_continuous_iff {f : α → E} :
   continuous (e ∘ f) ↔ continuous f :=
 e.isometry.comp_continuous_iff
-
-@[simp]
-lemma linear_isometry.id_apply (x : E) : (linear_isometry.id : E →ₗᵢ[R] E) x = x := rfl
-
-@[simp]
-lemma linear_isometry.id_to_linear_map :
-  (linear_isometry.id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
 
 end linear_isometry_equiv
 

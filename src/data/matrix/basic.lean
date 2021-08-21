@@ -51,10 +51,12 @@ This is available in bundled forms as:
 * `add_monoid_hom.map_matrix`
 * `linear_map.map_matrix`
 * `ring_hom.map_matrix`
+* `alg_hom.map_matrix`
 * `equiv.map_matrix`
 * `add_equiv.map_matrix`
 * `linear_equiv.map_matrix`
 * `ring_equiv.map_matrix`
+* `alg_equiv.map_matrix`
 -/
 def map (M : matrix m n α) (f : α → β) : matrix m n β := λ i j, f (M i j)
 
@@ -135,6 +137,14 @@ ext $ λ _ _, hf _ _
 lemma map_smul [has_scalar R α] [has_scalar R β] (f : α → β) (r : R)
   (hf : ∀ a, f (r • a) = r • f a) (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 ext $ λ _ _, hf _
+
+lemma _root_.is_smul_regular.matrix [has_scalar R S] {k : R} (hk : is_smul_regular S k) :
+  is_smul_regular (matrix m n S) k :=
+is_smul_regular.pi $ λ _, is_smul_regular.pi $ λ _, hk
+
+lemma _root_.is_left_regular.matrix [has_mul α] {k : α} (hk : is_left_regular k) :
+  is_smul_regular (matrix m n α) k :=
+hk.is_smul_regular.matrix
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
@@ -622,7 +632,7 @@ by simp [commute, semiconj_by]
 end comm_semiring
 
 section algebra
-variables [comm_semiring R] [semiring α] [algebra R α] [decidable_eq n]
+variables [comm_semiring R] [semiring α] [semiring β] [algebra R α] [algebra R β] [decidable_eq n]
 
 instance : algebra R (matrix n n α) :=
 { commutes' := λ r x, begin
@@ -637,8 +647,25 @@ begin
   split_ifs with h; simp [h, matrix.one_apply_ne],
 end
 
+lemma algebra_map_eq_diagonal (r : R) :
+  algebra_map R (matrix n n α) r = diagonal (algebra_map R (n → α) r) :=
+matrix.ext $ λ i j, algebra_map_matrix_apply
+
 @[simp] lemma algebra_map_eq_smul (r : R) :
   algebra_map R (matrix n n R) r = r • (1 : matrix n n R) := rfl
+
+lemma algebra_map_eq_diagonal_ring_hom :
+  algebra_map R (matrix n n α) = (diagonal_ring_hom n α).comp (algebra_map R _) :=
+ring_hom.ext algebra_map_eq_diagonal
+
+@[simp] lemma map_algebra_map (r : R) (f : α → β) (hf : f 0 = 0)
+  (hf₂ : f (algebra_map R α r) = algebra_map R β r) :
+  (algebra_map R (matrix n n α) r).map f = algebra_map R (matrix n n β) r :=
+begin
+  rw [algebra_map_eq_diagonal, algebra_map_eq_diagonal, diagonal_map hf],
+  congr' 1 with x,
+  simp only [hf₂, pi.algebra_map_apply]
+end
 
 variables (R)
 
@@ -646,7 +673,7 @@ variables (R)
 @[simps]
 def diagonal_alg_hom : (n → α) →ₐ[R] matrix n n α :=
 { to_fun := diagonal,
-  commutes' := λ r, by { ext, rw [algebra_map_matrix_apply, diagonal, pi.algebra_map_apply] },
+  commutes' := λ r, (algebra_map_eq_diagonal r).symm,
   .. diagonal_ring_hom n α }
 
 end algebra
@@ -820,6 +847,54 @@ rfl
 rfl
 
 end ring_equiv
+
+namespace alg_hom
+variables [decidable_eq m] [comm_semiring R] [semiring α] [semiring β] [semiring γ]
+variables [algebra R α] [algebra R β] [algebra R γ]
+
+/-- The `alg_hom` between spaces of square matrices induced by a `alg_hom` between their
+coefficients. This is `matrix.map` as a `alg_hom`. -/
+@[simps]
+def map_matrix (f : α →ₐ[R] β) : matrix m m α →ₐ[R] matrix m m β :=
+{ to_fun := λ M, M.map f,
+  commutes' := λ r, matrix.map_algebra_map r f f.map_zero (f.commutes r),
+  .. f.to_ring_hom.map_matrix }
+
+@[simp] lemma map_matrix_id : (alg_hom.id R α).map_matrix = alg_hom.id R (matrix m m α) :=
+rfl
+
+@[simp] lemma map_matrix_comp (f : β →ₐ[R] γ) (g : α →ₐ[R] β) :
+  f.map_matrix.comp g.map_matrix = ((f.comp g).map_matrix : matrix m m α →ₐ[R] _) :=
+rfl
+
+end alg_hom
+
+namespace alg_equiv
+variables [decidable_eq m] [comm_semiring R] [semiring α] [semiring β] [semiring γ]
+variables [algebra R α] [algebra R β] [algebra R γ]
+
+/-- The `alg_equiv` between spaces of square matrices induced by a `alg_equiv` between their
+coefficients. This is `matrix.map` as a `alg_equiv`. -/
+@[simps apply]
+def map_matrix (f : α ≃ₐ[R] β) : matrix m m α ≃ₐ[R] matrix m m β :=
+{ to_fun := λ M, M.map f,
+  inv_fun := λ M, M.map f.symm,
+  .. f.to_alg_hom.map_matrix,
+  .. f.to_ring_equiv.map_matrix }
+
+@[simp] lemma map_matrix_refl :
+  alg_equiv.refl.map_matrix = (alg_equiv.refl : matrix m m α ≃ₐ[R] _) :=
+rfl
+
+@[simp] lemma map_matrix_symm (f : α ≃ₐ[R] β) :
+  f.map_matrix.symm = (f.symm.map_matrix : matrix m m β ≃ₐ[R] _) :=
+rfl
+
+@[simp] lemma map_matrix_trans (f : α ≃ₐ[R] β) (g : β ≃ₐ[R] γ) :
+  f.map_matrix.trans g.map_matrix = ((f.trans g).map_matrix : matrix m m α ≃ₐ[R] _) :=
+rfl
+
+end alg_equiv
 
 open_locale matrix
 

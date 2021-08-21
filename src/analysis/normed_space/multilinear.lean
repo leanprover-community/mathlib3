@@ -673,7 +673,7 @@ over `𝕜`, associating to `m` the product of all the `m i`.
 
 See also `continuous_multilinear_map.mk_pi_algebra_fin`. -/
 protected def mk_pi_algebra : continuous_multilinear_map 𝕜 (λ i : ι, A) A :=
-@multilinear_map.mk_continuous 𝕜 ι (λ i : ι, A) A _ _ _ _ _ _ _
+multilinear_map.mk_continuous
   (multilinear_map.mk_pi_algebra 𝕜 ι A) (if nonempty ι then 1 else ∥(1 : A)∥) $
   begin
     intro m,
@@ -726,7 +726,7 @@ variables (𝕜 n) (A : Type*) [normed_ring A] [normed_algebra 𝕜 A]
 
 See also: `multilinear_map.mk_pi_algebra`. -/
 protected def mk_pi_algebra_fin : continuous_multilinear_map 𝕜 (λ i : fin n, A) A :=
-@multilinear_map.mk_continuous 𝕜 (fin n) (λ i : fin n, A) A _ _ _ _ _ _ _
+multilinear_map.mk_continuous
   (multilinear_map.mk_pi_algebra_fin 𝕜 n A) (nat.cases_on n ∥(1 : A)∥ (λ _, 1)) $
   begin
     intro m,
@@ -774,7 +774,7 @@ variables (𝕜 ι)
 /-- The canonical continuous multilinear map on `𝕜^ι`, associating to `m` the product of all the
 `m i` (multiplied by a fixed reference element `z` in the target module) -/
 protected def mk_pi_field (z : G) : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G :=
-@multilinear_map.mk_continuous 𝕜 ι (λ(i : ι), 𝕜) G _ _ _ _ _ _ _
+multilinear_map.mk_continuous
   (multilinear_map.mk_pi_ring 𝕜 ι z) (∥z∥)
   (λ m, by simp only [multilinear_map.mk_pi_ring_apply, norm_smul, normed_field.norm_prod,
     mul_comm])
@@ -1423,7 +1423,7 @@ linear_isometry_equiv.of_bounds
     map_smul' := λ c f, by { ext, refl },
     left_inv := λ f, by { ext m, exact congr_arg f (sum.elim_comp_inl_inr m) },
     right_inv := λ f, by { ext m₁ m₂, change f _ _ = f _ _,
-      rw [sum.elim_comp_inl, sum.elim_comp_inr]  } }
+      rw [sum.elim_comp_inl, sum.elim_comp_inr] } }
   (λ f, multilinear_map.mk_continuous_multilinear_norm_le _ (norm_nonneg f) _)
   (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
 

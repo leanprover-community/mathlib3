@@ -3,11 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import tactic.ring_exp
-import tactic.chain
 import algebra.monoid_algebra
-import data.finset.sort
-import tactic.ring
 
 /-!
 # Theory of univariate polynomials
@@ -109,6 +105,10 @@ lemma mul_to_finsupp {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ :=
 lemma smul_to_finsupp {S : Type*} [monoid S] [distrib_mul_action S R] {a : S} {b} :
   (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := rfl
 
+lemma _root_.is_smul_regular.polynomial {S : Type*} [monoid S] [distrib_mul_action S R] {a : S}
+  (ha : is_smul_regular R a) : is_smul_regular (polynomial R) a
+| ⟨x⟩ ⟨y⟩ h := congr_arg _ $ ha.finsupp (polynomial.of_finsupp.inj h)
+
 instance : inhabited (polynomial R) := ⟨0⟩
 
 instance : semiring (polynomial R) :=
@@ -131,6 +131,10 @@ instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S (polynom
   mul_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, mul_smul], },
   smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp] },
   smul_zero := by { rintros _, simp [← zero_to_finsupp, smul_to_finsupp] } }
+
+instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_scalar S R] :
+  has_faithful_scalar S (polynomial R) :=
+{ eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
 instance {S} [semiring S] [module S R] : module S (polynomial R) :=
 { smul := (•),

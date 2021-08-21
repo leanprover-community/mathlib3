@@ -3,10 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
-import topology.instances.nnreal
+import topology.instances.ennreal
+import topology.metric_space.algebra
 import topology.metric_space.completion
 import topology.sequences
 import topology.locally_constant.algebra
@@ -800,15 +802,16 @@ begin
   exact not_le_of_lt zero_lt_one (add_le_iff_nonpos_left.1 hy)
 end
 
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_group.has_lipschitz_add : has_lipschitz_add α :=
+{ lipschitz_add := ⟨2, lipschitz_with.prod_fst.add lipschitz_with.prod_snd⟩ }
+
 /-- A seminormed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
 ⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : has_continuous_add α :=
-by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α :=
 by apply_instance -- short-circuit type class inference
@@ -1180,10 +1183,7 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 
 /-- A seminormed ring is a topological ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α :=
-⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
-    have ∀ e : α, -e - -x = -(e - x), by intro; simp,
-    by simp only [this, norm_neg]; apply tendsto_norm_sub_self ⟩
+instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
@@ -1485,6 +1485,13 @@ end prio
 
 variables [normed_field α] [semi_normed_group β]
 
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_space.has_bounded_smul [semi_normed_space α β] : has_bounded_smul α β :=
+{ dist_smul_pair' := λ x y₁ y₂,
+    by simpa [dist_eq_norm, smul_sub] using semi_normed_space.norm_smul_le x (y₁ - y₂),
+  dist_pair_smul' := λ x₁ x₂ y,
+    by simpa [dist_eq_norm, sub_smul] using semi_normed_space.norm_smul_le (x₁ - x₂) y }
+
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
 
@@ -1518,23 +1525,6 @@ lemma norm_smul_of_nonneg [semi_normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x
 
 variables {E : Type*} [semi_normed_group E] [semi_normed_space α E]
 variables {F : Type*} [semi_normed_group F] [semi_normed_space α F]
-
-@[priority 100] -- see Note [lower instance priority]
-instance semi_normed_space.has_continuous_smul : has_continuous_smul α E :=
-begin
-  refine { continuous_smul := continuous_iff_continuous_at.2 $
-    λ p, tendsto_iff_norm_tendsto_zero.2 _ },
-  refine squeeze_zero (λ _, norm_nonneg _) _ _,
-  { exact λ q, ∥q.1 - p.1∥ * ∥q.2∥ + ∥p.1∥ * ∥q.2 - p.2∥ },
-  { intro q,
-    rw [← sub_add_sub_cancel, ← norm_smul, ← norm_smul, smul_sub, sub_smul],
-    exact norm_add_le _ _ },
-  { conv { congr, skip, skip, congr, rw [← zero_add (0:ℝ)], congr,
-      rw [← zero_mul ∥p.2∥], skip, rw [← mul_zero ∥p.1∥] },
-    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul
-      (continuous_snd.tendsto p).norm).add
-        (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
-end
 
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
@@ -1755,6 +1745,25 @@ instance semi_normed_algebra.to_semi_normed_space [h : semi_normed_algebra 𝕜 
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
 
+/-- While this may appear identical to `semi_normed_algebra.to_semi_normed_space`, it contains an
+implicit argument involving `normed_ring.to_semi_normed_ring` that typeclass inference has trouble
+inferring.
+
+Specifically, the following instance cannot be found without this
+`semi_normed_algebra.to_semi_normed_space'`:
+```lean
+example
+  (𝕜 ι : Type*) (E : ι → Type*)
+  [normed_field 𝕜] [Π i, normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
+  Π i, module 𝕜 (E i) := by apply_instance
+```
+
+See `semi_normed_space.to_module'` for a similar situation. -/
+@[priority 100]
+instance semi_normed_algebra.to_semi_normed_space' (𝕜 : Type*) [normed_field 𝕜] (𝕜' : Type*)
+  [normed_ring 𝕜'] [semi_normed_algebra 𝕜 𝕜'] :
+  semi_normed_space 𝕜 𝕜' := by apply_instance
+
 @[priority 100]
 instance normed_algebra.to_normed_space (𝕜 : Type*) [normed_field 𝕜] (𝕜' : Type*)
   [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
@@ -1812,7 +1821,7 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
@@ -1965,6 +1974,127 @@ lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λ a, ∥f a�
 summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable
+
+section cauchy_product
+
+/-! ## Multipliying two infinite sums in a normed ring
+
+In this section, we prove various results about `(∑' x : ι, f x) * (∑' y : ι', g y)` in a normed
+ring. There are similar results proven in `topology/algebra/infinite_sum` (e.g `tsum_mul_tsum`),
+but in a normed ring we get summability results which aren't true in general.
+
+We first establish results about arbitrary index types, `β` and `γ`, and then we specialize to
+`β = γ = ℕ` to prove the Cauchy product formula
+(see `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`).
+
+### Arbitrary index types
+-/
+
+variables {ι' : Type*} [normed_ring α]
+
+open finset
+open_locale classical
+
+lemma summable.mul_of_nonneg {f : ι → ℝ} {g : ι' → ℝ}
+  (hf : summable f) (hg : summable g) (hf' : 0 ≤ f) (hg' : 0 ≤ g) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+let ⟨s, hf⟩ := hf in
+let ⟨t, hg⟩ := hg in
+suffices this : ∀ u : finset (ι × ι'), ∑ x in u, f x.1 * g x.2 ≤ s*t,
+  from summable_of_sum_le (λ x, mul_nonneg (hf' _) (hg' _)) this,
+assume u,
+calc  ∑ x in u, f x.1 * g x.2
+    ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), f x.1 * g x.2 :
+      sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) subset_product
+... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : sum_product
+... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :
+      sum_congr rfl (λ x _, mul_sum.symm)
+... ≤ ∑ x in u.image prod.fst, f x * t :
+      sum_le_sum
+        (λ x _, mul_le_mul_of_nonneg_left (sum_le_has_sum _ (λ _ _, hg' _) hg) (hf' _))
+... = (∑ x in u.image prod.fst, f x) * t : sum_mul.symm
+... ≤ s * t :
+      mul_le_mul_of_nonneg_right (sum_le_has_sum _ (λ _ _, hf' _) hf) (hg.nonneg $ λ _, hg' _)
+
+lemma summable.mul_norm {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ (x : ι × ι'), ∥f x.1 * g x.2∥) :=
+summable_of_nonneg_of_le (λ x, norm_nonneg (f x.1 * g x.2)) (λ x, norm_mul_le (f x.1) (g x.2))
+  (hf.mul_of_nonneg hg (λ x, norm_nonneg $ f x) (λ x, norm_nonneg $ g x) : _)
+
+lemma summable_mul_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ (x : ι × ι'), f x.1 * g x.2) :=
+summable_of_summable_norm (hf.mul_norm hg)
+
+/-- Product of two infinites sums indexed by arbitrary types.
+    See also `tsum_mul_tsum` if `f` and `g` are *not* absolutely summable. -/
+lemma tsum_mul_tsum_of_summable_norm [complete_space α] {f : ι → α} {g : ι' → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' x, f x) * (∑' y, g y) = (∑' z : ι × ι', f z.1 * g z.2) :=
+tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
+  (summable_mul_of_summable_norm hf hg)
+
+/-! ### `ℕ`-indexed families (Cauchy product)
+
+We prove two versions of the Cauchy product formula. The first one is
+`tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`, where the `n`-th term is a sum over
+`finset.range (n+1)` involving `nat` substraction.
+In order to avoid `nat` substraction, we also provide
+`tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`,
+where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
+`finset` `finset.nat.antidiagonal n`. -/
+
+section nat
+
+open finset.nat
+
+lemma summable_norm_sum_mul_antidiagonal_of_summable_norm {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ n, ∥∑ kl in antidiagonal n, f kl.1 * g kl.2∥) :=
+begin
+  have := summable_sum_mul_antidiagonal_of_summable_mul
+    (summable.mul_of_nonneg hf hg (λ _, norm_nonneg _) (λ _, norm_nonneg _)),
+  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) _ this,
+  intros n,
+  calc  ∥∑ kl in antidiagonal n, f kl.1 * g kl.2∥
+      ≤ ∑ kl in antidiagonal n, ∥f kl.1 * g kl.2∥ : norm_sum_le _ _
+  ... ≤ ∑ kl in antidiagonal n, ∥f kl.1∥ * ∥g kl.2∥ : sum_le_sum (λ i _, norm_mul_le _ _)
+end
+
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
+    expressed by summing on `finset.nat.antidiagonal`.
+    See also `tsum_mul_tsum_eq_tsum_sum_antidiagonal` if `f` and `g` are
+    *not* absolutely summable. -/
+lemma tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm [complete_space α] {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ kl in antidiagonal n, f kl.1 * g kl.2 :=
+tsum_mul_tsum_eq_tsum_sum_antidiagonal (summable_of_summable_norm hf) (summable_of_summable_norm hg)
+  (summable_mul_of_summable_norm hf hg)
+
+lemma summable_norm_sum_mul_range_of_summable_norm {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  summable (λ n, ∥∑ k in range (n+1), f k * g (n - k)∥) :=
+begin
+  simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
+  exact summable_norm_sum_mul_antidiagonal_of_summable_norm hf hg
+end
+
+/-- The Cauchy product formula for the product of two infinites sums indexed by `ℕ`,
+    expressed by summing on `finset.range`.
+    See also `tsum_mul_tsum_eq_tsum_sum_range` if `f` and `g` are
+    *not* absolutely summable. -/
+lemma tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm [complete_space α] {f g : ℕ → α}
+  (hf : summable (λ x, ∥f x∥)) (hg : summable (λ x, ∥g x∥)) :
+  (∑' n, f n) * (∑' n, g n) = ∑' n, ∑ k in range (n+1), f k * g (n - k) :=
+begin
+  simp_rw ← sum_antidiagonal_eq_sum_range_succ (λ k l, f k * g l),
+  exact tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm hf hg
+end
+
+end nat
+
+end cauchy_product
 
 namespace uniform_space
 namespace completion

@@ -65,7 +65,7 @@ uniform_space.of_core {
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h zero_lt_two) (subset.refl _)) $
+    (mem_infi_of_mem (ε / 2) $ mem_infi_of_mem (div_pos h zero_lt_two) (subset.refl _)) $
     have ∀ (a b c : α), dist a c < ε / 2 → dist c b < ε / 2 → dist a b < ε,
       from assume a b c hac hcb,
       calc dist a b ≤ dist a c + dist c b : dist_triangle _ _ _
@@ -621,7 +621,7 @@ theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x 
 is_open.mem_nhds is_open_ball (mem_ball_self ε0)
 
 theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
-mem_sets_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
+mem_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
 
 theorem nhds_within_basis_ball {s : set α} :
   (𝓝[s] x).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
@@ -763,7 +763,7 @@ instance pseudo_metric_space.to_pseudo_emetric_space : pseudo_emetric_space α :
   ..‹pseudo_metric_space α› }
 
 /-- Balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_ball {x : α} {ε : ℝ} : emetric.ball x (ennreal.of_real ε) = ball x ε :=
+@[simp] lemma metric.emetric_ball {x : α} {ε : ℝ} : emetric.ball x (ennreal.of_real ε) = ball x ε :=
 begin
   ext y,
   simp only [emetric.mem_ball, mem_ball, edist_dist],
@@ -771,7 +771,7 @@ begin
 end
 
 /-- Balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_ball_nnreal {x : α} {ε : ℝ≥0} : emetric.ball x ε = ball x ε :=
+@[simp] lemma metric.emetric_ball_nnreal {x : α} {ε : ℝ≥0} : emetric.ball x ε = ball x ε :=
 by { convert metric.emetric_ball, simp }
 
 /-- Closed balls defined using the distance or the edistance coincide -/
@@ -780,9 +780,12 @@ lemma metric.emetric_closed_ball {x : α} {ε : ℝ} (h : 0 ≤ ε) :
 by ext y; simp [edist_dist]; rw ennreal.of_real_le_of_real_iff h
 
 /-- Closed balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_closed_ball_nnreal {x : α} {ε : ℝ≥0} :
+@[simp] lemma metric.emetric_closed_ball_nnreal {x : α} {ε : ℝ≥0} :
   emetric.closed_ball x ε = closed_ball x ε :=
 by { convert metric.emetric_closed_ball ε.2, simp }
+
+@[simp] lemma metric.emetric_ball_top (x : α) : emetric.ball x ⊤ = univ :=
+eq_univ_of_forall $ λ y, edist_lt_top _ _
 
 /-- Build a new pseudometric space from an old one where the bundled uniform structure is provably
 (but typically non-definitionaly) equal to some given uniform structure.
@@ -1051,7 +1054,7 @@ def pseudo_metric_space.induced {α β} (f : α → β)
   to_uniform_space   := uniform_space.comap f m.to_uniform_space,
   uniformity_dist    := begin
     apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, dist (f x) (f y)),
-    refine λ s, mem_comap_sets.trans _,
+    refine λ s, mem_comap.trans _,
     split; intro H,
     { rcases H with ⟨r, ru, rs⟩,
       rcases mem_uniformity_dist.1 ru with ⟨ε, ε0, hε⟩,
@@ -1400,7 +1403,7 @@ instance complete_of_proper [proper_space α] : complete_space α :=
   obtain ⟨t, t_fset, ht⟩ : ∃ t ∈ f, ∀ x y ∈ t, dist x y < 1 :=
     (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
-  have : closed_ball x 1 ∈ f := mem_sets_of_superset t_fset (λ y yt, (ht y x yt xt).le),
+  have : closed_ball x 1 ∈ f := mem_of_superset t_fset (λ y yt, (ht y x yt xt).le),
   rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf
     (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩

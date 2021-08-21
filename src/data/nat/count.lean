@@ -203,6 +203,6 @@ noncomputable def set.infinite.order_iso_nat {s : set ℕ} (i : s.infinite) : s 
 (strict_mono.order_iso_of_surjective
   (λ n, (⟨nth s n, nth_mem_of_infinite s i n⟩ : s))
   (λ n m h, nth_strict_mono_of_infinite s i h)
-  (λ ⟨n, w⟩, ⟨count s n - 1, by simpa using nth_count s n w⟩)).symm
+  (λ ⟨n, w⟩, ⟨count s n, by simpa using nth_count s n w⟩)).symm
 
 end nat

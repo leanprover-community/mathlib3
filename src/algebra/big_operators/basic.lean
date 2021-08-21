@@ -488,9 +488,7 @@ by haveI := classical.dec_eq α; exact
 lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
   ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
 begin
-  conv_lhs {
-    erw ←prod_map (s.subtype p) (function.embedding.subtype _) f
-  },
+  conv_lhs { erw ←prod_map (s.subtype p) (function.embedding.subtype _) f },
   exact prod_congr (subtype_map _) (λ x hx, rfl)
 end
 

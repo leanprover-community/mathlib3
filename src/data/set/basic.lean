@@ -1758,7 +1758,7 @@ range_subset_iff.2 $ λ x, rfl
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
 
-lemma diagonal_eq_range {α  : Type*} : diagonal α = range (λ x, (x, x)) :=
+lemma diagonal_eq_range {α : Type*} : diagonal α = range (λ x, (x, x)) :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
 
 theorem preimage_singleton_nonempty {f : α → β} {y : β} :

@@ -188,7 +188,7 @@ begin
   { rintro ⟨n, hn, m, hm, hnm, h, h'⟩,
     refine ⟨order_embedding.of_strict_mono (λ i, if (i : ℕ) = 0 then ⟨n, hn⟩ else ⟨m, hm⟩) _, _⟩,
     { rintros ⟨⟨_|i⟩, hi⟩ ⟨⟨_|j⟩, hj⟩,
-      { simp  },
+      { simp },
       { simp [hnm] },
       { simp },
       { simp only [nat.lt_succ_iff, nat.succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]

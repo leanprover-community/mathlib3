@@ -10,6 +10,27 @@ import data.nat.lattice
 namespace nat
 variables (p : ℕ → Prop) [decidable_pred p]
 
+/-! ### TO MOVE -/
+
+-- TODO: move to `data.set.finite`.
+lemma exists_gt_of_infinite (i : set.infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
+
+-- TODO: move to `data.set.finite`.
+lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
+  (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
+begin
+  intro hd,
+  have := set.finite.union hd (set.finite.inter_of_right ht s),
+  rw set.diff_union_inter at this,
+  exact hs this,
+end
+
+-- TODO: move
+lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
+by rw [decidable.le_iff_lt_or_eq, lt_succ_iff]
+
+/-! ### Real stuff -/
+
 /-- Count the `i < n` satisfying `p i`. -/
 def count (n : ℕ) : ℕ :=
 ((list.range n).filter p).length
@@ -69,24 +90,6 @@ begin
     simpa using h },
 end
 
--- Not sure how hard this is. Possibly not needed, anyway.
-lemma nth_mem_of_le_card (n : ℕ) (w : (n : cardinal) ≤ cardinal.mk { i | p i }) :
-  p (nth p n) :=
-sorry
-
--- TODO move to `data.set.finite`.
-lemma exists_gt_of_infinite (i : set.infinite p) (n : ℕ) : ∃ m, p m ∧ n < m := sorry
-
--- TODO move to `data.set.finite`.
-lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
-  (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
-begin
-  intro hd,
-  have := set.finite.union hd (set.finite.inter_of_right ht s),
-  rw set.diff_union_inter at this,
-  exact hs this,
-end
-
 lemma nth_mem_of_infinite_aux (i : set.infinite (set_of p)) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
@@ -105,15 +108,6 @@ begin
   exact Inf_mem ne,
 end
 
--- TODO move to `data.set.finite`. (not used in this module)
-lemma exists_gt_of_infinite {s : set ℕ} (i : set.infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
-begin
-  have := infinite_of_infinite_sdiff_finite i (set.finite_le_nat n),
-  obtain ⟨m, hm⟩ := set.infinite.nonempty this,
-  use m,
-  simpa using hm,
-end
-
 lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) :=
 (nth_mem_of_infinite_aux p i n).1
 
@@ -121,7 +115,7 @@ lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
 lemma count_nth_of_le_card (n : ℕ) (w : n ≤ nat.card { i | p i }) :
-  count p (nth p n) = n + 1 :=
+  count p (nth p n) = n :=
 sorry
 
 -- Not sure how hard this is. Possibly not needed, anyway.
@@ -136,7 +130,7 @@ begin
     rwa ←set.infinite_coe_iff, },
 end
 
-lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n + 1 :=
+lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n :=
 sorry
 
 lemma count_nth_gc (i : set.infinite p) : galois_connection (count p) (nth p) :=
@@ -166,10 +160,6 @@ end
 
 lemma nth_le_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k ≤ n :=
 sorry
-
--- todo: move
-lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
-by rw [decidable.le_iff_lt_or_eq, lt_succ_iff]
 
 -- TODO this is the difficult sorry
 lemma nth_count (n : ℕ) (h : p n) : nth p (count p n) = n :=

@@ -32,13 +32,13 @@ section
 
 variables {R : Type*} {M : Type*}
 [ring R] [topological_space R]
-[topological_space M] [add_comm_group M]
+[topological_space M] [add_comm_group M] [has_continuous_add M]
 [module R M] [has_continuous_smul R M]
 
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior.
 This is the case, e.g., if `R` is a nondiscrete normed field. -/
-lemma submodule.eq_top_of_nonempty_interior' [has_continuous_add M]
+lemma submodule.eq_top_of_nonempty_interior'
   [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
   s = ⊤ :=
@@ -54,6 +54,21 @@ begin
     with ⟨_, hu, u, rfl⟩,
   have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
   exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
+end
+
+variables (R M)
+
+lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝[{0}ᶜ] (0 : R))]
+  [no_zero_smul_divisors R M] (x : M) :
+  ne_bot (𝓝[{x}ᶜ] x) :=
+begin
+  rcases exists_ne (0 : M) with ⟨y, hy⟩,
+  suffices : tendsto (λ c : R, x + c • y) (𝓝[{0}ᶜ] 0) (𝓝[{x}ᶜ] x), from this.ne_bot,
+  refine tendsto.inf _ (tendsto_principal_principal.2 $ _),
+  { convert tendsto_const_nhds.add ((@tendsto_id R _).smul_const y),
+    rw [zero_smul, add_zero] },
+  { intros c hc,
+    simpa [hy] using hc }
 end
 
 end

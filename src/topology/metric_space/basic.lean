@@ -288,6 +288,9 @@ show dist x x < ε, by rw dist_self; assumption
 @[simp] lemma ball_eq_empty : ball x ε = ∅ ↔ ε ≤ 0 :=
 by rw [← not_nonempty_iff_eq_empty, nonempty_ball, not_lt]
 
+@[simp] lemma ball_zero : ball x 0 = ∅ :=
+by rw [ball_eq_empty]
+
 lemma ball_eq_ball (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
 
@@ -369,19 +372,6 @@ ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 ⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
-
-@[simp] theorem ball_eq_empty_iff_nonpos : ball x ε = ∅ ↔ ε ≤ 0 :=
-eq_empty_iff_forall_not_mem.trans
-⟨λ h, le_of_not_gt $ λ ε0, h _ $ mem_ball_self ε0,
- λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩
-
-@[simp] theorem closed_ball_eq_empty_iff_neg : closed_ball x ε = ∅ ↔ ε < 0 :=
-eq_empty_iff_forall_not_mem.trans
-⟨λ h, not_le.1 $ λ ε0, h x $ mem_closed_ball_self ε0,
-  λ ε0 y h, not_lt_of_le (mem_closed_ball.1 h) (lt_of_lt_of_le ε0 dist_nonneg)⟩
-
-@[simp] lemma ball_zero : ball x 0 = ∅ :=
-by rw [ball_eq_empty_iff_nonpos]
 
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
@@ -1461,7 +1451,7 @@ lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' < r, s ⊆ ball x r' :=
 begin
   cases le_or_lt r 0 with hr hr,
-  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
+  { rw [ball_eq_empty.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
     exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
   { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
 end

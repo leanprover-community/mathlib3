@@ -80,7 +80,7 @@ section
 local attribute [simp] linear_map.cod_restrict
 
 /-- Build a `galgebra` instance for a collection of `submodule`s. -/
-@[simps? to_fun_apply {simp_rhs := tt}]
+@[simps to_fun_apply {simp_rhs := tt}]
 def galgebra.of_submodules
   (carriers : ι → submodule R B)
   (one_mem : (1 : B) ∈ carriers 0)
@@ -94,7 +94,8 @@ by exact {
   end,
   map_one := subtype.ext $ by exact (algebra_map R B).map_one,
   map_mul := λ x y, sigma.subtype_ext (add_zero 0).symm $ (algebra_map R B).map_mul _ _,
-  commutes := λ r ⟨i, xi⟩, sigma.subtype_ext ((zero_add i).trans (add_zero i).symm) $ algebra.commutes _ _,
+  commutes := λ r ⟨i, xi⟩,
+    sigma.subtype_ext ((zero_add i).trans (add_zero i).symm) $ algebra.commutes _ _,
   smul_def := λ r ⟨i, xi⟩, sigma.subtype_ext (zero_add i).symm $ algebra.smul_def _ _ }
 
 end

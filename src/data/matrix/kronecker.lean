@@ -122,12 +122,11 @@ end
   kronecker_map f (1 : matrix m m α) (1 : matrix n n β) = 1 :=
 (kronecker_map_diagonal_diagonal _ hf₁ hf₂ _ _).trans $ by simp only [hf₃, diagonal_one]
 
-@[simp]
 lemma kronecker_map_reindex (f : α → β → γ) (el : l ≃ l') (em : m ≃ m') (en : n ≃ n')
   (ep : p ≃ p') (M : matrix l m α) (N : matrix n p β) :
   kronecker_map f (reindex el em M) (reindex en ep N) =
-  reindex (el.prod_congr en) (em.prod_congr ep)
-    (kronecker_map f M N) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
+    reindex (el.prod_congr en) (em.prod_congr ep) (kronecker_map f M N) :=
+by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
 lemma kronecker_map_reindex_left (f : α → β → γ) (el : l ≃ l') (em : m ≃ m') (M : matrix l m α)
   (N : matrix n n' β) : kronecker_map f (matrix.reindex el em M) N =

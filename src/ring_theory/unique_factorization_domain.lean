@@ -1167,8 +1167,8 @@ theorem is_pow_of_dvd_count {a : associates α} (ha : a ≠ 0) {k : ℕ}
 begin
   obtain ⟨a0, hz, rfl⟩ := exists_non_zero_rep ha,
   rw [factors_mk a0 hz] at hk,
-  have hk' : ∀ (p : {a : associates α // irreducible a}), k ∣ (factors' a0).count p,
-  { intro p,
+  have hk' : ∀ p, p ∈ (factors' a0) → k ∣ (factors' a0).count p,
+  { rintros p -,
     have pp : p = ⟨p.val, p.2⟩, { simp only [subtype.coe_eta, subtype.val_eq_coe] },
     rw [pp, ← count_some p.2], exact hk p.val p.2 },
   obtain ⟨u, hu⟩ := multiset.exists_smul_of_dvd_count _ hk',

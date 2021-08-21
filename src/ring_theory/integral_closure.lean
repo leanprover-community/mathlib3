@@ -389,6 +389,31 @@ lemma is_integral_of_mem_closure'' {S : Type*} [comm_ring S] {f : R →+* S} (G 
   (hG : ∀ x ∈ G, f.is_integral_elem x) : ∀ x ∈ (subring.closure G), f.is_integral_elem x :=
 λ x hx, @is_integral_of_mem_closure' R S _ _ f.to_algebra G hG x hx
 
+lemma is_integral.pow {x : A} (h : is_integral R x) (n : ℕ) : is_integral R (x ^ n) :=
+(integral_closure R A).pow_mem h n
+
+lemma is_integral.nsmul {x : A} (h : is_integral R x) (n : ℕ) : is_integral R (n • x) :=
+(integral_closure R A).nsmul_mem h n
+
+lemma is_integral.gsmul {x : A} (h : is_integral R x) (n : ℤ) : is_integral R (n • x) :=
+(integral_closure R A).gsmul_mem h n
+
+lemma is_integral.multiset_prod {s : multiset A} (h : ∀ x ∈ s, is_integral R x) :
+  is_integral R s.prod :=
+(integral_closure R A).multiset_prod_mem h
+
+lemma is_integral.multiset_sum {s : multiset A} (h : ∀ x ∈ s, is_integral R x) :
+  is_integral R s.sum :=
+(integral_closure R A).multiset_sum_mem h
+
+lemma is_integral.prod {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈ s, is_integral R (f x)) :
+  is_integral R (∏ x in s, f x) :=
+(integral_closure R A).prod_mem h
+
+lemma is_integral.sum {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈ s, is_integral R (f x)) :
+  is_integral R (∑ x in s, f x) :=
+(integral_closure R A).sum_mem h
+
 end
 
 section algebra

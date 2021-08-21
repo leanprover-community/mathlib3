@@ -105,7 +105,7 @@ variables {R} (M)
 See note [reducible non-instances]. -/
 @[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
   module S M :=
-{ smul := (•) ∘ f,
+{ smul := has_scalar.comp.smul f,
   add_smul := λ r s x, by simp [add_smul],
   .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
   .. distrib_mul_action.comp_hom M (f : S →* R) }

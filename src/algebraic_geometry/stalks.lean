@@ -111,7 +111,7 @@ The induced stalk map of the canonical map `X ⟶ X.restrict (opens.inclusion �
 isomorphism of stalks defined above.
 In particular, it is an isomorphism.
 -/
-lemma stalk_map_to_restrict_top (X : PresheafedSpace C) (x : X) :
+lemma stalk_map_to_restrict_top_eq (X : PresheafedSpace C) (x : X) :
   stalk_map X.to_restrict_top x =
   (restrict_stalk_iso X (opens.inclusion ⊤) (opens.open_embedding ⊤) ⟨x, trivial⟩).hom :=
 stalk_hom_ext _ $ λ U hx,
@@ -123,7 +123,7 @@ end
 
 instance is_iso_stalk_map_to_restrict_top (X : PresheafedSpace C) (x : X) :
   is_iso (stalk_map X.to_restrict_top x) :=
-by { rw stalk_map_to_restrict_top, apply_instance }
+by { rw stalk_map_to_restrict_top_eq, apply_instance }
 
 end restrict
 

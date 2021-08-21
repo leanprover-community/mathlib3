@@ -123,6 +123,7 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 
 instance : faithful forget_to_SheafedSpace := {}
 
+@[simps]
 noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=
@@ -138,13 +139,11 @@ noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
 /--
 The map from the restriction of a locally ringed space.
 -/
-def of_restrict (U : Top) (X : LocallyRingedSpace)
+@[simps]
+def of_restrict {U : Top} (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) :
   X.restrict f h ⟶ X :=
-begin
-  refine ⟨X.to_PresheafedSpace.of_restrict U f h, _⟩,
-  sorry,
-end
+subtype.mk (X.to_PresheafedSpace.of_restrict f h) infer_instance
 
 /--
 The map to the restriction of a locally ringed space along the canonical inclusion from the top
@@ -153,18 +152,16 @@ subspace.
 @[simps]
 def to_restrict_top (X : LocallyRingedSpace) :
   X ⟶ X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) :=
-begin
-  refine ⟨X.to_PresheafedSpace.to_restrict_top, _⟩,
-  sorry
-end
+subtype.mk X.to_PresheafedSpace.to_restrict_top infer_instance
 
+set_option pp.coercions true
 /--
 The isomorphism from the restriction to the top subspace.
 -/
 @[simps]
 noncomputable def restrict_top_iso (X : LocallyRingedSpace) :
   X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
-{ hom := X.of_restrict _ _ _,
+{ hom := X.of_restrict _ _,
   inv := X.to_restrict_top,
   hom_inv_id' := sorry,
   inv_hom_id' := sorry }

@@ -70,7 +70,7 @@ begin
   exact hs this,
 end
 
-lemma nth_mem_of_infinite_aux (n : ℕ) (i : set.infinite (set_of p)) :
+lemma nth_mem_of_infinite_aux (i : set.infinite (set_of p)) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
   have ne : set.nonempty { i : ℕ | p i ∧ ∀ k < n, nth p k < i },
@@ -88,7 +88,7 @@ begin
   exact Inf_mem ne,
 end
 
-lemma nth_mem_of_infinite (i : set.infinite p) (n : ℕ) : p (nth p n) :=
+lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) :=
 (nth_mem_of_infinite_aux p i n).1
 
 lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=

@@ -139,10 +139,9 @@ namespace lattice_ordered_comm_group
 Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
 the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
 -/
-@[to_additive pos "
-  Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
-  the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`.
-"]
+@[to_additive pos
+  "Let `α` be a lattice ordered commutative group with identity `0`. For an element `a` of type `α`,
+  the element `a ⊔ 0` is said to be the *positive component* of `a`, denoted `a⁺`."]
 def mpos (a : α) : α :=  a ⊔ 1
 postfix `⁺`:1000 := mpos
 

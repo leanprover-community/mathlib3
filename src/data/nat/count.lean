@@ -132,7 +132,6 @@ begin
   rw nth,
   split,
   { simp only [nat.not_lt_zero, set.mem_set_of_eq, Inf_eq_zero],
-    have : (∀ k, ¬k < n) → n = 0 := eq_bot_of_minimal,
     rintro (⟨hp0, hn⟩ | rhs),
     { rw eq_bot_of_minimal hn,
       exact or.inl ⟨rfl, hp0⟩ },

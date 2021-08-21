@@ -1960,14 +1960,26 @@ lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
   (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
 pairwise_on_iff_exists_forall s f
 
+lemma pairwise_on_insert {α} {s : set α} {a : α} {r : α → α → Prop} :
+  (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b ∧ r b a :=
+begin
+  simp only [pairwise_on, ball_insert_iff, forall_and_distrib, true_and, forall_false_left,
+    eq_self_iff_true, not_true, ne.def, @eq_comm _ a],
+  exact ⟨λ H, ⟨H.2.2, H.2.1, H.1⟩, λ H, ⟨H.2.2, H.2.1, H.1⟩⟩
+end
+
 lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
   (hr : symmetric r) :
   (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
-begin
-  simp only [pairwise_on, ball_insert_iff, true_and, forall_false_left, eq_self_iff_true, not_true,
-    ne.def, forall_and_distrib, hr.iff a, @eq_comm _ a],
-  exact ⟨λ h, ⟨h.2.2, h.2.1⟩, λ h, ⟨h.2, h.2, h.1⟩⟩
-end
+by simp only [pairwise_on_insert, hr.iff a, and_self]
+
+lemma pairwise_on_pair {r : α → α → Prop} {x y : α} :
+  pairwise_on {x, y} r ↔ (x ≠ y → r x y ∧ r y x) :=
+by simp [pairwise_on_insert]
+
+lemma pairwise_on_pair_of_symmetric {r : α → α → Prop} {x y : α} (hr : symmetric r) :
+  pairwise_on {x, y} r ↔ (x ≠ y → r x y) :=
+by simp [pairwise_on_insert_of_symmetric hr]
 
 end set
 

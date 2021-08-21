@@ -108,9 +108,7 @@ $$ -(a ⊓ b) = -a ⊔ -b.$$
 -/
 @[to_additive, simp]
 lemma inv_inf_eq_sup_inv (a b : α) : (a ⊓ b)⁻¹ = a⁻¹ ⊔ b⁻¹ :=
-begin
-  rw [← inv_inv (a⁻¹ ⊔ b⁻¹), inv_sup_eq_inv_inf_inv a⁻¹ b⁻¹, inv_inv, inv_inv],
-end
+by rw [← inv_inv (a⁻¹ ⊔ b⁻¹), inv_sup_eq_inv_inf_inv a⁻¹ b⁻¹, inv_inv, inv_inv]
 
 -- Bourbaki A.VI.10 Prop 7
 /--
@@ -121,8 +119,8 @@ $$a ⊓ b + (a ⊔ b) = a + b.$$
 lemma inf_mul_sup (a b : α) : a ⊓ b * (a ⊔ b) = a * b :=
 calc a⊓b * (a ⊔ b) = a ⊓ b * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
   by {  rw mul_sup_eq_mul_sup_mul b⁻¹ a⁻¹ (a * b), simp,  }
-... = a⊓b * ((a * b) * (a ⊓ b)⁻¹) : by { rw [inv_inf_eq_sup_inv, sup_comm], }
-... = a * b                    : by { rw [mul_comm, inv_mul_cancel_right],  }
+... = a⊓b * ((a * b) * (a ⊓ b)⁻¹) : by rw [inv_inf_eq_sup_inv, sup_comm]
+... = a * b                       : by rw [mul_comm, inv_mul_cancel_right]
 
 /--
 Absolute value is a unary operator with properties similar to the absolute value of a real number.
@@ -205,22 +203,14 @@ Let `α` be a lattice ordered commutative group and let `a` be an element in `α
 component `a⁻` of `a` is equal to the positive component `(-a)⁺` of `-a`.
 -/
 @[to_additive]
-lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ :=
-begin
-  unfold mneg,
-  unfold mpos,
-end
+lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := by { unfold mneg, unfold mpos}
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be an element in `α`. Then the positive
 component `a⁺` of `a` is equal to the negative component `(-a)⁻` of `-a`.
 -/
 @[to_additive]
-lemma pos_eq_neg_inv (a : α) : a⁺ =(a⁻¹)⁻ :=
-begin
-  rw neg_eq_pos_inv,
-  simp,
-end
+lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by simp [neg_eq_pos_inv]
 
 -- We use this in Bourbaki A.VI.12  Prop 9 a)
 /--
@@ -246,9 +236,7 @@ $$a⁻ = -(a ⊓ 0).$$
 lemma neg_eq_inv_inf_one (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
 begin
   unfold lattice_ordered_comm_group.mneg,
-  rw ← inv_inj,
-  rw inv_sup_eq_inv_inf_inv,
-  rw [inv_inv, inv_inv, one_inv],
+  rw [← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv],
 end
 
 -- Bourbaki A.VI.12  Prop 9 a)
@@ -279,10 +267,8 @@ positive, disjoint).
 -/
 @[to_additive]
 lemma pos_inf_neg_eq_one (a : α) : a⁺ ⊓ a⁻=1 :=
-begin
-  rw [←mul_right_inj (a⁻)⁻¹, mul_inf_eq_mul_inf_mul, mul_one, mul_left_inv, mul_comm,
-    ←div_eq_mul_inv, pos_div_neg', neg_eq_inv_inf_one, inv_inv],
-end
+by rw [←mul_right_inj (a⁻)⁻¹, mul_inf_eq_mul_inf_mul, mul_one, mul_left_inv, mul_comm,
+  ←div_eq_mul_inv, pos_div_neg', neg_eq_inv_inf_one, inv_inv]
 
 -- Bourbaki A.VI.12 (with a and b swapped)
 /--
@@ -292,9 +278,9 @@ $$a⊔b = b + (a - b)⁺.$$
 -/
 @[to_additive]
 lemma sup_eq_mul_pos_div (a b : α) : a ⊔ b = b * (a / b)⁺ :=
-  calc  a ⊔ b = (b * (a / b)) ⊔ (b * 1) : by {rw [mul_one b, div_eq_mul_inv, mul_comm a,
-    mul_inv_cancel_left], }
-  ... = b * ((a / b) ⊔ 1) : by { rw ← mul_sup_eq_mul_sup_mul (a / b) 1 b}
+calc  a ⊔ b = (b * (a / b)) ⊔ (b * 1) : by {rw [mul_one b, div_eq_mul_inv, mul_comm a,
+  mul_inv_cancel_left], }
+... = b * ((a / b) ⊔ 1) : by { rw ← mul_sup_eq_mul_sup_mul (a / b) 1 b}
 
 -- Bourbaki A.VI.12 (with a and b swapped)
 /--
@@ -304,14 +290,14 @@ $$a⊓b = a - (a - b)⁺.$$
 -/
 @[to_additive]
 lemma inf_eq_div_pos_div (a b : α) : a ⊓ b = a / (a / b)⁺ :=
-  calc a ⊓ b = (a * 1) ⊓ (a * (b / a)) : by { rw [mul_one a, div_eq_mul_inv, mul_comm b,
-    mul_inv_cancel_left], }
-  ... = a * (1 ⊓ (b / a))        : by {rw ← mul_inf_eq_mul_inf_mul 1 (b / a) a}
-  ... = a * ((b / a) ⊓ 1)        : by { rw inf_comm }
-  ... = a * ((a / b)⁻¹ ⊓ 1) : by { rw div_eq_mul_inv,  nth_rewrite 0 ← inv_inv b,
-    rw [← mul_inv, mul_comm b⁻¹, ← div_eq_mul_inv], }
-  ... = a * ((a / b)⁻¹ ⊓ 1⁻¹) : by { rw one_inv, }
-  ... = a / ((a / b) ⊔ 1)        : by  { rw ← inv_sup_eq_inv_inf_inv, rw ← div_eq_mul_inv, }
+calc a ⊓ b = (a * 1) ⊓ (a * (b / a)) : by { rw [mul_one a, div_eq_mul_inv, mul_comm b,
+  mul_inv_cancel_left], }
+... = a * (1 ⊓ (b / a))     : by rw ← mul_inf_eq_mul_inf_mul 1 (b / a) a
+... = a * ((b / a) ⊓ 1)     : by rw inf_comm
+... = a * ((a / b)⁻¹ ⊓ 1)   : by { rw div_eq_mul_inv,  nth_rewrite 0 ← inv_inv b,
+  rw [← mul_inv, mul_comm b⁻¹, ← div_eq_mul_inv], }
+... = a * ((a / b)⁻¹ ⊓ 1⁻¹) : by rw one_inv
+... = a / ((a / b) ⊔ 1)     : by rw [← inv_sup_eq_inv_inf_inv, ← div_eq_mul_inv]
 
 -- Bourbaki A.VI.12 Prop 9 c)
 /--
@@ -412,10 +398,8 @@ $$2•(a ⊔ b) = a + b + |b - a|.$$
 -/
 @[to_additive]
 lemma sup_sq_eq_mul_mul_abs_div (a b : α) : (a ⊔ b)^2 = a * b * |b / a| :=
-begin
-  rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, ← mul_assoc, mul_comm,
-    mul_assoc, ← pow_two, inv_mul_cancel_left],
-end
+by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, ← mul_assoc, mul_comm,
+    mul_assoc, ← pow_two, inv_mul_cancel_left]
 
 /--
 Let `α` be a lattice ordered commutative group, let `a` and `b` be elements in `α` and let `|b-a|`
@@ -424,10 +408,8 @@ $$2•(a ⊓ b) = a + b - |b - a|.$$
 -/
 @[to_additive]
 lemma two_inf_eq_mul_div_abs_div (a b : α) : (a ⊓ b)^2 = a * b / |b / a| :=
-begin
-  rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, div_eq_mul_inv,
-    mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_comm_assoc, ← pow_two],
-end
+by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, div_eq_mul_inv,
+    mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_comm_assoc, ← pow_two]
 
 /--
 Every lattice ordered commutative group is a distributive lattice
@@ -450,15 +432,12 @@ instance lattice_ordered_comm_group_to_distrib_lattice (α : Type u)
       { apply inf_le_inf_left, apply inf_le_right, },
       { apply inf_le_right, }, }
   end,
-  ..s
-}
+  ..s }
 
 @[to_additive]
 lemma div_mul_div_eq_mul_div_mul (x y w z : α) : x / y * (w / z) = x * w / (y * z) :=
-begin
-  rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
-    mul_left_cancel_iff, mul_comm, mul_assoc],
-end
+by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
+    mul_left_cancel_iff, mul_comm, mul_assoc]
 
 -- See, e.g. Zaanen, Lectures on Riesz Spaces
 -- 3rd lecture

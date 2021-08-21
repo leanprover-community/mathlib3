@@ -69,7 +69,7 @@ variables (p : ℕ → Prop) [decidable_pred p]
 def count (n : ℕ) : ℕ :=
 ((list.range n).filter p).length
 
-lemma count_zero : count p 0 = 0 :=
+@[simp] lemma count_zero : count p 0 = 0 :=
 by rw [count, range_zero, filter_nil, length]
 
 noncomputable instance count_set_fintype (p : ℕ → Prop) (n : ℕ) : fintype { i | i < n ∧ p i } :=
@@ -89,6 +89,7 @@ begin
   simp [lt_succ_iff],
 end
 
+@[simp]
 lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 begin
   suffices : (list.range (n+1)).filter p = ((list.range n).filter p) ++ if p n then [n] else [],
@@ -97,11 +98,23 @@ begin
   split_ifs; simp [h]
 end
 
-@[simp] lemma count_succ_eq_succ_count_iff {n : ℕ} : count p (n + 1) = count p n + 1 ↔ p n :=
-by by_cases h : p n; simp [h, count_succ]
+-- kmill: I made the above lemma a simp lemma since simp will be able to make use of a `p n` or `¬p n` hypothesis
+-- to simplify `count p (n + 1)`.  This means the following shouldn't be simp lemmas since they'd never apply;
+-- they seemed to be of limited utility as simp lemmas, though.
 
-@[simp] lemma count_succ_eq_count_iff {n : ℕ} : count p (n + 1) = count p n ↔ ¬p n :=
-by by_cases h : p n; simp [h, count_succ]
+lemma count_succ_eq_succ_count_iff {n : ℕ} : count p (n + 1) = count p n + 1 ↔ p n :=
+by by_cases h : p n; simp [h]
+
+lemma count_succ_eq_count_iff {n : ℕ} : count p (n + 1) = count p n ↔ ¬p n :=
+by by_cases h : p n; simp [h]
+
+-- kmill: these seem useful to have around, so you don't have to go and simplify the ite too.
+lemma count_succ_eq_succ_count {n : ℕ} (h : p n) : count p (n + 1) = count p n + 1 :=
+by simp [h]
+
+lemma count_succ_eq_count {n : ℕ} (h : ¬p n) : count p (n + 1) = count p n :=
+by simp [h]
+
 
 /--
 Find the `n`-th natural number satisfying `p`

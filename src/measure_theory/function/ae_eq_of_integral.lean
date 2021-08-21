@@ -6,9 +6,13 @@ Authors: Rémy Degenne
 
 import analysis.normed_space.dual
 import measure_theory.function.strongly_measurable
+import measure_theory.integral.set_integral
 
 /-! # From equality of integrals to equality of functions -/
 
+open measure_theory topological_space normed_space filter
+
+open_locale ennreal measure_theory
 
 namespace measure_theory
 
@@ -55,7 +59,7 @@ end
 end ae_eq_of_forall
 
 
-variables {𝕜 E' : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+variables {α 𝕜 E E' : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   {m m0 : measurable_space α} {μ : measure α} {s t : set α}
   [inner_product_space 𝕜 E] [measurable_space E] [borel_space E] [second_countable_topology E]
   [inner_product_space 𝕜 E'] [measurable_space E'] [borel_space E'] [second_countable_topology E']
@@ -80,10 +84,12 @@ begin
   { intro hbc,
     obtain ⟨r, hr⟩ := exists_rat_btwn hbc,
     specialize h r,
-    simp only [hr.right, set.Union_pos] at h,
-    refine measure_mono_null (λ x hx, _) h,
-    rw set.mem_set_of_eq at hx ⊢,
-    exact hx.trans hr.1.le, },
+    sorry,
+    --simp only [hr.right, set.Union_true] at h,
+    --refine measure_mono_null (λ x hx, _) h,
+    --rw set.mem_set_of_eq at hx ⊢,
+    --exact hx.trans hr.1.le,
+    },
   { by_cases hbc : ↑b < c,
     { simp only [hbc, set.Union_pos],
       exact h _ hbc, },

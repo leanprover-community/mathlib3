@@ -334,12 +334,11 @@ begin
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
   { rw not_and_distrib at H,
-    by_cases hι : nonempty ι,
-    { resetI,
-      exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
-        ennreal.mul_left_mono).symm },
-    { rw [infi_of_empty hι, infi_of_empty hι, mul_top, if_neg],
-      exact mt h0 hι } }
+    casesI is_empty_or_nonempty ι,
+    { rw [infi_of_empty, infi_of_empty, mul_top, if_neg],
+      exact mt h0 (not_nonempty_iff.2 ‹_›) },
+    { exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+        ennreal.mul_left_mono).symm } }
 end
 
 lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}

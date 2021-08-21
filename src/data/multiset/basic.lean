@@ -1920,6 +1920,12 @@ quot.induction_on s $ countp_cons_of_neg p
 
 variable (p)
 
+theorem countp_cons (b : α) (s) : countp p (b ::ₘ s) = countp p s + (if p b then 1 else 0) :=
+begin
+  split_ifs with h;
+  simp only [h, multiset.countp_cons_of_pos, add_zero, multiset.countp_cons_of_neg, not_false_iff],
+end
+
 theorem countp_eq_card_filter (s) : countp p s = card (filter p s) :=
 quot.induction_on s $ λ l, countp_eq_length_filter _ _
 

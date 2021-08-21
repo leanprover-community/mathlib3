@@ -31,6 +31,42 @@ begin
   simp [lt_succ_iff],
 end
 
+lemma count_succ_eq_succ_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+  count p (n + 1) = count p n + 1 ↔ p n :=
+begin
+  sorry
+end
+
+lemma count_succ_eq_succ_count {n : ℕ} (h : p n) :
+  count p (n + 1) = count p n + 1 :=
+begin
+  rw [count_eq_card, count_eq_card],
+  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i} ∪ {n},
+  { simp [this] },
+  ext,
+  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
+  rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
+  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h : x = n, h.symm.subst hn).symm),
+end
+
+lemma count_succ_eq_count_iff {p : ℕ → Prop} [decidable_pred p] {n : ℕ} :
+  count p (n + 1) = count p n ↔ ¬p n :=
+begin
+  sorry
+end
+
+lemma count_succ_eq_count {n : ℕ} (h : ¬p n) :
+  count p (n + 1) = count p n :=
+begin
+  rw [count_eq_card, count_eq_card],
+  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i} ∪ {n},
+  { simp [this] },
+  ext,
+  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
+  rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
+  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h : x = n, h.symm.subst hn).symm),
+end
+
 /--
 Find the `n`-th natural number satisfying `p`
 (indexed from `0`, so `nth p 0` is the first natural number satisfying `p`),
@@ -121,24 +157,25 @@ lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth i
 lemma nth_count_le (i : set.infinite p) (n : ℕ) : count p (nth p n) ≤ n :=
 (count_nth_gc _ i).l_u_le _
 
+lemma nth_le_of_le_count (a b : ℕ) (h : a < nth p b) : count p a < b :=
+begin
+
+end
+
+lemma nth_le_of_le_count (a b : ℕ) (h : a ≤ count p b) : nth p a ≤ b :=
+begin
+  rw lt_of_lt_
+  rw nth,
+  refine cInf_le_of_le _ _ _,
+
+end
+
 lemma nth_le_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k ≤ n :=
 sorry
 
 -- todo: move
 lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
 by rw [decidable.le_iff_lt_or_eq, lt_succ_iff]
-
-lemma count_eq_count_add_one (n : ℕ) (hn : p n) :
-  count p (n + 1) = count p n + 1 :=
-begin
-  rw [count_eq_card, count_eq_card],
-  suffices : {i : ℕ | i < n + 1 ∧ p i} = {i : ℕ | i < n ∧ p i} ∪ {n},
-  { simp [this] },
-  ext,
-  simp only [set.mem_insert_iff, set.mem_set_of_eq, set.union_singleton],
-  rw [lt_succ_iff, decidable.le_iff_lt_or_eq, or_comm, or_and_distrib_left],
-  exact and_congr_right (λ _, (or_iff_right_of_imp $ λ h : x = n, h.symm.subst hn).symm),
-end
 
 -- TODO this is the difficult sorry
 lemma nth_count (n : ℕ) (h : p n) : nth p (count p n - 1) = n :=

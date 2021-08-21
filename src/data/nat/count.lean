@@ -187,7 +187,7 @@ lemma le_succ_iff (x n : ℕ) : x ≤ n + 1 ↔ x ≤ n ∨ x = n + 1 :=
 by rw [decidable.le_iff_lt_or_eq, lt_succ_iff]
 
 -- TODO this is the difficult sorry
-lemma nth_count (n : ℕ) (h : p n) : nth p (count p n - 1) = n :=
+lemma nth_count (n : ℕ) (h : p n) : nth p (count p n) = n :=
 sorry
 
 open_locale classical

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
-import algebra.category.CommRing.basic
 import linear_algebra.basic
 import order.zorn
 import order.atoms
@@ -912,16 +911,6 @@ class is_local_ring_hom [semiring α] [semiring β] (f : α →+* β) : Prop :=
 
 instance is_local_ring_hom_id (A : Type*) [semiring A] : is_local_ring_hom (ring_hom.id A) :=
 { map_nonunit := λ a, id }
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_local_ring_hom_of_is_iso (R S : CommRing) (f : R ⟶ S) [h : category_theory.is_iso f] :
-  is_local_ring_hom f :=
-is_local_ring_hom.mk $ λ a ha,
-begin
-  rcases h.out with ⟨inv, f_inv, inv_f⟩,
-  convert inv.is_unit_map ha,
-  exact (category_theory.concrete_category.congr_hom f_inv a).symm,
-end
 
 @[simp] lemma is_unit_map_iff {A B : Type*} [semiring A] [semiring B] (f : A →+* B)
   [is_local_ring_hom f] (a) :

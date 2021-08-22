@@ -298,6 +298,16 @@ begin
   exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ),
 end
 
+@[simp, elementwise, reassoc]
+lemma stalk_pushforward_germ (f : X ⟶ Y) (F : X.presheaf C) (U : opens Y)
+  (x : (opens.map f).obj U) :
+  (f _* F).germ ⟨f x, x.2⟩ ≫ F.stalk_pushforward C f x = F.germ x :=
+begin
+  rw [stalk_pushforward, germ, colimit.ι_map_assoc, colimit.ι_pre, whisker_right_app],
+  erw [category_theory.functor.map_id, category.id_comp],
+  refl,
+end
+
 -- Here are two other potential solutions, suggested by @fpvandoorn at
 -- <https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240>
 -- However, I can't get the subsequent two proofs to work with either one.
@@ -313,16 +323,6 @@ end
 -- (colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ) :
 --   colim.obj ((open_nhds.inclusion (f x) ⋙ opens.map f).op ⋙ ℱ) ⟶ _) ≫
 -- colimit.pre ((open_nhds.inclusion x).op ⋙ ℱ) (open_nhds.map f x).op
-
-@[simp, elementwise, reassoc]
-lemma stalk_pushforward_germ (f : X ⟶ Y) (F : X.presheaf C) (U : opens Y)
-  (x : (opens.map f).obj U) :
-  (f _* F).germ ⟨f x, x.2⟩ ≫ F.stalk_pushforward C f x = F.germ x :=
-begin
-  rw [stalk_pushforward, germ, colimit.ι_map_assoc, colimit.ι_pre, whisker_right_app],
-  erw [category_theory.functor.map_id, category.id_comp],
-  refl,
-end
 
 namespace stalk_pushforward
 local attribute [tidy] tactic.op_induction'

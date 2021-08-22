@@ -525,6 +525,14 @@ quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
 
+/-- A variant of `lift_mk_eq` with universes specialized as `w = max u v`.
+This is sometimes necessary to avoid universe unification issues. -/
+theorem lift_mk_eq' {α : Type u} {β : Type v} :
+  lift.{u v} (mk α) = lift.{v u} (mk β) ↔ nonempty (α ≃ β) :=
+quotient.eq.trans
+⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
+ λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
+
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
 quotient.induction_on₂ a b $ λ α β,
 by rw ← lift_umax; exact lift_mk_le

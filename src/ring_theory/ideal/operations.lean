@@ -1618,7 +1618,7 @@ variables {R : Type u} [comm_ring R] (I J : ideal R)
 
 /-- define `quot_left_to_quot_sup` to be the obvious ring hom `R/I → R/(I ⊔ J)` -/
 def quot_left_to_quot_sup : I.quotient →+* (I ⊔ J).quotient :=
-  ideal.quotient.factor I (I ⊔ J) (le_sup_left)
+ideal.quotient.factor I (I ⊔ J) (le_sup_left)
 
 /-- This will be used to lift `quot_left_to_quot_sup` to a map `(R/I)/J' → R/(I ⊔ J)`-/
 lemma map_mk_le_ker_quot_left_to_quot_sup :

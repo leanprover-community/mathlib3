@@ -72,6 +72,17 @@ def count (n : ℕ) : ℕ :=
 @[simp] lemma count_zero : count p 0 = 0 :=
 by rw [count, range_zero, filter_nil, length]
 
+lemma list.range_one : range 1 = [0] := rfl
+lemma list.filter_singleton {α : Type*} (a : α) (p : α → Prop) [decidable_pred p] :
+  [a].filter p = if p a then [a] else [] :=
+sorry
+
+@[simp] lemma count_one : count p 1 = if p 0 then 1 else 0 :=
+begin
+  rw [count, list.range_one, list.filter_singleton, apply_ite list.length],
+  refl,
+end
+
 noncomputable instance count_set_fintype (p : ℕ → Prop) (n : ℕ) : fintype { i | i < n ∧ p i } :=
 fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i < n })) (by tidy)
 
@@ -88,6 +99,9 @@ begin
   ext i,
   simp [lt_succ_iff],
 end
+
+lemma count_succ' {n : ℕ} : count p (n + 1) = (if p 0 then 1 else 0) + count (λ k, p (k+1)) n :=
+sorry
 
 @[simp]
 lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
@@ -126,6 +140,21 @@ noncomputable def nth : ℕ → ℕ
 
 lemma nth_def (n : ℕ) : nth p n = Inf { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 well_founded.fix_eq _ _ _
+
+lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } :=
+by { rw [nth_def], simp, }
+
+@[simp]
+lemma nth_zero_of_zero (h : p 0) : nth p 0 = 0 :=
+begin
+  apply nat.eq_zero_of_le_zero,
+  rw nth_def,
+  apply nat.Inf_le,
+  simp [h],
+end
+
+lemma nth_zero_of_exists (h : ∃ n, p n) : nth p 0 = nat.find h :=
+by { rw [nth_zero], convert nat.Inf_def h, }
 
 lemma nth_eq_zero_iff (n : ℕ) : nth p n = 0 ↔ n = 0 ∧ p 0 ∨ set_of p = ∅ :=
 begin
@@ -175,11 +204,8 @@ end
 lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) :=
 (nth_mem_of_infinite_aux p i n).1
 
-lemma nth_strict_mono_of_infinite (i : set.infinite p) : strict_mono (nth p) :=
+lemma nth_strict_mono_of_infinite (i : set.infinite (set_of p)) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
-
--- eric: I think these definitely need < as opposed to ≤; consider `nth p 3` ("4th element")
--- for a `p` that is true thrice
 
 lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
   count p (nth p n) = n :=
@@ -227,7 +253,7 @@ begin
   sorry
 end
 
-lemma nth_le_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k ≤ n :=
+lemma nth_lt_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k < n :=
 sorry
 
 -- TODO this is the difficult sorry

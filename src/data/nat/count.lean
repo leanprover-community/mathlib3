@@ -230,16 +230,22 @@ lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) 
 lemma nth_strict_mono_of_infinite (i : set.infinite (set_of p)) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
--- eric: i think this needs a cardinal.mk (set_of p) restriction too sadly
-lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) : nth p k = nth (λ i, p (i+1)) k + 1 :=
+lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (k : ℕ) (h : nth p k ≠ 0) : ∀ a ≤ k, nth p a ≠ 0 :=
+sorry
+
+lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) (h : nth p k ≠ 0) : nth p k = nth (λ i, p (i+1)) k + 1 :=
 begin
+  revert h,
   apply nat.strong_induction_on k,
-  intro k,
-  intro w,
+  clear k,
+  intros a b ha,
   rw [nth_def, nth_def],
-  have w' : ∀ m, m < k → nth (λ i, p (i+1)) m = nth p m - 1 := sorry,
+  have w' : ∀ m, m < a → nth (λ i, p (i+1)) m = nth p m - 1,
+  { intros m hm,
+    specialize b m hm (nth_nonzero_of_ge_nonzero _ h a ha m hm.le),
+    rw b,
+    simp },
   simp [w'] {contextual := tt},
-  clear w w',
   sorry --- easy from here.
 end
 
@@ -255,10 +261,15 @@ begin
     rw [count_succ', count_succ] at this,
     simp only [h, h', cast_one, if_true, cast_add] at this,
     assumption_mod_cast },
-  { simp,
-    rw nth_of_not_zero _ h',
-    rw ih,
-    exact h, },
+  { obtain hcz | hcz := eq_or_ne (nth p (count (λ k, p (k + 1)) n + if p 0 then 1 else 0)) 0,
+    { exfalso,
+      rw ←@count_succ' p _ n at hcz,
+      -- nth zero, but we have p (n.succ) which means that's bullshit
+      sorry },
+    { simp [h'] at ⊢ hcz,
+      rw nth_of_not_zero _ h' _ hcz,
+      rw ih,
+      exact h } },
 end
 
 open_locale classical

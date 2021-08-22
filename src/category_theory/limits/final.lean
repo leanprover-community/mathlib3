@@ -410,7 +410,7 @@ it suffices to perform that construction for some other pair of choices
 and to show how to transport such a construction
 *both* directions along a morphism between such choices.
 -/
-lemma induction {d : D} (Z : Π (X : C) (k : F.obj X ⟶ d), Sort*)
+def induction {d : D} (Z : Π (X : C) (k : F.obj X ⟶ d), Sort*)
   (h₁ : Π X₁ X₂ (k₁ : F.obj X₁ ⟶ d) (k₂ : F.obj X₂ ⟶ d) (f : X₁ ⟶ X₂),
     (F.map f ≫ k₂ = k₁) → Z X₁ k₁ → Z X₂ k₂)
   (h₂ : Π X₁ X₂ (k₁ : F.obj X₁ ⟶ d) (k₂ : F.obj X₂ ⟶ d) (f : X₁ ⟶ X₂),

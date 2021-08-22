@@ -176,7 +176,12 @@ begin
   revert w,
   apply nat.strong_induction_on n,
   intros n' ih w,
-  replace ih : ∀ m, m < n' → nth (λ i, p (i + 1)) m = nth p (m + 1) - 1 := sorry, -- easy: the extra condition is vacuous + some arithmetic
+  replace ih : ∀ m, m < n' → nth (λ i, p (i + 1)) m = nth p (m + 1) - 1,
+  { intros m hm,
+    specialize ih m hm (le_trans _ w),
+    { norm_cast,
+      exact le_of_lt (add_lt_add_right hm 2), },
+    simp [ih], },
   rw [nth_def, nth_def],
   simp [ih] {contextual:=tt},
   sorry,

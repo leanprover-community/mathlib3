@@ -465,6 +465,27 @@ end measure
 
 namespace vector_measure
 
+open measure
+
+/-- A vector measure over `ℝ≥0∞` is a measure. -/
+def ennreal_to_measure (v : vector_measure α ℝ≥0∞) : measure α :=
+of_measurable (λ s _, v s) v.empty (λ f hf₁ hf₂, v.of_disjoint_Union_nat hf₁ hf₂)
+
+lemma ennreal_to_measure_apply {v : vector_measure α ℝ≥0∞} {s : set α} (hs : measurable_set s) :
+  ennreal_to_measure v s = v s :=
+by rw [ennreal_to_measure, of_measurable_apply _ hs]
+
+/-- The equiv between `vector_measure α ℝ≥0∞` and `measure α` formed by
+`measure_theory.vector_measure.ennreal_to_measure` and
+`measure_theory.measure.to_ennreal_vector_measure`. -/
+@[simps] def equiv_measure : vector_measure α ℝ≥0∞ ≃ measure α :=
+{ to_fun := ennreal_to_measure,
+  inv_fun := to_ennreal_vector_measure,
+  left_inv := λ _, ext (λ s hs,
+    by rw [to_ennreal_vector_measure_apply_measurable hs, ennreal_to_measure_apply hs]),
+  right_inv := λ _, measure.ext (λ s hs,
+    by rw [ennreal_to_measure_apply hs, to_ennreal_vector_measure_apply_measurable hs]) }
+
 section
 
 variables [measurable_space β]
@@ -880,20 +901,22 @@ end
 
 section
 
-variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {L M N : Type*}
+variables [add_comm_monoid L] [topological_space L] [add_comm_monoid M] [topological_space M]
+  [add_comm_monoid N] [topological_space N]
 
 /-- A vector measure `v` is absolutely continuous with respect to a measure `μ` if for all sets
 `s`, `μ s = 0`, we have `v s = 0`. -/
-def absolutely_continuous (v : vector_measure α M) (μ : measure α) :=
-∀ ⦃s : set α⦄, μ s = 0 → v s = 0
+def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
+∀ ⦃s : set α⦄, w s = 0 → v s = 0
 
 infix ` ≪ `:50 := absolutely_continuous
 
 namespace absolutely_continuous
 
-variables {v : vector_measure α M} {μ : measure α}
+variables {v : vector_measure α M} {w : vector_measure α N}
 
-lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → μ s = 0 → v s = 0) : v ≪ μ :=
+lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ w :=
 begin
   intros s hs,
   by_cases hmeas : measurable_set s,
@@ -901,22 +924,37 @@ begin
   { exact not_measurable v hmeas }
 end
 
-lemma to_signed_measure (μ : measure α) [finite_measure μ]: μ.to_signed_measure ≪ μ :=
-begin
-  refine mk (λ s hs₁ hs₂, _),
-  rw [measure.to_signed_measure_apply_measurable hs₁, hs₂, ennreal.zero_to_real]
-end
+lemma eq {w : vector_measure α M} (h : v = w) : v ≪ w :=
+λ s hs, h.symm ▸ hs
 
-lemma map [measure_space β] (h : v ≪ μ) (f : α → β) :
-  v.map f ≪ measure.map f μ :=
+@[refl] lemma refl (v : vector_measure α M) : v ≪ v :=
+eq rfl
+
+@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ v) (hvw : v ≪ w) : u ≪ w :=
+λ _ hs, huv $ hvw hs
+
+lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
+  v.map f ≪ w.map f :=
 begin
   by_cases hf : measurable f,
   { refine mk (λ s hs hws, _),
-    rw map_apply _ hf hs,
-    rw measure.map_apply hf hs at hws,
+    rw map_apply _ hf hs at hws ⊢,
     exact h hws },
   { intros s hs,
     rw [map_not_measurable v hf, zero_apply] }
+end
+
+lemma ennreal_to_measure {μ : vector_measure α ℝ≥0∞} :
+  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ μ :=
+begin
+  split; intro h,
+  { refine mk (λ s hmeas hs, h _),
+    rw [← hs, ennreal_to_measure_apply hmeas] },
+  { intros s hs,
+    by_cases hmeas : measurable_set s,
+    { rw ennreal_to_measure_apply hmeas at hs,
+      exact h hs },
+    { exact not_measurable v hmeas } },
 end
 
 end absolutely_continuous

@@ -549,7 +549,7 @@ theorem comp_assoc (φ₁ : C →ₐ[R] D) (φ₂ : B →ₐ[R] C) (φ₃ : A �
 ext $ λ x, rfl
 
 /-- R-Alg ⥤ R-Mod -/
-def to_linear_map : A →ₗ B :=
+def to_linear_map : A →ₗ[R] B :=
 { to_fun := φ,
   map_add' := φ.map_add,
   map_smul' := φ.map_smul }
@@ -1144,11 +1144,11 @@ def lmul : A →ₐ[R] (End R A) :=
 variables {A}
 
 /-- The multiplication on the left in an algebra is a linear map. -/
-def lmul_left (r : A) : A →ₗ A :=
+def lmul_left (r : A) : A →ₗ[R] A :=
 lmul R A r
 
 /-- The multiplication on the right in an algebra is a linear map. -/
-def lmul_right (r : A) : A →ₗ A :=
+def lmul_right (r : A) : A →ₗ[R] A :=
 (lmul R A).to_linear_map.flip r
 
 /-- Simultaneous multiplication on the left and right is a linear map. -/

@@ -364,9 +364,6 @@ cast_nat_cast dvd_rfl k
 lemma cast_int_cast' (k : ℤ) : ((k : zmod n) : R) = k :=
 cast_int_cast dvd_rfl k
 
-instance (R : Type*) [comm_ring R] [char_p R n] : algebra (zmod n) R :=
-(zmod.cast_hom (dvd_refl n) R).to_algebra
-
 variables (R)
 
 lemma cast_hom_injective : function.injective (zmod.cast_hom (dvd_refl n) R) :=

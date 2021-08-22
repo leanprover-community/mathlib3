@@ -897,7 +897,7 @@ end
 
 open linear_map
 
-lemma linear_independent.image_subtype {s : set M} {f : M →ₗ M'}
+lemma linear_independent.image_subtype {s : set M} {f : M →ₗ[R] M'}
   (hs : linear_independent R (λ x, x : s → M))
   (hf_inj : disjoint (span R s) f.ker) : linear_independent R (λ x, x : f '' s → M') :=
 begin

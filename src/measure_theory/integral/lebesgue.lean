@@ -1676,9 +1676,8 @@ theorem lintegral_supr_directed [encodable β] {f : β → α → ℝ≥0∞}
   (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
 begin
-  by_cases hβ : nonempty β, swap,
-  { simp [supr_of_empty hβ] },
-  resetI, inhabit β,
+  casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
+  inhabit β,
   have : ∀a, (⨆ b, f b a) = (⨆ n, f (h_directed.sequence f n) a),
   { assume a,
     refine le_antisymm (supr_le $ assume b, _) (supr_le $ assume n, le_supr (λn, f n a) _),

@@ -3365,10 +3365,7 @@ lemma infi_eq_infi_subseq_of_monotone {ι₁ ι₂ α : Type*} [preorder ι₂] 
   {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : monotone f)
   (hφ : tendsto φ l at_bot) :
   (⨅ i, f i) = (⨅ i, f (φ i)) :=
-le_antisymm
-  (infi_le_infi2 $ λ i, ⟨φ i, le_refl _⟩)
-  (infi_le_infi2 $ λ i, exists_imp_exists (λ j (hj : φ j ≤ i), hf hj)
-    (hφ.eventually $ eventually_le_at_bot i).exists)
+supr_eq_supr_subseq_of_monotone hf.order_dual hφ
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :

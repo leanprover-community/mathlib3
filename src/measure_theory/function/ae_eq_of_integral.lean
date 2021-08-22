@@ -252,7 +252,7 @@ begin
   exact (measure_mono (set.inter_subset_right s t)).trans_lt (lt_top_iff_ne_top.mpr hμt),
 end
 
-lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero_ℝ {f : α → ℝ}
+lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero_real {f : α → ℝ}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
   {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
@@ -275,7 +275,7 @@ end
 
 end real
 
-lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero_𝕜 {f : α → 𝕜}
+lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero_R_or_C {f : α → 𝕜}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
   {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
@@ -297,39 +297,8 @@ begin
   { intros s hs hμs,
     rw [integral_im (hf_int_finite s hs hμs), hf_zero s hs hμs],
     simp only [add_monoid_hom.map_zero], },
-  exact ⟨ae_eq_zero_restrict_of_forall_set_integral_eq_zero_ℝ hf_re hf_zero_re ht hμt,
-    ae_eq_zero_restrict_of_forall_set_integral_eq_zero_ℝ hf_im hf_zero_im ht hμt⟩,
-end
-
-/-- TODO: move to measure_space. Unused. -/
-lemma sigma_finite_restrict_union {α} {m : measurable_space α} {μ : measure α} {s t : set α}
-  (hs : sigma_finite (μ.restrict s)) (ht : sigma_finite (μ.restrict t)) :
-  sigma_finite (μ.restrict (s ∪ t)) :=
-begin
-  let S := spanning_sets (μ.restrict s),
-  have hS_meas := λ n, measurable_spanning_sets (μ.restrict s) n,
-  let T := spanning_sets (μ.restrict t),
-  have hT_meas := λ n, measurable_spanning_sets (μ.restrict t) n,
-  use (λ n, S n ∩ T n),
-  { exact λ n, (hS_meas n).inter (hT_meas n), },
-  { intros n,
-    rw [measure.restrict_apply ((hS_meas n).inter (hT_meas n)), set.inter_union_distrib_left],
-    refine (measure_union_le _ _).trans_lt (ennreal.add_lt_top.mpr ⟨_, _⟩),
-    { have h_subset : S n ∩ T n ∩ s ⊆ S n ∩ s,
-      { rw [set.inter_assoc, set.inter_comm, set.inter_assoc, set.inter_comm s],
-        exact set.inter_subset_right _ _, },
-      refine (measure_mono h_subset).trans_lt _,
-      have h := measure_spanning_sets_lt_top (μ.restrict s) n,
-      rwa measure.restrict_apply (hS_meas n) at h, },
-    { have h_subset : S n ∩ T n ∩ t ⊆ T n ∩ t,
-      { rw set.inter_assoc,
-        exact set.inter_subset_right _ _, },
-      refine (measure_mono h_subset).trans_lt _,
-      have h := measure_spanning_sets_lt_top (μ.restrict t) n,
-      rwa measure.restrict_apply (hT_meas n) at h, }, },
-  { rw [set.Union_inter_of_monotone (monotone_spanning_sets (μ.restrict s))
-      (monotone_spanning_sets (μ.restrict t)), Union_spanning_sets (μ.restrict s),
-      Union_spanning_sets (μ.restrict t), set.univ_inter], },
+  exact ⟨ae_eq_zero_restrict_of_forall_set_integral_eq_zero_real hf_re hf_zero_re ht hμt,
+    ae_eq_zero_restrict_of_forall_set_integral_eq_zero_real hf_im hf_zero_im ht hμt⟩,
 end
 
 variables [is_scalar_tower ℝ 𝕜 E]
@@ -342,7 +311,7 @@ lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero {f : α → E}
   f =ᵐ[μ.restrict t] 0 :=
 begin
   refine ae_eq_zero_of_forall_inner (λ c, _),
-  refine ae_eq_zero_restrict_of_forall_set_integral_eq_zero_𝕜 _ _ ht hμt,
+  refine ae_eq_zero_restrict_of_forall_set_integral_eq_zero_R_or_C _ _ ht hμt,
   { exact λ s hs hμs, (hf_int_finite s hs hμs).const_inner c, },
   { intros s hs hμs,
     rw integral_inner (hf_int_finite s hs hμs) c,

@@ -289,7 +289,7 @@ equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
 
 /-- Permutations on a subtype are equivalent to permutations on the original type that fix pointwise
 the rest. -/
-@[simps] protected def subtype_equiv (p : α → Prop) [decidable_pred p] :
+@[simps] protected def subtype_equiv_subtype_perm (p : α → Prop) [decidable_pred p] :
   perm (subtype p) ≃ {f : perm α // ∀ a, ¬p a → f a = a} :=
 { to_fun := λ f, ⟨f.of_subtype, λ a, f.of_subtype_apply_of_not_mem⟩,
   inv_fun := λ f, (f : perm α).subtype_perm

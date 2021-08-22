@@ -48,6 +48,12 @@ lemma separable_def' (f : polynomial R) :
   f.separable ↔ ∃ a b : polynomial R, a * f + b * f.derivative = 1 :=
 iff.rfl
 
+lemma not_separable_zero [nontrivial R] : ¬ separable (0 : polynomial R) :=
+begin
+  rintro ⟨x, y, h⟩,
+  simpa only [derivative_zero, mul_zero, add_zero, zero_ne_one] using h,
+end
+
 lemma separable_one : (1 : polynomial R).separable :=
 is_coprime_one_left
 
@@ -555,6 +561,21 @@ begin
       exact ring_hom.map_zero i },
     { exact h_roots } },
   { exact nodup_roots (separable.map h_sep) },
+end
+
+lemma exists_finset_of_splits
+  (i : F →+* K) {f : polynomial F} (sep : separable f) (sp : splits i f) :
+  ∃ (s : finset K), f.map i =
+    C (i f.leading_coeff) * (s.prod (λ a : K, (X : polynomial K) - C a)) :=
+begin
+  classical,
+  obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
+  use s.to_finset,
+  rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
+  apply nodup_of_separable_prod,
+  apply separable.of_mul_right,
+  rw ←h,
+  exact sep.map,
 end
 
 end splits

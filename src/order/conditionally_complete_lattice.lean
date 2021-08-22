@@ -369,21 +369,6 @@ cSup_eq_of_forall_le_of_forall_lt_exists_gt nonempty_Iio (λ _, le_of_lt)
 @[simp] lemma cSup_Ioo [densely_ordered α] (h : a < b) : Sup (Ioo a b) = b :=
 (is_lub_Ioo h).cSup_eq (nonempty_Ioo.2 h)
 
-/--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
-lemma csupr_le_csupr {f g : ι → α} (B : bdd_above (range g)) (H : ∀x, f x ≤ g x) :
-  supr f ≤ supr g :=
-begin
-  classical, by_cases hι : nonempty ι,
-  { have Rf : (range f).nonempty, { exactI range_nonempty _ },
-    apply cSup_le Rf,
-    rintros y ⟨x, rfl⟩,
-    have : g x ∈ range g := ⟨x, rfl⟩,
-    exact le_cSup_of_le B this (H x) },
-  { have Rf : range f = ∅, from range_eq_empty.2 hι,
-    have Rg : range g = ∅, from range_eq_empty.2 hι,
-    unfold supr, rw [Rf, Rg] }
-end
-
 /--The indexed supremum of a function is bounded above by a uniform bound-/
 lemma csupr_le [nonempty ι] {f : ι → α} {c : α} (H : ∀x, f x ≤ c) : supr f ≤ c :=
 cSup_le (range_nonempty f) (by rwa forall_range_iff)
@@ -394,6 +379,15 @@ le_cSup H (mem_range_self _)
 
 lemma le_csupr_of_le {f : ι → α} (H : bdd_above (range f)) (c : ι) (h : a ≤ f c) : a ≤ supr f :=
 le_trans h (le_csupr H c)
+
+/--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
+lemma csupr_le_csupr {f g : ι → α} (B : bdd_above (range g)) (H : ∀x, f x ≤ g x) :
+  supr f ≤ supr g :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { rw [supr_of_empty', supr_of_empty'] },
+  { exact csupr_le (λ x, le_csupr_of_le B x (H x)) },
+end
 
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
 lemma cinfi_le_cinfi {f g : ι → α} (B : bdd_below (range f)) (H : ∀x, f x ≤ g x) :
@@ -568,11 +562,10 @@ variables [conditionally_complete_linear_order_bot α]
 lemma cSup_empty : (Sup ∅ : α) = ⊥ :=
 conditionally_complete_linear_order_bot.cSup_empty
 
-@[simp] lemma csupr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
-begin
-  have : ¬nonempty p := by simp [hp],
-  rw [supr, range_eq_empty.mpr this, cSup_empty],
-end
+lemma csupr_of_empty [is_empty ι] (f : ι → α) : (⨆ i, f i) = ⊥ :=
+by rw [supr_of_empty', cSup_empty]
+
+@[simp] lemma csupr_false (f : false → α) : (⨆ i, f i) = ⊥ := csupr_of_empty f
 
 end conditionally_complete_linear_order_bot
 

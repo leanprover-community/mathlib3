@@ -245,9 +245,8 @@ is the supremum of the measures. -/
 lemma measure_Union_eq_supr [encodable ι] {s : ι → set α} (h : ∀ i, measurable_set (s i))
   (hd : directed (⊆) s) : μ (⋃ i, s i) = ⨆ i, μ (s i) :=
 begin
-  by_cases hι : nonempty ι, swap,
-  { simp only [supr_of_empty hι, Union], exact measure_empty },
-  resetI,
+  casesI is_empty_or_nonempty ι,
+  { simp only [supr_of_empty, Union], exact measure_empty },
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
   have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
     measurable_set.disjointed (measurable_set.bUnion_decode₂ h),

@@ -310,30 +310,16 @@ lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
 begin
   intros N,
-  let A := finset.image u (finset.range $ N+1), -- A = {u 0, ..., u N}
-  have Ane : A.nonempty,
-    from ⟨u 0, finset.mem_image_of_mem _ (finset.mem_range.mpr $ nat.zero_lt_succ _)⟩,
-  let M := finset.max' A Ane,
-  have ex : ∃ n ≥ N, M < u n,
+  obtain ⟨k, hkn, hku⟩ : ∃ k ≤ N, ∀ l ≤ N, u l ≤ u k,
+    from exists_max_image _ u (finite_le_nat N) ⟨N, le_refl N⟩,
+  have ex : ∃ n ≥ N, u k < u n,
     from exists_lt_of_tendsto_at_top hu _ _,
-  obtain ⟨n, hnN, hnM, hn_min⟩ : ∃ n, N ≤ n ∧ M < u n ∧ ∀ k, N ≤ k → k < n → u k ≤ M,
-  { use nat.find ex,
-    rw ← and_assoc,
-    split,
-    { simpa using nat.find_spec ex },
-    { intros k hk hk',
-      simpa [hk] using nat.find_min ex hk' } },
-  use [n, hnN],
-  intros k hk,
-  by_cases H : k ≤ N,
-  { have : u k ∈ A,
-      from finset.mem_image_of_mem _ (finset.mem_range.mpr $ nat.lt_succ_of_le H),
-    have : u k ≤ M,
-      from finset.le_max' A (u k) this,
-    exact lt_of_le_of_lt this hnM },
-  { push_neg at H,
-    calc u k ≤ M   : hn_min k (le_of_lt H) hk
-         ... < u n : hnM },
+  obtain ⟨M, hMN, hMk, hM_min⟩ : ∃ M ≥ N, u k < u M ∧ ∀ m, m < M → N ≤ m → u m ≤ u k,
+  { rcases nat.find_x ex with ⟨M, ⟨hMN, hMk⟩, hM_min⟩,
+    push_neg at hM_min,
+    exact ⟨M, hMN, hMk, hM_min⟩ },
+  refine ⟨M, hMN, λ l hl, lt_of_le_of_lt _ hMk⟩,
+  exact (le_total l N).elim (hku _) (hM_min l hl)
 end
 
 /--

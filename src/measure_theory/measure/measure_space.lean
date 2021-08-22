@@ -1974,7 +1974,7 @@ lemma exists_eq_disjoint_finite_spanning_sets_in
     S.set = T.set ∧ pairwise (disjoint on S.set) :=
 let S := (μ + ν).to_finite_spanning_sets_in.disjointed in
 ⟨S.of_le (measure.le_add_right le_rfl), S.of_le (measure.le_add_left le_rfl),
- rfl, disjoint_disjointed _⟩
+  rfl, disjoint_disjointed _⟩
 
 end disjointed
 

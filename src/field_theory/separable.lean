@@ -48,6 +48,12 @@ lemma separable_def' (f : polynomial R) :
   f.separable ↔ ∃ a b : polynomial R, a * f + b * f.derivative = 1 :=
 iff.rfl
 
+lemma not_separable_zero [nontrivial R] : ¬ separable (0 : polynomial R) :=
+begin
+  rintro ⟨x, y, h⟩,
+  simpa only [derivative_zero, mul_zero, add_zero, zero_ne_one] using h,
+end
+
 lemma separable_one : (1 : polynomial R).separable :=
 is_coprime_one_left
 
@@ -557,6 +563,21 @@ begin
   { exact nodup_roots (separable.map h_sep) },
 end
 
+lemma exists_finset_of_splits
+  (i : F →+* K) {f : polynomial F} (sep : separable f) (sp : splits i f) :
+  ∃ (s : finset K), f.map i =
+    C (i f.leading_coeff) * (s.prod (λ a : K, (X : polynomial K) - C a)) :=
+begin
+  classical,
+  obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
+  use s.to_finset,
+  rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
+  apply nodup_of_separable_prod,
+  apply separable.of_mul_right,
+  rw ←h,
+  exact sep.map,
+end
+
 end splits
 
 end field
@@ -626,3 +647,22 @@ begin
 end
 
 end is_separable_tower
+
+section card_alg_hom
+
+variables {R S T : Type*} [comm_ring S]
+variables {K L F : Type*} [field K] [field L] [field F]
+variables [algebra K S] [algebra K L]
+
+lemma alg_hom.card_of_power_basis (pb : power_basis K S) (h_sep : (minpoly K pb.gen).separable)
+  (h_splits : (minpoly K pb.gen).splits (algebra_map K L)) :
+  @fintype.card (S →ₐ[K] L) (power_basis.alg_hom.fintype pb) = (minpoly K pb.gen).nat_degree :=
+begin
+  let s := ((minpoly K pb.gen).map (algebra_map K L)).roots.to_finset,
+  have H := λ x, multiset.mem_to_finset,
+  rw [fintype.card_congr pb.lift_equiv', fintype.card_of_subtype s H,
+      nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
+  exact nodup_roots ((separable_map (algebra_map K L)).mpr h_sep)
+end
+
+end card_alg_hom

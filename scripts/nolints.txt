@@ -281,15 +281,6 @@ apply_nolint pequiv.refl doc_blame
 apply_nolint pequiv.symm doc_blame
 apply_nolint pequiv.trans doc_blame
 
--- data/pfun.lean
-apply_nolint pfun.core doc_blame
-apply_nolint pfun.fix doc_blame
-apply_nolint pfun.fix_induction doc_blame
-apply_nolint pfun.graph' doc_blame
-apply_nolint pfun.image doc_blame
-apply_nolint pfun.preimage doc_blame
-apply_nolint pfun.res doc_blame
-
 -- data/pnat/xgcd.lean
 apply_nolint pnat.gcd_a' doc_blame
 apply_nolint pnat.gcd_b' doc_blame
@@ -364,7 +355,7 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/vector2.lean
+-- data/vector/basic.lean
 apply_nolint vector.insert_nth doc_blame
 apply_nolint vector.m_of_fn doc_blame
 apply_nolint vector.mmap doc_blame
@@ -455,17 +446,6 @@ apply_nolint gaussian_int doc_blame
 apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 
--- order/filter/partial.lean
-apply_nolint filter.pcomap' doc_blame
-apply_nolint filter.pmap doc_blame
-apply_nolint filter.ptendsto doc_blame
-apply_nolint filter.ptendsto' doc_blame
-apply_nolint filter.rcomap doc_blame
-apply_nolint filter.rcomap' doc_blame
-apply_nolint filter.rmap doc_blame
-apply_nolint filter.rtendsto doc_blame
-apply_nolint filter.rtendsto' doc_blame
-
 -- order/fixed_points.lean
 apply_nolint fixed_points.next doc_blame
 apply_nolint fixed_points.next_fixed doc_blame
@@ -520,20 +500,12 @@ apply_nolint pSet.subset doc_blame
 apply_nolint pSet.type has_inhabited_instance
 
 -- tactic/abel.lean
-apply_nolint tactic.abel.add_g doc_blame
-apply_nolint tactic.abel.cache doc_blame
-apply_nolint tactic.abel.cache.app doc_blame
-apply_nolint tactic.abel.cache.iapp doc_blame
-apply_nolint tactic.abel.cache.int_to_expr doc_blame
-apply_nolint tactic.abel.cache.mk_app doc_blame
-apply_nolint tactic.abel.cache.mk_term doc_blame
 apply_nolint tactic.abel.eval doc_blame
 apply_nolint tactic.abel.eval' doc_blame
 apply_nolint tactic.abel.eval_add doc_blame
 apply_nolint tactic.abel.eval_atom doc_blame
 apply_nolint tactic.abel.eval_neg doc_blame
 apply_nolint tactic.abel.eval_smul doc_blame
-apply_nolint tactic.abel.mk_cache doc_blame
 apply_nolint tactic.abel.normal_expr doc_blame
 apply_nolint tactic.abel.normal_expr.e doc_blame
 apply_nolint tactic.abel.normal_expr.pp doc_blame
@@ -992,7 +964,6 @@ apply_nolint tactic.tautology doc_blame
 
 -- tactic/tfae.lean
 apply_nolint tactic.interactive.parse_list doc_blame
-apply_nolint tactic.interactive.tfae_have unused_arguments
 apply_nolint tactic.tfae.arrow doc_blame
 apply_nolint tactic.tfae.mk_implication doc_blame
 apply_nolint tactic.tfae.mk_name doc_blame

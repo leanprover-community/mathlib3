@@ -469,6 +469,44 @@ begin
   exact outer_measure.le_mk_metric m μ.to_outer_measure measure_singleton ε h₀ h
 end
 
+/-- To bound the Hausdorff measure (or, more generally, for a measure defined using
+`measure_theory.measure.mk_metric`) of a set, one may use coverings with maximum diameter tending to
+`0`, indexed by any sequence of encodable types. -/
+lemma mk_metric_le_liminf_tsum {β : Type*} {ι : β → Type*} [∀ n, encodable (ι n)] (s : set X)
+  {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
+  (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i)
+  (m : ℝ≥0∞ → ℝ≥0∞) :
+  mk_metric m s ≤ liminf l (λ n, ∑' i, m (diam (t n i))) :=
+begin
+  simp only [mk_metric_apply],
+  refine bsupr_le (λ ε hε, _),
+  refine le_of_forall_le_of_dense (λ c hc, _),
+  rcases ((frequently_lt_of_liminf_lt (by apply_auto_param) hc).and_eventually
+    ((hr.eventually (gt_mem_nhds hε)).and (ht.and hst))).exists with ⟨n, hn, hrn, htn, hstn⟩,
+  set u : ℕ → set X := λ j, ⋃ b ∈ decode₂ (ι n) j, t n b,
+  refine binfi_le_of_le u (by rwa Union_decode₂) _,
+  refine infi_le_of_le (λ j, _) _,
+  { rw emetric.diam_Union_mem_option,
+    exact bsupr_le (λ _ _, (htn _).trans hrn.le) },
+  { calc (∑' (j : ℕ), ⨆ (ht : ¬(u j).subsingleton), m (diam (u j))) = _ :
+              tsum_Union_decode₂ (λ t : set X, ⨆ (h : ¬t.subsingleton), m (diam t)) (by simp) _
+    ... ≤ _ : ennreal.tsum_le_tsum (λ b, supr_le $ λ htb, le_rfl)
+    ... ≤ c : hn.le }
+end
+
+/-- To bound the Hausdorff measure (or, more generally, for a measure defined using
+`measure_theory.measure.mk_metric`) of a set, one may use coverings with maximum diameter tending to
+`0`, indexed by any sequence of finite types. -/
+lemma mk_metric_le_liminf_sum {β : Type*} {ι : β → Type*} [hι : ∀ n, fintype (ι n)] (s : set X)
+  {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
+  (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i)
+  (m : ℝ≥0∞ → ℝ≥0∞) :
+  mk_metric m s ≤ liminf l (λ n, ∑ i, m (diam (t n i))) :=
+begin
+  haveI : ∀ n, encodable (ι n), from λ n, fintype.encodable _,
+  simpa only [tsum_fintype] using mk_metric_le_liminf_tsum s r hr t ht hst m,
+end
+
 /-!
 ### Hausdorff measure and Hausdorff dimension
 -/
@@ -508,47 +546,21 @@ end
 
 /-- To bound the Hausdorff measure of a set, one may use coverings with maximum diameter tending
 to `0`, indexed by any sequence of encodable types. -/
-lemma hausdorff_measure_le {β : Type*}  {ι : β → Type*} [hι : ∀ n, encodable (ι n)]
-  {d : ℝ} (hd : 0 < d) (s : set X)
+lemma hausdorff_measure_le_liminf_tsum {β : Type*}  {ι : β → Type*} [hι : ∀ n, encodable (ι n)]
+  (d : ℝ) (s : set X)
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i) :
   μH[d] s ≤ liminf l (λ n, ∑' i, diam (t n i) ^ d) :=
-begin
-  classical,
-  rw hausdorff_measure_apply hd,
-  refine le_of_forall_le_of_dense (λ c hc, _),
-  refine supr_le (λ i, supr_le (λ hi, _)),
-  rcases ((frequently_lt_of_liminf_lt (by is_bounded_default) hc).and_eventually
-    ((((tendsto_order.1 hr).2 _ hi)).and (ht.and hst))).exists with ⟨n, hn, hrn, htn, hstn⟩,
-  let u : ℕ → set X := λ j, option.elim (decode₂ (ι n) j) ∅ (t n),
-  refine (infi_le _ u).trans _,
-  have : s ⊆ ⋃ j, u j,
-  { assume x hx,
-    rcases mem_Union.1 (hstn hx) with ⟨w, hw⟩,
-    apply mem_Union.2 ⟨encode w, _⟩,
-    simp only [u],
-    rw encodek₂ w,
-    simpa },
-  refine (infi_le _ this).trans _,
-  have : ∀ (j : ℕ), diam (u j) ≤ i,
-  { assume j,
-    apply le_trans _ hrn.le,
-    simp only [u],
-    generalize : decode₂ (ι n) j = e,
-    cases e,
-    { simp },
-    { simp [htn e] } },
-  refine (infi_le _ this).trans _,
-  have A : ∀ (j : ℕ), j ∉ range (encode : ι n → ℕ) → diam (u j) ^ d = 0,
-  { assume j hj,
-    have : decode₂ (ι n) j = none, by simpa [← decode₂_ne_none_iff] using hj,
-    simp [u, this, hd] },
-  have B : has_sum ((λ (j : ℕ), diam (u j) ^ d) ∘ (encode : ι n → ℕ)) (∑' i, diam (t n i) ^ d),
-    by simp only [u, comp, encodek₂, ennreal.summable.has_sum, option.elim],
-  rw function.injective.has_sum_iff encode_injective A at B,
-  rw [B.tsum_eq],
-  exact hn.le
-end
+mk_metric_le_liminf_tsum s r hr t ht hst _
+
+/-- To bound the Hausdorff measure of a set, one may use coverings with maximum diameter tending
+to `0`, indexed by any sequence of finite types. -/
+lemma hausdorff_measure_le_liminf_sum {β : Type*}  {ι : β → Type*} [hι : ∀ n, fintype (ι n)]
+  (d : ℝ) (s : set X)
+  {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
+  (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i) :
+  μH[d] s ≤ liminf l (λ n, ∑ i, diam (t n i) ^ d) :=
+mk_metric_le_liminf_sum s r hr t ht hst _
 
 /-- If `d₁ < d₂`, then for any set `s` we have either `μH[d₂] s = 0`, or `μH[d₁] s = ∞`. -/
 lemma hausdorff_measure_zero_or_top {d₁ d₂ : ℝ} (h : d₁ < d₂) (s : set X) :
@@ -699,7 +711,6 @@ begin
   have Hpos : 0 < (fintype.card ι : ℝ), by simp only [Hpos', nat.cast_pos],
   have I : ∀ i, 0 ≤ (b i : ℝ) - a i := λ i, by simpa only [sub_nonneg, rat.cast_le] using (H i).le,
   let γ := λ (n : ℕ), (Π (i : ι), fin ⌈((b i : ℝ) - a i) * n⌉₊),
-  haveI : ∀ n, encodable (γ n) := λ n, (fintype_pi ι (λ (i : ι), fin _)).out,
   let t : Π (n : ℕ), γ n → set (ι → ℝ) :=
     λ n f, set.pi univ (λ i, Icc (a i + f i / n) (a i + (f i + 1) / n)),
   have A : tendsto (λ (n : ℕ), 1/(n : ℝ≥0∞)) at_top (𝓝 0),
@@ -737,26 +748,23 @@ begin
       ... ≤ (a i : ℝ) + (⌊(x i - a i) * n⌋₊ + 1) / n :
         add_le_add le_rfl ((div_le_div_right npos).2 (lt_nat_floor_add_one _).le) } },
   calc μH[fintype.card ι] (set.pi univ (λ (i : ι), Ioo (a i : ℝ) (b i)))
-    ≤ liminf at_top (λ (n : ℕ), ∑' (i : γ n), diam (t n i) ^ ↑(fintype.card ι)) :
-      hausdorff_measure_le Hpos (set.pi univ (λ i, Ioo (a i : ℝ) (b i)))
+    ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), diam (t n i) ^ ↑(fintype.card ι)) :
+      hausdorff_measure_le_liminf_sum _ (set.pi univ (λ i, Ioo (a i : ℝ) (b i)))
         (λ (n : ℕ), 1/(n : ℝ≥0∞)) A t B C
-  ... ≤ liminf at_top (λ (n : ℕ), ∑' (i : γ n), (1/n) ^ (fintype.card ι)) :
+  ... ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), (1/n) ^ (fintype.card ι)) :
     begin
       refine liminf_le_liminf _ (by is_bounded_default),
       filter_upwards [B],
       assume n hn,
-      apply ennreal.tsum_le_tsum (λ i, _),
-      simp only [← ennreal.rpow_nat_cast],
-      exact ennreal.rpow_le_rpow (hn i) Hpos.le,
+      apply finset.sum_le_sum (λ i _, _),
+      rw ennreal.rpow_nat_cast,
+      exact canonically_ordered_comm_semiring.pow_le_pow_of_le_left (hn i) _,
     end
   ... = liminf at_top (λ (n : ℕ), ∏ (i : ι), (⌈((b i : ℝ) - a i) * n⌉₊ : ℝ≥0∞) / n) :
   begin
-    congr' 1,
-    ext1 n,
-    simp only [tsum_fintype, finset.card_univ, nat.cast_prod, one_div, fintype.card_fin,
-      finset.sum_const, nsmul_eq_mul, fintype.card_pi],
-    simp_rw [← finset.card_univ, ← finset.prod_const, ← finset.prod_mul_distrib],
-    refl,
+    simp only [finset.card_univ, nat.cast_prod, one_mul, fintype.card_fin,
+      finset.sum_const, nsmul_eq_mul, fintype.card_pi, div_eq_mul_inv, finset.prod_mul_distrib,
+      finset.prod_const]
   end
   ... = ∏ (i : ι), volume (Ioo (a i : ℝ) (b i)) :
   begin

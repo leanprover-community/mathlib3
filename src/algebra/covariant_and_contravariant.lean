@@ -236,6 +236,11 @@ instance contravariant_mul_lt_of_covariant_mul_le [has_mul N] [linear_order N]
 { elim := (covariant_le_iff_contravariant_lt N N (*)).mp covariant_class.elim }
 
 @[to_additive]
+instance covariant_mul_lt_of_contravariant_mul_le [has_mul N] [linear_order N]
+  [contravariant_class N N (*) (≤)] : covariant_class N N (*) (<) :=
+{ elim := (covariant_lt_iff_contravariant_le N N (*)).mpr contravariant_class.elim }
+
+@[to_additive]
 instance covariant_swap_mul_le_of_covariant_mul_le [comm_semigroup N] [has_le N]
   [covariant_class N N (*) (≤)] : covariant_class N N (function.swap (*)) (≤) :=
 { elim := (covariant_flip_mul_iff N (≤)).mpr covariant_class.elim }

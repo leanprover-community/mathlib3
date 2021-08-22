@@ -17,17 +17,24 @@ possible finiteness of the measure.
 
 ## Main statements
 
-* `ae_eq_zero_of_forall_inner`:
-* `ae_eq_zero_of_forall_dual`:
+All results listed below apply to two functions `f,g`, together with two main hypotheses,
+* `f` and `g` are integrable on all measurable sets with finite measure,
+* for all measurable sets `s` with finite measure, `∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ`.
+The conclusion is then `f =ᵐ[μ] g`. The main lemmas are:
+* `ae_eq_of_forall_set_integral_eq_of_sigma_finite`: case of a sigma-finite measure.
+* `ae_fin_strongly_measurable.ae_eq_of_forall_set_integral_eq`: for functions which are
+  `ae_fin_strongly_measurable`.
+* `Lp.ae_eq_of_forall_set_integral_eq`: for elements of `Lp`, for `0 < p < ∞`.
+* `integrable.ae_eq_of_forall_set_integral_eq`: for integrable functions.
 
-For real functions:
+For each of these results, we also provide a lemma about the equality of one function and 0. For
+example, `Lp.ae_eq_zero_of_forall_set_integral_eq_zero`.
 
-For sigma-finite measures:
-* `ae_eq_of_forall_set_integral_eq_of_sigma_finite`
-
-For Lp/integrable functions:
-* `Lp.ae_eq_of_forall_set_integral_eq`
-* `integrable.ae_eq_of_forall_set_integral_eq`
+Generally useful lemmas which are not related to integrals:
+* `ae_eq_zero_of_forall_inner`: if for all constants `c`, `λ x, inner c (f x) =ᵐ[μ] 0` then
+  `f =ᵐ[μ] 0`.
+* `ae_eq_zero_of_forall_dual`: if for all constants `c` in the dual space, `λ x, c (f x) =ᵐ[μ] 0`
+  then `f =ᵐ[μ] 0`.
 
 ## TODO(s)
 

@@ -420,15 +420,8 @@ begin
   rw [←with_bot.coe_eq_coe, ←degree_eq_nat_degree hp, ←degree_eq_nat_degree,
       degree_smul_of_smul_regular p h],
   contrapose! hp,
-  -- TODO: is this general over things with some smul class??
-  have h' : is_smul_regular (polynomial R) k,
-  { intros p q hpq,
-    rw ext_iff at hpq ⊢,
-    intro n,
-    refine h _,
-    simpa using hpq n },
   rw ←smul_zero k at hp,
-  exact h' hp
+  exact h.polynomial hp
 end
 
 lemma leading_coeff_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]

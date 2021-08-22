@@ -131,13 +131,13 @@ by { ext, simp [linear_map.one_apply, std_basis_apply] }
   (linear_map.to_matrix' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
 by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 
-@[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R) (N : matrix m n R) :
-  matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
+@[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R)
+  (N : matrix m n R) : matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
 by { ext, simp }
 
 /-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
-lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R) (N : matrix m n R) (x) :
-  matrix.to_lin' (M ⬝ N) x = (matrix.to_lin' M (matrix.to_lin' N x)) :=
+lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R)
+  (N : matrix m n R) (x) : matrix.to_lin' (M ⬝ N) x = (matrix.to_lin' M (matrix.to_lin' N x)) :=
 by rw [matrix.to_lin'_mul, linear_map.comp_apply]
 
 lemma linear_map.to_matrix'_comp [fintype l] [decidable_eq l]

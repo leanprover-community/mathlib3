@@ -86,9 +86,10 @@ def count (n : ℕ) : ℕ :=
 by rw [count, range_zero, filter_nil, length]
 
 lemma list.range_one : range 1 = [0] := rfl
+
 lemma list.filter_singleton {α : Type*} (a : α) (p : α → Prop) [decidable_pred p] :
   [a].filter p = if p a then [a] else [] :=
-sorry
+by split_ifs; simp [h]
 
 @[simp] lemma count_one : count p 1 = if p 0 then 1 else 0 :=
 begin
@@ -113,11 +114,7 @@ begin
   simp [lt_succ_iff],
 end
 
-lemma count_succ' {n : ℕ} : count p (n + 1) = count (λ k, p (k+1)) n + (if p 0 then 1 else 0) :=
-sorry
-
-@[simp]
-lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
+@[simp] lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 begin
   suffices : (list.range (n+1)).filter p = ((list.range n).filter p) ++ if p n then [n] else [],
   { split_ifs; simp [h, count, this] },
@@ -125,9 +122,9 @@ begin
   split_ifs; simp [h]
 end
 
--- kmill: I made the above lemma a simp lemma since simp will be able to make use of a `p n` or `¬p n` hypothesis
--- to simplify `count p (n + 1)`.  This means the following shouldn't be simp lemmas since they'd never apply;
--- they seemed to be of limited utility as simp lemmas, though.
+lemma count_succ' : ∀ {n : ℕ}, count p (n + 1) = count (λ k, p (k + 1)) n + (if p 0 then 1 else 0)
+| 0     := by simp
+| (n+1) := by simpa [@count_succ' n] using add_right_comm _ _ _
 
 lemma count_succ_eq_succ_count_iff {n : ℕ} : count p (n + 1) = count p n + 1 ↔ p n :=
 by by_cases h : p n; simp [h]
@@ -135,7 +132,6 @@ by by_cases h : p n; simp [h]
 lemma count_succ_eq_count_iff {n : ℕ} : count p (n + 1) = count p n ↔ ¬p n :=
 by by_cases h : p n; simp [h]
 
--- kmill: these seem useful to have around, so you don't have to go and simplify the ite too.
 lemma count_succ_eq_succ_count {n : ℕ} (h : p n) : count p (n + 1) = count p n + 1 :=
 by simp [h]
 
@@ -143,11 +139,8 @@ lemma count_succ_eq_count {n : ℕ} (h : ¬p n) : count p (n + 1) = count p n :=
 by simp [h]
 
 
-/--
-Find the `n`-th natural number satisfying `p`
-(indexed from `0`, so `nth p 0` is the first natural number satisfying `p`),
-or `0` if there is no such.
--/
+/-- Find the `n`-th natural number satisfying `p` (indexed from `0`, so `nth p 0` is the first
+natural number satisfying `p`), or `0` if there is no such number. -/
 noncomputable def nth : ℕ → ℕ
 | n := Inf { i : ℕ | p i ∧ ∀ k < n, nth k < i }
 

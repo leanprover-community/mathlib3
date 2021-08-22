@@ -121,7 +121,7 @@ lemma mul_smul' (x y : SL(2, ℝ)) (z : ℍ) :
 begin
   ext1,
   change _ / _ = (_ * (_ / _) + _)  * _,
-  rw bot_cocycle,
+  rw denom_cocycle,
   field_simp [denom_ne_zero, -denom, -num],
   simp [matrix.mul, dot_product, fin.sum_univ_succ],
   ring

@@ -335,54 +335,6 @@ begin
     refl }
 end
 
-lemma interior_pi_set_subset {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} {s : Π i, set (α i)} : interior (pi I s) ⊆ I.pi (λ i, interior (s i)) :=
-begin
-  intro a,
-  simp only [mem_pi, mem_interior_iff_mem_nhds],
-  intro h,
-  rw (is_topological_basis_pi (λ i : ι, @is_topological_basis_opens (α i) _)).mem_nhds_iff at h,
-  obtain ⟨t, ⟨U, F, htopen, rfl⟩, H₁, H₂⟩ := h,
-  intros i hi,
-  rw mem_nhds_iff,
-  dsimp only [subset_def, mem_pi] at H₂,
-  classical,
-  by_cases hiF : i ∈ F,
-  { use U i,
-    rw mem_pi at H₁,
-    refine ⟨_, htopen i hiF, H₁ i hiF⟩,
-    intros x hx,
-    simpa using H₂ (function.update a i x) _ i hi,
-    intros i' hi'F,
-    by_cases h : i = i',
-    { subst h,
-      rwa [function.update_same], },
-    { rw function.update_noteq (ne.symm h),
-      exact H₁ _ hi'F, }, },
-  { use univ,
-    refine ⟨_, is_open_univ, mem_univ (a i)⟩,
-    rw [univ_subset_iff, eq_univ_iff_forall],
-    intro x,
-    simpa using H₂ (function.update a i x) _ i hi,
-    intros i' hi'F,
-    rw function.update_noteq _,
-    exact H₁ _ hi'F,
-    rintro rfl,
-    contradiction, },
-end
-
-lemma pi_set_interior_subset {ι : Type*} [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} {s : Π i, set (α i)} : I.pi (λ i, interior (s i)) ⊆ interior (pi I s) :=
-begin
-  intro a,
-  simp only [mem_pi, mem_interior_iff_mem_nhds],
-  refine set_pi_mem_nhds (finite.of_fintype _),
-end
-
-lemma interior_pi_set {ι : Type*} [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} {s : Π i, set (α i)} : interior (pi I s) = I.pi (λ i, interior (s i)) :=
-eq_of_subset_of_subset interior_pi_set_subset (subset_interior_pi I s)
-
 /-- If `α` is a separable space and `f : α → β` is a continuous map with dense range, then `β` is
 a separable space as well. E.g., the completion of a separable uniform space is separable. -/
 protected lemma dense_range.separable_space {α β : Type*} [topological_space α] [separable_space α]

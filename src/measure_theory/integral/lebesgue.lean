@@ -777,6 +777,9 @@ set.ext $ λ x, by simp only [finset.set_bUnion_preimage_singleton, mem_support,
 
 variables {m : measurable_space α} [has_zero β] [has_zero γ] {μ : measure α} {f : α →ₛ β}
 
+lemma measurable_set_support [measurable_space α] (f : α →ₛ β) : measurable_set (support f) :=
+by { rw f.support_eq, exact finset.measurable_set_bUnion _ (λ y hy, measurable_set_fiber _ _), }
+
 /-- A `simple_func` has finite measure support if it is equal to `0` outside of a set of finite
 measure. -/
 protected def fin_meas_supp {m : measurable_space α} (f : α →ₛ β) (μ : measure α) : Prop :=
@@ -1673,9 +1676,8 @@ theorem lintegral_supr_directed [encodable β] {f : β → α → ℝ≥0∞}
   (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
 begin
-  by_cases hβ : nonempty β, swap,
-  { simp [supr_of_empty hβ] },
-  resetI, inhabit β,
+  casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
+  inhabit β,
   have : ∀a, (⨆ b, f b a) = (⨆ n, f (h_directed.sequence f n) a),
   { assume a,
     refine le_antisymm (supr_le $ assume b, _) (supr_le $ assume n, le_supr (λn, f n a) _),
@@ -1883,6 +1885,13 @@ begin
   refine absolutely_continuous.mk (λ s hs₁ hs₂, _),
   rw with_density_apply _ hs₁,
   exact lintegral_in_measure_zero _ _ hs₂
+end
+
+@[simp]
+lemma with_density_zero : μ.with_density 0 = 0 :=
+begin
+  ext1 s hs,
+  simp [with_density_apply _ hs],
 end
 
 end lintegral

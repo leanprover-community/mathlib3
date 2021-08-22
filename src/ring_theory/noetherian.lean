@@ -59,7 +59,7 @@ Noetherian, noetherian, Noetherian ring, Noetherian module, noetherian ring, noe
 -/
 
 open set
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace submodule
 variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
@@ -289,7 +289,7 @@ begin
   letI : algebra R S := ring_hom.to_algebra f,
   letI : algebra R A := ring_hom.to_algebra (g.comp f),
   letI : algebra S A := ring_hom.to_algebra g,
-  letI : is_scalar_tower R S A := _root_.restrict_scalars.is_scalar_tower R S A,
+  letI : is_scalar_tower R S A := is_scalar_tower.of_algebra_map_eq (λ _, rfl),
   let f₁ := algebra.linear_map R S,
   let g₁ := (is_scalar_tower.to_alg_hom R S A).to_linear_map,
   exact fg_ker_comp f₁ g₁ hf (fg_restrict_scalars g.ker hg hsur) hsur
@@ -699,8 +699,7 @@ begin
   refine is_noetherian.induction (λ (M : ideal R) hgt, _) I,
   by_cases h_prM : M.is_prime,
   { use {⟨M, h_prM⟩},
-    rw [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-        subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
     exact le_rfl },
   by_cases htop : M = ⊤,
   { rw htop,
@@ -745,12 +744,10 @@ begin
     obtain ⟨p_id, h_nzp, h_pp⟩ : ∃ (p : ideal A), p ≠ ⊥ ∧ p.is_prime,
     { apply ring.not_is_field_iff_exists_prime.mp h_fA },
     use [({⟨p_id, h_pp⟩} : multiset (prime_spectrum A)), le_top],
-    rwa [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-         subtype.coe_mk] },
+    rwa [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk] },
   by_cases h_prM : M.is_prime,
   { use ({⟨M, h_prM⟩} : multiset (prime_spectrum A)),
-    rw [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-         subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
     exact ⟨le_rfl, h_nzM⟩ },
   obtain ⟨x, hx, y, hy, h_xy⟩ := (ideal.not_is_prime_iff.mp h_prM).resolve_left h_topM,
   have lt_add : ∀ z ∉ M, M < M + span A {z},

@@ -12,6 +12,9 @@ import algebra.algebra.basic
 This file contains lemmas about the effect of pointwise operations on sets with an order structure.
 
 -/
+
+open_locale pointwise
+
 namespace linear_ordered_field
 
 variables {K : Type*} [linear_ordered_field K] {a b r : K} (hr : 0 < r)

@@ -6,6 +6,19 @@ import data.nat.lattice
 import data.finset.intervals
 
 /-!
+
+# Counting on ℕ
+
+This files defines ways to get basic properties of a predicate on ℕ, such as "how many numbers
+under `k` satisfy the predicate" and "what is the `n`th number that satisifies this predicate".
+We define these as two functions, `count` and `nth`, that answer these questions, and prove
+the expected theorems about them.
+
+## Main definitions:
+
+* `count`: `count p n` returns the number of `k < n` such that `p k`.
+* `nth`: `nth p n` returns the `n`-th `k` (zero-indexed) number such that `p k`. If there is no
+  such number (that is, `p` is true for at most `n` numbers), `nth p n = 0`.
 -/
 
 open list
@@ -242,6 +255,8 @@ noncomputable def set.infinite.order_iso_nat {s : set ℕ} (i : s.infinite) : s 
 -- Other development, which does not appear necessary for `set.infinite.order_iso_nat`,
 -- but may be useful for building the Galois connection:
 
+-- eric: I just realised this isn't true; it's more like `nat.card (set_of p) ≤ n` or some similar
+-- condition. Probably just worth removing this lemma.
 lemma nth_eq_zero_iff (n : ℕ) : nth p n = 0 ↔ n = 0 ∧ p 0 ∨ set_of p = ∅ :=
 begin
   rw nth,

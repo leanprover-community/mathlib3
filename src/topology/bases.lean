@@ -336,7 +336,7 @@ begin
 end
 
 lemma interior_pi_set_subset {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  (I : set ι) (s : Π i, set (α i)) : interior (pi I s) ⊆ I.pi (λ i, interior (s i)) :=
+  {I : set ι} {s : Π i, set (α i)} : interior (pi I s) ⊆ I.pi (λ i, interior (s i)) :=
 begin
   intro a,
   simp only [mem_pi, mem_interior_iff_mem_nhds],
@@ -372,7 +372,7 @@ begin
 end
 
 lemma pi_set_interior_subset {ι : Type*} [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
-  (I : set ι) (s : Π i, set (α i)) : I.pi (λ i, interior (s i)) ⊆ interior (pi I s) :=
+  {I : set ι} {s : Π i, set (α i)} : I.pi (λ i, interior (s i)) ⊆ interior (pi I s) :=
 begin
   intro a,
   simp only [mem_pi, mem_interior_iff_mem_nhds],
@@ -380,8 +380,8 @@ begin
 end
 
 lemma interior_pi_set {ι : Type*} [fintype ι] {α : ι → Type*} [Π i, topological_space (α i)]
-  (I : set ι) (s : Π i, set (α i)) : interior (pi I s) = I.pi (λ i, interior (s i)) :=
-eq_of_subset_of_subset (interior_pi_set_subset I s) (pi_set_interior_subset I s)
+  {I : set ι} {s : Π i, set (α i)} : interior (pi I s) = I.pi (λ i, interior (s i)) :=
+eq_of_subset_of_subset interior_pi_set_subset (subset_interior_pi I s)
 
 /-- If `α` is a separable space and `f : α → β` is a continuous map with dense range, then `β` is
 a separable space as well. E.g., the completion of a separable uniform space is separable. -/

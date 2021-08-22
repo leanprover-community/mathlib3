@@ -955,23 +955,19 @@ lemma supr_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
 ### `supr` and `infi` under `Type`
 -/
 
-theorem infi_of_empty' (h : ι → false) {s : ι → α} : infi s = ⊤ :=
-top_unique (le_infi $ assume i, (h i).elim)
+theorem supr_of_empty' {α ι} [has_Sup α] [is_empty ι] (f : ι → α) :
+  supr f = Sup (∅ : set α) :=
+congr_arg Sup (range_eq_empty f)
 
-theorem supr_of_empty' (h : ι → false) {s : ι → α} : supr s = ⊥ :=
-bot_unique (supr_le $ assume i, (h i).elim)
+theorem supr_of_empty [is_empty ι] (f : ι → α) : supr f = ⊥ :=
+(supr_of_empty' f).trans Sup_empty
 
-theorem infi_of_empty (h : ¬nonempty ι) {s : ι → α} : infi s = ⊤ :=
-infi_of_empty' (λ i, h ⟨i⟩)
+theorem infi_of_empty' {α ι} [has_Inf α] [is_empty ι] (f : ι → α) :
+  infi f = Inf (∅ : set α) :=
+congr_arg Inf (range_eq_empty f)
 
-theorem supr_of_empty (h : ¬nonempty ι) {s : ι → α} : supr s = ⊥ :=
-supr_of_empty' (λ i, h ⟨i⟩)
-
-@[simp] theorem infi_empty {s : empty → α} : infi s = ⊤ :=
-infi_of_empty nonempty_empty
-
-@[simp] theorem supr_empty {s : empty → α} : supr s = ⊥ :=
-supr_of_empty nonempty_empty
+theorem infi_of_empty [is_empty ι] (f : ι → α) : infi f = ⊤ :=
+@supr_of_empty (order_dual α) _ _ _ f
 
 lemma supr_bool_eq {f : bool → α} : (⨆b:bool, f b) = f tt ⊔ f ff :=
 by rw [supr, bool.range_eq, Sup_pair, sup_comm]

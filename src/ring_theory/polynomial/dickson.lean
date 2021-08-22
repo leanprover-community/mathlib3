@@ -225,7 +225,7 @@ begin
       ext1 y,
       simp only [multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe, multiset.mem_union,
         mem_roots hφ, is_root, eval_add, eval_sub, eval_pow, eval_mul, eval_X, eval_C, eval_one,
-        multiset.mem_singleton, multiset.singleton_eq_singleton],
+        multiset.mem_singleton],
       by_cases hy : y = 0,
       { simp only [hy, eq_self_iff_true, or_true] },
       apply or_congr _ iff.rfl,

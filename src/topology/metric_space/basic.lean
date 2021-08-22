@@ -54,14 +54,15 @@ open_locale uniformity topological_space big_operators filter nnreal ennreal
 universes u v w
 variables {α : Type u} {β : Type v}
 
-/-- Construct a uniform structure from a distance function and metric space axioms -/
-def uniform_space_of_dist
-  (dist : α → α → ℝ)
+/-- Construct a uniform structure core from a distance function and metric space axioms.
+This is a technical construction that can be immediately used to construct a uniform structure
+from a distance function and metric space axioms but is also useful when discussing
+metrizable topologies, see `pseudo_metric_space.of_metrizable`. -/
+def uniform_space.core_of_dist {α : Type*} (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
-  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
-uniform_space.of_core {
-  uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space.core α :=
+{ uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
@@ -74,6 +75,14 @@ uniform_space.of_core {
     by simpa [comp_rel],
   symm       := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
     tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simp [dist_comm] }
+
+/-- Construct a uniform structure from a distance function and metric space axioms -/
+def uniform_space_of_dist
+  (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
+uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_triangle)
 
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/
@@ -109,6 +118,43 @@ pseudo_metric_space.to_uniform_space
 
 @[priority 200] -- see Note [lower instance priority]
 instance pseudo_metric_space.to_has_edist : has_edist α := ⟨pseudo_metric_space.edist⟩
+
+/-- Construct a pseudo-metric space structure whose underlying topological space structure
+(definitionally) agrees which a pre-existing topology which is compatible with a given distance
+function. -/
+def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+  (H : ∀ s : set α, is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s) :
+pseudo_metric_space α :=
+{ dist := dist,
+  dist_self := dist_self,
+  dist_comm := dist_comm,
+  dist_triangle := dist_triangle,
+  to_uniform_space := { is_open_uniformity := begin
+    dsimp only [uniform_space.core_of_dist],
+    intros s,
+    change is_open s ↔ _,
+    rw H s,
+    apply forall_congr, intro x,
+    apply forall_congr, intro x_in,
+    erw (has_basis_binfi_principal _ nonempty_Ioi).mem_iff,
+    { apply exists_congr, intros ε,
+      apply exists_congr, intros ε_pos,
+      simp only [prod.forall, set_of_subset_set_of],
+      split,
+      { rintros h _ y H rfl,
+        exact h y H },
+      { intros h y hxy,
+        exact h _ _ hxy rfl } },
+      { exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
+        λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
+        λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩ },
+      { apply_instance }
+    end,
+    ..uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
+  uniformity_dist := rfl }
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := pseudo_metric_space.dist_self x
 
@@ -298,6 +344,13 @@ lemma ball_eq_ball' (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.1 p.2 < ε} = metric.ball x ε :=
 by { ext, simp [dist_comm, uniform_space.ball] }
 
+@[simp] lemma Union_ball_nat (x : α) : (⋃ n : ℕ, ball x n) = univ :=
+Union_eq_univ_iff.2 $ λ y, exists_nat_gt (dist y x)
+
+@[simp] lemma Union_ball_nat_succ (x : α) : (⋃ n : ℕ, ball x (n + 1)) = univ :=
+Union_eq_univ_iff.2 $ λ y, (exists_nat_gt (dist y x)).imp $ λ n hn,
+  hn.trans (lt_add_one _)
+
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 
@@ -354,6 +407,9 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
 theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
+
+@[simp] lemma Union_closed_ball_nat (x : α) : (⋃ n : ℕ, closed_ball x n) = univ :=
+Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)
 
 theorem ball_disjoint (h : ε₁ + ε₂ ≤ dist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
@@ -699,8 +755,8 @@ theorem tendsto_at_top' [nonempty β] [semilattice_sup β] [no_top_order β] {u 
 (at_top_basis_Ioi.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
 
-lemma is_open_singleton_iff {X : Type*} [pseudo_metric_space X] {x : X} :
-  is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
+lemma is_open_singleton_iff {α : Type*} [pseudo_metric_space α] {x : α} :
+  is_open ({x} : set α) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
 by simp [is_open_iff, subset_singleton_iff, mem_ball]
 
 /-- Given a point `x` in a discrete subset `s` of a pseudometric space, there is an open ball
@@ -1362,7 +1418,7 @@ begin
   suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
   { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
-      Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)⟩⟩ },
+      Union_closed_ball_nat _⟩⟩ },
   { exact ⟨⟨λ n, ∅, λ n, is_compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
 end
 
@@ -1803,6 +1859,18 @@ end int
 /-- We now define `metric_space`, extending `pseudo_metric_space`. -/
 class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
+
+/-- Construct a metric space structure whose underlying topological space structure
+(definitionally) agrees which a pre-existing topology which is compatible with a given distance
+function. -/
+def metric_space.of_metrizable {α : Type*} [topological_space α] (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+  (H : ∀ s : set α, is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s)
+  (eq_of_dist_eq_zero : ∀ x y : α, dist x y = 0 → x = y) : metric_space α :=
+{ eq_of_dist_eq_zero := eq_of_dist_eq_zero,
+  ..pseudo_metric_space.of_metrizable dist dist_self dist_comm dist_triangle H }
 
 variables {γ : Type w} [metric_space γ]
 

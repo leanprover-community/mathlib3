@@ -890,7 +890,7 @@ instance (n : ℕ) : add_comm_group (fin (n+1)) :=
     show (a + (n + 1 - b)) % (n + 1) = (a + (n + 1 - b) % (n + 1)) % (n + 1), by simp,
   sub := fin.sub,
   ..fin.add_comm_monoid n,
-  ..fin.has_neg n.succ  }
+  ..fin.has_neg n.succ }
 
 protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
 
@@ -1600,8 +1600,7 @@ else if h' : j < i then _root_.cast (congr_arg α $ begin
   obtain ⟨k, hk⟩ : ∃ (k : fin (n + 1)), k.cast_succ = j,
     { refine ⟨⟨(j : ℕ), _⟩, _⟩,
       { exact lt_of_lt_of_le h' i.is_le, },
-      { simp },
-    },
+      { simp } },
   subst hk,
   simp [succ_above_below, h'],
 end)

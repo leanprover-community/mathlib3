@@ -368,7 +368,7 @@ noncomputable def equiv_map_of_injective
   (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
   map_add' := λ _ _, subtype.ext (f.map_add _ _),
-  ..equiv.set.image f s hf  }
+  ..equiv.set.image f s hf }
 
 @[simp] lemma coe_equiv_map_of_injective_apply
   (f : R →+* S) (hf : function.injective f) (x : s) :
@@ -894,6 +894,10 @@ instance
   [has_scalar α β] [mul_action R α] [mul_action R β] [is_scalar_tower R α β] (S : subring R) :
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
+
+instance [mul_action R α] [has_faithful_scalar R α] (S : subring R) :
+  has_faithful_scalar S α :=
+S.to_subsemiring.has_faithful_scalar
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_monoid α] [distrib_mul_action R α] (S : subring R) : distrib_mul_action S α :=

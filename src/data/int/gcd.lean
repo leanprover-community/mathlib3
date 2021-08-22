@@ -256,10 +256,10 @@ begin
 end
 
 theorem gcd_dvd_gcd_of_dvd_left {i k : ℤ} (j : ℤ) (H : i ∣ k) : gcd i j ∣ gcd k j :=
-int.coe_nat_dvd.1 $ dvd_gcd (dvd.trans (gcd_dvd_left i j) H) (gcd_dvd_right i j)
+int.coe_nat_dvd.1 $ dvd_gcd ((gcd_dvd_left i j).trans H) (gcd_dvd_right i j)
 
 theorem gcd_dvd_gcd_of_dvd_right {i k : ℤ} (j : ℤ) (H : i ∣ k) : gcd j i ∣ gcd j k :=
-int.coe_nat_dvd.1 $ dvd_gcd (gcd_dvd_left j i) (dvd.trans (gcd_dvd_right j i) H)
+int.coe_nat_dvd.1 $ dvd_gcd (gcd_dvd_left j i) ((gcd_dvd_right j i).trans H)
 
 theorem gcd_dvd_gcd_mul_left (i j k : ℤ) : gcd i j ∣ gcd (k * i) j :=
 gcd_dvd_gcd_of_dvd_left _ (dvd_mul_left _ _)

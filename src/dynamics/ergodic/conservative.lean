@@ -188,7 +188,7 @@ begin
   set m := (l - k) / (n + 1),
   have : (n + 1) * m = l - k,
   { apply nat.mul_div_cancel',
-    exact (nat.modeq.modeq_iff_dvd' hkl.le).1 hn },
+    exact (nat.modeq_iff_dvd' hkl.le).1 hn },
   refine ⟨f^[k] x, hk, m, _, _⟩,
   { intro hm,
     rw [hm, mul_zero, eq_comm, nat.sub_eq_zero_iff_le] at this,

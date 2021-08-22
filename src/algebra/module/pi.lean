@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.module.basic
+import algebra.regular.smul
 import algebra.ring.pi
 
 /-!
@@ -33,6 +34,10 @@ instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
 lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
+
+lemma _root_.is_smul_regular.pi {α : Type*} [Π i, has_scalar α $ f i] {k : α}
+  (hk : Π i, is_smul_regular (f i) k) : is_smul_regular (Π i, f i) k :=
+λ _ _ h, funext $ λ i, hk i (congr_fun h i : _)
 
 instance is_scalar_tower {α β : Type*}
   [has_scalar α β] [Π i, has_scalar β $ f i] [Π i, has_scalar α $ f i]

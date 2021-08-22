@@ -42,6 +42,7 @@ that have been processed by `to_additive`. -/
 meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
+  parser    := failed,
   cache_cfg := ⟨λ ns,
                 ns.mfoldl
                   (λ dict n', do
@@ -51,8 +52,7 @@ meta def aux_attr : user_attribute (name_map name) name :=
                             end,
                     param ← aux_attr.get_param_untyped n',
                     pure $ dict.insert n param.app_arg.const_name)
-                  mk_name_map, []⟩,
-  parser    := lean.parser.ident }
+                  mk_name_map, []⟩ }
 
 end performance_hack
 

@@ -105,6 +105,10 @@ lemma mul_to_finsupp {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ :=
 lemma smul_to_finsupp {S : Type*} [monoid S] [distrib_mul_action S R] {a : S} {b} :
   (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := rfl
 
+lemma _root_.is_smul_regular.polynomial {S : Type*} [monoid S] [distrib_mul_action S R] {a : S}
+  (ha : is_smul_regular R a) : is_smul_regular (polynomial R) a
+| ⟨x⟩ ⟨y⟩ h := congr_arg _ $ ha.finsupp (polynomial.of_finsupp.inj h)
+
 instance : inhabited (polynomial R) := ⟨0⟩
 
 instance : semiring (polynomial R) :=

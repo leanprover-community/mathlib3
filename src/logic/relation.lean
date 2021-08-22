@@ -37,6 +37,8 @@ lemma reflexive_ne_imp_iff [is_refl α r] {x y : α} :
   (x ≠ y → r x y) ↔ r x y :=
 is_refl.reflexive.ne_imp_iff
 
+protected lemma symmetric.iff (H : symmetric r) (x y : α) : r x y ↔ r y x := ⟨λ h, H h, λ h, H h⟩
+
 end ne_imp
 
 section comap
@@ -470,7 +472,7 @@ iff.intro
     case eqv_gen.rel { assumption },
     case eqv_gen.refl { exact h.1 _ },
     case eqv_gen.symm { apply h.2.1, assumption },
-    case eqv_gen.trans : a b c _ _ hab hbc {  exact h.2.2 hab hbc }
+    case eqv_gen.trans : a b c _ _ hab hbc { exact h.2.2 hab hbc }
   end
   (eqv_gen.rel a b)
 

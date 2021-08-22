@@ -101,13 +101,12 @@ begin
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
   simp_rw [ ← multiset.coe_count_add_monoid_hom, (multiset.count_add_monoid_hom n).map_sum,
-    add_monoid_hom.map_nsmul, multiset.coe_count_add_monoid_hom,
-    multiset.singleton_eq_singleton, nsmul_eq_mul, nat.cast_id],
+    add_monoid_hom.map_nsmul, multiset.coe_count_add_monoid_hom, nsmul_eq_mul, nat.cast_id],
   transitivity,
   refine finset.sum_eq_single n _ _,
-  { assume b hb ne, rw [multiset.count_cons_of_ne ne.symm, multiset.count_zero, mul_zero] },
+  { assume b hb ne, rw [multiset.count_singleton, if_neg ne.symm, mul_zero] },
   { assume h, exact (h $ finset.mem_univ _).elim },
-  { rw [multiset.count_cons_self, multiset.count_zero, mul_one] }
+  { rw [multiset.count_singleton_self, mul_one] }
 end
 
 section
@@ -160,7 +159,7 @@ calc module.rank K (R σ K) =
     linear_equiv.dim_eq
       (finsupp.supported_equiv_finsupp {s : σ →₀ ℕ | ∀n:σ, s n ≤ fintype.card K - 1 })
   ... = cardinal.mk {s : σ →₀ ℕ | ∀ (n : σ), s n ≤ fintype.card K - 1} :
-    by rw [finsupp.dim_eq, dim_of_field, mul_one]
+    by rw [finsupp.dim_eq, dim_of_ring, mul_one]
   ... = cardinal.mk {s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
     refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,

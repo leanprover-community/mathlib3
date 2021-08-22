@@ -382,7 +382,7 @@ This differs from `insert a ∅` in that it does not require a `decidable_eq` in
 -/
 instance : has_singleton α (finset α) := ⟨λ a, ⟨{a}, nodup_singleton a⟩⟩
 
-@[simp] theorem singleton_val (a : α) : ({a} : finset α).1 = a ::ₘ 0 := rfl
+@[simp] theorem singleton_val (a : α) : ({a} : finset α).1 = {a} := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : finset α) ↔ b = a := mem_singleton
 
@@ -1654,6 +1654,10 @@ rfl
   to_finset (a ::ₘ s) = insert a (to_finset s) :=
 finset.eq_of_veq erase_dup_cons
 
+@[simp] lemma to_finset_singleton (a : α) :
+  to_finset ({a} : multiset α) = {a} :=
+by rw [singleton_eq_cons, to_finset_cons, to_finset_zero, is_lawful_singleton.insert_emptyc_eq]
+
 @[simp] lemma to_finset_add (s t : multiset α) :
   to_finset (s + t) = to_finset s ∪ to_finset t :=
 finset.ext $ by simp
@@ -2415,7 +2419,7 @@ finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
 lemma card_union_le [decidable_eq α] (s t : finset α) :
   (s ∪ t).card ≤ s.card + t.card :=
-card_union_add_card_inter s t ▸ le_add_right _ _
+card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq [decidable_eq α] {s t : finset α} (h : disjoint s t) :
   (s ∪ t).card = s.card + t.card :=

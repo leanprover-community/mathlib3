@@ -403,7 +403,7 @@ begin
     { convert appr_spec n x, simp only [this, sub_zero, cast_zero], },
     dsimp [to_zmod_pow, to_zmod_hom] at h,
     rw zmod.nat_coe_zmod_eq_zero_iff_dvd at h,
-    apply eq_zero_of_dvd_of_lt h (appr_lt _ _),  },
+    apply eq_zero_of_dvd_of_lt h (appr_lt _ _), },
   { intro h,
     rw ← sub_zero x at h,
     dsimp [to_zmod_pow, to_zmod_hom],

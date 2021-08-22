@@ -142,7 +142,7 @@ variables (f : α →ₘ β)
 variables (g : β →ₘ γ)
 
 instance : has_le (chain α) :=
-{ le := λ x y, ∀ i, ∃ j, x i ≤ y j  }
+{ le := λ x y, ∀ i, ∃ j, x i ≤ y j }
 
 /-- `map` function for `chain` -/
 @[simps {fully_applied := ff}] def map : chain β :=

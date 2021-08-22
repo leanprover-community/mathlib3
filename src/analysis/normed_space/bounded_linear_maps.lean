@@ -84,7 +84,7 @@ def to_continuous_linear_map {f : E → F} (hf : is_bounded_linear_map 𝕜 f) :
   ..to_linear_map f hf}
 
 lemma zero : is_bounded_linear_map 𝕜 (λ (x:E), (0:F)) :=
-(0 : E →ₗ F).is_linear.with_bound 0 $ by simp [le_refl]
+(0 : E →ₗ[𝕜] F).is_linear.with_bound 0 $ by simp [le_refl]
 
 lemma id : is_bounded_linear_map 𝕜 (λ (x:E), x) :=
 linear_map.id.is_linear.with_bound 1 $ by simp [le_refl]
@@ -160,7 +160,7 @@ open asymptotics filter
 
 theorem is_O_id {f : E → F} (h : is_bounded_linear_map 𝕜 f) (l : filter E) :
   is_O f (λ x, x) l :=
-let ⟨M, hMp, hM⟩ := h.bound in is_O.of_bound _ (mem_sets_of_superset univ_mem_sets (λ x _, hM x))
+let ⟨M, hMp, hM⟩ := h.bound in is_O.of_bound _ (mem_of_superset univ_mem (λ x _, hM x))
 
 theorem is_O_comp {E : Type*} {g : F → G} (hg : is_bounded_linear_map 𝕜 g)
   {f : E → F} (l : filter E) : is_O (λ x', g (f x')) f l :=

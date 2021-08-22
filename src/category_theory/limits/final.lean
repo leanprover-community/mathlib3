@@ -163,7 +163,7 @@ it suffices to perform that construction for some other pair of choices
 and to show how to transport such a construction
 *both* directions along a morphism between such choices.
 -/
-def def {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Sort*)
+def induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Sort*)
   (h₁ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂),
     (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
   (h₂ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂),

@@ -1950,7 +1950,7 @@ namespace measure
 
 section disjointed
 
-variable [measurable_space α]
+include m0
 
 /-- Given `S : μ.finite_spanning_sets_in {s | measurable_set s}`,
 `finite_spanning_sets_in.disjointed` provides a `finite_spanning_sets_in {s | measurable_set s}`

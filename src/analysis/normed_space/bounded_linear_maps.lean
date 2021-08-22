@@ -84,7 +84,7 @@ def to_continuous_linear_map {f : E → F} (hf : is_bounded_linear_map 𝕜 f) :
   ..to_linear_map f hf}
 
 lemma zero : is_bounded_linear_map 𝕜 (λ (x:E), (0:F)) :=
-(0 : E →ₗ F).is_linear.with_bound 0 $ by simp [le_refl]
+(0 : E →ₗ[𝕜] F).is_linear.with_bound 0 $ by simp [le_refl]
 
 lemma id : is_bounded_linear_map 𝕜 (λ (x:E), x) :=
 linear_map.id.is_linear.with_bound 1 $ by simp [le_refl]

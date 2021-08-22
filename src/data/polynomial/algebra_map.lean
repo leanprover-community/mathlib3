@@ -228,6 +228,10 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
 
+lemma coeff_zero_eq_aeval_zero' (p : polynomial R) :
+  algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
+by simp [aeval_def]
+
 section comm_semiring
 
 variables [comm_semiring S] {f : R →+* S}
@@ -310,8 +314,7 @@ begin
   rw sum_range_succ',
   conv_lhs {
     congr, apply_congr, skip,
-    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ],
-  },
+    rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ], },
   simp [sum_range_sub', coeff_monomial],
 end
 

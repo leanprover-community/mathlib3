@@ -415,7 +415,7 @@ instance pi.lattice {ι : Type*} {α : ι → Type*} [Π i, lattice (α i)] : la
 
 instance pi.distrib_lattice {ι : Type*} {α : ι → Type*} [Π i, distrib_lattice (α i)] :
   distrib_lattice (Π i, α i) :=
-by refine_struct {  .. pi.lattice }; tactic.pi_instance_derive_field
+by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
 
 instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_lattice (α i)] :
   bounded_lattice (Π i, α i) :=

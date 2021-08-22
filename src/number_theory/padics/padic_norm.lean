@@ -271,8 +271,7 @@ have hf2 : finite (p : ℤ) (n₂ * d₁),
     norm_cast,
     rw [← multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1) hf1, add_comm,
       ← multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1) hf2,
-      enat.get_le_get, multiplicity_le_multiplicity_iff]
-  }
+      enat.get_le_get, multiplicity_le_multiplicity_iff] }
 
 /--
 Sufficient conditions to show that the p-adic valuation of `q` is less than or equal to the

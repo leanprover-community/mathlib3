@@ -78,8 +78,7 @@ begin
     congr,
     skip,
     funext,
-    rw [←smul_sub, vsub_sub_vsub_cancel_left]
-  },
+    rw [←smul_sub, vsub_sub_vsub_cancel_left] },
   rw [←sum_smul, h, zero_smul]
 end
 
@@ -98,8 +97,7 @@ begin
     congr,
     skip,
     funext,
-    rw [←smul_sub, vsub_sub_vsub_cancel_left]
-  },
+    rw [←smul_sub, vsub_sub_vsub_cancel_left] },
   rw [←sum_smul, h, one_smul, vsub_add_vsub_cancel, vsub_self]
 end
 
@@ -584,9 +582,8 @@ lemma mem_vector_span_iff_eq_weighted_vsub {v : V} {p : ι → P} :
     ∃ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), v = s.weighted_vsub p w :=
 begin
   split,
-  { by_cases hn : nonempty ι,
-    { cases hn with i0,
-      rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
+  { rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩, swap,
+    { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
           finsupp.mem_span_image_iff_total],
       rintros ⟨l, hl, hv⟩,
       use insert i0 l.support,
@@ -610,10 +607,11 @@ begin
       by_cases h : i = i0,
       { simp [h] },
       { simp [hwdef, h] } },
-    { rw [set.range_eq_empty.2 hn, vector_span_empty, submodule.mem_bot],
-      intro hv,
+    { resetI,
+      rw [set.range_eq_empty, vector_span_empty, submodule.mem_bot],
+      rintro rfl,
       use [∅],
-      simp [hv] } },
+      simp } },
   { rintros ⟨s, w, hw, rfl⟩,
     exact weighted_vsub_mem_vector_span hw p }
 end

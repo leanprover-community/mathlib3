@@ -334,12 +334,11 @@ begin
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
   { rw not_and_distrib at H,
-    by_cases hι : nonempty ι,
-    { resetI,
-      exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
-        ennreal.mul_left_mono).symm },
-    { rw [infi_of_empty hι, infi_of_empty hι, mul_top, if_neg],
-      exact mt h0 hι } }
+    casesI is_empty_or_nonempty ι,
+    { rw [infi_of_empty, infi_of_empty, mul_top, if_neg],
+      exact mt h0 (not_nonempty_iff.2 ‹_›) },
+    { exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+        ennreal.mul_left_mono).symm } }
 end
 
 lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
@@ -871,21 +870,20 @@ end ennreal
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ} (hf : summable f) (hn : ∀ a, 0 ≤ f a)
   {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=
 begin
-  let g : α → ℝ≥0 := λ a, ⟨f a, hn a⟩,
-  have hg : summable g, by rwa ← nnreal.summable_coe,
-  convert nnreal.coe_le_coe.2 (nnreal.tsum_comp_le_tsum_of_inj hg hi);
-  { rw nnreal.coe_tsum, congr }
+  lift f to α → ℝ≥0 using hn,
+  rw nnreal.summable_coe at hf,
+  simpa only [(∘), ← nnreal.coe_tsum] using nnreal.tsum_comp_le_tsum_of_inj hf hi
 end
 
 /-- Comparison test of convergence of series of non-negative real numbers. -/
 lemma summable_of_nonneg_of_le {f g : β → ℝ}
   (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) (hf : summable f) : summable g :=
-let f' (b : β) : ℝ≥0 := ⟨f b, le_trans (hg b) (hgf b)⟩ in
-let g' (b : β) : ℝ≥0 := ⟨g b, hg b⟩ in
-have summable f', from nnreal.summable_coe.1 hf,
-have summable g', from
-  nnreal.summable_of_le (assume b, (@nnreal.coe_le_coe (g' b) (f' b)).2 $ hgf b) this,
-show summable (λb, g' b : β → ℝ), from nnreal.summable_coe.2 this
+begin
+  lift f to β → ℝ≥0 using λ b, (hg b).trans (hgf b),
+  lift g to β → ℝ≥0 using hg,
+  rw nnreal.summable_coe at hf ⊢,
+  exact nnreal.summable_of_le (λ b, nnreal.coe_le_coe.1 (hgf b)) hf
+end
 
 /-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
 the sequence of partial sum converges to `r`. -/

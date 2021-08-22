@@ -349,13 +349,13 @@ multiset.ext.mpr $ λ r,
     not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
   (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
 
-@[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = r ::ₘ 0 :=
+@[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = {r} :=
 begin
   ext s,
   rw [count_roots (X_sub_C_ne_zero r), root_multiplicity_X_sub_C],
   split_ifs with h,
-  { rw [h, count_singleton] },
-  { rw [count_cons_of_ne h, count_zero] }
+  { rw [h, count_singleton_self] },
+  { rw [singleton_eq_cons, count_cons_of_ne h, count_zero] }
 end
 
 @[simp] lemma roots_C (x : R) : (C x).roots = 0 :=
@@ -390,7 +390,7 @@ end
 lemma roots_prod_X_sub_C (s : finset R) :
   (s.prod (λ a, X - C a)).roots = s.val :=
 (roots_prod (λ a, X - C a) s (prod_ne_zero_iff.mpr (λ a _, X_sub_C_ne_zero a))).trans
-  (by simp_rw [roots_X_sub_C, bind_cons, bind_zero, add_zero, multiset.map_id'])
+  (by simp_rw [roots_X_sub_C, multiset.bind_singleton, multiset.map_id'])
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   (roots ((X : polynomial R) ^ n - C a)).card ≤ n :=

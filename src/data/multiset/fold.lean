@@ -55,7 +55,7 @@ multiset.induction_on s₂
   (by rw [add_zero, fold_zero, ← fold_cons'_right, ← fold_cons_right op])
   (by simp {contextual := tt}; cc)
 
-theorem fold_singleton (b a : α) : (a ::ₘ 0 : multiset α).fold op b = a * b := by simp
+theorem fold_singleton (b a : α) : ({a} : multiset α).fold op b = a * b := foldr_singleton _ _ _ _
 
 theorem fold_distrib {f g : β → α} (u₁ u₂ : α) (s : multiset β) :
   (s.map (λx, f x * g x)).fold op (u₁ * u₂) = (s.map f).fold op u₁ * (s.map g).fold op u₂ :=

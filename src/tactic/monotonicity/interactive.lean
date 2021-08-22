@@ -408,8 +408,8 @@ do tgt ← target,
    t ← infer_type v,
    tgt' ← do {
      ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize v x >> target),
-     to_expr ``(λ y : %%t, Π x, y = x → %%(tgt'.binding_body.lift_vars 0 1))
-     } <|> to_expr ``(λ y : %%t, Π x, %%v = x → %%tgt),
+     to_expr ``(λ y : %%t, Π x, y = x → %%(tgt'.binding_body.lift_vars 0 1)) }
+   <|> to_expr ``(λ y : %%t, Π x, %%v = x → %%tgt),
    t ← head_beta (tgt' v) >>= assert h,
    swap,
    r ← mk_eq_refl v,

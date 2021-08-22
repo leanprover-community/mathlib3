@@ -140,7 +140,7 @@ lemma im_smul (g : SL(2, ℝ)) (z : ℍ) : (g • z).im = (num g z / denom g z).
 
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℝ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-im_smul_eq_div_norm_sq' g z
+smul_aux'_im g z
 
 @[simp] lemma neg_smul (g : SL(2,ℝ)) (z : ℍ) : -g • z = g • z :=
 begin

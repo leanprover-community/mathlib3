@@ -100,7 +100,7 @@ begin
   simp [lt_succ_iff],
 end
 
-lemma count_succ' {n : ℕ} : count p (n + 1) = (if p 0 then 1 else 0) + count (λ k, p (k+1)) n :=
+lemma count_succ' {n : ℕ} : count p (n + 1) = count (λ k, p (k+1)) n + (if p 0 then 1 else 0) :=
 sorry
 
 @[simp]
@@ -152,6 +152,10 @@ begin
   apply nat.Inf_le,
   simp [h],
 end
+
+lemma nth_succ_of_zero (h : p 0) (n : ℕ) (w : (n + 2 : cardinal) ≤ cardinal.mk (set_of p)) :
+  nth p (n+1) = nth (λ i, p (i+1)) n + 1 :=
+sorry
 
 lemma nth_zero_of_exists (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h, }
@@ -256,9 +260,33 @@ end
 lemma nth_lt_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k < n :=
 sorry
 
--- TODO this is the difficult sorry
+lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) : nth p k = nth (λ i, p (i+1)) k + 1 :=
+begin
+  apply nat.strong_induction_on k,
+  intro k,
+  intro w,
+  rw [nth_def, nth_def],
+  have w' : ∀ m, m < k → nth (λ i, p (i+1)) m = nth p m - 1 := sorry,
+  simp [w'] {contextual := tt},
+  clear w w',
+  sorry --- easy from here.
+end
+
 lemma nth_count (n : ℕ) (h : p n) : nth p (count p n) = n :=
-sorry
+begin
+  unfreezingI { induction n with n ih generalizing p },
+  { simp [h], },
+  rw count_succ',
+  split_ifs with h',
+  { rw nth_succ_of_zero _ h',
+    rw ih _ h,
+    sorry -- this one is very doable! it's just a cardinality calculation
+     },
+  { simp,
+    rw nth_of_not_zero _ h',
+    rw ih,
+    exact h, },
+end
 
 open_locale classical
 

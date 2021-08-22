@@ -422,7 +422,7 @@ theorem exists_associated_pow_of_mul_eq_pow {a b c : α} (hab : gcd a b = 1) {k 
 begin
   by_cases ha : a = 0,
   { use 0, rw ha,
-    obtain ⟨rfl, hk⟩ := k.eq_zero_or_pos,
+    obtain (rfl | hk) := k.eq_zero_or_pos,
     { exfalso, revert h, rw [ha, zero_mul, pow_zero], apply zero_ne_one },
     { rw zero_pow hk }},
   by_cases hb : b = 0,

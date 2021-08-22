@@ -123,6 +123,9 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 
 instance : faithful forget_to_SheafedSpace := {}
 
+/--
+The restriction of a locally ringed space along an open embedding.
+-/
 @[simps]
 noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=

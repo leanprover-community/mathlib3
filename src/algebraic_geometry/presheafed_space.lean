@@ -181,7 +181,6 @@ def restrict {U : Top} (X : PresheafedSpace C)
 /--
 The map from the restriction of a presheafed space.
 -/
-@[simps]
 def of_restrict {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) :
   X.restrict f h ⟶ X :=

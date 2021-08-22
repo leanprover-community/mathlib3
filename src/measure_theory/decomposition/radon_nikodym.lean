@@ -29,11 +29,13 @@ Radon-Nikodym theorem
 noncomputable theory
 open_locale classical measure_theory nnreal ennreal
 
-variables {α β : Type*} [measurable_space α]
+variables {α β : Type*} {m : measurable_space α}
 
 namespace measure_theory
 
 namespace measure
+
+include m
 
 lemma with_density_radon_nikodym_deriv_eq
   {μ ν : measure α} (hl : have_lebesgue_decomposition μ ν) (h : μ ≪ ν) :

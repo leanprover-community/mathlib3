@@ -330,7 +330,7 @@ Checks whether a lemma is a declaration that `e = f` where `e` and `f` are synta
 meta def check_syn_eq (d : declaration) : tactic (option string) := do
   let l := d.type.pi_codomain,
   (do (el, er) ← expr.is_eq l,
-    guard (el = er),
+    guard (el.alpha_eqv er),
     return $ some "LHS equals RHS syntactically") <|>
   return none
 

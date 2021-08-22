@@ -29,8 +29,8 @@ namespace Ico
 @[simp] theorem to_finset (n m : ℕ) : (multiset.Ico n m).to_finset = Ico n m :=
 (multiset.to_finset_eq _).symm
 
-theorem image_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
-by simp [image, multiset.Ico.map_add]
+theorem map_add (n m k : ℕ) : (Ico n m).map (add_right_embedding k) = Ico (n + k) (m + k) :=
+by simp [Ico, map, multiset.Ico.map_add, add_comm _ k]
 
 theorem image_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=
 begin
@@ -77,16 +77,11 @@ end
 
 protected theorem subset {m₁ n₁ m₂ n₂ : ℕ} (hmm : m₂ ≤ m₁) (hnn : n₁ ≤ n₂) :
   Ico m₁ n₁ ⊆ Ico m₂ n₂ :=
-begin
-  simp only [finset.subset_iff, Ico.mem],
-  assume x hx,
-  exact ⟨le_trans hmm hx.1, lt_of_lt_of_le hx.2 hnn⟩
-end
+by simp only [← finset.coe_subset, coe_eq_Ico, set.Ico_subset_Ico hmm hnn]
 
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m ∪ Ico m l = Ico n l :=
-by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
-  multiset.Ico.add_consecutive hnm hml, to_finset]
+by simp only [← coe_inj, coe_union, coe_eq_Ico, set.Ico_union_Ico_eq_Ico hnm hml]
 
 lemma union' {n m l k : ℕ} (hlm : l ≤ m) (hnk : n ≤ k) :
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
@@ -96,17 +91,22 @@ lemma union {n m l k : ℕ} (h₁ : min n m ≤ max l k) (h₂ : min l k ≤ max
   Ico n m ∪ Ico l k = Ico (min n l) (max m k) :=
 by simp [←coe_inj, set.Ico_union_Ico h₁ h₂]
 
-@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
-begin
-  rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
-  simp,
-end
-
 lemma inter {n m l k : ℕ} : Ico n m ∩ Ico l k = Ico (max n l) (min m k) :=
 by simp [←coe_inj, ←inf_eq_min, ←sup_eq_max, set.Ico_inter_Ico]
 
+lemma inter_of_le {n m l k : ℕ} (h : m ≤ l) : Ico n m ∩ Ico l k = ∅ :=
+have min m k ≤ max n l,
+  from (min_le_left m k).trans (h.trans $ le_max_right n l),
+by rw [inter, eq_empty_of_le this]
+
+@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
+inter_of_le le_rfl
+
+lemma disjoint_of_le {n m l k : ℕ} (h : m ≤ l) : disjoint (Ico n m) (Ico l k) :=
+le_of_eq $ inter_of_le h
+
 lemma disjoint_consecutive (n m l : ℕ) : disjoint (Ico n m) (Ico m l) :=
-le_of_eq $ inter_consecutive n m l
+disjoint_of_le le_rfl
 
 @[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = {n} :=
 eq_of_veq $ multiset.Ico.succ_singleton
@@ -189,7 +189,7 @@ end
 end Ico
 
 lemma range_eq_Ico (n : ℕ) : finset.range n = finset.Ico 0 n :=
-by { ext i, simp }
+(Ico.zero_bot n).symm
 
 lemma range_image_pred_top_sub (n : ℕ) :
   (finset.range n).image (λ j, n - 1 - j) = finset.range n :=
@@ -198,6 +198,22 @@ begin
   { simp },
   { simp [range_eq_Ico, Ico.image_const_sub] }
 end
+
+lemma range_map_add (m n : ℕ) : (range m).map (add_right_embedding n) = Ico n (m + n) :=
+by rw [range_eq_Ico, Ico.map_add, zero_add]
+
+lemma range_sub_map_add (m n : ℕ) : (range (n - m)).map (add_right_embedding m) = Ico m n :=
+(le_total n m).elim (λ h, by simp [nat.sub_eq_zero_of_le h, Ico.eq_empty_of_le h])
+  (λ h, by rw [range_map_add, nat.sub_add_cancel h])
+
+lemma range_union_Ico {m n : ℕ} (h : m ≤ n) : range m ∪ Ico m n = range n :=
+by rw [range_eq_Ico, range_eq_Ico, Ico.union_consecutive (zero_le m) h]
+
+lemma disjoint_range_Ico_of_le {m n k : ℕ} (h : m ≤ n) : disjoint (range m) (Ico n k) :=
+Ico.zero_bot m ▸ Ico.disjoint_of_le h
+
+lemma disjoint_range_Ico (m n : ℕ) : disjoint (range m) (Ico m n) :=
+disjoint_range_Ico_of_le le_rfl
 
 -- TODO We don't yet attempt to reproduce the entire interface for `Ico` for `Ico_ℤ`.
 

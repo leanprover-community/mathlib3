@@ -530,6 +530,8 @@ section sub
 
 lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
+lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
+
 lemma sub_eq_zero {r p : ℝ≥0} (h : r ≤ p) : r - p = 0 :=
 nnreal.eq $ max_eq_right $ sub_le_iff_le_add.2 $ by simpa [nnreal.coe_le_coe] using h
 
@@ -567,6 +569,10 @@ nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add
 lemma add_sub_cancel' {r p : ℝ≥0} : (r + p) - r = p :=
 by rw [add_comm, add_sub_cancel]
 
+@[mono] lemma sub_le_sub {p₁ p₂ r₁ r₂ : ℝ≥0} (hp : p₁ ≤ p₂) (hr : r₁ ≤ r₂) :
+  p₁ - r₂ ≤ p₂ - r₁ :=
+real.to_nnreal_mono $ sub_le_sub hp hr
+
 lemma sub_add_eq_max {r p : ℝ≥0} : (r - p) + p = max r p :=
 nnreal.eq $ by rw [sub_def, nnreal.coe_add, coe_max, real.to_nnreal, coe_mk,
   ← max_add_add_right, zero_add, sub_add_cancel]
@@ -598,6 +604,21 @@ by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff
 
 lemma sub_eq_iff_eq_add {a b c : ℝ≥0} (h : b ≤ a) : a - b = c ↔ a = c + b :=
 by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub_eq_iff_eq_add]
+
+lemma mul_sub (a b c : ℝ≥0) : a * (b - c) = a * b - a * c :=
+nnreal.eq $ by simp only [coe_sub_def, nnreal.coe_mul, mul_max_of_nonneg _ _ a.coe_nonneg,
+  mul_sub, mul_zero]
+
+lemma sub_mul (a b c : ℝ≥0) : (a - b) * c = a * c - b * c :=
+by simp only [← mul_comm c, mul_sub]
+
+lemma sub_add_sub_cancel {a b c : ℝ≥0} (h₁ : b ≤ a) (h₂ : c ≤ b) :
+  (a - b) + (b - c) = a - c :=
+nnreal.eq $ by simp [*, h₂.trans h₁, sub_add_sub_cancel]
+
+lemma sub_add_sub_cancel' {a b c : ℝ≥0} (h₁ : b ≤ a) (h₂ : a ≤ c) :
+  (a - b) + (c - a) = c - b :=
+by rw [add_comm, sub_add_sub_cancel h₂ h₁]
 
 end sub
 

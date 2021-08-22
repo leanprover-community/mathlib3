@@ -36,7 +36,7 @@ We conclude that all intervals with distinct endpoints have cardinality continuu
 continuum, cardinality, reals, cardinality of the reals
 -/
 
-open nat set
+open nat set finset
 open_locale cardinal
 noncomputable theory
 

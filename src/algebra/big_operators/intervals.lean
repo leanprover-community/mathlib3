@@ -23,14 +23,15 @@ namespace finset
 variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α} {g f : α → β}
   [comm_monoid β]
 
-lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
-  (∑ l in Ico m n, f (k + l)) = (∑ l in Ico (m + k) (n + k), f l) :=
-Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
+@[to_additive]
+lemma prod_Ico_add_right (f : ℕ → β) (m n k : ℕ) :
+  (∏ l in Ico m n, f (l + k)) = (∏ l in Ico (m + k) (n + k), f l) :=
+Ico.map_add m n k ▸ eq.symm (prod_map _ _ _)
 
 @[to_additive]
-lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
-  (∏ l in Ico m n, f (k + l)) = (∏ l in Ico (m + k) (n + k), f l) :=
-@sum_Ico_add (additive β) _ f m n k
+lemma prod_Ico_add_left (f : ℕ → β) (m n k : ℕ) :
+  (∏ l in Ico m n, f (k + l)) = (∏ l in Ico (k + m) (k + n), f l) :=
+by simpa only [add_comm k] using prod_Ico_add_right f m n k
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
@@ -88,13 +89,9 @@ end
 @[to_additive]
 lemma prod_Ico_eq_prod_range (f : ℕ → β) (m n : ℕ) :
   (∏ k in Ico m n, f k) = (∏ k in range (n - m), f (m + k)) :=
-begin
-  by_cases h : m ≤ n,
-  { rw [← Ico.zero_bot, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
-  { replace h : n ≤ m :=  le_of_not_ge h,
-     rw [Ico.eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
-end
+range_sub_map_add m n ▸ by simp [add_comm m]
 
+@[to_additive]
 lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) :
   ∏ j in Ico k m, f (n - j) = ∏ j in Ico (n + 1 - m) (n + 1 - k), f j :=
 begin
@@ -110,11 +107,7 @@ begin
   { simp [Ico.eq_empty_of_le, nat.sub_le_sub_left, hkm] }
 end
 
-lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
-  (h : m ≤ n + 1) :
-  ∑ j in Ico k m, f (n - j) = ∑ j in Ico (n + 1 - m) (n + 1 - k), f j :=
-@prod_Ico_reflect (multiplicative δ) _ f k m n h
-
+@[to_additive]
 lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
   ∏ j in range n, f (n - 1 - j) = ∏ j in range n, f j :=
 begin
@@ -125,18 +118,13 @@ begin
     simp }
 end
 
-lemma sum_range_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (n : ℕ) :
-  ∑ j in range n, f (n - 1 - j) = ∑ j in range n, f j :=
-@prod_range_reflect (multiplicative δ) _ f n
-
 @[simp] lemma prod_Ico_id_eq_factorial : ∀ n : ℕ, ∏ x in Ico 1 (n + 1), x = n!
 | 0 := rfl
 | (n+1) := by rw [prod_Ico_succ_top $ nat.succ_le_succ $ zero_le n,
   nat.factorial_succ, prod_Ico_id_eq_factorial n, nat.succ_eq_add_one, mul_comm]
 
-@[simp] lemma prod_range_add_one_eq_factorial : ∀ n : ℕ, ∏ x in range n, (x+1) = n!
-| 0 := rfl
-| (n+1) := by simp [finset.range_succ, prod_range_add_one_eq_factorial n]
+@[simp] lemma prod_range_add_one_eq_factorial (n : ℕ) : ∏ x in range n, (x+1) = n! :=
+by simp [← prod_Ico_id_eq_factorial, ← range_map_add]
 
 section gauss_sum
 

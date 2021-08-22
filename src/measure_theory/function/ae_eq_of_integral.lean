@@ -273,6 +273,7 @@ begin
     ae_eq_zero_restrict_of_forall_set_integral_eq_zero_ℝ hf_im hf_zero_im ht hμt⟩,
 end
 
+/-- TODO: move to measure_space. Unused. -/
 lemma sigma_finite_restrict_union {α} {m : measurable_space α} {μ : measure α} {s t : set α}
   (hs : sigma_finite (μ.restrict s)) (ht : sigma_finite (μ.restrict t)) :
   sigma_finite (μ.restrict (s ∪ t)) :=
@@ -353,6 +354,22 @@ begin
   exact ae_eq_zero_restrict_of_forall_set_integral_eq_zero hf_int_finite hf_zero h_meas_n hμn.ne,
 end
 
+lemma ae_eq_of_forall_set_integral_eq_of_sigma_finite [sigma_finite μ] {f g : α → E'}
+  (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
+  (hg_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on g s μ)
+  (hfg_eq : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ) :
+  f =ᵐ[μ] g :=
+begin
+  rw ← sub_ae_eq_zero,
+  have hfg : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, (f - g) x ∂μ = 0,
+  { intros s hs hμs,
+    rw [integral_sub' (hf_int_finite s hs hμs) (hg_int_finite s hs hμs),
+      sub_eq_zero.mpr (hfg_eq s hs hμs)], },
+  have hfg_int : ∀ s, measurable_set s → μ s < ∞ → integrable_on (f-g) s μ,
+    from λ s hs hμs, (hf_int_finite s hs hμs).sub (hg_int_finite s hs hμs),
+  exact ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite hfg_int hfg,
+end
+
 lemma ae_fin_strongly_measurable.ae_eq_zero_of_forall_set_integral_eq_zero {f : α → E'}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
@@ -415,7 +432,7 @@ lemma ae_eq_zero_of_forall_set_integral_eq_of_fin_strongly_measurable_trim (hm :
   f =ᵐ[μ] 0 :=
 begin
   obtain ⟨t, ht_meas, htf_zero, htμ⟩ := hf.exists_set_sigma_finite,
-  haveI : @sigma_finite _ m ((μ.restrict t).trim hm) := by rwa restrict_trim hm μ ht_meas at htμ,
+  haveI : sigma_finite ((μ.restrict t).trim hm) := by rwa restrict_trim hm μ ht_meas at htμ,
   have htf_zero : f =ᵐ[μ.restrict tᶜ] 0,
   { rw [eventually_eq, ae_restrict_iff' (measurable_set.compl (hm _ ht_meas))],
     exact eventually_of_forall htf_zero, },
@@ -426,37 +443,16 @@ begin
   refine ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite _ _,
   { intros s hs hμs,
     rw [integrable_on, restrict_trim hm (μ.restrict t) hs, measure.restrict_restrict (hm s hs)],
-    rw [← restrict_trim hm μ ht_meas, @measure.restrict_apply _ m _ _ _ hs,
+    rw [← restrict_trim hm μ ht_meas, measure.restrict_apply hs,
       trim_measurable_set_eq hm (@measurable_set.inter _ m _ _ hs ht_meas)] at hμs,
     refine integrable.trim hm _ hf_meas_m,
     exact hf_int_finite _ (@measurable_set.inter _ m _ _ hs ht_meas) hμs, },
   { intros s hs hμs,
     rw [restrict_trim hm (μ.restrict t) hs, measure.restrict_restrict (hm s hs)],
-    rw [← restrict_trim hm μ ht_meas, @measure.restrict_apply _ m _ _ _ hs,
+    rw [← restrict_trim hm μ ht_meas, measure.restrict_apply hs,
       trim_measurable_set_eq hm (@measurable_set.inter _ m _ _ hs ht_meas)] at hμs,
     rw ← integral_trim hm hf_meas_m,
     exact hf_zero _ (@measurable_set.inter _ m _ _ hs ht_meas) hμs, },
-end
-
-lemma ae_eq_of_forall_set_integral_eq_of_sigma_finite [sigma_finite μ] {f g : α → E'}
-  (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
-  (hg_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on g s μ)
-  (hfg_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ) :
-  f =ᵐ[μ] g :=
-begin
-  let S := spanning_sets μ,
-  rw [← @measure.restrict_univ _ _ μ, ← Union_spanning_sets μ, eventually_eq, ae_iff,
-    measure.restrict_apply'],
-  swap,
-  { refine measurable_set.Union _ ,
-    exact measurable_spanning_sets μ, },
-  rw [set.inter_Union, measure_Union_null_iff],
-  intro n,
-  have h_meas_n : measurable_set (S n), from measurable_spanning_sets μ n,
-  have hμn : μ (S n) < ∞, from measure_spanning_sets_lt_top μ n,
-  rw ← measure.restrict_apply' h_meas_n,
-  exact ae_eq_restrict_of_forall_set_integral_eq hf_int_finite hg_int_finite hfg_zero h_meas_n
-    hμn.ne,
 end
 
 lemma integrable.ae_eq_zero_of_forall_set_integral_eq_zero {f : α → E'} (hf : integrable f μ)

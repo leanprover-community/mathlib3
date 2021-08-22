@@ -88,8 +88,8 @@ lemma exists_smul_eq [is_pretransitive α β] (x y : β) :
   ∃ m : α, m • x = y := is_pretransitive.exists_smul_eq x y
 
 end mul_action
-namespace add_action
 
+namespace add_action
 variables (α β) [add_monoid α] [add_action α β]
 
 /-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g +ᵥ x = y`.

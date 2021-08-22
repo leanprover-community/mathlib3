@@ -1606,7 +1606,7 @@ attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
 
-lemma _root_.set.subsingleton.measure_zero {α : Type*} [measurable_space α] {s : set α}
+lemma _root_.set.subsingleton.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
   (hs : s.subsingleton) (μ : measure α) [has_no_atoms μ] :
   μ s = 0 :=
 hs.induction_on measure_empty measure_singleton
@@ -1624,7 +1624,7 @@ begin
   apply measure_mono_null (inter_subset_left t s) ht2
 end
 
-lemma _root_.set.countable.measure_zero {α : Type*} [measurable_space α] {s : set α}
+lemma _root_.set.countable.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
   (h : countable s) (μ : measure α) [has_no_atoms μ] :
   μ s = 0 :=
 begin
@@ -1633,11 +1633,11 @@ begin
   simp
 end
 
-lemma _root_.set.finite.measure_zero {α : Type*} [measurable_space α] {s : set α}
+lemma _root_.set.finite.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
   (h : s.finite) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
 h.countable.measure_zero μ
 
-lemma _root_.finset.measure_zero {α : Type*} [measurable_space α]
+lemma _root_.finset.measure_zero {α : Type*} {m : measurable_space α}
   (s : finset α) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
 s.finite_to_set.measure_zero μ
 

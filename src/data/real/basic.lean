@@ -17,6 +17,8 @@ This choice is motivated by how easy it is to prove that `ℝ` is a commutative 
 lifting everything to `ℚ`.
 -/
 
+open_locale pointwise
+
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
 structure real := of_cauchy ::

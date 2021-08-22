@@ -245,9 +245,8 @@ is the supremum of the measures. -/
 lemma measure_Union_eq_supr [encodable ι] {s : ι → set α} (h : ∀ i, measurable_set (s i))
   (hd : directed (⊆) s) : μ (⋃ i, s i) = ⨆ i, μ (s i) :=
 begin
-  by_cases hι : nonempty ι, swap,
-  { simp only [supr_of_empty hι, Union], exact measure_empty },
-  resetI,
+  casesI is_empty_or_nonempty ι,
+  { simp only [supr_of_empty, Union], exact measure_empty },
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
   have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
     measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
@@ -1528,6 +1527,9 @@ instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_mea
 instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
+lemma finite_measure_of_le (μ : measure α) [finite_measure μ] (h : ν ≤ μ) : finite_measure ν :=
+{ measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
+
 @[simp] lemma measure_univ_nnreal_eq_zero [finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
 begin
   rw [← measure_theory.measure.measure_univ_eq_zero, ← coe_measure_univ_nnreal],
@@ -1603,10 +1605,10 @@ attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
 
-lemma measure_subsingleton (hs : s.subsingleton) : μ s = 0 :=
+lemma _root_.set.subsingleton.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
+  (hs : s.subsingleton) (μ : measure α) [has_no_atoms μ] :
+  μ s = 0 :=
 hs.induction_on measure_empty measure_singleton
-
-alias measure_subsingleton ← set.subsingleton.measure_eq
 
 @[simp] lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=
@@ -1621,18 +1623,22 @@ begin
   apply measure_mono_null (inter_subset_left t s) ht2
 end
 
-lemma _root_.set.countable.measure_zero (h : countable s) : μ s = 0 :=
+lemma _root_.set.countable.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
+  (h : countable s) (μ : measure α) [has_no_atoms μ] :
+  μ s = 0 :=
 begin
   rw [← bUnion_of_singleton s, ← nonpos_iff_eq_zero],
   refine le_trans (measure_bUnion_le h _) _,
   simp
 end
 
-lemma _root_.set.finite.measure_zero (h : s.finite) : μ s = 0 :=
-h.countable.measure_zero
+lemma _root_.set.finite.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
+  (h : s.finite) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
+h.countable.measure_zero μ
 
-lemma _root_.finset.measure_zero (s : finset α) : μ ↑s = 0 :=
-s.finite_to_set.measure_zero
+lemma _root_.finset.measure_zero {α : Type*} {m : measurable_space α}
+  (s : finset α) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
+s.finite_to_set.measure_zero μ
 
 lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=
@@ -1811,6 +1817,14 @@ begin
     from (exists_seq_cover_iff_countable ⟨∅, by simp⟩).2 ⟨S, hc, hμ, hU⟩,
   refine ⟨⟨⟨λ n, to_measurable μ (s n), λ n, measurable_set_to_measurable _ _, by simpa, _⟩⟩⟩,
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
+end
+
+lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
+  (h : ν ≤ μ) : sigma_finite ν :=
+begin
+  cases hs.out with C,
+  exact ⟨nonempty.intro ⟨C.set, C.set_mem, λ i,
+    (lt_of_le_of_lt (le_iff'.1 h _) (C.finite i)), C.spanning⟩⟩,
 end
 
 end measure

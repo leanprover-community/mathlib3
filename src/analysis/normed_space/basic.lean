@@ -8,6 +8,7 @@ import algebra.algebra.subalgebra
 import order.liminf_limsup
 import topology.algebra.group_completion
 import topology.instances.ennreal
+import topology.metric_space.algebra
 import topology.metric_space.completion
 import topology.sequences
 import topology.locally_constant.algebra
@@ -801,15 +802,16 @@ begin
   exact not_le_of_lt zero_lt_one (add_le_iff_nonpos_left.1 hy)
 end
 
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_group.has_lipschitz_add : has_lipschitz_add α :=
+{ lipschitz_add := ⟨2, lipschitz_with.prod_fst.add lipschitz_with.prod_snd⟩ }
+
 /-- A seminormed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
 ⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : has_continuous_add α :=
-by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α :=
 by apply_instance -- short-circuit type class inference
@@ -1181,10 +1183,7 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 
 /-- A seminormed ring is a topological ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α :=
-⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
-    have ∀ e : α, -e - -x = -(e - x), by intro; simp,
-    by simp only [this, norm_neg]; apply tendsto_norm_sub_self ⟩
+instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
@@ -1486,6 +1485,13 @@ end prio
 
 variables [normed_field α] [semi_normed_group β]
 
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_space.has_bounded_smul [semi_normed_space α β] : has_bounded_smul α β :=
+{ dist_smul_pair' := λ x y₁ y₂,
+    by simpa [dist_eq_norm, smul_sub] using semi_normed_space.norm_smul_le x (y₁ - y₂),
+  dist_pair_smul' := λ x₁ x₂ y,
+    by simpa [dist_eq_norm, sub_smul] using semi_normed_space.norm_smul_le (x₁ - x₂) y }
+
 instance normed_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, le_of_eq (normed_field.norm_mul a b) }
 
@@ -1519,23 +1525,6 @@ lemma norm_smul_of_nonneg [semi_normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x
 
 variables {E : Type*} [semi_normed_group E] [semi_normed_space α E]
 variables {F : Type*} [semi_normed_group F] [semi_normed_space α F]
-
-@[priority 100] -- see Note [lower instance priority]
-instance semi_normed_space.has_continuous_smul : has_continuous_smul α E :=
-begin
-  refine { continuous_smul := continuous_iff_continuous_at.2 $
-    λ p, tendsto_iff_norm_tendsto_zero.2 _ },
-  refine squeeze_zero (λ _, norm_nonneg _) _ _,
-  { exact λ q, ∥q.1 - p.1∥ * ∥q.2∥ + ∥p.1∥ * ∥q.2 - p.2∥ },
-  { intro q,
-    rw [← sub_add_sub_cancel, ← norm_smul, ← norm_smul, smul_sub, sub_smul],
-    exact norm_add_le _ _ },
-  { conv { congr, skip, skip, congr, rw [← zero_add (0:ℝ)], congr,
-      rw [← zero_mul ∥p.2∥], skip, rw [← mul_zero ∥p.1∥] },
-    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul
-      (continuous_snd.tendsto p).norm).add
-        (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
-end
 
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
@@ -1664,7 +1653,7 @@ theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : �
   interior (closed_ball x r) = ball x r :=
 begin
   rcases lt_trichotomy r 0 with hr|rfl|hr,
-  { simp [closed_ball_eq_empty_iff_neg.2 hr, ball_eq_empty_iff_nonpos.2 (le_of_lt hr)] },
+  { simp [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le] },
   { suffices : x ∉ interior {x},
     { rw [ball_zero, closed_ball_zero, ← set.subset_empty_iff],
       intros y hy,

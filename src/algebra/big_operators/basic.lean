@@ -98,8 +98,8 @@ theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
 rfl
 
 @[simp] lemma sum_multiset_singleton (s : finset α) :
-  s.sum (λ x, x ::ₘ 0) = s.val :=
-by simp [sum_eq_multiset_sum]
+  s.sum (λ x, {x}) = s.val :=
+by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
 end finset
 
@@ -488,9 +488,7 @@ by haveI := classical.dec_eq α; exact
 lemma prod_subtype_eq_prod_filter (f : α → β) {p : α → Prop} [decidable_pred p] :
   ∏ x in s.subtype p, f x = ∏ x in s.filter p, f x :=
 begin
-  conv_lhs {
-    erw ←prod_map (s.subtype p) (function.embedding.subtype _) f
-  },
+  conv_lhs { erw ←prod_map (s.subtype p) (function.embedding.subtype _) f },
   exact prod_congr (subtype_map _) (λ x hx, rfl)
 end
 
@@ -816,6 +814,15 @@ attribute [to_additive] prod_multiset_map_count
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
+
+@[to_additive] lemma prod_mem_multiset [decidable_eq α]
+  (m : multiset α) (f : {x // x ∈ m} → β) (g : α → β)
+  (hfg : ∀ x, f x = g x) :
+  ∏ (x : {x // x ∈ m}), f x = ∏ x in m.to_finset, g x :=
+prod_bij (λ x _, x.1) (λ x _, multiset.mem_to_finset.mpr x.2)
+  (λ _ _, hfg _)
+  (λ _ _ _ _ h, by { ext, assumption })
+  (λ y hy, ⟨⟨y, multiset.mem_to_finset.mp hy⟩, finset.mem_univ _, rfl⟩)
 
 /--
 To prove a property of a product, it suffices to prove that
@@ -1401,12 +1408,12 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
 by { dunfold finset.sum, rw count_sum }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
-  (∑ a in s.to_finset, s.count a • (a ::ₘ 0)) = s :=
+  (∑ a in s.to_finset, s.count a • {a}) = s :=
 begin
   apply ext', intro b,
   rw count_sum',
-  have h : count b s = count b (count b s • (b ::ₘ 0)),
-  { rw [singleton_coe, count_nsmul, ← singleton_coe, count_singleton, mul_one] },
+  have h : count b s = count b (count b s • {b}),
+  { rw [count_nsmul, count_singleton_self, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
   { intros c h hcb, rw count_nsmul, convert mul_zero (count c s),
@@ -1414,15 +1421,16 @@ begin
   { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
 end
 
-theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
+theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ}
+  (h : ∀ (a : α), a ∈ s → k ∣ multiset.count a s) :
   ∃ (u : multiset α), s = k • u :=
 begin
-  use ∑ a in s.to_finset, (s.count a / k) • (a ::ₘ 0),
-  have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • (x ::ₘ 0) =
-    ∑ (x : α) in s.to_finset, count x s • (x ::ₘ 0),
-  { refine congr_arg s.to_finset.sum _,
-    apply funext, intro x,
-    rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },
+  use ∑ a in s.to_finset, (s.count a / k) • {a},
+  have h₂ : ∑ (x : α) in s.to_finset, k • (count x s / k) • ({x} : multiset α) =
+    ∑ (x : α) in s.to_finset, count x s • {x},
+  { apply finset.sum_congr rfl,
+    intros x hx,
+    rw [← mul_nsmul, nat.mul_div_cancel' (h x (mem_to_finset.mp hx))] },
   rw [← finset.sum_nsmul, h₂, to_finset_sum_count_nsmul_eq]
 end
 

@@ -446,17 +446,6 @@ apply_nolint gaussian_int doc_blame
 apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 
--- order/filter/partial.lean
-apply_nolint filter.pcomap' doc_blame
-apply_nolint filter.pmap doc_blame
-apply_nolint filter.ptendsto doc_blame
-apply_nolint filter.ptendsto' doc_blame
-apply_nolint filter.rcomap doc_blame
-apply_nolint filter.rcomap' doc_blame
-apply_nolint filter.rmap doc_blame
-apply_nolint filter.rtendsto doc_blame
-apply_nolint filter.rtendsto' doc_blame
-
 -- order/fixed_points.lean
 apply_nolint fixed_points.next doc_blame
 apply_nolint fixed_points.next_fixed doc_blame
@@ -975,7 +964,6 @@ apply_nolint tactic.tautology doc_blame
 
 -- tactic/tfae.lean
 apply_nolint tactic.interactive.parse_list doc_blame
-apply_nolint tactic.interactive.tfae_have unused_arguments
 apply_nolint tactic.tfae.arrow doc_blame
 apply_nolint tactic.tfae.mk_implication doc_blame
 apply_nolint tactic.tfae.mk_name doc_blame

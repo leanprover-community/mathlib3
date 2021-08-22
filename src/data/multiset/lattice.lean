@@ -27,7 +27,8 @@ fold_zero _ _
   (a ::ₘ s).sup = a ⊔ s.sup :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma sup_singleton {a : α} : (a ::ₘ 0).sup = a := by simp
+@[simp] lemma sup_singleton {a : α} : ({a} : multiset α).sup = a :=
+sup_bot_eq
 
 @[simp] lemma sup_add (s₁ s₂ : multiset α) : (s₁ + s₂).sup = s₁.sup ⊔ s₂.sup :=
 eq.trans (by simp [sup]) (fold_add _ _ _ _ _)
@@ -84,7 +85,8 @@ fold_zero _ _
   (a ::ₘ s).inf = a ⊓ s.inf :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma inf_singleton {a : α} : (a ::ₘ 0).inf = a := by simp
+@[simp] lemma inf_singleton {a : α} : ({a} : multiset α).inf = a :=
+inf_top_eq
 
 @[simp] lemma inf_add (s₁ s₂ : multiset α) : (s₁ + s₂).inf = s₁.inf ⊓ s₂.inf :=
 eq.trans (by simp [inf]) (fold_add _ _ _ _ _)

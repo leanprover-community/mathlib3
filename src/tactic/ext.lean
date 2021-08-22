@@ -102,7 +102,7 @@ do e ← get_env,
             { repeat (do refine ``(and_imp.mpr _),
                          h ← intro1, cases h, skip ),
               h ← intro1, cases h,
-              reflexivity }  },
+              reflexivity } },
           instantiate_mvars pr },
    add_decl (declaration.thm (n <.> "ext_iff") d.univ_params t pr),
    pure decl_n

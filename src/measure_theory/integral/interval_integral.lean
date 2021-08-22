@@ -805,7 +805,7 @@ lemma integral_interval_sub_interval_comm' (hab : interval_integrable f μ a b)
   (hcd : interval_integrable f μ c d) (hac : interval_integrable f μ a c) :
   ∫ x in a..b, f x ∂μ - ∫ x in c..d, f x ∂μ = ∫ x in d..b, f x ∂μ - ∫ x in c..a, f x ∂μ :=
 by { rw [integral_interval_sub_interval_comm hab hcd hac, integral_symm b d, integral_symm a c,
-  sub_neg_eq_add, sub_eq_neg_add],  }
+  sub_neg_eq_add, sub_eq_neg_add], }
 
 lemma integral_Iic_sub_Iic (ha : integrable_on f (Iic a) μ) (hb : integrable_on f (Iic b) μ) :
   ∫ x in Iic b, f x ∂μ - ∫ x in Iic a, f x ∂μ = ∫ x in a..b, f x ∂μ :=

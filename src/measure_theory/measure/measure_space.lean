@@ -1816,24 +1816,6 @@ begin
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
 end
 
-/-- Given two σ-finite measures `μ` and `ν`, `finite_spanning_setsin.add μ ν` is a sequence of
-pairwise disjoint, finite spanning sets in `{s | measurable_set s}` with respect to `μ + ν`. -/
-protected def finite_spanning_sets_in.add
-  (S : μ.finite_spanning_sets_in {s | measurable_set s})
-  (T : ν.finite_spanning_sets_in {s | measurable_set s}) :
-  (μ + ν).finite_spanning_sets_in {s | measurable_set s} :=
-{ set := λ n : ℕ, S.set n.unpair.1 ∩ T.set n.unpair.2,
-  set_mem := λ n, (S.set_mem n.unpair.1).inter (T.set_mem n.unpair.2),
-  finite :=
-    begin
-      intro n,
-      rw [add_apply, ennreal.add_lt_top],
-      exact ⟨lt_of_le_of_lt (measure_mono (set.inter_subset_left _ _)) (S.finite n.unpair.1),
-             lt_of_le_of_lt (measure_mono (set.inter_subset_right _ _)) (T.finite n.unpair.2)⟩,
-    end,
-  spanning := by simp_rw [set.Union_unpair (λ i j, S.set i ∩ T.set j), ← set.inter_Union,
-                          ← set.Union_inter, S.spanning, T.spanning, set.inter_univ] }
-
 /-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in.of_le` provides the induced
 `finite_spanning_set` with respect to `ν` from a `finite_spanning_set` with respect to `μ`. -/
 def finite_spanning_sets_in.of_le (h : ν ≤ μ) {C : set (set α)}
@@ -1846,36 +1828,6 @@ def finite_spanning_sets_in.of_le (h : ν ≤ μ) {C : set (set α)}
 lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
   (h : ν ≤ μ) : sigma_finite ν :=
 ⟨hs.out.map $ finite_spanning_sets_in.of_le h⟩
-
-section disjointed
-
-variable [measurable_space α]
-
-/-- Given `S : μ.finite_spanning_sets_in {s | measurable_set s}`,
-`finite_spanning_sets_in.disjointed` provides a `finite_spanning_sets_in {s | measurable_set s}`
-such that its underlying sets are pairwise disjoint. -/
-protected def finite_spanning_sets_in.disjointed {μ : measure α}
-  (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
-   μ.finite_spanning_sets_in {s | measurable_set s} :=
-⟨disjointed S.set, measurable_set.disjointed S.set_mem,
-  λ n, lt_of_le_of_lt (measure_mono (disjointed_subset S.set n)) (S.finite _),
-  S.spanning ▸ Union_disjointed⟩
-
-lemma finite_spanning_sets_in.disjointed_set_eq {μ : measure α}
-  (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
-  S.disjointed.set = disjointed S.set :=
-rfl
-
-lemma exists_eq_disjoint_finite_spanning_sets_in
-  (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
-  ∃ (S : μ.finite_spanning_sets_in {s | measurable_set s})
-    (T : ν.finite_spanning_sets_in {s | measurable_set s}),
-    S.set = T.set ∧ pairwise (disjoint on S.set) :=
-let S := (μ.to_finite_spanning_sets_in.add ν.to_finite_spanning_sets_in).disjointed in
-⟨S.of_le (measure.le_add_right le_rfl), S.of_le (measure.le_add_left le_rfl),
- rfl, disjoint_disjointed _⟩
-
-end disjointed
 
 end measure
 
@@ -1995,6 +1947,36 @@ lemma ext_of_generate_finite (C : set (set α)) (hA : m0 = generate_from C)
 measure.ext (λ s hs, ext_on_measurable_space_of_generate_finite m0 C hμν le_rfl hA hC h_univ hs)
 
 namespace measure
+
+section disjointed
+
+variable [measurable_space α]
+
+/-- Given `S : μ.finite_spanning_sets_in {s | measurable_set s}`,
+`finite_spanning_sets_in.disjointed` provides a `finite_spanning_sets_in {s | measurable_set s}`
+such that its underlying sets are pairwise disjoint. -/
+protected def finite_spanning_sets_in.disjointed {μ : measure α}
+  (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
+   μ.finite_spanning_sets_in {s | measurable_set s} :=
+⟨disjointed S.set, measurable_set.disjointed S.set_mem,
+  λ n, lt_of_le_of_lt (measure_mono (disjointed_subset S.set n)) (S.finite _),
+  S.spanning ▸ Union_disjointed⟩
+
+lemma finite_spanning_sets_in.disjointed_set_eq {μ : measure α}
+  (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
+  S.disjointed.set = disjointed S.set :=
+rfl
+
+lemma exists_eq_disjoint_finite_spanning_sets_in
+  (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
+  ∃ (S : μ.finite_spanning_sets_in {s | measurable_set s})
+    (T : ν.finite_spanning_sets_in {s | measurable_set s}),
+    S.set = T.set ∧ pairwise (disjoint on S.set) :=
+let S := (μ + ν).to_finite_spanning_sets_in.disjointed in
+⟨S.of_le (measure.le_add_right le_rfl), S.of_le (measure.le_add_left le_rfl),
+ rfl, disjoint_disjointed _⟩
+
+end disjointed
 
 namespace finite_at_filter
 

@@ -47,8 +47,7 @@ The explanation for this is that the 'co' prefix here is *not* the usual categor
 indicating duality, but rather indicating the sense of "along with".
 
 ## Future work
-Conditions 1, 2 and 3 for final functors above should be dualised to initial functors. So far, we
-only have the implication 1 ⇒ 2.
+Dualise condition 3 above and the implications 2 ⇒ 3 and 3 ⇒ 1 to initial functors.
 
 ## References
 * https://stacks.math.columbia.edu/tag/09WN
@@ -72,7 +71,7 @@ variables {C : Type v} [small_category C]
 variables {D : Type v} [small_category D]
 
 /--
-A functor `F : C ⥤ D` is cofinal if for every `d : D`, the comma category of morphisms `d ⟶ F.obj c`
+A functor `F : C ⥤ D` is final if for every `d : D`, the comma category of morphisms `d ⟶ F.obj c`
 is connected.
 
 See https://stacks.math.columbia.edu/tag/04E6
@@ -82,6 +81,10 @@ class final (F : C ⥤ D) : Prop :=
 
 attribute [instance] final.out
 
+/--
+A functor `F : C ⥤ D` is initial if for every `d : D`, the comma category of morphisms
+`F.obj c ⟶ d` is connected.
+-/
 class initial (F : C ⥤ D) : Prop :=
 (out (d : D) : is_connected (costructured_arrow F d))
 
@@ -160,7 +163,7 @@ it suffices to perform that construction for some other pair of choices
 and to show how to transport such a construction
 *both* directions along a morphism between such choices.
 -/
-lemma induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Sort*)
+def def {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Sort*)
   (h₁ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂),
     (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
   (h₂ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂),
@@ -403,7 +406,7 @@ We provide an induction principle for reasoning about `lift` and `hom_to_lift`.
 We want to perform some construction (usually just a proof) about
 the particular choices `lift F d` and `hom_to_lift F d`,
 it suffices to perform that construction for some other pair of choices
-(denoted `X₀ : C` and `k₀ : d ⟶ F.obj X₀` below),
+(denoted `X₀ : C` and `k₀ : F.obj X₀ ⟶ d` below),
 and to show how to transport such a construction
 *both* directions along a morphism between such choices.
 -/
@@ -481,7 +484,7 @@ variables {G}
 
 /--
 When `F : C ⥤ D` is initial, and `t : cone G` for some `G : D ⥤ E`,
-`t.whisker F` is a colimit cocone exactly when `t` is.
+`t.whisker F` is a limit cone exactly when `t` is.
 -/
 def is_limit_whisker_equiv (t : cone G) : is_limit (t.whisker F) ≃ is_limit t :=
 is_limit.of_cone_equiv (cones_equiv F G).symm
@@ -494,7 +497,7 @@ def is_limit_extend_cone_equiv (t : cone (F ⋙ G)) :
   is_limit (extend_cone.obj t) ≃ is_limit t :=
 is_limit.of_cone_equiv (cones_equiv F G)
 
-/-- Given a limit cone over `G : D ⥤ E` we can construct a limit cocone over `F ⋙ G`. -/
+/-- Given a limit cone over `G : D ⥤ E` we can construct a limit cone over `F ⋙ G`. -/
 @[simps]
 def limit_cone_comp (t : limit_cone G) :
   limit_cone (F ⋙ G) :=
@@ -537,7 +540,7 @@ def limit_iso [has_limit G] : limit (F ⋙ G) ≅ limit G := (as_iso (limit.pre 
 
 end
 
-/-- Given a limit cocone over `F ⋙ G` we can construct a limit cocone over `G`. -/
+/-- Given a limit cone over `F ⋙ G` we can construct a limit cone over `G`. -/
 @[simps]
 def limit_cone_of_comp (t : limit_cone (F ⋙ G)) :
   limit_cone G :=
@@ -548,7 +551,7 @@ def limit_cone_of_comp (t : limit_cone (F ⋙ G)) :
 When `F` is initial, and `F ⋙ G` has a limit, then `G` has a limit also.
 
 We can't make this an instance, because `F` is not determined by the goal.
-(Even if this weren't a problem, it would cause a loop with `comp_has_colimit`.)
+(Even if this weren't a problem, it would cause a loop with `comp_has_limit`.)
 -/
 lemma has_limit_of_comp [has_limit (F ⋙ G)] :
   has_limit G :=

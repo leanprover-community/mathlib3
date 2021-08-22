@@ -319,7 +319,7 @@ def round (x : α) : ℤ := ⌊x + 1 / 2⌋
 @[simp] lemma round_zero : round (0 : α) = 0 := floor_eq_iff.2 (by norm_num)
 @[simp] lemma round_one : round (1 : α) = 1 := floor_eq_iff.2 (by norm_num)
 
-lemma abs_sub_round (x : α) : abs (x - round x) ≤ 1 / 2 :=
+lemma abs_sub_round (x : α) : |x - round x| ≤ 1 / 2 :=
 begin
   rw [round, abs_sub_le_iff],
   have := floor_le (x + 1 / 2),
@@ -343,7 +343,7 @@ section
 variables [linear_ordered_field α] [archimedean α]
 
 theorem exists_rat_near (x : α) {ε : α} (ε0 : 0 < ε) :
-  ∃ q : ℚ, abs (x - q) < ε :=
+  ∃ q : ℚ, |x - q| < ε :=
 let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
   lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
 ⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩

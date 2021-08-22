@@ -72,7 +72,7 @@ lemma has_fderiv_at_of_dominated_loc_of_lip' {F : H → α → E} {F' : α → (
 begin
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
   have nneg : ∀ x, 0 ≤ ∥x - x₀∥⁻¹ := λ x, inv_nonneg.mpr (norm_nonneg _) ,
-  set b : α → ℝ := λ a, abs (bound a),
+  set b : α → ℝ := λ a, |bound a|,
   have b_int : integrable b μ := bound_integrable.norm,
   have b_nonneg : ∀ a, 0 ≤ b a := λ a, abs_nonneg _,
   have hF_int' : ∀ x ∈ ball x₀ ε, integrable (F x) μ,

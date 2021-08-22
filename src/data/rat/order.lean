@@ -206,7 +206,7 @@ begin
     simp only [this, (lt_of_le_of_lt q_nonpos zero_lt_one)] }
 end
 
-theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
+theorem abs_def (q : ℚ) : |q| = q.num.nat_abs /. q.denom :=
 begin
   cases le_total q 0 with hq hq,
   { rw [abs_of_nonpos hq],

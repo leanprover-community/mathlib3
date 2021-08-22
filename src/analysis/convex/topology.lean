@@ -49,7 +49,7 @@ begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
   refine (nnreal.coe_one ▸ nnreal.coe_le_coe.2 $ finset.sup_le $ λ x hx, _),
-  change abs (f x) ≤ 1,
+  change |f x| ≤ 1,
   rw [abs_of_nonneg $ hf.1 x],
   exact (mem_Icc_of_mem_std_simplex hf x).2
 end

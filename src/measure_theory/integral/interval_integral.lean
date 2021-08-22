@@ -277,7 +277,7 @@ lemma norm [opens_measurable_space E] (h : interval_integrable f μ a b) :
 ⟨h.1.norm, h.2.norm⟩
 
 lemma abs {f : α → ℝ} (h : interval_integrable f μ a b) :
-  interval_integrable (λ x, abs (f x)) μ a b  :=
+  interval_integrable (λ x, |f x|) μ a b  :=
 h.norm
 
 lemma mono
@@ -515,7 +515,7 @@ calc ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x �
 ... ≤ ∫ x in Ioc (min a b) (max a b), ∥f x∥ ∂μ :
   norm_integral_le_integral_norm f
 
-lemma norm_integral_le_abs_integral_norm : ∥∫ x in a..b, f x ∂μ∥ ≤ abs (∫ x in a..b, ∥f x∥ ∂μ) :=
+lemma norm_integral_le_abs_integral_norm : ∥∫ x in a..b, f x ∂μ∥ ≤ |∫ x in a..b, ∥f x∥ ∂μ| :=
 begin
   simp only [← real.norm_eq_abs, norm_integral_eq_norm_integral_Ioc],
   exact le_trans (norm_integral_le_integral_norm _) (le_abs_self _)
@@ -523,7 +523,7 @@ end
 
 lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
   (h : ∀ᵐ x, x ∈ Ioc (min a b) (max a b) → ∥f x∥ ≤ C) :
-  ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
+  ∥∫ x in a..b, f x∥ ≤ C * |b - a| :=
 begin
   rw [norm_integral_eq_norm_integral_Ioc],
   convert norm_set_integral_le_of_norm_le_const_ae'' _ measurable_set_Ioc h,
@@ -533,7 +533,7 @@ end
 
 lemma norm_integral_le_of_norm_le_const {a b C : ℝ} {f : ℝ → E}
   (h : ∀ x ∈ Ioc (min a b) (max a b), ∥f x∥ ≤ C) :
-  ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
+  ∥∫ x in a..b, f x∥ ≤ C * |b - a| :=
 norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
 @[simp] lemma integral_add (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
@@ -1165,7 +1165,7 @@ norm_integral_le_abs_integral_norm.trans_eq $
   abs_of_nonneg $ integral_nonneg_of_forall hab $ λ x, norm_nonneg _
 
 lemma abs_integral_le_integral_abs :
-  abs (∫ x in a..b, f x ∂μ) ≤ ∫ x in a..b, abs (f x) ∂μ :=
+  |∫ x in a..b, f x ∂μ| ≤ ∫ x in a..b, |f x| ∂μ :=
 norm_integral_le_integral_norm hab
 
 section mono

@@ -185,11 +185,11 @@ lemma prod_le_prod_fiberwise_of_prod_fiber_le_one' {t : finset ι'}
 end
 
 lemma abs_sum_le_sum_abs {G : Type*} [linear_ordered_add_comm_group G] (f : ι → G) (s : finset ι) :
-  abs (∑ i in s, f i) ≤ ∑ i in s, abs (f i) :=
+  |∑ i in s, f i| ≤ ∑ i in s, |f i| :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 
 lemma abs_prod {R : Type*} [linear_ordered_comm_ring R] {f : ι → R} {s : finset ι} :
-  abs (∏ x in s, f x) = ∏ x in s, abs (f x) :=
+  |∏ x in s, f x| = ∏ x in s, |f x| :=
 (abs_hom.to_monoid_hom : R →* R).map_prod _ _
 
 section pigeonhole

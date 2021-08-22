@@ -1335,8 +1335,8 @@ by { rw real.range_sin, exact Icc.infinite (by norm_num) }
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
   cases le_or_gt x 1 with h' h',
-  { have hx : abs x = x := abs_of_nonneg (le_of_lt h),
-    have : abs x ≤ 1, rwa [hx],
+  { have hx : |x| = x := abs_of_nonneg (le_of_lt h),
+    have : |x| ≤ 1, rwa [hx],
     have := sin_bound this, rw [abs_le] at this,
     have := this.2, rw [sub_le_iff_le_add', hx] at this,
     apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
@@ -1351,8 +1351,8 @@ end
    note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
 lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
-  have hx : abs x = x := abs_of_nonneg (le_of_lt h),
-  have : abs x ≤ 1, rwa [hx],
+  have hx : |x| = x := abs_of_nonneg (le_of_lt h),
+  have : |x| ≤ 1, rwa [hx],
   have := sin_bound this, rw [abs_le] at this,
   have := this.1, rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,
@@ -3138,7 +3138,7 @@ lemma has_deriv_at_tan {x : ℝ} (h : cos x ≠ 0) :
 by exact_mod_cast (complex.has_deriv_at_tan (by exact_mod_cast h)).real_of_complex
 
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℝ} (hx : cos x = 0) :
-  tendsto (λ x, abs (tan x)) (𝓝[{x}ᶜ] x) at_top :=
+  tendsto (λ x, |tan x|) (𝓝[{x}ᶜ] x) at_top :=
 begin
   have hx : complex.cos x = 0, by exact_mod_cast hx,
   simp only [← complex.abs_of_real, complex.of_real_tan],
@@ -3148,7 +3148,7 @@ begin
 end
 
 lemma tendsto_abs_tan_at_top (k : ℤ) :
-  tendsto (λ x, abs (tan x)) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
+  tendsto (λ x, |tan x|) (𝓝[{(2 * k + 1) * π / 2}ᶜ] ((2 * k + 1) * π / 2)) at_top :=
 tendsto_abs_tan_of_cos_eq_zero $ cos_eq_zero_iff.2 ⟨k, rfl⟩
 
 lemma continuous_at_tan {x : ℝ} : continuous_at tan x ↔ cos x ≠ 0 :=

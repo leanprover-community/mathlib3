@@ -414,7 +414,7 @@ begin
     ... = δ : add_halves _,
   calc
     dist (f y) (f z) ≤ b (dist y z) : H y z f hf
-    ... ≤ abs (b (dist y z)) : le_abs_self _
+    ... ≤ |b (dist y z)| : le_abs_self _
     ... = dist (b (dist y z)) 0 : by simp [real.dist_eq]
     ... < ε : hδ (by simpa [real.dist_eq] using this),
 end

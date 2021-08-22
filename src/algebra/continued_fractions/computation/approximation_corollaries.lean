@@ -71,7 +71,6 @@ We next show that `(generalized_continued_fraction.of v).convergents v` converge
 -/
 
 variable [archimedean K]
-local notation `|` x `|` := abs x
 open nat
 
 theorem of_convergence_epsilon :

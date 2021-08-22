@@ -471,8 +471,6 @@ begin
       ... = (-1)^n / (B * (ifp.fr⁻¹ * B + pB))                      : by ac_refl }
 end
 
-local notation `|` x `|` := abs x
-
 /-- Shows that `|v - Aₙ / Bₙ| ≤ 1 / (Bₙ * Bₙ₊₁)` -/
 theorem abs_sub_convergents_le (not_terminated_at_n : ¬(gcf.of v).terminated_at n) :
     |v - (gcf.of v).convergents n|

@@ -94,7 +94,7 @@ private lemma glue_dist_comm (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ) :
 variable [nonempty Z]
 
 private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
-  (H : ∀ p q, abs (dist (Φ p) (Φ q) - dist (Ψ p) (Ψ q)) ≤ 2 * ε) :
+  (H : ∀ p q, |dist (Φ p) (Φ q) - dist (Ψ p) (Ψ q)| ≤ 2 * ε) :
   ∀ x y z, glue_dist Φ Ψ ε x z ≤ glue_dist Φ Ψ ε x y + glue_dist Φ Ψ ε y z
 | (inl x) (inl y) (inl z) := dist_triangle _ _ _
 | (inr x) (inr y) (inr z) := dist_triangle _ _ _
@@ -224,7 +224,7 @@ private lemma glue_eq_of_dist_eq_zero (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ) (
 glue the two spaces `X` and `Y` along the images of `Φ` and `Ψ`, so that `Φ p` and `Ψ p` are
 at distance `ε`. -/
 def glue_metric_approx (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ) (ε0 : 0 < ε)
-  (H : ∀ p q, abs (dist (Φ p) (Φ q) - dist (Ψ p) (Ψ q)) ≤ 2 * ε) : metric_space (X ⊕ Y) :=
+  (H : ∀ p q, |dist (Φ p) (Φ q) - dist (Ψ p) (Ψ q)| ≤ 2 * ε) : metric_space (X ⊕ Y) :=
 { dist               := glue_dist Φ Ψ ε,
   dist_self          := glue_dist_self Φ Ψ ε,
   dist_comm          := glue_dist_comm Φ Ψ ε,

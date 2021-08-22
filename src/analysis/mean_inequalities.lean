@@ -340,10 +340,10 @@ by simpa [← rpow_mul, ha, hb, hpq.ne_zero, hpq.symm.ne_zero, div_eq_inv_mul]
 
 /-- Young's inequality, a version for arbitrary real numbers. -/
 theorem young_inequality (a b : ℝ) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
-  a * b ≤ (abs a)^p / p + (abs b)^q / q :=
-calc a * b ≤ abs (a * b)                   : le_abs_self (a * b)
-       ... = abs a * abs b                 : abs_mul a b
-       ... ≤ (abs a)^p / p + (abs b)^q / q :
+  a * b ≤ |a|^p / p + |b|^q / q :=
+calc a * b ≤ |a * b|                   : le_abs_self (a * b)
+       ... = |a| * |b|                 : abs_mul a b
+       ... ≤ |a|^p / p + |b|^q / q :
   real.young_inequality_of_nonneg (abs_nonneg a) (abs_nonneg b) hpq
 
 end real
@@ -470,7 +470,8 @@ variables (f g : ι → ℝ)  {p q : ℝ}
 `L^p` and `L^q` norms when `p` and `q` are conjugate exponents. Version for sums over finite sets,
 with real-valued functions. -/
 theorem inner_le_Lp_mul_Lq (hpq : is_conjugate_exponent p q) :
-  ∑ i in s, f i * g i ≤ (∑ i in s, (abs $ f i)^p) ^ (1 / p) * (∑ i in s, (abs $ g i)^q) ^ (1 / q) :=
+  ∑ i in s, f i * g i ≤ (∑ i in s, (abs $ f i)^p) ^ (1 / p) *
+  (∑ i in s, (abs $ g i)^q) ^ (1 / q) :=
 begin
   have := nnreal.coe_le_coe.2 (nnreal.inner_le_Lp_mul_Lq s (λ i, ⟨_, abs_nonneg (f i)⟩)
     (λ i, ⟨_, abs_nonneg (g i)⟩) hpq),

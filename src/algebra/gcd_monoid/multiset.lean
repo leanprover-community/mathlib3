@@ -39,7 +39,8 @@ fold_zero _ _
   (a ::ₘ s).lcm = gcd_monoid.lcm a s.lcm :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma lcm_singleton {a : α} : (a ::ₘ 0).lcm = normalize a := by simp
+@[simp] lemma lcm_singleton {a : α} : ({a} : multiset α).lcm = normalize a :=
+(fold_singleton _ _ _).trans $ lcm_one_right _
 
 @[simp] lemma lcm_add (s₁ s₂ : multiset α) : (s₁ + s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
 eq.trans (by simp [lcm]) (fold_add _ _ _ _ _)
@@ -94,7 +95,8 @@ fold_zero _ _
   (a ::ₘ s).gcd = gcd_monoid.gcd a s.gcd :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma gcd_singleton {a : α} : (a ::ₘ 0).gcd = normalize a := by simp
+@[simp] lemma gcd_singleton {a : α} : ({a} : multiset α).gcd = normalize a :=
+(fold_singleton _ _ _).trans $ gcd_zero_right _
 
 @[simp] lemma gcd_add (s₁ s₂ : multiset α) : (s₁ + s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
 eq.trans (by simp [gcd]) (fold_add _ _ _ _ _)

@@ -224,7 +224,7 @@ by haveI := classical.dec_eq α; exact
   then it is an associate of one of its prime factors. -/
 lemma prime_factors_irreducible [comm_cancel_monoid_with_zero α] {a : α} {f : multiset α}
   (ha : irreducible a) (pfa : (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
-  ∃ p, a ~ᵤ p ∧ f = p ::ₘ 0 :=
+  ∃ p, a ~ᵤ p ∧ f = {p} :=
 begin
   haveI := classical.dec_eq α,
   refine multiset.induction_on f (λ h, (ha.not_unit
@@ -292,7 +292,7 @@ begin
   obtain ⟨f, hf⟩ := pf p hp0,
   obtain ⟨q, hq, rfl⟩ := prime_factors_irreducible h hf,
   rw hq.prime_iff,
-  exact hf.1 q (multiset.mem_cons_self _ _)
+  exact hf.1 q (multiset.mem_singleton_self _)
 end
 
 theorem unique_factorization_monoid.of_exists_prime_factors :
@@ -402,12 +402,12 @@ begin
 end
 
 lemma factors_irreducible {a : α} (ha : irreducible a) :
-  factors a = normalize a ::ₘ 0 :=
+  factors a = {normalize a} :=
 begin
   obtain ⟨p, a_assoc, hp⟩ := prime_factors_irreducible ha
     ⟨prime_of_factor, factors_prod ha.ne_zero⟩,
   have p_mem : p ∈ factors a,
-  { rw hp, apply multiset.mem_cons_self },
+  { rw hp, exact multiset.mem_singleton_self _ },
   convert hp,
   rwa [← normalize_factor p p_mem, normalize_eq_normalize_iff, dvd_dvd_iff_associated]
 end
@@ -548,7 +548,7 @@ begin
   { intros c p hc hp ih no_factors a_dvd_bpc,
     apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_mul_of_dvd_right dvd_c _) hq),
     rw mul_left_comm at a_dvd_bpc,
-    refine or.resolve_left (left_dvd_or_dvd_right_of_dvd_prime_mul hp a_dvd_bpc) (λ h, _),
+    refine or.resolve_left (hp.left_dvd_or_dvd_right_of_dvd_mul a_dvd_bpc) (λ h, _),
     exact no_factors h (dvd_mul_right p c) hp }
 end
 
@@ -583,7 +583,7 @@ begin
     { obtain ⟨a', b', c', coprime, rfl, rfl⟩ := ih_a a_ne_zero b,
       refine ⟨p * a', b', c', _, mul_left_comm _ _ _, rfl⟩,
       intros q q_dvd_pa' q_dvd_b',
-      cases left_dvd_or_dvd_right_of_dvd_prime_mul p_prime q_dvd_pa' with p_dvd_q q_dvd_a',
+      cases p_prime.left_dvd_or_dvd_right_of_dvd_mul q_dvd_pa' with p_dvd_q q_dvd_a',
       { have : p ∣ c' * b' := dvd_mul_of_dvd_right (p_dvd_q.trans q_dvd_b') _,
         contradiction },
       exact coprime q_dvd_a' q_dvd_b' } }
@@ -610,7 +610,7 @@ begin
   { rintro ⟨c, rfl⟩,
     rw [ne.def, pow_succ, mul_assoc, mul_eq_zero, decidable.not_or_iff_and_not] at hb,
     rw [pow_succ, mul_assoc, factors_mul hb.1 hb.2, repeat_succ, factors_irreducible ha,
-      cons_add, cons_le_cons_iff, zero_add, ← ih hb.2],
+      singleton_add, cons_le_cons_iff, ← ih hb.2],
     apply dvd.intro _ rfl },
   { rw [multiset.le_iff_exists_add],
     rintro ⟨u, hu⟩,

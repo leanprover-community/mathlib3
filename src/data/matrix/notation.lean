@@ -148,7 +148,7 @@ fin.cons_self_tail _
 set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
 
 @[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
-set.range_eq_empty.2 $ λ ⟨k⟩, k.elim0
+set.range_eq_empty _
 
 /-- `![a, b, ...] 1` is equal to `b`.
 

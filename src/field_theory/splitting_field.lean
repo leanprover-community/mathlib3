@@ -246,8 +246,7 @@ begin
   rw [roots_multiset_prod _ h2, multiset.bind_map,
       roots_multiset_prod _ h1, multiset.bind_map],
   simp_rw roots_X_sub_C,
-  rw [multiset.bind_cons, multiset.bind_zero, add_zero,
-      multiset.bind_cons, multiset.bind_zero, add_zero, multiset.map_id']
+  rw [multiset.bind_singleton, multiset.bind_singleton, multiset.map_id']
 end
 
 lemma eq_prod_roots_of_splits {p : polynomial K} {i : K →+* L}
@@ -267,8 +266,7 @@ begin
   have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
   { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
     intros a s ih,
-    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C,
-        multiset.cons_add, zero_add] },
+    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C, multiset.singleton_add] },
 
   rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
       roots_multiset_prod _ zero_nmem,
@@ -648,7 +646,7 @@ have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
 have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := map_ne_zero hfn0,
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,
-    multiset.to_finset_cons, multiset.to_finset_zero, insert_emptyc_eq, finset.coe_singleton,
+    multiset.to_finset_singleton, finset.coe_singleton,
     algebra.adjoin_union_eq_under, ← set.image_singleton,
     algebra.adjoin_algebra_map K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),

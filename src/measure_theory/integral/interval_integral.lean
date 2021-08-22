@@ -726,7 +726,7 @@ lemma integral_interval_sub_interval_comm' (hab : interval_integrable f μ a b)
   (hcd : interval_integrable f μ c d) (hac : interval_integrable f μ a c) :
   ∫ x in a..b, f x ∂μ - ∫ x in c..d, f x ∂μ = ∫ x in d..b, f x ∂μ - ∫ x in c..a, f x ∂μ :=
 by { rw [integral_interval_sub_interval_comm hab hcd hac, integral_symm b d, integral_symm a c,
-  sub_neg_eq_add, sub_eq_neg_add],  }
+  sub_neg_eq_add, sub_eq_neg_add], }
 
 lemma integral_Iic_sub_Iic (ha : integrable_on f (Iic a) μ) (hb : integrable_on f (Iic b) μ) :
   ∫ x in Iic b, f x ∂μ - ∫ x in Iic a, f x ∂μ = ∫ x in a..b, f x ∂μ :=
@@ -1873,7 +1873,7 @@ begin
   { refine (integral_has_deriv_within_at_right _ _ _).add_const _,
     { refine (hcont'.mono _).interval_integrable,
       simp only [hy.left, Icc_subset_Icc_right hy.right.le, interval_of_le] },
-    { exact ⟨_, Icc_mem_nhds_within_Ioi hy, hmeas'⟩,  },
+    { exact ⟨_, Icc_mem_nhds_within_Ioi hy, hmeas'⟩, },
     { exact (hcont' _ (mem_Icc_of_Ico hy)).mono_of_mem (Icc_mem_nhds_within_Ioi hy) } },
 { -- TODO: prove that the integral of any integrable function is continuous and use here
     letI : tendsto_Ixx_class Ioc (𝓟 (Icc a b)) (𝓟 (Ioc a b)) :=
@@ -1884,7 +1884,7 @@ begin
     refine (integral_has_deriv_within_at_right _ _ _).continuous_within_at.add
       continuous_within_at_const,
     { exact (hcont'.mono $ Icc_subset_Icc_right hy.2).interval_integrable_of_Icc hy.1 },
-    { exact ⟨_, mem_sets_of_superset self_mem_nhds_within Ioc_subset_Icc_self, hmeas'⟩ },
+    { exact ⟨_, mem_of_superset self_mem_nhds_within Ioc_subset_Icc_self, hmeas'⟩ },
     { exact (hcont' y hy).mono Ioc_subset_Icc_self } }
 end
 

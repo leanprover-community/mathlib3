@@ -376,7 +376,7 @@ lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α
   {l : filter α} (hc : tendsto (λ n, ∥c n∥) l at_top) :
   tendsto (λ n, (c n) • (f (x + (c n)⁻¹ • v) - f x)) l (𝓝 (f' v)) :=
 begin
-  refine (has_fderiv_within_at_univ.2 hf).lim _ (univ_mem_sets' (λ _, trivial)) hc _,
+  refine (has_fderiv_within_at_univ.2 hf).lim _ (univ_mem' (λ _, trivial)) hc _,
   assume U hU,
   refine (eventually_ne_of_tendsto_norm_at_top hc (0:𝕜)).mono (λ y hy, _),
   convert mem_of_mem_nhds hU,
@@ -664,7 +664,7 @@ lemma has_fderiv_at_filter.congr_of_eventually_eq (h : has_fderiv_at_filter f f'
 
 lemma has_fderiv_within_at.congr_mono (h : has_fderiv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_fderiv_within_at f₁ f' t x :=
-has_fderiv_at_filter.congr_of_eventually_eq (h.mono h₁) (filter.mem_inf_sets_of_right ht) hx
+has_fderiv_at_filter.congr_of_eventually_eq (h.mono h₁) (filter.mem_inf_of_right ht) hx
 
 lemma has_fderiv_within_at.congr (h : has_fderiv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
   (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
@@ -734,7 +734,7 @@ lemma fderiv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
 begin
   apply filter.eventually_eq.fderiv_within_eq hs _ hx,
-  apply mem_sets_of_superset self_mem_nhds_within,
+  apply mem_of_superset self_mem_nhds_within,
   exact hL
 end
 
@@ -2778,7 +2778,7 @@ lemma has_fderiv_within_at.maps_to_tangent_cone {x : E} (h : has_fderiv_within_a
   maps_to f' (tangent_cone_at 𝕜 s x) (tangent_cone_at 𝕜 (f '' s) (f x)) :=
 begin
   rintros v ⟨c, d, dtop, clim, cdlim⟩,
-  refine ⟨c, (λn, f (x + d n) - f x), mem_sets_of_superset dtop _, clim,
+  refine ⟨c, (λn, f (x + d n) - f x), mem_of_superset dtop _, clim,
     h.lim at_top dtop clim cdlim⟩,
   simp [-mem_image, mem_image_of_mem] {contextual := tt}
 end

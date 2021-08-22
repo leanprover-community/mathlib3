@@ -32,7 +32,7 @@ begin
   have r : k + (p - k) = p,
     by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
   have e : p ∣ choose (k + (p - k)) k,
-    by exact dvd_choose_add hkp (sub_lt (hk.trans hkp) hk) (by rw r) hp,
+    by exact dvd_choose_add hkp (nat.sub_lt (hk.trans hkp) hk) (by rw r) hp,
   rwa r at e,
 end
 

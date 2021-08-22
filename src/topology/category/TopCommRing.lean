@@ -92,7 +92,7 @@ R.is_topological_ring
 The forgetful functors to `Type` do not reflect isomorphisms,
 but the forgetful functor from `TopCommRing` to `Top` does.
 -/
-instance : reflects_isomorphisms (forget₂ TopCommRing Top) :=
+instance : reflects_isomorphisms (forget₂ TopCommRing.{u} Top.{u}) :=
 { reflects := λ X Y f _,
   begin
     resetI,

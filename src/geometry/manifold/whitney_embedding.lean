@@ -129,7 +129,7 @@ lemma exists_embedding_euclidean_of_compact [t2_space M] [compact_space M] :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
     closed_embedding e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
 begin
-  rcases smooth_bump_covering.exists_is_subordinate I is_closed_univ (λ (x : M) _, univ_mem_sets)
+  rcases smooth_bump_covering.exists_is_subordinate I is_closed_univ (λ (x : M) _, univ_mem)
     with ⟨ι, f, -⟩,
   haveI := f.fintype,
   rcases f.exists_immersion_euclidean with ⟨n, e, hsmooth, hinj, hinj_mfderiv⟩,

@@ -283,6 +283,11 @@ lemma induction_on' {C : quotient s → Prop} (x : quotient s)
 quotient.induction_on' x H
 
 @[to_additive]
+lemma forall_coe {C : quotient s → Prop} :
+  (∀ x : quotient s, C x) ↔ ∀ x : α, C x :=
+⟨λ hx x, hx _, quot.ind⟩
+
+@[to_additive]
 instance (s : subgroup α) : inhabited (quotient s) :=
 ⟨((1 : α) : quotient s)⟩
 

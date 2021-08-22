@@ -3,13 +3,10 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
-import algebra.big_operators.finsupp
 import linear_algebra.finsupp
 import linear_algebra.prod
-import linear_algebra.pi
-import order.zorn
-import data.finset.order
 import data.equiv.fin
+import set_theory.cardinal
 
 /-!
 
@@ -56,8 +53,8 @@ vectors.
 In many cases we additionally provide dot-style operations (e.g., `linear_independent.union`) to
 make the linear independence tests usable as `hv.insert ha` etc.
 
-We also prove that any family of vectors includes a linear independent subfamily spanning the same
-submodule.
+We also prove that, when working over a field,
+any family of vectors includes a linear independent subfamily spanning the same subspace.
 
 ## Implementation notes
 
@@ -79,7 +76,7 @@ noncomputable theory
 open function set submodule
 open_locale classical big_operators
 
-universe u
+universes u
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
@@ -176,8 +173,12 @@ begin
   rw [finsupp.map_domain_apply hf]
 end
 
+lemma linear_independent.coe_range (i : linear_independent R v) :
+  linear_independent R (coe : range v → M) :=
+by simpa using i.comp _ (range_splitting_injective v)
+
 /-- If `v` is a linearly independent family of vectors and the kernel of a linear map `f` is
-disjoint with the sumodule spaned by the vectors of `v`, then `f ∘ v` is a linearly independent
+disjoint with the submodule spanned by the vectors of `v`, then `f ∘ v` is a linearly independent
 family of vectors. See also `linear_independent.map'` for a special case assuming `ker f = ⊥`. -/
 lemma linear_independent.map (hv : linear_independent R v) {f : M →ₗ[R] M'}
   (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
@@ -278,6 +279,41 @@ begin
   refine (linear_independent_iff'.mp li : _) _ _ _ i hi,
   simp_rw [smul_assoc, one_smul],
   exact hg,
+end
+
+/-- Every finite subset of a linearly independent set is linearly independent. -/
+lemma linear_independent_finset_map_embedding_subtype
+  (s : set M) (li : linear_independent R (coe : s → M)) (t : finset s) :
+  linear_independent R (coe : (finset.map (embedding.subtype s) t) → M) :=
+begin
+  let f : t.map (embedding.subtype s) → s := λ x, ⟨x.1, begin
+    obtain ⟨x, h⟩ := x,
+    rw [finset.mem_map] at h,
+    obtain ⟨a, ha, rfl⟩ := h,
+    simp only [subtype.coe_prop, embedding.coe_subtype],
+  end⟩,
+  convert linear_independent.comp li f _,
+  rintros ⟨x, hx⟩ ⟨y, hy⟩,
+  rw [finset.mem_map] at hx hy,
+  obtain ⟨a, ha, rfl⟩ := hx,
+  obtain ⟨b, hb, rfl⟩ := hy,
+  simp only [imp_self, subtype.mk_eq_mk],
+end
+
+/--
+If every finite set of linearly independent vectors has cardinality at most `n`,
+then the same is true for arbitrary sets of linearly independent vectors.
+-/
+lemma linear_independent_bounded_of_finset_linear_independent_bounded {n : ℕ}
+  (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
+  ∀ s : set M, linear_independent R (coe : s → M) → cardinal.mk s ≤ n :=
+begin
+  intros s li,
+  apply cardinal.card_le_of,
+  intro t,
+  rw ← finset.card_map (embedding.subtype s),
+  apply H,
+  apply linear_independent_finset_map_embedding_subtype _ li,
 end
 
 section subtype
@@ -472,6 +508,61 @@ begin
     intros,
     erw [pi.smul_apply, smul_assoc],
     refl }
+end
+
+
+section maximal
+universes v w
+
+/--
+A linearly independent family is maximal if there is no strictly larger linearly independent family.
+-/
+@[nolint unused_arguments]
+def linear_independent.maximal {ι : Type w} {R : Type u} [semiring R]
+  {M : Type v} [add_comm_monoid M] [module R M] {v : ι → M} (i : linear_independent R v) : Prop :=
+∀ (s : set M) (i' : linear_independent R (coe : s → M)) (h : range v ≤ s), range v = s
+
+/--
+An alternative characterization of a maximal linearly independent family,
+quantifying over types (in the same universe as `M`) into which the indexing family injects.
+-/
+lemma linear_independent.maximal_iff {ι : Type w} {R : Type u} [ring R] [nontrivial R]
+  {M : Type v} [add_comm_group M] [module R M] {v : ι → M} (i : linear_independent R v) :
+  i.maximal ↔ ∀ (κ : Type v) (w : κ → M) (i' : linear_independent R w)
+    (j : ι → κ) (h : w ∘ j = v), surjective j :=
+begin
+  fsplit,
+  { rintros p κ w i' j rfl,
+    specialize p (range w) i'.coe_range (range_comp_subset_range _ _),
+    rw [range_comp, ←@image_univ _ _ w] at p,
+    exact range_iff_surjective.mp (image_injective.mpr i'.injective p), },
+  { intros p w i' h,
+    specialize p w (coe : w → M) i'
+      (λ i, ⟨v i, range_subset_iff.mp h i⟩)
+      (by { ext, simp, }),
+    have q := congr_arg (λ s, (coe : w → M) '' s) p.range_eq,
+    dsimp at q,
+    rw [←image_univ, image_image] at q,
+    simpa using q, },
+end
+
+end maximal
+
+/-- Linear independent families are injective, even if you multiply either side. -/
+lemma linear_independent.eq_of_smul_apply_eq_smul_apply {M : Type*} [add_comm_group M] [module R M]
+  {v : ι → M} (li : linear_independent R v) (c d : R) (i j : ι)
+  (hc : c ≠ 0) (h : c • v i = d • v j) : i = j :=
+begin
+  let l : ι →₀ R := finsupp.single i c - finsupp.single j d,
+  have h_total : finsupp.total ι M R v l = 0,
+  { simp_rw [linear_map.map_sub, finsupp.total_apply],
+    simp [h] },
+  have h_single_eq : finsupp.single i c = finsupp.single j d,
+  { rw linear_independent_iff at li,
+    simp [eq_add_of_sub_eq' (li l h_total)] },
+  rcases (finsupp.single_eq_single_iff _ _ _ _).mp h_single_eq with ⟨this, _⟩ | ⟨hc, _⟩,
+  { exact this },
+  { contradiction },
 end
 
 section subtype
@@ -806,7 +897,7 @@ end
 
 open linear_map
 
-lemma linear_independent.image_subtype {s : set M} {f : M →ₗ M'}
+lemma linear_independent.image_subtype {s : set M} {f : M →ₗ[R] M'}
   (hs : linear_independent R (λ x, x : s → M))
   (hf_inj : disjoint (span R s) f.ker) : linear_independent R (λ x, x : f '' s → M') :=
 begin

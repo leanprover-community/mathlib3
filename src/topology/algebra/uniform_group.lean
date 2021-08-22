@@ -103,7 +103,7 @@ begin
   { assume s hs,
     rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_sub hs
       with ⟨t, ht, hts⟩,
-    refine mem_map.2 (mem_sets_of_superset ht _),
+    refine mem_map.2 (mem_of_superset ht _),
     rintros ⟨a, b⟩,
     simpa [subset_def] using hts a b a },
   { assume s hs,
@@ -193,7 +193,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
     rw [is_open_iff_mem_nhds],
     refine forall_congr (assume a, forall_congr (assume ha, _)),
-    rw [← nhds_translation a, mem_comap_sets, mem_comap_sets],
+    rw [← nhds_translation a, mem_comap, mem_comap],
     refine exists_congr (assume t, exists_congr (assume ht, _)),
     show (λ (y : G), y - a) ⁻¹' t ⊆ S ↔ (λ (p : G × G), p.snd - p.fst) ⁻¹' t ⊆ S' a,
     split,
@@ -345,8 +345,8 @@ begin
   rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
   rcases (extend_Z_bilin_aux df de cont_flip W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
 
-  existsi [U₁ ∩ U₂, inter_mem_sets U₁_nhd U₂_nhd,
-            V₁ ∩ V₂, inter_mem_sets V₁_nhd V₂_nhd],
+  existsi [U₁ ∩ U₂, inter_mem U₁_nhd U₂_nhd,
+            V₁ ∩ V₂, inter_mem V₁_nhd V₂_nhd],
 
   rintros x x' ⟨xU₁, xU₂⟩ ⟨x'U₁, x'U₂⟩ y y' ⟨yV₁, yV₂⟩ ⟨y'V₁, y'V₂⟩,
   have key_formula : φ x' y' - φ x y =
@@ -389,12 +389,12 @@ begin
 
     have key := extend_Z_bilin_key de df hφ W'_nhd x₀ y₀,
     rcases key with ⟨U, U_nhd, V, V_nhd, h⟩,
-    rw mem_comap_sets at U_nhd,
+    rw mem_comap at U_nhd,
     rcases U_nhd with ⟨U', U'_nhd, U'_sub⟩,
-    rw mem_comap_sets at V_nhd,
+    rw mem_comap at V_nhd,
     rcases V_nhd with ⟨V', V'_nhd, V'_sub⟩,
 
-    rw [mem_map, mem_comap_sets, nhds_prod_eq],
+    rw [mem_map, mem_comap, nhds_prod_eq],
     existsi set.prod (set.prod U' V') (set.prod U' V'),
     rw mem_prod_same_iff,
 

@@ -35,7 +35,7 @@ def measurable_at_filter (f : α → β) (l : filter α) (μ : measure α . volu
 ∃ s ∈ l, ae_measurable f (μ.restrict s)
 
 @[simp] lemma measurable_at_bot {f : α → β} : measurable_at_filter f ⊥ μ :=
-⟨∅, mem_bot_sets, by simp⟩
+⟨∅, mem_bot, by simp⟩
 
 protected lemma measurable_at_filter.eventually (h : measurable_at_filter f l μ) :
   ∀ᶠ s in l.lift' powerset, ae_measurable f (μ.restrict s) :=
@@ -47,11 +47,10 @@ let ⟨s, hsl, hs⟩ := h in ⟨s, h' hsl, hs⟩
 
 protected lemma ae_measurable.measurable_at_filter (h : ae_measurable f μ) :
   measurable_at_filter f l μ :=
-⟨univ, univ_mem_sets, by rwa measure.restrict_univ⟩
+⟨univ, univ_mem, by rwa measure.restrict_univ⟩
 
 lemma ae_measurable.measurable_at_filter_of_mem {s} (h : ae_measurable f (μ.restrict s))
-  (hl : s ∈ l):
-  measurable_at_filter f l μ :=
+  (hl : s ∈ l) : measurable_at_filter f l μ :=
 ⟨s, hl, h⟩
 
 protected lemma measurable.measurable_at_filter (h : measurable f) :
@@ -230,12 +229,12 @@ hl.filter_mono inf_le_right
   integrable_at_filter f (l ⊓ μ.ae) μ ↔ integrable_at_filter f l μ :=
 begin
   refine ⟨_, λ h, h.filter_mono inf_le_left⟩,
-  rintros ⟨s, ⟨t, ht, u, hu, hs⟩, hf⟩,
+  rintros ⟨s, ⟨t, ht, u, hu, rfl⟩, hf⟩,
   refine ⟨t, ht, _⟩,
   refine hf.integrable.mono_measure (λ v hv, _),
   simp only [measure.restrict_apply hv],
-  refine measure_mono_ae (mem_sets_of_superset hu $ λ x hx, _),
-  exact λ ⟨hv, ht⟩, ⟨hv, hs ⟨ht, hx⟩⟩
+  refine measure_mono_ae (mem_of_superset hu $ λ x hx, _),
+  exact λ ⟨hv, ht⟩, ⟨hv, ⟨ht, hx⟩⟩
 end
 
 alias integrable_at_filter.inf_ae_iff ↔ measure_theory.integrable_at_filter.of_inf_ae _

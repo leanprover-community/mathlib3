@@ -17,6 +17,7 @@ lemmas about preimages and images of all intervals. We also prove a few lemmas a
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 
@@ -538,7 +539,7 @@ end
   (λ x, a * x + b) '' Icc c d = Icc (a * c + b) (a * d + b) :=
 begin
   suffices : (λ x, x + b) '' ((λ x, a * x) '' Icc c d) = Icc (a * c + b) (a * d + b),
-  { rwa set.image_image at this,  },
+  { rwa set.image_image at this, },
   rw [image_mul_left_Icc' h, image_add_const_Icc],
 end
 

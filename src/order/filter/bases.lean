@@ -149,7 +149,7 @@ begin
     use [W, W_in],
     finish },
   ext U,
-  simp [mem_filter_iff, mem_infi this]
+  simp [mem_filter_iff, mem_infi_of_directed this]
 end
 
 protected lemma generate (B : filter_basis α) : generate B.sets = B.filter :=
@@ -228,7 +228,7 @@ lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s
 ⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
 
 lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
-let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
+let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem in ⟨i, pi⟩
 
 protected lemma has_basis.nonempty (h : l.has_basis p s) : nonempty ι :=
 nonempty_of_exists h.ex_mem
@@ -257,7 +257,7 @@ lemma has_basis.set_index_subset (h : l.has_basis p s) (ht : t ∈ l) : s (h.ind
 (h.mem_iff.1 ht).some_spec.snd
 
 lemma has_basis.is_basis (h : l.has_basis p s) : is_basis p s :=
-{ nonempty := let ⟨i, hi, H⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, hi⟩,
+{ nonempty := let ⟨i, hi, H⟩ := h.mem_iff.mp univ_mem in ⟨i, hi⟩,
   inter := λ i j hi hj, by simpa [h.mem_iff]
     using l.inter_sets (h.mem_of_mem hi) (h.mem_of_mem hj) }
 
@@ -277,7 +277,7 @@ by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; re
 lemma has_basis.to_has_basis' (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
   (h' : ∀ i', p' i' → s' i' ∈ l) : l.has_basis p' s' :=
 begin
-  refine ⟨λ t, ⟨λ ht, _, λ ⟨i', hi', ht⟩, mem_sets_of_superset (h' i' hi') ht⟩⟩,
+  refine ⟨λ t, ⟨λ ht, _, λ ⟨i', hi', ht⟩, mem_of_superset (h' i' hi') ht⟩⟩,
   rcases hl.mem_iff.1 ht with ⟨i, hi, ht⟩,
   rcases h i hi with ⟨i', hi', hs's⟩,
   exact ⟨i', hi', subset.trans hs's ht⟩
@@ -313,7 +313,7 @@ lemma has_basis.forall_iff (hl : l.has_basis p s) {P : set α → Prop}
 
 lemma has_basis.ne_bot_iff (hl : l.has_basis p s) :
   ne_bot l ↔ (∀ {i}, p i → (s i).nonempty) :=
-forall_sets_nonempty_iff_ne_bot.symm.trans $ hl.forall_iff $ λ _ _, nonempty.mono
+forall_mem_nonempty_iff_ne_bot.symm.trans $ hl.forall_iff $ λ _ _, nonempty.mono
 
 lemma has_basis.eq_bot_iff (hl : l.has_basis p s) :
   l = ⊥ ↔ ∃ i, p i ∧ s i = ∅ :=
@@ -321,13 +321,13 @@ not_iff_not.1 $ ne_bot_iff.symm.trans $ hl.ne_bot_iff.trans $
 by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
-⟨λ t, exists_sets_subset_iff.symm⟩
+⟨λ t, exists_mem_subset_iff.symm⟩
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
 begin
   simp only [has_basis_iff, exists_prop, id, and_assoc],
-  exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_sets_of_superset hl hts⟩⟩)
+  exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_of_superset hl hts⟩⟩)
 end
 
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
@@ -346,7 +346,7 @@ end
 is a basis of `l`. -/
 lemma has_basis.restrict_subset (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
   l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
-h.restrict $ λ i hi, (h.mem_iff.1 (inter_mem_sets hV (h.mem_of_mem hi))).imp $
+h.restrict $ λ i hi, (h.mem_iff.1 (inter_mem hV (h.mem_of_mem hi))).imp $
   λ j hj, ⟨hj.fst, subset_inter_iff.1 hj.snd⟩
 
 lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
@@ -355,7 +355,7 @@ by simpa only [and_assoc] using h.restrict_subset hV
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',
-  λ h s hs, let ⟨i', hi', hs⟩ := hl'.mem_iff.1 hs in mem_sets_of_superset (h _ hi') hs⟩
+  λ h s hs, let ⟨i', hi', hs⟩ := hl'.mem_iff.1 hs in mem_of_superset (h _ hi') hs⟩
 
 theorem has_basis.le_iff (hl : l.has_basis p s) : l ≤ l' ↔ ∀ t ∈ l', ∃ i (hi : p i), s i ⊆ t :=
 by simp only [le_def, hl.mem_iff]
@@ -379,12 +379,12 @@ lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊓ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∩ s' i.2) :=
 ⟨begin
   intro t,
-  simp only [mem_inf_sets, exists_prop, hl.mem_iff, hl'.mem_iff],
   split,
-  { rintros ⟨t, ⟨i, hi, ht⟩, t', ⟨i', hi', ht'⟩, H⟩,
-    use [(i, i'), ⟨hi, hi'⟩, subset.trans (inter_subset_inter ht ht') H] },
+  { simp only [mem_inf_iff, exists_prop, hl.mem_iff, hl'.mem_iff],
+    rintros ⟨t, ⟨i, hi, ht⟩, t', ⟨i', hi', ht'⟩, rfl⟩,
+    use [(i, i'), ⟨hi, hi'⟩, inter_subset_inter ht ht'] },
   { rintros ⟨⟨i, i'⟩, ⟨hi, hi'⟩, H⟩,
-    use [s i, i, hi, subset.refl _, s' i', i', hi', subset.refl _, H] }
+    exact mem_inf_of_inter (hl.mem_of_mem hi) (hl'.mem_of_mem hi') H }
 end⟩
 
 lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
@@ -394,7 +394,7 @@ lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
 ⟨begin
   intros t,
-  simp only [mem_sup_sets, hl.mem_iff, hl'.mem_iff, prod.exists, union_subset_iff, exists_prop,
+  simp only [mem_sup, hl.mem_iff, hl'.mem_iff, prod.exists, union_subset_iff, exists_prop,
     and_assoc, exists_and_distrib_left],
   simp only [← and_assoc, exists_and_distrib_right, and_comm]
 end⟩
@@ -438,7 +438,7 @@ lemma mem_iff_inf_principal_compl {f : filter α} {s : set α} :
 begin
   refine not_iff_not.1 ((inf_principal_ne_bot_iff.trans _).symm.trans ne_bot_iff),
   exact ⟨λ h hs, by simpa [empty_not_nonempty] using h s hs,
-    λ hs t ht, inter_compl_nonempty_iff.2 $ λ hts, hs $ mem_sets_of_superset ht hts⟩,
+    λ hs t ht, inter_compl_nonempty_iff.2 $ λ hts, hs $ mem_of_superset ht hts⟩,
 end
 
 lemma not_mem_iff_inf_principal_compl {f : filter α} {s : set α} :
@@ -467,7 +467,7 @@ by { rw inf_comm, exact inf_ne_bot_iff_frequently_left }
 
 lemma has_basis.eq_binfi (h : l.has_basis p s) :
   l = ⨅ i (_ : p i), 𝓟 (s i) :=
-eq_binfi_of_mem_sets_iff_exists_mem $ λ t, by simp only [h.mem_iff, mem_principal_sets]
+eq_binfi_of_mem_iff_exists_mem $ λ t, by simp only [h.mem_iff, mem_principal]
 
 lemma has_basis.eq_infi (h : l.has_basis (λ _, true) s) :
   l = ⨅ i, 𝓟 (s i) :=
@@ -476,8 +476,8 @@ by simpa only [infi_true] using h.eq_binfi
 lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) [nonempty ι] :
   (⨅ i, 𝓟 (s i)).has_basis (λ _, true) s :=
 ⟨begin
-  refine λ t, (mem_infi (h.mono_comp _ _) t).trans $
-    by simp only [exists_prop, true_and, mem_principal_sets],
+  refine λ t, (mem_infi_of_directed (h.mono_comp _ _) t).trans $
+    by simp only [exists_prop, true_and, mem_principal],
   exact λ _ _, principal_mono.2
 end⟩
 
@@ -487,7 +487,7 @@ lemma has_basis_infi_principal_finite (s : ι → set α) :
   (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
-  simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
+  simp only [infi_principal_finset, mem_Union, mem_principal, exists_prop,
     exists_finite_iff_finset, finset.set_bInter_coe]
 end
 
@@ -495,7 +495,7 @@ lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_o
   (ne : S.nonempty) :
   (⨅ i ∈ S, 𝓟 (s i)).has_basis (λ i, i ∈ S) s :=
 ⟨begin
-  refine λ t, (mem_binfi _ ne).trans $ by simp only [mem_principal_sets],
+  refine λ t, (mem_binfi_of_directed _ ne).trans $ by simp only [mem_principal],
   rw [directed_on_iff_directed, ← directed_comp, (∘)] at h ⊢,
   apply h.mono_comp _ _,
   exact λ _ _, principal_mono.2
@@ -514,7 +514,7 @@ lemma has_basis.comap (f : β → α) (hl : l.has_basis p s) :
   (l.comap f).has_basis p (λ i, f ⁻¹' (s i)) :=
 ⟨begin
   intro t,
-  simp only [mem_comap_sets, exists_prop, hl.mem_iff],
+  simp only [mem_comap, exists_prop, hl.mem_iff],
   split,
   { rintros ⟨t', ⟨i, hi, ht'⟩, H⟩,
     exact ⟨i, hi, subset.trans (preimage_mono ht') H⟩ },
@@ -524,7 +524,7 @@ end⟩
 
 lemma comap_has_basis (f : α → β) (l : filter β) :
   has_basis (comap f l) (λ s : set β, s ∈ l) (λ s, f ⁻¹' s) :=
-⟨λ t, mem_comap_sets⟩
+⟨λ t, mem_comap⟩
 
 lemma has_basis.prod_self (hl : l.has_basis p s) :
   (l ×ᶠ l).has_basis p (λ i, (s i).prod (s i)) :=
@@ -533,7 +533,7 @@ lemma has_basis.prod_self (hl : l.has_basis p s) :
   apply mem_prod_iff.trans,
   split,
   { rintros ⟨t₁, ht₁, t₂, ht₂, H⟩,
-    rcases hl.mem_iff.1 (inter_mem_sets ht₁ ht₂) with ⟨i, hi, ht⟩,
+    rcases hl.mem_iff.1 (inter_mem ht₁ ht₂) with ⟨i, hi, ht⟩,
     exact ⟨i, hi, λ p ⟨hp₁, hp₂⟩, H ⟨(ht hp₁).1, (ht hp₂).2⟩⟩ },
   { rintros ⟨i, hi, H⟩,
     exact ⟨s i, hl.mem_of_mem hi, s i, hl.mem_of_mem hi, H⟩ }
@@ -585,7 +585,7 @@ by { simp only [tendsto, (hla.map f).le_iff, image_subset_iff], refl }
 
 lemma has_basis.tendsto_right_iff (hlb : lb.has_basis pb sb) :
   tendsto f la lb ↔ ∀ i (hi : pb i), ∀ᶠ x in la, f x ∈ sb i :=
-by simp only [tendsto, hlb.ge_iff, mem_map, filter.eventually]
+by simpa only [tendsto, hlb.ge_iff, mem_map, filter.eventually]
 
 lemma has_basis.tendsto_iff (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
   tendsto f la lb ↔ ∀ ib (hib : pb ib), ∃ ia (hia : pa ia), ∀ x ∈ sa ia, f x ∈ sb ib :=
@@ -664,7 +664,7 @@ begin
   use λ n, ⋂ m ≤ n, s m, split,
   { exact λ i j hij, bInter_mono' (Iic_subset_Iic.2 hij) (λ n hn, subset.refl _) },
   apply le_antisymm; rw le_infi_iff; intro i,
-  { rw le_principal_iff, refine (bInter_mem_sets (finite_le_nat _)).2 (λ j hji, _),
+  { rw le_principal_iff, refine (bInter_mem (finite_le_nat _)).2 (λ j hji, _),
     rw ← le_principal_iff, apply infi_le_of_le j _, apply le_refl _ },
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
@@ -756,7 +756,7 @@ begin
   rcases cblb.exists_seq with ⟨x', hx'⟩,
   have : ∀ i, x' i ∈ f := λ i, hx'.symm ▸ (infi_le (λ i, 𝓟 (x' i)) i) (mem_principal_self _),
   let x : ℕ → {i : ι // p i} := λ n, nat.rec_on n (hs.index _ $ this 0)
-    (λ n xn, (hs.index _ $ inter_mem_sets (this $ n + 1) (hs.mem_of_mem xn.coe_prop))),
+    (λ n xn, (hs.index _ $ inter_mem (this $ n + 1) (hs.mem_of_mem xn.coe_prop))),
   have x_mono : ∀ n : ℕ, s (x n.succ) ⊆ s (x n) :=
     λ n, subset.trans (hs.set_index_subset _) (inter_subset_right _ _),
   replace x_mono : ∀ ⦃i j⦄, i ≤ j → s (x j) ≤ s (x i),

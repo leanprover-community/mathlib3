@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import combinatorics.partition
 import algebra.gcd_monoid.multiset
-import tactic.linarith
+import combinatorics.partition
 import group_theory.perm.cycles
 import group_theory.sylow
+import ring_theory.int.basic
+import tactic.linarith
 
 /-!
 # Cycle Types
@@ -154,9 +155,9 @@ cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
-  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, lcm_singleton, order_of_is_cycle hσ,
-    nat.normalize_eq])
-  (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, nat.lcm_eq_lcm, hστ.order_of, hσ, hτ])
+  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, ←singleton_eq_cons, lcm_singleton,
+    order_of_is_cycle hσ, normalize_eq])
+  (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, lcm_eq_nat_lcm, hστ.order_of, hσ, hτ])
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
 begin
@@ -306,7 +307,7 @@ lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
 begin
   obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
   by_cases g'1 : g' = 1,
-  { rw [hd.cycle_type, hc.cycle_type, multiset.singleton_eq_singleton, multiset.singleton_coe,
+  { rw [hd.cycle_type, hc.cycle_type, multiset.singleton_eq_cons, multiset.singleton_coe,
       g'1, cycle_type_one, add_zero] },
   contrapose! hn2,
   apply le_trans _ (c * g').support.card_le_univ,
@@ -402,7 +403,7 @@ variables [decidable_eq α] {σ : perm α}
 lemma cycle_type (h : is_three_cycle σ) : σ.cycle_type = {3} := h
 
 lemma card_support (h : is_three_cycle σ) : σ.support.card = 3 :=
-by rw [←sum_cycle_type, h.cycle_type, singleton_eq_singleton, multiset.sum_cons, sum_zero]
+by rw [←sum_cycle_type, h.cycle_type, multiset.sum_singleton]
 
 lemma _root_.card_support_eq_three_iff : σ.support.card = 3 ↔ σ.is_three_cycle :=
 begin
@@ -412,15 +413,15 @@ begin
     exact (ne_of_lt zero_lt_three h).elim },
   obtain ⟨n, hn⟩ := exists_mem_of_ne_zero h0,
   by_cases h1 : σ.cycle_type.erase n = 0,
-  { rw [←sum_cycle_type, ←cons_erase hn, h1, multiset.sum_singleton] at h,
-    rw [is_three_cycle, ←cons_erase hn, h1, h, singleton_eq_singleton] },
+  { rw [←sum_cycle_type, ←cons_erase hn, h1, ←singleton_eq_cons, multiset.sum_singleton] at h,
+    rw [is_three_cycle, ←cons_erase hn, h1, h, singleton_eq_cons] },
   obtain ⟨m, hm⟩ := exists_mem_of_ne_zero h1,
   rw [←sum_cycle_type, ←cons_erase hn, ←cons_erase hm, multiset.sum_cons, multiset.sum_cons] at h,
   linarith [two_le_of_mem_cycle_type hn, two_le_of_mem_cycle_type (mem_of_mem_erase hm)],
 end
 
 lemma is_cycle (h : is_three_cycle σ) : is_cycle σ :=
-by rw [←card_cycle_type_eq_one, h.cycle_type, singleton_eq_singleton, card_singleton]
+by rw [←card_cycle_type_eq_one, h.cycle_type, card_singleton]
 
 lemma sign (h : is_three_cycle σ) : sign σ = 1 :=
 begin
@@ -436,8 +437,7 @@ by rwa [is_three_cycle, cycle_type_inv]
 
 lemma order_of {g : perm α} (ht : is_three_cycle g) :
   order_of g = 3 :=
-by rw [←lcm_cycle_type, ht.cycle_type, multiset.singleton_eq_singleton,
-  multiset.lcm_singleton, nat.normalize_eq]
+by rw [←lcm_cycle_type, ht.cycle_type, multiset.lcm_singleton, normalize_eq]
 
 lemma is_three_cycle_sq {g : perm α} (ht : is_three_cycle g) :
   is_three_cycle (g * g) :=

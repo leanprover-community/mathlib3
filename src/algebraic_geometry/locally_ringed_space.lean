@@ -9,6 +9,7 @@ import algebra.category.CommRing.limits
 import algebra.category.CommRing.colimits
 import algebraic_geometry.stalks
 import ring_theory.ideal.basic
+import data.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces
@@ -122,23 +123,18 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 
 instance : faithful forget_to_SheafedSpace := {}
 
--- PROJECT: once we have `PresheafedSpace.restrict_stalk_iso`
--- (that restriction doesn't change stalks) we can uncomment this.
-/-
-def restrict {U : Top} (X : LocallyRingedSpace)
+@[simps]
+noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=
   begin
     intro x,
     dsimp at *,
     -- We show that the stalk of the restriction is isomorphic to the original stalk,
-    have := X.to_SheafedSpace.to_PresheafedSpace.restrict_stalk_iso f h x,
-    -- and then transfer `local_ring` across the ring equivalence.
-    apply (this.CommRing_iso_to_ring_equiv).local_ring, -- import data.equiv.transfer_instance
-    apply X.local_ring,
+    apply @ring_equiv.local_ring _ _ _ (X.local_ring (f x)),
+    exact (X.to_PresheafedSpace.restrict_stalk_iso f h x).symm.CommRing_iso_to_ring_equiv,
   end,
-  .. X.to_SheafedSpace.restrict _ f h }
--/
+  .. X.to_SheafedSpace.restrict f h }
 
 /--
 The global sections, notated Gamma.

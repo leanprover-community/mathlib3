@@ -162,7 +162,7 @@ def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :
     (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, simp, }),
   counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
     (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, simp }),
-  functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl } }
+  functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
 
 end grothendieck
 

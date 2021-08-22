@@ -138,6 +138,17 @@ by simp [h]
 lemma count_succ_eq_count {n : ℕ} (h : ¬p n) : count p (n + 1) = count p n :=
 by simp [h]
 
+lemma count_le_card (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk (set_of p) :=
+begin
+  obtain h | h := lt_or_ge (cardinal.mk (set_of p)) cardinal.omega,
+  { haveI := (cardinal.lt_omega_iff_fintype.mp h).some,
+    rw [cardinal.fintype_card, cardinal.nat_cast_le, count_eq_card],
+    fapply fintype.card_le_of_injective,
+    exact λ ⟨i, _, hi⟩, ⟨i, hi⟩,
+    tidy },
+  { rw le_antisymm ((cardinal.countable_iff _).mp ((set_of p).countable_encodable)) h,
+    exact (cardinal.nat_lt_omega _).le },
+end
 
 /-- Find the `n`-th natural number satisfying `p` (indexed from `0`, so `nth p 0` is the first
 natural number satisfying `p`), or `0` if there is no such number. -/
@@ -209,6 +220,7 @@ lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) 
 lemma nth_strict_mono_of_infinite (i : set.infinite (set_of p)) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
+-- eric: i think this needs a cardinal.mk (set_of p) restriction too sadly
 lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) : nth p k = nth (λ i, p (i+1)) k + 1 :=
 begin
   apply nat.strong_induction_on k,
@@ -229,8 +241,10 @@ begin
   split_ifs with h',
   { rw nth_succ_of_zero _ h',
     rw ih _ h,
-    sorry -- this one is very doable! it's just a cardinality calculation
-     },
+    have := count_le_card p (n+2),
+    rw [count_succ', count_succ] at this,
+    simp only [h, h', cast_one, if_true, cast_add] at this,
+    assumption_mod_cast },
   { simp,
     rw nth_of_not_zero _ h',
     rw ih,

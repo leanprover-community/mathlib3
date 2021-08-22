@@ -51,9 +51,11 @@ instance sum : category.{v₁} (C ⊕ D) :=
     end }
 
 @[simp] lemma sum_comp_inl {P Q R : C} (f : (inl P : C ⊕ D) ⟶ inl Q) (g : inl Q ⟶ inl R) :
-  f ≫ g = (f : P ⟶ Q) ≫ (g : Q ⟶ R) := rfl
+  @category_struct.comp _ _ (inl P) (inl Q) (inl R) f g =
+  @category_struct.comp _ _ P Q R f g := rfl
 @[simp] lemma sum_comp_inr {P Q R : D} (f : (inr P : C ⊕ D) ⟶ inr Q) (g : inr Q ⟶ inr R) :
-  f ≫ g = (f : P ⟶ Q) ≫ (g : Q ⟶ R) := rfl
+  @category_struct.comp _ _ (inr P) (inr Q) (inr R) f g =
+  @category_struct.comp _ _ P Q R f g := rfl
 end
 
 namespace sum
@@ -70,6 +72,9 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D
 @[simps] def inr_ : D ⥤ C ⊕ D :=
 { obj := λ X, inr X,
   map := λ X Y f, f }
+
+@[simp] lemma id_inl (X : C) : 𝟙 (inl X : C ⊕ D) = (inl_ C D).map (𝟙 X) := rfl
+@[simp] lemma id_inr (Y : D) : 𝟙 (inr Y : C ⊕ D) = (inr_ C D).map (𝟙 Y) := rfl
 
 /-- The functor exchanging two direct summand categories. -/
 def swap : C ⊕ D ⥤ D ⊕ C :=

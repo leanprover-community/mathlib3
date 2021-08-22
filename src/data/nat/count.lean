@@ -19,6 +19,11 @@ the expected theorems about them.
 * `count`: `count p n` returns the number of `k < n` such that `p k`.
 * `nth`: `nth p n` returns the `n`-th `k` (zero-indexed) number such that `p k`. If there is no
   such number (that is, `p` is true for at most `n` numbers), `nth p n = 0`.
+
+## Main results:
+
+* `set.infinite.order_iso_nat`: An infinite set of natural numbers is order-isomorphic to the
+  natural numbers.
 -/
 
 open list
@@ -52,13 +57,11 @@ end
 -- TODO: move to `data.set.finite`.
 lemma exists_gt_of_infinite (s : set ℕ) (i : infinite s) (n : ℕ) : ∃ m, m ∈ s ∧ n < m :=
 begin
-  obtain ⟨m, hm⟩ := set.infinite.nonempty (infinite_of_infinite_sdiff_finite i (set.finite_le_nat n)),
-  use m,
-  simpa using hm,
+  obtain ⟨m, hm⟩ := (infinite_of_infinite_sdiff_finite i $ set.finite_le_nat n).nonempty,
+  exact ⟨m, by simpa using hm⟩
 end
 
-lemma infinite.exists_not_mem_finset (i : s.infinite) (f : finset α) :
-  ∃ a ∈ s, a ∉ f :=
+lemma infinite.exists_not_mem_finset (i : s.infinite) (f : finset α) : ∃ a ∈ s, a ∉ f :=
 begin
   suffices : (s \ f).nonempty,
   { use this.some,
@@ -76,7 +79,11 @@ end to_move
 
 namespace nat
 
-variables (p : ℕ → Prop) [decidable_pred p]
+variable (p : ℕ → Prop)
+
+section count
+
+variable [decidable_pred p]
 
 /-- Count the `i < n` satisfying `p i`. -/
 def count (n : ℕ) : ℕ :=
@@ -90,12 +97,6 @@ lemma list.range_one : range 1 = [0] := rfl
 lemma list.filter_singleton {α : Type*} (a : α) (p : α → Prop) [decidable_pred p] :
   [a].filter p = if p a then [a] else [] :=
 by split_ifs; simp [h]
-
-@[simp] lemma count_one : count p 1 = if p 0 then 1 else 0 :=
-begin
-  rw [count, list.range_one, list.filter_singleton, apply_ite list.length],
-  refl,
-end
 
 noncomputable instance count_set_fintype (p : ℕ → Prop) (n : ℕ) : fintype { i | i < n ∧ p i } :=
 fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i < n })) (by tidy)
@@ -138,6 +139,8 @@ by simp [h]
 lemma count_succ_eq_count {n : ℕ} (h : ¬p n) : count p (n + 1) = count p n :=
 by simp [h]
 
+lemma count_one : count p 1 = if p 0 then 1 else 0 := by simp
+
 lemma count_le_card (n : ℕ) : (count p n : cardinal) ≤ cardinal.mk (set_of p) :=
 begin
   obtain h | h := lt_or_ge (cardinal.mk (set_of p)) cardinal.omega,
@@ -149,6 +152,18 @@ begin
   { rw le_antisymm ((cardinal.countable_iff _).mp ((set_of p).countable_encodable)) h,
     exact (cardinal.nat_lt_omega _).le },
 end
+
+lemma count_monotone : monotone (count p) :=
+begin
+  intros n m h,
+  rw [count_eq_card, count_eq_card],
+  fapply fintype.card_le_of_injective,
+  { exact λ i, ⟨i.1, i.2.1.trans_le h, i.2.2⟩ },
+  { rintros ⟨n, _⟩ ⟨m, _⟩ h,
+    simpa using h },
+end
+
+end count
 
 /-- Find the `n`-th natural number satisfying `p` (indexed from `0`, so `nth p 0` is the first
 natural number satisfying `p`), or `0` if there is no such number. -/
@@ -188,18 +203,8 @@ begin
   -- I think this is doable from here!
 end
 
-lemma nth_zero_of_exists (h : ∃ n, p n) : nth p 0 = nat.find h :=
+lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h, }
-
-lemma count_monotone : monotone (count p) :=
-begin
-  intros n m h,
-  rw [count_eq_card, count_eq_card],
-  fapply fintype.card_le_of_injective,
-  { exact λ i, ⟨i.1, i.2.1.trans_le h, i.2.2⟩ },
-  { rintros ⟨n, _⟩ ⟨m, _⟩ h,
-    simpa using h },
-end
 
 lemma nth_mem_of_infinite_aux (i : set.infinite (set_of p)) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
@@ -238,7 +243,7 @@ begin
   sorry --- easy from here.
 end
 
-lemma nth_count (n : ℕ) (h : p n) : nth p (count p n) = n :=
+lemma nth_count [decidable_pred p] (n : ℕ) (h : p n) : nth p (count p n) = n :=
 begin
   unfreezingI { induction n with n ih generalizing p },
   { simp [h], },
@@ -258,6 +263,7 @@ end
 
 open_locale classical
 
+/-- An infinite set of natural numbers is order-isomorphic to the natural numbers. -/
 noncomputable def set.infinite.order_iso_nat {s : set ℕ} (i : s.infinite) : s ≃o ℕ :=
 (strict_mono.order_iso_of_surjective
   (λ n, (⟨nth s n, nth_mem_of_infinite s i n⟩ : s))
@@ -304,6 +310,8 @@ begin
     rwa ←set.infinite_coe_iff, },
 end
 
+variable [decidable_pred p]
+
 lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n :=
 sorry
 
@@ -316,11 +324,11 @@ begin
   sorry,
 end
 
-lemma count_le_iff_le_nth {p} [decidable_pred p] (i : set.infinite p) {a b : ℕ} :
+lemma count_le_iff_le_nth {p} (i : set.infinite p) {a b : ℕ} :
   count p a ≤ b ↔ a ≤ nth p b :=
 count_nth_gc p i _ _
 
-lemma lt_nth_iff_count_lt {p} [decidable_pred p] (i : set.infinite p) {a b : ℕ} :
+lemma lt_nth_iff_count_lt {p} (i : set.infinite p) {a b : ℕ} :
   a < count p b ↔ nth p a < b :=
 lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth i
 
@@ -334,6 +342,5 @@ end
 
 lemma nth_lt_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k < n :=
 sorry
-
 
 end nat

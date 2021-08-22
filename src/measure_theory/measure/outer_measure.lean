@@ -690,8 +690,8 @@ lemma is_caratheodory_Union_lt {s : ℕ → set α} :
   ∀{n:ℕ}, (∀i<n, is_caratheodory (s i)) → is_caratheodory (⋃i<n, s i)
 | 0       h := by simp [nat.not_lt_zero]
 | (n + 1) h := by rw bUnion_lt_succ; exact is_caratheodory_union m
-  (h n (le_refl (n + 1)))
-      (is_caratheodory_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
+    (is_caratheodory_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
+    (h n (le_refl (n + 1)))
 
 lemma is_caratheodory_inter (h₁ : is_caratheodory s₁) (h₂ : is_caratheodory s₂) :
   is_caratheodory (s₁ ∩ s₂) :=
@@ -703,10 +703,10 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   ∀ {n}, ∑ i in finset.range n, m (t ∩ s i) = m (t ∩ ⋃i<n, s i)
 | 0            := by simp [nat.not_lt_zero, m.empty]
 | (nat.succ n) := begin
-  simp [bUnion_lt_succ, range_succ],
-  rw [measure_inter_union m _ (h n), is_caratheodory_sum],
+  rw [bUnion_lt_succ, finset.sum_range_succ, set.union_comm, is_caratheodory_sum,
+    m.measure_inter_union _ (h n), add_comm],
   intro a,
-  simpa [range_succ] using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
@@ -1078,7 +1078,7 @@ lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :
   induced_outer_measure m P0 m0 (s ∪ t) =
      induced_outer_measure m P0 m0 s + induced_outer_measure m P0 m0 t :=
-of_function_union_of_top_of_nonempty_inter $ λ u hsu htu, infi_of_empty' $ h u hsu htu
+of_function_union_of_top_of_nonempty_inter $ λ u hsu htu, @infi_of_empty _ _ _ ⟨h u hsu htu⟩ _
 
 include msU m_mono
 lemma induced_outer_measure_eq_extend' {s : set α} (hs : P s) :
@@ -1215,6 +1215,14 @@ theorem le_trim_iff {m₁ m₂ : outer_measure α} :
   m₁ ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
+theorem trim_le_trim_iff {m₁ m₂ : outer_measure α} :
+  m₁.trim ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=
+le_trim_iff.trans $ forall_congr $ λ s, forall_congr $ λ hs, by rw [trim_eq _ hs]
+
+theorem trim_eq_trim_iff {m₁ m₂ : outer_measure α} :
+  m₁.trim = m₂.trim ↔ ∀ s, measurable_set s → m₁ s = m₂ s :=
+by simp only [le_antisymm_iff, trim_le_trim_iff, forall_and_distrib]
+
 theorem trim_eq_infi (s : set α) : m.trim s = ⨅ t (st : s ⊆ t) (ht : measurable_set t), m t :=
 by { simp only [infi_comm] {single_pass := tt}, exact induced_outer_measure_eq_infi
     measurable_set.Union (λ f _, m.Union_nat f) (λ _ _ _ _ h, m.mono h) s }
@@ -1223,7 +1231,7 @@ theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ measur
 by simp [infi_subtype, infi_and, trim_eq_infi]
 
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
-le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (le_trim _)
+trim_eq_trim_iff.2 $ λ s, m.trim_eq
 
 @[simp] theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm

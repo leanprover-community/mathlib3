@@ -19,7 +19,7 @@ the definitions.
 
 universe variables u v
 open classical set filter topological_space
-open_locale classical topological_space big_operators
+open_locale classical topological_space big_operators pointwise
 
 variables {ι α X M N : Type*} [topological_space X]
 
@@ -417,8 +417,8 @@ end
 
 instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
   [has_continuous_mul M] : @has_continuous_add (additive M) h _ :=
-{ continuous_add := @continuous_mul M _ _ _  }
+{ continuous_add := @continuous_mul M _ _ _ }
 
 instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
   [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
-{ continuous_mul := @continuous_add M _ _ _  }
+{ continuous_mul := @continuous_add M _ _ _ }

@@ -54,14 +54,15 @@ open_locale uniformity topological_space big_operators filter nnreal ennreal
 universes u v w
 variables {α : Type u} {β : Type v}
 
-/-- Construct a uniform structure from a distance function and metric space axioms -/
-def uniform_space_of_dist
-  (dist : α → α → ℝ)
+/-- Construct a uniform structure core from a distance function and metric space axioms.
+This is a technical construction that can be immediately used to construct a uniform structure
+from a distance function and metric space axioms but is also useful when discussing
+metrizable topologies, see `pseudo_metric_space.of_metrizable`. -/
+def uniform_space.core_of_dist {α : Type*} (dist : α → α → ℝ)
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
-  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
-uniform_space.of_core {
-  uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space.core α :=
+{ uniformity := (⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε}),
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
@@ -74,6 +75,14 @@ uniform_space.of_core {
     by simpa [comp_rel],
   symm       := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
     tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simp [dist_comm] }
+
+/-- Construct a uniform structure from a distance function and metric space axioms -/
+def uniform_space_of_dist
+  (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
+uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_triangle)
 
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/
@@ -109,6 +118,43 @@ pseudo_metric_space.to_uniform_space
 
 @[priority 200] -- see Note [lower instance priority]
 instance pseudo_metric_space.to_has_edist : has_edist α := ⟨pseudo_metric_space.edist⟩
+
+/-- Construct a pseudo-metric space structure whose underlying topological space structure
+(definitionally) agrees which a pre-existing topology which is compatible with a given distance
+function. -/
+def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+  (H : ∀ s : set α, is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s) :
+pseudo_metric_space α :=
+{ dist := dist,
+  dist_self := dist_self,
+  dist_comm := dist_comm,
+  dist_triangle := dist_triangle,
+  to_uniform_space := { is_open_uniformity := begin
+    dsimp only [uniform_space.core_of_dist],
+    intros s,
+    change is_open s ↔ _,
+    rw H s,
+    apply forall_congr, intro x,
+    apply forall_congr, intro x_in,
+    erw (has_basis_binfi_principal _ nonempty_Ioi).mem_iff,
+    { apply exists_congr, intros ε,
+      apply exists_congr, intros ε_pos,
+      simp only [prod.forall, set_of_subset_set_of],
+      split,
+      { rintros h _ y H rfl,
+        exact h y H },
+      { intros h y hxy,
+        exact h _ _ hxy rfl } },
+      { exact λ r (hr : 0 < r) p (hp : 0 < p), ⟨min r p, lt_min hr hp,
+        λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_left r p),
+        λ x (hx : dist _ _ < _), lt_of_lt_of_le hx (min_le_right r p)⟩ },
+      { apply_instance }
+    end,
+    ..uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
+  uniformity_dist := rfl }
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := pseudo_metric_space.dist_self x
 
@@ -195,7 +241,6 @@ class has_nndist (α : Type*) := (nndist : α → α → ℝ≥0)
 
 export has_nndist (nndist)
 
-
 /-- Distance as a nonnegative real number. -/
 @[priority 100] -- see Note [lower instance priority]
 instance pseudo_metric_space.to_has_nndist : has_nndist α := ⟨λ a b, ⟨dist a b, dist_nonneg⟩⟩
@@ -277,8 +322,20 @@ def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
 
 theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
 
-@[simp] lemma nonempty_ball (h : 0 < ε) : (ball x ε).nonempty :=
-⟨x, by simp [h]⟩
+theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
+dist_nonneg.trans_lt hy
+
+theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
+show dist x x < ε, by rw dist_self; assumption
+
+@[simp] lemma nonempty_ball : (ball x ε).nonempty ↔ 0 < ε :=
+⟨λ ⟨x, hx⟩, pos_of_mem_ball hx, λ h, ⟨x, mem_ball_self h⟩⟩
+
+@[simp] lemma ball_eq_empty : ball x ε = ∅ ↔ ε ≤ 0 :=
+by rw [← not_nonempty_iff_eq_empty, nonempty_ball, not_lt]
+
+@[simp] lemma ball_zero : ball x 0 = ∅ :=
+by rw [ball_eq_empty]
 
 lemma ball_eq_ball (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
@@ -286,6 +343,13 @@ lemma ball_eq_ball (ε : ℝ) (x : α) :
 lemma ball_eq_ball' (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.1 p.2 < ε} = metric.ball x ε :=
 by { ext, simp [dist_comm, uniform_space.ball] }
+
+@[simp] lemma Union_ball_nat (x : α) : (⋃ n : ℕ, ball x n) = univ :=
+Union_eq_univ_iff.2 $ λ y, exists_nat_gt (dist y x)
+
+@[simp] lemma Union_ball_nat_succ (x : α) : (⋃ n : ℕ, ball x (n + 1)) = univ :=
+Union_eq_univ_iff.2 $ λ y, (exists_nat_gt (dist y x)).imp $ λ n hn,
+  hn.trans (lt_add_one _)
 
 /-- `closed_ball x ε` is the set of all points `y` with `dist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
@@ -300,8 +364,14 @@ def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ dist x y ≤ ε :=
 by { rw dist_comm, refl }
 
-lemma nonempty_closed_ball (h : 0 ≤ ε) : (closed_ball x ε).nonempty :=
-⟨x, by simp [h]⟩
+theorem mem_closed_ball_self (h : 0 ≤ ε) : x ∈ closed_ball x ε :=
+show dist x x ≤ ε, by rw dist_self; assumption
+
+@[simp] lemma nonempty_closed_ball : (closed_ball x ε).nonempty ↔ 0 ≤ ε :=
+⟨λ ⟨x, hx⟩, dist_nonneg.trans hx, λ h, ⟨x, mem_closed_ball_self h⟩⟩
+
+@[simp] lemma closed_ball_eq_empty : closed_ball x ε = ∅ ↔ ε < 0 :=
+by rw [← not_nonempty_iff_eq_empty, nonempty_closed_ball, not_le]
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy
@@ -324,15 +394,6 @@ by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.s
 @[simp] theorem closed_ball_diff_ball : closed_ball x ε \ ball x ε = sphere x ε :=
 by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm]
 
-theorem pos_of_mem_ball (hy : y ∈ ball x ε) : 0 < ε :=
-lt_of_le_of_lt dist_nonneg hy
-
-theorem mem_ball_self (h : 0 < ε) : x ∈ ball x ε :=
-show dist x x < ε, by rw dist_self; assumption
-
-theorem mem_closed_ball_self (h : 0 ≤ ε) : x ∈ closed_ball x ε :=
-show dist x x ≤ ε, by rw dist_self; assumption
-
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by simp [dist_comm]
 
@@ -346,6 +407,9 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
 theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
+
+@[simp] lemma Union_closed_ball_nat (x : α) : (⋃ n : ℕ, closed_ball x n) = univ :=
+Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)
 
 theorem ball_disjoint (h : ε₁ + ε₂ ≤ dist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
@@ -364,19 +428,6 @@ ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 ⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
-
-@[simp] theorem ball_eq_empty_iff_nonpos : ball x ε = ∅ ↔ ε ≤ 0 :=
-eq_empty_iff_forall_not_mem.trans
-⟨λ h, le_of_not_gt $ λ ε0, h _ $ mem_ball_self ε0,
- λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩
-
-@[simp] theorem closed_ball_eq_empty_iff_neg : closed_ball x ε = ∅ ↔ ε < 0 :=
-eq_empty_iff_forall_not_mem.trans
-⟨λ h, not_le.1 $ λ ε0, h x $ mem_closed_ball_self ε0,
-  λ ε0 y h, not_lt_of_le (mem_closed_ball.1 h) (lt_of_lt_of_le ε0 dist_nonneg)⟩
-
-@[simp] lemma ball_zero : ball x 0 = ∅ :=
-by rw [ball_eq_empty_iff_nonpos]
 
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
@@ -704,8 +755,8 @@ theorem tendsto_at_top' [nonempty β] [semilattice_sup β] [no_top_order β] {u 
 (at_top_basis_Ioi.tendsto_iff nhds_basis_ball).trans $
   by { simp only [exists_prop, true_and], refl }
 
-lemma is_open_singleton_iff {X : Type*} [pseudo_metric_space X] {x : X} :
-  is_open ({x} : set X) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
+lemma is_open_singleton_iff {α : Type*} [pseudo_metric_space α] {x : α} :
+  is_open ({x} : set α) ↔ ∃ ε > 0, ∀ y, dist y x < ε → y = x :=
 by simp [is_open_iff, subset_singleton_iff, mem_ball]
 
 /-- Given a point `x` in a discrete subset `s` of a pseudometric space, there is an open ball
@@ -763,7 +814,7 @@ instance pseudo_metric_space.to_pseudo_emetric_space : pseudo_emetric_space α :
   ..‹pseudo_metric_space α› }
 
 /-- Balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_ball {x : α} {ε : ℝ} : emetric.ball x (ennreal.of_real ε) = ball x ε :=
+@[simp] lemma metric.emetric_ball {x : α} {ε : ℝ} : emetric.ball x (ennreal.of_real ε) = ball x ε :=
 begin
   ext y,
   simp only [emetric.mem_ball, mem_ball, edist_dist],
@@ -771,7 +822,7 @@ begin
 end
 
 /-- Balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_ball_nnreal {x : α} {ε : ℝ≥0} : emetric.ball x ε = ball x ε :=
+@[simp] lemma metric.emetric_ball_nnreal {x : α} {ε : ℝ≥0} : emetric.ball x ε = ball x ε :=
 by { convert metric.emetric_ball, simp }
 
 /-- Closed balls defined using the distance or the edistance coincide -/
@@ -780,9 +831,12 @@ lemma metric.emetric_closed_ball {x : α} {ε : ℝ} (h : 0 ≤ ε) :
 by ext y; simp [edist_dist]; rw ennreal.of_real_le_of_real_iff h
 
 /-- Closed balls defined using the distance or the edistance coincide -/
-lemma metric.emetric_closed_ball_nnreal {x : α} {ε : ℝ≥0} :
+@[simp] lemma metric.emetric_closed_ball_nnreal {x : α} {ε : ℝ≥0} :
   emetric.closed_ball x ε = closed_ball x ε :=
 by { convert metric.emetric_closed_ball ε.2, simp }
+
+@[simp] lemma metric.emetric_ball_top (x : α) : emetric.ball x ⊤ = univ :=
+eq_univ_of_forall $ λ y, edist_lt_top _ _
 
 /-- Build a new pseudometric space from an old one where the bundled uniform structure is provably
 (but typically non-definitionaly) equal to some given uniform structure.
@@ -897,7 +951,11 @@ instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,
   by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub_comm]
 
-lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
+lemma real.ball_eq (x r : ℝ) : ball x r = Ioo (x - r) (x + r) :=
+set.ext $ λ y, by rw [mem_ball, dist_comm, real.dist_eq,
+  abs_sub_lt_iff, mem_Ioo, ← sub_lt_iff_lt_add', sub_lt]
+
+lemma real.closed_ball_eq {x r : ℝ} : closed_ball x r = Icc (x - r) (x + r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
@@ -1287,17 +1345,29 @@ by { rw [nndist_pi_def], exact finset.le_sup (finset.mem_univ b) }
 lemma dist_le_pi_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
 by simp only [dist_nndist, nnreal.coe_le_coe, nndist_le_pi_nndist f g b]
 
-/-- An open ball in a product space is a product of open balls. The assumption `0 < r`
-is necessary for the case of the empty product. -/
+/-- An open ball in a product space is a product of open balls. See also `metric.ball_pi'`
+for a version assuming `nonempty β` instead of `0 < r`. -/
 lemma ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 < r) :
-  ball x r = { y | ∀b, y b ∈ ball (x b) r } :=
+  ball x r = set.pi univ (λ b, ball (x b) r) :=
 by { ext p, simp [dist_pi_lt_iff hr] }
 
-/-- A closed ball in a product space is a product of closed balls. The assumption `0 ≤ r`
-is necessary for the case of the empty product. -/
+/-- An open ball in a product space is a product of open balls. See also `metric.ball_pi`
+for a version assuming `0 < r` instead of `nonempty β`. -/
+lemma ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
+  ball x r = set.pi univ (λ b, ball (x b) r) :=
+(lt_or_le 0 r).elim (ball_pi x) $ λ hr, by simp [ball_eq_empty.2 hr]
+
+/-- A closed ball in a product space is a product of closed balls. See also `metric.closed_ball_pi'`
+for a version assuming `nonempty β` instead of `0 ≤ r`. -/
 lemma closed_ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 ≤ r) :
-  closed_ball x r = { y | ∀b, y b ∈ closed_ball (x b) r } :=
+  closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
 by { ext p, simp [dist_pi_le_iff hr] }
+
+/-- A closed ball in a product space is a product of closed balls. See also `metric.closed_ball_pi`
+for a version assuming `0 ≤ r` instead of `nonempty β`. -/
+lemma closed_ball_pi' [nonempty β] (x : Π b, π b) (r : ℝ) :
+  closed_ball x r = set.pi univ (λ b, closed_ball (x b) r) :=
+(le_or_lt 0 r).elim (closed_ball_pi x) $ λ hr, by simp [closed_ball_eq_empty.2 hr]
 
 end pi
 
@@ -1348,7 +1418,7 @@ begin
   suffices : sigma_compact_space α, by exactI emetric.second_countable_of_sigma_compact α,
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
   { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
-      Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)⟩⟩ },
+      Union_closed_ball_nat _⟩⟩ },
   { exact ⟨⟨λ n, ∅, λ n, is_compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
 end
 
@@ -1412,7 +1482,7 @@ instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_s
 begin
   refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
   rw closed_ball_pi _ hr,
-  apply is_compact_pi_infinite (λb, _),
+  apply is_compact_univ_pi (λb, _),
   apply (h b).compact_ball
 end
 
@@ -1441,7 +1511,7 @@ lemma exists_lt_subset_ball (hs : is_closed s) (h : s ⊆ ball x r) :
   ∃ r' < r, s ⊆ ball x r' :=
 begin
   cases le_or_lt r 0 with hr hr,
-  { rw [ball_eq_empty_iff_nonpos.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
+  { rw [ball_eq_empty.2 hr, subset_empty_iff] at h, unfreezingI { subst s },
     exact (no_bot r).imp (λ r' hr', ⟨hr', empty_subset _⟩) },
   { exact (exists_pos_lt_subset_ball hr hs h).imp (λ r' hr', ⟨hr'.fst.2, hr'.snd⟩) }
 end
@@ -1778,7 +1848,7 @@ begin
   { rw ← bounded_iff_subset_ball,
     exact hs.bounded },
   refine ⟨(coe ⁻¹' closed_ball (0:ℝ) r)ᶜ, _, _⟩,
-  { simp [mem_cofinite, closed_ball_Icc, set.Icc_ℤ_finite] },
+  { simp [mem_cofinite, real.closed_ball_eq, set.Icc_ℤ_finite] },
   { rw ← compl_subset_compl at hr,
     intros y hy,
     exact hr hy }
@@ -1789,6 +1859,18 @@ end int
 /-- We now define `metric_space`, extending `pseudo_metric_space`. -/
 class metric_space (α : Type u) extends pseudo_metric_space α : Type u :=
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
+
+/-- Construct a metric space structure whose underlying topological space structure
+(definitionally) agrees which a pre-existing topology which is compatible with a given distance
+function. -/
+def metric_space.of_metrizable {α : Type*} [topological_space α] (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+  (H : ∀ s : set α, is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s)
+  (eq_of_dist_eq_zero : ∀ x y : α, dist x y = 0 → x = y) : metric_space α :=
+{ eq_of_dist_eq_zero := eq_of_dist_eq_zero,
+  ..pseudo_metric_space.of_metrizable dist dist_self dist_comm dist_triangle H }
 
 variables {γ : Type w} [metric_space γ]
 

@@ -22,7 +22,8 @@ namespace mul_action
 variables (α) [monoid α] [mul_action α β]
 
 /-- The orbit of an element under an action. -/
-@[to_additive] def orbit (b : β) := set.range (λ x : α, x • b)
+@[to_additive "The orbit of an element under an action."]
+def orbit (b : β) := set.range (λ x : α, x • b)
 
 variable {α}
 
@@ -38,10 +39,12 @@ iff.rfl
 variables (α) (β)
 
 /-- The set of elements fixed under the whole action. -/
-@[to_additive] def fixed_points : set β := {b : β | ∀ x : α, x • b = b}
+@[to_additive "The set of elements fixed under the whole action."]
+def fixed_points : set β := {b : β | ∀ x : α, x • b = b}
 
 /-- `fixed_by g` is the subfield of elements fixed by `g`. -/
-@[to_additive] def fixed_by (g : α) : set β :=
+@[to_additive "`fixed_by g` is the subfield of elements fixed by `g`."]
+def fixed_by (g : α) : set β :=
 { x | g • x = x }
 
 @[to_additive] theorem fixed_eq_Inter_fixed_by : fixed_points α β = ⋂ g : α, fixed_by α β g :=
@@ -63,7 +66,8 @@ variables {α} (β)
 variables (α) {β}
 
 /-- The stabilizer of a point `b` as a submonoid of `α`. -/
-@[to_additive] def stabilizer.submonoid (b : β) : submonoid α :=
+@[to_additive "The stabilizer of a point `b` as an additive submonoid of `α`."]
+def stabilizer.submonoid (b : β) : submonoid α :=
 { carrier := { a | a • b = b },
   one_mem' := one_smul _ b,
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
@@ -106,7 +110,9 @@ variables [group α] [mul_action α β]
 
 /-- The stabilizer of an element under an action, i.e. what sends the element to itself.
 A subgroup. -/
-@[to_additive] def stabilizer (b : β) : subgroup α :=
+@[to_additive "The stabilizer of an element under an action, i.e. what sends the element to itself.
+An additive subgroup."]
+def stabilizer (b : β) : subgroup α :=
 { inv_mem' := λ a (ha : a • b = b), show a⁻¹ • b = b, by rw [inv_smul_eq_iff, ha]
   ..stabilizer.submonoid α b }
 
@@ -146,8 +152,9 @@ variables (α) {β}
 ⟨g * h⁻¹, by simp [mul_smul]⟩
 
 variables (α) (β)
-/-- The relation "in the same orbit". -/
-@[to_additive] def orbit_rel : setoid β :=
+/-- The relation 'in the same orbit'. -/
+@[to_additive "The relation 'in the same orbit'."]
+def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
@@ -157,7 +164,8 @@ variables {α β}
 open quotient_group
 
 /-- Action on left cosets. -/
-@[to_additive] def mul_left_cosets (H : subgroup α)
+@[to_additive "Action on left cosets."]
+def mul_left_cosets (H : subgroup α)
   (x : α) (y : quotient H) : quotient H :=
 quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
   (λ a b (hab : _ ∈ H), quotient_group.eq.2
@@ -183,7 +191,8 @@ mul_action.comp_hom (quotient H) (subgroup.subtype I)
 variables (α) {β} (x : β)
 
 /-- The canonical map from the quotient of the stabilizer to the set. -/
-@[to_additive] def of_quotient_stabilizer (g : quotient (mul_action.stabilizer α x)) : β :=
+@[to_additive "The canonical map from the quotient of the stabilizer to the set. "]
+def of_quotient_stabilizer (g : quotient (mul_action.stabilizer α x)) : β :=
 quotient.lift_on' g (•x) $ λ g1 g2 H,
 calc  g1 • x
     = g1 • (g1⁻¹ * g2) • x : congr_arg _ H.symm
@@ -208,7 +217,8 @@ quotient.induction_on' g' $ λ _, mul_smul _ _ _
 show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, inv_smul_smul]
 
 /-- Orbit-stabilizer theorem. -/
-@[to_additive] noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
+@[to_additive "Orbit-stabilizer theorem."]
+noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
 equiv.symm $ equiv.of_bijective
   (λ g, ⟨of_quotient_stabilizer α b g, of_quotient_stabilizer_mem_orbit α b g⟩)

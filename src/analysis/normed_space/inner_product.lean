@@ -1087,6 +1087,14 @@ begin
     linarith }
 end
 
+/-- Given two orthogonal vectors, their sum and difference have equal norms. -/
+lemma norm_sub_eq_norm_add {v w : E} (h : ⟪v, w⟫ = 0) : ∥w - v∥ = ∥w + v∥ :=
+begin
+  rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _),
+  simp [h, ←inner_self_eq_norm_sq, inner_add_left, inner_add_right, inner_sub_left,
+    inner_sub_right, inner_re_symm]
+end
+
 /-- The real inner product of two vectors, divided by the product of their
 norms, has absolute value at most 1. -/
 lemma abs_real_inner_div_norm_mul_norm_le_one (x y : F) : absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) ≤ 1 :=
@@ -2254,6 +2262,49 @@ lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
 by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
 
 end orthogonal_projection
+
+section reflection
+variables {𝕜} (K) [complete_space K]
+
+/-- Reflection in a complete subspace of an inner product space.  The word "reflection" is
+sometimes understood to mean specifically reflection in a codimension-one subspace, and sometimes
+more generally to cover operations such as reflection in a point.  The definition here, of
+reflection in a subspace, is a more general sense of the word that includes both those common
+cases. -/
+def reflection : E ≃ₗᵢ[𝕜] E :=
+{ norm_map' := begin
+    intros x,
+    let w : K := orthogonal_projection K x,
+    let v := x - w,
+    have : ⟪v, w⟫ = 0 := orthogonal_projection_inner_eq_zero x w w.2,
+    convert norm_sub_eq_norm_add this using 2,
+    { simp [bit0],
+      dsimp [w, v],
+      abel },
+    { simp [bit0] }
+  end,
+  ..linear_equiv.of_involutive
+      (bit0 (K.subtype.comp (orthogonal_projection K).to_linear_map) - linear_map.id)
+      (λ x, by simp [bit0]) }
+
+variables {K}
+
+/-- The result of reflecting. -/
+lemma reflection_apply (p : E) : reflection K p = bit0 ↑(orthogonal_projection K p) - p := rfl
+
+/-- Reflection is its own inverse. -/
+@[simp] lemma reflection_symm : (reflection K).symm = reflection K := rfl
+
+variables (K)
+
+/-- Reflecting twice in the same subspace. -/
+@[simp] lemma reflection_reflection (p : E) : reflection K (reflection K p) = p :=
+(reflection K).left_inv p
+
+/-- Reflection is involutive. -/
+lemma reflection_involutive : function.involutive (reflection K) := reflection_reflection K
+
+end reflection
 
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal : submodule 𝕜 E :=

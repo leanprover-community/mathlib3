@@ -325,9 +325,9 @@ end strongly_measurable
 end Lp_meas
 
 
-section unicity_of_conditional_expectation
+section uniqueness_of_conditional_expectation
 
-/-! ## Unicity of the conditional expectation -/
+/-! ## Uniqueness of the conditional expectation -/
 
 variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 E']
 
@@ -373,7 +373,7 @@ begin
     exact hf_zero s hs hμs, },
 end
 
-/-- **Unicity of the conditional expectation** -/
+/-- **Uniqueness of the conditional expectation** -/
 lemma Lp.ae_eq_of_forall_set_integral_eq'
   (hm : m ≤ m0) (f g : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
@@ -435,7 +435,7 @@ end
 
 omit 𝕜
 
-end unicity_of_conditional_expectation
+end uniqueness_of_conditional_expectation
 
 /-! ## Conditional expectation in L2
 

@@ -47,11 +47,11 @@ universes u v w
 
 section to_matrix'
 
+instance {n m} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n] (R) [fintype R] :
+  fintype (matrix m n R) := by unfold matrix; apply_instance
+
 variables {R : Type*} [comm_ring R]
 variables {l m n : Type*}
-
-instance [fintype m] [decidable_eq m] [fintype n] [decidable_eq n] (R) [fintype R] :
-  fintype (matrix m n R) := by unfold matrix; apply_instance
 
 /-- `matrix.mul_vec M` is a linear map. -/
 def matrix.mul_vec_lin [fintype n] (M : matrix m n R) : (n → R) →ₗ[R] (m → R) :=

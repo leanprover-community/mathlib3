@@ -1696,8 +1696,7 @@ end
 
 /-- define `lift_add_double_quot_mk` to be the induced map `R/(I ⊔ J) → (R/I)/J' ` -/
 def lift_sup_double_quot_mk (I J : ideal R) := ideal.quotient.lift (I ⊔ J) (double_quot_mk I J)
-  (λ x hx, (ring_hom.mem_ker (double_quot_mk I J)).1 ((set_like.ext_iff.1
-    (ker_double_quot_mk I J)  x).2 hx))
+  ker_double_quot_mk.le
 
 /-- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/
 def double_quot_equiv_quot_sup : (J.map (ideal.quotient.mk I)).quotient ≃+* (I ⊔ J).quotient :=

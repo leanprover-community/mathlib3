@@ -7,6 +7,8 @@ import group_theory.group_action.defs
 import group_theory.group_action.group
 import group_theory.coset
 import data.setoid.basic
+import data.set_like.fintype
+import data.fintype.card
 
 /-!
 # Basic properties of group actions
@@ -129,6 +131,7 @@ def orbit_rel : setoid β :=
 
 variables {α β}
 
+/-- If the stabilizer of `x` is `S`, then the stabilizer of `g • x` is `gSg⁻¹`. -/
 lemma stabilizer_smul_eq_stabilizer_map_conj (g : α) (x : β) :
   (stabilizer α (g • x) = (stabilizer α x).map (mul_aut.conj g).to_monoid_hom) :=
 begin
@@ -137,6 +140,7 @@ begin
       one_smul, ← mem_stabilizer_iff, subgroup.mem_map_equiv, mul_aut.conj_symm_apply]
 end
 
+/-- A bijection between the stabilizers of two elements in the same orbit. -/
 noncomputable def stabilizer_equiv_stabilizer_of_orbit_rel {x y : β} (h : (orbit_rel α β).rel x y) :
   stabilizer α x ≃* stabilizer α y :=
 let g : α := classical.some h in
@@ -203,6 +207,18 @@ equiv.symm $ equiv.of_bijective
   ⟨λ x y hxy, injective_of_quotient_stabilizer α b (by convert congr_arg subtype.val hxy),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩
 
+/-- Orbit-stabilizer theorem. -/
+noncomputable def orbit_prod_stabilizer_equiv_group (b : β) :
+  orbit α b × stabilizer α b ≃ α :=
+(equiv.prod_congr (orbit_equiv_quotient_stabilizer α _) (equiv.refl _)).trans
+subgroup.group_equiv_quotient_times_subgroup.symm
+
+/-- Orbit-stabilizer theorem. -/
+lemma card_orbit_mul_card_stabilizer_eq_card_group (b : β) [fintype α] [fintype $ orbit α b]
+  [fintype $ stabilizer α b] :
+  fintype.card (orbit α b) * fintype.card (stabilizer α b) = fintype.card α :=
+by rw [← fintype.card_prod, fintype.card_congr (orbit_prod_stabilizer_equiv_group α b)]
+
 @[simp] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
@@ -210,8 +226,6 @@ rfl
 @[simp] lemma stabilizer_quotient {G} [group G] (H : subgroup G) :
   mul_action.stabilizer G ((1 : G) : quotient H) = H :=
 by { ext, simp [quotient_group.eq] }
-
-variables {α}
 
 local notation `Ω` := (quotient $ orbit_rel α β)
 
@@ -242,13 +256,18 @@ calc  (Σ (a : α), fixed_by α β a)
           λ ⟨b, hb⟩, (stabilizer_equiv_stabilizer_of_orbit_rel hb).to_equiv)
 ... ≃ Σ (ω : Ω), orbit α ω.out' × stabilizer α ω.out' :
         equiv.sigma_congr_right (λ ω, equiv.sigma_equiv_prod _ _)
-... ≃ Σ (ω : Ω), quotient (stabilizer α ω.out') × stabilizer α ω.out' :
-        equiv.sigma_congr_right
-          (λ ω, equiv.prod_congr (orbit_equiv_quotient_stabilizer α _) (equiv.refl _))
 ... ≃ Σ (ω : Ω), α :
-        equiv.sigma_congr_right (λ ω, subgroup.group_equiv_quotient_times_subgroup.symm)
+        equiv.sigma_congr_right (λ ω, orbit_prod_stabilizer_equiv_group α ω.out')
 ... ≃ Ω × α :
         equiv.sigma_equiv_prod Ω α
+
+/-- **Burnside's lemma** : given a finite group `G` acting on a set `X`, the average number of
+elements fixed by each `g ∈ G` is the number of orbits. -/
+lemma sum_card_fixed_by_eq_card_orbits_mul_card_group [fintype α] [Π a, fintype $ fixed_by α β a]
+  [fintype Ω] :
+  ∑ (a : α), fintype.card (fixed_by α β a) = fintype.card Ω * fintype.card α :=
+by rw [← fintype.card_prod, ← fintype.card_sigma,
+        fintype.card_congr (sigma_fixed_by_equiv_orbits_prod_group α)]
 
 end mul_action
 

@@ -17,6 +17,23 @@ possible finiteness of the measure.
 
 ## Main statements
 
+* `ae_eq_zero_of_forall_inner`:
+* `ae_eq_zero_of_forall_dual`:
+
+For real functions:
+
+For sigma-finite measures:
+* `ae_eq_of_forall_set_integral_eq_of_sigma_finite`
+
+For Lp/integrable functions:
+* `Lp.ae_eq_of_forall_set_integral_eq`
+* `integrable.ae_eq_of_forall_set_integral_eq`
+
+## TODO(s)
+
+* Extend the results from a Hilbert space to a Banach space. Most lemmas about inner products
+  should be equally valid about the product with an element of the dual and
+  `ae_eq_zero_of_forall_dual` should be used instead of `ae_eq_zero_of_forall_inner`.
 
 -/
 
@@ -47,6 +64,8 @@ end
 
 local notation `⟪`x`, `y`⟫` := y x
 
+variables (𝕜)
+
 lemma ae_eq_zero_of_forall_dual [normed_group E] [normed_space 𝕜 E]
   [second_countable_topology (dual 𝕜 E)]
   {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) :
@@ -66,14 +85,15 @@ begin
   exact @is_closed_property ℕ (dual 𝕜 E) _ s (λ c, ⟪f x, c⟫ = (0 : 𝕜)) hs h_closed (λ n, hx n) c,
 end
 
+variables {𝕜}
+
 end ae_eq_of_forall
 
 
-variables {α 𝕜 E E' : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+variables {α 𝕜 E : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   {m m0 : measurable_space α} {μ : measure α} {s t : set α}
   [inner_product_space 𝕜 E] [measurable_space E] [borel_space E] [second_countable_topology E]
-  [inner_product_space 𝕜 E'] [measurable_space E'] [borel_space E'] [second_countable_topology E']
-  [complete_space E'] [normed_space ℝ E']
+  [complete_space E] [normed_space ℝ E]
   {p : ℝ≥0∞}
 
 section ae_eq_of_forall_set_integral_eq
@@ -112,6 +132,7 @@ section real_finite_measure
 
 variables [finite_measure μ] {f : α → ℝ}
 
+/-- Don't use this lemma. Use `ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure`. -/
 lemma ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_measurable (hfm : measurable f)
   (hf : integrable f μ) (hf_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in s, f x ∂μ) :
   0 ≤ᵐ[μ] f :=
@@ -304,10 +325,10 @@ begin
       Union_spanning_sets (μ.restrict t), set.univ_inter], },
 end
 
-variables [is_scalar_tower ℝ 𝕜 E']
+variables [is_scalar_tower ℝ 𝕜 E]
 include 𝕜
 
-lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero {f : α → E'}
+lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero {f : α → E}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
   {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
@@ -321,7 +342,7 @@ begin
     simp [hf_zero s hs hμs], },
 end
 
-lemma ae_eq_restrict_of_forall_set_integral_eq {f g : α → E'}
+lemma ae_eq_restrict_of_forall_set_integral_eq {f g : α → E}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hg_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on g s μ)
   (hfg_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ)
@@ -338,7 +359,7 @@ begin
   exact ae_eq_zero_restrict_of_forall_set_integral_eq_zero hfg_int hfg' ht hμt,
 end
 
-lemma ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite [sigma_finite μ] {f : α → E'}
+lemma ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite [sigma_finite μ] {f : α → E}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
   f =ᵐ[μ] 0 :=
@@ -354,7 +375,7 @@ begin
   exact ae_eq_zero_restrict_of_forall_set_integral_eq_zero hf_int_finite hf_zero h_meas_n hμn.ne,
 end
 
-lemma ae_eq_of_forall_set_integral_eq_of_sigma_finite [sigma_finite μ] {f g : α → E'}
+lemma ae_eq_of_forall_set_integral_eq_of_sigma_finite [sigma_finite μ] {f g : α → E}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hg_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on g s μ)
   (hfg_eq : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ) :
@@ -370,7 +391,7 @@ begin
   exact ae_eq_zero_of_forall_set_integral_eq_of_sigma_finite hfg_int hfg,
 end
 
-lemma ae_fin_strongly_measurable.ae_eq_zero_of_forall_set_integral_eq_zero {f : α → E'}
+lemma ae_fin_strongly_measurable.ae_eq_zero_of_forall_set_integral_eq_zero {f : α → E}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
   (hf : ae_fin_strongly_measurable f μ) :
@@ -391,7 +412,7 @@ begin
     exact hf_zero _ (hs.inter hf.measurable_set) hμs, },
 end
 
-lemma ae_fin_strongly_measurable.ae_eq_of_forall_set_integral_eq {f g : α → E'}
+lemma ae_fin_strongly_measurable.ae_eq_of_forall_set_integral_eq {f g : α → E}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hg_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on g s μ)
   (hfg_eq : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ)
@@ -409,14 +430,14 @@ begin
 end
 
 lemma Lp.ae_eq_zero_of_forall_set_integral_eq_zero
-  (f : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
+  (f : Lp E p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
   f =ᵐ[μ] 0 :=
 ae_fin_strongly_measurable.ae_eq_zero_of_forall_set_integral_eq_zero hf_int_finite hf_zero
   (Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top).ae_fin_strongly_measurable
 
-lemma Lp.ae_eq_of_forall_set_integral_eq (f g : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
+lemma Lp.ae_eq_of_forall_set_integral_eq (f g : Lp E p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hg_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on g s μ)
   (hfg : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ) :
@@ -426,7 +447,7 @@ ae_fin_strongly_measurable.ae_eq_of_forall_set_integral_eq hf_int_finite hg_int_
   (Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top).ae_fin_strongly_measurable
 
 lemma ae_eq_zero_of_forall_set_integral_eq_of_fin_strongly_measurable_trim (hm : m ≤ m0)
-  {f : α → E'} (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
+  {f : α → E} (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
   (hf : fin_strongly_measurable f (μ.trim hm)) :
   f =ᵐ[μ] 0 :=
@@ -455,7 +476,7 @@ begin
     exact hf_zero _ (@measurable_set.inter _ m _ _ hs ht_meas) hμs, },
 end
 
-lemma integrable.ae_eq_zero_of_forall_set_integral_eq_zero {f : α → E'} (hf : integrable f μ)
+lemma integrable.ae_eq_zero_of_forall_set_integral_eq_zero {f : α → E} (hf : integrable f μ)
   (hf_zero : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
   f =ᵐ[μ] 0 :=
 begin
@@ -470,7 +491,7 @@ begin
     exact hf_zero s hs hμs, },
 end
 
-lemma integrable.ae_eq_of_forall_set_integral_eq (f g : α → E')
+lemma integrable.ae_eq_of_forall_set_integral_eq (f g : α → E)
   (hf : integrable f μ) (hg : integrable g μ)
   (hfg : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ) :
   f =ᵐ[μ] g :=

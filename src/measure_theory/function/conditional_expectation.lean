@@ -311,6 +311,9 @@ section strongly_measurable
 
 variables {m m0 : measurable_space α} {μ : measure α}
 
+/-- We do not get `ae_fin_strongly_measurable f (μ.trim hm)`, since we don't have
+`f =ᵐ[μ.trim hm] Lp_meas_to_Lp_trim F 𝕜 p μ hm f` but only the weaker
+`f =ᵐ[μ] Lp_meas_to_Lp_trim F 𝕜 p μ hm f`. -/
 lemma Lp_meas.ae_fin_strongly_measurable' (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) (hp_ne_zero : p ≠ 0)
   (hp_ne_top : p ≠ ∞) :
   ∃ g, fin_strongly_measurable g (μ.trim hm) ∧ f =ᵐ[μ] g :=
@@ -323,6 +326,8 @@ end Lp_meas
 
 
 section unicity_of_conditional_expectation
+
+/-! ## Unicity of the conditional expectation -/
 
 variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 E']
 

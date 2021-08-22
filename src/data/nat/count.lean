@@ -155,7 +155,16 @@ end
 
 lemma nth_succ_of_zero (h : p 0) (n : ℕ) (w : (n + 2 : cardinal) ≤ cardinal.mk (set_of p)) :
   nth p (n+1) = nth (λ i, p (i+1)) n + 1 :=
-sorry
+begin
+  revert w,
+  apply nat.strong_induction_on n,
+  intros n' ih w,
+  replace ih : ∀ m, m < n' → nth (λ i, p (i + 1)) m = nth p (m + 1) - 1 := sorry, -- easy: the extra condition is vacuous + some arithmetic
+  rw [nth_def, nth_def],
+  simp [ih] {contextual:=tt},
+  sorry,
+  -- I think this is doable from here!
+end
 
 lemma nth_zero_of_exists (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h, }

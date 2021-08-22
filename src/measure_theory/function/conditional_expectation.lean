@@ -373,7 +373,7 @@ begin
     exact hf_zero s hs hμs, },
 end
 
-/-- **Unicity of the conditional expectation** of `Lp` functions. -/
+/-- **Unicity of the conditional expectation** -/
 lemma Lp.ae_eq_of_forall_set_integral_eq'
   (hm : m ≤ m0) (f g : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
   (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)

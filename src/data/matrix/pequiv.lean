@@ -127,7 +127,7 @@ end
   ((single a b).to_matrix : matrix _ _ α) ⬝ (single b c).to_matrix = (single a c).to_matrix :=
 by rw [← to_matrix_trans, single_trans_single]
 
-lemma single_mul_single_of_ne [fintype n] [fintype k] [decidable_eq n] [decidable_eq k]
+lemma single_mul_single_of_ne [fintype n] [decidable_eq n] [decidable_eq k]
   [decidable_eq m] [semiring α] {b₁ b₂ : n} (hb : b₁ ≠ b₂) (a : m) (c : k) :
   ((single a b₁).to_matrix : matrix _ _ α) ⬝ (single b₂ c).to_matrix = 0 :=
 by rw [← to_matrix_trans, single_trans_single_of_ne hb, to_matrix_bot]

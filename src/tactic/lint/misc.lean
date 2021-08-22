@@ -309,7 +309,7 @@ meta def linter.check_univs : linter :=
 { test := check_univs,
   auto_decls := tt,
   no_errors_found :=
-    "All declaratations have good universe levels.",
+    "All declarations have good universe levels.",
   errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. " ++
 "This usually means that there is a `max u v` in the declaration where neither `u` nor `v` " ++
 "occur by themselves. Solution: Find the type (or type bundled with data) that has this " ++
@@ -318,4 +318,28 @@ meta def linter.check_univs : linter :=
 "command (where the universe level can be kept implicit).
 Note: if the linter flags an automatically generated declaration `xyz._proof_i`, it means that
 the universe problem is with `xyz` itself (even if the linter doesn't flag `xyz`)",
+  is_fast := tt }
+
+/-!
+## Linter for syntactic tautologies
+-/
+
+/--
+Checks whether a lemma is a declaration that `e = f` where `e` and `f` are syntactically equal.
+-/
+meta def check_syn_eq (d : declaration) : tactic (option string) := do
+  let l := d.type.pi_codomain,
+  (do (el, er) ← expr.is_eq l,
+    guard (el = er),
+    return $ some "LHS equals RHS syntactically") <|>
+  return none
+
+/-- A linter for checking that declarations aren't syntactic tautologies. -/
+@[linter]
+meta def linter.check_syn_eq : linter :=
+{ test := check_syn_eq,
+  auto_decls := ff,
+  no_errors_found :=
+    "No declarations are syntactic tautologies.",
+  errors_found := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES.",
   is_fast := tt }

@@ -1661,7 +1661,7 @@ theorem interior_closed_ball' [normed_space ‚Ñù E] [nontrivial E] (x : E) (r : ‚
   interior (closed_ball x r) = ball x r :=
 begin
   rcases lt_trichotomy r 0 with hr|rfl|hr,
-  { simp [closed_ball_eq_empty_iff_neg.2 hr, ball_eq_empty_iff_nonpos.2 (le_of_lt hr)] },
+  { simp [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le] },
   { rw [closed_ball_zero, ball_zero, interior_singleton] },
   { exact interior_closed_ball x hr }
 end

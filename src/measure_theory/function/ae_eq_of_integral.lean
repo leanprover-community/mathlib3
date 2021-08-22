@@ -8,7 +8,17 @@ import analysis.normed_space.dual
 import measure_theory.function.strongly_measurable
 import measure_theory.integral.set_integral
 
-/-! # From equality of integrals to equality of functions -/
+/-! # From equality of integrals to equality of functions
+
+This file provides various statements of the general form "if two functions have the same integral
+on all sets, then they are equal almost everywhere".
+The different lemmas use various hypotheses on the class of functions, on the target space or on the
+possible finiteness of the measure.
+
+## Main statements
+
+
+-/
 
 open measure_theory topological_space normed_space filter
 
@@ -175,12 +185,6 @@ begin
   exact hf_zero (s ∩ S n) (hs.inter h_meas_n)
     ((measure_mono (set.inter_subset_right _ _)).trans_lt hμn),
 end
-
-lemma integrable.ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite [sigma_finite μ]
-  {f : α → ℝ}
-  (hf : integrable f μ) (hf_zero : ∀ s, measurable_set s → μ s < ∞ → 0 ≤ ∫ x in s, f x ∂μ) :
-  0 ≤ᵐ[μ] f :=
-ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite (λ s hs hμs, hf.integrable_on) hf_zero
 
 lemma ae_fin_strongly_measurable.ae_nonneg_of_forall_set_integral_nonneg {f : α → ℝ}
   (hf : ae_fin_strongly_measurable f μ)

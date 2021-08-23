@@ -2255,7 +2255,7 @@ lemma exists_seq_strict_antimono_tendsto' [densely_ordered α]
 @exists_seq_strict_mono_tendsto' (order_dual α) _ _ _ _ _ x y hy
 
 lemma exists_seq_strict_antimono_tendsto [densely_ordered α] [no_top_order α]
-  [first_countable_topology α] {x : α} :
+  [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto (order_dual α) _ _ _ _ _ _ x
 

@@ -140,18 +140,15 @@ def to_dual_flip (m : M) : (M →ₗ[R] R) := b.to_dual.flip m
 
 lemma to_dual_flip_apply (m₁ m₂ : M) : b.to_dual_flip m₁ m₂ = b.to_dual m₂ m₁ := rfl
 
-lemma to_dual_eq_repr (m : M) (i : ι) : b.to_dual m (b i) = b.repr m i :=
-b.to_dual_apply_left m i
-
 lemma to_dual_eq_equiv_fun [fintype ι] (m : M) (i : ι) : b.to_dual m (b i) = b.equiv_fun m i :=
-by rw [b.equiv_fun_apply, to_dual_eq_repr]
+by rw [b.equiv_fun_apply, to_dual_apply_left]
 
 lemma to_dual_inj (m : M) (a : b.to_dual m = 0) : m = 0 :=
 begin
   rw [← mem_bot R, ← b.repr.ker, mem_ker, linear_equiv.coe_coe],
   apply finsupp.ext,
   intro b,
-  rw [← to_dual_eq_repr, a],
+  rw [← to_dual_apply_left, a],
   refl
 end
 
@@ -167,7 +164,7 @@ begin
   { use finsupp.total ι M R b lin_comb,
     apply b.ext,
     { intros i,
-      rw [b.to_dual_eq_repr _ i, repr_total b],
+      rw [b.to_dual_apply_left _ i, repr_total b],
       { refl } } },
   { intros a _,
     apply fin.complete }

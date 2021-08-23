@@ -413,6 +413,14 @@ def _root_.add_equiv.base_at (f : G ≃+ G) (x : P) : perm P :=
   f.base_at x y = f (y -ᵥ x) +ᵥ x :=
 rfl
 
+lemma base_at_trans_const_vadd (f : G ≃+ G) (x : P) (v : G) :
+  (f.base_at x).trans (const_vadd P (f v)) = (const_vadd P v).trans (f.base_at x) :=
+begin
+  ext y,
+  simp only [add_equiv.base_at_apply, coe_const_vadd, comp_app, coe_trans, ← add_vadd,
+    ← f.map_add, vadd_vsub_assoc],
+end
+
 @[simp] lemma _root_.add_equiv.base_at_symm (f : G ≃+ G) (x : P) :
   (f.base_at x).symm = f.symm.base_at x :=
 rfl

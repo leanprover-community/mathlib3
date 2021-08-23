@@ -311,6 +311,14 @@ by simp [linear_equiv.base_at, trans]
   f.base_at k x y = f (y -ᵥ x) +ᵥ x :=
 rfl
 
+lemma base_at_trans_const_vadd (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
+  (f.base_at k x).trans (const_vadd k P₁ (f v)) = (const_vadd k P₁ v).trans (f.base_at k x) :=
+begin
+  ext y,
+  simp only [linear_equiv.base_at_apply, const_vadd_apply, comp_app, coe_trans, ← add_vadd,
+    ← f.map_add, vadd_vsub_assoc],
+end
+
 @[simp] lemma _root_.linear_equiv.base_at_symm (f : V₁ ≃ₗ[k] V₁) (x : P₁) :
   (f.base_at k x).symm = f.symm.base_at k x :=
 rfl

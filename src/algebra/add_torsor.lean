@@ -404,6 +404,24 @@ variable {P}
 
 open function
 
+/-- Given an additive automorphism `f` of `G`, the operation `p ↦ f (p -ᵥ p₀) +ᵥ p₀`, "basing" the
+additive automorphism at a fixed point `p₀ : P`, is an affine equivalence. -/
+def _root_.add_equiv.base_at (f : G ≃+ G) (x : P) : perm P :=
+((vadd_const x).symm.trans f.to_equiv).trans (vadd_const x)
+
+@[simp] lemma _root_.add_equiv.base_at_apply (f : G ≃+ G) (x y : P) :
+  f.base_at x y = f (y -ᵥ x) +ᵥ x :=
+rfl
+
+@[simp] lemma _root_.add_equiv.base_at_symm (f : G ≃+ G) (x : P) :
+  (f.base_at x).symm = f.symm.base_at x :=
+rfl
+
+-- this seems like the natural simp-direction, but it's opposite to that for `base_at_symm`
+@[simp] lemma _root_.add_equiv.base_at_trans (f₁ f₂ : G ≃+ G) (x : P) :
+  (f₁.trans f₂).base_at x = (f₁.base_at x).trans (f₂.base_at x) :=
+by { ext, simp }
+
 /-- Point reflection in `x` as a permutation. -/
 def point_reflection (x : P) : perm P := (const_vsub x).trans (vadd_const x)
 

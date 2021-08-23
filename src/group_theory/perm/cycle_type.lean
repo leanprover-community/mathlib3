@@ -205,6 +205,37 @@ begin
   rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 
+lemma card_compl_support_modeq {p : ℕ} [hp : fact p.prime] {σ : perm α} (hσ : σ ^ p = 1) :
+  σ.supportᶜ.card ≡ fintype.card α [MOD p] :=
+begin
+  have key : σ.cycle_type = repeat p σ.cycle_type.card :=
+  eq_repeat_of_mem (λ n hn, (nat.dvd_prime_two_le hp.out (two_le_of_mem_cycle_type hn)).mp
+    ((dvd_of_mem_cycle_type hn).trans (order_of_dvd_of_pow_eq_one hσ))),
+  rw [nat.modeq_iff_dvd' σ.supportᶜ.card_le_univ, ←finset.card_compl, compl_compl,
+      ←sum_cycle_type, key, multiset.sum_repeat, smul_eq_mul],
+  exact dvd_mul_left p σ.cycle_type.card,
+end
+
+lemma exists_fixed_point_of_prime {p : ℕ} [hp : fact p.prime] (hα : ¬ p ∣ fintype.card α)
+  {σ : perm α} (hσ : σ ^ p = 1) : ∃ a : α, σ a = a :=
+begin
+  contrapose! hα,
+  simp_rw ← mem_support at hα,
+  exact nat.modeq_zero_iff_dvd.mp ((congr_arg _ (finset.card_eq_zero.mpr (compl_eq_bot.mpr
+    (finset.eq_univ_iff_forall.mpr hα)))).mp (card_compl_support_modeq hσ).symm),
+end
+
+lemma exists_fixed_point_of_prime' {p : ℕ} [hp : fact p.prime] (hα : p ∣ fintype.card α)
+  {σ : perm α} (hσ : σ ^ p = 1) {a : α} (ha : σ a = a) : ∃ b : α, σ b = b ∧ b ≠ a :=
+begin
+  have h : ∀ b : α, b ∈ σ.supportᶜ ↔ σ b = b :=
+  λ b, by rw [finset.mem_compl, mem_support, not_not],
+  obtain ⟨b, hb1, hb2⟩ := finset.exists_ne_of_one_lt_card (lt_of_lt_of_le hp.out.one_lt
+    (nat.le_of_dvd (finset.card_pos.mpr ⟨a, (h a).mpr ha⟩) (nat.modeq_zero_iff_dvd.mp
+    ((card_compl_support_modeq hσ).trans (nat.modeq_zero_iff_dvd.mpr hα))))) a,
+  exact ⟨b, (h b).mp hb1, hb2⟩,
+end
+
 lemma cycle_type_le_of_mem_cycle_factors_finset {f g : perm α}
   (hf : f ∈ g.cycle_factors_finset) :
   f.cycle_type ≤ g.cycle_type :=

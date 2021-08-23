@@ -290,7 +290,7 @@ lemma integrable_on_condexp_L2_of_measure_ne_top (hm : m ≤ m0) (hμs : μ s �
 integrable_on_Lp_of_measure_ne_top ((condexp_L2 𝕜 hm f) : α →₂[μ] E)
   fact_one_le_two_ennreal.elim hμs
 
-lemma integrable_condexp_L2_of_finite_measure (hm : m ≤ m0) [finite_measure μ] {f : α →₂[μ] E} :
+lemma integrable_condexp_L2_of_is_finite_measure (hm : m ≤ m0) [is_finite_measure μ] {f : α →₂[μ] E} :
   integrable (condexp_L2 𝕜 hm f) μ :=
 integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_ne_top hm (measure_ne_top _ _) f
 

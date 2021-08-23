@@ -159,10 +159,10 @@ begin
     rwa [ne.def, nnnorm_eq_zero] }
 end
 
-lemma has_finite_integral_const [finite_measure μ] (c : β) : has_finite_integral (λ x : α, c) μ :=
+lemma has_finite_integral_const [is_finite_measure μ] (c : β) : has_finite_integral (λ x : α, c) μ :=
 has_finite_integral_const_iff.2 (or.inr $ measure_lt_top _ _)
 
-lemma has_finite_integral_of_bounded [finite_measure μ] {f : α → β} {C : ℝ}
+lemma has_finite_integral_of_bounded [is_finite_measure μ] {f : α → β} {C : ℝ}
   (hC : ∀ᵐ a ∂μ, ∥f a∥ ≤ C) : has_finite_integral f μ :=
 (has_finite_integral_const C).mono' hC
 
@@ -412,7 +412,7 @@ begin
   rw [integrable, and_iff_right this, has_finite_integral_const_iff]
 end
 
-lemma integrable_const [finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
+lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
 integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 
 lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) : integrable f μ :=
@@ -529,7 +529,7 @@ lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ]
 lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
 by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
 
-lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [finite_measure μ]
+lemma mem_ℒp.integrable [borel_space β] {q : ℝ≥0∞} (hq1 : 1 ≤ q) {f : α → β} [is_finite_measure μ]
   (hfq : mem_ℒp f q μ) : integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (hfq.mem_ℒp_of_exponent_le hq1)
 

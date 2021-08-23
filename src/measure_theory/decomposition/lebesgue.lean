@@ -28,7 +28,7 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 
 ## Main results
 
-* `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure` :
+* `measure_theory.measure.have_lebesgue_decomposition_of_is_finite_measure` :
   the Lebesgue decomposition theorem.
 * `measure_theory.measure.eq_singular_part` : Given measures `μ` and `ν`, if `s` is a measure
   mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`, then
@@ -125,17 +125,17 @@ begin
     exact measure.zero_le μ }
 end
 
-instance {μ ν : measure α} [finite_measure μ] :
-  finite_measure (singular_part μ ν) :=
-finite_measure_of_le μ $ singular_part_le μ ν
+instance {μ ν : measure α} [is_finite_measure μ] :
+  is_finite_measure (singular_part μ ν) :=
+is_finite_measure_of_le μ $ singular_part_le μ ν
 
 instance {μ ν : measure α} [sigma_finite μ] :
   sigma_finite (singular_part μ ν) :=
 sigma_finite_of_le μ $ singular_part_le μ ν
 
-instance {μ ν : measure α} [finite_measure μ] :
-  finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
-finite_measure_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
+instance {μ ν : measure α} [is_finite_measure μ] :
+  is_finite_measure (ν.with_density $ radon_nikodym_deriv μ ν) :=
+is_finite_measure_of_le μ $ with_density_radon_nikodym_deriv_le μ ν
 
 instance {μ ν : measure α} [sigma_finite μ] :
   sigma_finite (ν.with_density $ radon_nikodym_deriv μ ν) :=
@@ -260,7 +260,7 @@ a measurable set `E`, such that `ν(E) > 0` and `E` is positive with respect to 
 
 This lemma is useful for the Lebesgue decomposition theorem. -/
 lemma exists_positive_of_not_mutually_singular
-  (μ ν : measure α) [finite_measure μ] [finite_measure ν] (h : ¬ μ ⊥ₘ ν) :
+  (μ ν : measure α) [is_finite_measure μ] [is_finite_measure ν] (h : ¬ μ ⊥ₘ ν) :
   ∃ ε : ℝ≥0, 0 < ε ∧ ∃ E : set α, measurable_set E ∧ 0 < ν E ∧
   0 ≤[E] μ.to_signed_measure - (ε • ν).to_signed_measure :=
 begin
@@ -458,8 +458,8 @@ open lebesgue_decomposition
 /-- **The Lebesgue decomposition theorem**: Any pair of finite measures `μ` and `ν`
 `have_lebesgue_decomposition`. That is to say, there exists a measure `ξ` and a measurable function
 `f`, such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f` -/
-theorem have_lebesgue_decomposition_of_finite_measure
-  (μ ν : measure α) [finite_measure μ] [finite_measure ν] :
+theorem have_lebesgue_decomposition_of_is_finite_measure
+  (μ ν : measure α) [is_finite_measure μ] [is_finite_measure ν] :
   have_lebesgue_decomposition μ ν :=
 begin
   have h := @exists_seq_tendsto_Sup _ _ _ _ _ (measurable_le_eval ν μ)
@@ -498,8 +498,8 @@ begin
     simp_rw [supr_apply],
     rw lintegral_supr (λ i, (supr_mem_measurable_le _ hf₁ i).1) (supr_monotone _),
     exact supr_le (λ i, (supr_mem_measurable_le _ hf₁ i).2 B hB) },
-  haveI : finite_measure (ν.with_density ξ),
-  { refine finite_measure_with_density _,
+  haveI : is_finite_measure (ν.with_density ξ),
+  { refine is_finite_measure_with_density _,
     have hle' := hle set.univ measurable_set.univ,
     rw [with_density_apply _ measurable_set.univ, measure.restrict_univ] at hle',
     exact lt_of_le_of_lt hle' (measure_lt_top _ _) },

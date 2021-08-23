@@ -402,7 +402,7 @@ begin
   { simp [hf_snorm], },
 end
 
-lemma mem_ℒp_of_finite_measure_preimage (p : ℝ≥0∞) {f : α →ₛ E} (hf : ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞) :
+lemma mem_ℒp_of_is_finite_measure_preimage (p : ℝ≥0∞) {f : α →ₛ E} (hf : ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞) :
   mem_ℒp f p μ :=
 begin
   by_cases hp0 : p = 0,
@@ -421,7 +421,7 @@ end
 lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
 ⟨λ h, measure_preimage_lt_top_of_mem_ℒp hp_pos hp_ne_top f h,
-  λ h, mem_ℒp_of_finite_measure_preimage p h⟩
+  λ h, mem_ℒp_of_is_finite_measure_preimage p h⟩
 
 lemma integrable_iff {f : α →ₛ E} : integrable f μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
 mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff ennreal.zero_lt_one ennreal.coe_ne_top
@@ -444,13 +444,13 @@ lemma integrable_pair [measurable_space F] {f : α →ₛ E} {g : α →ₛ F} :
   integrable f μ → integrable g μ → integrable (pair f g) μ :=
 by simpa only [integrable_iff_fin_meas_supp] using fin_meas_supp.pair
 
-lemma mem_ℒp_of_finite_measure (f : α →ₛ E) (p : ℝ≥0∞) (μ : measure α) [finite_measure μ] :
+lemma mem_ℒp_of_is_finite_measure (f : α →ₛ E) (p : ℝ≥0∞) (μ : measure α) [is_finite_measure μ] :
   mem_ℒp f p μ :=
 let ⟨C, hfC⟩ := f.exists_forall_norm_le in
 mem_ℒp.of_bound f.ae_measurable C $ eventually_of_forall hfC
 
-lemma integrable_of_finite_measure [finite_measure μ] (f : α →ₛ E) : integrable f μ :=
-mem_ℒp_one_iff_integrable.mp (f.mem_ℒp_of_finite_measure 1 μ)
+lemma integrable_of_is_finite_measure [is_finite_measure μ] (f : α →ₛ E) : integrable f μ :=
+mem_ℒp_one_iff_integrable.mp (f.mem_ℒp_of_is_finite_measure 1 μ)
 
 lemma measure_preimage_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) {x : E}
   (hx : x ≠ 0) :

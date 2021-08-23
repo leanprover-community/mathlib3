@@ -1874,8 +1874,8 @@ begin
   refl,
 end
 
-lemma finite_measure_with_density {f : α → ℝ≥0∞}
-  (hf : ∫⁻ a, f a ∂μ < ∞) : finite_measure (μ.with_density f) :=
+lemma is_finite_measure_with_density {f : α → ℝ≥0∞}
+  (hf : ∫⁻ a, f a ∂μ < ∞) : is_finite_measure (μ.with_density f) :=
 { measure_univ_lt_top :=
     by rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] }
 

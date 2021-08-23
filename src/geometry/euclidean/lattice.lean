@@ -42,7 +42,8 @@ end
 
 variables {P : Type*} [metric_space P] [normed_add_torsor ℂ P]
 
-/-- The "square" action of `ℤ × ℤ` on `P`, given by `(m, n) • p = p +ᵥ (m + n * I)`. -/
+/-- The "square" action of `ℤ × ℤ` on a Euclidean affine plane `P`; that is, `(m, n)` acts on
+`x : P` by the affine-addition of the complex number `m + n * I`. -/
 noncomputable instance square_action : add_action (ℤ × ℤ) P :=
 add_action.comp_hom P square_add_hom
 
@@ -65,7 +66,7 @@ end
 
 variables (P)
 /-- In a Euclidean affine plane `P` modelled on `ℂ`, a `square_lattice P` is an orbit of the
-"square" action of `ℤ × ℤ` on `P`, given by `(m, n) • x = (m + n * I) +ᵥ x`. -/
+"square" action of `ℤ × ℤ` on `P`, given by `(m, n) +ᵥ x := (m + n * I) +ᵥ x`. -/
 def square_lattice := subtype (orbit_rel (ℤ × ℤ) P).classes
 
 namespace square_lattice

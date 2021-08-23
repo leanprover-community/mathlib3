@@ -164,7 +164,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
   let ⟨t', ht'₁, ht'₂⟩ := comp_mem_uniformity_sets ht''₁ in
   have t' ∈ f.val ×ᶠ f.val,
     from f.property.right ht'₁,
-  let ⟨t, ht, (h : set.prod t t ⊆ t')⟩ := mem_prod_same_iff.mp this in
+  let ⟨t, ht, (h : set.prod t t ⊆ t')⟩ := mem_prod_self_iff.mp this in
   let ⟨x, (hx : x ∈ t)⟩ := f.property.left.nonempty_of_mem ht in
   have t'' ∈ f.val ×ᶠ pure x,
     from mem_prod_iff.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
@@ -209,7 +209,7 @@ complete_space_extension
   have map pure_cauchy f ≤ (𝓤 $ Cauchy α).lift' (preimage (prod.mk f')),
     from le_lift' $ assume s hs,
     let ⟨t, ht₁, (ht₂ : gen t ⊆ s)⟩ := (mem_lift'_sets monotone_gen).mp hs in
-    let ⟨t', ht', (h : set.prod t' t' ⊆ t)⟩ := mem_prod_same_iff.mp (hf.right ht₁) in
+    let ⟨t', ht', (h : set.prod t' t' ⊆ t)⟩ := mem_prod_self_iff.mp (hf.right ht₁) in
     have t' ⊆ { y : α | (f', pure_cauchy y) ∈ gen t },
       from assume x hx, (f ×ᶠ pure x).sets_of_superset (prod_mem_prod ht' hx) h,
     f.sets_of_superset ht' $ subset.trans this (preimage_mono ht₂),

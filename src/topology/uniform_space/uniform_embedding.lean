@@ -262,7 +262,7 @@ have cauchy g, from
   let
     ⟨s₁, hs₁, (comp_s₁ : comp_rel s₁ s₁ ⊆ s)⟩ := comp_mem_uniformity_sets hs,
     ⟨s₂, hs₂, (comp_s₂ : comp_rel s₂ s₂ ⊆ s₁)⟩ := comp_mem_uniformity_sets hs₁,
-    ⟨t, ht, (prod_t : set.prod t t ⊆ s₂)⟩ := mem_prod_same_iff.mp (hf.right hs₂)
+    ⟨t, ht, (prod_t : set.prod t t ⊆ s₂)⟩ := mem_prod_self_iff.mp (hf.right hs₂)
   in
   have hg₁ : p (preimage prod.swap s₁) t ∈ g,
     from mem_lift (symm_le_uniformity hs₁) $ @mem_lift' α α f _ t ht,

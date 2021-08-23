@@ -416,7 +416,7 @@ begin
         simpa [nonempty_diff] using hd_cover t t.finite_to_set } },
     have : f ≤ 𝓟 s, from infi_le_of_le ∅ (by simp),
     refine ⟨f, ‹_›, ‹_›, λ c hcf hc, _⟩,
-    rcases mem_prod_same_iff.1 (hc.2 hd) with ⟨m, hm, hmd⟩,
+    rcases mem_prod_self_iff.1 (hc.2 hd) with ⟨m, hm, hmd⟩,
     have : m ∩ s ∈ c, from inter_mem hm (le_principal_iff.mp (hcf.trans ‹_›)),
     rcases hc.1.nonempty_of_mem this with ⟨y, hym, hys⟩,
     set ys := ⋃ y' ∈ ({y} : finset α), {x | (x, y') ∈ d},

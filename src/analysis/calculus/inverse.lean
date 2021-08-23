@@ -440,7 +440,7 @@ begin
   { refine ⟨univ, is_open.mem_nhds is_open_univ trivial, λ x hx y hy, _⟩,
     simp [@subsingleton.elim E hE x y] },
   have := hf.def hc,
-  rw [nhds_prod_eq, filter.eventually, mem_prod_same_iff] at this,
+  rw [nhds_prod_eq, filter.eventually, mem_prod_self_iff] at this,
   rcases this with ⟨s, has, hs⟩,
   exact ⟨s, has, λ x hx y hy, hs (mk_mem_prod hx hy)⟩
 end

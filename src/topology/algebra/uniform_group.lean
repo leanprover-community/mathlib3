@@ -327,7 +327,7 @@ begin
   { have := tendsto_prod_iff.1 lim_φ_sub_sub W W_nhd,
     repeat { rw [nhds_prod_eq, ←prod_comap_comap_eq] at this },
     rcases this with ⟨U, U_in, V, V_in, H⟩,
-    rw [mem_prod_same_iff] at U_in V_in,
+    rw [mem_prod_self_iff] at U_in V_in,
     rcases U_in with ⟨U₁, U₁_in, HU₁⟩,
     rcases V_in with ⟨V₁, V₁_in, HV₁⟩,
     existsi [U₁, U₁_in, V₁, V₁_in],
@@ -396,7 +396,7 @@ begin
 
     rw [mem_map, mem_comap, nhds_prod_eq],
     existsi set.prod (set.prod U' V') (set.prod U' V'),
-    rw mem_prod_same_iff,
+    rw mem_prod_self_iff,
 
     simp only [exists_prop],
     split,

@@ -439,14 +439,10 @@ from lift_lift'_same_eq_lift'
   (assume s, set.monotone_prod monotone_const monotone_id)
   (assume t, set.monotone_prod monotone_id monotone_const)
 
-lemma mem_prod_same_iff {s : set (α×α)} :
-  s ∈ f ×ᶠ f ↔ (∃t∈f, set.prod t t ⊆ s) :=
-by rw [prod_same_eq, mem_lift'_sets]; exact set.monotone_prod monotone_id monotone_id
-
 lemma tendsto_prod_self_iff {f : α × α → β} {x : filter α} {y : filter β} :
   filter.tendsto f (x ×ᶠ x) y ↔
   ∀ W ∈ y, ∃ U ∈ x, ∀ (x x' : α), x ∈ U → x' ∈ U → f (x, x') ∈ W :=
-by simp only [tendsto_def, mem_prod_same_iff, prod_sub_preimage_iff, exists_prop, iff_self]
+by simp only [tendsto_def, mem_prod_self_iff, prod_sub_preimage_iff, exists_prop, iff_self]
 
 variables {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
 

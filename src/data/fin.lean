@@ -695,7 +695,7 @@ begin
   exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
 
-lemma fin.succ_cast_succ {n : ℕ} (i : fin n) :
+lemma succ_cast_succ {n : ℕ} (i : fin n) :
   i.cast_succ.succ = i.succ.cast_succ :=
 fin.ext (by simp)
 

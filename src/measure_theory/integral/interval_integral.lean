@@ -1959,20 +1959,20 @@ this inequality to the right until the point `b`, where it gives the desired con
 variables {g' g : ℝ → ℝ}
 
 /-- Hard part of FTC-2 for integrable derivatives, real-valued functions: one has
-`g b - g a ≤ (∫ y in a..b, g' y)`.
+`g b - g a ≤ ∫ y in a..b, g' y`.
 Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`. -/
-private lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b)
+lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
   (g'int : integrable_on g' (Icc a b)) :
-  g b - g a ≤ (∫ y in a..b, g' y) :=
+  g b - g a ≤ ∫ y in a..b, g' y :=
 begin
   refine le_of_forall_pos_le_add (λ ε εpos, _),
   -- Bound from above `g'` by a lower-semicontinuous function `G'`.
   rcases exists_lt_lower_semicontinuous_integral_lt g' g'int εpos with
     ⟨G', g'_lt_G', G'cont, G'int, G'lt_top, hG'⟩,
   -- we will show by "induction" that `g t - g a ≤ ∫ u in a..t, G' u` for all `t ∈ [a, b]`.
-  set s := {t | g t - g a ≤ (∫ u in a..t, (G' u).to_real)} ∩ Icc a b,
+  set s := {t | g t - g a ≤ ∫ u in a..t, (G' u).to_real} ∩ Icc a b,
   -- the set `s` of points where this property holds is closed.
   have s_closed : is_closed s,
   { have : continuous_on (λ t, (g t - g a, ∫ u in a..t, (G' u).to_real)) (Icc a b),
@@ -1980,21 +1980,22 @@ begin
       exact (hcont.sub continuous_on_const).prod (continuous_on_primitive_interval G'int) },
     simp only [s, inter_comm],
     exact this.preimage_closed_of_closed is_closed_Icc order_closed_topology.is_closed_le' },
-  have main : Icc a b ⊆ {t | g t - g a ≤ (∫ u in a..t, (G' u).to_real) },
+  have main : Icc a b ⊆ {t | g t - g a ≤ ∫ u in a..t, (G' u).to_real },
   { -- to show that the set `s` is all `[a, b]`, it suffices to show that any point `t` in `s`
     -- with `t < b` admits another point in `s` slightly to its right
     -- (this is a sort of real induction).
-    apply s_closed.Icc_subset_of_forall_exists_gt (by simp) (λ t ht v t_lt_v, _),
+    apply s_closed.Icc_subset_of_forall_exists_gt
+      (by simp only [integral_same, mem_set_of_eq, sub_self]) (λ t ht v t_lt_v, _),
     obtain ⟨y, g'_lt_y', y_lt_G'⟩ : ∃ (y : ℝ), (g' t : ereal) < y ∧ (y : ereal) < G' t :=
       ereal.lt_iff_exists_real_btwn.1 (g'_lt_G' t),
     -- bound from below the increase of `∫ x in a..u, G' x` on the right of `t`, using the lower
     -- semicontinuity of `G'`.
-    have I1 : ∀ᶠ u in 𝓝[Ioi t] t, (u - t) * y ≤ (∫ w in t..u, (G' w).to_real),
+    have I1 : ∀ᶠ u in 𝓝[Ioi t] t, (u - t) * y ≤ ∫ w in t..u, (G' w).to_real,
     { have B : ∀ᶠ u in 𝓝 t, (y : ereal) < G' u :=
         G'cont.lower_semicontinuous_at _ _ y_lt_G',
       rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
-      have : Ioo t (min M b) ∈ 𝓝[Ioi t] t :=
-        mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨min M b, by simp [hM, ht.2.2], subset.refl _⟩,
+      have : Ioo t (min M b) ∈ 𝓝[Ioi t] t := mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
+        ⟨min M b, by simp only [hM, ht.right.right, lt_min_iff, mem_Ioi, and_self], subset.refl _⟩,
       filter_upwards [this],
       assume u hu,
       have I : Icc t u ⊆ Icc a b := Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _)),
@@ -2002,11 +2003,11 @@ begin
         by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
                       measurable_set.univ, real.volume_Icc, measure.restrict_apply, univ_inter,
                       ennreal.to_real_of_real]
-      ... ≤ (∫ w in t..u, (G' w).to_real) :
+      ... ≤ ∫ w in t..u, (G' w).to_real :
       begin
         rw [interval_integral.integral_of_le hu.1.le, ← integral_Icc_eq_integral_Ioc],
         apply set_integral_mono_ae_restrict,
-        { simp [integrable_on_const] },
+        { simp only [integrable_on_const, real.volume_Icc, ennreal.of_real_lt_top, or_true] },
         { exact integrable_on.mono_set G'int I },
         { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ⊤ :=
             ae_mono (measure.restrict_mono I (le_refl _)) G'lt_top,
@@ -2015,8 +2016,8 @@ begin
           filter_upwards [C1, C2],
           assume x G'x hx,
           apply ereal.coe_le_coe_iff.1,
-          have : x ∈ Ioo m M,
-            by simp [hm.trans_le hx.1, (hx.2.trans_lt hu.2).trans_le (min_le_left _ _)],
+          have : x ∈ Ioo m M, by simp only [hm.trans_le hx.left,
+            (hx.right.trans_lt hu.right).trans_le (min_le_left M b), mem_Ioo, and_self],
           convert le_of_lt (H this),
           exact ereal.coe_to_real G'x.ne (ne_bot_of_gt (g'_lt_G' x)) }
       end },
@@ -2031,7 +2032,7 @@ begin
       exact sub_pos.2 t_lt_u },
     -- combine the previous two bounds to show that `g u - g a` increases less quickly than
     -- `∫ x in a..u, G' x`.
-    have I3 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ (∫ w in t..u, (G' w).to_real),
+    have I3 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ ∫ w in t..u, (G' w).to_real,
     { filter_upwards [I1, I2],
       assume u hu1 hu2,
       exact hu2.trans hu1 },
@@ -2044,8 +2045,7 @@ begin
     -- we check that it belongs to `s`, essentially by construction
     refine ⟨x, _, Ioc_subset_Ioc (le_refl _) (min_le_left _ _) h'x⟩,
     calc g x - g a = (g t - g a) + (g x - g t) : by abel
-    ... ≤ (∫ w in a..t, (G' w).to_real) + ∫ w in t..x, (G' w).to_real :
-      add_le_add ht.1 hx
+    ... ≤ (∫ w in a..t, (G' w).to_real) + ∫ w in t..x, (G' w).to_real : add_le_add ht.1 hx
     ... = ∫ w in a..x, (G' w).to_real :
     begin
       apply integral_add_adjacent_intervals,
@@ -2057,21 +2057,21 @@ begin
         refine Ioc_subset_Icc_self.trans (Icc_subset_Icc ht.2.1 (h'x.2.trans (min_le_right _ _))) }
     end },
   -- now that we know that `s` contains `[a, b]`, we get the desired result by applying this to `b`.
-  calc g b - g a ≤ (∫ y in a..b, (G' y).to_real) : main (right_mem_Icc.2 hab)
+  calc g b - g a ≤ ∫ y in a..b, (G' y).to_real : main (right_mem_Icc.2 hab)
   ... ≤ (∫ y in a..b, g' y) + ε :
     begin
       convert hG'.le;
       { rw interval_integral.integral_of_le hab,
-        simp [integral_Icc_eq_integral_Ioc'] },
+        simp only [integral_Icc_eq_integral_Ioc', real.volume_singleton] },
     end
 end
 
 /-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`. -/
-private lemma integral_le_sub_of_has_deriv_right_of_le (hab : a ≤ b)
+lemma integral_le_sub_of_has_deriv_right_of_le (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
   (g'int : integrable_on g' (Icc a b)) :
-  (∫ y in a..b, g' y) ≤ g b - g a :=
+  ∫ y in a..b, g' y ≤ g b - g a :=
 begin
   rw ← neg_le_neg_iff,
   convert sub_le_integral_of_has_deriv_right_of_le hab hcont.neg (λ x hx, (hderiv x hx).neg)
@@ -2081,11 +2081,11 @@ begin
 end
 
 /-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`: real version -/
-private lemma integral_eq_sub_of_has_deriv_right_of_le_real (hab : a ≤ b)
+lemma integral_eq_sub_of_has_deriv_right_of_le_real (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
   (g'int : integrable_on g' (Icc a b)) :
-  (∫ y in a..b, g' y) = g b - g a :=
+  ∫ y in a..b, g' y = g b - g a :=
 le_antisymm
   (integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv g'int)
   (sub_le_integral_of_has_deriv_right_of_le hab hcont hderiv g'int)
@@ -2093,16 +2093,16 @@ le_antisymm
 /-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`: real version, not
 requiring differentiability as the left endpoint of the interval. Follows from
 `integral_eq_sub_of_has_deriv_right_of_le_real` together with a continuity argument. -/
-private lemma integral_eq_sub_of_has_deriv_right_of_le_real' (hab : a ≤ b)
+lemma integral_eq_sub_of_has_deriv_right_of_le_real' (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
   (g'int : integrable_on g' (Icc a b)) :
-  (∫ y in a..b, g' y) = g b - g a :=
+  ∫ y in a..b, g' y = g b - g a :=
 begin
   obtain rfl|a_lt_b := hab.eq_or_lt, { simp },
-  set s := {t | (∫ u in t..b, g' u) = g b - g t} ∩ Icc a b,
+  set s := {t | ∫ u in t..b, g' u = g b - g t} ∩ Icc a b,
   have s_closed : is_closed s,
-  { have : continuous_on (λ t, ((∫ u in t..b, (g' u)), g b - g t)) (Icc a b),
+  { have : continuous_on (λ t, (∫ u in t..b, g' u, g b - g t)) (Icc a b),
     { rw ← interval_of_le hab at ⊢ hcont g'int,
       exact (continuous_on_primitive_interval_left g'int).prod (continuous_on_const.sub hcont) },
     simp only [s, inter_comm],

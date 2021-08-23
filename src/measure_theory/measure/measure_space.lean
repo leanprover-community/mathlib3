@@ -1400,6 +1400,18 @@ lemma ae_restrict_of_ae_restrict_of_subset {s t : set α} {p : α → Prop} (hst
   (∀ᵐ x ∂(μ.restrict s), p x) :=
 h.filter_mono (ae_mono $ measure.restrict_mono hst (le_refl μ))
 
+lemma ae_of_ae_restrict_of_ae_restrict_compl {t : set α} (ht_meas : measurable_set t) {p : α → Prop}
+  (ht : ∀ᵐ x ∂(μ.restrict t), p x) (htc : ∀ᵐ x ∂(μ.restrict tᶜ), p x) :
+  ∀ᵐ x ∂μ, p x :=
+begin
+  rw ae_restrict_iff' ht_meas at ht,
+  rw ae_restrict_iff' ht_meas.compl at htc,
+  refine ht.mp (htc.mono (λ x hx1 hx2, _)),
+  by_cases hxt : x ∈ t,
+  { exact hx2 hxt, },
+  { exact hx1 hxt, },
+end
+
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ℝ≥0∞) : ∀ᵐ x ∂(c • μ), p x :=
 ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
 
@@ -1417,6 +1429,13 @@ lemma ae_eq_comp' {ν : measure β} {f : α → β} {g g' : β → δ} (hf : mea
 lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
   (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
 ae_eq_comp' hf h absolutely_continuous.rfl
+
+lemma sub_ae_eq_zero {β} [add_group β] (f g : α → β) : f - g =ᵐ[μ] 0 ↔ f =ᵐ[μ] g :=
+begin
+  refine ⟨λ h, h.mono (λ x hx, _), λ h, h.mono (λ x hx, _)⟩,
+  { rwa [pi.sub_apply, pi.zero_apply, sub_eq_zero] at hx, },
+  { rwa [pi.sub_apply, pi.zero_apply, sub_eq_zero], },
+end
 
 lemma le_ae_restrict : μ.ae ⊓ 𝓟 s ≤ (μ.restrict s).ae :=
 λ s hs, eventually_inf_principal.2 (ae_imp_of_ae_restrict hs)

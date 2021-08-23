@@ -70,6 +70,20 @@ by { rw ←one_pow n, exact pow_lt_pow_of_lt_left h₁ h₀ }
 lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
 one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
 
+@[simp] lemma one_lt_pow_iff {k n : ℕ} (h : 0 ≠ k) : 1 < n ^ k ↔ 1 < n :=
+begin
+  cases n,
+  { cases k; simp [zero_pow_eq] },
+  cases n,
+  { rw one_pow },
+  refine ⟨λ _, one_lt_succ_succ n, λ _, _⟩,
+  induction k with k hk,
+  { exact absurd rfl h },
+  cases k,
+  { simp },
+  exact one_lt_mul (one_lt_succ_succ _).le (hk (succ_ne_zero k).symm),
+end
+
 lemma one_lt_two_pow (n : ℕ) (h₀ : 0 < n) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
 lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 (succ_pos n) dec_trivial
 

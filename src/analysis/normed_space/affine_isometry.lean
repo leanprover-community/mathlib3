@@ -157,7 +157,7 @@ include V
 /-- The identity affine isometry. -/
 def id : P →ᵃⁱ[𝕜] P := ⟨affine_map.id 𝕜 P, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : P →ᵃⁱ[𝕜] P) = id := rfl
+@[simp] lemma coe_id : ⇑(id : P →ᵃⁱ[𝕜] P) = _root_.id := rfl
 
 @[simp] lemma id_apply (x : P) : (affine_isometry.id : P →ᵃⁱ[𝕜] P) x = x := rfl
 

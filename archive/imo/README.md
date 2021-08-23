@@ -7,8 +7,8 @@ These are part of mathlib for three purposes:
   and this is a reasonable place to collect Lean samples of IMO problems.
 * As with the rest of `/archive/`, we want to have high quality examples
   covering elementary mathematics, available as learning materials.
-* They are a popular as a first contribution to mathlib,
-  and an opportunity to teach new contributors how to write code Lean code.
+* They are popular as a first contribution to mathlib,
+  and an opportunity to teach new contributors how to write Lean code.
 
 That said, IMO problems also come at a cost:
 * reviewing pull requests by first time contributors can be very time-consuming
@@ -34,7 +34,7 @@ Thus we'd like authors of IMO pull requests to keep in mind the following points
   Reviewers may ask you to factor out useful lemmas into mathlib,
   or to completely restructure your proof.
 * Pay forward what you learn from reviewing:
-  there often several [open pull requests about IMO problems]
+  there are often several [open pull requests about IMO problems]
   (https://github.com/leanprover-community/mathlib/pulls?q=is%3Aopen+is%3Apr+label%3Aimo),
   and you should go look at the others and see if you can make helpful suggestions!
 * If there is a lemma that can be stated more generally than you need for the actual problem,

@@ -122,7 +122,7 @@ def upper_central_series (n : ℕ) : subgroup G := (upper_central_series_aux G n
 
 instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_aux G n).2
 
-@[simp] lemma upper_central_series_zero_def : upper_central_series G 0 = ⊥ := rfl
+@[simp] lemma upper_central_series_zero : upper_central_series G 0 = ⊥ := rfl
 
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
 that `⁅x,G⁆ ⊆ H n`-/
@@ -258,7 +258,7 @@ def lower_central_series (G : Type*) [group G] : ℕ → subgroup G
 
 variable {G}
 
-@[simp] lemma lower_central_series_zero_def : lower_central_series G 0 = ⊤ := rfl
+@[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
 
 lemma mem_lower_central_series_succ_iff (n : ℕ) (x : G) :
   x ∈ lower_central_series G (n + 1) ↔

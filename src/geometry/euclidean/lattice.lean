@@ -11,7 +11,9 @@ import analysis.normed_space.inner_product
 # The square lattice in a Euclidean affine plane modelled on `ℂ`
 
 In this file the "square" action of `ℤ × ℤ` on an affine plane `P` modelled on `ℂ` is defined; that
-is, `(m, n)` acts on `x : P` by the affine-addition of the complex number `m + n * I`.
+is, `(m, n)` acts on `x : P` by the affine-addition of the complex number `m + n * I`.  This action
+is given as a `def`; it can be marked as canonical within a particular file by writing
+`local attribute [instance] square_action`.
 
 A `square_lattice P` is then defined to be an orbit of this action; that is, a standard grid of
 points in the plane, with the four closest points to a point `x` all equidistant from `x` and at
@@ -44,8 +46,10 @@ variables {P : Type*} [metric_space P] [normed_add_torsor ℂ P]
 
 /-- The "square" action of `ℤ × ℤ` on a Euclidean affine plane `P`; that is, `(m, n)` acts on
 `x : P` by the affine-addition of the complex number `m + n * I`. -/
-noncomputable instance square_action : add_action (ℤ × ℤ) P :=
+noncomputable def square_action : add_action (ℤ × ℤ) P :=
 add_action.comp_hom P square_add_hom
+
+local attribute [instance] square_action
 
 @[simp] lemma square_action_apply (v : ℤ × ℤ) (x : P) :
   v +ᵥ x = ((v.1:ℂ) + v.2 * complex.I) +ᵥ x :=

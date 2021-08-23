@@ -323,8 +323,6 @@ protected def neg : ereal → ereal
 
 instance : has_neg ereal := ⟨ereal.neg⟩
 
-@[norm_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
-
 @[simp] lemma neg_top : - (⊤ : ereal) = ⊥ := rfl
 @[simp] lemma neg_bot : - (⊥ : ereal) = ⊤ := rfl
 @[simp] lemma neg_zero : - (0 : ereal) = 0 := by { change ((-0 : ℝ) : ereal) = 0, simp }

@@ -413,10 +413,6 @@ by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 
-lemma abs_of_nat (n : ℕ) : complex.abs n = n :=
-calc complex.abs n = complex.abs (n:ℝ) : by rw [of_real_nat_cast]
-  ... = _ : abs_of_nonneg (nat.cast_nonneg n)
-
 lemma mul_self_abs (z : ℂ) : abs z * abs z = norm_sq z :=
 real.mul_self_sqrt (norm_sq_nonneg _)
 

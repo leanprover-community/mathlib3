@@ -9,6 +9,7 @@ import tactic.basic
 # Relation closures
 
 This file defines the reflexive, transitive, and reflexive transitive closures of relations.
+It also proves some basic results on definitions in core, such as `eqv_gen`.
 
 Note that this is about unbundled relations, that is terms of types of the form `α → β → Prop`. For
 the bundled version, see `rel`.

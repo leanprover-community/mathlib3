@@ -32,7 +32,7 @@ lemma bUnion_accumulate [preorder α] (x : α) : (⋃ y ≤ x, accumulate s y) =
 begin
   apply subset.antisymm,
   { exact bUnion_subset (λ x hx, (monotone_accumulate hx : _)) },
-  { exact bUnion_subset_bUnion_right (λ x hx, subset_accumulate) }
+  { exact bUnion_mono (λ x hx, subset_accumulate) }
 end
 
 lemma Union_accumulate [preorder α] : (⋃ x, accumulate s x) = ⋃ x, s x :=

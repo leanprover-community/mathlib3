@@ -269,9 +269,9 @@ Any category with coproducts and coequalizers has all colimits.
 See https://stacks.math.columbia.edu/tag/002P.
 -/
 lemma colimits_from_coequalizers_and_coproducts
-  [has_products C] [has_equalizers C] : has_limits C :=
-{ has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F } }
+  [has_coproducts C] [has_coequalizers C] : has_colimits C :=
+{ has_colimits_of_shape := λ J 𝒥,
+  { has_colimit := λ F, by exactI has_colimit_of_coequalizer_and_coproduct F } }
 
 /--
 Any category with finite coproducts and coequalizers has all finite colimits.

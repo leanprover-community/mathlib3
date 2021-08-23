@@ -90,7 +90,7 @@ lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :
 { comap_uniformity := begin
     rw [← uniformity_translate a, comap_map] {occs := occurrences.pos [1]},
     rintros ⟨p₁, p₂⟩ ⟨q₁, q₂⟩,
-    simp [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
+    simp [prod.ext_iff] {contextual := tt}
   end,
   inj := add_left_injective a }
 

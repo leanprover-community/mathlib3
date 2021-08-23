@@ -301,19 +301,19 @@ degree_monomial_le _ _
 lemma nat_degree_X_le : (X : polynomial R).nat_degree ≤ 1 :=
 nat_degree_le_of_degree_le degree_X_le
 
-lemma support_C_mul_X_pow (c : R) (n : ℕ) : (C c * X ^ n).support ⊆ singleton n :=
+lemma support_C_mul_X_pow' (c : R) (n : ℕ) : (C c * X ^ n).support ⊆ singleton n :=
 begin
   rw [C_mul_X_pow_eq_monomial],
   exact support_monomial' _ _
 end
 
 lemma mem_support_C_mul_X_pow {n a : ℕ} {c : R} (h : a ∈ (C c * X ^ n).support) : a = n :=
-mem_singleton.1 $ support_C_mul_X_pow _ _ h
+mem_singleton.1 $ support_C_mul_X_pow' _ _ h
 
 lemma card_support_C_mul_X_pow_le_one {c : R} {n : ℕ} : (C c * X ^ n).support.card ≤ 1 :=
 begin
   rw ← card_singleton n,
-  apply card_le_of_subset (support_C_mul_X_pow c n),
+  apply card_le_of_subset (support_C_mul_X_pow' c n),
 end
 
 lemma card_supp_le_succ_nat_degree (p : polynomial R) : p.support.card ≤ p.nat_degree + 1 :=

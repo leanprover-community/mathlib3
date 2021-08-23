@@ -159,17 +159,8 @@ section
   | (n+1) := by simp [pow_succ']; exact le_trans
     (nat.mul_le_mul_right _ (xn_ge_a_pow n)) (nat.le_add_right _ _)
 
-  theorem n_lt_a_pow : ∀ (n : ℕ), n < a^n
-  | 0     := nat.le_refl 1
-  | (n+1) := begin have IH := n_lt_a_pow n,
-    have : a^n + a^n ≤ a^n * a,
-    { rw ← mul_two, exact nat.mul_le_mul_left _ a1 },
-    simp [pow_succ'], refine lt_of_lt_of_le _ this,
-    exact add_lt_add_of_lt_of_le IH (lt_of_le_of_lt (nat.zero_le _) IH)
-  end
-
   theorem n_lt_xn (n) : n < xn n :=
-  lt_of_lt_of_le (n_lt_a_pow n) (xn_ge_a_pow n)
+  lt_of_lt_of_le (n.lt_pow_self a1) (xn_ge_a_pow n)
 
   theorem x_pos (n) : 0 < xn n :=
   lt_of_le_of_lt (nat.zero_le n) (n_lt_xn n)

@@ -68,15 +68,12 @@ lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
 nat.sub_add_cancel (le_of_lt h) ▸
   tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
 
-lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
-  tendsto (norm : 𝕜 → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
-tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
-
 namespace normed_field
 
 lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{0}ᶜ] 0) at_top :=
-(tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
+(tendsto_inv_zero_at_top.comp tendsto_norm_nhds_within_zero).congr $
+  λ x, (normed_field.norm_inv x).symm
 
 lemma tendsto_norm_fpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
   (hm : m < 0) :

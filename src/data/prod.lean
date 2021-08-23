@@ -127,9 +127,6 @@ lemma swap_bijective : function.bijective (@swap α β) :=
 
 @[simp] lemma swap_inj {p q : α × β} : swap p = swap q ↔ p = q := swap_injective.eq_iff
 
-lemma eq_iff_fst_eq_snd_eq : ∀{p q : α × β}, p = q ↔ (p.1 = q.1 ∧ p.2 = q.2)
-| ⟨p₁, p₂⟩ ⟨q₁, q₂⟩ := by simp
-
 lemma fst_eq_iff : ∀ {p : α × β} {x : α}, p.1 = x ↔ p = (x, p.2)
 | ⟨a, b⟩ x := by simp
 

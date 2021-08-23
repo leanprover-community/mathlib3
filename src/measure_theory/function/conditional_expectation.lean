@@ -290,7 +290,8 @@ lemma integrable_on_condexp_L2_of_measure_ne_top (hm : m ≤ m0) (hμs : μ s �
 integrable_on_Lp_of_measure_ne_top ((condexp_L2 𝕜 hm f) : α →₂[μ] E)
   fact_one_le_two_ennreal.elim hμs
 
-lemma integrable_condexp_L2_of_is_finite_measure (hm : m ≤ m0) [is_finite_measure μ] {f : α →₂[μ] E} :
+lemma integrable_condexp_L2_of_is_finite_measure (hm : m ≤ m0) [is_finite_measure μ]
+  {f : α →₂[μ] E} :
   integrable (condexp_L2 𝕜 hm f) μ :=
 integrable_on_univ.mp $ integrable_on_condexp_L2_of_measure_ne_top hm (measure_ne_top _ _) f
 
@@ -304,8 +305,8 @@ lemma norm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) : ∥condexp_L2 �
 lemma snorm_condexp_L2_le (hm : m ≤ m0) (f : α →₂[μ] E) :
   snorm (condexp_L2 𝕜 hm f) 2 μ ≤ snorm f 2 μ :=
 begin
-  rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _), ← norm_def,
-    ← norm_def, submodule.norm_coe],
+  rw [Lp_meas_coe, ← ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _),
+    ← norm_def, ← norm_def, submodule.norm_coe],
   exact norm_condexp_L2_le hm f,
 end
 

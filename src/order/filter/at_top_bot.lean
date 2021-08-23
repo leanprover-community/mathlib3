@@ -833,8 +833,8 @@ finset.range_mono.tendsto_at_top_at_top finset.exists_nat_subset_range
 lemma at_top_finset_eq_infi : (at_top : filter $ finset α) = ⨅ x : α, 𝓟 (Ici {x}) :=
 begin
   refine le_antisymm (le_infi (λ i, le_principal_iff.2 $ mem_at_top {i})) _,
-  refine le_infi (λ s, le_principal_iff.2 $ mem_infi.2 _),
-  refine ⟨↑s, s.finite_to_set, _, λ i, mem_principal_self _, _⟩,
+  refine le_infi (λ s, le_principal_iff.2 $ mem_infi_of_Inter s.finite_to_set
+                  (λ i, mem_principal_self _) _),
   simp only [subset_def, mem_Inter, set_coe.forall, mem_Ici, finset.le_iff_subset,
     finset.mem_singleton, finset.subset_iff, forall_eq], dsimp,
   exact λ t, id

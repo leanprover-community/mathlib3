@@ -85,6 +85,16 @@ lemma eq_of_mem_classes {r : setoid α} {x b} (hc : b ∈ r.classes)
   (hb : x ∈ b) {b'} (hc' : b' ∈ r.classes) (hb' : x ∈ b') : b = b' :=
 eq_of_mem_eqv_class classes_eqv_classes hc hb hc' hb'
 
+lemma eq_set_rel_of_mem (r : setoid α) {b : set α} (hb : b ∈ r.classes) {x : α} (hx : x ∈ b) :
+  b = {y : α | r.rel y x} :=
+eq_of_mem_classes hb hx (r.mem_classes x) (r.refl' x)
+
+lemma mem_nonempty (r : setoid α) {b : set α} (hb : b ∈ r.classes) : b.nonempty :=
+begin
+  obtain ⟨y, rfl⟩ := hb,
+  exact ⟨y, r.refl' y⟩,
+end
+
 /-- The elements of a set of sets partitioning α are the equivalence classes of the
     equivalence relation defined by the set of sets. -/
 lemma eq_eqv_class_of_mem {c : set (set α)}

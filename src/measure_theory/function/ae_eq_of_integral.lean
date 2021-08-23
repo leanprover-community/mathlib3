@@ -44,30 +44,6 @@ Generally useful lemmas which are not related to integrals:
 
 -/
 
-
-universes u v
-section dual_vector
-variables (𝕜 : Type v) [is_R_or_C 𝕜]
-variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
-
-open continuous_linear_equiv submodule
-open_locale classical
-
-/-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing
-    the dual element arbitrarily when `x = 0`. -/
-theorem exists_dual_vector'' (x : E) :
-  ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = norm' 𝕜 x :=
-begin
-  by_cases hx : x = 0,
-  { refine ⟨0, by simp, _⟩,
-    symmetry,
-    simp [hx], },
-  { rcases exists_dual_vector 𝕜 x hx with ⟨g, g_norm, g_eq⟩,
-    exact ⟨g, g_norm.le, g_eq⟩ }
-end
-
-end dual_vector
-
 open measure_theory topological_space normed_space filter
 
 open_locale ennreal nnreal measure_theory

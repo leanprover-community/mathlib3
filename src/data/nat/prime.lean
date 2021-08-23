@@ -480,7 +480,7 @@ end
 theorem prime.dvd_mul {p m n : ℕ} (pp : prime p) : p ∣ m * n ↔ p ∣ m ∨ p ∣ n :=
 ⟨λ H, or_iff_not_imp_left.2 $ λ h,
   (pp.coprime_iff_not_dvd.2 h).dvd_of_dvd_mul_left H,
- or.rec (λ h, h.mul_right _) (λ h, h.mul_left _)⟩
+ or.rec (λ h : p ∣ m, h.mul_right _) (λ h : p ∣ n, h.mul_left _)⟩
 
 theorem prime.not_dvd_mul {p m n : ℕ} (pp : prime p)
   (Hm : ¬ p ∣ m) (Hn : ¬ p ∣ n) : ¬ p ∣ m * n :=

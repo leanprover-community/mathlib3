@@ -45,7 +45,7 @@ open_locale classical big_operators nnreal ennreal
 
 namespace measure_theory
 
-variables {α β : Type*} [measurable_space α]
+variables {α β : Type*} {m : measurable_space α}
 
 /-- A vector measure on a measurable space `α` is a σ-additive `M`-valued function (for some `M`
 an add monoid) such that the empty set and non-measurable sets are mapped to zero. -/
@@ -64,6 +64,8 @@ abbreviation signed_measure (α : Type*) [measurable_space α] := vector_measure
 abbreviation complex_measure (α : Type*) [measurable_space α] := vector_measure α ℂ
 
 open set measure_theory
+
+include m
 
 namespace vector_measure
 

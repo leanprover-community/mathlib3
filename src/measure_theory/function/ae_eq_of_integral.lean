@@ -44,6 +44,30 @@ Generally useful lemmas which are not related to integrals:
 
 -/
 
+
+universes u v
+section dual_vector
+variables (𝕜 : Type v) [is_R_or_C 𝕜]
+variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
+
+open continuous_linear_equiv submodule
+open_locale classical
+
+/-- Variant of Hahn-Banach, eliminating the hypothesis that `x` be nonzero, and choosing
+    the dual element arbitrarily when `x = 0`. -/
+theorem exists_dual_vector'' (x : E) :
+  ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g x = norm' 𝕜 x :=
+begin
+  by_cases hx : x = 0,
+  { refine ⟨0, by simp, _⟩,
+    symmetry,
+    simp [hx], },
+  { rcases exists_dual_vector 𝕜 x hx with ⟨g, g_norm, g_eq⟩,
+    exact ⟨g, g_norm.le, g_eq⟩ }
+end
+
+end dual_vector
+
 open measure_theory topological_space normed_space filter
 
 open_locale ennreal nnreal measure_theory
@@ -74,22 +98,37 @@ local notation `⟪`x`, `y`⟫` := y x
 variables (𝕜)
 
 lemma ae_eq_zero_of_forall_dual [normed_group E] [normed_space 𝕜 E]
-  [second_countable_topology (dual 𝕜 E)]
+  [second_countable_topology E]
   {f : α → E} (hf : ∀ c : dual 𝕜 E, (λ x, ⟪f x, c⟫) =ᵐ[μ] 0) :
   f =ᵐ[μ] 0 :=
 begin
-  let s := dense_seq (dual 𝕜 E),
-  have hs : dense_range s := dense_range_dense_seq _,
+  let u := dense_seq E,
+  have hu : dense_range u := dense_range_dense_seq _,
+  have : ∀ n, ∃ g : E →L[𝕜] 𝕜, ∥g∥ ≤ 1 ∧ g (u n) = norm' 𝕜 (u n) :=
+    λ n, exists_dual_vector'' 𝕜 (u n),
+  choose s hs using this,
+  have A : ∀ (a : E), (∀ n, ⟪a, s n⟫ = (0 : 𝕜)) → a = 0,
+  { assume a ha,
+    contrapose! ha,
+    have a_pos : 0 < ∥a∥, by simp only [ha, norm_pos_iff, ne.def, not_false_iff],
+    have a_mem : a ∈ closure (set.range u), by simp [hu.closure_range],
+    obtain ⟨n, hn⟩ : ∃ (n : ℕ), dist a (u n) < ∥a∥ / 2 :=
+      metric.mem_closure_range_iff.1 a_mem (∥a∥/2) (half_pos a_pos),
+    use n,
+    have I : ∥a∥/2 < ∥u n∥,
+    { have : ∥a∥ ≤ ∥u n∥ + ∥a - u n∥ := norm_le_insert' _ _,
+      have : ∥a - u n∥ < ∥a∥/2, by rwa dist_eq_norm at hn,
+      linarith },
+    assume h,
+    apply lt_irrefl (∥s n (u n)∥),
+    calc ∥s n (u n)∥ = ∥s n (u n - a)∥ : by simp only [h, sub_zero, continuous_linear_map.map_sub]
+    ... ≤ 1 * ∥u n - a∥ : continuous_linear_map.le_of_op_norm_le _ (hs n).1 _
+    ... < ∥a∥ / 2 : by { rw [one_mul], rwa dist_eq_norm' at hn }
+    ... < ∥u n∥ : I
+    ... = ∥s n (u n)∥ : by rw [(hs n).2, norm_norm'] },
   have hfs : ∀ n : ℕ, ∀ᵐ x ∂μ, ⟪f x, s n⟫ = (0 : 𝕜), from λ n, hf (s n),
   have hf' : ∀ᵐ x ∂μ, ∀ n : ℕ, ⟪f x, s n⟫ = (0 : 𝕜), by rwa ae_all_iff,
-  refine hf'.mono (λ x hx, eq_zero_of_forall_dual_eq_zero 𝕜 (λ c, _)),
-  have h_closed : is_closed {c : dual 𝕜 E | ⟪f x, c⟫ = (0 : 𝕜)},
-  { refine is_closed_eq _ continuous_const,
-    have h_fun_eq : (λ (c : dual 𝕜 E), ⟪f x, c⟫) = inclusion_in_double_dual 𝕜 E (f x),
-      by { ext1 c, rw ← dual_def 𝕜 E (f x) c, },
-    rw h_fun_eq,
-    continuity, },
-  exact @is_closed_property ℕ (dual 𝕜 E) _ s (λ c, ⟪f x, c⟫ = (0 : 𝕜)) hs h_closed (λ n, hx n) c,
+  exact hf'.mono (λ x hx, A (f x) hx),
 end
 
 variables {𝕜}

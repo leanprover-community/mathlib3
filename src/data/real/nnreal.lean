@@ -649,17 +649,14 @@ if h0 : c = 0 then by simp [h0] else (div_le_iff h0).2 h
 lemma div_le_of_le_mul' {a b c : ℝ≥0} (h : a ≤ b * c) : a / b ≤ c :=
 div_le_of_le_mul $ mul_comm b c ▸ h
 
-lemma le_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
-@le_div_iff ℝ _ a b r $ pos_iff_ne_zero.2 hr
-
-lemma le_div_iff' {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ r * a ≤ b :=
+lemma le_div_iff_mul_le' {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ r * a ≤ b :=
 @le_div_iff' ℝ _ a b r $ pos_iff_ne_zero.2 hr
 
 lemma div_lt_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r < b ↔ a < b * r :=
-lt_iff_lt_of_le_iff_le (le_div_iff hr)
+lt_iff_lt_of_le_iff_le (le_div_iff_mul_le hr)
 
 lemma div_lt_iff' {a b r : ℝ≥0} (hr : r ≠ 0) : a / r < b ↔ a < r * b :=
-lt_iff_lt_of_le_iff_le (le_div_iff' hr)
+lt_iff_lt_of_le_iff_le (le_div_iff_mul_le' hr)
 
 lemma lt_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a < b / r ↔ a * r < b :=
 lt_iff_lt_of_le_iff_le (div_le_iff hr)

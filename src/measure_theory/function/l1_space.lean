@@ -159,7 +159,8 @@ begin
     rwa [ne.def, nnnorm_eq_zero] }
 end
 
-lemma has_finite_integral_const [is_finite_measure μ] (c : β) : has_finite_integral (λ x : α, c) μ :=
+lemma has_finite_integral_const [is_finite_measure μ] (c : β) :
+  has_finite_integral (λ x : α, c) μ :=
 has_finite_integral_const_iff.2 (or.inr $ measure_lt_top _ _)
 
 lemma has_finite_integral_of_bounded [is_finite_measure μ] {f : α → β} {C : ℝ}
@@ -480,7 +481,8 @@ end
 lemma integrable.neg [borel_space β] {f : α → β} (hf : integrable f μ) : integrable (-f) μ :=
 ⟨hf.ae_measurable.neg, hf.has_finite_integral.neg⟩
 
-@[simp] lemma integrable_neg_iff [borel_space β] {f : α → β} : integrable (-f) μ ↔ integrable f μ :=
+@[simp] lemma integrable_neg_iff [borel_space β] {f : α → β} :
+  integrable (-f) μ ↔ integrable f μ :=
 ⟨λ h, neg_neg f ▸ h.neg, integrable.neg⟩
 
 lemma integrable.sub' [opens_measurable_space β] {f g : α → β}
@@ -573,10 +575,12 @@ lemma integrable_smul_iff [borel_space β] {c : 𝕜} (hc : c ≠ 0) (f : α →
   integrable (c • f) μ ↔ integrable f μ :=
 and_congr (ae_measurable_const_smul_iff' hc) (has_finite_integral_smul_iff hc f)
 
-lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) : integrable (λ x, c * f x) μ :=
+lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (λ x, c * f x) μ :=
 integrable.smul c h
 
-lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) : integrable (λ x, f x * c) μ :=
+lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (λ x, f x * c) μ :=
 by simp_rw [mul_comm, h.const_mul _]
 
 end normed_space

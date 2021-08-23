@@ -39,6 +39,40 @@ lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_filter_le _ _
            ... = n              : card_range _
 
+-- TODO move next to filter_subset_filter
+lemma filter_subset_filter_of_implies (s : finset ℕ) (p q : ℕ → Prop) [decidable_pred p] [decidable_pred q] (h : ∀ n , p n -> q n) : s.filter p ⊆ s.filter q :=
+begin
+  refine subset_iff.mpr _,
+  simp,
+  intros x hx hp,
+  exact ⟨hx, h x hp⟩,
+end
+
+lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
+calc totient n ≤ ((range n).filter (≠ 0)).card :
+                begin
+                  simp only [totient],
+                  apply card_le_of_subset,
+                  apply filter_subset_filter_of_implies,
+                  intros n1 hn1 hn1',
+                  rw hn1' at hn1,
+                  simp at hn1,
+                  linarith,
+                end
+           ... = n - 1             :
+                begin
+                  simp_rw ne.symm,
+                  rw filter_ne' (range n) 0,
+                  rw range_eq_Ico,
+                  sorry,
+                end
+           ... < n :
+                begin
+                  have : 0 < n,
+                  exact pos_of_gt hn,
+                  exact buffer.lt_aux_2 this,
+                end
+
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
 | 1 := by simp [totient]
@@ -171,6 +205,20 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
+
+/-- Any positive natural is a prime power or a product of coprime numbers -/
+lemma prime_power_or_mul_coprime {n : ℕ} :
+  (∃ a p : ℕ, p.prime ∧ n = p ^ a) ∨ (∃ a b : ℕ, 2 ≤ a ∧ 2 ≤ b ∧ a.coprime b ∧ n = a * b) :=
+begin
+  sorry,
+end
+
+lemma totient_prime_iff {p : ℕ} : p.prime ↔ φ p = p - 1 :=
+begin
+  split,
+  apply totient_prime,
+end
+
 
 @[simp] lemma totient_two : φ 2 = 1 :=
 (totient_prime prime_two).trans (by norm_num)

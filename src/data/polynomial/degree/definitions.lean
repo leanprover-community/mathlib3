@@ -329,13 +329,6 @@ le_degree_of_ne_zero ∘ mem_support_iff.mp
 lemma nonempty_support_iff : p.support.nonempty ↔ p ≠ 0 :=
 by rw [ne.def, nonempty_iff_ne_empty, ne.def, ← support_eq_empty]
 
-lemma support_C_mul_X_pow_nonzero {c : R} {n : ℕ} (h : c ≠ 0) :
-  (C c * X ^ n).support = singleton n :=
-begin
-  rw [C_mul_X_pow_eq_monomial],
-  exact support_monomial _ _ h
-end
-
 end semiring
 
 section nonzero_semiring

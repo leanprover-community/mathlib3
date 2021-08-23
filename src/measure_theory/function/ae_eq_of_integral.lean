@@ -46,7 +46,7 @@ Generally useful lemmas which are not related to integrals:
 
 open measure_theory topological_space normed_space filter
 
-open_locale ennreal measure_theory
+open_locale ennreal nnreal measure_theory
 
 namespace measure_theory
 
@@ -105,32 +105,55 @@ variables {α 𝕜 E : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_sp
 
 section ae_eq_of_forall_set_integral_eq
 
-lemma ae_const_le_iff_forall_lt_measure_zero (f : α → ℝ) (c : ℝ) :
+lemma ae_const_le_iff_forall_lt_measure_zero' {β} [linear_order β]
+  (f : α → β) (c : β) (f_coe : ℚ → β)
+  (h_exists_rat_btwn : ∀ (x y : β), x < y → ∃ (q : ℚ), x < f_coe q ∧ f_coe q < y) :
   (∀ᵐ x ∂μ, c ≤ f x) ↔ ∀ b < c, μ {x | f x ≤ b} = 0 :=
 begin
   rw ae_iff,
   push_neg,
-  have h_Union : {x | f x < c} = ⋃ (r : ℚ) (hr : ↑r < c), {x | f x ≤ r},
+  have h_Union : {x | f x < c} = ⋃ (r : ℚ) (hr : f_coe r < c), {x | f x ≤ f_coe r},
   { ext1 x,
     simp_rw [set.mem_Union, set.mem_set_of_eq],
     split; intro h,
-    { obtain ⟨q, lt_q, q_lt⟩ := exists_rat_btwn h, exact ⟨q, q_lt, lt_q.le⟩, },
+    { obtain ⟨q, lt_q, q_lt⟩ := h_exists_rat_btwn _ _ h, exact ⟨q, q_lt, lt_q.le⟩, },
     { obtain ⟨q, q_lt, q_le⟩ := h, exact q_le.trans_lt q_lt, }, },
   rw [h_Union, measure_Union_null_iff],
   split; intros h b,
   { intro hbc,
-    obtain ⟨r, hr⟩ := exists_rat_btwn hbc,
+    obtain ⟨r, hr⟩ := h_exists_rat_btwn _ _ hbc,
     specialize h r,
-    have h_ss : {x : α | f x ≤ b} ⊆ {x : α | f x ≤ r},
+    have h_ss : {x : α | f x ≤ b} ⊆ {x : α | f x ≤ f_coe r},
     { intros x hx,
       rw set.mem_set_of_eq at hx,
       exact hx.trans hr.1.le, },
     refine measure_mono_null h_ss _,
     simpa [hr.2] using h, },
-  { by_cases hbc : ↑b < c,
+  { by_cases hbc : f_coe b < c,
     { specialize h _ hbc,
       simpa [hbc] using h, },
     { simp [hbc], }, },
+end
+
+lemma ae_const_le_iff_forall_lt_measure_zero {β} [linear_ordered_field β] [archimedean β]
+  (f : α → β) (c : β) :
+  (∀ᵐ x ∂μ, c ≤ f x) ↔ ∀ b < c, μ {x | f x ≤ b} = 0 :=
+ae_const_le_iff_forall_lt_measure_zero' f c coe (λ x y hxy, exists_rat_btwn hxy)
+
+lemma nnreal.ae_const_le_iff_forall_lt_measure_zero (f : α → ℝ≥0) (c : ℝ≥0) :
+  (∀ᵐ x ∂μ, c ≤ f x) ↔ ∀ b < c, μ {x | f x ≤ b} = 0 :=
+begin
+  refine ae_const_le_iff_forall_lt_measure_zero' f c (λ q, real.to_nnreal q) (λ x y hxy, _),
+  obtain ⟨q, hq⟩ := (nnreal.lt_iff_exists_rat_btwn x y).mp hxy,
+  exact ⟨q, hq.2⟩,
+end
+
+lemma ennreal.ae_const_le_iff_forall_lt_measure_zero (f : α → ℝ≥0∞) (c : ℝ≥0∞) :
+  (∀ᵐ x ∂μ, c ≤ f x) ↔ ∀ b < c, μ {x | f x ≤ b} = 0 :=
+begin
+  refine ae_const_le_iff_forall_lt_measure_zero' f c (λ q, real.to_nnreal q) (λ x y hxy, _),
+  obtain ⟨q, hq⟩ := ennreal.lt_iff_exists_rat_btwn.mp hxy,
+  exact ⟨q, hq.2⟩,
 end
 
 section real

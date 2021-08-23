@@ -449,9 +449,6 @@ lemma norm_eq_abs (z : K) : ∥z∥ = absK z := by simp [abs, norm_sq_eq_def']
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 
-lemma abs_of_nat (n : ℕ) : absK n = n :=
-by { rw [← of_real_nat_cast], exact abs_of_nonneg (nat.cast_nonneg n) }
-
 lemma mul_self_abs (z : K) : abs z * abs z = norm_sq z :=
 real.mul_self_sqrt (norm_sq_nonneg _)
 

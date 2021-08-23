@@ -64,7 +64,7 @@ lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
-@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
+@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_cast_nat _
 
 @[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
 suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,

@@ -1621,7 +1621,7 @@ def quot_left_to_quot_sup : I.quotient →+* (I ⊔ J).quotient :=
 ideal.quotient.factor I (I ⊔ J) (le_sup_left)
 
 /-- This will be used to lift `quot_left_to_quot_sup` to a map `(R/I)/J' → R/(I ⊔ J)`-/
-lemma map_mk_le_ker_quot_left_to_quot_sup :
+lemma ker_quot_left_to_quot_sup :
   (quot_left_to_quot_sup I J).ker = J.map (ideal.quotient.mk I) :=
 begin
   ext x,

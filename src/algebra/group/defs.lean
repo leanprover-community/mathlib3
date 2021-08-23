@@ -199,7 +199,7 @@ class add_zero_class (M : Type u) extends has_zero M, has_add M :=
 attribute [to_additive] mul_one_class
 
 @[ext, to_additive]
-lemma mul_one_class.ext {M : Type u} : ∀ (m₁ m₂ : mul_one_class M), m₁.mul = m₂.mul → m₁ = m₂ :=
+lemma mul_one_class.ext {M : Type u} : ∀ ⦃m₁ m₂ : mul_one_class M⦄, m₁.mul = m₂.mul → m₁ = m₂ :=
 begin
   rintros ⟨one₁, mul₁, one_mul₁, mul_one₁⟩ ⟨one₂, mul₂, one_mul₂, mul_one₂⟩ (rfl : mul₁ = mul₂),
   congr,
@@ -363,7 +363,7 @@ class monoid (M : Type u) extends semigroup M, mul_one_class M :=
 export monoid (npow)
 
 @[ext, to_additive]
-lemma monoid.ext {M : Type*} (m₁ m₂ : monoid M) (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+lemma monoid.ext {M : Type*} ⦃m₁ m₂ : monoid M⦄ (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
 begin
   unfreezingI {
     cases m₁ with mul₁ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁,
@@ -446,26 +446,18 @@ class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, a
 @[protect_proj, ancestor left_cancel_semigroup monoid, to_additive add_left_cancel_monoid]
 class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
 
-@[ext, to_additive]
-lemma left_cancel_monoid.ext {M : Type*} (m₁ m₂ : left_cancel_monoid M) (h_mul : m₁.mul = m₂.mul) :
-  m₁ = m₂ :=
+@[to_additive]
+lemma left_cancel_monoid.to_monoid_injective {M : Type u} :
+  function.injective (@left_cancel_monoid.to_monoid M) :=
 begin
-  unfreezingI {
-    cases m₁ with mul₁ _ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁,
-    cases m₂ with mul₂ _ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero₂ npow_succ₂ },
-  change mul₁ = mul₂ at h_mul,
-  subst h_mul,
-  have h_one : one₁ = one₂,
-  { rw ←one_mul₂ one₁,
-    exact mul_one₁ one₂ },
-  subst h_one,
-  have h_npow : npow₁ = npow₂,
-  { ext n,
-    induction n with d hd,
-    { rw [npow_zero₁, npow_zero₂] },
-    { rw [npow_succ₁, npow_succ₂, hd] } },
-  subst h_npow,
+  rintros ⟨⟩ ⟨⟩ h,
+  congr'; injection h,
 end
+
+@[ext, to_additive]
+lemma left_cancel_monoid.ext {M : Type*} ⦃m₁ m₂ : left_cancel_monoid M⦄
+  (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+left_cancel_monoid.to_monoid_injective $ monoid.ext h_mul
 
 attribute [ext] add_left_cancel_monoid.ext
 
@@ -483,26 +475,18 @@ class add_right_cancel_monoid (M : Type u) extends add_right_cancel_semigroup M,
 @[protect_proj, ancestor right_cancel_semigroup monoid, to_additive add_right_cancel_monoid]
 class right_cancel_monoid (M : Type u) extends right_cancel_semigroup M, monoid M
 
-@[ext, to_additive]
-lemma right_cancel_monoid.ext {M : Type*} (m₁ m₂ : right_cancel_monoid M)
-  (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+@[to_additive]
+lemma right_cancel_monoid.to_monoid_injective {M : Type u} :
+  function.injective (@right_cancel_monoid.to_monoid M) :=
 begin
-  unfreezingI {
-    cases m₁ with mul₁ _ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁,
-    cases m₂ with mul₂ _ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero₂ npow_succ₂ },
-  change mul₁ = mul₂ at h_mul,
-  subst h_mul,
-  have h_one : one₁ = one₂,
-  { rw ←one_mul₂ one₁,
-    exact mul_one₁ one₂ },
-  subst h_one,
-  have h_npow : npow₁ = npow₂,
-  { ext n,
-    induction n with d hd,
-    { rw [npow_zero₁, npow_zero₂] },
-    { rw [npow_succ₁, npow_succ₂, hd] } },
-  subst h_npow,
+  rintros ⟨⟩ ⟨⟩ h,
+  congr'; injection h,
 end
+
+@[ext, to_additive]
+lemma right_cancel_monoid.ext {M : Type*} ⦃m₁ m₂ : right_cancel_monoid M⦄
+  (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+right_cancel_monoid.to_monoid_injective $ monoid.ext h_mul
 
 attribute [ext] add_right_cancel_monoid.ext
 
@@ -521,25 +505,18 @@ class add_cancel_monoid (M : Type u)
 @[protect_proj, ancestor left_cancel_monoid right_cancel_monoid, to_additive add_cancel_monoid]
 class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_monoid M
 
-@[ext, to_additive]
-lemma cancel_monoid.ext {M : Type*} (m₁ m₂ : cancel_monoid M) (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+@[to_additive]
+lemma cancel_monoid.to_left_cancel_monoid_injective {M : Type u} :
+  function.injective (@cancel_monoid.to_left_cancel_monoid M) :=
 begin
-  unfreezingI {
-    cases m₁ with mul₁ _ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁,
-    cases m₂ with mul₂ _ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero₂ npow_succ₂ },
-  change mul₁ = mul₂ at h_mul,
-  subst h_mul,
-  have h_one : one₁ = one₂,
-  { rw ←one_mul₂ one₁,
-    exact mul_one₁ one₂ },
-  subst h_one,
-  have h_npow : npow₁ = npow₂,
-  { ext n,
-    induction n with d hd,
-    { rw [npow_zero₁, npow_zero₂] },
-    { rw [npow_succ₁, npow_succ₂, hd] } },
-  subst h_npow,
+  rintros ⟨⟩ ⟨⟩ h,
+  congr'; injection h,
 end
+
+@[ext, to_additive]
+lemma cancel_monoid.ext {M : Type*} ⦃m₁ m₂ : cancel_monoid M⦄
+  (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+cancel_monoid.to_left_cancel_monoid_injective $ left_cancel_monoid.ext h_mul
 
 attribute [ext] add_cancel_monoid.ext
 
@@ -551,26 +528,18 @@ class add_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_
 @[protect_proj, ancestor left_cancel_monoid comm_monoid, to_additive add_cancel_comm_monoid]
 class cancel_comm_monoid (M : Type u) extends left_cancel_monoid M, comm_monoid M
 
-@[ext, to_additive]
-lemma cancel_comm_monoid.ext {M : Type*} (m₁ m₂ : cancel_comm_monoid M)
-  (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+@[to_additive]
+lemma cancel_comm_monoid.to_comm_monoid_injective {M : Type u} :
+  function.injective (@cancel_comm_monoid.to_comm_monoid M) :=
 begin
-  unfreezingI {
-    cases m₁ with mul₁ _ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero₁ npow_succ₁,
-    cases m₂ with mul₂ _ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero₂ npow_succ₂ },
-  change mul₁ = mul₂ at h_mul,
-  subst h_mul,
-  have h_one : one₁ = one₂,
-  { rw ←one_mul₂ one₁,
-    exact mul_one₁ one₂ },
-  subst h_one,
-  have h_npow : npow₁ = npow₂,
-  { ext n,
-    induction n with d hd,
-    { rw [npow_zero₁, npow_zero₂] },
-    { rw [npow_succ₁, npow_succ₂, hd] } },
-  subst h_npow,
+  rintros ⟨⟩ ⟨⟩ h,
+  congr'; injection h,
 end
+
+@[ext, to_additive]
+lemma cancel_comm_monoid.ext {M : Type*} ⦃m₁ m₂ : cancel_comm_monoid M⦄
+  (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
+cancel_comm_monoid.to_comm_monoid_injective $ comm_monoid.ext h_mul
 
 attribute [ext] add_cancel_comm_monoid.ext
 
@@ -661,7 +630,7 @@ export sub_neg_monoid (gsmul)
 attribute [to_additive sub_neg_monoid] div_inv_monoid
 
 @[ext, to_additive]
-lemma div_inv_monoid.ext {M : Type*} (m₁ m₂ : div_inv_monoid M) (h_mul : m₁.mul = m₂.mul)
+lemma div_inv_monoid.ext {M : Type*} ⦃m₁ m₂ : div_inv_monoid M⦄ (h_mul : m₁.mul = m₂.mul)
   (h_inv : m₁.inv = m₂.inv) : m₁ = m₂ :=
 begin
   let iM : div_inv_monoid M := m₁,
@@ -789,7 +758,7 @@ instance group.to_cancel_monoid : cancel_monoid G :=
 end group
 
 @[ext, to_additive]
-lemma group.ext {G : Type*} (g₁ g₂ : group G) (h_mul : g₁.mul = g₂.mul) : g₁ = g₂ :=
+lemma group.ext {G : Type*} ⦃g₁ g₂ : group G⦄ (h_mul : g₁.mul = g₂.mul) : g₁ = g₂ :=
 begin
   let iG : group G := g₁,
   unfreezingI {
@@ -851,57 +820,19 @@ class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
 attribute [to_additive] comm_group
 attribute [instance, priority 300] add_comm_group.to_add_comm_monoid
 
-@[ext, to_additive]
-lemma comm_group.ext {G : Type*} (g₁ g₂ : comm_group G) (h_mul : g₁.mul = g₂.mul) : g₁ = g₂ :=
+-- TODO: this is super slow for some reason!
+@[to_additive]
+lemma comm_group.to_group_injective {G : Type u} :
+  function.injective (@comm_group.to_group G) :=
 begin
-  let iG : comm_group G := g₁,
-  unfreezingI {
-    cases g₁ with mul₁ _ one₁ one_mul₁ mul_one₁ npow₁ npow_zero'₁ npow_succ'₁ inv₁ div₁
-      div_eq_mul_inv₁ gpow₁ gpow_zero'₁ gpow_succ'₁ gpow_neg'₁ mul_left_inv₁,
-    cases g₂ with mul₂ _ one₂ one_mul₂ mul_one₂ npow₂ npow_zero'₂ npow_succ'₂ inv₂ div₂
-      div_eq_mul_inv₂ gpow₂ gpow_zero'₂ gpow_succ'₂ gpow_neg'₂ mul_left_inv₂, },
-  change mul₁ = mul₂ at h_mul,
-  subst h_mul,
-  have h_one : one₁ = one₂,
-  { rw ← mul_one₂ one₁,
-    exact one_mul₁ one₂ },
-  subst h_one,
-  have h_inv : inv₁ = inv₂,
-  { ext a,
-    -- this uses the group.to_cancel_monoid instance, so this lemma can't be moved higher
-    rw [← mul_left_inj a],
-    convert (rfl : (1 : G) = 1),
-    { exact mul_left_inv₁ a },
-    { exact mul_left_inv₂ a } },
-  subst h_inv,
-  have h_div : div₁ = div₂,
-  { ext a b,
-    convert (rfl : a * b⁻¹ = a * b⁻¹),
-    { exact div_eq_mul_inv₁ a b },
-    { exact div_eq_mul_inv₂ a b } },
-  subst h_div,
-  have h_npow : npow₁ = npow₂,
-  { ext n,
-    induction n with n IH,
-    { rw [npow_zero'₁, npow_zero'₂] },
-    { rw [npow_succ'₁, npow_succ'₂, IH] } },
-  subst h_npow,
-  have h_gpow_aux : ∀ n g, gpow₁ (int.of_nat n) g = gpow₂ (int.of_nat n) g,
-  { intros n g,
-    induction n with n IH,
-    { convert (rfl : (1 : G) = 1),
-      { exact gpow_zero'₁ g },
-      { exact gpow_zero'₂ g } },
-    { rw [gpow_succ'₁, gpow_succ'₂, IH] } },
-  have h_gpow : gpow₁ = gpow₂,
-  { ext z,
-    cases z with z z,
-    { exact h_gpow_aux z x },
-    { rw [gpow_neg'₁, gpow_neg'₂],
-      congr',
-      exact h_gpow_aux _ _ } },
-  subst h_gpow,
+  rintros ⟨⟩ ⟨⟩ h,
+  congr'; injection h,
 end
+
+@[ext, to_additive]
+lemma comm_group.ext {G : Type*} ⦃g₁ g₂ : comm_group G⦄
+  (h_mul : g₁.mul = g₂.mul) : g₁ = g₂ :=
+comm_group.to_group_injective $ group.ext h_mul
 
 attribute [ext] add_comm_group.ext
 

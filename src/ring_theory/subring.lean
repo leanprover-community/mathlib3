@@ -848,10 +848,6 @@ begin
   { exact ⟨L, HL', or.inl $ by rw [list.prod_cons, hhd, HP, neg_one_mul, neg_neg]⟩ }
 end
 
-lemma closure_preimage_le (f : R →+* S) (s : set S) :
-  closure (f ⁻¹' s) ≤ (closure s).comap f :=
-closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
-
 end subring
 
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :

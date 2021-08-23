@@ -707,8 +707,7 @@ theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := (insert_emptyc
 @[simp] theorem mem_singleton_iff {a b : α} : a ∈ ({b} : set α) ↔ a = b := iff.rfl
 
 @[simp]
-lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} :=
-ext $ λ n, (set.mem_singleton_iff).symm
+lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := rfl
 
 -- TODO: again, annotation needed
 @[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := @rfl _ _
@@ -730,8 +729,6 @@ theorem pair_comm (a b : α) : ({a, b} : set α) = {b, a} := union_comm _ _
 ⟨a, rfl⟩
 
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s := forall_eq
-
-theorem set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} := rfl
 
 @[simp] theorem singleton_union : {a} ∪ s = insert a s := rfl
 

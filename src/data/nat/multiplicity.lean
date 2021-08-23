@@ -12,8 +12,9 @@ import ring_theory.int.basic
 /-!
 # Natural number multiplicity
 
-This file contains lemmas about the multiplicity function (the maximum prime power divding a number)
-when applied to naturals, in particular calculating it for factorials and binomial coefficients.
+This file contains lemmas about the multiplicity function (the maximum prime power dividing a
+number) when applied to naturals, in particular calculating it for factorials and binomial
+coefficients.
 
 ## Multiplicity calculations
 
@@ -127,7 +128,7 @@ begin
     add_comm (1 : enat)]
 end
 
-/-- The multiplicity of `p` in `(pn)!` is `n` more than that of `n!`. -/
+/-- The multiplicity of `p` in `(p * n)!` is `n` more than that of `n!`. -/
 lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
   multiplicity p (p * n)! = multiplicity p n! + n :=
 begin

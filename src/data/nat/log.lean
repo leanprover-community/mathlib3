@@ -8,11 +8,11 @@ import data.nat.pow
 /-!
 # Natural number logarithms
 
-This file defines two `ℕ`-valued ana**log**s of the logarithm of `n` with base `b`:
+This file defines two `ℕ`-valued analogs of the logarithm of `n` with base `b`:
 * `log b n`: Lower logarithm, or floor **log**. Greatest `k` such that `b^k ≤ n`.
 * `clog b n`: Upper logarithm, or **c**eil **log**. Least `k` such that `n ≤ b^k`.
 
-These are interesting because, for `2 ≤ b`, `nat.log b` and `nat.clog b` are respectively right and
+These are interesting because, for `1 < b`, `nat.log b` and `nat.clog b` are respectively right and
 left adjoints of `nat.pow b`. See `pow_le_iff_le_log` and `le_pow_iff_clog_le`.
 -/
 
@@ -104,7 +104,7 @@ end
 lemma log_mono {b : ℕ} : monotone (λ n : ℕ, log b n) :=
 λ x y, log_le_log_of_le
 
-private lemma add_pred_div_lt {b n : ℕ} (hb : 2 ≤ b) (hn : 2 ≤ n) : (n + b - 1)/b < n :=
+private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1)/b < n :=
 begin
   rw [div_lt_iff_lt_mul _ _ (zero_lt_one.trans hb), ←succ_le_iff, ←pred_eq_sub_one,
     succ_pred_eq_of_pos (add_pos (zero_lt_one.trans hn) (zero_lt_one.trans hb))],
@@ -140,11 +140,11 @@ clog_of_left_le_one le_rfl _
 lemma clog_one_right (b : ℕ) : clog b 1 = 0 :=
 clog_of_right_le_one le_rfl _
 
-lemma clog_of_two_le {b n : ℕ} (hb : 2 ≤ b) (hn : 2 ≤ n) :
+lemma clog_of_two_le {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) :
   clog b n = clog b ((n + b - 1)/b) + 1 :=
 by rw [clog, if_pos (⟨hb, hn⟩ : 1 < b ∧ 1 < n)]
 
-lemma clog_pos {b n : ℕ} (hb : 2 ≤ b) (hn : 2 ≤ n) : 0 < clog b n :=
+lemma clog_pos {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : 0 < clog b n :=
 by { rw clog_of_two_le hb hn, exact zero_lt_succ _ }
 
 lemma clog_eq_one {b n : ℕ} (hn : 2 ≤ n) (h : n ≤ b) : clog b n = 1 :=
@@ -157,7 +157,7 @@ begin
 end
 
 /--`clog b` and `pow b` form a Galois connection. -/
-lemma le_pow_iff_clog_le {b : ℕ} (hb : 2 ≤ b) {x y : ℕ} :
+lemma le_pow_iff_clog_le {b : ℕ} (hb : 1 < b) {x y : ℕ} :
   x ≤ b^y ↔ clog b x ≤ y :=
 begin
   induction x using nat.strong_induction_on with x ih generalizing y,
@@ -187,7 +187,7 @@ begin
   exact pred_lt (clog_pos hb hx).ne',
 end
 
-lemma le_pow_clog {b : ℕ} (hb : 2 ≤ b) (x : ℕ) : x ≤ b ^ clog b x :=
+lemma le_pow_clog {b : ℕ} (hb : 1 < b) (x : ℕ) : x ≤ b ^ clog b x :=
 (le_pow_iff_clog_le hb).2 le_rfl
 
 lemma clog_le_clog_of_le (b : ℕ) {n m : ℕ} (h : n ≤ m) : clog b n ≤ clog b m :=

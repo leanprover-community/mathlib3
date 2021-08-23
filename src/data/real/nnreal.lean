@@ -111,7 +111,12 @@ nnreal.coe_injective.eq_iff
 max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 -- TODO: setup semifield!
-@[simp] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 := by norm_cast
+@[simp, norm_cast] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 :=
+by rw [← nnreal.coe_zero, nnreal.coe_eq]
+
+@[simp, norm_cast] protected lemma coe_eq_one (r : ℝ≥0) : ↑r = (1 : ℝ) ↔ r = 1 :=
+by rw [← nnreal.coe_one, nnreal.coe_eq]
+
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
 instance : comm_semiring ℝ≥0 :=
@@ -328,41 +333,19 @@ iff.intro
 lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s) :=
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
 
-instance : has_Sup ℝ≥0 :=
-⟨λs, ⟨Sup ((coe : ℝ≥0 → ℝ) '' s),
-  begin
-    cases s.eq_empty_or_nonempty with h h,
-    { simp [h, set.image_empty, real.Sup_empty] },
-    rcases h with ⟨⟨b, hb⟩, hbs⟩,
-    by_cases h' : bdd_above s,
-    { exact le_cSup_of_le (bdd_above_coe.2 h') (set.mem_image_of_mem _ hbs) hb },
-    { rw [real.Sup_of_not_bdd_above], rwa [bdd_above_coe] }
-  end⟩⟩
-
-instance : has_Inf ℝ≥0 :=
-⟨λs, ⟨Inf ((coe : ℝ≥0 → ℝ) '' s),
-  begin
-    cases s.eq_empty_or_nonempty with h h,
-    { simp [h, set.image_empty, real.Inf_empty] },
-    exact le_cInf (h.image _) (assume r ⟨q, _, eq⟩, eq ▸ q.2)
-  end⟩⟩
-
-lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) := rfl
-lemma coe_Inf (s : set ℝ≥0) : (↑(Inf s) : ℝ) = Inf ((coe : ℝ≥0 → ℝ) '' s) := rfl
-
 instance : conditionally_complete_linear_order_bot ℝ≥0 :=
-{ Sup     := Sup,
-  Inf     := Inf,
-  le_cSup := assume s a hs ha, le_cSup (bdd_above_coe.2 hs) (set.mem_image_of_mem _ ha),
-  cSup_le := assume s a hs h,show Sup ((coe : ℝ≥0 → ℝ) '' s) ≤ a, from
-    cSup_le (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h hb,
-  cInf_le := assume s a _ has, cInf_le (bdd_below_coe s) (set.mem_image_of_mem _ has),
-  le_cInf := assume s a hs h, show (↑a : ℝ) ≤ Inf ((coe : ℝ≥0 → ℝ) '' s), from
-    le_cInf (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h hb,
-  cSup_empty := nnreal.eq $ by simp [coe_Sup, real.Sup_empty]; refl,
-  decidable_le := begin assume x y, apply classical.dec end,
-  .. nnreal.linear_ordered_semiring, .. lattice_of_linear_order,
-  .. nnreal.order_bot }
+{ cSup_empty := (function.funext_iff.1
+    (@subset_Sup_def ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩) ∅).trans $ nnreal.eq $ by simp,
+  .. nnreal.order_bot,
+  .. @ord_connected_subset_conditionally_complete_linear_order ℝ (set.Ici (0 : ℝ)) _ ⟨(0 : ℝ≥0)⟩ _ }
+
+lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
+eq.symm $ @subset_Sup_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
+  real.Sup_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
+
+lemma coe_Inf (s : set ℝ≥0) : (↑(Inf s) : ℝ) = Inf ((coe : ℝ≥0 → ℝ) '' s) :=
+eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
+  real.Inf_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
 
 instance : archimedean ℝ≥0 :=
 ⟨ assume x y pos_y,
@@ -664,6 +647,12 @@ lemma div_le_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ b * r 
 
 lemma div_le_iff' {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ r * b :=
 @div_le_iff' ℝ _ a r b $ pos_iff_ne_zero.2 hr
+
+lemma div_le_of_le_mul {a b c : ℝ≥0} (h : a ≤ b * c) : a / c ≤ b :=
+if h0 : c = 0 then by simp [h0] else (div_le_iff h0).2 h
+
+lemma div_le_of_le_mul' {a b c : ℝ≥0} (h : a ≤ b * c) : a / b ≤ c :=
+div_le_of_le_mul $ mul_comm b c ▸ h
 
 lemma le_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
 @le_div_iff ℝ _ a b r $ pos_iff_ne_zero.2 hr

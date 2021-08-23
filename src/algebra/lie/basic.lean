@@ -246,7 +246,7 @@ lemma one_apply (x : L₁) : (1 : (L₁ →ₗ⁅R⁆ L₁)) x = x := rfl
 
 instance : inhabited (L₁ →ₗ⁅R⁆ L₂) := ⟨0⟩
 
-lemma coe_injective : function.injective (λ f : L₁ →ₗ⁅R⁆ L₂, show L₁ → L₂, from f) :=
+lemma coe_injective : @function.injective (L₁ →ₗ⁅R⁆ L₂) (L₁ → L₂) coe_fn :=
 by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
 @[ext] lemma ext {f g : L₁ →ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g :=
@@ -452,7 +452,7 @@ instance : has_one (M →ₗ⁅R,L⁆ M) := ⟨{ map_lie' := by simp, ..(1 : M �
 
 instance : inhabited (M →ₗ⁅R,L⁆ N) := ⟨0⟩
 
-lemma coe_injective : function.injective (λ f : M →ₗ⁅R,L⁆ N, show M → N, from f) :=
+lemma coe_injective : @function.injective (M →ₗ⁅R,L⁆ N) (M → N) coe_fn :=
 by { rintros ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩, congr, }
 
 @[ext] lemma ext {f g : M →ₗ⁅R,L⁆ N} (h : ∀ m, f m = g m) : f = g :=
@@ -460,6 +460,8 @@ coe_injective $ funext h
 
 lemma ext_iff {f g : M →ₗ⁅R,L⁆ N} : f = g ↔ ∀ m, f m = g m :=
 ⟨by { rintro rfl m, refl, }, ext⟩
+
+lemma congr_fun {f g : M →ₗ⁅R,L⁆ N} (h : f = g) (x : M) : f x = g x := h ▸ rfl
 
 @[simp] lemma mk_coe (f : M →ₗ⁅R,L⁆ N) (h₁ h₂ h₃) :
   (⟨f, h₁, h₂, h₃⟩ : M →ₗ⁅R,L⁆ N) = f :=

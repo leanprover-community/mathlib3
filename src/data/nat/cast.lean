@@ -239,6 +239,19 @@ end linear_ordered_field
 
 end nat
 
+namespace prod
+
+variables {α : Type*} {β : Type*} [has_zero α] [has_one α] [has_add α]
+  [has_zero β] [has_one β] [has_add β]
+
+@[simp] lemma fst_nat_cast (n : ℕ) : (n : α × β).fst = n :=
+by induction n; simp *
+
+@[simp] lemma snd_nat_cast (n : ℕ) : (n : α × β).snd = n :=
+by induction n; simp *
+
+end prod
+
 namespace add_monoid_hom
 
 variables {A B : Type*} [add_monoid A]

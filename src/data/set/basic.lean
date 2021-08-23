@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import logic.unique
+import logic.relation
 import order.boolean_algebra
 
 /-!
@@ -413,11 +414,11 @@ Mathematically it is the same as `α` but it has a different type.
 
 @[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
-@[simp] lemma univ_eq_empty_iff : (univ : set α) = ∅ ↔ ¬ nonempty α :=
-eq_empty_iff_forall_not_mem.trans ⟨λ H ⟨x⟩, H x trivial, λ H x _, H ⟨x⟩⟩
+@[simp] lemma univ_eq_empty_iff : (univ : set α) = ∅ ↔ is_empty α :=
+eq_empty_iff_forall_not_mem.trans ⟨λ H, ⟨λ x, H x trivial⟩, λ H x _, @is_empty.false α H x⟩
 
-theorem empty_ne_univ [h : nonempty α] : (∅ : set α) ≠ univ :=
-λ e, univ_eq_empty_iff.1 e.symm h
+theorem empty_ne_univ [nonempty α] : (∅ : set α) ≠ univ :=
+λ e, not_is_empty_of_nonempty α $ univ_eq_empty_iff.1 e.symm
 
 @[simp] theorem subset_univ (s : set α) : s ⊆ univ := λ x H, trivial
 
@@ -439,6 +440,13 @@ lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : se
 
 instance univ_decidable : decidable_pred (∈ @set.univ α) :=
 λ x, is_true trivial
+
+lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
+by rw [←not_forall, ←eq_univ_iff_forall]
+
+lemma not_subset_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
+  ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
+by simp [subset_def]
 
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
@@ -1573,6 +1581,9 @@ by { rcases hs.eq_empty_or_singleton with rfl|⟨x, rfl⟩, exacts [he, h₁ _] 
 lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 λ x hx y hy, subsingleton.elim x y
 
+lemma subsingleton_of_subsingleton [subsingleton α] {s : set α} : set.subsingleton s :=
+subsingleton.mono subsingleton_univ (subset_univ s)
+
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
 is a subsingleton set. -/
 @[simp, norm_cast] lemma subsingleton_coe (s : set α) : subsingleton s ↔ s.subsingleton :=
@@ -1583,10 +1594,16 @@ begin
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
 
+/-- The preimage of a subsingleton under an injective map is a subsingleton. -/
+theorem subsingleton.preimage {s : set β} (hs : s.subsingleton) {f : α → β}
+  (hf : function.injective f) :
+  (f ⁻¹' s).subsingleton :=
+λ a ha b hb, hf $ hs ha hb
+
 /-- `s` is a subsingleton, if its image of an injective function is. -/
 theorem subsingleton_of_image {α β : Type*} {f : α → β} (hf : function.injective f)
   (s : set α) (hs : (f '' s).subsingleton) : s.subsingleton :=
-λ a ha b hb, hf $ hs (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
+(hs.preimage hf).mono $ subset_preimage_image _ _
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
@@ -1609,12 +1626,20 @@ def range (f : ι → α) : set α := {x | ∃y, f y = x}
 theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
 by simp
 
+theorem forall_subtype_range_iff {p : range f → Prop} :
+  (∀ a : range f, p a) ↔ ∀ i, p ⟨f i, mem_range_self _⟩ :=
+⟨λ H i, H _, λ H ⟨y, i, hi⟩, by { subst hi, apply H }⟩
+
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 by simp
 
 lemma exists_range_iff' {p : α → Prop} :
   (∃ a, a ∈ range f ∧ p a) ↔ ∃ i, p (f i) :=
 by simpa only [exists_prop] using exists_range_iff
+
+lemma exists_subtype_range_iff {p : range f → Prop} :
+  (∃ a : range f, p a) ↔ ∃ i, p ⟨f i, mem_range_self _⟩ :=
+⟨λ ⟨⟨a, i, hi⟩, ha⟩, by { subst a, exact ⟨i, ha⟩}, λ ⟨i, hi⟩, ⟨_, hi⟩⟩
 
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
@@ -1674,8 +1699,10 @@ lemma range_nonempty_iff_nonempty : (range f).nonempty ↔ nonempty ι :=
 lemma range_nonempty [h : nonempty ι] (f : ι → α) : (range f).nonempty :=
 range_nonempty_iff_nonempty.2 h
 
-@[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
-not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
+@[simp] lemma range_eq_empty_iff {f : ι → α} : range f = ∅ ↔ is_empty ι :=
+by rw [← not_nonempty_iff, ← range_nonempty_iff_nonempty, not_nonempty_iff_eq_empty]
+
+lemma range_eq_empty [is_empty ι] (f : ι → α) : range f = ∅ := range_eq_empty_iff.2 ‹_›
 
 instance [nonempty ι] (f : ι → α) : nonempty (range f) := (range_nonempty f).to_subtype
 
@@ -1733,7 +1760,7 @@ range_subset_iff.2 $ λ x, rfl
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
 
-lemma diagonal_eq_range {α  : Type*} : diagonal α = range (λ x, (x, x)) :=
+lemma diagonal_eq_range {α : Type*} : diagonal α = range (λ x, (x, x)) :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
 
 theorem preimage_singleton_nonempty {f : α → β} {y : β} :
@@ -1766,6 +1793,9 @@ def range_factorization (f : ι → β) : ι → range f :=
 lemma range_factorization_eq {f : ι → β} :
   subtype.val ∘ range_factorization f = f :=
 funext $ λ i, rfl
+
+@[simp] lemma range_factorization_coe (f : ι → β) (a : ι) :
+  (range_factorization f a : β) = f a := rfl
 
 lemma surjective_onto_range : surjective (range_factorization f) :=
 λ ⟨_, ⟨i, rfl⟩⟩, ⟨i, rfl⟩
@@ -1817,6 +1847,41 @@ lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
 subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
   ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
 
+/-- We can use the axiom of choice to pick a preimage for every element of `range f`. -/
+noncomputable def range_splitting (f : α → β) : range f → α := λ x, x.2.some
+
+-- This can not be a `@[simp]` lemma because the head of the left hand side is a variable.
+lemma apply_range_splitting (f : α → β) (x : range f) : f (range_splitting f x) = x :=
+x.2.some_spec
+
+attribute [irreducible] range_splitting
+
+@[simp] lemma comp_range_splitting (f : α → β) : f ∘ range_splitting f = coe :=
+by { ext, simp only [function.comp_app], apply apply_range_splitting, }
+
+-- When `f` is injective, see also `equiv.of_injective`.
+lemma left_inverse_range_splitting (f : α → β) :
+  left_inverse (range_factorization f) (range_splitting f) :=
+λ x, by { ext, simp only [range_factorization_coe], apply apply_range_splitting, }
+
+lemma range_splitting_injective (f : α → β) : injective (range_splitting f) :=
+(left_inverse_range_splitting f).injective
+
+lemma is_compl_range_some_none (α : Type*) :
+  is_compl (range (some : α → option α)) {none} :=
+⟨λ x ⟨⟨a, ha⟩, (hn : x = none)⟩, option.some_ne_none _ (ha.trans hn),
+  λ x hx, option.cases_on x (or.inr rfl) (λ x, or.inl $ mem_range_self _)⟩
+
+@[simp] lemma compl_range_some (α : Type*) :
+  (range (some : α → option α))ᶜ = {none} :=
+(is_compl_range_some_none α).compl_eq
+
+@[simp] lemma range_some_inter_none (α : Type*) : range (some : α → option α) ∩ {none} = ∅ :=
+(is_compl_range_some_none α).inf_eq_bot
+
+@[simp] lemma range_some_union_none (α : Type*) : range (some : α → option α) ∪ {none} = univ :=
+(is_compl_range_some_none α).sup_eq_top
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
@@ -1841,27 +1906,10 @@ theorem pairwise_on.mono {s t : set α} {r}
 theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
   (H : r ≤ r') (hp : pairwise_on s r) : pairwise_on s r' :=
 hp.imp H
+
 theorem pairwise_on_top (s : set α) :
   pairwise_on s ⊤ :=
 pairwise_on_of_forall s _ (λ a b, trivial)
-
-/-- If and only if `f` takes pairwise equal values on `s`, there is
-some value it takes everywhere on `s`. -/
-lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
-  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
-begin
-  split,
-  { intro h,
-    rcases eq_empty_or_nonempty s with rfl | ⟨x, hx⟩,
-    { exact ⟨classical.arbitrary β, λ x hx, false.elim hx⟩ },
-    { use f x,
-      intros y hy,
-      by_cases hyx : y = x,
-      { rw hyx },
-      { exact h y hy x hx hyx } } },
-  { rintros ⟨z, hz⟩ x hx y hy hne,
-    rw [hz x hx, hz y hy] }
-end
 
 protected lemma subsingleton.pairwise_on (h : s.subsingleton) (r : α → α → Prop) :
   pairwise_on s r :=
@@ -1875,23 +1923,65 @@ subsingleton_empty.pairwise_on r
   pairwise_on {a} r :=
 subsingleton_singleton.pairwise_on r
 
+theorem nonempty.pairwise_on_iff_exists_forall {s : set α} (hs : s.nonempty) {f : α → β}
+  {r : β → β → Prop} [is_equiv β r] :
+  (pairwise_on s (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
+begin
+  fsplit,
+  { rcases hs with ⟨y, hy⟩,
+    refine λ H, ⟨f y, λ x hx, _⟩,
+    rcases eq_or_ne x y with rfl|hne,
+    { apply is_refl.refl },
+    { exact H _ hx _ hy hne } },
+  { rintro ⟨z, hz⟩ x hx y hy hne,
+    exact @is_trans.trans β r _ (f x) z (f y) (hz _ hx) (is_symm.symm _ _ $ hz _ hy) }
+end
+
+/-- For a nonempty set `s`, a function `f` takes pairwise equal values on `s` if and only if
+for some `z` in the codomain, `f` takes value `z` on all `x ∈ s`. See also
+`set.pairwise_on_eq_iff_exists_eq` for a version that assumes `[nonempty β]` instead of
+`set.nonempty s`. -/
+theorem nonempty.pairwise_on_eq_iff_exists_eq {s : set α} (hs : s.nonempty) {f : α → β} :
+  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+hs.pairwise_on_iff_exists_forall
+
+lemma pairwise_on_iff_exists_forall [nonempty β] (s : set α) (f : α → β) {r : β → β → Prop}
+  [is_equiv β r] :
+  (pairwise_on s (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|hne,
+  { simp },
+  { exact hne.pairwise_on_iff_exists_forall }
+end
+
+/-- A function `f : α → β` with nonempty codomain takes pairwise equal values on a set `s` if and
+only if for some `z` in the codomain, `f` takes value `z` on all `x ∈ s`. See also
+`set.nonempty.pairwise_on_eq_iff_exists_eq` for a version that assumes `set.nonempty s` instead of
+`[nonempty β]`. -/
+lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
+  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+pairwise_on_iff_exists_forall s f
+
+lemma pairwise_on_insert {α} {s : set α} {a : α} {r : α → α → Prop} :
+  (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b ∧ r b a :=
+begin
+  simp only [pairwise_on, ball_insert_iff, forall_and_distrib, true_and, forall_false_left,
+    eq_self_iff_true, not_true, ne.def, @eq_comm _ a],
+  exact ⟨λ H, ⟨H.2.2, H.2.1, H.1⟩, λ H, ⟨H.2.2, H.2.1, H.1⟩⟩
+end
+
 lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
   (hr : symmetric r) :
   (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
-begin
-  refine ⟨λ h, ⟨_, _⟩, λ h, _⟩,
-  { exact h.mono (s.subset_insert a) },
-  { intros b hb hn,
-    exact h a (s.mem_insert _) b (set.mem_insert_of_mem _ hb) hn },
-  { intros b hb c hc hn,
-    rw [mem_insert_iff] at hb hc,
-    rcases hb with (rfl | hb);
-    rcases hc with (rfl | hc),
-    { exact absurd rfl hn },
-    { exact h.right _ hc hn },
-    { exact hr (h.right _ hb hn.symm) },
-    { exact h.left _ hb _ hc hn } }
-end
+by simp only [pairwise_on_insert, hr.iff a, and_self]
+
+lemma pairwise_on_pair {r : α → α → Prop} {x y : α} :
+  pairwise_on {x, y} r ↔ (x ≠ y → r x y ∧ r y x) :=
+by simp [pairwise_on_insert]
+
+lemma pairwise_on_pair_of_symmetric {r : α → α → Prop} {x y : α} (hr : symmetric r) :
+  pairwise_on {x, y} r ↔ (x ≠ y → r x y) :=
+by simp [pairwise_on_insert_of_symmetric hr]
 
 end set
 
@@ -1920,6 +2010,10 @@ image_preimage_eq s hf
 lemma surjective.image_surjective (hf : surjective f) : surjective (image f) :=
 by { intro s, use f ⁻¹' s, rw hf.image_preimage }
 
+lemma surjective.nonempty_preimage (hf : surjective f) {s : set β} :
+  (f ⁻¹' s).nonempty ↔ s.nonempty :=
+by rw [← nonempty_image_iff, hf.image_preimage]
+
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
 
@@ -1942,6 +2036,14 @@ lemma injective.mem_range_iff_exists_unique (hf : injective f) {b : β} :
 lemma injective.exists_unique_of_mem_range (hf : injective f) {b : β} (hb : b ∈ range f) :
   ∃! a, f a = b :=
 hf.mem_range_iff_exists_unique.mp hb
+
+lemma left_inverse.image_image {g : β → α} (h : left_inverse g f) (s : set α) :
+  g '' (f '' s) = s :=
+by rw [← image_comp, h.comp_eq_id, image_id]
+
+lemma left_inverse.preimage_preimage {g : β → α} (h : left_inverse g f) (s : set α) :
+  f ⁻¹' (g ⁻¹' s) = s :=
+by rw [← preimage_comp, h.comp_eq_id, preimage_id]
 
 end function
 open function
@@ -2325,6 +2427,9 @@ end
 
 lemma univ_pi_eq_empty_iff : pi univ t = ∅ ↔ ∃ i, t i = ∅ :=
 by simp [← not_nonempty_iff_eq_empty, univ_pi_nonempty_iff]
+
+@[simp] lemma univ_pi_empty [h : nonempty ι] : pi univ (λ i, ∅ : Π i, set (α i)) = ∅ :=
+univ_pi_eq_empty_iff.2 $ h.elim $ λ x, ⟨x, rfl⟩
 
 @[simp] lemma range_dcomp {β : ι → Type*} (f : Π i, α i → β i) :
   range (λ (g : Π i, α i), (λ i, f i (g i))) = pi univ (λ i, range (f i)) :=

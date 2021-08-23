@@ -58,7 +58,7 @@ bounded. -/
 lemma is_bounded_iff : f.is_bounded r ↔ (∃s∈f.sets, ∃b, s ⊆ {x | r x b}) :=
 iff.intro
   (assume ⟨b, hb⟩, ⟨{a | r a b}, hb, b, subset.refl _⟩)
-  (assume ⟨s, hs, b, hb⟩, ⟨b, mem_sets_of_superset hs hb⟩)
+  (assume ⟨s, hs, b, hb⟩, ⟨b, mem_of_superset hs hb⟩)
 
 /-- A bounded function `u` is in particular eventually bounded. -/
 lemma is_bounded_under_of {f : filter β} {u : β → α} :
@@ -100,7 +100,7 @@ begin
   have hb' := (tendsto_at_top.mp hf) b',
   have : {x : α | f x ≤ b} ∩ {x : α | b' ≤ f x} = ∅ :=
     eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.2 hx.1)),
-  exact at_top.empty_nmem_sets (this ▸ filter.inter_mem_sets hb hb' : ∅ ∈ (at_top : filter α)),
+  exact at_top.empty_not_mem (this ▸ filter.inter_mem hb hb' : ∅ ∈ (at_top : filter α)),
 end
 
 lemma not_is_bounded_under_of_tendsto_at_bot [nonempty α] [semilattice_sup α]
@@ -113,7 +113,7 @@ begin
   have hb' := (tendsto_at_bot.mp hf) b',
   have : {x : α | b ≤ f x} ∩ {x : α | f x ≤ b'} = ∅ :=
     eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.1 hx.2)),
-  exact at_top.empty_nmem_sets (this ▸ filter.inter_mem_sets hb hb' : ∅ ∈ (at_top : filter α)),
+  exact at_top.empty_not_mem (this ▸ filter.inter_mem hb hb' : ∅ ∈ (at_top : filter α)),
 end
 
 /-- `is_cobounded (≺) f` states that the filter `f` does not tend to infinity w.r.t. `≺`. This is
@@ -463,6 +463,22 @@ lemma liminf_le_of_frequently_le  {α β} [conditionally_complete_linear_order �
   (hu : f.is_bounded_under (≥) u . is_bounded_default) :
   f.liminf u ≤ b :=
 @le_limsup_of_frequently_le _ (order_dual β) _ f u b hu_le hu
+
+lemma frequently_lt_of_lt_limsup {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β}
+  (hu : f.is_cobounded_under (≤) u . is_bounded_default) (h : b < f.limsup u) :
+  ∃ᶠ x in f, b < u x :=
+begin
+  contrapose! h,
+  apply Limsup_le_of_le hu,
+  simpa using h,
+end
+
+lemma frequently_lt_of_liminf_lt {α β} [conditionally_complete_linear_order β] {f : filter α}
+  {u : α → β}  {b : β}
+  (hu : f.is_cobounded_under (≥) u . is_bounded_default) (h : f.liminf u < b) :
+  ∃ᶠ x in f, u x < b :=
+@frequently_lt_of_lt_limsup _ (order_dual β) _ f u b hu h
 
 end conditionally_complete_linear_order
 

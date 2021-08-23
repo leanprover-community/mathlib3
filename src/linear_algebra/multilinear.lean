@@ -6,6 +6,8 @@ Authors: Sébastien Gouëzel
 import linear_algebra.basic
 import algebra.algebra.basic
 import algebra.big_operators.order
+import algebra.big_operators.ring
+import data.fintype.card
 import data.fintype.sort
 
 /-!
@@ -965,7 +967,7 @@ def multilinear_map.uncurry_right
     { have : last n ≠ i := ne.symm (ne_of_lt h),
       rw [update_noteq this, update_noteq this, update_noteq this],
       revert x y,
-      rw  [(cast_succ_cast_lt i h).symm],
+      rw [(cast_succ_cast_lt i h).symm],
       assume x y,
       rw [init_update_cast_succ, map_add, init_update_cast_succ, init_update_cast_succ,
           linear_map.add_apply] },
@@ -980,7 +982,7 @@ def multilinear_map.uncurry_right
     { have : last n ≠ i := ne.symm (ne_of_lt h),
       rw [update_noteq this, update_noteq this],
       revert x,
-      rw  [(cast_succ_cast_lt i h).symm],
+      rw [(cast_succ_cast_lt i h).symm],
       assume x,
       rw [init_update_cast_succ, init_update_cast_succ, map_smul, linear_map.smul_apply] },
     { revert x,

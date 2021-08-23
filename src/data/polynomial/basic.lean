@@ -3,11 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import tactic.ring_exp
-import tactic.chain
 import algebra.monoid_algebra
-import data.finset.sort
-import tactic.ring
 
 /-!
 # Theory of univariate polynomials
@@ -35,9 +31,11 @@ the polynomials. For instance,
 
 Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a commutative semiring, but
 through a structure to make them irreducible from the point of view of the kernel. Most operations
-are irreducible since Lean can not compute anyway with `add_monoid_algebra`. An exception is the
-zero polynomial, that we make semireducible so that its coefficients are definitionally
-equal to `0`.
+are irreducible since Lean can not compute anyway with `add_monoid_algebra`. There are two
+exceptions that we make semireducible:
+* The zero polynomial, so that its coefficients are definitionally equal to `0`.
+* The scalar action, to permit typeclass search to unfold it to resolve potential instance
+  diamonds.
 
 The raw implementation of the equivalence between `polynomial R` and `add_monoid_algebra R ℕ` is
 done through `of_finsupp` and `to_finsupp` (or, equivalently, `rcases p` when `p` is a polynomial
@@ -81,16 +79,14 @@ lemma exists_iff_exists_finsupp (P : polynomial R → Prop) :
 | ⟨a⟩ := ⟨-a⟩
 @[irreducible] private def mul : polynomial R → polynomial R → polynomial R
 | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
-@[irreducible] private def smul {S : Type*} [monoid S] [distrib_mul_action S R] :
-  S → polynomial R → polynomial R
-| a ⟨b⟩ := ⟨a • b⟩
 
 instance : has_zero (polynomial R) := ⟨⟨0⟩⟩
 instance : has_one (polynomial R) := ⟨monomial_fun 0 (1 : R)⟩
 instance : has_add (polynomial R) := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg (polynomial R) := ⟨neg⟩
 instance : has_mul (polynomial R) := ⟨mul⟩
-instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_scalar S (polynomial R) := ⟨smul⟩
+instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_scalar S (polynomial R) :=
+⟨λ r p, ⟨r • p.to_finsupp⟩⟩
 
 lemma zero_to_finsupp : (⟨0⟩ : polynomial R) = 0 :=
 rfl
@@ -107,7 +103,11 @@ lemma neg_to_finsupp {R : Type u} [ring R] {a} : (-⟨a⟩ : polynomial R) = ⟨
 show neg _ = _, by rw neg
 lemma mul_to_finsupp {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
 lemma smul_to_finsupp {S : Type*} [monoid S] [distrib_mul_action S R] {a : S} {b} :
-  (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := show smul _ _ = _, by rw smul
+  (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := rfl
+
+lemma _root_.is_smul_regular.polynomial {S : Type*} [monoid S] [distrib_mul_action S R] {a : S}
+  (ha : is_smul_regular R a) : is_smul_regular (polynomial R) a
+| ⟨x⟩ ⟨y⟩ h := congr_arg _ $ ha.finsupp (polynomial.of_finsupp.inj h)
 
 instance : inhabited (polynomial R) := ⟨0⟩
 
@@ -131,6 +131,10 @@ instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S (polynom
   mul_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, mul_smul], },
   smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp] },
   smul_zero := by { rintros _, simp [← zero_to_finsupp, smul_to_finsupp] } }
+
+instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_scalar S R] :
+  has_faithful_scalar S (polynomial R) :=
+{ eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
 instance {S} [semiring S] [module S R] : module S (polynomial R) :=
 { smul := (•),
@@ -162,6 +166,11 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   right_inv := λ p, rfl,
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
+
+/-- Ring isomorphism between `(polynomial R)ᵒᵖ` and `polynomial Rᵒᵖ`. -/
+@[simps]
+def op_ring_equiv : (polynomial R)ᵒᵖ ≃+* polynomial Rᵒᵖ :=
+((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
 variable {R}
 

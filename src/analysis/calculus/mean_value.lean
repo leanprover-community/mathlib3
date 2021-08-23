@@ -101,7 +101,7 @@ begin
   rintros x ⟨hxB : f x ≤ B x, xab⟩ y hy,
   cases hxB.lt_or_eq with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    refine nonempty_of_mem_sets (inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)),
+    refine nonempty_of_mem (inter_mem _ (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)),
     have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (is_open.mem_nhds (is_open_lt continuous_fst continuous_snd) hxB),
@@ -525,10 +525,12 @@ begin
 end
 
 /-- Let `s` be a convex set in a real normed vector space `E`, let `f : E → G` be a function
-differentiable within `s` in a neighborhood of `x : E` with derivative `f'`. Suppose that `f'`
-is continuous within `s` at `x`. Then for any number `K : ℝ≥0` larger than `∥f' x∥₊`, `f` is
-`K`-Lipschitz on some neighborhood of `x` within `s`. -/
-lemma convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_continuous_within_at
+differentiable within `s` in a neighborhood of `x : E` with derivative `f'`. Suppose that `f'` is
+continuous within `s` at `x`. Then for any number `K : ℝ≥0` larger than `∥f' x∥₊`, `f` is
+`K`-Lipschitz on some neighborhood of `x` within `s`. See also
+`convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at` for a version that claims
+existence of `K` instead of an explicit estimate. -/
+lemma convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt
   (hs : convex s) {f : E → G} (hder : ∀ᶠ y in 𝓝[s] x, has_fderiv_within_at f (f' y) s y)
   (hcont : continuous_within_at f' s x) (K : ℝ≥0) (hK : ∥f' x∥₊ < K) :
   ∃ t ∈ 𝓝[s] x, lipschitz_on_with K f t :=
@@ -541,6 +543,19 @@ begin
   exact (hs.inter (convex_ball _ _)).lipschitz_on_with_of_nnnorm_has_fderiv_within_le
     (λ y hy, (hε hy).1.mono (inter_subset_left _ _)) (λ y hy, (hε hy).2.le)
 end
+
+/-- Let `s` be a convex set in a real normed vector space `E`, let `f : E → G` be a function
+differentiable within `s` in a neighborhood of `x : E` with derivative `f'`. Suppose that `f'` is
+continuous within `s` at `x`. Then for any number `K : ℝ≥0` larger than `∥f' x∥₊`, `f` is Lipschitz
+on some neighborhood of `x` within `s`. See also
+`convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt` for a version
+with an explicit estimate on the Lipschitz constant. -/
+lemma convex.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at
+  (hs : convex s) {f : E → G} (hder : ∀ᶠ y in 𝓝[s] x, has_fderiv_within_at f (f' y) s y)
+  (hcont : continuous_within_at f' s x) :
+  ∃ K (t ∈ 𝓝[s] x), lipschitz_on_with K f t :=
+(no_top _).imp $
+  hs.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt hder hcont
 
 /-- The mean value theorem on a convex set: if the derivative of a function within this set is
 bounded by `C`, then the function is `C`-Lipschitz. Version with `fderiv_within`. -/
@@ -1130,7 +1145,7 @@ begin
 -- turn little-o definition of strict_fderiv into an epsilon-delta statement
   refine is_o_iff.mpr (λ c hc, metric.eventually_nhds_iff_ball.mpr _),
 -- the correct ε is the modulus of continuity of f'
-  rcases metric.mem_nhds_iff.mp (inter_mem_sets hder (hcont $ ball_mem_nhds _ hc)) with ⟨ε, ε0, hε⟩,
+  rcases metric.mem_nhds_iff.mp (inter_mem hder (hcont $ ball_mem_nhds _ hc)) with ⟨ε, ε0, hε⟩,
   refine ⟨ε, ε0, _⟩,
 -- simplify formulas involving the product E × E
   rintros ⟨a, b⟩ h,

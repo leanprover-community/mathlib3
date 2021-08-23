@@ -664,7 +664,7 @@ begin
   { have Dtu : Hausdorff_edist t u < ⊤ := calc
       Hausdorff_edist t u ≤ Hausdorff_edist t s + Hausdorff_edist s u : Hausdorff_edist_triangle
       ... = Hausdorff_edist s t + Hausdorff_edist s u : by simp [Hausdorff_edist_comm]
-      ... < ⊤ : by simp  [ennreal.add_lt_top]; simp [ennreal.lt_top_iff_ne_top, h, fin],
+      ... < ⊤ : by simp [ennreal.add_lt_top]; simp [ennreal.lt_top_iff_ne_top, h, fin],
     rw [Hausdorff_dist, Hausdorff_dist, Hausdorff_dist,
         ← ennreal.to_real_add fin (lt_top_iff_ne_top.1 Dtu), ennreal.to_real_le_to_real h],
     { exact Hausdorff_edist_triangle },

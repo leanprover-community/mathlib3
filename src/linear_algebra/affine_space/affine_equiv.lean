@@ -140,18 +140,19 @@ lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁
 to_equiv_injective.eq_iff
 
 /-- Construct an affine equivalence by verifying the relation between the map and its linear part at
-one base point. Namely, this function takes an equivalence `e : P₁ ≃ P₂`, a linear equivalece
+one base point. Namely, this function takes a map `e : P₁ → P₂`, a linear equivalence
 `e' : V₁ ≃ₗ[k] V₂`, and a point `p` such that for any other point `p'` we have
 `e p' = e' (p' -ᵥ p) +ᵥ e p`. -/
-def mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : P₁, e p' = e' (p' -ᵥ p) +ᵥ e p) :
+def mk' (e : P₁ → P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : P₁, e p' = e' (p' -ᵥ p) +ᵥ e p) :
   P₁ ≃ᵃ[k] P₂ :=
-{ to_equiv := e,
+{ to_fun := e,
+  inv_fun := λ q' : P₂, e'.symm (q' -ᵥ e p) +ᵥ p,
+  left_inv := λ p', by simp [h p'],
+  right_inv := λ q', by simp [h (e'.symm (q' -ᵥ e p) +ᵥ p)],
   linear := e',
-  .. affine_map.mk' e (e' : V₁ →ₗ[k] V₂) p h }
+  map_vadd' := λ p' v, by { simp [h p', h (v +ᵥ p'), vadd_vsub_assoc, vadd_vadd] } }
 
 @[simp] lemma coe_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) : ⇑(mk' e e' p h) = e := rfl
-@[simp] lemma to_equiv_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
-  (mk' e e' p h).to_equiv = e := rfl
 @[simp] lemma linear_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
   (mk' e e' p h).linear = e' := rfl
 
@@ -253,7 +254,7 @@ tangent space `V`. -/
 def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.vadd_const b,
   linear := linear_equiv.refl _ _,
-  map_vadd' := λ p v, add_vadd _ _ _  }
+  map_vadd' := λ p v, add_vadd _ _ _ }
 
 @[simp] lemma linear_vadd_const (b : P₁) : (vadd_const k b).linear = linear_equiv.refl k V₁ := rfl
 

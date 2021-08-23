@@ -275,6 +275,17 @@ set.image_subset_iff
 lemma gc_map_comap (f : R →+* S) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
 
+/-- A subsemiring is isomorphic to its image under an injective function -/
+noncomputable def equiv_map_of_injective
+  (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
+  map_add' := λ _ _, subtype.ext (f.map_add _ _),
+  ..equiv.set.image f s hf }
+
+@[simp] lemma coe_equiv_map_of_injective_apply
+  (f : R →+* S) (hf : function.injective f) (x : s) :
+  (equiv_map_of_injective s f hf x : S) = f x := rfl
+
 end subsemiring
 
 namespace ring_hom
@@ -298,6 +309,12 @@ mem_srange.mpr ⟨x, rfl⟩
 
 lemma map_srange : f.srange.map g = (g.comp f).srange :=
 by simpa only [srange_eq_map] using (⊤ : subsemiring R).map_map g f
+
+/-- The range of a morphism of semirings is a fintype, if the domain is a fintype.
+Note: this instance can form a diamond with `subtype.fintype` in the
+  presence of `fintype S`.-/
+instance fintype_srange [fintype R] [decidable_eq S] (f : R →+* S) : fintype (srange f) :=
+set.fintype_range f
 
 end ring_hom
 
@@ -379,6 +396,18 @@ closure_le.2 $ set.subset.trans h subset_closure
 lemma closure_eq_of_le {s : set R} {t : subsemiring R} (h₁ : s ⊆ t) (h₂ : t ≤ closure s) :
   closure s = t :=
 le_antisymm (closure_le.2 h₁) h₂
+
+lemma mem_map_equiv {f : R ≃+* S} {K : subsemiring R} {x : S} :
+  x ∈ K.map (f : R →+* S) ↔ f.symm x ∈ K :=
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
+
+lemma map_equiv_eq_comap_symm (f : R ≃+* S) (K : subsemiring R) :
+  K.map (f : R →+* S) = K.comap f.symm :=
+set_like.coe_injective (f.to_equiv.image_eq_preimage K)
+
+lemma comap_equiv_eq_map_symm (f : R ≃+* S) (K : subsemiring S) :
+  K.comap (f : R →+* S) = K.map f.symm :=
+(map_equiv_eq_comap_symm f.symm K).symm
 
 end subsemiring
 
@@ -750,6 +779,10 @@ instance
   (S : subsemiring R') :
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
+
+instance [mul_action R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
+  has_faithful_scalar S α :=
+S.to_submonoid.has_faithful_scalar
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_monoid α] [distrib_mul_action R' α] (S : subsemiring R') : distrib_mul_action S α :=

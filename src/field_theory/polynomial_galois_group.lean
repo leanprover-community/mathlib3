@@ -222,7 +222,7 @@ monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q
 lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
-  { haveI : unique (p * q).gal := by { rw hpq, apply_instance },
+  { haveI : unique (p * q).gal, { rw hpq, apply_instance },
     exact λ f g h, eq.trans (unique.eq_default f) (unique.eq_default g).symm },
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,
@@ -279,7 +279,7 @@ begin
     exact splits_of_splits_of_dvd _
       (minpoly.ne_zero qx_int)
       (normal.splits h_normal _)
-      (dvd_symm_of_irreducible (minpoly.irreducible qx_int) hr (minpoly.dvd F _ hx)) },
+      ((minpoly.irreducible qx_int).dvd_symm hr (minpoly.dvd F _ hx)) },
   have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,
@@ -332,7 +332,7 @@ begin
   { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,
         intermediate_field.adjoin.finrank hα, this] },
   suffices : minpoly F α ∣ p,
-  { have key := dvd_symm_of_irreducible (minpoly.irreducible hα) p_irr this,
+  { have key := (minpoly.irreducible hα).dvd_symm p_irr this,
     apply le_antisymm,
     { exact nat_degree_le_of_dvd this p_irr.ne_zero },
     { exact nat_degree_le_of_dvd key (minpoly.ne_zero hα) } },
@@ -418,8 +418,9 @@ begin
     (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,
   apply equiv.perm.subgroup_eq_top_of_swap_mem,
   { rwa h1 },
-  { rw [h1, ←h2],
-    exact prime_degree_dvd_card p_irr p_deg },
+  { rw h1,
+    convert prime_degree_dvd_card p_irr p_deg using 1,
+    convert h2.symm },
   { exact ⟨conj, rfl⟩ },
   { rw ← equiv.perm.card_support_eq_two,
     apply nat.add_left_cancel,

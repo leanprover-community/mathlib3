@@ -3,7 +3,6 @@ Copyright (c) 2021 Yourong Zang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
-import geometry.euclidean.basic
 import analysis.normed_space.inner_product
 
 /-!
@@ -59,6 +58,10 @@ lemma is_conformal_map_id : is_conformal_map (id R M) :=
 lemma is_conformal_map_const_smul {c : R} (hc : c ≠ 0) : is_conformal_map (c • (id R M)) :=
 ⟨c, hc, id, by ext; simp⟩
 
+lemma linear_isometry.is_conformal_map (f' : E →ₗᵢ[ℝ] F) :
+  is_conformal_map f'.to_continuous_linear_map :=
+⟨1, one_ne_zero, f', by ext; simp⟩
+
 lemma is_conformal_map_iff (f' : E →L[ℝ] F) :
   is_conformal_map f' ↔ ∃ (c : ℝ), 0 < c ∧
   ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫ :=
@@ -98,7 +101,7 @@ end
 namespace is_conformal_map
 
 lemma comp {f' : M →L[R] N} {g' : N →L[R] G}
-  (hf' : is_conformal_map f') (hg' : is_conformal_map g') :
+  (hg' : is_conformal_map g') (hf' : is_conformal_map f') :
   is_conformal_map (g'.comp f') :=
 begin
   rcases hf' with ⟨cf, hcf, lif, hlif⟩,
@@ -110,22 +113,16 @@ end
 
 lemma injective {f' : M →L[R] N} (h : is_conformal_map f') : function.injective f' :=
 let ⟨c, hc, li, hf'⟩ := h in by simp only [hf', pi.smul_def];
-  exact (smul_left_injective _ hc).comp li.injective
+  exact (smul_right_injective _ hc).comp li.injective
 
-lemma preserves_angle {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
-  inner_product_geometry.angle (f' u) (f' v) = inner_product_geometry.angle u v :=
+lemma ne_zero [nontrivial M] {f' : M →L[R] N} (hf' : is_conformal_map f') :
+  f' ≠ 0 :=
 begin
-  obtain ⟨c, hc, li, hcf⟩ := h,
-  suffices : c * (c * inner u v) / (∥c∥ * ∥u∥ * (∥c∥ * ∥v∥)) = inner u v / (∥u∥ * ∥v∥),
-  { simp [this, inner_product_geometry.angle, hcf, norm_smul, inner_smul_left, inner_smul_right] },
-  by_cases hu : ∥u∥ = 0,
-  { simp [norm_eq_zero.mp hu] },
-  by_cases hv : ∥v∥ = 0,
-  { simp [norm_eq_zero.mp hv] },
-  have hc : ∥c∥ ≠ 0 := λ w, hc (norm_eq_zero.mp w),
-  field_simp,
-  have : c * c = ∥c∥ * ∥c∥ := by simp [real.norm_eq_abs, abs_mul_abs_self],
-  convert congr_arg (λ x, x * ⟪u, v⟫ * ∥u∥ * ∥v∥) this using 1; ring,
+  intros w,
+  rcases exists_ne (0 : M) with ⟨a, ha⟩,
+  have : f' a = f' 0,
+  { simp_rw [w, continuous_linear_map.zero_apply], },
+  exact ha (hf'.injective this),
 end
 
 end is_conformal_map

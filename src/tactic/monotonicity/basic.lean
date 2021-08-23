@@ -138,7 +138,7 @@ meta def monotonicity.attr : user_attribute
        let ps := ps.filter_map prod.fst,
        pure $ (ps.zip ls).foldl
          (flip $ uncurry (λ k n m, m.insert k n))
-         (native.rb_lmap.mk mono_key _)  }
+         (native.rb_lmap.mk mono_key _) }
 , after_set := some $ λ n prio p,
   do { (none,v) ← monotonicity.attr.get_param n | pure (),
        k ← monotonicity.check n,

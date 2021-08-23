@@ -196,8 +196,7 @@ instance sampleable_ext.functor {α} {F} [functor F] [sampleable_functor F] [sam
   interp := functor.map (interp _),
   sample := sampleable_functor.sample F (sampleable_ext.sample α),
   shrink := sampleable_functor.shrink _ sampleable_ext.shrink,
-  p_repr := sampleable_functor.p_repr _ sampleable_ext.p_repr
-  }
+  p_repr := sampleable_functor.p_repr _ sampleable_ext.p_repr }
 
 instance sampleable_ext.bifunctor {α β} {F} [bifunctor F] [sampleable_bifunctor F]
   [sampleable_ext α] [sampleable_ext β] : sampleable_ext (F α β) :=
@@ -206,8 +205,7 @@ instance sampleable_ext.bifunctor {α β} {F} [bifunctor F] [sampleable_bifuncto
   interp := bifunctor.bimap (interp _) (interp _),
   sample := sampleable_bifunctor.sample F (sampleable_ext.sample α) (sampleable_ext.sample β),
   shrink := sampleable_bifunctor.shrink _ _ sampleable_ext.shrink sampleable_ext.shrink,
-  p_repr := sampleable_bifunctor.p_repr _ _ sampleable_ext.p_repr sampleable_ext.p_repr
-  }
+  p_repr := sampleable_bifunctor.p_repr _ _ sampleable_ext.p_repr sampleable_ext.p_repr }
 
 end prio
 
@@ -514,7 +512,7 @@ instance list.sampleable : sampleable_functor list.{u} :=
   shrink := λ α Iα shr_α, @list.shrink_with _ Iα shr_α,
   p_repr := @list.has_repr }
 
-instance prop.sampleable_ext : sampleable_ext Prop :=
+instance Prop.sampleable_ext : sampleable_ext Prop :=
 { proxy_repr := bool,
   interp := coe,
   sample := choose_any bool,

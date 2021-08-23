@@ -27,7 +27,7 @@ supremum helps define the meaning of recursive procedures.
 
 ## Instances of `omega_complete_partial_order`
 
- * `roption`
+ * `part`
  * every `complete_lattice`
  * pi-types
  * product types
@@ -40,9 +40,9 @@ supremum helps define the meaning of recursive procedures.
    * `id`
    * `ite`
    * `const`
-   * `roption.bind`
-   * `roption.map`
-   * `roption.seq`
+   * `part.bind`
+   * `part.map`
+   * `part.seq`
 
 ## References
 
@@ -53,7 +53,7 @@ supremum helps define the meaning of recursive procedures.
 
 universes u v
 
-local attribute [-simp] roption.bind_eq_bind roption.map_eq_map
+local attribute [-simp] part.bind_eq_bind part.map_eq_map
 open_locale classical
 
 namespace preorder_hom
@@ -100,14 +100,14 @@ def prod.snd : (α × β) →ₘ β :=
 def prod.zip (f : α →ₘ β) (g : α →ₘ γ) : α →ₘ (β × γ) :=
 (prod.map f g).comp prod.diag
 
-/-- `roption.bind` as a monotone function -/
+/-- `part.bind` as a monotone function -/
 @[simps]
-def bind {β γ} (f : α →ₘ roption β) (g : α →ₘ β → roption γ) : α →ₘ roption γ :=
+def bind {β γ} (f : α →ₘ part β) (g : α →ₘ β → part γ) : α →ₘ part γ :=
 { to_fun := λ x, f x >>= g x,
   monotone' :=
   begin
     intros x y h a,
-    simp only [and_imp, exists_prop, roption.bind_eq_bind, roption.mem_bind_iff,
+    simp only [and_imp, exists_prop, part.bind_eq_bind, part.mem_bind_iff,
                exists_imp_distrib],
     intros b hb ha,
     refine ⟨b, f.monotone h _ hb, g.monotone h _ _ ha⟩,
@@ -142,7 +142,7 @@ variables (f : α →ₘ β)
 variables (g : β →ₘ γ)
 
 instance : has_le (chain α) :=
-{ le := λ x y, ∀ i, ∃ j, x i ≤ y j  }
+{ le := λ x y, ∀ i, ∃ j, x i ≤ y j }
 
 /-- `map` function for `chain` -/
 @[simps {fully_applied := ff}] def map : chain β :=
@@ -309,12 +309,12 @@ end continuity
 
 end omega_complete_partial_order
 
-namespace roption
+namespace part
 
 variables {α : Type u} {β : Type v} {γ : Type*}
 open omega_complete_partial_order
 
-lemma eq_of_chain {c : chain (roption α)} {a b : α} (ha : some a ∈ c) (hb : some b ∈ c) : a = b :=
+lemma eq_of_chain {c : chain (part α)} {a b : α} (ha : some a ∈ c) (hb : some b ∈ c) : a = b :=
 begin
   cases ha with i ha, replace ha := ha.symm,
   cases hb with j hb, replace hb := hb.symm,
@@ -323,29 +323,29 @@ begin
   have := c.monotone h _ ha, apply mem_unique this hb
 end
 
-/-- The (noncomputable) `ωSup` definition for the `ω`-CPO structure on `roption α`. -/
-protected noncomputable def ωSup (c : chain (roption α)) : roption α :=
+/-- The (noncomputable) `ωSup` definition for the `ω`-CPO structure on `part α`. -/
+protected noncomputable def ωSup (c : chain (part α)) : part α :=
 if h : ∃a, some a ∈ c then some (classical.some h) else none
 
-lemma ωSup_eq_some {c : chain (roption α)} {a : α} (h : some a ∈ c) : roption.ωSup c = some a :=
+lemma ωSup_eq_some {c : chain (part α)} {a : α} (h : some a ∈ c) : part.ωSup c = some a :=
 have ∃a, some a ∈ c, from ⟨a, h⟩,
 have a' : some (classical.some this) ∈ c, from classical.some_spec this,
-calc roption.ωSup c = some (classical.some this) : dif_pos this
+calc part.ωSup c = some (classical.some this) : dif_pos this
                 ... = some a : congr_arg _ (eq_of_chain a' h)
 
-lemma ωSup_eq_none {c : chain (roption α)} (h : ¬∃a, some a ∈ c) : roption.ωSup c = none :=
+lemma ωSup_eq_none {c : chain (part α)} (h : ¬∃a, some a ∈ c) : part.ωSup c = none :=
 dif_neg h
 
-lemma mem_chain_of_mem_ωSup {c : chain (roption α)} {a : α} (h : a ∈ roption.ωSup c) : some a ∈ c :=
+lemma mem_chain_of_mem_ωSup {c : chain (part α)} {a : α} (h : a ∈ part.ωSup c) : some a ∈ c :=
 begin
-  simp [roption.ωSup] at h, split_ifs at h,
+  simp [part.ωSup] at h, split_ifs at h,
   { have h' := classical.some_spec h_1,
     rw ← eq_some_iff at h, rw ← h, exact h' },
   { rcases h with ⟨ ⟨ ⟩ ⟩ }
 end
 
-noncomputable instance omega_complete_partial_order : omega_complete_partial_order (roption α) :=
-{ ωSup    := roption.ωSup,
+noncomputable instance omega_complete_partial_order : omega_complete_partial_order (part α) :=
+{ ωSup    := part.ωSup,
   le_ωSup := λ c i, by { intros x hx, rw ← eq_some_iff at hx ⊢,
                          rw [ωSup_eq_some, ← hx], rw ← hx, exact ⟨i,rfl⟩ },
   ωSup_le := by { rintros c x hx a ha, replace ha := mem_chain_of_mem_ωSup ha,
@@ -353,9 +353,9 @@ noncomputable instance omega_complete_partial_order : omega_complete_partial_ord
 
 section inst
 
-lemma mem_ωSup (x : α) (c : chain (roption α)) : x ∈ ωSup c ↔ some x ∈ c :=
+lemma mem_ωSup (x : α) (c : chain (part α)) : x ∈ ωSup c ↔ some x ∈ c :=
 begin
-  simp [omega_complete_partial_order.ωSup,roption.ωSup],
+  simp [omega_complete_partial_order.ωSup,part.ωSup],
   split,
   { split_ifs, swap, rintro ⟨⟨⟩⟩,
     intro h', have hh := classical.some_spec h,
@@ -368,7 +368,7 @@ end
 
 end inst
 
-end roption
+end part
 
 namespace pi
 
@@ -613,26 +613,26 @@ lemma ite_continuous' {p : Prop} [hp : decidable p] (f g : α → β)
   (hf : continuous' f) (hg : continuous' g) : continuous' (λ x, if p then f x else g x) :=
 by split_ifs; simp *
 
-lemma ωSup_bind {β γ : Type v} (c : chain α) (f : α →ₘ roption β) (g : α →ₘ β → roption γ) :
+lemma ωSup_bind {β γ : Type v} (c : chain α) (f : α →ₘ part β) (g : α →ₘ β → part γ) :
   ωSup (c.map (f.bind g)) = ωSup (c.map f) >>= ωSup (c.map g) :=
 begin
   apply eq_of_forall_ge_iff, intro x,
-  simp only [ωSup_le_iff, roption.bind_le, chain.mem_map_iff, and_imp, preorder_hom.bind_coe,
+  simp only [ωSup_le_iff, part.bind_le, chain.mem_map_iff, and_imp, preorder_hom.bind_coe,
     exists_imp_distrib],
   split; intro h''',
   { intros b hb, apply ωSup_le _ _ _,
-    rintros i y hy, simp only [roption.mem_ωSup] at hb,
+    rintros i y hy, simp only [part.mem_ωSup] at hb,
     rcases hb with ⟨j,hb⟩, replace hb := hb.symm,
-    simp only [roption.eq_some_iff, chain.map_coe, function.comp_app, pi.monotone_apply_coe]
+    simp only [part.eq_some_iff, chain.map_coe, function.comp_app, pi.monotone_apply_coe]
       at hy hb,
     replace hb : b ∈ f (c (max i j))   := f.monotone (c.monotone (le_max_right i j)) _ hb,
     replace hy : y ∈ g (c (max i j)) b := g.monotone (c.monotone (le_max_left i j)) _ _ hy,
     apply h''' (max i j),
-    simp only [exists_prop, roption.bind_eq_bind, roption.mem_bind_iff, chain.map_coe,
+    simp only [exists_prop, part.bind_eq_bind, part.mem_bind_iff, chain.map_coe,
                function.comp_app, preorder_hom.bind_coe],
     exact ⟨_,hb,hy⟩, },
   { intros i, intros y hy,
-    simp only [exists_prop, roption.bind_eq_bind, roption.mem_bind_iff, chain.map_coe,
+    simp only [exists_prop, part.bind_eq_bind, part.mem_bind_iff, chain.map_coe,
                function.comp_app, preorder_hom.bind_coe] at hy,
     rcases hy with ⟨b,hb₀,hb₁⟩,
     apply h''' b _,
@@ -640,21 +640,21 @@ begin
     { apply le_ωSup (c.map f) i _ hb₀ } },
 end
 
-lemma bind_continuous' {β γ : Type v} (f : α → roption β) (g : α → β → roption γ) :
+lemma bind_continuous' {β γ : Type v} (f : α → part β) (g : α → β → part γ) :
   continuous' f → continuous' g →
   continuous' (λ x, f x >>= g x)
 | ⟨hf,hf'⟩ ⟨hg,hg'⟩ :=
 continuous.of_bundled' (preorder_hom.bind ⟨f,hf⟩ ⟨g,hg⟩)
   (by intro c; rw [ωSup_bind, ← hf', ← hg']; refl)
 
-lemma map_continuous' {β γ : Type v} (f : β → γ) (g : α → roption β)
+lemma map_continuous' {β γ : Type v} (f : β → γ) (g : α → part β)
   (hg : continuous' g) :
   continuous' (λ x, f <$> g x) :=
 by simp only [map_eq_bind_pure_comp];
    apply bind_continuous' _ _ hg;
    apply const_continuous'
 
-lemma seq_continuous' {β γ : Type v} (f : α → roption (β → γ)) (g : α → roption β)
+lemma seq_continuous' {β γ : Type v} (f : α → part (β → γ)) (g : α → part β)
   (hf : continuous' f) (hg : continuous' g) :
   continuous' (λ x, f x <*> g x) :=
 by simp only [seq_eq_bind_map];
@@ -807,28 +807,28 @@ def flip {α : Type*} (f : α → β →𝒄 γ) : β →𝒄 α → γ :=
   monotone' := λ x y h a, (f a).monotone h,
   cont := by intro; ext; change f x _ = _; rw [(f x).continuous ]; refl, }
 
-/-- `roption.bind` as a continuous function. -/
+/-- `part.bind` as a continuous function. -/
 @[simps { rhs_md := reducible }]
 noncomputable def bind {β γ : Type v}
-  (f : α →𝒄 roption β) (g : α →𝒄 β → roption γ) : α →𝒄 roption γ :=
+  (f : α →𝒄 part β) (g : α →𝒄 β → part γ) : α →𝒄 part γ :=
 of_mono (preorder_hom.bind (↑f) (↑g)) $ λ c, begin
   rw [preorder_hom.bind, ← preorder_hom.bind, ωSup_bind, ← f.continuous, ← g.continuous],
   refl
 end
 
-/-- `roption.map` as a continuous function. -/
+/-- `part.map` as a continuous function. -/
 @[simps {rhs_md := reducible}]
-noncomputable def map {β γ : Type v} (f : β → γ) (g : α →𝒄 roption β) : α →𝒄 roption γ :=
+noncomputable def map {β γ : Type v} (f : β → γ) (g : α →𝒄 part β) : α →𝒄 part γ :=
 of_fun (λ x, f <$> g x) (bind g (const (pure ∘ f))) $
 by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_coe, const_apply,
   preorder_hom.const_coe, coe_apply]
 
-/-- `roption.seq` as a continuous function. -/
+/-- `part.seq` as a continuous function. -/
 @[simps {rhs_md := reducible}]
-noncomputable def seq {β γ : Type v} (f : α →𝒄 roption (β → γ)) (g : α →𝒄 roption β) :
-  α →𝒄 roption γ :=
+noncomputable def seq {β γ : Type v} (f : α →𝒄 part (β → γ)) (g : α →𝒄 part β) :
+  α →𝒄 part γ :=
 of_fun (λ x, f x <*> g x) (bind f $ (flip $ _root_.flip map g))
-  (by ext; simp only [seq_eq_bind_map, flip, roption.bind_eq_bind, map_to_fun, roption.mem_bind_iff,
+  (by ext; simp only [seq_eq_bind_map, flip, part.bind_eq_bind, map_to_fun, part.mem_bind_iff,
                       bind_to_fun, preorder_hom.bind_coe, coe_apply, flip_to_fun]; refl)
 
 end continuous_hom

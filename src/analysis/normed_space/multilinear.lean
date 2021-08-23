@@ -288,7 +288,7 @@ instance has_op_norm : has_norm (continuous_multilinear_map 𝕜 E G) := ⟨op_n
 
 lemma norm_def : ∥f∥ = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * ∏ i, ∥m i∥} := rfl
 
--- So that invocations of `real.Inf_le` make sense: we show that the set of
+-- So that invocations of `le_cInf` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : continuous_multilinear_map 𝕜 E G} :
   ∃ c, c ∈ {c | 0 ≤ c ∧ ∀ m, ∥f m∥ ≤ c * ∏ i, ∥m i∥} :=
@@ -299,7 +299,7 @@ lemma bounds_bdd_below {f : continuous_multilinear_map 𝕜 E G} :
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
-lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
+le_cInf bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
 /-- The fundamental property of the operator norm of a continuous multilinear map:
 `∥f m∥` is bounded by `∥f∥` times the product of the `∥m i∥`. -/
@@ -313,7 +313,7 @@ begin
     rw [this, norm_zero],
     exact mul_nonneg (op_norm_nonneg f) A },
   { rw [← div_le_iff hlt],
-    apply (le_Inf _ bounds_nonempty bounds_bdd_below).2,
+    apply le_cInf bounds_nonempty,
     rintro c ⟨_, hc⟩, rw [div_le_iff hlt], apply hc }
 end
 
@@ -335,11 +335,11 @@ calc
 /-- If one controls the norm of every `f x`, then one controls the norm of `f`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ m, ∥f m∥ ≤ M * ∏ i, ∥m i∥) :
   ∥f∥ ≤ M :=
-Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
+cInf_le bounds_bdd_below ⟨hMp, hM⟩
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-Inf_le _ bounds_bdd_below
+cInf_le bounds_bdd_below
   ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
     exact norm_add_le_of_le (le_op_norm _ _) (le_op_norm _ _) }⟩
 
@@ -673,7 +673,7 @@ over `𝕜`, associating to `m` the product of all the `m i`.
 
 See also `continuous_multilinear_map.mk_pi_algebra_fin`. -/
 protected def mk_pi_algebra : continuous_multilinear_map 𝕜 (λ i : ι, A) A :=
-@multilinear_map.mk_continuous 𝕜 ι (λ i : ι, A) A _ _ _ _ _ _ _
+multilinear_map.mk_continuous
   (multilinear_map.mk_pi_algebra 𝕜 ι A) (if nonempty ι then 1 else ∥(1 : A)∥) $
   begin
     intro m,
@@ -726,7 +726,7 @@ variables (𝕜 n) (A : Type*) [normed_ring A] [normed_algebra 𝕜 A]
 
 See also: `multilinear_map.mk_pi_algebra`. -/
 protected def mk_pi_algebra_fin : continuous_multilinear_map 𝕜 (λ i : fin n, A) A :=
-@multilinear_map.mk_continuous 𝕜 (fin n) (λ i : fin n, A) A _ _ _ _ _ _ _
+multilinear_map.mk_continuous
   (multilinear_map.mk_pi_algebra_fin 𝕜 n A) (nat.cases_on n ∥(1 : A)∥ (λ _, 1)) $
   begin
     intro m,
@@ -774,7 +774,7 @@ variables (𝕜 ι)
 /-- The canonical continuous multilinear map on `𝕜^ι`, associating to `m` the product of all the
 `m i` (multiplied by a fixed reference element `z` in the target module) -/
 protected def mk_pi_field (z : G) : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) G :=
-@multilinear_map.mk_continuous 𝕜 ι (λ(i : ι), 𝕜) G _ _ _ _ _ _ _
+multilinear_map.mk_continuous
   (multilinear_map.mk_pi_ring 𝕜 ι z) (∥z∥)
   (λ m, by simp only [multilinear_map.mk_pi_ring_apply, norm_smul, normed_field.norm_prod,
     mul_comm])
@@ -1423,7 +1423,7 @@ linear_isometry_equiv.of_bounds
     map_smul' := λ c f, by { ext, refl },
     left_inv := λ f, by { ext m, exact congr_arg f (sum.elim_comp_inl_inr m) },
     right_inv := λ f, by { ext m₁ m₂, change f _ _ = f _ _,
-      rw [sum.elim_comp_inl, sum.elim_comp_inr]  } }
+      rw [sum.elim_comp_inl, sum.elim_comp_inr] } }
   (λ f, multilinear_map.mk_continuous_multilinear_norm_le _ (norm_nonneg f) _)
   (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
 

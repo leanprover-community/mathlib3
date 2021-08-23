@@ -382,7 +382,7 @@ lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ R) :
  then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : mv_power_series σ R) (h : is_unit φ) :
   is_unit (constant_coeff σ R φ) :=
-h.map' (constant_coeff σ R)
+h.map (constant_coeff σ R).to_monoid_hom
 
 @[simp]
 lemma coeff_smul (f : mv_power_series σ R) (n) (a : R) :
@@ -416,7 +416,7 @@ def map : mv_power_series σ R →+* mv_power_series σ S :=
     show f ((coeff R n) (φ + ψ)) = f ((coeff R n) φ) + f ((coeff R n) ψ), by simp,
   map_mul' := λ φ ψ, ext $ λ n, show f _ = _,
   begin
-    rw [coeff_mul, ← finset.sum_hom _ f, coeff_mul, finset.sum_congr rfl],
+    rw [coeff_mul, f.map_sum, coeff_mul, finset.sum_congr rfl],
     rintros ⟨i,j⟩ hij, rw [f.map_mul], refl,
   end }
 
@@ -1455,7 +1455,7 @@ multiplicity.zero _
 begin
   split,
   { intro h, ext n, rw [(coeff R n).map_zero, coeff_of_lt_order], simp [h] },
-  { rintros rfl, exact order_zero  }
+  { rintros rfl, exact order_zero }
 end
 
 /-- The order of a formal power series is at least `n` if

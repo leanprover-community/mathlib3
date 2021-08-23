@@ -81,6 +81,12 @@ variables (R ι N φ)
 def to_module : (⨁ i, M i) →ₗ[R] N :=
 dfinsupp.lsum ℕ φ
 
+/-- Coproducts in the categories of modules and additive monoids commute with the forgetful functor
+from modules to additive monoids. -/
+lemma coe_to_module_eq_coe_to_add_monoid :
+  (to_module R ι N φ : (⨁ i, M i) → N) = to_add_monoid (λ i, (φ i).to_add_monoid_hom) :=
+rfl
+
 variables {ι N φ}
 
 /-- The map constructed using the universal property gives back the original maps when
@@ -106,7 +112,7 @@ The inclusion of a subset of the direct summands
 into a larger subset of the direct summands, as a linear map.
 -/
 def lset_to_set (S T : set ι) (H : S ⊆ T) :
-  (⨁ (i : S), M i) →ₗ (⨁ (i : T), M i) :=
+  (⨁ (i : S), M i) →ₗ[R] (⨁ (i : T), M i) :=
 to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 
 omit dec_ι
@@ -114,7 +120,7 @@ omit dec_ι
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [module R M]
   [unique ι] :
-  (⨁ (_ : ι), M) ≃ₗ M :=
+  (⨁ (_ : ι), M) ≃ₗ[R] M :=
 { .. direct_sum.id M ι,
   .. to_module R ι M (λ i, linear_map.id) }
 

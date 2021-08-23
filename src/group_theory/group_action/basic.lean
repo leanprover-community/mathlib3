@@ -99,6 +99,18 @@ lemma orbit_eq_iff {a b : β} :
       conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
         mul_action.mul_smul, hx]}⟩⟩)⟩
 
+lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
+  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
+begin
+  rw [fintype.card_eq_one_iff, mem_fixed_points],
+  split,
+  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
+  { assume h x,
+    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
+    exact calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
+      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
+end
+
 variables (α) {β}
 
 @[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
@@ -190,6 +202,18 @@ variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
 (const_smul_hom β r).map_list_sum l
+
+/-- `smul` by a `k : M` over a ring is injective, if `k` is not a zero divisor.
+The general theory of such `k` is elaborated by `is_smul_regular`.
+The typeclass that restricts all terms of `M` to have this property is `no_zero_smul_divisors`. -/
+lemma smul_cancel_of_non_zero_divisor {M R : Type*} [monoid M] [ring R] [distrib_mul_action M R]
+  (k : M) (h : ∀ (x : R), k • x = 0 → x = 0) {a b : R} (h' : k • a = k • b) :
+  a = b :=
+begin
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [smul_sub, h', sub_self]
+end
 
 end
 

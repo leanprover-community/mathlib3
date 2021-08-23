@@ -42,7 +42,7 @@ operations on `filter.tendsto`, `continuous_at`, `continuous_within_at`, `contin
 `continuous`.
 -/
 
-variables {α G₀ : Type*}
+variables {α G₀ : Type*} {a : α}
 
 section div_const
 
@@ -55,8 +55,8 @@ by simpa only [div_eq_mul_inv] using hf.mul tendsto_const_nhds
 
 variables [topological_space α]
 
-lemma continuous_at.div_const (hf : continuous f) {y : G₀} : continuous (λ x, f x / y) :=
-by simpa only [div_eq_mul_inv] using hf.mul continuous_const
+lemma continuous_at.div_const (hf : continuous_at f a) {y : G₀} : continuous_at (λ x, f x / y) a :=
+by simpa only [div_eq_mul_inv] using hf.mul continuous_at_const
 
 lemma continuous_within_at.div_const {a} (hf : continuous_within_at f s a) {y : G₀} :
   continuous_within_at (λ x, f x / y) s a :=
@@ -81,7 +81,7 @@ export has_continuous_inv' (continuous_at_inv')
 section inv'
 
 variables [has_zero G₀] [has_inv G₀] [topological_space G₀] [has_continuous_inv' G₀]
-  {l : filter α} {f : α → G₀} {s : set α} {a : α}
+  {l : filter α} {f : α → G₀} {s : set α}
 
 /-!
 ### Continuity of `λ x, x⁻¹` at a non-zero point

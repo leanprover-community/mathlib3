@@ -120,20 +120,30 @@ variables {α 𝕜 E : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_sp
 
 section ae_eq_of_forall_set_integral_eq
 
-
 lemma ae_const_le_iff_forall_lt_measure_zero {β} [linear_order β] [topological_space β]
-  [order_topology β] [first_countable_topology β] [densely_ordered β]
-  (f : α → β) (c : β) :
+  [order_topology β] [first_countable_topology β] (f : α → β) (c : β) :
   (∀ᵐ x ∂μ, c ≤ f x) ↔ ∀ b < c, μ {x | f x ≤ b} = 0 :=
 begin
-  by_cases h : ∀ b, c ≤ b,
-  { have A : ∀ᵐ x ∂μ, c ≤ f x := eventually_of_forall (λ x, h (f x)),
-    have B : ∀ b < c, μ {x | f x ≤ b} = 0 := λ b hb, (lt_irrefl _ (hb.trans_le (h b))).elim,
-    simp only [(iff_true _).2 A, (iff_true _).2 B] },
-  obtain ⟨y, hy⟩ : ∃ y, y < c, by { push_neg at h, exact h },
-  rcases exists_seq_strict_mono_tendsto' hy with ⟨u, u_mono, u_lt, u_lim⟩,
   rw ae_iff,
   push_neg,
+  split,
+  { assume h b hb,
+    exact measure_mono_null (λ y hy, (lt_of_le_of_lt hy hb : _)) h },
+  assume hc,
+  by_cases h : ∀ b, c ≤ b,
+  { have : {a : α | f a < c} = ∅,
+    { apply set.eq_empty_iff_forall_not_mem.2 (λ x hx, _),
+      exact (lt_irrefl _ (lt_of_lt_of_le hx (h (f x)))).elim },
+    simp [this] },
+  by_cases H : ¬ (is_lub (set.Iio c) c),
+  { have : c ∈ upper_bounds (set.Iio c) := λ y hy, le_of_lt hy,
+    obtain ⟨b, b_up, bc⟩ : ∃ (b : β), b ∈ upper_bounds (set.Iio c) ∧ b < c,
+      by simpa [is_lub, is_least, this, lower_bounds] using H,
+    exact measure_mono_null (λ x hx, b_up hx) (hc b bc) },
+  push_neg at H h,
+  obtain ⟨u, u_mono, u_lt, u_lim, -⟩ : ∃ (u : ℕ → β), strict_mono u ∧ (∀ (n : ℕ), u n < c)
+      ∧ tendsto u at_top (nhds c) ∧ ∀ (n : ℕ), u n ∈ set.Iio c :=
+    H.exists_seq_strict_mono_tendsto_of_not_mem h (lt_irrefl c),
   have h_Union : {x | f x < c} = ⋃ (n : ℕ), {x | f x ≤ u n},
   { ext1 x,
     simp_rw [set.mem_Union, set.mem_set_of_eq],
@@ -141,16 +151,8 @@ begin
     { obtain ⟨n, hn⟩ := ((tendsto_order.1 u_lim).1 _ h).exists, exact ⟨n, hn.le⟩ },
     { obtain ⟨n, hn⟩ := h, exact hn.trans_lt (u_lt _), }, },
   rw [h_Union, measure_Union_null_iff],
-  split; intros h b,
-  { intro hbc,
-    obtain ⟨n, hn⟩ : ∃ n, b < u n := ((tendsto_order.1 u_lim).1 _ hbc).exists,
-    have h_ss : {x : α | f x ≤ b} ⊆ {x : α | f x ≤ u n},
-    { intros x hx,
-      rw set.mem_set_of_eq at hx,
-      exact hx.trans hn.le, },
-    refine measure_mono_null h_ss _,
-    exact h n },
-  { exact h _ (u_lt b) },
+  assume n,
+  exact hc _ (u_lt n),
 end
 
 section real

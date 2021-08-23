@@ -517,7 +517,7 @@ begin
   { intros x y,
     simpa only [subtype.coe_mk, subtype.coe_eta] using g_eq ⟨(x, y), ⟨x.2, trivial⟩⟩ },
   { refine ⟨-g.comp (inl ℝ E ℝ), _, _⟩; simp only [neg_apply, inl_apply, comp_apply],
-    { intro x, simp  [g_eq x 0] },
+    { intro x, simp [g_eq x 0] },
     { intro x,
       have A : (x, N x) = (x, 0) + (0, N x), by simp,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),

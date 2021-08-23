@@ -656,6 +656,18 @@ theorem is_greatest_max' : is_greatest ↑s (s.max' H) := ⟨max'_mem _ _, le_ma
 @[simp] lemma max'_le_iff {x} : s.max' H ≤ x ↔ ∀ y ∈ s, y ≤ x :=
 is_lub_le_iff (is_greatest_max' s H).is_lub
 
+@[simp] lemma max'_lt_iff {x} : s.max' H < x ↔ ∀ y ∈ s, y < x :=
+⟨λ Hlt y hy, (s.le_max' y hy).trans_lt Hlt, λ H, H _ $ s.max'_mem _⟩
+
+@[simp] lemma lt_min'_iff {x} : x < s.min' H ↔ ∀ y ∈ s, x < y :=
+@max'_lt_iff (order_dual α) _ _ H _
+
+lemma max'_eq_sup' : s.max' H = s.sup' H id :=
+eq_of_forall_ge_iff $ λ a, (max'_le_iff _ _).trans (sup'_le_iff _ _).symm
+
+lemma min'_eq_inf' : s.min' H = s.inf' H id :=
+@max'_eq_sup' (order_dual α) _ s H
+
 /-- `{a}.max' _` is `a`. -/
 @[simp] lemma max'_singleton (a : α) :
   ({a} : finset α).max' (singleton_nonempty _) = a :=
@@ -717,6 +729,14 @@ lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
 (is_least_min' _ _).unique $
   by { rw [coe_insert, min_comm], exact (is_least_min' _ _).insert _ }
 
+lemma lt_max'_of_mem_erase_max' [decidable_eq α] {a : α} (ha : a ∈ s.erase (s.max' H)) :
+  a < s.max' H :=
+lt_of_le_of_ne (le_max' _ _ (mem_of_mem_erase ha)) $ ne_of_mem_of_not_mem ha $ not_mem_erase _ _
+
+lemma min'_lt_of_mem_erase_min' [decidable_eq α] {a : α} (ha : a ∈ s.erase (s.min' H)) :
+  s.min' H < a :=
+@lt_max'_of_mem_erase_max' (order_dual α) _ s H _ a ha
+
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
 `s : finset α` provided that:
 
@@ -727,14 +747,12 @@ lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
 lemma induction_on_max [decidable_eq α] {p : finset α → Prop} (s : finset α) (h0 : p ∅)
   (step : ∀ a s, (∀ x ∈ s, x < a) → p s → p (insert a s)) : p s :=
 begin
-  induction hn : s.card with n ihn generalizing s,
-  { rwa [card_eq_zero.1 hn] },
-  { have A : s.nonempty, from card_pos.1 (hn.symm ▸ n.succ_pos),
-    have B : s.max' A ∈ s, from max'_mem s A,
-    rw [← insert_erase B],
-    refine step _ _ (λ x hx, _) (ihn _ _),
-    { rw [mem_erase] at hx, exact (le_max' s x hx.2).lt_of_ne hx.1 },
-    { rw [card_erase_of_mem B, hn, nat.pred_succ] } }
+  induction s using finset.strong_induction_on with s ihs,
+  rcases s.eq_empty_or_nonempty with rfl|hne,
+  { exact h0 },
+  { have H : s.max' hne ∈ s, from max'_mem s hne,
+    rw ← insert_erase H,
+    exact step _ _ (λ x, s.lt_max'_of_mem_erase_max' hne) (ihs _ $ erase_ssubset H) }
 end
 
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all

@@ -8,7 +8,7 @@ import linear_algebra.matrix.trace
 
 
 /-!
-# Trace of a matrix
+# Trace of a linear map
 
 This file defines the trace of a linear map.
 

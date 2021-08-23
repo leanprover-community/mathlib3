@@ -206,19 +206,32 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
 
-/-- Any positive natural is a prime power or a product of coprime numbers -/
-lemma prime_power_or_mul_coprime {n : ℕ} :
-  (∃ a p : ℕ, p.prime ∧ n = p ^ a) ∨ (∃ a b : ℕ, 2 ≤ a ∧ 2 ≤ b ∧ a.coprime b ∧ n = a * b) :=
+lemma totient_prime_iff {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
 begin
-  sorry,
+  refine ⟨λ h, _, totient_prime⟩,
+  replace hp : 1 < p,
+  { apply lt_of_le_of_ne,
+    { rwa succ_le_iff },
+    { rintro rfl,
+      rw [totient_one, nat.sub_self] at h,
+      exact one_ne_zero h } },
+  have hsplit : finset.range p = {0} ∪ (finset.Ico 1 p),
+  { rw [finset.range_eq_Ico, ←finset.Ico.union_consecutive zero_le_one hp.le,
+      finset.Ico.succ_singleton] },
+  have hempty : finset.filter p.coprime {0} = ∅,
+  { rw finset.eq_empty_iff_forall_not_mem,
+    intros a ha,
+    rw [finset.mem_filter, finset.mem_singleton] at ha,
+    obtain ⟨rfl, ha⟩ := ha,
+    rw coprime_zero_right at ha,
+    exact hp.ne' ha },
+  rw [totient_eq_card_coprime , hsplit, finset.filter_union, hempty, finset.empty_union,
+    ←finset.Ico.card 1 p] at h,
+  refine p.prime_of_coprime hp (λ n hn hnz, _),
+  apply finset.filter_card_eq h n,
+  refine finset.Ico.mem.mpr ⟨_, hn⟩,
+  rwa [succ_le_iff, pos_iff_ne_zero],
 end
-
-lemma totient_prime_iff {p : ℕ} : p.prime ↔ φ p = p - 1 :=
-begin
-  split,
-  apply totient_prime,
-end
-
 
 @[simp] lemma totient_two : φ 2 = 1 :=
 (totient_prime prime_two).trans (by norm_num)

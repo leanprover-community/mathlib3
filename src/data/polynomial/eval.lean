@@ -223,6 +223,13 @@ begin
   rw [f.map_zero, zero_mul]
 end
 
+lemma eval₂_dvd : p ∣ q → eval₂ f x p ∣ eval₂ f x q :=
+(eval₂_ring_hom f x).map_dvd
+
+lemma eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (h : p ∣ q) (h0 : eval₂ f x p = 0) :
+  eval₂ f x q = 0 :=
+zero_dvd_iff.mp (h0 ▸ eval₂_dvd f x h)
+
 end eval₂
 
 section eval

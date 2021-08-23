@@ -573,6 +573,10 @@ begin
   exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
 
+@[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
+  cast_le h i.succ = (cast_le (nat.succ_le_succ_iff.mp h) i).succ :=
+by simp [fin.eq_iff_veq]
+
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
 { to_equiv := ⟨cast_le eq.le, cast_le eq.symm.le, λ a, eq_of_veq rfl, λ a, eq_of_veq rfl⟩,
@@ -602,7 +606,7 @@ lemma cast_eq_cast (h : n = m) : (cast h : fin n → fin m) = _root_.cast (h ▸
 by { subst h, ext, simp }
 
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
-def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
+def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
 
@@ -886,7 +890,7 @@ instance (n : ℕ) : add_comm_group (fin (n+1)) :=
     show (a + (n + 1 - b)) % (n + 1) = (a + (n + 1 - b) % (n + 1)) % (n + 1), by simp,
   sub := fin.sub,
   ..fin.add_comm_monoid n,
-  ..fin.has_neg n.succ  }
+  ..fin.has_neg n.succ }
 
 protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
 
@@ -1596,8 +1600,7 @@ else if h' : j < i then _root_.cast (congr_arg α $ begin
   obtain ⟨k, hk⟩ : ∃ (k : fin (n + 1)), k.cast_succ = j,
     { refine ⟨⟨(j : ℕ), _⟩, _⟩,
       { exact lt_of_lt_of_le h' i.is_le, },
-      { simp },
-    },
+      { simp } },
   subst hk,
   simp [succ_above_below, h'],
 end)

@@ -304,6 +304,8 @@ protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
 @[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s:set α).nonempty ↔ s.nonempty := iff.rfl
 
+alias coe_nonempty ↔ _ finset.nonempty.to_set
+
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
 lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.nonempty :=
@@ -382,7 +384,7 @@ This differs from `insert a ∅` in that it does not require a `decidable_eq` in
 -/
 instance : has_singleton α (finset α) := ⟨λ a, ⟨{a}, nodup_singleton a⟩⟩
 
-@[simp] theorem singleton_val (a : α) : ({a} : finset α).1 = a ::ₘ 0 := rfl
+@[simp] theorem singleton_val (a : α) : ({a} : finset α).1 = {a} := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : finset α) ↔ b = a := mem_singleton
 
@@ -1654,6 +1656,10 @@ rfl
   to_finset (a ::ₘ s) = insert a (to_finset s) :=
 finset.eq_of_veq erase_dup_cons
 
+@[simp] lemma to_finset_singleton (a : α) :
+  to_finset ({a} : multiset α) = {a} :=
+by rw [singleton_eq_cons, to_finset_cons, to_finset_zero, is_lawful_singleton.insert_emptyc_eq]
+
 @[simp] lemma to_finset_add (s t : multiset α) :
   to_finset (s + t) = to_finset s ∪ to_finset t :=
 finset.ext $ by simp
@@ -2174,6 +2180,15 @@ finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
 theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
 by { rw ← not_iff_not, push_neg, exact card_le_one }
 
+lemma exists_ne_of_one_lt_card {s : finset α} (hs : 1 < s.card) (a : α) :
+  ∃ b : α, b ∈ s ∧ b ≠ a :=
+begin
+  obtain ⟨x, hx, y, hy, hxy⟩ := finset.one_lt_card.mp hs,
+  by_cases ha : y = a,
+  { exact ⟨x, hx, ne_of_ne_of_eq hxy ha⟩ },
+  { exact ⟨y, hy, ha⟩ },
+end
+
 lemma one_lt_card_iff {s : finset α} :
   1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
 by { rw one_lt_card, simp only [exists_prop, exists_and_distrib_left] }
@@ -2415,7 +2430,7 @@ finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
 lemma card_union_le [decidable_eq α] (s t : finset α) :
   (s ∪ t).card ≤ s.card + t.card :=
-card_union_add_card_inter s t ▸ le_add_right _ _
+card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq [decidable_eq α] {s t : finset α} (h : disjoint s t) :
   (s ∪ t).card = s.card + t.card :=

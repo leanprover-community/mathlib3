@@ -860,6 +860,19 @@ that `sum.inr` is an injection, but there's no clear inverse if `β` is empty. -
 noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] : fintype β :=
 fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
 
+@[simp] theorem fintype.card_sum [fintype α] [fintype β] :
+  fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
+begin
+  classical,
+  rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
+  { simp [finset.card_univ] },
+  { intros x hx,
+    suffices : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
+    { obtain ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ := this,
+      simpa using hb },
+    simpa using hx }
+end
+
 section finset
 
 /-! ### `fintype (s : finset α)` -/
@@ -956,6 +969,9 @@ by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_pair_
 
 lemma card_eq_one_of_forall_eq {i : α} (h : ∀ j, j = i) : card α = 1 :=
 fintype.card_eq_one_iff.2 ⟨i,h⟩
+
+lemma one_lt_card [h : nontrivial α] : 1 < fintype.card α :=
+fintype.one_lt_card_iff_nontrivial.mpr h
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
@@ -1204,6 +1220,31 @@ fintype.card_le_of_embedding (function.embedding.subtype _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 fintype.card_lt_of_injective_of_not_mem coe subtype.coe_injective $ by rwa subtype.range_coe_subtype
+
+lemma fintype.card_subtype [fintype α] (p : α → Prop) [decidable_pred p] :
+  fintype.card {x // p x} = ((finset.univ : finset α).filter p).card :=
+begin
+  refine fintype.card_of_subtype _ _,
+  simp
+end
+
+lemma fintype.card_subtype_or (p q : α → Prop)
+  [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
+  fintype.card {x // p x ∨ q x} ≤ fintype.card {x // p x} + fintype.card {x // q x} :=
+begin
+  classical,
+  convert fintype.card_le_of_embedding (subtype_or_left_embedding p q),
+  rw fintype.card_sum
+end
+
+lemma fintype.card_subtype_or_disjoint (p q : α → Prop) (h : disjoint p q)
+  [fintype {x // p x}] [fintype {x // q x}] [fintype {x // p x ∨ q x}] :
+  fintype.card {x // p x ∨ q x} = fintype.card {x // p x} + fintype.card {x // q x} :=
+begin
+  classical,
+  convert fintype.card_congr (subtype_or_equiv p q h),
+  simp
+end
 
 theorem fintype.card_quotient_le [fintype α] (s : setoid α) [decidable_rel ((≈) : α → α → Prop)] :
   fintype.card (quotient s) ≤ fintype.card α :=
@@ -1481,6 +1522,12 @@ def choose (hp : ∃! a, p a) : α := choose_x p hp
 lemma choose_spec (hp : ∃! a, p a) : p (choose p hp) :=
 (choose_x p hp).property
 
+@[simp] lemma choose_subtype_eq {α : Type*} (p : α → Prop) [fintype {a : α // p a}]
+  [decidable_eq α] (x : {a : α // p a})
+  (h : ∃! (a : {a // p a}), (a : α) = x := ⟨x, rfl, λ y hy, by simpa [subtype.ext_iff] using hy⟩) :
+  fintype.choose (λ (y : {a : α // p a}), (y : α) = x) h = x :=
+by rw [subtype.ext_iff, fintype.choose_spec (λ (y : {a : α // p a}), (y : α) = x) _]
+
 end choose
 
 section bijection_inverse
@@ -1553,6 +1600,19 @@ not_nonempty_iff.trans is_empty_fintype
 noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
 ((not_iff_comm.mp not_nonempty_fintype).mp h).some
 
+section
+open_locale classical
+
+/--
+Any type is (classically) either a `fintype`, or `infinite`.
+
+One can obtain the relevant typeclasses via `cases fintype_or_infinite α; resetI`.
+-/
+noncomputable def fintype_or_infinite (α : Type*) : psum (fintype α) (infinite α) :=
+if h : infinite α then psum.inr h else psum.inl (fintype_of_not_infinite h)
+
+end
+
 lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
 begin
@@ -1616,6 +1676,18 @@ lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
 ⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
+
+/-- If every finset in a type has bounded cardinality, that type is finite. -/
+noncomputable def fintype_of_finset_card_le {ι : Type*} (n : ℕ)
+  (w : ∀ s : finset ι, s.card ≤ n) : fintype ι :=
+begin
+  apply fintype_of_not_infinite,
+  introI i,
+  obtain ⟨s, c⟩ := infinite.exists_subset_card_eq ι (n+1),
+  specialize w s,
+  rw c at w,
+  exact nat.not_succ_le_self n w,
+end
 
 lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) :
   ¬ injective f :=

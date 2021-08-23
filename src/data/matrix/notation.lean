@@ -148,7 +148,7 @@ fin.cons_self_tail _
 set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
 
 @[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
-set.range_eq_empty.2 $ λ ⟨k⟩, k.elim0
+set.range_eq_empty _
 
 /-- `![a, b, ...] 1` is equal to `b`.
 
@@ -265,7 +265,7 @@ begin
   simp_rw [vec_alt0],
   rcases i with ⟨⟨⟩ | i, hi⟩,
   { refl },
-  { simp [vec_alt0, nat.succ_add] }
+  { simp [vec_alt0, nat.add_succ, nat.succ_add] }
 end
 
 -- Although proved by simp, extracting element 8 of a five-element
@@ -282,7 +282,7 @@ begin
   simp_rw [vec_alt1],
   rcases i with ⟨⟨⟩ | i, hi⟩,
   { refl },
-  { simp [vec_alt1, nat.succ_add] }
+  { simp [vec_alt1, nat.add_succ, nat.succ_add] }
 end
 
 -- Although proved by simp, extracting element 9 of a five-element

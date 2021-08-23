@@ -68,7 +68,7 @@ theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
   is_integral R x :=
 begin
-  let leval : @linear_map R (polynomial R) A _ _ _ _ _ := (aeval x).to_linear_map,
+  let leval : (polynomial R →ₗ[R] A) := (aeval x).to_linear_map,
   let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
   let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
     (set.range D) ⟨_, ⟨0, rfl⟩⟩,
@@ -180,6 +180,11 @@ set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
 (λ a s has hs ih his, by rw [← set.union_singleton, algebra.adjoin_union_coe_submodule]; exact
   fg_mul _ _ (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
+
+lemma is_noetherian_adjoin_finset [is_noetherian_ring R] (s : finset A)
+  (hs : ∀ x ∈ s, is_integral R x) :
+  is_noetherian R (algebra.adjoin R (↑s : set A)) :=
+is_noetherian_of_fg_of_noetherian _ (fg_adjoin_of_finite s.finite_to_set hs)
 
 /-- If `S` is a sub-`R`-algebra of `A` and `S` is finitely-generated as an `R`-module,
   then all elements of `S` are integral over `R`. -/
@@ -388,6 +393,31 @@ lemma is_integral_of_mem_closure' (G : set A) (hG : ∀ x ∈ G, is_integral R x
 lemma is_integral_of_mem_closure'' {S : Type*} [comm_ring S] {f : R →+* S} (G : set S)
   (hG : ∀ x ∈ G, f.is_integral_elem x) : ∀ x ∈ (subring.closure G), f.is_integral_elem x :=
 λ x hx, @is_integral_of_mem_closure' R S _ _ f.to_algebra G hG x hx
+
+lemma is_integral.pow {x : A} (h : is_integral R x) (n : ℕ) : is_integral R (x ^ n) :=
+(integral_closure R A).pow_mem h n
+
+lemma is_integral.nsmul {x : A} (h : is_integral R x) (n : ℕ) : is_integral R (n • x) :=
+(integral_closure R A).nsmul_mem h n
+
+lemma is_integral.gsmul {x : A} (h : is_integral R x) (n : ℤ) : is_integral R (n • x) :=
+(integral_closure R A).gsmul_mem h n
+
+lemma is_integral.multiset_prod {s : multiset A} (h : ∀ x ∈ s, is_integral R x) :
+  is_integral R s.prod :=
+(integral_closure R A).multiset_prod_mem h
+
+lemma is_integral.multiset_sum {s : multiset A} (h : ∀ x ∈ s, is_integral R x) :
+  is_integral R s.sum :=
+(integral_closure R A).multiset_sum_mem h
+
+lemma is_integral.prod {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈ s, is_integral R (f x)) :
+  is_integral R (∏ x in s, f x) :=
+(integral_closure R A).prod_mem h
+
+lemma is_integral.sum {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈ s, is_integral R (f x)) :
+  is_integral R (∑ x in s, f x) :=
+(integral_closure R A).sum_mem h
 
 end
 

@@ -131,7 +131,7 @@ begin
       (comap (algebra_map R S) P) (comap_is_prime _ _)), comap_jacobson],
     refine Inf_le_Inf (λ J hJ, _),
     simp only [true_and, set.mem_image, bot_le, set.mem_set_of_eq],
-    haveI : J.is_maximal := by simpa using hJ,
+    haveI : J.is_maximal, { simpa using hJ },
     exact exists_ideal_over_maximal_of_is_integral (is_integral_quotient_of_is_integral hRS) J
       (comap_bot_le_of_injective _ algebra_map_quotient_injective) }
 end
@@ -333,7 +333,7 @@ lemma jacobson_bot_of_integral_localization {R : Type*} [integral_domain R] [is_
   (⊥ : ideal S).jacobson = (⊥ : ideal S) :=
 begin
   have hM : ((submonoid.powers x).map φ : submonoid S) ≤ non_zero_divisors S :=
-    map_le_non_zero_divisors_of_injective hφ (powers_le_non_zero_divisors_of_domain hx),
+    φ.map_le_non_zero_divisors_of_injective hφ (powers_le_non_zero_divisors_of_no_zero_divisors hx),
   letI : integral_domain Sₘ := is_localization.integral_domain_of_le_non_zero_divisors _ hM,
   let φ' : Rₘ →+* Sₘ := is_localization.map _ φ (submonoid.powers x).le_comap_map,
   suffices : ∀ I : ideal Sₘ, I.is_maximal → (I.comap (algebra_map S Sₘ)).is_maximal,
@@ -464,11 +464,11 @@ begin
   have hM' : (0 : P.quotient) ∉ M' :=
     λ ⟨z, hz⟩, hM (quotient_map_injective (trans hz.2 φ.map_zero.symm) ▸ hz.1),
   letI : integral_domain (localization M') :=
-    is_localization.integral_domain_localization (le_non_zero_divisors_of_domain hM'),
+    is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hM'),
   suffices : (⊥ : ideal (localization M')).is_maximal,
   { rw le_antisymm bot_le (comap_bot_le_of_injective _ (is_localization.map_injective_of_injective
       M (localization M) (localization M')
-      quotient_map_injective (le_non_zero_divisors_of_domain hM'))),
+      quotient_map_injective (le_non_zero_divisors_of_no_zero_divisors hM'))),
     refine is_maximal_comap_of_is_integral_of_is_maximal' _ _ ⊥ this,
     apply is_integral_is_localization_polynomial_quotient P _ (submodule.coe_mem m) },
   rw (map_bot.symm : (⊥ : ideal (localization M')) =
@@ -494,7 +494,7 @@ begin
   refine ((quotient_map P C le_rfl).is_integral_tower_bot_of_is_integral
     (algebra_map _ (localization M')) _ _),
   { refine is_localization.injective (localization M')
-      (show M' ≤ _, from le_non_zero_divisors_of_domain (λ hM', hM _)),
+      (show M' ≤ _, from le_non_zero_divisors_of_no_zero_divisors (λ hM', hM _)),
     exact (let ⟨z, zM, z0⟩ := hM' in (quotient_map_injective (trans z0 φ.map_zero.symm)) ▸ zM) },
   { rw ← is_localization.map_comp M.le_comap_map,
     refine ring_hom.is_integral_trans (algebra_map P'.quotient (localization M))

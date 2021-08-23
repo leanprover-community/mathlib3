@@ -16,7 +16,8 @@ This file defines several small linters:
   - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default).
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
   - `check_type` checks that the statement of a declaration is well-typed.
-  - `check_univs` checks that that there are no bad `max u v` universe levels.
+  - `check_univs` checks that there are no bad `max u v` universe levels.
+  - `syn_taut` checks that declarations are not syntactic tautologies.
 -/
 
 open tactic expr
@@ -325,20 +326,24 @@ the universe problem is with `xyz` itself (even if the linter doesn't flag `xyz`
 -/
 
 /--
-Checks whether a lemma is a declaration that `e = f` where `e` and `f` are syntactically equal.
+Checks whether a lemma is a declaration that `∀ a b ... z,e₁ = e₂` where `e₁` and `e₂` are equal
+exprs, we call declarations of this form syntactic tautologies.
+Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving basic facts
+with rfl when elaboration results in a different term than the user intended.
 -/
-meta def check_syn_eq (d : declaration) : tactic (option string) := do
+meta def syn_taut (d : declaration) : tactic (option string) := do
   let l := d.type.pi_codomain,
   (do (el, er) ← expr.is_eq l,
-    guard (el.alpha_eqv er),
+    -- possible to use alpha equivalence here but seems unlikely to make a difference
+    guard (el = er),
     return $ some "LHS equals RHS syntactically") <|>
   return none
 
 /-- A linter for checking that declarations aren't syntactic tautologies. -/
 @[linter]
-meta def linter.check_syn_eq : linter :=
-{ test := check_syn_eq,
-  auto_decls := ff,
+meta def linter.syn_taut : linter :=
+{ test := syn_taut,
+  auto_decls := ff, -- many false positives with this enabled
   no_errors_found :=
     "No declarations are syntactic tautologies.",
   errors_found := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES.",

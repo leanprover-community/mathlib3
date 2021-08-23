@@ -2180,7 +2180,7 @@ finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
 theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
 by { rw ← not_iff_not, push_neg, exact card_le_one }
 
-lemma finset.exists_ne_of_one_lt_card {s : finset α} (hs : 1 < s.card) (a : α) :
+lemma exists_ne_of_one_lt_card {s : finset α} (hs : 1 < s.card) (a : α) :
   ∃ b : α, b ∈ s ∧ b ≠ a :=
 begin
   obtain ⟨x, hx, y, hy, hxy⟩ := finset.one_lt_card.mp hs,

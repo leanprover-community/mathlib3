@@ -329,7 +329,7 @@ section uniqueness_of_conditional_expectation
 
 /-! ## Uniqueness of the conditional expectation -/
 
-variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_scalar_tower ℝ 𝕜 E']
+variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜]
 
 lemma Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero
   (hm : m ≤ m0) (f : Lp_meas E' 𝕜 m p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
@@ -399,8 +399,10 @@ begin
     hfg_meas,
 end
 
+omit 𝕜
+
 lemma ae_eq_of_forall_set_integral_eq_of_sigma_finite' (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  {f g : α → E'}
+  {f g : α → F'}
   (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
   (hg_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on g s μ)
   (hfg_eq : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ)
@@ -432,8 +434,6 @@ begin
     exact hfg_eq s hs hμs, },
   exact ae_eq_of_forall_set_integral_eq_of_sigma_finite hf_mk_int_finite hg_mk_int_finite hfg_mk_eq,
 end
-
-omit 𝕜
 
 end uniqueness_of_conditional_expectation
 

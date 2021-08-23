@@ -1590,20 +1590,31 @@ begin
     exact to_map_eq_zero_iff.mp h }
 end
 
-/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
+variables (A K)
+
+/-- An element of a field is algebraic over the ring `A` iff it is algebraic
+over the field of fractions of `A`.
 -/
-lemma comap_is_algebraic_iff [algebra A L] [algebra K L] [is_scalar_tower A K L] :
-  algebra.is_algebraic A L ↔ algebra.is_algebraic K L :=
+lemma is_algebraic_iff [algebra A L] [algebra K L] [is_scalar_tower A K L] {x : L} :
+  is_algebraic A x ↔ is_algebraic K x :=
 begin
-  split; intros h x; obtain ⟨p, hp, px⟩ := h x,
+  split; rintros ⟨p, hp, px⟩,
   { refine ⟨p.map (algebra_map A K), λ h, hp (polynomial.ext (λ i, _)), _⟩,
-  { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
-    exact to_map_eq_zero_iff.mp this },
-  { rwa is_scalar_tower.aeval_apply _ K at px } },
+    { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
+      exact to_map_eq_zero_iff.mp this },
+    { rwa is_scalar_tower.aeval_apply _ K at px } },
   { exact ⟨integer_normalization _ p,
            mt integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero _ p px⟩ },
 end
+
+variables {A K}
+
+/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
+-/
+lemma comap_is_algebraic_iff [algebra A L] [algebra K L] [is_scalar_tower A K L] :
+  algebra.is_algebraic A L ↔ algebra.is_algebraic K L :=
+⟨λ h x, (is_algebraic_iff A K).mp (h x), λ h x, (is_algebraic_iff A K).mpr (h x)⟩
 
 section num_denom
 

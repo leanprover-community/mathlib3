@@ -73,7 +73,7 @@ namespace square_lattice
 variables {P}
 
 /-- The set of points in a `square_lattice` of a Euclidean affine plane `P` modelled on `ℂ`. -/
-def points (Λ : square_lattice P) : set P := (@coe_b _ _ coe_subtype) Λ
+def points (Λ : square_lattice P) : set P := @coe_b _ _ coe_subtype Λ
 
 /-- Construct a `square_lattice` of a Euclidean affine plane `P` modelled on `ℂ`, as the orbit of
 a particular point `x : P` under the natural "square" `ℤ × ℤ`-action. -/

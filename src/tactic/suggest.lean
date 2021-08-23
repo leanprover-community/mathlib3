@@ -148,6 +148,9 @@ meta def unpack_iff_both : list decl_data → list decl_data
 | (⟨d, n, both, l⟩ :: L) := ⟨d, n, mp, l⟩ :: ⟨d, n, mpr, l⟩ :: unpack_iff_both L
 | (⟨d, n, m, l⟩ :: L)    := ⟨d, n, m, l⟩ :: unpack_iff_both L
 
+/-- An extension to the option structure for `solve_by_elim`,
+to specify a list of local hypotheses which must appear in any solution.
+These are useful for constraining the results from `library_search` and `suggest`. -/
 meta structure suggest_opt extends opt :=
 (compulsory_hyps : list expr := [])
 

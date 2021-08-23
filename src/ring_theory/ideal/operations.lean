@@ -1628,40 +1628,23 @@ begin
   split,
     {intro hx,
     obtain ⟨y, hy⟩ := quotient.mk_surjective x,
-    rw [ring_hom.mem_ker, ← hy,quot_left_to_quot_sup, ideal.quotient.factor_mk, ← ring_hom.mem_ker,
+    rw [ring_hom.mem_ker, ← hy, quot_left_to_quot_sup, ideal.quotient.factor_mk, ← ring_hom.mem_ker,
      mk_ker] at hx,
     replace hx := (mem_map_of_mem (I^.quotient.mk)) hx,
-    have :  I.map I^.quotient.mk = ⊥ := by rw [map_eq_bot_iff_le_ker, mk_ker] ; exact le_refl I,
+    have : I.map I^.quotient.mk = ⊥ := by rw [map_eq_bot_iff_le_ker, mk_ker] ; exact le_refl I,
     rw [map_sup, this, bot_sup_eq, hy] at hx,
     exact hx},
    {intro hx,
-    have hIJmap: ((quot_left_to_quot_sup I J).comp(ideal.quotient.mk I) '' J) =
-    (ideal.quotient.mk (I ⊔ J) '' J),
-      {apply set.ext,
-      intro y,
-      split,
-      {intro hy,
-        obtain ⟨z, hz⟩ := (set.mem_image ((quot_left_to_quot_sup I J).comp(ideal.quotient.mk I))
-          J y).1 hy,
-        rw quot_left_to_quot_sup at hz,
-        rw [ring_hom.comp_apply, ideal.quotient.factor_mk] at hz,
-        rw ← hz.right,
-        exact set.mem_image_of_mem (ideal.quotient.mk (I ⊔ J)) hz.left},
-       {intro hy,
-        obtain ⟨z, hz⟩ := (set.mem_image (ideal.quotient.mk (I ⊔ J)) J y).1 hy,
-        rw [quot_left_to_quot_sup, set.mem_image_eq],
-        use z,
-        rwa [ring_hom.comp_apply, ideal.quotient.factor_mk]}},
-    have hJ: (J.map (ideal.quotient.mk I)).map (quot_left_to_quot_sup I J) = J.map
-      (ideal.quotient.mk (I ⊔ J))
-      := by rw [ideal.map_map, ideal.map,hIJmap, ← ideal.map],
-    have hmapx : quot_left_to_quot_sup I J x ∈ (J.map (ideal.quotient.mk I)).map
-      (quot_left_to_quot_sup I J),
-        {rw ideal.map,
-        apply set.mem_of_subset_of_mem (ideal.subset_span),
-        exact (set.mem_image_of_mem (quot_left_to_quot_sup I J) hx)},
-    have : J.map(ideal.quotient.mk(I ⊔ J)) = ⊥ :=  map_mk_eq_bot_of_le le_sup_right,
-    rwa [hJ,this] at hmapx},
+    have hJ: comap (I ⊔ J)^.quotient.mk ((J.map (ideal.quotient.mk I)).map
+      (quot_left_to_quot_sup I J)) ≤ I ⊔ J,
+     {rw [map_map, quot_left_to_quot_sup, ideal.quotient.factor_comp_mk, comap_map_of_surjective
+      (I ⊔ J)^.quotient.mk (quotient.mk_surjective), ← ring_hom.ker_eq_comap_bot, mk_ker, sup_comm,
+      sup_assoc, sup_idem],
+      exact le_refl (I ⊔ J)},
+    replace hJ := map_mk_eq_bot_of_le hJ,
+    rw map_comap_of_surjective (I ⊔ J)^.quotient.mk quotient.mk_surjective at hJ,
+    rw [ring_hom.mem_ker,← mem_bot, ← hJ],
+    exact mem_map_of_mem (quot_left_to_quot_sup I J) hx},
 end
 
 /-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I ⊔ J)`,

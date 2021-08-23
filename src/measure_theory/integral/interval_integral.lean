@@ -1947,7 +1947,7 @@ following [Rudin, *Real and Complex Analysis* (Theorem 7.21)][rudin2006real]. Th
 given for real-valued functions, and then deduced for functions with a general target space. For
 a real-valued function `g`, it suffices to show that `g b - g a ≤ (∫ x in a..b, g' x) + ε` for all
 positive `ε`. To prove this, choose a lower-semicontinuous function `G'` with `g' < G'` and with
-integral close to that of `g'` (its existence is guaranteed by the Vitali-Caratheodory theorem).
+integral close to that of `g'` (its existence is guaranteed by the Vitali-Carathéodory theorem).
 It satisfies `g t - g a ≤ ∫ x in a..t, G' x` for all `t ∈ [a, b]`: this inequality holds at `a`,
 and if it holds at `t` then it holds for `u` close to `t` on its right, as the left hand side
 increases by `g u - g t ∼ (u -t) g' t`, while the right hand side increases by

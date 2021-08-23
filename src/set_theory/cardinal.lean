@@ -512,8 +512,8 @@ theorem lift_mk_le {α : Type u} {β : Type v} :
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
-/-- A variant of `lift_mk_le` with universes specialized as `w = max u v`.
-This is sometimes necessary to avoid universe unification issues. -/
+/-- A variant of `lift_mk_le` with slight different universe constraints.
+Unfortunately this is not a specialization of `lift_mk_le`. -/
 theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{u v} (mk α) ≤ lift.{v u} (mk β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
@@ -525,8 +525,8 @@ quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
 
-/-- A variant of `lift_mk_eq` with universes specialized as `w = max u v`.
-This is sometimes necessary to avoid universe unification issues. -/
+/-- A variant of `lift_mk_eq` with slight different universe constraints.
+Unfortunately this is not a specialization of `lift_mk_eq`. -/
 theorem lift_mk_eq' {α : Type u} {β : Type v} :
   lift.{u v} (mk α) = lift.{v u} (mk β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans

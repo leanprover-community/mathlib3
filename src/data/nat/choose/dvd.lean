@@ -50,6 +50,6 @@ end
 
 lemma cast_add_choose (α : Type*) [field α] [char_zero α] {a b : ℕ} :
   ((a + b).choose a : α) = (a + b)! / (a! * b!) :=
-by rw [cast_choose α (le_add_right a b), nat.add_sub_cancel_left, mul_comm]
+by rw [cast_choose α (le_add_right le_rfl), nat.add_sub_cancel_left, mul_comm]
 
 end nat

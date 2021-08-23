@@ -36,12 +36,6 @@ Generally useful lemmas which are not related to integrals:
 * `ae_eq_zero_of_forall_dual`: if for all constants `c` in the dual space, `λ x, c (f x) =ᵐ[μ] 0`
   then `f =ᵐ[μ] 0`.
 
-## TODO(s)
-
-* Extend the results from a Hilbert space to a Banach space. Most lemmas about inner products
-  should be equally valid about the product with an element of the dual and
-  `ae_eq_zero_of_forall_dual` should be used instead of `ae_eq_zero_of_forall_inner`.
-
 -/
 
 open measure_theory topological_space normed_space filter
@@ -112,10 +106,11 @@ variables {𝕜}
 end ae_eq_of_forall
 
 
-variables {α 𝕜 E : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+variables {α E : Type*}
   {m m0 : measurable_space α} {μ : measure α} {s t : set α}
-  [inner_product_space 𝕜 E] [measurable_space E] [borel_space E] [second_countable_topology E]
-  [complete_space E] [normed_space ℝ E]
+  [normed_group E] [normed_space ℝ E]
+  [measurable_space E] [borel_space E] [second_countable_topology E]
+  [complete_space E]
   {p : ℝ≥0∞}
 
 section ae_eq_of_forall_set_integral_eq
@@ -297,47 +292,19 @@ end
 
 end real
 
-lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero_R_or_C {f : α → 𝕜}
-  (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
-  (hf_zero : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
-  {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
-  f =ᵐ[μ.restrict t] 0 :=
-begin
-  suffices h_re_im : (∀ᵐ x ∂(μ.restrict t), is_R_or_C.re (f x) = 0)
-    ∧ ∀ᵐ x ∂(μ.restrict t), is_R_or_C.im (f x) = 0,
-  { rw ← eventually_and at h_re_im,
-    refine h_re_im.mono (λ x hx, _),
-    rwa [is_R_or_C.ext_iff, pi.zero_apply, add_monoid_hom.map_zero, add_monoid_hom.map_zero], },
-  have hf_re : ∀ s, measurable_set s → μ s < ∞ → integrable_on (λ x, is_R_or_C.re (f x)) s μ,
-    from λ s hs hμs, (hf_int_finite s hs hμs).re,
-  have hf_im : ∀ s, measurable_set s → μ s < ∞ → integrable_on (λ x, is_R_or_C.im (f x)) s μ,
-    from λ s hs hμs, (hf_int_finite s hs hμs).im,
-  have hf_zero_re : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, is_R_or_C.re (f x) ∂μ = 0,
-  { intros s hs hμs,
-    rw [integral_re (hf_int_finite s hs hμs), hf_zero s hs hμs, is_R_or_C.zero_re'], },
-  have hf_zero_im : ∀ s, measurable_set s → μ s < ∞ → ∫ x in s, is_R_or_C.im (f x) ∂μ = 0,
-  { intros s hs hμs,
-    rw [integral_im (hf_int_finite s hs hμs), hf_zero s hs hμs],
-    simp only [add_monoid_hom.map_zero], },
-  exact ⟨ae_eq_zero_restrict_of_forall_set_integral_eq_zero_real hf_re hf_zero_re ht hμt,
-    ae_eq_zero_restrict_of_forall_set_integral_eq_zero_real hf_im hf_zero_im ht hμt⟩,
-end
-
-variables [is_scalar_tower ℝ 𝕜 E]
-include 𝕜
-
 lemma ae_eq_zero_restrict_of_forall_set_integral_eq_zero {f : α → E}
   (hf_int_finite : ∀ s, measurable_set s → μ s < ∞ → integrable_on f s μ)
   (hf_zero : ∀ s : set α, measurable_set s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
   {t : set α} (ht : measurable_set t) (hμt : μ t ≠ ∞) :
   f =ᵐ[μ.restrict t] 0 :=
 begin
-  refine ae_eq_zero_of_forall_inner (λ c, _),
-  refine ae_eq_zero_restrict_of_forall_set_integral_eq_zero_R_or_C _ _ ht hμt,
-  { exact λ s hs hμs, (hf_int_finite s hs hμs).const_inner c, },
-  { intros s hs hμs,
-    rw integral_inner (hf_int_finite s hs hμs) c,
-    simp [hf_zero s hs hμs], },
+  refine ae_eq_zero_of_forall_dual ℝ (λ c, _),
+  refine ae_eq_zero_restrict_of_forall_set_integral_eq_zero_real _ _ ht hμt,
+  { assume s hs hμs,
+    exact continuous_linear_map.integrable_comp c (hf_int_finite s hs hμs) },
+  { assume s hs hμs,
+    rw [continuous_linear_map.integral_comp_comm c (hf_int_finite s hs hμs), hf_zero s hs hμs],
+    exact continuous_linear_map.map_zero _ }
 end
 
 lemma ae_eq_restrict_of_forall_set_integral_eq {f g : α → E}
@@ -502,7 +469,6 @@ begin
   exact integrable.ae_eq_zero_of_forall_set_integral_eq_zero (hf.sub hg) hfg',
 end
 
-omit 𝕜
 end ae_eq_of_forall_set_integral_eq
 
 end measure_theory

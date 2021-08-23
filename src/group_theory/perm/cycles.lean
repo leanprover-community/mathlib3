@@ -327,10 +327,10 @@ def same_cycle (f : perm β) (x y : β) : Prop := ∃ i : ℤ, (f ^ i) x = y
 
 @[refl] lemma same_cycle.refl (f : perm β) (x : β) : same_cycle f x x := ⟨0, rfl⟩
 
-@[symm] lemma same_cycle.symm (f : perm β) {x y : β} : same_cycle f x y → same_cycle f y x :=
+@[symm] lemma same_cycle.symm {f : perm β} {x y : β} : same_cycle f x y → same_cycle f y x :=
 λ ⟨i, hi⟩, ⟨-i, by rw [gpow_neg, ← hi, inv_apply_self]⟩
 
-@[trans] lemma same_cycle.trans (f : perm β) {x y z : β} :
+@[trans] lemma same_cycle.trans {f : perm β} {x y z : β} :
   same_cycle f x y → same_cycle f y z → same_cycle f x z :=
 λ ⟨i, hi⟩ ⟨j, hj⟩, ⟨j + i, by rw [gpow_add, mul_apply, hi, hj]⟩
 
@@ -583,6 +583,16 @@ lemma same_cycle.cycle_of_apply [fintype α] {f : perm α} {x y : α} (h : same_
 lemma cycle_of_apply_of_not_same_cycle [fintype α] {f : perm α} {x y : α} (h : ¬same_cycle f x y) :
   cycle_of f x y = y := dif_neg h
 
+lemma same_cycle.cycle_of_eq [fintype α] {f : perm α} {x y : α} (h : same_cycle f x y) :
+  cycle_of f x = cycle_of f y :=
+begin
+  ext z,
+  rw cycle_of_apply,
+  split_ifs with hz hz,
+  { exact (h.symm.trans hz).cycle_of_apply.symm },
+  { exact (cycle_of_apply_of_not_same_cycle (mt h.trans hz)).symm }
+end
+
 @[simp] lemma cycle_of_apply_apply_gpow_self [fintype α] (f : perm α) (x : α) (k : ℤ) :
   cycle_of f x ((f ^ k) x) = (f ^ (k + 1)) x :=
 begin
@@ -617,6 +627,29 @@ begin
   { exact if_neg (mt same_cycle.apply_eq_self_iff (by tauto)) },
 end
 
+@[simp] lemma cycle_of_self_apply [fintype α] (f : perm α) (x : α) :
+  cycle_of f (f x) = cycle_of f x :=
+begin
+  rw (same_cycle.symm _).cycle_of_eq,
+  rw same_cycle_apply
+end
+
+@[simp] lemma cycle_of_self_apply_pow [fintype α] (f : perm α) (n : ℕ) (x : α) :
+  cycle_of f ((f ^ n) x) = cycle_of f x :=
+begin
+  rw same_cycle.cycle_of_eq,
+  rw same_cycle_pow_left_iff
+end
+
+@[simp] lemma cycle_of_self_apply_gpow [fintype α] (f : perm α) (n : ℤ) (x : α) :
+  cycle_of f ((f ^ n) x) = cycle_of f x :=
+begin
+  cases n,
+  { exact cycle_of_self_apply_pow _ _ _ },
+  { rw same_cycle.cycle_of_eq,
+    rw [gpow_neg_succ_of_nat, ←inv_pow, ←same_cycle_inv, same_cycle_pow_left_iff] }
+end
+
 lemma is_cycle.cycle_of [fintype α] {f : perm α} (hf : is_cycle f) {x : α} :
   cycle_of f x = if f x = x then 1 else f :=
 begin
@@ -636,6 +669,22 @@ have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
   let ⟨i, hi⟩ := hxy in
   ⟨i, by rw [cycle_of_gpow_apply_self, hi]⟩
   else by { rw [cycle_of_apply_of_not_same_cycle hxy] at h, exact (h rfl).elim }⟩
+
+@[simp] lemma two_le_card_support_cycle_of_iff [fintype α] {f : perm α} {x : α} :
+  2 ≤ card (cycle_of f x).support ↔ f x ≠ x :=
+begin
+  refine ⟨λ h, _, λ h, by simpa using (is_cycle_cycle_of _ h).two_le_card_support⟩,
+  contrapose! h,
+  rw ←cycle_of_eq_one_iff at h,
+  simp [h]
+end
+
+@[simp] lemma card_support_cycle_of_pos_iff [fintype α] {f : perm α} {x : α} :
+  0 < card (cycle_of f x).support ↔ f x ≠ x :=
+begin
+  rw [←two_le_card_support_cycle_of_iff, ←nat.succ_le_iff],
+  exact ⟨λ h, or.resolve_left h.eq_or_lt (card_support_ne_one _).symm, zero_lt_two.trans_le⟩
+end
 
 lemma pow_apply_eq_pow_mod_order_of_cycle_of_apply [fintype α] (f : perm α) (n : ℕ) (x : α) :
   (f ^ n) x = (f ^ (n % order_of (cycle_of f x))) x :=
@@ -668,6 +717,16 @@ lemma support_cycle_of_eq_nil_iff [fintype α] {f : perm α} {x : α} :
   (f.cycle_of x).support = ∅ ↔ x ∉ f.support :=
 by simp
 
+lemma support_cycle_of_le [fintype α] (f : perm α) (x : α) :
+  support (f.cycle_of x) ≤ support f :=
+begin
+  intros y hy,
+  rw [mem_support, cycle_of_apply] at hy,
+  split_ifs at hy,
+  { exact mem_support.mpr hy },
+  { exact absurd rfl hy }
+end
+
 lemma mem_support_cycle_of_iff [fintype α] {f : perm α} {x y : α} :
   y ∈ support (f.cycle_of x) ↔ same_cycle f x y ∧ x ∈ support f :=
 begin
@@ -681,6 +740,20 @@ begin
       rw ←not_mem_support,
       simpa using hx },
     { simpa [hx] using hy } }
+end
+
+lemma same_cycle.mem_support_iff [fintype α] {f : perm α} {x y : α} (h : same_cycle f x y) :
+  x ∈ support f ↔ y ∈ support f :=
+⟨λ hx, support_cycle_of_le f x (mem_support_cycle_of_iff.mpr ⟨h, hx⟩),
+ λ hy, support_cycle_of_le f y (mem_support_cycle_of_iff.mpr ⟨h.symm, hy⟩)⟩
+
+lemma pow_mod_card_support_cycle_of_self_apply [fintype α] (f : perm α) (n : ℕ) (x : α) :
+  (f ^ (n % (f.cycle_of x).support.card)) x = (f ^ n) x :=
+begin
+  by_cases hx : f x = x,
+  { rw [pow_apply_eq_self_of_apply_eq_self hx, pow_apply_eq_self_of_apply_eq_self hx] },
+  { rw [←cycle_of_pow_apply_self, ←cycle_of_pow_apply_self f,
+        ←order_of_is_cycle (is_cycle_cycle_of f hx), ←pow_eq_mod_order_of] }
 end
 
 /-!

@@ -1022,14 +1022,14 @@ instance apply_mul_semiring_action : mul_semiring_action (A₁ ≃ₐ[R] A₁) A
 
 @[simp] protected lemma smul_def (f : A₁ ≃ₐ[R] A₁) (a : A₁) : f • a = f a := rfl
 
+instance apply_has_faithful_scalar : has_faithful_scalar (A₁ ≃ₐ[R] A₁) A₁ :=
+⟨λ _ _, alg_equiv.ext⟩
+
 instance apply_smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
 { smul_comm := λ r e a, (e.to_linear_equiv.map_smul r a).symm }
 
 instance apply_smul_comm_class' : smul_comm_class (A₁ ≃ₐ[R] A₁) R A₁ :=
 { smul_comm := λ e r a, (e.to_linear_equiv.map_smul r a) }
-
-instance apply_has_faithful_scalar : has_faithful_scalar (A₁ ≃ₐ[R] A₁) A₁ :=
-⟨λ _ _, alg_equiv.ext⟩
 
 end semiring
 

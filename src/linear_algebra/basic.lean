@@ -2903,15 +2903,15 @@ instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
 @[simp] protected lemma smul_def (f : M ≃ₗ[R] M) (a : M) :
   f • a = f a := rfl
 
+/-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+⟨λ _ _, linear_equiv.ext⟩
+
 instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=
 { smul_comm := λ r e m, (e.map_smul r m).symm }
 
 instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
 { smul_comm := linear_equiv.map_smul }
-
-/-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
-instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
-⟨λ _ _, linear_equiv.ext⟩
 
 end linear_equiv
 

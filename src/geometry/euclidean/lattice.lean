@@ -81,6 +81,8 @@ def mk (x : P) : square_lattice P := ⟨orbit (ℤ × ℤ) x, x, rfl⟩
 
 @[simp] lemma points_mk (x : P) : (square_lattice.mk x).points = orbit (ℤ × ℤ) x := rfl
 
+noncomputable instance : inhabited (square_lattice P) := ⟨mk (classical.arbitrary P)⟩
+
 /-- A `square_lattice` in a Euclidean affine plane modelled on `ℂ` is nonempty. -/
 lemma points_nonempty (Λ : square_lattice P) : Λ.points.nonempty :=
 (orbit_rel (ℤ × ℤ) P).mem_nonempty (subtype.property Λ)

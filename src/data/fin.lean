@@ -695,6 +695,10 @@ begin
   exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
 
+lemma fin.succ_cast_succ {n : ℕ} (i : fin n) :
+  i.cast_succ.succ = i.succ.cast_succ :=
+fin.ext (by simp)
+
 /-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=
 order_embedding.of_strict_mono (λ i, ⟨(i : ℕ) + m, add_lt_add_right i.2 _⟩) $

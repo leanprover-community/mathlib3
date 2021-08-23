@@ -1626,6 +1626,14 @@ lemma ker_quot_left_to_quot_sup :
 begin
   ext x,
   split,
+    {intro hx,
+    obtain ⟨y, hy⟩ := quotient.mk_surjective x,
+    rw [ring_hom.mem_ker, ← hy,quot_left_to_quot_sup, ideal.quotient.factor_mk, ← ring_hom.mem_ker,
+     mk_ker] at hx,
+    replace hx := (mem_map_of_mem (I^.quotient.mk)) hx,
+    have :  I.map I^.quotient.mk = ⊥ := by rw [map_eq_bot_iff_le_ker, mk_ker] ; exact le_refl I,
+    rw [map_sup, this, bot_sup_eq, hy] at hx,
+    exact hx},
    {intro hx,
     have hIJmap: ((quot_left_to_quot_sup I J).comp(ideal.quotient.mk I) '' J) =
     (ideal.quotient.mk (I ⊔ J) '' J),
@@ -1654,21 +1662,13 @@ begin
         exact (set.mem_image_of_mem (quot_left_to_quot_sup I J) hx)},
     have : J.map(ideal.quotient.mk(I ⊔ J)) = ⊥ :=  map_mk_eq_bot_of_le le_sup_right,
     rwa [hJ,this] at hmapx},
-    {intro hx,
-    obtain ⟨y, hy⟩ := quotient.mk_surjective x,
-    rw [ring_hom.mem_ker, ← hy,quot_left_to_quot_sup, ideal.quotient.factor_mk, ← ring_hom.mem_ker,
-     mk_ker] at hx,
-    replace hx := (mem_map_of_mem (I^.quotient.mk)) hx,
-    have :  I.map I^.quotient.mk = ⊥ := by rw [map_eq_bot_iff_le_ker, mk_ker] ; exact le_refl I,
-    rw [map_sup, this, bot_sup_eq, hy] at hx,
-    exact hx},
 end
 
 /-- define `double_quot_to_quot_add` to be the induced ring hom `(R/I)/J' ->R/(I ⊔ J)`,
   where `J'` is the image of `J` in `R/I` -/
 def double_quot_to_quot_sup : (J.map (ideal.quotient.mk I)).quotient →+* (I ⊔ J).quotient :=
 ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sup I J)
-  (map_mk_le_ker_quot_left_to_quot_sup I J).le
+  (ker_quot_left_to_quot_sup I J).symm.le
 
 /-- define `double_quot_mk` to be the composite of the maps `R → (R/I) and (R/I) → (R/I)/J'` -/
 def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient:=

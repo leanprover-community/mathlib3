@@ -239,15 +239,16 @@ set_integral_nonneg_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
 end nonneg
 
 lemma set_integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
-  {s t : set α} {f : α → ℝ} (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
+  {s t : set α} {f : α → ℝ} (hfi : integrable_on f t μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
 begin
-  repeat { rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
-            (hfi.1.mono_measure measure.restrict_le_self) },
+  have hfi' : integrable_on f s μ := hfi.mono_set_ae hst,
+  rw [integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf) hfi'.1,
+      integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf) hfi.1],
   rw ennreal.to_real_le_to_real
-    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2)
-    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2),
-  exact (lintegral_mono_set' hst),
+    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi'.2)
+    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.2),
+  exact (lintegral_mono_set' hst)
 end
 
 

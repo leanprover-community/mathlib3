@@ -694,10 +694,10 @@ ext $ λ x, by simp only [mem_union, or_assoc]
 
 instance : is_associative (finset α) (∪) := ⟨union_assoc⟩
 
-@[simp] theorem union_idempotent (s : finset α) : s ∪ s = s :=
+@[simp] theorem union_self (s : finset α) : s ∪ s = s :=
 ext $ λ _, mem_union.trans $ or_self _
 
-instance : is_idempotent (finset α) (∪) := ⟨union_idempotent⟩
+instance : is_idempotent (finset α) (∪) := ⟨union_self⟩
 
 theorem union_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) :=
 ext $ λ _, by simp only [mem_union, or.left_comm]
@@ -705,7 +705,6 @@ ext $ λ _, by simp only [mem_union, or.left_comm]
 theorem union_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃ = (s₁ ∪ s₃) ∪ s₂ :=
 ext $ λ x, by simp only [mem_union, or_assoc, or_comm (x ∈ s₂)]
 
-theorem union_self (s : finset α) : s ∪ s = s := union_idempotent s
 
 @[simp] theorem union_empty (s : finset α) : s ∪ ∅ = s :=
 ext $ λ x, mem_union.trans $ or_false _
@@ -1671,7 +1670,7 @@ finset.ext $ by simp
   begin
     by_cases n = 0,
     { rw [h, zero_add, one_nsmul] },
-    { rw [add_nsmul, to_finset_add, one_nsmul, to_finset_nsmul n h, finset.union_idempotent] }
+    { rw [add_nsmul, to_finset_add, one_nsmul, to_finset_nsmul n h, finset.union_self] }
   end
 
 @[simp] lemma to_finset_inter (s t : multiset α) :

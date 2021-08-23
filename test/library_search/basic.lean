@@ -131,4 +131,16 @@ example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by library_search
 theorem nonzero_gt_one (n : ℕ) : ¬ n = 0 → n ≥ 1 :=
 by library_search!   -- `exact nat.pos_of_ne_zero`
 
+example (L : list (list ℕ)) : list ℕ :=
+by library_search using L
+
+example (n m : ℕ) : ℕ :=
+by library_search using n m
+
+example (P Q : list ℕ) (h : ℕ) : list ℕ :=
+by library_search using h Q
+
+example (P Q : list ℕ) (h : ℕ) : list ℕ :=
+by library_search using P Q
+
 end test.library_search

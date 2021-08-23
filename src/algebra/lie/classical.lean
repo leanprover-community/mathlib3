@@ -67,7 +67,6 @@ namespace lie_algebra
 open_locale matrix
 
 variables (n p q l : Type*) (R : Type u₂)
---variables [fintype n] [fintype l] [fintype p] [fintype q]
 variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 

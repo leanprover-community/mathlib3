@@ -801,6 +801,31 @@ by cases i; refl
   @fin.cases n C H0 Hs ⟨i.succ, h⟩ = Hs ⟨i, lt_of_succ_lt_succ h⟩ :=
 by cases i; refl
 
+/-- Define `f : Π i : fin n.succ, C i` by separately handling the cases `i = fin.last n` and
+`i = j.cast_succ`, `j : fin n`. -/
+@[elab_as_eliminator, elab_strategy]
+def last_cases {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin (n + 1)) : C i :=
+if hi : i = fin.last _
+then _root_.cast (by rw hi) hlast
+else have hi : i = fin.cast_succ ⟨i, lt_of_le_of_ne (nat.le_of_lt_succ i.2)
+    (λ h, hi (fin.ext h))⟩, from fin.ext rfl,
+  _root_.cast (by rw hi) (hcast _)
+
+@[simp] lemma last_cases_last {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) :
+  (fin.last_cases hlast hcast (fin.last n): C (fin.last n)) = hlast :=
+by simp [fin.last_cases]
+
+@[simp] lemma last_cases_cast_succ {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin n) :
+  (fin.last_cases hlast hcast (fin.cast_succ i): C (fin.cast_succ i)) = hcast i :=
+begin
+  simp only [fin.last_cases, dif_neg (ne_of_lt (fin.cast_succ_lt_last i)), cast_eq],
+  congr,
+  simp,
+end
+
 lemma forall_fin_succ {P : fin (n+1) → Prop} :
   (∀ i, P i) ↔ P 0 ∧ (∀ i:fin n, P i.succ) :=
 ⟨λ H, ⟨H 0, λ i, H _⟩, λ ⟨H0, H1⟩ i, fin.cases H0 H1 i⟩

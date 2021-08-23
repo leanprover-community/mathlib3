@@ -3178,7 +3178,7 @@ begin
   obtain ⟨s : set α, hsc : is_compact s, hsf : ∀ x ∉ s, f (default α) ≤ f x⟩ :=
     (has_basis_cocompact.tendsto_iff at_top_basis).1 hlim (f $ default α) trivial,
   obtain ⟨x, -, hx⟩ :=
-    (hsc.insert (default α)).exists_forall_le (nonempty_insert _ _) hf.continuous_on,
+    (hsc.insert (default α)).exists_forall_le (insert_nonempty _ _) hf.continuous_on,
   refine ⟨x, λ y, _⟩,
   by_cases hy : y ∈ s,
   exacts [hx y (or.inr hy), (hx _ (or.inl rfl)).trans (hsf y hy)]

@@ -211,6 +211,10 @@ begin
   apply dim_range_le,
 end
 
+theorem dim_quotient_le (p : submodule R M) :
+  module.rank R p.quotient ≤ module.rank R M :=
+(mkq p).dim_le_of_surjective (surjective_quot_mk _)
+
 variables [nontrivial R]
 
 lemma {m} cardinal_lift_le_dim_of_linear_independent
@@ -701,6 +705,13 @@ theorem basis.mk_range_eq_dim (v : basis ι R M) :
   cardinal.mk (range v) = module.rank R M :=
 v.reindex_range.mk_eq_dim''
 
+/-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
+cardinality of the basis. -/
+lemma dim_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι R M) :
+  module.rank R M = fintype.card ι :=
+by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
+       set.card_range_of_injective h.injective]
+
 theorem basis.mk_eq_dim (v : basis ι R M) :
   cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (module.rank R M) :=
 by rw [←v.mk_range_eq_dim, cardinal.mk_range_eq_of_injective v.injective]
@@ -846,10 +857,6 @@ variables {K V}
 theorem dim_quotient_add_dim (p : submodule K V) :
   module.rank K p.quotient + module.rank K p = module.rank K V :=
 by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
-
-theorem dim_quotient_le (p : submodule K V) :
-  module.rank K p.quotient ≤ module.rank K V :=
-by { rw ← dim_quotient_add_dim p, exact self_le_add_right _ _ }
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : V →ₗ[K] V₁) :

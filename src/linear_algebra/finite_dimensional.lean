@@ -66,6 +66,9 @@ and the equivalence between left-inverse and right-inverse in `mul_eq_one_comm` 
 Most results are deduced from the corresponding results for the general dimension (as a cardinal),
 in `dimension.lean`. Not all results have been ported yet.
 
+Much of this file could be generalised away from fields or division rings.
+You should not assume that there has been any effort to state lemmas as generally as possible.
+
 One of the characterizations of finite-dimensionality is in terms of finite generation. This
 property is currently defined only for submodules, so we express it through the fact that the
 maximal submodule (which, as a set, coincides with the whole space) is finitely generated. This is
@@ -80,18 +83,20 @@ open_locale classical
 
 open cardinal submodule module function
 
-variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
-{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
-
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
 Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
 from a conventional definition. -/
-@[reducible] def finite_dimensional (K V : Type*) [field K]
+@[reducible] def finite_dimensional (K V : Type*) [division_ring K]
   [add_comm_group V] [module K V] := is_noetherian K V
 
 namespace finite_dimensional
 
 open is_noetherian
+
+section division_ring
+
+variables (K : Type u) (V : Type v) [division_ring K] [add_comm_group V] [module K V]
+{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
 variables (K V)
 
@@ -112,9 +117,8 @@ lemma of_finite_basis {ι : Type w} {s : set ι} (h : basis s K V) (hs : set.fin
   finite_dimensional K V :=
 by haveI := hs.fintype; exact of_fintype_basis h
 
--- TODO: why do we have to specify `.{w}` explicitly here?
 /-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finset_basis {ι : Type w} {s : finset ι} (h : basis.{w} s K V) :
+lemma of_finset_basis {ι : Type w} {s : finset ι} (h : basis s K V) :
   finite_dimensional K V :=
 of_finite_basis h s.finite_to_set
 
@@ -135,13 +139,13 @@ Defined by convention to be `0` if the space has infinite rank.
 For a vector space `V` over a field `K`, this is the same as the finite dimension
 of `V` over `K`.
 -/
-noncomputable def finrank (K V : Type*) [field K]
+noncomputable def finrank (K V : Type*) [division_ring K]
   [add_comm_group V] [module K V] : ℕ :=
 (module.rank K V).to_nat
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its
 `finrank`. -/
-lemma finrank_eq_dim (K : Type u) (V : Type v) [field K]
+lemma finrank_eq_dim (K : Type u) (V : Type v) [division_ring K]
   [add_comm_group V] [module K V] [finite_dimensional K V] :
   (finrank K V : cardinal.{v}) = module.rank K V :=
 by rw [finrank, cast_to_nat_of_lt_omega (dim_lt_omega K V)]
@@ -153,27 +157,21 @@ begin
   exact_mod_cast h,
 end
 
-lemma finrank_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [module K V]
+lemma finrank_of_infinite_dimensional
+  {K V : Type*} [division_ring K] [add_comm_group V] [module K V]
   (h : ¬finite_dimensional K V) : finrank K V = 0 :=
 dif_neg $ mt is_noetherian.iff_dim_lt_omega.2 h
 
-lemma finite_dimensional_of_finrank {K V : Type*} [field K] [add_comm_group V] [module K V]
+lemma finite_dimensional_of_finrank {K V : Type*} [division_ring K] [add_comm_group V] [module K V]
   (h : 0 < finrank K V) : finite_dimensional K V :=
 by { contrapose h, simp [finrank_of_infinite_dimensional h] }
 
 /-- We can infer `finite_dimensional K V` in the presence of `[fact (finrank K V = n + 1)]`. Declare
 this as a local instance where needed. -/
-lemma finite_dimensional_of_finrank_eq_succ {K V : Type*} [field K] [add_comm_group V]
+lemma finite_dimensional_of_finrank_eq_succ {K V : Type*} [division_ring K] [add_comm_group V]
   [module K V] (n : ℕ) [fact (finrank K V = n + 1)] :
   finite_dimensional K V :=
 finite_dimensional_of_finrank $ by convert nat.succ_pos n; apply fact.out
-
-/-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
-cardinality of the basis. -/
-lemma dim_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
-  module.rank K V = fintype.card ι :=
-by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
-       set.card_range_of_injective h.injective]
 
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. -/
@@ -231,28 +229,6 @@ lemma basis_unique.repr_eq_zero_iff {ι : Type*} [unique ι] {h : finrank K V = 
 ⟨λ hv, (basis_unique ι h).repr.map_eq_zero_iff.mp (finsupp.ext $ λ j, subsingleton.elim i j ▸ hv),
  λ hv, by rw [hv, linear_equiv.map_zero, finsupp.zero_apply]⟩
 
-/-- In a vector space with dimension 1, each set {v} is a basis for `v ≠ 0`. -/
-noncomputable def basis_singleton (ι : Type*) [unique ι]
-  (h : finrank K V = 1) (v : V) (hv : v ≠ 0) :
-  basis ι K V :=
-let b := basis_unique ι h in
-b.map (linear_equiv.smul_of_unit (units.mk0
-  (b.repr v (default ι))
-  (mt basis_unique.repr_eq_zero_iff.mp hv)))
-
-@[simp] lemma basis_singleton_apply (ι : Type*) [unique ι]
-  (h : finrank K V = 1) (v : V) (hv : v ≠ 0) (i : ι) :
-  basis_singleton ι h v hv i = v :=
-calc basis_singleton ι h v hv i
-    = (((basis_unique ι h).repr) v) (default ι) • (basis_unique ι h) (default ι) :
-      by simp [subsingleton.elim i (default ι), basis_singleton, linear_equiv.smul_of_unit]
-... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
-
-@[simp] lemma range_basis_singleton (ι : Type*) [unique ι]
-  (h : finrank K V = 1) (v : V) (hv : v ≠ 0) :
-  set.range (basis_singleton ι h v hv) = {v} :=
-by rw [set.range_unique, basis_singleton_apply]
-
 lemma cardinal_mk_le_finrank_of_linear_independent
   [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : linear_independent K b) :
   cardinal.mk ι ≤ finrank K V :=
@@ -295,28 +271,6 @@ begin
   contradiction
 end
 
-/-- A finite dimensional space has positive `finrank` iff it has a nonzero element. -/
-lemma finrank_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < finrank K V ↔ ∃ x : V, x ≠ 0 :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)
-
-/-- A finite dimensional space has positive `finrank` iff it is nontrivial. -/
-lemma finrank_pos_iff [finite_dimensional K V] : 0 < finrank K V ↔ nontrivial V :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _)
-
-/-- A nontrivial finite dimensional space has positive `finrank`. -/
-lemma finrank_pos [finite_dimensional K V] [h : nontrivial V] : 0 < finrank K V :=
-finrank_pos_iff.mpr h
-
-/-- A finite dimensional space has zero `finrank` iff it is a subsingleton.
-This is the `finrank` version of `dim_zero_iff`. -/
-lemma finrank_zero_iff [finite_dimensional K V] :
-  finrank K V = 0 ↔ subsingleton V :=
-iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
-
-/-- A finite dimensional space that is a subsingleton has zero `finrank`. -/
-lemma finrank_zero_of_subsingleton [h : subsingleton V] :
-  finrank K V = 0 :=
-finrank_zero_iff.2 h
 
 section
 open_locale big_operators
@@ -443,6 +397,58 @@ end
 
 end
 
+end division_ring
+
+section field
+
+variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
+{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
+
+/-- In a vector space with dimension 1, each set {v} is a basis for `v ≠ 0`. -/
+noncomputable def basis_singleton (ι : Type*) [unique ι]
+  (h : finrank K V = 1) (v : V) (hv : v ≠ 0) :
+  basis ι K V :=
+let b := basis_unique ι h in
+b.map (linear_equiv.smul_of_unit (units.mk0
+  (b.repr v (default ι))
+  (mt basis_unique.repr_eq_zero_iff.mp hv)))
+
+@[simp] lemma basis_singleton_apply (ι : Type*) [unique ι]
+  (h : finrank K V = 1) (v : V) (hv : v ≠ 0) (i : ι) :
+  basis_singleton ι h v hv i = v :=
+calc basis_singleton ι h v hv i
+    = (((basis_unique ι h).repr) v) (default ι) • (basis_unique ι h) (default ι) :
+      by simp [subsingleton.elim i (default ι), basis_singleton, linear_equiv.smul_of_unit]
+... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
+
+@[simp] lemma range_basis_singleton (ι : Type*) [unique ι]
+  (h : finrank K V = 1) (v : V) (hv : v ≠ 0) :
+  set.range (basis_singleton ι h v hv) = {v} :=
+by rw [set.range_unique, basis_singleton_apply]
+
+/-- A finite dimensional space has positive `finrank` iff it has a nonzero element. -/
+lemma finrank_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < finrank K V ↔ ∃ x : V, x ≠ 0 :=
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)
+
+/-- A finite dimensional space has positive `finrank` iff it is nontrivial. -/
+lemma finrank_pos_iff [finite_dimensional K V] : 0 < finrank K V ↔ nontrivial V :=
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _)
+
+/-- A nontrivial finite dimensional space has positive `finrank`. -/
+lemma finrank_pos [finite_dimensional K V] [h : nontrivial V] : 0 < finrank K V :=
+finrank_pos_iff.mpr h
+
+/-- A finite dimensional space has zero `finrank` iff it is a subsingleton.
+This is the `finrank` version of `dim_zero_iff`. -/
+lemma finrank_zero_iff [finite_dimensional K V] :
+  finrank K V = 0 ↔ subsingleton V :=
+iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_zero_iff K V _ _ _)
+
+/-- A finite dimensional space that is a subsingleton has zero `finrank`. -/
+lemma finrank_zero_of_subsingleton [h : subsingleton V] :
+  finrank K V = 0 :=
+finrank_zero_iff.2 h
+
 lemma basis.subset_extend {s : set V} (hs : linear_independent K (coe : s → V)) :
   s ⊆ hs.extend (set.subset_univ _) :=
 hs.subset_extend _
@@ -505,7 +511,12 @@ is_noetherian_span_of_finite K hA
 /-- The submodule generated by a single element is finite-dimensional. -/
 instance (x : V) : finite_dimensional K (K ∙ x) := by {apply span_of_finite, simp}
 
+end field
+
 end finite_dimensional
+
+variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
+{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
 section zero_dim
 

@@ -126,7 +126,7 @@ instance has_coe_to_general_linear_group : has_coe (special_linear_group n R) (G
 
 end special_linear_group
 
-namespace GL_plus
+section
 
 variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
 
@@ -142,13 +142,11 @@ end
 
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
 
-end GL_plus
+end
 
 namespace special_linear_group
 
 variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [linear_ordered_comm_ring R]
-
-open GL_plus
 
 /-- `special_linear_group n R` embeds into `GL_pos n R` -/
 def to_GL_pos : special_linear_group n R →* GL_pos n R :=
@@ -159,6 +157,20 @@ def to_GL_pos : special_linear_group n R →* GL_pos n R :=
 instance : has_coe (special_linear_group n R) (GL_pos n R) := ⟨to_GL_pos⟩
 
 lemma coe_eq_to_GL_pos : (coe : special_linear_group n R → GL_pos n R) = to_GL_pos := rfl
+
+lemma to_GL_pos_is_injective:
+function.injective (to_GL_pos : special_linear_group n R → GL_pos n R):=
+begin
+  intros a₁ a₂ ha,
+  cases a₂,
+  cases a₁,
+  simp at *,
+  ext1,
+  injections_and_clear,
+  injections_and_clear,
+  dsimp at *,
+  rw h_2,
+end
 
 end special_linear_group
 end matrix

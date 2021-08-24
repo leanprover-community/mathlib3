@@ -324,10 +324,10 @@ begin
     exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
 end
 
-instance is_nilpotent_subgroup_of_nilpotent_group [nilpotent G] : is_nilpotent H :=
+instance is_nilpotent_subgroup_of_nilpotent_group [hG : is_nilpotent G] : is_nilpotent H :=
 begin
-  rw [nilpotent_iff_lower_central_series, nilpotent_iff_lower_central_series],
-  rintro ⟨n, hG⟩,
+  rw nilpotent_iff_lower_central_series at *,
+  unfreezingI { rcases hG with ⟨n, hG⟩ },
   use n,
   rw [eq_bot_iff, set_like.le_def],
   have := lower_central_series_subgroup_le_lower_central_series_group H n,

@@ -112,7 +112,7 @@ begin
     ext n,
     cases n, { simp [h0] },
     simp only [n.succ_ne_zero, one_div, cast_one, nat_coe_apply, complex.abs_cpow_real, inv_inj',
-      complex.abs_inv, if_false, zeta_apply, complex.norm_eq_abs, complex.abs_of_nat] }
+      complex.abs_inv, if_false, zeta_apply, complex.norm_eq_abs, complex.abs_cast_nat] }
 end
 
 @[simp] theorem l_series_add {f g : arithmetic_function ℂ} {z : ℂ}

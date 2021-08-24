@@ -683,12 +683,8 @@ lemma condexp_L2_const_inner (hm : m ≤ m0) (f : Lp E 2 μ) (c : E) :
 begin
   rw Lp_meas_coe,
   have h_mem_Lp : mem_ℒp (λ a, ⟪c, condexp_L2 𝕜 hm f a⟫) 2 μ,
-  { refine mem_ℒp.const_inner _ _,
-    rw Lp_meas_coe,
-    exact Lp.mem_ℒp _, },
-  let inner_condexp_Lp := h_mem_Lp.to_Lp _,
-  have h_eq : inner_condexp_Lp =ᵐ[μ] λ a, ⟪c, condexp_L2 𝕜 hm f a⟫,
-    from h_mem_Lp.coe_fn_to_Lp,
+  { refine mem_ℒp.const_inner _ _, rw Lp_meas_coe, exact Lp.mem_ℒp _, },
+  have h_eq : h_mem_Lp.to_Lp _ =ᵐ[μ] λ a, ⟪c, condexp_L2 𝕜 hm f a⟫, from h_mem_Lp.coe_fn_to_Lp,
   refine eventually_eq.trans _ h_eq,
   refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ ennreal.zero_lt_two.ne.symm ennreal.coe_ne_top
     (λ s hs hμs, integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _) _ _ _ _,

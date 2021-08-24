@@ -273,7 +273,17 @@ begin
   { obtain hcz | hcz := eq_or_ne (nth p (count (λ k, p (k + 1)) n + if p 0 then 1 else 0)) 0,
     { exfalso,
       rw ←count_succ' at hcz,
-      -- nth zero, but we have p (n.succ) which means that's bullshit
+      have hcz' := hcz,
+      rw [nth_def, Inf_eq_zero] at hcz,
+      dsimp at hcz,
+      obtain _ | hcz := hcz,
+      { tauto },
+      rw set.eq_empty_iff_forall_not_mem at hcz,
+      specialize hcz n.succ,
+      apply hcz,
+      refine ⟨h, _⟩,
+      /- ⊢ ∀ (k : ℕ), k < count p (n + 1) → nth p k < n.succ,
+      but we have hcz' : nth p (count p (n + 1)) = 0 -/
       sorry },
     { simp [h'] at ⊢ hcz,
       rw nth_of_not_zero _ h' _ hcz,

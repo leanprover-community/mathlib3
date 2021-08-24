@@ -346,7 +346,7 @@ theorem second_derivative_symmetric_of_eventually
 begin
   rcases metric.mem_nhds_iff.1 hf with ⟨ε, εpos, hε⟩,
   have A : (interior (metric.ball x ε)).nonempty,
-    by { rw metric.is_open_ball.interior_eq, exact metric.nonempty_ball εpos },
+    by rwa [metric.is_open_ball.interior_eq, metric.nonempty_ball],
   exact convex.second_derivative_within_at_symmetric (convex_ball x ε) A
     (λ y hy, hε (interior_subset hy)) (metric.mem_ball_self εpos) hx.has_fderiv_within_at v w,
 end

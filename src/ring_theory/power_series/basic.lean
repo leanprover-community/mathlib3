@@ -1455,7 +1455,7 @@ multiplicity.zero _
 begin
   split,
   { intro h, ext n, rw [(coeff R n).map_zero, coeff_of_lt_order], simp [h] },
-  { rintros rfl, exact order_zero  }
+  { rintros rfl, exact order_zero }
 end
 
 /-- The order of a formal power series is at least `n` if

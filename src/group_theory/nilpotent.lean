@@ -122,7 +122,7 @@ def upper_central_series (n : ℕ) : subgroup G := (upper_central_series_aux G n
 
 instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_aux G n).2
 
-@[simp] lemma upper_central_series_zero_def : upper_central_series G 0 = ⊥ := rfl
+@[simp] lemma upper_central_series_zero : upper_central_series G 0 = ⊥ := rfl
 
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
 that `⁅x,G⁆ ⊆ H n`-/
@@ -258,11 +258,11 @@ def lower_central_series (G : Type*) [group G] : ℕ → subgroup G
 
 variable {G}
 
-@[simp] lemma lower_central_series_zero_def : lower_central_series G 0 = ⊤ := rfl
+@[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
 
-lemma mem_lower_central_series_succ_iff (n : ℕ) (x : G) :
-  x ∈ lower_central_series G (n + 1) ↔
-  x ∈ closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
+lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
+  q ∈ lower_central_series G (n + 1) ↔
+  q ∈ closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
 := iff.rfl
 
 instance (n : ℕ) : normal (lower_central_series G n) :=
@@ -334,23 +334,4 @@ begin
   { rintros _ ⟨x, hx : x ∈ upper_central_series G d.succ, rfl⟩ y',
     rcases (h y') with ⟨y, rfl⟩,
     simpa using hd (mem_map_of_mem f (hx y)) }
-end
-
-lemma lower_central_series.map {H : Type*} [group H] (f : G →* H) (n : ℕ) :
-  subgroup.map f (lower_central_series G n) ≤ lower_central_series H n :=
-begin
-  induction n with d hd,
-  { simp [nat.nat_zero_eq_zero] },
-  { rintros a ⟨x, hx : x ∈ lower_central_series G d.succ, rfl⟩,
-    refine closure_induction hx _ (by simp [f.map_one, subgroup.one_mem _]) _ _,
-    { rintros a ⟨y, hy, z, ⟨-, rfl⟩⟩,
-      apply mem_closure.mpr,
-      simp only [exists_prop, mem_top, exists_true_left, true_and, monoid_hom.map_mul,
-        monoid_hom.map_mul_inv, set.mem_set_of_eq],
-      intros K hK,
-      exact hK ⟨f y, hd (mem_map_of_mem f hy), by use f z⟩ },
-    { intros y z hy hz,
-      simp [monoid_hom.map_mul, subgroup.mul_mem _ hy hz] },
-    { intros y hy,
-      simp [f.map_inv, subgroup.inv_mem _ hy] } }
 end

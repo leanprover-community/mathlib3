@@ -81,8 +81,8 @@ strong_rank_condition.le_of_fin_injective f
 lemma card_le_of_injective [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α → R) →ₗ[R] (β → R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
 begin
-  let P := linear_map.fun_congr_left R R (fintype.equiv_fin α),
-  let Q := linear_map.fun_congr_left R R (fintype.equiv_fin β),
+  let P := linear_equiv.fun_congr_left R R (fintype.equiv_fin α),
+  let Q := linear_equiv.fun_congr_left R R (fintype.equiv_fin β),
   exact le_of_fin_injective R ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
     (((linear_equiv.symm Q).injective.comp i).comp (linear_equiv.injective P)),
 end
@@ -108,8 +108,8 @@ rank_condition.le_of_fin_surjective f
 lemma card_le_of_surjective [rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α → R) →ₗ[R] (β → R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
 begin
-  let P := linear_map.fun_congr_left R R (fintype.equiv_fin α),
-  let Q := linear_map.fun_congr_left R R (fintype.equiv_fin β),
+  let P := linear_equiv.fun_congr_left R R (fintype.equiv_fin α),
+  let Q := linear_equiv.fun_congr_left R R (fintype.equiv_fin β),
   exact le_of_fin_surjective R ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
     (((linear_equiv.symm Q).surjective.comp i).comp (linear_equiv.surjective P)),
 end
@@ -155,8 +155,8 @@ invariant_basis_number.eq_of_fin_equiv
 
 lemma card_eq_of_lequiv {α β : Type*} [fintype α] [fintype β]
   (f : (α → R) ≃ₗ[R] (β → R)) : fintype.card α = fintype.card β :=
-eq_of_fin_equiv R (((linear_map.fun_congr_left R R (fintype.equiv_fin α)).trans f).trans
-  ((linear_map.fun_congr_left R R (fintype.equiv_fin β)).symm))
+eq_of_fin_equiv R (((linear_equiv.fun_congr_left R R (fintype.equiv_fin α)).trans f).trans
+  ((linear_equiv.fun_congr_left R R (fintype.equiv_fin β)).symm))
 
 lemma nontrivial_of_invariant_basis_number : nontrivial R :=
 begin
@@ -192,7 +192,7 @@ begin
   let e : fin (n + 1 + m) ≃ fin n ⊕ fin (1 + m) :=
     (fin_congr (add_assoc _ _ _)).trans fin_sum_fin_equiv.symm,
   let f' := f.comp ((linear_equiv.sum_arrow_lequiv_prod_arrow _ _ R R).symm.trans
-    (linear_map.fun_congr_left R R e)).to_linear_map,
+    (linear_equiv.fun_congr_left R R e)).to_linear_map,
   have i' : injective f' := i.comp (linear_equiv.injective _),
   apply @zero_ne_one (fin (1 + m) → R) _ _,
   apply (is_noetherian.equiv_punit_of_prod_injective f' i').injective,

@@ -98,16 +98,11 @@ hfm.some_spec.1
 lemma ae_eq_mk {f : α → β} (hfm : ae_measurable' m f μ) : f =ᵐ[μ] hfm.mk f :=
 hfm.some_spec.2
 
-lemma measurable_comp' {γ} [measurable_space γ] {f : α → β} {g : β → γ}
+lemma measurable_comp {γ} [measurable_space γ] {f : α → β} {g : β → γ}
   (hg : measurable g) (hf : ae_measurable' m f μ) :
   ae_measurable' m (g ∘ f) μ :=
 ⟨λ x, g (hf.mk _ x), @measurable.comp _ _ _ m _ _ _ _ hg hf.measurable_mk,
   hf.ae_eq_mk.mono (λ x hx, by rw [function.comp_apply, hx])⟩
-
-lemma measurable_comp {γ} [measurable_space γ] {f : α → β} {g : β → γ}
-  (hg : measurable g) (hf : ae_measurable' m f μ) :
-  ae_measurable' m (λ x, g (f x)) μ :=
-ae_measurable'.measurable_comp' hg hf
 
 end ae_measurable'
 
@@ -701,11 +696,9 @@ begin
     rw [integrable_on, integrable_congr (ae_restrict_of_ae h_eq)],
     exact (integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _).const_inner _, },
   { intros s hs hμs,
-    simp_rw ← Lp_meas_coe,
-    rw integral_condexp_L2_eq_of_fin_meas_real hm _ hs hμs.ne,
-    rw integral_congr_ae (ae_restrict_of_ae h_eq),
-    simp_rw Lp_meas_coe,
-    rw [← L2.inner_indicator_const_Lp_eq_set_integral_inner ↑(condexp_L2 𝕜 hm f) (hm s hs) c hμs.ne,
+    rw [← Lp_meas_coe, integral_condexp_L2_eq_of_fin_meas_real hm _ hs hμs.ne,
+      integral_congr_ae (ae_restrict_of_ae h_eq), Lp_meas_coe,
+      ← L2.inner_indicator_const_Lp_eq_set_integral_inner ↑(condexp_L2 𝕜 hm f) (hm s hs) c hμs.ne,
       ← inner_condexp_L2_left_eq_right, condexp_L2_indicator_of_measurable,
       L2.inner_indicator_const_Lp_eq_set_integral_inner f (hm s hs) c hμs.ne,
       set_integral_congr_ae (hm s hs)

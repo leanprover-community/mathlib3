@@ -46,7 +46,7 @@ measures.
 
 ## Main definitions
 
-* `msaure_theory.outer_measure.is_metric`: an outer measure `μ` is called *metric* if
+* `measure_theory.outer_measure.is_metric`: an outer measure `μ` is called *metric* if
   `μ (s ∪ t) = μ s + μ t` for any two metric separated sets `s` and `t`. A metric outer measure in a
   Borel extended metric space is guaranteed to satisfy the Caratheodory condition, see
   `measure_theory.outer_measure.is_metric.borel_le_caratheodory`.
@@ -66,6 +66,8 @@ measures.
   space we use `measure_theory.dimH (set.univ : set X)`.
 
 ## Main statements
+
+### Basic properties
 
 * `measure_theory.outer_measure.is_metric.borel_le_caratheodory`: if `μ` is a metric outer measure
   on an extended metric space `X` (that is, it is additive on pairs of metric separated sets), then
@@ -89,11 +91,28 @@ measures.
 * `measure_theory.measure.no_atoms_hausdorff`, `measure_theory.measure.dimH_empty`,
   `measure_theory.measure.dimH_singleton`, `set.subsingleton.dimH_zero`, `set.countable.dimH_zero`:
   Hausdorff measure has no atoms and `dimH s = 0` whenever `s` is countable.
+
+### (Pre)images under (anti)lipschitz and Hölder continuous maps
+
 * `holder_with.dimH_image_le` etc: if `f : X → Y` is Hölder continuous with exponent `r > 0`, then
   for any `s`, `dimH (f '' s) ≤ dimH s / r`. We prove versions of this statement for `holder_with`,
   `holder_on_with`, and locally Hölder maps, as well as for `set.image` and `set.range`.
 * `lipschitz_with.dimH_image_le` etc: Lipschitz continuous maps do not increase the Hausdorff
   dimension of sets.
+* for a map that is known to be both Lipschitz and antilipschitz (e.g., for an `isometry` or
+  a `continuous_linear_equiv`) we also prove `dimH (f '' s) = dimH s`.
+
+### Hausdorff measure in `ℝⁿ`
+
+* `measure_theory.hausdorff_measure_pi_real`: for a nonempty `ι`, `μH[card ι]` on `ι → ℝ` equals
+  Lebesgue measure.
+* `real.dimH_of_nonempty_interior`: if `s` is a set in a finite dimensional real vector space `E`
+  with nonempty interior, then the Hausdorff dimension of `s` is equal to the dimension of `E`.
+* `dense_compl_of_dimH_lt_finrank`: if `s` is a set in a finite dimensional real vector space `E`
+  with Hausdorff dimension strictly less than the dimension of `E`, the `s` has a dense complement.
+* `times_cont_diff.dense_compl_range_of_finrank_finrank_lt`: the complement to the range of a `C¹`
+  smooth map is dense provided that the dimension of the domain is strictly less than the dimension
+  of the codomain.
 
 ## Notations
 
@@ -1193,6 +1212,10 @@ begin
     rcases metric.nhds_basis_ball.mem_iff.1 this with ⟨r, hr0, hr⟩,
     simpa only [dimH_ball_pi_fin (e x) hr0] using dimH_mono hr }
 end
+
+theorem dimH_of_nonempty_interior {s : set E} (h : (interior s).nonempty) :
+  dimH s = finrank ℝ E :=
+let ⟨x, hx⟩ := h in dimH_of_mem_nhds (mem_interior_iff_mem_nhds.1 hx)
 
 variable (E)
 

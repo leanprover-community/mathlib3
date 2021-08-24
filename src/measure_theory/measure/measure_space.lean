@@ -35,7 +35,7 @@ We introduce the following typeclasses for measures:
 * `is_finite_measure μ`: `μ univ < ∞`;
 * `sigma_finite μ`: there exists a countable collection of measurable sets that cover `univ`
   where `μ` is finite;
-* `locally_is_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ∞`;
+* `is_locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ∞`;
 * `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
   `∀ s, 0 < μ s → ∃ t ⊆ s, 0 < μ t ∧ μ t < μ s`.
 
@@ -1876,19 +1876,19 @@ lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : measurable f)
    by rw [← preimage_Union, Union_spanning_sets, preimage_univ]⟩⟩⟩
 
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
-class locally_is_finite_measure [topological_space α] (μ : measure α) : Prop :=
+class is_locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
 (finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_finite_measure.to_locally_is_finite_measure [topological_space α] (μ : measure α)
+instance is_finite_measure.to_is_locally_finite_measure [topological_space α] (μ : measure α)
   [is_finite_measure μ] :
-  locally_is_finite_measure μ :=
+  is_locally_finite_measure μ :=
 ⟨λ x, finite_at_filter_of_finite _ _⟩
 
 lemma measure.finite_at_nhds [topological_space α] (μ : measure α)
-  [locally_is_finite_measure μ] (x : α) :
+  [is_locally_finite_measure μ] (x : α) :
   μ.finite_at_filter (𝓝 x) :=
-locally_is_finite_measure.finite_at_nhds x
+is_locally_finite_measure.finite_at_nhds x
 
 lemma measure.smul_finite (μ : measure α) [is_finite_measure μ] {c : ℝ≥0∞} (hc : c < ∞) :
   is_finite_measure (c • μ) :=
@@ -1899,7 +1899,7 @@ begin
 end
 
 lemma measure.exists_is_open_measure_lt_top [topological_space α] (μ : measure α)
-  [locally_is_finite_measure μ] (x : α) :
+  [is_locally_finite_measure μ] (x : α) :
   ∃ s : set α, x ∈ s ∧ is_open s ∧ μ s < ∞ :=
 by simpa only [exists_prop, and.assoc]
   using (μ.finite_at_nhds x).exists_mem_basis (nhds_basis_opens x)
@@ -1908,7 +1908,7 @@ omit m0
 
 @[priority 100] -- see Note [lower instance priority]
 instance sigma_finite_of_locally_finite [topological_space α]
-  [topological_space.second_countable_topology α] [locally_is_finite_measure μ] :
+  [topological_space.second_countable_topology α] [is_locally_finite_measure μ] :
   sigma_finite μ :=
 begin
   choose s hsx hsμ using μ.finite_at_nhds,
@@ -1994,7 +1994,7 @@ lemma filter_sup : μ.finite_at_filter f → μ.finite_at_filter g → μ.finite
 end finite_at_filter
 
 lemma finite_at_nhds_within [topological_space α] {m0 : measurable_space α} (μ : measure α)
-  [locally_is_finite_measure μ] (x : α) (s : set α) :
+  [is_locally_finite_measure μ] (x : α) (s : set α) :
   μ.finite_at_filter (𝓝[s] x) :=
 (finite_at_nhds μ x).inf_of_left
 
@@ -2641,7 +2641,7 @@ lemma is_finite_measure_of_nhds_within (hs : is_compact s) :
 by simpa only [← measure.compl_mem_cofinite, measure.finite_at_filter]
   using hs.compl_mem_sets_of_nhds_within
 
-lemma is_finite_measure [locally_is_finite_measure μ] (hs : is_compact s) : μ s < ∞ :=
+lemma is_finite_measure [is_locally_finite_measure μ] (hs : is_compact s) : μ s < ∞ :=
 hs.is_finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
@@ -2651,7 +2651,7 @@ by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
 end is_compact
 
 lemma metric.bounded.is_finite_measure [metric_space α] [proper_space α]
-  [measurable_space α] {μ : measure α} [locally_is_finite_measure μ] {s : set α}
+  [measurable_space α] {μ : measure α} [is_locally_finite_measure μ] {s : set α}
   (hs : metric.bounded s) :
   μ s < ∞ :=
 (measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2

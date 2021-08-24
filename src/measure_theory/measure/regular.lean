@@ -54,7 +54,7 @@ is automatically satisfied by any finite measure on a metric space.
   of finite measure is the supremum of the measure of compact sets it contains. Such a compact set
   with suitable measure can be constructed with `measurable_set.exists_lt_is_compact_of_lt_top` or
   `measurable_set.exists_lt_is_compact_of_lt_top_of_pos`.
-* `regular.of_sigma_compact_space_of_locally_is_finite_measure` is an instance registering that a
+* `regular.of_sigma_compact_space_of_is_locally_finite_measure` is an instance registering that a
   locally finite measure on a locally compact metric space is regular (in fact, an emetric space
   is enough).
 
@@ -545,10 +545,10 @@ namespace regular
 
 /-- Any locally finite measure on a sigma compact locally compact metric space is regular. -/
 @[priority 100] -- see Note [lower instance priority]
-instance of_sigma_compact_space_of_locally_is_finite_measure {X : Type*}
+instance of_sigma_compact_space_of_is_locally_finite_measure {X : Type*}
   [emetric_space X] [sigma_compact_space X] [locally_compact_space X]
   [measurable_space X] [borel_space X] (μ : measure X)
-  [locally_is_finite_measure μ] : regular μ :=
+  [is_locally_finite_measure μ] : regular μ :=
 { lt_top_of_is_compact := λ K hK, hK.measure_lt_top,
   inner_regular :=
   begin

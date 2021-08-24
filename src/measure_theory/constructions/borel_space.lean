@@ -1091,7 +1091,7 @@ by simpa using is_pi_system_Ioo (coe : ℚ → ℝ)
 
 /-- The intervals `(-(n + 1), (n + 1))` form a finite spanning sets in the set of open intervals
 with rational endpoints for a locally finite measure `μ` on `ℝ`. -/
-def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_is_finite_measure μ] :
+def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measure μ] :
   μ.finite_spanning_sets_in (⋃ (a b : ℚ) (h : a < b), {Ioo a b}) :=
 { set := λ n, Ioo (-(n + 1)) (n + 1),
   set_mem := λ n,
@@ -1107,7 +1107,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [locally_is_finite_measur
     ⟨⌊abs x⌋₊, neg_lt.1 ((neg_le_abs_self x).trans_lt (lt_nat_floor_add_one _)),
       (le_abs_self x).trans_lt (lt_nat_floor_add_one _)⟩ }
 
-lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_is_finite_measure μ]
+lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [is_locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
 (finite_spanning_sets_in_Ioo_rat μ).ext borel_eq_generate_from_Ioo_rat is_pi_system_Ioo_rat $
   by { simp only [mem_Union, mem_singleton_iff], rintro _ ⟨a, b, -, rfl⟩, apply h }
@@ -1589,6 +1589,6 @@ is_compact.induction_on h (by simp) (λ s t hst ht, (measure_mono hst).trans_lt 
   (λ s t hs ht, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hs, ht⟩)) hμ
 
 lemma is_compact.measure_lt_top [topological_space α] {s : set α} {μ : measure α}
-  [locally_is_finite_measure μ] (h : is_compact s) :
+  [is_locally_finite_measure μ] (h : is_compact s) :
   μ s < ∞ :=
 h.measure_lt_top_of_nhds_within $ λ x hx, μ.finite_at_nhds_within _ _

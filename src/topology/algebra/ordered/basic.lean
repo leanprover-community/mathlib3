@@ -2197,14 +2197,23 @@ lemma is_lub.exists_seq_monotone_tendsto [first_countable_topology α]
   ∃ u : ℕ → α, monotone u ∧ (∀ n, u n ≤ x) ∧ tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
 htx.exists_seq_monotone_tendsto' ht (is_countably_generated_nhds x)
 
+lemma exists_seq_strict_mono_tendsto' {α : Type*} [linear_order α] [topological_space α]
+  [densely_ordered α] [order_topology α]
+  [first_countable_topology α] {x y : α} (hy : y < x) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
+begin
+  have hx : x ∉ Iio x := λ h, (lt_irrefl x h).elim,
+  have ht : set.nonempty (Iio x) := ⟨y, hy⟩,
+  rcases is_lub_Iio.exists_seq_strict_mono_tendsto_of_not_mem ht hx with ⟨u, hu⟩,
+  exact ⟨u, hu.1, hu.2.1, hu.2.2.1⟩,
+end
+
 lemma exists_seq_strict_mono_tendsto [densely_ordered α] [no_bot_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
 begin
-  have hx : x ∉ Iio x := λ h, (lt_irrefl x h).elim,
-  have ht : set.nonempty (Iio x) := nonempty_Iio,
-  rcases is_lub_Iio.exists_seq_strict_mono_tendsto_of_not_mem ht hx with ⟨u, hu⟩,
-  exact ⟨u, hu.1, hu.2.1, hu.2.2.1⟩,
+  obtain ⟨y, hy⟩ : ∃ y, y < x := no_bot _,
+  exact exists_seq_strict_mono_tendsto' hy
 end
 
 lemma exists_seq_tendsto_Sup {α : Type*} [conditionally_complete_linear_order α]
@@ -2239,6 +2248,11 @@ lemma is_glb.exists_seq_monotone_tendsto [first_countable_topology α]
   ∃ u : ℕ → α, (∀ m n, m ≤ n → u n ≤ u m) ∧ (∀ n, x ≤ u n) ∧
                         tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
 htx.exists_seq_monotone_tendsto' ht (is_countably_generated_nhds x)
+
+lemma exists_seq_strict_antimono_tendsto' [densely_ordered α]
+  [first_countable_topology α] {x y : α} (hy : x < y) :
+  ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
+@exists_seq_strict_mono_tendsto' (order_dual α) _ _ _ _ _ x y hy
 
 lemma exists_seq_strict_antimono_tendsto [densely_ordered α] [no_top_order α]
   [first_countable_topology α] (x : α) :

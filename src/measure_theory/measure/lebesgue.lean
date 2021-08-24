@@ -50,6 +50,39 @@ by simp [volume_val]
 @[simp] lemma volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 :=
 by simp [volume_val]
 
+@[simp] lemma volume_univ : volume (univ : set ℝ) = ∞ :=
+ennreal.eq_top_of_forall_nnreal_le $ λ r,
+  calc (r : ℝ≥0∞) = volume (Icc (0 : ℝ) r) : by simp
+              ... ≤ volume univ            : measure_mono (subset_univ _)
+
+@[simp] lemma volume_ball (a r : ℝ) :
+  volume (metric.ball a r) = of_real (2 * r) :=
+by rw [ball_eq, volume_Ioo, ← sub_add, add_sub_cancel', two_mul]
+
+@[simp] lemma volume_closed_ball (a r : ℝ) :
+  volume (metric.closed_ball a r) = of_real (2 * r) :=
+by rw [closed_ball_eq, volume_Icc, ← sub_add, add_sub_cancel', two_mul]
+
+@[simp] lemma volume_emetric_ball (a : ℝ) (r : ℝ≥0∞) :
+  volume (emetric.ball a r) = 2 * r :=
+begin
+  rcases eq_or_ne r ∞ with rfl|hr,
+  { rw [metric.emetric_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { lift r to ℝ≥0 using hr,
+    rw [metric.emetric_ball_nnreal, volume_ball, two_mul, ← nnreal.coe_add,
+      ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
+end
+
+@[simp] lemma volume_emetric_closed_ball (a : ℝ) (r : ℝ≥0∞) :
+  volume (emetric.closed_ball a r) = 2 * r :=
+begin
+  rcases eq_or_ne r ∞ with rfl|hr,
+  { rw [emetric.closed_ball_top, volume_univ, two_mul, ennreal.top_add] },
+  { lift r to ℝ≥0 using hr,
+    rw [metric.emetric_closed_ball_nnreal, volume_closed_ball, two_mul, ← nnreal.coe_add,
+      ennreal.of_real_coe_nnreal, ennreal.coe_add, two_mul] }
+end
+
 instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
 ⟨λ x, volume_singleton⟩
 
@@ -127,6 +160,20 @@ lemma volume_pi_Ico {a b : ι → ℝ} :
 @[simp] lemma volume_pi_Ico_to_real {a b : ι → ℝ} (h : a ≤ b) :
   (volume (pi univ (λ i, Ico (a i) (b i)))).to_real = ∏ i, (b i - a i) :=
 by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_nonneg.2 (h _))]
+
+@[simp] lemma volume_pi_ball (a : ι → ℝ) {r : ℝ} (hr : 0 < r) :
+  volume (metric.ball a r) = ennreal.of_real ((2 * r) ^ fintype.card ι) :=
+begin
+  simp only [volume_pi_ball a hr, volume_ball, finset.prod_const],
+  exact (ennreal.of_real_pow (mul_nonneg zero_le_two hr.le) _).symm
+end
+
+@[simp] lemma volume_pi_closed_ball (a : ι → ℝ) {r : ℝ} (hr : 0 ≤ r) :
+  volume (metric.closed_ball a r) = ennreal.of_real ((2 * r) ^ fintype.card ι) :=
+begin
+  simp only [volume_pi_closed_ball a hr, volume_closed_ball, finset.prod_const],
+  exact (ennreal.of_real_pow (mul_nonneg zero_le_two hr) _).symm
+end
 
 lemma volume_le_diam (s : set ℝ) : volume s ≤ emetric.diam s :=
 begin

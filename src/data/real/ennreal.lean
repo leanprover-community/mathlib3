@@ -1397,6 +1397,10 @@ lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
   ennreal.of_real (p * q) = (ennreal.of_real p) * (ennreal.of_real q) :=
 by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact real.to_nnreal_mul hp }
 
+lemma of_real_pow {p : ℝ} (hp : 0 ≤ p) (n : ℕ) :
+  ennreal.of_real (p ^ n) = ennreal.of_real p ^ n :=
+by rw [of_real_eq_coe_nnreal hp, ← coe_pow, ← of_real_coe_nnreal, nnreal.coe_pow, nnreal.coe_mk]
+
 lemma of_real_inv_of_pos {x : ℝ} (hx : 0 < x) :
   (ennreal.of_real x)⁻¹ = ennreal.of_real x⁻¹ :=
 by rw [ennreal.of_real, ennreal.of_real, ←@coe_inv (real.to_nnreal x) (by simp [hx]), coe_eq_coe,

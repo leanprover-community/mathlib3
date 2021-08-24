@@ -512,18 +512,27 @@ theorem lift_mk_le {α : Type u} {β : Type v} :
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
-/-- A variant of `lift_mk_le` with universes specialized as `w = max u v`.
-This is sometimes necessary to avoid universe unification issues. -/
+/-- A variant of `lift_mk_le` with specialized universes.
+Because Lean often can not realize it should use this specialization itself,
+we provide this statement separately so you don't have to solve the specialization problem either.
+-/
 theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{u v} (mk α) ≤ lift.{v u} (mk β) ↔ nonempty (α ↪ β) :=
-⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
- λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
+lift_mk_le.{u v 0}
 
 theorem lift_mk_eq {α : Type u} {β : Type v} :
   lift.{u (max v w)} (mk α) = lift.{v (max u w)} (mk β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
+
+/-- A variant of `lift_mk_eq` with specialized universes.
+Because Lean often can not realize it should use this specialization itself,
+we provide this statement separately so you don't have to solve the specialization problem either.
+-/
+theorem lift_mk_eq' {α : Type u} {β : Type v} :
+  lift.{u v} (mk α) = lift.{v u} (mk β) ↔ nonempty (α ≃ β) :=
+lift_mk_eq.{u v 0}
 
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
 quotient.induction_on₂ a b $ λ α β,

@@ -332,6 +332,43 @@ supr_option s
 lemma Inter_option {ι} (s : option ι → set α) : (⋂ o, s o) = s none ∩ ⋂ i, s (some i) :=
 infi_option s
 
+section
+
+variables (p : ι → Prop) [decidable_pred p]
+
+lemma Union_dite (f : Π i, p i → set α) (g : Π i, ¬p i → set α) :
+  (⋃ i, if h : p i then f i h else g i h) = (⋃ i (h : p i), f i h) ∪ (⋃ i (h : ¬ p i), g i h) :=
+supr_dite _ _ _
+
+lemma Union_ite (f g : ι → set α) :
+  (⋃ i, if p i then f i else g i) = (⋃ i (h : p i), f i) ∪ (⋃ i (h : ¬ p i), g i) :=
+Union_dite _ _ _
+
+lemma Inter_dite (f : Π i, p i → set α) (g : Π i, ¬p i → set α) :
+  (⋂ i, if h : p i then f i h else g i h) = (⋂ i (h : p i), f i h) ∩ (⋂ i (h : ¬ p i), g i h) :=
+infi_dite _ _ _
+
+lemma Inter_ite (f g : ι → set α) :
+  (⋂ i, if p i then f i else g i) = (⋂ i (h : p i), f i) ∩ (⋂ i (h : ¬ p i), g i) :=
+Inter_dite _ _ _
+
+end
+
+lemma image_projection_prod {ι : Type*} {α : ι → Type*} {v : Π (i : ι), set (α i)}
+  (hv : (pi univ v).nonempty) (i : ι) :
+  (λ (x : Π (i : ι), α i), x i) '' (⋂ k, (λ (x : Π (j : ι), α j), x k) ⁻¹' v k) = v i:=
+begin
+  classical,
+  apply subset.antisymm,
+  { simp [Inter_subset] },
+  { intros y y_in,
+    simp only [mem_image, mem_Inter, mem_preimage],
+    rcases hv with ⟨z, hz⟩,
+    refine ⟨function.update z i y, _, update_same i y z⟩,
+    rw @forall_update_iff ι α _ z i y (λ i t, t ∈ v i),
+    exact ⟨y_in, λ j hj, by simpa using hz j⟩ },
+end
+
 /-! ### Unions and intersections indexed by `Prop` -/
 
 @[simp] theorem Inter_false {s : false → set α} : Inter s = univ := infi_false

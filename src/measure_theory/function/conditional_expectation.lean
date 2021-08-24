@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import measure_theory.function.l2_space
+import measure_theory.function.ae_eq_of_integral
 
 /-! # Conditional expectation
 
@@ -46,6 +47,27 @@ begin
   exact ⟨f' + g', @measurable.add _ _ _ _ m _ f' g' h_f'_meas h_g'_meas, hff'.add hgg'⟩,
 end
 
+lemma neg [has_neg β] [has_measurable_neg β] {f : α → β} (hfm : ae_measurable' m f μ) :
+  ae_measurable' m (-f) μ :=
+begin
+  rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
+  refine ⟨-f', @measurable.neg _ _ _ _ _ m _ hf'_meas, hf_ae.mono (λ x hx, _)⟩,
+  simp_rw pi.neg_apply,
+  rw hx,
+end
+
+lemma sub [has_sub β] [has_measurable_sub₂ β] {f g : α → β}
+  (hfm : ae_measurable' m f μ) (hgm : ae_measurable' m g μ) :
+  ae_measurable' m (f - g) μ :=
+begin
+  rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
+  rcases hgm with ⟨g', hg'_meas, hg_ae⟩,
+  refine ⟨f'-g', @measurable.sub _ _ _ _ m _ _ _ hf'_meas hg'_meas,
+    hf_ae.mp (hg_ae.mono (λ x hx1 hx2, _))⟩,
+  simp_rw pi.sub_apply,
+  rw [hx1, hx2],
+end
+
 lemma const_smul [has_scalar 𝕜 β] [has_measurable_smul 𝕜 β] (c : 𝕜) (hf : ae_measurable' m f μ) :
   ae_measurable' m (c • f) μ :=
 begin
@@ -54,6 +76,15 @@ begin
   exact eventually_eq.fun_comp hff' (λ x, c • x),
 end
 
+/-- A m-measurable function almost everywhere equal to `f`. -/
+def mk (f : α → β) (hfm : ae_measurable' m f μ) : α → β := hfm.some
+
+lemma measurable_mk {f : α → β} (hfm : ae_measurable' m f μ) : @measurable _ _ m _ (hfm.mk f) :=
+hfm.some_spec.1
+
+lemma ae_eq_mk {f : α → β} (hfm : ae_measurable' m f μ) : f =ᵐ[μ] hfm.mk f :=
+hfm.some_spec.2
+
 end ae_measurable'
 
 lemma ae_measurable'_of_ae_measurable'_trim {α β} {m m0 m0' : measurable_space α}
@@ -61,6 +92,21 @@ lemma ae_measurable'_of_ae_measurable'_trim {α β} {m m0 m0' : measurable_space
   (hf : ae_measurable' m f (μ.trim hm0)) :
   ae_measurable' m f μ :=
 by { obtain ⟨g, hg_meas, hfg⟩ := hf, exact ⟨g, hg_meas, ae_eq_of_ae_eq_trim hfg⟩, }
+
+lemma measurable.ae_measurable' {α β} {m m0 : measurable_space α} [measurable_space β]
+  {μ : measure α} {f : α → β} (hf : @measurable _ _ m _ f) :
+  ae_measurable' m f μ :=
+⟨f, hf, ae_eq_refl _⟩
+
+lemma ae_eq_trim_iff_of_ae_measurable' {α β} [add_group β] [measurable_space β]
+  [measurable_singleton_class β] [has_measurable_sub₂ β]
+  {m m0 : measurable_space α} {μ : measure α} {f g : α → β}
+  (hm : m ≤ m0) (hfm : ae_measurable' m f μ) (hgm : ae_measurable' m g μ) :
+  hfm.mk f =ᵐ[μ.trim hm] hgm.mk g ↔ f =ᵐ[μ] g :=
+(ae_eq_trim_iff hm hfm.measurable_mk hgm.measurable_mk).trans
+⟨λ h, hfm.ae_eq_mk.trans (h.trans hgm.ae_eq_mk.symm),
+  λ h, hfm.ae_eq_mk.symm.trans (h.trans hgm.ae_eq_mk)⟩
+
 
 variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
   [is_R_or_C 𝕜] [measurable_space 𝕜] -- 𝕜 for ℝ or ℂ, together with a measurable_space
@@ -261,7 +307,135 @@ by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_space
 
 end complete_subspace
 
+section strongly_measurable
+
+variables {m m0 : measurable_space α} {μ : measure α}
+
+/-- We do not get `ae_fin_strongly_measurable f (μ.trim hm)`, since we don't have
+`f =ᵐ[μ.trim hm] Lp_meas_to_Lp_trim F 𝕜 p μ hm f` but only the weaker
+`f =ᵐ[μ] Lp_meas_to_Lp_trim F 𝕜 p μ hm f`. -/
+lemma Lp_meas.ae_fin_strongly_measurable' (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) (hp_ne_zero : p ≠ 0)
+  (hp_ne_top : p ≠ ∞) :
+  ∃ g, fin_strongly_measurable g (μ.trim hm) ∧ f =ᵐ[μ] g :=
+⟨Lp_meas_to_Lp_trim F 𝕜 p μ hm f, Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top,
+  (Lp_meas_to_Lp_trim_ae_eq hm f).symm⟩
+
+end strongly_measurable
+
 end Lp_meas
+
+
+section uniqueness_of_conditional_expectation
+
+/-! ## Uniqueness of the conditional expectation -/
+
+variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜]
+
+lemma Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero
+  (hm : m ≤ m0) (f : Lp_meas E' 𝕜 m p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
+  (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
+  (hf_zero : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = 0) :
+  f =ᵐ[μ] 0 :=
+begin
+  obtain ⟨g, hg_sm, hfg⟩ := Lp_meas.ae_fin_strongly_measurable' hm f hp_ne_zero hp_ne_top,
+  refine hfg.trans _,
+  refine ae_eq_zero_of_forall_set_integral_eq_of_fin_strongly_measurable_trim hm _ _ hg_sm,
+  { intros s hs hμs,
+    have hfg_restrict : f =ᵐ[μ.restrict s] g, from ae_restrict_of_ae hfg,
+    rw [integrable_on, integrable_congr hfg_restrict.symm],
+    exact hf_int_finite s hs hμs, },
+  { intros s hs hμs,
+    have hfg_restrict : f =ᵐ[μ.restrict s] g, from ae_restrict_of_ae hfg,
+    rw integral_congr_ae hfg_restrict.symm,
+    exact hf_zero s hs hμs, },
+end
+
+include 𝕜
+
+lemma Lp.ae_eq_zero_of_forall_set_integral_eq_zero'
+  (hm : m ≤ m0) (f : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
+  (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
+  (hf_zero : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = 0)
+  (hf_meas : ae_measurable' m f μ) :
+  f =ᵐ[μ] 0 :=
+begin
+  let f_meas : Lp_meas E' 𝕜 m p μ := ⟨f, hf_meas⟩,
+  have hf_f_meas : f =ᵐ[μ] f_meas, by simp only [coe_fn_coe_base, subtype.coe_mk],
+  refine hf_f_meas.trans _,
+  refine Lp_meas.ae_eq_zero_of_forall_set_integral_eq_zero hm f_meas hp_ne_zero hp_ne_top _ _,
+  { intros s hs hμs,
+    have hfg_restrict : f =ᵐ[μ.restrict s] f_meas, from ae_restrict_of_ae hf_f_meas,
+    rw [integrable_on, integrable_congr hfg_restrict.symm],
+    exact hf_int_finite s hs hμs, },
+  { intros s hs hμs,
+    have hfg_restrict : f =ᵐ[μ.restrict s] f_meas, from ae_restrict_of_ae hf_f_meas,
+    rw integral_congr_ae hfg_restrict.symm,
+    exact hf_zero s hs hμs, },
+end
+
+/-- **Uniqueness of the conditional expectation** -/
+lemma Lp.ae_eq_of_forall_set_integral_eq'
+  (hm : m ≤ m0) (f g : Lp E' p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞)
+  (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
+  (hg_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on g s μ)
+  (hfg : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ)
+  (hf_meas : ae_measurable' m f μ) (hg_meas : ae_measurable' m g μ) :
+  f =ᵐ[μ] g :=
+begin
+  suffices h_sub : ⇑(f-g) =ᵐ[μ] 0,
+    by { rw ← sub_ae_eq_zero, exact (Lp.coe_fn_sub f g).symm.trans h_sub, },
+  have hfg' : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, (f - g) x ∂μ = 0,
+  { intros s hs hμs,
+    rw integral_congr_ae (ae_restrict_of_ae (Lp.coe_fn_sub f g)),
+    rw integral_sub' (hf_int_finite s hs hμs) (hg_int_finite s hs hμs),
+    exact sub_eq_zero.mpr (hfg s hs hμs), },
+  have hfg_int : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on ⇑(f-g) s μ,
+  { intros s hs hμs,
+    rw [integrable_on, integrable_congr (ae_restrict_of_ae (Lp.coe_fn_sub f g))],
+    exact (hf_int_finite s hs hμs).sub (hg_int_finite s hs hμs), },
+  have hfg_meas : ae_measurable' m ⇑(f - g) μ,
+    from ae_measurable'.congr (hf_meas.sub hg_meas) (Lp.coe_fn_sub f g).symm,
+  exact Lp.ae_eq_zero_of_forall_set_integral_eq_zero' hm (f-g) hp_ne_zero hp_ne_top hfg_int hfg'
+    hfg_meas,
+end
+
+omit 𝕜
+
+lemma ae_eq_of_forall_set_integral_eq_of_sigma_finite' (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
+  {f g : α → F'}
+  (hf_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on f s μ)
+  (hg_int_finite : ∀ s, measurable_set[m] s → μ s < ∞ → integrable_on g s μ)
+  (hfg_eq : ∀ s : set α, measurable_set[m] s → μ s < ∞ → ∫ x in s, f x ∂μ = ∫ x in s, g x ∂μ)
+  (hfm : ae_measurable' m f μ) (hgm : ae_measurable' m g μ) :
+  f =ᵐ[μ] g :=
+begin
+  rw ← ae_eq_trim_iff_of_ae_measurable' hm hfm hgm,
+  have hf_mk_int_finite : ∀ s, measurable_set[m] s → μ.trim hm s < ∞ →
+    @integrable_on _ _ m _ _ (hfm.mk f) s (μ.trim hm),
+  { intros s hs hμs,
+    rw trim_measurable_set_eq hm hs at hμs,
+    rw [integrable_on, restrict_trim hm _ hs],
+    refine integrable.trim hm _ hfm.measurable_mk,
+    exact integrable.congr (hf_int_finite s hs hμs) (ae_restrict_of_ae hfm.ae_eq_mk), },
+  have hg_mk_int_finite : ∀ s, measurable_set[m] s → μ.trim hm s < ∞ →
+    @integrable_on _ _ m _ _ (hgm.mk g) s (μ.trim hm),
+  { intros s hs hμs,
+    rw trim_measurable_set_eq hm hs at hμs,
+    rw [integrable_on, restrict_trim hm _ hs],
+    refine integrable.trim hm _ hgm.measurable_mk,
+    exact integrable.congr (hg_int_finite s hs hμs) (ae_restrict_of_ae hgm.ae_eq_mk), },
+  have hfg_mk_eq : ∀ s : set α, measurable_set[m] s → μ.trim hm s < ∞ →
+    ∫ x in s, (hfm.mk f x) ∂(μ.trim hm) = ∫ x in s, (hgm.mk g x) ∂(μ.trim hm),
+  { intros s hs hμs,
+    rw trim_measurable_set_eq hm hs at hμs,
+    rw [restrict_trim hm _ hs, ← integral_trim hm hfm.measurable_mk,
+      ← integral_trim hm hgm.measurable_mk, integral_congr_ae (ae_restrict_of_ae hfm.ae_eq_mk.symm),
+      integral_congr_ae (ae_restrict_of_ae hgm.ae_eq_mk.symm)],
+    exact hfg_eq s hs hμs, },
+  exact ae_eq_of_forall_set_integral_eq_of_sigma_finite hf_mk_int_finite hg_mk_int_finite hfg_mk_eq,
+end
+
+end uniqueness_of_conditional_expectation
 
 /-! ## Conditional expectation in L2
 

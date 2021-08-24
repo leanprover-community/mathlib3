@@ -363,6 +363,10 @@ is_noetherian_submodule.trans
 instance is_noetherian_submodule' [is_noetherian R M] (N : submodule R M) : is_noetherian R N :=
 is_noetherian_submodule.2 $ λ _ _, is_noetherian.noetherian _
 
+lemma is_noetherian_of_le {s t : submodule R M} [ht : is_noetherian R t]
+   (h : s ≤ t) : is_noetherian R s :=
+is_noetherian_submodule.mpr (λ s' hs', is_noetherian_submodule.mp ht _ (le_trans hs' h))
+
 variable (M)
 theorem is_noetherian_of_surjective (f : M →ₗ[R] P) (hf : f.range = ⊤)
   [is_noetherian R M] : is_noetherian R P :=

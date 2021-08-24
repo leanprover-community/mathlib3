@@ -200,7 +200,7 @@ protected noncomputable def basis (s : ∀ j, basis (ιs j) R (Ms j)) :
   basis (Σ j, ιs j) R (Π j, Ms j) :=
 -- The `add_comm_monoid (Π j, Ms j)` instance was hard to find.
 -- Defining this in tactic mode seems to shake up instance search enough that it works by itself.
-by { refine basis.of_repr (linear_equiv.trans _ (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm),
+by { refine basis.of_repr (_ ≫ₗ (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm),
      exact linear_equiv.Pi_congr_right (λ j, (s j).repr) }
 
 @[simp] lemma basis_repr_std_basis [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (j i) :

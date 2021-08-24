@@ -376,12 +376,12 @@ For simplicity, this is defined only for homogeneously- (rather than dependently
 -/
 def reindex (e : ι ≃ ι₂) : ⨂[R] i : ι, M ≃ₗ[R] ⨂[R] i : ι₂, M :=
 linear_equiv.of_linear
-  ((lift.symm.trans $
-    multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι₂, M) R R e.symm).trans
-      lift (linear_map.id))
-  ((lift.symm.trans $
-    multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι, M) R R e).trans
-      lift (linear_map.id))
+  (((lift.symm ≫ₗ
+    (multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι₂, M) R R e.symm)) ≫ₗ
+      lift) (linear_map.id))
+  (((lift.symm ≫ₗ
+    (multilinear_map.dom_dom_congr_linear_equiv M (⨂[R] i : ι, M) R R e)) ≫ₗ
+      lift) (linear_map.id))
   (by { ext, simp })
   (by { ext, simp })
 
@@ -397,7 +397,7 @@ lift.tprod f
 multilinear_map.ext $ reindex_tprod e
 
 @[simp] lemma lift_comp_reindex (e : ι ≃ ι₂) (φ : multilinear_map R (λ _ : ι₂, M) E) :
-  (lift φ).comp ↑(reindex R M e) = lift (φ.dom_dom_congr e.symm) :=
+  (lift φ) ∘ₗ ↑(reindex R M e) = lift (φ.dom_dom_congr e.symm) :=
 by { ext, simp, }
 
 @[simp]

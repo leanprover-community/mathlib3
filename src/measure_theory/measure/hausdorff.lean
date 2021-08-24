@@ -131,6 +131,11 @@ Some sources define the `0`-dimensional Hausdorff measure to be the counting mea
 to be zero on subsingletons because this way we can have a
 `measure.has_no_atoms (measure.hausdorff_measure d)` instance.
 
+## TODO
+
+* prove that `1`-dimensional Hausdorff measure on `ℝ` equals `volume`;
+* prove a similar statement for `ℝ × ℝ`.
+
 ## References
 
 * [Herbert Federer, Geometric Measure Theory, Chapter 2.10][Federer1996]

@@ -140,8 +140,8 @@ def _root_.measure_theory.measure.extension_to_bounded_functions
   [measurable_space α] (μ : measure α) [is_finite_measure μ] : (discrete_copy α →ᵇ ℝ) →L[ℝ] ℝ :=
 (exists_linear_extension_to_bounded_functions μ).some
 
-lemma extension_to_bounded_functions_apply [measurable_space α] (μ : measure α) [is_finite_measure μ]
-  (f : discrete_copy α →ᵇ ℝ) (hf : integrable f μ) :
+lemma extension_to_bounded_functions_apply [measurable_space α] (μ : measure α)
+  [is_finite_measure μ] (f : discrete_copy α →ᵇ ℝ) (hf : integrable f μ) :
   μ.extension_to_bounded_functions f = ∫ x, f x ∂μ :=
 (exists_linear_extension_to_bounded_functions μ).some_spec f hf
 

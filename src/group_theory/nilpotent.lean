@@ -324,8 +324,7 @@ begin
     exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
 end
 
-lemma nilpotent_to_nilpotent_subgroups (G : Type*) [group G] (H : subgroup G) :
-  is_nilpotent G → is_nilpotent H :=
+instance is_nilpotent_subgroup_of_nilpotent_group [nilpotent G] : is_nilpotent H :=
 begin
   rw [nilpotent_iff_lower_central_series, nilpotent_iff_lower_central_series],
   rintro ⟨n, hG⟩,

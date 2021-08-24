@@ -280,8 +280,7 @@ begin
       { tauto },
       rw set.eq_empty_iff_forall_not_mem at hcz,
       specialize hcz n.succ,
-      apply hcz,
-      refine ⟨h, _⟩,
+      refine hcz ⟨h, _⟩,
       /- ⊢ ∀ (k : ℕ), k < count p (n + 1) → nth p k < n.succ,
       but we have hcz' : nth p (count p (n + 1)) = 0 -/
       sorry },

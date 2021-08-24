@@ -35,6 +35,8 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 
 lemma coe_def : (coe : α → option α) = some := rfl
 
+lemma some_eq_coe {a : α} : some a = ↑a := rfl
+
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
 protected lemma «forall» {p : option α → Prop} : (∀ x, p x) ↔ p none ∧ ∀ x, p (some x) :=

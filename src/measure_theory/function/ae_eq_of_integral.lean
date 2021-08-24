@@ -154,7 +154,7 @@ section real
 
 section real_finite_measure
 
-variables [finite_measure μ] {f : α → ℝ}
+variables [is_finite_measure μ] {f : α → ℝ}
 
 /-- Don't use this lemma. Use `ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure`. -/
 lemma ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_measurable (hfm : measurable f)

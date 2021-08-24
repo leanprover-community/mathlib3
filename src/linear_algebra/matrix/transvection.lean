@@ -7,7 +7,7 @@ import linear_algebra.matrix.determinant
 import linear_algebra.matrix.trace
 import tactic.field_simp
 
-/-
+/-!
 # Transvections
 
 Operations on lines and columns
@@ -15,15 +15,6 @@ Operations on lines and columns
 -/
 
 universes u₁ u₂
-
-
-@[simp] lemma option.to_list_some {α : Type*} (a : α) :
-  (a : option α).to_list = [a] :=
-rfl
-
-@[simp] lemma option.to_list_none (α : Type*) : (none : option α).to_list = [] :=
-rfl
-
 
 namespace matrix
 open_locale matrix

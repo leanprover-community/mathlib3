@@ -334,8 +334,7 @@ with rfl when elaboration results in a different term than the user intended.
 meta def syn_taut (d : declaration) : tactic (option string) := do
   let l := d.type.pi_codomain,
   (do (el, er) ← expr.is_eq l,
-    -- possible to use alpha equivalence here but seems unlikely to make a difference
-    guard (el = er),
+    guardb (el =ₐ er),
     return $ some "LHS equals RHS syntactically") <|>
   return none
 

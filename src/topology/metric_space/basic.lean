@@ -1607,7 +1607,8 @@ begin
   { exact bounded_closed_ball.subset hC }
 end
 
-lemma bounded.subset_ball (h : bounded s) (c : α) : ∃ r, s ⊆ closed_ball c r
+lemma bounded.subset_ball (h : bounded s) (c : α) : ∃ r, s ⊆ closed_ball c r :=
+(bounded_iff_subset_ball c).1 h
 
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in

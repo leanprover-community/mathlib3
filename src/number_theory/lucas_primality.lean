@@ -113,7 +113,17 @@ begin
         rw <-order_of_dvd_iff_pow_eq_one,
         exact hfoo, },
 
+  rw prime_iff_card_units,
+  rw le_antisymm_iff,
+  split,
+    {
 
+      sorry,
+    },
+    {
+      rw <-order_of_a,
+      -- convert order_of_le_card_univ,
+    },
 
-  sorry,
+  linarith,
 end

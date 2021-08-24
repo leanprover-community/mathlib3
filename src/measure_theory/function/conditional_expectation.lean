@@ -725,13 +725,14 @@ begin
   exact integral_condexp_L2_eq_of_fin_meas_real hm _ hs hμs,
 end
 
-variables {E'' : Type*} [measurable_space E''] [inner_product_space 𝕜 E''] [borel_space E'']
+variables {E'' 𝕜' : Type*} [is_R_or_C 𝕜'] [measurable_space 𝕜'] [borel_space 𝕜']
+  [measurable_space E''] [inner_product_space 𝕜' E''] [borel_space E'']
   [second_countable_topology E''] [complete_space E''] [normed_space ℝ E'']
-  [is_scalar_tower ℝ 𝕜 E'] [is_scalar_tower ℝ 𝕜 E'']
+  [is_scalar_tower ℝ 𝕜 E'] [is_scalar_tower ℝ 𝕜' E'']
 
+variables (𝕜 𝕜')
 lemma condexp_L2_comp_continuous_linear_map (hm : m ≤ m0) (T : E' →L[ℝ] E'') (f : α →₂[μ] E') :
-  (condexp_L2 𝕜 hm (continuous_linear_map.comp_Lp T f) : α →₂[μ] E'')
-    =ᵐ[μ] T.comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E') :=
+  (condexp_L2 𝕜' hm (T.comp_Lp f) : α →₂[μ] E'') =ᵐ[μ] T.comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E') :=
 begin
   refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ ennreal.zero_lt_two.ne.symm ennreal.coe_ne_top
     (λ s hs hμs, integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _)
@@ -750,6 +751,42 @@ begin
     rw ← eventually_eq at h_coe,
     refine ae_measurable'.congr _ h_coe.symm,
     exact (Lp_meas.ae_measurable' (condexp_L2 𝕜 hm f)).measurable_comp T.measurable, },
+end
+variables {𝕜 𝕜'}
+
+/-- TODO: surely something like this exists somewhere? -/
+def rsmul (x : F') : ℝ →L[ℝ] F' :=
+{ to_fun := λ r, r • x,
+  map_add' := λ r r', add_smul r r' x,
+  map_smul' := λ r r', smul_assoc r r' x, }
+
+lemma indicator_const_Lp_eq_rsmul_comp_Lp (x : F') {s : set α} (hs : measurable_set s)
+  (hμs : μ s ≠ ∞) :
+  indicator_const_Lp 2 hs hμs x = (rsmul x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
+begin
+  ext1,
+  refine indicator_const_Lp_coe_fn.trans _,
+  have h_comp_Lp := (rsmul x).coe_fn_comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)),
+  rw ← eventually_eq at h_comp_Lp,
+  refine eventually_eq.trans _ h_comp_Lp.symm,
+  refine (@indicator_const_Lp_coe_fn _ _ _ 2 μ _ _ s hs hμs (1 : ℝ) _ _).mono (λ y hy, _),
+  dsimp only,
+  rw hy,
+  simp_rw [rsmul],
+  by_cases hy_mem : y ∈ s; simp [hy_mem],
+end
+
+lemma condexp_L2_indicator_eq_smul (hm : m ≤ m0) (x : E') {s : set α} (hs : measurable_set s)
+  (hμs : μ s ≠ ∞) :
+  condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)
+    =ᵐ[μ] λ a, (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x :=
+begin
+  rw indicator_const_Lp_eq_rsmul_comp_Lp x hs hμs,
+  have h_comp := condexp_L2_comp_continuous_linear_map ℝ 𝕜 hm (rsmul x)
+    (indicator_const_Lp 2 hs hμs (1 : ℝ)),
+  rw ← Lp_meas_coe at h_comp,
+  refine h_comp.trans _,
+  exact (rsmul x).coe_fn_comp_Lp _,
 end
 
 end condexp_L2

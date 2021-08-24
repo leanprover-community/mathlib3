@@ -231,6 +231,7 @@ lemma nth_strict_mono_of_infinite (i : set.infinite (set_of p)) : strict_mono (n
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
 lemma nth_monotone_of_infinite (i : set.infinite (set_of p)) : monotone (nth p) :=
+sorry
 
 lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (k : ℕ) (h : nth p k ≠ 0) : ∀ a ≤ k, nth p a ≠ 0 :=
 sorry
@@ -388,8 +389,6 @@ lemma lt_nth_iff_count_lt {p} (i : set.infinite p) {a b : ℕ} :
   a < count p b ↔ nth p a < b :=
 lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth i
 
-lemma nth_count_le (i : set.infinite p) (n : ℕ) : count p (nth p n) ≤ n :=
-(count_nth_gc _ i).l_u_le _
 
 lemma nth_le_of_le_count (a b : ℕ) (h : a ≤ count p b) : nth p a ≤ b :=
 begin

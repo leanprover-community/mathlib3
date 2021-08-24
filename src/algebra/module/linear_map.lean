@@ -224,6 +224,8 @@ variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 def comp : M →ₗ[R] M₃ :=
 { to_fun := f ∘ g, .. f.to_distrib_mul_action_hom.comp g.to_distrib_mul_action_hom }
 
+infixr ` ∘ₗ `:80 := linear_map.comp
+
 lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
 
 @[simp, norm_cast] lemma coe_comp : (f.comp g : M → M₃) = f ∘ g := rfl
@@ -525,6 +527,8 @@ variables {module_M₃ : module R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ �
 def trans : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
+
+infixl ` ≫ₗ `:80 := @linear_equiv.trans
 
 @[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
 

@@ -30,8 +30,8 @@ universes u v w
 
 /-- A commutative ring is local if it has a unique maximal ideal. Note that
   `local_ring` is a predicate. -/
-class local_ring (α : Type u) [comm_ring α] extends nontrivial α : Prop :=
-(is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
+class local_ring (R : Type u) [comm_ring R] extends nontrivial R : Prop :=
+(is_local : ∀ (a : R), (is_unit a) ∨ (is_unit (1 - a)))
 
 namespace local_ring
 

@@ -331,9 +331,8 @@ exprs, we call declarations of this form syntactic tautologies.
 Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving basic facts
 with rfl when elaboration results in a different term than the user intended.
 -/
-meta def syn_taut (d : declaration) : tactic (option string) := do
-  let l := d.type.pi_codomain,
-  (do (el, er) ← expr.is_eq l,
+meta def syn_taut (d : declaration) : tactic (option string) :=
+  (do (el, er) ← d.type.pi_codomain.is_eq,
     guardb (el =ₐ er),
     return $ some "LHS equals RHS syntactically") <|>
   return none
@@ -345,5 +344,10 @@ meta def linter.syn_taut : linter :=
   auto_decls := ff, -- many false positives with this enabled
   no_errors_found :=
     "No declarations are syntactic tautologies.",
-  errors_found := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES.",
+  errors_found := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. " ++
+"This usually means that they are of the form `∀ a b ... z,e₁ = e₂` where `e₁` and `e₂` are " ++
+"equal expressions, we call declarations of this form syntactic tautologies. " ++
+"Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving " ++
+"basic facts using `rfl`, when elaboration results in a different term than the user intended. " ++
+"You should check that the declaration really says what you think it does.",
   is_fast := tt }

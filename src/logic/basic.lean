@@ -533,8 +533,6 @@ theorem imp_or_distrib : (a → b ∨ c) ↔ (a → b) ∨ (a → c) := decidabl
 protected theorem decidable.imp_or_distrib' [decidable b] : (a → b ∨ c) ↔ (a → b) ∨ (a → c) :=
 by by_cases b; simp [h, or_iff_right_of_imp ((∘) false.elim)]
 
-theorem imp_or_distrib' : (a → b ∨ c) ↔ (a → b) ∨ (a → c) := decidable.imp_or_distrib'
-
 theorem not_imp_of_and_not : a ∧ ¬ b → ¬ (a → b)
 | ⟨ha, hb⟩ h := hb $ h ha
 

@@ -122,6 +122,25 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 
 instance : faithful forget_to_SheafedSpace := {}
 
+instance : reflects_isomorphisms forget_to_SheafedSpace :=
+{ reflects := λ X Y f i,
+  { out :=
+  begin
+    resetI,
+    -- Let `g` be the inverse of `f`, as a map of sheafed spaces.
+    let g := category_theory.inv (forget_to_SheafedSpace.map f),
+    refine ⟨⟨g, _⟩, hom_ext _ _ (is_iso.hom_inv_id _), hom_ext _ _ (is_iso.inv_hom_id _)⟩,
+    intro x,
+    -- The only thing left to show is that `g` is really a map between _locally_ ringed spaces.
+    -- This can be solved by typeclass resolution, because
+    -- (1) `g` is an isomorphism, as a map of presheafed spaces,
+    -- (2) Stalk maps of isomorphisms are isomorphisms (see `algebraic_geometry/stalks`)
+    -- (3) Isomorphisms are local ring homs (see ???)
+    show is_local_ring_hom (PresheafedSpace.stalk_map
+      (SheafedSpace.forget_to_PresheafedSpace.map g) x),
+    apply_instance,
+  end } }
+
 -- PROJECT: once we have `PresheafedSpace.restrict_stalk_iso`
 -- (that restriction doesn't change stalks) we can uncomment this.
 /-

@@ -651,8 +651,7 @@ end
 
 @[simp] lemma support_zero : (0 : Π₀ i, β i).support = ∅ := rfl
 
-lemma mem_support_iff (f : Π₀ i, β i) : ∀i:ι, i ∈ f.support ↔ f i ≠ 0 :=
-f.mem_support_to_fun
+alias mem_support_to_fun ← dfinsupp.mem_support_iff
 
 @[simp] lemma support_eq_empty {f : Π₀ i, β i} : f.support = ∅ ↔ f = 0 :=
 ⟨λ H, ext $ by simpa [finset.ext_iff] using H, by simp {contextual:=tt}⟩

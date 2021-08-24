@@ -624,13 +624,3 @@ def subfield_congr (h : s = t) : s ≃+* t :=
 { map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ set_like.ext'_iff.1 h }
 
 end ring_equiv
-
-namespace subfield
-
-variables {s : set K}
-
-lemma closure_preimage_le (f : K →+* L) (s : set L) :
-  closure (f ⁻¹' s) ≤ (closure s).comap f :=
-closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
-
-end subfield

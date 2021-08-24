@@ -230,6 +230,8 @@ lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) 
 lemma nth_strict_mono_of_infinite (i : set.infinite (set_of p)) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
+lemma nth_monotone_of_infinite (i : set.infinite (set_of p)) : monotone (nth p) :=
+
 lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (k : ℕ) (h : nth p k ≠ 0) : ∀ a ≤ k, nth p a ≠ 0 :=
 sorry
 
@@ -248,6 +250,9 @@ begin
   simp [w'] {contextual := tt},
   sorry --- easy from here.
 end
+
+lemma nth_count_le [decidable_pred p] (n : ℕ): n ≤ nth p (count p n) :=
+sorry
 
 lemma nth_count [decidable_pred p] (n : ℕ) (h : p n) : nth p (count p n) = n :=
 begin
@@ -331,7 +336,47 @@ begin
   rintro x y,
   rw [nth, le_cInf_iff (⟨0, λ _ _, zero_le _⟩ : bdd_below _)],
   dsimp,
-  sorry,
+  { split,
+    { intros hxy n h,
+      cases h with hn h,
+      by_cases heq: count p x = y,
+      { rw ← heq at h,
+        specialize h (count p n),
+        rw nth_count at h,
+        simp at h,
+        have hc: count p x ≤ count p n := not_lt.mp h,
+        apply le_trans,
+          apply nth_count_le,
+          exact p,
+          have hne: nth p (count p n) = n,
+          { apply nth_count,
+            exact hn},
+          rw ← hne,
+          apply nth_monotone_of_infinite,
+            exact i,
+            sorry,
+          exact hn, },
+      have hlt: count p x < y := (ne.le_iff_lt heq).mp hxy,
+      specialize h (count p x) hlt,
+      sorry, },
+    intro h,
+    specialize h (nth p y),
+    have hp: p (nth p y),
+    { apply nth_mem_of_infinite,
+      exact i, },
+    have hs: (∀ (k : ℕ), k < y → nth p k < nth p y) → x ≤ nth p y,
+    { tauto,},
+    have hm : (∀ (k : ℕ), k < y → nth p k < nth p y),
+    { intro k,
+      apply nth_strict_mono_of_infinite,
+      exact i, },
+    specialize hs hm,
+    have hy: count p (nth p y) = y,
+    { apply count_nth_of_infinite,
+      exact i, },
+    rw ← hy,
+    apply count_monotone,
+    exact hs, },
   sorry,
 end
 

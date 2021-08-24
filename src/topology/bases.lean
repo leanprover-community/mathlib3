@@ -535,7 +535,8 @@ lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
 begin
   rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
   suffices : (⋃ x ∈ s, interior (f x)) = univ,
-    from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_subset_bUnion_right $ λ _ _, interior_subset)⟩,
+    from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_subset_bUnion_right $
+      λ _ _, interior_subset)⟩,
   simp only [hsU, eq_univ_iff_forall, mem_Union],
   exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
 end

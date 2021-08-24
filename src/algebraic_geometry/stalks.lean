@@ -101,21 +101,21 @@ begin
   erw [id_comp, id_comp, id_comp],
 end
 
-lemma stalk_map_congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β)
+lemma congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β)
   (x x': X) (h₂ : x = x') :
-    stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by congr') =
-    eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by congr') ≫ stalk_map β x' :=
+    stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
+    eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by rw [h₁, h₂]) ≫ stalk_map β x' :=
 stalk_hom_ext _ $ λ U hx, by { subst h₁, subst h₂, simp }
 
-lemma stalk_map_congr_hom {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h : α = β) (x : X) :
+lemma congr_hom {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h : α = β) (x : X) :
   stalk_map α x =
-    eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x), by congr') ≫ stalk_map β x :=
-by rw [← stalk_map_congr α β h x x rfl, eq_to_hom_refl, category.comp_id]
+    eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x), by rw h) ≫ stalk_map β x :=
+by rw [← stalk_map.congr α β h x x rfl, eq_to_hom_refl, category.comp_id]
 
-lemma stalk_map_congr_point {X Y : PresheafedSpace C} (α : X ⟶ Y) (x x' : X) (h : x = x') :
-  stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by congr') =
-  eq_to_hom (show Y.stalk (α.base x) = Y.stalk (α.base x'), by congr') ≫ stalk_map α x' :=
-by rw stalk_map_congr α α rfl x x' h
+lemma congr_point {X Y : PresheafedSpace C} (α : X ⟶ Y) (x x' : X) (h : x = x') :
+  stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h) =
+  eq_to_hom (show Y.stalk (α.base x) = Y.stalk (α.base x'), by rw h) ≫ stalk_map α x' :=
+by rw stalk_map.congr α α rfl x x' h
 
 instance is_iso {X Y : PresheafedSpace C} (α : X ⟶ Y) [is_iso α] (x : X) :
   is_iso (stalk_map α x) :=
@@ -130,11 +130,11 @@ instance is_iso {X Y : PresheafedSpace C} (α : X ⟶ Y) [is_iso α] (x : X) :
   -- `X.stalk x ⟶ X.stalk ((α ≫ β).base x)` and then compose with `stalk_map β (α.base x)`.
   refine ⟨eq_to_hom (show X.stalk x = X.stalk ((α ≫ β).base x), by rw h_eq) ≫
     (stalk_map β (α.base x) : _), _, _⟩,
-  { rw [← category.assoc, stalk_map_congr_point α x ((α ≫ β).base x) h_eq.symm, category.assoc],
+  { rw [← category.assoc, congr_point α x ((α ≫ β).base x) h_eq.symm, category.assoc],
     erw ← stalk_map.comp β α (α.base x),
-    rw [stalk_map_congr_hom _ _ (is_iso.inv_hom_id α), stalk_map.id, eq_to_hom_trans_assoc,
+    rw [congr_hom _ _ (is_iso.inv_hom_id α), stalk_map.id, eq_to_hom_trans_assoc,
       eq_to_hom_refl, category.id_comp] },
-  { rw [category.assoc, ← stalk_map.comp, stalk_map_congr_hom _ _ (is_iso.hom_inv_id α),
+  { rw [category.assoc, ← stalk_map.comp, congr_hom _ _ (is_iso.hom_inv_id α),
     stalk_map.id, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp] },
 end }
 

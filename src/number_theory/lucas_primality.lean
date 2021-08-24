@@ -32,7 +32,7 @@ noncomputable instance units_zmod.fintype : Π n, fintype (units (zmod n))
 | (n+1) := units.fintype
 
 
-lemma prime_iff_card_units (p : ℕ) :
+lemma prime_iff_card_units (p : ℕ) (hp : 0 < p) :
   p.prime ↔ fintype.card (units (zmod p)) = p - 1
 :=
 begin
@@ -40,12 +40,14 @@ begin
     { intro p_prime,
       haveI := fact.mk p_prime,
       convert zmod.card_units p, },
-    {
-      by_cases 0 < p,
-        { haveI := fact.mk h,
-          rw zmod.card_units_eq_totient p,
-        },
-    }
+    { haveI := fact.mk hp,
+      intro h,
+      replace h : @fintype.card (units (zmod p)) (units.fintype) = p - 1,
+      { convert h },
+      rw zmod.card_units_eq_totient at h,
+      rw nat.totient_prime_iff at h,
+      exact h,
+      exact hp, },
 end
 
 

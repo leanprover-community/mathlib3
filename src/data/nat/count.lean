@@ -355,7 +355,7 @@ begin
           rw ← hne,
           apply nth_monotone_of_infinite,
             exact i,
-            sorry,
+            convert hc,
           exact hn, },
       have hlt: count p x < y := (ne.le_iff_lt heq).mp hxy,
       specialize h (count p x) hlt,

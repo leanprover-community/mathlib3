@@ -713,6 +713,11 @@ begin
   simpa [← finrank_eq_dim] using f.lift_dim_eq
 end
 
+/-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
+lemma finrank_map_eq (f : V ≃ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
+  finrank K (p.map (f : V →ₗ[K] V₂)) = finrank K p :=
+(f.of_submodule p).finrank_eq.symm
+
 end linear_equiv
 
 instance finite_dimensional_finsupp {ι : Type*} [fintype ι] [finite_dimensional K V] :

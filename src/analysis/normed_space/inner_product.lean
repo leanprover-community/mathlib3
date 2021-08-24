@@ -1502,6 +1502,10 @@ variable {E}
 lemma real_inner_eq_re_inner (x y : E) :
   @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x y = re ⟪x, y⟫ := rfl
 
+lemma real_inner_I_smul_self (x : E) :
+  @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x ((I : 𝕜) • x) = 0 :=
+by simp [real_inner_eq_re_inner, inner_smul_right]
+
 omit 𝕜
 
 /-- A complex inner product implies a real inner product -/

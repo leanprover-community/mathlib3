@@ -327,12 +327,11 @@ end
 instance is_nilpotent_subgroup_of_nilpotent_group [hG : is_nilpotent G] : is_nilpotent H :=
 begin
   rw nilpotent_iff_lower_central_series at *,
-  unfreezingI { rcases hG with ⟨n, hG⟩ },
+  rcases hG with ⟨n, hG⟩,
   use n,
-  rw [eq_bot_iff, set_like.le_def],
   have := lower_central_series_subgroup_le_lower_central_series_group H n,
   simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
-  exact λ x hx, subtype.ext (this x hx),
+  exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
 end
 
 @[priority 100]

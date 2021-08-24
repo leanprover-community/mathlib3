@@ -355,7 +355,8 @@ variables {μ : measure α} {p : ℝ≥0∞}
 
 A simple function `f : α →ₛ E` into a normed group `E` verifies, for a measure `μ`:
 - `mem_ℒp f 0 μ` and `mem_ℒp f ∞ μ`, since `f` is a.e.-measurable and bounded,
-- for `0 < p < ∞`, `mem_ℒp f p μ ↔ integrable f μ ↔ f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞`.
+- for `0 < p < ∞`,
+  `mem_ℒp f p μ ↔ integrable f μ ↔ f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞`.
 -/
 
 lemma exists_forall_norm_le (f : α →ₛ F) : ∃ C, ∀ x, ∥f x∥ ≤ C :=
@@ -402,7 +403,7 @@ begin
   { simp [hf_snorm], },
 end
 
-lemma mem_ℒp_of_is_finite_measure_preimage (p : ℝ≥0∞) {f : α →ₛ E} (hf : ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞) :
+lemma mem_ℒp_of_finite_measure_preimage (p : ℝ≥0∞) {f : α →ₛ E} (hf : ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞) :
   mem_ℒp f p μ :=
 begin
   by_cases hp0 : p = 0,
@@ -421,7 +422,7 @@ end
 lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
 ⟨λ h, measure_preimage_lt_top_of_mem_ℒp hp_pos hp_ne_top f h,
-  λ h, mem_ℒp_of_is_finite_measure_preimage p h⟩
+  λ h, mem_ℒp_of_finite_measure_preimage p h⟩
 
 lemma integrable_iff {f : α →ₛ E} : integrable f μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
 mem_ℒp_one_iff_integrable.symm.trans $ mem_ℒp_iff ennreal.zero_lt_one ennreal.coe_ne_top
@@ -471,7 +472,8 @@ lemma measure_support_lt_top_of_mem_ℒp (f : α →ₛ E) (hf : mem_ℒp f p μ
   μ (support f) < ∞ :=
 f.measure_support_lt_top ((mem_ℒp_iff (pos_iff_ne_zero.mpr hp_ne_zero) hp_ne_top).mp hf)
 
-lemma measure_support_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) : μ (support f) < ∞ :=
+lemma measure_support_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) :
+  μ (support f) < ∞ :=
 f.measure_support_lt_top (integrable_iff.mp hf)
 
 lemma measure_lt_top_of_mem_ℒp_indicator (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {c : E} (hc : c ≠ 0)
@@ -723,8 +725,8 @@ protected lemma induction (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) {P : Lp.simpl
   (h_ind : ∀ (c : E) {s : set α} (hs : measurable_set s) (hμs : μ s < ∞),
     P (Lp.simple_func.indicator_const p hs hμs.ne c))
   (h_add : ∀ ⦃f g : α →ₛ E⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ,
-    disjoint (support f) (support g) → P (Lp.simple_func.to_Lp f hf) → P (Lp.simple_func.to_Lp g hg)
-    → P (Lp.simple_func.to_Lp f hf + Lp.simple_func.to_Lp g hg))
+    disjoint (support f) (support g) → P (Lp.simple_func.to_Lp f hf)
+    → P (Lp.simple_func.to_Lp g hg) → P (Lp.simple_func.to_Lp f hf + Lp.simple_func.to_Lp g hg))
   (f : Lp.simple_func E p μ) : P f :=
 begin
   suffices : ∀ f : α →ₛ E, ∀ hf : mem_ℒp f p μ, P (to_Lp f hf),

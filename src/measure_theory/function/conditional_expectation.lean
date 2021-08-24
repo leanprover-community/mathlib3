@@ -733,6 +733,38 @@ begin
   exact integral_condexp_L2_eq_of_fin_meas_real hm _ hs hμs,
 end
 
+variables {E'' : Type*} [measurable_space E''] [inner_product_space 𝕜 E''] [borel_space E'']
+  [second_countable_topology E''] [complete_space E''] [normed_space ℝ E'']
+  [is_scalar_tower ℝ 𝕜 E'] [is_scalar_tower ℝ 𝕜 E'']
+
+lemma set_integral_comp_Lp (L : F' →L[ℝ] G') (φ : Lp F' p μ) {s : set α} (hs : measurable_set s) :
+  ∫ a in s, (L.comp_Lp φ) a ∂μ = ∫ a in s, L (φ a) ∂μ :=
+set_integral_congr_ae hs ((L.coe_fn_comp_Lp φ).mono (λ x hx hx2, hx))
+
+lemma condexp_L2_comp_continuous_linear_map (hm : m ≤ m0) (T : E' →L[ℝ] E'') (f : α →₂[μ] E') :
+  (condexp_L2 𝕜 hm (continuous_linear_map.comp_Lp T f) : α →₂[μ] E'')
+    =ᵐ[μ] T.comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E') :=
+begin
+  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ ennreal.zero_lt_two.ne.symm ennreal.coe_ne_top
+    (λ s hs hμs, integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _)
+    (λ s hs hμs, integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs.ne)
+    _ _ _,
+  { intros s hs hμs,
+    have h_comp_Lp : ∫ x in s, T.comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E') x ∂μ
+        = T (∫ x in s, (condexp_L2 𝕜 hm f : α →₂[μ] E') x ∂μ),
+    { rw set_integral_comp_Lp T _ (hm s hs),
+      rw T.integral_comp_comm
+        (integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs.ne), },
+    rw h_comp_Lp,
+    rw [← Lp_meas_coe, ← Lp_meas_coe, integral_condexp_L2_eq hm f hs hμs.ne,
+      integral_condexp_L2_eq hm (T.comp_Lp f) hs hμs.ne],
+    rw set_integral_comp_Lp T _ (hm s hs),
+    rw T.integral_comp_comm
+      (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs.ne), },
+  { rw ← Lp_meas_coe, exact Lp_meas.ae_measurable' _, },
+  { sorry, },
+end
+
 end condexp_L2
 
 end measure_theory

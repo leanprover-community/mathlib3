@@ -810,6 +810,68 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 ⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
   λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
 
+/--
+Define `C i` by reverse induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
+This function has two arguments: `hlast` handles the base case on `C (fin.last n)`,
+and `hs` defines the inductive step using `C i.succ`, inducting downwards.
+-/
+@[elab_as_eliminator]
+def reverse_induction {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) :
+  Π (i : fin (n + 1)), C i
+| i :=
+if hi : i = fin.last n
+then _root_.cast (by rw hi) hlast
+else
+  let j : fin n := ⟨i, lt_of_le_of_ne (nat.le_of_lt_succ i.2) (λ h, hi (fin.ext h))⟩ in
+  have wf : n + 1 - j.succ < n + 1 - i, begin
+    cases i,
+    rw [nat.sub_lt_sub_left_iff];
+    simp [*, nat.succ_le_iff],
+  end,
+  have hi : i = fin.cast_succ j, from fin.ext rfl,
+_root_.cast (by rw hi) (hs _ (reverse_induction j.succ))
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ i : fin (n+1), n + 1 - i)⟩],
+  dec_tac := `[assumption] }
+
+@[simp] lemma reverse_induction_last {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (h0 : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) :
+  (reverse_induction h0 hs (fin.last n) : C (fin.last n)) = h0 :=
+by rw [reverse_induction]; simp
+
+@[simp] lemma reverse_induction_cast_succ {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (h0 : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) (i : fin n):
+  (reverse_induction h0 hs i.cast_succ : C i.cast_succ) =
+    hs i (reverse_induction h0 hs i.succ) :=
+begin
+  rw [reverse_induction, dif_neg (ne_of_lt (fin.cast_succ_lt_last i))],
+  cases i,
+  refl
+end
+
+/-- Define `f : Π i : fin n.succ, C i` by separately handling the cases `i = fin.last n` and
+`i = j.cast_succ`, `j : fin n`. -/
+@[elab_as_eliminator, elab_strategy]
+def last_cases {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin (n + 1)) : C i :=
+reverse_induction hlast (λ i _, hcast i) i
+
+@[simp] lemma last_cases_last {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) :
+  (fin.last_cases hlast hcast (fin.last n): C (fin.last n)) = hlast :=
+reverse_induction_last _ _
+
+@[simp] lemma last_cases_cast_succ {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin n) :
+  (fin.last_cases hlast hcast (fin.cast_succ i): C (fin.cast_succ i)) = hcast i :=
+reverse_induction_cast_succ _ _ _
+
 end rec
 
 section pred

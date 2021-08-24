@@ -684,9 +684,8 @@ begin
   have h_eq : inner_condexp_Lp =ᵐ[μ] λ a, ⟪c, condexp_L2 𝕜 hm f a⟫,
     from h_mem_Lp.coe_fn_to_Lp,
   refine eventually_eq.trans _ h_eq,
-  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ _ ennreal.coe_ne_top _ _ _ _ _,
-  { simp only [ennreal.bit0_eq_zero_iff, ne.def, not_false_iff, one_ne_zero], },
-  { exact λ s hs hμs, integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _, },
+  refine Lp.ae_eq_of_forall_set_integral_eq' hm _ _ ennreal.zero_lt_two.ne.symm ennreal.coe_ne_top
+    (λ s hs hμs, integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _) _ _ _ _,
   { intros s hs hμs,
     rw [integrable_on, integrable_congr (ae_restrict_of_ae h_eq)],
     exact (integrable_on_condexp_L2_of_measure_ne_top hm hμs.ne _).const_inner _, },
@@ -700,10 +699,8 @@ begin
       L2.inner_indicator_const_Lp_eq_set_integral_inner f (hm s hs) c hμs.ne,
       set_integral_congr_ae (hm s hs)
         ((mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).const_inner c)).mono (λ x hx hxs, hx))], },
-  { rw ← Lp_meas_coe,
-    exact Lp_meas.ae_measurable' _, },
-  { refine ae_measurable'.congr _ h_eq.symm,
-    exact (Lp_meas.ae_measurable' _).const_inner _, },
+  { rw ← Lp_meas_coe, exact Lp_meas.ae_measurable' _, },
+  { refine ae_measurable'.congr _ h_eq.symm, exact (Lp_meas.ae_measurable' _).const_inner _, },
 end
 
 lemma integral_condexp_L2_eq [is_scalar_tower ℝ 𝕜 E'] (hm : m ≤ m0)
@@ -746,19 +743,23 @@ begin
     (λ s hs hμs, integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs.ne)
     _ _ _,
   { intros s hs hμs,
-    have h_comp_Lp : ∫ x in s, T.comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E') x ∂μ
-        = T (∫ x in s, (condexp_L2 𝕜 hm f : α →₂[μ] E') x ∂μ),
-    { rw T.set_integral_comp_Lp _ (hm s hs),
-      rw T.integral_comp_comm
-        (integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs.ne), },
-    rw h_comp_Lp,
-    rw [← Lp_meas_coe, ← Lp_meas_coe, integral_condexp_L2_eq hm f hs hμs.ne,
-      integral_condexp_L2_eq hm (T.comp_Lp f) hs hμs.ne],
-    rw T.set_integral_comp_Lp _ (hm s hs),
-    rw T.integral_comp_comm
-      (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs.ne), },
+    rw [T.set_integral_comp_Lp _ (hm s hs),
+      T.integral_comp_comm
+        (integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs.ne),
+      ← Lp_meas_coe, ← Lp_meas_coe, integral_condexp_L2_eq hm f hs hμs.ne,
+      integral_condexp_L2_eq hm (T.comp_Lp f) hs hμs.ne, T.set_integral_comp_Lp _ (hm s hs),
+      T.integral_comp_comm
+        (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs.ne)], },
   { rw ← Lp_meas_coe, exact Lp_meas.ae_measurable' _, },
-  { sorry, },
+  { have h_coe := T.coe_fn_comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E'),
+    rw ← eventually_eq at h_coe,
+    refine ae_measurable'.congr _ h_coe.symm,
+    have h_meas := Lp_meas.ae_measurable' (condexp_L2 𝕜 hm f),
+    refine ⟨λ x, T (h_meas.mk _ x),
+      @measurable.comp _ _ _ m _ _ _ _ T.measurable h_meas.measurable_mk, _⟩,
+    refine h_meas.ae_eq_mk.mono (λ x hx, _),
+    dsimp only,
+    rw [← Lp_meas_coe, hx], },
 end
 
 end condexp_L2

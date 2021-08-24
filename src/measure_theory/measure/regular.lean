@@ -534,8 +534,8 @@ end
 
 /-- Any finite measure on a metric space (or even a pseudo emetric space) is weakly regular. -/
 @[priority 100] -- see Note [lower instance priority]
-instance of_pseudo_emetric_space_of_is_finite_measure {X : Type*}
-  [pseudo_emetric_space X] [measurable_space X] [borel_space X] (μ : measure X) [is_finite_measure μ] :
+instance of_pseudo_emetric_space_of_is_finite_measure {X : Type*} [pseudo_emetric_space X]
+  [measurable_space X] [borel_space X] (μ : measure X) [is_finite_measure μ] :
   weakly_regular μ :=
 weakly_regular_of_inner_regular_of_is_finite_measure μ $ inner_regular_of_pseudo_emetric_space μ
 

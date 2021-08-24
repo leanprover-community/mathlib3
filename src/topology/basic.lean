@@ -394,6 +394,12 @@ eq_univ_iff_forall.symm
 lemma dense.closure_eq {s : set α} (h : dense s) : closure s = univ :=
 dense_iff_closure_eq.mp h
 
+lemma interior_eq_empty_iff_dense_compl {s : set α} : interior s = ∅ ↔ dense sᶜ :=
+by rw [dense_iff_closure_eq, closure_compl, compl_univ_iff]
+
+lemma dense.interior_compl {s : set α} (h : dense s) : interior sᶜ = ∅ :=
+interior_eq_empty_iff_dense_compl.2 $ by rwa compl_compl
+
 /-- The closure of a set `s` is dense if and only if `s` is dense. -/
 @[simp] lemma dense_closure {s : set α} : dense (closure s) ↔ dense s :=
 by rw [dense, dense, closure_closure]
@@ -430,7 +436,7 @@ lemma dense.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : de
 λ x, closure_mono h (hd x)
 
 /-- Complement to a singleton is dense if and only if the singleton is not an open set. -/
-lemma dense_compl_singleton {x : α} : dense ({x}ᶜ : set α) ↔ ¬is_open ({x} : set α) :=
+lemma dense_compl_singleton_iff_not_open {x : α} : dense ({x}ᶜ : set α) ↔ ¬is_open ({x} : set α) :=
 begin
   fsplit,
   { intros hd ho,
@@ -861,6 +867,31 @@ mem_closure_iff_frequently.trans cluster_pt_principal_iff_frequently.symm
 
 lemma mem_closure_iff_nhds_ne_bot {s : set α} : a ∈ closure s ↔ 𝓝 a ⊓ 𝓟 s ≠ ⊥ :=
 mem_closure_iff_cluster_pt.trans ne_bot_iff
+
+lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
+  x ∈ closure s ↔ ne_bot (𝓝[s] x) :=
+mem_closure_iff_cluster_pt
+
+/-- If `x` is not an isolated point of a topological space, then `{x}ᶜ` is dense in the whole
+space. -/
+lemma dense_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] : dense ({x}ᶜ : set α) :=
+begin
+  intro y,
+  unfreezingI { rcases eq_or_ne y x with rfl|hne },
+  { rwa mem_closure_iff_nhds_within_ne_bot },
+  { exact subset_closure hne }
+end
+
+/-- If `x` is not an isolated point of a topological space, then the closure of `{x}ᶜ` is the whole
+space. -/
+@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+  closure {x}ᶜ = (univ : set α) :=
+(dense_compl_singleton x).closure_eq
+
+/-- If `x` is not an isolated point of a topological space, then the interior of `{x}ᶜ` is empty. -/
+@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[{x}ᶜ] x)] :
+  interior {x} = (∅ : set α) :=
+interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)
 
 lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
 set.ext $ λ x, mem_closure_iff_cluster_pt

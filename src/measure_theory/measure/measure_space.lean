@@ -1517,20 +1517,24 @@ instance is_finite_measure_zero : is_finite_measure (0 : measure α) := ⟨by si
 
 omit m0
 
-instance is_finite_measure_add [is_finite_measure μ] [is_finite_measure ν] : is_finite_measure (μ + ν) :=
+instance is_finite_measure_add [is_finite_measure μ] [is_finite_measure ν] :
+  is_finite_measure (μ + ν) :=
 { measure_univ_lt_top :=
   begin
     rw [measure.coe_add, pi.add_apply, ennreal.add_lt_top],
     exact ⟨measure_lt_top _ _, measure_lt_top _ _⟩,
   end }
 
-instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} : is_finite_measure (r • μ) :=
+instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} :
+  is_finite_measure (r • μ) :=
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
-lemma is_finite_measure_of_le (μ : measure α) [is_finite_measure μ] (h : ν ≤ μ) : is_finite_measure ν :=
+lemma is_finite_measure_of_le (μ : measure α) [is_finite_measure μ] (h : ν ≤ μ) :
+  is_finite_measure ν :=
 { measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
 
-@[simp] lemma measure_univ_nnreal_eq_zero [is_finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
+@[simp] lemma measure_univ_nnreal_eq_zero [is_finite_measure μ] :
+  measure_univ_nnreal μ = 0 ↔ μ = 0 :=
 begin
   rw [← measure_theory.measure.measure_univ_eq_zero, ← coe_measure_univ_nnreal],
   norm_cast
@@ -1833,7 +1837,8 @@ include m0
 
 /-- Every finite measure is σ-finite. -/
 @[priority 100]
-instance is_finite_measure.to_sigma_finite (μ : measure α) [is_finite_measure μ] : sigma_finite μ :=
+instance is_finite_measure.to_sigma_finite (μ : measure α) [is_finite_measure μ] :
+  sigma_finite μ :=
 ⟨⟨⟨λ _, univ, λ _, measurable_set.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩⟩
 
 instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
@@ -1939,8 +1944,8 @@ end
 
 /-- Two finite measures are equal if they are equal on the π-system generating the σ-algebra
   (and `univ`). -/
-lemma ext_of_generate_finite (C : set (set α)) (hA : m0 = generate_from C)
-  (hC : is_pi_system C) [is_finite_measure μ] (hμν : ∀ s ∈ C, μ s = ν s) (h_univ : μ univ = ν univ) :
+lemma ext_of_generate_finite (C : set (set α)) (hA : m0 = generate_from C) (hC : is_pi_system C)
+  [is_finite_measure μ] (hμν : ∀ s ∈ C, μ s = ν s) (h_univ : μ univ = ν univ) :
   μ = ν :=
 measure.ext (λ s hs, ext_on_measurable_space_of_generate_finite m0 C hμν le_rfl hA hC h_univ hs)
 
@@ -2020,7 +2025,8 @@ end
 
 /-- This application lemma only works in special circumstances. Given knowledge of
 when `μ ≤ ν` and `ν ≤ μ`, a more general application lemma can be written. -/
-lemma sub_apply [is_finite_measure ν] (h₁ : measurable_set s) (h₂ : ν ≤ μ) : (μ - ν) s = μ s - ν s :=
+lemma sub_apply [is_finite_measure ν] (h₁ : measurable_set s) (h₂ : ν ≤ μ) :
+  (μ - ν) s = μ s - ν s :=
 begin
   -- We begin by defining `measure_sub`, which will be equal to `(μ - ν)`.
   let measure_sub : measure α := @measure_theory.measure.of_measurable α _
@@ -2468,7 +2474,8 @@ begin
     trim_measurable_set_eq hm (@measurable_set.inter α m t s ht hs)],
 end
 
-instance is_finite_measure_trim (hm : m ≤ m0) [is_finite_measure μ] : is_finite_measure (μ.trim hm) :=
+instance is_finite_measure_trim (hm : m ≤ m0) [is_finite_measure μ] :
+  is_finite_measure (μ.trim hm) :=
 { measure_univ_lt_top :=
     by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
 

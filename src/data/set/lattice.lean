@@ -515,10 +515,6 @@ theorem bInter_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x �
   (⋂ x ∈ s, t x) ⊆ (⋂ x ∈ s, t' x) :=
 bInter_mono' (subset.refl s) h
 
-theorem bUnion_mono {s : set α} {t t' : α → set β} (h : ∀ x ∈ s, t x ⊆ t' x) :
-  (⋃ x ∈ s, t x) ⊆ (⋃ x ∈ s, t' x) :=
-bUnion_subset_bUnion (λ x x_in, ⟨x, x_in, h x x_in⟩)
-
 theorem bUnion_eq_Union (s : set α) (t : Π x ∈ s, set β) :
   (⋃ x ∈ s, t x ‹_›) = (⋃ x : s, t x x.2) :=
 supr_subtype'
@@ -756,9 +752,6 @@ begin
   { rintro ⟨i, a, h, rfl⟩, exact h },
   { intro h, cases x with i a, exact ⟨i, a, h, rfl⟩ }
 end
-
-lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t) :=
-sUnion_subset $ λ t' ht', subset_sUnion_of_mem $ h ht'
 
 lemma Union_subset_Union {s t : ι → set α} (h : ∀ i, s i ⊆ t i) : (⋃ i, s i) ⊆ (⋃ i, t i) :=
 @supr_le_supr (set α) ι _ s t h

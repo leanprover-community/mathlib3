@@ -470,6 +470,30 @@ mul_indicator_le' hfg $ λ _ _, one_le _
 
 end canonically_ordered_monoid
 
+lemma indicator_le_indicator_nonneg {β} [linear_order β] [has_zero β] (s : set α) (f : α → β) :
+  s.indicator f ≤ {x | 0 ≤ f x}.indicator f :=
+begin
+  intro x,
+  simp_rw indicator_apply,
+  split_ifs,
+  { exact le_rfl, },
+  { exact (not_le.mp h_1).le, },
+  { exact h_1, },
+  { exact le_rfl, },
+end
+
+lemma indicator_nonpos_le_indicator {β} [linear_order β] [has_zero β] (s : set α) (f : α → β) :
+  {x | f x ≤ 0}.indicator f ≤ s.indicator f :=
+begin
+  intro x,
+  simp_rw indicator_apply,
+  split_ifs,
+  { exact le_rfl, },
+  { exact h, },
+  { exact (not_le.mp h).le, },
+  { exact le_rfl, },
+end
+
 end set
 
 @[to_additive] lemma monoid_hom.map_mul_indicator {M N : Type*} [monoid M] [monoid N] (f : M →* N)

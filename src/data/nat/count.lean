@@ -154,13 +154,16 @@ begin
 end
 
 lemma count_monotone : monotone (count p) :=
+λ x y h, length_le_of_sublist $ filter_sublist_filter p $ range_sublist.mpr h
+
+-- I feel like this has a name within mathlib; but not sure lol. I guess with `count_monotone` this
+-- is some sort of `order`-hom (or maybe some of Damiano's order stuff?)
+
+lemma count_lt_of_lt (x y : ℕ) (hc : count p x < count p y) : x < y :=
 begin
-  intros n m h,
-  rw [count_eq_card, count_eq_card],
-  fapply fintype.card_le_of_injective,
-  { exact λ i, ⟨i.1, i.2.1.trans_le h, i.2.2⟩ },
-  { rintros ⟨n, _⟩ ⟨m, _⟩ h,
-    simpa using h },
+  by_contra,
+  push_neg at h,
+  exact lt_le_antisymm hc (count_monotone p h),
 end
 
 end count
@@ -231,7 +234,7 @@ lemma nth_strict_mono_of_infinite (i : set.infinite (set_of p)) : strict_mono (n
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
 lemma nth_monotone_of_infinite (i : set.infinite (set_of p)) : monotone (nth p) :=
-sorry
+(nth_strict_mono_of_infinite p i).monotone
 
 lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (k : ℕ) (h : nth p k ≠ 0) : ∀ a ≤ k, nth p a ≠ 0 :=
 sorry
@@ -269,7 +272,7 @@ begin
     assumption_mod_cast },
   { obtain hcz | hcz := eq_or_ne (nth p (count (λ k, p (k + 1)) n + if p 0 then 1 else 0)) 0,
     { exfalso,
-      rw ←@count_succ' p _ n at hcz,
+      rw ←count_succ' at hcz,
       -- nth zero, but we have p (n.succ) which means that's bullshit
       sorry },
     { simp [h'] at ⊢ hcz,
@@ -336,49 +339,27 @@ lemma count_nth_gc (i : set.infinite p) : galois_connection (count p) (nth p) :=
 begin
   rintro x y,
   rw [nth, le_cInf_iff (⟨0, λ _ _, zero_le _⟩ : bdd_below _)],
-  dsimp,
-  { split,
-    { intros hxy n h,
-      cases h with hn h,
-      by_cases heq: count p x = y,
-      { rw ← heq at h,
-        specialize h (count p n),
-        rw nth_count at h,
-        simp at h,
-        have hc: count p x ≤ count p n := not_lt.mp h,
-        apply le_trans,
-          apply nth_count_le,
-          exact p,
-          have hne: nth p (count p n) = n,
-          { apply nth_count,
-            exact hn},
-          rw ← hne,
-          apply nth_monotone_of_infinite,
-            exact i,
-            convert hc,
-          exact hn, },
-      have hlt: count p x < y := (ne.le_iff_lt heq).mp hxy,
-      specialize h (count p x) hlt,
-      sorry, },
-    intro h,
-    specialize h (nth p y),
-    have hp: p (nth p y),
-    { apply nth_mem_of_infinite,
-      exact i, },
-    have hs: (∀ (k : ℕ), k < y → nth p k < nth p y) → x ≤ nth p y,
-    { tauto,},
-    have hm : (∀ (k : ℕ), k < y → nth p k < nth p y),
-    { intro k,
-      apply nth_strict_mono_of_infinite,
-      exact i, },
-    specialize hs hm,
-    have hy: count p (nth p y) = y,
-    { apply count_nth_of_infinite,
-      exact i, },
-    rw ← hy,
-    apply count_monotone,
-    exact hs, },
-  sorry,
+  { dsimp,
+    refine ⟨_, λ h, _⟩,
+    { rintro hxy n ⟨hn, h⟩,
+      obtain rfl | hne := eq_or_ne y (count p x),
+      { specialize h (count p n),
+        replace hn : nth p (count p n) = n := nth_count _ _ hn,
+        replace h : count p x ≤ count p n := by rwa [hn, lt_self_iff_false, imp_false, not_lt] at h,
+        apply le_trans (nth_count_le p x),
+        rw ←hn,
+        exact nth_monotone_of_infinite p i h },
+      { have hlt : count p x < y := (ne.le_iff_lt hne.symm).mp hxy,
+        specialize h (count p x) hlt,
+        sorry } },
+    { specialize h (nth p y),
+      have hp : p (nth p y) := nth_mem_of_infinite p i _,
+      have hs : (∀ (k : ℕ), k < y → nth p k < nth p y) → x ≤ nth p y := by tauto,
+      specialize hs (λ k h, nth_strict_mono_of_infinite p i h),
+      have hy : count p (nth p y) = y := count_nth_of_infinite p i _,
+      rw ←hy,
+      exact count_monotone _ hs } },
+  sorry, -- this is saying that the `nth` set isn't empty -- easy stuff!
 end
 
 lemma count_le_iff_le_nth {p} (i : set.infinite p) {a b : ℕ} :

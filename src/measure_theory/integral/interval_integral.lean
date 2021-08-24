@@ -325,9 +325,9 @@ end
 section
 
 variables {ι : Type*} [topological_space ι] [conditionally_complete_linear_order ι]
-  [order_topology ι] [measurable_space ι] [borel_space ι] {μ : measure ι} [locally_is_finite_measure μ]
-  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
-  [borel_space E]
+  [order_topology ι] [measurable_space ι] [borel_space ι] {μ : measure ι}
+  [locally_is_finite_measure μ] [conditionally_complete_linear_order E] [order_topology E]
+  [second_countable_topology E] [borel_space E]
 
 lemma interval_integrable_of_monotone_on {u : ι → E} {a b : ι}
   (hu : ∀ ⦃x y⦄, x ∈ interval a b → y ∈ interval a b → x ≤ y → u x ≤ u y) :

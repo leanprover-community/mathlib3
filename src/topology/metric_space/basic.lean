@@ -1607,6 +1607,8 @@ begin
   { exact bounded_closed_ball.subset hC }
 end
 
+lemma bounded.subset_ball (h : bounded s) (c : α) : ∃ r, s ⊆ closed_ball c r
+
 lemma bounded_closure_of_bounded (h : bounded s) : bounded (closure s) :=
 let ⟨C, h⟩ := h in
 ⟨C, λ a b ha hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb h⟩
@@ -1841,22 +1843,29 @@ end diam
 
 end metric
 
+lemma comap_dist_left_at_top_le_cocompact (x : α) : comap (λ y, dist y x) at_top ≤ cocompact α :=
+begin
+  refine filter.has_basis_cocompact.ge_iff.2 (λ s hs, mem_comap.2 _),
+  rcases hs.bounded.subset_ball x with ⟨r, hr⟩,
+  exact ⟨Ioi r, Ioi_mem_at_top r, λ y hy hys, (mem_closed_ball.1 $ hr hys).not_lt hy⟩
+end
+
+lemma comap_dist_right_at_top_le_cocompact (x : α) : comap (dist x) at_top ≤ cocompact α :=
+by simpa only [dist_comm _ x] using comap_dist_left_at_top_le_cocompact x
+
 namespace int
 open metric
 
 /-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
 lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
 begin
-  simp only [filter.has_basis_cocompact.tendsto_right_iff, eventually_iff_exists_mem],
-  intros s hs,
-  obtain ⟨r, hr⟩ : ∃ r, s ⊆ closed_ball (0:ℝ) r,
-  { rw ← bounded_iff_subset_ball,
-    exact hs.bounded },
-  refine ⟨(coe ⁻¹' closed_ball (0:ℝ) r)ᶜ, _, _⟩,
-  { simp [mem_cofinite, real.closed_ball_eq, set.Icc_ℤ_finite] },
-  { rw ← compl_subset_compl at hr,
-    intros y hy,
-    exact hr hy }
+  suffices : tendsto (λ m : ℤ, dist (0 : ℝ) m) cofinite at_top,
+  { calc map (coe : ℤ → ℝ) cofinite ≤ comap (dist (0 : ℝ)) at_top :
+      by rwa [← map_le_iff_le_comap, map_map]
+    ... ≤ cocompact ℝ :  comap_dist_right_at_top_le_cocompact _ },
+  simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball'],
+  change ∀ r : ℝ, finite (coe ⁻¹' (ball (0 : ℝ) r)),
+  simp [real.ball_eq, Ioo_ℤ_finite]
 end
 
 end int

@@ -436,6 +436,10 @@ begin
       simp only [or.by_cases, dif_neg this, dif_pos h], } }
 end
 
+instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
+  [is_noetherian R M] : is_noetherian R (ι → M) :=
+is_noetherian_pi
+
 end
 
 open is_noetherian submodule function

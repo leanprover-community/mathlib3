@@ -234,14 +234,19 @@ length_injective_iff.mpr $ by apply_instance
 
 lemma empty_eq : (∅ : list α) = [] := by refl
 lemma singleton_eq (x : α) : ({x} : list α) = [x] := rfl
-lemma insert_neg [decidable_eq α] {x : α} {l : list α} (h : x ∉ l) :
-  has_insert.insert x l = x :: l :=
+
+@[simp, priority 970]
+theorem insert_of_not_mem [decidable_eq α] {a : α} {l : list α} (h : a ∉ l) :
+  has_insert.insert a l = a :: l :=
 if_neg h
-lemma insert_pos [decidable_eq α] {x : α} {l : list α} (h : x ∈ l) :
-  has_insert.insert x l = l :=
+
+@[simp, priority 980]
+theorem insert_of_mem [decidable_eq α] {a : α} {l : list α} (h : a ∈ l) :
+  has_insert.insert a l = l :=
 if_pos h
+
 lemma doubleton_eq [decidable_eq α] {x y : α} (h : x ≠ y) : ({x, y} : list α) = [x, y] :=
-by { rw [insert_neg, singleton_eq], rwa [singleton_eq, mem_singleton] }
+by { rw [insert_of_not_mem, singleton_eq], rwa [singleton_eq, mem_singleton] }
 
 /-! ### bounded quantifiers over lists -/
 
@@ -4164,14 +4169,6 @@ variable [decidable_eq α]
 @[simp] theorem insert_nil (a : α) : insert a nil = [a] := rfl
 
 theorem insert.def (a : α) (l : list α) : insert a l = if a ∈ l then l else a :: l := rfl
-
-@[simp, priority 980]
-theorem insert_of_mem {a : α} {l : list α} (h : a ∈ l) : insert a l = l :=
-by simp only [insert.def, if_pos h]
-
-@[simp, priority 970]
-theorem insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) : insert a l = a :: l :=
-by simp only [insert.def, if_neg h]; split; refl
 
 @[simp] theorem mem_insert_iff {a b : α} {l : list α} : a ∈ insert b l ↔ a = b ∨ a ∈ l :=
 begin

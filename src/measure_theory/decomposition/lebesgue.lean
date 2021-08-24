@@ -465,6 +465,7 @@ open lebesgue_decomposition
 /-- **The Lebesgue decomposition theorem**: Any pair of finite measures `μ` and `ν`
 `have_lebesgue_decomposition`. That is to say, there exists a measure `ξ` and a measurable function
 `f`, such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f` -/
+@[priority 100] -- see Note [lower instance priority]
 instance have_lebesgue_decomposition_of_finite_measure
   {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
   have_lebesgue_decomposition μ ν :=

@@ -289,6 +289,7 @@ begin
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
 end
 
+-- needs previous PR to merge so simp works
 lemma lower_central_series_subgroup_le_lower_central_series_group (H : subgroup G) (n : ℕ) :
   (lower_central_series H n).map H.subtype ≤ lower_central_series G n :=
 begin

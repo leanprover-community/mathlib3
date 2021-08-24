@@ -3316,6 +3316,146 @@ begin
     { rwa tendsto_nhds_unique h (hl'.comp hg) } }
 end
 
+/-!
+### Monotone convergence in pi types
+
+In this section we transfer previous lemmas to Pi types. Each lemma comes in two version (e.g.,
+`tendsto_at_top_is_lub_pi` and `tendsto_at_top_is_lub_pi'`; the former version works with dependent
+Pi types while the latter version only works for simple functions. The reason primed versions exist
+is that sometimes Lean fails to apply a dependent version to, e.g., `ι → ℝ`. -/
+
+lemma tendsto_at_top_is_lub_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, linear_order (β i)] [Π i, order_topology (β i)]
+  {f : α → Π i, β i} (h_mono : monotone f) {a : Π i, β i} (ha : is_lub (set.range f) a) :
+  tendsto f at_top (𝓝 a) :=
+begin
+  refine tendsto_pi.2 (λ i, tendsto_at_top_is_lub ((monotone_eval _).comp h_mono) _),
+  simp only [is_lub_pi, ← range_comp] at ha,
+  exact ha i
+end
+
+lemma tendsto_at_top_is_lub_pi' {ι α β : Type*} [preorder α] [topological_space β] [linear_order β]
+  [order_topology β] {f : α → ι → β} (h_mono : monotone f) {a : ι → β}
+  (ha : is_lub (set.range f) a) :
+  tendsto f at_top (𝓝 a) :=
+tendsto_at_top_is_lub_pi h_mono ha
+
+lemma tendsto_at_bot_is_glb_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, linear_order (β i)] [Π i, order_topology (β i)]
+  {f : α → Π i, β i} (h_mono : monotone f) {a : Π i, β i}
+  (ha : is_glb (set.range f) a) :
+  tendsto f at_bot (𝓝 a) :=
+@tendsto_at_top_is_lub_pi ι (order_dual α) (λ i, order_dual (β i)) _ _ _ _ _ h_mono.order_dual _ ha
+
+lemma tendsto_at_bot_is_glb_pi' {ι α β : Type*} [preorder α] [topological_space β] [linear_order β]
+  [order_topology β] {f : α → ι → β} (h_mono : monotone f) {a : ι → β}
+  (ha : is_glb (set.range f) a) :
+  tendsto f at_bot (𝓝 a) :=
+tendsto_at_bot_is_glb_pi h_mono ha
+
+lemma tendsto_at_top_csupr_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, conditionally_complete_linear_order (β i)]
+  [Π i, order_topology (β i)] {f : α → Π i, β i} (h_mono : monotone f)
+  (hbdd : bdd_above $ set.range f) :
+  tendsto f at_top (𝓝 (⨆i, f i)) :=
+begin
+  by_cases ha : nonempty α,
+  { resetI,
+    exact tendsto_at_top_is_lub_pi h_mono (is_lub_cSup (range_nonempty f) hbdd) },
+  { exact tendsto_of_not_nonempty ha }
+end
+
+lemma tendsto_at_top_csupr_pi' {ι α β : Type*} [preorder α] [topological_space β]
+  [conditionally_complete_linear_order β] [order_topology β] {f : α → ι → β} (h_mono : monotone f)
+  (hbdd : bdd_above $ set.range f) :
+  tendsto f at_top (𝓝 (⨆i, f i)) :=
+tendsto_at_top_csupr_pi h_mono hbdd
+
+lemma tendsto_at_bot_cinfi_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, conditionally_complete_linear_order (β i)]
+  [Π i, order_topology (β i)] {f : α → Π i, β i} (h_mono : monotone f)
+  (hbdd : bdd_below $ set.range f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+@tendsto_at_top_csupr_pi ι (order_dual α) (λ i, order_dual (β i)) _ _ _ _ _ h_mono.order_dual hbdd
+
+lemma tendsto_at_bot_cinfi_pi' {ι α β : Type*} [preorder α] [topological_space β]
+  [conditionally_complete_linear_order β] [order_topology β] {f : α → ι → β} (h_mono : monotone f)
+  (hbdd : bdd_below $ set.range f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+tendsto_at_bot_cinfi_pi h_mono hbdd
+
+lemma tendsto_at_top_cinfi_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, conditionally_complete_linear_order (β i)]
+  [Π i, order_topology (β i)] {f : α → Π i, β i} (h_mono : monotone (order_dual.to_dual ∘ f))
+  (hbdd : bdd_below $ set.range f) :
+  tendsto f at_top (𝓝 (⨅i, f i)) :=
+@tendsto_at_top_csupr_pi ι α (λ i, order_dual (β i)) _ _ _ _ _ h_mono hbdd
+
+lemma tendsto_at_top_cinfi_pi' {ι α β : Type*} [preorder α] [topological_space β]
+  [conditionally_complete_linear_order β] [order_topology β] {f : α → ι → β}
+  (h_mono : monotone (order_dual.to_dual ∘ f)) (hbdd : bdd_below $ set.range f) :
+  tendsto f at_top (𝓝 (⨅i, f i)) :=
+tendsto_at_top_cinfi_pi h_mono hbdd
+
+lemma tendsto_at_bot_csupr_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, conditionally_complete_linear_order (β i)]
+  [Π i, order_topology (β i)] {f : α → Π i, β i} (h_mono : monotone (order_dual.to_dual ∘ f))
+  (hbdd : bdd_above $ set.range f) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+@tendsto_at_bot_cinfi_pi ι α (λ i, order_dual (β i)) _ _ _ _ _ h_mono hbdd
+
+lemma tendsto_at_bot_csupr_pi' {ι α β : Type*} [preorder α] [topological_space β]
+  [conditionally_complete_linear_order β] [order_topology β] {f : α → ι → β}
+  (h_mono : monotone (order_dual.to_dual ∘ f)) (hbdd : bdd_above $ set.range f) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+tendsto_at_bot_csupr_pi h_mono hbdd
+
+lemma tendsto_at_top_supr_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, complete_linear_order (β i)]
+  [Π i, order_topology (β i)] {f : α → Π i, β i} (h_mono : monotone f) :
+  tendsto f at_top (𝓝 (⨆i, f i)) :=
+tendsto_at_top_csupr_pi h_mono (order_top.bdd_above _)
+
+lemma tendsto_at_top_supr_pi' {ι α β : Type*} [preorder α] [topological_space β]
+  [complete_linear_order β] [order_topology β] {f : α → ι → β} (h_mono : monotone f) :
+  tendsto f at_top (𝓝 (⨆i, f i)) :=
+tendsto_at_top_supr_pi h_mono
+
+lemma tendsto_at_bot_infi_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, complete_linear_order (β i)]
+  [Π i, order_topology (β i)] {f : α → Π i, β i} (h_mono : monotone f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+tendsto_at_bot_cinfi_pi h_mono (order_bot.bdd_below _)
+
+lemma tendsto_at_bot_infi_pi' {ι α β : Type*} [preorder α] [topological_space β]
+  [complete_linear_order β] [order_topology β] {f : α → ι → β} (h_mono : monotone f) :
+  tendsto f at_bot (𝓝 (⨅i, f i)) :=
+tendsto_at_bot_infi_pi h_mono
+
+lemma tendsto_at_top_infi_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, complete_linear_order (β i)]
+  [Π i, order_topology (β i)] {f : α → Π i, β i} (h_mono : monotone (order_dual.to_dual ∘ f)) :
+  tendsto f at_top (𝓝 (⨅i, f i)) :=
+tendsto_at_top_cinfi_pi h_mono (order_bot.bdd_below _)
+
+lemma tendsto_at_top_infi_pi' {ι α β : Type*} [preorder α] [topological_space β]
+  [complete_linear_order β] [order_topology β] {f : α → ι → β}
+  (h_mono : monotone (order_dual.to_dual ∘ f)) :
+  tendsto f at_top (𝓝 (⨅i, f i)) :=
+tendsto_at_top_infi_pi h_mono
+
+lemma tendsto_at_bot_supr_pi {ι α : Type*} {β : ι → Type*} [preorder α]
+  [Π i, topological_space (β i)] [Π i, complete_linear_order (β i)]
+  [Π i, order_topology (β i)] {f : α → Π i, β i} (h_mono : monotone (order_dual.to_dual ∘ f)) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+tendsto_at_bot_csupr_pi h_mono (order_top.bdd_above _)
+
+lemma tendsto_at_bot_supr_pi' {ι α β : Type*} [preorder α] [topological_space β]
+  [complete_linear_order β] [order_topology β] {f : α → ι → β}
+  (h_mono : monotone (order_dual.to_dual ∘ f)) :
+  tendsto f at_bot (𝓝 (⨆i, f i)) :=
+tendsto_at_bot_supr_pi h_mono
+
 /-! The next family of results, such as `is_lub_of_tendsto` and `supr_eq_of_tendsto`, are converses
 to the standard fact that bounded monotone functions converge. They state, that if a monotone
 function `f` tends to `a` along `at_top`, then that value `a` is a least upper bound for the range

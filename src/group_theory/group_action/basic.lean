@@ -227,11 +227,13 @@ rfl
   mul_action.stabilizer G ((1 : G) : quotient H) = H :=
 by { ext, simp [quotient_group.eq] }
 
+variable (β)
+
 local notation `Ω` := (quotient $ orbit_rel α β)
 
-/-- **Burnside's lemma** : given a group `G` acting on a set `X`, there is a bijection between the
-disjoint union of all `{x ∈ X | g • x = x}` for `g ∈ G` and the product `G × X/G`, where `X/G`
-denotes the quotient of `X` by the relation `orbit_rel G X`. -/
+/-- **Burnside's lemma** : a (noncomputable) bijection between the disjoint union of all
+`{x ∈ X | g • x = x}` for `g ∈ G` and the product `G × X/G`, where `G` is a group acting on `X` and
+`X/G`denotes the quotient of `X` by the relation `orbit_rel G X`. -/
 noncomputable def sigma_fixed_by_equiv_orbits_prod_group :
   (Σ (a : α), (fixed_by α β a)) ≃ Ω × α :=
 let
@@ -267,7 +269,7 @@ lemma sum_card_fixed_by_eq_card_orbits_mul_card_group [fintype α] [Π a, fintyp
   [fintype Ω] :
   ∑ (a : α), fintype.card (fixed_by α β a) = fintype.card Ω * fintype.card α :=
 by rw [← fintype.card_prod, ← fintype.card_sigma,
-        fintype.card_congr (sigma_fixed_by_equiv_orbits_prod_group α)]
+        fintype.card_congr (sigma_fixed_by_equiv_orbits_prod_group α β)]
 
 end mul_action
 

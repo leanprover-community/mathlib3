@@ -480,7 +480,7 @@ open measure
 section
 
 /-- A vector measure over `ℝ≥0∞` is a measure. -/
-def ennreal_to_measure [measurable_space α] (v : vector_measure α ℝ≥0∞) : measure α :=
+def ennreal_to_measure {m : measurable_space α} (v : vector_measure α ℝ≥0∞) : measure α :=
 of_measurable (λ s _, v s) v.empty (λ f hf₁ hf₂, v.of_disjoint_Union_nat hf₁ hf₂)
 
 lemma ennreal_to_measure_apply {m : measurable_space α} {v : vector_measure α ℝ≥0∞}

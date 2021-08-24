@@ -57,7 +57,7 @@ linear algebra, vector space, module
 -/
 
 open function
-open_locale big_operators
+open_locale big_operators pointwise
 
 universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
@@ -569,6 +569,30 @@ by refine_struct
     .. linear_map.add_comm_monoid, .. };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
+/-- The tautological action by `M →ₗ[R] M` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_module : module (M →ₗ[R] M) M :=
+{ smul := ($),
+  smul_zero := linear_map.map_zero,
+  smul_add := linear_map.map_add,
+  add_smul := linear_map.add_apply,
+  zero_smul := (linear_map.zero_apply : ∀ m, (0 : M →ₗ[R] M) m = 0),
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def (f : M →ₗ[R] M) (a : M) : f • a = f a := rfl
+
+/-- `linear_map.apply_module` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (M →ₗ[R] M) M :=
+⟨λ _ _, linear_map.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R (M →ₗ[R] M) M :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (M →ₗ[R] M) R M :=
+{ smul_comm := linear_map.map_smul }
+
 end semiring
 
 section ring
@@ -596,7 +620,7 @@ def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
   map_smul' := λ c f, by { ext, apply mul_smul, } }
 
 @[simp] lemma smul_rightₗ_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
-  (smul_rightₗ : (M₂ →ₗ R) →ₗ M →ₗ M₂ →ₗ M) f x c = (f c) • x := rfl
+  (smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M) f x c = (f c) • x := rfl
 
 end comm_ring
 
@@ -672,13 +696,13 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 
 variables (R)
 
-lemma subsingleton_iff : subsingleton M ↔ subsingleton (submodule R M) :=
-add_submonoid.subsingleton_iff.trans $ begin
-  rw [←subsingleton_iff_bot_eq_top, ←subsingleton_iff_bot_eq_top],
-  convert to_add_submonoid_eq; refl
-end
+@[simp] lemma subsingleton_iff : subsingleton (submodule R M) ↔ subsingleton M :=
+have h : subsingleton (submodule R M) ↔ subsingleton (add_submonoid M),
+{ rw [←subsingleton_iff_bot_eq_top, ←subsingleton_iff_bot_eq_top],
+  convert to_add_submonoid_eq.symm; refl, },
+h.trans add_submonoid.subsingleton_iff
 
-lemma nontrivial_iff : nontrivial M ↔ nontrivial (submodule R M) :=
+@[simp] lemma nontrivial_iff : nontrivial (submodule R M) ↔ nontrivial M :=
 not_iff_not.mp (
   (not_nontrivial_iff_subsingleton.trans $ subsingleton_iff R).trans
   not_nontrivial_iff_subsingleton.symm)
@@ -686,12 +710,12 @@ not_iff_not.mp (
 variables {R}
 
 instance [subsingleton M] : unique (submodule R M) :=
-⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mp ‹_›) a _⟩
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ ((subsingleton_iff R).mpr ‹_›) a _⟩
 
 instance unique' [subsingleton R] : unique (submodule R M) :=
 by haveI := module.subsingleton R M; apply_instance
 
-instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mp ‹_›
+instance [nontrivial M] : nontrivial (submodule R M) := (nontrivial_iff R).mpr ‹_›
 
 theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
@@ -1780,7 +1804,7 @@ begin
     rw [← set_like.mem_coe, f.range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
     have hx' : x ∈ p, { exact h₂ hx, },
     have hxz : z + x ∈ p, { apply h₂, simp [hx, hz], },
-    suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel],  },
+    suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel], },
     exact p.sub_mem hxz hx', },
 end
 
@@ -2374,7 +2398,7 @@ open linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
 def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
-of_linear ((a:R) • 1 : M →ₗ M) (((a⁻¹ : units R) : R) • 1 : M →ₗ M)
+of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : units R) : R) • 1 : M →ₗ[R] M)
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
   (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)
 
@@ -2423,7 +2447,7 @@ rfl
 
 /-- If `M₂` and `M₃` are linearly isomorphic then the two spaces of linear maps from `M` into `M₂`
 and `M` into `M₃` are linearly isomorphic. -/
-def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) :=
+def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ[R] (M →ₗ[R] M₃) :=
 arrow_congr (linear_equiv.refl R M) f
 
 /-- If `M` and `M₂` are linearly isomorphic then the two spaces of linear maps from `M` and `M₂` to
@@ -2762,9 +2786,13 @@ quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
 end isomorphism_laws
 
+end linear_map
+
 section fun_left
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
 variables {m n p : Type*}
+
+namespace linear_map
 
 /-- Given an `R`-module `M` and a function `m → n` between arbitrary types,
 construct a linear map `(n → M) →ₗ[R] (m → M)` -/
@@ -2805,13 +2833,18 @@ begin
   simp only [← linear_map.comp_apply, ← fun_left_comp, hg.id, fun_left_id]
 end
 
+end linear_map
+
+namespace linear_equiv
+open linear_map
+
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/
 def fun_congr_left (e : m ≃ n) : (n → M) ≃ₗ[R] (m → M) :=
 linear_equiv.of_linear (fun_left R M e) (fun_left R M e.symm)
-  (ext $ λ x, funext $ λ i,
+  (linear_map.ext $ λ x, funext $ λ i,
     by rw [id_apply, ← fun_left_comp, equiv.symm_comp_self, fun_left_id])
-  (ext $ λ x, funext $ λ i,
+  (linear_map.ext $ λ x, funext $ λ i,
     by rw [id_apply, ← fun_left_comp, equiv.self_comp_symm, fun_left_id])
 
 @[simp] theorem fun_congr_left_apply (e : m ≃ n) (x : n → M) :
@@ -2831,11 +2864,13 @@ rfl
   (fun_congr_left R M e).symm = fun_congr_left R M e.symm :=
 rfl
 
+end linear_equiv
+
 end fun_left
 
-universe i
-variables [semiring R] [add_comm_monoid M] [module R M]
+namespace linear_equiv
 
+variables [semiring R] [add_comm_monoid M] [module R M]
 variables (R M)
 
 instance automorphism_group : group (M ≃ₗ[R] M) :=
@@ -2847,13 +2882,43 @@ instance automorphism_group : group (M ≃ₗ[R] M) :=
   one_mul := λ f, by {ext, refl},
   mul_left_inv := λ f, by {ext, exact f.left_inv x} }
 
-/-- Restriction from `R`-linear automorphisms of `M` to `R`-linearendomorphisms of `M`,
+/-- Restriction from `R`-linear automorphisms of `M` to `R`-linear endomorphisms of `M`,
 promoted to a monoid hom. -/
 def automorphism_group.to_linear_map_monoid_hom :
   (M ≃ₗ[R] M) →* (M →ₗ[R] M) :=
 { to_fun := coe,
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
+
+/-- The tautological action by `M ≃ₗ[R] M` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
+{ smul := ($),
+  smul_zero := linear_equiv.map_zero,
+  smul_add := linear_equiv.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def (f : M ≃ₗ[R] M) (a : M) :
+  f • a = f a := rfl
+
+/-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+⟨λ _ _, linear_equiv.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
+{ smul_comm := linear_equiv.map_smul }
+
+end linear_equiv
+
+namespace linear_map
+
+variables [semiring R] [add_comm_monoid M] [module R M]
+variables (R M)
 
 /-- The group of invertible linear maps from `M` to itself -/
 @[reducible] def general_linear_group := units (M →ₗ[R] M)

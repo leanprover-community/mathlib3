@@ -268,8 +268,7 @@ begin
     intro U, op_induction U,
     rw is_iso_iff_bijective,
     exact app_bijective_of_stalk_functor_map_bijective f
-      (λ x, (is_iso_iff_bijective _).mp (_inst_3 x)) U,
-  }),
+      (λ x, (is_iso_iff_bijective _).mp (_inst_3 x)) U, }),
   exact is_iso_of_fully_faithful (induced_functor sheaf.presheaf) f,
 end
 

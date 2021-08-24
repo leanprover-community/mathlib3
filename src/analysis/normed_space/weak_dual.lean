@@ -10,31 +10,39 @@ import analysis.normed_space.operator_norm
 /-!
 # Weak dual of normed space
 
-This file proves properties of the weak-* topology on the dual of a normed space.
+Let `E` be a normed space over a field `𝕜`. This file is concerned with properties of the weak-*
+topology on the dual of `E`. By the dual, we mean either of the type synonyms
+`normed_space.dual 𝕜 E` or `weak_dual 𝕜 E`, depending on whether it is viewed as equipped with its
+usual operator norm topology or the weak-* topology.
 
-It is shown that the canconical mapping `dual 𝕜 E → weak_dual 𝕜 E` is continuous, and as a
-consequence the weak-* topology is coarser than the topology induced by the dual norm (operator
-norm).
+It is shown that the canonical mapping `normed_space.dual 𝕜 E → weak_dual 𝕜 E` is continuous, and
+as a consequence the weak-* topology is coarser than the topology obtained from the operator norm
+(dual norm).
+
+The file is a stub, some TODOs below.
 
 ## Main definitions
 
 The main definitions concern the canonical mapping `dual 𝕜 E → weak_dual 𝕜 E`.
 
-* `to_weak_dual` is a linear equivalence from `dual 𝕜 E`to `weak_dual 𝕜 E`.
-* `continuous_linear_map_to_weak_dual` is a continuous linear mapping from
-  `dual 𝕜 E` to `weak_dual 𝕜 E`.
+* `normed_space.dual.to_weak_dual` and `weak_dual.to_normed_dual`: Linear equivalences from
+  `dual 𝕜 E` to `weak_dual 𝕜 E` and in the converse direction.
+* `normed_space.dual.continuous_linear_map_to_weak_dual`: A continuous linear mapping from
+  `dual 𝕜 E` to `weak_dual 𝕜 E` (same as `normed_space.dual.to_weak_dual` but different bundled
+  data).
 
 ## Main results
 
-The file is a stub.
-
-The first main results concern the comparison of the operator norm topology on `dual 𝕜 E` and the
+The first main result concerns the comparison of the operator norm topology on `dual 𝕜 E` and the
 weak-* topology on (its type synonym) `weak_dual 𝕜 E`:
-* `dual_norm_topology_le_weak_dual_topology` is the statement that the weak-* topology on the dual
-  of a normed space is coarser (not necessarily strictly) than the operator norm topology.
+* `dual_norm_topology_le_weak_dual_topology`: The weak-* topology on the dual of a normed space is
+  coarser (not necessarily strictly) than the operator norm topology.
 
 TODOs:
-* Add Banach-Alaoglu theorem.
+* Add that in finite dimensions, the weak-* topology and the dual norm topology coincide.
+* Add that in infinite dimensions, the weak-* topology is strictly coarser than the dual norm
+  topology.
+* Add Banach-Alaoglu theorem (general version maybe in `topology.algebra.weak_dual_topology`).
 * Add metrizability of the dual unit ball (more generally bounded subsets) of `weak_dual 𝕜 E`
   under the assumption of separability of `E`. Sequential Banach-Alaoglu theorem would then follow
   from the general one.
@@ -45,7 +53,7 @@ No new notation is introduced.
 
 ## Implementation notes
 
-Weak-* topology is defined generally in the file <topology.algebra.weak_dual_topology>.
+Weak-* topology is defined generally in the file `topology.algebra.weak_dual_topology`.
 
 When `E` is a normed space, the duals `dual 𝕜 E` and `weak_dual 𝕜 E` are type synonyms with
 different topology instances.
@@ -79,13 +87,13 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 /-- For normed spaces `E`, there is a canonical map `dual 𝕜 E → weak_dual 𝕜 E` (the "identity"
-    mapping). It is a linear equivalence. -/
+mapping). It is a linear equivalence. -/
 def normed_space.dual.to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E :=
 linear_equiv.refl 𝕜 (E →L[𝕜] 𝕜)
 
 /-- For normed spaces `E`, there is a canonical map `weak_dual 𝕜 E → dual 𝕜 E` (the "identity"
-    mapping). It is a linear equivalence. Here it is implemented as the inverse of the linear
-    equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
+mapping). It is a linear equivalence. Here it is implemented as the inverse of the linear
+equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
 def weak_dual.to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E :=
 normed_space.dual.to_weak_dual.symm
 
@@ -111,8 +119,8 @@ begin
 end
 
 /-- For a normed space `E`, according to `to_weak_dual_continuous` the "identity mapping"
-`dual 𝕜 E → weak_dual 𝕜 E` is continuous. The following definition implements it as a continuous
-linear map. -/
+`dual 𝕜 E → weak_dual 𝕜 E` is continuous. This definition implements it as a continuous linear
+map. -/
 def continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=
 { cont := to_weak_dual_continuous, .. to_weak_dual, }
 

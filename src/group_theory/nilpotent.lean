@@ -122,11 +122,11 @@ def upper_central_series (n : ℕ) : subgroup G := (upper_central_series_aux G n
 
 instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_aux G n).2
 
-lemma upper_central_series_zero_def : upper_central_series G 0 = ⊥ := rfl
+@[simp] lemma upper_central_series_zero : upper_central_series G 0 = ⊥ := rfl
 
 /-- The `n+1`st term of the upper central series `H i` has underlying set equal to the `x` such
 that `⁅x,G⁆ ⊆ H n`-/
-lemma mem_upper_central_series_succ_iff {G : Type*} [group G] (n : ℕ) (x : G) :
+lemma mem_upper_central_series_succ_iff (n : ℕ) (x : G) :
   x ∈ upper_central_series G (n + 1) ↔
   ∀ y : G, x * y * x⁻¹ * y⁻¹ ∈ upper_central_series G n := iff.rfl
 
@@ -180,6 +180,15 @@ variable (G)
 lemma upper_central_series_is_ascending_central_series :
   is_ascending_central_series (upper_central_series G) :=
 ⟨rfl, λ x n h, h⟩
+
+lemma upper_central_series_mono : monotone (upper_central_series G) :=
+begin
+  refine monotone_nat_of_le_succ _,
+  intros n x hx y,
+  rw [mul_assoc, mul_assoc, ← mul_assoc y x⁻¹ y⁻¹],
+  exact mul_mem (upper_central_series G n) hx
+    (normal.conj_mem (upper_central_series.subgroup.normal G n) x⁻¹ (inv_mem _ hx) y),
+end
 
 /-- A group `G` is nilpotent iff there exists an ascending central series which reaches `G` in
   finitely many steps. -/
@@ -249,10 +258,25 @@ def lower_central_series (G : Type*) [group G] : ℕ → subgroup G
 
 variable {G}
 
+@[simp] lemma lower_central_series_zero : lower_central_series G 0 = ⊤ := rfl
+
+lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
+  q ∈ lower_central_series G (n + 1) ↔
+  q ∈ closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
+:= iff.rfl
+
 lemma lower_central_series_succ (n : ℕ) :
   lower_central_series G (n + 1) =
   closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
 := rfl
+
+instance (n : ℕ) : normal (lower_central_series G n) :=
+begin
+  induction n with d hd,
+  { simp [subgroup.top_normal] },
+  { haveI := hd,
+    exact general_commutator_normal (lower_central_series G d) ⊤ },
+end
 
 /-- The lower central series of a group is a descending central series. -/
 theorem lower_central_series_is_descending_central_series :
@@ -289,7 +313,6 @@ begin
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
 end
 
--- needs previous PR to merge so simp works
 lemma lower_central_series_subgroup_le_lower_central_series_group (H : subgroup G) (n : ℕ) :
   (lower_central_series H n).map H.subtype ≤ lower_central_series G n :=
 begin
@@ -298,8 +321,7 @@ begin
   { rw [lower_central_series_succ, lower_central_series_succ, monoid_hom.map_closure],
     apply subgroup.closure_mono,
     rintros x1 ⟨x2, ⟨x3, hx3, x4, hx4, rfl⟩, rfl⟩,
-    exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩,
-  }
+    exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
 end
 
 lemma nilpotent_to_nilpotent_subgroups (G : Type*) [group G] (H : subgroup G) : is_nilpotent G → is_nilpotent H :=
@@ -311,4 +333,18 @@ begin
   have := lower_central_series_subgroup_le_lower_central_series_group H n,
   simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
   exact λ x hx, subtype.ext (this x hx),
+end
+
+@[priority 100]
+instance is_nilpotent_of_subsingleton [subsingleton G] : is_nilpotent G :=
+nilpotent_iff_lower_central_series.2 ⟨0, subsingleton.elim ⊤ ⊥⟩
+
+lemma upper_central_series.map {H : Type*} [group H] {f : G →* H} (h : function.surjective f)
+  (n : ℕ) : subgroup.map f (upper_central_series G n) ≤ upper_central_series H n :=
+begin
+  induction n with d hd,
+  { simp },
+  { rintros _ ⟨x, hx : x ∈ upper_central_series G d.succ, rfl⟩ y',
+    rcases (h y') with ⟨y, rfl⟩,
+    simpa using hd (mem_map_of_mem f (hx y)) }
 end

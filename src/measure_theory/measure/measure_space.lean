@@ -245,9 +245,8 @@ is the supremum of the measures. -/
 lemma measure_Union_eq_supr [encodable ι] {s : ι → set α} (h : ∀ i, measurable_set (s i))
   (hd : directed (⊆) s) : μ (⋃ i, s i) = ⨆ i, μ (s i) :=
 begin
-  by_cases hι : nonempty ι, swap,
-  { simp only [supr_of_empty hι, Union], exact measure_empty },
-  resetI,
+  casesI is_empty_or_nonempty ι,
+  { simp only [supr_of_empty, Union], exact measure_empty },
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
   have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
     measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
@@ -1401,6 +1400,18 @@ lemma ae_restrict_of_ae_restrict_of_subset {s t : set α} {p : α → Prop} (hst
   (∀ᵐ x ∂(μ.restrict s), p x) :=
 h.filter_mono (ae_mono $ measure.restrict_mono hst (le_refl μ))
 
+lemma ae_of_ae_restrict_of_ae_restrict_compl {t : set α} (ht_meas : measurable_set t) {p : α → Prop}
+  (ht : ∀ᵐ x ∂(μ.restrict t), p x) (htc : ∀ᵐ x ∂(μ.restrict tᶜ), p x) :
+  ∀ᵐ x ∂μ, p x :=
+begin
+  rw ae_restrict_iff' ht_meas at ht,
+  rw ae_restrict_iff' ht_meas.compl at htc,
+  refine ht.mp (htc.mono (λ x hx1 hx2, _)),
+  by_cases hxt : x ∈ t,
+  { exact hx2 hxt, },
+  { exact hx1 hxt, },
+end
+
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ℝ≥0∞) : ∀ᵐ x ∂(c • μ), p x :=
 ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, mul_zero]
 
@@ -1418,6 +1429,13 @@ lemma ae_eq_comp' {ν : measure β} {f : α → β} {g g' : β → δ} (hf : mea
 lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
   (h : g =ᵐ[measure.map f μ] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
 ae_eq_comp' hf h absolutely_continuous.rfl
+
+lemma sub_ae_eq_zero {β} [add_group β] (f g : α → β) : f - g =ᵐ[μ] 0 ↔ f =ᵐ[μ] g :=
+begin
+  refine ⟨λ h, h.mono (λ x hx, _), λ h, h.mono (λ x hx, _)⟩,
+  { rwa [pi.sub_apply, pi.zero_apply, sub_eq_zero] at hx, },
+  { rwa [pi.sub_apply, pi.zero_apply, sub_eq_zero], },
+end
 
 lemma le_ae_restrict : μ.ae ⊓ 𝓟 s ≤ (μ.restrict s).ae :=
 λ s hs, eventually_inf_principal.2 (ae_imp_of_ae_restrict hs)
@@ -1528,6 +1546,9 @@ instance finite_measure_add [finite_measure μ] [finite_measure ν] : finite_mea
 instance finite_measure_smul_nnreal [finite_measure μ] {r : ℝ≥0} : finite_measure (r • μ) :=
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_lt_top (measure_lt_top _ _) }
 
+lemma finite_measure_of_le (μ : measure α) [finite_measure μ] (h : ν ≤ μ) : finite_measure ν :=
+{ measure_univ_lt_top := lt_of_le_of_lt (h set.univ measurable_set.univ) (measure_lt_top _ _) }
+
 @[simp] lemma measure_univ_nnreal_eq_zero [finite_measure μ] : measure_univ_nnreal μ = 0 ↔ μ = 0 :=
 begin
   rw [← measure_theory.measure.measure_univ_eq_zero, ← coe_measure_univ_nnreal],
@@ -1603,10 +1624,10 @@ attribute [simp] measure_singleton
 
 variables [has_no_atoms μ]
 
-lemma measure_subsingleton (hs : s.subsingleton) : μ s = 0 :=
+lemma _root_.set.subsingleton.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
+  (hs : s.subsingleton) (μ : measure α) [has_no_atoms μ] :
+  μ s = 0 :=
 hs.induction_on measure_empty measure_singleton
-
-alias measure_subsingleton ← set.subsingleton.measure_eq
 
 @[simp] lemma measure.restrict_singleton' {a : α} :
   μ.restrict {a} = 0 :=
@@ -1621,18 +1642,22 @@ begin
   apply measure_mono_null (inter_subset_left t s) ht2
 end
 
-lemma _root_.set.countable.measure_zero (h : countable s) : μ s = 0 :=
+lemma _root_.set.countable.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
+  (h : countable s) (μ : measure α) [has_no_atoms μ] :
+  μ s = 0 :=
 begin
   rw [← bUnion_of_singleton s, ← nonpos_iff_eq_zero],
   refine le_trans (measure_bUnion_le h _) _,
   simp
 end
 
-lemma _root_.set.finite.measure_zero (h : s.finite) : μ s = 0 :=
-h.countable.measure_zero
+lemma _root_.set.finite.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
+  (h : s.finite) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
+h.countable.measure_zero μ
 
-lemma _root_.finset.measure_zero (s : finset α) : μ ↑s = 0 :=
-s.finite_to_set.measure_zero
+lemma _root_.finset.measure_zero {α : Type*} {m : measurable_space α}
+  (s : finset α) (μ : measure α) [has_no_atoms μ] : μ s = 0 :=
+s.finite_to_set.measure_zero μ
 
 lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=
@@ -1813,6 +1838,19 @@ begin
   exact eq_univ_of_subset (Union_subset_Union $ λ n, subset_to_measurable μ (s n)) hs
 end
 
+/-- Given measures `μ`, `ν` where `ν ≤ μ`, `finite_spanning_sets_in.of_le` provides the induced
+`finite_spanning_set` with respect to `ν` from a `finite_spanning_set` with respect to `μ`. -/
+def finite_spanning_sets_in.of_le (h : ν ≤ μ) {C : set (set α)}
+  (S : μ.finite_spanning_sets_in C) : ν.finite_spanning_sets_in C :=
+{ set := S.set,
+  set_mem := S.set_mem,
+  finite := λ n, lt_of_le_of_lt (le_iff'.1 h _) (S.finite n),
+  spanning := S.spanning }
+
+lemma sigma_finite_of_le (μ : measure α) [hs : sigma_finite μ]
+  (h : ν ≤ μ) : sigma_finite ν :=
+⟨hs.out.map $ finite_spanning_sets_in.of_le h⟩
+
 end measure
 
 include m0
@@ -1931,6 +1969,36 @@ lemma ext_of_generate_finite (C : set (set α)) (hA : m0 = generate_from C)
 measure.ext (λ s hs, ext_on_measurable_space_of_generate_finite m0 C hμν le_rfl hA hC h_univ hs)
 
 namespace measure
+
+section disjointed
+
+include m0
+
+/-- Given `S : μ.finite_spanning_sets_in {s | measurable_set s}`,
+`finite_spanning_sets_in.disjointed` provides a `finite_spanning_sets_in {s | measurable_set s}`
+such that its underlying sets are pairwise disjoint. -/
+protected def finite_spanning_sets_in.disjointed {μ : measure α}
+  (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
+   μ.finite_spanning_sets_in {s | measurable_set s} :=
+⟨disjointed S.set, measurable_set.disjointed S.set_mem,
+  λ n, lt_of_le_of_lt (measure_mono (disjointed_subset S.set n)) (S.finite _),
+  S.spanning ▸ Union_disjointed⟩
+
+lemma finite_spanning_sets_in.disjointed_set_eq {μ : measure α}
+  (S : μ.finite_spanning_sets_in {s | measurable_set s}) :
+  S.disjointed.set = disjointed S.set :=
+rfl
+
+lemma exists_eq_disjoint_finite_spanning_sets_in
+  (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
+  ∃ (S : μ.finite_spanning_sets_in {s | measurable_set s})
+    (T : ν.finite_spanning_sets_in {s | measurable_set s}),
+    S.set = T.set ∧ pairwise (disjoint on S.set) :=
+let S := (μ + ν).to_finite_spanning_sets_in.disjointed in
+⟨S.of_le (measure.le_add_right le_rfl), S.of_le (measure.le_add_left le_rfl),
+  rfl, disjoint_disjointed _⟩
+
+end disjointed
 
 namespace finite_at_filter
 

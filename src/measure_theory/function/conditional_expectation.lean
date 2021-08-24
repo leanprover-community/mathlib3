@@ -98,6 +98,17 @@ hfm.some_spec.1
 lemma ae_eq_mk {f : α → β} (hfm : ae_measurable' m f μ) : f =ᵐ[μ] hfm.mk f :=
 hfm.some_spec.2
 
+lemma measurable_comp' {γ} [measurable_space γ] {f : α → β} {g : β → γ}
+  (hg : measurable g) (hf : ae_measurable' m f μ) :
+  ae_measurable' m (g ∘ f) μ :=
+⟨λ x, g (hf.mk _ x), @measurable.comp _ _ _ m _ _ _ _ hg hf.measurable_mk,
+  hf.ae_eq_mk.mono (λ x hx, by rw [function.comp_apply, hx])⟩
+
+lemma measurable_comp {γ} [measurable_space γ] {f : α → β} {g : β → γ}
+  (hg : measurable g) (hf : ae_measurable' m f μ) :
+  ae_measurable' m (λ x, g (f x)) μ :=
+ae_measurable'.measurable_comp' hg hf
+
 end ae_measurable'
 
 lemma ae_measurable'_of_ae_measurable'_trim {α β} {m m0 m0' : measurable_space α}
@@ -754,12 +765,8 @@ begin
   { have h_coe := T.coe_fn_comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E'),
     rw ← eventually_eq at h_coe,
     refine ae_measurable'.congr _ h_coe.symm,
-    have h_meas := Lp_meas.ae_measurable' (condexp_L2 𝕜 hm f),
-    refine ⟨λ x, T (h_meas.mk _ x),
-      @measurable.comp _ _ _ m _ _ _ _ T.measurable h_meas.measurable_mk, _⟩,
-    refine h_meas.ae_eq_mk.mono (λ x hx, _),
-    dsimp only,
-    rw [← Lp_meas_coe, hx], },
+    exact ae_measurable'.measurable_comp T.measurable
+      (Lp_meas.ae_measurable' (condexp_L2 𝕜 hm f)), },
 end
 
 end condexp_L2

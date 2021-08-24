@@ -755,13 +755,13 @@ end
 variables {𝕜 𝕜'}
 
 /-- TODO: surely something like this exists somewhere? -/
-def rsmul (x : F') : ℝ →L[ℝ] F' :=
+def rsmul {γ} [normed_group γ] [normed_space ℝ γ] (x : γ) : ℝ →L[ℝ] γ :=
 { to_fun := λ r, r • x,
   map_add' := λ r r', add_smul r r' x,
   map_smul' := λ r r', smul_assoc r r' x, }
 
-lemma indicator_const_Lp_eq_rsmul_comp_Lp (x : F') {s : set α} (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) :
+lemma indicator_const_Lp_eq_rsmul_comp_Lp [normed_space ℝ F] (x : F) {s : set α}
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) :
   indicator_const_Lp 2 hs hμs x = (rsmul x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
 begin
   ext1,

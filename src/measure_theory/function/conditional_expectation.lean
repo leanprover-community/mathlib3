@@ -706,7 +706,7 @@ begin
     exact (Lp_meas.ae_measurable' _).const_inner _, },
 end
 
-lemma integral_condexp_L2_eq_of_fin_meas [is_scalar_tower ℝ 𝕜 E'] (hm : m ≤ m0)
+lemma integral_condexp_L2_eq [is_scalar_tower ℝ 𝕜 E'] (hm : m ≤ m0)
   (f : Lp E' 2 μ) {s : set α} (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L2 𝕜 hm f x ∂μ = ∫ x in s, f x ∂μ :=
 begin

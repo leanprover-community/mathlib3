@@ -432,7 +432,7 @@ begin
       push_cast,
       rw real.norm_rpow_of_nonneg (norm_nonneg _), },
     rw h_rpow,
-    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hq_pos,
+    have h_rpow_mono := ennreal.strict_mono_rpow_of_pos hq_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hq_pos.ne.symm).2,
     let iso := h_rpow_mono.order_iso_of_surjective _ h_rpow_surj,
     exact (iso.ess_sup_apply (λ x, ((nnnorm (f x)) : ℝ≥0∞)) μ).symm, },
@@ -1751,7 +1751,7 @@ begin
   refine (lintegral_liminf_le' (λ m, ((hf m).ennnorm.pow_const _))).trans_eq _,
   have h_pow_liminf : at_top.liminf (λ n, snorm' (f n) p μ) ^ p
     = at_top.liminf (λ n, (snorm' (f n) p μ) ^ p),
-  { have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos hp_pos,
+  { have h_rpow_mono := ennreal.strict_mono_rpow_of_pos hp_pos,
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },
@@ -1949,7 +1949,7 @@ begin
       (nnnorm (f (i + 1) a - f i a)))^p ∂μ
     = ∫⁻ a, at_top.liminf (λ n, (∑ i in finset.range (n + 1), (nnnorm (f (i + 1) a - f i a)))^p) ∂μ,
   { refine lintegral_congr (λ x, _),
-    have h_rpow_mono := ennreal.rpow_left_strict_mono_of_pos (zero_lt_one.trans_le hp1),
+    have h_rpow_mono := ennreal.strict_mono_rpow_of_pos (zero_lt_one.trans_le hp1),
     have h_rpow_surj := (ennreal.rpow_left_bijective hp_pos.ne.symm).2,
     refine (h_rpow_mono.order_iso_of_surjective _ h_rpow_surj).liminf_apply _ _ _ _,
     all_goals { is_bounded_default }, },

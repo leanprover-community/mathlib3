@@ -682,7 +682,7 @@ end
 
 end real
 
-lemma condexp_const_inner (hm : m ≤ m0) (f : Lp E 2 μ) (c : E) :
+lemma condexp_L2_const_inner (hm : m ≤ m0) (f : Lp E 2 μ) (c : E) :
   condexp_L2 𝕜 hm (((Lp.mem_ℒp f).const_inner c).to_Lp (λ a, ⟪c, f a⟫))
     =ᵐ[μ] λ a, ⟪c, condexp_L2 𝕜 hm f a⟫ :=
 begin
@@ -718,25 +718,20 @@ lemma integral_condexp_L2_eq [is_scalar_tower ℝ 𝕜 E'] (hm : m ≤ m0)
   (f : Lp E' 2 μ) {s : set α} (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L2 𝕜 hm f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
-  rw [← sub_eq_zero, ← integral_sub'],
-  swap, { exact integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs, },
-  swap, { exact integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs, },
+  rw [← sub_eq_zero, Lp_meas_coe, ← integral_sub'
+      (integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs)
+      (integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs)],
   refine integral_eq_zero_of_forall_integral_inner_eq_zero _ _ _,
-  { rw [Lp_meas_coe,
-      integrable_congr (ae_restrict_of_ae (Lp.coe_fn_sub ↑(condexp_L2 𝕜 hm f) f).symm)],
+  { rw integrable_congr (ae_restrict_of_ae (Lp.coe_fn_sub ↑(condexp_L2 𝕜 hm f) f).symm),
     exact integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs, },
   intro c,
   simp_rw [pi.sub_apply, inner_sub_right],
-  rw integral_sub,
-  swap,
-  { refine integrable.const_inner c _,
-    exact integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs, },
-  swap,
-  { refine integrable.const_inner c _,
-    exact integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs, },
+  rw integral_sub
+    ((integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs).const_inner c)
+    ((integrable_on_Lp_of_measure_ne_top _ fact_one_le_two_ennreal.elim hμs).const_inner c),
   have h_ae_eq_f := mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).const_inner c),
-  rw [sub_eq_zero,
-    ← set_integral_congr_ae (hm s hs) ((condexp_const_inner hm f c).mono (λ x hx _, hx)),
+  rw [← Lp_meas_coe, sub_eq_zero,
+    ← set_integral_congr_ae (hm s hs) ((condexp_L2_const_inner hm f c).mono (λ x hx _, hx)),
     ← set_integral_congr_ae (hm s hs) (h_ae_eq_f.mono (λ x hx _, hx))],
   exact integral_condexp_L2_eq_of_fin_meas_real hm _ hs hμs,
 end
@@ -765,8 +760,7 @@ begin
   { have h_coe := T.coe_fn_comp_Lp (condexp_L2 𝕜 hm f : α →₂[μ] E'),
     rw ← eventually_eq at h_coe,
     refine ae_measurable'.congr _ h_coe.symm,
-    exact ae_measurable'.measurable_comp T.measurable
-      (Lp_meas.ae_measurable' (condexp_L2 𝕜 hm f)), },
+    exact (Lp_meas.ae_measurable' (condexp_L2 𝕜 hm f)).measurable_comp T.measurable, },
 end
 
 end condexp_L2

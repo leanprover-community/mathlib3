@@ -42,12 +42,12 @@ operations on `filter.tendsto`, `continuous_at`, `continuous_within_at`, `contin
 `continuous`.
 -/
 
-variables {α G₀ : Type*} {a : α}
+variables {α G₀ : Type*}
 
 section div_const
 
 variables [group_with_zero G₀] [topological_space G₀] [has_continuous_mul G₀]
-  {f : α → G₀} {s : set α} {l : filter α}
+  {f : α → G₀} {s : set α} {l : filter α} {a : α}
 
 lemma filter.tendsto.div_const {x y : G₀} (hf : tendsto f l (𝓝 x)) :
   tendsto (λa, f a / y) l (𝓝 (x / y)) :=
@@ -81,7 +81,7 @@ export has_continuous_inv' (continuous_at_inv')
 section inv'
 
 variables [has_zero G₀] [has_inv G₀] [topological_space G₀] [has_continuous_inv' G₀]
-  {l : filter α} {f : α → G₀} {s : set α}
+  {l : filter α} {f : α → G₀} {s : set α} {a : α}
 
 /-!
 ### Continuity of `λ x, x⁻¹` at a non-zero point

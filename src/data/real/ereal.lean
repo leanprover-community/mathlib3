@@ -327,6 +327,8 @@ instance : has_neg ereal := ⟨ereal.neg⟩
 @[simp] lemma neg_bot : - (⊥ : ereal) = ⊤ := rfl
 @[simp] lemma neg_zero : - (0 : ereal) = 0 := by { change ((-0 : ℝ) : ereal) = 0, simp }
 
+@[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
+
 /-- `- -a = a` on `ereal`. -/
 @[simp] protected theorem neg_neg : ∀ (a : ereal), - (- a) = a
 | ⊥ := rfl
@@ -376,8 +378,6 @@ by rwa [←ereal.neg_neg b, ereal.neg_le, ereal.neg_neg]
 
 @[simp] lemma neg_le_neg_iff {a b : ereal} : - a ≤ - b ↔ b ≤ a :=
 by conv_lhs { rw [ereal.neg_le, ereal.neg_neg] }
-
-@[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
 
 /-- Negation as an order reversing isomorphism on `ereal`. -/
 def neg_order_iso : ereal ≃o (order_dual ereal) :=

@@ -56,9 +56,10 @@ begin
   sorry,
 end
 
-lemma foosbar (a b c : ℕ) (hc : 0 < c) : (a ∣ b) ↔ (c * a ∣ c * b) :=
+lemma zmod_order_le_card_units (n : ℕ) (hn : 1 < n) (a : zmod n) :
+  order_of a ≤ fintype.card (units (zmod n)) :=
 begin
-  exact (nat.mul_dvd_mul_iff_left hc).symm,
+  sorry,
 end
 
 theorem lucas_primality (p : ℕ) (a : zmod p)

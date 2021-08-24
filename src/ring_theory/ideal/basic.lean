@@ -741,3 +741,37 @@ begin
 end
 
 end ideal
+
+variables {a b : α}
+
+/-- The set of non-invertible elements of a monoid. -/
+def nonunits (α : Type u) [monoid α] : set α := { a | ¬is_unit a }
+
+@[simp] theorem mem_nonunits_iff [monoid α] : a ∈ nonunits α ↔ ¬ is_unit a := iff.rfl
+
+theorem mul_mem_nonunits_right [comm_monoid α] :
+  b ∈ nonunits α → a * b ∈ nonunits α :=
+mt is_unit_of_mul_is_unit_right
+
+theorem mul_mem_nonunits_left [comm_monoid α] :
+  a ∈ nonunits α → a * b ∈ nonunits α :=
+mt is_unit_of_mul_is_unit_left
+
+theorem zero_mem_nonunits [semiring α] : 0 ∈ nonunits α ↔ (0:α) ≠ 1 :=
+not_congr is_unit_zero_iff
+
+@[simp] theorem one_not_mem_nonunits [monoid α] : (1:α) ∉ nonunits α :=
+not_not_intro is_unit_one
+
+theorem coe_subset_nonunits [semiring α] {I : ideal α} (h : I ≠ ⊤) :
+  (I : set α) ⊆ nonunits α :=
+λ x hx hu, h $ I.eq_top_of_is_unit_mem hx hu
+
+lemma exists_max_ideal_of_mem_nonunits [comm_semiring α] (h : a ∈ nonunits α) :
+  ∃ I : ideal α, I.is_maximal ∧ a ∈ I :=
+begin
+  have : ideal.span ({a} : set α) ≠ ⊤,
+  { intro H, rw ideal.span_singleton_eq_top at H, contradiction },
+  rcases ideal.exists_le_maximal _ this with ⟨I, Imax, H⟩,
+  use [I, Imax], apply H, apply ideal.subset_span, exact set.mem_singleton a
+end

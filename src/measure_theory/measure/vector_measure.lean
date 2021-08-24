@@ -479,20 +479,18 @@ open measure
 
 section
 
-include m
-
 /-- A vector measure over `ℝ≥0∞` is a measure. -/
-def ennreal_to_measure (v : vector_measure α ℝ≥0∞) : measure α :=
+def ennreal_to_measure [measurable_space α] (v : vector_measure α ℝ≥0∞) : measure α :=
 of_measurable (λ s _, v s) v.empty (λ f hf₁ hf₂, v.of_disjoint_Union_nat hf₁ hf₂)
 
-lemma ennreal_to_measure_apply {v : vector_measure α ℝ≥0∞}
+lemma ennreal_to_measure_apply {m : measurable_space α} {v : vector_measure α ℝ≥0∞}
   {s : set α} (hs : measurable_set s) : ennreal_to_measure v s = v s :=
 by rw [ennreal_to_measure, of_measurable_apply _ hs]
 
 /-- The equiv between `vector_measure α ℝ≥0∞` and `measure α` formed by
 `measure_theory.vector_measure.ennreal_to_measure` and
 `measure_theory.measure.to_ennreal_vector_measure`. -/
-@[simps] def equiv_measure : vector_measure α ℝ≥0∞ ≃ measure α :=
+@[simps] def equiv_measure [measurable_space α] : vector_measure α ℝ≥0∞ ≃ measure α :=
 { to_fun := ennreal_to_measure,
   inv_fun := to_ennreal_vector_measure,
   left_inv := λ _, ext (λ s hs,

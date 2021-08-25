@@ -296,24 +296,6 @@ end
 
 open_locale classical
 
-lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
-  count p (nth p n) = n :=
-begin
-  casesI fintype_or_infinite {i | p i},
-  { sorry },
-  { sorry }
-end
-
-lemma nth_mem_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
-  p (nth p n) :=
-begin
-  casesI fintype_or_infinite {i | p i},
-  { rw [cardinal.fintype_card, cardinal.nat_cast_lt, ←nat.card_eq_fintype_card] at w,
-    sorry, },
-  { apply nth_mem_of_infinite,
-    rwa ←set.infinite_coe_iff, },
-end
-
 variable [decidable_pred p]
 
 lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n :=
@@ -365,5 +347,23 @@ end
 
 lemma nth_lt_of_lt_count (n k : ℕ) (h : k < count p n) : nth p k < n :=
 sorry
+
+lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
+  count p (nth p n) = n :=
+begin
+  casesI fintype_or_infinite {i | p i},
+  { sorry },
+  { sorry }
+end
+
+lemma nth_mem_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
+  p (nth p n) :=
+begin
+  casesI fintype_or_infinite {i | p i},
+  { rw [cardinal.fintype_card, cardinal.nat_cast_lt, ←nat.card_eq_fintype_card] at w,
+    sorry, },
+  { apply nth_mem_of_infinite,
+    rwa ←set.infinite_coe_iff, },
+end
 
 end nat

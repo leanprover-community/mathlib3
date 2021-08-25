@@ -1109,6 +1109,10 @@ multiset.induction_on s (λ _, dvd_zero _)
 @[simp] theorem sum_map_singleton (s : multiset α) : (s.map (λ a, ({a} : multiset α))).sum = s :=
 multiset.induction_on s (by simp) (by simp [singleton_eq_cons])
 
+theorem abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
+  abs s.sum ≤ (s.map abs).sum :=
+le_sum_of_subadditive _ abs_zero abs_add s
+
 /-! ### Join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join

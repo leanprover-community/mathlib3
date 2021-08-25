@@ -761,7 +761,7 @@ begin
       assume n hn,
       apply finset.sum_le_sum (λ i _, _),
       rw ennreal.rpow_nat_cast,
-      exact canonically_ordered_comm_semiring.pow_le_pow_of_le_left (hn i) _,
+      exact pow_le_pow_of_le_left' (hn i) _,
     end
   ... = liminf at_top (λ (n : ℕ), ∏ (i : ι), (⌈((b i : ℝ) - a i) * n⌉₊ : ℝ≥0∞) / n) :
   begin

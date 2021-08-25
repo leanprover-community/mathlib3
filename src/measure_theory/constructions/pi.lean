@@ -170,7 +170,6 @@ lemma pi_pi_le (m : Π i, outer_measure (α i)) (s : Π i, set (α i)) :
 by { cases (pi univ s).eq_empty_or_nonempty with h h, simp [h],
      exact (bounded_by_le _).trans_eq (pi_premeasure_pi h) }
 
-
 lemma le_pi {m : Π i, outer_measure (α i)} {n : outer_measure (Π i, α i)} :
   n ≤ outer_measure.pi m ↔ ∀ (s : Π i, set (α i)), (pi univ s).nonempty →
     n (pi univ s) ≤ ∏ i, m i (s i) :=
@@ -304,6 +303,22 @@ begin
     intros s hs,
     simp_rw [to_outer_measure_apply],
     exact pi'_pi_le μ }
+end
+
+lemma pi_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
+  (x : Π i, α i) {r : ℝ} (hr : 0 < r) :
+  measure.pi μ (metric.ball x r) = ∏ i, μ i (metric.ball (x i) r) :=
+begin
+  rw [ball_pi _ hr, pi_pi],
+  exact λ i, measurable_set_ball
+end
+
+lemma pi_closed_ball [∀ i, sigma_finite (μ i)] [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
+  (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
+  measure.pi μ (metric.closed_ball x r) = ∏ i, μ i (metric.closed_ball (x i) r) :=
+begin
+  rw [closed_ball_pi _ hr, pi_pi],
+  exact λ i, measurable_set_closed_ball
 end
 
 variable {μ}
@@ -494,5 +509,16 @@ lemma volume_pi_pi [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : m
   (s : Π i, set (α i)) (hs : ∀ i, measurable_set (s i)) :
   volume (pi univ s) = ∏ i, volume (s i) :=
 measure.pi_pi (λ i, volume) s hs
+
+lemma volume_pi_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  [∀ i, metric_space (α i)] [∀ i, borel_space (α i)] (x : Π i, α i) {r : ℝ} (hr : 0 < r) :
+  volume (metric.ball x r) = ∏ i, volume (metric.ball (x i) r) :=
+measure.pi_ball _ _ hr
+
+lemma volume_pi_closed_ball [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  [∀ i, metric_space (α i)] [∀ i, borel_space (α i)]
+  (x : Π i, α i) {r : ℝ} (hr : 0 ≤ r) :
+  volume (metric.closed_ball x r) = ∏ i, volume (metric.closed_ball (x i) r) :=
+measure.pi_closed_ball _ _ hr
 
 end measure_theory

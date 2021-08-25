@@ -813,6 +813,11 @@ instance pseudo_metric_space.to_pseudo_emetric_space : pseudo_emetric_space α :
   uniformity_edist    := metric.uniformity_edist,
   ..‹pseudo_metric_space α› }
 
+/-- In a pseudometric space, an open ball of infinite radius is the whole space -/
+lemma metric.eball_top_eq_univ (x : α) :
+  emetric.ball x ∞ = set.univ :=
+set.eq_univ_iff_forall.mpr (λ y, edist_lt_top y x)
+
 /-- Balls defined using the distance or the edistance coincide -/
 @[simp] lemma metric.emetric_ball {x : α} {ε : ℝ} : emetric.ball x (ennreal.of_real ε) = ball x ε :=
 begin
@@ -922,6 +927,10 @@ instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
   dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 
 theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
+
+theorem real.nndist_eq (x y : ℝ) : nndist x y = real.nnabs (x - y) := rfl
+
+theorem real.nndist_eq' (x y : ℝ) : nndist x y = real.nnabs (y - x) := nndist_comm _ _
 
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]

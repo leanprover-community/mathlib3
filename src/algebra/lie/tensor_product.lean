@@ -33,6 +33,7 @@ variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L 
 variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
 variables [add_comm_group P] [module R P] [lie_ring_module L P] [lie_module R L P]
 variables [add_comm_group Q] [module R Q] [lie_ring_module L Q] [lie_module R L Q]
+local attribute [ext] tensor_product.mk_compr₂_inj
 
 /-- It is useful to define the bracket via this auxiliary function so that we have a type-theoretic
 expression of the fact that `L` acts by linear endomorphisms. It simplifies the proofs in

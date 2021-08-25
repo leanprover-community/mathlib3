@@ -156,6 +156,8 @@ The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 { map_smul' := λ c x, rfl,
   .. mk R M N }
 
+local attribute [ext] tensor_product.mk_compr₂_inj
+
 /-- Heterobasic version of `tensor_product.assoc`:
 
 Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/

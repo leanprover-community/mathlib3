@@ -167,7 +167,8 @@ begin
   obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
     (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
   refine ⟨φ.equivariant_projection G, _⟩,
-  ext v,
+  apply linear_map.ext,
+  intro v,
   simp only [linear_map.id_coe, id.def, linear_map.comp_apply],
   apply linear_map.equivariant_projection_condition,
   intro v,

@@ -471,6 +471,7 @@ private lemma tmul_symm_apply (a : ι ⊕ ι₂ → M) :
 pi_tensor_product.lift.tprod _
 
 variables (R M)
+local attribute [ext] tensor_product.mk_compr₂_inj
 
 /-- Equivalence between a `tensor_product` of `pi_tensor_product`s and a single
 `pi_tensor_product` indexed by a `sum` type.

@@ -32,6 +32,7 @@ namespace monoidal_category
 -- you should use that API.
 
 open_locale tensor_product
+local attribute [ext] tensor_product.mk_compr₂_inj
 
 /-- (implementation) tensor product of R-modules -/
 def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
@@ -222,6 +223,8 @@ begin
   intros x y z,
   refl,
 end
+
+local attribute [ext] tensor_product.mk_compr₂_inj
 
 /-- The symmetric monoidal structure on `Module R`. -/
 instance symmetric_category : symmetric_category (Module.{u} R) :=

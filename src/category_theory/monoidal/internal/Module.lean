@@ -23,6 +23,7 @@ open category_theory
 open linear_map
 
 open_locale tensor_product
+local attribute [ext] tensor_product.mk_compr₂_inj
 
 namespace Module
 

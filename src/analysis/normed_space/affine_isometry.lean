@@ -538,12 +538,8 @@ lemma const_vadd_trans_base_at (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
   (const_vadd 𝕜 P v).trans (f.base_at 𝕜 x) = (f.base_at 𝕜 x).trans (const_vadd 𝕜 P (f v)) :=
 to_affine_equiv_injective $ affine_equiv.const_vadd_trans_base_at 𝕜 f.to_linear_equiv x v
 
-lemma base_at_trans_const_vadd (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
-  (f.base_at 𝕜 x).trans (const_vadd 𝕜 P v) = (const_vadd 𝕜 P (f.symm v)).trans (f.base_at 𝕜 x) :=
-to_affine_equiv_injective $ affine_equiv.base_at_trans_const_vadd 𝕜 f.to_linear_equiv x v
-
 lemma base_at_vadd (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
-  f.base_at 𝕜 (v +ᵥ x) = (const_vadd 𝕜 P (f.symm v - v)).trans (f.base_at 𝕜 x) :=
+  f.base_at 𝕜 (v +ᵥ x) = (f.base_at 𝕜 x).trans (const_vadd 𝕜 P (v - f v)) :=
 to_affine_equiv_injective $ affine_equiv.base_at_vadd 𝕜 f.to_linear_equiv x v
 
 @[simp] lemma _root_.linear_isometry_equiv.base_at_symm (f : V ≃ₗᵢ[𝕜] V) (x : P) :

@@ -429,10 +429,6 @@ begin
     ← f.map_add, vadd_vsub_assoc],
 end
 
-lemma base_at_trans_const_vadd (f : G ≃+ G) (x : P) (v : G) :
-  (f.base_at x).trans (const_vadd P v) = (const_vadd P (f.symm v)).trans (f.base_at x) :=
-by simp [const_vadd_trans_base_at]
-
 @[simp] lemma _root_.add_equiv.base_at_symm (f : G ≃+ G) (x : P) :
   (f.base_at x).symm = f.symm.base_at x :=
 rfl
@@ -483,16 +479,16 @@ lemma base_at_neg (x : P) :
 by { ext y, simp [point_reflection_apply] }
 
 lemma base_at_vadd (f : G ≃+ G) (x : P) (v : G) :
-  f.base_at (v +ᵥ x) = (const_vadd P (f.symm v - v)).trans (f.base_at x) :=
-calc f.base_at (v +ᵥ x)
-    = ((const_vadd P v).symm.trans (const_vadd P v)).trans (f.base_at (v +ᵥ x)) :
-  by simp [-const_vadd_symm]
-... = (const_vadd P (-v)).trans ((const_vadd P v).trans (f.base_at (v +ᵥ x))) :
-  by simp [trans_assoc]
-... = (const_vadd P (-v)).trans ((f.base_at x).trans (const_vadd P v)) :
-  by { congr' 1, ext y, simp [← add_vadd, add_comm] }
-... = (const_vadd P (f.symm v - v)).trans (f.base_at x) :
-  by rw [base_at_trans_const_vadd, ← trans_assoc, const_vadd_trans_const_vadd, sub_eq_add_neg]
+  f.base_at (v +ᵥ x) = (f.base_at x).trans (const_vadd P (v - f v)) :=
+begin
+  ext y,
+  dsimp,
+  have : y -ᵥ (v +ᵥ x) = - v + (y -ᵥ x),
+  { rw [← add_right_inj v, ← vadd_vsub_assoc],
+    simp },
+  rw [this, ← add_vadd, ← add_vadd, f.map_add, f.map_neg],
+  abel,
+end
 
 end comm
 

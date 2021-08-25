@@ -13,7 +13,7 @@ import combinatorics.simple_graph.move_somewhere
 In a simple graph,
 
 * A *walk* is a finite sequence of adjacent vertices, and can be
-  thought of equally well as a sequence of edges.
+  thought of equally well as a sequence of directed edges.
 
 * A *trail* is a walk whose edges each appear no more than once.
 
@@ -22,9 +22,10 @@ In a simple graph,
 * A *cycle* is a nonempty trail whose first and last vertices are the
   same and whose vertices except for the first appear no more than once.
 
-**Warning:** graph theorists mean something different by "path" than do
-homotopy theorists.  A "walk" in graph theory is a "path" in homotopy
-theory.
+**Warning:** graph theorists mean something different by "path" than
+do homotopy theorists.  A "walk" in graph theory is a "path" in
+homotopy theory.  Another warning: some graph theorists use "path" and
+"simple path" for "walk" and "path."
 
 Some definitions and theorems have inspiration from multigraph
 counterparts in [Chou1994].
@@ -45,7 +46,7 @@ counterparts in [Chou1994].
 * `simple_graph.edge_connected` for k-edge-connectivity of a graph
 
 ## Tags
-walks
+walks, trails, paths, circuits, cycles
 
 -/
 

@@ -518,8 +518,8 @@ end
 omit 𝕜
 
 variables (𝕜)
-/-- Given a linear equivalence `f`, the operation `p ↦ f (p -ᵥ p₀) +ᵥ p₀`, "basing" the linear
-equivalence at a fixed point `p₀ : P`, is an affine equivalence. -/
+/-- Given a linear isometry equivalence `f`, the operation `p ↦ f (p -ᵥ p₀) +ᵥ p₀`, "basing" the
+linear isometry equivalence at a fixed point `p₀ : P`, is an affine isometry equivalence. -/
 def _root_.linear_isometry_equiv.base_at (f : V ≃ₗᵢ[𝕜] V) (x : P) : P ≃ᵃⁱ[𝕜] P :=
 ((vadd_const 𝕜 x).symm.trans f.to_affine_isometry_equiv).trans (vadd_const 𝕜 x)
 

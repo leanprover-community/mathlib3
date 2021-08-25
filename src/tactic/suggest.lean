@@ -271,7 +271,7 @@ do g :: _ ← get_goals,
 
    -- Check if `solve_by_elim` can solve the goal immediately:
    (retrieve (do
-     focus1 $ solve_by_elim opt.mk_opt,
+     focus1 $ solve_by_elim opt.mk_accept,
      s ← read,
      m ← tactic_statement g,
      -- This `instantiate_mvars` is necessary so that we count used hypotheses correctly.

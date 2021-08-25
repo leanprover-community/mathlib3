@@ -891,6 +891,17 @@ begin
   rw continuous_linear_map.smul_comp_Lp c (rsmul x),
 end
 
+instance : is_scalar_tower ℝ 𝕜 (Lp E' p μ) :=
+begin
+  refine ⟨λ r c f, _⟩,
+  ext1,
+  refine (Lp.coe_fn_smul _ _).trans _,
+  rw smul_assoc,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine (Lp.coe_fn_smul c f).mono (λ x hx, _),
+  rw [pi.smul_apply, pi.smul_apply, pi.smul_apply, hx, pi.smul_apply],
+end
+
 lemma condexp_L2_indicator_smul_real (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (c : ℝ) (x : E') :
   condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs (c • x))
@@ -898,11 +909,9 @@ lemma condexp_L2_indicator_smul_real (hm : m ≤ m0) {s : set α} (hs : measurab
 begin
   ext1,
   push_cast,
-  rw condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs x,
-  rw condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (c • x),
-  rw rsmul_smul_real c x,
-  rw continuous_linear_map.smul_comp_Lp c (rsmul x),
-  sorry,
+  rw [condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs x,
+    condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (c • x), rsmul_smul_real c x,
+    continuous_linear_map.smul_comp_Lp c (rsmul x), is_R_or_C.of_real_alg, smul_assoc, one_smul],
 end
 
 end condexp_L2
@@ -961,16 +970,14 @@ begin
   ext1,
   refine (mem_ℒp.coe_fn_to_Lp _).trans _,
   refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
-  sorry,
-  --refine eventually_eq.trans _
-  --  (eventually_eq.add (mem_ℒp.coe_fn_to_Lp _).symm (mem_ℒp.coe_fn_to_Lp _).symm),
-  --rw condexp_L2_indicator_add hm,
-  --simp_rw Lp_meas_coe,
-  --push_cast,
-  --refine (Lp.coe_fn_add _ _).trans (eventually_of_forall (λ a, _)),
-  --refl,
-  --apply_instance,
-  --apply_instance,
+  rw condexp_L2_indicator_smul_real hm hs hμs c x,
+  swap, { apply_instance, },
+  rw Lp_meas_coe,
+  push_cast,
+  refine (Lp.coe_fn_smul _ _).trans _,
+  rw ← Lp_meas_coe,
+  refine (condexp_ind_L1_fin_ae_eq_condexp_L2_indicator 𝕜 hm hs hμs x).mono (λ y hy, _),
+  rw [pi.smul_apply, pi.smul_apply, hy, is_R_or_C.of_real_alg, smul_assoc, one_smul],
 end
 
 lemma norm_condexp_ind_L1_fin_le (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)

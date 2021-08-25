@@ -173,13 +173,6 @@ well_founded.fix_eq _ _ _
 instance decidable_pred_mem_set_of [decidable_pred p] : decidable_pred (∈ set_of p) :=
 by assumption
 
-/--
-When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`.
--/
-lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
-  nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
-sorry
-
 lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } :=
 by { rw [nth_def], simp, }
 
@@ -213,7 +206,16 @@ end
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
 by { rw [nth_zero], convert nat.Inf_def h, }
 
-lemma nth_mem_of_infinite_aux (i : set.infinite (set_of p)) (n : ℕ) :
+/--
+When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`.
+-/
+lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
+  nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
+sorry
+
+
+
+lemma nth_mem_of_infinite_aux (i : (set_of p).infinite) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
   have ne : set.nonempty { i : ℕ | p i ∧ ∀ k < n, nth p k < i },
@@ -231,13 +233,13 @@ begin
   exact Inf_mem ne,
 end
 
-lemma nth_mem_of_infinite (i : set.infinite (set_of p)) (n : ℕ) : p (nth p n) :=
+lemma nth_mem_of_infinite (i : (set_of p).infinite) (n : ℕ) : p (nth p n) :=
 (nth_mem_of_infinite_aux p i n).1
 
-lemma nth_strict_mono_of_infinite (i : set.infinite (set_of p)) : strict_mono (nth p) :=
+lemma nth_strict_mono_of_infinite (i : (set_of p).infinite) : strict_mono (nth p) :=
 λ n m h, (nth_mem_of_infinite_aux p i m).2 _ h
 
-lemma nth_monotone_of_infinite (i : set.infinite (set_of p)) : monotone (nth p) :=
+lemma nth_monotone_of_infinite (i : (set_of p).infinite) : monotone (nth p) :=
 (nth_strict_mono_of_infinite p i).monotone
 
 lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (k : ℕ) (h : nth p k ≠ 0) : ∀ a ≤ k, nth p a ≠ 0 :=

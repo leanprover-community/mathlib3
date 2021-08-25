@@ -616,6 +616,16 @@ begin
   exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
 end
 
+/-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
+also noetherian. -/
+theorem is_noetherian_of_tower (R) {S M} [comm_ring R] [ring S]
+  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  (h : is_noetherian R M) : is_noetherian S M :=
+begin
+  rw is_noetherian_iff_well_founded at h ⊢,
+  refine (submodule.restrict_scalars_embedding R S M).dual.well_founded h
+end
+
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
   (N : submodule R M) [is_noetherian_ring R] (hN : N.fg) : is_noetherian R N :=
 let ⟨s, hs⟩ := hN in

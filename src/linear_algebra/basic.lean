@@ -1938,7 +1938,6 @@ def map_subtype.order_embedding :
 @[simp] lemma map_subtype_embedding_eq (p' : submodule R p) :
   map_subtype.order_embedding p p' = map p.subtype p' := rfl
 
-
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
 def mkq : M →ₗ[R] p.quotient :=
 { to_fun := quotient.mk, map_add' := by simp, map_smul' := by simp }

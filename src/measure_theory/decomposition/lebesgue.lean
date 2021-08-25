@@ -568,6 +568,89 @@ begin
   { rw hμ₁, ext1 A hA,
     rw [measure.coe_add, pi.add_apply, measure.sub_apply hA hle,
         add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
+end .
+
+instance {μ : measure α} {S : μ.finite_spanning_sets_in {s : set α | measurable_set s}} (n : ℕ) :
+  finite_measure (μ.restrict $ S.set n) :=
+⟨by { rw [restrict_apply measurable_set.univ, set.univ_inter], exact S.finite _ }⟩
+
+lemma measurable.ennreal_tsum' {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  measurable (∑' i, f i) :=
+begin
+  convert measurable.ennreal_tsum h,
+  ext1 x,
+  rw tsum_apply,
+  rw pi.summable,
+  exact λ _, ennreal.summable,
+end
+
+lemma with_density_tsum {μ : measure α} {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
+begin
+  ext1 s hs,
+  simp_rw [sum_apply _ hs, with_density_apply _ hs],
+  change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
+  rw ← lintegral_tsum h,
+  refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
+end
+
+lemma sum_congr {μ ν : ℕ → measure α} (h : ∀ n, μ n = ν n) : sum μ = sum ν :=
+by { congr, ext1 n, exact h n }
+
+lemma with_density_indicator (μ : measure α) {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
+  μ.with_density (s.indicator f) = (μ.restrict s).with_density f :=
+begin
+  ext1 t ht,
+  rw [with_density_apply _ ht, lintegral_indicator _ hs,
+      restrict_comm hs ht, ← with_density_apply _ ht]
+end
+
+lemma sum_add_sum (μ ν : ℕ → measure α) : sum μ + sum ν = sum (λ n, μ n + ν n) :=
+begin
+  ext1 s hs,
+  simp only [add_apply, sum_apply _ hs, pi.add_apply, coe_add,
+             tsum_add ennreal.summable ennreal.summable],
+end
+
+theorem have_lebesgue_decomposition_of_sigma_finite
+  (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
+  have_lebesgue_decomposition μ ν :=
+begin
+  obtain ⟨S, T, h₁, h₂⟩ := exists_eq_disjoint_finite_spanning_sets_in μ ν,
+  have h₃ : pairwise (disjoint on T.set) := h₁ ▸ h₂,
+  set μn : ℕ → measure α := λ n, μ.restrict (S.set n) with hμn,
+  have hμ : μ = sum μn,
+    { rw [hμn, ← restrict_Union h₂ S.set_mem, S.spanning, restrict_univ] },
+  set νn : ℕ → measure α := λ n, ν.restrict (T.set n) with hνn,
+  have hν : ν = sum νn,
+    { rw [hνn, ← restrict_Union h₃ T.set_mem, T.spanning, restrict_univ] },
+  have : ∀ n : ℕ, have_lebesgue_decomposition (μn n) (νn n) :=
+    λ _, have_lebesgue_decomposition_of_finite_measure _ _,
+  set ξ := sum (λ n, singular_part (μn n) (νn n)) with hξ,
+  set f := ∑' n, (S.set n).indicator (radon_nikodym_deriv (μn n) (νn n)) with hf,
+  refine ⟨⟨ξ, f⟩, _, _, _⟩,
+  { exact measurable.ennreal_tsum' (λ n, measurable.indicator
+      (measurable_radon_nikodym_deriv (μn n) (νn n)) (S.set_mem n)) },
+  sorry,
+  { simp only [hξ, hf, hμ],
+    rw [with_density_tsum _, sum_add_sum],
+    { refine sum_congr (λ n, _),
+      conv_lhs { rw have_lebesgue_decomposition_add (this n) },
+      suffices heq : (νn n).with_density ((μn n).radon_nikodym_deriv (νn n)) =
+        ν.with_density ((S.set n).indicator ((μn n).radon_nikodym_deriv (νn n))),
+      { rw heq },
+      rw [hν, with_density_indicator _ (S.set_mem n), restrict_sum _ (S.set_mem n)],
+      suffices hsumeq : sum (λ (i : ℕ), (νn i).restrict (S.set n)) = νn n,
+      { rw hsumeq },
+      ext1 s hs,
+      rw [sum_apply _ hs, tsum_eq_single n, hνn, h₁,
+          restrict_restrict (T.set_mem n), set.inter_self],
+      { intros m hm,
+        rw [hνn, h₁, restrict_restrict (T.set_mem n), set.inter_comm,
+            set.disjoint_iff_inter_eq_empty.1 (h₃ m n hm), restrict_empty,
+            coe_zero, pi.zero_apply] },
+      { apply_instance } },
+    { exact λ n, measurable.indicator (measurable_radon_nikodym_deriv _ _) (S.set_mem n) } },
 end
 
 end measure

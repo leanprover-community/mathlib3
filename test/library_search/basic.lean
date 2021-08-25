@@ -143,4 +143,11 @@ by library_search using h Q
 example (P Q : list ℕ) (h : ℕ) : list ℕ :=
 by library_search using P Q
 
+-- Make sure `library_search` finds nothing when we list too many hypotheses after `using`.
+example (P Q R S T : list ℕ) : list ℕ :=
+begin
+  success_if_fail { library_search using P Q R S T, },
+  exact []
+end
+
 end test.library_search

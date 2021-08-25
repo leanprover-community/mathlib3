@@ -160,7 +160,8 @@ by setting the `accept` parameter to require that all complete solutions
 use everything in `compulsory_hyps`.
 -/
 meta def suggest_opt.mk_accept (o : suggest_opt) : opt :=
-{ accept := λ gs, guard $ o.compulsory_hyps.all (λ h, gs.any (λ g, g.contains_expr_or_mvar h)),
+{ accept := λ gs, o.accept gs >>
+    (guard $ o.compulsory_hyps.all (λ h, gs.any (λ g, g.contains_expr_or_mvar h))),
   ..o }
 
 /--

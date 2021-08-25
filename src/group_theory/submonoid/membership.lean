@@ -219,7 +219,7 @@ def pow (n : M) (m : ℕ) : powers n := ⟨n ^ m, m, rfl⟩
 
 /-- Logarithms from powers to natural numbers. -/
 def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=
-nat.find $ (mem_powers_iff n p).mp p.prop
+nat.find $ (mem_powers_iff p.val n).mp p.prop
 
 @[simp] theorem pow_log_eq_self [decidable_eq M] {n : M} (p : powers n) : pow n (log p) = p :=
 subtype.ext $ nat.find_spec p.prop

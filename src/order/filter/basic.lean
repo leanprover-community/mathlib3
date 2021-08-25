@@ -472,37 +472,68 @@ by simp only [← filter.mem_sets, supr_sets_eq, iff_self, mem_Inter]
 lemma infi_eq_generate (s : ι → filter α) : infi s = generate (⋃ i, (s i).sets) :=
 show generate _ = generate _, from congr_arg _ supr_range
 
-lemma mem_infi {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : I → set α, (∀ i, V i ∈ s i) ∧ (⋂ i, V i) ⊆ U :=
+lemma mem_infi_of_Inter {ι} {s : ι → filter α} {U : set α} {I : set ι} (I_fin : finite I)
+  {V : I → set α} (hV : ∀ i, V i ∈ s i) (hU : (⋂ i, V i) ⊆ U) : U ∈ ⨅ i, s i :=
 begin
   rw [infi_eq_generate, mem_generate_iff],
+  refine ⟨range V, _, _, hU⟩,
+  { rintro _ ⟨i, rfl⟩,
+    rw mem_Union,
+    use [i, hV i] },
+  { haveI : fintype I := finite.fintype I_fin,
+    exact finite_range _ }
+end
+
+lemma mem_infi {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
+  ∃ I : set ι, finite I ∧ ∃ V : I → set α, (∀ i, V i ∈ s i) ∧ U = ⋂ i, V i :=
+begin
   split,
-  { rintro ⟨t, tsub, tfin, tinter⟩,
+  { rw [infi_eq_generate, mem_generate_iff],
+    rintro ⟨t, tsub, tfin, tinter⟩,
     rcases eq_finite_Union_of_finite_subset_Union tfin tsub with ⟨I, Ifin, σ, σfin, σsub, rfl⟩,
     rw sInter_Union at tinter,
-    let V := λ i, ⋂₀ σ i,
+    set V := λ i, U ∪ ⋂₀ σ i with hV,
     have V_in : ∀ i, V i ∈ s i,
-    { rintro ⟨i, i_in⟩,
-      rw sInter_mem (σfin _),
-      apply σsub },
-    exact ⟨I, Ifin, V, V_in, tinter⟩ },
-  { rintro ⟨I, Ifin, V, V_in, h⟩,
-    refine ⟨range V, _, _, h⟩,
-    { rintro _ ⟨i, rfl⟩,
-      rw mem_Union,
-      use [i, V_in i] },
-    { haveI : fintype I := finite.fintype Ifin,
-      exact finite_range _ } },
+    { rintro i,
+      have : (⋂₀ σ i) ∈ s i,
+      { rw sInter_mem (σfin _),
+        apply σsub },
+      exact mem_of_superset this (subset_union_right _ _) },
+    refine ⟨I, Ifin, V, V_in, _⟩,
+    rwa [hV, ← union_Inter, union_eq_self_of_subset_right] },
+  { rintro ⟨I, Ifin, V, V_in, rfl⟩,
+    exact mem_infi_of_Inter Ifin V_in subset.rfl }
 end
 
 lemma mem_infi' {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i ∈ I, V i ∈ s i) ∧ (⋂ i ∈ I, V i) ⊆ U :=
+  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i ∈ I, V i ∈ s i) ∧ U = ⋂ i ∈ I, V i  :=
 begin
   simp only [mem_infi, set_coe.forall', bInter_eq_Inter],
   refine ⟨_, λ ⟨I, If, V, hV⟩, ⟨I, If, λ i, V i, hV⟩⟩,
   rintro ⟨I, If, V, hV⟩,
   lift V to ι → set α using trivial,
   exact ⟨I, If, V, hV⟩
+end
+
+lemma exists_Inter_of_mem_infi {ι : Type*} {α : Type*} {f : ι → filter α} {s}
+  (hs : s ∈ ⨅ i, f i) : ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
+begin
+  classical,
+  rcases mem_infi'.mp hs with ⟨I, I_fin, V, hV, rfl⟩,
+  refine ⟨λ i, if i ∈ I then V i else univ, _, _⟩,
+  { intro i,
+    split_ifs,
+    exacts [hV i h, univ_mem] },
+  { simp [Inter_ite] },
+end
+
+lemma mem_infi_of_fintype {ι : Type*} [fintype ι] {α : Type*} {f : ι → filter α} (s) :
+  s ∈ (⨅ i, f i) ↔ ∃ t : ι → set α, (∀ i, t i ∈ f i) ∧ s = ⋂ i, t i :=
+begin
+  refine ⟨exists_Inter_of_mem_infi, _⟩,
+  rw mem_infi',
+  rintros ⟨t, ht, ht'⟩,
+  exact ⟨univ, finite_univ, ⟨t, λ i _, ht i, by simp [ht']⟩⟩
 end
 
 @[simp] lemma le_principal_iff {s : set α} {f : filter α} : f ≤ 𝓟 s ↔ s ∈ f :=

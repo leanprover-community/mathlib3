@@ -3944,6 +3944,36 @@ by { rw inits_eq_tails l, simp [reverse_involutive.comp_self], }
 lemma map_reverse_tails (l : list α) : map reverse l.tails = (reverse $ inits $ reverse l) :=
 by { rw tails_eq_inits l, simp [reverse_involutive.comp_self], }
 
+@[simp] lemma length_tails (l : list α) : length (tails l) = length l + 1 :=
+begin
+  induction l with x l IH,
+  { simp },
+  { simpa using IH }
+end
+
+@[simp] lemma length_inits (l : list α) : length (inits l) = length l + 1 :=
+by simp [inits_eq_tails]
+
+@[simp] lemma nth_le_tails (l : list α) (n : ℕ) (hn : n < length (tails l)) :
+  nth_le (tails l) n hn = l.drop n :=
+begin
+  induction l with x l IH generalizing n,
+  { simp },
+  { cases n,
+    { simp },
+    { simpa using IH n _ } },
+end
+
+@[simp] lemma nth_le_inits (l : list α) (n : ℕ) (hn : n < length (inits l)) :
+  nth_le (inits l) n hn = l.take n :=
+begin
+  induction l with x l IH generalizing n,
+  { simp },
+  { cases n,
+    { simp },
+    { simpa using IH n _ } }
+end
+
 instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
 | []      l₂ := is_true ⟨[], l₂, rfl⟩
 | (a::l₁) [] := is_false $ λ⟨s, t, te⟩, absurd te $ append_ne_nil_of_ne_nil_left _ _ $

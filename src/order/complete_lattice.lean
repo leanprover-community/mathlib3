@@ -845,6 +845,33 @@ theorem supr_or {p q : Prop} {s : p ∨ q → α} :
   (⨆ x, s x) = (⨆ i, s (or.inl i)) ⊔ (⨆ j, s (or.inr j)) :=
 @infi_or (order_dual α) _ _ _ _
 
+section
+
+variables (p : ι → Prop) [decidable_pred p]
+
+lemma supr_dite (f : Π i, p i → α) (g : Π i, ¬p i → α) :
+  (⨆ i, if h : p i then f i h else g i h) = (⨆ i (h : p i), f i h) ⊔ (⨆ i (h : ¬ p i), g i h) :=
+begin
+  rw ←supr_sup_eq,
+  congr' 1 with i,
+  split_ifs with h;
+  simp [h],
+end
+
+lemma supr_ite (f g : ι → α) :
+  (⨆ i, if p i then f i else g i) = (⨆ i (h : p i), f i) ⊔ (⨆ i (h : ¬ p i), g i) :=
+supr_dite _ _ _
+
+lemma infi_dite (f : Π i, p i → α) (g : Π i, ¬p i → α) :
+  (⨅ i, if h : p i then f i h else g i h) = (⨅ i (h : p i), f i h) ⊓ (⨅ i (h : ¬ p i), g i h) :=
+supr_dite p (show Π i, p i → order_dual α, from f) g
+
+lemma infi_ite (f g : ι → α) :
+  (⨅ i, if p i then f i else g i) = (⨅ i (h : p i), f i) ⊓ (⨅ i (h : ¬ p i), g i) :=
+infi_dite _ _ _
+
+end
+
 lemma Sup_range {α : Type*} [has_Sup α] {f : ι → α} : Sup (range f) = supr f := rfl
 
 lemma Inf_range {α : Type*} [has_Inf α] {f : ι → α} : Inf (range f) = infi f := rfl
@@ -955,23 +982,19 @@ lemma supr_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
 ### `supr` and `infi` under `Type`
 -/
 
-theorem infi_of_empty' (h : ι → false) {s : ι → α} : infi s = ⊤ :=
-top_unique (le_infi $ assume i, (h i).elim)
+theorem supr_of_empty' {α ι} [has_Sup α] [is_empty ι] (f : ι → α) :
+  supr f = Sup (∅ : set α) :=
+congr_arg Sup (range_eq_empty f)
 
-theorem supr_of_empty' (h : ι → false) {s : ι → α} : supr s = ⊥ :=
-bot_unique (supr_le $ assume i, (h i).elim)
+theorem supr_of_empty [is_empty ι] (f : ι → α) : supr f = ⊥ :=
+(supr_of_empty' f).trans Sup_empty
 
-theorem infi_of_empty (h : ¬nonempty ι) {s : ι → α} : infi s = ⊤ :=
-infi_of_empty' (λ i, h ⟨i⟩)
+theorem infi_of_empty' {α ι} [has_Inf α] [is_empty ι] (f : ι → α) :
+  infi f = Inf (∅ : set α) :=
+congr_arg Inf (range_eq_empty f)
 
-theorem supr_of_empty (h : ¬nonempty ι) {s : ι → α} : supr s = ⊥ :=
-supr_of_empty' (λ i, h ⟨i⟩)
-
-@[simp] theorem infi_empty {s : empty → α} : infi s = ⊤ :=
-infi_of_empty nonempty_empty
-
-@[simp] theorem supr_empty {s : empty → α} : supr s = ⊥ :=
-supr_of_empty nonempty_empty
+theorem infi_of_empty [is_empty ι] (f : ι → α) : infi f = ⊤ :=
+@supr_of_empty (order_dual α) _ _ _ f
 
 lemma supr_bool_eq {f : bool → α} : (⨆b:bool, f b) = f tt ⊔ f ff :=
 by rw [supr, bool.range_eq, Sup_pair, sup_comm]

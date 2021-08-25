@@ -161,9 +161,13 @@ lemma finite_dimensional_of_finrank {K V : Type*} [field K] [add_comm_group V] [
   (h : 0 < finrank K V) : finite_dimensional K V :=
 by { contrapose h, simp [finrank_of_infinite_dimensional h] }
 
+lemma finite_dimensional_of_finrank_eq_succ {K V : Type*} [field K] [add_comm_group V] [module K V]
+  {n : ℕ} (hn : finrank K V = n.succ) : finite_dimensional K V :=
+finite_dimensional_of_finrank $ by rw hn; exact n.succ_pos
+
 /-- We can infer `finite_dimensional K V` in the presence of `[fact (finrank K V = n + 1)]`. Declare
 this as a local instance where needed. -/
-lemma finite_dimensional_of_finrank_eq_succ {K V : Type*} [field K] [add_comm_group V]
+lemma fact_finite_dimensional_of_finrank_eq_succ {K V : Type*} [field K] [add_comm_group V]
   [module K V] (n : ℕ) [fact (finrank K V = n + 1)] :
   finite_dimensional K V :=
 finite_dimensional_of_finrank $ by convert nat.succ_pos n; apply fact.out
@@ -302,6 +306,18 @@ iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero
 /-- A finite dimensional space has positive `finrank` iff it is nontrivial. -/
 lemma finrank_pos_iff [finite_dimensional K V] : 0 < finrank K V ↔ nontrivial V :=
 iff.trans (by { rw ← finrank_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _)
+
+/-- A finite dimensional space is nontrivial if it has positive `finrank`. -/
+lemma nontrivial_of_finrank_pos (h : 0 < finrank K V) : nontrivial V :=
+begin
+  haveI : finite_dimensional K V := finite_dimensional_of_finrank h,
+  rwa finrank_pos_iff at h
+end
+
+/-- A finite dimensional space is nontrivial if it has `finrank` equal to the successor of a
+natural number. -/
+lemma nontrivial_of_finrank_eq_succ {n : ℕ} (hn : finrank K V = n.succ) : nontrivial V :=
+nontrivial_of_finrank_pos (by rw hn; exact n.succ_pos)
 
 /-- A nontrivial finite dimensional space has positive `finrank`. -/
 lemma finrank_pos [finite_dimensional K V] [h : nontrivial V] : 0 < finrank K V :=

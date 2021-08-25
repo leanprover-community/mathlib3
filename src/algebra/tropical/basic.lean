@@ -38,14 +38,20 @@ universes u v
 variables (R : Type u)
 
 -- should this just be `additive`?
+/-- The tropicalization of a type `R`. -/
 def tropical : Type u := R
 
 variables {R}
 
 namespace tropical
 
+/-- Reinterpret `x : R` as an element of `tropical R`.
+See `tropical.trop_equiv` for the equivalence.
+-/
 @[pp_nodot]
 def trop : R → tropical R := id
+/-- Reinterpret `x : tropical R` as an element of `R`.
+See `tropical.trop_equiv` for the equivalence. -/
 @[pp_nodot]
 def untrop : tropical R → R := id
 
@@ -63,7 +69,8 @@ lemma right_inverse_trop : function.right_inverse (trop : R → tropical R) untr
 
 attribute [irreducible] tropical
 
-@[simps]
+/-- Reinterpret `x : R` as an element of `tropical R`.
+See `tropical.trop_order_iso` for the order-preserving equivalence. -/
 def trop_equiv : R ≃ tropical R :=
 { to_fun := trop,
   inv_fun := untrop,
@@ -89,6 +96,8 @@ trop_equiv.symm.surjective
 
 instance [inhabited R] : inhabited (tropical R) := ⟨trop (default _)⟩
 
+/-- Recursing on a `x' : tropical R` is the same as recursing on an `x : R` reinterpreted
+as a termp of `tropical R` via `trop x`. -/
 @[simp]
 def trop_rec {F : Π (X : tropical R), Sort v} (h : Π X, F (trop X)) : Π X, F X :=
 λ X, h (untrop X)
@@ -103,6 +112,7 @@ instance [preorder R] : preorder (tropical R) :=
 @[simp] lemma untrop_le_iff [preorder R] {x y : tropical R} :
   untrop x ≤ untrop y ↔ x ≤ y := iff.rfl
 
+/-- Reinterpret `x : R` as an element of `tropical R`, preserving the order. -/
 def trop_order_iso [preorder R] : R ≃o tropical R :=
 { map_rel_iff' := λ _ _, untrop_le_iff,
   ..trop_equiv }
@@ -121,6 +131,7 @@ instance [has_top R] : has_zero (tropical R) := ⟨trop ⊤⟩
 
 variable [linear_order R]
 
+/-- Tropical addition is the minimum of two underlying elements of `R`. -/
 protected def add (x y : tropical R) : tropical R :=
 trop (min (untrop x) (untrop y))
 
@@ -153,6 +164,7 @@ end order
 
 section monoid
 
+/-- Tropical multiplication is the addition in the underlying `R`. -/
 protected def mul [has_add R] (x y : tropical R) : tropical R := trop (untrop x + untrop y)
 
 instance [has_add R] : has_mul (tropical R) := ⟨tropical.mul⟩

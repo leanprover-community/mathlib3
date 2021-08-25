@@ -324,7 +324,8 @@ begin
     exact ⟨x3, (hd (mem_map.mpr ⟨x3, hx3, rfl⟩)), x4, by simp⟩ }
 end
 
-instance is_nilpotent_subgroup_of_nilpotent_group (H : subgroup G) [hG : is_nilpotent G] : is_nilpotent H :=
+instance is_nilpotent_subgroup_of_nilpotent_group (H : subgroup G) [hG : is_nilpotent G]
+  : is_nilpotent H :=
 begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hG with ⟨n, hG⟩,

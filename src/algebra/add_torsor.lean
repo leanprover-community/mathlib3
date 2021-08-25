@@ -474,8 +474,7 @@ section comm
 variables {G : Type*} {P : Type*} [add_comm_group G] [add_torsor G P]
 include G
 
-lemma base_at_neg (x : P) :
-  (add_equiv.neg G).base_at x = point_reflection x :=
+lemma base_at_neg (x : P) : (add_equiv.neg G).base_at x = point_reflection x :=
 by { ext y, simp [point_reflection_apply] }
 
 lemma _root_.add_equiv.base_at_vadd (f : G ≃+ G) (x : P) (v : G) :

@@ -561,8 +561,7 @@ lemma point_reflection_apply (x y : P) : (point_reflection 𝕜 x) y = x -ᵥ y 
 @[simp] lemma point_reflection_to_affine_equiv (x : P) :
   (point_reflection 𝕜 x).to_affine_equiv = affine_equiv.point_reflection 𝕜 x := rfl
 
-lemma _root_.linear_isometry_equiv.base_at_neg (x : P) :
-  (linear_isometry_equiv.neg 𝕜).base_at 𝕜 x = point_reflection 𝕜 x :=
+lemma base_at_neg (x : P) : (linear_isometry_equiv.neg 𝕜).base_at 𝕜 x = point_reflection 𝕜 x :=
 to_affine_equiv_injective $ affine_equiv.base_at_neg 𝕜 x
 
 @[simp] lemma point_reflection_self (x : P) : point_reflection 𝕜 x x = x :=

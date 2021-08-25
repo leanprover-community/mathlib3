@@ -928,6 +928,10 @@ instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
 
 theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
 
+theorem real.nndist_eq (x y : ℝ) : nndist x y = real.nnabs (x - y) := rfl
+
+theorem real.nndist_eq' (x y : ℝ) : nndist x y = real.nnabs (y - x) := nndist_comm _ _
+
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
 

@@ -638,7 +638,7 @@ begin
       suffices heq : (νn n).with_density ((μn n).radon_nikodym_deriv (νn n)) =
         ν.with_density ((S.set n).indicator ((μn n).radon_nikodym_deriv (νn n))),
       { rw heq },
-      rw [hν, with_density_indicator _ (S.set_mem n), restrict_sum _ (S.set_mem n)],
+      rw [hν, with_density_indicator (S.set_mem n), restrict_sum _ (S.set_mem n)],
       suffices hsumeq : sum (λ (i : ℕ), (νn i).restrict (S.set n)) = νn n,
       { rw hsumeq },
       ext1 s hs,

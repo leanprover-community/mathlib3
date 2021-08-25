@@ -358,7 +358,7 @@ begin
     cases (nat.le_of_lt_succ hk).eq_or_lt with hk' hk',
     { simp [←hk', nat.succ_le_succ_iff, eq_comm] },
     { simpa [nat.mod_eq_of_lt (nat.succ_lt_succ hk'), nat.succ_lt_succ_iff]
-      using k.zero_le.trans_lt hk' } }
+        using k.zero_le.trans_lt hk' } }
 end
 
 lemma form_perm_apply_mem_ne_self_iff (hl : nodup l) (x : α) (hx : x ∈ l) :

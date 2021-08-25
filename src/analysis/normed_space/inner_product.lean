@@ -1428,7 +1428,7 @@ end
 /-- The sum defined in Bessel's inequality is summable. -/
 lemma orthonormal.inner_products_summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥⟪v i, x⟫∥ ^ 2) :=
 begin
-  use Sup (set.range (λ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2)),
+  use ⨆ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2,
   apply has_sum_of_is_lub_of_nonneg,
   { intro b,
     simp only [norm_nonneg, pow_nonneg], },

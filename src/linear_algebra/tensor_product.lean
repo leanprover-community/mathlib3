@@ -611,7 +611,7 @@ by rw [lift_compr₂ f, lift_mk, linear_map.comp_id]
 /--
 This used to be an `@[ext]` lemma, but it fails very slowly when the `ext` tactic tries to apply
 it in some cases, notably when one wants to show equality of two linear maps. The `@[ext]`
-attribute is now added locally where it is needed. Using this as the `@[ext]` lemma instead of 
+attribute is now added locally where it is needed. Using this as the `@[ext]` lemma instead of
 `tensor_product.ext` allows `ext` to apply lemmas specific to `M →ₗ _` and `N →ₗ _`.
 
 See note [partially-applied ext lemmas]. -/
@@ -916,6 +916,8 @@ variables (g : P →ₗ[R] Q) (f : N →ₗ[R] P)
 @[simp] lemma rtensor_tmul (m : M) (n : N) : f.rtensor M (n ⊗ₜ m) = (f n) ⊗ₜ m := rfl
 
 open tensor_product
+
+local attribute [ext] mk_compr₂_inj
 
 /-- `ltensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def ltensor_hom : (N →ₗ[R] P) →ₗ[R] (M ⊗[R] N →ₗ[R] M ⊗[R] P) :=

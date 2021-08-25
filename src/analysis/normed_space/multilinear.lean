@@ -1422,7 +1422,7 @@ linear_isometry_equiv.of_bounds
     map_smul' := λ c f, by { ext, refl },
     left_inv := λ f, by { ext m, exact congr_arg f (sum.elim_comp_inl_inr m) },
     right_inv := λ f, by { ext m₁ m₂, change f _ _ = f _ _,
-      rw [sum.elim_comp_inl, sum.elim_comp_inr]  } }
+      rw [sum.elim_comp_inl, sum.elim_comp_inr] } }
   (λ f, multilinear_map.mk_continuous_multilinear_norm_le _ (norm_nonneg f) _)
   (λ f, multilinear_map.mk_continuous_norm_le _ (norm_nonneg f) _)
 

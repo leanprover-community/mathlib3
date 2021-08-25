@@ -971,6 +971,9 @@ by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_pair_
 lemma card_eq_one_of_forall_eq {i : α} (h : ∀ j, j = i) : card α = 1 :=
 fintype.card_eq_one_iff.2 ⟨i,h⟩
 
+lemma one_lt_card [h : nontrivial α] : 1 < fintype.card α :=
+fintype.one_lt_card_iff_nontrivial.mpr h
+
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
 have ∀ {f : α → α}, injective f → surjective f,
@@ -1519,6 +1522,12 @@ def choose (hp : ∃! a, p a) : α := choose_x p hp
 
 lemma choose_spec (hp : ∃! a, p a) : p (choose p hp) :=
 (choose_x p hp).property
+
+@[simp] lemma choose_subtype_eq {α : Type*} (p : α → Prop) [fintype {a : α // p a}]
+  [decidable_eq α] (x : {a : α // p a})
+  (h : ∃! (a : {a // p a}), (a : α) = x := ⟨x, rfl, λ y hy, by simpa [subtype.ext_iff] using hy⟩) :
+  fintype.choose (λ (y : {a : α // p a}), (y : α) = x) h = x :=
+by rw [subtype.ext_iff, fintype.choose_spec (λ (y : {a : α // p a}), (y : α) = x) _]
 
 end choose
 

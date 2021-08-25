@@ -192,7 +192,7 @@ begin
   lift k to ℕ using int.le_of_lt hk,
   rw gsmul_coe_nat,
   apply nsmul_pos ha,
-  exact coe_nat_pos.mp hk,
+  exact (coe_nat_pos.mp hk).ne',
 end
 
 theorem gsmul_strict_mono_left {a : A} (ha : 0 < a) : strict_mono (λ n : ℤ, n • a) :=
@@ -845,6 +845,12 @@ lemma cast_int_mul_cast_int_mul (h : commute a b) (m n : ℤ) : commute ((m : R)
 h.cast_int_mul_cast_int_mul m n
 
 variables (a) (m n : ℤ)
+
+@[simp] lemma cast_int_left : commute (m : R) a :=
+by { rw [← mul_one (m : R)], exact (one_left a).cast_int_mul_left m }
+
+@[simp] lemma cast_int_right : commute a m :=
+by { rw [← mul_one (m : R)], exact (one_right a).cast_int_mul_right m }
 
 @[simp] theorem self_cast_int_mul : commute a (n * a) := (commute.refl a).cast_int_mul_right n
 

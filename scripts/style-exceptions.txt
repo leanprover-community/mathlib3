@@ -58,7 +58,6 @@ src/data/subtype.lean : line 10 : ERR_MOD : Module docstring missing, or too lat
 src/data/ulift.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subfield.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/logic/relation.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/lists.lean : line 13 : ERR_MOD : Module docstring missing, or too late
@@ -73,8 +72,8 @@ src/tactic/converter/interactive.lean : line 53 : ERR_LIN : Line has more than 1
 src/tactic/converter/old_conv.lean : line 272 : ERR_LIN : Line has more than 100 characters
 src/tactic/converter/old_conv.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/core.lean : line 17 : ERR_MOD : Module docstring missing, or too late
-src/tactic/core.lean : line 2196 : ERR_LIN : Line has more than 100 characters
-src/tactic/core.lean : line 2357 : ERR_LIN : Line has more than 100 characters
+src/tactic/core.lean : line 2194 : ERR_LIN : Line has more than 100 characters
+src/tactic/core.lean : line 2355 : ERR_LIN : Line has more than 100 characters
 src/tactic/delta_instance.lean : line 67 : ERR_LIN : Line has more than 100 characters
 src/tactic/delta_instance.lean : line 75 : ERR_LIN : Line has more than 100 characters
 src/tactic/delta_instance.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -83,9 +82,9 @@ src/tactic/ext.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/fin_cases.lean : line 121 : ERR_LIN : Line has more than 100 characters
 src/tactic/fin_cases.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/tactic/find.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/generalizes.lean : line 118 : ERR_LIN : Line has more than 100 characters
+src/tactic/generalizes.lean : line 117 : ERR_LIN : Line has more than 100 characters
 src/tactic/hint.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/induction.lean : line 1337 : ERR_RNT : Reserved notation outside tactic.reserved_notation
+src/tactic/induction.lean : line 1329 : ERR_RNT : Reserved notation outside tactic.reserved_notation
 src/tactic/interactive.lean : line 1063 : ERR_LIN : Line has more than 100 characters
 src/tactic/interactive.lean : line 385 : ERR_LIN : Line has more than 100 characters
 src/tactic/interactive.lean : line 649 : ERR_LIN : Line has more than 100 characters

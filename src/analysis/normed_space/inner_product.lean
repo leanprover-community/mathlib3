@@ -692,8 +692,8 @@ begin
     { intros i,
       have h' : ∥v i∥ ^ 2 = 1 ^ 2 := by simp [norm_sq_eq_inner, h i i],
       have h₁ : 0 ≤ ∥v i∥ := norm_nonneg _,
-      have h₂ : (0:ℝ) ≤ 1 := by norm_num,
-      rwa eq_of_sq_eq_sq h₁ h₂ at h' },
+      have h₂ : (0:ℝ) ≤ 1 := zero_le_one,
+      rwa sq_eq_sq h₁ h₂ at h' },
     { intros i j hij,
       simpa [hij] using h i j } }
 end
@@ -1085,6 +1085,14 @@ begin
     linarith },
   { intro h,
     linarith }
+end
+
+/-- Given two orthogonal vectors, their sum and difference have equal norms. -/
+lemma norm_sub_eq_norm_add {v w : E} (h : ⟪v, w⟫ = 0) : ∥w - v∥ = ∥w + v∥ :=
+begin
+  rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _),
+  simp [h, ←inner_self_eq_norm_sq, inner_add_left, inner_add_right, inner_sub_left,
+    inner_sub_right, inner_re_symm]
 end
 
 /-- The real inner product of two vectors, divided by the product of their
@@ -1850,7 +1858,7 @@ begin
         repeat {exact le_of_lt one_half_pos},
         exact add_halves 1 },
     have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-    {  mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
+    { mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
     have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),
@@ -2250,6 +2258,49 @@ lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
 by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
 
 end orthogonal_projection
+
+section reflection
+variables {𝕜} (K) [complete_space K]
+
+/-- Reflection in a complete subspace of an inner product space.  The word "reflection" is
+sometimes understood to mean specifically reflection in a codimension-one subspace, and sometimes
+more generally to cover operations such as reflection in a point.  The definition here, of
+reflection in a subspace, is a more general sense of the word that includes both those common
+cases. -/
+def reflection : E ≃ₗᵢ[𝕜] E :=
+{ norm_map' := begin
+    intros x,
+    let w : K := orthogonal_projection K x,
+    let v := x - w,
+    have : ⟪v, w⟫ = 0 := orthogonal_projection_inner_eq_zero x w w.2,
+    convert norm_sub_eq_norm_add this using 2,
+    { simp [bit0],
+      dsimp [w, v],
+      abel },
+    { simp [bit0] }
+  end,
+  ..linear_equiv.of_involutive
+      (bit0 (K.subtype.comp (orthogonal_projection K).to_linear_map) - linear_map.id)
+      (λ x, by simp [bit0]) }
+
+variables {K}
+
+/-- The result of reflecting. -/
+lemma reflection_apply (p : E) : reflection K p = bit0 ↑(orthogonal_projection K p) - p := rfl
+
+/-- Reflection is its own inverse. -/
+@[simp] lemma reflection_symm : (reflection K).symm = reflection K := rfl
+
+variables (K)
+
+/-- Reflecting twice in the same subspace. -/
+@[simp] lemma reflection_reflection (p : E) : reflection K (reflection K p) = p :=
+(reflection K).left_inv p
+
+/-- Reflection is involutive. -/
+lemma reflection_involutive : function.involutive (reflection K) := reflection_reflection K
+
+end reflection
 
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal : submodule 𝕜 E :=

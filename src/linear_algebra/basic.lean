@@ -569,6 +569,30 @@ by refine_struct
     .. linear_map.add_comm_monoid, .. };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}
 
+/-- The tautological action by `M →ₗ[R] M` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_module : module (M →ₗ[R] M) M :=
+{ smul := ($),
+  smul_zero := linear_map.map_zero,
+  smul_add := linear_map.map_add,
+  add_smul := linear_map.add_apply,
+  zero_smul := (linear_map.zero_apply : ∀ m, (0 : M →ₗ[R] M) m = 0),
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def (f : M →ₗ[R] M) (a : M) : f • a = f a := rfl
+
+/-- `linear_map.apply_module` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (M →ₗ[R] M) M :=
+⟨λ _ _, linear_map.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R (M →ₗ[R] M) M :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (M →ₗ[R] M) R M :=
+{ smul_comm := linear_map.map_smul }
+
 end semiring
 
 section ring
@@ -596,7 +620,7 @@ def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
   map_smul' := λ c f, by { ext, apply mul_smul, } }
 
 @[simp] lemma smul_rightₗ_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
-  (smul_rightₗ : (M₂ →ₗ R) →ₗ M →ₗ M₂ →ₗ M) f x c = (f c) • x := rfl
+  (smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M) f x c = (f c) • x := rfl
 
 end comm_ring
 
@@ -1780,7 +1804,7 @@ begin
     rw [← set_like.mem_coe, f.range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
     have hx' : x ∈ p, { exact h₂ hx, },
     have hxz : z + x ∈ p, { apply h₂, simp [hx, hz], },
-    suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel],  },
+    suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel], },
     exact p.sub_mem hxz hx', },
 end
 
@@ -2374,7 +2398,7 @@ open linear_map
 
 /-- Multiplying by a unit `a` of the ring `R` is a linear equivalence. -/
 def smul_of_unit (a : units R) : M ≃ₗ[R] M :=
-of_linear ((a:R) • 1 : M →ₗ M) (((a⁻¹ : units R) : R) • 1 : M →ₗ M)
+of_linear ((a:R) • 1 : M →ₗ[R] M) (((a⁻¹ : units R) : R) • 1 : M →ₗ[R] M)
   (by rw [smul_comp, comp_smul, smul_smul, units.mul_inv, one_smul]; refl)
   (by rw [smul_comp, comp_smul, smul_smul, units.inv_mul, one_smul]; refl)
 
@@ -2423,7 +2447,7 @@ rfl
 
 /-- If `M₂` and `M₃` are linearly isomorphic then the two spaces of linear maps from `M` into `M₂`
 and `M` into `M₃` are linearly isomorphic. -/
-def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) :=
+def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ[R] (M →ₗ[R] M₃) :=
 arrow_congr (linear_equiv.refl R M) f
 
 /-- If `M` and `M₂` are linearly isomorphic then the two spaces of linear maps from `M` and `M₂` to
@@ -2865,6 +2889,29 @@ def automorphism_group.to_linear_map_monoid_hom :
 { to_fun := coe,
   map_one' := rfl,
   map_mul' := λ _ _, rfl }
+
+/-- The tautological action by `M ≃ₗ[R] M` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
+{ smul := ($),
+  smul_zero := linear_equiv.map_zero,
+  smul_add := linear_equiv.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma smul_def (f : M ≃ₗ[R] M) (a : M) :
+  f • a = f a := rfl
+
+/-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
+instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+⟨λ _ _, linear_equiv.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
+{ smul_comm := linear_equiv.map_smul }
 
 end linear_equiv
 

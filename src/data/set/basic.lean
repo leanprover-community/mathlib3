@@ -1757,7 +1757,7 @@ range_subset_iff.2 $ λ x, rfl
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
 
-lemma diagonal_eq_range {α  : Type*} : diagonal α = range (λ x, (x, x)) :=
+lemma diagonal_eq_range {α : Type*} : diagonal α = range (λ x, (x, x)) :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
 
 theorem preimage_singleton_nonempty {f : α → β} {y : β} :
@@ -1959,14 +1959,26 @@ lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
   (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
 pairwise_on_iff_exists_forall s f
 
+lemma pairwise_on_insert {α} {s : set α} {a : α} {r : α → α → Prop} :
+  (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b ∧ r b a :=
+begin
+  simp only [pairwise_on, ball_insert_iff, forall_and_distrib, true_and, forall_false_left,
+    eq_self_iff_true, not_true, ne.def, @eq_comm _ a],
+  exact ⟨λ H, ⟨H.2.2, H.2.1, H.1⟩, λ H, ⟨H.2.2, H.2.1, H.1⟩⟩
+end
+
 lemma pairwise_on_insert_of_symmetric {α} {s : set α} {a : α} {r : α → α → Prop}
   (hr : symmetric r) :
   (insert a s).pairwise_on r ↔ s.pairwise_on r ∧ ∀ b ∈ s, a ≠ b → r a b :=
-begin
-  simp only [pairwise_on, ball_insert_iff, true_and, forall_false_left, eq_self_iff_true, not_true,
-    ne.def, forall_and_distrib, hr.iff a, @eq_comm _ a],
-  exact ⟨λ h, ⟨h.2.2, h.2.1⟩, λ h, ⟨h.2, h.2, h.1⟩⟩
-end
+by simp only [pairwise_on_insert, hr.iff a, and_self]
+
+lemma pairwise_on_pair {r : α → α → Prop} {x y : α} :
+  pairwise_on {x, y} r ↔ (x ≠ y → r x y ∧ r y x) :=
+by simp [pairwise_on_insert]
+
+lemma pairwise_on_pair_of_symmetric {r : α → α → Prop} {x y : α} (hr : symmetric r) :
+  pairwise_on {x, y} r ↔ (x ≠ y → r x y) :=
+by simp [pairwise_on_insert_of_symmetric hr]
 
 end set
 
@@ -2412,6 +2424,9 @@ end
 
 lemma univ_pi_eq_empty_iff : pi univ t = ∅ ↔ ∃ i, t i = ∅ :=
 by simp [← not_nonempty_iff_eq_empty, univ_pi_nonempty_iff]
+
+@[simp] lemma univ_pi_empty [h : nonempty ι] : pi univ (λ i, ∅ : Π i, set (α i)) = ∅ :=
+univ_pi_eq_empty_iff.2 $ h.elim $ λ x, ⟨x, rfl⟩
 
 @[simp] lemma range_dcomp {β : ι → Type*} (f : Π i, α i → β i) :
   range (λ (g : Π i, α i), (λ i, f i (g i))) = pi univ (λ i, range (f i)) :=

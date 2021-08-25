@@ -3,7 +3,6 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.nat.enat
 import data.set.intervals.ord_connected
 
 /-!
@@ -474,6 +473,15 @@ lemma csupr_mem_Inter_Icc_of_mono_decr_Icc_nat
 csupr_mem_Inter_Icc_of_mono_decr_Icc
   (@monotone_nat_of_le_succ (order_dual $ set α) _ (λ n, Icc (f n) (g n)) h) h'
 
+lemma finset.nonempty.sup'_eq_cSup_image {s : finset β} (hs : s.nonempty) (f : β → α) :
+  s.sup' hs f = Sup (f '' s) :=
+eq_of_forall_ge_iff $ λ a,
+  by simp [cSup_le_iff (s.finite_to_set.image f).bdd_above (hs.to_set.image f)]
+
+lemma finset.nonempty.sup'_id_eq_cSup {s : finset α} (hs : s.nonempty) :
+  s.sup' hs id = Sup s :=
+by rw [hs.sup'_eq_cSup_image, image_id]
+
 end conditionally_complete_lattice
 
 instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
@@ -492,29 +500,29 @@ instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}
 
-lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : finite s) : Sup s ∈ s :=
-begin
-  classical,
-  revert h,
-  apply finite.induction_on hs,
-  { simp },
-  rintros a t hat t_fin ih -,
-  rcases t.eq_empty_or_nonempty with rfl | ht,
-  { simp },
-  { rw cSup_insert t_fin.bdd_above ht,
-    by_cases ha : a ≤ Sup t,
-    { simp [sup_eq_right.mpr ha, ih ht] },
-    { simp only [sup_eq_left, mem_insert_iff, (not_le.mp ha).le, true_or] } }
-end
+lemma finset.nonempty.cSup_eq_max' {s : finset α} (h : s.nonempty) : Sup ↑s = s.max' h :=
+eq_of_forall_ge_iff $ λ a, (cSup_le_iff s.bdd_above h.to_set).trans (s.max'_le_iff h).symm
+
+lemma finset.nonempty.cInf_eq_min' {s : finset α} (h : s.nonempty) : Inf ↑s = s.min' h :=
+@finset.nonempty.cSup_eq_max' (order_dual α) _ s h
 
 lemma finset.nonempty.cSup_mem {s : finset α} (h : s.nonempty) : Sup (s : set α) ∈ s :=
-set.nonempty.cSup_mem h s.finite_to_set
+by { rw h.cSup_eq_max', exact s.max'_mem _ }
+
+lemma finset.nonempty.cInf_mem {s : finset α} (h : s.nonempty) : Inf (s : set α) ∈ s :=
+@finset.nonempty.cSup_mem (order_dual α) _ _ h
+
+lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : finite s) : Sup s ∈ s :=
+by { unfreezingI { lift s to finset α using hs }, exact finset.nonempty.cSup_mem h }
 
 lemma set.nonempty.cInf_mem (h : s.nonempty) (hs : finite s) : Inf s ∈ s :=
 @set.nonempty.cSup_mem (order_dual α) _ _ h hs
 
-lemma finset.nonempty.cInf_mem {s : finset α} (h : s.nonempty) : Inf (s : set α) ∈ s :=
-set.nonempty.cInf_mem h s.finite_to_set
+lemma set.finite.cSup_lt_iff (hs : finite s) (h : s.nonempty) : Sup s < a ↔ ∀ x ∈ s, x < a :=
+⟨λ h x hx, (le_cSup hs.bdd_above hx).trans_lt h, λ H, H _ $ h.cSup_mem hs⟩
+
+lemma set.finite.lt_cInf_iff (hs : finite s) (h : s.nonempty) : a < Inf s ↔ ∀ x ∈ s, a < x :=
+@set.finite.cSup_lt_iff (order_dual α) _ _ _ hs h
 
 /-- When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
 a linear order. -/
@@ -569,95 +577,6 @@ by rw [supr_of_empty', cSup_empty]
 @[simp] lemma csupr_false (f : false → α) : (⨆ i, f i) = ⊥ := csupr_of_empty f
 
 end conditionally_complete_linear_order_bot
-
-namespace nat
-
-open_locale classical
-
-noncomputable instance : has_Inf ℕ :=
-⟨λs, if h : ∃n, n ∈ s then @nat.find (λn, n ∈ s) _ h else 0⟩
-
-noncomputable instance : has_Sup ℕ :=
-⟨λs, if h : ∃n, ∀a∈s, a ≤ n then @nat.find (λn, ∀a∈s, a ≤ n) _ h else 0⟩
-
-lemma Inf_def {s : set ℕ} (h : s.nonempty) : Inf s = @nat.find (λn, n ∈ s) _ h :=
-dif_pos _
-
-lemma Sup_def {s : set ℕ} (h : ∃n, ∀a∈s, a ≤ n) :
-  Sup s = @nat.find (λn, ∀a∈s, a ≤ n) _ h :=
-dif_pos _
-
-@[simp] lemma Inf_eq_zero {s : set ℕ} : Inf s = 0 ↔ 0 ∈ s ∨ s = ∅ :=
-begin
-  cases eq_empty_or_nonempty s,
-  { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
-      mem_empty_eq, exists_false, dif_neg, not_false_iff] },
-  { have := ne_empty_iff_nonempty.mpr h,
-    simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
-end
-
-lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
-by { rw [nat.Inf_def h], exact nat.find_spec h }
-
-lemma not_mem_of_lt_Inf {s : set ℕ} {m : ℕ} (hm : m < Inf s) : m ∉ s :=
-begin
-  cases eq_empty_or_nonempty s,
-  { subst h, apply not_mem_empty },
-  { rw [nat.Inf_def h] at hm, exact nat.find_min h hm }
-end
-
-protected lemma Inf_le {s : set ℕ} {m : ℕ} (hm : m ∈ s) : Inf s ≤ m :=
-by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
-
-lemma nonempty_of_pos_Inf {s : set ℕ} (h : 0 < Inf s) : s.nonempty :=
-begin
-  by_contradiction contra, rw set.not_nonempty_iff_eq_empty at contra,
-  have h' : Inf s ≠ 0, { exact ne_of_gt h, }, apply h',
-  rw nat.Inf_eq_zero, right, assumption,
-end
-
-lemma nonempty_of_Inf_eq_succ {s : set ℕ} {k : ℕ} (h : Inf s = k + 1) : s.nonempty :=
-nonempty_of_pos_Inf (h.symm ▸ (succ_pos k) : Inf s > 0)
-
-lemma eq_Ici_of_nonempty_of_upward_closed {s : set ℕ} (hs : s.nonempty)
-  (hs' : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) : s = Ici (Inf s) :=
-ext (λ n, ⟨λ H, nat.Inf_le H, λ H, hs' (Inf s) n H (Inf_mem hs)⟩)
-
-lemma Inf_upward_closed_eq_succ_iff {s : set ℕ}
-  (hs : ∀ (k₁ k₂ : ℕ), k₁ ≤ k₂ → k₁ ∈ s → k₂ ∈ s) (k : ℕ) :
-  Inf s = k + 1 ↔ k + 1 ∈ s ∧ k ∉ s :=
-begin
-  split,
-  { intro H,
-    rw [eq_Ici_of_nonempty_of_upward_closed (nonempty_of_Inf_eq_succ H) hs, H, mem_Ici, mem_Ici],
-    exact ⟨le_refl _, k.not_succ_le_self⟩, },
-  { rintro ⟨H, H'⟩,
-    rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
-    exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
-end
-
-/-- This instance is necessary, otherwise the lattice operations would be derived via
-conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := lattice_of_linear_order
-
-noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
-{ Sup := Sup, Inf := Inf,
-  le_cSup    := assume s a hb ha, by rw [Sup_def hb]; revert a ha; exact @nat.find_spec _ _ hb,
-  cSup_le    := assume s a hs ha, by rw [Sup_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
-  le_cInf    := assume s a hs hb,
-    by rw [Inf_def hs]; exact hb (@nat.find_spec (λn, n ∈ s) _ _),
-  cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
-  cSup_empty :=
-  begin
-    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
-      exists_const],
-    apply bot_unique (nat.find_min' _ _),
-    trivial
-  end,
-  .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
-  .. (infer_instance : linear_order ℕ) }
-
-end nat
 
 namespace with_top
 open_locale classical
@@ -779,37 +698,6 @@ le_antisymm
   end
 
 end with_top
-
-namespace enat
-open_locale classical
-
-noncomputable instance : complete_linear_order enat :=
-{ Sup := λ s, with_top_equiv.symm $ Sup (with_top_equiv '' s),
-  Inf := λ s, with_top_equiv.symm $ Inf (with_top_equiv '' s),
-  le_Sup := by intros; rw ← with_top_equiv_le; simp; apply le_Sup _; simpa,
-  Inf_le := by intros; rw ← with_top_equiv_le; simp; apply Inf_le _; simpa,
-  Sup_le := begin
-    intros s a h1,
-    rw [← with_top_equiv_le, with_top_equiv.right_inverse_symm],
-    apply Sup_le _,
-    rintros b ⟨x, h2, rfl⟩,
-    rw with_top_equiv_le,
-    apply h1,
-    assumption
-  end,
-  le_Inf := begin
-    intros s a h1,
-    rw [← with_top_equiv_le, with_top_equiv.right_inverse_symm],
-    apply le_Inf _,
-    rintros b ⟨x, h2, rfl⟩,
-    rw with_top_equiv_le,
-    apply h1,
-    assumption
-  end,
-  ..enat.linear_order,
-  ..enat.bounded_lattice }
-
-end enat
 
 namespace monotone
 variables [preorder α] [conditionally_complete_lattice β] {f : α → β} (h_mono : monotone f)

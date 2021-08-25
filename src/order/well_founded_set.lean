@@ -132,8 +132,7 @@ theorem is_wf_iff_no_descending_seq :
 begin
   haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) := {
     to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
-    to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩,
-  },
+    to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩, },
   rw [is_wf, well_founded_on_iff_no_descending_seq],
   exact ⟨λ h f, h f.lt_embedding, λ h f, h (order_embedding.of_strict_mono
     f (λ _ _, f.map_rel_iff.2))⟩,

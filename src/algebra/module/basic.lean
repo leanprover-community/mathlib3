@@ -251,6 +251,23 @@ instance semiring.to_opposite_module [semiring R] : module Rᵒᵖ R :=
 def ring_hom.to_module [semiring R] [semiring S] (f : R →+* S) : module R S :=
 module.comp_hom S f
 
+/-- The tautological action by `R →+* R` on `R`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R →+* R) R :=
+{ smul := ($),
+  smul_zero := ring_hom.map_zero,
+  smul_add := ring_hom.map_add,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp] protected lemma ring_hom.smul_def [semiring R] (f : R →+* R) (a : R) :
+  f • a = f a := rfl
+
+/-- `ring_hom.apply_distrib_mul_action` is faithful. -/
+instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+⟨ring_hom.ext⟩
+
 section add_comm_monoid
 
 variables [semiring R] [add_comm_monoid M] [module R M]

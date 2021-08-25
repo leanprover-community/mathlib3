@@ -363,6 +363,10 @@ is_noetherian_submodule.trans
 instance is_noetherian_submodule' [is_noetherian R M] (N : submodule R M) : is_noetherian R N :=
 is_noetherian_submodule.2 $ λ _ _, is_noetherian.noetherian _
 
+lemma is_noetherian_of_le {s t : submodule R M} [ht : is_noetherian R t]
+   (h : s ≤ t) : is_noetherian R s :=
+is_noetherian_submodule.mpr (λ s' hs', is_noetherian_submodule.mp ht _ (le_trans hs' h))
+
 variable (M)
 theorem is_noetherian_of_surjective (f : M →ₗ[R] P) (hf : f.range = ⊤)
   [is_noetherian R M] : is_noetherian R P :=
@@ -699,8 +703,7 @@ begin
   refine is_noetherian.induction (λ (M : ideal R) hgt, _) I,
   by_cases h_prM : M.is_prime,
   { use {⟨M, h_prM⟩},
-    rw [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-        subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
     exact le_rfl },
   by_cases htop : M = ⊤,
   { rw htop,
@@ -745,12 +748,10 @@ begin
     obtain ⟨p_id, h_nzp, h_pp⟩ : ∃ (p : ideal A), p ≠ ⊥ ∧ p.is_prime,
     { apply ring.not_is_field_iff_exists_prime.mp h_fA },
     use [({⟨p_id, h_pp⟩} : multiset (prime_spectrum A)), le_top],
-    rwa [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-         subtype.coe_mk] },
+    rwa [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk] },
   by_cases h_prM : M.is_prime,
   { use ({⟨M, h_prM⟩} : multiset (prime_spectrum A)),
-    rw [multiset.map_singleton, multiset.singleton_eq_singleton, multiset.prod_singleton,
-         subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
     exact ⟨le_rfl, h_nzM⟩ },
   obtain ⟨x, hx, y, hy, h_xy⟩ := (ideal.not_is_prime_iff.mp h_prM).resolve_left h_topM,
   have lt_add : ∀ z ∉ M, M < M + span A {z},

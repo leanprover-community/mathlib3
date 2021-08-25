@@ -174,6 +174,11 @@ noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
   end,
   .. X.to_SheafedSpace.restrict f h }
 
+noncomputable def restrict_top_iso (X : LocallyRingedSpace) :
+  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
+@iso_of_SheafedSpace_iso (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) X
+  X.to_SheafedSpace.restrict_top_iso
+
 /--
 The global sections, notated Gamma.
 -/

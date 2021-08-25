@@ -317,19 +317,19 @@ end
 
 end cycle_type
 
-lemma card_compl_support_modeq [decidable_eq α] {p : ℕ} [hp : fact p.prime] {σ : perm α}
-  (hσ : σ ^ p = 1) : σ.supportᶜ.card ≡ fintype.card α [MOD p] :=
+lemma card_compl_support_modeq [decidable_eq α] {p n : ℕ} [hp : fact p.prime] {σ : perm α}
+  (hσ : σ ^ p ^ n = 1) : σ.supportᶜ.card ≡ fintype.card α [MOD p] :=
 begin
-  have key : σ.cycle_type = repeat p σ.cycle_type.card :=
-  eq_repeat_of_mem (λ n hn, (nat.dvd_prime_two_le hp.out (two_le_of_mem_cycle_type hn)).mp
-    ((dvd_of_mem_cycle_type hn).trans (order_of_dvd_of_pow_eq_one hσ))),
-  rw [nat.modeq_iff_dvd' σ.supportᶜ.card_le_univ, ←finset.card_compl, compl_compl,
-      ←sum_cycle_type, key, multiset.sum_repeat, smul_eq_mul],
-  exact dvd_mul_left p σ.cycle_type.card,
+  rw [nat.modeq_iff_dvd' σ.supportᶜ.card_le_univ, ←finset.card_compl, compl_compl],
+  refine (congr_arg _ σ.sum_cycle_type).mp (multiset.dvd_sum (λ k hk, _)),
+  obtain ⟨m, -, hm⟩ := (nat.dvd_prime_pow hp.out).mp (order_of_dvd_of_pow_eq_one hσ),
+  obtain ⟨l, -, rfl⟩ := (nat.dvd_prime_pow hp.out).mp
+    ((congr_arg _ hm).mp (dvd_of_mem_cycle_type hk)),
+  exact dvd_pow (dvd_refl p) (λ h, ne_of_lt (one_lt_of_mem_cycle_type hk) (by rw [h, pow_zero])),
 end
 
-lemma exists_fixed_point_of_prime {p : ℕ} [hp : fact p.prime] (hα : ¬ p ∣ fintype.card α)
-  {σ : perm α} (hσ : σ ^ p = 1) : ∃ a : α, σ a = a :=
+lemma exists_fixed_point_of_prime {p n : ℕ} [hp : fact p.prime] (hα : ¬ p ∣ fintype.card α)
+  {σ : perm α} (hσ : σ ^ p ^ n = 1) : ∃ a : α, σ a = a :=
 begin
   classical,
   contrapose! hα,
@@ -338,8 +338,8 @@ begin
     (finset.eq_univ_iff_forall.mpr hα)))).mp (card_compl_support_modeq hσ).symm),
 end
 
-lemma exists_fixed_point_of_prime' {p : ℕ} [hp : fact p.prime] (hα : p ∣ fintype.card α)
-  {σ : perm α} (hσ : σ ^ p = 1) {a : α} (ha : σ a = a) : ∃ b : α, σ b = b ∧ b ≠ a :=
+lemma exists_fixed_point_of_prime' {p n : ℕ} [hp : fact p.prime] (hα : p ∣ fintype.card α)
+  {σ : perm α} (hσ : σ ^ p ^ n = 1) {a : α} (ha : σ a = a) : ∃ b : α, σ b = b ∧ b ≠ a :=
 begin
   classical,
   have h : ∀ b : α, b ∈ σ.supportᶜ ↔ σ b = b :=

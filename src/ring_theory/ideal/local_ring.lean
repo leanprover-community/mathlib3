@@ -17,8 +17,8 @@ Define local rings as commutative rings having a unique maximal ideal.
 * `local_ring`: A predicate on commutative rings, stating that every element `a` is either a unit
   or `1 - a` is a unit. This is shown to be equivalent to the condition that there exists a unique
   maximal ideal.
-* `local_ring.maximal_ideal`: The unique maximal ideal for a local rings. Its carrier set is given
-  by the `nonunits` above.
+* `local_ring.maximal_ideal`: The unique maximal ideal for a local rings. Its carrier set is the set
+  of non units.
 * `is_local_ring_hom`: A predicate on semiring homomorphisms, requiring that it maps nonunits
   to nonunits. For local rings, this means that the image of the unique maximal ideal is again
   contained in the unique maximal ideal.
@@ -176,14 +176,6 @@ instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
   is_local_ring_hom (g.comp f) :=
 { map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
-instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
-  is_local_ring_hom f.to_ring_hom :=
-{ map_nonunit := λ a ha,
-begin
-  convert f.symm.to_ring_hom.is_unit_map ha,
-  rw ring_equiv.symm_to_ring_hom_apply_to_ring_hom_apply,
-end }
-
 @[simp] lemma is_unit_of_map_unit [semiring R] [semiring S] (f : R →+* S) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=
 is_local_ring_hom.map_nonunit a h
@@ -192,23 +184,6 @@ theorem of_irreducible_map [semiring R] [semiring S] (f : R →+* S) [h : is_loc
   (hfx : irreducible (f x)) : irreducible x :=
 ⟨λ h, hfx.not_unit $ is_unit.map f.to_monoid_hom h, λ p q hx, let ⟨H⟩ := h in
 or.imp (H p) (H q) $ hfx.is_unit_or_is_unit $ f.map_mul p q ▸ congr_arg f hx⟩
-
-section
-open category_theory
-
-lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_hom f.hom :=
-{ map_nonunit := λ a ha,
-begin
-  convert f.inv.is_unit_map ha,
-  rw category_theory.coe_hom_inv_id,
-end }
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_local_ring_hom_of_is_iso {R S : CommRing} (f : R ⟶ S) [is_iso f] :
-  is_local_ring_hom f :=
-is_local_ring_hom_of_iso (as_iso f)
-
-end
 
 section
 open local_ring

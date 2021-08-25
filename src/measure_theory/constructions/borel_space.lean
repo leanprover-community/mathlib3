@@ -1283,6 +1283,15 @@ by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr,
   exact λ s, s.measurable_sum (λ i _, h i) }
 
 @[measurability]
+lemma measurable.ennreal_tsum' {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  measurable (∑' i, f i) :=
+begin
+  convert measurable.ennreal_tsum h,
+  ext1 x,
+  exact tsum_apply (pi.summable.2 (λ _, ennreal.summable)),
+end
+
+@[measurability]
 lemma measurable.nnreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0} (h : ∀ i, measurable (f i)) :
   measurable (λ x, ∑' i, f i x) :=
 begin

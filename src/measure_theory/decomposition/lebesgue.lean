@@ -574,65 +574,6 @@ instance {μ : measure α} {S : μ.finite_spanning_sets_in {s : set α | measura
   finite_measure (μ.restrict $ S.set n) :=
 ⟨by { rw [restrict_apply measurable_set.univ, set.univ_inter], exact S.finite _ }⟩
 
-lemma measurable.ennreal_tsum' {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
-  measurable (∑' i, f i) :=
-begin
-  convert measurable.ennreal_tsum h,
-  ext1 x,
-  rw tsum_apply,
-  rw pi.summable,
-  exact λ _, ennreal.summable,
-end
-
-lemma with_density_tsum {μ : measure α} {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
-  μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
-begin
-  ext1 s hs,
-  simp_rw [sum_apply _ hs, with_density_apply _ hs],
-  change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
-  rw ← lintegral_tsum h,
-  refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
-end
-
-lemma sum_congr {μ ν : ℕ → measure α} (h : ∀ n, μ n = ν n) : sum μ = sum ν :=
-by { congr, ext1 n, exact h n }
-
-lemma with_density_indicator (μ : measure α) {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
-  μ.with_density (s.indicator f) = (μ.restrict s).with_density f :=
-begin
-  ext1 t ht,
-  rw [with_density_apply _ ht, lintegral_indicator _ hs,
-      restrict_comm hs ht, ← with_density_apply _ ht]
-end
-
-lemma sum_add_sum (μ ν : ℕ → measure α) : sum μ + sum ν = sum (λ n, μ n + ν n) :=
-begin
-  ext1 s hs,
-  simp only [add_apply, sum_apply _ hs, pi.add_apply, coe_add,
-             tsum_add ennreal.summable ennreal.summable],
-end
-
-lemma foo (a b : ℕ → set α) (ha₁ : (⋃ n, a n) = set.univ) (ha₂ : pairwise (disjoint on a)) :
-  is_compl (⋃ n, (a n ∩ b n)) ⋃ n, a n ∩ (b n)ᶜ :=
-begin
-  split,
-  { rintro x ⟨hx₁, hx₂⟩,
-    rw set.mem_Union at hx₁ hx₂,
-    obtain ⟨i, hi₁, hi₂⟩ := hx₁,
-    obtain ⟨j, hj₁, hj₂⟩ := hx₂,
-    have : i = j,
-    { by_contra hij,
-      exact ha₂ i j hij ⟨hi₁, hj₁⟩ },
-    exact hj₂ (this ▸ hi₂) },
-  { intros x hx,
-    simp only [set.mem_Union, set.sup_eq_union, set.mem_inter_eq,
-               set.mem_union_eq, set.mem_compl_eq, or_iff_not_imp_left],
-    intro h, push_neg at h,
-    rw [set.top_eq_univ, ← ha₁, set.mem_Union] at hx,
-    obtain ⟨i, hi⟩ := hx,
-    exact ⟨i, hi, h i hi⟩ }
-end
-
 theorem have_lebesgue_decomposition_of_sigma_finite
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   have_lebesgue_decomposition μ ν :=
@@ -672,7 +613,21 @@ begin
         intro n, exact measure_mono_null (set.inter_subset_right _ _) (hA₂ n) },
       { exact h₂.mono (λ i j, disjoint.mono inf_le_left inf_le_left) },
       { exact λ n, (S.set_mem n).inter (hA₁ n) } },
-    { rw [(foo S.set A S.spanning h₂).compl_eq, measure_Union, tsum_eq_zero_iff ennreal.summable],
+    { have hcompl : is_compl (⋃ n, (S.set n ∩ A n)) ⋃ n, S.set n ∩ (A n)ᶜ,
+      { split,
+        { rintro x ⟨hx₁, hx₂⟩, rw set.mem_Union at hx₁ hx₂,
+          obtain ⟨⟨i, hi₁, hi₂⟩, ⟨j, hj₁, hj₂⟩⟩ := ⟨hx₁, hx₂⟩,
+          have : i = j,
+          { by_contra hij, exact h₂ i j hij ⟨hi₁, hj₁⟩ },
+          exact hj₂ (this ▸ hi₂) },
+        { intros x hx,
+          simp only [set.mem_Union, set.sup_eq_union, set.mem_inter_eq,
+                    set.mem_union_eq, set.mem_compl_eq, or_iff_not_imp_left],
+          intro h, push_neg at h,
+          rw [set.top_eq_univ, ← S.spanning, set.mem_Union] at hx,
+          obtain ⟨i, hi⟩ := hx,
+          exact ⟨i, hi, h i hi⟩ } },
+      rw [hcompl.compl_eq, measure_Union, tsum_eq_zero_iff ennreal.summable],
       { intro n, rw [set.inter_comm, ← restrict_apply (hA₁ n).compl, ← hA₃ n, hνn, h₁] },
       { exact h₂.mono (λ i j, disjoint.mono inf_le_left inf_le_left) },
       { exact λ n, (S.set_mem n).inter (hA₁ n).compl } } },

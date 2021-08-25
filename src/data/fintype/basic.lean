@@ -7,6 +7,7 @@ import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
 import data.sym.basic
+import data.ulift
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -836,6 +837,13 @@ fintype.of_equiv _ equiv.ulift.symm
   fintype.card (ulift α) = fintype.card α :=
 fintype.of_equiv_card _
 
+instance (α : Type*) [fintype α] : fintype (plift α) :=
+fintype.of_equiv _ equiv.plift.symm
+
+@[simp] theorem fintype.card_plift (α : Type*) [fintype α] :
+  fintype.card (plift α) = fintype.card α :=
+fintype.of_equiv_card _
+
 lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
   (univ : finset (α ⊕ β)) = map function.embedding.inl univ ∪ map function.embedding.inr univ :=
 begin
@@ -1057,7 +1065,7 @@ finset.subtype.fintype s
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 
-instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
+instance plift.fintype_Prop (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=

@@ -113,15 +113,19 @@ begin
         rw <-order_of_dvd_iff_pow_eq_one,
         exact hfoo, },
 
+  -- rw <-nat.totient_prime_iff,
+  -- rw nat.totient_eq_card_coprime,
   rw prime_iff_card_units,
   rw le_antisymm_iff,
   split,
     {
-
+      rw zmod.card_units_eq_totient
       sorry,
     },
     {
       rw <-order_of_a,
+      apply zmod_order_le_card_units,
+      exact hp,
       -- convert order_of_le_card_univ,
     },
 

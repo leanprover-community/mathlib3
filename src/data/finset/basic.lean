@@ -261,6 +261,12 @@ instance : partial_order (finset α) :=
   le_trans := @subset.trans _,
   le_antisymm := @subset.antisymm _ }
 
+
+/-- Coercion to `set α` as an `order_embedding`. -/
+def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_subset⟩
+
+@[simp] lemma coe_coe_emb : ⇑(coe_emb : finset α ↪o set α) = coe := rfl
+
 theorem subset.antisymm_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ s₁ ⊆ s₂ ∧ s₂ ⊆ s₁ :=
 le_antisymm_iff
 

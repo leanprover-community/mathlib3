@@ -2211,6 +2211,34 @@ end
 @[simp] lemma orthogonal_projection_mem_subspace_eq_self (v : K) : orthogonal_projection K v = v :=
 by { ext, apply eq_orthogonal_projection_of_mem_of_inner_eq_zero; simp }
 
+/-- A point equals its orthogonal projection if and only if it lies in the subspace. -/
+lemma orthogonal_projection_eq_self_iff {v : E} :
+  (orthogonal_projection K v : E) = v ↔ v ∈ K :=
+begin
+  refine ⟨λ h, _, λ h, eq_orthogonal_projection_of_mem_of_inner_eq_zero h _⟩,
+  { rw ← h,
+    simp },
+  { simp }
+end
+
+/-- Orthogonal projection onto the `submodule.map` of a subspace. -/
+lemma orthogonal_projection_map_apply {E E' : Type*} [inner_product_space 𝕜 E]
+  [inner_product_space 𝕜 E'] (f : E ≃ₗᵢ[𝕜] E') (p : submodule 𝕜 E) [finite_dimensional 𝕜 p]
+  (x : E') :
+  (orthogonal_projection (p.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x : E')
+  = f (orthogonal_projection p (f.symm x)) :=
+begin
+  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
+  { refine ⟨orthogonal_projection p (f.symm x), submodule.coe_mem _, _⟩,
+    simp },
+  rintros w ⟨a, ha, rfl⟩,
+  suffices : inner (f (f.symm x - orthogonal_projection p (f.symm x))) (f a) = (0:𝕜),
+  { simpa using this },
+  rw f.inner_map_map,
+  apply orthogonal_projection_inner_eq_zero,
+  exact ha
+end
+
 local attribute [instance] finite_dimensional_bot
 
 /-- The orthogonal projection onto the trivial submodule is the zero map. -/
@@ -2303,6 +2331,38 @@ variables (K)
 
 /-- Reflection is involutive. -/
 lemma reflection_involutive : function.involutive (reflection K) := reflection_reflection K
+
+variables {K}
+
+/-- A point is its own reflection if and only if it is in the subspace. -/
+lemma reflection_eq_self_iff (x : E) : reflection K x = x ↔ x ∈ K :=
+begin
+  rw [←orthogonal_projection_eq_self_iff, reflection_apply, sub_eq_iff_eq_add', ← two_smul 𝕜,
+    ← two_smul' 𝕜],
+  refine (smul_right_injective E _).eq_iff,
+  exact two_ne_zero
+end
+
+lemma reflection_mem_subspace_eq_self {x : E} (hx : x ∈ K) : reflection K x = x :=
+(reflection_eq_self_iff x).mpr hx
+
+/-- Reflection in the `submodule.map` of a subspace. -/
+lemma reflection_map_apply {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+  (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [finite_dimensional 𝕜 K] (x : E') :
+  reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) x = f (reflection K (f.symm x)) :=
+by simp [bit0, reflection_apply, orthogonal_projection_map_apply f K x]
+
+/-- Reflection in the `submodule.map` of a subspace. -/
+lemma reflection_map {E E' : Type*} [inner_product_space 𝕜 E] [inner_product_space 𝕜 E']
+  (f : E ≃ₗᵢ[𝕜] E') (K : submodule 𝕜 E) [finite_dimensional 𝕜 K] :
+  reflection (K.map (f.to_linear_equiv : E →ₗ[𝕜] E')) = f.symm.trans ((reflection K).trans f) :=
+linear_isometry_equiv.ext $ reflection_map_apply f K
+
+local attribute [instance] finite_dimensional_bot
+
+/-- The orthogonal projection onto the trivial submodule is the zero map. -/
+@[simp] lemma reflection_bot : reflection (⊥ : submodule 𝕜 E) = linear_isometry_equiv.neg 𝕜 :=
+by ext; simp [reflection_apply]
 
 end reflection
 
@@ -2547,6 +2607,12 @@ lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   [complete_space E] {v : E} (hv : v ∈ K) :
   orthogonal_projection Kᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
+
+/-- The reflection in `K` of an element of `Kᗮ` is its negation. -/
+lemma reflection_mem_subspace_orthogonal_complement_eq_neg [complete_space K] {v : E}
+  (hu : v ∈ Kᗮ) :
+  reflection K v = - v :=
+by simp [reflection_apply, orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hu]
 
 /-- The orthogonal projection onto `(𝕜 ∙ v)ᗮ` of `v` is zero. -/
 lemma orthogonal_projection_orthogonal_complement_singleton_eq_zero [complete_space E] (v : E) :

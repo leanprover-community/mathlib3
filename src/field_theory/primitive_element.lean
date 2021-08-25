@@ -177,7 +177,7 @@ begin
       cases hK with α hK,
       rw [←hK, adjoin_simple_adjoin_simple],
       haveI : infinite F := is_empty_fintype.mp F_inf,
-      cases primitive_element_inf_aux α β F_sep with γ hγ,
+      cases primitive_element_inf_aux F α β with γ hγ,
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },
   { exactI exists_primitive_element_of_fintype_bot F E }

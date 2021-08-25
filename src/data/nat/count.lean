@@ -157,15 +157,8 @@ end
 lemma count_monotone : monotone (count p) :=
 λ x y h, length_le_of_sublist $ filter_sublist_filter p $ range_sublist.mpr h
 
--- I feel like this has a name within mathlib; but not sure lol. I guess with `count_monotone` this
--- is some sort of `order`-hom (or maybe some of Damiano's order stuff?)
-
 lemma count_lt_of_lt (x y : ℕ) (hc : count p x < count p y) : x < y :=
-begin
-  by_contra,
-  push_neg at h,
-  exact lt_le_antisymm hc (count_monotone p h),
-end
+(count_monotone p).reflect_lt hc
 
 end count
 

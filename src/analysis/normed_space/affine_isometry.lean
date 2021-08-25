@@ -361,6 +361,10 @@ def trans (e' : P₂ ≃ᵃⁱ[𝕜] P₃) : P ≃ᵃⁱ[𝕜] P₃ :=
 include V V₂
 @[simp] lemma coe_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
 
+@[simp] lemma to_affine_equiv_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) :
+  (e₁.trans e₂).to_affine_equiv = e₁.to_affine_equiv.trans e₂.to_affine_equiv :=
+rfl
+
 @[simp] lemma linear_isometry_equiv_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) :
   (e₁.trans e₂).linear_isometry_equiv = e₁.linear_isometry_equiv.trans e₂.linear_isometry_equiv :=
 rfl
@@ -500,7 +504,7 @@ by { ext, refl }
 
 lemma const_vadd_trans_const_vadd (v₁ v₂ : V) :
   (const_vadd 𝕜 P v₁).trans (const_vadd 𝕜 P v₂) = const_vadd 𝕜 P (v₂ + v₁) :=
-by { ext, simp [add_vadd] }
+to_affine_equiv_injective $ affine_equiv.const_vadd_trans_const_vadd 𝕜 P v₁ v₂
 
 include 𝕜 V
 /-- The map `g` from `V` to `V₂` corresponding to a map `f` from `P` to `P₂`, at a base point `p`,
@@ -532,27 +536,15 @@ rfl
 
 lemma const_vadd_trans_base_at (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
   (const_vadd 𝕜 P v).trans (f.base_at 𝕜 x) = (f.base_at 𝕜 x).trans (const_vadd 𝕜 P (f v)) :=
-begin
-  ext y,
-  simp only [linear_isometry_equiv.base_at_apply, coe_const_vadd, comp_app, coe_trans, ← add_vadd,
-    ← f.map_add, vadd_vsub_assoc],
-end
+to_affine_equiv_injective $ affine_equiv.const_vadd_trans_base_at 𝕜 f.to_linear_equiv x v
 
 lemma base_at_trans_const_vadd (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
   (f.base_at 𝕜 x).trans (const_vadd 𝕜 P v) = (const_vadd 𝕜 P (f.symm v)).trans (f.base_at 𝕜 x) :=
-by simp [const_vadd_trans_base_at]
+to_affine_equiv_injective $ affine_equiv.base_at_trans_const_vadd 𝕜 f.to_linear_equiv x v
 
 lemma base_at_vadd (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
   f.base_at 𝕜 (v +ᵥ x) = (const_vadd 𝕜 P (f.symm v - v)).trans (f.base_at 𝕜 x) :=
-calc f.base_at 𝕜 (v +ᵥ x)
-    = ((const_vadd 𝕜 P v).symm.trans (const_vadd 𝕜 P v)).trans (f.base_at 𝕜 (v +ᵥ x)) :
-  by simp [-const_vadd_symm]
-... = (const_vadd 𝕜 P (-v)).trans ((const_vadd 𝕜 P v).trans (f.base_at 𝕜 (v +ᵥ x))) :
-  by simp [trans_assoc]
-... = (const_vadd 𝕜 P (-v)).trans ((f.base_at 𝕜 x).trans (const_vadd 𝕜 P v)) :
-  by { congr' 1, ext y, simp [← add_vadd, add_comm] }
-... = (const_vadd 𝕜 P (f.symm v - v)).trans (f.base_at 𝕜 x) :
-  by simp [base_at_trans_const_vadd, trans_assoc, const_vadd_trans_const_vadd, sub_eq_add_neg]
+to_affine_equiv_injective $ affine_equiv.base_at_vadd 𝕜 f.to_linear_equiv x v
 
 @[simp] lemma _root_.linear_isometry_equiv.base_at_symm (f : V ≃ₗᵢ[𝕜] V) (x : P) :
   (f.base_at 𝕜 x).symm = f.symm.base_at 𝕜 x :=

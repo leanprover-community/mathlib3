@@ -1624,6 +1624,46 @@ lemma coe_fn_comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) :
   ∀ᵐ a ∂μ, (L.comp_Lp f) a = L (f a) :=
 lipschitz_with.coe_fn_comp_Lp _ _ _
 
+lemma coe_fn_comp_Lp' (L : E →L[𝕜] F) (f : Lp E p μ) :
+  L.comp_Lp f =ᵐ[μ] λ a, L (f a) :=
+L.coe_fn_comp_Lp f
+
+lemma add_comp_Lp (L L' : E →L[𝕜] F) (f : Lp E p μ) :
+  (L + L').comp_Lp f = L.comp_Lp f + L'.comp_Lp f :=
+begin
+  ext1,
+  refine (coe_fn_comp_Lp' (L + L') f).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
+  refine eventually_eq.trans _
+    (eventually_eq.add (L.coe_fn_comp_Lp' f).symm (L'.coe_fn_comp_Lp' f).symm),
+  refine eventually_of_forall (λ x, _),
+  refl,
+end
+
+lemma smul_comp_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  (c : 𝕜) (L : E →L[𝕜] F) (f : Lp E p μ) :
+  (c • L).comp_Lp f = c • L.comp_Lp f :=
+begin
+  ext1,
+  refine (coe_fn_comp_Lp' (c • L) f).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine (L.coe_fn_comp_Lp' f).mono (λ x hx, _),
+  rw [pi.smul_apply, hx],
+  refl,
+end
+
+lemma smul_real_comp_Lp {𝕜} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_space ℝ F]
+  [is_scalar_tower ℝ 𝕜 F] (c : ℝ) (L : E →L[𝕜] F) (f : Lp E p μ) :
+  (c • L).comp_Lp f = c • L.comp_Lp f :=
+begin
+  ext1,
+  refine (coe_fn_comp_Lp' (c • L) f).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  refine (L.coe_fn_comp_Lp' f).mono (λ x hx, _),
+  rw [pi.smul_apply, hx],
+  refl,
+end
+
 lemma norm_comp_Lp_le (L : E →L[𝕜] F) (f : Lp E p μ)  : ∥L.comp_Lp f∥ ≤ ∥L∥ * ∥f∥ :=
 lipschitz_with.norm_comp_Lp_le _ _ _
 

@@ -293,7 +293,7 @@ def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 @[simp] lemma const_vadd_apply (v : V₁) (p : P₁) : const_vadd k P₁ v p = v +ᵥ p := rfl
 
 @[simp] lemma const_vadd_symm (v : V₁) : (const_vadd k P₁ v).symm = const_vadd k P₁ (-v) :=
-by { ext, refl }
+to_equiv_injective $ equiv.const_vadd_symm P₁ v
 
 lemma const_vadd_trans_const_vadd (v₁ v₂ : V₁) :
   (const_vadd k P₁ v₁).trans (const_vadd k P₁ v₂) = const_vadd k P₁ (v₂ + v₁) :=
@@ -317,15 +317,11 @@ rfl
 
 lemma const_vadd_trans_base_at (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
   (const_vadd k P₁ v).trans (f.base_at k x) = (f.base_at k x).trans (const_vadd k P₁ (f v)) :=
-begin
-  ext y,
-  simp only [linear_equiv.base_at_apply, const_vadd_apply, comp_app, coe_trans, ← add_vadd,
-    ← f.map_add, vadd_vsub_assoc],
-end
+to_equiv_injective $ equiv.const_vadd_trans_base_at f.to_add_equiv x v
 
 lemma base_at_trans_const_vadd (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
   (f.base_at k x).trans (const_vadd k P₁ v) = (const_vadd k P₁ (f.symm v)).trans (f.base_at k x) :=
-by simp [const_vadd_trans_base_at]
+to_equiv_injective $ equiv.base_at_trans_const_vadd f.to_add_equiv x v
 
 lemma base_at_vadd (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
   f.base_at k (v +ᵥ x) = (const_vadd k P₁ (f.symm v - v)).trans (f.base_at k x) :=
@@ -346,7 +342,7 @@ rfl
 -- this seems like the natural simp-direction, but it's opposite to that for `base_at_symm`
 @[simp] lemma _root_.linear_equiv.base_at_trans (f₁ f₂ : V₁ ≃ₗ[k] V₁) (x : P₁) :
   (f₁.trans f₂).base_at k x = (f₁.base_at k x).trans (f₂.base_at k x) :=
-by { ext, simp }
+to_equiv_injective $ f₁.to_add_equiv.base_at_trans f₂.to_add_equiv x
 
 /-- Point reflection in `x` as a permutation. -/
 def point_reflection (x : P₁) : P₁ ≃ᵃ[k] P₁ := (const_vsub k x).trans (vadd_const k x)

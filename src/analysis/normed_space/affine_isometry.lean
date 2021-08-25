@@ -553,7 +553,7 @@ rfl
 -- this seems li𝕜e the natural simp-direction, but it's opposite to that for `base_at_symm`
 @[simp] lemma _root_.linear_isometry_equiv.base_at_trans (f₁ f₂ : V ≃ₗᵢ[𝕜] V) (x : P) :
   (f₁.trans f₂).base_at 𝕜 x = (f₁.base_at 𝕜 x).trans (f₂.base_at 𝕜 x) :=
-by { ext, simp }
+to_affine_equiv_injective $ f₁.to_linear_equiv.base_at_trans 𝕜 f₂.to_linear_equiv x
 
 variables (𝕜)
 /-- Point reflection in `x` as an affine isometric automorphism. -/
@@ -567,7 +567,7 @@ lemma point_reflection_apply (x y : P) : (point_reflection 𝕜 x) y = x -ᵥ y 
 
 lemma _root_.linear_isometry_equiv.base_at_neg (x : P) :
   (linear_isometry_equiv.neg 𝕜).base_at 𝕜 x = point_reflection 𝕜 x :=
-by { ext, simp [point_reflection_apply] }
+to_affine_equiv_injective $ linear_equiv.base_at_neg 𝕜 x
 
 @[simp] lemma point_reflection_self (x : P) : point_reflection 𝕜 x x = x :=
 affine_equiv.point_reflection_self 𝕜 x

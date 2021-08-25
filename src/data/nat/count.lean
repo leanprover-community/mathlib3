@@ -331,19 +331,22 @@ begin
         replace hn : nth p (count p n) = n := nth_count _ _ hn,
         replace h : count p x ≤ count p n := by rwa [hn, lt_self_iff_false, imp_false, not_lt] at h,
         apply le_trans (nth_count_le p x),
-        rw ←hn,
+        rw ← hn,
         exact nth_monotone_of_infinite p i h },
       { have hlt : count p x < y := (ne.le_iff_lt hne.symm).mp hxy,
         specialize h (count p x) hlt,
-        sorry } },
+        apply le_trans,
+        { apply nth_count_le p},
+        { apply le_of_lt h} } },
     { specialize h (nth p y),
       have hp : p (nth p y) := nth_mem_of_infinite p i _,
       have hs : (∀ (k : ℕ), k < y → nth p k < nth p y) → x ≤ nth p y := by tauto,
       specialize hs (λ k h, nth_strict_mono_of_infinite p i h),
       have hy : count p (nth p y) = y := count_nth_of_infinite p i _,
-      rw ←hy,
+      rw ← hy,
       exact count_monotone _ hs } },
-  sorry, -- this is saying that the `nth` set isn't empty -- easy stuff!
+  use nth p y,
+  apply nth_mem_of_infinite_aux p i, -- this is saying that the `nth` set isn't empty -- easy stuff!
 end
 
 lemma count_le_iff_le_nth {p} (i : set.infinite p) {a b : ℕ} :

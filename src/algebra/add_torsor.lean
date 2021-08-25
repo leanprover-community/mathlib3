@@ -347,6 +347,7 @@ end pi
 
 namespace equiv
 
+section general
 variables {G : Type*} {P : Type*} [add_group G] [add_torsor G P]
 
 include G
@@ -396,6 +397,10 @@ by { ext, refl }
 @[simp] lemma const_vadd_add (v₁ v₂ : G) :
   const_vadd P (v₁ + v₂) = const_vadd P v₁ * const_vadd P v₂ :=
 ext $ add_vadd v₁ v₂
+
+lemma const_vadd_trans_const_vadd (v₁ v₂ : G) :
+  (const_vadd P v₁).trans (const_vadd P v₂) = const_vadd P (v₂ + v₁) :=
+(const_vadd_add P v₂ v₁).symm
 
 /-- `equiv.const_vadd` as a homomorphism from `multiplicative G` to `equiv.perm P` -/
 def const_vadd_hom : multiplicative G →* equiv.perm P :=
@@ -466,5 +471,29 @@ lemma injective_point_reflection_left_of_injective_bit0 {G P : Type*} [add_comm_
   by rwa [point_reflection_apply, point_reflection_apply, vadd_eq_vadd_iff_sub_eq_vsub,
     vsub_sub_vsub_cancel_right, ← neg_vsub_eq_vsub_rev, neg_eq_iff_add_eq_zero, ← bit0, ← bit0_zero,
     h.eq_iff, vsub_eq_zero_iff_eq] at hy
+
+end general
+
+section comm
+variables {G : Type*} {P : Type*} [add_comm_group G] [add_torsor G P]
+include G
+
+lemma base_at_neg (x : P) :
+  (add_equiv.neg G).base_at x = point_reflection x :=
+by { ext y, simp [point_reflection_apply] }
+
+lemma base_at_vadd (f : G ≃+ G) (x : P) (v : G) :
+  f.base_at (v +ᵥ x) = (const_vadd P (f.symm v - v)).trans (f.base_at x) :=
+calc f.base_at (v +ᵥ x)
+    = ((const_vadd P v).symm.trans (const_vadd P v)).trans (f.base_at (v +ᵥ x)) :
+  by simp [-const_vadd_symm]
+... = (const_vadd P (-v)).trans ((const_vadd P v).trans (f.base_at (v +ᵥ x))) :
+  by simp [trans_assoc]
+... = (const_vadd P (-v)).trans ((f.base_at x).trans (const_vadd P v)) :
+  by { congr' 1, ext y, simp [← add_vadd, add_comm] }
+... = (const_vadd P (f.symm v - v)).trans (f.base_at x) :
+  by rw [base_at_trans_const_vadd, ← trans_assoc, const_vadd_trans_const_vadd, sub_eq_add_neg]
+
+end comm
 
 end equiv

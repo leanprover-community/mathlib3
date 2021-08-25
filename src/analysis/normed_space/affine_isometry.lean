@@ -500,7 +500,7 @@ variables {𝕜 P}
 @[simp] lemma const_vadd_zero : const_vadd 𝕜 P (0:V) = refl 𝕜 P := ext $ zero_vadd V
 
 @[simp] lemma const_vadd_symm (v : V) : (const_vadd 𝕜 P v).symm = const_vadd 𝕜 P (-v) :=
-by { ext, refl }
+to_affine_equiv_injective $ affine_equiv.const_vadd_symm 𝕜 P v
 
 lemma const_vadd_trans_const_vadd (v₁ v₂ : V) :
   (const_vadd 𝕜 P v₁).trans (const_vadd 𝕜 P v₂) = const_vadd 𝕜 P (v₂ + v₁) :=
@@ -567,7 +567,7 @@ lemma point_reflection_apply (x y : P) : (point_reflection 𝕜 x) y = x -ᵥ y 
 
 lemma _root_.linear_isometry_equiv.base_at_neg (x : P) :
   (linear_isometry_equiv.neg 𝕜).base_at 𝕜 x = point_reflection 𝕜 x :=
-to_affine_equiv_injective $ linear_equiv.base_at_neg 𝕜 x
+to_affine_equiv_injective $ affine_equiv.base_at_neg 𝕜 x
 
 @[simp] lemma point_reflection_self (x : P) : point_reflection 𝕜 x x = x :=
 affine_equiv.point_reflection_self 𝕜 x

@@ -297,7 +297,7 @@ to_equiv_injective $ equiv.const_vadd_symm P₁ v
 
 lemma const_vadd_trans_const_vadd (v₁ v₂ : V₁) :
   (const_vadd k P₁ v₁).trans (const_vadd k P₁ v₂) = const_vadd k P₁ (v₂ + v₁) :=
-by { ext, simp [add_vadd] }
+to_equiv_injective $ equiv.const_vadd_trans_const_vadd P₁ v₁ v₂
 
 variable {P₁}
 open function
@@ -325,15 +325,7 @@ to_equiv_injective $ equiv.base_at_trans_const_vadd f.to_add_equiv x v
 
 lemma base_at_vadd (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
   f.base_at k (v +ᵥ x) = (const_vadd k P₁ (f.symm v - v)).trans (f.base_at k x) :=
-calc f.base_at k (v +ᵥ x)
-    = ((const_vadd k P₁ v).symm.trans (const_vadd k P₁ v)).trans (f.base_at k (v +ᵥ x)) :
-  by simp [-const_vadd_symm]
-... = (const_vadd k P₁ (-v)).trans ((const_vadd k P₁ v).trans (f.base_at k (v +ᵥ x))) :
-  by simp [trans_assoc]
-... = (const_vadd k P₁ (-v)).trans ((f.base_at k x).trans (const_vadd k P₁ v)) :
-  by { congr' 1, ext y, simp [← add_vadd, add_comm] }
-... = (const_vadd k P₁ (f.symm v - v)).trans (f.base_at k x) :
-  by rw [base_at_trans_const_vadd, ← trans_assoc, const_vadd_trans_const_vadd, sub_eq_add_neg]
+to_equiv_injective $ equiv.base_at_vadd f.to_add_equiv x v
 
 @[simp] lemma _root_.linear_equiv.base_at_symm (f : V₁ ≃ₗ[k] V₁) (x : P₁) :
   (f.base_at k x).symm = f.symm.base_at k x :=
@@ -356,9 +348,8 @@ to_equiv_injective $ equiv.point_reflection_symm x
   (point_reflection k x).to_equiv = equiv.point_reflection x :=
 rfl
 
-lemma _root_.linear_equiv.base_at_neg (x : P₁) :
-  (linear_equiv.neg k).base_at k x = point_reflection k x :=
-by { ext, simp [point_reflection_apply] }
+lemma base_at_neg (x : P₁) : (linear_equiv.neg k).base_at k x = point_reflection k x :=
+to_equiv_injective $ equiv.base_at_neg x
 
 @[simp] lemma point_reflection_self (x : P₁) : point_reflection k x x = x := vsub_vadd _ _
 

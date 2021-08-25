@@ -192,7 +192,7 @@ theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e�
 
 @[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :
   (e₁.trans e₂).symm p = e₁.symm (e₂.symm p) := rfl
-  
+
 @[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
 e.injective.eq_iff
 
@@ -578,6 +578,10 @@ def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
   inv_fun := has_inv.inv,
   map_mul' := mul_inv,
   ..equiv.inv G}
+
+@[simp, to_additive] lemma mul_equiv.coe_inv (G : Type*) [comm_group G] :
+  ⇑(mul_equiv.inv G) = λ a, a⁻¹ :=
+rfl
 
 section type_tags
 

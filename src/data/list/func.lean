@@ -5,6 +5,12 @@ Authors: Seul Baek
 -/
 import data.nat.basic
 
+/-!
+# Lists as Functions
+
+Definitions for using lists as finite representations of functions with domain ℕ.
+-/
+
 open list
 
 universes u v w
@@ -16,12 +22,12 @@ namespace func
 variables {a : α}
 variables {as as1 as2 as3 : list α}
 
-/- Definitions for using lists as finite
-   representations of functions with domain ℕ. -/
+/-- Elementwise negation of a list -/
 def neg [has_neg α] (as : list α) := as.map (λ a, -a)
 
 variables [inhabited α] [inhabited β]
 
+/-- Update element of a list by index -/
 @[simp] def set (a : α) : list α → ℕ → list α
 | (_::as) 0     := a::as
 | []      0     := [a]
@@ -30,23 +36,28 @@ variables [inhabited α] [inhabited β]
 
 localized "notation as ` {` m ` ↦ ` a `}` := list.func.set a as m" in list.func
 
+/-- Get element of a list by index -/
 @[simp] def get : ℕ → list α → α
 | _ []          := default α
 | 0 (a::as)     := a
 | (n+1) (a::as) := get n as
 
+/-- Pointwise equality of lists -/
 def equiv (as1 as2 : list α) : Prop :=
 ∀ (m : nat), get m as1 = get m as2
 
+/-- Pointwise operations on lists -/
 @[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
 | []      []      := []
 | []      (b::bs) := map (f $ default α) (b::bs)
 | (a::as) []      := map (λ x, f x $ default β) (a::as)
 | (a::as) (b::bs) := (f a b)::(pointwise as bs)
 
+/-- Pointwise addition on lists -/
 def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
 @pointwise α α α ⟨0⟩ ⟨0⟩ (+)
 
+/-- Pointwise subtraction on lists -/
 def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
 @pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 

@@ -17,8 +17,8 @@ Define local rings as commutative rings having a unique maximal ideal.
 * `local_ring`: A predicate on commutative rings, stating that every element `a` is either a unit
   or `1 - a` is a unit. This is shown to be equivalent to the condition that there exists a unique
   maximal ideal.
-* `local_ring.maximal_ideal`: The unique maximal ideal for a local rings. Its carrier set is given
-  by the `nonunits` above.
+* `local_ring.maximal_ideal`: The unique maximal ideal for a local rings. Its carrier set is the set
+  of non units.
 * `is_local_ring_hom`: A predicate on semiring homomorphisms, requiring that it maps nonunits
   to nonunits. For local rings, this means that the image of the unique maximal ideal is again
   contained in the unique maximal ideal.

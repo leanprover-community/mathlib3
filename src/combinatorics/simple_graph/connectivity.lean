@@ -459,7 +459,7 @@ begin
         { simp [h], } } } },
 end
 
-lemma append_support'' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+lemma append_support'' {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   ((p.append p').support : multiset V) = {u} + p.support.tail + p'.support.tail :=
 begin
   rw [append_support, ←multiset.coe_add],

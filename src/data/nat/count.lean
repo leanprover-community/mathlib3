@@ -4,6 +4,7 @@ import order.conditionally_complete_lattice
 import set_theory.fincard
 import data.nat.lattice
 import data.finset.intervals
+import order.order_iso_nat
 
 /-!
 
@@ -176,6 +177,16 @@ noncomputable def nth : ℕ → ℕ
 lemma nth_def (n : ℕ) : nth p n = Inf { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 well_founded.fix_eq _ _ _
 
+instance decidable_pred_mem_set_of [decidable_pred p] : decidable_pred (∈ set_of p) :=
+by assumption
+
+/--
+When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`.
+-/
+lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
+  nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
+sorry
+
 lemma nth_zero : nth p 0 = Inf { i : ℕ | p i } :=
 by { rw [nth_def], simp, }
 
@@ -291,35 +302,6 @@ begin
 end
 
 open_locale classical
-
-/-- An infinite set of natural numbers is order-isomorphic to the natural numbers. -/
-noncomputable def set.infinite.order_iso_nat {s : set ℕ} (i : s.infinite) : s ≃o ℕ :=
-(strict_mono.order_iso_of_surjective
-  (λ n, (⟨nth s n, nth_mem_of_infinite s i n⟩ : s))
-  (λ n m h, nth_strict_mono_of_infinite s i h)
-  (λ ⟨n, w⟩, ⟨count s n, by simpa using nth_count s n w⟩)).symm
-
--- Other development, which does not appear necessary for `set.infinite.order_iso_nat`,
--- but may be useful for building the Galois connection:
-
--- eric: I just realised this isn't true; it's more like `nat.card (set_of p) ≤ n` or some similar
--- condition. Probably just worth removing this lemma.
-lemma nth_eq_zero_iff (n : ℕ) : nth p n = 0 ↔ n = 0 ∧ p 0 ∨ set_of p = ∅ :=
-begin
-  rw nth,
-  split,
-  { simp only [nat.not_lt_zero, set.mem_set_of_eq, Inf_eq_zero],
-    rintro (⟨hp0, hn⟩ | rhs),
-    { rw eq_bot_of_minimal hn,
-      exact or.inl ⟨rfl, hp0⟩ },
-    { sorry }, },
-  { rintro (⟨rfl, hp0⟩ | hnone),
-    { simp [hp0] },
-    { rw nat.Inf_eq_zero,
-      right,
-      rw set.set_of_and,
-      convert set.empty_inter _ } }
-end
 
 lemma count_nth_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }) :
   count p (nth p n) = n :=

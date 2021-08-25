@@ -14,7 +14,7 @@ import data.sigma
 
 This file includes several ways of interacting with `list (sigma β)`, treated as a key-value store.
 
-## Important Definitions
+## Main Definitions
 
 - `keys` extracts the list of keys.
 - `nodupkeys` determines if the store has duplicate keys.

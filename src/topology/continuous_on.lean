@@ -255,7 +255,7 @@ begin
     choose! y hys hyt,
     choose z hzs using λ i, (hVs i).exists,
     suffices : I.piecewise y z ∈ (⋂ i ∈ I, V i) ∩ (pi univ s),
-      from λ H, H this.1 this.2,
+    { intro H, simpa [← H] },
     refine ⟨mem_bInter $ λ i hi, htV i hi _, λ i hi', _⟩,
     { simp only [mem_preimage, piecewise_eq_of_mem _ _ _ hi, hyt i hi] },
     { by_cases hi : i ∈ I; simp * } },

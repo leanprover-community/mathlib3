@@ -813,6 +813,11 @@ instance pseudo_metric_space.to_pseudo_emetric_space : pseudo_emetric_space α :
   uniformity_edist    := metric.uniformity_edist,
   ..‹pseudo_metric_space α› }
 
+/-- In a pseudometric space, an open ball of infinite radius is the whole space -/
+lemma metric.eball_top_eq_univ (x : α) :
+  emetric.ball x ∞ = set.univ :=
+set.eq_univ_iff_forall.mpr (λ y, edist_lt_top y x)
+
 /-- Balls defined using the distance or the edistance coincide -/
 @[simp] lemma metric.emetric_ball {x : α} {ε : ℝ} : emetric.ball x (ennreal.of_real ε) = ball x ε :=
 begin
@@ -922,6 +927,10 @@ instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
   dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 
 theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
+
+theorem real.nndist_eq (x y : ℝ) : nndist x y = real.nnabs (x - y) := rfl
+
+theorem real.nndist_eq' (x y : ℝ) : nndist x y = real.nnabs (y - x) := nndist_comm _ _
 
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
@@ -1117,6 +1126,13 @@ def pseudo_metric_space.induced {α β} (f : α → β)
     { rcases H with ⟨ε, ε0, hε⟩,
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
+
+/-- Pull back a pseudometric space structure by a uniform inducing map. This is a version of
+`pseudo_metric_space.induced` useful in case if the domain already has a `uniform_space`
+structure. -/
+def uniform_inducing.comap_pseudo_metric_space {α β} [uniform_space α] [pseudo_metric_space β]
+  (f : α → β) (h : uniform_inducing f) : pseudo_metric_space α :=
+(pseudo_metric_space.induced f ‹_›).replace_uniformity h.comap_uniformity.symm
 
 instance subtype.psudo_metric_space {α : Type*} {p : α → Prop} [t : pseudo_metric_space α] :
   pseudo_metric_space (subtype p) :=
@@ -1997,6 +2013,12 @@ def metric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
   (m : metric_space β) : metric_space γ :=
 { eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
   ..pseudo_metric_space.induced f m.to_pseudo_metric_space }
+
+/-- Pull back a metric space structure by a uniform embedding. This is a version of
+`metric_space.induced` useful in case if the domain already has a `uniform_space` structure. -/
+def uniform_embedding.comap_metric_space {α β} [uniform_space α] [metric_space β] (f : α → β)
+  (h : uniform_embedding f) : metric_space α :=
+(metric_space.induced f h.inj ‹_›).replace_uniformity h.comap_uniformity.symm
 
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=

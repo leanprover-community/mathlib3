@@ -176,20 +176,35 @@ end
 @[simp] lemma reverse_length {u v : V} (p : G.walk u v) : p.reverse.length = p.length :=
 by convert walk.reverse_aux_length p nil
 
+/-- The `tsupport` of a walk (for "tail support") is the list of
+vertices it visits, after the first, in order. This makes the
+definition of `support_chain` more straightforward.
+
+This can be useful when dealing with cycles, to avoid needing to take the `list.tail` of
+`simple_graph.walk.support`. -/
+def tsupport : Π {u v : V}, G.walk u v → list V
+| u v nil := []
+| u v (@cons _ _ _ x _ h p) := x :: p.tsupport
+
 /-- The `support` of a walk is the list of vertices it visits in order. -/
-def support : Π {u v : V}, G.walk u v → list V
-| u v nil := [u]
-| u v (cons h p) := u :: p.support
+def support {u v : V} (p : G.walk u v) : list V := u :: p.tsupport
 
 /-- The `edges` of a walk is the list of edges it visits in order. -/
 def edges : Π {u v : V}, G.walk u v → list (sym2 V)
 | u v nil := []
 | u v (@cons _ _ _ x _ h p) := ⟦(u, x)⟧ :: p.edges
 
+@[simp] lemma nil_tsupport {u : V} : (nil : G.walk u u).tsupport = [] := rfl
+
+@[simp] lemma cons_tsupport {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+  (cons h p).tsupport = p.support := rfl
+
 @[simp] lemma nil_support {u : V} : (nil : G.walk u u).support = [u] := rfl
 
 @[simp] lemma cons_support {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).support = u :: p.support := rfl
+
+lemma tail_support {u v : V} (p : G.walk u v) : p.support.tail = p.tsupport := rfl
 
 lemma support_ne_nil {u v : V} (p : G.walk u v) : p.support ≠ [] :=
 by cases p; simp
@@ -199,6 +214,13 @@ by cases p; simp
 
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp *
+
+lemma support_chain : Π {u v : V} (p : G.walk u v), list.chain G.adj u p.tsupport
+| _ _ nil := list.chain.nil
+| _ _ (cons h p) := list.chain.cons h (support_chain p)
+
+lemma support_chain' {u v : V} (p : G.walk u v) : list.chain' G.adj p.support :=
+support_chain p
 
 /-- The list of edges in a walk are all edges of the graph.
 It is written in this form to avoid unsightly coercions. -/
@@ -213,6 +235,16 @@ begin
     { exact p_ih h }, },
 end
 
+lemma mem_support_of_mem_tsupport {u v w : V} (p : G.walk v w) (h : u ∈ p.tsupport) :
+  u ∈ p.support :=
+begin
+  cases p,
+  { simpa using h },
+  { rw [cons_support, list.mem_cons_iff],
+    right,
+    exact h, },
+end
+
 @[simp] lemma nil_edges {u : V} : (nil : G.walk u u).edges = [] := rfl
 
 @[simp] lemma cons_edges {u v w : V} (h : G.adj u v) (p : G.walk v w) :
@@ -220,6 +252,9 @@ end
 
 @[simp] lemma support_length {u v : V} (p : G.walk u v) : p.support.length = p.length + 1 :=
 by induction p; simp *
+
+@[simp] lemma tsupport_length {u v : V} (p : G.walk u v) : p.tsupport.length = p.length :=
+by cases p; simp *
 
 @[simp] lemma edges_length {u v : V} (p : G.walk u v) : p.edges.length = p.length :=
 by induction p; simp *
@@ -256,14 +291,14 @@ structure is_circuit {u : V} (p : G.walk u u) : Prop :=
 is `u` (which appears exactly twice). -/
 structure is_cycle [decidable_eq V] {u : V} (p : G.walk u u) extends to_circuit :
   is_circuit p : Prop :=
-(support_nodup : p.support.tail.nodup)
+(support_nodup : p.tsupport.nodup)
 
 lemma is_path_def {u v : V} (p : G.walk u v) :
   p.is_path ↔ is_trail p ∧ p.support.nodup :=
 by split; { rintro ⟨h1, h2⟩, exact ⟨h1, h2⟩ }
 
 lemma is_cycle_def [decidable_eq V] {u : V} (p : G.walk u u) :
-  p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ p.support.tail.nodup :=
+  p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ p.tsupport.nodup :=
 iff.intro (λ h, ⟨h.1.1, h.1.2, h.2⟩) (λ h, ⟨⟨h.1, h.2.1⟩, h.2.2⟩)
 
 lemma trail_count_le_one [decidable_eq V] {u v : V}
@@ -392,15 +427,29 @@ namespace walk
 variables {G}
 
 lemma append_support {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
-  (p.append p').support = p.support ++ p'.support.tail :=
+  (p.append p').support = p.support ++ p'.tsupport :=
 begin
   cases p',
   { simp, },
   { induction p,
     { simp, },
-    { simp [p_ih], },
-  },
+    { simp [p_ih], }, },
 end
+
+lemma append_tsupport {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').tsupport = p.tsupport ++ p'.tsupport :=
+begin
+  cases p',
+  { simp, },
+  { induction p,
+    { simp, },
+    { simp [append_support, p_ih], }, },
+end
+
+@[simp]
+lemma mem_append_tsupport_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  t ∈ (p.append p').tsupport ↔ t ∈ p.tsupport ∨ t ∈ p'.tsupport :=
+by rw [append_tsupport, list.mem_append]
 
 @[simp]
 lemma mem_append_support_iff {t u v w : V} (p : G.walk u v) (p' : G.walk v w) :
@@ -410,12 +459,8 @@ begin
   split,
   { rintro (h|h),
     { exact or.inl h, },
-    { cases p',
-      { exact false.elim h, },
-      { simp only [cons_support, list.tail_cons] at h,
-        right,
-        simp only [list.mem_cons_iff, cons_support],
-        exact or.inr h, }, } },
+    { right,
+      exact mem_support_of_mem_tsupport _ h, } },
   { rintro (h|h),
     { exact or.inl h },
     { cases p',
@@ -425,7 +470,14 @@ begin
       { simp only [list.mem_cons_iff, cons_support] at h,
         rcases h with (rfl|h),
         { simp, },
-        { simp [h], }, }, }, },
+        { simp [h], } } } },
+end
+
+lemma append_support'' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  ((p.append p').support : multiset V) = {u} + p.tsupport + p'.tsupport :=
+begin
+  rw append_support,
+  refl,
 end
 
 lemma append_support' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
@@ -433,22 +485,18 @@ lemma append_support' [decidable_eq V] {u v w : V} (p : G.walk u v) (p' : G.walk
 begin
   rw append_support,
   cases p',
-  { simp only [nil_support, list.tail_cons, list.append_nil],
+  { simp only [nil_tsupport, list.append_nil],
     convert_to _ = (p.support + ([v] - {v}) : multiset V),
     { erw multiset.add_sub_cancel,
       simp, },
     { nth_rewrite 0 ←add_zero (p.support : multiset V),
       rw add_left_cancel_iff,
       simp, }, },
-  { simp_rw [cons_support, list.tail_cons, ←multiset.cons_coe, ←multiset.singleton_add],
+  { simp_rw [cons_support, cons_tsupport, ←multiset.cons_coe, ←multiset.singleton_add],
     rw [add_comm, add_assoc, add_comm],
     erw multiset.add_sub_cancel,
     rw [←multiset.coe_add, add_comm], },
 end
-
-lemma mem_append_support {u v w : V} (p : G.walk u v) (p' : G.walk v u) (h : w ∈ p.support) :
-  w ∈ (p.append p').support :=
-by simp [h]
 
 @[simp]
 lemma reverse_support {u v : V} (p : G.walk u v) : p.reverse.support = p.support.reverse :=
@@ -554,6 +602,16 @@ end
     exact take_from p _ this,
   end
 
+/-- Given a vertex in the tsupport of a path, give the path up until that vertex. -/
+def take_until' : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.tsupport), G.walk v u
+| v w nil u h := by simpa using h
+| v w (cons r p) u h := cons r (p.take_until u h)
+
+/-- Given a vertex in the tsupport of a path, give the path from that vertex to the end. -/
+def take_from' : Π {v w : V} (p : G.walk v w) (u : V) (h : u ∈ p.tsupport), G.walk u w
+| v w nil u h := by simpa using h
+| v w (cons r p) u h := p.take_from u h
+
 /-- This and `take_until_support_count` give a specification for
 the way these functions split a walk. -/
 @[simp]
@@ -594,6 +652,14 @@ begin
         simp,
         intro h,
         exact h_1 h.symm, }, }, },
+end
+
+lemma take_spec' {u v w : V} (p : G.walk v w) (h : u ∈ p.tsupport) :
+  (p.take_until' u h).append (p.take_from' u h) = p :=
+begin
+  cases p,
+  { simpa using h, },
+  { simp [take_until', take_from'], },
 end
 
 lemma take_until_edges_count_le {u v w : V} (p : G.walk v w) (h : u ∈ p.support) (x : V) :
@@ -688,17 +754,14 @@ end
 def rotate {u v : V} (c : G.walk v v) (h : u ∈ c.support) : G.walk u u :=
 (c.take_from u h).append (c.take_until u h)
 
-/-
 @[simp]
 lemma rotate_support {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
-  (c.rotate h).support = c.support + {u} - {v} :=
+  (c.rotate h).tsupport ~r c.tsupport :=
 begin
-  simp only [rotate, multiset.singleton_eq_singleton, add_zero, multiset.sub_zero,
-    append_support, multiset.sub_cons, multiset.add_cons],
-  rw [add_comm, split_at_vertex_support, add_comm],
-  refl,
+  simp [rotate, append_tsupport],
+  apply list.is_rotated.trans list.is_rotated_append,
+  rw [←append_tsupport, take_spec],
 end
--/
 
 lemma rotate_edges {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
   (c.rotate h).edges ~r c.edges :=
@@ -733,9 +796,7 @@ lemma rotate_cycle {u v : V} (c : G.walk v v) (hc : c.is_cycle) (h : u ∈ c.sup
 begin
   split,
   { exact rotate_circuit _ hc.to_circuit _, },
-  { rw rotate,
-    rw [append_support, list.append_tail (support_ne_nil _), list.nodup_append_comm],
-    rw [←list.append_tail (support_ne_nil _), ←append_support, take_spec],
+  { rw list.is_rotated.nodup_iff (rotate_support _ _),
     exact hc.support_nodup, },
 end
 
@@ -1073,8 +1134,8 @@ begin
               exact he })
         _ (walk.rotate_trail _ hc.to_trail hv),
       swap,
-      { apply walk.mem_append_support,
-        exact hw', },
+      { rw walk.mem_append_support_iff,
+        exact or.inl hw', },
       { simp, },
       { intro p,
         specialize hb p.reverse,

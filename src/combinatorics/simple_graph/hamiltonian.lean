@@ -43,7 +43,7 @@ This is slightly different from `simple_graph.walk.is_hamiltonian` because it do
 not double count the loop's basepoint. -/
 -- Needs `p.is_trail` to prevent case of length-2 walk.
 def is_hamiltonian_cycle [decidable_eq V] {u : V} (p : G.walk u u) : Prop :=
-p.is_trail ∧ ∀ v, p.support.tail.count v = 1
+p.is_trail ∧ ∀ v, p.tsupport.count v = 1
 
 lemma is_hamiltonian_cycle.is_cycle [decidable_eq V] {u : V} {p : G.walk u u}
   (h : p.is_hamiltonian_cycle) : p.is_cycle :=

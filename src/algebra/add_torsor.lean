@@ -421,7 +421,7 @@ def _root_.add_equiv.base_at (f : G ≃+ G) (x : P) : perm P :=
   f.base_at x y = f (y -ᵥ x) +ᵥ x :=
 rfl
 
-lemma const_vadd_trans_base_at (f : G ≃+ G) (x : P) (v : G) :
+lemma _root_.add_equiv.const_vadd_trans_base_at (f : G ≃+ G) (x : P) (v : G) :
   (const_vadd P v).trans (f.base_at x) = (f.base_at x).trans (const_vadd P (f v)) :=
 begin
   ext y,
@@ -478,7 +478,7 @@ lemma base_at_neg (x : P) :
   (add_equiv.neg G).base_at x = point_reflection x :=
 by { ext y, simp [point_reflection_apply] }
 
-lemma base_at_vadd (f : G ≃+ G) (x : P) (v : G) :
+lemma _root_.add_equiv.base_at_vadd (f : G ≃+ G) (x : P) (v : G) :
   f.base_at (v +ᵥ x) = (f.base_at x).trans (const_vadd P (v - f v)) :=
 begin
   ext y,

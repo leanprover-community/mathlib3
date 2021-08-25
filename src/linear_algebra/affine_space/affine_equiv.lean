@@ -315,13 +315,13 @@ by simp [linear_equiv.base_at, trans]
   f.base_at k x y = f (y -ᵥ x) +ᵥ x :=
 rfl
 
-lemma const_vadd_trans_base_at (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
+lemma _root_.linear_equiv.const_vadd_trans_base_at (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
   (const_vadd k P₁ v).trans (f.base_at k x) = (f.base_at k x).trans (const_vadd k P₁ (f v)) :=
-to_equiv_injective $ equiv.const_vadd_trans_base_at f.to_add_equiv x v
+to_equiv_injective $ f.to_add_equiv.const_vadd_trans_base_at x v
 
-lemma base_at_vadd (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
+lemma _root_.linear_equiv.base_at_vadd (f : V₁ ≃ₗ[k] V₁) (x : P₁) (v : V₁) :
   f.base_at k (v +ᵥ x) = (f.base_at k x).trans (const_vadd k P₁ (v - f v)) :=
-to_equiv_injective $ equiv.base_at_vadd f.to_add_equiv x v
+to_equiv_injective $ f.to_add_equiv.base_at_vadd x v
 
 @[simp] lemma _root_.linear_equiv.base_at_symm (f : V₁ ≃ₗ[k] V₁) (x : P₁) :
   (f.base_at k x).symm = f.symm.base_at k x :=

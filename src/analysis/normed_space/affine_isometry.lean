@@ -495,6 +495,13 @@ variables {𝕜 P}
 
 @[simp] lemma const_vadd_zero : const_vadd 𝕜 P (0:V) = refl 𝕜 P := ext $ zero_vadd V
 
+@[simp] lemma const_vadd_symm (v : V) : (const_vadd 𝕜 P v).symm = const_vadd 𝕜 P (-v) :=
+by { ext, refl }
+
+lemma const_vadd_trans_const_vadd (v₁ v₂ : V) :
+  (const_vadd 𝕜 P v₁).trans (const_vadd 𝕜 P v₂) = const_vadd 𝕜 P (v₂ + v₁) :=
+by { ext, simp [add_vadd] }
+
 include 𝕜 V
 /-- The map `g` from `V` to `V₂` corresponding to a map `f` from `P` to `P₂`, at a base point `p`,
 is an isometry if `f` is one. -/
@@ -523,13 +530,29 @@ omit P
   f.base_at 𝕜 x y = f (y -ᵥ x) +ᵥ x :=
 rfl
 
-lemma base_at_trans_const_vadd (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
-  (f.base_at 𝕜 x).trans (const_vadd 𝕜 P (f v)) = (const_vadd 𝕜 P v).trans (f.base_at 𝕜 x) :=
+lemma const_vadd_trans_base_at (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
+  (const_vadd 𝕜 P v).trans (f.base_at 𝕜 x) = (f.base_at 𝕜 x).trans (const_vadd 𝕜 P (f v)) :=
 begin
   ext y,
   simp only [linear_isometry_equiv.base_at_apply, coe_const_vadd, comp_app, coe_trans, ← add_vadd,
     ← f.map_add, vadd_vsub_assoc],
 end
+
+lemma base_at_trans_const_vadd (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
+  (f.base_at 𝕜 x).trans (const_vadd 𝕜 P v) = (const_vadd 𝕜 P (f.symm v)).trans (f.base_at 𝕜 x) :=
+by simp [const_vadd_trans_base_at]
+
+lemma base_at_vadd (f : V ≃ₗᵢ[𝕜] V) (x : P) (v : V) :
+  f.base_at 𝕜 (v +ᵥ x) = (const_vadd 𝕜 P (f.symm v - v)).trans (f.base_at 𝕜 x) :=
+calc f.base_at 𝕜 (v +ᵥ x)
+    = ((const_vadd 𝕜 P v).symm.trans (const_vadd 𝕜 P v)).trans (f.base_at 𝕜 (v +ᵥ x)) :
+  by simp [-const_vadd_symm]
+... = (const_vadd 𝕜 P (-v)).trans ((const_vadd 𝕜 P v).trans (f.base_at 𝕜 (v +ᵥ x))) :
+  by simp [trans_assoc]
+... = (const_vadd 𝕜 P (-v)).trans ((f.base_at 𝕜 x).trans (const_vadd 𝕜 P v)) :
+  by { congr' 1, ext y, simp [← add_vadd, add_comm] }
+... = (const_vadd 𝕜 P (f.symm v - v)).trans (f.base_at 𝕜 x) :
+  by simp [base_at_trans_const_vadd, trans_assoc, const_vadd_trans_const_vadd, sub_eq_add_neg]
 
 @[simp] lemma _root_.linear_isometry_equiv.base_at_symm (f : V ≃ₗᵢ[𝕜] V) (x : P) :
   (f.base_at 𝕜 x).symm = f.symm.base_at 𝕜 x :=

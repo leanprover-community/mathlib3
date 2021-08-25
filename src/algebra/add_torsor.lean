@@ -390,6 +390,9 @@ variable (G)
 
 variable {G}
 
+@[simp] lemma const_vadd_symm (v : G) : (const_vadd P v).symm = const_vadd P (-v) :=
+by { ext, refl }
+
 @[simp] lemma const_vadd_add (v₁ v₂ : G) :
   const_vadd P (v₁ + v₂) = const_vadd P v₁ * const_vadd P v₂ :=
 ext $ add_vadd v₁ v₂
@@ -413,13 +416,17 @@ def _root_.add_equiv.base_at (f : G ≃+ G) (x : P) : perm P :=
   f.base_at x y = f (y -ᵥ x) +ᵥ x :=
 rfl
 
-lemma base_at_trans_const_vadd (f : G ≃+ G) (x : P) (v : G) :
-  (f.base_at x).trans (const_vadd P (f v)) = (const_vadd P v).trans (f.base_at x) :=
+lemma const_vadd_trans_base_at (f : G ≃+ G) (x : P) (v : G) :
+  (const_vadd P v).trans (f.base_at x) = (f.base_at x).trans (const_vadd P (f v)) :=
 begin
   ext y,
   simp only [add_equiv.base_at_apply, coe_const_vadd, comp_app, coe_trans, ← add_vadd,
     ← f.map_add, vadd_vsub_assoc],
 end
+
+lemma base_at_trans_const_vadd (f : G ≃+ G) (x : P) (v : G) :
+  (f.base_at x).trans (const_vadd P v) = (const_vadd P (f.symm v)).trans (f.base_at x) :=
+by simp [const_vadd_trans_base_at]
 
 @[simp] lemma _root_.add_equiv.base_at_symm (f : G ≃+ G) (x : P) :
   (f.base_at x).symm = f.symm.base_at x :=

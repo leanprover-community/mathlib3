@@ -612,6 +612,27 @@ begin
              tsum_add ennreal.summable ennreal.summable],
 end
 
+lemma foo (a b : ℕ → set α) (ha₁ : (⋃ n, a n) = set.univ) (ha₂ : pairwise (disjoint on a)) :
+  is_compl (⋃ n, (a n ∩ b n)) ⋃ n, a n ∩ (b n)ᶜ :=
+begin
+  split,
+  { rintro x ⟨hx₁, hx₂⟩,
+    rw set.mem_Union at hx₁ hx₂,
+    obtain ⟨i, hi₁, hi₂⟩ := hx₁,
+    obtain ⟨j, hj₁, hj₂⟩ := hx₂,
+    have : i = j,
+    { by_contra hij,
+      exact ha₂ i j hij ⟨hi₁, hj₁⟩ },
+    exact hj₂ (this ▸ hi₂) },
+  { intros x hx,
+    simp only [set.mem_Union, set.sup_eq_union, set.mem_inter_eq,
+               set.mem_union_eq, set.mem_compl_eq, or_iff_not_imp_left],
+    intro h, push_neg at h,
+    rw [set.top_eq_univ, ← ha₁, set.mem_Union] at hx,
+    obtain ⟨i, hi⟩ := hx,
+    exact ⟨i, hi, h i hi⟩ }
+end
+
 theorem have_lebesgue_decomposition_of_sigma_finite
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   have_lebesgue_decomposition μ ν :=
@@ -631,7 +652,30 @@ begin
   refine ⟨⟨ξ, f⟩, _, _, _⟩,
   { exact measurable.ennreal_tsum' (λ n, measurable.indicator
       (measurable_radon_nikodym_deriv (μn n) (νn n)) (S.set_mem n)) },
-  sorry,
+  { choose A hA₁ hA₂ hA₃ using λ n, mutually_singular_singular_part (μn n) (νn n),
+    simp only [hξ],
+    refine ⟨⋃ j, (S.set j) ∩ A j,
+      measurable_set.Union (λ n, (S.set_mem n).inter (hA₁ n)), _, _⟩,
+    { rw [measure_Union],
+      { have : ∀ i, (sum (λ n, (μn n).singular_part (νn n))) (S.set i ∩ A i) =
+          (μn i).singular_part (νn i) (S.set i ∩ A i),
+        { intro i, rw [sum_apply _ ((S.set_mem i).inter (hA₁ i)), tsum_eq_single i],
+          { intros j hij,
+            rw [hμn, ← nonpos_iff_eq_zero],
+            refine le_trans ((singular_part_le _ _) _ ((S.set_mem i).inter (hA₁ i))) (le_of_eq _),
+            rw [restrict_apply ((S.set_mem i).inter (hA₁ i)), set.inter_comm, ← set.inter_assoc],
+            have : disjoint (S.set j) (S.set i) := h₂ j i hij,
+            rw set.disjoint_iff_inter_eq_empty at this,
+            rw [this, set.empty_inter, measure_empty] },
+          { apply_instance } },
+        simp_rw [this, tsum_eq_zero_iff ennreal.summable],
+        intro n, exact measure_mono_null (set.inter_subset_right _ _) (hA₂ n) },
+      { exact h₂.mono (λ i j, disjoint.mono inf_le_left inf_le_left) },
+      { exact λ n, (S.set_mem n).inter (hA₁ n) } },
+    { rw [(foo S.set A S.spanning h₂).compl_eq, measure_Union, tsum_eq_zero_iff ennreal.summable],
+      { intro n, rw [set.inter_comm, ← restrict_apply (hA₁ n).compl, ← hA₃ n, hνn, h₁] },
+      { exact h₂.mono (λ i j, disjoint.mono inf_le_left inf_le_left) },
+      { exact λ n, (S.set_mem n).inter (hA₁ n).compl } } },
   { simp only [hξ, hf, hμ],
     rw [with_density_tsum _, sum_add_sum],
     { refine sum_congr (λ n, _),

@@ -629,17 +629,11 @@ end
 
 @[simp] lemma cycle_of_self_apply [fintype α] (f : perm α) (x : α) :
   cycle_of f (f x) = cycle_of f x :=
-begin
-  rw (same_cycle.symm _).cycle_of_eq,
-  rw same_cycle_apply
-end
+(same_cycle_apply.mpr (same_cycle.refl _ _)).symm.cycle_of_eq
 
 @[simp] lemma cycle_of_self_apply_pow [fintype α] (f : perm α) (n : ℕ) (x : α) :
   cycle_of f ((f ^ n) x) = cycle_of f x :=
-begin
-  rw same_cycle.cycle_of_eq,
-  rw same_cycle_pow_left_iff
-end
+(same_cycle_pow_left_iff.mpr (same_cycle.refl _ _)).cycle_of_eq
 
 @[simp] lemma cycle_of_self_apply_gpow [fintype α] (f : perm α) (n : ℤ) (x : α) :
   cycle_of f ((f ^ n) x) = cycle_of f x :=

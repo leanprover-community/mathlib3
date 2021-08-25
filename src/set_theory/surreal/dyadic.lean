@@ -151,7 +151,7 @@ begin
                surreal.pow_half_zero] },
   { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k,
         smul_algebra_smul_comm] at hk,
-    rwa ← (gsmul_eq_gsmul_iff zero_lt_two) }
+    rwa ← (gsmul_eq_gsmul_iff' two_ne_zero) }
 end
 
 lemma nsmul_int_pow_two_pow_half (m : ℤ) (n k : ℕ) :

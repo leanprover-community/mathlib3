@@ -209,7 +209,7 @@ lemma monomial_zero_one : monomial 0 (1 : R) = 1 := rfl
 
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
-by simp [monomial, monomial_fun]
+(monomial n).map_add _ _
 
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=

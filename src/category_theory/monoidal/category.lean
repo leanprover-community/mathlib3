@@ -581,7 +581,7 @@ variables {C}
 Any property closed under `𝟙_` and `⊗` induces a full monoidal subcategory of `C`, where
 the category on the subtype is given by `full_subcategory`.
 -/
-lemma full_monoidal_subcategory (P : C → Prop) (h_id : P (𝟙_ C))
+def full_monoidal_subcategory (P : C → Prop) (h_id : P (𝟙_ C))
  (h_tensor : ∀ {X Y}, P X → P Y → P (X ⊗ Y)) : monoidal_category {X : C // P X} :=
 { tensor_obj := λ X Y, ⟨X ⊗ Y, h_tensor X.2 Y.2⟩,
   tensor_hom := λ X₁ Y₁ X₂ Y₂ f g, by { change X₁.1 ⊗ X₂.1 ⟶ Y₁.1 ⊗ Y₂.1,

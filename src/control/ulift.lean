@@ -100,7 +100,7 @@ instance : is_lawful_functor ulift :=
 
 instance : is_lawful_applicative ulift :=
 { to_is_lawful_functor := ulift.is_lawful_functor,
-   pure_seq_eq_map := λ α β g ⟨x⟩, rfl,
+  pure_seq_eq_map := λ α β g ⟨x⟩, rfl,
   map_pure := λ α β g x, rfl,
   seq_pure := λ α β ⟨g⟩ x, rfl,
   seq_assoc := λ α β γ ⟨x⟩ ⟨g⟩ ⟨h⟩, rfl }

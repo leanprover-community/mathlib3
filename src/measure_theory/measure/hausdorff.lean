@@ -1269,18 +1269,19 @@ calc dimH (range f) ≤ dimH (univ : set E) :
   dimH_range_le_of_locally_lipschitz_on $ λ x, h.times_cont_diff_at.exists_lipschitz_on_with
 ... = finrank ℝ E : real.dimH_univ_eq_finrank E
 
-/-- A particular of Sard's Theorem. Let `f : E → F` be a map between finite dimensional real vector
-spaces. Suppose that `f` is `C¹` smooth on a closed convex set `s` of Hausdorff dimension strictly
-less than the dimension of `F`. Then the complement of the image `f '' s` is dense in `F`. -/
+/-- A particular case of Sard's Theorem. Let `f : E → F` be a map between finite dimensional real
+vector spaces. Suppose that `f` is `C¹` smooth on a closed convex set `s` of Hausdorff dimension
+strictly less than the dimension of `F`. Then the complement of the image `f '' s` is dense in
+`F`. -/
 lemma times_cont_diff_on.dense_compl_image_of_dimH_lt_finrank [finite_dimensional ℝ F] {f : E → F}
   {s : set E} (h : times_cont_diff_on ℝ 1 f s) (h₁ : is_closed s) (h₂ : convex s)
   (hsF : dimH s < finrank ℝ F) :
   dense (f '' s)ᶜ :=
 dense_compl_of_dimH_lt_finrank $ (h.dimH_image_le h₁ h₂).trans_lt hsF
 
-/-- A particular of Sard's Theorem. If `f` is a `C¹` smooth map from a real vector space to a real
-vector space `F` of strictly larger dimension, then the complement of the range of `f` is dense in
-`F`. -/
+/-- A particular case of Sard's Theorem. If `f` is a `C¹` smooth map from a real vector space to a
+real vector space `F` of strictly larger dimension, then the complement of the range of `f` is dense
+in `F`. -/
 lemma times_cont_diff.dense_compl_range_of_finrank_finrank_lt [finite_dimensional ℝ F] {f : E → F}
   (h : times_cont_diff ℝ 1 f) (hEF : finrank ℝ E < finrank ℝ F) :
   dense (range f)ᶜ :=

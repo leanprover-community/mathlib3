@@ -117,6 +117,9 @@ def restrict {U : Top} (X : SheafedSpace C)
     (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm,
   ..X.to_PresheafedSpace.restrict f h }
 
+/--
+The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` itself.
+-/
 noncomputable
 def restrict_top_iso (X : SheafedSpace C) :
   X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=

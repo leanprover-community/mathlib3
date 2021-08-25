@@ -174,6 +174,9 @@ noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
   end,
   .. X.to_SheafedSpace.restrict f h }
 
+/--
+The restriction of a locally ringed space `X` to the top subspace is isomorphic to `X` itself.
+-/
 noncomputable def restrict_top_iso (X : LocallyRingedSpace) :
   X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
 @iso_of_SheafedSpace_iso (X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤)) X

@@ -55,7 +55,8 @@ induced_category.category Scheme.to_LocallyRingedSpace
 The spectrum of a commutative ring, as a scheme.
 -/
 def Spec_obj (R : CommRing) : Scheme :=
-{ local_affine := λ x, ⟨⟨⊤, trivial⟩, R, ⟨(Spec.to_LocallyRingedSpace.obj (op R)).restrict_top_iso⟩⟩,
+{ local_affine := λ x,
+  ⟨⟨⊤, trivial⟩, R, ⟨(Spec.to_LocallyRingedSpace.obj (op R)).restrict_top_iso⟩⟩,
   .. Spec.LocallyRingedSpace_obj R }
 
 @[simp] lemma Spec_obj_to_LocallyRingedSpace (R : CommRing) :

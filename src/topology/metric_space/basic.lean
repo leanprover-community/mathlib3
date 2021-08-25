@@ -1127,6 +1127,13 @@ def pseudo_metric_space.induced {α β} (f : α → β)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
+/-- Pull back a pseudometric space structure by a uniform inducing map. This is a version of
+`pseudo_metric_space.induced` useful in case if the domain already has a `uniform_space`
+structure. -/
+def uniform_inducing.comap_pseudo_metric_space {α β} [uniform_space α] [pseudo_metric_space β]
+  (f : α → β) (h : uniform_inducing f) : pseudo_metric_space α :=
+(pseudo_metric_space.induced f ‹_›).replace_uniformity h.comap_uniformity.symm
+
 instance subtype.psudo_metric_space {α : Type*} {p : α → Prop} [t : pseudo_metric_space α] :
   pseudo_metric_space (subtype p) :=
 pseudo_metric_space.induced coe t
@@ -2006,6 +2013,12 @@ def metric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
   (m : metric_space β) : metric_space γ :=
 { eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
   ..pseudo_metric_space.induced f m.to_pseudo_metric_space }
+
+/-- Pull back a metric space structure by a uniform embedding. This is a version of
+`metric_space.induced` useful in case if the domain already has a `uniform_space` structure. -/
+def uniform_embedding.comap_metric_space {α β} [uniform_space α] [metric_space β] (f : α → β)
+  (h : uniform_embedding f) : metric_space α :=
+(metric_space.induced f h.inj ‹_›).replace_uniformity h.comap_uniformity.symm
 
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=

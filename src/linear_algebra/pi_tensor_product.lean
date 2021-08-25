@@ -389,7 +389,8 @@ end
 
 @[simp] lemma reindex_tprod (e : ι ≃ ι₂) (f : Π i, M) :
   reindex R M e (tprod R f) = tprod R (λ i, f (e.symm i)) :=
-lift.tprod f
+show lift (dom_dom_congr_linear_equiv M _ R R e.symm (lift.symm linear_map.id)) (tprod R f) = _,
+from lift.tprod f
 
 @[simp] lemma reindex_comp_tprod (e : ι ≃ ι₂) :
   (reindex R M e : ⨂[R] i : ι, M →ₗ[R] ⨂[R] i : ι₂, M).comp_multilinear_map (tprod R) =

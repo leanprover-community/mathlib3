@@ -420,6 +420,14 @@ begin
     rw [←gpow_coe_nat, ←mul_apply, ←gpow_add, int.sub_add_cancel] }
 end
 
+@[simp] lemma same_cycle_gpow_left_iff {f : perm β} {x y : β} {n : ℤ} :
+  same_cycle f ((f ^ n) x) y ↔ same_cycle f x y :=
+begin
+  cases n,
+  { exact same_cycle_pow_left_iff },
+  { rw [gpow_neg_succ_of_nat, ←inv_pow, ←same_cycle_inv, same_cycle_pow_left_iff, same_cycle_inv] }
+end
+
 /-- Unlike `support_congr`, which assumes that `∀ (x ∈ g.support), f x = g x)`, here
 we have the weaker assumption that `∀ (x ∈ f.support), f x = g x`. -/
 lemma is_cycle.support_congr [fintype α] {f g : perm α} (hf : is_cycle f) (hg : is_cycle g)
@@ -629,26 +637,15 @@ end
 
 @[simp] lemma cycle_of_self_apply [fintype α] (f : perm α) (x : α) :
   cycle_of f (f x) = cycle_of f x :=
-begin
-  rw (same_cycle.symm _).cycle_of_eq,
-  rw same_cycle_apply
-end
+(same_cycle_apply.mpr (same_cycle.refl _ _)).symm.cycle_of_eq
 
 @[simp] lemma cycle_of_self_apply_pow [fintype α] (f : perm α) (n : ℕ) (x : α) :
   cycle_of f ((f ^ n) x) = cycle_of f x :=
-begin
-  rw same_cycle.cycle_of_eq,
-  rw same_cycle_pow_left_iff
-end
+(same_cycle_pow_left_iff.mpr (same_cycle.refl _ _)).cycle_of_eq
 
 @[simp] lemma cycle_of_self_apply_gpow [fintype α] (f : perm α) (n : ℤ) (x : α) :
   cycle_of f ((f ^ n) x) = cycle_of f x :=
-begin
-  cases n,
-  { exact cycle_of_self_apply_pow _ _ _ },
-  { rw same_cycle.cycle_of_eq,
-    rw [gpow_neg_succ_of_nat, ←inv_pow, ←same_cycle_inv, same_cycle_pow_left_iff] }
-end
+(same_cycle_gpow_left_iff.mpr (same_cycle.refl _ _)).cycle_of_eq
 
 lemma is_cycle.cycle_of [fintype α] {f : perm α} (hf : is_cycle f) {x : α} :
   cycle_of f x = if f x = x then 1 else f :=

@@ -9,7 +9,7 @@ import measure_theory.decomposition.jordan
 # Lebesgue decomposition
 
 This file proves the Lebesgue decomposition theorem. The Lebesgue decomposition theorem states that,
-given two finite measures `μ` and `ν`, there exists a finite measure `ξ` and a measurable function
+given two σ-finite measures `μ` and `ν`, there exists a finite measure `ξ` and a measurable function
 `f` such that `μ = ξ + fν` and `ξ` is mutually singular with respect to `ν`.
 
 The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
@@ -22,13 +22,13 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
 * `measure_theory.measure.singular_part` : If a pair of measures `have_lebesgue_decomposition`,
   then `singular_part` chooses the measure from `have_lebesgue_decomposition`, otherwise it
   returns the zero measure.
-* ``measure_theory.measure.radon_nikodym_deriv` : If a pair of measures
+* `measure_theory.measure.radon_nikodym_deriv` : If a pair of measures
   `have_lebesgue_decomposition`, then `radon_nikodym_deriv` chooses the measurable function from
   `have_lebesgue_decomposition`, otherwise it returns the zero function.
 
 ## Main results
 
-* `measure_theory.measure.have_lebesgue_decomposition_of_finite_measure` :
+* `measure_theory.measure.have_lebesgue_decomposition_of_sigma_finite` :
   the Lebesgue decomposition theorem.
 * `measure_theory.measure.eq_singular_part` : Given measures `μ` and `ν`, if `s` is a measure
   mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`, then
@@ -455,9 +455,6 @@ end lebesgue_decomposition
 
 open lebesgue_decomposition
 
-/-- **The Lebesgue decomposition theorem**: Any pair of finite measures `μ` and `ν`
-`have_lebesgue_decomposition`. That is to say, there exists a measure `ξ` and a measurable function
-`f`, such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f` -/
 theorem have_lebesgue_decomposition_of_finite_measure
   (μ ν : measure α) [finite_measure μ] [finite_measure ν] :
   have_lebesgue_decomposition μ ν :=
@@ -568,12 +565,15 @@ begin
   { rw hμ₁, ext1 A hA,
     rw [measure.coe_add, pi.add_apply, measure.sub_apply hA hle,
         add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
-end .
+end
 
 instance {μ : measure α} {S : μ.finite_spanning_sets_in {s : set α | measurable_set s}} (n : ℕ) :
   finite_measure (μ.restrict $ S.set n) :=
 ⟨by { rw [restrict_apply measurable_set.univ, set.univ_inter], exact S.finite _ }⟩
 
+/-- **The Lebesgue decomposition theorem**: Any pair of σ-finite measures `μ` and `ν`
+`have_lebesgue_decomposition`. That is to say, there exists a measure `ξ` and a measurable function
+`f`, such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f` -/
 theorem have_lebesgue_decomposition_of_sigma_finite
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   have_lebesgue_decomposition μ ν :=

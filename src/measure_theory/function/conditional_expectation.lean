@@ -863,7 +863,7 @@ begin
   rw condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs y,
   rw condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (x + y),
   rw rsmul_add x y,
-  sorry,  -- todo write lemma add_comp_Lp
+  rw continuous_linear_map.add_comp_Lp,
 end
 
 lemma condexp_L2_indicator_smul (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
@@ -876,7 +876,7 @@ begin
   rw condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs x,
   rw condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (c • x),
   rw rsmul_smul 𝕜 c x,
-  sorry,  -- todo write lemma smul_comp_Lp
+  rw continuous_linear_map.smul_comp_Lp c (rsmul x),
 end
 
 lemma condexp_L2_indicator_smul_real (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
@@ -889,6 +889,7 @@ begin
   rw condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs x,
   rw condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (c • x),
   rw rsmul_smul_real c x,
+  rw continuous_linear_map.smul_real_comp_Lp,
   sorry,
 end
 

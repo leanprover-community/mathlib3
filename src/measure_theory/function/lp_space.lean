@@ -1640,20 +1640,8 @@ begin
   refl,
 end
 
-lemma smul_comp_Lp [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  (c : 𝕜) (L : E →L[𝕜] F) (f : Lp E p μ) :
-  (c • L).comp_Lp f = c • L.comp_Lp f :=
-begin
-  ext1,
-  refine (coe_fn_comp_Lp' (c • L) f).trans _,
-  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
-  refine (L.coe_fn_comp_Lp' f).mono (λ x hx, _),
-  rw [pi.smul_apply, hx],
-  refl,
-end
-
-lemma smul_real_comp_Lp {𝕜} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_space ℝ F]
-  [is_scalar_tower ℝ 𝕜 F] (c : ℝ) (L : E →L[𝕜] F) (f : Lp E p μ) :
+lemma smul_comp_Lp {𝕜'} [normed_field 𝕜'] [measurable_space 𝕜'] [opens_measurable_space 𝕜']
+  [normed_space 𝕜' F] [smul_comm_class 𝕜 𝕜' F] (c : 𝕜') (L : E →L[𝕜] F) (f : Lp E p μ) :
   (c • L).comp_Lp f = c • L.comp_Lp f :=
 begin
   ext1,

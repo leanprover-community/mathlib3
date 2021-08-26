@@ -1576,4 +1576,28 @@ theorem is_adjoint_pair_iff_eq_of_nondegenerate
 
 end linear_adjoints
 
+section det
+
+open matrix
+
+variables {A : Type*} [integral_domain A] [module A M₃] (B₃ : bilin_form A M₃)
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
+
+theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
+  (to_bilin' M).nondegenerate :=
+λ x hx, matrix.nondegenerate_of_det_ne_zero h x (λ y,
+  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+
+theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
+  B₃.nondegenerate :=
+begin
+  intros x hx,
+  refine b.equiv_fun.map_eq_zero_iff.mp (nondegenerate_of_det_ne_zero' _ h _ (λ w, _)),
+  convert hx (b.equiv_fun.symm w),
+  rw [bilin_form.to_matrix, linear_equiv.trans_apply, to_bilin'_to_matrix', congr_apply,
+      linear_equiv.symm_apply_apply]
+end
+
+end det
+
 end bilin_form

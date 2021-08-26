@@ -104,7 +104,7 @@ f.isometry.comp_continuous_iff
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = _root_.id := rfl
 
 @[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
 

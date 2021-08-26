@@ -270,6 +270,9 @@ def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_
 theorem subset.antisymm_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ s₁ ⊆ s₂ ∧ s₂ ⊆ s₁ :=
 le_antisymm_iff
 
+theorem not_subset (s t : finset α) : ¬(s ⊆ t) ↔ ∃ x ∈ s, ¬(x ∈ t) :=
+by simp only [←finset.coe_subset, set.not_subset, exists_prop, finset.mem_coe]
+
 @[simp] theorem le_eq_subset : ((≤) : finset α → finset α → Prop) = (⊆) := rfl
 @[simp] theorem lt_eq_subset : ((<) : finset α → finset α → Prop) = (⊂) := rfl
 
@@ -2336,6 +2339,13 @@ card_le_of_subset $ filter_subset _ _
 
 theorem eq_of_subset_of_card_le {s t : finset α} (h : s ⊆ t) (h₂ : card t ≤ card s) : s = t :=
 eq_of_veq $ multiset.eq_of_le_of_card_le (val_le_iff.mpr h) h₂
+
+lemma filter_card_eq {s : finset α} {p : α → Prop} [decidable_pred p]
+  (h : (s.filter p).card = s.card) (x : α) (hx : x ∈ s) : p x :=
+begin
+  rw [←eq_of_subset_of_card_le (s.filter_subset p) h.ge, mem_filter] at hx,
+  exact hx.2,
+end
 
 lemma card_lt_card {s t : finset α} (h : s ⊂ t) : s.card < t.card :=
 card_lt_of_lt (val_lt_iff.2 h)

@@ -442,22 +442,22 @@ $$|a ⊔ c - (b ⊔ c)| + |a ⊓ c-b ⊓ c| = |a - b|.$$
 @[to_additive]
 theorem abs_div_sup_mul_abs_div_inf (a b c : α) :
 |(a ⊔ c)/(b ⊔ c)| * |(a ⊓ c)/(b ⊓ c)| = |a / b| :=
-  calc |(a ⊔ c) / (b ⊔ c)| * |a ⊓ c / (b ⊓ c)| =
-    ((b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c))) * |a ⊓ c / (b ⊓ c)| : by rw sup_div_inf_eq_abs_div
-    ... = (b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c)) * (((b ⊓ c) ⊔ (a ⊓ c)) / ((b ⊓ c) ⊓ (a ⊓ c))) :
-      by rw sup_div_inf_eq_abs_div (b ⊓ c) (a ⊓ c)
-    ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by {
-      rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
-      nth_rewrite 1 sup_comm,
-      rw [sup_right_idem, sup_assoc, inf_assoc ],
-      nth_rewrite 3 inf_comm,
-      rw [inf_right_idem, inf_assoc], }
-    ... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by rw div_mul_comm
-    ... = (b ⊔ a) * c / (b ⊓ a * c) :
-      by rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup]
-    ... = (b ⊔ a) / (b ⊓ a) : by rw [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left,
-       ← div_eq_mul_inv]
-    ... = |a / b|           : by rw sup_div_inf_eq_abs_div
+calc |(a ⊔ c) / (b ⊔ c)| * |a ⊓ c / (b ⊓ c)| =
+  ((b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c))) * |a ⊓ c / (b ⊓ c)| : by rw sup_div_inf_eq_abs_div
+... = (b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c)) * (((b ⊓ c) ⊔ (a ⊓ c)) / ((b ⊓ c) ⊓ (a ⊓ c))) :
+  by rw sup_div_inf_eq_abs_div (b ⊓ c) (a ⊓ c)
+... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by {
+  rw [← sup_inf_right, ← inf_sup_right, sup_assoc ],
+  nth_rewrite 1 sup_comm,
+  rw [sup_right_idem, sup_assoc, inf_assoc ],
+  nth_rewrite 3 inf_comm,
+  rw [inf_right_idem, inf_assoc], }
+... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by rw div_mul_comm
+... = (b ⊔ a) * c / (b ⊓ a * c) :
+  by rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup]
+... = (b ⊔ a) / (b ⊓ a) : by rw [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left,
+    ← div_eq_mul_inv]
+... = |a / b|           : by rw sup_div_inf_eq_abs_div
 
 /--
 Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is

@@ -1042,14 +1042,21 @@ begin
   exact continuous_on_primitive h_int
 end
 
+/-- Note: this assumes that `f` is `interval_integrable`, in contrast to some other lemmas here. -/
+lemma continuous_on_primitive_interval' {f : α → E} {a b₁ b₂ : α} [has_no_atoms μ]
+  (h_int : interval_integrable f μ b₁ b₂) (ha : a ∈ [b₁, b₂]) :
+  continuous_on (λ b, ∫ x in a..b, f x ∂ μ) [b₁, b₂] :=
+begin
+  intros b₀ hb₀,
+  refine continuous_within_at_primitive (measure_singleton _) _,
+  rw [min_eq_right ha.1, max_eq_right ha.2],
+  simpa [interval_integrable_iff] using h_int,
+end
+
 lemma continuous_on_primitive_interval {f : α → E} {a b : α} [has_no_atoms μ]
   (h_int : integrable_on f (interval a b) μ) :
   continuous_on (λ x, ∫ t in a..x, f t ∂ μ) (interval a b) :=
-begin
-  assume x hx,
-  refine continuous_within_at_primitive (measure_singleton _) _,
-  simpa [interval_integrable_iff] using h_int.interval_integrable,
-end
+continuous_on_primitive_interval' h_int.interval_integrable left_mem_interval
 
 lemma continuous_on_primitive_interval_left {f : α → E} {a b : α} [has_no_atoms μ]
   (h_int : integrable_on f (interval a b) μ) :
@@ -1261,6 +1268,15 @@ instance nhds_left (a : β) : FTC_filter a (𝓝[Iic a] a) (𝓝[Iic a] a) :=
 instance nhds_right (a : β) : FTC_filter a (𝓝[Ici a] a) (𝓝[Ioi a] a) :=
 { pure_le := pure_le_nhds_within left_mem_Ici,
   le_nhds := inf_le_left }
+
+instance nhds_Icc {x a b : β} [h : fact (x ∈ Icc a b)] :
+  FTC_filter x (𝓝[Icc a b] x) (𝓝[Icc a b] x) :=
+{ pure_le := pure_le_nhds_within h.out,
+  le_nhds := inf_le_left }
+
+instance nhds_interval {x a b : β} [h : fact (x ∈ [a, b])] :
+  FTC_filter x (𝓝[[a, b]] x) (𝓝[[a, b]] x) :=
+by { haveI : fact (x ∈ set.Icc (min a b) (max a b)) := h, exact FTC_filter.nhds_Icc }
 
 end FTC_filter
 
@@ -2218,23 +2234,38 @@ end
 -/
 
 theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
-  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-  (hf' : continuous_on f' (interval a b))
-  (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
-  (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g (𝓝 x)) :
-  -- TODO: prove that the integral of any integrable function is continuous and use here to remove
-  -- assumption `hgm`
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf' : continuous_on f' [a, b])
+  (hg : continuous_on g (f '' [a, b])) :
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
 begin
-  have hg' := continuous_at.continuous_on hg,
-  have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,
+  have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
+  { rw [real.image_interval hf] at hg,
+    refine (continuous_on_primitive_interval' hg.interval_integrable _).comp hf _,
+    { rw [← real.image_interval hf], exact mem_image_of_mem f left_mem_interval },
+    { rw [← image_subset_iff], exact (real.image_interval hf).subset } },
+  have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
+    (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) (Ioi x) x,
   { intros x hx,
-    have hs := interval_subset_interval_left hx,
-    exact (integral_has_deriv_at_right (hg'.mono $ trans (intermediate_value_interval $
-      has_deriv_at.continuous_on $ λ y hy, hf y $ hs hy) $ image_subset f hs).interval_integrable
-        (hgm (f x) ⟨x, hx, rfl⟩) $ hg (f x) ⟨x, hx, rfl⟩).comp _ (hf x hx) },
-  simp_rw [integral_eq_sub_of_has_deriv_at h $ ((hg'.comp (has_deriv_at.continuous_on hf) $
-    subset_preimage_image f _).mul hf').interval_integrable, integral_same, sub_zero]
+    let I := [Inf (f '' [a, b]), Sup (f '' [a, b])],
+    have hI : f '' [a, b] = I := real.image_interval hf,
+    have h2x : f x ∈ I, { rw [← hI], exact mem_image_of_mem f (Ioo_subset_Icc_self hx) },
+    have h2g : interval_integrable g volume (f a) (f x),
+    { refine (hg.mono $ _).interval_integrable,
+      exact real.interval_subset_image_interval hf left_mem_interval (Ioo_subset_Icc_self hx) },
+    rw [hI] at hg,
+    have h3g : measurable_at_filter g (𝓝[I] f x) volume :=
+    hg.measurable_at_filter_nhds_within measurable_set_Icc (f x),
+    haveI : fact (f x ∈ I) := ⟨h2x⟩,
+    have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) I (f x) :=
+    integral_has_deriv_within_at_right h2g h3g (hg (f x) h2x),
+    refine (this.comp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
+    dsimp only [I], rw [← image_subset_iff, ← real.image_interval hf],
+    refine image_subset f (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le) },
+  have h_int : interval_integrable (λ (x : ℝ), (g ∘ f) x * f' x) volume a b :=
+  ((hg.comp hf $ subset_preimage_image f _).mul hf').interval_integrable,
+  simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der h_int, integral_same, sub_zero],
 end
 
 theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}

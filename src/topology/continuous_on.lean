@@ -158,6 +158,10 @@ end
 theorem nhds_within_le_nhds {a : α} {s : set α} : 𝓝[s] a ≤ 𝓝 a :=
 by { rw ← nhds_within_univ, apply nhds_within_le_of_mem, exact univ_mem }
 
+lemma nhds_within_eq_nhds_within' {a : α} {s t u : set α}
+  (hs : s ∈ 𝓝 a) (h₂ : t ∩ s = u ∩ s) : 𝓝[t] a = 𝓝[u] a :=
+by rw [nhds_within_restrict' t hs, nhds_within_restrict' u hs, h₂]
+
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :
   𝓝[t] a = 𝓝[u] a :=

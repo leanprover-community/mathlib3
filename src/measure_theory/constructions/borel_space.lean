@@ -315,7 +315,7 @@ lemma meas_closure_of_null_bdry {μ : measure α'} {s : set α'}
   interior_subset subset_closure h_nullbdry).symm
 
 section preorder
-variables [preorder α] [order_closed_topology α] {a b : α}
+variables [preorder α] [order_closed_topology α] {a b x : α}
 
 @[simp, measurability]
 lemma measurable_set_Ici : measurable_set (Ici a) := is_closed_Ici.measurable_set
@@ -331,6 +331,14 @@ measurable_set_Ici.nhds_within_is_measurably_generated _
 instance nhds_within_Iic_is_measurably_generated :
   (𝓝[Iic b] a).is_measurably_generated :=
 measurable_set_Iic.nhds_within_is_measurably_generated _
+
+instance nhds_within_Icc_is_measurably_generated :
+  is_measurably_generated (𝓝[Icc a b] x) :=
+by { rw [← Ici_inter_Iic, nhds_within_inter], apply_instance }
+
+instance nhds_within_interval_is_measurably_generated :
+  is_measurably_generated (𝓝[Icc a b] x) :=
+is_measurably_generated.Icc
 
 instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measurably_generated :=
 @filter.infi_is_measurably_generated _ _ _ _ $

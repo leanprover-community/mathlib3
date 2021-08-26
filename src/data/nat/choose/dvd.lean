@@ -32,13 +32,13 @@ begin
   have r : k + (p - k) = p,
     by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
   have e : p ∣ choose (k + (p - k)) k,
-    by exact dvd_choose_add hkp (sub_lt (hk.trans hkp) hk) (by rw r) hp,
+    by exact dvd_choose_add hkp (nat.sub_lt (hk.trans hkp) hk) (by rw r) hp,
   rwa r at e,
 end
 
 end prime
 
-lemma cast_choose {α : Type*} [field α] [char_zero α] {a b : ℕ} (hab : a ≤ b) :
+lemma cast_choose (α : Type*) [field α] [char_zero α] {a b : ℕ} (hab : a ≤ b) :
   (b.choose a : α) = b! / (a! * (b - a)!) :=
 begin
   rw [eq_comm, div_eq_iff],
@@ -47,5 +47,9 @@ begin
   { exact mul_ne_zero (nat.cast_ne_zero.2 $ factorial_ne_zero _)
     (nat.cast_ne_zero.2 $ factorial_ne_zero _) }
 end
+
+lemma cast_add_choose (α : Type*) [field α] [char_zero α] {a b : ℕ} :
+  ((a + b).choose a : α) = (a + b)! / (a! * b!) :=
+by rw [cast_choose α (le_add_right le_rfl), nat.add_sub_cancel_left, mul_comm]
 
 end nat

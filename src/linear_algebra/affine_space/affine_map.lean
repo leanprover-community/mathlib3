@@ -51,7 +51,7 @@ structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Ty
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
     [add_comm_group V2] [module k V2] [affine_space V2 P2] :=
 (to_fun : P1 → P2)
-(linear : linear_map k V1 V2)
+(linear : V1 →ₗ[k] V2)
 (map_vadd' : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear v +ᵥ to_fun p)
 
 notation P1 ` →ᵃ[`:25 k:25 `] `:0 P2:0 := affine_map k P1 P2

@@ -5,8 +5,8 @@ Authors: Andreas Swerdlow, Kexing Ying
 -/
 
 import linear_algebra.dual
+import linear_algebra.matrix.basis
 import linear_algebra.matrix.nonsingular_inverse
-import linear_algebra.matrix.to_lin
 import linear_algebra.tensor_product
 
 /-!
@@ -337,10 +337,10 @@ bilin_form.to_lin.symm
 rfl
 
 @[simp] lemma linear_map.to_bilin_symm :
-  (linear_map.to_bilin.symm : bilin_form R₂ M₂ ≃ₗ _) = bilin_form.to_lin := rfl
+  (linear_map.to_bilin.symm : bilin_form R₂ M₂ ≃ₗ[R₂] _) = bilin_form.to_lin := rfl
 
 @[simp] lemma bilin_form.to_lin_symm :
-  (bilin_form.to_lin.symm : _ ≃ₗ bilin_form R₂ M₂) = linear_map.to_bilin :=
+  (bilin_form.to_lin.symm : _ ≃ₗ[R₂] bilin_form R₂ M₂) = linear_map.to_bilin :=
 linear_map.to_bilin.symm_symm
 
 @[simp, norm_cast]
@@ -388,6 +388,28 @@ lemma comp_comp {M'' : Type*} [add_comm_monoid M''] [module R M'']
 
 @[simp] lemma comp_right_apply (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
   B.comp_right f v w = B v (f w) := rfl
+
+@[simp] lemma comp_id_left (B : bilin_form R M) (r : M →ₗ[R] M) :
+  B.comp linear_map.id r = B.comp_right r :=
+by { ext, refl }
+
+@[simp] lemma comp_id_right (B : bilin_form R M) (l : M →ₗ[R] M) :
+  B.comp l linear_map.id = B.comp_left l :=
+by { ext, refl }
+
+@[simp] lemma comp_left_id (B : bilin_form R M) :
+  B.comp_left linear_map.id = B :=
+by { ext, refl }
+
+@[simp] lemma comp_right_id (B : bilin_form R M) :
+  B.comp_right linear_map.id = B :=
+by { ext, refl }
+
+-- Shortcut for `comp_id_{left,right}` followed by `comp_{right,left}_id`,
+-- has to be declared after the former two to get the right priority
+@[simp] lemma comp_id_id (B : bilin_form R M) :
+  B.comp linear_map.id linear_map.id = B :=
+by { ext, refl }
 
 lemma comp_injective (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
   (hₗ : function.surjective l) (hᵣ : function.surjective r) :
@@ -684,11 +706,11 @@ end
 matrix.to_bilin'_aux_std_basis M i j
 
 @[simp] lemma bilin_form.to_matrix'_symm :
-  (bilin_form.to_matrix'.symm : matrix n n R₃ ≃ₗ _) = matrix.to_bilin' :=
+  (bilin_form.to_matrix'.symm : matrix n n R₃ ≃ₗ[R₃] _) = matrix.to_bilin' :=
 rfl
 
 @[simp] lemma matrix.to_bilin'_symm :
-  (matrix.to_bilin'.symm : _ ≃ₗ matrix n n R₃) = bilin_form.to_matrix' :=
+  (matrix.to_bilin'.symm : _ ≃ₗ[R₃] matrix n n R₃) = bilin_form.to_matrix' :=
 bilin_form.to_matrix'.symm_symm
 
 @[simp] lemma matrix.to_bilin'_to_matrix' (B : bilin_form R₃ (n → R₃)) :
@@ -864,6 +886,12 @@ lemma bilin_form.to_matrix_comp_right (B : bilin_form R₃ M₃) (f : M₃ →�
   bilin_form.to_matrix b (B.comp_right f) = bilin_form.to_matrix b B ⬝ (to_matrix b b f) :=
 by simp only [bilin_form.comp_right, bilin_form.to_matrix_comp b b, to_matrix_id,
               transpose_one, matrix.one_mul]
+
+@[simp]
+lemma bilin_form.to_matrix_mul_basis_to_matrix (c : basis o R₃ M₃) (B : bilin_form R₃ M₃) :
+  (b.to_matrix c)ᵀ ⬝ bilin_form.to_matrix b B ⬝ b.to_matrix c = bilin_form.to_matrix c B :=
+by rw [← linear_map.to_matrix_id_eq_basis_to_matrix, ← bilin_form.to_matrix_comp,
+       bilin_form.comp_id_id]
 
 lemma bilin_form.mul_to_matrix_mul (B : bilin_form R₃ M₃)
   (M : matrix o n R₃) (N : matrix n o R₃) :
@@ -1436,6 +1464,35 @@ B.to_lin.linear_equiv_of_ker_eq_bot
 lemma to_dual_def {B : bilin_form K V} (b : B.nondegenerate) {m n : V} :
   B.to_dual b m n = B m n := rfl
 
+section dual_basis
+
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
+
+/-- The `B`-dual basis `B.dual_basis hB b` to a finite basis `b` satisfies
+`B (B.dual_basis hB b i) (b j) = B (b i) (B.dual_basis hB b j) = if i = j then 1 else 0`,
+where `B` is a nondegenerate (symmetric) bilinear form and `b` is a finite basis. -/
+noncomputable def dual_basis (B : bilin_form K V) (hB : B.nondegenerate) (b : basis ι K V) :
+  basis ι K V :=
+b.dual_basis.map (B.to_dual hB).symm
+
+@[simp] lemma dual_basis_repr_apply (B : bilin_form K V) (hB : B.nondegenerate) (b : basis ι K V)
+  (x i) : (B.dual_basis hB b).repr x i = B x (b i) :=
+by rw [dual_basis, basis.map_repr, linear_equiv.symm_symm, linear_equiv.trans_apply,
+       basis.dual_basis_repr, to_dual_def]
+
+lemma apply_dual_basis_left (B : bilin_form K V) (hB : B.nondegenerate) (b : basis ι K V)
+  (i j) : B (B.dual_basis hB b i) (b j) = if j = i then 1 else 0 :=
+by rw [dual_basis, basis.map_apply, basis.coe_dual_basis, ← to_dual_def hB,
+       linear_equiv.apply_symm_apply, basis.coord_apply, basis.repr_self,
+       finsupp.single_apply]
+
+lemma apply_dual_basis_right (B : bilin_form K V) (hB : B.nondegenerate)
+  (sym : sym_bilin_form.is_sym B) (b : basis ι K V)
+  (i j) : B (b i) (B.dual_basis hB b j) = if i = j then 1 else 0 :=
+by rw [sym, apply_dual_basis_left]
+
+end dual_basis
+
 end
 
 /-! We note that we cannot use `bilin_form.restrict_nondegenerate_iff_is_compl_orthogonal` for the
@@ -1518,5 +1575,29 @@ theorem is_adjoint_pair_iff_eq_of_nondegenerate
  λ h, h.symm ▸ is_adjoint_pair_left_adjoint_of_nondegenerate _ _ _⟩
 
 end linear_adjoints
+
+section det
+
+open matrix
+
+variables {A : Type*} [integral_domain A] [module A M₃] (B₃ : bilin_form A M₃)
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
+
+theorem nondegenerate_of_det_ne_zero' (M : matrix ι ι A) (h : M.det ≠ 0) :
+  (to_bilin' M).nondegenerate :=
+λ x hx, matrix.nondegenerate_of_det_ne_zero h x (λ y,
+  by simpa only [to_bilin'_apply, dot_product, mul_vec, finset.mul_sum, mul_assoc] using hx y)
+
+theorem nondegenerate_of_det_ne_zero (b : basis ι A M₃) (h : (to_matrix b B₃).det ≠ 0) :
+  B₃.nondegenerate :=
+begin
+  intros x hx,
+  refine b.equiv_fun.map_eq_zero_iff.mp (nondegenerate_of_det_ne_zero' _ h _ (λ w, _)),
+  convert hx (b.equiv_fun.symm w),
+  rw [bilin_form.to_matrix, linear_equiv.trans_apply, to_bilin'_to_matrix', congr_apply,
+      linear_equiv.symm_apply_apply]
+end
+
+end det
 
 end bilin_form

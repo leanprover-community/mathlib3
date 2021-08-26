@@ -231,7 +231,7 @@ det_minor_equiv_self e.symm A
 by rw [←matrix.mul_one (σ.to_pequiv.to_matrix : matrix n n R), pequiv.to_pequiv_mul_matrix,
   det_permute, det_one, mul_one]
 
-@[simp] lemma det_smul {A : matrix n n R} {c : R} : det (c • A) = c ^ fintype.card n * det A :=
+@[simp] lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
 calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
@@ -665,7 +665,7 @@ by { rw [← det_transpose, det_succ_row _ j],
 
 
 /-- Determinant of 0x0 matrix -/
-@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
+@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R} : det A = 1 :=
 det_is_empty
 
 /-- Determinant of 1x1 matrix -/

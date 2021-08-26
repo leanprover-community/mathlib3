@@ -99,7 +99,7 @@ lemma multiplicity_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
 begin
   have hp' := prime_iff.mp hp,
   have h0 : 2 ≤ p := hp.two_le,
-  have h1 : 1 ≤ p * n + 1 := le_add_left _ _,
+  have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
   have h2 : p * n + 1 ≤ p * (n + 1), linarith,
   have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
   have hm : multiplicity p (p * n)! ≠ ⊤,
@@ -134,6 +134,13 @@ end
 lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p n < b) :
    p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
 by rw [← enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
+
+lemma multiplicity_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :
+  multiplicity p n! ≤ (n/(p - 1) : ℕ) :=
+begin
+  rw [hp.multiplicity_factorial (lt_succ_self _), enat.coe_le_coe],
+  exact nat.geom_sum_Ico_le hp.two_le _ _,
+end
 
 lemma multiplicity_choose_aux {p n b k : ℕ} (hp : p.prime) (hkn : k ≤ n) :
   ∑ i in finset.Ico 1 b, n / p ^ i =

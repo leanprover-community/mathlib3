@@ -172,7 +172,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
     sum_congr rfl $ assume n hn, sum_congr rfl $ assume m hm,
       by simp only [nat.cast_add, mul_add, add_mul, C_add, C_mul];
       cases n; simp only [nat.succ_sub_succ, pow_zero];
-      cases m; simp only [nat.cast_zero, C_0, nat.succ_sub_succ, zero_mul, mul_zero,
+      cases m; simp only [nat.cast_zero, C_0, nat.succ_sub_succ, zero_mul, mul_zero, nat.add_succ,
         nat.sub_zero, pow_zero, pow_add, one_mul, pow_succ, mul_comm, mul_left_comm]
   ... = derivative f * g + f * derivative g :
     begin

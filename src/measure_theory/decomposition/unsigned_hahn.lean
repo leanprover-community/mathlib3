@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import measure_theory.measure_space
+import measure_theory.measure.measure_space
 
 /-!
 # Unsigned Hahn decomposition theorem

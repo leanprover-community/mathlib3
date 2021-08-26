@@ -19,6 +19,7 @@ An important definition is `to_alg_hom R S A`, the canonical `R`-algebra homomor
 
 -/
 
+open_locale pointwise
 universes u v w u₁ v₁
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁) (M : Type v₁)
@@ -167,7 +168,7 @@ def subalgebra.restrict_scalars (iSB : subalgebra S A) :
     rw is_scalar_tower.algebra_map_eq R S,
     exact iSB.algebra_map_mem' _,
   end,
-  .. iSB.to_submodule.restrict_scalars R  }
+  .. iSB.to_submodule.restrict_scalars R }
 
 namespace alg_hom
 
@@ -182,6 +183,10 @@ lemma restrict_scalars_apply (f : A →ₐ[S] B) (x : A) : f.restrict_scalars R 
 @[simp] lemma coe_restrict_scalars (f : A →ₐ[S] B) : (f.restrict_scalars R : A →+* B) = f := rfl
 
 @[simp] lemma coe_restrict_scalars' (f : A →ₐ[S] B) : (restrict_scalars R f : A → B) = f := rfl
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars R : (A →ₐ[S] B) → (A →ₐ[R] B)) :=
+λ f g h, alg_hom.ext (alg_hom.congr_fun h : _)
 
 end alg_hom
 
@@ -198,6 +203,10 @@ lemma restrict_scalars_apply (f : A ≃ₐ[S] B) (x : A) : f.restrict_scalars R 
 @[simp] lemma coe_restrict_scalars (f : A ≃ₐ[S] B) : (f.restrict_scalars R : A ≃+* B) = f := rfl
 
 @[simp] lemma coe_restrict_scalars' (f : A ≃ₐ[S] B) : (restrict_scalars R f : A → B) = f := rfl
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars R : (A ≃ₐ[S] B) → (A ≃ₐ[R] B)) :=
+λ f g h, alg_equiv.ext (alg_equiv.congr_fun h : _)
 
 end alg_equiv
 
@@ -311,7 +320,7 @@ variables [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
-smul_left_injective _ hx
+smul_right_injective _ hx
 
 end algebra
 

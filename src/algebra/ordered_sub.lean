@@ -413,13 +413,6 @@ protected lemma lt_sub_iff_left_of_le (hc : add_le_cancellable c) (h : c ≤ b) 
   a < b - c ↔ c + a < b :=
 by { rw [add_comm], exact hc.lt_sub_iff_right_of_le h }
 
-protected lemma lt_of_sub_lt_sub_left_of_le (hb : add_le_cancellable b) (hca : c ≤ a)
-  (h : a - b < a - c) : c < b :=
-begin
-  conv_lhs at h { rw [← sub_add_cancel_of_le hca] },
-  exact lt_of_add_lt_add_left (hb.lt_add_of_sub_lt_right h),
-end
-
 protected lemma sub_le_sub_iff_left (ha : add_le_cancellable a) (hc : add_le_cancellable c)
   (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
 begin
@@ -440,14 +433,6 @@ by { apply hc.lt_sub_of_add_lt_left, rwa [add_sub_cancel_of_le h] }
 protected lemma sub_inj_right (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a) (h₂ : c ≤ a)
   (h₃ : a - b = a - c) : b = c :=
 by { rw ← hab.inj, rw [sub_add_cancel_of_le h₁, h₃, sub_add_cancel_of_le h₂] }
-
-protected lemma sub_lt_sub_iff_left_of_le_of_le (hb : add_le_cancellable b)
-  (hab : add_le_cancellable (a - b)) (h₁ : b ≤ a) (h₂ : c ≤ a) : a - b < a - c ↔ c < b :=
-begin
-  refine ⟨hb.lt_of_sub_lt_sub_left_of_le h₂, _⟩,
-  intro h, refine (sub_le_sub_left' h.le _).lt_of_ne _,
-  rintro h2, exact h.ne' (hab.sub_inj_right h₁ h₂ h2)
-end
 
 @[simp] protected lemma add_sub_sub_cancel (hac : add_le_cancellable (a - c)) (h : c ≤ a) :
   (a + b) - (a - c) = b + c :=
@@ -515,10 +500,6 @@ contravariant.add_le_cancellable.lt_sub_iff_right_of_le h
 lemma lt_sub_iff_left_of_le (h : c ≤ b) : a < b - c ↔ c + a < b :=
 contravariant.add_le_cancellable.lt_sub_iff_left_of_le h
 
-/-- See `lt_of_sub_lt_sub_left` for a stronger statement in a linear order. -/
-lemma lt_of_sub_lt_sub_left_of_le (hca : c ≤ a) (h : a - b < a - c) : c < b :=
-contravariant.add_le_cancellable.lt_of_sub_lt_sub_left_of_le hca h
-
 lemma sub_le_sub_iff_left' (h : c ≤ a) : a - b ≤ a - c ↔ c ≤ b :=
 contravariant.add_le_cancellable.sub_le_sub_iff_left contravariant.add_le_cancellable h
 
@@ -531,11 +512,6 @@ contravariant.add_le_cancellable.sub_lt_sub_right_of_le h h2
 
 lemma sub_inj_right (h₁ : b ≤ a) (h₂ : c ≤ a) (h₃ : a - b = a - c) : b = c :=
 contravariant.add_le_cancellable.sub_inj_right h₁ h₂ h₃
-
-/-- See `sub_lt_sub_iff_left_of_le` for a stronger statement in a linear order. -/
-lemma sub_lt_sub_iff_left_of_le_of_le (h₁ : b ≤ a) (h₂ : c ≤ a) : a - b < a - c ↔ c < b :=
-contravariant.add_le_cancellable.sub_lt_sub_iff_left_of_le_of_le
-  contravariant.add_le_cancellable h₁ h₂
 
 @[simp] lemma add_sub_sub_cancel' (h : c ≤ a) : (a + b) - (a - c) = b + c :=
 contravariant.add_le_cancellable.add_sub_sub_cancel h

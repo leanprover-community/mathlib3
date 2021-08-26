@@ -2242,12 +2242,21 @@ end
 ### Integration by substitution / Change of variables
 -/
 
+/--
+Change of variables, general form. If `f` is continuous on `[a, b]` and has
+continuous derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
+substitute `u = f x` to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+
+We could potentially slightly weaken the conditions, by not requiring that `f'` and `g` are
+continuous on the endpoints of these intervals, but in that case we need to additionally assume that
+the functions are integrable on that interval.
+-/
 theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   (hf : continuous_on f [a, b])
   (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
   (hf' : continuous_on f' [a, b])
   (hg : continuous_on g (f '' [a, b])) :
-  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u :=
 begin
   have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
   { rw [real.image_interval hf] at hg,
@@ -2277,6 +2286,11 @@ begin
   simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der h_int, integral_same, sub_zero],
 end
 
+/--
+Change of variables, most common . If `f` is has continuous derivative `f'` on `[a, b]`,
+and `g` is continuous, then we can substitute `u = f x` to get
+`∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+-/
 theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (h' : continuous_on f' (interval a b)) (hg : continuous g) :

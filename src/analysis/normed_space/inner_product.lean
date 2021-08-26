@@ -2360,7 +2360,7 @@ linear_isometry_equiv.ext $ reflection_map_apply f K
 
 local attribute [instance] finite_dimensional_bot
 
-/-- The orthogonal projection onto the trivial submodule is the zero map. -/
+/-- Reflection through the trivial subspace {0} is just negation. -/
 @[simp] lemma reflection_bot : reflection (⊥ : submodule 𝕜 E) = linear_isometry_equiv.neg 𝕜 :=
 by ext; simp [reflection_apply]
 
@@ -2602,23 +2602,34 @@ lemma orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero
   orthogonal_projection K v = 0 :=
 by { ext, convert eq_orthogonal_projection_of_mem_orthogonal _ _; simp [hv] }
 
+/-- The reflection in `K` of an element of `Kᗮ` is its negation. -/
+lemma reflection_mem_subspace_orthogonal_complement_eq_neg
+  [complete_space K] {v : E} (hv : v ∈ Kᗮ) :
+  reflection K v = - v :=
+by simp [reflection_apply, orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv]
+
 /-- The orthogonal projection onto `Kᗮ` of an element of `K` is zero. -/
 lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   [complete_space E] {v : E} (hv : v ∈ K) :
   orthogonal_projection Kᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
 
-/-- The reflection in `K` of an element of `Kᗮ` is its negation. -/
-lemma reflection_mem_subspace_orthogonal_complement_eq_neg [complete_space K] {v : E}
-  (hu : v ∈ Kᗮ) :
-  reflection K v = - v :=
-by simp [reflection_apply, orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hu]
+/-- The reflection in `Kᗮ` of an element of `K` is its negation. -/
+lemma reflection_mem_subspace_orthogonal_precomplement_eq_neg
+  [complete_space E] {v : E} (hv : v ∈ K) :
+  reflection Kᗮ v = -v :=
+reflection_mem_subspace_orthogonal_complement_eq_neg (K.le_orthogonal_orthogonal hv)
 
 /-- The orthogonal projection onto `(𝕜 ∙ v)ᗮ` of `v` is zero. -/
 lemma orthogonal_projection_orthogonal_complement_singleton_eq_zero [complete_space E] (v : E) :
   orthogonal_projection (𝕜 ∙ v)ᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   (submodule.mem_span_singleton_self v)
+
+/-- The reflection in `(𝕜 ∙ v)ᗮ` of `v` is `-v`. -/
+lemma reflection_orthogonal_complement_singleton_eq_neg [complete_space E] (v : E) :
+  reflection (𝕜 ∙ v)ᗮ v = -v :=
+reflection_mem_subspace_orthogonal_precomplement_eq_neg (submodule.mem_span_singleton_self v)
 
 variables (K)
 

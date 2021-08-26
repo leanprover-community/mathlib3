@@ -258,10 +258,6 @@ section semiring
 
 variable [linear_ordered_add_comm_monoid_with_top R]
 
--- TODO: add to upstream
-lemma min_top_left (a : R) : min (⊤ : R) a = a := min_eq_right le_top
-lemma min_top_right (a : R) : min a ⊤ = a := min_eq_left le_top
-
 instance : semiring (tropical R) :=
 { zero_add := λ _, untrop_injective (min_top_left _),
   add_zero := λ _, untrop_injective (min_top_right _),

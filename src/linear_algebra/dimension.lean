@@ -768,7 +768,7 @@ by { rw [← @set_of_mem_eq _ s, ← subtype.range_coe_subtype], exact dim_span 
 
 variables (R)
 
-lemma dim_of_ring : module.rank R R = 1 :=
+lemma dim_self : module.rank R R = 1 :=
 by rw [←cardinal.lift_inj, ← (basis.singleton punit R).mk_eq_dim, cardinal.mk_punit]
 
 end strong_rank_condition
@@ -863,6 +863,68 @@ begin
       ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm ⟩),
 end
 
+-- TODO the remainder of this section should generalize beyond division rings.
+
+lemma dim_zero_iff_forall_zero : module.rank K V = 0 ↔ ∀ x : V, x = 0 :=
+begin
+  split,
+  { intros h x,
+    have card_mk_range := (basis.of_vector_space K V).mk_range_eq_dim,
+    rw [h, cardinal.mk_emptyc_iff, coe_of_vector_space, subtype.range_coe] at card_mk_range,
+    simpa [card_mk_range] using (of_vector_space K V).mem_span x },
+  { intro h,
+    have : (⊤ : submodule K V) = ⊥,
+    { ext x, simp [h x] },
+    rw [←dim_top, this, dim_bot] }
+end
+
+lemma dim_zero_iff : module.rank K V = 0 ↔ subsingleton V :=
+dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
+
+lemma dim_pos_iff_exists_ne_zero : 0 < module.rank K V ↔ ∃ x : V, x ≠ 0 :=
+begin
+  rw ←not_iff_not,
+  simpa using dim_zero_iff_forall_zero
+end
+
+lemma dim_pos_iff_nontrivial : 0 < module.rank K V ↔ nontrivial V :=
+dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
+
+lemma dim_pos [h : nontrivial V] : 0 < module.rank K V :=
+dim_pos_iff_nontrivial.2 h
+
+
+section fintype
+variable [fintype η]
+variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)]
+
+open linear_map
+
+lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
+begin
+  let b := assume i, basis.of_vector_space K (φ i),
+  let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
+  rw [←cardinal.lift_inj, ← this.mk_eq_dim],
+  simp [λ i, (b i).mk_range_eq_dim.symm, cardinal.sum_mk]
+end
+
+lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
+  module.rank K (η → V) = fintype.card η * module.rank K V :=
+by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
+
+lemma dim_fun_eq_lift_mul :
+  module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
+    cardinal.lift.{v u₁'} (module.rank K V) :=
+by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
+
+lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
+by rw [dim_fun_eq_lift_mul, dim_self, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]
+
+lemma dim_fin_fun (n : ℕ) : module.rank K (fin n → K) = n :=
+by simp [dim_fun']
+
+end fintype
+
 end division_ring
 
 section field
@@ -951,37 +1013,6 @@ by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
 end
 
-section fintype
-variable [fintype η]
-variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)]
-
-open linear_map
-
-lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
-begin
-  let b := assume i, basis.of_vector_space K (φ i),
-  let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
-  rw [←cardinal.lift_inj, ← this.mk_eq_dim],
-  simp [λ i, (b i).mk_range_eq_dim.symm, cardinal.sum_mk]
-end
-
-lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
-  module.rank K (η → V) = fintype.card η * module.rank K V :=
-by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
-
-lemma dim_fun_eq_lift_mul :
-  module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
-    cardinal.lift.{v u₁'} (module.rank K V) :=
-by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
-
-lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
-by rw [dim_fun_eq_lift_mul, dim_of_ring, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]
-
-lemma dim_fin_fun (n : ℕ) : module.rank K (fin n → K) = n :=
-by simp [dim_fun']
-
-end fintype
-
 lemma exists_mem_ne_zero_of_ne_bot {s : submodule K V} (h : s ≠ ⊥) : ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 begin
   classical,
@@ -1042,21 +1073,6 @@ end rank
 
 -- TODO The remainder of this file could be generalized to arbitrary rings.
 
-lemma dim_zero_iff_forall_zero : module.rank K V = 0 ↔ ∀ x : V, x = 0 :=
-begin
-  split,
-  { intros h x,
-    have card_mk_range := (basis.of_vector_space K V).mk_range_eq_dim,
-    rw [h, cardinal.mk_emptyc_iff, coe_of_vector_space, subtype.range_coe] at card_mk_range,
-    simpa [card_mk_range] using (of_vector_space K V).mem_span x },
-  { intro h,
-    have : (⊤ : submodule K V) = ⊥,
-    { ext x, simp [h x] },
-    rw [←dim_top, this, dim_bot] }
-end
-
-lemma dim_zero_iff : module.rank K V = 0 ↔ subsingleton V :=
-dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 
 /-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
 
@@ -1073,19 +1089,6 @@ end
   (hV : module.rank K V = 0) (i : ι) :
   basis.of_dim_eq_zero hV i = 0 :=
 rfl
-
-
-lemma dim_pos_iff_exists_ne_zero : 0 < module.rank K V ↔ ∃ x : V, x ≠ 0 :=
-begin
-  rw ←not_iff_not,
-  simpa using dim_zero_iff_forall_zero
-end
-
-lemma dim_pos_iff_nontrivial : 0 < module.rank K V ↔ nontrivial V :=
-dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
-
-lemma dim_pos [h : nontrivial V] : 0 < module.rank K V :=
-dim_pos_iff_nontrivial.2 h
 
 lemma le_dim_iff_exists_linear_independent {c : cardinal} :
   c ≤ module.rank K V ↔ ∃ s : set V, cardinal.mk s = c ∧ linear_independent K (coe : s → V) :=

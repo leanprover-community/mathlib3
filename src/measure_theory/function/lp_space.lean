@@ -2125,13 +2125,14 @@ end complete_space
 
 open_locale bounded_continuous_function
 open bounded_continuous_function
-variables [borel_space E] [second_countable_topology E] [topological_space α] [borel_space α]
+variables [topological_space α] [opens_measurable_space α] [borel_space E]
 
 variables (E p μ)
 
 /-- An additive subgroup of `Lp E p μ`, consisting of the equivalence classes which contain a
 bounded continuous representative. -/
-def measure_theory.Lp.bounded_continuous_function : add_subgroup (Lp E p μ) :=
+def measure_theory.Lp.bounded_continuous_function [second_countable_topology E] :
+  add_subgroup (Lp E p μ) :=
 add_subgroup.add_subgroup_of
   ((continuous_map.to_ae_eq_fun_add_hom μ).comp (forget_boundedness_add_hom α E)).range
   (Lp E p μ)
@@ -2140,7 +2141,8 @@ variables {E p μ}
 
 /-- By definition, the elements of `Lp.bounded_continuous_function E p μ` are the elements of
 `Lp E p μ` which contain a bounded continuous representative. -/
-lemma measure_theory.Lp.mem_bounded_continuous_function_iff {f : (Lp E p μ)} :
+lemma measure_theory.Lp.mem_bounded_continuous_function_iff
+  [second_countable_topology E] {f : (Lp E p μ)} :
   f ∈ measure_theory.Lp.bounded_continuous_function E p μ
     ↔ ∃ f₀ : (α →ᵇ E), f₀.to_continuous_map.to_ae_eq_fun μ = (f : α →ₘ[μ] E) :=
 add_subgroup.mem_add_subgroup_of
@@ -2148,6 +2150,18 @@ add_subgroup.mem_add_subgroup_of
 namespace bounded_continuous_function
 
 variables [finite_measure μ]
+
+/-- A bounded continuous function on a finite-measure space is in `Lp`. -/
+lemma mem_ℒp (f : α →ᵇ E) : mem_ℒp f p μ :=
+mem_ℒp.of_bound (f.continuous.ae_measurable μ) (∥f∥) (eventually_of_forall f.norm_coe_le_norm)
+
+/-- The `Lp`-norm of a bounded continuous function is at most a constant (depending on the measure
+of the whole space) times its sup-norm. -/
+lemma snorm_le (f : α →ᵇ E) :
+  snorm f p μ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * ∥f∥₊ :=
+by simpa using snorm_le_of_ae_bound (eventually_of_forall f.norm_coe_le_norm)
+
+variables [second_countable_topology E]
 
 /-- A bounded continuous function on a finite-measure space is in `Lp`. -/
 lemma mem_Lp (f : α →ᵇ E) :
@@ -2161,7 +2175,7 @@ end
 
 /-- The `Lp`-norm of a bounded continuous function is at most a constant (depending on the measure
 of the whole space) times its sup-norm. -/
-lemma Lp_norm_le (f : α →ᵇ E) :
+lemma snorm_le (f : α →ᵇ E) :
   ∥(⟨f.to_continuous_map.to_ae_eq_fun μ, mem_Lp f⟩ : Lp E p μ)∥
   ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ * ∥f∥ :=
 begin

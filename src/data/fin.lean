@@ -613,6 +613,17 @@ def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 @[simp] lemma cast_add_mk (m : ℕ) (i : ℕ) (h : i < n) :
   cast_add m ⟨i, h⟩ = ⟨i, lt_add_right i n m h⟩ := rfl
 
+/-- embedding `fin n` into `fin (m + n)` sending `i` to `m + i` -/
+def cast_add_right (m : ℕ) {n : ℕ} : fin n ↪ fin (m + n) :=
+{ to_fun := λ i, ⟨m + i, add_lt_add_left i.2 _⟩,
+  inj' := λ i j h, fin.ext (by simpa using h) }
+
+@[simp] lemma coe_cast_add_right (m : ℕ) {n : ℕ} (i : fin n) :
+  (cast_add_right m i : ℕ) = m + i := rfl
+
+lemma le_cast_add_right (m : ℕ) {n : ℕ} (i : fin n) : m ≤ cast_add_right m i :=
+nat.le_add_right _ _
+
 /-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 

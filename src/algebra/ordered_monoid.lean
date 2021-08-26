@@ -141,8 +141,8 @@ lemma add_top (a : α) : a + ⊤ = ⊤ :=
 trans (add_comm _ _) (top_add _)
 
 -- TODO: Generalize to a not-yet-existing typeclass extending `linear_order` and `order_top`
-lemma min_top_left (a : α) : min (⊤ : α) a = a := min_eq_right le_top
-lemma min_top_right (a : α) : min a ⊤ = a := min_eq_left le_top
+@[simp] lemma min_top_left (a : α) : min (⊤ : α) a = a := min_eq_right le_top
+@[simp] lemma min_top_right (a : α) : min a ⊤ = a := min_eq_left le_top
 
 end linear_ordered_add_comm_monoid_with_top
 

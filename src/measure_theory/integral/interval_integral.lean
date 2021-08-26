@@ -139,17 +139,28 @@ assumptions:
 - if `u n` and `v n` tend to `l`, then for any `s ∈ l'`, `Ioc (u n) (v n)` is eventually included
   in `s`.
 
-This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`,
-`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances that are equal to the first and
-last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`. While the difference
-between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure, it becomes important
-in the versions of FTC about any locally finite measure if this measure has an atom at one of the
-endpoints.
+This typeclass has the following “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`,
+`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`. F
+urthermore, we have the following instances that are equal to the previously mentioned instances:
+`(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`.
+While the difference between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure,
+it becomes important in the versions of FTC about any locally finite measure if this measure has an
+atom at one of the endpoints.
+
+### Combining one-sided and two-sided derivatives
+
+There are some `FTC_filter` instances where the fact that it is one-sided or
+two-sided depends on the point, namely `(x, 𝓝[Icc a b] x, 𝓝[Icc a b] x)`
+(resp. `(x, 𝓝[[a, b]] x, 𝓝[[a, b]] x)`, where `[a, b] = set.interval a b`),
+with `x ∈ Icc a b` (resp. `x ∈ [a, b]`).
+This results in a two-sided derivatives for `x ∈ Ioo a b` and one-sided derivatives for
+`x ∈ {a, b}`. Other instances could be added when needed (in that case, one also needs to add
+instances for `filter.is_measurably_generated` and `filter.tendsto_Ixx_class`).
 
 ## Tags
 
-integral, fundamental theorem of calculus
- -/
+integral, fundamental theorem of calculus, FTC-1, FTC-2, change of variables in integrals
+-/
 
 noncomputable theory
 open topological_space (second_countable_topology)
@@ -1221,9 +1232,7 @@ In the next subsection we apply this theorem to prove various theorems about dif
 of the integral w.r.t. Lebesgue measure. -/
 
 /-- An auxiliary typeclass for the Fundamental theorem of calculus, part 1. It is used to formulate
-theorems that work simultaneously for left and right one-sided derivatives of `∫ x in u..v, f x`.
-There are four instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a], 𝓝[Ioi a])`,
-`(a, 𝓝[Iic a], 𝓝[Iic a])`, and `(a, 𝓝 a, 𝓝 a)`. -/
+theorems that work simultaneously for left and right one-sided derivatives of `∫ x in u..v, f x`. -/
 class FTC_filter {β : Type*} [linear_order β] [measurable_space β] [topological_space β]
   (a : out_param β) (outer : filter β) (inner : out_param $ filter β)
   extends tendsto_Ixx_class Ioc outer inner : Prop :=

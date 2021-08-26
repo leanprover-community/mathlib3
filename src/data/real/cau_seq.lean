@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import algebra.absolute_value
 import algebra.big_operators.order
 
 /-!
@@ -29,7 +30,10 @@ sequence, cauchy, abs val, absolute value
 open_locale big_operators
 
 /-- A function `f` is an absolute value if it is nonnegative, zero only at 0, additive, and
-multiplicative. -/
+multiplicative.
+
+See also the type `absolute_value` which represents a bundled version of absolute values.
+-/
 class is_absolute_value {α} [linear_ordered_field α]
   {β} [ring β] (f : β → α) : Prop :=
 (abv_nonneg [] : ∀ x, 0 ≤ f x)
@@ -86,7 +90,24 @@ lemma abv_pow [nontrivial β] (abv : β → α) [is_absolute_value abv]
   (a : β) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
 (abv_hom abv).to_monoid_hom.map_pow a n
 
+/-- Convert an unbundled `is_absolute_value` to a bundled `absolute_value`. -/
+@[simps]
+def to_absolute_value : absolute_value β α :=
+{ to_fun := abv,
+  add_le' := abv_add abv,
+  eq_zero' := λ _, abv_eq_zero abv,
+  nonneg' := abv_nonneg abv,
+  map_mul' := abv_mul abv }
+
 end is_absolute_value
+
+/-- A bundled absolute value is an absolute value. -/
+instance absolute_value.is_absolute_value {β α} [ring β] [linear_ordered_field α]
+  (abv : absolute_value β α) : is_absolute_value abv :=
+{ abv_nonneg := abv.nonneg,
+  abv_eq_zero := λ _, abv.eq_zero,
+  abv_add := abv.add_le,
+  abv_mul := abv.map_mul }
 
 instance abs_is_absolute_value {α} [linear_ordered_field α] :
   is_absolute_value (abs : α → α) :=

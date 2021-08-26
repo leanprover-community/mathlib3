@@ -1680,7 +1680,16 @@ quot.induction_on s $ λ l, (filter_sublist _).subperm
 subset_of_le $ filter_le _ _
 
 theorem filter_le_filter {s t} (h : s ≤ t) : filter p s ≤ filter p t :=
-le_induction_on h $ λ l₁ l₂ h, (filter_sublist_filter p h).subperm
+le_induction_on h $ λ l₁ l₂ h, (h.filter p).subperm
+
+lemma monotone_filter_left :
+  monotone (filter p) :=
+λ s t, filter_le_filter p
+
+lemma monotone_filter_right (s : multiset α) ⦃p q : α → Prop⦄
+  [decidable_pred p] [decidable_pred q] (h : p ≤ q) :
+  s.filter p ≤ s.filter q :=
+quotient.induction_on s (λ l, (l.monotone_filter_right h).subperm)
 
 variable {p}
 

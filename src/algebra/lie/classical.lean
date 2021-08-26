@@ -250,7 +250,7 @@ begin
   refl,
 end
 
-lemma JD_transform  [fintype l]: (PD l R)ᵀ ⬝ (JD l R) ⬝ (PD l R) = (2 : R) • (S l R) :=
+lemma JD_transform [fintype l] : (PD l R)ᵀ ⬝ (JD l R) ⬝ (PD l R) = (2 : R) • (S l R) :=
 begin
   have h : (PD l R)ᵀ ⬝ (JD l R) = matrix.from_blocks 1 1 1 (-1) := by
   { simp [PD, JD, matrix.from_blocks_transpose, matrix.from_blocks_multiply], },

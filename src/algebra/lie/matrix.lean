@@ -66,7 +66,7 @@ by simp [linear_equiv.conj_apply, matrix.lie_conj, linear_map.to_matrix'_comp,
 by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, linear_map.to_matrix'_comp,
          linear_map.to_matrix'_to_lin']
 
-variables  {m : Type w₁} [decidable_eq m] [fintype m] (e : n ≃ m)
+variables {m : Type w₁} [decidable_eq m] [fintype m] (e : n ≃ m)
 
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
 types, `matrix.reindex`, is an equivalence of Lie algebras. -/

@@ -20,8 +20,8 @@ This file defines basic properties of matrices.
 
 ## TODO
 
-Matrices used to have a requirement on `fintype` for both of its indexing types, meaning that
-multiplication is not defined on infinite matrices yet.
+Under various conditions, multiplication of infinite matrices makes sense.
+These have not yet been implemented.
 -/
 universes u u' v w
 

@@ -3,7 +3,7 @@
 We have a collection of solutions to IMO problems in mathlib, stored under `/archive/imo/`.
 
 These are part of mathlib for three purposes:
-* The IMO Grand Challenge will need training data, and exemplars,
+* The [IMO Grand Challenge](https://imo-grand-challenge.github.io/) will need training data, and exemplars,
   and this is a reasonable place to collect Lean samples of IMO problems.
 * As with the rest of `/archive/`, we want to have high quality examples
   covering elementary mathematics, available as learning materials.

@@ -363,6 +363,10 @@ is_noetherian_submodule.trans
 instance is_noetherian_submodule' [is_noetherian R M] (N : submodule R M) : is_noetherian R N :=
 is_noetherian_submodule.2 $ λ _ _, is_noetherian.noetherian _
 
+lemma is_noetherian_of_le {s t : submodule R M} [ht : is_noetherian R t]
+   (h : s ≤ t) : is_noetherian R s :=
+is_noetherian_submodule.mpr (λ s' hs', is_noetherian_submodule.mp ht _ (le_trans hs' h))
+
 variable (M)
 theorem is_noetherian_of_surjective (f : M →ₗ[R] P) (hf : f.range = ⊤)
   [is_noetherian R M] : is_noetherian R P :=
@@ -610,6 +614,16 @@ theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
+end
+
+/-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
+also noetherian. -/
+theorem is_noetherian_of_tower (R) {S M} [comm_ring R] [ring S]
+  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  (h : is_noetherian R M) : is_noetherian S M :=
+begin
+  rw is_noetherian_iff_well_founded at h ⊢,
+  refine (submodule.restrict_scalars_embedding R S M).dual.well_founded h
 end
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]

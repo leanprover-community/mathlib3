@@ -473,6 +473,15 @@ lemma csupr_mem_Inter_Icc_of_mono_decr_Icc_nat
 csupr_mem_Inter_Icc_of_mono_decr_Icc
   (@monotone_nat_of_le_succ (order_dual $ set α) _ (λ n, Icc (f n) (g n)) h) h'
 
+lemma finset.nonempty.sup'_eq_cSup_image {s : finset β} (hs : s.nonempty) (f : β → α) :
+  s.sup' hs f = Sup (f '' s) :=
+eq_of_forall_ge_iff $ λ a,
+  by simp [cSup_le_iff (s.finite_to_set.image f).bdd_above (hs.to_set.image f)]
+
+lemma finset.nonempty.sup'_id_eq_cSup {s : finset α} (hs : s.nonempty) :
+  s.sup' hs id = Sup s :=
+by rw [hs.sup'_eq_cSup_image, image_id]
+
 end conditionally_complete_lattice
 
 instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
@@ -491,29 +500,29 @@ instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}
 
-lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : finite s) : Sup s ∈ s :=
-begin
-  classical,
-  revert h,
-  apply finite.induction_on hs,
-  { simp },
-  rintros a t hat t_fin ih -,
-  rcases t.eq_empty_or_nonempty with rfl | ht,
-  { simp },
-  { rw cSup_insert t_fin.bdd_above ht,
-    by_cases ha : a ≤ Sup t,
-    { simp [sup_eq_right.mpr ha, ih ht] },
-    { simp only [sup_eq_left, mem_insert_iff, (not_le.mp ha).le, true_or] } }
-end
+lemma finset.nonempty.cSup_eq_max' {s : finset α} (h : s.nonempty) : Sup ↑s = s.max' h :=
+eq_of_forall_ge_iff $ λ a, (cSup_le_iff s.bdd_above h.to_set).trans (s.max'_le_iff h).symm
+
+lemma finset.nonempty.cInf_eq_min' {s : finset α} (h : s.nonempty) : Inf ↑s = s.min' h :=
+@finset.nonempty.cSup_eq_max' (order_dual α) _ s h
 
 lemma finset.nonempty.cSup_mem {s : finset α} (h : s.nonempty) : Sup (s : set α) ∈ s :=
-set.nonempty.cSup_mem h s.finite_to_set
+by { rw h.cSup_eq_max', exact s.max'_mem _ }
+
+lemma finset.nonempty.cInf_mem {s : finset α} (h : s.nonempty) : Inf (s : set α) ∈ s :=
+@finset.nonempty.cSup_mem (order_dual α) _ _ h
+
+lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : finite s) : Sup s ∈ s :=
+by { unfreezingI { lift s to finset α using hs }, exact finset.nonempty.cSup_mem h }
 
 lemma set.nonempty.cInf_mem (h : s.nonempty) (hs : finite s) : Inf s ∈ s :=
 @set.nonempty.cSup_mem (order_dual α) _ _ h hs
 
-lemma finset.nonempty.cInf_mem {s : finset α} (h : s.nonempty) : Inf (s : set α) ∈ s :=
-set.nonempty.cInf_mem h s.finite_to_set
+lemma set.finite.cSup_lt_iff (hs : finite s) (h : s.nonempty) : Sup s < a ↔ ∀ x ∈ s, x < a :=
+⟨λ h x hx, (le_cSup hs.bdd_above hx).trans_lt h, λ H, H _ $ h.cSup_mem hs⟩
+
+lemma set.finite.lt_cInf_iff (hs : finite s) (h : s.nonempty) : a < Inf s ↔ ∀ x ∈ s, a < x :=
+@set.finite.cSup_lt_iff (order_dual α) _ _ _ hs h
 
 /-- When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
 a linear order. -/

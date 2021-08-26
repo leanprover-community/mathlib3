@@ -1349,6 +1349,14 @@ nnreal.eq $ norm_of_nonneg hx
 lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (∥x∥₊ : ℝ≥0∞) = ennreal.of_real x :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
 
+/-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
+This is a particular case of `module.punctured_nhds_ne_bot`. -/
+instance punctured_nhds_module_ne_bot
+  {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
+  [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
+  ne_bot (𝓝[{x}ᶜ] x) :=
+module.punctured_nhds_ne_bot ℝ E x
+
 end real
 
 namespace nnreal
@@ -1654,20 +1662,7 @@ theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : �
 begin
   rcases lt_trichotomy r 0 with hr|rfl|hr,
   { simp [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le] },
-  { suffices : x ∉ interior {x},
-    { rw [ball_zero, closed_ball_zero, ← set.subset_empty_iff],
-      intros y hy,
-      obtain rfl : y = x := set.mem_singleton_iff.1 (interior_subset hy),
-      exact this hy },
-    rw [← set.mem_compl_iff, ← closure_compl],
-    rcases exists_ne (0 : E) with ⟨z, hz⟩,
-    suffices : (λ c : ℝ, x + c • z) 0 ∈ closure ({x}ᶜ : set E),
-      by simpa only [zero_smul, add_zero] using this,
-    have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],
-    refine (continuous_const.add (continuous_id.smul
-      continuous_const)).continuous_within_at.mem_closure this _,
-    intros c hc,
-    simp [smul_eq_zero, hz, ne_of_gt hc] },
+  { rw [closed_ball_zero, ball_zero, interior_singleton] },
   { exact interior_closed_ball x hr }
 end
 

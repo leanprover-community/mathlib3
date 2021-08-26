@@ -261,6 +261,12 @@ instance : partial_order (finset α) :=
   le_trans := @subset.trans _,
   le_antisymm := @subset.antisymm _ }
 
+
+/-- Coercion to `set α` as an `order_embedding`. -/
+def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_subset⟩
+
+@[simp] lemma coe_coe_emb : ⇑(coe_emb : finset α ↪o set α) = coe := rfl
+
 theorem subset.antisymm_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ s₁ ⊆ s₂ ∧ s₂ ⊆ s₁ :=
 le_antisymm_iff
 
@@ -303,6 +309,8 @@ to the dot notation. -/
 protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
 @[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s:set α).nonempty ↔ s.nonempty := iff.rfl
+
+alias coe_nonempty ↔ _ finset.nonempty.to_set
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
@@ -1757,13 +1765,6 @@ end list
 
 namespace finset
 
-lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
-  ∃ (l : list α), l.nodup ∧ l.to_finset = s :=
-begin
-  obtain ⟨⟨l⟩, hs⟩ := s,
-  exact ⟨l, hs, (list.to_finset_eq _).symm⟩,
-end
-
 /-! ### map -/
 section map
 open function
@@ -2178,6 +2179,15 @@ finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
 theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
 by { rw ← not_iff_not, push_neg, exact card_le_one }
 
+lemma exists_ne_of_one_lt_card {s : finset α} (hs : 1 < s.card) (a : α) :
+  ∃ b : α, b ∈ s ∧ b ≠ a :=
+begin
+  obtain ⟨x, hx, y, hy, hxy⟩ := finset.one_lt_card.mp hs,
+  by_cases ha : y = a,
+  { exact ⟨x, hx, ne_of_ne_of_eq hxy ha⟩ },
+  { exact ⟨y, hy, ha⟩ },
+end
+
 lemma one_lt_card_iff {s : finset α} :
   1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
 by { rw one_lt_card, simp only [exists_prop, exists_and_distrib_left] }
@@ -2472,6 +2482,36 @@ have hif : injective f',
 subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
 end card
+
+section to_list
+
+/-- Produce a list of the elements in the finite set using choice. -/
+@[reducible] noncomputable def to_list (s : finset α) : list α := s.1.to_list
+
+lemma nodup_to_list (s : finset α) : s.to_list.nodup :=
+by { rw [to_list, ←multiset.coe_nodup, multiset.coe_to_list], exact s.nodup }
+
+@[simp] lemma mem_to_list {a : α} (s : finset α) : a ∈ s.to_list ↔ a ∈ s :=
+by { rw [to_list, ←multiset.mem_coe, multiset.coe_to_list], exact iff.rfl }
+
+@[simp] lemma length_to_list (s : finset α) : s.to_list.length = s.card :=
+by { rw [to_list, ←multiset.coe_card, multiset.coe_to_list], refl }
+
+@[simp] lemma to_list_empty : (∅ : finset α).to_list = [] :=
+by simp [to_list]
+
+@[simp, norm_cast]
+lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val :=
+by { classical, ext, simp }
+
+@[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
+by { ext, simp }
+
+lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
+  ∃ (l : list α), l.nodup ∧ l.to_finset = s :=
+⟨s.to_list, s.nodup_to_list, s.to_list_to_finset⟩
+
+end to_list
 
 section bUnion
 /-!

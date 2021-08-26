@@ -8,7 +8,7 @@ import algebra.smul_with_zero
 
 /-!
 
-# Tropical algebraic structues
+# Tropical algebraic structures
 
 This file defines algebraic structures of the (min-)tropical numbers, up to the tropical semiring.
 Some basic lemmas about conversion from the base type `R` to `tropical R` are provided, as

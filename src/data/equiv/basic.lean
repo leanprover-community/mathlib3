@@ -183,8 +183,11 @@ lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
 e.injective.decidable_eq
 
-lemma nonempty_iff_nonempty (e : α ≃ β) : nonempty α ↔ nonempty β :=
+lemma nonempty_congr (e : α ≃ β) : nonempty α ↔ nonempty β :=
 nonempty.congr e e.symm
+
+protected lemma nonempty (e : α ≃ β) [nonempty β] : nonempty α :=
+e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
@@ -1264,6 +1267,9 @@ def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 lemma is_empty_congr (e : α ≃ β) : is_empty α ↔ is_empty β :=
 ⟨λ h, @function.is_empty _ _ h e.symm, λ h, @function.is_empty _ _ h e⟩
 
+protected lemma is_empty (e : α ≃ β) [is_empty β] : is_empty α :=
+e.is_empty_congr.mpr ‹_›
+
 section
 open subtype
 
@@ -2214,15 +2220,6 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   (hf : function.injective f) (x y : α) :
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
-
-instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
-instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
-
-instance {α} [unique α] : unique (ulift α) := equiv.ulift.unique
-instance {α} [unique α] : unique (plift α) := equiv.plift.unique
-
-instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
-instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=

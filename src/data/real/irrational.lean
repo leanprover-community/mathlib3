@@ -300,7 +300,7 @@ theorem exists_irrational_btwn_rats {x y : ℚ} (h : x < y) :
 theorem exists_irrational_btwn {x y : ℝ} (h : x < y) :
   ∃ r, irrational r ∧ x < r ∧ r < y:=
 begin
-  obtain ⟨q₁, ⟨x_lt_q₁,  q₁_lt_y⟩⟩ := exists_rat_btwn h,
+  obtain ⟨q₁, ⟨x_lt_q₁, q₁_lt_y⟩⟩ := exists_rat_btwn h,
   obtain ⟨q₂, ⟨q₁_lt_q₂, q₂_lt_y⟩⟩ := exists_rat_btwn q₁_lt_y ,
   obtain ⟨r, ⟨irrat_r, q₁_lt_r, r_lt_q₂⟩⟩ := exists_irrational_btwn_rats (cast_lt.mp q₁_lt_q₂),
   exact ⟨r, irrat_r, lt_trans x_lt_q₁ q₁_lt_r, lt_trans r_lt_q₂ q₂_lt_y⟩,

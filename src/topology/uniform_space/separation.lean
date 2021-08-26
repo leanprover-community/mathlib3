@@ -144,14 +144,14 @@ lemma separation_rel_comap  {f : α → β}
   𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
 begin
   dsimp [separation_rel],
-  rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
-      ← preimage_bInter, sInter_eq_bInter],
+  simp_rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
+      ← preimage_Inter, sInter_eq_bInter],
   refl,
 end
 
-protected lemma filter.has_basis.separation_rel {ι : Type*} {p : ι → Prop} {s : ι → set (α × α)}
+protected lemma filter.has_basis.separation_rel {ι : Sort*} {p : ι → Prop} {s : ι → set (α × α)}
   (h : has_basis (𝓤 α) p s) :
-  𝓢 α = ⋂ i ∈ set_of p, s i :=
+  𝓢 α = ⋂ i (hi : p i), s i :=
 by { unfold separation_rel, rw h.sInter_sets }
 
 lemma separation_rel_eq_inter_closure : 𝓢 α = ⋂₀ (closure '' (𝓤 α).sets) :=
@@ -168,22 +168,14 @@ end
 lemma separated_iff_t2 : separated_space α ↔ t2_space α :=
 begin
   classical,
-  split ; intro h,
+  split ; introI h,
   { rw [t2_iff_is_closed_diagonal, ← show 𝓢 α = diagonal α, from h.1],
     exact is_closed_separation_rel },
   { rw separated_def',
     intros x y hxy,
-    have : 𝓝 x ⊓ 𝓝 y = ⊥,
-    { rw t2_iff_nhds at h,
-      by_contra H,
-      exact hxy (h ⟨H⟩) },
-    rcases inf_eq_bot_iff.mp this with ⟨U, U_in, V, V_in, H⟩,
-    rcases uniform_space.mem_nhds_iff.mp U_in with ⟨S, S_in, S_sub⟩,
-    use [S, S_in],
-    change y ∉ ball x S,
-    intro y_in,
-    have : y ∈ U ∩ V := ⟨S_sub y_in, mem_of_mem_nhds V_in⟩,
-    rwa H at this },
+    rcases t2_separation hxy with ⟨u, v, uo, vo, hx, hy, h⟩,
+    rcases is_open_iff_ball_subset.1 uo x hx with ⟨r, hrU, hr⟩,
+    exact ⟨r, hrU, λ H, disjoint_iff.2 h ⟨hr H, hy⟩⟩ }
 end
 
 @[priority 100] -- see Note [lower instance priority]

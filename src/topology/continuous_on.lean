@@ -255,7 +255,7 @@ begin
     choose! y hys hyt,
     choose z hzs using λ i, (hVs i).exists,
     suffices : I.piecewise y z ∈ (⋂ i ∈ I, V i) ∩ (pi univ s),
-      from λ H, H this.1 this.2,
+    { intro H, simpa [← H] },
     refine ⟨mem_bInter $ λ i hi, htV i hi _, λ i hi', _⟩,
     { simp only [mem_preimage, piecewise_eq_of_mem _ _ _ hi, hyt i hi] },
     { by_cases hi : i ∈ I; simp * } },
@@ -316,10 +316,6 @@ h.mono_left inf_le_left
 theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=
 by rw [comap_principal, set.preimage_image_eq _ subtype.coe_injective]
-
-lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
-  x ∈ closure s ↔ ne_bot (𝓝[s] x) :=
-mem_closure_iff_cluster_pt
 
 lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :
   ne_bot (𝓝[s] x) :=

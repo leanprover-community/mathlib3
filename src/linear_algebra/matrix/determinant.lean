@@ -231,7 +231,7 @@ det_minor_equiv_self e.symm A
 by rw [←matrix.mul_one (σ.to_pequiv.to_matrix : matrix n n R), pequiv.to_pequiv_mul_matrix,
   det_permute, det_one, mul_one]
 
-@[simp] lemma det_smul {A : matrix n n R} {c : R} : det (c • A) = c ^ fintype.card n * det A :=
+@[simp] lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
 calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
@@ -656,5 +656,30 @@ lemma det_succ_column {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (j : fi
 by { rw [← det_transpose, det_succ_row _ j],
      refine finset.sum_congr rfl (λ i _, _),
      rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
+
+
+/-- Determinant of 0x0 matrix -/
+@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R} : det A = 1 :=
+det_is_empty
+
+/-- Determinant of 1x1 matrix -/
+lemma det_fin_one (A : matrix (fin 1) (fin 1) R) : det A = A 0 0  := det_unique A
+
+/-- Determinant of 2x2 matrix -/
+lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :
+  det A = A 0 0 * A 1 1 - A 0 1 * A 1 0 :=
+begin
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring
+end
+
+/-- Determinant of 3x3 matrix -/
+lemma det_fin_three (A : matrix (fin 3) (fin 3) R) :
+  det A = A 0 0 * A 1 1 * A 2 2 - A 0 0 * A 1 2 * A 2 1 - A 0 1 * A 1 0 * A 2 2
+  + A 0 1 * A 1 2 * A 2 0 + A 0 2 * A 1 0 * A 2 1 - A 0 2 * A 1 1 * A 2 0 :=
+begin
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring
+end
 
 end matrix

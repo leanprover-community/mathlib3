@@ -649,6 +649,11 @@ list.length_fin_range n
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 
+/-- The cardinality of `fin (bit0 k)` is even, `fact` version.
+This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
+lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
+⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
+
 lemma card_finset_fin_le {n : ℕ} (s : finset (fin n)) : s.card ≤ n :=
 by simpa only [fintype.card_fin] using s.card_le_univ
 
@@ -1521,6 +1526,12 @@ def choose (hp : ∃! a, p a) : α := choose_x p hp
 
 lemma choose_spec (hp : ∃! a, p a) : p (choose p hp) :=
 (choose_x p hp).property
+
+@[simp] lemma choose_subtype_eq {α : Type*} (p : α → Prop) [fintype {a : α // p a}]
+  [decidable_eq α] (x : {a : α // p a})
+  (h : ∃! (a : {a // p a}), (a : α) = x := ⟨x, rfl, λ y hy, by simpa [subtype.ext_iff] using hy⟩) :
+  fintype.choose (λ (y : {a : α // p a}), (y : α) = x) h = x :=
+by rw [subtype.ext_iff, fintype.choose_spec (λ (y : {a : α // p a}), (y : α) = x) _]
 
 end choose
 

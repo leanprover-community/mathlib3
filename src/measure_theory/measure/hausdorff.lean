@@ -614,13 +614,13 @@ open measure
 def dimH (s : set X) : ℝ≥0∞ := ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d
 
 lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
-by simp [dimH, h.measure_eq]
+by simp [dimH, h.measure_zero]
 
-alias dimH_subsingleton ← set.subsingleton.dimH_eq
+alias dimH_subsingleton ← set.subsingleton.dimH_zero
 
-@[simp] lemma dimH_empty : dimH (∅ : set X) = 0 := subsingleton_empty.dimH_eq
+@[simp] lemma dimH_empty : dimH (∅ : set X) = 0 := subsingleton_empty.dimH_zero
 
-@[simp] lemma dimH_singleton (x : X) : dimH ({x} : set X) = 0 := subsingleton_singleton.dimH_eq
+@[simp] lemma dimH_singleton (x : X) : dimH ({x} : set X) = 0 := subsingleton_singleton.dimH_zero
 
 lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0}
   (h : ↑d < dimH s) : μH[d] s = ∞ :=
@@ -678,6 +678,11 @@ by rw [sUnion_eq_bUnion, dimH_bUnion hS]
 @[simp] lemma dimH_union (s t : set X) : dimH (s ∪ t) = max (dimH s) (dimH t) :=
 by rw [union_eq_Union, dimH_Union, supr_bool_eq, cond, cond, ennreal.sup_eq_max]
 
+lemma dimH_countable {s : set X} (hs : countable s) : dimH s = 0 :=
+bUnion_of_singleton s ▸ by simp only [dimH_bUnion hs, dimH_singleton, ennreal.supr_zero_eq_zero]
+
+alias dimH_countable ← set.countable.dimH_zero
+
 /-!
 ### Hausdorff measure and Lebesgue measure
 -/
@@ -707,8 +712,6 @@ begin
   /- For the other inequality `μH s ≤ volume s`, we use a covering of `s` by sets of small diameter
   `1/n`, namely cubes with left-most point of the form `a i + f i / n` with `f i` ranging between
   `0` and `⌈(b i - a i) * n⌉`. Their number is asymptotic to `n^d * Π (b i - a i)`. -/
-  have Hpos' : 0 < fintype.card ι := fintype.card_pos_iff.2 ‹nonempty ι›,
-  have Hpos : 0 < (fintype.card ι : ℝ), by simp only [Hpos', nat.cast_pos],
   have I : ∀ i, 0 ≤ (b i : ℝ) - a i := λ i, by simpa only [sub_nonneg, rat.cast_le] using (H i).le,
   let γ := λ (n : ℕ), (Π (i : ι), fin ⌈((b i : ℝ) - a i) * n⌉₊),
   let t : Π (n : ℕ), γ n → set (ι → ℝ) :=
@@ -758,7 +761,7 @@ begin
       assume n hn,
       apply finset.sum_le_sum (λ i _, _),
       rw ennreal.rpow_nat_cast,
-      exact canonically_ordered_comm_semiring.pow_le_pow_of_le_left (hn i) _,
+      exact pow_le_pow_of_le_left' (hn i) _,
     end
   ... = liminf at_top (λ (n : ℕ), ∏ (i : ι), (⌈((b i : ℝ) - a i) * n⌉₊ : ℝ≥0∞) / n) :
   begin

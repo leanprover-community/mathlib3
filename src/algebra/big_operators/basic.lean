@@ -775,6 +775,12 @@ begin
 end
 
 @[to_additive]
+lemma prod_range_add_div_prod_range {α : Type*} [comm_group α] (f : ℕ → α) (n m : ℕ) :
+  (∏ k in range (n + m), f k) / (∏ k in range n, f k) = ∏ k in finset.range m, f (n + k) :=
+div_eq_of_eq_mul' (prod_range_add f n m)
+
+
+@[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
   ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]
@@ -1374,10 +1380,6 @@ namespace list
 end list
 
 namespace multiset
-
-lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
-  abs s.sum ≤ (s.map abs).sum :=
-le_sum_of_subadditive _ abs_zero abs_add s
 
 variables [decidable_eq α]
 

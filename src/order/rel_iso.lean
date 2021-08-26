@@ -377,17 +377,17 @@ protected def dual : order_dual α ↪o order_dual β :=
 To define an order embedding from a partial order to a preorder it suffices to give a function
 together with a proof that it satisfies `f a ≤ f b ↔ a ≤ b`.
 -/
-def of_map_rel_iff {α β} [partial_order α] [preorder β] (f : α → β)
+def of_map_le_iff {α β} [partial_order α] [preorder β] (f : α → β)
   (hf : ∀ a b, f a ≤ f b ↔ a ≤ b) : α ↪o β :=
 rel_embedding.of_map_rel_iff f hf
 
-@[simp] lemma coe_of_map_rel_iff {α β} [partial_order α] [preorder β] {f : α → β} (h) :
-  ⇑(of_map_rel_iff f h) = f := rfl
+@[simp] lemma coe_of_map_le_iff {α β} [partial_order α] [preorder β] {f : α → β} (h) :
+  ⇑(of_map_le_iff f h) = f := rfl
 
 /-- A strictly monotone map from a linear order is an order embedding. --/
 def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   (h : strict_mono f) : α ↪o β :=
-of_map_rel_iff f (λ _ _, h.le_iff_le)
+of_map_le_iff f (λ _ _, h.le_iff_le)
 
 @[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
   (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl

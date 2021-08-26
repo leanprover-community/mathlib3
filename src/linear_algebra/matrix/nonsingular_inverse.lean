@@ -628,7 +628,7 @@ end
 section cancel
 
 -- TOOD: where should this go? general statement about pi.smul?
-lemma is_regular.is_smul_regular {α n m : Type*} [ring α] [fintype n] [fintype m] {k : α}
+lemma is_regular.is_smul_regular {α n m : Type*} [ring α] {k : α}
   (hk : is_regular k) : is_smul_regular (matrix n m α) k :=
 begin
   intros A B h,

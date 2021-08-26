@@ -7,7 +7,6 @@ The Special Linear group $SL(n, R)$
 -/
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.to_lin
-import data.matrix.notation
 
 /-!
 # The Special Linear group $SL(n, R)$

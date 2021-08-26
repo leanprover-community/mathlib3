@@ -172,7 +172,7 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
 
-lemma totient_prime_iff {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
+lemma totient_eq_iff_prime {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
 begin
   refine ⟨λ h, _, totient_prime⟩,
   replace hp : 1 < p,

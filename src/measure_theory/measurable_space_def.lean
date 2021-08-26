@@ -404,6 +404,8 @@ open measurable_space
 def measurable [measurable_space α] [measurable_space β] (f : α → β) : Prop :=
 ∀ ⦃t : set β⦄, measurable_set t → measurable_set (f ⁻¹' t)
 
+localized "notation `measurable[` m `]` := @measurable _ _ m _" in measure_theory
+
 variables [measurable_space α] [measurable_space β] [measurable_space γ]
 
 lemma measurable_id : measurable (@id α) := λ t, id

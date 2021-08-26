@@ -1844,15 +1844,27 @@ end diam
 
 end metric
 
-lemma comap_dist_left_at_top_le_cocompact (x : α) : comap (λ y, dist y x) at_top ≤ cocompact α :=
+lemma comap_dist_right_at_top_le_cocompact (x : α) : comap (λ y, dist y x) at_top ≤ cocompact α :=
 begin
   refine filter.has_basis_cocompact.ge_iff.2 (λ s hs, mem_comap.2 _),
   rcases hs.bounded.subset_ball x with ⟨r, hr⟩,
   exact ⟨Ioi r, Ioi_mem_at_top r, λ y hy hys, (mem_closed_ball.1 $ hr hys).not_lt hy⟩
 end
 
-lemma comap_dist_right_at_top_le_cocompact (x : α) : comap (dist x) at_top ≤ cocompact α :=
-by simpa only [dist_comm _ x] using comap_dist_left_at_top_le_cocompact x
+lemma comap_dist_left_at_top_le_cocompact (x : α) : comap (dist x) at_top ≤ cocompact α :=
+by simpa only [dist_comm _ x] using comap_dist_right_at_top_le_cocompact x
+
+lemma comap_dist_right_at_top_eq_cocompact [proper_space α] (x : α) :
+  comap (λ y, dist y x) at_top = cocompact α :=
+(comap_dist_right_at_top_le_cocompact x).antisymm $ (tendsto_dist_right_cocompact_at_top x).le_comap
+
+lemma comap_dist_left_at_top_eq_cocompact [proper_space α] (x : α) :
+  comap (dist x) at_top = cocompact α :=
+(comap_dist_left_at_top_le_cocompact x).antisymm $ (tendsto_dist_left_cocompact_at_top x).le_comap
+
+lemma tendsto_cocompact_of_tendsto_dist_comp_at_top {f : β → α} {l : filter β} (x : α)
+  (h : tendsto (λ y, dist (f y) x) l at_top) : tendsto f l (cocompact α) :=
+by { refine tendsto.mono_right _ (comap_dist_right_at_top_le_cocompact x), rwa tendsto_comap_iff }
 
 namespace int
 open metric
@@ -1860,11 +1872,8 @@ open metric
 /-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
 lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
 begin
-  suffices : tendsto (λ m : ℤ, dist (0 : ℝ) m) cofinite at_top,
-  { calc map (coe : ℤ → ℝ) cofinite ≤ comap (dist (0 : ℝ)) at_top :
-      by rwa [← map_le_iff_le_comap, map_map]
-    ... ≤ cocompact ℝ :  comap_dist_right_at_top_le_cocompact _ },
-  simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball'],
+  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
+  simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
   change ∀ r : ℝ, finite (coe ⁻¹' (ball (0 : ℝ) r)),
   simp [real.ball_eq, Ioo_ℤ_finite]
 end

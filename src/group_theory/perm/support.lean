@@ -196,6 +196,42 @@ end is_swap
 
 section support
 
+section set
+
+variables (p q : perm α)
+
+lemma set_support_inv_eq :
+  {x | p⁻¹ x ≠ x} = {x | p x ≠ x} :=
+begin
+  ext x,
+  simp only [set.mem_set_of_eq, ne.def],
+  rw [inv_def, symm_apply_eq, eq_comm]
+end
+
+lemma set_support_apply_mem {p : perm α} {a : α} :
+  p a ∈ {x | p x ≠ x} ↔ a ∈ {x | p x ≠ x} :=
+by simp
+
+lemma set_support_gpow_subset (n : ℤ) :
+  {x | (p ^ n) x ≠ x} ⊆ {x | p x ≠ x} :=
+begin
+  intros x,
+  simp only [set.mem_set_of_eq, ne.def],
+  intros hx H,
+  simpa [gpow_apply_eq_self_of_apply_eq_self H] using hx
+end
+
+lemma set_support_mul_subset :
+  {x | (p * q) x ≠ x} ⊆ {x | p x ≠ x} ∪ {x | q x ≠ x} :=
+begin
+  intro x,
+  simp only [perm.coe_mul, function.comp_app, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+  by_cases hq : q x = x;
+  simp [hq]
+end
+
+end set
+
 variables [decidable_eq α] [fintype α] {f g : perm α}
 
 /-- The `finset` of nonfixed points of a permutation. -/
@@ -205,6 +241,10 @@ def support (f : perm α) : finset α := univ.filter (λ x, f x ≠ x)
 by rw [support, mem_filter, and_iff_right (mem_univ x)]
 
 lemma not_mem_support {x : α} : x ∉ f.support ↔ f x = x := by simp
+
+lemma coe_support_eq_set_support (f : perm α) :
+  (f.support : set α) = {x | f x ≠ x} :=
+by { ext, simp }
 
 @[simp] lemma support_eq_empty_iff {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
 by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,

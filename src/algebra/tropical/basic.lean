@@ -3,23 +3,29 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
+import algebra.group_power.order
 import algebra.smul_with_zero
 
 /-!
 
 # Tropical algebraic structues
 
-This file defines algebraic structures of the tropical numbers, up to the tropical semiring.
+This file defines algebraic structures of the (min-)tropical numbers, up to the tropical semiring.
 Some basic lemmas about conversion from the base type `R` to `tropical R` are provided, as
 well as the expected implementations of tropical addition and tropical multiplication.
 
 ## Main declarations
 
 * `tropical R`: The type synonym of the tropical interpretation of `R`.
+    If `[linear_order R]`, then addition on `R` is via `min`.
 * `semiring (tropical R)`: A `linear_ordered_add_comm_monoid_with_top R`
-    induces a `semiring (tropical R)
+    induces a `semiring (tropical R)`. If one solely has `[linear_ordered_add_comm_monoid R]`,
+    then the "tropicalization of `R`" would be `tropical (with_top R)`.
 
 ## Implementation notes
+
+The tropical structure relies on `has_top` and `min`. For the max-tropical numbers, use
+`order_dual R`.
 
 Inspiration was drawn from the implementation of `additive`/`multiplicative`/`opposite`,
 where a type synonym is created with some barebones API, and quickly made irreducible.
@@ -37,7 +43,6 @@ most references rely on `semiring (tropical R)` for building up the whole theory
 universes u v
 variables (R : Type u)
 
--- should this just be `additive`?
 /-- The tropicalization of a type `R`. -/
 def tropical : Type u := R
 
@@ -97,7 +102,7 @@ trop_equiv.symm.surjective
 instance [inhabited R] : inhabited (tropical R) := ⟨trop (default _)⟩
 
 /-- Recursing on a `x' : tropical R` is the same as recursing on an `x : R` reinterpreted
-as a termp of `tropical R` via `trop x`. -/
+as a term of `tropical R` via `trop x`. -/
 @[simp]
 def trop_rec {F : Π (X : tropical R), Sort v} (h : Π X, F (trop X)) : Π X, F X :=
 λ X, h (untrop X)
@@ -237,25 +242,14 @@ instance [linear_order R] [has_add R]
   left_distrib := λ _ _ _, untrop_injective (min_add_add_left _ _ _).symm,
   right_distrib := λ _ _ _, untrop_injective (min_add_add_right _ _ _).symm }
 
-@[to_additive nsmul_le_nsmul]
-lemma pow_le_pow [linear_order R] [monoid R]
-  [covariant_class R R (*) (≤)] [covariant_class R R (function.swap (*)) (≤)]
-  ⦃x y : R⦄ (h : x ≤ y) (n : ℕ) : x ^ n ≤ y ^ n :=
-begin
-  induction n with n IH,
-  { simp },
-  { rw [pow_succ, pow_succ],
-    exact (mul_le_mul_left' IH _).trans (mul_le_mul_right' h _) }
-end
-
 @[simp] lemma add_pow [linear_order R] [add_monoid R]
   [covariant_class R R (+) (≤)] [covariant_class R R (function.swap (+)) (≤)]
   (x y : tropical R) (n : ℕ) :
   (x + y) ^ n = x ^ n + y ^ n :=
 begin
   cases le_total x y with h h,
-  { rw [add_eq_left h, add_eq_left (pow_le_pow h _)] },
-  { rw [add_eq_right h, add_eq_right (pow_le_pow h _)] }
+  { rw [add_eq_left h, add_eq_left (pow_le_pow_of_le_left' h _)] },
+  { rw [add_eq_right h, add_eq_right (pow_le_pow_of_le_left' h _)] }
 end
 
 end distrib

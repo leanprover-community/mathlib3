@@ -610,8 +610,21 @@ def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
 
+lemma cast_add_lt {m : ℕ} (n : ℕ) (i : fin m) : (cast_add n i : ℕ) < m := i.2
+
 @[simp] lemma cast_add_mk (m : ℕ) (i : ℕ) (h : i < n) :
   cast_add m ⟨i, h⟩ = ⟨i, lt_add_right i n m h⟩ := rfl
+
+/-- embedding `fin n` into `fin (m + n)` sending `i` to `m + i` -/
+def cast_add_right (m : ℕ) {n : ℕ} : fin n ↪ fin (m + n) :=
+{ to_fun := λ i, ⟨m + i, add_lt_add_left i.2 _⟩,
+  inj' := λ i j h, fin.ext (by simpa using h) }
+
+@[simp] lemma coe_cast_add_right (m : ℕ) {n : ℕ} (i : fin n) :
+  (cast_add_right m i : ℕ) = m + i := rfl
+
+lemma le_cast_add_right (m : ℕ) {n : ℕ} (i : fin n) : m ≤ cast_add_right m i :=
+nat.le_add_right _ _
 
 /-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
@@ -694,6 +707,10 @@ begin
   rw ← coe_cast_succ,
   exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
+
+lemma succ_cast_succ {n : ℕ} (i : fin n) :
+  i.cast_succ.succ = i.succ.cast_succ :=
+fin.ext (by simp)
 
 /-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=

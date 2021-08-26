@@ -782,7 +782,7 @@ Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.mem_hom_right, mem
 
 variables (x : Set.{u}) (h : ∅ ∉ x)
 
-/-- A choice function on a ZFC set of nonempty ZFC sets. -/
+/-- A choice function on the class of nonempty ZFC sets. -/
 noncomputable def choice : Set :=
 @map (λ y, classical.epsilon (λ z, z ∈ y)) (classical.all_definable _) x
 

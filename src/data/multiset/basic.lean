@@ -1768,7 +1768,7 @@ begin
   { rw [filter_cons_of_neg _ h, zero_add] },
 end
 
-lemma nsmul_filter (s : multiset α) (n : ℕ) :
+lemma filter_nsmul (s : multiset α) (n : ℕ) :
   filter p (n • s) = n • filter p s :=
 begin
   refine s.induction_on _ _,

@@ -95,6 +95,18 @@ lt_iff_lt_of_le_iff_le (one_le_pow_iff hn)
 lemma pow_eq_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
 by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
 
+/-- In a `monoid M` that has `linear_order M`, raising to a power is monotonic. -/
+@[to_additive nsmul_le_nsmul_of_le /-"In a `add_monoid M` that has `linear_order M`,
+repeated addition is monotonic. "-/]
+lemma pow_le_pow_of_le [covariant_class M M (function.swap (*)) (≤)]
+  ⦃x y : M⦄ (h : x ≤ y) (n : ℕ) : x ^ n ≤ y ^ n :=
+begin
+  induction n with n IH,
+  { simp },
+  { rw [pow_succ, pow_succ],
+    exact (mul_le_mul_left' IH _).trans (mul_le_mul_right' h _) }
+end
+
 end linear_order
 
 section group

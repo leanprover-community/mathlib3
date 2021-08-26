@@ -1480,13 +1480,13 @@ b.dual_basis.map (B.to_dual hB).symm
 by rw [dual_basis, basis.map_repr, linear_equiv.symm_symm, linear_equiv.trans_apply,
        basis.dual_basis_repr, to_dual_def]
 
-@[simp] lemma apply_dual_basis_left (B : bilin_form K V) (hB : B.nondegenerate) (b : basis ι K V)
+lemma apply_dual_basis_left (B : bilin_form K V) (hB : B.nondegenerate) (b : basis ι K V)
   (i j) : B (B.dual_basis hB b i) (b j) = if j = i then 1 else 0 :=
 by rw [dual_basis, basis.map_apply, basis.coe_dual_basis, ← to_dual_def hB,
        linear_equiv.apply_symm_apply, basis.coord_apply, basis.repr_self,
        finsupp.single_apply]
 
-@[simp] lemma apply_dual_basis_right (B : bilin_form K V) (hB : B.nondegenerate)
+lemma apply_dual_basis_right (B : bilin_form K V) (hB : B.nondegenerate)
   (sym : sym_bilin_form.is_sym B) (b : basis ι K V)
   (i j) : B (b i) (B.dual_basis hB b j) = if i = j then 1 else 0 :=
 by rw [sym, apply_dual_basis_left]

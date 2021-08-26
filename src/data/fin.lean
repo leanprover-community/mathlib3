@@ -827,6 +827,48 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 ⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
   λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
 
+/-- Define `f : Π i : fin (m + n), C i` by separately handling the cases `i = cast_add n i`, 
+`j : fin m` and `i = cast_add_right m j`, `j : fin n`. -/
+@[elab_as_eliminator, elab_strategy]
+def add_cases {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (cast_add n i))
+  (hright : Π i, C (cast_add_right m i)) (i : fin (m + n)) : C i :=
+if hi : (i : ℕ) < m
+then have hi' : i = fin.cast_add _ ⟨i, hi⟩, from fin.ext rfl,
+  _root_.cast (congr_arg C hi'.symm) (hleft _)
+else have hi' : i = fin.cast_add_right m
+  ⟨i - m, show (i : ℕ) - m < n,
+      from (nat.sub_lt_left_iff_lt_add (le_of_not_gt hi)).2 i.2⟩,
+    from fin.ext $ by simp [nat.add_sub_cancel' (le_of_not_gt hi)],
+  _root_.cast (congr_arg C hi'.symm) (hright _)
+
+@[simp] lemma add_cases_left {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (fin.cast_add n i))
+  (hright : Π i, C (fin.cast_add_right m i))
+  (i : fin m) :
+  (fin.add_cases hleft hright (fin.cast_add n i) : C (fin.cast_add n i)) =
+  hleft i :=
+begin
+  cases i,
+  simp only [add_cases, *, dif_pos, coe_mk, cast_eq, cast_add_mk],
+  refl
+end
+
+@[simp] lemma add_cases_right {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (fin.cast_add n i))
+  (hright : Π i, C (fin.cast_add_right m i))
+  (i : fin n) :
+  (fin.add_cases hleft hright (fin.cast_add_right m i) : C (fin.cast_add_right m i)) =
+  hright i :=
+begin
+  have : ¬ (cast_add_right m i : ℕ) < m, from not_lt_of_ge (le_cast_add_right _ _),
+  cases i with i hi,
+  simp only [add_cases, this, dif_neg, not_false_iff, cast_eq, not_false_iff],
+  rw [cast_eq_iff_heq],
+  congr,
+  simp
+end
+
 end rec
 
 section pred

@@ -24,6 +24,7 @@ studied by Hermann Minkowski.
 
 -/
 open measure_theory measure_theory.measure topological_space set
+open_locale pointwise
 
 lemma smul_univ_pi {K : Type*} [has_mul K] (ι : Type*) {r : K} (t : ι → set K) :
   r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
@@ -336,7 +337,7 @@ begin
   { intro i,
     rw [← inv_inv' r, ← preimage_smul' (inv_ne_zero (ne_of_gt hr))],
     exact measurable_const_smul _ (hS i), },
-  { exact smul_left_injective (ι → ℝ) (ne_of_gt hr), },
+  { exact smul_right_injective (ι → ℝ) (ne_of_gt hr), },
   { intros S hS,
     rw [image_smul, ← inv_inv' r, ← preimage_smul' (ne_of_gt (inv_pos.mpr hr))],
     apply measurable_set_preimage _ hS,
@@ -370,7 +371,7 @@ begin
     simp only [zero_le_one, of_real_one, of_real_bit0] at this,
     rw [← measure.smul_apply, ← this, comap_apply _ _ _ _ hS],
     simp,
-    { exact smul_left_injective _ (by norm_num), },
+    { exact smul_right_injective _ (by norm_num), },
     { intros S hS,
       rw [image_smul, ← preimage_smul' _],
       apply measurable_set_preimage _ hS,

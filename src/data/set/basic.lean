@@ -493,11 +493,17 @@ ext $ λ x, or.left_comm
 theorem union_right_comm (s₁ s₂ s₃ : set α) : (s₁ ∪ s₂) ∪ s₃ = (s₁ ∪ s₃) ∪ s₂ :=
 ext $ λ x, or.right_comm
 
+@[simp] theorem union_eq_left_iff_subset {s t : set α} : s ∪ t = s ↔ t ⊆ s :=
+sup_eq_left
+
+@[simp] theorem union_eq_right_iff_subset {s t : set α} : s ∪ t = t ↔ s ⊆ t :=
+sup_eq_right
+
 theorem union_eq_self_of_subset_left {s t : set α} (h : s ⊆ t) : s ∪ t = t :=
-ext $ λ x, or_iff_right_of_imp $ @h _
+union_eq_right_iff_subset.mpr h
 
 theorem union_eq_self_of_subset_right {s t : set α} (h : t ⊆ s) : s ∪ t = s :=
-ext $ λ x, or_iff_left_of_imp $ @h _
+union_eq_left_iff_subset.mpr h
 
 @[simp] theorem subset_union_left (s t : set α) : s ⊆ s ∪ t := λ x, or.inl
 
@@ -574,11 +580,11 @@ theorem subset_inter {s t r : set α} (rs : r ⊆ s) (rt : r ⊆ t) : r ⊆ s �
 @[simp] theorem subset_inter_iff {s t r : set α} : r ⊆ s ∩ t ↔ r ⊆ s ∧ r ⊆ t :=
 (forall_congr (by exact λ x, imp_and_distrib)).trans forall_and_distrib
 
-theorem inter_eq_left_iff_subset {s t : set α} : s ∩ t = s ↔ s ⊆ t :=
-ext_iff.trans $ forall_congr $ λ x, and_iff_left_iff_imp
+@[simp] theorem inter_eq_left_iff_subset {s t : set α} : s ∩ t = s ↔ s ⊆ t :=
+inf_eq_left
 
-theorem inter_eq_right_iff_subset {s t : set α} : s ∩ t = t ↔ t ⊆ s :=
-ext_iff.trans $ forall_congr $ λ x, and_iff_right_iff_imp
+@[simp] theorem inter_eq_right_iff_subset {s t : set α} : s ∩ t = t ↔ t ⊆ s :=
+inf_eq_right
 
 theorem inter_eq_self_of_subset_left {s t : set α} : s ⊆ t → s ∩ t = s :=
 inter_eq_left_iff_subset.mpr
@@ -586,11 +592,9 @@ inter_eq_left_iff_subset.mpr
 theorem inter_eq_self_of_subset_right {s t : set α} : t ⊆ s → s ∩ t = t :=
 inter_eq_right_iff_subset.mpr
 
-@[simp] theorem inter_univ (a : set α) : a ∩ univ = a :=
-inter_eq_self_of_subset_left $ subset_univ _
+@[simp] theorem inter_univ (a : set α) : a ∩ univ = a := inf_top_eq
 
-@[simp] theorem univ_inter (a : set α) : univ ∩ a = a :=
-inter_eq_self_of_subset_right $ subset_univ _
+@[simp] theorem univ_inter (a : set α) : univ ∩ a = a := top_inf_eq
 
 theorem inter_subset_inter {s₁ s₂ t₁ t₂ : set α}
   (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∩ s₂ ⊆ t₁ ∩ t₂ := λ x, and.imp (@h₁ _) (@h₂ _)

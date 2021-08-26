@@ -345,8 +345,7 @@ begin
     { nth_rewrite 0 ← one_mul (a⁻¹),
       apply mul_le_mul'
         (lattice_ordered_comm_group.pos_pos a)
-        (lattice_ordered_comm_group.le_neg a) }
-  },
+        (lattice_ordered_comm_group.le_neg a) } },
   { have mod_eq_pos: |a|⁺ = |a| :=
     begin
       nth_rewrite 1 ← pos_div_neg' (|a|),

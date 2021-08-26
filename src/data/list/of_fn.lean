@@ -11,6 +11,14 @@ import data.fin
 
 Theorems and lemmas for dealing with `list.of_fn`, which converts a function on `fin n` to a list
 of length n.
+
+## Main Definitions
+
+The main definitions pertain to lists generated using `of_fn`
+
+- `length_of_fn`, which tells us the length of such a list
+- `nth_of_fn`, which tells us the nth element of such a list
+- `array_eq_of_fn`, which interprets the list form of an array as such a list.
 -/
 
 universes u

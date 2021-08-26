@@ -8,7 +8,18 @@ import data.nat.basic
 /-!
 # Lists as Functions
 
-Definitions for using lists as finite representations of functions with domain ℕ.
+Definitions for using lists as finite representations of finitely-supported functions with domain
+ℕ.
+
+These include pointwise operations on lists, as well as get and set operations.
+
+## Notations
+
+An index notation is introduced in this file for setting a particular element of a list. With `as`
+as a list `m` as an index, and `a` as a new element, the notation is `as {m ↦ a}`.
+
+So, for example
+`[1, 3, 5] {1 ↦ 9}` would result in `[1, 9, 5]`
 -/
 
 open list
@@ -27,7 +38,10 @@ def neg [has_neg α] (as : list α) := as.map (λ a, -a)
 
 variables [inhabited α] [inhabited β]
 
-/-- Update element of a list by index -/
+/--
+Update element of a list by index. If the index is out of range, extend the list with default
+elements
+-/
 @[simp] def set (a : α) : list α → ℕ → list α
 | (_::as) 0     := a::as
 | []      0     := [a]
@@ -36,7 +50,7 @@ variables [inhabited α] [inhabited β]
 
 localized "notation as ` {` m ` ↦ ` a `}` := list.func.set a as m" in list.func
 
-/-- Get element of a list by index -/
+/-- Get element of a list by index. If the index is out of range, return the default element -/
 @[simp] def get : ℕ → list α → α
 | _ []          := default α
 | 0 (a::as)     := a

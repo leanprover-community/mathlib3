@@ -285,7 +285,9 @@ variables [algebra K F] [is_scalar_tower K L F]
 
 open algebra intermediate_field
 
-lemma trace_eq_sum_embeddings_gen (E : Type*) [field E] [algebra K E]
+variables (F) (E : Type*) [field E] [algebra K E]
+
+lemma trace_eq_sum_embeddings_gen
   (pb : power_basis K L)
   (hE : (minpoly K pb.gen).splits (algebra_map K E)) (hfx : (minpoly K pb.gen).separable) :
   algebra_map K E (algebra.trace K L pb.gen) =
@@ -299,10 +301,9 @@ begin
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
 end
 
-variables (F)
-lemma sum_embeddings_eq_finrank_mul
-  (E : Type*) [field E] [is_alg_closed E]
-  [algebra K E]  [finite_dimensional K F] [is_separable K F]
+variables [is_alg_closed E]
+
+lemma sum_embeddings_eq_finrank_mul [finite_dimensional K F] [is_separable K F]
   (pb : power_basis K L) :
   ∑ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
     finrank L F • (@@finset.univ (power_basis.alg_hom.fintype pb)).sum
@@ -324,14 +325,14 @@ begin
          is_scalar_tower.coe_to_alg_hom'] }
 end
 
-lemma trace_eq_sum_embeddings [is_alg_closed F] [finite_dimensional K L] [is_separable K L]
+lemma trace_eq_sum_embeddings [finite_dimensional K L] [is_separable K L]
   {x : L} (hx : is_integral K x) :
-  algebra_map K F (algebra.trace K L x) = ∑ σ : L →ₐ[K] F, σ x :=
+  algebra_map K E (algebra.trace K L x) = ∑ σ : L →ₐ[K] E, σ x :=
 begin
   rw [trace_eq_trace_adjoin K x, algebra.smul_def, ring_hom.map_mul, ← adjoin.power_basis_gen hx,
-      trace_eq_sum_embeddings_gen F (adjoin.power_basis hx) (is_alg_closed.splits_codomain _),
+      trace_eq_sum_embeddings_gen E (adjoin.power_basis hx) (is_alg_closed.splits_codomain _),
       ← algebra.smul_def, algebra_map_smul],
-  { exact (sum_embeddings_eq_finrank_mul L F (adjoin.power_basis hx)).symm },
+  { exact (sum_embeddings_eq_finrank_mul L E (adjoin.power_basis hx)).symm },
   { haveI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
     exact is_separable.separable K _ }
 end

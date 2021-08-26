@@ -202,6 +202,21 @@ end
 instance [add_comm_monoid R] : comm_monoid (tropical R) :=
 { ..tropical.monoid, ..tropical.comm_semigroup }
 
+instance [add_group R] : group (tropical R) :=
+{ inv := λ x, trop (- untrop x),
+  mul_left_inv := λ _, untrop_injective (add_left_neg _),
+  ..tropical.monoid }
+
+instance [add_comm_group R] : comm_group (tropical R) :=
+{ mul_comm := λ _ _, untrop_injective (add_comm _ _),
+  ..tropical.group }
+
+@[simp] lemma untrop_inv [add_group R] (x : tropical R) : untrop x⁻¹ = - untrop x := rfl
+
+@[simp] lemma untrop_div [add_group R] (x y : tropical R) :
+  untrop (x / y) = untrop x - untrop y :=
+by rw [div_eq_mul_inv, untrop_mul, untrop_inv, sub_eq_add_neg]
+
 end monoid
 
 section distrib

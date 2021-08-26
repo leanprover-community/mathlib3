@@ -939,7 +939,6 @@ def condexp_ind_L1_fin (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measura
   α →₁[μ] E' :=
 (mem_ℒp_one_iff_integrable.mpr (integrable_condexp_L2_indicator hm s hs hμs x)).to_Lp _
 
-
 lemma condexp_ind_L1_fin_ae_eq_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
   condexp_ind_L1_fin 𝕜 hm hs hμs x =ᵐ[μ] condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) :=
@@ -1075,47 +1074,8 @@ section disjoint_union
 
 variables {t : set α}
 
-lemma indicator_Lp_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
-  (hst : s ∩ t = ∅) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (x : G) :
-  indicator_const_Lp p (hs.union ht)
-    ((measure_union_le s t).trans_lt (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hμs, hμt⟩))).ne
-    x
-    = indicator_const_Lp p hs hμs x + indicator_const_Lp p ht hμt x :=
-begin
-  have hs_eq := @indicator_const_Lp_coe_fn _ _ _ p μ _ _ _ hs hμs x,
-  have ht_eq := @indicator_const_Lp_coe_fn _ _ _ p μ _ _ _ ht hμt x,
-  have hμst := ((measure_union_le s t).trans_lt
-    (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hμs, hμt⟩))).ne,
-  have hst_eq := @indicator_const_Lp_coe_fn _ _ _ p μ _ _ _ (hs.union ht) hμst x,
-  ext1,
-  refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
-  refine hst_eq.trans _,
-  refine eventually_eq.trans _ (hs_eq.symm.add ht_eq.symm),
-  refine eventually_of_forall (λ y, _),
-  simp_rw set.indicator_apply,
-  by_cases hys : y ∈ s,
-  { simp only [hys, if_true, true_or, ite_eq_right_iff, self_eq_add_right, one_ne_zero,
-      set.mem_union_eq],
-    intro hyt,
-    exfalso,
-    rw [← set.mem_empty_eq y, ← hst],
-    exact set.mem_inter hys hyt, },
-  { simp only [hys, false_or, if_false, zero_add, set.mem_union_eq],
-    congr, },
-end
-
-include 𝕜
-lemma condexp_L2_disjoint_union (hm : m ≤ m0) (hs : measurable_set s) (ht : measurable_set t)
-  (hst : s ∩ t = ∅) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (x : E) [complete_space E] :
-  condexp_L2 𝕜 hm (indicator_const_Lp 2 (hs.union ht) ((measure_union_le s t).trans_lt
-      (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hμs, hμt⟩))).ne x)
-    = condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)
-    + condexp_L2 𝕜 hm (indicator_const_Lp 2 ht hμt x) :=
-by rw [indicator_Lp_disjoint_union hs ht hst hμs hμt x, (condexp_L2 𝕜 hm).map_add]
-omit 𝕜
-
 lemma condexp_ind_L1_fin_disjoint_union (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (ht : measurable_set t) (hst : s ∩ t = ∅) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞)
+  (hs : measurable_set s) (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅)
   (x : E') :
   condexp_ind_L1_fin 𝕜 hm (hs.union ht) ((measure_union_le s t).trans_lt
     (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hμs, hμt⟩))).ne x
@@ -1129,7 +1089,7 @@ begin
   have hs_eq := condexp_ind_L1_fin_ae_eq_condexp_L2_indicator 𝕜 hm hs hμs x,
   have ht_eq := condexp_ind_L1_fin_ae_eq_condexp_L2_indicator 𝕜 hm ht hμt x,
   refine eventually_eq.trans _ (eventually_eq.add hs_eq.symm ht_eq.symm),
-  rw [condexp_L2_disjoint_union hm hs ht hst hμs hμt x, Lp_meas_coe],
+  rw [indicator_const_Lp_disjoint_union hs ht hμs hμt hst x, (condexp_L2 𝕜 hm).map_add, Lp_meas_coe],
   push_cast,
   refine (Lp.coe_fn_add _ _).trans _,
   simp_rw ← Lp_meas_coe,
@@ -1138,7 +1098,7 @@ begin
 end
 
 lemma condexp_ind_L1_disjoint_union (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (ht : measurable_set t) (hst : s ∩ t = ∅) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞)
+  (hs : measurable_set s) (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅)
   (x : E') :
   condexp_ind_L1 𝕜 hm μ (hs.union ht) x = condexp_ind_L1 𝕜 hm μ hs x + condexp_ind_L1 𝕜 hm μ ht x :=
 begin
@@ -1147,7 +1107,7 @@ begin
   rw [condexp_ind_L1_of_measure_ne_top hm hs hμs x,
     condexp_ind_L1_of_measure_ne_top hm ht hμt x,
     condexp_ind_L1_of_measure_ne_top hm (hs.union ht) hμst x],
-  exact condexp_ind_L1_fin_disjoint_union hm hs ht hst hμs hμt x,
+  exact condexp_ind_L1_fin_disjoint_union hm hs ht hμs hμt hst x,
 end
 
 end disjoint_union

@@ -133,25 +133,27 @@ structure transvection_struct :=
 (hij : i ≠ j)
 (c : R)
 
+namespace transvection_struct
+
 variables {R n}
 
-def transvection_struct.to_matrix (t : transvection_struct n R) : matrix n n R :=
+def to_matrix (t : transvection_struct n R) : matrix n n R :=
 transvection t.i t.j t.c
 
-@[simp] lemma transvection_struct.to_matrix_mk (i j : n) (hij : i ≠ j) (c : R) :
+@[simp] lemma to_matrix_mk (i j : n) (hij : i ≠ j) (c : R) :
   transvection_struct.to_matrix ⟨i, j, hij, c⟩ = transvection i j c := rfl
 
 variable (p)
 
 open sum
 
-def transvection_struct.sum_inl (t : transvection_struct n R) : transvection_struct (n ⊕ p) R :=
+def sum_inl (t : transvection_struct n R) : transvection_struct (n ⊕ p) R :=
 { i := inl t.i,
   j := inl t.j,
   hij := by simp [t.hij],
   c := t.c }
 
-lemma transvection_struct.to_matrix_sum_inl (t : transvection_struct n R) :
+lemma to_matrix_sum_inl (t : transvection_struct n R) :
   (t.sum_inl p).to_matrix = from_blocks t.to_matrix 0 0 1 :=
 begin
   cases t,
@@ -164,6 +166,27 @@ begin
   { by_cases h : a = b;
     simp [transvection_struct.sum_inl, transvection, h] },
 end
+
+variable {p}
+
+def reindex_equiv (e : n ≃ p) (t : transvection_struct n R) : transvection_struct p R :=
+{ i := e t.i,
+  j := e t.j,
+  hij := by simp [t.hij],
+  c := t.c }
+
+lemma to_matrix_reindex_equiv (e : n ≃ p) (t : transvection_struct n R) :
+  (t.reindex_equiv e).to_matrix = reindex_alg_equiv R e t.to_matrix :=
+begin
+  cases t,
+  ext a b,
+  simp only [reindex_equiv, transvection, mul_boole, algebra.id.smul_eq_mul, to_matrix_mk,
+    minor_apply, reindex_apply, dmatrix.add_apply, pi.smul_apply, reindex_alg_equiv_apply],
+  by_cases ha : e t_i = a; by_cases hb : e t_j = b; by_cases hab : a = b;
+  simp [ha, hb, hab, ←e.apply_eq_iff_eq_symm_apply]
+end
+
+end transvection_struct
 
 end transvection
 
@@ -432,6 +455,7 @@ lemma reindex_list_transvection (M : matrix p p 𝕜) (e : p ≃ n)
     (L.map to_matrix).prod ⬝ M ⬝ (L'.map to_matrix).prod = diagonal D :=
 begin
   rcases H with ⟨L₀, L₀', D₀, h₀⟩,
+  refine ⟨L₀.map (reindex_equiv e.symm), L₀'.map (reindex_equiv e.symm), D₀ ∘ e, _⟩,
   sorry,
 end
 

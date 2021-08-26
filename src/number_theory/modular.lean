@@ -52,17 +52,17 @@ section upper_half_plane_action
 instance : mul_action SL(2, ℤ) ℍ :=
 mul_action.comp_hom ℍ (map (int.cast_ring_hom ℝ))
 
-@[simp] lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = top g z / bottom g z := rfl
-@[simp] lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (top g z / bottom g z).re := rfl
+@[simp] lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
+@[simp] lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
 @[simp] lemma smul_coe (g : SL(2, ℤ)) (z : ℍ) : (g : SL(2,ℝ)) • z = g • z := rfl
 
 @[simp] lemma neg_smul (g : SL(2, ℤ)) (z : ℍ) : -g • z = g • z :=
 show ↑(-g) • _ = _, by simp [neg_smul g z]
 
-lemma im_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).im = (top g z / bottom g z).im := rfl
+lemma im_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
 lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
-  (g • z).im = z.im / (complex.norm_sq (bottom g z)) :=
+  (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
 im_smul_eq_div_norm_sq g z
 
 end upper_half_plane_action
@@ -93,13 +93,13 @@ begin
   ext; simp [A, bottom_row]
 end
 
-lemma bottom_eq_mul_bottom_row_add_bottom_row (g : SL(2, ℤ)) (z : ℍ) :
-  bottom g z = (bottom_row g).c * z + (bottom_row g).d :=
+lemma denom_eq_mul_bottom_row_add_bottom_row (g : SL(2, ℤ)) (z : ℍ) :
+  denom g z = (bottom_row g).c * z + (bottom_row g).d :=
 by simp [bottom_row]
 
-lemma bottom_eq_of_bottom_row_eq {g h : SL(2,ℤ)} (z : ℍ) (bot_eq : bottom_row g = bottom_row h) :
-  bottom g z = bottom h z :=
-by simp [bottom_eq_mul_bottom_row_add_bottom_row, bot_eq]
+lemma denom_eq_of_bottom_row_eq {g h : SL(2,ℤ)} (z : ℍ) (bot_eq : bottom_row g = bottom_row h) :
+  denom g z = denom h z :=
+by simp [denom_eq_mul_bottom_row_add_bottom_row, bot_eq]
 
 end bottom_row
 
@@ -241,11 +241,11 @@ begin
   have : (coe : ℤ → ℝ) ∘ ![p.c, p.d] ≠ 0 :=
     λ h, (p.ne_zero ∘ (@int.cast_injective ℝ _ _ _).comp_left) h,
   have nonZ2 : (p.c : ℂ) * z + p.d ≠ 0 := by simpa using linear_ne_zero _ z this,
-  field_simp [nonZ1, nonZ2, bottom_ne_zero, -upper_half_plane.bottom],
+  field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom],
   rw (by simp : (p.d : ℂ) * z - p.c = ((p.d) * z - p.c) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
   simp only [bottom_row, int.coe_cast_ring_hom, coprime_pair.d_mk, coe_matrix_coe, coe_fn_eq_coe,
-    int.cast_mul, of_real_int_cast, coprime_pair.c_mk, map_apply, bottom, int.cast_sub],
+    int.cast_mul, of_real_int_cast, coprime_pair.c_mk, map_apply, denom, int.cast_sub],
   ring,
 end
 
@@ -281,8 +281,8 @@ begin
   rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, div_le_div_left],
   { simpa [← hg] using hp (bottom_row g') },
   { exact z.im_pos },
-  { exact normsq_bottom_pos g' z },
-  { exact normsq_bottom_pos g z },
+  { exact norm_sq_denom_pos g' z },
+  { exact norm_sq_denom_pos g z },
 end
 
 /-- Given `z : ℍ` and a bottom row `(c,d)`, among the `g : SL(2,ℤ)` with this bottom row, minimize
@@ -325,7 +325,7 @@ begin
     nlinarith },
   convert this,
   simp only [im_smul_eq_div_norm_sq],
-  field_simp [normsq_bottom_ne_zero, norm_sq_ne_zero, S]
+  field_simp [norm_sq_denom_ne_zero, norm_sq_ne_zero, S]
 end
 
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
@@ -340,7 +340,7 @@ begin
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   { have hg'' : (g • z).im = (g₀ • z).im,
     { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq,
-        bottom_eq_of_bottom_row_eq _ hg] },
+        denom_eq_of_bottom_row_eq _ hg] },
     simpa only [hg''] using hg₀ },
   split,
   { -- Claim: `|g•z| > 1`. If not, then `S•g•z` has larger imaginary part

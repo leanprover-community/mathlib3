@@ -179,10 +179,10 @@ instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
 instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
   is_local_ring_hom f.to_ring_hom :=
 { map_nonunit := λ a ha,
-begin
-  convert f.symm.to_ring_hom.is_unit_map ha,
-  rw ring_equiv.symm_to_ring_hom_apply_to_ring_hom_apply,
-end }
+  begin
+    convert f.symm.to_ring_hom.is_unit_map ha,
+    rw ring_equiv.symm_to_ring_hom_apply_to_ring_hom_apply,
+  end }
 
 @[simp] lemma is_unit_of_map_unit [semiring R] [semiring S] (f : R →+* S) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=
@@ -198,10 +198,10 @@ open category_theory
 
 lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_hom f.hom :=
 { map_nonunit := λ a ha,
-begin
-  convert f.inv.is_unit_map ha,
-  rw category_theory.coe_hom_inv_id,
-end }
+  begin
+    convert f.inv.is_unit_map ha,
+    rw category_theory.coe_hom_inv_id,
+  end }
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_local_ring_hom_of_is_iso {R S : CommRing} (f : R ⟶ S) [is_iso f] :

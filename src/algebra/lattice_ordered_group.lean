@@ -346,9 +346,8 @@ begin
       apply mul_le_mul'
         (lattice_ordered_comm_group.pos_pos a)
         (lattice_ordered_comm_group.le_neg a) } },
-  { have mod_eq_pos: |a|⁺ = |a| :=
-    begin
-      nth_rewrite 1 ← pos_div_neg' (|a|),
+  { have mod_eq_pos: |a|⁺ = |a|,
+    { nth_rewrite 1 ← pos_div_neg' (|a|),
       rw div_eq_mul_inv,
       symmetry,
       rw [mul_right_eq_self], symmetry, rw [one_eq_inv, le_antisymm_iff],
@@ -362,8 +361,7 @@ begin
         { apply and.right
             (iff.elim_left (le_iff_pos_le_neg_ge _ _)
             (lattice_ordered_comm_group.le_abs a)), } },
-      { apply lattice_ordered_comm_group.neg_pos, }
-    end,
+      { apply lattice_ordered_comm_group.neg_pos, } },
     rw [← inf_mul_sup, pos_inf_neg_eq_one, one_mul, ← mod_eq_pos ],
     apply sup_le,
     apply and.left

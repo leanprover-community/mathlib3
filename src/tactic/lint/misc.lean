@@ -347,7 +347,7 @@ meta def linter.syn_taut : linter :=
     "No declarations are syntactic tautologies.",
   errors_found := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. " ++
 "This usually means that they are of the form `∀ a b ... z,e₁ = e₂` where `e₁` and `e₂` are " ++
-"equal expressions, we call declarations of this form syntactic tautologies. " ++
+"identical expressions. We call declarations of this form syntactic tautologies. " ++
 "Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving " ++
 "basic facts using `rfl`, when elaboration results in a different term than the user intended. " ++
 "You should check that the declaration really says what you think it does.",

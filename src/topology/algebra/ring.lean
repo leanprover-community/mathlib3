@@ -207,75 +207,57 @@ universes u v
 /-- A ring topology on a ring `α` is a topology for which addition, negation and multiplication
 are continuous. -/
 @[ext]
-class ring_topology (α : Type u) [ring α]
+structure ring_topology (α : Type u) [ring α]
   extends topological_space α, topological_ring α : Type u
 
 namespace ring_topology
-variables {α: Type*} [ring α]
+variables {α : Type*} [ring α]
 
 @[ext]
-lemma ring_topology_eq {f g : ring_topology α} (h: f.is_open = g.is_open) : f = g := by {ext, rw h}
+lemma ext' {f g : ring_topology α} (h : f.is_open = g.is_open) : f = g :=
+by { ext, rw h }
 
 /-- The ordering on ring topologies on the ring `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (ring_topology α) :=
-{ le          := λ t s, s.is_open ≤ t.is_open,
-  le_antisymm := assume t s hst hts, ring_topology_eq $ le_antisymm hts hst,
-  le_refl     := assume t, le_refl t.is_open,
-  le_trans    := assume t s r h₁ h₂, le_trans h₂ h₁ }
+partial_order.lift ring_topology.to_topological_space $ ext
+
+-- { le          := λ t s, s.is_open ≤ t.is_open,
+--   le_antisymm := assume t s hst hts, ext' $ le_antisymm hts hst,
+--   le_refl     := assume t, le_refl t.is_open,
+--   le_trans    := assume t s r h₁ h₂, le_trans h₂ h₁ }
 
 local notation `cont` := @continuous _ _
 
-private def def_Inf : set (ring_topology α) → ring_topology α :=
-begin
-  intro S,
-  let Inf_S' := Inf {(@ring_topology.to_topological_space α _ a) | a ∈ S},
-  exact
-  { ring_topology . is_open := Inf_S'.is_open,
-    is_open_univ            := Inf_S'.is_open_univ,
-    is_open_inter           := Inf_S'.is_open_inter,
-    is_open_sUnion          := Inf_S'.is_open_sUnion,
-    continuous_add          :=
-    begin
-      apply continuous_Inf_rng,
-      rintros t ⟨a, haS, rfl⟩,
-      let t := a.to_topological_space,
-      have h_continuous_id :=
-      @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _
-        (continuous_Inf_dom ⟨a, haS, rfl⟩ (@continuous_id _ t))
-        (continuous_Inf_dom ⟨a, haS, rfl⟩ (@continuous_id _ t)),
-      have h_continuous_add :  cont (@prod.topological_space α α t t) t
-        (λ (p : α × α), p.fst + p.snd) := by apply continuous_add,
-      convert @continuous.comp _ _ _
-       (@prod.topological_space _ _ Inf_S' Inf_S')
-       (@prod.topological_space _ _ t t)
-       t _ _ h_continuous_add h_continuous_id,
-    end,
-    continuous_neg          :=
-    begin
-      apply continuous_Inf_rng,
-      intros t ht,
-      apply continuous_Inf_dom ht,
-      rcases ht with ⟨a, -, rfl⟩,
-      apply continuous_neg,
-    end,
-    continuous_mul          :=
-    begin
-      apply continuous_Inf_rng,
-      rintros t ⟨a, haS, rfl⟩,
-      let t := a.to_topological_space,
-      have h_continuous_id :=
-      @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _
-        (continuous_Inf_dom ⟨a, haS, rfl⟩ (@continuous_id _ t))
-        (continuous_Inf_dom ⟨a, haS, rfl⟩ (@continuous_id _ t)),
-      have h_continuous_mul :  cont (@prod.topological_space α α t t) t
-        (λ (p : α × α), p.fst * p.snd) := by apply continuous_mul,
-      convert @continuous.comp _ _ _
-        (@prod.topological_space _ _ Inf_S' Inf_S')
-        (@prod.topological_space _ _ t t)
-        t _ _ h_continuous_mul (h_continuous_id),
-    end },
-end
+private def def_Inf (S : set (ring_topology α)) : ring_topology α :=
+let Inf_S' := Inf (to_topological_space '' S) in
+{ to_topological_space := Inf_S',
+  continuous_add       :=
+  begin
+    apply continuous_Inf_rng,
+    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
+    have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
+    have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
+    have h_continuous_add : cont (id _) t (λ (p : α × α), p.fst + p.snd) := continuous_add,
+    exact @continuous.comp _ _ _ (id _) (id _) t _ _ h_continuous_add h_continuous_id,
+  end,
+  continuous_neg       :=
+  begin
+    apply continuous_Inf_rng,
+    intros t ht,
+    apply continuous_Inf_dom ht,
+    rcases ht with ⟨⟨t, tr⟩, -, rfl⟩, resetI,
+    apply continuous_neg,
+  end,
+  continuous_mul       :=
+  begin
+    apply continuous_Inf_rng,
+    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
+    have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
+    have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
+    have h_continuous_mul : cont (id _) t (λ (p : α × α), p.fst * p.snd) := continuous_mul,
+    exact @continuous.comp _ _ _ (id _) (id _) t _ _ h_continuous_mul h_continuous_id,
+  end }
 
 /-- Ring topologies on `α` form a complete lattice, with `⊥` the discrete topology and `⊤` the
 indiscrete topology.
@@ -287,11 +269,7 @@ The supremum of two ring topologies `s` and `t` is the infimum of the family of 
 contained in the intersection of `s` and `t`. -/
 instance : complete_semilattice_Inf (ring_topology α) :=
 { Inf    := def_Inf,
-  Inf_le :=
-  begin
-    intros S a haS,
-    apply topological_space.complete_lattice.Inf_le,    use [a, ⟨ haS, rfl⟩],
-  end,
+  Inf_le := λ S a haS, by { apply topological_space.complete_lattice.Inf_le, use [a, ⟨ haS, rfl⟩] },
   le_Inf :=
   begin
     intros S a hab,
@@ -306,8 +284,17 @@ complete_lattice_of_complete_semilattice_Inf _
 
 /--  Given `f : α → β` and a topology on `α`, the coinduced ring topology on `β` is the finest
 topology such that `f` is continuous and `β` is a topological ring. -/
-def ring_topology.coinduced {α : Type u} {β : Type v}
-  [ring β] (f : α → β) (t : topological_space α) : ring_topology β :=
-Inf {b: ring_topology β | (topological_space.coinduced f t) ≤ b.to_topological_space}
+def coinduced {α β : Type*} [t : topological_space α] [ring β] (f : α → β) :
+  ring_topology β :=
+Inf {b : ring_topology β | (topological_space.coinduced f t) ≤ b.to_topological_space}
+
+lemma coinduced_continuous {α β : Type*} [t : topological_space α] [ring β] (f : α → β) :
+  cont t (coinduced f).to_topological_space f :=
+begin
+  rw continuous_iff_coinduced_le,
+  refine le_Inf _,
+  rintros _ ⟨t', ht', rfl⟩,
+  exact ht',
+end
 
 end ring_topology

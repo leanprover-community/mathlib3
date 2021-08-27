@@ -30,5 +30,3 @@ ring_topology.coinduced (localization.monoid_of x).to_fun t
 instance {α : Type*}
   [comm_ring α][topological_space α]{x: submonoid α} : topological_ring (localization x) :=
 localization.ring_topology.to_topological_ring
-
-#lint

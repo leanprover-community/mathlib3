@@ -112,6 +112,7 @@ begin
   apply order_of_pos',
   rw is_of_fin_order_iff_pow_eq_one,
   exact Exists.intro r (id ⟨sub_pos_iff_lt.mpr hp, ha⟩),
+  exact b_min_fac_dvd_p_sub_one,
 end
 
 /--

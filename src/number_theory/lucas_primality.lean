@@ -23,16 +23,28 @@ for any divisor d | n. This test is the basis of the Pratt primality certificate
 - Bonus: Show the reverse implication i.e. if a number is prime then it has a Lucas witness. See [this stackexchange](https://math.stackexchange.com/a/59911/165144) answer for proof.
 - Write a tactic that uses this theorem to generate Pratt primality certificates [see](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/norm_num.20for.20real.20exponentiation/near/249615218)
 
--/
+## Implementation notes
 
+It was a challenge to avoid diamonds when writing this file. Ultimately, I settled on introducing an instance of `fact (0 < p)` rather than make an instance of `fintype` on `units (zmod n)` as Mario showed how to do:
 
--- TODO Mario says this can be made computable
+```
 noncomputable instance units_zmod.fintype : Π n, fintype (units (zmod n))
 | 0     := units_int.fintype
 | (n+1) := units.fintype
+```
+Note that Mario also remarked this could be made computable.
 
+-/
 
-lemma prime_iff_card_units (p : ℕ) (hp : 0 < p) :
+variables (p : ℕ) [fact (0 < p)]
+
+lemma card_units_zmod_lt_sub_one (hp : 1 < p) : fintype.card (units (zmod p)) ≤ p - 1 :=
+begin
+  rw zmod.card_units_eq_totient p,
+  exact nat.le_pred_of_lt (nat.totient_lt p hp),
+end
+
+lemma prime_iff_card_units (p : ℕ) [hp : fact (0 < p)] :
   p.prime ↔ fintype.card (units (zmod p)) = p - 1
 :=
 begin
@@ -40,29 +52,76 @@ begin
     { intro p_prime,
       haveI := fact.mk p_prime,
       convert zmod.card_units p, },
-    { haveI := fact.mk hp,
-      intro h,
+    { intro h,
+      haveI := fact.mk hp,
       replace h : @fintype.card (units (zmod p)) (units.fintype) = p - 1,
       { convert h },
       rw zmod.card_units_eq_totient at h,
-      rw nat.totient_prime_iff at h,
+      rw nat.totient_eq_iff_prime at h,
       exact h,
-      exact hp, },
+      exact hp.1, },
 end
 
 
-lemma foobar (a b c : ℕ) (a_dvd_b : a ∣ b) : c ∣ b / a ↔ c * a ∣ b :=
+example (a b c : ℕ) (h : a ∣ b) : a * c ∣ b * c :=
 begin
-  sorry,
+  exact mul_dvd_mul_right h c
+  -- cases exists_eq_mul_left_of_dvd h with d h',
+  -- rw h',
+  -- rw mul_assoc,
+  -- exact dvd_mul_left (a * c) d,
 end
 
-lemma zmod_order_le_card_units (n : ℕ) (hn : 1 < n) (a : zmod n) :
-  order_of a ≤ fintype.card (units (zmod n)) :=
+
+lemma dvd_div_iff_mul_dvd (a b c : ℕ) (a_dvd_b : a ∣ b) : c ∣ b / a ↔ c * a ∣ b :=
 begin
-  sorry,
+  split,
+  {
+    intro h,
+    cases exists_eq_mul_left_of_dvd h with d h',
+    have h'' : b = d * c * a,
+      exact nat.eq_mul_of_div_eq_left a_dvd_b h',
+    rw h'',
+    rw mul_assoc,
+    exact dvd_mul_left (c * a) d,
+  },
+  {
+    intro h,
+    cases exists_eq_mul_left_of_dvd h with d h',
+    rw h',
+    rw nat.mul_div_assoc,
+    rw nat.mul_div_assoc,
+    by_cases a = 0,
+    rw h,
+    simp,
+    have : 0 < a,
+      exact zero_lt_iff.mpr h,
+    have : a / a = 1,
+      {
+        exact nat.div_self this,
+      },
+    rw this,
+    simp,
+    exact dvd_mul_left a c,
+
+  },
+
 end
 
-theorem lucas_primality (p : ℕ) (a : zmod p)
+-- lemma zmod_order_le_card_units (hn : 1 < p) (a : zmod p) :
+--   order_of a ≤ fintype.card (units (zmod p)) :=
+-- begin
+--   let a' : units (zmod p) := {
+--     val := a,
+--     inv :=
+--   }
+--   -- convert order_of_le_card_univ,
+-- end
+
+/-- The monoid homomorphism from the units of -/
+def unit_hom : (units (zmod p)) →* (zmod p) := sorry,
+
+theorem lucas_primality (a : zmod p)
   (hp : 1 < p)
   (ha : a^(p-1) = 1)
   -- (hd : (∀ d : ℕ, d ∈ (p-1).factors -> a^((p-1) / d) ≠ 1)
@@ -99,7 +158,7 @@ begin
       exact b_min_fac_dvd_p_sub_one,
 
       have hfoo : order_of a ∣ (p-1) / (b.min_fac),
-        rw foobar,
+        rw dvd_div_iff_mul_dvd,
         rw hb,
         rw nat.mul_dvd_mul_iff_left,
         exact nat.min_fac_dvd b,
@@ -115,19 +174,33 @@ begin
 
   -- rw <-nat.totient_prime_iff,
   -- rw nat.totient_eq_card_coprime,
+
   rw prime_iff_card_units,
   rw le_antisymm_iff,
   split,
     {
-      rw zmod.card_units_eq_totient
-      sorry,
+      exact card_units_zmod_lt_sub_one p hp,
     },
     {
-      rw <-order_of_a,
-      apply zmod_order_le_card_units,
-      exact hp,
-      -- convert order_of_le_card_univ,
+      have hp' : p - 2 + 1 = p - 1,
+        sorry,
+      let a' : units (zmod p) := {
+        val := a,
+        inv := a ^ (p - 2),
+        val_inv := begin rw <-pow_succ, rw hp', rw ha, end,
+        inv_val := begin rw <-pow_succ', rw hp', rw ha, end,
+      },
+      have a_coe : a = a',
+        sorry,
+      have order_of_a' : order_of a' = p-1,
+        {
+          rw <-order_of_a,
+          rw a_coe,
+          rw order_of_injective coe,
+        },
+      rw <-order_of_a',
+      apply order_of_le_card_univ,
+      -- apply zmod_order_le_card_units,
+      -- exact hp,
     },
-
-  linarith,
 end

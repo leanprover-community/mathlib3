@@ -192,7 +192,7 @@ section group
 
 variables {G : Type*} [group G]
 
-/-- An element of a group acting on a monoid is regular. This relies on the availability
+/-- An element of a group acting on a Type is regular. This relies on the availability
 of the inverse given by groups, since there is no `left_cancel_smul` typeclass. -/
 lemma is_smul_regular_of_group [mul_action G R] (g : G) : is_smul_regular R g :=
 begin

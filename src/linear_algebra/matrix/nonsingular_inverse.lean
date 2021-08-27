@@ -652,45 +652,30 @@ begin
       this, ←map_update_row, ←ring_hom.map_matrix_apply, ←ring_hom.map_det, ←adjugate_apply]
 end
 
-section cancel
-
-lemma is_regular.is_smul_regular {α n m : Type*} [ring α] [fintype n] [fintype m] {k : α}
-  (hk : is_regular k) : is_smul_regular (matrix n m α) k :=
-begin
-  intros A B h,
-  ext i j,
-  refine hk.left _,
-  simp [←smul_eq_mul, ←pi.smul_apply, h]
-end
-
-lemma is_regular_of_is_regular_det {A : matrix n n α} (hA : is_regular A.det) :
+lemma is_regular_of_is_left_regular_det {A : matrix n n α} (hA : is_left_regular A.det) :
   is_regular A :=
 begin
   split,
   { intros B C h,
-    refine is_regular.is_smul_regular hA _,
+    refine hA.matrix _,
     rw [←matrix.one_mul B, ←matrix.one_mul C, ←matrix.smul_mul, ←matrix.smul_mul, ←adjugate_mul,
         matrix.mul_assoc, matrix.mul_assoc, ←mul_eq_mul A, h, mul_eq_mul] },
   { intros B C h,
     simp only [mul_eq_mul] at h,
-    refine is_regular.is_smul_regular hA _,
+    refine hA.matrix _,
     rw [←matrix.mul_one B, ←matrix.mul_one C, ←matrix.mul_smul, ←matrix.mul_smul, ←mul_adjugate,
         ←matrix.mul_assoc, ←matrix.mul_assoc, h] }
 end
 
-end cancel
-
 lemma adjugate_mul_distrib_aux (A B : matrix n n α)
-  (hA : is_regular A.det)
-  (hB : is_regular B.det) :
+  (hA : is_left_regular A.det)
+  (hB : is_left_regular B.det) :
   adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  have hAB : is_regular (A ⬝ B).det,
+  have hAB : is_left_regular (A ⬝ B).det,
   { rw [det_mul],
-    split,
-    { exact hA.left.mul hB.left },
-    { exact hA.right.mul hB.right } },
-  refine (is_regular_of_is_regular_det hAB).left _,
+    exact hA.mul hB },
+  refine (is_regular_of_is_left_regular_det hAB).left _,
   rw [mul_eq_mul, mul_adjugate, mul_eq_mul, matrix.mul_assoc, ←matrix.mul_assoc B, mul_adjugate,
       smul_mul, matrix.one_mul, mul_smul, mul_adjugate, smul_smul, mul_comm, ←det_mul]
 end
@@ -753,5 +738,23 @@ divides `b`. -/
 @[simp] lemma mul_vec_cramer (A : matrix n n α) (b : n → α) :
   A.mul_vec (cramer A b) = A.det • b :=
 by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, one_mul_vec]
+
+/-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
+
+See also `bilin_form.nondegenerate_of_det_ne_zero'` and `bilin_form.nondegenerate_of_det_ne_zero`.
+-/
+theorem nondegenerate_of_det_ne_zero {A : Type*} [integral_domain A]
+  {M : matrix n n A} (hM : M.det ≠ 0)
+  (v : n → A) (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+begin
+  ext i,
+  specialize hv (M.cramer (pi.single i 1)),
+  refine (mul_eq_zero.mp _).resolve_right hM,
+  convert hv,
+  simp only [mul_vec_cramer M (pi.single i 1), dot_product, pi.smul_apply, smul_eq_mul],
+  rw [finset.sum_eq_single i, pi.single_eq_same, mul_one],
+  { intros j _ hj, simp [hj] },
+  { intros, have := finset.mem_univ i, contradiction }
+end
 
 end matrix

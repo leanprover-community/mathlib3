@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.gcd_monoid
+import algebra.gcd_monoid.basic
 import data.polynomial.derivative
 import data.polynomial.ring_division
 import ring_theory.euclidean_domain

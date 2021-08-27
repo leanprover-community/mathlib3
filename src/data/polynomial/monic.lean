@@ -420,15 +420,8 @@ begin
   rw [←with_bot.coe_eq_coe, ←degree_eq_nat_degree hp, ←degree_eq_nat_degree,
       degree_smul_of_smul_regular p h],
   contrapose! hp,
-  -- TODO: is this general over things with some smul class??
-  have h' : is_smul_regular (polynomial R) k,
-  { intros p q hpq,
-    rw ext_iff at hpq ⊢,
-    intro n,
-    refine h _,
-    simpa using hpq n },
   rw ←smul_zero k at hp,
-  exact h' hp
+  exact h.polynomial hp
 end
 
 lemma leading_coeff_smul_of_smul_regular {S : Type*} [monoid S] [distrib_mul_action S R]
@@ -451,13 +444,13 @@ begin
   split,
   { intro hp,
     rw ←smul_eq_zero_iff_eq (h.unit)⁻¹ at hp,
-    { have : (h.unit)⁻¹ • (p * q) = ((h.unit)⁻¹ • p) * q,
-      { ext,
-        simp only [units.smul_def, coeff_smul, coeff_mul, smul_eq_mul, mul_sum],
-        refine sum_congr rfl (λ x hx, _),
-        rw ←mul_assoc },
-      rwa [this, monic.mul_right_eq_zero_iff] at hp,
-      exact monic_of_is_unit_leading_coeff_inv_smul _ } },
+    have : (h.unit)⁻¹ • (p * q) = ((h.unit)⁻¹ • p) * q,
+    { ext,
+      simp only [units.smul_def, coeff_smul, coeff_mul, smul_eq_mul, mul_sum],
+      refine sum_congr rfl (λ x hx, _),
+      rw ←mul_assoc },
+    rwa [this, monic.mul_right_eq_zero_iff] at hp,
+    exact monic_of_is_unit_leading_coeff_inv_smul _ },
   { rintro rfl,
     simp }
 end

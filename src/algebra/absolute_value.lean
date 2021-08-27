@@ -97,7 +97,7 @@ variables {R S : Type*} [semiring R] [linear_ordered_field S] (abv : absolute_va
 variables [nontrivial R]
 
 @[simp] protected theorem map_one : abv 1 = 1 :=
-  (mul_right_inj' $ mt abv.eq_zero.1 one_ne_zero).1 $
+(mul_right_inj' $ mt abv.eq_zero.1 one_ne_zero).1 $
 by rw [← abv.map_mul, mul_one, mul_one]
 
 /-- Absolute values from a nontrivial `R` to a linear ordered field preserve `*`, `0` and `1`. -/

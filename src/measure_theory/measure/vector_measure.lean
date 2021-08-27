@@ -45,7 +45,7 @@ open_locale classical big_operators nnreal ennreal
 
 namespace measure_theory
 
-variables {α β : Type*} [measurable_space α]
+variables {α β : Type*} {m : measurable_space α}
 
 /-- A vector measure on a measurable space `α` is a σ-additive `M`-valued function (for some `M`
 an add monoid) such that the empty set and non-measurable sets are mapped to zero. -/
@@ -70,6 +70,8 @@ namespace vector_measure
 section
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
+
+include m
 
 instance : has_coe_to_fun (vector_measure α M) :=
 ⟨λ _, set α → M, vector_measure.measure_of'⟩
@@ -244,6 +246,8 @@ section add_comm_monoid
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 
+include m
+
 instance : has_zero (vector_measure α M) :=
 ⟨⟨0, rfl, λ _ _, rfl, λ _ _ _, has_sum_zero⟩⟩
 
@@ -280,9 +284,9 @@ end add_comm_monoid
 
 section add_comm_group
 
-variables {M : Type*} [add_comm_group M] [topological_space M]
+variables {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]
 
-variables [topological_add_group M]
+include m
 
 /-- The negative of a vector measure is a vector measure. -/
 def neg (v : vector_measure α M) : vector_measure α M :=
@@ -322,6 +326,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M]
 variables [topological_space R] [has_continuous_smul R M]
 
+include m
+
 /-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
 measure corresponding to the function `r • s`. -/
 def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
@@ -347,6 +353,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M]
 
+include m
+
 instance [has_continuous_add M] : module R (vector_measure α M) :=
 function.injective.module R coe_fn_add_monoid_hom coe_injective coe_smul
 
@@ -355,6 +363,8 @@ end module
 end vector_measure
 
 namespace measure
+
+include m
 
 /-- A finite measure coerced into a real function is a signed measure. -/
 @[simps]
@@ -465,9 +475,34 @@ end measure
 
 namespace vector_measure
 
+open measure
+
 section
 
-variables [measurable_space β]
+/-- A vector measure over `ℝ≥0∞` is a measure. -/
+def ennreal_to_measure {m : measurable_space α} (v : vector_measure α ℝ≥0∞) : measure α :=
+of_measurable (λ s _, v s) v.empty (λ f hf₁ hf₂, v.of_disjoint_Union_nat hf₁ hf₂)
+
+lemma ennreal_to_measure_apply {m : measurable_space α} {v : vector_measure α ℝ≥0∞}
+  {s : set α} (hs : measurable_set s) : ennreal_to_measure v s = v s :=
+by rw [ennreal_to_measure, of_measurable_apply _ hs]
+
+/-- The equiv between `vector_measure α ℝ≥0∞` and `measure α` formed by
+`measure_theory.vector_measure.ennreal_to_measure` and
+`measure_theory.measure.to_ennreal_vector_measure`. -/
+@[simps] def equiv_measure [measurable_space α] : vector_measure α ℝ≥0∞ ≃ measure α :=
+{ to_fun := ennreal_to_measure,
+  inv_fun := to_ennreal_vector_measure,
+  left_inv := λ _, ext (λ s hs,
+    by rw [to_ennreal_vector_measure_apply_measurable hs, ennreal_to_measure_apply hs]),
+  right_inv := λ _, measure.ext (λ s hs,
+    by rw [ennreal_to_measure_apply hs, to_ennreal_vector_measure_apply_measurable hs]) }
+
+end
+
+section
+
+variables [measurable_space α] [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables (v : vector_measure α M)
 
@@ -485,6 +520,9 @@ if hf : measurable f then
     { ext i, rw if_pos (hg₁ i) },
     { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] }
   end } else 0
+
+lemma map_not_measurable {f : α → β} (hf : ¬ measurable f) : v.map f = 0 :=
+dif_neg hf
 
 lemma map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   v.map f s = v (f ⁻¹' s) :=
@@ -588,6 +626,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M]
 variables [topological_space R] [has_continuous_smul R M]
 
+include m
+
 @[simp] lemma map_smul {v : vector_measure α M} {f : α → β} (c : R) :
   (c • v).map f = c • v.map f :=
 begin
@@ -619,6 +659,8 @@ variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [module R M]
 variables [topological_space R] [has_continuous_smul R M] [has_continuous_add M]
 
+include m
+
 /-- `vector_measure.map` as a linear map. -/
 @[simps] def mapₗ (f : α → β) : vector_measure α M →ₗ[R] vector_measure β M :=
 { to_fun := λ v, v.map f,
@@ -636,6 +678,8 @@ end
 section
 
 variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
+
+include m
 
 /-- Vector measures over a partially ordered monoid is partially ordered.
 
@@ -852,6 +896,8 @@ section
 variables {M : Type*} [topological_space M] [linear_ordered_add_comm_monoid M]
 variables (v w : vector_measure α M) {i j : set α}
 
+include m
+
 lemma exists_pos_measure_of_not_restrict_le_zero (hi : ¬ v ≤[i] 0) :
   ∃ j : set α, measurable_set j ∧ j ⊆ i ∧ 0 < v j :=
 begin
@@ -869,9 +915,75 @@ section
 variables {M : Type*} [topological_space M] [add_comm_monoid M] [partial_order M]
   [covariant_class M M (+) (≤)] [has_continuous_add M]
 
+include m
+
 instance covariant_add_le :
   covariant_class (vector_measure α M) (vector_measure α M) (+) (≤) :=
 ⟨λ u v w h i hi, add_le_add_left (h i hi) _⟩
+
+end
+
+section
+
+variables {L M N : Type*}
+variables [add_comm_monoid L] [topological_space L] [add_comm_monoid M] [topological_space M]
+  [add_comm_monoid N] [topological_space N]
+
+include m
+
+/-- A vector measure `v` is absolutely continuous with respect to a measure `μ` if for all sets
+`s`, `μ s = 0`, we have `v s = 0`. -/
+def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
+∀ ⦃s : set α⦄, w s = 0 → v s = 0
+
+infix ` ≪ `:50 := absolutely_continuous
+
+namespace absolutely_continuous
+
+variables {v : vector_measure α M} {w : vector_measure α N}
+
+lemma mk (h : ∀ ⦃s : set α⦄, measurable_set s → w s = 0 → v s = 0) : v ≪ w :=
+begin
+  intros s hs,
+  by_cases hmeas : measurable_set s,
+  { exact h hmeas hs },
+  { exact not_measurable v hmeas }
+end
+
+lemma eq {w : vector_measure α M} (h : v = w) : v ≪ w :=
+λ s hs, h.symm ▸ hs
+
+@[refl] lemma refl (v : vector_measure α M) : v ≪ v :=
+eq rfl
+
+@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ v) (hvw : v ≪ w) : u ≪ w :=
+λ _ hs, huv $ hvw hs
+
+lemma map [measure_space β] (h : v ≪ w) (f : α → β) :
+  v.map f ≪ w.map f :=
+begin
+  by_cases hf : measurable f,
+  { refine mk (λ s hs hws, _),
+    rw map_apply _ hf hs at hws ⊢,
+    exact h hws },
+  { intros s hs,
+    rw [map_not_measurable v hf, zero_apply] }
+end
+
+lemma ennreal_to_measure {μ : vector_measure α ℝ≥0∞} :
+  (∀ ⦃s : set α⦄, μ.ennreal_to_measure s = 0 → v s = 0) ↔ v ≪ μ :=
+begin
+  split; intro h,
+  { refine mk (λ s hmeas hs, h _),
+    rw [← hs, ennreal_to_measure_apply hmeas] },
+  { intros s hs,
+    by_cases hmeas : measurable_set s,
+    { rw ennreal_to_measure_apply hmeas at hs,
+      exact h hs },
+    { exact not_measurable v hmeas } },
+end
+
+end absolutely_continuous
 
 end
 
@@ -882,6 +994,8 @@ namespace signed_measure
 open vector_measure
 
 open_locale measure_theory
+
+include m
 
 /-- The underlying function for `signed_measure.to_measure_of_zero_le`. -/
 def to_measure_of_zero_le' (s : signed_measure α) (i : set α) (hi : 0 ≤[i] s)

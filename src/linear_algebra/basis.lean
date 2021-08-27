@@ -247,6 +247,35 @@ of_repr (f.symm.trans b.repr)
 
 end map
 
+section map_coeffs
+
+variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (x : M), f c • x = c • x)
+
+include f h b
+
+/-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
+then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
+
+See also `basis.algebra_map_coeffs` for the case where `f` is equal to `algebra_map`.
+-/
+@[simps {simp_rhs := tt}]
+def map_coeffs : basis ι R' M :=
+begin
+  letI : module R' R := module.comp_hom R (↑f.symm : R' →+* R),
+  haveI : is_scalar_tower R' R M :=
+  { smul_assoc := λ x y z, begin dsimp [(•)],  rw [mul_smul, ←h, f.apply_symm_apply], end },
+  exact (of_repr $ (b.repr.restrict_scalars R').trans $
+    finsupp.map_range.linear_equiv (module.comp_hom.to_linear_equiv f.symm).symm )
+end
+
+lemma map_coeffs_apply (i : ι) : b.map_coeffs f h i = b i :=
+apply_eq_iff.mpr $ by simp [f.to_add_equiv_eq_coe]
+
+@[simp] lemma coe_map_coeffs : (b.map_coeffs f h : ι → M) = b :=
+funext $ b.map_coeffs_apply f h
+
+end map_coeffs
+
 section reindex
 
 variables (b' : basis ι' R M')

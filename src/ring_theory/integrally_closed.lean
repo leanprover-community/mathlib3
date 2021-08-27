@@ -33,17 +33,6 @@ class is_integrally_closed (R : Type*) [integral_domain R] : Prop :=
 (algebra_map_eq_of_integral :
   ∀ {x : fraction_ring R}, is_integral R x → ∃ y, algebra_map R (fraction_ring R) y = x)
 
-lemma alg_hom.algebra_map_eq_apply {R A B : Type*} [comm_semiring R] [semiring A] [semiring B]
-  [algebra R A] [algebra R B] (f : A →ₐ[R] B) {y : R} {x : A} (h : algebra_map R A y = x) :
-  algebra_map R B y = f x :=
-h ▸ (f.commutes _).symm
-
-@[simp] lemma alg_equiv.algebra_map_eq_apply {R A B : Type*} [comm_semiring R] [semiring A] [semiring B]
-  [algebra R A] [algebra R B] (e : A ≃ₐ[R] B) {y : R} {x : A} :
-  (algebra_map R B y = e x) ↔ (algebra_map R A y = x) :=
-⟨λ h, by simpa using e.symm.to_alg_hom.algebra_map_eq_apply h,
- λ h, e.to_alg_hom.algebra_map_eq_apply h⟩
-
 section iff
 
 variables {R : Type*} [integral_domain R] (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]

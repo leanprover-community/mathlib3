@@ -117,8 +117,8 @@ end
 
 /--
 If a^(p-1) = 1 mod p, but a^((p-1)/q) ≠ 1 mod p for all prime factors q of p-1, then p is prime.
-This is true because the above condition implies that a has order p-1 in the multiplicative group
-mod p, so this group must itself have order p-1, which only happens when p is prime.
+This is true because a has order p-1 in the multiplicative group mod p, so this group must itself
+have order p-1, which only happens when p is prime.
 -/
 theorem lucas_primality (a : zmod p)
   (hp : 1 < p)
@@ -126,44 +126,27 @@ theorem lucas_primality (a : zmod p)
   (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ (p-1)) -> a^((p-1)/q) ≠ 1))
   : p.prime :=
 begin
-  -- Let b be (p-1)/(order_of a)
-
   have order_of_a : order_of a = p-1,
     { apply order_from_pows p (p - 1) a _ ha hd,
       exact sub_pos_iff_lt.mpr hp, },
   rw prime_iff_card_units,
+  -- Prove cardinality of units of zmod p are le and ge p-1
   rw le_antisymm_iff,
   split,
-    {
-      exact card_units_zmod_lt_sub_one p hp,
-    },
-    {
-      have hp' : p - 2 + 1 = p - 1,
+    { exact card_units_zmod_lt_sub_one p hp, },
+    { have hp' : p - 2 + 1 = p - 1,
         { apply eq.symm,
-          rw nat.sub_eq_iff_eq_add,
-          rw add_assoc,
-          norm_num,
-          rw <-nat.sub_eq_iff_eq_add,
+          rw [nat.sub_eq_iff_eq_add, add_assoc, one_add_one_eq_two, ←nat.sub_eq_iff_eq_add],
           linarith,
           linarith, },
-      let a' : units (zmod p) := {
-        val := a,
-        inv := a ^ (p - 2),
-        val_inv := begin rw <-pow_succ, rw hp', rw ha, end,
-        inv_val := begin rw <-pow_succ', rw hp', rw ha, end,
-      },
+      let a' : units (zmod p) := units.mk_of_mul_eq_one a (a ^ (p-2)) _,
       have a_coe : a = units.coe_hom (zmod p) a',
         { unfold_coes, simp, },
       have order_of_a' : order_of a' = p-1,
-        {
-          rw <-order_of_a,
-          rw a_coe,
-          rw order_of_injective (@units.coe_hom (zmod p) _),
-          exact units.ext,
-        },
-      rw <-order_of_a',
+        { rw [←order_of_a, a_coe, order_of_injective (@units.coe_hom (zmod p) _)],
+          exact units.ext, },
+      rw ←order_of_a',
       apply order_of_le_card_univ,
-      -- apply zmod_order_le_card_units,
-      -- exact hp,
+      rw [←pow_succ, hp', ha],
     },
 end

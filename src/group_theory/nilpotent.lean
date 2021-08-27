@@ -313,7 +313,7 @@ begin
     use [lower_central_series G, lower_central_series_is_descending_central_series, h] },
 end
 
-lemma lower_central_series_subgroup_le_lower_central_series_group (H : subgroup G) (n : ℕ) :
+lemma lower_central_series_map_subtype_le (H : subgroup G) (n : ℕ) :
   (lower_central_series H n).map H.subtype ≤ lower_central_series G n :=
 begin
   induction n with d hd,

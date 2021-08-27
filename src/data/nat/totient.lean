@@ -39,21 +39,12 @@ lemma totient_le (n : ℕ) : φ n ≤ n :=
 calc totient n ≤ (range n).card : card_filter_le _ _
            ... = n              : card_range _
 
--- TODO remove and use #8842
-lemma filter_subset_filter_of_implies (s : finset ℕ) (p q : ℕ → Prop) [decidable_pred p] [decidable_pred q] (h : ∀ n , p n -> q n) : s.filter p ⊆ s.filter q :=
-begin
-  refine subset_iff.mpr _,
-  simp only [and_imp, mem_filter],
-  intros x hx hp,
-  exact ⟨hx, h x hp⟩,
-end
-
 lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
 calc totient n ≤ ((range n).filter (≠ 0)).card :
                 begin
                   simp only [totient],
                   apply card_le_of_subset,
-                  apply filter_subset_filter_of_implies,
+                  apply monotone_filter_right,
                   intros n1 hn1 hn1',
                   rw hn1' at hn1,
                   simp at hn1,

@@ -269,7 +269,7 @@ theorem semiconj_by.fpow_right {a x y : M} (hx : is_unit x.det) (hy : is_unit y.
     exact hy.pow n.succ },
   rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, nonsing_inv_apply _ hx', nonsing_inv_apply _ hy',
       semiconj_by],
-  refine (is_regular_of_is_regular_det hy'.is_regular).left _,
+  refine (is_regular_of_is_left_regular_det hy'.is_regular.left).left _,
   rw [←mul_assoc, ←(h.pow_right n.succ).eq, mul_assoc, mul_eq_mul (x ^ _), mul_smul, mul_adjugate,
       mul_eq_mul, mul_eq_mul, mul_eq_mul, ←matrix.mul_assoc, mul_smul (y ^ _), mul_adjugate,
       units.smul_def, units.smul_def, smul_smul, smul_smul, hx'.coe_inv_mul, hy'.coe_inv_mul,

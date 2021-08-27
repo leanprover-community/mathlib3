@@ -18,7 +18,7 @@ most notably conditional expectations and probability cumulative functions.
 
 ## Main results
 
-* `measure_theory.measureabsolutely_continuous_iff_with_density_radon_nikodym_derive_eq` :
+* `measure_theory.measure.absolutely_continuous_iff_with_density_radon_nikodym_derive_eq` :
   the Radon-Nikodym theorem
 
 ## Tags

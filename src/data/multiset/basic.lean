@@ -425,6 +425,27 @@ by rw [add_comm, cons_add, add_comm]
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
 
+lemma mem_of_mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h : a ∈ n • s) : a ∈ s :=
+begin
+  induction n with n ih,
+  { rw zero_nsmul at h,
+    exact absurd h (not_mem_zero _) },
+  { rw [succ_nsmul, mem_add] at h,
+    exact h.elim id ih },
+end
+
+@[simp]
+lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) : a ∈ n • s ↔ a ∈ s :=
+begin
+  refine ⟨mem_of_mem_nsmul, λ h, _⟩,
+  obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero h0,
+  rw [succ_nsmul, mem_add],
+  exact or.inl h
+end
+
+lemma nsmul_cons {s : multiset α} (n : ℕ) (a : α) : n • (a ::ₘ s) = n • {a} + n • s :=
+by rw [←singleton_add, nsmul_add]
+
 /-! ### Cardinality -/
 
 /-- The cardinality of a multiset is the sum of the multiplicities
@@ -559,6 +580,20 @@ theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ {a} := repeat_s
 
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p) ▸ s, sublist.subperm⟩
+
+theorem nsmul_singleton (a : α) (n) : n • ({a} : multiset α) = repeat a n :=
+begin
+  refine eq_repeat.mpr ⟨_, λ b hb, mem_singleton.mp (mem_of_mem_nsmul hb)⟩,
+  rw [card_nsmul, card_singleton, mul_one]
+end
+
+lemma nsmul_repeat {a : α} (n m : ℕ) : n • (repeat a m) = repeat a (n * m) :=
+begin
+  rw eq_repeat,
+  split,
+  { rw [card_nsmul, card_repeat] },
+  { exact λ b hb, eq_of_mem_repeat (mem_of_mem_nsmul hb) },
+end
 
 /-! ### Erasing one copy of an element -/
 section erase
@@ -985,6 +1020,19 @@ lemma prod_dvd_prod [comm_monoid α] {s t : multiset α} (h : s ≤ t) :
 begin
   rcases multiset.le_iff_exists_add.1 h with ⟨z, rfl⟩,
   simp,
+end
+
+lemma prod_nonneg [ordered_comm_semiring α] {m : multiset α} (h : ∀ a ∈ m, (0 : α) ≤ a) :
+  0 ≤ m.prod :=
+begin
+  revert h,
+  refine m.induction_on _ _,
+  { rintro -, rw prod_zero, exact zero_le_one },
+  { intros a s hs ih,
+    rw prod_cons,
+    apply mul_nonneg,
+    { exact ih _ (mem_cons_self _ _) },
+    { exact hs (λ a ha, ih _ (mem_cons_of_mem ha)) } }
 end
 
 @[to_additive sum_nonneg]
@@ -1680,7 +1728,16 @@ quot.induction_on s $ λ l, (filter_sublist _).subperm
 subset_of_le $ filter_le _ _
 
 theorem filter_le_filter {s t} (h : s ≤ t) : filter p s ≤ filter p t :=
-le_induction_on h $ λ l₁ l₂ h, (filter_sublist_filter p h).subperm
+le_induction_on h $ λ l₁ l₂ h, (h.filter p).subperm
+
+lemma monotone_filter_left :
+  monotone (filter p) :=
+λ s t, filter_le_filter p
+
+lemma monotone_filter_right (s : multiset α) ⦃p q : α → Prop⦄
+  [decidable_pred p] [decidable_pred q] (h : p ≤ q) :
+  s.filter p ≤ s.filter q :=
+quotient.induction_on s (λ l, (l.monotone_filter_right h).subperm)
 
 variable {p}
 
@@ -1715,6 +1772,28 @@ quot.induction_on s $ λ l, iff.trans ⟨λ h,
 theorem le_filter {s t} : s ≤ filter p t ↔ s ≤ t ∧ ∀ a ∈ s, p a :=
 ⟨λ h, ⟨le_trans h (filter_le _ _), λ a m, of_mem_filter (mem_of_le h m)⟩,
  λ ⟨h, al⟩, filter_eq_self.2 al ▸ filter_le_filter p h⟩
+
+theorem filter_cons {a : α} (s : multiset α) :
+  filter p (a ::ₘ s) = (if p a then {a} else 0) + filter p s :=
+begin
+  split_ifs with h,
+  { rw [filter_cons_of_pos _ h, singleton_add] },
+  { rw [filter_cons_of_neg _ h, zero_add] },
+end
+
+lemma filter_nsmul (s : multiset α) (n : ℕ) :
+  filter p (n • s) = n • filter p s :=
+begin
+  refine s.induction_on _ _,
+  { simp only [filter_zero, nsmul_zero] },
+  { intros a ha ih,
+    rw [nsmul_cons, filter_add, ih, filter_cons, nsmul_add],
+    congr,
+    split_ifs with hp;
+    { simp only [filter_eq_self, nsmul_zero, filter_eq_nil],
+      intros b hb,
+      rwa (mem_singleton.mp (mem_of_mem_nsmul hb)) } }
+end
 
 variable (p)
 
@@ -1854,6 +1933,12 @@ quot.induction_on s $ countp_cons_of_neg p
 
 variable (p)
 
+theorem countp_cons (b : α) (s) : countp p (b ::ₘ s) = countp p s + (if p b then 1 else 0) :=
+begin
+  split_ifs with h;
+  simp only [h, multiset.countp_cons_of_pos, add_zero, multiset.countp_cons_of_neg, not_false_iff],
+end
+
 theorem countp_eq_card_filter (s) : countp p s = card (filter p s) :=
 quot.induction_on s $ λ l, countp_eq_length_filter _ _
 
@@ -1880,6 +1965,15 @@ by simpa [countp_eq_card_filter] using card_le_of_le (filter_le_filter p h)
 @[simp] theorem countp_filter (q) [decidable_pred q] (s : multiset α) :
   countp p (filter q s) = countp (λ a, p a ∧ q a) s :=
 by simp [countp_eq_card_filter]
+
+theorem countp_map (f : α → β) (s : multiset α) (p : β → Prop) [decidable_pred p] :
+  countp p (map f s) = (s.filter (λ a, p (f a))).card :=
+begin
+  refine multiset.induction_on s _ (λ a t IH, _),
+  { rw [map_zero, countp_zero, filter_zero, card_zero] },
+  { rw [map_cons, countp_cons, IH, filter_cons, card_add, apply_ite card, card_zero,
+      card_singleton, add_comm] },
+end
 
 variable {p}
 
@@ -2044,17 +2138,6 @@ instance : semilattice_sup_bot (multiset α) :=
   bot_le := zero_le,
   ..multiset.lattice }
 
-end
-
-@[simp]
-lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) :
-  a ∈ n • s ↔ a ∈ s :=
-begin
-  classical,
-  cases n,
-  { exfalso, apply h0 rfl },
-  rw [← not_iff_not, ← count_eq_zero, ← count_eq_zero],
-  simp [h0],
 end
 
 /-! ### Lift a relation to `multiset`s -/

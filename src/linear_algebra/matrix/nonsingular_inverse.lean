@@ -491,4 +491,22 @@ divides `b`. -/
   A.mul_vec (cramer A b) = A.det • b :=
 by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, one_mul_vec]
 
+/-- If `M` has a nonzero determinant, then `M` as a bilinear form on `n → A` is nondegenerate.
+
+See also `bilin_form.nondegenerate_of_det_ne_zero'` and `bilin_form.nondegenerate_of_det_ne_zero`.
+-/
+theorem nondegenerate_of_det_ne_zero {A : Type*} [integral_domain A]
+  {M : matrix n n A} (hM : M.det ≠ 0)
+  (v : n → A) (hv : ∀ w, matrix.dot_product v (mul_vec M w) = 0) : v = 0 :=
+begin
+  ext i,
+  specialize hv (M.cramer (pi.single i 1)),
+  refine (mul_eq_zero.mp _).resolve_right hM,
+  convert hv,
+  simp only [mul_vec_cramer M (pi.single i 1), dot_product, pi.smul_apply, smul_eq_mul],
+  rw [finset.sum_eq_single i, pi.single_eq_same, mul_one],
+  { intros j _ hj, simp [hj] },
+  { intros, have := finset.mem_univ i, contradiction }
+end
+
 end matrix

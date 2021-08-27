@@ -48,20 +48,9 @@ begin
   exact nat.le_pred_of_lt (nat.totient_lt p hp),
 end
 
-lemma prime_iff_card_units (p : ℕ) [hp : fact (0 < p)] :
-  p.prime ↔ fintype.card (units (zmod p)) = p - 1
-:=
-begin
-  split,
-    { intro p_prime,
-      haveI := fact.mk p_prime,
-      convert zmod.card_units p, },
-    { intro h,
-      rw zmod.card_units_eq_totient at h,
-      rw nat.totient_eq_iff_prime at h,
-      exact h,
-      exact hp.1, },
-end
+lemma prime_iff_card_units (p : ℕ) [fact (0 < p)] :
+  p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=
+by rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))]
 
 
 example (a b c : ℕ) (h : a ∣ b) : a * c ∣ b * c :=

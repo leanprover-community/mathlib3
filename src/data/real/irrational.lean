@@ -265,6 +265,6 @@ theorem exists_irrational_btwn {x y : ℝ} (h : x < y) :
   ∃ r, irrational r ∧ x < r ∧ r < y :=
 let ⟨q, ⟨hq1, hq2⟩⟩ := (exists_rat_btwn ((sub_lt_sub_iff_right (real.sqrt 2)).mpr h)) in
   ⟨q + real.sqrt 2, irrational_sqrt_two.rat_add _,
-    sub_lt_iff_lt_add.mp hq1,  lt_sub_iff_add_lt.mp hq2⟩
+    sub_lt_iff_lt_add.mp hq1, lt_sub_iff_add_lt.mp hq2⟩
 
 end

@@ -257,10 +257,7 @@ open irrational
 @[simp] theorem irrational_inv_iff : irrational x⁻¹ ↔ irrational x :=
 ⟨of_inv, irrational.inv⟩
 
-/-!
-### Theorem about Irrationals between Reals
--/
-
+/-- There is an irrational number `r` between any two reals `x < r < y`. -/
 theorem exists_irrational_btwn {x y : ℝ} (h : x < y) :
   ∃ r, irrational r ∧ x < r ∧ r < y :=
 let ⟨q, ⟨hq1, hq2⟩⟩ := (exists_rat_btwn ((sub_lt_sub_iff_right (real.sqrt 2)).mpr h)) in

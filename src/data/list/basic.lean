@@ -2604,23 +2604,6 @@ lemma length_pos_of_sum_pos [ordered_cancel_add_comm_monoid α] (L : list α) (h
   0 < L.length :=
 length_pos_of_sum_ne_zero L (ne_of_gt h)
 
--- TODO: develop theory of tropical rings
-lemma sum_le_foldr_max [add_monoid α] [add_monoid β] [linear_order β] (f : α → β)
-  (h0 : f 0 ≤ 0) (hadd : ∀ x y, f (x + y) ≤ max (f x) (f y)) (l : list α) :
-  f l.sum ≤ (l.map f).foldr max 0 :=
-begin
-  induction l with hd tl IH,
-  { simpa using h0 },
-  { simp only [list.sum_cons, list.foldr_map, le_max_iff, list.foldr] at IH ⊢,
-    cases le_or_lt (f tl.sum) (f hd),
-    { left,
-      refine (hadd _ _).trans _,
-      simpa using h },
-    { right,
-      refine (hadd _ _).trans _,
-      simp only [IH, max_le_iff, and_true, h.le.trans IH] } }
-end
-
 @[simp, to_additive]
 theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
   Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod

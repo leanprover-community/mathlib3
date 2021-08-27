@@ -210,8 +210,8 @@ lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R) :=
 is_smul_regular.of_mul_eq_one a.inv_val
 
 /-- A unit is `M`-regular. -/
-lemma is_unit.is_smul_regular_self (ua : is_unit a) : is_smul_regular M a :=
+lemma is_unit.is_smul_regular (ua : is_unit a) : is_smul_regular M a :=
 begin
   rcases ua with ⟨a, rfl⟩,
-  exact a.is_smul_regular_coe M
+  exact a.is_smul_regular M
 end

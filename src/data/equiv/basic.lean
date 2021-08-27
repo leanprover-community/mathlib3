@@ -179,9 +179,6 @@ unique_of_subsingleton (equiv.refl α)
 lemma perm.subsingleton_eq_refl [subsingleton α] (e : perm α) :
   e = equiv.refl α := subsingleton.elim _ _
 
-instance equiv.unique_of_subsingleton {α : Type*} [subsingleton α] : unique (α ≃ α) :=
-unique_of_subsingleton (equiv.refl α)
-
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
 e.injective.decidable_eq

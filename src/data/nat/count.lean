@@ -185,7 +185,8 @@ begin
   simp [h],
 end
 
-lemma Inf_plus {n: ℕ} {p: set ℕ}: Inf {m : ℕ | p m} + n = max (Inf {m : ℕ | p (m - n)}) n :=
+lemma Inf_plus {n: ℕ} {p: set ℕ} (h: 0 < Inf {m : ℕ | p m}) :
+  Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
 begin
   sorry,
 end
@@ -204,12 +205,13 @@ begin
     simp [ih], },
   rw [nth_def, nth_def],
   simp [ih] {contextual:=tt},
-  rw Inf_plus,
-  by_cases hle: 1 ≤ (Inf {m : ℕ | p (m - 1 + 1) ∧ ∀ (k : ℕ), k < n' → nth p (k + 1) - 1 < m - 1}),
-  { rw max_eq_left hle,
-    sorry, },
-  { have h0: Inf {m : ℕ | p (m - 1 + 1) ∧ ∀ (k : ℕ), k < n' → nth p (k + 1) - 1 < m - 1} = 0,
+  by_cases hle: 0 < Inf {i : ℕ | p (i + 1) ∧ ∀ (k : ℕ), k < n' → nth p (k + 1) - 1 < i},
+  { rw Inf_plus,
     { sorry, },
+    exact hle, },
+  { have h0: Inf {i : ℕ | p (i + 1) ∧ ∀ (k : ℕ), k < n' → nth p (k + 1) - 1 < i} = 0,
+    { rw ← nat.lt_one_iff,
+      exact not_le.mp hle, },
     rw h0,
     simp,
     simp at h0,

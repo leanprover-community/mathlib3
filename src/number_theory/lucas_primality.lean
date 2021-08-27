@@ -20,12 +20,16 @@ for any divisor d | n. This test is the basis of the Pratt primality certificate
 ## TODO
 
 - Implement the test
-- Bonus: Show the reverse implication i.e. if a number is prime then it has a Lucas witness. See [this stackexchange](https://math.stackexchange.com/a/59911/165144) answer for proof.
-- Write a tactic that uses this theorem to generate Pratt primality certificates [see](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/norm_num.20for.20real.20exponentiation/near/249615218)
+- Bonus: Show the reverse implication i.e. if a number is prime then it has a Lucas witness.
+  See [this stackexchange](https://math.stackexchange.com/a/59911/165144) answer for proof.
+- Write a tactic that uses this theorem to generate Pratt primality certificates
+- Integrate this into the norm_num primality verifier
 
 ## Implementation notes
 
-It was a challenge to avoid diamonds when writing this file. Ultimately, I settled on introducing an instance of `fact (0 < p)` rather than make an instance of `fintype` on `units (zmod n)` as Mario showed how to do:
+It was a challenge to avoid diamonds when writing this file. Ultimately, I settled on introducing
+an instance of `fact (0 < p)` rather than make an instance of `fintype` on `units (zmod n)` as
+Mario showed how to do:
 
 ```
 noncomputable instance units_zmod.fintype : Π n, fintype (units (zmod n))

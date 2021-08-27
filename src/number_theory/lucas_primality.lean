@@ -53,9 +53,6 @@ begin
       haveI := fact.mk p_prime,
       convert zmod.card_units p, },
     { intro h,
-      haveI := fact.mk hp,
-      replace h : @fintype.card (units (zmod p)) (units.fintype) = p - 1,
-      { convert h },
       rw zmod.card_units_eq_totient at h,
       rw nat.totient_eq_iff_prime at h,
       exact h,
@@ -119,7 +116,18 @@ end
 -- end
 
 /-- The monoid homomorphism from the units of -/
-def unit_hom : (units (zmod p)) →* (zmod p) := sorry,
+def unit_hom : (units (zmod p)) →* (zmod p) :=
+{
+  (@units.has_coe (zmod p) _),
+  begin
+
+  end,
+  begin
+
+  end,
+}
+
+
 
 theorem lucas_primality (a : zmod p)
   (hp : 1 < p)
@@ -191,12 +199,12 @@ begin
         inv_val := begin rw <-pow_succ', rw hp', rw ha, end,
       },
       have a_coe : a = a',
-        sorry,
+        { unfold_coes, },
       have order_of_a' : order_of a' = p-1,
         {
           rw <-order_of_a,
           rw a_coe,
-          rw order_of_injective coe,
+          rw order_of_injective units.has_coe.coe,
         },
       rw <-order_of_a',
       apply order_of_le_card_univ,

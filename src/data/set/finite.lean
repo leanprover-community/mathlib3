@@ -61,6 +61,10 @@ by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
   hs.to_finset = ht.to_finset ↔ s = t :=
 by simp [←finset.coe_inj]
 
+lemma subset_to_finset_iff {s : finset α} {t : set α} (ht : finite t) :
+  s ⊆ ht.to_finset ↔ ↑s ⊆ t :=
+by rw [← finset.coe_subset, ht.coe_to_finset]
+
 @[simp] lemma finite_to_finset_eq_empty_iff {s : set α} {h : finite s} :
   h.to_finset = ∅ ↔ s = ∅ :=
 by simp [←finset.coe_inj]
@@ -500,15 +504,9 @@ hf.seq hs
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite.finite_subsets {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=
-begin
-  -- we just need to translate the result, already known for finsets,
-  -- to the language of finite sets
-  let s : set (set α) := coe '' (↑(finset.powerset (finite.to_finset h)) : set (finset α)),
-  have : finite s := (finite_mem_finset _).image _,
-  apply this.subset,
-  refine λ b hb, ⟨(h.subset hb).to_finset, _, finite.coe_to_finset _⟩,
-  simpa [finset.subset_iff]
-end
+⟨fintype.of_finset ((finset.powerset h.to_finset).map finset.coe_emb.1) $ λ s,
+  by simpa [← @exists_finite_iff_finset α (λ t, t ⊆ a ∧ t = s), subset_to_finset_iff,
+    ← and.assoc] using h.subset⟩
 
 lemma exists_min_image [linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
   s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
@@ -571,16 +569,8 @@ end
 lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :
   (⋃ a, (f a : set β)).finite :=
 begin
-  classical,
-  have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
-  { ext x,
-    simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
-    use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
-    rintro ⟨s, hs, hx⟩,
-    obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
-    exact ⟨a, hx⟩, },
-  rw w,
-  apply set.finite_mem_finset,
+  rw ← bUnion_range,
+  exact h.bUnion (λ y hy, y.finite_to_set)
 end
 
 lemma finite_subset_Union {s : set α} (hs : finite s)

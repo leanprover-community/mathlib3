@@ -104,7 +104,7 @@ f.isometry.comp_continuous_iff
 /-- The identity linear isometry. -/
 def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 
-@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = id := rfl
+@[simp] lemma coe_id : ⇑(id : E →ₗᵢ[R] E) = _root_.id := rfl
 
 @[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
 
@@ -343,6 +343,17 @@ e.isometry.comp_continuous_on_iff
 @[simp] lemma comp_continuous_iff {f : α → E} :
   continuous (e ∘ f) ↔ continuous f :=
 e.isometry.comp_continuous_iff
+
+variables (R)
+/-- The negation operation on a normed space `E`, considered as a linear isometry equivalence. -/
+def neg : E ≃ₗᵢ[R] E :=
+{ norm_map' := norm_neg,
+  .. linear_equiv.neg R }
+
+variables {R}
+@[simp] lemma coe_neg : (neg R : E → E) = λ x, -x := rfl
+
+@[simp] lemma symm_neg : (neg R : E ≃ₗᵢ[R] E).symm = neg R := rfl
 
 end linear_isometry_equiv
 

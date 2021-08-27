@@ -532,9 +532,9 @@ lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
     (h : ∑ i in s, w i = 0) (p : ι → P) :
     s.weighted_vsub p w ∈ vector_span k (set.range p) :=
 begin
-  by_cases hn : nonempty ι,
-  { cases hn with i0,
-    rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
+  rcases is_empty_or_nonempty ι with hι|⟨⟨i0⟩⟩,
+  { resetI, simp [finset.eq_empty_of_is_empty s] },
+  { rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
         finsupp.mem_span_image_iff_total,
         finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero s w p h (p i0),
         finset.weighted_vsub_of_point_apply],
@@ -546,7 +546,6 @@ begin
       intros i hi,
       simp [w', set.indicator_apply, if_pos hi] },
     { exact λ _, zero_smul k _ } },
-  { simp [finset.eq_empty_of_not_nonempty hn s] }
 end
 
 /-- An `affine_combination` with sum of weights 1 is in the

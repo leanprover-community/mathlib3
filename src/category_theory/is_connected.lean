@@ -209,10 +209,10 @@ instance is_connected_op [is_connected J] : is_connected Jᵒᵖ :=
 { is_nonempty := nonempty.intro (op (classical.arbitrary J)) }
 
 lemma is_preconnected_of_is_preconnected_op [is_preconnected Jᵒᵖ] : is_preconnected J :=
-  is_preconnected_of_equivalent (op_op_equivalence J)
+is_preconnected_of_equivalent (op_op_equivalence J)
 
 lemma is_connected_of_is_connected_op [is_connected Jᵒᵖ] : is_connected J :=
-  is_connected_of_equivalent (op_op_equivalence J)
+is_connected_of_equivalent (op_op_equivalence J)
 
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]

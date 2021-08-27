@@ -185,6 +185,11 @@ begin
   simp [h],
 end
 
+lemma Inf_plus {n: ℕ} {p: set ℕ}: Inf {m : ℕ | p m} + n = max (Inf {m : ℕ | p (m - n)}) n :=
+begin
+  sorry,
+end
+
 lemma nth_succ_of_zero (h : p 0) (n : ℕ) (w : (n + 2 : cardinal) ≤ cardinal.mk (set_of p)) :
   nth p (n+1) = nth (λ i, p (i+1)) n + 1 :=
 begin
@@ -199,8 +204,26 @@ begin
     simp [ih], },
   rw [nth_def, nth_def],
   simp [ih] {contextual:=tt},
-  sorry,
-  -- I think this is doable from here!
+  rw Inf_plus,
+  by_cases hle: 1 ≤ (Inf {m : ℕ | p (m - 1 + 1) ∧ ∀ (k : ℕ), k < n' → nth p (k + 1) - 1 < m - 1}),
+  { rw max_eq_left hle,
+    sorry, },
+  { have h0: Inf {m : ℕ | p (m - 1 + 1) ∧ ∀ (k : ℕ), k < n' → nth p (k + 1) - 1 < m - 1} = 0,
+    { sorry, },
+    rw h0,
+    simp,
+    simp at h0,
+    cases h0,
+    { cases h0 with hp h0,
+      specialize h0 0,
+      have hn': n' ≤ 0 := not_lt.mp h0,
+      simp at hn',
+      rw hn',
+      simp,
+      rw nth_zero_of_zero,
+      { sorry, },
+      exact h, },
+      sorry, },
 end
 
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=
@@ -330,7 +353,7 @@ begin
       rw ← hy,
       exact count_monotone _ hs } },
   use nth p y,
-  apply nth_mem_of_infinite_aux p i, -- this is saying that the `nth` set isn't empty -- easy stuff!
+  apply nth_mem_of_infinite_aux p i,
 end
 
 lemma count_le_iff_le_nth {p} (i : set.infinite p) {a b : ℕ} :

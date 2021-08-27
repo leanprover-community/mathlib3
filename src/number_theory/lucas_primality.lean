@@ -147,6 +147,5 @@ begin
           exact units.ext, },
       rw ←order_of_a',
       apply order_of_le_card_univ,
-      rw [←pow_succ, hp', ha],
-    },
+      rw [←pow_succ, hp', ha], },
 end

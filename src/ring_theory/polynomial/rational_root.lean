@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
+import ring_theory.integrally_closed
 import ring_theory.polynomial.scale_roots
-import ring_theory.localization
 
 /-!
 # Rational root theorem and integral root theorem
@@ -122,8 +122,9 @@ lemma integer_of_integral {x : K} :
   is_integral A x → is_integer A x :=
 λ ⟨p, hp, hx⟩, is_integer_of_is_root_of_monic hp hx
 
-lemma integrally_closed : integral_closure A K = ⊥ :=
-eq_bot_iff.mpr (λ x hx, algebra.mem_bot.mpr (integer_of_integral hx))
+@[priority 100] -- See library note [lower instance priority]
+instance : is_integrally_closed A :=
+⟨λ x, integer_of_integral⟩
 
 end unique_factorization_monoid
 

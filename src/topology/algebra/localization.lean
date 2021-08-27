@@ -23,10 +23,10 @@ to the equivalence class of `(x, 1)` in the localization of `R` at a `M`.
 
 -/
 
-instance {α : Type*}
-  [comm_ring α][t: topological_space α]{x: submonoid α} : ring_topology (localization x) :=
-ring_topology.coinduced (localization.monoid_of x).to_fun t
+instance {R : Type*}
+  [comm_ring R][t: topological_space R]{M: submonoid R} : ring_topology (localization M) :=
+ring_topology.coinduced (localization.monoid_of M).to_fun t
 
-instance {α : Type*}
-  [comm_ring α][topological_space α]{x: submonoid α} : topological_ring (localization x) :=
+instance {R : Type*}
+  [comm_ring R][topological_space R]{M: submonoid R} : topological_ring (localization M) :=
 localization.ring_topology.to_topological_ring

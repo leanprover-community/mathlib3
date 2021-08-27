@@ -52,22 +52,11 @@ calc totient n ≤ ((range n).filter (≠ 0)).card :
                 end
            ... = n - 1             :
                 begin
-                  simp_rw ne.symm,
-                  rw filter_ne' (range n) 0,
-                  rw range_eq_Ico,
-                  rw card_erase_of_mem,
-                  simp only [Ico.card, sub_zero'],
-                  exact pred_eq_sub_one n,
-                  rw Ico.mem,
-                  simp only [true_and, eq_self_iff_true, nonpos_iff_eq_zero],
-                  linarith,
+                  rw [filter_ne' (range n) 0, card_erase_of_mem],
+                  simp [pred_eq_sub_one n],
+                  simp [pos_of_gt hn],
                 end
-           ... < n :
-                begin
-                  have : 0 < n,
-                  exact pos_of_gt hn,
-                  exact buffer.lt_aux_2 this,
-                end
+           ... < n : buffer.lt_aux_2 (pos_of_gt hn)
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial

@@ -78,6 +78,16 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
       rwa [one_mul, ← e] }
   end⟩
 
+theorem prime_of_coprime (n : ℕ) (h1 : 1 < n) (h : ∀ m < n, m ≠ 0 → n.coprime m) : prime n :=
+begin
+  refine prime_def_lt.mpr ⟨h1, λ m mlt mdvd, _⟩,
+  have hm : m ≠ 0,
+  { rintro rfl,
+    rw zero_dvd_iff at mdvd,
+    exact mlt.ne' mdvd },
+  exact (h m mlt hm).symm.eq_one_of_dvd mdvd,
+end
+
 section
 
 /--

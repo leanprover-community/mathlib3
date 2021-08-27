@@ -38,8 +38,8 @@ def dihedral_group.to_linear_isometry : dihedral_group m → ℂ ≃ₗᵢ[ℝ] 
 
 variables {m}
 
-lemma dihedral_to_linear_isometry_r_mul_r (i j : zmod m) : dihedral_group.to_linear_isometry m (r i) *
-dihedral_group.to_linear_isometry m (r j) = dihedral_group.to_linear_isometry m (r (i + j)) :=
+lemma dihedral_to_linear_isometry_r_mul_r (i j : zmod m) : dihedral_group.to_linear_isometry m (r i)
+* dihedral_group.to_linear_isometry m (r j) = dihedral_group.to_linear_isometry m (r (i + j)) :=
 begin
   simp only [dihedral_group.to_linear_isometry],
   rw (zmod_to_angle m).map_add,
@@ -47,23 +47,26 @@ begin
   rw rotation.map_mul,
 end
 
-lemma dihedral_to_linear_isometry_r_mul_sr (i j : zmod m) : dihedral_group.to_linear_isometry m (r i) *
-dihedral_group.to_linear_isometry m (sr j) = dihedral_group.to_linear_isometry m (sr (j - i)) :=
+lemma dihedral_to_linear_isometry_r_mul_sr (i j : zmod m) :
+dihedral_group.to_linear_isometry m (r i) * dihedral_group.to_linear_isometry m (sr j) =
+dihedral_group.to_linear_isometry m (sr (j - i)) :=
 begin
   simp only [dihedral_group.to_linear_isometry],
   rw [← mul_assoc, rotation_mul_conj_lie, mul_assoc, (zmod_to_angle m).map_sub, angle_to_circle_sub,
   div_eq_mul_inv, mul_comm, rotation.map_mul],
 end
 
-lemma dihedral_to_linear_isometry_sr_mul_r (i j : zmod m) : dihedral_group.to_linear_isometry m (sr i) *
-dihedral_group.to_linear_isometry m (r j) = dihedral_group.to_linear_isometry m (sr (i + j)) :=
+lemma dihedral_to_linear_isometry_sr_mul_r (i j : zmod m) :
+dihedral_group.to_linear_isometry m (sr i) * dihedral_group.to_linear_isometry m (r j) =
+dihedral_group.to_linear_isometry m (sr (i + j)) :=
 begin
   simp only [dihedral_group.to_linear_isometry],
   rw [(zmod_to_angle m).map_add, angle_to_circle_add, rotation.map_mul, mul_assoc],
 end
 
-lemma dihedral_to_linear_isometry_sr_mul_sr (i j : zmod m) : dihedral_group.to_linear_isometry m (sr i) *
-dihedral_group.to_linear_isometry m (sr j) = dihedral_group.to_linear_isometry m (r (j - i)) :=
+lemma dihedral_to_linear_isometry_sr_mul_sr (i j : zmod m) :
+dihedral_group.to_linear_isometry m (sr i) * dihedral_group.to_linear_isometry m (sr j) =
+dihedral_group.to_linear_isometry m (r (j - i)) :=
 begin
   simp only [dihedral_group.to_linear_isometry],
   rw ← mul_assoc,

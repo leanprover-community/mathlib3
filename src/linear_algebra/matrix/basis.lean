@@ -168,7 +168,7 @@ begin
 end
 
 /-- `b.to_matrix b'` and `b'.to_matrix b` are inverses. -/
-lemma basis.to_matrix_mul_to_matrix_flip [decidable_eq ι] :
+lemma basis.to_matrix_mul_to_matrix_flip [decidable_eq ι] [fintype ι'] :
   b.to_matrix b' ⬝ b'.to_matrix b = 1 :=
 by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 

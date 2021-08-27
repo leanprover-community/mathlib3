@@ -1189,14 +1189,14 @@ variable [linear_ordered_add_comm_group α]
 
 instance with_top.linear_ordered_add_comm_group_with_top :
   linear_ordered_add_comm_group_with_top (with_top α) :=
-{ neg            := option.map (λ a : α, -a),
-  neg_top        := @option.map_none _ _ (λ a : α, -a),
+{ neg_top        := @option.map_none _ _ (λ a : α, -a),
   add_neg_cancel := begin
     rintro (a | a) ha,
     { exact (ha rfl).elim },
     { exact with_top.coe_add.symm.trans (with_top.coe_eq_coe.2 (add_neg_self a)) }
   end,
   .. with_top.linear_ordered_add_comm_monoid_with_top,
+  .. with_top.sub_neg_monoid,
   .. option.nontrivial }
 
 end linear_ordered_add_comm_group

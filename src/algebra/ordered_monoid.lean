@@ -396,6 +396,29 @@ instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
   ..@additive.add_comm_monoid _ $ @comm_monoid_with_zero.to_comm_monoid _ $
     @with_zero.comm_monoid_with_zero (multiplicative α) _ }
 
+section sub_neg
+
+variable [add_group α]
+
+instance : sub_neg_monoid (with_top α) :=
+{ neg := option.map (λ (a : α), -a),
+  ..with_top.add_monoid }
+
+@[simp] lemma neg_top : - (⊤ : with_top α) = ⊤ := rfl
+
+lemma neg_coe (x : α) : (-x : with_top α) = ((-x : α) : with_top α) := rfl
+
+@[simp] lemma with_top.neg_zero : (-0 : with_top α) = 0 :=
+by rw [←with_top.coe_zero, with_top.neg_coe, neg_zero]
+
+@[simp] lemma with_top.neg_neg (x : with_top α) : -(-x) = x :=
+begin
+  induction x using with_top.rec_top_coe;
+  simp [with_top.neg_coe]
+end
+
+end sub_neg
+
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 { add_le_add_left :=
     begin

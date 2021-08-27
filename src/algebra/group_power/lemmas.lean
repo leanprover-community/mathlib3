@@ -180,6 +180,134 @@ f.to_multiplicative.map_gpow a n
 
 end group
 
+namespace with_top
+
+section nsmul
+
+section add_monoid
+
+variables [add_monoid A] (n : ℕ) (x : with_top A)
+
+lemma nsmul_coe (x : A) :
+  n • (x : with_top A) = ((n • x : A) : with_top A) :=
+(add_monoid_hom.map_nsmul coe_add_hom _ _).symm
+
+@[simp] lemma succ_nsmul_eq_top_iff (n : ℕ) {x : with_top A} :
+  (n + 1) • x = ⊤ ↔ x = ⊤ :=
+begin
+  induction x using with_top.rec_top_coe,
+  { rw [succ_nsmul', with_top.add_top] },
+  { simp only [with_top.nsmul_coe, with_top.coe_ne_top] }
+end
+
+lemma smul_top_of_ne_zero (hx : 0 < n) :
+  n • (⊤ : with_top A) = ⊤ :=
+begin
+  obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hx.ne',
+  simp
+end
+
+@[simp] lemma succ_nsmul_top (n : ℕ) :
+  (n + 1) • (⊤ : with_top A) = ⊤ :=
+by simp
+
+end add_monoid
+
+lemma nsmul_neg [add_group A] (n : ℕ) (x : with_top A) :
+  n • - x = - (n • x) :=
+begin
+  induction x using with_top.rec_top_coe,
+  { cases n,
+    { simp [zero_nsmul] },
+    { simp } },
+  { rw [with_top.neg_coe, with_top.nsmul_coe, neg_nsmul, with_top.nsmul_coe,
+        with_top.neg_coe] }
+end
+
+end nsmul
+
+section gsmul
+
+section
+
+variable [add_group A]
+
+lemma gsmul_coe (r : ℤ) (x : A) :
+  r • (x : with_top A) = ((r • x : A) : with_top A) :=
+begin
+  induction r using int.induction_on with r IH r IH,
+  { simp },
+  { simp [←int.coe_nat_succ, nsmul_coe] },
+  { simp [←int.neg_succ_of_nat_coe', ←with_top.neg_coe, nsmul_coe] }
+end
+
+@[simp] lemma gsmul_zero (r : ℤ) :
+  r • (0 : with_top A) = 0 :=
+by rw [←with_top.coe_zero, with_top.gsmul_coe, gsmul_zero]
+
+lemma zero_gsmul (x : with_top A) :
+  (0 : ℤ) • x = 0 :=
+by simp
+
+@[simp] lemma gsmul_coe_succ_top (r : ℕ) :
+  (r + 1 : ℤ) • (⊤ : with_top A) = ⊤ :=
+by simp [←int.coe_nat_succ]
+
+@[simp] lemma gsmul_neg_pred_top (r : ℕ) :
+  (-(r : ℤ) - 1 : ℤ) • (⊤ : with_top A) = ⊤ :=
+by simp [←int.neg_succ_of_nat_coe', ←with_top.neg_coe]
+
+@[simp] lemma gsmul_top_of_ne_zero {r : ℤ} (hr : r ≠ 0) :
+  r • (⊤ : with_top A) = ⊤ :=
+begin
+  induction r using int.induction_on with r IH r IH,
+  { exact absurd rfl hr },
+  { simp },
+  { simp }
+end
+
+lemma mul_gsmul (x y : ℤ) (b : with_top A) :
+  (x * y) • b = x • y • b :=
+begin
+  induction b using with_top.rec_top_coe,
+  { by_cases hxy : x * y = 0,
+    { rcases mul_eq_zero.mp hxy with rfl|rfl;
+      simp [hxy] },
+    { rw with_top.gsmul_top_of_ne_zero hxy,
+      simp only [not_or_distrib, mul_eq_zero] at hxy,
+      simp [hxy.left, hxy.right] } },
+  { simp_rw [with_top.gsmul_coe, mul_gsmul] }
+end
+
+end
+
+variable [add_comm_group A]
+
+lemma gsmul_add (r : ℤ) (x y : with_top A) :
+  r • (x + y) = r • x + r • y :=
+begin
+  rcases eq_or_ne r 0 with rfl|hr,
+  { simp },
+  induction x using with_top.rec_top_coe,
+  { simp [hr] },
+  induction y using with_top.rec_top_coe,
+  { simp [hr] },
+  { simp [with_top.gsmul_coe, ←with_top.coe_add, gsmul_add] }
+end
+
+instance : distrib_mul_action ℤ (with_top A) :=
+{ one_smul := by simp,
+  mul_smul := with_top.mul_gsmul,
+  smul_add := with_top.gsmul_add,
+  smul_zero := with_top.gsmul_zero }
+
+-- While we have `with_top.zero_gsmul`, we cannot have `module ℤ (with_top A)` due to missing
+-- `add_smul`, with a counterexample of `0 = 0 • ⊤ = (1 + -1) • ⊤ = ⊤ + -⊤ = ⊤ ≠ 0`
+
+end gsmul
+
+end with_top
+
 section ordered_add_comm_group
 
 variables [ordered_add_comm_group A]

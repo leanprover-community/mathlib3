@@ -122,6 +122,7 @@ lemma integer_of_integral {x : K} :
   is_integral A x → is_integer A x :=
 λ ⟨p, hp, hx⟩, is_integer_of_is_root_of_monic hp hx
 
+@[priority 100] -- See library note [lower instance priority]
 instance : is_integrally_closed A :=
 ⟨λ x, integer_of_integral⟩
 

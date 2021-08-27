@@ -307,6 +307,7 @@ by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_space
 
 end complete_subspace
 
+
 end Lp_meas
 
 

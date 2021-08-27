@@ -133,33 +133,6 @@ begin
   simp [update_column_ne hj'],
 end
 
-@[simp] lemma cramer_one : cramer (1 : matrix n n α) = 1 :=
-begin
-  ext i j,
-  simp only [linear_map.one_apply, function.comp_app, linear_map.coe_comp, linear_map.coe_single],
-  have : (1 : matrix n n α) i = pi.single i 1,
-  { ext k,
-    by_cases hk : k = i,
-    { subst hk,
-      simp },
-    { simp [matrix.one_apply, hk, pi.single_eq_of_ne, ne.symm hk] } },
-  rw [←transpose_one, ←this, cramer_transpose_row_self],
-  simp [matrix.one_apply],
-end
-
-@[simp] lemma cramer_subsingleton_apply [subsingleton n] (A : matrix n n α) (b : n → α) (i : n) :
-  cramer A b i = b i :=
-by rw [cramer_apply, det_eq_elem_of_subsingleton _ i, update_column_self]
-
-lemma cramer_zero [nontrivial n] : cramer (0 : matrix n n α) = 0 :=
-begin
-  ext i j,
-  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := exists_ne j,
-  apply det_eq_zero_of_column_eq_zero j',
-  intro j'',
-  simp [update_column_ne hj'],
-end
-
 /-- Use linearity of `cramer` to take it out of a summation. -/
 lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
   ∑ x in s, cramer A (f x) = cramer A (∑ x in s, f x) :=

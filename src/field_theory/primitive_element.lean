@@ -170,19 +170,18 @@ variables [algebra F E] [finite_dimensional F E] [is_separable F E]
   primitive element, i.e. there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
 theorem exists_primitive_element : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  by_cases F_finite : nonempty (fintype F),
-  { exact nonempty.elim F_finite
-    (λ h, by haveI := h; exact exists_primitive_element_of_fintype_bot F E) },
+  rcases is_empty_or_nonempty (fintype F) with F_inf|⟨⟨F_finite⟩⟩,
   { let P : intermediate_field F E → Prop := λ K, ∃ α : E, F⟮α⟯ = K,
     have base : P ⊥ := ⟨0, adjoin_zero⟩,
     have ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯,
     { intros K β hK,
       cases hK with α hK,
       rw [←hK, adjoin_simple_adjoin_simple],
-      haveI : infinite F := not_nonempty_fintype.mp F_finite,
+      haveI : infinite F := is_empty_fintype.mp F_inf,
       cases primitive_element_inf_aux F α β with γ hγ,
       exact ⟨γ, hγ.symm⟩ },
     exact induction_on_adjoin P base ih ⊤ },
+  { exactI exists_primitive_element_of_fintype_bot F E }
 end
 
 /-- Alternative phrasing of primitive element theorem:

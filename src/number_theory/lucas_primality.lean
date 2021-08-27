@@ -28,7 +28,7 @@ for any divisor d | n. This test is the basis of the Pratt primality certificate
 ## Implementation notes
 
 It was a challenge to avoid diamonds when writing this file. Ultimately, I settled on introducing
-an instance of `fact (0 < p)` rather than make an instance of `fintype` on `units (zmod n)` as
+an instance of `fact (0 < p)` rather than making an instance of `fintype` on `units (zmod n)` as
 Mario showed how to do:
 
 ```
@@ -57,10 +57,10 @@ a ∣ b ↔ ∃ c, b = c * a
 :=
 begin
   split,
-    exact exists_eq_mul_left_of_dvd,
-    intro h,
-    cases h with c h',
-    exact dvd.intro_left c (eq.symm h'),
+    { exact exists_eq_mul_left_of_dvd, },
+    { intro h,
+      cases h with c h',
+      exact dvd.intro_left c (eq.symm h'), },
 end
 
 lemma dvd_div_iff_mul_dvd (a b c : ℕ) (a_dvd_b : a ∣ b) : c ∣ b / a ↔ c * a ∣ b :=

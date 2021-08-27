@@ -5,6 +5,7 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
+import field_theory.algebraic_closure
 import field_theory.separable
 
 /-!
@@ -194,4 +195,17 @@ let α := (exists_primitive_element F E).some,
 have e : F⟮α⟯ = ⊤ := (exists_primitive_element F E).some_spec,
 pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
 
+/-- If `E / F` is a finite separable extension, then there are finitely many
+embeddings from `E` into `K` that fix `F`, corresponding to the number of
+conjugate roots of the primitive element generating `F`. -/
+instance {K : Type*} [field K] [algebra F K] : fintype (E →ₐ[F] K) :=
+power_basis.alg_hom.fintype (power_basis_of_finite_of_separable F E)
+
 end field
+
+@[simp] lemma alg_hom.card (F E K : Type*) [field F] [field E] [field K] [is_alg_closed K]
+  [algebra F E] [finite_dimensional F E] [is_separable F E] [algebra F K] :
+  fintype.card (E →ₐ[F] K) = finrank F E :=
+(alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
+    (is_separable.separable _ _) (is_alg_closed.splits_codomain _)).trans
+  (power_basis.finrank _).symm

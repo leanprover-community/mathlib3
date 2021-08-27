@@ -52,39 +52,36 @@ lemma prime_iff_card_units (p : ℕ) [fact (0 < p)] :
   p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=
 by rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))]
 
-lemma dvd_div_iff_mul_dvd (a b c : ℕ) (a_dvd_b : a ∣ b) : c ∣ b / a ↔ c * a ∣ b :=
+lemma dvd_iff_exists_eq_mul_left (a b : ℕ) :
+a ∣ b ↔ ∃ c, b = c * a
+:=
 begin
   split,
-  {
+    exact exists_eq_mul_left_of_dvd,
     intro h,
-    cases exists_eq_mul_left_of_dvd h with d h',
-    have h'' : b = d * c * a,
-      exact nat.eq_mul_of_div_eq_left a_dvd_b h',
-    rw h'',
-    rw mul_assoc,
-    exact dvd_mul_left (c * a) d,
-  },
-  {
-    intro h,
-    cases exists_eq_mul_left_of_dvd h with d h',
-    rw h',
-    rw nat.mul_div_assoc,
-    rw nat.mul_div_assoc,
-    by_cases a = 0,
-    rw h,
-    simp,
-    have : 0 < a,
-      exact zero_lt_iff.mpr h,
-    have : a / a = 1,
-      {
-        exact nat.div_self this,
-      },
-    rw this,
-    simp,
-    exact dvd_mul_left a c,
+    cases h with c h',
+    exact dvd.intro_left c (eq.symm h'),
+end
 
-  },
-
+lemma dvd_div_iff_mul_dvd (a b c : ℕ) (a_dvd_b : a ∣ b) : c ∣ b / a ↔ c * a ∣ b :=
+begin
+  by_cases ha : a = 0,
+  { rw ha,
+    simp only [true_iff, zero_dvd_iff, mul_zero, nat.div_zero, dvd_zero],
+    rw dvd_iff_exists_eq_mul_left at a_dvd_b,
+    cases a_dvd_b with c h',
+    rw [h', ha],
+    simp, },
+  { rw [dvd_iff_exists_eq_mul_left, dvd_iff_exists_eq_mul_left],
+    apply exists_congr,
+    intro d,
+    split,
+    { intro h,
+      rw [nat.eq_mul_of_div_eq_left a_dvd_b h, mul_assoc], },
+    { intro h,
+      rw [h, nat.mul_div_assoc, nat.mul_div_assoc, nat.div_self (zero_lt_iff.mpr ha)],
+      simp,
+      simp, }, },
 end
 
 -- lemma zmod_order_le_card_units (hn : 1 < p) (a : zmod p) :

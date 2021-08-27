@@ -2480,9 +2480,9 @@ begin
 end
 
 lemma exp_map_circle_eq_one_iff {x : ℝ} :
-  exp_map_circle x = 1 ↔ x ∈ add_subgroup.gmultiples (2 * π) :=
+  exp_map_circle x = 1 ↔ x ∈ exp_map_circle_hom.ker :=
 begin
-  simp only [add_subgroup.mem_gmultiples_iff, gsmul_eq_mul],
+  simp only [exp_map_circle_hom_ker, add_subgroup.mem_gmultiples_iff, gsmul_eq_mul],
   split,
   { simp[exp_map_circle],
     intro h,
@@ -2511,7 +2511,7 @@ by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 /-- The additive-group isomorphism identifying `real.angle` with the additive version of the
 `circle` group. -/
 def angle_to_circle_hom : real.angle ≃+ additive circle :=
-(quotient_add_group.equiv_quotient_of_eq (by { ext x, exact exp_map_circle_eq_one_iff.symm})).trans
+(quotient_add_group.equiv_quotient_of_eq (by { ext x, rw exp_map_circle_hom_ker})).trans
 (quotient_add_group.quotient_ker_equiv_of_surjective exp_map_circle_hom exp_map_circle_surjective)
 
 /-- The equivalence identifying `real.angle` with the circle group. -/
@@ -2530,11 +2530,11 @@ angle_to_circle_hom.map_sub a b
 angle_to_circle_hom.map_zero
 
 @[simp] lemma angle_to_circle_symm_mul (x y : circle) :
-  angle_to_circle.symm (x * y) = angle_to_circle.symm(x) + angle_to_circle.symm(y) :=
+  angle_to_circle.symm (x * y) = angle_to_circle.symm( x ) + angle_to_circle.symm( y ) :=
 angle_to_circle_hom.symm.map_add x y
 
 @[simp] lemma angle_to_circle_symm_div (x y : circle) :
-  angle_to_circle.symm(x / y) = angle_to_circle.symm(x) - angle_to_circle.symm(y) :=
+  angle_to_circle.symm(x / y) = angle_to_circle.symm( x ) - angle_to_circle.symm( y ) :=
 angle_to_circle_hom.symm.map_sub x y
 
 @[simp] lemma angle_to_circle_symm_zero :

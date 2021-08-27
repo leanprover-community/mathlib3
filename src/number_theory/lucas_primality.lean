@@ -84,74 +84,66 @@ begin
       simp, }, },
 end
 
--- lemma zmod_order_le_card_units (hn : 1 < p) (a : zmod p) :
---   order_of a ≤ fintype.card (units (zmod p)) :=
--- begin
---   let a' : units (zmod p) := {
---     val := a,
---     inv :=
---   }
---   -- convert order_of_le_card_univ,
--- end
+theorem order_from_pows (n r : ℕ) (a : zmod n)
+  (hp : 0 < r)
+  (ha : a^r = 1)
+  (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ r) -> a^(r/q) ≠ 1))
+  : order_of a = r :=
+begin
+  -- Let b be (p-1)/(order_of a)
+  cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one ha) with b hb,
 
-/-- The monoid homomorphism from the units of -/
+  have b_min_fac_dvd_p_sub_one : b.min_fac ∣ r,
+    { have c_dvd_factor : ∃ (c : ℕ), b = c * b.min_fac,
+        exact exists_eq_mul_left_of_dvd b.min_fac_dvd,
+      cases c_dvd_factor with c hc,
+      rw [hc, <-mul_assoc] at hb,
+      exact dvd.intro_left (order_of a * c) (eq.symm hb), },
 
+  by_contra,
 
+  apply hd (nat.min_fac b),
+  apply @nat.min_fac_prime b,
+  intro hb',
+  rw hb' at hb,
+  rw hb at h,
+  simp at h,
+  exact h,
+  exact b_min_fac_dvd_p_sub_one,
 
+  have hfoo : order_of a ∣ (r) / (b.min_fac),
+    rw dvd_div_iff_mul_dvd,
+    rw hb,
+    rw nat.mul_dvd_mul_iff_left,
+    exact nat.min_fac_dvd b,
+    apply order_of_pos',
+    rw is_of_fin_order_iff_pow_eq_one,
+    use (r),
+    split,
+    exact sub_pos_iff_lt.mpr hp,
+    exact ha,
+    exact b_min_fac_dvd_p_sub_one,
+    rw <-order_of_dvd_iff_pow_eq_one,
+    exact hfoo,
+
+end
+
+/--
+If a^(p-1) = 1 mod p, but a^((p-1)/q) ≠ 1 mod p for all prime factors q of p-1, then p is prime.
+This is true because the above condition implies that a has order p-1 in the multiplicative group
+mod p, so this group must itself have order p-1, which only happens when p is prime.
+-/
 theorem lucas_primality (a : zmod p)
   (hp : 1 < p)
   (ha : a^(p-1) = 1)
-  -- (hd : (∀ d : ℕ, d ∈ (p-1).factors -> a^((p-1) / d) ≠ 1)
-  (hd : (∀ d : ℕ, (nat.prime d) -> (d ∣ (p-1)) -> a^((p-1)/d) ≠ 1))
+  (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ (p-1)) -> a^((p-1)/q) ≠ 1))
   : p.prime :=
 begin
-  -- TODO Use field structure on zmod p
-  -- show the multiplicative group has order p-1
-  have b_dvd_factor : ∃ (b : ℕ), p-1 = (order_of a) * b,
-    exact exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one ha),
-  cases b_dvd_factor with b hb,
-
-  have b_min_fac_dvd_p_sub_one : b.min_fac ∣ p - 1,
-      have c_dvd_factor : ∃ (c : ℕ), b = c * b.min_fac ,
-        refine exists_eq_mul_left_of_dvd _,
-        exact nat.min_fac_dvd b,
-      cases c_dvd_factor with c hc,
-      rw [hc, <-mul_assoc] at hb,
-      exact dvd.intro_left (order_of a * c) (eq.symm hb),
+  -- Let b be (p-1)/(order_of a)
 
   have order_of_a : order_of a = p-1,
-    { by_contra,
-      -- Let f be the minimum prime factor of p-1 / order_of a
-      -- f is prime
-      -- f divides p-1
-      -- order_of a divides p-1 / f
-      apply hd (nat.min_fac b),
-      apply @nat.min_fac_prime b,
-      intro hb',
-      rw hb' at hb,
-      rw hb at h,
-      simp at h,
-      exact h,
-      exact b_min_fac_dvd_p_sub_one,
-
-      have hfoo : order_of a ∣ (p-1) / (b.min_fac),
-        rw dvd_div_iff_mul_dvd,
-        rw hb,
-        rw nat.mul_dvd_mul_iff_left,
-        exact nat.min_fac_dvd b,
-        apply order_of_pos',
-        rw is_of_fin_order_iff_pow_eq_one,
-        use (p-1),
-        split,
-        exact sub_pos_iff_lt.mpr hp,
-        exact ha,
-        exact b_min_fac_dvd_p_sub_one,
-        rw <-order_of_dvd_iff_pow_eq_one,
-        exact hfoo, },
-
-  -- rw <-nat.totient_prime_iff,
-  -- rw nat.totient_eq_card_coprime,
-
+    { apply order_from_pows p (p - 1) a _ ha hd,
+      exact sub_pos_iff_lt.mpr hp, },
   rw prime_iff_card_units,
   rw le_antisymm_iff,
   split,

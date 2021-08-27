@@ -683,8 +683,8 @@ begin
     simp only [g, polynomial.monic.def],
     simp [←polynomial.leading_coeff_det_X_one_add_C M, add_comm] },
   rw [←f'_adj, ←f'_adj, ←f'_adj, ←mul_eq_mul (f' (adjugate (g B))), ←f'.map_mul, mul_eq_mul,
-      ←adjugate_mul_distrib_aux _ _ (hu A) (hu B), ring_hom.map_adjugate, ring_hom.map_adjugate,
-      f'_inv, f'_g_mul]
+      ←adjugate_mul_distrib_aux _ _ (hu A).left (hu B).left, ring_hom.map_adjugate,
+      ring_hom.map_adjugate, f'_inv, f'_g_mul]
 end
 
 @[simp] lemma adjugate_pow (A : matrix n n α) (k : ℕ) :

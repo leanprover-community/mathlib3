@@ -434,7 +434,8 @@ end
 section is_integral_closure
 
 /-- `is_integral_closure A R B` is the characteristic predicate stating `A` is
-the integral closure of `R` in `B`.
+the integral closure of `R` in `B`,
+i.e. that an element of `B` is integral over `R` iff it is an element of (the image of) `A`.
 -/
 class is_integral_closure (A R B : Type*) [comm_ring R] [comm_semiring A] [comm_ring B]
   [algebra R B] [algebra A B] : Prop :=

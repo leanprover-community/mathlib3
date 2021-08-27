@@ -19,7 +19,7 @@ to the equivalence class of `(x, 1)` in the localization of `R` at a `M`.
 ## Main Results
 
 - `localization.topological_ring`: The localization of a topological commutative ring at a submonoid
-is a topological ring.
+  is a topological ring.
 
 -/
 

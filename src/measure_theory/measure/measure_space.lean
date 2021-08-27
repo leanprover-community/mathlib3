@@ -417,8 +417,8 @@ instance [measurable_space α] : has_zero (measure α) :=
 
 @[simp, norm_cast] theorem coe_zero {m : measurable_space α} : ⇑(0 : measure α) = 0 := rfl
 
-lemma eq_zero_of_not_nonempty {m : measurable_space α} (h : ¬nonempty α) (μ : measure α) : μ = 0 :=
-ext $ λ s hs, by simp only [eq_empty_of_not_nonempty h s, measure_empty]
+lemma eq_zero_of_is_empty [is_empty α] {m : measurable_space α} (μ : measure α) : μ = 0 :=
+ext $ λ s hs, by simp only [eq_empty_of_is_empty s, measure_empty]
 
 instance [measurable_space α] : inhabited (measure α) := ⟨0⟩
 
@@ -1532,6 +1532,10 @@ ennreal.coe_to_nnreal (measure_ne_top μ univ)
 
 instance finite_measure_zero : finite_measure (0 : measure α) := ⟨by simp⟩
 
+@[priority 100]
+instance finite_measure_of_is_empty [is_empty α] : finite_measure μ :=
+by { rw eq_zero_of_is_empty μ, apply_instance }
+
 @[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl
 
 omit m0
@@ -1823,10 +1827,6 @@ protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_co
 ⟨_, h.set_mem, h.spanning⟩
 
 end finite_spanning_sets_in
-
-lemma sigma_finite_of_not_nonempty {m0 : measurable_space α} (μ : measure α) (hα : ¬ nonempty α) :
-  sigma_finite μ :=
-⟨⟨⟨λ _, ∅, λ n, measurable_set.empty, λ n, by simp, by simp [eq_empty_of_not_nonempty hα univ]⟩⟩⟩
 
 lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
   (hμ : ∀ s ∈ S, μ s < ∞) (hU : ⋃₀ S = univ) :
@@ -2666,15 +2666,15 @@ lemma ae_measurable_of_ae_measurable_trim {α} {m m0 : measurable_space α}
 lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
   (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
 begin
-  by_cases h : nonempty β,
-  { refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
-              (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
-    intros t ht,
-    rw piecewise_preimage,
-    refine measurable_set.union _ ((measurable_const ht).diff hs),
-    rw [← subtype.image_preimage_coe, ← preimage_comp],
-    exact hs.subtype_image (hf ht) },
-  { exact (measurable_of_not_nonempty (mt (nonempty.map f) h) f).ae_measurable }
+  casesI is_empty_or_nonempty β,
+  { exact (measurable_of_empty_codomain f).ae_measurable },
+  refine ⟨s.piecewise f (λ x, classical.choice h), _, (ae_restrict_iff' hs).mpr $ ae_of_all _
+    (λ x hx, (piecewise_eq_of_mem s _ _ hx).symm)⟩,
+  intros t ht,
+  rw piecewise_preimage,
+  refine measurable_set.union _ ((measurable_const ht).diff hs),
+  rw [← subtype.image_preimage_coe, ← preimage_comp],
+  exact hs.subtype_image (hf ht)
 end
 
 end

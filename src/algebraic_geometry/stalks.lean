@@ -101,6 +101,12 @@ begin
   erw [id_comp, id_comp, id_comp],
 end
 
+/--
+If `α = β` and `x = x'`, we would like to say that `stalk_map α x = stalk_map β x'`.
+Unfortunately, this equality is not well-formed, as their types are not _definitionally_ the same.
+To get a proper congruence lemma, we therefore have to introduce these `eq_to_hom` arrows on
+either side of the equality.
+-/
 lemma congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β)
   (x x': X) (h₂ : x = x') :
     stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
@@ -121,13 +127,14 @@ instance is_iso {X Y : PresheafedSpace C} (α : X ⟶ Y) [is_iso α] (x : X) :
   is_iso (stalk_map α x) :=
 { out := begin
   let β : Y ⟶ X := category_theory.inv α,
-  -- Intuitively, the inverse of the stalk map of `α` at `x` should just be the stalk map of `β`
-  -- at `α x`. Unfortunately, we have a problem with dependent type theory here, because `x`
-  -- is not *definitionally* equal to `β (α x)`. Hence we need to introduce an `eq_to_hom` arrow.
   have h_eq : (α ≫ β).base x = x,
   { rw [is_iso.hom_inv_id α, id_base, Top.id_app] },
-  -- To get the inverse of `stalk_map α x`, we start with an eq_to_hom arrow
-  -- `X.stalk x ⟶ X.stalk ((α ≫ β).base x)` and then compose with `stalk_map β (α.base x)`.
+  -- Intuitively, the inverse of the stalk map of `α` at `x` should just be the stalk map of `β`
+  -- at `α x`. Unfortunately, we have a problem with dependent type theory here: Because `x`
+  -- is not *definitionally* equal to `β (α x)`, the map `stalk_map β (α x)` has not the correct
+  -- type for an inverse.
+  -- To get a proper inverse, we need to compose with the `eq_to_hom` arrow
+  -- `X.stalk x ⟶ X.stalk ((α ≫ β).base x)`.
   refine ⟨eq_to_hom (show X.stalk x = X.stalk ((α ≫ β).base x), by rw h_eq) ≫
     (stalk_map β (α.base x) : _), _, _⟩,
   { rw [← category.assoc, congr_point α x ((α ≫ β).base x) h_eq.symm, category.assoc],

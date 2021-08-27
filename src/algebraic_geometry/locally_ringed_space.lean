@@ -123,12 +123,10 @@ def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 instance : faithful forget_to_SheafedSpace := {}
 
 /--
-Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _presheafed_
+Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_
 spaces can be lifted to a morphism `X ⟶ Y` as locally ringed spaces.
 
-This is related to the property that the functor `forget_to_SheafedSpace` reflects isomorphisms.
-In fact, it is slightly stronger as we do not require `f` to come from a morphism between
-_locally_ ringed spaces.
+See also `iso_of_SheafedSpace_iso`.
 -/
 @[simps]
 def hom_of_SheafedSpace_hom_of_is_iso {X Y : LocallyRingedSpace}
@@ -142,8 +140,12 @@ show is_local_ring_hom (PresheafedSpace.stalk_map
 by apply_instance
 
 /--
-Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _presheafed_
+Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_
 spaces can be lifted to an isomorphism `X ⟶ Y` as locally ringed spaces.
+
+This is related to the property that the functor `forget_to_SheafedSpace` reflects isomorphisms.
+In fact, it is slightly stronger as we do not require `f` to come from a morphism between
+_locally_ ringed spaces.
 -/
 def iso_of_SheafedSpace_iso {X Y : LocallyRingedSpace}
   (f : X.to_SheafedSpace ≅ Y.to_SheafedSpace) : X ≅ Y :=

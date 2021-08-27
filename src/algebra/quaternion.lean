@@ -217,6 +217,10 @@ linear_equiv.of_involutive
 @[simp] lemma im_j_conj : (conj a).im_j = - a.im_j := rfl
 @[simp] lemma im_k_conj : (conj a).im_k = - a.im_k := rfl
 
+@[simp] lemma conj_mk (a₁ a₂ a₃ a₄ : R) :
+  conj (mk a₁ a₂ a₃ a₄ : ℍ[R, c₁, c₂]) = ⟨a₁, -a₂, -a₃, -a₄⟩ :=
+rfl
+
 @[simp] lemma conj_conj : a.conj.conj = a := ext _ _ rfl (neg_neg _) (neg_neg _) (neg_neg _)
 
 lemma conj_add : (a + b).conj = a.conj + b.conj := conj.map_add a b

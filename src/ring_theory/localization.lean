@@ -7,6 +7,7 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 import data.equiv.ring
 import group_theory.monoid_localization
 import ring_theory.ideal.operations
+import ring_theory.ideal.local_ring
 import ring_theory.algebraic
 import ring_theory.integral_closure
 import ring_theory.non_zero_divisors
@@ -1590,20 +1591,31 @@ begin
     exact to_map_eq_zero_iff.mp h }
 end
 
-/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
+variables (A K)
+
+/-- An element of a field is algebraic over the ring `A` iff it is algebraic
+over the field of fractions of `A`.
 -/
-lemma comap_is_algebraic_iff [algebra A L] [algebra K L] [is_scalar_tower A K L] :
-  algebra.is_algebraic A L ↔ algebra.is_algebraic K L :=
+lemma is_algebraic_iff [algebra A L] [algebra K L] [is_scalar_tower A K L] {x : L} :
+  is_algebraic A x ↔ is_algebraic K x :=
 begin
-  split; intros h x; obtain ⟨p, hp, px⟩ := h x,
+  split; rintros ⟨p, hp, px⟩,
   { refine ⟨p.map (algebra_map A K), λ h, hp (polynomial.ext (λ i, _)), _⟩,
-  { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
-    exact to_map_eq_zero_iff.mp this },
-  { rwa is_scalar_tower.aeval_apply _ K at px } },
+    { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
+      exact to_map_eq_zero_iff.mp this },
+    { rwa is_scalar_tower.aeval_apply _ K at px } },
   { exact ⟨integer_normalization _ p,
            mt integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero _ p px⟩ },
 end
+
+variables {A K}
+
+/-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`.
+-/
+lemma comap_is_algebraic_iff [algebra A L] [algebra K L] [is_scalar_tower A K L] :
+  algebra.is_algebraic A L ↔ algebra.is_algebraic K L :=
+⟨λ h x, (is_algebraic_iff A K).mp (h x), λ h x, (is_algebraic_iff A K).mpr (h x)⟩
 
 section num_denom
 
@@ -1800,7 +1812,8 @@ lemma is_fraction_ring_of_algebraic [algebra A L] (alg : is_algebraic A L)
    have y ≠ 0 := λ h, mem_non_zero_divisors_iff_ne_zero.mp nonzero (subtype.ext_iff_val.mpr h),
    show is_unit y, from ⟨⟨y, y⁻¹, mul_inv_cancel this, inv_mul_cancel this⟩, rfl⟩),
  (λ z, let ⟨x, y, hy, hxy⟩ := exists_integral_multiple (alg z) inj in
-   ⟨⟨x, ⟨y, mem_non_zero_divisors_iff_ne_zero.mpr hy⟩⟩, hxy⟩),
+   ⟨⟨x, ⟨algebra_map _ _ y, mem_non_zero_divisors_iff_ne_zero.mpr
+      (λ h, hy (inj _ ((congr_arg coe h).trans (subalgebra.coe_zero _))))⟩⟩, hxy⟩),
  (λ x y, ⟨λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
           λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
             (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩)⟩

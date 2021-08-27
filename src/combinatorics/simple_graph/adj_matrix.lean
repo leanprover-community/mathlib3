@@ -23,7 +23,7 @@ open_locale big_operators matrix
 open finset matrix simple_graph
 
 universes u v
-variables {α : Type u} [fintype α]
+variables {α : Type u}
 variables (R : Type v) [semiring R]
 
 namespace simple_graph
@@ -43,6 +43,8 @@ lemma adj_matrix_apply (v w : α) : G.adj_matrix R v w = if (G.adj v w) then 1 e
 @[simp]
 theorem transpose_adj_matrix : (G.adj_matrix R)ᵀ = G.adj_matrix R :=
 by { ext, simp [adj_comm] }
+
+variables [fintype α]
 
 @[simp]
 lemma adj_matrix_dot_product (v : α) (vec : α → R) :

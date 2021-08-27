@@ -528,8 +528,8 @@ section
     cases i with i, exact x0,
     rw jn at ij',
     exact x0.trans (eq_of_xn_modeq_lem3 _ npos (nat.succ_pos _) (le_trans ij j2n) (ne_of_lt ij') $
-      λ⟨a1, n1, _, i2⟩, by rw [n1, i2] at ij'; exact absurd ij' dec_trivial)
-  } else ne_of_lt (eq_of_xn_modeq_lem3 npos ij' j2n jn ntriv) h
+      λ⟨a1, n1, _, i2⟩, by rw [n1, i2] at ij'; exact absurd ij' dec_trivial) }
+  else ne_of_lt (eq_of_xn_modeq_lem3 npos ij' j2n jn ntriv) h
 
   theorem eq_of_xn_modeq {i j n} (npos : 0 < n) (i2n : i ≤ 2 * n) (j2n : j ≤ 2 * n)
     (h : xn i ≡ xn j [MOD xn n]) (ntriv : a = 2 → n = 1 → (i = 0 → j ≠ 2) ∧ (i = 2 → j ≠ 0)) :

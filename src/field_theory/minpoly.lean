@@ -284,6 +284,16 @@ lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field 
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
 by { refine minpoly.dvd K x _, rw [← is_scalar_tower.aeval_apply, minpoly.aeval] }
 
+/-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
+lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
+  [algebra R K] [algebra K T] [algebra R T] [is_scalar_tower R K T]
+  [comm_semiring U] [algebra K U] [algebra R U] [is_scalar_tower R K U]
+  (x : T) (y : U)
+  (hy : polynomial.aeval y (minpoly K x) = 0) : polynomial.aeval y (minpoly R x) = 0 :=
+by { rw is_scalar_tower.aeval_apply R K,
+     exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U) y
+        (minpoly.dvd_map_of_is_scalar_tower R K x) hy }
+
 variables {A x}
 
 theorem unique' [nontrivial B] {p : polynomial A} (hp1 : _root_.irreducible p)

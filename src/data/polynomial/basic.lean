@@ -105,6 +105,10 @@ lemma mul_to_finsupp {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ :=
 lemma smul_to_finsupp {S : Type*} [monoid S] [distrib_mul_action S R] {a : S} {b} :
   (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := rfl
 
+lemma _root_.is_smul_regular.polynomial {S : Type*} [monoid S] [distrib_mul_action S R] {a : S}
+  (ha : is_smul_regular R a) : is_smul_regular (polynomial R) a
+| ⟨x⟩ ⟨y⟩ h := congr_arg _ $ ha.finsupp (polynomial.of_finsupp.inj h)
+
 instance : inhabited (polynomial R) := ⟨0⟩
 
 instance : semiring (polynomial R) :=
@@ -162,6 +166,11 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   right_inv := λ p, rfl,
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
+
+/-- Ring isomorphism between `(polynomial R)ᵒᵖ` and `polynomial Rᵒᵖ`. -/
+@[simps]
+def op_ring_equiv : (polynomial R)ᵒᵖ ≃+* polynomial Rᵒᵖ :=
+((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
 variable {R}
 

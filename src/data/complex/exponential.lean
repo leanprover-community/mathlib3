@@ -210,6 +210,7 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (nat.add_sub_cancel _ _).symm⟩⟩⟩)
 
+-- TODO move to src/algebra/big_operators/basic.lean, rewrite with comm_group, and make to_additive
 lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
   {n m : ℕ} (hnm : n ≤ m) : ∑ k in range m, f k - ∑ k in range n, f k =
   ∑ k in (range m).filter (λ k, n ≤ k), f k :=
@@ -1279,15 +1280,50 @@ begin
       refine sum_le_sum (λ m hm, _),
       rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
       refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
-      exact nat.cast_pos.2 (nat.factorial_pos _),
-      rw abv_pow abs,
-      exact (pow_le_one _ (abs_nonneg _) hx),
-      exact pow_nonneg (abs_nonneg _) _
+      { exact nat.cast_pos.2 (nat.factorial_pos _), },
+      { rw abv_pow abs,
+        exact (pow_le_one _ (abs_nonneg _) hx), },
+      { exact pow_nonneg (abs_nonneg _) _ },
     end
   ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m! : ℝ)) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
   ... ≤ abs x ^ n * (n.succ * (n! * n)⁻¹) :
     mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
+end
+
+lemma exp_bound' {x : ℂ} {n : ℕ} (hx : abs x / (n.succ) ≤ 1 / 2) :
+  abs (exp x - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n / (n!) * 2 :=
+begin
+  rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
+  refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
+  simp_rw [←sub_eq_add_neg],
+  show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n / (n!) * 2,
+  let k := j - n,
+  have hj : j = n + k := (nat.add_sub_of_le hj).symm,
+  rw [hj, sum_range_add_sub_sum_range],
+  calc abs (∑ (i : ℕ) in range k, x ^ (n + i) / ((n + i)! : ℂ))
+      ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abv_sum_le_sum_abv _ _
+  ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n + i)! :
+        by simp only [complex.abs_cast_nat, complex.abs_div, abv_pow abs]
+  ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n! * n.succ ^ i) : _
+  ... = ∑ (i : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^i / n.succ ^ i) : _
+  ... ≤ abs x ^ n / (↑n!) * 2 : _,
+  { refine sum_le_sum (λ m hm, div_le_div (pow_nonneg (abs_nonneg x) (n + m)) (le_refl _) _ _),
+    { exact_mod_cast mul_pos n.factorial_pos (pow_pos n.succ_pos _), },
+    { exact_mod_cast (nat.factorial_mul_pow_le_factorial), }, },
+  { refine finset.sum_congr rfl (λ _ _, _),
+    simp only [pow_add, div_eq_inv_mul, mul_inv', mul_left_comm, mul_assoc], },
+  { rw [←mul_sum],
+    apply mul_le_mul_of_nonneg_left,
+    { simp_rw [←div_pow],
+      rw [←geom_sum_def, geom_sum_eq, div_le_iff_of_neg],
+      { transitivity (-1 : ℝ),
+        { linarith },
+        { simp only [neg_le_sub_iff_le_add, div_pow, nat.cast_succ, le_add_iff_nonneg_left],
+          exact div_nonneg (pow_nonneg (abs_nonneg x) k) (pow_nonneg (n+1).cast_nonneg k) } },
+      { linarith },
+      { linarith }, },
+    { exact div_nonneg (pow_nonneg (abs_nonneg x) n) (nat.cast_nonneg (n!)), }, },
 end
 
 lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :

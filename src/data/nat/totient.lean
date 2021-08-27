@@ -55,7 +55,12 @@ calc totient n ≤ ((range n).filter (≠ 0)).card :
                   simp_rw ne.symm,
                   rw filter_ne' (range n) 0,
                   rw range_eq_Ico,
-                  sorry,
+                  rw card_erase_of_mem,
+                  simp only [Ico.card, sub_zero'],
+                  exact pred_eq_sub_one n,
+                  rw Ico.mem,
+                  simp only [true_and, eq_self_iff_true, nonpos_iff_eq_zero],
+                  linarith,
                 end
            ... < n :
                 begin

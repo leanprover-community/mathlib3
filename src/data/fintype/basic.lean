@@ -7,6 +7,7 @@ import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
 import data.sym.basic
+import data.ulift
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -649,6 +650,11 @@ list.length_fin_range n
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 
+/-- The cardinality of `fin (bit0 k)` is even, `fact` version.
+This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
+lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
+⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
+
 lemma card_finset_fin_le {n : ℕ} (s : finset (fin n)) : s.card ≤ n :=
 by simpa only [fintype.card_fin] using s.card_le_univ
 
@@ -834,6 +840,13 @@ fintype.of_equiv _ equiv.ulift.symm
 
 @[simp] theorem fintype.card_ulift (α : Type*) [fintype α] :
   fintype.card (ulift α) = fintype.card α :=
+fintype.of_equiv_card _
+
+instance (α : Type*) [fintype α] : fintype (plift α) :=
+fintype.of_equiv _ equiv.plift.symm
+
+@[simp] theorem fintype.card_plift (α : Type*) [fintype α] :
+  fintype.card (plift α) = fintype.card α :=
 fintype.of_equiv_card _
 
 lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
@@ -1057,7 +1070,7 @@ finset.subtype.fintype s
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 
-instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
+instance plift.fintype_Prop (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=

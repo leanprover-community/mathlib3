@@ -657,12 +657,12 @@ variables [algebra K S] [algebra K L]
 
 lemma alg_hom.card_of_power_basis (pb : power_basis K S) (h_sep : (minpoly K pb.gen).separable)
   (h_splits : (minpoly K pb.gen).splits (algebra_map K L)) :
-  @fintype.card (S →ₐ[K] L) (power_basis.alg_hom.fintype pb) = (minpoly K pb.gen).nat_degree :=
+  @fintype.card (S →ₐ[K] L) (power_basis.alg_hom.fintype pb) = pb.dim :=
 begin
   let s := ((minpoly K pb.gen).map (algebra_map K L)).roots.to_finset,
   have H := λ x, multiset.mem_to_finset,
   rw [fintype.card_congr pb.lift_equiv', fintype.card_of_subtype s H,
-      nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
+      ← pb.nat_degree_minpoly, nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
   exact nodup_roots ((separable_map (algebra_map K L)).mpr h_sep)
 end
 

@@ -206,7 +206,7 @@ by rcases exists_eq_succ_of_ne_zero (pos_iff_ne_zero.1 hn) with ⟨m, rfl⟩;
 lemma totient_prime {p : ℕ} (hp : p.prime) : φ p = p - 1 :=
 by rw [← pow_one p, totient_prime_pow hp]; simp
 
-lemma totient_prime_iff {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
+lemma totient_eq_iff_prime {p : ℕ} (hp : 0 < p) : p.totient = p - 1 ↔ p.prime :=
 begin
   refine ⟨λ h, _, totient_prime⟩,
   replace hp : 1 < p,
@@ -219,13 +219,8 @@ begin
   { rw [finset.range_eq_Ico, ←finset.Ico.union_consecutive zero_le_one hp.le,
       finset.Ico.succ_singleton] },
   have hempty : finset.filter p.coprime {0} = ∅,
-  { rw finset.eq_empty_iff_forall_not_mem,
-    intros a ha,
-    rw [finset.mem_filter, finset.mem_singleton] at ha,
-    obtain ⟨rfl, ha⟩ := ha,
-    rw coprime_zero_right at ha,
-    exact hp.ne' ha },
-  rw [totient_eq_card_coprime , hsplit, finset.filter_union, hempty, finset.empty_union,
+  { simp only [finset.filter_singleton, nat.coprime_zero_right, hp.ne', if_false] },
+  rw [totient_eq_card_coprime, hsplit, finset.filter_union, hempty, finset.empty_union,
     ←finset.Ico.card 1 p] at h,
   refine p.prime_of_coprime hp (λ n hn hnz, _),
   apply finset.filter_card_eq h n,

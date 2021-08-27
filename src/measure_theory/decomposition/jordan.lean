@@ -386,6 +386,17 @@ by simp [total_variation, to_jordan_decomposition_zero]
 lemma total_variation_neg (s : signed_measure α) : (-s).total_variation = s.total_variation :=
 by simp [total_variation, to_jordan_decomposition_neg, add_comm]
 
+lemma null_of_total_variation_zero (s : signed_measure α) {i : set α}
+  (hs : s.total_variation i = 0) : s i = 0 :=
+begin
+  rw [total_variation, measure.coe_add, pi.add_apply, add_eq_zero_iff] at hs,
+  rw [← to_signed_measure_to_jordan_decomposition s, to_signed_measure, vector_measure.coe_sub,
+      pi.sub_apply, measure.to_signed_measure_apply, measure.to_signed_measure_apply],
+  by_cases hi : measurable_set i,
+  { rw [if_pos hi, if_pos hi], simp [hs.1, hs.2] },
+  { simp [if_neg hi] }
+end
+
 lemma absolutely_continuous_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
   s ≪ μ ↔ s.total_variation ≪ μ.ennreal_to_measure :=
 begin
@@ -400,10 +411,7 @@ begin
     refl },
   { refine vector_measure.absolutely_continuous.mk (λ S hS₁ hS₂, _),
     rw ← vector_measure.ennreal_to_measure_apply hS₁ at hS₂,
-    have := h hS₂,
-    rw [total_variation, measure.add_apply, add_eq_zero_iff] at this,
-    rw [← s.to_signed_measure_to_jordan_decomposition, to_signed_measure,
-        measure.to_signed_measure_sub_apply hS₁, this.1, this.2, ennreal.zero_to_real, sub_zero] }
+    exact null_of_total_variation_zero s (h hS₂) }
 end
 
 lemma total_variation_absolutely_continuous_iff (s : signed_measure α) (μ : measure α) :

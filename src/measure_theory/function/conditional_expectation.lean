@@ -307,6 +307,20 @@ by { rw (Lp_meas_to_Lp_trim_lie F 𝕜 p μ hm.elim).to_isometric.complete_space
 
 end complete_subspace
 
+section strongly_measurable
+
+variables {m m0 : measurable_space α} {μ : measure α}
+
+/-- We do not get `ae_fin_strongly_measurable f (μ.trim hm)`, since we don't have
+`f =ᵐ[μ.trim hm] Lp_meas_to_Lp_trim F 𝕜 p μ hm f` but only the weaker
+`f =ᵐ[μ] Lp_meas_to_Lp_trim F 𝕜 p μ hm f`. -/
+lemma Lp_meas.ae_fin_strongly_measurable' (hm : m ≤ m0) (f : Lp_meas F 𝕜 m p μ) (hp_ne_zero : p ≠ 0)
+  (hp_ne_top : p ≠ ∞) :
+  ∃ g, fin_strongly_measurable g (μ.trim hm) ∧ f =ᵐ[μ] g :=
+⟨Lp_meas_to_Lp_trim F 𝕜 p μ hm f, Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top,
+  (Lp_meas_to_Lp_trim_ae_eq hm f).symm⟩
+
+end strongly_measurable
 
 end Lp_meas
 

@@ -56,19 +56,12 @@ congr_arg _ h
 
 lemma rotation_ne_conj_lie (a : circle) : rotation a ≠ conj_lie :=
 begin
-  intros h,
-  by_cases hu: (a:ℂ).re = -1,
-  { have := linear_isometry_equiv.congr_fun h 1,
-    simp only [rotation_apply, ne.def, conj_lie_apply, mul_one, ring_hom.map_one] at this,
-    rw [this, one_re] at hu,
-    linarith, },
-  { have : rotation a I = conj_lie I,
-    { rw h, },
-    apply hu,
-    have : (a : ℂ) * I = -1 * I,
-    { simpa using this, },
-    rw mul_left_inj' I_ne_zero at this,
-    simp [this], },
+  intro h,
+  have h1 : rotation a 1 = conj 1 := linear_isometry_equiv.congr_fun h 1,
+  have hI : rotation a I = conj I := linear_isometry_equiv.congr_fun h I,
+  rw [rotation_apply, ring_hom.map_one, mul_one] at h1,
+  rw [rotation_apply, conj_I, ← neg_one_mul, mul_left_inj' I_ne_zero, h1, eq_neg_self_iff] at hI,
+  exact one_ne_zero hI,
 end
 
 /-- Takes an element of `ℂ ≃ₗᵢ[ℝ] ℂ` and checks if it is a rotation, returns an element of the

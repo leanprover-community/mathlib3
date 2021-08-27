@@ -204,15 +204,14 @@ Any function `f : α → β` induces `coinduced f : topological_space α → rin
 
 universes u v
 
-section ring_topology
-
-variables {α: Type*}[ring α]
-
 /-- A ring topology on a ring `α` is a topology for which addition, negation and multiplication
 are continuous. -/
 @[ext]
-class ring_topology (α : Type u)[ring α]
+class ring_topology (α : Type u) [ring α]
   extends topological_space α, topological_ring α : Type u
+
+namespace ring_topology
+variables {α: Type*} [ring α]
 
 @[ext]
 lemma ring_topology_eq {f g : ring_topology α} (h: f.is_open = g.is_open) : f = g := by {ext, rw h}
@@ -221,22 +220,22 @@ lemma ring_topology_eq {f g : ring_topology α} (h: f.is_open = g.is_open) : f =
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (ring_topology α) :=
 { le          := λ t s, s.is_open ≤ t.is_open,
-  le_antisymm := assume a b hba hab, ring_topology_eq $ le_antisymm hab hba,
+  le_antisymm := assume t s hst hts, ring_topology_eq $ le_antisymm hts hst,
   le_refl     := assume t, le_refl t.is_open,
-  le_trans    := assume a b c h₁ h₂, le_trans h₂ h₁ }
+  le_trans    := assume t s r h₁ h₂, le_trans h₂ h₁ }
 
 local notation `cont` := @continuous _ _
 
-private def def_Inf: set (ring_topology α) → ring_topology α :=
+private def def_Inf : set (ring_topology α) → ring_topology α :=
 begin
   intro S,
-  let Inf_S' := Inf { (@ring_topology.to_topological_space α _ a) | a ∈ S},
+  let Inf_S' := Inf {(@ring_topology.to_topological_space α _ a) | a ∈ S},
   exact
-  {ring_topology . is_open := Inf_S'.is_open,
-    is_open_univ           := Inf_S'.is_open_univ,
-    is_open_inter          := Inf_S'.is_open_inter,
-    is_open_sUnion         := Inf_S'.is_open_sUnion,
-    continuous_add         :=
+  { ring_topology . is_open := Inf_S'.is_open,
+    is_open_univ            := Inf_S'.is_open_univ,
+    is_open_inter           := Inf_S'.is_open_inter,
+    is_open_sUnion          := Inf_S'.is_open_sUnion,
+    continuous_add          :=
     begin
       apply continuous_Inf_rng,
       rintros t ⟨a, haS, rfl⟩,
@@ -252,7 +251,7 @@ begin
        (@prod.topological_space _ _ t t)
        t _ _ h_continuous_add h_continuous_id,
     end,
-    continuous_neg         :=
+    continuous_neg          :=
     begin
       apply continuous_Inf_rng,
       intros t ht,
@@ -260,7 +259,7 @@ begin
       rcases ht with ⟨a, -, rfl⟩,
       apply continuous_neg,
     end,
-    continuous_mul         :=
+    continuous_mul          :=
     begin
       apply continuous_Inf_rng,
       rintros t ⟨a, haS, rfl⟩,
@@ -275,7 +274,7 @@ begin
         (@prod.topological_space _ _ Inf_S' Inf_S')
         (@prod.topological_space _ _ t t)
         t _ _ h_continuous_mul (h_continuous_id),
-    end},
+    end },
 end
 
 /-- Ring topologies on `α` form a complete lattice, with `⊥` the discrete topology and `⊤` the

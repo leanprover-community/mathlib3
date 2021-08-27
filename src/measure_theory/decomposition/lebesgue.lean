@@ -91,8 +91,7 @@ lemma measurable_radon_nikodym_deriv (μ ν : measure α) :
   measurable $ radon_nikodym_deriv μ ν :=
 begin
   by_cases h : have_lebesgue_decomposition μ ν,
-  { haveI := h,
-    exact (have_lebesgue_decomposition_spec μ ν).1 },
+  { exactI (have_lebesgue_decomposition_spec μ ν).1 },
   { rw [radon_nikodym_deriv, dif_neg h],
     exact measurable_zero }
 end
@@ -101,8 +100,7 @@ lemma mutually_singular_singular_part (μ ν : measure α) :
   singular_part μ ν ⊥ₘ ν :=
 begin
   by_cases h : have_lebesgue_decomposition μ ν,
-  { haveI := h,
-    exact (have_lebesgue_decomposition_spec μ ν).2.1 },
+  { exactI (have_lebesgue_decomposition_spec μ ν).2.1 },
   { rw [singular_part, dif_neg h],
     exact mutually_singular.zero.symm }
 end
@@ -110,8 +108,7 @@ end
 lemma singular_part_le (μ ν : measure α) : singular_part μ ν ≤ μ :=
 begin
   by_cases hl : have_lebesgue_decomposition μ ν,
-  { haveI := hl,
-    obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec μ ν,
+  { casesI (have_lebesgue_decomposition_spec μ ν).2 with _ h,
     conv_rhs { rw h },
     exact measure.le_add_right (le_refl _) },
   { rw [singular_part, dif_neg hl],
@@ -122,8 +119,7 @@ lemma with_density_radon_nikodym_deriv_le (μ ν : measure α) :
   ν.with_density (radon_nikodym_deriv μ ν) ≤ μ :=
 begin
   by_cases hl : have_lebesgue_decomposition μ ν,
-  { haveI := hl,
-    obtain ⟨-, -, h⟩ := have_lebesgue_decomposition_spec μ ν,
+  { casesI (have_lebesgue_decomposition_spec μ ν).2 with _ h,
     conv_rhs { rw h },
     exact measure.le_add_left (le_refl _) },
   { rw [radon_nikodym_deriv, dif_neg hl, with_density_zero],

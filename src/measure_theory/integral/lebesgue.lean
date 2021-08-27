@@ -684,9 +684,9 @@ by rw [f.restrict_lintegral hs, lintegral_restrict]
 lemma const_lintegral (c : ℝ≥0∞) : (const α c).lintegral μ = c * μ univ :=
 begin
   rw [lintegral],
-  by_cases ha : nonempty α,
-  { resetI, simp [preimage_const_of_mem] },
-  { simp [μ.eq_zero_of_not_nonempty ha] }
+  casesI is_empty_or_nonempty α,
+  { simp [μ.eq_zero_of_is_empty] },
+  { simp [preimage_const_of_mem] },
 end
 
 lemma const_lintegral_restrict (c : ℝ≥0∞) (s : set α) :

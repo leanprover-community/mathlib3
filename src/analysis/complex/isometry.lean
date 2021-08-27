@@ -49,6 +49,34 @@ def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 
 @[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
 
+lemma linear_isometry_equiv.congr_fun {R E F}
+  [semiring R] [semi_normed_group E] [semi_normed_group F] [module R E] [module R F]
+  {f g : E ≃ₗᵢ[R] F} (h : f = g) (x : E) : f x = g x :=
+congr_arg _ h
+
+lemma rotation_ne_conj_lie (a : circle) : rotation a ≠ conj_lie :=
+begin
+  intro h,
+  have h1 : rotation a 1 = conj 1 := linear_isometry_equiv.congr_fun h 1,
+  have hI : rotation a I = conj I := linear_isometry_equiv.congr_fun h I,
+  rw [rotation_apply, ring_hom.map_one, mul_one] at h1,
+  rw [rotation_apply, conj_I, ← neg_one_mul, mul_left_inj' I_ne_zero, h1, eq_neg_self_iff] at hI,
+  exact one_ne_zero hI,
+end
+
+/-- Takes an element of `ℂ ≃ₗᵢ[ℝ] ℂ` and checks if it is a rotation, returns an element of the
+unit circle. -/
+@[simps]
+def rotation_of (e : ℂ ≃ₗᵢ[ℝ] ℂ) : circle :=
+⟨(e 1) / complex.abs (e 1), by simp⟩
+
+@[simp]
+lemma rotation_of_rotation (a : circle) : rotation_of (rotation a) = a :=
+subtype.ext $ by simp
+
+lemma rotation_injective : function.injective rotation :=
+function.left_inverse.injective rotation_of_rotation
+
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
   (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 by simpa [ext_iff, add_re, add_im, conj_re, conj_im, ←two_mul,

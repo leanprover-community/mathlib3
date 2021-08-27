@@ -603,6 +603,10 @@ def snd : A × B →ₐ[R] B :=
 
 end prod
 
+lemma algebra_map_eq_apply (f : A →ₐ[R] B) {y : R} {x : A} (h : algebra_map R A y = x) :
+  algebra_map R B y = f x :=
+h ▸ (f.commutes _).symm
+
 end semiring
 
 section comm_semiring
@@ -1030,6 +1034,11 @@ instance apply_smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
 
 instance apply_smul_comm_class' : smul_comm_class (A₁ ≃ₐ[R] A₁) R A₁ :=
 { smul_comm := λ e r a, (e.to_linear_equiv.map_smul r a) }
+
+@[simp] lemma algebra_map_eq_apply (e : A₁ ≃ₐ[R] A₂) {y : R} {x : A₁} :
+  (algebra_map R A₂ y = e x) ↔ (algebra_map R A₁ y = x) :=
+⟨λ h, by simpa using e.symm.to_alg_hom.algebra_map_eq_apply h,
+ λ h, e.to_alg_hom.algebra_map_eq_apply h⟩
 
 end semiring
 

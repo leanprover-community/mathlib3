@@ -60,9 +60,9 @@ universes u₁ u₂
 namespace matrix
 open_locale matrix
 
-variables (n p q l : Type*) (R : Type u₂) {𝕜 : Type*} [field 𝕜]
-variables [fintype n] [fintype l] [fintype p] [fintype q]
-variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
+variables (n p : Type*) (R : Type u₂) {𝕜 : Type*} [field 𝕜]
+-- variables [fintype n] [fintype p]
+variables [decidable_eq n] [decidable_eq p]
 variables [comm_ring R]
 
 section elementary_basis
@@ -79,6 +79,8 @@ It is useful to define these matrices for explicit calculations in sl n R. -/
 
 @[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
 funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
+
+variable [fintype n]
 
 lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
 
@@ -128,7 +130,10 @@ def transvection (c : R) : matrix n n R := 1 + c • E R i j
 @[simp] lemma transvection_zero : transvection i j (0 : R) = 1 :=
 by simp [transvection]
 
-lemma update_row_eq_transvection (h : i ≠ j) (c : R) :
+section
+variable [fintype n]
+
+lemma update_row_eq_transvection (c : R) :
   update_row (1 : matrix n n R) i (((1 : matrix n n R)) i + c • (1 : matrix n n R) j) =
     transvection i j c :=
 begin
@@ -167,7 +172,9 @@ by simp [transvection, matrix.add_mul, ha]
 by simp [transvection, matrix.mul_add, hb]
 
 @[simp] lemma det_transvection_of_ne (h : i ≠ j) (c : R) : det (transvection i j c) = 1 :=
-by rw [← update_row_eq_transvection i j h, det_update_row_add_smul_self _ h, det_one]
+by rw [← update_row_eq_transvection i j, det_update_row_add_smul_self _ h, det_one]
+
+end
 
 variables (R n)
 
@@ -193,10 +200,10 @@ transvection t.i t.j t.c
 @[simp] lemma to_matrix_mk (i j : n) (hij : i ≠ j) (c : R) :
   transvection_struct.to_matrix ⟨i, j, hij, c⟩ = transvection i j c := rfl
 
-@[simp] protected lemma det (t : transvection_struct n R) : det t.to_matrix = 1 :=
+@[simp] protected lemma det [fintype n] (t : transvection_struct n R) : det t.to_matrix = 1 :=
 det_transvection_of_ne _ _ t.hij _
 
-@[simp] lemma det_to_matrix_prod (L : list (transvection_struct n 𝕜)) :
+@[simp] lemma det_to_matrix_prod [fintype n] (L : list (transvection_struct n 𝕜)) :
   det ((L.map to_matrix).prod) = 1 :=
 begin
   induction L with t L IH,
@@ -211,6 +218,9 @@ protected def inv (t : transvection_struct n R) : transvection_struct n R :=
   j := t.j,
   hij := t.hij,
   c := - t.c }
+
+section
+variable [fintype n]
 
 lemma inv_mul (t : transvection_struct n R) :
   t.inv.to_matrix ⬝ t.to_matrix = 1 :=
@@ -241,7 +251,9 @@ begin
     simp_rw [IH, matrix.mul_one, t.mul_inv], }
 end
 
-variable (p)
+end
+
+variables (p)
 
 open sum
 
@@ -267,7 +279,7 @@ begin
     simp [transvection_struct.sum_inl, transvection, h] },
 end
 
-@[simp] lemma sum_inl_to_matrix_prod_mul
+@[simp] lemma sum_inl_to_matrix_prod_mul [fintype n] [fintype p]
   (M : matrix n n R) (L : list (transvection_struct n R)) (N : matrix p p R) :
   (L.map (to_matrix ∘ sum_inl p)).prod ⬝ from_blocks M 0 0 N
   = from_blocks ((L.map to_matrix).prod ⬝ M) 0 0 N :=
@@ -277,7 +289,7 @@ begin
   { simp [matrix.mul_assoc, IH, to_matrix_sum_inl, from_blocks_multiply], },
 end
 
-@[simp] lemma mul_sum_inl_to_matrix_prod
+@[simp] lemma mul_sum_inl_to_matrix_prod [fintype n] [fintype p]
   (M : matrix n n R) (L : list (transvection_struct n R)) (N : matrix p p R) :
   (from_blocks M 0 0 N) ⬝ (L.map (to_matrix ∘ sum_inl p)).prod
   = from_blocks (M ⬝ (L.map to_matrix).prod) 0 0 N :=
@@ -296,6 +308,8 @@ def reindex_equiv (e : n ≃ p) (t : transvection_struct n R) : transvection_str
   j := e t.j,
   hij := by simp [t.hij],
   c := t.c }
+
+variables [fintype n] [fintype p]
 
 lemma to_matrix_reindex_equiv (e : n ≃ p) (t : transvection_struct n R) :
   (t.reindex_equiv e).to_matrix = reindex_alg_equiv R e t.to_matrix :=
@@ -383,7 +397,8 @@ begin
       by simpa only [if_true, list.drop.equations._eqn_1] using H 0 (zero_le _),
   assume k hk,
   apply nat.decreasing_induction' _ hk,
-  { simp only [list_transvec_col, list.length_of_fn, matrix.one_mul, list.drop_eq_nil_of_le, list.prod_nil],
+  { simp only [list_transvec_col, list.length_of_fn, matrix.one_mul, list.drop_eq_nil_of_le,
+      list.prod_nil],
     rw if_neg,
     simpa only [not_le] using i.2 },
   { assume n hn hk IH,
@@ -607,7 +622,7 @@ begin
   simp [h₀],
 end
 
-variables {n p}
+variables {n p} [fintype n] [fintype p]
 
 /-- Reduction to diagonal form by elementary operations is invariant under reindexing. -/
 lemma reindex_exists_list_transvec_mul_mul_list_transvec_eq_diagonal (M : matrix p p 𝕜) (e : p ≃ n)
@@ -681,7 +696,7 @@ end pivot
 
 open pivot transvection_struct
 
-variable {n}
+variables {n} [fintype n]
 
 /-- Induction principle for matrices based on transvections: if a property is true for all diagonal
 matrices, all transvections, and is stable under product, then it is true for all matrices. This is

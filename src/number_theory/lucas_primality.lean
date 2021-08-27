@@ -84,48 +84,34 @@ begin
       simp, }, },
 end
 
+/--
+If a^r = 1 mod p, but a^(r/q) ≠ 1 mod p for all prime factors q of r, then a has order r in the
+multiplicative group mod p.
+-/
 theorem order_from_pows (n r : ℕ) (a : zmod n)
   (hp : 0 < r)
   (ha : a^r = 1)
   (hd : (∀ q : ℕ, (nat.prime q) -> (q ∣ r) -> a^(r/q) ≠ 1))
   : order_of a = r :=
 begin
-  -- Let b be (p-1)/(order_of a)
+  -- Let b be r/(order_of a), and show b = 1
   cases exists_eq_mul_right_of_dvd (order_of_dvd_of_pow_eq_one ha) with b hb,
-
+  suffices : b = 1, by simp [this, hb],
+  -- If b is not one, use the minimum prime factor of b as q.
+  by_contra,
   have b_min_fac_dvd_p_sub_one : b.min_fac ∣ r,
     { have c_dvd_factor : ∃ (c : ℕ), b = c * b.min_fac,
         exact exists_eq_mul_left_of_dvd b.min_fac_dvd,
       cases c_dvd_factor with c hc,
-      rw [hc, <-mul_assoc] at hb,
+      rw [hc, ←mul_assoc] at hb,
       exact dvd.intro_left (order_of a * c) (eq.symm hb), },
+  refine hd b.min_fac (nat.min_fac_prime h) b_min_fac_dvd_p_sub_one _,
 
-  by_contra,
-
-  apply hd (nat.min_fac b),
-  apply @nat.min_fac_prime b,
-  intro hb',
-  rw hb' at hb,
-  rw hb at h,
-  simp at h,
-  exact h,
-  exact b_min_fac_dvd_p_sub_one,
-
-  have hfoo : order_of a ∣ (r) / (b.min_fac),
-    rw dvd_div_iff_mul_dvd,
-    rw hb,
-    rw nat.mul_dvd_mul_iff_left,
-    exact nat.min_fac_dvd b,
-    apply order_of_pos',
-    rw is_of_fin_order_iff_pow_eq_one,
-    use (r),
-    split,
-    exact sub_pos_iff_lt.mpr hp,
-    exact ha,
-    exact b_min_fac_dvd_p_sub_one,
-    rw <-order_of_dvd_iff_pow_eq_one,
-    exact hfoo,
-
+  rw [←order_of_dvd_iff_pow_eq_one, dvd_div_iff_mul_dvd, hb, nat.mul_dvd_mul_iff_left],
+  exact nat.min_fac_dvd b,
+  apply order_of_pos',
+  rw is_of_fin_order_iff_pow_eq_one,
+  exact Exists.intro r (id ⟨sub_pos_iff_lt.mpr hp, ha⟩),
 end
 
 /--

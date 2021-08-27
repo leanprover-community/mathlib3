@@ -267,8 +267,8 @@ lemma mem_lower_central_series_succ_iff (n : ℕ) (q : G) :
 
 lemma lower_central_series_succ (n : ℕ) :
   lower_central_series G (n + 1) =
-  closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x}
-:= rfl
+  closure {x | ∃ (p ∈ lower_central_series G n) (q ∈ (⊤ : subgroup G)), p * q * p⁻¹ * q⁻¹ = x} :=
+rfl
 
 instance (n : ℕ) : normal (lower_central_series G n) :=
 begin

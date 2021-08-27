@@ -12,7 +12,7 @@ import tactic.field_simp
 # Transvections
 
 Transvections are matrices of the form `1 + c E i j`, where `E i j` is the elementary matrix with
-a `1` at position `(i, j)`. Multiplying by such a transvections on the left (resp. on the right)
+a `1` at position `(i, j)`. Multiplying by such a transvection on the left (resp. on the right)
 amounts to adding `c` times the `j`-th row to to the `i`-th row (resp `c` times the `i`-th column
 to the `j`-th column). Therefore, they are useful to present algorithms operating on lines and
 columns.
@@ -27,7 +27,7 @@ form by operations on its rows and columns, a variant of Gauss' pivot algorithm.
 * `transvection i j c` is the matrix equal to `1 + c • E R i j`.
 * `transvection_struct n R` is a structure containing the data of `i, j, c` and a proof that
   `i ≠ j`. These are often easier to manipulate than straight matrices, especially in inductive
-  arguments
+  arguments.
 
 * `exists_list_transvec_mul_diagonal_mul_list_transvec` states that any matrix `M` over a field can
   be written in the form `t_1 ⬝ ... ⬝ t_k ⬝ D ⬝ t'_1 ⬝ ... ⬝ t'_l`, where `D` is diagonal and
@@ -40,12 +40,12 @@ form by operations on its rows and columns, a variant of Gauss' pivot algorithm.
 ## Implementation details
 
 The proof of the reduction results is done inductively on the size of the matrices, reducing an
-`(n + 1) × (n + 1)` matrix to a matrix whose last row and column are zeroes, except possibly for
+`(r + 1) × (r + 1)` matrix to a matrix whose last row and column are zeroes, except possibly for
 the last diagonal entry. This step is done as follows.
 
 If all the coefficients on the last row and column are zero, there is nothing to do. Otherwise,
 one can put a nonzero coefficient in the last diagonal entry by a row or column operation, and then
-substract this last diagonal entry from the other entries in the last row and column to make them
+subtract this last diagonal entry from the other entries in the last row and column to make them
 vanish.
 
 This step is done in the type `fin r ⊕ unit`, where `fin r` is useful to choose arbitrarily some
@@ -61,7 +61,6 @@ namespace matrix
 open_locale matrix
 
 variables (n p : Type*) (R : Type u₂) {𝕜 : Type*} [field 𝕜]
--- variables [fintype n] [fintype p]
 variables [decidable_eq n] [decidable_eq p]
 variables [comm_ring R]
 

@@ -90,7 +90,7 @@ lemma sl_bracket [fintype n] (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val -
 
 section elementary_basis
 
-variables {n} (i j : n)
+variables {n} [fintype n] (i j : n)
 
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/

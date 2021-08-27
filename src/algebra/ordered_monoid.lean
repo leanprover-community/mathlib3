@@ -408,10 +408,10 @@ instance : sub_neg_monoid (with_top α) :=
 
 lemma neg_coe (x : α) : (-x : with_top α) = ((-x : α) : with_top α) := rfl
 
-@[simp] lemma with_top.neg_zero : (-0 : with_top α) = 0 :=
+@[simp] lemma neg_zero : (-0 : with_top α) = 0 :=
 by rw [←with_top.coe_zero, with_top.neg_coe, neg_zero]
 
-@[simp] lemma with_top.neg_neg (x : with_top α) : -(-x) = x :=
+@[simp] lemma neg_neg (x : with_top α) : -(-x) = x :=
 begin
   induction x using with_top.rec_top_coe;
   simp [with_top.neg_coe]

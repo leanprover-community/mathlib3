@@ -116,16 +116,6 @@ end
 -- end
 
 /-- The monoid homomorphism from the units of -/
-def unit_hom : (units (zmod p)) →* (zmod p) :=
-{
-  (@units.has_coe (zmod p) _),
-  begin
-
-  end,
-  begin
-
-  end,
-}
 
 
 
@@ -191,20 +181,27 @@ begin
     },
     {
       have hp' : p - 2 + 1 = p - 1,
-        sorry,
+        { apply eq.symm,
+          rw nat.sub_eq_iff_eq_add,
+          rw add_assoc,
+          norm_num,
+          rw <-nat.sub_eq_iff_eq_add,
+          linarith,
+          linarith, },
       let a' : units (zmod p) := {
         val := a,
         inv := a ^ (p - 2),
         val_inv := begin rw <-pow_succ, rw hp', rw ha, end,
         inv_val := begin rw <-pow_succ', rw hp', rw ha, end,
       },
-      have a_coe : a = a',
-        { unfold_coes, },
+      have a_coe : a = units.coe_hom (zmod p) a',
+        { unfold_coes, simp, },
       have order_of_a' : order_of a' = p-1,
         {
           rw <-order_of_a,
           rw a_coe,
-          rw order_of_injective units.has_coe.coe,
+          rw order_of_injective (@units.coe_hom (zmod p) _),
+          exact units.ext,
         },
       rw <-order_of_a',
       apply order_of_le_card_univ,

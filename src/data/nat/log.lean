@@ -42,16 +42,16 @@ by rw [log, if_neg (λ h : b ≤ n ∧ 1 < b, h.1.not_lt hnb)]
 lemma log_of_left_le_one {b n : ℕ} (hb : b ≤ 1) : log b n = 0 :=
 by rw [log, if_neg (λ h : b ≤ n ∧ 1 < b, h.2.not_le hb)]
 
-lemma log_zero_left (n : ℕ) : log 0 n = 0 :=
+@[simp] lemma log_zero_left (n : ℕ) : log 0 n = 0 :=
 log_of_left_le_one zero_le_one
 
-lemma log_zero_right (b : ℕ) : log b 0 = 0 :=
+@[simp] lemma log_zero_right (b : ℕ) : log b 0 = 0 :=
 by { rw log, cases b; refl }
 
-lemma log_one_left (n : ℕ) : log 1 n = 0 :=
+@[simp] lemma log_one_left (n : ℕ) : log 1 n = 0 :=
 log_of_left_le_one le_rfl
 
-lemma log_one_right (b : ℕ) : log b 1 = 0 :=
+@[simp] lemma log_one_right (b : ℕ) : log b 1 = 0 :=
 if h : b ≤ 1 then
   log_of_left_le_one h
 else
@@ -128,16 +128,16 @@ by rw [clog, if_neg (λ h : 1 < b ∧ 1 < n, h.1.not_le hb)]
 lemma clog_of_right_le_one {n : ℕ} (hn : n ≤ 1) (b : ℕ) : clog b n = 0 :=
 by rw [clog, if_neg (λ h : 1 < b ∧ 1 < n, h.2.not_le hn)]
 
-lemma clog_zero_left (n : ℕ) : clog 0 n = 0 :=
+@[simp] lemma clog_zero_left (n : ℕ) : clog 0 n = 0 :=
 clog_of_left_le_one zero_le_one _
 
-lemma clog_zero_right (b : ℕ) : clog b 0 = 0 :=
+@[simp] lemma clog_zero_right (b : ℕ) : clog b 0 = 0 :=
 clog_of_right_le_one zero_le_one _
 
-lemma clog_one_left (n : ℕ) : clog 1 n = 0 :=
+@[simp] lemma clog_one_left (n : ℕ) : clog 1 n = 0 :=
 clog_of_left_le_one le_rfl _
 
-lemma clog_one_right (b : ℕ) : clog b 1 = 0 :=
+@[simp] lemma clog_one_right (b : ℕ) : clog b 1 = 0 :=
 clog_of_right_le_one le_rfl _
 
 lemma clog_of_two_le {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) :

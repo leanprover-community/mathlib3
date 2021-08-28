@@ -930,6 +930,8 @@ variables {m m0 : measurable_space α} {μ : measure α} [borel_space 𝕜] [is_
 
 include 𝕜
 
+section condexp_ind_L1_fin
+
 variables (𝕜)
 
 /-- Conditional expectation of the indicator of a measurable set with finite measure,
@@ -945,8 +947,9 @@ lemma condexp_ind_L1_fin_ae_eq_condexp_L2_indicator (hm : m ≤ m0) [sigma_finit
 mem_ℒp.coe_fn_to_Lp _
 variables {𝕜}
 
-lemma condexp_ind_L1_fin_add (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x y : E') :
+variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
+
+lemma condexp_ind_L1_fin_add (hs : measurable_set s) (hμs : μ s ≠ ∞) (x y : E') :
   condexp_ind_L1_fin 𝕜 hm hs hμs (x + y)
     = condexp_ind_L1_fin 𝕜 hm hs hμs x + condexp_ind_L1_fin 𝕜 hm hs hμs y :=
 begin
@@ -964,8 +967,21 @@ begin
   apply_instance,
 end
 
-lemma condexp_ind_L1_fin_smul (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (c : ℝ) (x : E') :
+lemma condexp_ind_L1_fin_smul (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : 𝕜) (x : E') :
+  condexp_ind_L1_fin 𝕜 hm hs hμs (c • x) = c • condexp_ind_L1_fin 𝕜 hm hs hμs x :=
+begin
+  ext1,
+  refine (mem_ℒp.coe_fn_to_Lp _).trans _,
+  refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
+  rw [condexp_L2_indicator_smul hm hs hμs c x, Lp_meas_coe],
+  push_cast,
+  refine (Lp.coe_fn_smul _ _).trans _,
+  rw ← Lp_meas_coe,
+  refine (condexp_ind_L1_fin_ae_eq_condexp_L2_indicator 𝕜 hm hs hμs x).mono (λ y hy, _),
+  rw [pi.smul_apply, pi.smul_apply, hy],
+end
+
+lemma condexp_ind_L1_fin_smul_real (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : ℝ) (x : E') :
   condexp_ind_L1_fin 𝕜 hm hs hμs (c • x) = c • condexp_ind_L1_fin 𝕜 hm hs hμs x :=
 begin
   ext1,
@@ -981,8 +997,7 @@ begin
   rw [pi.smul_apply, pi.smul_apply, hy, is_R_or_C.of_real_alg, smul_assoc, one_smul],
 end
 
-lemma norm_condexp_ind_L1_fin_le (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : E') :
+lemma norm_condexp_ind_L1_fin_le (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
   ∥condexp_ind_L1_fin 𝕜 hm hs hμs x∥ ≤ (μ s).to_real * ∥x∥ :=
 begin
   have : 0 ≤ ∫ (a : α), ∥condexp_ind_L1_fin 𝕜 hm hs hμs x a∥ ∂μ,
@@ -1002,6 +1017,10 @@ begin
   exact lintegral_nnnorm_condexp_L2_indicator_le hm hs hμs x,
 end
 
+end condexp_ind_L1_fin
+
+section condexp_ind_L1
+
 variables (𝕜)
 /-- Conditional expectation of the indicator of a measurable set, as a function in L1. -/
 def condexp_ind_L1 {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α)
@@ -1010,52 +1029,59 @@ def condexp_ind_L1 {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α
 dite (μ s ≠ ∞) (λ hμs, condexp_ind_L1_fin 𝕜 hm hs hμs x) (λ hμs, 0)
 variables {𝕜}
 
-lemma condexp_ind_L1_of_measure_ne_top (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
+variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
+
+lemma condexp_ind_L1_of_measure_ne_top (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
   condexp_ind_L1 𝕜 hm μ hs x = condexp_ind_L1_fin 𝕜 hm hs hμs x :=
 by simp only [condexp_ind_L1, hμs, dif_pos, ne.def, not_false_iff]
 
-lemma condexp_ind_L1_of_measure_eq_top (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (hμs : μ s = ∞) (x : E') :
+lemma condexp_ind_L1_of_measure_eq_top (hs : measurable_set s) (hμs : μ s = ∞) (x : E') :
   condexp_ind_L1 𝕜 hm μ hs x = 0 :=
 by simp only [condexp_ind_L1, hμs, eq_self_iff_true, not_true, ne.def, dif_neg, not_false_iff]
 
-lemma condexp_ind_L1_add (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)
-  (x y : E') :
+lemma condexp_ind_L1_add (hs : measurable_set s) (x y : E') :
   condexp_ind_L1 𝕜 hm μ hs (x + y) = condexp_ind_L1 𝕜 hm μ hs x + condexp_ind_L1 𝕜 hm μ hs y :=
 begin
   by_cases hμs : μ s = ∞,
-  { simp_rw condexp_ind_L1_of_measure_eq_top hm hs hμs, rw zero_add, },
-  { simp_rw condexp_ind_L1_of_measure_ne_top hm hs hμs,
-    exact condexp_ind_L1_fin_add hm hs hμs x y, },
+  { simp_rw condexp_ind_L1_of_measure_eq_top hs hμs, rw zero_add, },
+  { simp_rw condexp_ind_L1_of_measure_ne_top hs hμs,
+    exact condexp_ind_L1_fin_add hs hμs x y, },
 end
 
-lemma condexp_ind_L1_smul_real (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)
-  (c : ℝ) (x : E') :
+lemma condexp_ind_L1_smul (hs : measurable_set s) (c : 𝕜) (x : E') :
   condexp_ind_L1 𝕜 hm μ hs (c • x) = c • condexp_ind_L1 𝕜 hm μ hs x :=
 begin
   by_cases hμs : μ s = ∞,
-  { simp_rw condexp_ind_L1_of_measure_eq_top hm hs hμs, rw smul_zero, },
-  { simp_rw condexp_ind_L1_of_measure_ne_top hm hs hμs,
-    exact condexp_ind_L1_fin_smul hm hs hμs c x, },
+  { simp_rw condexp_ind_L1_of_measure_eq_top hs hμs, rw smul_zero, },
+  { simp_rw condexp_ind_L1_of_measure_ne_top hs hμs,
+    exact condexp_ind_L1_fin_smul hs hμs c x, },
 end
 
-lemma norm_condexp_ind_L1_le (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)
-  (x : E') :
+lemma condexp_ind_L1_smul_real (hs : measurable_set s) (c : ℝ) (x : E') :
+  condexp_ind_L1 𝕜 hm μ hs (c • x) = c • condexp_ind_L1 𝕜 hm μ hs x :=
+begin
+  by_cases hμs : μ s = ∞,
+  { simp_rw condexp_ind_L1_of_measure_eq_top hs hμs, rw smul_zero, },
+  { simp_rw condexp_ind_L1_of_measure_ne_top hs hμs,
+    exact condexp_ind_L1_fin_smul_real hs hμs c x, },
+end
+
+lemma norm_condexp_ind_L1_le (hs : measurable_set s) (x : E') :
   ∥condexp_ind_L1 𝕜 hm μ hs x∥ ≤ (μ s).to_real * ∥x∥ :=
 begin
   by_cases hμs : μ s = ∞,
-  { rw [condexp_ind_L1_of_measure_eq_top hm hs hμs x, Lp.norm_zero],
+  { rw [condexp_ind_L1_of_measure_eq_top hs hμs x, Lp.norm_zero],
     exact mul_nonneg ennreal.to_real_nonneg (norm_nonneg _), },
-  { rw condexp_ind_L1_of_measure_ne_top hm hs hμs x,
-    exact norm_condexp_ind_L1_fin_le hm hs hμs x, },
+  { rw condexp_ind_L1_of_measure_ne_top hs hμs x,
+    exact norm_condexp_ind_L1_fin_le hs hμs x, },
 end
 
-lemma continuous_condexp_ind_L1 (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  {s : set α} (hs : measurable_set s) :
+lemma continuous_condexp_ind_L1 (hs : measurable_set s) :
   continuous (λ x : E', condexp_ind_L1 𝕜 hm μ hs x) :=
-continuous_of_linear_of_bound (condexp_ind_L1_add hm hs)
-  (condexp_ind_L1_smul_real hm hs) (norm_condexp_ind_L1_le hm hs)
+continuous_of_linear_of_bound (condexp_ind_L1_add hs) (condexp_ind_L1_smul_real hs)
+  (norm_condexp_ind_L1_le hs)
+
+end condexp_ind_L1
 
 variables (𝕜)
 /-- Conditional expectation of the indicator of a measurable set, as a linear map from `E'`
@@ -1064,19 +1090,23 @@ def condexp_ind {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α) [
   (hs : measurable_set s) :
   E' →L[ℝ] α →₁[μ] E' :=
 { to_fun := condexp_ind_L1 𝕜 hm μ hs,
-  map_add' := condexp_ind_L1_add hm hs,
-  map_smul' := condexp_ind_L1_smul_real hm hs,
-  cont := continuous_condexp_ind_L1 hm hs, }
+  map_add' := condexp_ind_L1_add hs,
+  map_smul' := condexp_ind_L1_smul_real hs,
+  cont := continuous_condexp_ind_L1 hs, }
 variables {𝕜}
 omit 𝕜
 
+lemma condexp_ind_smul {hm : m ≤ m0} [sigma_finite (μ.trim hm)] (hs : measurable_set s) (c : 𝕜)
+  (x : E') :
+  condexp_ind 𝕜 hm μ hs (c • x) = c • condexp_ind 𝕜 hm μ hs x :=
+condexp_ind_L1_smul hs c x
+
 section disjoint_union
 
-variables {t : set α}
+variables {t : set α} {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
 
-lemma condexp_ind_L1_fin_disjoint_union (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅)
-  (x : E') :
+lemma condexp_ind_L1_fin_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') :
   condexp_ind_L1_fin 𝕜 hm (hs.union ht) ((measure_union_le s t).trans_lt
     (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hμs, hμt⟩))).ne x
   = condexp_ind_L1_fin 𝕜 hm hs hμs x + condexp_ind_L1_fin 𝕜 hm ht hμt x :=
@@ -1097,24 +1127,22 @@ begin
   refl,
 end
 
-lemma condexp_ind_L1_disjoint_union (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅)
-  (x : E') :
+lemma condexp_ind_L1_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') :
   condexp_ind_L1 𝕜 hm μ (hs.union ht) x = condexp_ind_L1 𝕜 hm μ hs x + condexp_ind_L1 𝕜 hm μ ht x :=
 begin
   have hμst : μ (s ∪ t) ≠ ∞, from ((measure_union_le s t).trans_lt
     (lt_top_iff_ne_top.mpr (ennreal.add_ne_top.mpr ⟨hμs, hμt⟩))).ne,
-  rw [condexp_ind_L1_of_measure_ne_top hm hs hμs x,
-    condexp_ind_L1_of_measure_ne_top hm ht hμt x,
-    condexp_ind_L1_of_measure_ne_top hm (hs.union ht) hμst x],
-  exact condexp_ind_L1_fin_disjoint_union hm hs ht hμs hμt hst x,
+  rw [condexp_ind_L1_of_measure_ne_top hs hμs x,
+    condexp_ind_L1_of_measure_ne_top ht hμt x,
+    condexp_ind_L1_of_measure_ne_top (hs.union ht) hμst x],
+  exact condexp_ind_L1_fin_disjoint_union hs ht hμs hμt hst x,
 end
 
-lemma condexp_ind_disjoint_union (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅)
-  (x : E') :
+lemma condexp_ind_disjoint_union (hs : measurable_set s) (ht : measurable_set t)
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅) (x : E') :
   condexp_ind 𝕜 hm μ (hs.union ht) x = condexp_ind 𝕜 hm μ hs x + condexp_ind 𝕜 hm μ ht x :=
-condexp_ind_L1_disjoint_union hm hs ht hμs hμt hst x
+condexp_ind_L1_disjoint_union hs ht hμs hμt hst x
 
 end disjoint_union
 

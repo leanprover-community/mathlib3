@@ -689,6 +689,9 @@ end
 
 end real
 
+/-- `condexp_L2` commutes with taking inner products with constants. See the lemma
+`condexp_L2_comp_continuous_linear_map` for a more general result about commuting with continuous
+linear maps. -/
 lemma condexp_L2_const_inner (hm : m ≤ m0) (f : Lp E 2 μ) (c : E) :
   condexp_L2 𝕜 hm (((Lp.mem_ℒp f).const_inner c).to_Lp (λ a, ⟪c, f a⟫))
     =ᵐ[μ] λ a, ⟪c, condexp_L2 𝕜 hm f a⟫ :=
@@ -717,7 +720,7 @@ end
 
 /-- `condexp_L2` verifies the equality of integrals defining the conditional expectation. -/
 lemma integral_condexp_L2_eq [is_scalar_tower ℝ 𝕜 E'] (hm : m ≤ m0)
-  (f : Lp E' 2 μ) {s : set α} (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
+  (f : Lp E' 2 μ) (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L2 𝕜 hm f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   rw [← sub_eq_zero, Lp_meas_coe, ← integral_sub'
@@ -788,8 +791,8 @@ lemma rsmul_smul {γ} [normed_group γ] [normed_space ℝ γ] [normed_space 𝕜
 by { simp only [rsmul], ext1, simp, }
 variables {𝕜}
 
-lemma indicator_const_Lp_eq_rsmul_comp_Lp [normed_space ℝ F] {s : set α}
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : F) :
+lemma indicator_const_Lp_eq_rsmul_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
+  (hμs : μ s ≠ ∞) (x : F) :
   indicator_const_Lp 2 hs hμs x = (rsmul x).comp_Lp (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
 begin
   ext1,
@@ -807,8 +810,8 @@ end
 section condexp_L2_indicator
 
 variables (𝕜)
-lemma condexp_L2_indicator_ae_eq_smul (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : E') :
+lemma condexp_L2_indicator_ae_eq_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (x : E') :
   condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)
     =ᵐ[μ] λ a, (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x :=
 begin
@@ -867,6 +870,8 @@ begin
   exact measure_mono (set.inter_subset_left _ _),
 end
 
+/-- If the measure `μ.trim hm` is sigma-finite, then the conditional expectation of a measurable set
+with finite measure is integrable. -/
 lemma integrable_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
   integrable (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)) μ :=

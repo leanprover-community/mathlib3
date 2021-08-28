@@ -33,7 +33,7 @@ variables {σ : Type*} {τ : Type*} {R : Type*} {S : Type*}
 /-
 TODO
 * create definition for `∑ i in d.support, d i`
-* define graded rings, and show that mv_polynomial is an example
+* show that `mv_polynomial σ R ≃ₐ[R] ⨁ i, homogeneous_submodule σ R i`
 -/
 
 /-- A multivariate polynomial `φ` is homogeneous of degree `n`

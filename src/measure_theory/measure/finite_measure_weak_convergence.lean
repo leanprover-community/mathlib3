@@ -18,8 +18,8 @@ TODOs:
   `probability_measures α` -> `probability_measure α` after PR #8831.
 * Define the topologies (the current version only defines the types) via
   `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)`.
-* Prove that and equivalent definition of the topologies is obtained using bounded continuous
-  `ℝ`-valued functions.
+* Prove that an equivalent definition of the topologies is obtained using bounded continuous
+  `ℝ`-valued functions instead.
 * Include the portmanteau theorem on characterizations of weak convergence of (Borel) probability
   measures.
 

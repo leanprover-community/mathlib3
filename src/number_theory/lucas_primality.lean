@@ -52,27 +52,6 @@ lemma prime_iff_card_units (p : ℕ) [fact (0 < p)] :
   p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=
 by rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))]
 
-lemma dvd_div_iff_mul_dvd (a b c : ℕ) (a_dvd_b : a ∣ b) : c ∣ b / a ↔ c * a ∣ b :=
-begin
-  by_cases ha : a = 0,
-  { rw ha,
-    simp only [true_iff, zero_dvd_iff, mul_zero, nat.div_zero, dvd_zero],
-    rw dvd_iff_exists_eq_mul_left at a_dvd_b,
-    cases a_dvd_b with c h',
-    rw [h', ha],
-    simp, },
-  { rw [dvd_iff_exists_eq_mul_left, dvd_iff_exists_eq_mul_left],
-    apply exists_congr,
-    intro d,
-    split,
-    { intro h,
-      rw [nat.eq_mul_of_div_eq_left a_dvd_b h, mul_assoc], },
-    { intro h,
-      rw [h, nat.mul_div_assoc, nat.mul_div_assoc, nat.div_self (zero_lt_iff.mpr ha)],
-      simp,
-      simp, }, },
-end
-
 /--
 If a^r = 1 mod p, but a^(r/q) ≠ 1 mod p for all prime factors q of r, then a has order r in the
 multiplicative group mod p.
@@ -96,7 +75,7 @@ begin
       exact dvd.intro_left (order_of a * c) (eq.symm hb), },
   refine hd b.min_fac (nat.min_fac_prime h) b_min_fac_dvd_p_sub_one _,
 
-  rw [←order_of_dvd_iff_pow_eq_one, dvd_div_iff_mul_dvd, hb, nat.mul_dvd_mul_iff_left],
+  rw [←order_of_dvd_iff_pow_eq_one, nat.dvd_div_iff, hb, mul_comm, nat.mul_dvd_mul_iff_left],
   exact nat.min_fac_dvd b,
   apply order_of_pos',
   rw is_of_fin_order_iff_pow_eq_one,

@@ -867,7 +867,6 @@ begin
   exact measure_mono (set.inter_subset_left _ _),
 end
 
-
 lemma integrable_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
   integrable (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)) μ :=

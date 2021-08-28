@@ -95,11 +95,11 @@ class ghas_mul [has_add ι] [Π i, add_comm_monoid (A i)] :=
 variables {A}
 
 /-- `direct_sum.ghas_one` implies a `has_one (Σ i, A i)`, although this is only used as an instance
-locally to define notation in `direct_sum.gmonoid`. -/
+locally to define notation in `direct_sum.gmonoid` and similar typeclasses. -/
 def ghas_one.to_sigma_has_one [has_zero ι] [ghas_one A] : has_one (Σ i, A i) := ⟨⟨_, ghas_one.one⟩⟩
 
 /-- `direct_sum.ghas_mul` implies a `has_mul (Σ i, A i)`, although this is only used as an instance
-locally to define notation in `direct_sum.gmonoid`. -/
+locally to define notation in `direct_sum.gmonoid` and similar typeclasses. -/
 def ghas_mul.to_sigma_has_mul [has_add ι] [Π i, add_comm_monoid (A i)] [ghas_mul A] :
   has_mul (Σ i, A i) :=
 ⟨λ (x y : Σ i, A i), ⟨_, ghas_mul.mul x.snd y.snd⟩⟩

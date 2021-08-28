@@ -1012,7 +1012,7 @@ let ⟨s, hs, hs0, hs0'⟩ := h in
   ⟨s, hs, by simp only [coe_smul, pi.smul_apply, hs0, smul_zero], hs0'⟩
 
 lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [topological_space R]
-    [has_continuous_smul R N] (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
+  [has_continuous_smul R N] (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
 (smul_left r h.symm).symm
 
 end mutually_singular

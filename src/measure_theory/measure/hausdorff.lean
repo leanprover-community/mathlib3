@@ -110,7 +110,7 @@ measures.
   with nonempty interior, then the Hausdorff dimension of `s` is equal to the dimension of `E`.
 * `dense_compl_of_dimH_lt_finrank`: if `s` is a set in a finite dimensional real vector space `E`
   with Hausdorff dimension strictly less than the dimension of `E`, the `s` has a dense complement.
-* `times_cont_diff.dense_compl_range_of_finrank_finrank_lt`: the complement to the range of a `C¹`
+* `times_cont_diff.dense_compl_range_of_finrank_lt_finrank`: the complement to the range of a `C¹`
   smooth map is dense provided that the dimension of the domain is strictly less than the dimension
   of the codomain.
 
@@ -147,7 +147,7 @@ Hausdorff measure, Hausdorff dimension, dimension, measure, metric measure
 
 open_locale nnreal ennreal topological_space big_operators
 
-open emetric set function filter encodable finite_dimensional
+open emetric set function filter encodable finite_dimensional topological_space
 
 noncomputable theory
 
@@ -736,13 +736,13 @@ lemma measure_zero_of_dimH_lt {μ : measure X} {d : ℝ≥0}
   μ s = 0 :=
 h $ hausdorff_measure_of_dimH_lt hd
 
-lemma le_dimH_of_haussorff_measure_ne_zero {s : set X} {d : ℝ≥0} (h : μH[d] s ≠ 0) :
+lemma le_dimH_of_hausdorff_measure_ne_zero {s : set X} {d : ℝ≥0} (h : μH[d] s ≠ 0) :
   ↑d ≤ dimH s :=
 le_of_not_lt $ mt hausdorff_measure_of_dimH_lt h
 
 lemma dimH_of_hausdorff_measure_ne_zero_ne_top {d : ℝ≥0} {s : set X} (h : μH[d] s ≠ 0)
   (h' : μH[d] s ≠ ∞) : dimH s = d :=
-le_antisymm (dimH_le_of_hausdorff_measure_ne_top h') (le_dimH_of_haussorff_measure_ne_zero h)
+le_antisymm (dimH_le_of_hausdorff_measure_ne_top h') (le_dimH_of_hausdorff_measure_ne_zero h)
 
 @[mono] lemma dimH_mono {s t : set X} (h : s ⊆ t) : dimH s ≤ dimH t :=
 bsupr_le $ λ d hd, le_dimH_of_hausdorff_measure_eq_top $
@@ -922,9 +922,7 @@ begin
       exact ennreal.rpow_le_rpow (h.ediam_image_inter_le _) hd } }
 end
 
-/-- If `f` is a Hölder continuous map with exponent `r > 0`, then for any set `s` in the domain of
-`f`, the Hausdorff dimension of its image `f '' s` is at most the Hausdorff dimension of `s` divided
-by `r`. -/
+/-- If `f` is a Hölder continuous map with exponent `r > 0`, then `dimH (f '' s) ≤ dimH s / r`. -/
 lemma dimH_image_le (h : holder_on_with C r f s) (hr : 0 < r) :
   dimH (f '' s) ≤ dimH s / r :=
 begin
@@ -958,30 +956,30 @@ lemma dimH_range_le (h : holder_with C r f) (hr : 0 < r) :
 
 end holder_with
 
-/-- If `s` is a closed set in a `σ`-compact space `X` and `f : X → Y` is Hölder continuous in a
-neighborhood within `s` of every point `x ∈ s` with the same positive exponent `` but possibly
-different coefficients, then the Hausdorff dimension of the image `f '' s` is at most the Hausdorff
-dimension of `s` divided by `r`. -/
-lemma dimH_image_le_of_locally_holder_on [sigma_compact_space X] {r : ℝ≥0} {f : X → Y} (hr : 0 < r)
-  {s : set X} (hs : is_closed s) (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C r f t) :
+/-- If `s` is a set in a space `X` with second countable topology and `f : X → Y` is Hölder
+continuous in a neighborhood within `s` of every point `x ∈ s` with the same positive exponent `r`
+but possibly different coefficients, then the Hausdorff dimension of the image `f '' s` is at most
+the Hausdorff dimension of `s` divided by `r`. -/
+lemma dimH_image_le_of_locally_holder_on [second_countable_topology X] {r : ℝ≥0} {f : X → Y}
+  (hr : 0 < r) {s : set X} (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C r f t) :
   dimH (f '' s) ≤ dimH s / r :=
 begin
   choose! C t htn hC using hf,
-  rcases countable_cover_nhds_within_of_sigma_compact hs htn with ⟨u, hus, huc, huU⟩,
+  rcases countable_cover_nhds_within htn with ⟨u, hus, huc, huU⟩,
   replace huU := inter_eq_self_of_subset_left huU, rw inter_bUnion at huU,
   rw [← huU, image_bUnion, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
   exact bsupr_le_bsupr (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
 end
 
 /-- If `f : X → Y` is Hölder continuous in a neighborhood of every point `x : X` with the same
-positive exponent `` but possibly different coefficients, then the Hausdorff dimension of the range
+positive exponent `r` but possibly different coefficients, then the Hausdorff dimension of the range
 of `f` is at most the Hausdorff dimension of `X` divided by `r`. -/
-lemma dimH_range_le_of_locally_holder_on [sigma_compact_space X] {r : ℝ≥0} {f : X → Y} (hr : 0 < r)
-  (hf : ∀ x : X, ∃ (C : ℝ≥0) (s ∈ 𝓝 x), holder_on_with C r f s) :
+lemma dimH_range_le_of_locally_holder_on [second_countable_topology X] {r : ℝ≥0} {f : X → Y}
+  (hr : 0 < r) (hf : ∀ x : X, ∃ (C : ℝ≥0) (s ∈ 𝓝 x), holder_on_with C r f s) :
   dimH (range f) ≤ dimH (univ : set X) / r :=
 begin
   rw ← image_univ,
-  refine dimH_image_le_of_locally_holder_on hr is_closed_univ (λ x _, _),
+  refine dimH_image_le_of_locally_holder_on hr (λ x _, _),
   simpa only [exists_prop, nhds_within_univ] using hf x
 end
 
@@ -995,8 +993,7 @@ lemma hausdorff_measure_image_le (h : lipschitz_on_with K f s) {d : ℝ} (hd : 0
 by simpa only [nnreal.coe_one, one_mul]
   using h.holder_on_with.hausdorff_measure_image_le zero_lt_one hd
 
-/-- If `f` is a Lipschitz continuous map, then for any set `s` in the domain of `f`, the Hausdorff
-dimension of its image `f '' s` is at most the Hausdorff dimension of `s`. -/
+/-- If `f : X → Y` is Lipschitz continuous on `s`, then `dimH (f '' s) ≤ dimH s`. -/
 lemma dimH_image_le (h : lipschitz_on_with K f s) : dimH (f '' s) ≤ dimH s :=
 by simpa using h.holder_on_with.dimH_image_le zero_lt_one
 
@@ -1012,8 +1009,7 @@ lemma hausdorff_measure_image_le (h : lipschitz_with K f) {d : ℝ} (hd : 0 ≤ 
   μH[d] (f '' s) ≤ K ^ d * μH[d] s :=
 (h.lipschitz_on_with s).hausdorff_measure_image_le hd
 
-/-- If `f` is a Lipschitz continuous map, then for any set `s` in the domain of `f`, the Hausdorff
-dimension of its image `f '' s` is at most the Hausdorff dimension of `s`. -/
+/-- If `f` is a Lipschitz continuous map, then `dimH (f '' s) ≤ dimH s`. -/
 lemma dimH_image_le (h : lipschitz_with K f) (s : set X) : dimH (f '' s) ≤ dimH s :=
 (h.lipschitz_on_with s).dimH_image_le
 
@@ -1024,24 +1020,27 @@ lemma dimH_range_le (h : lipschitz_with K f) : dimH (range f) ≤ dimH (univ : s
 
 end lipschitz_with
 
-/-- If `s` is a closed set and `f : X → Y` is Lipschitz in a neighborhood within `s` of every point
-`x ∈ s`, then the Hausdorff dimension of the image `f '' s` is at most the Hausdorff dimension of
-`s`. -/
-lemma dimH_image_le_of_locally_lipschitz_on [sigma_compact_space X] {f : X → Y}
-  {s : set X} (hs : is_closed s) (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with C f t) :
+/-- If `s` is a set in an extended metric space `X` with second countable topology and `f : X → Y`
+is Lipschitz in a neighborhood within `s` of every point `x ∈ s`, then the Hausdorff dimension of
+the image `f '' s` is at most the Hausdorff dimension of `s`. -/
+lemma dimH_image_le_of_locally_lipschitz_on [second_countable_topology X] {f : X → Y}
+  {s : set X} (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with C f t) :
   dimH (f '' s) ≤ dimH s :=
-by simpa only [ennreal.coe_one, ennreal.div_one]
-  using dimH_image_le_of_locally_holder_on zero_lt_one hs
-    (by simpa only [holder_on_with_one] using hf)
+begin
+  have : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C 1 f t,
+    by simpa only [holder_on_with_one] using hf,
+  simpa only [ennreal.coe_one, ennreal.div_one]
+    using dimH_image_le_of_locally_holder_on zero_lt_one this
+end
 
 /-- If `f : X → Y` is Lipschitz in a neighborhood of each point `x : X`, then the Hausdorff
 dimension of `range f` is at most the Hausdorff dimension of `X`. -/
-lemma dimH_range_le_of_locally_lipschitz_on [sigma_compact_space X] {f : X → Y}
+lemma dimH_range_le_of_locally_lipschitz_on [second_countable_topology X] {f : X → Y}
   (hf : ∀ x : X, ∃ (C : ℝ≥0) (s ∈ 𝓝 x), lipschitz_on_with C f s) :
   dimH (range f) ≤ dimH (univ : set X) :=
 begin
   rw ← image_univ,
-  refine dimH_image_le_of_locally_lipschitz_on is_closed_univ (λ x _, _),
+  refine dimH_image_le_of_locally_lipschitz_on (λ x _, _),
   simpa only [exists_prop, nhds_within_univ] using hf x
 end
 
@@ -1252,37 +1251,38 @@ dimension of sets.
 -/
 
 /-- Let `f` be a function defined on a finite dimensional real normed space. If `f` is `C¹`-smooth
-on a closed convex set `s`, then the Hausdorff dimension of `f '' s` is less than or equal to the
-Hausdorff dimension of `s`.
+on a convex set `s`, then the Hausdorff dimension of `f '' s` is less than or equal to the Hausdorff
+dimension of `s`.
 
-TODO: do we actually need both `is_closed s` and `convex s`? -/
-lemma times_cont_diff_on.dimH_image_le {f : E → F} {s : set E}
-  (hf : times_cont_diff_on ℝ 1 f s) (h₁ : is_closed s) (h₂ : convex s) :
-  dimH (f '' s) ≤ dimH s :=
-dimH_image_le_of_locally_lipschitz_on h₁ $ λ x hx, ((hf x hx).exists_lipschitz_on_with h₂)
+TODO: do we actually need `convex s`? -/
+lemma times_cont_diff_on.dimH_image_le {f : E → F} {s t : set E} (hf : times_cont_diff_on ℝ 1 f s)
+  (hc : convex s) (ht : t ⊆ s) :
+  dimH (f '' t) ≤ dimH t :=
+dimH_image_le_of_locally_lipschitz_on $ λ x hx,
+  let ⟨C, u, hu, hf⟩ := (hf x (ht hx)).exists_lipschitz_on_with hc
+  in ⟨C, u, nhds_within_mono _ ht hu, hf⟩
 
 /-- The Hausdorff dimension of the range of a `C¹`-smooth function defined on a finite dimensional
 real normed space is at most the dimension of its domain as a vector space over `ℝ`. -/
 lemma times_cont_diff.dimH_range_le {f : E → F} (h : times_cont_diff ℝ 1 f) :
   dimH (range f) ≤ finrank ℝ E :=
-calc dimH (range f) ≤ dimH (univ : set E) :
-  dimH_range_le_of_locally_lipschitz_on $ λ x, h.times_cont_diff_at.exists_lipschitz_on_with
+calc dimH (range f) = dimH (f '' univ) : by rw image_univ
+... ≤ dimH (univ : set E) : h.times_cont_diff_on.dimH_image_le convex_univ subset.rfl
 ... = finrank ℝ E : real.dimH_univ_eq_finrank E
 
 /-- A particular case of Sard's Theorem. Let `f : E → F` be a map between finite dimensional real
-vector spaces. Suppose that `f` is `C¹` smooth on a closed convex set `s` of Hausdorff dimension
-strictly less than the dimension of `F`. Then the complement of the image `f '' s` is dense in
-`F`. -/
+vector spaces. Suppose that `f` is `C¹` smooth on a convex set `s` of Hausdorff dimension strictly
+less than the dimension of `F`. Then the complement of the image `f '' s` is dense in `F`. -/
 lemma times_cont_diff_on.dense_compl_image_of_dimH_lt_finrank [finite_dimensional ℝ F] {f : E → F}
-  {s : set E} (h : times_cont_diff_on ℝ 1 f s) (h₁ : is_closed s) (h₂ : convex s)
-  (hsF : dimH s < finrank ℝ F) :
-  dense (f '' s)ᶜ :=
-dense_compl_of_dimH_lt_finrank $ (h.dimH_image_le h₁ h₂).trans_lt hsF
+  {s t : set E} (h : times_cont_diff_on ℝ 1 f s) (hc : convex s) (ht : t ⊆ s)
+  (htF : dimH t < finrank ℝ F) :
+  dense (f '' t)ᶜ :=
+dense_compl_of_dimH_lt_finrank $ (h.dimH_image_le hc ht).trans_lt htF
 
 /-- A particular case of Sard's Theorem. If `f` is a `C¹` smooth map from a real vector space to a
 real vector space `F` of strictly larger dimension, then the complement of the range of `f` is dense
 in `F`. -/
-lemma times_cont_diff.dense_compl_range_of_finrank_finrank_lt [finite_dimensional ℝ F] {f : E → F}
+lemma times_cont_diff.dense_compl_range_of_finrank_lt_finrank [finite_dimensional ℝ F] {f : E → F}
   (h : times_cont_diff ℝ 1 f) (hEF : finrank ℝ E < finrank ℝ F) :
   dense (range f)ᶜ :=
 dense_compl_of_dimH_lt_finrank $ h.dimH_range_le.trans_lt $ ennreal.coe_nat_lt_coe_nat.2 hEF

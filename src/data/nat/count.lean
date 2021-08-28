@@ -185,7 +185,7 @@ begin
   simp [h],
 end
 
-lemma Inf_plus' {n: ℕ} {p: ℕ → Prop} (h: 0 < Inf {m : ℕ | p m}) :
+lemma Inf_plus' {n: ℕ} {p: set ℕ} (h: 0 < Inf {m : ℕ | p m}) :
   Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
 begin
   have hp: ¬ p 0 := not_mem_of_lt_Inf h,

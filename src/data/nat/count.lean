@@ -116,6 +116,12 @@ begin
   simp [lt_succ_iff],
 end
 
+lemma count_eq_card_finset (n : ℕ) : count p n = finset.card (finset.filter p (finset.range n)):=
+begin
+  rw count,
+  sorry,
+end
+
 @[simp] lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 begin
   suffices : (list.range (n+1)).filter p = ((list.range n).filter p) ++ if p n then [n] else [],
@@ -345,7 +351,72 @@ open_locale classical
 variable [decidable_pred p]
 
 lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n :=
-sorry
+begin
+  induction n with k,
+  { rw count_eq_card_finset,
+    simp,
+    ext,
+    simp,
+    intros ha,
+    rw nth at ha,
+    have hn: a ∉ {i : ℕ | p i ∧ ∀ (k : ℕ), k < 0 → nth p k < i} := not_mem_of_lt_Inf ha,
+    simp at hn,
+    exact hn, },
+  { rw count_eq_card_finset,
+    have ih: finset.filter p (finset.range (nth p k.succ)) =
+      insert (nth p k) (finset.filter p (finset.range (nth p k))),
+    { ext,
+      simp,
+      split,
+      { intro h,
+        cases h with ha hp,
+        have hle: a ≤ nth p k,
+        { rw nth at ha,
+          by_contra,
+          simp at h,
+          have haI: Inf {i : ℕ | p i ∧ ∀ (k_1 : ℕ), k_1 < k.succ → nth p k_1 < i} ≤ a,
+          { apply nat.Inf_le,
+            { simp,
+              split,
+              { exact hp, },
+              { intros m hm,
+                apply lt_of_le_of_lt,
+                { apply nth_monotone_of_infinite,
+                  { exact i, },
+                  rw ← lt_succ_iff,
+                  exact hm, },
+                  exact h, }, }, },
+          exact lt_le_antisymm ha haI, },
+        by_cases a = nth p k,
+        { left,
+          exact h, },
+        { right,
+          split,
+          { exact (ne.le_iff_lt h).mp hle},
+          { exact hp, }, }, },
+      { intro h,
+        cases h,
+        { rw h,
+          split,
+          { apply nth_strict_mono_of_infinite,
+            exact i,
+            exact lt_add_one k},
+          { apply nth_mem_of_infinite,
+            apply i, }, },
+          { cases h with ha hp,
+            split,
+            { apply lt_trans ha,
+              apply nth_strict_mono_of_infinite,
+              exact i,
+              exact lt_add_one k },
+            { exact hp, }, }, }, },
+    rw ih,
+    rw finset.card_insert_of_not_mem,
+    { rw ← count_eq_card_finset,
+      rw n_ih, },
+    { simp, },
+  },
+end
 
 lemma count_nth_gc (i : set.infinite p) : galois_connection (count p) (nth p) :=
 begin

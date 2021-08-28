@@ -365,6 +365,5 @@ begin
       apply mem_closure.mpr,
       simp only [exists_prop, mem_top, exists_true_left, true_and, monoid_hom.map_mul,
         monoid_hom.map_mul_inv, set.mem_set_of_eq],
-      intros K hK,
-      exact hK ⟨f y, hd (mem_map_of_mem f hy), by use f z⟩ } }
+      exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by use f z⟩ } }
 end

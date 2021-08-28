@@ -114,14 +114,20 @@ begin
   have hs0 : measurable_set s0, from hs.inter (measurable_set_eq_fun hf measurable_const),
   have hs0_eq : ∀ x ∈ s0, f x = 0,
   { intros x hx, simp_rw [s0, set.mem_inter_iff] at hx, exact hx.2, },
-  have h_s_union : s = s_ ∪ s0,
-  { sorry, },
+  have h_s_union : s = s_ ∪ s0, from (set.diff_union_inter s _).symm,
   have h_s_disj : disjoint s_ s0,
-  { sorry, },
-  rw h_s_union,
-  rw set_integral_union_eq_zero_disjoint hf hfi hs_ hs0 hs0_eq h_s_disj,
-  have hst0_eq : ∀ x ∈ s0 ∪ t, f x = 0, sorry,
-  have hst_disj : disjoint s_ (s0 ∪ t), sorry,
+    from (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right
+      (set.inter_subset_right _ _),
+  rw [h_s_union, set_integral_union_eq_zero_disjoint hf hfi hs_ hs0 hs0_eq h_s_disj],
+  have hst0_eq : ∀ x ∈ s0 ∪ t, f x = 0,
+  { intros x hx,
+    rw set.mem_union at hx,
+    cases hx,
+    { exact hs0_eq x hx, },
+    { exact ht_eq x hx, }, },
+  have hst_disj : disjoint s_ (s0 ∪ t),
+  { rw [← set.sup_eq_union, disjoint_sup_right],
+    exact ⟨h_s_disj, (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right ht_eq⟩, },
   rw set.union_assoc,
   exact set_integral_union_eq_zero_disjoint hf hfi hs_ (hs0.union ht) hst0_eq hst_disj,
 end
@@ -135,13 +141,8 @@ begin
     simp_rw [set.mem_union_eq, set.mem_set_of_eq],
     exact le_iff_lt_or_eq, },
   rw h_union,
-  symmetry,
-  refine set_integral_union_eq_zero_disjoint hf hfi (measurable_set_lt hf measurable_const)
-    (measurable_set_eq_fun hf measurable_const) _ _,
-  { exact λ x hx, hx, },
-  { intros x hx,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, set.inf_eq_inter] at hx,
-    exact absurd hx.2 hx.1.ne, },
+  exact (set_integral_union_eq_zero hf hfi (measurable_set_lt hf measurable_const)
+    (measurable_set_eq_fun hf measurable_const) (λ x hx, hx)).symm,
 end
 
 lemma integral_norm_eq_pos_sub_neg {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ) :

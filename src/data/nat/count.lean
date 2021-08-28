@@ -116,11 +116,8 @@ begin
   simp [lt_succ_iff],
 end
 
-lemma count_eq_card_finset (n : ℕ) : count p n = finset.card (finset.filter p (finset.range n)):=
-begin
-  rw count,
-  sorry,
-end
+lemma count_eq_card_finset (n : ℕ) : count p n = finset.card (finset.filter p (finset.range n)) :=
+rfl
 
 @[simp] lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 begin

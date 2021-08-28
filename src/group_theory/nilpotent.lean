@@ -330,7 +330,7 @@ begin
   rw nilpotent_iff_lower_central_series at *,
   rcases hG with ⟨n, hG⟩,
   use n,
-  have := lower_central_series_subgroup_le_lower_central_series_group H n,
+  have := lower_central_series_map_subtype_le H n,
   simp only [hG, set_like.le_def, mem_map, forall_apply_eq_imp_iff₂, exists_imp_distrib] at this,
   exact eq_bot_iff.mpr (λ x hx, subtype.ext (this x hx)),
 end

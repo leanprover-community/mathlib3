@@ -832,6 +832,8 @@ def le_rec_on' {C : ℕ → Sort*} {n : ℕ} :
 | (m+1) H next x := or.by_cases (of_le_succ H) (λ h : n ≤ m, next h $ le_rec_on' h next x)
   (λ h : n = m + 1, eq.rec_on h x)
 
+/-- Decreasing induction: if `P (k+1)` implies `P k` for all `m ≤ k < n`, then `P n` implies `P m`.
+Also works for functions to `Sort*`. Weakens the assumptions of `decreasing_induction`. -/
 @[elab_as_eliminator]
 def decreasing_induction' {P : ℕ → Sort*} {m n : ℕ} (h : ∀ k < n, m ≤ k → P (k+1) → P k)
   (mn : m ≤ n) (hP : P n) : P m :=

@@ -428,6 +428,25 @@ begin
     rw [total_variation, measure.add_apply, h.1 hS₂, h.2 hS₂, add_zero] }
 end
 
+lemma mutually_singular_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
+  s ⊥ᵥ μ ↔ s.total_variation ⊥ₘ μ.ennreal_to_measure :=
+begin
+  split,
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    obtain ⟨i, hi₁, hi₂, hi₃, hpos, hneg⟩ := s.to_jordan_decomposition_spec,
+    refine ⟨u, hmeas, _, _⟩,
+    { rw [total_variation, measure.add_apply, hpos, hneg,
+          to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
+      simpa [hu₁ _ (set.inter_subset_right _ _)] },
+    { rw vector_measure.ennreal_to_measure_apply hmeas.compl,
+      exact hu₂ _ (set.subset.refl _) } },
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    refine vector_measure.mutually_singular.mk u hmeas
+      (λ t htu _, null_of_total_variation_zero _ (measure_mono_null htu hu₁)) (λ t htv hmt, _),
+    rw ← vector_measure.ennreal_to_measure_apply hmt,
+    exact measure_mono_null htv hu₂ }
+end
+
 end signed_measure
 
 end measure_theory

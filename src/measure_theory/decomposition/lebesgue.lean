@@ -591,7 +591,7 @@ instance have_lebesgue_decomposition_of_sigma_finite
   have_lebesgue_decomposition μ ν :=
 ⟨begin
   -- Since `μ` and `ν` are both σ-finite, there exists a sequence of pairwise disjoint spanning
-  -- sets with are finite with respect to both `μ` and `ν`
+  -- sets which are finite with respect to both `μ` and `ν`
   obtain ⟨S, T, h₁, h₂⟩ := exists_eq_disjoint_finite_spanning_sets_in μ ν,
   have h₃ : pairwise (disjoint on T.set) := h₁ ▸ h₂,
   -- We define `μn` and `νn` as sequences of measures such that `μn n = μ ∩ S n` and

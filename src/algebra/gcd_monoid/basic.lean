@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Jens Wagemaker
 -/
 
 import algebra.associated
-import data.nat.gcd
 import algebra.group_power.lemmas
+import data.nat.gcd
 
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`
@@ -20,7 +20,7 @@ This file defines extra structures on `comm_cancel_monoid_with_zero`s, including
 * `gcd_monoid_of_exists_gcd`
 * `gcd_monoid_of_exists_lcm`
 
-For the `gcd_monoid` instances on `ℕ` and `Z`, see `ring_theory.int.basic`.
+For the `gcd_monoid` instances on `ℕ` and `ℤ`, see `ring_theory.int.basic`.
 
 ## Implementation Notes
 
@@ -424,14 +424,14 @@ begin
   { use 0, rw ha,
     obtain (rfl | hk) := k.eq_zero_or_pos,
     { exfalso, revert h, rw [ha, zero_mul, pow_zero], apply zero_ne_one },
-    { rw zero_pow hk }},
+    { rw zero_pow hk } },
   by_cases hb : b = 0,
   { rw [hb, gcd_zero_right] at hab, use 1, rw one_pow,
     apply (associated_one_iff_is_unit.mpr (normalize_eq_one.mp hab)).symm },
-    obtain ⟨rfl, hk⟩ := k.eq_zero_or_pos,
+    obtain (rfl | hk) := k.eq_zero_or_pos,
   { use 1, rw pow_zero at h ⊢, use units.mk_of_mul_eq_one _ _ h,
     rw [units.coe_mk_of_mul_eq_one, one_mul] },
-  have hc : c ∣ a * b, { rw h, refine dvd_pow_self _ hk },
+  have hc : c ∣ a * b, { rw h, exact dvd_pow_self _ hk },
   obtain ⟨d₁, hd₁, d₂, hd₂, hc⟩ := exists_dvd_and_dvd_of_dvd_mul hc,
   use d₁,
   obtain ⟨h0₁, ⟨a', ha'⟩⟩ := pow_dvd_of_mul_eq_pow ha hab h hc hd₁,

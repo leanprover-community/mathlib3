@@ -247,8 +247,7 @@ begin
     simp [hbi'] },
   { assume hid' : subtype.mk i _ ∉ finset.attach (finset.range d),
     exfalso,
-    exact absurd (finset.mem_attach _ _) hid'
-  }
+    exact absurd (finset.mem_attach _ _) hid' }
 end
 
 /- CP rank -/
@@ -313,11 +312,9 @@ exact finset.induction_on s
     rw nat.right_distrib,
     simp only [nat.one_mul, nat.add_comm],
     have ih' : cprank_max (finset.card s * n) (∑ x in s, f x),
-    {
-      apply ih,
+    { apply ih,
       assume (x : β) (h_x_in_s: x ∈ s),
-      simp only [h_cprank, finset.mem_insert_of_mem, h_x_in_s]
-    },
+      simp only [h_cprank, finset.mem_insert_of_mem, h_x_in_s] },
     exact (cprank_max_add (h_cprank x (finset.mem_insert_self x s)) ih')
   end)
 

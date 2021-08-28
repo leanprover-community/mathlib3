@@ -98,7 +98,7 @@ private def lift_to_multiset : (α → R) ≃ (multiplicative (multiset α) →*
                           ... = _ : multiset.prod_add _ _,
     map_one' := rfl},
   inv_fun := λ F x, F (multiplicative.of_add ({x} : multiset α)),
-  left_inv := λ f, funext $ λ x, show (multiset.map f (x ::ₘ 0)).prod = _, by simp,
+  left_inv := λ f, funext $ λ x, show (multiset.map f {x}).prod = _, by simp,
   right_inv := λ F, monoid_hom.ext $ λ x,
     let F' := F.to_additive'', x' := x.to_add in show (multiset.map (λ a, F' {a}) x').sum = F' x',
     begin

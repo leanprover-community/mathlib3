@@ -5,6 +5,7 @@ Authors: Johan Commelin, Kenny Lau
 -/
 import data.mv_polynomial
 import linear_algebra.std_basis
+import ring_theory.ideal.local_ring
 import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import ring_theory.algebra_tower
@@ -1455,7 +1456,7 @@ multiplicity.zero _
 begin
   split,
   { intro h, ext n, rw [(coeff R n).map_zero, coeff_of_lt_order], simp [h] },
-  { rintros rfl, exact order_zero  }
+  { rintros rfl, exact order_zero }
 end
 
 /-- The order of a formal power series is at least `n` if

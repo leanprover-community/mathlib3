@@ -5,7 +5,7 @@ Authors: Kenny Lau
 
 Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
-import algebra.direct_sum
+import algebra.direct_sum.basic
 import linear_algebra.dfinsupp
 
 /-!
@@ -112,7 +112,7 @@ The inclusion of a subset of the direct summands
 into a larger subset of the direct summands, as a linear map.
 -/
 def lset_to_set (S T : set ι) (H : S ⊆ T) :
-  (⨁ (i : S), M i) →ₗ (⨁ (i : T), M i) :=
+  (⨁ (i : S), M i) →ₗ[R] (⨁ (i : T), M i) :=
 to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 
 omit dec_ι
@@ -120,7 +120,7 @@ omit dec_ι
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [module R M]
   [unique ι] :
-  (⨁ (_ : ι), M) ≃ₗ M :=
+  (⨁ (_ : ι), M) ≃ₗ[R] M :=
 { .. direct_sum.id M ι,
   .. to_module R ι M (λ i, linear_map.id) }
 

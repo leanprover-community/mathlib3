@@ -684,9 +684,9 @@ by rw [f.restrict_lintegral hs, lintegral_restrict]
 lemma const_lintegral (c : ℝ≥0∞) : (const α c).lintegral μ = c * μ univ :=
 begin
   rw [lintegral],
-  by_cases ha : nonempty α,
-  { resetI, simp [preimage_const_of_mem] },
-  { simp [μ.eq_zero_of_not_nonempty ha] }
+  casesI is_empty_or_nonempty α,
+  { simp [μ.eq_zero_of_is_empty] },
+  { simp [preimage_const_of_mem] },
 end
 
 lemma const_lintegral_restrict (c : ℝ≥0∞) (s : set α) :
@@ -1676,9 +1676,8 @@ theorem lintegral_supr_directed [encodable β] {f : β → α → ℝ≥0∞}
   (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
 begin
-  by_cases hβ : nonempty β, swap,
-  { simp [supr_of_empty hβ] },
-  resetI, inhabit β,
+  casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
+  inhabit β,
   have : ∀a, (⨆ b, f b a) = (⨆ n, f (h_directed.sequence f n) a),
   { assume a,
     refine le_antisymm (supr_le $ assume b, _) (supr_le $ assume n, le_supr (λn, f n a) _),
@@ -1893,6 +1892,24 @@ lemma with_density_zero : μ.with_density 0 = 0 :=
 begin
   ext1 s hs,
   simp [with_density_apply _ hs],
+end
+
+lemma with_density_tsum {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
+begin
+  ext1 s hs,
+  simp_rw [sum_apply _ hs, with_density_apply _ hs],
+  change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
+  rw ← lintegral_tsum h,
+  refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
+end
+
+lemma with_density_indicator {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
+  μ.with_density (s.indicator f) = (μ.restrict s).with_density f :=
+begin
+  ext1 t ht,
+  rw [with_density_apply _ ht, lintegral_indicator _ hs,
+      restrict_comm hs ht, ← with_density_apply _ ht]
 end
 
 end lintegral

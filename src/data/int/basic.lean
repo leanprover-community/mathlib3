@@ -1262,8 +1262,7 @@ private meta def bitwise_tac : tactic unit := `[
     apply congr_arg (λ f, nat.bitwise f m n),
     funext a,
     funext b,
-    cases a; cases b; refl
-  },
+    cases a; cases b; refl },
   all_goals {unfold nat.land nat.ldiff nat.lor}
 ]
 

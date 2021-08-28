@@ -7,6 +7,7 @@ import data.array.lemmas
 import data.finset.pi
 import data.finset.powerset
 import data.sym.basic
+import data.ulift
 import group_theory.perm.basic
 import order.well_founded
 import tactic.wlog
@@ -97,11 +98,11 @@ by rw [← coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
 lemma univ_nonempty [nonempty α] : (univ : finset α).nonempty :=
 univ_nonempty_iff.2 ‹_›
 
-lemma univ_eq_empty : (univ : finset α) = ∅ ↔ ¬nonempty α :=
-by rw [← univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
+lemma univ_eq_empty_iff : (univ : finset α) = ∅ ↔ is_empty α :=
+by rw [← not_nonempty_iff, ← univ_nonempty_iff, not_nonempty_iff_eq_empty]
 
-lemma univ_eq_empty' : (univ : finset α) = ∅ ↔ is_empty α :=
-univ_eq_empty.trans (not_nonempty_iff)
+lemma univ_eq_empty [is_empty α] : (univ : finset α) = ∅ :=
+univ_eq_empty_iff.2 ‹_›
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
@@ -649,6 +650,11 @@ list.length_fin_range n
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 
+/-- The cardinality of `fin (bit0 k)` is even, `fact` version.
+This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
+lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
+⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
+
 lemma card_finset_fin_le {n : ℕ} (s : finset (fin n)) : s.card ≤ n :=
 by simpa only [fintype.card_fin] using s.card_le_univ
 
@@ -836,6 +842,13 @@ fintype.of_equiv _ equiv.ulift.symm
   fintype.card (ulift α) = fintype.card α :=
 fintype.of_equiv_card _
 
+instance (α : Type*) [fintype α] : fintype (plift α) :=
+fintype.of_equiv _ equiv.plift.symm
+
+@[simp] theorem fintype.card_plift (α : Type*) [fintype α] :
+  fintype.card (plift α) = fintype.card α :=
+fintype.of_equiv_card _
+
 lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
   (univ : finset (α ⊕ β)) = map function.embedding.inl univ ∪ map function.embedding.inr univ :=
 begin
@@ -923,8 +936,9 @@ by rw [←card_unit, card_eq]; exact
     λ _, subsingleton.elim _ _⟩⟩⟩
 
 lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
-⟨λ h, ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
-  λ h, by { have e : α ≃ empty, exactI equiv.equiv_empty α, simp [card_congr e] }⟩
+by rw [card, finset.card_eq_zero, univ_eq_empty_iff]
+
+lemma card_eq_zero [is_empty α] : card α = 0 := card_eq_zero_iff.2 ‹_›
 
 lemma card_eq_one_iff_nonempty_unique : card α = 1 ↔ nonempty (unique α) :=
 ⟨λ h, let ⟨d, h⟩ := fintype.card_eq_one_iff.mp h in ⟨{ default := d, uniq := h}⟩,
@@ -969,6 +983,9 @@ by { haveI : nontrivial α := one_lt_card_iff_nontrivial.1 h, exact exists_pair_
 
 lemma card_eq_one_of_forall_eq {i : α} (h : ∀ j, j = i) : card α = 1 :=
 fintype.card_eq_one_iff.2 ⟨i,h⟩
+
+lemma one_lt_card [h : nontrivial α] : 1 < fintype.card α :=
+fintype.one_lt_card_iff_nontrivial.mpr h
 
 lemma injective_iff_surjective {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
@@ -1054,7 +1071,7 @@ finset.subtype.fintype s
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 
-instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
+instance plift.fintype_Prop (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=
@@ -1519,6 +1536,12 @@ def choose (hp : ∃! a, p a) : α := choose_x p hp
 lemma choose_spec (hp : ∃! a, p a) : p (choose p hp) :=
 (choose_x p hp).property
 
+@[simp] lemma choose_subtype_eq {α : Type*} (p : α → Prop) [fintype {a : α // p a}]
+  [decidable_eq α] (x : {a : α // p a})
+  (h : ∃! (a : {a // p a}), (a : α) = x := ⟨x, rfl, λ y hy, by simpa [subtype.ext_iff] using hy⟩) :
+  fintype.choose (λ (y : {a : α // p a}), (y : α) = x) h = x :=
+by rw [subtype.ext_iff, fintype.choose_spec (λ (y : {a : α // p a}), (y : α) = x) _]
+
 end choose
 
 section bijection_inverse
@@ -1584,12 +1607,9 @@ not_fintype α
 @[simp] lemma is_empty_fintype {α : Type*} : is_empty (fintype α) ↔ infinite α :=
 ⟨λ ⟨x⟩, ⟨x⟩, λ ⟨x⟩, ⟨x⟩⟩
 
-@[simp] lemma not_nonempty_fintype {α : Type*} : ¬ nonempty (fintype α) ↔ infinite α :=
-not_nonempty_iff.trans is_empty_fintype
-
 /-- A non-infinite type is a fintype. -/
 noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
-((not_iff_comm.mp not_nonempty_fintype).mp h).some
+nonempty.some $ by rwa [← not_is_empty_iff, is_empty_fintype]
 
 section
 open_locale classical

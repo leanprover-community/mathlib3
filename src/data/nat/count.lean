@@ -185,6 +185,36 @@ begin
   simp [h],
 end
 
+lemma Inf_plus' {n: ℕ} {p: ℕ → Prop} (h: 0 < Inf {m : ℕ | p m}) :
+  Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
+begin
+  have hp: ¬ p 0 := not_mem_of_lt_Inf h,
+  have hne: p.nonempty := nonempty_of_pos_Inf h,
+  apply eq.symm,
+  rw Inf_def,
+  { erw nat.find_eq_iff,
+    simp,
+    split,
+    { rw set_of,
+      apply Inf_mem hne, },
+    { intros k hk hpk,
+      have hkle: n ≤ k,
+      { apply le_of_lt,
+        rw ← sub_pos_iff_lt,
+        rw pos_iff_ne_zero,
+        intro hkn,
+        rw hkn at hpk,
+        apply hp,
+        exact hpk, },
+      have hkI: k - n < Inf (set_of p) := (sub_lt_iff_right hkle).mpr hk,
+      rw set_of at hkI,
+      exact not_mem_of_lt_Inf hkI hpk, }, },
+  { cases hne with t ht,
+    use t + n,
+    simp,
+    exact ht,},
+end
+
 lemma Inf_plus {n: ℕ} {p: ℕ → Prop} (h: 0 < Inf {m : ℕ | p m}) :
   Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
 begin

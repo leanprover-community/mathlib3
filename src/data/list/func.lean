@@ -58,22 +58,25 @@ localized "notation as ` {` m ` ↦ ` a `}` := list.func.set a as m" in list.fun
 | 0 (a::as)     := a
 | (n+1) (a::as) := get n as
 
-/-- Pointwise equality of lists -/
+/--
+Pointwise equality of lists. If lists are different lengths, compare with the default
+element.
+-/
 def equiv (as1 as2 : list α) : Prop :=
 ∀ (m : nat), get m as1 = get m as2
 
-/-- Pointwise operations on lists -/
+/-- Pointwise operations on lists. If lists are different lengths, use the default element. -/
 @[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
 | []      []      := []
 | []      (b::bs) := map (f $ default α) (b::bs)
 | (a::as) []      := map (λ x, f x $ default β) (a::as)
 | (a::as) (b::bs) := (f a b)::(pointwise as bs)
 
-/-- Pointwise addition on lists -/
+/-- Pointwise addition on lists. If lists are different lengths, use zero. -/
 def add {α : Type u} [has_zero α] [has_add α] : list α → list α → list α :=
 @pointwise α α α ⟨0⟩ ⟨0⟩ (+)
 
-/-- Pointwise subtraction on lists -/
+/-- Pointwise subtraction on lists. If lists are different lengths, use zero. -/
 def sub {α : Type u} [has_zero α] [has_sub α] : list α → list α → list α :=
 @pointwise α α α ⟨0⟩ ⟨0⟩ (@has_sub.sub α _)
 

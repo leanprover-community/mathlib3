@@ -784,12 +784,10 @@ lemma rsmul_smul_real {γ} [normed_group γ] [normed_space ℝ γ] (c : ℝ) (x 
   rsmul (c • x) = c • rsmul x :=
 by { simp only [rsmul], ext1, simp, }
 
-variables (𝕜)
-lemma rsmul_smul {γ} [normed_group γ] [normed_space ℝ γ] [normed_space 𝕜 γ] [smul_comm_class ℝ 𝕜 γ]
-  (c : 𝕜) (x : γ) :
+lemma rsmul_smul {γ} (𝕜) [nondiscrete_normed_field 𝕜] [normed_group γ] [normed_space ℝ γ]
+  [normed_space 𝕜 γ] [smul_comm_class ℝ 𝕜 γ] (c : 𝕜) (x : γ) :
   rsmul (c • x) = c • rsmul x :=
 by { simp only [rsmul], ext1, simp, }
-variables {𝕜}
 
 lemma indicator_const_Lp_eq_rsmul_comp_Lp [normed_space ℝ F] (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : F) :

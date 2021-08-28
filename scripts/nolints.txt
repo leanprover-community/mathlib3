@@ -390,7 +390,6 @@ apply_nolint function.embedding.Pi_congr_right doc_blame
 apply_nolint function.embedding.arrow_congr_left doc_blame
 apply_nolint function.embedding.arrow_congr_right doc_blame
 apply_nolint function.embedding.congr doc_blame
-apply_nolint function.embedding.of_not_nonempty doc_blame
 apply_nolint function.embedding.refl doc_blame
 apply_nolint function.embedding.subtype_map doc_blame
 apply_nolint function.embedding.trans doc_blame

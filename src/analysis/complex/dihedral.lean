@@ -30,45 +30,44 @@ zmod.lift m ⟨gmultiples_hom real.angle ↑(2 * π / m),
     ring,
   end⟩
 
+namespace dihedral_group
+
 /-- A function mapping `dihedral_group` to linear isometries of ℂ.
 Auxiliary construction for `dihedral_to_complex_hom`. -/
-def dihedral_group.to_linear_isometry : dihedral_group m → ℂ ≃ₗᵢ[ℝ] ℂ
+def to_linear_isometry : dihedral_group m → ℂ ≃ₗᵢ[ℝ] ℂ
 | (r i) := rotation (angle_to_circle (zmod_to_angle m i))
 | (sr i) := conj_lie * rotation (angle_to_circle (zmod_to_angle m i))
 
 variables {m}
 
-lemma dihedral_to_linear_isometry_r_mul_r (i j : zmod m) : dihedral_group.to_linear_isometry m (r i)
-* dihedral_group.to_linear_isometry m (r j) = dihedral_group.to_linear_isometry m (r (i + j)) :=
+lemma to_linear_isometry_r_mul_r (i j : zmod m) :
+  to_linear_isometry m (r i) * to_linear_isometry m (r j) = to_linear_isometry m (r (i + j)) :=
 begin
-  simp only [dihedral_group.to_linear_isometry],
+  simp only [to_linear_isometry],
   rw (zmod_to_angle m).map_add,
   rw angle_to_circle_add,
   rw rotation.map_mul,
 end
 
-lemma dihedral_to_linear_isometry_r_mul_sr (i j : zmod m) :
-dihedral_group.to_linear_isometry m (r i) * dihedral_group.to_linear_isometry m (sr j) =
-dihedral_group.to_linear_isometry m (sr (j - i)) :=
+lemma to_linear_isometry_r_mul_sr (i j : zmod m) :
+  to_linear_isometry m (r i) * to_linear_isometry m (sr j) = to_linear_isometry m (sr (j - i)) :=
 begin
-  simp only [dihedral_group.to_linear_isometry],
+  simp only [to_linear_isometry],
   rw [← mul_assoc, rotation_mul_conj_lie, mul_assoc, (zmod_to_angle m).map_sub, angle_to_circle_sub,
   div_eq_mul_inv, mul_comm, rotation.map_mul],
 end
 
-lemma dihedral_to_linear_isometry_sr_mul_r (i j : zmod m) :
-dihedral_group.to_linear_isometry m (sr i) * dihedral_group.to_linear_isometry m (r j) =
-dihedral_group.to_linear_isometry m (sr (i + j)) :=
+lemma to_linear_isometry_sr_mul_r (i j : zmod m) :
+  to_linear_isometry m (sr i) * to_linear_isometry m (r j) = to_linear_isometry m (sr (i + j)) :=
 begin
-  simp only [dihedral_group.to_linear_isometry],
+  simp only [to_linear_isometry],
   rw [(zmod_to_angle m).map_add, angle_to_circle_add, rotation.map_mul, mul_assoc],
 end
 
-lemma dihedral_to_linear_isometry_sr_mul_sr (i j : zmod m) :
-dihedral_group.to_linear_isometry m (sr i) * dihedral_group.to_linear_isometry m (sr j) =
-dihedral_group.to_linear_isometry m (r (j - i)) :=
+lemma to_linear_isometry_sr_mul_sr (i j : zmod m) :
+  to_linear_isometry m (sr i) * to_linear_isometry m (sr j) = to_linear_isometry m (r (j - i)) :=
 begin
-  simp only [dihedral_group.to_linear_isometry],
+  simp only [to_linear_isometry],
   rw ← mul_assoc,
   have : conj_lie * rotation (angle_to_circle ((zmod_to_angle m) i)) * conj_lie *
   rotation (angle_to_circle ((zmod_to_angle m) j)) = conj_lie *
@@ -91,20 +90,16 @@ end
 variables (m)
 
 /-- A homomorphism mapping the dihedral group to linear isometries of ℂ. -/
-def dihedral_to_linear_isometry_hom: dihedral_group m →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
-{ to_fun :=  dihedral_group.to_linear_isometry m,
-  map_one' := begin change dihedral_group.to_linear_isometry m (r 0) = _, ext1 z,
-  simp [dihedral_group.to_linear_isometry],
-  end,
+@[simps]
+def to_linear_isometry_hom : dihedral_group m →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
+{ to_fun :=  to_linear_isometry m,
+  map_one' := by { show to_linear_isometry m (r 0) = _, ext1 z, simp [to_linear_isometry] },
   map_mul' :=
   begin
-    rintros (i | i) (j | j),
-    { rw dihedral_to_linear_isometry_r_mul_r,
-      refl, },
-    { rw dihedral_to_linear_isometry_r_mul_sr,
-      refl, },
-    { rw dihedral_to_linear_isometry_sr_mul_r,
-      refl, },
-    { rw dihedral_to_linear_isometry_sr_mul_sr,
-      refl, },
+    rintros (i | i) (j | j);
+    simp only [to_linear_isometry_r_mul_r, to_linear_isometry_r_mul_sr,
+        to_linear_isometry_sr_mul_r, to_linear_isometry_sr_mul_sr];
+    refl,
   end }
+
+end dihedral_group

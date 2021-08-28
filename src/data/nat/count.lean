@@ -185,7 +185,8 @@ begin
   simp [h],
 end
 
-lemma Inf_plus' {n: ℕ} {p: set ℕ} (h: 0 < Inf {m : ℕ | p m}) :
+-- This should probably be moved to data.nat.lattice
+lemma Inf_plus {n: ℕ} {p: set ℕ} (h: 0 < Inf {m : ℕ | p m}) :
   Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
 begin
   have hp: ¬ p 0 := not_mem_of_lt_Inf h,
@@ -213,30 +214,6 @@ begin
     use t + n,
     simp,
     exact ht,},
-end
-
-lemma Inf_plus {n: ℕ} {p: ℕ → Prop} (h: 0 < Inf {m : ℕ | p m}) :
-  Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
-begin
-  have hInf := set.mem_set_of_eq.mp (Inf_mem $ nonempty_of_pos_Inf h),
-  apply le_antisymm,
-  { suffices h : Inf {m : ℕ | p m} ≤ Inf {m : ℕ | p (m - n)} - n,
-    { change Inf {m : ℕ | p m} + n ≤ Inf {m : ℕ | p (m - n)} + 0,
-      rw ←nat.sub_self n,
-      suffices : Inf {m : ℕ | p (m - n)} + (n - n) = (Inf {m : ℕ | p (m - n)} - n) + n,
-      { rw this,
-        apply nat.add_le_add h le_rfl},
-      -- comes from h being non-zero
-      sorry },
-    apply nat.Inf_le,
-    simp,
-    induction n with k hk,
-    { exact hInf },
-    /- hk: p (Inf {m : ℕ | p (m - k)} + k)
-      ⊢ p (Inf {m : ℕ | p (m - k.succ)} + k.succ) -/
-    sorry },
-  { apply nat.Inf_le,
-    simpa },
 end
 
 lemma nth_succ_of_zero (h : p 0) (n : ℕ) (w : (n + 2 : cardinal) ≤ cardinal.mk (set_of p)) :

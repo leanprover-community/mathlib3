@@ -458,8 +458,13 @@ end lebesgue_decomposition
 
 open lebesgue_decomposition
 
-@[priority 100] -- see Note [lower instance priority]
-instance have_lebesgue_decomposition_of_finite_measure
+/-- Any pair of finite measures `μ` and `ν`, `have_lebesgue_decomposition`. That is to say,
+there exist a measure `ξ` and a measurable function `f`, such that `ξ` is mutually singular
+with respect to `ν` and `μ = ξ + ν.with_density f`.
+
+This is not an instance since this is also shown for the more general σ-finite measures with
+`measure_theory.measure.have_lebesgue_decomposition_of_sigma_finite`. -/
+theorem have_lebesgue_decomposition_of_finite_measure
   {μ ν : measure α} [finite_measure μ] [finite_measure ν] :
   have_lebesgue_decomposition μ ν :=
 ⟨begin
@@ -571,35 +576,56 @@ instance have_lebesgue_decomposition_of_finite_measure
         add_comm, ennreal.add_sub_cancel_of_le (hle A hA)] },
 end⟩
 
+local attribute [instance] have_lebesgue_decomposition_of_finite_measure
+
 instance {μ : measure α} {S : μ.finite_spanning_sets_in {s : set α | measurable_set s}} (n : ℕ) :
   finite_measure (μ.restrict $ S.set n) :=
 ⟨by { rw [restrict_apply measurable_set.univ, set.univ_inter], exact S.finite _ }⟩
 
 /-- **The Lebesgue decomposition theorem**: Any pair of σ-finite measures `μ` and `ν`
-`have_lebesgue_decomposition`. That is to say, there exists a measure `ξ` and a measurable function
+`have_lebesgue_decomposition`. That is to say, there exist a measure `ξ` and a measurable function
 `f`, such that `ξ` is mutually singular with respect to `ν` and `μ = ξ + ν.with_density f` -/
-@[priority 99] -- see Note [lower instance priority]
+@[priority 100] -- see Note [lower instance priority]
 instance have_lebesgue_decomposition_of_sigma_finite
   (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   have_lebesgue_decomposition μ ν :=
 ⟨begin
+  -- Since `μ` and `ν` are both σ-finite, there exists a sequence of pairwise disjoint spanning
+  -- sets with are finite with respect to both `μ` and `ν`
   obtain ⟨S, T, h₁, h₂⟩ := exists_eq_disjoint_finite_spanning_sets_in μ ν,
   have h₃ : pairwise (disjoint on T.set) := h₁ ▸ h₂,
+  -- We define `μn` and `νn` as sequences of measures such that `μn n = μ ∩ S n` and
+  -- `νn n = ν ∩ S n` where `S` is the aforementioned finite spanning set sequence.
+  -- Since `S` is spanning, it is clear that `sum μn = μ` and `sum νn = ν`
   set μn : ℕ → measure α := λ n, μ.restrict (S.set n) with hμn,
   have hμ : μ = sum μn,
     { rw [hμn, ← restrict_Union h₂ S.set_mem, S.spanning, restrict_univ] },
   set νn : ℕ → measure α := λ n, ν.restrict (T.set n) with hνn,
   have hν : ν = sum νn,
     { rw [hνn, ← restrict_Union h₃ T.set_mem, T.spanning, restrict_univ] },
+  -- As `S` is finite with respect to both `μ` and `ν`, it is clear that `μn n` and `νn n` are
+  -- finite measures for all `n : ℕ`. Thus, we may apply the finite Lebesgue decomposition theorem
+  -- to `μn n` and `νn n`. We define `ξ` as the sum of the singular part of the Lebesgue
+  -- decompositions of `μn n` and `νn n`, and `f` as the sum of the Radon-Nikodym derviatives of
+  -- `μn n` and `νn n` restricted on `S n`
   set ξ := sum (λ n, singular_part (μn n) (νn n)) with hξ,
   set f := ∑' n, (S.set n).indicator (radon_nikodym_deriv (μn n) (νn n)) with hf,
+  -- I claim `ξ` and `f` form a Lebesgue decomposition of `μ` and `ν`
   refine ⟨⟨ξ, f⟩, _, _, _⟩,
   { exact measurable.ennreal_tsum' (λ n, measurable.indicator
       (measurable_radon_nikodym_deriv (μn n) (νn n)) (S.set_mem n)) },
+  -- We show that `ξ` is mutually singular with respect to `ν`
   { choose A hA₁ hA₂ hA₃ using λ n, mutually_singular_singular_part (μn n) (νn n),
     simp only [hξ],
+  -- We use the set `B := ⋃ j, (S.set j) ∩ A j` where `A n` is the set provided as
+  -- `singular_part (μn n) (νn n) ⊥ₘ νn n`
     refine ⟨⋃ j, (S.set j) ∩ A j,
       measurable_set.Union (λ n, (S.set_mem n).inter (hA₁ n)), _, _⟩,
+  -- `ξ B = 0` since `ξ B = ∑ i j, singular_part (μn j) (νn j) (S.set i ∩ A i)`
+  --                     `= ∑ i, singular_part (μn i) (νn i) (S.set i ∩ A i)`
+  --                     `≤ ∑ i, singular_part (μn i) (νn i) (A i) = 0`
+  -- where the second equality follows as `singular_part (μn j) (νn j) (S.set i ∩ A i)` vanishes
+  -- for all `i ≠ j`
     { rw [measure_Union],
       { have : ∀ i, (sum (λ n, (μn n).singular_part (νn n))) (S.set i ∩ A i) =
           (μn i).singular_part (νn i) (S.set i ∩ A i),
@@ -616,7 +642,9 @@ instance have_lebesgue_decomposition_of_sigma_finite
         intro n, exact measure_mono_null (set.inter_subset_right _ _) (hA₂ n) },
       { exact h₂.mono (λ i j, disjoint.mono inf_le_left inf_le_left) },
       { exact λ n, (S.set_mem n).inter (hA₁ n) } },
-    { have hcompl : is_compl (⋃ n, (S.set n ∩ A n)) ⋃ n, S.set n ∩ (A n)ᶜ,
+  -- We will now show `ν Bᶜ = 0`. This follows since `Bᶜ = ⋃ n, S.set n ∩ (A n)ᶜ` and thus,
+  -- `ν Bᶜ = ∑ i, ν (S.set i ∩ (A i)ᶜ) = ∑ i, (νn i) (A i)ᶜ = 0`
+    { have hcompl : is_compl (⋃ n, (S.set n ∩ A n)) (⋃ n, S.set n ∩ (A n)ᶜ),
       { split,
         { rintro x ⟨hx₁, hx₂⟩, rw set.mem_Union at hx₁ hx₂,
           obtain ⟨⟨i, hi₁, hi₂⟩, ⟨j, hj₁, hj₂⟩⟩ := ⟨hx₁, hx₂⟩,
@@ -634,6 +662,11 @@ instance have_lebesgue_decomposition_of_sigma_finite
       { intro n, rw [set.inter_comm, ← restrict_apply (hA₁ n).compl, ← hA₃ n, hνn, h₁] },
       { exact h₂.mono (λ i j, disjoint.mono inf_le_left inf_le_left) },
       { exact λ n, (S.set_mem n).inter (hA₁ n).compl } } },
+  -- Finally, it remains to show `μ = ξ + ν.with_density f`. Since `μ = sum μn`, and
+  -- `ξ + ν.with_density f = ∑ n, singular_part (μn n) (νn n)`
+  --                        `+ ν.with_density (radon_nikodym_deriv (μn n) (νn n)) ∩ (S.set n)`,
+  -- it suffices to show that the individual summands are equal. This follows by the
+  -- Lebesgue decomposition properties on the individual `μn n` and `νn n`
   { simp only [hξ, hf, hμ],
     rw [with_density_tsum _, sum_add_sum],
     { refine sum_congr (λ n, _),

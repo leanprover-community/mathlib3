@@ -155,8 +155,6 @@ instance {α : Type*} [measurable_space α] :
 (finite_measures.coe_injective).add_comm_monoid
   (coe : finite_measures α → measure α) finite_measures.coe_zero finite_measures.coe_add
 
-#check @finite_measures.has_scalar α _
-
 -- TODO: Another alternative would use a bijection with `vector_measure α ℝ≥0`.
 instance {α : Type*} [measurable_space α] :
   module ℝ≥0 (finite_measures α) :=

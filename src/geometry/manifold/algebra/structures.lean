@@ -24,20 +24,21 @@ set_option default_priority 100 -- see Note [default priority]
 
 /-- A smooth semiring is a semiring where addition and multiplication are smooth. -/
 -- See note [Design choices about smooth algebraic structures]
-class smooth_semiring (I : model_with_corners 𝕜 E H)
+class smooth_ring (I : model_with_corners 𝕜 E H)
   (R : Type*) [semiring R] [topological_space R] [charted_space H R]
   extends has_smooth_add I R, has_smooth_mul I R : Prop
 
-/-- A smooth ring is a ring where the ring operations are smooth. -/
--- See note [Design choices about smooth algebraic structures]
-class smooth_ring (I : model_with_corners 𝕜 E H)
-  (R : Type*) [ring R] [topological_space R] [charted_space H R]
-  extends lie_add_group I R, has_smooth_mul I R : Prop
+instance smooth_ring.to_lie_add_group (I : model_with_corners 𝕜 E H)
+  (R : Type*) [ring R] [topological_space R] [charted_space H R] [smooth_ring I R] :
+  lie_add_group I R :=
+{ compatible := λ e e', has_groupoid.compatible (times_cont_diff_groupoid ⊤ I),
+  smooth_add := smooth_add I,
+  smooth_neg := by simpa only [neg_one_mul] using @smooth_mul_left 𝕜 _ H _ E _ _ I R _ _ _ _ (-1) }
 
-instance smooth_ring.to_smooth_semiring {I : model_with_corners 𝕜 E H}
+instance smooth_ring.to_smooth_ring {I : model_with_corners 𝕜 E H}
   {R : Type*} [ring R] [topological_space R]
   [charted_space H R] [t : smooth_ring I R] :
-  smooth_semiring I R := { ..t }
+  smooth_ring I R := { ..t }
 
 end smooth_ring
 
@@ -59,13 +60,6 @@ variables {𝕜 R E H : Type*} [topological_space R] [topological_space H]
 
 /-- A smooth semiring is a topological semiring. This is not an instance for technical reasons,
 see note [Design choices about smooth algebraic structures]. -/
-lemma topological_semiring_of_smooth [semiring R] [smooth_semiring I R] :
-  topological_semiring R :=
-{ .. has_continuous_mul_of_smooth I, .. has_continuous_add_of_smooth I }
-
-/-- A smooth ring is a topological ring. This is not an instance for technical reasons,
-see note [Design choices about smooth algebraic structures]. -/
-lemma topological_ring_of_smooth [ring R] [smooth_ring I R] :
+lemma topological_ring_of_smooth [semiring R] [smooth_ring I R] :
   topological_ring R :=
-{ .. has_continuous_mul_of_smooth I, .. topological_add_group_of_lie_add_group I }
-
+{ .. has_continuous_mul_of_smooth I, .. has_continuous_add_of_smooth I }

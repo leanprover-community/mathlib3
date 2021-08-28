@@ -715,6 +715,7 @@ begin
   { refine ae_measurable'.congr _ h_eq.symm, exact (Lp_meas.ae_measurable' _).const_inner _, },
 end
 
+/-- `condexp_L2` verifies the equality of integrals defining the conditional expectation. -/
 lemma integral_condexp_L2_eq [is_scalar_tower ℝ 𝕜 E'] (hm : m ≤ m0)
   (f : Lp E' 2 μ) {s : set α} (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
   ∫ x in s, condexp_L2 𝕜 hm f x ∂μ = ∫ x in s, f x ∂μ :=
@@ -803,6 +804,8 @@ begin
   by_cases hy_mem : y ∈ s; simp [hy_mem],
 end
 
+section condexp_L2_indicator
+
 variables (𝕜)
 lemma condexp_L2_indicator_ae_eq_smul (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') :
@@ -817,8 +820,8 @@ begin
   exact (rsmul x).coe_fn_comp_Lp _,
 end
 
-lemma condexp_L2_indicator_eq_rsmul_comp (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : E') :
+lemma condexp_L2_indicator_eq_rsmul_comp (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (x : E') :
   (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) : α →₂[μ] E')
     = (rsmul x).comp_Lp (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) :=
 begin
@@ -835,7 +838,7 @@ end
 
 variables {𝕜}
 
-lemma set_lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
+lemma set_lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') {t : set α} (ht : @measurable_set _ m t) (hμt : μ t ≠ ∞) :
   ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ
     ≤ μ (s ∩ t) * ∥x∥₊ :=
@@ -852,8 +855,8 @@ end
 ... ≤ μ (s ∩ t) * ∥x∥₊ :
   ennreal.mul_le_mul (lintegral_nnnorm_condexp_L2_indicator_le_real hm hs hμs ht hμt) le_rfl
 
-lemma lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : E') [sigma_finite (μ.trim hm)]:
+lemma lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
+  (hμs : μ s ≠ ∞) (x : E') [sigma_finite (μ.trim hm)] :
   ∫⁻ a, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ ≤ μ s * ∥x∥₊ :=
 begin
   refine lintegral_le_of_forall_fin_meas_le' hm (μ s * ∥x∥₊) _ (λ t ht hμt, _),
@@ -875,8 +878,9 @@ begin
     exact ennreal.mul_le_mul (measure_mono (set.inter_subset_left _ _)) le_rfl, },
 end
 
-lemma condexp_L2_indicator_add (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x y : E') :
+variables {hm : m ≤ m0}
+
+lemma condexp_L2_indicator_add (hs : measurable_set s) (hμs : μ s ≠ ∞) (x y : E') :
   condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs (x + y))
     = condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)
     + condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs y) :=
@@ -889,8 +893,7 @@ begin
     rsmul_add x y, continuous_linear_map.add_comp_Lp],
 end
 
-lemma condexp_L2_indicator_smul (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (c : 𝕜) (x : E') :
+lemma condexp_L2_indicator_smul (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : 𝕜) (x : E') :
   condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs (c • x))
     = c • condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) :=
 begin
@@ -901,8 +904,7 @@ begin
     rsmul_smul 𝕜 c x, continuous_linear_map.smul_comp_Lp c (rsmul x)],
 end
 
-lemma condexp_L2_indicator_smul_real (hm : m ≤ m0) {s : set α} (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (c : ℝ) (x : E') :
+lemma condexp_L2_indicator_smul_real (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : ℝ) (x : E') :
   condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs (c • x))
     = (c : 𝕜) • condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) :=
 begin
@@ -912,6 +914,8 @@ begin
     condexp_L2_indicator_eq_rsmul_comp 𝕜 hm hs hμs (c • x), rsmul_smul_real c x,
     continuous_linear_map.smul_comp_Lp c (rsmul x), is_R_or_C.of_real_alg, smul_assoc, one_smul],
 end
+
+end condexp_L2_indicator
 
 end condexp_L2
 
@@ -958,13 +962,11 @@ begin
   refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
   refine eventually_eq.trans _
     (eventually_eq.add (mem_ℒp.coe_fn_to_Lp _).symm (mem_ℒp.coe_fn_to_Lp _).symm),
-  rw condexp_L2_indicator_add hm,
+  rw condexp_L2_indicator_add,
   simp_rw Lp_meas_coe,
   push_cast,
   refine (Lp.coe_fn_add _ _).trans (eventually_of_forall (λ a, _)),
   refl,
-  apply_instance,
-  apply_instance,
 end
 
 lemma condexp_ind_L1_fin_smul (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : 𝕜) (x : E') :
@@ -973,7 +975,7 @@ begin
   ext1,
   refine (mem_ℒp.coe_fn_to_Lp _).trans _,
   refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
-  rw [condexp_L2_indicator_smul hm hs hμs c x, Lp_meas_coe],
+  rw [condexp_L2_indicator_smul hs hμs c x, Lp_meas_coe],
   push_cast,
   refine (Lp.coe_fn_smul _ _).trans _,
   rw ← Lp_meas_coe,
@@ -987,7 +989,7 @@ begin
   ext1,
   refine (mem_ℒp.coe_fn_to_Lp _).trans _,
   refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
-  rw condexp_L2_indicator_smul_real hm hs hμs c x,
+  rw condexp_L2_indicator_smul_real hs hμs c x,
   swap, { apply_instance, },
   rw Lp_meas_coe,
   push_cast,

@@ -113,7 +113,7 @@ begin
   let s0 := s ∩ {x | f x = 0},
   have hs0 : measurable_set s0, from hs.inter (measurable_set_eq_fun hf measurable_const),
   have hs0_eq : ∀ x ∈ s0, f x = 0,
-  { intros x hx, simp_rw [s0, set.mem_inter_iff] at hx, exact hx.2, },
+    by { intros x hx, simp_rw [s0, set.mem_inter_iff] at hx, exact hx.2, },
   have h_s_union : s = s_ ∪ s0, from (set.diff_union_inter s _).symm,
   have h_s_disj : disjoint s_ s0,
     from (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right
@@ -137,9 +137,7 @@ lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_top
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 begin
   have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
-  { ext,
-    simp_rw [set.mem_union_eq, set.mem_set_of_eq],
-    exact le_iff_lt_or_eq, },
+    by { ext, simp_rw [set.mem_union_eq, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
   rw h_union,
   exact (set_integral_union_eq_left hf hfi (measurable_set_lt hf measurable_const)
     (measurable_set_eq_fun hf measurable_const) (λ x hx, hx)).symm,

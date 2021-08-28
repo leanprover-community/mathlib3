@@ -299,13 +299,13 @@ the rest. -/
   right_inv := λ f,
     subtype.ext (equiv.perm.of_subtype_subtype_perm _ $ λ a, not.decidable_imp_symm $ f.prop a) }
 
-@[simp] lemma perm.subtype_equiv_subtype_perm_apply_of_mem {α : Type*} (p : α → Prop)
-  [decidable_pred p] (f : perm (subtype p)) (a : α) (h : p a) :
+lemma perm.subtype_equiv_subtype_perm_apply_of_mem {α : Type*} {p : α → Prop}
+  [decidable_pred p] (f : perm (subtype p)) {a : α} (h : p a) :
   perm.subtype_equiv_subtype_perm p f a = f ⟨a, h⟩ :=
 f.of_subtype_apply_of_mem h
 
-@[simp] lemma perm.subtype_equiv_subtype_perm_apply_of_not_mem {α : Type*} (p : α → Prop)
-  [decidable_pred p] (f : perm (subtype p)) (a : α) (h : ¬ p a) :
+lemma perm.subtype_equiv_subtype_perm_apply_of_not_mem {α : Type*} {p : α → Prop}
+  [decidable_pred p] (f : perm (subtype p)) {a : α} (h : ¬ p a) :
   perm.subtype_equiv_subtype_perm p f a = a :=
 f.of_subtype_apply_of_not_mem h
 

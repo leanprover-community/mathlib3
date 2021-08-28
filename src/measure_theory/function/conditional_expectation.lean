@@ -1110,6 +1110,12 @@ begin
   exact condexp_ind_L1_fin_disjoint_union hm hs ht hμs hμt hst x,
 end
 
+lemma condexp_ind_disjoint_union (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
+  (hs : measurable_set s) (ht : measurable_set t) (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (hst : s ∩ t = ∅)
+  (x : E') :
+  condexp_ind 𝕜 hm μ (hs.union ht) x = condexp_ind 𝕜 hm μ hs x + condexp_ind 𝕜 hm μ ht x :=
+condexp_ind_L1_disjoint_union hm hs ht hμs hμt hst x
+
 end disjoint_union
 
 end condexp_ind

@@ -97,7 +97,7 @@ begin
   exact ht_eq x hx,
 end
 
-lemma set_integral_union_eq_left_disjoint {f : α → E} (hf : measurable f) (hfi : integrable f μ)
+lemma set_integral_union_eq_left_of_disjoint {f : α → E} (hf : measurable f) (hfi : integrable f μ)
   (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0)
   (hs_disj : disjoint s t) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
@@ -118,7 +118,7 @@ begin
   have h_s_disj : disjoint s_ s0,
     from (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right
       (set.inter_subset_right _ _),
-  rw [h_s_union, set_integral_union_eq_left_disjoint hf hfi hs_ hs0 hs0_eq h_s_disj],
+  rw [h_s_union, set_integral_union_eq_left_of_disjoint hf hfi hs_ hs0 hs0_eq h_s_disj],
   have hst0_eq : ∀ x ∈ s0 ∪ t, f x = 0,
   { intros x hx,
     rw set.mem_union at hx,
@@ -129,7 +129,7 @@ begin
   { rw [← set.sup_eq_union, disjoint_sup_right],
     exact ⟨h_s_disj, (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right ht_eq⟩, },
   rw set.union_assoc,
-  exact set_integral_union_eq_left_disjoint hf hfi hs_ (hs0.union ht) hst0_eq hst_disj,
+  exact set_integral_union_eq_left_of_disjoint hf hfi hs_ (hs0.union ht) hst0_eq hst_disj,
 end
 
 lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_topology E]

@@ -19,7 +19,6 @@ for any divisor d | n. This test is the basis of the Pratt primality certificate
 
 ## TODO
 
-- Implement the test
 - Bonus: Show the reverse implication i.e. if a number is prime then it has a Lucas witness.
   See [this stackexchange](https://math.stackexchange.com/a/59911/165144) answer for proof.
 - Write a tactic that uses this theorem to generate Pratt primality certificates
@@ -41,16 +40,6 @@ Note that Mario also remarked this could be made computable.
 -/
 
 variables (p : ℕ) [fact (0 < p)]
-
-lemma card_units_zmod_lt_sub_one (hp : 1 < p) : fintype.card (units (zmod p)) ≤ p - 1 :=
-begin
-  rw zmod.card_units_eq_totient p,
-  exact nat.le_pred_of_lt (nat.totient_lt p hp),
-end
-
-lemma prime_iff_card_units (p : ℕ) [fact (0 < p)] :
-  p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=
-by rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))]
 
 /--
 If a^r = 1 mod p, but a^(r/q) ≠ 1 mod p for all prime factors q of r, then a has order r in the

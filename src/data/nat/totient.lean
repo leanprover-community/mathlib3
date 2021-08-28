@@ -213,6 +213,17 @@ begin
   rwa [succ_le_iff, pos_iff_ne_zero],
 end
 
+lemma card_units_zmod_lt_sub_one {p : ℕ} (hp : 1 < p) [fact (0 < p)] : fintype.card (units (zmod p)) ≤ p - 1 :=
+begin
+  rw zmod.card_units_eq_totient p,
+  exact nat.le_pred_of_lt (nat.totient_lt p hp),
+end
+
+lemma prime_iff_card_units (p : ℕ) [fact (0 < p)] :
+  p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=
+by rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))]
+
+
 @[simp] lemma totient_two : φ 2 = 1 :=
 (totient_prime prime_two).trans (by norm_num)
 

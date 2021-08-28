@@ -185,14 +185,32 @@ begin
   simp [h],
 end
 
-lemma Inf_plus {n: ℕ} {p: set ℕ} (h: 0 < Inf {m : ℕ | p m}) :
+lemma Inf_plus {n: ℕ} {p: ℕ → Prop} (h: 0 < Inf {m : ℕ | p m}) :
   Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
 begin
-  sorry,
+  have hInf := set.mem_set_of_eq.mp (Inf_mem $ nonempty_of_pos_Inf h),
+  apply le_antisymm,
+  { suffices h : Inf {m : ℕ | p m} ≤ Inf {m : ℕ | p (m - n)} - n,
+    { change Inf {m : ℕ | p m} + n ≤ Inf {m : ℕ | p (m - n)} + 0,
+      rw ←nat.sub_self n,
+      suffices : Inf {m : ℕ | p (m - n)} + (n - n) = (Inf {m : ℕ | p (m - n)} - n) + n,
+      { rw this,
+        apply nat.add_le_add h le_rfl},
+      -- comes from h being non-zero
+      sorry },
+    apply nat.Inf_le,
+    simp,
+    induction n with k hk,
+    { exact hInf },
+    /- hk: p (Inf {m : ℕ | p (m - k)} + k)
+      ⊢ p (Inf {m : ℕ | p (m - k.succ)} + k.succ) -/
+    sorry },
+  { apply nat.Inf_le,
+    simpa },
 end
 
 lemma nth_succ_of_zero (h : p 0) (n : ℕ) (w : (n + 2 : cardinal) ≤ cardinal.mk (set_of p)) :
-  nth p (n+1) = nth (λ i, p (i+1)) n + 1 :=
+  nth p (n + 1) = nth (λ i, p (i + 1)) n + 1 :=
 begin
   revert w,
   apply nat.strong_induction_on n,
@@ -205,39 +223,21 @@ begin
     simp [ih], },
   rw [nth_def, nth_def],
   simp [ih] {contextual:=tt},
-  by_cases hle: 0 < Inf {i : ℕ | p (i + 1) ∧ ∀ (k : ℕ), k < n' → nth p (k + 1) - 1 < i},
-  { rw Inf_plus,
-    { sorry, },
-    exact hle, },
-  { have h0: Inf {i : ℕ | p (i + 1) ∧ ∀ (k : ℕ), k < n' → nth p (k + 1) - 1 < i} = 0,
-    { rw ← nat.lt_one_iff,
-      exact not_le.mp hle, },
-    rw h0,
-    simp,
+  obtain h0 | hlt := nat.eq_zero_or_pos (Inf {i | p (i + 1) ∧ ∀ k, k < n' → nth p (k + 1) - 1 < i}),
+  { rw [h0, zero_add],
     simp at h0,
-    cases h0,
-    { cases h0 with hp h0,
-      specialize h0 0,
-      have hn': n' ≤ 0 := not_lt.mp h0,
-      simp at hn',
-      rw hn',
-      simp,
-      rw nth_zero_of_zero,
-      { rw Inf_def,
-        { erw nat.find_eq_iff,
-          split,
-          { simp,
-            exact hp, },
-          { intros m hm,
-            rw nat.lt_one_iff at hm,
-            rw hm,
-            simp, }, },
-        { use 1,
-          simp,
-          exact hp, },
-      },
-      exact h, },
-      sorry, },
+    obtain ⟨hp, h0⟩ | h0 := h0,
+    { rw nonpos_iff_eq_zero.mp (not_lt.mp $ h0 0),
+      simp only [lt_one_iff, forall_eq, nth_zero_of_zero _ h],
+      rw Inf_def,
+      { erw nat.find_eq_iff,
+        refine ⟨by simpa, λ m hm, _⟩,
+        rw nat.lt_one_iff at hm,
+        simp [hm] },
+      { exact ⟨1, by simpa⟩ } },
+    { sorry } },
+  { rw Inf_plus hlt,
+    { sorry } }
 end
 
 lemma nth_zero_of_exists [decidable_pred p] (h : ∃ n, p n) : nth p 0 = nat.find h :=

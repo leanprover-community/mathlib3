@@ -2125,7 +2125,8 @@ end complete_space
 
 open_locale bounded_continuous_function
 open bounded_continuous_function
-variables [borel_space E] [second_countable_topology E] [topological_space α] [borel_space α]
+variables [borel_space E] [second_countable_topology E]
+variables [topological_space α] [opens_measurable_space α]
 
 variables (E p μ)
 

@@ -444,7 +444,7 @@ namespace continuous_map
 
 open measure_theory
 
-variables [topological_space α] [borel_space α] (μ)
+variables [topological_space α] [opens_measurable_space α] (μ)
 variables [topological_space β] [measurable_space β] [borel_space β]
 
 /-- The equivalence class of `μ`-almost-everywhere measurable functions associated to a continuous

@@ -7,6 +7,7 @@ import measure_theory.constructions.pi
 import measure_theory.measure.stieltjes
 import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.transvection
+import dynamics.ergodic.measure_preserving
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
@@ -311,8 +312,10 @@ begin
   { exact λ i, measurable_const_mul _ (hs i) },
 end
 
+#check measure_preserving.skew_product
+
 lemma zoug2 [decidable_eq ι] (t : transvection_struct ι ℝ) :
-  measure.map t.to_matrix.to_lin' volume = volume :=
+  measure_preserving t.to_matrix.to_lin' volume volume :=
 begin
 
 end

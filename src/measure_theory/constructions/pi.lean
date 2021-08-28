@@ -323,7 +323,7 @@ end
 
 variable {μ}
 
-/-- `μ.prod ν` has finite spanning sets in rectangles of finite spanning sets. -/
+/-- `measure.pi μ` has finite spanning sets in rectangles of finite spanning sets. -/
 def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
   (hμ : ∀ i, (μ i).finite_spanning_sets_in (C i)) (hC : ∀ i (s ∈ C i), measurable_set s) :
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=

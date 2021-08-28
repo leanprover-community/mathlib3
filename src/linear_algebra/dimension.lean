@@ -143,22 +143,33 @@ begin
   exact linear_independent_bounded_of_finset_linear_independent_bounded H _ li,
 end
 
-lemma dim_range_le (f : M →ₗ[R] M₁) : module.rank R f.range ≤ module.rank R M :=
+lemma lift_dim_range_le (f : M →ₗ[R] M') :
+  cardinal.lift.{v' v} (module.rank R f.range) ≤ cardinal.lift.{v v'} (module.rank R M) :=
 begin
   dsimp [module.rank],
-  apply cardinal.sup_le.mpr,
+  apply cardinal.lift_sup_le,
   rintro ⟨s, li⟩,
-  refine le_trans _ (cardinal.le_sup _ ⟨range_splitting f '' s, _⟩),
+  apply le_trans,
+  swap 2,
+  apply cardinal.lift_le.mpr,
+  refine (cardinal.le_sup _ ⟨range_splitting f '' s, _⟩),
   { apply linear_independent.of_comp f.range_restrict,
     convert li.comp (equiv.set.range_splitting_image_equiv f s) (equiv.injective _) using 1, },
-  { exact (cardinal.eq_congr (equiv.set.range_splitting_image_equiv f s)).ge, },
+  { exact (cardinal.lift_mk_eq'.mpr ⟨equiv.set.range_splitting_image_equiv f s⟩).ge, },
+end
+
+lemma dim_range_le (f : M →ₗ[R] M₁) : module.rank R f.range ≤ module.rank R M :=
+by simpa using lift_dim_range_le f
+
+lemma lift_dim_map_le (f : M →ₗ[R] M') (p : submodule R M) :
+  cardinal.lift.{v' v} (module.rank R (p.map f)) ≤ cardinal.lift.{v v'} (module.rank R p) :=
+begin
+  have h := lift_dim_range_le (f.comp (submodule.subtype p)),
+  rwa [linear_map.range_comp, range_subtype] at h,
 end
 
 lemma dim_map_le (f : M →ₗ[R] M₁) (p : submodule R M) : module.rank R (p.map f) ≤ module.rank R p :=
-begin
-  have h := dim_range_le (f.comp (submodule.subtype p)),
-  rwa [linear_map.range_comp, range_subtype] at h,
-end
+by simpa using lift_dim_map_le f p
 
 lemma dim_le_of_submodule (s t : submodule R M) (h : s ≤ t) :
   module.rank R s ≤ module.rank R t :=
@@ -183,6 +194,11 @@ cardinal.lift_inj.1 f.lift_dim_eq
 lemma dim_eq_of_injective (f : M →ₗ[R] M₁) (h : injective f) :
   module.rank R M = module.rank R f.range :=
 (linear_equiv.of_injective f (linear_map.ker_eq_bot.mpr h)).dim_eq
+
+/-- Pushforwards of submodules along a `linear_equiv` have the same dimension. -/
+lemma linear_equiv.dim_map_eq (f : M ≃ₗ[R] M₁) (p : submodule R M) :
+  module.rank R (p.map (f : M →ₗ[R] M₁)) = module.rank R p :=
+(f.of_submodule p).dim_eq.symm
 
 variables (R M)
 

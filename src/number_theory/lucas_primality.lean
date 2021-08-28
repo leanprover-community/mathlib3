@@ -52,17 +52,6 @@ lemma prime_iff_card_units (p : ℕ) [fact (0 < p)] :
   p.prime ↔ fintype.card (units (zmod p)) = p - 1 :=
 by rw [zmod.card_units_eq_totient, nat.totient_eq_iff_prime (fact.out (0 < p))]
 
-lemma dvd_iff_exists_eq_mul_left (a b : ℕ) :
-a ∣ b ↔ ∃ c, b = c * a
-:=
-begin
-  split,
-    { exact exists_eq_mul_left_of_dvd, },
-    { intro h,
-      cases h with c h',
-      exact dvd.intro_left c (eq.symm h'), },
-end
-
 lemma dvd_div_iff_mul_dvd (a b c : ℕ) (a_dvd_b : a ∣ b) : c ∣ b / a ↔ c * a ∣ b :=
 begin
   by_cases ha : a = 0,

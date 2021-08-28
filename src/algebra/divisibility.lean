@@ -102,7 +102,7 @@ alias dvd.intro_left ← dvd_of_mul_left_eq
 theorem exists_eq_mul_left_of_dvd (h : a ∣ b) : ∃ c, b = c * a :=
 dvd.elim h (assume c, assume H1 : b = a * c, exists.intro c (eq.trans H1 (mul_comm a c)))
 
-lemma dvd_iff_exists_eq_mul_left (a b : ℕ) :
+lemma dvd_iff_exists_eq_mul_left :
 a ∣ b ↔ ∃ c, b = c * a
 :=
 begin

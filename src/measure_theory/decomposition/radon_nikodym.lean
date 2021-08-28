@@ -18,7 +18,7 @@ most notably conditional expectations and probability cumulative functions.
 
 ## Main results
 
-* `measure_theory.measure.absolutely_continuous_iff_with_density_radon_nikodym_derive_eq` :
+* `measure_theory.measure.absolutely_continuous_iff_with_density_radon_nikodym_deriv_eq` :
   the Radon-Nikodym theorem
 
 ## Tags
@@ -60,7 +60,7 @@ end
 /-- **The Radon-Nikodym theorem**: Given two measures `μ` and `ν`, if
 `have_lebesgue_decomposition μ ν`, then `μ` is absolutely continuous to `ν` if and only if
 `ν.with_density (radon_nikodym_deriv μ ν) = μ`. -/
-theorem absolutely_continuous_iff_with_density_radon_nikodym_derive_eq
+theorem absolutely_continuous_iff_with_density_radon_nikodym_deriv_eq
   {μ ν : measure α} [have_lebesgue_decomposition μ ν] :
   μ ≪ ν ↔ ν.with_density (radon_nikodym_deriv μ ν) = μ :=
 ⟨with_density_radon_nikodym_deriv_eq μ ν, λ h, h ▸ with_density_absolutely_continuous _ _⟩

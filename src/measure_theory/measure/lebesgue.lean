@@ -5,6 +5,8 @@ Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.constructions.pi
 import measure_theory.measure.stieltjes
+import linear_algebra.matrix.diagonal
+import linear_algebra.matrix.transvection
 
 /-!
 # Lebesgue measure on the real line and on `ℝⁿ`
@@ -201,15 +203,23 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
   by simp only [ennreal.coe_one, one_mul, finset.prod_const, fintype.card]
 
 /-!
-### Images of the Lebesgue measure under translation/multiplication/...
+### Images of the Lebesgue measure under translation/multiplication/... in ℝ
 -/
 
 lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
   by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]
 
+@[simp] lemma volume_preimage_add_left (a : ℝ) (s : set ℝ) : volume (((+) a) ⁻¹' s) = volume s :=
+calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
+  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
+... = volume s : by rw map_volume_add_left
+
 lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
 by simpa only [add_comm] using real.map_volume_add_left a
+
+@[simp] lemma volume_preimage_add_right (a : ℝ) (s : set ℝ) : volume ((+ a) ⁻¹' s) = volume s :=
+by simpa only [add_comm] using real.volume_preimage_add_left a s
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (abs a) • measure.map ((*) a) volume = volume :=
@@ -231,6 +241,12 @@ by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
   ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel h, abs_one, ennreal.of_real_one,
   one_smul] }
 
+@[simp] lemma volume_preimage_mul_left {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
+  volume (((*) a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
+calc volume (((*) a) ⁻¹' s) = measure.map ((*) a) volume s :
+  ((homeomorph.mul_left' a h).to_measurable_equiv.map_apply s).symm
+... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_left h, refl }
+
 lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (abs a) • measure.map (* a) volume = volume :=
 by simpa only [mul_comm] using real.smul_map_volume_mul_left h
@@ -239,10 +255,130 @@ lemma map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
   measure.map (* a) volume = ennreal.of_real (abs a⁻¹) • volume :=
 by simpa only [mul_comm] using real.map_volume_mul_left h
 
-@[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
+@[simp] lemma volume_preimage_mul_right {a : ℝ} (h : a ≠ 0) (s : set ℝ) :
+  volume ((* a) ⁻¹' s) = ennreal.of_real (abs a⁻¹) * volume s :=
+by simpa only [mul_comm] using volume_preimage_mul_left h s
+
+lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
   by simp [show measure.map has_neg.neg volume (Ioo (p : ℝ) q) = _,
     from measure.map_apply measurable_neg measurable_set_Ioo]
+
+@[simp] lemma volume_preimage_neg (s : set ℝ) : volume (has_neg.neg ⁻¹' s) = volume s :=
+calc volume (has_neg.neg ⁻¹' s) = measure.map (has_neg.neg) volume s :
+  ((homeomorph.neg ℝ).to_measurable_equiv.map_apply s).symm
+... = volume s : by rw map_volume_neg
+
+/-!
+### Images of the Lebesgue measure under translation/multiplication/... in ℝ^n
+-/
+
+lemma map_volume_pi_add_left (a : ι → ℝ) : measure.map ((+) a) volume = volume :=
+begin
+  refine (measure.pi_eq (λ s hs, _)).symm,
+  have A : has_add.add a ⁻¹' (set.pi univ (λ (i : ι), s i))
+    = set.pi univ (λ (i : ι), ((+) (a i)) ⁻¹' (s i)), by { ext, simp },
+  rw [measure.map_apply (measurable_const_add a) (measurable_set.univ_pi_fintype hs), A,
+      volume_pi_pi],
+  { simp only [volume_preimage_add_left] },
+  { exact λ i, measurable_const_add (a i) (hs i) }
+end
+
+open matrix
+
+lemma zoug1 [decidable_eq ι] (D : ι → ℝ) (h : det (diagonal D) ≠ 0) :
+  ennreal.of_real (abs (det (diagonal D))) • measure.map ((diagonal D).to_lin') volume = volume :=
+begin
+  refine (measure.pi_eq (λ s hs, _)).symm,
+  simp only [det_diagonal, measure.coe_smul, algebra.id.smul_eq_mul, pi.smul_apply],
+  rw [measure.map_apply _ (measurable_set.univ_pi_fintype hs)],
+  swap, { exact continuous.measurable (linear_map.continuous_on_pi _) },
+  have : (matrix.to_lin' (diagonal D)) ⁻¹' (set.pi set.univ (λ (i : ι), s i))
+    = set.pi set.univ (λ (i : ι), ((*) (D i)) ⁻¹' (s i)),
+  { ext f,
+    simp only [linear_map.coe_proj, algebra.id.smul_eq_mul, linear_map.smul_apply, mem_univ_pi,
+      mem_preimage, linear_map.pi_apply, diagonal_to_lin'] },
+  have B : ∀ i, of_real (abs (D i)) * volume (has_mul.mul (D i) ⁻¹' s i) = volume (s i),
+  { assume i,
+    have A : D i ≠ 0,
+    { simp only [det_diagonal, ne.def] at h,
+      exact finset.prod_ne_zero_iff.1 h i (finset.mem_univ i) },
+    rw [volume_preimage_mul_left A, ← mul_assoc, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul,
+      mul_inv_cancel A, abs_one, ennreal.of_real_one, one_mul] },
+  rw [this, volume_pi_pi, finset.abs_prod,
+    ennreal.of_real_prod_of_nonneg (λ i hi, abs_nonneg (D i)), ← finset.prod_mul_distrib],
+  { simp only [B] },
+  { exact λ i, measurable_const_mul _ (hs i) },
+end
+
+lemma zoug2 [decidable_eq ι] (t : transvection_struct ι ℝ) :
+  measure.map t.to_matrix.to_lin' volume = volume :=
+begin
+
+end
+
+#exit
+
+@[simp] lemma volume_pi_preimage_add_left (a : ι → ℝ) (s : set (ι → ℝ)) :
+  volume (((+) a) ⁻¹' s) = volume s :=
+calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
+  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
+... = volume s : by rw map_volume_pi_add_left
+
+lemma map_volume_pi_add_right (a : ι → ℝ) : measure.map (+ a) volume = volume :=
+by simpa only [add_comm] using real.map_volume_pi_add_left a
+
+@[simp] lemma volume_pi_preimage_add_right (a : ι → ℝ) (s : set (ι → ℝ)) :
+  volume ((+ a) ⁻¹' s) = volume s :=
+by simpa only [add_comm] using real.volume_pi_preimage_add_left a s
+
+lemma smul_map_volume_pi_smul {a : ℝ} (h : a ≠ 0) :
+  ennreal.of_real ((abs a) ^ (fintype.card ι)) • measure.map ((•) a) (volume : measure (ι → ℝ))
+    = volume :=
+begin
+  refine (measure.pi_eq (λ s hs, _)).symm,
+  have A : (has_scalar.smul a) ⁻¹' (set.pi univ (λ (i : ι), s i))
+    = set.pi univ (λ (i : ι), ((*) a) ⁻¹' (s i)),
+    by { ext, simp only [algebra.id.smul_eq_mul, mem_univ_pi, mem_preimage, pi.smul_apply], },
+  simp only [measure.coe_smul, algebra.id.smul_eq_mul, pi.smul_apply],
+  rw [measure.map_apply (measurable_const_smul a) (measurable_set.univ_pi_fintype hs), A,
+      volume_pi_pi],
+  { simp only [volume_preimage_mul_left h, ennreal.of_real_pow (abs_nonneg _),
+      finset.prod_mul_distrib, finset.prod_const, finset.card_univ],
+    simp_rw [← mul_assoc, ← mul_pow, ← ennreal.of_real_mul (abs_nonneg a), ← abs_mul,
+      mul_inv_cancel h, abs_one, ennreal.of_real_one, one_pow, one_mul] },
+  { exact λ i, measurable_const_mul _ (hs i) }
+end
+
+lemma map_volume_pi_smul {a : ℝ} (h : a ≠ 0) :
+  measure.map ((•) a) (volume : measure (ι → ℝ)) =
+    ennreal.of_real ((abs a⁻¹) ^ (fintype.card ι)) • volume :=
+by conv_rhs { rw [← real.smul_map_volume_pi_smul h, smul_smul,
+    ← ennreal.of_real_mul (pow_nonneg (abs_nonneg _) _), ← mul_pow, ← abs_mul, inv_mul_cancel h,
+    abs_one, one_pow, ennreal.of_real_one, one_smul] }
+
+@[simp] lemma volume_pi_preimage_smul {a : ℝ} (h : a ≠ 0) (s : set (ι → ℝ)) :
+  volume (((•) a) ⁻¹' s) = ennreal.of_real ((abs a⁻¹) ^ (fintype.card ι)) * volume s :=
+calc volume (((•) a) ⁻¹' s) = measure.map ((•) a) volume s :
+  ((homeomorph.smul_of_ne_zero a h).to_measurable_equiv.map_apply s).symm
+... = ennreal.of_real ((abs a⁻¹) ^ (fintype.card ι)) * volume s :
+  by simp only [map_volume_pi_smul h, measure.coe_smul, algebra.id.smul_eq_mul, pi.smul_apply]
+
+lemma map_volume_pi_neg : measure.map has_neg.neg (volume : measure (ι → ℝ)) = volume :=
+begin
+  refine (measure.pi_eq (λ s hs, _)).symm,
+  have A : has_neg.neg ⁻¹' (set.pi univ (λ (i : ι), s i))
+    = set.pi univ (λ i, (has_neg.neg) ⁻¹' (s i)),
+      by { ext, simp only [mem_neg, pi.neg_apply, mem_univ_pi, neg_preimage] },
+  rw [measure.map_apply measurable_neg (measurable_set.univ_pi_fintype hs), A, volume_pi_pi],
+  { simp only [volume_preimage_neg], },
+  { exact λ i, measurable_neg (hs i) }
+end
+
+@[simp] lemma volume_pi_preimage_neg (s : set (ι → ℝ)) : volume (has_neg.neg ⁻¹' s) = volume s :=
+calc volume (has_neg.neg ⁻¹' s) = measure.map (has_neg.neg) volume s :
+  ((homeomorph.neg _).to_measurable_equiv.map_apply s).symm
+... = volume s : by rw map_volume_pi_neg
 
 end real
 

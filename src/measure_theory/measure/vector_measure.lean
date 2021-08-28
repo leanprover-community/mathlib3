@@ -985,7 +985,7 @@ end
 
 end absolutely_continuous
 
-/-- Twp vector measures `v` and `w` are said to be mutually singular if there exists a
+/-- Two vector measures `v` and `w` are said to be mutually singular if there exists a
 measurable set `s` such that `v s = 0` and `w sᶜ = 0`. -/
 def mutually_singular (v : vector_measure α M) (w : vector_measure α N) : Prop :=
 ∃ (s : set α), measurable_set s ∧ v s = 0 ∧ w sᶜ = 0
@@ -996,17 +996,24 @@ namespace mutually_singular
 
 variables {v : vector_measure α M} {w : vector_measure α N}
 
-lemma zero : v ⊥ᵥ (0 : vector_measure α N) :=
-⟨∅, measurable_set.empty, v.empty, rfl⟩
-
 lemma symm (h : v ⊥ᵥ w) : w ⊥ᵥ v :=
 let ⟨i, hi, hiv, hiw⟩ := h in
   ⟨iᶜ, measurable_set.compl hi, hiw, (compl_compl i).symm ▸ hiv⟩
 
-lemma smul {R : Type*} [semiring R] [distrib_mul_action R M] [topological_space R]
+lemma zero_right : v ⊥ᵥ (0 : vector_measure α N) :=
+⟨∅, measurable_set.empty, v.empty, rfl⟩
+
+lemma zero_left : (0 : vector_measure α M) ⊥ᵥ w :=
+zero_right.symm
+
+lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [topological_space R]
   [has_continuous_smul R M] (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
 let ⟨s, hs, hs0, hs0'⟩ := h in
   ⟨s, hs, by simp only [coe_smul, pi.smul_apply, hs0, smul_zero], hs0'⟩
+
+lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [topological_space R]
+    [has_continuous_smul R N] (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
+(smul_left r h.symm).symm
 
 end mutually_singular
 

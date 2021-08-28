@@ -37,10 +37,6 @@ The Lebesgue decomposition provides the Radon-Nikodym theorem readily.
   measure mutually singular to `ν` and `f` is a measurable function such that `μ = s + fν`,
   then `f = radon_nikodym_deriv μ ν`.
 
-## To do
-
-The Lebesgue decomposition theorem can be generalized to σ-finite measures from the finite version.
-
 # Tags
 
 Lebesgue decomposition theorem

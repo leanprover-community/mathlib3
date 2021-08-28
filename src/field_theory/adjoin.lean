@@ -245,8 +245,7 @@ algebra.adjoin_le (subset_adjoin _ _)
 lemma adjoin_eq_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ ∈ algebra.adjoin F S) :
   (adjoin F S).to_subalgebra = algebra.adjoin F S :=
 le_antisymm
-  (show adjoin F S ≤
-      { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
+  (show adjoin F S ≤ intermediate_field.mk' (algebra.adjoin F S) inv_mem,
     from adjoin_le_iff.mpr (algebra.subset_adjoin))
   (algebra_adjoin_le_adjoin _ _)
 
@@ -660,6 +659,7 @@ def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : zorn.chai
   { rintros _ _ ⟨x, hx, ha⟩ ⟨y, hy, hb⟩,
     obtain ⟨z, hz, hxz, hyz⟩ := lifts.exists_max_two hc hx hy,
     exact ⟨z, hz, z.1.mul_mem (hxz.1 ha) (hyz.1 hb)⟩ },
+  mul_comm' := λ _ _ _ _, mul_comm _ _,
   algebra_map_mem' := λ s, ⟨⊥, set.mem_insert ⊥ c, algebra_map_mem ⊥ s⟩ }
 
 /-- The lift on the upper bound on a chain of lifts -/

@@ -397,7 +397,7 @@ begin
   { simp [if_neg hi] }
 end
 
-lemma absolutely_continuous_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
+lemma absolutely_continuous_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
   s ≪ μ ↔ s.total_variation ≪ μ.ennreal_to_measure :=
 begin
   split; intro h,
@@ -428,7 +428,28 @@ begin
     rw [total_variation, measure.add_apply, h.1 hS₂, h.2 hS₂, add_zero] }
 end
 
-lemma mutually_singular_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
+lemma mutually_singular_iff (s t : signed_measure α) :
+  s ⊥ᵥ t ↔ s.total_variation ⊥ₘ t.total_variation :=
+begin
+  split,
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    obtain ⟨i, hi₁, hi₂, hi₃, hipos, hineg⟩ := s.to_jordan_decomposition_spec,
+    obtain ⟨j, hj₁, hj₂, hj₃, hjpos, hjneg⟩ := t.to_jordan_decomposition_spec,
+    refine ⟨u, hmeas, _, _⟩,
+    { rw [total_variation, measure.add_apply, hipos, hineg,
+      to_measure_of_zero_le_apply _ _ _ hmeas, to_measure_of_le_zero_apply _ _ _ hmeas],
+      simpa [hu₁ _ (set.inter_subset_right _ _)] },
+    { rw [total_variation, measure.add_apply, hjpos, hjneg,
+          to_measure_of_zero_le_apply _ _ _ hmeas.compl,
+          to_measure_of_le_zero_apply _ _ _ hmeas.compl],
+      simpa [hu₂ _ (set.inter_subset_right _ _)] } },
+  { rintro ⟨u, hmeas, hu₁, hu₂⟩,
+    exact ⟨u, hmeas,
+      (λ t htu, null_of_total_variation_zero _ (measure_mono_null htu hu₁)),
+      (λ t htv, null_of_total_variation_zero _ (measure_mono_null htv hu₂))⟩ }
+end
+
+lemma mutually_singular_ennreal_iff (s : signed_measure α) (μ : vector_measure α ℝ≥0∞) :
   s ⊥ᵥ μ ↔ s.total_variation ⊥ₘ μ.ennreal_to_measure :=
 begin
   split,

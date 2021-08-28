@@ -102,22 +102,17 @@ by split_ifs; simp [h]
 noncomputable instance count_set_fintype (p : ℕ → Prop) (n : ℕ) : fintype { i | i < n ∧ p i } :=
 fintype.of_injective (λ i, (⟨i.1, i.2.1⟩ : { i | i < n })) (by tidy)
 
+lemma count_eq_card_finset (n : ℕ) : count p n = finset.card (finset.filter p (finset.range n)) :=
+rfl
+
 /-- `count p n` can be expressed as the cardinality of `{ i | i ≤ n ∧ p i }`. -/
 lemma count_eq_card (n : ℕ) : count p n = fintype.card { i : ℕ | i < n ∧ p i } :=
 begin
-  have h : list.nodup ((list.range n).filter p) :=
-    list.nodup_filter _ (list.nodup_range n),
-  rw ←multiset.coe_nodup at h,
-  rw [count, ←multiset.coe_card],
-  change (finset.mk _ h).card = _,
-  rw [←set.to_finset_card],
+  rw [←set.to_finset_card, count_eq_card_finset],
   congr' 1,
   ext i,
   simp [lt_succ_iff],
 end
-
-lemma count_eq_card_finset (n : ℕ) : count p n = finset.card (finset.filter p (finset.range n)) :=
-rfl
 
 @[simp] lemma count_succ {n : ℕ} : count p (n + 1) = count p n + (if p n then 1 else 0) :=
 begin

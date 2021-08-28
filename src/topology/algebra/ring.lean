@@ -84,6 +84,7 @@ end
 
 variables {α} [ring α] [topological_space α] [topological_ring α]
 
+@[priority 100] -- See note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α :=
 { continuous_add := continuous_add,
   continuous_neg := by simpa only [neg_one_mul, id.def] using

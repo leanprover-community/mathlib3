@@ -867,8 +867,9 @@ begin
   exact measure_mono (set.inter_subset_left _ _),
 end
 
+
 lemma integrable_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
-  (s : set α) (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
   integrable (condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x)) μ :=
 begin
   refine integrable_of_forall_fin_meas_le' hm (μ s * ∥x∥₊)
@@ -943,7 +944,7 @@ as a function in L1. -/
 def condexp_ind_L1_fin (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (hs : measurable_set s)
   (hμs : μ s ≠ ∞) (x : E') :
   α →₁[μ] E' :=
-(mem_ℒp_one_iff_integrable.mpr (integrable_condexp_L2_indicator hm s hs hμs x)).to_Lp _
+(mem_ℒp_one_iff_integrable.mpr (integrable_condexp_L2_indicator hm hs hμs x)).to_Lp _
 
 lemma condexp_ind_L1_fin_ae_eq_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :

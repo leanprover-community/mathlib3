@@ -2150,14 +2150,24 @@ namespace bounded_continuous_function
 
 variables [finite_measure μ]
 
+/-- A bounded continuous function on a finite-measure space satisfies the predicate `mem_ℒp`. -/
+lemma mem_ℒp --{F : Type*} [normed_group F] [measurable_space F] [borel_space F]
+  (f : α →ᵇ E) :
+  mem_ℒp f p μ :=
+begin
+  refine mem_ℒp.of_bound f.continuous.measurable.ae_measurable (∥f∥) _,
+  filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
+  intros x hx,
+  convert f.norm_coe_le_norm x
+end
+
 /-- A bounded continuous function on a finite-measure space is in `Lp`. -/
 lemma mem_Lp (f : α →ᵇ E) :
   f.to_continuous_map.to_ae_eq_fun μ ∈ Lp E p μ :=
 begin
-  refine Lp.mem_Lp_of_ae_bound (∥f∥) _,
-  filter_upwards [f.to_continuous_map.coe_fn_to_ae_eq_fun μ],
-  intros x hx,
-  convert f.norm_coe_le_norm x
+  rw [show f.to_continuous_map.to_ae_eq_fun μ
+    = mem_ℒp.to_Lp f (@mem_ℒp α E _ p μ _ _ _ _ _ _ _ f), by refl],
+  exact set_like.coe_mem _,
 end
 
 /-- The `Lp`-norm of a bounded continuous function is at most a constant (depending on the measure

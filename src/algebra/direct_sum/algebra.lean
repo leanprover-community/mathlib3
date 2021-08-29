@@ -131,6 +131,15 @@ def to_algebra
   commutes' := λ r, (direct_sum.to_semiring_of _ _ _ _ _).trans (hcommutes r),
   .. to_semiring (λ i, (f i).to_add_monoid_hom) hone @hmul}
 
+/-- Two `alg_hom`s out of a direct sum are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma alg_hom_ext ⦃f g : (⨁ i, A i) →ₐ[R] B⦄
+  (h : ∀ i, f.to_linear_map.comp (lof _ _ A i) = g.to_linear_map.comp (lof _ _ A i)) : f = g :=
+alg_hom.coe_ring_hom_injective $
+  direct_sum.ring_hom_ext $ λ i, add_monoid_hom.ext $ linear_map.congr_fun (h i)
+
 end direct_sum
 
 /-! ### Concrete instances -/

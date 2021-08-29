@@ -56,6 +56,9 @@ dfinsupp.lmk
 /-- Inclusion of each component into the direct sum. -/
 def lof : Π i : ι, M i →ₗ[R] (⨁ i, M i) :=
 dfinsupp.lsingle
+
+lemma lof_eq_of (i : ι) (b : M i) : lof R ι M i b = of M i b := rfl
+
 variables {ι M}
 
 lemma single_eq_lof (i : ι) (b : M i) :

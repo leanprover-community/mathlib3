@@ -235,6 +235,18 @@ by simp [to_finsupp_iso, monomial, monomial_fun]
 @[simp] lemma to_finsupp_iso_symm_single : (to_finsupp_iso R).symm (single n a) = monomial n a :=
 by simp [to_finsupp_iso, monomial, monomial_fun]
 
+lemma monomial_injective (n : ℕ) :
+  function.injective (monomial n : R → polynomial R) :=
+begin
+  convert (to_finsupp_iso R).symm.injective.comp (single_injective n),
+  ext,
+  simp
+end
+
+@[simp] lemma monomial_eq_zero_iff (t : R) (n : ℕ) :
+  monomial n t = 0 ↔ t = 0 :=
+linear_map.map_eq_zero_iff _ (polynomial.monomial_injective n)
+
 lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
 begin
   rcases p, rcases q,

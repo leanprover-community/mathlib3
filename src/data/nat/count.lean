@@ -410,6 +410,29 @@ begin
   exact (set.finite.to_finset.nonempty hf').mp hne,
 end
 
+lemma nth_mem_of_lt_card_finite_aux {n : ℕ} (hf: set.finite p)
+  (hlt: n < (set.finite.to_finset hf).card):
+  nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
+begin
+  rw nth,
+  apply Inf_mem,
+  apply nth_set_nonempty_of_lt_card,
+  exact hlt,
+end
+
+lemma nth_mem_of_lt_card_finite {n : ℕ} (hf: set.finite p)
+  (hlt: n < (set.finite.to_finset hf).card):
+  p (nth p n) :=
+begin
+  have h := nth_mem_of_lt_card_finite_aux,
+  specialize h p,
+  { exact n,},
+  specialize h hf hlt,
+  simp at h,
+  cases h,
+  exact h_left,
+end
+
 lemma nth_mem_of_infinite_aux (i : (set_of p).infinite) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
@@ -626,6 +649,8 @@ lemma nth_mem_of_lt_card (n : ℕ) (w : (n : cardinal) < cardinal.mk { i | p i }
 begin
   casesI fintype_or_infinite {i | p i},
   { rw [cardinal.fintype_card, cardinal.nat_cast_lt, ←nat.card_eq_fintype_card] at w,
+    apply nth_mem_of_lt_card_finite,
+    sorry,
     sorry, },
   { apply nth_mem_of_infinite,
     rwa ←set.infinite_coe_iff, },

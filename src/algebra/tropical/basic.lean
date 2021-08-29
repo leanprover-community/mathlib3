@@ -178,17 +178,6 @@ lemma trop_add_def (x y : tropical R) : x + y = trop (min (untrop x) (untrop y))
 
 @[simp] lemma bit0 (x : tropical R) : bit0 x = x := add_self x
 
-lemma min_eq_iff {R : Type*} [linear_order R] {x y z : R} :
-  min x y = z ↔ x = z ∧ x ≤ y ∨ y = z ∧ y ≤ x :=
-begin
-  split,
-  { intro h,
-    refine or.imp (λ h', _) (λ h', _) (le_total x y);
-    exact ⟨by simpa [h'] using h, h'⟩ },
-  { rintro (⟨rfl, h⟩|⟨rfl, h⟩);
-    simp [h] }
-end
-
 lemma add_eq_iff {x y z : tropical R} :
   x + y = z ↔ x = z ∧ x ≤ y ∨ y = z ∧ y ≤ x :=
 by simp [trop_add_def, trop_eq_iff_eq_untrop, min_eq_iff]

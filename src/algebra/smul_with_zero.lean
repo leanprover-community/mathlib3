@@ -3,8 +3,8 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import group_theory.group_action.defs
 import algebra.group_power.basic
+import algebra.opposites
 
 /-!
 # Introduce `smul_with_zero`
@@ -45,6 +45,11 @@ instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R 
   smul_zero := mul_zero,
   zero_smul := zero_mul }
 
+instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_with_zero Rᵒᵖ R :=
+{ smul := (•),
+  smul_zero := λ r, zero_mul _,
+  zero_smul := mul_zero }
+
 instance add_monoid.to_smul_with_zero [add_monoid M] : smul_with_zero ℕ M :=
 { smul_zero := nsmul_zero,
   zero_smul := zero_nsmul }
@@ -59,7 +64,9 @@ variables {R} (M)
 
 variables {R M} [has_zero R'] [has_zero M'] [has_scalar R M']
 
-/-- Pullback a `smul_with_zero` structure along an injective zero-preserving homomorphism. -/
+/-- Pullback a `smul_with_zero` structure along an injective zero-preserving homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.smul_with_zero
   (f : zero_hom M' M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   smul_with_zero R M' :=
@@ -67,7 +74,9 @@ protected def function.injective.smul_with_zero
   zero_smul := λ a, hf $ by simp [smul],
   smul_zero := λ a, hf $ by simp [smul]}
 
-/-- Pushforward a `smul_with_zero` structure along a surjective zero-preserving homomorphism. -/
+/-- Pushforward a `smul_with_zero` structure along a surjective zero-preserving homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.smul_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   smul_with_zero R M' :=
@@ -103,20 +112,29 @@ instance mul_action_with_zero.to_smul_with_zero [m : mul_action_with_zero R M] :
   smul_with_zero R M :=
 {..m}
 
+/-- See also `semiring.to_module` -/
 instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
 { ..mul_zero_class.to_smul_with_zero R,
   ..monoid.to_mul_action R }
 
+/-- See also `semiring.to_opposite_module` -/
+instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zero Rᵒᵖ R :=
+{ ..mul_zero_class.to_opposite_smul_with_zero R,
+  ..monoid.to_opposite_mul_action R }
+
 variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
 
-/-- Pullback a `mul_action_with_zero` structure along an injective zero-preserving homomorphism. -/
+/-- Pullback a `mul_action_with_zero` structure along an injective zero-preserving homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.mul_action_with_zero
   (f : zero_hom M' M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=
 { ..hf.mul_action f smul, ..hf.smul_with_zero f smul }
 
 /-- Pushforward a `mul_action_with_zero` structure along a surjective zero-preserving homomorphism.
--/
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.mul_action_with_zero
   (f : zero_hom M M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   mul_action_with_zero R M' :=

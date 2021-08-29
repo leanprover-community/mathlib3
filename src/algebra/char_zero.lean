@@ -122,6 +122,12 @@ end
 section
 variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
 
+lemma neg_eq_self_iff {a : R} : -a = a ↔ a = 0 :=
+neg_eq_iff_add_eq_zero.trans add_self_eq_zero
+
+lemma eq_neg_self_iff {a : R} : a = -a ↔ a = 0 :=
+eq_neg_iff_add_eq_zero.trans add_self_eq_zero
+
 lemma nat_mul_inj {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) : n = 0 ∨ a = b :=
 begin
   rw [←sub_eq_zero, ←mul_sub, mul_eq_zero, sub_eq_zero] at h,
@@ -184,3 +190,17 @@ instance {R : Type*} [add_monoid R] [has_one R] [char_zero R] : char_zero (with_
 { cast_injective := λ m n h, by rwa [← coe_nat, ← coe_nat n, coe_eq_coe, nat.cast_inj] at h }
 
 end with_top
+
+section ring_hom
+
+variables {R S : Type*} [semiring R] [semiring S]
+
+lemma ring_hom.char_zero (ϕ : R →+* S) [hS : char_zero S] : char_zero R :=
+⟨λ a b h, char_zero.cast_injective (by rw [←ϕ.map_nat_cast, ←ϕ.map_nat_cast, h])⟩
+
+lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) :
+  char_zero R ↔ char_zero S :=
+⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, ϕ.map_nat_cast, ϕ.map_nat_cast]⟩,
+  λ hS, by exactI ϕ.char_zero⟩
+
+end ring_hom

@@ -18,7 +18,8 @@ open_locale topological_space classical
 
 variables {a b : ℝ} {f f' : ℝ → ℝ}
 
-/-- Darboux's theorem: if `a ≤ b` and `f' a < m < f' b`, then `f' c = m` for some `c ∈ [a, b]`. -/
+/-- **Darboux's theorem**: if `a ≤ b` and `f' a < m < f' b`, then `f' c = m` for some
+`c ∈ [a, b]`. -/
 theorem exists_has_deriv_within_at_eq_of_gt_of_lt
   (hab : a ≤ b) (hf : ∀ x ∈ (Icc a b), has_deriv_within_at f (f' x) (Icc a b) x)
   {m : ℝ} (hma : f' a < m) (hmb : m < f' b) :
@@ -33,7 +34,7 @@ begin
   { intros x hx,
     simpa using (hf x hx).sub ((has_deriv_within_at_id x _).const_mul m) },
   obtain ⟨c, cmem, hc⟩ : ∃ c ∈ Icc a b, is_min_on g (Icc a b) c,
-    from compact_Icc.exists_forall_le (nonempty_Icc.2 $ hab)
+    from is_compact_Icc.exists_forall_le (nonempty_Icc.2 $ hab)
       (λ x hx, (hg x hx).continuous_within_at),
   have cmem' : c ∈ Ioo a b,
   { cases eq_or_lt_of_le cmem.1 with hac hac,
@@ -61,7 +62,8 @@ begin
   exact (hc.is_local_min this).has_deriv_at_eq_zero ((hg c cmem).has_deriv_at this)
 end
 
-/-- Darboux's theorem: if `a ≤ b` and `f' a > m > f' b`, then `f' c = m` for some `c ∈ [a, b]`. -/
+/-- **Darboux's theorem**: if `a ≤ b` and `f' a > m > f' b`, then `f' c = m` for some `c ∈ [a, b]`.
+-/
 theorem exists_has_deriv_within_at_eq_of_lt_of_gt
   (hab : a ≤ b) (hf : ∀ x ∈ (Icc a b), has_deriv_within_at f (f' x) (Icc a b) x)
   {m : ℝ} (hma : m < f' a) (hmb : f' b < m) :
@@ -70,7 +72,7 @@ let ⟨c, cmem, hc⟩ := exists_has_deriv_within_at_eq_of_gt_of_lt hab (λ x hx,
   (neg_lt_neg hma) (neg_lt_neg hmb)
 in ⟨c, cmem, neg_injective hc⟩
 
-/-- Darboux's theorem: the image of a convex set under `f'` is a convex set. -/
+/-- **Darboux's theorem**: the image of a convex set under `f'` is a convex set. -/
 theorem convex_image_has_deriv_at {s : set ℝ} (hs : convex s)
   (hf : ∀ x ∈ s, has_deriv_at f (f' x) x) :
   convex (f' '' s) :=

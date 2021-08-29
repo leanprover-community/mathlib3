@@ -10,12 +10,25 @@ since they are used by some lemmas for `iso`, which is used everywhere.
 -/
 import category_theory.adjunction.basic
 import category_theory.opposites
+import category_theory.groupoid
 
 universes v₁ v₂ u₁ u₂
 
 namespace category_theory
 
 variables {C : Type u₁} [category.{v₁} C]
+
+instance unop_mono_of_epi {A B : Cᵒᵖ} (f : A ⟶ B) [epi f] : mono f.unop :=
+⟨λ Z g h eq, quiver.hom.op_inj ((cancel_epi f).1 (quiver.hom.unop_inj eq))⟩
+
+instance unop_epi_of_mono {A B : Cᵒᵖ} (f : A ⟶ B) [mono f] : epi f.unop :=
+⟨λ Z g h eq, quiver.hom.op_inj ((cancel_mono f).1 (quiver.hom.unop_inj eq))⟩
+
+instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
+⟨λ Z g h eq, quiver.hom.unop_inj ((cancel_epi f).1 (quiver.hom.op_inj eq))⟩
+
+instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
+⟨λ Z g h eq, quiver.hom.unop_inj ((cancel_mono f).1 (quiver.hom.op_inj eq))⟩
 
 section
 variables {D : Type u₂} [category.{v₂} D]
@@ -141,17 +154,19 @@ lemma is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] [epi $ section
   : is_iso f :=
 ⟨⟨section_ f, ⟨(cancel_epi_id $ section_ f).mp (by simp), by simp⟩⟩⟩
 
-instance unop_mono_of_epi {A B : Cᵒᵖ} (f : A ⟶ B) [epi f] : mono f.unop :=
-⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_epi f).1 (has_hom.hom.unop_inj eq))⟩
-
-instance unop_epi_of_mono {A B : Cᵒᵖ} (f : A ⟶ B) [mono f] : epi f.unop :=
-⟨λ Z g h eq, has_hom.hom.op_inj ((cancel_mono f).1 (has_hom.hom.unop_inj eq))⟩
-
-instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
-⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_epi f).1 (has_hom.hom.op_inj eq))⟩
-
-instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
-⟨λ Z g h eq, has_hom.hom.unop_inj ((cancel_mono f).1 (has_hom.hom.op_inj eq))⟩
+/-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
+-- FIXME this has unnecessarily become noncomputable!
+noncomputable
+def groupoid.of_trunc_split_mono
+  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono f)) :
+  groupoid.{v₁} C :=
+begin
+  apply groupoid.of_is_iso,
+  intros X Y f,
+  trunc_cases all_split_mono f,
+  trunc_cases all_split_mono (retraction f),
+  apply is_iso.of_mono_retraction,
+end
 
 section
 variables {D : Type u₂} [category.{v₂} D]

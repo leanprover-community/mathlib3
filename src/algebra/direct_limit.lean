@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
 import data.finset.order
-import linear_algebra.direct_sum_module
+import algebra.direct_sum.module
 import ring_theory.free_comm_ring
 import ring_theory.ideal.operations
 /-!
@@ -58,7 +58,7 @@ def direct_limit : Type (max v w) :=
 namespace direct_limit
 
 instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
-instance : semimodule R (direct_limit G f) := quotient.semimodule _
+instance : module R (direct_limit G f) := quotient.module _
 
 instance : inhabited (direct_limit G f) := ⟨0⟩
 
@@ -360,7 +360,7 @@ lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supporte
   f' j k hjk (lift (λ ix : s, f' ix.1.1 j (hj ix ix.2) ix.1.2) (restriction s x)) =
   lift (λ ix : t, f' ix.1.1 k (hk ix ix.2) ix.1.2) (restriction t x) :=
 begin
-  refine ring.in_closure.rec_on hxs _ _ _ _,
+  refine subring.in_closure.rec_on hxs _ _ _ _,
   { rw [(restriction _).map_one, (free_comm_ring.lift _).map_one, (f' j k hjk).map_one,
         (restriction _).map_one, (free_comm_ring.lift _).map_one] },
   { rw [(restriction _).map_neg, (restriction _).map_one,

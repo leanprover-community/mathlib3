@@ -3,9 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import algebra.group.hom
 import algebra.group.type_tags
-import algebra.group.units_hom
 import algebra.group_with_zero
 
 /-!
@@ -44,6 +42,15 @@ def mul_hom.inverse [has_mul M] [has_mul N] (f : mul_hom M N) (g : N → M)
     calc g (x * y) = g (f (g x) * f (g y)) : by rw [h₂ x, h₂ y]
                ... = g (f (g x * g y)) : by rw f.map_mul
                ... = g x * g y : h₁ _, }
+
+/-- The inverse of a bijective `monoid_hom` is a `monoid_hom`. -/
+@[to_additive "The inverse of a bijective `add_monoid_hom` is an `add_monoid_hom`.", simps]
+def monoid_hom.inverse {A B : Type*} [monoid A] [monoid B] (f : A →* B) (g : B → A)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  B →* A :=
+{ to_fun   := g,
+  map_one' := by rw [← f.map_one, h₁],
+  .. (f : mul_hom A B).inverse g h₁ h₂, }
 
 set_option old_structure_cmd true
 
@@ -108,6 +115,7 @@ def refl (M : Type*) [has_mul M] : M ≃* M :=
 { map_mul' := λ _ _, rfl,
 ..equiv.refl _}
 
+@[to_additive]
 instance : inhabited (M ≃* M) := ⟨refl M⟩
 
 /-- The inverse of an isomorphism is an isomorphism. -/
@@ -115,6 +123,9 @@ instance : inhabited (M ≃* M) := ⟨refl M⟩
 def symm (h : M ≃* N) : N ≃* M :=
 { map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
+
+@[simp, to_additive]
+lemma inv_fun_eq_symm {f : M ≃* N} : f.inv_fun = f.symm := rfl
 
 /-- See Note [custom simps projection] -/
 -- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
@@ -179,6 +190,9 @@ theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e
 @[to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
+@[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :
+  (e₁.trans e₂).symm p = e₁.symm (e₂.symm p) := rfl
+  
 @[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
 e.injective.eq_iff
 
@@ -313,6 +327,41 @@ def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid 
   right_inv := λ k, by { ext, simp, },
   map_mul' := λ h k, by { ext, simp, }, }
 
+/-- A family of multiplicative equivalences `Π j, (Ms j ≃* Ns j)` generates a
+multiplicative equivalence between `Π j, Ms j` and `Π j, Ns j`.
+
+This is the `mul_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`mul_equiv.arrow_congr`.
+-/
+@[to_additive add_equiv.Pi_congr_right "A family of additive equivalences `Π j, (Ms j ≃+ Ns j)`
+generates an additive equivalence between `Π j, Ms j` and `Π j, Ns j`.
+
+This is the `add_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`add_equiv.arrow_congr`.", simps apply]
+def Pi_congr_right {η : Type*}
+  {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
+  (es : ∀ j, Ms j ≃* Ns j) : (Π j, Ms j) ≃* (Π j, Ns j) :=
+{ to_fun := λ x j, es j (x j),
+  inv_fun := λ x j, (es j).symm (x j),
+  map_mul' := λ x y, funext $ λ j, (es j).map_mul (x j) (y j),
+  .. equiv.Pi_congr_right (λ j, (es j).to_equiv) }
+
+@[simp]
+lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*} [Π j, mul_one_class (Ms j)] :
+  Pi_congr_right (λ j, mul_equiv.refl (Ms j)) = mul_equiv.refl _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {η : Type*}
+  {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
+  (es : ∀ j, Ms j ≃* Ns j) : (Pi_congr_right es).symm = (Pi_congr_right $ λ i, (es i).symm) := rfl
+
+@[simp]
+lemma Pi_congr_right_trans {η : Type*}
+  {Ms Ns Ps : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
+  [Π j, mul_one_class (Ps j)]
+  (es : ∀ j, Ms j ≃* Ns j) (fs : ∀ j, Ns j ≃* Ps j) :
+  (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) := rfl
+
 /-!
 # Groups
 -/
@@ -343,7 +392,7 @@ def add_monoid_hom.to_add_equiv [add_zero_class M] [add_zero_class N] (f : M →
 /-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
 useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
-@[to_additive]
+@[to_additive, simps {fully_applied := ff}]
 def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (g : N →* M)
   (h₁ : g.comp f = monoid_hom.id _) (h₂ : f.comp g = monoid_hom.id _) :
   M ≃* N :=
@@ -353,30 +402,30 @@ def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (
   right_inv := monoid_hom.congr_fun h₂,
   map_mul' := f.map_mul }
 
-@[simp, to_additive]
-lemma monoid_hom.coe_to_mul_equiv [mul_one_class M] [mul_one_class N]
-  (f : M →* N) (g : N →* M) (h₁ h₂) :
-  ⇑(f.to_mul_equiv g h₁ h₂) = f := rfl
-
 /-- An additive equivalence of additive groups preserves subtraction. -/
 lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :
   h (x - y) = h x - h y :=
 h.to_add_monoid_hom.map_sub x y
 
-instance add_equiv.inhabited {M : Type*} [has_add M] : inhabited (M ≃+ M) := ⟨add_equiv.refl M⟩
-
 /-- A group is isomorphic to its group of units. -/
 @[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
-def to_units {G} [group G] : G ≃* units G :=
+def to_units [group G] : G ≃* units G :=
 { to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,
   left_inv := λ x, rfl,
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
+@[simp, to_additive coe_to_add_units] lemma coe_to_units [group G] (g : G) :
+  (to_units g : G) = g := rfl
+
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
+
+@[simp, to_additive] lemma coe_inv [group G] (u : units G) :
+  ↑u⁻¹ = (u⁻¹ : G) :=
+to_units.symm.map_inv u
 
 variables [monoid M] [monoid N] [monoid P]
 
@@ -389,7 +438,8 @@ def map_equiv (h : M ≃* N) : units M ≃* units N :=
   .. map h.to_monoid_hom }
 
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
-@[to_additive "Left addition of an additive unit is a permutation of the underlying type."]
+@[to_additive "Left addition of an additive unit is a permutation of the underlying type.",
+  simps apply {fully_applied := ff}]
 def mul_left (u : units M) : equiv.perm M :=
 { to_fun    := λx, u * x,
   inv_fun   := λx, ↑u⁻¹ * x,
@@ -397,22 +447,17 @@ def mul_left (u : units M) : equiv.perm M :=
   right_inv := u.mul_inv_cancel_left }
 
 @[simp, to_additive]
-lemma coe_mul_left (u : units M) : ⇑u.mul_left = (*) u := rfl
-
-@[simp, to_additive]
 lemma mul_left_symm (u : units M) : u.mul_left.symm = u⁻¹.mul_left :=
 equiv.ext $ λ x, rfl
 
 /-- Right multiplication by a unit of a monoid is a permutation of the underlying type. -/
-@[to_additive "Right addition of an additive unit is a permutation of the underlying type."]
+@[to_additive "Right addition of an additive unit is a permutation of the underlying type.",
+  simps apply {fully_applied := ff}]
 def mul_right (u : units M) : equiv.perm M :=
 { to_fun    := λx, x * u,
   inv_fun   := λx, x * ↑u⁻¹,
   left_inv  := λ x, mul_inv_cancel_right x u,
   right_inv := λ x, inv_mul_cancel_right x u }
-
-@[simp, to_additive]
-lemma coe_mul_right (u : units M) : ⇑u.mul_right = λ x : M, x * u := rfl
 
 @[simp, to_additive]
 lemma mul_right_symm (u : units M) : u.mul_right.symm = u⁻¹.mul_right :=
@@ -460,7 +505,8 @@ attribute [nolint simp_nf] add_left_symm_apply add_right_symm_apply
 variable (G)
 
 /-- Inversion on a `group` is a permutation of the underlying type. -/
-@[to_additive "Negation on an `add_group` is a permutation of the underlying type."]
+@[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
+  simps apply {fully_applied := ff}]
 protected def inv : perm G :=
 { to_fun    := λa, a⁻¹,
   inv_fun   := λa, a⁻¹,
@@ -470,10 +516,32 @@ protected def inv : perm G :=
 variable {G}
 
 @[simp, to_additive]
-lemma coe_inv : ⇑(equiv.inv G) = has_inv.inv := rfl
-
-@[simp, to_additive]
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
+
+/-- A version of `equiv.mul_left a b⁻¹` that is defeq to `a / b`. -/
+@[to_additive /-" A version of `equiv.add_left a (-b)` that is defeq to `a - b`. "-/, simps]
+protected def div_left (a : G) : G ≃ G :=
+{ to_fun := λ b, a / b,
+  inv_fun := λ b, b⁻¹ * a,
+  left_inv := λ b, by simp [div_eq_mul_inv],
+  right_inv := λ b, by simp [div_eq_mul_inv] }
+
+@[to_additive]
+lemma div_left_eq_inv_trans_mul_left (a : G) :
+  equiv.div_left a = (equiv.inv G).trans (equiv.mul_left a) :=
+ext $ λ _, div_eq_mul_inv _ _
+
+/-- A version of `equiv.mul_right a⁻¹ b` that is defeq to `b / a`. -/
+@[to_additive /-" A version of `equiv.add_right (-a) b` that is defeq to `b - a`. "-/, simps]
+protected def div_right (a : G) : G ≃ G :=
+{ to_fun := λ b, b / a,
+  inv_fun := λ b, b * a,
+  left_inv := λ b, by simp [div_eq_mul_inv],
+  right_inv := λ b, by simp [div_eq_mul_inv] }
+
+@[to_additive]
+lemma div_right_eq_mul_right_inv (a : G) : equiv.div_right a = equiv.mul_right a⁻¹ :=
+ext $ λ _, div_eq_mul_inv _ _
 
 end group
 
@@ -482,33 +550,34 @@ variables [group_with_zero G]
 
 /-- Left multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
+@[simps {fully_applied := ff}]
 protected def mul_left' (a : G) (ha : a ≠ 0) : perm G :=
 { to_fun := λ x, a * x,
   inv_fun := λ x, a⁻¹ * x,
   left_inv := λ x, by { dsimp, rw [← mul_assoc, inv_mul_cancel ha, one_mul] },
   right_inv := λ x, by { dsimp, rw [← mul_assoc, mul_inv_cancel ha, one_mul] } }
 
-@[simp] lemma coe_mul_left' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_left' a ha) = (*) a := rfl
-
-@[simp] lemma mul_left'_symm_apply (a : G) (ha : a ≠ 0) :
-  ((equiv.mul_left' a ha).symm : G → G) = (*) a⁻¹ := rfl
-
 /-- Right multiplication by a nonzero element in a `group_with_zero` is a permutation of the
 underlying type. -/
+@[simps {fully_applied := ff}]
 protected def mul_right' (a : G) (ha : a ≠ 0) : perm G :=
 { to_fun := λ x, x * a,
   inv_fun := λ x, x * a⁻¹,
   left_inv := λ x, by { dsimp, rw [mul_assoc, mul_inv_cancel ha, mul_one] },
   right_inv := λ x, by { dsimp, rw [mul_assoc, inv_mul_cancel ha, mul_one] } }
 
-@[simp] lemma coe_mul_right' (a : G) (ha : a ≠ 0) : ⇑(equiv.mul_right' a ha) = λ x, x * a := rfl
-
-@[simp] lemma mul_right'_symm_apply (a : G) (ha : a ≠ 0) :
-  ((equiv.mul_right' a ha).symm : G → G) = λ x, x * a⁻¹ := rfl
-
 end group_with_zero
 
 end equiv
+
+/-- When the group is commutative, `equiv.inv` is a `mul_equiv`. There is a variant of this
+`mul_equiv.inv' G : G ≃* Gᵒᵖ` for the non-commutative case. -/
+@[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`."]
+def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
+{ to_fun := has_inv.inv,
+  inv_fun := has_inv.inv,
+  map_mul' := mul_inv,
+  ..equiv.inv G}
 
 section type_tags
 

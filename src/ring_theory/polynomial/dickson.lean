@@ -62,7 +62,7 @@ noncomputable def dickson : ℕ → polynomial R
 @[simp] lemma dickson_zero : dickson k a 0 = 3 - k := rfl
 @[simp] lemma dickson_one : dickson k a 1 = X := rfl
 lemma dickson_two : dickson k a 2 = X ^ 2 - C a * (3 - k) :=
-by simp only [dickson, pow_two]
+by simp only [dickson, sq]
 @[simp] lemma dickson_add_two (n : ℕ) :
   dickson k a (n + 2) = X * dickson k a (n + 1) - C a * dickson k a n :=
 by rw dickson
@@ -184,10 +184,11 @@ begin
   -- For this argument, we need an arbitrary infinite field of characteristic `p`.
   obtain ⟨K, _, _, H⟩ : ∃ (K : Type) [field K], by exactI ∃ [char_p K p], infinite K,
   { let K := fraction_ring (polynomial (zmod p)),
-    let f : zmod p →+* K := (fraction_ring.of _).to_map.comp C,
-    haveI : char_p K p := by { rw ← f.char_p_iff_char_p, apply_instance },
+    let f : zmod p →+* K := (algebra_map _ (fraction_ring _)).comp C,
+    haveI : char_p K p, { rw ← f.char_p_iff_char_p, apply_instance },
     haveI : infinite K :=
-    by { apply infinite.of_injective _ (fraction_ring.of _).injective, apply_instance },
+    infinite.of_injective (algebra_map (polynomial (zmod p)) (fraction_ring (polynomial (zmod p))))
+      (is_fraction_ring.injective _ _),
     refine ⟨K, _, _, _⟩; apply_instance },
   resetI,
   apply map_injective (zmod.cast_hom (dvd_refl p) K) (ring_hom.injective _),
@@ -211,21 +212,20 @@ begin
     suffices : (set.univ : set K) =
       {x : K | ∃ (y : K), x = y + y⁻¹ ∧ y ≠ 0} >>= (λ x, {y | x = y + y⁻¹ ∨ y = 0}),
     { rw this, clear this,
-      apply set.finite_bUnion h,
-      rintro x hx,
+      refine h.bUnion (λ x hx, _),
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
       let φ : polynomial K := X ^ 2 - C x * X + 1,
       have hφ : φ ≠ 0,
       { intro H,
         have : φ.eval 0 = 0, by rw [H, eval_zero],
         simpa [eval_X, eval_one, eval_pow, eval_sub, sub_zero, eval_add,
-          eval_mul, mul_zero, pow_two, zero_add, one_ne_zero] },
+          eval_mul, mul_zero, sq, zero_add, one_ne_zero] },
       classical,
       convert (φ.roots ∪ {0}).to_finset.finite_to_set using 1,
       ext1 y,
       simp only [multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe, multiset.mem_union,
         mem_roots hφ, is_root, eval_add, eval_sub, eval_pow, eval_mul, eval_X, eval_C, eval_one,
-        multiset.mem_singleton, multiset.singleton_eq_singleton],
+        multiset.mem_singleton],
       by_cases hy : y = 0,
       { simp only [hy, eq_self_iff_true, or_true] },
       apply or_congr _ iff.rfl,

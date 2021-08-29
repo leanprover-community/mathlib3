@@ -71,11 +71,6 @@ begin
   exact λ hc, (hc (finset.mem_univ _)).elim
 end
 
-@[to_additive]
-lemma prod_unique [unique β] (f : β → M) :
-  (∏ x, f x) = f (default β) :=
-by simp only [finset.prod_singleton, univ_unique]
-
 /-- If a product of a `finset` of a subsingleton type has a given
 value, so do the terms in that product. -/
 @[to_additive "If a sum of a `finset` of a subsingleton type has a given
@@ -108,12 +103,25 @@ theorem fin.prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
 by simp [fin.univ_def, finset.fin_range]
 
 @[to_additive]
+theorem finset.prod_range [comm_monoid β] {n : ℕ} (f : ℕ → β) :
+  ∏ i in finset.range n, f i = ∏ i : fin n, f i :=
+begin
+  fapply @finset.prod_bij' _ _ _ _ _ _,
+  exact λ k w, ⟨k, (by simpa using w)⟩,
+  swap 3,
+  exact λ a m, a,
+  swap 3,
+  exact λ a m, by simpa using a.2,
+  all_goals { tidy, },
+end
+
+@[to_additive]
 theorem fin.prod_of_fn [comm_monoid β] {n : ℕ} (f : fin n → β) :
   (list.of_fn f).prod = ∏ i, f i :=
 by rw [list.of_fn_eq_map, fin.prod_univ_def]
 
 /-- A product of a function `f : fin 0 → β` is `1` because `fin 0` is empty -/
-@[simp, to_additive "A sum of a function `f : fin 0 → β` is `0` because `fin 0` is empty"]
+@[to_additive "A sum of a function `f : fin 0 → β` is `0` because `fin 0` is empty"]
 theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 := rfl
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
@@ -169,11 +177,6 @@ open finset
   [fintype α] [∀ a, fintype (β a)] :
   fintype.card (sigma β) = ∑ a, fintype.card (β a) :=
 card_sigma _ _
-
--- FIXME ouch, this should be in the main file.
-@[simp] theorem fintype.card_sum (α β : Type*) [fintype α] [fintype β] :
-  fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-by simp [sum.fintype, fintype.of_equiv_card]
 
 @[simp] lemma finset.card_pi [decidable_eq α] {δ : α → Type*}
   (s : finset α) (t : Π a, finset (δ a)) :
@@ -278,17 +281,6 @@ begin
 end
 
 @[to_additive]
-lemma finset.prod_subtype {M : Type*} [comm_monoid M]
-  {p : α → Prop} {F : fintype (subtype p)} (s : finset α) (h : ∀ x, x ∈ s ↔ p x) (f : α → M) :
-  ∏ a in s, f a = ∏ a : subtype p, f a :=
-have (∈ s) = p, from set.ext h,
-begin
-  rw [← prod_attach, attach_eq_univ],
-  substI p,
-  congr
-end
-
-@[to_additive]
 lemma finset.prod_to_finset_eq_subtype {M : Type*} [comm_monoid M] [fintype α]
   (p : α → Prop) [decidable_pred p] (f : α → M) :
     ∏ a in {x | p x}.to_finset, f a = ∏ a : subtype p, f a :=
@@ -384,18 +376,18 @@ begin
 end
 
 lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
-  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.is_lt
+  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.is_lt
 | [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
 | (g :: []) :=
 begin
-  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) •ℤ [g].nth_le i i.2,
+  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) • [g].nth_le i i.2,
   rw [fin.sum_univ_succ], simp,
 end
 | (g :: h :: L) :=
 calc g + -h + L.alternating_sum
-    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
+    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.2 :
       congr_arg _ (alternating_sum_eq_finset_sum _)
-... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) •ℤ list.nth_le (g :: h :: L) i _ :
+... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) • list.nth_le (g :: h :: L) i _ :
 begin
   rw [fin.sum_univ_succ, fin.sum_univ_succ, add_assoc],
   unfold_coes,

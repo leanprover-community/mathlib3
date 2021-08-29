@@ -47,7 +47,7 @@ def limit_cone [complete_lattice α] (F : J ⥤ α) : limit_cone F :=
     { app := λ j, hom_of_le (complete_lattice.Inf_le _ _ (set.mem_range_self _)) } },
   is_limit :=
   { lift := λ s, hom_of_le (complete_lattice.le_Inf _ _
-    begin rintros _ ⟨j, rfl⟩, exact le_of_hom (s.π.app j), end) } }
+    begin rintros _ ⟨j, rfl⟩, exact (s.π.app j).le, end) } }
 
 /--
 The colimit cocone over any functor into a complete lattice.
@@ -59,7 +59,7 @@ def colimit_cocone [complete_lattice α] (F : J ⥤ α) : colimit_cocone F :=
     { app := λ j, hom_of_le (complete_lattice.le_Sup _ _ (set.mem_range_self _)) } },
   is_colimit :=
   { desc := λ s, hom_of_le (complete_lattice.Sup_le _ _
-    begin rintros _ ⟨j, rfl⟩, exact le_of_hom (s.ι.app j), end) } }
+    begin rintros _ ⟨j, rfl⟩, exact (s.ι.app j).le, end) } }
 
 -- It would be nice to only use the `Inf` half of the complete lattice, but
 -- this seems not to have been described separately.

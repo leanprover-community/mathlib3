@@ -38,8 +38,8 @@ We define it using an `equiv` for the map and a `linear_equiv` for the linear pa
 to allow affine equivalences with good definitional equalities. -/
 @[nolint has_inhabited_instance]
 structure affine_equiv (k P₁ P₂ : Type*) {V₁ V₂ : Type*} [ring k]
-  [add_comm_group V₁] [semimodule k V₁] [add_torsor V₁ P₁]
-  [add_comm_group V₂] [semimodule k V₂] [add_torsor V₂ P₂] extends P₁ ≃ P₂ :=
+  [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+  [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂] extends P₁ ≃ P₂ :=
 (linear : V₁ ≃ₗ[k] V₂)
 (map_vadd' : ∀ (p : P₁) (v : V₁), to_equiv (v +ᵥ p) = linear v +ᵥ to_equiv p)
 
@@ -53,10 +53,10 @@ instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
 ⟨_, λ e, e.to_fun⟩
 
 variables {k V₁ V₂ V₃ V₄ P₁ P₂ P₃ P₄ : Type*} [ring k]
-  [add_comm_group V₁] [semimodule k V₁] [add_torsor V₁ P₁]
-  [add_comm_group V₂] [semimodule k V₂] [add_torsor V₂ P₂]
-  [add_comm_group V₃] [semimodule k V₃] [add_torsor V₃ P₃]
-  [add_comm_group V₄] [semimodule k V₄] [add_torsor V₄ P₄]
+  [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
+  [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+  [add_comm_group V₃] [module k V₃] [add_torsor V₃ P₃]
+  [add_comm_group V₄] [module k V₄] [add_torsor V₄ P₄]
 
 namespace linear_equiv
 
@@ -140,18 +140,19 @@ lemma to_equiv_injective : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁
 to_equiv_injective.eq_iff
 
 /-- Construct an affine equivalence by verifying the relation between the map and its linear part at
-one base point. Namely, this function takes an equivalence `e : P₁ ≃ P₂`, a linear equivalece
+one base point. Namely, this function takes a map `e : P₁ → P₂`, a linear equivalence
 `e' : V₁ ≃ₗ[k] V₂`, and a point `p` such that for any other point `p'` we have
 `e p' = e' (p' -ᵥ p) +ᵥ e p`. -/
-def mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : P₁, e p' = e' (p' -ᵥ p) +ᵥ e p) :
+def mk' (e : P₁ → P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : P₁, e p' = e' (p' -ᵥ p) +ᵥ e p) :
   P₁ ≃ᵃ[k] P₂ :=
-{ to_equiv := e,
+{ to_fun := e,
+  inv_fun := λ q' : P₂, e'.symm (q' -ᵥ e p) +ᵥ p,
+  left_inv := λ p', by simp [h p'],
+  right_inv := λ q', by simp [h (e'.symm (q' -ᵥ e p) +ᵥ p)],
   linear := e',
-  .. affine_map.mk' e (e' : V₁ →ₗ[k] V₂) p h }
+  map_vadd' := λ p' v, by { simp [h p', h (v +ᵥ p'), vadd_vsub_assoc, vadd_vadd] } }
 
 @[simp] lemma coe_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) : ⇑(mk' e e' p h) = e := rfl
-@[simp] lemma to_equiv_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
-  (mk' e e' p h).to_equiv = e := rfl
 @[simp] lemma linear_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
   (mk' e e' p h).linear = e' := rfl
 
@@ -253,7 +254,7 @@ tangent space `V`. -/
 def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 { to_equiv := equiv.vadd_const b,
   linear := linear_equiv.refl _ _,
-  map_vadd' := λ p v, add_vadd _ _ _  }
+  map_vadd' := λ p v, add_vadd _ _ _ }
 
 @[simp] lemma linear_vadd_const (b : P₁) : (vadd_const k b).linear = linear_equiv.refl k V₁ := rfl
 
@@ -349,7 +350,7 @@ lemma vadd_line_map (v : V₁) (p₁ p₂ : P₁) (c : k) :
   v +ᵥ line_map p₁ p₂ c = line_map (v +ᵥ p₁) (v +ᵥ p₂) c :=
 (const_vadd k P₁ v).apply_line_map p₁ p₂ c
 
-variables {R' : Type*} [comm_ring R'] [semimodule R' V₁]
+variables {R' : Type*} [comm_ring R'] [module R' V₁]
 
 lemma homothety_neg_one_apply (c p : P₁) :
   homothety c (-1:R') p = point_reflection R' c p :=

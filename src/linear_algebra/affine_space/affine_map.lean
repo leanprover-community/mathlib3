@@ -51,7 +51,7 @@ structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Ty
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
     [add_comm_group V2] [module k V2] [affine_space V2 P2] :=
 (to_fun : P1 → P2)
-(linear : linear_map k V1 V2)
+(linear : V1 →ₗ[k] V2)
 (map_vadd' : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear v +ᵥ to_fun p)
 
 notation P1 ` →ᵃ[`:25 k:25 `] `:0 P2:0 := affine_map k P1 P2
@@ -125,7 +125,7 @@ end
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
 
-lemma coe_fn_injective : function.injective (λ (f : P1 →ᵃ[k] P2) (x : P1), f x) :=
+lemma coe_fn_injective : @function.injective (P1 →ᵃ[k] P2) (P1 → P2) coe_fn :=
 λ f g H, ext $ congr_fun H
 
 protected lemma congr_arg (f : P1 →ᵃ[k] P2) {x y : P1} (h : x = y) : f x = f y :=
@@ -417,7 +417,7 @@ end
 section
 
 variables {ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [Π i, add_comm_group (V i)]
-  [Π i, semimodule k (V i)] [Π i, add_torsor (V i) (P i)]
+  [Π i, module k (V i)] [Π i, add_torsor (V i) (P i)]
 
 include V
 

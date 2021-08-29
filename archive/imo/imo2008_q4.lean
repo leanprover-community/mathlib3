@@ -23,13 +23,8 @@ The desired theorem is that either `f = λ x, x` or `f = λ x, 1/x`
 open real
 
 lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : abs x = 1 :=
-begin
-  let x₀ := nnreal.of_real (abs x),
-  have h' : (abs x) ^ n = 1, { rwa [pow_abs, h, abs_one] },
-  have : (x₀ : ℝ) ^ n = 1, rw (nnreal.coe_of_real (abs x) (abs_nonneg x)), exact h',
-  have : x₀ = 1 := eq_one_of_pow_eq_one hn (show x₀ ^ n = 1, by assumption_mod_cast),
-  rwa ← nnreal.coe_of_real (abs x) (abs_nonneg x), assumption_mod_cast,
-end
+by rw [← pow_left_inj (abs_nonneg x) zero_le_one (pos_iff_ne_zero.2 hn), one_pow, pow_abs, h,
+  abs_one]
 
 theorem imo2008_q4
   (f : ℝ → ℝ)
@@ -61,13 +56,13 @@ begin
     norm_num at H₂,
     simp only [← two_mul] at H₂,
     rw mul_div_mul_left (f(1) ^ 2) (f 1) two_ne_zero at H₂,
-    rwa ← (div_eq_iff h₀).mpr (pow_two (f 1)) },
+    rwa ← (div_eq_iff h₀).mpr (sq (f 1)) },
 
   have h₂ : ∀ x > 0, (f(x) - x) * (f(x) - 1 / x) = 0,
   { intros x hx,
     have h1xss : 1 * x = (sqrt x) * (sqrt x), { rw [one_mul, mul_self_sqrt (le_of_lt hx)] },
     specialize H₂ 1 x (sqrt x) (sqrt x) zero_lt_one hx (sqrt_pos.mpr hx) (sqrt_pos.mpr hx) h1xss,
-    rw [h₁, one_pow 2, sqr_sqrt (le_of_lt hx), ← two_mul (f(x)), ← two_mul x] at H₂,
+    rw [h₁, one_pow 2, sq_sqrt (le_of_lt hx), ← two_mul (f(x)), ← two_mul x] at H₂,
     have hx_ne_0 : x ≠ 0 := ne_of_gt hx,
     have hfx_ne_0 : f(x) ≠ 0, { specialize H₁ x hx, exact ne_of_gt H₁ },
     field_simp at H₂,
@@ -97,7 +92,7 @@ begin
   have habss : a * b = sqrt(a * b) * sqrt(a * b) := (mul_self_sqrt (le_of_lt hab)).symm,
 
   specialize H₂ a b (sqrt (a * b)) (sqrt (a * b)) ha hb (sqrt_pos.mpr hab) (sqrt_pos.mpr hab) habss,
-  rw [sqr_sqrt (le_of_lt hab), ← two_mul (f(a * b)), ← two_mul (a * b)] at H₂,
+  rw [sq_sqrt (le_of_lt hab), ← two_mul (f(a * b)), ← two_mul (a * b)] at H₂,
   rw [hfa₂, hfb₂] at H₂,
 
   have h2ab_ne_0 : 2 * (a * b) ≠ 0 := mul_ne_zero two_ne_zero (ne_of_gt hab),

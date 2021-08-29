@@ -3,9 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
-import analysis.normed_space.add_torsor
-import topology.bases
+import analysis.asymptotics.asymptotic_equivalent
 import linear_algebra.finite_dimensional
 
 /-!
@@ -40,14 +40,14 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 
 universes u v w x
 
-open set finite_dimensional topological_space filter
-open_locale classical big_operators filter topological_space
+open set finite_dimensional topological_space filter asymptotics
+open_locale classical big_operators filter topological_space asymptotics
 
 noncomputable theory
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
-  {E : Type v}  [add_comm_group E] [vector_space 𝕜 E] [topological_space E]
+  {E : Type v}  [add_comm_group E] [module 𝕜 E] [topological_space E]
   [topological_add_group E] [has_continuous_smul 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
 begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
@@ -65,7 +65,7 @@ section complete_field
 variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 {E : Type v} [normed_group E] [normed_space 𝕜 E]
 {F : Type w} [normed_group F] [normed_space 𝕜 F]
-{F' : Type x} [add_comm_group F'] [vector_space 𝕜 F'] [topological_space F']
+{F' : Type x} [add_comm_group F'] [module 𝕜 F'] [topological_space F']
 [topological_add_group F'] [has_continuous_smul 𝕜 F']
 [complete_space 𝕜]
 
@@ -75,59 +75,58 @@ all norms are equivalent in finite dimension.
 
 This statement is superceded by the fact that every linear map on a finite-dimensional space is
 continuous, in `linear_map.continuous_of_finite_dimensional`. -/
-lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : ι → E) (hξ : is_basis 𝕜 ξ) :
-  continuous hξ.equiv_fun :=
+lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
+  continuous ξ.equiv_fun :=
 begin
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { apply linear_map.continuous_of_bound _ 0 (λx, _),
-    have : hξ.equiv_fun x = 0,
-      by { ext i, exact (fintype.card_eq_zero_iff.1 hn i).elim },
-    change ∥hξ.equiv_fun x∥ ≤ 0 * ∥x∥,
+    have : ξ.equiv_fun x = 0,
+      by { ext i, exact (fintype.card_eq_zero_iff.1 hn).elim i },
+    change ∥ξ.equiv_fun x∥ ≤ 0 * ∥x∥,
     rw this,
     simp [norm_nonneg] },
-  { haveI : finite_dimensional 𝕜 E := of_fintype_basis hξ,
+  { haveI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
     -- first step: thanks to the inductive assumption, any n-dimensional subspace is equivalent
     -- to a standard space of dimension n, hence it is complete and therefore closed.
-    have H₁ : ∀s : submodule 𝕜 E, findim 𝕜 s = n → is_closed (s : set E),
+    have H₁ : ∀s : submodule 𝕜 E, finrank 𝕜 s = n → is_closed (s : set E),
     { assume s s_dim,
-      rcases exists_is_basis_finite 𝕜 s with ⟨b, b_basis, b_finite⟩,
-      letI : fintype b := finite.fintype b_finite,
-      have U : uniform_embedding b_basis.equiv_fun.symm.to_equiv,
-      { have : fintype.card b = n,
-          by { rw ← s_dim, exact (findim_eq_card_basis b_basis).symm },
-        have : continuous b_basis.equiv_fun := IH (subtype.val : b → s) b_basis this,
-        exact b_basis.equiv_fun.symm.uniform_embedding (linear_map.continuous_on_pi _) this },
+      let b := basis.of_vector_space 𝕜 s,
+      have U : uniform_embedding b.equiv_fun.symm.to_equiv,
+      { have : fintype.card (basis.of_vector_space_index 𝕜 s) = n,
+          by { rw ← s_dim, exact (finrank_eq_card_basis b).symm },
+        have : continuous b.equiv_fun := IH b this,
+        exact b.equiv_fun.symm.uniform_embedding (linear_map.continuous_on_pi _) this },
       have : is_complete (s : set E),
         from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),
       exact this.is_closed },
     -- second step: any linear form is continuous, as its kernel is closed by the first step
     have H₂ : ∀f : E →ₗ[𝕜] 𝕜, continuous f,
     { assume f,
-      have : findim 𝕜 f.ker = n ∨ findim 𝕜 f.ker = n.succ,
-      { have Z := f.findim_range_add_findim_ker,
-        rw [findim_eq_card_basis hξ, hn] at Z,
-        by_cases H : findim 𝕜 f.range = 0,
+      have : finrank 𝕜 f.ker = n ∨ finrank 𝕜 f.ker = n.succ,
+      { have Z := f.finrank_range_add_finrank_ker,
+        rw [finrank_eq_card_basis ξ, hn] at Z,
+        by_cases H : finrank 𝕜 f.range = 0,
         { right,
           rw H at Z,
           simpa using Z },
         { left,
-          have : findim 𝕜 f.range = 1,
+          have : finrank 𝕜 f.range = 1,
           { refine le_antisymm _ (zero_lt_iff.mpr H),
-            simpa [findim_of_field] using f.range.findim_le },
+            simpa [finrank_of_field] using f.range.finrank_le },
           rw [this, add_comm, nat.add_one] at Z,
           exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
       { cases this,
         { exact H₁ _ this },
         { have : f.ker = ⊤,
-            by { apply eq_top_of_findim_eq, rw [findim_eq_card_basis hξ, hn, this] },
+            by { apply eq_top_of_finrank_eq, rw [finrank_eq_card_basis ξ, hn, this] },
           simp [this] } },
       exact linear_map.continuous_iff_is_closed_ker.2 this },
     -- third step: applying the continuity to the linear form corresponding to a coefficient in the
     -- basis decomposition, deduce that all such coefficients are controlled in terms of the norm
-    have : ∀i:ι, ∃C, 0 ≤ C ∧ ∀(x:E), ∥hξ.equiv_fun x i∥ ≤ C * ∥x∥,
+    have : ∀i:ι, ∃C, 0 ≤ C ∧ ∀(x:E), ∥ξ.equiv_fun x i∥ ≤ C * ∥x∥,
     { assume i,
-      let f : E →ₗ[𝕜] 𝕜 := (linear_map.proj i).comp hξ.equiv_fun,
+      let f : E →ₗ[𝕜] 𝕜 := (linear_map.proj i).comp ξ.equiv_fun,
       let f' : E →L[𝕜] 𝕜 := { cont := H₂ f, ..f },
       exact ⟨∥f'∥, norm_nonneg _, λx, continuous_linear_map.le_op_norm f' x⟩ },
     -- fourth step: combine the bound on each coefficient to get a global bound and the continuity
@@ -137,7 +136,7 @@ begin
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
     apply linear_map.continuous_of_bound _ C (λx, _),
-    rw pi_norm_le_iff,
+    rw pi_semi_norm_le_iff,
     { exact λi, le_trans ((hC0 i).2 x) (mul_le_mul_of_nonneg_right (C0_le i) (norm_nonneg _)) },
     { exact mul_nonneg C_nonneg (norm_nonneg _) } }
 end
@@ -148,18 +147,17 @@ theorem linear_map.continuous_of_finite_dimensional [finite_dimensional 𝕜 E] 
 begin
   -- for the proof, go to a model vector space `b → 𝕜` thanks to `continuous_equiv_fun_basis`, and
   -- argue that all linear maps there are continuous.
-  rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
-  letI : fintype b := finite.fintype b_finite,
-  have A : continuous b_basis.equiv_fun :=
-    continuous_equiv_fun_basis _ b_basis,
-  have B : continuous (f.comp (b_basis.equiv_fun.symm : (b → 𝕜) →ₗ[𝕜] E)) :=
+  let b := basis.of_vector_space 𝕜 E,
+  have A : continuous b.equiv_fun :=
+    continuous_equiv_fun_basis b,
+  have B : continuous (f.comp (b.equiv_fun.symm : (basis.of_vector_space_index 𝕜 E → 𝕜) →ₗ[𝕜] E)) :=
     linear_map.continuous_on_pi _,
-  have : continuous ((f.comp (b_basis.equiv_fun.symm : (b → 𝕜) →ₗ[𝕜] E))
-                      ∘ b_basis.equiv_fun) := B.comp A,
+  have : continuous ((f.comp (b.equiv_fun.symm : (basis.of_vector_space_index 𝕜 E → 𝕜) →ₗ[𝕜] E))
+                      ∘ b.equiv_fun) := B.comp A,
   convert this,
   ext x,
   dsimp,
-  rw linear_equiv.symm_apply_apply
+  rw [basis.equiv_fun_symm_apply, basis.sum_repr]
 end
 
 theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
@@ -246,63 +244,63 @@ end
 
 /-- Two finite-dimensional normed spaces are continuously linearly equivalent if they have the same
 (finite) dimension. -/
-theorem finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq
-  [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] (cond : findim 𝕜 E = findim 𝕜 F) :
+theorem finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq
+  [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] (cond : finrank 𝕜 E = finrank 𝕜 F) :
   nonempty (E ≃L[𝕜] F) :=
-(nonempty_linear_equiv_of_findim_eq cond).map linear_equiv.to_continuous_linear_equiv
+(nonempty_linear_equiv_of_finrank_eq cond).map linear_equiv.to_continuous_linear_equiv
 
 /-- Two finite-dimensional normed spaces are continuously linearly equivalent if and only if they
 have the same (finite) dimension. -/
-theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_findim_eq
+theorem finite_dimensional.nonempty_continuous_linear_equiv_iff_finrank_eq
   [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
-   nonempty (E ≃L[𝕜] F) ↔ findim 𝕜 E = findim 𝕜 F :=
-⟨ λ ⟨h⟩, h.to_linear_equiv.findim_eq,
-  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_findim_eq h ⟩
+   nonempty (E ≃L[𝕜] F) ↔ finrank 𝕜 E = finrank 𝕜 F :=
+⟨ λ ⟨h⟩, h.to_linear_equiv.finrank_eq,
+  λ h, finite_dimensional.nonempty_continuous_linear_equiv_of_finrank_eq h ⟩
 
 /-- A continuous linear equivalence between two finite-dimensional normed spaces of the same
 (finite) dimension. -/
-def continuous_linear_equiv.of_findim_eq [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
-  (cond : findim 𝕜 E = findim 𝕜 F) :
+def continuous_linear_equiv.of_finrank_eq [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F]
+  (cond : finrank 𝕜 E = finrank 𝕜 F) :
   E ≃L[𝕜] F :=
-(linear_equiv.of_findim_eq E F cond).to_continuous_linear_equiv
+(linear_equiv.of_finrank_eq E F cond).to_continuous_linear_equiv
 
 variables {ι : Type*} [fintype ι]
 
 /-- Construct a continuous linear map given the value at a finite basis. -/
-def is_basis.constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
+def basis.constrL (v : basis ι 𝕜 E) (f : ι → F) :
   E →L[𝕜] F :=
-by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis hv;
-  exact (hv.constr f).to_continuous_linear_map
+by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v;
+  exact (v.constr 𝕜 f).to_continuous_linear_map
 
-@[simp, norm_cast] lemma is_basis.coe_constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
-  (hv.constrL f : E →ₗ[𝕜] F) = hv.constr f := rfl
+@[simp, norm_cast] lemma basis.coe_constrL (v : basis ι 𝕜 E) (f : ι → F) :
+  (v.constrL f : E →ₗ[𝕜] F) = v.constr 𝕜 f := rfl
 
 /-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and
 functions from its basis indexing type to `𝕜`. -/
-def is_basis.equiv_funL {v : ι → E} (hv : is_basis 𝕜 v) : E ≃L[𝕜] (ι → 𝕜) :=
+def basis.equiv_funL (v : basis ι 𝕜 E) : E ≃L[𝕜] (ι → 𝕜) :=
 { continuous_to_fun := begin
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis hv,
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis v,
     apply linear_map.continuous_of_finite_dimensional,
   end,
   continuous_inv_fun := begin
-    change continuous hv.equiv_fun.symm.to_fun,
+    change continuous v.equiv_fun.symm.to_fun,
     apply linear_map.continuous_of_finite_dimensional,
   end,
-  ..hv.equiv_fun }
+  ..v.equiv_fun }
 
 
-@[simp] lemma is_basis.constrL_apply {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) (e : E) :
-  (hv.constrL f) e = ∑ i, (hv.equiv_fun e i) • f i :=
-hv.constr_apply_fintype _ _
+@[simp] lemma basis.constrL_apply (v : basis ι 𝕜 E) (f : ι → F) (e : E) :
+  (v.constrL f) e = ∑ i, (v.equiv_fun e i) • f i :=
+v.constr_apply_fintype 𝕜 _ _
 
-@[simp] lemma is_basis.constrL_basis {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) (i : ι) :
-  (hv.constrL f) (v i) = f i :=
-constr_basis _
+@[simp] lemma basis.constrL_basis (v : basis ι 𝕜 E) (f : ι → F) (i : ι) :
+  (v.constrL f) (v i) = f i :=
+v.constr_basis 𝕜 _ _
 
-lemma is_basis.sup_norm_le_norm {v : ι → E} (hv : is_basis 𝕜 v) :
-  ∃ C > (0 : ℝ), ∀ e : E, ∑ i, ∥hv.equiv_fun e i∥ ≤ C * ∥e∥ :=
+lemma basis.sup_norm_le_norm (v : basis ι 𝕜 E) :
+  ∃ C > (0 : ℝ), ∀ e : E, ∑ i, ∥v.equiv_fun e i∥ ≤ C * ∥e∥ :=
 begin
-  set φ := hv.equiv_funL.to_continuous_linear_map,
+  set φ := v.equiv_funL.to_continuous_linear_map,
   set C := ∥φ∥ * (fintype.card ι),
   use [max C 1, lt_of_lt_of_le (zero_lt_one) (le_max_right C 1)],
   intros e,
@@ -315,23 +313,23 @@ begin
   ... ≤ max C 1 * ∥e∥ :  mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)
 end
 
-lemma is_basis.op_norm_le  {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v) :
+lemma basis.op_norm_le  {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ), ∀ {u : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥u (v i)∥ ≤ M) → ∥u∥ ≤ C*M :=
 begin
-  obtain ⟨C, C_pos, hC⟩ : ∃ C > (0 : ℝ), ∀ (e : E), ∑ i, ∥hv.equiv_fun e i∥ ≤ C * ∥e∥,
-    from hv.sup_norm_le_norm,
+  obtain ⟨C, C_pos, hC⟩ : ∃ C > (0 : ℝ), ∀ (e : E), ∑ i, ∥v.equiv_fun e i∥ ≤ C * ∥e∥,
+    from v.sup_norm_le_norm,
   use [C, C_pos],
   intros u M hM hu,
   apply u.op_norm_le_bound (mul_nonneg (le_of_lt C_pos) hM),
   intros e,
   calc
-  ∥u e∥ = ∥u (∑ i, hv.equiv_fun e i • v i)∥ :  by conv_lhs { rw ← hv.equiv_fun_total e }
-  ... = ∥∑ i, (hv.equiv_fun e i) • (u $ v i)∥ :  by simp [u.map_sum, linear_map.map_smul]
-  ... ≤ ∑ i, ∥(hv.equiv_fun e i) • (u $ v i)∥ : norm_sum_le _ _
-  ... = ∑ i, ∥hv.equiv_fun e i∥ * ∥u (v i)∥ : by simp only [norm_smul]
-  ... ≤ ∑ i, ∥hv.equiv_fun e i∥ * M : finset.sum_le_sum (λ i hi,
+  ∥u e∥ = ∥u (∑ i, v.equiv_fun e i • v i)∥ :   by rw [v.sum_equiv_fun]
+  ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥ : by simp [u.map_sum, linear_map.map_smul]
+  ... ≤ ∑ i, ∥(v.equiv_fun e i) • (u $ v i)∥ : norm_sum_le _ _
+  ... = ∑ i, ∥v.equiv_fun e i∥ * ∥u (v i)∥ :   by simp only [norm_smul]
+  ... ≤ ∑ i, ∥v.equiv_fun e i∥ * M : finset.sum_le_sum (λ i hi,
                                                   mul_le_mul_of_nonneg_left (hu i) (norm_nonneg _))
-  ... = (∑ i, ∥hv.equiv_fun e i∥) * M : finset.sum_mul.symm
+  ... = (∑ i, ∥v.equiv_fun e i∥) * M : finset.sum_mul.symm
   ... ≤ C * ∥e∥ * M : mul_le_mul_of_nonneg_right (hC e) hM
   ... = C * M * ∥e∥ : by ring
 end
@@ -339,20 +337,20 @@ end
 instance [finite_dimensional 𝕜 E] [second_countable_topology F] :
   second_countable_topology (E →L[𝕜] F) :=
 begin
-  set d := finite_dimensional.findim 𝕜 E,
+  set d := finite_dimensional.finrank 𝕜 E,
   suffices :
     ∀ ε > (0 : ℝ), ∃ n : (E →L[𝕜] F) → fin d → ℕ, ∀ (f g : E →L[𝕜] F), n f = n g → dist f g ≤ ε,
   from metric.second_countable_of_countable_discretization
     (λ ε ε_pos, ⟨fin d → ℕ, by apply_instance, this ε ε_pos⟩),
   intros ε ε_pos,
   obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
-  obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
+  let v := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
           hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ :=
-    hv.op_norm_le,
+    v.op_norm_le,
   have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
-  have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (hv.constrL $ u ∘ n)∥ ≤ ε/2,
+  have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (v.constrL $ u ∘ n)∥ ≤ ε/2,
   { intros φ,
     have : ∀ i, ∃ n, ∥φ (v i) - u n∥ ≤ ε/(2*C),
     { simp only [norm_sub_rev],
@@ -365,14 +363,14 @@ begin
       exact ⟨n, le_of_lt hn⟩ },
     choose n hn using this,
     use n,
-    replace hn : ∀ i : fin d, ∥(φ - (hv.constrL $ u ∘ n)) (v i)∥ ≤ ε / (2 * C), by simp [hn],
+    replace hn : ∀ i : fin d, ∥(φ - (v.constrL $ u ∘ n)) (v i)∥ ≤ ε / (2 * C), by simp [hn],
     have : C * (ε / (2 * C)) = ε/2,
     { rw [eq_div_iff (two_ne_zero : (2 : ℝ) ≠ 0), mul_comm, ← mul_assoc,
           mul_div_cancel' _ (ne_of_gt h_2C)] },
     specialize hC (le_of_lt hε2C) hn,
     rwa this at hC },
   choose n hn using this,
-  set Φ := λ φ : E →L[𝕜] F, (hv.constrL $ u ∘ (n φ)),
+  set Φ := λ φ : E →L[𝕜] F, (v.constrL $ u ∘ (n φ)),
   change ∀ z, dist z (Φ z) ≤ ε/2 at hn,
   use n,
   intros x y hxy,
@@ -388,7 +386,7 @@ explicitly when needed. -/
 variables (𝕜 E)
 lemma finite_dimensional.complete [finite_dimensional 𝕜 E] : complete_space E :=
 begin
-  set e := continuous_linear_equiv.of_findim_eq (@findim_fin_fun 𝕜 _ (findim 𝕜 E)).symm,
+  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ (finrank 𝕜 E)).symm,
   have : uniform_embedding e.to_linear_equiv.to_equiv.symm := e.symm.uniform_embedding,
   exact (complete_space_congr this).1 (by apply_instance)
 end
@@ -442,7 +440,7 @@ properness of `𝕜`, and the search for `𝕜` as an unknown metavariable. Decl
 explicitly when needed. -/
 lemma finite_dimensional.proper [finite_dimensional 𝕜 E] : proper_space E :=
 begin
-  set e := continuous_linear_equiv.of_findim_eq (@findim_fin_fun 𝕜 _ (findim 𝕜 E)).symm,
+  set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ (finrank 𝕜 E)).symm,
   exact e.symm.antilipschitz.proper_space e.symm.continuous e.symm.surjective
 end
 
@@ -465,12 +463,12 @@ begin
   refine ⟨summable_of_summable_norm, λ hf, _⟩,
   -- First we use a finite basis to reduce the problem to the case `E = fin N → ℝ`
   suffices : ∀ {N : ℕ} {g : α → fin N → ℝ}, summable g → summable (λ x, ∥g x∥),
-  { rcases fin_basis ℝ E with ⟨v, hv⟩,
-    set e := hv.equiv_funL,
+  { obtain v := fin_basis ℝ E,
+    set e := v.equiv_funL,
     have : summable (λ x, ∥e (f x)∥) := this (e.summable.2 hf),
     refine summable_of_norm_bounded _ (this.mul_left
-      ↑(nnnorm (e.symm : (fin (findim ℝ E) → ℝ) →L[ℝ] E))) (λ i, _),
-    simpa using (e.symm : (fin (findim ℝ E) → ℝ) →L[ℝ] E).le_op_norm (e $ f i) },
+      ↑(nnnorm (e.symm : (fin (finrank ℝ E) → ℝ) →L[ℝ] E))) (λ i, _),
+    simpa using (e.symm : (fin (finrank ℝ E) → ℝ) →L[ℝ] E).le_op_norm (e $ f i) },
   unfreezingI { clear_dependent E },
   -- Now we deal with `g : α → fin N → ℝ`
   intros N g hg,
@@ -481,3 +479,33 @@ begin
     exact norm_nonneg (g x i) },
   { exact finset.sum_nonneg (λ _ _, norm_nonneg _) }
 end
+
+lemma summable_of_is_O' {ι E F : Type*} [normed_group E] [complete_space E] [normed_group F]
+  [normed_space ℝ F] [finite_dimensional ℝ F] {f : ι → E} {g : ι → F}
+  (hg : summable g) (h : is_O f g cofinite) : summable f :=
+summable_of_is_O (summable_norm_iff.mpr hg) h.norm_right
+
+lemma summable_of_is_O_nat' {E F : Type*} [normed_group E] [complete_space E] [normed_group F]
+  [normed_space ℝ F] [finite_dimensional ℝ F] {f : ℕ → E} {g : ℕ → F}
+  (hg : summable g) (h : is_O f g at_top) : summable f :=
+summable_of_is_O_nat (summable_norm_iff.mpr hg) h.norm_right
+
+lemma summable_of_is_equivalent {ι E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {f : ι → E} {g : ι → E}
+  (hg : summable g) (h : f ~[cofinite] g) : summable f :=
+hg.trans_sub (summable_of_is_O' hg h.is_o.is_O)
+
+lemma summable_of_is_equivalent_nat {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {f : ℕ → E} {g : ℕ → E}
+  (hg : summable g) (h : f ~[at_top] g) : summable f :=
+hg.trans_sub (summable_of_is_O_nat' hg h.is_o.is_O)
+
+lemma is_equivalent.summable_iff {ι E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {f : ι → E} {g : ι → E}
+  (h : f ~[cofinite] g) : summable f ↔ summable g :=
+⟨λ hf, summable_of_is_equivalent hf h.symm, λ hg, summable_of_is_equivalent hg h⟩
+
+lemma is_equivalent.summable_iff_nat {E : Type*} [normed_group E] [normed_space ℝ E]
+  [finite_dimensional ℝ E] {f : ℕ → E} {g : ℕ → E}
+  (h : f ~[at_top] g) : summable f ↔ summable g :=
+⟨λ hf, summable_of_is_equivalent_nat hf h.symm, λ hg, summable_of_is_equivalent_nat hg h⟩

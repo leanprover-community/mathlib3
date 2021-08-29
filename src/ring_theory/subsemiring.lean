@@ -20,14 +20,15 @@ open_locale big_operators
 
 universes u v w
 
-variables {R : Type u} {S : Type v} {T : Type w} [semiring R] [semiring S] [semiring T]
+variables {R : Type u} {S : Type v} {T : Type w}
+  [non_assoc_semiring R] [non_assoc_semiring S] [non_assoc_semiring T]
   (M : submonoid R)
 
 set_option old_structure_cmd true
 
 /-- A subsemiring of a semiring `R` is a subset `s` that is both a multiplicative and an additive
 submonoid. -/
-structure subsemiring (R : Type u) [semiring R] extends submonoid R, add_submonoid R
+structure subsemiring (R : Type u) [non_assoc_semiring R] extends submonoid R, add_submonoid R
 
 /-- Reinterpret a `subsemiring` as a `submonoid`. -/
 add_decl_doc subsemiring.to_submonoid
@@ -45,6 +46,13 @@ lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := i
 
 /-- Two subsemirings are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
+
+/-- Copy of a subsemiring with a new `carrier` equal to the old one. Useful to fix definitional
+equalities.-/
+protected def copy (S : subsemiring R) (s : set R) (hs : s = ↑S) : subsemiring R :=
+{ carrier := s,
+  ..S.to_add_submonoid.copy s hs,
+  ..S.to_submonoid.copy s hs }
 
 lemma to_submonoid_injective : function.injective (to_submonoid : subsemiring R → submonoid R)
 | r s h := ext (set_like.ext_iff.mp h : _)
@@ -115,7 +123,8 @@ theorem mul_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_me
 theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
 
 /-- Product of a list of elements in a `subsemiring` is in the `subsemiring`. -/
-lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
+lemma list_prod_mem {R : Type*} [semiring R] (s : subsemiring R) {l : list R} :
+  (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
 s.to_submonoid.list_prod_mem
 
 /-- Sum of a list of elements in a `subsemiring` is in the `subsemiring`. -/
@@ -130,7 +139,7 @@ s.to_submonoid.multiset_prod_mem m
 
 /-- Sum of a multiset of elements in a `subsemiring` of a `semiring` is
 in the `add_subsemiring`. -/
-lemma multiset_sum_mem {R} [semiring R] (s : subsemiring R) (m : multiset R) :
+lemma multiset_sum_mem (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.sum ∈ s :=
 s.to_add_submonoid.multiset_sum_mem m
 
@@ -143,12 +152,13 @@ s.to_submonoid.prod_mem h
 
 /-- Sum of elements in an `subsemiring` of an `semiring` indexed by a `finset`
 is in the `add_subsemiring`. -/
-lemma sum_mem {R : Type*} [semiring R] (s : subsemiring R)
+lemma sum_mem (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∑ i in t, f i ∈ s :=
 s.to_add_submonoid.sum_mem h
 
-lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
+lemma pow_mem {R : Type*} [semiring R] (s : subsemiring R) {x : R} (hx : x ∈ s) (n : ℕ) :
+  x^n ∈ s := s.to_submonoid.pow_mem hx n
 
 lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
   n • x ∈ s := s.to_add_submonoid.nsmul_mem hx n
@@ -156,24 +166,18 @@ lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
 lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
 by simp only [← nsmul_one, nsmul_mem, one_mem]
 
-/-- A subsemiring of a semiring inherits a semiring structure -/
-instance to_semiring : semiring s :=
+/-- A subsemiring of a `non_assoc_semiring` inherits a `non_assoc_semiring` structure -/
+instance to_non_assoc_semiring : non_assoc_semiring s :=
 { mul_zero := λ x, subtype.eq $ mul_zero x,
   zero_mul := λ x, subtype.eq $ zero_mul x,
   right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
   left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
-  .. s.to_submonoid.to_monoid, .. s.to_add_submonoid.to_add_comm_monoid }
+  .. s.to_submonoid.to_mul_one_class, .. s.to_add_submonoid.to_add_comm_monoid }
 
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = (1 : R) := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = (0 : R) := rfl
 @[simp, norm_cast] lemma coe_add (x y : s) : ((x + y : s) : R) = (x + y : R) := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : ((x * y : s) : R) = (x * y : R) := rfl
-@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : ((x^n : s) : R) = (x^n : R) :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
 
 instance nontrivial [nontrivial R] : nontrivial s :=
 nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
@@ -182,6 +186,18 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y h,
   or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
     (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
+
+/-- A subsemiring of a `semiring` is a `semiring`. -/
+instance to_semiring {R} [semiring R] (s : subsemiring R) : semiring s :=
+{ ..s.to_non_assoc_semiring, ..s.to_submonoid.to_monoid }
+
+@[simp, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
+  ((x^n : s) : R) = (x^n : R) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=
@@ -259,25 +275,46 @@ set.image_subset_iff
 lemma gc_map_comap (f : R →+* S) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
 
+/-- A subsemiring is isomorphic to its image under an injective function -/
+noncomputable def equiv_map_of_injective
+  (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
+  map_add' := λ _ _, subtype.ext (f.map_add _ _),
+  ..equiv.set.image f s hf }
+
+@[simp] lemma coe_equiv_map_of_injective_apply
+  (f : R →+* S) (hf : function.injective f) (x : s) :
+  (equiv_map_of_injective s f hf x : S) = f x := rfl
+
 end subsemiring
 
 namespace ring_hom
 
 variables (g : S →+* T) (f : R →+* S)
 
-/-- The range of a ring homomorphism is a subsemiring. -/
-def srange : subsemiring S := (⊤ : subsemiring R).map f
+/-- The range of a ring homomorphism is a subsemiring. See Note [range copy pattern]. -/
+def srange : subsemiring S :=
+((⊤ : subsemiring R).map f).copy (set.range f) set.image_univ.symm
 
-@[simp] lemma coe_srange : (f.srange : set S) = set.range f := set.image_univ
+@[simp] lemma coe_srange : (f.srange : set S) = set.range f := rfl
 
 @[simp] lemma mem_srange {f : R →+* S} {y : S} : y ∈ f.srange ↔ ∃ x, f x = y :=
-by simp [srange]
+iff.rfl
+
+lemma srange_eq_map (f : R →+* S) : f.srange = (⊤ : subsemiring R).map f :=
+by { ext, simp }
 
 lemma mem_srange_self (f : R →+* S) (x : R) : f x ∈ f.srange :=
 mem_srange.mpr ⟨x, rfl⟩
 
 lemma map_srange : f.srange.map g = (g.comp f).srange :=
-(⊤ : subsemiring R).map_map g f
+by simpa only [srange_eq_map] using (⊤ : subsemiring R).map_map g f
+
+/-- The range of a morphism of semirings is a fintype, if the domain is a fintype.
+Note: this instance can form a diamond with `subtype.fintype` in the
+  presence of `fintype S`.-/
+instance fintype_srange [fintype R] [decidable_eq S] (f : R →+* S) : fintype (srange f) :=
+set.fintype_range f
 
 end ring_hom
 
@@ -360,6 +397,18 @@ lemma closure_eq_of_le {s : set R} {t : subsemiring R} (h₁ : s ⊆ t) (h₂ : 
   closure s = t :=
 le_antisymm (closure_le.2 h₁) h₂
 
+lemma mem_map_equiv {f : R ≃+* S} {K : subsemiring R} {x : S} :
+  x ∈ K.map (f : R →+* S) ↔ f.symm x ∈ K :=
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
+
+lemma map_equiv_eq_comap_symm (f : R ≃+* S) (K : subsemiring R) :
+  K.map (f : R →+* S) = K.comap f.symm :=
+set_like.coe_injective (f.to_equiv.image_eq_preimage K)
+
+lemma comap_equiv_eq_map_symm (f : R ≃+* S) (K : subsemiring S) :
+  K.comap (f : R →+* S) = K.map f.symm :=
+(map_equiv_eq_comap_symm f.symm K).symm
+
 end subsemiring
 
 namespace submonoid
@@ -429,7 +478,7 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
 
-lemma mem_closure_iff_exists_list {s : set R} {x} : x ∈ closure s ↔
+lemma mem_closure_iff_exists_list {R} [semiring R] {s : set R} {x} : x ∈ closure s ↔
   ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
 ⟨λ hx, add_submonoid.closure_induction (mem_closure_iff.1 hx)
   (λ x hx, suffices ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
@@ -565,7 +614,7 @@ end subsemiring
 
 namespace ring_hom
 
-variables [semiring T] {s : subsemiring R}
+variables [non_assoc_semiring T] {s : subsemiring R}
 
 open subsemiring
 
@@ -693,3 +742,56 @@ def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g 
   (sof_left_inverse h).symm x = g x := rfl
 
 end ring_equiv
+
+/-! ### Actions by `subsemiring`s
+
+These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
+The only new result is `subsemiring.module`.
+
+When `R` is commutative, `algebra.of_subsemiring` provides a stronger result than those found in
+this file, which uses the same scalar action.
+-/
+section actions
+
+namespace subsemiring
+
+variables {R' α β : Type*} [semiring R']
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [mul_action R' α] (S : subsemiring R') : mul_action S α :=
+S.to_submonoid.mul_action
+
+lemma smul_def [mul_action R' α] {S : subsemiring R'} (g : S) (m : α) : g • m = (g : R') • m := rfl
+
+instance smul_comm_class_left
+  [mul_action R' β] [has_scalar α β] [smul_comm_class R' α β] (S : subsemiring R') :
+  smul_comm_class S α β :=
+S.to_submonoid.smul_comm_class_left
+
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action R' β] [smul_comm_class α R' β] (S : subsemiring R') :
+  smul_comm_class α S β :=
+S.to_submonoid.smul_comm_class_right
+
+/-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action R' α] [mul_action R' β] [is_scalar_tower R' α β]
+  (S : subsemiring R') :
+  is_scalar_tower S α β :=
+S.to_submonoid.is_scalar_tower
+
+instance [mul_action R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
+  has_faithful_scalar S α :=
+S.to_submonoid.has_faithful_scalar
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [add_monoid α] [distrib_mul_action R' α] (S : subsemiring R') : distrib_mul_action S α :=
+S.to_submonoid.distrib_mul_action
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
+{ smul := (•), .. module.comp_hom _ S.subtype }
+
+end subsemiring
+
+end actions

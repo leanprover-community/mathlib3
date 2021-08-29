@@ -76,12 +76,26 @@ F.map_add_hom.map_neg _
 lemma map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
 F.map_add_hom.map_sub _ _
 
+-- You can alternatively just use `functor.map_smul` here, with an explicit `(r : ℤ)` argument.
+lemma map_gsmul {X Y : C} {f : X ⟶ Y} {r : ℤ} : F.map (r • f) = r • F.map f :=
+F.map_add_hom.map_gsmul _ _
+
 open_locale big_operators
 
 @[simp]
 lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
   F.map (∑ a in s, f a) = ∑ a in s, F.map (f a) :=
 (F.map_add_hom : (X ⟶ Y) →+ _).map_sum f s
+
+open category_theory.limits
+open_locale zero_object
+
+/-- An additive functor takes the zero object to the zero object (up to isomorphism). -/
+@[simps]
+def map_zero_object [has_zero_object C] [has_zero_object D] : F.obj 0 ≅ 0 :=
+{ hom := 0,
+  inv := 0,
+  hom_inv_id' := by { rw ←F.map_id, simp, } }
 
 end
 
@@ -137,6 +151,17 @@ def map_biproduct {J : Type v} [fintype J] [decidable_eq J] (f : J → C) [has_b
 end
 
 end functor
+
+namespace equivalence
+
+variables {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
+
+instance inverse_additive (e : C ≌ D) [e.functor.additive] : e.inverse.additive :=
+{ map_zero' := λ X Y, by { apply e.functor.map_injective, simp, },
+  map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
+
+end equivalence
+
 end preadditive
 
 end category_theory

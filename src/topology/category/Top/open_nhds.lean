@@ -47,7 +47,7 @@ by {unfold open_nhds, apply_instance}
 
 instance opens_nhds_hom_has_coe_to_fun {x : X} {U V : open_nhds x} : has_coe_to_fun (U ⟶ V) :=
 { F := λ f, U.1 → V.1,
-  coe := λ f x, ⟨x, (le_of_hom f) x.2⟩ }
+  coe := λ f x, ⟨x, f.le x.2⟩ }
 
 /--
 The inclusion `U ⊓ V ⟶ U` as a morphism in the category of open sets.
@@ -65,6 +65,9 @@ def inclusion (x : X) : open_nhds x ⥤ opens X :=
 full_subcategory_inclusion _
 
 @[simp] lemma inclusion_obj (x : X) (U) (p) : (inclusion x).obj ⟨U,p⟩ = U := rfl
+
+lemma open_embedding {x : X} (U : open_nhds x) : open_embedding (U.1.inclusion) :=
+U.1.open_embedding
 
 instance open_nhds_is_filtered (x : X) : is_filtered (open_nhds x)ᵒᵖ :=
 { nonempty := ⟨op ⊤⟩,

@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.big_operators.order
+import data.nat.totient
 import group_theory.order_of_element
+import tactic.group
 
 /-!
 # Cyclic groups
@@ -141,9 +144,9 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
   ⟨⟨⟨g ^ nat.find hex, (nat.find_spec hex).2⟩,
     λ ⟨x, hx⟩, let ⟨k, hk⟩ := hg x in
       have hk₁ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ gpowers (g ^ nat.find hex),
-        from ⟨k / nat.find hex, eq.symm $ gpow_mul _ _ _⟩,
+        from ⟨k / nat.find hex, by rw [← gpow_coe_nat, gpow_mul]⟩,
       have hk₂ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ H,
-        by rw gpow_mul; exact H.gpow_mem (nat.find_spec hex).2 _,
+        by { rw gpow_mul, apply H.gpow_mem, exact_mod_cast (nat.find_spec hex).2 },
       have hk₃ : g ^ (k % nat.find hex) ∈ H,
         from (subgroup.mul_mem_cancel_right H hk₂).1 $
           by rw [← gpow_add, int.mod_add_div, hk]; exact hx,
@@ -192,8 +195,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
       end⟩)
 ... ≤ n :
   let ⟨m, hm⟩ := gcd_dvd_right n (fintype.card α) in
-  have hm0 : 0 < m, from nat.pos_of_ne_zero
-    (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
+  have hm0 : 0 < m, from nat.pos_of_ne_zero $
+    λ hm0, by { rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm, exact hm.elim' 1 },
   begin
     rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
         order_of_pow g, order_of_eq_card_of_forall_mem_gpowers hg],
@@ -265,11 +268,10 @@ have h : ∑ m in (range d.succ).filter (∣ d.succ),
   finset.sum_congr rfl
     (λ m hm, have hmd : m < d.succ, from mem_range.1 (mem_filter.1 hm).1,
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
-      card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
+      card_order_of_eq_totient_aux₁ (hm.trans hd) (finset.card_pos.2
         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
           by { rw [order_of_pow a, ha, gcd_eq_right (div_dvd_of_dvd hm),
-                nat.div_div_self hm (succ_pos _)]
-                }⟩⟩)),
+                nat.div_div_self hm (succ_pos _)] }⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
@@ -362,6 +364,40 @@ end, λ H Hn, begin
 end⟩
 
 end cyclic
+
+section quotient_center
+
+open subgroup
+
+variables {G : Type*} {H : Type*} [group G] [group H]
+
+/-- A group is commutative if the quotient by the center is cyclic.
+  Also see `comm_group_of_cycle_center_quotient` for the `comm_group` instance -/
+lemma commutative_of_cyclic_center_quotient [is_cyclic H] (f : G →* H)
+  (hf : f.ker ≤ center G) (a b : G) : a * b = b * a :=
+let ⟨⟨x, y, (hxy : f y = x)⟩, (hx : ∀ a : f.range, a ∈ gpowers _)⟩ :=
+  is_cyclic.exists_generator f.range in
+let ⟨m, hm⟩ := hx ⟨f a, a, rfl⟩ in
+let ⟨n, hn⟩ := hx ⟨f b, b, rfl⟩ in
+have hm : x ^ m = f a, by simpa [subtype.ext_iff] using hm,
+have hn : x ^ n = f b, by simpa [subtype.ext_iff] using hn,
+have ha : y ^ (-m) * a ∈ center G,
+  from hf (by rw [f.mem_ker, f.map_mul, f.map_gpow, hxy, gpow_neg, hm, inv_mul_self]),
+have hb : y ^ (-n) * b ∈ center G,
+  from hf (by rw [f.mem_ker, f.map_mul, f.map_gpow, hxy, gpow_neg, hn, inv_mul_self]),
+calc a * b = y ^ m * ((y ^ (-m) * a) * y ^ n) * (y ^ (-n) * b) : by simp [mul_assoc]
+... = y ^ m * (y ^ n * (y ^ (-m) * a)) * (y ^ (-n) * b) : by rw [mem_center_iff.1 ha]
+... = y ^ m * y ^ n * y ^ (-m) * (a * (y ^ (-n) * b)) : by simp [mul_assoc]
+... = y ^ m * y ^ n * y ^ (-m) * ((y ^ (-n) * b) * a) : by rw [mem_center_iff.1 hb]
+... = b * a : by group
+
+/-- A group is commutative if the quotient by the center is cyclic. -/
+def comm_group_of_cycle_center_quotient [is_cyclic H] (f : G →* H)
+  (hf : f.ker ≤ center G) : comm_group G :=
+{ mul_comm := commutative_of_cyclic_center_quotient f hf,
+  ..show group G, by apply_instance }
+
+end quotient_center
 
 namespace is_simple_group
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.formal_multilinear_series
-import analysis.specific_limits
+import data.equiv.fin
 
 /-!
 # Analytic functions
@@ -82,19 +82,20 @@ namespace formal_multilinear_series
 
 variables (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
 
-/-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ pₙ yⁿ`
-converges for all `∥y∥ < r`. -/
+/-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ ∥pₙ∥ ∥y∥ⁿ`
+converges for all `∥y∥ < r`. This implies that `Σ pₙ yⁿ` converges for all `∥y∥ < r`, but these
+definitions are *not* equivalent in general. -/
 def radius (p : formal_multilinear_series 𝕜 E F) : ℝ≥0∞ :=
 ⨆ (r : ℝ≥0) (C : ℝ) (hr : ∀ n, ∥p n∥ * r ^ n ≤ C), (r : ℝ≥0∞)
 
 /-- If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
-lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : ℝ) {r : ℝ≥0}
-  (h : ∀ (n : ℕ), ∥p n∥ * r^n ≤ C) : (r : ℝ≥0∞) ≤ p.radius :=
+lemma le_radius_of_bound (C : ℝ) {r : ℝ≥0} (h : ∀ (n : ℕ), ∥p n∥ * r^n ≤ C) :
+  (r : ℝ≥0∞) ≤ p.radius :=
 le_supr_of_le r $ le_supr_of_le C $ (le_supr (λ _, (r : ℝ≥0∞)) h)
 
 /-- If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
-lemma le_radius_of_bound_nnreal (p : formal_multilinear_series 𝕜 E F) (C : ℝ≥0) {r : ℝ≥0}
-  (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) : (r : ℝ≥0∞) ≤ p.radius :=
+lemma le_radius_of_bound_nnreal (C : ℝ≥0) {r : ℝ≥0} (h : ∀ (n : ℕ), ∥p n∥₊ * r^n ≤ C) :
+  (r : ℝ≥0∞) ≤ p.radius :=
 p.le_radius_of_bound C $ λ n, by exact_mod_cast (h n)
 
 /-- If `∥pₙ∥ rⁿ = O(1)`, as `n → ∞`, then the radius of `p` is at least `r`. -/
@@ -102,15 +103,24 @@ lemma le_radius_of_is_O (h : is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_t
 exists.elim (is_O_one_nat_at_top_iff.1 h) $ λ C hC, p.le_radius_of_bound C $
   λ n, (le_abs_self _).trans (hC n)
 
+lemma le_radius_of_eventually_le (C) (h : ∀ᶠ n in at_top, ∥p n∥ * r ^ n ≤ C) : ↑r ≤ p.radius :=
+p.le_radius_of_is_O $ is_O.of_bound C $ h.mono $ λ n hn, by simpa
+
+lemma le_radius_of_summable_nnnorm (h : summable (λ n, ∥p n∥₊ * r ^ n)) : ↑r ≤ p.radius :=
+p.le_radius_of_bound_nnreal (∑' n, ∥p n∥₊ * r ^ n) $ λ n, le_tsum' h _
+
+lemma le_radius_of_summable (h : summable (λ n, ∥p n∥ * r ^ n)) : ↑r ≤ p.radius :=
+p.le_radius_of_summable_nnnorm $ by { simp only [← coe_nnnorm] at h, exact_mod_cast h }
+
 lemma radius_eq_top_of_forall_nnreal_is_O
-  (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ⊤ :=
+  (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ∞ :=
 ennreal.eq_top_of_forall_nnreal_le $ λ r, p.le_radius_of_is_O (h r)
 
-lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ⊤ :=
+lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ∞ :=
 p.radius_eq_top_of_forall_nnreal_is_O $
   λ r, (is_O_zero _ _).congr' (h.mono $ λ n hn, by simp [hn]) eventually_eq.rfl
 
-lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ⊤ :=
+lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ∞ :=
 p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2 ⟨n, λ k hk, nat.sub_add_cancel hk ▸ hn _⟩
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
@@ -153,10 +163,10 @@ lemma lt_radius_of_is_O (h₀ : r ≠ 0) {a : ℝ} (ha : a ∈ Ioo (-1 : ℝ) 1)
 begin
   rcases ((tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 2 5).mp ⟨a, ha, hp⟩
     with ⟨a, ha, C, hC, hp⟩,
-  replace h₀ : 0 < r := pos_iff_ne_zero.2 h₀,
+  rw [← pos_iff_ne_zero, ← nnreal.coe_pos] at h₀,
   lift a to ℝ≥0 using ha.1.le,
   have : (r : ℝ) < r / a :=
-    (lt_div_iff ha.1).2 (by simpa only [mul_one] using mul_lt_mul_of_pos_left ha.2 h₀),
+    by simpa only [div_one] using (div_lt_div_left h₀ zero_lt_one ha.1).2 ha.2,
   norm_cast at this,
   rw [← ennreal.coe_lt_coe] at this,
   refine this.trans_le (p.le_radius_of_bound C $ λ n, _),
@@ -178,9 +188,69 @@ let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h in
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` is bounded. -/
 lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
-  (h : (r : ℝ≥0∞) < p.radius) : ∃ C > 0, ∀ n, nnnorm (p n) * r^n ≤ C :=
+  (h : (r : ℝ≥0∞) < p.radius) : ∃ C > 0, ∀ n, ∥p n∥₊ * r^n ≤ C :=
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h
 in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
+
+lemma le_radius_of_tendsto (p : formal_multilinear_series 𝕜 E F) {l : ℝ}
+  (h : tendsto (λ n, ∥p n∥ * r^n) at_top (𝓝 l)) : ↑r ≤ p.radius :=
+p.le_radius_of_is_O (is_O_one_of_tendsto _ h)
+
+lemma le_radius_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
+  (hs : summable (λ n, ∥p n∥ * r^n)) : ↑r ≤ p.radius :=
+p.le_radius_of_tendsto hs.tendsto_at_top_zero
+
+lemma not_summable_norm_of_radius_lt_nnnorm (p : formal_multilinear_series 𝕜 E F) {x : E}
+  (h : p.radius < ∥x∥₊) : ¬ summable (λ n, ∥p n∥ * ∥x∥^n) :=
+λ hs, not_le_of_lt h (p.le_radius_of_summable_norm hs)
+
+lemma summable_norm_mul_pow (p : formal_multilinear_series 𝕜 E F)
+  {r : ℝ≥0} (h : ↑r < p.radius) :
+  summable (λ n : ℕ, ∥p n∥ * r ^ n) :=
+begin
+  obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ := p.norm_mul_pow_le_mul_pow_of_lt_radius h,
+  exact summable_of_nonneg_of_le (λ n, mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg _)) hp
+    ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _),
+end
+
+lemma summable_norm_apply (p : formal_multilinear_series 𝕜 E F)
+  {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
+  summable (λ n : ℕ, ∥p n (λ _, x)∥) :=
+begin
+  rw mem_emetric_ball_0_iff at hx,
+  refine summable_of_nonneg_of_le (λ _, norm_nonneg _) (λ n, ((p n).le_op_norm _).trans_eq _)
+    (p.summable_norm_mul_pow hx),
+  simp
+end
+
+lemma summable_nnnorm_mul_pow (p : formal_multilinear_series 𝕜 E F)
+  {r : ℝ≥0} (h : ↑r < p.radius) :
+  summable (λ n : ℕ, ∥p n∥₊ * r ^ n) :=
+by { rw ← nnreal.summable_coe, push_cast, exact p.summable_norm_mul_pow h }
+
+protected lemma summable [complete_space F]
+  (p : formal_multilinear_series 𝕜 E F) {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
+  summable (λ n : ℕ, p n (λ _, x)) :=
+summable_of_summable_norm (p.summable_norm_apply hx)
+
+lemma radius_eq_top_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
+  (hs : ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n)) : p.radius = ∞ :=
+ennreal.eq_top_of_forall_nnreal_le (λ r, p.le_radius_of_summable_norm (hs r))
+
+lemma radius_eq_top_iff_summable_norm (p : formal_multilinear_series 𝕜 E F) :
+  p.radius = ∞ ↔ ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n) :=
+begin
+  split,
+  { intros h r,
+    obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
+      p.norm_mul_pow_le_mul_pow_of_lt_radius
+      (show (r:ℝ≥0∞) < p.radius, from h.symm ▸ ennreal.coe_lt_top),
+    refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
+      ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)),
+    specialize hp n,
+    rwa real.norm_of_nonneg (mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg n)) },
+  { exact p.radius_eq_top_of_summable_norm }
+end
 
 /-- If the radius of `p` is positive, then `∥pₙ∥` grows at most geometrically. -/
 lemma le_mul_pow_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
@@ -212,6 +282,11 @@ by simp [radius]
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.sum x` is the sum `Σ pₙ xⁿ`. A
 priori, it only behaves well when `∥x∥ < p.radius`. -/
 protected def sum (p : formal_multilinear_series 𝕜 E F) (x : E) : F := ∑' n : ℕ , p n (λ i, x)
+
+protected lemma has_sum [complete_space F]
+  (p : formal_multilinear_series 𝕜 E F) {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
+  has_sum (λ n : ℕ, p n (λ _, x)) (p.sum x) :=
+(p.summable hx).has_sum
 
 /-- Given a formal multilinear series `p` and a vector `x`, then `p.partial_sum n x` is the sum
 `Σ pₖ xᵏ` for `k ∈ {0,..., n-1}`. -/
@@ -284,7 +359,7 @@ lemma has_fpower_series_on_ball.mono
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
   ∀ᶠ r : ℝ≥0∞ in 𝓝[Ioi 0] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
-mem_sets_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
+mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
 
 lemma has_fpower_series_on_ball.add
@@ -374,7 +449,7 @@ begin
   suffices : ∥p.partial_sum n y - f (x + y)∥ ≤ C * (a * (∥y∥ / r')) ^ n / (1 - a * (∥y∥ / r')),
   { refine this.trans _,
     apply_rules [div_le_div_of_le_left, sub_pos.2, div_nonneg, mul_nonneg, pow_nonneg, hC.lt.le,
-      ha.1.le, norm_nonneg, nnreal.coe_nonneg, ha.2, (sub_le_sub_iff_left _).2] },
+      ha.1.le, norm_nonneg, nnreal.coe_nonneg, ha.2, (sub_le_sub_iff_left _).2]; apply_instance },
   apply norm_sub_le_of_geometric_bound_of_has_sum (ya.trans_lt ha.2) _ (hf.has_sum this),
   assume n,
   calc ∥(p n) (λ (i : fin n), y)∥ ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) :
@@ -535,7 +610,7 @@ begin
   assume u hu x hx,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hx with ⟨r', xr', hr'⟩,
   have : emetric.ball (0 : E) r' ∈ 𝓝 x :=
-    mem_nhds_sets emetric.is_open_ball xr',
+    is_open.mem_nhds emetric.is_open_ball xr',
   refine ⟨emetric.ball (0 : E) r', mem_nhds_within_of_mem_nhds this, _⟩,
   simpa [metric.emetric_ball_nnreal] using hf.tendsto_uniformly_on hr' u hu
 end
@@ -580,35 +655,19 @@ let ⟨p, hp⟩ := hf in hp.continuous_at
 
 /-- In a complete space, the sum of a converging power series `p` admits `p` as a power series.
 This is not totally obvious as we need to check the convergence of the series. -/
-lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
+protected lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
   (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
   has_fpower_series_on_ball p.sum p 0 p.radius :=
 { r_le    := le_refl _,
   r_pos   := h,
-  has_sum := λ y hy, begin
-    rw zero_add,
-    replace hy : (nnnorm y : ℝ≥0∞) < p.radius,
-      by { convert hy, exact (edist_eq_coe_nnnorm _).symm },
-    obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
-      p.norm_mul_pow_le_mul_pow_of_lt_radius hy,
-    refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
-      ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)).has_sum,
-    calc ∥(p n) (λ (i : fin n), y)∥
-      ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) : continuous_multilinear_map.le_op_norm _ _
-      ... = ∥p n∥ * (nnnorm y)^n : by simp
-      ... ≤ C * a ^ n : hp n
-  end }
+  has_sum := λ y hy, by { rw zero_add, exact p.has_sum hy } }
 
 lemma has_fpower_series_on_ball.sum [complete_space F] (h : has_fpower_series_on_ball f p x r)
   {y : E} (hy : y ∈ emetric.ball (0 : E) r) : f (x + y) = p.sum y :=
-begin
-  have A := h.has_sum hy,
-  have B := (p.has_fpower_series_on_ball h.radius_pos).has_sum (lt_of_lt_of_le hy h.r_le),
-  simpa using A.unique B
-end
+(h.has_sum hy).unique (p.has_sum (lt_of_lt_of_le hy h.r_le))
 
 /-- The sum of a converging power series is continuous in its disk of convergence. -/
-lemma formal_multilinear_series.continuous_on [complete_space F] :
+protected lemma formal_multilinear_series.continuous_on [complete_space F] :
   continuous_on p.sum (emetric.ball 0 p.radius) :=
 begin
   cases (zero_le p.radius).eq_or_lt with h h,
@@ -640,240 +699,238 @@ discussion is that the set of points where a function is analytic is open.
 
 namespace formal_multilinear_series
 
-variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r : ℝ≥0}
+section
+
+variables (p : formal_multilinear_series 𝕜 E F) {x y : E} {r R : ℝ≥0}
+
+/-- A term of `formal_multilinear_series.change_origin_series`.
+
+Given a formal multilinear series `p` and a point `x` in its ball of convergence,
+`p.change_origin x` is a formal multilinear series such that
+`p.sum (x+y) = (p.change_origin x).sum y` when this makes sense. Each term of `p.change_origin x`
+is itself an analytic function of `x` given by the series `p.change_origin_series`. Each term in
+`change_origin_series` is the sum of `change_origin_series_term`'s over all `s` of cardinality `l`.
+-/
+def change_origin_series_term (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l) :
+  E [×l]→L[𝕜] E [×k]→L[𝕜] F :=
+continuous_multilinear_map.curry_fin_finset 𝕜 E F hs
+    (by erw [finset.card_compl, fintype.card_fin, hs, nat.add_sub_cancel]) (p $ k + l)
+
+lemma change_origin_series_term_apply (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l)
+  (x y : E) :
+  p.change_origin_series_term k l s hs (λ _, x) (λ _, y) =
+    p (k + l) (s.piecewise (λ _, x) (λ _, y)) :=
+continuous_multilinear_map.curry_fin_finset_apply_const _ _ _ _ _
+
+@[simp] lemma norm_change_origin_series_term (k l : ℕ) (s : finset (fin (k + l)))
+  (hs : s.card = l) :
+  ∥p.change_origin_series_term k l s hs∥ = ∥p (k + l)∥ :=
+by simp only [change_origin_series_term, linear_isometry_equiv.norm_map]
+
+@[simp] lemma nnnorm_change_origin_series_term (k l : ℕ) (s : finset (fin (k + l)))
+  (hs : s.card = l) :
+  ∥p.change_origin_series_term k l s hs∥₊ = ∥p (k + l)∥₊ :=
+by simp only [change_origin_series_term, linear_isometry_equiv.nnnorm_map]
+
+lemma nnnorm_change_origin_series_term_apply_le (k l : ℕ) (s : finset (fin (k + l)))
+  (hs : s.card = l) (x y : E) :
+  ∥p.change_origin_series_term k l s hs (λ _, x) (λ _, y)∥₊ ≤ ∥p (k + l)∥₊ * ∥x∥₊ ^ l * ∥y∥₊ ^ k :=
+begin
+  rw [← p.nnnorm_change_origin_series_term k l s hs, ← fin.prod_const, ← fin.prod_const],
+  apply continuous_multilinear_map.le_of_op_nnnorm_le,
+  apply continuous_multilinear_map.le_op_nnnorm
+end
+
+/-- The power series for `f.change_origin k`.
+
+Given a formal multilinear series `p` and a point `x` in its ball of convergence,
+`p.change_origin x` is a formal multilinear series such that
+`p.sum (x+y) = (p.change_origin x).sum y` when this makes sense. -/
+def change_origin_series (k : ℕ) : formal_multilinear_series 𝕜 E (E [×k]→L[𝕜] F) :=
+λ l, ∑ s : {s : finset (fin (k + l)) // finset.card s = l}, p.change_origin_series_term k l s s.2
+
+lemma nnnorm_change_origin_series_le_tsum (k l : ℕ) :
+  ∥p.change_origin_series k l∥₊ ≤
+    ∑' (x : {s : finset (fin (k + l)) // s.card = l}), ∥p (k + l)∥₊ :=
+(nnnorm_sum_le _ _).trans_eq $ by simp only [tsum_fintype, nnnorm_change_origin_series_term]
+
+lemma nnnorm_change_origin_series_apply_le_tsum (k l : ℕ) (x : E) :
+  ∥p.change_origin_series k l (λ _, x)∥₊ ≤
+    ∑' s : {s : finset (fin (k + l)) // s.card = l}, ∥p (k + l)∥₊ * ∥x∥₊ ^ l :=
+begin
+  rw [nnreal.tsum_mul_right, ← fin.prod_const],
+  exact (p.change_origin_series k l).le_of_op_nnnorm_le _
+    (p.nnnorm_change_origin_series_le_tsum _ _)
+end
 
 /--
 Changing the origin of a formal multilinear series `p`, so that
 `p.sum (x+y) = (p.change_origin x).sum y` when this makes sense.
-
-Here, we don't use the bracket notation `⟨n, s, hs⟩` in place of the argument `i` in the lambda,
-as this leads to a bad definition with auxiliary `_match` statements,
-but we will try to use pattern matching in lambdas as much as possible in the proofs below
-to increase readability.
 -/
 def change_origin (x : E) : formal_multilinear_series 𝕜 E F :=
-λ k, ∑' i : Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}, (p i.1).restr i.2 i.2.2 x
+λ k, (p.change_origin_series k).sum x
 
-/-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
-`p.change_origin`, first version. -/
--- Note here and below it is necessary to use `@` and provide implicit arguments using `_`,
--- so that it is possible to use pattern matching in the lambda.
--- Overall this seems a good trade-off in readability.
-lemma change_origin_summable_aux1 (h : (nnnorm x + r : ℝ≥0∞) < p.radius) :
-  @summable ℝ _ _ _ ((λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card) :
-    (Σ (n : ℕ), finset (fin n)) → ℝ) :=
+/-- An auxiliary equivalence useful in the proofs about
+`formal_multilinear_series.change_origin_series`: the set of triples `(k, l, s)`, where `s` is a
+`finset (fin (k + l))` of cardinality `l` is equivalent to the set of pairs `(n, s)`, where `s` is a
+`finset (fin n)`.
+
+The forward map sends `(k, l, s)` to `(k + l, s)` and the inverse map sends `(n, s)` to
+`(n - finset.card s, finset.card s, s)`. The actual definition is less readable because of problems
+with non-definitional equalities. -/
+@[simps] def change_origin_index_equiv :
+  (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l}) ≃ Σ n : ℕ, finset (fin n) :=
+{ to_fun := λ s, ⟨s.1 + s.2.1, s.2.2⟩,
+  inv_fun := λ s, ⟨s.1 - s.2.card, s.2.card, ⟨s.2.map
+    (fin.cast $ (nat.sub_add_cancel $ card_finset_fin_le s.2).symm).to_equiv.to_embedding,
+    finset.card_map _⟩⟩,
+  left_inv :=
+    begin
+      rintro ⟨k, l, ⟨s : finset (fin $ k + l), hs : s.card = l⟩⟩,
+      dsimp only [subtype.coe_mk],
+      -- Lean can't automatically generalize `k' = k + l - s.card`, `l' = s.card`, so we explicitly
+      -- formulate the generalized goal
+      suffices : ∀ k' l', k' = k → l' = l → ∀ (hkl : k + l = k' + l') hs',
+        (⟨k', l', ⟨finset.map (fin.cast hkl).to_equiv.to_embedding s, hs'⟩⟩ :
+          (Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l})) = ⟨k, l, ⟨s, hs⟩⟩,
+      { apply this; simp only [hs, nat.add_sub_cancel] },
+      rintro _ _ rfl rfl hkl hs',
+      simp only [equiv.refl_to_embedding, fin.cast_refl, finset.map_refl, eq_self_iff_true,
+        order_iso.refl_to_equiv, and_self, heq_iff_eq]
+    end,
+  right_inv :=
+    begin
+      rintro ⟨n, s⟩,
+      simp [nat.sub_add_cancel (card_finset_fin_le s), fin.cast_to_equiv]
+    end }
+
+lemma change_origin_series_summable_aux₁ {r r' : ℝ≥0} (hr : (r + r' : ℝ≥0∞) < p.radius) :
+  summable (λ s : Σ k l : ℕ, {s : finset (fin (k + l)) // s.card = l},
+    ∥p (s.1 + s.2.1)∥₊ * r ^ s.2.1 * r' ^ s.1) :=
 begin
-  obtain ⟨a, ha, C, hC, hp : ∀ n, ∥p n∥ * (∥x∥ + ↑r) ^ n ≤ C * a ^ n⟩ :=
-    p.norm_mul_pow_le_mul_pow_of_lt_radius h,
-  set B : (Σ n, finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card,
-  have H : ∀ n s, 0 ≤ B ⟨n, s⟩ := λ n s, by apply_rules [mul_nonneg, pow_nonneg, norm_nonneg, r.2],
-  rw summable_sigma_of_nonneg (λ ⟨n, s⟩, H n s),
-  have : ∀ n, has_sum (λ s, B ⟨n, s⟩) (∥p n∥ * (∥x∥ + r) ^ n),
-  { simpa only [← fin.sum_pow_mul_eq_add_pow, finset.mul_sum, ← mul_assoc,
-      add_comm _ ↑r, mul_right_comm] using λ n, has_sum_fintype (λ s, B ⟨n, s⟩) },
-  refine ⟨λ n, (this n).summable, _⟩,
+  rw ← change_origin_index_equiv.symm.summable_iff,
+  dsimp only [(∘), change_origin_index_equiv_symm_apply_fst,
+    change_origin_index_equiv_symm_apply_snd_fst],
+  have : ∀ n : ℕ, has_sum
+    (λ s : finset (fin n), ∥p (n - s.card + s.card)∥₊ * r ^ s.card * r' ^ (n - s.card))
+    (∥p n∥₊ * (r + r') ^ n),
+  { intro n,
+    -- TODO: why `simp only [nat.sub_add_cancel (card_finset_fin_le _)]` fails?
+    convert_to has_sum (λ s : finset (fin n), ∥p n∥₊ * (r ^ s.card * r' ^ (n - s.card))) _,
+    { ext1 s, rw [nat.sub_add_cancel (card_finset_fin_le _), mul_assoc] },
+    rw ← fin.sum_pow_mul_eq_add_pow,
+    exact (has_sum_fintype _).mul_left _ },
+  refine nnreal.summable_sigma.2 ⟨λ n, (this n).summable, _⟩,
   simp only [(this _).tsum_eq],
-  exact summable_of_nonneg_of_le (λ n, (this n).nonneg (H n)) hp
-    ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _)
+  exact p.summable_nnnorm_mul_pow hr
 end
 
-/-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
-`p.change_origin`, second version. -/
-lemma change_origin_summable_aux2 (h : (nnnorm x + r : ℝ≥0∞) < p.radius) :
-  @summable ℝ _ _ _ ((λ ⟨k, n, s, hs⟩, ∥(p n).restr s hs x∥ * ↑r ^ k) :
-    (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=
+lemma change_origin_series_summable_aux₂ (hr : (r : ℝ≥0∞) < p.radius) (k : ℕ) :
+  summable (λ s : Σ l : ℕ, {s : finset (fin (k + l)) // s.card = l}, ∥p (k + s.1)∥₊ * r ^ s.1) :=
 begin
-  let Bnorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * r ^ s.card,
-  have SBnorm : summable Bnorm := p.change_origin_summable_aux1 h,
-  let Anorm : (Σ (n : ℕ), finset (fin n)) → ℝ := λ ⟨n, s⟩, ∥(p n).restr s rfl x∥ * r ^ s.card,
-  have SAnorm : summable Anorm,
-  { refine summable_of_norm_bounded _ SBnorm (λ i, _),
-    rcases i with ⟨n, s⟩,
-    suffices H : ∥(p n).restr s rfl x∥ * (r : ℝ) ^ s.card ≤
-      (∥p n∥ * ∥x∥ ^ (n - finset.card s) * r ^ s.card),
-    { have : ∥(r: ℝ)∥ = r, by rw [real.norm_eq_abs, abs_of_nonneg (nnreal.coe_nonneg _)],
-      simpa [Anorm, Bnorm, this] using H },
-    exact mul_le_mul_of_nonneg_right ((p n).norm_restr s rfl x)
-      (pow_nonneg (nnreal.coe_nonneg _) _) },
-  let e : (Σ (n : ℕ), finset (fin n)) ≃
-      (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) :=
-    { to_fun := λ ⟨n, s⟩, ⟨s.card, n, s, rfl⟩,
-      inv_fun := λ ⟨k, n, s, hs⟩, ⟨n, s⟩,
-      left_inv := λ ⟨n, s⟩, rfl,
-      right_inv := λ ⟨k, n, s, hs⟩, by { induction hs, refl } },
-  rw ← e.summable_iff,
-  convert SAnorm,
-  ext ⟨n, s⟩,
-  refl
+  rcases ennreal.lt_iff_exists_add_pos_lt.1 hr with ⟨r', h0, hr'⟩,
+  simpa only [mul_inv_cancel_right' (pow_pos h0 _).ne']
+    using ((nnreal.summable_sigma.1
+      (p.change_origin_series_summable_aux₁ hr')).1 k).mul_right (r' ^ k)⁻¹
 end
 
-/-- An auxiliary definition for `change_origin_radius`. -/
-def change_origin_summable_aux_j (k : ℕ) :
-  (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k})
-    → (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) :=
-λ ⟨n, s, hs⟩, ⟨k, n, s, hs⟩
-
-lemma change_origin_summable_aux_j_injective (k : ℕ) :
-  function.injective (change_origin_summable_aux_j k) :=
+lemma change_origin_series_summable_aux₃ {r : ℝ≥0} (hr : ↑r < p.radius) (k : ℕ) :
+  summable (λ l : ℕ, ∥p.change_origin_series k l∥₊ * r ^ l) :=
 begin
-  rintros ⟨_, ⟨_, _⟩⟩ ⟨_, ⟨_, _⟩⟩ a,
-  simp only [change_origin_summable_aux_j, true_and, eq_self_iff_true, heq_iff_eq,
-    sigma.mk.inj_iff] at a,
-  rcases a with ⟨rfl, a⟩,
-  simpa using a,
+  refine nnreal.summable_of_le (λ n, _)
+    (nnreal.summable_sigma.1 $ p.change_origin_series_summable_aux₂ hr k).2,
+  simp only [nnreal.tsum_mul_right],
+  exact mul_le_mul' (p.nnnorm_change_origin_series_le_tsum _ _) le_rfl
 end
 
-/-- Auxiliary lemma controlling the summability of the sequence appearing in the definition of
-`p.change_origin`, third version. -/
-lemma change_origin_summable_aux3 (k : ℕ) (h : (nnnorm x : ℝ≥0∞) < p.radius) :
-  @summable ℝ _ _ _ (λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ :
-  (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :=
+lemma le_change_origin_series_radius (k : ℕ) :
+  p.radius ≤ (p.change_origin_series k).radius :=
+ennreal.le_of_forall_nnreal_lt $ λ r hr,
+  le_radius_of_summable_nnnorm _ (p.change_origin_series_summable_aux₃ hr k)
+
+lemma nnnorm_change_origin_le (k : ℕ) (h : (∥x∥₊ : ℝ≥0∞) < p.radius) :
+  ∥p.change_origin x k∥₊ ≤
+    ∑' s : Σ l : ℕ, {s : finset (fin (k + l)) // s.card = l}, ∥p (k + s.1)∥₊ * ∥x∥₊ ^ s.1 :=
 begin
-  obtain ⟨r, rpos, hr⟩ : ∃ (r : ℝ≥0), 0 < r ∧ ((nnnorm x + r) : ℝ≥0∞) < p.radius :=
-    ennreal.lt_iff_exists_add_pos_lt.mp h,
-  have S : @summable ℝ _ _ _ ((λ ⟨n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k) :
-    (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ),
-  { convert (p.change_origin_summable_aux2 hr).comp_injective
-      (change_origin_summable_aux_j_injective k),
-    -- again, cleanup that could be done by `tidy`:
-    ext ⟨_, ⟨_, _⟩⟩, refl },
-  have : (r : ℝ)^k ≠ 0, by simp [pow_ne_zero, nnreal.coe_eq_zero, ne_of_gt rpos],
-  apply (summable_mul_right_iff this).2,
-  convert S,
-  -- again, cleanup that could be done by `tidy`:
-  ext ⟨_, ⟨_, _⟩⟩, refl,
+  refine tsum_of_nnnorm_bounded _ (λ l, p.nnnorm_change_origin_series_apply_le_tsum k l x),
+  have := p.change_origin_series_summable_aux₂ h k,
+  refine has_sum.sigma this.has_sum (λ l, _),
+  exact ((nnreal.summable_sigma.1 this).1 l).has_sum
 end
 
--- FIXME this causes a deterministic timeout with `-T50000`
 /-- The radius of convergence of `p.change_origin x` is at least `p.radius - ∥x∥`. In other words,
 `p.change_origin x` is well defined on the largest ball contained in the original ball of
 convergence.-/
-lemma change_origin_radius : p.radius - nnnorm x ≤ (p.change_origin x).radius :=
+lemma change_origin_radius : p.radius - ∥x∥₊ ≤ (p.change_origin x).radius :=
 begin
-  cases le_or_lt p.radius (nnnorm x) with h h,
-  { have : radius p - ↑(nnnorm x) = 0 := ennreal.sub_eq_zero_of_le h,
-    rw this,
-    exact zero_le _ },
-  refine ennreal.le_of_forall_nnreal_lt (λ r hr, _),
+  refine ennreal.le_of_forall_pos_nnreal_lt (λ r h0 hr, _),
   rw [ennreal.lt_sub_iff_add_lt, add_comm] at hr,
-  let A : (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ :=
-    λ ⟨k, n, s, hs⟩, ∥(p n).restr s hs x∥ * (r : ℝ) ^ k,
-  have SA : summable A := p.change_origin_summable_aux2 hr,
-  have A_nonneg : ∀ i, 0 ≤ A i,
-  { rintros ⟨k, n, s, hs⟩,
-    change 0 ≤ ∥(p n).restr s hs x∥ * (r : ℝ) ^ k,
-    refine mul_nonneg (norm_nonneg _) (pow_nonneg (nnreal.coe_nonneg _) _) },
-  have tsum_nonneg : 0 ≤ tsum A := tsum_nonneg A_nonneg,
-  refine le_radius_of_bound _ (tsum A) (λ k, _),
-  calc ∥change_origin p x k∥ * ↑r ^ k
-      ≤ (∑' i : Σ (n : ℕ), {s : finset (fin n) // finset.card s = k},
-          ∥(p i.1).restr i.2.1 i.2.2 x∥) * r ^ k :
-      begin
-        apply mul_le_mul_of_nonneg_right _ (pow_nonneg (nnreal.coe_nonneg _) _),
-        apply norm_tsum_le_tsum_norm,
-        convert p.change_origin_summable_aux3 k h,
-        ext ⟨_, _, _⟩,
-        refl
-      end
-  ... = tsum (λ i, ∥(p i.1).restr i.2.1 i.2.2 x∥ * ↑r ^ k :
-    (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → ℝ) :
-      begin
-        rw tsum_mul_right,
-      end
-  ... = tsum (A ∘ change_origin_summable_aux_j k) :
-    begin
-      congr,
-      ext ⟨_, _, _⟩,
-      refl
-    end
-  ... ≤ tsum A : tsum_comp_le_tsum_of_inj SA A_nonneg (change_origin_summable_aux_j_injective k)
+  have hr' : (∥x∥₊ : ℝ≥0∞) < p.radius, from (le_add_right le_rfl).trans_lt hr,
+  apply le_radius_of_summable_nnnorm,
+  have : ∀ k : ℕ, ∥p.change_origin x k∥₊ * r ^ k ≤
+    (∑' s : Σ l : ℕ, {s : finset (fin (k + l)) // s.card = l}, ∥p (k + s.1)∥₊ * ∥x∥₊ ^ s.1) * r ^ k,
+    from λ k, mul_le_mul_right' (p.nnnorm_change_origin_le k hr') (r ^ k),
+  refine nnreal.summable_of_le this _,
+  simpa only [← nnreal.tsum_mul_right]
+    using (nnreal.summable_sigma.1 (p.change_origin_series_summable_aux₁ hr)).2
+end
+
 end
 
 -- From this point on, assume that the space is complete, to make sure that series that converge
 -- in norm also converge in `F`.
-variable [complete_space F]
+variables [complete_space F] (p : formal_multilinear_series 𝕜 E F) {x y : E} {r R : ℝ≥0}
 
-/-- The `k`-th coefficient of `p.change_origin` is the sum of a summable series. -/
-lemma change_origin_has_sum (k : ℕ) (h : (nnnorm x : ℝ≥0∞) < p.radius) :
-  @has_sum (E [×k]→L[𝕜] F) _ _ _  ((λ i, (p i.1).restr i.2.1 i.2.2 x) :
-    (Σ (n : ℕ), {s : finset (fin n) // finset.card s = k}) → (E [×k]→L[𝕜] F))
-  (p.change_origin x k) :=
-begin
-  apply summable.has_sum,
-  apply summable_of_summable_norm,
-  convert p.change_origin_summable_aux3 k h,
-  ext ⟨_, _, _⟩,
-  refl
-end
+lemma has_fpower_series_on_ball_change_origin (k : ℕ) (hr : 0 < p.radius) :
+  has_fpower_series_on_ball (λ x, p.change_origin x k) (p.change_origin_series k) 0 p.radius :=
+have _ := p.le_change_origin_series_radius k,
+((p.change_origin_series k).has_fpower_series_on_ball (hr.trans_le this)).mono hr this
 
 /-- Summing the series `p.change_origin x` at a point `y` gives back `p (x + y)`-/
-theorem change_origin_eval (h : (nnnorm x + nnnorm y : ℝ≥0∞) < p.radius) :
-  has_sum ((λk:ℕ, p.change_origin x k (λ (i : fin k), y))) (p.sum (x + y)) :=
+theorem change_origin_eval (h : (∥x∥₊ + ∥y∥₊ : ℝ≥0∞) < p.radius) :
+  (p.change_origin x).sum y = (p.sum (x + y)) :=
 begin
-  /- The series on the left is a series of series. If we order the terms differently, we get back
-  to `p.sum (x + y)`, in which the `n`-th term is expanded by multilinearity. In the proof below,
-  the term on the left is the sum of a series of terms `A`, the sum on the right is the sum of a
-  series of terms `B`, and we show that they correspond to each other by reordering to conclude the
-  proof. -/
   have radius_pos : 0 < p.radius := lt_of_le_of_lt (zero_le _) h,
-  -- `A` is the terms of the series whose sum gives the series for `p.change_origin`
-  let A : (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // s.card = k}) → F :=
-    λ ⟨k, n, s, hs⟩, (p n).restr s hs x (λ(i : fin k), y),
-  -- `B` is the terms of the series whose sum gives `p (x + y)`, after expansion by multilinearity.
-  let B : (Σ (n : ℕ), finset (fin n)) → F := λ ⟨n, s⟩, (p n).restr s rfl x (λ (i : fin s.card), y),
-  let Bnorm : (Σ (n : ℕ), finset (fin n)) → ℝ :=
-    λ ⟨n, s⟩, ∥p n∥ * ∥x∥ ^ (n - s.card) * ∥y∥ ^ s.card,
-  have SBnorm : summable Bnorm, by convert p.change_origin_summable_aux1 h,
-  have SB : summable B,
-  { refine summable_of_norm_bounded _ SBnorm _,
-    rintros ⟨n, s⟩,
-    calc ∥(p n).restr s rfl x (λ (i : fin s.card), y)∥
-      ≤ ∥(p n).restr s rfl x∥ * ∥y∥ ^ s.card :
-        begin
-          convert ((p n).restr s rfl x).le_op_norm (λ (i : fin s.card), y),
-          simp [(finset.prod_const (∥y∥))],
-        end
-      ... ≤ (∥p n∥ * ∥x∥ ^ (n - s.card)) * ∥y∥ ^ s.card :
-        mul_le_mul_of_nonneg_right ((p n).norm_restr _ _ _) (pow_nonneg (norm_nonneg _) _) },
-  -- Check that indeed the sum of `B` is `p (x + y)`.
-  have has_sum_B : has_sum B (p.sum (x + y)),
-  { have K1 : ∀ n, has_sum (λ (s : finset (fin n)), B ⟨n, s⟩) (p n (λ (i : fin n), x + y)),
-    { assume n,
-      have : (p n) (λ (i : fin n), y + x) = ∑ s : finset (fin n),
-        p n (finset.piecewise s (λ (i : fin n), y) (λ (i : fin n), x)) :=
-        (p n).map_add_univ (λ i, y) (λ i, x),
-      simp [add_comm y x] at this,
-      rw this,
-      exact has_sum_fintype _ },
-    have K2 : has_sum (λ (n : ℕ), (p n) (λ (i : fin n), x + y)) (p.sum (x + y)),
-    { have : x + y ∈ emetric.ball (0 : E) p.radius,
-      { apply lt_of_le_of_lt _ h,
-        rw [edist_eq_coe_nnnorm, ← ennreal.coe_add, ennreal.coe_le_coe],
-        exact norm_add_le x y },
-      simpa using (p.has_fpower_series_on_ball radius_pos).has_sum this },
-    exact has_sum.sigma_of_has_sum K2 K1 SB },
-  -- Deduce that the sum of `A` is also `p (x + y)`, as the terms `A` and `B` are the same up to
-  -- reordering
-  have has_sum_A : has_sum A (p.sum (x + y)),
-  { let e : (Σ (n : ℕ), finset (fin n)) ≃
-      (Σ (k : ℕ) (n : ℕ), {s : finset (fin n) // finset.card s = k}) :=
-    { to_fun := λ ⟨n, s⟩, ⟨s.card, n, s, rfl⟩,
-      inv_fun := λ ⟨k, n, s, hs⟩, ⟨n, s⟩,
-      left_inv := λ ⟨n, s⟩, rfl,
-      right_inv := λ ⟨k, n, s, hs⟩, by { induction hs, refl } },
-    have : A ∘ e = B, by { ext ⟨⟩, refl },
-    rw ← e.has_sum_iff,
-    convert has_sum_B },
-  -- Summing `A ⟨k, c⟩` with fixed `k` and varying `c` is exactly the `k`-th term in the series
-  -- defining `p.change_origin`, by definition
-  have J : ∀k, has_sum (λ c, A ⟨k, c⟩) (p.change_origin x k (λ(i : fin k), y)),
-  { assume k,
-    have : (nnnorm x : ℝ≥0∞) < radius p := lt_of_le_of_lt (le_add_right (le_refl _)) h,
-    convert continuous_multilinear_map.has_sum_eval (p.change_origin_has_sum k this)
-      (λ(i : fin k), y),
-    ext ⟨_, _, _⟩,
-    refl },
-  exact has_sum_A.sigma J
+  have x_mem_ball : x ∈ emetric.ball (0 : E) p.radius,
+    from mem_emetric_ball_0_iff.2 ((le_add_right le_rfl).trans_lt h),
+  have y_mem_ball : y ∈ emetric.ball (0 : E) (p.change_origin x).radius,
+  { refine mem_emetric_ball_0_iff.2 (lt_of_lt_of_le _ p.change_origin_radius),
+    rwa [ennreal.lt_sub_iff_add_lt, add_comm] },
+  have x_add_y_mem_ball : x + y ∈ emetric.ball (0 : E) p.radius,
+  { refine mem_emetric_ball_0_iff.2 (lt_of_le_of_lt _ h),
+    exact_mod_cast nnnorm_add_le x y },
+  set f : (Σ (k l : ℕ), {s : finset (fin (k + l)) // s.card = l}) → F :=
+    λ s, p.change_origin_series_term s.1 s.2.1 s.2.2 s.2.2.2 (λ _, x) (λ _, y),
+  have hsf : summable f,
+  { refine summable_of_nnnorm_bounded _ (p.change_origin_series_summable_aux₁ h) _,
+    rintro ⟨k, l, s, hs⟩, dsimp only [subtype.coe_mk],
+    exact p.nnnorm_change_origin_series_term_apply_le _ _ _ _ _ _ },
+  have hf : has_sum f ((p.change_origin x).sum y),
+  { refine has_sum.sigma_of_has_sum ((p.change_origin x).summable y_mem_ball).has_sum (λ k, _) hsf,
+    { dsimp only [f],
+      refine continuous_multilinear_map.has_sum_eval _ _,
+      have := (p.has_fpower_series_on_ball_change_origin k radius_pos).has_sum x_mem_ball,
+      rw zero_add at this,
+      refine has_sum.sigma_of_has_sum this (λ l, _) _,
+      { simp only [change_origin_series, continuous_multilinear_map.sum_apply],
+        apply has_sum_fintype },
+      { refine summable_of_nnnorm_bounded _ (p.change_origin_series_summable_aux₂
+          (mem_emetric_ball_0_iff.1 x_mem_ball) k) (λ s, _),
+        refine (continuous_multilinear_map.le_op_nnnorm _ _).trans_eq _,
+        simp } } },
+  refine hf.unique (change_origin_index_equiv.symm.has_sum_iff.1 _),
+  refine has_sum.sigma_of_has_sum (p.has_sum x_add_y_mem_ball) (λ n, _)
+    (change_origin_index_equiv.symm.summable_iff.2 hsf),
+  erw [(p n).map_add_univ (λ _, x) (λ _, y)],
+  convert has_sum_fintype _,
+  ext1 s,
+  dsimp only [f, change_origin_series_term, (∘), change_origin_index_equiv_symm_apply_fst,
+    change_origin_index_equiv_symm_apply_snd_fst, change_origin_index_equiv_symm_apply_snd_snd_coe],
+  rw continuous_multilinear_map.curry_fin_finset_apply_const,
+  have : ∀ m (hm : n = m), p n (s.piecewise (λ _, x) (λ _, y)) =
+    p m ((s.map (fin.cast hm).to_equiv.to_embedding).piecewise (λ _, x) (λ _, y)),
+  { rintro m rfl, simp, congr /- probably different `decidable_eq` instances -/ },
+  apply this
 end
 
 end formal_multilinear_series
@@ -887,44 +944,44 @@ variables [complete_space F] {f : E → F} {p : formal_multilinear_series 𝕜 E
 power series on any subball of this ball (even with a different center), given by `p.change_origin`.
 -/
 theorem has_fpower_series_on_ball.change_origin
-  (hf : has_fpower_series_on_ball f p x r) (h : (nnnorm y : ℝ≥0∞) < r) :
-  has_fpower_series_on_ball f (p.change_origin y) (x + y) (r - nnnorm y) :=
+  (hf : has_fpower_series_on_ball f p x r) (h : (∥y∥₊ : ℝ≥0∞) < r) :
+  has_fpower_series_on_ball f (p.change_origin y) (x + y) (r - ∥y∥₊) :=
 { r_le := begin
     apply le_trans _ p.change_origin_radius,
     exact ennreal.sub_le_sub hf.r_le (le_refl _)
   end,
   r_pos := by simp [h],
-  has_sum := begin
-    assume z hz,
-    have A : (nnnorm y : ℝ≥0∞) + nnnorm z < r,
-    { have : edist z 0 < r - ↑(nnnorm y) := hz,
-      rwa [edist_eq_coe_nnnorm, ennreal.lt_sub_iff_add_lt, add_comm] at this },
-    convert p.change_origin_eval (lt_of_lt_of_le A hf.r_le),
-    have : y + z ∈ emetric.ball (0 : E) r := calc
-      edist (y + z) 0 ≤ ↑(nnnorm y) + ↑(nnnorm z) :
-        by { rw edist_eq_coe_nnnorm, exact_mod_cast nnnorm_add_le y z }
-      ... < r : A,
-    simpa only [add_assoc] using hf.sum this
+  has_sum := λ z hz, begin
+    convert (p.change_origin y).has_sum _,
+    { rw [mem_emetric_ball_0_iff, ennreal.lt_sub_iff_add_lt, add_comm] at hz,
+      rw [p.change_origin_eval (hz.trans_le hf.r_le), add_assoc, hf.sum],
+      refine mem_emetric_ball_0_iff.2 (lt_of_le_of_lt _ hz),
+      exact_mod_cast nnnorm_add_le y z },
+    { refine emetric.ball_subset_ball (le_trans _ p.change_origin_radius) hz,
+      exact ennreal.sub_le_sub hf.r_le le_rfl }
   end }
 
+/-- If a function admits a power series expansion `p` on an open ball `B (x, r)`, then
+it is analytic at every point of this ball. -/
 lemma has_fpower_series_on_ball.analytic_at_of_mem
   (hf : has_fpower_series_on_ball f p x r) (h : y ∈ emetric.ball x r) :
   analytic_at 𝕜 f y :=
 begin
-  have : (nnnorm (y - x) : ℝ≥0∞) < r, by simpa [edist_eq_coe_nnnorm_sub] using h,
+  have : (∥y - x∥₊ : ℝ≥0∞) < r, by simpa [edist_eq_coe_nnnorm_sub] using h,
   have := hf.change_origin this,
   rw [add_sub_cancel'_right] at this,
   exact this.analytic_at
 end
 
 variables (𝕜 f)
+
+/-- For any function `f` from a normed vector space to a Banach space, the set of points `x` such
+that `f` is analytic at `x` is open. -/
 lemma is_open_analytic_at : is_open {x | analytic_at 𝕜 f x} :=
 begin
-  rw is_open_iff_forall_mem_open,
+  rw is_open_iff_mem_nhds,
   rintro x ⟨p, r, hr⟩,
-  refine ⟨emetric.ball x r, λ y hy, hr.analytic_at_of_mem hy, emetric.is_open_ball, _⟩,
-  simp only [edist_self, emetric.mem_ball, hr.r_pos]
+  exact mem_of_superset (emetric.ball_mem_nhds _ hr.r_pos) (λ y hy, hr.analytic_at_of_mem hy)
 end
-variables {𝕜 f}
 
 end

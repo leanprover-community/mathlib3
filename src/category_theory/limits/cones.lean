@@ -648,28 +648,28 @@ variables {F : J ⥤ C}
 { X := op c.X,
   π :=
   { app := λ j, (c.ι.app (unop j)).op,
-    naturality' := λ j j' f, has_hom.hom.unop_inj (by tidy) } }
+    naturality' := λ j j' f, quiver.hom.unop_inj (by tidy) } }
 
 /-- Change a `cone F` into a `cocone F.op`. -/
 @[simps] def cone.op (c : cone F) : cocone F.op :=
 { X := op c.X,
   ι :=
   { app := λ j, (c.π.app (unop j)).op,
-    naturality' := λ j j' f, has_hom.hom.unop_inj (by tidy) } }
+    naturality' := λ j j' f, quiver.hom.unop_inj (by tidy) } }
 
 /-- Change a `cocone F.op` into a `cone F`. -/
 @[simps] def cocone.unop (c : cocone F.op) : cone F :=
 { X := unop c.X,
   π :=
   { app := λ j, (c.ι.app (op j)).unop,
-    naturality' := λ j j' f, has_hom.hom.op_inj (c.ι.naturality f.op).symm } }
+    naturality' := λ j j' f, quiver.hom.op_inj (c.ι.naturality f.op).symm } }
 
 /-- Change a `cone F.op` into a `cocone F`. -/
 @[simps] def cone.unop (c : cone F.op) : cocone F :=
 { X := unop c.X,
   ι :=
   { app := λ j, (c.π.app (op j)).unop,
-    naturality' := λ j j' f, has_hom.hom.op_inj (c.π.naturality f.op).symm } }
+    naturality' := λ j j' f, quiver.hom.op_inj (c.π.naturality f.op).symm } }
 
 variables (F)
 
@@ -682,14 +682,14 @@ the category of cones on the opposite of `F`.
 def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
 { functor :=
   { obj := λ c, op (cocone.op c),
-    map := λ X Y f, has_hom.hom.op
+    map := λ X Y f, quiver.hom.op
     { hom := f.hom.op,
-      w' := λ j, by { apply has_hom.hom.unop_inj, dsimp, simp, }, } },
+      w' := λ j, by { apply quiver.hom.unop_inj, dsimp, simp, }, } },
   inverse :=
   { obj := λ c, cone.unop (unop c),
     map := λ X Y f,
     { hom := f.unop.hom.unop,
-      w' := λ j, by { apply has_hom.hom.op_inj, dsimp, simp, }, } },
+      w' := λ j, by { apply quiver.hom.op_inj, dsimp, simp, }, } },
   unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ c,
     by { op_induction c, dsimp, apply iso.op, exact cones.ext (iso.refl _) (by tidy), })
@@ -703,11 +703,11 @@ def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
       revert hY,
       generalize : unop Y = Y',
       rintro rfl,
-      apply has_hom.hom.unop_inj,
+      apply quiver.hom.unop_inj,
       apply cone_morphism.ext,
       dsimp, simp,
     end,
-  functor_unit_iso_comp' := λ c, begin apply has_hom.hom.unop_inj, ext, dsimp, simp, end }
+  functor_unit_iso_comp' := λ c, begin apply quiver.hom.unop_inj, ext, dsimp, simp, end }
 
 end
 

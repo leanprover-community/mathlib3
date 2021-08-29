@@ -57,6 +57,9 @@ attribute [instance] concrete_category.forget_faithful
 @[reducible] def forget (C : Type v) [category C] [concrete_category.{u} C] : C ⥤ Type u :=
 concrete_category.forget C
 
+instance concrete_category.types : concrete_category (Type u) :=
+{ forget := 𝟭 _ }
+
 /--
 Provide a coercion to `Type u` for a concrete category. This is not marked as an instance
 as it could potentially apply to every type, and so is too expensive in typeclass search.
@@ -102,10 +105,17 @@ when `h : f = g` is an equality between morphisms in a concrete category.
 lemma congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
 congr_fun (congr_arg (λ k : X ⟶ Y, (k : X → Y)) h) x
 
-@[simp] lemma coe_id {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
+lemma coe_id {X : C} : ((𝟙 X) : X → X) = id :=
+(forget _).map_id X
+
+lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g : X → Z) = g ∘ f :=
+(forget _).map_comp f g
+
+@[simp] lemma id_apply {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
 congr_fun ((forget _).map_id X) x
 
-@[simp] lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+@[simp] lemma comp_apply {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
 
@@ -132,10 +142,11 @@ lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.
   epi f :=
 faithful_reflects_epi (forget C) ((epi_iff_surjective f).2 s)
 
-end
+@[simp] lemma concrete_category.has_coe_to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
+  coe_fn f = f :=
+rfl
 
-instance concrete_category.types : concrete_category (Type u) :=
-{ forget := 𝟭 _ }
+end
 
 /--
 `has_forget₂ C D`, where `C` and `D` are both concrete categories, provides a functor

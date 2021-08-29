@@ -5,6 +5,25 @@ Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Re
 -/
 import topology.dense_embedding
 
+/-!
+# Homeomorphisms
+
+This file defines homeomorphisms between two topological spaces. They are bijections with both
+directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
+
+# Main definitions
+
+* `homeomorph α β`: The type of homeomorphisms from `α` to `β`.
+  This type can be denoted using the following notation: `α ≃ₜ β`.
+
+# Main results
+
+* Pretty much every topological property is preserved under homeomorphisms.
+* `homeomorph.homeomorph_of_continuous_open`: A continuous bijection that is
+  an open map is a homeomorphism.
+
+-/
+
 open set filter
 open_locale topological_space
 
@@ -30,6 +49,21 @@ rfl
 
 @[simp] lemma coe_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv = h := rfl
 
+/-- Inverse of a homeomorphism. -/
+protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
+{ continuous_to_fun  := h.continuous_inv_fun,
+  continuous_inv_fun := h.continuous_to_fun,
+  to_equiv := h.to_equiv.symm }
+
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : α ≃ₜ β) : α → β := h
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (h : α ≃ₜ β) : β → α := h.symm
+
+initialize_simps_projections homeomorph
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, -to_equiv)
+
 lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
 | ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl
 
@@ -37,24 +71,17 @@ lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α �
 to_equiv_injective $ equiv.ext H
 
 /-- Identity map as a homeomorphism. -/
+@[simps apply {fully_applied := ff}]
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id,
   continuous_inv_fun := continuous_id,
   to_equiv := equiv.refl α }
-
-@[simp] lemma coe_refl : ⇑(homeomorph.refl α) = id := rfl
 
 /-- Composition of two homeomorphisms. -/
 protected def trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) : α ≃ₜ γ :=
 { continuous_to_fun  := h₂.continuous_to_fun.comp h₁.continuous_to_fun,
   continuous_inv_fun := h₁.continuous_inv_fun.comp h₂.continuous_inv_fun,
   to_equiv := equiv.trans h₁.to_equiv h₂.to_equiv }
-
-/-- Inverse of a homeomorphism. -/
-protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
-{ continuous_to_fun  := h.continuous_inv_fun,
-  continuous_inv_fun := h.continuous_to_fun,
-  to_equiv := h.to_equiv.symm }
 
 @[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
   ((homeomorph.mk a b c).symm : β → α) = a.symm :=
@@ -126,16 +153,38 @@ h.quotient_map.2.symm
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 ⟨h.inducing, h.injective⟩
 
+/-- Homeomorphism given an embedding. -/
+noncomputable def of_embedding (f : α → β) (hf : embedding f) : α ≃ₜ (set.range f) :=
+{ continuous_to_fun := continuous_subtype_mk _ hf.continuous,
+  continuous_inv_fun := by simp [hf.continuous_iff, continuous_subtype_coe],
+  .. equiv.of_injective f hf.inj }
+
 protected lemma second_countable_topology [topological_space.second_countable_topology β]
   (h : α ≃ₜ β) :
   topological_space.second_countable_topology α :=
 h.inducing.second_countable_topology
 
 lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
-h.embedding.compact_iff_compact_image.symm
+h.embedding.is_compact_iff_is_compact_image.symm
 
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
+
+lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
+{ compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
+    apply compact_space.compact_univ } }
+
+lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
+{ t2 :=
+  begin
+    intros x y hxy,
+    obtain ⟨u, v, hu, hv, hxu, hyv, huv⟩ := t2_separation (h.symm.injective.ne hxy),
+    refine ⟨h.symm ⁻¹' u, h.symm ⁻¹' v,
+      h.symm.continuous.is_open_preimage _ hu,
+      h.symm.continuous.is_open_preimage _ hv,
+      hxu, hyv, _⟩,
+    rw [← preimage_inter, huv, preimage_empty],
+  end }
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
@@ -259,12 +308,11 @@ def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
   to_equiv := equiv.prod_assoc α β γ }
 
 /-- `α × {*}` is homeomorphic to `α`. -/
+@[simps apply {fully_applied := ff}]
 def prod_punit : α × punit ≃ₜ α :=
 { to_equiv := equiv.prod_punit α,
   continuous_to_fun := continuous_fst,
   continuous_inv_fun := continuous_id.prod_mk continuous_const }
-
-@[simp] lemma coe_prod_punit : ⇑(prod_punit α) = prod.fst := rfl
 
 /-- `{*} × α` is homeomorphic to `α`. -/
 def punit_prod : punit × α ≃ₜ α :=

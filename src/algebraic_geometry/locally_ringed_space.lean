@@ -8,7 +8,7 @@ import algebraic_geometry.sheafed_space
 import algebra.category.CommRing.limits
 import algebra.category.CommRing.colimits
 import algebraic_geometry.stalks
-import ring_theory.ideal.basic
+import ring_theory.ideal.local_ring
 
 /-!
 # The category of locally ringed spaces
@@ -65,7 +65,7 @@ def hom (X Y : LocallyRingedSpace) : Type* :=
 { f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace //
     ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
 
-instance : has_hom LocallyRingedSpace := ⟨hom⟩
+instance : quiver LocallyRingedSpace := ⟨hom⟩
 
 @[ext] lemma hom_ext {X Y : LocallyRingedSpace} (f g : hom X Y) (w : f.1 = g.1) : f = g :=
 subtype.eq w

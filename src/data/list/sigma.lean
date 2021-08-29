@@ -224,7 +224,7 @@ theorem lookup_all_eq_nil {a : α} : ∀ {l : list (sigma β)},
 | []             := by simp
 | (⟨a', b⟩ :: l) := begin
   by_cases h : a = a',
-  { subst a', simp, exact ⟨_, or.inl rfl⟩ },
+  { subst a', simp },
   { simp [h, lookup_all_eq_nil] },
 end
 
@@ -431,8 +431,7 @@ begin
     { substs h₁ h₂, cases ne.irrefl h },
     { subst h₁, simp [h₂] },
     { subst h₂, simp [h] },
-    { simp [h₁, h₂, ih] }
-  }
+    { simp [h₁, h₂, ih] } }
 end
 
 theorem kerase_append_left {a} : ∀ {l₁ l₂ : list (sigma β)},

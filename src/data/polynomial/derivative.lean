@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
-import algebra.iterate_hom
 
 /-!
 # The derivative map on polynomials
@@ -15,10 +14,9 @@ import algebra.iterate_hom
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
 
-open finsupp finset
-open_locale big_operators
+open finset
+open_locale big_operators classical
 
 namespace polynomial
 universes u v w y z
@@ -31,30 +29,29 @@ variables [semiring R]
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
 def derivative : polynomial R →ₗ[R] polynomial R :=
-finsupp.total ℕ (polynomial R) R (λ n, C ↑n * X^(n - 1))
+{ to_fun := λ p, p.sum (λ n a, C (a * n) * X^(n-1)),
+  map_add' := λ p q, by rw sum_add_index;
+    simp only [add_mul, forall_const, ring_hom.map_add,
+      eq_self_iff_true, zero_mul, ring_hom.map_zero],
+  map_smul' := λ a p, by rw sum_smul_index;
+    simp only [mul_sum, ← C_mul', mul_assoc, coeff_C_mul, ring_hom.map_mul, forall_const,
+      zero_mul, ring_hom.map_zero, sum] }
 
 lemma derivative_apply (p : polynomial R) :
-  derivative p = p.sum (λn a, C (a * n) * X^(n - 1)) :=
-begin
-  rw [derivative, total_apply],
-  apply congr rfl,
-  ext,
-  simp [mul_assoc, coeff_C_mul],
-end
+  derivative p = p.sum (λn a, C (a * n) * X^(n - 1)) := rfl
 
 lemma coeff_derivative (p : polynomial R) (n : ℕ) :
   coeff (derivative p) n = coeff p (n + 1) * (n + 1) :=
 begin
   rw [derivative_apply],
   simp only [coeff_X_pow, coeff_sum, coeff_C_mul],
-  rw [sum_def, finset.sum_eq_single (n + 1)],
+  rw [sum, finset.sum_eq_single (n + 1)],
   simp only [nat.add_succ_sub_one, add_zero, mul_one, if_true, eq_self_iff_true], norm_cast,
-  swap,
-  { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
-    intro h, push_neg at h, simp [h], },
   { assume b, cases b,
     { intros, rw [nat.cast_zero, mul_zero, zero_mul], },
-    { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } }
+    { intros _ H, rw [nat.succ_sub_one b, if_neg (mt (congr_arg nat.succ) H.symm), mul_zero] } },
+  { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
+    intro h, push_neg at h, simp [h], },
 end
 
 @[simp]
@@ -71,7 +68,7 @@ end
 
 @[simp]
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
-(derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
+by { rw [derivative_apply, sum_monomial_index, C_mul_X_pow_eq_monomial], simp }
 
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
@@ -162,11 +159,12 @@ by simp only [derivative_apply, eval_sum, eval_pow, eval_C, eval_X, eval_nat_cas
   derivative (f * g) = derivative f * g + f * derivative g :=
 calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)) * X^((n + m) - 1))) :
   begin
+    rw mul_eq_sum_sum,
     transitivity, exact derivative_sum,
     transitivity, { apply finset.sum_congr rfl, assume x hx, exact derivative_sum },
     apply finset.sum_congr rfl, assume n hn, apply finset.sum_congr rfl, assume m hm,
     transitivity,
-    { apply congr_arg, exact single_eq_C_mul_X },
+    { apply congr_arg, exact monomial_eq_C_mul_X },
     exact derivative_C_mul_X_pow _ _
   end
   ... = f.sum (λn a, g.sum (λm b,
@@ -174,14 +172,14 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
     sum_congr rfl $ assume n hn, sum_congr rfl $ assume m hm,
       by simp only [nat.cast_add, mul_add, add_mul, C_add, C_mul];
       cases n; simp only [nat.succ_sub_succ, pow_zero];
-      cases m; simp only [nat.cast_zero, C_0, nat.succ_sub_succ, zero_mul, mul_zero,
+      cases m; simp only [nat.cast_zero, C_0, nat.succ_sub_succ, zero_mul, mul_zero, nat.add_succ,
         nat.sub_zero, pow_zero, pow_add, one_mul, pow_succ, mul_comm, mul_left_comm]
   ... = derivative f * g + f * derivative g :
     begin
       conv { to_rhs, congr,
         { rw [← sum_C_mul_X_eq g] },
         { rw [← sum_C_mul_X_eq f] } },
-      simp only [finsupp.sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply]
+      simp only [sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply]
     end
 
 theorem derivative_pow_succ (p : polynomial R) (n : ℕ) :
@@ -240,7 +238,7 @@ polynomial.induction_on p
 
 theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.derivative.support) :
   n + 1 ∈ p.support :=
-finsupp.mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), finsupp.mem_support_iff.1 h $
+mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), mem_support_iff.1 h $
 show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
 
 theorem degree_derivative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.degree < p.degree :=

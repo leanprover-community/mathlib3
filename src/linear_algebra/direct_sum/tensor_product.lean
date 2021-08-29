@@ -5,7 +5,7 @@ Authors: Kenny Lau, Mario Carneiro
 -/
 
 import linear_algebra.tensor_product
-import linear_algebra.direct_sum_module
+import algebra.direct_sum.module
 
 /-!
 # Tensor products of direct sums

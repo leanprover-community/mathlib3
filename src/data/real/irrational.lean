@@ -86,7 +86,7 @@ theorem irrational_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
     (finite_int_iff.2 ⟨hp.1.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
   irrational (sqrt m) :=
 @irrational_nrt_of_n_not_dvd_multiplicity _ 2 _ (ne.symm (ne_of_lt hm)) p hp
-  (sqr_sqrt (int.cast_nonneg.2 $ le_of_lt hm))
+  (sq_sqrt (int.cast_nonneg.2 $ le_of_lt hm))
   (by rw Hpv; exact one_ne_zero)
 
 theorem nat.prime.irrational_sqrt {p : ℕ} (hp : nat.prime p) : irrational (sqrt p) :=
@@ -94,6 +94,7 @@ theorem nat.prime.irrational_sqrt {p : ℕ} (hp : nat.prime p) : irrational (sqr
 by simp [multiplicity_self (mt is_unit_iff_dvd_one.1 (mt int.coe_nat_dvd.1 hp.not_dvd_one) : _)];
   refl
 
+/-- **Irrationality of the Square Root of 2** -/
 theorem irrational_sqrt_two : irrational (sqrt 2) :=
 by simpa using nat.prime_two.irrational_sqrt
 
@@ -208,7 +209,7 @@ theorem of_pow : ∀ n : ℕ, irrational (x^n) → irrational x
 
 theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
 | (n:ℕ) := of_pow n
-| -[1+n] := λ h, by { rw fpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
+| -[1+n] := λ h, by { rw gpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational
 
@@ -255,5 +256,12 @@ open irrational
 
 @[simp] theorem irrational_inv_iff : irrational x⁻¹ ↔ irrational x :=
 ⟨of_inv, irrational.inv⟩
+
+/-- There is an irrational number `r` between any two reals `x < r < y`. -/
+theorem exists_irrational_btwn {x y : ℝ} (h : x < y) :
+  ∃ r, irrational r ∧ x < r ∧ r < y :=
+let ⟨q, ⟨hq1, hq2⟩⟩ := (exists_rat_btwn ((sub_lt_sub_iff_right (real.sqrt 2)).mpr h)) in
+  ⟨q + real.sqrt 2, irrational_sqrt_two.rat_add _,
+    sub_lt_iff_lt_add.mp hq1, lt_sub_iff_add_lt.mp hq2⟩
 
 end

@@ -3,9 +3,6 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
-import algebra.group.hom
-import data.equiv.mul_add
-import data.prod
 import algebra.opposites
 
 /-!
@@ -85,6 +82,9 @@ instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
 
+instance [semigroup_with_zero M] [semigroup_with_zero N] : semigroup_with_zero (M × N) :=
+{ .. prod.mul_zero_class, .. prod.semigroup }
+
 @[to_additive]
 instance [mul_one_class M] [mul_one_class N] : mul_one_class (M × N) :=
 { one_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨one_mul _, one_mul _⟩,
@@ -140,11 +140,14 @@ instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 instance [cancel_comm_monoid M] [cancel_comm_monoid N] : cancel_comm_monoid (M × N) :=
 { .. prod.left_cancel_monoid, .. prod.comm_monoid }
 
+instance [mul_zero_one_class M] [mul_zero_one_class N] : mul_zero_one_class (M × N) :=
+{ .. prod.mul_zero_class, .. prod.mul_one_class }
+
 instance [monoid_with_zero M] [monoid_with_zero N] : monoid_with_zero (M × N) :=
-{ .. prod.monoid, .. prod.mul_zero_class }
+{ .. prod.monoid, .. prod.mul_zero_one_class }
 
 instance [comm_monoid_with_zero M] [comm_monoid_with_zero N] : comm_monoid_with_zero (M × N) :=
-{ .. prod.comm_monoid, .. prod.mul_zero_class }
+{ .. prod.comm_monoid, .. prod.monoid_with_zero }
 
 @[to_additive]
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=

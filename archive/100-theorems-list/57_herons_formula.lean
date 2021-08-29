@@ -29,7 +29,7 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
 
 include V
 
-/-- Heron's formula: The area of a triangle with side lengths `a`, `b`, and `c` is
+/-- **Heron's formula**: The area of a triangle with side lengths `a`, `b`, and `c` is
   `√(s * (s - a) * (s - b) * (s - c))` where `s = (a + b + c) / 2` is the semiperimeter.
   We show this by equating this formula to `a * b * sin γ`, where `γ` is the angle opposite
   the side `c`.
@@ -42,7 +42,7 @@ begin
   let γ := ∠ p1 p2 p3,
   obtain := ⟨(dist_pos.mpr h1).ne', (dist_pos.mpr h2).ne'⟩,
   have cos_rule : cos γ = (a * a + b * b - c * c) / (2 * a * b) := by field_simp [mul_comm, a,
-    dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3],
+    dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle p1 p2 p3],
   let numerator := (2*a*b)^2 - (a*a + b*b - c*c)^2,
   let denominator := (2*a*b)^2,
   have split_to_frac : 1 - cos γ ^ 2 = numerator / denominator := by field_simp [cos_rule],
@@ -50,7 +50,7 @@ begin
   { have frac_nonneg: 0 ≤ numerator / denominator := by linarith [split_to_frac, cos_sq_le_one γ],
     cases div_nonneg_iff.mp frac_nonneg,
     { exact h.left },
-    { simpa [h1, h2] using le_antisymm h.right (pow_two_nonneg _) } },
+    { simpa [h1, h2] using le_antisymm h.right (sq_nonneg _) } },
   have ab2_nonneg : 0 ≤ (2 * a * b) := by norm_num [mul_nonneg, dist_nonneg],
   calc  1/2 * a * b * sin γ
       = 1/2 * a * b * (√numerator / √denominator) : by rw [sin_eq_sqrt_one_sub_cos_sq,
@@ -58,7 +58,7 @@ begin
                                                       simp [angle_nonneg, angle_le_pi]
   ... = 1/4 * √((2*a*b)^2 - (a*a + b*b - c*c)^2)  : by { field_simp [ab2_nonneg], ring }
   ... = 1/4 * √(s * (s-a) * (s-b) * (s-c) * 4^2)  : by { simp only [s], ring_nf }
-  ... = √(s * (s-a) * (s-b) * (s-c))              : by rw [sqrt_mul', sqrt_sqr, div_mul_eq_mul_div,
+  ... = √(s * (s-a) * (s-b) * (s-c))              : by rw [sqrt_mul', sqrt_sq, div_mul_eq_mul_div,
                                                           one_mul, mul_div_cancel];
                                                       norm_num,
 end

@@ -48,6 +48,12 @@ lemma separable_def' (f : polynomial R) :
   f.separable ↔ ∃ a b : polynomial R, a * f + b * f.derivative = 1 :=
 iff.rfl
 
+lemma not_separable_zero [nontrivial R] : ¬ separable (0 : polynomial R) :=
+begin
+  rintro ⟨x, y, h⟩,
+  simpa only [derivative_zero, mul_zero, add_zero, zero_ne_one] using h,
+end
+
 lemma separable_one : (1 : polynomial R).separable :=
 is_coprime_one_left
 
@@ -149,11 +155,11 @@ theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
 begin
   simp only [expand_eq_sum],
-  simp_rw [coeff_sum, ← pow_mul, C_mul_X_pow_eq_monomial, coeff_monomial, finsupp.sum],
+  simp_rw [coeff_sum, ← pow_mul, C_mul_X_pow_eq_monomial, coeff_monomial, sum],
   split_ifs with h,
-  { rw [finset.sum_eq_single (n/p), nat.mul_div_cancel' h, if_pos rfl], refl,
+  { rw [finset.sum_eq_single (n/p), nat.mul_div_cancel' h, if_pos rfl],
     { intros b hb1 hb2, rw if_neg, intro hb3, apply hb2, rw [← hb3, nat.mul_div_cancel_left b hp] },
-    { intro hn, rw finsupp.not_mem_support_iff.1 hn, split_ifs; refl } },
+    { intro hn, rw not_mem_support_iff.1 hn, split_ifs; refl } },
   { rw finset.sum_eq_zero, intros k hk, rw if_neg, exact λ hkn, h ⟨k, hkn.symm⟩, },
 end
 
@@ -164,11 +170,6 @@ by rw [coeff_expand hp, if_pos (dvd_mul_left _ _), nat.mul_div_cancel _ hp]
 @[simp] theorem coeff_expand_mul' {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff (p * n) = f.coeff n :=
 by rw [mul_comm, coeff_expand_mul hp]
-
-theorem expand_eq_map_domain (p : ℕ) (f : polynomial R) :
-  expand R p f = f.map_domain (*p) :=
-polynomial.induction_on' f (λ p q hp hq, by simp [*, finsupp.map_domain_add]) $
-  λ n a, by simp_rw [expand_monomial, monomial_def, finsupp.map_domain_single]
 
 theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : polynomial R} :
   expand R p f = expand R p g ↔ f = g :=
@@ -254,7 +255,7 @@ begin
   by_contra hxy,
   rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
       ← insert_erase (mem_erase_of_ne_of_mem (ne.symm hxy) hy),
-      prod_insert (not_mem_erase _ _), ← mul_assoc, hfxy, ← pow_two] at hfs,
+      prod_insert (not_mem_erase _ _), ← mul_assoc, hfxy, ← sq] at hfs,
   cases (hfs.of_mul_left.of_pow (by exact not_is_unit_X_sub_C) two_ne_zero).2
 end
 
@@ -309,16 +310,23 @@ by simp_rw [separable_def, derivative_map, is_coprime_map]
 
 section char_p
 
+/-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
+noncomputable def contract (p : ℕ) (f : polynomial F) : polynomial F :=
+∑ n in range (f.nat_degree + 1), monomial n (f.coeff (n * p))
+
 variables (p : ℕ) [hp : fact p.prime]
 include hp
 
-/-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
-noncomputable def contract (f : polynomial F) : polynomial F :=
-⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.1.pos).1,
-λ n, f.coeff (n * p),
-λ n, by rw [finset.mem_preimage, mem_support_iff]⟩
-
-theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) := rfl
+theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) :=
+begin
+  simp only [contract, coeff_monomial, sum_ite_eq', finset_sum_coeff, mem_range, not_lt,
+    ite_eq_left_iff],
+  assume hn,
+  apply (coeff_eq_zero_of_nat_degree_lt _).symm,
+  calc f.nat_degree < f.nat_degree + 1 : nat.lt_succ_self _
+    ... ≤ n * 1 : by simpa only [mul_one] using hn
+    ... ≤ n * p : mul_le_mul_of_nonneg_left (@nat.prime.one_lt p (fact.out _)).le (zero_le n)
+end
 
 theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f)) :
   irreducible f :=
@@ -337,7 +345,7 @@ theorem expand_char (f : polynomial F) :
 begin
   refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
   { rw [alg_hom.map_add, map_add, ha, hb, add_pow_char], },
-  { rw [expand_monomial, map_monomial, single_eq_C_mul_X, single_eq_C_mul_X,
+  { rw [expand_monomial, map_monomial, monomial_eq_C_mul_X, monomial_eq_C_mul_X,
         mul_pow, ← C.map_pow, frobenius_def],
     ring_exp }
 end
@@ -345,7 +353,7 @@ end
 theorem map_expand_pow_char (f : polynomial F) (n : ℕ) :
    map ((frobenius F p) ^ n) (expand F (p ^ n) f) = f ^ (p ^ n) :=
 begin
-  induction n, {simp [ring_hom.one_def]},
+  induction n, { simp [ring_hom.one_def] },
   symmetry,
   rw [pow_succ', pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def, ← map_map, mul_comm,
       expand_mul, ← map_expand (nat.prime.pos hp.1)],
@@ -463,7 +471,7 @@ lemma multiplicity_le_one_of_separable {p q : polynomial F} (hq : ¬ is_unit q)
 begin
   contrapose! hq,
   apply is_unit_of_self_mul_dvd_separable hsep,
-  rw ← pow_two,
+  rw ← sq,
   apply multiplicity.pow_dvd_of_le_multiplicity,
   exact_mod_cast (enat.add_one_le_of_lt hq)
 end
@@ -530,6 +538,14 @@ lemma nodup_roots {p : polynomial F} (hsep : separable p) :
   p.roots.nodup :=
 multiset.nodup_iff_count_le_one.mpr (count_roots_le_one hsep)
 
+lemma card_root_set_eq_nat_degree [algebra F K] {p : polynomial F} (hsep : p.separable)
+  (hsplit : splits (algebra_map F K) p) : fintype.card (p.root_set K) = p.nat_degree :=
+begin
+  simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
+  rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots hsplit],
+  exact nodup_roots hsep.map,
+end
+
 lemma eq_X_sub_C_of_separable_of_root_eq {x : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
   (h_sep : h.separable) (h_root : h.eval x = 0) (h_splits : splits i h)
   (h_roots : ∀ y ∈ (h.map i).roots, y = i x) : h = (C (leading_coeff h)) * (X - C x) :=
@@ -545,6 +561,21 @@ begin
       exact ring_hom.map_zero i },
     { exact h_roots } },
   { exact nodup_roots (separable.map h_sep) },
+end
+
+lemma exists_finset_of_splits
+  (i : F →+* K) {f : polynomial F} (sep : separable f) (sp : splits i f) :
+  ∃ (s : finset K), f.map i =
+    C (i f.leading_coeff) * (s.prod (λ a : K, (X : polynomial K) - C a)) :=
+begin
+  classical,
+  obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
+  use s.to_finset,
+  rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
+  apply nodup_of_separable_prod,
+  apply separable.of_mul_right,
+  rw ←h,
+  exact sep.map,
 end
 
 end splits
@@ -573,15 +604,16 @@ class is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 (is_integral' (x : K) : is_integral F x)
 (separable' (x : K) : (minpoly F x).separable)
 
-theorem is_separable.is_integral {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+theorem is_separable.is_integral (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
   ∀ x : K, is_integral F x := is_separable.is_integral'
 
-theorem is_separable.separable {F K} [field F] [field K] [algebra F K] (h : is_separable F K) :
+theorem is_separable.separable (F) {K} [field F] [field K] [algebra F K] [is_separable F K] :
   ∀ x : K, (minpoly F x).separable := is_separable.separable'
 
 theorem is_separable_iff {F K} [field F] [field K] [algebra F K] : is_separable F K ↔
   ∀ x : K, is_integral F x ∧ (minpoly F x).separable :=
-⟨λ h x, ⟨h.is_integral x, h.separable x⟩, λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
+⟨λ h x, ⟨@@is_separable.is_integral F _ _ _ h x, @@is_separable.separable F _ _ _ h x⟩,
+ λ h, ⟨λ x, (h x).1, λ x, (h x).2⟩⟩
 
 instance is_separable_self (F : Type*) [field F] : is_separable F F :=
 ⟨λ x, is_integral_algebra_map, λ x, by { rw minpoly.eq_X_sub_C', exact separable_X_sub_C }⟩
@@ -590,9 +622,9 @@ section is_separable_tower
 variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E]
 
-lemma is_separable_tower_top_of_is_separable [h : is_separable F E] : is_separable K E :=
-⟨λ x, is_integral_of_is_scalar_tower x (h.is_integral x),
- λ x, (h.separable x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
+lemma is_separable_tower_top_of_is_separable [is_separable F E] : is_separable K E :=
+⟨λ x, is_integral_of_is_scalar_tower x (is_separable.is_integral F x),
+ λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
 is_separable_iff.2 $ λ x, begin
@@ -616,3 +648,22 @@ begin
 end
 
 end is_separable_tower
+
+section card_alg_hom
+
+variables {R S T : Type*} [comm_ring S]
+variables {K L F : Type*} [field K] [field L] [field F]
+variables [algebra K S] [algebra K L]
+
+lemma alg_hom.card_of_power_basis (pb : power_basis K S) (h_sep : (minpoly K pb.gen).separable)
+  (h_splits : (minpoly K pb.gen).splits (algebra_map K L)) :
+  @fintype.card (S →ₐ[K] L) (power_basis.alg_hom.fintype pb) = pb.dim :=
+begin
+  let s := ((minpoly K pb.gen).map (algebra_map K L)).roots.to_finset,
+  have H := λ x, multiset.mem_to_finset,
+  rw [fintype.card_congr pb.lift_equiv', fintype.card_of_subtype s H,
+      ← pb.nat_degree_minpoly, nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
+  exact nodup_roots ((separable_map (algebra_map K L)).mpr h_sep)
+end
+
+end card_alg_hom

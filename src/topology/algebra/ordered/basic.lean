@@ -2197,14 +2197,23 @@ lemma is_lub.exists_seq_monotone_tendsto [first_countable_topology α]
   ∃ u : ℕ → α, monotone u ∧ (∀ n, u n ≤ x) ∧ tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
 htx.exists_seq_monotone_tendsto' ht (is_countably_generated_nhds x)
 
+lemma exists_seq_strict_mono_tendsto' {α : Type*} [linear_order α] [topological_space α]
+  [densely_ordered α] [order_topology α]
+  [first_countable_topology α] {x y : α} (hy : y < x) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
+begin
+  have hx : x ∉ Iio x := λ h, (lt_irrefl x h).elim,
+  have ht : set.nonempty (Iio x) := ⟨y, hy⟩,
+  rcases is_lub_Iio.exists_seq_strict_mono_tendsto_of_not_mem ht hx with ⟨u, hu⟩,
+  exact ⟨u, hu.1, hu.2.1, hu.2.2.1⟩,
+end
+
 lemma exists_seq_strict_mono_tendsto [densely_ordered α] [no_bot_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
 begin
-  have hx : x ∉ Iio x := λ h, (lt_irrefl x h).elim,
-  have ht : set.nonempty (Iio x) := nonempty_Iio,
-  rcases is_lub_Iio.exists_seq_strict_mono_tendsto_of_not_mem ht hx with ⟨u, hu⟩,
-  exact ⟨u, hu.1, hu.2.1, hu.2.2.1⟩,
+  obtain ⟨y, hy⟩ : ∃ y, y < x := no_bot _,
+  exact exists_seq_strict_mono_tendsto' hy
 end
 
 lemma exists_seq_tendsto_Sup {α : Type*} [conditionally_complete_linear_order α]
@@ -2239,6 +2248,11 @@ lemma is_glb.exists_seq_monotone_tendsto [first_countable_topology α]
   ∃ u : ℕ → α, (∀ m n, m ≤ n → u n ≤ u m) ∧ (∀ n, x ≤ u n) ∧
                         tendsto u at_top (𝓝 x) ∧ (∀ n, u n ∈ t) :=
 htx.exists_seq_monotone_tendsto' ht (is_countably_generated_nhds x)
+
+lemma exists_seq_strict_antimono_tendsto' [densely_ordered α]
+  [first_countable_topology α] {x y : α} (hy : x < y) :
+  ∃ u : ℕ → α, (∀ m n, m < n → u n < u m) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
+@exists_seq_strict_mono_tendsto' (order_dual α) _ _ _ _ _ x y hy
 
 lemma exists_seq_strict_antimono_tendsto [densely_ordered α] [no_top_order α]
   [first_countable_topology α] (x : α) :
@@ -2458,8 +2472,8 @@ lemma map_coe_at_top_of_Ioo_subset (hb : s ⊆ Iio b)
   map (coe : s → α) at_top = 𝓝[Iio b] b :=
 begin
   rcases eq_empty_or_nonempty (Iio b) with (hb'|⟨a, ha⟩),
-  { rw [filter_eq_bot_of_not_nonempty at_top, map_bot, hb', nhds_within_empty],
-    exact λ ⟨⟨x, hx⟩⟩, not_nonempty_iff_eq_empty.2 hb' ⟨x, hb hx⟩ },
+  { rw [filter_eq_bot_of_is_empty at_top, map_bot, hb', nhds_within_empty],
+    exact ⟨λ x, hb'.subset (hb x.2)⟩ },
   { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap_of_mem],
     rw subtype.range_coe,
     exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' ha).2 (hs a ha) },
@@ -3215,18 +3229,15 @@ lemma tendsto_at_top_is_lub {ι α : Type*} [preorder ι] [topological_space α]
   [order_topology α] {f : ι → α} (h_mono : monotone f) {a : α} (ha : is_lub (set.range f) a) :
   tendsto f at_top (𝓝 a) :=
 begin
-  by_cases hi : nonempty ι,
-  { resetI,
-    rw tendsto_order,
-    split,
-    { intros a' ha',
-      obtain ⟨_, ⟨N, rfl⟩, hN⟩ : ∃ x ∈ set.range f, a' < x := (lt_is_lub_iff ha).mp ha',
-      have := ha.2,
-      apply eventually.mono (mem_at_top N),
-      exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
-    { intros a' ha',
-      exact eventually_of_forall (λ i, lt_of_le_of_lt (ha.1 (set.mem_range_self i)) ha') } },
-  { exact tendsto_of_not_nonempty hi }
+  casesI is_empty_or_nonempty ι,
+  { exact tendsto_of_is_empty },
+  rw tendsto_order,
+  split,
+  { intros a' ha',
+    obtain ⟨_, ⟨N, rfl⟩, ha'N, hNa⟩ : ∃ x ∈ range f, a' < x ∧ x ≤ a := ha.exists_between ha',
+    exact (eventually_ge_at_top N).mono (λ i hi, ha'N.trans_le (h_mono hi)) },
+  { intros a' ha',
+    exact eventually_of_forall (λ i, lt_of_le_of_lt (ha.1 (set.mem_range_self i)) ha') }
 end
 
 lemma tendsto_at_bot_is_glb {ι α : Type*} [preorder ι] [topological_space α] [linear_order α]
@@ -3239,10 +3250,8 @@ lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
   {f : ι → α} (h_mono : monotone f) (hbdd : bdd_above $ range f) :
   tendsto f at_top (𝓝 (⨆i, f i)) :=
 begin
-  by_cases hi : nonempty ι,
-  { resetI,
-    exact tendsto_at_top_is_lub h_mono (is_lub_cSup (range_nonempty f) hbdd) },
-  { exact tendsto_of_not_nonempty hi }
+  casesI is_empty_or_nonempty ι,
+  exacts [tendsto_of_is_empty, tendsto_at_top_is_lub h_mono (is_lub_csupr hbdd)]
 end
 
 lemma tendsto_at_bot_cinfi {ι α : Type*} [preorder ι] [topological_space α]
@@ -3365,10 +3374,7 @@ lemma infi_eq_infi_subseq_of_monotone {ι₁ ι₂ α : Type*} [preorder ι₂] 
   {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : monotone f)
   (hφ : tendsto φ l at_bot) :
   (⨅ i, f i) = (⨅ i, f (φ i)) :=
-le_antisymm
-  (infi_le_infi2 $ λ i, ⟨φ i, le_refl _⟩)
-  (infi_le_infi2 $ λ i, exists_imp_exists (λ j (hj : φ j ≤ i), hf hj)
-    (hφ.eventually $ eventually_le_at_bot i).exists)
+supr_eq_supr_subseq_of_monotone hf.order_dual hφ
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :

@@ -78,6 +78,16 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
       rwa [one_mul, ← e] }
   end⟩
 
+theorem prime_of_coprime (n : ℕ) (h1 : 1 < n) (h : ∀ m < n, m ≠ 0 → n.coprime m) : prime n :=
+begin
+  refine prime_def_lt.mpr ⟨h1, λ m mlt mdvd, _⟩,
+  have hm : m ≠ 0,
+  { rintro rfl,
+    rw zero_dvd_iff at mdvd,
+    exact mlt.ne' mdvd },
+  exact (h m mlt hm).symm.eq_one_of_dvd mdvd,
+end
+
 section
 
 /--
@@ -212,7 +222,7 @@ if n1 : n = 1 then by simp [n1] else (min_fac_has_prop n1).2.1
 
 theorem min_fac_prime {n : ℕ} (n1 : n ≠ 1) : prime (min_fac n) :=
 let ⟨f2, fd, a⟩ := min_fac_has_prop n1 in
-prime_def_lt'.2 ⟨f2, λ m m2 l d, not_le_of_gt l (a m m2 (dvd_trans d fd))⟩
+prime_def_lt'.2 ⟨f2, λ m m2 l d, not_le_of_gt l (a m m2 (d.trans fd))⟩
 
 theorem min_fac_le_of_dvd {n : ℕ} : ∀ {m : ℕ}, 2 ≤ m → m ∣ n → min_fac n ≤ m :=
 by by_cases n1 : n = 1;
@@ -428,7 +438,7 @@ lemma factors_chain : ∀ {n a}, (∀ p, prime p → p ∣ n → a ≤ p) → li
   begin
     rw factors,
     refine list.chain.cons ((le_min_fac.2 h).resolve_left dec_trivial) (factors_chain _),
-    exact λ p pp d, min_fac_le_of_dvd pp.two_le (dvd_trans d $ div_dvd_of_dvd $ min_fac_dvd _),
+    exact λ p pp d, min_fac_le_of_dvd pp.two_le (d.trans $ div_dvd_of_dvd $ min_fac_dvd _),
   end
 
 lemma factors_chain_2 (n) : list.chain (≤) 2 (factors n) := factors_chain $ λ p pp _, pp.two_le
@@ -470,8 +480,8 @@ begin
   apply iff.intro,
   { intro h,
     exact ⟨min_fac (gcd m n), min_fac_prime h,
-      (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_left m n)),
-      (dvd.trans (min_fac_dvd (gcd m n)) (gcd_dvd_right m n))⟩ },
+      ((min_fac_dvd (gcd m n)).trans (gcd_dvd_left m n)),
+      ((min_fac_dvd (gcd m n)).trans (gcd_dvd_right m n))⟩ },
   { intro h,
     cases h with p hp,
     apply nat.not_coprime_of_dvd_of_dvd (prime.one_lt hp.1) hp.2.1 hp.2.2 }
@@ -497,7 +507,7 @@ begin
   induction n with n ih,
   { simp },
   { rw [pow_succ'] at *,
-    rcases ih (dvd_trans (dvd_mul_right _ _) h) with ⟨c, rfl⟩,
+    rcases ih ((dvd_mul_right _ _).trans h) with ⟨c, rfl⟩,
     rw [mul_assoc] at h,
     rcases hp.dvd_mul.1 (nat.dvd_of_mul_dvd_mul_left (pow_pos hp.pos _) h)
       with ⟨d, rfl⟩|⟨d, rfl⟩,

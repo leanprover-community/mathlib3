@@ -437,9 +437,7 @@ begin
         (show (set.range (λ ψ : M →ₗ[R] R, ψ.submodule_image N)).nonempty,
          from ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩),
     obtain ⟨ϕ, rfl⟩ := set.mem_range.mp P_eq,
-    use ϕ,
-    intros ψ hψ,
-    exact P_max _ ⟨_, rfl⟩ hψ },
+    exact ⟨ϕ, λ ψ hψ, P_max _ ⟨_, rfl⟩ hψ⟩ },
   let ϕ := this.some,
   have ϕ_max := this.some_spec,
   -- Since `ϕ(N)` is a `R`-submodule of the PID `R`,
@@ -780,9 +778,8 @@ let ⟨bS, bI, f, a, snf⟩ := I.smith_normal_form b hI,
       ((fintype.bijective_iff_injective_and_card f).mpr ⟨f.injective, fintype.card_fin _⟩) in
 have fe : ∀ i, f (e.symm i) = i := e.apply_symm_apply,
 ⟨bS, a ∘ e.symm, (bI.reindex e).map ((restrict_scalars_equiv _ _ _ _).restrict_scalars R), λ i,
-  by simp only [snf, fe, basis.map_apply, linear_equiv.refl_apply,
-    linear_equiv.restrict_scalars_apply, submodule.restrict_scalars_equiv_apply, basis.coe_reindex,
-    linear_equiv.to_fun_eq_coe]⟩
+  by simp only [snf, fe, basis.map_apply, linear_equiv.restrict_scalars_apply,
+    submodule.restrict_scalars_equiv_apply, basis.coe_reindex]⟩
 
 end smith_normal
 

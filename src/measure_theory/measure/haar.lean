@@ -54,7 +54,7 @@ where `ᵒ` denotes the interior.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal classical ennreal
+open_locale nnreal classical ennreal pointwise
 
 variables {G : Type*} [group G]
 

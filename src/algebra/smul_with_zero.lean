@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group_power.basic
+import algebra.opposites
 
 /-!
 # Introduce `smul_with_zero`
@@ -43,6 +44,11 @@ instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R 
 { smul := (*),
   smul_zero := mul_zero,
   zero_smul := zero_mul }
+
+instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_with_zero Rᵒᵖ R :=
+{ smul := (•),
+  smul_zero := λ r, zero_mul _,
+  zero_smul := mul_zero }
 
 instance add_monoid.to_smul_with_zero [add_monoid M] : smul_with_zero ℕ M :=
 { smul_zero := nsmul_zero,
@@ -106,9 +112,15 @@ instance mul_action_with_zero.to_smul_with_zero [m : mul_action_with_zero R M] :
   smul_with_zero R M :=
 {..m}
 
+/-- See also `semiring.to_module` -/
 instance monoid_with_zero.to_mul_action_with_zero : mul_action_with_zero R R :=
 { ..mul_zero_class.to_smul_with_zero R,
   ..monoid.to_mul_action R }
+
+/-- See also `semiring.to_opposite_module` -/
+instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zero Rᵒᵖ R :=
+{ ..mul_zero_class.to_opposite_smul_with_zero R,
+  ..monoid.to_opposite_mul_action R }
 
 variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
 

@@ -529,6 +529,9 @@ variables [semiring α] {a : α}
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
+lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
+f.to_monoid_hom.map_dvd
+
 end semiring
 
 /-- A commutative semiring is a `semiring` with commutative multiplication. In other words, it is a
@@ -565,9 +568,6 @@ protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
-
-lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
-λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
 
 end comm_semiring
 
@@ -920,7 +920,7 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
   is_regular k :=
 ⟨is_left_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
-  is_right_regular_of_non_zero_divisor k
+ is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
 /-- A domain is a ring with no zero divisors, i.e. satisfying

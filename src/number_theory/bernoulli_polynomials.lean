@@ -112,8 +112,7 @@ begin
   have f : ∀ x ∈ range n, ¬ n + 1 - x = 1,
   { rintros x H, rw [mem_range] at H,
     rw [eq_comm],
-    exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (nat.le_sub_left_of_add_le (succ_le_succ H))),
-  },
+    exact ne_of_lt (nat.lt_of_lt_of_le one_lt_two (nat.le_sub_left_of_add_le (succ_le_succ H))) },
   rw [sum_bernoulli],
   have g : (ite (n + 1 - x = 1) (1 : ℚ) 0) = 0,
     { simp only [ite_eq_right_iff, one_ne_zero],
@@ -165,7 +164,7 @@ begin
   -- factorials and binomial coefficients between ℕ and ℚ and A.
   intros i hi,
   -- deal with coefficients of e^X-1
-  simp only [nat.cast_choose (mem_range_le hi), coeff_mk,
+  simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, coeff_one, units.coe_mk,
     coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
     mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],

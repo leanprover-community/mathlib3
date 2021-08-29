@@ -55,7 +55,7 @@ variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x} {α : Type v'}
   {s : set E}
 
 open set linear_map
-open_locale classical big_operators
+open_locale classical big_operators pointwise
 
 local notation `I` := (Icc 0 1 : set ℝ)
 
@@ -164,7 +164,7 @@ set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
 begin
   split,
   { rintro ⟨a, b, ha, hb, hab, hx⟩,
-    refine smul_left_injective _ hb.ne' ((add_right_inj (a • x)).1 _),
+    refine smul_right_injective _ hb.ne' ((add_right_inj (a • x)).1 _),
     rw [hx, ←add_smul, hab, one_smul] },
   rintro rfl,
   simp only [open_segment_same, mem_singleton],

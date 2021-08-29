@@ -45,6 +45,7 @@ universes v₁ v₂ u₁ u₂
 noncomputable theory
 
 open category_theory.category
+open opposite
 
 namespace category_theory
 
@@ -194,6 +195,25 @@ lemma is_connected_of_equivalent {K : Type u₁} [category.{v₂} K]
 { is_nonempty := nonempty.map e.functor.obj (by apply_instance),
   to_is_preconnected := is_preconnected_of_equivalent e }
 
+/-- If `J` is preconnected, then `Jᵒᵖ` is preconnected as well. -/
+instance is_preconnected_op [is_preconnected J] : is_preconnected Jᵒᵖ :=
+{ iso_constant := λ α F X, ⟨
+    nat_iso.of_components
+      (λ Y, (nonempty.some $ is_preconnected.iso_constant
+        (F.right_op ⋙ (discrete.opposite α).functor) (unop X)).app (unop Y))
+      (λ Y Z f, subsingleton.elim _ _)
+  ⟩ }
+
+/-- If `J` is connected, then `Jᵒᵖ` is connected as well. -/
+instance is_connected_op [is_connected J] : is_connected Jᵒᵖ :=
+{ is_nonempty := nonempty.intro (op (classical.arbitrary J)) }
+
+lemma is_preconnected_of_is_preconnected_op [is_preconnected Jᵒᵖ] : is_preconnected J :=
+is_preconnected_of_equivalent (op_op_equivalence J)
+
+lemma is_connected_of_is_connected_op [is_connected Jᵒᵖ] : is_connected J :=
+is_connected_of_equivalent (op_op_equivalence J)
+
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
 def zag (j₁ j₂ : J) : Prop := nonempty (j₁ ⟶ j₂) ∨ nonempty (j₂ ⟶ j₁)
@@ -297,7 +317,7 @@ begin
 end
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
-def discrete_is_connected_equiv_punit {α : Type*} [is_connected (discrete α)] : α ≃ punit :=
+def discrete_is_connected_equiv_punit {α : Type u₁} [is_connected (discrete α)] : α ≃ punit :=
 discrete.equiv_of_equivalence
   { functor := functor.star α,
     inverse := discrete.functor (λ _, classical.arbitrary _),

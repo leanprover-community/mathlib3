@@ -278,7 +278,8 @@ begin
                   rw two_mul,
                   simp,
                 rw sdofih,
-                sorry,
+                { sorry, },
+                { linarith, },
               end
       ... = (n_n + 1) * ((2 * n_n + 2).choose (n_n + 1)) :
               begin
@@ -704,6 +705,7 @@ begin
   norm_num,
   rw <-sqrt_mul,
   norm_num,
+  -- apply le_of_lt,
   calc log 584 + 2 ≤ 8.37 :
         begin
           apply le_sub_iff_add_le.1,
@@ -715,9 +717,21 @@ begin
           apply exp_pos,
           exact covariant_swap_add_le_of_covariant_add_le ℝ,
         end
+  ... ≤ sqrt 146 * 0.6931471803 :
+        begin
+          rw <-div_le_iff,
+          rw le_sqrt,
+          norm_num,
+          norm_num,
+          linarith,
+          linarith,
+        end
   ... ≤ sqrt 146 * log 2 :
         begin
-          sorry,
+          apply mul_le_mul_of_nonneg_left,
+          apply le_of_lt,
+          exact log_two_gt_d9,
+          apply sqrt_nonneg,
         end,
   linarith,
 end
@@ -1509,44 +1523,44 @@ begin
     exact false_inequality_is_false n_big false_inequality,
 end
 
-theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
-begin
-cases lt_or_le 1003 n,
-{exact bertrand_eventually n h},
--- TODO: manage this as a loop rather than a long sequence of cases
-cases le_or_lt 505 n,
-{ use 1009, norm_num, split, linarith, linarith, },
-clear h,
+-- theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+-- begin
+-- cases lt_or_le 1003 n,
+-- {exact bertrand_eventually n h},
+-- -- TODO: manage this as a loop rather than a long sequence of cases
+-- cases le_or_lt 505 n,
+-- { use 1009, norm_num, split, linarith, linarith, },
+-- clear h,
 
-cases le_or_lt 376 n,
-{ use 751, norm_num, split, linarith, linarith, },
-clear h,
-cases le_or_lt 274 n,
-{ use 547, norm_num, split, linarith, linarith, },
-clear h_1,
-cases le_or_lt 139 n,
-{ use 277, norm_num, split, linarith, linarith, },
-clear h,
-cases le_or_lt 70 n,
-{ use 139, norm_num, split, linarith, linarith, },
-clear h_1,
-cases le_or_lt 37 n,
-{ use 73, norm_num, split, linarith, linarith, },
-clear h,
-cases le_or_lt 19 n,
-{ use 37, norm_num, split, linarith, linarith, },
-clear h_1,
-cases le_or_lt 11 n,
-{ use 19, norm_num, split, linarith, linarith, },
-clear h,
-cases le_or_lt 6 n,
-{ use 11, norm_num, split, linarith, linarith, },
-clear h_1,
-cases le_or_lt 4 n,
-{ use 7, norm_num, split, linarith, linarith, },
-clear h,
-interval_cases n,
-{ use 2, norm_num },
-{ use 3, norm_num },
-{ use 5, norm_num },
-end
+-- cases le_or_lt 376 n,
+-- { use 751, norm_num, split, linarith, linarith, },
+-- clear h,
+-- cases le_or_lt 274 n,
+-- { use 547, norm_num, split, linarith, linarith, },
+-- clear h_1,
+-- cases le_or_lt 139 n,
+-- { use 277, norm_num, split, linarith, linarith, },
+-- clear h,
+-- cases le_or_lt 70 n,
+-- { use 139, norm_num, split, linarith, linarith, },
+-- clear h_1,
+-- cases le_or_lt 37 n,
+-- { use 73, norm_num, split, linarith, linarith, },
+-- clear h,
+-- cases le_or_lt 19 n,
+-- { use 37, norm_num, split, linarith, linarith, },
+-- clear h_1,
+-- cases le_or_lt 11 n,
+-- { use 19, norm_num, split, linarith, linarith, },
+-- clear h,
+-- cases le_or_lt 6 n,
+-- { use 11, norm_num, split, linarith, linarith, },
+-- clear h_1,
+-- cases le_or_lt 4 n,
+-- { use 7, norm_num, split, linarith, linarith, },
+-- clear h,
+-- interval_cases n,
+-- { use 2, norm_num },
+-- { use 3, norm_num },
+-- { use 5, norm_num },
+-- end

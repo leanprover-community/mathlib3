@@ -4,14 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import data.int.basic
+
 /-!
 # Square root of natural numbers
 
-An efficient binary implementation of a (`sqrt n`) function that
-returns `s` such that
-```
-s*s ≤ n ≤ s*s + s + s
-```
+This file defines an efficient binary implementation of the square root function that returns the
+unique `r` such that `r * r ≤ n < (r + 1) * (r + 1)`. It takes advantage of the binary
+representation by replacing the multiplication by 2 appearing in
+`(a + b)^2 = a^2 + 2 * a * b + b^2` by a bitmask manipulation.
+
+## Reference
+
+See [Wikipedia, *Methods of computing square roots*]
+[https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)].
 -/
 namespace nat
 
@@ -62,6 +67,8 @@ begin
 end
 
 private def is_sqrt (n q : ℕ) : Prop := q*q ≤ n ∧ n < (q+1)*(q+1)
+
+local attribute [-simp] mul_eq_mul_left_iff mul_eq_mul_right_iff
 
 private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
   (h₁ : r*r ≤ n)
@@ -132,8 +139,14 @@ end
 theorem sqrt_le (n : ℕ) : sqrt n * sqrt n ≤ n :=
 (sqrt_is_sqrt n).left
 
+theorem sqrt_le' (n : ℕ) : (sqrt n) ^ 2 ≤ n :=
+eq.trans_le (sq (sqrt n)) (sqrt_le n)
+
 theorem lt_succ_sqrt (n : ℕ) : n < succ (sqrt n) * succ (sqrt n) :=
 (sqrt_is_sqrt n).right
+
+theorem lt_succ_sqrt' (n : ℕ) : n < (succ (sqrt n)) ^ 2 :=
+trans_rel_left (λ i j, i < j) (lt_succ_sqrt n) (sq (succ (sqrt n))).symm
 
 theorem sqrt_le_add (n : ℕ) : n ≤ sqrt n * sqrt n + sqrt n + sqrt n :=
 by rw ← succ_mul; exact le_of_lt_succ (lt_succ_sqrt n)
@@ -143,8 +156,14 @@ theorem le_sqrt {m n : ℕ} : m ≤ sqrt n ↔ m*m ≤ n :=
  λ h, le_of_lt_succ $ mul_self_lt_mul_self_iff.2 $
    lt_of_le_of_lt h (lt_succ_sqrt n)⟩
 
+theorem le_sqrt' {m n : ℕ} : m ≤ sqrt n ↔ m ^ 2 ≤ n :=
+by simpa only [pow_two] using le_sqrt
+
 theorem sqrt_lt {m n : ℕ} : sqrt m < n ↔ m < n*n :=
 lt_iff_lt_of_le_iff_le le_sqrt
+
+theorem sqrt_lt' {m n : ℕ} : sqrt m < n ↔ m < n ^ 2 :=
+lt_iff_lt_of_le_iff_le le_sqrt'
 
 theorem sqrt_le_self (n : ℕ) : sqrt n ≤ n :=
 le_trans (le_mul_self _) (sqrt_le n)
@@ -152,14 +171,20 @@ le_trans (le_mul_self _) (sqrt_le n)
 theorem sqrt_le_sqrt {m n : ℕ} (h : m ≤ n) : sqrt m ≤ sqrt n :=
 le_sqrt.2 (le_trans (sqrt_le _) h)
 
+@[simp] lemma sqrt_zero : sqrt 0 = 0 :=
+by rw [sqrt, size_zero, sqrt._match_1]
+
 theorem sqrt_eq_zero {n : ℕ} : sqrt n = 0 ↔ n = 0 :=
-⟨λ h, eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
+⟨λ h, nat.eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
   by rw [h]; exact dec_trivial,
- λ e, e.symm ▸ rfl⟩
+ by { rintro rfl, simp }⟩
 
 theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
 ⟨λ e, e.symm ▸ sqrt_is_sqrt n,
  λ ⟨h₁, h₂⟩, le_antisymm (le_sqrt.2 h₁) (le_of_lt_succ $ sqrt_lt.2 h₂)⟩
+
+theorem eq_sqrt' {n q} : q = sqrt n ↔ q ^ 2 ≤ n ∧ n < (q+1) ^ 2 :=
+by simpa only [pow_two] using eq_sqrt
 
 theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
 le_of_lt_succ $ (@sqrt_lt n 2).1 $
@@ -178,24 +203,40 @@ le_antisymm
     exact lt_succ_of_le (nat.add_le_add_left h _))
   (le_sqrt.2 $ nat.le_add_right _ _)
 
+theorem sqrt_add_eq' (n : ℕ) {a : ℕ} (h : a ≤ n + n) : sqrt (n ^ 2 + a) = n :=
+(congr_arg (λ i, sqrt (i + a)) (sq n)).trans (sqrt_add_eq n h)
+
 theorem sqrt_eq (n : ℕ) : sqrt (n*n) = n :=
 sqrt_add_eq n (zero_le _)
+
+theorem sqrt_eq' (n : ℕ) : sqrt (n ^ 2) = n :=
+sqrt_add_eq' n (zero_le _)
 
 theorem sqrt_succ_le_succ_sqrt (n : ℕ) : sqrt n.succ ≤ n.sqrt.succ :=
 le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $
 le_trans (sqrt_le_add n) $ add_le_add_right
   (by refine add_le_add
-    (mul_le_mul_right _ _) _; exact le_add_right _ 2) _
+    (nat.mul_le_mul_right _ _) _; exact nat.le_add_right _ 2) _
 
 theorem exists_mul_self (x : ℕ) :
   (∃ n, n * n = x) ↔ sqrt x * sqrt x = x :=
 ⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq], λ h, ⟨sqrt x, h⟩⟩
 
+theorem exists_mul_self' (x : ℕ) :
+  (∃ n, n ^ 2 = x) ↔ (sqrt x) ^ 2 = x :=
+by simpa only [pow_two] using exists_mul_self x
+
 theorem sqrt_mul_sqrt_lt_succ (n : ℕ) : sqrt n * sqrt n < n + 1 :=
 lt_succ_iff.mpr (sqrt_le _)
 
+theorem sqrt_mul_sqrt_lt_succ' (n : ℕ) : (sqrt n) ^ 2 < n + 1 :=
+lt_succ_iff.mpr (sqrt_le' _)
+
 theorem succ_le_succ_sqrt (n : ℕ) : n + 1 ≤ (sqrt n + 1) * (sqrt n + 1) :=
 le_of_pred_lt (lt_succ_sqrt _)
+
+theorem succ_le_succ_sqrt' (n : ℕ) : n + 1 ≤ (sqrt n + 1) ^ 2 :=
+le_of_pred_lt (lt_succ_sqrt' _)
 
 /-- There are no perfect squares strictly between m² and (m+1)² -/
 theorem not_exists_sq {n m : ℕ} (hl : m * m < n) (hr : n < (m + 1) * (m + 1)) :
@@ -206,5 +247,10 @@ begin
   have h2 : t < m + 1, from nat.mul_self_lt_mul_self_iff.mpr hr,
   exact (not_lt_of_ge $ le_of_lt_succ h2) h1
 end
+
+theorem not_exists_sq' {n m : ℕ} (hl : m ^ 2 < n) (hr : n < (m + 1) ^ 2) :
+  ¬ ∃ t, t ^ 2 = n :=
+  by simpa only [pow_two]
+  using not_exists_sq (by simpa only [pow_two] using hl) (by simpa only [pow_two] using hr)
 
 end nat

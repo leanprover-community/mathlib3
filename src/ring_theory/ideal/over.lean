@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Anne Baanen
+Authors: Anne Baanen
 -/
 
 import ring_theory.algebraic
@@ -39,7 +39,7 @@ lemma coeff_zero_mem_comap_of_root_mem_of_eval_mem {r : S} (hr : r ∈ I) {p : p
 begin
   rw [←p.div_X_mul_X_add, eval₂_add, eval₂_C, eval₂_mul, eval₂_X] at hp,
   refine mem_comap.mpr ((I.add_mem_iff_right _).mp hp),
-  exact I.mul_mem_left hr
+  exact I.mul_mem_left _ hr
 end
 
 lemma coeff_zero_mem_comap_of_root_mem {r : S} (hr : r ∈ I) {p : polynomial R}
@@ -62,6 +62,60 @@ begin
     refine ⟨i + 1, _, _⟩; simp [hi, mem] }
 end
 
+/-- Let `P` be an ideal in `R[x]`.  The map
+`R[x]/P → (R / (P ∩ R))[x] / (P / (P ∩ R))`
+is injective.
+-/
+lemma injective_quotient_le_comap_map (P : ideal (polynomial R)) :
+  function.injective ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
+    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map) :=
+begin
+  refine quotient_map_injective' (le_of_eq _),
+  rw comap_map_of_surjective
+    (map_ring_hom (quotient.mk (P.comap C))) (map_surjective _ quotient.mk_surjective),
+  refine le_antisymm (sup_le le_rfl _) (le_sup_of_le_left le_rfl),
+  refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
+  simpa only [coeff_map, coe_map_ring_hom] using ext_iff.mp (ideal.mem_bot.mp (mem_comap.mp hp)) n,
+end
+
+/--
+The identity in this lemma asserts that the "obvious" square
+```
+    R    → (R / (P ∩ R))
+    ↓          ↓
+R[x] / P → (R / (P ∩ R))[x] / (P / (P ∩ R))
+```
+commutes.  It is used, for instance, in the proof of `quotient_mk_comp_C_is_integral_of_jacobson`,
+in the file `ring_theory/jacobson`.
+-/
+lemma quotient_mk_maps_eq (P : ideal (polynomial R)) :
+  ((quotient.mk (map (map_ring_hom (quotient.mk (P.comap C))) P)).comp C).comp
+    (quotient.mk (P.comap C)) =
+  ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
+    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map).comp ((quotient.mk P).comp C) :=
+begin
+  refine ring_hom.ext (λ x, _),
+  repeat { rw [ring_hom.coe_comp, function.comp_app] },
+  rw [quotient_map_mk, coe_map_ring_hom, map_C],
+end
+
+/--
+This technical lemma asserts the existence of a polynomial `p` in an ideal `P ⊂ R[x]`
+that is non-zero in the quotient `R / (P ∩ R) [x]`.  The assumptions are equivalent to
+`P ≠ 0` and `P ∩ R = (0)`.
+-/
+lemma exists_nonzero_mem_of_ne_bot {P : ideal (polynomial R)}
+  (Pb : P ≠ ⊥) (hP : ∀ (x : R), C x ∈ P → x = 0) :
+  ∃ p : polynomial R, p ∈ P ∧ (polynomial.map (quotient.mk (P.comap C)) p) ≠ 0 :=
+begin
+  obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
+  refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
+  refine (ring_hom.injective_iff (polynomial.map_ring_hom (quotient.mk (P.comap C)))).mp _ _ pp0,
+  refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
+  rw [mk_ker],
+  exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
+end
+
 end comm_ring
 
 section integral_domain
@@ -80,7 +134,7 @@ lemma exists_coeff_mem_comap_sdiff_comap_of_root_mem_sdiff
 begin
   obtain ⟨hrJ, hrI⟩ := hr,
   have rbar_ne_zero : quotient.mk I r ≠ 0 := mt (quotient.mk_eq_zero I).mp hrI,
-  have rbar_mem_J : quotient.mk I r ∈ J.map (quotient.mk I) := mem_map_of_mem hrJ,
+  have rbar_mem_J : quotient.mk I r ∈ J.map (quotient.mk I) := mem_map_of_mem _ hrJ,
   have quotient_f : ∀ x ∈ I.comap f, (quotient.mk I).comp f x = 0,
   { simp [quotient.eq_zero_iff_mem] },
   have rbar_root : (p.map (quotient.mk (I.comap f))).eval₂
@@ -107,7 +161,7 @@ lemma comap_lt_comap_of_root_mem_sdiff [I.is_prime] (hIJ : I ≤ J)
   {p : polynomial R} (p_ne_zero : p.map (quotient.mk (I.comap f)) ≠ 0) (hp : p.eval₂ f r ∈ I) :
   I.comap f < J.comap f :=
 let ⟨i, hJ, hI⟩ := exists_coeff_mem_comap_sdiff_comap_of_root_mem_sdiff hIJ hr p_ne_zero hp
-in lt_iff_le_and_exists.mpr ⟨comap_mono hIJ, p.coeff i, hJ, hI⟩
+in set_like.lt_iff_le_and_exists.mpr ⟨comap_mono hIJ, p.coeff i, hJ, hI⟩
 
 variables [algebra R S]
 
@@ -149,9 +203,9 @@ end
 lemma is_maximal_of_is_integral_of_is_maximal_comap
   (hRS : algebra.is_integral R S) (I : ideal S) [I.is_prime]
   (hI : is_maximal (I.comap (algebra_map R S))) : is_maximal I :=
-⟨ mt comap_eq_top_iff.mpr hI.1,
-  λ J I_lt_J, let ⟨I_le_J, x, hxJ, hxI⟩ := lt_iff_le_and_exists.mp I_lt_J
-  in comap_eq_top_iff.mp (hI.2 _ (comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (hRS x))) ⟩
+⟨⟨mt comap_eq_top_iff.mpr hI.1.1,
+  λ J I_lt_J, let ⟨I_le_J, x, hxJ, hxI⟩ := set_like.lt_iff_le_and_exists.mp I_lt_J in
+  comap_eq_top_iff.1 $ hI.1.2 _ (comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (hRS x))⟩⟩
 
 lemma is_maximal_of_is_integral_of_is_maximal_comap' {R S : Type*} [comm_ring R] [integral_domain S]
   (f : R →+* S) (hf : f.is_integral) (I : ideal S) [hI' : I.is_prime]
@@ -183,7 +237,7 @@ imp_of_not_imp_not _ _ integral_closure.comap_ne_bot
 lemma integral_closure.comap_lt_comap {I J : ideal (integral_closure R S)} [I.is_prime]
   (I_lt_J : I < J) :
   I.comap (algebra_map R (integral_closure R S)) < J.comap (algebra_map _ _) :=
-let ⟨I_le_J, x, hxJ, hxI⟩ := lt_iff_le_and_exists.mp I_lt_J in
+let ⟨I_le_J, x, hxJ, hxI⟩ := set_like.lt_iff_le_and_exists.mp I_lt_J in
 comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (integral_closure.is_integral x)
 
 lemma integral_closure.is_maximal_of_is_maximal_comap
@@ -201,18 +255,16 @@ begin
   { rintro ⟨x, ⟨hx, x0⟩⟩,
     exact absurd (hP x0) hx },
   let Rₚ := localization P.prime_compl,
-  let f := localization.of P.prime_compl,
   let Sₚ := localization (algebra.algebra_map_submonoid S P.prime_compl),
-  let g := localization.of (algebra.algebra_map_submonoid S P.prime_compl),
   letI : integral_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
-    localization_map.integral_domain_localization (le_non_zero_divisors_of_domain hP0),
-  obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := @exists_maximal Sₚ _ (by apply_instance),
+    is_localization.integral_domain_localization (le_non_zero_divisors_of_no_zero_divisors hP0),
+  obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
   haveI Qₚ_max : is_maximal (comap _ Qₚ) := @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
-    (localization_algebra P.prime_compl f g)
-    (is_integral_localization f g H) _ Qₚ_maximal,
-  refine ⟨comap g.to_map Qₚ, ⟨comap_is_prime g.to_map Qₚ, _⟩⟩,
+    (localization_algebra P.prime_compl S)
+    (is_integral_localization H) _ Qₚ_maximal,
+  refine ⟨comap (algebra_map S Sₚ) Qₚ, ⟨comap_is_prime _ Qₚ, _⟩⟩,
   convert localization.at_prime.comap_maximal_ideal,
-  rw [comap_comap, ← local_ring.eq_maximal_ideal Qₚ_max, ← f.map_comp _],
+  rw [comap_comap, ← local_ring.eq_maximal_ideal Qₚ_max, ← is_localization.map_comp _],
   refl
 end
 

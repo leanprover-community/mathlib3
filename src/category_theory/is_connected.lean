@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import data.list.chain
 import category_theory.punit
+import category_theory.groupoid
 
 /-!
 # Connected category
@@ -44,6 +45,7 @@ universes v₁ v₂ u₁ u₂
 noncomputable theory
 
 open category_theory.category
+open opposite
 
 namespace category_theory
 
@@ -121,7 +123,8 @@ This can be thought of as a local-to-global property.
 The converse of `constant_of_preserves_morphisms`.
 -/
 lemma is_connected.of_constant_of_preserves_morphisms [nonempty J]
-  (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j j' : J, F j = F j')) :
+  (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) →
+    (∀ j j' : J, F j = F j')) :
   is_connected J :=
 is_connected.of_any_functor_const_on_obj (λ _ F, h F.obj (λ _ _ f, (F.map f).down.1))
 
@@ -147,8 +150,8 @@ If any maximal connected component containing some element j₀ of J is all of J
 
 The converse of `induct_on_objects`.
 -/
-lemma is_connected.of_induct [nonempty J]
-  {j₀ : J} (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
+lemma is_connected.of_induct [nonempty J] {j₀ : J}
+  (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
   is_connected J :=
 is_connected.of_constant_of_preserves_morphisms (λ α F a,
 begin
@@ -191,6 +194,25 @@ lemma is_connected_of_equivalent {K : Type u₁} [category.{v₂} K]
   is_connected K :=
 { is_nonempty := nonempty.map e.functor.obj (by apply_instance),
   to_is_preconnected := is_preconnected_of_equivalent e }
+
+/-- If `J` is preconnected, then `Jᵒᵖ` is preconnected as well. -/
+instance is_preconnected_op [is_preconnected J] : is_preconnected Jᵒᵖ :=
+{ iso_constant := λ α F X, ⟨
+    nat_iso.of_components
+      (λ Y, (nonempty.some $ is_preconnected.iso_constant
+        (F.right_op ⋙ (discrete.opposite α).functor) (unop X)).app (unop Y))
+      (λ Y Z f, subsingleton.elim _ _)
+  ⟩ }
+
+/-- If `J` is connected, then `Jᵒᵖ` is connected as well. -/
+instance is_connected_op [is_connected J] : is_connected Jᵒᵖ :=
+{ is_nonempty := nonempty.intro (op (classical.arbitrary J)) }
+
+lemma is_preconnected_of_is_preconnected_op [is_preconnected Jᵒᵖ] : is_preconnected J :=
+is_preconnected_of_equivalent (op_op_equivalence J)
+
+lemma is_connected_of_is_connected_op [is_connected Jᵒᵖ] : is_connected J :=
+is_connected_of_equivalent (op_op_equivalence J)
 
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
@@ -247,7 +269,7 @@ lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equiva
 begin
   have z : ∀ (j : J), r (classical.arbitrary J) j :=
     induct_on_objects (λ k, r (classical.arbitrary J) k)
-        (hr.1 (classical.arbitrary J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
+      (hr.1 (classical.arbitrary J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
   intros, apply hr.2.2 (hr.2.1 (z _)) (z _)
 end
 
@@ -288,17 +310,14 @@ lemma is_connected_of_zigzag [nonempty J]
   (h : ∀ (j₁ j₂ : J), ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂) :
   is_connected J :=
 begin
-  apply is_connected.of_induct,
-  intros p d k j,
-  obtain ⟨l, zags, lst⟩ := h j (classical.arbitrary J),
-  apply list.chain.induction p l zags lst _ d,
-  rintros _ _ (⟨⟨xy⟩⟩ | ⟨⟨yx⟩⟩),
-  { exact (k xy).2 },
-  { exact (k yx).1 }
+  apply zigzag_is_connected,
+  intros j₁ j₂,
+  rcases h j₁ j₂ with ⟨l, hl₁, hl₂⟩,
+  apply list.relation_refl_trans_gen_of_exists_chain l hl₁ hl₂,
 end
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
-def discrete_is_connected_equiv_punit {α : Type*} [is_connected (discrete α)] : α ≃ punit :=
+def discrete_is_connected_equiv_punit {α : Type u₁} [is_connected (discrete α)] : α ≃ punit :=
 discrete.equiv_of_equivalence
   { functor := functor.star α,
     inverse := discrete.functor (λ _, classical.arbitrary _),
@@ -319,5 +338,20 @@ lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (X ⟶ Y)
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
+
+instance [is_connected J] : full (functor.const J : C ⥤ J ⥤ C) :=
+{ preimage := λ X Y f, f.app (classical.arbitrary J),
+  witness' := λ X Y f,
+  begin
+    ext j,
+    apply nat_trans_from_is_connected f (classical.arbitrary J) j,
+  end }
+
+instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] :
+  ∀ (x y : G), nonempty (x ⟶ y) :=
+begin
+  refine equiv_relation _ _ (λ j₁ j₂, nonempty.intro),
+  exact ⟨λ j, ⟨𝟙 _⟩, λ j₁ j₂, nonempty.map (λ f, inv f), λ _ _ _, nonempty.map2 (≫)⟩,
+end
 
 end category_theory

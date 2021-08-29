@@ -61,40 +61,29 @@ variables {K L} (S : intermediate_field K L)
 
 namespace intermediate_field
 
-instance : has_coe (intermediate_field K L) (set L) :=
-⟨intermediate_field.carrier⟩
+instance : set_like (intermediate_field K L) L :=
+⟨intermediate_field.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+@[simp]
+lemma mem_carrier {s : intermediate_field K L} {x : L} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
+
+/-- Two intermediate fields are equal if they have the same elements. -/
+@[ext] theorem ext {S T : intermediate_field K L} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T :=
+set_like.ext h
 
 @[simp] lemma coe_to_subalgebra : (S.to_subalgebra : set L) = S := rfl
 
 @[simp] lemma coe_to_subfield : (S.to_subfield : set L) = S := rfl
 
-instance : has_coe_to_sort (intermediate_field K L) := ⟨Type*, λ S, S.carrier⟩
-
-instance : has_mem L (intermediate_field K L) := ⟨λ m S, m ∈ (S : set L)⟩
-
 @[simp] lemma mem_mk (s : set L) (hK : ∀ x, algebra_map K L x ∈ s)
   (ho hm hz ha hn hi) (x : L) :
   x ∈ intermediate_field.mk s ho hm hz ha hK hn hi ↔ x ∈ s := iff.rfl
-
-@[simp] lemma mem_coe (x : L) : x ∈ (S : set L) ↔ x ∈ S := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subfield (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subfield ↔ x ∈ s := iff.rfl
-
-/-- Two intermediate fields are equal if the underlying subsets are equal. -/
-theorem ext' ⦃s t : intermediate_field K L⦄ (h : (s : set L) = t) : s = t :=
-by { cases s, cases t, congr' }
-
-/-- Two intermediate fields are equal if and only if the underlying subsets are equal. -/
-protected theorem ext'_iff {s t : intermediate_field K L} : s = t ↔ (s : set L) = t :=
-⟨λ h, h ▸ rfl, λ h, ext' h⟩
-
-/-- Two intermediate fields are equal if they have the same elements. -/
-@[ext] theorem ext {S T : intermediate_field K L} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T :=
-ext' $ set.ext h
 
 /-- An intermediate field contains the image of the smaller field. -/
 theorem algebra_map_mem (x : K) : algebra_map K L x ∈ S :=
@@ -147,26 +136,25 @@ lemma multiset_sum_mem (m : multiset L) :
   (∀ a ∈ m, a ∈ S) → m.sum ∈ S :=
 S.to_subfield.multiset_sum_mem m
 
-/-- Product of elements of an intermediate field indexed by a `finset` is in the intermediate_field. -/
+/-- Product of elements of an intermediate field indexed by a `finset` is in the intermediate_field.
+-/
 lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c ∈ S) :
   ∏ i in t, f i ∈ S :=
 S.to_subfield.prod_mem h
 
-/-- Sum of elements in a `intermediate_field` indexed by a `finset` is in the `intermediate_field`. -/
+/-- Sum of elements in a `intermediate_field` indexed by a `finset` is in the `intermediate_field`.
+-/
 lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c ∈ S) :
   ∑ i in t, f i ∈ S :=
 S.to_subfield.sum_mem h
 
-lemma pow_mem {x : L} (hx : x ∈ S) (n : ℤ) : x^n ∈ S :=
-begin
-  cases n,
-  { exact @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx n, },
-  { have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
-    exact subfield.inv_mem S.to_subfield h, },
-end
+lemma pow_mem {x : L} (hx : x ∈ S) : ∀ (n : ℤ), x^n ∈ S
+| (n : ℕ) := by { rw gpow_coe_nat, exact S.to_subfield.pow_mem hx _, }
+| -[1+ n] := by { rw [gpow_neg_succ_of_nat],
+    exact S.to_subfield.inv_mem (S.to_subfield.pow_mem hx _) }
 
 lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
-  n •ℤ x ∈ S := S.to_subfield.gsmul_mem hx n
+  n • x ∈ S := S.to_subfield.gsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : L) ∈ S :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
@@ -210,15 +198,30 @@ S.to_subfield.to_field
 @[simp, norm_cast] lemma coe_inv (x : S) : (↑(x⁻¹) : L) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : S) : L) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : S) : L) = 1 := rfl
+@[simp, norm_cast] lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n :=
+begin
+  induction n with n ih,
+  { simp },
+  { simp [pow_succ, ih] }
+end
 
 instance algebra : algebra K S :=
 S.to_subalgebra.algebra
 
-instance to_algebra : algebra S L :=
+instance to_algebra {R : Type*} [semiring R] [algebra L R] : algebra S R :=
 S.to_subalgebra.to_algebra
 
-instance : is_scalar_tower K S L :=
+instance is_scalar_tower_bot {R : Type*} [semiring R] [algebra L R] :
+  is_scalar_tower S L R :=
+is_scalar_tower.subalgebra _ _ _ S.to_subalgebra
+
+instance is_scalar_tower_mid {R : Type*} [semiring R] [algebra L R] [algebra K R]
+  [is_scalar_tower K L R] : is_scalar_tower K S R :=
 is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
+
+/-- Specialize `is_scalar_tower_mid` to the common case where the top field is `L` -/
+instance is_scalar_tower_mid' : is_scalar_tower K S L :=
+S.is_scalar_tower_mid
 
 variables {L' : Type*} [field L'] [algebra K L']
 
@@ -242,12 +245,6 @@ variables {S}
 lemma to_subalgebra_injective {S S' : intermediate_field K L}
   (h : S.to_subalgebra = S'.to_subalgebra) : S = S' :=
 by { ext, rw [← mem_to_subalgebra, ← mem_to_subalgebra, h] }
-
-instance : partial_order (intermediate_field K L) :=
-{ le := λ S T, (S : set L) ⊆ T,
-  le_refl := λ S, set.subset.refl S,
-  le_trans := λ _ _ _, set.subset.trans,
-  le_antisymm := λ S T hst hts, ext $ λ x, ⟨@hst x, @hts x⟩ }
 
 variables (S)
 
@@ -291,40 +288,75 @@ instance has_lift2 {F : intermediate_field K L} :
 @[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
   x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
 
+instance lift2_alg {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
+{ to_fun := (algebra_map F E).comp (algebra_map K F),
+  map_zero' := ((algebra_map F E).comp (algebra_map K F)).map_zero,
+  map_one' := ((algebra_map F E).comp (algebra_map K F)).map_one,
+  map_add' := ((algebra_map F E).comp (algebra_map K F)).map_add,
+  map_mul' := ((algebra_map F E).comp (algebra_map K F)).map_mul,
+  smul := λ a b, (((algebra_map F E).comp (algebra_map K F)) a) * b,
+  smul_def' := λ _ _, rfl,
+  commutes' := λ a b, mul_comm (((algebra_map F E).comp (algebra_map K F)) a) b }
+
+instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
+  is_scalar_tower K F E :=
+⟨λ a b c, by { simp only [algebra.smul_def, ring_hom.map_mul, mul_assoc], refl }⟩
+
+/-- `lift2` is isomorphic to the original `intermediate_field`. -/
+def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
+  (↑E : intermediate_field K L) ≃ₐ[K] E :=
+{ to_fun := λ x, x,
+  inv_fun := λ x, x,
+  left_inv := λ x, rfl,
+  right_inv := λ x, rfl,
+  map_add' := λ x y, rfl,
+  map_mul' := λ x y, rfl,
+  commutes' := λ x, rfl }
+
 end tower
 
 section finite_dimensional
 
-instance finite_dimensional_left [finite_dimensional K L] (F : intermediate_field K L) :
-  finite_dimensional K F :=
+variables (F E : intermediate_field K L)
+
+instance finite_dimensional_left [finite_dimensional K L] : finite_dimensional K F :=
 finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
 
-instance finite_dimensional_right [finite_dimensional K L] (F : intermediate_field K L) :
-  finite_dimensional F L :=
+instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional F L :=
 right K F L
 
-lemma eq_of_le_of_findim_le [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
-  (h_findim : findim K E ≤ findim K F) : F = E :=
-intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp (eq_of_le_of_findim_le
-  (show F.to_subalgebra.to_submodule ≤ E.to_subalgebra.to_submodule, by exact h_le) h_findim))
+@[simp] lemma dim_eq_dim_subalgebra :
+  module.rank K F.to_subalgebra = module.rank K F := rfl
 
-lemma eq_of_le_of_findim_eq [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
-  (h_findim : findim K F = findim K E) : F = E :=
-eq_of_le_of_findim_le h_le h_findim.ge
+@[simp] lemma finrank_eq_finrank_subalgebra :
+  finrank K F.to_subalgebra = finrank K F := rfl
 
-lemma eq_of_le_of_findim_le' [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
-  (h_findim : findim F L ≤ findim E L) : F = E :=
+variables {F} {E}
+
+@[simp] lemma to_subalgebra_eq_iff : F.to_subalgebra = E.to_subalgebra ↔ F = E :=
+by { rw [set_like.ext_iff, set_like.ext'_iff, set.ext_iff], refl }
+
+lemma eq_of_le_of_finrank_le [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank K E ≤ finrank K F) : F = E :=
+to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_finrank_le h_le h_finrank
+
+lemma eq_of_le_of_finrank_eq [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank K F = finrank K E) : F = E :=
+eq_of_le_of_finrank_le h_le h_finrank.ge
+
+lemma eq_of_le_of_finrank_le' [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank F L ≤ finrank E L) : F = E :=
 begin
-  apply eq_of_le_of_findim_le h_le,
-  have h1 := findim_mul_findim K F L,
-  have h2 := findim_mul_findim K E L,
-  have h3 : 0 < findim E L := findim_pos,
+  apply eq_of_le_of_finrank_le h_le,
+  have h1 := finrank_mul_finrank K F L,
+  have h2 := finrank_mul_finrank K E L,
+  have h3 : 0 < finrank E L := finrank_pos,
   nlinarith,
 end
 
-lemma eq_of_le_of_findim_eq' [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
-  (h_findim : findim F L = findim E L) : F = E :=
-eq_of_le_of_findim_le' h_le h_findim.le
+lemma eq_of_le_of_finrank_eq' [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank F L = finrank E L) : F = E :=
+eq_of_le_of_finrank_le' h_le h_finrank.le
 
 end finite_dimensional
 

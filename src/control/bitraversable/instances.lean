@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 import control.bitraversable.lemmas
 import control.traversable.lemmas
@@ -33,7 +33,7 @@ universes u v w
 variables {t : Type u → Type u → Type u} [bitraversable t]
 
 section
-variables {F  : Type u → Type u} [applicative F]
+variables {F : Type u → Type u} [applicative F]
 
 def prod.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') : α × β → F (α' × β')
 | (x,y) := prod.mk <$> f x <*> f' y
@@ -111,7 +111,8 @@ instance [is_lawful_traversable F]  [is_lawful_traversable G] [is_lawful_bitrave
   is_lawful_bitraversable (bicompl t F G) :=
 begin
   constructor; introsI;
-    simp [bitraverse,bicompl.bitraverse,bimap,traverse_id,bitraverse_id_id,comp_bitraverse] with functor_norm,
+    simp [bitraverse, bicompl.bitraverse, bimap, traverse_id, bitraverse_id_id, comp_bitraverse]
+      with functor_norm,
   { simp [traverse_eq_map_id',bitraverse_eq_bimap_id], },
   { revert x, dunfold bicompl,
     simp [binaturality,naturality_pf] }

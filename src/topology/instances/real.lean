@@ -6,9 +6,10 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
-import topology.algebra.continuous_functions
 import ring_theory.subring
 import group_theory.archimedean
+import algebra.periodic
+
 /-!
 # Topological properties of ℝ
 -/
@@ -16,7 +17,7 @@ import group_theory.archimedean
 noncomputable theory
 open classical set filter topological_space metric
 open_locale classical
-open_locale topological_space
+open_locale topological_space filter uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -28,29 +29,48 @@ theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
 @[norm_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
-section low_prio
--- we want to ignore this instance for the next declaration
-local attribute [instance, priority 10] int.uniform_space
-instance : metric_space ℤ :=
-begin
-  letI M := metric_space.induced coe int.cast_injective real.metric_space,
-  refine @metric_space.replace_uniformity _ int.uniform_space M
-    (le_antisymm refl_le_uniformity $ λ r ru,
-      mem_uniformity_dist.2 ⟨1, zero_lt_one, λ a b h,
-      mem_principal_sets.1 ru $ dist_le_zero.1 (_ : (abs (a - b) : ℝ) ≤ 0)⟩),
-  have : (abs (↑a - ↑b) : ℝ) < 1 := h,
-  have : abs (a - b) < 1, by norm_cast at this; assumption,
-  have : abs (a - b) ≤ 0 := (@int.lt_add_one_iff _ 0).mp this,
-  norm_cast, assumption
-end
-end low_prio
+namespace int
 
-theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
+lemma uniform_embedding_coe_real : uniform_embedding (coe : ℤ → ℝ) :=
+{ comap_uniformity :=
+    begin
+      refine le_antisymm (le_principal_iff.2 _) (@refl_le_uniformity ℤ $
+        uniform_space.comap coe (infer_instance : uniform_space ℝ)),
+      refine (uniformity_basis_dist.comap _).mem_iff.2 ⟨1, zero_lt_one, _⟩,
+      rintro ⟨a, b⟩ (h : abs (a - b : ℝ) < 1),
+      norm_cast at h,
+      erw [@int.lt_add_one_iff _ 0, abs_nonpos_iff, sub_eq_zero] at h, assumption
+    end,
+  inj := int.cast_injective }
 
-@[norm_cast, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
+instance : metric_space ℤ := int.uniform_embedding_coe_real.comap_metric_space _
 
-@[norm_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
+theorem dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
+
+@[norm_cast, simp] theorem dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
+
+@[norm_cast, simp] theorem dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
 by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
+
+theorem preimage_ball (x : ℤ) (r : ℝ) : coe ⁻¹' (ball (x : ℝ) r) = ball x r := rfl
+
+theorem preimage_closed_ball (x : ℤ) (r : ℝ) :
+  coe ⁻¹' (closed_ball (x : ℝ) r) = closed_ball x r := rfl
+
+theorem ball_eq (x : ℤ) (r : ℝ) : ball x r = Ioo ⌊↑x - r⌋ ⌈↑x + r⌉ :=
+by rw [← preimage_ball, real.ball_eq, preimage_Ioo]
+
+theorem closed_ball_eq (x : ℤ) (r : ℝ) : closed_ball x r = Icc ⌈↑x - r⌉ ⌊↑x + r⌋ :=
+by rw [← preimage_closed_ball, real.closed_ball_eq, preimage_Icc]
+
+instance : proper_space ℤ :=
+⟨ begin
+    intros x r,
+    rw closed_ball_eq,
+    exact (set.Icc_ℤ_finite _ _).is_compact,
+  end ⟩
+
+end int
 
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
 uniform_continuous_comap
@@ -61,7 +81,7 @@ uniform_embedding_comap rat.cast_injective
 theorem dense_embedding_of_rat : dense_embedding (coe : ℚ → ℝ) :=
 uniform_embedding_of_rat.dense_embedding $
 λ x, mem_closure_iff_nhds.2 $ λ t ht,
-let ⟨ε,ε0, hε⟩ := mem_nhds_iff.1 ht in
+let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨q, h⟩ := exists_rat_near x ε0 in
 ⟨_, hε (mem_ball'.2 h), q, rfl⟩
 
@@ -101,22 +121,22 @@ instance : topological_add_group ℚ := by apply_instance
 instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
+instance : proper_space ℝ :=
+{ compact_ball := λx r, by { rw real.closed_ball_eq, apply is_compact_Icc } }
+
+instance : second_countable_topology ℝ := second_countable_of_proper
+
 lemma real.is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
   (by simp [is_open_Ioo] {contextual:=tt})
   (assume a v hav hv,
-    let ⟨l, u, hl, hu, h⟩ := (mem_nhds_unbounded (no_top _) (no_bot _)).mp (mem_nhds_sets hv hav),
+    let ⟨l, u, ⟨hl, hu⟩, h⟩ := mem_nhds_iff_exists_Ioo_subset.mp (is_open.mem_nhds hv hav),
         ⟨q, hlq, hqa⟩ := exists_rat_btwn hl,
         ⟨p, hap, hpu⟩ := exists_rat_btwn hu in
     ⟨Ioo q p,
-      by simp; exact ⟨q, p, rat.cast_lt.1 $ lt_trans hqa hap, rfl⟩,
-      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h _ (lt_trans hlq hqa') (lt_trans ha'p hpu)⟩)
-
-instance : second_countable_topology ℝ :=
-⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
-  by simp [countable_Union, countable_Union_Prop],
-  real.is_topological_basis_Ioo_rat.2.2⟩⟩
+      by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
+      ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
@@ -125,7 +145,8 @@ _
 lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding ((*) q) :=
 _ -/
 
-lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
+lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} :
+  x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
 by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
 
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
@@ -138,22 +159,16 @@ lemma real.uniform_continuous_abs : uniform_continuous (abs : ℝ → ℝ) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
   ⟨ε, ε0, λ a b, lt_of_le_of_lt (abs_abs_sub_abs_le_abs_sub _ _)⟩
 
-lemma real.continuous_abs : continuous (abs : ℝ → ℝ) :=
-real.uniform_continuous_abs.continuous
-
 lemma rat.uniform_continuous_abs : uniform_continuous (abs : ℚ → ℚ) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
   ⟨ε, ε0, λ a b h, lt_of_le_of_lt
     (by simpa [rat.dist_eq] using abs_abs_sub_abs_le_abs_sub _ _) h⟩
 
-lemma rat.continuous_abs : continuous (abs : ℚ → ℚ) :=
-rat.uniform_continuous_abs.continuous
-
 lemma real.tendsto_inv {r : ℝ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 by rw ← abs_pos at r0; exact
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
-  (mem_nhds_sets ((is_open_lt' (abs r / 2)).preimage real.continuous_abs) (half_lt_self r0))
+  (is_open.mem_nhds ((is_open_lt' (abs r / 2)).preimage continuous_abs) (half_lt_self r0))
 
 lemma real.continuous_inv : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
@@ -187,9 +202,9 @@ tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
     (λ x, id))
-  (mem_nhds_sets
-    (((is_open_gt' (abs a₁ + 1)).preimage real.continuous_abs).prod
-      ((is_open_gt' (abs a₂ + 1)).preimage real.continuous_abs ))
+  (is_open.mem_nhds
+    (((is_open_gt' (abs a₁ + 1)).preimage continuous_abs).prod
+      ((is_open_gt' (abs a₂ + 1)).preimage continuous_abs ))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
 instance : topological_ring ℝ :=
@@ -214,58 +229,25 @@ by rw [real.ball_eq_Ioo, ← sub_div, add_comm, ← sub_add,
   add_sub_cancel', add_self_div_two, ← add_div,
   add_assoc, add_sub_cancel'_right, add_self_div_two]
 
-lemma real.totally_bounded_Ioo (a b : ℝ) : totally_bounded (Ioo a b) :=
-metric.totally_bounded_iff.2 $ λ ε ε0, begin
-  rcases exists_nat_gt ((b - a) / ε) with ⟨n, ba⟩,
-  rw [div_lt_iff' ε0, sub_lt_iff_lt_add'] at ba,
-  let s := (λ i:ℕ, a + ε * i) '' {i:ℕ | i < n},
-  refine ⟨s, (set.finite_lt_nat _).image _, _⟩,
-  rintro x ⟨ax, xb⟩,
-  let i : ℕ := ⌊(x - a) / ε⌋.to_nat,
-  have : (i : ℤ) = ⌊(x - a) / ε⌋ :=
-    int.to_nat_of_nonneg (floor_nonneg.2 $ le_of_lt (div_pos (sub_pos.2 ax) ε0)),
-  simp, use i, split,
-  { rw [← int.coe_nat_lt, this],
-    refine int.cast_lt.1 (lt_of_le_of_lt (floor_le _) _),
-    rw [int.cast_coe_nat, div_lt_iff' ε0, sub_lt_iff_lt_add'],
-    exact lt_trans xb ba },
-  { rw [real.dist_eq, ← int.cast_coe_nat, this, abs_of_nonneg,
-        ← sub_sub, sub_lt_iff_lt_add'],
-    { have := lt_floor_add_one ((x - a) / ε),
-      rwa [div_lt_iff' ε0, mul_add, mul_one] at this },
-    { have := floor_le ((x - a) / ε),
-      rwa [sub_nonneg, ← le_sub_iff_add_le', ← le_div_iff' ε0] } }
-end
-
-lemma real.totally_bounded_ball (x ε : ℝ) : totally_bounded (ball x ε) :=
-by rw real.ball_eq_Ioo; apply real.totally_bounded_Ioo
-
-lemma real.totally_bounded_Ico (a b : ℝ) : totally_bounded (Ico a b) :=
-let ⟨c, ac⟩ := no_bot a in totally_bounded_subset
-  (by exact λ x ⟨h₁, h₂⟩, ⟨lt_of_lt_of_le ac h₁, h₂⟩)
-  (real.totally_bounded_Ioo c b)
-
-lemma real.totally_bounded_Icc (a b : ℝ) : totally_bounded (Icc a b) :=
-let ⟨c, bc⟩ := no_top b in totally_bounded_subset
-  (by exact λ x ⟨h₁, h₂⟩, ⟨h₁, lt_of_le_of_lt h₂ bc⟩)
-  (real.totally_bounded_Ico a c)
-
-lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=
-begin
-  have := totally_bounded_preimage uniform_embedding_of_rat (real.totally_bounded_Icc a b),
-  rwa (set.ext (λ q, _) : Icc _ _ = _), simp
-end
-
 instance : complete_space ℝ :=
 begin
   apply complete_of_cauchy_seq_tendsto,
   intros u hu,
-  let c : cau_seq ℝ abs := ⟨u, cauchy_seq_iff'.1 hu⟩,
+  let c : cau_seq ℝ abs := ⟨u, metric.cauchy_seq_iff'.1 hu⟩,
   refine ⟨c.lim, λ s h, _⟩,
   rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
   have := c.equiv_lim ε ε0,
   simp only [mem_map, mem_at_top_sets, mem_set_of_eq],
   refine this.imp (λ N hN n hn, hε (hN n hn))
+end
+
+lemma real.totally_bounded_ball (x ε : ℝ) : totally_bounded (ball x ε) :=
+by rw real.ball_eq_Ioo; apply totally_bounded_Ioo
+
+lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=
+begin
+  have := totally_bounded_preimage uniform_embedding_of_rat (totally_bounded_Icc a b),
+  rwa (set.ext (λ q, _) : Icc _ _ = _), simp
 end
 
 section
@@ -289,44 +271,65 @@ lemma closure_of_rat_image_le_le_eq {a b : ℚ} (hab : a ≤ b) :
   closure (of_rat '' {q:ℚ | a ≤ q ∧ q ≤ b}) = {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} :=
 _-/
 
-lemma compact_Icc {a b : ℝ} : is_compact (Icc a b) :=
-compact_of_totally_bounded_is_closed
-  (real.totally_bounded_Icc a b)
-  (is_closed_inter (is_closed_ge' a) (is_closed_le' b))
-
-lemma compact_pi_Icc {ι : Type*} {a b : ι → ℝ} : is_compact (Icc a b) :=
-pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
-
-instance : proper_space ℝ :=
-{ compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
-
 lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_below s ∧ bdd_above s :=
 ⟨begin
   assume bdd,
   rcases (bounded_iff_subset_ball 0).1 bdd with ⟨r, hr⟩, -- hr : s ⊆ closed_ball 0 r
-  rw closed_ball_Icc at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
-  exact ⟨⟨-r, λy hy, by simpa using (hr hy).1⟩, ⟨r, λy hy, by simpa using (hr hy).2⟩⟩
+  rw real.closed_ball_eq at hr, -- hr : s ⊆ Icc (0 - r) (0 + r)
+  exact ⟨bdd_below_Icc.mono hr, bdd_above_Icc.mono hr⟩
 end,
 begin
-  rintros ⟨⟨m, hm⟩, ⟨M, hM⟩⟩,
-  have I : s ⊆ Icc m M := λx hx, ⟨hm hx, hM hx⟩,
-  have : Icc m M = closed_ball ((m+M)/2) ((M-m)/2) :=
-    by rw closed_ball_Icc; congr; ring,
-  rw this at I,
-  exact bounded.subset I bounded_closed_ball
+  intro h,
+  rcases bdd_below_bdd_above_iff_subset_Icc.1 h with ⟨m, M, I : s ⊆ Icc m M⟩,
+  exact (bounded_Icc m M).subset I
 end⟩
+
+lemma real.subset_Icc_Inf_Sup_of_bounded {s : set ℝ} (h : bounded s) :
+  s ⊆ Icc (Inf s) (Sup s) :=
+subset_Icc_cInf_cSup (real.bounded_iff_bdd_below_bdd_above.1 h).1
+  (real.bounded_iff_bdd_below_bdd_above.1 h).2
 
 lemma real.image_Icc {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
   f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
-  (compact_Icc.image_of_continuous_on h)
+  (is_compact_Icc.image_of_continuous_on h)
 
 end
 
-instance reals_semimodule : topological_semimodule ℝ ℝ := ⟨continuous_mul⟩
+section periodic
 
-instance real_maps_algebra {α : Type*} [topological_space α] :
-  algebra ℝ C(α, ℝ) := continuous_map_algebra
+namespace function
+
+lemma periodic.compact_of_continuous' [topological_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : 0 < c) (hf : continuous f) :
+  is_compact (range f) :=
+begin
+  convert is_compact_Icc.image hf,
+  ext x,
+  refine ⟨_, mem_range_of_mem_image f (Icc 0 c)⟩,
+  rintros ⟨y, h1⟩,
+  obtain ⟨z, hz, h2⟩ := hp.exists_mem_Ico hc y,
+  exact ⟨z, mem_Icc_of_Ico hz, h2.symm.trans h1⟩,
+end
+
+/-- A continuous, periodic function has compact range. -/
+lemma periodic.compact_of_continuous [topological_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : c ≠ 0) (hf : continuous f) :
+  is_compact (range f) :=
+begin
+  cases lt_or_gt_of_ne hc with hneg hpos,
+  exacts [hp.neg.compact_of_continuous' (neg_pos.mpr hneg) hf, hp.compact_of_continuous' hpos hf],
+end
+
+/-- A continuous, periodic function is bounded. -/
+lemma periodic.bounded_of_continuous [pseudo_metric_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : c ≠ 0) (hf : continuous f) :
+  bounded (range f) :=
+(hp.compact_of_continuous hc hf).bounded
+
+end function
+
+end periodic
 
 section subgroups
 
@@ -339,7 +342,7 @@ begin
   push_neg at H',
   intros x,
   suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
-    by simpa only [real.mem_closure_iff, abs_sub],
+    by simpa only [real.mem_closure_iff, abs_sub_comm],
   intros ε ε_pos,
   obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G ∧ 0 < g₁,
   { cases lt_or_gt_of_ne g₀_ne with Hg₀ Hg₀,
@@ -351,9 +354,9 @@ begin
   { intros H,
     exact H' a ⟨H, ha.1⟩ },
   obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
-  { obtain ⟨b, hb, hb', hb''⟩ := ha.exists_between_self_add' ε_pos a_notin,
-    obtain ⟨c, hc, hc', hc''⟩ := ha.exists_between_self_add' (by linarith : 0 < b - a) a_notin,
-    refine ⟨b - c, add_subgroup.sub_mem G hb.1 hc.1, _, _⟩ ;
+  { obtain ⟨b, hb, hb', hb''⟩ := ha.exists_between_self_add' a_notin ε_pos,
+    obtain ⟨c, hc, hc', hc''⟩ := ha.exists_between_self_add' a_notin (sub_pos.2 hb'),
+    refine ⟨b - c, G.sub_mem hb.1 hc.1, _, _⟩ ;
     linarith },
   refine ⟨floor (x/g₂) * g₂, _, _⟩,
   { exact add_subgroup.int_mul_mem _ g₂_in },

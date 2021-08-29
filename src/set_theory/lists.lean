@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 A computable model of hereditarily finite sets with atoms
 (ZFA without infinity). This is useful for calculations in naive
@@ -67,7 +67,7 @@ with lists'.subset : lists' α tt → lists' α tt → Prop
 | nil {l} : lists'.subset lists'.nil l
 | cons {a a' l l'} : lists.equiv a a' → a' ∈ lists'.to_list l' →
   lists'.subset l l' → lists'.subset (lists'.cons a l) l'
-local infix ~ := lists.equiv
+local infix ` ~ `:50 := lists.equiv
 
 namespace lists'
 

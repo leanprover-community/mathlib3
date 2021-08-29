@@ -26,7 +26,7 @@ has the countable intersection property.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topological_space filter ennreal
 
 open filter encodable set
 
@@ -42,10 +42,10 @@ encodable source space). -/
 theorem dense_Inter_of_open_nat {f : ℕ → set α} (ho : ∀n, is_open (f n))
   (hd : ∀n, dense (f n)) : dense (⋂n, f n) :=
 begin
-  let B : ℕ → ennreal := λn, 1/2^n,
+  let B : ℕ → ℝ≥0∞ := λn, 1/2^n,
   have Bpos : ∀n, 0 < B n,
   { intro n,
-    simp only [B, div_def, one_mul, ennreal.inv_pos],
+    simp only [B, one_div, one_mul, ennreal.inv_pos],
     exact pow_ne_top two_ne_top },
   /- Translate the density assumption into two functions `center` and `radius` associating
   to any n, x, δ, δpos a center and a positive radius such that
@@ -77,10 +77,10 @@ begin
   `closed_ball (c n) (r n)` is included in the previous ball and in `f n`, and such that
   `r n` is small enough to ensure that `c n` is a Cauchy sequence. Then `c n` converges to a
   limit which belongs to all the `f n`. -/
-  let F : ℕ → (α × ennreal) := λn, nat.rec_on n (prod.mk x (min ε (B 0)))
+  let F : ℕ → (α × ℝ≥0∞) := λn, nat.rec_on n (prod.mk x (min ε (B 0)))
                               (λn p, prod.mk (center n p.1 p.2) (radius n p.1 p.2)),
   let c : ℕ → α := λn, (F n).1,
-  let r : ℕ → ennreal := λn, (F n).2,
+  let r : ℕ → ℝ≥0∞ := λn, (F n).2,
   have rpos : ∀n, r n > 0,
   { assume n,
     induction n with n hn,
@@ -218,9 +218,9 @@ lemma eventually_residual {p : α → Prop} :
 calc (∀ᶠ x in residual α, p x) ↔
   ∀ᶠ x in ⨅ (t : set α) (ht : is_Gδ t ∧ dense t), 𝓟 t, p x :
     by simp only [residual, infi_and]
-... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x :
-  mem_binfi (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩,
-    by simp⟩) ⟨univ, is_Gδ_univ, dense_univ⟩
+... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x : mem_binfi_of_directed
+    (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩, by simp⟩)
+    ⟨univ, is_Gδ_univ, dense_univ⟩
 ... ↔ _ : by simp [and_assoc]
 
 /-- A set is residual (comeagre) if and only if it includes a dense `Gδ` set. -/

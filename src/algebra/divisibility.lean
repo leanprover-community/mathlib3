@@ -64,7 +64,7 @@ match h₁, h₂ with
   ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
 end
 
-alias dvd_trans ← dvd.trans
+alias dvd_trans ← has_dvd.dvd.trans
 
 theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (by simp)
 
@@ -75,6 +75,18 @@ dvd.elim h (λ d h', begin rw [h', mul_assoc], apply dvd_mul_right end)
 
 theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
 dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
+
+section map_dvd
+
+variables {M N : Type*}
+
+lemma mul_hom.map_dvd [monoid M] [monoid N] (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b
+| ⟨c, h⟩ := ⟨f c, h.symm ▸ f.map_mul a c⟩
+
+lemma monoid_hom.map_dvd [monoid M] [monoid N] (f : M →* N) {a b} : a ∣ b → f a ∣ f b :=
+f.to_mul_hom.map_dvd
+
+end map_dvd
 
 end monoid
 
@@ -227,7 +239,8 @@ section comm_monoid_with_zero
 
 variable [comm_monoid_with_zero α]
 
-/-- `dvd_not_unit a b` expresses that `a` divides `b` "strictly", i.e. that `b` divided by `a` is not a unit. -/
+/-- `dvd_not_unit a b` expresses that `a` divides `b` "strictly", i.e. that `b` divided by `a`
+is not a unit. -/
 def dvd_not_unit (a b : α) : Prop := a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x
 
 lemma dvd_not_unit_of_dvd_of_not_dvd {a b : α} (hd : a ∣ b) (hnd : ¬ b ∣ a) :

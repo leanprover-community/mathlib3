@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Floris van Doorn
+Authors: Floris van Doorn
 -/
 import data.equiv.encodable.basic
 import data.finset.basic
-import data.set.disjointed
+import data.set.pairwise
+
 /-!
 # Lattice operations on encodable types
 
@@ -24,31 +25,31 @@ namespace encodable
 
 variables {α : Type*} {β : Type*} [encodable β]
 
-lemma supr_decode2 [complete_lattice α] (f : β → α) :
-  (⨆ (i : ℕ) (b ∈ decode2 β i), f b) = (⨆ b, f b) :=
-by { rw [supr_comm], simp [mem_decode2] }
+lemma supr_decode₂ [complete_lattice α] (f : β → α) :
+  (⨆ (i : ℕ) (b ∈ decode₂ β i), f b) = (⨆ b, f b) :=
+by { rw [supr_comm], simp [mem_decode₂] }
 
-lemma Union_decode2 (f : β → set α) : (⋃ (i : ℕ) (b ∈ decode2 β i), f b) = (⋃ b, f b) :=
-supr_decode2 f
+lemma Union_decode₂ (f : β → set α) : (⋃ (i : ℕ) (b ∈ decode₂ β i), f b) = (⋃ b, f b) :=
+supr_decode₂ f
 
-@[elab_as_eliminator] lemma Union_decode2_cases
+@[elab_as_eliminator] lemma Union_decode₂_cases
   {f : β → set α} {C : set α → Prop}
   (H0 : C ∅) (H1 : ∀ b, C (f b)) {n} :
-  C (⋃ b ∈ decode2 β n, f b) :=
-match decode2 β n with
+  C (⋃ b ∈ decode₂ β n, f b) :=
+match decode₂ β n with
 | none := by { simp, apply H0 }
 | (some b) := by { convert H1 b, simp [ext_iff] }
 end
 
-theorem Union_decode2_disjoint_on {f : β → set α} (hd : pairwise (disjoint on f)) :
-  pairwise (disjoint on λ i, ⋃ b ∈ decode2 β i, f b) :=
+theorem Union_decode₂_disjoint_on {f : β → set α} (hd : pairwise (disjoint on f)) :
+  pairwise (disjoint on λ i, ⋃ b ∈ decode₂ β i, f b) :=
 begin
   rintro i j ij x ⟨h₁, h₂⟩,
   revert h₁ h₂,
   simp, intros b₁ e₁ h₁ b₂ e₂ h₂,
   refine hd _ _ _ ⟨h₁, h₂⟩,
-  cases encodable.mem_decode2.1 e₁,
-  cases encodable.mem_decode2.1 e₂,
+  cases encodable.mem_decode₂.1 e₁,
+  cases encodable.mem_decode₂.1 e₂,
   exact mt (congr_arg _) ij
 end
 

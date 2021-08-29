@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import analysis.convex.basic
-import linear_algebra.finite_dimensional
 
 /-!
 # Carathéodory's convexity theorem
@@ -30,15 +29,15 @@ universes u
 open set finset finite_dimensional
 open_locale big_operators
 
-variables {E : Type u} [add_comm_group E] [vector_space ℝ E] [finite_dimensional ℝ E]
+variables {E : Type u} [add_comm_group E] [module ℝ E] [finite_dimensional ℝ E]
 
 namespace caratheodory
 
 /--
-If `x` is in the convex hull of some finset `t` with strictly more than `findim + 1` elements,
+If `x` is in the convex hull of some finset `t` with strictly more than `finrank + 1` elements,
 then it is in the union of the convex hulls of the finsets `t.erase y` for `y ∈ t`.
 -/
-lemma mem_convex_hull_erase [decidable_eq E] {t : finset E} (h : findim ℝ E + 1 < t.card)
+lemma mem_convex_hull_erase [decidable_eq E] {t : finset E} (h : finrank ℝ E + 1 < t.card)
   {x : E} (m : x ∈ convex_hull (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull (↑(t.erase y) : set E) :=
 begin
@@ -72,8 +71,7 @@ begin
       { apply div_nonneg (fpos i₀ (mem_of_subset (filter_subset _ t) mem)) (le_of_lt hg) },
       { simpa only [mem_filter, het, true_and, not_lt] using hes }, } },
   { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
-    calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e :
-      by conv_rhs { rw [← insert_erase hi₀, sum_insert (not_mem_erase i₀ t), hk, zero_smul, zero_add], }
+    calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e : sum_erase _ (by rw [hk, zero_smul])
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) • e : rfl
     ... = t.center_mass f id : _,
     simp only [sub_smul, mul_smul, sum_sub_distrib, ← smul_sum, gcombo, smul_zero,
@@ -81,10 +79,10 @@ begin
 end
 
 /--
-The convex hull of a finset `t` with `findim ℝ E + 1 < t.card` is equal to
+The convex hull of a finset `t` with `finrank ℝ E + 1 < t.card` is equal to
 the union of the convex hulls of the finsets `t.erase x` for `x ∈ t`.
 -/
-lemma step [decidable_eq E] (t : finset E) (h : findim ℝ E + 1 < t.card) :
+lemma step [decidable_eq E] (t : finset E) (h : finrank ℝ E + 1 < t.card) :
   convex_hull (↑t : set E) = ⋃ (x : (↑t : set E)), convex_hull ↑(t.erase x) :=
 begin
   apply set.subset.antisymm,
@@ -98,24 +96,24 @@ begin
 end
 
 /--
-The convex hull of a finset `t` with `findim ℝ E + 1 < t.card` is contained in
-the union of the convex hulls of the finsets `t' ⊆ t` with `t'.card ≤ findim ℝ E + 1`.
+The convex hull of a finset `t` with `finrank ℝ E + 1 < t.card` is contained in
+the union of the convex hulls of the finsets `t' ⊆ t` with `t'.card ≤ finrank ℝ E + 1`.
 -/
-lemma shrink' (t : finset E) (k : ℕ) (h : t.card = findim ℝ E + 1 + k) :
+lemma shrink' (t : finset E) (k : ℕ) (h : t.card = finrank ℝ E + 1 + k) :
   convex_hull (↑t : set E) ⊆
-    ⋃ (t' : finset E) (w : t' ⊆ t) (b : t'.card ≤ findim ℝ E + 1), convex_hull ↑t' :=
+    ⋃ (t' : finset E) (w : t' ⊆ t) (b : t'.card ≤ finrank ℝ E + 1), convex_hull ↑t' :=
 begin
   induction k with k ih generalizing t,
   { apply subset_subset_Union t,
     apply subset_subset_Union (set.subset.refl _),
     exact subset_subset_Union (le_of_eq h) (subset.refl _), },
   { classical,
-    rw step _ (by { rw h, simp, } : findim ℝ E + 1 < t.card),
+    rw step _ (by { rw h, simp, } : finrank ℝ E + 1 < t.card),
     apply Union_subset,
     intro i,
     transitivity,
     { apply ih,
-      rw [card_erase_of_mem, h, nat.pred_succ],
+      rw [card_erase_of_mem, h, nat.add_succ, nat.pred_succ],
       exact i.2, },
     { apply Union_subset_Union,
       intro t',
@@ -125,13 +123,13 @@ end
 
 /--
 The convex hull of any finset `t` is contained in
-the union of the convex hulls of the finsets `t' ⊆ t` with `t'.card ≤ findim ℝ E + 1`.
+the union of the convex hulls of the finsets `t' ⊆ t` with `t'.card ≤ finrank ℝ E + 1`.
 -/
 lemma shrink (t : finset E) :
   convex_hull (↑t : set E) ⊆
-    ⋃ (t' : finset E) (w : t' ⊆ t) (b : t'.card ≤ findim ℝ E + 1), convex_hull ↑t' :=
+    ⋃ (t' : finset E) (w : t' ⊆ t) (b : t'.card ≤ finrank ℝ E + 1), convex_hull ↑t' :=
 begin
-  by_cases h : t.card ≤ findim ℝ E + 1,
+  by_cases h : t.card ≤ finrank ℝ E + 1,
   { apply subset_subset_Union t,
     apply subset_subset_Union (set.subset.refl _),
     exact subset_subset_Union h (set.subset.refl _), },
@@ -143,13 +141,13 @@ end
 end caratheodory
 
 /--
-One inclusion of Carathéodory's convexity theorem.
+One inclusion of **Carathéodory's convexity theorem**.
 
 The convex hull of a set `s` in ℝᵈ is contained in
 the union of the convex hulls of the (d+1)-tuples in `s`.
 -/
 lemma convex_hull_subset_union (s : set E) :
-  convex_hull s ⊆ ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1), convex_hull ↑t :=
+  convex_hull s ⊆ ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ finrank ℝ E + 1), convex_hull ↑t :=
 begin
   -- First we replace `convex_hull s` with the union of the convex hulls of finite subsets,
   rw convex_hull_eq_union_convex_hull_finite_subsets,
@@ -157,24 +155,19 @@ begin
   apply Union_subset, intro r,
   apply Union_subset, intro h,
   -- Second, for each convex hull of a finite subset, we shrink it.
-  transitivity,
-  { apply caratheodory.shrink, },
-  { -- After that it's just shuffling unions around.
-    apply Union_subset, intro t,
-    apply Union_subset, intro htr,
-    apply Union_subset, intro ht,
-    apply set.subset_subset_Union t,
-    apply set.subset_subset_Union (subset.trans htr h),
-    exact subset_Union _ ht, },
+  refine subset.trans (caratheodory.shrink _) _,
+  -- After that it's just shuffling unions around.
+  refine Union_subset_Union (λ t, _),
+  exact Union_subset_Union2 (λ htr, ⟨subset.trans htr h, subset.refl _⟩)
 end
 
 /--
-Carathéodory's convexity theorem.
+**Carathéodory's convexity theorem**.
 
 The convex hull of a set `s` in ℝᵈ is the union of the convex hulls of the (d+1)-tuples in `s`.
 -/
 theorem convex_hull_eq_union (s : set E) :
-  convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1), convex_hull ↑t :=
+  convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ finrank ℝ E + 1), convex_hull ↑t :=
 begin
   apply set.subset.antisymm,
   { apply convex_hull_subset_union, },
@@ -183,13 +176,13 @@ begin
 end
 
 /--
-A more explicit formulation of Carathéodory's convexity theorem,
+A more explicit formulation of **Carathéodory's convexity theorem**,
 writing an element of a convex hull as the center of mass
 of an explicit `finset` with cardinality at most `dim + 1`.
 -/
 theorem eq_center_mass_card_le_dim_succ_of_mem_convex_hull
   {s : set E} {x : E} (h : x ∈ convex_hull s) :
-  ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1)
+  ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ finrank ℝ E + 1)
     (f : E → ℝ), (∀ y ∈ t, 0 ≤ f y) ∧ t.sum f = 1 ∧ t.center_mass f id = x :=
 begin
   rw convex_hull_eq_union at h,
@@ -201,7 +194,7 @@ begin
 end
 
 /--
-A variation on Carathéodory's convexity theorem,
+A variation on **Carathéodory's convexity theorem**,
 writing an element of a convex hull as a center of mass
 of an explicit `finset` with cardinality at most `dim + 1`,
 where all coefficients in the center of mass formula
@@ -212,37 +205,21 @@ and discarding any elements of the set with coefficient zero.)
 -/
 theorem eq_pos_center_mass_card_le_dim_succ_of_mem_convex_hull
   {s : set E} {x : E} (h : x ∈ convex_hull s) :
-  ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ findim ℝ E + 1)
+  ∃ (t : finset E) (w : ↑t ⊆ s) (b : t.card ≤ finrank ℝ E + 1)
     (f : E → ℝ), (∀ y ∈ t, 0 < f y) ∧ t.sum f = 1 ∧ t.center_mass f id = x :=
 begin
   obtain ⟨t, w, b, f, ⟨pos, sum, center⟩⟩ := eq_center_mass_card_le_dim_succ_of_mem_convex_hull h,
   let t' := t.filter (λ z, 0 < f z),
   have t'sum : t'.sum f = 1,
-  { convert sum using 1,
-    symmetry,
-    fapply sum_bij_ne_zero (λ z h w, z),
-    { intros z m nz,
-      exact multiset.mem_filter_of_mem m (lt_of_le_of_ne (pos z m) (ne.symm nz)), },
-    { intros _ _ _ _ _ _ a, exact a, },
-    { intros z m nz,
-      exact ⟨z, mem_of_subset (filter_subset _ t) m, nz, rfl⟩, },
-    { intros, refl, }, },
-  refine ⟨t', _, _, f, ⟨_, _, _⟩⟩,
+  { rw ← sum,
+    exact sum_filter_of_ne (λ x hxt hfx, (pos x hxt).lt_of_ne hfx.symm) },
+  refine ⟨t', _, _, f, ⟨_, t'sum, _⟩⟩,
   { exact subset.trans (filter_subset _ t) w, },
-  { exact le_trans (card_le_of_subset (filter_subset _ t)) b, },
+  { exact (card_filter_le _ _).trans b, },
   { exact λ y H, (mem_filter.mp H).right, },
-  { exact t'sum, },
-  { convert center using 1,
-    symmetry,
+  { rw ← center,
     simp only [center_mass, t'sum, sum, inv_one, one_smul, id.def],
-    fapply sum_bij_ne_zero (λ z h w, z),
-    { intros z m nz,
-      have nz' : f z ≠ 0,
-      { intro a, rw a at nz,
-        simpa using nz, },
-      exact multiset.mem_filter_of_mem m (lt_of_le_of_ne (pos z m) (ne.symm nz')), },
-    { intros _ _ _ _ _ _ a, exact a, },
-    { intros z m nz,
-      exact ⟨z, mem_of_subset (filter_subset _ t) m, nz, rfl⟩, },
-    { intros, refl, }, },
+    refine sum_filter_of_ne (λ x hxt hfx, (pos x hxt).lt_of_ne $ λ hf₀, _),
+    rw [← hf₀, zero_smul] at hfx,
+    exact hfx rfl },
 end

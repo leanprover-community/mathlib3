@@ -149,6 +149,8 @@ end format
 namespace tactic
 open function
 
+export interaction_monad (get_state set_state run_with_state)
+
 /-- Private work function for `add_local_consts_as_local_hyps`: given
     `mappings : list (expr × expr)` corresponding to pairs `(var, hyp)` of variables and the local
     hypothesis created as a result and `(var :: rest) : list expr` of more local variables we
@@ -269,6 +271,16 @@ meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
   | _ := fail format!
     "expected a constant (possibly applied to some arguments), but got:\n{e}"
   end
+
+/--
+`get_app_args_whnf e md unfold_ginductive` is like `expr.get_app_args e` but `e`
+is normalised as necessary (with transparency `md`). `unfold_ginductive`
+controls whether constructors of generalised inductive types are unfolded. The
+returned expressions are not necessarily in whnf.
+-/
+meta def get_app_args_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr) :=
+prod.snd <$> get_app_fn_args_whnf e md unfold_ginductive
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
@@ -583,6 +595,13 @@ meta def intron_no_renames : ℕ → tactic unit
   intro pp_n,
   intron_no_renames n
 
+/-- `get_univ_level t` returns the universe level of a type `t` -/
+meta def get_univ_level (t : expr) (md := semireducible) (unfold_ginductive := tt) :
+  tactic level :=
+do expr.sort u ← infer_type t >>= λ s, whnf s md unfold_ginductive |
+    fail "get_univ_level: argument is not a type",
+   return u
+
 /-!
 ### Various tactics related to local definitions (local constants of the form `x : α := t`)
 
@@ -603,15 +622,31 @@ tactic.unsafe.type_context.run $ do
 
 /-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
 `e : α := t`) and otherwise fails. -/
-meta def is_local_def (e : expr) : tactic unit :=
-retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
+meta def is_local_def (e : expr) : tactic unit := do
+  ctx ← unsafe.type_context.get_local_context.run,
+  (some decl) ← pure $ ctx.get_local_decl e.local_uniq_name |
+    fail format!"is_local_def: {e} is not a local constant",
+  when decl.value.is_none $ fail
+   format!"is_local_def: {e} is not a local definition"
+
+/-- Returns the local definitions from the context. A local definition is a
+local constant of the form `e : α := t`. The local definitions are returned in
+the order in which they appear in the context. -/
+meta def local_defs : tactic (list expr) := do
+  ctx ← unsafe.type_context.get_local_context.run,
+  ctx' ← local_context,
+  ctx'.mfilter $ λ h, do
+    (some decl) ← pure $ ctx.get_local_decl h.local_uniq_name |
+      fail format!"local_defs: local {h} not found in the local context",
+    pure decl.value.is_some
 
 /-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs`
 (using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
 whereas `split_on_p p xs` removes the matches, `partition_local_deps_aux vs xs acc` includes
 them in the following partition. Also, `partition_local_deps_aux vs xs acc` discards the partition
 running up to the first match. -/
-private def partition_local_deps_aux {α} [decidable_eq α] (vs : list α) : list α → list α → list (list α)
+private def partition_local_deps_aux {α} [decidable_eq α] (vs : list α) :
+  list α → list α → list (list α)
 | [] acc := [acc.reverse]
 | (l :: ls) acc :=
   if l ∈ vs then acc.reverse :: partition_local_deps_aux ls [l]
@@ -626,17 +661,19 @@ meta def partition_local_deps (vs : list expr) : tactic (list (list expr)) :=
 do ls ← local_context,
    pure (partition_local_deps_aux vs ls []).tail.reverse
 
-/-- `clear_value [e₀, e₁, e₂, ...]` clears the body of the local definitions `e₀`, `e₁`, `e₂`, ... changing them into regular
-hypotheses. A hypothesis `e : α := t` is changed to `e : α`. The order of locals `e₀`, `e₁`, `e₂` does not
-matter as a permutation will be chosen so as to preserve type correctness.
-This tactic is called `clearbody` in Coq. -/
+/-- `clear_value [e₀, e₁, e₂, ...]` clears the body of the local definitions `e₀`, `e₁`, `e₂`, ...
+changing them into regular hypotheses. A hypothesis `e : α := t` is changed to `e : α`. The order of
+locals `e₀`, `e₁`, `e₂` does not matter as a permutation will be chosen so as to preserve type
+correctness. This tactic is called `clearbody` in Coq. -/
 meta def clear_value (vs : list expr) : tactic unit := do
   ls ← partition_local_deps vs,
   ls.mmap' $ λ vs, do
   { revert_lst vs,
-    (expr.elet v t d b) ← target | fail format!"Cannot clear the body of {vs.head}. It is not a local definition.",
+    (expr.elet v t d b) ← target |
+      fail format!"Cannot clear the body of {vs.head}. It is not a local definition.",
     let e := expr.pi v binder_info.default t b,
-    type_check e <|> fail format!"Cannot clear the body of {vs.head}. The resulting goal is not type correct.",
+    type_check e <|>
+      fail format!"Cannot clear the body of {vs.head}. The resulting goal is not type correct.",
     g ← mk_meta_var e,
     h ← note `h none g,
     tactic.exact $ h d,
@@ -661,6 +698,31 @@ meta def context_upto_hyp_has_local_def (h : expr) : tactic bool := do
   ctx ← local_context,
   let ctx := ctx.take_while (≠ h),
   ctx.many (succeeds ∘ local_def_value)
+
+/--
+If the expression `h` is a local variable with type `x = t` or `t = x`, where `x` is a local
+constant, `tactic.subst' h` substitutes `x` by `t` everywhere in the main goal and then clears `h`.
+If `h` is another local variable, then we find a local constant with type `h = t` or `t = h` and
+substitute `t` for `h`.
+
+This is like `tactic.subst`, but fails with a nicer error message if the substituted variable is a
+local definition. It is trickier to fix this in core, since `tactic.is_local_def` is in mathlib.
+-/
+meta def subst' (h : expr) : tactic unit := do
+  e ← do { -- we first find the variable being substituted away
+    t ← infer_type h,
+    let (f, args) := t.get_app_fn_args,
+    if (f.const_name = `eq ∨ f.const_name = `heq) then do {
+      let lhs := args.inth 1,
+      let rhs := args.ilast,
+      if rhs.is_local_constant then return rhs else
+      if lhs.is_local_constant then return lhs else fail
+      "subst tactic failed, hypothesis '{h.local_pp_name}' is not of the form (x = t) or (t = x)." }
+    else return h },
+  success_if_fail (is_local_def e) <|>
+    fail format!("Cannot substitute variable {e.local_pp_name}, " ++
+      "it is a local definition. If you really want to do this, use `clear_value` first."),
+  subst h
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
@@ -805,10 +867,10 @@ attribute.get_instances `class >>= list.mfilter (λ n,
   succeeds $ mk_app n [e] >>= mk_instance)
 
 /--
-  Finds an instance of an implication `cond → tgt`.
-  Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention `e`.
-  The local constant `e` is added as an hypothesis to the tactic state, but should not be used, since
-  it has been "proven" by a metavariable.
+Finds an instance of an implication `cond → tgt`.
+Returns a pair of a local constant `e` of type `cond`, and an instance of `tgt` that can mention
+`e`. The local constant `e` is added as an hypothesis to the tactic state, but should not be used,
+since it has been "proven" by a metavariable.
 -/
 meta def mk_conditional_instance (cond tgt : expr) : tactic (expr × expr) := do
 f ← mk_meta_var cond,
@@ -1308,8 +1370,7 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
         them on this first pass. (We return the mappings generated by our second invocation of this
         function below.) -/
      add_local_consts_as_local_hyps vars,
-     es.mmap to_expr
-   },
+     es.mmap to_expr },
 
    /- Now calculate lists of a) the explicitly `include`ed variables and b) the variables which were
       referenced in `e` when it was resolved to `fake_e`.
@@ -1343,8 +1404,7 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
    lean.parser.of_tactic $ do {
       mappings ← add_local_consts_as_local_hyps all_implicitly_included_vars,
       ts ← get_state,
-      return (ts, mappings)
-   }
+      return (ts, mappings) }
 
 end lean.parser
 
@@ -1789,10 +1849,9 @@ do tgt   ← infer_type h,
    match env.symm_for (const_name r) with
    | (some symm) := do s ← mk_const symm,
                        apply_at s h
-   | none        := fail "symmetry tactic failed, target is not a relation application with the expected property."
+   | none        := fail
+      "symmetry tactic failed, target is not a relation application with the expected property."
    end
-
-precedence `setup_tactic_parser`:0
 
 /-- `setup_tactic_parser` is a user command that opens the namespaces used in writing
 interactive tactics, and declares the local postfix notation `?` for `optional` and `*` for `many`.
@@ -1877,7 +1936,8 @@ of `t`. -/
 meta def trace_error (msg : string) (t : tactic α) : tactic α
 | s := match t s with
        | (result.success r s') := result.success r s'
-       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception
+            (some msg') p) s'
        | (result.exception none p s') := result.exception none p s'
        end
 
@@ -2062,8 +2122,6 @@ do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
    pure ``(to_pfmt %%(reflect acc) ++ to_pfmt %%e ++ %%f)
 | acc (c::s) := parse_pformat (acc.str c) s
 
-reserve prefix `pformat! `:100
-
 /-- See `format!` in `init/meta/interactive_base.lean`.
 
 The main differences are that `pp` is called instead of `to_fmt` and that we can use
@@ -2072,7 +2130,8 @@ arguments of type `tactic α` in the quotations.
 Now, consider the following:
 ```lean
 e ← to_expr ``(3 + 7),
-trace format!"{e}"  -- outputs `has_add.add.{0} nat nat.has_add (bit1.{0} nat nat.has_one nat.has_add (has_one.one.{0} nat nat.has_one)) ...`
+trace format!"{e}"  -- outputs `has_add.add.{0} nat nat.has_add
+                    -- (bit1.{0} nat nat.has_one nat.has_add (has_one.one.{0} nat nat.has_one)) ...`
 trace pformat!"{e}" -- outputs `3 + 7`
 ```
 
@@ -2090,8 +2149,6 @@ meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :
 do e ← parse_pformat "" s.to_list,
    return ``(%%e : pformat)
 
-reserve prefix `fail! `:100
-
 /--
 The combination of `pformat` and `fail`.
 -/
@@ -2100,7 +2157,6 @@ meta def fail_macro (_ : parse $ tk "fail!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= fail)
 
-reserve prefix `trace! `:100
 /--
 The combination of `pformat` and `trace`.
 -/
@@ -2143,7 +2199,8 @@ private meta def apply_under_n_pis_aux (func arg : pexpr) : ℕ → ℕ → expr
   let vars := ((list.range n).reverse.map (@expr.var ff)),
       bd := vars.foldl expr.app arg.mk_explicit in
   func bd
-| n (k+1) (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_n_pis_aux (n+1) k bd)
+| n (k+1) (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp)
+  (apply_under_n_pis_aux (n+1) k bd)
 | n (k+1) t := apply_under_n_pis_aux n 0 t
 
 /--
@@ -2167,10 +2224,12 @@ When `tgt` is a `pi` expr, `func` is elaborated in a context
 with the domain of `tgt`.
 
 Examples:
-* ```get_pexpr_arg_arity ``(ring) `(true)``` returns 0, since `ring` takes one non-function argument.
-* ```get_pexpr_arg_arity_with_tgt ``(monad) `(true)``` returns 1, since `monad` takes one argument of type `α → α`.
+* ```get_pexpr_arg_arity ``(ring) `(true)``` returns 0, since `ring` takes one non-function
+  argument.
+* ```get_pexpr_arg_arity_with_tgt ``(monad) `(true)``` returns 1, since `monad` takes one argument
+  of type `α → α`.
 * ```get_pexpr_arg_arity_with_tgt ``(module R) `(Π (R : Type), comm_ring R → true)``` returns 0
- -/
+-/
 meta def get_pexpr_arg_arity_with_tgt (func : pexpr) (tgt : expr) : tactic ℕ :=
 lock_tactic_state $ do
   mv ← mk_mvar,
@@ -2194,7 +2253,8 @@ do env ← get_env,
      end,
    let xs := env.decl_filter_map (λ d,
      do fn ← env.decl_olean d.to_name,
-        guard ((`_private).is_prefix_of d.to_name ∧ p fn ∧ d.to_name.update_prefix name.anonymous = n),
+        guard ((`_private).is_prefix_of d.to_name ∧ p fn ∧
+          d.to_name.update_prefix name.anonymous = n),
         pure d.to_name),
    match xs with
    | [n] := pure n
@@ -2253,7 +2313,7 @@ do n ← ident,
    d ← parser.pexpr,
    d ← to_expr ``(%%d : option string),
    descr ← eval_expr (option string) d,
-   with_list ← types.with_ident_list <|> return [],
+   with_list ← (tk "with" *> many ident) <|> return [],
    mk_simp_attr n with_list,
    add_doc_string (name.append `simp_attr n) $ descr.get_or_else $ "simp set for " ++ to_string n
 
@@ -2277,22 +2337,23 @@ ns.mfirst (λ nm, do
   guard $ attr_nm = attr_name,
   return nm) <|> fail!"'{attr_name}' is not a user attribute."
 
-/-- A tactic to set either a basic attribute or a user attribute, as long as the user attribute has
-  no parameter.
-  If a user attribute with a parameter (that is not `unit`) is set, this function will raise an
-  error. -/
--- possible enhancement if needed: use default value for a user attribute with parameter.
+/-- A tactic to set either a basic attribute or a user attribute.
+  If the the user attribute has a parameter, the default value will be used.
+  This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
   (prio : option nat := none) : tactic unit := do
 get_decl c_name <|> fail!"unknown declaration {c_name}",
 s ← try_or_report_error (set_basic_attribute attr_name c_name persistent prio),
 sum.inr msg ← return s | skip,
-if msg = (format!"set_basic_attribute tactic failed, '{attr_name}' is not a basic attribute").to_string
+if msg =
+  (format!"set_basic_attribute tactic failed, '{attr_name}' is not a basic attribute").to_string
 then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,
-  tac ← eval_pexpr (tactic unit) ``(user_attribute.set %%user_attr_const %%c_name () %%persistent) <|>
-    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter.",
+  tac ← eval_pexpr (tactic unit)
+    ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
+    fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter without a default value.
+Solution: provide an `inhabited` instance.",
   tac
 else fail msg
 

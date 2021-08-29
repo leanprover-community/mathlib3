@@ -6,14 +6,24 @@ Authors: Mario Carneiro, Kenny Lau, Scott Morrison
 import data.list.chain
 import data.list.nodup
 import data.list.of_fn
+import data.list.zip
+
+/-!
+# Ranges of naturals as lists
+
+This file shows basic results about `list.iota`, `list.range`, `list.range'` (all defined in
+`data.list.defs`) and defines `list.fin_range`.
+`fin_range n` is the list of elements of `fin n`.
+`iota n = [1, ..., n]` and `range n = [0, ..., n - 1]` are basic list constructions used for
+tactics. `range' a b = [a, ..., a + b - 1]` is there to help prove properties about them.
+Actual maths should use `list.Ico` instead.
+-/
+
+universe u
 
 open nat
 
 namespace list
-/- iota and range(') -/
-
-universe u
-
 variables {α : Type u}
 
 @[simp] theorem length_range' : ∀ (s n : ℕ), length (range' s n) = n
@@ -27,9 +37,9 @@ by rw [← length_eq_zero, length_range']
 | s 0     := (false_iff _).2 $ λ ⟨H1, H2⟩, not_le_of_lt H2 H1
 | s (succ n) :=
   have m = s → m < s + n + 1,
-    from λ e, e ▸ lt_succ_of_le (le_add_right _ _),
+    from λ e, e ▸ lt_succ_of_le (nat.le_add_right _ _),
   have l : m = s ∨ s + 1 ≤ m ↔ s ≤ m,
-    by simpa only [eq_comm] using (@le_iff_eq_or_lt _ _ s m).symm,
+    by simpa only [eq_comm] using (@decidable.le_iff_eq_or_lt _ _ _ s m).symm,
   (mem_cons_iff _ _ _).trans $ by simp only [mem_range',
     or_and_distrib_left, or_iff_right_of_imp this, l, add_right_comm]; refl
 
@@ -72,13 +82,17 @@ theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ 
 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=
 ⟨λ h, le_of_not_lt $ λ hn, lt_irrefl (s+n) $
-  (mem_range'.1 $ h $ mem_range'.2 ⟨le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
+  (mem_range'.1 $ h $ mem_range'.2 ⟨nat.le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
  λ h, (range'_sublist_right.2 h).subset⟩
 
 theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
 | s 0     (n+1) _ := rfl
 | s (m+1) (n+1) h := (nth_range' (s+1) (lt_of_add_lt_add_right h)).trans $
     by rw add_right_comm; refl
+
+@[simp] lemma nth_le_range' {n m} (i) (H : i < (range' n m).length) :
+  nth_le (range' n m) i H = n + i :=
+option.some.inj $ by rw [←nth_le_nth _, nth_range' _ (by simpa using H)]
 
 theorem range'_concat (s n : ℕ) : range' s (n + 1) = range' s n ++ [s+n] :=
 by rw add_comm n 1; exact (range'_append s n 1).symm
@@ -129,12 +143,15 @@ by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp only [range_eq_range', nth_range' _ h, zero_add]
 
-theorem range_concat (n : ℕ) : range (succ n) = range n ++ [n] :=
+theorem range_succ (n : ℕ) : range (succ n) = range n ++ [n] :=
 by simp only [range_eq_range', range'_concat, zero_add]
+
+@[simp] lemma range_zero : range 0 = [] := rfl
 
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl
-| (n+1) := by simp only [iota, range'_concat, iota_eq_reverse_range' n, reverse_append, add_comm]; refl
+| (n+1) := by simp only [iota, range'_concat, iota_eq_reverse_range' n,
+             reverse_append, add_comm]; refl
 
 @[simp] theorem length_iota (n : ℕ) : length (iota n) = n :=
 by simp only [iota_eq_reverse_range', length_reverse, length_range']
@@ -179,7 +196,7 @@ by rw [← length_eq_zero, length_fin_range]
 @[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
   ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
-by rw [range_concat, map_append, map_singleton,
+by rw [range_succ, map_append, map_singleton,
   prod_append, prod_cons, prod_nil, mul_one]
 
 /-- A variant of `prod_range_succ` which pulls off the first
@@ -201,9 +218,29 @@ nat.rec_on n
   map prod.fst (enum l) = range l.length :=
 by simp only [enum, enum_from_map_fst, range_eq_range']
 
+lemma enum_eq_zip_range (l : list α) :
+  l.enum = (range l.length).zip l :=
+zip_of_prod (enum_map_fst _) (enum_map_snd _)
+
+@[simp] lemma unzip_enum_eq_prod (l : list α) :
+  l.enum.unzip = (range l.length, l) :=
+by simp only [enum_eq_zip_range, unzip_zip, length_range]
+
+lemma enum_from_eq_zip_range' (l : list α) {n : ℕ} :
+  l.enum_from n = (range' n l.length).zip l :=
+zip_of_prod (enum_from_map_fst _ _) (enum_from_map_snd _ _)
+
+@[simp] lemma unzip_enum_from_eq_prod (l : list α) {n : ℕ} :
+  (l.enum_from n).unzip = (range' n l.length, l) :=
+by simp only [enum_from_eq_zip_range', unzip_zip, length_range']
+
 @[simp] lemma nth_le_range {n} (i) (H : i < (range n).length) :
   nth_le (range n) i H = i :=
 option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
+
+@[simp] lemma nth_le_fin_range {n : ℕ} {i : ℕ} (h) :
+  (fin_range n).nth_le i h = ⟨i, length_fin_range n ▸ h⟩ :=
+by simp only [fin_range, nth_le_range, nth_le_pmap, fin.mk_eq_subtype_mk]
 
 theorem of_fn_eq_pmap {α n} {f : fin n → α} :
   of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=

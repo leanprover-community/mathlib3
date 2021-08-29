@@ -2,11 +2,15 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Robert Y. Lewis
-
-Generalizes the Cauchy completion of (ℚ, abs) to the completion of a
-commutative ring with absolute value.
 -/
 import data.real.cau_seq
+
+/-!
+# Cauchy completion
+
+This file generalizes the Cauchy completion of `(ℚ, abs)` to the completion of a commutative ring
+with absolute value.
+-/
 
 namespace cau_seq.completion
 open cau_seq
@@ -59,6 +63,13 @@ instance : has_mul Cauchy :=
 
 @[simp] theorem mk_mul (f g : cau_seq β abv) : mk f * mk g = mk (f * g) := rfl
 
+instance : has_sub Cauchy :=
+⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f - g)) $
+  λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $ show ((f₁ - g₁) - (f₂ - g₂)).lim_zero,
+    by simpa [sub_eq_add_neg, add_assoc, add_comm, add_left_comm] using sub_lim_zero hf hg⟩
+
+@[simp] theorem mk_sub (f g : cau_seq β abv) : mk f - mk g = mk (f - g) := rfl
+
 theorem of_rat_add (x y : β) : of_rat (x + y) = of_rat x + of_rat y :=
 congr_arg mk (const_add _ _)
 
@@ -73,10 +84,12 @@ private lemma zero_def : 0 = mk 0 := rfl
 private lemma one_def : 1 = mk 1 := rfl
 
 instance : comm_ring Cauchy :=
-by refine { neg := has_neg.neg,
-    add := (+), zero := 0, mul := (*), one := 1, .. };
-  { repeat {refine λ a, quotient.induction_on a (λ _, _)},
-    simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm] }
+by refine { neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
+    add := (+), zero := (0 : Cauchy), mul := (*), one := 1, nsmul := nsmul_rec, npow := npow_rec,
+    gsmul := gsmul_rec, .. }; try { intros; refl };
+{ repeat {refine λ a, quotient.induction_on a (λ _, _)},
+  simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
+          sub_eq_add_neg] }
 
 theorem of_rat_sub (x y : β) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -136,7 +149,7 @@ noncomputable def field : field Cauchy :=
 local attribute [instance] field
 
 theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
-congr_arg mk $ by split_ifs with h; try {simp [const_lim_zero.1 h]}; refl
+congr_arg mk $ by split_ifs with h; [simp [const_lim_zero.1 h], refl]
 
 theorem of_rat_div (x y : β) : of_rat (x / y) = (of_rat x / of_rat y : Cauchy) :=
 by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
@@ -197,7 +210,7 @@ by rw [← lim_mul_lim, lim_const]
 
 lemma lim_neg (f : cau_seq β abv) : lim (-f) = -lim f :=
 lim_eq_of_equiv_const (show lim_zero (-f - const abv (-lim f)),
-  by rw [const_neg, sub_neg_eq_add, add_comm];
+  by rw [const_neg, sub_neg_eq_add, add_comm, ← sub_eq_add_neg];
   exact setoid.symm (equiv_lim f))
 
 lemma lim_eq_zero_iff (f : cau_seq β abv) : lim f = 0 ↔ lim_zero f :=

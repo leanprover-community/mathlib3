@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
+Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
 import tactic.lint
 import tactic.dependencies
@@ -36,7 +36,7 @@ do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
 
 /-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=
-l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
+propagate_tags $ l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
 
 add_tactic_doc
 { name       := "substs",
@@ -121,6 +121,8 @@ meta def work_on_goal : parse small_nat → itactic → tactic unit
 /--
 `swap n` will move the `n`th goal to the front.
 `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+See also `tactic.interactive.rotate`, which moves the first `n` goals to the back.
 -/
 meta def swap (n := 2) : tactic unit :=
 do gs ← get_goals,
@@ -135,7 +137,11 @@ add_tactic_doc
   decl_names := [`tactic.interactive.swap],
   tags       := ["goal management"] }
 
-/-- `rotate` moves the first goal to the back. `rotate n` will do this `n` times. -/
+/--
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.
+
+See also `tactic.interactive.swap`, which moves the `n`th goal to the front.
+-/
 meta def rotate (n := 1) : tactic unit := tactic.rotate n
 
 add_tactic_doc
@@ -328,7 +334,7 @@ literals. It creates a goal for each missing field and tags it with the name of 
 field so that `have_field` can be used to generically refer to the field currently
 being refined.
 
-As an example, we can use `refine_struct` to automate the construction semigroup
+As an example, we can use `refine_struct` to automate the construction of semigroup
 instances:
 
 ```lean
@@ -595,7 +601,7 @@ do let (e,n) := arg,
         tactic.clear h' ),
    when h.is_some (do
      (to_expr ``(heq_of_eq_rec_left %%eq_h %%asm)
-       <|> to_expr ``(heq_of_eq_mp %%eq_h %%asm))
+       <|> to_expr ``(heq_of_cast_eq %%eq_h %%asm))
      >>= note h' none >> pure ()),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
@@ -605,66 +611,6 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.h_generalize],
   tags       := ["context management"] }
-
-/--
-The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
-where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
-crafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by
-iterating the following steps:
-
-- write an inverse as a division
-- in any product, move the division to the right
-- if there are several divisions in a product, group them together at the end and write them as a
-  single division
-- reduce a sum to a common denominator
-
-If the goal is an equality, this simpset will also clear the denominators, so that the proof
-can normally be concluded by an application of `ring` or `ring_exp`.
-
-`field_simp [hx, hy]` is a short form for `simp [-one_div, hx, hy] with field_simps`
-
-Note that this naive algorithm will not try to detect common factors in denominators to reduce the
-complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
-complicated expressions in the next step.
-
-As always with the simplifier, reduction steps will only be applied if the preconditions of the
-lemmas can be checked. This means that proofs that denominators are nonzero should be included. The
-fact that a product is nonzero when all factors are, and that a power of a nonzero number is
-nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)
-should be given explicitly. If your expression is not completely reduced by the simplifier
-invocation, check the denominators of the resulting expression and provide proofs that they are
-nonzero to enable further progress.
-
-The invocation of `field_simp` removes the lemma `one_div` (which is marked as a simp lemma
-in core) from the simpset, as this lemma works against the algorithm explained above.
-
-For example,
-```lean
-example (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :
-  a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
-begin
-  field_simp [hx, hy],
-  ring
-end
-
-See also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions
-that have numerals in denominators.
-The tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to
-entirely remove (numeric) division from the expression by multiplying by a factor.
-```
--/
-meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
-  (attr_names : parse with_ident_list)
-  (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
-let attr_names := `field_simps :: attr_names,
-    hs := simp_arg_type.except `one_div :: hs in
-propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
-
-add_tactic_doc
-{ name       := "field_simp",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.field_simp],
-  tags       := ["simplification", "arithmetic"] }
 
 /-- Tests whether `t` is definitionally equal to `p`. The difference with `guard_expr_eq` is that
   this uses definitional equality instead of alpha-equivalence. -/
@@ -985,12 +931,12 @@ end
 
 -/
 meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
-  (n : parse ident?) (vs : parse with_ident_list)
+  (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,
    solve_aux tgt $ do {
      ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
-         when (¬ vs.empty) (clear_except vs),
+         vs.mmap clear_except,
          ls ← local_context,
          ls ← ls.mfilter $ succeeds ∘ is_local_def,
          n ← revert_lst ls,
@@ -1123,8 +1069,8 @@ do let (p, x) := p,
    tgt ← target,
    tgt' ← do {
      ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
-     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
-   } <|> to_expr ``(Π x, %%e = x → %%tgt),
+     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1)) }
+   <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',
    swap,
    exact ``(%%t %%e rfl),
@@ -1135,6 +1081,25 @@ add_tactic_doc
 { name       := "generalize'",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.generalize'],
+  tags       := ["context management"] }
+
+/--
+If the expression `q` is a local variable with type `x = t` or `t = x`, where `x` is a local
+constant, `tactic.interactive.subst' q` substitutes `x` by `t` everywhere in the main goal and
+then clears `q`.
+If `q` is another local variable, then we find a local constant with type `q = t` or `t = q` and
+substitute `t` for `q`.
+
+Like `tactic.interactive.subst`, but fails with a nicer error message if the substituted variable is
+a local definition. It is trickier to fix this in core, since `tactic.is_local_def` is in mathlib.
+-/
+meta def subst' (q : parse texpr) : tactic unit := do
+i_to_expr q >>= tactic.subst' >> try (tactic.reflexivity reducible)
+
+add_tactic_doc
+{ name       := "subst'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.subst'],
   tags       := ["context management"] }
 
 end interactive

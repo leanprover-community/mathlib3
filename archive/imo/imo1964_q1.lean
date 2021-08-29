@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import tactic
+import tactic.interval_cases
 import data.nat.modeq
 
 /-!
@@ -22,26 +22,26 @@ integers which are a multiple of 3.
 ## Intermediate lemmas
 -/
 
-open nat.modeq
+open nat
 
 lemma two_pow_three_mul_mod_seven (m : ℕ) : 2 ^ (3 * m) ≡ 1 [MOD 7] :=
 begin
   rw pow_mul,
   have h : 8 ≡ 1 [MOD 7] := modeq_of_dvd (by {use -1, norm_num }),
-  convert modeq_pow _ h,
+  convert h.pow _,
   simp,
 end
 
 lemma two_pow_three_mul_add_one_mod_seven (m : ℕ) : 2 ^ (3 * m + 1) ≡ 2 [MOD 7] :=
 begin
   rw pow_add,
-  exact modeq_mul (two_pow_three_mul_mod_seven m) (show 2 ^ 1 ≡ 2 [MOD 7], by refl),
+  exact (two_pow_three_mul_mod_seven m).mul_right _,
 end
 
 lemma two_pow_three_mul_add_two_mod_seven (m : ℕ) : 2 ^ (3 * m + 2) ≡ 4 [MOD 7] :=
 begin
   rw pow_add,
-  exact modeq_mul (two_pow_three_mul_mod_seven m) (show 2 ^ 2 ≡ 4 [MOD 7], by refl),
+  exact (two_pow_three_mul_mod_seven m).mul_right _,
 end
 
 /-!
@@ -63,7 +63,7 @@ begin
   split,
   { intro h,
     let t := n % 3,
-    rw [(show n = t + 3 * (n / 3), from (nat.mod_add_div n 3).symm), add_comm] at h,
+    rw [(show n = 3 * (n / 3) + t, from (nat.div_add_mod n 3).symm)] at h,
     have ht : t < 3 := nat.mod_lt _ dec_trivial,
     interval_cases t with hr; rw hr at h,
     { exact nat.dvd_of_mod_eq_zero hr },
@@ -82,22 +82,20 @@ end
 theorem imo1964_q1b (n : ℕ) : ¬ (7 ∣ 2 ^ n + 1) :=
 begin
   let t := n % 3,
-  rw [← modeq_zero_iff, (show n = t + 3 * (n / 3), from (nat.mod_add_div n 3).symm), add_comm],
+  rw [← modeq_zero_iff_dvd, (show n = 3 * (n / 3) + t, from (nat.div_add_mod n 3).symm)],
   have ht : t < 3 := nat.mod_lt _ dec_trivial,
   interval_cases t with hr; rw hr,
-  { rw zero_add,
+  { rw add_zero,
     intro h,
-    have := h.symm.trans (modeq_add (nat.modeq.refl _) (two_pow_three_mul_mod_seven _)),
+    have := h.symm.trans ((two_pow_three_mul_mod_seven _).add_right _),
     rw modeq_iff_dvd at this,
     norm_num at this },
-  { rw add_comm _ (3 * _),
-    intro h,
-    have := h.symm.trans (modeq_add (nat.modeq.refl _) (two_pow_three_mul_add_one_mod_seven _)),
+  { intro h,
+    have := h.symm.trans ((two_pow_three_mul_add_one_mod_seven _).add_right _),
     rw modeq_iff_dvd at this,
     norm_num at this },
-  { rw add_comm _ (3 * _),
-    intro h,
-    have := h.symm.trans (modeq_add (nat.modeq.refl _) (two_pow_three_mul_add_two_mod_seven _)),
+  { intro h,
+    have := h.symm.trans ((two_pow_three_mul_add_two_mod_seven _).add_right _),
     rw modeq_iff_dvd at this,
     norm_num at this },
 end

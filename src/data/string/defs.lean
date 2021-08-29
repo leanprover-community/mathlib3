@@ -1,9 +1,15 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon, Keeley Hoek, Floris van Doorn
+Authors: Simon Hudon, Keeley Hoek, Floris van Doorn
 -/
 import data.list.defs
+
+/-!
+# Definitions for `string`
+
+This file defines a bunch of functions for the `string` datatype.
+-/
 
 namespace string
 
@@ -44,5 +50,9 @@ def popn (s : string) (n : nat) : string :=
 /-- `is_nat s` is true iff `s` is a nonempty sequence of digits. -/
 def is_nat (s : string) : bool :=
 ¬ s.is_empty ∧ s.to_list.all (λ c, to_bool c.is_digit)
+
+/-- Produce the head character from the string `s`, if `s` is not empty, otherwise 'A'. -/
+def head (s : string) : char :=
+s.mk_iterator.curr
 
 end string

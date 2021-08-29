@@ -20,7 +20,11 @@ members.
 
 set_option old_structure_cmd true
 
-variables {M₀ G₀ M₀' G₀' : Type*}
+universe u
+
+-- We have to fix the universe of `G₀` here, since the default argument to
+-- `group_with_zero.div'` cannot contain a universe metavariable.
+variables {G₀ : Type u} {M₀ M₀' G₀' : Type*}
 
 section
 
@@ -50,9 +54,23 @@ class no_zero_divisors (M₀ : Type*) [has_mul M₀] [has_zero M₀] : Prop :=
 
 export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
 
-/-- A type `M` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
+/-- A type `S₀` is a "semigroup with zero” if it is a semigroup with zero element, and `0` is left
 and right absorbing. -/
-@[protect_proj] class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_class M₀.
+@[protect_proj] class semigroup_with_zero (S₀ : Type*) extends semigroup S₀, mul_zero_class S₀.
+
+/- By defining this _after_ `semigroup_with_zero`, we ensure that searches for `mul_zero_class` find
+this class first. -/
+/-- A typeclass for non-associative monoids with zero elements. -/
+@[protect_proj] class mul_zero_one_class (M₀ : Type*) extends mul_one_class M₀, mul_zero_class M₀.
+
+/-- A type `M₀` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
+and right absorbing. -/
+@[protect_proj] class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_one_class M₀.
+
+@[priority 100] -- see Note [lower instance priority]
+instance monoid_with_zero.to_semigroup_with_zero (M₀ : Type*) [monoid_with_zero M₀] :
+  semigroup_with_zero M₀ :=
+{ ..‹monoid_with_zero M₀› }
 
 /-- A type `M` is a `cancel_monoid_with_zero` if it is a monoid with zero element, `0` is left
 and right absorbing, and left/right multiplication by a non-zero element is injective. -/
@@ -69,6 +87,12 @@ cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
 
 lemma mul_right_cancel' (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
 cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h
+
+lemma mul_right_injective' (ha : a ≠ 0) : function.injective ((*) a) :=
+λ b c, mul_left_cancel' ha
+
+lemma mul_left_injective' (hb : b ≠ 0) : function.injective (λ a, a * b) :=
+λ a c, mul_right_cancel' hb
 
 end cancel_monoid_with_zero
 
@@ -89,7 +113,8 @@ The type is required to come with an “inverse” function, and the inverse of 
 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
-class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀, nontrivial G₀ :=
+class group_with_zero (G₀ : Type u) extends
+  monoid_with_zero G₀, div_inv_monoid G₀, nontrivial G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
 

@@ -18,7 +18,8 @@ meanings:
   `op (x * y) = op x * op y`.
 -/
 
-universes v u -- declare the `v` first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
+
 variable (α : Sort u)
 
 /-- The type of objects of the opposite of `α`; used to define the opposite category or group.
@@ -78,9 +79,9 @@ def equiv_to_opposite : α ≃ αᵒᵖ :=
   right_inv := op_unop }
 
 @[simp]
-lemma equiv_to_opposite_apply (a : α) : equiv_to_opposite a = op a := rfl
+lemma equiv_to_opposite_coe : (equiv_to_opposite : α → αᵒᵖ) = op := rfl
 @[simp]
-lemma equiv_to_opposite_symm_apply (a : αᵒᵖ) : equiv_to_opposite.symm a = unop a := rfl
+lemma equiv_to_opposite_symm_coe : (equiv_to_opposite.symm : αᵒᵖ → α) = unop := rfl
 
 lemma op_eq_iff_eq_unop {x : α} {y} : op x = y ↔ x = unop y :=
 equiv_to_opposite.apply_eq_iff_eq_symm_apply

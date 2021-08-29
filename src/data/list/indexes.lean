@@ -3,10 +3,14 @@ Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
+import data.list.range
 
-import data.list.basic
-import data.list.defs
-import logic.basic
+/-! 
+# Lemmas about list.*_with_index functions.
+
+Some specification lemmas for `list.map_with_index`, `list.mmap_with_index`, `list.foldl_with_index`
+and `list.foldr_with_index`.
+-/
 
 universes u v
 
@@ -16,6 +20,28 @@ namespace list
 
 variables {α : Type u} {β : Type v}
 
+section map_with_index
+
+lemma map_with_index_core_eq (l : list α) (f : ℕ → α → β) (n : ℕ) :
+  l.map_with_index_core f n = l.map_with_index (λ i a, f (i + n) a) :=
+begin
+  induction l with hd tl hl generalizing f n,
+  { simp [map_with_index, map_with_index_core] },
+  { rw [map_with_index],
+    simp [map_with_index_core, hl, add_left_comm, add_assoc, add_comm] }
+end
+
+lemma map_with_index_eq_enum_map (l : list α) (f : ℕ → α → β) :
+  l.map_with_index f = l.enum.map (function.uncurry f) :=
+begin
+  induction l with hd tl hl generalizing f,
+  { simp [map_with_index, map_with_index_core, list.enum_eq_zip_range] },
+  { rw [map_with_index, map_with_index_core, map_with_index_core_eq, hl],
+    simp [enum_eq_zip_range, range_succ_eq_map, zip_with_map_left,
+    map_uncurry_zip_eq_zip_with] }
+end
+
+end map_with_index
 
 section foldr_with_index
 

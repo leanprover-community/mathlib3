@@ -26,6 +26,7 @@ make the notation available.
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 
@@ -83,6 +84,12 @@ Icc_subset_interval ⟨ha, hb⟩
 lemma mem_interval_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] :=
 Icc_subset_interval' ⟨hb, ha⟩
 
+lemma not_mem_interval_of_lt {c : α} (ha : c < a) (hb : c < b) : c ∉ interval a b :=
+not_mem_Icc_of_lt $ lt_min_iff.mpr ⟨ha, hb⟩
+
+lemma not_mem_interval_of_gt {c : α} (ha : a < c) (hb : b < c) : c ∉ interval a b :=
+not_mem_Icc_of_gt $ max_lt_iff.mpr ⟨ha, hb⟩
+
 lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
 Icc_subset_Icc (le_min h₁.1 h₂.1) (max_le h₁.2 h₂.2)
 
@@ -108,6 +115,22 @@ begin
   { rintro ⟨a, b, h⟩, exact ⟨min a b, max a b, h⟩ }
 end
 
+/-- The open-closed interval with unordered bounds. -/
+def interval_oc : α → α → set α := λ a b, Ioc (min a b) (max a b)
+
+-- Below is a capital iota
+localized "notation `Ι` := interval_oc" in interval
+
+lemma interval_oc_of_le (h : a ≤ b) : Ι a b = Ioc a b :=
+by simp [interval_oc, h]
+
+lemma interval_oc_of_lt (h : b < a) : Ι a b = Ioc b a :=
+by simp [interval_oc, le_of_lt h]
+
+lemma forall_interval_oc_iff  {P : α → Prop} :
+  (∀ x ∈ Ι a b, P x) ↔ (∀ x ∈ Ioc a b, P x) ∧ (∀ x ∈ Ioc b a, P x) :=
+by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
+
 end linear_order
 
 open_locale interval
@@ -122,7 +145,7 @@ by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_r
 @[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
 by simpa only [add_comm] using preimage_const_add_interval a b c
 
-@[simp] lemma preimage_neg_interval : -([a, b]) = [-a, -b] :=
+@[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
 by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
 @[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
@@ -185,19 +208,20 @@ by simp only [← preimage_mul_const_interval ha, mul_comm]
 
 @[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-(preimage_mul_const_interval (inv_ne_zero ha) _ _).trans $ by simp [div_eq_mul_inv]
+by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv']
 
 @[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
 if ha : a = 0 then by simp [ha] else
-calc (λ x, x * a) '' [b, c] = (λ x, x / a) ⁻¹' [b, c] :
+calc (λ x, x * a) '' [b, c] = (λ x, x * a⁻¹) ⁻¹' [b, c] :
   (units.mk0 a ha).mul_right.image_eq_preimage _
+... = (λ x, x / a) ⁻¹' [b, c] : by simp only [div_eq_mul_inv]
 ... = [b * a, c * a] : preimage_div_const_interval ha _ _
 
 @[simp] lemma image_const_mul_interval (a b c : k) : (λ x, a * x) '' [b, c] = [a * b, a * c] :=
 by simpa only [mul_comm] using image_mul_const_interval a b c
 
 @[simp] lemma image_div_const_interval (a b c : k) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
-image_mul_const_interval _ _ _
+by simp only [div_eq_mul_inv, image_mul_const_interval]
 
 end linear_ordered_field
 

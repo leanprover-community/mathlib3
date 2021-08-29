@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 
-import category_theory.limits.shapes.constructions.pullbacks
+import category_theory.limits.constructions.pullbacks
 import category_theory.limits.shapes.biproducts
 import category_theory.limits.shapes.images
 import category_theory.abelian.non_preadditive
@@ -118,12 +118,19 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- An abelian category has finite biproducts. -/
-lemma has_finite_biproducts : has_finite_biproducts C :=
+@[priority 100]
+instance has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
 
-section to_non_preadditive_abelian
+@[priority 100]
+instance has_binary_biproducts : has_binary_biproducts C :=
+limits.has_binary_biproducts_of_finite_biproducts _
 
-local attribute [instance] has_finite_biproducts
+@[priority 100]
+instance has_zero_object : has_zero_object C :=
+has_zero_object_of_has_initial_object
+
+section to_non_preadditive_abelian
 
 /-- Every abelian category is, in particular, `non_preadditive_abelian`. -/
 def non_preadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }
@@ -144,7 +151,7 @@ variables {X Y : C} (f : X ⟶ Y)
 local attribute [instance] strong_epi_of_epi
 
 /-- In an abelian category, a monomorphism which is also an epimorphism is an isomorphism. -/
-def is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
+lemma is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
 
 end mono_epi_iso
@@ -161,11 +168,7 @@ lemma mono_of_zero_kernel (R : C)
 non_preadditive_abelian.mono_of_zero_kernel _ _ l
 
 lemma mono_of_kernel_ι_eq_zero (h : kernel.ι f = 0) : mono f :=
-begin
-  apply mono_of_zero_kernel _ (kernel f),
-  simp_rw ←h,
-  exact is_limit.of_iso_limit (limit.is_limit (parallel_pair f 0)) (iso_of_ι _)
-end
+mono_of_kernel_zero h
 
 lemma epi_of_zero_cokernel (R : C)
   (l : is_colimit (cokernel_cofork.of_π (0 : Q ⟶ R) (show f ≫ 0 = 0, by simp))) : epi f :=
@@ -247,6 +250,14 @@ cokernel.π_desc _ _ _
 instance : mono (coimages.factor_thru_coimage f) :=
 show mono (non_preadditive_abelian.factor_thru_coimage f), by apply_instance
 
+section
+variables {f}
+
+lemma comp_coimage_π_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : f ≫ coimages.coimage.π g = 0 :=
+zero_of_comp_mono (coimages.factor_thru_coimage g) $ by simp [h]
+
+end
+
 instance epi_factor_thru_coimage [epi f] : epi (coimages.factor_thru_coimage f) :=
 epi_of_epi_fac $ coimage.fac f
 
@@ -326,28 +337,33 @@ non_preadditive_abelian.mono_is_kernel_of_cokernel s h
 end cokernel_of_kernel
 
 section
-local attribute [instance] preadditive.has_equalizers_of_has_kernels
+
+@[priority 100]
+instance has_equalizers : has_equalizers C :=
+preadditive.has_equalizers_of_has_kernels
 
 /-- Any abelian category has pullbacks -/
-lemma has_pullbacks : has_pullbacks C :=
+@[priority 100]
+instance has_pullbacks : has_pullbacks C :=
 has_pullbacks_of_has_binary_products_of_has_equalizers C
 
 end
 
 section
-local attribute [instance] preadditive.has_coequalizers_of_has_cokernels
-local attribute [instance] has_binary_biproducts.of_has_binary_products
+
+@[priority 100]
+instance has_coequalizers : has_coequalizers C :=
+preadditive.has_coequalizers_of_has_cokernels
 
 /-- Any abelian category has pushouts -/
-lemma has_pushouts : has_pushouts C :=
+@[priority 100]
+instance has_pushouts : has_pushouts C :=
 has_pushouts_of_has_binary_coproducts_of_has_coequalizers C
 
 end
 
 namespace pullback_to_biproduct_is_kernel
 variables [limits.has_pullbacks C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
-
-local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-! This section contains a slightly technical result about pullbacks and biproducts.
     We will need it in the proof that the pullback of an epimorphism is an epimorpism. -/
@@ -363,8 +379,6 @@ biprod.lift pullback.fst pullback.snd
 abbreviation pullback_to_biproduct_fork : kernel_fork (biprod.desc f (-g)) :=
 kernel_fork.of_ι (pullback_to_biproduct f g) $
 by rw [biprod.lift_desc, comp_neg, pullback.condition, add_right_neg]
-
-local attribute [irreducible] has_limit_cospan_of_has_limit_pair_of_has_limit_parallel_pair
 
 /-- The canonical map `pullback f g ⟶ X ⊞ Y` is a kernel of the map induced by
     `(f, -g)`. -/
@@ -384,9 +398,7 @@ fork.is_limit.mk _
 end pullback_to_biproduct_is_kernel
 
 namespace biproduct_to_pushout_is_cokernel
-variables [limits.has_pushouts C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
-
-local attribute [instance] has_binary_biproducts.of_has_binary_products
+variables [limits.has_pushouts C] {W X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
 
 /-- The canonical map `Y ⊞ Z ⟶ pushout f g` -/
 abbreviation biproduct_to_pushout : Y ⊞ Z ⟶ pushout f g :=
@@ -411,9 +423,7 @@ cofork.is_colimit.mk _
 end biproduct_to_pushout_is_cokernel
 
 section epi_pullback
-variables [limits.has_pullbacks C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
-
-local attribute [instance] has_binary_biproducts.of_has_binary_products
+variables [limits.has_pullbacks C] {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
 
 /-- In an abelian category, the pullback of an epimorphism is an epimorphism.
     Proof from [aluffi2016, IX.2.3], cf. [borceux-vol2, 1.7.6] -/
@@ -484,12 +494,32 @@ begin
     ... = 0 : has_zero_morphisms.comp_zero _ _
 end
 
+lemma epi_snd_of_is_limit [epi f] {s : pullback_cone f g} (hs : is_limit s) : epi s.snd :=
+begin
+  convert epi_of_epi_fac (is_limit.cone_point_unique_up_to_iso_hom_comp (limit.is_limit _) hs _),
+  { refl },
+  { exact abelian.epi_pullback_of_epi_f _ _ }
+end
+
+lemma epi_fst_of_is_limit [epi g] {s : pullback_cone f g} (hs : is_limit s) : epi s.fst :=
+begin
+  convert epi_of_epi_fac (is_limit.cone_point_unique_up_to_iso_hom_comp (limit.is_limit _) hs _),
+  { refl },
+  { exact abelian.epi_pullback_of_epi_g _ _ }
+end
+
+/-- Suppose `f` and `g` are two morphisms with a common codomain and suppose we have written `g` as
+    an epimorphism followed by a monomorphism. If `f` factors through the mono part of this
+    factorization, then any pullback of `g` along `f` is an epimorphism. -/
+lemma epi_fst_of_factor_thru_epi_mono_factorization
+  (g₁ : Y ⟶ W) [epi g₁] (g₂ : W ⟶ Z) [mono g₂] (hg : g₁ ≫ g₂ = g) (f' : X ⟶ W) (hf : f' ≫ g₂ = f)
+  (t : pullback_cone f g) (ht : is_limit t) : epi t.fst :=
+by apply epi_fst_of_is_limit _ _ (pullback_cone.is_limit_of_factors f g g₂ f' g₁ hf hg t ht)
+
 end epi_pullback
 
 section mono_pushout
-variables [limits.has_pushouts C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
-
-local attribute [instance] has_binary_biproducts.of_has_binary_products
+variables [limits.has_pushouts C] {W X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
 
 instance mono_pushout_of_mono_f [mono f] : mono (pushout.inr : Z ⟶ pushout f g) :=
 mono_of_cancel_zero _ $ λ R e h,
@@ -536,6 +566,30 @@ begin
     ... = 0 ≫ biprod.lift f (-g) ≫ biprod.fst : by rw category.assoc
     ... = 0 : zero_comp
 end
+
+lemma mono_inr_of_is_colimit [mono f] {s : pushout_cocone f g} (hs : is_colimit s) : mono s.inr :=
+begin
+  convert mono_of_mono_fac
+    (is_colimit.comp_cocone_point_unique_up_to_iso_hom hs (colimit.is_colimit _) _),
+  { refl },
+  { exact abelian.mono_pushout_of_mono_f _ _ }
+end
+
+lemma mono_inl_of_is_colimit [mono g] {s : pushout_cocone f g} (hs : is_colimit s) : mono s.inl :=
+begin
+  convert mono_of_mono_fac
+    (is_colimit.comp_cocone_point_unique_up_to_iso_hom hs (colimit.is_colimit _) _),
+  { refl },
+  { exact abelian.mono_pushout_of_mono_g _ _ }
+end
+
+/-- Suppose `f` and `g` are two morphisms with a common domain and suppose we have written `g` as
+    an epimorphism followed by a monomorphism. If `f` factors through the epi part of this
+    factorization, then any pushout of `g` along `f` is a monomorphism. -/
+lemma mono_inl_of_factor_thru_epi_mono_factorization (f : X ⟶ Y) (g : X ⟶ Z)
+  (g₁ : X ⟶ W) [epi g₁] (g₂ : W ⟶ Z) [mono g₂] (hg : g₁ ≫ g₂ = g) (f' : W ⟶ Y) (hf : g₁ ≫ f' = f)
+  (t : pushout_cocone f g) (ht : is_colimit t) : mono t.inl :=
+by apply mono_inl_of_is_colimit _ _ (pushout_cocone.is_colimit_of_factors _ _ _ _ _ hf hg t ht)
 
 end mono_pushout
 

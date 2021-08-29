@@ -1,17 +1,23 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
-
-Additional facts about equiv and encodable using the
-pairing function on nat.
+Authors: Mario Carneiro
 -/
 import data.nat.pairing
 import data.pnat.basic
 
+/-!
+# Equivalences involving `ℕ`
+
+This file defines some additional constructive equivalences using `encodable` and the pairing
+function on `ℕ`.
+-/
+
 open nat
 
 namespace equiv
+
+variables {α : Type*}
 
 /--
 An equivalence between `ℕ × ℕ` and `ℕ`, using the `mkpair` and `unpair` functions in
@@ -48,7 +54,7 @@ int_equiv_nat_sum_nat.trans nat_sum_nat_equiv_nat
 /--
 An equivalence between `α × α` and `α`, given that there is an equivalence between `α` and `ℕ`.
 -/
-def prod_equiv_of_equiv_nat {α : Sort*} (e : α ≃ ℕ) : α × α ≃ α :=
+def prod_equiv_of_equiv_nat (e : α ≃ ℕ) : α × α ≃ α :=
 calc α × α ≃ ℕ × ℕ : prod_congr e e
       ...  ≃ ℕ     : nat_prod_nat_equiv_nat
       ...  ≃ α     : e.symm

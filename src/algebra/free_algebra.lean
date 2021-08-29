@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison, Adam Topaz.
+Authors: Scott Morrison, Adam Topaz
 -/
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra
@@ -11,7 +11,8 @@ import data.equiv.transfer_instance
 /-!
 # Free Algebras
 
-Given a commutative semiring `R`, and a type `X`, we construct the free `R`-algebra on `X`.
+Given a commutative semiring `R`, and a type `X`, we construct the free unital, associative
+`R`-algebra on `X`.
 
 ## Notation
 
@@ -35,8 +36,8 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
 
 ## Implementation details
 
-We construct the free algebra on `X` as a quotient of an inductive type `free_algebra.pre` by an inductively defined relation `free_algebra.rel`.
-Explicitly, the construction involves three steps:
+We construct the free algebra on `X` as a quotient of an inductive type `free_algebra.pre` by an
+inductively defined relation `free_algebra.rel`. Explicitly, the construction involves three steps:
 1. We construct an inductive type `free_algebra.pre R X`, the terms of which should be thought
   of as representatives for the elements of `free_algebra R X`.
   It is the free type with maps from `R` and `X`, and with two binary operations `add` and `mul`.
@@ -276,9 +277,13 @@ theorem lift_unique (f : X → A) (g : free_algebra R X →ₐ[R] A) :
 (lift R).symm_apply_eq
 
 /-!
-At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one should only use the universal properties of the free algebra, and consider the actual implementation as a quotient of an inductive type as completely hidden.
+At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one
+should only use the universal properties of the free algebra, and consider the actual implementation
+as a quotient of an inductive type as completely hidden.
 
-Of course, one still has the option to locally make these definitions `semireducible` if so desired, and Lean is still willing in some circumstances to do unification based on the underlying definition.
+Of course, one still has the option to locally make these definitions `semireducible` if so desired,
+and Lean is still willing in some circumstances to do unification based on the underlying
+definition.
 -/
 attribute [irreducible] ι lift
 -- Marking `free_algebra` irreducible makes `ring` instances inaccessible on quotients.
@@ -290,6 +295,7 @@ theorem lift_comp_ι (g : free_algebra R X →ₐ[R] A) :
   lift R ((g : free_algebra R X → A) ∘ (ι R)) = g :=
 by { rw ←lift_symm_apply, exact (lift R).apply_symm_apply g }
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext]
 theorem hom_ext {f g : free_algebra R X →ₐ[R] A}
   (w : ((f : free_algebra R X → A) ∘ (ι R)) = ((g : free_algebra R X → A) ∘ (ι R))) : f = g :=
@@ -323,6 +329,14 @@ equiv_monoid_algebra_free_monoid.to_equiv.nontrivial
 section
 open_locale classical
 
+/-- The left-inverse of `algebra_map`. -/
+def algebra_map_inv : free_algebra R X →ₐ[R] R :=
+lift R (0 : X → R)
+
+lemma algebra_map_left_inverse :
+  function.left_inverse algebra_map_inv (algebra_map R $ free_algebra R X) :=
+λ x, by simp [algebra_map_inv]
+
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
 λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
@@ -336,8 +350,8 @@ end
 
 end free_algebra
 
--- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.
--- Closing it and reopening it fixes it...
+/- There is something weird in the above namespace that breaks the typeclass resolution of
+`has_coe_to_sort` below. Closing it and reopening it fixes it... -/
 namespace free_algebra
 
 /-- An induction principle for the free algebra.
@@ -357,8 +371,6 @@ begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from X
   let s : subalgebra R (free_algebra R X) := {
     carrier := C,
-    one_mem' := h_grade0 1,
-    zero_mem' := h_grade0 0,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 
 import data.nat.upto
@@ -13,12 +13,12 @@ import data.pfun
 
 This module defines a generic `fix` operator for defining recursive
 computations that are not necessarily well-founded or productive.
-An instance is defined for `roption`.
+An instance is defined for `part`.
 
 ## Main definition
 
  * class `has_fix`
- * `roption.fix`
+ * `part.fix`
 -/
 
 universes u v
@@ -31,23 +31,23 @@ of function of type `α → α`. -/
 class has_fix (α : Type*) :=
 (fix : (α → α) → α)
 
-namespace roption
+namespace part
 
-open roption nat nat.upto
+open part nat nat.upto
 
 section basic
 
-variables (f : (Π a, roption $ β a) → (Π a, roption $ β a))
+variables (f : (Π a, part $ β a) → (Π a, part $ β a))
 
 /-- A series of successive, finite approximation of the fixed point of `f`, defined by
 `approx f n = f^[n] ⊥`. The limit of this chain is the fixed point of `f`. -/
-def fix.approx : stream $ Π a, roption $ β a
+def fix.approx : stream $ Π a, part $ β a
 | 0 := ⊥
 | (nat.succ i) := f (fix.approx i)
 
 /-- loop body for finding the fixed point of `f` -/
 def fix_aux {p : ℕ → Prop} (i : nat.upto p)
-  (g : Π j : nat.upto p, i < j → Π a, roption $ β a) : Π a, roption $ β a :=
+  (g : Π j : nat.upto p, i < j → Π a, part $ β a) : Π a, part $ β a :=
 f $ λ x : α,
 assert (¬p (i.val)) $ λ h : ¬ p (i.val),
 g (i.succ h) (nat.lt_succ_self _) x
@@ -60,12 +60,12 @@ it satisfies the equations:
   1. `fix f = f (fix f)`          (is a fixed point)
   2. `∀ X, f X ≤ X → fix f ≤ X`   (least fixed point)
 -/
-protected def fix (x : α) : roption $ β x :=
-roption.assert (∃ i, (fix.approx f i x).dom) $ λ h,
+protected def fix (x : α) : part $ β x :=
+part.assert (∃ i, (fix.approx f i x).dom) $ λ h,
 well_founded.fix.{1} (nat.upto.wf h) (fix_aux f) nat.upto.zero x
 
 protected lemma fix_def {x : α} (h' : ∃ i, (fix.approx f i x).dom) :
-  roption.fix f x = fix.approx f (nat.succ $ nat.find h') x :=
+  part.fix f x = fix.approx f (nat.succ $ nat.find h') x :=
 begin
   let p := λ (i : ℕ), (fix.approx f i x).dom,
   have : p (nat.find h') := nat.find_spec h',
@@ -73,9 +73,10 @@ begin
   replace hk : nat.find h' = k + (@upto.zero p).val := hk,
   rw hk at this,
   revert hk,
-  dsimp [roption.fix], rw assert_pos h', revert this,
+  dsimp [part.fix], rw assert_pos h', revert this,
   generalize : upto.zero = z, intros,
-  suffices : ∀ x', well_founded.fix (fix._proof_1 f x h') (fix_aux f) z x' = fix.approx f (succ k) x',
+  suffices : ∀ x',
+    well_founded.fix (fix._proof_1 f x h') (fix_aux f) z x' = fix.approx f (succ k) x',
     from this _,
   induction k generalizing z; intro,
   { rw [fix.approx,well_founded.fix_eq,fix_aux],
@@ -94,24 +95,24 @@ begin
 end
 
 lemma fix_def' {x : α} (h' : ¬ ∃ i, (fix.approx f i x).dom) :
-  roption.fix f x = none :=
-by dsimp [roption.fix]; rw assert_neg h'
+  part.fix f x = none :=
+by dsimp [part.fix]; rw assert_neg h'
 
 end basic
 
-end roption
+end part
 
-namespace roption
+namespace part
 
-instance : has_fix (roption α) :=
-⟨λ f, roption.fix (λ x u, f (x u)) ()⟩
+instance : has_fix (part α) :=
+⟨λ f, part.fix (λ x u, f (x u)) ()⟩
 
-end roption
+end part
 
 open sigma
 
 namespace pi
 
-instance roption.has_fix {β} : has_fix (α → roption β) := ⟨roption.fix⟩
+instance part.has_fix {β} : has_fix (α → part β) := ⟨part.fix⟩
 
 end pi

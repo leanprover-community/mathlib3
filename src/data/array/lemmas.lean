@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import control.traversable.equiv
-import data.vector2
+import data.vector.basic
 
 universes u v w
 
@@ -222,6 +222,20 @@ end
 
 @[simp] theorem push_back_to_list : (a.push_back v).to_list = a.to_list ++ [v] :=
 by rw [←rev_list_reverse, ←rev_list_reverse, push_back_rev_list, list.reverse_cons]
+
+@[simp] lemma read_push_back_left (i : fin n) : (a.push_back v).read i.cast_succ = a.read i :=
+begin
+  cases i with i hi,
+  have : ¬ i = n := ne_of_lt hi,
+  simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
+end
+
+@[simp] lemma read_push_back_right : (a.push_back v).read (fin.last _) = v :=
+begin
+  cases hn : fin.last n with k hk,
+  have : k = n := by simpa [fin.eq_iff_veq ] using hn.symm,
+  simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
+end
 
 end push_back
 

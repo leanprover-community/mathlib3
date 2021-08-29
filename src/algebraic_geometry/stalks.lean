@@ -21,6 +21,7 @@ open category_theory
 open category_theory.limits category_theory.category category_theory.functor
 open algebraic_geometry
 open topological_space
+open opposite
 
 variables {C : Type u} [category.{v} C] [has_colimits C]
 
@@ -41,11 +42,18 @@ A morphism of presheafed spaces induces a morphism of stalks.
 def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α.base x) ⟶ X.stalk x :=
 (stalk_functor C (α.base x)).map (α.c) ≫ X.presheaf.stalk_pushforward C α.base x
 
+@[simp, elementwise, reassoc]
+lemma stalk_map_germ {X Y : PresheafedSpace C} (α : X ⟶ Y) (U : opens Y.carrier)
+  (x : (opens.map α.base).obj U) :
+  Y.presheaf.germ ⟨α.base x, x.2⟩ ≫ stalk_map α ↑x = α.c.app (op U) ≫ X.presheaf.germ x :=
+by rw [stalk_map, stalk_functor_map_germ_assoc, stalk_pushforward_germ]
+
 section restrict
 
 -- PROJECT: restriction preserves stalks.
--- We'll want to define cofinal functors, show precomposing with a cofinal functor preserves colimits,
--- and (easily) verify that "open neighbourhoods of x within U" is cofinal in "open neighbourhoods of x".
+-- We'll want to define cofinal functors, show precomposing with a cofinal functor preserves
+-- colimits, and (easily) verify that "open neighbourhoods of x within U" is cofinal in "open
+-- neighbourhoods of x".
 /-
 def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :

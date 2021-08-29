@@ -8,14 +8,14 @@ import algebraic_geometry.sheafed_space
 import algebra.category.CommRing.limits
 import algebra.category.CommRing.colimits
 import algebraic_geometry.stalks
-import ring_theory.ideal.basic
+import ring_theory.ideal.local_ring
 
 /-!
 # The category of locally ringed spaces
 
-We define (bundled) locally ringed spaces
-(as `SheafedSpace CommRing` along with the fact that the stalks are local rings),
-and morphisms between these (morphisms in `SheafedSpace` with `is_local_ring_hom` on the stalk maps).
+We define (bundled) locally ringed spaces (as `SheafedSpace CommRing` along with the fact that the
+stalks are local rings), and morphisms between these (morphisms in `SheafedSpace` with
+`is_local_ring_hom` on the stalk maps).
 
 ## Future work
 * Define the restriction along an open embedding
@@ -62,9 +62,10 @@ def 𝒪 : sheaf CommRing X.to_Top := X.to_SheafedSpace.sheaf
 /-- A morphism of locally ringed spaces is a morphism of ringed spaces
  such that the morphims induced on stalks are local ring homomorphisms. -/
 def hom (X Y : LocallyRingedSpace) : Type* :=
-{ f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace // ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
+{ f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace //
+    ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
 
-instance : has_hom LocallyRingedSpace := ⟨hom⟩
+instance : quiver LocallyRingedSpace := ⟨hom⟩
 
 @[ext] lemma hom_ext {X Y : LocallyRingedSpace} (f g : hom X Y) (w : f.1 = g.1) : f = g :=
 subtype.eq w

@@ -5,10 +5,11 @@ Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 import tactic.apply_fun
 import data.equiv.ring
-import data.zmod.basic
-import linear_algebra.basis
+import data.zmod.algebra
+import linear_algebra.finite_dimensional
 import ring_theory.integral_domain
 import field_theory.separable
+import field_theory.splitting_field
 
 /-!
 # Finite fields
@@ -18,7 +19,8 @@ Throughout most of this file, `K` denotes a finite field
 and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
-cyclic group, as well as the fact that every finite integral domain is a field (`field_of_integral_domain`).
+cyclic group, as well as the fact that every finite integral domain is a field
+(`field_of_integral_domain`).
 
 ## Main results
 
@@ -51,8 +53,8 @@ open polynomial
 
 /-- The cardinality of a field is at most `n` times the cardinality of the image of a degree `n`
   polynomial -/
-lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R} (hp : 0 < p.degree) :
-  fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
+lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R}
+  (hp : 0 < p.degree) : fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
   (λ a _, calc _ = (p - C a).roots.to_finset.card : congr_arg card
     (by simp [finset.ext_iff, mem_roots_sub_C hp])
@@ -73,7 +75,7 @@ end,
 assume hd : disjoint _ _,
 lt_irrefl (2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card) $
 calc 2 * ((univ.image (λ x : R, eval x f)) ∪ (univ.image (λ x : R, eval x (-g)))).card
-    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_of_subset (subset_univ _))
+    ≤ 2 * fintype.card R : nat.mul_le_mul_left _ (finset.card_le_univ _)
 ... = fintype.card R + fintype.card R : two_mul _
 ... < nat_degree f * (univ.image (λ x : R, eval x f)).card +
       nat_degree (-g) * (univ.image (λ x : R, eval x (-g))).card :
@@ -120,21 +122,28 @@ calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K
 
 lemma pow_card (a : K) : a ^ q = a :=
 begin
-  have hp : fintype.card K > 0 := fintype.card_pos_iff.2 (by apply_instance),
+  have hp : 0 < fintype.card K := lt_trans zero_lt_one fintype.one_lt_card,
   by_cases h : a = 0, { rw h, apply zero_pow hp },
   rw [← nat.succ_pred_eq_of_pos hp, pow_succ, nat.pred_eq_sub_one,
     pow_card_sub_one_eq_one a h, mul_one],
+end
+
+lemma pow_card_pow (n : ℕ) (a : K) : a ^ q ^ n = a :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, pow_mul, ih, pow_card], },
 end
 
 variable (K)
 
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
-  haveI hp : fact p.prime := char_p.char_is_prime K p,
-  letI : vector_space (zmod p) K := { .. (zmod.cast_hom (dvd_refl _) K).to_semimodule },
+  haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
+  letI : module (zmod p) K := { .. (zmod.cast_hom (dvd_refl _) K).to_module },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
-  refine ⟨⟨n, _⟩, hp, h⟩,
+  refine ⟨⟨n, _⟩, hp.1, h⟩,
   apply or.resolve_left (nat.eq_zero_or_pos n),
   rintro rfl,
   rw pow_zero at h,
@@ -177,7 +186,7 @@ begin
   { to_fun   := λ x, x ^ i,
     map_one' := by rw [units.coe_one, one_pow],
     map_mul' := by { intros, rw [units.coe_mul, mul_pow] } },
-  haveI : decidable (φ = 1) := by { classical, apply_instance },
+  haveI : decidable (φ = 1), { classical, apply_instance },
   calc ∑ x : units K, φ x = if φ = 1 then fintype.card (units K) else 0 : sum_hom_units φ
                       ... = if (q - 1) ∣ i then -1 else 0 : _,
   suffices : (q - 1) ∣ i ↔ φ = 1,
@@ -212,6 +221,73 @@ begin
     ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }
 end
 
+section is_splitting_field
+open polynomial
+
+section
+
+variables (K' : Type*) [field K'] {p n : ℕ}
+
+lemma X_pow_card_sub_X_nat_degree_eq (hp : 1 < p) :
+  (X ^ p - X : polynomial K').nat_degree = p :=
+begin
+  have h1 : (X : polynomial K').degree < (X ^ p : polynomial K').degree,
+  { rw [degree_X_pow, degree_X],
+    exact_mod_cast hp },
+  rw [nat_degree_eq_of_degree_eq (degree_sub_eq_left_of_degree_lt h1), nat_degree_X_pow],
+end
+
+lemma X_pow_card_pow_sub_X_nat_degree_eq (hn : n ≠ 0) (hp : 1 < p) :
+  (X ^ p ^ n - X : polynomial K').nat_degree = p ^ n :=
+X_pow_card_sub_X_nat_degree_eq K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
+
+lemma X_pow_card_sub_X_ne_zero (hp : 1 < p) : (X ^ p - X : polynomial K') ≠ 0 :=
+ne_zero_of_nat_degree_gt $
+calc 1 < _ : hp
+... = _ : (X_pow_card_sub_X_nat_degree_eq K' hp).symm
+
+lemma X_pow_card_pow_sub_X_ne_zero (hn : n ≠ 0) (hp : 1 < p) :
+  (X ^ p ^ n - X : polynomial K') ≠ 0 :=
+X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
+
+end
+
+variables (p : ℕ) [fact p.prime] [char_p K p]
+lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ.val :=
+begin
+  classical,
+  have aux : (X^q - X : polynomial K) ≠ 0 := X_pow_card_sub_X_ne_zero K fintype.one_lt_card,
+  have : (roots (X^q - X : polynomial K)).to_finset = finset.univ,
+  { rw eq_univ_iff_forall,
+    intro x,
+    rw [multiset.mem_to_finset, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero,
+      pow_card] },
+  rw [←this, multiset.to_finset_val, eq_comm, multiset.erase_dup_eq_self],
+  apply nodup_roots,
+  rw separable_def,
+  convert is_coprime_one_right.neg_right,
+  rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
+    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub],
+end
+
+instance : is_splitting_field (zmod p) K (X^q - X) :=
+{ splits :=
+  begin
+    have h : (X^q - X : polynomial K).nat_degree = q :=
+      X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
+    rw [←splits_id_iff_splits, splits_iff_card_roots, map_sub, map_pow, map_X, h,
+      roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
+  end,
+  adjoin_roots :=
+  begin
+    classical,
+    transitivity algebra.adjoin (zmod p) ((roots (X^q - X : polynomial K)).to_finset : set K),
+    { simp only [map_pow, map_X, map_sub], convert rfl },
+    { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
+  end }
+
+end is_splitting_field
+
 variables {K}
 
 theorem frobenius_pow {p : ℕ} [fact p.prime] [char_p K p] {n : ℕ} (hcard : q = p^n) :
@@ -228,7 +304,7 @@ lemma expand_card (f : polynomial K) :
   expand K q f = f ^ q :=
 begin
   cases char_p.exists K with p hp, letI := hp,
-  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, letI : fact p.prime := hp,
+  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, haveI : fact p.prime := ⟨hp⟩,
   dsimp at hn, rw hn at *,
   rw ← map_expand_pow_char,
   rw [frobenius_pow hn, ring_hom.one_def, map_id],
@@ -240,11 +316,11 @@ namespace zmod
 
 open finite_field polynomial
 
-lemma sum_two_squares (p : ℕ) [hp : fact p.prime] (x : zmod p) :
+lemma sq_add_sq (p : ℕ) [hp : fact p.prime] (x : zmod p) :
   ∃ a b : zmod p, a^2 + b^2 = x :=
 begin
-  cases hp.eq_two_or_odd with hp2 hp_odd,
-  { substI p, revert x, exact dec_trivial },
+  cases hp.1.eq_two_or_odd with hp2 hp_odd,
+  { substI p, change fin 2 at x, fin_cases x, { use 0, simp }, { use [0, 1], simp } },
   let f : polynomial (zmod p) := X^2,
   let g : polynomial (zmod p) := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=
@@ -259,11 +335,11 @@ end zmod
 
 namespace char_p
 
-lemma sum_two_squares (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+lemma sq_add_sq (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
   haveI := char_is_prime_of_pos R p,
-  obtain ⟨a, b, hab⟩ := zmod.sum_two_squares p x,
+  obtain ⟨a, b, hab⟩ := zmod.sq_add_sq p x,
   refine ⟨a.val, b.val, _⟩,
   simpa using congr_arg (zmod.cast_hom (dvd_refl _) R) hab
 end
@@ -273,12 +349,12 @@ end char_p
 open_locale nat
 open zmod
 
-/-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
+/-- The **Fermat-Euler totient theorem**. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
 @[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : units (zmod n)) : x ^ φ n = 1 :=
 by rw [← card_units_eq_totient, pow_card_eq_one]
 
-/-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
+/-- The **Fermat-Euler totient theorem**. `zmod.pow_totient` is an alternative statement
   of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
@@ -288,7 +364,23 @@ begin
   have := zmod.pow_totient x',
   apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
-    nat.cast_one, cast_unit_of_coprime, units.coe_pow],
+    nat.cast_one, coe_unit_of_coprime, units.coe_pow],
+end
+
+section
+
+variables {V : Type*} [add_comm_group V] [module K V]
+
+-- should this go in a namespace?
+-- finite_dimensional would be natural,
+-- but we don't assume it...
+lemma card_eq_pow_finrank [fintype V] :
+  fintype.card V = q ^ (finite_dimensional.finrank K V) :=
+begin
+  let b := is_noetherian.finset_basis K V,
+  rw [module.card_fintype b, ← finite_dimensional.finrank_eq_card_basis b],
+end
+
 end
 
 open finite_field
@@ -298,19 +390,26 @@ namespace zmod
 @[simp] lemma pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
 by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 
-@[simp] lemma frobenius_zmod (p : ℕ) [hp : fact p.prime] :
+@[simp] lemma pow_card_pow {n p : ℕ} [fact p.prime] (x : zmod p) : x ^ p ^ n = x :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, pow_mul, ih, pow_card], },
+end
+
+@[simp] lemma frobenius_zmod (p : ℕ) [fact p.prime] :
   frobenius (zmod p) p = ring_hom.id _ :=
 by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
 
 @[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
 by rw [card_units, card]
 
-/-- Fermat's Little Theorem: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
+/-- **Fermat's Little Theorem**: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
 theorem units_pow_card_sub_one_eq_one (p : ℕ) [fact p.prime] (a : units (zmod p)) :
   a ^ (p - 1) = 1 :=
 by rw [← card_units p, pow_card_eq_one]
 
-/-- Fermat's Little Theorem: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
+/-- **Fermat's Little Theorem**: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
 theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }

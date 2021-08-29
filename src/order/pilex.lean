@@ -3,9 +3,16 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.group.pi
+import algebra.ordered_pi
 import order.well_founded
 import algebra.order_functions
+
+/-!
+# Lexicographic order on Pi types
+
+This file defines the lexicographic relation for Pi types of partial orders and linear orders. We
+also provide a `pilex` analog of `pi.ordered_comm_group` (see `algebra.ordered_pi`).
+-/
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)
@@ -29,7 +36,7 @@ set_option eqn_compiler.zeta true
 instance [linear_order ι] [∀ a, partial_order (β a)] : partial_order (pilex ι β) :=
 have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
   from λ x y ⟨⟨i, hi⟩, ⟨j, hj⟩⟩, begin
-      rcases lt_trichotomy i j with hij | hij | hji,
+      obtain hij | hij | hji := lt_trichotomy i j,
       { exact lt_irrefl (x i) (by simpa [hj.1 _ hij] using hi.2) },
       { exact not_le_of_gt hj.2 (hij ▸ le_of_lt hi.2) },
       { exact lt_irrefl (x j) (by simpa [hi.1 _ hji] using hj.2) },
@@ -89,12 +96,15 @@ protected noncomputable def pilex.linear_order [linear_order ι]
   decidable_le := classical.dec_rel _,
   ..pilex.partial_order }
 
-instance [linear_order ι] [∀ a, ordered_add_comm_group (β a)] : ordered_add_comm_group (pilex ι β) :=
-{ add_le_add_left := λ x y hxy z,
+--we might want the analog of `pi.ordered_cancel_comm_monoid` as well in the future
+@[to_additive]
+instance [linear_order ι] [∀ a, ordered_comm_group (β a)] :
+  ordered_comm_group (pilex ι β) :=
+{ mul_le_mul_left := λ x y hxy z,
     hxy.elim
       (λ ⟨i, hi⟩,
-        or.inl ⟨i, λ j hji, show z j + x j = z j + y j, by rw [hi.1 j hji],
-          add_lt_add_left hi.2 _⟩)
-      (λ hxy, hxy ▸ le_refl _),
+        or.inl ⟨i, λ j hji, show z j * x j = z j * y j, by rw hi.1 j hji,
+          mul_lt_mul_left' hi.2 _⟩)
+      (λ hxyz, hxyz ▸ le_refl _),
   ..pilex.partial_order,
-  ..pi.add_comm_group }
+  ..pi.comm_group }

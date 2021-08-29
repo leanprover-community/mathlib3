@@ -22,66 +22,87 @@ namespace mul_action
 variables (α) [monoid α] [mul_action α β]
 
 /-- The orbit of an element under an action. -/
+@[to_additive "The orbit of an element under an action."]
 def orbit (b : β) := set.range (λ x : α, x • b)
 
 variable {α}
 
-lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
+@[to_additive] lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
 iff.rfl
 
-@[simp] lemma mem_orbit (b : β) (x : α) : x • b ∈ orbit α b :=
+@[simp, to_additive] lemma mem_orbit (b : β) (x : α) : x • b ∈ orbit α b :=
 ⟨x, rfl⟩
 
-@[simp] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
+@[simp, to_additive] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
-
-variable (α)
-
-/-- The stabilizer of an element under an action, i.e. what sends the element to itself. Note
-that this is a set: for the group stabilizer see `stabilizer`. -/
-def stabilizer_carrier (b : β) : set α :=
-{x : α | x • b = b}
-
-variable {α}
-
-@[simp] lemma mem_stabilizer_iff {b : β} {x : α} :
-  x ∈ stabilizer_carrier α b ↔ x • b = b := iff.rfl
 
 variables (α) (β)
 
 /-- The set of elements fixed under the whole action. -/
+@[to_additive "The set of elements fixed under the whole action."]
 def fixed_points : set β := {b : β | ∀ x : α, x • b = b}
 
 /-- `fixed_by g` is the subfield of elements fixed by `g`. -/
+@[to_additive "`fixed_by g` is the subfield of elements fixed by `g`."]
 def fixed_by (g : α) : set β :=
 { x | g • x = x }
 
-theorem fixed_eq_Inter_fixed_by : fixed_points α β = ⋂ g : α, fixed_by α β g :=
+@[to_additive] theorem fixed_eq_Inter_fixed_by : fixed_points α β = ⋂ g : α, fixed_by α β g :=
 set.ext $ λ x, ⟨λ hx, set.mem_Inter.2 $ λ g, hx g, λ hx g, by exact (set.mem_Inter.1 hx g : _)⟩
 
 variables {α} (β)
 
-@[simp] lemma mem_fixed_points {b : β} :
+@[simp, to_additive] lemma mem_fixed_points {b : β} :
   b ∈ fixed_points α β ↔ ∀ x : α, x • b = b := iff.rfl
 
-@[simp] lemma mem_fixed_by {g : α} {b : β} :
+@[simp, to_additive] lemma mem_fixed_by {g : α} {b : β} :
   b ∈ fixed_by α β g ↔ g • b = b := iff.rfl
 
-lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
+@[to_additive] lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
   (∀ b', b' ∈ orbit α b → b' = b) :=
 ⟨λ h b h₁, let ⟨x, hx⟩ := mem_orbit_iff.1 h₁ in hx ▸ h x,
-λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _))⟩
+λ h b, h _ (mem_orbit _ _)⟩
 
 variables (α) {β}
 
 /-- The stabilizer of a point `b` as a submonoid of `α`. -/
+@[to_additive "The stabilizer of a point `b` as an additive submonoid of `α`."]
 def stabilizer.submonoid (b : β) : submonoid α :=
-{ carrier := stabilizer_carrier α b,
+{ carrier := { a | a • b = b },
   one_mem' := one_smul _ b,
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
-    by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
+    show (a * a') • b = b, by rw [←smul_smul, hb, ha] }
+
+@[simp, to_additive] lemma mem_stabilizer_submonoid_iff {b : β} {a : α} :
+  a ∈ stabilizer.submonoid α b ↔ a • b = b := iff.rfl
+
+variables (α β)
+/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g • x = y`.
+  A transitive action should furthermore have `β` nonempty. -/
+class is_pretransitive : Prop :=
+(exists_smul_eq : ∀ x y : β, ∃ g : α, g • x = y)
+
+variables {β}
+
+lemma exists_smul_eq [is_pretransitive α β] (x y : β) :
+  ∃ m : α, m • x = y := is_pretransitive.exists_smul_eq x y
 
 end mul_action
+
+namespace add_action
+variables (α β) [add_monoid α] [add_action α β]
+
+/-- `α` acts pretransitively on `β` if for any `x y` there is `g` such that `g +ᵥ x = y`.
+  A transitive action should furthermore have `β` nonempty. -/
+class is_pretransitive : Prop :=
+(exists_vadd_eq : ∀ x y : β, ∃ g : α, g +ᵥ x = y)
+
+variables {β}
+
+lemma exists_vadd_eq [is_pretransitive α β] (x y : β) :
+  ∃ m : α, m +ᵥ x = y := is_pretransitive.exists_vadd_eq x y
+
+end add_action
 
 namespace mul_action
 variable (α)
@@ -89,13 +110,18 @@ variables [group α] [mul_action α β]
 
 /-- The stabilizer of an element under an action, i.e. what sends the element to itself.
 A subgroup. -/
+@[to_additive "The stabilizer of an element under an action, i.e. what sends the element to itself.
+An additive subgroup."]
 def stabilizer (b : β) : subgroup α :=
 { inv_mem' := λ a (ha : a • b = b), show a⁻¹ • b = b, by rw [inv_smul_eq_iff, ha]
   ..stabilizer.submonoid α b }
 
 variables {α} {β}
 
-lemma orbit_eq_iff {a b : β} :
+@[simp, to_additive] lemma mem_stabilizer_iff {b : β} {a : α} :
+  a ∈ stabilizer α b ↔ a • b = b := iff.rfl
+
+@[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _,
 λ ⟨x, (hx : x • b = a)⟩, set.ext (λ c, ⟨λ ⟨y, (hy : y • a = c)⟩, ⟨y * x,
@@ -105,24 +131,29 @@ lemma orbit_eq_iff {a b : β} :
       conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
         mul_action.mul_smul, hx]}⟩⟩)⟩
 
+@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
+  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
+begin
+  rw [fintype.card_eq_one_iff, mem_fixed_points],
+  split,
+  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
+  { assume h x,
+    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
+    exact calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
+      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
+end
+
 variables (α) {β}
 
-/-- The stabilizer of a point `b` as a subgroup of `α`. -/
-def stabilizer.subgroup (b : β) : subgroup α :=
-{ inv_mem' := λ x (hx : x • b = b), show x⁻¹ • b = b,
-    by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx],
-  ..stabilizer.submonoid α b }
-
-variables {β}
-
-@[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
+@[simp, to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
 ⟨g⁻¹, by simp⟩
 
-@[simp] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
+@[simp, to_additive] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
 ⟨g * h⁻¹, by simp [mul_smul]⟩
 
 variables (α) (β)
-/-- The relation "in the same orbit". -/
+/-- The relation 'in the same orbit'. -/
+@[to_additive "The relation 'in the same orbit'."]
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
@@ -130,51 +161,63 @@ def orbit_rel : setoid β :=
 
 variables {α β}
 
-open quotient_group mul_action
+open quotient_group
 
 /-- Action on left cosets. -/
+@[to_additive "Action on left cosets."]
 def mul_left_cosets (H : subgroup α)
   (x : α) (y : quotient H) : quotient H :=
 quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
   (λ a b (hab : _ ∈ H), quotient_group.eq.2
     (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
 
-instance quotient (H : subgroup α) : mul_action α (quotient H) :=
+@[to_additive] instance quotient (H : subgroup α) : mul_action α (quotient H) :=
 { smul := mul_left_cosets H,
   one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [subgroup.one_mem])),
   mul_smul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [mul_inv_rev, subgroup.one_mem, mul_assoc])) }
 
-instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
+@[simp, to_additive] lemma quotient.smul_mk (H : subgroup α) (a x : α) :
+  (a • quotient_group.mk x : quotient_group.quotient H) = quotient_group.mk (a * x) := rfl
+
+@[simp, to_additive] lemma quotient.smul_coe (H : subgroup α) (a x : α) :
+  (a • x : quotient_group.quotient H) = ↑(a * x) := rfl
+
+@[to_additive] instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
   mul_action I (quotient H) :=
 mul_action.comp_hom (quotient H) (subgroup.subtype I)
 
 variables (α) {β} (x : β)
 
 /-- The canonical map from the quotient of the stabilizer to the set. -/
+@[to_additive "The canonical map from the quotient of the stabilizer to the set. "]
 def of_quotient_stabilizer (g : quotient (mul_action.stabilizer α x)) : β :=
 quotient.lift_on' g (•x) $ λ g1 g2 H,
 calc  g1 • x
     = g1 • (g1⁻¹ * g2) • x : congr_arg _ H.symm
 ... = g2 • x : by rw [smul_smul, mul_inv_cancel_left]
 
-@[simp] theorem of_quotient_stabilizer_mk (g : α) :
+@[simp, to_additive] theorem of_quotient_stabilizer_mk (g : α) :
   of_quotient_stabilizer α x (quotient_group.mk g) = g • x :=
 rfl
 
-theorem of_quotient_stabilizer_mem_orbit (g) : of_quotient_stabilizer α x g ∈ orbit α x :=
+@[to_additive] theorem of_quotient_stabilizer_mem_orbit (g) :
+  of_quotient_stabilizer α x g ∈ orbit α x :=
 quotient.induction_on' g $ λ g, ⟨g, rfl⟩
 
-theorem of_quotient_stabilizer_smul (g : α) (g' : quotient (mul_action.stabilizer α x)) :
+@[to_additive] theorem of_quotient_stabilizer_smul (g : α)
+  (g' : quotient (mul_action.stabilizer α x)) :
   of_quotient_stabilizer α x (g • g') = g • of_quotient_stabilizer α x g' :=
 quotient.induction_on' g' $ λ _, mul_smul _ _ _
 
-theorem injective_of_quotient_stabilizer : function.injective (of_quotient_stabilizer α x) :=
+@[to_additive] theorem injective_of_quotient_stabilizer :
+  function.injective (of_quotient_stabilizer α x) :=
 λ y₁ y₂, quotient.induction_on₂' y₁ y₂ $ λ g₁ g₂ (H : g₁ • x = g₂ • x), quotient.sound' $
 show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, inv_smul_smul]
 
 /-- Orbit-stabilizer theorem. -/
+@[to_additive "Orbit-stabilizer theorem."]
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
   orbit α b ≃ quotient (stabilizer α b) :=
 equiv.symm $ equiv.of_bijective
@@ -182,9 +225,21 @@ equiv.symm $ equiv.of_bijective
   ⟨λ x y hxy, injective_of_quotient_stabilizer α b (by convert congr_arg subtype.val hxy),
   λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩
 
-@[simp] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
+@[simp, to_additive] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
+
+@[simp, to_additive] lemma stabilizer_quotient {G} [group G] (H : subgroup G) :
+  mul_action.stabilizer G ((1 : G) : quotient H) = H :=
+by { ext, simp [quotient_group.eq] }
+
+@[to_additive ] instance is_pretransitive_quotient (G) [group G] (H : subgroup G) :
+  is_pretransitive G (quotient_group.quotient H) :=
+{ exists_smul_eq := begin
+    rintros ⟨x⟩ ⟨y⟩,
+    refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
+    simp only [H.one_mem, mul_left_inv, inv_mul_cancel_right],
+  end }
 
 end mul_action
 
@@ -194,6 +249,18 @@ variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
 (const_smul_hom β r).map_list_sum l
+
+/-- `smul` by a `k : M` over a ring is injective, if `k` is not a zero divisor.
+The general theory of such `k` is elaborated by `is_smul_regular`.
+The typeclass that restricts all terms of `M` to have this property is `no_zero_smul_divisors`. -/
+lemma smul_cancel_of_non_zero_divisor {M R : Type*} [monoid M] [ring R] [distrib_mul_action M R]
+  (k : M) (h : ∀ (x : R), k • x = 0 → x = 0) {a b : R} (h' : k • a = k • b) :
+  a = b :=
+begin
+  rw ←sub_eq_zero,
+  refine h _ _,
+  rw [smul_sub, h', sub_self]
+end
 
 end
 

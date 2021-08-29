@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Tim Baanen.
+Authors: Tim Baanen
 
 Solve equations in commutative (semi)rings with exponents.
 -/
@@ -1334,8 +1334,11 @@ meta def inverse (ps : ex sum) : ring_exp_m (ex sum) := do
   e''_o ← lift $ mk_app ``has_inv.inv [ps.orig],
   pure $ e''.set_info e''_o pf
 
-lemma sub_pf {α} [ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := id
-lemma div_pf {α} [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := id
+lemma sub_pf {α} [ring α] {ps qs psqs : α} (h : ps + -qs = psqs) : ps - qs = psqs :=
+by rwa sub_eq_add_neg
+
+lemma div_pf {α} [division_ring α] {ps qs psqs : α} (h : ps * qs⁻¹ = psqs) : ps / qs = psqs :=
+by rwa div_eq_mul_inv
 
 end operations
 
@@ -1543,7 +1546,8 @@ open tactic.ring_exp (normalize)
 local postfix `?`:9001 := optional
 
 /--
-Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring_exp`.
+Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic
+`ring_exp`.
 -/
 meta def ring_exp (red : parse (lean.parser.tk "!")?) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in

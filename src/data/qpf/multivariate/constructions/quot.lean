@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Simon Hudon
+Authors: Jeremy Avigad, Simon Hudon
 -/
 
 import data.qpf.multivariate.basic
@@ -65,7 +65,7 @@ quot.lift (λ x : F α, quot.mk _ (f <$$> x : F β)) $ λ a b h,
 
 /-- `mvfunctor` instance for `quot1` with well-behaved `R` -/
 def quot1.mvfunctor : mvfunctor (quot1 R) :=
-{ map := quot1.map R Hfunc  }
+{ map := quot1.map R Hfunc }
 
 /-- `quot1` is a qpf -/
 noncomputable def rel_quot : @mvqpf _ (quot1 R) (mvqpf.quot1.mvfunctor R Hfunc) :=

@@ -3,8 +3,33 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 import category_theory.discrete_category
+
+/-!
+# Categorical (co)products
+
+This file defines (co)products as special cases of (co)limits.
+
+A product is the categorical generalization of the object `Π i, f i` where `f : ι → C`. It is a
+limit cone over the diagram formed by `f`, implemented by converting `f` into a functor
+`discrete ι ⥤ C`.
+
+A coproduct is the dual concept.
+
+## Main definitions
+
+* a `fan` is a cone over a discrete category
+* `fan.mk` constructs a fan from an indexed collection of maps
+* a `pi` is a `limit (discrete.functor f)`
+
+Each of these has a dual.
+
+## Implementation notes
+As with the other special shapes in the limits library, all the definitions here are given as
+`abbreviation`s of the general statements for limits, so all the `simp` lemmas and theorems about
+general limits can be used.
+-/
 
 noncomputable theory
 
@@ -52,13 +77,13 @@ abbreviation has_products_of_shape (β : Type v) := has_limits_of_shape.{v} (dis
 abbreviation has_coproducts_of_shape (β : Type v) := has_colimits_of_shape.{v} (discrete β)
 end
 
-/-- `pi_obj f` computes the product of a family of elements `f`. (It is defined as an abbreviation
-   for `limit (discrete.functor f)`, so for most facts about `pi_obj f`, you will just use general facts
-   about limits.) -/
+/-- `pi_obj f` computes the product of a family of elements `f`.
+(It is defined as an abbreviation for `limit (discrete.functor f)`,
+so for most facts about `pi_obj f`, you will just use general facts about limits.) -/
 abbreviation pi_obj (f : β → C) [has_product f] := limit (discrete.functor f)
-/-- `sigma_obj f` computes the coproduct of a family of elements `f`. (It is defined as an abbreviation
-   for `colimit (discrete.functor f)`, so for most facts about `sigma_obj f`, you will just use general facts
-   about colimits.) -/
+/-- `sigma_obj f` computes the coproduct of a family of elements `f`.
+(It is defined as an abbreviation for `colimit (discrete.functor f)`,
+so for most facts about `sigma_obj f`, you will just use general facts about colimits.) -/
 abbreviation sigma_obj (f : β → C) [has_coproduct f] := colimit (discrete.functor f)
 
 notation `∏ ` f:20 := pi_obj f
@@ -75,6 +100,12 @@ colimit.ι (discrete.functor f) b
 def product_is_product (f : β → C) [has_product f] :
   is_limit (fan.mk _ (pi.π f)) :=
 is_limit.of_iso_limit (limit.is_limit (discrete.functor f)) (cones.ext (iso.refl _) (by tidy))
+
+/-- The cofan constructed of the inclusions from the coproduct is colimiting. -/
+def coproduct_is_coproduct (f : β → C) [has_coproduct f] :
+  is_colimit (cofan.mk _ (sigma.ι f)) :=
+is_colimit.of_iso_colimit (colimit.is_colimit (discrete.functor f)) (cocones.ext (iso.refl _)
+  (by tidy))
 
 /-- A collection of morphisms `P ⟶ f b` induces a morphism `P ⟶ ∏ f`. -/
 abbreviation pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ∏ f :=
@@ -117,8 +148,8 @@ section comparison
 variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
 variables (f : β → C)
 
--- TODO: show this is an iso iff G preserves the product of f.
-/-- The comparison morphism for the product of `f`. -/
+/-- The comparison morphism for the product of `f`. This is an iso iff `G` preserves the product
+of `f`, see `preserves_product.of_iso_comparison`. -/
 def pi_comparison [has_product f] [has_product (λ b, G.obj (f b))] :
   G.obj (∏ f) ⟶ ∏ (λ b, G.obj (f b)) :=
 pi.lift (λ b, G.map (pi.π f b))
@@ -134,8 +165,8 @@ lemma map_lift_pi_comparison [has_product f] [has_product (λ b, G.obj (f b))]
   G.map (pi.lift g) ≫ pi_comparison G f = pi.lift (λ j, G.map (g j)) :=
 by { ext, simp [← G.map_comp] }
 
--- TODO: show this is an iso iff G preserves the coproduct of f.
-/-- The comparison morphism for the coproduct of `f`. -/
+/-- The comparison morphism for the coproduct of `f`. This is an iso iff `G` preserves the coproduct
+of `f`, see `preserves_coproduct.of_iso_comparison`. -/
 def sigma_comparison [has_coproduct f] [has_coproduct (λ b, G.obj (f b))] :
   ∐ (λ b, G.obj (f b)) ⟶ G.obj (∐ f) :=
 sigma.desc (λ b, G.map (sigma.ι f b))

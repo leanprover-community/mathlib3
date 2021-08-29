@@ -3,7 +3,7 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.instances.real
+import topology.unit_interval
 import topology.algebra.ordered.proj_Icc
 
 /-!
@@ -58,49 +58,10 @@ on `(-∞, 0]` and to `y` on `[1, +∞)`.
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
-open filter set function
+open_locale classical topological_space filter unit_interval
+open filter set function unit_interval
 
 variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
-
-/-! ### The unit interval -/
-
-local notation `I` := Icc (0 : ℝ) 1
-
-lemma Icc_zero_one_symm {t : ℝ} : t ∈ I ↔ 1 - t ∈ I :=
-begin
-  rw [mem_Icc, mem_Icc],
-  split ; intro ; split ; linarith
-end
-
-instance I_has_zero : has_zero I := ⟨⟨0, by split ; norm_num⟩⟩
-
-@[simp, norm_cast] lemma coe_I_zero : ((0 : I) : ℝ) = 0 := rfl
-
-instance I_has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
-
-@[simp, norm_cast] lemma coe_I_one : ((1 : I) : ℝ) = 1 := rfl
-
-/-- Unit interval central symmetry. -/
-def I_symm : I → I := λ t, ⟨1 - t.val, Icc_zero_one_symm.mp t.property⟩
-
-local notation `σ` := I_symm
-
-@[simp] lemma I_symm_zero : σ 0 = 1 :=
-subtype.ext $ by simp [I_symm]
-
-@[simp] lemma I_symm_one : σ 1 = 0 :=
-subtype.ext $ by simp [I_symm]
-
-@[continuity]
-lemma continuous_I_symm : continuous σ :=
-by continuity!
-
-instance : connected_space I :=
-subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
-
-instance : compact_space I :=
-compact_iff_compact_space.1 compact_Icc
 
 /-! ### Paths -/
 
@@ -165,10 +126,10 @@ by { ext, refl }
   range γ.symm = range γ :=
 begin
   ext x,
-  simp only [ mem_range, path.symm, has_coe_to_fun.coe, coe_fn, I_symm, set_coe.exists, comp_app,
-              subtype.coe_mk, subtype.val_eq_coe ],
-  split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, Icc_zero_one_symm.mp hy, _⟩; convert hxy,
-  exact sub_sub_cancel _ _
+  simp only [mem_range, path.symm, has_coe_to_fun.coe, coe_fn, unit_interval.symm, set_coe.exists,
+    comp_app, subtype.coe_mk, subtype.val_eq_coe],
+  split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, mem_iff_one_sub_mem.mp hy, _⟩; convert hxy,
+  simp
 end
 
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
@@ -177,15 +138,15 @@ def extend : ℝ → X := Icc_extend zero_le_one γ
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.Icc_extend
 
-@[simp] lemma extend_zero : γ.extend 0 = x :=
-(Icc_extend_left _ _).trans γ.source
-
-@[simp] lemma extend_one : γ.extend 1 = y :=
-(Icc_extend_right _ _).trans γ.target
-
 @[simp] lemma extend_extends {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) {t : ℝ} (ht : t ∈ (Icc 0 1 : set ℝ)) : γ.extend t = γ ⟨t, ht⟩ :=
 Icc_extend_of_mem _ γ ht
+
+lemma extend_zero : γ.extend 0 = x :=
+by simp
+
+lemma extend_one : γ.extend 1 = y :=
+by simp
 
 @[simp] lemma extend_extends' {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : (Icc 0 1 : set ℝ)) : γ.extend t = γ t :=
@@ -225,11 +186,11 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
 { to_fun := (λ t : ℝ, if t ≤ 1/2 then γ.extend (2*t) else γ'.extend (2*t-1)) ∘ coe,
   continuous' :=
   begin
-    apply (continuous_if _ _ _).comp continuous_subtype_coe,
-    { norm_num },
+    refine (continuous.if_le _ _ continuous_id continuous_const (by norm_num)).comp
+      continuous_subtype_coe,
     -- TODO: the following are provable by `continuity` but it is too slow
-    { exact γ.continuous_extend.comp (continuous_const.mul continuous_id) },
-    { exact γ'.continuous_extend.comp ((continuous_const.mul continuous_id).sub continuous_const) }
+    exacts [γ.continuous_extend.comp (continuous_const.mul continuous_id),
+      γ'.continuous_extend.comp ((continuous_const.mul continuous_id).sub continuous_const)]
   end,
   source' := by norm_num,
   target' := by norm_num }
@@ -266,7 +227,7 @@ begin
       unfold_coes,
       have : t/2 ≤ 1/2 := by linarith,
       simp only [this, comp_app, if_true],
-      ring,
+      ring_nf,
       rwa γ₁.extend_extends },
     { by_cases h : t = 0,
       { use ⟨1/2, ⟨by linarith, by linarith⟩⟩,
@@ -280,7 +241,7 @@ begin
         have ht0 := lt_of_le_of_ne ht0 h.symm,
         have : ¬ (t+1)/2 ≤ 1/2 := by {rw not_le, linarith},
         simp only [comp_app, if_false, this],
-        ring,
+        ring_nf,
         rwa γ₂.extend_extends } } }
 end
 
@@ -319,7 +280,7 @@ rfl
 lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_space ι]
   {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).symm) :=
-h.comp (continuous_id.prod_map continuous_I_symm)
+h.comp (continuous_id.prod_map continuous_symm)
 
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
   [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
@@ -334,18 +295,15 @@ lemma trans_continuous_family {X ι : Type*} [topological_space X] [topological_
 begin
   have h₁' := path.continuous_uncurry_extend_of_continuous_family γ₁ h₁,
   have h₂' := path.continuous_uncurry_extend_of_continuous_family γ₂ h₂,
-  simp [has_uncurry.uncurry, has_coe_to_fun.coe, coe_fn, path.trans],
-  apply continuous_if _ _ _,
-  { rintros st hst,
-    have := frontier_le_subset_eq (continuous_subtype_coe.comp continuous_snd)
-      continuous_const hst,
-    simp only [mem_set_of_eq, comp_app] at this,
-    simp [this, mul_inv_cancel (@two_ne_zero ℝ _ _)] },
+  simp only [has_uncurry.uncurry, has_coe_to_fun.coe, coe_fn, path.trans, (∘)],
+  refine continuous.if_le _ _ (continuous_subtype_coe.comp continuous_snd) continuous_const _,
   { change continuous ((λ p : ι × ℝ, (γ₁ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x : I → ℝ))),
     exact h₁'.comp (continuous_id.prod_map $ continuous_const.mul continuous_subtype_coe) },
   { change continuous ((λ p : ι × ℝ, (γ₂ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x - 1 : I → ℝ))),
     exact h₂'.comp (continuous_id.prod_map $
       (continuous_const.mul continuous_subtype_coe).sub continuous_const) },
+  { rintros st hst,
+    simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
 
 /-! #### Truncating a path -/
@@ -425,12 +383,12 @@ begin
   linarith
 end
 
-@[simp] lemma truncate_zero_zero {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) : γ.truncate 0 0 = (path.refl a).cast (by rw [min_self, γ.extend_zero]) γ.extend_zero :=
+@[simp] lemma truncate_zero_zero {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
+  γ.truncate 0 0 = (path.refl a).cast (by rw [min_self, γ.extend_zero]) γ.extend_zero :=
 by convert γ.truncate_self 0; exact γ.extend_zero.symm
 
-@[simp] lemma truncate_one_one {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) : γ.truncate 1 1 = (path.refl b).cast (by rw [min_self, γ.extend_one]) γ.extend_one :=
+@[simp] lemma truncate_one_one {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
+  γ.truncate 1 1 = (path.refl b).cast (by rw [min_self, γ.extend_one]) γ.extend_one :=
 by convert γ.truncate_self 1; exact γ.extend_one.symm
 
 @[simp] lemma truncate_zero_one {X : Type*} [topological_space X] {a b : X}
@@ -580,7 +538,8 @@ begin
 end
 
 lemma path_component_subset_component (x : X) : path_component x ⊆ connected_component x :=
-λ y h, subset_connected_component (is_connected_range h.some_path.continuous).2 ⟨0, by simp⟩ ⟨1, by simp⟩
+λ y h, (is_connected_range h.some_path.continuous).subset_connected_component
+  ⟨0, by simp⟩ ⟨1, by simp⟩
 
 /-- The path component of `x` in `F` is the set of points that can be joined to `x` in `F`. -/
 def path_component_in (x : X) (F : set X) := {y | joined_in F x y}
@@ -588,7 +547,8 @@ def path_component_in (x : X) (F : set X) := {y | joined_in F x y}
 @[simp] lemma path_component_in_univ (x : X) : path_component_in x univ = path_component x :=
 by simp [path_component_in, path_component, joined_in, joined, exists_true_iff_nonempty]
 
-lemma joined.mem_path_component (hyz : joined y z) (hxy : y ∈ path_component x) : z ∈ path_component x :=
+lemma joined.mem_path_component (hyz : joined y z) (hxy : y ∈ path_component x) :
+  z ∈ path_component x :=
 hxy.trans hyz
 
 /-! ### Path connected sets -/
@@ -652,7 +612,8 @@ end
 
 lemma is_path_connected.exists_path_through_family
   {X : Type*} [topological_space X] {n : ℕ} {s : set X} (h : is_path_connected s)
-  (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) : ∃ γ : path (p 0) (p n), (range γ ⊆ s) ∧ (∀ i, p i ∈ range γ) :=
+  (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) :
+  ∃ γ : path (p 0) (p n), (range γ ⊆ s) ∧ (∀ i, p i ∈ range γ) :=
 begin
   let p' : ℕ → X := λ k, if h : k < n+1 then p ⟨k, h⟩ else p ⟨0, n.zero_lt_succ⟩,
   obtain ⟨γ, hγ⟩ : ∃ (γ : path (p' 0) (p' n)), (∀ i ≤ n, p' i ∈ range γ) ∧ range γ ⊆ s,
@@ -847,19 +808,19 @@ begin
     { rw is_open_iff_mem_nhds,
       intros y y_in,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,
-      apply mem_sets_of_superset U_in,
+      apply mem_of_superset U_in,
       rw ← path_component_congr y_in,
-      exact hU.subset_path_component (mem_of_nhds U_in) },
+      exact hU.subset_path_component (mem_of_mem_nhds U_in) },
     { rw is_closed_iff_nhds,
       intros y H,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,
       rcases H U U_in with ⟨z, hz, hz'⟩,
-      exact ((hU.joined_in z y hz $ mem_of_nhds U_in).joined.mem_path_component hz') } },
+      exact ((hU.joined_in z y hz $ mem_of_mem_nhds U_in).joined.mem_path_component hz') } },
 end
 
 lemma path_connected_subset_basis [loc_path_connected_space X] {U : set X} (h : is_open U)
   (hx : x ∈ U) : (𝓝 x).has_basis (λ s : set X, s ∈ 𝓝 x ∧ is_path_connected s ∧ s ⊆ U) id :=
-(path_connected_basis x).has_basis_self_subset (mem_nhds_sets h hx)
+(path_connected_basis x).has_basis_self_subset (is_open.mem_nhds h hx)
 
 lemma loc_path_connected_of_is_open [loc_path_connected_space X] {U : set X} (h : is_open U) :
   loc_path_connected_space U :=
@@ -873,7 +834,7 @@ lemma loc_path_connected_of_is_open [loc_path_connected_space X] {U : set X} (h 
   { rintros ⟨W, ⟨W_in, hW, hWU⟩, hWV⟩,
     exact ⟨coe ⁻¹' W, ⟨⟨preimage_mem_comap W_in, hW.preimage_coe hWU⟩, hWV⟩⟩ },
   { rintros ⟨W, ⟨W_in, hW⟩, hWV⟩,
-    refine ⟨coe '' W, ⟨filter.image_coe_mem_sets (mem_nhds_sets h x_in) W_in,
+    refine ⟨coe '' W, ⟨filter.image_coe_mem_of_mem_comap (is_open.mem_nhds h x_in) W_in,
                        hW.image continuous_subtype_coe, subtype.coe_image_subset U W⟩, _⟩,
     rintros x ⟨y, ⟨y_in, hy⟩⟩,
     rw ← subtype.coe_injective hy,

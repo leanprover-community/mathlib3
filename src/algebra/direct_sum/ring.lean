@@ -639,8 +639,8 @@ def lift_ring_hom :
 See note [partially-applied ext lemmas]. -/
 @[ext]
 lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄
-  (h : ∀ i, add_monoid_hom.comp (↑f : (⨁ i, A i) →+ R) (of A i) =
-            add_monoid_hom.comp ↑g (of A i)) : f = g :=
+  (h : ∀ i, (↑f : (⨁ i, A i) →+ R).comp (of A i) = (↑g : (⨁ i, A i) →+ R).comp (of A i)) :
+  f = g :=
 direct_sum.lift_ring_hom.symm.injective $ subtype.ext $ funext h
 
 end to_semiring

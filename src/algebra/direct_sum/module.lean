@@ -106,9 +106,13 @@ to_add_monoid.unique ψ.to_add_monoid_hom f
 
 variables {ψ} {ψ' : (⨁ i, M i) →ₗ[R] N}
 
-theorem to_module.ext (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M i)) (f : ⨁ i, M i) :
-  ψ f = ψ' f :=
-by rw dfinsupp.lhom_ext' H
+/-- Two `linear_map`s out of a direct sum are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+theorem linear_map_ext ⦃ψ ψ' : (⨁ i, M i) →ₗ[R] N⦄
+  (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M i)) : ψ = ψ' :=
+dfinsupp.lhom_ext' H
 
 /--
 The inclusion of a subset of the direct summands

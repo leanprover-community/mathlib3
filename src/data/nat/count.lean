@@ -255,7 +255,7 @@ lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : 
   nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
 sorry
 
-lemma nth_mem_of_le_card_aux {n: ℕ} (hf: set.finite p)
+lemma nth_set_card_aux {n: ℕ} (hf: set.finite p)
   (hf' :{ i : ℕ | p i ∧ ∀ k < n, nth p k < i }.finite)
   (hle: n ≤ (set.finite.to_finset hf).card):
     (set.finite.to_finset hf').card =
@@ -347,6 +347,48 @@ begin
     simp at hI,
     simp,
     exact hI, },
+end
+
+lemma nth_set_card {n: ℕ} (hf: set.finite p)
+  (hf' :{ i : ℕ | p i ∧ ∀ k < n, nth p k < i }.finite):
+    (set.finite.to_finset hf').card =
+    (set.finite.to_finset hf).card - n :=
+begin
+  by_cases hle: n ≤ (set.finite.to_finset hf).card,
+  { apply nth_set_card_aux,
+    exact hle, },
+  { simp at hle,
+    have hf'': {i : ℕ | p i ∧ ∀ (k : ℕ),
+      k < (set.finite.to_finset hf).card → nth p k < i}.finite,
+    { apply set.finite.subset,
+      exact hf,
+      intro x,
+      simp,
+      intros hp h,
+      exact hp, },
+    have h0: hf''.to_finset.card = hf.to_finset.card - hf.to_finset.card,
+    { apply nth_set_card_aux,
+      refl, },
+    simp at h0,
+    have hn0: hf.to_finset.card - n = 0,
+    { apply nat.sub_eq_zero_of_le,
+      exact le_of_lt hle },
+    rw hn0,
+    simp,
+    have hsub: {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i} ⊆ ∅,
+    { rw ← h0,
+      intro x,
+      simp,
+      intros hp h,
+      split,
+      { exact hp,},
+      { intros m hm,
+        apply h,
+        apply lt_trans,
+        { exact hm, },
+        { exact hle, }, }, },
+    exact eq_bot_iff.mpr hsub,
+  }
 end
 
 lemma nth_mem_of_infinite_aux (i : (set_of p).infinite) (n : ℕ) :

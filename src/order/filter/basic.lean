@@ -2254,6 +2254,10 @@ lemma tendsto.sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f x₁ y → tendsto f x₂ y → tendsto f (x₁ ⊔ x₂) y :=
 λ h₁ h₂, tendsto_sup.mpr ⟨ h₁, h₂ ⟩
 
+@[simp] lemma tendsto_supr {f : α → β} {x : ι → filter α} {y : filter β} :
+  tendsto f (⨆ i, x i) y ↔ ∀ i, tendsto f (x i) y :=
+by simp only [tendsto, map_supr, supr_le_iff]
+
 @[simp] lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
   tendsto f l (𝓟 s) ↔ ∀ᶠ a in l, f a ∈ s :=
 by simp only [tendsto, le_principal_iff, mem_map', filter.eventually]

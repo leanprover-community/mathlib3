@@ -35,11 +35,6 @@ instance smooth_ring.to_lie_add_group (I : model_with_corners 𝕜 E H)
   smooth_add := smooth_add I,
   smooth_neg := by simpa only [neg_one_mul] using @smooth_mul_left 𝕜 _ H _ E _ _ I R _ _ _ _ (-1) }
 
-instance smooth_ring.to_smooth_ring {I : model_with_corners 𝕜 E H}
-  {R : Type*} [ring R] [topological_space R]
-  [charted_space H R] [t : smooth_ring I R] :
-  smooth_ring I R := { ..t }
-
 end smooth_ring
 
 instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :

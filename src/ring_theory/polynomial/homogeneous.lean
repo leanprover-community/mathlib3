@@ -122,7 +122,7 @@ begin
 end
 variables (σ) {R}
 
-lemma is_homogeneous_C (r : R) :
+@[simp] lemma is_homogeneous_C (r : R) :
   is_homogeneous (C r : mv_polynomial σ R) 0 :=
 begin
   apply is_homogeneous_monomial,
@@ -131,11 +131,24 @@ end
 
 variables (σ R)
 
-lemma is_homogeneous_zero (n : ℕ) : is_homogeneous (0 : mv_polynomial σ R) n :=
+@[simp] lemma is_homogeneous_zero (n : ℕ) : is_homogeneous (0 : mv_polynomial σ R) n :=
 (homogeneous_submodule σ R n).zero_mem
 
 lemma is_homogeneous_one : is_homogeneous (1 : mv_polynomial σ R) 0 :=
 is_homogeneous_C _ _
+
+lemma is_homogeneous_C_iff (r : R) (i : ℕ) :
+  is_homogeneous (C r : mv_polynomial σ R) i ↔ i = 0 ∨ r = 0 :=
+begin
+  by_cases hi : i = 0,
+  { simp [hi] },
+  by_cases hr : r = 0,
+  { simp [hi, hr] },
+  simp only [iff_false, hi, hr, false_or],
+  refine mt (λ hC, _) hi,
+  have : coeff 0 (C r : mv_polynomial σ R) ≠ 0 := by rwa [coeff_zero_C],
+  simpa [eq_comm] using hC this,
+end
 
 variables {σ} (R)
 
@@ -238,49 +251,98 @@ let f := finsupp.restrict_dom R R {d : σ →₀ ℕ | ∑ i in d.support, d i =
 
 TODO: Promote this to an `alg_equiv`. -/
 def to_homogeneous_components [comm_semiring R] :
-  mv_polynomial σ R →ₗ[R] (⨁ i, homogeneous_submodule σ R i) :=
+  mv_polynomial σ R →ₐ[R] (⨁ i, homogeneous_submodule σ R i) :=
 begin
-  -- we fight the elaborator a lot less if we build this up in tactic mode
-  refine finsupp.lsum R (λ d : σ →₀ ℕ, _),
-  let n := ∑ i in d.support, d i,
-  refine (direct_sum.lof R ℕ _ n).comp ((homogeneous_component' n).comp _),
+  refine add_monoid_algebra.lift _ _ _ _,
   exact {
-    to_fun := monomial d,
-    map_add' := λ a b, monomial_add.symm,
-    map_smul' := λ r a, (finsupp.smul_single _ _ _).symm }
+    to_fun := λ d, direct_sum.of (λ i, homogeneous_submodule σ R i) (d.to_add.sum $ λ i x, x)
+      ⟨monomial d.to_add 1, is_homogeneous_monomial _ _ _ rfl⟩,
+    map_one' := rfl, --by simp,
+    map_mul' := λ d₁ d₂, _, --by simp,
+  },
+  refine (dfinsupp.single_eq_of_sigma_eq (sigma.subtype_ext _ _)).trans
+    (direct_sum.of_mul_of _ _).symm; dsimp,
+  exact finsupp.sum_add_index (λ _, rfl) (λ _ _ _, rfl),
+  rw [monomial_mul, mul_one],
 end
+
+
+@[simp]
+lemma to_homogeneous_components_monomial_one [comm_semiring R] (d : σ →₀ ℕ) :
+  to_homogeneous_components (monomial d (1 : R)) =
+    direct_sum.of (λ i, homogeneous_submodule σ R i) (d.sum $ λ i x, x)
+      ⟨monomial d 1, is_homogeneous_monomial _ _ _ rfl⟩ :=
+(add_monoid_algebra.lift_single _ _ _).trans (one_smul _ _)
+
+@[simp]
+lemma to_homogeneous_components_X [comm_semiring R] (d : σ) :
+  to_homogeneous_components (mv_polynomial.X d : mv_polynomial σ R) =
+    direct_sum.of (λ i, homogeneous_submodule σ R i) 1 ⟨mv_polynomial.X d, is_homogeneous_X _ _⟩ :=
+(to_homogeneous_components_monomial_one _).trans $
+  dfinsupp.single_eq_of_sigma_eq $ sigma.subtype_ext (finsupp.sum_single_index rfl) rfl
+
+@[simp]
+lemma to_homogeneous_components_monomial_coe [comm_semiring R] (i : ℕ) (x : homogeneous_submodule σ R i) :
+  to_homogeneous_components ↑x =
+    direct_sum.of (λ i, homogeneous_submodule σ R i) i x :=
+begin
+  cases x with x hx,
+  induction x using mv_polynomial.induction_on,
+  { refine (alg_hom.commutes _ _).trans _,
+    rw [mem_homogeneous_submodule, is_homogeneous_C_iff] at hx,
+    cases hx with hi hr,
+    { subst hi, refl, },
+    { subst hr,
+      simp only [mv_polynomial.C_0, ring_hom.map_zero],
+      exact (direct_sum.of _ _).map_zero.symm} },
+  case h_add : xp xq hp hq hx { simp,
+    sorry},
+  sorry,
+  -- dsimp,
+  -- suffices : to_homogeneous_components.to_linear_map.dom_restrict (homogeneous_submodule σ R i) =
+  --   direct_sum.lof _ _ (λ i, homogeneous_submodule σ R i) i,
+  -- exact linear_map.congr_fun this x,
+  -- ext : 1,
+end
+
+#print linear_map
 
 /-- Assemble a polynomial from a direct sum of homogenous components.
 
 TODO: Promote this to the inverse of `to_homogeneous_components`. -/
 def of_homogeneous_components [comm_semiring R] :
-  (⨁ i, homogeneous_submodule σ R i) →ₗ[R] mv_polynomial σ R :=
-direct_sum.to_module R _ _ $ λ i, submodule.subtype _
+  (⨁ i, homogeneous_submodule σ R i) →ₐ[R] mv_polynomial σ R :=
+direct_sum.to_algebra R _ (λ i, submodule.subtype _) rfl (λ _ _ _ _, rfl) (λ r, rfl)
+
+@[simp]
+lemma of_homogeneous_components_of [comm_semiring R] (i : ℕ) (x : homogeneous_submodule σ R i) :
+  of_homogeneous_components (direct_sum.of (λ i, homogeneous_submodule σ R i) i x) = x :=
+direct_sum.to_add_monoid_of _ _ _
 
 /-- `of_*` is the left-inverse of `to_*` -/
 lemma of_to_homogeneous_components [comm_semiring R] :
-  of_homogeneous_components.comp to_homogeneous_components =
-    (linear_map.id : mv_polynomial σ R →ₗ[R] _) :=
+  of_homogeneous_components.comp to_homogeneous_components = alg_hom.id R (mv_polynomial σ R) :=
 begin
-  ext : 2,
-  -- multiple stages of simp is hopefully faster?
-  simp,
-  simp [to_homogeneous_components, of_homogeneous_components],
-  simp [homogeneous_component'],
-  exact finsupp.filter_single_of_pos _ rfl,
+  ext : 1,
+  dsimp,
+  rw [to_homogeneous_components_X, of_homogeneous_components_of, subtype.coe_mk],
 end
 
 /-- `of_*` is the left-inverse of `to_*` -/
 lemma to_of_homogeneous_components [comm_semiring R] :
   to_homogeneous_components.comp of_homogeneous_components =
-    (linear_map.id : (⨁ i, homogeneous_submodule σ R i) →ₗ[R] _) :=
+    alg_hom.id R (⨁ i, homogeneous_submodule σ R i) :=
 begin
   ext : 2,
-  -- multiple stages of simp is hopefully faster?
-  simp,
-  simp [to_homogeneous_components, of_homogeneous_components],
-  simp [homogeneous_component', direct_sum.to_module,
-  linear_map.finsupp_sum_apply],
+  dsimp [direct_sum.lof_eq_of],
+  rw of_homogeneous_components_of,
+  -- TODO: need an ext lemma
+  -- dsimp [direct_sum.lift_ring_hom],
+  -- -- multiple stages of simp is hopefully faster?
+  -- simp,
+  -- simp [to_homogeneous_components, of_homogeneous_components],
+  -- simp [homogeneous_component', direct_sum.to_module,
+  -- linear_map.finsupp_sum_apply],
   -- exact finsupp.filter_single_of_pos _ rfl,
 end
 

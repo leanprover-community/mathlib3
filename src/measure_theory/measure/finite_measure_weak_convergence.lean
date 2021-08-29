@@ -247,12 +247,7 @@ end
 
 instance has_coe_to_finite_measures (α : Type*) [measurable_space α] :
   has_coe (probability_measures α) (finite_measures α) :=
-{ coe := λ μ , { val := μ.val,
-                 property := begin
-                   have key : (1 : ennreal) < ⊤ := ennreal.one_lt_top,
-                   rw [←μ.prop.measure_univ] at key,
-                   exact ⟨key⟩,
-                 end, }}
+{ coe := λ μ , ⟨μ, infer_instance⟩ }
 
 /-- A probability measure can be interpreted as a finite measure. -/
 def to_finite_measure (μ : probability_measures α) : (finite_measures α) := μ

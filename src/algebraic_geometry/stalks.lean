@@ -107,15 +107,14 @@ Unfortunately, this equality is not well-formed, as their types are not _definit
 To get a proper congruence lemma, we therefore have to introduce these `eq_to_hom` arrows on
 either side of the equality.
 -/
-lemma congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β)
-  (x x': X) (h₂ : x = x') :
-    stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
-    eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by rw [h₁, h₂]) ≫ stalk_map β x' :=
+lemma congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β) (x x': X) (h₂ : x = x') :
+  stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
+  eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by rw [h₁, h₂]) ≫ stalk_map β x' :=
 stalk_hom_ext _ $ λ U hx, by { subst h₁, subst h₂, simp }
 
 lemma congr_hom {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h : α = β) (x : X) :
   stalk_map α x =
-    eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x), by rw h) ≫ stalk_map β x :=
+  eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x), by rw h) ≫ stalk_map β x :=
 by rw [← stalk_map.congr α β h x x rfl, eq_to_hom_refl, category.comp_id]
 
 lemma congr_point {X Y : PresheafedSpace C} (α : X ⟶ Y) (x x' : X) (h : x = x') :

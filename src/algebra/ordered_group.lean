@@ -1004,7 +1004,32 @@ sup_ind _ _ h1 h2
 end has_neg
 
 section add_group
-variables [add_group α] [linear_order α]
+variables [add_group α]
+
+section sub_neg
+
+@[simp] lemma with_top.neg_zero : (-0 : with_top α) = 0 :=
+by rw [←with_top.coe_zero, with_top.neg_coe, neg_zero]
+
+@[simp] lemma with_top.neg_neg (x : with_top α) : -(-x) = x :=
+begin
+  induction x using with_top.rec_top_coe;
+  simp [with_top.neg_coe]
+end
+
+lemma with_top.neg_eq_iff_neg_eq {x y : with_top α} :
+  -x = y ↔ -y = x :=
+begin
+  induction x using with_top.rec_top_coe,
+  { simp [@eq_comm _ y] },
+  induction y using with_top.rec_top_coe,
+  { simp },
+  { simp [with_top.neg_coe, with_top.coe_eq_coe, neg_eq_iff_neg_eq] }
+end
+
+end sub_neg
+
+variables [linear_order α]
 
 @[simp] lemma abs_neg (a : α) : abs (-a) = abs a :=
 begin unfold abs, rw [max_comm, neg_neg] end

@@ -398,24 +398,37 @@ instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 
 section sub_neg
 
-variable [add_group α]
+instance [has_neg α] : has_neg (with_top α) :=
+⟨option.map (λ (a : α), -a)⟩
+
+variable [sub_neg_monoid α]
 
 instance : sub_neg_monoid (with_top α) :=
-{ neg := option.map (λ (a : α), -a),
+{ sub := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a - b)), -- explicit, just in case
+  sub_eq_add_neg := λ a b, begin
+    induction a using with_top.rec_top_coe,
+    { refl },
+    induction b using with_top.rec_top_coe,
+    { refl },
+    { have : (- b : with_top α) = ((-b : α) : with_top α) := rfl,
+      rw [this, ←coe_add, ←sub_eq_add_neg a b],
+      refl }
+  end,
+  ..with_top.has_neg,
   ..with_top.add_monoid }
 
 @[simp] lemma neg_top : - (⊤ : with_top α) = ⊤ := rfl
-
 lemma neg_coe (x : α) : (-x : with_top α) = ((-x : α) : with_top α) := rfl
+@[simp] lemma neg_eq_top (x : with_top α) : - x = ⊤ ↔ x = ⊤ :=
+by { induction x using with_top.rec_top_coe; simp [neg_coe] }
 
-@[simp] lemma neg_zero : (-0 : with_top α) = 0 :=
-by rw [←with_top.coe_zero, with_top.neg_coe, neg_zero]
+@[simp] lemma coe_sub (x y : α) : ((x - y : α) : with_top α) = x - y := rfl
+@[simp] lemma top_sub (x : with_top α) : (⊤ : with_top α) - x = ⊤ := rfl
+@[simp] lemma sub_top (x : with_top α) : x - ⊤ = ⊤ :=
+by rw [sub_eq_add_neg, neg_top, add_top]
 
-@[simp] lemma neg_neg (x : with_top α) : -(-x) = x :=
-begin
-  induction x using with_top.rec_top_coe;
-  simp [with_top.neg_coe]
-end
+lemma sub_eq_top_iff {a b : with_top α} : a - b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+by simp [sub_eq_add_neg, add_eq_top]
 
 end sub_neg
 

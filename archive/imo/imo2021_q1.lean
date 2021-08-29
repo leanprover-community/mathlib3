@@ -69,7 +69,7 @@ begin
   split,
   { norm_num,
     rw le_sqrt,
-    all_goals { norm_cast, linarith }},
+    all_goals { norm_cast, linarith } },
   { ring_exp,
     rw [pow_two, ← sqrt_mul, sqrt_mul_self],
     suffices : 24 * sqrt (1 + n) ≤ 2 * n + 36,
@@ -77,7 +77,7 @@ begin
     rw mul_self_le_mul_self_iff,
     ring_exp,
     rw [pow_two, ← sqrt_mul, sqrt_mul_self],
-    --Not splitting into cases lead to a deterministic timeout on my machine
+    -- Not splitting into cases lead to a deterministic timeout on my machine
     by_cases p: n ≥ 108,
     { norm_cast,
       nlinarith },
@@ -88,7 +88,7 @@ begin
       swap 3,
     { norm_num,
       apply sqrt_nonneg },
-    all_goals { norm_cast, linarith } },
+      all_goals { norm_cast, linarith } },
 end
 
 /- We will later make use of the fact that there exists (l : ℕ) such that
@@ -108,7 +108,7 @@ begin
     norm_num },
   refine ⟨x, _, _⟩,
   { suffices : 2 + sqrt (4 + 2 * n) ≤ 2 * (sqrt (1 + n) - 2),
-    { apply le_trans this _,
+    { apply this.trans _,
       simp only [mul_le_mul_left, zero_lt_bit0, zero_lt_one],
       rw hx,
       suffices : sqrt (1 + n) - 1 ≤ ⌊sqrt (1 + n) - 1⌋ + 1,
@@ -128,75 +128,32 @@ begin
 end
 
 lemma exists_triplet_summing_to_squares (n : ℕ) (hn : 100 ≤ n):
-  (∃ (a b c : ℕ), a ∈ finset.Ico n (2 * n + 1) ∧ b ∈ finset.Ico n (2 * n + 1) ∧
-  c ∈ finset.Ico n (2 * n + 1) ∧ (a : ℕ) < b ∧ (b : ℕ) < c ∧ (∃ (k : ℕ), (a : ℕ) + b = k * k) ∧
-  (∃ (l : ℕ), (c : ℕ) + a = l * l) ∧ (∃ (m : ℕ), (b : ℕ) + c = m * m)) :=
+  (∃ (a b c : ℕ), n ≤ a ∧ a < b ∧ b < c ∧ c ≤ 2 * n ∧ (∃ (k : ℕ), a + b = k * k) ∧
+  (∃ (l : ℕ), c + a = l * l) ∧ (∃ (m : ℕ), b + c = m * m)) :=
 begin
-  --If n ≥ 107, we do not explicitly construct the triplet but use an existence
-  --argument from lemma above.
+  -- If n ≥ 107, we do not explicitly construct the triplet but use an existence
+  -- argument from lemma above.
   by_cases p : 107 ≤ n,
   { have h := exists_numbers_in_interval n p,
     cases h with l hl,
     by_cases p : 1 < l,
     { have h₁ : 4 * l ≤ 2 * l * l, { linarith },
-      have h₂ :  2 * l * l - 4 * l ∈ finset.Ico n (2 * n + 1),
-      { rw finset.Ico.mem,
-        zify [h₁],
-        split,
-        { linarith },
-        { linarith }},
-      have h₃ : 2 * l * l + 4 * l ∈ finset.Ico n (2 * n + 1),
-      { rw finset.Ico.mem,
-        split,
-        { linarith },
-        { linarith }},
-      have h₄ : 2 * l * l - 4 * l < 2 * l * l + 1,
-      { zify [h₁],
-        linarith },
-      have h₅ : 2 * l * l + 1 < 2 * l * l + 4 * l, { linarith },
-      have h₆ : 2 * l * l + 1 ∈ finset.Ico n (2 * n + 1),
-      { rw finset.Ico.mem,
-        split,
-        { rw finset.Ico.mem at h₂,
-          linarith },
-        { rw finset.Ico.mem at h₃,
-          linarith }},
-      use [2 * l * l - 4 * l, 2 * l * l + 1, 2 * l * l + 4 * l],
-      refine ⟨h₂,⟨h₆,⟨h₃,⟨h₄,⟨h₅,⟨_,⟨_,_⟩⟩⟩⟩⟩⟩⟩,
-      { use (2 * l - 1),
-        have h₇ : 1 ≤ 2 * l, { linarith },
-        zify [h₁, h₇],
-        ring_exp_eq },
-      { use (2 * l),
-        zify [h₁],
-        ring_exp_eq },
-      { use(2 * l + 1),
-        ring_exp_eq }},
+      have h₂ : 1 ≤ 2 * l, { linarith },
+      refine ⟨2 * l * l - 4 * l, 2 * l * l + 1, 2 * l * l + 4 * l,
+      ⟨_,⟨_,⟨_,⟨_,⟨2 * l - 1, _⟩,⟨2 * l, _⟩,2 * l + 1, _⟩⟩⟩⟩⟩,
+      all_goals { zify [h₁, h₂], linarith } },
     { exfalso,
       simp only [not_lt] at p,
-      interval_cases l,
-      all_goals {linarith } }},
-  --Otherwise, if 100 ≤ n < 107, then it suffices to consider explicit
-  --construction of a triplet {a, b, c}, which is constructed by setting l=9
-  --in the argument at the start of the file.
-  { have h₈ : 126 ∈ finset.Ico n (2 * n + 1),
-    { rw finset.Ico.mem,
-      split,
-      all_goals { linarith } },
-      have h₉ : 163 ∈ finset.Ico n (2 * n + 1),
-    { rw finset.Ico.mem,
-      split,
-      all_goals { linarith } },
-    have h₁₀ : 198 ∈ finset.Ico n (2 * n + 1),
-    { rw finset.Ico.mem,
-      split,
-      all_goals { linarith } },
-    use [126, 163, 198],
-    refine ⟨h₈,⟨h₉,⟨h₁₀,⟨_,⟨_,⟨⟨17, _⟩,⟨⟨18, _⟩, ⟨19, _⟩⟩⟩⟩⟩⟩⟩⟩,
-    all_goals { linarith } },
+      interval_cases l; linarith }},
+  -- Otherwise, if 100 ≤ n < 107, then it suffices to consider explicit
+  -- construction of a triplet {a, b, c}, which is constructed by setting l=9
+  -- in the argument at the start of the file.
+  { refine ⟨126, 163, 198, _, _, _, _,⟨17, _⟩, ⟨18, _⟩, 19, _⟩; linarith },
 end
 
-lemma finset.Ico.mem_compl_iff_nmem_subset (a n : ℕ) (A : finset ℕ)
+-- We will need a lemma, stating that if a given number a ∈ [n, 2n]
+-- does not belong to A ⊆ [n, 2n], then it belongs to [n, 2n] \ A.
+lemma finset.Ico.mem_compl_iff_nmem_subset {a n : ℕ} (A : finset ℕ)
   (h : a ∈ finset.Ico n (2 * n + 1)) : a ∉ A ↔ a ∈ finset.Ico n (2 * n + 1) \ A :=
 begin
   rw finset.mem_sdiff,
@@ -208,54 +165,55 @@ begin
 end
 
 theorem IMO_2021_Q1 : ∀ (n : ℕ), 100 ≤ n → ∀ (A ⊆ finset.Ico n (2 * n + 1)),
-  (∃ (a b : A), a ≠ b ∧ ∃ (k : ℕ), (a : ℕ) + b = k * k) ∨
-  (∃ (a b : finset.Ico n (2 * n + 1) \ A), a ≠ b ∧ ∃(k : ℕ), (a : ℕ) + b = k * k) :=
+  (∃ (a b ∈ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) ∨
+  (∃ (a b ∈ finset.Ico n (2 * n + 1) \ A), a ≠ b ∧ ∃ (k : ℕ), a + b = k * k) :=
 begin
   intros n hn A hA,
-  -- There exists a pairwise unequal triplet a, b, c ∈ [n, 2n]
+  -- There exists a pairwise unequal triplet a, b, c ∈ ℕ
   -- such that all pairwise sums are perfect squares.
   have p := exists_triplet_summing_to_squares n hn,
-  rcases p with ⟨a, b, c, ⟨ha, hb, hc, hna, hcn, p⟩⟩,
+  rcases p with ⟨a, b, c, hna, hab, hbc, hcn, p⟩,
+  -- Now, we will show that indeed a, b, c ∈ [n, 2n]
+  have ha : a ∈ finset.Ico n (2 * n + 1),
+  { rw finset.Ico.mem,
+    split;
+    linarith },
+  have hb : b ∈ finset.Ico n (2 * n + 1),
+  { rw finset.Ico.mem,
+    split;
+    linarith },
+  have hc : c ∈ finset.Ico n (2 * n + 1),
+  { rw finset.Ico.mem,
+    split;
+    linarith },
   -- Consider by cases based on whether each of {a, b, c} belongs to the 'first pile' A or not.
   -- In each case, we can find two members of the triplet in the same pile, as required.
-  by_cases h₁: (a : ℕ) ∈ A,
-  { by_cases h₂: (b : ℕ) ∈ A,
+  by_cases h₁: a ∈ A,
+  { by_cases h₂: b ∈ A,
     { left,
-      use [a, h₁, b, h₂],
-      refine ⟨_, p.1⟩,
-      { simp only [subtype.mk_eq_mk, ne.def],
-        linarith }},
-    { by_cases h₃ : (c : ℕ) ∈ A,
+      refine ⟨a, b, h₁, h₂, _, p.1⟩,
+      exact ne_of_lt hab },
+    { by_cases h₃ : c ∈ A,
       { left,
-        use [c, h₃, a, h₁],
-        refine ⟨_,p.2.1⟩,
-        { simp only [subtype.mk_eq_mk, ne.def],
-          linarith }},
-      { rw finset.Ico.mem_compl_iff_nmem_subset b n A hb at h₂,
-        rw finset.Ico.mem_compl_iff_nmem_subset c n A hc at h₃,
+        refine ⟨c, a, h₃, h₁, _, p.2.1⟩,
+        linarith },
+      { rw finset.Ico.mem_compl_iff_nmem_subset A hb at h₂,
+        rw finset.Ico.mem_compl_iff_nmem_subset A hc at h₃,
         right,
-        use [b, h₂, c, h₃],
-        refine ⟨_, p.2.2⟩,
-        { simp only [subtype.mk_eq_mk, ne.def],
-          linarith }}}},
-  { rw finset.Ico.mem_compl_iff_nmem_subset a n A ha at h₁,
+        refine ⟨b, c, h₂, h₃, _, p.2.2⟩,
+        exact ne_of_lt hbc }}},
+  { rw finset.Ico.mem_compl_iff_nmem_subset A ha at h₁,
     by_cases h₂ : b ∈ A,
     { by_cases h₃ : c ∈ A,
       { left,
-        use [b, h₂, c, h₃],
-        refine ⟨_, p.2.2⟩,
-        { simp only [subtype.mk_eq_mk, ne.def],
-          linarith }},
-      { rw finset.Ico.mem_compl_iff_nmem_subset c n A hc at h₃,
+        refine ⟨b, c, h₂, h₃, _, p.2.2⟩,
+        linarith },
+      { rw finset.Ico.mem_compl_iff_nmem_subset A hc at h₃,
         right,
-        use [c, h₃, a, h₁],
-        refine ⟨_, p.2.1⟩,
-        { simp only [subtype.mk_eq_mk, ne.def],
-          linarith }}},
-      { rw finset.Ico.mem_compl_iff_nmem_subset b n A hb at h₂,
+        refine ⟨c, a, h₃, h₁, _, p.2.1⟩,
+        linarith }},
+      { rw finset.Ico.mem_compl_iff_nmem_subset A hb at h₂,
         right,
-        use [a, h₁, b, h₂],
-        refine ⟨_, p.1⟩,
-        { simp only [subtype.mk_eq_mk, ne.def],
-          linarith }}},
+        refine ⟨a, b, h₁, h₂, _, p.1⟩,
+        linarith }},
 end

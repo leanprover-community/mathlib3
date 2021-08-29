@@ -133,6 +133,20 @@ instance [partial_order R] : partial_order (tropical R) :=
   ..tropical.preorder }
 
 instance [has_top R] : has_zero (tropical R) := ⟨trop ⊤⟩
+instance [has_top R] : has_top (tropical R) := ⟨0⟩
+
+@[simp] lemma untrop_zero [has_top R] : untrop (0 : tropical R) = ⊤ := rfl
+@[simp] lemma trop_top [has_top R] : trop (⊤ : R) = 0 := rfl
+
+@[simp] lemma trop_coe_ne_zero (x : R) : trop (x : with_top R) ≠ 0 .
+@[simp] lemma zero_ne_trop_coe (x : R) : (0 : tropical (with_top R)) ≠ trop x .
+
+@[simp] lemma le_zero [order_top R] (x : tropical R) : x ≤ 0 := le_top
+
+instance [partial_order R] : order_top (tropical (with_top R)) :=
+{ le_top := λ a a' h, option.no_confusion h,
+  ..tropical.partial_order,
+  ..tropical.has_top }
 
 variable [linear_order R]
 
@@ -161,6 +175,35 @@ lemma trop_add_def (x y : tropical R) : x + y = trop (min (untrop x) (untrop y))
   x + y = y := untrop_injective (by simpa using h)
 
 @[simp] lemma add_self (x : tropical R) : x + x = x := untrop_injective (min_eq_right le_rfl)
+
+@[simp] lemma bit0 (x : tropical R) : bit0 x = x := add_self x
+
+lemma min_eq_iff {R : Type*} [linear_order R] {x y z : R} :
+  min x y = z ↔ x = z ∧ x ≤ y ∨ y = z ∧ y ≤ x :=
+begin
+  split,
+  { intro h,
+    refine or.imp (λ h', _) (λ h', _) (le_total x y);
+    exact ⟨by simpa [h'] using h, h'⟩ },
+  { rintro (⟨rfl, h⟩|⟨rfl, h⟩);
+    simp [h] }
+end
+
+lemma add_eq_iff {x y z : tropical R} :
+  x + y = z ↔ x = z ∧ x ≤ y ∨ y = z ∧ y ≤ x :=
+by simp [trop_add_def, trop_eq_iff_eq_untrop, min_eq_iff]
+
+@[simp] lemma add_eq_zero_iff {a b : tropical (with_top R)} :
+  a + b = 0 ↔ a = 0 ∧ b = 0 :=
+begin
+  rw add_eq_iff,
+  split,
+  { rintro (⟨rfl, h⟩|⟨rfl, h⟩),
+    { exact ⟨rfl, le_antisymm (le_zero _) h⟩ },
+    { exact ⟨le_antisymm (le_zero _) h, rfl⟩ } },
+  { rintro ⟨rfl, rfl⟩,
+    simp }
+end
 
 -- We cannot define `add_comm_monoid` here because there is no class that is solely
 -- `[linear_order R] [order_top R]`
@@ -203,6 +246,10 @@ begin
   { simp, },
   { rw [pow_succ, untrop_mul, IH, succ_nsmul] }
 end
+
+@[simp] lemma trop_nsmul [add_monoid R] (x : R) (n : ℕ) :
+  trop (n • x) = trop x ^ n :=
+by simp [trop_eq_iff_eq_untrop]
 
 instance [add_comm_monoid R] : comm_monoid (tropical R) :=
 { ..tropical.monoid, ..tropical.comm_semigroup }
@@ -268,8 +315,6 @@ instance : semiring (tropical R) :=
   ..tropical.add_comm_semigroup,
   ..tropical.comm_monoid  }
 
-@[simp] lemma untrop_zero : untrop (0 : tropical R) = ⊤ := rfl
-
 -- This could be stated on something like `linear_order_with_top α` if that existed
 @[simp] lemma succ_nsmul (x : tropical R) (n : ℕ) :
   (n + 1) • x = x :=
@@ -284,9 +329,18 @@ end
 -- lemma add_eq_zero_iff {a b : tropical R} :
 --   a + b = 1 ↔ a = 1 ∨ b = 1 := sorry
 
-lemma mul_eq_zero_iff {R : Type*} [linear_ordered_add_comm_monoid R] {a b : tropical (with_top R)} :
+@[simp] lemma mul_eq_zero_iff {R : Type*} [linear_ordered_add_comm_monoid R]
+  {a b : tropical (with_top R)} :
   a * b = 0 ↔ a = 0 ∨ b = 0 :=
 by simp [←untrop_inj_iff, with_top.add_eq_top]
+
+instance {R : Type*} [linear_ordered_add_comm_monoid R] :
+  no_zero_divisors (tropical (with_top R)) :=
+⟨λ _ _, mul_eq_zero_iff.mp⟩
+
+instance {R : Type*} [linear_ordered_add_comm_monoid R] :
+  nontrivial (tropical (with_top R)) :=
+⟨⟨0, 1, trop_injective.ne with_top.top_ne_zero⟩⟩
 
 end semiring
 

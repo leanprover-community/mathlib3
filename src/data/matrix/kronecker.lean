@@ -44,9 +44,7 @@ namespace matrix
 open_locale matrix
 
 variables {R α α' β β' γ γ' : Type*}
-variables {l m n p : Type*} [fintype l] [fintype m] [fintype n] [fintype p]
-variables {q r : Type*} [fintype q] [fintype r]
-variables {l' m' n' p' : Type*} [fintype l'] [fintype m'] [fintype n'] [fintype p']
+variables {l m n p : Type*} {q r : Type*} {l' m' n' p' : Type*}
 
 section kronecker_map
 
@@ -122,6 +120,36 @@ end
   kronecker_map f (1 : matrix m m α) (1 : matrix n n β) = 1 :=
 (kronecker_map_diagonal_diagonal _ hf₁ hf₂ _ _).trans $ by simp only [hf₃, diagonal_one]
 
+lemma kronecker_map_reindex (f : α → β → γ) (el : l ≃ l') (em : m ≃ m') (en : n ≃ n')
+  (ep : p ≃ p') (M : matrix l m α) (N : matrix n p β) :
+  kronecker_map f (reindex el em M) (reindex en ep N) =
+    reindex (el.prod_congr en) (em.prod_congr ep) (kronecker_map f M N) :=
+by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
+
+lemma kronecker_map_reindex_left (f : α → β → γ) (el : l ≃ l') (em : m ≃ m') (M : matrix l m α)
+  (N : matrix n n' β) : kronecker_map f (matrix.reindex el em M) N =
+  reindex (el.prod_congr (equiv.refl _)) (em.prod_congr (equiv.refl _)) (kronecker_map f M N) :=
+kronecker_map_reindex _ _ _ (equiv.refl _) (equiv.refl _) _ _
+
+lemma kronecker_map_reindex_right (f : α → β → γ) (em : m ≃ m') (en : n ≃ n') (M : matrix l l' α)
+  (N : matrix m n β) : kronecker_map f M (reindex em en N) =
+  reindex ((equiv.refl _).prod_congr em) ((equiv.refl _).prod_congr en) (kronecker_map f M N) :=
+kronecker_map_reindex _ (equiv.refl _) (equiv.refl _) _ _ _ _
+
+lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω')
+  (g' : β → δ → ξ) (A : matrix l m α) (B : matrix n p β) (D : matrix q r δ) (φ : ω ≃ ω')
+  (hφ : ∀ a b d, φ (g (f a b) d) = f' a (g' b d)) :
+  (reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)).trans (equiv.map_matrix φ)
+    (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
+ext $ λ i j, hφ _ _ _
+
+lemma kronecker_map_assoc₁ {δ ξ ω : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω)
+  (g' : β → δ → ξ) (A : matrix l m α) (B : matrix n p β) (D : matrix q r δ)
+  (h : ∀ a b d, (g (f a b) d) = f' a (g' b d)) :
+  reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)
+    (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
+ext $ λ i j, h _ _ _
+
 /-- When `f` is bilinear then `matrix.kronecker_map f` is also bilinear. -/
 @[simps]
 def kronecker_map_bilinear [comm_semiring R]
@@ -140,8 +168,8 @@ linear_map.mk₂ R
 
 This is primarily used with `R = ℕ` to prove `matrix.mul_kronecker_mul`. -/
 lemma kronecker_map_bilinear_mul_mul [comm_semiring R]
-  [non_unital_non_assoc_semiring α] [non_unital_non_assoc_semiring β]
-  [non_unital_non_assoc_semiring γ]
+  [fintype m] [fintype m'] [non_unital_non_assoc_semiring α]
+  [non_unital_non_assoc_semiring β] [non_unital_non_assoc_semiring γ]
   [module R α] [module R β] [module R γ]
   (f : α →ₗ[R] β →ₗ[R] γ) (h_comm : ∀ a b a' b', f (a * b) (a' * b') = f a a' * f b b')
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
@@ -153,20 +181,6 @@ begin
     finset.sum_product, kronecker_map],
   simp_rw [f.map_sum, linear_map.sum_apply, linear_map.map_sum, h_comm],
 end
-
-lemma kronecker_map_assoc {δ ξ ω ω' : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω')
-  (g' : β → δ → ξ) (A : matrix l m α) (B : matrix n p β) (D : matrix q r δ) (φ : ω ≃ ω')
-  (hφ : ∀ a b d, φ (g (f a b) d) = f' a (g' b d)) :
-  (reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)).trans (equiv.map_matrix φ)
-    (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
-ext $ λ i j, hφ _ _ _
-
-lemma kronecker_map_assoc₁ {δ ξ ω : Type*} (f : α → β → γ) (g : γ → δ → ω) (f' : α → ξ → ω)
-  (g' : β → δ → ξ) (A : matrix l m α) (B : matrix n p β) (D : matrix q r δ)
-  (h : ∀ a b d, (g (f a b) d) = f' a (g' b d)) :
-  reindex (equiv.prod_assoc l n q) (equiv.prod_assoc m p r)
-    (kronecker_map g (kronecker_map f A B) D) = kronecker_map f' A (kronecker_map g' B D) :=
-ext $ λ i j, h _ _ _
 
 end kronecker_map
 
@@ -231,7 +245,7 @@ kronecker_map_diagonal_diagonal _ zero_mul mul_zero _ _
   (1 : matrix m m α) ⊗ₖ (1 : matrix n n α) = 1 :=
 kronecker_map_one_one _ zero_mul mul_zero (one_mul _)
 
-lemma mul_kronecker_mul [comm_semiring α]
+lemma mul_kronecker_mul [fintype m] [fintype m'] [comm_semiring α]
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' α) (B' : matrix m' n' α) :
   (A ⬝ B) ⊗ₖ (A' ⬝ B') = (A ⊗ₖ A') ⬝ (B ⊗ₖ B') :=
 kronecker_map_bilinear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_comm A B A' B'
@@ -326,7 +340,7 @@ open algebra.tensor_product
   (1 : matrix m m α) ⊗ₖₜ[R] (1 : matrix n n α) = 1 :=
 kronecker_map_one_one _ (zero_tmul _) (tmul_zero _) rfl
 
-lemma mul_kronecker_tmul_mul
+lemma mul_kronecker_tmul_mul [fintype m] [fintype m']
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
   (A ⬝ B) ⊗ₖₜ[R] (A' ⬝ B') = (A ⊗ₖₜ A') ⬝ (B ⊗ₖₜ B') :=
 kronecker_map_bilinear_mul_mul (tensor_product.mk R α β) tmul_mul_tmul A B A' B'

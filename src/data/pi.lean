@@ -66,8 +66,22 @@ function.update_same i x _
 @[simp] lemma single_eq_of_ne {i i' : I} (h : i' ≠ i) (x : f i) : single i x i' = 0 :=
 function.update_noteq h x _
 
+/-- Abbreviation for `single_eq_of_ne h.symm`, for ease of use by `simp`. -/
+@[simp] lemma single_eq_of_ne' {i i' : I} (h : i ≠ i') (x : f i) : single i x i' = 0 :=
+single_eq_of_ne h.symm x
+
 @[simp] lemma single_zero (i : I) : single i (0 : f i) = 0 :=
 function.update_eq_self _ _
+
+/-- On non-dependent functions, `pi.single` can be expressed as an `ite` -/
+lemma single_apply {β : Sort*} [has_zero β] (i : I) (x : β) (i' : I) :
+  single i x i' = if i' = i then x else 0 :=
+function.update_apply 0 i x i'
+
+/-- On non-dependent functions, `pi.single` is symmetric in the two indices. -/
+lemma single_comm {β : Sort*} [has_zero β] (i : I) (x : β) (i' : I) :
+  single i x i' = single i' x i :=
+by simp only [single_apply, eq_comm]; congr -- deal with `decidable_eq`
 
 lemma apply_single (f' : Π i, f i → g i) (hf' : ∀ i, f' i 0 = 0) (i : I) (x : f i) (j : I):
   f' j (single i x j) = single i (f' i x) j :=

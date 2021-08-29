@@ -434,7 +434,7 @@ begin
       (measurable_set.univ.diff (countable.measurable_set f.countable_discrete_support)) hs },
   congr' 1,
   rw [inter_comm, ← inter_diff_assoc, inter_univ],
-  exact measure_diff_null f.countable_discrete_support.measure_zero
+  exact measure_diff_null (f.countable_discrete_support.measure_zero _)
 end
 
 end
@@ -540,7 +540,7 @@ lemma comp_ae_eq_const (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ 
     φ.to_bounded_additive_measure.continuous_part univ = φ (f Hcont x) :=
 begin
   apply ae_restrict_of_ae,
-  refine measure_mono_null _ (countable_ne Hcont φ).measure_zero,
+  refine measure_mono_null _ ((countable_ne Hcont φ).measure_zero _),
   assume x,
   simp only [imp_self, mem_set_of_eq, mem_compl_eq],
 end

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.group_power.basic
 import algebra.invertible
+import algebra.smul_with_zero
 import algebra.opposites
 import data.list.basic
 import data.int.cast
@@ -300,6 +301,10 @@ instance : distrib_mul_action ℤ (with_top A) :=
   mul_smul := with_top.mul_gsmul,
   smul_add := with_top.gsmul_add,
   smul_zero := with_top.gsmul_zero }
+
+instance : mul_action_with_zero ℤ (with_top A) :=
+{ zero_smul := with_top.zero_gsmul,
+  ..with_top.distrib_mul_action }
 
 -- While we have `with_top.zero_gsmul`, we cannot have `module ℤ (with_top A)` due to missing
 -- `add_smul`, with a counterexample of `0 = 0 • ⊤ = (1 + -1) • ⊤ = ⊤ + -⊤ = ⊤ ≠ 0`

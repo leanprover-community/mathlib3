@@ -680,17 +680,6 @@ begin
   ... = (2.71828) ^ (637 : ℕ) : by rw rpow_nat_cast _ 637,
 end
 
-
--- lemma lim_real_is_real_lim (s : cau_seq ℂ complex.abs) :
--- s.lim.re = (s.re).lim
-
-lemma power_series_le_exp_of_nonneg (x : ℝ) (n : ℕ) (hx : 0 ≤ x) :
-∑ i in finset.range n, x ^ i / i.factorial ≤ exp x
-:=
-begin
-  sorry
-end
-
 lemma a_584_le_exp_6 : (584 : ℝ) ≤ exp (6.37 : ℝ) :=
 begin
   apply trans _ (power_series_le_exp_of_nonneg 6.37 19 (by linarith)),
@@ -1523,44 +1512,44 @@ begin
     exact false_inequality_is_false n_big false_inequality,
 end
 
--- theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
--- begin
--- cases lt_or_le 1003 n,
--- {exact bertrand_eventually n h},
--- -- TODO: manage this as a loop rather than a long sequence of cases
--- cases le_or_lt 505 n,
--- { use 1009, norm_num, split, linarith, linarith, },
--- clear h,
+theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+begin
+cases lt_or_le 1003 n,
+{exact bertrand_eventually n h},
+-- TODO: manage this as a loop rather than a long sequence of cases
+cases le_or_lt 505 n,
+{ use 1009, norm_num, split, linarith, linarith, },
+clear h,
 
--- cases le_or_lt 376 n,
--- { use 751, norm_num, split, linarith, linarith, },
--- clear h,
--- cases le_or_lt 274 n,
--- { use 547, norm_num, split, linarith, linarith, },
--- clear h_1,
--- cases le_or_lt 139 n,
--- { use 277, norm_num, split, linarith, linarith, },
--- clear h,
--- cases le_or_lt 70 n,
--- { use 139, norm_num, split, linarith, linarith, },
--- clear h_1,
--- cases le_or_lt 37 n,
--- { use 73, norm_num, split, linarith, linarith, },
--- clear h,
--- cases le_or_lt 19 n,
--- { use 37, norm_num, split, linarith, linarith, },
--- clear h_1,
--- cases le_or_lt 11 n,
--- { use 19, norm_num, split, linarith, linarith, },
--- clear h,
--- cases le_or_lt 6 n,
--- { use 11, norm_num, split, linarith, linarith, },
--- clear h_1,
--- cases le_or_lt 4 n,
--- { use 7, norm_num, split, linarith, linarith, },
--- clear h,
--- interval_cases n,
--- { use 2, norm_num },
--- { use 3, norm_num },
--- { use 5, norm_num },
--- end
+cases le_or_lt 376 n,
+{ use 751, norm_num, split, linarith, linarith, },
+clear h,
+cases le_or_lt 274 n,
+{ use 547, norm_num, split, linarith, linarith, },
+clear h_1,
+cases le_or_lt 139 n,
+{ use 277, norm_num, split, linarith, linarith, },
+clear h,
+cases le_or_lt 70 n,
+{ use 139, norm_num, split, linarith, linarith, },
+clear h_1,
+cases le_or_lt 37 n,
+{ use 73, norm_num, split, linarith, linarith, },
+clear h,
+cases le_or_lt 19 n,
+{ use 37, norm_num, split, linarith, linarith, },
+clear h_1,
+cases le_or_lt 11 n,
+{ use 19, norm_num, split, linarith, linarith, },
+clear h,
+cases le_or_lt 6 n,
+{ use 11, norm_num, split, linarith, linarith, },
+clear h_1,
+cases le_or_lt 4 n,
+{ use 7, norm_num, split, linarith, linarith, },
+clear h,
+interval_cases n,
+{ use 2, norm_num },
+{ use 3, norm_num },
+{ use 5, norm_num },
+end

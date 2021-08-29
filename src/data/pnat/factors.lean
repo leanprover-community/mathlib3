@@ -366,10 +366,7 @@ begin
   apply multiset.eq_repeat.mpr,
   split,
   { rw [multiset.card_nsmul, prime_multiset.card_of_prime, mul_one] },
-  { have : ∀ (m : ℕ), m • ({p} : multiset nat.primes) = multiset.repeat p m :=
-    λ m, by {induction m with m ih, { refl },
-             rw [succ_nsmul, multiset.repeat_succ, ih, multiset.singleton_add] },
-    intros q h, rw [prime_multiset.of_prime, this k] at h,
+  { intros q h, rw [prime_multiset.of_prime, multiset.nsmul_singleton _ k] at h,
     exact multiset.eq_of_mem_repeat h }
 end
 

@@ -613,15 +613,14 @@ end
 lemma ae_measurable_comp_iff_of_closed_embedding {f : δ → β} {μ : measure δ}
   (g : β → γ) (hg : closed_embedding g) : ae_measurable (g ∘ f) μ ↔ ae_measurable f μ :=
 begin
-  by_cases h : nonempty β,
-  { resetI,
-    refine ⟨λ hf, _, λ hf, hg.measurable.comp_ae_measurable hf⟩,
+  casesI is_empty_or_nonempty β,
+  { haveI := function.is_empty f,
+    simp only [(measurable_of_empty (g ∘ f)).ae_measurable,
+      (measurable_of_empty f).ae_measurable] },
+  { refine ⟨λ hf, _, λ hf, hg.measurable.comp_ae_measurable hf⟩,
     convert hg.measurable_inv_fun.comp_ae_measurable hf,
     ext x,
     exact (function.left_inverse_inv_fun hg.to_embedding.inj (f x)).symm },
-  { have H : ¬ nonempty δ, by { contrapose! h, exact nonempty.map f h },
-    simp [(measurable_of_not_nonempty H (g ∘ f)).ae_measurable,
-          (measurable_of_not_nonempty H f).ae_measurable] }
 end
 
 lemma ae_measurable_comp_right_iff_of_closed_embedding {g : α → β} {μ : measure α}
@@ -629,9 +628,7 @@ lemma ae_measurable_comp_right_iff_of_closed_embedding {g : α → β} {μ : mea
   ae_measurable (f ∘ g) μ ↔ ae_measurable f (measure.map g μ) :=
 begin
   refine ⟨λ h, _, λ h, h.comp_measurable hg.measurable⟩,
-  by_cases hα : nonempty α,
-  swap, { simp [measure.eq_zero_of_not_nonempty hα μ] },
-  resetI,
+  casesI is_empty_or_nonempty α, { simp [μ.eq_zero_of_is_empty] },
   refine ⟨(h.mk _) ∘ (function.inv_fun g), h.measurable_mk.comp hg.measurable_inv_fun, _⟩,
   have : μ = measure.map (function.inv_fun g) (measure.map g μ),
     by rw [measure.map_map hg.measurable_inv_fun hg.measurable,
@@ -1281,6 +1278,15 @@ lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞}
   measurable (λ x, ∑' i, f i x) :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr,
   exact λ s, s.measurable_sum (λ i _, h i) }
+
+@[measurability]
+lemma measurable.ennreal_tsum' {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  measurable (∑' i, f i) :=
+begin
+  convert measurable.ennreal_tsum h,
+  ext1 x,
+  exact tsum_apply (pi.summable.2 (λ _, ennreal.summable)),
+end
 
 @[measurability]
 lemma measurable.nnreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0} (h : ∀ i, measurable (f i)) :

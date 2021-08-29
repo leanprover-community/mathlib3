@@ -243,8 +243,8 @@ To debug:
 (1) run `scripts/mk_all.sh` and create a file with `import all` and
 `set_option trace.class_instances true`
 (2) Create an example where you are proving the class on a type with no extra information
-(other than the classes to make sense of this class) and try to prove it using `by apply_instance`.
-For example, if `topological_group` raises an error, run
+(other than the classes needed to write down this class) and try to prove it using
+`by apply_instance`. For example, if `topological_group` raises an error, run
 ```
 example (G : Type*) [topological_space G] [group G] : topological_group G :=
 by apply_instance

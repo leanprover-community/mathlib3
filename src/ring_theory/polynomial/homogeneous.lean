@@ -254,9 +254,8 @@ begin
   exact {
     to_fun := λ d, direct_sum.of (λ i, homogeneous_submodule σ R i) (d.to_add.sum $ λ i x, x)
       ⟨monomial d.to_add 1, is_homogeneous_monomial _ _ _ rfl⟩,
-    map_one' := rfl, --by simp,
-    map_mul' := λ d₁ d₂, _, --by simp,
-  },
+    map_one' := rfl,
+    map_mul' := λ d₁ d₂, _, },
   refine (dfinsupp.single_eq_of_sigma_eq (sigma.subtype_ext _ _)).trans
     (direct_sum.of_mul_of _ _).symm; dsimp,
   exact finsupp.sum_add_index (λ _, rfl) (λ _ _ _, rfl),
@@ -322,7 +321,8 @@ and their summations. This matches the form of `mv_polynomial.induction_on'`. -/
 lemma is_homogeneous.induction_on' [comm_semiring R]
   {p : mv_polynomial σ R → Prop}
   (hmonomial : ∀ d r, p (monomial d r))
-  (hadd : ∀ j (a b : mv_polynomial σ R), a.is_homogeneous j → b.is_homogeneous j → p a → p b → p (a + b))
+  (hadd : ∀ j (a b : mv_polynomial σ R),
+    a.is_homogeneous j → b.is_homogeneous j → p a → p b → p (a + b))
   {x : mv_polynomial σ R} {i : ℕ} (hx : x.is_homogeneous i) : p x :=
 begin
   have : ∀ x : homogeneous_submodule σ R i, p x :=
@@ -347,7 +347,7 @@ end
 lemma to_homogeneous_components_of_is_homogeneous [comm_semiring R] (i : ℕ)
   (x : mv_polynomial σ R) (hx : x.is_homogeneous i) :
   to_homogeneous_components x = direct_sum.of (λ i, homogeneous_submodule σ R i) i ⟨x, hx⟩ :=
-to_homogeneous_components_coe ⟨x, hx⟩
+(to_homogeneous_components_coe ⟨x, hx⟩ : _)
 
 /-- Assemble a polynomial from a direct sum of homogeneous components. -/
 def of_homogeneous_components [comm_semiring R] :
@@ -378,10 +378,21 @@ begin
   rw [of_homogeneous_components_of, to_homogeneous_components_coe],
 end
 
+/-- Collectively, `mv_polynomial.to_homogeneous_components` and
+`mv_polynomial.of_homogeneous_components` form an equivalence. -/
 @[simps]
 def equiv_homogeneous_components [comm_semiring R] :
   mv_polynomial σ R ≃ₐ[R] (⨁ i, homogeneous_submodule σ R i) :=
 alg_equiv.of_alg_hom _ _ to_of_homogeneous_components of_to_homogeneous_components
+
+lemma homogeneous_components_is_internal [comm_semiring R] :
+  direct_sum.submodule_is_internal (homogeneous_submodule σ R) :=
+equiv_homogeneous_components.symm.bijective
+
+/-! ### Old-style API
+
+TODO: remove this
+-/
 
 /-- `homogeneous_component n φ` is the part of `φ` that is homogeneous of degree `n`.
 See `sum_homogeneous_component` for the statement that `φ` is equal to the sum

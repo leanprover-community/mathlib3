@@ -122,7 +122,7 @@ lemma to_measure_eq_val (ν : finite_measures α) : (ν : measure α) = ν.val :
 
 lemma coe_injective :
   function.injective (coe : finite_measures α → measure α) :=
-by { intros μ ν, exact subtype.eq, }
+subtype.coe_injective
 
 @[simp]
 lemma coe_zero : (coe : finite_measures α → measure α) 0 = 0 := rfl

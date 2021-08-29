@@ -387,8 +387,27 @@ begin
         apply lt_trans,
         { exact hm, },
         { exact hle, }, }, },
-    exact eq_bot_iff.mpr hsub,
-  }
+    exact eq_bot_iff.mpr hsub, },
+end
+
+lemma nth_set_nonempty_of_lt_card {n: ℕ} (hf: set.finite p)
+  (hlt: n < (set.finite.to_finset hf).card):
+  { i : ℕ | p i ∧ ∀ k < n, nth p k < i }.nonempty :=
+begin
+  have hf': {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i}.finite,
+  { apply set.finite.subset,
+    { exact hf,},
+    { intro x,
+      simp,
+      intros hp hx,
+      exact hp, }, },
+  have hc: hf'.to_finset.card = hf.to_finset.card - n :=
+    by apply nth_set_card,
+  have hpos: 0 < hf'.to_finset.card,
+  { rw hc,
+    apply nat.sub_pos_of_lt hlt, },
+  have hne: hf'.to_finset.nonempty := finset.card_pos.mp hpos,
+  exact (set.finite.to_finset.nonempty hf').mp hne,
 end
 
 lemma nth_mem_of_infinite_aux (i : (set_of p).infinite) (n : ℕ) :

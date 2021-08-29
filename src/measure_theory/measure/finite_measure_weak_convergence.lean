@@ -236,7 +236,7 @@ lemma to_measure_eq_val (ν : probability_measures α) : (ν : measure α) = ν.
 
 lemma coe_injective :
   function.injective (coe : probability_measures α → measure α) :=
-by { intros μ ν, exact subtype.eq, }
+subtype.coe_injective
 
 @[simp]
 lemma to_fun_univ (ν : probability_measures α) : ν univ = 1 :=

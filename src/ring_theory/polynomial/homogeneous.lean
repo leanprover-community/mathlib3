@@ -71,7 +71,7 @@ variables {σ R}
 variables (σ R)
 
 /-- While equal, the former has a convenient definitional reduction. -/
-lemma homogenous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
+lemma homogeneous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
   homogeneous_submodule σ R n = finsupp.supported _ R {d | ∑ i in d.support, d i = n} :=
 begin
   ext,
@@ -82,7 +82,7 @@ end
 
 variables {σ R}
 
-lemma homogenous_submodule_mul [comm_semiring R] (m n : ℕ) :
+lemma homogeneous_submodule_mul [comm_semiring R] (m n : ℕ) :
   homogeneous_submodule σ R m * homogeneous_submodule σ R n ≤ homogeneous_submodule σ R (m + n) :=
 begin
   rw submodule.mul_le,
@@ -186,7 +186,7 @@ lemma sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ℕ
 
 lemma mul (hφ : is_homogeneous φ m) (hψ : is_homogeneous ψ n) :
   is_homogeneous (φ * ψ) (m + n) :=
-homogenous_submodule_mul m n $ submodule.mul_mem_mul hφ hψ
+homogeneous_submodule_mul m n $ submodule.mul_mem_mul hφ hψ
 
 lemma prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ι → ℕ)
   (h : ∀ i ∈ s, is_homogeneous (φ i) (n i)) :
@@ -219,7 +219,7 @@ begin
 end
 
 /--
-The homogenous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`
+The homogeneous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`
 and `direct_sum.algebra`. -/
 noncomputable instance homogeneous_submodule.gcomm_monoid :
   direct_sum.gcomm_monoid (λ i, homogeneous_submodule σ R i) :=
@@ -240,15 +240,13 @@ open finset
 
 open_locale direct_sum
 
-/-- A version of `homogenous_component` that maps into `homogeneous_submodule σ R n`. -/
+/-- A version of `homogeneous_component` that maps into `homogeneous_submodule σ R n`. -/
 def homogeneous_component' [comm_semiring R] (n : ℕ) :
   mv_polynomial σ R →ₗ[R] homogeneous_submodule σ R n :=
 let f := finsupp.restrict_dom R R {d : σ →₀ ℕ | ∑ i in d.support, d i = n} in
-(submodule.of_le $ (homogenous_submodule_eq_finsupp_supported _ _ _).symm.le).comp f
+(submodule.of_le $ (homogeneous_submodule_eq_finsupp_supported _ _ _).symm.le).comp f
 
-/-- Split a polynomial into a direct sum of homogenous components.
-
-TODO: Promote this to an `alg_equiv`. -/
+/-- Split a polynomial into a direct sum of homogeneous components. -/
 def to_homogeneous_components [comm_semiring R] :
   mv_polynomial σ R →ₐ[R] (⨁ i, homogeneous_submodule σ R i) :=
 begin
@@ -292,7 +290,7 @@ lemma to_homogeneous_components_X [comm_semiring R] (d : σ) :
 (to_homogeneous_components_monomial_one _).trans $
   dfinsupp.single_eq_of_sigma_eq $ sigma.subtype_ext (finsupp.sum_single_index rfl) rfl
 
-/-- To prove a dependent property `p` on all homogenous polynomials, it suffices to prove it for
+/-- To prove a dependent property `p` on all homogeneous polynomials, it suffices to prove it for
 zero, monomials and their summations. This matches the form of `mv_polynomial.induction_on'`. -/
 lemma homogeneous_submodule.induction_on' [comm_semiring R]
   {p : ∀ i, homogeneous_submodule σ R i → Prop}
@@ -319,7 +317,7 @@ begin
   refine ⟨⟨_, is_homogeneous_monomial _ _ _ (hxv hd)⟩, hmonomial _ _ _ _, rfl⟩,
 end
 
-/-- To prove a property `p` on all homogenous polynomials, it suffices to prove it for monomials
+/-- To prove a property `p` on all homogeneous polynomials, it suffices to prove it for monomials
 and their summations. This matches the form of `mv_polynomial.induction_on'`. -/
 lemma is_homogeneous.induction_on' [comm_semiring R]
   {p : mv_polynomial σ R → Prop}
@@ -346,12 +344,12 @@ begin
 end
 
 @[simp]
-lemma to_homogeneous_components_of_is_homogenous [comm_semiring R] (i : ℕ)
+lemma to_homogeneous_components_of_is_homogeneous [comm_semiring R] (i : ℕ)
   (x : mv_polynomial σ R) (hx : x.is_homogeneous i) :
   to_homogeneous_components x = direct_sum.of (λ i, homogeneous_submodule σ R i) i ⟨x, hx⟩ :=
 to_homogeneous_components_coe ⟨x, hx⟩
 
-/-- Assemble a polynomial from a direct sum of homogenous components. -/
+/-- Assemble a polynomial from a direct sum of homogeneous components. -/
 def of_homogeneous_components [comm_semiring R] :
   (⨁ i, homogeneous_submodule σ R i) →ₐ[R] mv_polynomial σ R :=
 direct_sum.to_algebra R _ (λ i, submodule.subtype _) rfl (λ _ _ _ _, rfl) (λ r, rfl)

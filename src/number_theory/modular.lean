@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 import analysis.complex.upper_half_plane analysis.special_functions.pow
+import analysis.convex.basic
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -316,33 +317,26 @@ def fundamental_domain : set ℍ :=
 
 notation `𝒟` := fundamental_domain
 
+lemma S_apply (z : ℍ) : ((S • z:ℍ):ℂ) = (-1 : ℂ)/z := by simp [S]
+
 /-- If `|z|<1`, then applying `S` strictly decreases `im` -/
 lemma im_lt_im_S {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
 begin
-  have : z.im < z.im / norm_sq (z:ℂ),
-  { have imz : 0 < z.im := im_pos z,
-    apply (lt_div_iff z.norm_sq_pos).mpr,
-    nlinarith },
-  convert this,
-  simp only [im_smul_eq_div_norm_sq],
-  field_simp [normsq_bottom_ne_zero, norm_sq_ne_zero, S]
+  rw [im_smul_eq_div_norm_sq, bottom],
+  simp only [S, int.coe_cast_ring_hom, coe_matrix_coe, add_zero, int.cast_zero, one_mul, cons_val_one, coe_fn_eq_coe, of_real_zero,
+  coe_mk, int.cast_one, map_apply, of_real_one, cons_val_zero, head_cons],
+  apply (lt_div_iff z.norm_sq_pos).mpr,
+  have : 0 < z.im := im_pos z,
+  nlinarith,
 end
 
-/-- If `1<|z|`, then `|S•z|<1` *********** ????????????? *********** -/
-lemma normsq_S_lt_of_normsq {z : ℍ} (h: 1 < norm_sq z) :
-norm_sq -- (S • z)
-z < 1 :=
+/-- If `1 < |z|`, then `|S•z| < 1` -/
+lemma normsq_S_lt_of_normsq {z : ℍ} (h: 1 < norm_sq z) : norm_sq ((S • z):ℍ) < 1 :=
 begin
-  sorry,
-  have : z.im < z.im / norm_sq (z:ℂ),
-  { have imz : 0 < z.im := im_pos z,
-    apply (lt_div_iff z.norm_sq_pos).mpr,
-    nlinarith },
-  convert this,
-  simp only [im_smul_eq_div_norm_sq],
-  field_simp [normsq_bottom_ne_zero, norm_sq_ne_zero, S]
+  rw [S_apply, (by simp : norm_sq ((-1:ℂ) / z) = norm_sq ((1:ℂ) / z)),
+    (by simp: norm_sq ((1:ℂ) / z) = 1 / norm_sq z)],
+  convert one_div_lt_one_div_of_lt _ h; simp,
 end
-/- -/
 
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
 lemma exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
@@ -392,8 +386,11 @@ begin
 end
 
 
+/-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
+def fundamental_domain_open : set ℍ :=
+{z | 1 < ((z:ℂ).norm_sq) ∧ |z.re| < (1 : ℝ) / 2}
 
-
+notation `𝒟ᵒ` := fundamental_domain_open
 
 /-- MOVE TO INT SOMEWHERE -/
 lemma int.eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
@@ -406,119 +403,68 @@ begin
   { left,
     split,
     assumption,
-    rw h_1 at h,
-    rw one_mul at h,
+    rw [h_1, one_mul] at h,
     exact h },
   { right,
     split,
     assumption,
-    rw h_1 at h,
-    rw [neg_mul_eq_neg_mul_symm, one_mul] at h,
-    exact eq_neg_of_eq_neg (eq.symm h),
-  },
-end
-
-lemma int.le_one_zero (z : ℤ) (h: _root_.abs z < 1) : z = 0 :=
-begin
-  rw int.eq_zero_iff_abs_lt_one at h,
-  exact h,
+    rw [h_1, neg_mul_eq_neg_mul_symm, one_mul] at h,
+    exact eq_neg_of_eq_neg (eq.symm h), },
 end
 
 lemma int.ne_zero_ge_one {z : ℤ} (h₀: ¬ z = 0) : 1 ≤ |z| :=
 begin
---  library_search,
   by_contra,
   push_neg at h,
   exact h₀ (int.eq_zero_iff_abs_lt_one.mp h),
 end
 
-lemma junk (z w : ℂ ) (h: w = z) : w.re = z.re :=
-begin
-  exact congr_arg re h,
-end
-
 lemma move_by_large {x y : ℝ} (h : |x| < 1/2) (h₁ : |x+y|<1/2) (h₂ : 1≤ |y|) : false :=
-begin
-  cases abs_cases x;
-  cases abs_cases y;
-  cases abs_cases (x+y);
-  linarith,
-end
+  by cases abs_cases x; cases abs_cases y; cases abs_cases (x+y); linarith
 
-
-lemma junk1 ( x y z: ℝ ): (x < y) → (0 < z) → x*z < y*z :=
-begin
-  intros hxy hz,
-  exact (mul_lt_mul_right hz).mpr hxy,
-end
-
-
-
-/-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
-def fundamental_domain_open : set ℍ :=
-{z | 1 < (complex.norm_sq z) ∧ |z.re| < (1 : ℝ) / 2}
-
-notation `𝒟ᵒ` := fundamental_domain_open
-
-
+/-- Crucial lemma showing that if `c≠0`, then `3/4 < 4/(3c^4)` -/
 lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :
   (3 : ℝ)/4 < 4/ (3* (g 1 0)^4) :=
 begin
   have z_im := z.im_ne_zero,
-  have c_2_pos : (0 : ℝ) < (g 1 0)^2,
-    exact_mod_cast pow_even_pos c_ne_z (by simp: even 2),
   have c_4_pos : (0 : ℝ) < (g 1 0)^4,
     exact_mod_cast pow_even_pos c_ne_z (by simp: even 4),
+  /- Any point `w∈𝒟ᵒ` has imaginary part at least `sqrt (3/4)` -/
   have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
-  {
-    intros w hw,
+  { intros w hw,
     have : 1 < w.re * w.re + w.im * w.im := by simpa [complex.norm_sq_apply] using hw.1,
     have := hw.2,
-    cases abs_cases w.re; nlinarith,
-  },
-
+    cases abs_cases w.re; nlinarith, },
+  /- The next argument is simply that `c^2 y^2 ≤ |c z + d|^2`. -/
   have czPdGecy : (g 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (bottom g z) :=
     calc
     (g 1 0 : ℝ)^2 * (z.im)^2 ≤ (g 1 0 : ℝ)^2 * (z.im)^2 + (g 1 0 * z.re + g 1 1)^2 : by nlinarith
     ... = norm_sq (bottom g z) : by simp [norm_sq, bottom]; ring,
-
   have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
-  have zIm' : (3 : ℝ) < 4 * (z.im)^2 := by nlinarith,
-
+  /- This is the main calculation:
+  `sqrt 3 / 2 < Im(g•z) = Im(z)/|cz+d|^2 ≤ y/(c^2 y^2) < 2/(c^2 sqrt 3)`
+  -/
   calc
-  (3 : ℝ)/4 < ((g • z).im)^2 : ImGeInD _ hg
-  ... = (z.im)^2 / (norm_sq (bottom g z))^2 : _
-  ... ≤ (1 : ℝ)/((g 1 0)^4 * (z.im)^2) : _
-  ... < (4 : ℝ)/ (3* (g 1 0)^4) : _,
-
-  {
-    convert congr_arg (λ (x:ℝ), x^2) (im_smul_eq_div_norm_sq g z) using 1,
-    exact (div_pow _ _ 2).symm,
-  },
-
-  {
-    rw div_le_div_iff,
+  (3 : ℝ) / 4 < ((g • z).im) ^ 2 : ImGeInD _ hg
+  ... = (z.im) ^ 2 / (norm_sq (bottom g z)) ^ 2 : _
+  ... ≤ (1 : ℝ) / ((g 1 0) ^ 4 * (z.im) ^ 2) : _
+  ... < (4 : ℝ) / (3 * (g 1 0) ^ 4) : _,
+  { convert congr_arg (λ (x:ℝ), x ^ 2) (im_smul_eq_div_norm_sq g z) using 1,
+    exact (div_pow _ _ 2).symm, },
+  { rw div_le_div_iff,
     convert pow_le_pow_of_le_left _ czPdGecy 2 using 1;
     ring,
     { nlinarith, },
-    {
-      exact pow_two_pos_of_ne_zero _ (normsq_bottom_ne_zero g z),
-    },
-    { nlinarith, },
-  },
-
-  {
-    rw div_lt_div_iff,
-    nlinarith,
-    nlinarith,
-    nlinarith,
-  },
+    { exact pow_two_pos_of_ne_zero _ (normsq_bottom_ne_zero g z), },
+    { nlinarith, }, },
+  { rw div_lt_div_iff,
+    repeat {nlinarith}, },
 end
 
 lemma nat.is_zero_or_one_of_le_one {n : ℕ} (h: n ≤ 1) : n = 0 ∨ n = 1 :=
 begin
   cases n,
-  left, refl,
+  { left, refl, },
   right,
   rw [nat.succ_le_succ_iff, le_zero_iff] at h,
   rw h,
@@ -538,374 +484,279 @@ begin
     linarith, },
 end
 
-
-lemma junk12 (n : ℕ) (h : |(n:ℤ)| ≤ 1) : n ≤ 1 :=
-begin
-cases abs_cases (n:ℤ),
-nlinarith,
-nlinarith,
-end
-
-
-lemma real.self_of_pow_inv_pow {x y : ℝ} (hx : 0 < x) (hy : 0 < y) : (x^((1:ℝ)/y))^y = x :=
-begin
-  have : 0 < x^((1:ℝ)/y) ,
-  {
-    rw real.rpow_def_of_pos hx,
-    exact real.exp_pos _,
-  },
-  rw real.rpow_def_of_pos this,
-  rw real.log_rpow hx,
-  rw ( _ : (1:ℝ) / y * real.log x * y = real.log x),
-  exact real.exp_log hx,
-
-  -- ring, ?!?
-  rw mul_comm,
-  rw ← mul_assoc,
-  rw ( _ : y * (1 / y) = 1),
-  ring,
-  simp,
-  field_simp,
-  refine div_self _,
-  nlinarith,
-end
-
-lemma real.lt_of_pow_lt_pow {x y z : ℝ} (hx : 0 < x) (hy : 0 < y) (hz : 0 < z) (h : x^z < y^ z) :
-x < y :=
-begin
-  rw real.rpow_def_of_pos hx at h,
-  rw real.rpow_def_of_pos hy at h,
-  rw real.exp_lt_exp at h,
-  apply (real.log_lt_log_iff hx hy).mp,
-  nlinarith,
-end
-
-lemma real.floor_eq_or_lt (y : ℝ ) :  (⌊y⌋ : ℝ) = y ∨ (⌊y⌋ : ℝ) < y
- := le_iff_eq_or_lt.mp (floor_le y)
-
-lemma int.le_floor_of_lt {x : ℤ} {y : ℝ} (hx : (x : ℝ) < y) : (x:ℝ) ≤ (⌊y⌋:ℝ) :=
-begin
-  norm_cast,
-  rw le_floor,
-  exact le_of_lt hx,
-end
-
-lemma junk1234' (x : ℕ) (h : ¬ x ≤ 1) : 2 ≤ x :=
-begin
-  linarith,
-end
-
 lemma int.is_le_one_or_ge_two (x : ℤ) : |x| ≤ 1 ∨ 2 ≤ |x| :=
 begin
-  by_cases (|x| ≤ 1),
+  cases le_or_gt (|x|) 1,
   left, assumption, right,
-  let n:= int.to_nat (|x|),
-  have n_is : (n:ℤ) = |x|,
-  {
-    sorry,
-  },
-  have hn : ¬ n ≤ 1,
-  {
-    sorry,
-  },
-  have := junk1234' n hn,
-  linarith,
+  exact h,
 end
 
-lemma ineq_2 (x : ℤ) (hx₁ : (3 : ℝ)/4 < 4/ (3* x^4)) (hx₂ : x ≠ 0) : x = 1 ∨ x = -1 :=
+lemma int.fourth_le_fourth {a b : ℤ} (hab : |a| ≤ |b|) : a ^ 4 ≤ b ^ 4 :=
 begin
-  cases (int.is_le_one_or_ge_two x),
-  {
-    cases abs_cases x,
-    {
-      left,
-    --linarith,
-      sorry,
-    },
-    { right,
-      linarith,
-    },
-  },
-  {
-    have : (2:ℝ)^4 ≤ x^4,
-    {
-      norm_cast,
-      sorry,
-    },
-    have := (div_lt_div_iff _ _).mp hx₁,
-    linarith,
-    linarith,
-    linarith,
-  },
+  have := sq_le_sq hab,
+  rw [(by simp only [pow_bit0_abs, abs_pow] : a ^ 2 = |a ^ 2|),
+   (by simp only [pow_bit0_abs, abs_pow] : b ^ 2 = |b ^ 2|)] at this,
+  convert sq_le_sq this using 1; ring,
 end
 
+/-- Knowing that `3/4<4/(3c^4)` from `ineq_1`, and `c≠0`, we conclude that `c=1` or `c=-1`. -/
+lemma ineq_2 (c : ℤ) (hc₁ : (3 : ℝ)/4 < 4/ (3* c^4)) (hc₂ : c ≠ 0) : c = 1 ∨ c = -1 :=
+begin
+  cases (int.is_le_one_or_ge_two c),
+  { -- case |c| ≤ 1
+     cases int.is_zero_or__pm_one_of_le_one h, -- either c = 1 or c = 0 or c = -1
+    { right, assumption, },
+    { cases h_1,
+      { exfalso,
+        exact hc₂ h_1, },
+      left, assumption, }, },
+  { -- case 2 ≤ |c|
+    exfalso,
+    have : 2^4 ≤ c^4,
+    { refine int.fourth_le_fourth _,
+      convert h using 1, },
+    have : (2:ℝ)^4 ≤ c^4,
+    { norm_cast,
+      convert this using 1, },
+    have := (div_lt_div_iff _ _).mp hc₁,
+    repeat {linarith}, },
+end
+
+
+/-- Definition: `T_pow` is the matrix `T` raised to the power `n:ℤ`. -/
 def T_pow (n : ℤ) : SL(2,ℤ) := ⟨ ![![1, n],![0,1]],
 begin
   rw matrix.det_fin_two,
   simp,
-end
-⟩
+end ⟩
 
+
+/- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]` -/
 lemma g_is_of_c_is_one (g : SL(2,ℤ)) (hc : g 1 0 = 1) : g = (T_pow (g 0 0)) * S * (T_pow (g 1 1))
 :=
 begin
-  rw T_pow,
-  rw T_pow,
+  rw [T_pow, T_pow],
   ext i,
-  fin_cases i;
-  fin_cases j,
+  fin_cases i; fin_cases j,
   { simp [vec_head, vec_tail, S], },
-  {
-    simp [vec_head, vec_tail, S],
+  { simp only [vec_head, vec_tail, S, matrix.special_linear_group.coe_fn_eq_coe,
+      modular_group.S.equations._eqn_1, matrix.special_linear_group.coe_mul,
+      matrix.special_linear_group.coe_mk, matrix.cons_mul, matrix.vec_mul_cons,
+      matrix.vec_head.equations._eqn_1, matrix.cons_val_zero, matrix.smul_cons, mul_zero,
+      mul_neg_eq_neg_mul_symm, mul_one, matrix.smul_empty, matrix.vec_tail.equations._eqn_1,
+      function.comp_app, fin.succ_zero_eq_one, matrix.cons_val_one, matrix.cons_val_fin_one,
+      matrix.empty_vec_mul, matrix.cons_add, pi.zero_apply, add_zero, pi.zero_comp,
+      matrix.zero_empty, matrix.empty_add_empty, matrix.add_cons],
     have g_det : g.val.det = (g 0 0)*(g 1 1)-(g 1 0)*(g 0 1),
-    {
-      sorry,
-    },
-    rw hc at g_det,
-    rw g.2 at g_det,
+    { convert det_fin_two g using 1,
+      ring, },
+    rw [hc, g.2] at g_det,
     rw g_det,
-    norm_cast,
-    ring,
-    sorry,
-  },
-  {
-    simp [vec_head, vec_tail, S, hc],
-    exact_mod_cast hc,
-  },
+    simp, },
+  { simp only [vec_head, vec_tail, S, hc, matrix.special_linear_group.coe_fn_eq_coe,
+      modular_group.S.equations._eqn_1, matrix.special_linear_group.coe_mul,
+      matrix.special_linear_group.coe_mk, matrix.cons_mul, matrix.vec_mul_cons,
+      matrix.vec_head.equations._eqn_1, matrix.cons_val_zero, matrix.smul_cons, mul_zero,
+      mul_neg_eq_neg_mul_symm, mul_one, matrix.smul_empty, matrix.vec_tail.equations._eqn_1,
+      function.comp_app, fin.succ_zero_eq_one, matrix.cons_val_one, matrix.cons_val_fin_one,
+      matrix.empty_vec_mul, matrix.cons_add, pi.zero_apply, add_zero, pi.zero_comp,
+      matrix.zero_empty, matrix.empty_add_empty, matrix.add_cons],
+    exact_mod_cast hc, },
   { simp [vec_head, vec_tail, S], },
 end
 
-lemma move_by_T (z : ℍ) (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq ((T_pow n) • z) :=
+/-- Nontrivial lemma: if `|x|<1/2` and `n:ℤ`, then `2nx+n^2≥0`. (False for `n:ℝ`!) -/
+lemma int.non_neg_of_lt_half (n : ℤ) (x : ℝ) (hx : |x| < 1/2) : (0:ℝ) ≤ 2 * n * x + n * n :=
 begin
-  sorry,
+  rw abs_lt at hx,
+  have : (0:ℝ) ≤ n*n := by nlinarith,
+  cases n,
+  { -- n ≥ 0
+    have : (n:ℝ) = (int.of_nat n) := by simp,
+    have : (0:ℝ) ≤ n := by simp,
+    cases lt_or_ge x 0,
+    {  -- x < 0
+      cases n,
+      { simp, },
+      { -- n ≥ 1
+        have eq1 : (1:ℝ) ≤ int.of_nat n.succ := by simp,
+        have eq2 : (1:ℝ) ≤ (int.of_nat n.succ) * (int.of_nat n.succ) := by nlinarith,
+        have eq3 : (-1:ℝ) ≤ 2 * x := by nlinarith,
+        have eq4 : (0:ℝ) ≤ 2 * x + int.of_nat n.succ := by linarith,
+        have eq5 : (0:ℝ) ≤ (2 * x + int.of_nat n.succ)*(int.of_nat n.succ) := by nlinarith,
+        convert eq5 using 1,
+        ring, }, },
+    { -- x ≥ 0
+      have : (0:ℝ) ≤ 2*n*x := by nlinarith,
+      nlinarith, }, },
+  { -- n ≤ -1
+    have := int.neg_succ_of_nat_coe n,
+    set k := int.neg_succ_of_nat n,
+    have eq1 : k ≤ -1,
+    { have : 1 ≤ 1 + n := by simp,
+      have :  -((1:ℤ) + n) ≤ -1,
+      { have : 0 ≤ n := by simp,
+        linarith, },
+      convert this using 1,
+      simp [this_1],
+      ring, },
+    have eq1' : (k:ℝ) ≤ -1 := by exact_mod_cast eq1,
+    cases lt_or_ge x 0,
+    { -- x < 0
+      have : (0:ℝ) ≤ 2*k*x := by nlinarith,
+      have eq2 : 1 ≤ k*k  := by nlinarith,
+      linarith, },
+    { -- x ≥ 0
+      have eq2 : (2:ℝ) * x + k ≤ 0 := by nlinarith,
+      nlinarith, }, },
 end
 
+/-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`.   -/
+lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T_pow n) • z) : ℍ) :=
+begin
+  rw T_pow,
+  simp only [zero_add, div_one, modular_group.coe_smul, upper_half_plane.top.equations._eqn_1,
+    matrix.special_linear_group.coe_fn_eq_coe, matrix.special_linear_group.coe_matrix_coe,
+    matrix.special_linear_group.coe_mk, int.coe_cast_ring_hom, matrix.map_apply, matrix.cons_val',
+    matrix.cons_val_zero, matrix.cons_val_fin_one, int.cast_one, complex.of_real_one, one_mul,
+    matrix.cons_val_one, matrix.vec_head.equations._eqn_1, complex.of_real_int_cast,
+    upper_half_plane.bottom.equations._eqn_1, int.cast_zero, complex.of_real_zero, zero_mul],
+  rw complex.norm_sq_apply,
+  have hz1 : 1 < z.re * z.re + z.im * z.im,
+  { have := hz.1,
+    rw norm_sq at this,
+    convert this using 1, },
+  rw (by simp : ((z:ℂ) + n).im = z.im),
+  rw (by simp : ((z:ℂ) + n).re = z.re + n),
+  rw (by ring : (z.re + ↑n) * (z.re + ↑n) = z.re * z.re + 2 * n * z.re + n * n),
+  have : 0 ≤  2 * ↑n * z.re + ↑n * ↑n := int.non_neg_of_lt_half n (z.re) hz.2,
+  convert add_lt_add_of_le_of_lt this hz1 using 1,
+  { simp, },
+  { ring_nf, },
+end
+
+/-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/
+lemma T_pow_S_of_g (g : SL(2,ℤ)) (hc : g 1 0 = 1) : T_pow (- g 0 0) * g = S * T_pow (g 1 1) :=
+begin
+  rw g_is_of_c_is_one g hc,
+  ext i,
+  fin_cases i; fin_cases j,
+  { simp [vec_head, vec_tail, T_pow, S], },
+  { simp only [add_zero, fin.succ_zero_eq_one, function.comp_app, matrix.add_cons, matrix.cons_add,
+    matrix.cons_mul, matrix.cons_val_fin_one, matrix.cons_val_one, matrix.cons_val_zero,
+    matrix.empty_add_empty, matrix.empty_vec_mul, matrix.smul_cons, matrix.smul_empty,
+    matrix.special_linear_group.coe_fn_eq_coe, matrix.special_linear_group.coe_mk,
+    matrix.special_linear_group.coe_mul, matrix.vec_head.equations._eqn_1, matrix.vec_mul_cons,
+    matrix.vec_tail.equations._eqn_1, matrix.zero_empty, modular_group.S.equations._eqn_1,
+    modular_group.T_pow.equations._eqn_1, mul_neg_eq_neg_mul_symm, mul_one, mul_zero,
+    pi.zero_apply, pi.zero_comp, zero_add],
+    ring,
+  },
+  { simp [vec_head, vec_tail, T_pow, S], },
+  { simp [vec_head, vec_tail, T_pow, S], },
+end
+
+/-- If both `z` and `g•z` are in `𝒟ᵒ`, then `c` can't be `1`. -/
+lemma false_of_c_eq_one {z : ℍ} {g : SL(2,ℤ)} (hc : g 1 0 = 1) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) :
+false :=
+begin
+  let z₁ := T_pow (g 1 1) • z,
+  let w₁ := T_pow (- g 0 0) • (g • z),
+  have w₁_norm : 1 < norm_sq w₁ := move_by_T hg (- g 0 0),
+  have z₁_norm : 1 < norm_sq z₁ := move_by_T hz (g 1 1),
+  have w₁_S_z₁ : w₁ = S • z₁,
+  { rw (_ : w₁ = T_pow (- g 0 0) • g • z),
+    rw (_ : z₁ = T_pow (g 1 1) • z),
+    convert (congr_arg (λ (g:SL(2,ℤ)), g • z) (T_pow_S_of_g g hc)) using 1,
+    { convert (upper_half_plane.mul_smul' (T_pow (-g 0 0)) g z).symm using 1,
+      -- refl, ** Failed???**
+      sorry, },
+    { convert (upper_half_plane.mul_smul' S (T_pow (g 1 1)) z).symm using 1,
+      sorry, },
+    refl,
+    refl, },
+  have := normsq_S_lt_of_normsq z₁_norm,
+  rw ← w₁_S_z₁ at this,
+  linarith,
+end
+
+/-- Second Main Fundamental Domain Lemma: If both `z` and `g•z` are in the open domain `𝒟ᵒ`, where
+  `z:ℍ` and `g:SL(2,ℤ)`, then `z = g • z`. -/
 lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
 begin
-/-
-  either c=0 in which case, translation, in which case translation by 0
-  or im (y) > Sqrt(3)/2 -> c=±1 and compute...
--/
-  -- ext,
+/-  The argument overview is: either `c=0`, in which case the action is translation, which must be
+  by `0`, OR
+  `c=±1`, which gives a contradiction from considering `im z`, `im(g•z)`, and `norm_sq(T^* z)`. -/
   have g_det : matrix.det g = (g 0 0)*(g 1 1)-(g 1 0)*(g 0 1),
-  {
-    sorry,
-  },
-
+  { convert det_fin_two g using 1,
+    ring, },
   by_cases (g 1 0 = 0),
-  {
+  { -- case c=0
     have := g_det,
     rw h at this,
-    --rw g.det_coe_fun at this,
-    simp at this,
+    simp only [matrix.special_linear_group.coe_fn_eq_coe, matrix.special_linear_group.det_coe,
+      zero_mul, sub_zero] at this,
     have := int.eq_one_or_neg_one_of_mul_eq_one' (this.symm),
-    have gzIs : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → ↑(gg • z : ℍ) = (z : ℂ) + gg 0 1,
-    {
-      intros gg h₀ h₁ h₂,
+    have gzIs : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 →
+      ↑(gg • z : ℍ) = (z : ℂ) + gg 0 1,
+    { intros gg h₀ h₁ h₂,
       simp only [coe_fn_eq_coe] at h₀ h₁ h₂,
-      simp [h₀, h₁, h₂],
-    },
+      simp [h₀, h₁, h₂], },
     have gIsId : ∀ (gg : SL(2,ℤ)), gg • z ∈ 𝒟ᵒ → gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg = 1,
-    {
-      intros gg hh h₀ h₁ h₂,
+    { intros gg hh h₀ h₁ h₂,
       simp only [coe_fn_eq_coe] at h₀ h₁ h₂,
       ext i,
-      fin_cases i;
-      fin_cases j,
+      fin_cases i; fin_cases j,
       simp only [h₁, coe_one, one_apply_eq],
-      {
-        simp only [nat.one_ne_zero, coe_one, fin.zero_eq_one_iff, ne.def, not_false_iff, one_apply_ne],
---        apply int.eq_zero_iff_abs_lt_one.mp,
+      { simp only [nat.one_ne_zero, coe_one, fin.zero_eq_one_iff, ne.def, not_false_iff,
+          one_apply_ne],
         by_contra hhh,
         have reZ : |z.re| < 1/2,
-        {
-          exact_mod_cast hz.2,
-        },
+        { exact_mod_cast hz.2, },
         have reGz : |((gg • z):ℍ ).re| < 1/2,
-        {
-          exact_mod_cast hh.2,
-        },
+        { exact_mod_cast hh.2, },
         have reZpN : |z.re + gg 0 1| < 1/2,
-        {
-          convert reGz using 2,
---          apply congr_arg _root_.abs,
+        { convert reGz using 2,
           rw (by simp : z.re + gg 0 1 = ((z:ℂ )+ gg 0 1).re),
           apply congr_arg complex.re,
-          exact_mod_cast (gzIs gg h₀ h₁ h₂).symm,
-        },
-
+          exact_mod_cast (gzIs gg h₀ h₁ h₂).symm, },
         refine move_by_large reZ reZpN _,
-        exact_mod_cast  int.ne_zero_ge_one hhh,
-      },
-      simp only [h₀, nat.one_ne_zero, coe_one, fin.one_eq_zero_iff, ne.def, not_false_iff, one_apply_ne],
-      simp only [h₂, coe_one, one_apply_eq],
-    },
+        exact_mod_cast  int.ne_zero_ge_one hhh, },
+      simp only [h₀, nat.one_ne_zero, coe_one, fin.one_eq_zero_iff, ne.def, not_false_iff,
+        one_apply_ne],
+      simp only [h₂, coe_one, one_apply_eq], },
     have zIsGz : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg • z ∈ 𝒟ᵒ → z = gg • z,
-    {
-      intros gg h₀ h₁ h₂ hh,
+    { intros gg h₀ h₁ h₂ hh,
       have := gIsId gg hh h₀ h₁ h₂,
       rw this,
-      simp,
-    },
+      simp, },
     cases this,
     { -- case a = d = 1
-      exact zIsGz g h this_1.1 this_1.2 hg,
-    },
+      exact zIsGz g h this_1.1 this_1.2 hg, },
     { -- case a = d = -1
       rw ← neg_smul,
       apply zIsGz; simp,
       exact_mod_cast h,
       simp only [this_1, neg_neg],
       simp only [this_1, neg_neg],
-      --simp only [has_neg_coe_mat, dmatrix.neg_apply, coe_fn_eq_coe, neg_eq_zero],
-      exact hg,
-    },
-  },
-  {
-    -- want to argue first that c=± 1
-    -- then show this is impossible
+      exact hg, }, },
+  { -- case c ≠ 0
+    exfalso,
+    -- argue first that c=± 1
     have := ineq_2 _ (ineq_1 z g hz hg h) h,
-
+    -- then show this is impossible
     cases this with hc,
-    {
-      exfalso,
-      have := g_is_of_c_is_one g hc,
-      let z₁ := T_pow (g 1 1) • z,
-      let w₁ := T_pow (- g 0 0) • (g • z),
-      have w₁_S_z₁ : w₁ = S • z₁,
-      {
-        have : T_pow (- g 0 0) * g = S * T_pow (g 1 1),
-        {
-          sorry,
-        },
-
-        convert congr_arg (λ (g:SL(2,ℤ)), g • z) this using 1,
-        {
-          simp [w₁, upper_half_plane.mul_smul'],
-          convert (upper_half_plane.mul_smul' (T_pow (- g 0 0)) g z).symm using 1,
-          simp,
-          sorry,
-        },
-        {
-          simp [z₁, upper_half_plane.mul_smul'],
-          convert (upper_half_plane.mul_smul' S (T_pow (g 1 1)) z).symm using 1,
-          simp,
-          sorry,
-        },
-      },
-      have w₁_norm : 1 < norm_sq w₁,
-      {
-        sorry,
-      },
-      have z₁_norm : 1 < norm_sq z₁,
-      {
-        sorry,
-      },
-
-      have := normsq_S_lt_of_normsq z₁_norm,
---      rw ← w₁_S_z₁ at this,
-
-      linarith,
-    },
-    {
-      sorry,
-    },
-
-    sorry,
-  },
- -- ALEX homework
+    { -- c = 1
+      exact false_of_c_eq_one hc hz hg, },
+    { -- c = -1
+      have neg_c_one : (-g) 1 0 = 1,
+      { have := eq_neg_of_eq_neg this,
+        simp [this], },
+      have neg_g_𝒟 : (-g) • z ∈ 𝒟ᵒ,
+      { convert hg using 1,
+        simp, },
+      exact false_of_c_eq_one neg_c_one hz neg_g_𝒟, }, },
 end
-
-
-
-
-
-
-    lemma fundom_no_repeats (z z' : H) (h : ∃ g : SL(2,ℤ), z' = g • z) (hz : z ∈ 𝒟) (hz' : z' ∈ 𝒟) :
-      (z = z') ∨
-      (z.val.re = -1/2 ∧ z' = T • z) ∨
-      (z'.val.re = -1/2 ∧ z = T • z') ∨
-      (z.val.abs = 1 ∧ z'.val.abs = 1 ∧ z' = S • z ∧ z = S • z') :=
-    begin
-      wlog hwlog : z.val.im ≤ z'.val.im,
-      {
-        by_cases hne : z = z', tauto,
-        right,
-        replace h := sign_coef h,
-        obtain ⟨g, hcpos, hac, hg⟩ := h,
-        set a := g.1 0 0,
-        set b := g.1 0 1,
-        set c := g.1 1 0 with ←cdf,
-        set d := g.1 1 1 with ←ddf,
-        have hcd : complex.norm_sq (c * z + d) ≤ 1,
-        {
-          have himzpos : 0 < z.val.im := im_pos_of_in_H',
-          have hnz : 0 < complex.norm_sq (c * z + d),
-          {
-            rw norm_sq_pos,
-            intro hcontra,
-            rw [← cdf, ← ddf, ← bottom_def] at hcontra,
-            exact czPd_nonZ_CP (ne.symm (ne_of_lt himzpos)) hcontra,
-          },
-          suffices: z.val.im * complex.norm_sq (c * z + d) ≤ z.val.im, nlinarith,
-          rw [hg, im_smul_SL',cdf,ddf, le_div_iff hnz] at hwlog,
-          exact hwlog,
-        },
-        have hc : _root_.abs c ≤ 1,
-        {
-          sorry
-        },
-        replace hc : c = 0 ∨ c = 1,
-        {
-
-          rw abs_le at hc,
-          exact namedIsZ c hc.2 hcpos,
-        },
-        rcases hc with  hc | hc ,
-        {     case c = 0
-          have ha : a = 1 := (hac hc).2,
-          have hd : d = 1 := (hac hc).1,
-          have hgT : g = T^b,
-          {
-            rw T_pow,
-            apply subtype.eq,
-            simp,
-            tauto,
-          },
-          have hb : _root_.abs c ≤ 1,
-          {
-            sorry
-          },
-          replace hb : b = -1 ∨ b = 0 ∨ b = 1,
-          {
-            sorry
-          },
-          rcases hb with hb | hb | hb,
-          all_goals {rw hb at hgT, rw hgT at hg, clear hb, clear hgT, simp at hg},
-          {
-            right, left,
-            rw ←inv_smul_eq_iff at hg,
-            rw ←hg at hz,
-            rw fundom_aux_1 hz' hz,
-            tauto,
-          },
-          { tauto },
-          {
-            left,
-            rw hg at hz',
-            rw fundom_aux_1 hz hz',
-            tauto,
-          }
-        },
-        {     case c = 1
-          sorry
-        }
-      },
-      obtain ⟨g, hg⟩ := h,
-      have hh : ∃ g : SL(2,ℤ), z = g • z' := ⟨g⁻¹, by {simp [eq_inv_smul_iff, hg]}⟩,
-      specialize this hh hz' hz,
-      tauto,
-    end
 
 end fundamental_domain
 

@@ -301,19 +301,16 @@ lemma homogeneous_submodule.induction_on' [comm_semiring R]
 begin
   let p_submonoid : add_submonoid (homogeneous_submodule σ R i) :=
   { carrier := {x | p _ x},
-    add_mem' := λ a b, hadd i a b,
+    add_mem' := hadd i,
     zero_mem' := hzero i},
-  change x ∈ p_submonoid,
   cases x with xv hxv,
-  let p2_submonoid : add_submonoid (mv_polynomial σ R) :=
-  p_submonoid.map (homogeneous_submodule σ R i).subtype.to_add_monoid_hom,
-  suffices : xv ∈ p2_submonoid,
+  suffices : xv ∈ p_submonoid.map (homogeneous_submodule σ R i).subtype.to_add_monoid_hom,
   { obtain ⟨⟨a, ha⟩, pa, rfl⟩ := this,
     exact pa, },
   rw ←finsupp.sum_single xv,
   apply add_submonoid.finsupp_sum_mem,
   intros d hd,
-  refine ⟨⟨_, is_homogeneous_monomial _ _ _ (hxv hd)⟩, hmonomial _ _ _ _, rfl⟩,
+  exact ⟨⟨_, is_homogeneous_monomial _ _ _ (hxv hd)⟩, hmonomial _ _ _ _, rfl⟩,
 end
 
 /-- To prove a property `p` on all homogeneous polynomials, it suffices to prove it for monomials

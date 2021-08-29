@@ -94,7 +94,7 @@ end
 
 namespace strongly_measurable
 
-variables {α β : Type*} {f : α → β}
+variables {α β : Type*} {f g : α → β}
 
 /-- A sequence of simple functions such that `∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x))`.
 That property is given by `strongly_measurable.tendsto_approx`. -/
@@ -168,6 +168,25 @@ protected lemma measurable [measurable_space α] [metric_space β] [measurable_s
   [borel_space β] (hf : strongly_measurable f) :
   measurable f :=
 measurable_of_tendsto_metric (λ n, (hf.approx n).measurable) (tendsto_pi.mpr hf.tendsto_approx)
+
+section arithmetic
+variables [measurable_space α] [topological_space β]
+
+protected lemma add [has_add β] [has_continuous_add β]
+  (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (f + g) :=
+⟨λ n, hf.approx n + hg.approx n, λ x, (hf.tendsto_approx x).add (hg.tendsto_approx x)⟩
+
+protected lemma neg [add_group β] [topological_add_group β] (hf : strongly_measurable f) :
+  strongly_measurable (-f) :=
+⟨λ n, - hf.approx n, λ x, (hf.tendsto_approx x).neg⟩
+
+protected lemma sub [has_sub β] [has_continuous_sub β]
+  (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (f - g) :=
+⟨λ n, hf.approx n - hg.approx n, λ x, (hf.tendsto_approx x).sub (hg.tendsto_approx x)⟩
+
+end arithmetic
 
 end strongly_measurable
 
@@ -260,12 +279,62 @@ protected lemma measurable [metric_space β] [measurable_space β] [borel_space 
   measurable f :=
 measurable_of_tendsto_metric (λ n, (hf.some n).measurable) (tendsto_pi.mpr hf.some_spec.2)
 
+protected lemma add {β} [topological_space β] [add_monoid β] [has_continuous_add β] {f g : α → β}
+  (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :
+  fin_strongly_measurable (f + g) μ :=
+⟨λ n, hf.approx n + hg.approx n,
+  λ n, (measure_mono (function.support_add _ _)).trans_lt ((measure_union_le _ _).trans_lt
+    (ennreal.add_lt_top.mpr ⟨hf.fin_support_approx n, hg.fin_support_approx n⟩)),
+  λ x, (hf.tendsto_approx x).add (hg.tendsto_approx x)⟩
+
+protected lemma neg {β} [topological_space β] [add_group β] [topological_add_group β] {f : α → β}
+  (hf : fin_strongly_measurable f μ) :
+  fin_strongly_measurable (-f) μ :=
+begin
+  refine ⟨λ n, -hf.approx n, λ n, _, λ x, (hf.tendsto_approx x).neg⟩,
+  suffices : μ (function.support (λ x, - (hf.approx n) x)) < ∞, by convert this,
+  rw function.support_neg (hf.approx n),
+  exact hf.fin_support_approx n,
+end
+
+protected lemma sub {β} [topological_space β] [add_group β] [has_continuous_sub β] {f g : α → β}
+  (hf : fin_strongly_measurable f μ) (hg : fin_strongly_measurable g μ) :
+  fin_strongly_measurable (f - g) μ :=
+⟨λ n, hf.approx n - hg.approx n,
+  λ n, (measure_mono (function.support_sub _ _)).trans_lt ((measure_union_le _ _).trans_lt
+    (ennreal.add_lt_top.mpr ⟨hf.fin_support_approx n, hg.fin_support_approx n⟩)),
+  λ x, (hf.tendsto_approx x).sub (hg.tendsto_approx x)⟩
+
 end fin_strongly_measurable
+
+lemma fin_strongly_measurable_iff_strongly_measurable_and_exists_set_sigma_finite {α β} {f : α → β}
+  [topological_space β] [t2_space β] [has_zero β] {m : measurable_space α} {μ : measure α} :
+  fin_strongly_measurable f μ ↔ (strongly_measurable f
+    ∧ (∃ t, measurable_set t ∧ (∀ x ∈ tᶜ, f x = 0) ∧ sigma_finite (μ.restrict t))) :=
+⟨λ hf, ⟨hf.strongly_measurable, hf.exists_set_sigma_finite⟩,
+  λ hf, hf.1.fin_strongly_measurable_of_set_sigma_finite hf.2.some_spec.1 hf.2.some_spec.2.1
+    hf.2.some_spec.2.2⟩
 
 namespace ae_fin_strongly_measurable
 
-variables {α β : Type*} {m : measurable_space α} {μ : measure α} [has_zero β] [topological_space β]
-  [t2_space β] {f : α → β}
+variables {α β : Type*} {m : measurable_space α} {μ : measure α} [topological_space β]
+  {f g : α → β}
+
+protected lemma add [add_monoid β] [has_continuous_add β]
+  (hf : ae_fin_strongly_measurable f μ) (hg : ae_fin_strongly_measurable g μ) :
+  ae_fin_strongly_measurable (f + g) μ :=
+⟨hf.some + hg.some, hf.some_spec.1.add hg.some_spec.1, hf.some_spec.2.add hg.some_spec.2⟩
+
+protected lemma neg [add_group β] [topological_add_group β] (hf : ae_fin_strongly_measurable f μ) :
+  ae_fin_strongly_measurable (-f) μ :=
+⟨-hf.some, hf.some_spec.1.neg, hf.some_spec.2.neg⟩
+
+protected lemma sub [add_group β] [has_continuous_sub β]
+  (hf : ae_fin_strongly_measurable f μ) (hg : ae_fin_strongly_measurable g μ) :
+  ae_fin_strongly_measurable (f - g) μ :=
+⟨hf.some - hg.some, hf.some_spec.1.sub hg.some_spec.1, hf.some_spec.2.sub hg.some_spec.2⟩
+
+variables [has_zero β] [t2_space β]
 
 lemma exists_set_sigma_finite (hf : ae_fin_strongly_measurable f μ) :
   ∃ t, measurable_set t ∧ f =ᵐ[μ.restrict tᶜ] 0 ∧ sigma_finite (μ.restrict t) :=

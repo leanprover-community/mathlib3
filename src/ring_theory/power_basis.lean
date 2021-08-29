@@ -329,6 +329,7 @@ noncomputable def lift_equiv (pb : power_basis A S) :
 
 /-- `pb.lift_equiv'` states that elements of the root set of the minimal
 polynomial of `pb.gen` correspond to maps sending `pb.gen` to that root. -/
+@[simps {fully_applied := ff}]
 noncomputable def lift_equiv' (pb : power_basis A S) :
   (S →ₐ[A] B) ≃ {y : B // y ∈ ((minpoly A pb.gen).map (algebra_map A B)).roots} :=
 pb.lift_equiv.trans ((equiv.refl _).subtype_equiv (λ x,

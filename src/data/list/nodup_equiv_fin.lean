@@ -87,7 +87,7 @@ begin
   have : some hd = _ := hf 0,
   rw [eq_comm, list.nth_eq_some] at this,
   obtain ⟨w, h⟩ := this,
-  let f' : ℕ ↪o ℕ := order_embedding.of_map_rel_iff (λ i, f (i + 1) - (f 0 + 1))
+  let f' : ℕ ↪o ℕ := order_embedding.of_map_le_iff (λ i, f (i + 1) - (f 0 + 1))
     (λ a b, by simp [nat.sub_le_sub_right_iff, nat.succ_le_iff, nat.lt_succ_iff]),
   have : ∀ ix, tl.nth ix = (l'.drop (f 0 + 1)).nth (f' ix),
   { intro ix,
@@ -114,7 +114,7 @@ begin
       refine ⟨f.trans (order_embedding.of_strict_mono (+ 1) (λ _, by simp)), _⟩,
       simpa using hf },
     { obtain ⟨f, hf⟩ := IH,
-      refine ⟨order_embedding.of_map_rel_iff
+      refine ⟨order_embedding.of_map_le_iff
         (λ (ix : ℕ), if ix = 0 then 0 else (f ix.pred).succ) _, _⟩,
       { rintro ⟨_|a⟩ ⟨_|b⟩;
         simp [nat.succ_le_succ_iff] },
@@ -143,7 +143,7 @@ begin
       rw [nth_le_nth hi, eq_comm, nth_eq_some] at hf,
       obtain ⟨h, -⟩ := hf,
       exact h },
-    refine ⟨order_embedding.of_map_rel_iff (λ ix, ⟨f ix, h ix.is_lt⟩) _, _⟩,
+    refine ⟨order_embedding.of_map_le_iff (λ ix, ⟨f ix, h ix.is_lt⟩) _, _⟩,
     { simp },
     { intro i,
       apply option.some_injective,

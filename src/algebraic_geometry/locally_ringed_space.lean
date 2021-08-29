@@ -8,7 +8,6 @@ import algebraic_geometry.sheafed_space
 import algebra.category.CommRing.limits
 import algebra.category.CommRing.colimits
 import algebraic_geometry.stalks
-import ring_theory.ideal.basic
 import data.equiv.transfer_instance
 
 /-!

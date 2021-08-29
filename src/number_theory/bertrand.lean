@@ -60,10 +60,9 @@ begin
   apply trans (pow_le_pow (trans one_le_two hp.out.two_le) _) (_ : p ^ p.log (2 * n) ≤ 2 * n),
   { calc _  ≤ (finset.Ico 1 (nat.log p (2 * n) + 1)).card : finset.card_filter_le _ _
         ... = (p.log (2 * n) + 1) - 1                     : finset.Ico.card _ _ },
-  { refine nat.pow_log_le_self _ _ hp.out.one_lt _,
-    calc 1 ≤ 3     : nat.one_le_bit1 1
-       ... ≤ n     : n_big
-       ... ≤ 2 * n : n.le_two_mul_self }
+  { apply nat.pow_log_le_self,
+    exact hp.out.one_lt,
+    linarith, }
 end
 
 lemma claim_2

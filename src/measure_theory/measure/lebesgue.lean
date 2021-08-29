@@ -285,6 +285,20 @@ begin
   { exact λ i, measurable_const_add (a i) (hs i) }
 end
 
+@[simp] lemma volume_pi_preimage_add_left (a : ι → ℝ) (s : set (ι → ℝ)) :
+  volume (((+) a) ⁻¹' s) = volume s :=
+calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
+  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
+... = volume s : by rw map_volume_pi_add_left
+
+lemma map_volume_pi_add_right (a : ι → ℝ) : measure.map (+ a) volume = volume :=
+by simpa only [add_comm] using real.map_volume_pi_add_left a
+
+@[simp] lemma volume_pi_preimage_add_right (a : ι → ℝ) (s : set (ι → ℝ)) :
+  volume ((+ a) ⁻¹' s) = volume s :=
+by simpa only [add_comm] using real.volume_pi_preimage_add_left a s
+
+
 open matrix
 
 lemma zoug1 [decidable_eq ι] (D : ι → ℝ) (h : det (diagonal D) ≠ 0) :
@@ -314,26 +328,86 @@ end
 
 #check measure_preserving.skew_product
 
-lemma zoug2 [decidable_eq ι] (t : transvection_struct ι ℝ) :
-  measure_preserving t.to_matrix.to_lin' volume volume :=
+@[simps] def my_equiv (α : Type*) [decidable_eq ι] (p : ι → Prop) [decidable_pred p] :
+({x // p x} → α) × ({x // ¬ p x} → α) ≃ (ι → α) :=
+  { to_fun := λ f x, if h : p x then f.1 ⟨x, h⟩ else f.2 ⟨x, h⟩,
+    inv_fun := λ f, (λ x, f x, λ x, f x),
+    left_inv := begin
+      rintros ⟨f, g⟩,
+      ext1;
+      { ext y,
+        rcases y,
+        simp [y_property] },
+    end,
+    right_inv := λ f, by simp }
+
+.
+
+lemma my_equiv_map [decidable_eq ι] (p : ι → Prop) [decidable_pred p] :
+  measure.map (my_equiv ℝ p) volume = volume :=
 begin
+  refine (measure.pi_eq (λ s hs, _)).symm,
+  have A : (my_equiv ℝ p) ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
+    set.prod (set.pi set.univ (λ i, s i)) (set.pi set.univ (λ i, s i)),
+  sorry,
+  /-{ ext x,
+    simp only [mem_prod, my_equiv_apply, mem_univ_pi, mem_preimage, subtype.forall, subtype.coe_mk],
+    split,
+    { exact λ h, ⟨λ i hi, by simpa [dif_pos hi] using h i,
+                  λ i hi, by simpa [dif_neg hi] using h i⟩ },
+    { assume h i,
+      by_cases hi : p i,
+      simpa [dif_pos hi] using h.1 i hi,
+      simpa [dif_neg hi] using h.2 i hi } },-/
+
+  rw [measure.map_apply sorry (measurable_set.univ_pi_fintype hs), A, measure.volume_eq_prod,
+      measure.prod_prod, volume_pi_pi, volume_pi_pi],
+
 
 end
 
+
 #exit
 
-@[simp] lemma volume_pi_preimage_add_left (a : ι → ℝ) (s : set (ι → ℝ)) :
-  volume (((+) a) ⁻¹' s) = volume s :=
-calc volume (((+) a) ⁻¹' s) = measure.map ((+) a) volume s :
-  ((homeomorph.add_left a).to_measurable_equiv.map_apply s).symm
-... = volume s : by rw map_volume_pi_add_left
+lemma zoug2 [decidable_eq ι] (t : transvection_struct ι ℝ) :
+  measure.map (t.to_matrix.to_lin') volume = volume :=
+begin
+  suffices H : measure_preserving t.to_matrix.to_lin' volume volume, by exact H.2,
+  let p : ι → Prop := λ i, i ≠ t.i,
+  let α : Type* := {x // p x},
+  let β : Type* := {x // ¬ (p x)},
+  let g : (α → ℝ) → (β → ℝ) → (β → ℝ) := λ a b, b + (λ x, t.c * a ⟨t.j, t.hij.symm⟩),
+  let F : (α → ℝ) × (β → ℝ) → (α → ℝ) × (β → ℝ) :=
+    λ p, (id p.1, g p.1 p.2),
+  let e := my_equiv ℝ p,
+  have : (t.to_matrix.to_lin' : (ι → ℝ) → (ι → ℝ)) = e ∘ F ∘ e.symm,
+  { cases t,
+    ext f k,
+    simp only [e, my_equiv, dite_eq_ite, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, pi.add_apply,
+      function.comp_app, subtype.coe_mk, to_lin'_apply, dite_not, mul_vec, dot_product,
+      transvection, add_mul, finset.sum_add_distrib,
+      mul_boole, algebra.id.smul_eq_mul, zero_mul, ite_mul, transvection_struct.to_matrix_mk,
+      dmatrix.add_apply, pi.smul_apply, g, dite_eq_ite, id.def, subtype.coe_mk],
+    by_cases h : t_i = k,
+    { simp only [h, true_and, finset.mem_univ, if_true, eq_self_iff_true, finset.sum_ite_eq,
+        one_apply, boole_mul], },
+    { simp only [h, one_apply, ne.symm h, add_zero, finset.mem_univ, if_true, boole_mul, if_false,
+        finset.sum_const_zero, false_and, finset.sum_ite_eq] } },
+  rw this,
+  have A : measure_preserving e.symm volume volume, sorry,
+  have B : measure_preserving F volume volume,
+  { have g_meas : measurable (function.uncurry g),
+    { have : measurable (λ (c : (α → ℝ)), c ⟨t.j, t.hij.symm⟩) :=
+        measurable_pi_apply ⟨t.j, t.hij.symm⟩,
+      refine measurable.add measurable_snd (measurable_pi_lambda _ (λ i, measurable.const_mul _ _)),
+      exact this.comp measurable_fst },
+    exact measure_preserving.skew_product (measure_preserving.id _) g_meas
+      (eventually_of_forall (λ a, map_volume_pi_add_right _)) },
+  have C : measure_preserving e volume volume, sorry,
+  exact (C.comp B).comp A,
+end
 
-lemma map_volume_pi_add_right (a : ι → ℝ) : measure.map (+ a) volume = volume :=
-by simpa only [add_comm] using real.map_volume_pi_add_left a
-
-@[simp] lemma volume_pi_preimage_add_right (a : ι → ℝ) (s : set (ι → ℝ)) :
-  volume ((+ a) ⁻¹' s) = volume s :=
-by simpa only [add_comm] using real.volume_pi_preimage_add_left a s
+#exit
 
 lemma smul_map_volume_pi_smul {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real ((abs a) ^ (fintype.card ι)) • measure.map ((•) a) (volume : measure (ι → ℝ))

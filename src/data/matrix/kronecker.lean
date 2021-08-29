@@ -44,9 +44,7 @@ namespace matrix
 open_locale matrix
 
 variables {R α α' β β' γ γ' : Type*}
-variables {l m n p : Type*} [fintype l] [fintype m] [fintype n] [fintype p]
-variables {q r : Type*} [fintype q] [fintype r]
-variables {l' m' n' p' : Type*} [fintype l'] [fintype m'] [fintype n'] [fintype p']
+variables {l m n p : Type*} {q r : Type*} {l' m' n' p' : Type*}
 
 section kronecker_map
 
@@ -170,8 +168,8 @@ linear_map.mk₂ R
 
 This is primarily used with `R = ℕ` to prove `matrix.mul_kronecker_mul`. -/
 lemma kronecker_map_bilinear_mul_mul [comm_semiring R]
-  [non_unital_non_assoc_semiring α] [non_unital_non_assoc_semiring β]
-  [non_unital_non_assoc_semiring γ]
+  [fintype m] [fintype m'] [non_unital_non_assoc_semiring α]
+  [non_unital_non_assoc_semiring β] [non_unital_non_assoc_semiring γ]
   [module R α] [module R β] [module R γ]
   (f : α →ₗ[R] β →ₗ[R] γ) (h_comm : ∀ a b a' b', f (a * b) (a' * b') = f a a' * f b b')
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
@@ -247,7 +245,7 @@ kronecker_map_diagonal_diagonal _ zero_mul mul_zero _ _
   (1 : matrix m m α) ⊗ₖ (1 : matrix n n α) = 1 :=
 kronecker_map_one_one _ zero_mul mul_zero (one_mul _)
 
-lemma mul_kronecker_mul [comm_semiring α]
+lemma mul_kronecker_mul [fintype m] [fintype m'] [comm_semiring α]
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' α) (B' : matrix m' n' α) :
   (A ⬝ B) ⊗ₖ (A' ⬝ B') = (A ⊗ₖ A') ⬝ (B ⊗ₖ B') :=
 kronecker_map_bilinear_mul_mul (algebra.lmul ℕ α).to_linear_map mul_mul_mul_comm A B A' B'
@@ -342,7 +340,7 @@ open algebra.tensor_product
   (1 : matrix m m α) ⊗ₖₜ[R] (1 : matrix n n α) = 1 :=
 kronecker_map_one_one _ (zero_tmul _) (tmul_zero _) rfl
 
-lemma mul_kronecker_tmul_mul
+lemma mul_kronecker_tmul_mul [fintype m] [fintype m']
   (A : matrix l m α) (B : matrix m n α) (A' : matrix l' m' β) (B' : matrix m' n' β) :
   (A ⬝ B) ⊗ₖₜ[R] (A' ⬝ B') = (A ⊗ₖₜ A') ⬝ (B ⊗ₖₜ B') :=
 kronecker_map_bilinear_mul_mul (tensor_product.mk R α β) tmul_mul_tmul A B A' B'

@@ -34,8 +34,7 @@ Thus we'd like authors of IMO pull requests to keep in mind the following points
   Reviewers may ask you to factor out useful lemmas into mathlib,
   or to completely restructure your proof.
 * Pay forward what you learn from reviewing:
-  there are often several [open pull requests about IMO problems]
-  (https://github.com/leanprover-community/mathlib/pulls?q=is%3Aopen+is%3Apr+label%3Aimo),
+  there are often several [open pull requests about IMO problems](https://github.com/leanprover-community/mathlib/pulls?q=is%3Aopen+is%3Apr+label%3Aimo),
   and you should go look at the others and see if you can make helpful suggestions!
 * If there is a lemma that can be stated more generally than you need for the actual problem,
   but that could be useful for others, be sure to write the more general lemma,
@@ -45,6 +44,5 @@ Thus we'd like authors of IMO pull requests to keep in mind the following points
 * Although this may be hard for first time contributors,
   if you can identify a new tactic that would make your proof work more naturally,
   either ask for help on Zulip getting it implemented,
-  or start reading about [metaprogramming]
-  (https://leanprover-community.github.io/learn.html#metaprogramming-and-tactic-writing)
+  or start reading about [metaprogramming](https://leanprover-community.github.io/learn.html#metaprogramming-and-tactic-writing)
   and do it yourself. (A new and useful tactic is worth a hundred lemmas!)

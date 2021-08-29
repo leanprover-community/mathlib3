@@ -55,13 +55,11 @@ src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too lat
 src/data/seq/wseq.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/sigma/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/subtype.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/data/ulift.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subfield.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/lists.lean : line 13 : ERR_MOD : Module docstring missing, or too late
-src/set_theory/zfc.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/tactic/algebra.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/apply_fun.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/auto_cases.lean : line 8 : ERR_MOD : Module docstring missing, or too late

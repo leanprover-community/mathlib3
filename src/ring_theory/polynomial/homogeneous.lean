@@ -33,7 +33,6 @@ variables {σ : Type*} {τ : Type*} {R : Type*} {S : Type*}
 /-
 TODO
 * create definition for `∑ i in d.support, d i`
-* show that `mv_polynomial σ R ≃ₐ[R] ⨁ i, homogeneous_submodule σ R i`
 -/
 
 /-- A multivariate polynomial `φ` is homogeneous of degree `n`
@@ -267,12 +266,24 @@ begin
 end
 
 
-@[simp]
 lemma to_homogeneous_components_monomial_one [comm_semiring R] (d : σ →₀ ℕ) :
   to_homogeneous_components (monomial d (1 : R)) =
     direct_sum.of (λ i, homogeneous_submodule σ R i) (d.sum $ λ i x, x)
       ⟨monomial d 1, is_homogeneous_monomial _ _ _ rfl⟩ :=
 (add_monoid_algebra.lift_single _ _ _).trans (one_smul _ _)
+
+@[simp]
+lemma to_homogeneous_components_monomial [comm_semiring R] (d : σ →₀ ℕ) (r : R) :
+  to_homogeneous_components (monomial d r) =
+    direct_sum.of (λ i, homogeneous_submodule σ R i) (d.sum $ λ i x, x)
+      ⟨monomial d r, is_homogeneous_monomial _ _ _ rfl⟩ :=
+begin
+  have : monomial d (r • 1 : R) = r • monomial d 1 := (finsupp.smul_single _ _ _).symm,
+  rw [←mul_one r, ←smul_eq_mul],
+  simp_rw this,
+  rw [alg_hom.map_smul, to_homogeneous_components_monomial_one, ←direct_sum.of_smul],
+  refl,
+end
 
 @[simp]
 lemma to_homogeneous_components_X [comm_semiring R] (d : σ) :
@@ -281,88 +292,66 @@ lemma to_homogeneous_components_X [comm_semiring R] (d : σ) :
 (to_homogeneous_components_monomial_one _).trans $
   dfinsupp.single_eq_of_sigma_eq $ sigma.subtype_ext (finsupp.sum_single_index rfl) rfl
 
-#check submodule.span_induction
+/-- To prove a dependent property `p` on all homogenous polynomials, it suffices to prove it for
+zero, monomials and their summations. This matches the form of `mv_polynomial.induction_on'`. -/
+lemma homogeneous_submodule.induction_on' [comm_semiring R]
+  {p : ∀ i, homogeneous_submodule σ R i → Prop}
+  (hzero : ∀ i, p i (0 : homogeneous_submodule σ R i))
+  (hmonomial : ∀ i (d : σ →₀ ℕ) r (hd : d.sum (λ _, id) = i),
+    p i ⟨monomial d r, is_homogeneous_monomial _ _ _ hd⟩)
+  (hadd : ∀ i (a b : homogeneous_submodule σ R i), p _ a → p _ b → p _ (a + b))
+  {i : ℕ} (x : homogeneous_submodule σ R i) : p _ x :=
+begin
+  let p_submonoid : add_submonoid (homogeneous_submodule σ R i) :=
+  { carrier := {x | p _ x},
+    add_mem' := λ a b, hadd i a b,
+    zero_mem' := hzero i},
+  change x ∈ p_submonoid,
+  cases x with xv hxv,
+  let p2_submonoid : add_submonoid (mv_polynomial σ R) :=
+  p_submonoid.map (homogeneous_submodule σ R i).subtype.to_add_monoid_hom,
+  suffices : xv ∈ p2_submonoid,
+  { obtain ⟨⟨a, ha⟩, pa, rfl⟩ := this,
+    exact pa, },
+  rw ←finsupp.sum_single xv,
+  apply add_submonoid.finsupp_sum_mem,
+  intros d hd,
+  refine ⟨⟨_, is_homogeneous_monomial _ _ _ (hxv hd)⟩, hmonomial _ _ _ _, rfl⟩,
+end
 
-
-lemma is_homogeneous.induction [comm_semiring R]
-  {x : mv_polynomial σ R} {i : ℕ} (hx : x.is_homogeneous i)
+/-- To prove a property `p` on all homogenous polynomials, it suffices to prove it for monomials
+and their summations. This matches the form of `mv_polynomial.induction_on'`. -/
+lemma is_homogeneous.induction_on' [comm_semiring R]
   {p : mv_polynomial σ R → Prop}
   (hmonomial : ∀ d r, p (monomial d r))
-  (hadd : ∀ {i} (a b : mv_polynomial σ R), a.is_homogeneous i → b.is_homogeneous i → p a → p b → p (a + b))
-  : p x :=
+  (hadd : ∀ j (a b : mv_polynomial σ R), a.is_homogeneous j → b.is_homogeneous j → p a → p b → p (a + b))
+  {x : mv_polynomial σ R} {i : ℕ} (hx : x.is_homogeneous i) : p x :=
 begin
-  -- suffices : ∃ hx : x.is_homogeneous i, p x,
-  -- { obtain ⟨_, _⟩ := this,
-  --   assumption},
-  -- clear hx,
-  induction x using mv_polynomial.induction_on',
-  apply hC,
-  { rw [is_homogeneous_C_iff] at hx,
-    cases hx with hi hr,
-    { subst hi, apply hC, },
-    { subst hr,
-      simpa using hC 0,
-      exact (direct_sum.of _ _).map_zero.symm} },
-end
-
-lemma is_homogeneous.induction2 [comm_semiring R] {p : ∀ {x : mv_polynomial σ R} {i : ℕ}, x.is_homogeneous i → Prop}
-  (hC : ∀ r, p (is_homogeneous_C _ r))
-  (hX : ∀ d, p (is_homogeneous_X _ d))
-  (hadd : ∀ {i} (a b : mv_polynomial σ R) (ha : a.is_homogeneous i) (hb : b.is_homogeneous i), p ha → p hb → p (ha.add hb))
-  (hmul : ∀ {i j} (a b : mv_polynomial σ R) (ha : a.is_homogeneous i) (hb : b.is_homogeneous j),
-    p ha → p hb → p (ha.mul hb))
-  : ∀ {x : mv_polynomial σ R} {i : ℕ} (hx : x.is_homogeneous i), p hx :=
-begin
-  rintros i ⟨x, hx⟩,
-  induction x using mv_polynomial.induction_on,
-end
-
-lemma homogeneous_submodule.induction  [comm_semiring R] {p : ∀ {i : ℕ}, homogeneous_submodule σ R i → Prop}
-  (hC : ∀ r, p ⟨C r, is_homogeneous_C _ r⟩)
-  (hX : ∀ d, p ⟨X d, is_homogeneous_X _ _⟩)
-  (hadd : ∀ {i} (a b : homogeneous_submodule σ R i), p a → p b → p (a + b))
-  (hmul : ∀ {i j} (a : homogeneous_submodule σ R i) (b : homogeneous_submodule σ R j),
-    p a → p b → p ⟨a * b, a.prop.mul b.prop⟩)
-  : ∀ (i : ℕ) (x : homogeneous_submodule σ R i), p x :=
-begin
-  rintros i ⟨x, hx⟩,
-  induction x using mv_polynomial.induction_on,
+  have : ∀ x : homogeneous_submodule σ R i, p x :=
+  homogeneous_submodule.induction_on'
+    (λ i, by simpa using hmonomial 0 0)
+    (λ i d r hd, hmonomial _ _)
+    (λ i a b, hadd i _ _ a.prop b.prop),
+  exact this (⟨x, hx⟩ : homogeneous_submodule σ R i)
 end
 
 @[simp]
-lemma to_homogeneous_components_monomial_coe [comm_semiring R] (i : ℕ) (x : homogeneous_submodule σ R i) :
-  to_homogeneous_components ↑x =
-    direct_sum.of (λ i, homogeneous_submodule σ R i) i x :=
+lemma to_homogeneous_components_coe [comm_semiring R] {i : ℕ} (x : homogeneous_submodule σ R i) :
+  to_homogeneous_components ↑x = direct_sum.of (λ i, homogeneous_submodule σ R i) i x :=
 begin
-  cases x with x hx,
-  revert i,
-  suffices : ∃ (f : mv_polynomial σ R → ℕ) (hx' : x ∈ homogeneous_submodule σ R (f x)),
-    to_homogeneous_components x = (direct_sum.of (λ (i : ℕ), ↥(homogeneous_submodule σ R i)) (f x)) ⟨x, hx'⟩,
-
-  clear hx,
-  induction x using mv_polynomial.induction_on,
-  { refine (alg_hom.commutes _ _).trans _,
-    rw [mem_homogeneous_submodule, is_homogeneous_C_iff] at hx,
-    cases hx with hi hr,
-    { subst hi, refl, },
-    { subst hr,
-      simp only [mv_polynomial.C_0, ring_hom.map_zero],
-      exact (direct_sum.of _ _).map_zero.symm} },
-  case h_add : xp xq hp hq hx { simp,
-    sorry},
-  sorry,
-  -- dsimp,
-  -- suffices : to_homogeneous_components.to_linear_map.dom_restrict (homogeneous_submodule σ R i) =
-  --   direct_sum.lof _ _ (λ i, homogeneous_submodule σ R i) i,
-  -- exact linear_map.congr_fun this x,
-  -- ext : 1,
+  refine homogeneous_submodule.induction_on' _ _ _ x,
+  { intro i, simp },
+  { intros i d r hd, subst hd, simp, refl },
+  { intros i a b ha hb, simp [ha, hb] },
 end
 
-#print add_submonoid.closure_induction'
+@[simp]
+lemma to_homogeneous_components_of_is_homogenous [comm_semiring R] (i : ℕ)
+  (x : mv_polynomial σ R) (hx : x.is_homogeneous i) :
+  to_homogeneous_components x = direct_sum.of (λ i, homogeneous_submodule σ R i) i ⟨x, hx⟩ :=
+to_homogeneous_components_coe ⟨x, hx⟩
 
-/-- Assemble a polynomial from a direct sum of homogenous components.
-
-TODO: Promote this to the inverse of `to_homogeneous_components`. -/
+/-- Assemble a polynomial from a direct sum of homogenous components. -/
 def of_homogeneous_components [comm_semiring R] :
   (⨁ i, homogeneous_submodule σ R i) →ₐ[R] mv_polynomial σ R :=
 direct_sum.to_algebra R _ (λ i, submodule.subtype _) rfl (λ _ _ _ _, rfl) (λ r, rfl)
@@ -388,16 +377,13 @@ lemma to_of_homogeneous_components [comm_semiring R] :
 begin
   ext : 2,
   dsimp [direct_sum.lof_eq_of],
-  rw of_homogeneous_components_of,
-  -- TODO: need an ext lemma
-  -- dsimp [direct_sum.lift_ring_hom],
-  -- -- multiple stages of simp is hopefully faster?
-  -- simp,
-  -- simp [to_homogeneous_components, of_homogeneous_components],
-  -- simp [homogeneous_component', direct_sum.to_module,
-  -- linear_map.finsupp_sum_apply],
-  -- exact finsupp.filter_single_of_pos _ rfl,
+  rw [of_homogeneous_components_of, to_homogeneous_components_coe],
 end
+
+@[simps]
+def equiv_homogeneous_components [comm_semiring R] :
+  mv_polynomial σ R ≃ₐ[R] (⨁ i, homogeneous_submodule σ R i) :=
+alg_equiv.of_alg_hom _ _ to_of_homogeneous_components of_to_homogeneous_components
 
 /-- `homogeneous_component n φ` is the part of `φ` that is homogeneous of degree `n`.
 See `sum_homogeneous_component` for the statement that `φ` is equal to the sum

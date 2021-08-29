@@ -281,12 +281,65 @@ lemma to_homogeneous_components_X [comm_semiring R] (d : σ) :
 (to_homogeneous_components_monomial_one _).trans $
   dfinsupp.single_eq_of_sigma_eq $ sigma.subtype_ext (finsupp.sum_single_index rfl) rfl
 
+#check submodule.span_induction
+
+
+lemma is_homogeneous.induction [comm_semiring R]
+  {x : mv_polynomial σ R} {i : ℕ} (hx : x.is_homogeneous i)
+  {p : mv_polynomial σ R → Prop}
+  (hmonomial : ∀ d r, p (monomial d r))
+  (hadd : ∀ {i} (a b : mv_polynomial σ R), a.is_homogeneous i → b.is_homogeneous i → p a → p b → p (a + b))
+  : p x :=
+begin
+  -- suffices : ∃ hx : x.is_homogeneous i, p x,
+  -- { obtain ⟨_, _⟩ := this,
+  --   assumption},
+  -- clear hx,
+  induction x using mv_polynomial.induction_on',
+  apply hC,
+  { rw [is_homogeneous_C_iff] at hx,
+    cases hx with hi hr,
+    { subst hi, apply hC, },
+    { subst hr,
+      simpa using hC 0,
+      exact (direct_sum.of _ _).map_zero.symm} },
+end
+
+lemma is_homogeneous.induction2 [comm_semiring R] {p : ∀ {x : mv_polynomial σ R} {i : ℕ}, x.is_homogeneous i → Prop}
+  (hC : ∀ r, p (is_homogeneous_C _ r))
+  (hX : ∀ d, p (is_homogeneous_X _ d))
+  (hadd : ∀ {i} (a b : mv_polynomial σ R) (ha : a.is_homogeneous i) (hb : b.is_homogeneous i), p ha → p hb → p (ha.add hb))
+  (hmul : ∀ {i j} (a b : mv_polynomial σ R) (ha : a.is_homogeneous i) (hb : b.is_homogeneous j),
+    p ha → p hb → p (ha.mul hb))
+  : ∀ {x : mv_polynomial σ R} {i : ℕ} (hx : x.is_homogeneous i), p hx :=
+begin
+  rintros i ⟨x, hx⟩,
+  induction x using mv_polynomial.induction_on,
+end
+
+lemma homogeneous_submodule.induction  [comm_semiring R] {p : ∀ {i : ℕ}, homogeneous_submodule σ R i → Prop}
+  (hC : ∀ r, p ⟨C r, is_homogeneous_C _ r⟩)
+  (hX : ∀ d, p ⟨X d, is_homogeneous_X _ _⟩)
+  (hadd : ∀ {i} (a b : homogeneous_submodule σ R i), p a → p b → p (a + b))
+  (hmul : ∀ {i j} (a : homogeneous_submodule σ R i) (b : homogeneous_submodule σ R j),
+    p a → p b → p ⟨a * b, a.prop.mul b.prop⟩)
+  : ∀ (i : ℕ) (x : homogeneous_submodule σ R i), p x :=
+begin
+  rintros i ⟨x, hx⟩,
+  induction x using mv_polynomial.induction_on,
+end
+
 @[simp]
 lemma to_homogeneous_components_monomial_coe [comm_semiring R] (i : ℕ) (x : homogeneous_submodule σ R i) :
   to_homogeneous_components ↑x =
     direct_sum.of (λ i, homogeneous_submodule σ R i) i x :=
 begin
   cases x with x hx,
+  revert i,
+  suffices : ∃ (f : mv_polynomial σ R → ℕ) (hx' : x ∈ homogeneous_submodule σ R (f x)),
+    to_homogeneous_components x = (direct_sum.of (λ (i : ℕ), ↥(homogeneous_submodule σ R i)) (f x)) ⟨x, hx'⟩,
+
+  clear hx,
   induction x using mv_polynomial.induction_on,
   { refine (alg_hom.commutes _ _).trans _,
     rw [mem_homogeneous_submodule, is_homogeneous_C_iff] at hx,
@@ -305,7 +358,7 @@ begin
   -- ext : 1,
 end
 
-#print linear_map
+#print add_submonoid.closure_induction'
 
 /-- Assemble a polynomial from a direct sum of homogenous components.
 

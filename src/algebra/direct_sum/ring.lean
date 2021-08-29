@@ -634,6 +634,15 @@ def lift_ring_hom :
       add_monoid_hom.comp_apply, to_semiring_coe_add_monoid_hom],
   end}
 
+/-- Two `ring_hom`s out of a direct sum are equal if they agree on the generators.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma ring_hom_ext ⦃f g : (⨁ i, A i) →+* R⦄
+  (h : ∀ i, (↑f : (⨁ i, A i) →+ R).comp (of A i) = (↑g : (⨁ i, A i) →+ R).comp (of A i)) :
+  f = g :=
+direct_sum.lift_ring_hom.symm.injective $ subtype.ext $ funext h
+
 end to_semiring
 
 end direct_sum

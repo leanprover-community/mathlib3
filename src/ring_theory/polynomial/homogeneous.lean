@@ -72,7 +72,7 @@ variables {σ R}
 variables (σ R)
 
 /-- While equal, the former has a convenient definitional reduction. -/
-lemma homogenous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
+lemma homogeneous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
   homogeneous_submodule σ R n = finsupp.supported _ R {d | ∑ i in d.support, d i = n} :=
 begin
   ext,
@@ -83,7 +83,7 @@ end
 
 variables {σ R}
 
-lemma homogenous_submodule_mul [comm_semiring R] (m n : ℕ) :
+lemma homogeneous_submodule_mul [comm_semiring R] (m n : ℕ) :
   homogeneous_submodule σ R m * homogeneous_submodule σ R n ≤ homogeneous_submodule σ R (m + n) :=
 begin
   rw submodule.mul_le,
@@ -174,7 +174,7 @@ lemma sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ℕ
 
 lemma mul (hφ : is_homogeneous φ m) (hψ : is_homogeneous ψ n) :
   is_homogeneous (φ * ψ) (m + n) :=
-homogenous_submodule_mul m n $ submodule.mul_mem_mul hφ hψ
+homogeneous_submodule_mul m n $ submodule.mul_mem_mul hφ hψ
 
 lemma prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ι → ℕ)
   (h : ∀ i ∈ s, is_homogeneous (φ i) (n i)) :
@@ -207,7 +207,7 @@ begin
 end
 
 /--
-The homogenous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`.
+The homogeneous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`.
 -/
 noncomputable instance homogeneous_submodule.gcomm_monoid :
   direct_sum.gcomm_monoid (λ i, homogeneous_submodule σ R i) :=

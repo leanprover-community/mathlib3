@@ -303,7 +303,7 @@ begin
   sorry --- easy from here.
 end
 
-lemma nth_count_le [decidable_pred p] (n : ℕ): n ≤ nth p (count p n) :=
+lemma nth_count_le [decidable_pred p] (i: set.infinite p) (n : ℕ): n ≤ nth p (count p n) :=
 sorry
 
 lemma nth_count [decidable_pred p] (n : ℕ) (h : p n) : nth p (count p n) = n :=
@@ -421,13 +421,16 @@ begin
       { specialize h (count p n),
         replace hn : nth p (count p n) = n := nth_count _ _ hn,
         replace h : count p x ≤ count p n := by rwa [hn, lt_self_iff_false, imp_false, not_lt] at h,
-        apply le_trans (nth_count_le p x),
+        apply le_trans,
+        { apply nth_count_le p,
+          exact i},
         rw ← hn,
         exact nth_monotone_of_infinite p i h },
       { have hlt : count p x < y := (ne.le_iff_lt hne.symm).mp hxy,
         specialize h (count p x) hlt,
         apply le_trans,
-        { apply nth_count_le p},
+        { apply nth_count_le p,
+          exact i},
         { apply le_of_lt h} } },
     { specialize h (nth p y),
       have hp : p (nth p y) := nth_mem_of_infinite p i _,

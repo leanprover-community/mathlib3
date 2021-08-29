@@ -1144,6 +1144,12 @@ hpq _ $ some_spec _
 noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
 ⟨classical.some h, classical.some_spec h⟩
 
+protected noncomputable def peirce {α : Sort*} (H : (α → false) → false) : α :=
+classical.choice $ peirce _ false $ λ h, (H $ λ a, h ⟨a⟩).elim
+
+def choice_of_peirce {α : Sort*} (peirce : ((α → false) → false) → α) : nonempty α → α :=
+λ H, peirce H.elim
+
 end classical
 
 /-- This function has the same type as `exists.rec_on`, and can be used to case on an equality,

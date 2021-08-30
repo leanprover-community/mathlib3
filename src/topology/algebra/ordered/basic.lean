@@ -3248,6 +3248,7 @@ instance order_dual.Inf_convergence_class [preorder α] [topological_space α]
   [Sup_convergence_class α] : Inf_convergence_class (order_dual α) :=
 ⟨‹Sup_convergence_class α›.1⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_order.Sup_convergence_class [topological_space α] [linear_order α]
   [order_topology α] : Sup_convergence_class α :=
 begin
@@ -3258,6 +3259,7 @@ begin
   { exact eventually_of_forall (λ x, (ha.1 x.2).trans_lt hb) }
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_order.Inf_convergence_class [topological_space α] [linear_order α]
   [order_topology α] : Inf_convergence_class α :=
 show Inf_convergence_class (order_dual $ order_dual α), from order_dual.Inf_convergence_class

@@ -703,6 +703,67 @@ begin
   },
 end
 
+lemma count_strict_mono {m n: ℕ}
+  (hm: p m) (hn: p n) (hmn: m < n) : count p m < count p n :=
+begin
+  rw count_eq_card_finset,
+  rw count_eq_card_finset,
+  apply finset.card_lt_card,
+  split,
+  { intro a,
+    simp,
+    intros ha hp,
+    split,
+    { apply lt_trans ha hmn, },
+    { exact hp, }, },
+  { rw finset.subset_iff,
+    simp,
+    use m,
+    split,
+    { exact hmn, },
+    { split,
+      { exact hm, },
+      { simp, }, }, },
+end
+
+lemma count_injective_of_infinite {m n: ℕ} (i: set.infinite p)
+  (hm: p m) (hn: p n) (hmn: count p m = count p n) : m = n :=
+begin
+  by_contra,
+  have hne: m < n ∨ n < m := ne.lt_or_lt h,
+  cases hne,
+  { have hl: count p m < count p n,
+    { apply count_strict_mono,
+      { exact hm, },
+      { exact hn, },
+      { exact hne, }, },
+    rw hmn at hl,
+    simp at hl,
+    exact hl, },
+  { have hl: count p n < count p m,
+    { apply count_strict_mono,
+      { exact hn, },
+      { exact hm, },
+      { exact hne, }, },
+    rw hmn at hl,
+    simp at hl,
+    exact hl, }
+end
+
+lemma nth_count_of_infinite {n: ℕ} (i: set.infinite p) (hp: p n):
+  nth p (count p n) = n :=
+begin
+  have h: count p (nth p (count p n)) = count p n,
+  { apply count_nth_of_infinite,
+    exact i, },
+  apply count_injective_of_infinite,
+  { exact i, },
+  { apply nth_mem_of_infinite,
+    exact i, },
+  { exact hp, },
+  { convert h, },
+end
+
 lemma count_nth_gc (i : set.infinite p) : galois_connection (count p) (nth p) :=
 begin
   rintro x y,

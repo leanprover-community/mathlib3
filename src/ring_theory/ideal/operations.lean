@@ -1281,7 +1281,7 @@ variables [comm_ring R] [comm_ring S]
 by ext; rw [ring_hom.ker, mem_comap, submodule.mem_bot, quotient.eq_zero_iff_mem]
 
 lemma map_mk_eq_bot_of_le {I J : ideal R} (h : I ≤ J) : I.map (J^.quotient.mk) = ⊥ :=
-by {rw [map_eq_bot_iff_le_ker, mk_ker], exact h}
+by { rw [map_eq_bot_iff_le_ker, mk_ker], exact h }
 
 lemma ker_quotient_lift {S : Type v} [comm_ring S] {I : ideal R} (f : R →+* S) (H : I ≤ f.ker) :
   (ideal.quotient.lift I f H).ker = (f.ker).map I^.quotient.mk :=
@@ -1289,33 +1289,30 @@ begin
   ext x,
   split,
   { intro hx,
-  obtain ⟨y, hy⟩ := quotient.mk_surjective x,
-  rw [ring_hom.mem_ker, ← hy, ideal.quotient.lift_mk, ← ring_hom.mem_ker] at hx,
-  rw [← hy, mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective],
-  use y,
-  split,
-  exact hx,
-  refl},
- {intro hx,
-  rw mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective at hx,
-  obtain ⟨y, hy⟩ := hx,
-  rw [ring_hom.mem_ker, ← hy.right, ideal.quotient.lift_mk, ← (ring_hom.mem_ker f)],
-    exact hy.left},
+    obtain ⟨y, hy⟩ := quotient.mk_surjective x,
+    rw [ring_hom.mem_ker, ← hy, ideal.quotient.lift_mk, ← ring_hom.mem_ker] at hx,
+    rw [← hy, mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective],
+    exact ⟨y, hx, rfl⟩ },
+ { intro hx,
+    rw mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective at hx,
+    obtain ⟨y, hy⟩ := hx,
+    rw [ring_hom.mem_ker, ← hy.right, ideal.quotient.lift_mk, ← (ring_hom.mem_ker f)],
+    exact hy.left },
 end
 
 theorem map_eq_iff_sup_ker_eq_of_surjective {I J : ideal R} (f : R →+* S)
   (hf : function.surjective f) : map f I = map f J ↔ I ⊔ f.ker = J ⊔ f.ker :=
 begin
   split,
-   {intro h,
+  { intro h,
     apply_fun comap f at h,
     rw [comap_map_of_surjective f hf, comap_map_of_surjective f hf,
       ← ring_hom.ker_eq_comap_bot] at h,
-    exact h},
-   {intro h,
+    exact h },
+  { intro h,
     apply_fun map f at h,
     rw [map_sup, map_sup, (map_eq_bot_iff_le_ker f).2 (le_refl f.ker), sup_bot_eq, sup_bot_eq] at h,
-    exact h},
+    exact h },
 end
 
 theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}

@@ -201,10 +201,9 @@ end
 lemma submodule.supr_mul_left {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (s : ι → submodule R A) (t : submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
 begin
-  conv_rhs { simp only [submodule.mul_eq_span_mul_set], },
-  rw [← (submodule.gi R A).gc.l_supr, set.supr_eq_Union, ← set.Union_mul_left, ← set.supr_eq_Union,
-    ← span_eq (span R (↑t * (⨆ (i : ι), ↑(s i)))), ← submodule.span_mul_span, span_eq, span_eq,
-    ← (submodule.gi R A).l_supr_u],
+  suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),
+  { simpa only [span_eq] using this },
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul_left],
 end
 
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :

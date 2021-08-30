@@ -224,7 +224,7 @@ instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
 
 instance (R : Type*) [monoid R] [monoid α] [mul_distrib_mul_action R α] :
   mul_distrib_mul_action R (opposite α) :=
-{ smul_mul := λ r x₁ x₂, unop_injective $ smul_mul' r (unop x₁) (unop x₂),
+{ smul_mul := λ r x₁ x₂, unop_injective $ smul_mul' r (unop x₂) (unop x₁),
   smul_one := λ r, unop_injective $ smul_one r,
   ..opposite.mul_action α R }
 

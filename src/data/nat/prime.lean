@@ -501,6 +501,30 @@ by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
     by { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH } ]
 
+lemma prime.pow_eq_iff {p a k : ℕ} (hp : p.prime) : a ^ k = p ↔ a = p ∧ k = 1 :=
+begin
+  refine ⟨λ h, _, λ h, by rw [h.1, h.2, pow_one]⟩,
+  by_cases hk0 : k = 0,
+  { rw [hk0, pow_zero] at h,
+    exact (hp.ne_one h.symm).elim },
+  by_cases hk1 : k = 1,
+  { rw [hk1, pow_one] at h,
+    exact ⟨h, hk1⟩ },
+  have hk2 : 1 < k := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hk0, hk1⟩,
+  by_cases ha0 : a = 0,
+  { rw [ha0, zero_pow (pos_of_gt hk2)] at h,
+    exact (hp.ne_zero h.symm).elim },
+  by_cases ha1 : a = 1,
+  { rw [ha1, one_pow] at h,
+    exact (hp.ne_one h.symm).elim },
+  have ha2 : 1 < a := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨ha0, ha1⟩,
+  have key : a < a := calc a = a ^ 1 : (pow_one a).symm
+  ... < a ^ k : pow_lt_pow ha2 hk2
+  ... = p : h
+  ... ≤ a : nat.le_of_dvd (pos_of_gt ha2) (hp.dvd_of_dvd_pow (by rw h)),
+  exact (ne_of_lt key rfl).elim,
+end
+
 lemma prime.pow_dvd_of_dvd_mul_right {p n a b : ℕ} (hp : p.prime) (h : p ^ n ∣ a * b)
   (hpb : ¬ p ∣ b) : p ^ n ∣ a :=
 begin

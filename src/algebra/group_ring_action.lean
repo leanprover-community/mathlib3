@@ -41,7 +41,7 @@ class mul_semiring_action (M : Type u) (R : Type v) [monoid M] [semiring R]
 section semiring
 
 variables (M G : Type u) [monoid M] [group G]
-variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [field F]
+variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [division_ring F]
 
 -- note we could not use `extends` since these typeclasses are make with `old_structure_cmd`
 @[priority 100]
@@ -66,6 +66,11 @@ def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_
   map_one' := add_monoid_hom.ext $ λ x, one_smul M x,
   map_mul' := λ x y, add_monoid_hom.ext $ λ z, mul_smul x y z }
 
+/-- Each element of the group defines an multiplicative monoid isomorphism. -/
+def distrib_mul_action.to_mul_equiv [mul_distrib_mul_action G M] (x : G) : M ≃* M :=
+{ .. mul_distrib_mul_action.to_monoid_hom M x,
+  .. mul_action.to_perm_hom G M x }
+
 /-- Each element of the monoid defines a semiring homomorphism. -/
 def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* R :=
 { .. mul_distrib_mul_action.to_monoid_hom R x,
@@ -76,7 +81,7 @@ theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, ring_hom.ext_iff.1 h r
 
 /-- Each element of the group defines a semiring isomorphism. -/
-def mul_semiring_action.to_semiring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
+def mul_semiring_action.to_ring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
 { .. distrib_mul_action.to_add_equiv G R x,
   .. mul_semiring_action.to_ring_hom G R x }
 
@@ -111,7 +116,14 @@ end
 
 section simp_lemmas
 
+variables {M G A R F}
+
 attribute [simp] smul_one smul_mul' smul_zero smul_add
+
+/-- Note that `smul_inv'` refers to the group case, and `smul_inv` has an additional inverse
+on `x`. -/
+@[simp] lemma smul_inv'' [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
+(mul_semiring_action.to_ring_hom M F x).map_inv _
 
 end simp_lemmas
 

@@ -413,11 +413,13 @@ class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
 (smul_mul : ∀ (r : M) (x y : A), r • (x * y) = (r • x) * (r • y))
 (smul_one : ∀ (r : M), r • (1 : A) = 1)
 
-export mul_distrib_mul_action (smul_one) mul_distrib_mul_action (renaming smul_mul → smul_mul')
+export mul_distrib_mul_action (smul_one)
 
 section
 variables [monoid M] [monoid A] [mul_distrib_mul_action M A]
 
+theorem smul_mul' (a : M) (b₁ b₂ : A) : a • (b₁ * b₂) = (a • b₁) * (a • b₂) :=
+mul_distrib_mul_action.smul_mul _ _ _
 
 /-- Pullback a multiplicative distributive multiplicative action along an injective monoid
 homomorphism.

@@ -10,7 +10,6 @@ import data.nat.multiplicity
 import data.nat.choose.sum
 import number_theory.padics.padic_norm
 import data.complex.exponential_bounds
--- import tactic
 import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial
@@ -21,7 +20,6 @@ import analysis.calculus.local_extr
 import data.real.sqrt
 import data.real.nnreal
 
-open_locale big_operators
 
 /-!
 # Bertrand's Postulate
@@ -32,6 +30,9 @@ double there is a prime
 -- TODO File Docstring
 -- TODO Cite "Proofs From THE BOOK"
 -/
+
+open_locale big_operators
+
 
 
 /-- The multiplicity of p in the nth central binomial coefficient-/
@@ -149,8 +150,8 @@ begin
       rw [←mul_add, nat.div_add_mod],
       calc  2 * n < 3 * p : big
               ... = 2 * p + p : nat.succ_mul _ _
-              ... ≤ 2 * (p * (n / p)) + p : add_le_add_right ((mul_le_mul_left zero_lt_two).mpr $
-                ((le_mul_iff_one_le_right p_pos).mpr n_big)) _ },
+              ... ≤ 2 * (p * (n / p)) + p : add_le_add_right ((mul_le_mul_left zero_lt_two).mpr
+              $ ((le_mul_iff_one_le_right p_pos).mpr n_big)) _ },
     { have : i = 0 := nat.le_zero_iff.mp (nat.le_of_lt_succ H),
       rw [this, pow_zero, nat.mod_one, mul_zero],
       exact zero_lt_one }
@@ -227,7 +228,9 @@ end
 lemma not_pos_iff_zero (n : ℕ) : ¬ 0 < n ↔ n = 0 := trans not_lt le_zero_iff
 
 lemma alskjhads_no_two (n x : ℕ) (h : n / 3 + 1 ≤ x) : n < 3 * x :=
-lt_of_lt_of_le ((nat.div_lt_iff_lt_mul' zero_lt_three).mp (nat.succ_le_iff.mp h)) (mul_comm _ _).le
+lt_of_lt_of_le
+  ((nat.div_lt_iff_lt_mul' zero_lt_three).mp (nat.succ_le_iff.mp h))
+  (mul_comm _ _).le
 
 lemma alskjhads (n x : ℕ): 2 * n / 3 + 1 ≤ x -> 2 * n < 3 * x :=
 alskjhads_no_two (2 * n) x
@@ -315,13 +318,18 @@ lemma central_binom_factorization (n : ℕ) :
 
 def central_binom_lower_bound := nat.four_pow_le_two_mul_add_one_mul_central_binom
 
-lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=
+lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop}
+[decidable_pred f] [decidable_pred g]
+  : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=
 by { ext1, simp only [finset.mem_filter, and_assoc] }
 
-lemma interchange_and_in_filter {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : S.filter (λ i, g i ∧ f i) = S.filter (λ i, f i ∧ g i) :=
+lemma interchange_and_in_filter {α: _} {S: finset α} {f g: α → Prop}
+[decidable_pred f] [decidable_pred g]
+  : S.filter (λ i, g i ∧ f i) = S.filter (λ i, f i ∧ g i) :=
 by { ext1, simp only [finset.mem_filter, and.comm, iff_self] }
 
-lemma intervening_sqrt {a n : ℕ} (small : (nat.sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n) : a = nat.sqrt n :=
+lemma intervening_sqrt {a n : ℕ} (small : (nat.sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n)
+  : a = nat.sqrt n :=
 begin
   rcases lt_trichotomy a (nat.sqrt n) with H|rfl|H,
   { refine (lt_irrefl (a ^ 2) _).elim,

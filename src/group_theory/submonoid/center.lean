@@ -45,9 +45,8 @@ lemma mul_mem_center [semigroup M] {a b : M}
 λ g, by rw [mul_assoc, ←hb g, ← mul_assoc, ha g, mul_assoc]
 
 @[simp, to_additive neg_mem_add_center]
-lemma inv_mem_center [group M] {a : M}
-  (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
-λ g, by by rw [← inv_inj, mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv]
+lemma inv_mem_center [group M] {a : M} (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
+λ g, by rw [← inv_inj, mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv]
 
 @[simp]
 lemma add_mem_center [distrib M] {a b : M}
@@ -57,6 +56,34 @@ lemma add_mem_center [distrib M] {a b : M}
 @[simp]
 lemma neg_mem_center [ring M] {a : M} (ha : a ∈ set.center M) : -a ∈ set.center M :=
 λ c, by rw [←neg_mul_comm, ha (-c), neg_mul_comm]
+
+@[to_additive subset_add_center_add_units]
+lemma subset_center_units [monoid M] :
+  (coe : units M → M) ⁻¹' center M ⊆ set.center (units M) :=
+λ a ha b, units.ext $ ha _
+
+lemma center_units_subset [group_with_zero M] :
+  set.center (units M) ⊆ (coe : units M → M) ⁻¹' center M :=
+λ a ha b, begin
+  obtain rfl | hb := eq_or_ne b 0,
+  { rw [zero_mul, mul_zero], },
+  { exact units.ext_iff.mp (ha (units.mk0 _ hb)) }
+end
+
+/-- In a group with zero, the center of the units is the preimage of the center. -/
+lemma center_units_eq [group_with_zero M] :
+  set.center (units M) = (coe : units M → M) ⁻¹' center M :=
+subset.antisymm center_units_subset subset_center_units
+
+@[simp]
+lemma inv_mem_center' [group_with_zero M] {a : M} (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
+begin
+  obtain rfl | ha0 := eq_or_ne a 0,
+  { rw inv_zero, exact zero_mem_center M },
+  lift a to units M using ha0,
+  rw ←units.coe_inv',
+  exact center_units_subset (inv_mem_center (subset_center_units ha)),
+end
 
 variables (M)
 

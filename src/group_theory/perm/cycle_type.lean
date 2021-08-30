@@ -7,7 +7,6 @@ Authors: Thomas Browning
 import algebra.gcd_monoid.multiset
 import combinatorics.partition
 import group_theory.perm.cycles
-import group_theory.sylow
 import ring_theory.int.basic
 import tactic.linarith
 
@@ -27,6 +26,8 @@ In this file we define the cycle type of a partition.
 - `lcm_cycle_type` : The lcm of `σ.cycle_type` equals `order_of σ`
 - `is_conj_iff_cycle_type_eq` : Two permutations are conjugate if and only if they have the same
   cycle type.
+* `exists_prime_order_of_dvd_card`: For every prime `p` dividing the order of a finite group `G`
+  there exists an element of order `p` in `G`. This is known as Cauchy`s theorem.
 -/
 
 namespace equiv.perm
@@ -366,13 +367,52 @@ begin
   exact one_lt_two,
 end
 
+lemma exists_prime_order_of_dvd_card {G : Type*} [group G] [fintype G] (p : ℕ) [hp : fact p.prime]
+  (hdvd : p ∣ fintype.card G) : ∃ x : G, order_of x = p :=
+begin
+  have hp' : p - 1 ≠ 0 := mt nat.sub_eq_zero_iff_le.mp (not_le_of_lt hp.out.one_lt),
+  let S : Π n, set (vector G n) := λ n, {v | v.to_list.prod = 1},
+  let ϕ : vector G (p - 1) ≃ S ((p - 1) + 1) :=
+  { to_fun := λ v, ⟨v.to_list.prod⁻¹ ::ᵥ v, show (v.to_list.prod⁻¹ ::ᵥ v).to_list.prod = 1,
+      by rw [vector.to_list_cons, list.prod_cons, inv_mul_self]⟩,
+    inv_fun := λ v, v.1.tail,
+    left_inv := λ v, v.tail_cons v.to_list.prod⁻¹,
+    right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one (by
+    { rw [←list.prod_cons, ←vector.to_list_cons, v.1.cons_head_tail],
+      exact v.2 })).symm rfl).trans v.1.cons_head_tail) },
+  rw nat.sub_add_cancel hp.out.pos at ϕ,
+  haveI Sfin : fintype (S p) := fintype.of_equiv (vector G (p - 1)) ϕ,
+  have Scard := calc p ∣ fintype.card G ^ (p - 1) : hdvd.trans (dvd_pow (dvd_refl _) hp')
+  ... = fintype.card (S p) : (card_vector (p - 1)).symm.trans (fintype.card_congr ϕ),
+  let f : ℕ → S p → S p := λ k s, ⟨⟨s.1.1.rotate k, (s.1.1.length_rotate k).trans s.1.2⟩,
+    list.prod_rotate_eq_one_of_prod_eq_one s.2 k⟩,
+  have hf1 : ∀ s : S p, f 0 s = s := λ s, subtype.ext (subtype.ext s.1.1.rotate_zero),
+  have hf2 : ∀ (j k : ℕ) (s : S p), f k (f j s) = f (j + k) s :=
+  λ j k s, subtype.ext (subtype.ext (s.1.1.rotate_rotate j k)),
+  have hf3 : ∀ s : S p, f p s = s :=
+  λ s, subtype.ext (subtype.ext ((congr_arg _ s.1.2.symm).trans s.1.1.rotate_length)),
+  let σ := equiv.mk (f 1) (f (p - 1)) (λ s, by rw [hf2, nat.add_sub_cancel' hp.out.pos, hf3])
+    (λ s, by rw [hf2, nat.sub_add_cancel hp.out.pos, hf3]),
+  have hσ : ∀ (k : ℕ) (s : S p), (σ ^ k) s = f k s :=
+  λ k s, nat.rec (hf1 s).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 s)) k,
+  replace hσ : σ ^ (p ^ 1) = 1 := perm.ext (λ s, by rw [pow_one, hσ, hf3, one_apply]),
+  let s₀ : S p := ⟨vector.repeat 1 p, (list.prod_repeat 1 p).trans (one_pow p)⟩,
+  have hs₀ : σ s₀ = s₀ := subtype.ext (subtype.ext (list.rotate_repeat (1 : G) p 1)),
+  obtain ⟨s, hs1, hs2⟩ := exists_fixed_point_of_prime' Scard hσ hs₀,
+  refine exists_imp_exists (λ g hg, order_of_eq_prime _ (λ hg', hs2 _))
+    (list.rotate_one_eq_self_iff_eq_repeat.mp (subtype.ext_iff.mp (subtype.ext_iff.mp hs1))),
+  { rw [←list.prod_repeat, ←s.1.2, ←hg, (show s.val.val.prod = 1, from s.2)] },
+  { rw [subtype.ext_iff_val, subtype.ext_iff_val, hg, hg', s.1.2],
+    refl },
+end
+
 lemma subgroup_eq_top_of_swap_mem [decidable_eq α] {H : subgroup (perm α)}
   [d : decidable_pred (∈ H)] {τ : perm α} (h0 : (fintype.card α).prime)
   (h1 : fintype.card α ∣ fintype.card H) (h2 : τ ∈ H) (h3 : is_swap τ) :
   H = ⊤ :=
 begin
   haveI : fact (fintype.card α).prime := ⟨h0⟩,
-  obtain ⟨σ, hσ⟩ := sylow.exists_prime_order_of_dvd_card (fintype.card α) h1,
+  obtain ⟨σ, hσ⟩ := exists_prime_order_of_dvd_card (fintype.card α) h1,
   have hσ1 : order_of (σ : perm α) = fintype.card α := (order_of_subgroup σ).trans hσ,
   have hσ2 : is_cycle ↑σ := is_cycle_of_prime_order'' h0 hσ1,
   have hσ3 : (σ : perm α).support = ⊤ :=

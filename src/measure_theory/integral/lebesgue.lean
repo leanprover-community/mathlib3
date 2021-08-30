@@ -1894,6 +1894,24 @@ begin
   simp [with_density_apply _ hs],
 end
 
+lemma with_density_tsum {f : ℕ → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
+  μ.with_density (∑' n, f n) = sum (λ n, μ.with_density (f n)) :=
+begin
+  ext1 s hs,
+  simp_rw [sum_apply _ hs, with_density_apply _ hs],
+  change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
+  rw ← lintegral_tsum h,
+  refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
+end
+
+lemma with_density_indicator {s : set α} (hs : measurable_set s) (f : α → ℝ≥0∞) :
+  μ.with_density (s.indicator f) = (μ.restrict s).with_density f :=
+begin
+  ext1 t ht,
+  rw [with_density_apply _ ht, lintegral_indicator _ hs,
+      restrict_comm hs ht, ← with_density_apply _ ht]
+end
+
 end lintegral
 
 end measure_theory

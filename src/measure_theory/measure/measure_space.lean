@@ -1089,6 +1089,16 @@ ext $ λ s hs, by simp [hs, tsum_fintype]
   (sum μ).restrict s = sum (λ i, (μ i).restrict s) :=
 ext $ λ t ht, by simp only [sum_apply, restrict_apply, ht, ht.inter hs]
 
+lemma sum_congr {μ ν : ℕ → measure α} (h : ∀ n, μ n = ν n) : sum μ = sum ν :=
+by { congr, ext1 n, exact h n }
+
+lemma sum_add_sum (μ ν : ℕ → measure α) : sum μ + sum ν = sum (λ n, μ n + ν n) :=
+begin
+  ext1 s hs,
+  simp only [add_apply, sum_apply _ hs, pi.add_apply, coe_add,
+             tsum_add ennreal.summable ennreal.summable],
+end
+
 omit m0
 end sum
 

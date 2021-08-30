@@ -162,7 +162,7 @@ lemma claim_4
   (p : nat)
   [hp : fact p.prime]
   (n : nat)
-  (multiplicity_pos : α n p > 0)
+  (multiplicity_pos : 0 < α n p)
   : p ≤ 2 * n
   :=
 begin
@@ -244,7 +244,7 @@ lemma central_binom_factorization (n : ℕ) :
 
 -- lemma two_mul (n : ℕ) : 2 * n = n + n := by linarith
 
--- lemma stronger_central_binom_lower_bound (n : ℕ) (n_big : 4 ≤ n) :
+-- lemma stronger_nat.four_pow_le_two_mul_add_one_mul_central_binom (n : ℕ) (n_big : 4 ≤ n) :
 --   4 ^ n ≤ n * (2 * n).choose n :=
 -- begin
 --   induction n,
@@ -315,8 +315,6 @@ lemma central_binom_factorization (n : ℕ) :
 --     -- ...        = (2 * n + 1) * choose (2 * n) n : by simp
 -- end
 
-
-def central_binom_lower_bound := nat.four_pow_le_two_mul_add_one_mul_central_binom
 
 lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop}
 [decidable_pred f] [decidable_pred g]
@@ -445,8 +443,10 @@ le_sqrt_of_sq_le (by simpa using (nat.cast_le.mpr a.sqrt_le' : ((id nat.sqrt a ^
 
 open set
 
+/-- Auxiliary function -/
 noncomputable def fff (x : ℝ) := x * log 4 - sqrt (8 * x + 8) * log (8 * x + 8)
 
+/-- Auxiliary function, more complicated -/
 noncomputable def fff' (x : ℝ) := log 4 - (((8 / (2 * (sqrt (8 * x + 8)))) * log (8 * x + 8))
 + (sqrt (8 * x + 8) * (8 / (8 * x + 8))))
 
@@ -1381,7 +1381,7 @@ begin
       have x_le_two_mul_n : x ≤ 2 * n, by
         { apply (@claim_4 x ⟨hx.right⟩ n),
           unfold α,
-          simp only [gt_iff_lt],
+          -- simp only [gt_iff_lt],
           by_contradiction h1,
           rw not_pos_iff_zero at h1,
           rw h1 at h,
@@ -1557,7 +1557,8 @@ begin
 
     have false_inequality
       : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
-      calc 4 ^ n ≤ (2 * n + 1) * (2 * n).choose n : central_binom_lower_bound n
+      calc 4 ^ n ≤ (2 * n + 1) * (2 * n).choose n
+                    :  nat.four_pow_le_two_mul_add_one_mul_central_binom n
         ...      < (2 * n + 1) * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1))
                     : nat.mul_lt_mul_of_pos_left binom_inequality (by linarith)
         ...      = (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) : by ring,

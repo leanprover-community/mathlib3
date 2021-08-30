@@ -169,12 +169,19 @@ variable {ι}
 -- as the most general definition of fundamental domain may want to include measure zero boundary
 -- overlaps for instance.
 /-- A fundamental domain for a subgroup of an additive group is a measurable coset for the group -/
-structure fundamental_domain {X : Type*} (Y : Type*) [measurable_space Y] [add_group X]
+structure add_fundamental_domain {X : Type*} (Y : Type*) [measurable_space Y] [add_group X]
   (L : add_subgroup X) [has_vadd X Y] :=
 (F : set Y)
 (hF : measurable_set F)
 (disjoint : ∀ (l : X) (hl : l ∈ L) (h : l ≠ 0), disjoint ((+ᵥ) l '' F) F)
 (covers : ∀ (x : Y), ∃ (l : X) (hl : l ∈ L), l +ᵥ x ∈ F)
+@[to_additive add_fundamental_domain]
+structure fundamental_domain {X : Type*} (Y : Type*) [measurable_space Y] [group X]
+  (L : subgroup X) [has_scalar X Y] :=
+(F : set Y)
+(hF : measurable_set F)
+(disjoint : ∀ (l : X) (hl : l ∈ L) (h : l ≠ 1), disjoint ((•) l '' F) F)
+(covers : ∀ (x : Y), ∃ (l : X) (hl : l ∈ L), l • x ∈ F)
 --TODO all f.d.s have same measure https://arxiv.org/pdf/1405.2119.pdf
 
 -- instance : inhabited (fundamental_domain (⊤ : add_subgroup (fin 0 → ℝ))) :=
@@ -183,38 +190,38 @@ structure fundamental_domain {X : Type*} (Y : Type*) [measurable_space Y] [add_g
 --   disjoint := λ v hv hvnz, by simp at *; assumption,
 --   covers := λ v, by simp } }
 
-lemma fundamental_domain.exists_unique {X Y : Type*} [measurable_space Y] [add_group X]
-  [add_action X Y] {L : add_subgroup X} (F : fundamental_domain Y L) (x : Y) :
-  ∃! (p : L), x ∈ ((+ᵥ) (p : X)) '' F.F :=
+@[to_additive]
+lemma fundamental_domain.exists_unique {X Y : Type*} [measurable_space Y] [group X]
+  [action X Y] {L : subgroup X} (F : fundamental_domain Y L) (x : Y) :
+  ∃! (p : L), x ∈ ((•) (p : X)) '' F.F :=
 exists_unique_of_exists_of_unique
 begin
-  simp only [exists_prop, set.mem_preimage, set.image_vadd, exists_unique_iff_exists],
+  simp only [exists_prop, set.mem_preimage, set.image_smul, exists_unique_iff_exists],
   obtain ⟨l, hl, lh⟩ := F.covers x,
-  use -l,
-  exact L.neg_mem hl,
-  -- simp at lh,
-  simp [hl,lh],
-  refine mem_vadd_set.mpr _,
-  refine ⟨_, lh,_⟩,
-  simp, -- TODO clean up this ugliness
+  use l⁻¹,
+  exact L.inv_mem hl,
+  squeeze_simp [hl, lh],
+  refine mem_smul_set.mpr _,
+  refine ⟨_, lh, _⟩,
+  simp only [neg_vadd_vadd], -- TODO clean up this ugliness
 end
 begin
   rintro ⟨y₁_val, y₁_property⟩ ⟨y₂_val, y₂_property⟩ ⟨a, ha, rfl⟩ ⟨c, hc, h⟩,
-  simp only [subtype.mk_eq_mk, add_subgroup.coe_mk] at *,
+  simp only [subtype.mk_eq_mk, subgroup.coe_mk] at *,
   -- replace h := h.symm,
   -- rw [← neg_vadd_eq_iff_eq_vadd, ← add_assoc] at h,
-  have := F.disjoint (-y₂_val + y₁_val) (L.add_mem (L.neg_mem y₂_property) y₁_property),
+  have := F.disjoint (y₂_val⁻¹ * y₁_val) (L.mul_mem (L.inv_mem y₂_property) y₁_property),
   contrapose! this,
-  simp only [neg_add_eq_iff_eq_add, add_zero, image_add_left, ne.def, neg_add_rev, neg_neg],
+  simp only [inv_mul_eq_iff_eq_mul, mul_one, image_mul_left, ne.def, inv_mul_rev, inv_inv],
   split,
   { exact this, },
   intro hd,
   apply hd ⟨_, hc⟩,
-  erw mem_vadd_set,
-  rw ← eq_neg_vadd_iff at h,
+  erw mem_smul_set,
+  rw ← eq_inv_smul_iff at h,
   rw [h],
   refine ⟨a, ha, _⟩, -- TODO also ugly
-  rw add_vadd,
+  rw mul_smul,
 end
 
 instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :

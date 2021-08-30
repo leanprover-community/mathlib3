@@ -87,7 +87,8 @@ lemma integral_add_compl (hs : measurable_set s) (hfi : integrable f μ) :
 by rw [← integral_union (@disjoint_compl_right (set α) _ _) hs hs.compl
     hfi.integrable_on hfi.integrable_on, union_compl_self, integral_univ]
 
-lemma set_integral_eq_zero {f : α → E} (hf : measurable f) (ht_eq : ∀ x ∈ t, f x = 0) :
+lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (hf : measurable f)
+  (ht_eq : ∀ x ∈ t, f x = 0) :
   ∫ x in t, f x ∂μ = 0 :=
 begin
   refine integral_eq_zero_of_ae _,
@@ -97,12 +98,12 @@ begin
   exact ht_eq x hx,
 end
 
-lemma set_integral_union_eq_left_of_disjoint {f : α → E} (hf : measurable f) (hfi : integrable f μ)
-  (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0)
+private lemma set_integral_union_eq_left_of_disjoint {f : α → E} (hf : measurable f)
+  (hfi : integrable f μ) (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0)
   (hs_disj : disjoint s t) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
 by rw [integral_union hs_disj hs ht hfi.integrable_on hfi.integrable_on,
-  set_integral_eq_zero hf ht_eq, add_zero]
+  set_integral_eq_zero_of_forall_eq_zero hf ht_eq, add_zero]
 
 lemma set_integral_union_eq_left {f : α → E} (hf : measurable f) (hfi : integrable f μ)
   (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0) :

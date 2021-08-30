@@ -198,7 +198,7 @@ begin
   simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul],
 end
 
-lemma mul_supr_mul {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+lemma mul_supr {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (s : ι → submodule R A) (t : submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
 begin
   suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),

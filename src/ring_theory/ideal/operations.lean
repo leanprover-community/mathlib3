@@ -1671,7 +1671,8 @@ by rw [ring_hom.ker_eq_comap_bot, double_quot_mk, ← comap_comap, ← ring_hom.
   sup_comm]
 
 /-- define `lift_add_double_quot_mk` to be the induced map `R/(I ⊔ J) → (R/I)/J' ` -/
-def lift_sup_double_quot_mk (I J : ideal R) :=
+def lift_sup_double_quot_mk (I J : ideal R) : (I ⊔ J).quotient →+*
+  (J.map (ideal.quotient.mk I)).quotient :=
 ideal.quotient.lift (I ⊔ J) (double_quot_mk I J) (ker_double_quot_mk I J).symm.le
 
 /-- Then `double_quot_to_quot_add` and `lift_add_double_qot_mk` are inverse isomorphisms -/

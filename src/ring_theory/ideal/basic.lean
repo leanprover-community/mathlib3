@@ -601,7 +601,7 @@ ideal.quotient.lift S (T^.quotient.mk) (λ x hx, eq_zero_iff_mem.2 (H hx))
 
 lemma factor_comp_mk (S T : ideal α) (H : S ≤ T) :
   ring_hom.comp (factor S T H) (mk S) = mk T :=
-by ext x; rw [ring_hom.comp_apply, quotient.factor_mk]
+ring_hom.ext factor_mk
 
 end quotient
 

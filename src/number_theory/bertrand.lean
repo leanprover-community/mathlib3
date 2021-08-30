@@ -23,8 +23,16 @@ import data.real.nnreal
 
 open_locale big_operators
 
+/-!
+# Bertrand's Postulate
+
+This file contains a proof of Bertrand's postulate: That between any positive number and its
+double there is a prime
+
 -- TODO File Docstring
 -- TODO Cite "Proofs From THE BOOK"
+-/
+
 
 /-- The multiplicity of p in the nth central binomial coefficient-/
 private def α (n p : nat) [hp : fact p.prime] : nat :=

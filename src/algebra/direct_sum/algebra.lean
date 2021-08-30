@@ -88,6 +88,12 @@ instance : algebra R (⨁ i, A i) :=
     apply dfinsupp.single_eq_of_sigma_eq (galgebra.smul_def r ⟨i, xi⟩),
   end }
 
+lemma algebra_map_apply (r : R) :
+  algebra_map R (⨁ i, A i) r = direct_sum.of A 0 (galgebra.to_fun r) := rfl
+
+lemma algebra_map_to_add_monoid_hom :
+  ↑(algebra_map R (⨁ i, A i)) = (direct_sum.of A 0).comp (galgebra.to_fun : R →+ A 0) := rfl
+
 section
 -- for `simps`
 local attribute [simp] linear_map.cod_restrict

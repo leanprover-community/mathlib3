@@ -81,7 +81,7 @@ lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace C) (f : U �
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
   (restrict_stalk_iso X f h x).inv = (X.restrict f h).presheaf.germ ⟨x, hx⟩ :=
-by rw [← restrict_stalk_iso_hom_germ, category.assoc, iso.hom_inv_id, category.comp_id]
+by rw [← restrict_stalk_iso_hom_eq_germ, category.assoc, iso.hom_inv_id, category.comp_id]
 
 end restrict
 

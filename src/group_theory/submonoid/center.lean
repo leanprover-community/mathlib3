@@ -3,7 +3,7 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.submonoid.basic
+import group_theory.submonoid.operations
 
 /-!
 # Centers of magmas and monoids
@@ -81,6 +81,11 @@ def center : submonoid M :=
 variables {M}
 
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
+
+/-- The center of a monoid is commutative. -/
+instance : comm_monoid (center M) :=
+{ mul_comm := λ a b, subtype.ext $ b.prop _,
+  .. (center M).to_monoid }
 
 end
 

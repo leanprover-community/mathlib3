@@ -35,9 +35,8 @@ begin
   { assume z ,
     simp [mem_span_singleton, euclidean_domain.gcd_dvd_left, mem_span_pair,
       @eq_comm _ _ z] {contextual := tt},
-    assume a b h,
-    exact dvd_add ((gcd_dvd_left _ _).mul_left _)
-      ((gcd_dvd_right _ _).mul_left _) }
+    exact λ a b _, dvd_add ((gcd_dvd_left x y).mul_left _)
+      ((gcd_dvd_right x y).mul_left _) }
 end
 -- this should be proved for PIDs?
 theorem gcd_is_unit_iff {α} [euclidean_domain α] {x y : α} :

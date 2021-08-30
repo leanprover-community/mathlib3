@@ -37,7 +37,7 @@ section topological_ring
 variables (α : Type*)
 
 /-- A topological (semi)ring is a (semi)ring `R` where addition and multiplication are continuous.
-If `R` is a ring, than negation is automatically continuous, as it is multiplication with `-1`. -/
+If `R` is a ring, then negation is automatically continuous, as it is multiplication with `-1`. -/
 class topological_ring [topological_space α] [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 

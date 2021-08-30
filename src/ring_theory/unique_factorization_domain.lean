@@ -583,7 +583,7 @@ begin
     { obtain ⟨a', b', c', coprime, rfl, rfl⟩ := ih_a a_ne_zero b,
       refine ⟨p * a', b', c', _, mul_left_comm _ _ _, rfl⟩,
       intros q q_dvd_pa' q_dvd_b',
-      cases left_dvd_or_dvd_right_of_dvd_prime_mul p_prime q_dvd_pa' with p_dvd_q q_dvd_a',
+      cases p_prime.left_dvd_or_dvd_right_of_dvd_mul q_dvd_pa' with p_dvd_q q_dvd_a',
       { have : p ∣ c' * b' := dvd_mul_of_dvd_right (p_dvd_q.trans q_dvd_b') _,
         contradiction },
       exact coprime q_dvd_a' q_dvd_b' } }

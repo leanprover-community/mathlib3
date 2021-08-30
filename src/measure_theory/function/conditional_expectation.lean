@@ -1134,7 +1134,6 @@ def condexp_ind {m m0 : measurable_space α} (hm : m ≤ m0) (μ : measure α) [
   map_smul' := condexp_ind_L1_smul_real hs,
   cont := continuous_condexp_ind_L1 hs, }
 
-include 𝕜
 lemma condexp_ind_ae_eq_condexp_L2_indicator (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E') :
   condexp_ind 𝕜 hm μ hs x =ᵐ[μ] condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) :=
@@ -1142,7 +1141,6 @@ begin
   refine eventually_eq.trans _ (condexp_ind_L1_fin_ae_eq_condexp_L2_indicator 𝕜 hm hs hμs x),
   simp [condexp_ind, condexp_ind_L1, hμs],
 end
-omit 𝕜
 
 variables {𝕜}
 

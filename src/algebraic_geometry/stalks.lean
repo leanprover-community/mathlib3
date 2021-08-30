@@ -69,7 +69,7 @@ begin
 end
 
 @[simp, elementwise, reassoc]
-lemma restrict_stalk_iso_hom_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   (X.restrict f h).presheaf.germ ⟨x, hx⟩ ≫ (restrict_stalk_iso X f h x).hom =
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ :=
@@ -77,7 +77,7 @@ colimit.ι_pre ((open_nhds.inclusion (f x)).op ⋙ X.presheaf)
   (h.is_open_map.functor_nhds x).op (op ⟨V, hx⟩)
 
 @[simp, elementwise, reassoc]
-lemma restrict_stalk_iso_inv_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
   (restrict_stalk_iso X f h x).inv = (X.restrict f h).presheaf.germ ⟨x, hx⟩ :=

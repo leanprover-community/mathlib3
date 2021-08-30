@@ -518,18 +518,57 @@ open_locale classical
 
 variable [decidable_pred p]
 
-lemma le_nth_of_lt_nth_succ_finite {k a: ℕ} (hf : set.finite p)
-  (hlt: k.succ < hf.to_finset.card) (h: a < nth p k.succ) (hp: p a):
-    a ≤ (nth p) k :=
-begin
-  sorry,
-end
-
 lemma nth_strict_mono_finite {m n: ℕ} (hf: set.finite p)
   (hlt: n < hf.to_finset.card) (hmn: m < n):
   nth p m < nth p n :=
 begin
-  sorry,
+  have h := nth_mem_of_lt_card_finite_aux,
+  specialize h p,
+  { exact n, },
+  specialize h hf hlt,
+  simp at h,
+  cases h with hp h,
+  apply h,
+  exact hmn,
+end
+
+lemma nth_monotone_finite {m n: ℕ} (hf: set.finite p)
+  (hlt: n < hf.to_finset.card) (hmn: m ≤ n):
+  nth p m ≤ nth p n :=
+begin
+  apply le_of_lt_or_eq,
+  by_cases m = n,
+  { right,
+    rw h, },
+  { left,
+    apply nth_strict_mono_finite,
+    { exact hlt, },
+    { exact (ne.le_iff_lt h).mp hmn, }, },
+end
+
+lemma le_nth_of_lt_nth_succ_finite {k a: ℕ} (hf : set.finite p)
+  (hlt: k.succ < hf.to_finset.card) (h: a < nth p k.succ) (hp: p a):
+    a ≤ (nth p) k :=
+begin
+  by_contra hak,
+  simp at hak,
+  have heq: nth p k.succ ≤ a,
+  { rw nth,
+    apply nat.Inf_le,
+    simp,
+    split,
+    { exact hp, },
+    { intros n hn,
+      apply lt_of_le_of_lt,
+      swap,
+      { exact hak,},
+      { apply nth_monotone_finite,
+        apply lt_trans,
+        swap,
+        { exact hlt,},
+        { apply lt_add_one, },
+        exact lt_succ_iff.mp hn, }, }, },
+  exact lt_le_antisymm h heq,
 end
 
 lemma count_nth_of_lt_card_finite {n: ℕ} (hf : set.finite p)

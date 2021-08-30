@@ -186,11 +186,11 @@ end
 
 end decidable_eq
 
-lemma submodule.mul_eq_span_mul_set {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+lemma mul_eq_span_mul_set {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (s t : submodule R A) : s * t = span R ((s : set A) * (t : set A)) :=
 by rw [← span_mul_span, span_eq, span_eq]
 
-lemma submodule.supr_mul_right {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+lemma supr_mul_right {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
 begin
   suffices : (⨆ i, span R (s i : set A)) * span R t = (⨆ i, span R (s i) * span R t),
@@ -198,7 +198,7 @@ begin
   simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul_right],
 end
 
-lemma submodule.supr_mul_left {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+lemma supr_mul_left {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (s : ι → submodule R A) (t : submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
 begin
   suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),

@@ -213,6 +213,12 @@ structure ring_topology (α : Type u) [ring α]
 namespace ring_topology
 variables {α : Type*} [ring α]
 
+instance inhabited {α : Type u} [ring α] : inhabited (ring_topology α) :=
+⟨{to_topological_space := ⊤,
+  continuous_add       := continuous_top,
+  continuous_neg       := continuous_top,
+  continuous_mul       := continuous_top}⟩
+
 @[ext]
 lemma ext' {f g : ring_topology α} (h : f.is_open = g.is_open) : f = g :=
 by { ext, rw h }
@@ -221,11 +227,6 @@ by { ext, rw h }
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (ring_topology α) :=
 partial_order.lift ring_topology.to_topological_space $ ext
-
--- { le          := λ t s, s.is_open ≤ t.is_open,
---   le_antisymm := assume t s hst hts, ext' $ le_antisymm hts hst,
---   le_refl     := assume t, le_refl t.is_open,
---   le_trans    := assume t s r h₁ h₂, le_trans h₂ h₁ }
 
 local notation `cont` := @continuous _ _
 

@@ -126,9 +126,9 @@ begin
       rw h _ _ (hS i), },
     { intro i,
       exact measurable_set_preimage (measurable_const_add (v i)) (hS i), }, },
-   { refl, },
-   { exact measurable_const_add v, },
-   { exact measurable_set.univ_pi_fintype hS, },
+  { refl, },
+  { exact measurable_const_add v, },
+  { exact measurable_set.univ_pi_fintype hS, },
 end
 
 /-- The closed unit cube with sides the intervals [0,1] as a positive compact set, for inducing the
@@ -243,7 +243,6 @@ end
 
 open measure_theory
 /-- Blichfeldt's Principle --/
--- TODO this version when it makes sense
 @[to_additive]
 lemma exists_mul_inv_mem_lattice_of_volume_lt_volume {X Y : Type*} [measurable_space X]
   [measure_space Y] [group X] [mul_action X Y]
@@ -273,7 +272,7 @@ begin
     (_ : (∀ p : L, measurable_set (λ a, (((•) (p : X)) '' S) a : set F.F))) _,
   { rcases this with ⟨i, j, hij, t, ht⟩,
     use [i, j, hij, t],
-    simp only [and_true, set.mem_inter_eq, set.mem_preimage, subtype.coe_prop],
+    simp only [and_true, mem_inter_eq, subtype.coe_prop, image_smul],
     exact ht, },
   { intros,
     erw [image_smul, ← inv_inv p, ← preimage_smul (p⁻¹ : X) S],
@@ -294,8 +293,6 @@ begin
       conv in (_ '' (_ ∩ _)) {
         rw [← set.image_inter (this i), ← set.image_comp],
         simp [inv_smul_smul],
-        -- simp only [function.comp_app, set.image_id',
-        --   comp_add_right, add_zero, add_right_neg, set.image_add_right, neg_neg],
         rw set.inter_comm, },
       rw ← measure_Union _ _,
       { congr,
@@ -361,7 +358,7 @@ end
 -- needs the m-fold version of exists_nonempty_inter_of_measure_univ_lt_tsum_measure when
 -- measure > m * measure giving some x in m sets
 @[to_additive]
-lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space X] [comm_group X]
+lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space X] [group X]
   [has_measurable_mul X] (L : subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
   (F : fundamental_domain X L) (hlt : volume F.F < volume S)
   (h_mul_left : is_mul_left_invariant ⇑(volume : measure X)) :

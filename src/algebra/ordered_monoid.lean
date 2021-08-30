@@ -348,12 +348,6 @@ end has_one
 instance [has_add α] : has_add (with_top α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
 
-local attribute [semireducible] with_zero
-
-instance [add_semigroup α] : add_semigroup (with_top α) :=
-{ add := (+),
-  ..(infer_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
-
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
 @[norm_cast] lemma coe_bit0 [has_add α] {a : α} : ((bit0 a : α) : with_top α) = bit0 a := rfl
@@ -380,21 +374,48 @@ lemma add_eq_coe [has_add α] : ∀ {a b : with_top α} {c : α},
 | (some a) (some b) c :=
     by simp only [some_eq_coe, ← coe_add, coe_eq_coe, exists_and_distrib_left, exists_eq_left]
 
+instance [add_semigroup α] : add_semigroup (with_top α) :=
+{ add_assoc :=
+  begin
+    refine with_top.rec_top_coe _ _,
+    simp [←with_top.coe_add, add_assoc],
+    intro, refine with_top.rec_top_coe _ _;
+    simp [←with_top.coe_add, add_assoc],
+    intro, refine with_top.rec_top_coe _ _;
+    simp [←with_top.coe_add, add_assoc]
+  end,
+  ..with_top.has_add }
+
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-{ ..@additive.add_comm_semigroup _ $
-    @with_zero.comm_semigroup (multiplicative α) _ }
+{ add_comm :=
+  begin
+    refine with_top.rec_top_coe _ _,
+    simp [←with_top.coe_add, add_comm],
+    intro, refine with_top.rec_top_coe _ _;
+    simp [←with_top.coe_add, add_comm]
+  end,
+  ..with_top.add_semigroup }
 
 instance [add_monoid α] : add_monoid (with_top α) :=
-{ zero := some 0,
-  add := (+),
-  ..@additive.add_monoid _ $ @monoid_with_zero.to_monoid _ $
-    @with_zero.monoid_with_zero (multiplicative α) _ }
+{ zero_add :=
+  begin
+    refine with_top.rec_top_coe _ _,
+    { simpa },
+    { intro,
+      rw [←with_top.coe_zero, ←with_top.coe_add, zero_add] }
+  end,
+  add_zero :=
+  begin
+    refine with_top.rec_top_coe _ _,
+    { simpa },
+    { intro,
+      rw [←with_top.coe_zero, ←with_top.coe_add, add_zero] }
+  end,
+  ..with_top.has_zero,
+  ..with_top.add_semigroup }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
-{ zero := 0,
-  add := (+),
-  ..@additive.add_comm_monoid _ $ @comm_monoid_with_zero.to_comm_monoid _ $
-    @with_zero.comm_monoid_with_zero (multiplicative α) _ }
+{ ..with_top.add_monoid, ..with_top.add_comm_semigroup }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 { add_le_add_left :=

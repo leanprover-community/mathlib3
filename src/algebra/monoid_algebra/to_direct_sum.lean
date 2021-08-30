@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.direct_sum.algebra
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 import data.finsupp.to_dfinsupp
 
 /-!

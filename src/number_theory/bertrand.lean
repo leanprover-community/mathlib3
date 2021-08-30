@@ -1187,7 +1187,8 @@ begin
 end
 
 
-lemma false_inequality_is_false {n : ℕ} (n_large : 1003 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+lemma false_inequality_is_false {n : ℕ} (n_large : 1003 < n)
+  : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 begin
   rw imp_false,
   rw not_lt,
@@ -1216,7 +1217,9 @@ begin
           end
 end
 
-lemma more_restrictive_filter_means_smaller_subset {a : _} {S : finset a} {f : _} {g : _} [decidable_pred f] [decidable_pred g] (p : ∀ i, f i → g i): finset.filter f S ⊆ finset.filter g S :=
+lemma more_restrictive_filter_means_smaller_subset {a : _} {S : finset a} {f : _} {g : _}
+[decidable_pred f] [decidable_pred g] (p : ∀ i, f i → g i)
+  : finset.filter f S ⊆ finset.filter g S :=
 begin
   intros h prop,
   simp only [finset.mem_filter] at prop,
@@ -1224,7 +1227,8 @@ begin
   exact ⟨prop.1, p h prop.2⟩,
 end
 
-lemma filter_to_subset {a : _} {S : finset a} {T : finset a} {p : _} [decidable_pred p] (prop : ∀ i, p i → i ∈ T)
+lemma filter_to_subset {a : _} {S : finset a} {T : finset a} {p : _} [decidable_pred p]
+(prop : ∀ i, p i → i ∈ T)
   : finset.filter p S ⊆ T :=
 begin
   suffices : ∀ x, x ∈ finset.filter p S → x ∈ T, by exact finset.subset_iff.mpr this,
@@ -1233,7 +1237,9 @@ begin
   exact prop x hyp.2
 end
 
-lemma foo {n : ℕ} : (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card ≤ nat.sqrt (2 * n) :=
+lemma foo {n : ℕ} :
+(finset.filter (λ (p : ℕ), p ^ 2 < 2 * n)
+  (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card ≤ nat.sqrt (2 * n) :=
 begin
   have t : ∀ p, p ^ 2 ≤ 2 * n ↔ p ≤ nat.sqrt (2 * n),
   { intro p,
@@ -1243,18 +1249,21 @@ begin
   { intros p hyp,
     exact le_of_lt hyp, },
 
-  have v : finset.filter (λ p, p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) ⊆
+  have v : finset.filter (λ p, p ^ 2 < 2 * n)
+            (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) ⊆
     finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) :=
     more_restrictive_filter_means_smaller_subset u,
 
-  have w' : finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) =
+  have w' : finset.filter (λ p, p ^ 2 ≤ 2 * n)
+              (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) =
     finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1))) :=
     by {
       apply congr_arg (λ i, finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime i)),
       exact finset.range_eq_Ico (2 * n / 3 + 1),
     },
 
-  have w : finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1))) =
+  have w : finset.filter (λ p, p ^ 2 ≤ 2 * n)
+            (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1))) =
     finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))),
     { refine congr_arg (λ i, finset.filter (λ p, p ^ 2 ≤ 2 * n) i) _,
       ext1,
@@ -1268,8 +1277,10 @@ begin
         simp only [true_and, finset.Ico.mem, zero_le', finset.mem_filter],
         exact ⟨hyp.1.2, hyp.2⟩, }, },
 
-  have g : finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))) =
-    finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))),
+  have g : finset.filter (λ p, p ^ 2 ≤ 2 * n)
+            (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))) =
+           finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)
+            (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))),
     { ext1,
       split,
       { intros hyp,
@@ -1285,7 +1296,9 @@ begin
         simp only [finset.Ico.mem, finset.mem_filter],
         exact ⟨hyp.1, hyp.2.2⟩, }, },
 
-  have h : (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))) ⊆ finset.Ico 2 (nat.sqrt (2 * n) + 1)
+  have h : (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)
+              (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))))
+            ⊆ finset.Ico 2 (nat.sqrt (2 * n) + 1)
     , by {
       apply filter_to_subset _,
       intros i hyp,
@@ -1302,11 +1315,16 @@ begin
         linarith, },
     },
 
-  calc (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card
-      ≤ (finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card: finset.card_le_of_subset v
-  ... = (finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1)))).card: congr_arg finset.card w'
-  ... = (finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card w
-  ... = (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card g
+  calc (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n)
+          (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card
+      ≤ (finset.filter (λ p, p ^ 2 ≤ 2 * n)
+        (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card: finset.card_le_of_subset v
+  ... = (finset.filter (λ p, p ^ 2 ≤ 2 * n)
+          (finset.filter nat.prime (finset.Ico 0 (2 * n / 3 + 1)))).card: congr_arg finset.card w'
+  ... = (finset.filter (λ p, p ^ 2 ≤ 2 * n)
+          (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card w
+  ... = (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n)
+          (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card g
   ... ≤ (finset.Ico 2 (nat.sqrt (2 * n) + 1)).card: finset.card_le_of_subset h
   ... = nat.sqrt (2 * n) + 1 - 2: finset.Ico.card 2 (nat.sqrt (2 * n) + 1)
   ... = nat.sqrt (2 * n) - 1: by ring
@@ -1364,7 +1382,8 @@ begin
     have double_pow_pos: ∀ (i : ℕ), 0 < (2 * n) ^ i,
     { intros _, exact pow_pos (by linarith) _ },
 
-    have binom_inequality : (2 * n).choose n < (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
+    have binom_inequality
+      : (2 * n).choose n < (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
       calc (2 * n).choose n
               = (∏ p in finset.filter nat.prime (finset.range ((2 * n).choose n + 1)),
                    p ^ (padic_val_nat p ((2 * n).choose n)))
@@ -1372,15 +1391,19 @@ begin
       ...     = (∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),
                    p ^ (padic_val_nat p ((2 * n).choose n)))
                       : central_binom_factorization_small.symm
-      ...     = (∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),
-                   if p ^ 2 ≤ 2 * n then p ^ (padic_val_nat p ((2 * n).choose n)) else p ^ (padic_val_nat p ((2 * n).choose n)))
+      ...     = (∏ p in finset.filter nat.prime
+                          (finset.range (2 * n / 3 + 1)),
+                   if p ^ 2 ≤ 2 * n
+                    then p ^ (padic_val_nat p ((2 * n).choose n))
+                    else p ^ (padic_val_nat p ((2 * n).choose n)))
                        : by simp only [if_t_t]
       ...     = (∏ p in finset.filter (λ p, p ^ 2 ≤ 2 * n)
                           (finset.filter nat.prime
                             (finset.range (2 * n / 3 + 1))),
                     p ^ (padic_val_nat p ((2 * n).choose n)))
                  *
-                (∏ p in finset.filter (λ p, ¬p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))),
+                (∏ p in finset.filter (λ p, ¬p ^ 2 ≤ 2 * n)
+                  (finset.filter nat.prime (finset.range (2 * n / 3 + 1))),
                     p ^ (padic_val_nat p ((2 * n).choose n)))
                     : finset.prod_ite _ _
       ...     = (∏ p in finset.filter (λ p, p ^ 2 ≤ 2 * n)
@@ -1434,7 +1457,8 @@ begin
                       refine congr_arg (λ s, finset.card s) _,
                       ext1,
                       split,
-                      { intro h, simp at h, simp, split, exact h.1, exact even_prime_is_small h.1.2 (by linarith) h.2, },
+                      { intro h, simp at h, simp, split,
+                        exact h.1, exact even_prime_is_small h.1.2 (by linarith) h.2, },
                       { intro h, simp at h, simp, split, exact h.1, linarith, }
                      },
                    end
@@ -1468,7 +1492,8 @@ begin
                               rw i_zero at i_facts,
                               exfalso,
                               exact nat.not_prime_zero i_facts.2, }, },
-                          { exact @claim_2 i (fact_iff.2 i_facts.2) n (by linarith) sqrt_two_n_lt_i, }, },
+                          { exact @claim_2 i (fact_iff.2 i_facts.2) n (by linarith)
+                            sqrt_two_n_lt_i, }, },
                      end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *
@@ -1481,7 +1506,8 @@ begin
                         cases le_or_gt 1 i,
                         { ring_nf, exact h, },
                         { have i_zero : i = 0, by linarith,
-                          simp only [i_zero, true_and, nat.succ_pos', finset.mem_filter, finset.mem_range] at hyp1,
+                          simp only [i_zero, true_and, nat.succ_pos',
+                                     finset.mem_filter, finset.mem_range] at hyp1,
                           exfalso, exact nat.not_prime_zero hyp1, }, }
                      end
       ...     = (2 * n) ^ (nat.sqrt (2 * n))
@@ -1500,9 +1526,14 @@ begin
       ...     < (2 * n) ^ (nat.sqrt (2 * n))
                  *
                 4 ^ (2 * n / 3 + 1)
-                : (mul_lt_mul_left (pow_pos (by linarith) _)).mpr (pow_lt_pow (by simp only [nat.succ_pos', nat.one_lt_bit0_iff, nat.one_le_bit0_iff]) (by simp only [nat.succ_pos', lt_add_iff_pos_right])),
+                : (mul_lt_mul_left
+                    (pow_pos (by linarith) _)).mpr
+                    (pow_lt_pow (by simp only [nat.succ_pos', nat.one_lt_bit0_iff,
+                                                nat.one_le_bit0_iff])
+                    (by simp only [nat.succ_pos', lt_add_iff_pos_right])),
 
-    have false_inequality : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
+    have false_inequality
+      : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
       calc 4 ^ n ≤ (2 * n + 1) * (2 * n).choose n : central_binom_lower_bound n
         ...      < (2 * n + 1) * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1))
                     : nat.mul_lt_mul_of_pos_left binom_inequality (by linarith)

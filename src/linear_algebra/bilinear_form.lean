@@ -601,7 +601,7 @@ end basis
 end bilin_form
 
 section matrix
-variables {n o : Type*} [fintype n] [fintype o]
+variables {n o : Type*}
 
 open bilin_form finset linear_map matrix
 open_locale matrix
@@ -609,7 +609,7 @@ open_locale matrix
 /-- The map from `matrix n n R` to bilinear forms on `n → R`.
 
 This is an auxiliary definition for the equivalence `matrix.to_bilin_form'`. -/
-def matrix.to_bilin'_aux (M : matrix n n R₂) : bilin_form R₂ (n → R₂) :=
+def matrix.to_bilin'_aux [fintype n] (M : matrix n n R₂) : bilin_form R₂ (n → R₂) :=
 { bilin := λ v w, ∑ i j, v i * M i j * w j,
   bilin_add_left := λ x y z, by simp only [pi.add_apply, add_mul, sum_add_distrib],
   bilin_smul_left := λ a x y, by simp only [pi.smul_apply, smul_eq_mul, mul_assoc, mul_sum],
@@ -617,9 +617,8 @@ def matrix.to_bilin'_aux (M : matrix n n R₂) : bilin_form R₂ (n → R₂) :=
   bilin_smul_right := λ a x y,
     by simp only [pi.smul_apply, smul_eq_mul, mul_assoc, mul_left_comm, mul_sum] }
 
-lemma matrix.to_bilin'_aux_std_basis [decidable_eq n] (M : matrix n n R₂) (i j : n) :
-  M.to_bilin'_aux (std_basis R₂ (λ _, R₂) i 1) (std_basis R₂ (λ _, R₂) j 1) =
-    M i j :=
+lemma matrix.to_bilin'_aux_std_basis [fintype n] [decidable_eq n] (M : matrix n n R₂)
+  (i j : n) : M.to_bilin'_aux (std_basis R₂ (λ _, R₂) i 1) (std_basis R₂ (λ _, R₂) j 1) = M i j :=
 begin
   rw [matrix.to_bilin'_aux, coe_fn_mk, sum_eq_single i, sum_eq_single j],
   { simp only [std_basis_same, std_basis_same, one_mul, mul_one] },
@@ -647,9 +646,10 @@ def bilin_form.to_matrix_aux (b : n → M₂) : bilin_form R₂ M₂ →ₗ[R₂
   map_add' := λ f g, rfl,
   map_smul' := λ f g, rfl }
 
+variables [fintype n] [fintype o]
+
 lemma to_bilin'_aux_to_matrix_aux [decidable_eq n] (B₃ : bilin_form R₃ (n → R₃)) :
-  matrix.to_bilin'_aux (bilin_form.to_matrix_aux (λ j, std_basis R₃ (λ _, R₃) j 1) B₃) =
-    B₃ :=
+  matrix.to_bilin'_aux (bilin_form.to_matrix_aux (λ j, std_basis R₃ (λ _, R₃) j 1) B₃) = B₃ :=
 begin
   refine ext_basis (pi.basis_fun R₃ n) (λ i j, _),
   rw [bilin_form.to_matrix_aux, linear_map.coe_mk, pi.basis_fun_apply, pi.basis_fun_apply,

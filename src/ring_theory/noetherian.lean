@@ -461,8 +461,8 @@ variables {R M}
 lemma finite_of_linear_independent [nontrivial R] [is_noetherian R M]
   {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
-  refine classical.by_contradiction (λ hf, rel_embedding.well_founded_iff_no_descending_seq.1
-    (well_founded_submodule_gt R M) ⟨_⟩),
+  refine classical.by_contradiction (λ hf, (rel_embedding.well_founded_iff_no_descending_seq.1
+    (well_founded_submodule_gt R M)).elim' _),
   have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
   have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
   { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },

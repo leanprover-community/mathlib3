@@ -1144,11 +1144,13 @@ hpq _ $ some_spec _
 noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
 ⟨classical.some h, classical.some_spec h⟩
 
-protected noncomputable def peirce {α : Sort*} (H : (α → false) → false) : α :=
+/-- A version of `by_contradiction` that uses types instead of propositions. -/
+protected noncomputable def by_contradiction' {α : Sort*} (H : ¬ (α → false)) : α :=
 classical.choice $ peirce _ false $ λ h, (H $ λ a, h ⟨a⟩).elim
 
-def choice_of_peirce {α : Sort*} (peirce : ((α → false) → false) → α) : nonempty α → α :=
-λ H, peirce H.elim
+/-- `classical.by_contradiction'` is equivalent to lean's axiom `classical.choice`. -/
+def choice_of_by_contradiction' {α : Sort*} (contra : ¬ (α → false) → α) : nonempty α → α :=
+λ H, contra H.elim
 
 end classical
 

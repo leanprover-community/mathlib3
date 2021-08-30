@@ -114,6 +114,8 @@ end
 lemma to_grades_of_grades (g : ⨁ i : ι, grade R i) : (of_grades g).to_grades = g :=
 alg_hom.congr_fun to_grades_comp_of_grades g
 
+/-- An `add_monoid_algebra R ι` is equivalent as an algebra to the direct sum of its grades.
+-/
 @[simps]
 def equiv_grades : add_monoid_algebra R ι ≃ₐ[R] ⨁ i : ι, grade R i :=
 alg_equiv.of_alg_hom _ _ to_grades_comp_of_grades of_grades_comp_to_grades

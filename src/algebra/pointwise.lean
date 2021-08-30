@@ -239,12 +239,12 @@ lemma Union_mul_right_image [has_mul α] : (⋃ a ∈ t, (λ x, x * a) '' s) = s
 Union_image_right _
 
 @[to_additive]
-lemma Union_mul_right {α ι : Type*} [has_mul α] (s : ι → set α) (t : set α) :
+lemma Union_mul {α ι : Type*} [has_mul α] (s : ι → set α) (t : set α) :
   (⋃ i, s i) * t = ⋃ i, (s i * t) :=
 image2_Union_left _ _ _
 
 @[to_additive]
-lemma Union_mul_left {α ι : Type*} [has_mul α] (s : ι → set α) (t : set α) :
+lemma mul_Union {α ι : Type*} [has_mul α] (s : ι → set α) (t : set α) :
   t * (⋃ i, s i) = ⋃ i, (t * s i) :=
 image2_Union_right _ _ _
 

@@ -207,6 +207,7 @@ begin
     ← span_eq (span R (↑t * (⨆ (i : ι), ↑(s i)))), ← submodule.span_mul_span, span_eq, span_eq,
     ← (submodule.gi R A).l_supr_u],
 end
+
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
   ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=
 submodule.mem_span_mul_finite_of_mem_span_mul

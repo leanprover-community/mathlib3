@@ -416,7 +416,9 @@ by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, div_eq_m
 /--
 Every lattice ordered commutative group is a distributive lattice
 -/
-@[to_additive, priority 100] -- see Note [lower instance priority]
+@[to_additive
+  "Every lattice ordered commutative additive group is a distributive lattice"
+]
 def lattice_ordered_comm_group_to_distrib_lattice (α : Type u)
   [s: lattice α] [comm_group α] [covariant_class α α (*) (≤)] : distrib_lattice α :=
 { le_sup_inf :=

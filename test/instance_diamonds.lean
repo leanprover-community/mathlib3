@@ -43,7 +43,7 @@ end has_scalar
 /-! ## `with_top` (Type with point at infinitiy) instances -/
 section with_top
 
-example (R : Type*) [ordered_semiring R] :
+example (R : Type*) [h : ordered_semiring R] :
   (@with_top.add_comm_monoid R
     (@non_unital_non_assoc_semiring.to_add_comm_monoid R
       (@non_assoc_semiring.to_non_unital_non_assoc_semiring R

@@ -420,16 +420,28 @@ export has_measurable_vadd (measurable_const_vadd measurable_vadd_const)
   has_measurable_vadd₂ (measurable_vadd)
 
 -- @[to_additive]
+
 instance has_measurable_smul_of_mul (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul M] :
   has_measurable_smul M M :=
 ⟨measurable_id.const_mul, measurable_id.mul_const⟩
 
+instance has_measurable_vadd_of_add (M : Type*) [add_monoid M] [measurable_space M]
+  [has_measurable_add M] :
+  has_measurable_vadd M M :=
+⟨measurable_id.const_add, measurable_id.add_const⟩
+
 -- @[to_additive]
+
 instance has_measurable_smul₂_of_mul (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] :
   has_measurable_smul₂ M M :=
 ⟨measurable_mul⟩
+
+instance has_measurable_vadd₂_of_add (M : Type*) [add_monoid M] [measurable_space M]
+  [has_measurable_add₂ M] :
+  has_measurable_vadd₂ M M :=
+⟨measurable_add⟩
 
 section smul
 

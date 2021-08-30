@@ -25,6 +25,40 @@ studied by Hermann Minkowski.
 -/
 open measure_theory measure_theory.measure topological_space set
 open_locale pointwise
+section
+-- TODO move to measure_theory.group.basic
+noncomputable theory
+
+open_locale ennreal pointwise
+open has_inv set function measure_theory.measure
+
+namespace measure_theory
+
+variables {G V : Type*}
+
+section
+
+variables [measurable_space V]
+
+/-- A measure `μ` on a topological group is left invariant for an action
+  if the measure of left translations of a set are equal to the measure of the set itself.
+  To left translate sets we use preimage under left multiplication,
+  since preimages are nicer to work with than images. -/
+@[to_additive "A measure on a topological group is left invariant for an action
+  if the measure of left translations of a set are equal to the measure of the set itself.
+  To left translate sets we use preimage under left addition,
+  since preimages are nicer to work with than images."]
+def is_smul_left_invariant (G) [has_scalar G V] (μ : set V → ℝ≥0∞) : Prop :=
+∀ (g : G) {A : set V} (h : measurable_set A), μ ((λ h, g • h) ⁻¹' A) = μ A
+
+@[to_additive]
+lemma is_mul_left_invariant.to_is_smul_left_invariant [measurable_space G] [has_mul G]
+{μ : set G → ℝ≥0∞} (h : is_mul_left_invariant μ) :
+is_smul_left_invariant G μ := h
+
+end
+end measure_theory
+end
 
 lemma smul_univ_pi {K : Type*} [has_mul K] (ι : Type*) {r : K} (t : ι → set K) :
   r • pi (univ : set ι) t = pi (univ : set ι) (λ (i : ι), r • t i) :=
@@ -135,33 +169,40 @@ variable {ι}
 -- as the most general definition of fundamental domain may want to include measure zero boundary
 -- overlaps for instance.
 /-- A fundamental domain for a subgroup of an additive group is a measurable coset for the group -/
-structure fundamental_domain {X : Type*} [measurable_space X] [add_group X] (L : add_subgroup X) :=
-(F : set X)
+structure fundamental_domain {X : Type*} (Y : Type*) [measurable_space Y] [add_group X]
+  (L : add_subgroup X) [has_vadd X Y] :=
+(F : set Y)
 (hF : measurable_set F)
-(disjoint : ∀ (l : X) (hl : l ∈ L) (h : l ≠ 0), disjoint (((+) l) '' F) F)
-(covers : ∀ (x : X), ∃ (l : X) (hl : l ∈ L), l + x ∈ F)
+(disjoint : ∀ (l : X) (hl : l ∈ L) (h : l ≠ 0), disjoint ((+ᵥ) l '' F) F)
+(covers : ∀ (x : Y), ∃ (l : X) (hl : l ∈ L), l +ᵥ x ∈ F)
+--TODO all f.d.s have same measure https://arxiv.org/pdf/1405.2119.pdf
 
-instance : inhabited (fundamental_domain (⊤ : add_subgroup (fin 0 → ℝ))) :=
-{ default := { F := ⊤,
-  hF := subsingleton.measurable_set,
-  disjoint := λ v hv hvnz, by simp at *; assumption,
-  covers := λ v, by simp } }
+-- instance : inhabited (fundamental_domain (⊤ : add_subgroup (fin 0 → ℝ))) :=
+-- { default := { F := ⊤,
+--   hF := subsingleton.measurable_set,
+--   disjoint := λ v hv hvnz, by simp at *; assumption,
+--   covers := λ v, by simp } }
 
-lemma fundamental_domain.exists_unique {X : Type*} [measurable_space X] [add_group X]
-  {L : add_subgroup X} (F : fundamental_domain L) (x : X) : ∃! (p : L), x ∈ ((+) (p : X)) '' F.F :=
+lemma fundamental_domain.exists_unique {X Y : Type*} [measurable_space Y] [add_group X]
+  [add_action X Y] {L : add_subgroup X} (F : fundamental_domain Y L) (x : Y) :
+  ∃! (p : L), x ∈ ((+ᵥ) (p : X)) '' F.F :=
 exists_unique_of_exists_of_unique
 begin
-  simp only [exists_prop, set.mem_preimage, set.image_add_left, exists_unique_iff_exists],
+  simp only [exists_prop, set.mem_preimage, set.image_vadd, exists_unique_iff_exists],
   obtain ⟨l, hl, lh⟩ := F.covers x,
   use -l,
   exact L.neg_mem hl,
-  simpa [hl] using lh,
+  -- simp at lh,
+  simp [hl,lh],
+  refine mem_vadd_set.mpr _,
+  refine ⟨_, lh,_⟩,
+  simp, -- TODO clean up this ugliness
 end
 begin
   rintro ⟨y₁_val, y₁_property⟩ ⟨y₂_val, y₂_property⟩ ⟨a, ha, rfl⟩ ⟨c, hc, h⟩,
   simp only [subtype.mk_eq_mk, add_subgroup.coe_mk] at *,
-  replace h := h.symm,
-  rw [← neg_add_eq_iff_eq_add, ← add_assoc] at h,
+  -- replace h := h.symm,
+  -- rw [← neg_vadd_eq_iff_eq_vadd, ← add_assoc] at h,
   have := F.disjoint (-y₂_val + y₁_val) (L.add_mem (L.neg_mem y₂_property) y₁_property),
   contrapose! this,
   simp only [neg_add_eq_iff_eq_add, add_zero, image_add_left, ne.def, neg_add_rev, neg_neg],
@@ -169,8 +210,11 @@ begin
   { exact this, },
   intro hd,
   apply hd ⟨_, hc⟩,
-  rw [← h],
-  simpa [add_assoc],
+  erw mem_vadd_set,
+  rw ← eq_neg_vadd_iff at h,
+  rw [h],
+  refine ⟨a, ha, _⟩, -- TODO also ugly
+  rw add_vadd,
 end
 
 instance subtype.measure_space {V : Type*} [measure_space V] {p : set V} :
@@ -190,53 +234,60 @@ begin
   { exact measurable_set.univ, }
 end
 
+open measure_theory
 /-- Blichfeldt's Principle --/
--- TODO version giving `ceiling (volume S / volume F)` points whose difference is in a subgroup
-lemma exists_sub_mem_lattice_of_volume_lt_volume {X : Type*} [measure_space X] [add_comm_group X]
-  [has_measurable_add X] (L : add_subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
-  (F : fundamental_domain L) (hlt : volume F.F < volume S)
-  (h_add_left : is_add_left_invariant ⇑(volume : measure X)) :
-  ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), x - y ∈ L :=
+-- TODO this version when it makes sense
+lemma exists_sub_mem_lattice_of_volume_lt_volume {X Y : Type*} [measurable_space X]
+  [measure_space Y] [add_group X] [add_action X Y]
+  [has_measurable_vadd X Y] (L : add_subgroup X) [encodable L] {S : set Y} (hS : measurable_set S)
+  (F : fundamental_domain Y L) (hlt : volume F.F < volume S)
+  (h_add_left : is_vadd_left_invariant X ⇑(volume : measure Y))
+  (hnostab : ∀ (p₁ p₂ : L) (q : Y) (hq : q ∈ S) (hppq : p₁ +ᵥ q = p₂ +ᵥ q), p₁ = p₂) :
+  ∃ (x y : Y) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y ∈ (+ᵥ x) '' (L : set X) :=
 begin
   suffices : ∃ (p₁ p₂ : L) (hne : p₁ ≠ p₂),
-    (((+ ↑p₁) '' S ∩ F.F) ∩ ((+ ↑p₂) '' S ∩ F.F)).nonempty,
+    (((+ᵥ) (p₁ : X) '' S ∩ F.F) ∩ ((+ᵥ) (p₂ : X) '' S ∩ F.F)).nonempty,
   begin
     rcases this with ⟨p₁, p₂, hne, u, ⟨⟨q₁, ⟨hS₁, ht₁⟩⟩, hu⟩, ⟨⟨q₂, ⟨hS₂, ht₂⟩⟩, hu⟩⟩,
-    use [u - p₁, u - p₂],
+    use [q₁, q₂, hS₁, hS₂],
     split,
-    { rwa [← ht₁, add_sub_cancel], },
-    split,
-    { rwa [← ht₂, add_sub_cancel], },
-    rw (by abel : u - p₁ - (u - p₂) = p₂ - p₁),
-    split,
-    { intro a,
-      apply hne,
-      rw sub_right_inj at a,
-      exact subtype.eq a, },
-    exact L.sub_mem p₂.mem p₁.mem,
+    { rintros rfl,
+      rw ← ht₂ at *,
+      exact hne (hnostab _ _ _ hS₁ ht₁), },
+    { simp only [mem_image, set_like.mem_coe],
+      use [- p₂ + p₁],
+      split,
+      exact L.add_mem (L.neg_mem (set_like.coe_mem _)) (set_like.coe_mem _),
+      rw [add_vadd, ht₁, ← ht₂, ← add_vadd, neg_add_self, zero_vadd], },
   end,
   rw ← volume_subtype_univ F.hF at hlt,
   have := exists_nonempty_inter_of_measure_univ_lt_tsum_measure subtype.measure_space.volume
-    (_ : (∀ p : L, measurable_set (λ a, ((+ ↑p) '' S) a.val : set F.F))) _,
+    (_ : (∀ p : L, measurable_set (λ a, (((+ᵥ) (p : X)) '' S) a : set F.F))) _,
   { rcases this with ⟨i, j, hij, t, ht⟩,
     use [i, j, hij, t],
     simp only [and_true, set.mem_inter_eq, set.mem_preimage, subtype.coe_prop],
     exact ht, },
   { intros,
-    suffices : measurable_set (λ (a : ↥(F.F)), S ↑a),
-    { simp only [set.image_add_right],
-      refine measurable_set_preimage _ hS,
-      refine measurable.add_const _ (-↑p),
-      exact measurable_subtype_coe, },
-    exact ⟨S, ⟨hS, rfl⟩⟩, },
+    erw [image_vadd, ← neg_neg p, ← preimage_vadd (-p : X) S],
+    exact measurable_set_preimage
+      ((measurable_const_vadd (-p : X)).comp measurable_subtype_coe) hS, },
   convert hlt,
-  have : (∑' (i : L), volume ((+ (i : X)) '' S ∩ F.F)) = volume S,
-  { rw (_ : ∑' (i : L), volume ((+ ↑i) '' S ∩ F.F) =
-        ∑' (i : L), volume ((+ (-↑i)) '' ((+ ↑i) '' S ∩ F.F))),
-    { conv in (_ '' (_ ∩ _)) {
-        rw [← set.image_inter (add_left_injective _), ← set.image_comp],
-        simp only [add_neg_cancel_right, function.comp_app, set.image_id',
-          comp_add_right, add_zero, add_right_neg, set.image_add_right, neg_neg],
+  have : (∑' (i : L), volume ((+ᵥ) (i : X) '' S ∩ F.F)) = volume S,
+  { rw (_ : ∑' (i : L), volume (((+ᵥ) (i : X)) '' S ∩ F.F) =
+        ∑' (i : L), volume ((+ᵥ) (-i : X) '' ((+ᵥ) (i : X) '' S ∩ F.F))),
+    { have : ∀ (i : L) (x : Y)
+        -- (hx : x ∈ F.F)
+        (y : Y)
+        -- (hy : y ∈ (+ᵥ) (i : X) '' S)
+        (hi : (-i : X) +ᵥ x = (-i : X) +ᵥ y), x = y,
+      { intros,
+        have := congr_arg ((+ᵥ) (i : X)) hi,
+        simpa, },
+      conv in (_ '' (_ ∩ _)) {
+        rw [← set.image_inter (this i), ← set.image_comp],
+        simp [neg_vadd_vadd],
+        -- simp only [function.comp_app, set.image_id',
+        --   comp_add_right, add_zero, add_right_neg, set.image_add_right, neg_neg],
         rw set.inter_comm, },
       rw ← measure_Union _ _,
       { congr,
@@ -247,11 +298,12 @@ begin
         rw set.mem_Union,
         rcases F.covers x with ⟨w, t, h_1_h⟩,
         use ⟨w, t⟩,
-        rw [set.mem_preimage, subtype.coe_mk, add_comm],
-        assumption, },
+        simp only [add_subgroup.coe_mk],
+        rw ← preimage_vadd (w : X),
+        rwa [set.mem_preimage], },
       { apply_instance, },
       { intros x y hxy,
-        suffices : (disjoint on λ (i : ↥(L)), (λ (_x : X), _x + -↑i) '' F.F) x y,
+        suffices : (disjoint on λ (i : ↥(L)), (λ (_x : Y), (-i : X) +ᵥ _x) '' F.F) x y,
         { simp only [comp_add_right, add_zero, add_right_neg,
             set.image_add_right, neg_neg, set.image_id'] at this ⊢,
           rintros z ⟨⟨hzx, hzS⟩, ⟨hzy, hzS⟩⟩,
@@ -264,23 +316,23 @@ begin
         apply hxy,
         suffices : -x = -y, by simpa using this,
         apply exists_unique.unique (F.exists_unique t) _ _; simpa [add_comm], },
-    { intro l,
-      apply measurable_set.inter _ hS,
-      refine measurable_set_preimage _ F.hF,
-      exact measurable_add_const ↑l, }, },
+      { intro l,
+        apply measurable_set.inter _ hS,
+        rw ← preimage_vadd (l : X),
+        refine measurable_set_preimage _ F.hF,
+        exact measurable_const_vadd (l : X), }, },
     { congr,
       ext1 l,
-      simp only [add_comm _ (-↑l)],
-      conv_rhs {rw [image_add_left],},
-      simp only [neg_neg],
-      rw h_add_left (↑l),
+      simp only [image_vadd],
+      simp_rw ← preimage_vadd (l : X),
+      rw h_add_left (l : X),
       apply measurable_set.inter _ F.hF, -- TODO is this a dup goal?
-      simp only [set.image_add_right],
+      rw [← neg_neg (l : X), ← preimage_vadd (-l : X)],
       refine measurable_set_preimage _ hS,
-      exact measurable_add_const (-↑l), }, },
+      exact measurable_const_vadd _, }, },
   convert this,
   ext1 l,
-  simp only [set.image_add_right],
+  simp only [image_vadd],
   dsimp only [subtype.measure_space], -- TODO lemma
   rw measure.comap_apply _ subtype.val_injective _ _ _,
   { congr,
@@ -293,9 +345,28 @@ begin
     split; { intros a, rcases a with ⟨a_left, a_right⟩, split; assumption, }, },
   { intros X hX,
     convert measurable_set.subtype_image F.hF hX, },
-  { refine measurable_set_preimage _ hS,
-    refine measurable.add_const _ (-↑l),
-    exact measurable_subtype_coe, },
+  { erw [← neg_neg l, ← preimage_vadd (-l : X) S],
+    exact measurable_set_preimage
+      ((measurable_const_vadd (-l : X)).comp measurable_subtype_coe) hS, },
+end
+-- TODO version giving `ceiling (volume S / volume F)` points whose difference is in a subgroup
+-- needs the m-fold version of exists_nonempty_inter_of_measure_univ_lt_tsum_measure when
+-- measure > m * measure giving some x in m sets
+lemma exists_sub_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space X] [add_comm_group X]
+  [has_measurable_add X] (L : add_subgroup X) [encodable L] {S : set X} (hS : measurable_set S)
+  (F : fundamental_domain X L) (hlt : volume F.F < volume S)
+  (h_add_left : is_add_left_invariant ⇑(volume : measure X)) :
+  ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y - x ∈ L :=
+begin
+  obtain ⟨x, y, hx, hy, hne, h⟩ := exists_sub_mem_lattice_of_volume_lt_volume L hS F hlt
+    h_add_left.to_is_vadd_left_invariant _,
+  { refine ⟨x, y, hx, hy, hne, _⟩,
+    simp only [vadd_eq_add, image_add_right, mem_preimage, set_like.mem_coe] at h,
+    rwa sub_eq_add_neg y x, },
+  { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ q hq hleft,
+    change _ + _ = _ + _ at hleft, -- TODO this is nasty
+    simp at hleft,
+    ext, simpa, }
 end
 
 open measure_theory measure_theory.measure topological_space set
@@ -351,7 +422,7 @@ open ennreal fintype
 
 -- TODO version for any real vector space in terms of dimension
 lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_volume [fintype ι]
-  (L : add_subgroup (ι → ℝ)) [encodable.{u} L] (F : fundamental_domain L) (S : set (ι → ℝ))
+  (L : add_subgroup (ι → ℝ)) [encodable.{u} L] (F : fundamental_domain (ι → ℝ) L) (S : set (ι → ℝ))
   (hS : measurable_set S) (h : volume F.F * 2 ^ (card ι) < volume S) (h_symm : ∀ x ∈ S, -x ∈ S)
   (h_conv : convex S) : ∃ (x : L) (h : x ≠ 0), ↑x ∈ S :=
 begin
@@ -390,22 +461,22 @@ begin
   rw [(show (1 / 2 : ℝ) + 1 / 2 = 1, by norm_num), one_smul] at this,
   rw this,
   suffices : ∃ (x y : ι → ℝ) (hx : x ∈ (1/2 : ℝ) • S) (hy : y ∈ (1/2 : ℝ) • S) (hne : x ≠ y),
-    x - y ∈ L,
+    y - x ∈ L,
   { rcases this with ⟨x, y, hx, hy, hne, hsub⟩,
-    use ⟨x - y, hsub⟩,
+    use ⟨y - x, hsub⟩,
     split,
     { apply subtype.ne_of_val_ne,
-      simp [sub_eq_zero, hne], },
+      simp [sub_eq_zero, hne.symm], },
     have : ∀ t ∈ (1/2 : ℝ) • S, -t ∈ (1/2 : ℝ) • S,
     { intros t ht,
       rcases ht with ⟨v, hv, rfl⟩,
       rw ← smul_neg,
       exact set.smul_mem_smul_set (h_symm _ hv), },
-    use [x, -y, hx, this _ hy],
+    use [y, -x, hy, this _ hx],
     refl, },
-  { refine exists_sub_mem_lattice_of_volume_lt_volume L mhalf F h2 _,
+  { refine exists_sub_mem_lattice_of_volume_lt_volume' L mhalf F h2 _,
     rw [← pi_haar_measure_eq_lebesgue_measure _],
-    exact measure.is_add_left_invariant_add_haar_measure (unit_cube _), }
+    exact measure.is_add_left_invariant_add_haar_measure (unit_cube _), },
 end
 
 end geometry_of_numbers

@@ -598,6 +598,7 @@ lemma mem_smul_set_iff_inv_smul_mem [group_with_zero α] [mul_action α β] {a :
   (A : set β) (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
 by rw [← mem_inv_smul_set_iff $ inv_ne_zero ha, inv_inv']
 
+@[to_additive]
 lemma preimage_smul [group α] [mul_action α β] (a : α) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
 ((mul_action.to_perm a).symm.image_eq_preimage _).symm
 

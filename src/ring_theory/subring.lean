@@ -488,6 +488,10 @@ def center : subring R :=
   neg_mem' := λ a, set.neg_mem_center,
   .. subsemiring.center R }
 
+lemma coe_center : ↑(center R) = set.center R := rfl
+
+@[simp] lemma center_to_subsemiring : (center R).to_subsemiring = subsemiring.center R := rfl
+
 variables {R}
 
 lemma mem_center_iff {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=

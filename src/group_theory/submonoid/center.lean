@@ -105,6 +105,8 @@ def center : submonoid M :=
   one_mem' := set.one_mem_center M,
   mul_mem' := λ a b, set.mul_mem_center }
 
+@[to_additive] lemma coe_center : ↑(center M) = set.center M := rfl
+
 variables {M}
 
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl

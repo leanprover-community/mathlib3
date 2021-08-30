@@ -384,6 +384,11 @@ def center (R) [semiring R] : subsemiring R :=
   add_mem' := λ a b, set.add_mem_center,
   .. submonoid.center R }
 
+lemma coe_center (R) [semiring R] : ↑(center R) = set.center R := rfl
+
+@[simp]
+lemma center_to_submonoid (R) [semiring R] : (center R).to_submonoid = submonoid.center R := rfl
+
 lemma mem_center_iff {R} [semiring R] {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
 iff.rfl
 

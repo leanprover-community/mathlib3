@@ -1007,12 +1007,18 @@ instance top_normal : normal (⊤ : subgroup G) := ⟨λ _ _, mem_top⟩
 
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
-@[to_additive "The center of a group `G` is the set of elements that commute with everything in
-`G`"]
+@[to_additive "The center of an additive group `G` is the set of elements that commute with
+everything in `G`"]
 def center : subgroup G :=
 { carrier := set.center G,
   inv_mem' := λ a, set.inv_mem_center,
   .. submonoid.center G }
+
+@[to_additive]
+lemma coe_center : ↑(center M) = set.center M := rfl
+
+@[simp, to_additive]
+lemma center_to_submonoid : (center M).to_submonoid = submonoid.center M := rfl
 
 variable {G}
 

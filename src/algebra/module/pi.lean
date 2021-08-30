@@ -120,6 +120,19 @@ lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_m
   single i (r • x) = single i r • single i x :=
 single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
 
+instance mul_distrib_mul_action (α) {m : monoid α} {n : Π i, monoid $ f i}
+  [Π i, mul_distrib_mul_action α $ f i] :
+  @mul_distrib_mul_action α (Π i : I, f i) m (@pi.monoid I f n) :=
+{ smul_one := λ c, funext $ λ i, smul_one _,
+  smul_mul := λ c f g, funext $ λ i, smul_mul' _ _ _,
+  ..pi.mul_action _ }
+
+instance mul_distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π i, monoid $ g i}
+  [Π i, mul_distrib_mul_action (f i) (g i)] :
+  @mul_distrib_mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) (@pi.monoid I g n) :=
+{ smul_mul := by { intros, ext x, apply smul_mul' },
+  smul_one := by { intros, ext x, apply smul_one } }
+
 variables (I f)
 
 instance module (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}

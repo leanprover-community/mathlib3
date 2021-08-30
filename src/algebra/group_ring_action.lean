@@ -30,25 +30,24 @@ group action, invariant subring
 universes u v
 open_locale big_operators
 
-/-- Typeclass for multiplicative actions by monoids on semirings. -/
-class mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
+/-- Typeclass for multiplicative actions by monoids on semirings.
+
+This combines `distrib_mul_action` with `mul_distrib_mul_action`. -/
+class mul_semiring_action (M : Type u) (R : Type v) [monoid M] [semiring R]
   extends distrib_mul_action M R :=
 (smul_one : ∀ (g : M), (g • 1 : R) = 1)
 (smul_mul : ∀ (g : M) (x y : R), g • (x * y) = (g • x) * (g • y))
-
-export mul_semiring_action (smul_one)
 
 section semiring
 
 variables (M G : Type u) [monoid M] [group G]
 variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [field F]
 
-variables {M R}
-lemma smul_mul' [mul_semiring_action M R] (g : M) (x y : R) :
-  g • (x * y) = (g • x) * (g • y) :=
-mul_semiring_action.smul_mul g x y
-
-variables (M R)
+-- note we could not use `extends` since these typeclasses are make with `old_structure_cmd`
+@[priority 100]
+instance mul_semiring_action.to_mul_distrib_mul_action [h : mul_semiring_action M R] :
+  mul_distrib_mul_action M R :=
+{ ..h }
 
 /-- Each element of the monoid defines a additive monoid homomorphism. -/
 def distrib_mul_action.to_add_monoid_hom [distrib_mul_action M A] (x : M) : A →+ A :=
@@ -69,8 +68,7 @@ def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_
 
 /-- Each element of the monoid defines a semiring homomorphism. -/
 def mul_semiring_action.to_ring_hom [mul_semiring_action M R] (x : M) : R →+* R :=
-{ map_one' := smul_one x,
-  map_mul' := smul_mul' x,
+{ .. mul_distrib_mul_action.to_monoid_hom R x,
   .. distrib_mul_action.to_add_monoid_hom M R x }
 
 theorem to_ring_hom_injective [mul_semiring_action M R] [has_faithful_scalar M R] :
@@ -112,37 +110,9 @@ H.to_subsemiring.mul_semiring_action
 
 end
 
-section prod
-variables [mul_semiring_action M R] [mul_semiring_action M S]
-
-lemma list.smul_prod (g : M) (L : list R) : g • L.prod = (L.map $ (•) g).prod :=
-(mul_semiring_action.to_ring_hom M R g).map_list_prod L
-
-lemma multiset.smul_prod (g : M) (m : multiset S) : g • m.prod = (m.map $ (•) g).prod :=
-(mul_semiring_action.to_ring_hom M S g).map_multiset_prod m
-
-lemma smul_prod (g : M) {ι : Type*} (f : ι → S) (s : finset ι) :
-  g • ∏ i in s, f i = ∏ i in s, g • f i :=
-(mul_semiring_action.to_ring_hom M S g).map_prod f s
-
-end prod
-
 section simp_lemmas
 
-variables {M G A R}
-
 attribute [simp] smul_one smul_mul' smul_zero smul_add
-
-@[simp] lemma smul_inv' [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
-(mul_semiring_action.to_ring_hom M F x).map_inv _
-
-@[simp] lemma smul_pow [mul_semiring_action M R] (x : M) (m : R) (n : ℕ) :
-  x • m ^ n = (x • m) ^ n :=
-begin
-  induction n with n ih,
-  { rw [pow_zero, pow_zero], exact smul_one x },
-  { rw [pow_succ, pow_succ], exact (smul_mul' x m (m ^ n)).trans (congr_arg _ ih) }
-end
 
 end simp_lemmas
 

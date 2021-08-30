@@ -150,9 +150,9 @@ end
 where the `(i, j)`th basis vector is `b i • c j`. -/
 noncomputable def basis.smul {ι : Type v₁} {ι' : Type w₁}
   (b : basis ι R S) (c : basis ι' S A) : basis (ι × ι') R A :=
-basis.of_repr ((c.repr.restrict_scalars R) ≫ₗ
-  ((finsupp.lcongr (equiv.refl _) b.repr) ≫ₗ
-  ((finsupp_prod_lequiv R).symm ≫ₗ
+basis.of_repr ((c.repr.restrict_scalars R) ≪≫ₗ
+  ((finsupp.lcongr (equiv.refl _) b.repr) ≪≫ₗ
+  ((finsupp_prod_lequiv R).symm ≪≫ₗ
   ((finsupp.lcongr (equiv.prod_comm ι' ι) (linear_equiv.refl _ _))))))
 
 @[simp] theorem basis.smul_repr {ι : Type v₁} {ι' : Type w₁}

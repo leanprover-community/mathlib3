@@ -528,7 +528,7 @@ def trans : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
-infixl ` ≫ₗ `:80 := linear_equiv.trans
+infixl ` ≪≫ₗ `:80 := linear_equiv.trans
 
 @[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
 

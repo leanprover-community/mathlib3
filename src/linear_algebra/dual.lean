@@ -552,7 +552,7 @@ linear_equiv.quot_equiv_of_quot_equiv $
 noncomputable def quot_equiv_annihilator (W : subspace K V) :
   W.quotient ≃ₗ[K] W.dual_annihilator :=
 begin
-  refine _ ≫ₗ W.quot_dual_equiv_annihilator,
+  refine _ ≪≫ₗ W.quot_dual_equiv_annihilator,
   refine linear_equiv.quot_equiv_of_equiv _ (basis.of_vector_space K V).to_dual_equiv,
   exact (basis.of_vector_space K W).to_dual_equiv.trans W.dual_equiv_dual
 end

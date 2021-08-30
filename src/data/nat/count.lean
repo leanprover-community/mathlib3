@@ -518,6 +518,84 @@ open_locale classical
 
 variable [decidable_pred p]
 
+lemma le_nth_of_lt_nth_succ_finite {k a: ℕ} (hf : set.finite p)
+  (hlt: k.succ < hf.to_finset.card) (h: a < nth p k.succ) (hp: p a):
+    a ≤ (nth p) k :=
+begin
+  sorry,
+end
+
+lemma nth_strict_mono_finite {m n: ℕ} (hf: set.finite p)
+  (hlt: n < hf.to_finset.card) (hmn: m < n):
+  nth p m < nth p n :=
+begin
+  sorry,
+end
+
+lemma count_nth_of_lt_card_finite {n: ℕ} (hf : set.finite p)
+  (hlt: n < hf.to_finset.card) : count p (nth p n) = n :=
+begin
+  induction n with k,
+  { rw count_eq_card_finset,
+    simp,
+    ext,
+    simp,
+    intros ha hp,
+    rw nth_zero at ha,
+    simp at ha,
+    have haI: Inf (set_of p) ≤ a := by apply nat.Inf_le hp,
+    exact lt_le_antisymm ha haI, },
+  { rw count_eq_card_finset,
+    have ih: finset.filter p (finset.range (nth p k.succ)) =
+      insert (nth p k) (finset.filter p (finset.range (nth p k))),
+    { ext,
+      simp,
+      split,
+      { intro ha,
+        cases ha with ha hp,
+        by_cases a = nth p k,
+        { left,
+          exact h, },
+        { right,
+          split,
+          { apply lt_of_le_of_ne,
+            { apply le_nth_of_lt_nth_succ_finite,
+              exact hlt,
+              exact ha,
+              exact hp, },
+            { exact h, }, },
+          {exact hp,}, }, },
+      intro ha,
+      cases ha,
+      { rw ha,
+        split,
+        { apply nth_strict_mono_finite,
+          exact hlt,
+          apply lt_add_one, },
+        { apply nth_mem_of_lt_card_finite,
+          { apply lt_trans,
+            swap,
+            { exact hlt, },
+            { exact lt_add_one k, }, }, }, },
+      cases ha with ha hp,
+      split,
+      { apply lt_trans,
+        { exact ha, },
+        { apply nth_strict_mono_finite,
+          exact hlt,
+          apply lt_add_one, }, },
+      exact hp, },
+    rw ih,
+    rw finset.card_insert_of_not_mem,
+    { rw ← count_eq_card_finset,
+      rw n_ih,
+      apply lt_trans,
+      swap,
+      { exact hlt, },
+      { exact lt_add_one k, }, },
+    { simp, }, },
+end
+
 lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n :=
 begin
   induction n with k,

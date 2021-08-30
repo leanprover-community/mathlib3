@@ -1587,6 +1587,16 @@ lemma mem_range_le {n x : ℕ} (hx : x ∈ range n) : x ≤ n :=
 lemma mem_range_sub_ne_zero {n x : ℕ} (hx : x ∈ range n) : n - x ≠ 0 :=
 ne_of_gt $ nat.sub_pos_of_lt $ mem_range.1 hx
 
+@[simp] lemma nonempty_range_iff : (range n).nonempty ↔ n ≠ 0 :=
+⟨λ ⟨k, hk⟩, ((zero_le k).trans_lt $ mem_range.1 hk).ne',
+  λ h, ⟨0, mem_range.2 $ pos_iff_ne_zero.2 h⟩⟩
+
+@[simp] lemma range_eq_empty_iff : range n = ∅ ↔ n = 0 :=
+by rw [← not_nonempty_iff_eq_empty, nonempty_range_iff, not_not]
+
+lemma nonempty_range_succ : (range $ n + 1).nonempty :=
+nonempty_range_iff.2 n.succ_ne_zero
+
 end range
 
 /- useful rules for calculations with quantifiers -/

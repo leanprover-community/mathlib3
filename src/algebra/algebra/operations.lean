@@ -193,10 +193,9 @@ by rw [← span_mul_span, span_eq, span_eq]
 lemma submodule.supr_mul_right {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
 begin
-  conv_rhs { simp only [submodule.mul_eq_span_mul_set], },
-  rw [← (submodule.gi R A).gc.l_supr, set.supr_eq_Union, ← set.Union_mul_right, ← set.supr_eq_Union,
-    ← span_eq (span R ((⨆ (i : ι), ↑(s i)) * ↑t)), ← submodule.span_mul_span, span_eq, span_eq,
-    ← (submodule.gi R A).l_supr_u],
+  suffices : (⨆ i, span R (s i : set A)) * span R t = (⨆ i, span R (s i) * span R t),
+  { simpa only [span_eq] using this },
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul_right],
 end
 
 lemma submodule.supr_mul_left {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]

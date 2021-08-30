@@ -1502,6 +1502,10 @@ variable {E}
 lemma real_inner_eq_re_inner (x y : E) :
   @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x y = re ⟪x, y⟫ := rfl
 
+lemma real_inner_I_smul_self (x : E) :
+  @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x ((I : 𝕜) • x) = 0 :=
+by simp [real_inner_eq_re_inner, inner_smul_right]
+
 omit 𝕜
 
 /-- A complex inner product implies a real inner product -/
@@ -2637,7 +2641,7 @@ lemma submodule.finrank_add_finrank_orthogonal' [finite_dimensional 𝕜 E] {K :
   finrank 𝕜 Kᗮ = n :=
 by { rw ← add_right_inj (finrank 𝕜 K), simp [submodule.finrank_add_finrank_orthogonal, h_dim] }
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/

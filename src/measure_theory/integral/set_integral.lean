@@ -87,33 +87,67 @@ lemma integral_add_compl (hs : measurable_set s) (hfi : integrable f μ) :
 by rw [← integral_union (@disjoint_compl_right (set α) _ _) hs hs.compl
     hfi.integrable_on hfi.integrable_on, union_compl_self, integral_univ]
 
+lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (hf : measurable f)
+  (ht_eq : ∀ x ∈ t, f x = 0) :
+  ∫ x in t, f x ∂μ = 0 :=
+begin
+  refine integral_eq_zero_of_ae _,
+  rw [eventually_eq, ae_restrict_iff (measurable_set_eq_fun hf measurable_zero)],
+  refine eventually_of_forall (λ x hx, _),
+  rw pi.zero_apply,
+  exact ht_eq x hx,
+end
+
+private lemma set_integral_union_eq_left_of_disjoint {f : α → E} (hf : measurable f)
+  (hfi : integrable f μ) (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0)
+  (hs_disj : disjoint s t) :
+  ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
+by rw [integral_union hs_disj hs ht hfi.integrable_on hfi.integrable_on,
+  set_integral_eq_zero_of_forall_eq_zero hf ht_eq, add_zero]
+
+lemma set_integral_union_eq_left {f : α → E} (hf : measurable f) (hfi : integrable f μ)
+  (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0) :
+  ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  let s_ := s \ {x | f x = 0},
+  have hs_ : measurable_set s_, from hs.diff (measurable_set_eq_fun hf measurable_const),
+  let s0 := s ∩ {x | f x = 0},
+  have hs0 : measurable_set s0, from hs.inter (measurable_set_eq_fun hf measurable_const),
+  have hs0_eq : ∀ x ∈ s0, f x = 0,
+    by { intros x hx, simp_rw [s0, set.mem_inter_iff] at hx, exact hx.2, },
+  have h_s_union : s = s_ ∪ s0, from (set.diff_union_inter s _).symm,
+  have h_s_disj : disjoint s_ s0,
+    from (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right
+      (set.inter_subset_right _ _),
+  rw [h_s_union, set_integral_union_eq_left_of_disjoint hf hfi hs_ hs0 hs0_eq h_s_disj],
+  have hst0_eq : ∀ x ∈ s0 ∪ t, f x = 0,
+  { intros x hx,
+    rw set.mem_union at hx,
+    cases hx,
+    { exact hs0_eq x hx, },
+    { exact ht_eq x hx, }, },
+  have hst_disj : disjoint s_ (s0 ∪ t),
+  { rw [← set.sup_eq_union, disjoint_sup_right],
+    exact ⟨h_s_disj, (@disjoint_sdiff_self_left (set α) {x | f x = 0} s _).mono_right ht_eq⟩, },
+  rw set.union_assoc,
+  exact set_integral_union_eq_left_of_disjoint hf hfi hs_ (hs0.union ht) hst0_eq hst_disj,
+end
+
 lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_topology E]
   {f : α → E} (hf : measurable f) (hfi : integrable f μ) :
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 begin
   have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
-  { ext,
-    simp_rw [set.mem_union_eq, set.mem_set_of_eq],
-    exact le_iff_lt_or_eq, },
-  rw [h_union, integral_union _ (measurable_set_lt hf measurable_const)
-    (measurable_set_eq_fun hf measurable_const) hfi.integrable_on hfi.integrable_on],
-  { rw ← add_zero (∫ (x : α) in {x : α | f x < 0}, f x ∂μ),  -- nth_rewrite times out
-    congr,
-    { rw add_zero, },
-    { refine (integral_eq_zero_of_ae _).symm,
-      rw [eventually_eq, ae_restrict_iff (measurable_set_eq_fun hf measurable_zero)],
-      refine eventually_of_forall (λ x hx, _),
-      simpa using hx, }, },
-  { intros x hx,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, set.inf_eq_inter] at hx,
-    exact absurd hx.2 hx.1.ne, },
+    by { ext, simp_rw [set.mem_union_eq, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
+  rw h_union,
+  exact (set_integral_union_eq_left hf hfi (measurable_set_lt hf measurable_const)
+    (measurable_set_eq_fun hf measurable_const) (λ x hx, hx)).symm,
 end
 
 lemma integral_norm_eq_pos_sub_neg {f : α → ℝ} (hf : measurable f) (hfi : integrable f μ) :
   ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 have h_meas : measurable_set {x | 0 ≤ f x}, from measurable_set_le measurable_const hf,
-calc ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, ∥f x∥ ∂μ
-      + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
+calc ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, ∥f x∥ ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
   by rw ← integral_add_compl h_meas hfi.norm
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
 begin
@@ -134,12 +168,7 @@ begin
   linarith,
 end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :
-begin
-  rw ← set_integral_neg_eq_set_integral_nonpos hf hfi,
-  congr,
-  ext1 x,
-  simp,
-end
+by { rw ← set_integral_neg_eq_set_integral_nonpos hf hfi, congr, ext1 x, simp, }
 
 /-- For a function `f` and a measurable set `s`, the integral of `indicator s f`
 over the whole space is equal to `∫ x in s, f x ∂μ` defined as `∫ x, f x ∂(μ.restrict s)`. -/

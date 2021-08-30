@@ -1354,7 +1354,8 @@ namespace quotient
 when `p` is a submodule of `M`. -/
 def mk {p : submodule R M} : M → quotient p := quotient.mk'
 
-@[simp] theorem mk_eq_mk {p : submodule R M} (x : M) : (quotient.mk x : quotient p) = mk x := rfl
+@[simp] theorem mk_eq_mk {p : submodule R M} (x : M) :
+  (@_root_.quotient.mk _ (quotient_rel p) x) = mk x := rfl
 @[simp] theorem mk'_eq_mk {p : submodule R M} (x : M) : (quotient.mk' x : quotient p) = mk x := rfl
 @[simp] theorem quot_mk_eq_mk {p : submodule R M} (x : M) : (quot.mk _ x : quotient p) = mk x := rfl
 
@@ -1937,7 +1938,6 @@ def map_subtype.order_embedding :
 
 @[simp] lemma map_subtype_embedding_eq (p' : submodule R p) :
   map_subtype.order_embedding p p' = map p.subtype p' := rfl
-
 
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
 def mkq : M →ₗ[R] p.quotient :=

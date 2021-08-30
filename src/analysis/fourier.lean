@@ -251,7 +251,15 @@ def auto_descend' : Schwarz → (real.angle' → ℂ )  :=
 begin
   intros a b hab,
   cases hab with n hn,
-  sorry, -- ALEX HOMEWORK
+  rw automorphic_point_pair_invariant',
+  simp,
+  simp at hn,
+  have : b = a+n,
+  { rw hn,
+    ring, },
+  rw this,
+  --- ????? How to change variables???
+  sorry,
 
 --  dsimp [quotient_add_group.left_rel] at hab,
 end
@@ -297,7 +305,7 @@ begin
 --  rw auto_descend',
 --  simp,
 
-
+  sorry,
 end
 
 theorem Poisson_summation (f : Schwarz) : ∑' (n:ℤ), f n = ∑' (m:ℤ), (Fourier_transform f) m :=

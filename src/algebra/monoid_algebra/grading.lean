@@ -23,17 +23,18 @@ In this file, we show that an `add_monoid_algebra` has an internal direct sum st
 noncomputable theory
 
 namespace add_monoid_algebra
-
 variables {ι : Type*} {R : Type*}
-variables [decidable_eq ι] [add_monoid ι] [comm_semiring R]
 
+section
 variables (R)
 
 /-- The submodule corresponding to each grade. -/
-abbreviation grade (i : ι) : submodule R (add_monoid_algebra R ι) :=
+abbreviation grade [comm_semiring R] (i : ι) : submodule R (add_monoid_algebra R ι) :=
 (finsupp.lsingle i).range
 
-variables {R}
+end
+
+variables {R} [decidable_eq ι] [add_monoid ι] [comm_semiring R]
 
 open_locale direct_sum
 

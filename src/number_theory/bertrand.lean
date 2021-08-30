@@ -10,7 +10,7 @@ import data.nat.multiplicity
 import data.nat.choose.sum
 import number_theory.padics.padic_norm
 import data.complex.exponential_bounds
-import tactic
+-- import tactic
 import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial
@@ -328,9 +328,12 @@ begin
         ... = a ^ 2 : (sq _).symm, },
 end
 
-lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop} [_inst : decidable_pred f][_inst : decidable_pred g] : ((S.filter g).filter f).card ≤ (S.filter f).card :=
+lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop}
+[_inst : decidable_pred f][_inst : decidable_pred g]
+: ((S.filter g).filter f).card ≤ (S.filter f).card :=
 begin
-  calc ((S.filter g).filter f).card = (S.filter (λ i, g i ∧ f i)).card: congr_arg finset.card interchange_filters
+  calc ((S.filter g).filter f).card = (S.filter (λ i, g i ∧ f i)).card
+            : congr_arg finset.card interchange_filters
   ... = (S.filter (λ i, f i ∧ g i)).card: congr_arg finset.card interchange_and_in_filter
   ... = ((S.filter f).filter g).card: congr_arg finset.card interchange_filters.symm
   ... ≤ (S.filter f).card: (finset.filter f S).card_filter_le g,
@@ -345,7 +348,9 @@ by simpa only [finset.card_range] using s
 lemma even_prime_is_two {p : ℕ} (pr: nat.prime p) (div: 2 ∣ p) : p = 2 :=
 ((nat.prime_dvd_prime_iff_eq nat.prime_two pr).mp div).symm
 
-lemma even_prime_is_small {a n : ℕ} (a_prime : nat.prime a) (n_big : 2 < n) (small : a ^ 2 ≤ 2 * n): a ^ 2 < 2 * n :=
+lemma even_prime_is_small {a n : ℕ} (a_prime : nat.prime a) (n_big : 2 < n)
+(small : a ^ 2 ≤ 2 * n)
+: a ^ 2 < 2 * n :=
 begin
   cases lt_or_ge (a ^ 2) (2 * n),
   { exact h, },
@@ -426,7 +431,8 @@ open set
 
 noncomputable def fff (x : ℝ) := x * log 4 - sqrt (8 * x + 8) * log (8 * x + 8)
 
-noncomputable def fff' (x : ℝ) := log 4 - (((8 / (2 * (sqrt (8 * x + 8)))) * log (8 * x + 8)) + (sqrt (8 * x + 8) * (8 / (8 * x + 8))))
+noncomputable def fff' (x : ℝ) := log 4 - (((8 / (2 * (sqrt (8 * x + 8)))) * log (8 * x + 8))
++ (sqrt (8 * x + 8) * (8 / (8 * x + 8))))
 
 lemma derivative_fff {x : ℝ} (h : 0 < x) : has_deriv_at (λ x, fff x) (fff' x) x :=
 begin
@@ -1139,7 +1145,8 @@ begin
         exfalso,
         exact lt_irrefl _ r, }, },
   have rem_small : (n % 4) < 4 := nat.mod_lt n (nat.succ_pos 3),
-  calc (2 * n) ^ nat.sqrt (2 * n) = (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (2 * (4 * (n / 4) + (n % 4))) : by rw nat.div_add_mod n 4
+  calc (2 * n) ^ nat.sqrt (2 * n) = (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (2 * (4 * (n / 4)
+                                    + (n % 4))) : by rw nat.div_add_mod n 4
   ... ≤ (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (8 * (n / 4) + 8) :
               begin
                 apply pow_le_pow,

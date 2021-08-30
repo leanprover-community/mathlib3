@@ -186,6 +186,27 @@ end
 
 end decidable_eq
 
+lemma submodule.mul_eq_span_mul_set {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  (s t : submodule R A) : s * t = span R ((s : set A) * (t : set A)) :=
+by rw [← span_mul_span, span_eq, span_eq]
+
+lemma submodule.supr_mul_right {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
+begin
+  conv_rhs { simp only [submodule.mul_eq_span_mul_set], },
+  rw [← (submodule.gi R A).gc.l_supr, set.supr_eq_Union, ← set.Union_mul_right, ← set.supr_eq_Union,
+    ← span_eq (span R ((⨆ (i : ι), ↑(s i)) * ↑t)), ← submodule.span_mul_span, span_eq, span_eq,
+    ← (submodule.gi R A).l_supr_u],
+end
+
+lemma submodule.supr_mul_left {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  (s : ι → submodule R A) (t : submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
+begin
+  conv_rhs { simp only [submodule.mul_eq_span_mul_set], },
+  rw [← (submodule.gi R A).gc.l_supr, set.supr_eq_Union, ← set.Union_mul_left, ← set.supr_eq_Union,
+    ← span_eq (span R (↑t * (⨆ (i : ι), ↑(s i)))), ← submodule.span_mul_span, span_eq, span_eq,
+    ← (submodule.gi R A).l_supr_u],
+end
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
   ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=
 submodule.mem_span_mul_finite_of_mem_span_mul

@@ -232,7 +232,6 @@ def solvable_by_rad : intermediate_field F E :=
   one_mem' := by { convert is_solvable_by_rad.base (1 : F), rw ring_hom.map_one },
   mul_mem' := is_solvable_by_rad.mul,
   inv_mem' := is_solvable_by_rad.inv,
-  mul_comm' := λ _ _ _ _, mul_comm _ _,
   algebra_map_mem' := is_solvable_by_rad.base }
 
 namespace solvable_by_rad

@@ -659,7 +659,6 @@ def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : zorn.chai
   { rintros _ _ ⟨x, hx, ha⟩ ⟨y, hy, hb⟩,
     obtain ⟨z, hz, hxz, hyz⟩ := lifts.exists_max_two hc hx hy,
     exact ⟨z, hz, z.1.mul_mem (hxz.1 ha) (hyz.1 hb)⟩ },
-  mul_comm' := λ _ _ _ _, mul_comm _ _,
   algebra_map_mem' := λ s, ⟨⊥, set.mem_insert ⊥ c, algebra_map_mem ⊥ s⟩ }
 
 /-- The lift on the upper bound on a chain of lifts -/

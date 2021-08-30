@@ -171,7 +171,6 @@ def fixed_field : intermediate_field F E :=
   one_mem' := λ g, smul_one g,
   mul_mem' := λ a b hx hy g, by rw [smul_mul' g a b, hx, hy],
   inv_mem' := λ a hx g, by rw [smul_inv' _ g a, hx],
-  mul_comm' := λ _ _ _ _, mul_comm _ _,
   algebra_map_mem' := λ a g, commutes g a }
 
 lemma finrank_fixed_field_eq_card [finite_dimensional F E] :

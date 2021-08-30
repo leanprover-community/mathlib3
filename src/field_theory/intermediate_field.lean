@@ -79,8 +79,8 @@ set_like.ext h
 @[simp] lemma coe_to_subfield : (S.to_subfield : set L) = S := rfl
 
 @[simp] lemma mem_mk (s : set L) (hK : ∀ x, algebra_map K L x ∈ s)
-  (ho hm hz ha hn hi hc) (x : L) :
-  x ∈ intermediate_field.mk s ho hm hz ha hK hn hi hc ↔ x ∈ s := iff.rfl
+  (ho hm hz ha hn hi) (x : L) :
+  x ∈ intermediate_field.mk s ho hm hz ha hK hn hi ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl
@@ -160,7 +160,7 @@ variables [field K] [field L] [algebra K L] (S : intermediate_field K L)
 /-- An alternative constructor for intermediate fields in field extensions,
 that takes a subalgebra and a proof that it is closed under multiplicative inverses. -/
 def mk' (S : subalgebra K L) (hi : ∀ x ∈ S, x ⁻¹ ∈ S) : intermediate_field K L :=
-{ .. subfield.mk' S.to_subring hi, .. S }
+{ .. S.to_subring.to_subfield hi, .. S }
 
 /-- Product of a multiset of elements in an intermediate field is in the intermediate_field. -/
 lemma multiset_prod_mem (m : multiset L) :
@@ -186,7 +186,6 @@ def subalgebra.to_intermediate_field (S : subalgebra K L) (inv_mem : ∀ x ∈ S
   intermediate_field K L :=
 { neg_mem' := λ x, S.neg_mem,
   inv_mem' := inv_mem,
-  mul_comm' := λ x y hx hy, mul_comm _ _,
   .. S }
 
 @[simp] lemma to_subalgebra_to_intermediate_field
@@ -215,9 +214,11 @@ section division_ring
 
 variables [field K] [division_ring L] [algebra K L] (S : intermediate_field K L)
 
+
 /-- An intermediate field inherits a field structure -/
-instance to_field : field S :=
-S.to_subfield.to_field
+instance to_division_ring : division_ring S :=
+S.to_subfield.to_division_ring
+
 
 @[simp, norm_cast] lemma coe_add (x y : S) : (↑(x + y) : L) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : S) : (↑(-x) : L) = -↑x := rfl
@@ -241,6 +242,10 @@ section field
 
 variables {R : Type*} [field K] [field L] [semiring R] [algebra K L] [algebra L R]
 variables (S : intermediate_field K L)
+
+/-- An intermediate field inherits a field structure -/
+instance to_field : field S :=
+S.to_subfield.to_field
 
 instance to_algebra : algebra S R :=
 S.to_subalgebra.to_algebra
@@ -314,7 +319,6 @@ def lift2 {F : intermediate_field K L} (E : intermediate_field F L) : intermedia
   one_mem' := one_mem E,
   mul_mem' := λ x y, mul_mem E,
   inv_mem' := λ x, inv_mem E,
-  mul_comm' := λ x y hx hy, mul_comm _ _,
   algebra_map_mem' := λ x, algebra_map_mem E (algebra_map K F x) }
 
 instance has_lift1 {F : intermediate_field K L} :

@@ -1664,7 +1664,7 @@ ideal.quotient.lift (ideal.map (ideal.quotient.mk I) J) (quot_left_to_quot_sup I
   (ker_quot_left_to_quot_sup I J).symm.le
 
 /-- define `double_quot_mk` to be the composite of the maps `R → (R/I) and (R/I) → (R/I)/J'` -/
-def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient:=
+def double_quot_mk : R →+* (J.map I^.quotient.mk).quotient :=
 ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
 
 -- Another short result for lifting map `ring_to_double_quot` to a map `R/(I ⊔ J) → (R/I)/J'`

@@ -599,8 +599,7 @@ ideal.quotient.lift S (T^.quotient.mk) (λ x hx, eq_zero_iff_mem.2 (H hx))
 @[simp] lemma factor_mk (S T : ideal α) (H : S ≤ T) (x : α) :
   factor S T H (mk S x) = mk T x := rfl
 
-lemma factor_comp_mk (S T : ideal α) (H : S ≤ T) :
-  ring_hom.comp (factor S T H) (mk S) = mk T :=
+@[simp] lemma factor_comp_mk (S T : ideal α) (H : S ≤ T) : (factor S T H).comp (mk S) = mk T :=
 ring_hom.ext factor_mk
 
 end quotient

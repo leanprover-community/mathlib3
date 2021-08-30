@@ -1015,10 +1015,10 @@ def center : subgroup G :=
   .. submonoid.center G }
 
 @[to_additive]
-lemma coe_center : ↑(center M) = set.center M := rfl
+lemma coe_center : ↑(center G) = set.center G := rfl
 
 @[simp, to_additive]
-lemma center_to_submonoid : (center M).to_submonoid = submonoid.center M := rfl
+lemma center_to_submonoid : (center G).to_submonoid = submonoid.center G := rfl
 
 variable {G}
 

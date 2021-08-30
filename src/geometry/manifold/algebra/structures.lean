@@ -22,7 +22,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 set_option old_structure_cmd true
 set_option default_priority 100 -- see Note [default priority]
 
-/-- A smooth semiring is a semiring where addition and multiplication are smooth. -/
+/-- A smooth (semi)ring is a (semi)ring `R` where addition and multiplication are smooth.
+If `R` is a ring, then negation is automatically smooth, as it is multiplication with `-1`. -/
 -- See note [Design choices about smooth algebraic structures]
 class smooth_ring (I : model_with_corners 𝕜 E H)
   (R : Type*) [semiring R] [topological_space R] [charted_space H R]
@@ -53,7 +54,7 @@ variables {𝕜 R E H : Type*} [topological_space R] [topological_space H]
   [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
   [charted_space H R] (I : model_with_corners 𝕜 E H)
 
-/-- A smooth semiring is a topological semiring. This is not an instance for technical reasons,
+/-- A smooth (semi)ring is a topological (semi)ring. This is not an instance for technical reasons,
 see note [Design choices about smooth algebraic structures]. -/
 lemma topological_ring_of_smooth [semiring R] [smooth_ring I R] :
   topological_ring R :=

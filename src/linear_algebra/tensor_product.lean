@@ -878,7 +878,7 @@ def tensor_tensor_tensor_comm : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] (M �
 let e₁ := tensor_product.assoc R M N (P ⊗[R] Q),
     e₂ := congr (1 : M ≃ₗ[R] M) (left_comm R N P Q),
     e₃ := (tensor_product.assoc R M P (N ⊗[R] Q)).symm in
-e₁ ≫ₗ (e₂ ≫ₗ e₃)
+e₁ ≪≫ₗ (e₂ ≪≫ₗ e₃)
 
 variables {M N P Q}
 

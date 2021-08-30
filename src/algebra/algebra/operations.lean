@@ -195,7 +195,7 @@ lemma supr_mul {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 begin
   suffices : (⨆ i, span R (s i : set A)) * span R t = (⨆ i, span R (s i) * span R t),
   { simpa only [span_eq] using this },
-  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul_right],
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul],
 end
 
 lemma mul_supr_mul {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
@@ -203,7 +203,7 @@ lemma mul_supr_mul {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 begin
   suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),
   { simpa only [span_eq] using this },
-  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul_left],
+  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.mul_Union],
 end
 
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :

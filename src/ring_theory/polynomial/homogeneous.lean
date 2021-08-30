@@ -7,7 +7,7 @@ Authors: Johan Commelin
 import data.mv_polynomial
 import algebra.algebra.operations
 import data.fintype.card
-import algebra.direct_sum.ring
+import algebra.direct_sum.algebra
 
 /-!
 # Homogeneous polynomials
@@ -33,7 +33,7 @@ variables {σ : Type*} {τ : Type*} {R : Type*} {S : Type*}
 /-
 TODO
 * create definition for `∑ i in d.support, d i`
-* define graded rings, and show that mv_polynomial is an example
+* show that `mv_polynomial σ R ≃ₐ[R] ⨁ i, homogeneous_submodule σ R i`
 -/
 
 /-- A multivariate polynomial `φ` is homogeneous of degree `n`
@@ -207,8 +207,8 @@ begin
 end
 
 /--
-The homogeneous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`.
--/
+The homogeneous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`
+and `direct_sum.algebra`. -/
 noncomputable instance homogeneous_submodule.gcomm_monoid :
   direct_sum.gcomm_monoid (λ i, homogeneous_submodule σ R i) :=
 direct_sum.gcomm_monoid.of_submodules _
@@ -217,6 +217,7 @@ direct_sum.gcomm_monoid.of_submodules _
 
 open_locale direct_sum
 noncomputable example : comm_semiring (⨁ i, homogeneous_submodule σ R i) := infer_instance
+noncomputable example : algebra R (⨁ i, homogeneous_submodule σ R i) := infer_instance
 
 end is_homogeneous
 

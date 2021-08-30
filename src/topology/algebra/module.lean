@@ -32,13 +32,13 @@ section
 
 variables {R : Type*} {M : Type*}
 [ring R] [topological_space R]
-[topological_space M] [add_comm_group M]
+[topological_space M] [add_comm_group M] [has_continuous_add M]
 [module R M] [has_continuous_smul R M]
 
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior.
 This is the case, e.g., if `R` is a nondiscrete normed field. -/
-lemma submodule.eq_top_of_nonempty_interior' [has_continuous_add M]
+lemma submodule.eq_top_of_nonempty_interior'
   [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
   s = ⊤ :=
@@ -50,10 +50,34 @@ begin
     from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
       tendsto_const_nhds),
   rw [zero_smul, add_zero] at this,
-  rcases nonempty_of_mem_sets (inter_mem_sets (mem_map.1 (this hy)) self_mem_nhds_within)
+  rcases nonempty_of_mem (inter_mem (mem_map.1 (this hy)) self_mem_nhds_within)
     with ⟨_, hu, u, rfl⟩,
   have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
   exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
+end
+
+variables (R M)
+
+/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
+normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
+such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
+using `ne_bot (𝓝[{x}ᶜ] x)`.
+
+This lemma is not an instance because Lean would need to find `[has_continuous_smul ?m_1 M]` with
+unknown `?m_1`. We register this as an instance for `R = ℝ` in `real.punctured_nhds_module_ne_bot`.
+One can also use `haveI := module.punctured_nhds_ne_bot R M` in a proof.
+-/
+lemma module.punctured_nhds_ne_bot [nontrivial M] [ne_bot (𝓝[{0}ᶜ] (0 : R))]
+  [no_zero_smul_divisors R M] (x : M) :
+  ne_bot (𝓝[{x}ᶜ] x) :=
+begin
+  rcases exists_ne (0 : M) with ⟨y, hy⟩,
+  suffices : tendsto (λ c : R, x + c • y) (𝓝[{0}ᶜ] 0) (𝓝[{x}ᶜ] x), from this.ne_bot,
+  refine tendsto.inf _ (tendsto_principal_principal.2 $ _),
+  { convert tendsto_const_nhds.add ((@tendsto_id R _).smul_const y),
+    rw [zero_smul, add_zero] },
+  { intros c hc,
+    simpa [hy] using hc }
 end
 
 end
@@ -137,7 +161,7 @@ structure continuous_linear_map
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [module R M] [module R M₂]
-  extends linear_map R M M₂ :=
+  extends M →ₗ[R] M₂ :=
 (cont : continuous to_fun . tactic.interactive.continuity')
 
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
@@ -151,7 +175,7 @@ structure continuous_linear_equiv
   (M : Type*) [topological_space M] [add_comm_monoid M]
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [module R M] [module R M₂]
-  extends linear_equiv R M M₂ :=
+  extends M ≃ₗ[R] M₂ :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
 (continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
@@ -195,7 +219,7 @@ by { intros f g H, cases f, cases g, congr' }
   (f : M →ₗ[R] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem coe_fn_injective : @function.injective (M →L[R] M₂) (M → M₂) coe_fn :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
@@ -247,8 +271,22 @@ contained in the `topological_closure` of its image. -/
 lemma _root_.submodule.topological_closure_map [topological_space R] [has_continuous_smul R M]
   [has_continuous_add M] [has_continuous_smul R M₂] [has_continuous_add M₂] (f : M →L[R] M₂)
   (s : submodule R M) :
-  (s.topological_closure.map f.to_linear_map) ≤ (s.map f.to_linear_map).topological_closure :=
+  (s.topological_closure.map ↑f) ≤ (s.map (f : M →ₗ[R] M₂)).topological_closure :=
 image_closure_subset_closure_image f.continuous
+
+/-- Under a dense continuous linear map, a submodule whose `topological_closure` is `⊤` is sent to
+another such submodule.  That is, the image of a dense set under a map with dense range is dense.
+-/
+lemma _root_.dense_range.topological_closure_map_submodule [topological_space R]
+  [has_continuous_smul R M] [has_continuous_add M] [has_continuous_smul R M₂]
+  [has_continuous_add M₂] {f : M →L[R] M₂} (hf' : dense_range f) {s : submodule R M}
+  (hs : s.topological_closure = ⊤) :
+  (s.map (f : M →ₗ[R] M₂)).topological_closure = ⊤ :=
+begin
+  rw set_like.ext'_iff at hs ⊢,
+  simp only [submodule.topological_closure_coe, submodule.top_coe, ← dense_iff_closure_eq] at hs ⊢,
+  exact hf'.dense_image f.continuous hs
+end
 
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_zero⟩⟩
@@ -758,10 +796,10 @@ end ring
 
 section smul
 
-variables {R S : Type*} [ring R] [ring S] [topological_space S]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M]
-  {M₂ : Type*} [topological_space M₂] [add_comm_group M₂] [module R M₂]
-  {M₃ : Type*} [topological_space M₃] [add_comm_group M₃] [module R M₃]
+variables {R S : Type*} [semiring R] [semiring S] [topological_space S]
+  {M : Type*} [topological_space M] [add_comm_monoid M] [module R M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] [module R M₃]
   [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
 
 instance : has_scalar S (M →L[R] M₃) :=
@@ -1174,7 +1212,7 @@ def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄)
   continuous_inv_fun := (e.continuous_inv_fun.comp continuous_fst).prod_mk
     (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
       e.continuous_inv_fun.comp continuous_fst),
-.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
+.. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f }
 @[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
   e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
 

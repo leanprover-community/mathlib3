@@ -3,12 +3,11 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis, Heather Macbeth
 -/
-
+import analysis.complex.basic
+import analysis.normed_space.bounded_linear_maps
+import analysis.special_functions.sqrt
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
-import data.complex.is_R_or_C
-import analysis.special_functions.sqrt
-import analysis.complex.basic
 
 /-!
 # Inner Product Space
@@ -693,8 +692,8 @@ begin
     { intros i,
       have h' : ∥v i∥ ^ 2 = 1 ^ 2 := by simp [norm_sq_eq_inner, h i i],
       have h₁ : 0 ≤ ∥v i∥ := norm_nonneg _,
-      have h₂ : (0:ℝ) ≤ 1 := by norm_num,
-      rwa eq_of_sq_eq_sq h₁ h₂ at h' },
+      have h₂ : (0:ℝ) ≤ 1 := zero_le_one,
+      rwa sq_eq_sq h₁ h₂ at h' },
     { intros i j hij,
       simpa [hij] using h i j } }
 end
@@ -932,6 +931,9 @@ begin
   exact inner_mul_inner_self_le _ _
 end
 
+lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
+(is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
+
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_real_inner_le_norm (x y : F) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 by { have h := @abs_inner_le_norm ℝ F _ _ x y, simpa using h }
@@ -1083,6 +1085,14 @@ begin
     linarith },
   { intro h,
     linarith }
+end
+
+/-- Given two orthogonal vectors, their sum and difference have equal norms. -/
+lemma norm_sub_eq_norm_add {v w : E} (h : ⟪v, w⟫ = 0) : ∥w - v∥ = ∥w + v∥ :=
+begin
+  rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _),
+  simp [h, ←inner_self_eq_norm_sq, inner_add_left, inner_add_right, inner_sub_left,
+    inner_sub_right, inner_re_symm]
 end
 
 /-- The real inner product of two vectors, divided by the product of their
@@ -1374,7 +1384,7 @@ linear_map.mk_continuous
     map_add' := λ x y, inner_add_right,
     map_smul' := λ c x, inner_smul_right }
   ∥v∥
-  (by simpa [is_R_or_C.norm_eq_abs] using abs_inner_le_norm v)
+  (by simpa using norm_inner_le_norm v)
 
 @[simp] lemma inner_right_coe (v : E) : (inner_right v : E → 𝕜) = λ w, ⟪v, w⟫ := rfl
 
@@ -1418,18 +1428,14 @@ end
 /-- The sum defined in Bessel's inequality is summable. -/
 lemma orthonormal.inner_products_summable (hv : orthonormal 𝕜 v) : summable (λ i, ∥⟪v i, x⟫∥ ^ 2) :=
 begin
-  by_cases hnon : nonempty ι,
-  { use Sup (set.range (λ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2)),
-    apply has_sum_of_is_lub_of_nonneg,
-    { intro b,
-      simp only [norm_nonneg, pow_nonneg], },
-    { refine is_lub_cSup (set.range_nonempty _) _,
-      use ∥x∥ ^ 2,
-      rintro y ⟨s, rfl⟩,
-      exact hv.sum_inner_products_le x, }, },
-  { rw not_nonempty_iff at hnon,
-    haveI := hnon,
-    exact summable_empty, },
+  use ⨆ s : finset ι, ∑ i in s, ∥⟪v i, x⟫∥ ^ 2,
+  apply has_sum_of_is_lub_of_nonneg,
+  { intro b,
+    simp only [norm_nonneg, pow_nonneg], },
+  { refine is_lub_csupr _,
+    use ∥x∥ ^ 2,
+    rintro y ⟨s, rfl⟩,
+    exact hv.sum_inner_products_le x }
 end
 
 end bessels_inequality
@@ -1492,6 +1498,10 @@ variable {E}
 lemma real_inner_eq_re_inner (x y : E) :
   @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x y = re ⟪x, y⟫ := rfl
 
+lemma real_inner_I_smul_self (x : E) :
+  @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜 E) x ((I : 𝕜) • x) = 0 :=
+by simp [real_inner_eq_re_inner, inner_smul_right]
+
 omit 𝕜
 
 /-- A complex inner product implies a real inner product -/
@@ -1523,7 +1533,7 @@ lemma is_bounded_bilinear_map_inner : is_bounded_bilinear_map ℝ (λ p : E × E
   smul_right := λ r x y,
     by simp only [← algebra_map_smul 𝕜 r y, algebra_map_eq_of_real, inner_smul_real_right],
   bound := ⟨1, zero_lt_one, λ x y,
-    by { rw [one_mul, is_R_or_C.norm_eq_abs], exact abs_inner_le_norm x y, }⟩ }
+    by { rw [one_mul], exact norm_inner_le_norm x y, }⟩ }
 
 /-- Derivative of the inner product. -/
 def fderiv_inner_clm (p : E × E) : E × E →L[ℝ] 𝕜 := is_bounded_bilinear_map_inner.deriv p
@@ -1852,7 +1862,7 @@ begin
         repeat {exact le_of_lt one_half_pos},
         exact add_halves 1 },
     have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-    {  mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
+    { mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
     have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),
@@ -2253,6 +2263,49 @@ by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
 
 end orthogonal_projection
 
+section reflection
+variables {𝕜} (K) [complete_space K]
+
+/-- Reflection in a complete subspace of an inner product space.  The word "reflection" is
+sometimes understood to mean specifically reflection in a codimension-one subspace, and sometimes
+more generally to cover operations such as reflection in a point.  The definition here, of
+reflection in a subspace, is a more general sense of the word that includes both those common
+cases. -/
+def reflection : E ≃ₗᵢ[𝕜] E :=
+{ norm_map' := begin
+    intros x,
+    let w : K := orthogonal_projection K x,
+    let v := x - w,
+    have : ⟪v, w⟫ = 0 := orthogonal_projection_inner_eq_zero x w w.2,
+    convert norm_sub_eq_norm_add this using 2,
+    { simp [bit0],
+      dsimp [w, v],
+      abel },
+    { simp [bit0] }
+  end,
+  ..linear_equiv.of_involutive
+      (bit0 (K.subtype.comp (orthogonal_projection K).to_linear_map) - linear_map.id)
+      (λ x, by simp [bit0]) }
+
+variables {K}
+
+/-- The result of reflecting. -/
+lemma reflection_apply (p : E) : reflection K p = bit0 ↑(orthogonal_projection K p) - p := rfl
+
+/-- Reflection is its own inverse. -/
+@[simp] lemma reflection_symm : (reflection K).symm = reflection K := rfl
+
+variables (K)
+
+/-- Reflecting twice in the same subspace. -/
+@[simp] lemma reflection_reflection (p : E) : reflection K (reflection K p) = p :=
+(reflection K).left_inv p
+
+/-- Reflection is involutive. -/
+lemma reflection_involutive : function.involutive (reflection K) := reflection_reflection K
+
+end reflection
+
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal : submodule 𝕜 E :=
 { carrier := {v | ∀ u ∈ K, ⟪u, v⟫ = 0},
@@ -2584,7 +2637,7 @@ lemma submodule.finrank_add_finrank_orthogonal' [finite_dimensional 𝕜 E] {K :
   finrank 𝕜 Kᗮ = n :=
 by { rw ← add_right_inj (finrank 𝕜 K), simp [submodule.finrank_add_finrank_orthogonal, h_dim] }
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 
 /-- In a finite-dimensional inner product space, the dimension of the orthogonal complement of the
 span of a nonzero vector is one less than the dimension of the space. -/

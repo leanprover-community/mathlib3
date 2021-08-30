@@ -29,6 +29,10 @@ Appropriate definitions and results are also transported to the additive theory 
   `(λ h, h * g) ⁻¹' s`, `(λ h, g * h) ⁻¹' s`, `(λ h, h * g⁻¹) ⁻¹' s`, `(λ h, g⁻¹ * h) ⁻¹' s`,
   `s * t`, `s⁻¹`, `(1 : set _)` (and similarly for additive variants).
   Expressions equal to one of these will be simplified.
+* We put all instances in the locale `pointwise`, so that these instances are not available by
+  default. Note that we do not mark them as reducible (as argued by note [reducible non-instances])
+  since we expect the locale to be open whenever the instances are actually used (and making the
+  instances reducible changes the behavior of `simp`).
 
 ## Tags
 
@@ -42,8 +46,13 @@ open function
 variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : set α} {a b : α} {x y : β}
 
 /-! ### Properties about 1 -/
-@[to_additive]
-instance [has_one α] : has_one (set α) := ⟨{1}⟩
+
+/-- The set `(1 : set α)` is defined as `{1}` in locale `pointwise`. -/
+@[to_additive
+/-"The set `(0 : set α)` is defined as `{0}` in locale `pointwise`. "-/]
+protected def has_one [has_one α] : has_one (set α) := ⟨{1}⟩
+
+localized "attribute [instance] set.has_one set.has_zero" in pointwise
 
 @[to_additive]
 lemma singleton_one [has_one α] : ({1} : set α) = 1 := rfl
@@ -65,8 +74,12 @@ theorem image_one [has_one α] {f : α → β} : f '' 1 = {f 1} := image_singlet
 
 /-! ### Properties about multiplication -/
 
-@[to_additive]
-instance [has_mul α] : has_mul (set α) := ⟨image2 has_mul.mul⟩
+/-- The set `(s * t : set α)` is defined as `{x * y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
+@[to_additive
+/-" The set `(s + t : set α)` is defined as `{x + y | x ∈ s, y ∈ t}` in locale `pointwise`."-/]
+protected def has_mul [has_mul α] : has_mul (set α) := ⟨image2 has_mul.mul⟩
+
+localized "attribute [instance] set.has_mul set.has_add" in pointwise
 
 @[simp, to_additive]
 lemma image2_mul [has_mul α] : image2 has_mul.mul s t = s * t := rfl
@@ -125,21 +138,36 @@ lemma singleton_mul [has_mul α] : {a} * t = (λ b, a * b) '' t := image2_single
 @[simp, to_additive]
 lemma singleton_mul_singleton [has_mul α] : ({a} : set α) * {b} = {a * b} := image2_singleton
 
-@[to_additive set.add_zero_class]
-instance [mul_one_class α] : mul_one_class (set α) :=
+@[to_additive]
+protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=
+by simp only [← image2_mul, image2_swap _ s, mul_comm]
+
+/-- `set α` is a `mul_one_class` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_zero_class` under pointwise operations if `α` is."-/]
+protected def mul_one_class [mul_one_class α] : mul_one_class (set α) :=
 { mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
   one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
   ..set.has_one, ..set.has_mul }
 
-@[to_additive set.add_semigroup]
-instance [semigroup α] : semigroup (set α) :=
+/-- `set α` is a `semigroup` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_semigroup` under pointwise operations if `α` is. "-/]
+protected def semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
-@[to_additive set.add_monoid]
-instance [monoid α] : monoid (set α) :=
+/-- `set α` is a `monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_monoid` under pointwise operations if `α` is. "-/]
+protected def monoid [monoid α] : monoid (set α) :=
 { ..set.semigroup,
   ..set.mul_one_class }
+
+/-- `set α` is a `comm_monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
+protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
+{ mul_comm := λ _ _, set.mul_comm, ..set.monoid }
+
+localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup
+  set.monoid set.add_monoid set.comm_monoid set.add_comm_monoid" in pointwise
 
 lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
   a ^ n ∈ s ^ n :=
@@ -151,17 +179,13 @@ begin
     exact set.mul_mem_mul ha ih },
 end
 
-@[to_additive]
-protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=
-by simp only [← image2_mul, image2_swap _ s, mul_comm]
-
-@[to_additive set.add_comm_monoid]
-instance [comm_monoid α] : comm_monoid (set α) :=
-{ mul_comm := λ _ _, set.mul_comm, ..set.monoid }
-
-@[to_additive]
-lemma singleton.is_mul_hom [has_mul α] : is_mul_hom (singleton : α → set α) :=
-{ map_mul := λ a b, singleton_mul_singleton.symm }
+/-- Under `[has_mul M]`, the `singleton` map from `M` to `set M` as a `mul_hom`, that is, a map
+which preserves multiplication. -/
+@[to_additive "Under `[has_add A]`, the `singleton` map from `A` to `set A` as an `add_hom`,
+that is, a map which preserves addition.", simps]
+def singleton_mul_hom [has_mul α] : mul_hom α (set α) :=
+{ to_fun := singleton,
+  map_mul' := λ a b, singleton_mul_singleton.symm }
 
 @[simp, to_additive]
 lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
@@ -308,9 +332,29 @@ end
 end big_operators
 
 /-! ### Properties about inversion -/
-@[to_additive set.has_neg]
-instance [has_inv α] : has_inv (set α) :=
+
+/-- The set `(s⁻¹ : set α)` is defined as `{x | x⁻¹ ∈ s}` in locale `pointwise`.
+It is equal to `{x⁻¹ | x ∈ s}`, see `set.image_inv`. -/
+@[to_additive
+/-" The set `(-s : set α)` is defined as `{x | -x ∈ s}` in locale `pointwise`.
+It is equal to `{-x | x ∈ s}`, see `set.image_neg`. "-/]
+protected def has_inv [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
+
+localized "attribute [instance] set.has_inv set.has_neg" in pointwise
+
+@[simp, to_additive]
+lemma inv_empty [has_inv α] : (∅ : set α)⁻¹ = ∅ := rfl
+
+@[simp, to_additive]
+lemma inv_univ [has_inv α] : (univ : set α)⁻¹ = univ := rfl
+
+@[simp, to_additive]
+lemma nonempty_inv [group α] {s : set α} : s⁻¹.nonempty ↔ s.nonempty :=
+inv_involutive.surjective.nonempty_preimage
+
+@[to_additive] lemma nonempty.inv [group α] {s : set α} (h : s.nonempty) : s⁻¹.nonempty :=
+nonempty_inv.2 h
 
 @[simp, to_additive]
 lemma mem_inv [has_inv α] : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
@@ -354,49 +398,105 @@ hs.preimage $ inv_injective.inj_on _
 
 /-! ### Properties about scalar multiplication -/
 
-/-- Scaling a set: multiplying every element by a scalar. -/
-instance has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
+/-- The scaling of a set `(x • s : set β)` by a scalar `x ∶ α` is defined as `{x • y | y ∈ s}`
+in locale `pointwise`. -/
+@[to_additive has_vadd_set "The translation of a set `(x +ᵥ s : set β)` by a scalar `x ∶ α` is
+defined as `{x +ᵥ y | y ∈ s}` in locale `pointwise`."]
+protected def has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
 ⟨λ a, image (has_scalar.smul a)⟩
 
-@[simp]
+/-- The pointwise scalar multiplication `(s • t : set β)` by a set of scalars `s ∶ set α`
+is defined as `{x • y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
+@[to_additive has_vadd "The pointwise translation `(s +ᵥ t : set β)` by a set of constants
+`s ∶ set α` is defined as `{x +ᵥ y | x ∈ s, y ∈ t}` in locale `pointwise`."]
+protected def has_scalar [has_scalar α β] : has_scalar (set α) (set β) :=
+⟨image2 has_scalar.smul⟩
+
+localized "attribute [instance] set.has_scalar_set set.has_scalar" in pointwise
+localized "attribute [instance] set.has_vadd_set set.has_vadd" in pointwise
+
+@[simp, to_additive]
 lemma image_smul [has_scalar α β] {t : set β} : (λ x, a • x) '' t = a • t := rfl
 
+@[to_additive]
 lemma mem_smul_set [has_scalar α β] {t : set β} : x ∈ a • t ↔ ∃ y, y ∈ t ∧ a • y = x := iff.rfl
 
+@[to_additive]
 lemma smul_mem_smul_set [has_scalar α β] {t : set β} (hy : y ∈ t) : a • y ∈ a • t :=
 ⟨y, hy, rfl⟩
 
+@[to_additive]
 lemma smul_set_union [has_scalar α β] {s t : set β} : a • (s ∪ t) = a • s ∪ a • t :=
 by simp only [← image_smul, image_union]
 
-@[simp]
+@[simp, to_additive]
 lemma smul_set_empty [has_scalar α β] (a : α) : a • (∅ : set β) = ∅ :=
 by rw [← image_smul, image_empty]
 
+@[to_additive]
 lemma smul_set_mono [has_scalar α β] {s t : set β} (h : s ⊆ t) : a • s ⊆ a • t :=
 by { simp only [← image_smul, image_subset, h] }
 
-/-- Pointwise scalar multiplication by a set of scalars. -/
-instance [has_scalar α β] : has_scalar (set α) (set β) := ⟨image2 has_scalar.smul⟩
-
-@[simp]
+@[simp, to_additive]
 lemma image2_smul [has_scalar α β] {t : set β} : image2 has_scalar.smul s t = s • t := rfl
 
+@[to_additive]
 lemma mem_smul [has_scalar α β] {t : set β} : x ∈ s • t ↔ ∃ a y, a ∈ s ∧ y ∈ t ∧ a • y = x :=
 iff.rfl
 
+@[to_additive]
 lemma image_smul_prod [has_scalar α β] {t : set β} :
   (λ x : α × β, x.fst • x.snd) '' s.prod t = s • t :=
 image_prod _
 
+@[to_additive]
 theorem range_smul_range [has_scalar α β] {ι κ : Type*} (b : ι → α) (c : κ → β) :
   range b • range c = range (λ p : ι × κ, b p.1 • c p.2) :=
 ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
   ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
 λ ⟨⟨i, j⟩, h⟩, set.mem_smul.2 ⟨b i, c j, ⟨i, rfl⟩, ⟨j, rfl⟩, h⟩⟩
 
+@[simp, to_additive]
 lemma singleton_smul [has_scalar α β] {t : set β} : ({a} : set α) • t = a • t :=
 image2_singleton_left
+
+@[to_additive]
+instance smul_comm_class_set {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class α (set β) (set γ) :=
+{ smul_comm := λ a T T',
+    by simp only [←image2_smul, ←image_smul, image2_image_right, image_image2, smul_comm] }
+
+@[to_additive]
+instance smul_comm_class_set' {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class (set α) β (set γ) :=
+by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
+
+@[to_additive]
+instance smul_comm_class {γ : Type*}
+  [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class (set α) (set β) (set γ) :=
+{ smul_comm := λ T T' T'', begin
+    simp only [←image2_smul, image2_swap _ T],
+    exact image2_assoc (λ b c a, smul_comm a b c),
+  end }
+
+instance is_scalar_tower {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower α β (set γ) :=
+{ smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
+
+instance is_scalar_tower' {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower α (set β) (set γ) :=
+{ smul_assoc := λ a T T',
+    by simp only [←image_smul, ←image2_smul, image_image2, image2_image_left, smul_assoc] }
+
+instance is_scalar_tower'' {γ : Type*}
+  [has_scalar α β] [has_scalar α γ] [has_scalar β γ] [is_scalar_tower α β γ] :
+  is_scalar_tower (set α) (set β) (set γ) :=
+{ smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
 section monoid
 
@@ -443,40 +543,42 @@ instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiri
 
 /-- A multiplicative action of a monoid on a type β gives also a
  multiplicative action on the subsets of β. -/
-instance mul_action_set [monoid α] [mul_action α β] : mul_action α (set β) :=
+protected def mul_action_set [monoid α] [mul_action α β] : mul_action α (set β) :=
 { mul_smul := by { intros, simp only [← image_smul, image_image, ← mul_smul] },
   one_smul := by { intros, simp only [← image_smul, image_eta, one_smul, image_id'] },
   ..set.has_scalar_set }
 
-section is_mul_hom
-open is_mul_hom
+localized "attribute [instance] set.mul_action_set" in pointwise
 
-variables [has_mul α] [has_mul β] (m : α → β) [is_mul_hom m]
+section mul_hom
+
+variables [has_mul α] [has_mul β] (m : mul_hom α β)
 
 @[to_additive]
 lemma image_mul : m '' (s * t) = m '' s * m '' t :=
-by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, map_mul m] }
+by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, m.map_mul] }
 
 @[to_additive]
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
-by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul _ _ _).symm ⟩ }
+by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
 
-end is_mul_hom
+end mul_hom
 
 /-- The image of a set under function is a ring homomorphism
 with respect to the pointwise operations on sets. -/
 def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
 { to_fun := image f,
   map_zero' := image_empty _,
-  map_one' := by simp only [← singleton_one, image_singleton, is_monoid_hom.map_one f],
+  map_one' := by simp only [← singleton_one, image_singleton, f.map_one],
   map_add' := image_union _,
-  map_mul' := λ _ _, image_mul _ }
+  map_mul' := λ _ _, image_mul f.to_mul_hom }
 
 end monoid
 
 end set
 
 open set
+open_locale pointwise
 
 section
 
@@ -488,13 +590,20 @@ lemma zero_smul_set [semiring α] [add_comm_monoid β] [module α β] {s : set �
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]
 
-lemma mem_inv_smul_set_iff [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β) (x : β) :
-  x ∈ a⁻¹ • A ↔ a • x ∈ A :=
+lemma mem_inv_smul_set_iff [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β)
+  (x : β) : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
 by simp only [← image_smul, mem_image, inv_smul_eq_iff' ha, exists_eq_right]
 
-lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β)
-  (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
+lemma mem_smul_set_iff_inv_smul_mem [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0)
+  (A : set β) (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
 by rw [← mem_inv_smul_set_iff $ inv_ne_zero ha, inv_inv']
+
+lemma preimage_smul [group α] [mul_action α β] (a : α) (t : set β) : (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
+((mul_action.to_perm a).symm.image_eq_preimage _).symm
+
+lemma preimage_smul' [group_with_zero α] [mul_action α β] {a : α} (ha : a ≠ 0) (t : set β) :
+  (λ x, a • x) ⁻¹' t = a⁻¹ • t :=
+preimage_smul (units.mk0 a ha) t
 
 end
 
@@ -503,11 +612,13 @@ namespace finset
 variables {α : Type*} [decidable_eq α]
 
 /-- The pointwise product of two finite sets `s` and `t`:
-  `st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }`. -/
-@[to_additive "The pointwise sum of two finite sets `s` and `t`:
-  `s + t = { x + y | x ∈ s, y ∈ t }`."]
-instance [has_mul α] : has_mul (finset α) :=
+`st = s ⬝ t = s * t = { x * y | x ∈ s, y ∈ t }`. -/
+@[to_additive /-"The pointwise sum of two finite sets `s` and `t`:
+`s + t = { x + y | x ∈ s, y ∈ t }`. "-/]
+protected def has_mul [has_mul α] : has_mul (finset α) :=
 ⟨λ s t, (s.product t).image (λ p : α × α, p.1 * p.2)⟩
+
+localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 
 @[to_additive]
 lemma mul_def [has_mul α] {s t : finset α} :
@@ -526,9 +637,6 @@ by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 lemma mul_mem_mul [has_mul α] {s t : finset α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
   x * y ∈ s * t :=
 by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
-
-lemma add_card_le [has_add α] {s t : finset α} : (s + t).card ≤ s.card * t.card :=
-by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
 @[to_additive]
 lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.card :=
@@ -640,7 +748,7 @@ begin
     rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
     exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
   have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
-  monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
+  monotone_nat_of_le_succ (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
   convert card_pow_eq_card_pow_card_univ_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
     (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
   { simp only [finset.filter_congr_decidable, fintype.card_of_finset] },

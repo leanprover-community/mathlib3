@@ -146,7 +146,7 @@ hf.1.map_nhds_of_mem a h
 lemma embedding.tendsto_nhds_iff {ι : Type*}
   {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : embedding g) :
   tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
-by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
+hg.to_inducing.tendsto_nhds_iff
 
 lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g) :
   continuous f ↔ continuous (g ∘ f) :=
@@ -226,7 +226,7 @@ by { rw ← image_univ, exact hf _ is_open_univ }
 lemma image_mem_nhds (hf : is_open_map f) {x : α} {s : set α} (hx : s ∈ 𝓝 x) :
   f '' s ∈ 𝓝 (f x) :=
 let ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hx in
-mem_sets_of_superset (is_open.mem_nhds (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
+mem_of_superset (is_open.mem_nhds (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
 
 lemma image_interior_subset (hf : is_open_map f) (s : set α) :
   f '' interior s ⊆ interior (f '' s) :=
@@ -341,6 +341,11 @@ lemma open_embedding.open_iff_image_open {f : α → β} (hf : open_embedding f)
    apply preimage_image_eq _ hf.inj
  end⟩
 
+lemma open_embedding.tendsto_nhds_iff {ι : Type*}
+  {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : open_embedding g) :
+  tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
+hg.to_embedding.tendsto_nhds_iff
+
 lemma open_embedding.continuous {f : α → β} (hf : open_embedding f) : continuous f :=
 hf.to_embedding.continuous
 
@@ -385,6 +390,11 @@ structure closed_embedding (f : α → β) extends embedding f : Prop :=
 (closed_range : is_closed $ range f)
 
 variables {f : α → β}
+
+lemma closed_embedding.tendsto_nhds_iff {ι : Type*}
+  {g : ι → α} {a : filter ι} {b : α} (hf : closed_embedding f) :
+  tendsto g a (𝓝 b) ↔ tendsto (f ∘ g) a (𝓝 (f b)) :=
+hf.to_embedding.tendsto_nhds_iff
 
 lemma closed_embedding.continuous (hf : closed_embedding f) : continuous f :=
 hf.to_embedding.continuous

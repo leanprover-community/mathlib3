@@ -3,12 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.set.disjointed
-import data.set.countable
 import algebra.indicator_function
 import data.equiv.encodable.lattice
-import data.tprod
-import order.filter.lift
+import data.set.countable
+import order.disjointed
+import order.filter.basic
+import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions
@@ -63,6 +63,8 @@ variable [measurable_space α]
 
 /-- `measurable_set s` means that `s` is measurable (in the ambient measure space on `α`) -/
 def measurable_set : set α → Prop := ‹measurable_space α›.measurable_set'
+
+localized "notation `measurable_set[` m `]` := @measurable_set _ m" in measure_theory
 
 @[simp] lemma measurable_set.empty : measurable_set (∅ : set α) :=
 ‹measurable_space α›.measurable_set_empty
@@ -188,14 +190,23 @@ by { rw inter_eq_compl_compl_union_compl, exact (h₁.compl.union h₂.compl).co
   measurable_set (s₁ \ s₂) :=
 h₁.inter h₂.compl
 
+@[simp] lemma measurable_set.symm_diff {s₁ s₂ : set α}
+  (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
+  measurable_set (s₁ Δ s₂) :=
+(h₁.diff h₂).union (h₂.diff h₁)
+
 @[simp] lemma measurable_set.ite {t s₁ s₂ : set α} (ht : measurable_set t) (h₁ : measurable_set s₁)
   (h₂ : measurable_set s₂) :
   measurable_set (t.ite s₁ s₂) :=
 (h₁.inter ht).union (h₂.diff ht)
 
+@[simp] lemma measurable_set.cond {s₁ s₂ : set α} (h₁ : measurable_set s₁) (h₂ : measurable_set s₂)
+  {i : bool} : measurable_set (cond i s₁ s₂) :=
+by { cases i, exacts [h₂, h₁] }
+
 @[simp] lemma measurable_set.disjointed {f : ℕ → set α} (h : ∀ i, measurable_set (f i)) (n) :
   measurable_set (disjointed f n) :=
-disjointed_induct (h n) (assume t i ht, measurable_set.diff ht $ h _)
+disjointed_rec (λ t i ht, measurable_set.diff ht $ h _) (h n)
 
 @[simp] lemma measurable_set.const (p : Prop) : measurable_set {a : α | p} :=
 by { by_cases p; simp [h, measurable_set.empty]; apply measurable_set.univ }

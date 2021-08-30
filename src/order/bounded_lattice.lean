@@ -3,10 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.lattice
 import data.option.basic
-import tactic.pi_instances
 import logic.nontrivial
+import order.lattice
+import tactic.pi_instances
 
 /-!
 # ⊤ and ⊥, bounded lattices and variants
@@ -23,11 +23,18 @@ instances for `Prop` and `fun`.
 * `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
   combinations). Typical examples include `ℕ`.
 * `bounded_lattice α`: Lattice with a top and bottom element.
+* `distrib_lattice_bot α`: Distributive lattice with a bottom element. It captures the properties
+  of `disjoint` that are common to `generalized_boolean_algebra` and `bounded_distrib_lattice`.
 * `bounded_distrib_lattice α`: Bounded and distributive lattice. Typical examples include `Prop` and
   `set α`.
 * `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
 * `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
+
+## Implementation notes
+
+We didn't define `distrib_lattice_top` because the dual notion of `disjoint` isn't really used
+anywhere.
 -/
 
 /-! ### Top, bottom element -/
@@ -39,9 +46,9 @@ universes u v
 variables {α : Type u} {β : Type v}
 
 /-- Typeclass for the `⊤` (`\top`) notation -/
-class has_top (α : Type u) := (top : α)
+@[notation_class] class has_top (α : Type u) := (top : α)
 /-- Typeclass for the `⊥` (`\bot`) notation -/
-class has_bot (α : Type u) := (bot : α)
+@[notation_class] class has_bot (α : Type u) := (bot : α)
 
 notation `⊤` := has_top.top
 notation `⊥` := has_bot.bot
@@ -280,8 +287,11 @@ begin
   injection H1; injection H2; injection H3; congr'
 end
 
+/-- A `distrib_lattice_bot` is a distributive lattice with a least element. -/
+class distrib_lattice_bot α extends distrib_lattice α, semilattice_inf_bot α, semilattice_sup_bot α
+
 /-- A bounded distributive lattice is exactly what it sounds like. -/
-class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
+class bounded_distrib_lattice α extends distrib_lattice_bot α, bounded_lattice α
 
 lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c : α}
   (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=
@@ -295,7 +305,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
       ... = ⊥ : h₂⟩
 
 /-- Propositions form a bounded distributive lattice. -/
-instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
+instance Prop.bounded_distrib_lattice : bounded_distrib_lattice Prop :=
 { le           := λ a b, a → b,
   le_refl      := λ _, id,
   le_trans     := λ a b c f g, g ∘ f,
@@ -403,9 +413,22 @@ by refine_struct { sup := (⊔), top := ⊤, .. pi.partial_order }; tactic.pi_in
 instance pi.lattice {ι : Type*} {α : ι → Type*} [Π i, lattice (α i)] : lattice (Π i, α i) :=
 { .. pi.semilattice_sup, .. pi.semilattice_inf }
 
+instance pi.distrib_lattice {ι : Type*} {α : ι → Type*} [Π i, distrib_lattice (α i)] :
+  distrib_lattice (Π i, α i) :=
+by refine_struct { .. pi.lattice }; tactic.pi_instance_derive_field
+
 instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_lattice (α i)] :
   bounded_lattice (Π i, α i) :=
 { .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }
+
+instance pi.distrib_lattice_bot {ι : Type*} {α : ι → Type*} [Π i, distrib_lattice_bot (α i)] :
+  distrib_lattice_bot (Π i, α i) :=
+{ .. pi.distrib_lattice, .. pi.order_bot }
+
+instance pi.bounded_distrib_lattice {ι : Type*} {α : ι → Type*}
+  [Π i, bounded_distrib_lattice (α i)] :
+  bounded_distrib_lattice (Π i, α i) :=
+{ .. pi.bounded_lattice, .. pi.distrib_lattice }
 
 lemma eq_bot_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = ⊤) (x : α) :
   x = (⊥ : α) :=
@@ -448,6 +471,9 @@ instance : inhabited (with_bot α) := ⟨⊥⟩
 
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
+
+@[simp] theorem bot_ne_coe (a : α) : ⊥ ≠ (a : with_bot α) .
+@[simp] theorem coe_ne_bot (a : α) : (a : with_bot α) ≠ ⊥ .
 
 /-- Recursor for `with_bot` using the preferred forms `⊥` and `↑a`. -/
 @[elab_as_eliminator]
@@ -898,28 +924,36 @@ end with_top
 
 namespace subtype
 
-/-- A subtype forms a `⊔`-`⊥`-semilattice if `⊥` and `⊔` preserve the property. -/
+/-- A subtype forms a `⊔`-`⊥`-semilattice if `⊥` and `⊔` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_sup_bot [semilattice_sup_bot α] {P : α → Prop}
   (Pbot : P ⊥) (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) : semilattice_sup_bot {x : α // P x} :=
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_sup Psup }
 
-/-- A subtype forms a `⊓`-`⊥`-semilattice if `⊥` and `⊓` preserve the property. -/
+/-- A subtype forms a `⊓`-`⊥`-semilattice if `⊥` and `⊓` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_inf_bot [semilattice_inf_bot α] {P : α → Prop}
   (Pbot : P ⊥) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) : semilattice_inf_bot {x : α // P x} :=
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_inf Pinf }
 
-/-- A subtype forms a `⊔`-`⊤`-semilattice if `⊤` and `⊔` preserve the property. -/
+/-- A subtype forms a `⊔`-`⊤`-semilattice if `⊤` and `⊔` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_sup_top [semilattice_sup_top α] {P : α → Prop}
   (Ptop : P ⊤) (Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)) : semilattice_sup_top {x : α // P x} :=
 { top := ⟨⊤, Ptop⟩,
   le_top := λ x, @le_top α _ x,
   ..subtype.semilattice_sup Psup }
 
-/-- A subtype forms a `⊓`-`⊤`-semilattice if `⊤` and `⊓` preserve the property. -/
+/-- A subtype forms a `⊓`-`⊤`-semilattice if `⊤` and `⊓` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_inf_top [semilattice_inf_top α] {P : α → Prop}
   (Ptop : P ⊤) (Pinf : ∀{{x y}}, P x → P y → P (x ⊓ y)) : semilattice_inf_top {x : α // P x} :=
 { top := ⟨⊤, Ptop⟩,
@@ -957,6 +991,9 @@ instance [semilattice_sup_top α] : semilattice_inf_bot (order_dual α) :=
 instance [bounded_lattice α] : bounded_lattice (order_dual α) :=
 { .. order_dual.lattice α, .. order_dual.order_top α, .. order_dual.order_bot α }
 
+/- If you define `distrib_lattice_top`, add the `order_dual` instances between `distrib_lattice_bot`
+and `distrib_lattice_top` here -/
+
 instance [bounded_distrib_lattice α] : bounded_distrib_lattice (order_dual α) :=
 { .. order_dual.bounded_lattice α, .. order_dual.distrib_lattice α }
 
@@ -990,6 +1027,10 @@ instance [semilattice_inf_bot α] [semilattice_inf_bot β] : semilattice_inf_bot
 
 instance [bounded_lattice α] [bounded_lattice β] : bounded_lattice (α × β) :=
 { .. prod.lattice α β, .. prod.order_top α β, .. prod.order_bot α β }
+
+instance [distrib_lattice_bot α] [distrib_lattice_bot β] :
+  distrib_lattice_bot (α × β) :=
+{ .. prod.distrib_lattice α β, .. prod.order_bot α β }
 
 instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
   bounded_distrib_lattice (α × β) :=
@@ -1065,12 +1106,8 @@ end
 
 end bounded_lattice
 
-section bounded_distrib_lattice
-/-
-TODO: these lemmas don't require the existence of `⊤` and should be generalized to
-distrib_lattice_with_bot (which doesn't exist yet).
--/
-variables [bounded_distrib_lattice α] {a b c : α}
+section distrib_lattice_bot
+variables [distrib_lattice_bot α] {a b c : α}
 
 @[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=
 by simp only [disjoint_iff, inf_sup_right, sup_eq_bot_iff]
@@ -1091,7 +1128,25 @@ lemma disjoint.left_le_of_le_sup_left {a b c : α} (h : a ≤ c ⊔ b) (hd : dis
 @le_of_inf_le_sup_le _ _ a b c ((disjoint_iff.mp hd).symm ▸ bot_le)
   ((@sup_comm _ _ c b) ▸ (sup_le h le_sup_left))
 
-end bounded_distrib_lattice
+end distrib_lattice_bot
+
+section semilattice_inf_bot
+
+variables [semilattice_inf_bot α] {a b : α} (c : α)
+
+lemma disjoint.inf_left (h : disjoint a b) : disjoint (a ⊓ c) b :=
+h.mono_left inf_le_left
+
+lemma disjoint.inf_left' (h : disjoint a b) : disjoint (c ⊓ a) b :=
+h.mono_left inf_le_right
+
+lemma disjoint.inf_right (h : disjoint a b) : disjoint a (b ⊓ c) :=
+h.mono_right inf_le_left
+
+lemma disjoint.inf_right' (h : disjoint a b) : disjoint a (c ⊓ b) :=
+h.mono_right inf_le_right
+
+end semilattice_inf_bot
 
 end disjoint
 

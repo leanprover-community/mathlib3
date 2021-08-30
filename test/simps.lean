@@ -797,9 +797,8 @@ example (x : bool) : my_ring_hom x = id x := by simp only [my_ring_hom_to_fun]
 instance {M N} [has_mul M] [has_mul N] : has_mul (M × N) := ⟨λ p q, ⟨p.1 * q.1, p.2 * q.2⟩⟩
 
 run_cmd do
-  e ← get_env,
-  e.get `prod.has_mul_mul,
-  e.get `prod.has_add_add,
+  get_decl `prod.has_mul_mul,
+  get_decl `prod.has_add_add,
   has_attribute `to_additive `prod.has_mul,
   has_attribute `to_additive `prod.has_mul_mul,
   has_attribute `simp `prod.has_mul_mul,
@@ -814,13 +813,12 @@ example {M N} [has_add M] [has_add N] (p q : M × N) : p + q = ⟨p.1 + q.1, p.2
 instance my_instance {M N} [has_one M] [has_one N] : has_one (M × N) := ⟨(1, 1)⟩
 
 run_cmd do
-  e ← get_env,
-  e.get `my_instance_one,
-  e.get `my_instance_zero,
+  get_decl `my_instance_one,
+  get_decl `my_add_instance_zero,
   has_attribute `to_additive `my_instance,
   has_attribute `to_additive `my_instance_one,
   has_attribute `simp `my_instance_one,
-  has_attribute `simp `my_instance_zero
+  has_attribute `simp `my_add_instance_zero
 
 example {M N} [has_one M] [has_one N] : (1 : M × N) = ⟨1, 1⟩ := by simp
 example {M N} [has_zero M] [has_zero N] : (0 : M × N) = ⟨0, 0⟩ := by simp
@@ -867,6 +865,12 @@ by { dsimp, guard_target (hnp (hmn m) = hnp (hmn m)), refl }
 example {M N P : Type*} [add_zero_class M] [add_zero_class N] [add_zero_class P]
   (hnp : N →+ P) (hmn : M →+ N) (m : M) : hnp.my_comp hmn m = hnp (hmn m) :=
 by { dsimp, guard_target (hnp (hmn m) = hnp (hmn m)), refl }
+
+-- test that `to_additive` works with a custom name
+@[to_additive some_test2, simps]
+def some_test1 (M : Type*) [comm_monoid M] : subtype (λ f : M, true) := ⟨1, trivial⟩
+
+run_cmd get_decl `some_test2_coe
 
 end
 
@@ -1042,6 +1046,5 @@ local infixr ` ⥤ `:26 := my_functor
 def foo_sum {I J : Type*} (C : I → Type*) {D : J → Type*} :
   (Π i, C i) ⥤ (Π j, D j) ⥤ (Π s : I ⊕ J, sum.elim C D s) :=
 { obj := λ f, { obj := λ g s, sum.rec f g s }}
-
 
 end

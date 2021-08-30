@@ -222,6 +222,14 @@ lemma is_limit.hom_ext {t : pullback_cone f g} (ht : is_limit t) {W : C} {k l : 
   (h₀ : k ≫ fst t = l ≫ fst t) (h₁ : k ≫ snd t = l ≫ snd t) : k = l :=
 ht.hom_ext $ equalizer_ext _ h₀ h₁
 
+lemma mono_snd_of_is_pullback_of_mono {t : pullback_cone f g} (ht : is_limit t) [mono f] :
+  mono t.snd :=
+⟨λ W h k i, is_limit.hom_ext ht (by simp [←cancel_mono f, t.condition, reassoc_of i]) i⟩
+
+lemma mono_fst_of_is_pullback_of_mono {t : pullback_cone f g} (ht : is_limit t) [mono g] :
+  mono t.fst :=
+⟨λ W h k i, is_limit.hom_ext ht i (by simp [←cancel_mono g, ←t.condition, reassoc_of i])⟩
+
 /-- If `t` is a limit pullback cone over `f` and `g` and `h : W ⟶ X` and `k : W ⟶ Y` are such that
     `h ≫ f = k ≫ g`, then we have `l : W ⟶ t.X` satisfying `l ≫ fst t = h` and `l ≫ snd t = k`.
     -/
@@ -381,6 +389,14 @@ ht.hom_ext $ coequalizer_ext _ h₀ h₁
 def is_colimit.desc' {t : pushout_cocone f g} (ht : is_colimit t) {W : C} (h : Y ⟶ W) (k : Z ⟶ W)
   (w : f ≫ h = g ≫ k) : {l : t.X ⟶ W // inl t ≫ l = h ∧ inr t ≫ l = k } :=
 ⟨ht.desc $ pushout_cocone.mk _ _ w, ht.fac _ _, ht.fac _ _⟩
+
+lemma epi_inr_of_is_pushout_of_epi {t : pushout_cocone f g} (ht : is_colimit t) [epi f] :
+  epi t.inr :=
+⟨λ W h k i, is_colimit.hom_ext ht (by simp [←cancel_epi f, t.condition_assoc, i]) i⟩
+
+lemma epi_inl_of_is_pushout_of_epi {t : pushout_cocone f g} (ht : is_colimit t) [epi g] :
+  epi t.inl :=
+⟨λ W h k i, is_colimit.hom_ext ht i (by simp [←cancel_epi g, ←t.condition_assoc, i])⟩
 
 /--
 This is a more convenient formulation to show that a `pushout_cocone` constructed using
@@ -584,12 +600,12 @@ pullback_cone.is_limit.mk _ (λ s, pullback.lift s.fst s.snd s.condition)
 /-- The pullback of a monomorphism is a monomorphism -/
 instance pullback.fst_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
   [mono g] : mono (pullback.fst : pullback f g ⟶ X) :=
-⟨λ W u v h, pullback.hom_ext h $ (cancel_mono g).1 $ by simp [← pullback.condition, reassoc_of h]⟩
+pullback_cone.mono_fst_of_is_pullback_of_mono (limit.is_limit _)
 
 /-- The pullback of a monomorphism is a monomorphism -/
 instance pullback.snd_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
   [mono f] : mono (pullback.snd : pullback f g ⟶ Y) :=
-⟨λ W u v h, pullback.hom_ext ((cancel_mono f).1 $ by simp [pullback.condition, reassoc_of h]) h⟩
+pullback_cone.mono_snd_of_is_pullback_of_mono (limit.is_limit _)
 
 /-- Two morphisms out of a pushout are equal if their compositions with the pushout morphisms are
     equal -/
@@ -601,12 +617,12 @@ colimit.hom_ext $ pushout_cocone.coequalizer_ext _ h₀ h₁
 /-- The pushout of an epimorphism is an epimorphism -/
 instance pushout.inl_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g] [epi g] :
   epi (pushout.inl : Y ⟶ pushout f g) :=
-⟨λ W u v h, pushout.hom_ext h $ (cancel_epi g).1 $ by simp [← pushout.condition_assoc, h] ⟩
+pushout_cocone.epi_inl_of_is_pushout_of_epi (colimit.is_colimit _)
 
 /-- The pushout of an epimorphism is an epimorphism -/
 instance pushout.inr_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g] [epi f] :
   epi (pushout.inr : Z ⟶ pushout f g) :=
-⟨λ W u v h, pushout.hom_ext ((cancel_epi f).1 $ by simp [pushout.condition_assoc, h]) h⟩
+pushout_cocone.epi_inr_of_is_pushout_of_epi (colimit.is_colimit _)
 
 section
 

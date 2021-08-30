@@ -6,7 +6,7 @@ Authors: Simon Hudon
 import tactic.monotonicity
 import tactic.norm_num
 import algebra.ordered_ring
-import measure_theory.lebesgue_measure
+import measure_theory.measure.lebesgue
 import data.list.defs
 
 open list tactic tactic.interactive set
@@ -131,7 +131,7 @@ lemma list_le_mono_right {α : Type*} [preorder α] {xs ys zs : list α}
 begin
   revert ys zs,
   induction xs with x xs ; intros ys zs h,
-  { cases ys, { simp, apply list.le_refl }, cases h  },
+  { cases ys, { simp, apply list.le_refl }, cases h },
   { cases ys with y ys, cases h, simp [has_le.le,list.le] at *,
     suffices : list.le' ((zs ++ [x]) ++ xs) ((zs ++ [y]) ++ ys),
     { refine cast _ this, simp, },
@@ -232,7 +232,7 @@ example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)
   (h₁ : x ≤ y)
 : (m + x + n) * z + k ≤ z * (y + n + m) + k :=
-by {  ac_mono* := h₁ }
+by { ac_mono* := h₁ }
 
 example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)

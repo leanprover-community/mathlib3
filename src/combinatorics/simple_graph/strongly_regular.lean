@@ -52,15 +52,15 @@ open finset
 /-- Complete graphs are strongly regular. Note that the parameter `m` can take any value
   for complete graphs, since there are no distinct pairs of nonadjacent vertices. -/
 lemma complete_strongly_regular (m : ℕ) :
-  (complete_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
+  (⊤ : simple_graph V).is_SRG_of (fintype.card V) (fintype.card V - 1) (fintype.card V - 2) m :=
 { card := rfl,
   regular := complete_graph_degree,
   adj_common := λ v w (h : v ≠ w),
     begin
-      simp only [fintype.card_of_finset, mem_common_neighbors, complete_graph, ne.def, filter_not,
-        ←not_or_distrib, filter_eq, filter_or, card_univ_diff, mem_univ, if_pos, ←insert_eq],
+      simp only [fintype.card_of_finset, mem_common_neighbors, filter_not, ←not_or_distrib,
+                 filter_eq, filter_or, card_univ_diff, mem_univ, if_pos, ←insert_eq, top_adj],
       rw [card_insert_of_not_mem, card_singleton],
-      simpa,
+      simp [h]
     end,
   nadj_common := λ v w (h : ¬(v ≠ w) ∧ _), (h.1 h.2).elim }
 

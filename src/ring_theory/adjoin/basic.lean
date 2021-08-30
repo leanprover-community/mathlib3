@@ -27,6 +27,7 @@ adjoin, algebra, finitely-generated algebra
 universes u v w
 
 open submodule
+open_locale pointwise
 
 namespace algebra
 
@@ -69,6 +70,9 @@ lemma adjoin_union (s t : set A) : adjoin R (s ∪ t) = adjoin R s ⊔ adjoin R 
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
+
+@[simp] theorem adjoin_univ : adjoin R (set.univ : set A) = ⊤ :=
+eq_top_iff.2 $ λ x, subset_adjoin $ set.mem_univ _
 
 variables (R) {A} (s)
 
@@ -230,19 +234,20 @@ variables [algebra R A] {s t : set A}
 variables {R s t}
 open ring
 
-theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_is_subring (closure s) :=
-le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin : closure s ≤ adjoin ℤ s)
+theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_subring (subring.closure s) :=
+le_antisymm (adjoin_le subring.subset_closure)
+  (subring.closure_le.2 subset_adjoin : subring.closure s ≤ (adjoin ℤ s).to_subring)
 
 theorem mem_adjoin_iff {s : set A} {x : A} :
-  x ∈ adjoin R s ↔ x ∈ closure (set.range (algebra_map R A) ∪ s) :=
-⟨λ hx, subsemiring.closure_induction hx subset_closure is_add_submonoid.zero_mem
-  is_submonoid.one_mem (λ _ _, is_add_submonoid.add_mem) (λ _ _, is_submonoid.mul_mem),
-suffices closure (set.range ⇑(algebra_map R A) ∪ s) ⊆ adjoin R s, from @this x,
-closure_subset subsemiring.subset_closure⟩
+  x ∈ adjoin R s ↔ x ∈ subring.closure (set.range (algebra_map R A) ∪ s) :=
+⟨λ hx, subsemiring.closure_induction hx subring.subset_closure (subring.zero_mem _)
+  (subring.one_mem _) (λ _ _, subring.add_mem _) ( λ _ _, subring.mul_mem _),
+  suffices subring.closure (set.range ⇑(algebra_map R A) ∪ s) ≤ (adjoin R s).to_subring,
+    from @this x, subring.closure_le.2 subsemiring.subset_closure⟩
 
 theorem adjoin_eq_ring_closure (s : set A) :
-  (adjoin R s : set A) = closure (set.range (algebra_map R A) ∪ s) :=
-set.ext $ λ x, mem_adjoin_iff
+  (adjoin R s).to_subring = subring.closure (set.range (algebra_map R A) ∪ s) :=
+subring.ext $ λ x, mem_adjoin_iff
 
 end ring
 
@@ -262,7 +267,7 @@ begin
   { rw [span_le],
     rintros _ ⟨x, y, hx, hy, rfl⟩,
     change x * y ∈ _,
-    refine is_submonoid.mul_mem _ _,
+    refine subalgebra.mul_mem _ _ _,
     { have : x ∈ (adjoin R s).to_submodule,
       { rw ← hp', exact subset_span hx },
       exact adjoin_mono (set.subset_union_left _ _) this },
@@ -388,7 +393,7 @@ by haveI : is_noetherian_ring (mv_polynomial (↑t : set A) R) :=
 mv_polynomial.is_noetherian_ring;
 convert alg_hom.is_noetherian_ring_range _; apply_instance
 
-theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :
-  @@is_noetherian_ring (ring.closure s) subset.ring :=
-show is_noetherian_ring (subalgebra_of_is_subring (ring.closure s)), from
+theorem is_noetherian_subring_closure (s : set R) (hs : s.finite) :
+  is_noetherian_ring (subring.closure s) :=
+show is_noetherian_ring (subalgebra_of_subring (subring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)

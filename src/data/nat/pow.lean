@@ -15,40 +15,23 @@ namespace nat
 
 /-! ### `pow` -/
 
--- This is redundant with `canonically_ordered_semiring.pow_le_pow_of_le_left`,
--- but `canonically_ordered_semiring` is not such an obvious abstraction, and also quite long.
--- So, we leave a version in the `nat` namespace as well.
+-- This is redundant with `pow_le_pow_of_le_left'`,
+-- We leave a version in the `nat` namespace as well.
 -- (The global `pow_le_pow_of_le_left` needs an extra hypothesis `0 ≤ x`.)
 protected theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ, x^i ≤ y^i :=
-canonically_ordered_semiring.pow_le_pow_of_le_left H
+pow_le_pow_of_le_left' H
 
-theorem pow_le_pow_of_le_right {x : ℕ} (H : x > 0) {i : ℕ} : ∀ {j}, i ≤ j → x^i ≤ x^j
-| 0        h := by rw eq_zero_of_le_zero h; apply le_refl
-| (succ j) h := h.lt_or_eq_dec.elim
-  (λhl, by rw [pow_succ', ← nat.mul_one (x^i)]; exact
-    nat.mul_le_mul (pow_le_pow_of_le_right $ le_of_lt_succ hl) H)
-  (λe, by rw e; refl)
+theorem pow_le_pow_of_le_right {x : ℕ} (H : 0 < x) {i j : ℕ} (h : i ≤ j) : x ^ i ≤ x ^ j :=
+pow_le_pow' H h
 
 theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : 0 < i) : x^i < y^i :=
-begin
-  cases i with i, { exact absurd h (not_lt_zero _) },
-  rw [pow_succ', pow_succ'],
-  exact nat.mul_lt_mul' (nat.pow_le_pow_of_le_left (le_of_lt H) _) H
-    (pow_pos (lt_of_le_of_lt (zero_le _) H) _)
-end
+pow_lt_pow_of_lt_left H (zero_le _) h
 
-theorem pow_lt_pow_of_lt_right {x : ℕ} (H : x > 1) {i j : ℕ} (h : i < j) : x^i < x^j :=
-begin
-  have xpos := lt_of_succ_lt H,
-  refine lt_of_lt_of_le _ (pow_le_pow_of_le_right xpos h),
-  rw [← nat.mul_one (x^i), pow_succ'],
-  exact nat.mul_lt_mul_of_pos_left H (pow_pos xpos _)
-end
+theorem pow_lt_pow_of_lt_right {x : ℕ} (H : 1 < x) {i j : ℕ} (h : i < j) : x^i < x^j :=
+pow_lt_pow H h
 
--- TODO: Generalize?
 lemma pow_lt_pow_succ {p : ℕ} (h : 1 < p) (n : ℕ) : p^n < p^(n+1) :=
-suffices 1*p^n < p*p^n, by simpa [pow_succ],
-nat.mul_lt_mul_of_pos_right h (pow_pos (lt_of_succ_lt h) n)
+pow_lt_pow_of_lt_right h n.lt_succ_self
 
 lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 | 0 := by simp [zero_lt_one]
@@ -69,6 +52,20 @@ lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
 by { rw ←one_pow n, exact pow_lt_pow_of_lt_left h₁ h₀ }
 lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
 one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
+
+@[simp] lemma one_lt_pow_iff {k n : ℕ} (h : 0 ≠ k) : 1 < n ^ k ↔ 1 < n :=
+begin
+  cases n,
+  { cases k; simp [zero_pow_eq] },
+  cases n,
+  { rw one_pow },
+  refine ⟨λ _, one_lt_succ_succ n, λ _, _⟩,
+  induction k with k hk,
+  { exact absurd rfl h },
+  cases k,
+  { simp },
+  exact one_lt_mul (one_lt_succ_succ _).le (hk (succ_ne_zero k).symm),
+end
 
 lemma one_lt_two_pow (n : ℕ) (h₀ : 0 < n) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
 lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 (succ_pos n) dec_trivial
@@ -119,8 +116,8 @@ alias nat.sq_sub_sq ← nat.pow_two_sub_pow_two
 
 /-! ### `pow` and `mod` / `dvd` -/
 
-theorem mod_pow_succ {b : ℕ} (b_pos : 0 < b) (w m : ℕ)
-: m % (b^succ w) = b * (m/b % b^w) + m % b :=
+theorem mod_pow_succ {b : ℕ} (b_pos : 0 < b) (w m : ℕ) :
+  m % (b^succ w) = b * (m/b % b^w) + m % b :=
 begin
   apply nat.strong_induction_on m,
   clear m,
@@ -135,7 +132,7 @@ begin
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
-    { apply sub_lt_of_pos_le _ _ (pow_pos b_pos _) h₁ },
+    { apply nat.sub_lt_of_pos_le _ _ (pow_pos b_pos _) h₁ },
 
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
@@ -158,7 +155,7 @@ begin
   { intro a, exact le_of_dvd (pow_pos (succ_pos x) l) a, },
   { intro a, cases x with x,
     { simp only [one_pow], },
-    { have le := (pow_le_iff_le_right (le_add_left _ _)).mp a,
+    { have le := (pow_le_iff_le_right (nat.le_add_left _ _)).mp a,
       use (x+2)^(l-k),
       rw [←pow_add, add_comm k, nat.sub_add_cancel le], } }
 end
@@ -177,7 +174,7 @@ lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
   have he : (succ p) ^ k = 1, from eq_one_of_dvd_one this,
   have k < (succ p) ^ k, from lt_pow_self hp k,
   have k < 1, by rwa [he] at this,
-  have k = 0, from eq_zero_of_le_zero $ le_of_lt_succ this,
+  have k = 0, from nat.eq_zero_of_le_zero $ le_of_lt_succ this,
   have 1 < 1, by rwa [this] at hk,
   absurd this dec_trivial
 
@@ -262,7 +259,7 @@ begin
   have m0 := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
   subst m0,
   simp at this,
-  have : n = 0 := eq_zero_of_le_zero (le_of_not_gt $ λ hn,
+  have : n = 0 := nat.eq_zero_of_le_zero (le_of_not_gt $ λ hn,
     ne_of_gt (pow_lt_pow_of_lt_right dec_trivial hn) this),
   subst n, refl
 end
@@ -292,7 +289,7 @@ begin
     by_cases e : bit b m = 0, { simp [e] },
     rw [size_bit e],
     cases n with n,
-    { exact e.elim (eq_zero_of_le_zero (le_of_lt_succ h)) },
+    { exact e.elim (nat.eq_zero_of_le_zero (le_of_lt_succ h)) },
     { apply succ_le_succ (IH _),
       apply lt_imp_lt_of_le_imp_le (λ h', bit0_le_bit _ h') h } }
 end⟩

@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.basic
 import data.finset.nat_antidiagonal
+import data.polynomial.basic
 
 /-!
 # Theory of univariate polynomials
@@ -60,7 +60,7 @@ variable {R}
 
 @[simp] lemma finset_sum_coeff {ι : Type*} (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
-(s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
+(lcoeff R n).map_sum
 
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=

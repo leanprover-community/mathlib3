@@ -204,7 +204,7 @@ namespace nzsnum
   @[pattern] def not : nzsnum → nzsnum
   | (msb b) := msb (bnot b)
   | (b :: p) := bnot b :: not p
-  prefix ~ := not
+  prefix `~`:100 := not
 
   /-- Add an inactive bit at the end of a `nzsnum`. This mimics `pos_num.bit0`. -/
   def bit0 : nzsnum → nzsnum := bit ff

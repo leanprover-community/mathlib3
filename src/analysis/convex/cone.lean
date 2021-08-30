@@ -3,9 +3,7 @@ Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Frédéric Dupuis
 -/
-import linear_algebra.linear_pmap
 import analysis.convex.basic
-import order.zorn
 import analysis.normed_space.inner_product
 
 /-!
@@ -54,7 +52,7 @@ While `convex` is a predicate on sets, `convex_cone` is a bundled convex cone.
 universes u v
 
 open set linear_map
-open_locale classical
+open_locale classical pointwise
 
 variables (E : Type*) [add_comm_group E] [module ℝ E]
   {F : Type*} [add_comm_group F] [module ℝ F]
@@ -519,7 +517,7 @@ begin
   { intros x y,
     simpa only [subtype.coe_mk, subtype.coe_eta] using g_eq ⟨(x, y), ⟨x.2, trivial⟩⟩ },
   { refine ⟨-g.comp (inl ℝ E ℝ), _, _⟩; simp only [neg_apply, inl_apply, comp_apply],
-    { intro x, simp  [g_eq x 0] },
+    { intro x, simp [g_eq x 0] },
     { intro x,
       have A : (x, N x) = (x, 0) + (0, N x), by simp,
       have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),

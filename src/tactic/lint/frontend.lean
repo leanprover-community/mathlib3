@@ -210,7 +210,7 @@ meta def lint_all (slow : bool := tt) (verbose : lint_verbosity := lint_verbosit
 /-- Parses an optional `only`, followed by a sequence of zero or more identifiers.
 Prepends `linter.` to each of these identifiers. -/
 private meta def parse_lint_additions : parser (bool × list name) :=
-prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident_*)
+prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident*)
 
 /--
 Parses a "-" or "+", returning `lint_verbosity.low` or `lint_verbosity.high` respectively,

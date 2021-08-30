@@ -3,10 +3,7 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import algebra.group.pi
-import group_theory.group_action
 import algebra.support
-import data.finset.lattice
 
 /-!
 # Indicator function
@@ -116,6 +113,9 @@ mul_indicator_eq_self.2 $ subset_univ _
 
 @[simp, to_additive] lemma mul_indicator_empty (f : α → M) : mul_indicator (∅ : set α) f = λa, 1 :=
 mul_indicator_eq_one.2 $ disjoint_empty _
+
+@[to_additive] lemma mul_indicator_empty' (f : α → M) : mul_indicator (∅ : set α) f = 1 :=
+mul_indicator_empty f
 
 variable (M)
 

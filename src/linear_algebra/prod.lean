@@ -549,7 +549,7 @@ Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of 
 all isomorphic to `M`.
 -/
 def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →ₘ order_dual (submodule R M) :=
-⟨λ n, (tunnel' f i n).1, monotone_of_monotone_nat (λ n, begin
+⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],
     apply submodule.map_subtype_le,

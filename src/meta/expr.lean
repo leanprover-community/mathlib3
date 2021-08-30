@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
-import data.option.defs
+import meta.rb_map
 import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
@@ -246,6 +246,17 @@ meta def fold_mvar {α} : level → (name → α → α) → α → α
 | (mvar a) f := f a
 | (max a b) f := fold_mvar a f ∘ fold_mvar b f
 | (imax a b) f := fold_mvar a f ∘ fold_mvar b f
+
+/--
+`l.params` is the set of parameters occuring in `l`.
+For example if `l = max 1 (max (u+1) (max v w))` then `l.params = {u, v, w}`.
+-/
+protected meta def params (u : level) : name_set :=
+u.fold mk_name_set $ λ v l,
+  match v with
+  | (param nm) := l.insert nm
+  | _ := l
+  end
 
 end level
 
@@ -880,6 +891,21 @@ protected meta def apply_replacement_fun (f : name → name) (test : expr → bo
       apply_replacement_fun g.app_arg else
     if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
   | _ := none
+  end
+
+open native
+/--
+  `univ_params_grouped e` computes for each `level` `u` of `e` the parameters that occur in `u`,
+  and returns the corresponding set of lists of parameters.
+  In pseudo-mathematical form, this returns `{ { p : parameter | p ∈ u } | (u : level) ∈ e }`
+  We use `list name` instead of `name_set`, since `name_set` does not have an order.
+-/
+meta def univ_params_grouped (e : expr) : rb_set (list name) :=
+e.fold mk_rb_set $ λ e n l,
+  match e with
+  | e@(sort u) := l.insert u.params.to_list
+  | e@(const nm us) := l.union $ rb_set.of_list $ us.map $ λ u : level, u.params.to_list
+  | _ := l
   end
 
 end expr

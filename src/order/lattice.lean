@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.rel_classes
+import tactic.simps
 
 /-!
 # (Semi-)lattices
@@ -66,9 +67,9 @@ end
 /- TODO: automatic construction of dual definitions / theorems -/
 
 /-- Typeclass for the `⊔` (`\lub`) notation -/
-class has_sup (α : Type u) := (sup : α → α → α)
+@[notation_class] class has_sup (α : Type u) := (sup : α → α → α)
 /-- Typeclass for the `⊓` (`\glb`) notation -/
-class has_inf (α : Type u) := (inf : α → α → α)
+@[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
 
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
@@ -687,7 +688,9 @@ end prod
 
 namespace subtype
 
-/-- A subtype forms a `⊔`-semilattice if `⊔` preserves the property. -/
+/-- A subtype forms a `⊔`-semilattice if `⊔` preserves the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_sup [semilattice_sup α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) : semilattice_sup {x : α // P x} :=
 { sup := λ x y, ⟨x.1 ⊔ y.1, Psup x.2 y.2⟩,
@@ -696,7 +699,9 @@ protected def semilattice_sup [semilattice_sup α] {P : α → Prop}
   sup_le := λ x y z h1 h2, @sup_le α _ _ _ _ h1 h2,
   ..subtype.partial_order P }
 
-/-- A subtype forms a `⊓`-semilattice if `⊓` preserves the property. -/
+/-- A subtype forms a `⊓`-semilattice if `⊓` preserves the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def semilattice_inf [semilattice_inf α] {P : α → Prop}
   (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) : semilattice_inf {x : α // P x} :=
 { inf := λ x y, ⟨x.1 ⊓ y.1, Pinf x.2 y.2⟩,
@@ -705,7 +710,9 @@ protected def semilattice_inf [semilattice_inf α] {P : α → Prop}
   le_inf := λ x y z h1 h2, @le_inf α _ _ _ _ h1 h2,
   ..subtype.partial_order P }
 
-/-- A subtype forms a lattice if `⊔` and `⊓` preserve the property. -/
+/-- A subtype forms a lattice if `⊔` and `⊓` preserve the property.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def lattice [lattice α] {P : α → Prop}
   (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) :
   lattice {x : α // P x} :=

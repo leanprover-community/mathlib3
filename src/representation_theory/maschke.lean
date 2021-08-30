@@ -5,13 +5,13 @@ Authors: Scott Morrison
 -/
 import algebra.monoid_algebra
 import algebra.char_p.invertible
-import algebra.regular
+import algebra.regular.basic
 import linear_algebra.basis
 
 /-!
 # Maschke's theorem
 
-We prove Maschke's theorem for finite groups,
+We prove **Maschke's theorem** for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
 when `k` is a field with `invertible (fintype.card G : k)`.
 
@@ -109,8 +109,7 @@ begin
   dsimp [conjugate],
   conv_lhs {
     rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
-    simp only [mul_right_embedding],
-  },
+    simp only [mul_right_embedding], },
   simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
     finset.sum_map, inv_inv, inv_mul_cancel_right],
   recover,

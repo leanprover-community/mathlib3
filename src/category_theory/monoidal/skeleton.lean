@@ -39,7 +39,7 @@ def comm_monoid_of_skeletal_braided [braided_category C] (hC : skeletal C) :
 The skeleton of a monoidal category has a monoidal structure itself, induced by the equivalence.
 -/
 noncomputable instance : monoidal_category (skeleton C) :=
-monoidal.transport (from_skeleton C).as_equivalence.symm
+monoidal.transport (skeleton_equivalence C).symm
 
 /--
 The skeleton of a monoidal category can be viewed as a monoid, where the multiplication is given by

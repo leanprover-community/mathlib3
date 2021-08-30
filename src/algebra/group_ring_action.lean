@@ -87,8 +87,7 @@ variables {M G R}
 instance submonoid.mul_semiring_action [mul_semiring_action M R] (H : submonoid M) :
   mul_semiring_action H R :=
 { smul := (•),
-  smul_one := λ h, smul_one (h : M),
-  smul_mul := λ h, smul_mul' (h : M),
+  .. H.mul_distrib_mul_action,
   .. H.distrib_mul_action }
 
 /-- A stronger version of `subgroup.distrib_mul_action`. -/

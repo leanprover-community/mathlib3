@@ -435,10 +435,11 @@ begin
 end
 
 @[simp]
-lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (h0 : n ≠ 0) : a ∈ n • s ↔ a ∈ s :=
+lemma mem_nsmul {a : α} {s : multiset α} {n : ℕ} (hn : 0 < n) : a ∈ n • s ↔ a ∈ s :=
 begin
   refine ⟨mem_of_mem_nsmul, λ h, _⟩,
-  obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero h0,
+  cases n,
+  { exact lt_irrefl _ hn },
   rw [succ_nsmul, mem_add],
   exact or.inl h
 end

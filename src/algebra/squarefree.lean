@@ -116,17 +116,17 @@ begin
     assumption_mod_cast }
 end
 
-lemma dvd_pow_iff_dvd_of_squarefree {x y : R} {n : ℕ} (hsq : squarefree x) (h0 : n ≠ 0) :
+lemma dvd_pow_iff_dvd_of_squarefree {x y : R} (hsq : squarefree x) {n : ℕ} (hn : 0 < n) :
   x ∣ y ^ n ↔ x ∣ y :=
 begin
   classical,
   by_cases hx : x = 0,
-  { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
+  { simp [hx, pow_eq_zero_iff hn] },
   by_cases hy : y = 0,
-  { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
-  refine ⟨λ h, _, λ h, dvd_pow h h0⟩,
+  { simp [hy, zero_pow hn] },
+  refine ⟨λ h, _, λ h, dvd_pow h hn⟩,
   rw [dvd_iff_factors_le_factors hx (pow_ne_zero n hy), factors_pow,
-    ((squarefree_iff_nodup_factors hx).1 hsq).le_nsmul_iff_le h0] at h,
+    ((squarefree_iff_nodup_factors hx).1 hsq).le_nsmul_iff_le hn] at h,
   rwa dvd_iff_factors_le_factors hx hy,
 end
 

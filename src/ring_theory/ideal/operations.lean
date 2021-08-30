@@ -1288,7 +1288,7 @@ lemma ker_quotient_lift {S : Type v} [comm_ring S] {I : ideal R} (f : R →+* S)
 begin
   ext x,
   split,
- {intro hx,
+  { intro hx,
   obtain ⟨y, hy⟩ := quotient.mk_surjective x,
   rw [ring_hom.mem_ker, ← hy, ideal.quotient.lift_mk, ← ring_hom.mem_ker] at hx,
   rw [← hy, mem_map_iff_of_surjective I^.quotient.mk quotient.mk_surjective],

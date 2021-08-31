@@ -247,10 +247,14 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
     some $ (++ state_msg) $
       if msg = "try_for tactic failed, timeout" then "type-class inference timed out" else msg
 
-/-- A linter object for `fails_quickly`. If we want to increase the maximum number of steps
-  type-class inference is allowed to take, we can increase the number `3000` in the definition. -/
+/--
+A linter object for `fails_quickly`.
+We currently set the number of steps in the type-class search pretty high.
+Some instances take quite some time to fail, and we seem to run against the caching issue in
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/odd.20repeated.20type.20class.20search
+-/
 @[linter] meta def linter.fails_quickly : linter :=
-{ test := fails_quickly 3000,
+{ test := fails_quickly 10000,
   auto_decls := tt,
   no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.

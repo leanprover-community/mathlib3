@@ -239,18 +239,16 @@ def pow_monoid_hom (n : ℕ) : M →* M :=
 -- attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
 
 lemma dvd_pow {x y : M} (hxy : x ∣ y) :
-  ∀ {n : ℕ} (hn : 0 < n), x ∣ y^n
-| 0       hn := (hn.ne rfl).elim
+  ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
+| 0       hn := (hn rfl).elim
 | (n + 1) hn := by { rw [pow_succ], exact hxy.mul_right _ }
 
-lemma has_dvd.dvd.pow {x y : M} (hxy : x ∣ y) {n : ℕ} (hn : 0 < n) :
+lemma has_dvd.dvd.pow {x y : M} (hxy : x ∣ y) {n : ℕ} (hn : n ≠ 0) :
   x ∣ y^n :=
 dvd_pow hxy hn
 
-lemma dvd_pow_self (a : M) :
-  ∀ {n : ℕ} (hn : 0 < n), a ∣ a^n
-| 0       hn := (lt_irrefl _ hn).elim
-| (n + 1) _  := dvd.intro (a^n) (pow_succ _ _).symm
+lemma dvd_pow_self (a : M) {n : ℕ} (hn : n ≠ 0) : a ∣ a^n :=
+dvd_rfl.pow hn
 
 end comm_monoid
 

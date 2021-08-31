@@ -744,7 +744,7 @@ begin
   exact indicator_to_L1s_add _ (λ _ _, weighted_smul_null) weighted_smul_union _ _,
 end
 
-lemma indicator_to_L1s_smul_ℝ (T : set α → (E →L[ℝ] F'))
+lemma indicator_to_L1s_smul_real (T : set α → (E →L[ℝ] F'))
   (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)
@@ -826,7 +826,7 @@ have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s = 0,
   refine le_antisymm ((hT_norm s).trans (le_of_eq _)) (norm_nonneg _),
   rw [hs0, ennreal.zero_to_real, mul_zero], },
 linear_map.mk_continuous ⟨indicator_to_L1s T, indicator_to_L1s_add T h_zero h_add,
-  indicator_to_L1s_smul_ℝ T h_zero h_add⟩ C (λ f, norm_indicator_to_L1s_le T hC hT_norm f)
+  indicator_to_L1s_smul_real T h_zero h_add⟩ C (λ f, norm_indicator_to_L1s_le T hC hT_norm f)
 
 variables {α E' μ 𝕜}
 

@@ -1543,7 +1543,7 @@ ennreal.coe_to_nnreal (measure_ne_top μ univ)
 instance is_finite_measure_zero : is_finite_measure (0 : measure α) := ⟨by simp⟩
 
 @[priority 100]
-instance finite_measure_of_is_empty [is_empty α] : finite_measure μ :=
+instance is_finite_measure_of_is_empty [is_empty α] : is_finite_measure μ :=
 by { rw eq_zero_of_is_empty μ, apply_instance }
 
 @[simp] lemma measure_univ_nnreal_zero : measure_univ_nnreal (0 : measure α) = 0 := rfl

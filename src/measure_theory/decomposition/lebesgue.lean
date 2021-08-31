@@ -575,7 +575,7 @@ end⟩
 local attribute [instance] have_lebesgue_decomposition_of_finite_measure
 
 instance {μ : measure α} {S : μ.finite_spanning_sets_in {s : set α | measurable_set s}} (n : ℕ) :
-  finite_measure (μ.restrict $ S.set n) :=
+  is_finite_measure (μ.restrict $ S.set n) :=
 ⟨by { rw [restrict_apply measurable_set.univ, set.univ_inter], exact S.finite _ }⟩
 
 /-- **The Lebesgue decomposition theorem**: Any pair of σ-finite measures `μ` and `ν`

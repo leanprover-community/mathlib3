@@ -1146,8 +1146,10 @@ variables {𝕜}
 
 variables {hm : m ≤ m0} [sigma_finite (μ.trim hm)]
 
-@[simp] lemma condexp_ind_empty' (x : E') : condexp_ind 𝕜 hm μ measurable_set.empty x = 0 :=
+@[simp] lemma condexp_ind_empty :
+  condexp_ind 𝕜 hm μ measurable_set.empty = (0 : E' →L[ℝ] α →₁[μ] E') :=
 begin
+  ext1,
   ext1,
   refine (condexp_ind_ae_eq_condexp_L2_indicator 𝕜 hm measurable_set.empty (by simp) x).trans _,
   rw indicator_const_empty,
@@ -1156,10 +1158,6 @@ begin
   refine eventually_eq.trans _ (Lp.coe_fn_zero E' 1 μ).symm,
   refl,
 end
-
-@[simp] lemma condexp_ind_empty :
-  condexp_ind 𝕜 hm μ measurable_set.empty = (0 : E' →L[ℝ] α →₁[μ] E') :=
-by { ext1, simp, }
 
 lemma condexp_ind_smul (hs : measurable_set s) (c : 𝕜) (x : E') :
   condexp_ind 𝕜 hm μ hs (c • x) = c • condexp_ind 𝕜 hm μ hs x :=

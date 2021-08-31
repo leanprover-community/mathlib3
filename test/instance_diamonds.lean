@@ -40,7 +40,7 @@ end units
 
 end has_scalar
 
-/-! ## `with_top` (Type with point at infinitiy) instances -/
+/-! ## `with_top` (Type with point at infinity) instances -/
 section with_top
 
 example (R : Type*) [h : ordered_semiring R] :

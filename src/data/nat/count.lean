@@ -579,7 +579,7 @@ begin
     simp [hp], },
 end
 
-lemma nth_count_of_finite {n : ℕ} (hf : set.finite p) (hp : p n) :
+lemma nth_count_of_finite {n : ℕ} (hf : (set_of p).finite) (hp : p n) :
   nth p (count p n) = n :=
 begin
   refine count_injective p _ hp _,
@@ -588,19 +588,19 @@ begin
   { exact count_nth_of_lt_card_finite _ _ (count_lt_card _ hf hp), },
 end
 
-lemma nth_count {n : ℕ} (hp: p n) : nth p (count p n) = n :=
+lemma nth_count {n : ℕ} (hp : p n) : nth p (count p n) = n :=
 begin
   obtain hfi | hinf := em (set.finite p),
   { exact nth_count_of_finite p hfi hp, },
   { exact nth_count_of_infinite p hinf hp, },
 end
 
-lemma nth_count_le [decidable_pred p] (i: set.infinite p) (n : ℕ) : n ≤ nth p (count p n) :=
+lemma nth_count_le [decidable_pred p] (i : (set_of p).infinite) (n : ℕ) : n ≤ nth p (count p n) :=
 begin
   sorry
 end
 
-lemma count_nth_gc (i : set.infinite p) : galois_connection (count p) (nth p) :=
+lemma count_nth_gc (i : (set_of p).infinite) : galois_connection (count p) (nth p) :=
 begin
   rintro x y,
   rw [nth, le_cInf_iff (⟨0, λ _ _, zero_le _⟩ : bdd_below _)],
@@ -633,11 +633,11 @@ begin
   apply nth_mem_of_infinite_aux p i,
 end
 
-lemma count_le_iff_le_nth (i : set.infinite p) {a b : ℕ} :
+lemma count_le_iff_le_nth (i : (set_of p).infinite) {a b : ℕ} :
   count p a ≤ b ↔ a ≤ nth p b :=
 count_nth_gc p i _ _
 
-lemma lt_nth_iff_count_lt (i : set.infinite p) {a b : ℕ} :
+lemma lt_nth_iff_count_lt (i : (set_of p).infinite) {a b : ℕ} :
   a < count p b ↔ nth p a < b :=
 lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth p i
 

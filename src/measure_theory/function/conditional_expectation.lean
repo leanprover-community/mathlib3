@@ -1159,7 +1159,7 @@ end
 
 @[simp] lemma condexp_ind_empty :
   condexp_ind 𝕜 hm μ measurable_set.empty = (0 : E' →L[ℝ] α →₁[μ] E') :=
-by {ext1, simp, }
+by { ext1, simp, }
 
 lemma condexp_ind_smul (hs : measurable_set s) (c : 𝕜) (x : E') :
   condexp_ind 𝕜 hm μ hs (c • x) = c • condexp_ind 𝕜 hm μ hs x :=

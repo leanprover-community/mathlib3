@@ -559,7 +559,6 @@ lemma integral_sub [borel_space E] {f g : α →ₛ E} (hf : integrable f μ) (h
   integral μ (f - g) = integral μ f - integral μ g :=
 by { rw [sub_eq_add_neg, integral_add hf, integral_neg hg, sub_eq_add_neg], exact hg.neg, }
 
-/-- The extension to 𝕜 has to come from something else. -/
 lemma set_to_simple_func_smul_real (T : set α → (E →L[ℝ] F)) (T_empty : T ∅ = 0)
   (h_add : ∀ s t, measurable_set s → measurable_set t → μ s ≠ ∞ → μ t ≠ ∞ → s ∩ t = ∅
     → T (s ∪ t) = T s + T t)

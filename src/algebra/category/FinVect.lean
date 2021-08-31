@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 import linear_algebra.finite_dimensional
-import category_theory.monoidal.category
+import category_theory.monoidal.rigid
 import linear_algebra.finsupp_vector_space
 import linear_algebra.dual
 import linear_algebra.coevaluation
@@ -76,7 +76,7 @@ begin
    basis.equiv_fun_apply,basis.coe_of_vector_space, one_nsmul, finset.card_singleton],
 end
 
-def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
+private def FinVect_evaluation : (FinVect_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
 by { change _ →ₗ[K] _, apply contract_left K V.val }
 
 lemma FinVect_evaluation_apply (f : (FinVect_dual K V).val) (x : V.val) :
@@ -89,9 +89,19 @@ lemma right_unitor_hom_apply_tensor_one (x : V.val) :
 (right_unitor_hom_apply x 1).trans (one_smul _ _)
 
 @[simp]
+lemma left_unitor_hom_apply_one_tensor (x : V.val) :
+  ((λ_ V).hom : _ →ₗ[K] _) ((1 : K) ⊗ₜ[K] x) = x :=
+(left_unitor_hom_apply 1 x).trans (one_smul _ _)
+
+@[simp]
 lemma left_unitor_inv_apply (x : V.val) :
   ((λ_ V).inv : _ →ₗ[K] _) x = (1 : K) ⊗ₜ[K] x :=
 left_unitor_inv_apply _
+
+@[simp]
+lemma right_unitor_inv_apply (x : V.val) :
+  ((ρ_ V).inv : _ →ₗ[K] _) x = x ⊗ₜ[K] (1 : K) :=
+right_unitor_inv_apply _
 
 @[simp]
 lemma tensor_hom_apply {U V W X : FinVect K} (f : U ⟶ V) (g : W ⟶ X) (k : U.val) (m : W.val) :
@@ -106,7 +116,12 @@ lemma associator_inv_apply {U V W : FinVect K} (u : U.val) (v : V.val) (w : W.va
   ((α_ U V W).inv : U ⊗ (V ⊗ W) ⟶ (U ⊗ V) ⊗ W) (u ⊗ₜ (v ⊗ₜ w)) = ((u ⊗ₜ v) ⊗ₜ w) :=
 associator_inv_apply u v w
 
-theorem FinVect_coevaluation_evaluation :
+@[simp]
+lemma associator_hom_apply {U V W : FinVect K} (u : U.val) (v : V.val) (w : W.val) :
+  ((α_ U V W).hom : (U ⊗ V) ⊗ W ⟶ U ⊗ (V ⊗ W)) ((u ⊗ₜ v) ⊗ₜ w) = (u ⊗ₜ (v ⊗ₜ w)) :=
+associator_hom_apply u v w
+
+private theorem coevaluation_evaluation :
   let V' : FinVect K := FinVect_dual K V in
   (𝟙 V' ⊗ (FinVect_coevaluation K V)) ≫ (α_ V' V V').inv ≫ (FinVect_evaluation K V ⊗ 𝟙 V')
   = (ρ_ V').hom ≫ (λ_ V').inv :=
@@ -116,16 +131,42 @@ begin
   rw [linear_map.compr₂_apply, linear_map.compr₂_apply],
   simp only [tensor_product.mk_apply, basis.coe_dual_basis],
   erw [linear_map.coe_comp, linear_map.coe_comp, linear_map.coe_comp],
-  simp only [function.comp_app],
-  erw [right_unitor_hom_apply_tensor_one, left_unitor_inv_apply, tensor_hom_apply K],
+  rw [function.comp_app, function.comp_app, function.comp_app],
+  erw [right_unitor_hom_apply_tensor_one K, left_unitor_inv_apply K, tensor_hom_apply K],
   rw [id_apply, FinVect_coevaluation_apply K V, tensor_product.tmul_sum],
   simp only [linear_map.map_sum, linear_map.to_fun_eq_coe],
   conv_lhs { congr, skip, funext,
-    rw [associator_inv_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply],
-    simp only [id],
-    rw [basis.coord_apply, (basis.of_vector_space K ↥(V.val)).repr_self_apply],
-    rw [tensor_product.ite_tmul] },
-  simp only [finset.mem_univ, if_true, finset.sum_ite_eq']
+    rw [associator_inv_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply,
+     id.def, id.def, basis.coord_apply, (basis.of_vector_space K ↥(V.val)).repr_self_apply,
+     tensor_product.ite_tmul] },
+  rw [finset.sum_ite_eq'], simp only [finset.mem_univ, if_true]
 end
+
+private theorem evaluation_coevaluation :
+  (FinVect_coevaluation K V ⊗ 𝟙 V)
+  ≫ (α_ V (FinVect_dual K V) V).hom ≫ (𝟙 V ⊗ FinVect_evaluation K V)
+  = (λ_ V).hom ≫ (ρ_ V).inv :=
+begin
+  apply tensor_product.mk_compr₂_inj,
+  apply linear_map.ext_ring, apply (basis.of_vector_space K V.val).ext, intro j,
+  rw [linear_map.compr₂_apply, linear_map.compr₂_apply],
+  simp only [tensor_product.mk_apply, basis.coe_dual_basis],
+  erw [linear_map.coe_comp, linear_map.coe_comp, linear_map.coe_comp],
+  rw [function.comp_app, function.comp_app, function.comp_app],
+  erw [left_unitor_hom_apply_one_tensor K, right_unitor_inv_apply K, tensor_hom_apply K],
+  rw [id_apply, FinVect_coevaluation_apply K V, tensor_product.sum_tmul],
+  simp only [linear_map.map_sum, linear_map.to_fun_eq_coe],
+  conv_lhs { congr, skip, funext,
+    rw [associator_hom_apply K, tensor_hom_apply K, id_apply K, FinVect_evaluation_apply,
+     id.def, id.def, basis.coord_apply, (basis.of_vector_space K ↥(V.val)).repr_self_apply,
+     tensor_product.tmul_ite] },
+  rw [finset.sum_ite_eq], simp only [finset.mem_univ, if_true]
+end
+
+def exact_pairing : exact_pairing V (FinVect_dual K V) :=
+{ coevaluation := FinVect_coevaluation K V,
+  evaluation := FinVect_evaluation K V,
+  coevaluation_evaluation' := coevaluation_evaluation K V,
+  evaluation_coevaluation' := evaluation_coevaluation K V }
 
 end FinVect

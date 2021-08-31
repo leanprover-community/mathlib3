@@ -70,7 +70,7 @@ will be equipped with the topology of weak convergence of measures when the meas
 a topological space equipped with its Borel sigma-algebra.
 -/
 
-variables {α : Type} [measurable_space α]
+variables {α : Type*} [measurable_space α]
 
 /-- Finite measures are defined as the subtype of measures that have the property of being finite
 measures (i.e., their total mass is finite). -/
@@ -81,15 +81,14 @@ namespace finite_measures
 
 instance has_zero {α : Type*} [measurable_space α] :
   has_zero (finite_measures α) :=
-⟨{ val := 0,
-   property := measure_theory.finite_measure_zero, }⟩
+{ zero := ⟨0, measure_theory.finite_measure_zero⟩ }
 
 instance : inhabited (finite_measures α) := { default := 0 }
 
 instance {α : Type*} [measurable_space α] : has_add (finite_measures α) :=
 { add := (λ (μ ν : finite_measures α),
-  { val := μ.val + ν.val,
-    property := @measure_theory.finite_measure_add α _ μ.val ν.val μ.prop ν.prop, }), }
+  { val := μ + ν,
+    property := measure_theory.finite_measure_add, }), }
 
 instance {α : Type*} [measurable_space α] : has_scalar ℝ≥0 (finite_measures α) :=
 { smul := (λ (c : ℝ≥0) (μ : finite_measures α),
@@ -112,8 +111,8 @@ instance to_measure.finite_measure (μ : finite_measures α) :
   finite_measure (μ : measure α) := μ.prop
 
 instance (α : Type*) [measurable_space α] :
-  has_coe_to_fun (finite_measures α) := ⟨(λ _, set α → ℝ≥0),
-    (λ μ, (λ s, (μ.val.measure_of s).to_nnreal))⟩
+  has_coe_to_fun (finite_measures α) :=
+⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
 
 lemma to_fun_eq_to_measure_to_nnreal (ν : finite_measures α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
@@ -127,20 +126,13 @@ subtype.coe_injective
 @[simp]
 lemma coe_zero : (coe : finite_measures α → measure α) 0 = 0 := rfl
 
-@[simp]
-lemma coe_add (μ ν : finite_measures α) :
-  (coe : finite_measures α → measure α) (μ + ν) = (μ : measure α) + (ν : measure α) := rfl
+@[simp] lemma coe_add (μ ν : finite_measures α) : ↑(μ + ν) = (↑μ + ↑ν : measure α) := rfl
 
-@[simp]
-lemma coe_smul (c : ℝ≥0) (μ : finite_measures α) :
-  (coe : finite_measures α → measure α) (c • μ)  = c • (μ : measure α) := rfl
+@[simp] lemma coe_smul (c : ℝ≥0) (μ : finite_measures α) : ↑(c • μ) = (c • ↑μ : measure α) := rfl
 
 /-- The (total) mass of a finite measure `μ` is `μ univ`, i.e., the cast to `nnreal` of
 `(μ : measure α) univ`. -/
 def mass {α : Type*} [measurable_space α] (μ : finite_measures α) : ℝ≥0 := μ univ
-
-lemma mass_def {α : Type*} [measurable_space α] {μ : finite_measures α} :
-  μ.mass = μ univ := rfl
 
 @[simp] lemma mass_ennreal {α : Type*} [measurable_space α]
   {μ : finite_measures α} : (μ.mass : ℝ≥0∞) = (μ : measure α) univ :=
@@ -155,40 +147,14 @@ instance {α : Type*} [measurable_space α] :
 (finite_measures.coe_injective).add_comm_monoid
   (coe : finite_measures α → measure α) finite_measures.coe_zero finite_measures.coe_add
 
+/-- Coercion is an `add_monoid_hom`. -/
+@[simps]
+def coe_add_monoid_hom : finite_measures α →+ measure α :=
+{ to_fun := coe, map_zero' := coe_zero, map_add' := coe_add }
+
 -- TODO: Another alternative would use a bijection with `vector_measure α ℝ≥0`.
-instance {α : Type*} [measurable_space α] :
-  module ℝ≥0 (finite_measures α) :=
-{ smul := (@finite_measures.has_scalar α _).smul,
-  one_smul := begin
-    intros μ,
-    apply finite_measures.coe_injective,
-    simp only [coe_smul, one_smul],
-  end,
-  mul_smul := begin
-    intros c₁ c₂ μ,
-    apply finite_measures.coe_injective,
-    simp only [coe_smul, mul_smul],
-  end,
-  smul_add := begin
-    intros c μ ν,
-    apply finite_measures.coe_injective,
-    simp only [coe_add, coe_smul, smul_add],
-  end,
-  smul_zero := begin
-    intros c,
-    apply finite_measures.coe_injective,
-    simp only [coe_smul, coe_zero, smul_zero],
-  end,
-  add_smul := begin
-    intros c₁ c₂ μ,
-    apply finite_measures.coe_injective,
-    simp only [add_smul, coe_add, coe_smul],
-  end,
-  zero_smul := begin
-    intros μ,
-    apply finite_measures.coe_injective,
-    simp only [coe_smul, zero_smul, coe_zero],
-  end }
+instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measures α) :=
+function.injective.module _ coe_add_monoid_hom finite_measures.coe_injective coe_smul
 
 end finite_measures -- end namespace
 
@@ -223,8 +189,8 @@ instance [inhabited α] : inhabited (probability_measures α) :=
 instance : has_coe (probability_measures α) (measure_theory.measure α) := coe_subtype
 
 instance (α : Type*) [measurable_space α] :
-  has_coe_to_fun (probability_measures α) := ⟨(λ _, set α → ℝ≥0),
-    (λ μ, (λ s, (μ.val.measure_of s).to_nnreal))⟩
+  has_coe_to_fun (probability_measures α) :=
+⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
 
 instance to_measure.probability_measure (μ : probability_measures α) :
   probability_measure (μ : measure α) := μ.prop

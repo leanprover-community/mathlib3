@@ -523,13 +523,11 @@ uniformity_basis_dist.uniform_continuous_iff uniformity_basis_dist
 
 lemma uniform_continuous_on_iff [pseudo_metric_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y < δ → dist (f x) (f y) < ε :=
-begin
-  dsimp [uniform_continuous_on],
-  rw (metric.uniformity_basis_dist.inf_principal (s.prod s)).tendsto_iff
-    metric.uniformity_basis_dist,
-  simp only [and_imp, exists_prop, prod.forall, mem_inter_eq, gt_iff_lt, mem_set_of_eq, mem_prod],
-  finish,
-end
+metric.uniformity_basis_dist.uniform_continuous_on_iff metric.uniformity_basis_dist
+
+lemma uniform_continuous_on_iff_le [pseudo_metric_space β] {f : α → β} {s : set α} :
+  uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y ≤ δ → dist (f x) (f y) ≤ ε :=
+metric.uniformity_basis_dist_le.uniform_continuous_on_iff metric.uniformity_basis_dist_le
 
 theorem uniform_embedding_iff [pseudo_metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧

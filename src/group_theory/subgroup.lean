@@ -1249,7 +1249,7 @@ def normal_core (H : subgroup G) : subgroup G :=
 { carrier := {a : G | ∀ b : G, b * a * b⁻¹ ∈ H},
   one_mem' := λ a, by rw [mul_one, mul_inv_self]; exact H.one_mem,
   inv_mem' := λ a h b, (congr_arg (∈ H) conj_inv).mp (H.inv_mem (h b)),
-  mul_mem' := λ a b h k c, (congr_arg (∈ H) conj_mul).mp (H.mul_mem (h c) (k c)) }
+  mul_mem' := λ a b ha hb c, (congr_arg (∈ H) conj_mul).mp (H.mul_mem (ha c) (hb c)) }
 
 lemma normal_core_le (H : subgroup G) : H.normal_core ≤ H :=
 λ a h, by { rw [←mul_one a, ←one_inv, ←one_mul a], exact h 1 }

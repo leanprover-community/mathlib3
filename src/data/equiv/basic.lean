@@ -1155,6 +1155,22 @@ def arrow_prod_equiv_prod_arrow (α β γ : Type*) : (γ → α × β) ≃ (γ �
  λ f, funext $ λ c, prod.mk.eta,
  λ p, by { cases p, refl }⟩
 
+/-- The type `α → β` can be split as a product by separating the coordinates in `α` depending on
+whether they satisfy a predicate `p` or not. -/
+@[simps] def arrow_equiv_subtype_arrow_prod
+  {α : Type*} (p : α → Prop) (β : Type*) [decidable_pred p] :
+  (α → β) ≃ ({x // p x} → β) × ({x // ¬ p x} → β) :=
+{ to_fun := λ f, (λ x, f x, λ x, f x),
+  inv_fun := λ f x, if h : p x then f.1 ⟨x, h⟩ else f.2 ⟨x, h⟩,
+  right_inv := begin
+    rintros ⟨f, g⟩,
+    ext1;
+    { ext y,
+      rcases y,
+      simp [y_property] },
+  end,
+  left_inv := λ f, by simp }
+
 open sum
 /-- The type of functions on a sum type `α ⊕ β` is equivalent to the type of pairs of functions
 on `α` and on `β`. -/

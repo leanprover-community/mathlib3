@@ -69,7 +69,7 @@ begin
 end
 
 @[simp, elementwise, reassoc]
-lemma restrict_stalk_iso_hom_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+lemma restrict_stalk_iso_hom_eq_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   (X.restrict f h).presheaf.germ ⟨x, hx⟩ ≫ (restrict_stalk_iso X f h x).hom =
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ :=
@@ -77,11 +77,11 @@ colimit.ι_pre ((open_nhds.inclusion (f x)).op ⋙ X.presheaf)
   (h.is_open_map.functor_nhds x).op (op ⟨V, hx⟩)
 
 @[simp, elementwise, reassoc]
-lemma restrict_stalk_iso_inv_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
+lemma restrict_stalk_iso_inv_eq_germ {U : Top} (X : PresheafedSpace C) (f : U ⟶ (X : Top.{v}))
   (h : open_embedding f) (V : opens U) (x : U) (hx : x ∈ V) :
   X.presheaf.germ ⟨f x, show f x ∈ h.is_open_map.functor.obj V, from ⟨x, hx, rfl⟩⟩ ≫
   (restrict_stalk_iso X f h x).inv = (X.restrict f h).presheaf.germ ⟨x, hx⟩ :=
-by rw [← restrict_stalk_iso_hom_germ, category.assoc, iso.hom_inv_id, category.comp_id]
+by rw [← restrict_stalk_iso_hom_eq_germ, category.assoc, iso.hom_inv_id, category.comp_id]
 
 end restrict
 
@@ -117,15 +117,31 @@ begin
   erw [id_comp, id_comp, id_comp],
 end
 
+<<<<<<< HEAD
 lemma congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β)
   (x x': X) (h₂ : x = x') :
     stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
     eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by rw [h₁, h₂]) ≫ stalk_map β x' :=
+=======
+/--
+If `α = β` and `x = x'`, we would like to say that `stalk_map α x = stalk_map β x'`.
+Unfortunately, this equality is not well-formed, as their types are not _definitionally_ the same.
+To get a proper congruence lemma, we therefore have to introduce these `eq_to_hom` arrows on
+either side of the equality.
+-/
+lemma congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β) (x x': X) (h₂ : x = x') :
+  stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
+  eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by rw [h₁, h₂]) ≫ stalk_map β x' :=
+>>>>>>> master
 stalk_hom_ext _ $ λ U hx, by { subst h₁, subst h₂, simp }
 
 lemma congr_hom {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h : α = β) (x : X) :
   stalk_map α x =
+<<<<<<< HEAD
     eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x), by rw h) ≫ stalk_map β x :=
+=======
+  eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x), by rw h) ≫ stalk_map β x :=
+>>>>>>> master
 by rw [← stalk_map.congr α β h x x rfl, eq_to_hom_refl, category.comp_id]
 
 lemma congr_point {X Y : PresheafedSpace C} (α : X ⟶ Y) (x x' : X) (h : x = x') :
@@ -137,13 +153,14 @@ instance is_iso {X Y : PresheafedSpace C} (α : X ⟶ Y) [is_iso α] (x : X) :
   is_iso (stalk_map α x) :=
 { out := begin
   let β : Y ⟶ X := category_theory.inv α,
-  -- Intuitively, the inverse of the stalk map of `α` at `x` should just be the stalk map of `β`
-  -- at `α x`. Unfortunately, we have a problem with dependent type theory here, because `x`
-  -- is not *definitionally* equal to `β (α x)`. Hence we need to introduce an `eq_to_hom` arrow.
   have h_eq : (α ≫ β).base x = x,
   { rw [is_iso.hom_inv_id α, id_base, Top.id_app] },
-  -- To get the inverse of `stalk_map α x`, we start with an eq_to_hom arrow
-  -- `X.stalk x ⟶ X.stalk ((α ≫ β).base x)` and then compose with `stalk_map β (α.base x)`.
+  -- Intuitively, the inverse of the stalk map of `α` at `x` should just be the stalk map of `β`
+  -- at `α x`. Unfortunately, we have a problem with dependent type theory here: Because `x`
+  -- is not *definitionally* equal to `β (α x)`, the map `stalk_map β (α x)` has not the correct
+  -- type for an inverse.
+  -- To get a proper inverse, we need to compose with the `eq_to_hom` arrow
+  -- `X.stalk x ⟶ X.stalk ((α ≫ β).base x)`.
   refine ⟨eq_to_hom (show X.stalk x = X.stalk ((α ≫ β).base x), by rw h_eq) ≫
     (stalk_map β (α.base x) : _), _, _⟩,
   { rw [← category.assoc, congr_point α x ((α ≫ β).base x) h_eq.symm, category.assoc],

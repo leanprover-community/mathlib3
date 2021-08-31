@@ -43,14 +43,14 @@ with a partial order in which the scalar multiplication is compatible with the o
 -/
 @[protect_proj]
 class ordered_module (R M : Type*)
-  [ordered_semiring R] [ordered_add_comm_monoid M] [module R M] : Prop :=
+  [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] : Prop :=
 (smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, a < b → 0 < c → c • a < c • b)
 (lt_of_smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, c • a < c • b → 0 < c → a < b)
 
 section ordered_module
 
 variables {R M : Type*}
-  [ordered_semiring R] [ordered_add_comm_monoid M] [module R M] [ordered_module R M]
+  [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] [ordered_module R M]
   {a b : M} {c : R}
 
 lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_module.smul_lt_smul_of_pos
@@ -77,7 +77,7 @@ lemma smul_lt_smul_iff_of_pos (hc : 0 < c) : c • a < c • b ↔ a < b :=
 ⟨λ h, lt_of_smul_lt_smul_of_nonneg h hc.le, λ h, smul_lt_smul_of_pos h hc⟩
 
 lemma smul_pos_iff_of_pos (hc : 0 < c) : 0 < c • a ↔ 0 < a :=
-calc 0 < c • a ↔ c • 0 < c • a : by rw smul_zero
+calc 0 < c • a ↔ c • 0 < c • a : by rw smul_zero'
            ... ↔ 0 < a         : smul_lt_smul_iff_of_pos hc
 
 end ordered_module
@@ -87,7 +87,7 @@ end ordered_module
 `c • a ≤ c • b`. We have no semifields in `mathlib`, so we use the assumption `∀ c ≠ 0, is_unit c`
 instead. -/
 lemma ordered_module.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
-  [module R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
+  [mul_action_with_zero R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
   (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_module R M :=
 begin
@@ -106,11 +106,11 @@ end
 /-- If `R` is a linear ordered field, then it suffices to verify only the first axiom of
 `ordered_module`. -/
 lemma ordered_module.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_monoid M]
-  [module k M] (hlt : ∀ ⦃a b : M⦄ ⦃c : k⦄, a < b → 0 < c → c • a ≤ c • b) :
+  [mul_action_with_zero k M] (hlt : ∀ ⦃a b : M⦄ ⦃c : k⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_module k M :=
 ordered_module.mk'' (λ c hc, is_unit.mk0 _ hc) hlt
 
-instance linear_ordered_semiring.to_ordered_module  {R : Type*} [linear_ordered_semiring R] :
+instance linear_ordered_semiring.to_ordered_module {R : Type*} [linear_ordered_semiring R] :
   ordered_module R R :=
 { smul_lt_smul_of_pos        := ordered_semiring.mul_lt_mul_of_pos_left,
   lt_of_smul_lt_smul_of_pos  := λ _ _ _ h hc, lt_of_mul_lt_mul_left h hc.le }
@@ -118,8 +118,8 @@ instance linear_ordered_semiring.to_ordered_module  {R : Type*} [linear_ordered_
 section field
 
 variables {k M N : Type*} [linear_ordered_field k]
-  [ordered_add_comm_group M] [module k M] [ordered_module k M]
-  [ordered_add_comm_group N] [module k N] [ordered_module k N]
+  [ordered_add_comm_group M] [mul_action_with_zero k M] [ordered_module k M]
+  [ordered_add_comm_group N] [smul_with_zero k N] [ordered_module k N]
   {a b : M} {c : k}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
@@ -127,7 +127,10 @@ lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
   smul_le_smul_of_nonneg h (inv_nonneg.2 hc.le),
   λ h, smul_le_smul_of_nonneg h hc.le⟩
 
-lemma smul_le_smul_iff_of_neg (hc : c < 0) : c • a ≤ c • b ↔ b ≤ a :=
+lemma smul_le_smul_iff_of_neg {k M N : Type*} [linear_ordered_field k]
+  [ordered_add_comm_group M] [module k M] [ordered_module k M]
+  [ordered_add_comm_group N] [smul_with_zero k N] [ordered_module k N]
+  {a b : M} {c : k} (hc : c < 0) : c • a ≤ c • b ↔ b ≤ a :=
 begin
   rw [← neg_neg c, neg_smul, neg_smul (-c), neg_le_neg_iff, smul_le_smul_iff_of_pos (neg_pos.2 hc)],
   apply_instance,
@@ -145,12 +148,13 @@ lemma le_smul_iff_of_pos (hc : 0 < c) : a ≤ c • b ↔ c⁻¹ • a ≤ b :=
 calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul' hc.ne']
 ... ↔ c⁻¹ • a ≤ b : smul_le_smul_iff_of_pos hc
 
-instance prod.ordered_module : ordered_module k (M × N) :=
-ordered_module.mk' $ λ v u c h hc,
-  ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
+-- TODO: solve `prod.has_lt` and `prod.has_le` misalignment issue
+-- instance prod.ordered_module : ordered_module k (M × N) :=
+-- ordered_module.mk' $ λ (v u : M × N) (c : k) h hc,
+  -- ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
 
 instance pi.ordered_module {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
-  [Π i, module k (M i)] [∀ i, ordered_module k (M i)] :
+  [Π i, mul_action_with_zero k (M i)] [∀ i, ordered_module k (M i)] :
   ordered_module k (Π i : ι, M i) :=
 begin
   refine (ordered_module.mk' $ λ v u c h hc i, _),
@@ -161,7 +165,7 @@ end
 -- Sometimes Lean fails to apply the dependent version to non-dependent functions,
 -- so we define another instance
 instance pi.ordered_module' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
-  [module k M] [ordered_module k M] :
+  [mul_action_with_zero k M] [ordered_module k M] :
   ordered_module k (ι → M) :=
 pi.ordered_module
 
@@ -172,14 +176,26 @@ section order_dual
 
 variables {R M : Type*}
 
-instance [semiring R] [ordered_add_comm_monoid M] [module R M] : has_scalar R (order_dual M) :=
+instance [semiring R] [ordered_add_comm_monoid M] [has_scalar R M] : has_scalar R (order_dual M) :=
 { smul := @has_scalar.smul R M _ }
 
-instance [semiring R] [ordered_add_comm_monoid M] [module R M] : mul_action R (order_dual M) :=
-{ one_smul := @mul_action.one_smul R M _ _,
-  mul_smul := @mul_action.mul_smul R M _ _ }
+instance [semiring R] [ordered_add_comm_monoid M] [h : smul_with_zero R M] :
+  smul_with_zero R (order_dual M) :=
+{ zero_smul := @smul_with_zero.zero_smul R M _ _ h,
+  smul_zero := @smul_with_zero.smul_zero R M _ _ h,
+  ..order_dual.has_zero M,
+  ..order_dual.has_scalar }
 
-instance [semiring R] [ordered_add_comm_monoid M] [module R M] :
+instance [semiring R] [ordered_add_comm_monoid M] [mul_action R M] : mul_action R (order_dual M) :=
+{ one_smul := @mul_action.one_smul R M _ _,
+  mul_smul := @mul_action.mul_smul R M _ _,
+  ..order_dual.has_scalar }
+
+instance [semiring R] [ordered_add_comm_monoid M] [mul_action_with_zero R M] :
+  mul_action_with_zero R (order_dual M) :=
+{ ..order_dual.mul_action, ..order_dual.smul_with_zero }
+
+instance [semiring R] [ordered_add_comm_monoid M] [distrib_mul_action R M] :
   distrib_mul_action R (order_dual M) :=
 { smul_add := @distrib_mul_action.smul_add R M _ _ _,
   smul_zero := @distrib_mul_action.smul_zero R M _ _ _ }
@@ -188,7 +204,7 @@ instance [semiring R] [ordered_add_comm_monoid M] [module R M] : module R (order
 { add_smul := @module.add_smul R M _ _ _,
   zero_smul := @module.zero_smul R M _ _ _ }
 
-instance [ordered_semiring R] [ordered_add_comm_monoid M] [module R M]
+instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
   [ordered_module R M] :
   ordered_module R (order_dual M) :=
 { smul_lt_smul_of_pos := λ a b, @ordered_module.smul_lt_smul_of_pos R M _ _ _ _ b a,

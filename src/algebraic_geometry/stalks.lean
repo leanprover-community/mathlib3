@@ -117,12 +117,6 @@ begin
   erw [id_comp, id_comp, id_comp],
 end
 
-<<<<<<< HEAD
-lemma congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β)
-  (x x': X) (h₂ : x = x') :
-    stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
-    eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by rw [h₁, h₂]) ≫ stalk_map β x' :=
-=======
 /--
 If `α = β` and `x = x'`, we would like to say that `stalk_map α x = stalk_map β x'`.
 Unfortunately, this equality is not well-formed, as their types are not _definitionally_ the same.
@@ -132,16 +126,11 @@ either side of the equality.
 lemma congr {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h₁ : α = β) (x x': X) (h₂ : x = x') :
   stalk_map α x ≫ eq_to_hom (show X.stalk x = X.stalk x', by rw h₂) =
   eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x'), by rw [h₁, h₂]) ≫ stalk_map β x' :=
->>>>>>> master
 stalk_hom_ext _ $ λ U hx, by { subst h₁, subst h₂, simp }
 
 lemma congr_hom {X Y : PresheafedSpace C} (α β : X ⟶ Y) (h : α = β) (x : X) :
   stalk_map α x =
-<<<<<<< HEAD
-    eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x), by rw h) ≫ stalk_map β x :=
-=======
   eq_to_hom (show Y.stalk (α.base x) = Y.stalk (β.base x), by rw h) ≫ stalk_map β x :=
->>>>>>> master
 by rw [← stalk_map.congr α β h x x rfl, eq_to_hom_refl, category.comp_id]
 
 lemma congr_point {X Y : PresheafedSpace C} (α : X ⟶ Y) (x x' : X) (h : x = x') :

@@ -179,17 +179,17 @@ namespace order_dual
 variables {R M : Type*}
 
 instance [has_scalar R M] : has_scalar R (order_dual M) :=
-{ smul := λ k x, dual_rec (λ x', (k • x' : M)) x }
+{ smul := λ k x, rec (λ x', (k • x' : M)) x }
 
 instance [semiring R] [ordered_add_comm_monoid M] [h : smul_with_zero R M] :
   smul_with_zero R (order_dual M) :=
-{ zero_smul := λ m, dual_rec (zero_smul _) m,
-  smul_zero := λ r, dual_rec (smul_zero' _) r,
+{ zero_smul := λ m, rec (zero_smul _) m,
+  smul_zero := λ r, rec (smul_zero' _) r,
   ..order_dual.has_scalar }
 
 instance [semiring R] [mul_action R M] : mul_action R (order_dual M) :=
-{ one_smul := λ m, dual_rec (one_smul _) m,
-  mul_smul := λ r, dual_rec mul_smul r,
+{ one_smul := λ m, rec (one_smul _) m,
+  mul_smul := λ r, rec mul_smul r,
   ..order_dual.has_scalar }
 
 instance [semiring R] [ordered_add_comm_monoid M] [mul_action_with_zero R M] :
@@ -198,12 +198,12 @@ instance [semiring R] [ordered_add_comm_monoid M] [mul_action_with_zero R M] :
 
 instance [semiring R] [ordered_add_comm_monoid M] [distrib_mul_action R M] :
   distrib_mul_action R (order_dual M) :=
-{ smul_add := λ k a, dual_rec (λ a' b, dual_rec (smul_add _ _) b) a,
-  smul_zero := λ r, dual_rec smul_zero r }
+{ smul_add := λ k a, rec (λ a' b, rec (smul_add _ _) b) a,
+  smul_zero := λ r, rec smul_zero r }
 
 instance [semiring R] [ordered_add_comm_monoid M] [module R M] : module R (order_dual M) :=
-{ add_smul := λ r s x, dual_rec (add_smul _ _) x,
-  zero_smul := λ m, dual_rec (zero_smul _) m }
+{ add_smul := λ r s x, rec (add_smul _ _) x,
+  zero_smul := λ m, rec (zero_smul _) m }
 
 instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
   [ordered_module R M] :

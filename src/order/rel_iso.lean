@@ -6,7 +6,6 @@ Authors: Mario Carneiro
 import algebra.group.defs
 import logic.embedding
 import order.rel_classes
-import data.set.intervals.basic
 import order.directed
 
 /-!

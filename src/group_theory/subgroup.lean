@@ -1244,7 +1244,8 @@ by simp only [subset_normal_closure, closure_le]
 le_antisymm (normal_closure_le_normal closure_le_normal_closure)
   (normal_closure_mono subset_closure)
 
-/-- The normal core of a subgroup `H` is the intersection of all of the conjugates of `H`. -/
+/-- The normal core of a subgroup `H` is the intersection of all of the conjugates of `H`,
+as shown by `subgroup.normal_core_eq_infi`. -/
 def normal_core (H : subgroup G) : subgroup G :=
 { carrier := {a : G | ∀ b : G, b * a * b⁻¹ ∈ H},
   one_mem' := λ a, by rw [mul_one, mul_inv_self]; exact H.one_mem,

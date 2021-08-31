@@ -35,7 +35,7 @@ variables {a b : ℝ} (n : ℕ)
 
 namespace interval_integral
 open measure_theory
-variables {f : ℝ → ℝ} {μ ν : measure ℝ} [locally_finite_measure μ] (c d : ℝ)
+variables {f : ℝ → ℝ} {μ ν : measure ℝ} [is_locally_finite_measure μ] (c d : ℝ)
 
 /-! ### Interval integrability -/
 

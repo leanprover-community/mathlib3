@@ -1120,7 +1120,7 @@ by rw [← f.integral_eq_integral hfi, simple_func.integral]
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
   cases (@le_top _ _ (μ univ)).lt_or_eq with hμ hμ,
-  { haveI : finite_measure μ := ⟨hμ⟩,
+  { haveI : is_finite_measure μ := ⟨hμ⟩,
     calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
       ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm
     ... = _ : _,
@@ -1136,7 +1136,7 @@ begin
       simp [integral_undef, *] } }
 end
 
-lemma norm_integral_le_of_norm_le_const [finite_measure μ] {f : α → E} {C : ℝ}
+lemma norm_integral_le_of_norm_le_const [is_finite_measure μ] {f : α → E} {C : ℝ}
   (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   ∥∫ x, f x ∂μ∥ ≤ C * (μ univ).to_real :=
 calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, C ∂μ : norm_integral_le_of_norm_le (integrable_const C) h

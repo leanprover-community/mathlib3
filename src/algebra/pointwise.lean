@@ -244,7 +244,7 @@ lemma Union_mul {ι : Sort*} [has_mul α] (s : ι → set α) (t : set α) :
 image2_Union_left _ _ _
 
 @[to_additive]
-lemma mul_Union {ι : Sort*} [has_mul α] (s : ι → set α) (t : set α) :
+lemma mul_Union {ι : Sort*} [has_mul α] (t : set α) (s : ι → set α) :
   t * (⋃ i, s i) = ⋃ i, (t * s i) :=
 image2_Union_right _ _ _
 

@@ -16,7 +16,7 @@ This file includes several ways of interacting with `list (sigma β)`, treated a
 
 ## Main Definitions
 
-- `keys` extracts the list of keys.
+- `list.keys` extracts the list of keys.
 - `nodupkeys` determines if the store has duplicate keys.
 - `lookup`/`lookup_all` accesses the value(s) of a particular key.
 - `kreplace` modifies a value.

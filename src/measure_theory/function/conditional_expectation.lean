@@ -437,6 +437,66 @@ end
 
 end uniqueness_of_conditional_expectation
 
+
+section integral_norm_le
+
+variables {m m0 : measurable_space α} {μ : measure α} {s : set α}
+
+/-- Let `m` be a sub-σ-algebra of `m0`, `f` a `m0`-measurable function and `g` a `m`-measurable
+function, such that their integrals coincide on `m`-measurable sets with finite measure.
+Then `∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ` on all `m`-measurable sets with finite measure. -/
+lemma integral_norm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α → ℝ}
+  (hf : measurable f) (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
+  (hgf : ∀ t, measurable_set[m] t → μ t < ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
+  (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
+  ∫ x in s, ∥g x∥ ∂μ ≤ ∫ x in s, ∥f x∥ ∂μ :=
+begin
+  rw integral_norm_eq_pos_sub_neg (hg.mono hm le_rfl) hgi,
+  rw integral_norm_eq_pos_sub_neg hf hfi,
+  have h_meas_nonneg_g : measurable_set[m] {x | 0 ≤ g x},
+    from @measurable_set_le _ α _ _ _ m _ _ _ _ g (@measurable_const _ α _ m _) hg,
+  have h_meas_nonneg_f : measurable_set {x | 0 ≤ f x},
+    from measurable_set_le measurable_const hf,
+  have h_meas_nonpos_g : measurable_set[m] {x | g x ≤ 0},
+    from @measurable_set_le _ α _ _ _ m _ _ _ g _ hg (@measurable_const _ α _ m _),
+  have h_meas_nonpos_f : measurable_set {x | f x ≤ 0},
+    from measurable_set_le hf measurable_const,
+  refine sub_le_sub _ _,
+  { rw [measure.restrict_restrict (hm _ h_meas_nonneg_g),
+      measure.restrict_restrict h_meas_nonneg_f,
+      hgf _ (@measurable_set.inter α m _ _ h_meas_nonneg_g hs)
+        ((measure_mono (set.inter_subset_right _ _)).trans_lt (lt_top_iff_ne_top.mpr hμs)),
+      ← measure.restrict_restrict (hm _ h_meas_nonneg_g),
+      ← measure.restrict_restrict h_meas_nonneg_f],
+    exact set_integral_le_nonneg (hm _ h_meas_nonneg_g) hf hfi, },
+  { rw [measure.restrict_restrict (hm _ h_meas_nonpos_g),
+      measure.restrict_restrict h_meas_nonpos_f,
+      hgf _ (@measurable_set.inter α m _ _ h_meas_nonpos_g hs)
+        ((measure_mono (set.inter_subset_right _ _)).trans_lt (lt_top_iff_ne_top.mpr hμs)),
+      ← measure.restrict_restrict (hm _ h_meas_nonpos_g),
+      ← measure.restrict_restrict h_meas_nonpos_f],
+    exact set_integral_nonpos_le (hm _ h_meas_nonpos_g) hf hfi, },
+end
+
+/-- Let `m` be a sub-σ-algebra of `m0`, `f` a `m0`-measurable function and `g` a `m`-measurable
+function, such that their integrals coincide on `m`-measurable sets with finite measure.
+Then `∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ` on all `m`-measurable sets with finite
+measure. -/
+lemma lintegral_nnnorm_le_of_forall_fin_meas_integral_eq (hm : m ≤ m0) {f g : α → ℝ}
+  (hf : measurable f) (hfi : integrable_on f s μ) (hg : measurable[m] g) (hgi : integrable_on g s μ)
+  (hgf : ∀ t, measurable_set[m] t → μ t < ∞ → ∫ x in t, g x ∂μ = ∫ x in t, f x ∂μ)
+  (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) :
+  ∫⁻ x in s, ∥g x∥₊ ∂μ ≤ ∫⁻ x in s, ∥f x∥₊ ∂μ :=
+begin
+  rw [← of_real_integral_norm_eq_lintegral_nnnorm hfi,
+    ← of_real_integral_norm_eq_lintegral_nnnorm hgi, ennreal.of_real_le_of_real_iff],
+  { exact integral_norm_le_of_forall_fin_meas_integral_eq hm hf hfi hg hgi hgf hs hμs, },
+  { exact integral_nonneg (λ x, norm_nonneg _), },
+end
+
+end integral_norm_le
+
+
 /-! ## Conditional expectation in L2
 
 We define a conditional expectation in `L2`: it is the orthogonal projection on the subspace

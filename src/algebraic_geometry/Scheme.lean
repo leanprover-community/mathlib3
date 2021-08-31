@@ -29,8 +29,8 @@ namespace algebraic_geometry
 We define `Scheme` as a `X : LocallyRingedSpace`,
 along with a proof that every point has an open neighbourhood `U`
 so that that the restriction of `X` to `U` is isomorphic,
-as a locally ringed space, to `Spec.PresheafedSpace R` for
-some `R : CommRing`.
+as a locally ringed space, to `Spec.to_LocallyRingedSpace.obj (op R)`
+for some `R : CommRing`.
 -/
 structure Scheme extends X : LocallyRingedSpace :=
 (local_affine : ∀ x : X, ∃ (U : open_nhds x) (R : CommRing),

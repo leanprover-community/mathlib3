@@ -69,7 +69,8 @@ def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_
   map_mul' := λ x y, add_monoid_hom.ext $ λ z, mul_smul x y z }
 
 /-- Each element of the group defines an multiplicative monoid isomorphism. -/
-def distrib_mul_action.to_mul_equiv [mul_distrib_mul_action G M] (x : G) : M ≃* M :=
+@[simps]
+def mul_distrib_mul_action.to_mul_equiv [mul_distrib_mul_action G M] (x : G) : M ≃* M :=
 { .. mul_distrib_mul_action.to_monoid_hom M x,
   .. mul_action.to_perm_hom G M x }
 

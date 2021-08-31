@@ -1098,21 +1098,21 @@ This is a stronger version of `mul_semiring_action.to_ring_hom` and
 `distrib_mul_action.to_linear_map`. -/
 @[simps]
 def to_alg_hom (m : M) : A →ₐ[R] A :=
-alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ x) (smul_comm _)
+alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
 
 end
 
 section
-variables [monoid G] [mul_semiring_action G A] [smul_comm_class G R A]
+variables [group G] [mul_semiring_action G A] [smul_comm_class G R A]
 
 /-- Each element of the group defines a algebra equivalence.
 
-This is a stronger version of `mul_semiring_action.to_semiring_equiv` and
-`distrib_mul_action.to_linear_equiv`.. -/
+This is a stronger version of `mul_semiring_action.to_ring_equiv` and
+`distrib_mul_action.to_linear_equiv`. -/
 @[simps]
 def to_alg_equiv (g : G) : A ≃ₐ[R] A :=
-{ .. mul_semiring_action.to_semiring_equiv _ _ x,
-  .. mul_semiring_action.to_alg_hom R A x }
+{ .. mul_semiring_action.to_ring_equiv _ _ g,
+  .. mul_semiring_action.to_alg_hom R A g }
 
 end
 

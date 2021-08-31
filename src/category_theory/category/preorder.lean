@@ -9,13 +9,23 @@ import category_theory.category.default
 import order.category.Preorder
 
 /-!
-We now put a category instance on any preorder.
 
-Because we do not allow the morphisms of a category to live in `Prop`,
-unfortunately we need to use `plift` and `ulift` when defining the morphisms.
+# Preorders as categories
 
-As convenience functions, we provide `hom_of_le` and `le_of_hom` to wrap and unwrap inequalities.
-We also provide aliases `has_le.le.hom` and `quiver.hom.le` to use with dot notation.
+We install a category instance on any preorder. This is not to be confused with the category _of_
+preorders, defined in `order.category.Preorder`.
+
+We show that monotone functions between preorders correspond to functors of the associated
+categories. Furthermore, galois connections correspond to adjoint functors.
+
+## Main definitions
+
+* `hom_of_le` and `le_of_hom` provide between inequalities and morphisms in the
+  preorder category.
+* `monotone.functor` is the functor associated to a monotone function.
+* `galois_connection.adjunction` is the adjunction associated to a galois connection.
+* `Preorder_to_Cat` is the functor embedding the category of preorders into `Cat`.
+
 -/
 
 universes u v

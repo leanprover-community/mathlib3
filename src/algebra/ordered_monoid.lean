@@ -610,28 +610,29 @@ begin
   { rw [← (self_le_mul_right a c).lt_iff_ne], apply lt_mul_of_one_lt_right' }
 end
 
-local attribute [semireducible] with_zero
-
 -- This instance looks absurd: a monoid already has a zero
 /-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
 instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
 { le_iff_exists_add := λ a b, begin
-    cases a with a,
+    apply with_zero.cases_on a,
     { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
-    cases b with b,
-    { exact iff_of_false
-        (mt (le_antisymm bot_le) (by simp))
-        (λ ⟨c, h⟩, by cases c; cases h) },
-    { simp [le_iff_exists_add, -add_comm],
-      split; intro h; rcases h with ⟨c, h⟩,
-      { exact ⟨some c, congr_arg some h⟩ },
-      { cases c; cases h,
-        { exact ⟨_, (add_zero _).symm⟩ },
-        { exact ⟨_, rfl⟩ } } }
+    apply with_zero.cases_on b,
+    { intro b',
+      refine iff_of_false (mt (le_antisymm bot_le) (by simp)) (not_exists.mpr (λ c, _)),
+      apply with_zero.cases_on c;
+      simp [←with_zero.coe_add] },
+    { simp only [le_iff_exists_add, with_zero.coe_le_coe],
+      intros,
+      split; rintro ⟨c, h⟩,
+      { exact ⟨c, congr_arg coe h⟩ },
+      { induction c using with_zero.cases_on,
+        { refine ⟨0, _⟩,
+          simpa using h },
+        { refine ⟨c, _⟩,
+          simpa [←with_zero.coe_add] using h } } }
   end,
-  bot    := 0,
-  bot_le := assume a a' h, option.no_confusion h,
+  .. with_zero.order_bot,
   .. with_zero.ordered_add_comm_monoid zero_le }
 
 instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :

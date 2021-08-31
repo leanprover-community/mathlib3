@@ -108,7 +108,7 @@ def bounded_integrable_functions [measurable_space α] (μ : measure α) :
 of all bounded functions on a type. This is a technical device, that we will extend through
 Hahn-Banach. -/
 def bounded_integrable_functions_integral_clm [measurable_space α]
-  (μ : measure α) [finite_measure μ] : bounded_integrable_functions μ →L[ℝ] ℝ :=
+  (μ : measure α) [is_finite_measure μ] : bounded_integrable_functions μ →L[ℝ] ℝ :=
 linear_map.mk_continuous
   { to_fun := λ f, ∫ x, f x ∂μ,
     map_add' := λ f g, integral_add f.2 g.2,
@@ -126,7 +126,7 @@ linear_map.mk_continuous
 /-- Given a measure, there exists a continuous linear form on the space of all bounded functions
 (not necessarily measurable) that coincides with the integral on bounded measurable functions. -/
 lemma exists_linear_extension_to_bounded_functions
-  [measurable_space α] (μ : measure α) [finite_measure μ] :
+  [measurable_space α] (μ : measure α) [is_finite_measure μ] :
   ∃ φ : (discrete_copy α →ᵇ ℝ) →L[ℝ] ℝ, ∀ (f : discrete_copy α →ᵇ ℝ),
     integrable f μ → φ f = ∫ x, f x ∂μ :=
 begin
@@ -137,11 +137,11 @@ end
 /-- An arbitrary extension of the integral to all bounded functions, as a continuous linear map.
 It is not at all canonical, and constructed using Hahn-Banach. -/
 def _root_.measure_theory.measure.extension_to_bounded_functions
-  [measurable_space α] (μ : measure α) [finite_measure μ] : (discrete_copy α →ᵇ ℝ) →L[ℝ] ℝ :=
+  [measurable_space α] (μ : measure α) [is_finite_measure μ] : (discrete_copy α →ᵇ ℝ) →L[ℝ] ℝ :=
 (exists_linear_extension_to_bounded_functions μ).some
 
-lemma extension_to_bounded_functions_apply [measurable_space α] (μ : measure α) [finite_measure μ]
-  (f : discrete_copy α →ᵇ ℝ) (hf : integrable f μ) :
+lemma extension_to_bounded_functions_apply [measurable_space α] (μ : measure α)
+  [is_finite_measure μ] (f : discrete_copy α →ᵇ ℝ) (hf : integrable f μ) :
   μ.extension_to_bounded_functions f = ∫ x, f x ∂μ :=
 (exists_linear_extension_to_bounded_functions μ).some_spec f hf
 
@@ -406,7 +406,7 @@ let f := (eval_clm ℝ x).to_bounded_additive_measure in calc
 ... = indicator ((univ \ f.discrete_support) ∩ (s \ {x})) 1 x : rfl
 ... = 0 : by simp
 
-lemma to_functions_to_measure [measurable_space α] (μ : measure α) [finite_measure μ]
+lemma to_functions_to_measure [measurable_space α] (μ : measure α) [is_finite_measure μ]
   (s : set α) (hs : measurable_set s) :
   μ.extension_to_bounded_functions.to_bounded_additive_measure s = (μ s).to_real :=
 begin
@@ -423,7 +423,7 @@ begin
 end
 
 lemma to_functions_to_measure_continuous_part [measurable_space α] [measurable_singleton_class α]
-  (μ : measure α) [finite_measure μ] [has_no_atoms μ]
+  (μ : measure α) [is_finite_measure μ] [has_no_atoms μ]
   (s : set α) (hs : measurable_set s) :
   μ.extension_to_bounded_functions.to_bounded_additive_measure.continuous_part s = (μ s).to_real :=
 begin

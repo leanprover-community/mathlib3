@@ -532,7 +532,7 @@ Measures and integral Calculus:
 # 11.
 Probability Theory:
   Definitions of a probability space:
-    probability measure: 'measure_theory.probability_measure'
+    probability measure: 'measure_theory.is_probability_measure'
     events:
     independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'

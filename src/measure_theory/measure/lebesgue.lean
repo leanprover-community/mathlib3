@@ -105,21 +105,21 @@ calc (n : ℝ≥0∞) = volume (Ioo (a - n) a) : by simp
 @[simp] lemma volume_Iic {a : ℝ} : volume (Iic a) = ∞ :=
 by simp [← measure_congr Iio_ae_eq_Iic]
 
-instance locally_finite_volume : locally_finite_measure (volume : measure ℝ) :=
+instance locally_finite_volume : is_locally_finite_measure (volume : measure ℝ) :=
 ⟨λ x, ⟨Ioo (x - 1) (x + 1),
   is_open.mem_nhds is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
   by simp only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
 
-instance finite_measure_restrict_Icc (x y : ℝ) : finite_measure (volume.restrict (Icc x y)) :=
+instance is_finite_measure_restrict_Icc (x y : ℝ) : is_finite_measure (volume.restrict (Icc x y)) :=
 ⟨by simp⟩
 
-instance finite_measure_restrict_Ico (x y : ℝ) : finite_measure (volume.restrict (Ico x y)) :=
+instance is_finite_measure_restrict_Ico (x y : ℝ) : is_finite_measure (volume.restrict (Ico x y)) :=
 ⟨by simp⟩
 
-instance finite_measure_restrict_Ioc (x y : ℝ) : finite_measure (volume.restrict (Ioc x y)) :=
+instance is_finite_measure_restrict_Ioc (x y : ℝ) : is_finite_measure (volume.restrict (Ioc x y)) :=
  ⟨by simp⟩
 
-instance finite_measure_restrict_Ioo (x y : ℝ) : finite_measure (volume.restrict (Ioo x y)) :=
+instance is_finite_measure_restrict_Ioo (x y : ℝ) : is_finite_measure (volume.restrict (Ioo x y)) :=
 ⟨by simp⟩
 
 /-!

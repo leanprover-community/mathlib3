@@ -96,7 +96,7 @@ instance : inhabited (finite_measure α) := { default := 0 }
 /-- A finite measure can be interpreted as a measure. -/
 instance : has_coe (finite_measure α) (measure_theory.measure α) := coe_subtype
 
-instance to_measure.is_finite_measure (μ : finite_measure α) :
+instance is_finite_measure (μ : finite_measure α) :
   is_finite_measure (μ : measure α) := μ.prop
 
 instance : has_add (finite_measure α) :=
@@ -108,11 +108,15 @@ instance : has_scalar ℝ≥0 (finite_measure α) :=
 instance : has_coe_to_fun (finite_measure α) :=
 ⟨λ _, set α → ℝ≥0, λ μ s, (μ s).to_nnreal⟩
 
-lemma to_fun_eq_to_measure_to_nnreal' (ν : finite_measure α) :
+lemma to_fun_eq_to_measure_to_nnreal (ν : finite_measure α) :
   (ν : set α → ℝ≥0) = λ s, ((ν : measure α) s).to_nnreal := rfl
 
-lemma to_fun_eq_to_measure_to_nnreal (ν : finite_measure α) (s : set α) :
-  ν s = ((ν : measure α) s).to_nnreal := rfl
+@[simp] lemma to_fun_coe_eq_to_measure (ν : finite_measure α) (s : set α) :
+  (ν s : ℝ≥0∞) = (ν : measure α) s :=
+begin
+  apply ennreal.coe_to_nnreal,
+  exact (@measure_theory.measure_lt_top α ‹measurable_space α› ↑ν _ s).ne,
+end
 
 lemma to_measure_eq_val (ν : finite_measure α) : (ν : measure α) = ν.val := rfl
 
@@ -176,8 +180,8 @@ def probability_measure (α : Type) [measurable_space α] : Type :=
 namespace probability_measure
 
 instance [inhabited α] : inhabited (probability_measure α) :=
-⟨{ val := measure_theory.measure.dirac (default α),
-   property := measure_theory.measure.dirac.is_probability_measure, }⟩
+{ default := ⟨measure_theory.measure.dirac (default α),
+              measure_theory.measure.dirac.is_probability_measure⟩ }
 
 /-- A probability measure can be interpreted as a measure. -/
 instance : has_coe (probability_measure α) (measure_theory.measure α) := coe_subtype
@@ -219,6 +223,13 @@ lemma to_finite_measure_coe_eq_val (ν : probability_measure α) :
 @[simp]
 lemma to_finite_measure_to_fun_eq_to_fun (ν : probability_measure α) :
   (ν.to_finite_measure : set α → ℝ≥0) = (ν : set α → ℝ≥0) := rfl
+
+@[simp] lemma to_fun_coe_eq_to_measure (ν : probability_measure α) (s : set α) :
+  (ν s : ℝ≥0∞) = (ν : measure α) s :=
+begin
+  rw ←to_finite_measure_to_fun_eq_to_fun,
+  apply finite_measure.to_fun_coe_eq_to_measure,
+end
 
 @[simp]
 lemma to_finite_measure_mass (μ : probability_measure α) :

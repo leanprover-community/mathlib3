@@ -50,7 +50,7 @@ lemma infinite_of_infinite_sdiff_finite {α : Type*} {s t : set α}
   (hs : s.infinite) (ht : t.finite) : (s \ t).infinite :=
 begin
   intro hd,
-  have := set.finite.union hd (set.finite.inter_of_right ht s),
+  have := hd.union (ht.inter_of_right s),
   rw set.diff_union_inter at this,
   exact hs this,
 end
@@ -184,34 +184,27 @@ begin
 end
 
 -- This should probably be moved to data.nat.lattice
-lemma Inf_plus {n: ℕ} {p: set ℕ} (h: 0 < Inf {m : ℕ | p m}) :
+lemma Inf_plus {n : ℕ} {p : ℕ → Prop} (h : 0 < Inf {m : ℕ | p m}) :
   Inf {m : ℕ | p m} + n = Inf {m : ℕ | p (m - n)} :=
 begin
-  have hp: ¬ p 0 := not_mem_of_lt_Inf h,
-  have hne: p.nonempty := nonempty_of_pos_Inf h,
-  apply eq.symm,
+  symmetry,
   rw Inf_def,
   { erw nat.find_eq_iff,
-    simp,
+    simp only [nat.add_sub_cancel, set.mem_set_of_eq],
     split,
-    { rw set_of,
-      apply Inf_mem hne, },
+    { apply Inf_mem (nonempty_of_pos_Inf h), },
     { intros k hk hpk,
-      have hkle: n ≤ k,
+      refine not_mem_of_lt_Inf _ hpk,
+      rw sub_lt_iff_right,
+      { exact hk, },
       { apply le_of_lt,
-        rw ← sub_pos_iff_lt,
-        rw pos_iff_ne_zero,
+        rw [←sub_pos_iff_lt, pos_iff_ne_zero],
         intro hkn,
         rw hkn at hpk,
-        apply hp,
-        exact hpk, },
-      have hkI: k - n < Inf (set_of p) := (sub_lt_iff_right hkle).mpr hk,
-      rw set_of at hkI,
-      exact not_mem_of_lt_Inf hkI hpk, }, },
-  { cases hne with t ht,
+        exact not_mem_of_lt_Inf h hpk, }, }, },
+  { obtain ⟨t, ht⟩ := nonempty_of_pos_Inf h,
     use t + n,
-    simp,
-    exact ht,},
+    simpa using ht, },
 end
 
 lemma nth_succ_of_zero (h : p 0) (n : ℕ) (w : (n + 2 : cardinal) ≤ cardinal.mk (set_of p)) :
@@ -255,200 +248,124 @@ lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : 
   nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
 sorry
 
-lemma nth_set_card_aux {n: ℕ} (hf: set.finite p)
-  (hf' :{ i : ℕ | p i ∧ ∀ k < n, nth p k < i }.finite)
-  (hle: n ≤ (set.finite.to_finset hf).card):
-    (set.finite.to_finset hf').card =
-    (set.finite.to_finset hf).card - n :=
+lemma nth_set_card_aux {n : ℕ}
+  (hf : (set_of p).finite)
+  (hf' : {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.finite)
+  (hle : n ≤ hf.to_finset.card) :
+  hf'.to_finset.card = hf.to_finset.card - n :=
 begin
   tactic.unfreeze_local_instances,
   induction n with k,
-  { have heq: hf.to_finset = hf'.to_finset,
-    { ext a,
-      simp,
+  { rw nat.sub_zero,
+    congr' 1,
+    ext a,
+    simp only [forall_false_left, nat.not_lt_zero, forall_const, and_true], },
+  { change _ = hf.to_finset.card - k - 1,
+    have hf'': {i : ℕ | p i ∧ ∀ (k_1 : ℕ), k_1 < k → nth p k_1 < i}.finite,
+    { apply hf.subset,
+      intros x hx,
+      rw set.mem_set_of_eq at hx,
+      exact hx.left, },
+    have hle' := nat.sub_pos_of_lt hle,
+    specialize n_ih hf'' (le_trans (le_succ k) hle),
+    rw ←n_ih at ⊢ hle',
+    convert_to finset.card (finset.erase hf''.to_finset (nth p k)) = _,
+    { congr' 1,
+      ext a,
+      simp only [set.finite.mem_to_finset, ne.def, set.mem_set_of_eq, finset.mem_erase],
       split,
-      { intros hp,
-        exact hp, },
-      { intros hp,
-        exact hp, },},
-    rw heq,
-    refl, },
-  { have hf'': {i : ℕ | p i ∧ ∀ (k_1 : ℕ), k_1 < k → nth p k_1 < i}.finite,
-    { have hsub: {i : ℕ | p i ∧ ∀ (k_1 : ℕ), k_1 < k → nth p k_1 < i} ⊆ p,
-      { intros x hx,
-        simp at hx,
-        cases hx,
-        exact hx_left, },
-      exact set.finite.subset hf hsub, },
-    specialize n_ih hf'',
-    have hk: k ≤ hf.to_finset.card,
-    { apply le_trans,
-      swap,
-      exact hle,
-      exact le_succ k, },
-    specialize n_ih hk,
-    have hm1: hf.to_finset.card - k.succ = (hf.to_finset.card - k) - 1 := rfl,
-    rw hm1,
-    rw ← n_ih,
-    have her: hf'.to_finset = finset.erase hf''.to_finset (nth p k),
-    { ext a,
-      simp,
-      split,
-      { intro h,
-        cases h with hp hlt,
+      { rintro ⟨hp, hlt⟩,
         split,
-        { apply ne_of_gt,
+        { exact ne_of_gt (hlt _ (lt_add_one k)), },
+        { refine ⟨hp, _⟩,
+          intros n hn,
           apply hlt,
-          exact lt_add_one k, },
-        { split,
-          { exact hp, },
-            intros n hn,
-            apply hlt,
-            apply lt_trans,
-            { exact hn, },
-            { exact lt_add_one k, }, }, },
-      { intro h,
-        cases h with hak hlt,
-        cases hlt with hp hlt,
-        split,
-        { exact hp,},
-        { intros n hn,
-          by_cases hnk: n = k,
-          { rw hnk,
-            apply lt_of_le_of_ne,
-            { rw nth,
-              apply nat.Inf_le,
-              simp,
-              split,
-              { exact hp, },
-              { exact hlt,}, },
-            { by_contra,
-              simp at h,
-              apply hak,
-              apply eq.symm,
-              apply h, }, },
-          { apply hlt,
-            apply lt_of_le_of_ne,
-            { exact lt_succ_iff.mp hn,},
-            { exact hnk,}, }, }, }, },
-    rw her,
+          apply lt_trans hn (lt_add_one k), }, },
+      { rintro ⟨hak, hp, hlt⟩,
+        refine ⟨hp, _⟩,
+        intros n hn,
+        by_cases hnk : n = k,
+        { subst n,
+          refine lt_of_le_of_ne _ (ne.symm hak),
+          rw nth,
+          apply nat.Inf_le,
+          simpa [hp] using hlt, },
+        { apply hlt,
+          exact lt_of_le_of_ne (lt_succ_iff.mp hn) hnk, }, }, },
     apply finset.card_erase_of_mem,
-    have hn: {i : ℕ | p i ∧ ∀ (k_1 : ℕ), k_1 < k → nth p k_1 < i}.nonempty,
-    { have hfn: (hf''.to_finset).nonempty,
-      { rw ← finset.card_pos,
-        rw n_ih,
-        apply nat.sub_pos_of_lt,
-        exact hle, },
-      exact (set.finite.to_finset.nonempty hf'').mp hfn, },
-    have hI: nth p k ∈ {i : ℕ | p i ∧ ∀ (k_1 : ℕ), k_1 < k → nth p k_1 < i},
-    { rw nth,
-      apply Inf_mem,
-      exact hn, },
-    simp at hI,
-    simp,
-    exact hI, },
+    rw [nth, set.finite.mem_to_finset],
+    apply Inf_mem,
+    rw [←set.finite.to_finset.nonempty hf'', ←finset.card_pos],
+    exact hle', },
 end
 
-lemma nth_set_card {n: ℕ} (hf: set.finite p)
-  (hf' :{ i : ℕ | p i ∧ ∀ k < n, nth p k < i }.finite):
-    (set.finite.to_finset hf').card =
-    (set.finite.to_finset hf).card - n :=
+lemma nth_set_card {n : ℕ} (hf : (set_of p).finite)
+  (hf' : {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.finite) :
+  hf'.to_finset.card =  hf.to_finset.card - n :=
 begin
-  by_cases hle: n ≤ (set.finite.to_finset hf).card,
-  { apply nth_set_card_aux,
-    exact hle, },
-  { simp at hle,
-    have hf'': {i : ℕ | p i ∧ ∀ (k : ℕ),
-      k < (set.finite.to_finset hf).card → nth p k < i}.finite,
-    { apply set.finite.subset,
-      exact hf,
-      intro x,
-      simp,
-      intros hp h,
-      exact hp, },
-    have h0: hf''.to_finset.card = hf.to_finset.card - hf.to_finset.card,
-    { apply nth_set_card_aux,
-      refl, },
-    simp at h0,
-    have hn0: hf.to_finset.card - n = 0,
+  by_cases hle : n ≤ hf.to_finset.card,
+  { exact nth_set_card_aux p hf _ hle, },
+  { push_neg at hle,
+    convert_to _ = 0,
     { apply nat.sub_eq_zero_of_le,
       exact le_of_lt hle },
-    rw hn0,
-    simp,
-    have hsub: {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i} ⊆ ∅,
-    { rw ← h0,
-      intro x,
-      simp,
-      intros hp h,
-      split,
-      { exact hp,},
-      { intros m hm,
-        apply h,
-        apply lt_trans,
-        { exact hm, },
-        { exact hle, }, }, },
-    exact eq_bot_iff.mpr hsub, },
+    simp only [finset.card_eq_zero, set.finite_to_finset_eq_empty_iff, ←set.subset_empty_iff],
+    convert_to _ ⊆ {i : ℕ | p i ∧ ∀ (k : ℕ), k < hf.to_finset.card → nth p k < i},
+    { symmetry,
+      rw [←set.finite_to_finset_eq_empty_iff, ←finset.card_eq_zero, ←nat.sub_self hf.to_finset.card],
+      { apply nth_set_card_aux p hf _ (le_refl _), },
+      { apply hf.subset,
+        simp {contextual := tt}, }, },
+    intro x,
+    simp only [true_and, and_imp, set.mem_set_of_eq] { contextual := tt },
+    intros hp h m hm,
+    apply h,
+    exact lt_trans hm hle, },
 end
 
-lemma nth_set_nonempty_of_lt_card {n: ℕ} (hf: set.finite p)
-  (hlt: n < (set.finite.to_finset hf).card):
-  { i : ℕ | p i ∧ ∀ k < n, nth p k < i }.nonempty :=
+lemma nth_set_nonempty_of_lt_card {n : ℕ} (hf : (set_of p).finite)
+  (hlt: n < hf.to_finset.card) :
+  {i : ℕ | p i ∧ ∀ k < n, nth p k < i}.nonempty :=
 begin
   have hf': {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i}.finite,
-  { apply set.finite.subset,
-    { exact hf,},
-    { intro x,
-      simp,
-      intros hp hx,
-      exact hp, }, },
-  have hc: hf'.to_finset.card = hf.to_finset.card - n :=
-    by apply nth_set_card,
-  have hpos: 0 < hf'.to_finset.card,
-  { rw hc,
-    apply nat.sub_pos_of_lt hlt, },
-  have hne: hf'.to_finset.nonempty := finset.card_pos.mp hpos,
-  exact (set.finite.to_finset.nonempty hf').mp hne,
+  { apply hf.subset,
+    simp { contextual := tt }, },
+  rw [←set.finite.to_finset.nonempty hf', ←finset.card_pos, nth_set_card p hf],
+  exact nat.sub_pos_of_lt hlt,
 end
 
-lemma nth_mem_of_lt_card_finite_aux {n : ℕ} (hf: set.finite p)
-  (hlt: n < (set.finite.to_finset hf).card):
-  nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
+lemma nth_mem_of_lt_card_finite_aux (n : ℕ) (hf : (set_of p).finite)
+  (hlt : n < hf.to_finset.card) :
+  nth p n ∈ {i : ℕ | p i ∧ ∀ k < n, nth p k < i} :=
 begin
   rw nth,
   apply Inf_mem,
-  apply nth_set_nonempty_of_lt_card,
-  exact hlt,
+  apply nth_set_nonempty_of_lt_card _ _ hlt,
 end
 
-lemma nth_mem_of_lt_card_finite {n : ℕ} (hf: set.finite p)
-  (hlt: n < (set.finite.to_finset hf).card):
+lemma nth_mem_of_lt_card_finite {n : ℕ} (hf : (set_of p).finite)
+  (hlt : n < hf.to_finset.card) :
   p (nth p n) :=
 begin
-  have h := nth_mem_of_lt_card_finite_aux,
-  specialize h p,
-  { exact n,},
-  specialize h hf hlt,
-  simp at h,
-  cases h,
-  exact h_left,
+  have h := nth_mem_of_lt_card_finite_aux p n hf hlt,
+  rw set.mem_set_of_eq at h,
+  exact h.left,
 end
 
 lemma nth_mem_of_infinite_aux (i : (set_of p).infinite) (n : ℕ) :
   nth p n ∈ { i : ℕ | p i ∧ ∀ k < n, nth p k < i } :=
 begin
-  have ne : set.nonempty { i : ℕ | p i ∧ ∀ k < n, nth p k < i },
-  { let s : set ℕ := ⋃ (k < n), { i : ℕ | nth p k ≥ i },
-    convert_to ((set_of p) \ s).nonempty,
-    { ext i, simp, },
-    have : s.finite,
-    { apply set.finite.bUnion,
-      apply set.finite_lt_nat,
-      intros k h,
-      apply set.finite_le_nat, },
-    apply set.infinite.nonempty,
-    apply set.infinite_of_infinite_sdiff_finite i this, },
   rw nth_def,
-  exact Inf_mem ne,
+  apply Inf_mem,
+  let s : set ℕ := ⋃ (k < n), { i : ℕ | nth p k ≥ i },
+  convert_to ((set_of p) \ s).nonempty,
+  { ext i,
+    simp, },
+  apply set.infinite.nonempty,
+  apply set.infinite_of_infinite_sdiff_finite i,
+  apply set.finite.bUnion (set.finite_lt_nat _),
+  intros k h,
+  apply set.finite_le_nat,
 end
 
 lemma nth_mem_of_infinite (i : (set_of p).infinite) (n : ℕ) : p (nth p n) :=
@@ -463,7 +380,7 @@ lemma nth_monotone_of_infinite (i : (set_of p).infinite) : monotone (nth p) :=
 lemma nth_nonzero_of_ge_nonzero (h : ¬p 0) (k : ℕ) (h : nth p k ≠ 0) : ∀ a ≤ k, nth p a ≠ 0 :=
 sorry
 
-lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) (h : nth p k ≠ 0) : nth p k = nth (λ i, p (i+1)) k + 1 :=
+lemma nth_of_not_zero (h : ¬ p 0) (k : ℕ) (h : nth p k ≠ 0) : nth p k = nth (λ i, p (i + 1)) k + 1 :=
 begin
   revert h,
   apply nat.strong_induction_on k,
@@ -479,360 +396,206 @@ begin
   sorry --- easy from here.
 end
 
-lemma nth_count [decidable_pred p] (n : ℕ) (h : p n) : nth p (count p n) = n :=
-begin
-  unfreezingI { induction n with n ih generalizing p },
-  { simp [h], },
-  rw count_succ',
-  split_ifs with h',
-  { rw nth_succ_of_zero _ h',
-    rw ih _ h,
-    have := count_le_card p (n+2),
-    rw [count_succ', count_succ] at this,
-    simp only [h, h', cast_one, if_true, cast_add] at this,
-    assumption_mod_cast },
-  { obtain hcz | hcz := eq_or_ne (nth p (count (λ k, p (k + 1)) n + if p 0 then 1 else 0)) 0,
-    { exfalso,
-      rw ←count_succ' at hcz,
-      have hcz' := hcz,
-      rw [nth_def, Inf_eq_zero] at hcz,
-      dsimp at hcz,
-      obtain _ | hcz := hcz,
-      { tauto },
-      rw set.eq_empty_iff_forall_not_mem at hcz,
-      specialize hcz n.succ,
-      refine hcz ⟨h, _⟩,
-      /- ⊢ ∀ (k : ℕ), k < count p (n + 1) → nth p k < n.succ,
-      but we have hcz' : nth p (count p (n + 1)) = 0 -/
-      sorry },
-    { simp [h'] at ⊢ hcz,
-      rw nth_of_not_zero _ h' _ hcz,
-      rw ih,
-      exact h } },
-end
-
-open_locale classical
-
-variable [decidable_pred p]
-
-lemma nth_strict_mono_finite {m n: ℕ} (hf: set.finite p)
-  (hlt: n < hf.to_finset.card) (hmn: m < n):
+lemma nth_strict_mono_finite {m n : ℕ} (hf : (set_of p).finite)
+  (hlt : n < hf.to_finset.card) (hmn : m < n) :
   nth p m < nth p n :=
 begin
-  have h := nth_mem_of_lt_card_finite_aux,
-  specialize h p,
-  { exact n, },
-  specialize h hf hlt,
-  simp at h,
-  cases h with hp h,
-  apply h,
-  exact hmn,
+  have h := nth_mem_of_lt_card_finite_aux p _ hf hlt,
+  rw set.mem_set_of_eq at h,
+  exact h.right _ hmn,
 end
 
-lemma nth_monotone_finite {m n: ℕ} (hf: set.finite p)
-  (hlt: n < hf.to_finset.card) (hmn: m ≤ n):
+lemma nth_monotone_finite {m n : ℕ} (hf : (set_of p).finite)
+  (hlt : n < hf.to_finset.card) (hmn: m ≤ n) :
   nth p m ≤ nth p n :=
 begin
   apply le_of_lt_or_eq,
   by_cases m = n,
-  { right,
-    rw h, },
+  { subst h,
+    exact or.inr rfl, },
   { left,
-    apply nth_strict_mono_finite,
-    { exact hlt, },
-    { exact (ne.le_iff_lt h).mp hmn, }, },
+    have := (ne.le_iff_lt h).mp hmn,
+    apply nth_strict_mono_finite p hf hlt this, },
 end
 
-lemma le_nth_of_lt_nth_succ_finite {k a: ℕ} (hf : set.finite p)
-  (hlt: k.succ < hf.to_finset.card) (h: a < nth p k.succ) (hp: p a):
-    a ≤ (nth p) k :=
+lemma le_nth_of_lt_nth_succ_finite {k a : ℕ} (hf : (set_of p).finite)
+  (hlt : k.succ < hf.to_finset.card) (h : a < nth p k.succ) (hp : p a) :
+  a ≤ (nth p) k :=
 begin
   by_contra hak,
-  simp at hak,
-  have heq: nth p k.succ ≤ a,
-  { rw nth,
-    apply nat.Inf_le,
-    simp,
-    split,
-    { exact hp, },
-    { intros n hn,
-      apply lt_of_le_of_lt,
-      swap,
-      { exact hak,},
-      { apply nth_monotone_finite,
-        apply lt_trans,
-        swap,
-        { exact hlt,},
-        { apply lt_add_one, },
-        exact lt_succ_iff.mp hn, }, }, },
-  exact lt_le_antisymm h heq,
+  push_neg at hak,
+  refine lt_le_antisymm h _,
+  rw nth,
+  apply nat.Inf_le,
+  rw set.mem_set_of_eq,
+  refine ⟨hp, _⟩,
+  intros n hn,
+  refine lt_of_le_of_lt _ hak,
+  refine nth_monotone_finite p hf _ (lt_succ_iff.mp hn),
+  exact lt_trans (lt_add_one _) hlt,
 end
 
-lemma count_nth_of_lt_card_finite {n: ℕ} (hf : set.finite p)
-  (hlt: n < hf.to_finset.card) : count p (nth p n) = n :=
+section count
+variables [decidable_pred p]
+
+@[simp] lemma count_nth_of_zero : count p (nth p 0) = 0 :=
+begin
+  rw [count_eq_card_finset, finset.card_eq_zero, nth_zero],
+  ext a,
+  simp only [finset.not_mem_empty, not_and, finset.mem_filter, finset.mem_range, iff_false],
+  intros ha hp,
+  exact lt_le_antisymm ha (nat.Inf_le hp),
+end
+
+lemma filter_range_nth_eq_insert_of_finite (hf : (set_of p).finite) {k : ℕ}
+  (hlt : k.succ < hf.to_finset.card) :
+  finset.filter p (finset.range (nth p k.succ)) =
+    insert (nth p k) (finset.filter p (finset.range (nth p k))) :=
+begin
+  ext a,
+  simp only [finset.mem_insert, finset.mem_filter, finset.mem_range],
+  split,
+  { rintro ⟨ha, hp⟩,
+    apply or_iff_not_imp_left.mpr,
+    intro h,
+    refine ⟨_, hp⟩,
+    refine lt_of_le_of_ne _ h,
+    exact le_nth_of_lt_nth_succ_finite p hf hlt ha hp, },
+  { rintro (ha | ha),
+    { rw ha,
+      split,
+      { exact nth_strict_mono_finite p hf hlt (lt_add_one _), },
+      { apply nth_mem_of_lt_card_finite p hf,
+        refine lt_trans _ hlt,
+        exact lt_add_one k, }, },
+    obtain ⟨ha, hp⟩ := ha,
+    refine ⟨_, hp⟩,
+    refine lt_trans ha _,
+    exact nth_strict_mono_finite p hf hlt (lt_add_one _), },
+end
+
+lemma count_nth_of_lt_card_finite {n : ℕ} (hf : (set_of p).finite)
+  (hlt : n < hf.to_finset.card) : count p (nth p n) = n :=
 begin
   induction n with k,
+  { apply count_nth_of_zero, },
   { rw count_eq_card_finset,
-    simp,
-    ext,
-    simp,
-    intros ha hp,
-    rw nth_zero at ha,
-    simp at ha,
-    have haI: Inf (set_of p) ≤ a := by apply nat.Inf_le hp,
-    exact lt_le_antisymm ha haI, },
-  { rw count_eq_card_finset,
-    have ih: finset.filter p (finset.range (nth p k.succ)) =
-      insert (nth p k) (finset.filter p (finset.range (nth p k))),
-    { ext,
-      simp,
-      split,
-      { intro ha,
-        cases ha with ha hp,
-        by_cases a = nth p k,
-        { left,
-          exact h, },
-        { right,
-          split,
-          { apply lt_of_le_of_ne,
-            { apply le_nth_of_lt_nth_succ_finite,
-              exact hlt,
-              exact ha,
-              exact hp, },
-            { exact h, }, },
-          {exact hp,}, }, },
-      intro ha,
-      cases ha,
-      { rw ha,
-        split,
-        { apply nth_strict_mono_finite,
-          exact hlt,
-          apply lt_add_one, },
-        { apply nth_mem_of_lt_card_finite,
-          { apply lt_trans,
-            swap,
-            { exact hlt, },
-            { exact lt_add_one k, }, }, }, },
-      cases ha with ha hp,
-      split,
-      { apply lt_trans,
-        { exact ha, },
-        { apply nth_strict_mono_finite,
-          exact hlt,
-          apply lt_add_one, }, },
-      exact hp, },
-    rw ih,
+    rw filter_range_nth_eq_insert_of_finite p hf hlt,
     rw finset.card_insert_of_not_mem,
-    { rw ← count_eq_card_finset,
-      rw n_ih,
-      apply lt_trans,
-      swap,
-      { exact hlt, },
-      { exact lt_add_one k, }, },
+    { rw [←count_eq_card_finset, n_ih],
+      exact lt_of_succ_lt hlt, },
     { simp, }, },
 end
 
-lemma count_nth_of_infinite (i : set.infinite p) (n : ℕ) : count p (nth p n) = n :=
+lemma filter_range_nth_eq_insert_of_infinite (i : (set_of p).infinite) (k : ℕ) :
+  finset.filter p (finset.range (nth p k.succ)) =
+    insert (nth p k) (finset.filter p (finset.range (nth p k))) :=
 begin
-  induction n with k,
-  { rw count_eq_card_finset,
-    simp,
-    ext,
-    simp,
-    intros ha,
+  ext a,
+  simp only [finset.mem_insert, finset.mem_filter, finset.mem_range],
+  split,
+  { rintro ⟨ha, hp⟩,
+    apply or_iff_not_imp_left.mpr,
+    intro hne,
+    refine ⟨_, hp⟩,
+    rw ←ne.le_iff_lt hne,
+    by_contra h,
+    push_neg at h,
     rw nth at ha,
-    have hn: a ∉ {i : ℕ | p i ∧ ∀ (k : ℕ), k < 0 → nth p k < i} := not_mem_of_lt_Inf ha,
-    simp at hn,
-    exact hn, },
-  { rw count_eq_card_finset,
-    have ih: finset.filter p (finset.range (nth p k.succ)) =
-      insert (nth p k) (finset.filter p (finset.range (nth p k))),
-    { ext,
-      simp,
+    refine lt_le_antisymm ha (nat.Inf_le _),
+    simp only [hp, true_and, set.mem_set_of_eq],
+    intros m hm,
+    refine lt_of_le_of_lt _ h,
+    apply nth_monotone_of_infinite p i,
+    exact lt_succ_iff.mp hm, },
+  { rintro (h | h),
+    { subst a,
       split,
-      { intro h,
-        cases h with ha hp,
-        have hle: a ≤ nth p k,
-        { rw nth at ha,
-          by_contra,
-          simp at h,
-          have haI: Inf {i : ℕ | p i ∧ ∀ (k_1 : ℕ), k_1 < k.succ → nth p k_1 < i} ≤ a,
-          { apply nat.Inf_le,
-            { simp,
-              split,
-              { exact hp, },
-              { intros m hm,
-                apply lt_of_le_of_lt,
-                { apply nth_monotone_of_infinite,
-                  { exact i, },
-                  rw ← lt_succ_iff,
-                  exact hm, },
-                  exact h, }, }, },
-          exact lt_le_antisymm ha haI, },
-        by_cases a = nth p k,
-        { left,
-          exact h, },
-        { right,
-          split,
-          { exact (ne.le_iff_lt h).mp hle},
-          { exact hp, }, }, },
-      { intro h,
-        cases h,
-        { rw h,
-          split,
-          { apply nth_strict_mono_of_infinite,
-            exact i,
-            exact lt_add_one k},
-          { apply nth_mem_of_infinite,
-            apply i, }, },
-          { cases h with ha hp,
-            split,
-            { apply lt_trans ha,
-              apply nth_strict_mono_of_infinite,
-              exact i,
-              exact lt_add_one k },
-            { exact hp, }, }, }, },
-    rw ih,
-    rw finset.card_insert_of_not_mem,
-    { rw ← count_eq_card_finset,
-      rw n_ih, },
-    { simp, },
-  },
+      { exact nth_strict_mono_of_infinite p i (lt_add_one k), },
+      { exact nth_mem_of_infinite p i _, }, },
+    { obtain ⟨ha, hp⟩ := h,
+      refine ⟨_, hp⟩,
+      apply lt_trans ha,
+      apply nth_strict_mono_of_infinite p i (lt_add_one k) }, },
 end
 
-lemma count_strict_mono {m n: ℕ}
-  (hm: p m) (hn: p n) (hmn: m < n) : count p m < count p n :=
+lemma count_nth_of_infinite (i : (set_of p).infinite) (n : ℕ) : count p (nth p n) = n :=
 begin
-  rw count_eq_card_finset,
-  rw count_eq_card_finset,
+  induction n with k,
+  { apply count_nth_of_zero, },
+  { rw count_eq_card_finset,
+    rw filter_range_nth_eq_insert_of_infinite p i,
+    rw finset.card_insert_of_not_mem,
+    { rw ←count_eq_card_finset,
+      rw n_ih, },
+    { simp, }, },
+end
+
+lemma count_strict_mono {m n : ℕ}
+  (hm : p m) (hn : p n) (hmn : m < n) : count p m < count p n :=
+begin
+  rw [count_eq_card_finset, count_eq_card_finset],
   apply finset.card_lt_card,
   split,
   { intro a,
-    simp,
+    simp only [and_imp, and_true, finset.mem_filter, finset.mem_range] {contextual := tt},
     intros ha hp,
-    split,
-    { apply lt_trans ha hmn, },
-    { exact hp, }, },
+    exact lt_trans ha hmn, },
   { rw finset.subset_iff,
-    simp,
+    push_neg,
     use m,
-    split,
-    { exact hmn, },
-    { split,
-      { exact hm, },
-      { simp, }, }, },
+    simp [hm, hmn], },
 end
 
-lemma count_injective_of_infinite {m n: ℕ} (i: set.infinite p)
-  (hm: p m) (hn: p n) (hmn: count p m = count p n) : m = n :=
+lemma count_injective {m n : ℕ}
+  (hm : p m) (hn : p n) (heq : count p m = count p n) : m = n :=
 begin
   by_contra,
-  have hne: m < n ∨ n < m := ne.lt_or_lt h,
-  cases hne,
-  { have hl: count p m < count p n,
-    { apply count_strict_mono,
-      { exact hm, },
-      { exact hn, },
-      { exact hne, }, },
-    rw hmn at hl,
-    simp at hl,
-    exact hl, },
-  { have hl: count p n < count p m,
-    { apply count_strict_mono,
-      { exact hn, },
-      { exact hm, },
-      { exact hne, }, },
-    rw hmn at hl,
-    simp at hl,
-    exact hl, }
+  wlog hmn : m < n,
+  { exact ne.lt_or_lt h },
+  { have hlt : count p m < count p n := count_strict_mono _ hm hn hmn,
+    rw heq at hlt,
+    simpa using hlt, },
 end
 
-lemma nth_count_of_infinite {n: ℕ} (i: set.infinite p) (hp: p n):
+lemma nth_count_of_infinite {n : ℕ} (i : (set_of p).infinite) (hp : p n) :
   nth p (count p n) = n :=
 begin
-  have h: count p (nth p (count p n)) = count p n,
-  { apply count_nth_of_infinite,
-    exact i, },
-  apply count_injective_of_infinite,
-  { exact i, },
-  { apply nth_mem_of_infinite,
-    exact i, },
-  { exact hp, },
-  { convert h, },
+  apply count_injective p (nth_mem_of_infinite _ i _) hp,
+  exact count_nth_of_infinite p i _,
 end
 
-lemma count_lt_card {n: ℕ} (hf: set.finite p) (hp: p n):
+lemma count_lt_card {n : ℕ} (hf : (set_of p).finite) (hp : p n) :
   count p n < hf.to_finset.card :=
 begin
   rw count_eq_card_finset,
   apply finset.card_lt_card,
   split,
   { intro a,
-    simp,
-    intros ha hp,
-    exact hp, },
+    simp {contextual := tt}, },
   { rw finset.subset_iff,
-    simp,
+    push_neg,
     use n,
-    split,
-    { exact hp, },
-    { simp, }, },
+    simp [hp], },
 end
 
-lemma count_injective {m n: ℕ}
-  (hm: p m) (hn: p n) (heq: count p m = count p n): m = n :=
-begin
-  by_contra,
-  have hmn: m < n ∨ n < m := ne.lt_or_lt h,
-  cases hmn,
-  { have hlt: count p m < count p n,
-    { apply count_strict_mono,
-      exact hm,
-      exact hn,
-      exact hmn, },
-    rw heq at hlt,
-    simp at hlt,
-    exact hlt, },
-  { have hlt: count p n < count p m,
-    { apply count_strict_mono,
-      exact hn,
-      exact hm,
-      exact hmn, },
-    rw heq at hlt,
-    simp at hlt,
-    exact hlt, },
-end
-
-lemma nth_count_of_finite {n: ℕ} (hf: set.finite p) (hp: p n):
+lemma nth_count_of_finite {n : ℕ} (hf : set.finite p) (hp : p n) :
   nth p (count p n) = n :=
 begin
-  have h: count p (nth p (count p n)) = count p n,
-  { apply count_nth_of_lt_card_finite,
-    { apply count_lt_card,
-      exact hp, },
-    exact hf, },
-  apply count_injective,
-  { apply nth_mem_of_lt_card_finite,
-    { apply count_lt_card,
-      exact hp, },
-    exact hf, },
-  { exact hp, },
-  { convert h, },
+  refine count_injective p _ hp _,
+  { apply nth_mem_of_lt_card_finite p hf,
+    exact count_lt_card p hf hp, },
+  { exact count_nth_of_lt_card_finite _ _ (count_lt_card _ hf hp), },
 end
 
-lemma nth_count' {n: ℕ} (hp: p n): nth p (count p n) = n :=
+lemma nth_count {n : ℕ} (hp: p n) : nth p (count p n) = n :=
 begin
-  have hfi: set.finite p ∨ set.infinite p := em (set.finite p),
-  cases hfi,
-  { apply nth_count_of_finite,
-    exact hfi,
-    exact hp, },
-  { apply nth_count_of_infinite,
-    exact hfi,
-    exact hp, },
+  obtain hfi | hinf := em (set.finite p),
+  { exact nth_count_of_finite p hfi hp, },
+  { exact nth_count_of_infinite p hinf hp, },
 end
 
-lemma nth_count_le [decidable_pred p] (i: set.infinite p) (n : ℕ): n ≤ nth p (count p n) :=
+lemma nth_count_le [decidable_pred p] (i: set.infinite p) (n : ℕ) : n ≤ nth p (count p n) :=
 begin
   sorry
 end
@@ -846,7 +609,7 @@ begin
     { rintro hxy n ⟨hn, h⟩,
       obtain rfl | hne := eq_or_ne y (count p x),
       { specialize h (count p n),
-        replace hn : nth p (count p n) = n := nth_count _ _ hn,
+        replace hn : nth p (count p n) = n := nth_count _ hn,
         replace h : count p x ≤ count p n := by rwa [hn, lt_self_iff_false, imp_false, not_lt] at h,
         apply le_trans,
         { apply nth_count_le p,
@@ -870,14 +633,13 @@ begin
   apply nth_mem_of_infinite_aux p i,
 end
 
-lemma count_le_iff_le_nth {p} (i : set.infinite p) {a b : ℕ} :
+lemma count_le_iff_le_nth (i : set.infinite p) {a b : ℕ} :
   count p a ≤ b ↔ a ≤ nth p b :=
 count_nth_gc p i _ _
 
-lemma lt_nth_iff_count_lt {p} (i : set.infinite p) {a b : ℕ} :
+lemma lt_nth_iff_count_lt (i : set.infinite p) {a b : ℕ} :
   a < count p b ↔ nth p a < b :=
-lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth i
-
+lt_iff_lt_of_le_iff_le $ count_le_iff_le_nth p i
 
 lemma nth_le_of_le_count (a b : ℕ) (h : a ≤ count p b) : nth p a ≤ b :=
 begin
@@ -906,5 +668,7 @@ begin
   { apply nth_mem_of_infinite,
     rwa ←set.infinite_coe_iff, },
 end
+
+end count
 
 end nat

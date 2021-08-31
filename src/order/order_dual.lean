@@ -71,7 +71,7 @@ lemma to_dual_lt [has_lt α] {a : α} {b : order_dual α} :
 
 /-- Recursor for `order_dual α`. -/
 @[elab_as_eliminator]
-def dual_rec {C : order_dual α → Sort*} (h₂ : Π (a : α), C (to_dual a)) :
+protected def rec {C : order_dual α → Sort*} (h₂ : Π (a : α), C (to_dual a)) :
   Π (a : order_dual α), C a := h₂
 
 end order_dual

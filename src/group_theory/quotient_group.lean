@@ -6,7 +6,7 @@ Authors: Kevin Buzzard, Patrick Massot
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
 
-import group_theory.group_action.basic
+import group_theory.coset
 
 /-!
 # Quotients of groups by normal subgroups
@@ -407,17 +407,3 @@ monoid_hom.to_mul_equiv
 end third_iso_thm
 
 end quotient_group
-
-namespace subgroup
-
-variables {G : Type*} [group G] (H : subgroup G)
-
-noncomputable instance fintype_quotient_normal_core
-  [fintype (quotient_group.quotient H)] : fintype (quotient_group.quotient H.normal_core) :=
-begin
-  rw H.normal_core_eq_ker,
-  classical,
-  exact fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range _).symm.to_equiv,
-end
-
-end subgroup

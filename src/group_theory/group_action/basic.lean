@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import group_theory.group_action.defs
 import group_theory.group_action.group
-import group_theory.coset
+import group_theory.quotient_group
 
 /-!
 # Basic properties of group actions
@@ -291,6 +291,14 @@ begin
     exact H.normal_core.inv_mem hg g'⁻¹ },
   { rw [←H.inv_mem_iff, ←mul_one g⁻¹, ←quotient_group.eq, ←mul_one g],
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },
+end
+
+noncomputable instance fintype_quotient_normal_core
+  [fintype (quotient_group.quotient H)] : fintype (quotient_group.quotient H.normal_core) :=
+begin
+  rw H.normal_core_eq_ker,
+  classical,
+  exact fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range _).symm.to_equiv,
 end
 
 end subgroup

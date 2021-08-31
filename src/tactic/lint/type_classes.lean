@@ -255,7 +255,8 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
   no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
 The following instances are part of a loop, or an excessively long search.
-It is common that the loop occurs in a different class than the one flagged below, but usually an instance that is part of the loop is also flagged.
+It is common that the loop occurs in a different class than the one flagged below,
+but usually an instance that is part of the loop is also flagged.
 To debug:
 (1) run `scripts/mk_all.sh` and create a file with `import all` and
 `set_option trace.class_instances true`

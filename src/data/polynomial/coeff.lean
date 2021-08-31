@@ -3,8 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.monomial
 import data.finset.nat_antidiagonal
+import data.polynomial.basic
 
 /-!
 # Theory of univariate polynomials
@@ -31,42 +31,51 @@ lemma coeff_one (n : ℕ) : coeff (1 : polynomial R) n = if 0 = n then 1 else 0 
 coeff_monomial
 
 @[simp]
-lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n := rfl
+lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
+by { rcases p, rcases q, simp [coeff, add_to_finsupp] }
 
-lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
-  coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) := finsupp.sum_apply
+@[simp] lemma coeff_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) (n : ℕ) :
+  coeff (r • p) n = r • coeff p n :=
+by { rcases p, simp [coeff, smul_to_finsupp] }
 
-lemma sum_def [add_comm_monoid S] (f : ℕ → R → S) :
-  p.sum f = ∑ n in p.support, f n (p.coeff n) :=
-rfl
-
-@[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
-coeff (r • p) n = r * coeff p n := finsupp.smul_apply _ _ _
-
-@[simp] lemma mem_support_iff : n ∈ p.support ↔ p.coeff n ≠ 0 :=
-by simp [support, coeff]
-
-lemma not_mem_support_iff : n ∉ p.support ↔ p.coeff n = 0 :=
-by simp
+lemma support_smul [monoid S] [distrib_mul_action S R] (r : S) (p : polynomial R) :
+  support (r • p) ⊆ support p :=
+begin
+  assume i hi,
+  simp [mem_support_iff] at hi ⊢,
+  contrapose! hi,
+  simp [hi]
+end
 
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
-finsupp.lapply n
+{ to_fun := λ p, coeff p n,
+  map_add' := λ p q, coeff_add p q n,
+  map_smul' := λ r p, coeff_smul r p n }
+
 variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
 
 @[simp] lemma finset_sum_coeff {ι : Type*} (s : finset ι) (f : ι → polynomial R) (n : ℕ) :
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
-(s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
+(lcoeff R n).map_sum
+
+lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
+  coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=
+by { rcases p, simp [polynomial.sum, support, coeff] }
 
 /-- Decomposes the coefficient of the product `p * q` as a sum
 over `nat.antidiagonal`. A version which sums over `range (n + 1)` can be obtained
 by using `finset.nat.sum_antidiagonal_eq_sum_range_succ`. -/
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
-add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
+begin
+  rcases p, rcases q,
+  simp only [coeff, mul_to_finsupp],
+  exact add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
+end
 
 @[simp] lemma mul_coeff_zero (p q : polynomial R) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=
 by simp [coeff_mul]
@@ -79,21 +88,23 @@ by simp
 
 lemma coeff_C_mul_X (x : R) (k n : ℕ) :
   coeff (C x * X^k : polynomial R) n = if n = k then x else 0 :=
-by rw [← single_eq_C_mul_X]; simp [monomial, single, eq_comm, coeff]; congr
+by { rw [← monomial_eq_C_mul_X, coeff_monomial], congr' 1, simp [eq_comm] }
 
 @[simp] lemma coeff_C_mul (p : polynomial R) : coeff (C a * p) n = a * coeff p n :=
-add_monoid_algebra.single_zero_mul_apply p a n
+by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
+  coeff, add_monoid_algebra.single_zero_mul_apply p a n] }
 
 lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
-ext $ λ n, coeff_C_mul f
+by { ext, rw [coeff_C_mul, coeff_smul, smul_eq_mul] }
 
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
-add_monoid_algebra.mul_single_zero_apply p a n
+by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
+  coeff, add_monoid_algebra.mul_single_zero_apply p a n] }
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
-by { simp only [X_pow_eq_monomial, monomial, single, eq_comm], congr }
+by simp only [one_mul, ring_hom.map_one, ← coeff_C_mul_X]
 
 @[simp]
 lemma coeff_X_pow_self (n : ℕ) :
@@ -129,7 +140,7 @@ theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
-by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul] }
+by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul, smul_eq_mul] }
 
 lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
 by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
@@ -156,36 +167,15 @@ begin
     { rw [not_not] at hi, rwa mul_zero } },
 end
 
+lemma coeff_bit0_mul (P Q : polynomial R) (n : ℕ) :
+  coeff (bit0 P * Q) n = 2 * coeff (P * Q) n :=
+by simp [bit0, add_mul]
+
+lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
+  coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
+by simp [bit1, add_mul, coeff_bit0_mul]
+
 end coeff
-
-open submodule polynomial set
-
-variables {f : polynomial R} {I : submodule (polynomial R) (polynomial R)}
-
-/--  If the coefficients of a polynomial belong to n ideal contains the submodule span of the
-coefficients of a polynomial. -/
-lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹' I.carrier)) :
-  (span (polynomial R) {g | ∃ i, g = C (f.coeff i)}) ≤ I :=
-begin
-  refine bInter_subset_of_mem _,
-  rintros _ ⟨i, rfl⟩,
-  exact set_like.mem_coe.mpr (cf i),
-end
-
-lemma mem_span_C_coeff :
-  f ∈ span (polynomial R) {g : polynomial R | ∃ i : ℕ, g = (C (coeff f i))} :=
-begin
-  rw [← f.sum_single] {occs := occurrences.pos [1]},
-  refine sum_mem _ (λ i hi, _),
-  change monomial i _ ∈ span _ _,
-  rw [← C_mul_X_pow_eq_monomial, ← X_pow_mul, ← smul_eq_mul],
-  exact smul_mem _ _ (subset_span ⟨i, rfl⟩),
-end
-
-lemma exists_coeff_not_mem_C_inverse :
-  f ∉ I → ∃ i : ℕ , coeff f i ∉ (C ⁻¹'  I.carrier) :=
-imp_of_not_imp_not _ _
-  (λ cf, not_not.mpr ((span_le_of_coeff_mem_C_inverse (not_exists_not.mp cf)) mem_span_C_coeff))
 
 section cast
 

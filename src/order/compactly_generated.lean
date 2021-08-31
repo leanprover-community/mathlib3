@@ -3,11 +3,9 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.set.finite
 import data.finset.order
-import order.well_founded
-import order.order_iso_nat
 import order.atoms
+import order.order_iso_nat
 import order.zorn
 import tactic.tfae
 
@@ -167,7 +165,7 @@ begin
     { use insert y t, simp, rw set.insert_subset, exact ⟨hy, ht₁⟩, },
     have hm' : m ≤ (insert y t).sup id, { rw ← ht₂, exact finset.sup_mono (t.subset_insert y), },
     rw ← hm _ hy' hm', simp, },
-  { rw [← ht₂, finset.sup_eq_Sup], exact Sup_le_Sup ht₁, },
+  { rw [← ht₂, finset.sup_id_eq_Sup], exact Sup_le_Sup ht₁, },
 end
 
 lemma is_Sup_finite_compact.is_sup_closed_compact (h : is_Sup_finite_compact α) :
@@ -183,7 +181,7 @@ end
 lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) :
   well_founded ((>) : α → α → Prop) :=
 begin
-  rw rel_embedding.well_founded_iff_no_descending_seq, rintros ⟨a⟩,
+  refine rel_embedding.well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
   suffices : Sup (set.range a) ∈ set.range a,
   { obtain ⟨n, hn⟩ := set.mem_range.mp this,
     have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, a.map_rel_iff], },
@@ -298,7 +296,8 @@ le_antisymm (begin
   rw le_inf_iff at hcinf,
   rcases hc s hcinf.2 with ⟨t, ht1, ht2⟩,
   exact (le_inf hcinf.1 ht2).trans (le_bsupr t ht1),
-end) (supr_le $ λ t, supr_le $ λ h, inf_le_inf_left _ ((finset.sup_eq_Sup t).symm ▸ (Sup_le_Sup h)))
+end)
+  (supr_le $ λ t, supr_le $ λ h, inf_le_inf_left _ ((finset.sup_id_eq_Sup t).symm ▸ (Sup_le_Sup h)))
 
 theorem complete_lattice.set_independent_iff_finite {s : set α} :
   complete_lattice.set_independent s ↔
@@ -306,7 +305,7 @@ theorem complete_lattice.set_independent_iff_finite {s : set α} :
 ⟨λ hs t ht, hs.mono ht, λ h a ha, begin
   rw [disjoint_iff, inf_Sup_eq_supr_inf_sup_finset, supr_eq_bot],
   intro t,
-  rw [supr_eq_bot, finset.sup_eq_Sup],
+  rw [supr_eq_bot, finset.sup_id_eq_Sup],
   intro ht,
   classical,
   have h' := (h (insert a t) _ (t.mem_insert_self a)).eq_bot,

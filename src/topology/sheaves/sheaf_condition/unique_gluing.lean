@@ -80,8 +80,7 @@ begin
   { intros i j,
     convert congr_arg (limits.pi.π (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2))) (i,j)) h,
     {rw [left_res, types.pi_lift_π_apply], refl},
-    {rw [right_res, types.pi_lift_π_apply], refl},
-  }
+    {rw [right_res, types.pi_lift_π_apply], refl}, }
 end
 
 /--
@@ -207,8 +206,7 @@ def sheaf_condition_of_exists_unique_gluing
 sheaf_condition_of_sheaf_condition_unique_gluing F $ λ ι U sf hsf,
 { default := by {
     choose gl gl_spec gl_uniq using h U sf hsf,
-    exact ⟨gl, gl_spec⟩,
-  },
+    exact ⟨gl, gl_spec⟩, },
   uniq := by {
     intro s,
     let t : F.gluing U sf := _,
@@ -216,8 +214,7 @@ sheaf_condition_of_sheaf_condition_unique_gluing F $ λ ι U sf hsf,
     ext,
     choose gl gl_spec gl_uniq using h U sf hsf,
     refine eq.trans (gl_uniq s.1 _) (gl_uniq t.1 _).symm,
-    exacts [s.2, t.2]
-  },
+    exacts [s.2, t.2] },
 }
 
 end presheaf
@@ -250,7 +247,7 @@ lemma exists_unique_gluing' (V : opens X) (iUV : Π i : ι, U i ⟶ V) (hcover :
   (sf : Π i : ι, F.presheaf.obj (op (U i))) (h : is_compatible F.presheaf U sf) :
   ∃! s : F.presheaf.obj (op V), ∀ i : ι, F.presheaf.map (iUV i).op s = sf i :=
 begin
-  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, le_of_hom (iUV i))),
+  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, (iUV i).le)),
   obtain ⟨gl, gl_spec, gl_uniq⟩ := F.exists_unique_gluing U sf h,
   refine ⟨F.presheaf.map (eq_to_hom V_eq_supr_U).op gl, (λ i,_), (λ gl' gl'_spec,_)⟩,
   { rw ← functor_to_types.map_comp_apply,
@@ -279,7 +276,7 @@ lemma eq_of_locally_eq' (V : opens X) (iUV : Π i : ι, U i ⟶ V) (hcover : V �
   (s t : F.presheaf.obj (op V))
   (h : ∀ i, F.presheaf.map (iUV i).op s = F.presheaf.map (iUV i).op t) : s = t :=
 begin
-  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, le_of_hom (iUV i))),
+  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, (iUV i).le)),
   suffices : F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op s =
              F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op t,
   { convert congr_arg (F.presheaf.map (eq_to_hom V_eq_supr_U).op) this ;

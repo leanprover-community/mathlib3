@@ -5,6 +5,25 @@ Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Re
 -/
 import topology.dense_embedding
 
+/-!
+# Homeomorphisms
+
+This file defines homeomorphisms between two topological spaces. They are bijections with both
+directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
+
+# Main definitions
+
+* `homeomorph α β`: The type of homeomorphisms from `α` to `β`.
+  This type can be denoted using the following notation: `α ≃ₜ β`.
+
+# Main results
+
+* Pretty much every topological property is preserved under homeomorphisms.
+* `homeomorph.homeomorph_of_continuous_open`: A continuous bijection that is
+  an open map is a homeomorphism.
+
+-/
+
 open set filter
 open_locale topological_space
 
@@ -134,16 +153,38 @@ h.quotient_map.2.symm
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 ⟨h.inducing, h.injective⟩
 
+/-- Homeomorphism given an embedding. -/
+noncomputable def of_embedding (f : α → β) (hf : embedding f) : α ≃ₜ (set.range f) :=
+{ continuous_to_fun := continuous_subtype_mk _ hf.continuous,
+  continuous_inv_fun := by simp [hf.continuous_iff, continuous_subtype_coe],
+  .. equiv.of_injective f hf.inj }
+
 protected lemma second_countable_topology [topological_space.second_countable_topology β]
   (h : α ≃ₜ β) :
   topological_space.second_countable_topology α :=
 h.inducing.second_countable_topology
 
 lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
-h.embedding.compact_iff_compact_image.symm
+h.embedding.is_compact_iff_is_compact_image.symm
 
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
+
+lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
+{ compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
+    apply compact_space.compact_univ } }
+
+lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
+{ t2 :=
+  begin
+    intros x y hxy,
+    obtain ⟨u, v, hu, hv, hxu, hyv, huv⟩ := t2_separation (h.symm.injective.ne hxy),
+    refine ⟨h.symm ⁻¹' u, h.symm ⁻¹' v,
+      h.symm.continuous.is_open_preimage _ hu,
+      h.symm.continuous.is_open_preimage _ hv,
+      hxu, hyv, _⟩,
+    rw [← preimage_inter, huv, preimage_empty],
+  end }
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,

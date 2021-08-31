@@ -8,7 +8,7 @@ import algebra.field
 import algebra.module
 import algebra.algebra.basic
 import algebra.group.type_tags
-import ring_theory.ideal.basic
+import ring_theory.ideal.local_ring
 
 /-!
 # Transfer algebraic structures across `equiv`s
@@ -174,6 +174,22 @@ by resetI; apply e.injective.group _; intros; exact e.apply_symm_apply _
 protected def comm_group [comm_group β] : comm_group α :=
 let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div in
 by resetI; apply e.injective.comm_group _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_unital_non_assoc_semiring` across an `equiv` -/
+protected def non_unital_non_assoc_semiring [non_unital_non_assoc_semiring β] :
+  non_unital_non_assoc_semiring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+by resetI; apply e.injective.non_unital_non_assoc_semiring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_unital_semiring` across an `equiv` -/
+protected def non_unital_semiring [non_unital_semiring β] :  non_unital_semiring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+by resetI; apply e.injective.non_unital_semiring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_assoc_semiring` across an `equiv` -/
+protected def non_assoc_semiring [non_assoc_semiring β] : non_assoc_semiring α :=
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+by resetI; apply e.injective.non_assoc_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `semiring` across an `equiv` -/
 protected def semiring [semiring β] : semiring α :=

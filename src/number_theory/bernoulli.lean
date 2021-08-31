@@ -91,7 +91,8 @@ end
 
 section examples
 
-@[simp] lemma bernoulli'_zero : bernoulli' 0 = 1 := rfl
+@[simp] lemma bernoulli'_zero : bernoulli' 0 = 1 :=
+by { rw bernoulli'_def, norm_num }
 
 @[simp] lemma bernoulli'_one : bernoulli' 1 = 1/2 :=
 by { rw bernoulli'_def, norm_num }
@@ -176,7 +177,7 @@ def bernoulli (n : ℕ) : ℚ := (-1)^n * bernoulli' n
 lemma bernoulli'_eq_bernoulli (n : ℕ) : bernoulli' n = (-1)^n * bernoulli n :=
 by simp [bernoulli, ← mul_assoc, ← sq, ← pow_mul, mul_comm n 2, pow_mul]
 
-@[simp] lemma bernoulli_zero : bernoulli 0 = 1 := rfl
+@[simp] lemma bernoulli_zero : bernoulli 0 = 1 := by simp [bernoulli]
 
 @[simp] lemma bernoulli_one : bernoulli 1 = -1/2 :=
 by norm_num [bernoulli]
@@ -195,12 +196,14 @@ begin
   cases n, { simp },
   cases n, { simp },
   suffices : ∑ i in range n, ↑((n + 2).choose (i + 2)) * bernoulli (i + 2) = n / 2,
-  { simp only [this, sum_range_succ', cast_succ, bernoulli_one, choose_one_right], ring },
+  { simp only [this, sum_range_succ', cast_succ, bernoulli_one, bernoulli_zero, choose_one_right,
+    mul_one, choose_zero_right, cast_zero, if_false, zero_add, succ_succ_ne_one], ring },
   have f := sum_bernoulli' n.succ.succ,
   simp_rw [sum_range_succ', bernoulli'_one, choose_one_right, cast_succ, ← eq_sub_iff_add_eq] at f,
   convert f,
   { ext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
-  { ring },
+  { simp only [one_div, mul_one, bernoulli'_zero, cast_one, choose_zero_right, add_sub_cancel],
+    ring },
 end
 
 lemma bernoulli_spec' (n : ℕ) :
@@ -258,7 +261,8 @@ end
 
 section faulhaber
 
-/-- Faulhaber's theorem relating the sum of of p-th powers to the Bernoulli numbers.
+/-- **Faulhaber's theorem** relating the **sum of of p-th powers** to the Bernoulli numbers:
+$$\sum_{k=0}^{n-1} k^p = \sum_{i=0}^p B_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 See https://proofwiki.org/wiki/Faulhaber%27s_Formula and [orosi2018faulhaber] for
 the proof provided here. -/
 theorem sum_range_pow (n p : ℕ) :
@@ -314,9 +318,10 @@ begin
   field_simp [mul_right_comm _ ↑p!, ← mul_assoc _ _ ↑p!, cast_add_one_ne_zero, hne],
 end
 
-/-- Alternate form of Faulhaber's theorem, relating the sum of p-th powers to the Bernoulli numbers.
+/-- Alternate form of **Faulhaber's theorem**, relating the sum of p-th powers to the Bernoulli
+numbers: $$\sum_{k=1}^{n} k^p = \sum_{i=0}^p (-1)^iB_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 Deduced from `sum_range_pow`. -/
-theorem sum_range_pow' (n p : ℕ) :
+theorem sum_Ico_pow (n p : ℕ) :
   ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p =
     ∑ i in range (p + 1), bernoulli' i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin
@@ -326,7 +331,7 @@ begin
   let f' := λ i, bernoulli' i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
   suffices : ∑ k in Ico 1 n.succ, ↑k ^ p.succ = ∑ i in range p.succ.succ, f' i, { convert this },
   -- prove some algebraic facts that will make things easier for us later on
-  have hle := le_add_left 1 n,
+  have hle := nat.le_add_left 1 n,
   have hne : (p + 1 + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero p.succ,
   have h1 : ∀ r : ℚ, r * (p + 1 + 1) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
     λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],

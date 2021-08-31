@@ -17,7 +17,7 @@ sides of the equivalence are `fintype`s.
 
  - `function.embedding.to_equiv_range`: computably turn an embedding of a
    fintype into an `equiv` of the domain to its range
- - `equiv.perm.via_embedding : perm α → (α ↪ β) → perm β` extends the domain of
+ - `equiv.perm.via_fintype_embedding : perm α → (α ↪ β) → perm β` extends the domain of
    a permutation, fixing everything outside the range of the embedding
 
 # Implementation details
@@ -53,28 +53,30 @@ Extend the domain of `e : equiv.perm α`, mapping it through `f : α ↪ β`.
 Everything outside of `set.range f` is kept fixed. Has poor computational performance,
 due to exhaustive searching in constructed inverse due to using `function.embedding.to_equiv_range`.
 When a better `α ≃ set.range f` is known, use `equiv.perm.via_set_range`.
+When `[fintype α]` is not available, a noncomputable version is available as
+`equiv.perm.via_embedding`.
 -/
-def equiv.perm.via_embedding : equiv.perm β :=
+def equiv.perm.via_fintype_embedding : equiv.perm β :=
 e.extend_domain f.to_equiv_range
 
-@[simp] lemma equiv.perm.via_embedding_apply_image (a : α) :
-  e.via_embedding f (f a) = f (e a) :=
+@[simp] lemma equiv.perm.via_fintype_embedding_apply_image (a : α) :
+  e.via_fintype_embedding f (f a) = f (e a) :=
 begin
-  rw equiv.perm.via_embedding,
+  rw equiv.perm.via_fintype_embedding,
   convert equiv.perm.extend_domain_apply_image e _ _
 end
 
-lemma equiv.perm.via_embedding_apply_mem_range {b : β} (h : b ∈ set.range f) :
-  e.via_embedding f b = f (e (f.inv_of_mem_range ⟨b, h⟩)) :=
-by simpa [equiv.perm.via_embedding, equiv.perm.extend_domain_apply_subtype, h]
+lemma equiv.perm.via_fintype_embedding_apply_mem_range {b : β} (h : b ∈ set.range f) :
+  e.via_fintype_embedding f b = f (e (f.inv_of_mem_range ⟨b, h⟩)) :=
+by simpa [equiv.perm.via_fintype_embedding, equiv.perm.extend_domain_apply_subtype, h]
 
-lemma equiv.perm.via_embedding_apply_not_mem_range {b : β} (h : b ∉ set.range f) :
-  e.via_embedding f b = b :=
-by rwa [equiv.perm.via_embedding, equiv.perm.extend_domain_apply_not_subtype]
+lemma equiv.perm.via_fintype_embedding_apply_not_mem_range {b : β} (h : b ∉ set.range f) :
+  e.via_fintype_embedding f b = b :=
+by rwa [equiv.perm.via_fintype_embedding, equiv.perm.extend_domain_apply_not_subtype]
 
-@[simp] lemma equiv.perm.via_embedding_sign [decidable_eq α] [fintype β] :
-  equiv.perm.sign (e.via_embedding f) = equiv.perm.sign e :=
-by simp [equiv.perm.via_embedding]
+@[simp] lemma equiv.perm.via_fintype_embedding_sign [decidable_eq α] [fintype β] :
+  equiv.perm.sign (e.via_fintype_embedding f) = equiv.perm.sign e :=
+by simp [equiv.perm.via_fintype_embedding]
 
 namespace equiv
 variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]
@@ -98,9 +100,7 @@ lemma extend_subtype_apply_of_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x)
   e.extend_subtype x = e ⟨x, hx⟩ :=
 by { dunfold extend_subtype,
      simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
-     -- `p` gets turned into `λ x, p x` which `rw` doesn't like, so we have to use `erw`
-     erw [equiv.set.sum_compl_symm_apply_of_mem hx, sum.map_inl,
-          equiv.set.sum_compl_apply_inl q] }
+     rw [sum_compl_apply_symm_of_pos _ _ hx, sum.map_inl, sum_compl_apply_inl] }
 
 lemma extend_subtype_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : p x) :
   q (e.extend_subtype x) :=
@@ -110,10 +110,8 @@ by { convert (e ⟨x, hx⟩).2,
 lemma extend_subtype_apply_of_not_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : ¬ p x) :
   e.extend_subtype x = e.to_compl ⟨x, hx⟩ :=
 by { dunfold extend_subtype,
-    simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
-    -- `p` gets turned into `λ x, p x` which `rw` doesn't like, so we have to use `erw`
-    erw [equiv.set.sum_compl_symm_apply_of_not_mem hx, sum.map_inr,
-         equiv.set.sum_compl_apply_inr q] }
+     simp only [subtype_congr, equiv.trans_apply, equiv.sum_congr_apply],
+     rw [sum_compl_apply_symm_of_neg _ _ hx, sum.map_inr, sum_compl_apply_inr] }
 
 lemma extend_subtype_not_mem (e : {x // p x} ≃ {x // q x}) (x) (hx : ¬ p x) :
   ¬ q (e.extend_subtype x) :=

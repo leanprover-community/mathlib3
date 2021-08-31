@@ -82,7 +82,7 @@ protected lemma mul_mem {g₁ g₂ : G} (h₁ : g₁ ∈ U) (h₂ : g₂ ∈ U) 
 
 @[to_additive]
 lemma mem_nhds_one : (U : set G) ∈ 𝓝 (1 : G) :=
-mem_nhds_sets U.is_open U.one_mem
+is_open.mem_nhds U.is_open U.one_mem
 variable {U}
 
 @[to_additive]
@@ -124,7 +124,7 @@ instance : partial_order (open_subgroup G) :=
 
 @[to_additive]
 instance : semilattice_inf_top (open_subgroup G) :=
-{ inf := λ U V, { is_open' := is_open_inter U.is_open V.is_open, .. (U : subgroup G) ⊓ V },
+{ inf := λ U V, { is_open' := is_open.inter U.is_open V.is_open, .. (U : subgroup G) ⊓ V },
   inf_le_left := λ U V, set.inter_subset_left _ _,
   inf_le_right := λ U V, set.inter_subset_right _ _,
   le_inf := λ U V W hV hW, set.subset_inter hV hW,
@@ -181,8 +181,8 @@ begin
   have : filter.tendsto (λ y, y * (x⁻¹ * g)) (𝓝 x) (𝓝 $ x * (x⁻¹ * g)) :=
     (continuous_id.mul continuous_const).tendsto _,
   rw [mul_inv_cancel_left] at this,
-  have := filter.mem_map.1 (this hg),
-  replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_nhds hg),
+  have := filter.mem_map'.1 (this hg),
+  replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_mem_nhds hg),
   simp only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
   exact this
 end
@@ -190,7 +190,7 @@ end
 @[to_additive]
 lemma is_open_of_open_subgroup {U : open_subgroup G} (h : U.1 ≤ H) :
   is_open (H : set G) :=
-H.is_open_of_mem_nhds (filter.mem_sets_of_superset U.mem_nhds_one h)
+H.is_open_of_mem_nhds (filter.mem_of_superset U.mem_nhds_one h)
 
 @[to_additive]
 lemma is_open_mono {H₁ H₂ : subgroup G} (h : H₁ ≤ H₂) (h₁ : is_open (H₁  :set G)) :

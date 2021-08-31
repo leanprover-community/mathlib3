@@ -36,20 +36,49 @@ def monoid.perfection (M : Type u₁) [comm_monoid M] (p : ℕ) : submonoid (ℕ
   one_mem' := λ n, one_pow _,
   mul_mem' := λ f g hf hg n, (mul_pow _ _ _).trans $ congr_arg2 _ (hf n) (hg n) }
 
-/-- The perfection of a ring `R` with characteristic `p`,
+/-- The perfection of a ring `R` with characteristic `p`, as a subsemiring,
 defined to be the projective limit of `R` using the Frobenius maps `R → R`
 indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
-def ring.perfection (R : Type u₁) [comm_semiring R]
+def ring.perfection_subsemiring (R : Type u₁) [comm_semiring R]
   (p : ℕ) [hp : fact p.prime] [char_p R p] :
   subsemiring (ℕ → R) :=
 { zero_mem' := λ n, zero_pow $ hp.1.pos,
   add_mem' := λ f g hf hg n, (frobenius_add R p _ _).trans $ congr_arg2 _ (hf n) (hg n),
   .. monoid.perfection R p }
 
+/-- The perfection of a ring `R` with characteristic `p`, as a subring,
+defined to be the projective limit of `R` using the Frobenius maps `R → R`
+indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
+def ring.perfection_subring (R : Type u₁) [comm_ring R]
+  (p : ℕ) [hp : fact p.prime] [char_p R p] :
+  subring (ℕ → R) :=
+(ring.perfection_subsemiring R p).to_subring $ λ n, by simp_rw [← frobenius_def, pi.neg_apply,
+    pi.one_apply, ring_hom.map_neg, ring_hom.map_one]
+
+/-- The perfection of a ring `R` with characteristic `p`,
+defined to be the projective limit of `R` using the Frobenius maps `R → R`
+indexed by the natural numbers, implemented as `{f : ℕ → R // ∀ n, f (n + 1) ^ p = f n}`. -/
+def ring.perfection (R : Type u₁) [comm_semiring R] (p : ℕ) : Type u₁ :=
+{f // ∀ (n : ℕ), (f : ℕ → R) (n + 1) ^ p = f n}
+
 namespace perfection
 
 variables (R : Type u₁) [comm_semiring R] (p : ℕ) [hp : fact p.prime] [char_p R p]
 include hp
+
+instance : comm_semiring (ring.perfection R p) :=
+(ring.perfection_subsemiring R p).to_comm_semiring
+
+instance : char_p (ring.perfection R p) p :=
+char_p.subsemiring (ℕ → R) p (ring.perfection_subsemiring R p)
+
+instance ring (R : Type u₁) [comm_ring R] [char_p R p] : ring (ring.perfection R p) :=
+(ring.perfection_subring R p).to_ring
+
+instance comm_ring (R : Type u₁) [comm_ring R] [char_p R p] : comm_ring (ring.perfection R p) :=
+(ring.perfection_subring R p).to_comm_ring
+
+instance : inhabited (ring.perfection R p) := ⟨0⟩
 
 /-- The `n`-th coefficient of an element of the perfection. -/
 def coeff (n : ℕ) : ring.perfection R p →+* R :=
@@ -125,14 +154,6 @@ instance perfect_ring : perfect_ring (ring.perfection R p) p :=
 { pth_root' := pth_root R p,
   frobenius_pth_root' := congr_fun $ congr_arg ring_hom.to_fun $ @frobenius_pth_root R _ p _ _,
   pth_root_frobenius' := congr_fun $ congr_arg ring_hom.to_fun $ @pth_root_frobenius R _ p _ _ }
-
-instance ring (R : Type u₁) [comm_ring R] [char_p R p] : ring (ring.perfection R p) :=
-((ring.perfection R p).to_subring $ λ n, by simp_rw [← frobenius_def, pi.neg_apply,
-    pi.one_apply, ring_hom.map_neg, ring_hom.map_one]).to_ring
-
-instance comm_ring (R : Type u₁) [comm_ring R] [char_p R p] : comm_ring (ring.perfection R p) :=
-((ring.perfection R p).to_subring $ λ n, by simp_rw [← frobenius_def, pi.neg_apply,
-    pi.one_apply, ring_hom.map_neg, ring_hom.map_one]).to_comm_ring
 
 /-- Given rings `R` and `S` of characteristic `p`, with `R` being perfect,
 any homomorphism `R →+* S` can be lifted to a homomorphism `R →+* perfection S p`. -/
@@ -407,18 +428,22 @@ end classical
 
 end mod_p
 
-include hp hvp
 /-- Perfection of `O/(p)` where `O` is the ring of integers of `K`. -/
 @[nolint has_inhabited_instance] def pre_tilt :=
 ring.perfection (mod_p K v O hv p) p
+
+include hp hvp
 
 namespace pre_tilt
 
 instance : comm_ring (pre_tilt K v O hv p) :=
 perfection.comm_ring p _
 
+instance : char_p (pre_tilt K v O hv p) p :=
+perfection.char_p (mod_p K v O hv p) p
+
 section classical
-local attribute [instance] classical.dec
+open_locale classical
 
 open perfection
 
@@ -493,8 +518,8 @@ begin
   rw [val_aux_eq hm, val_aux_eq hn, val_aux_eq hk, ring_hom.map_add],
   cases le_max_iff.1
     (mod_p.pre_val_add (coeff _ _ (max (max m n) k) f) (coeff _ _ (max (max m n) k) g)) with h h,
-  { exact le_max_left_of_le (canonically_ordered_semiring.pow_le_pow_of_le_left h _) },
-  { exact le_max_right_of_le (canonically_ordered_semiring.pow_le_pow_of_le_left h _) }
+  { exact le_max_of_le_left (pow_le_pow_of_le_left' h _) },
+  { exact le_max_of_le_right (pow_le_pow_of_le_left' h _) }
 end
 
 variables (K v O hv p)

@@ -359,6 +359,21 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+lemma coe_add_eq_ite {n : ℕ} (a b : fin n) :
+  (↑(a + b) : ℕ) = if n ≤ a + b then a + b - n else a + b :=
+by rw [fin.coe_add, nat.add_mod_eq_ite,
+       nat.mod_eq_of_lt (show ↑a < n, from a.2), nat.mod_eq_of_lt (show ↑b < n, from b.2)]
+
+lemma coe_bit0 {n : ℕ} (k : fin n) : ((bit0 k : fin n) : ℕ) = bit0 (k : ℕ) % n :=
+by { cases k, refl }
+
+lemma coe_bit1 {n : ℕ} (k : fin (n + 1)) :
+  ((bit1 k : fin (n + 1)) : ℕ) = bit1 (k : ℕ) % (n + 1) :=
+begin
+  cases n, { cases k with k h, cases k, {show _ % _ = _, simp}, cases h with _ h, cases h },
+  simp [bit1, fin.coe_bit0, fin.coe_add, fin.coe_one],
+end
+
 lemma coe_add_one_of_lt {n : ℕ} {i : fin n.succ} (h : i < last _) :
   (↑(i + 1) : ℕ) = i + 1 :=
 begin
@@ -510,6 +525,8 @@ lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 
 @[simp] lemma succ_zero_eq_one : fin.succ (0 : fin (n + 1)) = 1 := rfl
 
+@[simp] lemma succ_one_eq_two : fin.succ (1 : fin (n + 2)) = 2 := rfl
+
 @[simp] lemma succ_mk (n i : ℕ) (h : i < n) : fin.succ ⟨i, h⟩ = ⟨i + 1, nat.succ_lt_succ h⟩ :=
 rfl
 
@@ -556,6 +573,10 @@ begin
   exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
 
+@[simp] lemma cast_le_succ {m n : ℕ} (h : (m + 1) ≤ (n + 1)) (i : fin m) :
+  cast_le h i.succ = (cast_le (nat.succ_le_succ_iff.mp h) i).succ :=
+by simp [fin.eq_iff_veq]
+
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
 { to_equiv := ⟨cast_le eq.le, cast_le eq.symm.le, λ a, eq_of_veq rfl, λ a, eq_of_veq rfl⟩,
@@ -585,12 +606,25 @@ lemma cast_eq_cast (h : n = m) : (cast h : fin n → fin m) = _root_.cast (h ▸
 by { subst h, ext, simp }
 
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
-def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
+def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
 
+lemma cast_add_lt {m : ℕ} (n : ℕ) (i : fin m) : (cast_add n i : ℕ) < m := i.2
+
 @[simp] lemma cast_add_mk (m : ℕ) (i : ℕ) (h : i < n) :
   cast_add m ⟨i, h⟩ = ⟨i, lt_add_right i n m h⟩ := rfl
+
+/-- embedding `fin n` into `fin (m + n)` sending `i` to `m + i` -/
+def cast_add_right (m : ℕ) {n : ℕ} : fin n ↪ fin (m + n) :=
+{ to_fun := λ i, ⟨m + i, add_lt_add_left i.2 _⟩,
+  inj' := λ i j h, fin.ext (by simpa using h) }
+
+@[simp] lemma coe_cast_add_right (m : ℕ) {n : ℕ} (i : fin n) :
+  (cast_add_right m i : ℕ) = m + i := rfl
+
+lemma le_cast_add_right (m : ℕ) {n : ℕ} (i : fin n) : m ≤ cast_add_right m i :=
+nat.le_add_right _ _
 
 /-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
@@ -637,6 +671,12 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
 by simpa [lt_iff_coe_lt_coe] using h
 
+@[simp] lemma cast_succ_eq_zero_iff (a : fin (n + 1)) : a.cast_succ = 0 ↔ a = 0 :=
+subtype.ext_iff.trans $ (subtype.ext_iff.trans $ by exact iff.rfl).symm
+
+lemma cast_succ_ne_zero_iff (a : fin (n + 1)) : a.cast_succ ≠ 0 ↔ a ≠ 0 :=
+not_iff_not.mpr $ cast_succ_eq_zero_iff a
+
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by simp [fin.ext_iff]
@@ -667,6 +707,10 @@ begin
   rw ← coe_cast_succ,
   exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
 end
+
+lemma succ_cast_succ {n : ℕ} (i : fin n) :
+  i.cast_succ.succ = i.succ.cast_succ :=
+fin.ext (by simp)
 
 /-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=
@@ -783,6 +827,110 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 ⟨λ ⟨i, h⟩, fin.cases or.inl (λ i hi, or.inr ⟨i, hi⟩) i h,
   λ h, or.elim h (λ h, ⟨0, h⟩) $ λ⟨i, hi⟩, ⟨i.succ, hi⟩⟩
 
+/--
+Define `C i` by reverse induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
+This function has two arguments: `hlast` handles the base case on `C (fin.last n)`,
+and `hs` defines the inductive step using `C i.succ`, inducting downwards.
+-/
+@[elab_as_eliminator]
+def reverse_induction {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) :
+  Π (i : fin (n + 1)), C i
+| i :=
+if hi : i = fin.last n
+then _root_.cast (by rw hi) hlast
+else
+  let j : fin n := ⟨i, lt_of_le_of_ne (nat.le_of_lt_succ i.2) (λ h, hi (fin.ext h))⟩ in
+  have wf : n + 1 - j.succ < n + 1 - i, begin
+    cases i,
+    rw [nat.sub_lt_sub_left_iff];
+    simp [*, nat.succ_le_iff],
+  end,
+  have hi : i = fin.cast_succ j, from fin.ext rfl,
+_root_.cast (by rw hi) (hs _ (reverse_induction j.succ))
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ i : fin (n+1), n + 1 - i)⟩],
+  dec_tac := `[assumption] }
+
+@[simp] lemma reverse_induction_last {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (h0 : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) :
+  (reverse_induction h0 hs (fin.last n) : C (fin.last n)) = h0 :=
+by rw [reverse_induction]; simp
+
+@[simp] lemma reverse_induction_cast_succ {n : ℕ}
+  {C : fin (n + 1) → Sort*}
+  (h0 : C (fin.last n))
+  (hs : ∀ i : fin n, C i.succ → C i.cast_succ) (i : fin n):
+  (reverse_induction h0 hs i.cast_succ : C i.cast_succ) =
+    hs i (reverse_induction h0 hs i.succ) :=
+begin
+  rw [reverse_induction, dif_neg (ne_of_lt (fin.cast_succ_lt_last i))],
+  cases i,
+  refl
+end
+
+/-- Define `f : Π i : fin n.succ, C i` by separately handling the cases `i = fin.last n` and
+`i = j.cast_succ`, `j : fin n`. -/
+@[elab_as_eliminator, elab_strategy]
+def last_cases {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin (n + 1)) : C i :=
+reverse_induction hlast (λ i _, hcast i) i
+
+@[simp] lemma last_cases_last {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) :
+  (fin.last_cases hlast hcast (fin.last n): C (fin.last n)) = hlast :=
+reverse_induction_last _ _
+
+@[simp] lemma last_cases_cast_succ {n : ℕ} {C : fin (n + 1) → Sort*}
+  (hlast : C (fin.last n)) (hcast : (Π (i : fin n), C i.cast_succ)) (i : fin n) :
+  (fin.last_cases hlast hcast (fin.cast_succ i): C (fin.cast_succ i)) = hcast i :=
+reverse_induction_cast_succ _ _ _
+
+/-- Define `f : Π i : fin (m + n), C i` by separately handling the cases `i = cast_add n i`,
+`j : fin m` and `i = cast_add_right m j`, `j : fin n`. -/
+@[elab_as_eliminator, elab_strategy]
+def add_cases {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (cast_add n i))
+  (hright : Π i, C (cast_add_right m i)) (i : fin (m + n)) : C i :=
+if hi : (i : ℕ) < m
+then have hi' : i = fin.cast_add _ ⟨i, hi⟩, from fin.ext rfl,
+  _root_.cast (congr_arg C hi'.symm) (hleft _)
+else have hi' : i = fin.cast_add_right m
+  ⟨i - m, show (i : ℕ) - m < n,
+      from (nat.sub_lt_left_iff_lt_add (le_of_not_gt hi)).2 i.2⟩,
+    from fin.ext $ by simp [nat.add_sub_cancel' (le_of_not_gt hi)],
+  _root_.cast (congr_arg C hi'.symm) (hright _)
+
+@[simp] lemma add_cases_left {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (fin.cast_add n i))
+  (hright : Π i, C (fin.cast_add_right m i))
+  (i : fin m) :
+  (fin.add_cases hleft hright (fin.cast_add n i) : C (fin.cast_add n i)) =
+  hleft i :=
+begin
+  cases i,
+  simp only [add_cases, *, dif_pos, coe_mk, cast_eq, cast_add_mk],
+  refl
+end
+
+@[simp] lemma add_cases_right {m n : ℕ} {C : fin (m + n) → Sort*}
+  (hleft : Π i, C (fin.cast_add n i))
+  (hright : Π i, C (fin.cast_add_right m i))
+  (i : fin n) :
+  (fin.add_cases hleft hright (fin.cast_add_right m i) : C (fin.cast_add_right m i)) =
+  hright i :=
+begin
+  have : ¬ (cast_add_right m i : ℕ) < m, from not_lt_of_ge (le_cast_add_right _ _),
+  cases i with i hi,
+  simp only [add_cases, this, dif_neg, not_false_iff, cast_eq, not_false_iff],
+  rw [cast_eq_iff_heq],
+  congr,
+  simp
+end
+
 end rec
 
 section pred
@@ -863,7 +1011,12 @@ instance (n : ℕ) : add_comm_group (fin (n+1)) :=
     show (a + (n + 1 - b)) % (n + 1) = (a + (n + 1 - b) % (n + 1)) % (n + 1), by simp,
   sub := fin.sub,
   ..fin.add_comm_monoid n,
-  ..fin.has_neg n.succ  }
+  ..fin.has_neg n.succ }
+
+protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
+
+protected lemma coe_sub (a b : fin n) : ((a - b : fin n) : ℕ) = (a + (n - b)) % n :=
+by cases a; cases b; refl
 
 end add_group
 
@@ -884,6 +1037,21 @@ embeds `i` by `cast_succ` when the resulting `i.cast_succ < p`. -/
 lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.cast_succ < p) :
   p.succ_above i = i.cast_succ :=
 by { rw [succ_above], exact if_pos h }
+
+@[simp] lemma succ_above_ne_zero_zero {a : fin (n + 2)} (ha : a ≠ 0) : a.succ_above 0 = 0 :=
+begin
+  rw fin.succ_above_below,
+  { refl },
+  { exact bot_lt_iff_ne_bot.mpr ha }
+end
+
+lemma succ_above_eq_zero_iff {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) :
+  a.succ_above b = 0 ↔ b = 0 :=
+by simp only [←succ_above_ne_zero_zero ha, order_embedding.eq_iff_eq]
+
+lemma succ_above_ne_zero {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0) :
+  a.succ_above b ≠ 0 :=
+mt (succ_above_eq_zero_iff ha).mp hb
 
 /-- Embedding `fin n` into `fin (n + 1)` with a hole around zero embeds by `succ`. -/
 @[simp] lemma succ_above_zero : ⇑(succ_above (0 : fin (n + 1))) = fin.succ := rfl
@@ -998,6 +1166,10 @@ lemma succ_above_left_injective : injective (@succ_above n) :=
 lemma succ_above_left_inj {x y : fin (n + 1)} :
   x.succ_above = y.succ_above ↔ x = y :=
 succ_above_left_injective.eq_iff
+
+@[simp] lemma zero_succ_above {n : ℕ} (i : fin n) :
+  (0 : fin (n + 1)).succ_above i = i.succ :=
+rfl
 
 @[simp] lemma succ_succ_above_zero {n : ℕ} (i : fin (n + 1)) :
   (i.succ).succ_above 0 = 0 :=
@@ -1151,6 +1323,25 @@ begin
       exact lt_succ_iff.mpr (not_lt.mp h), }, },
 end
 
+lemma cast_succ_pred_eq_pred_cast_succ  {a : fin (n + 1)} (ha : a ≠ 0)
+  (ha' := a.cast_succ_ne_zero_iff.mpr ha) : (a.pred ha).cast_succ = a.cast_succ.pred ha' :=
+by { cases a, refl }
+
+/-- `pred` commutes with `succ_above`. -/
+lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hk := succ_above_ne_zero ha hb) :
+  (a.pred ha).succ_above (b.pred hb) = (a.succ_above b).pred hk :=
+begin
+  obtain hbelow | habove := lt_or_le b.cast_succ a, -- `rwa` uses them
+  { rw fin.succ_above_below,
+    { rwa [cast_succ_pred_eq_pred_cast_succ , fin.pred_inj, fin.succ_above_below] },
+    { rwa [cast_succ_pred_eq_pred_cast_succ , pred_lt_pred_iff] } },
+  { rw fin.succ_above_above,
+    have : (b.pred hb).succ = b.succ.pred (fin.succ_ne_zero _), by rw [succ_pred, pred_succ],
+    { rwa [this, fin.pred_inj, fin.succ_above_above] },
+    { rwa [cast_succ_pred_eq_pred_cast_succ , fin.pred_le_pred_iff] } }
+end
+
 @[simp] theorem cast_pred_cast_succ (i : fin (n + 1)) :
   cast_pred i.cast_succ = i :=
 by simp [cast_pred, pred_above, le_last]
@@ -1225,8 +1416,8 @@ operations, first about adding or removing elements at the beginning of a tuple.
 -/
 
 /-- There is exactly one tuple of size zero. -/
-instance tuple0_unique (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
-pi.unique_of_empty fin.elim0 α
+example (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
+by apply_instance
 
 @[simp] lemma tuple0_le {α : Π i : fin 0, Type*} [Π i, preorder (α i)] (f g : Π i, α i) : f ≤ g :=
 fin_zero_elim
@@ -1530,8 +1721,7 @@ else if h' : j < i then _root_.cast (congr_arg α $ begin
   obtain ⟨k, hk⟩ : ∃ (k : fin (n + 1)), k.cast_succ = j,
     { refine ⟨⟨(j : ℕ), _⟩, _⟩,
       { exact lt_of_lt_of_le h' i.is_le, },
-      { simp },
-    },
+      { simp } },
   subst hk,
   simp [succ_above_below, h'],
 end)

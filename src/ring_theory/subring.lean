@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
 
-import deprecated.subring
 import group_theory.subgroup
 import ring_theory.subsemiring
 
@@ -32,6 +31,8 @@ Notation used here:
 * `subring R` : the type of subrings of a ring `R`.
 
 * `instance : complete_lattice (subring R)` : the complete lattice structure on the subrings.
+
+* `subring.center` : the center of a ring `R`.
 
 * `subring.closure` : subring closure of a set, i.e., the smallest subring that includes the set.
 
@@ -167,15 +168,6 @@ set_like.coe_injective hm.symm
 set_like.coe_injective ha.symm
 
 end subring
-
-/-- Construct a `subring` from a set satisfying `is_subring`. -/
-def set.to_subring (S : set R) [is_subring S] : subring R :=
-{ carrier := S,
-  one_mem' := is_submonoid.one_mem,
-  mul_mem' := λ a b, is_submonoid.mul_mem,
-  zero_mem' := is_add_submonoid.zero_mem,
-  add_mem' := λ a b, is_add_submonoid.add_mem,
-  neg_mem' := λ a, is_add_subgroup.neg_mem }
 
 /-- A `subsemiring` containing -1 is a `subring`. -/
 def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=
@@ -373,6 +365,17 @@ set.image_subset_iff
 lemma gc_map_comap (f : R →+* S) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
 
+/-- A subring is isomorphic to its image under an injective function -/
+noncomputable def equiv_map_of_injective
+  (f : R →+* S) (hf : function.injective f) : s ≃+* s.map f :=
+{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _),
+  map_add' := λ _ _, subtype.ext (f.map_add _ _),
+  ..equiv.set.image f s hf }
+
+@[simp] lemma coe_equiv_map_of_injective_apply
+  (f : R →+* S) (hf : function.injective f) (x : s) :
+  (equiv_map_of_injective s f hf x : S) = f x := rfl
+
 end subring
 
 namespace ring_hom
@@ -407,6 +410,12 @@ def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
   map_zero' := subtype.eq f.map_zero,
   map_mul' := λ x y, subtype.eq $ f.map_mul x y,
   map_one' := subtype.eq f.map_one }
+
+/-- The range of a ring homomorphism is a fintype, if the domain is a fintype.
+Note: this instance can form a diamond with `subtype.fintype` in the
+  presence of `fintype S`. -/
+instance fintype_range [fintype R] [decidable_eq S] (f : R →+* S) : fintype (range f) :=
+set.fintype_range f
 
 end ring_hom
 
@@ -468,6 +477,35 @@ instance : complete_lattice (subring R) :=
 
 lemma eq_top_iff' (A : subring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
+
+section
+
+variables (R)
+
+/-- The center of a semiring `R` is the set of elements that commute with everything in `R` -/
+def center : subring R :=
+{ carrier := set.center R,
+  neg_mem' := λ a, set.neg_mem_center,
+  .. subsemiring.center R }
+
+lemma coe_center : ↑(center R) = set.center R := rfl
+
+@[simp] lemma center_to_subsemiring : (center R).to_subsemiring = subsemiring.center R := rfl
+
+variables {R}
+
+lemma mem_center_iff {z : R} : z ∈ center R ↔ ∀ g, g * z = z * g :=
+iff.rfl
+
+@[simp] lemma center_eq_top (R) [comm_ring R] : center R = ⊤ :=
+set_like.coe_injective (set.center_eq_univ R)
+
+/-- The center is commutative. -/
+instance : comm_ring (center R) :=
+{ ..subsemiring.center.comm_semiring,
+  ..(center R).to_ring}
+
+end
 
 /-! # subring closure of a subset -/
 
@@ -662,6 +700,18 @@ lemma coe_Sup_of_directed_on {S : set (subring R)} (Sne : S.nonempty) (hS : dire
   (↑(Sup S) : set R) = ⋃ s ∈ S, ↑s :=
 set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
 
+lemma mem_map_equiv {f : R ≃+* S} {K : subring R} {x : S} :
+  x ∈ K.map (f : R →+* S) ↔ f.symm x ∈ K :=
+@set.mem_image_equiv _ _ ↑K f.to_equiv x
+
+lemma map_equiv_eq_comap_symm (f : R ≃+* S) (K : subring R) :
+  K.map (f : R →+* S) = K.comap f.symm :=
+set_like.coe_injective (f.to_equiv.image_eq_preimage K)
+
+lemma comap_equiv_eq_map_symm (f : R ≃+* S) (K : subring S) :
+  K.comap (f : R →+* S) = K.map f.symm :=
+(map_equiv_eq_comap_symm f.symm K).symm
+
 end subring
 
 namespace ring_hom
@@ -838,3 +888,56 @@ end subring
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
   (k : R) * g ∈ G :=
 by { convert add_subgroup.gsmul_mem G h k, simp }
+
+
+/-! ### Actions by `subring`s
+
+These are just copies of the definitions about `subsemiring` starting from
+`subsemiring.mul_action`.
+
+When `R` is commutative, `algebra.of_subring` provides a stronger result than those found in
+this file, which uses the same scalar action.
+-/
+section actions
+
+namespace subring
+
+variables {α β : Type*}
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [mul_action R α] (S : subring R) : mul_action S α :=
+S.to_subsemiring.mul_action
+
+lemma smul_def [mul_action R α] {S : subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
+
+instance smul_comm_class_left
+  [mul_action R β] [has_scalar α β] [smul_comm_class R α β] (S : subring R) :
+  smul_comm_class S α β :=
+S.to_subsemiring.smul_comm_class_left
+
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action R β] [smul_comm_class α R β] (S : subring R) :
+  smul_comm_class α S β :=
+S.to_subsemiring.smul_comm_class_right
+
+/-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action R α] [mul_action R β] [is_scalar_tower R α β] (S : subring R) :
+  is_scalar_tower S α β :=
+S.to_subsemiring.is_scalar_tower
+
+instance [mul_action R α] [has_faithful_scalar R α] (S : subring R) :
+  has_faithful_scalar S α :=
+S.to_subsemiring.has_faithful_scalar
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [add_monoid α] [distrib_mul_action R α] (S : subring R) : distrib_mul_action S α :=
+S.to_subsemiring.distrib_mul_action
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
+S.to_subsemiring.module
+
+end subring
+
+end actions

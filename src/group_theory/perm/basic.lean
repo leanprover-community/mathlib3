@@ -15,7 +15,7 @@ universes u v
 
 namespace equiv
 
-variables {α : Type u}
+variables {α : Type u} {β : Type v}
 
 namespace perm
 
@@ -185,7 +185,7 @@ section extend_domain
 
 /-! Lemmas about `equiv.perm.extend_domain` re-expressed via the group structure. -/
 
-variables {β : Type*} (e : perm α) {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p)
+variables (e : perm α) {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p)
 
 @[simp] lemma extend_domain_one : extend_domain 1 f = 1 :=
 extend_domain_refl f
@@ -195,6 +195,20 @@ extend_domain_refl f
 @[simp] lemma extend_domain_mul (e e' : perm α) :
   (e.extend_domain f) * (e'.extend_domain f) = (e * e').extend_domain f :=
 extend_domain_trans _ _ _
+
+/-- `extend_domain` as a group homomorphism -/
+@[simps] def extend_domain_hom : perm α →* perm β :=
+{ to_fun := λ e, extend_domain e f,
+  map_one' := extend_domain_one f,
+  map_mul' := λ e e', (extend_domain_mul f e e').symm }
+
+lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
+((extend_domain_hom f).injective_iff).mpr (λ e he, ext (λ x, f.injective (subtype.ext
+  ((extend_domain_apply_image e f x).symm.trans (ext_iff.mp he (f x))))))
+
+@[simp] lemma extend_domain_eq_one_iff {e : perm α} {f : α ≃ subtype p} :
+  e.extend_domain f = 1 ↔ e = 1 :=
+(extend_domain_hom f).injective_iff'.mp (extend_domain_hom_injective f) e
 
 end extend_domain
 
@@ -244,6 +258,16 @@ equiv.ext $ λ x, begin
       monoid_hom.coe_mk] }
 end
 
+lemma of_subtype_apply_of_mem {p : α → Prop} [decidable_pred p]
+  (f : perm (subtype p)) {x : α} (hx : p x) :
+  of_subtype f x = f ⟨x, hx⟩ :=
+dif_pos hx
+
+@[simp] lemma of_subtype_apply_coe {p : α → Prop} [decidable_pred p]
+  (f : perm (subtype p)) (x : subtype p)  :
+  of_subtype f x = f x :=
+subtype.cases_on x $ λ _, of_subtype_apply_of_mem f
+
 lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) {x : α} (hx : ¬ p x) :
   of_subtype f x = x :=
@@ -261,11 +285,31 @@ else by simp [h, of_subtype_apply_of_not_mem f h]
 equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
   simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
 
-instance perm_unique {n : Type*} [unique n] : unique (equiv.perm n) :=
-{ default := 1,
-  uniq := λ σ, equiv.ext (λ i, subsingleton.elim _ _) }
-
 @[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
+
+variables (e : perm α) (ι : α ↪ β)
+
+open_locale classical
+
+/-- Noncomputable version of `equiv.perm.via_fintype_embedding` that does not assume `fintype` -/
+noncomputable def via_embedding : perm β :=
+extend_domain e (of_injective ι.1 ι.2)
+
+lemma via_embedding_apply (x : α) : e.via_embedding ι (ι x) = ι (e x) :=
+extend_domain_apply_image e (of_injective ι.1 ι.2) x
+
+lemma via_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
+  e.via_embedding ι x = x :=
+extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
+
+/-- `via_embedding` as a group homomorphism -/
+noncomputable def via_embedding_hom : perm α →* perm β:=
+extend_domain_hom (of_injective ι.1 ι.2)
+
+lemma via_embedding_hom_apply : via_embedding_hom ι e = via_embedding e ι := rfl
+
+lemma via_embedding_hom_injective : function.injective (via_embedding_hom ι) :=
+extend_domain_hom_injective (of_injective ι.1 ι.2)
 
 end perm
 

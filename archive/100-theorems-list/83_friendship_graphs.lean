@@ -85,7 +85,7 @@ end
 lemma adj_matrix_pow_three_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
   ((G.adj_matrix R) ^ 3) v w = degree G v :=
 begin
-  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, sum_nat_cast],
+  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, nat.cast_sum],
   apply sum_congr rfl,
   intros x hx,
   rw [adj_matrix_sq_of_ne _ hG, nat.cast_one],
@@ -223,8 +223,7 @@ begin
   iterate 2 {cases k with k, { exfalso, linarith, }, },
   induction k with k hind,
   { exact adj_matrix_sq_mod_p_of_regular hG dmod hd, },
-  have h2 : 2 ≤ k.succ.succ := by omega,
-  rw [pow_succ, hind h2],
+  rw [pow_succ, hind (nat.le_add_left 2 k)],
   exact adj_matrix_mul_const_one_mod_p_of_regular dmod hd,
 end
 
@@ -323,8 +322,8 @@ end
 
 end friendship
 
-/-- We wish to show that a friendship graph has a politician (a vertex adjacent to all others).
-  We proceed by contradiction, and assume the graph has no politician.
+/-- **Friendship theorem**: We wish to show that a friendship graph has a politician (a vertex
+  adjacent to all others). We proceed by contradiction, and assume the graph has no politician.
   We have already proven that a friendship graph with no politician is `d`-regular for some `d`,
   and now we do casework on `d`.
   If the degree is at most 2, we observe by casework that it has a politician anyway.
@@ -333,8 +332,7 @@ theorem friendship_theorem [nonempty V] : exists_politician G :=
 begin
   by_contradiction npG,
   rcases hG.is_regular_of_not_exists_politician npG with ⟨d, dreg⟩,
-  have h : d ≤ 2 ∨ 3 ≤ d := by omega,
-  cases h with dle2 dge3,
-  { exact npG (hG.exists_politician_of_degree_le_two dreg dle2) },
+  cases lt_or_le d 3 with dle2 dge3,
+  { exact npG (hG.exists_politician_of_degree_le_two dreg (nat.lt_succ_iff.mp dle2)) },
   { exact hG.false_of_three_le_degree dreg dge3 },
 end

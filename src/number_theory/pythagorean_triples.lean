@@ -9,6 +9,7 @@ import algebra.group_with_zero.power
 import tactic.ring
 import tactic.ring_exp
 import tactic.field_simp
+import data.zmod.basic
 
 /-!
 # Pythagorean Triples
@@ -23,6 +24,19 @@ that these are coprime. This is easy except for the prime 2. In order to deal wi
 analyze the parity of `x`, `y`, `m` and `n` and eliminate all the impossible cases. This takes up
 the bulk of the proof below.
 -/
+
+lemma sq_ne_two_fin_zmod_four (z : zmod 4) : z * z ≠ 2 :=
+begin
+  change fin 4 at z,
+  fin_cases z; norm_num [fin.ext_iff, fin.coe_bit0, fin.coe_bit1]
+end
+
+lemma int.sq_ne_two_mod_four (z : ℤ) : (z * z) % 4 ≠ 2 :=
+suffices ¬ (z * z) % (4 : ℕ) = 2 % (4 : ℕ), by norm_num at this,
+begin
+  rw ← zmod.int_coe_eq_int_coe_iff',
+  simpa using sq_ne_two_fin_zmod_four _
+end
 
 noncomputable theory
 open_locale classical
@@ -126,13 +140,9 @@ begin
     { cases exists_eq_mul_left_of_dvd (int.dvd_sub_of_mod_eq hx) with x0 hx2,
       cases exists_eq_mul_left_of_dvd (int.dvd_sub_of_mod_eq hy) with y0 hy2,
       rw sub_eq_iff_eq_add at hx2 hy2, exact ⟨x0, y0, hx2, hy2⟩ },
-    have hz : (z * z) % 4 = 2,
-    { rw show z * z = 4 * (x0 * x0 + x0 + y0 * y0 + y0) + 2, by { rw ← h.eq, ring },
-      simp only [int.add_mod, int.mul_mod_right, int.mod_mod, zero_add], refl },
-    have : ∀ (k : ℤ), 0 ≤ k → k < 4 → k * k % 4 ≠ 2 := dec_trivial,
-    have h4 : (4 : ℤ) ≠ 0 := dec_trivial,
-    apply this (z % 4) (int.mod_nonneg z h4) (int.mod_lt z h4),
-    rwa [← int.mul_mod] },
+    apply int.sq_ne_two_mod_four z,
+    rw show z * z = 4 * (x0 * x0 + x0 + y0 * y0 + y0) + 2, by { rw ← h.eq, ring },
+    norm_num [int.add_mod] }
 end
 
 lemma gcd_dvd : (int.gcd x y : ℤ) ∣ z :=
@@ -320,14 +330,12 @@ begin
     { have hp2' : p = 2 := (nat.le_of_dvd zero_lt_two hp2).antisymm hp.two_le,
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
-      norm_num [sq, int.sub_mod, int.mul_mod, hm, hn],
-    },
+      norm_num [sq, int.sub_mod, int.mul_mod, hm, hn] },
     apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpm)) hnp,
     apply (or_self _).mp, apply int.prime.dvd_mul' hp,
     rw (by ring : n * n = - (m ^ 2 - n ^ 2) + m * m),
     apply dvd_add (dvd_neg_of_dvd hp1),
-    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m
-  },
+    exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hpm) m },
   rw int.gcd_comm at hnp,
   apply mt (int.dvd_gcd (int.coe_nat_dvd_left.mpr hpn)) hnp,
   apply (or_self _).mp, apply int.prime.dvd_mul' hp,
@@ -591,6 +599,7 @@ begin
     exact zero_ne_one h_parity }
 end
 
+/-- **Formula for Pythagorean Triples** -/
 theorem classification :
   pythagorean_triple x y z ↔
   ∃ k m n, ((x = k * (m ^ 2 - n ^ 2) ∧ y = k * (2 * m * n)) ∨

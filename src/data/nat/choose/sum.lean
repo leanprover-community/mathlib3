@@ -8,6 +8,8 @@ import tactic.linarith
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
+import algebra.big_operators.nat_antidiagonal
+
 /-!
 # Sums of binomial coefficients
 
@@ -23,8 +25,14 @@ open_locale big_operators
 
 variables {R : Type*}
 
-/-- A version of the binomial theorem for noncommutative semirings. -/
-theorem commute.add_pow [semiring R] {x y : R} (h : commute x y) (n : ℕ) :
+namespace commute
+
+variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
+
+include h
+
+/-- A version of the **binomial theorem** for noncommutative semirings. -/
+theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
   let t : ℕ → ℕ → R := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
@@ -59,7 +67,16 @@ begin
        mul_zero, add_zero, pow_succ] }
 end
 
-/-- The binomial theorem -/
+/-- A version of `commute.add_pow` that avoids ℕ-subtraction by summing over the antidiagonal and
+also with the binomial coefficient applied via scalar action of ℕ. -/
+lemma add_pow' :
+  (x + y) ^ n = ∑ m in nat.antidiagonal n, choose n m.fst • (x ^ m.fst * y ^ m.snd) :=
+by simp_rw [finset.nat.sum_antidiagonal_eq_sum_range_succ (λ m p, choose n m • (x^m * y^p)),
+  _root_.nsmul_eq_mul, cast_comm, h.add_pow]
+
+end commute
+
+/-- The **binomial theorem** -/
 theorem add_pow [comm_semiring R] (x y : R) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n

@@ -139,14 +139,14 @@ lemma lor_comm (n m : ℕ) : lor n m = lor m n := bitwise_comm bool.bor_comm rfl
 lemma land_comm (n m : ℕ) : land n m = land m n := bitwise_comm bool.band_comm rfl n m
 lemma lxor_comm (n m : ℕ) : lxor n m = lxor m n := bitwise_comm bool.bxor_comm rfl n m
 
-@[simp] lemma zero_lxor (n : ℕ) : lxor 0 n = n := rfl
-@[simp] lemma lxor_zero (n : ℕ) : lxor n 0 = n := lxor_comm 0 n ▸ rfl
+@[simp] lemma zero_lxor (n : ℕ) : lxor 0 n = n := by simp [lxor]
+@[simp] lemma lxor_zero (n : ℕ) : lxor n 0 = n := by simp [lxor]
 
-@[simp] lemma zero_land (n : ℕ) : land 0 n = 0 := rfl
-@[simp] lemma land_zero (n : ℕ) : land n 0 = 0 := land_comm 0 n ▸ rfl
+@[simp] lemma zero_land (n : ℕ) : land 0 n = 0 := by simp [land]
+@[simp] lemma land_zero (n : ℕ) : land n 0 = 0 := by simp [land]
 
-@[simp] lemma zero_lor (n : ℕ) : lor 0 n = n := rfl
-@[simp] lemma lor_zero (n : ℕ) : lor n 0 = n := lor_comm 0 n ▸ rfl
+@[simp] lemma zero_lor (n : ℕ) : lor 0 n = n := by simp [lor]
+@[simp] lemma lor_zero (n : ℕ) : lor n 0 = n := by simp [lor]
 
 /-- Proving associativity of bitwise operations in general essentially boils down to a huge case
     distinction, so it is shorter to use this tactic instead of proving it in the general case. -/
@@ -173,7 +173,7 @@ lemma lxor_left_inj {n n' m : ℕ} (h : lxor n m = lxor n' m) : n = n' :=
 by { rw [lxor_comm n m, lxor_comm n' m] at h, exact lxor_right_inj h }
 
 lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
-⟨by { rw ←lxor_self m, exact lxor_left_inj  }, by { rintro rfl, exact lxor_self _ }⟩
+⟨by { rw ←lxor_self m, exact lxor_left_inj }, by { rintro rfl, exact lxor_self _ }⟩
 
 lemma lxor_trichotomy {a b c : ℕ} (h : lxor a (lxor b c) ≠ 0) :
   lxor b c < a ∨ lxor a c < b ∨ lxor a b < c :=

@@ -397,9 +397,9 @@ begin
   have h := submodule.finrank_add_inf_finrank_orthogonal
     (vector_span_mono ℝ (set.image_subset_range s.points ↑(univ.erase i))),
   have hc : card (univ.erase i) = n + 1, { rw card_erase_of_mem (mem_univ _), simp },
+  refine add_left_cancel (trans h _),
   rw [finrank_vector_span_of_affine_independent s.independent (fintype.card_fin _),
-      finrank_vector_span_image_finset_of_affine_independent s.independent hc] at h,
-  simpa using h
+      ← finset.coe_image, finrank_vector_span_image_finset_of_affine_independent s.independent hc]
 end
 
 /-- A line through a vertex is the altitude through that vertex if and

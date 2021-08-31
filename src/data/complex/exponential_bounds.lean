@@ -64,7 +64,7 @@ begin
   have z := real.abs_log_sub_add_sum_range_le (show abs' (2⁻¹ : ℝ) < 1, by { rw t, norm_num }) 34,
   rw t at z,
   norm_num1 at z,
-  rw [one_div (2:ℝ), log_inv, ←sub_eq_add_neg, _root_.abs_sub] at z,
+  rw [one_div (2:ℝ), log_inv, ←sub_eq_add_neg, _root_.abs_sub_comm] at z,
   apply le_trans (_root_.abs_sub_le _ _ _) (add_le_add z _),
   simp_rw [sum_range_succ],
   norm_num,

@@ -19,7 +19,7 @@ section scale_roots
 variables {A K R S : Type*} [integral_domain A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A}
 
-open finsupp polynomial
+open polynomial
 open_locale big_operators
 
 /-- `scale_roots p s` is a polynomial with root `r * s` for each root `r` of `p`. -/
@@ -117,7 +117,7 @@ lemma scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero
 begin
   convert scale_roots_eval₂_eq_zero f hr,
   rw [←mul_div_assoc, mul_comm, mul_div_cancel],
-  exact @map_ne_zero_of_mem_non_zero_divisors _ _ _ _ _ _ hf ⟨s, hs⟩
+  exact f.map_ne_zero_of_mem_non_zero_divisors hf hs
 end
 
 lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]

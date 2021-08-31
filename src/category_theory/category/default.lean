@@ -119,6 +119,9 @@ abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 section
 variables {C : Type u} [category.{v} C] {X Y Z : C}
 
+initialize_simps_projections category (to_category_struct_to_quiver_hom → hom,
+  to_category_struct_comp → comp, to_category_struct_id → id, -to_category_struct)
+
 /-- postcompose an equation between morphisms by another morphism -/
 lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
 by rw w
@@ -257,6 +260,7 @@ Because we do not allow the morphisms of a category to live in `Prop`,
 unfortunately we need to use `plift` and `ulift` when defining the morphisms.
 
 As convenience functions, we provide `hom_of_le` and `le_of_hom` to wrap and unwrap inequalities.
+We also provide aliases `has_le.le.hom` and `quiver.hom.le` to use with dot notation.
 -/
 namespace preorder
 
@@ -288,19 +292,21 @@ Express an inequality as a morphism in the corresponding preorder category.
 -/
 def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
 
-@[simp] lemma hom_of_le_refl {U : α} : hom_of_le (le_refl U) = 𝟙 U := rfl
+alias hom_of_le ← has_le.le.hom
+
+@[simp] lemma hom_of_le_refl {U : α} : (le_refl U).hom = 𝟙 U := rfl
 @[simp] lemma hom_of_le_comp {U V W : α} (h : U ≤ V) (k : V ≤ W) :
-  hom_of_le h ≫ hom_of_le k = hom_of_le (h.trans k) := rfl
+  h.hom ≫ k.hom = (h.trans k).hom := rfl
 
 /--
 Extract the underlying inequality from a morphism in a preorder category.
 -/
 lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
 
-@[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) :
-  le_of_hom (hom_of_le h) = h := rfl
-@[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) :
-  hom_of_le (le_of_hom h) = h :=
+alias le_of_hom ← quiver.hom.le
+
+@[simp] lemma le_of_hom_hom_of_le {a b : α} (h : a ≤ b) : h.hom.le = h := rfl
+@[simp] lemma hom_of_le_le_of_hom {a b : α} (h : a ⟶ b) : h.le.hom = h :=
 by { cases h, cases h, refl, }
 
 end category_theory

@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.apply_fun
 import ring_theory.matrix_algebra
 import ring_theory.polynomial_algebra
-import linear_algebra.nonsingular_inverse
+import linear_algebra.matrix.nonsingular_inverse
 import tactic.squeeze
 
 /-!
@@ -73,7 +73,7 @@ def char_poly (M : matrix n n R) : polynomial R :=
 (char_matrix M).det
 
 /--
-The Cayley-Hamilton theorem, that the characteristic polynomial of a matrix,
+The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a matrix,
 applied to the matrix itself, is zero.
 
 This holds over any commutative ring.

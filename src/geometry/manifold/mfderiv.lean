@@ -292,13 +292,13 @@ end
 
 lemma is_open.unique_mdiff_within_at (xs : x ∈ s) (hs : is_open s) : unique_mdiff_within_at I s x :=
 begin
-  have := unique_mdiff_within_at.inter (unique_mdiff_within_at_univ I) (mem_nhds_sets hs xs),
+  have := unique_mdiff_within_at.inter (unique_mdiff_within_at_univ I) (is_open.mem_nhds hs xs),
   rwa univ_inter at this
 end
 
 lemma unique_mdiff_on.inter (hs : unique_mdiff_on I s) (ht : is_open t) :
   unique_mdiff_on I (s ∩ t) :=
-λx hx, unique_mdiff_within_at.inter (hs _ hx.1) (mem_nhds_sets ht hx.2)
+λx hx, unique_mdiff_within_at.inter (hs _ hx.1) (is_open.mem_nhds ht hx.2)
 
 lemma is_open.unique_mdiff_on (hs : is_open s) : unique_mdiff_on I s :=
 λx hx, is_open.unique_mdiff_within_at hx hs
@@ -522,7 +522,7 @@ lemma mdifferentiable_on_of_locally_mdifferentiable_on
 begin
   assume x xs,
   rcases h x xs with ⟨t, t_open, xt, ht⟩,
-  exact (mdifferentiable_within_at_inter (mem_nhds_sets t_open xt)).1 (ht x ⟨xs, xt⟩)
+  exact (mdifferentiable_within_at_inter (is_open.mem_nhds t_open xt)).1 (ht x ⟨xs, xt⟩)
 end
 
 include Is I's
@@ -609,7 +609,7 @@ begin
   { have : (ext_chart_at I x).symm ⁻¹' {y | f₁ y = f y} ∈
       𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
       ext_chart_preimage_mem_nhds_within I x h₁,
-    apply filter.mem_sets_of_superset this (λy, _),
+    apply filter.mem_of_superset this (λy, _),
     simp only [hx] with mfld_simps {contextual := tt} },
   { simp only [hx] with mfld_simps },
 end
@@ -617,13 +617,13 @@ end
 lemma has_mfderiv_within_at.congr_mono (h : has_mfderiv_within_at I I' f s x f')
   (ht : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (h₁ : t ⊆ s) :
   has_mfderiv_within_at I I' f₁ t x f' :=
-(h.mono h₁).congr_of_eventually_eq (filter.mem_inf_sets_of_right ht) hx
+(h.mono h₁).congr_of_eventually_eq (filter.mem_inf_of_right ht) hx
 
 lemma has_mfderiv_at.congr_of_eventually_eq (h : has_mfderiv_at I I' f x f')
   (h₁ : f₁ =ᶠ[𝓝 x] f) : has_mfderiv_at I I' f₁ x f' :=
 begin
   rw ← has_mfderiv_within_at_univ at ⊢ h,
-  apply h.congr_of_eventually_eq _ (mem_of_nhds h₁ : _),
+  apply h.congr_of_eventually_eq _ (mem_of_mem_nhds h₁ : _),
   rwa nhds_within_univ
 end
 
@@ -702,7 +702,7 @@ end
 lemma filter.eventually_eq.mfderiv_eq (hL : f₁ =ᶠ[𝓝 x] f) :
   mfderiv I I' f₁ x = (mfderiv I I' f x : _) :=
 begin
-  have A : f₁ x = f x := (mem_of_nhds hL : _),
+  have A : f₁ x = f x := (mem_of_mem_nhds hL : _),
   rw [← mfderiv_within_univ, ← mfderiv_within_univ],
   rw ← nhds_within_univ at hL,
   exact hL.mfderiv_within_eq (unique_mdiff_within_at_univ I) A
@@ -717,7 +717,7 @@ lemma written_in_ext_chart_comp (h : continuous_within_at f s x) :
        = ((written_in_ext_chart_at I' I'' (f x) g) ∘ (written_in_ext_chart_at I I' x f)) y}
   ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
 begin
-  apply @filter.mem_sets_of_superset _ _
+  apply @filter.mem_of_superset _ _
     ((f ∘ (ext_chart_at I x).symm)⁻¹' (ext_chart_at I' (f x)).source) _
     (ext_chart_preimage_mem_nhds_within I x
       (h.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
@@ -1041,7 +1041,7 @@ begin
   refine ⟨continuous_id.continuous_at, _⟩,
   have : ∀ᶠ y in 𝓝[range I] ((ext_chart_at I x) x),
     ((ext_chart_at I x) ∘ (ext_chart_at I x).symm) y = id y,
-  { apply filter.mem_sets_of_superset (ext_chart_at_target_mem_nhds_within I x),
+  { apply filter.mem_of_superset (ext_chart_at_target_mem_nhds_within I x),
     mfld_set_tac },
   apply has_fderiv_within_at.congr_of_eventually_eq (has_fderiv_within_at_id _ _) this,
   simp only with mfld_simps
@@ -1175,7 +1175,7 @@ variable {e : local_homeomorph M H}
 lemma mdifferentiable_at_atlas (h : e ∈ atlas H M) {x : M} (hx : x ∈ e.source) :
   mdifferentiable_at I I e x :=
 begin
-  refine ⟨(e.continuous_on x hx).continuous_at (mem_nhds_sets e.open_source hx), _⟩,
+  refine ⟨(e.continuous_on x hx).continuous_at (is_open.mem_nhds e.open_source hx), _⟩,
   have mem : I ((chart_at H x : M → H) x) ∈
     I.symm ⁻¹' ((chart_at H x).symm ≫ₕ e).source ∩ range I,
     by simp only [hx] with mfld_simps,
@@ -1189,7 +1189,7 @@ begin
   simp only with mfld_simps at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
   { simpa only with mfld_simps },
-  { apply mem_nhds_sets ((local_homeomorph.open_source _).preimage I.continuous_symm) mem.1 }
+  { apply is_open.mem_nhds ((local_homeomorph.open_source _).preimage I.continuous_symm) mem.1 }
 end
 
 lemma mdifferentiable_on_atlas (h : e ∈ atlas H M) :
@@ -1199,7 +1199,7 @@ lemma mdifferentiable_on_atlas (h : e ∈ atlas H M) :
 lemma mdifferentiable_at_atlas_symm (h : e ∈ atlas H M) {x : H} (hx : x ∈ e.target) :
   mdifferentiable_at I I e.symm x :=
 begin
-  refine ⟨(e.continuous_on_symm x hx).continuous_at (mem_nhds_sets e.open_target hx), _⟩,
+  refine ⟨(e.continuous_on_symm x hx).continuous_at (is_open.mem_nhds e.open_target hx), _⟩,
   have mem : I x ∈ I.symm ⁻¹' (e.symm ≫ₕ chart_at H (e.symm x)).source ∩ range (I),
     by simp only [hx] with mfld_simps,
   have : e.symm.trans (chart_at H (e.symm x)) ∈ times_cont_diff_groupoid ∞ I :=
@@ -1212,7 +1212,7 @@ begin
   simp only with mfld_simps at B,
   rw [inter_comm, differentiable_within_at_inter] at B,
   { simpa only with mfld_simps },
-  { apply (mem_nhds_sets ((local_homeomorph.open_source _).preimage I.continuous_symm) mem.1) }
+  { apply (is_open.mem_nhds ((local_homeomorph.open_source _).preimage I.continuous_symm) mem.1) }
 end
 
 lemma mdifferentiable_on_atlas_symm (h : e ∈ atlas H M) :
@@ -1282,11 +1282,11 @@ lemma symm : e.symm.mdifferentiable I' I :=
 
 protected lemma mdifferentiable_at {x : M} (hx : x ∈ e.source) :
   mdifferentiable_at I I' e x :=
-(he.1 x hx).mdifferentiable_at (mem_nhds_sets e.open_source hx)
+(he.1 x hx).mdifferentiable_at (is_open.mem_nhds e.open_source hx)
 
 lemma mdifferentiable_at_symm {x : M'} (hx : x ∈ e.target) :
   mdifferentiable_at I' I e.symm x :=
-(he.2 x hx).mdifferentiable_at (mem_nhds_sets e.open_target hx)
+(he.2 x hx).mdifferentiable_at (is_open.mem_nhds e.open_target hx)
 
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
 [smooth_manifold_with_corners I'' M'']
@@ -1302,8 +1302,8 @@ begin
   have : mfderiv I I (_root_.id : M → M) x = continuous_linear_map.id _ _ := mfderiv_id I,
   rw ← this,
   apply filter.eventually_eq.mfderiv_eq,
-  have : e.source ∈ 𝓝 x := mem_nhds_sets e.open_source hx,
-  exact filter.mem_sets_of_superset this (by mfld_set_tac)
+  have : e.source ∈ 𝓝 x := is_open.mem_nhds e.open_source hx,
+  exact filter.mem_of_superset this (by mfld_set_tac)
 end
 
 lemma comp_symm_deriv {x : M'} (hx : x ∈ e.target) :
@@ -1435,7 +1435,7 @@ begin
     (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target) (F z),
   { have : unique_mdiff_within_at I s z := hs _ hx.2,
     have S : e.source ∩ e ⁻¹' ((ext_chart_at I' x).source) ∈ 𝓝 z,
-    { apply mem_nhds_sets,
+    { apply is_open.mem_nhds,
       apply e.continuous_on.preimage_open_of_open e.open_source (ext_chart_at_open_source I' x),
       simp only [z_source, zx] with mfld_simps },
     have := this.inter S,
@@ -1512,7 +1512,7 @@ begin
   { assume z hz,
     apply (hs z hz.1).inter',
     apply (hf z hz.1).preimage_mem_nhds_within,
-    exact mem_nhds_sets (ext_chart_at_open_source I' y) hz.2 },
+    exact is_open.mem_nhds (ext_chart_at_open_source I' y) hz.2 },
   exact this.unique_diff_on_target_inter _
 end
 

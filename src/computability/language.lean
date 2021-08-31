@@ -5,6 +5,7 @@ Authors: Fox Thomson
 -/
 import data.set.lattice
 import data.list.basic
+import algebra.group_power.order
 
 /-!
 # Languages

@@ -7,6 +7,7 @@ import data.equiv.functor
 import data.mv_polynomial.equiv
 import data.mv_polynomial.comm_ring
 import ring_theory.free_ring
+import deprecated.ring
 
 /-!
 # Free commutative rings
@@ -97,7 +98,7 @@ private def lift_to_multiset : (α → R) ≃ (multiplicative (multiset α) →*
                           ... = _ : multiset.prod_add _ _,
     map_one' := rfl},
   inv_fun := λ F x, F (multiplicative.of_add ({x} : multiset α)),
-  left_inv := λ f, funext $ λ x, show (multiset.map f (x ::ₘ 0)).prod = _, by simp,
+  left_inv := λ f, funext $ λ x, show (multiset.map f {x}).prod = _, by simp,
   right_inv := λ F, monoid_hom.ext $ λ x,
     let F' := F.to_additive'', x' := x.to_add in show (multiset.map (λ a, F' {a}) x').sum = F' x',
     begin
@@ -138,36 +139,36 @@ lemma map_of (x : α) : map f (of x) = of (f x) := lift_of _ _
 
 /-- `is_supported x s` means that all monomials showing up in `x` have variables in `s`. -/
 def is_supported (x : free_comm_ring α) (s : set α) : Prop :=
-x ∈ ring.closure (of '' s)
+x ∈ subring.closure (of '' s)
 
 section is_supported
 variables {x y : free_comm_ring α} {s t : set α}
 
 theorem is_supported_upwards (hs : is_supported x s) (hst : s ⊆ t) :
   is_supported x t :=
-ring.closure_mono (set.monotone_image hst) hs
+subring.closure_mono (set.monotone_image hst) hs
 
 theorem is_supported_add (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x + y) s :=
-is_add_submonoid.add_mem hxs hys
+subring.add_mem _ hxs hys
 
 theorem is_supported_neg (hxs : is_supported x s) :
   is_supported (-x) s :=
-is_add_subgroup.neg_mem hxs
+subring.neg_mem _ hxs
 
 theorem is_supported_sub (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x - y) s :=
-is_add_subgroup.sub_mem hxs hys
+subring.sub_mem _ hxs hys
 
 theorem is_supported_mul (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x * y) s :=
-is_submonoid.mul_mem hxs hys
+subring.mul_mem _ hxs hys
 
 theorem is_supported_zero : is_supported 0 s :=
-is_add_submonoid.zero_mem
+subring.zero_mem _
 
 theorem is_supported_one : is_supported 1 s :=
-is_submonoid.one_mem
+subring.one_mem _
 
 theorem is_supported_int {i : ℤ} {s : set α} : is_supported ↑i s :=
 int.induction_on i is_supported_zero
@@ -178,23 +179,23 @@ end is_supported
 
 /-- The restriction map from `free_comm_ring α` to `free_comm_ring s` where `s : set α`, defined
   by sending all variables not in `s` to zero. -/
-def restriction (s : set α) [decidable_pred s] : free_comm_ring α →+* free_comm_ring s :=
+def restriction (s : set α) [decidable_pred (∈ s)] : free_comm_ring α →+* free_comm_ring s :=
 lift (λ p, if H : p ∈ s then of (⟨p, H⟩ : s) else 0)
 
 section restriction
-variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
+variables (s : set α) [decidable_pred (∈ s)] (x y : free_comm_ring α)
 @[simp] lemma restriction_of (p) :
   restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
 
 end restriction
 
 theorem is_supported_of {p} {s : set α} : is_supported (of p) s ↔ p ∈ s :=
-suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, ring.subset_closure ⟨p, hps, rfl⟩⟩,
+suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, subring.subset_closure ⟨p, hps, rfl⟩⟩,
 assume hps : is_supported (of p) s, begin
   haveI := classical.dec_pred s,
   have : ∀ x, is_supported x s →
     ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : polynomial ℤ) else polynomial.X) x = n,
-  { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
+  { intros x hx, refine subring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [ring_hom.map_one], norm_cast },
     { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
     { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul],
@@ -207,10 +208,11 @@ assume hps : is_supported (of p) s, begin
   rwa [polynomial.coeff_C, if_neg (one_ne_zero : 1 ≠ 0), polynomial.coeff_X, if_pos rfl] at this
 end
 
-theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : is_supported x s) :
+theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred (∈ s)]
+  (hxs : is_supported x s) :
   map (subtype.val : s → α) (restriction s x) = x :=
 begin
-  refine ring.in_closure.rec_on hxs _ _ _ _,
+  refine subring.in_closure.rec_on hxs _ _ _ _,
   { rw ring_hom.map_one, refl },
   { rw [ring_hom.map_neg, ring_hom.map_neg, ring_hom.map_one], refl },
   { rintros _ ⟨p, hps, rfl⟩ n ih,
@@ -247,8 +249,8 @@ free_ring.lift free_comm_ring.of
 
 instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 
-instance coe.is_ring_hom : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
-free_ring.to_free_comm_ring.is_ring_hom
+/-- The natural map `free_ring α → free_comm_ring α`, as a `ring_hom`. -/
+def coe_ring_hom : free_ring α →+* free_comm_ring α := to_free_comm_ring
 
 @[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
 @[simp, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
@@ -291,8 +293,10 @@ by { simp_rw [free_abelian_group.lift.of, (∘)], exact free_monoid.rec_on L rfl
 -- FIXME This was in `deprecated.ring`, but only used here.
 -- It would be good to inline it into the next construction.
 /-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
-def of' {R S : Type*} [ring R] [ring S] (e : R ≃ S) [is_ring_hom e] : R ≃+* S :=
-{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+def of' {R S : Type*} [ring R] [ring S] (e : R ≃ S) (he : is_ring_hom e) : R ≃+* S :=
+{ .. e,
+  .. monoid_hom.of he.to_is_semiring_hom.to_is_monoid_hom,
+  .. add_monoid_hom.of he.to_is_semiring_hom.to_is_add_monoid_hom }
 
 /-- If α has size at most 1 then the natural map from the free ring on `α` to the
     free commutative ring on `α` is an isomorphism of rings. -/
@@ -304,7 +308,7 @@ def subsingleton_equiv_free_comm_ring [subsingleton α] :
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
     work_on_goal 2 { symmetry, exact coe_eq α },
-    apply_instance
+    exact (coe_ring_hom _).to_is_ring_hom,
   end
 
 instance [subsingleton α] : comm_ring (free_ring α) :=

@@ -70,6 +70,10 @@ lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsi
 lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
 ⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
 
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : subsingleton (subtype p) :=
+⟨λ ⟨x,_⟩ ⟨y,_⟩, have x = y, from subsingleton.elim _ _, by { cases this, refl }⟩
+
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
    part of a chain. -/
@@ -242,9 +246,27 @@ mt imp_intro
 
 theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
 
-theorem em (p : Prop) : p ∨ ¬ p := classical.em _
+theorem dec_em' (p : Prop) [decidable p] : ¬p ∨ p := (dec_em p).swap
 
-theorem or_not {p : Prop} : p ∨ ¬ p := em _
+theorem em (p : Prop) : p ∨ ¬p := classical.em _
+
+theorem em' (p : Prop) : ¬p ∨ p := (em p).swap
+
+theorem or_not {p : Prop} : p ∨ ¬p := em _
+
+section eq_or_ne
+
+variables {α : Sort*} (x y : α)
+
+theorem decidable.eq_or_ne [decidable (x = y)] : x = y ∨ x ≠ y := dec_em $ x = y
+
+theorem decidable.ne_or_eq [decidable (x = y)] : x ≠ y ∨ x = y := dec_em' $ x = y
+
+theorem eq_or_ne : x = y ∨ x ≠ y := em $ x = y
+
+theorem ne_or_eq : x ≠ y ∨ x = y := em' $ x = y
+
+end eq_or_ne
 
 theorem by_contradiction {p} : (¬p → false) → p := decidable.by_contradiction
 
@@ -317,6 +339,18 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
+/-! ### Declarations about `xor` -/
+
+@[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]
+
+@[simp] theorem xor_false : xor false = id := funext $ λ a, by simp [xor]
+
+theorem xor_comm (a b) : xor a b = xor b a := by simp [xor, and_comm, or_comm]
+
+instance : is_commutative Prop xor := ⟨xor_comm⟩
+
+@[simp] theorem xor_self (a : Prop) : xor a a = false := by simp [xor]
+
 /-! ### Declarations about `and` -/
 
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
@@ -361,6 +395,12 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 
 @[simp] theorem and_iff_right_iff_imp {a b : Prop} : ((a ∧ b) ↔ b) ↔ (b → a) :=
 ⟨λ h ha, (h.2 ha).1, and_iff_right_of_imp⟩
+
+@[simp] lemma iff_self_and {p q : Prop} : (p ↔ p ∧ q) ↔ (p → q) :=
+by rw [@iff.comm p, and_iff_left_iff_imp]
+
+@[simp] lemma iff_and_self {p q : Prop} : (p ↔ q ∧ p) ↔ (p → q) :=
+by rw [and_comm, iff_self_and]
 
 @[simp] lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
@@ -821,11 +861,22 @@ forall_true_iff' $ λ _, forall_true_iff
   (∀ a (b : β a), γ a b → true) ↔ true :=
 forall_true_iff' $ λ _, forall_2_true_iff
 
+lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=
+exists.elim h (λ x hx, ⟨x, and.left hx⟩)
+
+@[simp] lemma exists_unique_iff_exists {α : Sort*} [subsingleton α] {p : α → Prop} :
+  (∃! x, p x) ↔ ∃ x, p x :=
+⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
+
 @[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
 ⟨i.elim, λ hb x, hb⟩
 
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
 ⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
+
+theorem exists_unique_const (α : Sort*) [i : nonempty α] [subsingleton α] :
+  (∃! x : α, b) ↔ b :=
+by simp
 
 theorem forall_and_distrib : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
 ⟨λ h, ⟨λ x, (h x).left, λ x, (h x).right⟩, λ ⟨h₁, h₂⟩ x, ⟨h₁ x, h₂ x⟩⟩
@@ -955,6 +1006,9 @@ theorem forall_iff_forall_surj
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
 
+theorem exists_unique_prop {p q : Prop} : (∃! h : p, q) ↔ p ∧ q :=
+by simp
+
 @[simp] theorem exists_false : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
 
 @[simp] lemma exists_unique_false : ¬ (∃! (a : α), false) := assume ⟨a, h, h'⟩, h
@@ -970,6 +1024,9 @@ theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q
 
 theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
+
+theorem exists_unique_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃! h' : p, q h') ↔ q h :=
+@exists_unique_const (q h) p ⟨h⟩ _
 
 theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
   (∀ h' : p, q h') ↔ true :=
@@ -992,9 +1049,6 @@ exists_prop_of_true _
 @[simp] lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
 exists_prop_of_false not_false
 
-lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=
-exists.elim h (λ x hx, ⟨x, and.left hx⟩)
-
 lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
   {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
 unique_of_exists_unique h py₁ py₂
@@ -1012,10 +1066,6 @@ forall_prop_of_true _
 
 @[simp] lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
 forall_prop_of_false not_false
-
-@[simp] lemma exists_unique_iff_exists {α : Sort*} [subsingleton α] {p : α → Prop} :
-  (∃! x, p x) ↔ ∃ x, p x :=
-⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
 
 lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
   {q : Π x (h : p x), Prop} {b : Prop} (h₂ : ∃! x (h : p x), q x h)
@@ -1093,6 +1143,14 @@ hpq _ $ some_spec _
 /-- A version of classical.indefinite_description which is definitionally equal to a pair -/
 noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P x) : {x // P x} :=
 ⟨classical.some h, classical.some_spec h⟩
+
+/-- A version of `by_contradiction` that uses types instead of propositions. -/
+protected noncomputable def by_contradiction' {α : Sort*} (H : ¬ (α → false)) : α :=
+classical.choice $ peirce _ false $ λ h, (H $ λ a, h ⟨a⟩).elim
+
+/-- `classical.by_contradiction'` is equivalent to lean's axiom `classical.choice`. -/
+def choice_of_by_contradiction' {α : Sort*} (contra : ¬ (α → false) → α) : nonempty α → α :=
+λ H, contra H.elim
 
 end classical
 
@@ -1212,6 +1270,10 @@ by by_cases p; simp *
 @[simp] lemma ite_eq_right_iff {α} {p : Prop} [decidable p] {a b : α} :
   (if p then a else b) = b ↔ (p → a = b) :=
 by by_cases p; simp *
+
+lemma ite_eq_or_eq {α} {p : Prop} [decidable p] (a b : α) :
+  ite p a b = a ∨ ite p a b = b :=
+decidable.by_cases (λ h, or.inl (if_pos h)) (λ h, or.inr (if_neg h))
 
 /-! ### Declarations about `nonempty` -/
 

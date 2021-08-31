@@ -6,7 +6,7 @@ Authors: Nicolò Cavalleri
 
 import topology.subset_properties
 import topology.tactic
-import topology.algebra.ordered
+import topology.algebra.ordered.basic
 
 /-!
 # Continuous bundled map
@@ -37,6 +37,8 @@ instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 variables {α β} {f g : continuous_map α β}
 
 @[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
+@[continuity] lemma continuous_set_coe (s : set C(α, β)) (f : s) : continuous f :=
+by { cases f, dsimp, continuity, }
 
 protected lemma continuous_at (f : C(α, β)) (x : α) : continuous_at f x :=
 f.continuous.continuous_at
@@ -79,7 +81,7 @@ end
 /-- The identity as a continuous map. -/
 def id : C(α, α) := ⟨id⟩
 
-@[simp] lemma id_coe : (id : α → α) = id := rfl
+@[simp] lemma id_coe : (id : α → α) = _root_.id := rfl
 lemma id_apply (a : α) : id a = a := rfl
 
 /-- The composition of continuous maps, as a continuous map. -/

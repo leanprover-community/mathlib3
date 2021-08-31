@@ -168,13 +168,14 @@ lemma bijective.of_comp_iff' {f : α → β} (hf : bijective f) (g : γ → α) 
   function.bijective (f ∘ g) ↔ function.bijective g :=
 and_congr (injective.of_comp_iff hf.injective _) (surjective.of_comp_iff' hf _)
 
-/-- Cantor's diagonal argument implies that there are no surjective functions from `α`
+/-- **Cantor's diagonal argument** implies that there are no surjective functions from `α`
 to `set α`. -/
 theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=
 let ⟨D, e⟩ := h (λ a, ¬ f a a) in
 (iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
 
-/-- Cantor's diagonal argument implies that there are no injective functions from `set α` to `α`. -/
+/-- **Cantor's diagonal argument** implies that there are no injective functions from `set α`
+to `α`. -/
 theorem cantor_injective {α : Type*} (f : (set α) → α) :
   ¬ function.injective f | i :=
 cantor_surjective (λ a b, ∀ U, a = f U → U b) $
@@ -654,3 +655,6 @@ lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y �
 if for each pair of distinct points there is a function taking different values on them. -/
 def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ ⦃x y : α⦄, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
+
+lemma is_symm_op.flip_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
+funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm

@@ -302,6 +302,20 @@ def model_with_corners.prod
   continuous_inv_fun := I.continuous_inv_fun.prod_map I'.continuous_inv_fun,
   .. I.to_local_equiv.prod I'.to_local_equiv }
 
+/-- Given a finite family of `model_with_corners` `I i` on `(E i, H i)`, we define the model with
+corners `pi I` on `(Π i, E i, model_pi H)`. See note [Manifold type tags] for explanation about
+`model_pi H`. -/
+def model_with_corners.pi
+  {𝕜 : Type u} [nondiscrete_normed_field 𝕜] {ι : Type v} [fintype ι]
+  {E : ι → Type w} [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  {H : ι → Type u'} [Π i, topological_space (H i)] (I : Π i, model_with_corners 𝕜 (E i) (H i)) :
+  model_with_corners 𝕜 (Π i, E i) (model_pi H) :=
+{ to_local_equiv := local_equiv.pi (λ i, (I i).to_local_equiv),
+  source_eq := by simp only [set.pi_univ] with mfld_simps,
+  unique_diff' := unique_diff_on.pi ι E _ _ (λ i _, (I i).unique_diff'),
+  continuous_to_fun := continuous_pi $ λ i, (I i).continuous.comp (continuous_apply i),
+  continuous_inv_fun := continuous_pi $ λ i, (I i).continuous_symm.comp (continuous_apply i) }
+
 /-- Special case of product model with corners, which is trivial on the second factor. This shows up
 as the model to tangent bundles. -/
 @[reducible] def model_with_corners.tangent
@@ -602,8 +616,8 @@ instance prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   smooth_manifold_with_corners (I.prod I') (M×M') :=
 { compatible :=
   begin
-    rintros f g ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
-    rw [hf, hg, local_homeomorph.prod_symm, local_homeomorph.prod_trans],
+    rintros f g ⟨f1, f2, hf1, hf2, rfl⟩ ⟨g1, g2, hg1, hg2, rfl⟩,
+    rw [local_homeomorph.prod_symm, local_homeomorph.prod_trans],
     have h1 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf1 hg1,
     have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I') hf2 hg2,
     exact times_cont_diff_groupoid_prod h1 h2,
@@ -687,7 +701,7 @@ lemma ext_chart_at_to_inv :
 
 lemma ext_chart_at_source_mem_nhds' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
   (ext_chart_at I x).source ∈ 𝓝 x' :=
-mem_nhds_sets (ext_chart_at_open_source I x) h
+is_open.mem_nhds (ext_chart_at_open_source I x) h
 
 lemma ext_chart_at_source_mem_nhds : (ext_chart_at I x).source ∈ 𝓝 x :=
 ext_chart_at_source_mem_nhds' I x (mem_ext_chart_source I x)

@@ -59,14 +59,7 @@ begin
 end
 
 lemma max_eq_iff : max a b = c ↔ a = c ∧ b ≤ a ∨ b = c ∧ a ≤ b :=
-begin
-  split,
-  { intro h,
-    refine or.imp (λ h', _) (λ h', _) (le_total b a);
-    exact ⟨by simpa [h'] using h, h'⟩ },
-  { rintro (⟨rfl, h⟩|⟨rfl, h⟩);
-    simp [h] }
-end
+@min_eq_iff (order_dual α) _ a b c
 
 /-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference

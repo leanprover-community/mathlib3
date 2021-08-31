@@ -375,13 +375,8 @@ lemma add_eq_coe [has_add α] : ∀ {a b : with_top α} {c : α},
     by simp only [some_eq_coe, ← coe_add, coe_eq_coe, exists_and_distrib_left, exists_eq_left]
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
-{ add_assoc :=
-  begin
-    refine with_top.rec_top_coe _ _,
-    simp [←with_top.coe_add, add_assoc],
-    intro, refine with_top.rec_top_coe _ _;
-    simp [←with_top.coe_add, add_assoc],
-    intro, refine with_top.rec_top_coe _ _;
+{ add_assoc := begin
+    repeat { refine with_top.rec_top_coe _ _; try { intro }};
     simp [←with_top.coe_add, add_assoc]
   end,
   ..with_top.has_add }
@@ -389,9 +384,7 @@ instance [add_semigroup α] : add_semigroup (with_top α) :=
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { add_comm :=
   begin
-    refine with_top.rec_top_coe _ _,
-    simp [←with_top.coe_add, add_comm],
-    intro, refine with_top.rec_top_coe _ _;
+    repeat { refine with_top.rec_top_coe _ _; try { intro }};
     simp [←with_top.coe_add, add_comm]
   end,
   ..with_top.add_semigroup }

@@ -499,19 +499,16 @@ lemma extend_op_congr_finite {m : measurable_space α} (μ : measure α)
   {f g : α →ₛ E} (hf : integrable f μ) (h : f =ᵐ[μ] g) :
   f.extend_op T = g.extend_op T :=
 begin
-  refine extend_op_congr T _ (λ t, μ t ≠ ∞) (by simp) h_add _ _ _ _ _,
-  { exact h_zero ∅ measurable_set.empty measure_empty, },
-  { exact λ s t hs ht, measure_union_ne_top, },
-  { exact λ s t hs ht, measure_inter_ne_top, },
-  { exact λ x hx_mem hx0, (measure_preimage_lt_top_of_integrable _ hf hx0).ne, },
-  { have hg : integrable g μ, from (integrable_congr h).mp hf,
-    exact λ x hx_mem hx0, (measure_preimage_lt_top_of_integrable _ hg hx0).ne, },
-  { refine λ x y hxy, h_zero _ _ _,
-    rw [eventually_eq, ae_iff] at h,
-    refine measure_mono_null (λ z, _) h,
-    simp_rw [set.mem_inter_iff, set.mem_set_of_eq, set.mem_preimage, set.mem_singleton_iff],
-    intro h,
-    rwa [h.1, h.2], },
+  refine extend_op_congr T (h_zero ∅ measurable_set.empty measure_empty) (λ t, μ t ≠ ∞) (by simp)
+    h_add (λ s t hs ht, measure_union_ne_top) (λ s t hs ht, measure_inter_ne_top)
+    (λ x _ hx0, (measure_preimage_lt_top_of_integrable _ hf hx0).ne)
+    (λ x _ hx0, (measure_preimage_lt_top_of_integrable _ ((integrable_congr h).mp hf) hx0).ne) _,
+  refine λ x y hxy, h_zero _ _ _,
+  rw [eventually_eq, ae_iff] at h,
+  refine measure_mono_null (λ z, _) h,
+  simp_rw [set.mem_inter_iff, set.mem_set_of_eq, set.mem_preimage, set.mem_singleton_iff],
+  intro h,
+  rwa [h.1, h.2],
 end
 
 lemma congr_hyp_of_le_measure (T : set α → (F' →L[ℝ] F)) {C : ℝ}
@@ -591,12 +588,8 @@ calc extend_op T (f + g) = ∑ x in (pair f g).range,
       ∑ x in (pair f g).range, T ((pair f g) ⁻¹' {x}) (measurable_set_fiber _ _) x.snd :
   by rw finset.sum_add_distrib
 ... = ((pair f g).map prod.fst).extend_op T + ((pair f g).map prod.snd).extend_op T :
-begin
-  rw [map_extend_op T T_empty p hp_empty h_add hp_union hp_pair,
-    map_extend_op T T_empty p hp_empty h_add hp_union hp_pair],
-  { refl, },
-  { refl, },
-end
+  by rw [map_extend_op T T_empty p hp_empty h_add hp_union hp_pair prod.snd_zero,
+    map_extend_op T T_empty p hp_empty h_add hp_union hp_pair prod.fst_zero]
 
 lemma extend_op_add_finite {m : measurable_space α} (μ : measure α)
   (T : Π s : set α, measurable_set s → (E →L[ℝ] F)) (T_empty : T ∅ measurable_set.empty = 0)
@@ -650,21 +643,6 @@ end
 lemma neg_singleton {β : Type*} [add_group β] (x : β) : -({x} : set β) = {-x} :=
 by { ext1 y, rw [mem_neg, mem_singleton_iff, mem_singleton_iff, neg_eq_iff_neg_eq, eq_comm], }
 
-lemma p_preimage_neg [measurable_space α] {p : set α → Prop} {g : α →ₛ G}
-  (hg : ∀ x ∈ g.range, x ≠ 0 → p (g ⁻¹' {x})) :
-  ∀ (x : G), x ∈ (-g).range → x ≠ 0 → p (⇑(-g) ⁻¹' {x}) :=
-begin
-  intros x hx hx_ne,
-  change p ((has_neg.neg ∘ g) ⁻¹' {x}),
-  rw [preimage_comp, neg_preimage, neg_singleton],
-  refine hg (-x) _ _,
-  { simp only [set.mem_range, pi.neg_apply, mem_range, coe_neg] at hx ⊢,
-    obtain ⟨y, hyx⟩ := hx,
-    rw neg_eq_iff_neg_eq at hyx,
-    exact ⟨y, hyx.symm⟩, },
-  { simpa using hx_ne, },
-end
-
 lemma extend_op_sub {m : measurable_space α} (T : Π s : set α, measurable_set s → (F' →L[ℝ] F))
   (T_empty : T ∅ measurable_set.empty = 0) (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
@@ -678,7 +656,14 @@ lemma extend_op_sub {m : measurable_space α} (T : Π s : set α, measurable_set
 begin
   rw [sub_eq_add_neg, extend_op_add T T_empty p hp_empty h_add hp_union hp_inter hf,
     extend_op_neg T T_empty p hp_empty h_add hp_union hg, sub_eq_add_neg],
-  exact p_preimage_neg hg,
+  intros x hx hx_ne,
+  change p ((has_neg.neg ∘ g) ⁻¹' {x}),
+  rw [preimage_comp, neg_preimage, neg_singleton],
+  refine hg (-x) _ _,
+  { simp only [set.mem_range, pi.neg_apply, mem_range, coe_neg] at hx ⊢,
+    obtain ⟨y, hyx⟩ := hx,
+    exact ⟨y, (neg_eq_iff_neg_eq.mp hyx).symm⟩, },
+  { simpa using hx_ne, },
 end
 
 lemma extend_op_sub_finite (T : Π s : set α, measurable_set s → (E →L[ℝ] F))
@@ -702,12 +687,12 @@ lemma extend_op_smul_ℝ {m : measurable_space α}
   (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
     (hps : p s) (hpt : p t) (h : s ∩ t = ∅), T (s ∪ t) (hs.union ht) = T s hs + T t ht)
-  (hp_add : ∀ s t (hs : measurable_set s) (ht : measurable_set t) (hps : p s) (hpt : p t),
+  (hp_union : ∀ s t (hs : measurable_set s) (ht : measurable_set t) (hps : p s) (hpt : p t),
     p (s ∪ t))
   (c : ℝ) {f : α →ₛ F'} (hf : ∀ x ∈ f.range, x ≠ 0 → p (f ⁻¹' {x})) :
   extend_op T (c • f) = c • extend_op T f :=
 calc extend_op T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (measurable_set_fiber _ _) (c • x) :
-  by { rw [smul_eq_map c f, map_extend_op T T_empty p hp_empty h_add hp_add hf],
+  by { rw [smul_eq_map c f, map_extend_op T T_empty p hp_empty h_add hp_union hf],
     rw smul_zero, }
 ... = ∑ x in f.range, c • (T (f ⁻¹' {x}) (measurable_set_fiber _ _) x) :
   finset.sum_congr rfl $ λ b hb,
@@ -758,9 +743,8 @@ lemma integral_smul (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
   integral μ (c • f) = c • integral μ f :=
 begin
   rw integral_eq_extend_op,
-  refine extend_op_smul_finite μ (λ s hs, weighted_smul μ s) (weighted_smul_empty μ)
-    weighted_smul_union (λ c s hs x, _) c hf,
-  simp_rw [weighted_smul_apply, smul_comm],
+  exact extend_op_smul_finite μ (λ s hs, weighted_smul μ s) (weighted_smul_empty μ)
+    weighted_smul_union (λ c s hs x, by simp_rw [weighted_smul_apply, smul_comm]) c hf,
 end
 
 lemma norm_extend_op_le_sum_op_norm {m : measurable_space α}
@@ -955,9 +939,9 @@ lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : �
   integral (c • f) = c • integral f :=
 begin
   rw integral_eq_indicator_to_L1s,
-  refine indicator_to_L1s_smul _ (λ _ _, simple_func.weighted_smul_measure_zero)
-    simple_func.weighted_smul_union (λ c s hs x, _) c f,
-  simp_rw [simple_func.weighted_smul_apply, smul_comm],
+  exact indicator_to_L1s_smul _ (λ _ _, simple_func.weighted_smul_measure_zero)
+    simple_func.weighted_smul_union
+    (λ c s hs x, by simp_rw [simple_func.weighted_smul_apply, smul_comm]) c f,
 end
 
 lemma norm_indicator_to_L1s_le (T : Π s : set α, measurable_set s → (E →L[ℝ] F'))
@@ -985,30 +969,25 @@ def indicator_to_L1s_clm' [normed_space 𝕜 F'] (T : Π s : set α, measurable_
   (h_smul : ∀ c : 𝕜, ∀ s hs x, T s hs (c • x) = c • T s hs x)
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
   (α →₁ₛ[μ] E') →L[𝕜] F' :=
-begin
-  have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s hs = 0,
-  { refine λ s hs hs0, norm_eq_zero.mp _,
-    refine le_antisymm ((hT_norm s hs).trans (le_of_eq _)) (norm_nonneg _),
-    rw hs0,
-    simp, },
-  exact linear_map.mk_continuous ⟨indicator_to_L1s T, indicator_to_L1s_add T h_zero h_add,
-    indicator_to_L1s_smul T h_zero h_add h_smul⟩ C (λ f, norm_indicator_to_L1s_le T hC hT_norm f),
-end
+have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s hs = 0,
+{ refine λ s hs hs0, norm_eq_zero.mp _,
+  refine le_antisymm ((hT_norm s hs).trans (le_of_eq _)) (norm_nonneg _),
+  rw [hs0, ennreal.zero_to_real, mul_zero], },
+linear_map.mk_continuous ⟨indicator_to_L1s T, indicator_to_L1s_add T h_zero h_add,
+  indicator_to_L1s_smul T h_zero h_add h_smul⟩ C (λ f, norm_indicator_to_L1s_le T hC hT_norm f)
 
 def indicator_to_L1s_clm (T : Π s : set α, measurable_set s → (E' →L[ℝ] F'))
   (h_add : ∀ (s t : set α) (hs : measurable_set s) (ht : measurable_set t)
     (hps : μ s ≠ ∞) (hpt : μ t ≠ ∞) (h : s ∩ t = ∅), T (s ∪ t) (hs.union ht) = T s hs + T t ht)
   {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
   (α →₁ₛ[μ] E') →L[ℝ] F' :=
-begin
-  have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s hs = 0,
-  { refine λ s hs hs0, norm_eq_zero.mp _,
-    refine le_antisymm ((hT_norm s hs).trans (le_of_eq _)) (norm_nonneg _),
-    rw hs0,
-    simp, },
-  exact linear_map.mk_continuous ⟨indicator_to_L1s T, indicator_to_L1s_add T h_zero h_add,
-    indicator_to_L1s_smul_ℝ T h_zero h_add⟩ C (λ f, norm_indicator_to_L1s_le T hC hT_norm f)
-end
+have h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s hs = 0,
+{ refine λ s hs hs0, norm_eq_zero.mp _,
+  refine le_antisymm ((hT_norm s hs).trans (le_of_eq _)) (norm_nonneg _),
+  rw [hs0, ennreal.zero_to_real, mul_zero], },
+linear_map.mk_continuous ⟨indicator_to_L1s T, indicator_to_L1s_add T h_zero h_add,
+  indicator_to_L1s_smul_ℝ T h_zero h_add⟩ C (λ f, norm_indicator_to_L1s_le T hC hT_norm f)
+
 variables {α E' μ 𝕜}
 
 variables (α E μ 𝕜)

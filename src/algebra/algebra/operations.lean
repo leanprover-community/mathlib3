@@ -27,13 +27,14 @@ It is proved that `submodule R A` is a semiring, and also an algebra over `set A
 multiplication of submodules, division of subodules, submodule semiring
 -/
 
-universes u v
+universes uι u v
 
 open algebra set
 open_locale pointwise
 
 namespace submodule
 
+variables {ι : Sort uι}
 variables {R : Type u} [comm_semiring R]
 
 section ring
@@ -186,20 +187,17 @@ end
 
 end decidable_eq
 
-lemma mul_eq_span_mul_set {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  (s t : submodule R A) : s * t = span R ((s : set A) * (t : set A)) :=
+lemma mul_eq_span_mul_set (s t : submodule R A) : s * t = span R ((s : set A) * (t : set A)) :=
 by rw [← span_mul_span, span_eq, span_eq]
 
-lemma supr_mul {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
+lemma supr_mul (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
 begin
   suffices : (⨆ i, span R (s i : set A)) * span R t = (⨆ i, span R (s i) * span R t),
   { simpa only [span_eq] using this },
   simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul],
 end
 
-lemma mul_supr {ι R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  (s : ι → submodule R A) (t : submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
+lemma mul_supr (t : submodule R A) (s : ι → submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
 begin
   suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),
   { simpa only [span_eq] using this },

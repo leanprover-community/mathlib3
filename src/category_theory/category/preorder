@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 
+import category_theory.category.Cat
 import category_theory.category.default
 import order.category.Preorder
 
@@ -68,12 +69,55 @@ by { cases h, cases h, refl, }
 
 end category_theory
 
-namespace function
+variables {X : Type u} {Y : Type v} [preorder X] [preorder Y]
 
-open category_theory
-
-variables (X : Type u) (Y : Type v) [preorder X] [preorder Y]
-
+/--
+A monotone function between preorders induces a functor between the associated categories.
+-/
 def monotone.functor {f : X → Y} (h : monotone f) : X ⥤ Y :=
 { obj := f,
   map := λ x₁ x₂ g, (h g.le).hom }
+
+@[simp] lemma monotone.functor_obj {f : X → Y} (h : monotone f) : h.functor.obj = f := rfl
+
+/--
+A galois connection between preorders induces an adjunction between the associated categories.
+-/
+def galois_connection.adjunction {l : X → Y} {u : Y → X} (gc : galois_connection l u) :
+  gc.monotone_l.functor ⊣ gc.monotone_u.functor :=
+category_theory.adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Y, ⟨λ f, (gc.le_u f.le).hom, λ f, (gc.l_le f.le).hom, by tidy, by tidy⟩ }
+
+namespace category_theory
+
+/--
+A functor between preorder categories is monotone.
+-/
+lemma monotone_of_functor (f : X ⥤ Y) : monotone f.obj :=
+λ x y hxy, (f.map hxy.hom).le
+
+/--
+An adjunction between preorder categories induces a galois connection.
+-/
+lemma galois_connection_of_adjunction {L : X ⥤ Y} {R : Y ⥤ X} (adj : L ⊣ R) :
+  galois_connection L.obj R.obj :=
+λ x y, ⟨λ h, ((adj.hom_equiv x y).to_fun h.hom).le, λ h, ((adj.hom_equiv x y).inv_fun h.hom).le⟩
+
+/--
+The embedding of `Preorder` into `Cat`.
+-/
+@[simps]
+def Preorder_to_Cat : Preorder ⥤ Cat :=
+{ obj := λ X, Cat.of X.1,
+  map := λ X Y f, f.monotone.functor,
+  map_id' := λ X, begin apply category_theory.functor.ext, tidy end,
+  map_comp' := λ X Y Z f g, begin apply category_theory.functor.ext, tidy end }
+
+instance : faithful Preorder_to_Cat :=
+{ map_injective' := λ X Y f g h, begin ext x, exact functor.congr_obj h x end }
+
+instance : full Preorder_to_Cat :=
+{ preimage := λ X Y f, ⟨f.obj, monotone_of_functor f⟩,
+  witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }
+
+end category_theory
